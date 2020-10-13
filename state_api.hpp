@@ -60,6 +60,14 @@ void enc_rlp(RLPStream& enc, DPOSConfig const& obj);
 Json::Value enc_json(DPOSConfig const& obj);
 void dec_json(Json::Value const& json, DPOSConfig& obj);
 
+struct DPOSTransfer {
+  u256 value;
+  bool negative = 0;
+};
+void enc_rlp(RLPStream& enc, DPOSTransfer const& obj);
+
+using DPOSTransfers = unordered_map<addr_t, DPOSTransfer>;
+
 struct ChainConfig {
   ETHChainConfig eth_chain_config;
   bool disable_block_rewards = 0;
@@ -135,10 +143,12 @@ struct Account {
   h256 CodeHash;
   uint64_t CodeSize = 0;
 
-  auto const& storage_root_eth() {
+  auto const& storage_root_eth() const {
     return StorageRootHash ? StorageRootHash : dev::EmptyListSHA3;
   }
-  auto const& code_hash_eth() { return CodeSize ? CodeHash : dev::EmptySHA3; }
+  auto const& code_hash_eth() const {
+    return CodeSize ? CodeHash : dev::EmptySHA3;
+  }
 };
 void dec_rlp(RLP const&, Account&);
 
@@ -195,10 +205,20 @@ class StateAPI {
   StateTransitionResult const& transition_state(
       EVMBlock const& block,
       RangeView<EVMTransaction> const& transactions,  //
-      RangeView<UncleBlock> const& uncles);
+      RangeView<UncleBlock> const& uncles = {});
   void transition_state_commit();
+  // DPOS
   uint64_t dpos_eligible_count(BlockNumber blk_num) const;
   bool dpos_is_eligible(BlockNumber blk_num, addr_t const& addr) const;
+  static addr_t const& dpos_contract_addr();
+  struct DPOSTransactionPrototype {
+    uint64_t minimal_gas = 0;  // TODO estimate gas
+    byte value = 0;
+    bytes input;
+    addr_t const& to = dpos_contract_addr();
+
+    DPOSTransactionPrototype(DPOSTransfers const& transfers);
+  };
 };
 
 }  // namespace taraxa::state_api

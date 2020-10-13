@@ -25,16 +25,16 @@ struct WithTestInfo : virtual testing::Test {
   virtual ~WithTestInfo() {}
 };
 
-struct WithTestDataDir : virtual WithTestInfo {
+struct WithDataDir : virtual WithTestInfo {
   boost::filesystem::path data_dir = boost::filesystem::temp_directory_path() /
                                      "taraxa_node_tests" /
                                      current_test_info->test_suite_name() /
                                      current_test_info->test_case_name();
 
-  WithTestDataDir() : WithTestInfo() {
+  WithDataDir() : WithTestInfo() {
     boost::filesystem::create_directories(data_dir);
   }
-  virtual ~WithTestDataDir() { boost::filesystem::remove_all(data_dir); }
+  virtual ~WithDataDir() { boost::filesystem::remove_all(data_dir); }
 };
 
 #endif  // TARAXA_NODE_UTIL_GTEST_HPP_

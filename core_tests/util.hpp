@@ -36,20 +36,73 @@ inline auto const DIR_CONF = DIR / "conf";
 
 inline const uint64_t TEST_TX_GAS_LIMIT = 0;
 
-inline bool wait(nanoseconds timeout, function<bool()> const& condition,
-                 nanoseconds poll_period = 1s) {
-  assert(poll_period <= timeout);
-  for (auto i(timeout / poll_period); i != 0; --i) {
-    if (condition()) {
+struct wait_opts {
+  nanoseconds timeout;
+  nanoseconds poll_period = 1s;
+};
+class wait_ctx {
+  bool failed_ = false;
+
+ public:
+  bool const is_last_attempt;
+  uint64_t const attempt;
+  uint64_t const attempt_count;
+  ostream& fail_log;
+
+  wait_ctx(uint64_t attempt, uint64_t attempt_count, ostream& fail_log)
+      : is_last_attempt(attempt == attempt_count - 1),
+        attempt(attempt),
+        attempt_count(attempt_count),
+        fail_log(fail_log) {}
+
+  void fail() { failed_ = true; }
+  auto fail_if(bool cond) {
+    if (cond) {
+      failed_ = true;
+    }
+    return failed_;
+  }
+  auto failed() const { return failed_; }
+};
+inline bool wait(wait_opts const& opts,
+                 function<void(wait_ctx&)> const& poller) {
+  struct NullBuffer : streambuf {
+    int overflow(int c) override { return c; }
+  } static null_buf;
+
+  assert(opts.poll_period <= opts.timeout);
+  uint64_t attempt_count = opts.timeout / opts.poll_period;
+  for (uint64_t i(0); i < attempt_count; ++i) {
+    if (i == attempt_count - 1) {
+      stringstream err_log;
+      wait_ctx ctx(i, attempt_count, err_log);
+      if (poller(ctx); !ctx.failed()) {
+        return true;
+      }
+      if (auto const& s = err_log.str(); !s.empty()) {
+        cout << err_log.str() << endl;
+      }
+      return false;
+    }
+    ostream null_strm(&null_buf);
+    wait_ctx ctx(i, attempt_count, null_strm);
+    if (poller(ctx); !ctx.failed()) {
       return true;
     }
-    this_thread::sleep_for(poll_period);
+    this_thread::sleep_for(opts.poll_period);
   }
-  return false;
+  assert(false);
 }
-
 #define ASSERT_HAPPENS(...) ASSERT_TRUE(wait(__VA_ARGS__))
 #define EXPECT_HAPPENS(...) EXPECT_TRUE(wait(__VA_ARGS__))
+#define WAIT_EXPECT_EQ(ctx, o1, o2)         \
+  if (o1 != o2) {                           \
+    if (ctx.fail(); !ctx.is_last_attempt) { \
+      return;                               \
+    }                                       \
+    EXPECT_EQ(o1, o2);                      \
+  }                                         \
+  assert(true)  // to justify trailing semicolon
 
 inline auto const node_cfgs_original = Lazy([] {
   vector<FullNodeConfig> ret;
@@ -113,20 +166,6 @@ inline auto make_node_cfgs(uint count) {
   return slice(ret, 0, count);
 }
 
-inline auto await_connect(vector<FullNode::Handle> const& nodes) {
-  return wait(
-      15s,
-      [&] {
-        for (auto const& node : nodes) {
-          if (node->getNetwork()->getPeerCount() < nodes.size() - 1) {
-            return false;
-          }
-        }
-        return true;
-      },
-      500ms);
-}
-
 inline auto launch_nodes(vector<FullNodeConfig> const& cfgs,
                          optional<uint> min_peers_to_connect = {},
                          optional<uint> retry_cnt = {}) {
@@ -140,17 +179,13 @@ inline auto launch_nodes(vector<FullNodeConfig> const& cfgs,
     if (node_count == 1) {
       return result;
     }
-    auto all_connected = wait(
-        10s,
-        [&] {
-          for (auto const& node : result) {
-            if (node->getNetwork()->getPeerCount() < min_peers) {
-              return false;
-            }
-          }
-          return true;
-        },
-        500ms);
+    auto all_connected = wait({10s, 500ms}, [&](auto& ctx) {
+      for (auto const& node : result) {
+        if (ctx.fail_if(node->getNetwork()->getPeerCount() < min_peers)) {
+          return;
+        }
+      }
+    });
     if (all_connected) {
       cout << "nodes connected" << endl;
       return result;
@@ -160,8 +195,8 @@ inline auto launch_nodes(vector<FullNodeConfig> const& cfgs,
   return result;
 }
 
-struct BaseTest : virtual WithTestDataDir {
-  BaseTest() : WithTestDataDir() {
+struct BaseTest : virtual WithDataDir {
+  BaseTest() : WithDataDir() {
     for (auto& cfg : *node_cfgs_original) {
       remove_all(cfg.db_path);
     }
@@ -193,16 +228,12 @@ struct TransactionClient {
 
  private:
   shared_ptr<FullNode> node_;
-  nanoseconds wait_timeout;
-  nanoseconds wait_poll_period;
+  wait_opts wait_opts_;
 
  public:
   explicit TransactionClient(decltype(node_) node,
-                             nanoseconds wait_timeout = 45s,
-                             nanoseconds wait_poll_period = 1s)
-      : node_(move(node)),
-        wait_timeout(wait_timeout),
-        wait_poll_period(wait_poll_period) {}
+                             wait_opts const& wait_opts = {45s, 1s})
+      : node_(move(node)), wait_opts_(wait_opts) {}
 
   Context coinTransfer(addr_t const& to, val_t const& val,
                        optional<KeyPair> const& from_k = {},
@@ -228,12 +259,9 @@ struct TransactionClient {
     ctx.stage = TransactionStage::inserted;
     auto trx_hash = ctx.trx.getHash();
     if (wait_executed) {
-      auto success = wait(
-          wait_timeout,
-          [&, this] {
-            return node_->getFinalChain()->isKnownTransaction(trx_hash);
-          },
-          wait_poll_period);
+      auto success = wait(wait_opts_, [&, this](auto& ctx) {
+        ctx.fail_if(!node_->getFinalChain()->isKnownTransaction(trx_hash));
+      });
       if (success) {
         ctx.stage = TransactionStage::executed;
       }
@@ -241,6 +269,21 @@ struct TransactionClient {
     return ctx;
   }
 };
+
+inline auto make_dpos_trx(FullNodeConfig const& sender_node_cfg,
+                          state_api::DPOSTransfers const& transfers,
+                          uint64_t nonce = 0, u256 const& gas_price = 0,
+                          uint64_t extra_gas = 0) {
+  StateAPI::DPOSTransactionPrototype proto(transfers);
+  return Transaction(nonce, proto.value, gas_price,
+                     proto.minimal_gas + extra_gas, std::move(proto.input),
+                     dev::Secret(sender_node_cfg.node_secret), proto.to,
+                     sender_node_cfg.chain.chain_id);
+}
+
+inline auto own_balance(shared_ptr<FullNode> const& node) {
+  return node->getFinalChain()->getBalance(node->getAddress()).first;
+}
 
 };  // namespace taraxa::core_tests
 

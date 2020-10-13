@@ -1473,7 +1473,7 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
   }
   auto batch = db_->createWriteBatch();
   // Execute transactions in EVM(GO trx engine) and update Ethereum block
-  auto const &[new_eth_header, trx_receipts, state_transition_result] =
+  auto const &[new_eth_header, trx_receipts, _] =
       final_chain_->advance(batch, pbft_block.getBeneficiary(),
                             pbft_block.getTimestamp(), transactions_tmp_buf_);
 

@@ -42,56 +42,75 @@ pair<size_t, size_t> calculate_2tPuls1_threshold(size_t committee_size,
 void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
     size_t committee_size) {
   auto node_cfgs = make_node_cfgs<20>(5);
-  auto nodes = launch_nodes(node_cfgs);
-
-  std::shared_ptr<PbftManager> pbft_mgr;
-  for (auto i(0); i < nodes.size(); ++i) {
-    pbft_mgr = nodes[i]->getPbftManager();
-    pbft_mgr->COMMITTEE_SIZE = committee_size;
+  for (auto &cfg : node_cfgs) {
+    cfg.chain.pbft.committee_size = committee_size;
   }
+  auto nodes = launch_nodes(node_cfgs);
 
   // Even distribute coins from master boot node to other nodes. Since master
   // boot node owns whole coins, the active players should be only master boot
   // node at the moment.
-  auto init_bal =
-      ChainConfig::default_chain_boot_node_initial_balance / nodes.size();
+  auto node_0_expected_bal = own_balance(nodes[0]);
   auto gas_price = val_t(2);
   auto data = bytes();
-  auto nonce = 0;
+  auto nonce = 0;  // fixme: the following nonce approach is not correct anyway
   auto trxs_count = 0;
+
+  {
+    auto min_stake_to_vote =
+        node_cfgs[0]
+            .chain.final_chain.state.dpos->eligibility_balance_threshold;
+    state_api::DPOSTransfers delegations;
+    for (auto i(1); i < nodes.size(); ++i) {
+      delegations[nodes[i]->getAddress()] = {min_stake_to_vote};
+      node_0_expected_bal -= min_stake_to_vote;
+    }
+    auto trx = make_dpos_trx(node_cfgs[0], delegations, nonce++);
+    nodes[0]->getTransactionManager()->insertTransaction(trx);
+    auto &final_ch = *nodes[0]->getFinalChain();
+    while (true) {
+      if (final_ch.isKnownTransaction(trx.getHash())) {
+        auto r = final_ch.transactionReceipt(trx.getHash());
+        cout << "done" << r << endl;
+        return;
+      }
+    }
+    trxs_count++;
+  }
+
+  auto init_bal = node_0_expected_bal / nodes.size();
   for (auto i(1); i < nodes.size(); ++i) {
     Transaction master_boot_node_send_coins(
         nonce++, init_bal, gas_price, TEST_TX_GAS_LIMIT, data,
         nodes[0]->getSecretKey(), nodes[i]->getAddress());
+    node_0_expected_bal -= init_bal;
     // broadcast trx and insert
     nodes[0]->getTransactionManager()->insertTransaction(
-        master_boot_node_send_coins, false);
+        master_boot_node_send_coins);
     trxs_count++;
   }
 
   std::cout << "Checking all nodes executed transactions from master boot node"
             << std::endl;
-  auto success = wait(
-      80s,
-      [&] {
-        for (auto i(0); i < nodes.size(); ++i) {
-          if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
-            std::cout << "node" << i << " executed "
-                      << nodes[i]->getDB()->getNumTransactionExecuted()
-                      << " transactions, expected " << trxs_count << std::endl;
-            Transaction dummy_trx(nonce++, 0, 2, TEST_TX_GAS_LIMIT, bytes(),
-                                  nodes[0]->getSecretKey(),
-                                  nodes[0]->getAddress());
-            // broadcast dummy transaction
-            nodes[0]->getTransactionManager()->insertTransaction(dummy_trx,
-                                                                 false);
-            trxs_count++;
-            return false;
-          }
+  EXPECT_HAPPENS({80s, 8s}, [&](auto &ctx) {
+    for (auto i(0); i < nodes.size(); ++i) {
+      if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
+        ctx.fail_log << "node" << i << " executed "
+                     << nodes[i]->getDB()->getNumTransactionExecuted()
+                     << " transactions, expected " << trxs_count << std::endl;
+        if (ctx.fail(); !ctx.is_last_attempt) {
+          Transaction dummy_trx(nonce++, 0, 2, TEST_TX_GAS_LIMIT, bytes(),
+                                nodes[0]->getSecretKey(),
+                                nodes[0]->getAddress());
+          // broadcast dummy transaction
+          nodes[0]->getTransactionManager()->insertTransaction(dummy_trx,
+                                                               false);
+          trxs_count++;
+          return;
         }
-        return true;
-      },
-      8s);
+      }
+    }
+  });
   for (auto i(0); i < nodes.size(); ++i) {
     EXPECT_EQ(nodes[i]->getDB()->getNumTransactionExecuted(), trxs_count);
   }
@@ -101,7 +120,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
               << std::endl;
     EXPECT_EQ(
         nodes[i]->getFinalChain()->getBalance(nodes[0]->getAddress()).first,
-        ChainConfig::default_chain_boot_node_initial_balance - 4 * init_bal);
+        node_0_expected_bal);
     for (auto j(1); j < nodes.size(); ++j) {
       // For node1 to node4 balances info on each node
       EXPECT_EQ(
@@ -113,7 +132,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
   size_t committee, two_t_plus_one, threshold, expected_2tPlus1,
       expected_threshold;
   for (auto i(0); i < nodes.size(); ++i) {
-    pbft_mgr = nodes[i]->getPbftManager();
+    auto pbft_mgr = nodes[i]->getPbftManager();
     committee = pbft_mgr->COMMITTEE_SIZE;
     valid_voting_players = pbft_mgr->getEligibleVoterCount();
     two_t_plus_one = pbft_mgr->getTwoTPlusOne();
@@ -145,30 +164,25 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
 
   std::cout << "Checking all nodes execute transactions from robin cycle"
             << std::endl;
-  success = wait(
-      80s,
-      [&] {
-        for (auto i(0); i < nodes.size(); ++i) {
-          if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
-            std::cout << "node" << i << " executed "
-                      << nodes[i]->getDB()->getNumTransactionExecuted()
-                      << " transactions. Expected " << trxs_count << std::endl;
-            Transaction dummy_trx(nonce++, 0, 2, TEST_TX_GAS_LIMIT, bytes(),
-                                  nodes[0]->getSecretKey(),
-                                  nodes[0]->getAddress());
-            // broadcast dummy transaction
-            nodes[0]->getTransactionManager()->insertTransaction(dummy_trx,
-                                                                 false);
-            trxs_count++;
-            return false;
-          }
+  EXPECT_HAPPENS({80s, 8s}, [&](auto &ctx) {
+    for (auto i(0); i < nodes.size(); ++i) {
+      if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
+        ctx.fail_log << "node" << i << " executed "
+                     << nodes[i]->getDB()->getNumTransactionExecuted()
+                     << " transactions. Expected " << trxs_count << std::endl;
+        if (ctx.fail(); !ctx.is_last_attempt) {
+          Transaction dummy_trx(nonce++, 0, 2, TEST_TX_GAS_LIMIT, bytes(),
+                                nodes[0]->getSecretKey(),
+                                nodes[0]->getAddress());
+          // broadcast dummy transaction
+          nodes[0]->getTransactionManager()->insertTransaction(dummy_trx,
+                                                               false);
+          trxs_count++;
+          return;
         }
-        return true;
-      },
-      8s);
-  for (auto i = 0; i < nodes.size(); i++) {
-    EXPECT_EQ(nodes[i]->getDB()->getNumTransactionExecuted(), trxs_count);
-  }
+      }
+    }
+  });
   // Account balances should not change in robin cycle
   for (auto i(0); i < nodes.size(); ++i) {
     std::cout << "Checking account balances on node " << i << " ..."
@@ -185,7 +199,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
   }
 
   for (auto i(0); i < nodes.size(); ++i) {
-    pbft_mgr = nodes[i]->getPbftManager();
+    auto pbft_mgr = nodes[i]->getPbftManager();
     committee = pbft_mgr->COMMITTEE_SIZE;
     valid_voting_players = pbft_mgr->getEligibleVoterCount();
     two_t_plus_one = pbft_mgr->getTwoTPlusOne();
@@ -204,7 +218,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
 
 TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
   auto node_cfgs = make_node_cfgs<20>(1);
-  FullNode::Handle node(node_cfgs[0]);
+  FullNode::Handle node(node_cfgs[0], true);
 
   // create a transaction
   auto coins_value = val_t(100);

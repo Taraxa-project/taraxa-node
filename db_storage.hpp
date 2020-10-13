@@ -92,7 +92,7 @@ struct DbStorage {
   auto handle(Column const& col) const { return handles_[col.ordinal].get(); }
 
  public:
-  static unique_ptr<DbStorage> make(fs::path const& base_path);
+  DbStorage(fs::path const& base_path);
 
   auto const& path() const { return path_; }
   BatchPtr createWriteBatch();

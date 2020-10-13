@@ -65,7 +65,7 @@ void FullNode::init() {
     LOG(log_er_) << "Genesis block is invalid";
     assert(false);
   }
-  db_ = DbStorage::make(conf_.dbstorage_path());
+  emplace(db_, conf_.dbstorage_path());
   db_->saveDagBlock(conf_.chain.dag_genesis_block);
   LOG(log_nf_) << "DB initialized ...";
 

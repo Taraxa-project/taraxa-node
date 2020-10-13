@@ -211,17 +211,10 @@ TEST_F(NetworkTest, save_network) {
 TEST_F(NetworkTest, node_network_id) {
   auto node_cfgs = make_node_cfgs(2);
   {
-    auto conf1 = node_cfgs[0];
-    conf1.network.network_id = "main";
-    FullNode::Handle node1(conf1, true);
-
-    auto conf2 = node_cfgs[1];
-    conf2.network.network_id = "main";
-    FullNode::Handle node2(conf2, true);
-
-    taraxa::thisThreadSleepForMilliSeconds(1000);
-    EXPECT_EQ(node1->getNetwork()->getPeerCount(), 1);
-    EXPECT_EQ(node2->getNetwork()->getPeerCount(), 1);
+    auto node_cfgs_ = node_cfgs;
+    node_cfgs_[0].network.network_id = "main";
+    node_cfgs_[1].network.network_id = "main";
+    auto nodes = launch_nodes(node_cfgs_);
   }
   {
     auto conf1 = node_cfgs[0];
@@ -316,29 +309,20 @@ TEST_F(NetworkTest, node_sync) {
     node1->getBlockManager()->insertBlock(blks[i]);
   }
 
-  wait(
-      30s,
-      [&] {
-        return node1->getDagManager()->getNumVerticesInDag().first == 7 &&
-               node1->getDagManager()->getNumEdgesInDag().first == 8;
-      },
-      500ms);
-  EXPECT_EQ(node1->getNumReceivedBlocks(), blks.size());
-  EXPECT_EQ(node1->getDagManager()->getNumVerticesInDag().first, 7);
-  EXPECT_EQ(node1->getDagManager()->getNumEdgesInDag().first, 8);
+  EXPECT_HAPPENS({30s, 500ms}, [&](auto& ctx) {
+    WAIT_EXPECT_EQ(ctx, node1->getNumReceivedBlocks(), blks.size());
+    WAIT_EXPECT_EQ(ctx, node1->getDagManager()->getNumVerticesInDag().first, 7);
+    WAIT_EXPECT_EQ(ctx, node1->getDagManager()->getNumEdgesInDag().first, 8);
+  });
 
   FullNode::Handle node2(node_cfgs[1], true);
+
   std::cout << "Waiting Sync..." << std::endl;
-  wait(
-      45s,
-      [&] {
-        return node2->getDagManager()->getNumVerticesInDag().first == 7 &&
-               node2->getDagManager()->getNumEdgesInDag().first == 8;
-      },
-      1500ms);
-  EXPECT_EQ(node2->getNumReceivedBlocks(), blks.size());
-  EXPECT_EQ(node2->getDagManager()->getNumVerticesInDag().first, 7);
-  EXPECT_EQ(node2->getDagManager()->getNumEdgesInDag().first, 8);
+  EXPECT_HAPPENS({45s, 1500ms}, [&](auto& ctx) {
+    WAIT_EXPECT_EQ(ctx, node2->getNumReceivedBlocks(), blks.size());
+    WAIT_EXPECT_EQ(ctx, node2->getDagManager()->getNumVerticesInDag().first, 7);
+    WAIT_EXPECT_EQ(ctx, node2->getDagManager()->getNumEdgesInDag().first, 8);
+  });
 }
 
 // Test creates a PBFT chain on one node and verifies
@@ -896,7 +880,6 @@ TEST_F(NetworkTest, node_transaction_sync) {
 // intervals on randomly selected nodes It verifies that the blocks created from
 // these transactions which get created on random nodes are synced and the
 // resulting DAG is the same on all nodes
-// fixme: flaky
 TEST_F(NetworkTest, node_full_sync) {
   constexpr auto numberOfNodes = 5;
   auto node_cfgs = make_node_cfgs(numberOfNodes);
@@ -946,27 +929,15 @@ TEST_F(NetworkTest, node_full_sync) {
   }
   ASSERT_EQ(counter, 50);  // 50 transactions
 
-  std::cout << "Waiting Sync for up to 2 minutes ..." << std::endl;
-  // Check 4 nodes DAG syncing
-  for (int i = 0; i < 240; i++) {
-    bool finished = true;
+  std::cout << "Waiting Sync ..." << std::endl;
+  wait({120s, 500ms}, [&](auto& ctx) {
+    // Check 4 nodes DAG syncing
     for (int j = 1; j < numberOfNodes - 1; j++) {
-      if (nodes[j]->getDagManager()->getNumVerticesInDag().first !=
-          nodes[0]->getDagManager()->getNumVerticesInDag().first) {
-        finished = false;
-        break;
-      }
+      WAIT_EXPECT_EQ(ctx,
+                     nodes[j]->getDagManager()->getNumVerticesInDag().first,
+                     nodes[0]->getDagManager()->getNumVerticesInDag().first);
     }
-    if (finished) {
-      break;
-    }
-    taraxa::thisThreadSleepForMilliSeconds(500);
-  }
-  for (auto i = 1; i < numberOfNodes - 1; i++) {
-    std::cout << "Node index i " << i << std::endl;
-    ASSERT_EQ(nodes[0]->getDagManager()->getNumVerticesInDag().first,
-              nodes[i]->getDagManager()->getNumVerticesInDag().first);
-  }
+  });
 
   // Bootstrapping node5 join the network
   nodes.emplace_back(FullNode::Handle(node_cfgs[numberOfNodes - 1], true));
@@ -996,24 +967,17 @@ TEST_F(NetworkTest, node_full_sync) {
 
   std::cout << "Waiting Sync for up to 4 minutes ..." << std::endl;
   // Check 5 nodes DAG syncing
-  for (int i = 0; i < 240; i++) {
-    taraxa::thisThreadSleepForMilliSeconds(1000);
-    bool finished = true;
-    for (int j = 1; j < numberOfNodes; j++) {
-      if (nodes[j]->getDagManager()->getNumVerticesInDag().first !=
-          nodes[0]->getDagManager()->getNumVerticesInDag().first) {
-        finished = false;
-        break;
-      }
-      if (!nodes[j]->getNetwork()->isSynced()) {
-        finished = false;
-      }
+
+  wait({240s, 1000ms}, [&](auto& ctx) {
+    // Check 4 nodes DAG syncing
+    for (int j = 1; j < numberOfNodes - 1; j++) {
+      WAIT_EXPECT_EQ(ctx,
+                     nodes[j]->getDagManager()->getNumVerticesInDag().first,
+                     nodes[0]->getDagManager()->getNumVerticesInDag().first);
+      ctx.fail_if(!nodes[j]->getNetwork()->isSynced());
     }
-    if (finished)
-      break;
-    else
-      printf("Waiting %d\n", i);
-  }
+  });
+
   EXPECT_GT(nodes[0]->getDagManager()->getNumVerticesInDag().first, 0);
   EXPECT_GT(10,
             nodes[0]->getTransactionManager()->getVerifiedTrxSnapShot().size());

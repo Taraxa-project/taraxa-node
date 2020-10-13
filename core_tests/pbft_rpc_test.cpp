@@ -107,23 +107,11 @@ TEST_F(PbftRpcTest, reconstruct_votes) {
 // Generate a vote, send the vote from node2 to node1
 TEST_F(PbftRpcTest, transfer_vote) {
   auto node_cfgs = make_node_cfgs(2);
-  FullNode::Handle node1(node_cfgs[0]);
-  FullNode::Handle node2(node_cfgs[1]);
-
+  auto nodes = launch_nodes(node_cfgs);
+  auto &node1 = nodes[0];
+  auto &node2 = nodes[1];
   std::shared_ptr<Network> nw1 = node1->getNetwork();
   std::shared_ptr<Network> nw2 = node2->getNetwork();
-
-  int node_peers = 1;
-  for (int i = 0; i < 300; i++) {
-    // test timeout is 30 seconds
-    if (nw1->getPeerCount() == node_peers &&
-        nw2->getPeerCount() == node_peers) {
-      break;
-    }
-    taraxa::thisThreadSleepForMilliSeconds(100);
-  }
-  ASSERT_EQ(node_peers, nw1->getPeerCount());
-  ASSERT_EQ(node_peers, nw2->getPeerCount());
 
   // stop PBFT manager, that will place vote
   std::shared_ptr<PbftManager> pbft_mgr1 = node1->getPbftManager();

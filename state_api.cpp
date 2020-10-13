@@ -183,6 +183,21 @@ bool StateAPI::dpos_is_eligible(BlockNumber blk_num, addr_t const& addr) const {
                                                err_handler_c);
 }
 
+addr_t const& StateAPI::dpos_contract_addr() {
+  static auto const ret = [] {
+    auto ret_c = taraxa_evm_state_api_dpos_contract_addr();
+    return addr_t(ret_c.Val, addr_t::ConstructFromPointer);
+  }();
+  return ret;
+}
+
+StateAPI::DPOSTransactionPrototype::DPOSTransactionPrototype(
+    DPOSTransfers const& transfers) {
+  RLPStream transfers_rlp;
+  enc_rlp(transfers_rlp, transfers);
+  input = transfers_rlp.invalidate();
+}
+
 void enc_rlp(RLPStream& rlp, ExecutionOptions const& obj) {
   enc_rlp_tuple(rlp, obj.disable_nonce_check, obj.disable_gas_fee);
 }
@@ -362,6 +377,10 @@ void dec_json(Json::Value const& json, DPOSConfig& obj) {
 
 void dec_rlp(RLP const& rlp, StateDescriptor& obj) {
   dec_rlp_tuple(rlp, obj.blk_num, obj.state_root);
+}
+
+void enc_rlp(RLPStream& enc, DPOSTransfer const& obj) {
+  enc_rlp_tuple(enc, obj.value, obj.negative);
 }
 
 }  // namespace taraxa::state_api

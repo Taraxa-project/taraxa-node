@@ -12,7 +12,7 @@ using namespace dev;
 using namespace rocksdb;
 namespace fs = boost::filesystem;
 
-std::unique_ptr<DbStorage> DbStorage::make(fs::path const& path) {
+DbStorage::DbStorage(fs::path const& path) : path_(path) {
   fs::create_directories(path);
   rocksdb::Options options;
   options.create_missing_column_families = true;
@@ -27,15 +27,12 @@ std::unique_ptr<DbStorage> DbStorage::make(fs::path const& path) {
                  });
   vector<ColumnFamilyHandle*> handles(Columns::all.size());
   checkStatus(DB::Open(options, path.string(), descriptors, &handles, &db));
-  auto ret = u_ptr(new DbStorage);
-  ret->db_ = s_ptr(db);
-  ret->path_ = path;
-  ret->handles_.reserve(handles.size());
+  db_.reset(db);
+  handles_.reserve(handles.size());
   for (auto h : handles) {
-    ret->handles_.emplace_back(h);
+    handles_.emplace_back(h);
   }
-  ret->dag_blocks_count_.store(ret->getStatusField(StatusDbField::DagBlkCount));
-  return ret;
+  dag_blocks_count_.store(getStatusField(StatusDbField::DagBlkCount));
 }
 
 void DbStorage::checkStatus(rocksdb::Status const& status) {

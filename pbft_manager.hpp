@@ -32,7 +32,6 @@ enum PbftStates {
   finish_polling_state
 };
 
-
 class PbftManager {
   unique_ptr<ReplayProtectionService> replay_protection_service;
 
@@ -72,28 +71,28 @@ class PbftManager {
 
   // Notice: Test purpose
   void setSortitionThreshold(size_t const sortition_threshold);
+  std::vector<std::vector<uint>> createMockTrxSchedule(
+      std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
+          trx_overlap_table);
+  bool shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step);
 
  private:
+  u_long LAMBDA_ms_MIN;
+  u_long LAMBDA_ms = 0;
+
+ public:
+  size_t const COMMITTEE_SIZE;
+
+ private:
+  size_t DAG_BLOCKS_SIZE;
+  size_t GHOST_PATH_MOVE_BACK;
+  bool RUN_COUNT_VOTES;  // TODO: Only for test, need remove later
+
   void update_dpos_state_();
   bool is_eligible_(addr_t const &addr);
 
  public:
   uint64_t getEligibleVoterCount() const;
-
-  std::vector<std::vector<uint>> createMockTrxSchedule(
-      std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
-          trx_overlap_table);
-
-  // End Test
-
-  bool shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step);
-
-  u_long LAMBDA_ms_MIN;  // TODO: Should be on define
-  u_long LAMBDA_ms = 0;
-  size_t COMMITTEE_SIZE;        // TODO: Should be on define
-  size_t DAG_BLOCKS_SIZE;       // TODO: Should be on define
-  size_t GHOST_PATH_MOVE_BACK;  // TODO: Should be on define
-  bool RUN_COUNT_VOTES;         // TODO: Only for test, need remove later
 
  private:
   void resetStep_();

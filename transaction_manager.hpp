@@ -85,7 +85,7 @@ class TransactionManager
   // Insert new transaction to unverified queue or if verify flag true
   // synchronously verify and insert into verified queue
   std::pair<bool, std::string> insertTransaction(Transaction const &trx,
-                                                 bool verify);
+                                                 bool verify = false);
   // Transactions coming from broadcasting is less critical
   uint32_t insertBroadcastedTransactions(
       std::vector<taraxa::bytes> const &transactions);

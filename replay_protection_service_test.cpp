@@ -12,9 +12,9 @@
 namespace taraxa::replay_protection_service {
 using namespace taraxa;
 
-struct ReplayProtectionServiceTest : WithTestDataDir {
+struct ReplayProtectionServiceTest : WithDataDir {
   round_t range = 0;
-  shared_ptr<DbStorage> db = DbStorage::make(data_dir);
+  shared_ptr<DbStorage> db{new DbStorage(data_dir)};
   shared_ptr<ReplayProtectionService> SUT;
   vector<vector<ReplayProtectionService::TransactionInfo>> history;
   round_t curr_round = 0;

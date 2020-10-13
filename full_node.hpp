@@ -94,8 +94,10 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   template <typename T, typename... ConstructorParams>
   auto &emplace(std::shared_ptr<T> &ptr, ConstructorParams &&... ctor_params) {
     ptr = std::make_shared<T>(std::forward<ConstructorParams>(ctor_params)...);
-    post_destruction_ +=
-        [w_ptr = std::weak_ptr<T>(ptr)] { assert(w_ptr.use_count() == 0); };
+    post_destruction_ += [w_ptr = std::weak_ptr<T>(ptr)] {
+      // Example of debugging: cout << "checking " << typeid(T).name() << endl;
+      assert(w_ptr.use_count() == 0);
+    };
     return ptr;
   }
 

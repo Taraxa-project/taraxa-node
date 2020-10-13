@@ -17,8 +17,8 @@ struct advance_check_opts {
   bool dont_assume_all_trx_success = 0;
 };
 
-struct FinalChainTest : WithTestDataDir {
-  shared_ptr<DbStorage> db = DbStorage::make(data_dir / "db");
+struct FinalChainTest : WithDataDir {
+  shared_ptr<DbStorage> db{new DbStorage(data_dir / "db")};
   FinalChain::Config cfg = ChainConfig::predefined().final_chain;
   unique_ptr<FinalChain> SUT;
   bool assume_only_toplevel_transfers = true;

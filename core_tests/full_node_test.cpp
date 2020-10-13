@@ -81,8 +81,7 @@ void send_dummy_trx() {
 struct FullNodeTest : BaseTest {};
 
 TEST_F(FullNodeTest, db_test) {
-  auto db_ptr =
-      std::shared_ptr<DbStorage>(std::move(DbStorage::make(data_dir)));
+  auto db_ptr = s_ptr(new DbStorage(data_dir));
   auto &db = *db_ptr;
   DagBlock blk1(blk_hash_t(1), 1, {}, {trx_hash_t(1), trx_hash_t(2)},
                 sig_t(777), blk_hash_t(0xB1), addr_t(999));
@@ -340,18 +339,15 @@ TEST_F(FullNodeTest, sync_five_nodes) {
         thread_completed[i] = true;
       });
     }
-    auto success = wait(
-        60s,
-        [&] {
-          for (auto t : thread_completed) {
-            if (!t) {
-              context.dummy_transaction();
-              return false;
-            }
-          }
-          return true;
-        },
-        500ms);
+    wait({60s, 500ms}, [&](auto &ctx) {
+      for (auto t : thread_completed) {
+        if (!t) {
+          context.dummy_transaction();
+          ctx.fail();
+          return;
+        }
+      }
+    });
     for (auto &t : threads) t.join();
   }
   std::cout << "Issued transatnion count " << context.getIssuedTrxCount();
@@ -1085,30 +1081,25 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
 
   std::cout << "Checking all nodes executed transactions at initialization"
             << std::endl;
-  auto success = wait(
-      150s,
-      [&] {
-        for (auto i(0); i < nodes.size(); ++i) {
-          if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
-            std::cout << "node" << i << " executed "
-                      << nodes[i]->getDB()->getNumTransactionExecuted()
-                      << " transactions, expected " << trxs_count << std::endl;
-            Transaction dummy_trx(nonce++, 0, 2, 100000, bytes(),
-                                  nodes[0]->getSecretKey(),
-                                  nodes[0]->getAddress());
-            // broadcast dummy transaction
-            nodes[0]->getTransactionManager()->insertTransaction(dummy_trx,
-                                                                 false);
-            trxs_count++;
-            return false;
-          }
+  wait({150s, 15s}, [&](auto &ctx) {
+    for (auto i(0); i < nodes.size(); ++i) {
+      if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
+        std::cout << "node" << i << " executed "
+                  << nodes[i]->getDB()->getNumTransactionExecuted()
+                  << " transactions, expected " << trxs_count << std::endl;
+        if (ctx.fail(); !ctx.is_last_attempt) {
+          Transaction dummy_trx(nonce++, 0, 2, 100000, bytes(),
+                                nodes[0]->getSecretKey(),
+                                nodes[0]->getAddress());
+          // broadcast dummy transaction
+          nodes[0]->getTransactionManager()->insertTransaction(dummy_trx,
+                                                               false);
+          trxs_count++;
+          return;
         }
-        return true;
-      },
-      15s);
-  for (auto i(0); i < nodes.size(); ++i) {
-    EXPECT_EQ(nodes[i]->getDB()->getNumTransactionExecuted(), trxs_count);
-  }
+      }
+    }
+  });
   // Check account balance for each node
   for (auto i(0); i < nodes.size(); ++i) {
     std::cout << "Checking account balances on node " << i << " ..."
@@ -1145,30 +1136,26 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   }
   std::cout << "Checking all nodes execute transactions from robin cycle"
             << std::endl;
-  success = wait(
-      150s,
-      [&nodes, &trxs_count, &nonce] {
-        for (auto i(0); i < nodes.size(); ++i) {
-          if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
-            std::cout << "node" << i << " executed "
-                      << nodes[i]->getDB()->getNumTransactionExecuted()
-                      << " transactions. Expected " << trxs_count << std::endl;
-            Transaction dummy_trx(nonce++, 0, 2, 100000, bytes(),
-                                  nodes[0]->getSecretKey(),
-                                  nodes[0]->getAddress());
-            // broadcast dummy transaction
-            nodes[0]->getTransactionManager()->insertTransaction(dummy_trx,
-                                                                 false);
-            trxs_count++;
-            return false;
-          }
+
+  wait({150s, 15s}, [&](auto &ctx) {
+    for (auto i(0); i < nodes.size(); ++i) {
+      if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
+        std::cout << "node" << i << " executed "
+                  << nodes[i]->getDB()->getNumTransactionExecuted()
+                  << " transactions, expected " << trxs_count << std::endl;
+        if (ctx.fail(); !ctx.is_last_attempt) {
+          Transaction dummy_trx(nonce++, 0, 2, 100000, bytes(),
+                                nodes[0]->getSecretKey(),
+                                nodes[0]->getAddress());
+          // broadcast dummy transaction
+          nodes[0]->getTransactionManager()->insertTransaction(dummy_trx,
+                                                               false);
+          trxs_count++;
+          return;
         }
-        return true;
-      },
-      15s);
-  for (auto i = 0; i < nodes.size(); i++) {
-    EXPECT_EQ(nodes[i]->getDB()->getNumTransactionExecuted(), trxs_count);
-  }
+      }
+    }
+  });
 
   // Check DAG
   auto num_vertices0 = nodes[0]->getDagManager()->getNumVerticesInDag();
