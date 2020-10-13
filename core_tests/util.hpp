@@ -119,6 +119,7 @@ inline auto const node_cfgs_original = Lazy([] {
 template <uint tests_speed = 1, bool enable_rpc_http = false,
           bool enable_rpc_ws = false>
 inline auto make_node_cfgs(uint count) {
+  static_assert(tests_speed <= 5);
   static auto const ret = [] {
     auto ret = *node_cfgs_original;
     if constexpr (tests_speed == 1 && enable_rpc_http && enable_rpc_ws) {
@@ -130,6 +131,7 @@ inline auto make_node_cfgs(uint count) {
         cfg.test_params.block_proposer.difficulty_bound = 5;
         cfg.test_params.block_proposer.lambda_bound = 100;
         cfg.chain.pbft.lambda_ms_min /= tests_speed;
+        cfg.network.network_transaction_interval /= tests_speed;
       }
       if constexpr (!enable_rpc_http) {
         cfg.rpc.port = nullopt;
