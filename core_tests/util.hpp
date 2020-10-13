@@ -162,8 +162,8 @@ inline auto launch_nodes(vector<FullNodeConfig> const& cfgs,
                          optional<uint> min_peers_to_connect = {},
                          optional<uint> retry_cnt = {}) {
   auto node_count = cfgs.size();
-  vector<FullNode::Handle> nodes(node_count);
-  for (auto i = retry_cnt.value_or(3); i != 0; --i, nodes.clear()) {
+  for (auto i = retry_cnt.value_or(3);; --i) {
+    vector<FullNode::Handle> nodes(node_count);
     for (uint j = 0; j < node_count; ++j) {
       nodes[j] = FullNode::Handle(cfgs[j], true);
     }
@@ -174,9 +174,11 @@ inline auto launch_nodes(vector<FullNodeConfig> const& cfgs,
       cout << "nodes connected" << endl;
       return nodes;
     }
+    if (i == 0) {
+      EXPECT_TRUE(false);
+      return nodes;
+    }
   }
-  EXPECT_TRUE(false);
-  return nodes;
 }
 
 struct BaseTest : virtual WithDataDir {
