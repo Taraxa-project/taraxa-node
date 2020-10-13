@@ -67,15 +67,15 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
     }
     auto trx = make_dpos_trx(node_cfgs[0], delegations, nonce++);
     nodes[0]->getTransactionManager()->insertTransaction(trx);
-    auto &final_ch = *nodes[0]->getFinalChain();
-    while (true) {
-      if (final_ch.isKnownTransaction(trx.getHash())) {
-        auto r = final_ch.transactionReceipt(trx.getHash());
-        cout << "done" << r << endl;
-        return;
-      }
-    }
     trxs_count++;
+    EXPECT_HAPPENS({60s, 1s}, [&](auto &ctx) {
+      for (auto &node : nodes) {
+        if (ctx.fail_if(
+                !node->getFinalChain()->isKnownTransaction(trx.getHash()))) {
+          return;
+        }
+      }
+    });
   }
 
   auto init_bal = node_1_expected_bal / nodes.size();

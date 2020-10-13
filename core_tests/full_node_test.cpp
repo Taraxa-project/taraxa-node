@@ -926,7 +926,6 @@ TEST_F(FullNodeTest, sync_two_nodes2) {
   EXPECT_EQ(vertices1, vertices2);
 }
 
-// disabled for now, need to create two trx with nonce 0!
 TEST_F(FullNodeTest, single_node_run_two_transactions) {
   auto node_cfgs = make_node_cfgs<5, true>(2);
   auto nodes = launch_nodes(node_cfgs);
@@ -947,31 +946,29 @@ TEST_F(FullNodeTest, single_node_run_two_transactions) {
   system(send_raw_trx1.c_str());
   std::cout << "First trx received ..." << std::endl;
 
-  auto trx_executed1 = nodes[0]->getDB()->getNumTransactionExecuted();
+  EXPECT_HAPPENS({60s, 1s}, [&](auto &ctx) {
+    for (auto &node : nodes) {
+      WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), 1);
+      WAIT_EXPECT_EQ(ctx, node->getTransactionManager()->getTransactionCount(),
+                     1);
+      WAIT_EXPECT_EQ(ctx, node->getDagManager()->getNumVerticesInDag().first,
+                     2);
+    }
+  });
 
-  for (auto i(0); i < SYNC_TIMEOUT; ++i) {
-    trx_executed1 = nodes[0]->getDB()->getNumTransactionExecuted();
-    if (trx_executed1 == 1) break;
-    thisThreadSleepForMilliSeconds(100);
-  }
-  EXPECT_EQ(nodes[0]->getTransactionManager()->getTransactionCount(), 1);
-  EXPECT_EQ(nodes[0]->getDagManager()->getNumVerticesInDag().first, 2);
-
-  EXPECT_EQ(trx_executed1, 1);
   std::cout << "First trx executed ..." << std::endl;
   std::cout << "Send second trx ..." << std::endl;
   system(send_raw_trx2.c_str());
 
-  trx_executed1 = nodes[0]->getDB()->getNumTransactionExecuted();
-
-  for (auto i(0); i < SYNC_TIMEOUT; ++i) {
-    trx_executed1 = nodes[0]->getDB()->getNumTransactionExecuted();
-    if (trx_executed1 == 2) break;
-    thisThreadSleepForMilliSeconds(500);
-  }
-  EXPECT_EQ(trx_executed1, 2);
-  EXPECT_EQ(nodes[0]->getTransactionManager()->getTransactionCount(), 2);
-  EXPECT_EQ(nodes[0]->getDagManager()->getNumVerticesInDag().first, 3);
+  EXPECT_HAPPENS({60s, 1s}, [&](auto &ctx) {
+    for (auto &node : nodes) {
+      WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), 2);
+      WAIT_EXPECT_EQ(ctx, node->getTransactionManager()->getTransactionCount(),
+                     2);
+      WAIT_EXPECT_EQ(ctx, node->getDagManager()->getNumVerticesInDag().first,
+                     3);
+    }
+  });
 }
 
 TEST_F(FullNodeTest, two_nodes_run_two_transactions) {
