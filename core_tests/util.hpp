@@ -149,7 +149,7 @@ inline auto make_node_cfgs(uint count) {
 inline auto wait_connect(vector<FullNode::Handle> const& nodes,
                          optional<uint> min_peers_to_connect = {}) {
   auto min_peers = min_peers_to_connect.value_or(nodes.size() - 1);
-  return wait({10s, 500ms}, [&](auto& ctx) {
+  return wait({30s, 1s}, [&](auto& ctx) {
     for (auto const& node : nodes) {
       if (ctx.fail_if(node->getNetwork()->getPeerCount() < min_peers)) {
         return;
@@ -162,9 +162,12 @@ inline auto launch_nodes(vector<FullNodeConfig> const& cfgs,
                          optional<uint> min_peers_to_connect = {},
                          optional<uint> retry_cnt = {}) {
   auto node_count = cfgs.size();
-  for (auto i = retry_cnt.value_or(3);; --i) {
+  for (auto i = retry_cnt.value_or(4);; --i) {
     vector<FullNode::Handle> nodes(node_count);
     for (uint j = 0; j < node_count; ++j) {
+      if (j > 0) {
+        this_thread::sleep_for(500ms);
+      }
       nodes[j] = FullNode::Handle(cfgs[j], true);
     }
     if (node_count == 1) {
@@ -175,7 +178,7 @@ inline auto launch_nodes(vector<FullNodeConfig> const& cfgs,
       return nodes;
     }
     if (i == 0) {
-      EXPECT_TRUE(false);
+      EXPECT_TRUE(false) << "nodes didn't connect properly";
       return nodes;
     }
   }
@@ -214,7 +217,7 @@ struct TransactionClient {
 
  public:
   explicit TransactionClient(decltype(node_) node,
-                             wait_opts const& wait_opts = {45s, 1s})
+                             wait_opts const& wait_opts = {60s, 1s})
       : node_(move(node)), wait_opts_(wait_opts) {}
 
   Context coinTransfer(addr_t const& to, val_t const& val,
