@@ -777,8 +777,9 @@ void TaraxaCapability::restartSyncingPbft(bool force) {
         << max_pbft_chain_size;
     syncing_ = false;
     if (!requesting_pending_dag_blocks_ &&
-        (force || max_node_dag_level > std::max(dag_mgr_->getMaxLevel(),
-                                      blk_mgr_->getMaxDagLevelInQueue()))) {
+        (force ||
+         max_node_dag_level > std::max(dag_mgr_->getMaxLevel(),
+                                       blk_mgr_->getMaxDagLevelInQueue()))) {
       LOG(log_nf_dag_sync_) << "Request pending " << max_node_dag_level << " "
                             << std::max(dag_mgr_->getMaxLevel(),
                                         blk_mgr_->getMaxDagLevelInQueue())
@@ -910,27 +911,30 @@ void TaraxaCapability::onNewTransactions(
     }
   }
   if (!fromNetwork || conf_.network_transaction_interval == 0) {
+    std::map<NodeID, std::vector<taraxa::bytes>> transactionsToSend;
+    std::map<NodeID, std::vector<trx_hash_t>> transactionsHashToSend;
     {
-      boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
+      boost::unique_lock<boost::shared_mutex> lock(peers_mutex_);
       for (auto &peer : peers_) {
         if (!peer.second->syncing_) {
-          std::vector<taraxa::bytes> transactionsToSend;
-          std::vector<trx_hash_t> transactionsHashes;
           for (auto const &transaction : transactions) {
             Transaction trx(transaction);
             auto trx_hash = trx.getHash();
             if (!peer.second->isTransactionKnown(trx_hash)) {
-              transactionsToSend.push_back(transaction);
-              transactionsHashes.push_back(trx_hash);
-            }
-          }
-          if (transactionsToSend.size() > 0) {
-            sendTransactions(peer.first, transactionsToSend);
-            for (auto &hash : transactionsHashes) {
-              peer.second->markTransactionAsKnown(hash);
+              transactionsToSend[peer.first].push_back(transaction);
+              transactionsHashToSend[peer.first].push_back(trx_hash);
             }
           }
         }
+      }
+    }
+    for (auto &it : transactionsToSend) {
+      sendTransactions(it.first, it.second);
+    }
+    boost::unique_lock<boost::shared_mutex> lock(peers_mutex_);
+    for (auto &it : transactionsHashToSend) {
+      for (auto &it2 : it.second) {
+        peers_[it.first]->markTransactionAsKnown(it2);
       }
     }
   }
@@ -966,11 +970,10 @@ void TaraxaCapability::onNewBlockReceived(
 
 void TaraxaCapability::sendSyncedMessage() {
   LOG(log_dg_dag_sync_) << "sendSyncedMessage ";
-  boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
-  for (auto &peer : peers_) {
+  for (auto &peer : getAllPeers()) {
     RLPStream s;
-    host_.capabilityHost()->prep(peer.first, name(), s, SyncedPacket, 0);
-    host_.capabilityHost()->sealAndSend(peer.first, s);
+    host_.capabilityHost()->prep(peer, name(), s, SyncedPacket, 0);
+    host_.capabilityHost()->sealAndSend(peer, s);
   }
 }
 
@@ -1276,11 +1279,17 @@ void TaraxaCapability::onStarting() {
 }
 
 void TaraxaCapability::onNewPbftVote(taraxa::Vote const &vote) {
-  boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
-  for (auto const &peer : peers_) {
-    if (!peer.second->isVoteKnown(vote.getHash())) {
-      sendPbftVote(peer.first, vote);
+  std::vector<NodeID> peers_to_send;
+  {
+    boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
+    for (auto const &peer : peers_) {
+      if (!peer.second->isVoteKnown(vote.getHash())) {
+        peers_to_send.push_back(peer.first);
+      }
     }
+  }
+  for (auto const &peer : peers_to_send) {
+    sendPbftVote(peer, vote);
   }
 }
 
@@ -1296,14 +1305,18 @@ void TaraxaCapability::sendPbftVote(NodeID const &_id,
 }
 
 void TaraxaCapability::onNewPbftBlock(taraxa::PbftBlock const &pbft_block) {
+  std::vector<NodeID> peers_to_send;
   auto my_chain_size = pbft_chain_->getPbftChainSize();
-  boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
-  for (auto const &peer : peers_) {
-    if (!peer.second->isPbftBlockKnown(pbft_block.getBlockHash())) {
-      if (!peer.second->syncing_) {
-        sendPbftBlock(peer.first, pbft_block, my_chain_size);
+  {
+    boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
+    for (auto const &peer : peers_) {
+      if (!peer.second->isPbftBlockKnown(pbft_block.getBlockHash())) {
+        peers_to_send.push_back(peer.first);
       }
     }
+  }
+  for (auto const &peer : peers_to_send) {
+    sendPbftBlock(peer, pbft_block, my_chain_size);
   }
 }
 

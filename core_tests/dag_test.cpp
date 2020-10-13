@@ -121,118 +121,6 @@ TEST_F(DagTest, dag_traverse2_get_children_tips) {
   EXPECT_EQ(7, graph.getNumEdges());
 }
 
-// Use the example on Conflux paper
-TEST_F(DagTest, dag_traverse3_get_ordered_blks) {
-  const std::string GENESIS =
-      "0000000000000000000000000000000000000000000000000000000000000000";
-  taraxa::Dag graph(GENESIS, addr_t());
-  auto vA = "0000000000000000000000000000000000000000000000000000000000000001";
-  auto vB = "0000000000000000000000000000000000000000000000000000000000000002";
-  auto vC = "0000000000000000000000000000000000000000000000000000000000000003";
-  auto vD = "0000000000000000000000000000000000000000000000000000000000000004";
-  auto vE = "0000000000000000000000000000000000000000000000000000000000000005";
-  auto vF = "0000000000000000000000000000000000000000000000000000000000000006";
-  auto vG = "0000000000000000000000000000000000000000000000000000000000000007";
-  auto vH = "0000000000000000000000000000000000000000000000000000000000000008";
-  auto vI = "0000000000000000000000000000000000000000000000000000000000000009";
-  auto vJ = "000000000000000000000000000000000000000000000000000000000000000A";
-  auto vK = "000000000000000000000000000000000000000000000000000000000000000B";
-
-  std::vector<std::string> empty;
-  std::string no = "";
-  graph.addVEEs(vA, GENESIS, empty);
-  graph.addVEEs(vB, GENESIS, empty);
-  graph.addVEEs(vC, vA, {vB});
-  graph.addVEEs(vD, vA, empty);
-  graph.addVEEs(vF, vB, empty);
-  graph.addVEEs(vE, vC, {vD, vF});
-  graph.addVEEs(vG, vA, empty);
-  graph.addVEEs(vJ, vF, empty);
-  graph.addVEEs(vI, vJ, empty);
-  graph.addVEEs(vH, vE, {vG, vI});
-  graph.addVEEs(vK, vI, empty);
-
-  std::vector<std::string> ordered_blks;
-  // read only
-  graph.getEpFriendVertices(vE, vH, ordered_blks);
-  EXPECT_EQ(ordered_blks.size(), 4);
-
-  // ------------------ epoch A ------------------
-
-  {  // get only, do not finalize
-    graph.computeOrder(false /*finialized */, vA, 1, ordered_blks);
-    graph.addRecentDagBlks(vA);
-    EXPECT_EQ(ordered_blks.size(), 1);  // vA
-    EXPECT_EQ(graph.getUnOrderedDagBlks().size(), 1);
-  }
-  graph.computeOrder(true /*finialized */, vA, 1, ordered_blks);
-
-  EXPECT_EQ(ordered_blks.size(), 1);  // vA
-  EXPECT_EQ(graph.getUnOrderedDagBlks().size(), 0);
-
-  // ------------------ epoch C ------------------
-
-  graph.addRecentDagBlks(vB);
-  graph.addRecentDagBlks(vC);
-
-  {  // get only, do not finalize
-    graph.computeOrder(false /*finialized */, vC, 2, ordered_blks);
-    EXPECT_EQ(ordered_blks.size(), 2);  // vB, vC
-    EXPECT_EQ(graph.getUnOrderedDagBlks().size(), 2);
-  }
-
-  graph.computeOrder(true /*finialized */, vC, 2, ordered_blks);
-  EXPECT_EQ(ordered_blks.size(), 2);  // vB, vC
-  EXPECT_EQ(graph.getUnOrderedDagBlks().size(), 0);
-
-  // ------------------ epoch E ------------------
-
-  graph.addRecentDagBlks(vD);
-  graph.addRecentDagBlks(vE);
-  graph.addRecentDagBlks(vF);
-
-  graph.computeOrder(true /*finialized */, vE, 3, ordered_blks);
-  EXPECT_EQ(ordered_blks.size(), 3);  // vD, vF, vE
-  EXPECT_EQ(graph.getUnOrderedDagBlks().size(), 0);
-
-  // ------------------ epoch H ------------------
-  graph.addRecentDagBlks(vG);
-  graph.addRecentDagBlks(vH);
-  graph.addRecentDagBlks(vI);
-  graph.addRecentDagBlks(vJ);
-
-  graph.computeOrder(true /*finialized */, vH, 4, ordered_blks);
-  EXPECT_EQ(ordered_blks.size(), 4);  // vG, vJ, vI, vH
-  EXPECT_EQ(graph.getUnOrderedDagBlks().size(), 0);
-
-  if (ordered_blks.size() == 4) {
-    EXPECT_EQ(ordered_blks[0], vJ);
-    EXPECT_EQ(ordered_blks[1], vI);
-    EXPECT_EQ(ordered_blks[2], vG);
-    EXPECT_EQ(ordered_blks[3], vH);
-  }
-
-  // ------------------ epoch H ------------------
-  graph.addRecentDagBlks(vK);
-
-  graph.computeOrder(true /*finialized */, vK, 5, ordered_blks);
-  EXPECT_EQ(ordered_blks.size(), 1);  // vK
-  EXPECT_EQ(graph.getUnOrderedDagBlks().size(), 0);
-  EXPECT_EQ(graph.getNumVertices(), 12);
-
-  graph.deletePeriod(0);  // should be no op
-  graph.deletePeriod(1);
-  EXPECT_EQ(graph.getNumVertices(), 11);
-  graph.deletePeriod(2);
-  EXPECT_EQ(graph.getNumVertices(), 9);
-  graph.deletePeriod(4);
-  EXPECT_EQ(graph.getNumVertices(), 5);
-  graph.deletePeriod(3);
-  EXPECT_EQ(graph.getNumVertices(), 2);
-  graph.deletePeriod(5);  // should be no op
-  EXPECT_EQ(graph.getNumVertices(), 1);
-}
-
 TEST_F(DagTest, genesis_get_pivot) {
   const std::string GENESIS =
       "0000000000000000000000000000000000000000000000000000000000000000";
@@ -249,7 +137,9 @@ TEST_F(DagTest, genesis_get_pivot) {
 TEST_F(DagTest, compute_epoch) {
   const std::string GENESIS =
       "0000000000000000000000000000000000000000000000000000000000000000";
-  auto mgr = std::make_shared<DagManager>(GENESIS, addr_t(), nullptr, nullptr);
+  auto db_ptr = std::shared_ptr<DbStorage>(
+      std::move(DbStorage::make("/tmp/testtaraxadb", blk_hash_t(0), true)));
+  auto mgr = std::make_shared<DagManager>(GENESIS, addr_t(), nullptr, nullptr, db_ptr);
   DagBlock blkA(blk_hash_t(0), 0, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(1),
                 addr_t(1));
   DagBlock blkB(blk_hash_t(0), 0, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1),
@@ -268,6 +158,17 @@ TEST_F(DagTest, compute_epoch) {
                 addr_t(1));
   DagBlock blkJ(blk_hash_t(6), 0, {}, {}, sig_t(1), blk_hash_t(10), addr_t(1));
   DagBlock blkK(blk_hash_t(8), 0, {}, {}, sig_t(1), blk_hash_t(11), addr_t(1));
+  db_ptr->saveDagBlock(blkA);
+  db_ptr->saveDagBlock(blkB);
+  db_ptr->saveDagBlock(blkC);
+  db_ptr->saveDagBlock(blkD);
+  db_ptr->saveDagBlock(blkE);
+  db_ptr->saveDagBlock(blkF);
+  db_ptr->saveDagBlock(blkG);
+  db_ptr->saveDagBlock(blkH);
+  db_ptr->saveDagBlock(blkI);
+  db_ptr->saveDagBlock(blkJ);
+  db_ptr->saveDagBlock(blkK);
   mgr->addDagBlock(blkA);
   mgr->addDagBlock(blkB);
   mgr->addDagBlock(blkC);
@@ -282,69 +183,85 @@ TEST_F(DagTest, compute_epoch) {
   mgr->addDagBlock(blkK);
   taraxa::thisThreadSleepForMilliSeconds(100);
 
-  vec_blk_t orders;
+  auto orders = std::make_shared<vec_blk_t>();
   uint64_t period;
-  period = mgr->getDagBlockOrder(blkA.getHash(), orders);
-  EXPECT_EQ(orders.size(), 1);
+  std::tie(period, orders) = mgr->getDagBlockOrder(blkA.getHash());
+  EXPECT_EQ(orders->size(), 1);
   EXPECT_EQ(period, 1);
   // repeat, should not change
-  period = mgr->getDagBlockOrder(blkA.getHash(), orders);
-  EXPECT_EQ(orders.size(), 1);
+  std::tie(period, orders) = mgr->getDagBlockOrder(blkA.getHash());
+  EXPECT_EQ(orders->size(), 1);
   EXPECT_EQ(period, 1);
 
-  mgr->setDagBlockPeriod(blkA.getHash(), period);
+  auto write_batch = db_ptr->createWriteBatch();
+  mgr->setDagBlockOrder(blkA.getHash(), period, orders, write_batch);
+  db_ptr->commitWriteBatch(write_batch);
 
-  period = mgr->getDagBlockOrder(blkC.getHash(), orders);
-  EXPECT_EQ(orders.size(), 2);
+  std::tie(period, orders) = mgr->getDagBlockOrder(blkC.getHash());
+  EXPECT_EQ(orders->size(), 2);
   EXPECT_EQ(period, 2);
   // repeat, should not change
-  period = mgr->getDagBlockOrder(blkC.getHash(), orders);
-  EXPECT_EQ(orders.size(), 2);
+  std::tie(period, orders) = mgr->getDagBlockOrder(blkC.getHash());
+  EXPECT_EQ(orders->size(), 2);
   EXPECT_EQ(period, 2);
 
-  mgr->setDagBlockPeriod(blkC.getHash(), period);
+  write_batch = db_ptr->createWriteBatch();
+  mgr->setDagBlockOrder(blkC.getHash(), period, orders, write_batch);
+  db_ptr->commitWriteBatch(write_batch);
 
-  period = mgr->getDagBlockOrder(blkE.getHash(), orders);
-  EXPECT_EQ(orders.size(), 3);
+  std::tie(period, orders) = mgr->getDagBlockOrder(blkE.getHash());
+  EXPECT_EQ(orders->size(), 3);
   EXPECT_EQ(period, 3);
-  mgr->setDagBlockPeriod(blkE.getHash(), period);
+  write_batch = db_ptr->createWriteBatch();
+  mgr->setDagBlockOrder(blkE.getHash(), period, orders, write_batch);
+  db_ptr->commitWriteBatch(write_batch);
 
-  period = mgr->getDagBlockOrder(blkH.getHash(), orders);
-  EXPECT_EQ(orders.size(), 4);
+  std::tie(period, orders) = mgr->getDagBlockOrder(blkH.getHash());
+  EXPECT_EQ(orders->size(), 4);
   EXPECT_EQ(period, 4);
-  mgr->setDagBlockPeriod(blkH.getHash(), period);
+  write_batch = db_ptr->createWriteBatch();
+  mgr->setDagBlockOrder(blkH.getHash(), period, orders, write_batch);
+  db_ptr->commitWriteBatch(write_batch);
 
-  if (orders.size() == 4) {
-    EXPECT_EQ(orders[0], blk_hash_t(10));
-    EXPECT_EQ(orders[1], blk_hash_t(9));
-    EXPECT_EQ(orders[2], blk_hash_t(7));
-    EXPECT_EQ(orders[3], blk_hash_t(8));
+  if (orders->size() == 4) {
+    EXPECT_EQ((*orders)[0], blk_hash_t(10));
+    EXPECT_EQ((*orders)[1], blk_hash_t(9));
+    EXPECT_EQ((*orders)[2], blk_hash_t(7));
+    EXPECT_EQ((*orders)[3], blk_hash_t(8));
   }
-  period = mgr->getDagBlockOrder(blkK.getHash(), orders);
-  EXPECT_EQ(orders.size(), 1);
+  std::tie(period, orders) = mgr->getDagBlockOrder(blkK.getHash());
+  EXPECT_EQ(orders->size(), 1);
   EXPECT_EQ(period, 5);
-  mgr->setDagBlockPeriod(blkK.getHash(), period);
+  write_batch = db_ptr->createWriteBatch();
+  mgr->setDagBlockOrder(blkK.getHash(), period, orders, write_batch);
+  db_ptr->commitWriteBatch(write_batch);
 }
 
 TEST_F(DagTest, receive_block_in_order) {
   const std::string GENESIS =
-      "0000000000000000000000000000000000000000000000000000000000000000";
-  auto mgr = std::make_shared<DagManager>(GENESIS, addr_t(), nullptr, nullptr);
+      "000000000000000000000000000000000000000000000000000000000000000a";
+  auto db_ptr = std::shared_ptr<DbStorage>(
+      std::move(DbStorage::make("/tmp/testtaraxadb", blk_hash_t(0), true)));
+  auto mgr = std::make_shared<DagManager>(GENESIS, addr_t(), nullptr, nullptr, db_ptr);
   // mgr.setVerbose(true);
-  DagBlock blk1(blk_hash_t(0), 0, {}, {}, sig_t(777), blk_hash_t(1),
+  DagBlock genesis_block(blk_hash_t(0), 0, {}, {}, sig_t(777), blk_hash_t(10),
+                addr_t(15));
+  DagBlock blk1(blk_hash_t(10), 0, {}, {}, sig_t(777), blk_hash_t(1),
                 addr_t(15));
   DagBlock blk2(blk_hash_t(1), 0, {}, {}, sig_t(777), blk_hash_t(2),
                 addr_t(15));
-  DagBlock blk3(blk_hash_t(0), 0, {blk_hash_t(1), blk_hash_t(2)}, {},
+  DagBlock blk3(blk_hash_t(10), 0, {blk_hash_t(1), blk_hash_t(2)}, {},
                 sig_t(777), blk_hash_t(3), addr_t(15));
 
+  db_ptr->saveDagBlock(genesis_block);
+  db_ptr->saveDagBlock(blk1);
+  db_ptr->saveDagBlock(blk2);
   mgr->addDagBlock(blk1);
-  mgr->addDagBlock(blk2);
   mgr->addDagBlock(blk2);
   EXPECT_EQ(mgr->getNumVerticesInDag().first, 3);
   EXPECT_EQ(mgr->getNumEdgesInDag().first, 2);
 
-  mgr->addDagBlock(blk3);
+  db_ptr->saveDagBlock(blk3);
   mgr->addDagBlock(blk3);
   taraxa::thisThreadSleepForMilliSeconds(500);
 
@@ -359,8 +276,6 @@ TEST_F(DagTest, receive_block_in_order) {
   EXPECT_EQ(mgr->getNumVerticesInDag().first, 4);
   // total edges
   EXPECT_EQ(mgr->getNumEdgesInDag().first, 5);
-  // pivot edges
-  EXPECT_EQ(mgr->getNumEdgesInDag().second, 3);
 }
 
 // Use the example on Conflux paper, insert block in different order and make
@@ -368,7 +283,9 @@ TEST_F(DagTest, receive_block_in_order) {
 TEST_F(DagTest, compute_epoch_2) {
   const std::string GENESIS =
       "0000000000000000000000000000000000000000000000000000000000000000";
-  auto mgr = std::make_shared<DagManager>(GENESIS, addr_t(), nullptr, nullptr);
+  auto db_ptr = std::shared_ptr<DbStorage>(
+      std::move(DbStorage::make("/tmp/testtaraxadb", blk_hash_t(0), true)));
+  auto mgr = std::make_shared<DagManager>(GENESIS, addr_t(), nullptr, nullptr, db_ptr);
   DagBlock blkA(blk_hash_t(0), 0, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(1),
                 addr_t(1));
   DagBlock blkB(blk_hash_t(0), 0, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1),
@@ -387,6 +304,18 @@ TEST_F(DagTest, compute_epoch_2) {
                 addr_t(1));
   DagBlock blkJ(blk_hash_t(6), 0, {}, {}, sig_t(1), blk_hash_t(10), addr_t(1));
   DagBlock blkK(blk_hash_t(9), 0, {}, {}, sig_t(1), blk_hash_t(11), addr_t(1));
+  db_ptr->saveDagBlock(blkA);
+  db_ptr->saveDagBlock(blkB);
+  db_ptr->saveDagBlock(blkC);
+  db_ptr->saveDagBlock(blkD);
+  db_ptr->saveDagBlock(blkE);
+  db_ptr->saveDagBlock(blkF);
+  db_ptr->saveDagBlock(blkG);
+  db_ptr->saveDagBlock(blkH);
+  db_ptr->saveDagBlock(blkI);
+  db_ptr->saveDagBlock(blkJ);
+  db_ptr->saveDagBlock(blkK);
+  
   mgr->addDagBlock(blkA);
   mgr->addDagBlock(blkB);
   mgr->addDagBlock(blkC);
@@ -401,54 +330,66 @@ TEST_F(DagTest, compute_epoch_2) {
   mgr->addDagBlock(blkK);
   taraxa::thisThreadSleepForMilliSeconds(100);
 
-  vec_blk_t orders;
+  auto orders = std::make_shared<vec_blk_t>();
   uint64_t period;
-  period = mgr->getDagBlockOrder(blkA.getHash(), orders);
-  EXPECT_EQ(orders.size(), 1);
+  std::tie(period, orders) = mgr->getDagBlockOrder(blkA.getHash());
+  EXPECT_EQ(orders->size(), 1);
   EXPECT_EQ(period, 1);
   // repeat, should not change
-  period = mgr->getDagBlockOrder(blkA.getHash(), orders);
-  EXPECT_EQ(orders.size(), 1);
+  std::tie(period, orders) = mgr->getDagBlockOrder(blkA.getHash());
+  EXPECT_EQ(orders->size(), 1);
   EXPECT_EQ(period, 1);
 
-  mgr->setDagBlockPeriod(blkA.getHash(), period);
+  auto write_batch = db_ptr->createWriteBatch();
+  mgr->setDagBlockOrder(blkA.getHash(), period, orders, write_batch);
+  db_ptr->commitWriteBatch(write_batch);
 
-  period = mgr->getDagBlockOrder(blkC.getHash(), orders);
-  EXPECT_EQ(orders.size(), 2);
+  std::tie(period, orders) = mgr->getDagBlockOrder(blkC.getHash());
+  EXPECT_EQ(orders->size(), 2);
   EXPECT_EQ(period, 2);
   // repeat, should not change
-  period = mgr->getDagBlockOrder(blkC.getHash(), orders);
-  EXPECT_EQ(orders.size(), 2);
+  std::tie(period, orders) = mgr->getDagBlockOrder(blkC.getHash());
+  EXPECT_EQ(orders->size(), 2);
   EXPECT_EQ(period, 2);
 
-  mgr->setDagBlockPeriod(blkC.getHash(), period);
+  write_batch = db_ptr->createWriteBatch();
+  mgr->setDagBlockOrder(blkC.getHash(), period, orders, write_batch);
+  db_ptr->commitWriteBatch(write_batch);
 
-  period = mgr->getDagBlockOrder(blkE.getHash(), orders);
-  EXPECT_EQ(orders.size(), 3);
+  std::tie(period, orders) = mgr->getDagBlockOrder(blkE.getHash());
+  EXPECT_EQ(orders->size(), 3);
   EXPECT_EQ(period, 3);
-  mgr->setDagBlockPeriod(blkE.getHash(), period);
+  write_batch = db_ptr->createWriteBatch();
+  mgr->setDagBlockOrder(blkE.getHash(), period, orders, write_batch);
+  db_ptr->commitWriteBatch(write_batch);
 
-  period = mgr->getDagBlockOrder(blkH.getHash(), orders);
-  EXPECT_EQ(orders.size(), 4);
+  std::tie(period, orders) = mgr->getDagBlockOrder(blkH.getHash());
+  EXPECT_EQ(orders->size(), 4);
   EXPECT_EQ(period, 4);
-  mgr->setDagBlockPeriod(blkH.getHash(), period);
+  write_batch = db_ptr->createWriteBatch();
+  mgr->setDagBlockOrder(blkH.getHash(), period, orders, write_batch);
+  db_ptr->commitWriteBatch(write_batch);
 
-  if (orders.size() == 4) {
-    EXPECT_EQ(orders[0], blk_hash_t(10));
-    EXPECT_EQ(orders[1], blk_hash_t(9));
-    EXPECT_EQ(orders[2], blk_hash_t(7));
-    EXPECT_EQ(orders[3], blk_hash_t(8));
+  if (orders->size() == 4) {
+    EXPECT_EQ((*orders)[0], blk_hash_t(10));
+    EXPECT_EQ((*orders)[1], blk_hash_t(9));
+    EXPECT_EQ((*orders)[2], blk_hash_t(7));
+    EXPECT_EQ((*orders)[3], blk_hash_t(8));
   }
-  period = mgr->getDagBlockOrder(blkK.getHash(), orders);
-  EXPECT_EQ(orders.size(), 1);
+  std::tie(period, orders) = mgr->getDagBlockOrder(blkK.getHash());
+  EXPECT_EQ(orders->size(), 1);
   EXPECT_EQ(period, 5);
-  mgr->setDagBlockPeriod(blkK.getHash(), period);
+  write_batch = db_ptr->createWriteBatch();
+  mgr->setDagBlockOrder(blkK.getHash(), period, orders, write_batch);
+  db_ptr->commitWriteBatch(write_batch);
 }
 
 TEST_F(DagTest, get_latest_pivot_tips) {
   const std::string GENESIS =
       "0000000000000000000000000000000000000000000000000000000000000000";
-  auto mgr = std::make_shared<DagManager>(GENESIS, addr_t(), nullptr, nullptr);
+  auto db_ptr = std::shared_ptr<DbStorage>(
+      std::move(DbStorage::make("/tmp/testtaraxadb", blk_hash_t(0), true)));
+  auto mgr = std::make_shared<DagManager>(GENESIS, addr_t(), nullptr, nullptr, db_ptr);
 
   // mgr.setVerbose(true);
   DagBlock blk1(blk_hash_t(0), 0, {}, {}, sig_t(0), blk_hash_t(1), addr_t(15));
@@ -458,6 +399,12 @@ TEST_F(DagTest, get_latest_pivot_tips) {
   DagBlock blk5(blk_hash_t(4), 0, {}, {}, sig_t(1), blk_hash_t(5), addr_t(15));
   DagBlock blk6(blk_hash_t(2), 0, {blk_hash_t(5)}, {}, sig_t(1), blk_hash_t(6),
                 addr_t(15));
+  db_ptr->saveDagBlock(blk1);
+  db_ptr->saveDagBlock(blk2);
+  db_ptr->saveDagBlock(blk3);
+  db_ptr->saveDagBlock(blk4);
+  db_ptr->saveDagBlock(blk5);
+  db_ptr->saveDagBlock(blk6);
   mgr->addDagBlock(blk1);
   mgr->addDagBlock(blk2);
   mgr->addDagBlock(blk3);

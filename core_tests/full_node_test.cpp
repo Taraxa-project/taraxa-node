@@ -335,6 +335,8 @@ TEST_F(FullNodeTest, sync_five_nodes) {
           std::cout << "Send from node " << i << " #" << _ << " value 100"
                     << std::endl;
           context.coin_transfer(i, to, 100);
+          std::cout << "Sent from node " << i << " #" << _ << " value 100"
+                    << std::endl;
         }
         thread_completed[i] = true;
       });
@@ -632,8 +634,10 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
     EXPECT_EQ((*order)[4], blk_hash_t(5));
     EXPECT_EQ((*order)[5], blk_hash_t(7));
   }
-  auto num_blks_set =
-      node->getDagManager()->setDagBlockOrder(blk_hash_t(pivot), period);
+  auto write_batch = node->getDB()->createWriteBatch();
+  auto num_blks_set = node->getDagManager()->setDagBlockOrder(
+      blk_hash_t(pivot), period, order, write_batch);
+  node->getDB()->commitWriteBatch(write_batch);
   EXPECT_EQ(num_blks_set, 6);
   // -------- second period ----------
 
@@ -655,8 +659,10 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
     EXPECT_EQ((*order)[5], blk_hash_t(14));
     EXPECT_EQ((*order)[6], blk_hash_t(15));
   }
-  num_blks_set =
-      node->getDagManager()->setDagBlockOrder(blk_hash_t(pivot), period);
+  write_batch = node->getDB()->createWriteBatch();
+  num_blks_set = node->getDagManager()->setDagBlockOrder(
+      blk_hash_t(pivot), period, order, write_batch);
+  node->getDB()->commitWriteBatch(write_batch);
   EXPECT_EQ(num_blks_set, 7);
 
   // -------- third period ----------
@@ -677,8 +683,10 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
     EXPECT_EQ((*order)[3], blk_hash_t(18));
     EXPECT_EQ((*order)[4], blk_hash_t(19));
   }
-  num_blks_set =
-      node->getDagManager()->setDagBlockOrder(blk_hash_t(pivot), period);
+  write_batch = node->getDB()->createWriteBatch();
+  num_blks_set = node->getDagManager()->setDagBlockOrder(
+      blk_hash_t(pivot), period, order, write_batch);
+  node->getDB()->commitWriteBatch(write_batch);
   EXPECT_EQ(num_blks_set, 5);
 }
 
@@ -701,7 +709,7 @@ TEST_F(FullNodeTest, destroy_db) {
 
 TEST_F(FullNodeTest, reconstruct_anchors) {
   auto node_cfgs = make_node_cfgs<20>(1);
-  std::deque<std::pair<std::string, uint64_t>> anchors;
+  std::pair<std::string, std::string> anchors;
   {
     FullNode::Handle node(node_cfgs[0], true);
 
@@ -710,8 +718,8 @@ TEST_F(FullNodeTest, reconstruct_anchors) {
     TransactionClient trx_client(node);
 
     for (auto i = 0; i < 3; i++) {
-      auto result = trx_client.coinTransfer(KeyPair::create().address(), 10);
-      EXPECT_EQ(result.stage, TransactionClient::TransactionStage::executed);
+      auto result =
+          trx_client.coinTransfer(KeyPair::create().address(), 10, {}, false);
     }
 
     taraxa::thisThreadSleepForMilliSeconds(500);
@@ -722,10 +730,7 @@ TEST_F(FullNodeTest, reconstruct_anchors) {
 
     taraxa::thisThreadSleepForMilliSeconds(500);
 
-    EXPECT_GT(anchors.size(), 1);
-    EXPECT_EQ(anchors.size(), node->getDagManager()->getAnchors().size());
-    EXPECT_EQ(anchors.front(), node->getDagManager()->getAnchors().front());
-    EXPECT_EQ(anchors.back(), node->getDagManager()->getAnchors().back());
+    EXPECT_EQ(anchors, node->getDagManager()->getAnchors());
   }
 }  // namespace taraxa
 

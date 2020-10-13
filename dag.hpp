@@ -23,6 +23,7 @@
 #include <string>
 
 #include "dag_block.hpp"
+#include "db_storage.hpp"
 #include "pbft_chain.hpp"
 #include "types.hpp"
 #include "util.hpp"
@@ -69,52 +70,27 @@ class Dag {
   using edge_index_map_t =
       boost::property_map<graph_t, boost::edge_index_t>::type;
 
-  using uLock = boost::unique_lock<boost::shared_mutex>;
-  using sharedLock = boost::shared_lock<boost::shared_mutex>;
-  using upgradableLock = boost::upgrade_lock<boost::shared_mutex>;
-  using upgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
   friend DagManager;
   explicit Dag(std::string const &genesis, addr_t node_addr);
   virtual ~Dag() = default;
   uint64_t getNumVertices() const;
   uint64_t getNumEdges() const;
   bool hasVertex(vertex_hash const &v) const;
-  // VEE: new vertex, pivot, tips
-  // Note: *** The function does not check vertex existency
   bool addVEEs(vertex_hash const &new_vertex, vertex_hash const &pivot,
                std::vector<vertex_hash> const &tips);
 
   void getLeaves(std::vector<vertex_hash> &tips) const;
   void drawGraph(vertex_hash filename) const;
 
-  // Note, the function will not delete recent_added_blks when marking
-  // ith_number
-  bool computeOrder(bool finialized, vertex_hash const &anchor,
-                    uint64_t ith_peroid,
-                    std::vector<vertex_hash> &ordered_period_vertices);
-  // warning! slow, iterate through all vertices ...
-  void getEpFriendVertices(vertex_hash const &from, vertex_hash const &to,
-                           std::vector<vertex_hash> &epfriend) const;
+  bool computeOrder(
+      vertex_hash const &anchor,
+      std::vector<vertex_hash> &ordered_period_vertices,
+      std::map<uint64_t, std::vector<std::string>> const &non_finalized_blks);
 
-  // deleter
-  std::vector<Dag::vertex_hash> deletePeriod(uint64_t period);
-  void delVertex(std::string const &v);
-
-  // properties
-  uint64_t getVertexPeriod(vertex_hash const &vertex) const;
-  void setVertexPeriod(vertex_hash const &vertex, uint64_t period);
-
-  // Recent Added DAG blocks
-  bool findDagBlock(vertex_hash const &block_hash) const;
-  std::unordered_set<std::string> getUnOrderedDagBlks() const;
-  void addRecentDagBlks(vertex_hash const &hash);
+  void clear();
 
  protected:
   // Note: private functions does not lock
-
-  // vertex API
-  vertex_t addVertex(std::string const &v);
-  // will delete all edges associate with the vertex
 
   // edge API
   edge_t addEdge(std::string const &v1, std::string const &v2);
@@ -126,12 +102,7 @@ class Dag {
   void collectLeafVertices(std::vector<vertex_t> &leaves) const;
 
   graph_t graph_;
-  std::unordered_map<uint64_t, std::unordered_set<vertex_hash>> periods_;
   vertex_t genesis_;  // root node
-  std::unordered_set<std::string> recent_added_blks_;
-
-  mutable boost::shared_mutex mutex_;
-  mutable boost::shared_mutex blocks_access_;
 
  protected:
   LOG_OBJECTS_DEFINE;
@@ -156,47 +127,34 @@ class PivotTree : public Dag {
                     std::vector<vertex_hash> &pivot_chain) const;
 };
 class DagBuffer;
-/**
- * Important : The input DagBlocks to DagManger should be de-duplicated!
- * i.e., no same DagBlocks are put to the Dag.
- */
-
-// TODO: probably share property map for total_dag_ and pivot_tree_
-
 class FullNode;
 
 class DagManager : public std::enable_shared_from_this<DagManager> {
  public:
-  using stdLock = std::unique_lock<std::mutex>;
   using uLock = boost::unique_lock<boost::shared_mutex>;
   using sharedLock = boost::shared_lock<boost::shared_mutex>;
-  using upgradableLock = boost::upgrade_lock<boost::shared_mutex>;
-  using upgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
 
   explicit DagManager(std::string const &genesis, addr_t node_addr,
                       std::shared_ptr<TransactionManager> trx_mgr,
-                      std::shared_ptr<PbftChain> pbft_chain);
+                      std::shared_ptr<PbftChain> pbft_chain,
+                      std::shared_ptr<DbStorage> db);
   virtual ~DagManager() = default;
   std::shared_ptr<DagManager> getShared();
   void stop();
 
-  bool dagHasVertex(blk_hash_t const &blk_hash);
   bool pivotAndTipsAvailable(DagBlock const &blk);
-  void addDagBlock(DagBlock const &blk);  // insert to buffer if fail
+  void addDagBlock(DagBlock const &blk,
+                   bool finalized = false);  // insert to buffer if fail
 
   // return {period, block order}, for pbft-pivot-blk proposing (does not
-  // finialize)
+  // finalize)
   std::pair<uint64_t, std::shared_ptr<vec_blk_t>> getDagBlockOrder(
       blk_hash_t const &anchor);
   // receive pbft-povit-blk, update periods and finalized, return size of
   // ordered blocks
-  uint setDagBlockOrder(blk_hash_t const &anchor, uint64_t period);
-
-  // use a anchor to create period, return current_period, does not finalize
-  uint64_t getDagBlockOrder(blk_hash_t const &anchor, vec_blk_t &orders);
-  // assuming a period is confirmed, will finialize, return size of blocks in
-  // the period
-  uint setDagBlockPeriod(blk_hash_t const &anchor, uint64_t period);
+  uint setDagBlockOrder(blk_hash_t const &anchor, uint64_t period,
+                        std::shared_ptr<vec_blk_t> dag_order,
+                        const taraxa::DbStorage::BatchPtr &write_batch);
 
   bool getLatestPivotAndTips(std::string &pivot,
                              std::vector<std::string> &tips) const;
@@ -206,70 +164,67 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
                     std::vector<std::string> &ghost) const;
   void getGhostPath(std::vector<std::string> &ghost)
       const;  // get ghost path from last anchor
-  void deletePeriod(uint64_t period);
   // ----- Total graph
-  std::vector<std::string> getEpFriendBetweenPivots(std::string const &from,
-                                                    std::string const &to);
   void drawTotalGraph(std::string const &str) const;
 
   // ----- Pivot graph
   // can return self as pivot chain
-  std::vector<std::string> getPivotChain(std::string const &vertex) const;
   void drawPivotGraph(std::string const &str) const;
   void drawGraph(std::string const &dotfile) const;
+
   std::pair<uint64_t, uint64_t> getNumVerticesInDag() const;
   std::pair<uint64_t, uint64_t> getNumEdgesInDag() const;
-  level_t getMaxLevel() const { return max_level_; }
-  std::unordered_set<std::string> getUnOrderedDagBlks() const {
-    return total_dag_->getUnOrderedDagBlks();
+  level_t getMaxLevel() const {
+    sharedLock lock(mutex_);
+    return max_level_;
   }
+
   // DAG anchors
-  std::string getFirstAnchor() const;
-  uint64_t getFirstPeriod() const;
-  std::string getLatestAnchor() const;
-  uint64_t getLatestPeriod() const;
-  size_t getAnchorsSize() const;
-  std::deque<std::pair<std::string, uint64_t>> getAnchors() const;
-  void anchorsPushBack(std::pair<std::string, uint64_t> const& anchor);
-  void anchorsPopFront();
-  void recoverAnchors(uint64_t pbft_chain_size);
+  uint64_t getLatestPeriod() const {
+    sharedLock lock(mutex_);
+    return period_;
+  }
+  std::pair<std::string, std::string> getAnchors() const {
+    sharedLock lock(mutex_);
+    return std::make_pair(old_anchor_, anchor_);
+  }
+  void recoverDag();
 
  private:
-  size_t num_cached_period_in_dag_ = 2000;
   void addToDag(std::string const &hash, std::string const &pivot,
-                std::vector<std::string> const &tips);
-  unsigned getBlockInsertingIndex();  // add to block to different array
+                std::vector<std::string> const &tips, uint64_t level,
+                bool finalized = false);
   std::pair<std::string, std::vector<std::string>> getFrontier()
       const;  // return pivot and tips
   std::atomic<level_t> max_level_ = 0;
   mutable boost::shared_mutex mutex_;
-  mutable boost::shared_mutex anchors_access_;
-  std::atomic<unsigned> inserting_index_counter_;
   std::shared_ptr<PivotTree> pivot_tree_;  // only contains pivot edges
   std::shared_ptr<Dag> total_dag_;         // contains both pivot and tips
   std::shared_ptr<TransactionManager> trx_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
-  std::deque<std::pair<std::string, uint64_t>>
-      anchors_;  // pivots that define periods, <anchor, period>
+  std::shared_ptr<DbStorage> db_;
+  std::string anchor_;      // anchor of the last period
+  std::string old_anchor_;  // anchor of the second to last period
+  uint64_t period_;         // last period
   std::string genesis_;
+  std::map<uint64_t, std::vector<std::string>> non_finalized_blks_;
+  std::map<uint64_t, std::vector<std::string>> finalized_blks_;
   LOG_OBJECTS_DEFINE;
 };
 
 // for graphviz
-template <class Property1, class Property2>
+template <class Property1>
 class vertex_label_writer {
  public:
-  vertex_label_writer(Property1 name, Property2 period)
-      : name(name), period(period) {}
+  vertex_label_writer(Property1 name) : name(name) {}
   template <class Vertex>
   void operator()(std::ostream &out, const Vertex &v) const {
-    out << "[label=\"" << name[v].substr(0, 8) << " (" << period[v] << ") "
+    out << "[label=\"" << name[v].substr(0, 8) << " "
         << "\"]";
   }
 
  private:
   Property1 name;
-  Property2 period;
 };
 
 template <class Property>

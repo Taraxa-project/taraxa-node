@@ -1527,6 +1527,9 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
   // Update PBFT chain head block
   db_->addPbftHeadToBatch(pbft_chain_->getHeadHash(), pbft_chain_->getJsonStr(),
                           batch);
+    // Set DAG blocks period
+  dag_mgr_->setDagBlockOrder(dag_block_hash, pbft_period, dag_blocks_hash_order,
+                             batch);
   // Remove executed transactions at Ethereum pending block. The Ethereum
   // pending block is same with latest block at Taraxa
   trx_mgr_->getPendingBlock()->advance(

@@ -333,13 +333,30 @@ TEST_F(NetworkTest, node_pbft_sync) {
   auto db1 = node1->getDB();
   auto pbft_chain1 = node1->getPbftChain();
 
+  auto dag_genesis = node1->getConfig().chain.dag_genesis_block.getHash();
+  auto sk = node1->getSecretKey();
+  auto vrf_sk = node1->getVrfSecretKey();
+  auto difficulty_bound = 15;
+  auto lambda_bound = 1500;
+
+
   // generate first PBFT block sample
   blk_hash_t prev_block_hash(0);
-  blk_hash_t dag_blk(123);
-  TrxSchedule schedule;
   uint64_t period = 1;
   addr_t beneficiary(987);
-  PbftBlock pbft_block1(prev_block_hash, dag_blk, schedule, period, beneficiary,
+
+  vdf_sortition::Message msg1(1);
+  vdf_sortition::VdfSortition vdf1(node_key.address(), vrf_sk, msg1,
+                                   difficulty_bound, lambda_bound);
+  vdf1.computeVdfSolution(dag_genesis.toString());
+  DagBlock blk1(dag_genesis, 1, {}, {}, vdf1);
+  blk1.sign(sk);
+  node1->getBlockManager()->insertBlock(blk1);
+
+  TrxSchedule schedule;
+  schedule.dag_blks_order.push_back(blk1.getHash());
+  schedule.trxs_mode.push_back(std::vector<std::pair<trx_hash_t, uint>>());
+  PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), schedule, period, beneficiary,
                         node1->getSecretKey());
 
   std::vector<Vote> votes_for_pbft_blk1;
@@ -367,11 +384,25 @@ TEST_F(NetworkTest, node_pbft_sync) {
 
   // generate second PBFT block sample
   prev_block_hash = pbft_block1.getBlockHash();
-  dag_blk = blk_hash_t(456);
+
+
+  vdf_sortition::Message msg2(2);
+  vdf_sortition::VdfSortition vdf2(node_key.address(), vrf_sk, msg2,
+                                   difficulty_bound, lambda_bound);
+  vdf2.computeVdfSolution(blk1.getHash().toString());
+  DagBlock blk2(blk1.getHash(), 2, {}, {}, vdf2);
+  blk2.sign(sk);
+  node1->getBlockManager()->insertBlock(blk2);
+
+  TrxSchedule schedule2;
+  schedule2.dag_blks_order.push_back(blk2.getHash());
+  schedule2.trxs_mode.push_back(std::vector<std::pair<trx_hash_t, uint>>());
+
   period = 2;
   beneficiary = addr_t(654);
-  PbftBlock pbft_block2(prev_block_hash, dag_blk, schedule, period, beneficiary,
+  PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), schedule2, 2, beneficiary,
                         node1->getSecretKey());
+
 
   std::vector<Vote> votes_for_pbft_blk2;
   votes_for_pbft_blk2.emplace_back(node1->getPbftManager()->generateVote(
@@ -443,13 +474,31 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   auto db1 = node1->getDB();
   auto pbft_chain1 = node1->getPbftChain();
 
+  auto dag_genesis = node1->getConfig().chain.dag_genesis_block.getHash();
+  auto sk = node1->getSecretKey();
+  auto vrf_sk = node1->getVrfSecretKey();
+  auto difficulty_bound = 15;
+  auto lambda_bound = 1500;
+
   // generate first PBFT block sample
   blk_hash_t prev_block_hash(0);
-  blk_hash_t dag_blk(234);
-  TrxSchedule schedule;
   uint64_t period = 1;
   addr_t beneficiary(876);
-  PbftBlock pbft_block1(prev_block_hash, dag_blk, schedule, period, beneficiary,
+
+  vdf_sortition::Message msg1(1);
+  vdf_sortition::VdfSortition vdf1(node_key.address(), vrf_sk, msg1,
+                                   difficulty_bound, lambda_bound);
+  vdf1.computeVdfSolution(dag_genesis.toString());
+  DagBlock blk1(dag_genesis, 1, {}, {}, vdf1);
+  blk1.sign(sk);
+  node1->getBlockManager()->insertBlock(blk1);
+
+  TrxSchedule schedule;
+  schedule.dag_blks_order.push_back(blk1.getHash());
+  schedule.trxs_mode.push_back(std::vector<std::pair<trx_hash_t, uint>>());
+
+
+  PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), schedule, period, beneficiary,
                         node1->getSecretKey());
   std::vector<Vote> votes_for_pbft_blk1;
   votes_for_pbft_blk1.emplace_back(node1->getPbftManager()->generateVote(
@@ -476,10 +525,24 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
 
   // generate second PBFT block sample
   prev_block_hash = pbft_block1.getBlockHash();
-  dag_blk = blk_hash_t(567);
   period = 2;
   beneficiary = addr_t(543);
-  PbftBlock pbft_block2(prev_block_hash, dag_blk, schedule, period, beneficiary,
+  vdf_sortition::Message msg2(2);
+  vdf_sortition::VdfSortition vdf2(node_key.address(), vrf_sk, msg2,
+                                   difficulty_bound, lambda_bound);
+  vdf2.computeVdfSolution(blk1.getHash().toString());
+  DagBlock blk2(blk1.getHash(), 2, {}, {}, vdf2);
+  blk2.sign(sk);
+  node1->getBlockManager()->insertBlock(blk2);
+
+  TrxSchedule schedule2;
+  schedule2.dag_blks_order.push_back(blk2.getHash());
+  schedule2.trxs_mode.push_back(std::vector<std::pair<trx_hash_t, uint>>());
+
+  period = 2;
+  beneficiary = addr_t(654);
+
+  PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), schedule, period, beneficiary,
                         node1->getSecretKey());
   std::cout << "There are no votes for the second PBFT block" << std::endl;
   // node1 put block2 into pbft chain and no votes store into DB

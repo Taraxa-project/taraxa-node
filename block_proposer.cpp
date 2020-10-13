@@ -68,6 +68,10 @@ void BlockProposer::start() {
   BlockProposer::num_proposed_blocks = 0;
   proposer_worker_ = std::make_shared<std::thread>([this]() {
     while (!stopped_) {
+      // Blocks are not proposed if we are behind the network and still syncing
+      if (!network_->isSynced()) {
+        continue;
+      }
       propose_model_->propose();
       thisThreadSleepForMilliSeconds(min_proposal_delay);
     }
@@ -150,12 +154,12 @@ bool BlockProposer::getShardedTrxs(uint total_shard, DagFrontier& frontier,
 
 blk_hash_t BlockProposer::getProposeAnchor() const {
   auto anchors = dag_mgr_->getAnchors();
-  if (anchors.size() <= 1) {
+  if (anchors.first == "") {
     // Only includes DAG genesis
-    return blk_hash_t(anchors.back().first);
+    return blk_hash_t(anchors.second);
   } else {
     // return second to last anchor
-    return blk_hash_t((anchors.end() - 2)->first);
+    return blk_hash_t(anchors.first);
   }
 }
 
@@ -184,16 +188,10 @@ level_t BlockProposer::getProposeLevel(blk_hash_t const& pivot,
 void BlockProposer::proposeBlock(DagBlock& blk) {
   if (stopped_) return;
 
-  // Blocks are not proposed if we are behind the network and still syncing
-  if (!network_->isSynced()) {
-    return;
-  }
-
   blk.sign(node_sk_);
   blk_mgr_->insertBlock(blk);
 
   auto now = getCurrentTimeMilliSeconds();
-
   LOG(log_time_) << "Propose block " << blk.getHash() << " at: " << now
                  << " ,trxs: " << blk.getTrxs()
                  << " , tips: " << blk.getTips().size();

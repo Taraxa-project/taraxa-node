@@ -27,6 +27,7 @@ DbStorage::DbStorage(fs::path const& path)
                  });
   checkStatus(DB::Open(options, path.string(), descriptors, &handles_, &db_));
   dag_blocks_count_.store(getStatusField(StatusDbField::DagBlkCount));
+  dag_edge_count_.store(getStatusField(StatusDbField::DagEdgeCount));
 }
 
 DbStorage::~DbStorage() {
@@ -121,7 +122,46 @@ void DbStorage::saveDagBlock(DagBlock const& blk) {
   batch_put(write_batch, Columns::status,
             toSlice((uint8_t)StatusDbField::DagBlkCount),
             toSlice(dag_blocks_count_.load()));
+  // Do not count genesis pivot field
+  if (blk.getPivot() == blk_hash_t(0)) {
+    dag_edge_count_.fetch_add(blk.getTips().size());
+  } else {
+    dag_edge_count_.fetch_add(blk.getTips().size() + 1);
+  }
+  batch_put(write_batch, Columns::status,
+            toSlice((uint8_t)StatusDbField::DagEdgeCount),
+            toSlice(dag_edge_count_.load()));
+
   commitWriteBatch(write_batch);
+}
+
+void DbStorage::saveDagBlockState(blk_hash_t const& blk_hash, bool finalized) {
+  insert(Columns::dag_blocks_state, toSlice(blk_hash.asBytes()),
+         toSlice(finalized));
+}
+
+void DbStorage::addDagBlockStateToBatch(BatchPtr const& write_batch,
+                                        blk_hash_t const& blk_hash,
+                                        bool finalized) {
+  batch_put(write_batch, Columns::dag_blocks_state, toSlice(blk_hash.asBytes()),
+            toSlice(finalized));
+}
+
+void DbStorage::removeDagBlockStateToBatch(BatchPtr const& write_batch,
+                                           blk_hash_t const& blk_hash) {
+  batch_delete(write_batch, Columns::dag_blocks_state,
+               toSlice(blk_hash.asBytes()));
+}
+
+std::map<blk_hash_t, bool> DbStorage::getAllDagBlockState() {
+  std::map<blk_hash_t, bool> res;
+  auto i =
+      u_ptr(db_->NewIterator(read_options_, handle(Columns::dag_blocks_state)));
+  for (i->SeekToFirst(); i->Valid(); i->Next()) {
+    res[blk_hash_t(asBytes(i->key().ToString()))] =
+        (bool)*(uint8_t*)(i->value().data());
+  }
+  return res;
 }
 
 void DbStorage::saveTransaction(Transaction const& trx) {
