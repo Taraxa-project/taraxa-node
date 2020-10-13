@@ -62,8 +62,8 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
             .chain.final_chain.state.dpos->eligibility_balance_threshold;
     state_api::DPOSTransfers delegations;
     for (auto i(1); i < nodes.size(); ++i) {
-      delegations[nodes[i]->getAddress()] = {min_stake_to_vote};
-      node_1_expected_bal -= min_stake_to_vote;
+      node_1_expected_bal -= delegations[nodes[i]->getAddress()].value =
+          min_stake_to_vote;
     }
     auto trx = make_dpos_trx(node_cfgs[0], delegations, nonce++);
     nodes[0]->getTransactionManager()->insertTransaction(trx);
@@ -175,8 +175,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
                                 nodes[0]->getSecretKey(),
                                 nodes[0]->getAddress());
           // broadcast dummy transaction
-          nodes[0]->getTransactionManager()->insertTransaction(dummy_trx,
-                                                               false);
+          nodes[0]->getTransactionManager()->insertTransaction(dummy_trx);
           trxs_count++;
           return;
         }
@@ -189,7 +188,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
               << std::endl;
     EXPECT_EQ(
         nodes[i]->getFinalChain()->getBalance(nodes[0]->getAddress()).first,
-        node_1_expected_bal - 4 * init_bal);
+        node_1_expected_bal);
     for (auto j(1); j < nodes.size(); ++j) {
       // For node1 to node4 account balances info on each node
       EXPECT_EQ(

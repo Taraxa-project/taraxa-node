@@ -927,8 +927,8 @@ TEST_F(FullNodeTest, sync_two_nodes2) {
 }
 
 TEST_F(FullNodeTest, single_node_run_two_transactions) {
-  auto node_cfgs = make_node_cfgs<5, true>(2);
-  auto nodes = launch_nodes(node_cfgs);
+  auto node_cfgs = make_node_cfgs<5, true>(1);
+  FullNode::Handle node(node_cfgs[0], true);
 
   std::string send_raw_trx1 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method":
@@ -947,13 +947,10 @@ TEST_F(FullNodeTest, single_node_run_two_transactions) {
   std::cout << "First trx received ..." << std::endl;
 
   EXPECT_HAPPENS({60s, 1s}, [&](auto &ctx) {
-    for (auto &node : nodes) {
-      WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), 1);
-      WAIT_EXPECT_EQ(ctx, node->getTransactionManager()->getTransactionCount(),
-                     1);
-      WAIT_EXPECT_EQ(ctx, node->getDagManager()->getNumVerticesInDag().first,
-                     2);
-    }
+    WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), 1);
+    WAIT_EXPECT_EQ(ctx, node->getTransactionManager()->getTransactionCount(),
+                   1);
+    WAIT_EXPECT_EQ(ctx, node->getDagManager()->getNumVerticesInDag().first, 2);
   });
 
   std::cout << "First trx executed ..." << std::endl;
@@ -961,13 +958,10 @@ TEST_F(FullNodeTest, single_node_run_two_transactions) {
   system(send_raw_trx2.c_str());
 
   EXPECT_HAPPENS({60s, 1s}, [&](auto &ctx) {
-    for (auto &node : nodes) {
-      WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), 2);
-      WAIT_EXPECT_EQ(ctx, node->getTransactionManager()->getTransactionCount(),
-                     2);
-      WAIT_EXPECT_EQ(ctx, node->getDagManager()->getNumVerticesInDag().first,
-                     3);
-    }
+    WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), 2);
+    WAIT_EXPECT_EQ(ctx, node->getTransactionManager()->getTransactionCount(),
+                   2);
+    WAIT_EXPECT_EQ(ctx, node->getDagManager()->getNumVerticesInDag().first, 3);
   });
 }
 
