@@ -80,19 +80,21 @@ struct DbStorage {
 
  private:
   fs::path path_;
-  shared_ptr<DB> db_;
-  vector<shared_ptr<ColumnFamilyHandle>> handles_;
+  DB* db_;
+  vector<ColumnFamilyHandle*> handles_;
   ReadOptions read_options_;
   WriteOptions write_options_;
   mutex dag_blocks_mutex_;
   atomic<uint64_t> dag_blocks_count_;
 
-  DbStorage() = default;
-
-  auto handle(Column const& col) const { return handles_[col.ordinal].get(); }
+  auto handle(Column const& col) const { return handles_[col.ordinal]; }
 
  public:
+  DbStorage(DbStorage const&) = delete;
+  DbStorage& operator=(DbStorage const&) = delete;
+
   DbStorage(fs::path const& base_path);
+  ~DbStorage();
 
   auto const& path() const { return path_; }
   BatchPtr createWriteBatch();

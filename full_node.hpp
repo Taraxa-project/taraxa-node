@@ -137,15 +137,11 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   dev::Signature signMessage(std::string const &message);
 
   struct Handle : shared_ptr_t {
-    // default-constructible
-    Handle() = default;
-    // not copyable
     Handle(Handle const &) = delete;
     Handle &operator=(Handle const &) = delete;
-    // movable
     Handle(Handle &&) = default;
     Handle &operator=(Handle &&) = default;
-
+    Handle() = default;
     explicit Handle(FullNodeConfig const &conf, bool start = false);
     ~Handle();
   };

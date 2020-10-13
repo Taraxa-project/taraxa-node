@@ -32,6 +32,7 @@ struct WithDataDir : virtual WithTestInfo {
                                      current_test_info->test_case_name();
 
   WithDataDir() : WithTestInfo() {
+    boost::filesystem::remove_all(data_dir);
     boost::filesystem::create_directories(data_dir);
   }
   virtual ~WithDataDir() { boost::filesystem::remove_all(data_dir); }

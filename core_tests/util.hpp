@@ -183,6 +183,7 @@ struct BaseTest : virtual WithDataDir {
   BaseTest() : WithDataDir() {
     for (auto& cfg : *node_cfgs_original) {
       remove_all(cfg.db_path);
+      create_directories(cfg.db_path);
     }
   }
   virtual ~BaseTest(){};
