@@ -2,7 +2,6 @@
 
 #include <libdevcore/TrieHash.h>
 
-#include <fstream>
 #include <optional>
 #include <vector>
 
@@ -27,17 +26,10 @@ struct FinalChainTest : WithDataDir {
 
   void init() {
     SUT = NewFinalChain(db, cfg);
-    for (auto const& [addr, bal] : cfg.state.genesis_balances) {
+    for (auto const& [addr, _] : cfg.state.genesis_balances) {
       auto acc_actual = SUT->get_account(addr);
       ASSERT_TRUE(acc_actual);
-      auto expected_bal = bal;
-      if (cfg.state.dpos) {
-        for (auto& [addr, genesis_deposits] : cfg.state.dpos->genesis_state) {
-          for (auto const& [_, val] : genesis_deposits) {
-            expected_bal -= val;
-          }
-        }
-      }
+      auto expected_bal = cfg.state.effective_genesis_balance(addr);
       ASSERT_EQ(acc_actual->Balance, expected_bal);
       expected_balances[addr] = expected_bal;
     }
@@ -148,15 +140,6 @@ TEST_F(FinalChainTest, genesis_balances) {
   cfg.state.genesis_balances[addr_t::random()] = 1000;
   cfg.state.genesis_balances[addr_t::random()] = 100000;
   init();
-}
-
-TEST_F(FinalChainTest, dpos_genesis) {
-  init();
-  ASSERT_EQ(SUT->dpos_eligible_count(0),
-            ChainConfig::default_chain_predefined_nodes->size());
-  for (auto const& addr : *ChainConfig::default_chain_predefined_nodes) {
-    ASSERT_TRUE(SUT->dpos_is_eligible(0, addr));
-  }
 }
 
 TEST_F(FinalChainTest, contract) {

@@ -224,7 +224,7 @@ TEST_F(FullNodeTest, db_test) {
 TEST_F(FullNodeTest, sync_five_nodes) {
   using namespace std;
 
-  auto const &node_cfgs = make_node_cfgs(5);
+  auto node_cfgs = make_node_cfgs(5);
   auto nodes = launch_nodes(node_cfgs);
 
   class context {
@@ -236,8 +236,8 @@ TEST_F(FullNodeTest, sync_five_nodes) {
 
    public:
     context(decltype(nodes_) nodes) : nodes_(nodes) {
-      expected_balances[ChainConfig::default_chain_boot_node_addr] =
-          ChainConfig::default_chain_boot_node_initial_balance;
+      expected_balances[nodes[0]->getAddress()] =
+          own_effective_genesis_bal(nodes[0]->getConfig());
       for (auto const &node : nodes_) {
         trx_clients.emplace_back(node);
       }
@@ -286,7 +286,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
 
   // transfer some coins to your friends ...
   auto init_bal =
-      ChainConfig::default_chain_boot_node_initial_balance / nodes.size();
+      own_effective_genesis_bal(nodes[0]->getConfig()) / nodes.size();
 
   {
     vector<thread> threads;
@@ -1057,8 +1057,8 @@ TEST_F(FullNodeTest, receive_send_transaction) {
 
 TEST_F(FullNodeTest, detect_overlap_transactions) {
   auto node_cfgs = make_node_cfgs<2>(5);
+  auto node_1_genesis_bal = own_effective_genesis_bal(node_cfgs[0]);
   auto nodes = launch_nodes(node_cfgs);
-
   // Even distribute coins from master boot node to other nodes. Since master
   // boot node owns whole coins, the active players should be only master boot
   // node at the moment.
@@ -1066,9 +1066,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   auto data = bytes();
   auto nonce = 0;
   auto trxs_count = 0;
-  auto test_transfer_val =
-      ChainConfig::default_chain_boot_node_initial_balance /
-      ChainConfig::default_chain_predefined_nodes->size();
+  auto test_transfer_val = node_1_genesis_bal / node_cfgs.size();
   for (auto i(1); i < nodes.size(); ++i) {
     Transaction master_boot_node_send_coins(
         nonce++, test_transfer_val, gas_price, 100000, data,
@@ -1106,8 +1104,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
               << std::endl;
     EXPECT_EQ(
         nodes[i]->getFinalChain()->getBalance(nodes[0]->getAddress()).first,
-        ChainConfig::default_chain_boot_node_initial_balance -
-            4 * test_transfer_val);
+        node_1_genesis_bal - (node_cfgs.size() - 1) * test_transfer_val);
     for (auto j(1); j < nodes.size(); ++j) {
       // For node1 to node4 balances info on each node
       EXPECT_EQ(
@@ -1235,7 +1232,7 @@ TEST_F(FullNodeTest, transfer_to_self) {
 }
 
 TEST_F(FullNodeTest, chain_config_json) {
-  string default_chain_config_json_str = R"({
+  string expected_default_chain_cfg_json = R"({
   "dag_genesis_block": {
     "hash": "0xc9524784c4bf29e6facdd94ef7d214b9f512cdfd0f68184432dab85d053cbc69",
     "level": "0x0",
@@ -1254,6 +1251,16 @@ TEST_F(FullNodeTest, chain_config_json) {
     },
     "state": {
       "disable_block_rewards": true,
+      "dpos": {
+        "deposit_delay": "0x0",
+        "eligibility_balance_threshold": "0x3b9aca00",
+        "genesis_state": {
+          "0xde2b1203d72d3549ee2f733b00b2789414c7cea5": {
+            "0xde2b1203d72d3549ee2f733b00b2789414c7cea5": "0x3b9aca00"
+          }
+        },
+        "withdrawal_delay": "0x0"
+      },
       "eth_chain_config": {
         "byzantium_block": "0x0",
         "constantinople_block": "0x0",
@@ -1268,30 +1275,23 @@ TEST_F(FullNodeTest, chain_config_json) {
         "disable_nonce_check": true
       },
       "genesis_balances": {
-        "0xde2b1203d72d3549ee2f733b00b2789414c7cea5": "0x2000012a05f1ff"
-      },
-      "dpos": {
-        "deposit_delay": "0x0",
-        "eligibility_balance_threshold": "0x3b9aca00",
-        "genesis_state": {
-          "0xde2b1203d72d3549ee2f733b00b2789414c7cea5": {
-            "0x415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0": "0x3b9aca00",
-            "0x4fae949ac2b72960fbe857b56532e2d3c8418d5e": "0x3b9aca00",
-            "0x973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0": "0x3b9aca00",
-            "0xb770f7a99d0b7ad9adf6520be77ca20ee99b0858": "0x3b9aca00",
-            "0xde2b1203d72d3549ee2f733b00b2789414c7cea5": "0x3b9aca00"
-          }
-        },
-        "withdrawal_delay": "0x0"
+        "0xde2b1203d72d3549ee2f733b00b2789414c7cea5": "0x1fffffffffffff"
       }
     }
+  },
+  "pbft": {
+    "committee_size": "0x5",
+    "dag_blocks_size": "0x64",
+    "ghost_path_move_back": "0x1",
+    "lambda_ms_min": "0x7d0",
+    "run_count_votes": false
   },
   "replay_protection_service": {
     "range": "0xa"
   }
 })";
   Json::Value default_chain_config_json;
-  ASSERT_TRUE(Json::Reader().parse(default_chain_config_json_str,
+  ASSERT_TRUE(Json::Reader().parse(expected_default_chain_cfg_json,
                                    default_chain_config_json));
   ASSERT_EQ(default_chain_config_json, enc_json(ChainConfig::predefined()));
   Json::Value test_node_config_json;

@@ -208,6 +208,19 @@ void enc_rlp(RLPStream& rlp, ETHChainConfig const& obj) {
                 obj.constantinople_block, obj.petersburg_block);
 }
 
+u256 ChainConfig::effective_genesis_balance(addr_t const& addr) const {
+  if (!genesis_balances.count(addr)) {
+    return 0;
+  }
+  auto ret = genesis_balances.at(addr);
+  if (dpos && dpos->genesis_state.count(addr)) {
+    for (auto const& [_, val] : dpos->genesis_state.at(addr)) {
+      ret -= val;
+    }
+  }
+  return ret;
+}
+
 void enc_rlp(RLPStream& rlp, ChainConfig const& obj) {
   enc_rlp_tuple(rlp, obj.eth_chain_config, obj.disable_block_rewards,
                 obj.execution_options, obj.genesis_balances, obj.dpos);

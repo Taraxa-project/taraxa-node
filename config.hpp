@@ -24,9 +24,6 @@
 #include "types.hpp"
 #include "util.hpp"
 
-// TODO: Generate configs for the tests
-// TODO: Separate configs for consensus chain params and technical params
-// TODO: Expose only certain eth chain params, encapsulate the config invariants
 namespace taraxa {
 
 using Logger = boost::log::sources::severity_channel_logger<>;
@@ -46,46 +43,45 @@ struct RpcConfig {
 struct NodeConfig {
   std::string id;
   std::string ip;
-  uint16_t tcp_port;
-  uint16_t udp_port;
+  uint16_t tcp_port = 0;
+  uint16_t udp_port = 0;
 };
 
 struct NetworkConfig {
-  NetworkConfig() = default;
   std::string json_file_name;
   bool network_is_boot_node = 0;
   std::string network_address;
-  uint16_t network_tcp_port;
-  uint16_t network_udp_port;
+  uint16_t network_tcp_port = 0;
+  uint16_t network_udp_port = 0;
   std::vector<NodeConfig> network_boot_nodes;
-  uint16_t network_simulated_delay;
-  uint16_t network_bandwidth;
-  uint16_t network_ideal_peer_count;
-  uint16_t network_max_peer_count;
-  uint16_t network_transaction_interval;
-  uint16_t network_min_dag_block_broadcast;
-  uint16_t network_max_dag_block_broadcast;
-  uint16_t network_sync_level_size;
+  uint16_t network_simulated_delay = 0;
+  uint16_t network_bandwidth = 0;
+  uint16_t network_ideal_peer_count = 0;
+  uint16_t network_max_peer_count = 0;
+  uint16_t network_transaction_interval = 0;
+  uint16_t network_min_dag_block_broadcast = 0;
+  uint16_t network_max_dag_block_broadcast = 0;
+  uint16_t network_sync_level_size = 0;
   std::string network_id;
-  bool network_encrypted;
-  bool network_performance_log;
+  bool network_encrypted = 0;
+  bool network_performance_log = 0;
 };
 
 struct LoggingOutputConfig {
   LoggingOutputConfig() = default;
   std::string type = "console";
   std::string file_name;
-  uint64_t rotation_size;
+  uint64_t rotation_size = 0;
   std::string time_based_rotation;
   std::string format =
       "%NodeId% %Channel% [%TimeStamp%] %SeverityStr%: %Message%";
-  uint64_t max_size;
+  uint64_t max_size = 0;
 };
 
 struct LoggingConfig {
   LoggingConfig() = default;
   std::string name;
-  Verbosity verbosity;
+  Verbosity verbosity = Verbosity::VerbosityError;
   std::map<std::string, uint16_t> channels;
   std::vector<LoggingOutputConfig> outputs;
   std::vector<
@@ -97,12 +93,12 @@ struct LoggingConfig {
 
 struct BlockProposerConfig {
   std::string mode;
-  uint16_t shard;
-  uint16_t transaction_limit;
-  uint16_t min_proposal_delay;
+  uint16_t shard = 0;
+  uint16_t transaction_limit = 0;
+  uint16_t min_proposal_delay = 0;
   // VDF DAG block proposal params
-  uint16_t difficulty_bound;
-  uint16_t lambda_bound;
+  uint16_t difficulty_bound = 0;
+  uint16_t lambda_bound = 0;
 };
 
 // Parameter Tuning purpose
@@ -126,7 +122,7 @@ struct FullNodeConfig {
   std::string node_secret;
   vrf_wrapper::vrf_sk_t vrf_secret;
   fs::path db_path;
-  uint16_t dag_processing_threads;
+  uint16_t dag_processing_threads = 0;
   NetworkConfig network;
   RpcConfig rpc;
   TestParamsConfig test_params;
@@ -134,8 +130,8 @@ struct FullNodeConfig {
   FinalChain::Opts opts_final_chain;
   std::vector<LoggingConfig> log_configs;
 
-  auto dbstorage_path() { return db_path / "db"; }
-  auto net_file_path() { return db_path / "net"; }
+  auto dbstorage_path() const { return db_path / "db"; }
+  auto net_file_path() const { return db_path / "net"; }
 };
 
 std::ostream &operator<<(std::ostream &strm, NodeConfig const &conf);
@@ -143,4 +139,5 @@ std::ostream &operator<<(std::ostream &strm, NetworkConfig const &conf);
 std::ostream &operator<<(std::ostream &strm, FullNodeConfig const &conf);
 
 }  // namespace taraxa
+
 #endif

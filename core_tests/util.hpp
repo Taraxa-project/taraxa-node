@@ -111,27 +111,7 @@ inline auto const node_cfgs_original = Lazy([] {
     if (!fs::exists(p)) {
       break;
     }
-    auto& cfg = ret.emplace_back(p.string());
-    auto& state_cfg = cfg.chain.final_chain.state;
-    auto& dpos_cfg = *state_cfg.dpos;
-    state_cfg.genesis_balances = {
-        {
-            ChainConfig::default_chain_boot_node_addr,
-            ChainConfig::default_chain_boot_node_initial_balance +
-                dpos_cfg.eligibility_balance_threshold,
-        },
-    };
-    dpos_cfg.genesis_state = {
-        {
-            ChainConfig::default_chain_boot_node_addr,
-            {
-                {
-                    ChainConfig::default_chain_boot_node_addr,
-                    dpos_cfg.eligibility_balance_threshold,
-                },
-            },
-        },
-    };
+    ret.emplace_back(p.string());
   }
   return ret;
 });
@@ -203,11 +183,6 @@ struct BaseTest : virtual WithDataDir {
   }
   virtual ~BaseTest(){};
 };
-
-//#define CORE_TEST(suite_name, test_name, ...)                  \
-//  struct suite_name##_##test_name : BaseTest<__VA_ARGS__> {};  \
-//  GTEST_TEST_(suite_name, test_name, suite_name##_##test_name, \
-//              ::testing::internal::GetTypeId<suite_name##_##test_name>())
 
 inline auto addr(Secret const& secret = Secret::random()) {
   return KeyPair(secret).address();
@@ -283,6 +258,11 @@ inline auto make_dpos_trx(FullNodeConfig const& sender_node_cfg,
 
 inline auto own_balance(shared_ptr<FullNode> const& node) {
   return node->getFinalChain()->getBalance(node->getAddress()).first;
+}
+
+inline auto own_effective_genesis_bal(FullNodeConfig const& cfg) {
+  return cfg.chain.final_chain.state.effective_genesis_balance(
+      dev::toAddress(dev::Secret(cfg.node_secret)));
 }
 
 };  // namespace taraxa::core_tests

@@ -76,8 +76,9 @@ class PbftManager {
           trx_overlap_table);
   bool shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step);
 
+  u_long const LAMBDA_ms_MIN;
+
  private:
-  u_long LAMBDA_ms_MIN;
   u_long LAMBDA_ms = 0;
 
  public:

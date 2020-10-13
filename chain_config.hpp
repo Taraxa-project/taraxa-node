@@ -27,11 +27,6 @@ struct ChainConfig {
   PbftConfig pbft;
   FinalChain::Config final_chain;
 
-  static LazyVal<addr_t> const default_chain_boot_node_addr;
-  inline static u256 const default_chain_boot_node_initial_balance =
-      9007199254740991;
-  static LazyVal<vector<addr_t>> const default_chain_predefined_nodes;
-
  private:
   static LazyVal<std::unordered_map<string, ChainConfig>> const predefined_;
 

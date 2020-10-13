@@ -1,10 +1,7 @@
 #include "config.hpp"
 
-//#include <Log.h>
 #include <json/json.h>
 
-#include <boost/algorithm/string.hpp>
-#include <boost/core/null_deleter.hpp>
 #include <fstream>
 
 namespace taraxa {
@@ -74,7 +71,7 @@ bool getConfigDataAsBoolean(Json::Value const &root,
   }
 }
 
-FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object) : chain() {
+FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object) {
   Json::Value parsed_from_file;
   if (string_or_object.isString()) {
     json_file_name = string_or_object.asString();

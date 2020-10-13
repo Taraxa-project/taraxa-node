@@ -74,6 +74,8 @@ struct ChainConfig {
   ExecutionOptions execution_options;
   BalanceMap genesis_balances;
   optional<DPOSConfig> dpos;
+
+  u256 effective_genesis_balance(addr_t const& addr) const;
 };
 void enc_rlp(RLPStream&, ChainConfig const&);
 Json::Value enc_json(ChainConfig const& obj);

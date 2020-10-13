@@ -42,6 +42,7 @@ pair<size_t, size_t> calculate_2tPuls1_threshold(size_t committee_size,
 void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
     size_t committee_size) {
   auto node_cfgs = make_node_cfgs<20>(5);
+  auto node_1_expected_bal = own_effective_genesis_bal(node_cfgs[0]);
   for (auto &cfg : node_cfgs) {
     cfg.chain.pbft.committee_size = committee_size;
   }
@@ -50,7 +51,6 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
   // Even distribute coins from master boot node to other nodes. Since master
   // boot node owns whole coins, the active players should be only master boot
   // node at the moment.
-  auto node_0_expected_bal = own_balance(nodes[0]);
   auto gas_price = val_t(2);
   auto data = bytes();
   auto nonce = 0;  // fixme: the following nonce approach is not correct anyway
@@ -63,7 +63,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
     state_api::DPOSTransfers delegations;
     for (auto i(1); i < nodes.size(); ++i) {
       delegations[nodes[i]->getAddress()] = {min_stake_to_vote};
-      node_0_expected_bal -= min_stake_to_vote;
+      node_1_expected_bal -= min_stake_to_vote;
     }
     auto trx = make_dpos_trx(node_cfgs[0], delegations, nonce++);
     nodes[0]->getTransactionManager()->insertTransaction(trx);
@@ -78,12 +78,12 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
     trxs_count++;
   }
 
-  auto init_bal = node_0_expected_bal / nodes.size();
+  auto init_bal = node_1_expected_bal / nodes.size();
   for (auto i(1); i < nodes.size(); ++i) {
     Transaction master_boot_node_send_coins(
         nonce++, init_bal, gas_price, TEST_TX_GAS_LIMIT, data,
         nodes[0]->getSecretKey(), nodes[i]->getAddress());
-    node_0_expected_bal -= init_bal;
+    node_1_expected_bal -= init_bal;
     // broadcast trx and insert
     nodes[0]->getTransactionManager()->insertTransaction(
         master_boot_node_send_coins);
@@ -120,7 +120,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
               << std::endl;
     EXPECT_EQ(
         nodes[i]->getFinalChain()->getBalance(nodes[0]->getAddress()).first,
-        node_0_expected_bal);
+        node_1_expected_bal);
     for (auto j(1); j < nodes.size(); ++j) {
       // For node1 to node4 balances info on each node
       EXPECT_EQ(
@@ -189,7 +189,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
               << std::endl;
     EXPECT_EQ(
         nodes[i]->getFinalChain()->getBalance(nodes[0]->getAddress()).first,
-        ChainConfig::default_chain_boot_node_initial_balance - 4 * init_bal);
+        node_1_expected_bal - 4 * init_bal);
     for (auto j(1); j < nodes.size(); ++j) {
       // For node1 to node4 account balances info on each node
       EXPECT_EQ(
@@ -257,12 +257,13 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
   EXPECT_EQ(node->getFinalChain()
                 ->getBalance(addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5"))
                 .first,
-            ChainConfig::default_chain_boot_node_initial_balance - 100);
+            own_effective_genesis_bal(node_cfgs[0]) - 100);
   EXPECT_EQ(node->getFinalChain()->getBalance(receiver).first, 100);
 }
 
 TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   auto node_cfgs = make_node_cfgs<20>(3);
+  auto node1_genesis_bal = own_effective_genesis_bal(node_cfgs[0]);
   auto nodes = launch_nodes(node_cfgs);
 
   auto node1_addr = nodes[0]->getAddress();
@@ -311,7 +312,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
     std::cout << "Checking account balances on node " << i << " ..."
               << std::endl;
     EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node1_addr).first,
-              ChainConfig::default_chain_boot_node_initial_balance - 100);
+              node1_genesis_bal - 100);
     EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node2_addr).first, 100);
     EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node3_addr).first, 0);
   }
@@ -366,7 +367,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
     std::cout << "Checking account balances on node " << i << " ..."
               << std::endl;
     EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node1_addr).first,
-              ChainConfig::default_chain_boot_node_initial_balance - 1100);
+              node1_genesis_bal - 1100);
     EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node2_addr).first, 100);
     EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node3_addr).first, 1000);
   }

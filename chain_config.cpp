@@ -12,6 +12,7 @@ Json::Value enc_json(ChainConfig const& obj) {
   }
   json["dag_genesis_block"] = obj.dag_genesis_block.getJson();
   json["replay_protection_service"] = enc_json(obj.replay_protection_service);
+  json["pbft"] = enc_json(obj.pbft);
   json["final_chain"] = enc_json(obj.final_chain);
   return json;
 }
@@ -22,22 +23,9 @@ void dec_json(Json::Value const& json, ChainConfig& obj) {
   }
   obj.dag_genesis_block = DagBlock(json["dag_genesis_block"]);
   dec_json(json["replay_protection_service"], obj.replay_protection_service);
+  dec_json(json["pbft"], obj.pbft);
   dec_json(json["final_chain"], obj.final_chain);
 }
-
-LazyVal<addr_t> const ChainConfig::default_chain_boot_node_addr([] {
-  return addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5");
-});
-
-LazyVal<vector<addr_t>> const ChainConfig::default_chain_predefined_nodes([] {
-  return vector<addr_t>{
-      default_chain_boot_node_addr,
-      addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"),
-      addr_t("4fae949ac2b72960fbe857b56532e2d3c8418d5e"),
-      addr_t("415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0"),
-      addr_t("b770f7a99d0b7ad9adf6520be77ca20ee99b0858"),
-  };
-});
 
 decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
   decltype(ChainConfig::predefined_)::val_t cfgs;
@@ -60,16 +48,12 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
         state_api::BlockNumberNIL;
     cfg.final_chain.state.execution_options.disable_nonce_check = true;
     cfg.final_chain.state.execution_options.disable_gas_fee = true;
+    addr_t root_node_addr("de2b1203d72d3549ee2f733b00b2789414c7cea5");
+    cfg.final_chain.state.genesis_balances[root_node_addr] = 9007199254740991;
     auto& dpos = cfg.final_chain.state.dpos.emplace();
     dpos.eligibility_balance_threshold = 1000000000;
-    cfg.final_chain.state.genesis_balances[*default_chain_boot_node_addr] =
-        default_chain_boot_node_initial_balance +
-        dpos.eligibility_balance_threshold *
-            default_chain_predefined_nodes->size();
-    for (auto const& addr_str : *default_chain_predefined_nodes) {
-      dpos.genesis_state[*default_chain_boot_node_addr][addr_t(addr_str)] =
-          dpos.eligibility_balance_threshold;
-    }
+    dpos.genesis_state[root_node_addr][root_node_addr] =
+        dpos.eligibility_balance_threshold;
     cfg.pbft.lambda_ms_min = 2000;
     cfg.pbft.committee_size = 5;
     cfg.pbft.dag_blocks_size = 100;
