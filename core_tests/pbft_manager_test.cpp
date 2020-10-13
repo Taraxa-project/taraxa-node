@@ -41,7 +41,7 @@ pair<size_t, size_t> calculate_2tPuls1_threshold(size_t committee_size,
 
 void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
     size_t committee_size) {
-  auto node_cfgs = make_node_cfgs<20>(5);
+  auto node_cfgs = make_node_cfgs<5>(5);
   auto node_1_expected_bal = own_effective_genesis_bal(node_cfgs[0]);
   for (auto &cfg : node_cfgs) {
     cfg.chain.pbft.committee_size = committee_size;
@@ -217,7 +217,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
 }
 
 TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
-  auto node_cfgs = make_node_cfgs<20>(1);
+  auto node_cfgs = make_node_cfgs<5>(1);
   FullNode::Handle node(node_cfgs[0], true);
 
   // create a transaction
@@ -262,7 +262,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
 }
 
 TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
-  auto node_cfgs = make_node_cfgs<20>(3);
+  auto node_cfgs = make_node_cfgs<5>(3);
   auto node1_genesis_bal = own_effective_genesis_bal(node_cfgs[0]);
   auto nodes = launch_nodes(node_cfgs);
 

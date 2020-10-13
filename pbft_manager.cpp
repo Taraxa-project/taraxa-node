@@ -1527,7 +1527,7 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
   // Update PBFT chain head block
   db_->addPbftHeadToBatch(pbft_chain_->getHeadHash(), pbft_chain_->getJsonStr(),
                           batch);
-    // Set DAG blocks period
+  // Set DAG blocks period
   dag_mgr_->setDagBlockOrder(dag_block_hash, pbft_period, dag_blocks_hash_order,
                              batch);
   // Remove executed transactions at Ethereum pending block. The Ethereum
@@ -1540,8 +1540,6 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
   // Commit DB
   db_->commitWriteBatch(batch);
   LOG(log_dg_) << "DB write batch committed";
-  // Set DAG blocks period
-  dag_mgr_->setDagBlockOrder(dag_block_hash, pbft_period);
   // After DB commit, confirm in final chain(Ethereum)
   final_chain_->advance_confirm();
   // Ethereum filter

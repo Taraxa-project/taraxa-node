@@ -708,7 +708,7 @@ TEST_F(FullNodeTest, destroy_db) {
 }
 
 TEST_F(FullNodeTest, reconstruct_anchors) {
-  auto node_cfgs = make_node_cfgs<20>(1);
+  auto node_cfgs = make_node_cfgs<5>(1);
   std::pair<std::string, std::string> anchors;
   {
     FullNode::Handle node(node_cfgs[0], true);
@@ -928,7 +928,7 @@ TEST_F(FullNodeTest, sync_two_nodes2) {
 
 // disabled for now, need to create two trx with nonce 0!
 TEST_F(FullNodeTest, single_node_run_two_transactions) {
-  auto node_cfgs = make_node_cfgs<10, true>(2);
+  auto node_cfgs = make_node_cfgs<5, true>(2);
   auto nodes = launch_nodes(node_cfgs);
 
   std::string send_raw_trx1 =
@@ -975,7 +975,7 @@ TEST_F(FullNodeTest, single_node_run_two_transactions) {
 }
 
 TEST_F(FullNodeTest, two_nodes_run_two_transactions) {
-  auto node_cfgs = make_node_cfgs<10, true>(2);
+  auto node_cfgs = make_node_cfgs<5, true>(2);
   auto nodes = launch_nodes(node_cfgs);
 
   std::string send_raw_trx1 =
@@ -1202,7 +1202,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
 }
 
 TEST_F(FullNodeTest, transfer_to_self) {
-  auto node_cfgs = make_node_cfgs<10, true>(3);
+  auto node_cfgs = make_node_cfgs<5, true>(3);
   auto nodes = launch_nodes(node_cfgs);
 
   std::cout << "Send first trx ..." << std::endl;

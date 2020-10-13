@@ -65,9 +65,11 @@ void FullNode::init() {
     LOG(log_er_) << "Genesis block is invalid";
     assert(false);
   }
-  emplace(db_, conf_.dbstorage_path());
-  if (db_->getNumDagBlocks() == 0) {
-    db_->saveDagBlock(conf_.chain.dag_genesis_block);
+  {
+    emplace(db_, conf_.dbstorage_path());
+    if (db_->getNumDagBlocks() == 0) {
+      db_->saveDagBlock(conf_.chain.dag_genesis_block);
+    }
   }
   LOG(log_nf_) << "DB initialized ...";
 
@@ -94,7 +96,8 @@ void FullNode::init() {
   auto genesis_hash = conf_.chain.dag_genesis_block.getHash().toString();
   emplace(pbft_chain_, genesis_hash, node_addr, db_);
   {
-    emplace(dag_mgr_, genesis_hash, node_addr, trx_mgr_, pbft_chain_);
+    emplace(dag_mgr_, genesis_hash, node_addr, trx_mgr_, pbft_chain_, db_);
+    // TODO move to the constructor?
     dag_mgr_->recoverDag();
   }
   emplace(blk_mgr_, 1024 /*capacity*/, 4 /* verifer thread*/, node_addr, db_,
