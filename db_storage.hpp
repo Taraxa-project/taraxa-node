@@ -25,7 +25,8 @@ enum StatusDbField : uint8_t {
   ExecutedBlkCount = 0,
   ExecutedTrxCount,
   TrxCount,
-  DagBlkCount
+  DagBlkCount,
+  DagEdgeCount
 };
 
 class DbException : public exception {
@@ -62,6 +63,7 @@ struct DbStorage {
 
     COLUMN(dag_blocks);
     COLUMN(dag_blocks_index);
+    COLUMN(dag_blocks_state);
     COLUMN(transactions);
     COLUMN(trx_to_blk);
     COLUMN(trx_status);
@@ -94,6 +96,7 @@ struct DbStorage {
   WriteOptions write_options_;
   mutex dag_blocks_mutex_;
   atomic<uint64_t> dag_blocks_count_;
+  atomic<uint64_t> dag_edge_count_;
 
   DbStorage() = default;
 
@@ -125,6 +128,14 @@ struct DbStorage {
   string getBlocksByLevel(level_t level);
   std::vector<std::shared_ptr<DagBlock>> getDagBlocksAtLevel(
       level_t level, int number_of_levels);
+
+  // DAG state
+  void saveDagBlockState(blk_hash_t const& blk_hash, bool finalized);
+  void addDagBlockStateToBatch(BatchPtr const& write_batch,
+                               blk_hash_t const& blk_hash, bool finalized);
+  void removeDagBlockStateToBatch(BatchPtr const& write_batch,
+                                  blk_hash_t const& blk_hash);
+  std::map<blk_hash_t, bool> getAllDagBlockState();
 
   // Transaction
   void saveTransaction(Transaction const& trx);
@@ -199,6 +210,7 @@ struct DbStorage {
                                 BatchPtr const& write_batch);
 
   uint64_t getDagBlocksCount() const { return dag_blocks_count_.load(); }
+  uint64_t getDagEdgeCount() const { return dag_edge_count_.load(); }
 
   vector<blk_hash_t> getOrderedDagBlocks();
 

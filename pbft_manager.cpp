@@ -183,7 +183,6 @@ void PbftManager::run() {
   // Initialize PBFT status
   initialState_();
 
-
   if (!capability_->syncing_) {
     LOG(log_nf_) << "Send sync request on PBFT start...";
     syncPbftChainFromPeers_();
@@ -1332,7 +1331,8 @@ bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(
   } else {
     // Sync if we see a cert voted block and we weren't able to
     // participate due to DAG not being synced
-    if (state_ == finish_state && !have_executed_this_round_&& !capability_->syncing_ && !syncRequestedAlreadyThisStep_()) {
+    if (state_ == finish_state && !have_executed_this_round_ &&
+        !capability_->syncing_ && !syncRequestedAlreadyThisStep_()) {
       LOG(log_nf_) << "DAG blocks have not sync yet. In period: " << last_period
                    << " PBFT block schedule DAG blocks size: "
                    << dag_blocks_hash_in_schedule.size()
@@ -1604,12 +1604,14 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
   blk_hash_t pbft_chain_head_hash = pbft_chain_->getHeadHash();
   std::string pbft_chain_head_str = pbft_chain_->getJsonStr();
   db_->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
+
+  // Set DAG blocks period
+  dag_mgr_->setDagBlockOrder(dag_block_hash, pbft_period, dag_blocks_hash_order,
+                             batch);
+
   // Commit DB
   db_->commitWriteBatch(batch);
   LOG(log_dg_) << "DB write batch committed already";
-
-  // Set DAG blocks period
-  dag_mgr_->setDagBlockOrder(dag_block_hash, pbft_period);
 
   if (ws_server_) ws_server_->newDagBlockFinalized(dag_block_hash, pbft_period);
 
@@ -1666,9 +1668,9 @@ void PbftManager::updateTwoTPlusOneAndThreshold_() {
     }
   }
   addr_t account_address = node_addr_;
-  is_active_player_ =
-      sortition_account_balance_table[account_address].last_period_seen >=
-      since_period;
+  auto it = sortition_account_balance_table.find(account_address);
+  is_active_player_ = it != sortition_account_balance_table.end() &&
+                      it->second.last_period_seen >= since_period;
   if (active_players == 0) {
     // IF active_players count 0 then all players should be treated as active
     LOG(log_wr_) << "Active players was found to be 0! This should only "

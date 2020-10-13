@@ -66,26 +66,6 @@ Json::Value Test::get_dag_block(const Json::Value &param1) {
   return res;
 }
 
-Json::Value Test::get_dag_block_epfriend(const Json::Value &param1) {
-  Json::Value res;
-  try {
-    if (auto node = full_node_.lock()) {
-      blk_hash_t from_hash = blk_hash_t(param1["from_hash"].asString());
-      blk_hash_t to_hash = blk_hash_t(param1["to_hash"].asString());
-
-      std::vector<std::string> epfriend;
-      epfriend = node->getDagManager()->getEpFriendBetweenPivots(
-          from_hash.toString(), to_hash.toString());
-      for (auto const &v : epfriend) {
-        res = res.asString() + (v + '\n');
-      }
-    }
-  } catch (std::exception &e) {
-    res["status"] = e.what();
-  }
-  return res;
-}
-
 Json::Value Test::send_coin_transaction(const Json::Value &param1) {
   Json::Value res;
   try {
