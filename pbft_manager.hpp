@@ -7,17 +7,15 @@
 
 #include "block_proposer.hpp"
 #include "config.hpp"
+#include "net/WSServer.h"
 #include "pbft_chain.hpp"
-#include "pbft_sortition_account.hpp"
 #include "replay_protection_service.hpp"
 #include "taraxa_capability.hpp"
+#include "transaction_order_manager.hpp"
 #include "types.hpp"
 #include "vote.hpp"
-#include "transaction_order_manager.hpp"
-#include "net/WSServer.h"
 
 // total TARAXA COINS (2^53 -1) "1fffffffffffff"
-#define TARAXA_COINS_DECIMAL 9007199254740991
 #define NULL_BLOCK_HASH blk_hash_t(0)
 #define POLLING_INTERVAL_ms 100  // milliseconds...
 #define MAX_STEPS 20
@@ -40,7 +38,6 @@ class PbftManager {
  public:
   using time_point = std::chrono::system_clock::time_point;
 
-  explicit PbftManager(std::string const &genesis, addr_t node_addr);
   PbftManager(PbftConfig const &conf, std::string const &genesis,
               addr_t node_addr, std::shared_ptr<DbStorage> db,
               std::shared_ptr<PbftChain> pbft_chain,
@@ -49,9 +46,8 @@ class PbftManager {
               std::shared_ptr<BlockManager> blk_mgr,
               std::shared_ptr<FinalChain> final_chain,
               std::shared_ptr<TransactionOrderManager> trx_ord_mgr,
-              std::shared_ptr<TransactionManager> trx_mgr,
-              addr_t master_boot_node_addr, secret_t node_sk, vrf_sk_t vrf_sk,
-              uint32_t expected_max_trx_per_block);
+              std::shared_ptr<TransactionManager> trx_mgr, secret_t node_sk,
+              vrf_sk_t vrf_sk, uint32_t expected_max_trx_per_block);
   ~PbftManager();
 
   void setNetwork(std::shared_ptr<Network> network);
@@ -75,32 +71,29 @@ class PbftManager {
 
   // Notice: Test purpose
   void setSortitionThreshold(size_t const sortition_threshold);
-  size_t getValidSortitionAccountsSize() const;
   std::vector<std::vector<uint>> createMockTrxSchedule(
       std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
           trx_overlap_table);
-
-  // End Test
-
   bool shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step);
 
-  // <account address, PbftSortitionAccount>
-  // Temporary table for executor to update
-  std::unordered_map<addr_t, PbftSortitionAccount>
-      sortition_account_balance_table_tmp;
-  // Permanent table update at beginning each of PBFT new round
-  std::unordered_map<addr_t, PbftSortitionAccount>
-      sortition_account_balance_table;
+  u_long const LAMBDA_ms_MIN;
 
-  u_long LAMBDA_ms_MIN;  // TODO: Should be on define
+ private:
   u_long LAMBDA_ms = 0;
-  size_t COMMITTEE_SIZE;           // TODO: Should be on define
-  uint64_t VALID_SORTITION_COINS;  // TODO: Should be on define
-  size_t DAG_BLOCKS_SIZE;          // TODO: Should be on define
-  size_t GHOST_PATH_MOVE_BACK;     // TODO: Should be on define
-  uint64_t SKIP_PERIODS;           // TODO: Should be on define
-  bool RUN_COUNT_VOTES;            // TODO: Only for test, need remove later
-  size_t active_nodes = 0;         // TODO: Only for test, need remove later
+
+ public:
+  size_t const COMMITTEE_SIZE;
+
+ private:
+  size_t DAG_BLOCKS_SIZE;
+  size_t GHOST_PATH_MOVE_BACK;
+  bool RUN_COUNT_VOTES;  // TODO: Only for test, need remove later
+
+  void update_dpos_state_();
+  bool is_eligible_(addr_t const &addr);
+
+ public:
+  uint64_t getEligibleVoterCount() const;
 
  private:
   void resetStep_();
@@ -172,14 +165,6 @@ class PbftManager {
 
   void updateTwoTPlusOneAndThreshold_();
 
-  void updateTempSortitionAccountsTable_(
-      uint64_t period, unordered_set<addr_t> const &dag_block_proposers,
-      unordered_set<addr_t> const &trx_senders,
-      unordered_map<addr_t, val_t> const &execution_touched_account_balances);
-  void updateSortitionAccountsTable_();
-
-  void updateSortitionAccountsDB_(DbStorage::BatchPtr const &batch);
-
   std::atomic<bool> stopped_ = true;
   // Using to check if PBFT block has been proposed already in one period
   std::pair<blk_hash_t, bool> proposed_block_hash_ =
@@ -196,7 +181,6 @@ class PbftManager {
   std::shared_ptr<FinalChain> final_chain_;
   std::shared_ptr<TransactionOrderManager> trx_ord_mgr_;
   std::shared_ptr<TransactionManager> trx_mgr_;
-  addr_t master_boot_node_addr_;
   addr_t node_addr_;
   secret_t node_sk_;
   vrf_sk_t vrf_sk_;
@@ -204,11 +188,9 @@ class PbftManager {
   // Database
   std::shared_ptr<DbStorage> db_ = nullptr;
 
-  size_t valid_sortition_accounts_size_ = 0;
   blk_hash_t pbft_chain_last_block_hash_ = blk_hash_t(0);
   std::pair<blk_hash_t, bool> next_voted_block_from_previous_round_ =
       std::make_pair(NULL_BLOCK_HASH, false);
-  ;
 
   PbftStates state_ = value_proposal_state;
   uint64_t round_ = 1;
@@ -222,7 +204,6 @@ class PbftManager {
   std::unordered_map<size_t, blk_hash_t> push_block_values_for_round_;
   std::pair<blk_hash_t, bool> soft_voted_block_for_this_round_ =
       std::make_pair(NULL_BLOCK_HASH, false);
-  ;
   std::vector<Vote> votes_;
 
   time_point round_clock_initial_datetime_;
@@ -245,10 +226,11 @@ class PbftManager {
 
   size_t pbft_last_observed_synced_queue_size_ = 0;
 
+  std::atomic<uint64_t> dpos_period_;
+  std::atomic<uint64_t> eligible_voter_count_;
   size_t sortition_threshold_ = 0;
   // 2t+1 minimum number of votes for consensus
   size_t TWO_T_PLUS_ONE = 0;
-  bool is_active_player_ = false;
 
   std::string dag_genesis_;
 
@@ -267,9 +249,7 @@ class PbftManager {
 
   std::atomic<uint64_t> num_executed_trx_ = 0;
   std::atomic<uint64_t> num_executed_blk_ = 0;
-  unordered_set<addr_t> dag_block_proposers_tmp_;
-  dev::eth::Transactions transactions_tmp_;
-  unordered_set<addr_t> trx_senders_tmp_;
+  dev::eth::Transactions transactions_tmp_buf_;
 
   LOG_OBJECTS_DEFINE;
   mutable boost::log::sources::severity_channel_logger<> log_nf_test_{

@@ -1,10 +1,7 @@
 #include "config.hpp"
 
-//#include <Log.h>
 #include <json/json.h>
 
-#include <boost/algorithm/string.hpp>
-#include <boost/core/null_deleter.hpp>
 #include <fstream>
 
 namespace taraxa {
@@ -74,7 +71,7 @@ bool getConfigDataAsBoolean(Json::Value const &root,
   }
 }
 
-FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object) : chain() {
+FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object) {
   Json::Value parsed_from_file;
   if (string_or_object.isString()) {
     json_file_name = string_or_object.asString();
@@ -94,17 +91,19 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object) : chain() {
   auto const &root =
       string_or_object.isString() ? parsed_from_file : string_or_object;
   node_secret = getConfigDataAsString(root, {"node_secret"});
-  vrf_secret = getConfigDataAsString(root, {"vrf_secret"});
+  vrf_secret =
+      vrf_wrapper::vrf_sk_t(getConfigDataAsString(root, {"vrf_secret"}));
   db_path = getConfigDataAsString(root, {"db_path"});
   dag_processing_threads =
       getConfigDataAsUInt(root, {"dag_processing_threads"});
-
+  if (auto n = getConfigData(root, {"network_is_boot_node"}, true);
+      !n.isNull()) {
+    network.network_is_boot_node = n.asBool();
+  }
   network.network_address = getConfigDataAsString(root, {"network_address"});
   network.network_id = getConfigDataAsString(root, {"network_id"});
-  network.network_tcp_port =
-      getConfigDataAsUInt(root, {"network_tcp_port"});
-  network.network_udp_port =
-      getConfigDataAsUInt(root, {"network_udp_port"});
+  network.network_tcp_port = getConfigDataAsUInt(root, {"network_tcp_port"});
+  network.network_udp_port = getConfigDataAsUInt(root, {"network_udp_port"});
   network.network_simulated_delay =
       getConfigDataAsUInt(root, {"network_simulated_delay"});
   network.network_transaction_interval =
@@ -133,8 +132,12 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object) : chain() {
     network.network_boot_nodes.push_back(node);
   }
   rpc.address = boost::asio::ip::address::from_string(network.network_address);
-  rpc.port = getConfigDataAsUInt(root, {"rpc_port"});
-  rpc.ws_port = getConfigDataAsUInt(root, {"ws_port"});
+  if (auto n = getConfigData(root, {"rpc_port"}, true); !n.isNull()) {
+    rpc.port = n.asUInt();
+  }
+  if (auto n = getConfigData(root, {"ws_port"}, true); !n.isNull()) {
+    rpc.ws_port = n.asUInt();
+  }
   {  // for test experiments
     test_params.max_transaction_queue_warn = getConfigDataAsUInt(
         root, {"test_params", "max_transaction_queue_warn"}, true);
@@ -159,21 +162,6 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object) : chain() {
     test_params.block_proposer.lambda_bound = getConfigDataAsUInt(
         root,
         {"test_params", "block_proposer", "sortition_params", "lambda_bound"});
-
-    test_params.pbft.lambda_ms_min =
-        getConfigDataAsUInt(root, {"test_params", "pbft", "lambda_ms_min"});
-    test_params.pbft.committee_size =
-        getConfigDataAsUInt(root, {"test_params", "pbft", "committee_size"});
-    test_params.pbft.valid_sortition_coins = getConfigDataAsUInt64(
-        root, {"test_params", "pbft", "valid_sortition_coins"});
-    test_params.pbft.dag_blocks_size =
-        getConfigDataAsUInt(root, {"test_params", "pbft", "dag_blocks_size"});
-    test_params.pbft.ghost_path_move_back = getConfigDataAsUInt(
-        root, {"test_params", "pbft", "ghost_path_move_back"});
-    test_params.pbft.skip_periods =
-        getConfigDataAsUInt64(root, {"test_params", "pbft", "skip_periods"});
-    test_params.pbft.run_count_votes =
-        getConfigDataAsUInt(root, {"test_params", "pbft", "run_count_votes"});
   }
 
   if (!root["logging"].isNull()) {
@@ -201,7 +189,7 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object) : chain() {
           output.format = getConfigDataAsString(o, {"format"});
           if (output.type == "file") {
             output.file_name =
-                db_path + "/" + getConfigDataAsString(o, {"file_name"});
+                (db_path / getConfigDataAsString(o, {"file_name"})).string();
             output.format = getConfigDataAsString(o, {"format"});
             output.max_size = getConfigDataAsUInt64(o, {"max_size"});
             output.rotation_size = getConfigDataAsUInt64(o, {"rotation_size"});
@@ -222,24 +210,8 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object) : chain() {
     chain = ChainConfig::predefined();
   }
   // TODO configurable
-  opts_final_chain.state_api.ExpectedMaxNumTrxPerBlock = 400;
-  // TODO constant
-  opts_final_chain.state_api.MainTrieWriterOpts.ExpectedDepth = 64;
-  opts_final_chain.state_api.MainTrieWriterOpts.FullNodeLevelsToCache = 5;
-  opts_final_chain.state_api.AccTrieWriterOpts.ExpectedDepth = 16;
-}
-
-RpcConfig::RpcConfig(std::string const &json_file) : json_file_name(json_file) {
-  try {
-    Json::Value root;
-    std::ifstream config_doc(json_file, std::ifstream::binary);
-    config_doc >> root;
-    port = root["port"].asUInt();
-    ws_port = root["ws_port"].asUInt();
-    address = boost::asio::ip::address::from_string(root["address"].asString());
-  } catch (std::exception &e) {
-    std::cerr << e.what() << std::endl;
-  }
+  opts_final_chain.state_api.ExpectedMaxTrxPerBlock = 1000;
+  opts_final_chain.state_api.MainTrieFullNodeLevelsToCache = 4;
 }
 
 std::ostream &operator<<(std::ostream &strm, NodeConfig const &conf) {
@@ -254,6 +226,7 @@ std::ostream &operator<<(std::ostream &strm, NodeConfig const &conf) {
 std::ostream &operator<<(std::ostream &strm, NetworkConfig const &conf) {
   strm << "[Network Config] " << std::endl;
   strm << "  json_file_name: " << conf.json_file_name << std::endl;
+  strm << "  network_is_boot_node: " << conf.network_is_boot_node << std::endl;
   strm << "  network_address: " << conf.network_address << std::endl;
   strm << "  network_tcp_port: " << conf.network_tcp_port << std::endl;
   strm << "  network_udp_port: " << conf.network_udp_port << std::endl;

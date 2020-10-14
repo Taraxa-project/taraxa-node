@@ -64,27 +64,20 @@ Logger createTaraxaLogger(int _severity, std::string const &_channel,
   return logger;
 }
 
-void removeLogging(LoggingConfig &logging) {
-  boost::log::core::get()->flush();
-  for (auto &sink : logging.console_sinks) {
-    boost::log::core::get()->remove_sink(sink);
-  }
-  for (auto &sink : logging.file_sinks) {
-    boost::log::core::get()->remove_sink(sink);
-  }
-}
-
-void setupLoggingConfiguration(addr_t &node, LoggingConfig &logging) {
-  uint32_t short_node_id_conf = *(uint32_t *)node.data();
+std::function<void()> setupLoggingConfiguration(addr_t const &node,
+                                          LoggingConfig const &l) {
   boost::log::core::get()->add_sink(
       boost::make_shared<log_sink<boost::log::sinks::text_ostream_backend>>());
   // If there is no output defined, we default to console output
+  auto logging_p = make_shared<LoggingConfig>(l);
+  auto &logging = *logging_p;
   if (logging.outputs.empty()) {
     logging.outputs.push_back(LoggingOutputConfig());
   }
   for (auto &output : logging.outputs) {
-    auto filter = [&logging, short_node_id_conf](
+    auto filter = [logging_p, short_node_id_conf = *(uint32_t *)node.data()](
                       boost::log::attribute_value_set const &_set) {
+      auto const &logging = *logging_p;
       if (logging.channels.count(*_set[channel])) {
         if (short_node_id_conf == _set[short_node_id]) {
           auto channel_name = _set[channel].get();
@@ -143,6 +136,16 @@ void setupLoggingConfiguration(addr_t &node, LoggingConfig &logging) {
             std::cerr << "Exception from the logging library: " << _ex.what()
                       << '\n';
           }));
+  return [logging_p] {
+    auto const &logging = *logging_p;
+    boost::log::core::get()->flush();
+    for (auto &sink : logging.console_sinks) {
+      boost::log::core::get()->remove_sink(sink);
+    }
+    for (auto &sink : logging.file_sinks) {
+      boost::log::core::get()->remove_sink(sink);
+    }
+  };
 }
 
 }  // namespace taraxa

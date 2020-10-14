@@ -56,7 +56,7 @@ struct StateAPIImpl : virtual Eth::StateAPI {
 
   h256 stateRootAt(Address _a, BlockNumber n) const override {
     if (auto acc = final_chain->get_account(_a, n)) {
-      return acc->StorageRootHash;
+      return acc->storage_root_eth();
     }
     return {};
   }
@@ -68,7 +68,7 @@ struct StateAPIImpl : virtual Eth::StateAPI {
 
 unique_ptr<Eth::StateAPI> NewStateAPI(shared_ptr<FinalChain> final_chain) {
   auto ret = u_ptr(new StateAPIImpl);
-  ret->final_chain = final_chain;
+  ret->final_chain = move(final_chain);
   return ret;
 }
 

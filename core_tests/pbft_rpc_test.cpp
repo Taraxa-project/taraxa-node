@@ -8,12 +8,11 @@
 #include "network.hpp"
 #include "pbft_manager.hpp"
 #include "static_init.hpp"
-#include "top.hpp"
 #include "vote.hpp"
 
-namespace taraxa {
-using namespace core_tests::util;
+namespace taraxa::core_tests {
 using namespace vrf_wrapper;
+
 auto g_vrf_sk = Lazy([] {
   return vrf_sk_t(
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
@@ -24,39 +23,23 @@ auto g_sk = Lazy([] {
       "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
       dev::Secret::ConstructFromStringType::FromHex);
 });
-struct PbftRpcTest : core_tests::util::DBUsingTest<> {};
-
-TEST_F(PbftRpcTest, pbft_manager_lambda_input_test) {
-  const std::string GENESIS =
-      "0000000000000000000000000000000000000000000000000000000000000000";
-  PbftConfig pbft_params;
-  pbft_params.lambda_ms_min = 1000;
-  pbft_params.committee_size = 3;
-  pbft_params.valid_sortition_coins = 10000;
-
-  PbftManager pbft_manager(pbft_params, GENESIS, addr_t(), nullptr, nullptr,
-                           nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-                           addr_t(), secret_t(), vrf_sk_t(), 2000);
-  EXPECT_EQ(pbft_params.lambda_ms_min, pbft_manager.LAMBDA_ms_MIN);
-  EXPECT_EQ(pbft_params.committee_size, pbft_manager.COMMITTEE_SIZE);
-  EXPECT_EQ(pbft_params.valid_sortition_coins,
-            pbft_manager.VALID_SORTITION_COINS);
-}
+struct PbftRpcTest : BaseTest {};
 
 TEST_F(PbftRpcTest, full_node_lambda_input_test) {
-  auto node(taraxa::FullNode::make(std::string(conf_file[0])));
-  node->start(false);
+  auto node_cfgs = make_node_cfgs(1);
+  FullNode::Handle node(node_cfgs[0]);
+
+  node->start();
   auto pbft_mgr = node->getPbftManager();
   EXPECT_EQ(pbft_mgr->LAMBDA_ms_MIN, 2000);
-  EXPECT_EQ(pbft_mgr->VALID_SORTITION_COINS, 1000000000);
 }
 
 // Add votes round 1, 2 and 3 into unverified vote table
 // Get votes round 2, will remove round 1 in the table, and return round 2 & 3
 // votes
 TEST_F(PbftRpcTest, add_cleanup_get_votes) {
-  auto tops = createNodesAndVerifyConnection(1);
-  auto& node = tops.second[0];
+  auto node_cfgs = make_node_cfgs(1);
+  FullNode::Handle node(node_cfgs[0]);
 
   // stop PBFT manager, that will place vote
   std::shared_ptr<PbftManager> pbft_mgr = node->getPbftManager();
@@ -88,12 +71,12 @@ TEST_F(PbftRpcTest, add_cleanup_get_votes) {
   size_t valid_sortition_players = 1;
   pbft_mgr->setSortitionThreshold(valid_sortition_players);
   uint64_t pbft_round = 2;
-  std::vector<Vote> votes =
-      vote_mgr->getVotes(pbft_round, valid_sortition_players,
-                         pbft_mgr->getLastPbftBlockHashAtStartOfRound(),
-                         pbft_mgr->getSortitionThreshold());
+  std::vector<Vote> votes = vote_mgr->getVotes(
+      pbft_round, pbft_mgr->getLastPbftBlockHashAtStartOfRound(),
+      pbft_mgr->getSortitionThreshold(), valid_sortition_players,
+      [](...) { return true; });
   EXPECT_EQ(votes.size(), 4);
-  for (Vote const& v : votes) {
+  for (Vote const &v : votes) {
     EXPECT_GT(v.getRound(), 1);
   }
 
@@ -123,39 +106,12 @@ TEST_F(PbftRpcTest, reconstruct_votes) {
 
 // Generate a vote, send the vote from node2 to node1
 TEST_F(PbftRpcTest, transfer_vote) {
-  // set nodes account balance
-  val_t new_balance = 9007199254740991;  // Max Taraxa coins 2^53 - 1
-  vector<FullNodeConfig> cfgs;
-  for (auto i = 1; i <= 2; ++i) {
-    cfgs.emplace_back(fmt("./core_tests/conf/conf_taraxa%s.json", i));
-  }
-  for (auto& cfg : cfgs) {
-    for (auto& cfg_other : cfgs) {
-      cfg.chain.final_chain.state.genesis_accounts[addr(cfg_other.node_secret)]
-          .Balance = new_balance;
-    }
-  }
-  auto node_count = 0;
-  auto node1(taraxa::FullNode::make(cfgs[node_count++]));
-  auto node2(taraxa::FullNode::make(cfgs[node_count++]));
-
-  node1->start(true);  // boot node
-  node2->start(false);
-
+  auto node_cfgs = make_node_cfgs(2);
+  auto nodes = launch_nodes(node_cfgs);
+  auto &node1 = nodes[0];
+  auto &node2 = nodes[1];
   std::shared_ptr<Network> nw1 = node1->getNetwork();
   std::shared_ptr<Network> nw2 = node2->getNetwork();
-
-  int node_peers = 1;
-  for (int i = 0; i < 300; i++) {
-    // test timeout is 30 seconds
-    if (nw1->getPeerCount() == node_peers &&
-        nw2->getPeerCount() == node_peers) {
-      break;
-    }
-    taraxa::thisThreadSleepForMilliSeconds(100);
-  }
-  ASSERT_EQ(node_peers, nw1->getPeerCount());
-  ASSERT_EQ(node_peers, nw2->getPeerCount());
 
   // stop PBFT manager, that will place vote
   std::shared_ptr<PbftManager> pbft_mgr1 = node1->getPbftManager();
@@ -191,25 +147,11 @@ TEST_F(PbftRpcTest, transfer_vote) {
 }
 
 TEST_F(PbftRpcTest, vote_broadcast) {
-  // set nodes account balance
-  val_t new_balance = 9007199254740991;  // Max Taraxa coins 2^53 - 1
-  vector<FullNodeConfig> cfgs;
-  for (auto i = 1; i <= 3; ++i) {
-    cfgs.emplace_back(fmt("./core_tests/conf/conf_taraxa%s.json", i));
-  }
-  for (auto& cfg : cfgs) {
-    for (auto& cfg_other : cfgs) {
-      cfg.chain.final_chain.state.genesis_accounts[addr(cfg_other.node_secret)]
-          .Balance = new_balance;
-    }
-  }
-  auto node_count = 0;
-  auto node1(taraxa::FullNode::make(cfgs[node_count++]));
-  auto node2(taraxa::FullNode::make(cfgs[node_count++]));
-  auto node3(taraxa::FullNode::make(cfgs[node_count++]));
-  node1->start(true);  // boot node
-  node2->start(false);
-  node3->start(false);
+  auto node_cfgs = make_node_cfgs(3);
+  auto nodes = launch_nodes(node_cfgs);
+  auto &node1 = nodes[0];
+  auto &node2 = nodes[1];
+  auto &node3 = nodes[2];
 
   std::shared_ptr<Network> nw1 = node1->getNetwork();
   std::shared_ptr<Network> nw2 = node2->getNetwork();
@@ -262,10 +204,10 @@ TEST_F(PbftRpcTest, vote_broadcast) {
   EXPECT_EQ(vote_queue_size3, 1);
 }
 
-}  // namespace taraxa
+}  // namespace taraxa::core_tests
 
 using namespace taraxa;
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   taraxa::static_init();
   LoggingConfig logging;
   logging.verbosity = taraxa::VerbosityError;

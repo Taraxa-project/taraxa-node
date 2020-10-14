@@ -6,12 +6,11 @@
 
 #include "../network.hpp"
 #include "../pbft_manager.hpp"
-#include "core_tests/create_samples.hpp"
 #include "dag.hpp"
 #include "dag_block.hpp"
+#include "full_node.hpp"
 #include "transaction_manager.hpp"
 #include "types.hpp"
-#include "full_node.hpp"
 
 using namespace std;
 using namespace dev;
@@ -21,7 +20,7 @@ using namespace taraxa;
 
 namespace taraxa::net {
 
-Test::Test(std::shared_ptr<taraxa::FullNode> &_full_node)
+Test::Test(std::shared_ptr<taraxa::FullNode> const &_full_node)
     : full_node_(_full_node) {
   trx_creater_ = std::async(std::launch::async, [] {});
 }
@@ -111,16 +110,15 @@ Json::Value Test::create_test_coin_transactions(const Json::Value &param1) {
       } else {
         trx_creater_ = std::async(
             std::launch::async,
-            [this, node, &log_time, delay, number, nonce, receiver, sk]() {
+            [node, &log_time, delay, number, nonce, receiver, sk]() {
               // get trx receiving time stamp
               bytes data;
               uint i = 0;
               while (i < number) {
                 auto now = getCurrentTimeMilliSeconds();
                 val_t value = val_t(100);
-                auto trx = taraxa::Transaction(
-                    i + nonce, value, 1000, taraxa::samples::TEST_TX_GAS_LIMIT,
-                    data, sk, receiver);
+                auto trx = taraxa::Transaction(i + nonce, value, 1000, 0, data,
+                                               sk, receiver);
                 LOG(log_time) << "Transaction " << trx.getHash()
                               << " received at: " << now;
                 node->getTransactionManager()->insertTransaction(trx, false);
@@ -326,10 +324,10 @@ Json::Value Test::get_votes(const Json::Value &param1) {
       uint64_t pbft_round = param1["period"].asUInt64();
       std::shared_ptr<PbftManager> pbft_mgr = node->getPbftManager();
       std::shared_ptr<VoteManager> vote_mgr = node->getVoteManager();
-      std::vector<Vote> votes = vote_mgr->getVotes(
-          pbft_round, pbft_mgr->sortition_account_balance_table.size(),
-          pbft_mgr->getLastPbftBlockHashAtStartOfRound(),
-          pbft_mgr->getSortitionThreshold());
+      std::vector<Vote> votes =
+          vote_mgr->getVotes(pbft_round, pbft_mgr->getEligibleVoterCount(),
+                             pbft_mgr->getLastPbftBlockHashAtStartOfRound(),
+                             pbft_mgr->getSortitionThreshold());
       res = vote_mgr->getJsonStr(votes);
     }
   } catch (std::exception &e) {

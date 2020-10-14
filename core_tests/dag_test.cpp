@@ -6,9 +6,9 @@
 #include "static_init.hpp"
 #include "types.hpp"
 
-namespace taraxa {
+namespace taraxa::core_tests {
 
-struct DagTest : core_tests::util::DBUsingTest<> {};
+struct DagTest : BaseTest {};
 
 TEST_F(DagTest, build_dag) {
   const std::string GENESIS =
@@ -137,9 +137,9 @@ TEST_F(DagTest, genesis_get_pivot) {
 TEST_F(DagTest, compute_epoch) {
   const std::string GENESIS =
       "0000000000000000000000000000000000000000000000000000000000000000";
-  auto db_ptr = std::shared_ptr<DbStorage>(
-      std::move(DbStorage::make("/tmp/testtaraxadb", blk_hash_t(0), true)));
-  auto mgr = std::make_shared<DagManager>(GENESIS, addr_t(), nullptr, nullptr, db_ptr);
+  auto db_ptr = s_ptr(new DbStorage(data_dir / "db"));
+  auto mgr =
+      std::make_shared<DagManager>(GENESIS, addr_t(), nullptr, nullptr, db_ptr);
   DagBlock blkA(blk_hash_t(0), 0, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(1),
                 addr_t(1));
   DagBlock blkB(blk_hash_t(0), 0, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1),
@@ -240,12 +240,12 @@ TEST_F(DagTest, compute_epoch) {
 TEST_F(DagTest, receive_block_in_order) {
   const std::string GENESIS =
       "000000000000000000000000000000000000000000000000000000000000000a";
-  auto db_ptr = std::shared_ptr<DbStorage>(
-      std::move(DbStorage::make("/tmp/testtaraxadb", blk_hash_t(0), true)));
-  auto mgr = std::make_shared<DagManager>(GENESIS, addr_t(), nullptr, nullptr, db_ptr);
+  auto db_ptr = s_ptr(new DbStorage(data_dir / "db"));
+  auto mgr =
+      std::make_shared<DagManager>(GENESIS, addr_t(), nullptr, nullptr, db_ptr);
   // mgr.setVerbose(true);
   DagBlock genesis_block(blk_hash_t(0), 0, {}, {}, sig_t(777), blk_hash_t(10),
-                addr_t(15));
+                         addr_t(15));
   DagBlock blk1(blk_hash_t(10), 0, {}, {}, sig_t(777), blk_hash_t(1),
                 addr_t(15));
   DagBlock blk2(blk_hash_t(1), 0, {}, {}, sig_t(777), blk_hash_t(2),
@@ -283,9 +283,9 @@ TEST_F(DagTest, receive_block_in_order) {
 TEST_F(DagTest, compute_epoch_2) {
   const std::string GENESIS =
       "0000000000000000000000000000000000000000000000000000000000000000";
-  auto db_ptr = std::shared_ptr<DbStorage>(
-      std::move(DbStorage::make("/tmp/testtaraxadb", blk_hash_t(0), true)));
-  auto mgr = std::make_shared<DagManager>(GENESIS, addr_t(), nullptr, nullptr, db_ptr);
+  auto db_ptr = s_ptr(new DbStorage(data_dir / "db"));
+  auto mgr =
+      std::make_shared<DagManager>(GENESIS, addr_t(), nullptr, nullptr, db_ptr);
   DagBlock blkA(blk_hash_t(0), 0, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(1),
                 addr_t(1));
   DagBlock blkB(blk_hash_t(0), 0, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1),
@@ -315,7 +315,7 @@ TEST_F(DagTest, compute_epoch_2) {
   db_ptr->saveDagBlock(blkI);
   db_ptr->saveDagBlock(blkJ);
   db_ptr->saveDagBlock(blkK);
-  
+
   mgr->addDagBlock(blkA);
   mgr->addDagBlock(blkB);
   mgr->addDagBlock(blkC);
@@ -387,9 +387,9 @@ TEST_F(DagTest, compute_epoch_2) {
 TEST_F(DagTest, get_latest_pivot_tips) {
   const std::string GENESIS =
       "0000000000000000000000000000000000000000000000000000000000000000";
-  auto db_ptr = std::shared_ptr<DbStorage>(
-      std::move(DbStorage::make("/tmp/testtaraxadb", blk_hash_t(0), true)));
-  auto mgr = std::make_shared<DagManager>(GENESIS, addr_t(), nullptr, nullptr, db_ptr);
+  auto db_ptr = s_ptr(new DbStorage(data_dir / "db"));
+  auto mgr =
+      std::make_shared<DagManager>(GENESIS, addr_t(), nullptr, nullptr, db_ptr);
 
   // mgr.setVerbose(true);
   DagBlock blk1(blk_hash_t(0), 0, {}, {}, sig_t(0), blk_hash_t(1), addr_t(15));
@@ -425,7 +425,7 @@ TEST_F(DagTest, get_latest_pivot_tips) {
             "0000000000000000000000000000000000000000000000000000000000000006");
 }
 
-}  // namespace taraxa
+}  // namespace taraxa::core_tests
 
 using namespace taraxa;
 int main(int argc, char** argv) {

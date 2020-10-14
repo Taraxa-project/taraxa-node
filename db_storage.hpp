@@ -12,7 +12,6 @@
 
 #include "dag_block.hpp"
 #include "pbft_chain.hpp"
-#include "pbft_sortition_account.hpp"
 #include "transaction_status.hpp"
 #include "util.hpp"
 
@@ -70,7 +69,6 @@ struct DbStorage {
     COLUMN(status);
     COLUMN(pbft_head);
     COLUMN(pbft_blocks);
-    COLUMN(sortition_accounts);
     COLUMN(votes);
     COLUMN(period_pbft_block);
     COLUMN(dag_block_period);
@@ -78,37 +76,30 @@ struct DbStorage {
     COLUMN(pending_transactions);
     COLUMN(aleth_chain);
     COLUMN(aleth_chain_extras);
-    COLUMN(eth_state_code);
-    COLUMN(eth_state_main_trie_node);
-    COLUMN(eth_state_main_trie_value);
-    COLUMN(eth_state_main_trie_value_latest);
-    COLUMN(eth_state_acc_trie_node);
-    COLUMN(eth_state_acc_trie_value);
-    COLUMN(eth_state_acc_trie_value_latest);
 
 #undef COLUMN
   };
 
  private:
-  shared_ptr<DB> db_;
-  vector<shared_ptr<ColumnFamilyHandle>> handles_;
+  fs::path path_;
+  DB* db_;
+  vector<ColumnFamilyHandle*> handles_;
   ReadOptions read_options_;
   WriteOptions write_options_;
   mutex dag_blocks_mutex_;
   atomic<uint64_t> dag_blocks_count_;
   atomic<uint64_t> dag_edge_count_;
 
-  DbStorage() = default;
+  auto handle(Column const& col) const { return handles_[col.ordinal]; }
 
  public:
-  static unique_ptr<DbStorage> make(fs::path const& base_path,
-                                    h256 const& genesis_hash,
-                                    bool drop_existing);
+  DbStorage(DbStorage const&) = delete;
+  DbStorage& operator=(DbStorage const&) = delete;
 
-  auto unwrap() const { return db_; }
-  auto unwrap_handle(Column const& col) const { return handles_[col.ordinal]; }
-  auto handle(Column const& col) const { return unwrap_handle(col).get(); }
+  DbStorage(fs::path const& base_path);
+  ~DbStorage();
 
+  auto const& path() const { return path_; }
   BatchPtr createWriteBatch();
   void commitWriteBatch(BatchPtr const& write_batch);
 
@@ -179,20 +170,6 @@ struct DbStorage {
                        uint64_t const& value);  // unit test
   void addStatusFieldToBatch(StatusDbField const& field, uint64_t const& value,
                              BatchPtr const& write_batch);
-  // sortition_accounts
-  // TODO: Avoid using different data in same db here as well
-  //  Need move sortition_accounts_size from sortition_accounts to a new column
-  string getSortitionAccount(string const& key);
-  PbftSortitionAccount getSortitionAccount(addr_t const& account);
-  bool sortitionAccountInDb(string const& key);
-  bool sortitionAccountInDb(addr_t const& account);
-  void removeSortitionAccount(addr_t const& account);
-  void forEachSortitionAccount(OnEntry const& f);
-  void addSortitionAccountToBatch(addr_t const& address,
-                                  PbftSortitionAccount& account,
-                                  BatchPtr const& write_batch);
-  void addSortitionAccountToBatch(string const& key, string const& value,
-                                  BatchPtr const& write_batch);
   // votes
   bytes getVote(blk_hash_t const& hash);
   void saveVote(blk_hash_t const& hash, bytes& value);  // for unit test

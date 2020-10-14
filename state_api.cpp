@@ -44,6 +44,14 @@ taraxa_evm_BytesCallback const err_handler_c{
     },
 };
 
+template <typename Result, void (*decode)(taraxa_evm_Bytes, Result&)>
+taraxa_evm_BytesCallback decoder_cb_c(Result& res) {
+  return {
+      &res,
+      [](auto receiver, auto b) { decode(b, *(Result*)receiver); },
+  };
+}
+
 template <typename Result,                            //
           void (*decode)(taraxa_evm_Bytes, Result&),  //
           void (*fn)(taraxa_evm_state_API_ptr, taraxa_evm_Bytes,
@@ -53,11 +61,7 @@ template <typename Result,                            //
 void c_method_args_rlp(taraxa_evm_state_API_ptr this_c, RLPStream& rlp,
                        Result& ret, Params const&... args) {
   enc_rlp_tuple(rlp, args...);
-  fn(this_c, map_bytes(rlp.out()),
-     {
-         &ret,
-         [](auto receiver, auto b) { decode(b, *(Result*)receiver); },
-     },
+  fn(this_c, map_bytes(rlp.out()), decoder_cb_c<Result, decode>(ret),
      err_handler_c);
 }
 
@@ -84,14 +88,9 @@ void c_method_args_rlp(taraxa_evm_state_API_ptr this_c, Params const&... args) {
   fn(this_c, map_bytes(rlp.out()), err_handler_c);
 }
 
-StateAPI::StateAPI(decltype(db) db, decltype(cols) cols,
-                   decltype(get_blk_hash) get_blk_hash,
-                   ChainConfig const& chain_config, BlockNumber curr_blk_num,
-                   h256 const& curr_state_root, CacheOpts const& cache_opts)
-    : db(move(db)),
-      db_c{this->db.get()},
-      cols(move(cols)),
-      get_blk_hash(move(get_blk_hash)),
+StateAPI::StateAPI(string const& db_path, decltype(get_blk_hash) get_blk_hash,
+                   ChainConfig const& chain_config, Opts const& opts)
+    : get_blk_hash(move(get_blk_hash)),
       get_blk_hash_c{
           this,
           [](auto receiver, auto arg) {
@@ -101,236 +100,192 @@ StateAPI::StateAPI(decltype(db) db, decltype(cols) cols,
             return ret_c;
           },
       } {
-  StateTransition_ApplyBlock_ret.ExecutionResults.reserve(
-      cache_opts.ExpectedMaxNumTrxPerBlock);
-  StateTransition_ApplyBlock_ret.NonContractBalanceChanges.reserve(
-      cache_opts.ExpectedMaxNumTrxPerBlock * 2);
-  StateTransition_ApplyBlock_rlp_strm.reserve(
-      cache_opts.ExpectedMaxNumTrxPerBlock * 1024,
-      cache_opts.ExpectedMaxNumTrxPerBlock * 128);
+  result_buf_transition_state.ExecutionResults.reserve(
+      opts.ExpectedMaxTrxPerBlock);
+  rlp_enc_transition_state.reserve(opts.ExpectedMaxTrxPerBlock * 1024,
+                                   opts.ExpectedMaxTrxPerBlock * 128);
   RLPStream rlp;
-  enc_rlp_tuple(rlp, &db_c,
-                make_range_view(this->cols).map([this](auto const& el, auto i) {
-                  return &(cols_c[i] = {el.get()});
-                }),
-                &get_blk_hash_c, chain_config, curr_blk_num, curr_state_root,
-                cache_opts);
-  this_c = taraxa_evm_state_API_New(map_bytes(rlp.out()), err_handler_c);
+  enc_rlp_tuple(rlp, db_path, &get_blk_hash_c, chain_config, opts);
+  this_c = taraxa_evm_state_api_new(map_bytes(rlp.out()), err_handler_c);
 }
 
-StateAPI::StateAPI(DbStorage const& db, decltype(get_blk_hash) get_blk_hash,
-                   ChainConfig const& chain_config, BlockNumber curr_blk_num,
-                   h256 const& curr_state_root, CacheOpts const& cache_opts)
-    : StateAPI(
-          db.unwrap(),
-          {
-              db.unwrap_handle(DbStorage::Columns::eth_state_code),
-              db.unwrap_handle(DbStorage::Columns::eth_state_main_trie_node),
-              db.unwrap_handle(DbStorage::Columns::eth_state_main_trie_value),
-              db.unwrap_handle(
-                  DbStorage::Columns::eth_state_main_trie_value_latest),
-              db.unwrap_handle(DbStorage::Columns::eth_state_acc_trie_node),
-              db.unwrap_handle(DbStorage::Columns::eth_state_acc_trie_value),
-              db.unwrap_handle(
-                  DbStorage::Columns::eth_state_acc_trie_value_latest),
-          },
-          move(get_blk_hash), chain_config, curr_blk_num, curr_state_root,
-          cache_opts) {}
+StateAPI::~StateAPI() { taraxa_evm_state_api_free(this_c, err_handler_c); }
 
-StateAPI::~StateAPI() { taraxa_evm_state_API_Free(this_c, err_handler_c); }
-
-Proof StateAPI::Historical_Prove(BlockNumber blk_num, root_t const& state_root,
-                                 addr_t const& addr,
-                                 vector<h256> const& keys) const {
-  return c_method_args_rlp<Proof, from_rlp,
-                           taraxa_evm_state_API_Historical_Prove>(
+Proof StateAPI::prove(BlockNumber blk_num, root_t const& state_root,
+                      addr_t const& addr, vector<h256> const& keys) const {
+  return c_method_args_rlp<Proof, from_rlp, taraxa_evm_state_api_prove>(
       this_c, blk_num, state_root, addr, keys);
 }
 
-optional<Account> StateAPI::Historical_GetAccount(BlockNumber blk_num,
-                                                  addr_t const& addr) const {
+optional<Account> StateAPI::get_account(BlockNumber blk_num,
+                                        addr_t const& addr) const {
   return c_method_args_rlp<optional<Account>, from_rlp,
-                           taraxa_evm_state_API_Historical_GetAccount>(
-      this_c, blk_num, addr);
+                           taraxa_evm_state_api_get_account>(this_c, blk_num,
+                                                             addr);
 }
 
-u256 StateAPI::Historical_GetAccountStorage(BlockNumber blk_num,
-                                            addr_t const& addr,
-                                            u256 const& key) const {
+u256 StateAPI::get_account_storage(BlockNumber blk_num, addr_t const& addr,
+                                   u256 const& key) const {
   return c_method_args_rlp<u256, to_u256,
-                           taraxa_evm_state_API_Historical_GetAccountStorage>(
+                           taraxa_evm_state_api_get_account_storage>(
       this_c, blk_num, addr, key);
 }
 
-bytes StateAPI::Historical_GetCodeByAddress(BlockNumber blk_num,
-                                            addr_t const& addr) const {
+bytes StateAPI::get_code_by_address(BlockNumber blk_num,
+                                    addr_t const& addr) const {
   return c_method_args_rlp<bytes, to_bytes,
-                           taraxa_evm_state_API_Historical_GetCodeByAddress>(
+                           taraxa_evm_state_api_get_code_by_address>(
       this_c, blk_num, addr);
 }
 
-ExecutionResult StateAPI::DryRunner_Apply(
+ExecutionResult StateAPI::dry_run_transaction(
     BlockNumber blk_num, EVMBlock const& blk, EVMTransaction const& trx,
     optional<ExecutionOptions> const& opts) const {
   return c_method_args_rlp<ExecutionResult, from_rlp,
-                           taraxa_evm_state_API_DryRunner_Apply>(
+                           taraxa_evm_state_api_dry_run_transaction>(
       this_c, blk_num, blk, trx, opts);
 }
 
-h256 StateAPI::StateTransition_ApplyAccounts(WriteBatch& batch,
-                                             InputAccounts const& accounts) {
-  rocksdb_writebatch_t batch_c{move(batch)};
-  util::ExitStack exit_stack = [&] { batch = move(batch_c.rep); };
-  return c_method_args_rlp<h256, to_h256,
-                           taraxa_evm_state_API_StateTransition_ApplyAccounts>(
-      this_c, &batch_c, accounts);
+StateDescriptor StateAPI::get_last_committed_state_descriptor() const {
+  StateDescriptor ret;
+  taraxa_evm_state_api_get_last_committed_state_descriptor(
+      this_c, decoder_cb_c<StateDescriptor, from_rlp>(ret), err_handler_c);
+  return ret;
 }
 
-StateTransitionResult const& StateAPI::StateTransition_ApplyBlock(
-    WriteBatch& batch,
+StateTransitionResult const& StateAPI::transition_state(
     EVMBlock const& block,  //
     RangeView<EVMTransaction> const& transactions,
-    RangeView<UncleBlock> const& uncles,
-    ConcurrentSchedule const& concurrent_schedule) {
-  rocksdb_writebatch_t batch_c{move(batch)};
-  util::ExitStack exit_stack = [&] { batch = move(batch_c.rep); };
-  StateTransition_ApplyBlock_ret.ExecutionResults.clear();
-  StateTransition_ApplyBlock_ret.NonContractBalanceChanges.clear();
-  StateTransition_ApplyBlock_rlp_strm.clear();
+    RangeView<UncleBlock> const& uncles) {
+  result_buf_transition_state.ExecutionResults.clear();
+  rlp_enc_transition_state.clear();
   c_method_args_rlp<StateTransitionResult, from_rlp,
-                    taraxa_evm_state_API_StateTransition_ApplyBlock>(
-      this_c, StateTransition_ApplyBlock_rlp_strm,
-      StateTransition_ApplyBlock_ret, &batch_c, block, transactions, uncles,
-      concurrent_schedule);
-  return StateTransition_ApplyBlock_ret;
+                    taraxa_evm_state_api_transition_state>(
+      this_c, rlp_enc_transition_state, result_buf_transition_state, block,
+      transactions, uncles);
+  return result_buf_transition_state;
 }
 
-void StateAPI::NotifyStateTransitionCommitted() {
-  taraxa_evm_state_API_NotifyStateTransitionCommitted(this_c, err_handler_c);
+void StateAPI::transition_state_commit() {
+  taraxa_evm_state_api_transition_state_commit(this_c, err_handler_c);
 }
 
-void StateAPI::ConcurrentScheduleGeneration_Begin(EVMBlock const& blk) {
-  c_method_args_rlp<taraxa_evm_state_API_ConcurrentScheduleGeneration_Begin>(
-      this_c, blk);
+uint64_t StateAPI::dpos_eligible_count(BlockNumber blk_num) const {
+  return taraxa_evm_state_api_dpos_eligible_count(this_c, blk_num,
+                                                  err_handler_c);
 }
 
-void StateAPI::ConcurrentScheduleGeneration_SubmitTransactions(
-    RangeView<EVMTransactionWithHash> const& trxs) {
-  c_method_args_rlp<
-      taraxa_evm_state_API_ConcurrentScheduleGeneration_SubmitTransactions>(
-      this_c, trxs);
+bool StateAPI::dpos_is_eligible(BlockNumber blk_num, addr_t const& addr) const {
+  RLPStream rlp;
+  rlp.reserve(sizeof(BlockNumber) + sizeof(addr_t) + 8, 1);
+  enc_rlp_tuple(rlp, blk_num, addr);
+  return taraxa_evm_state_api_dpos_is_eligible(this_c, map_bytes(rlp.out()),
+                                               err_handler_c);
 }
 
-ConcurrentSchedule StateAPI::ConcurrentScheduleGeneration_Commit(
-    RangeView<h256> const& trx_hashes) {
-  return c_method_args_rlp<
-      ConcurrentSchedule, from_rlp,
-      taraxa_evm_state_API_ConcurrentScheduleGeneration_Commit>(this_c,
-                                                                trx_hashes);
+addr_t const& StateAPI::dpos_contract_addr() {
+  static auto const ret = [] {
+    auto ret_c = taraxa_evm_state_api_dpos_contract_addr();
+    return addr_t(ret_c.Val, addr_t::ConstructFromPointer);
+  }();
+  return ret;
 }
 
-void enc_rlp(RLPStream& rlp, InputAccount const& target) {
-  enc_rlp_tuple(rlp, target.Code, target.Storage, target.Balance, target.Nonce);
+StateAPI::DPOSTransactionPrototype::DPOSTransactionPrototype(
+    DPOSTransfers const& transfers) {
+  RLPStream transfers_rlp;
+  enc_rlp(transfers_rlp, transfers);
+  input = transfers_rlp.invalidate();
 }
 
-void enc_rlp(RLPStream& rlp, ExecutionOptions const& target) {
-  enc_rlp_tuple(rlp, target.disable_nonce_check, target.disable_gas_fee);
+void enc_rlp(RLPStream& rlp, ExecutionOptions const& obj) {
+  enc_rlp_tuple(rlp, obj.disable_nonce_check, obj.disable_gas_fee);
 }
 
-void enc_rlp(RLPStream& rlp, ETHChainConfig const& target) {
-  enc_rlp_tuple(rlp, target.homestead_block, target.dao_fork_block,
-                target.eip_150_block, target.eip_158_block,
-                target.byzantium_block, target.constantinople_block,
-                target.petersburg_block);
+void enc_rlp(RLPStream& rlp, ETHChainConfig const& obj) {
+  enc_rlp_tuple(rlp, obj.homestead_block, obj.dao_fork_block, obj.eip_150_block,
+                obj.eip_158_block, obj.byzantium_block,
+                obj.constantinople_block, obj.petersburg_block);
 }
 
-void enc_rlp(RLPStream& rlp, EVMChainConfig const& target) {
-  enc_rlp_tuple(rlp, target.eth_chain_config, target.execution_options);
+u256 ChainConfig::effective_genesis_balance(addr_t const& addr) const {
+  if (!genesis_balances.count(addr)) {
+    return 0;
+  }
+  auto ret = genesis_balances.at(addr);
+  if (dpos && dpos->genesis_state.count(addr)) {
+    for (auto const& [_, val] : dpos->genesis_state.at(addr)) {
+      ret -= val;
+    }
+  }
+  return ret;
 }
 
-void enc_rlp(RLPStream& rlp, ChainConfig const& target) {
-  enc_rlp_tuple(rlp, target.evm_chain_config, target.disable_block_rewards);
+void enc_rlp(RLPStream& rlp, ChainConfig const& obj) {
+  enc_rlp_tuple(rlp, obj.eth_chain_config, obj.disable_block_rewards,
+                obj.execution_options, obj.genesis_balances, obj.dpos);
 }
 
-void enc_rlp(RLPStream& rlp, EVMBlock const& target) {
-  enc_rlp_tuple(rlp, target.Author, target.GasLimit, target.Time,
-                target.Difficulty);
+void enc_rlp(RLPStream& rlp, EVMBlock const& obj) {
+  enc_rlp_tuple(rlp, obj.Author, obj.GasLimit, obj.Time, obj.Difficulty);
 }
 
-void enc_rlp(RLPStream& rlp, EVMTransaction const& target) {
-  enc_rlp_tuple(rlp, target.From, target.GasPrice,
-                target.To ? target.To->ref() : bytesConstRef(), target.Nonce,
-                target.Value, target.Gas, target.Input);
+void enc_rlp(RLPStream& rlp, EVMTransaction const& obj) {
+  enc_rlp_tuple(rlp, obj.From, obj.GasPrice,
+                obj.To ? obj.To->ref() : bytesConstRef(), obj.Nonce, obj.Value,
+                obj.Gas, obj.Input);
 }
 
-void enc_rlp(RLPStream& rlp, EVMTransactionWithHash const& target) {
-  enc_rlp_tuple(rlp, target.Hash, target.Transaction);
+void enc_rlp(RLPStream& rlp, EVMTransactionWithHash const& obj) {
+  enc_rlp_tuple(rlp, obj.Hash, obj.Transaction);
 }
 
-void enc_rlp(RLPStream& rlp, UncleBlock const& target) {
-  enc_rlp_tuple(rlp, target.Number, target.Author);
+void enc_rlp(RLPStream& rlp, UncleBlock const& obj) {
+  enc_rlp_tuple(rlp, obj.Number, obj.Author);
 }
 
-void enc_rlp(RLPStream& rlp, ConcurrentSchedule const& target) {
-  enc_rlp_tuple(rlp, target.ParallelTransactions);
+void enc_rlp(RLPStream& rlp, Opts const& obj) {
+  enc_rlp_tuple(rlp, obj.ExpectedMaxTrxPerBlock,
+                obj.MainTrieFullNodeLevelsToCache);
 }
 
-void enc_rlp(RLPStream& rlp, TrieWriterCacheOpts const& target) {
-  enc_rlp_tuple(rlp, target.FullNodeLevelsToCache, target.ExpectedDepth);
+void dec_rlp(RLP const& rlp, Account& obj) {
+  dec_rlp_tuple(rlp, obj.Nonce, obj.Balance, obj.StorageRootHash, obj.CodeHash,
+                obj.CodeSize);
 }
 
-void enc_rlp(RLPStream& rlp, CacheOpts const& target) {
-  enc_rlp_tuple(rlp, target.MainTrieWriterOpts, target.AccTrieWriterOpts,
-                target.ExpectedMaxNumTrxPerBlock);
+void dec_rlp(RLP const& rlp, LogRecord& obj) {
+  dec_rlp_tuple(rlp, obj.Address, obj.Topics, obj.Data);
 }
 
-void dec_rlp(RLP const& rlp, Account& target) {
-  dec_rlp_tuple(rlp, target.Nonce, target.Balance, target.StorageRootHash,
-                target.CodeHash, target.CodeSize);
+void dec_rlp(RLP const& rlp, ExecutionResult& obj) {
+  dec_rlp_tuple(rlp, obj.CodeRet, obj.NewContractAddr, obj.Logs, obj.GasUsed,
+                obj.CodeErr, obj.ConsensusErr);
 }
 
-void dec_rlp(RLP const& rlp, LogRecord& target) {
-  dec_rlp_tuple(rlp, target.Address, target.Topics, target.Data);
+void dec_rlp(RLP const& rlp, StateTransitionResult& obj) {
+  dec_rlp_tuple(rlp, obj.ExecutionResults, obj.StateRoot);
 }
 
-void dec_rlp(RLP const& rlp, ExecutionResult& target) {
-  dec_rlp_tuple(rlp, target.CodeRet, target.NewContractAddr, target.Logs,
-                target.GasUsed, target.CodeErr, target.ConsensusErr);
+void dec_rlp(RLP const& rlp, TrieProof& obj) {
+  dec_rlp_tuple(rlp, obj.Value, obj.Nodes);
 }
 
-void dec_rlp(RLP const& rlp, StateTransitionResult& target) {
-  dec_rlp_tuple(rlp, target.StateRoot, target.ExecutionResults,
-                target.NonContractBalanceChanges);
+void dec_rlp(RLP const& rlp, Proof& obj) {
+  dec_rlp_tuple(rlp, obj.AccountProof, obj.StorageProofs);
 }
 
-void dec_rlp(RLP const& rlp, TrieProof& target) {
-  dec_rlp_tuple(rlp, target.Value, target.Nodes);
+void dec_rlp(RLP const& rlp, UncleBlock& obj) {
+  dec_rlp_tuple(rlp, obj.Number, obj.Author);
 }
 
-void dec_rlp(RLP const& rlp, Proof& target) {
-  dec_rlp_tuple(rlp, target.AccountProof, target.StorageProofs);
+void dec_rlp(RLP const& rlp, EVMBlock& obj) {
+  dec_rlp_tuple(rlp, obj.Author, obj.GasLimit, obj.Time, obj.Difficulty);
 }
 
-void dec_rlp(RLP const& rlp, ConcurrentSchedule& target) {
-  dec_rlp_tuple(rlp, target.ParallelTransactions);
-}
-
-void dec_rlp(RLP const& rlp, InputAccount& target) {
-  dec_rlp_tuple(rlp, target.Code, target.Storage, target.Balance, target.Nonce);
-}
-
-void dec_rlp(RLP const& rlp, UncleBlock& target) {
-  dec_rlp_tuple(rlp, target.Number, target.Author);
-}
-
-void dec_rlp(RLP const& rlp, EVMBlock& target) {
-  dec_rlp_tuple(rlp, target.Author, target.GasLimit, target.Time,
-                target.Difficulty);
-}
-
-void dec_rlp(RLP const& rlp, EVMTransaction& target) {
-  dec_rlp_tuple(rlp, target.From, target.GasPrice, target.To, target.Nonce,
-                target.Value, target.Gas, target.Input);
+void dec_rlp(RLP const& rlp, EVMTransaction& obj) {
+  dec_rlp_tuple(rlp, obj.From, obj.GasPrice, obj.To, obj.Nonce, obj.Value,
+                obj.Gas, obj.Input);
 }
 
 Json::Value enc_json(ExecutionOptions const& obj) {
@@ -368,28 +323,77 @@ void dec_json(Json::Value const& json, ETHChainConfig& obj) {
   obj.petersburg_block = dev::jsToInt(json["petersburg_block"].asString());
 }
 
-Json::Value enc_json(EVMChainConfig const& obj) {
+Json::Value enc_json(ChainConfig const& obj) {
   Json::Value json(Json::objectValue);
   json["eth_chain_config"] = enc_json(obj.eth_chain_config);
   json["execution_options"] = enc_json(obj.execution_options);
-  return json;
-}
-
-void dec_json(Json::Value const& json, EVMChainConfig& obj) {
-  dec_json(json["eth_chain_config"], obj.eth_chain_config);
-  dec_json(json["execution_options"], obj.execution_options);
-}
-
-Json::Value enc_json(ChainConfig const& obj) {
-  Json::Value json(Json::objectValue);
-  json["evm_chain_config"] = enc_json(obj.evm_chain_config);
   json["disable_block_rewards"] = obj.disable_block_rewards;
+  json["genesis_balances"] = enc_json(obj.genesis_balances);
+  if (obj.dpos) {
+    json["dpos"] = enc_json(*obj.dpos);
+  }
   return json;
 }
 
 void dec_json(Json::Value const& json, ChainConfig& obj) {
-  dec_json(json["evm_chain_config"], obj.evm_chain_config);
+  dec_json(json["eth_chain_config"], obj.eth_chain_config);
+  dec_json(json["execution_options"], obj.execution_options);
   obj.disable_block_rewards = json["disable_block_rewards"].asBool();
+  dec_json(json["genesis_balances"], obj.genesis_balances);
+  if (auto const& dpos = json["dpos"]; !dpos.isNull()) {
+    dec_json(dpos, obj.dpos.emplace());
+  }
+}
+
+Json::Value enc_json(BalanceMap const& obj) {
+  Json::Value json(Json::objectValue);
+  for (auto const& [k, v] : obj) {
+    json[dev::toJS(k)] = dev::toJS(v);
+  }
+  return json;
+}
+
+void dec_json(Json::Value const& json, BalanceMap& obj) {
+  for (auto const& k : json.getMemberNames()) {
+    obj[addr_t(k)] = dev::jsToU256(json[k].asString());
+  }
+}
+
+void enc_rlp(RLPStream& enc, DPOSConfig const& obj) {
+  enc_rlp_tuple(enc, obj.eligibility_balance_threshold, obj.deposit_delay,
+                obj.withdrawal_delay, obj.genesis_state);
+}
+
+Json::Value enc_json(DPOSConfig const& obj) {
+  Json::Value json(Json::objectValue);
+  json["eligibility_balance_threshold"] =
+      dev::toJS(obj.eligibility_balance_threshold);
+  json["deposit_delay"] = dev::toJS(obj.deposit_delay);
+  json["withdrawal_delay"] = dev::toJS(obj.withdrawal_delay);
+  auto& genesis_state = json["genesis_state"] = Json::Value(Json::objectValue);
+  for (auto const& [k, v] : obj.genesis_state) {
+    genesis_state[dev::toJS(k)] = enc_json(v);
+  }
+  return json;
+}
+
+void dec_json(Json::Value const& json, DPOSConfig& obj) {
+  obj.eligibility_balance_threshold =
+      dev::jsToU256(json["eligibility_balance_threshold"].asString());
+  obj.deposit_delay = dev::jsToInt(json["deposit_delay"].asString());
+  obj.withdrawal_delay = dev::jsToInt(json["withdrawal_delay"].asString());
+  auto const& genesis_state = json["genesis_state"];
+  for (auto const& k : genesis_state.getMemberNames()) {
+    dec_json(genesis_state[k], obj.genesis_state[addr_t(k)]);
+  }
+}
+
+void dec_rlp(RLP const& rlp, StateDescriptor& obj) {
+  dec_rlp_tuple(rlp, obj.blk_num, obj.state_root);
+}
+
+void enc_rlp(RLPStream& enc, DPOSTransfer const& obj) {
+  enc_rlp_tuple(enc, obj.value, obj.negative);
 }
 
 }  // namespace taraxa::state_api

@@ -147,14 +147,13 @@ class VoteManager {
   void clearUnverifiedVotesTable();
   uint64_t getUnverifiedVotesSize() const;
   // for unit test only
-  std::vector<Vote> getVotes(uint64_t pbft_round, size_t valid_sortiton_players,
+  std::vector<Vote> getVotes(uint64_t pbft_round, size_t eligible_voter_count,
                              blk_hash_t last_pbft_block_hash,
                              size_t sortition_threshold);
   std::vector<Vote> getVotes(
-      bool& sync_peers_pbft_chain, uint64_t const pbft_round,
-      blk_hash_t const& last_pbft_block_hash, size_t const sortition_threshold,
-      std::unordered_map<addr_t, PbftSortitionAccount> const&
-          sortition_account_balance_table);
+      uint64_t const pbft_round, blk_hash_t const& last_pbft_block_hash,
+      size_t const sortition_threshold, uint64_t eligible_voter_count,
+      std::function<bool(addr_t const&)> const& is_eligible);
   std::string getJsonStr(std::vector<Vote> const& votes);
   std::vector<Vote> getAllVotes();
   bool pbftBlockHasEnoughValidCertVotes(

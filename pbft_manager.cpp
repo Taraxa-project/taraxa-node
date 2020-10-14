@@ -39,15 +39,13 @@ PbftManager::PbftManager(PbftConfig const &conf, std::string const &genesis,
                          std::shared_ptr<FinalChain> final_chain,
                          std::shared_ptr<TransactionOrderManager> trx_ord_mgr,
                          std::shared_ptr<TransactionManager> trx_mgr,
-                         addr_t master_boot_node_addr, secret_t node_sk,
-                         vrf_sk_t vrf_sk, uint32_t expected_max_trx_per_block)
+                         secret_t node_sk, vrf_sk_t vrf_sk,
+                         uint32_t expected_max_trx_per_block)
     : replay_protection_service(new ReplayProtectionServiceDummy),
       LAMBDA_ms_MIN(conf.lambda_ms_min),
       COMMITTEE_SIZE(conf.committee_size),
-      VALID_SORTITION_COINS(conf.valid_sortition_coins),
       DAG_BLOCKS_SIZE(conf.dag_blocks_size),
       GHOST_PATH_MOVE_BACK(conf.ghost_path_move_back),
-      SKIP_PERIODS(conf.skip_periods),
       RUN_COUNT_VOTES(conf.run_count_votes),
       dag_genesis_(genesis),
       db_(db),
@@ -59,26 +57,22 @@ PbftManager::PbftManager(PbftConfig const &conf, std::string const &genesis,
       trx_ord_mgr_(trx_ord_mgr),
       trx_mgr_(trx_mgr),
       node_addr_(node_addr),
-      master_boot_node_addr_(master_boot_node_addr),
       node_sk_(node_sk),
       vrf_sk_(vrf_sk) {
   LOG_OBJECTS_CREATE("PBFT_MGR");
-  if (db_) {
-    num_executed_blk_ =
-        db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
-    num_executed_trx_ =
-        db_->getStatusField(taraxa::StatusDbField::ExecutedTrxCount);
-    dag_block_proposers_tmp_.reserve(expected_max_trx_per_block / 4);
-    transactions_tmp_.reserve(expected_max_trx_per_block);
-    trx_senders_tmp_.reserve(expected_max_trx_per_block);
-  }
+  num_executed_blk_ =
+      db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
+  num_executed_trx_ =
+      db_->getStatusField(taraxa::StatusDbField::ExecutedTrxCount);
+  transactions_tmp_buf_.reserve(expected_max_trx_per_block);
+  update_dpos_state_();
 }
 
 PbftManager::~PbftManager() { stop(); }
 
 void PbftManager::setNetwork(std::shared_ptr<Network> network) {
   network_ = network;
-  capability_ = network->getTaraxaCapability();
+  capability_ = network ? network->getTaraxaCapability() : nullptr;
 }
 
 void PbftManager::setWSServer(std::shared_ptr<net::WSServer> ws_server) {
@@ -98,50 +92,6 @@ void PbftManager::start() {
   }
   LOG(log_dg_) << "PBFT start at GHOST size " << ghost.size()
                << ", the last of DAG blocks is " << ghost.back();
-
-  if (!db_->sortitionAccountInDb(std::string("sortition_accounts_size"))) {
-    // New node
-    // Initialize master boot node account balance
-    std::pair<val_t, bool> master_boot_node_account_balance =
-        final_chain_->getBalance(master_boot_node_addr_);
-    if (!master_boot_node_account_balance.second) {
-      LOG(log_er_) << "Failed initial master boot node account balance."
-                   << " Master boot node balance is not exist.";
-    } else if (master_boot_node_account_balance.first != TARAXA_COINS_DECIMAL) {
-      LOG(log_nf_)
-          << "Initial master boot node account balance. Current balance "
-          << master_boot_node_account_balance.first;
-    }
-    PbftSortitionAccount master_boot_node(
-        master_boot_node_addr_, master_boot_node_account_balance.first, 0,
-        new_change);
-    sortition_account_balance_table_tmp[master_boot_node_addr_] =
-        master_boot_node;
-    auto batch = db_->createWriteBatch();
-    updateSortitionAccountsDB_(batch);
-    db_->commitWriteBatch(batch);
-    updateSortitionAccountsTable_();
-  } else {
-    // Full node join back
-    if (!sortition_account_balance_table.empty()) {
-      LOG(log_er_) << "PBFT sortition accounts table should be empty";
-      assert(false);
-    }
-    size_t sortition_accounts_size_db = 0;
-    db_->forEachSortitionAccount([&](auto const &key, auto const &value) {
-      if (key.ToString() == "sortition_accounts_size") {
-        std::stringstream sstream(value.ToString());
-        sstream >> sortition_accounts_size_db;
-        return true;
-      }
-      PbftSortitionAccount account(value.ToString());
-      sortition_account_balance_table_tmp[account.address] = account;
-      return true;
-    });
-    updateSortitionAccountsTable_();
-    assert(sortition_accounts_size_db == valid_sortition_accounts_size_);
-  }
-
   daemon_ = std::make_unique<std::thread>([this]() { run(); });
   LOG(log_dg_) << "PBFT daemon initiated ...";
   if (RUN_COUNT_VOTES) {
@@ -266,33 +216,28 @@ void PbftManager::setSortitionThreshold(size_t const sortition_threshold) {
   sortition_threshold_ = sortition_threshold;
 }
 
-size_t PbftManager::getValidSortitionAccountsSize() const {
-  return valid_sortition_accounts_size_;
+void PbftManager::update_dpos_state_() {
+  dpos_period_ = pbft_chain_->getPbftChainSize();
+  eligible_voter_count_ = final_chain_->dpos_eligible_count(dpos_period_);
 }
-// End Test
+
+uint64_t PbftManager::getEligibleVoterCount() const {
+  return eligible_voter_count_;
+}
+
+bool PbftManager::is_eligible_(addr_t const &addr) {
+  return final_chain_->dpos_is_eligible(dpos_period_, addr);
+}
 
 bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
-  addr_t account_address = node_addr_;
-  if (sortition_account_balance_table.find(account_address) ==
-      sortition_account_balance_table.end()) {
-    LOG(log_tr_) << "Cannot find account " << account_address
-                 << " in sortition table. Don't have enough coins to vote";
+  if (!is_eligible_(node_addr_)) {
+    LOG(log_tr_) << "Account " << node_addr_ << " is not eligible to vote";
     return false;
   }
-  // only active players are able to vote
-  if (!is_active_player_) {
-    LOG(log_tr_)
-        << "Account " << account_address << " last period seen at "
-        << sortition_account_balance_table[account_address].last_period_seen
-        << ", as a non-active player";
-    return false;
-  }
-
   // compute sortition
   VrfPbftMsg msg(pbft_chain_last_block_hash_, type, round, step);
   VrfPbftSortition vrf_sortition(vrf_sk_, msg);
-  if (!vrf_sortition.canSpeak(sortition_threshold_,
-                              valid_sortition_accounts_size_)) {
+  if (!vrf_sortition.canSpeak(sortition_threshold_, getEligibleVoterCount())) {
     LOG(log_tr_) << "Don't get sortition";
     return false;
   }
@@ -352,8 +297,7 @@ bool PbftManager::resetRound_() {
         nextVotedBlockForRoundAndStep_(votes_, local_round);
 
     if (executed_pbft_block_) {
-      // Update sortition accounts table
-      updateSortitionAccountsTable_();
+      update_dpos_state_();
       // reset sortition_threshold and TWO_T_PLUS_ONE
       updateTwoTPlusOneAndThreshold_();
       executed_pbft_block_ = false;
@@ -555,19 +499,12 @@ bool PbftManager::stateOperations_() {
   LOG(log_tr_) << "PBFT current step is " << step_;
 
   // Get votes
-  bool sync_peers_pbft_chain = false;
   votes_ = vote_mgr_->getVotes(
-      sync_peers_pbft_chain, round_, pbft_chain_last_block_hash_,
-      sortition_threshold_, sortition_account_balance_table);
+      round_, pbft_chain_last_block_hash_, sortition_threshold_,
+      getEligibleVoterCount(),
+      [this](auto const &addr) { return is_eligible_(addr); });
   LOG(log_tr_) << "There are " << votes_.size() << " total votes in round "
                << round_;
-
-  // Concern can malicious node trigger excessive syncing?
-  if (sync_peers_pbft_chain && pbft_chain_->pbftSyncedQueueEmpty() &&
-      !capability_->syncing_ && !syncRequestedAlreadyThisStep_()) {
-    LOG(log_nf_) << "Vote validation triggered PBFT chain sync";
-    syncPbftChainFromPeers_();
-  }
 
   // CHECK IF WE HAVE RECEIVED 2t+1 CERT VOTES FOR A BLOCK IN OUR CURRENT
   // ROUND.  IF WE HAVE THEN WE EXECUTE THE BLOCK
@@ -1441,15 +1378,15 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
     }
     // Check cert votes validation
     if (!vote_mgr_->pbftBlockHasEnoughValidCertVotes(
-            pbft_block_and_votes, valid_sortition_accounts_size_,
-            sortition_threshold_, TWO_T_PLUS_ONE)) {
+            pbft_block_and_votes, getEligibleVoterCount(), sortition_threshold_,
+            TWO_T_PLUS_ONE)) {
       // Failed cert votes validation, flush synced PBFT queue and set since
       // next block validation depends on the current one
       LOG(log_er_)
           << "Synced PBFT block "
           << pbft_block_and_votes.pbft_blk.getBlockHash()
           << " doesn't have enough valid cert votes. Clear synced PBFT blocks!"
-          << " Active players " << active_nodes;
+          << " Eligible voter count: " << getEligibleVoterCount();
       pbft_chain_->clearSyncedPbftBlocks();
       break;
     }
@@ -1480,8 +1417,7 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
     // Remove from PBFT synced queue
     pbft_chain_->pbftSyncedQueuePopFront();
     if (executed_pbft_block_) {
-      // Update sortition accounts table
-      updateSortitionAccountsTable_();
+      update_dpos_state_();
       // update sortition_threshold and TWO_T_PLUS_ONE
       updateTwoTPlusOneAndThreshold_();
       executed_pbft_block_ = false;
@@ -1502,9 +1438,7 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
 
 bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
                                  std::vector<Vote> const &cert_votes) {
-  dag_block_proposers_tmp_.clear();
-  transactions_tmp_.clear();
-  trx_senders_tmp_.clear();
+  transactions_tmp_buf_.clear();
   blk_hash_t pbft_block_hash = pbft_block.getBlockHash();
   if (db_->pbftBlockInDb(pbft_block_hash)) {
     LOG(log_er_) << "PBFT block: " << pbft_block_hash << " in DB already";
@@ -1529,29 +1463,26 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
       }
       return false;
     }
-    dag_block_proposers_tmp_.insert(DagBlock(dag_block).getSender());
-    auto &dag_blk_trxs_mode = schedule.trxs_mode[blk_i];
-    for (auto &[trx_hash, _] : dag_blk_trxs_mode) {
+    for (auto &[trx_hash, _] : schedule.trxs_mode[blk_i]) {
       auto const &trx_rlp = db_->getTransactionRaw(trx_hash);
-      auto &trx = transactions_tmp_.emplace_back(
+      auto &trx = transactions_tmp_buf_.emplace_back(
           trx_rlp, dev::eth::CheckTransaction::None, true, trx_hash);
-      trx_senders_tmp_.insert(trx.sender());
       LOG(log_tr_) << "Transaction " << trx_hash
                    << " read from db at: " << getCurrentTimeMilliSeconds();
     }
   }
   auto batch = db_->createWriteBatch();
   // Execute transactions in EVM(GO trx engine) and update Ethereum block
-  auto const &[new_eth_header, trx_receipts, state_transition_result] =
+  auto const &[new_eth_header, trx_receipts, _] =
       final_chain_->advance(batch, pbft_block.getBeneficiary(),
-                            pbft_block.getTimestamp(), transactions_tmp_);
+                            pbft_block.getTimestamp(), transactions_tmp_buf_);
 
   uint64_t pbft_period = pbft_block.getPeriod();
   // Update replay protection service, like nonce watermark. Nonce watermark has
   // been disabled
   replay_protection_service->update(
       batch, pbft_period,
-      util::make_range_view(transactions_tmp_).map([](auto const &trx) {
+      util::make_range_view(transactions_tmp_buf_).map([](auto const &trx) {
         return ReplayProtectionService::TransactionInfo{
             trx.from(),
             trx.nonce(),
@@ -1559,7 +1490,7 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
       }));
   if (dag_blk_count != 0) {
     num_executed_blk_.fetch_add(dag_blk_count);
-    num_executed_trx_.fetch_add(transactions_tmp_.size());
+    num_executed_trx_.fetch_add(transactions_tmp_buf_.size());
     db_->addStatusFieldToBatch(StatusDbField::ExecutedBlkCount,
                                num_executed_blk_, batch);
     db_->addStatusFieldToBatch(StatusDbField::ExecutedTrxCount,
@@ -1567,14 +1498,8 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
     LOG(log_nf_) << node_addr_ << " :   Executed dag blocks #"
                  << num_executed_blk_ - dag_blk_count << "-"
                  << num_executed_blk_ - 1
-                 << " , Transactions count: " << transactions_tmp_.size();
+                 << " , Transactions count: " << transactions_tmp_buf_.size();
   }
-
-  // Update temp sortition accounts table
-  updateTempSortitionAccountsTable_(
-      pbft_period, dag_block_proposers_tmp_, trx_senders_tmp_,
-      state_transition_result.NonContractBalanceChanges);
-
   // Add dag_block_period in DB
   for (auto const blk_hash : schedule.dag_blks_order) {
     db_->addDagBlockPeriodToBatch(blk_hash, pbft_period, batch);
@@ -1594,209 +1519,56 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
   // Update period_pbft_block in DB
   db_->addPbftBlockPeriodToBatch(pbft_period, pbft_block_hash, batch);
   // Update sortition account balance table DB
-  updateSortitionAccountsDB_(batch);
   // TODO: Should remove PBFT chain head from DB
   // Update pbft chain
   // TODO: after remove PBFT chain head from DB, update pbft chain should after
   //  DB commit
   pbft_chain_->updatePbftChain(pbft_block_hash);
   // Update PBFT chain head block
-  blk_hash_t pbft_chain_head_hash = pbft_chain_->getHeadHash();
-  std::string pbft_chain_head_str = pbft_chain_->getJsonStr();
-  db_->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
-
+  db_->addPbftHeadToBatch(pbft_chain_->getHeadHash(), pbft_chain_->getJsonStr(),
+                          batch);
   // Set DAG blocks period
   dag_mgr_->setDagBlockOrder(dag_block_hash, pbft_period, dag_blocks_hash_order,
                              batch);
-
-  // Commit DB
-  db_->commitWriteBatch(batch);
-  LOG(log_dg_) << "DB write batch committed already";
-
-  if (ws_server_) ws_server_->newDagBlockFinalized(dag_block_hash, pbft_period);
-
-  // Reset proposed PBFT block hash to False for next pbft block proposal
-  proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
-  executed_pbft_block_ = true;
-
-  // After DB commit, confirm in final chain(Ethereum)
-  final_chain_->advance_confirm();
   // Remove executed transactions at Ethereum pending block. The Ethereum
   // pending block is same with latest block at Taraxa
   trx_mgr_->getPendingBlock()->advance(
       batch, new_eth_header.hash(),
-      util::make_range_view(transactions_tmp_).map([](auto const &trx) {
+      util::make_range_view(transactions_tmp_buf_).map([](auto const &trx) {
         return trx.sha3();
       }));
+  // Commit DB
+  db_->commitWriteBatch(batch);
+  LOG(log_dg_) << "DB write batch committed";
+  // After DB commit, confirm in final chain(Ethereum)
+  final_chain_->advance_confirm();
   // Ethereum filter
   trx_mgr_->getFilterAPI()->note_block(new_eth_header.hash());
   trx_mgr_->getFilterAPI()->note_receipts(trx_receipts);
   // Update web server
   if (ws_server_) {
+    ws_server_->newDagBlockFinalized(dag_block_hash, pbft_period);
     ws_server_->newPbftBlockExecuted(pbft_block);
     ws_server_->newEthBlock(new_eth_header);
   }
-
   LOG(log_nf_) << node_addr_ << " successful push pbft block "
                << pbft_block_hash << " in period " << pbft_period
                << " into chain! In round " << round_;
+  // Reset proposed PBFT block hash to False for next pbft block proposal
+  proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
+  executed_pbft_block_ = true;
   return true;
 }
 
 void PbftManager::updateTwoTPlusOneAndThreshold_() {
-  uint64_t last_pbft_period = pbft_chain_->getPbftChainSize();
-  int64_t since_period;
-  if (last_pbft_period < SKIP_PERIODS) {
-    since_period = 0;
-  } else {
-    since_period = last_pbft_period - SKIP_PERIODS;
-  }
-  size_t active_players = 0;
-  while (active_players == 0 && since_period >= 0) {
-    active_players += std::count_if(
-        sortition_account_balance_table.begin(),
-        sortition_account_balance_table.end(),
-        [since_period](std::pair<const taraxa::addr_t,
-                                 taraxa::PbftSortitionAccount> const &account) {
-          return (account.second.last_period_seen >= since_period);
-        });
-    if (active_players == 0) {
-      LOG(log_wr_) << "Active players was found to be 0 since period "
-                   << since_period
-                   << ". Will go back one period continue to check. ";
-      since_period--;
-    }
-  }
-  addr_t account_address = node_addr_;
-  auto it = sortition_account_balance_table.find(account_address);
-  is_active_player_ = it != sortition_account_balance_table.end() &&
-                      it->second.last_period_seen >= since_period;
-  if (active_players == 0) {
-    // IF active_players count 0 then all players should be treated as active
-    LOG(log_wr_) << "Active players was found to be 0! This should only "
-                    "happen at initialization, when master boot node "
-                    "distribute all of coins out to players. Will set active "
-                    "player count to be sortition table size of "
-                 << valid_sortition_accounts_size_ << ". Last period is "
-                 << last_pbft_period;
-    active_players = valid_sortition_accounts_size_;
-    is_active_player_ = true;
-  }
-
   // Update 2t+1 and threshold
-  if (COMMITTEE_SIZE <= active_players) {
-    TWO_T_PLUS_ONE = COMMITTEE_SIZE * 2 / 3 + 1;
-    // round up
-    sortition_threshold_ =
-        (valid_sortition_accounts_size_ * COMMITTEE_SIZE - 1) / active_players +
-        1;
-  } else {
-    TWO_T_PLUS_ONE = active_players * 2 / 3 + 1;
-    sortition_threshold_ = valid_sortition_accounts_size_;
-  }
-  LOG(log_nf_) << "Committee size " << COMMITTEE_SIZE << ", active players "
-               << active_players << " since period " << since_period
-               << ", valid voting players " << valid_sortition_accounts_size_
+  auto eligible_voter_count = getEligibleVoterCount();
+  sortition_threshold_ = min(COMMITTEE_SIZE, eligible_voter_count);
+  TWO_T_PLUS_ONE = sortition_threshold_ * 2 / 3 + 1;
+  LOG(log_nf_) << "Committee size " << COMMITTEE_SIZE
+               << ", valid voting players " << eligible_voter_count
                << ". Update 2t+1 " << TWO_T_PLUS_ONE << ", Threshold "
                << sortition_threshold_;
-  ;
-  active_nodes = active_players;  // TODO for test only
-}
-
-void PbftManager::updateTempSortitionAccountsTable_(
-    uint64_t period, unordered_set<addr_t> const &dag_block_proposers,
-    unordered_set<addr_t> const &trx_senders,
-    unordered_map<addr_t, val_t> const &execution_touched_account_balances) {
-  // Update temp PBFT sortition table for DAG block proposers who don't have
-  // account balance changed (no transaction relative accounts)
-  for (auto &addr : dag_block_proposers) {
-    auto sortition_table_entry =
-        std_find(sortition_account_balance_table_tmp, addr);
-    if (sortition_table_entry) {
-      auto &pbft_sortition_account = (*sortition_table_entry)->second;
-      // fixme: weird lossy cast
-      pbft_sortition_account.last_period_seen = static_cast<int64_t>(period);
-      pbft_sortition_account.status = new_change;
-    }
-  }
-  // Update PBFT sortition table for DAG block proposers who have account
-  // balance changed
-  for (auto &[addr, balance] : execution_touched_account_balances) {
-    auto is_proposer = bool(std_find(dag_block_proposers, addr));
-    auto is_sender = bool(std_find(trx_senders, addr));
-    LOG(log_dg_) << "Externally owned account (is_sender: " << is_sender
-                 << ") balance update: " << addr << " --> " << balance
-                 << " in period " << period;
-    auto enough_balance = balance >= VALID_SORTITION_COINS;
-    auto sortition_table_entry =
-        std_find(sortition_account_balance_table_tmp, addr);
-    if (is_sender) {
-      // Transaction sender
-      if (sortition_table_entry) {
-        auto &pbft_sortition_account = (*sortition_table_entry)->second;
-        pbft_sortition_account.balance = balance;
-        if (is_proposer) {
-          // fixme: weird lossy cast
-          pbft_sortition_account.last_period_seen =
-              static_cast<int64_t>(period);
-        }
-        if (enough_balance) {
-          pbft_sortition_account.status = new_change;
-        } else {
-          // After send coins doesn't have enough for sortition
-          pbft_sortition_account.status = remove;
-        }
-      }
-    } else {
-      // Receiver
-      if (enough_balance) {
-        if (sortition_table_entry) {
-          auto &pbft_sortition_account = (*sortition_table_entry)->second;
-          pbft_sortition_account.balance = balance;
-          if (is_proposer) {
-            // TODO: weird lossy cast
-            pbft_sortition_account.last_period_seen =
-                static_cast<int64_t>(period);
-          }
-          pbft_sortition_account.status = new_change;
-        } else {
-          int64_t last_seen_period = -1;
-          if (is_proposer) {
-            // TODO: weird lossy cast
-            last_seen_period = static_cast<int64_t>(period);
-          }
-          sortition_account_balance_table_tmp[addr] =
-              PbftSortitionAccount(addr, balance, last_seen_period, new_change);
-        }
-      }
-    }
-  }
-}
-
-void PbftManager::updateSortitionAccountsTable_() {
-  sortition_account_balance_table.clear();
-  for (auto &account : sortition_account_balance_table_tmp) {
-    sortition_account_balance_table[account.first] = account.second;
-  }
-  // update sortition accounts size
-  valid_sortition_accounts_size_ = sortition_account_balance_table.size();
-}
-
-void PbftManager::updateSortitionAccountsDB_(DbStorage::BatchPtr const &batch) {
-  for (auto &account : sortition_account_balance_table_tmp) {
-    if (account.second.status == new_change) {
-      db_->addSortitionAccountToBatch(account.first, account.second, batch);
-      account.second.status = updated;
-    } else if (account.second.status == remove) {
-      // Erase both from DB and cache(table)
-      db_->removeSortitionAccount(account.first);
-      sortition_account_balance_table_tmp.erase(account.first);
-    }
-  }
-  auto account_size =
-      std::to_string(sortition_account_balance_table_tmp.size());
-  db_->addSortitionAccountToBatch(std::string("sortition_accounts_size"),
-                                  account_size, batch);
 }
 
 void PbftManager::countVotes_() {

@@ -6,22 +6,21 @@
 #include <vector>
 
 #include "core_tests/util.hpp"
-#include "create_samples.hpp"
 #include "full_node.hpp"
+#include "samples.hpp"
 #include "static_init.hpp"
 #include "types.hpp"
 #include "util.hpp"
 #include "vdf_sortition.hpp"
 
-namespace taraxa {
+namespace taraxa::core_tests {
 const unsigned NUM_TRX = 40;
 const unsigned NUM_BLK = 4;
 const unsigned BLK_TRX_LEN = 4;
 const unsigned BLK_TRX_OVERLAP = 1;
 using namespace vdf_sortition;
-using namespace core_tests::util;
 
-struct DagBlockTest : core_tests::util::DBUsingTest<> {};
+struct DagBlockTest : BaseTest {};
 
 auto g_blk_samples = samples::createMockDagBlkSamples(
     0, NUM_BLK, 0, BLK_TRX_LEN, BLK_TRX_OVERLAP);
@@ -182,7 +181,8 @@ TEST_F(DagBlockTest, sign_verify) {
 }
 
 TEST_F(DagBlockTest, push_and_pop) {
-  auto node(taraxa::FullNode::make(std::string(conf_file[0])));
+  auto node_cfgs = make_node_cfgs(1);
+  FullNode::Handle node(node_cfgs[0]);
   BlockManager blk_qu(1024, 2, addr_t(), node->getDB(), nullptr,
                       node->getTimeLogger());
   blk_qu.start();
@@ -230,7 +230,7 @@ TEST_F(DagBlockTest, overlap) {
   EXPECT_FALSE(overlap2[3]);
 }
 
-}  // namespace taraxa
+}  // namespace taraxa::core_tests
 
 using namespace taraxa;
 int main(int argc, char** argv) {

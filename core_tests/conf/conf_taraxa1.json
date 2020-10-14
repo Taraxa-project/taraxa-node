@@ -3,6 +3,7 @@
   "vrf_secret": "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644",
   "db_path": "/tmp/taraxa",
   "dag_processing_threads": 1,
+  "network_is_boot_node": true,
   "network_address": "0.0.0.0",
   "network_tcp_port": 10002,
   "network_udp_port": 10002,
@@ -38,15 +39,6 @@
         "difficulty_bound": 15,
         "lambda_bound": 1500
       }
-    },
-    "pbft": {
-      "lambda_ms_min": 2000,
-      "committee_size": 5,
-      "valid_sortition_coins": 1000000000,
-      "dag_blocks_size": 100,
-      "ghost_path_move_back": 1,
-      "skip_periods": 1,
-      "run_count_votes": 0
     }
   },
   "logging": {

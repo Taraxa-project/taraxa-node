@@ -17,12 +17,13 @@ using namespace dev;
 using namespace eth;
 using namespace util;
 
+struct ErrFutureBlock : std::invalid_argument {
+  ErrFutureBlock() : invalid_argument("Attempt to query a future block") {}
+};
+
 struct FinalChain : virtual ChainDB {
   struct Config {
-    struct StateConfig {
-      state_api::InputAccounts genesis_accounts;
-      state_api::ChainConfig chain_config;
-    } state;
+    state_api::ChainConfig state;
     struct GenesisBlockFields {
       addr_t author;
       uint64_t timestamp = 0;
@@ -30,7 +31,7 @@ struct FinalChain : virtual ChainDB {
   };
 
   struct Opts {
-    state_api::CacheOpts state_api;
+    state_api::Opts state_api;
   };
 
   virtual ~FinalChain() {}
@@ -57,6 +58,9 @@ struct FinalChain : virtual ChainDB {
       optional<BlockNumber> blk_n = nullopt,
       optional<state_api::ExecutionOptions> const& opts = nullopt) const = 0;
   virtual std::pair<val_t, bool> getBalance(addr_t const& acc) const = 0;
+  virtual uint64_t dpos_eligible_count(BlockNumber blk_num) const = 0;
+  virtual bool dpos_is_eligible(BlockNumber blk_num,
+                                addr_t const& addr) const = 0;
 };
 
 unique_ptr<FinalChain> NewFinalChain(shared_ptr<DbStorage> db,
@@ -65,8 +69,6 @@ unique_ptr<FinalChain> NewFinalChain(shared_ptr<DbStorage> db,
 
 Json::Value enc_json(FinalChain::Config const& obj);
 void dec_json(Json::Value const& json, FinalChain::Config& obj);
-Json::Value enc_json(FinalChain::Config::StateConfig const& obj);
-void dec_json(Json::Value const& json, FinalChain::Config::StateConfig& obj);
 Json::Value enc_json(FinalChain::Config::GenesisBlockFields const& obj);
 void dec_json(Json::Value const& json,
               FinalChain::Config::GenesisBlockFields& obj);

@@ -9,6 +9,7 @@
 
 #include "dag_block.hpp"
 #include "final_chain.hpp"
+#include "pbft_config.hpp"
 #include "util/lazy.hpp"
 
 namespace taraxa::chain_config {
@@ -23,6 +24,7 @@ struct ChainConfig {
   uint64_t chain_id = 0;
   DagBlock dag_genesis_block;
   ReplayProtectionService::Config replay_protection_service;
+  PbftConfig pbft;
   FinalChain::Config final_chain;
 
  private:

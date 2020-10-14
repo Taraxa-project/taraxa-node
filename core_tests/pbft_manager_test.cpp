@@ -2,18 +2,13 @@
 
 #include <gtest/gtest.h>
 
-#include "core_tests/util.hpp"
-#include "create_samples.hpp"
 #include "network.hpp"
+#include "samples.hpp"
 #include "static_init.hpp"
-#include "transaction_manager.hpp"
+#include "util.hpp"
 #include "util/lazy.hpp"
-#include "util/wait.hpp"
 
-namespace taraxa {
-using namespace core_tests::util;
-using core_tests::util::constants::TEST_TX_GAS_LIMIT;
-using ::taraxa::util::lazy::Lazy;
+namespace taraxa::core_tests {
 
 const unsigned NUM_TRX = 200;
 auto g_secret = Lazy([] {
@@ -26,20 +21,19 @@ auto g_trx_signed_samples =
     Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX, g_secret); });
 auto g_mock_dag0 = Lazy([] { return samples::createMockDag0(); });
 
-struct PbftManagerTest : core_tests::util::DBUsingTest<> {};
+struct PbftManagerTest : BaseTest {};
 
 pair<size_t, size_t> calculate_2tPuls1_threshold(size_t committee_size,
-                                                 size_t active_players,
                                                  size_t valid_voting_players) {
   size_t two_t_plus_one;
   size_t threshold;
-  if (committee_size <= active_players) {
+  if (committee_size <= valid_voting_players) {
     two_t_plus_one = committee_size * 2 / 3 + 1;
     // round up
     threshold =
-        (valid_voting_players * committee_size - 1) / active_players + 1;
+        (valid_voting_players * committee_size - 1) / valid_voting_players + 1;
   } else {
-    two_t_plus_one = active_players * 2 / 3 + 1;
+    two_t_plus_one = valid_voting_players * 2 / 3 + 1;
     threshold = valid_voting_players;
   }
   return make_pair(two_t_plus_one, threshold);
@@ -47,61 +41,73 @@ pair<size_t, size_t> calculate_2tPuls1_threshold(size_t committee_size,
 
 void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
     size_t committee_size) {
-  auto tops = createNodesAndVerifyConnection(5, 4, false, 20);
-  auto &nodes = tops.second;
-
-  std::shared_ptr<PbftManager> pbft_mgr;
-  for (auto i(0); i < nodes.size(); ++i) {
-    pbft_mgr = nodes[i]->getPbftManager();
-    pbft_mgr->COMMITTEE_SIZE = committee_size;
-    // Set PBFT skip periods to a large number, in order to count all nodes as
-    // active players (not guarantee)
-    pbft_mgr->SKIP_PERIODS = 100;
+  auto node_cfgs = make_node_cfgs<5>(5);
+  auto node_1_expected_bal = own_effective_genesis_bal(node_cfgs[0]);
+  for (auto &cfg : node_cfgs) {
+    cfg.chain.pbft.committee_size = committee_size;
   }
+  auto nodes = launch_nodes(node_cfgs);
 
   // Even distribute coins from master boot node to other nodes. Since master
   // boot node owns whole coins, the active players should be only master boot
   // node at the moment.
-  auto init_bal = TARAXA_COINS_DECIMAL / nodes.size();
   auto gas_price = val_t(2);
   auto data = bytes();
-  auto nonce = 0;
+  auto nonce = 0;  // fixme: the following nonce approach is not correct anyway
   auto trxs_count = 0;
+
+  {
+    auto min_stake_to_vote =
+        node_cfgs[0]
+            .chain.final_chain.state.dpos->eligibility_balance_threshold;
+    state_api::DPOSTransfers delegations;
+    for (auto i(1); i < nodes.size(); ++i) {
+      node_1_expected_bal -= delegations[nodes[i]->getAddress()].value =
+          min_stake_to_vote;
+    }
+    auto trx = make_dpos_trx(node_cfgs[0], delegations, nonce++);
+    nodes[0]->getTransactionManager()->insertTransaction(trx);
+    trxs_count++;
+    EXPECT_HAPPENS({60s, 1s}, [&](auto &ctx) {
+      for (auto &node : nodes) {
+        if (ctx.fail_if(
+                !node->getFinalChain()->isKnownTransaction(trx.getHash()))) {
+          return;
+        }
+      }
+    });
+  }
+
+  auto init_bal = node_1_expected_bal / nodes.size();
   for (auto i(1); i < nodes.size(); ++i) {
     Transaction master_boot_node_send_coins(
         nonce++, init_bal, gas_price, TEST_TX_GAS_LIMIT, data,
         nodes[0]->getSecretKey(), nodes[i]->getAddress());
+    node_1_expected_bal -= init_bal;
     // broadcast trx and insert
     nodes[0]->getTransactionManager()->insertTransaction(
-        master_boot_node_send_coins, false);
+        master_boot_node_send_coins);
     trxs_count++;
   }
 
   std::cout << "Checking all nodes executed transactions from master boot node"
             << std::endl;
-  auto success = wait::Wait(
-      [&nodes, &trxs_count, &nonce] {
-        for (auto i(0); i < nodes.size(); ++i) {
-          if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
-            std::cout << "node" << i << " executed "
-                      << nodes[i]->getDB()->getNumTransactionExecuted()
-                      << " transactions, expected " << trxs_count << std::endl;
-            Transaction dummy_trx(nonce++, 0, 2, TEST_TX_GAS_LIMIT, bytes(),
-                                  nodes[0]->getSecretKey(),
-                                  nodes[0]->getAddress());
-            // broadcast dummy transaction
-            nodes[0]->getTransactionManager()->insertTransaction(dummy_trx,
-                                                                 false);
-            trxs_count++;
-            return false;
-          }
-        }
-        return true;
-      },
-      {
-          10,                       // send times
-          std::chrono::seconds(8),  // each sending
-      });
+  EXPECT_HAPPENS({80s, 8s}, [&](auto &ctx) {
+    for (auto i(0); i < nodes.size(); ++i) {
+      if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
+        std::cout << "node" << i << " executed "
+                  << nodes[i]->getDB()->getNumTransactionExecuted()
+                  << " transactions, expected " << trxs_count << std::endl;
+        Transaction dummy_trx(nonce++, 0, 2, TEST_TX_GAS_LIMIT, bytes(),
+                              nodes[0]->getSecretKey(), nodes[0]->getAddress());
+        // broadcast dummy transaction
+        nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false);
+        trxs_count++;
+        ctx.fail();
+        return;
+      }
+    }
+  });
   for (auto i(0); i < nodes.size(); ++i) {
     EXPECT_EQ(nodes[i]->getDB()->getNumTransactionExecuted(), trxs_count);
   }
@@ -111,7 +117,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
               << std::endl;
     EXPECT_EQ(
         nodes[i]->getFinalChain()->getBalance(nodes[0]->getAddress()).first,
-        9007199254740991 - 4 * init_bal);
+        node_1_expected_bal);
     for (auto j(1); j < nodes.size(); ++j) {
       // For node1 to node4 balances info on each node
       EXPECT_EQ(
@@ -119,24 +125,22 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
           init_bal);
     }
   }
-
-  size_t committee, active_players, valid_voting_players, two_t_plus_one,
-      threshold, expected_2tPlus1, expected_threshold;
+  uint64_t valid_voting_players = 0;
+  size_t committee, two_t_plus_one, threshold, expected_2tPlus1,
+      expected_threshold;
   for (auto i(0); i < nodes.size(); ++i) {
-    pbft_mgr = nodes[i]->getPbftManager();
+    auto pbft_mgr = nodes[i]->getPbftManager();
     committee = pbft_mgr->COMMITTEE_SIZE;
-    active_players = pbft_mgr->active_nodes;
-    valid_voting_players = pbft_mgr->getValidSortitionAccountsSize();
+    valid_voting_players = pbft_mgr->getEligibleVoterCount();
     two_t_plus_one = pbft_mgr->getTwoTPlusOne();
     threshold = pbft_mgr->getSortitionThreshold();
     std::cout << "Node" << i << " committee " << committee
-              << ", active players " << active_players
               << ", valid voting players " << valid_voting_players << ", 2t+1 "
               << two_t_plus_one << ", sortition threshold " << threshold
               << std::endl;
     EXPECT_EQ(valid_voting_players, nodes.size());
-    tie(expected_2tPlus1, expected_threshold) = calculate_2tPuls1_threshold(
-        committee, active_players, valid_voting_players);
+    tie(expected_2tPlus1, expected_threshold) =
+        calculate_2tPuls1_threshold(committee, valid_voting_players);
     EXPECT_EQ(two_t_plus_one, expected_2tPlus1);
     EXPECT_EQ(threshold, expected_threshold);
   }
@@ -157,29 +161,22 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
 
   std::cout << "Checking all nodes execute transactions from robin cycle"
             << std::endl;
-  success = wait::Wait(
-      [&nodes, &trxs_count, &nonce] {
-        for (auto i(0); i < nodes.size(); ++i) {
-          if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
-            std::cout << "node" << i << " executed "
-                      << nodes[i]->getDB()->getNumTransactionExecuted()
-                      << " transactions. Expected " << trxs_count << std::endl;
-            Transaction dummy_trx(nonce++, 0, 2, TEST_TX_GAS_LIMIT, bytes(),
-                                  nodes[0]->getSecretKey(),
-                                  nodes[0]->getAddress());
-            // broadcast dummy transaction
-            nodes[0]->getTransactionManager()->insertTransaction(dummy_trx,
-                                                                 false);
-            trxs_count++;
-            return false;
-          }
-        }
-        return true;
-      },
-      {
-          10,                       // send times
-          std::chrono::seconds(8),  // each sending
-      });
+  EXPECT_HAPPENS({80s, 8s}, [&](auto &ctx) {
+    for (auto i(0); i < nodes.size(); ++i) {
+      if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
+        std::cout << "node" << i << " executed "
+                  << nodes[i]->getDB()->getNumTransactionExecuted()
+                  << " transactions. Expected " << trxs_count << std::endl;
+        Transaction dummy_trx(nonce++, 0, 2, TEST_TX_GAS_LIMIT, bytes(),
+                              nodes[0]->getSecretKey(), nodes[0]->getAddress());
+        // broadcast dummy transaction
+        nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false);
+        trxs_count++;
+        ctx.fail();
+        return;
+      }
+    }
+  });
   for (auto i = 0; i < nodes.size(); i++) {
     EXPECT_EQ(nodes[i]->getDB()->getNumTransactionExecuted(), trxs_count);
   }
@@ -189,7 +186,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
               << std::endl;
     EXPECT_EQ(
         nodes[i]->getFinalChain()->getBalance(nodes[0]->getAddress()).first,
-        9007199254740991 - 4 * init_bal);
+        node_1_expected_bal);
     for (auto j(1); j < nodes.size(); ++j) {
       // For node1 to node4 account balances info on each node
       EXPECT_EQ(
@@ -199,28 +196,26 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
   }
 
   for (auto i(0); i < nodes.size(); ++i) {
-    pbft_mgr = nodes[i]->getPbftManager();
+    auto pbft_mgr = nodes[i]->getPbftManager();
     committee = pbft_mgr->COMMITTEE_SIZE;
-    active_players = pbft_mgr->active_nodes;
-    valid_voting_players = pbft_mgr->getValidSortitionAccountsSize();
+    valid_voting_players = pbft_mgr->getEligibleVoterCount();
     two_t_plus_one = pbft_mgr->getTwoTPlusOne();
     threshold = pbft_mgr->getSortitionThreshold();
     std::cout << "Node" << i << " committee " << committee
-              << ", active players " << active_players
               << ", valid voting players " << valid_voting_players << ", 2t+1 "
               << two_t_plus_one << ", sortition threshold " << threshold
               << std::endl;
     EXPECT_EQ(valid_voting_players, nodes.size());
-    tie(expected_2tPlus1, expected_threshold) = calculate_2tPuls1_threshold(
-        committee, active_players, valid_voting_players);
+    tie(expected_2tPlus1, expected_threshold) =
+        calculate_2tPuls1_threshold(committee, valid_voting_players);
     EXPECT_EQ(two_t_plus_one, expected_2tPlus1);
     EXPECT_EQ(threshold, expected_threshold);
   }
 }
 
 TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
-  auto tops = createNodesAndVerifyConnection(1, 0, false, 20);
-  auto node = tops.second[0];
+  auto node_cfgs = make_node_cfgs<5>(1);
+  FullNode::Handle node(node_cfgs[0], true);
 
   // create a transaction
   auto coins_value = val_t(100);
@@ -259,17 +254,18 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
   EXPECT_EQ(node->getFinalChain()
                 ->getBalance(addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5"))
                 .first,
-            9007199254740991 - 100);
+            own_effective_genesis_bal(node_cfgs[0]) - 100);
   EXPECT_EQ(node->getFinalChain()->getBalance(receiver).first, 100);
 }
 
 TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
-  auto tops = createNodesAndVerifyConnection(3, 2, false, 20);
-  auto &nodes = tops.second;
+  auto node_cfgs = make_node_cfgs<5>(3);
+  auto node1_genesis_bal = own_effective_genesis_bal(node_cfgs[0]);
+  auto nodes = launch_nodes(node_cfgs);
 
-  auto node1_addr = addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5");
-  auto node2_addr = addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0");
-  auto node3_addr = addr_t("4fae949ac2b72960fbe857b56532e2d3c8418d5e");
+  auto node1_addr = nodes[0]->getAddress();
+  auto node2_addr = nodes[1]->getAddress();
+  auto node3_addr = nodes[2]->getAddress();
 
   // create a transaction transfer coins from node1 to node2
   auto coins_value2 = val_t(100);
@@ -313,7 +309,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
     std::cout << "Checking account balances on node " << i << " ..."
               << std::endl;
     EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node1_addr).first,
-              9007199254740991 - 100);
+              node1_genesis_bal - 100);
     EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node2_addr).first, 100);
     EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node3_addr).first, 0);
   }
@@ -368,7 +364,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
     std::cout << "Checking account balances on node " << i << " ..."
               << std::endl;
     EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node1_addr).first,
-              9007199254740991 - 1100);
+              node1_genesis_bal - 1100);
     EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node2_addr).first, 100);
     EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node3_addr).first, 1000);
   }
@@ -411,10 +407,10 @@ TEST_F(PbftManagerTest, check_committeeSize_greater_than_activePlayers) {
   check_2tPlus1_validVotingPlayers_activePlayers_threshold(6);
 }
 
-}  // namespace taraxa
+}  // namespace taraxa::core_tests
 
 using namespace taraxa;
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   taraxa::static_init();
   LoggingConfig logging;
   logging.verbosity = taraxa::VerbosityError;

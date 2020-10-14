@@ -1,5 +1,6 @@
 #include "full_node.hpp"
 
+#include <libweb3jsonrpc/Eth.h>
 #include <libweb3jsonrpc/JsonHelper.h>
 
 #include <boost/algorithm/string.hpp>
@@ -8,118 +9,73 @@
 #include <chrono>
 #include <stdexcept>
 
+#include "aleth/node_api.hpp"
+#include "aleth/state_api.hpp"
 #include "block_proposer.hpp"
 #include "dag.hpp"
 #include "dag_block.hpp"
-#include "network.hpp"
+#include "net/Net.h"
+#include "net/Taraxa.h"
+#include "net/Test.h"
 #include "pbft_manager.hpp"
 #include "sortition.hpp"
 #include "transaction_manager.hpp"
 #include "transaction_status.hpp"
-#include "vote.hpp"
 
 namespace taraxa {
 
 using std::string;
 using std::to_string;
 
-void FullNode::init(bool destroy_db, bool rebuild_network) {
-  // ===== Deal with the config =====
-  num_block_workers_ = conf_.dag_processing_threads;
-  auto key = dev::KeyPair::create();
-  if (!conf_.node_secret.empty()) {
-    auto secret = dev::Secret(conf_.node_secret,
-                              dev::Secret::ConstructFromStringType::FromHex);
-    key = dev::KeyPair(secret);
-  }
-  node_sk_ = key.secret();
-  node_pk_ = key.pub();
-  node_addr_ = key.address();
+FullNode::FullNode(FullNodeConfig const &conf)
+    : conf_(conf),
+      kp_(conf_.node_secret.empty()
+              ? dev::KeyPair::create()
+              : dev::KeyPair(dev::Secret(
+                    conf_.node_secret,
+                    dev::Secret::ConstructFromStringType::FromHex))) {}
 
+void FullNode::init() {
+  fs::create_directories(conf_.db_path);
   // Initialize logging
-  for (auto &logging : conf_.log_configs) {
-    setupLoggingConfiguration(node_addr_, logging);
-  }
-
-  auto &node_addr = node_addr_;
-  if (destroy_db) {
-    boost::filesystem::remove_all(conf_.db_path);
+  auto const &node_addr = kp_.address();
+  for (auto const &logging : conf_.log_configs) {
+    post_destruction_ += setupLoggingConfiguration(node_addr, logging);
   }
   LOG_OBJECTS_CREATE("FULLND");
   log_time_ =
-      createTaraxaLogger(dev::Verbosity::VerbosityInfo, "TMSTM", node_addr_);
-  log_time_dg_ =
-      createTaraxaLogger(dev::Verbosity::VerbosityDebug, "TMSTM", node_addr_);
+      createTaraxaLogger(dev::Verbosity::VerbosityInfo, "TMSTM", node_addr);
 
-  vrf_sk_ = vrf_sk_t(conf_.vrf_secret);
-  vrf_pk_ = vrf_wrapper::getVrfPublicKey(vrf_sk_);
-  // Assume only first boot node is initialized
-  master_boot_node_address_ =
-      dev::toAddress(dev::Public(conf_.network.network_boot_nodes[0].id));
-  LOG(log_si_) << "Node public key: " << EthGreen << node_pk_.toString()
+  num_block_workers_ = conf_.dag_processing_threads;
+  LOG(log_si_) << "Node public key: " << EthGreen << kp_.pub().toString()
                << std::endl
-               << "Node address: " << EthRed << node_addr_.toString()
+               << "Node address: " << EthRed << node_addr.toString()
                << std::endl
-               << "Node VRF public key: " << EthGreen << vrf_pk_.toString();
+               << "Node VRF public key: " << EthGreen
+               << vrf_wrapper::getVrfPublicKey(conf_.vrf_secret).toString();
   LOG(log_nf_) << "Number of block works: " << num_block_workers_;
-  // ===== Create DBs =====
-  auto const &genesis_block = conf_.chain.dag_genesis_block;
-  if (!genesis_block.verifySig()) {
+
+  if (!conf_.chain.dag_genesis_block.verifySig()) {
     LOG(log_er_) << "Genesis block is invalid";
     assert(false);
   }
-  auto const &genesis_hash = genesis_block.getHash();
-  db_ = DbStorage::make(conf_.db_path, genesis_hash, destroy_db);
-  // store genesis blk to db
-  if (db_->getNumDagBlocks() == 0) db_->saveDagBlock(genesis_block);
+  {
+    emplace(db_, conf_.dbstorage_path());
+    if (db_->getNumDagBlocks() == 0) {
+      db_->saveDagBlock(conf_.chain.dag_genesis_block);
+    }
+  }
   LOG(log_nf_) << "DB initialized ...";
-  // ===== Create services =====
-  trx_mgr_ =
-      std::make_shared<TransactionManager>(conf_, node_addr, db_, log_time_);
-  pbft_chain_ =
-      std::make_shared<PbftChain>(genesis_hash.toString(), node_addr, db_);
-  dag_mgr_ = std::make_shared<DagManager>(genesis_hash.toString(), node_addr,
-                                          trx_mgr_, pbft_chain_, db_);
-  blk_mgr_ = std::make_shared<BlockManager>(
-      1024 /*capacity*/, 4 /* verifer thread*/, node_addr, db_, trx_mgr_,
-      log_time_, conf_.test_params.max_block_queue_warn);
-  trx_order_mgr_ =
-      std::make_shared<TransactionOrderManager>(node_addr, db_, blk_mgr_);
-  blk_proposer_ = std::make_shared<BlockProposer>(
-      conf_.test_params.block_proposer, dag_mgr_, trx_mgr_, blk_mgr_,
-      node_addr_, getSecretKey(), getVrfSecretKey(), log_time_);
+
   final_chain_ =
       NewFinalChain(db_, conf_.chain.final_chain, conf_.opts_final_chain);
-  vote_mgr_ =
-      std::make_shared<VoteManager>(node_addr, final_chain_, pbft_chain_);
-  pbft_mgr_ = std::make_shared<PbftManager>(
-      conf_.test_params.pbft, genesis_hash.toString(), node_addr, db_,
-      pbft_chain_, vote_mgr_, dag_mgr_, blk_mgr_, final_chain_, trx_order_mgr_,
-      trx_mgr_, master_boot_node_address_, node_sk_, vrf_sk_,
-      conf_.opts_final_chain.state_api.ExpectedMaxNumTrxPerBlock);
-  auto final_chain_head_ = final_chain_->get_last_block();
-  trx_mgr_->setPendingBlock(
-      aleth::NewPendingBlock(final_chain_head_->number(), getAddress(),
-                             final_chain_head_->hash(), db_));
-  if (rebuild_network) {
-    network_ = std::make_shared<Network>(
-        conf_.network, "", node_sk_, genesis_hash.toString(), node_addr, db_,
-        pbft_chain_, vote_mgr_, dag_mgr_, blk_mgr_, trx_mgr_, node_pk_,
-        conf_.test_params.pbft.lambda_ms_min);
-  } else {
-    network_ = std::make_shared<Network>(conf_.network, conf_.db_path + "/net",
-                                         node_sk_, genesis_hash.toString(),
-                                         node_addr, db_, pbft_chain_, vote_mgr_,
-                                         dag_mgr_, blk_mgr_, trx_mgr_, node_pk_,
-                                         conf_.test_params.pbft.lambda_ms_min);
-  }
-  // ===== Post-initialization tasks =====
-  // Reconstruct DAG
-  if (!destroy_db) {
-    dag_mgr_->recoverDag();
-  }
-  // Check pending transaction and reconstruct queues
-  if (!destroy_db) {
+  {
+    emplace(trx_mgr_, conf_, node_addr, db_, log_time_);
+    // This should go to the constructor
+    auto final_chain_head = final_chain_->get_last_block();
+    trx_mgr_->setPendingBlock(
+        aleth::NewPendingBlock(final_chain_head->number(), getAddress(),
+                               final_chain_head->hash(), db_));
     for (auto const &h : trx_mgr_->getPendingBlock()->transactionHashes()) {
       auto status = db_->getTransactionStatus(h);
       if (status == TransactionStatus::in_queue_unverified ||
@@ -131,45 +87,96 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
       }
     }
   }
+  auto genesis_hash = conf_.chain.dag_genesis_block.getHash().toString();
+  emplace(pbft_chain_, genesis_hash, node_addr, db_);
+  {
+    emplace(dag_mgr_, genesis_hash, node_addr, trx_mgr_, pbft_chain_, db_);
+    // TODO move to the constructor?
+    dag_mgr_->recoverDag();
+  }
+  emplace(blk_mgr_, 1024 /*capacity*/, 4 /* verifer thread*/, node_addr, db_,
+          trx_mgr_, log_time_, conf_.test_params.max_block_queue_warn);
+  emplace(vote_mgr_, node_addr, final_chain_, pbft_chain_);
+  emplace(network_, conf_.network, conf_.net_file_path().string(), kp_.secret(),
+          genesis_hash, node_addr, db_, pbft_chain_, vote_mgr_, dag_mgr_,
+          blk_mgr_, trx_mgr_, kp_.pub(), conf_.chain.pbft.lambda_ms_min);
+  emplace(trx_order_mgr_, node_addr, db_, blk_mgr_);
+  emplace(pbft_mgr_, conf_.chain.pbft, genesis_hash, node_addr, db_,
+          pbft_chain_, vote_mgr_, dag_mgr_, blk_mgr_, final_chain_,
+          trx_order_mgr_, trx_mgr_, kp_.secret(), conf_.vrf_secret,
+          conf_.opts_final_chain.state_api.ExpectedMaxTrxPerBlock);
+  emplace(blk_proposer_, conf_.test_params.block_proposer, dag_mgr_, trx_mgr_,
+          blk_mgr_, node_addr, getSecretKey(), getVrfSecretKey(), log_time_);
+  if (auto port = conf_.rpc.port) {
+    if (!jsonrpc_io_ctx_) {
+      emplace(jsonrpc_io_ctx_);
+    }
+    emplace(jsonrpc_http_, *jsonrpc_io_ctx_,
+            boost::asio::ip::tcp::endpoint{conf_.rpc.address, *port},
+            node_addr);
+  }
+  if (auto port = conf_.rpc.ws_port) {
+    if (!jsonrpc_io_ctx_) {
+      emplace(jsonrpc_io_ctx_);
+    }
+    emplace(jsonrpc_ws_, *jsonrpc_io_ctx_,
+            boost::asio::ip::tcp::endpoint{conf_.rpc.address, *port},
+            node_addr);
+  }
+  if (jsonrpc_io_ctx_) {
+    emplace(jsonrpc_api_,
+            new net::Test(getShared()),    //
+            new net::Taraxa(getShared()),  //
+            new net::Net(getShared()),
+            new dev::rpc::Eth(
+                aleth::NewNodeAPI(conf_.chain.chain_id, kp_.secret(),
+                                  [this](auto const &trx) {
+                                    auto [ok, err_msg] =
+                                        trx_mgr_->insertTransaction(trx, true);
+                                    if (!ok) {
+                                      BOOST_THROW_EXCEPTION(runtime_error(
+                                          fmt("Transaction is rejected.\n"
+                                              "RLP: %s\n"
+                                              "Reason: %s",
+                                              dev::toJS(*trx.rlp()), err_msg)));
+                                    }
+                                  }),
+                trx_mgr_->getFilterAPI(),
+                aleth::NewStateAPI(final_chain_),  //
+                trx_mgr_->getPendingBlock(),
+                final_chain_,  //
+                [] { return 0; }));
+    if (jsonrpc_http_) {
+      jsonrpc_api_->addConnector(jsonrpc_http_);
+    }
+    if (jsonrpc_ws_) {
+      jsonrpc_api_->addConnector(jsonrpc_ws_);
+    }
+  }
   LOG(log_time_) << "Start taraxa efficiency evaluation logging:" << std::endl;
 }
 
-std::shared_ptr<FullNode> FullNode::getShared() { return shared_from_this(); }
-
-void FullNode::setWSServer(
-    std::shared_ptr<taraxa::net::WSServer> const &ws_server) {
-  ws_server_ = ws_server;
-  trx_mgr_->setWsServer(ws_server);
-  pbft_mgr_->setWSServer(ws_server);
-}
-
-void FullNode::start(bool boot_node) {
-  // This sleep is to avoid some flaky tests failures since in our tests we
-  // often start multiple nodes very quickly one after another which sometimes
-  // makes nodes connect to each other at the same time where both drop each
-  // other connection thinking it is a duplicate
-  thisThreadSleepForMilliSeconds(10);
+void FullNode::start() {
   if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
-  i_am_boot_node_ = boot_node;
-  if (i_am_boot_node_) {
+  if (conf_.network.network_is_boot_node) {
     LOG(log_nf_) << "Starting a boot node ..." << std::endl;
   }
-  blk_proposer_->setNetwork(network_);
-  pbft_mgr_->setNetwork(network_);
+  network_->start(conf_.network.network_is_boot_node);
   trx_mgr_->setNetwork(network_);
-  network_->start(boot_node);
-  blk_mgr_->start();
   trx_mgr_->start();
+  blk_proposer_->setNetwork(network_);
   blk_proposer_->start();
+  pbft_mgr_->setNetwork(network_);
   pbft_mgr_->start();
+  blk_mgr_->start();
   for (auto i = 0; i < num_block_workers_; ++i) {
     block_workers_.emplace_back([this]() {
       while (!stopped_) {
         // will block if no verified block available
         auto blk = blk_mgr_->popVerifiedBlock();
-        
+
         if (!stopped_) {
           received_blocks_++;
         }
@@ -177,8 +184,8 @@ void FullNode::start(bool boot_node) {
         if (dag_mgr_->pivotAndTipsAvailable(blk)) {
           db_->saveDagBlock(blk);
           dag_mgr_->addDagBlock(blk);
-          if (ws_server_) {
-            ws_server_->newDagBlock(blk);
+          if (jsonrpc_ws_) {
+            jsonrpc_ws_->newDagBlock(blk);
           }
           network_->onNewBlockVerified(blk);
           LOG(log_time_) << "Broadcast block " << blk.getHash()
@@ -198,45 +205,72 @@ void FullNode::start(bool boot_node) {
       }
     });
   }
+  if (jsonrpc_io_ctx_) {
+    if (jsonrpc_http_) {
+      jsonrpc_http_->StartListening();
+    }
+    if (jsonrpc_ws_) {
+      jsonrpc_ws_->run();
+      trx_mgr_->setWsServer(jsonrpc_ws_);
+      pbft_mgr_->setWSServer(jsonrpc_ws_);
+    }
+    emplace(jsonrpc_thread_, [this] { jsonrpc_io_ctx_->run(); });
+  }
   LOG(log_nf_) << "Node started ... ";
 }
 
-void FullNode::stop() {
+void FullNode::close() {
+  util::ExitStack finally;
+  // because `this` shared ptr is given to it
+  finally += [this] { jsonrpc_api_.reset(); };
   if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
-  network_->stop();
   blk_proposer_->stop();
-  blk_mgr_->stop();
-  trx_mgr_->stop();
+  blk_proposer_->setNetwork(nullptr);
   pbft_mgr_->stop();
-
+  pbft_mgr_->setNetwork(nullptr);
+  trx_mgr_->stop();
+  trx_mgr_->setNetwork(nullptr);
+  network_->stop();
+  blk_mgr_->stop();
   for (auto &t : block_workers_) {
     t.join();
   }
-
-  LOG(log_nf_) << "Node stopped ... ";
-  for (auto &logging : conf_.log_configs) {
-    removeLogging(logging);
+  if (jsonrpc_thread_) {
+    jsonrpc_io_ctx_->stop();
+    jsonrpc_thread_->join();
+    trx_mgr_->setWsServer(nullptr);
+    pbft_mgr_->setWSServer(nullptr);
   }
+  LOG(log_nf_) << "Node stopped ... ";
 }
 
-uint64_t FullNode::getNumReceivedBlocks() const { return received_blocks_; }
+dev::Signature FullNode::signMessage(std::string const &message) {
+  return dev::sign(kp_.secret(), dev::sha3(message));
+}
 
 uint64_t FullNode::getNumProposedBlocks() const {
   return BlockProposer::getNumProposedBlocks();
 }
 
-FullNodeConfig const &FullNode::getConfig() const { return conf_; }
-std::shared_ptr<Network> FullNode::getNetwork() const { return network_; }
-
-dev::Signature FullNode::signMessage(std::string message) {
-  return dev::sign(node_sk_, dev::sha3(message));
+FullNode::Handle::Handle(FullNodeConfig const &conf, bool start)
+    : shared_ptr_t(new FullNode(conf)) {
+  get()->init();
+  if (start) {
+    get()->start();
+  }
 }
 
-bool FullNode::verifySignature(dev::Signature const &signature,
-                               std::string &message) {
-  return dev::verify(node_pk_, signature, dev::sha3(message));
+FullNode::Handle::~Handle() {
+  auto node = get();
+  if (!node) {
+    return;
+  }
+  node->close();
+  shared_ptr_t::weak_type node_weak = *this;
+  reset();
+  assert(node_weak.use_count() == 0);
 }
 
 }  // namespace taraxa

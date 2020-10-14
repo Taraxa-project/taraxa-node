@@ -12,6 +12,7 @@ Json::Value enc_json(ChainConfig const& obj) {
   }
   json["dag_genesis_block"] = obj.dag_genesis_block.getJson();
   json["replay_protection_service"] = enc_json(obj.replay_protection_service);
+  json["pbft"] = enc_json(obj.pbft);
   json["final_chain"] = enc_json(obj.final_chain);
   return json;
 }
@@ -22,6 +23,7 @@ void dec_json(Json::Value const& json, ChainConfig& obj) {
   }
   obj.dag_genesis_block = DagBlock(json["dag_genesis_block"]);
   dec_json(json["replay_protection_service"], obj.replay_protection_service);
+  dec_json(json["pbft"], obj.pbft);
   dec_json(json["final_chain"], obj.final_chain);
 }
 
@@ -41,24 +43,29 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
       "vdf": ""
   })"));
     cfg.replay_protection_service.range = 10;
-    cfg.final_chain.state.chain_config.disable_block_rewards = true;
-    cfg.final_chain.state.chain_config.evm_chain_config.eth_chain_config
-        .dao_fork_block = state_api::BlockNumberNIL;
-    cfg.final_chain.state.chain_config.evm_chain_config.execution_options
-        .disable_nonce_check = true;
-    cfg.final_chain.state.chain_config.evm_chain_config.execution_options
-        .disable_gas_fee = true;
-    cfg.final_chain.state
-        .genesis_accounts[addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5")]
-        .Balance = 9007199254740991;
+    cfg.final_chain.state.disable_block_rewards = true;
+    cfg.final_chain.state.eth_chain_config.dao_fork_block =
+        state_api::BlockNumberNIL;
+    cfg.final_chain.state.execution_options.disable_nonce_check = true;
+    cfg.final_chain.state.execution_options.disable_gas_fee = true;
+    addr_t root_node_addr("de2b1203d72d3549ee2f733b00b2789414c7cea5");
+    cfg.final_chain.state.genesis_balances[root_node_addr] = 9007199254740991;
+    auto& dpos = cfg.final_chain.state.dpos.emplace();
+    dpos.eligibility_balance_threshold = 1000000000;
+    dpos.genesis_state[root_node_addr][root_node_addr] =
+        dpos.eligibility_balance_threshold;
+    cfg.pbft.lambda_ms_min = 2000;
+    cfg.pbft.committee_size = 5;
+    cfg.pbft.dag_blocks_size = 100;
+    cfg.pbft.ghost_path_move_back = 1;
+    cfg.pbft.run_count_votes = false;
     return cfg;
   }();
   cfgs["test"] = [&] {
     auto cfg = cfgs["default"];
     cfg.chain_id = 12345;
     cfg.final_chain.state
-        .genesis_accounts[addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5")]
-        .Balance =
+        .genesis_balances[addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5")] =
         u256(7200999050) *
         10000000000000000;  // https://ethereum.stackexchange.com/a/74832
     return cfg;

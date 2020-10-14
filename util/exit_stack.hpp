@@ -1,7 +1,9 @@
 #ifndef TARAXA_NODE_UTIL_EXIT_STACK_HPP_
 #define TARAXA_NODE_UTIL_EXIT_STACK_HPP_
 
+#include <boost/exception/diagnostic_information.hpp>
 #include <functional>
+#include <iostream>
 #include <optional>
 #include <type_traits>
 #include <vector>
@@ -12,31 +14,37 @@ using namespace std;
 class ExitStack {
   vector<function<void()>> actions;
 
+ public:
   ExitStack(ExitStack const &) = delete;
   ExitStack &operator=(ExitStack const &) = delete;
 
- public:
   ExitStack(optional<decltype(actions)::size_type> initial_capacity = nullopt) {
     if (initial_capacity) {
       actions.reserve(*initial_capacity);
     }
   }
+
   template <typename Action>
   ExitStack(Action &&action,
             optional<decltype(actions)::size_type> initial_capacity = nullopt)
       : ExitStack(initial_capacity) {
-    actions.emplace_back(move(action));
+    actions.emplace_back(std::forward<Action>(action));
   }
+
   ~ExitStack() {
     for (auto i = actions.rbegin(), end = actions.rend(); i != end; ++i) {
-      (*i)();
+      try {
+        (*i)();
+      } catch (...) {
+        cerr << boost::current_exception_diagnostic_information() << endl;
+      }
     }
   }
 
   template <typename Action,
             typename = enable_if_t<!is_same_v<Action, ExitStack>>>
   ExitStack &operator+=(Action &&action) {
-    actions.emplace_back(move(action));
+    actions.emplace_back(std::forward<Action>(action));
     return *this;
   }
   ExitStack &operator+=(ExitStack &&other) {

@@ -12,38 +12,27 @@ using namespace dev;
 using namespace rocksdb;
 namespace fs = boost::filesystem;
 
-std::unique_ptr<DbStorage> DbStorage::make(fs::path const& base_path,
-                                           h256 const& genesis_hash,
-                                           bool drop_existing) {
-  auto path = base_path;
-  path /= fs::path(toHex(genesis_hash.ref().cropped(0, 4)));
-  if (drop_existing) {
-    fs::remove_all(path);
-  }
+DbStorage::DbStorage(fs::path const& path)
+    : path_(path), handles_(Columns::all.size()) {
   fs::create_directories(path);
-  DEV_IGNORE_EXCEPTIONS(fs::permissions(path, fs::owner_all));
   rocksdb::Options options;
   options.create_missing_column_families = true;
   options.create_if_missing = true;
   options.max_open_files = 256;
-  DB* db = nullptr;
   vector<ColumnFamilyDescriptor> descriptors;
   std::transform(Columns::all.begin(), Columns::all.end(),
                  std::back_inserter(descriptors), [](const Column& col) {
                    return ColumnFamilyDescriptor(col.name,
                                                  ColumnFamilyOptions());
                  });
-  vector<ColumnFamilyHandle*> handles(Columns::all.size());
-  checkStatus(DB::Open(options, path.string(), descriptors, &handles, &db));
-  auto ret = u_ptr(new DbStorage);
-  ret->db_ = s_ptr(db);
-  ret->handles_.reserve(handles.size());
-  for (auto h : handles) {
-    ret->handles_.emplace_back(h);
-  }
-  ret->dag_blocks_count_.store(ret->getStatusField(StatusDbField::DagBlkCount));
-  ret->dag_edge_count_.store(ret->getStatusField(StatusDbField::DagEdgeCount));
-  return ret;
+  checkStatus(DB::Open(options, path.string(), descriptors, &handles_, &db_));
+  dag_blocks_count_.store(getStatusField(StatusDbField::DagBlkCount));
+  dag_edge_count_.store(getStatusField(StatusDbField::DagEdgeCount));
+}
+
+DbStorage::~DbStorage() {
+  db_->Close();
+  delete db_;
 }
 
 void DbStorage::checkStatus(rocksdb::Status const& status) {
@@ -133,17 +122,16 @@ void DbStorage::saveDagBlock(DagBlock const& blk) {
   batch_put(write_batch, Columns::status,
             toSlice((uint8_t)StatusDbField::DagBlkCount),
             toSlice(dag_blocks_count_.load()));
-  //Do not count genesis pivot field
-  if(blk.getPivot() == blk_hash_t(0)) {
+  // Do not count genesis pivot field
+  if (blk.getPivot() == blk_hash_t(0)) {
     dag_edge_count_.fetch_add(blk.getTips().size());
-  }
-  else  {
+  } else {
     dag_edge_count_.fetch_add(blk.getTips().size() + 1);
   }
   batch_put(write_batch, Columns::status,
             toSlice((uint8_t)StatusDbField::DagEdgeCount),
             toSlice(dag_edge_count_.load()));
-  
+
   commitWriteBatch(write_batch);
 }
 
@@ -153,22 +141,25 @@ void DbStorage::saveDagBlockState(blk_hash_t const& blk_hash, bool finalized) {
 }
 
 void DbStorage::addDagBlockStateToBatch(BatchPtr const& write_batch,
-                                            blk_hash_t const& blk_hash, bool finalized) {
+                                        blk_hash_t const& blk_hash,
+                                        bool finalized) {
   batch_put(write_batch, Columns::dag_blocks_state, toSlice(blk_hash.asBytes()),
-         toSlice(finalized));
+            toSlice(finalized));
 }
 
 void DbStorage::removeDagBlockStateToBatch(BatchPtr const& write_batch,
-                                            blk_hash_t const& blk_hash) {
-  batch_delete(write_batch, Columns::dag_blocks_state, toSlice(blk_hash.asBytes()));
+                                           blk_hash_t const& blk_hash) {
+  batch_delete(write_batch, Columns::dag_blocks_state,
+               toSlice(blk_hash.asBytes()));
 }
 
 std::map<blk_hash_t, bool> DbStorage::getAllDagBlockState() {
   std::map<blk_hash_t, bool> res;
-  auto i = u_ptr(db_->NewIterator(read_options_, handle(Columns::dag_blocks_state)));
+  auto i =
+      u_ptr(db_->NewIterator(read_options_, handle(Columns::dag_blocks_state)));
   for (i->SeekToFirst(); i->Valid(); i->Next()) {
     res[blk_hash_t(asBytes(i->key().ToString()))] =
-        (bool) * (uint8_t*)(i->value().data());
+        (bool)*(uint8_t*)(i->value().data());
   }
   return res;
 }
@@ -318,44 +309,6 @@ void DbStorage::addPbftHeadToBatch(
     const taraxa::DbStorage::BatchPtr& write_batch) {
   batch_put(write_batch, Columns::pbft_head, toSlice(head_hash.asBytes()),
             head_str);
-}
-
-string DbStorage::getSortitionAccount(string const& key) {
-  return lookup(key, Columns::sortition_accounts);
-}
-
-PbftSortitionAccount DbStorage::getSortitionAccount(addr_t const& account) {
-  return PbftSortitionAccount(
-      lookup(account.toString(), Columns::sortition_accounts));
-}
-
-bool DbStorage::sortitionAccountInDb(string const& key) {
-  return !lookup(key, Columns::sortition_accounts).empty();
-}
-
-bool DbStorage::sortitionAccountInDb(addr_t const& account) {
-  return !lookup(account.toString(), Columns::sortition_accounts).empty();
-}
-
-void DbStorage::removeSortitionAccount(addr_t const& account) {
-  remove(account.toString(), Columns::sortition_accounts);
-}
-
-void DbStorage::forEachSortitionAccount(OnEntry const& f) {
-  forEach(Columns::sortition_accounts, f);
-}
-
-void DbStorage::addSortitionAccountToBatch(addr_t const& address,
-                                           PbftSortitionAccount& account,
-                                           BatchPtr const& write_batch) {
-  batch_put(write_batch, DbStorage::Columns::sortition_accounts,
-            address.toString(), account.getJsonStr());
-}
-
-void DbStorage::addSortitionAccountToBatch(string const& key,
-                                           string const& value,
-                                           BatchPtr const& write_batch) {
-  batch_put(write_batch, DbStorage::Columns::sortition_accounts, key, value);
 }
 
 bytes DbStorage::getVote(blk_hash_t const& hash) {

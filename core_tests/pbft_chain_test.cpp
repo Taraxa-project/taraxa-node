@@ -3,22 +3,17 @@
 #include <gtest/gtest.h>
 
 #include <atomic>
-#include <boost/thread.hpp>
 #include <iostream>
 #include <vector>
 
-#include "full_node.hpp"
 #include "network.hpp"
 #include "pbft_manager.hpp"
 #include "static_init.hpp"
 #include "util.hpp"
-#include "util/constants.hpp"
 
-namespace taraxa {
-using core_tests::util::constants::TEST_TX_GAS_LIMIT;
-using namespace core_tests::util;
+namespace taraxa::core_tests {
 
-struct PbftChainTest : core_tests::util::DBUsingTest<> {};
+struct PbftChainTest : BaseTest {};
 
 TEST_F(PbftChainTest, serialize_deserialize_trx_schedule) {
   vec_blk_t blks{blk_hash_t(123), blk_hash_t(456), blk_hash_t(32443)};
@@ -42,8 +37,8 @@ TEST_F(PbftChainTest, serialize_deserialize_trx_schedule) {
 }
 
 TEST_F(PbftChainTest, serialize_desiriablize_pbft_block) {
-  auto node(taraxa::FullNode::make(FullNodeConfig(conf_file[0]), true));
-  node->start(false);
+  auto node_cfgs = make_node_cfgs(1);
+  dev::Secret sk(node_cfgs[0].node_secret);
   // Generate PBFT block sample
   blk_hash_t prev_block_hash(12345);
   blk_hash_t dag_block_hash_as_pivot(45678);
@@ -65,7 +60,7 @@ TEST_F(PbftChainTest, serialize_desiriablize_pbft_block) {
   uint64_t period = 1;
   addr_t beneficiary(98765);
   PbftBlock pbft_block1(prev_block_hash, dag_block_hash_as_pivot, schedule,
-                        period, beneficiary, node->getSecretKey());
+                        period, beneficiary, sk);
 
   auto rlp = pbft_block1.rlp(true);
   PbftBlock pbft_block2(rlp);
@@ -73,8 +68,8 @@ TEST_F(PbftChainTest, serialize_desiriablize_pbft_block) {
 }
 
 TEST_F(PbftChainTest, pbft_db_test) {
-  auto node(taraxa::FullNode::make(std::string(conf_file[0])));
-  node->start(true);  // boot node
+  auto node_cfgs = make_node_cfgs(1);
+  FullNode::Handle node(node_cfgs[0]);
   auto db = node->getDB();
   std::shared_ptr<PbftChain> pbft_chain = node->getPbftChain();
   blk_hash_t pbft_chain_head_hash = pbft_chain->getHeadHash();
@@ -109,14 +104,14 @@ TEST_F(PbftChainTest, pbft_db_test) {
   // check pbft genesis update in DB
   pbft_head_from_db = db->getPbftHead(pbft_chain_head_hash);
   EXPECT_EQ(pbft_head_from_db, pbft_chain->getJsonStr());
-
-  db = nullptr;
 }
 
 TEST_F(PbftChainTest, block_broadcast) {
-  auto node1(taraxa::FullNode::make(conf_file[0]));
-  auto node2(taraxa::FullNode::make(conf_file[1]));
-  auto node3(taraxa::FullNode::make(conf_file[2]));
+  auto node_cfgs = make_node_cfgs(3);
+  auto nodes = launch_nodes(node_cfgs);
+  auto &node1 = nodes[0];
+  auto &node2 = nodes[1];
+  auto &node3 = nodes[2];
 
   std::shared_ptr<PbftManager> pbft_mgr1 = node1->getPbftManager();
   std::shared_ptr<PbftManager> pbft_mgr2 = node2->getPbftManager();
@@ -125,10 +120,6 @@ TEST_F(PbftChainTest, block_broadcast) {
   std::shared_ptr<PbftChain> pbft_chain1 = node1->getPbftChain();
   std::shared_ptr<PbftChain> pbft_chain2 = node2->getPbftChain();
   std::shared_ptr<PbftChain> pbft_chain3 = node3->getPbftChain();
-
-  node1->start(true);  // boot_node
-  node2->start(false);
-  node3->start(false);
 
   pbft_mgr1->stop();
   pbft_mgr2->stop();
@@ -245,10 +236,10 @@ TEST_F(PbftChainTest, block_broadcast) {
   ASSERT_FALSE(find_erased_block);
 }
 
-}  // namespace taraxa
+}  // namespace taraxa::core_tests
 
 using namespace taraxa;
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   taraxa::static_init();
   LoggingConfig logging;
   logging.verbosity = taraxa::VerbosityError;

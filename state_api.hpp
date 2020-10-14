@@ -16,20 +16,6 @@
 #include "util/encoding_rlp.hpp"
 #include "util/range_view.hpp"
 
-// TODO revert to the C++ naming convention
-
-extern "C" {
-struct rocksdb_t {
-  rocksdb::DB* rep;
-};
-struct rocksdb_column_family_handle_t {
-  rocksdb::ColumnFamilyHandle* rep;
-};
-struct rocksdb_writebatch_t {
-  rocksdb::WriteBatch rep;
-};
-}
-
 namespace taraxa::state_api {
 using namespace dev;
 using namespace eth;
@@ -38,18 +24,6 @@ using namespace util;
 using rocksdb::ColumnFamilyHandle;
 
 static constexpr auto BlockNumberNIL = std::numeric_limits<BlockNumber>::max();
-
-enum DBColumn {
-  code,
-  main_trie_node,
-  main_trie_value,
-  main_trie_value_latest,
-  acc_trie_node,
-  acc_trie_value,
-  acc_trie_value_latest,
-  COUNT,
-};
-using DBColumns = array<shared_ptr<ColumnFamilyHandle>, DBColumn::COUNT>;
 
 struct ExecutionOptions {
   bool disable_nonce_check = 0;
@@ -72,17 +46,36 @@ void enc_rlp(RLPStream&, ETHChainConfig const&);
 Json::Value enc_json(ETHChainConfig const& obj);
 void dec_json(Json::Value const& json, ETHChainConfig& obj);
 
-struct EVMChainConfig {
-  ETHChainConfig eth_chain_config;
-  ExecutionOptions execution_options;
+using BalanceMap = unordered_map<addr_t, u256>;
+Json::Value enc_json(BalanceMap const& obj);
+void dec_json(Json::Value const& json, BalanceMap& obj);
+
+struct DPOSConfig {
+  u256 eligibility_balance_threshold;
+  BlockNumber deposit_delay = 0;
+  BlockNumber withdrawal_delay = 0;
+  unordered_map<addr_t, BalanceMap> genesis_state;
 };
-void enc_rlp(RLPStream&, EVMChainConfig const&);
-Json::Value enc_json(EVMChainConfig const& obj);
-void dec_json(Json::Value const& json, EVMChainConfig& obj);
+void enc_rlp(RLPStream& enc, DPOSConfig const& obj);
+Json::Value enc_json(DPOSConfig const& obj);
+void dec_json(Json::Value const& json, DPOSConfig& obj);
+
+struct DPOSTransfer {
+  u256 value;
+  bool negative = 0;
+};
+void enc_rlp(RLPStream& enc, DPOSTransfer const& obj);
+
+using DPOSTransfers = unordered_map<addr_t, DPOSTransfer>;
 
 struct ChainConfig {
-  EVMChainConfig evm_chain_config;
+  ETHChainConfig eth_chain_config;
   bool disable_block_rewards = 0;
+  ExecutionOptions execution_options;
+  BalanceMap genesis_balances;
+  optional<DPOSConfig> dpos;
+
+  u256 effective_genesis_balance(addr_t const& addr) const;
 };
 void enc_rlp(RLPStream&, ChainConfig const&);
 Json::Value enc_json(ChainConfig const& obj);
@@ -122,18 +115,12 @@ struct UncleBlock {
 void enc_rlp(RLPStream&, UncleBlock const&);
 void dec_rlp(RLP const&, UncleBlock&);
 
-struct ConcurrentSchedule {
-  vector<uint32_t> ParallelTransactions;
-};
-void dec_rlp(RLP const&, ConcurrentSchedule&);
-void enc_rlp(RLPStream&, ConcurrentSchedule const&);
-
 struct LogRecord {
   addr_t Address;
   vector<h256> Topics;
   bytes Data;
 };
-void dec_rlp(RLP const&, LogRecord&);
+void dec_rlp(RLP const& enc, LogRecord& obj);
 
 struct ExecutionResult {
   bytes CodeRet;
@@ -146,9 +133,8 @@ struct ExecutionResult {
 void dec_rlp(RLP const&, ExecutionResult&);
 
 struct StateTransitionResult {
-  h256 StateRoot;
   vector<ExecutionResult> ExecutionResults;
-  unordered_map<addr_t, u256> NonContractBalanceChanges;
+  h256 StateRoot;
 };
 void dec_rlp(RLP const&, StateTransitionResult&);
 
@@ -159,102 +145,82 @@ struct Account {
   h256 CodeHash;
   uint64_t CodeSize = 0;
 
-  auto const& storage_root_eth() {
+  auto const& storage_root_eth() const {
     return StorageRootHash ? StorageRootHash : dev::EmptyListSHA3;
   }
-  auto const& code_hash_eth() { return CodeSize ? CodeHash : dev::EmptySHA3; }
+  auto const& code_hash_eth() const {
+    return CodeSize ? CodeHash : dev::EmptySHA3;
+  }
 };
 void dec_rlp(RLP const&, Account&);
-
-struct InputAccount {
-  bytes Code;
-  std::unordered_map<u256, u256> Storage;
-  u256 Balance;
-  uint64_t Nonce = 0;
-};
-using InputAccounts = unordered_map<addr_t, InputAccount>;
-void enc_rlp(RLPStream&, InputAccount const&);
-void dec_rlp(RLP const&, InputAccount&);
 
 struct TrieProof {
   bytes Value;
   vector<bytes> Nodes;
 };
-void dec_rlp(RLP const&, TrieProof&);
+void dec_rlp(RLP const& enc, TrieProof& obj);
 
 struct Proof {
   TrieProof AccountProof;
   vector<TrieProof> StorageProofs;
 };
-void dec_rlp(RLP const&, Proof&);
+void dec_rlp(RLP const& enc, Proof& obj);
 
-struct TrieWriterCacheOpts {
-  uint8_t FullNodeLevelsToCache = 0;
-  uint8_t ExpectedDepth = 0;
+struct Opts {
+  uint32_t ExpectedMaxTrxPerBlock = 0;
+  uint8_t MainTrieFullNodeLevelsToCache = 0;
 };
-void enc_rlp(RLPStream&, TrieWriterCacheOpts const&);
+void enc_rlp(RLPStream& enc, Opts const&);
 
-struct CacheOpts {
-  TrieWriterCacheOpts MainTrieWriterOpts;
-  TrieWriterCacheOpts AccTrieWriterOpts;
-  uint32_t ExpectedMaxNumTrxPerBlock = 0;
+struct StateDescriptor {
+  BlockNumber blk_num = 0;
+  h256 state_root;
 };
-void enc_rlp(RLPStream&, CacheOpts const&);
+void dec_rlp(RLP const& rlp, StateDescriptor& obj);
 
 struct Error : std::runtime_error {
   using runtime_error::runtime_error;
 };
 
 class StateAPI {
-  shared_ptr<rocksdb::DB> db;
-  DBColumns cols;
   function<h256(BlockNumber)> get_blk_hash;
-  rocksdb_t db_c;
-  array<rocksdb_column_family_handle_t, DBColumn::COUNT> cols_c;
   taraxa_evm_GetBlockHash get_blk_hash_c;
   taraxa_evm_state_API_ptr this_c;
-  RLPStream StateTransition_ApplyBlock_rlp_strm;
-  StateTransitionResult StateTransition_ApplyBlock_ret;
+  RLPStream rlp_enc_transition_state;
+  StateTransitionResult result_buf_transition_state;
 
  public:
-  StateAPI(shared_ptr<rocksdb::DB> db, DBColumns cols,
-           function<h256(BlockNumber)> get_blk_hash,
-           ChainConfig const& chain_config, BlockNumber curr_blk_num = 0,
-           h256 const& curr_state_root = {}, CacheOpts const& cache_opts = {});
-
-  StateAPI(DbStorage const& db, function<h256(BlockNumber)> get_blk_hash,
-           ChainConfig const& chain_config, BlockNumber curr_blk_num = 0,
-           h256 const& curr_state_root = {}, CacheOpts const& cache_opts = {});
-
+  StateAPI(string const& db_path, function<h256(BlockNumber)> get_blk_hash,
+           ChainConfig const& chain_config, Opts const& opts = {});
   ~StateAPI();
 
-  Proof Historical_Prove(BlockNumber blk_num, root_t const& state_root,
-                         addr_t const& addr, vector<h256> const& keys) const;
-  optional<Account> Historical_GetAccount(BlockNumber blk_num,
-                                          addr_t const& addr) const;
-  u256 Historical_GetAccountStorage(BlockNumber blk_num, addr_t const& addr,
-                                    u256 const& key) const;
-  bytes Historical_GetCodeByAddress(BlockNumber blk_num,
-                                    addr_t const& addr) const;
-
-  ExecutionResult DryRunner_Apply(
+  Proof prove(BlockNumber blk_num, root_t const& state_root, addr_t const& addr,
+              vector<h256> const& keys) const;
+  optional<Account> get_account(BlockNumber blk_num, addr_t const& addr) const;
+  u256 get_account_storage(BlockNumber blk_num, addr_t const& addr,
+                           u256 const& key) const;
+  bytes get_code_by_address(BlockNumber blk_num, addr_t const& addr) const;
+  ExecutionResult dry_run_transaction(
       BlockNumber blk_num, EVMBlock const& blk, EVMTransaction const& trx,
       optional<ExecutionOptions> const& opts = nullopt) const;
-
-  h256 StateTransition_ApplyAccounts(rocksdb::WriteBatch& batch,
-                                     InputAccounts const& accounts);
-  StateTransitionResult const& StateTransition_ApplyBlock(
-      rocksdb::WriteBatch& batch, EVMBlock const& block,
+  StateDescriptor get_last_committed_state_descriptor() const;
+  StateTransitionResult const& transition_state(
+      EVMBlock const& block,
       RangeView<EVMTransaction> const& transactions,  //
-      RangeView<UncleBlock> const& uncles,
-      ConcurrentSchedule const& concurrent_schedule);
-  void NotifyStateTransitionCommitted();
+      RangeView<UncleBlock> const& uncles = {});
+  void transition_state_commit();
+  // DPOS
+  uint64_t dpos_eligible_count(BlockNumber blk_num) const;
+  bool dpos_is_eligible(BlockNumber blk_num, addr_t const& addr) const;
+  static addr_t const& dpos_contract_addr();
+  struct DPOSTransactionPrototype {
+    uint64_t minimal_gas = 0;  // TODO estimate gas
+    byte value = 0;
+    bytes input;
+    addr_t const& to = dpos_contract_addr();
 
-  void ConcurrentScheduleGeneration_Begin(EVMBlock const& blk);
-  void ConcurrentScheduleGeneration_SubmitTransactions(
-      RangeView<EVMTransactionWithHash> const& trxs);
-  ConcurrentSchedule ConcurrentScheduleGeneration_Commit(
-      RangeView<h256> const& trx_hashes);
+    DPOSTransactionPrototype(DPOSTransfers const& transfers);
+  };
 };
 
 }  // namespace taraxa::state_api
