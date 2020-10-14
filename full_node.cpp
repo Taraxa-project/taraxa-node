@@ -39,13 +39,7 @@ void FullNode::init() {
   fs::create_directories(conf_.db_path);
   // Initialize logging
   auto const &node_addr = kp_.address();
-  for (auto &logging : conf_.log_configs) {
-    //    logging.verbosity = VerbosityDebug;
-    //    logging.channels["PBFTSYNC"] = VerbosityDebug;
-    //    logging.channels["PBFT_MGR"] = VerbosityDebug;
-    //    logging.channels["VOTE_MGR"] = VerbosityDebug;
-    //    logging.channels["PBFT_CHAIN"] = VerbosityDebug;
-    //    logging.channels["FULLND"] = VerbosityDebug;
+  for (auto const &logging : conf_.log_configs) {
     post_destruction_ += setupLoggingConfiguration(node_addr, logging);
   }
   LOG_OBJECTS_CREATE("FULLND");
