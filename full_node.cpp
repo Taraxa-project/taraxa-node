@@ -47,7 +47,7 @@ void FullNode::init() {
       createTaraxaLogger(dev::Verbosity::VerbosityInfo, "TMSTM", node_addr);
 
   num_block_workers_ = conf_.dag_processing_threads;
-  LOG(log_nf_) << "Node public key: " << EthGreen << kp_.pub().toString()
+  LOG(log_si_) << "Node public key: " << EthGreen << kp_.pub().toString()
                << std::endl
                << "Node address: " << EthRed << node_addr.toString()
                << std::endl
