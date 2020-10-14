@@ -48,7 +48,7 @@ T parse_rlp_file(path const& p) {
   return ret;
 }
 
-TEST_F(StateAPITest, DISABLED_eth_mainnet_smoke) {
+TEST_F(StateAPITest, eth_mainnet_smoke) {
   auto test_blocks = parse_rlp_file<vector<TestBlock>>(
       path(__FILE__).parent_path() / "submodules" / "taraxa-evm" / "taraxa" /
       "data" / "eth_mainnet_blocks_0_300000.rlp");
