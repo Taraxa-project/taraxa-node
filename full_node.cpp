@@ -269,13 +269,13 @@ FullNode::Handle::Handle(FullNodeConfig const &conf, bool start)
 }
 
 FullNode::Handle::~Handle() {
-  auto node = this->get();
+  auto node = get();
   if (!node) {
     return;
   }
   node->close();
   shared_ptr_t::weak_type node_weak = *this;
-  this->reset();
+  reset();
   assert(node_weak.use_count() == 0);
 }
 

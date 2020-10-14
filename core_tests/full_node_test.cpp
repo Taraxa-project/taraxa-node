@@ -224,7 +224,7 @@ TEST_F(FullNodeTest, db_test) {
 TEST_F(FullNodeTest, sync_five_nodes) {
   using namespace std;
 
-  auto node_cfgs = make_node_cfgs(5);
+  auto node_cfgs = make_node_cfgs<5>(5);
   auto nodes = launch_nodes(node_cfgs);
 
   class context {
