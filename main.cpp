@@ -1,4 +1,5 @@
 #include <boost/program_options.hpp>
+#include <condition_variable>
 
 #include "full_node.hpp"
 #include "static_init.hpp"
@@ -50,10 +51,10 @@ int main(int argc, const char* argv[]) {
       boost::filesystem::remove_all(cfg.net_file_path());
     }
     FullNode::Handle node(cfg, true);
-    for (string input; getline(cin, input);) {
-      // This will block the main thread as desired.
-      // Also maybe we'll implement Taraxa Node Shell sometime
-    }
+    cout << "Taraxa node started" << endl;
+    mutex mu;
+    unique_lock l(mu);
+    condition_variable().wait(l);
     cout << "Taraxa Node exited ..." << endl;
     return 0;
   } catch (taraxa::ConfigException const& e) {
