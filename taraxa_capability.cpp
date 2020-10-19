@@ -836,22 +836,22 @@ void TaraxaCapability::sendStatus(NodeID const &_id, bool _initial) {
     LOG(log_dg_pbft_sync_) << "Sending status message to " << _id
                            << " with pbft chain size:"
                            << pbft_chain_->getPbftChainSize();
-    LOG(log_dg_next_votes_sync_) << "Sending status message to " << _id
-                                 << " with PBFT round:"
-                                 << pbft_mgr_->getPbftRound();
-    if (_initial)
-      host_.capabilityHost()->sealAndSend(
-          _id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 7)
-                   << c_protocolVersion << conf_.network_id
-                   << dag_mgr_->getMaxLevel() << genesis_
-                   << pbft_chain_->getPbftChainSize() << syncing_
-                   << pbft_mgr_->getPbftRound());
-    else {
-      host_.capabilityHost()->sealAndSend(
-          _id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 4)
-                   << dag_mgr_->getMaxLevel() << pbft_chain_->getPbftChainSize()
-                   << syncing_ << pbft_mgr_->getPbftRound());
-    }
+//    LOG(log_dg_next_votes_sync_) << "Sending status message to " << _id
+//                                 << " with PBFT round:"
+//                                 << pbft_mgr_->getPbftRound();
+//    if (_initial) {
+//      host_.capabilityHost()->sealAndSend(
+//          _id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 7)
+//                   << c_protocolVersion << conf_.network_id
+//                   << dag_mgr_->getMaxLevel() << genesis_
+//                   << pbft_chain_->getPbftChainSize() << syncing_
+//                   << pbft_mgr_->getPbftRound());
+//    } else {
+//      host_.capabilityHost()->sealAndSend(
+//          _id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 4)
+//                   << dag_mgr_->getMaxLevel() << pbft_chain_->getPbftChainSize()
+//                   << syncing_ << pbft_mgr_->getPbftRound());
+//    }
   }
 }
 
