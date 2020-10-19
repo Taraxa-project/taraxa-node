@@ -1,5 +1,7 @@
 #include "transaction.hpp"
 
+#include <libdevcore/CommonJS.h>
+
 #include <string>
 #include <utility>
 
@@ -22,12 +24,12 @@ Transaction::Transaction(uint64_t nonce, val_t const &value,
       sender_initialized_(true),
       sender_valid_(vrs_.isValid()),
       sender_(sender_valid_ ? toAddress(sk) : ZeroAddress) {
-  if (!sender_valid_) {
-    throw InvalidSignature();
-  }
+  getSender();
 }
 
 Transaction::Transaction(bytes const &_rlp, bool verify_strict) {
+  // TODO remove after debugging
+  cached_rlp_.reset(new auto(_rlp));
   auto strictness =
       verify_strict ? dev::RLP::VeryStrict : dev::RLP::LaissezFaire;
   uint fields_processed = 0;
@@ -78,7 +80,7 @@ trx_hash_t const &Transaction::getHash() const {
   return hash_;
 }
 
-addr_t const &Transaction::getSender() const {
+addr_t const &Transaction::get_sender_() const {
   if (!sender_initialized_) {
     sender_initialized_ = true;
     if (auto pubkey = recover(vrs_, hash_for_signature()); pubkey) {
@@ -86,10 +88,16 @@ addr_t const &Transaction::getSender() const {
       sender_valid_ = true;
     }
   }
-  if (!sender_valid_) {
-    throw InvalidSignature();
-  }
   return sender_;
+}
+
+addr_t const &Transaction::getSender() const {
+  if (auto const &ret = get_sender_(); sender_valid_) {
+    return ret;
+  }
+  throw InvalidSignature(
+      "transaction body: " + toJSON().toStyledString() + "\nOriginal RLP: " +
+      (cached_rlp_ ? dev::toJS(*cached_rlp_) : "wasn't created from rlp"));
 }
 
 template <bool for_signature>
@@ -125,6 +133,23 @@ trx_hash_t Transaction::hash_for_signature() const {
   dev::RLPStream s;
   streamRLP<true>(s);
   return dev::sha3(s.out());
+}
+
+Json::Value Transaction::toJSON() const {
+  Json::Value res(Json::objectValue);
+  res["hash"] = dev::toJS(getHash());
+  res["sender"] = dev::toJS(get_sender_());
+  res["nonce"] = dev::toJS(getNonce());
+  res["value"] = dev::toJS(getValue());
+  res["gas_price"] = dev::toJS(getGasPrice());
+  res["gas"] = dev::toJS(getGas());
+  res["sig"] = dev::toJS((sig_t const &)getVRS());
+  res["receiver"] = dev::toJS(getReceiver().value_or(dev::ZeroAddress));
+  res["data"] = dev::toJS(getData());
+  if (auto v = getChainID(); v) {
+    res["chain_id"] = dev::toJS(v);
+  }
+  return res;
 }
 
 }  // namespace taraxa

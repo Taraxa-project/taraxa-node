@@ -1,11 +1,7 @@
 #ifndef TARAXA_NODE_TRANSACTION_HPP
 #define TARAXA_NODE_TRANSACTION_HPP
 
-// TODO observed that these includes affect the sync_five_nodes test success
-//#include <rocksdb/db.h>
-//#include <rocksdb/options.h>
-//#include <rocksdb/slice.h>
-//#include <rocksdb/write_batch.h>
+#include <json/json.h>
 
 #include "types.hpp"
 
@@ -20,7 +16,8 @@ struct Transaction {
         : invalid_argument("transaction rlp must be a list of 9 elements") {}
   };
   struct InvalidSignature : std::runtime_error {
-    InvalidSignature() : runtime_error("invalid signature") {}
+    explicit InvalidSignature(std::string const &msg)
+        : runtime_error("invalid signature:\n" + msg) {}
   };
 
  private:
@@ -42,6 +39,7 @@ struct Transaction {
   template <bool for_signature>
   void streamRLP(dev::RLPStream &s) const;
   trx_hash_t hash_for_signature() const;
+  addr_t const &get_sender_() const;
 
  public:
   // TODO eliminate and use shared_ptr<Transaction> everywhere
@@ -51,10 +49,6 @@ struct Transaction {
               std::optional<addr_t> const &receiver = std::nullopt,
               uint64_t chain_id = 0);
   explicit Transaction(bytes const &_rlp, bool verify_strict = false);
-  explicit Transaction(bytes &&rlp, bool verify_strict = false)
-      : Transaction(rlp, verify_strict) {
-    cached_rlp_.reset(new auto(move(rlp)));
-  }
 
   trx_hash_t const &getHash() const;
   addr_t const &getSender() const;
@@ -72,6 +66,8 @@ struct Transaction {
   }
 
   std::shared_ptr<bytes> rlp(bool cache = false) const;
+
+  Json::Value toJSON() const;
 };
 
 }  // namespace taraxa
