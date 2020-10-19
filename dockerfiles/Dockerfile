@@ -43,7 +43,7 @@ COPY core_tests ./core_tests
 # HACK: Because we removed symlinks before
 RUN ldconfig
 
-ENV DEBUG 0
+ENV DEBUG 1
 ENV GODEBUG cgocheck=0
 ENTRYPOINT [ "./docker-entrypoint.sh" ]
 CMD ["--conf_taraxa", "./default_config/conf_taraxa1.json"]
