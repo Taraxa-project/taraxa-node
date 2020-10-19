@@ -127,6 +127,7 @@ run_test: test
 	GODEBUG=cgocheck=0 scripts/run_commands_long_circuit.sh $(TESTS)
 
 perf_test: $(BIN_DIR)/core_tests/performance_test
+crypto_test: $(BIN_DIR)/core_tests/crypto_test
 
 run_perf_test: perf_test
 	$(BIN_DIR)/core_tests/performance_test
