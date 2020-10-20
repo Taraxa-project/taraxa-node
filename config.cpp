@@ -94,8 +94,6 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object) {
   vrf_secret =
       vrf_wrapper::vrf_sk_t(getConfigDataAsString(root, {"vrf_secret"}));
   db_path = getConfigDataAsString(root, {"db_path"});
-  dag_processing_threads =
-      getConfigDataAsUInt(root, {"dag_processing_threads"});
   if (auto n = getConfigData(root, {"network_is_boot_node"}, true);
       !n.isNull()) {
     network.network_is_boot_node = n.asBool();

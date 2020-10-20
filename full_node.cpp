@@ -46,14 +46,12 @@ void FullNode::init() {
   log_time_ =
       createTaraxaLogger(dev::Verbosity::VerbosityInfo, "TMSTM", node_addr);
 
-  num_block_workers_ = conf_.dag_processing_threads;
   LOG(log_si_) << "Node public key: " << EthGreen << kp_.pub().toString()
                << std::endl
                << "Node address: " << EthRed << node_addr.toString()
                << std::endl
                << "Node VRF public key: " << EthGreen
                << vrf_wrapper::getVrfPublicKey(conf_.vrf_secret).toString();
-  LOG(log_nf_) << "Number of block works: " << num_block_workers_;
 
   if (!conf_.chain.dag_genesis_block.verifySig()) {
     LOG(log_er_) << "Genesis block is invalid";
@@ -172,40 +170,38 @@ void FullNode::start() {
   pbft_mgr_->setNetwork(network_);
   pbft_mgr_->start();
   blk_mgr_->start();
-  for (auto i = 0; i < num_block_workers_; ++i) {
-    block_workers_.emplace_back([this]() {
-      while (!stopped_) {
-        // will block if no verified block available
-        auto blk = blk_mgr_->popVerifiedBlock();
+  block_workers_.emplace_back([this]() {
+    while (!stopped_) {
+      // will block if no verified block available
+      auto blk = blk_mgr_->popVerifiedBlock();
 
-        if (!stopped_) {
-          received_blocks_++;
+      if (!stopped_) {
+        received_blocks_++;
+      }
+
+      if (dag_mgr_->pivotAndTipsAvailable(blk)) {
+        db_->saveDagBlock(blk);
+        dag_mgr_->addDagBlock(blk);
+        if (jsonrpc_ws_) {
+          jsonrpc_ws_->newDagBlock(blk);
         }
-
-        if (dag_mgr_->pivotAndTipsAvailable(blk)) {
-          db_->saveDagBlock(blk);
-          dag_mgr_->addDagBlock(blk);
-          if (jsonrpc_ws_) {
-            jsonrpc_ws_->newDagBlock(blk);
-          }
-          network_->onNewBlockVerified(blk);
-          LOG(log_time_) << "Broadcast block " << blk.getHash()
-                         << " at: " << getCurrentTimeMilliSeconds();
-        } else {
-          // Networking makes sure that dag block that reaches queue already had
-          // its pivot and tips processed This should happen in a very rare case
-          // where in some race condition older block is verfified faster then
-          // new block but should resolve quickly, return block to queue
-          if (!stopped_) {
-            LOG(log_wr_) << "Block could not be added to DAG "
-                         << blk.getHash().toString();
-            received_blocks_--;
-            blk_mgr_->pushVerifiedBlock(blk);
-          }
+        network_->onNewBlockVerified(blk);
+        LOG(log_time_) << "Broadcast block " << blk.getHash()
+                       << " at: " << getCurrentTimeMilliSeconds();
+      } else {
+        // Networking makes sure that dag block that reaches queue already had
+        // its pivot and tips processed This should happen in a very rare case
+        // where in some race condition older block is verfified faster then
+        // new block but should resolve quickly, return block to queue
+        if (!stopped_) {
+          LOG(log_wr_) << "Block could not be added to DAG "
+                       << blk.getHash().toString();
+          received_blocks_--;
+          blk_mgr_->pushVerifiedBlock(blk);
         }
       }
-    });
-  }
+    }
+  });
   if (jsonrpc_io_ctx_) {
     if (jsonrpc_http_) {
       jsonrpc_http_->StartListening();
@@ -218,7 +214,7 @@ void FullNode::start() {
     emplace(jsonrpc_thread_, [this] { jsonrpc_io_ctx_->run(); });
   }
   LOG(log_nf_) << "Node started ... ";
-}
+}  // namespace taraxa
 
 void FullNode::close() {
   util::ExitStack finally;

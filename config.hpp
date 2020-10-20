@@ -122,7 +122,6 @@ struct FullNodeConfig {
   std::string node_secret;
   vrf_wrapper::vrf_sk_t vrf_secret;
   fs::path db_path;
-  uint16_t dag_processing_threads = 0;
   NetworkConfig network;
   RpcConfig rpc;
   TestParamsConfig test_params;
