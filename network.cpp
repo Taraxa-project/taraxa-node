@@ -13,10 +13,11 @@ namespace taraxa {
 Network::Network(NetworkConfig const &config, std::string const &genesis,
                  addr_t node_addr)
     : Network(config, "", secret_t(), genesis, node_addr, nullptr, nullptr,
-              nullptr, nullptr, nullptr, nullptr, public_t(), 2000) {}
+              nullptr, nullptr, nullptr, nullptr, nullptr, public_t(), 2000) {}
 Network::Network(NetworkConfig const &config, std::string const &network_file,
                  std::string const &genesis, addr_t node_addr,
                  std::shared_ptr<DbStorage> db,
+                 std::shared_ptr<PbftManager> pbft_mgr,
                  std::shared_ptr<PbftChain> pbft_chain,
                  std::shared_ptr<VoteManager> vote_mgr,
                  std::shared_ptr<DagManager> dag_mgr,
@@ -24,11 +25,12 @@ Network::Network(NetworkConfig const &config, std::string const &network_file,
                  std::shared_ptr<TransactionManager> trx_mgr, public_t node_pk,
                  uint32_t lambda_ms_min)
     : Network(config, network_file, secret_t(), genesis, node_addr, db,
-              pbft_chain, vote_mgr, dag_mgr, blk_mgr, trx_mgr, node_pk,
-              lambda_ms_min) {}
+              pbft_mgr, pbft_chain, vote_mgr, dag_mgr, blk_mgr, trx_mgr,
+              node_pk, lambda_ms_min) {}
 Network::Network(NetworkConfig const &config, std::string const &network_file,
                  secret_t const &sk, std::string const &genesis,
                  addr_t node_addr, std::shared_ptr<DbStorage> db,
+                 std::shared_ptr<PbftManager> pbft_mgr,
                  std::shared_ptr<PbftChain> pbft_chain,
                  std::shared_ptr<VoteManager> vote_mgr,
                  std::shared_ptr<DagManager> dag_mgr,
@@ -37,6 +39,7 @@ Network::Network(NetworkConfig const &config, std::string const &network_file,
                  uint32_t lambda_ms_min) try
     : conf_(config),
       db_(db),
+      pbft_mgr_(pbft_mgr),
       pbft_chain_(pbft_chain),
       vote_mgr_(vote_mgr),
       dag_mgr_(dag_mgr),
@@ -74,7 +77,8 @@ Network::Network(NetworkConfig const &config, std::string const &network_file,
   }
   taraxa_capability_ = std::make_shared<TaraxaCapability>(
       *host_.get(), conf_, genesis, conf_.network_performance_log, node_addr,
-      db, pbft_chain, vote_mgr, dag_mgr, blk_mgr, trx_mgr, lambda_ms_min);
+      db, pbft_mgr, pbft_chain, vote_mgr, dag_mgr, blk_mgr, trx_mgr,
+      lambda_ms_min);
   host_->registerCapability(taraxa_capability_);
 } catch (std::exception &e) {
   std::cerr << "Construct Network Error ... " << e.what() << "\n";

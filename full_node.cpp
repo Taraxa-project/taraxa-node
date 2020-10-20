@@ -97,9 +97,6 @@ void FullNode::init() {
   emplace(blk_mgr_, 1024 /*capacity*/, 4 /* verifer thread*/, node_addr, db_,
           trx_mgr_, log_time_, conf_.test_params.max_block_queue_warn);
   emplace(vote_mgr_, node_addr, final_chain_, pbft_chain_);
-  emplace(network_, conf_.network, conf_.net_file_path().string(), kp_.secret(),
-          genesis_hash, node_addr, db_, pbft_chain_, vote_mgr_, dag_mgr_,
-          blk_mgr_, trx_mgr_, kp_.pub(), conf_.chain.pbft.lambda_ms_min);
   emplace(trx_order_mgr_, node_addr, db_, blk_mgr_);
   emplace(pbft_mgr_, conf_.chain.pbft, genesis_hash, node_addr, db_,
           pbft_chain_, vote_mgr_, dag_mgr_, blk_mgr_, final_chain_,
@@ -107,6 +104,10 @@ void FullNode::init() {
           conf_.opts_final_chain.state_api.ExpectedMaxTrxPerBlock);
   emplace(blk_proposer_, conf_.test_params.block_proposer, dag_mgr_, trx_mgr_,
           blk_mgr_, node_addr, getSecretKey(), getVrfSecretKey(), log_time_);
+  emplace(network_, conf_.network, conf_.net_file_path().string(), kp_.secret(),
+          genesis_hash, node_addr, db_, pbft_mgr_, pbft_chain_, vote_mgr_,
+          dag_mgr_, blk_mgr_, trx_mgr_, kp_.pub(),
+          conf_.chain.pbft.lambda_ms_min);
   if (auto port = conf_.rpc.port) {
     if (!jsonrpc_io_ctx_) {
       emplace(jsonrpc_io_ctx_);

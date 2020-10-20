@@ -33,7 +33,8 @@ class Network {
           addr_t node_addr);
   Network(NetworkConfig const &config, std::string const &networkFile,
           std::string const &genesis, addr_t node_addr,
-          std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
+          std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
+          std::shared_ptr<PbftChain> pbft_chain,
           std::shared_ptr<VoteManager> vote_mgr,
           std::shared_ptr<DagManager> dag_mgr,
           std::shared_ptr<BlockManager> blk_mgr,
@@ -41,7 +42,8 @@ class Network {
           uint32_t lambda_ms_min);
   Network(NetworkConfig const &config, std::string const &networkFile,
           secret_t const &sk, std::string const &genesis, addr_t node_addr,
-          std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
+          std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
+          std::shared_ptr<PbftChain> pbft_chain,
           std::shared_ptr<VoteManager> vote_mgr,
           std::shared_ptr<DagManager> dag_mgr,
           std::shared_ptr<BlockManager> blk_mgr,
@@ -100,6 +102,7 @@ class Network {
   std::string network_file_;
 
   std::shared_ptr<DbStorage> db_;
+  std::shared_ptr<PbftManager> pbft_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<VoteManager> vote_mgr_;
   std::shared_ptr<DagManager> dag_mgr_;

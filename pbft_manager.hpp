@@ -60,10 +60,13 @@ class PbftManager {
   std::pair<bool, uint64_t> getDagBlockPeriod(blk_hash_t const &hash);
   std::string getScheduleBlockByPeriod(uint64_t const period);
 
+  uint64_t getPbftRound() const;
+  void setPbftRound(uint64_t const round);
   size_t getSortitionThreshold() const;
   size_t getTwoTPlusOne() const;
   void setTwoTPlusOne(size_t const two_t_plus_one);
   void setPbftStep(size_t const pbft_step);
+  void getNextVotesForLastRound(std::vector<Vote> &next_votes_bundle);
 
   Vote generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
                     uint64_t period, size_t step,
@@ -96,6 +99,11 @@ class PbftManager {
   uint64_t getEligibleVoterCount() const;
 
  private:
+  using uniqueLock_ = boost::unique_lock<boost::shared_mutex>;
+  using sharedLock_ = boost::shared_lock<boost::shared_mutex>;
+  using upgradableLock_ = boost::upgrade_lock<boost::shared_mutex>;
+  using upgradeLock_ = boost::upgrade_to_unique_lock<boost::shared_mutex>;
+
   void resetStep_();
   bool resetRound_();
   void sleep_();
@@ -150,6 +158,10 @@ class PbftManager {
 
   void syncPbftChainFromPeers_();
 
+  bool nextVotesSyncAlreadyThisRoundStep_();
+
+  void syncNextVotes_();
+
   bool comparePbftBlockScheduleWithDAGblocks_(
       blk_hash_t const &pbft_block_hash);
   bool comparePbftBlockScheduleWithDAGblocks_(PbftBlock const &pbft_block);
@@ -164,6 +176,8 @@ class PbftManager {
                       std::vector<Vote> const &cert_votes);
 
   void updateTwoTPlusOneAndThreshold_();
+
+  void updateNextVotesForRound_(std::vector<Vote> next_votes);
 
   std::atomic<bool> stopped_ = true;
   // Using to check if PBFT block has been proposed already in one period
@@ -204,6 +218,7 @@ class PbftManager {
   std::unordered_map<size_t, blk_hash_t> push_block_values_for_round_;
   std::pair<blk_hash_t, bool> soft_voted_block_for_this_round_ =
       std::make_pair(NULL_BLOCK_HASH, false);
+  std::unordered_map<vote_hash_t, Vote> next_votes_for_last_round_;
   std::vector<Vote> votes_;
 
   time_point round_clock_initial_datetime_;
@@ -223,6 +238,8 @@ class PbftManager {
 
   uint64_t pbft_round_last_requested_sync_ = 0;
   size_t pbft_step_last_requested_sync_ = 0;
+  uint64_t pbft_round_last_next_votes_sync_ = 0;
+  size_t pbft_step_last_next_votes_sync_ = 0;
 
   size_t pbft_last_observed_synced_queue_size_ = 0;
 
@@ -236,6 +253,8 @@ class PbftManager {
 
   std::condition_variable stop_cv_;
   std::mutex stop_mtx_;
+  mutable boost::shared_mutex round_access_;
+  mutable boost::shared_mutex next_votes_access_;
 
   // TODO: will remove later, TEST CODE
   void countVotes_();
