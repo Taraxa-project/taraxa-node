@@ -36,6 +36,8 @@ enum SubprotocolPacketType : ::byte {
   TransactionPacket,
   TestPacket,
   PbftVotePacket,
+  GetPbftNextVotes,
+  PbftNextVotesPacket,
   NewPbftBlockPacket,
   GetPbftBlockPacket,
   PbftBlockPacket,
@@ -107,6 +109,7 @@ class TaraxaPeer : public boost::noncopyable {
   bool syncing_ = false;
   uint64_t dag_level_ = 0;
   uint64_t pbft_chain_size_ = 0;
+  uint64_t pbft_round_ = 1;
 
  private:
   ExpirationCache<blk_hash_t> known_blocks_;
@@ -125,6 +128,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   TaraxaCapability(Host &_host, NetworkConfig &_conf,
                    std::string const &genesis, bool const &performance_log,
                    addr_t node_addr, std::shared_ptr<DbStorage> db,
+                   std::shared_ptr<PbftManager> pbft_mgr,
                    std::shared_ptr<PbftChain> pbft_chain,
                    std::shared_ptr<VoteManager> vote_mgr,
                    std::shared_ptr<DagManager> dag_mgr,
@@ -141,6 +145,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
         random_dist_(
             std::uniform_int_distribution<std::mt19937::result_type>(90, 110)),
         db_(db),
+        pbft_mgr_(pbft_mgr),
         pbft_chain_(pbft_chain),
         vote_mgr_(vote_mgr),
         dag_mgr_(dag_mgr),
@@ -232,6 +237,9 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   void requestPbftBlocks(NodeID const &_id, size_t height_to_sync);
   void sendPbftBlocks(NodeID const &_id, size_t height_to_sync,
                       size_t blocks_to_transfer);
+  void syncPbftNextVotes(uint64_t const pbft_round);
+  void requestPbftNextVotes(NodeID const &peerID, uint64_t const pbft_round);
+  void sendPbftNextVotes(NodeID const &peerID);
 
   // Peers
   std::shared_ptr<TaraxaPeer> getPeer(NodeID const &node_id);
@@ -260,6 +268,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   std::set<blk_hash_t> block_requestes_set_;
 
   std::shared_ptr<DbStorage> db_;
+  std::shared_ptr<PbftManager> pbft_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<VoteManager> vote_mgr_;
   std::shared_ptr<DagManager> dag_mgr_;
