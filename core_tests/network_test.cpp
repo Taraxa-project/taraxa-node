@@ -186,11 +186,11 @@ TEST_F(NetworkTest, save_network) {
   std::shared_ptr<Network> nw2(new taraxa::Network(
       g_conf2->network, "/tmp/nw2",
       g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t(), nullptr,
-      nullptr, nullptr, nullptr, nullptr, nullptr, public_t(), 2000));
+      nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, public_t(), 2000));
   std::shared_ptr<Network> nw3(new taraxa::Network(
       g_conf3->network, "/tmp/nw3",
       g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t(), nullptr,
-      nullptr, nullptr, nullptr, nullptr, nullptr, public_t(), 2000));
+      nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, public_t(), 2000));
   nw2->start();
   nw3->start();
 
