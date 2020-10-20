@@ -201,6 +201,16 @@ std::string PbftManager::getScheduleBlockByPeriod(uint64_t const period) {
   return "";
 }
 
+uint64_t PbftManager::getPbftRound() const {
+  sharedLock_ lock(round_access_);
+  return round_;
+}
+
+void PbftManager::setPbftRound(uint64_t const round) {
+  uniqueLock_ lock(round_access_);
+  round_ = round;
+}
+
 size_t PbftManager::getSortitionThreshold() const {
   return sortition_threshold_;
 }
@@ -255,9 +265,17 @@ void PbftManager::setPbftStep(size_t const pbft_step) {
     // LAMBDA_ms = LAMBDA_ms_MIN
     //            << (step_ - MAX_STEPS);  // Multiply by 2 each step...
     LOG(log_nf_) << "Surpassed max steps, relaxing lambda to " << LAMBDA_ms
-                 << " ms in round " << round_ << ", step " << step_;
+                 << " ms in round " << getPbftRound() << ", step " << step_;
   } else {
     LAMBDA_ms = LAMBDA_ms_MIN;
+  }
+}
+
+void PbftManager::getNextVotesForLastRound(
+    std::vector<Vote> &next_votes_bundle) {
+  sharedLock_ lock(next_votes_access_);
+  for (auto &next_vote_for_last_round : next_votes_for_last_round_) {
+    next_votes_bundle.emplace_back(next_vote_for_last_round.second);
   }
 }
 
@@ -268,16 +286,17 @@ bool PbftManager::resetRound_() {
   // Check if we are synced to the right step ...
   uint64_t consensus_pbft_round = roundDeterminedFromVotes_();
   // Check should be always true...
-  assert(consensus_pbft_round >= round_);
+  auto round = getPbftRound();
+  assert(consensus_pbft_round >= round);
 
-  if (consensus_pbft_round > round_) {
+  if (consensus_pbft_round > round) {
     LOG(log_nf_) << "From votes determined round " << consensus_pbft_round;
     round_clock_initial_datetime_ = now_;
-    uint64_t local_round = round_;
-    round_ = consensus_pbft_round;
+    uint64_t local_round = round;
+    setPbftRound(consensus_pbft_round);
     resetStep_();
     state_ = value_proposal_state;
-    LOG(log_dg_) << "Advancing clock to pbft round " << round_
+    LOG(log_dg_) << "Advancing clock to pbft round " << round
                  << ", step 1, and resetting clock.";
 
     have_executed_this_round_ = false;
@@ -339,7 +358,7 @@ void PbftManager::sleep_() {
   auto time_to_sleep_for_ms = next_step_time_ms_ - elapsed_time_in_round_ms_;
   if (time_to_sleep_for_ms > 0) {
     LOG(log_tr_) << "Time to sleep(ms): " << time_to_sleep_for_ms
-                 << " in round " << round_ << ", step " << step_;
+                 << " in round " << getPbftRound() << ", step " << step_;
     std::unique_lock<std::mutex> lock(stop_mtx_);
     stop_cv_.wait_for(lock, std::chrono::milliseconds(time_to_sleep_for_ms));
   }
@@ -352,7 +371,7 @@ void PbftManager::initialState_() {
   LAMBDA_ms = LAMBDA_ms_MIN;
   STEP_4_DELAY = 2 * LAMBDA_ms;
 
-  round_ = 1;
+  setPbftRound(1);
   step_ = 1;
   last_step_ = 0;
   // Initial last sync request
@@ -461,14 +480,15 @@ void PbftManager::continueFinishPollingState_(size_t step) {
 }
 
 void PbftManager::loopBackFinishState_() {
-  LOG(log_dg_) << "CONSENSUSDBG round " << round_ << " , step " << step_
+  auto round = getPbftRound();
+  LOG(log_dg_) << "CONSENSUSDBG round " << round << " , step " << step_
                << " | next_voted_soft_value_ = " << next_voted_soft_value_
                << " soft block = " << soft_voted_block_for_this_round_
                << " next_voted_null_block_hash_ = "
                << next_voted_null_block_hash_
                << " next_voted_block_from_previous_round_ = "
                << next_voted_block_from_previous_round_ << " cert voted = "
-               << (cert_voted_values_for_round_.find(round_) !=
+               << (cert_voted_values_for_round_.find(round) !=
                    cert_voted_values_for_round_.end());
   state_ = finish_state;
   setPbftStep(step_ + 1);
@@ -495,16 +515,17 @@ bool PbftManager::stateOperations_() {
   elapsed_time_in_round_ms_ =
       std::chrono::duration_cast<std::chrono::milliseconds>(duration_).count();
 
-  LOG(log_tr_) << "PBFT current round is " << round_;
+  auto round = getPbftRound();
+  LOG(log_tr_) << "PBFT current round is " << round;
   LOG(log_tr_) << "PBFT current step is " << step_;
 
   // Get votes
   votes_ = vote_mgr_->getVotes(
-      round_, pbft_chain_last_block_hash_, sortition_threshold_,
+      round, pbft_chain_last_block_hash_, sortition_threshold_,
       getEligibleVoterCount(),
       [this](auto const &addr) { return is_eligible_(addr); });
   LOG(log_tr_) << "There are " << votes_.size() << " total votes in round "
-               << round_;
+               << round;
 
   // CHECK IF WE HAVE RECEIVED 2t+1 CERT VOTES FOR A BLOCK IN OUR CURRENT
   // ROUND.  IF WE HAVE THEN WE EXECUTE THE BLOCK
@@ -513,7 +534,7 @@ bool PbftManager::stateOperations_() {
       !have_executed_this_round_) {
     std::vector<Vote> cert_votes_for_round =
         getVotesOfTypeFromVotesForRoundAndStep_(
-            cert_vote_type, votes_, round_, 3,
+            cert_vote_type, votes_, round, 3,
             std::make_pair(NULL_BLOCK_HASH, false));
     std::pair<blk_hash_t, bool> cert_voted_block_hash =
         blockWithEnoughVotes_(cert_votes_for_round);
@@ -523,16 +544,16 @@ bool PbftManager::stateOperations_() {
       // put pbft block into chain
       if (pushCertVotedPbftBlockIntoChain_(cert_voted_block_hash.first,
                                            cert_votes_for_round)) {
-        push_block_values_for_round_[round_] = cert_voted_block_hash.first;
+        push_block_values_for_round_[round] = cert_voted_block_hash.first;
         have_executed_this_round_ = true;
         LOG(log_nf_) << "Write " << cert_votes_for_round.size()
-                     << " votes ... in round " << round_;
+                     << " votes ... in round " << round;
         duration_ = std::chrono::system_clock::now() - now_;
         auto execute_trxs_in_ms =
             std::chrono::duration_cast<std::chrono::milliseconds>(duration_)
                 .count();
         LOG(log_dg_) << "Pushing PBFT block and Execution spent "
-                     << execute_trxs_in_ms << " ms. in round " << round_;
+                     << execute_trxs_in_ms << " ms. in round " << round;
         // Restart while loop
         return true;
       }
@@ -544,7 +565,7 @@ bool PbftManager::stateOperations_() {
           4 * LAMBDA_ms + STEP_4_DELAY + 2 * POLLING_INTERVAL_ms) {
     LOG(log_dg_)
         << "Skipping step 4 due to execution, will go to step 5 in round "
-        << round_;
+        << round;
     step_ = 5;
     state_ = finish_polling_state;
   }
@@ -554,30 +575,31 @@ bool PbftManager::stateOperations_() {
 
 void PbftManager::proposeBlock_() {
   // Value Proposal
-  LOG(log_tr_) << "PBFT value proposal state in round " << round_;
+  auto round = getPbftRound();
+  LOG(log_tr_) << "PBFT value proposal state in round " << round;
   if (next_voted_block_from_previous_round_.second) {
     LOG(log_nf_) << "We have a next voted block from previous round "
-                 << round_ - 1;
+                 << round - 1;
     if (next_voted_block_from_previous_round_.first == NULL_BLOCK_HASH) {
       LOG(log_nf_) << "Previous round next voted block is NULL_BLOCK_HASH";
     } else {
       LOG(log_nf_) << "Previous round next voted block is NOT NULL_BLOCK_HASH";
     }
   } else {
-    LOG(log_nf_) << "No next voted block from previous round " << round_ - 1;
+    LOG(log_nf_) << "No next voted block from previous round " << round - 1;
   }
 
-  if (round_ == 1) {
-    if (shouldSpeak(propose_vote_type, round_, step_)) {
+  if (round == 1) {
+    if (shouldSpeak(propose_vote_type, round, step_)) {
       LOG(log_nf_) << "Proposing value of NULL_BLOCK_HASH " << NULL_BLOCK_HASH
                    << " for round 1 by protocol";
-      placeVote_(own_starting_value_for_round_, propose_vote_type, round_,
+      placeVote_(own_starting_value_for_round_, propose_vote_type, round,
                  step_);
     }
-  } else if (push_block_values_for_round_.count(round_ - 1) ||
-             (round_ >= 2 && next_voted_block_from_previous_round_.second &&
+  } else if (push_block_values_for_round_.count(round - 1) ||
+             (round >= 2 && next_voted_block_from_previous_round_.second &&
               next_voted_block_from_previous_round_.first == NULL_BLOCK_HASH)) {
-    if (shouldSpeak(propose_vote_type, round_, step_)) {
+    if (shouldSpeak(propose_vote_type, round, step_)) {
       // PBFT block only be proposed once in one period
       if (!proposed_block_hash_.second ||
           proposed_block_hash_.first == NULL_BLOCK_HASH) {
@@ -588,22 +610,22 @@ void PbftManager::proposeBlock_() {
         own_starting_value_for_round_ = proposed_block_hash_.first;
         LOG(log_nf_) << "Proposing own starting value "
                      << own_starting_value_for_round_ << " for round "
-                     << round_;
-        placeVote_(proposed_block_hash_.first, propose_vote_type, round_,
+                     << round;
+        placeVote_(proposed_block_hash_.first, propose_vote_type, round,
                    step_);
       }
     }
-  } else if (round_ >= 2) {
+  } else if (round >= 2) {
     if (next_voted_block_from_previous_round_.second &&
         next_voted_block_from_previous_round_.first != NULL_BLOCK_HASH) {
       own_starting_value_for_round_ =
           next_voted_block_from_previous_round_.first;
-      if (shouldSpeak(propose_vote_type, round_, step_)) {
+      if (shouldSpeak(propose_vote_type, round, step_)) {
         LOG(log_nf_) << "Proposing next voted block "
                      << next_voted_block_from_previous_round_.first
-                     << " from previous round, for round " << round_;
+                     << " from previous round, for round " << round;
         placeVote_(next_voted_block_from_previous_round_.first,
-                   propose_vote_type, round_, step_);
+                   propose_vote_type, round, step_);
       }
     }
   }
@@ -611,52 +633,54 @@ void PbftManager::proposeBlock_() {
 
 void PbftManager::identifyBlock_() {
   // The Filtering Step
-  LOG(log_tr_) << "PBFT filtering state in round " << round_;
-  if (round_ == 1 || push_block_values_for_round_.count(round_ - 1) ||
-      (round_ >= 2 && next_voted_block_from_previous_round_.second &&
+  auto round = getPbftRound();
+  LOG(log_tr_) << "PBFT filtering state in round " << round;
+  if (round == 1 || push_block_values_for_round_.count(round - 1) ||
+      (round >= 2 && next_voted_block_from_previous_round_.second &&
        next_voted_block_from_previous_round_.first == NULL_BLOCK_HASH)) {
     // Identity leader
     std::pair<blk_hash_t, bool> leader_block = identifyLeaderBlock_(votes_);
     if (leader_block.second) {
       own_starting_value_for_round_ = leader_block.first;
       LOG(log_dg_) << "Identify leader block " << leader_block.first
-                   << " at round " << round_;
-      if (shouldSpeak(soft_vote_type, round_, step_)) {
+                   << " at round " << round;
+      if (shouldSpeak(soft_vote_type, round, step_)) {
         LOG(log_dg_) << "Soft voting block " << leader_block.first
-                     << " at round " << round_;
-        placeVote_(leader_block.first, soft_vote_type, round_, step_);
+                     << " at round " << round;
+        placeVote_(leader_block.first, soft_vote_type, round, step_);
       }
     }
-  } else if (round_ >= 2 && next_voted_block_from_previous_round_.second &&
+  } else if (round >= 2 && next_voted_block_from_previous_round_.second &&
              next_voted_block_from_previous_round_.first != NULL_BLOCK_HASH) {
-    if (shouldSpeak(soft_vote_type, round_, step_)) {
+    if (shouldSpeak(soft_vote_type, round, step_)) {
       LOG(log_dg_) << "Soft voting "
                    << next_voted_block_from_previous_round_.first
                    << " from previous round";
       placeVote_(next_voted_block_from_previous_round_.first, soft_vote_type,
-                 round_, step_);
+                 round, step_);
     }
   }
 }
 
 void PbftManager::certifyBlock_() {
   // The Certifying Step
-  LOG(log_tr_) << "PBFT certifying state in round " << round_;
+  auto round = getPbftRound();
+  LOG(log_tr_) << "PBFT certifying state in round " << round;
   if (elapsed_time_in_round_ms_ < 2 * LAMBDA_ms) {
     // Should not happen, add log here for safety checking
     LOG(log_er_) << "PBFT Reached step 3 too quickly after only "
-                 << elapsed_time_in_round_ms_ << " (ms) in round " << round_;
+                 << elapsed_time_in_round_ms_ << " (ms) in round " << round;
   }
 
   go_finish_state_ = elapsed_time_in_round_ms_ >
                      4 * LAMBDA_ms + STEP_4_DELAY - POLLING_INTERVAL_ms;
   if (go_finish_state_) {
-    LOG(log_dg_) << "Step 3 expired, will go to step 4 in round " << round_;
+    LOG(log_dg_) << "Step 3 expired, will go to step 4 in round " << round;
   } else if (!should_have_cert_voted_in_this_round_) {
     LOG(log_tr_) << "In step 3";
     if (!soft_voted_block_for_this_round_.second) {
       soft_voted_block_for_this_round_ =
-          softVotedBlockForRound_(votes_, round_);
+          softVotedBlockForRound_(votes_, round);
     }
     if (soft_voted_block_for_this_round_.second &&
         soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH &&
@@ -670,12 +694,12 @@ void PbftManager::certifyBlock_() {
       if (have_executed_this_round_) {
         LOG(log_tr_)
             << "Have already executed before certifying in step 3 in round "
-            << round_;
+            << round;
         if (pbft_chain_->getLastPbftBlockHash() ==
             soft_voted_block_for_this_round_.first) {
           LOG(log_tr_) << "Having executed, last block in chain is the "
                           "soft voted block in round "
-                       << round_;
+                       << round;
           executed_soft_voted_block_for_this_round = true;
         }
       }
@@ -699,19 +723,19 @@ void PbftManager::certifyBlock_() {
 
       if (executed_soft_voted_block_for_this_round ||
           unverified_soft_vote_block_for_this_round_is_valid) {
-        cert_voted_values_for_round_[round_] =
+        cert_voted_values_for_round_[round] =
             soft_voted_block_for_this_round_.first;
 
         // NEED TO KEEP POLLING TO SEE IF WE HAVE 2t+1 cert votes...
         // Here we would cert vote if we can speak....
         should_have_cert_voted_in_this_round_ = true;
-        if (shouldSpeak(cert_vote_type, round_, step_)) {
+        if (shouldSpeak(cert_vote_type, round, step_)) {
           LOG(log_dg_) << "Cert voting "
                        << soft_voted_block_for_this_round_.first
-                       << " for round " << round_;
+                       << " for round " << round;
           // generate cert vote
           placeVote_(soft_voted_block_for_this_round_.first, cert_vote_type,
-                     round_, step_);
+                     round, step_);
         }
       }
     }
@@ -720,40 +744,36 @@ void PbftManager::certifyBlock_() {
 
 void PbftManager::firstFinish_() {
   // Even number steps from 4 are in first finish
+  auto round = getPbftRound();
   LOG(log_tr_) << "PBFT first finishing state at step " << step_ << " in round "
-               << round_;
-  if (shouldSpeak(next_vote_type, round_, step_)) {
-    if (cert_voted_values_for_round_.find(round_) !=
+               << round;
+  if (shouldSpeak(next_vote_type, round, step_)) {
+    if (cert_voted_values_for_round_.find(round) !=
         cert_voted_values_for_round_.end()) {
       LOG(log_dg_) << "Next voting cert voted value "
-                   << cert_voted_values_for_round_[round_] << " for round "
-                   << round_ << " , step " << step_;
-      placeVote_(cert_voted_values_for_round_[round_], next_vote_type, round_,
+                   << cert_voted_values_for_round_[round] << " for round "
+                   << round << " , step " << step_;
+      placeVote_(cert_voted_values_for_round_[round], next_vote_type, round,
                  step_);
-    } else if (round_ >= 2 && next_voted_block_from_previous_round_.second &&
+    } else if (round >= 2 && next_voted_block_from_previous_round_.second &&
                next_voted_block_from_previous_round_.first == NULL_BLOCK_HASH) {
-      LOG(log_dg_) << "Next voting NULL BLOCK for round " << round_
+      LOG(log_dg_) << "Next voting NULL BLOCK for round " << round
                    << ", at step " << step_;
-      placeVote_(NULL_BLOCK_HASH, next_vote_type, round_, step_);
+      placeVote_(NULL_BLOCK_HASH, next_vote_type, round, step_);
     } else {
       LOG(log_dg_) << "Next voting nodes own starting value "
-                   << own_starting_value_for_round_ << " for round " << round_
+                   << own_starting_value_for_round_ << " for round " << round
                    << ", at step " << step_;
-      placeVote_(own_starting_value_for_round_, next_vote_type, round_, step_);
+      placeVote_(own_starting_value_for_round_, next_vote_type, round, step_);
     }
-  }
-
-  if (step_ == start_sync_next_votes_ +
-               next_votes_sync_period_ * next_votes_sync_index_) {
-    next_votes_sync_index_++;
-    syncNextVotes_();
   }
 }
 
 void PbftManager::secondFinish_() {
   // Odd number steps from 5 are in second finish
+  auto round = getPbftRound();
   LOG(log_tr_) << "PBFT second finishing state at step " << step_
-               << " in round " << round_;
+               << " in round " << round;
   long end_time_for_step =
       (step_ + 1) * LAMBDA_ms + STEP_4_DELAY + 2 * POLLING_INTERVAL_ms;
   if (step_ > MAX_STEPS) {
@@ -765,37 +785,37 @@ void PbftManager::secondFinish_() {
   if (elapsed_time_in_round_ms_ > end_time_for_step) {
     // Should not happen, add log here for safety checking
     if (have_executed_this_round_) {
-      LOG(log_dg_) << "PBFT Reached round " << round_ << " at step " << step_
+      LOG(log_dg_) << "PBFT Reached round " << round << " at step " << step_
                    << " late due to execution";
     } else {
-      LOG(log_dg_) << "PBFT Reached round " << round_ << " at step " << step_
+      LOG(log_dg_) << "PBFT Reached round " << round << " at step " << step_
                    << " late without executing";
     }
     continue_finish_polling_state_ = true;
     return;
   }
 
-  if (shouldSpeak(next_vote_type, round_, step_)) {
+  if (shouldSpeak(next_vote_type, round, step_)) {
     if (!soft_voted_block_for_this_round_.second) {
       soft_voted_block_for_this_round_ =
-          softVotedBlockForRound_(votes_, round_);
+          softVotedBlockForRound_(votes_, round);
     }
     if (!next_voted_soft_value_ && soft_voted_block_for_this_round_.second &&
         soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH) {
       LOG(log_dg_) << "Next voting " << soft_voted_block_for_this_round_.first
-                   << " for round " << round_ << ", at step " << step_;
-      placeVote_(soft_voted_block_for_this_round_.first, next_vote_type, round_,
+                   << " for round " << round << ", at step " << step_;
+      placeVote_(soft_voted_block_for_this_round_.first, next_vote_type, round,
                  step_);
       next_voted_soft_value_ = true;
     }
-    if (!next_voted_null_block_hash_ && round_ >= 2 &&
+    if (!next_voted_null_block_hash_ && round >= 2 &&
         next_voted_block_from_previous_round_.second &&
         // next_voted_block_from_previous_round_.first == NULL_BLOCK_HASH &&
-        (cert_voted_values_for_round_.find(round_) ==
+        (cert_voted_values_for_round_.find(round) ==
          cert_voted_values_for_round_.end())) {
-      LOG(log_dg_) << "Next voting NULL BLOCK for round " << round_
+      LOG(log_dg_) << "Next voting NULL BLOCK for round " << round
                    << ", at step " << step_;
-      placeVote_(NULL_BLOCK_HASH, next_vote_type, round_, step_);
+      placeVote_(NULL_BLOCK_HASH, next_vote_type, round, step_);
       next_voted_null_block_hash_ = true;
     }
   }
@@ -805,6 +825,11 @@ void PbftManager::secondFinish_() {
     LOG(log_wr_) << "Suspect PBFT chain behind, inaccurate 2t+1, need "
                     "to broadcast request for missing blocks";
     syncPbftChainFromPeers_();
+  }
+
+  if (step_ > MAX_STEPS) {
+    LOG(log_wr_) << "Suspect PBFT round behind, need to sync with peers";
+    syncNextVotes_();
   }
 
   loop_back_finish_state_ =
@@ -819,15 +844,15 @@ uint64_t PbftManager::roundDeterminedFromVotes_() {
   std::map<std::pair<uint64_t, size_t>, size_t,
            std::greater<std::pair<uint64_t, size_t>>>
       next_votes_tally_by_round_step;
+  auto round = getPbftRound();
 
   for (Vote &v : votes_) {
     if (v.getType() != next_vote_type) {
       continue;
     }
-
     std::pair<uint64_t, size_t> round_step =
         std::make_pair(v.getRound(), v.getStep());
-    if (round_step.first >= round_) {
+    if (round_step.first >= round) {
       if (next_votes_tally_by_round_step.find(round_step) !=
           next_votes_tally_by_round_step.end()) {
         next_votes_tally_by_round_step[round_step] += 1;
@@ -852,7 +877,7 @@ uint64_t PbftManager::roundDeterminedFromVotes_() {
       }
     }
   }
-  return round_;
+  return round;
 }
 
 // Assumption is that all votes are in the same round and of same type...
@@ -1130,7 +1155,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
 
   blk_hash_t pbft_block_hash = pbft_block.getBlockHash();
   LOG(log_dg_) << node_addr_ << " propose PBFT block succussful! "
-               << " in round: " << round_ << " in step: " << step_
+               << " in round: " << getPbftRound() << " in step: " << step_
                << " PBFT block: " << pbft_block;
   return std::make_pair(pbft_block_hash, true);
 }
@@ -1174,14 +1199,15 @@ std::vector<std::vector<uint>> PbftManager::createMockTrxSchedule(
 
 std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_(
     std::vector<Vote> const &votes) {
-  LOG(log_dg_) << "Into identify leader block, in round " << round_;
+  auto round = getPbftRound();
+  LOG(log_dg_) << "Into identify leader block, in round " << round;
   // each leader candidate with <vote_signature_hash, pbft_block_hash>
   std::vector<std::pair<vrf_output_t, blk_hash_t>> leader_candidates;
   for (auto const &v : votes) {
-    if (v.getRound() == round_ && v.getType() == propose_vote_type) {
+    if (v.getRound() == round && v.getType() == propose_vote_type) {
       // We should not pick any null block as leader (proposed when
       // no new blocks found, or maliciously) if others have blocks.
-      if (round_ == 1 || v.getBlockHash() != NULL_BLOCK_HASH) {
+      if (round == 1 || v.getBlockHash() != NULL_BLOCK_HASH) {
         leader_candidates.emplace_back(
             std::make_pair(v.getCredential(), v.getBlockHash()));
       }
@@ -1213,7 +1239,7 @@ bool PbftManager::checkPbftBlockValid_(blk_hash_t const &block_hash) const {
 }
 
 bool PbftManager::syncRequestedAlreadyThisStep_() const {
-  return round_ == pbft_round_last_requested_sync_ &&
+  return getPbftRound() == pbft_round_last_requested_sync_ &&
          step_ == pbft_step_last_requested_sync_;
 }
 
@@ -1224,23 +1250,34 @@ void PbftManager::syncPbftChainFromPeers_() {
     return;
   }
 
-  if (capability_->syncing_ == false) {
-    if (syncRequestedAlreadyThisStep_() == false) {
-      LOG(log_nf_) << "Restarting pbft sync."
-                   << " In round " << round_ << ", in step " << step_
-                   << " Send request to ask missing pbft blocks in chain";
-      capability_->restartSyncingPbft();
-      pbft_round_last_requested_sync_ = round_;
-      pbft_step_last_requested_sync_ = step_;
-    }
+  if (!capability_->syncing_ && !syncRequestedAlreadyThisStep_()) {
+    auto round = getPbftRound();
+    LOG(log_nf_) << "Restarting pbft sync."
+                 << " In round " << round << ", in step " << step_
+                 << " Send request to ask missing pbft blocks in chain";
+    capability_->restartSyncingPbft();
+    pbft_round_last_requested_sync_ = round;
+    pbft_step_last_requested_sync_ = step_;
   }
 }
 
+bool PbftManager::nextVotesSyncAlreadyThisRoundStep_() {
+  return getPbftRound() == pbft_round_last_next_votes_sync_ &&
+         step_ == pbft_step_last_next_votes_sync_;
+}
+
 void PbftManager::syncNextVotes_() {
-  LOG(log_dg_) << "Suspect missing next votes. Send syncing next votes "
-                  "request at round "
-               << round_ << ", step " << step_;
-//  capability_->syncPbftNextVotes(round_);
+  if (stopped_) {
+    return;
+  }
+  if (!nextVotesSyncAlreadyThisRoundStep_()) {
+    auto round = getPbftRound();
+    LOG(log_dg_) << "Syncing next votes. Send syncing request at round "
+                 << round << ", step " << step_;
+    capability_->syncPbftNextVotes(round);
+    pbft_round_last_next_votes_sync_ = round;
+    pbft_step_last_next_votes_sync_ = step_;
+  }
 }
 
 bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(
@@ -1372,7 +1409,7 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
     PbftBlockCert pbft_block_and_votes = pbft_chain_->pbftSyncedQueueFront();
     LOG(log_dg_) << "Pick pbft block "
                  << pbft_block_and_votes.pbft_blk.getBlockHash()
-                 << " from synced queue in round " << round_;
+                 << " from synced queue in round " << getPbftRound();
     if (pbft_chain_->findPbftBlockInChain(
             pbft_block_and_votes.pbft_blk.getBlockHash())) {
       // pushed already from PBFT unverified queue, remove and skip it
@@ -1567,7 +1604,7 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
   }
   LOG(log_nf_) << node_addr_ << " successful push pbft block "
                << pbft_block_hash << " in period " << pbft_period
-               << " into chain! In round " << round_;
+               << " into chain! In round " << getPbftRound();
   // Reset proposed PBFT block hash to False for next pbft block proposal
   proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
   executed_pbft_block_ = true;
@@ -1596,6 +1633,7 @@ void PbftManager::updateNextVotesForRound_(std::vector<Vote> next_votes) {
 }
 
 void PbftManager::countVotes_() {
+  auto round = getPbftRound();
   while (!monitor_stop_) {
     std::vector<Vote> votes = vote_mgr_->getAllVotes();
 
@@ -1603,13 +1641,13 @@ void PbftManager::countVotes_() {
     size_t current_step_votes = 0;
     for (auto const &v : votes) {
       if (step_ == 1) {
-        if (v.getRound() == round_ - 1 && v.getStep() == last_step_) {
+        if (v.getRound() == round - 1 && v.getStep() == last_step_) {
           last_step_votes++;
-        } else if (v.getRound() == round_ && v.getStep() == step_) {
+        } else if (v.getRound() == round && v.getStep() == step_) {
           current_step_votes++;
         }
       } else {
-        if (v.getRound() == round_) {
+        if (v.getRound() == round) {
           if (v.getStep() == step_ - 1) {
             last_step_votes++;
           } else if (v.getStep() == step_) {
@@ -1632,10 +1670,10 @@ void PbftManager::countVotes_() {
             current_step_duration)
             .count();
 
-    LOG(log_nf_test_) << "Round " << round_ << " step " << last_step_
+    LOG(log_nf_test_) << "Round " << round << " step " << last_step_
                       << " time " << elapsed_last_step_time_in_ms << "(ms) has "
                       << last_step_votes << " votes";
-    LOG(log_nf_test_) << "Round " << round_ << " step " << step_ << " time "
+    LOG(log_nf_test_) << "Round " << round << " step " << step_ << " time "
                       << elapsed_current_step_time_in_ms << "(ms) has "
                       << current_step_votes << " votes";
     thisThreadSleepForMilliSeconds(100);

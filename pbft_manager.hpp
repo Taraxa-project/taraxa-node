@@ -60,10 +60,13 @@ class PbftManager {
   std::pair<bool, uint64_t> getDagBlockPeriod(blk_hash_t const &hash);
   std::string getScheduleBlockByPeriod(uint64_t const period);
 
+  uint64_t getPbftRound() const;
+  void setPbftRound(uint64_t const round);
   size_t getSortitionThreshold() const;
   size_t getTwoTPlusOne() const;
   void setTwoTPlusOne(size_t const two_t_plus_one);
   void setPbftStep(size_t const pbft_step);
+  void getNextVotesForLastRound(std::vector<Vote> &next_votes_bundle);
 
   Vote generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
                     uint64_t period, size_t step,
@@ -155,6 +158,8 @@ class PbftManager {
 
   void syncPbftChainFromPeers_();
 
+  bool nextVotesSyncAlreadyThisRoundStep_();
+
   void syncNextVotes_();
 
   bool comparePbftBlockScheduleWithDAGblocks_(
@@ -205,10 +210,6 @@ class PbftManager {
   uint64_t round_ = 1;
   size_t step_ = 1;
   u_long STEP_4_DELAY = 0;  // constant
-  // Sync next votes
-  const size_t start_sync_next_votes_ = 14; // need even number
-  const size_t next_votes_sync_period_ = 6; // need even number
-  size_t next_votes_sync_index_ = 0;
 
   blk_hash_t own_starting_value_for_round_ = NULL_BLOCK_HASH;
   // <round, cert_voted_block_hash>
@@ -237,6 +238,8 @@ class PbftManager {
 
   uint64_t pbft_round_last_requested_sync_ = 0;
   size_t pbft_step_last_requested_sync_ = 0;
+  uint64_t pbft_round_last_next_votes_sync_ = 0;
+  size_t pbft_step_last_next_votes_sync_ = 0;
 
   size_t pbft_last_observed_synced_queue_size_ = 0;
 
@@ -250,6 +253,7 @@ class PbftManager {
 
   std::condition_variable stop_cv_;
   std::mutex stop_mtx_;
+  mutable boost::shared_mutex round_access_;
   mutable boost::shared_mutex next_votes_access_;
 
   // TODO: will remove later, TEST CODE
