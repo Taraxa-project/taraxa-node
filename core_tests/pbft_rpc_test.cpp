@@ -116,6 +116,8 @@ TEST_F(PbftRpcTest, transfer_vote) {
   // stop PBFT manager, that will place vote
   std::shared_ptr<PbftManager> pbft_mgr1 = node1->getPbftManager();
   std::shared_ptr<PbftManager> pbft_mgr2 = node2->getPbftManager();
+  pbft_mgr1->stop();
+  pbft_mgr2->stop();
 
   // generate vote
   blk_hash_t blockhash(11);
@@ -131,12 +133,7 @@ TEST_F(PbftRpcTest, transfer_vote) {
   node2->getVoteManager()->clearUnverifiedVotesTable();
 
   nw2->sendPbftVote(nw1->getNodeId(), vote);
-
   taraxa::thisThreadSleepForMilliSeconds(100);
-
-  // fixme stopping before asserts
-  pbft_mgr1->stop();
-  pbft_mgr2->stop();
 
   size_t vote_queue_size_in_node1 =
       node1->getVoteManager()->getUnverifiedVotesSize();
@@ -175,6 +172,9 @@ TEST_F(PbftRpcTest, vote_broadcast) {
   std::shared_ptr<PbftManager> pbft_mgr1 = node1->getPbftManager();
   std::shared_ptr<PbftManager> pbft_mgr2 = node2->getPbftManager();
   std::shared_ptr<PbftManager> pbft_mgr3 = node3->getPbftManager();
+  pbft_mgr1->stop();
+  pbft_mgr2->stop();
+  pbft_mgr3->stop();
 
   // generate vote
   blk_hash_t blockhash(1);
@@ -190,11 +190,7 @@ TEST_F(PbftRpcTest, vote_broadcast) {
   node3->getVoteManager()->clearUnverifiedVotesTable();
 
   nw1->onNewPbftVote(vote);
-
   taraxa::thisThreadSleepForMilliSeconds(100);
-  pbft_mgr1->stop();
-  pbft_mgr2->stop();
-  pbft_mgr3->stop();
 
   size_t vote_queue_size1 = node1->getVoteManager()->getUnverifiedVotesSize();
   size_t vote_queue_size2 = node2->getVoteManager()->getUnverifiedVotesSize();
