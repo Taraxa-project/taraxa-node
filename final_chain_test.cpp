@@ -117,6 +117,8 @@ struct FinalChainTest : WithDataDir {
       EXPECT_TRUE(r_from_db.hasStatusCode());
       EXPECT_EQ(r_from_db.statusCode(), r.statusCode());
       EXPECT_EQ(r_from_db.gasUsed(),
+                result.state_transition_result.ExecutionResults[i].GasUsed);
+      EXPECT_EQ(r_from_db.gasUsed(),
                 i == 0 ? r.cumulativeGasUsed()
                        : r.cumulativeGasUsed() -
                              result.receipts[i - 1].cumulativeGasUsed());
@@ -259,31 +261,33 @@ TEST_F(FinalChainTest, coin_transfers) {
     cfg.state.genesis_balances[k.address()] =
         numeric_limits<u256>::max() / NUM_ACCS;
   }
+  cfg.state.execution_options.disable_gas_fee = false;
   init();
+  constexpr auto TRX_GAS = 100000;
   advance({
-      {13, 0, 0, keys[10].address(), {}, 0, keys[10].secret()},
-      {11300, 0, 0, keys[44].address(), {}, 0, keys[102].secret()},
-      {1040, 0, 0, keys[50].address(), {}, 0, keys[122].secret()},
+      {13, 0, TRX_GAS, keys[10].address(), {}, 0, keys[10].secret()},
+      {11300, 0, TRX_GAS, keys[44].address(), {}, 0, keys[102].secret()},
+      {1040, 0, TRX_GAS, keys[50].address(), {}, 0, keys[122].secret()},
   });
   advance({});
   advance({
-      {0, 0, 0, keys[1].address(), {}, 0, keys[2].secret()},
-      {131, 0, 0, keys[133].address(), {}, 0, keys[133].secret()},
+      {0, 0, TRX_GAS, keys[1].address(), {}, 0, keys[2].secret()},
+      {131, 0, TRX_GAS, keys[133].address(), {}, 0, keys[133].secret()},
   });
   advance({
-      {100441, 0, 0, keys[431].address(), {}, 0, keys[177].secret()},
-      {2300, 0, 0, keys[343].address(), {}, 0, keys[131].secret()},
-      {130, 0, 0, keys[23].address(), {}, 0, keys[11].secret()},
+      {100441, 0, TRX_GAS, keys[431].address(), {}, 0, keys[177].secret()},
+      {2300, 0, TRX_GAS, keys[343].address(), {}, 0, keys[131].secret()},
+      {130, 0, TRX_GAS, keys[23].address(), {}, 0, keys[11].secret()},
   });
   advance({});
   advance({
-      {100431, 0, 0, keys[232].address(), {}, 0, keys[135].secret()},
-      {13411, 0, 0, keys[34].address(), {}, 0, keys[112].secret()},
-      {130, 0, 0, keys[233].address(), {}, 0, keys[133].secret()},
-      {343434, 0, 0, keys[213].address(), {}, 0, keys[13].secret()},
-      {131313, 0, 0, keys[344].address(), {}, 0, keys[405].secret()},
-      {143430, 0, 0, keys[420].address(), {}, 0, keys[331].secret()},
-      {1313145, 0, 0, keys[134].address(), {}, 0, keys[345].secret()},
+      {100431, 0, TRX_GAS, keys[232].address(), {}, 0, keys[135].secret()},
+      {13411, 0, TRX_GAS, keys[34].address(), {}, 0, keys[112].secret()},
+      {130, 0, TRX_GAS, keys[233].address(), {}, 0, keys[133].secret()},
+      {343434, 0, TRX_GAS, keys[213].address(), {}, 0, keys[13].secret()},
+      {131313, 0, TRX_GAS, keys[344].address(), {}, 0, keys[405].secret()},
+      {143430, 0, TRX_GAS, keys[420].address(), {}, 0, keys[331].secret()},
+      {1313145, 0, TRX_GAS, keys[134].address(), {}, 0, keys[345].secret()},
   });
 }
 

@@ -113,6 +113,7 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
         {});
     receipts_buf.clear();
     receipts_buf.reserve(state_transition_result.ExecutionResults.size());
+    gas_t cumulative_gas_used = 0;
     for (auto const& r : state_transition_result.ExecutionResults) {
       LogEntries logs;
       logs.reserve(r.Logs.size());
@@ -120,7 +121,8 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
         logs.emplace_back(l.Address, l.Topics, l.Data);
       }
       receipts_buf.emplace_back(r.CodeErr.empty() && r.ConsensusErr.empty(),
-                                r.GasUsed, move(logs), r.NewContractAddr);
+                                cumulative_gas_used += r.GasUsed, move(logs),
+                                r.NewContractAddr);
     }
     auto exit_stack = append_block_prepare(batch);
     return {
