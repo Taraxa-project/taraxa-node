@@ -113,7 +113,7 @@ struct DbStorage {
   }
 
   // DAG
-  void saveDagBlock(DagBlock const& blk);
+  void saveDagBlock(DagBlock const& blk, BatchPtr write_batch = nullptr);
   dev::bytes getDagBlockRaw(blk_hash_t const& hash);
   shared_ptr<DagBlock> getDagBlock(blk_hash_t const& hash);
   string getBlocksByLevel(level_t level);
@@ -121,7 +121,6 @@ struct DbStorage {
       level_t level, int number_of_levels);
 
   // DAG state
-  void saveDagBlockState(blk_hash_t const& blk_hash, bool finalized);
   void addDagBlockStateToBatch(BatchPtr const& write_batch,
                                blk_hash_t const& blk_hash, bool finalized);
   void removeDagBlockStateToBatch(BatchPtr const& write_batch,

@@ -22,7 +22,7 @@ Net::Net(std::shared_ptr<taraxa::FullNode> const& _full_node)
 
 std::string Net::net_version() {
   if (auto full_node = full_node_.lock()) {
-    return full_node->getNetwork()->getConfig().network_id;
+    return "1.0"; //TODO: add version configuration
   }
   BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
 }

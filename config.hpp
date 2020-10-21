@@ -62,7 +62,7 @@ struct NetworkConfig {
   uint16_t network_min_dag_block_broadcast = 0;
   uint16_t network_max_dag_block_broadcast = 0;
   uint16_t network_sync_level_size = 0;
-  std::string network_id;
+  uint64_t network_id;
   bool network_encrypted = 0;
   bool network_performance_log = 0;
 };

@@ -21,7 +21,6 @@
       "udp_port": 10002
     }
   ],
-  "network_id": "testnet",
   "rpc_port": 7779,
   "ws_port": 8779,
   "test_params": {

@@ -180,7 +180,6 @@ void FullNode::start() {
       }
 
       if (dag_mgr_->pivotAndTipsAvailable(blk)) {
-        db_->saveDagBlock(blk);
         dag_mgr_->addDagBlock(blk);
         if (jsonrpc_ws_) {
           jsonrpc_ws_->newDagBlock(blk);

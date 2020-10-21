@@ -209,17 +209,17 @@ TEST_F(NetworkTest, node_network_id) {
   auto node_cfgs = make_node_cfgs(2);
   {
     auto node_cfgs_ = node_cfgs;
-    node_cfgs_[0].network.network_id = "main";
-    node_cfgs_[1].network.network_id = "main";
+    node_cfgs_[0].network.network_id = 1;
+    node_cfgs_[1].network.network_id = 1;
     auto nodes = launch_nodes(node_cfgs_);
   }
   {
     auto conf1 = node_cfgs[0];
-    conf1.network.network_id = "main";
+    conf1.network.network_id = 1;
     FullNode::Handle node1(conf1, true);
 
     auto conf2 = node_cfgs[1];
-    conf2.network.network_id = "testnet";
+    conf2.network.network_id = 2;
     FullNode::Handle node2(conf2, true);
 
     taraxa::thisThreadSleepForMilliSeconds(1000);

@@ -193,6 +193,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
  private:
   void addToDag(std::string const &hash, std::string const &pivot,
                 std::vector<std::string> const &tips, uint64_t level,
+                const taraxa::DbStorage::BatchPtr &write_batch,
                 bool finalized = false);
   std::pair<std::string, std::vector<std::string>> getFrontier()
       const;  // return pivot and tips

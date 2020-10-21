@@ -101,10 +101,14 @@ std::vector<std::shared_ptr<DagBlock>> DbStorage::getDagBlocksAtLevel(
   return res;
 }
 
-void DbStorage::saveDagBlock(DagBlock const& blk) {
+void DbStorage::saveDagBlock(DagBlock const& blk, BatchPtr write_batch) {
   // Lock is needed since we are editing some fields
   lock_guard<mutex> u_lock(dag_blocks_mutex_);
-  auto write_batch = createWriteBatch();
+  bool commit = false;
+  if (write_batch == nullptr) {
+    write_batch = createWriteBatch();
+    commit = true;
+  }
   auto block_bytes = blk.rlp(true);
   auto block_hash = blk.getHash();
   batch_put(write_batch, Columns::dag_blocks, toSlice(block_hash.asBytes()),
@@ -131,13 +135,9 @@ void DbStorage::saveDagBlock(DagBlock const& blk) {
   batch_put(write_batch, Columns::status,
             toSlice((uint8_t)StatusDbField::DagEdgeCount),
             toSlice(dag_edge_count_.load()));
-
-  commitWriteBatch(write_batch);
-}
-
-void DbStorage::saveDagBlockState(blk_hash_t const& blk_hash, bool finalized) {
-  insert(Columns::dag_blocks_state, toSlice(blk_hash.asBytes()),
-         toSlice(finalized));
+  if (commit) {
+    commitWriteBatch(write_batch);
+  }
 }
 
 void DbStorage::addDagBlockStateToBatch(BatchPtr const& write_batch,
