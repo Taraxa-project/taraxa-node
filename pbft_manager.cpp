@@ -279,6 +279,16 @@ void PbftManager::getNextVotesForLastRound(
   }
 }
 
+void PbftManager::updateNextVotesForRound(std::vector<Vote> next_votes) {
+  uniqueLock_ lock(next_votes_access_);
+  // Cleanup next votes
+  next_votes_for_last_round_.clear();
+  // Store enough next votes for round and step
+  for (auto const &v : next_votes) {
+    next_votes_for_last_round_[v.getHash()] = v;
+  }
+}
+
 void PbftManager::resetStep_() { setPbftStep(1); }
 
 bool PbftManager::resetRound_() {
@@ -872,7 +882,7 @@ uint64_t PbftManager::roundDeterminedFromVotes_() {
         LOG(log_dg_) << "Found sufficient next votes in round "
                      << rs_votes.first.first << ", step "
                      << rs_votes.first.second;
-        updateNextVotesForRound_(next_votes_for_round_step);
+        updateNextVotesForRound(next_votes_for_round_step);
         return rs_votes.first.first + 1;
       }
     }
@@ -1620,16 +1630,6 @@ void PbftManager::updateTwoTPlusOneAndThreshold_() {
                << ", valid voting players " << eligible_voter_count
                << ". Update 2t+1 " << TWO_T_PLUS_ONE << ", Threshold "
                << sortition_threshold_;
-}
-
-void PbftManager::updateNextVotesForRound_(std::vector<Vote> next_votes) {
-  uniqueLock_ lock(next_votes_access_);
-  // Cleanup next votes
-  next_votes_for_last_round_.clear();
-  // Store enough next votes for round and step
-  for (auto const &v : next_votes) {
-    next_votes_for_last_round_[v.getHash()] = v;
-  }
 }
 
 void PbftManager::countVotes_() {
