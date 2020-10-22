@@ -383,8 +383,7 @@ bool DagManager::pivotAndTipsAvailable(DagBlock const &blk) {
   return true;
 }
 
-void DagManager::addDagBlock(DagBlock const &blk,
-                             bool finalized) {
+void DagManager::addDagBlock(DagBlock const &blk, bool finalized) {
   auto write_batch = db_->createWriteBatch();
   db_->saveDagBlock(blk, write_batch);
   DagFrontier frontier;
@@ -413,6 +412,9 @@ void DagManager::addDagBlock(DagBlock const &blk,
     }
   }
   db_->commitWriteBatch(write_batch);
+  if (trx_mgr_) {
+    trx_mgr_->setDagFrontier(frontier);
+  }
   LOG(log_dg_) << " Update nonce table of blk " << blk.getHash() << "anchor "
                << anchor_ << " pivot = " << frontier.pivot
                << " tips: " << frontier.tips;
