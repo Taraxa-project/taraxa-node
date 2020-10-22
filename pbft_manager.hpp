@@ -67,6 +67,7 @@ class PbftManager {
   void setTwoTPlusOne(size_t const two_t_plus_one);
   void setPbftStep(size_t const pbft_step);
   void getNextVotesForLastRound(std::vector<Vote> &next_votes_bundle);
+  void updateNextVotesForRound(std::vector<Vote> next_votes);
 
   Vote generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
                     uint64_t period, size_t step,
@@ -176,8 +177,6 @@ class PbftManager {
                       std::vector<Vote> const &cert_votes);
 
   void updateTwoTPlusOneAndThreshold_();
-
-  void updateNextVotesForRound_(std::vector<Vote> next_votes);
 
   std::atomic<bool> stopped_ = true;
   // Using to check if PBFT block has been proposed already in one period

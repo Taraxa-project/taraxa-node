@@ -598,6 +598,61 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   EXPECT_EQ(last_pbft_block_hash, pbft_block1.getBlockHash());
 }
 
+// Test PBFT next votes bundle network propagation
+TEST_F(NetworkTest, pbft_next_votes_bundle_sync) {
+  auto node_cfgs = make_node_cfgs<5>(2);
+  FullNode::Handle node1(node_cfgs[0], true);
+  // Stop PBFT manager, that will place vote
+  std::shared_ptr<PbftManager> pbft_mgr1 = node1->getPbftManager();
+  pbft_mgr1->stop();
+  // Generate 3 next votes
+  std::vector<Vote> next_votes;
+  for (auto i = 0; i < 3; i++) {
+    blk_hash_t propose_pbft_block_hash(i + 1);
+    blk_hash_t last_pbft_block_hash(i);
+    PbftVoteTypes type = next_vote_type;
+    uint64_t round = 10;
+    size_t step = 21;
+    Vote vote = node1->getPbftManager()->generateVote(
+        propose_pbft_block_hash, type, round, step, last_pbft_block_hash);
+    next_votes.emplace_back(vote);
+  }
+  // Update next votes bundle and set PBFT round
+  pbft_mgr1->updateNextVotesForRound(next_votes);
+  pbft_mgr1->setPbftRound(11);  // Make sure node2 round less than node1
+
+  // Start node2
+  FullNode::Handle node2(node_cfgs[1], true);
+  std::shared_ptr<Network> nw1 = node1->getNetwork();
+  std::shared_ptr<Network> nw2 = node2->getNetwork();
+  // Wait node1 and node2 connect to each other
+  int node_peers = 1;
+  for (int i = 0; i < 300; i++) {
+    // test timeout is 30 seconds
+    if (nw1->getPeerCount() == node_peers &&
+        nw2->getPeerCount() == node_peers) {
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(100);
+  }
+  EXPECT_EQ(nw1->getPeerCount(), 1);
+  EXPECT_EQ(nw2->getPeerCount(), 1);
+  // Stop PBFT manager, that will place vote
+  std::shared_ptr<PbftManager> pbft_mgr2 = node2->getPbftManager();
+  pbft_mgr2->stop();
+  node2->getVoteManager()->clearUnverifiedVotesTable();
+  // Wait 6 PBFT lambda time for sending network status, 2000 / 5 * 6 = 2400
+  taraxa::thisThreadSleepForMilliSeconds(2400);
+  // node2 sync next votes bundle from node1
+  uint64_t node2_pbft_round = 10;
+  nw2->getTaraxaCapability()->syncPbftNextVotes(node2_pbft_round);
+  // Waiting node2 get next votes bundle from node1
+  taraxa::thisThreadSleepForMilliSeconds(100);
+  size_t node2_vote_queue_size =
+      node2->getVoteManager()->getUnverifiedVotesSize();
+  EXPECT_EQ(node2_vote_queue_size, next_votes.size());
+}
+
 // Test creates a DAG on one node and verifies
 // that the second node syncs with it and that the resulting
 // DAG on the other end is the same

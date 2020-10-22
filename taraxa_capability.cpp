@@ -527,7 +527,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           LOG(log_dg_next_votes_sync_) << "In PbftNextVotesPacket received "
                                        << next_votes_count << " next votes";
           for (auto i = 0; i < next_votes_count; i++) {
-            Vote next_vote(_r[i].toBytes());
+            Vote next_vote(_r[i].data().toBytes());
             LOG(log_dg_next_votes_sync_)
                 << "Received PBFT next vote " << next_vote.getHash();
             vote_mgr_->addVote(next_vote);
