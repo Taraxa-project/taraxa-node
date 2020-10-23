@@ -320,8 +320,9 @@ DagManager::DagManager(std::string const &genesis, addr_t node_addr,
   DagFrontier frontier;
   frontier.pivot = blk_hash_t(pivot);
   if (trx_mgr) {
-    trx_mgr->updateNonce(blk, frontier);
+    trx_mgr->setDagFrontier(frontier);
   }
+
 } catch (std::exception &e) {
   std::cerr << e.what() << std::endl;
 }
@@ -382,14 +383,18 @@ bool DagManager::pivotAndTipsAvailable(DagBlock const &blk) {
   return true;
 }
 
-void DagManager::addDagBlock(DagBlock const &blk, bool finalized) {
+void DagManager::addDagBlock(DagBlock const &blk, bool finalized, bool save) {
+  auto write_batch = db_->createWriteBatch();
+  if (save) {
+    db_->saveDagBlock(blk, write_batch);
+  }
   DagFrontier frontier;
   {
     uLock lock(mutex_);
     auto blk_hash = blk.getHash();
     auto blk_hash_str = blk_hash.toString();
     auto pivot_hash = blk.getPivot();
-    
+
     std::vector<std::string> tips;
     for (auto const &t : blk.getTips()) {
       std::string tip = t.toString();
@@ -400,7 +405,7 @@ void DagManager::addDagBlock(DagBlock const &blk, bool finalized) {
     max_level_ = std::max(current_max_level, blk.getLevel());
 
     addToDag(blk_hash_str, pivot_hash.toString(), tips, blk.getLevel(),
-            finalized);
+             write_batch, finalized);
 
     auto [p, ts] = getFrontier();
     frontier.pivot = blk_hash_t(p);
@@ -408,8 +413,9 @@ void DagManager::addDagBlock(DagBlock const &blk, bool finalized) {
       frontier.tips.emplace_back(blk_hash_t(t));
     }
   }
+  db_->commitWriteBatch(write_batch);
   if (trx_mgr_) {
-    trx_mgr_->updateNonce(blk, frontier);
+    trx_mgr_->setDagFrontier(frontier);
   }
   LOG(log_dg_) << " Update nonce table of blk " << blk.getHash() << "anchor "
                << anchor_ << " pivot = " << frontier.pivot
@@ -424,10 +430,11 @@ void DagManager::drawGraph(std::string const &dotfile) const {
 
 void DagManager::addToDag(std::string const &hash, std::string const &pivot,
                           std::vector<std::string> const &tips, uint64_t level,
+                          const taraxa::DbStorage::BatchPtr &write_batch,
                           bool finalized) {
   total_dag_->addVEEs(hash, pivot, tips);
   pivot_tree_->addVEEs(hash, pivot, {});
-  db_->saveDagBlockState(blk_hash_t(hash), finalized);
+  db_->addDagBlockStateToBatch(write_batch, blk_hash_t(hash), finalized);
   if (finalized) {
     finalized_blks_[level].push_back(hash);
   } else {
@@ -569,7 +576,8 @@ uint DagManager::setDagBlockOrder(
       // Do not remove from total dag if a block is a leaf -- THERE IS A CHANCE
       // THAT THIS MIGHT NOT BE POSSIBLE SO MAYBE AN ASSERT WOULD BE BETTER
       if (leavesSet.count(blk) > 0) {
-        addToDag(blk, pivot_hash.toString(), tips, block->getLevel(), true);
+        addToDag(blk, pivot_hash.toString(), tips, block->getLevel(),
+                 write_batch, true);
       } else {
         db_->removeDagBlockStateToBatch(write_batch, blk_hash_t(blk));
       }
@@ -593,7 +601,8 @@ uint DagManager::setDagBlockOrder(
     }
 
     if (leavesSet.count(blk) > 0 || blk == new_anchor.toString()) {
-      addToDag(blk, pivot_hash.toString(), tips, dag_block->getLevel(), true);
+      addToDag(blk, pivot_hash.toString(), tips, dag_block->getLevel(),
+               write_batch, true);
       db_->addDagBlockStateToBatch(write_batch, blk_hash_t(blk), true);
     } else {
       db_->removeDagBlockStateToBatch(write_batch, blk_hash_t(blk));
@@ -614,7 +623,7 @@ uint DagManager::setDagBlockOrder(
           tips.push_back(tip);
         }
         addToDag(blk, pivot_hash.toString(), tips, dag_block->getLevel(),
-                 false);
+                 write_batch, false);
       }
     }
   }
@@ -656,11 +665,11 @@ void DagManager::recoverDag() {
   }
   for (auto &it : finalized) {
     auto blk = db_->getDagBlock(it.second);
-    addDagBlock(*blk, true);
+    addDagBlock(*blk, true, false);
   }
   for (auto &it : non_finalized) {
     auto blk = db_->getDagBlock(it.second);
-    addDagBlock(*blk, false);
+    addDagBlock(*blk, false, false);
   }
 }
 }  // namespace taraxa

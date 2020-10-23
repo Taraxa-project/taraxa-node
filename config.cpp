@@ -94,14 +94,11 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object) {
   vrf_secret =
       vrf_wrapper::vrf_sk_t(getConfigDataAsString(root, {"vrf_secret"}));
   db_path = getConfigDataAsString(root, {"db_path"});
-  dag_processing_threads =
-      getConfigDataAsUInt(root, {"dag_processing_threads"});
   if (auto n = getConfigData(root, {"network_is_boot_node"}, true);
       !n.isNull()) {
     network.network_is_boot_node = n.asBool();
   }
   network.network_address = getConfigDataAsString(root, {"network_address"});
-  network.network_id = getConfigDataAsString(root, {"network_id"});
   network.network_tcp_port = getConfigDataAsUInt(root, {"network_tcp_port"});
   network.network_udp_port = getConfigDataAsUInt(root, {"network_udp_port"});
   network.network_simulated_delay =
@@ -209,6 +206,7 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object) {
   } else {
     chain = ChainConfig::predefined();
   }
+  network.network_id = chain.chain_id;
   // TODO configurable
   opts_final_chain.state_api.ExpectedMaxTrxPerBlock = 1000;
   opts_final_chain.state_api.MainTrieFullNodeLevelsToCache = 4;

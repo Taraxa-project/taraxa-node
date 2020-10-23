@@ -208,7 +208,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           uint64_t peer_pbft_round;
           if (initial_status) {
             auto const peer_protocol_version = _r[0].toInt<unsigned>();
-            auto const network_id = _r[1].toString();
+            auto const network_id = _r[1].toPositiveInt64();
             peer_level = _r[2].toPositiveInt64();
             auto const genesis_hash = _r[3].toString();
             peer_pbft_chain_size = _r[4].toPositiveInt64();

@@ -158,17 +158,6 @@ TEST_F(DagTest, compute_epoch) {
                 addr_t(1));
   DagBlock blkJ(blk_hash_t(6), 0, {}, {}, sig_t(1), blk_hash_t(10), addr_t(1));
   DagBlock blkK(blk_hash_t(8), 0, {}, {}, sig_t(1), blk_hash_t(11), addr_t(1));
-  db_ptr->saveDagBlock(blkA);
-  db_ptr->saveDagBlock(blkB);
-  db_ptr->saveDagBlock(blkC);
-  db_ptr->saveDagBlock(blkD);
-  db_ptr->saveDagBlock(blkE);
-  db_ptr->saveDagBlock(blkF);
-  db_ptr->saveDagBlock(blkG);
-  db_ptr->saveDagBlock(blkH);
-  db_ptr->saveDagBlock(blkI);
-  db_ptr->saveDagBlock(blkJ);
-  db_ptr->saveDagBlock(blkK);
   mgr->addDagBlock(blkA);
   mgr->addDagBlock(blkB);
   mgr->addDagBlock(blkC);
@@ -253,15 +242,12 @@ TEST_F(DagTest, receive_block_in_order) {
   DagBlock blk3(blk_hash_t(10), 0, {blk_hash_t(1), blk_hash_t(2)}, {},
                 sig_t(777), blk_hash_t(3), addr_t(15));
 
-  db_ptr->saveDagBlock(genesis_block);
-  db_ptr->saveDagBlock(blk1);
-  db_ptr->saveDagBlock(blk2);
+  mgr->addDagBlock(genesis_block);
   mgr->addDagBlock(blk1);
   mgr->addDagBlock(blk2);
   EXPECT_EQ(mgr->getNumVerticesInDag().first, 3);
   EXPECT_EQ(mgr->getNumEdgesInDag().first, 2);
 
-  db_ptr->saveDagBlock(blk3);
   mgr->addDagBlock(blk3);
   taraxa::thisThreadSleepForMilliSeconds(500);
 
@@ -304,18 +290,7 @@ TEST_F(DagTest, compute_epoch_2) {
                 addr_t(1));
   DagBlock blkJ(blk_hash_t(6), 0, {}, {}, sig_t(1), blk_hash_t(10), addr_t(1));
   DagBlock blkK(blk_hash_t(9), 0, {}, {}, sig_t(1), blk_hash_t(11), addr_t(1));
-  db_ptr->saveDagBlock(blkA);
-  db_ptr->saveDagBlock(blkB);
-  db_ptr->saveDagBlock(blkC);
-  db_ptr->saveDagBlock(blkD);
-  db_ptr->saveDagBlock(blkE);
-  db_ptr->saveDagBlock(blkF);
-  db_ptr->saveDagBlock(blkG);
-  db_ptr->saveDagBlock(blkH);
-  db_ptr->saveDagBlock(blkI);
-  db_ptr->saveDagBlock(blkJ);
-  db_ptr->saveDagBlock(blkK);
-
+  
   mgr->addDagBlock(blkA);
   mgr->addDagBlock(blkB);
   mgr->addDagBlock(blkC);
@@ -399,12 +374,6 @@ TEST_F(DagTest, get_latest_pivot_tips) {
   DagBlock blk5(blk_hash_t(4), 0, {}, {}, sig_t(1), blk_hash_t(5), addr_t(15));
   DagBlock blk6(blk_hash_t(2), 0, {blk_hash_t(5)}, {}, sig_t(1), blk_hash_t(6),
                 addr_t(15));
-  db_ptr->saveDagBlock(blk1);
-  db_ptr->saveDagBlock(blk2);
-  db_ptr->saveDagBlock(blk3);
-  db_ptr->saveDagBlock(blk4);
-  db_ptr->saveDagBlock(blk5);
-  db_ptr->saveDagBlock(blk6);
   mgr->addDagBlock(blk1);
   mgr->addDagBlock(blk2);
   mgr->addDagBlock(blk3);

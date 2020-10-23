@@ -2,7 +2,6 @@
   "node_secret": "beb2ed10f80e3feaf971614b2674c7de01cfd3127faa1bd055ed50baa1ce34fe",
   "vrf_secret": "938003392792a797193703fbcfee25d65e85c6c9f69f25b8324485409c90f85446b69174b3ec82cc136509367c93f1bb616ed16cbc189dc0afa628c919469c59",
   "db_path": "/tmp/taraxa5",
-  "dag_processing_threads": 1,
   "network_address": "127.0.0.1",
   "network_tcp_port": 10006,
   "network_udp_port": 10006,
@@ -22,7 +21,6 @@
       "udp_port": 10002
     }
   ],
-  "network_id": "testnet",
   "rpc_port": 7781,
   "ws_port": 8781,
   "test_params": {
