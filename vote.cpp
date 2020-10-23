@@ -280,7 +280,6 @@ std::vector<Vote> VoteManager::getAllVotes() {
           return v.second;
         });
   }
-
   return votes;
 }
 
