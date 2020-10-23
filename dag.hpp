@@ -143,8 +143,8 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   void stop();
 
   bool pivotAndTipsAvailable(DagBlock const &blk);
-  void addDagBlock(DagBlock const &blk,
-                   bool finalized = false);  // insert to buffer if fail
+  void addDagBlock(DagBlock const &blk, bool finalized = false,
+                   bool save = true);  // insert to buffer if fail
 
   // return {period, block order}, for pbft-pivot-blk proposing (does not
   // finalize)

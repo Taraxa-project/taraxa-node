@@ -383,9 +383,11 @@ bool DagManager::pivotAndTipsAvailable(DagBlock const &blk) {
   return true;
 }
 
-void DagManager::addDagBlock(DagBlock const &blk, bool finalized) {
+void DagManager::addDagBlock(DagBlock const &blk, bool finalized, bool save) {
   auto write_batch = db_->createWriteBatch();
-  db_->saveDagBlock(blk, write_batch);
+  if (save) {
+    db_->saveDagBlock(blk, write_batch);
+  }
   DagFrontier frontier;
   {
     uLock lock(mutex_);
@@ -663,11 +665,11 @@ void DagManager::recoverDag() {
   }
   for (auto &it : finalized) {
     auto blk = db_->getDagBlock(it.second);
-    addDagBlock(*blk, true);
+    addDagBlock(*blk, true, false);
   }
   for (auto &it : non_finalized) {
     auto blk = db_->getDagBlock(it.second);
-    addDagBlock(*blk, false);
+    addDagBlock(*blk, false, false);
   }
 }
 }  // namespace taraxa
