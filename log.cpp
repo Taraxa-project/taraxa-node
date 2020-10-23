@@ -65,7 +65,7 @@ Logger createTaraxaLogger(int _severity, std::string const &_channel,
 }
 
 std::function<void()> setupLoggingConfiguration(addr_t const &node,
-                                          LoggingConfig const &l) {
+                                                LoggingConfig const &l) {
   boost::log::core::get()->add_sink(
       boost::make_shared<log_sink<boost::log::sinks::text_ostream_backend>>());
   // If there is no output defined, we default to console output
@@ -79,7 +79,8 @@ std::function<void()> setupLoggingConfiguration(addr_t const &node,
                       boost::log::attribute_value_set const &_set) {
       auto const &logging = *logging_p;
       if (logging.channels.count(*_set[channel])) {
-        if (short_node_id_conf == _set[short_node_id]) {
+        if (short_node_id_conf == _set[short_node_id] ||
+            _set[short_node_id].empty()) {
           auto channel_name = _set[channel].get();
           if (_set[severity] > logging.channels.at(channel_name)) return false;
           return true;
