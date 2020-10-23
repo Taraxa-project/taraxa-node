@@ -1282,7 +1282,7 @@ void PbftManager::syncNextVotes_() {
   }
   if (!nextVotesSyncAlreadyThisRoundStep_()) {
     auto round = getPbftRound();
-    LOG(log_dg_) << "Syncing next votes. Send syncing request at round "
+    LOG(log_wr_) << "Syncing next votes. Send syncing request at round "
                  << round << ", step " << step_;
     capability_->syncPbftNextVotes(round);
     pbft_round_last_next_votes_sync_ = round;
@@ -1573,7 +1573,7 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
       dag_mgr_->getDagBlockOrder(dag_block_hash);
   // Add cert votes in DB
   db_->addPbftCertVotesToBatch(pbft_block_hash, cert_votes, batch);
-  LOG(log_dg_) << "Storing cert votes of pbft blk " << pbft_block_hash << "\n"
+  LOG(log_nf_) << "Storing cert votes of pbft blk " << pbft_block_hash << "\n"
                << cert_votes;
   // Add PBFT block in DB
   db_->addPbftBlockToBatch(pbft_block, batch);
