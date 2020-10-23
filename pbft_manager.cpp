@@ -838,7 +838,7 @@ void PbftManager::secondFinish_() {
   }
 
   if (step_ > MAX_STEPS) {
-    LOG(log_wr_) << "Suspect PBFT round behind, need to sync with peers";
+    LOG(log_tr_) << "Suspect PBFT round behind, need to sync with peers";
     syncNextVotes_();
   }
 

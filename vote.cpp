@@ -287,38 +287,45 @@ std::vector<Vote> VoteManager::getAllVotes() {
 bool VoteManager::pbftBlockHasEnoughValidCertVotes(
     PbftBlockCert const& pbft_block_and_votes, size_t valid_sortition_players,
     size_t sortition_threshold, size_t pbft_2t_plus_1) const {
+  if (pbft_block_and_votes.cert_votes.empty()) {
+    LOG(log_er_) << "No any cert votes! The synced PBFT block comes from a "
+                    "malicious player.";
+    return false;
+  }
   blk_hash_t pbft_chain_last_block_hash = pbft_chain_->getLastPbftBlockHash();
   std::vector<Vote> valid_votes;
   auto first_cert_vote_round = pbft_block_and_votes.cert_votes[0].getRound();
   for (auto const& v : pbft_block_and_votes.cert_votes) {
+    // Any info is wrong that can determine the synced PBFT block comes from a
+    // malicious player
     if (v.getType() != cert_vote_type) {
-      LOG(log_wr_) << "For PBFT block "
+      LOG(log_er_) << "For PBFT block "
                    << pbft_block_and_votes.pbft_blk.getBlockHash()
                    << ", cert vote " << v.getHash() << " has wrong vote type "
                    << v.getType();
-      continue;
+      break;
     } else if (v.getRound() != first_cert_vote_round) {
-      LOG(log_wr_) << "For PBFT block "
+      LOG(log_er_) << "For PBFT block "
                    << pbft_block_and_votes.pbft_blk.getBlockHash()
                    << ", cert vote " << v.getHash()
                    << " has a different vote round " << v.getRound()
                    << ", compare to first cert vote "
                    << pbft_block_and_votes.cert_votes[0].getHash()
                    << " has vote round " << first_cert_vote_round;
-      continue;
+      break;
     } else if (v.getStep() != 3) {
-      LOG(log_wr_) << "For PBFT block "
+      LOG(log_er_) << "For PBFT block "
                    << pbft_block_and_votes.pbft_blk.getBlockHash()
                    << ", cert vote " << v.getHash() << " has wrong vote step "
                    << v.getStep();
-      continue;
+      break;
     } else if (v.getBlockHash() !=
                pbft_block_and_votes.pbft_blk.getBlockHash()) {
-      LOG(log_wr_) << "For PBFT block "
+      LOG(log_er_) << "For PBFT block "
                    << pbft_block_and_votes.pbft_blk.getBlockHash()
                    << ", cert vote " << v.getHash()
                    << " has wrong vote block hash " << v.getBlockHash();
-      continue;
+      break;
     }
     if (voteValidation(pbft_chain_last_block_hash, v, valid_sortition_players,
                        sortition_threshold)) {
