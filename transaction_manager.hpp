@@ -41,7 +41,6 @@ class TransactionManager
                      std::shared_ptr<DbStorage> db, boost::log::sources::severity_channel_logger<> log_time);
   explicit TransactionManager(std::shared_ptr<DbStorage> db, addr_t node_addr)
       : db_(db),
-        accs_nonce_(),
         conf_(),
         trx_qu_(node_addr),
         node_addr_(node_addr) {
@@ -108,20 +107,17 @@ class TransactionManager
   bool saveBlockTransactionAndDeduplicate(
       DagBlock const &blk, std::vector<Transaction> const &some_trxs);
 
-  void updateNonce(DagBlock const &blk, DagFrontier const &frontier);
-
   TransactionQueue &getTransactionQueue() { return trx_qu_; }
+  void setDagFrontier(DagFrontier const &frontier);
 
  private:
   DagFrontier getDagFrontier();
-  void setDagFrontier(DagFrontier const &frontier);
   void verifyQueuedTrxs();
   size_t num_verifiers_ = 4;
   addr_t getFullNodeAddress() const;
   VerifyMode mode_ = VerifyMode::normal;
   std::atomic<bool> stopped_ = true;
   std::shared_ptr<DbStorage> db_ = nullptr;
-  AccountNonceTable accs_nonce_;
   TransactionQueue trx_qu_;
   DagFrontier dag_frontier_;  // Dag boundary seen up to now
   std::atomic<unsigned long> trx_count_ = 0;

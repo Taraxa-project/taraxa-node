@@ -54,7 +54,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::atomic<bool> stopped_ = true;
   // configuration
   FullNodeConfig conf_;
-  size_t num_block_workers_ = 2;
   uint64_t propose_threshold_ = 512;
   // Ethereum key pair
   dev::KeyPair kp_;

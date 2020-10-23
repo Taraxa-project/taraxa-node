@@ -26,7 +26,6 @@ TransactionManager::TransactionManager(
     FullNodeConfig const &conf, addr_t node_addr, std::shared_ptr<DbStorage> db,
     boost::log::sources::severity_channel_logger<> log_time)
     : conf_(conf),
-      accs_nonce_(),
       trx_qu_(node_addr),
       node_addr_(node_addr),
       db_(db),
@@ -403,27 +402,6 @@ bool TransactionManager::verifyBlockTransactions(
   return true;
 }
 
-void TransactionManager::updateNonce(DagBlock const &blk,
-                                     DagFrontier const &frontier) {
-  uLock lock(mu_for_nonce_table_);
-  for (auto const &t : blk.getTrxs()) {
-    auto trx = getTransaction(t);
-    assert(trx);
-    auto trx_sender = trx->first.getSender();
-    auto trx_hash = trx->first.getHash();
-    auto [prev_nonce, exist] = accs_nonce_.get(trx_sender);
-    auto trx_nonce = trx->first.getNonce();
-    auto new_nonce = trx_nonce > prev_nonce ? trx_nonce : prev_nonce;
-    accs_nonce_.update(trx_sender, new_nonce);
-  }
-
-  setDagFrontier(frontier);
-  LOG(log_dg_) << " Update nonce of block " << blk.getHash()
-               << " frontier: " << frontier.pivot << " tips: " << frontier.tips
-               << " dag_frontier: " << dag_frontier_.pivot
-               << " dag_tips: " << dag_frontier_.tips;
-}
-
 DagFrontier TransactionManager::getDagFrontier() {
   std::shared_lock l(mu_for_dag_frontier_);
   return dag_frontier_;
@@ -431,6 +409,9 @@ DagFrontier TransactionManager::getDagFrontier() {
 
 void TransactionManager::setDagFrontier(DagFrontier const &frontier) {
   std::unique_lock l(mu_for_dag_frontier_);
+  LOG(log_dg_) << " Update Frontier : " << frontier.pivot << " tips: " << frontier.tips
+               << " dag_frontier: " << dag_frontier_.pivot
+               << " dag_tips: " << dag_frontier_.tips;
   dag_frontier_ = frontier;
 }
 

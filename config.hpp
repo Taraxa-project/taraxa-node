@@ -62,7 +62,7 @@ struct NetworkConfig {
   uint16_t network_min_dag_block_broadcast = 0;
   uint16_t network_max_dag_block_broadcast = 0;
   uint16_t network_sync_level_size = 0;
-  std::string network_id;
+  uint64_t network_id;
   bool network_encrypted = 0;
   bool network_performance_log = 0;
 };
@@ -122,7 +122,6 @@ struct FullNodeConfig {
   std::string node_secret;
   vrf_wrapper::vrf_sk_t vrf_secret;
   fs::path db_path;
-  uint16_t dag_processing_threads = 0;
   NetworkConfig network;
   RpcConfig rpc;
   TestParamsConfig test_params;
