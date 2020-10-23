@@ -289,12 +289,22 @@ bool VoteManager::pbftBlockHasEnoughValidCertVotes(
     size_t sortition_threshold, size_t pbft_2t_plus_1) const {
   blk_hash_t pbft_chain_last_block_hash = pbft_chain_->getLastPbftBlockHash();
   std::vector<Vote> valid_votes;
+  auto first_cert_vote_round = pbft_block_and_votes.cert_votes[0].getRound();
   for (auto const& v : pbft_block_and_votes.cert_votes) {
     if (v.getType() != cert_vote_type) {
       LOG(log_wr_) << "For PBFT block "
                    << pbft_block_and_votes.pbft_blk.getBlockHash()
                    << ", cert vote " << v.getHash() << " has wrong vote type "
                    << v.getType();
+      continue;
+    } else if (v.getRound() != first_cert_vote_round) {
+      LOG(log_wr_) << "For PBFT block "
+                   << pbft_block_and_votes.pbft_blk.getBlockHash()
+                   << ", cert vote " << v.getHash()
+                   << " has a different vote round " << v.getRound()
+                   << ", compare to first cert vote "
+                   << pbft_block_and_votes.cert_votes[0].getHash()
+                   << " has vote round " << first_cert_vote_round;
       continue;
     } else if (v.getStep() != 3) {
       LOG(log_wr_) << "For PBFT block "
