@@ -18,7 +18,6 @@ DbStorage::DbStorage(fs::path const& path)
   rocksdb::Options options;
   options.create_missing_column_families = true;
   options.create_if_missing = true;
-  options.max_open_files = 256;
   vector<ColumnFamilyDescriptor> descriptors;
   std::transform(Columns::all.begin(), Columns::all.end(),
                  std::back_inserter(descriptors), [](const Column& col) {
