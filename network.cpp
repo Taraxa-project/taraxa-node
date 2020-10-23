@@ -36,16 +36,15 @@ Network::Network(NetworkConfig const &config, std::string const &network_file,
                  std::shared_ptr<DagManager> dag_mgr,
                  std::shared_ptr<BlockManager> blk_mgr,
                  std::shared_ptr<TransactionManager> trx_mgr, public_t node_pk,
-                 uint32_t lambda_ms_min) try
-    : conf_(config),
-      db_(db),
-      pbft_mgr_(pbft_mgr),
-      pbft_chain_(pbft_chain),
-      vote_mgr_(vote_mgr),
-      dag_mgr_(dag_mgr),
-      blk_mgr_(blk_mgr),
-      trx_mgr_(trx_mgr),
-      node_pk_(node_pk) {
+                 uint32_t lambda_ms_min) try : conf_(config),
+                                               db_(db),
+                                               pbft_mgr_(pbft_mgr),
+                                               pbft_chain_(pbft_chain),
+                                               vote_mgr_(vote_mgr),
+                                               dag_mgr_(dag_mgr),
+                                               blk_mgr_(blk_mgr),
+                                               trx_mgr_(trx_mgr),
+                                               node_pk_(node_pk) {
   LOG_OBJECTS_CREATE("NETWORK");
   LOG(log_nf_) << "Read Network Config: " << std::endl << conf_ << std::endl;
   auto key = dev::KeyPair::create();
@@ -66,14 +65,15 @@ Network::Network(NetworkConfig const &config, std::string const &network_file,
         dev::p2p::NetworkConfig(conf_.network_address, conf_.network_tcp_port,
                                 false, true),
         dev::bytesConstRef(&networkData), conf_.network_encrypted,
-        conf_.network_ideal_peer_count, conf_.network_max_peer_count);
+        conf_.network_ideal_peer_count, conf_.network_max_peer_count,
+        conf_.net_log);
   } else {
     host_ = std::make_shared<dev::p2p::Host>(
         "TaraxaNode", key, conf_.network_udp_port,
         dev::p2p::NetworkConfig(conf_.network_address, conf_.network_tcp_port,
                                 false, true),
         conf_.network_encrypted, conf_.network_ideal_peer_count,
-        conf_.network_max_peer_count);
+        conf_.network_max_peer_count, conf_.net_log);
   }
   taraxa_capability_ = std::make_shared<TaraxaCapability>(
       *host_.get(), conf_, genesis, conf_.network_performance_log, node_addr,

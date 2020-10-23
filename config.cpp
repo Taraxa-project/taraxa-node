@@ -161,6 +161,9 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object) {
         {"test_params", "block_proposer", "sortition_params", "lambda_bound"});
   }
 
+  //Network logging in p2p library creates performance issues even with channel/verbosity off
+  //Disable it completely in net channel is not present
+  network.net_log = false;
   if (!root["logging"].isNull()) {
     for (auto &item : root["logging"]["configurations"]) {
       auto on = getConfigDataAsBoolean(item, {"on"});
@@ -172,6 +175,9 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object) {
         for (auto &ch : item["channels"]) {
           std::pair<std::string, uint16_t> channel;
           channel.first = getConfigDataAsString(ch, {"name"});
+          if(channel.first == "net") {
+            network.net_log = true;
+          }
           if (ch["verbosity"].isNull()) {
             channel.second = logging.verbosity;
           } else {
