@@ -511,7 +511,7 @@ bool PbftManager::stateOperations_() {
   //       SHOULD DO BEFORE WE SET THE ELAPSED TIME IN ROUND
   // push synced pbft blocks into chain
   pushSyncedPbftBlocksIntoChain_();
-  
+
   now_ = std::chrono::system_clock::now();
   duration_ = now_ - round_clock_initial_datetime_;
   elapsed_time_in_round_ms_ =
