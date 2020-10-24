@@ -324,9 +324,10 @@ Json::Value Test::get_votes(const Json::Value &param1) {
       uint64_t pbft_round = param1["period"].asUInt64();
       std::shared_ptr<PbftManager> pbft_mgr = node->getPbftManager();
       std::shared_ptr<VoteManager> vote_mgr = node->getVoteManager();
+      std::shared_ptr<PbftChain> pbft_chain = node->getPbftChain();
       std::vector<Vote> votes =
           vote_mgr->getVotes(pbft_round, pbft_mgr->getEligibleVoterCount(),
-                             pbft_mgr->getLastPbftBlockHashAtStartOfRound(),
+                             pbft_chain->getLastPbftBlockHash(),
                              pbft_mgr->getSortitionThreshold());
       res = vote_mgr->getJsonStr(votes);
     }

@@ -131,6 +131,9 @@ class PbftChain {
   uint64_t getPbftChainSize() const;
   blk_hash_t getHeadHash() const;
   blk_hash_t getLastPbftBlockHash() const;
+  void setLastPbftBlockHash(blk_hash_t const& last_pbft_block_hash);
+  void setPbftChainHead(blk_hash_t const& head_hash, uint64_t const size,
+                        blk_hash_t const& last_pbft_block_hash);
 
   PbftBlock getPbftBlockInChain(blk_hash_t const& pbft_block_hash);
   std::pair<PbftBlock, bool> getUnverifiedPbftBlock(
@@ -140,7 +143,6 @@ class PbftChain {
                                             bool hash) const;
   std::string getHeadStr() const;
   std::string getJsonStr() const;
-  void setLastPbftBlockHash(blk_hash_t const& new_pbft_block);
 
   bool findPbftBlockInChain(blk_hash_t const& pbft_block_hash) const;
   bool findUnverifiedPbftBlock(blk_hash_t const& pbft_block_hash) const;
@@ -177,13 +179,13 @@ class PbftChain {
 
   mutable boost::shared_mutex sync_access_;
   mutable boost::shared_mutex unverified_access_;
+  mutable boost::shared_mutex chain_head_access_;
 
   blk_hash_t head_hash_;  // pbft head hash
-  std::atomic<uint64_t> size_;
+  uint64_t size_;
   blk_hash_t last_pbft_block_hash_;
 
   blk_hash_t dag_genesis_hash_;  // dag genesis at height 1
-  uint64_t max_dag_blocks_height_ = 0;
 
   std::shared_ptr<DbStorage> db_ = nullptr;
 
