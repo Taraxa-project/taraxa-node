@@ -160,8 +160,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
     LOG_OBJECTS_CREATE_SUB("TRXPRP", trx_prp);
     LOG_OBJECTS_CREATE_SUB("PBFTPRP", pbft_prp);
     LOG_OBJECTS_CREATE_SUB("VOTEPRP", vote_prp);
-    log_perf_ = taraxa::createTaraxaLogger(dev::Verbosity::VerbosityInfo,
-                                           "NETPER", node_addr);
+    LOG_OBJECTS_CREATE_SUB("NETPER", net_per);
     for (uint8_t it = 0; it != PacketCount; it++) {
       packet_count[it] = 0;
       packet_size[it] = 0;
@@ -308,7 +307,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   LOG_OBJECTS_DEFINE_SUB(trx_prp);
   LOG_OBJECTS_DEFINE_SUB(pbft_prp);
   LOG_OBJECTS_DEFINE_SUB(vote_prp);
-  taraxa::Logger log_perf_;
+  LOG_OBJECTS_DEFINE_SUB(net_per);
 };
 }  // namespace taraxa
 #endif

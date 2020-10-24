@@ -118,8 +118,6 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object) {
       getConfigDataAsUInt(root, {"network_sync_level_size"});
   network.network_encrypted =
       getConfigDataAsUInt(root, {"network_encrypted"}) != 0;
-  network.network_performance_log =
-      getConfigDataAsUInt(root, {"network_performance_log"}) & 1;
   for (auto &item : root["network_boot_nodes"]) {
     NodeConfig node;
     node.id = getConfigDataAsString(item, {"id"});
@@ -161,8 +159,8 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object) {
         {"test_params", "block_proposer", "sortition_params", "lambda_bound"});
   }
 
-  //Network logging in p2p library creates performance issues even with channel/verbosity off
-  //Disable it completely in net channel is not present
+  // Network logging in p2p library creates performance issues even with
+  // channel/verbosity off Disable it completely in net channel is not present
   network.net_log = false;
   if (!root["logging"].isNull()) {
     for (auto &item : root["logging"]["configurations"]) {
@@ -175,8 +173,11 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object) {
         for (auto &ch : item["channels"]) {
           std::pair<std::string, uint16_t> channel;
           channel.first = getConfigDataAsString(ch, {"name"});
-          if(channel.first == "net") {
+          if (channel.first == "net") {
             network.net_log = true;
+          }
+          if (channel.first == "NETPER") {
+            network.network_performance_log = true;
           }
           if (ch["verbosity"].isNull()) {
             channel.second = logging.verbosity;
