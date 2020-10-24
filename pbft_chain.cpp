@@ -640,5 +640,4 @@ void PbftChain::insertUnverifiedPbftBlockIntoParentMap_(
     unverified_blocks_map_[prev_block_hash].emplace_back(block_hash);
   }
 }
-
 }  // namespace taraxa
