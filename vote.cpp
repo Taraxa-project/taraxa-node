@@ -230,7 +230,7 @@ std::vector<Vote> VoteManager::getVotes(
       // PBFT chain block This is not immune to malacious attack!!!
       LOG(log_dg_) << "Next vote in current round " << pbft_round
                    << " points to different block hash " << last_pbft_block_hash
-                   << " | vote hash: " << v.getHash()
+                   << " | vote: " << v
                    << " voter address: " << voter_account_address;
       next_vote_with_different_prev_block_has_count++;
     }
@@ -239,7 +239,7 @@ std::vector<Vote> VoteManager::getVotes(
   if (next_vote_with_different_prev_block_has_count > 0) {
     LOG(log_er_) << "Get votes found "
                  << next_vote_with_different_prev_block_has_count
-                 << " next votes for round " << pbft_round + 1
+                 << " next votes in round " << pbft_round
                  << " pointing to different previous pbft chain block hash";
   }
 
