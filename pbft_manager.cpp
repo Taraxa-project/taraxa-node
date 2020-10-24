@@ -1672,7 +1672,7 @@ void PbftManager::countVotes_() {
     LOG(log_nf_test_) << "Round " << round << " step " << step_ << " time "
                       << elapsed_current_step_time_in_ms << "(ms) has "
                       << current_step_votes << " votes";
-    thisThreadSleepForMilliSeconds(100);
+    thisThreadSleepForMilliSeconds(POLLING_INTERVAL_ms/2);
   }
 }
 
