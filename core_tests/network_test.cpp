@@ -232,7 +232,7 @@ TEST_F(NetworkTest, node_network_id) {
 // that the second node syncs with it and that the resulting
 // DAG on the other end is the same
 TEST_F(NetworkTest, node_sync) {
-  auto node_cfgs = make_node_cfgs(2);
+  auto node_cfgs = make_node_cfgs<5>(2);
   FullNode::Handle node1(node_cfgs[0], true);
 
   // Allow node to start up
@@ -659,7 +659,7 @@ TEST_F(NetworkTest, pbft_next_votes_bundle_sync) {
 // Unlike the previous tests, this DAG contains blocks with transactions
 // and verifies that the sync containing transactions is successful
 TEST_F(NetworkTest, node_sync_with_transactions) {
-  auto node_cfgs = make_node_cfgs(2);
+  auto node_cfgs = make_node_cfgs<5>(2);
   FullNode::Handle node1(node_cfgs[0], true);
 
   std::vector<DagBlock> blks;
@@ -773,7 +773,7 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
 // that the second node syncs with it and that the resulting
 // DAG on the other end is the same
 TEST_F(NetworkTest, node_sync2) {
-  auto node_cfgs = make_node_cfgs(2);
+  auto node_cfgs = make_node_cfgs<5>(2);
   FullNode::Handle node1(node_cfgs[0], true);
 
   std::vector<DagBlock> blks;
