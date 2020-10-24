@@ -101,13 +101,24 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
           std::chrono::steady_clock::now();
       std::chrono::steady_clock::time_point begin =
           std::chrono::steady_clock::now();
+      LOG(log_dg_net_per_) << packetToPacketName(_id)
+                         << " received";
       auto ret = interpretCapabilityPacketImpl(_nodeID, _id, _r);
       std::chrono::steady_clock::time_point end =
           std::chrono::steady_clock::now();
+      auto dur = std::chrono::duration_cast<std::chrono::microseconds>(end - begin)
+              .count();
+      if(dur > 100000) {
+      LOG(log_nf_net_per_) << packetToPacketName(_id)
+                         << " processed in: " << dur << "[µs]";
+      }
+      else  {
+      LOG(log_dg_net_per_) << packetToPacketName(_id)
+                         << " processed in: " << dur << "[µs]";
+      }
       perf_data[_id].first++;
       perf_data[_id].second +=
-          std::chrono::duration_cast<std::chrono::microseconds>(end - begin)
-              .count();
+          dur;
       if (std::chrono::duration_cast<std::chrono::seconds>(
               std::chrono::steady_clock::now() - begin_perf)
               .count() > 20) {
@@ -116,15 +127,13 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
         for (auto const &it : perf_data) {
           total_count += it.second.first;
           total_time += it.second.second;
-          LOG(log_perf_) << packetToPacketName(it.first)
+          LOG(log_nf_net_per_) << packetToPacketName(it.first)
                          << " No: " << it.second.first << " - Avg time: "
-                         << it.second.second / it.second.first << "[µs]"
-                         << std::endl;
+                         << it.second.second / it.second.first << "[µs]";
         }
-        LOG(log_perf_) << "All packets"
+        LOG(log_nf_net_per_) << "All packets"
                        << " No: " << total_count
-                       << " - Avg time: " << total_time / total_count << "[µs]"
-                       << std::endl;
+                       << " - Avg time: " << total_time / total_count << "[µs]";
         begin_perf = end;
       }
 
