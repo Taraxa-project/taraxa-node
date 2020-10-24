@@ -56,7 +56,6 @@ class PbftManager {
   void stop();
   void run();
 
-  blk_hash_t getLastPbftBlockHashAtStartOfRound() const;
   std::pair<bool, uint64_t> getDagBlockPeriod(blk_hash_t const &hash);
   std::string getScheduleBlockByPeriod(uint64_t const period);
 

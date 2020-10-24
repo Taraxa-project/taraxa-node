@@ -49,16 +49,16 @@ TEST_F(PbftRpcTest, add_cleanup_get_votes) {
   node->getVoteManager()->clearUnverifiedVotesTable();
 
   // generate 6 votes, each round has 2 votes
+  blk_hash_t blockhash(1);
+  PbftVoteTypes type = propose_vote_type;
+  blk_hash_t pbft_chain_last_block_hash =
+      node->getPbftChain()->getLastPbftBlockHash();
   for (int i = 1; i <= 3; i++) {
     for (int j = 1; j <= 2; j++) {
-      blk_hash_t blockhash(1);
-      blk_hash_t pbft_blockhash =
-          pbft_mgr->getLastPbftBlockHashAtStartOfRound();
-      PbftVoteTypes type = propose_vote_type;
       uint64_t round = i;
       size_t step = j;
-      Vote vote = node->getPbftManager()->generateVote(blockhash, type, round,
-                                                       step, pbft_blockhash);
+      Vote vote = node->getPbftManager()->generateVote(
+          blockhash, type, round, step, pbft_chain_last_block_hash);
       node->getVoteManager()->addVote(vote);
     }
   }
@@ -72,9 +72,8 @@ TEST_F(PbftRpcTest, add_cleanup_get_votes) {
   pbft_mgr->setSortitionThreshold(valid_sortition_players);
   uint64_t pbft_round = 2;
   std::vector<Vote> votes = vote_mgr->getVotes(
-      pbft_round, pbft_mgr->getLastPbftBlockHashAtStartOfRound(),
-      pbft_mgr->getSortitionThreshold(), valid_sortition_players,
-      [](...) { return true; });
+      pbft_round, pbft_chain_last_block_hash, pbft_mgr->getSortitionThreshold(),
+      valid_sortition_players, [](...) { return true; });
   EXPECT_EQ(votes.size(), 4);
   for (Vote const &v : votes) {
     EXPECT_GT(v.getRound(), 1);

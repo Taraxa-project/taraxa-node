@@ -175,10 +175,6 @@ void PbftManager::run() {
   }
 }
 
-blk_hash_t PbftManager::getLastPbftBlockHashAtStartOfRound() const {
-  return pbft_chain_last_block_hash_;
-}
-
 std::pair<bool, uint64_t> PbftManager::getDagBlockPeriod(
     blk_hash_t const &hash) {
   std::pair<bool, uint64_t> res;
@@ -280,12 +276,15 @@ void PbftManager::getNextVotesForLastRound(
 }
 
 void PbftManager::updateNextVotesForRound(std::vector<Vote> next_votes) {
+  LOG(log_nf_) << "Store " << next_votes.size() << " next votes at round "
+               << getPbftRound() << " step " << step_;
   uniqueLock_ lock(next_votes_access_);
   // Cleanup next votes
   next_votes_for_last_round_.clear();
   // Store enough next votes for round and step
   for (auto const &v : next_votes) {
     next_votes_for_last_round_[v.getHash()] = v;
+    LOG(log_nf_) << "Store next vote: " << v;
   }
 }
 
@@ -335,10 +334,6 @@ bool PbftManager::resetRound_() {
     LAMBDA_ms = LAMBDA_ms_MIN;
     last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
     current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
-
-    // Update pbft chain last block hash at start of new round...
-    pbft_chain_last_block_hash_ = pbft_chain_->getLastPbftBlockHash();
-    // END ROUND START STATE CHANGE UPDATES
 
     // p2p connection syncing should cover this situation, sync here for safe
     if (consensus_pbft_round > local_round + 1 &&
@@ -517,7 +512,7 @@ bool PbftManager::stateOperations_() {
   //       SHOULD DO BEFORE WE SET THE ELAPSED TIME IN ROUND
   // push synced pbft blocks into chain
   pushSyncedPbftBlocksIntoChain_();
-  
+
   // WRONG TO DO HERE... ONLY DO AT START OF A NEW ROUND
   // update pbft chain last block hash
   // pbft_chain_last_block_hash_ = pbft_chain_->getLastPbftBlockHash();
@@ -542,8 +537,7 @@ bool PbftManager::stateOperations_() {
   // CHECK IF WE HAVE RECEIVED 2t+1 CERT VOTES FOR A BLOCK IN OUR CURRENT
   // ROUND.  IF WE HAVE THEN WE EXECUTE THE BLOCK
   // ONLY CHECK IF HAVE *NOT* YET EXECUTED THIS ROUND...
-  if ((state_ == certify_state || state_ == finish_state) &&
-      !have_executed_this_round_) {
+  if (state_ == certify_state && !have_executed_this_round_) {
     std::vector<Vote> cert_votes_for_round =
         getVotesOfTypeFromVotesForRoundAndStep_(
             cert_vote_type, votes_, round, 3,
@@ -707,7 +701,7 @@ void PbftManager::certifyBlock_() {
         LOG(log_tr_)
             << "Have already executed before certifying in step 3 in round "
             << round;
-        if (pbft_chain_->getLastPbftBlockHash() ==
+        if (pbft_chain_last_block_hash_ ==
             soft_voted_block_for_this_round_.first) {
           LOG(log_tr_) << "Having executed, last block in chain is the "
                           "soft voted block in round "
@@ -1039,11 +1033,11 @@ std::pair<blk_hash_t, bool> PbftManager::softVotedBlockForRound_(
 
 std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
   LOG(log_dg_) << "Into propose PBFT block";
-  blk_hash_t last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
   PbftBlock last_pbft_block;
   std::string last_period_dag_anchor_block_hash;
-  if (last_pbft_block_hash) {
-    last_pbft_block = pbft_chain_->getPbftBlockInChain(last_pbft_block_hash);
+  if (pbft_chain_last_block_hash_) {
+    last_pbft_block =
+        pbft_chain_->getPbftBlockInChain(pbft_chain_last_block_hash_);
     last_period_dag_anchor_block_hash =
         last_pbft_block.getPivotDagBlockHash().toString();
   } else {
@@ -1158,7 +1152,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
   uint64_t propose_pbft_period = pbft_chain_->getPbftChainSize() + 1;
   addr_t beneficiary = node_addr_;
   // generate generate pbft block
-  PbftBlock pbft_block(last_pbft_block_hash, dag_block_hash, schedule,
+  PbftBlock pbft_block(pbft_chain_last_block_hash_, dag_block_hash, schedule,
                        propose_pbft_period, beneficiary, node_sk_);
   // push pbft block
   pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
@@ -1605,6 +1599,9 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
   LOG(log_dg_) << "DB write batch committed";
   // After DB commit, confirm in final chain(Ethereum)
   final_chain_->advance_confirm();
+  // Update pbft chain last block hash
+  pbft_chain_last_block_hash_ = pbft_block_hash;
+  assert(pbft_chain_last_block_hash_ == pbft_chain_->getLastPbftBlockHash());
   // Ethereum filter
   trx_mgr_->getFilterAPI()->note_block(new_eth_header.hash());
   trx_mgr_->getFilterAPI()->note_receipts(trx_receipts);

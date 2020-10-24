@@ -309,7 +309,7 @@ PbftChain::PbftChain(std::string const& dag_genesis_hash, addr_t node_addr,
                      std::shared_ptr<DbStorage> db)
     : head_hash_(blk_hash_t(0)),
       size_(0),
-      last_pbft_block_hash_(head_hash_),
+      last_pbft_block_hash_(blk_hash_t(0)),
       dag_genesis_hash_(blk_hash_t(dag_genesis_hash)),
       db_(db) {
   LOG_OBJECTS_CREATE("PBFT_CHAIN");
@@ -322,9 +322,11 @@ PbftChain::PbftChain(std::string const& dag_genesis_hash, addr_t node_addr,
     Json::Value doc;
     Json::Reader reader;
     reader.parse(pbft_head_str, doc);
-    head_hash_ = blk_hash_t(doc["head_hash"].asString());
-    size_ = doc["size"].asUInt64();
-    last_pbft_block_hash_ = blk_hash_t(doc["last_pbft_block_hash"].asString());
+    auto head_hash = blk_hash_t(doc["head_hash"].asString());
+    auto size = doc["size"].asUInt64();
+    auto last_pbft_block_hash =
+        blk_hash_t(doc["last_pbft_block_hash"].asString());
+    setPbftChainHead(head_hash, size, last_pbft_block_hash);
   }
 }
 
@@ -346,16 +348,34 @@ void PbftChain::cleanupUnverifiedPbftBlocks(
   unverified_blocks_map_.erase(prev_block_hash);
 }
 
-uint64_t PbftChain::getPbftChainSize() const { return size_; }
+blk_hash_t PbftChain::getHeadHash() const {
+  sharedLock_ lock(chain_head_access_);
+  return head_hash_;
+}
 
-blk_hash_t PbftChain::getHeadHash() const { return head_hash_; }
+uint64_t PbftChain::getPbftChainSize() const {
+  sharedLock_ lock(chain_head_access_);
+  return size_;
+}
 
 blk_hash_t PbftChain::getLastPbftBlockHash() const {
+  sharedLock_ lock(chain_head_access_);
   return last_pbft_block_hash_;
 }
 
-void PbftChain::setLastPbftBlockHash(blk_hash_t const& new_pbft_block_hash) {
-  last_pbft_block_hash_ = new_pbft_block_hash;
+void PbftChain::setLastPbftBlockHash(
+    const taraxa::blk_hash_t& last_pbft_block_hash) {
+  uniqueLock_ lock(chain_head_access_);
+  last_pbft_block_hash_ = last_pbft_block_hash;
+}
+
+void PbftChain::setPbftChainHead(
+    const taraxa::blk_hash_t& head_hash, const uint64_t size,
+    const taraxa::blk_hash_t& last_pbft_block_hash) {
+  uniqueLock_ lock(chain_head_access_);
+  head_hash_ = head_hash;
+  size_ = size;
+  last_pbft_block_hash_ = last_pbft_block_hash;
 }
 
 bool PbftChain::findPbftBlockInChain(
@@ -454,8 +474,9 @@ std::vector<std::string> PbftChain::getPbftBlocksStr(size_t period,
 
 void PbftChain::updatePbftChain(blk_hash_t const& pbft_block_hash) {
   pbftSyncedSetInsert_(pbft_block_hash);
+  uniqueLock_ lock(chain_head_access_);
   size_++;
-  setLastPbftBlockHash(pbft_block_hash);
+  last_pbft_block_hash_ = pbft_block_hash;
 }
 
 bool PbftChain::checkPbftBlockValidationFromSyncing(
@@ -479,8 +500,9 @@ bool PbftChain::checkPbftBlockValidationFromSyncing(
 
 bool PbftChain::checkPbftBlockValidation(
     taraxa::PbftBlock const& pbft_block) const {
-  if (pbft_block.getPrevBlockHash() != last_pbft_block_hash_) {
-    LOG(log_er_) << "PBFT chain last block hash " << last_pbft_block_hash_
+  auto last_pbft_block_hash = getLastPbftBlockHash();
+  if (pbft_block.getPrevBlockHash() != last_pbft_block_hash) {
+    LOG(log_er_) << "PBFT chain last block hash " << last_pbft_block_hash
                  << " Invalid PBFT prev block hash "
                  << pbft_block.getPrevBlockHash();
     return false;
@@ -492,7 +514,7 @@ bool PbftChain::checkPbftBlockValidation(
 void PbftChain::pushUnverifiedPbftBlock(taraxa::PbftBlock const& pbft_block) {
   blk_hash_t block_hash = pbft_block.getBlockHash();
   blk_hash_t prev_block_hash = pbft_block.getPrevBlockHash();
-  if (prev_block_hash != last_pbft_block_hash_) {
+  if (prev_block_hash != getLastPbftBlockHash()) {
     if (findPbftBlockInChain(block_hash)) {
       // The block comes from slow node, drop
       return;
@@ -514,18 +536,18 @@ void PbftChain::pushUnverifiedPbftBlock(taraxa::PbftBlock const& pbft_block) {
 std::string PbftChain::getHeadStr() const {
   std::stringstream strm;
   strm << "[PbftChain]" << std::endl;
-  strm << "head hash: " << head_hash_.toString() << std::endl;
-  strm << "size: " << size_ << std::endl;
-  strm << "last pbft block hash: " << last_pbft_block_hash_.toString()
+  strm << "head hash: " << getHeadHash().toString() << std::endl;
+  strm << "size: " << getPbftChainSize() << std::endl;
+  strm << "last pbft block hash: " << getLastPbftBlockHash().toString()
        << std::endl;
   return strm.str();
 }
 
 std::string PbftChain::getJsonStr() const {
   Json::Value json;
-  json["head_hash"] = head_hash_.toString();
-  json["size"] = (Json::Value::UInt64)size_;
-  json["last_pbft_block_hash"] = last_pbft_block_hash_.toString();
+  json["head_hash"] = getHeadHash().toString();
+  json["size"] = (Json::Value::UInt64)getPbftChainSize();
+  json["last_pbft_block_hash"] = getLastPbftBlockHash().toString();
   json["dag_genesis_hash"] = dag_genesis_hash_.toString();
   return json.toStyledString();
 }
@@ -543,7 +565,7 @@ bool PbftChain::isKnownPbftBlockForSyncing(
 
 uint64_t PbftChain::pbftSyncingPeriod() const {
   if (pbft_synced_queue_.empty()) {
-    return size_;
+    return getPbftChainSize();
   } else {
     return pbftSyncedQueueBack().pbft_blk.getPeriod();
   }
@@ -618,5 +640,4 @@ void PbftChain::insertUnverifiedPbftBlockIntoParentMap_(
     unverified_blocks_map_[prev_block_hash].emplace_back(block_hash);
   }
 }
-
 }  // namespace taraxa
