@@ -510,10 +510,8 @@ bool PbftManager::stateOperations_() {
   // NOTE: PUSHING OF SYNCED BLOCKS CAN TAKE A LONG TIME
   //       SHOULD DO BEFORE WE SET THE ELAPSED TIME IN ROUND
   // push synced pbft blocks into chain
-  if (state_ != finish_state && state_ != finish_polling_state) {
-    pushSyncedPbftBlocksIntoChain_();
-  }
-
+  pushSyncedPbftBlocksIntoChain_();
+  
   now_ = std::chrono::system_clock::now();
   duration_ = now_ - round_clock_initial_datetime_;
   elapsed_time_in_round_ms_ =
