@@ -1112,7 +1112,6 @@ int main(int argc, char** argv) {
   taraxa::static_init();
   LoggingConfig logging;
   logging.verbosity = taraxa::VerbosityError;
-  logging.channels["VDF"] = taraxa::VerbosityError;
   addr_t node_addr;
   setupLoggingConfiguration(node_addr, logging);
   ::testing::InitGoogleTest(&argc, argv);

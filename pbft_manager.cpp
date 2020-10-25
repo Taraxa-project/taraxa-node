@@ -257,11 +257,10 @@ void PbftManager::setPbftStep(size_t const pbft_step) {
   if (step_ > MAX_STEPS) {
     // Note: We calculate the lambda for a step independently of prior steps
     //       in case missed earlier steps.
-    LAMBDA_ms = 100 * LAMBDA_ms_MIN;
-    // LAMBDA_ms = LAMBDA_ms_MIN
-    //            << (step_ - MAX_STEPS);  // Multiply by 2 each step...
-    LOG(log_nf_) << "Surpassed max steps, relaxing lambda to " << LAMBDA_ms
-                 << " ms in round " << getPbftRound() << ", step " << step_;
+    //LAMBDA_ms = 100 * LAMBDA_ms_MIN;
+    //LOG(log_nf_) << "Surpassed max steps, relaxing lambda to " << LAMBDA_ms
+    //             << " ms in round " << getPbftRound() << ", step " << step_;
+    LAMBDA_ms = LAMBDA_ms_MIN;
   } else {
     LAMBDA_ms = LAMBDA_ms_MIN;
   }
@@ -782,12 +781,12 @@ void PbftManager::secondFinish_() {
                << " in round " << round;
   long end_time_for_step =
       (step_ + 1) * LAMBDA_ms + STEP_4_DELAY + 2 * POLLING_INTERVAL_ms;
-  if (step_ > MAX_STEPS) {
-    u_long LAMBDA_ms_BIG = 100 * LAMBDA_ms_MIN;
-    end_time_for_step = MAX_STEPS * LAMBDA_ms_MIN +
-                        (step_ - MAX_STEPS + 1) * LAMBDA_ms_BIG + STEP_4_DELAY +
-                        2 * POLLING_INTERVAL_ms;
-  }
+  //if (step_ > MAX_STEPS) {
+  //  u_long LAMBDA_ms_BIG = 100 * LAMBDA_ms_MIN;
+  //  end_time_for_step = MAX_STEPS * LAMBDA_ms_MIN +
+  //                      (step_ - MAX_STEPS + 1) * LAMBDA_ms_BIG + STEP_4_DELAY +
+  //                      2 * POLLING_INTERVAL_ms;
+  //}*/
   if (elapsed_time_in_round_ms_ > end_time_for_step) {
     // Should not happen, add log here for safety checking
     if (have_executed_this_round_) {
@@ -1675,7 +1674,7 @@ void PbftManager::countVotes_() {
     LOG(log_nf_test_) << "Round " << round << " step " << step_ << " time "
                       << elapsed_current_step_time_in_ms << "(ms) has "
                       << current_step_votes << " votes";
-    thisThreadSleepForMilliSeconds(100);
+    thisThreadSleepForMilliSeconds(POLLING_INTERVAL_ms/2);
   }
 }
 
