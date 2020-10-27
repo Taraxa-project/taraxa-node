@@ -45,7 +45,7 @@ void TaraxaCapability::syncPeerPbft(NodeID const &_nodeID,
 std::pair<bool, blk_hash_t> TaraxaCapability::checkDagBlockValidation(
     DagBlock const &block) {
   level_t expected_level = 0;
-  if(blk_mgr_->getDagBlock(block.getHash()) != nullptr) {
+  if (blk_mgr_->getDagBlock(block.getHash()) != nullptr) {
     return std::make_pair(true, blk_hash_t());
   }
   for (auto const &tip : block.getTips()) {
@@ -73,15 +73,6 @@ std::pair<bool, blk_hash_t> TaraxaCapability::checkDagBlockValidation(
         std::to_string(expected_level));
   }
 
-  // Verify VDF solution
-  vdf_sortition::VdfSortition vdf = block.getVdf();
-  if (!vdf.verifyVdf(expected_level, block.getPivot().toString())) {
-    LOG(log_dg_) << "DAG block " << block.getHash()
-                 << " failed on VDF verification with pivot hash "
-                 << block.getPivot();
-    return std::make_pair(false, blk_hash_t());
-  }
-
   return std::make_pair(true, blk_hash_t());
 }
 
@@ -104,24 +95,22 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
           std::chrono::steady_clock::now();
       std::chrono::steady_clock::time_point begin =
           std::chrono::steady_clock::now();
-      LOG(log_dg_net_per_) << packetToPacketName(_id)
-                         << " received";
+      LOG(log_dg_net_per_) << packetToPacketName(_id) << " received";
       auto ret = interpretCapabilityPacketImpl(_nodeID, _id, _r);
       std::chrono::steady_clock::time_point end =
           std::chrono::steady_clock::now();
-      auto dur = std::chrono::duration_cast<std::chrono::microseconds>(end - begin)
+      auto dur =
+          std::chrono::duration_cast<std::chrono::microseconds>(end - begin)
               .count();
-      if(dur > 100000) {
-      LOG(log_nf_net_per_) << packetToPacketName(_id)
-                         << " processed in: " << dur << "[µs]";
-      }
-      else  {
-      LOG(log_dg_net_per_) << packetToPacketName(_id)
-                         << " processed in: " << dur << "[µs]";
+      if (dur > 100000) {
+        LOG(log_nf_net_per_)
+            << packetToPacketName(_id) << " processed in: " << dur << "[µs]";
+      } else {
+        LOG(log_dg_net_per_)
+            << packetToPacketName(_id) << " processed in: " << dur << "[µs]";
       }
       perf_data[_id].first++;
-      perf_data[_id].second +=
-          dur;
+      perf_data[_id].second += dur;
       if (std::chrono::duration_cast<std::chrono::seconds>(
               std::chrono::steady_clock::now() - begin_perf)
               .count() > 20) {
@@ -130,13 +119,15 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
         for (auto const &it : perf_data) {
           total_count += it.second.first;
           total_time += it.second.second;
-          LOG(log_nf_net_per_) << packetToPacketName(it.first)
-                         << " No: " << it.second.first << " - Avg time: "
-                         << it.second.second / it.second.first << "[µs]";
+          LOG(log_nf_net_per_)
+              << packetToPacketName(it.first) << " No: " << it.second.first
+              << " - Avg time: " << it.second.second / it.second.first
+              << "[µs]";
         }
-        LOG(log_nf_net_per_) << "All packets"
-                       << " No: " << total_count
-                       << " - Avg time: " << total_time / total_count << "[µs]";
+        LOG(log_nf_net_per_)
+            << "All packets"
+            << " No: " << total_count
+            << " - Avg time: " << total_time / total_count << "[µs]";
         begin_perf = end;
       }
 
@@ -588,6 +579,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           auto item_count = _r.itemCount();
           LOG(log_dg_pbft_sync_)
               << "In PbftBlockPacket received " << item_count;
+          auto it = _r.begin();
           uint64_t pbft_block_counter = 0;
           uint64_t dag_block_counter = 0;
           uint64_t dag_block_trx_counter = 0;
@@ -599,11 +591,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
                     dag_block_trx_counter >=
                 item_count)
               break;
-            PbftBlockCert pbft_blk_and_votes(
-                _r[pbft_block_counter + dag_block_counter +
-                   dag_block_trx_counter]
-                    .data()
-                    .toBytes());
+            PbftBlockCert pbft_blk_and_votes((*it++).data().toBytes());
             LOG(log_dg_pbft_sync_)
                 << "Received pbft block: "
                 << pbft_blk_and_votes.pbft_blk.getBlockHash();
@@ -631,20 +619,13 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
                 dag_blocks_per_level;
             for (auto const &dag_hash :
                  pbft_blk_and_votes.pbft_blk.getSchedule().dag_blks_order) {
-              DagBlock block(_r[pbft_block_counter + dag_block_counter +
-                                dag_block_trx_counter]
-                                 .data()
-                                 .toBytes());
+              DagBlock block((*it++).data().toBytes());
               dag_block_counter++;
               peer->markBlockAsKnown(block.getHash());
 
               std::vector<Transaction> newTransactions;
               for (auto const &trx_hash : block.getTrxs()) {
-                Transaction transaction(
-                    _r[pbft_block_counter + dag_block_counter +
-                       dag_block_trx_counter]
-                        .data()
-                        .toBytes());
+                Transaction transaction((*it++).data().toBytes());
                 dag_block_trx_counter++;
                 newTransactions.push_back(transaction);
                 peer->markTransactionAsKnown(transaction.getHash());
