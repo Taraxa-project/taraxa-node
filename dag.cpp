@@ -412,8 +412,8 @@ void DagManager::addDagBlock(DagBlock const &blk, bool finalized, bool save) {
     for (auto const &t : ts) {
       frontier.tips.emplace_back(blk_hash_t(t));
     }
+    db_->commitWriteBatch(write_batch);
   }
-  db_->commitWriteBatch(write_batch);
   if (trx_mgr_) {
     trx_mgr_->setDagFrontier(frontier);
   }
