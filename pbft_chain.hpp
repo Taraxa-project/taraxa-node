@@ -73,8 +73,7 @@ std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk);
 struct PbftBlockCert {
   PbftBlockCert(PbftBlock const& pbft_blk, std::vector<Vote> const& cert_votes);
   explicit PbftBlockCert(dev::RLP const& all_rlp);
-  explicit PbftBlockCert(bytes const& all_rlp)
-      : PbftBlockCert(dev::RLP(all_rlp)) {}
+  explicit PbftBlockCert(bytes const& all_rlp);
   PbftBlockCert(PbftBlock const& pbft_blk, bytes const& cert_votes_rlp);
 
   std::shared_ptr<PbftBlock> pbft_blk;

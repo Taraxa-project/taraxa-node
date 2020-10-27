@@ -1236,8 +1236,7 @@ bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(
   std::tie(period, dag_blocks_hash_order) =
       dag_mgr_->getDagBlockOrder(dag_block_hash);
   // compare DAG blocks hash in PBFT schedule with DAG blocks
-  vec_blk_t dag_blocks_hash_in_schedule =
-      pbft_block.getSchedule().dag_blks_order;
+  vec_blk_t dag_blocks_hash_in_schedule;  // TODO
   if (dag_blocks_hash_in_schedule.size() == dag_blocks_hash_order->size()) {
     for (auto i = 0; i < dag_blocks_hash_in_schedule.size(); i++) {
       if (dag_blocks_hash_in_schedule[i] != (*dag_blocks_hash_order)[i]) {
@@ -1434,7 +1433,7 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
   unordered_set<trx_hash_t> unique_trxs;
   unique_trxs.reserve(transactions_tmp_buf_.size());
   for (auto const &dag_blk_raw :
-       db_->multi_get1(DbStorage::Columns::dag_blocks, dag_blk_hashes)) {
+       db_->multi_get(DbStorage::Columns::dag_blocks, dag_blk_hashes)) {
     DagBlock dag_blk((dev::RLP(dag_blk_raw)));
     auto const &dag_blk_trx_hashes = dag_blk.getTrxs();
     vector<trx_hash_t> trx_hashes_to_exec;
@@ -1448,12 +1447,11 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
       }
     }
     auto trxs_raw =
-        db_->multi_get1(DbStorage::Columns::transactions, trx_hashes_to_exec);
+        db_->multi_get(DbStorage::Columns::transactions, trx_hashes_to_exec);
     for (uint i = 0; i < trxs_raw.size(); ++i) {
-      auto const &trx =
-          transactions_tmp_buf_.emplace_back(dev::eth::Transaction(
-              dev::RLP(trxs_raw[i]), dev::eth::CheckTransaction::None, true,
-              trx_hashes_to_exec[i]));
+      auto const &trx = transactions_tmp_buf_.emplace_back(
+          &trxs_raw[i], dev::eth::CheckTransaction::None, true,
+          trx_hashes_to_exec[i]);
       if (replay_protection_service->is_nonce_stale(trx.sender(),
                                                     trx.nonce())) {
         transactions_tmp_buf_.pop_back();

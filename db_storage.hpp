@@ -220,7 +220,7 @@ struct DbStorage {
 
   template <unsigned N>
   inline static Slice toSlice(dev::FixedHash<N> const& h) {
-    return {h.data(), N};
+    return {reinterpret_cast<char const*>(h.data()), N};
   }
 
   inline static Slice toSlice(dev::bytes const& b) { return toSlice(&b); }

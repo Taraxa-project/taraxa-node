@@ -15,51 +15,15 @@ namespace taraxa::core_tests {
 
 struct PbftChainTest : BaseTest {};
 
-TEST_F(PbftChainTest, serialize_deserialize_trx_schedule) {
-  vec_blk_t blks{blk_hash_t(123), blk_hash_t(456), blk_hash_t(32443)};
-  std::vector<vec_trx_t> trxs_list{
-      {trx_hash_t(1), trx_hash_t(2), trx_hash_t(3)},
-      {},
-      {trx_hash_t(4), trx_hash_t(5)}};
-  std::vector<std::vector<std::pair<trx_hash_t, uint>>> trxs_mode;
-  for (int i = 0; i < trxs_list.size(); i++) {
-    std::vector<std::pair<trx_hash_t, uint>> one_blk_trxs_mode;
-    for (int j = 0; j < trxs_list[i].size(); j++) {
-      one_blk_trxs_mode.emplace_back(std::make_pair(trxs_list[i][j], 1));
-    }
-    trxs_mode.emplace_back(one_blk_trxs_mode);
-  }
-  EXPECT_EQ(trxs_mode.size(), blks.size());
-  TrxSchedule sche1(blks, trxs_mode);
-  auto rlp = sche1.rlp();
-  TrxSchedule sche2(rlp);
-  EXPECT_EQ(sche1, sche2);
-}
-
 TEST_F(PbftChainTest, serialize_desiriablize_pbft_block) {
   auto node_cfgs = make_node_cfgs(1);
   dev::Secret sk(node_cfgs[0].node_secret);
   // Generate PBFT block sample
   blk_hash_t prev_block_hash(12345);
   blk_hash_t dag_block_hash_as_pivot(45678);
-  vec_blk_t blks{blk_hash_t(123), blk_hash_t(456), blk_hash_t(789)};
-  std::vector<vec_trx_t> trxs_list{
-      {trx_hash_t(1), trx_hash_t(2), trx_hash_t(3)},
-      {},
-      {trx_hash_t(4), trx_hash_t(5)}};
-  std::vector<std::vector<std::pair<trx_hash_t, uint>>> trxs_mode;
-  for (int i = 0; i < trxs_list.size(); i++) {
-    std::vector<std::pair<trx_hash_t, uint>> one_blk_trxs_mode;
-    for (int j = 0; j < trxs_list[i].size(); j++) {
-      one_blk_trxs_mode.emplace_back(std::make_pair(trxs_list[i][j], 1));
-    }
-    trxs_mode.emplace_back(one_blk_trxs_mode);
-  }
-  EXPECT_EQ(trxs_mode.size(), blks.size());
-  TrxSchedule schedule(blks, trxs_mode);
   uint64_t period = 1;
   addr_t beneficiary(98765);
-  PbftBlock pbft_block1(prev_block_hash, dag_block_hash_as_pivot, schedule,
+  PbftBlock pbft_block1(prev_block_hash, dag_block_hash_as_pivot,
                         period, beneficiary, sk);
 
   auto rlp = pbft_block1.rlp(true);
@@ -79,10 +43,9 @@ TEST_F(PbftChainTest, pbft_db_test) {
   // generate PBFT block sample
   blk_hash_t prev_block_hash(0);
   blk_hash_t dag_blk(123);
-  TrxSchedule schedule;
   uint64_t period = 1;
   addr_t beneficiary(987);
-  PbftBlock pbft_block1(prev_block_hash, dag_blk, schedule, period, beneficiary,
+  PbftBlock pbft_block1(prev_block_hash, dag_blk, period, beneficiary,
                         node->getSecretKey());
 
   // put into pbft chain and store into DB
@@ -146,11 +109,10 @@ TEST_F(PbftChainTest, block_broadcast) {
   // generate first PBFT block sample
   blk_hash_t prev_block_hash(0);
   blk_hash_t dag_blk(123);
-  TrxSchedule schedule;
   uint64_t period = 1;
   addr_t beneficiary(987);
   auto pbft_block =
-      s_ptr(new PbftBlock(prev_block_hash, dag_blk, schedule, period,
+      s_ptr(new PbftBlock(prev_block_hash, dag_blk, period,
                           beneficiary, node1->getSecretKey()));
 
   node1->getPbftChain()->pushUnverifiedPbftBlock(pbft_block);

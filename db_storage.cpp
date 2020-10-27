@@ -397,7 +397,13 @@ vector<string> DbStorage::multi_get(Column const& col,
 vector<blk_hash_t> DbStorage::getFinalizedDagBlockHashesByAnchor(
     blk_hash_t const& anchor) {
   auto raw = lookup(toSlice(anchor), Columns::dag_finalized_blocks);
-  return RLP(raw).toVector<blk_hash_t>();
+  vector<blk_hash_t> ret;
+  ret.reserve(1 + (raw.size() / blk_hash_t::size));
+  ret.emplace_back(anchor);
+  for (auto const& el : RLP(raw)) {
+    ret.emplace_back(el.toHash<blk_hash_t>());
+  }
+  return ret;
 }
 
 void DbStorage::putFinalizedDagBlockHashesByAnchor(

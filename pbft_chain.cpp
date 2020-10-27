@@ -17,6 +17,9 @@ PbftBlock::PbftBlock(dev::RLP const& r) {
   calculateHash_();
 }
 
+PbftBlockCert::PbftBlockCert(bytes const& all_rlp)
+    : PbftBlockCert(dev::RLP(all_rlp)) {}
+
 PbftBlock::PbftBlock(blk_hash_t const& prev_blk_hash,
                      blk_hash_t const& dag_blk_hash_as_pivot, uint64_t period,
                      addr_t const& beneficiary, secret_t const& sk)

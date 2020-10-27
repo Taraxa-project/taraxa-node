@@ -374,8 +374,9 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
       nodes[0]->getPbftChain()->getLastPbftBlockHash();
   PbftBlock pbft_second_block =
       nodes[0]->getPbftChain()->getPbftBlockInChain(pbft_second_block_hash);
-  vec_blk_t dag_blocks_hash_in_schedule =
-      pbft_second_block.getSchedule().dag_blks_order;
+  auto db_0 = nodes[0]->getDB();
+  auto dag_blocks_hash_in_schedule = db_0->getFinalizedDagBlockHashesByAnchor(
+      pbft_second_block.getPivotDagBlockHash());
   // due to change of trx packing change, a trx can be packed in multiple blocks
   EXPECT_GE(dag_blocks_hash_in_schedule.size(), 1);
   for (auto &dag_block_hash : dag_blocks_hash_in_schedule) {
@@ -387,7 +388,8 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   // PBFT first block
   PbftBlock pbft_first_block =
       nodes[0]->getPbftChain()->getPbftBlockInChain(pbft_first_block_hash);
-  dag_blocks_hash_in_schedule = pbft_first_block.getSchedule().dag_blks_order;
+  dag_blocks_hash_in_schedule = db_0->getFinalizedDagBlockHashesByAnchor(
+      pbft_first_block.getPivotDagBlockHash());
   // due to change of trx packing change, a trx can be packed in multiple blocks
   EXPECT_GE(dag_blocks_hash_in_schedule.size(), 1);
   for (auto &dag_block_hash : dag_blocks_hash_in_schedule) {
@@ -396,7 +398,8 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   }
 }
 
-TEST_F(PbftManagerTest, DISABLED_check_committeeSize_less_or_equal_to_activePlayers) {
+TEST_F(PbftManagerTest,
+       DISABLED_check_committeeSize_less_or_equal_to_activePlayers) {
   // Set committee size to 1, make sure to be committee <= active_players
   check_2tPlus1_validVotingPlayers_activePlayers_threshold(1);
 }

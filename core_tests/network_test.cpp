@@ -352,11 +352,8 @@ TEST_F(NetworkTest, node_pbft_sync) {
   blk1.sign(sk);
   node1->getBlockManager()->insertBlock(blk1);
 
-  TrxSchedule schedule;
-  schedule.dag_blks_order.push_back(blk1.getHash());
-  schedule.trxs_mode.push_back(std::vector<std::pair<trx_hash_t, uint>>());
-  PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), schedule, period,
-                        beneficiary, node1->getSecretKey());
+  PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), period, beneficiary,
+                        node1->getSecretKey());
 
   std::vector<Vote> votes_for_pbft_blk1;
   votes_for_pbft_blk1.emplace_back(node1->getPbftManager()->generateVote(
@@ -392,14 +389,10 @@ TEST_F(NetworkTest, node_pbft_sync) {
   blk2.sign(sk);
   node1->getBlockManager()->insertBlock(blk2);
 
-  TrxSchedule schedule2;
-  schedule2.dag_blks_order.push_back(blk2.getHash());
-  schedule2.trxs_mode.push_back(std::vector<std::pair<trx_hash_t, uint>>());
-
   period = 2;
   beneficiary = addr_t(654);
-  PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), schedule2, 2,
-                        beneficiary, node1->getSecretKey());
+  PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), 2, beneficiary,
+                        node1->getSecretKey());
 
   std::vector<Vote> votes_for_pbft_blk2;
   votes_for_pbft_blk2.emplace_back(node1->getPbftManager()->generateVote(
@@ -490,12 +483,8 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   blk1.sign(sk);
   node1->getBlockManager()->insertBlock(blk1);
 
-  TrxSchedule schedule;
-  schedule.dag_blks_order.push_back(blk1.getHash());
-  schedule.trxs_mode.push_back(std::vector<std::pair<trx_hash_t, uint>>());
-
-  PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), schedule, period,
-                        beneficiary, node1->getSecretKey());
+  PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), period, beneficiary,
+                        node1->getSecretKey());
   std::vector<Vote> votes_for_pbft_blk1;
   votes_for_pbft_blk1.emplace_back(node1->getPbftManager()->generateVote(
       pbft_block1.getBlockHash(), cert_vote_type, 1, 3, prev_block_hash));
@@ -531,15 +520,11 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   blk2.sign(sk);
   node1->getBlockManager()->insertBlock(blk2);
 
-  TrxSchedule schedule2;
-  schedule2.dag_blks_order.push_back(blk2.getHash());
-  schedule2.trxs_mode.push_back(std::vector<std::pair<trx_hash_t, uint>>());
-
   period = 2;
   beneficiary = addr_t(654);
 
-  PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), schedule, period,
-                        beneficiary, node1->getSecretKey());
+  PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), period, beneficiary,
+                        node1->getSecretKey());
   std::cout << "There are no votes for the second PBFT block" << std::endl;
   // node1 put block2 into pbft chain and no votes store into DB
   // (malicious player)
