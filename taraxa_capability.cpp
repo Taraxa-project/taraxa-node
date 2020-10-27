@@ -5,6 +5,7 @@
 #include "pbft_chain.hpp"
 #include "pbft_manager.hpp"
 #include "transaction_manager.hpp"
+#include "util/encoding_rlp.hpp"
 #include "vote.hpp"
 
 using namespace taraxa;
@@ -101,24 +102,22 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
           std::chrono::steady_clock::now();
       std::chrono::steady_clock::time_point begin =
           std::chrono::steady_clock::now();
-      LOG(log_dg_net_per_) << packetToPacketName(_id)
-                         << " received";
+      LOG(log_dg_net_per_) << packetToPacketName(_id) << " received";
       auto ret = interpretCapabilityPacketImpl(_nodeID, _id, _r);
       std::chrono::steady_clock::time_point end =
           std::chrono::steady_clock::now();
-      auto dur = std::chrono::duration_cast<std::chrono::microseconds>(end - begin)
+      auto dur =
+          std::chrono::duration_cast<std::chrono::microseconds>(end - begin)
               .count();
-      if(dur > 100000) {
-      LOG(log_nf_net_per_) << packetToPacketName(_id)
-                         << " processed in: " << dur << "[µs]";
-      }
-      else  {
-      LOG(log_dg_net_per_) << packetToPacketName(_id)
-                         << " processed in: " << dur << "[µs]";
+      if (dur > 100000) {
+        LOG(log_nf_net_per_)
+            << packetToPacketName(_id) << " processed in: " << dur << "[µs]";
+      } else {
+        LOG(log_dg_net_per_)
+            << packetToPacketName(_id) << " processed in: " << dur << "[µs]";
       }
       perf_data[_id].first++;
-      perf_data[_id].second +=
-          dur;
+      perf_data[_id].second += dur;
       if (std::chrono::duration_cast<std::chrono::seconds>(
               std::chrono::steady_clock::now() - begin_perf)
               .count() > 20) {
@@ -127,13 +126,15 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
         for (auto const &it : perf_data) {
           total_count += it.second.first;
           total_time += it.second.second;
-          LOG(log_nf_net_per_) << packetToPacketName(it.first)
-                         << " No: " << it.second.first << " - Avg time: "
-                         << it.second.second / it.second.first << "[µs]";
+          LOG(log_nf_net_per_)
+              << packetToPacketName(it.first) << " No: " << it.second.first
+              << " - Avg time: " << it.second.second / it.second.first
+              << "[µs]";
         }
-        LOG(log_nf_net_per_) << "All packets"
-                       << " No: " << total_count
-                       << " - Avg time: " << total_time / total_count << "[µs]";
+        LOG(log_nf_net_per_)
+            << "All packets"
+            << " No: " << total_count
+            << " - Avg time: " << total_time / total_count << "[µs]";
         begin_perf = end;
       }
 
@@ -561,22 +562,22 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         case NewPbftBlockPacket: {
           LOG(log_dg_pbft_prp_) << "In NewPbftBlockPacket";
 
-          PbftBlock pbft_block(_r[0]);
+          auto pbft_block = s_ptr(new PbftBlock(_r[0]));
           uint64_t pbft_chain_size = _r[1].toInt();
           LOG(log_dg_pbft_prp_) << "Receive proposed PBFT Block " << pbft_block
                                 << " Peer Chain size: " << pbft_chain_size;
-          peer->markPbftBlockAsKnown(pbft_block.getBlockHash());
+          peer->markPbftBlockAsKnown(pbft_block->getBlockHash());
           if (pbft_chain_size > peer->pbft_chain_size_)
             peer->pbft_chain_size_ = pbft_chain_size;
 
           if (pbft_chain_ && !pbft_chain_->findUnverifiedPbftBlock(
-                                 pbft_block.getBlockHash())) {
+                                 pbft_block->getBlockHash())) {
             // TODO: need to check block validation, like proposed
             // vote(maybe
             //  come later), if get sortition etc
             unique_packet_count[_id]++;
             pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
-            onNewPbftBlock(pbft_block);
+            onNewPbftBlock(*pbft_block);
           }
           break;
         }
@@ -585,11 +586,56 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           auto item_count = _r.itemCount();
           LOG(log_dg_pbft_sync_)
               << "In PbftBlockPacket received " << item_count;
-          uint64_t pbft_block_counter = 0;
-          uint64_t dag_block_counter = 0;
-          uint64_t dag_block_trx_counter = 0;
 
           pbft_sync_period_ = pbft_chain_->pbftSyncingPeriod();
+
+          bool return_true = false;
+          for (auto const &pbft_blk_tuple : _r) {
+            util::traverse_rlp(pbft_blk_tuple, 2, [&](auto const &el, auto i) {
+              if (i == 0) {
+                PbftBlockCert pbft_blk_and_votes(el);
+                LOG(log_dg_pbft_sync_)
+                    << "Received pbft block: "
+                    << pbft_blk_and_votes.pbft_blk->getBlockHash();
+                if (pbft_sync_period_ + 1 !=
+                    pbft_blk_and_votes.pbft_blk->getPeriod()) {
+                  LOG(log_er_pbft_sync_)
+                      << "PBFT SYNC ERROR, UNEXPECTED PBFT BLOCK HEIGHT: "
+                      << pbft_blk_and_votes.pbft_blk->getPeriod()
+                      << " sync_period: " << pbft_sync_period_
+                      << " chain size: " << pbft_chain_->getPbftChainSize()
+                      << " queue: " << pbft_chain_->pbftSyncedQueueSize();
+                  restartSyncingPbft(true);
+                  return_true = true;
+                  return;
+                }
+                if (peer->pbft_chain_size_ <
+                    pbft_blk_and_votes.pbft_blk->getPeriod()) {
+                  peer->pbft_chain_size_ =
+                      pbft_blk_and_votes.pbft_blk->getPeriod();
+                }
+              } else if (i == 1) {
+                for (auto const &dag_blk_struct : el) {
+                  util::traverse_rlp(
+                      dag_blk_struct, 2, [&](auto const &el, auto i) {
+                        if (i == 0) {
+                          DagBlock dag_blk(el);
+                          peer->markBlockAsKnown(dag_blk.getHash());
+                        } else if (i == 1) {
+                          for (auto const &trx_raw : el) {
+                            Transaction trx(trx_raw);
+                            peer->markTransactionAsKnown(trx.getHash());
+                          }
+                          // transactions
+                        }
+                      });
+                }
+              }
+            });
+            if (return_true) {
+              return true;
+            }
+          }
 
           while (true) {
             if (pbft_block_counter + dag_block_counter +
@@ -603,12 +649,12 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
                     .toBytes());
             LOG(log_dg_pbft_sync_)
                 << "Received pbft block: "
-                << pbft_blk_and_votes.pbft_blk.getBlockHash();
+                << pbft_blk_and_votes.pbft_blk->getBlockHash();
             if (pbft_sync_period_ + 1 !=
-                pbft_blk_and_votes.pbft_blk.getPeriod()) {
+                pbft_blk_and_votes.pbft_blk->getPeriod()) {
               LOG(log_er_pbft_sync_)
                   << "PBFT SYNC ERROR, UNEXPECTED PBFT BLOCK HEIGHT: "
-                  << pbft_blk_and_votes.pbft_blk.getPeriod()
+                  << pbft_blk_and_votes.pbft_blk->getPeriod()
                   << " sync_period: " << pbft_sync_period_
                   << " chain size: " << pbft_chain_->getPbftChainSize()
                   << " queue: " << pbft_chain_->pbftSyncedQueueSize();
@@ -616,8 +662,8 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
               return true;
             }
             if (peer->pbft_chain_size_ <
-                pbft_blk_and_votes.pbft_blk.getPeriod()) {
-              peer->pbft_chain_size_ = pbft_blk_and_votes.pbft_blk.getPeriod();
+                pbft_blk_and_votes.pbft_blk->getPeriod()) {
+              peer->pbft_chain_size_ = pbft_blk_and_votes.pbft_blk->getPeriod();
             }
 
             pbft_block_counter++;
@@ -626,8 +672,11 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
                      std::map<blk_hash_t,
                               std::pair<DagBlock, std::vector<Transaction>>>>
                 dag_blocks_per_level;
+            for (auto const &dag_blk_raw : _r[pbft_block_counter + 1]) {
+            }
             for (auto const &dag_hash :
-                 pbft_blk_and_votes.pbft_blk.getSchedule().dag_blks_order) {
+                 pbft_blk_and_votes.pbft_blk->getSchedule().dag_blks_order) {
+              // fixme RANDOM ACCESS IS BAD
               DagBlock block(_r[pbft_block_counter + dag_block_counter +
                                 dag_block_trx_counter]
                                  .data()
@@ -660,7 +709,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
                 if (!status.first) {
                   LOG(log_er_pbft_sync_)
                       << "PBFT SYNC ERROR, DAG missing a tip/pivot: "
-                      << pbft_blk_and_votes.pbft_blk.getPeriod()
+                      << pbft_blk_and_votes.pbft_blk->getPeriod()
                       << " sync_period: " << pbft_sync_period_
                       << " chain size: " << pbft_chain_->getPbftChainSize()
                       << " queue: " << pbft_chain_->pbftSyncedQueueSize();
@@ -678,7 +727,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
               }
             }
 
-            auto pbft_blk_hash = pbft_blk_and_votes.pbft_blk.getBlockHash();
+            auto pbft_blk_hash = pbft_blk_and_votes.pbft_blk->getBlockHash();
             peer->markPbftBlockAsKnown(pbft_blk_hash);
 
             // Check the PBFT block whether in the chain or in the synced
@@ -686,7 +735,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
             if (!pbft_chain_->isKnownPbftBlockForSyncing(pbft_blk_hash)) {
               // Check the PBFT block validation
               if (pbft_chain_->checkPbftBlockValidationFromSyncing(
-                      pbft_blk_and_votes.pbft_blk)) {
+                      *pbft_blk_and_votes.pbft_blk)) {
                 // Notice: cannot verify 2t+1 cert votes here. Since don't
                 // have correct account status for nodes which after the
                 // first synced one.
@@ -700,6 +749,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
               }
             }
           }
+
           if (item_count > 0) {
             if (syncing_ && peer_syncing_pbft == _nodeID) {
               if (pbft_sync_period_ >
@@ -1377,36 +1427,32 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync,
       << "In sendPbftBlocks, peer want to sync from pbft chain height "
       << height_to_sync << ", will send " << blocks_to_transfer
       << " pbft blocks to " << _id;
-  // add cert votes for each pbftblock
-  std::vector<PbftBlock> blocks =
+  auto pbft_blks =
       pbft_chain_->getPbftBlocks(height_to_sync, blocks_to_transfer);
-  std::vector<PbftBlockCert> cert_blocks;
-  std::map<blk_hash_t, std::vector<std::shared_ptr<DagBlock>>> pbft_dag_blocks;
-  uint64_t dag_blocks_counter = 0;
-  uint64_t dag_blocks_transaction_counter = 0;
-  // has some redundancy here. fix later
-  for (auto const &b : blocks) {
-    auto cert_votes_rlp = db_->getVote(b.getBlockHash());
-    PbftBlockCert bk(b, cert_votes_rlp);
-    cert_blocks.emplace_back(bk);
-    for (auto const &hash : b.getSchedule().dag_blks_order) {
-      auto dag_block = db_->getDagBlock(hash);
-      pbft_dag_blocks[b.getBlockHash()].push_back(dag_block);
-      dag_blocks_counter++;
-      dag_blocks_transaction_counter += dag_block->getTrxs().size();
-    }
-  }
-
+  vector<PbftBlockCert> cert_blocks;  // only for logging
+  cert_blocks.reserve(pbft_blks.size());
   RLPStream s;
-  host_.capabilityHost()->prep(
-      _id, name(), s, PbftBlockPacket,
-      cert_blocks.size() + dag_blocks_counter + dag_blocks_transaction_counter);
-  for (auto const &b : cert_blocks) {
-    s.appendRaw(b.rlp());
-    for (auto const &dag_block : pbft_dag_blocks[b.pbft_blk.getBlockHash()]) {
-      s.appendRaw(dag_block->rlp(true));
-      for (auto const &trx_hash : dag_block->getTrxs()) {
-        s.appendRaw(trx_mgr_->getTransaction(trx_hash)->second);
+  host_.capabilityHost()->prep(_id, name(), s, PbftBlockPacket,
+                               pbft_blks.size());
+  for (auto const &pbft_blk : pbft_blks) {
+    s.appendList(2);
+    // add cert votes for each pbftblock
+    auto const &pbft_blk_cert = cert_blocks.emplace_back(
+        pbft_blk, db_->getVote(pbft_blk.getBlockHash()));
+    s.appendRaw(pbft_blk_cert.rlp());
+    auto dag_blks = db_->getFinalizedDagBlockHashesByAnchor(
+        pbft_blk.getPivotDagBlockHash());
+    s.appendList(dag_blks.size());
+    for (auto const &dag_blk_raw :
+         db_->multi_get(DbStorage::Columns::dag_blocks, dag_blks)) {
+      s.appendList(2);
+      s.appendRaw(dag_blk_raw);
+      auto trx_hashes =
+          DagBlock::extract_transactions_from_rlp(dev::RLP(dag_blk_raw));
+      s.appendList(trx_hashes.size());
+      for (auto const &trx_raw :
+           db_->multi_get(DbStorage::Columns::dag_blocks, trx_hashes)) {
+        s.appendRaw(trx_raw);
       }
     }
   }

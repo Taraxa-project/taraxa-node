@@ -3,7 +3,6 @@
 
 #pragma once
 
-
 #include <atomic>
 #include <condition_variable>
 #include <iostream>
@@ -38,15 +37,13 @@ class TransactionOrderManager {
   }
   void clear() { status_.clear(); }
 
-  std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
-  computeTransactionOverlapTable(std::shared_ptr<vec_blk_t> ordered_dag_blocks);
   std::vector<bool> computeOrderInBlock(
       DagBlock const& blk,
       TransactionExecStatusTable& status_for_proposing_blocks);
   std::shared_ptr<std::vector<TrxOverlapInBlock>> computeOrderInBlocks(
       std::vector<std::shared_ptr<DagBlock>> const& blks);
   std::shared_ptr<blk_hash_t> getDagBlockFromTransaction(trx_hash_t const& t);
-  void updateOrderedTrx(TrxSchedule const& sche);
+  void updateOrderedTrx(DagBlock const& blks);
 
  private:
   TransactionExecStatusTable status_;

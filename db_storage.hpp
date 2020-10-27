@@ -63,6 +63,8 @@ struct DbStorage {
     COLUMN(dag_blocks);
     COLUMN(dag_blocks_index);
     COLUMN(dag_blocks_state);
+    // anchor_hash->[...dag_block_hashes_up_to_previous_anchor]
+    COLUMN(dag_finalized_blocks);
     COLUMN(transactions);
     COLUMN(trx_to_blk);
     COLUMN(trx_status);
@@ -201,6 +203,12 @@ struct DbStorage {
   }
   uint64_t getNumDagBlocks() { return getDagBlocksCount(); }
 
+  vector<blk_hash_t> getFinalizedDagBlockHashesByAnchor(
+      blk_hash_t const& anchor);
+  void putFinalizedDagBlockHashesByAnchor(WriteBatch& b,
+                                          blk_hash_t const& anchor,
+                                          vector<blk_hash_t> const& hs);
+
   string lookup(Slice key, Column const& column);
   void insert(Column const& col, Slice const& k, Slice const& v);
   void remove(Slice key, Column const& column);
@@ -208,6 +216,11 @@ struct DbStorage {
 
   inline static Slice toSlice(dev::bytesConstRef const& b) {
     return Slice(reinterpret_cast<char const*>(&b[0]), b.size());
+  }
+
+  template <unsigned N>
+  inline static Slice toSlice(dev::FixedHash<N> const& h) {
+    return {h.data(), N};
   }
 
   inline static Slice toSlice(dev::bytes const& b) { return toSlice(&b); }
@@ -219,6 +232,27 @@ struct DbStorage {
 
   inline static Slice toSlice(string const& str) {
     return Slice(str.data(), str.size());
+  }
+
+  template <typename T>
+  auto toSlices(std::vector<T> const& keys) {
+    std::vector<Slice> ret;
+    ret.reserve(keys.size);
+    for (auto const& k : keys) {
+      ret.emplace_back(toSlice(k));
+    }
+    return ret;
+  }
+
+ private:
+  vector<std::string> multi_get(Column const& col,
+                                std::vector<Slice> const& keys);
+
+ public:
+  template <typename T>
+  vector<std::string> multi_get(Column const& col, std::vector<T> const& keys) {
+    return {};
+    //  TODO  return multi_get(col, toSlices(keys));
   }
 
   inline static bytes asBytes(string const& b) {

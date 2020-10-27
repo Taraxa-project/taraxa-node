@@ -371,8 +371,8 @@ vector<blk_hash_t> DbStorage::getOrderedDagBlocks() {
     if (pbft_block_hash) {
       auto pbft_block = getPbftBlock(*pbft_block_hash);
       if (pbft_block) {
-        for (auto const dag_block_hash :
-             pbft_block->getSchedule().dag_blks_order) {
+        for (auto const& dag_block_hash : getFinalizedDagBlockHashesByAnchor(
+                 pbft_block->getPivotDagBlockHash())) {
           res.push_back(dag_block_hash);
         }
       }
@@ -382,6 +382,30 @@ vector<blk_hash_t> DbStorage::getOrderedDagBlocks() {
     break;
   }
   return res;
+}
+
+vector<string> DbStorage::multi_get(Column const& col,
+                                    vector<Slice> const& keys) {
+  vector<string> ret(keys.size());
+  for (auto const& s :
+       db_->MultiGet(read_options_, {keys.size(), handle(col)}, keys, &ret)) {
+    checkStatus(s);
+  }
+  return ret;
+}
+
+vector<blk_hash_t> DbStorage::getFinalizedDagBlockHashesByAnchor(
+    blk_hash_t const& anchor) {
+  auto raw = lookup(toSlice(anchor), Columns::dag_finalized_blocks);
+  return RLP(raw).toVector<blk_hash_t>();
+}
+
+void DbStorage::putFinalizedDagBlockHashesByAnchor(
+    WriteBatch& b, blk_hash_t const& anchor, vector<blk_hash_t> const& hs) {
+  RLPStream rlp;
+  rlp.appendVector(hs);
+  checkStatus(b.Put(handle(Columns::dag_finalized_blocks), toSlice(anchor),
+                    toSlice(rlp.out())));
 }
 
 void DbStorage::insert(Column const& col, Slice const& k, Slice const& v) {

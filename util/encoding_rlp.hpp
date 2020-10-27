@@ -3,7 +3,9 @@
 
 #include <libdevcore/RLP.h>
 
+#include <functional>
 #include <optional>
+#include <stdexcept>
 #include <unordered_map>
 #include <vector>
 
@@ -131,6 +133,15 @@ void dec_rlp_tuple(RLP const& rlp, Params&... args) {
   dec_rlp_tuple_body(rlp_list, args...);
 }
 
+struct ErrTooManyRLPFields : runtime_error {
+  ErrTooManyRLPFields(uint expected_field_count,
+                      string const& additional_err_info = "");
+};
+
+void traverse_rlp(RLP const& rlp, uint expected_field_count,
+                  function<void(RLP const&, uint)> const& cb,
+                  string const& additional_err_info = "");
+
 }  // namespace taraxa::util::encoding_rlp
 
 namespace taraxa::util {
@@ -139,7 +150,9 @@ using encoding_rlp::dec_rlp_sequence;
 using encoding_rlp::dec_rlp_tuple;
 using encoding_rlp::enc_rlp;
 using encoding_rlp::enc_rlp_tuple;
+using encoding_rlp::ErrTooManyRLPFields;
 using encoding_rlp::RLPNull;
+using encoding_rlp::traverse_rlp;
 }  // namespace taraxa::util
 
 #endif  // TARAXA_NODE_UTIL_ENCODING_RLP_HPP_

@@ -277,6 +277,11 @@ inline auto own_effective_genesis_bal(FullNodeConfig const& cfg) {
       dev::toAddress(dev::Secret(cfg.node_secret)));
 }
 
+inline auto make_simple_pbft_block(h256 const& hash, uint64_t period) {
+  return PbftBlock(hash, blk_hash_t(0), TrxSchedule(), period, addr_t(0),
+                   secret_t::random());
+}
+
 };  // namespace taraxa::core_tests
 
 #endif  // TARAXA_NODE_CORE_TESTS_UTIL_HPP_

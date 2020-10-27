@@ -27,7 +27,7 @@ Transaction::Transaction(uint64_t nonce, val_t const &value,
   getSender();
 }
 
-Transaction::Transaction(bytes const &_rlp, bool verify_strict) {
+Transaction::Transaction(dev::RLP const &_rlp, bool verify_strict) {
   // TODO remove after debugging
   cached_rlp_.reset(new auto(_rlp));
   auto strictness =

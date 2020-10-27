@@ -24,8 +24,6 @@ string roundDataKeysKey(round_t round) {
   return "data_keys_at_" + to_string(round);
 }
 
-string trxHashKey(string const& trx_hash_hex) { return "trx_" + trx_hash_hex; }
-
 string maxNonceAtRoundKey(round_t round, string const& sender_addr_hex) {
   return "max_nonce_at_" + to_string(round) + "_" + sender_addr_hex;
 }

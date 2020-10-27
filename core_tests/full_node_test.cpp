@@ -131,11 +131,12 @@ TEST_F(FullNodeTest, db_test) {
             blk1.getHash());
   EXPECT_EQ(*db.getTransactionToBlock(g_trx_signed_samples[2].getHash()),
             blk2.getHash());
+
   // pbft_blocks
-  PbftBlock pbft_block1(blk_hash_t(1), 2);
-  PbftBlock pbft_block2(blk_hash_t(2), 3);
-  PbftBlock pbft_block3(blk_hash_t(3), 4);
-  PbftBlock pbft_block4(blk_hash_t(4), 5);
+  auto pbft_block1 = make_simple_pbft_block(blk_hash_t(1), 2);
+  auto pbft_block2 = make_simple_pbft_block(blk_hash_t(2), 3);
+  auto pbft_block3 = make_simple_pbft_block(blk_hash_t(3), 4);
+  auto pbft_block4 = make_simple_pbft_block(blk_hash_t(4), 5);
   db.savePbftBlock(pbft_block1);
   db.savePbftBlock(pbft_block2);
   batch = db.createWriteBatch();
@@ -198,7 +199,7 @@ TEST_F(FullNodeTest, db_test) {
   batch = db.createWriteBatch();
   db.addPbftCertVotesToBatch(vote_pbft_block_hash, cert_votes, batch);
   db.commitWriteBatch(batch);
-  PbftBlock pbft_block(vote_pbft_block_hash, 2);
+  auto pbft_block = make_simple_pbft_block(vote_pbft_block_hash, 2);
   PbftBlockCert pbft_block_cert_votes(pbft_block, cert_votes);
   auto cert_votes_rlp = db.getVote(vote_pbft_block_hash);
   PbftBlockCert pbft_block_cert_votes_from_db(pbft_block, cert_votes_rlp);
