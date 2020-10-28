@@ -1374,7 +1374,7 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
   auto dag_blk_hashes =
       std::move(*dag_mgr_->getDagBlockOrder(anchor_hash).second);
   unordered_set<trx_hash_t> unique_trxs;
-  unique_trxs.reserve(transactions_tmp_buf_.size());
+  unique_trxs.reserve(transactions_tmp_buf_.capacity());
   auto batch = db_->createWriteBatch();
   for (auto const &dag_blk_raw :
        db_->multi_get(DbStorage::Columns::dag_blocks, dag_blk_hashes)) {
