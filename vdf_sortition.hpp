@@ -41,7 +41,7 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
                         uint16_t difficulty_min, uint16_t difficulty_max,
                         uint16_t difficulty_stale, uint16_t lambda_bound);
   explicit VdfSortition(addr_t node_addr, bytes const& b);
-  
+
   bool verify(std::string const& msg) { return verifyVdfSolution(msg); }
   void computeVdfSolution(std::string const& msg);
   bool verifyVdf(level_t propose_block_level, std::string const& vdf_input);
@@ -91,7 +91,7 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
   uint16_t difficulty_min_ = 0;
   uint16_t difficulty_max_ = 5;
   uint16_t difficulty_stale_ = 5;
-  uint16_t lambda_bound_ = 1500;  // lambda upper bound
+  uint16_t lambda_bound_ = 1500;  // lambda upper bound, should be constant
 
   LOG_OBJECTS_DEFINE;
 };
