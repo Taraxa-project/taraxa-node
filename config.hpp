@@ -98,7 +98,10 @@ struct BlockProposerConfig {
   uint16_t transaction_limit = 0;
   uint16_t min_proposal_delay = 0;
   // VDF DAG block proposal params
-  uint16_t difficulty_bound = 0;
+  uint16_t difficulty_selection = 0;
+  uint16_t difficulty_min = 0;
+  uint16_t difficulty_max = 0;
+  uint16_t difficulty_stale = 0;
   uint16_t lambda_bound = 0;
 };
 

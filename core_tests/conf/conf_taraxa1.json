@@ -33,7 +33,10 @@
       "transaction_limit": 0,
       "min_proposal_delay": 100,
       "sortition_params": {
-        "difficulty_bound": 15,
+        "difficulty_selection": 128,
+        "difficulty_min": 15,
+        "difficulty_max": 20,
+        "difficulty_stale": 22,
         "lambda_bound": 1500
       }
     }

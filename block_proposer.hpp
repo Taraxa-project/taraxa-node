@@ -43,21 +43,35 @@ class ProposeModelFace {
 
 class SortitionPropose : public ProposeModelFace {
  public:
-  SortitionPropose(uint difficulty_bound, uint lambda_bound, addr_t node_addr,
+  SortitionPropose(uint16_t difficulty_selection, uint16_t difficulty_min,
+                   uint16_t difficulty_max, uint16_t difficulty_stale,
+                   uint16_t lambda_bound, addr_t node_addr,
                    std::shared_ptr<DagManager> dag_mgr)
-      : difficulty_bound_(difficulty_bound),
+      : difficulty_selection_(difficulty_selection),
+        difficulty_min_(difficulty_min),
+        difficulty_max_(difficulty_max),
+        difficulty_stale_(difficulty_stale),
         lambda_bound_(lambda_bound),
         dag_mgr_(dag_mgr) {
     LOG_OBJECTS_CREATE("PR_MDL");
-    LOG(log_nf_) << "Set sorition block propose difficulty " << difficulty_bound
-                 << " lambda_bound " << lambda_bound;
+    LOG(log_nf_) << "Set sorition block propose difficulty selection "
+                 << difficulty_selection_ << ", difficulty min "
+                 << difficulty_min_ << ", difficulty max " << difficulty_max_
+                 << ", difficulty stale " << difficulty_stale_
+                 << ", lambda_bound " << lambda_bound_;
   }
   ~SortitionPropose() {}
   bool propose() override;
 
  private:
-  uint difficulty_bound_;
-  uint lambda_bound_;
+  int num_tries_ = 0;
+  const int max_num_tries_ = 50;  // Wait 5000(ms)
+  level_t last_propose_level_ = 0;
+  uint16_t difficulty_selection_ = 0;
+  uint16_t difficulty_min_ = 0;
+  uint16_t difficulty_max_ = 0;
+  uint16_t difficulty_stale_ = 0;
+  uint16_t lambda_bound_ = 0;
   unsigned long long last_dag_height_ = 0;
   std::shared_ptr<DagManager> dag_mgr_;
 
@@ -86,7 +100,8 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
         vrf_sk_(vrf_sk) {
     LOG_OBJECTS_CREATE("PR_MDL");
     propose_model_ = std::make_unique<SortitionPropose>(
-        conf_.difficulty_bound, conf_.lambda_bound, node_addr, dag_mgr);
+        conf_.difficulty_selection, conf_.difficulty_min, conf_.difficulty_max,
+        conf_.difficulty_stale, conf_.lambda_bound, node_addr, dag_mgr);
     total_trx_shards_ = std::max((unsigned int)conf_.shard, 1u);
     min_proposal_delay = conf_.min_proposal_delay;
     auto addr =

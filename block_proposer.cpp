@@ -18,8 +18,8 @@ bool SortitionPropose::propose() {
     return false;
   }
 
-  auto dag_height = dag_mgr_->getMaxLevel();
-  if (dag_height == last_dag_height_ && last_dag_height_ > 0) {
+  auto max_dag_height = dag_mgr_->getMaxLevel();
+  if (max_dag_height == last_dag_height_ && last_dag_height_ > 0) {
     LOG(log_tr_) << "Skip proposing, dag not increasing, height "
                  << last_dag_height_;
     return false;
@@ -37,15 +37,36 @@ bool SortitionPropose::propose() {
 
   // get sortition
   vdf_sortition::Message msg(propose_level);
-  vdf_sortition::VdfSortition vdf(node_addr_, vrf_sk_, msg, difficulty_bound_,
-                                  lambda_bound_);
+  vdf_sortition::VdfSortition vdf(
+      node_addr_, vrf_sk_, msg, difficulty_selection_, difficulty_min_,
+      difficulty_max_, difficulty_stale_, lambda_bound_);
+  if (vdf.getDifficulty() == difficulty_stale_ &&
+      propose_level == last_propose_level_ && num_tries_ < max_num_tries_) {
+    LOG(log_dg_) << "Will not propose DAG block. Get difficulty stale "
+                 << difficulty_stale_ << ", last propose level "
+                 << last_propose_level_ << ", has tried " << num_tries_
+                 << " times.";
+    num_tries_++;
+    return false;
+  } else if (vdf.getDifficulty() == difficulty_stale_ &&
+             propose_level != last_propose_level_) {
+    LOG(log_dg_) << "Will not propose DAG block, will reset number of tries. "
+                    "Get difficulty stale "
+                 << difficulty_stale_ << ", last propose level "
+                 << last_propose_level_ << ", current propose level "
+                 << propose_level;
+    last_propose_level_ = propose_level;
+    num_tries_ = 0;
+    return false;
+  }
   vdf.computeVdfSolution(frontier.pivot.toString());
   LOG(log_nf_) << "VDF computation time " << vdf.getComputationTime()
                << " difficulty " << vdf.getDifficulty();
   DagBlock blk(frontier.pivot, propose_level, frontier.tips, sharded_trxs, vdf);
   proposer->proposeBlock(blk);
-  last_dag_height_ = dag_height;
-
+  last_dag_height_ = max_dag_height;
+  last_propose_level_ = propose_level;
+  num_tries_ = 0;
   return true;
 }
 
