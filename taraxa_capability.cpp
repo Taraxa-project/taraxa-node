@@ -45,6 +45,9 @@ void TaraxaCapability::syncPeerPbft(NodeID const &_nodeID,
 std::pair<bool, blk_hash_t> TaraxaCapability::checkDagBlockValidation(
     DagBlock const &block) {
   level_t expected_level = 0;
+  if (blk_mgr_->getDagBlock(block.getHash()) != nullptr) {
+    return std::make_pair(true, blk_hash_t());
+  }
   for (auto const &tip : block.getTips()) {
     auto tip_block = blk_mgr_->getDagBlock(tip);
     if (!tip_block) {
@@ -68,15 +71,6 @@ std::pair<bool, blk_hash_t> TaraxaCapability::checkDagBlockValidation(
         std::string("Invalid block level ") + std::to_string(block.getLevel()) +
         " for block " + block.getHash().toString() + ". Expected level " +
         std::to_string(expected_level));
-  }
-
-  // Verify VDF solution
-  vdf_sortition::VdfSortition vdf = block.getVdf();
-  if (!vdf.verifyVdf(expected_level, block.getPivot().toString())) {
-    LOG(log_dg_) << "DAG block " << block.getHash()
-                 << " failed on VDF verification with pivot hash "
-                 << block.getPivot();
-    return std::make_pair(false, blk_hash_t());
   }
 
   return std::make_pair(true, blk_hash_t());
@@ -1271,9 +1265,9 @@ void TaraxaCapability::doBackgroundWork() {
   for (auto const &peer : peers_) {
     // Disconnect any node that did not send any message for 3 status
     // intervals
-    if (!peer.second->checkStatus(3)) {
+    if (!peer.second->checkStatus(5)) {
       LOG(log_nf_) << "Host disconnected, no status message in "
-                   << 3 * check_status_interval_ << " seconds" << peer.first;
+                   << 5 * check_status_interval_ << " ms" << peer.first;
       host_.capabilityHost()->disconnect(peer.first, p2p::PingTimeout);
     }
     // Send status message
