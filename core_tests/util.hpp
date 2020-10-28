@@ -128,7 +128,10 @@ inline auto make_node_cfgs(uint count) {
     for (auto& cfg : ret) {
       if constexpr (tests_speed != 1) {
         cfg.test_params.block_proposer.min_proposal_delay /= tests_speed;
-        cfg.test_params.block_proposer.difficulty_bound = 5;
+        cfg.test_params.block_proposer.difficulty_selection = 255;
+        cfg.test_params.block_proposer.difficulty_min = 0;
+        cfg.test_params.block_proposer.difficulty_max = 5;
+        cfg.test_params.block_proposer.difficulty_stale = 5;
         cfg.test_params.block_proposer.lambda_bound = 100;
         cfg.chain.pbft.lambda_ms_min /= tests_speed;
         cfg.network.network_transaction_interval /= tests_speed;
