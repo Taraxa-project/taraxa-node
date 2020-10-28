@@ -188,9 +188,9 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
     sharedLock lock(mutex_);
     return std::make_pair(old_anchor_, anchor_);
   }
-  void recoverDag();
-
+  
  private:
+  void recoverDag();
   void addToDag(std::string const &hash, std::string const &pivot,
                 std::vector<std::string> const &tips, uint64_t level,
                 const taraxa::DbStorage::BatchPtr &write_batch,

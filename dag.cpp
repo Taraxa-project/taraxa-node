@@ -322,7 +322,7 @@ DagManager::DagManager(std::string const &genesis, addr_t node_addr,
   if (trx_mgr) {
     trx_mgr->setDagFrontier(frontier);
   }
-
+  recoverDag();
 } catch (std::exception &e) {
   std::cerr << e.what() << std::endl;
 }
