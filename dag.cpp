@@ -385,12 +385,12 @@ bool DagManager::pivotAndTipsAvailable(DagBlock const &blk) {
 
 void DagManager::addDagBlock(DagBlock const &blk, bool finalized, bool save) {
   auto write_batch = db_->createWriteBatch();
-  if (save) {
-    db_->saveDagBlock(blk, write_batch);
-  }
   DagFrontier frontier;
   {
     uLock lock(mutex_);
+    if (save) {
+      db_->saveDagBlock(blk, write_batch);
+    }
     auto blk_hash = blk.getHash();
     auto blk_hash_str = blk_hash.toString();
     auto pivot_hash = blk.getPivot();
@@ -642,34 +642,38 @@ void DagManager::recoverDag() {
   if (pbft_block_hash) {
     PbftBlock pbft_block = pbft_chain_->getPbftBlockInChain(pbft_block_hash);
     blk_hash_t dag_block_hash_as_anchor = pbft_block.getPivotDagBlockHash();
-    uint64_t period = pbft_block.getPeriod();
+    period_ = pbft_block.getPeriod();
     anchor_ = dag_block_hash_as_anchor.toString();
+    LOG(log_nf_) << "Recover anchor " << anchor_;
 
     pbft_block_hash = pbft_block.getPrevBlockHash();
     if (pbft_block_hash) {
       pbft_block = pbft_chain_->getPbftBlockInChain(pbft_block_hash);
       dag_block_hash_as_anchor = pbft_block.getPivotDagBlockHash();
-      period = pbft_block.getPeriod();
       old_anchor_ = dag_block_hash_as_anchor.toString();
     }
   }
 
   auto dag_state_map = db_->getAllDagBlockState();
-  std::map<uint64_t, blk_hash_t> finalized, non_finalized;
+  std::map<uint64_t, std::vector<blk_hash_t>> finalized, non_finalized;
   for (auto &it : dag_state_map) {
     if (it.second) {
-      finalized[db_->getDagBlock(it.first)->getLevel()] = it.first;
+      finalized[db_->getDagBlock(it.first)->getLevel()].push_back(it.first);
     } else {
-      non_finalized[db_->getDagBlock(it.first)->getLevel()] = it.first;
+      non_finalized[db_->getDagBlock(it.first)->getLevel()].push_back(it.first);
     }
   }
   for (auto &it : finalized) {
-    auto blk = db_->getDagBlock(it.second);
-    addDagBlock(*blk, true, false);
+    for (auto &blk_hash : it.second) {
+      auto blk = db_->getDagBlock(blk_hash);
+      addDagBlock(*blk, true, false);
+    }
   }
   for (auto &it : non_finalized) {
-    auto blk = db_->getDagBlock(it.second);
-    addDagBlock(*blk, false, false);
+    for (auto &blk_hash : it.second) {
+      auto blk = db_->getDagBlock(blk_hash);
+      addDagBlock(*blk, false, false);
+    }
   }
 }
 }  // namespace taraxa
