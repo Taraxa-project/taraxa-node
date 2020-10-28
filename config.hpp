@@ -100,9 +100,9 @@ struct BlockProposerConfig {
   // VDF DAG block proposal params
   uint16_t difficulty_selection = 0;
   uint16_t difficulty_min = 0;
-  uint16_t difficulty_max = 0;
+  uint16_t difficulty_max = 1;
   uint16_t difficulty_stale = 0;
-  uint16_t lambda_bound = 0;
+  uint16_t lambda_bound = 1500;
 };
 
 // Parameter Tuning purpose

@@ -89,11 +89,11 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
   Message msg_;
   std::pair<bytes, bytes> vdf_sol_;
   unsigned long vdf_computation_time_ = 0;
-  uint16_t difficulty_selection_;
-  uint16_t difficulty_min_;
-  uint16_t difficulty_max_;
-  uint16_t difficulty_stale_;
-  uint16_t lambda_bound_;  // lambda upper bound
+  uint16_t difficulty_selection_ = 255;
+  uint16_t difficulty_min_ = 0;
+  uint16_t difficulty_max_ = 5;
+  uint16_t difficulty_stale_ = 5;
+  uint16_t lambda_bound_ = 1500;  // lambda upper bound
 
   LOG_OBJECTS_DEFINE;
 };

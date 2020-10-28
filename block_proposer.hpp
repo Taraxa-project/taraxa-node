@@ -69,9 +69,9 @@ class SortitionPropose : public ProposeModelFace {
   level_t last_propose_level_ = 0;
   uint16_t difficulty_selection_ = 0;
   uint16_t difficulty_min_ = 0;
-  uint16_t difficulty_max_ = 0;
+  uint16_t difficulty_max_ = 1;
   uint16_t difficulty_stale_ = 0;
-  uint16_t lambda_bound_ = 0;
+  uint16_t lambda_bound_ = 1500;
   unsigned long long last_dag_height_ = 0;
   std::shared_ptr<DagManager> dag_mgr_;
 
