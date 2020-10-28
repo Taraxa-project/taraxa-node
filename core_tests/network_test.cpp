@@ -335,7 +335,7 @@ TEST_F(NetworkTest, node_sync) {
 // that the second node syncs with it and that the resulting
 // chain on the other end is the same
 TEST_F(NetworkTest, node_pbft_sync) {
-  auto node_cfgs = make_node_cfgs<5>(2);
+  auto node_cfgs = make_node_cfgs(2);
   FullNode::Handle node1(node_cfgs[0], true);
 
   node1->getPbftManager()->stop();
@@ -476,7 +476,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
 }
 
 TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
-  auto node_cfgs = make_node_cfgs<5>(2);
+  auto node_cfgs = make_node_cfgs(2);
   FullNode::Handle node1(node_cfgs[0], true);
 
   node1->getPbftManager()->stop();
