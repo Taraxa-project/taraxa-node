@@ -1378,8 +1378,8 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
   auto batch = db_->createWriteBatch();
   for (auto const &dag_blk_raw :
        db_->multi_get(DbStorage::Columns::dag_blocks, dag_blk_hashes)) {
-    DagBlock dag_blk((dev::RLP(dag_blk_raw)));
-    auto const &dag_blk_trx_hashes = dag_blk.getTrxs();
+    auto dag_blk_trx_hashes =
+        DagBlock::extract_transactions_from_rlp(dev::RLP(dag_blk_raw));
     vector<trx_hash_t> trx_hashes_to_exec;
     trx_hashes_to_exec.reserve(dag_blk_trx_hashes.size());
     for (auto const &h : dag_blk_trx_hashes) {
