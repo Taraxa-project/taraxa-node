@@ -245,8 +245,8 @@ TEST_F(NetworkTest, node_sync) {
   auto vrf_sk = node1->getVrfSecretKey();
   uint16_t difficulty_selection = 255;
   uint16_t difficulty_min = 0;
-  uint16_t difficulty_max = 5;
-  uint16_t difficulty_stale = 5;
+  uint16_t difficulty_max = 15;
+  uint16_t difficulty_stale = 10;
   uint16_t lambda_bound = 1500;
 
   auto propose_level = 1;
@@ -335,7 +335,7 @@ TEST_F(NetworkTest, node_sync) {
 // that the second node syncs with it and that the resulting
 // chain on the other end is the same
 TEST_F(NetworkTest, node_pbft_sync) {
-  auto node_cfgs = make_node_cfgs<5>(2);
+  auto node_cfgs = make_node_cfgs(2);
   FullNode::Handle node1(node_cfgs[0], true);
 
   node1->getPbftManager()->stop();
@@ -347,8 +347,8 @@ TEST_F(NetworkTest, node_pbft_sync) {
   auto vrf_sk = node1->getVrfSecretKey();
   uint16_t difficulty_selection = 255;
   uint16_t difficulty_min = 0;
-  uint16_t difficulty_max = 5;
-  uint16_t difficulty_stale = 5;
+  uint16_t difficulty_max = 15;
+  uint16_t difficulty_stale = 10;
   uint16_t lambda_bound = 1500;
 
   auto batch = db1->createWriteBatch();
@@ -476,7 +476,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
 }
 
 TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
-  auto node_cfgs = make_node_cfgs<5>(2);
+  auto node_cfgs = make_node_cfgs(2);
   FullNode::Handle node1(node_cfgs[0], true);
 
   node1->getPbftManager()->stop();
@@ -488,8 +488,8 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   auto vrf_sk = node1->getVrfSecretKey();
   uint16_t difficulty_selection = 255;
   uint16_t difficulty_min = 0;
-  uint16_t difficulty_max = 5;
-  uint16_t difficulty_stale = 5;
+  uint16_t difficulty_max = 15;
+  uint16_t difficulty_stale = 10;
   uint16_t lambda_bound = 1500;
 
   auto batch = db1->createWriteBatch();
@@ -680,8 +680,8 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
   auto vrf_sk = node1->getVrfSecretKey();
   uint16_t difficulty_selection = 255;
   uint16_t difficulty_min = 0;
-  uint16_t difficulty_max = 5;
-  uint16_t difficulty_stale = 5;
+  uint16_t difficulty_max = 15;
+  uint16_t difficulty_stale = 10;
   uint16_t lambda_bound = 1500;
 
   auto propose_level = 1;
@@ -803,8 +803,8 @@ TEST_F(NetworkTest, node_sync2) {
   auto vrf_sk = node1->getVrfSecretKey();
   uint16_t difficulty_selection = 255;
   uint16_t difficulty_min = 0;
-  uint16_t difficulty_max = 5;
-  uint16_t difficulty_stale = 5;
+  uint16_t difficulty_max = 15;
+  uint16_t difficulty_stale = 10;
   uint16_t lambda_bound = 1500;
   auto transactions = samples::createSignedTrxSamples(0, NUM_TRX2, sk);
   // DAG block1
