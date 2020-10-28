@@ -236,12 +236,12 @@ void WSSession::newDagBlockFinalized(blk_hash_t const &blk, uint64_t period) {
   }
 }
 
-void WSSession::newPbftBlockExecuted(PbftBlock const &pbft_blk) {
+void WSSession::newPbftBlockExecuted(Json::Value const &payload) {
   if (new_pbft_block_executed_subscription_) {
     Json::Value res, params, result;
     res["jsonrpc"] = "2.0";
     res["method"] = "eth_subscription";
-    result["pbft_block"] = pbft_blk.getJson();
+    result["pbft_block"] = payload;
     params["result"] = result;
     params["subscription"] = dev::toJS(new_pbft_block_executed_subscription_);
     res["params"] = params;
@@ -382,10 +382,13 @@ void WSServer::newDagBlockFinalized(blk_hash_t const &blk, uint64_t period) {
   }
 }
 
-void WSServer::newPbftBlockExecuted(PbftBlock const &pbft_blk) {
+void WSServer::newPbftBlockExecuted(
+    PbftBlock const &pbft_blk,
+    std::vector<blk_hash_t> const &finalized_dag_blk_hashes) {
+  auto payload = PbftBlock::toJson(pbft_blk, finalized_dag_blk_hashes);
   boost::shared_lock<boost::shared_mutex> lock(sessions_mtx_);
   for (auto const &session : sessions) {
-    if (!session->is_closed()) session->newPbftBlockExecuted(pbft_blk);
+    if (!session->is_closed()) session->newPbftBlockExecuted(payload);
   }
 }
 

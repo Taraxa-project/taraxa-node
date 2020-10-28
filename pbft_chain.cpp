@@ -46,6 +46,19 @@ PbftBlock::PbftBlock(std::string const& str) {
   beneficiary_ = addr_t(doc["beneficiary"].asString());
 }
 
+Json::Value PbftBlock::toJson(PbftBlock const& b,
+                              std::vector<blk_hash_t> const& dag_blks) {
+  auto ret = b.getJson();
+  // Legacy schema
+  auto& schedule_json = ret["schedule"] = Json::Value(Json::objectValue);
+  auto& dag_blks_json = schedule_json["dag_blocks_order"] =
+      Json::Value(Json::arrayValue);
+  for (auto const& h : dag_blks) {
+    dag_blks_json.append(dev::toJS(h));
+  }
+  return ret;
+}
+
 void PbftBlock::calculateHash_() {
   if (!block_hash_) {
     block_hash_ = dev::sha3(rlp(true));
@@ -105,29 +118,18 @@ PbftBlockCert::PbftBlockCert(PbftBlock const& pbft_blk,
     : pbft_blk(new PbftBlock(pbft_blk)), cert_votes(cert_votes) {}
 
 PbftBlockCert::PbftBlockCert(dev::RLP const& rlp) {
-  auto num_items = rlp.itemCount();
-  pbft_blk.reset(new PbftBlock(rlp[0].toBytes()));
-  for (auto i = 1; i < num_items; ++i) {
-    cert_votes.emplace_back(Vote(rlp[i].toBytes()));
-  }
-}
-
-PbftBlockCert::PbftBlockCert(PbftBlock const& pbft_blk,
-                             bytes const& cert_votes_rlp)
-    : pbft_blk(new PbftBlock(pbft_blk)) {
-  auto rlp = dev::RLP(cert_votes_rlp);
-  auto num_votes = rlp.itemCount();
-  for (auto i = 0; i < num_votes; ++i) {
-    cert_votes.emplace_back(rlp[i].toBytes());
+  pbft_blk.reset(new PbftBlock(rlp[0]));
+  for (auto const& el : rlp[1]) {
+    cert_votes.emplace_back(el);
   }
 }
 
 bytes PbftBlockCert::rlp() const {
-  RLPStream s;
-  s.appendList(cert_votes.size() + 1);
-  s.append(pbft_blk->rlp(true));
+  RLPStream s(2);
+  s.appendRaw(pbft_blk->rlp(true));
+  s.appendList(cert_votes.size());
   for (auto const& v : cert_votes) {
-    s.append(v.rlp());
+    s.appendRaw(v.rlp());
   }
   return s.out();
 }

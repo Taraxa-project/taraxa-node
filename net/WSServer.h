@@ -52,7 +52,7 @@ class WSSession : public std::enable_shared_from_this<WSSession> {
   void newEthBlock(dev::eth::BlockHeader const& payload);
   void newDagBlock(DagBlock const& blk);
   void newDagBlockFinalized(blk_hash_t const& blk, uint64_t period);
-  void newPbftBlockExecuted(PbftBlock const& pbft_blk);
+  void newPbftBlockExecuted(Json::Value const& payload);
   void newPendingTransaction(trx_hash_t const& trx_hash);
   bool is_closed() { return closed_; }
   LOG_OBJECTS_DEFINE;
@@ -88,7 +88,9 @@ class WSServer : public std::enable_shared_from_this<WSServer>,
   void newEthBlock(dev::eth::BlockHeader const& payload);
   void newDagBlock(DagBlock const& blk);
   void newDagBlockFinalized(blk_hash_t const& blk, uint64_t period);
-  void newPbftBlockExecuted(PbftBlock const& sche_blk);
+  void newPbftBlockExecuted(
+      PbftBlock const& sche_blk,
+      std::vector<blk_hash_t> const& finalized_dag_blk_hashes);
   void newPendingTransaction(trx_hash_t const& trx_hash);
 
   virtual bool StartListening() { return true; };

@@ -188,15 +188,6 @@ std::pair<bool, uint64_t> PbftManager::getDagBlockPeriod(
   return res;
 }
 
-std::string PbftManager::getScheduleBlockByPeriod(uint64_t const period) {
-  auto value = db_->getPeriodPbftBlock(period);
-  if (value) {
-    blk_hash_t pbft_block_hash = *value;
-    return pbft_chain_->getPbftBlockInChain(pbft_block_hash).getJsonStr();
-  }
-  return "";
-}
-
 uint64_t PbftManager::getPbftRound() const {
   sharedLock_ lock(round_access_);
   return round_;
@@ -1371,13 +1362,12 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
   }
   transactions_tmp_buf_.clear();
   auto const &anchor_hash = pbft_block.getPivotDagBlockHash();
-  auto dag_blk_hashes =
+  auto finalized_dag_blk_hashes =
       std::move(*dag_mgr_->getDagBlockOrder(anchor_hash).second);
   unordered_set<trx_hash_t> unique_trxs;
   unique_trxs.reserve(transactions_tmp_buf_.capacity());
-  auto batch = db_->createWriteBatch();
-  for (auto const &dag_blk_raw :
-       db_->multi_get(DbStorage::Columns::dag_blocks, dag_blk_hashes)) {
+  for (auto const &dag_blk_raw : db_->multi_get(DbStorage::Columns::dag_blocks,
+                                                finalized_dag_blk_hashes)) {
     auto dag_blk_trx_hashes =
         DagBlock::extract_transactions_from_rlp(dev::RLP(dag_blk_raw));
     vector<trx_hash_t> trx_hashes_to_exec;
@@ -1403,6 +1393,7 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
     }
   }
 
+  auto batch = db_->createWriteBatch();
   // Execute transactions in EVM(GO trx engine) and update Ethereum block
   auto const &[new_eth_header, trx_receipts, _] =
       final_chain_->advance(batch, pbft_block.getBeneficiary(),
@@ -1419,7 +1410,8 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
             trx.nonce(),
         };
       }));
-  if (auto dag_blk_count = dag_blk_hashes.size(); dag_blk_count != 0) {
+  if (auto dag_blk_count = finalized_dag_blk_hashes.size();
+      dag_blk_count != 0) {
     num_executed_blk_.fetch_add(dag_blk_count);
     num_executed_trx_.fetch_add(transactions_tmp_buf_.size());
     db_->addStatusFieldToBatch(StatusDbField::ExecutedBlkCount,
@@ -1432,7 +1424,7 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
                  << " , Transactions count: " << transactions_tmp_buf_.size();
   }
   // Add dag_block_period in DB
-  for (auto const blk_hash : dag_blk_hashes) {
+  for (auto const blk_hash : finalized_dag_blk_hashes) {
     db_->addDagBlockPeriodToBatch(blk_hash, pbft_period, batch);
   }
   // Add cert votes in DB
@@ -1453,8 +1445,8 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
   db_->addPbftHeadToBatch(pbft_chain_->getHeadHash(), pbft_chain_->getJsonStr(),
                           batch);
   // Set DAG blocks period
-  db_->putFinalizedDagBlockHashesByAnchor(*batch, anchor_hash, dag_blk_hashes);
-  dag_mgr_->setDagBlockOrder(anchor_hash, pbft_period, dag_blk_hashes, batch);
+  dag_mgr_->setDagBlockOrder(anchor_hash, pbft_period, finalized_dag_blk_hashes,
+                             batch);
   // Remove executed transactions at Ethereum pending block. The Ethereum
   // pending block is same with latest block at Taraxa
   trx_mgr_->getPendingBlock()->advance(
@@ -1476,7 +1468,7 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
   // Update web server
   if (ws_server_) {
     ws_server_->newDagBlockFinalized(anchor_hash, pbft_period);
-    ws_server_->newPbftBlockExecuted(pbft_block);
+    ws_server_->newPbftBlockExecuted(pbft_block, finalized_dag_blk_hashes);
     ws_server_->newEthBlock(new_eth_header);
   }
   LOG(log_nf_) << node_addr_ << " successful push pbft block "

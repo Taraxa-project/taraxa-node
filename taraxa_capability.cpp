@@ -1350,17 +1350,24 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync,
   RLPStream s;
   host_.capabilityHost()->prep(_id, name(), s, PbftBlockPacket,
                                pbft_blks.size());
-  for (auto const &pbft_blk : pbft_blks) {
+  vector<blk_hash_t> anchors, pbft_blk_hashes;
+  anchors.reserve(pbft_blks.size());
+  pbft_blk_hashes.reserve(pbft_blks.size());
+  for (auto const &b : pbft_blks) {
+    anchors.emplace_back(b.getPivotDagBlockHash());
+    pbft_blk_hashes.emplace_back(b.getBlockHash());
+  }
+  auto votess_raw = db_->multi_get(DbStorage::Columns::votes, pbft_blk_hashes);
+  auto dag_blk_hashess_raw =
+      db_->multi_get(DbStorage::Columns::dag_finalized_blocks, anchors);
+  for (uint i = 0; i < pbft_blks.size(); ++i) {
     s.appendList(2);
     // add cert votes for each pbft block
-    auto const &pbft_blk_cert = cert_blocks.emplace_back(
-        pbft_blk, db_->getVote(pbft_blk.getBlockHash()));
-    s.appendRaw(pbft_blk_cert.rlp());
-    auto dag_blks = db_->getFinalizedDagBlockHashesByAnchor(
-        pbft_blk.getPivotDagBlockHash());
-    s.appendList(dag_blks.size());
+    s.appendList(2).appendRaw(pbft_blks[i].rlp(true)).appendRaw(votess_raw[i]);
+    auto dag_blk_hashes = RLP(dag_blk_hashess_raw[i]).toVector<blk_hash_t>();
+    s.appendList(dag_blk_hashes.size());
     for (auto const &dag_blk_raw :
-         db_->multi_get(DbStorage::Columns::dag_blocks, dag_blks)) {
+         db_->multi_get(DbStorage::Columns::dag_blocks, dag_blk_hashes)) {
       s.appendList(2);
       s.appendRaw(dag_blk_raw);
       auto trx_hashes =

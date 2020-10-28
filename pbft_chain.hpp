@@ -58,6 +58,8 @@ class PbftBlock {
   void streamRLP(dev::RLPStream& strm, bool include_sig) const;
   bytes rlp(bool include_sig) const;
 
+  static Json::Value toJson(PbftBlock const& b, std::vector<blk_hash_t> const& dag_blks);
+
   auto const& getBlockHash() const { return block_hash_; }
   auto const& getPrevBlockHash() const { return prev_block_hash_; }
   auto const& getPivotDagBlockHash() const { return dag_block_hash_as_pivot_; }
@@ -74,7 +76,6 @@ struct PbftBlockCert {
   PbftBlockCert(PbftBlock const& pbft_blk, std::vector<Vote> const& cert_votes);
   explicit PbftBlockCert(dev::RLP const& all_rlp);
   explicit PbftBlockCert(bytes const& all_rlp);
-  PbftBlockCert(PbftBlock const& pbft_blk, bytes const& cert_votes_rlp);
 
   std::shared_ptr<PbftBlock> pbft_blk;
   std::vector<Vote> cert_votes;

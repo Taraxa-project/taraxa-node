@@ -37,9 +37,9 @@ DbStorage::~DbStorage() {
 void DbStorage::checkStatus(rocksdb::Status const& status) {
   if (status.ok()) return;
   throw DbException(string("Db error. Status code: ") +
-                     to_string(status.code()) +
-                     " SubCode: " + to_string(status.subcode()) +
-                     " Message:" + status.ToString());
+                    to_string(status.code()) +
+                    " SubCode: " + to_string(status.subcode()) +
+                    " Message:" + status.ToString());
 }
 
 DbStorage::BatchPtr DbStorage::createWriteBatch() {
@@ -277,26 +277,19 @@ void DbStorage::addPbftHeadToBatch(
             head_str);
 }
 
-bytes DbStorage::getVote(blk_hash_t const& hash) {
-  return asBytes(lookup(toSlice(hash.asBytes()), Columns::votes));
-}
-
-void DbStorage::saveVote(blk_hash_t const& hash, bytes& value) {
-  insert(Columns::votes, toSlice(hash.asBytes()), toSlice(value));
+bytes DbStorage::getVotes(blk_hash_t const& hash) {
+  return asBytes(lookup(hash, Columns::votes));
 }
 
 void DbStorage::addPbftCertVotesToBatch(
     const taraxa::blk_hash_t& pbft_block_hash,
     const std::vector<Vote>& cert_votes,
     const taraxa::DbStorage::BatchPtr& write_batch) {
-  RLPStream s;
-  s.appendList(cert_votes.size());
+  RLPStream s(cert_votes.size());
   for (auto const& v : cert_votes) {
-    s.append(v.rlp());
+    s.appendRaw(v.rlp());
   }
-  auto ss = s.out();
-  batch_put(write_batch, Columns::votes, toSlice(pbft_block_hash.asBytes()),
-            toSlice(ss));
+  batch_put(*write_batch, Columns::votes, pbft_block_hash, s.out());
 }
 
 shared_ptr<blk_hash_t> DbStorage::getPeriodPbftBlock(uint64_t const& period) {
@@ -330,47 +323,19 @@ void DbStorage::addDagBlockPeriodToBatch(blk_hash_t const& hash,
             toSlice(period));
 }
 
-vector<blk_hash_t> DbStorage::getOrderedDagBlocks() {
-  uint64_t period = 1;
-  vector<blk_hash_t> res;
-  while (true) {
-    auto pbft_block_hash = getPeriodPbftBlock(period);
-    if (pbft_block_hash) {
-      auto pbft_block = getPbftBlock(*pbft_block_hash);
-      if (pbft_block) {
-        for (auto const& dag_block_hash : getFinalizedDagBlockHashesByAnchor(
-                 pbft_block->getPivotDagBlockHash())) {
-          res.push_back(dag_block_hash);
-        }
-      }
-      period++;
-      continue;
-    }
-    break;
-  }
-  return res;
-}
-
 vector<blk_hash_t> DbStorage::getFinalizedDagBlockHashesByAnchor(
     blk_hash_t const& anchor) {
   auto raw = lookup(toSlice(anchor), Columns::dag_finalized_blocks);
   if (raw.empty()) {
     return {};
   }
-  vector<blk_hash_t> ret;
-  ret.reserve(raw.size() / blk_hash_t::size);
-  for (auto const& el : RLP(raw)) {
-    ret.emplace_back(el.toHash<blk_hash_t>());
-  }
-  return ret;
+  return RLP(raw).toVector<blk_hash_t>();
 }
 
 void DbStorage::putFinalizedDagBlockHashesByAnchor(
     WriteBatch& b, blk_hash_t const& anchor, vector<blk_hash_t> const& hs) {
-  RLPStream rlp;
-  rlp.appendVector(hs);
-  checkStatus(b.Put(handle(Columns::dag_finalized_blocks), toSlice(anchor),
-                    toSlice(rlp.out())));
+  batch_put(b, DbStorage::Columns::dag_finalized_blocks, anchor,
+            RLPStream().appendVector(hs).out());
 }
 
 void DbStorage::insert(Column const& col, Slice const& k, Slice const& v) {

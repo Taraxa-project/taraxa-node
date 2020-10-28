@@ -97,7 +97,7 @@ struct DbStorage {
   DbStorage(DbStorage const&) = delete;
   DbStorage& operator=(DbStorage const&) = delete;
 
-  DbStorage(fs::path const& base_path);
+  explicit DbStorage(fs::path const& base_path);
   ~DbStorage();
 
   auto const& path() const { return path_; }
@@ -157,8 +157,7 @@ struct DbStorage {
   void addStatusFieldToBatch(StatusDbField const& field, uint64_t const& value,
                              BatchPtr const& write_batch);
   // votes
-  bytes getVote(blk_hash_t const& hash);
-  void saveVote(blk_hash_t const& hash, bytes& value);  // for unit test
+  bytes getVotes(blk_hash_t const& hash);
   void addPbftCertVotesToBatch(taraxa::blk_hash_t const& pbft_block_hash,
                                std::vector<Vote> const& cert_votes,
                                BatchPtr const& write_batch);
@@ -174,8 +173,6 @@ struct DbStorage {
 
   uint64_t getDagBlocksCount() const { return dag_blocks_count_.load(); }
   uint64_t getDagEdgeCount() const { return dag_edge_count_.load(); }
-
-  vector<blk_hash_t> getOrderedDagBlocks();
 
   auto getNumTransactionExecuted() {
     return getStatusField(StatusDbField::ExecutedTrxCount);

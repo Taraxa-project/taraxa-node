@@ -44,15 +44,16 @@ bool VrfPbftSortition::canSpeak(size_t threshold, size_t valid_players) const {
   return left <= right;
 }
 
-Vote::Vote(bytes const& b) {
-  dev::RLP const rlp(b);
+Vote::Vote(dev::RLP const& rlp) {
   if (!rlp.isList())
-    throw std::invalid_argument("transaction RLP must be a list");
+    throw std::invalid_argument("vote RLP must be a list");
   blockhash_ = rlp[0].toHash<blk_hash_t>();
   vrf_sortition_ = VrfPbftSortition(rlp[1].toBytes());
   vote_signatue_ = rlp[2].toHash<sig_t>();
   vote_hash_ = sha3(true);
 }
+
+Vote::Vote(bytes const& b) : Vote(dev::RLP(b)) {}
 
 Vote::Vote(secret_t const& node_sk, VrfPbftSortition const& vrf_sortition,
            blk_hash_t const& blockhash)
