@@ -118,27 +118,14 @@ TEST_F(FullNodeTest, db_test) {
             *db.getTransaction(g_trx_signed_samples[2].getHash()));
   EXPECT_EQ(g_trx_signed_samples[3],
             *db.getTransaction(g_trx_signed_samples[3].getHash()));
-
-  db.saveTransactionToBlock(g_trx_signed_samples[0].getHash(), blk1.getHash());
-  db.saveTransactionToBlock(g_trx_signed_samples[1].getHash(), blk1.getHash());
-  db.saveTransactionToBlock(g_trx_signed_samples[2].getHash(), blk2.getHash());
-  EXPECT_TRUE(db.transactionToBlockInDb(g_trx_signed_samples[0].getHash()));
-  EXPECT_TRUE(db.transactionToBlockInDb(g_trx_signed_samples[1].getHash()));
-  EXPECT_TRUE(db.transactionToBlockInDb(g_trx_signed_samples[2].getHash()));
-  EXPECT_EQ(*db.getTransactionToBlock(g_trx_signed_samples[0].getHash()),
-            blk1.getHash());
-  EXPECT_EQ(*db.getTransactionToBlock(g_trx_signed_samples[1].getHash()),
-            blk1.getHash());
-  EXPECT_EQ(*db.getTransactionToBlock(g_trx_signed_samples[2].getHash()),
-            blk2.getHash());
   // pbft_blocks
-  PbftBlock pbft_block1(blk_hash_t(1), 2);
-  PbftBlock pbft_block2(blk_hash_t(2), 3);
-  PbftBlock pbft_block3(blk_hash_t(3), 4);
-  PbftBlock pbft_block4(blk_hash_t(4), 5);
-  db.savePbftBlock(pbft_block1);
-  db.savePbftBlock(pbft_block2);
+  auto pbft_block1 = make_simple_pbft_block(blk_hash_t(1), 2);
+  auto pbft_block2 = make_simple_pbft_block(blk_hash_t(2), 3);
+  auto pbft_block3 = make_simple_pbft_block(blk_hash_t(3), 4);
+  auto pbft_block4 = make_simple_pbft_block(blk_hash_t(4), 5);
   batch = db.createWriteBatch();
+  db.addPbftBlockToBatch(pbft_block1, batch);
+  db.addPbftBlockToBatch(pbft_block2, batch);
   db.addPbftBlockToBatch(pbft_block3, batch);
   db.addPbftBlockToBatch(pbft_block4, batch);
   db.commitWriteBatch(batch);
@@ -198,7 +185,7 @@ TEST_F(FullNodeTest, db_test) {
   batch = db.createWriteBatch();
   db.addPbftCertVotesToBatch(vote_pbft_block_hash, cert_votes, batch);
   db.commitWriteBatch(batch);
-  PbftBlock pbft_block(vote_pbft_block_hash, 2);
+  auto pbft_block = make_simple_pbft_block(vote_pbft_block_hash, 2);
   PbftBlockCert pbft_block_cert_votes(pbft_block, cert_votes);
   auto cert_votes_rlp = db.getVote(vote_pbft_block_hash);
   PbftBlockCert pbft_block_cert_votes_from_db(pbft_block, cert_votes_rlp);
@@ -583,16 +570,6 @@ TEST_F(FullNodeTest, sync_five_nodes) {
     EXPECT_EQ(node->getDB()->getNumTransactionInDag(), issued_trx_count);
   }
 
-  auto dags = nodes[0]->getDB()->getOrderedDagBlocks();
-  for (auto i(0); i < dags.size(); ++i) {
-    auto d = dags[i];
-    for (auto const &t :
-         nodes[0]->getBlockManager()->getDagBlock(d)->getTrxs()) {
-      auto blk = nodes[0]->getTrxOrderMgr()->getDagBlockFromTransaction(t);
-      EXPECT_FALSE(blk->isZero());
-    }
-  }
-
   context.assert_balances_synced();
 }
 
@@ -632,7 +609,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   }
   auto write_batch = node->getDB()->createWriteBatch();
   auto num_blks_set = node->getDagManager()->setDagBlockOrder(
-      blk_hash_t(pivot), period, order, write_batch);
+      blk_hash_t(pivot), period, *order, write_batch);
   node->getDB()->commitWriteBatch(write_batch);
   EXPECT_EQ(num_blks_set, 6);
   // -------- second period ----------
@@ -657,7 +634,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   }
   write_batch = node->getDB()->createWriteBatch();
   num_blks_set = node->getDagManager()->setDagBlockOrder(
-      blk_hash_t(pivot), period, order, write_batch);
+      blk_hash_t(pivot), period, *order, write_batch);
   node->getDB()->commitWriteBatch(write_batch);
   EXPECT_EQ(num_blks_set, 7);
 
@@ -681,7 +658,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   }
   write_batch = node->getDB()->createWriteBatch();
   num_blks_set = node->getDagManager()->setDagBlockOrder(
-      blk_hash_t(pivot), period, order, write_batch);
+      blk_hash_t(pivot), period, *order, write_batch);
   node->getDB()->commitWriteBatch(write_batch);
   EXPECT_EQ(num_blks_set, 5);
 }

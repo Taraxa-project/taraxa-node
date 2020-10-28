@@ -36,23 +36,14 @@ DbStorage::~DbStorage() {
 
 void DbStorage::checkStatus(rocksdb::Status const& status) {
   if (status.ok()) return;
-  throw DbException((string("Db error. Status code: ") +
+  throw DbException(string("Db error. Status code: ") +
                      to_string(status.code()) +
                      " SubCode: " + to_string(status.subcode()) +
-                     " Message:" + status.ToString())
-                        .c_str());
+                     " Message:" + status.ToString());
 }
 
 DbStorage::BatchPtr DbStorage::createWriteBatch() {
-  return DbStorage::BatchPtr(new WriteBatch());
-}
-
-std::string DbStorage::lookup(Slice key, Column const& column) {
-  std::string value;
-  Status status = db_->Get(read_options_, handle(column), key, &value);
-  if (status.IsNotFound()) return std::string();
-  checkStatus(status);
-  return value;
+  return s_ptr(new WriteBatch());
 }
 
 void DbStorage::remove(Slice key, Column const& column) {
@@ -168,24 +159,6 @@ void DbStorage::saveTransaction(Transaction const& trx) {
          toSlice(*trx.rlp()));
 }
 
-void DbStorage::saveTransactionToBlock(trx_hash_t const& trx_hash,
-                                       blk_hash_t const& blk_hash) {
-  insert(Columns::trx_to_blk, trx_hash.toString(), blk_hash.toString());
-}
-
-std::shared_ptr<blk_hash_t> DbStorage::getTransactionToBlock(
-    trx_hash_t const& hash) {
-  auto blk_hash = lookup(hash.toString(), Columns::trx_to_blk);
-  if (!blk_hash.empty()) {
-    return make_shared<blk_hash_t>(blk_hash);
-  }
-  return nullptr;
-}
-
-bool DbStorage::transactionToBlockInDb(trx_hash_t const& hash) {
-  return !lookup(hash.toString(), Columns::trx_to_blk).empty();
-}
-
 void DbStorage::saveTransactionStatus(trx_hash_t const& trx_hash,
                                       TransactionStatus const& status) {
   insert(Columns::trx_status, toSlice(trx_hash.asBytes()),
@@ -270,28 +243,22 @@ void DbStorage::addStatusFieldToBatch(StatusDbField const& field,
 
 // PBFT
 std::shared_ptr<PbftBlock> DbStorage::getPbftBlock(blk_hash_t const& hash) {
-  auto block = lookup(toSlice(hash.asBytes()), Columns::pbft_blocks);
+  auto block = lookup(hash, Columns::pbft_blocks);
   if (!block.empty()) {
-    return std::make_shared<PbftBlock>(block);
+    return s_ptr(new PbftBlock(dev::RLP(block)));
   }
   return nullptr;
 }
 
-void DbStorage::savePbftBlock(PbftBlock const& block) {
-  insert(Columns::pbft_blocks, toSlice(block.getBlockHash().asBytes()),
-         block.getJsonStr());
-}
-
 bool DbStorage::pbftBlockInDb(blk_hash_t const& hash) {
-  return !lookup(toSlice(hash.asBytes()), Columns::pbft_blocks).empty();
+  return !lookup(hash, Columns::pbft_blocks).empty();
 }
 
 void DbStorage::addPbftBlockToBatch(
     const taraxa::PbftBlock& pbft_block,
     const taraxa::DbStorage::BatchPtr& write_batch) {
-  batch_put(write_batch, Columns::pbft_blocks,
-            toSlice(pbft_block.getBlockHash().asBytes()),
-            pbft_block.getJsonStr());
+  batch_put(*write_batch, Columns::pbft_blocks, pbft_block.getBlockHash(),
+            pbft_block.rlp(true));
 }
 
 string DbStorage::getPbftHead(blk_hash_t const& hash) {
@@ -371,8 +338,8 @@ vector<blk_hash_t> DbStorage::getOrderedDagBlocks() {
     if (pbft_block_hash) {
       auto pbft_block = getPbftBlock(*pbft_block_hash);
       if (pbft_block) {
-        for (auto const dag_block_hash :
-             pbft_block->getSchedule().dag_blks_order) {
+        for (auto const& dag_block_hash : getFinalizedDagBlockHashesByAnchor(
+                 pbft_block->getPivotDagBlockHash())) {
           res.push_back(dag_block_hash);
         }
       }
@@ -382,6 +349,28 @@ vector<blk_hash_t> DbStorage::getOrderedDagBlocks() {
     break;
   }
   return res;
+}
+
+vector<blk_hash_t> DbStorage::getFinalizedDagBlockHashesByAnchor(
+    blk_hash_t const& anchor) {
+  auto raw = lookup(toSlice(anchor), Columns::dag_finalized_blocks);
+  if (raw.empty()) {
+    return {};
+  }
+  vector<blk_hash_t> ret;
+  ret.reserve(raw.size() / blk_hash_t::size);
+  for (auto const& el : RLP(raw)) {
+    ret.emplace_back(el.toHash<blk_hash_t>());
+  }
+  return ret;
+}
+
+void DbStorage::putFinalizedDagBlockHashesByAnchor(
+    WriteBatch& b, blk_hash_t const& anchor, vector<blk_hash_t> const& hs) {
+  RLPStream rlp;
+  rlp.appendVector(hs);
+  checkStatus(b.Put(handle(Columns::dag_finalized_blocks), toSlice(anchor),
+                    toSlice(rlp.out())));
 }
 
 void DbStorage::insert(Column const& col, Slice const& k, Slice const& v) {

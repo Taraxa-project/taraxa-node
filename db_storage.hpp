@@ -63,8 +63,9 @@ struct DbStorage {
     COLUMN(dag_blocks);
     COLUMN(dag_blocks_index);
     COLUMN(dag_blocks_state);
+    // anchor_hash->[...dag_block_hashes_since_previous_anchor, anchor_hash]
+    COLUMN(dag_finalized_blocks);
     COLUMN(transactions);
-    COLUMN(trx_to_blk);
     COLUMN(trx_status);
     COLUMN(status);
     COLUMN(pbft_head);
@@ -100,17 +101,8 @@ struct DbStorage {
   ~DbStorage();
 
   auto const& path() const { return path_; }
-  BatchPtr createWriteBatch();
+  static BatchPtr createWriteBatch();
   void commitWriteBatch(BatchPtr const& write_batch);
-
-  void batch_put(BatchPtr const& batch, Column const& col, Slice const& k,
-                 Slice const& v) {
-    checkStatus(batch->Put(handle(col), k, v));
-  }
-
-  void batch_delete(BatchPtr const& batch, Column const& col, Slice const& k) {
-    checkStatus(batch->Delete(handle(col), k));
-  }
 
   // DAG
   void saveDagBlock(DagBlock const& blk, BatchPtr write_batch = nullptr);
@@ -137,10 +129,6 @@ struct DbStorage {
   void addTransactionToBatch(Transaction const& trx,
                              BatchPtr const& write_batch);
 
-  void saveTransactionToBlock(trx_hash_t const& trx, blk_hash_t const& hash);
-  shared_ptr<blk_hash_t> getTransactionToBlock(trx_hash_t const& hash);
-  bool transactionToBlockInDb(trx_hash_t const& hash);
-
   void saveTransactionStatus(trx_hash_t const& trx,
                              TransactionStatus const& status);
   void addTransactionStatusToBatch(BatchPtr const& write_batch,
@@ -151,7 +139,6 @@ struct DbStorage {
 
   // pbft_blocks
   shared_ptr<PbftBlock> getPbftBlock(blk_hash_t const& hash);
-  void savePbftBlock(PbftBlock const& block);  // for unit test
   bool pbftBlockInDb(blk_hash_t const& hash);
   void addPbftBlockToBatch(PbftBlock const& pbft_block,
                            BatchPtr const& write_batch);
@@ -201,13 +188,27 @@ struct DbStorage {
   }
   uint64_t getNumDagBlocks() { return getDagBlocksCount(); }
 
-  string lookup(Slice key, Column const& column);
+  vector<blk_hash_t> getFinalizedDagBlockHashesByAnchor(
+      blk_hash_t const& anchor);
+  void putFinalizedDagBlockHashesByAnchor(WriteBatch& b,
+                                          blk_hash_t const& anchor,
+                                          vector<blk_hash_t> const& hs);
+
   void insert(Column const& col, Slice const& k, Slice const& v);
   void remove(Slice key, Column const& column);
   void forEach(Column const& col, OnEntry const& f);
 
+  inline static bytes asBytes(string const& b) {
+    return bytes((byte const*)b.data(), (byte const*)(b.data() + b.size()));
+  }
+
   inline static Slice toSlice(dev::bytesConstRef const& b) {
     return Slice(reinterpret_cast<char const*>(&b[0]), b.size());
+  }
+
+  template <unsigned N>
+  inline static Slice toSlice(dev::FixedHash<N> const& h) {
+    return {reinterpret_cast<char const*>(h.data()), N};
   }
 
   inline static Slice toSlice(dev::bytes const& b) { return toSlice(&b); }
@@ -221,8 +222,64 @@ struct DbStorage {
     return Slice(str.data(), str.size());
   }
 
-  inline static bytes asBytes(string const& b) {
-    return bytes((byte const*)b.data(), (byte const*)(b.data() + b.size()));
+  inline static auto const& toSlice(Slice const& s) { return s; }
+
+  template <typename T>
+  inline static auto toSlices(std::vector<T> const& keys) {
+    std::vector<Slice> ret;
+    ret.reserve(keys.size());
+    for (auto const& k : keys) {
+      ret.emplace_back(toSlice(k));
+    }
+    return ret;
+  }
+
+  inline static auto const& toSlices(std::vector<Slice> const& ss) {
+    return ss;
+  }
+
+  template <typename T>
+  vector<std::string> multi_get(Column const& col, std::vector<T> const& ts) {
+    auto const& keys = toSlices(ts);
+    vector<std::string> ret(keys.size());
+    uint i = 0;
+    for (auto const& s :
+         db_->MultiGet(read_options_, {keys.size(), handle(col)}, keys, &ret)) {
+      if (s.IsNotFound()) {
+        ret[i] = "";
+      } else {
+        checkStatus(s);
+      }
+      ++i;
+    }
+    return ret;
+  }
+
+  template <typename K>
+  std::string lookup(K const& key, Column const& column) {
+    std::string value;
+    auto status = db_->Get(read_options_, handle(column), toSlice(key), &value);
+    if (status.IsNotFound()) {
+      return "";
+    }
+    checkStatus(status);
+    return value;
+  }
+
+  template <typename K, typename V>
+  void batch_put(WriteBatch& batch, Column const& col, K const& k, V const& v) {
+    checkStatus(batch.Put(handle(col), toSlice(k), toSlice(v)));
+  }
+
+  // TODO remove
+  void batch_put(BatchPtr const& batch, Column const& col, Slice const& k,
+                 Slice const& v) {
+    batch_put(*batch, col, k, v);
+  }
+
+  // TODO generalize like batch_put
+  void batch_delete(BatchPtr const& batch, Column const& col, Slice const& k) {
+    checkStatus(batch->Delete(handle(col), k));
   }
 
   static void checkStatus(rocksdb::Status const& status);

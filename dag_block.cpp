@@ -75,28 +75,39 @@ DagBlock::DagBlock(Json::Value const &doc) {
     vdf_ = VdfSortition(cached_sender_, dev::fromHex(vdf_string));
   }
 }
-DagBlock::DagBlock(bytes const &_rlp) {
-  dev::RLP const rlp(_rlp);
-  if (!rlp.isList())
-    throw std::invalid_argument("transaction RLP must be a list");
 
-  pivot_ = rlp[0].toHash<blk_hash_t>();
-  level_ = rlp[1].toInt<level_t>();
-  timestamp_ = rlp[2].toInt<uint64_t>();
-  vdf_ = vdf_sortition::VdfSortition(cached_sender_, rlp[3].toBytes());
-  uint64_t num_tips = rlp[4].toInt<uint64_t>();
-  for (auto i = 0; i < num_tips; ++i) {
-    auto tip = rlp[5 + i].toHash<blk_hash_t>();
-    tips_.push_back(tip);
+DagBlock::DagBlock(dev::RLP const &rlp) {
+  if (!rlp.isList()) {
+    throw std::invalid_argument("transaction RLP must be a list");
   }
-  uint64_t num_trxs = rlp[5 + num_tips].toInt<uint64_t>();
-  for (auto i = 0; i < num_trxs; ++i) {
-    auto trx = rlp[6 + num_tips + i].toHash<trx_hash_t>();
-    trxs_.push_back(trx);
+  uint field_n = 0;
+  for (auto const &el : rlp) {
+    if (field_n == 0) {
+      pivot_ = el.toHash<blk_hash_t>();
+    } else if (field_n == 1) {
+      level_ = el.toInt<level_t>();
+    } else if (field_n == 2) {
+      timestamp_ = el.toInt<uint64_t>();
+    } else if (field_n == 3) {
+      vdf_ = vdf_sortition::VdfSortition(cached_sender_, el.toBytes());
+    } else if (field_n == 4) {
+      tips_ = el.toVector<trx_hash_t>();
+    } else if (field_n == 5) {
+      trxs_ = el.toVector<trx_hash_t>();
+    } else if (field_n == 6) {
+      sig_ = el.toHash<sig_t>();
+    } else {
+      BOOST_THROW_EXCEPTION(
+          std::runtime_error("too many rlp fields for dag block"));
+    }
+    ++field_n;
   }
-  if (rlp.itemCount() > 6 + num_tips + num_trxs)
-    sig_ = rlp[6 + num_tips + num_trxs].toHash<sig_t>();
   updateHash();
+}
+
+std::vector<trx_hash_t> DagBlock::extract_transactions_from_rlp(
+    RLP const &rlp) {
+  return rlp[5].toVector<trx_hash_t>();
 }
 
 bool DagBlock::isValid() const {
@@ -159,18 +170,14 @@ addr_t DagBlock::sender() const {
 }
 
 void DagBlock::streamRLP(dev::RLPStream &s, bool include_sig) const {
-  auto num_tips = tips_.size();
-  auto num_trxs = trxs_.size();
-  auto total = num_tips + num_trxs + 6;
-  s.appendList(include_sig ? total + 1 : total);
+  constexpr auto base_field_count = 6;
+  s.appendList(include_sig ? base_field_count + 1 : base_field_count);
   s << pivot_;
   s << level_;
   s << timestamp_;
   s << vdf_.rlp();
-  s << num_tips;
-  for (auto i = 0; i < num_tips; ++i) s << tips_[i];
-  s << num_trxs;
-  for (auto i = 0; i < num_trxs; ++i) s << trxs_[i];
+  s.appendVector(tips_);
+  s.appendVector(trxs_);
   if (include_sig) {
     s << sig_;
   }
@@ -310,8 +317,7 @@ void BlockManager::insertBroadcastedBlockWithTransactions(
     LOG(log_dg_) << "Block known " << blk.getHash();
     return;
   }
-  pushUnverifiedBlock(std::move(blk), std::move(transactions),
-                      false /*critical*/);
+  pushUnverifiedBlock(blk, transactions, false /*critical*/);
   LOG(log_time_) << "Store ncblock " << blk.getHash()
                  << " at: " << getCurrentTimeMilliSeconds()
                  << " ,trxs: " << blk.getTrxs().size()
