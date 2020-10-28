@@ -89,8 +89,6 @@ void FullNode::init() {
   emplace(pbft_chain_, genesis_hash, node_addr, db_);
   {
     emplace(dag_mgr_, genesis_hash, node_addr, trx_mgr_, pbft_chain_, db_);
-    // TODO move to the constructor?
-    dag_mgr_->recoverDag();
   }
   emplace(blk_mgr_, 1024 /*capacity*/, 4 /* verifer thread*/, node_addr, db_,
           trx_mgr_, log_time_, conf_.test_params.max_block_queue_warn);
