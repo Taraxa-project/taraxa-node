@@ -37,11 +37,9 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
  public:
   VdfSortition() = default;
   explicit VdfSortition(addr_t node_addr, vrf_sk_t const& sk,
-                        Message const& msg, uint16_t difficulty_selection = 255,
-                        uint16_t difficulty_min = 0,
-                        uint16_t difficulty_max = 5,
-                        uint16_t difficulty_stale = 5,
-                        uint16_t lambda_bound = 1500);
+                        Message const& msg, uint16_t difficulty_selection,
+                        uint16_t difficulty_min, uint16_t difficulty_max,
+                        uint16_t difficulty_stale, uint16_t lambda_bound);
   explicit VdfSortition(addr_t node_addr, bytes const& b);
   
   bool verify(std::string const& msg) { return verifyVdfSolution(msg); }
