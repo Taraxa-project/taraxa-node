@@ -1343,46 +1343,56 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync,
       << "In sendPbftBlocks, peer want to sync from pbft chain height "
       << height_to_sync << ", will send " << blocks_to_transfer
       << " pbft blocks to " << _id;
-  auto pbft_blks =
+  auto db_results_0 =
       pbft_chain_->getPbftBlocks(height_to_sync, blocks_to_transfer);
-  vector<PbftBlockCert> cert_blocks;  // only for logging
-  cert_blocks.reserve(pbft_blks.size());
   RLPStream s;
   host_.capabilityHost()->prep(_id, name(), s, PbftBlockPacket,
-                               pbft_blks.size());
-  vector<blk_hash_t> anchors, pbft_blk_hashes;
-  anchors.reserve(pbft_blks.size());
-  pbft_blk_hashes.reserve(pbft_blks.size());
-  for (auto const &b : pbft_blks) {
-    anchors.emplace_back(b.getPivotDagBlockHash());
-    pbft_blk_hashes.emplace_back(b.getBlockHash());
+                               db_results_0.size());
+  DbStorage::MultiGetQuery db_query(db_);
+  for (auto const &b : db_results_0) {
+    db_query.append(DbStorage::Columns::dag_finalized_blocks,
+                    b.getPivotDagBlockHash(), false);
+    db_query.append(DbStorage::Columns::votes, b.getBlockHash(), false);
   }
-  auto votess_raw = db_->multi_get(DbStorage::Columns::votes, pbft_blk_hashes);
-  auto dag_blk_hashess_raw =
-      db_->multi_get(DbStorage::Columns::dag_finalized_blocks, anchors);
-  for (uint i = 0; i < pbft_blks.size(); ++i) {
+  auto db_results_1 = db_query.execute();
+  vector<uint> offsets_1;
+  offsets_1.reserve(1 + db_results_0.size());
+  offsets_1.push_back(0);
+  for (uint i_0 = 0; i_0 < db_results_0.size(); ++i_0) {
+    db_query.append(DbStorage::Columns::dag_blocks,
+                    RLP(db_results_1[0 + 2 * i_0]).toVector<h256>());
+    offsets_1.push_back(db_query.size());
+  }
+  auto db_results_2 = db_query.execute();
+  vector<uint> offsets_2;
+  offsets_2.reserve(1 + db_results_2.size());
+  offsets_2.push_back(0);
+  for (auto const &dag_blk_raw : db_results_2) {
+    db_query.append(DbStorage::Columns::transactions,
+                    DagBlock::extract_transactions_from_rlp(RLP(dag_blk_raw)));
+    offsets_2.push_back(db_query.size());
+  }
+  auto db_results_3 = db_query.execute();
+  for (uint i_0 = 0; i_0 < db_results_0.size(); ++i_0) {
     s.appendList(2);
-    // add cert votes for each pbft block
-    s.appendList(2).appendRaw(pbft_blks[i].rlp(true)).appendRaw(votess_raw[i]);
-    auto dag_blk_hashes = RLP(dag_blk_hashess_raw[i]).toVector<blk_hash_t>();
-    s.appendList(dag_blk_hashes.size());
-    for (auto const &dag_blk_raw :
-         db_->multi_get(DbStorage::Columns::dag_blocks, dag_blk_hashes)) {
+    PbftBlockCert::encode_raw(s, db_results_0[i_0], db_results_1[1 + 2 * i_0]);
+    auto start_1 = offsets_1[i_0];
+    auto end_1 = offsets_1[i_0 + 1];
+    s.appendList(end_1 - start_1);
+    for (uint i_1 = start_1; i_1 < end_1; ++i_1) {
       s.appendList(2);
-      s.appendRaw(dag_blk_raw);
-      auto trx_hashes =
-          DagBlock::extract_transactions_from_rlp(dev::RLP(dag_blk_raw));
-      s.appendList(trx_hashes.size());
-      for (auto const &trx_raw :
-           db_->multi_get(DbStorage::Columns::transactions, trx_hashes)) {
-        s.appendRaw(trx_raw);
+      s.appendRaw(db_results_2[i_1]);
+      auto start_2 = offsets_2[i_1];
+      auto end_2 = offsets_2[i_1 + 1];
+      s.appendList(end_2 - start_2);
+      for (uint i_2 = start_2; i_2 < end_2; ++i_2) {
+        s.appendRaw(db_results_3[i_2]);
       }
     }
   }
   host_.capabilityHost()->sealAndSend(_id, s);
   // Question: will send multiple times to a same receiver, why?
-  LOG(log_dg_pbft_sync_) << "Sending PbftCertBlocks " << cert_blocks << " to "
-                         << _id;
+  LOG(log_dg_pbft_sync_) << "Sending PbftCertBlocks to " << _id;
 }
 
 void TaraxaCapability::sendPbftBlock(NodeID const &_id,

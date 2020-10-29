@@ -66,6 +66,8 @@ struct DbStorage {
     // anchor_hash->[...dag_block_hashes_since_previous_anchor, anchor_hash]
     COLUMN(dag_finalized_blocks);
     COLUMN(transactions);
+    // hash->dummy_short_value
+    COLUMN(executed_transactions);
     COLUMN(trx_status);
     COLUMN(status);
     COLUMN(pbft_head);
@@ -235,23 +237,6 @@ struct DbStorage {
     return ss;
   }
 
-  template <typename T>
-  vector<std::string> multi_get(Column const& col, std::vector<T> const& ts) {
-    auto const& keys = toSlices(ts);
-    vector<std::string> ret(keys.size());
-    uint i = 0;
-    for (auto const& s :
-         db_->MultiGet(read_options_, {keys.size(), handle(col)}, keys, &ret)) {
-      if (s.IsNotFound()) {
-        ret[i] = "";
-      } else {
-        checkStatus(s);
-      }
-      ++i;
-    }
-    return ret;
-  }
-
   template <typename K>
   std::string lookup(K const& key, Column const& column) {
     std::string value;
@@ -280,6 +265,44 @@ struct DbStorage {
   }
 
   static void checkStatus(rocksdb::Status const& status);
+
+  class MultiGetQuery {
+    shared_ptr<DbStorage> const db_;
+    vector<ColumnFamilyHandle*> cfs_;
+    vector<Slice> keys_;
+    vector<string> str_pool_;
+
+   public:
+    explicit MultiGetQuery(shared_ptr<DbStorage> const& db, uint capacity = 0);
+
+    template <typename T>
+    MultiGetQuery& append(Column const& col, vector<T> const& keys,
+                          bool copy_key = true) {
+      auto h = db_->handle(col);
+      for (auto const& k : keys) {
+        cfs_.emplace_back(h);
+        if (copy_key) {
+          auto const& slice = toSlice(k);
+          keys_.emplace_back(
+              toSlice(str_pool_.emplace_back(slice.data(), slice.size())));
+        } else {
+          keys_.emplace_back(toSlice(k));
+        }
+      }
+      return *this;
+    }
+
+    template <typename T>
+    MultiGetQuery& append(Column const& col, T const& key,
+                          bool copy_key = true) {
+      return append(col, vector{toSlice(key)}, copy_key);
+    }
+
+    dev::bytesConstRef get_key(uint pos);
+    uint size();
+    vector<string> execute(bool and_reset = true);
+    MultiGetQuery& reset();
+  };
 };
 }  // namespace taraxa
 #endif

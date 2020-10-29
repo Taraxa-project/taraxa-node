@@ -1360,40 +1360,53 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
     LOG(log_er_) << "PBFT block: " << pbft_block_hash << " in DB already";
     return false;
   }
-  transactions_tmp_buf_.clear();
   auto const &anchor_hash = pbft_block.getPivotDagBlockHash();
   auto finalized_dag_blk_hashes =
       std::move(*dag_mgr_->getDagBlockOrder(anchor_hash).second);
-  unordered_set<trx_hash_t> unique_trxs;
-  unique_trxs.reserve(transactions_tmp_buf_.capacity());
-  for (auto const &dag_blk_raw : db_->multi_get(DbStorage::Columns::dag_blocks,
-                                                finalized_dag_blk_hashes)) {
-    auto dag_blk_trx_hashes =
-        DagBlock::extract_transactions_from_rlp(dev::RLP(dag_blk_raw));
-    vector<trx_hash_t> trx_hashes_to_exec;
-    trx_hashes_to_exec.reserve(dag_blk_trx_hashes.size());
-    for (auto const &h : dag_blk_trx_hashes) {
-      if (final_chain_->isKnownTransaction(h)) {
-        continue;
-      }
-      if (auto [_, wasnt_present] = unique_trxs.insert(h); wasnt_present) {
-        trx_hashes_to_exec.emplace_back(h);
+  auto batch = db_->createWriteBatch();
+  {
+    // This artificial scope will make sure we clean up the big chunk of memory
+    // allocated for this batch-processing stuff as soon as possible
+    // TODO use optimal batch size (via config)
+    transactions_tmp_buf_.clear();
+    DbStorage::MultiGetQuery db_query(db_,
+                                      transactions_tmp_buf_.capacity() + 100);
+    auto dag_blks_raw = db_query
+                            .append(DbStorage::Columns::dag_blocks,
+                                    finalized_dag_blk_hashes, false)
+                            .execute();
+    unordered_set<h256> unique_trxs;
+    unique_trxs.reserve(transactions_tmp_buf_.capacity());
+    for (auto const &dag_blk_raw : dag_blks_raw) {
+      for (auto const &trx_h :
+           DagBlock::extract_transactions_from_rlp(RLP(dag_blk_raw))) {
+        if (!unique_trxs.insert(trx_h).second) {
+          continue;
+        }
+        db_query.append(DbStorage::Columns::executed_transactions, trx_h);
+        db_query.append(DbStorage::Columns::transactions, trx_h);
       }
     }
-    auto trxs_raw =
-        db_->multi_get(DbStorage::Columns::transactions, trx_hashes_to_exec);
-    for (uint i = 0; i < trxs_raw.size(); ++i) {
+    auto trx_db_results = db_query.execute(false);
+    for (uint i = 0; i < unique_trxs.size(); ++i) {
+      auto has_been_executed = !trx_db_results[0 + i * 2].empty();
+      if (has_been_executed) {
+        continue;
+      }
       auto const &trx = transactions_tmp_buf_.emplace_back(
-          &trxs_raw[i], dev::eth::CheckTransaction::None, true,
-          trx_hashes_to_exec[i]);
+          &trx_db_results[1 + i * 2], dev::eth::CheckTransaction::None, true,
+          h256(db_query.get_key(1 + i * 2)));
       if (replay_protection_service->is_nonce_stale(trx.sender(),
                                                     trx.nonce())) {
         transactions_tmp_buf_.pop_back();
+        continue;
       }
+      static string const dummy_val = "_";
+      db_->batch_put(*batch, DbStorage::Columns::executed_transactions,
+                     trx.sha3(), dummy_val);
     }
   }
 
-  auto batch = db_->createWriteBatch();
   // Execute transactions in EVM(GO trx engine) and update Ethereum block
   auto const &[new_eth_header, trx_receipts, _] =
       final_chain_->advance(batch, pbft_block.getBeneficiary(),

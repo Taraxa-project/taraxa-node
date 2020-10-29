@@ -58,7 +58,8 @@ class PbftBlock {
   void streamRLP(dev::RLPStream& strm, bool include_sig) const;
   bytes rlp(bool include_sig) const;
 
-  static Json::Value toJson(PbftBlock const& b, std::vector<blk_hash_t> const& dag_blks);
+  static Json::Value toJson(PbftBlock const& b,
+                            std::vector<blk_hash_t> const& dag_blks);
 
   auto const& getBlockHash() const { return block_hash_; }
   auto const& getPrevBlockHash() const { return prev_block_hash_; }
@@ -80,6 +81,8 @@ struct PbftBlockCert {
   std::shared_ptr<PbftBlock> pbft_blk;
   std::vector<Vote> cert_votes;
   bytes rlp() const;
+  static void encode_raw(dev::RLPStream& rlp, PbftBlock const& pbft_blk,
+                         dev::bytesConstRef votes_raw);
 };
 std::ostream& operator<<(std::ostream& strm, PbftBlockCert const& b);
 

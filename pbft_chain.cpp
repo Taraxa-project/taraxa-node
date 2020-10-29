@@ -134,6 +134,11 @@ bytes PbftBlockCert::rlp() const {
   return s.out();
 }
 
+void PbftBlockCert::encode_raw(RLPStream& rlp, PbftBlock const& pbft_blk,
+                               dev::bytesConstRef votes_raw) {
+  rlp.appendList(2).appendRaw(pbft_blk.rlp(true)).appendRaw(votes_raw);
+}
+
 std::ostream& operator<<(std::ostream& strm, PbftBlockCert const& b) {
   strm << "[PbftBlockCert] : " << b.pbft_blk << " , num of votes "
        << b.cert_votes.size() << std::endl;
@@ -257,6 +262,7 @@ std::shared_ptr<PbftBlock> PbftChain::getUnverifiedPbftBlock(
 
 std::vector<PbftBlock> PbftChain::getPbftBlocks(size_t period,
                                                 size_t count) const {
+  // TODO batch-get
   std::vector<PbftBlock> result;
   for (auto i = period; i < period + count; i++) {
     auto pbft_block_hash = db_->getPeriodPbftBlock(i);
