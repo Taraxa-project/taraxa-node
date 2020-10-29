@@ -367,14 +367,14 @@ bool DagManager::pivotAndTipsAvailable(DagBlock const &blk) {
   auto dag_blk_pivot = blk.getPivot();
 
   if (db_->getDagBlock(dag_blk_pivot) == nullptr) {
-    LOG(log_er_) << "DAG Block " << dag_blk_hash << " pivot " << dag_blk_pivot
+    LOG(log_dg_) << "DAG Block " << dag_blk_hash << " pivot " << dag_blk_pivot
                  << " unavailable";
     return false;
   }
 
   for (auto const &t : blk.getTips()) {
     if (db_->getDagBlock(t) == nullptr) {
-      LOG(log_er_) << "DAG Block " << dag_blk_hash << " tip " << t
+      LOG(log_dg_) << "DAG Block " << dag_blk_hash << " tip " << t
                    << " unavailable";
       return false;
     }

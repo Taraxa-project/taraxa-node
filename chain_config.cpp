@@ -40,7 +40,15 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
       "sender": "de2b1203d72d3549ee2f733b00b2789414c7cea5",
       "pivot": "0000000000000000000000000000000000000000000000000000000000000000",
       "timestamp": 1564617600,
-      "vdf": ""
+      "vdf": {
+        "pk" : "",
+        "proof" : "",
+        "level" : 0,
+        "sol1" : "",
+        "sol2" : "",
+        "difficulty_bound" : 0,
+        "lambda" : 0
+      }  
   })"));
     cfg.replay_protection_service.range = 10;
     cfg.final_chain.state.disable_block_rewards = true;

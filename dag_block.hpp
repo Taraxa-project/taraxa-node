@@ -148,6 +148,8 @@ class BlockManager {
   bool isBlockKnown(blk_hash_t const &hash);
   std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash) const;
   void clearBlockStatausTable() { blk_status_.clear(); }
+  bool pivotAndTipsValid(DagBlock const &blk);
+  
 
  private:
   using uLock = boost::unique_lock<boost::shared_mutex>;

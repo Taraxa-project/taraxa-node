@@ -191,10 +191,13 @@ void FullNode::start() {
         // where in some race condition older block is verfified faster then
         // new block but should resolve quickly, return block to queue
         if (!stopped_) {
-          LOG(log_wr_) << "Block could not be added to DAG "
-                       << blk.getHash().toString();
-          received_blocks_--;
-          blk_mgr_->pushVerifiedBlock(blk);
+
+          if(blk_mgr_->pivotAndTipsValid(blk)) {
+            LOG(log_dg_) << "Block could not be added to DAG "
+                        << blk.getHash().toString();
+            received_blocks_--;
+            blk_mgr_->pushVerifiedBlock(blk);
+          }
         }
       }
     }
