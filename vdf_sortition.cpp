@@ -1,7 +1,7 @@
-#include "config.hpp"  // The order is important
-
-#include "libdevcore/CommonData.h"
 #include "vdf_sortition.hpp"
+
+#include "config.hpp"  // The order is important
+#include "libdevcore/CommonData.h"
 
 namespace taraxa::vdf_sortition {
 
