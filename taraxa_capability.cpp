@@ -1341,13 +1341,19 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync,
                                       size_t blocks_to_transfer) {
   LOG(log_dg_pbft_sync_)
       << "In sendPbftBlocks, peer want to sync from pbft chain height "
-      << height_to_sync << ", will send " << blocks_to_transfer
+      << height_to_sync << ", will send at most " << blocks_to_transfer
       << " pbft blocks to " << _id;
   auto db_results_0 =
       pbft_chain_->getPbftBlocks(height_to_sync, blocks_to_transfer);
   RLPStream s;
   host_.capabilityHost()->prep(_id, name(), s, PbftBlockPacket,
                                db_results_0.size());
+  if (db_results_0.empty()) {
+    host_.capabilityHost()->sealAndSend(_id, s);
+    LOG(log_dg_pbft_sync_) << "In sendPbftBlocks, sent no pbft blocks to "
+                           << _id;
+    return;
+  }
   DbStorage::MultiGetQuery db_query(db_);
   for (auto const &b : db_results_0) {
     db_query.append(DbStorage::Columns::dag_finalized_blocks,
