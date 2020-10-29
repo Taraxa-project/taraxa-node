@@ -369,7 +369,11 @@ dev::bytesConstRef DbStorage::MultiGetQuery::get_key(uint pos) {
 uint DbStorage::MultiGetQuery::size() { return keys_.size(); }
 
 vector<string> DbStorage::MultiGetQuery::execute(bool and_reset) {
-  vector<string> ret(keys_.size());
+  auto _size = size();
+  if (_size == 0) {
+    return {};
+  }
+  vector<string> ret(_size);
   uint i = 0;
   for (auto const& s :
        db_->db_->MultiGet(db_->read_options_, cfs_, keys_, &ret)) {
