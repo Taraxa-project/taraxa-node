@@ -72,7 +72,10 @@ DagBlock::DagBlock(Json::Value const &doc) {
     timestamp_ = v.asUInt64();
   }
 
-  vdf_ = VdfSortition(cached_sender_, doc["vdf"]);
+  auto vdf_string = doc["vdf"].asString();
+  if (!vdf_string.empty()) {
+    vdf_ = VdfSortition(cached_sender_, dev::fromHex(vdf_string));
+  }
 }
 DagBlock::DagBlock(bytes const &_rlp) {
   dev::RLP const rlp(_rlp);
@@ -119,8 +122,7 @@ Json::Value DagBlock::getJson() const {
   res["hash"] = dev::toJS(hash_);
   res["sender"] = dev::toJS(sender());
   res["timestamp"] = dev::toJS(timestamp_);
-  res["vdf"] = vdf_.getJson();
-
+  res["vdf"] = dev::toJS(dev::toHex(vdf_.rlp()));
   return res;
 }
 
@@ -407,10 +409,10 @@ void BlockManager::verifyBlock() {
         // Verify VDF solution
         vdf_sortition::VdfSortition vdf = blk.first.getVdf();
         if (!vdf.verifyVdf(blk.first.getLevel(),
-        blk.first.getPivot().toString())) { LOG(log_er_) << "DAG block " <<
-        blk.first.getHash()
-                      << " failed on VDF verification with pivot hash "
-                      << blk.first.getPivot();
+                           blk.first.getPivot().toString())) {
+          LOG(log_er_) << "DAG block " << blk.first.getHash()
+                       << " failed on VDF verification with pivot hash "
+                       << blk.first.getPivot();
           valid = false;
         }
       }

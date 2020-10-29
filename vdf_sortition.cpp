@@ -34,17 +34,6 @@ VdfSortition::VdfSortition(addr_t node_addr, bytes const& b) {
   lambda_bound_ = rlp[6].toInt<uint>();
 }
 
-VdfSortition::VdfSortition(addr_t node_addr, Json::Value const& doc) {
-  LOG_OBJECTS_CREATE("VDF");
-  pk = vrf_pk_t(doc["pk"].asString());
-  proof = vrf_proof_t(doc["proof"].asString());
-  msg_.level = doc["level"].asUInt64();
-  vdf_sol_.first = dev::fromHex((doc["sol1"].asString()));
-  vdf_sol_.second = dev::fromHex((doc["sol2"].asString()));
-  difficulty_bound_ = doc["difficulty_bound"].asUInt();
-  lambda_bound_ = doc["lambda"].asUInt();
-}
-
 bytes VdfSortition::rlp() const {
   dev::RLPStream s;
   s.appendList(7);
@@ -56,18 +45,6 @@ bytes VdfSortition::rlp() const {
   s << difficulty_bound_;
   s << lambda_bound_;
   return s.out();
-}
-
-Json::Value VdfSortition::getJson() const {
-  Json::Value res;
-  res["pk"] = dev::toJS(pk);
-  res["proof"] = dev::toJS(proof);
-  res["level"] = dev::toJS(msg_.level);
-  res["sol1"] = dev::toJS(vdf_sol_.first);
-  res["sol2"] = dev::toJS(vdf_sol_.second);
-  res["difficulty_bound"] = dev::toJS(difficulty_bound_);
-  res["lambda"] = dev::toJS(lambda_bound_);
-  return res;
 }
 
 void VdfSortition::computeVdfSolution(std::string const& msg) {

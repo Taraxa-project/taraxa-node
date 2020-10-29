@@ -40,14 +40,12 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
                         Message const& msg, uint difficulty_bound = 15,
                         uint lambda_bound = 1500);
   explicit VdfSortition(addr_t node_addr, bytes const& b);
-  explicit VdfSortition(addr_t node_addr, Json::Value const& json);
-
+  
   bool verify(std::string const& msg) { return verifyVdfSolution(msg); }
   void computeVdfSolution(std::string const& msg);
   bool verifyVdf(level_t propose_block_level, std::string const& vdf_input);
 
   bytes rlp() const;
-  Json::Value getJson() const;
   bool operator==(VdfSortition const& other) const {
     return pk == other.pk && msg_ == other.msg_ && proof == other.proof &&
            output == other.output && vdf_sol_.first == other.vdf_sol_.first &&
