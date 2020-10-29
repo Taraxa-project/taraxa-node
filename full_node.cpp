@@ -89,8 +89,6 @@ void FullNode::init() {
   emplace(pbft_chain_, genesis_hash, node_addr, db_);
   {
     emplace(dag_mgr_, genesis_hash, node_addr, trx_mgr_, pbft_chain_, db_);
-    // TODO move to the constructor?
-    dag_mgr_->recoverDag();
   }
   emplace(blk_mgr_, 1024 /*capacity*/, 4 /* verifer thread*/, node_addr, db_,
           trx_mgr_, log_time_, conf_.test_params.max_block_queue_warn);
@@ -193,10 +191,13 @@ void FullNode::start() {
         // where in some race condition older block is verfified faster then
         // new block but should resolve quickly, return block to queue
         if (!stopped_) {
-          LOG(log_wr_) << "Block could not be added to DAG "
-                       << blk.getHash().toString();
-          received_blocks_--;
-          blk_mgr_->pushVerifiedBlock(blk);
+
+          if(blk_mgr_->pivotAndTipsValid(blk)) {
+            LOG(log_dg_) << "Block could not be added to DAG "
+                        << blk.getHash().toString();
+            received_blocks_--;
+            blk_mgr_->pushVerifiedBlock(blk);
+          }
         }
       }
     }

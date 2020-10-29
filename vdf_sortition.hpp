@@ -40,7 +40,7 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
                         Message const& msg, uint difficulty_bound = 15,
                         uint lambda_bound = 1500);
   explicit VdfSortition(addr_t node_addr, bytes const& b);
-
+  
   bool verify(std::string const& msg) { return verifyVdfSolution(msg); }
   void computeVdfSolution(std::string const& msg);
   bool verifyVdf(level_t propose_block_level, std::string const& vdf_input);
