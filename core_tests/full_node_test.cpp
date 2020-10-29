@@ -118,27 +118,14 @@ TEST_F(FullNodeTest, db_test) {
             *db.getTransaction(g_trx_signed_samples[2].getHash()));
   EXPECT_EQ(g_trx_signed_samples[3],
             *db.getTransaction(g_trx_signed_samples[3].getHash()));
-
-  db.saveTransactionToBlock(g_trx_signed_samples[0].getHash(), blk1.getHash());
-  db.saveTransactionToBlock(g_trx_signed_samples[1].getHash(), blk1.getHash());
-  db.saveTransactionToBlock(g_trx_signed_samples[2].getHash(), blk2.getHash());
-  EXPECT_TRUE(db.transactionToBlockInDb(g_trx_signed_samples[0].getHash()));
-  EXPECT_TRUE(db.transactionToBlockInDb(g_trx_signed_samples[1].getHash()));
-  EXPECT_TRUE(db.transactionToBlockInDb(g_trx_signed_samples[2].getHash()));
-  EXPECT_EQ(*db.getTransactionToBlock(g_trx_signed_samples[0].getHash()),
-            blk1.getHash());
-  EXPECT_EQ(*db.getTransactionToBlock(g_trx_signed_samples[1].getHash()),
-            blk1.getHash());
-  EXPECT_EQ(*db.getTransactionToBlock(g_trx_signed_samples[2].getHash()),
-            blk2.getHash());
   // pbft_blocks
-  PbftBlock pbft_block1(blk_hash_t(1), 2);
-  PbftBlock pbft_block2(blk_hash_t(2), 3);
-  PbftBlock pbft_block3(blk_hash_t(3), 4);
-  PbftBlock pbft_block4(blk_hash_t(4), 5);
-  db.savePbftBlock(pbft_block1);
-  db.savePbftBlock(pbft_block2);
+  auto pbft_block1 = make_simple_pbft_block(blk_hash_t(1), 2);
+  auto pbft_block2 = make_simple_pbft_block(blk_hash_t(2), 3);
+  auto pbft_block3 = make_simple_pbft_block(blk_hash_t(3), 4);
+  auto pbft_block4 = make_simple_pbft_block(blk_hash_t(4), 5);
   batch = db.createWriteBatch();
+  db.addPbftBlockToBatch(pbft_block1, batch);
+  db.addPbftBlockToBatch(pbft_block2, batch);
   db.addPbftBlockToBatch(pbft_block3, batch);
   db.addPbftBlockToBatch(pbft_block4, batch);
   db.commitWriteBatch(batch);
@@ -175,15 +162,6 @@ TEST_F(FullNodeTest, db_test) {
   db.commitWriteBatch(batch);
   EXPECT_EQ(db.getStatusField(StatusDbField::ExecutedBlkCount), 10);
   EXPECT_EQ(db.getStatusField(StatusDbField::ExecutedTrxCount), 20);
-  // votes
-  bytes b1;
-  b1.push_back(100);
-  bytes b2;
-  b2.push_back(101);
-  db.saveVote(blk_hash_t(1), b1);
-  db.saveVote(blk_hash_t(2), b2);
-  EXPECT_EQ(db.getVote(blk_hash_t(1)), b1);
-  EXPECT_EQ(db.getVote(blk_hash_t(2)), b2);
   std::vector<Vote> cert_votes;
   blk_hash_t last_pbft_block_hash(0);
   VrfPbftMsg msg(last_pbft_block_hash, propose_vote_type, 1, 3);
@@ -198,17 +176,20 @@ TEST_F(FullNodeTest, db_test) {
   batch = db.createWriteBatch();
   db.addPbftCertVotesToBatch(vote_pbft_block_hash, cert_votes, batch);
   db.commitWriteBatch(batch);
-  PbftBlock pbft_block(vote_pbft_block_hash, 2);
+  auto pbft_block = make_simple_pbft_block(vote_pbft_block_hash, 2);
   PbftBlockCert pbft_block_cert_votes(pbft_block, cert_votes);
-  auto cert_votes_rlp = db.getVote(vote_pbft_block_hash);
-  PbftBlockCert pbft_block_cert_votes_from_db(pbft_block, cert_votes_rlp);
+  auto cert_votes_rlp = db.getVotes(vote_pbft_block_hash);
+  vector<Vote> votes;
+  for (auto const &el : RLP(cert_votes_rlp)) {
+    votes.emplace_back(el);
+  }
+  PbftBlockCert pbft_block_cert_votes_from_db(pbft_block, votes);
   EXPECT_EQ(pbft_block_cert_votes.rlp(), pbft_block_cert_votes_from_db.rlp());
   // period_pbft_block
   batch = db.createWriteBatch();
   db.addPbftBlockPeriodToBatch(1, blk_hash_t(1), batch);
   db.addPbftBlockPeriodToBatch(2, blk_hash_t(2), batch);
   db.commitWriteBatch(batch);
-  ;
   EXPECT_EQ(*db.getPeriodPbftBlock(1), blk_hash_t(1));
   EXPECT_EQ(*db.getPeriodPbftBlock(2), blk_hash_t(2));
   // dag_block_period
@@ -538,7 +519,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
       std::cout << "Node " << k
                 << " :Number of vertices in Dag = " << num_vertices.first
                 << " , " << num_vertices.second << std::endl;
-      auto dags = node->getDB()->getOrderedDagBlocks();
+      auto dags = getOrderedDagBlocks(node->getDB());
       for (auto i(0); i < dags.size(); ++i) {
         auto d = dags[i];
         std::cout
@@ -559,7 +540,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
         << " \nNum executed in node " << k << " node " << node
         << " is : " << node->getDB()->getNumTransactionExecuted()
         << " \nNum linearized blks: "
-        << node->getDB()->getOrderedDagBlocks().size()
+        << getOrderedDagBlocks(node->getDB()).size()
         << " \nNum executed blks: " << node->getDB()->getNumBlockExecuted()
         << " \nNum vertices in DAG: "
         << node->getDagManager()->getNumVerticesInDag().first << " "
@@ -581,16 +562,6 @@ TEST_F(FullNodeTest, sync_five_nodes) {
         << " Number of executed blks: " << node->getDB()->getNumBlockExecuted()
         << std::endl;
     EXPECT_EQ(node->getDB()->getNumTransactionInDag(), issued_trx_count);
-  }
-
-  auto dags = nodes[0]->getDB()->getOrderedDagBlocks();
-  for (auto i(0); i < dags.size(); ++i) {
-    auto d = dags[i];
-    for (auto const &t :
-         nodes[0]->getBlockManager()->getDagBlock(d)->getTrxs()) {
-      auto blk = nodes[0]->getTrxOrderMgr()->getDagBlockFromTransaction(t);
-      EXPECT_FALSE(blk->isZero());
-    }
   }
 
   context.assert_balances_synced();
@@ -632,7 +603,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   }
   auto write_batch = node->getDB()->createWriteBatch();
   auto num_blks_set = node->getDagManager()->setDagBlockOrder(
-      blk_hash_t(pivot), period, order, write_batch);
+      blk_hash_t(pivot), period, *order, write_batch);
   node->getDB()->commitWriteBatch(write_batch);
   EXPECT_EQ(num_blks_set, 6);
   // -------- second period ----------
@@ -657,7 +628,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   }
   write_batch = node->getDB()->createWriteBatch();
   num_blks_set = node->getDagManager()->setDagBlockOrder(
-      blk_hash_t(pivot), period, order, write_batch);
+      blk_hash_t(pivot), period, *order, write_batch);
   node->getDB()->commitWriteBatch(write_batch);
   EXPECT_EQ(num_blks_set, 7);
 
@@ -681,7 +652,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   }
   write_batch = node->getDB()->createWriteBatch();
   num_blks_set = node->getDagManager()->setDagBlockOrder(
-      blk_hash_t(pivot), period, order, write_batch);
+      blk_hash_t(pivot), period, *order, write_batch);
   node->getDB()->commitWriteBatch(write_batch);
   EXPECT_EQ(num_blks_set, 5);
 }
@@ -1159,8 +1130,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   std::cout << "DAG size " << num_vertices0 << std::endl;
 
   // Check duplicate transactions in single one DAG block
-  vector<blk_hash_t> ordered_dag_blocks =
-      nodes[0]->getDB()->getOrderedDagBlocks();
+  auto ordered_dag_blocks = getOrderedDagBlocks(nodes[0]->getDB());
   for (auto const &b : ordered_dag_blocks) {
     std::shared_ptr<DagBlock> block = nodes[0]->getDB()->getDagBlock(b);
     EXPECT_TRUE(block);

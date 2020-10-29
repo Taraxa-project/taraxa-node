@@ -277,6 +277,32 @@ inline auto own_effective_genesis_bal(FullNodeConfig const& cfg) {
       dev::toAddress(dev::Secret(cfg.node_secret)));
 }
 
+inline auto make_simple_pbft_block(h256 const& hash, uint64_t period) {
+  return PbftBlock(hash, blk_hash_t(0), period, addr_t(0), secret_t::random());
+}
+
+inline vector<blk_hash_t> getOrderedDagBlocks(shared_ptr<DbStorage> const& db) {
+  uint64_t period = 1;
+  vector<blk_hash_t> res;
+  while (true) {
+    auto pbft_block_hash = db->getPeriodPbftBlock(period);
+    if (pbft_block_hash) {
+      auto pbft_block = db->getPbftBlock(*pbft_block_hash);
+      if (pbft_block) {
+        for (auto const& dag_block_hash :
+             db->getFinalizedDagBlockHashesByAnchor(
+                 pbft_block->getPivotDagBlockHash())) {
+          res.push_back(dag_block_hash);
+        }
+      }
+      period++;
+      continue;
+    }
+    break;
+  }
+  return res;
+}
+
 };  // namespace taraxa::core_tests
 
 #endif  // TARAXA_NODE_CORE_TESTS_UTIL_HPP_

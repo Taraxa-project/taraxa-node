@@ -19,9 +19,6 @@ namespace net {
 class WSServer;
 }
 
-using TransactionRLPTable = ExpirationCacheMap<trx_hash_t, taraxa::bytes>;
-using AccountNonceTable = StatusTable<addr_t, val_t>;
-
 /**
  * Manage transactions within an epoch
  * 1. Check existence of transaction (seen in queue? in db?)

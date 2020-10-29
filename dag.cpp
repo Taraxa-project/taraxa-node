@@ -501,8 +501,6 @@ std::pair<uint64_t, std::shared_ptr<vec_blk_t>> DagManager::getDagBlockOrder(
 
   std::vector<std::string> blk_orders;
 
-  // TODO: need to use the same pivot/tips that are stored in nonce map
-
   if (blk_hash_t(anchor_) == anchor) {
     LOG(log_wr_) << "Query period from " << blk_hash_t(anchor_) << " to "
                  << anchor << " not ok " << std::endl;
@@ -526,19 +524,16 @@ std::pair<uint64_t, std::shared_ptr<vec_blk_t>> DagManager::getDagBlockOrder(
                << " to " << anchor << " with " << blk_orders.size() << " blks"
                << std::endl;
 
-  std::string orderser;
-  for (auto o : orders) orderser += " " + o.toString();
   return {new_period, std::make_shared<vec_blk_t>(orders)};
 }
 
 uint DagManager::setDagBlockOrder(
-    blk_hash_t const &new_anchor, uint64_t period,
-    std::shared_ptr<vec_blk_t> dag_order,
+    blk_hash_t const &new_anchor, uint64_t period, vec_blk_t const &dag_order,
     const taraxa::DbStorage::BatchPtr &write_batch) {
   uLock lock(mutex_);
   LOG(log_dg_) << "setDagBlockOrder called with anchor " << new_anchor
                << " and period " << period;
-
+  db_->putFinalizedDagBlockHashesByAnchor(*write_batch, new_anchor, dag_order);
   if (period != period_ + 1) {
     LOG(log_er_) << " Inserting period (" << period << ") anchor " << new_anchor
                  << " does not match ..., previous internal period (" << period_
@@ -585,7 +580,7 @@ uint DagManager::setDagBlockOrder(
   }
 
   bool new_anchor_found = false;
-  for (auto &block : *dag_order) {
+  for (auto &block : dag_order) {
     // Remove all just finalized except the leaves
     auto blk = block.toString();
     auto dag_block = db_->getDagBlock(block);
@@ -611,7 +606,7 @@ uint DagManager::setDagBlockOrder(
   assert(new_anchor_found);
 
   // Add remaining blocks that are not finalized
-  std::set<blk_hash_t> dag_order_set(dag_order->begin(), dag_order->end());
+  std::set<blk_hash_t> dag_order_set(dag_order.begin(), dag_order.end());
   for (auto &v : non_finalized_blocks) {
     for (auto &blk : v.second) {
       if (dag_order_set.count(blk_hash_t(blk)) == 0) {

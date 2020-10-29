@@ -82,6 +82,7 @@ class Vote {
   Vote(secret_t const& node_sk, VrfPbftSortition const& vrf_sortition,
        blk_hash_t const& blockhash);
 
+  explicit Vote(dev::RLP const& rlp);
   explicit Vote(bytes const& rlp);
   bool operator==(Vote const& other) const { return rlp() == other.rlp(); }
   ~Vote() {}

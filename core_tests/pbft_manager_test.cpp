@@ -368,35 +368,42 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
     EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node2_addr).first, 100);
     EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node3_addr).first, 1000);
   }
-  std::unordered_set<blk_hash_t> unique_dag_block_hash_set;
   // PBFT second block
   blk_hash_t pbft_second_block_hash =
       nodes[0]->getPbftChain()->getLastPbftBlockHash();
   PbftBlock pbft_second_block =
       nodes[0]->getPbftChain()->getPbftBlockInChain(pbft_second_block_hash);
-  vec_blk_t dag_blocks_hash_in_schedule =
-      pbft_second_block.getSchedule().dag_blks_order;
-  // due to change of trx packing change, a trx can be packed in multiple blocks
-  EXPECT_GE(dag_blocks_hash_in_schedule.size(), 1);
-  for (auto &dag_block_hash : dag_blocks_hash_in_schedule) {
-    ASSERT_FALSE(unique_dag_block_hash_set.count(dag_block_hash));
-    unique_dag_block_hash_set.insert(dag_block_hash);
-  }
-  // PBFT first block hash
-  blk_hash_t pbft_first_block_hash = pbft_second_block.getPrevBlockHash();
-  // PBFT first block
-  PbftBlock pbft_first_block =
-      nodes[0]->getPbftChain()->getPbftBlockInChain(pbft_first_block_hash);
-  dag_blocks_hash_in_schedule = pbft_first_block.getSchedule().dag_blks_order;
-  // due to change of trx packing change, a trx can be packed in multiple blocks
-  EXPECT_GE(dag_blocks_hash_in_schedule.size(), 1);
-  for (auto &dag_block_hash : dag_blocks_hash_in_schedule) {
-    ASSERT_FALSE(unique_dag_block_hash_set.count(dag_block_hash));
-    unique_dag_block_hash_set.insert(dag_block_hash);
+  for (auto &node : nodes) {
+    auto db = node->getDB();
+    auto dag_blocks_hash_in_schedule = db->getFinalizedDagBlockHashesByAnchor(
+        pbft_second_block.getPivotDagBlockHash());
+    // due to change of trx packing change, a trx can be packed in multiple
+    // blocks
+    std::unordered_set<blk_hash_t> unique_dag_block_hash_set;
+    EXPECT_GE(dag_blocks_hash_in_schedule.size(), 1);
+    for (auto &dag_block_hash : dag_blocks_hash_in_schedule) {
+      ASSERT_FALSE(unique_dag_block_hash_set.count(dag_block_hash));
+      unique_dag_block_hash_set.insert(dag_block_hash);
+    }
+    // PBFT first block hash
+    blk_hash_t pbft_first_block_hash = pbft_second_block.getPrevBlockHash();
+    // PBFT first block
+    PbftBlock pbft_first_block =
+        nodes[0]->getPbftChain()->getPbftBlockInChain(pbft_first_block_hash);
+    dag_blocks_hash_in_schedule = db->getFinalizedDagBlockHashesByAnchor(
+        pbft_first_block.getPivotDagBlockHash());
+    // due to change of trx packing change, a trx can be packed in multiple
+    // blocks
+    EXPECT_GE(dag_blocks_hash_in_schedule.size(), 1);
+    for (auto &dag_block_hash : dag_blocks_hash_in_schedule) {
+      ASSERT_FALSE(unique_dag_block_hash_set.count(dag_block_hash));
+      unique_dag_block_hash_set.insert(dag_block_hash);
+    }
   }
 }
 
-TEST_F(PbftManagerTest, DISABLED_check_committeeSize_less_or_equal_to_activePlayers) {
+TEST_F(PbftManagerTest,
+       DISABLED_check_committeeSize_less_or_equal_to_activePlayers) {
   // Set committee size to 1, make sure to be committee <= active_players
   check_2tPlus1_validVotingPlayers_activePlayers_threshold(1);
 }

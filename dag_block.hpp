@@ -37,6 +37,16 @@ class DbStorage;
  */
 
 class DagBlock {
+  blk_hash_t pivot_;
+  level_t level_ = 0;
+  vec_blk_t tips_;
+  vec_trx_t trxs_;  // transactions
+  sig_t sig_;
+  blk_hash_t hash_;
+  uint64_t timestamp_ = 0;
+  vdf_sortition::VdfSortition vdf_;
+  mutable addr_t cached_sender_;  // block creater
+
  public:
   DagBlock() = default;
   DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs,
@@ -46,7 +56,12 @@ class DagBlock {
            VdfSortition const &vdf);
   explicit DagBlock(Json::Value const &doc);
   explicit DagBlock(string const &json);
-  explicit DagBlock(dev::bytes const &_rlp);
+  explicit DagBlock(dev::RLP const &_rlp);
+  explicit DagBlock(dev::bytes const &_rlp) : DagBlock(dev::RLP(_rlp)) {}
+
+  static std::vector<trx_hash_t> extract_transactions_from_rlp(
+      dev::RLP const &rlp);
+
   friend std::ostream &operator<<(std::ostream &str, DagBlock const &u) {
     str << "	pivot		= " << u.pivot_.abridged() << std::endl;
     str << "	level		= " << u.level_ << std::endl;
@@ -66,14 +81,15 @@ class DagBlock {
     return this->sha3(true) == other.sha3(true);
   }
 
-  blk_hash_t getPivot() const { return pivot_; }
-  level_t getLevel() const { return level_; }
+  auto const &getPivot() const { return pivot_; }
+  auto getLevel() const { return level_; }
   auto getTimestamp() const { return timestamp_; }
-  vec_blk_t getTips() const { return tips_; }
-  vec_trx_t getTrxs() const { return trxs_; }
-  sig_t getSig() const { return sig_; }
-  blk_hash_t getHash() const { return hash_; }
-  vdf_sortition::VdfSortition getVdf() const { return vdf_; }
+  auto const &getTips() const { return tips_; }
+  auto const &getTrxs() const { return trxs_; }
+  auto const &getSig() const { return sig_; }
+  auto const &getHash() const { return hash_; }
+  auto const &getVdf() const { return vdf_; }
+
   addr_t getSender() const { return sender(); }
   Json::Value getJson() const;
   std::string getJsonStr() const;
@@ -91,15 +107,6 @@ class DagBlock {
  private:
   void streamRLP(dev::RLPStream &s, bool include_sig) const;
   blk_hash_t sha3(bool include_sig) const;
-  blk_hash_t pivot_;
-  level_t level_ = 0;
-  vec_blk_t tips_;
-  vec_trx_t trxs_;  // transactions
-  sig_t sig_;
-  blk_hash_t hash_;
-  uint64_t timestamp_ = 0;
-  vdf_sortition::VdfSortition vdf_;
-  mutable addr_t cached_sender_;  // block creater
 };
 
 enum class BlockStatus { invalid, proposed, broadcasted, verified, unseen };

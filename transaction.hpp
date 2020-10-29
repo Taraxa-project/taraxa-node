@@ -48,7 +48,13 @@ struct Transaction {
               uint64_t gas, bytes data, secret_t const &sk,
               std::optional<addr_t> const &receiver = std::nullopt,
               uint64_t chain_id = 0);
-  explicit Transaction(bytes const &_rlp, bool verify_strict = false);
+  explicit Transaction(dev::RLP const &_rlp, bool verify_strict = false);
+  explicit Transaction(bytes const &_rlp, bool verify_strict = false)
+      : Transaction(dev::RLP(_rlp), verify_strict) {}
+  explicit Transaction(bytes &&_rlp, bool verify_strict = false)
+      : Transaction(dev::RLP(_rlp), verify_strict) {
+    cached_rlp_.reset(new bytes(std::move(_rlp)));
+  }
 
   trx_hash_t const &getHash() const;
   addr_t const &getSender() const;

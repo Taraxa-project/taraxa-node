@@ -27,13 +27,11 @@ Transaction::Transaction(uint64_t nonce, val_t const &value,
   getSender();
 }
 
-Transaction::Transaction(bytes const &_rlp, bool verify_strict) {
-  // TODO remove after debugging
-  cached_rlp_.reset(new auto(_rlp));
+Transaction::Transaction(dev::RLP const &_rlp, bool verify_strict) {
   auto strictness =
       verify_strict ? dev::RLP::VeryStrict : dev::RLP::LaissezFaire;
   uint fields_processed = 0;
-  for (auto const &el : dev::RLP(_rlp, strictness)) {
+  for (auto const &el : _rlp) {
     ++fields_processed;
     if (fields_processed == 1) {
       nonce_ = el.toInt<uint64_t>(strictness);

@@ -3,7 +3,6 @@
 
 #pragma once
 
-
 #include <atomic>
 #include <condition_variable>
 #include <iostream>
@@ -31,27 +30,22 @@ using TrxOverlapInBlock = std::pair<blk_hash_t, std::vector<bool>>;
 
 class TransactionOrderManager {
  public:
-  TransactionOrderManager(addr_t node_addr, std::shared_ptr<DbStorage> db,
-                          std::shared_ptr<BlockManager> blk_mgr)
-      : db_(db), blk_mgr_(blk_mgr) {
+  TransactionOrderManager(addr_t const& node_addr,
+                          std::shared_ptr<DbStorage> db)
+      : db_(std::move(db)) {
     LOG_OBJECTS_CREATE("TRXORD");
   }
   void clear() { status_.clear(); }
 
-  std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
-  computeTransactionOverlapTable(std::shared_ptr<vec_blk_t> ordered_dag_blocks);
   std::vector<bool> computeOrderInBlock(
       DagBlock const& blk,
       TransactionExecStatusTable& status_for_proposing_blocks);
   std::shared_ptr<std::vector<TrxOverlapInBlock>> computeOrderInBlocks(
       std::vector<std::shared_ptr<DagBlock>> const& blks);
-  std::shared_ptr<blk_hash_t> getDagBlockFromTransaction(trx_hash_t const& t);
-  void updateOrderedTrx(TrxSchedule const& sche);
 
  private:
   TransactionExecStatusTable status_;
-  std::shared_ptr<DbStorage> db_ = nullptr;
-  std::shared_ptr<BlockManager> blk_mgr_;
+  std::shared_ptr<DbStorage> db_;
   LOG_OBJECTS_DEFINE;
 };
 

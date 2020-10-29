@@ -216,7 +216,7 @@ TEST_F(DagBlockTest, overlap) {
       sig_t(7777), blk_hash_t(888), addr_t(999));
 
   addr_t addr;
-  TransactionOrderManager detector(addr, nullptr, nullptr);
+  TransactionOrderManager detector(addr, nullptr);
   TransactionExecStatusTable table;
   auto overlap1 = detector.computeOrderInBlock(blk1, table);
   auto overlap2 = detector.computeOrderInBlock(blk2, table);

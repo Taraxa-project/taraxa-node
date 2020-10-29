@@ -153,7 +153,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   // receive pbft-povit-blk, update periods and finalized, return size of
   // ordered blocks
   uint setDagBlockOrder(blk_hash_t const &anchor, uint64_t period,
-                        std::shared_ptr<vec_blk_t> dag_order,
+                        vec_blk_t const &dag_order,
                         const taraxa::DbStorage::BatchPtr &write_batch);
 
   bool getLatestPivotAndTips(std::string &pivot,

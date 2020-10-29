@@ -44,15 +44,16 @@ bool VrfPbftSortition::canSpeak(size_t threshold, size_t valid_players) const {
   return left <= right;
 }
 
-Vote::Vote(bytes const& b) {
-  dev::RLP const rlp(b);
+Vote::Vote(dev::RLP const& rlp) {
   if (!rlp.isList())
-    throw std::invalid_argument("transaction RLP must be a list");
+    throw std::invalid_argument("vote RLP must be a list");
   blockhash_ = rlp[0].toHash<blk_hash_t>();
   vrf_sortition_ = VrfPbftSortition(rlp[1].toBytes());
   vote_signatue_ = rlp[2].toHash<sig_t>();
   vote_hash_ = sha3(true);
 }
+
+Vote::Vote(bytes const& b) : Vote(dev::RLP(b)) {}
 
 Vote::Vote(secret_t const& node_sk, VrfPbftSortition const& vrf_sortition,
            blk_hash_t const& blockhash)
@@ -299,13 +300,13 @@ bool VoteManager::pbftBlockHasEnoughValidCertVotes(
     // malicious player
     if (v.getType() != cert_vote_type) {
       LOG(log_er_) << "For PBFT block "
-                   << pbft_block_and_votes.pbft_blk.getBlockHash()
+                   << pbft_block_and_votes.pbft_blk->getBlockHash()
                    << ", cert vote " << v.getHash() << " has wrong vote type "
                    << v.getType();
       break;
     } else if (v.getRound() != first_cert_vote_round) {
       LOG(log_er_) << "For PBFT block "
-                   << pbft_block_and_votes.pbft_blk.getBlockHash()
+                   << pbft_block_and_votes.pbft_blk->getBlockHash()
                    << ", cert vote " << v.getHash()
                    << " has a different vote round " << v.getRound()
                    << ", compare to first cert vote "
@@ -314,14 +315,14 @@ bool VoteManager::pbftBlockHasEnoughValidCertVotes(
       break;
     } else if (v.getStep() != 3) {
       LOG(log_er_) << "For PBFT block "
-                   << pbft_block_and_votes.pbft_blk.getBlockHash()
+                   << pbft_block_and_votes.pbft_blk->getBlockHash()
                    << ", cert vote " << v.getHash() << " has wrong vote step "
                    << v.getStep();
       break;
     } else if (v.getBlockHash() !=
-               pbft_block_and_votes.pbft_blk.getBlockHash()) {
+               pbft_block_and_votes.pbft_blk->getBlockHash()) {
       LOG(log_er_) << "For PBFT block "
-                   << pbft_block_and_votes.pbft_blk.getBlockHash()
+                   << pbft_block_and_votes.pbft_blk->getBlockHash()
                    << ", cert vote " << v.getHash()
                    << " has wrong vote block hash " << v.getBlockHash();
       break;
@@ -331,13 +332,13 @@ bool VoteManager::pbftBlockHasEnoughValidCertVotes(
       valid_votes.emplace_back(v);
     } else {
       LOG(log_wr_) << "For PBFT block "
-                   << pbft_block_and_votes.pbft_blk.getBlockHash()
+                   << pbft_block_and_votes.pbft_blk->getBlockHash()
                    << ", cert vote " << v.getHash() << " failed validation";
     }
   }
   if (valid_votes.size() < pbft_2t_plus_1) {
     LOG(log_er_) << "PBFT block "
-                 << pbft_block_and_votes.pbft_blk.getBlockHash() << " with "
+                 << pbft_block_and_votes.pbft_blk->getBlockHash() << " with "
                  << pbft_block_and_votes.cert_votes.size()
                  << " cert votes. Has " << valid_votes.size()
                  << " valid cert votes. 2t+1 is " << pbft_2t_plus_1
