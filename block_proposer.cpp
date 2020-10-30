@@ -18,13 +18,6 @@ bool SortitionPropose::propose() {
     return false;
   }
 
-  auto max_dag_height = dag_mgr_->getMaxLevel();
-  if (max_dag_height == last_dag_height_ && last_dag_height_ > 0) {
-    LOG(log_tr_) << "Skip proposing, dag not increasing, height "
-                 << last_dag_height_;
-    return false;
-  }
-
   vec_trx_t sharded_trxs;
   DagFrontier frontier;
   bool ok = proposer->getShardedTrxs(sharded_trxs, frontier);
@@ -64,7 +57,7 @@ bool SortitionPropose::propose() {
                << " difficulty " << vdf.getDifficulty();
   DagBlock blk(frontier.pivot, propose_level, frontier.tips, sharded_trxs, vdf);
   proposer->proposeBlock(blk);
-  last_dag_height_ = max_dag_height;
+
   last_propose_level_ = propose_level;
   num_tries_ = 0;
   return true;
