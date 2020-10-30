@@ -37,8 +37,9 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
  public:
   VdfSortition() = default;
   explicit VdfSortition(addr_t node_addr, vrf_sk_t const& sk,
-                        Message const& msg, uint difficulty_bound = 15,
-                        uint lambda_bound = 1500);
+                        Message const& msg, uint16_t difficulty_selection,
+                        uint16_t difficulty_min, uint16_t difficulty_max,
+                        uint16_t difficulty_stale, uint16_t lambda_bound);
   explicit VdfSortition(addr_t node_addr, bytes const& b);
   
   bool verify(std::string const& msg) { return verifyVdfSolution(msg); }
@@ -55,12 +56,6 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
     return !operator==(other);
   }
 
-  void setDifficultyBound(uint bound) {
-    difficulty_bound_ = std::min(100u, std::max(10u, bound));
-  }
-  void setLambdaBits(uint bits) {
-    lambda_bound_ = std::min(10u, std::max(16u, bits));
-  }
   virtual std::ostream& print(std::ostream& strm) const override {
     VrfSortitionBase::print(strm);
     strm << msg_ << std::endl;
@@ -77,8 +72,8 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
 
   Message getVrfMessage() const { return msg_; }
   auto getComputationTime() const { return vdf_computation_time_; }
-  int getDifficulty() const;
-  unsigned long getLambda() const;
+  uint16_t getDifficulty() const;
+  uint16_t getLambda() const;
 
  private:
   inline static dev::bytes N = dev::asBytes(
@@ -92,8 +87,11 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
   Message msg_;
   std::pair<bytes, bytes> vdf_sol_;
   unsigned long vdf_computation_time_ = 0;
-  uint difficulty_bound_ = 15;
-  uint lambda_bound_ = 1500;  // lambda upper bound
+  uint16_t difficulty_selection_ = 255;
+  uint16_t difficulty_min_ = 0;
+  uint16_t difficulty_max_ = 5;
+  uint16_t difficulty_stale_ = 5;
+  uint16_t lambda_bound_ = 1500;  // lambda upper bound
 
   LOG_OBJECTS_DEFINE;
 };

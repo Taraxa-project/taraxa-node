@@ -151,9 +151,18 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object) {
     test_params.block_proposer.min_proposal_delay = getConfigDataAsUInt(
         root, {"test_params", "block_proposer", "min_proposal_delay"});
     // VDF DAG proposal parameters
-    test_params.block_proposer.difficulty_bound =
+    test_params.block_proposer.difficulty_selection =
         getConfigDataAsUInt(root, {"test_params", "block_proposer",
-                                   "sortition_params", "difficulty_bound"});
+                                   "sortition_params", "difficulty_selection"});
+    test_params.block_proposer.difficulty_min =
+        getConfigDataAsUInt(root, {"test_params", "block_proposer",
+                                   "sortition_params", "difficulty_min"});
+    test_params.block_proposer.difficulty_max =
+        getConfigDataAsUInt(root, {"test_params", "block_proposer",
+                                   "sortition_params", "difficulty_max"});
+    test_params.block_proposer.difficulty_stale =
+        getConfigDataAsUInt(root, {"test_params", "block_proposer",
+                                   "sortition_params", "difficulty_stale"});
     test_params.block_proposer.lambda_bound = getConfigDataAsUInt(
         root,
         {"test_params", "block_proposer", "sortition_params", "lambda_bound"});

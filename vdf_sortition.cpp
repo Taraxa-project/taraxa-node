@@ -6,10 +6,14 @@
 namespace taraxa::vdf_sortition {
 
 VdfSortition::VdfSortition(addr_t node_addr, vrf_sk_t const& sk,
-                           Message const& msg, uint difficulty_bound,
-                           uint lambda_bound)
+                           Message const& msg, uint16_t difficulty_selection,
+                           uint16_t difficulty_min, uint16_t difficulty_max,
+                           uint16_t difficulty_stale, uint16_t lambda_bound)
     : msg_(msg),
-      difficulty_bound_(difficulty_bound),
+      difficulty_selection_(difficulty_selection),
+      difficulty_min_(difficulty_min),
+      difficulty_max_(difficulty_max),
+      difficulty_stale_(difficulty_stale),
       lambda_bound_(lambda_bound),
       VrfSortitionBase(sk, msg) {
   LOG_OBJECTS_CREATE("VDF");
@@ -30,19 +34,25 @@ VdfSortition::VdfSortition(addr_t node_addr, bytes const& b) {
   msg_.level = rlp[2].toInt<uint64_t>();
   vdf_sol_.first = rlp[3].toBytes();
   vdf_sol_.second = rlp[4].toBytes();
-  difficulty_bound_ = rlp[5].toInt<uint>();
-  lambda_bound_ = rlp[6].toInt<uint>();
+  difficulty_selection_ = rlp[5].toInt<uint16_t>();
+  difficulty_min_ = rlp[6].toInt<uint16_t>();
+  difficulty_max_ = rlp[7].toInt<uint16_t>();
+  difficulty_stale_ = rlp[8].toInt<uint16_t>();
+  lambda_bound_ = rlp[9].toInt<uint16_t>();
 }
 
 bytes VdfSortition::rlp() const {
   dev::RLPStream s;
-  s.appendList(7);
+  s.appendList(10);
   s << pk;
   s << proof;
   s << msg_.level;
   s << vdf_sol_.first;
   s << vdf_sol_.second;
-  s << difficulty_bound_;
+  s << difficulty_selection_;
+  s << difficulty_min_;
+  s << difficulty_max_;
+  s << difficulty_stale_;
   s << lambda_bound_;
   return s.out();
 }
@@ -97,20 +107,19 @@ bool VdfSortition::verifyVdfSolution(std::string const& vdf_input) {
   return true;
 }
 
-int VdfSortition::getDifficulty() const {
-  // return difficulty_bound_;
-  return uint(output[0]) % difficulty_bound_;
+uint16_t VdfSortition::getDifficulty() const {
+  uint16_t difficulty;
+  uint16_t t = uint16_t(output[0]);  // First byte, each byte value [0, 255]
+  if (t <= difficulty_selection_) {
+    difficulty = difficulty_min_ + t % (difficulty_max_ - difficulty_min_);
+  } else {
+    difficulty = difficulty_stale_;
+  }
+  return difficulty;
 }
 
-unsigned long VdfSortition::getLambda() const {
-  // return lambda_bound_;
-  uint output_sum = 0;
-  // one byte in uint max is 255, 12 bytes max 255 * 12 = 3060
-  // Set lambda bound to 1500, kind of half of that
-  for (auto i = 0; i < 12; i++) {
-    output_sum += uint(output[i]);
-  }
-  return std::min(output_sum, lambda_bound_);
+uint16_t VdfSortition::getLambda() const {
+  return lambda_bound_;
 }
 
 }  // namespace taraxa::vdf_sortition

@@ -47,7 +47,14 @@ TEST_F(DagBlockTest, serialize_deserialize) {
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
       "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
   Message msg(3);
-  VdfSortition vdf(g_key_pair.address(), sk, msg);
+  uint16_t difficulty_selection = 255;
+  uint16_t difficulty_min = 0;
+  uint16_t difficulty_max = 5;
+  uint16_t difficulty_stale = 5;
+  uint16_t lambda_bound = 1500;
+  VdfSortition vdf(g_key_pair.address(), sk, msg, difficulty_selection,
+                   difficulty_min, difficulty_max, difficulty_stale,
+                   lambda_bound);
   blk_hash_t vdf_input(200);
   vdf.computeVdfSolution(vdf_input.toString());
   DagBlock blk1(blk_hash_t(1), 2, {}, {}, vdf);
