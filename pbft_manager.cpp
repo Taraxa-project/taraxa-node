@@ -227,10 +227,10 @@ bool PbftManager::is_eligible_(addr_t const &addr) {
 }
 
 bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
-  if (capability_->syncing_) {
-    LOG(log_tr_) << "PBFT chain is syncing, cannot propose and vote";
-    return false;
-  }
+  //  if (capability_->syncing_) {
+  //    LOG(log_tr_) << "PBFT chain is syncing, cannot propose and vote";
+  //    return false;
+  //  }
   if (!is_eligible_(node_addr_)) {
     LOG(log_tr_) << "Account " << node_addr_ << " is not eligible to vote";
     return false;
@@ -1200,10 +1200,10 @@ void PbftManager::syncNextVotes_() {
   if (stopped_) {
     return;
   }
-  if (capability_->syncing_) {
-    LOG(log_dg_) << "Cannot sync next votes bundle, PBFT chain is syncing";
-    return;
-  }
+  //  if (capability_->syncing_) {
+  //    LOG(log_dg_) << "Cannot sync next votes bundle, PBFT chain is syncing";
+  //    return;
+  //  }
 
   if (!nextVotesSyncAlreadyThisRoundStep_()) {
     auto round = getPbftRound();
