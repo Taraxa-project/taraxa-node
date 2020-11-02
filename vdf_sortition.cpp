@@ -5,16 +5,14 @@
 
 namespace taraxa::vdf_sortition {
 
-VdfSortition::VdfSortition(addr_t node_addr, vrf_sk_t const& sk,
-                           Message const& msg, uint16_t difficulty_selection,
-                           uint16_t difficulty_min, uint16_t difficulty_max,
-                           uint16_t difficulty_stale, uint16_t lambda_bound)
-    : msg_(msg),
-      difficulty_selection_(difficulty_selection),
-      difficulty_min_(difficulty_min),
-      difficulty_max_(difficulty_max),
-      difficulty_stale_(difficulty_stale),
-      lambda_bound_(lambda_bound),
+VdfSortition::VdfSortition(VdfConfig const& config, addr_t node_addr,
+                           vrf_sk_t const& sk, Message const& msg)
+    : difficulty_selection_(config.difficulty_selection),
+      difficulty_min_(config.difficulty_min),
+      difficulty_max_(config.difficulty_max),
+      difficulty_stale_(config.difficulty_stale),
+      lambda_bound_(config.lambda_bound),
+      msg_(msg),
       VrfSortitionBase(sk, msg) {
   LOG_OBJECTS_CREATE("VDF");
 }
