@@ -61,7 +61,6 @@ RUN find /usr \
 # Uncomment to test that all shared libraries can be loaded.
 # RUN LD_BIND_NOW=1 ./main
 
-ENV DEBUG 1
 ENV GODEBUG cgocheck=0
 ENTRYPOINT ["./main"]
 CMD ["--conf_taraxa", "./default_config/conf_taraxa1.json"]
