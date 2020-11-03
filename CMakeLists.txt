@@ -1,3 +1,7 @@
+# A perfectly functioning cmake build based on the make build.
+# can be used to build the project and for IDE integration.
+# Tested on ubuntu 20.04, but should be fine on Mac too.
+
 cmake_minimum_required(VERSION 3.13)
 
 project(taraxa-node)
