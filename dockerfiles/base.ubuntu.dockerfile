@@ -23,13 +23,9 @@ update-alternatives --install \
     --slave /usr/bin/g++ g++ /usr/bin/g++-8 && \
 pip3 install --upgrade pip cmake==3.17.2
 
-RUN echo trace 0
 COPY dockerfiles/symlink_index.sh /
-RUN echo trace 1
 RUN chmod 777 /symlink_index.sh
-RUN echo trace 2
 RUN cd /usr/local/lib && /symlink_index.sh restore build
-RUN echo trace 3
 
 # Add multi-stage build for docker layer caching
 FROM builder as boost-layer
