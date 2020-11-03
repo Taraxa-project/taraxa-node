@@ -1250,6 +1250,13 @@ TEST_F(FullNodeTest, chain_config_json) {
   },
   "replay_protection_service": {
     "range": "0xa"
+  },
+  "vdf": {
+    "difficulty_max" : "0x15",
+    "difficulty_min" : "0xf",
+    "difficulty_selection" : "0x80",
+    "difficulty_stale" : "0x16",
+    "lambda_bound" : "0x5dc"
   }
 })";
   Json::Value default_chain_config_json;

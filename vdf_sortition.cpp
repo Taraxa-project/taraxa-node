@@ -5,6 +5,25 @@
 
 namespace taraxa::vdf_sortition {
 
+Json::Value enc_json(VdfConfig const& obj) {
+  Json::Value ret(Json::objectValue);
+  ret["difficulty_selection"] = dev::toJS(obj.difficulty_selection);
+  ret["difficulty_min"] = dev::toJS(obj.difficulty_min);
+  ret["difficulty_max"] = dev::toJS(obj.difficulty_max);
+  ret["difficulty_stale"] = dev::toJS(obj.difficulty_stale);
+  ret["lambda_bound"] = dev::toJS(obj.lambda_bound);
+  return ret;
+}
+
+void dec_json(Json::Value const& json, VdfConfig& obj) {
+  obj.difficulty_selection =
+      dev::jsToInt(json["difficulty_selection"].asString());
+  obj.difficulty_min = dev::jsToInt(json["difficulty_min"].asString());
+  obj.difficulty_max = dev::jsToInt(json["difficulty_max"].asString());
+  obj.difficulty_stale = dev::jsToInt(json["difficulty_stale"].asString());
+  obj.lambda_bound = dev::jsToInt(json["lambda_bound"].asString());
+}
+
 VdfSortition::VdfSortition(VdfConfig const& config, addr_t node_addr,
                            vrf_sk_t const& sk, Message const& msg)
     : difficulty_selection_(config.difficulty_selection),
@@ -116,8 +135,6 @@ uint16_t VdfSortition::getDifficulty() const {
   return difficulty;
 }
 
-uint16_t VdfSortition::getLambda() const {
-  return lambda_bound_;
-}
+uint16_t VdfSortition::getLambda() const { return lambda_bound_; }
 
 }  // namespace taraxa::vdf_sortition

@@ -69,6 +69,8 @@ struct VdfConfig {
   uint16_t difficulty_stale = 0;
   uint16_t lambda_bound = 1500;  // lambda upper bound, should be constant
 };
+Json::Value enc_json(VdfConfig const& obj);
+void dec_json(Json::Value const& json, VdfConfig& obj);
 
 // It includes a vrf for difficulty adjustment
 class VdfSortition : public vrf_wrapper::VrfSortitionBase {
