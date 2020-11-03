@@ -68,7 +68,7 @@ foreach (test_src ${TEST_SRCS})
                    $<TARGET_OBJECTS:node_objects>
                    ${TESTUTIL_SRCS}
                    ${test_src})
-    link_libraries(${__test_target__} ${TEST_LIBS})
+    target_link_libraries(${__test_target__} ${TEST_LIBS})
     list(APPEND ALL_TESTS_TARGETS ${__test_target__})
     list(APPEND ALL_TESTS_EXE_PATHS $<TARGET_FILE:${__test_target__}>)
 endforeach ()
