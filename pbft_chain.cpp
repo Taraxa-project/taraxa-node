@@ -54,7 +54,7 @@ Json::Value PbftBlock::toJson(PbftBlock const& b,
   auto& dag_blks_json = schedule_json["dag_blocks_order"] =
       Json::Value(Json::arrayValue);
   for (auto const& h : dag_blks) {
-    dag_blks_json.append(dev::toJS(h));
+    dag_blks_json.append(h.hex());
   }
   return ret;
 }
