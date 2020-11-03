@@ -33,6 +33,8 @@ SUBMODULE_DEPS := $(addsuffix /ok, $(shell \
 SUBMODULE_BUILD_BEGIN = \
 	source Makefile_submodules.sh; \
 	mkdir -p $(DEPS_INSTALL_PREFIX); \
+	mkdir -p $(DEPS_INSTALL_PREFIX)/lib; \
+	mkdir -p $(DEPS_INSTALL_PREFIX)/include; \
 	cd $(@D); \
 	git_clean
 SUBMODULE_BUILD_END = \
