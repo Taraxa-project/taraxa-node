@@ -27,17 +27,8 @@
     "max_transaction_queue_drop" : 0,
     "max_block_queue_warn" : 0,
     "block_proposer": {
-      "mode": "sortition",
       "shard": 1,
-      "transaction_limit": 0,
-      "min_proposal_delay": 100,
-      "sortition_params": {
-        "difficulty_selection": 128,
-        "difficulty_min": 15,
-        "difficulty_max": 20,
-        "difficulty_stale": 22,
-        "lambda_bound": 1500
-      }
+      "transaction_limit": 0
     }
   },
   "logging": {

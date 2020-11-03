@@ -12,6 +12,7 @@ Json::Value enc_json(ChainConfig const& obj) {
   }
   json["dag_genesis_block"] = obj.dag_genesis_block.getJson();
   json["replay_protection_service"] = enc_json(obj.replay_protection_service);
+  json["vdf"] = enc_json(obj.vdf);
   json["pbft"] = enc_json(obj.pbft);
   json["final_chain"] = enc_json(obj.final_chain);
   return json;
@@ -23,6 +24,7 @@ void dec_json(Json::Value const& json, ChainConfig& obj) {
   }
   obj.dag_genesis_block = DagBlock(json["dag_genesis_block"]);
   dec_json(json["replay_protection_service"], obj.replay_protection_service);
+  dec_json(json["vdf"], obj.vdf);
   dec_json(json["pbft"], obj.pbft);
   dec_json(json["final_chain"], obj.final_chain);
 }
@@ -54,6 +56,13 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
     dpos.eligibility_balance_threshold = 1000000000;
     dpos.genesis_state[root_node_addr][root_node_addr] =
         dpos.eligibility_balance_threshold;
+    // VDF config
+    cfg.vdf.difficulty_selection = 128;
+    cfg.vdf.difficulty_min = 15;
+    cfg.vdf.difficulty_max = 21;
+    cfg.vdf.difficulty_stale = 22;
+    cfg.vdf.lambda_bound = 1500;
+    // PBFT config
     cfg.pbft.lambda_ms_min = 2000;
     cfg.pbft.committee_size = 5;
     cfg.pbft.dag_blocks_size = 100;

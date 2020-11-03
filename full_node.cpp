@@ -98,8 +98,9 @@ void FullNode::init() {
           pbft_chain_, vote_mgr_, dag_mgr_, blk_mgr_, final_chain_,
           trx_order_mgr_, trx_mgr_, kp_.secret(), conf_.vrf_secret,
           conf_.opts_final_chain.state_api.ExpectedMaxTrxPerBlock);
-  emplace(blk_proposer_, conf_.test_params.block_proposer, dag_mgr_, trx_mgr_,
-          blk_mgr_, node_addr, getSecretKey(), getVrfSecretKey(), log_time_);
+  emplace(blk_proposer_, conf_.test_params.block_proposer, conf_.chain.vdf,
+          dag_mgr_, trx_mgr_, blk_mgr_, node_addr, getSecretKey(),
+          getVrfSecretKey(), log_time_);
   emplace(network_, conf_.network, conf_.net_file_path().string(), kp_.secret(),
           genesis_hash, node_addr, db_, pbft_mgr_, pbft_chain_, vote_mgr_,
           dag_mgr_, blk_mgr_, trx_mgr_, kp_.pub(),

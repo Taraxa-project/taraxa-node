@@ -32,16 +32,54 @@ struct Message : public vrf_wrapper::VrfMsgFace {
   uint64_t level = 0;
 };
 
+struct VdfConfig {
+  VdfConfig() = default;
+  VdfConfig(vdf_sortition::VdfConfig const& vdf_config)
+      : difficulty_selection(vdf_config.difficulty_selection),
+        difficulty_min(vdf_config.difficulty_min),
+        difficulty_max(vdf_config.difficulty_max),
+        difficulty_stale(vdf_config.difficulty_stale),
+        lambda_bound(vdf_config.lambda_bound) {}
+  VdfConfig(uint16_t const selection, uint16_t const min, uint16_t const max,
+            uint16_t const stale, uint16_t const lambda_max_bound)
+      : difficulty_selection(selection),
+        difficulty_min(min),
+        difficulty_max(max),
+        difficulty_stale(stale),
+        lambda_bound(lambda_max_bound) {}
+
+  friend std::ostream& operator<<(std::ostream& strm,
+                                  VdfConfig const& vdf_config) {
+    strm << " [VDF config] " << std::endl;
+    strm << "    difficulty selection: " << vdf_config.difficulty_selection
+         << std::endl;
+    strm << "    difficulty minimum: " << vdf_config.difficulty_min
+         << std::endl;
+    strm << "    difficulty maximum: " << vdf_config.difficulty_max
+         << std::endl;
+    strm << "    difficulty stale: " << vdf_config.difficulty_stale
+         << std::endl;
+    strm << "    lambda bound: " << vdf_config.lambda_bound << std::endl;
+    return strm;
+  }
+
+  uint16_t difficulty_selection = 0;
+  uint16_t difficulty_min = 0;
+  uint16_t difficulty_max = 1;
+  uint16_t difficulty_stale = 0;
+  uint16_t lambda_bound = 1500;  // lambda upper bound, should be constant
+};
+Json::Value enc_json(VdfConfig const& obj);
+void dec_json(Json::Value const& json, VdfConfig& obj);
+
 // It includes a vrf for difficulty adjustment
 class VdfSortition : public vrf_wrapper::VrfSortitionBase {
  public:
   VdfSortition() = default;
-  explicit VdfSortition(addr_t node_addr, vrf_sk_t const& sk,
-                        Message const& msg, uint16_t difficulty_selection,
-                        uint16_t difficulty_min, uint16_t difficulty_max,
-                        uint16_t difficulty_stale, uint16_t lambda_bound);
+  explicit VdfSortition(VdfConfig const& config, addr_t node_addr,
+                        vrf_sk_t const& sk, Message const& msg);
   explicit VdfSortition(addr_t node_addr, bytes const& b);
-  
+
   bool verify(std::string const& msg) { return verifyVdfSolution(msg); }
   void computeVdfSolution(std::string const& msg);
   bool verifyVdf(level_t propose_block_level, std::string const& vdf_input);
@@ -87,11 +125,11 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
   Message msg_;
   std::pair<bytes, bytes> vdf_sol_;
   unsigned long vdf_computation_time_ = 0;
-  uint16_t difficulty_selection_ = 255;
+  uint16_t difficulty_selection_ = 0;
   uint16_t difficulty_min_ = 0;
-  uint16_t difficulty_max_ = 5;
-  uint16_t difficulty_stale_ = 5;
-  uint16_t lambda_bound_ = 1500;  // lambda upper bound
+  uint16_t difficulty_max_ = 1;
+  uint16_t difficulty_stale_ = 0;
+  uint16_t lambda_bound_ = 1500;  // lambda upper bound, should be constant
 
   LOG_OBJECTS_DEFINE;
 };
