@@ -109,7 +109,7 @@ $(BIN_DIR)/main: $(NODE_OBJS) $(OBJ_DIR)/main.o
 $(BIN_DIR)/%_test: $(NODE_OBJS) $(TESTUTIL_OBJS) $(OBJ_DIR)/%_test.o
 	$(LINK) $(addprefix -l, $(TEST_LIBS))
 
-.PHONY: bin/% main test run_test print_% fmt fmtcheck lint all clean c ct gen_rpc
+.PHONY: bin/% main test run_test print_% fmt fmtcheck lint all clean c ct gen_rpc nothing
 .SILENT: fmt fmtcheck lint
 
 bin/%: $(BIN_DIR)/%
@@ -175,4 +175,7 @@ clean:
 print_%:
 	@echo $($(subst print_,,$@))
 
-.DEFAULT_GOAL := main
+nothing:
+	@:
+
+.DEFAULT_GOAL := nothing
