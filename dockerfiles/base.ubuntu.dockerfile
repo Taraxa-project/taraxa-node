@@ -36,6 +36,7 @@ RUN \
 cd /tmp && \
 part_1=$BOOST_V_MAJOR.$BOOST_V_MINOR.$BOOST_V_PATCH && \
 part_2=boost_${BOOST_V_MAJOR}_${BOOST_V_MINOR}_${BOOST_V_PATCH} && \
+echo "Downloading boost $part_1..." && \
 wget -qO- \
     "https://dl.bintray.com/boostorg/release/$part_1/source/$part_2.tar.bz2" \
     | tar --bzip2 -xf - && \
@@ -54,6 +55,7 @@ ARG rocksdb_version=5.18.3
 ENV ROCKSDB_VERSION="$rocksdb_version"
 RUN \
 cd /tmp && \
+echo "Downloading rocksdb $rocksdb_version..." && \
 wget -qO- \
     https://github.com/facebook/rocksdb/archive/v$rocksdb_version.zip \
     | busybox unzip -q - && \
@@ -65,7 +67,9 @@ RUN cd /usr/local/lib && /symlink_index.sh restore build
 
 FROM rocksdb-layer as go-layer
 ARG go_version=1.13.7
-RUN wget -qO- https://dl.google.com/go/go$go_version.linux-amd64.tar.gz \
+RUN \
+echo "Downloading golang $go_version..." && \
+wget -qO- https://dl.google.com/go/go$go_version.linux-amd64.tar.gz \
     | tar xvz -C /usr/local
 RUN cd /usr/local/lib && /symlink_index.sh restore build
 
