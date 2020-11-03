@@ -60,7 +60,7 @@ pipeline {
         BASE_IMAGE = 'taraxa-node-base'
         SLACK_CHANNEL = 'jenkins'
         SLACK_TEAM_DOMAIN = 'phragmites'
-        DOCKER_BRANCH_TAG = sh(script: './dockerfiles/scripts/docker_tag_from_branch.sh "${BRANCH_NAME}"', , returnStdout: true).trim()
+        DOCKER_BRANCH_TAG = sh(script: './scripts/docker_tag_from_branch.sh "${BRANCH_NAME}"', , returnStdout: true).trim()
         HELM_TEST_NAME = sh(script: 'echo ${BRANCH_NAME} | sed "s/[^A-Za-z0-9\\-]*//g" | tr "[:upper:]" "[:lower:]"', returnStdout: true).trim()
         KIBANA_URL='kibana.gcp.taraxa.io'
         START_TIME = sh(returnStdout: true, script: 'date +%Y%m%d_%Hh%Mm%Ss').trim()
@@ -70,11 +70,6 @@ pipeline {
       disableConcurrentBuilds()
     }
     stages {
-        stage('Validate C++ formatting') {
-            steps {
-               sh './scripts/validate_format_project_files_cxx.sh'
-            }
-        }
         stage('Trigger Base Image Build') {
             steps {
               build job: "docker-base-image/${BRANCH_NAME}", parameters: [
@@ -97,13 +92,13 @@ pipeline {
                 }
             }
         }
-        stage('Tests + Build Docker Image') {
+        stage('Build Docker Image') {
             steps {
                 sh '''
-                    docker build --pull --cache-from=${GCP_REGISTRY}/${IMAGE} \
+                    DOCKER_BUILDKIT=1 docker build --pull --cache-from=${GCP_REGISTRY}/${IMAGE} \
                     -t ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} \
                     --build-arg BASE_IMAGE=${GCP_REGISTRY}/${BASE_IMAGE}:${DOCKER_BRANCH_TAG} \
-                    -f dockerfiles/Dockerfile .
+                    -f dockerfiles/main.ubuntu.dockerfile .
                 '''
             }
         }

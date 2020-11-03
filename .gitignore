@@ -1,6 +1,13 @@
-build/
-.vscode/
-.idea/*
+.vscode
 
-*.debug_dag*
+.idea
+*.iml
+
+# for Cmake users, name your cmake build dirs like this:
 cmake-*
+# main build system (makefile) output dir
+build
+# put here local env stuff
+local
+Makefile.log.txt
+Makefile.src_cxx.txt
