@@ -55,12 +55,20 @@ read_makefile_var(NODE_SRCS)
 add_library(node_objects OBJECT ${NODE_SRCS})
 add_executable(main $<TARGET_OBJECTS:node_objects> src/main.cpp)
 
+read_makefile_var(TEST_LIBS)
 read_makefile_var(TEST_SRCS)
+# TODO turn into object library once there are sources for it
+# Can't do it now, because cmake doesn't allow libraries without sources
+read_makefile_var(TESTUTIL_SRCS)
 foreach (test_src ${TEST_SRCS})
     string(REPLACE "${SRC_DIR}/" "" __test_target__ ${test_src})
     string(REPLACE "/" "_" __test_target__ ${__test_target__})
     get_filename_component(__test_target__ ${__test_target__} NAME_WE)
-    add_executable(${__test_target__} $<TARGET_OBJECTS:node_objects> ${test_src})
+    add_executable(${__test_target__}
+                   $<TARGET_OBJECTS:node_objects>
+                   ${TESTUTIL_SRCS}
+                   ${test_src})
+    link_libraries(${__test_target__} ${TEST_LIBS})
     list(APPEND ALL_TESTS_TARGETS ${__test_target__})
     list(APPEND ALL_TESTS_EXE_PATHS $<TARGET_FILE:${__test_target__}>)
 endforeach ()
