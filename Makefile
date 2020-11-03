@@ -63,7 +63,7 @@ BOOST_LIBS := \
 	boost_program_options \
 	boost_filesystem \
 	boost_system
-# on mac, brew distribution of boost has that -mt (multithreaded) suffix
+# on mac, boost distribution has that -mt (multithreaded) suffix for some libs
 ifeq ($(OS), Darwin)
 	BOOST_LIBS += boost_thread-mt boost_log-mt boost_log_setup-mt
 else

@@ -12,7 +12,11 @@ DEBUG := 0
 # rather, which kind of gcc do you prefer, cause this build relies on bash
 CXX := g++
 CXX_STD := c++17
-OPENSSL_HOME :=
+# if there's a need to use custom versions of some libraries,
+# create some directory structured similarly to /usr/local
+# and install there (or symlink) the preferred lib overrides.
+# for example, it an be used to provide openssl v1.1.1 on Mac.
+SYSTEM_HOME_OVERRIDE :=
 BUILD_BASEDIR = $(CURDIR)/build
 DEPS_INSTALL_PREFIX = $(BUILD_BASEDIR)/deps
 # needed only because jsoncpp packaging is not standard across OS
@@ -49,9 +53,9 @@ ifndef LINK_FLAGS
 		endif
 	endif
 endif
-ifneq ($(OPENSSL_HOME),)
-	INCLUDE_DIRS := $(OPENSSL_HOME)/include $(INCLUDE_DIRS)
-	LIB_DIRS := $(OPENSSL_HOME)/lib $(LIB_DIRS)
+ifneq ($(SYSTEM_HOME_OVERRIDE),)
+	INCLUDE_DIRS := $(SYSTEM_HOME_OVERRIDE)/include $(INCLUDE_DIRS)
+	LIB_DIRS := $(SYSTEM_HOME_OVERRIDE)/lib $(LIB_DIRS)
 endif
 # END VARIABLES THAT YOU CAN OVERRIDE
 

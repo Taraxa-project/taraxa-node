@@ -55,8 +55,8 @@ submodules/taraxa-evm/ok:
 # ====================================================
 
 TARAXA_VDF_OPTS :=
-ifneq ($(OPENSSL_HOME),)
-	LIBFF_OPTS += OPENSSL_HOME=$(OPENSSL_HOME)
+ifneq ($(SYSTEM_HOME_OVERRIDE),)
+	LIBFF_OPTS += OPENSSL_HOME=$(SYSTEM_HOME_OVERRIDE)
 endif
 submodules/taraxa-vdf/ok:
 	$(SUBMODULE_BUILD_BEGIN); \
@@ -122,10 +122,10 @@ LIBFF_OPTS := \
 	-DWITH_PROCPS=OFF \
 	-DCMAKE_C_COMPILER=gcc \
 	-DCMAKE_CXX_COMPILER=c++
-ifneq ($(OPENSSL_HOME),)
+ifneq ($(SYSTEM_HOME_OVERRIDE),)
 	LIBFF_OPTS += \
-		-DOPENSSL_ROOT_DIR=$(OPENSSL_HOME) \
-		-DOPENSSL_LIBRARIES=$(OPENSSL_HOME)/lib
+		-DOPENSSL_ROOT_DIR=$(SYSTEM_HOME_OVERRIDE) \
+		-DOPENSSL_LIBRARIES=$(SYSTEM_HOME_OVERRIDE)/lib
 endif
 submodules/libff/ok:
 	$(SUBMODULE_BUILD_BEGIN); \
