@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Handy way to build the base image
 (
   cd "$(dirname "$0")/.."
   # Base image build requires clean submodule directories

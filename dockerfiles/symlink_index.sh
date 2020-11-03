@@ -3,6 +3,16 @@
 set -e
 set -o pipefail
 
+# Docker definitely materializes symlinks when using `COPY --from...`.
+# Also it sometimes does it in
+# layered inheritance (haven't figured the exact circumstances).
+# This utility is a generic remedy for that. Inside a directory,
+# call the `build` command to list all symlinks recursively together with
+# source files that they are pointing to in a local file (index).
+# Then call `restore` to make everything back according to the index.
+# A blunt uniform way to use it would be doing `restore rebuild`
+# as the last statement of a docker layer.
+
 if [ "$#" == "0" ]; then
   echo >&2 "Symlink index: command not specified, available commands:"
   echo >&2 "  build print rm restore"

@@ -5,7 +5,7 @@ ARG RUN_TESTS=1
 COPY . .
 RUN \
 if [ $RUN_TESTS -eq 1 ]; then \
-    make fmtcheck lint; \
+    make check; \
 fi
 RUN \
 make -j $(nproc) DEPS_INSTALL_PREFIX=/usr/local DEBUG=$DEBUG bin/main
@@ -14,6 +14,7 @@ if [ $RUN_TESTS -eq 1 ]; then \
     make -j $(nproc) DEPS_INSTALL_PREFIX=/usr/local DEBUG=$DEBUG run_test; \
 fi
 RUN \
+# Select binary output dir according to the build type
 if [ $DEBUG -eq 1 ]; then \
     mv build/debug/bin build/bin_tmp; \
 else \

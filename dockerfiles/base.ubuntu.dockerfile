@@ -3,6 +3,7 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV TERM xterm
 
 RUN \
+# remember build-only deps
 echo \
     zlib1g-dev libbz2-dev libzstd-dev gcc-8 g++-8 clang \
     libblkid-dev e2fslibs-dev libaudit-dev wget build-essential \
@@ -10,6 +11,7 @@ echo \
     libxml2-dev libxslt-dev autoconf libtool busybox liblz4-dev \
     python3-pip python3-dev clang-format cppcheck binutils \
 >> /apt_deps_build.txt && \
+# remember runtime-only deps to install only them in the final layer
 echo \
     libjsoncpp-dev libjsonrpccpp-dev libicu-dev \
     libmpfr-dev libgmp3-dev libscrypt-dev libssl-dev \
@@ -23,6 +25,7 @@ update-alternatives --install \
     --slave /usr/bin/g++ g++ /usr/bin/g++-8 && \
 pip3 install --upgrade pip cmake==3.17.2
 
+# description is inside the script
 COPY dockerfiles/symlink_index.sh /
 RUN chmod 777 /symlink_index.sh
 RUN cd /usr/local/lib && /symlink_index.sh restore build
@@ -85,10 +88,12 @@ ENV LD_LIBRARY_PATH /usr/local/lib
 WORKDIR ${APP_PATH}
 COPY . .
 RUN \
+# install submodules
 make -f Makefile_submodules.mk -j $(nproc) \
     DEPS_INSTALL_PREFIX=/usr/local \
     DEBUG=$DEBUG \
     submodules && \
+# keep only essential files in the submodule source directories
 find submodules/ ! -type d \
     ! -path "*/ok" -and \
     ! -path "submodules/taraxa-evm/taraxa/data/eth_mainnet_blocks_0_300000.rlp" \

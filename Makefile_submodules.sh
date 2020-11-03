@@ -1,5 +1,6 @@
 set -eo errtrace
 
+# a copy function that you always wanted in bash
 function copy() {
   local base_dir=$1
   local pattern=$2
@@ -16,6 +17,7 @@ function mkdir_cd() {
   mkdir -p "$dir" && cd "$dir"
 }
 
+# parse 'path' entries from .gitmodules
 function submodule_list() {
   grep path .gitmodules | sed 's/.*= //'
 }
@@ -31,6 +33,7 @@ function git_clean() {
   fi
 }
 
+# a quick no-op if everything is in sync
 function submodule_upd() {
   if ! is_git_repo; then
     echo "not a git repo"

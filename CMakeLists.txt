@@ -68,4 +68,5 @@ add_custom_target(
 
 add_custom_target(all_bin DEPENDS main all_test)
 
+# An extension of this file that you can play with locally
 include(local/CmakeLists_ext.cmake OPTIONAL)

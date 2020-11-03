@@ -3,6 +3,10 @@ Makefile_submodules=_
 
 include Makefile_common.mk
 
+# NOTE: there's a supporting file with shell utils: Makefile_submodules.sh
+
+# By default, sync submodules on every `make` invocation to make
+# the developers think less about submodules
 ifeq ($(UPDATE_SUBMODULES), 1)
 ifneq (0, $(shell \
 	source Makefile_submodules.sh; \
@@ -13,6 +17,14 @@ $(error Submodule update failed)
 endif
 endif
 
+# NOTE: the general idea in the submodule building pattern is that
+# once the submodule build is successful, we create a dummy file `ok`
+# in the submodule directory and use it as a dependency in targets
+# that need the submodule. Submodule builds always start from cleaning
+# the submodule directory from files that are not tracked in git, thus
+# these builds are atomic
+
+# list of all submodule build success indicator files
 SUBMODULE_DEPS := $(addsuffix /ok, $(shell \
 	source Makefile_submodules.sh; \
 	submodule_list; \
@@ -152,6 +164,7 @@ ALETH_SRCS := $(shell \
 ALETH_OBJS = $(subst $(ALETH_ROOT),$(ALETH_OBJ_DIR),$(ALETH_SRCS:.cpp=.o))
 TARAXA_ALETH_LIB := taraxa-aleth
 
+# compile any taraxa-aleth .o file. uses configuration similar to the main build
 $(ALETH_OBJ_DIR)/%.o: $(ALETH_ROOT)/%.cpp
 	mkdir -p $(@D)
 	$(strip \

@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Handy way to build the main image
 (
   cd "$(dirname "$0")/.."
   # Forwards args to `docker` command

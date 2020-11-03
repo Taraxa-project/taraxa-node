@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# reads files from stdin, spawns a parallel subprocess for each file.
+# uses presence of <replacement> tag in the output as failure indicator
+
 pids=""
 while read -r line; do
   (
