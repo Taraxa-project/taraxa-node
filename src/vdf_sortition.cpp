@@ -118,6 +118,10 @@ uint16_t VdfSortition::getDifficulty() const {
   return difficulty;
 }
 
+uint16_t VdfSortition::getLambda() const {
+  return lambda_bound_;
+}
+
 uint16_t VdfSortition::getLambda() const { return lambda_bound_; }
 
 }  // namespace taraxa::vdf_sortition
