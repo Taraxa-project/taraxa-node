@@ -37,7 +37,7 @@ NODE_SRCS := $(shell $(FILES_CXX_PRINT) | \
 )
 NODE_OBJS := $(subst $(SRC_DIR),$(OBJ_DIR),$(NODE_SRCS:.cpp=.o))
 TESTUTIL_SRCS := $(shell $(FILES_CXX_PRINT) | \
-	grep "$(SRC_DIR)/util_$(TEST_SRC_QUALIFIER)/.*.cpp" \
+	grep "$(SRC_DIR)/util_$(TEST_SRC_QUALIFIER)/*.cpp" \
 )
 TESTUTIL_OBJS := $(subst $(SRC_DIR),$(OBJ_DIR),$(TESTUTIL_SRCS:.cpp=.o))
 TEST_SRCS := $(shell $(FILES_CXX_PRINT) | \
