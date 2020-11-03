@@ -30,22 +30,20 @@ bool SortitionPropose::propose() {
 
   // get sortition
   vdf_sortition::Message msg(propose_level);
-  vdf_sortition::VdfSortition vdf(
-      node_addr_, vrf_sk_, msg, difficulty_selection_, difficulty_min_,
-      difficulty_max_, difficulty_stale_, lambda_bound_);
-  if (vdf.getDifficulty() == difficulty_stale_ &&
+  vdf_sortition::VdfSortition vdf(vdf_config_, node_addr_, vrf_sk_, msg);
+  auto difficulty = vdf.getDifficulty();
+  if (difficulty == vdf_config_.difficulty_stale &&
       propose_level == last_propose_level_ && num_tries_ < max_num_tries_) {
-    LOG(log_dg_) << "Will not propose DAG block. Get difficulty stale "
-                 << difficulty_stale_ << ", last propose level "
-                 << last_propose_level_ << ", has tried " << num_tries_
-                 << " times.";
+    LOG(log_dg_) << "Will not propose DAG block. Get difficulty " << difficulty
+                 << " at stale, last propose level " << last_propose_level_
+                 << ", has tried " << num_tries_ << " times.";
     num_tries_++;
     return false;
-  } else if (vdf.getDifficulty() == difficulty_stale_ &&
+  } else if (difficulty == vdf_config_.difficulty_stale &&
              propose_level != last_propose_level_) {
     LOG(log_dg_) << "Will not propose DAG block, will reset number of tries. "
-                    "Get difficulty stale "
-                 << difficulty_stale_ << ", last propose level "
+                    "Get difficulty "
+                 << difficulty << " at stale, last propose level "
                  << last_propose_level_ << ", current propose level "
                  << propose_level;
     last_propose_level_ = propose_level;
@@ -125,7 +123,7 @@ bool BlockProposer::getLatestPivotAndTips(blk_hash_t& pivot, vec_blk_t& tips) {
 bool BlockProposer::getShardedTrxs(uint total_shard, DagFrontier& frontier,
                                    uint my_shard, vec_trx_t& sharded_trxs) {
   vec_trx_t to_be_packed_trx;
-  trx_mgr_->packTrxs(to_be_packed_trx, frontier, conf_.transaction_limit);
+  trx_mgr_->packTrxs(to_be_packed_trx, frontier, bp_config_.transaction_limit);
   // Need to update pivot incase a new period is confirmed
   std::vector<std::string> ghost;
   if (dag_mgr_) {

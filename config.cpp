@@ -141,31 +141,11 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object) {
 
     test_params.max_block_queue_warn = getConfigDataAsUInt(
         root, {"test_params", "max_block_queue_warn"}, true);
-
-    test_params.block_proposer.mode =
-        getConfigDataAsString(root, {"test_params", "block_proposer", "mode"});
+    // DAG proposal
     test_params.block_proposer.shard =
         getConfigDataAsUInt(root, {"test_params", "block_proposer", "shard"});
     test_params.block_proposer.transaction_limit = getConfigDataAsUInt(
         root, {"test_params", "block_proposer", "transaction_limit"});
-    test_params.block_proposer.min_proposal_delay = getConfigDataAsUInt(
-        root, {"test_params", "block_proposer", "min_proposal_delay"});
-    // VDF DAG proposal parameters
-    test_params.block_proposer.difficulty_selection =
-        getConfigDataAsUInt(root, {"test_params", "block_proposer",
-                                   "sortition_params", "difficulty_selection"});
-    test_params.block_proposer.difficulty_min =
-        getConfigDataAsUInt(root, {"test_params", "block_proposer",
-                                   "sortition_params", "difficulty_min"});
-    test_params.block_proposer.difficulty_max =
-        getConfigDataAsUInt(root, {"test_params", "block_proposer",
-                                   "sortition_params", "difficulty_max"});
-    test_params.block_proposer.difficulty_stale =
-        getConfigDataAsUInt(root, {"test_params", "block_proposer",
-                                   "sortition_params", "difficulty_stale"});
-    test_params.block_proposer.lambda_bound = getConfigDataAsUInt(
-        root,
-        {"test_params", "block_proposer", "sortition_params", "lambda_bound"});
   }
 
   // Network logging in p2p library creates performance issues even with
