@@ -9,32 +9,6 @@ using namespace std;
 
 int main(int argc, const char* argv[]) {
   static_init();
-
-  if (argc <= 1) {
-    cerr << "error: no arguments given" << endl;
-    return 1;
-  }
-
-  unordered_map<string, function<void(vector<string> const&)>> extra_cmd;
-  extra_cmd["vrf_keygen"] = [](auto const& args) {
-    auto [_, secret_key] = vrf_wrapper::getVrfKeyPair();
-    cout << secret_key.hex() << endl;
-  };
-
-  if (auto cmd = extra_cmd.find(argv[1]); cmd != extra_cmd.end()) {
-    vector<string> args(argc - 2);
-    for (int i = 2; i < argc; ++i) {
-      args[i - 2] = argv[i];
-    }
-    try {
-      cmd->second(args);
-      return 0;
-    } catch (...) {
-      cerr << boost::current_exception_diagnostic_information() << endl;
-      return 1;
-    }
-  }
-
   try {
     string conf_taraxa;
     bool destroy_db = 0;

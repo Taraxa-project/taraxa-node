@@ -37,12 +37,6 @@ COPY --from=builder ${APP_PATH}/build/bin_tmp/main .
 COPY --from=builder ${APP_PATH}/src/util_test/conf/*.json ./default_config/
 COPY --from=builder /symlink_index.sh /
 COPY --from=builder /apt_deps_runtime.txt /
-# TODO remove this horrible legacy
-COPY --from=builder \
-    ${APP_PATH}/dockerfiles/main.ubuntu.dockerfile.crypto_test_HACK.sh \
-    ./crypto_test
-# TODO remove this horrible legacy
-RUN chmod 777 ./crypto_test
 # fix symlinks
 RUN cd /usr/local/lib && /symlink_index.sh restore rm && rm /symlink_index.sh
 RUN \
