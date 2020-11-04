@@ -13,6 +13,7 @@ int main(int argc, const char* argv[]) {
     string conf_taraxa;
     bool destroy_db = 0;
     bool rebuild_network = 0;
+    uint64_t revert_to_period = 0;
     boost::program_options::options_description main_options(
         "GENERIC OPTIONS:");
     main_options.add_options()("help", "Print this help message and exit")(
@@ -24,7 +25,10 @@ int main(int argc, const char* argv[]) {
         "rebuild_network",
         boost::program_options::bool_switch(&rebuild_network),
         "Delete all saved network/nodes information and rebuild network "
-        "from boot nodes");
+        "from boot nodes")(
+        "revert_to_period",
+        boost::program_options::value<uint64_t>(&revert_to_period),
+        "Revert db/state to specified period (specify period) ");
     boost::program_options::options_description allowed_options(
         "Allowed options");
     allowed_options.add(main_options);
@@ -46,8 +50,37 @@ int main(int argc, const char* argv[]) {
     FullNodeConfig cfg(conf_taraxa);
     if (destroy_db) {
       boost::filesystem::remove_all(cfg.db_path);
-    } else if (rebuild_network) {
+    }
+    if (rebuild_network) {
       boost::filesystem::remove_all(cfg.net_file_path());
+    }
+    if (revert_to_period > 0) {
+      auto period_path = cfg.dbstorage_path();
+      period_path += to_string(revert_to_period);
+      if (boost::filesystem::exists(period_path)) {
+        cout << "Deleting current db/state" << endl;
+        boost::filesystem::remove_all(cfg.dbstorage_path());
+        cout << "Reverting to period: " << revert_to_period << endl;
+        boost::filesystem::rename(period_path, cfg.dbstorage_path());
+        cout << "Deleting newer periods:" << endl;
+        for (boost::filesystem::directory_iterator itr(cfg.db_path);
+             itr != boost::filesystem::directory_iterator(); ++itr) {
+          std::string fileName = itr->path().filename().string();
+          if (fileName.find("db") != fileName.npos) {
+            if (fileName.size() > 2) {
+              try {
+                uint64_t period = stoi(fileName.substr(2));
+                if (period > revert_to_period) {
+                  boost::filesystem::remove_all(itr->path());
+                }
+              } catch (...) {
+                cout << "Unexpected file in db folder: " << fileName << endl;
+              }
+            }
+          }
+          cout << "Deleted folder: " << fileName;
+        }
+      }
     }
     FullNode::Handle node(cfg, true);
     cout << "Taraxa node started" << endl;

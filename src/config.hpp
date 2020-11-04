@@ -103,6 +103,7 @@ struct TestParamsConfig {
   uint32_t max_transaction_queue_warn = 0;
   uint32_t max_transaction_queue_drop = 0;
   uint32_t max_block_queue_warn = 0;
+  uint32_t db_snapshot_each_n_pbft_block = 0;
 };
 
 struct FullNodeConfig {

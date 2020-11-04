@@ -40,7 +40,8 @@ PbftManager::PbftManager(PbftConfig const &conf, std::string const &genesis,
                          std::shared_ptr<TransactionOrderManager> trx_ord_mgr,
                          std::shared_ptr<TransactionManager> trx_mgr,
                          secret_t node_sk, vrf_sk_t vrf_sk,
-                         uint32_t expected_max_trx_per_block)
+                         uint32_t expected_max_trx_per_block,
+                         uint32_t db_snapshot_each_n_pbft_block)
     : replay_protection_service(new ReplayProtectionServiceDummy),
       LAMBDA_ms_MIN(conf.lambda_ms_min),
       COMMITTEE_SIZE(conf.committee_size),
@@ -58,7 +59,8 @@ PbftManager::PbftManager(PbftConfig const &conf, std::string const &genesis,
       trx_mgr_(trx_mgr),
       node_addr_(node_addr),
       node_sk_(node_sk),
-      vrf_sk_(vrf_sk) {
+      vrf_sk_(vrf_sk),
+      db_snapshot_each_n_pbft_block_(db_snapshot_each_n_pbft_block) {
   LOG_OBJECTS_CREATE("PBFT_MGR");
   num_executed_blk_ =
       db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
@@ -1478,6 +1480,12 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
       }));
   // Commit DB
   db_->commitWriteBatch(batch);
+
+  //Creates snapshot if needed
+  if(db_snapshot_each_n_pbft_block_ > 0 && pbft_period % db_snapshot_each_n_pbft_block_ == 0) {
+    db_->createSnapshot(pbft_period);
+  }
+    
   LOG(log_dg_) << "DB write batch committed";
   // After DB commit, confirm in final chain(Ethereum)
   final_chain_->advance_confirm();

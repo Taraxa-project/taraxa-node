@@ -3,6 +3,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 
+#include "rocksdb/utilities/checkpoint.h"
 #include "transaction.hpp"
 #include "vote.hpp"
 
@@ -27,6 +28,17 @@ DbStorage::DbStorage(fs::path const& path)
   checkStatus(DB::Open(options, path.string(), descriptors, &handles_, &db_));
   dag_blocks_count_.store(getStatusField(StatusDbField::DagBlkCount));
   dag_edge_count_.store(getStatusField(StatusDbField::DagEdgeCount));
+}
+
+void DbStorage::createSnapshot(uint64_t period) {
+  rocksdb::Checkpoint* checkpoint;
+  auto status = rocksdb::Checkpoint::Create(db_, &checkpoint);
+  checkStatus(status);
+  auto snapshot_path = path_;
+  snapshot_path += std::to_string(period);
+  status = checkpoint->CreateCheckpoint(snapshot_path.string());
+  delete checkpoint;
+  checkStatus(status);
 }
 
 DbStorage::~DbStorage() {

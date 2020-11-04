@@ -141,6 +141,11 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object) {
 
     test_params.max_block_queue_warn = getConfigDataAsUInt(
         root, {"test_params", "max_block_queue_warn"}, true);
+
+    // Create db snapshot each N pbft block
+    test_params.db_snapshot_each_n_pbft_block = getConfigDataAsUInt(
+        root, {"test_params", "db_snapshot_each_n_pbft_block"}, true);
+
     // DAG proposal
     test_params.block_proposer.shard =
         getConfigDataAsUInt(root, {"test_params", "block_proposer", "shard"});

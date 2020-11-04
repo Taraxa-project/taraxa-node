@@ -95,7 +95,8 @@ void FullNode::init() {
   emplace(pbft_mgr_, conf_.chain.pbft, genesis_hash, node_addr, db_,
           pbft_chain_, vote_mgr_, dag_mgr_, blk_mgr_, final_chain_,
           trx_order_mgr_, trx_mgr_, kp_.secret(), conf_.vrf_secret,
-          conf_.opts_final_chain.state_api.ExpectedMaxTrxPerBlock);
+          conf_.opts_final_chain.state_api.ExpectedMaxTrxPerBlock,
+          conf_.test_params.db_snapshot_each_n_pbft_block);
   emplace(blk_proposer_, conf_.test_params.block_proposer, conf_.chain.vdf,
           dag_mgr_, trx_mgr_, blk_mgr_, node_addr, getSecretKey(),
           getVrfSecretKey(), log_time_);

@@ -105,6 +105,7 @@ struct DbStorage {
   auto const& path() const { return path_; }
   static BatchPtr createWriteBatch();
   void commitWriteBatch(BatchPtr const& write_batch);
+  void createSnapshot(uint64_t period);
 
   // DAG
   void saveDagBlock(DagBlock const& blk, BatchPtr write_batch = nullptr);
