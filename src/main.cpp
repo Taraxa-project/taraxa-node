@@ -56,30 +56,49 @@ int main(int argc, const char* argv[]) {
     }
     if (revert_to_period > 0) {
       auto period_path = cfg.dbstorage_path();
+      auto period_state_path = cfg.db_path / "state_db";
       period_path += to_string(revert_to_period);
+      period_state_path += to_string(revert_to_period);
       if (boost::filesystem::exists(period_path)) {
         cout << "Deleting current db/state" << endl;
         boost::filesystem::remove_all(cfg.dbstorage_path());
+        boost::filesystem::remove_all(cfg.db_path / "state_db");
         cout << "Reverting to period: " << revert_to_period << endl;
         boost::filesystem::rename(period_path, cfg.dbstorage_path());
+        boost::filesystem::rename(period_state_path, cfg.db_path / "state_db");
         cout << "Deleting newer periods:" << endl;
         for (boost::filesystem::directory_iterator itr(cfg.db_path);
              itr != boost::filesystem::directory_iterator(); ++itr) {
           std::string fileName = itr->path().filename().string();
-          if (fileName.find("db") != fileName.npos) {
+          if (fileName.find("state_db") != fileName.npos) {
+            if (fileName.size() > 8) {
+              try {
+                uint64_t period = stoi(fileName.substr(8));
+                if (period > revert_to_period) {
+                  boost::filesystem::remove_all(itr->path());
+                  cout << "Deleted folder: " << fileName << endl;
+                }
+              } catch (...) {
+                cout << "Unexpected file in db folder: " << fileName << endl;
+              }
+            }
+          } else if (fileName.find("db") != fileName.npos) {
             if (fileName.size() > 2) {
               try {
                 uint64_t period = stoi(fileName.substr(2));
                 if (period > revert_to_period) {
                   boost::filesystem::remove_all(itr->path());
+                  cout << "Deleted folder: " << fileName << endl;
                 }
               } catch (...) {
                 cout << "Unexpected file in db folder: " << fileName << endl;
               }
             }
           }
-          cout << "Deleted folder: " << fileName;
         }
+      } else {
+        cout << "Period snapshot missing" << endl;
+        return 1;
       }
     }
     FullNode::Handle node(cfg, true);

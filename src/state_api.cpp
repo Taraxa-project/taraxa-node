@@ -99,7 +99,8 @@ StateAPI::StateAPI(string const& db_path, decltype(get_blk_hash) get_blk_hash,
             copy_n(ret.data(), 32, begin(ret_c.Val));
             return ret_c;
           },
-      } {
+      },
+      db_path(db_path) {
   result_buf_transition_state.ExecutionResults.reserve(
       opts.ExpectedMaxTrxPerBlock);
   rlp_enc_transition_state.reserve(opts.ExpectedMaxTrxPerBlock * 1024,
@@ -168,6 +169,14 @@ StateTransitionResult const& StateAPI::transition_state(
 
 void StateAPI::transition_state_commit() {
   taraxa_evm_state_api_transition_state_commit(this_c, err_handler_c);
+}
+
+void StateAPI::create_snapshot(uint64_t const& period) {
+  auto path = db_path + to_string(period);
+  GoString go_path;
+  go_path.p = path.c_str();
+  go_path.n = path.size();
+  taraxa_evm_state_api_db_snapshot(this_c, go_path, 0, err_handler_c);
 }
 
 uint64_t StateAPI::dpos_eligible_count(BlockNumber blk_num) const {

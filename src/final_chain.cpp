@@ -139,6 +139,10 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
     refresh_last_block();
   }
 
+  void create_snapshot(uint64_t const& period) override {
+    state_api.create_snapshot(period);
+  }
+
   optional<state_api::Account> get_account(
       addr_t const& addr,
       optional<BlockNumber> blk_n = nullopt) const override {

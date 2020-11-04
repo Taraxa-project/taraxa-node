@@ -46,6 +46,7 @@ struct FinalChain : virtual ChainDB {
                                 Transactions const& transactions) = 0;
   virtual shared_ptr<BlockHeader> get_last_block() const = 0;
   virtual void advance_confirm() = 0;
+  virtual void create_snapshot(uint64_t const& period) = 0;
   virtual optional<state_api::Account> get_account(
       addr_t const& addr, optional<BlockNumber> blk_n = nullopt) const = 0;
   virtual u256 get_account_storage(
