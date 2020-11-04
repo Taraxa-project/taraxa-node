@@ -1,3 +1,16 @@
+### Submodule workflow
+Keep in mind that `make` build will update submodules automatically to their 
+*committed* versions, also cleaning any untracked files if a the current version
+is is different from the committed for a submodule. This should be convenient 
+in most cases, but if you are developing in a submodule and want to 
+incrementally integrate those changes in this repo, you should not forget 
+to *commit* the submodule directory after updating it from the remote.
+The best way to update the local submodule version - is to enter it's directory
+and do git checkout/pull for the branch of interest, or just checkout if there's
+no branch of interest.
+
+#THE FOLLOWING IS HORRIBLY OUTDATED
+
 # Current Build Status
 [![Build Status](https://api.travis-ci.com/Taraxa-project/taraxa-node.svg?token=uj8tJYwJxx7PyPVNRSWp&branch=master)]([https://travis-ci.org/Taraxa-project/taraxa-node](https://travis-ci.com/Taraxa-project/taraxa-node))
 

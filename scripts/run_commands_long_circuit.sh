@@ -1,8 +1,12 @@
 #!/bin/bash
 
-exit_code_sum=0
+# Interprets arguments as bash commands, runs them all regardless of failures,
+# in the end fails if any of the commands failed.
+
+exit_with=0
 for arg in "$@"; do
-  $arg
-  let exit_code_sum+=$?
+  if ! $arg; then
+    exit_with=1
+  fi
 done
-test $exit_code_sum -eq 0
+exit $exit_with

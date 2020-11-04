@@ -19,7 +19,7 @@ pipeline {
         IMAGE = 'taraxa-node-base'
         SLACK_CHANNEL = 'jenkins'
         SLACK_TEAM_DOMAIN = 'phragmites'
-        DOCKER_BRANCH_TAG = sh(script: './dockerfiles/scripts/docker_tag_from_branch.sh "${BRANCH_NAME}"', , returnStdout: true).trim()
+        DOCKER_BRANCH_TAG = sh(script: './scripts/docker_tag_from_branch.sh "${BRANCH_NAME}"', , returnStdout: true).trim()
     }
     stages {
         stage('Docker Registry Login') {
@@ -31,7 +31,6 @@ pipeline {
         }
         stage('Build Docker Image') {
             steps {
-                sh 'git submodule update --init --recursive'
                 sh 'docker pull ${GCP_REGISTRY}/${IMAGE}|| echo "Image not found"'
                 sh 'DOCKER_BUILDKIT=1 docker build --progress=plain --pull --cache-from=${GCP_REGISTRY}/${IMAGE} -t ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} -f dockerfiles/base.ubuntu.dockerfile .'
             }

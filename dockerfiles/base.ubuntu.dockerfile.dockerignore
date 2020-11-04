@@ -1,5 +1,7 @@
 **/*
-!scripts
-!Makefile.*
 !.gitmodules
 !submodules
+!Makefile_common.mk
+!Makefile_submodules.mk
+!Makefile_submodules.sh
+!dockerfiles/symlink_index.sh
