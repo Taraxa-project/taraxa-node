@@ -18,12 +18,12 @@ DbStorage::DbStorage(fs::path const& path,
                      uint32_t db_max_snapshots, uint32_t db_revert_to_period,
                      addr_t node_addr)
     : path_(path),
-      db_path_(path / db_dir),
-      state_db_path_(path / state_db_dir),
       handles_(Columns::all.size()),
       db_snapshot_each_n_pbft_block_(db_snapshot_each_n_pbft_block),
       db_max_snapshots_(db_max_snapshots),
       node_addr_(node_addr) {
+  db_path_ = (path / db_dir);
+  state_db_path_ = (path / state_db_dir);
   fs::create_directories(db_path_);
   rocksdb::Options options;
   options.create_missing_column_families = true;
@@ -47,6 +47,7 @@ DbStorage::DbStorage(fs::path const& path,
 bool DbStorage::createSnapshot(uint64_t const& period) {
   if (db_snapshot_each_n_pbft_block_ > 0 &&
       period % db_snapshot_each_n_pbft_block_ == 0) {
+    LOG(log_nf_) << "Creating DB snapshot on period: " << period;
     rocksdb::Checkpoint* checkpoint;
     auto status = rocksdb::Checkpoint::Create(db_, &checkpoint);
     checkStatus(status);
@@ -56,10 +57,12 @@ bool DbStorage::createSnapshot(uint64_t const& period) {
     delete checkpoint;
     checkStatus(status);
     snapshots_counter++;
-    if (db_max_snapshots_ && snapshots_counter == db_max_snapshots_) {
+    if (db_max_snapshots_ && snapshots_counter == db_max_snapshots_ / 5) {
       snapshots_counter = 0;
       deleteSnapshots(
-          period / db_snapshot_each_n_pbft_block_ - db_max_snapshots_, false);
+          (period / db_snapshot_each_n_pbft_block_ - db_max_snapshots_) *
+              db_snapshot_each_n_pbft_block_,
+          false);
     }
     return true;
   }
@@ -67,50 +70,58 @@ bool DbStorage::createSnapshot(uint64_t const& period) {
 }
 
 void DbStorage::recoverToPeriod(uint64_t const& period) {
+  LOG(log_nf_) << "Revet to snapshot from period: " << period;
   auto period_path = db_path_;
   auto period_state_path = state_db_path_;
   period_path += to_string(period);
   period_state_path += to_string(period);
   if (fs::exists(period_path)) {
-    cout << "Deleting current db/state" << endl;
+    LOG(log_dg_) << "Deleting current db/state";
     fs::remove_all(db_path_);
     fs::remove_all(state_db_path_);
-    cout << "Reverting to period: " << period << endl;
+    LOG(log_dg_) << "Reverting to period: " << period;
     fs::rename(period_path, db_path_);
     fs::rename(period_state_path, state_db_path_);
-    cout << "Deleting newer periods:" << endl;
+    LOG(log_dg_) << "Deleting newer periods:";
     deleteSnapshots(period, true);
   } else {
-    cout << "Period snapshot missing" << endl;
+    LOG(log_er_) << "Period snapshot missing";
   }
 }
 
 void DbStorage::deleteSnapshots(uint64_t const& period, bool const& after) {
+  if (after) {
+    LOG(log_nf_) << "Deleting Snapshots after period " << period;
+  } else {
+    LOG(log_nf_) << "Deleting Snapshots before period " << period;
+  }
   auto period_path = db_path_;
   auto period_state_path = state_db_path_;
   period_path += to_string(period);
   period_state_path += to_string(period);
-  for (fs::directory_iterator itr(path_);
-       itr != fs::directory_iterator(); ++itr) {
+  for (fs::directory_iterator itr(path_); itr != fs::directory_iterator();
+       ++itr) {
     std::string fileName = itr->path().filename().string();
     bool db_dir_found = fileName.find("db") == 0;
     bool state_db_dir_found = fileName.find("state_db") == 0;
     bool delete_dir = false;
     uint64_t dir_period = 0;
     try {
-      if (fileName.find(db_dir) == 0) {
+      if (fileName.find(db_dir) == 0 && fileName.size() > db_dir.size()) {
         dir_period = stoi(fileName.substr(db_dir.size()));
-      } else if (fileName.find(state_db_dir) == 0) {
+      } else if (fileName.find(state_db_dir) == 0 &&
+                 fileName.size() > state_db_dir.size()) {
         dir_period = stoi(fileName.substr(state_db_dir.size()));
       } else {
         continue;
       }
     } catch (...) {
-      cout << "Unexpected file: " << fileName << endl;
+      LOG(log_er_) << "Unexpected file: " << fileName;
+      continue;
     }
     if ((after && dir_period > period) || (!after && dir_period < period)) {
       fs::remove_all(itr->path());
-      cout << "Deleted folder: " << fileName << endl;
+      LOG(log_dg_) << "Deleted folder: " << fileName;
     }
   }
 }
