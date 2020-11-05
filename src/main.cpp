@@ -49,58 +49,12 @@ int main(int argc, const char* argv[]) {
     }
     FullNodeConfig cfg(conf_taraxa);
     if (destroy_db) {
-      boost::filesystem::remove_all(cfg.db_path);
+      fs::remove_all(cfg.db_path);
     }
     if (rebuild_network) {
-      boost::filesystem::remove_all(cfg.net_file_path());
+      fs::remove_all(cfg.net_file_path());
     }
-    if (revert_to_period > 0) {
-      auto period_path = cfg.dbstorage_path();
-      auto period_state_path = cfg.db_path / "state_db";
-      period_path += to_string(revert_to_period);
-      period_state_path += to_string(revert_to_period);
-      if (boost::filesystem::exists(period_path)) {
-        cout << "Deleting current db/state" << endl;
-        boost::filesystem::remove_all(cfg.dbstorage_path());
-        boost::filesystem::remove_all(cfg.db_path / "state_db");
-        cout << "Reverting to period: " << revert_to_period << endl;
-        boost::filesystem::rename(period_path, cfg.dbstorage_path());
-        boost::filesystem::rename(period_state_path, cfg.db_path / "state_db");
-        cout << "Deleting newer periods:" << endl;
-        for (boost::filesystem::directory_iterator itr(cfg.db_path);
-             itr != boost::filesystem::directory_iterator(); ++itr) {
-          std::string fileName = itr->path().filename().string();
-          if (fileName.find("state_db") != fileName.npos) {
-            if (fileName.size() > 8) {
-              try {
-                uint64_t period = stoi(fileName.substr(8));
-                if (period > revert_to_period) {
-                  boost::filesystem::remove_all(itr->path());
-                  cout << "Deleted folder: " << fileName << endl;
-                }
-              } catch (...) {
-                cout << "Unexpected file in db folder: " << fileName << endl;
-              }
-            }
-          } else if (fileName.find("db") != fileName.npos) {
-            if (fileName.size() > 2) {
-              try {
-                uint64_t period = stoi(fileName.substr(2));
-                if (period > revert_to_period) {
-                  boost::filesystem::remove_all(itr->path());
-                  cout << "Deleted folder: " << fileName << endl;
-                }
-              } catch (...) {
-                cout << "Unexpected file in db folder: " << fileName << endl;
-              }
-            }
-          }
-        }
-      } else {
-        cout << "Period snapshot missing" << endl;
-        return 1;
-      }
-    }
+    cfg.test_params.db_revert_to_period = revert_to_period;
     FullNode::Handle node(cfg, true);
     cout << "Taraxa node started" << endl;
     // TODO graceful shutdown

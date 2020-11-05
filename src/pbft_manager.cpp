@@ -40,8 +40,7 @@ PbftManager::PbftManager(PbftConfig const &conf, std::string const &genesis,
                          std::shared_ptr<TransactionOrderManager> trx_ord_mgr,
                          std::shared_ptr<TransactionManager> trx_mgr,
                          secret_t node_sk, vrf_sk_t vrf_sk,
-                         uint32_t expected_max_trx_per_block,
-                         uint32_t db_snapshot_each_n_pbft_block)
+                         uint32_t expected_max_trx_per_block)
     : replay_protection_service(new ReplayProtectionServiceDummy),
       LAMBDA_ms_MIN(conf.lambda_ms_min),
       COMMITTEE_SIZE(conf.committee_size),
@@ -59,8 +58,7 @@ PbftManager::PbftManager(PbftConfig const &conf, std::string const &genesis,
       trx_mgr_(trx_mgr),
       node_addr_(node_addr),
       node_sk_(node_sk),
-      vrf_sk_(vrf_sk),
-      db_snapshot_each_n_pbft_block_(db_snapshot_each_n_pbft_block) {
+      vrf_sk_(vrf_sk) {
   LOG_OBJECTS_CREATE("PBFT_MGR");
   num_executed_blk_ =
       db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
@@ -1481,17 +1479,15 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
   // Commit DB
   db_->commitWriteBatch(batch);
 
-    
   LOG(log_dg_) << "DB write batch committed";
   // After DB commit, confirm in final chain(Ethereum)
   final_chain_->advance_confirm();
-  
-  //Creates snapshot if needed
-  if(db_snapshot_each_n_pbft_block_ > 0 && pbft_period % db_snapshot_each_n_pbft_block_ == 0) {
-    db_->createSnapshot(pbft_period);
+
+  // Creates snapshot if needed
+  if (db_->createSnapshot(pbft_period)) {
     final_chain_->create_snapshot(pbft_period);
   }
-  
+
   // Update pbft chain last block hash
   pbft_chain_last_block_hash_ = pbft_block_hash;
   assert(pbft_chain_last_block_hash_ == pbft_chain_->getLastPbftBlockHash());

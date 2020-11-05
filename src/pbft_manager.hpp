@@ -47,8 +47,7 @@ class PbftManager {
               std::shared_ptr<FinalChain> final_chain,
               std::shared_ptr<TransactionOrderManager> trx_ord_mgr,
               std::shared_ptr<TransactionManager> trx_mgr, secret_t node_sk,
-              vrf_sk_t vrf_sk, uint32_t expected_max_trx_per_block,
-              uint32_t db_snapshot_each_n_pbft_block);
+              vrf_sk_t vrf_sk, uint32_t expected_max_trx_per_block);
   ~PbftManager();
 
   void setNetwork(std::shared_ptr<Network> network);
@@ -263,8 +262,6 @@ class PbftManager {
   time_point last_step_clock_initial_datetime_;
   time_point current_step_clock_initial_datetime_;
   // END TEST CODE
-
-  uint32_t db_snapshot_each_n_pbft_block_ = 0;
 
   std::atomic<uint64_t> num_executed_trx_ = 0;
   std::atomic<uint64_t> num_executed_blk_ = 0;
