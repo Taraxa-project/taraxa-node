@@ -58,8 +58,7 @@ void FullNode::init() {
     assert(false);
   }
   {
-    emplace(db_, conf_.db_path,
-            conf_.test_params.db_snapshot_each_n_pbft_block,
+    emplace(db_, conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
             conf_.test_params.db_max_snapshots,
             conf_.test_params.db_revert_to_period, node_addr);
     if (db_->getNumDagBlocks() == 0) {
