@@ -209,6 +209,7 @@ Json::Value Test::get_node_status() {
       res["blk_queue_verified_size"] = Json::UInt64(node->getBlockManager()->getDagBlockQueueSize().second);
       res["network"] = node->getNetwork()->getTaraxaCapability()->getStatus();
     }
+
   } catch (std::exception &e) {
     res["status"] = e.what();
   }

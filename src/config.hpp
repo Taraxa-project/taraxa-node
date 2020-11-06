@@ -35,9 +35,12 @@ struct ConfigException : public std::runtime_error {
 };
 
 struct RpcConfig {
-  optional<uint16_t> port;
+  optional<uint16_t> http_port;
   optional<uint16_t> ws_port;
   boost::asio::ip::address address;
+
+  // Number of threads dedicated to the rpc calls processing, default = 5
+  uint16_t threads_num{5};
 };
 
 struct NodeConfig {
@@ -121,13 +124,19 @@ struct FullNodeConfig {
   vrf_wrapper::vrf_sk_t vrf_secret;
   fs::path db_path;
   NetworkConfig network;
-  RpcConfig rpc;
+  optional<RpcConfig> rpc;
   TestParamsConfig test_params;
   ChainConfig chain = ChainConfig::predefined();
   FinalChain::Opts opts_final_chain;
   std::vector<LoggingConfig> log_configs;
 
   auto net_file_path() const { return db_path / "net"; }
+
+  /**
+   * @brief Validates config values
+   * @return true in case config is valid, otherwise false
+   */
+  bool validate();
 };
 
 std::ostream &operator<<(std::ostream &strm, NodeConfig const &conf);

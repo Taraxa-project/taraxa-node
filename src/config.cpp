@@ -120,13 +120,30 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object,
     node.tcp_port = getConfigDataAsUInt(item, {"tcp_port"});
     network.network_boot_nodes.push_back(node);
   }
-  rpc.address = boost::asio::ip::address::from_string(network.network_address);
-  if (auto n = getConfigData(root, {"rpc_port"}, true); !n.isNull()) {
-    rpc.port = n.asUInt();
+
+  // Rpc config
+  if (auto rpc_config = getConfigData(root, {"rpc"}, true); !rpc_config.isNull()) {
+    rpc = RpcConfig();
+
+    // ip address
+    rpc->address = boost::asio::ip::address::from_string(network.network_address);
+
+    // http port
+    if (auto http_port = getConfigData(rpc_config, {"http_port"}, true); !http_port.isNull()) {
+      rpc->http_port = http_port.asUInt();
+    }
+
+    // websocket port
+    if (auto ws_port = getConfigData(rpc_config, {"ws_port"}, true); !ws_port.isNull()) {
+      rpc->ws_port = ws_port.asUInt();
+    }
+
+    // number of threads processing rpc calls
+    if (auto threads_num = getConfigData(rpc_config, {"threads_num"}, true); !threads_num.isNull()) {
+      rpc->threads_num = threads_num.asUInt();
+    }
   }
-  if (auto n = getConfigData(root, {"ws_port"}, true); !n.isNull()) {
-    rpc.ws_port = n.asUInt();
-  }
+
   {  // for test experiments
     test_params.max_transaction_queue_warn =
         getConfigDataAsUInt(root, {"test_params", "max_transaction_queue_warn"}, true);
@@ -206,6 +223,28 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object,
   // TODO configurable
   opts_final_chain.state_api.ExpectedMaxTrxPerBlock = 1000;
   opts_final_chain.state_api.MainTrieFullNodeLevelsToCache = 4;
+}
+
+bool FullNodeConfig::validate() {
+  // Validates rpc config values
+  if (rpc) {
+    if (!rpc->http_port && !rpc->ws_port) {
+      cerr << "Either rpc::http_port or rpc::ws_port post must be specified for rpc";
+      return false;
+    }
+
+    // Max enabled number of threads
+    const uint16_t max_threads_num = 200;
+
+    if (rpc->threads_num <= 0 || rpc->threads_num > max_threads_num) {
+      cerr << "rpc::threads_num must be in range (0, " << max_threads_num << ">";
+      return false;
+    }
+  }
+
+  // TODO: add validation of other config values
+
+  return true;
 }
 
 std::ostream &operator<<(std::ostream &strm, NodeConfig const &conf) {

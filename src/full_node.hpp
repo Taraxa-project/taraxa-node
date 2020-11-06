@@ -81,7 +81,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
                                 net::NetFace,     //
                                 dev::rpc::EthFace>>
       jsonrpc_api_;
-  std::unique_ptr<std::thread> jsonrpc_thread_;
+  std::vector<std::thread> jsonrpc_threads_;
   // debug
   std::atomic_uint64_t received_blocks_ = 0;
   // logging

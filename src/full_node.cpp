@@ -108,20 +108,15 @@ void FullNode::init() {
           getSecretKey(), getVrfSecretKey(), log_time_);
   emplace(network_, conf_.network, conf_.net_file_path().string(), kp_.secret(), genesis_hash, node_addr, db_,
           pbft_mgr_, pbft_chain_, vote_mgr_, dag_mgr_, blk_mgr_, trx_mgr_, kp_.pub(), conf_.chain.pbft.lambda_ms_min);
-  if (auto port = conf_.rpc.port) {
-    if (!jsonrpc_io_ctx_) {
-      emplace(jsonrpc_io_ctx_);
-    }
-    emplace(jsonrpc_http_, *jsonrpc_io_ctx_, boost::asio::ip::tcp::endpoint{conf_.rpc.address, *port}, node_addr);
-  }
-  if (auto port = conf_.rpc.ws_port) {
-    if (!jsonrpc_io_ctx_) {
-      emplace(jsonrpc_io_ctx_);
-    }
-    emplace(jsonrpc_ws_, *jsonrpc_io_ctx_, boost::asio::ip::tcp::endpoint{conf_.rpc.address, *port}, node_addr);
-  }
-  if (jsonrpc_io_ctx_) {
-    emplace(jsonrpc_api_, new net::Test(getShared()), new net::Taraxa(getShared()), new net::Net(getShared()),
+
+  // Inits rpc related members
+  if (conf_.rpc) {
+    jsonrpc_io_ctx_ = make_unique<boost::asio::io_context>();
+
+    emplace(jsonrpc_api_,
+            new net::Test(getShared()),    //
+            new net::Taraxa(getShared()),  //
+            new net::Net(getShared()),
             new dev::rpc::Eth(aleth::NewNodeAPI(conf_.chain.chain_id, kp_.secret(),
                                                 [this](auto const &trx) {
                                                   auto [ok, err_msg] = trx_mgr_->insertTransaction(trx, true);
@@ -133,15 +128,25 @@ void FullNode::init() {
                                                                           dev::toJS(*trx.rlp()), err_msg)));
                                                   }
                                                 }),
-                              trx_mgr_->getFilterAPI(), aleth::NewStateAPI(final_chain_), trx_mgr_->getPendingBlock(),
-                              final_chain_, [] { return 0; }));
-    if (jsonrpc_http_) {
+                              trx_mgr_->getFilterAPI(),
+                              aleth::NewStateAPI(final_chain_),  //
+                              trx_mgr_->getPendingBlock(),
+                              final_chain_,  //
+                              [] { return 0; }));
+
+    if (conf_.rpc->http_port) {
+      jsonrpc_http_ = make_shared<net::RpcServer>(
+          *jsonrpc_io_ctx_, boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->http_port}, node_addr);
       jsonrpc_api_->addConnector(jsonrpc_http_);
     }
-    if (jsonrpc_ws_) {
+
+    if (conf_.rpc->ws_port) {
+      jsonrpc_ws_ = make_shared<net::WSServer>(
+          *jsonrpc_io_ctx_, boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->ws_port}, node_addr);
       jsonrpc_api_->addConnector(jsonrpc_ws_);
     }
   }
+
   LOG(log_time_) << "Start taraxa efficiency evaluation logging:" << std::endl;
 }
 
@@ -212,7 +217,10 @@ void FullNode::start() {
       trx_mgr_->setWsServer(jsonrpc_ws_);
       executor_->setWSServer(jsonrpc_ws_);
     }
-    emplace(jsonrpc_thread_, [this] { jsonrpc_io_ctx_->run(); });
+
+    for (size_t i = 0; i < conf_.rpc->threads_num; ++i) {
+      jsonrpc_threads_.emplace_back([this] { jsonrpc_io_ctx_->run(); });
+    }
   }
   started_ = true;
   LOG(log_nf_) << "Node started ... ";
@@ -237,12 +245,20 @@ void FullNode::close() {
   for (auto &t : block_workers_) {
     t.join();
   }
-  if (jsonrpc_thread_) {
+
+  if (jsonrpc_io_ctx_) {
+    if (jsonrpc_ws_) {
+      trx_mgr_->setWsServer(nullptr);
+      executor_->setWSServer(nullptr);
+    }
+
     jsonrpc_io_ctx_->stop();
-    jsonrpc_thread_->join();
-    trx_mgr_->setWsServer(nullptr);
-    executor_->setWSServer(nullptr);
+
+    for (size_t i = 0; i < jsonrpc_threads_.size(); ++i) {
+      jsonrpc_threads_[i].join();
+    }
   }
+
   LOG(log_nf_) << "Node stopped ... ";
 }
 
