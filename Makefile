@@ -92,7 +92,8 @@ LIBS := \
 	ff \
 	secp256k1 \
 	cryptopp \
-	ethash
+	ethash \
+	stdc++fs
 TEST_LIBS := \
 	gtest
 # Optional linking for libatomic (part of standard library).

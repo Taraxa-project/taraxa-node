@@ -1478,9 +1478,16 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
       }));
   // Commit DB
   db_->commitWriteBatch(batch);
+
   LOG(log_dg_) << "DB write batch committed";
   // After DB commit, confirm in final chain(Ethereum)
   final_chain_->advance_confirm();
+
+  // Creates snapshot if needed
+  if (db_->createSnapshot(pbft_period)) {
+    final_chain_->create_snapshot(pbft_period);
+  }
+
   // Update pbft chain last block hash
   pbft_chain_last_block_hash_ = pbft_block_hash;
   assert(pbft_chain_last_block_hash_ == pbft_chain_->getLastPbftBlockHash());

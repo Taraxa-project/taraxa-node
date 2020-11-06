@@ -6,7 +6,7 @@
 #include <rocksdb/slice.h>
 #include <rocksdb/write_batch.h>
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <functional>
 #include <string_view>
 
@@ -19,7 +19,7 @@ namespace taraxa {
 using namespace std;
 using namespace dev;
 using namespace rocksdb;
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 enum StatusDbField : uint8_t {
   ExecutedBlkCount = 0,
   ExecutedTrxCount,
@@ -85,6 +85,10 @@ struct DbStorage {
 
  private:
   fs::path path_;
+  fs::path db_path_;
+  fs::path state_db_path_;
+  const std::string db_dir = "db";
+  const std::string state_db_dir = "state_db";
   DB* db_;
   vector<ColumnFamilyHandle*> handles_;
   ReadOptions read_options_;
@@ -92,19 +96,36 @@ struct DbStorage {
   mutex dag_blocks_mutex_;
   atomic<uint64_t> dag_blocks_count_;
   atomic<uint64_t> dag_edge_count_;
+  uint32_t db_snapshot_each_n_pbft_block_ = 0;
+  uint32_t db_max_snapshots_ = 0;
+  uint32_t snapshots_counter = 0;
+  std::set<uint64_t> snapshots_;
+  addr_t node_addr_;
 
   auto handle(Column const& col) const { return handles_[col.ordinal]; }
+
+  LOG_OBJECTS_DEFINE;
 
  public:
   DbStorage(DbStorage const&) = delete;
   DbStorage& operator=(DbStorage const&) = delete;
 
-  explicit DbStorage(fs::path const& base_path);
+  explicit DbStorage(fs::path const& base_path,
+                     uint32_t db_snapshot_each_n_pbft_block = 0,
+                     uint32_t db_max_snapshots = 0,
+                     uint32_t db_revert_to_period = 0,
+                     addr_t node_addr = addr_t());
   ~DbStorage();
 
   auto const& path() const { return path_; }
+  auto dbStoragePath() const { return db_path_; }
+  auto stateDbStoragePath() const { return state_db_path_; }
   static BatchPtr createWriteBatch();
   void commitWriteBatch(BatchPtr const& write_batch);
+  bool createSnapshot(uint64_t const& period);
+  void deleteSnapshot(uint64_t const& period);
+  void recoverToPeriod(uint64_t const& period);
+  void loadSnapshots();
 
   // DAG
   void saveDagBlock(DagBlock const& blk, BatchPtr write_batch = nullptr);

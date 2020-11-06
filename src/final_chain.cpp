@@ -30,7 +30,7 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
       : ChainDBImpl(blk_db, ext_db),
         blk_db(move(blk_db)),
         ext_db(move(ext_db)),
-        state_api((db->path().parent_path() / "state_db").string(),
+        state_api((db->stateDbStoragePath()).string(),
                   [this](auto n) { return ChainDBImpl::hashFromNumber(n); },  //
                   config.state) {
     receipts_buf.reserve(opts.state_api.ExpectedMaxTrxPerBlock);
@@ -137,6 +137,10 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
   void advance_confirm() override {
     state_api.transition_state_commit();
     refresh_last_block();
+  }
+
+  void create_snapshot(uint64_t const& period) override {
+    state_api.create_snapshot(period);
   }
 
   optional<state_api::Account> get_account(

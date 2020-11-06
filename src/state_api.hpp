@@ -188,6 +188,7 @@ class StateAPI {
   taraxa_evm_state_API_ptr this_c;
   RLPStream rlp_enc_transition_state;
   StateTransitionResult result_buf_transition_state;
+  string db_path;
 
  public:
   StateAPI(string const& db_path, function<h256(BlockNumber)> get_blk_hash,
@@ -209,6 +210,7 @@ class StateAPI {
       RangeView<EVMTransaction> const& transactions,  //
       RangeView<UncleBlock> const& uncles = {});
   void transition_state_commit();
+  void create_snapshot(uint64_t const& period);
   // DPOS
   uint64_t dpos_eligible_count(BlockNumber blk_num) const;
   bool dpos_is_eligible(BlockNumber blk_num, addr_t const& addr) const;

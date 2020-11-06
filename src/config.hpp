@@ -103,6 +103,9 @@ struct TestParamsConfig {
   uint32_t max_transaction_queue_warn = 0;
   uint32_t max_transaction_queue_drop = 0;
   uint32_t max_block_queue_warn = 0;
+  uint32_t db_snapshot_each_n_pbft_block = 0;
+  uint32_t db_max_snapshots = 0;
+  uint32_t db_revert_to_period = 0;
 };
 
 struct FullNodeConfig {
@@ -125,7 +128,6 @@ struct FullNodeConfig {
   FinalChain::Opts opts_final_chain;
   std::vector<LoggingConfig> log_configs;
 
-  auto dbstorage_path() const { return db_path / "db"; }
   auto net_file_path() const { return db_path / "net"; }
 };
 
