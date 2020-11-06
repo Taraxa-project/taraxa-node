@@ -64,8 +64,10 @@ class Lazy {
   val_t& operator*() { return *operator->(); }
   val_t const& operator*() const { return *operator->(); }
 
+  // clang-format off
   operator val_t&() { return operator*(); }
   operator val_t const &() const { return operator*(); }
+  // clang-format on
 
   template <typename T>
   auto& operator[](T t) {
