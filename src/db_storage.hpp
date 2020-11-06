@@ -99,6 +99,7 @@ struct DbStorage {
   uint32_t db_snapshot_each_n_pbft_block_ = 0;
   uint32_t db_max_snapshots_ = 0;
   uint32_t snapshots_counter = 0;
+  std::set<uint64_t> snapshots_;
   addr_t node_addr_;
 
   auto handle(Column const& col) const { return handles_[col.ordinal]; }
@@ -121,8 +122,9 @@ struct DbStorage {
   static BatchPtr createWriteBatch();
   void commitWriteBatch(BatchPtr const& write_batch);
   bool createSnapshot(uint64_t const& period);
-  void deleteSnapshots(uint64_t const& period, bool const& after);
+  void deleteSnapshot(uint64_t const& period);
   void recoverToPeriod(uint64_t const& period);
+  void loadSnapshots();
 
   // DAG
   void saveDagBlock(DagBlock const& blk, BatchPtr write_batch = nullptr);

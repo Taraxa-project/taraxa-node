@@ -35,19 +35,58 @@ DbStorage::DbStorage(fs::path const& path,
                                                  ColumnFamilyOptions());
                  });
   LOG_OBJECTS_CREATE("DBS");
+
+  // Iterate over the db folders and populate snapshot set
+  loadSnapshots();
+
+  // Revert to period if needed
   if (db_revert_to_period) {
     recoverToPeriod(db_revert_to_period);
   }
+
   checkStatus(
       DB::Open(options, db_path_.string(), descriptors, &handles_, &db_));
   dag_blocks_count_.store(getStatusField(StatusDbField::DagBlkCount));
   dag_edge_count_.store(getStatusField(StatusDbField::DagEdgeCount));
 }
 
+void DbStorage::loadSnapshots() {
+  // Find all the existing folders containing db and state_db snapshots
+  for (fs::directory_iterator itr(path_); itr != fs::directory_iterator();
+       ++itr) {
+    std::string fileName = itr->path().filename().string();
+    bool delete_dir = false;
+    uint64_t dir_period = 0;
+
+    try {
+      // Check for db or state_db prefix
+      if (boost::starts_with(fileName, db_dir) &&
+          fileName.size() > db_dir.size()) {
+        dir_period = stoi(fileName.substr(db_dir.size()));
+      } else if (boost::starts_with(fileName, state_db_dir) &&
+                 fileName.size() > state_db_dir.size()) {
+        dir_period = stoi(fileName.substr(state_db_dir.size()));
+      } else {
+        continue;
+      }
+    } catch (...) {
+      // This should happen if there is a incorrect formatted folder, just skip
+      // it
+      LOG(log_er_) << "Unexpected file: " << fileName;
+      continue;
+    }
+    LOG(log_dg_) << "Found snapshot: " << fileName;
+    snapshots_.insert(dir_period);
+  }
+}
+
 bool DbStorage::createSnapshot(uint64_t const& period) {
+  // Only creates snapshot each db_snapshot_each_n_pbft_block_ periods
   if (db_snapshot_each_n_pbft_block_ > 0 &&
       period % db_snapshot_each_n_pbft_block_ == 0) {
     LOG(log_nf_) << "Creating DB snapshot on period: " << period;
+
+    // Create rocskd checkpoint/snapshot
     rocksdb::Checkpoint* checkpoint;
     auto status = rocksdb::Checkpoint::Create(db_, &checkpoint);
     checkStatus(status);
@@ -56,13 +95,15 @@ bool DbStorage::createSnapshot(uint64_t const& period) {
     status = checkpoint->CreateCheckpoint(snapshot_path.string());
     delete checkpoint;
     checkStatus(status);
-    snapshots_counter++;
-    if (db_max_snapshots_ && snapshots_counter == db_max_snapshots_ / 5) {
-      snapshots_counter = 0;
-      deleteSnapshots(
-          (period / db_snapshot_each_n_pbft_block_ - db_max_snapshots_) *
-              db_snapshot_each_n_pbft_block_,
-          false);
+    snapshots_.insert(period);
+
+    // Delete any snapshot over db_max_snapshots_
+    if (db_max_snapshots_ && snapshots_.size() > db_max_snapshots_) {
+      while (snapshots_.size() > db_max_snapshots_) {
+        auto snapshot = snapshots_.begin();
+        deleteSnapshot(*snapshot);
+        snapshots_.erase(snapshot);
+      }
     }
     return true;
   }
@@ -71,10 +112,13 @@ bool DbStorage::createSnapshot(uint64_t const& period) {
 
 void DbStorage::recoverToPeriod(uint64_t const& period) {
   LOG(log_nf_) << "Revet to snapshot from period: " << period;
+
+  // Construct the snapshot folder names
   auto period_path = db_path_;
   auto period_state_path = state_db_path_;
   period_path += to_string(period);
   period_state_path += to_string(period);
+
   if (fs::exists(period_path)) {
     LOG(log_dg_) << "Deleting current db/state";
     fs::remove_all(db_path_);
@@ -82,48 +126,36 @@ void DbStorage::recoverToPeriod(uint64_t const& period) {
     LOG(log_dg_) << "Reverting to period: " << period;
     fs::rename(period_path, db_path_);
     fs::rename(period_state_path, state_db_path_);
+    // Delete all the period snapshots that are after the snapshot we are
+    // reverting to
     LOG(log_dg_) << "Deleting newer periods:";
-    deleteSnapshots(period, true);
+    for (auto snapshot = snapshots_.begin(); snapshot != snapshots_.end();) {
+      if (*snapshot > period) {
+        deleteSnapshot(*snapshot);
+        snapshots_.erase(snapshot++);
+      } else {
+        snapshot++;
+      }
+    }
   } else {
     LOG(log_er_) << "Period snapshot missing";
   }
 }
 
-void DbStorage::deleteSnapshots(uint64_t const& period, bool const& after) {
-  if (after) {
-    LOG(log_nf_) << "Deleting Snapshots after period " << period;
-  } else {
-    LOG(log_nf_) << "Deleting Snapshots before period " << period;
-  }
+void DbStorage::deleteSnapshot(uint64_t const& period) {
+  LOG(log_nf_) << "Deleting " << period << "snapshot";
+
+  // Construct the snapshot folder names
   auto period_path = db_path_;
   auto period_state_path = state_db_path_;
   period_path += to_string(period);
   period_state_path += to_string(period);
-  for (fs::directory_iterator itr(path_); itr != fs::directory_iterator();
-       ++itr) {
-    std::string fileName = itr->path().filename().string();
-    bool db_dir_found = fileName.find("db") == 0;
-    bool state_db_dir_found = fileName.find("state_db") == 0;
-    bool delete_dir = false;
-    uint64_t dir_period = 0;
-    try {
-      if (fileName.find(db_dir) == 0 && fileName.size() > db_dir.size()) {
-        dir_period = stoi(fileName.substr(db_dir.size()));
-      } else if (fileName.find(state_db_dir) == 0 &&
-                 fileName.size() > state_db_dir.size()) {
-        dir_period = stoi(fileName.substr(state_db_dir.size()));
-      } else {
-        continue;
-      }
-    } catch (...) {
-      LOG(log_er_) << "Unexpected file: " << fileName;
-      continue;
-    }
-    if ((after && dir_period > period) || (!after && dir_period < period)) {
-      fs::remove_all(itr->path());
-      LOG(log_dg_) << "Deleted folder: " << fileName;
-    }
-  }
+
+  // Delete both db and state_db folder
+  fs::remove_all(period_path);
+  LOG(log_dg_) << "Deleted folder: " << period_path;
+  fs::remove_all(period_state_path);
+  LOG(log_dg_) << "Deleted folder: " << period_path;
 }
 
 DbStorage::~DbStorage() {
