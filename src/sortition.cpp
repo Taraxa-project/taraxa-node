@@ -21,13 +21,9 @@ using std::string;
 using uint256_t = boost::multiprecision::uint256_t;
 using uint512_t = boost::multiprecision::uint512_t;
 
-string hashSignature(dev::Signature signature) {
-  return dev::sha3(signature).hex();
-}
+string hashSignature(dev::Signature signature) { return dev::sha3(signature).hex(); }
 
-static boost::log::sources::severity_channel_logger<> log_error_{
-    taraxa::createTaraxaLogger(taraxa::Verbosity::VerbosityError, "SORTI",
-                               addr_t())};
+static boost::log::sources::severity_channel_logger<> log_error_{taraxa::createTaraxaLogger(taraxa::Verbosity::VerbosityError, "SORTI", addr_t())};
 
 /*
  * Sortition return true:
@@ -37,8 +33,7 @@ static boost::log::sources::severity_channel_logger<> log_error_{
  */
 bool sortition(string credential, size_t valid_players, size_t threshold) {
   if (credential.length() != 64) {
-    LOG(log_error_) << "Credential string length should be 64, but "
-                    << credential.length() << " given";
+    LOG(log_error_) << "Credential string length should be 64, but " << credential.length() << " given";
     return false;
   }
   string credential_decimal = taraxa::hexToDecimal(credential);
@@ -49,19 +44,16 @@ bool sortition(string credential, size_t valid_players, size_t threshold) {
 
   string sum_left;
   string sum_right;
-  sum_left = taraxa::bigNumberMultiplication(credential_decimal,
-                                             std::to_string(valid_players));
+  sum_left = taraxa::bigNumberMultiplication(credential_decimal, std::to_string(valid_players));
   if (sum_left.empty()) {
     LOG(log_error_) << "Failed multiplication of "
                     << "credential * total number of valid sortition players";
     return false;
   }
 
-  sum_right = taraxa::bigNumberMultiplication(SIGNATURE_HASH_MAX,
-                                              std::to_string(threshold));
+  sum_right = taraxa::bigNumberMultiplication(SIGNATURE_HASH_MAX, std::to_string(threshold));
   if (sum_right.empty()) {
-    LOG(log_error_)
-        << "Failed multiplication of max signature hash * sortition threshold";
+    LOG(log_error_) << "Failed multiplication of max signature hash * sortition threshold";
     return false;
   }
 
@@ -93,12 +85,9 @@ string hexToDecimal(string hex) {
 
 string bigNumberMultiplication(string num1, string num2) {
   std::stringstream result;
-  if (num1.length() > SIGNATURE_HASH_SIZE_MAX ||
-      num2.length() > SIGNATURE_HASH_SIZE_MAX) {
-    LOG(log_error_)
-        << "The length of the input decimal strings cannot larger than 78, "
-        << "the length of num1: " << num1.length()
-        << ", and the length of num2: " << num2.length() << std::endl;
+  if (num1.length() > SIGNATURE_HASH_SIZE_MAX || num2.length() > SIGNATURE_HASH_SIZE_MAX) {
+    LOG(log_error_) << "The length of the input decimal strings cannot larger than 78, "
+                    << "the length of num1: " << num1.length() << ", and the length of num2: " << num2.length() << std::endl;
     return result.str();
   }
   for (char n : num1) {

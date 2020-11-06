@@ -49,18 +49,15 @@ class DagBlock {
 
  public:
   DagBlock() = default;
-  DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs,
-           sig_t signature, blk_hash_t hash, addr_t sender);
+  DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, sig_t signature, blk_hash_t hash, addr_t sender);
   DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs);
-  DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs,
-           VdfSortition const &vdf);
+  DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, VdfSortition const &vdf);
   explicit DagBlock(Json::Value const &doc);
   explicit DagBlock(string const &json);
   explicit DagBlock(dev::RLP const &_rlp);
   explicit DagBlock(dev::bytes const &_rlp) : DagBlock(dev::RLP(_rlp)) {}
 
-  static std::vector<trx_hash_t> extract_transactions_from_rlp(
-      dev::RLP const &rlp);
+  static std::vector<trx_hash_t> extract_transactions_from_rlp(dev::RLP const &rlp);
 
   friend std::ostream &operator<<(std::ostream &str, DagBlock const &u) {
     str << "	pivot		= " << u.pivot_.abridged() << std::endl;
@@ -77,9 +74,7 @@ class DagBlock {
     str << "  vdf = " << u.vdf_ << std::endl;
     return str;
   }
-  bool operator==(DagBlock const &other) const {
-    return this->sha3(true) == other.sha3(true);
-  }
+  bool operator==(DagBlock const &other) const { return this->sha3(true) == other.sha3(true); }
 
   auto const &getPivot() const { return pivot_; }
   auto getLevel() const { return level_; }
@@ -115,8 +110,7 @@ using BlockStatusTable = ExpirationCacheMap<blk_hash_t, BlockStatus>;
 
 struct DagFrontier {
   DagFrontier() = default;
-  DagFrontier(blk_hash_t const &pivot, vec_blk_t const &tips)
-      : pivot(pivot), tips(tips) {}
+  DagFrontier(blk_hash_t const &pivot, vec_blk_t const &tips) : pivot(pivot), tips(tips) {}
   void clear() {
     pivot.clear();
     tips.clear();
@@ -130,21 +124,16 @@ struct DagFrontier {
  */
 class BlockManager {
  public:
-  BlockManager(size_t capacity, unsigned verify_threads, addr_t node_addr,
-               std::shared_ptr<DbStorage> db,
-               std::shared_ptr<TransactionManager> trx_mgr,
-               boost::log::sources::severity_channel_logger<> log_time_,
-               uint32_t queue_limit = 0);
+  BlockManager(size_t capacity, unsigned verify_threads, addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<TransactionManager> trx_mgr,
+               boost::log::sources::severity_channel_logger<> log_time_, uint32_t queue_limit = 0);
   ~BlockManager();
   void insertBlock(DagBlock const &blk);
   // Only used in initial syncs when blocks are received with full list of
   // transactions
-  void insertBroadcastedBlockWithTransactions(
-      DagBlock const &blk, std::vector<Transaction> const &transactions);
+  void insertBroadcastedBlockWithTransactions(DagBlock const &blk, std::vector<Transaction> const &transactions);
   void pushUnverifiedBlock(DagBlock const &block,
                            bool critical);  // add to unverified queue
-  void pushUnverifiedBlock(DagBlock const &block,
-                           std::vector<Transaction> const &transactions,
+  void pushUnverifiedBlock(DagBlock const &block, std::vector<Transaction> const &transactions,
                            bool critical);  // add to unverified queue
   DagBlock popVerifiedBlock();              // get one verified block and pop
   void pushVerifiedBlock(DagBlock const &blk);
@@ -174,8 +163,7 @@ class BlockManager {
   // seen blks
   BlockStatusTable blk_status_;
   ExpirationCacheMap<blk_hash_t, DagBlock> seen_blocks_;
-  mutable boost::shared_mutex
-      shared_mutex_;  // shared mutex to check seen_blocks ...
+  mutable boost::shared_mutex shared_mutex_;  // shared mutex to check seen_blocks ...
   std::vector<std::thread> verifiers_;
   mutable boost::shared_mutex shared_mutex_for_unverified_qu_;
   mutable boost::shared_mutex shared_mutex_for_verified_qu_;
@@ -184,9 +172,7 @@ class BlockManager {
   boost::condition_variable_any cond_for_verified_qu_;
   uint32_t queue_limit_;
 
-  std::map<uint64_t,
-           std::deque<std::pair<DagBlock, std::vector<Transaction> > > >
-      unverified_qu_;
+  std::map<uint64_t, std::deque<std::pair<DagBlock, std::vector<Transaction> > > > unverified_qu_;
   std::map<uint64_t, std::deque<DagBlock> > verified_qu_;
 
   LOG_OBJECTS_DEFINE;

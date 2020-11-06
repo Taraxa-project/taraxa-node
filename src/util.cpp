@@ -5,22 +5,14 @@
 #include <errno.h>
 namespace taraxa {
 
-void thisThreadSleepForSeconds(unsigned sec) {
-  std::this_thread::sleep_for(std::chrono::seconds(sec));
-}
+void thisThreadSleepForSeconds(unsigned sec) { std::this_thread::sleep_for(std::chrono::seconds(sec)); }
 
-void thisThreadSleepForMilliSeconds(unsigned millisec) {
-  std::this_thread::sleep_for(std::chrono::milliseconds(millisec));
-}
+void thisThreadSleepForMilliSeconds(unsigned millisec) { std::this_thread::sleep_for(std::chrono::milliseconds(millisec)); }
 
-void thisThreadSleepForMicroSeconds(unsigned microsec) {
-  std::this_thread::sleep_for(std::chrono::microseconds(microsec));
-}
+void thisThreadSleepForMicroSeconds(unsigned microsec) { std::this_thread::sleep_for(std::chrono::microseconds(microsec)); }
 
 unsigned long getCurrentTimeMilliSeconds() {
-  return std::chrono::duration_cast<std::chrono::milliseconds>(
-             std::chrono::system_clock::now().time_since_epoch())
-      .count();
+  return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 }
 
 }  // namespace taraxa
@@ -91,17 +83,14 @@ static inline void printStackTrace() {
       // offset in [begin_offset, end_offset). now apply
       // __cxa_demangle():
       int status;
-      char *ret =
-          abi::__cxa_demangle(begin_name, &funcname[0], &funcnamesize, &status);
+      char *ret = abi::__cxa_demangle(begin_name, &funcname[0], &funcnamesize, &status);
       if (status == 0) {
         funcname = ret;  // use possibly realloc()-ed string
-        fprintf(out, "  %-30s %-40s %s\n", symbollist[i], funcname,
-                begin_offset);
+        fprintf(out, "  %-30s %-40s %s\n", symbollist[i], funcname, begin_offset);
       } else {
         // demangling failed. Output function name as a C function with
         // no arguments.
-        fprintf(out, "  %-30s %-38s() %s\n", symbollist[i], begin_name,
-                begin_offset);
+        fprintf(out, "  %-30s %-38s() %s\n", symbollist[i], begin_name, begin_offset);
       }
 
 #else   // !DARWIN - but is posix
@@ -126,17 +115,14 @@ static inline void printStackTrace() {
       // __cxa_demangle():
 
       int status = 0;
-      char *ret =
-          abi::__cxa_demangle(begin_name, funcname, &funcnamesize, &status);
+      char *ret = abi::__cxa_demangle(begin_name, funcname, &funcnamesize, &status);
       char *fname = begin_name;
       if (status == 0) fname = ret;
 
       if (begin_offset) {
-        fprintf(out, "  %-30s ( %-40s  + %-6s) %s\n", symbollist[i], fname,
-                begin_offset, end_offset);
+        fprintf(out, "  %-30s ( %-40s  + %-6s) %s\n", symbollist[i], fname, begin_offset, end_offset);
       } else {
-        fprintf(out, "  %-30s ( %-40s    %-6s) %s\n", symbollist[i], fname, "",
-                end_offset);
+        fprintf(out, "  %-30s ( %-40s    %-6s) %s\n", symbollist[i], fname, "", end_offset);
       }
 #endif  // !DARWIN - but is posix
     } else {

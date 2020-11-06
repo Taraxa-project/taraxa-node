@@ -29,39 +29,24 @@ namespace taraxa {
 
 class Network {
  public:
-  Network(NetworkConfig const &config, std::string const &genesis,
-          addr_t node_addr);
-  Network(NetworkConfig const &config, std::string const &networkFile,
-          std::string const &genesis, addr_t node_addr,
-          std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
-          std::shared_ptr<PbftChain> pbft_chain,
-          std::shared_ptr<VoteManager> vote_mgr,
-          std::shared_ptr<DagManager> dag_mgr,
-          std::shared_ptr<BlockManager> blk_mgr,
-          std::shared_ptr<TransactionManager> trx_mgr, public_t node_pk,
+  Network(NetworkConfig const &config, std::string const &genesis, addr_t node_addr);
+  Network(NetworkConfig const &config, std::string const &networkFile, std::string const &genesis, addr_t node_addr, std::shared_ptr<DbStorage> db,
+          std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
+          std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<BlockManager> blk_mgr, std::shared_ptr<TransactionManager> trx_mgr, public_t node_pk,
           uint32_t lambda_ms_min);
-  Network(NetworkConfig const &config, std::string const &networkFile,
-          secret_t const &sk, std::string const &genesis, addr_t node_addr,
-          std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
-          std::shared_ptr<PbftChain> pbft_chain,
-          std::shared_ptr<VoteManager> vote_mgr,
-          std::shared_ptr<DagManager> dag_mgr,
-          std::shared_ptr<BlockManager> blk_mgr,
-          std::shared_ptr<TransactionManager> trx_mgr, public_t node_pk,
-          uint32_t lambda_ms_min);
+  Network(NetworkConfig const &config, std::string const &networkFile, secret_t const &sk, std::string const &genesis, addr_t node_addr,
+          std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
+          std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<BlockManager> blk_mgr,
+          std::shared_ptr<TransactionManager> trx_mgr, public_t node_pk, uint32_t lambda_ms_min);
   ~Network();
   void start(bool boot_node = false);
   void stop();
   bool isStarted();
-  bool isSynced() {
-    return taraxa_capability_ && !taraxa_capability_->syncing_;
-  }
+  bool isSynced() { return taraxa_capability_ && !taraxa_capability_->syncing_; }
   void rpcAction(boost::system::error_code const &ec, size_t size);
   void sendTest(dev::p2p::NodeID const &id);
-  void sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk,
-                 bool newBlock);
-  void sendTransactions(NodeID const &_id,
-                        std::vector<taraxa::bytes> const &transactions);
+  void sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk, bool newBlock);
+  void sendTransactions(NodeID const &_id, std::vector<taraxa::bytes> const &transactions);
   void onNewBlockVerified(DagBlock const &blk);
   void onNewTransactions(std::vector<taraxa::bytes> const &transactions);
   NetworkConfig getConfig();
@@ -70,29 +55,19 @@ class Network {
   int getPeerCount() { return taraxa_capability_->getPeersCount(); }
   int getNodeCount() { return host_->getNodeCount(); }
   std::list<NodeEntry> getAllNodes() const { return host_->getNodes(); }
-  std::vector<NodeID> getAllPeers() const {
-    return taraxa_capability_->getAllPeers();
-  }
+  std::vector<NodeID> getAllPeers() const { return taraxa_capability_->getAllPeers(); }
   dev::p2p::NodeID getNodeId() { return host_->id(); };
-  int getReceivedBlocksCount() {
-    return taraxa_capability_->getBlocks().size();
-  }
-  int getReceivedTransactionsCount() {
-    return taraxa_capability_->getTransactions().size();
-  }
-  std::shared_ptr<TaraxaCapability> getTaraxaCapability() const {
-    return taraxa_capability_;
-  }
+  int getReceivedBlocksCount() { return taraxa_capability_->getBlocks().size(); }
+  int getReceivedTransactionsCount() { return taraxa_capability_->getTransactions().size(); }
+  std::shared_ptr<TaraxaCapability> getTaraxaCapability() const { return taraxa_capability_; }
 
   // PBFT
   void onNewPbftVote(Vote const &vote);
   void sendPbftVote(NodeID const &id, Vote const &vote);
   void onNewPbftBlock(PbftBlock const &pbft_block);
-  void sendPbftBlock(NodeID const &id, PbftBlock const &pbft_block,
-                     uint64_t const &pbft_chain_size);
+  void sendPbftBlock(NodeID const &id, PbftBlock const &pbft_block, uint64_t const &pbft_chain_size);
 
-  std::pair<bool, bi::tcp::endpoint> resolveHost(string const &addr,
-                                                 uint16_t port);
+  std::pair<bool, bi::tcp::endpoint> resolveHost(string const &addr, uint16_t port);
 
  private:
   std::shared_ptr<dev::p2p::Host> host_;

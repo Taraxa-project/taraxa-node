@@ -22,21 +22,15 @@ auto trxComp = [](Transaction const &t1, Transaction const &t2) -> bool {
   }
 };
 
-TransactionManager::TransactionManager(
-    FullNodeConfig const &conf, addr_t node_addr, std::shared_ptr<DbStorage> db,
-    boost::log::sources::severity_channel_logger<> log_time)
-    : conf_(conf),
-      trx_qu_(node_addr),
-      node_addr_(node_addr),
-      db_(db),
-      log_time_(log_time) {
+TransactionManager::TransactionManager(FullNodeConfig const &conf, addr_t node_addr, std::shared_ptr<DbStorage> db,
+                                       boost::log::sources::severity_channel_logger<> log_time)
+    : conf_(conf), trx_qu_(node_addr), node_addr_(node_addr), db_(db), log_time_(log_time) {
   LOG_OBJECTS_CREATE("TRXMGR");
   auto trx_count = db_->getStatusField(taraxa::StatusDbField::TrxCount);
   trx_count_.store(trx_count);
 }
 
-std::pair<bool, std::string> TransactionManager::verifyTransaction(
-    Transaction const &trx) const {
+std::pair<bool, std::string> TransactionManager::verifyTransaction(Transaction const &trx) const {
   if (trx.getChainID() != conf_.chain.chain_id) {
     return {false, "chain_id mismatch"};
   }
@@ -48,8 +42,7 @@ std::pair<bool, std::string> TransactionManager::verifyTransaction(
   return {true, ""};
 }
 
-std::pair<bool, std::string> TransactionManager::insertTransaction(
-    Transaction const &trx, bool verify) {
+std::pair<bool, std::string> TransactionManager::insertTransaction(Transaction const &trx, bool verify) {
   auto ret = insertTrx(trx, verify);
   if (ret.first && conf_.network.network_transaction_interval == 0) {
     network_->onNewTransactions({*trx.rlp()});
@@ -67,8 +60,7 @@ uint32_t TransactionManager::insertBroadcastedTransactions(
   for (auto const &t : transactions) {
     Transaction trx(t);
     if (insertTrx(trx, false).first) new_trx_count++;
-    LOG(log_time_) << "Transaction " << trx.getHash()
-                   << " brkreceived at: " << getCurrentTimeMilliSeconds();
+    LOG(log_time_) << "Transaction " << trx.getHash() << " brkreceived at: " << getCurrentTimeMilliSeconds();
   }
   return new_trx_count;
 }
@@ -94,8 +86,7 @@ void TransactionManager::verifyQueuedTrxs() {
         db_->saveTransactionStatus(hash, TransactionStatus::invalid);
       }
       trx_qu_.removeTransactionFromBuffer(hash);
-      LOG(log_wr_) << " Trx: " << hash << "invalid: " << valid.second
-                   << std::endl;
+      LOG(log_wr_) << " Trx: " << hash << "invalid: " << valid.second << std::endl;
       continue;
     }
     {
@@ -111,13 +102,9 @@ void TransactionManager::verifyQueuedTrxs() {
   }
 }
 
-void TransactionManager::setNetwork(std::shared_ptr<Network> network) {
-  network_ = network;
-}
+void TransactionManager::setNetwork(std::shared_ptr<Network> network) { network_ = network; }
 
-void TransactionManager::setWsServer(std::shared_ptr<WSServer> ws_server) {
-  ws_server_ = ws_server;
-}
+void TransactionManager::setWsServer(std::shared_ptr<WSServer> ws_server) { ws_server_ = ws_server; }
 
 void TransactionManager::start() {
   if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
@@ -142,21 +129,14 @@ void TransactionManager::stop() {
   }
 }
 
-std::unordered_map<trx_hash_t, Transaction>
-TransactionManager::getVerifiedTrxSnapShot() const {
-  return trx_qu_.getVerifiedTrxSnapShot();
-}
+std::unordered_map<trx_hash_t, Transaction> TransactionManager::getVerifiedTrxSnapShot() const { return trx_qu_.getVerifiedTrxSnapShot(); }
 
-std::pair<size_t, size_t> TransactionManager::getTransactionQueueSize() const {
-  return trx_qu_.getTransactionQueueSize();
-}
+std::pair<size_t, size_t> TransactionManager::getTransactionQueueSize() const { return trx_qu_.getTransactionQueueSize(); }
 
-std::vector<taraxa::bytes>
-TransactionManager::getNewVerifiedTrxSnapShotSerialized() {
+std::vector<taraxa::bytes> TransactionManager::getNewVerifiedTrxSnapShotSerialized() {
   auto verified_trxs = trx_qu_.getNewVerifiedTrxSnapShot();
   std::vector<Transaction> vec_trxs;
-  std::copy(verified_trxs.begin(), verified_trxs.end(),
-            std::back_inserter(vec_trxs));
+  std::copy(verified_trxs.begin(), verified_trxs.end(), std::back_inserter(vec_trxs));
   sort(vec_trxs.begin(), vec_trxs.end(), trxComp);
   std::vector<taraxa::bytes> ret;
   for (auto const &t : vec_trxs) {
@@ -165,31 +145,25 @@ TransactionManager::getNewVerifiedTrxSnapShotSerialized() {
   return ret;
 }
 
-unsigned long TransactionManager::getTransactionCount() const {
-  return trx_count_.load();
-}
+unsigned long TransactionManager::getTransactionCount() const { return trx_count_.load(); }
 
-std::shared_ptr<std::pair<Transaction, taraxa::bytes>>
-TransactionManager::getTransaction(trx_hash_t const &hash) const {
+std::shared_ptr<std::pair<Transaction, taraxa::bytes>> TransactionManager::getTransaction(trx_hash_t const &hash) const {
   std::shared_ptr<std::pair<Transaction, taraxa::bytes>> tr;
   auto t = trx_qu_.getTransaction(hash);
   if (t) {  // find in queue
-    tr = std::make_shared<std::pair<Transaction, taraxa::bytes>>(
-        std::make_pair(*t, *t->rlp()));
+    tr = std::make_shared<std::pair<Transaction, taraxa::bytes>>(std::make_pair(*t, *t->rlp()));
   } else {  // search from db
     tr = db_->getTransactionExt(hash);
   }
   return tr;
 }
 // Received block means some trx might be packed by others
-bool TransactionManager::saveBlockTransactionAndDeduplicate(
-    DagBlock const &blk, std::vector<Transaction> const &some_trxs) {
+bool TransactionManager::saveBlockTransactionAndDeduplicate(DagBlock const &blk, std::vector<Transaction> const &some_trxs) {
   vec_trx_t const &all_block_trx_hashes = blk.getTrxs();
   if (all_block_trx_hashes.empty()) {
     return true;
   }
-  std::set<trx_hash_t> known_trx_hashes(all_block_trx_hashes.begin(),
-                                        all_block_trx_hashes.end());
+  std::set<trx_hash_t> known_trx_hashes(all_block_trx_hashes.begin(), all_block_trx_hashes.end());
 
   if (!some_trxs.empty()) {
     auto trx_batch = db_->createWriteBatch();
@@ -220,50 +194,38 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(
         if (status == TransactionStatus::in_queue_unverified) {
           auto valid = verifyTransaction(db_->getTransactionExt(trx)->first);
           if (!valid.first) {
-            LOG(log_er_) << " Block contains invalid transaction " << trx << " "
-                         << valid.second;
+            LOG(log_er_) << " Block contains invalid transaction " << trx << " " << valid.second;
             return false;
           }
           event_transaction_accepted.pub(trx);
         }
         trx_count_.fetch_add(1);
-        db_->addTransactionStatusToBatch(trx_batch, trx,
-                                         TransactionStatus::in_block);
+        db_->addTransactionStatusToBatch(trx_batch, trx, TransactionStatus::in_block);
       }
       auto trx_count = trx_count_.load();
       db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_count, trx_batch);
       db_->commitWriteBatch(trx_batch);
     }
   } else {
-    LOG(log_er_) << " Missing transaction - FAILED block verification "
-                 << missing_trx;
+    LOG(log_er_) << " Missing transaction - FAILED block verification " << missing_trx;
   }
 
   return all_transactions_saved;
 }
 
-std::pair<bool, std::string> TransactionManager::insertTrx(
-    Transaction const &trx, bool verify) {
+std::pair<bool, std::string> TransactionManager::insertTrx(Transaction const &trx, bool verify) {
   auto hash = trx.getHash();
   db_->saveTransaction(trx);
 
-  if (conf_.test_params.max_transaction_queue_warn > 0 ||
-      conf_.test_params.max_transaction_queue_drop > 0) {
+  if (conf_.test_params.max_transaction_queue_warn > 0 || conf_.test_params.max_transaction_queue_drop > 0) {
     auto queue_size = trx_qu_.getTransactionQueueSize();
-    if (conf_.test_params.max_transaction_queue_drop >
-        queue_size.first + queue_size.second) {
-      LOG(log_wr_) << "Trx: " << hash
-                   << "skipped, queue too large. Unverified queue: "
-                   << queue_size.first
-                   << "; Verified queue: " << queue_size.second << "; Limit: "
-                   << conf_.test_params.max_transaction_queue_drop;
+    if (conf_.test_params.max_transaction_queue_drop > queue_size.first + queue_size.second) {
+      LOG(log_wr_) << "Trx: " << hash << "skipped, queue too large. Unverified queue: " << queue_size.first
+                   << "; Verified queue: " << queue_size.second << "; Limit: " << conf_.test_params.max_transaction_queue_drop;
       return std::make_pair(false, "Queue overlfow");
-    } else if (conf_.test_params.max_transaction_queue_warn >
-               queue_size.first + queue_size.second) {
-      LOG(log_wr_) << "Warning: queue large. Unverified queue: "
-                   << queue_size.first
-                   << "; Verified queue: " << queue_size.second << "; Limit: "
-                   << conf_.test_params.max_transaction_queue_drop;
+    } else if (conf_.test_params.max_transaction_queue_warn > queue_size.first + queue_size.second) {
+      LOG(log_wr_) << "Warning: queue large. Unverified queue: " << queue_size.first << "; Verified queue: " << queue_size.second
+                   << "; Limit: " << conf_.test_params.max_transaction_queue_drop;
       return std::make_pair(false, "Queue overlfow");
     }
   }
@@ -292,19 +254,16 @@ std::pair<bool, std::string> TransactionManager::insertTrx(
     } else {
       switch (status) {
         case TransactionStatus::in_queue_verified:
-          LOG(log_nf_) << "Trx: " << hash << "skip, seen in queue. "
-                       << std::endl;
+          LOG(log_nf_) << "Trx: " << hash << "skip, seen in queue. " << std::endl;
           return std::make_pair(false, "in verified queue");
         case TransactionStatus::in_queue_unverified:
-          LOG(log_nf_) << "Trx: " << hash << "skip, seen in queue. "
-                       << std::endl;
+          LOG(log_nf_) << "Trx: " << hash << "skip, seen in queue. " << std::endl;
           return std::make_pair(false, "in unverified queue");
         case TransactionStatus::in_block:
           LOG(log_nf_) << "Trx: " << hash << "skip, seen in db. " << std::endl;
           return std::make_pair(false, "in block");
         case TransactionStatus::invalid:
-          LOG(log_nf_) << "Trx: " << hash << "skip, seen but invalid. "
-                       << std::endl;
+          LOG(log_nf_) << "Trx: " << hash << "skip, seen but invalid. " << std::endl;
           return std::make_pair(false, "already invalid");
         default:
           return std::make_pair(false, "unknown");
@@ -325,15 +284,12 @@ std::pair<bool, std::string> TransactionManager::insertTrx(
  * 3. propose transactions for block A
  * 4. update A, B and C status to seen_in_db
  */
-void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
-                                  DagFrontier &frontier,
-                                  uint16_t max_trx_to_pack) {
+void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx, DagFrontier &frontier, uint16_t max_trx_to_pack) {
   to_be_packed_trx.clear();
   std::list<Transaction> list_trxs;
 
   frontier = getDagFrontier();
-  LOG(log_dg_) << " Get frontier with pivot: " << frontier.pivot
-               << " tips: " << frontier.tips;
+  LOG(log_dg_) << " Get frontier with pivot: " << frontier.pivot << " tips: " << frontier.tips;
 
   auto verified_trx = trx_qu_.moveVerifiedTrxSnapShot(max_trx_to_pack);
 
@@ -347,8 +303,7 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
       auto status = db_->getTransactionStatus(hash);
       if (status == TransactionStatus::in_queue_verified) {
         // Skip if transaction is already in existing block
-        db_->addTransactionStatusToBatch(trx_batch, hash,
-                                         TransactionStatus::in_block);
+        db_->addTransactionStatusToBatch(trx_batch, hash, TransactionStatus::in_block);
         trx_count_.fetch_add(1);
         changed = true;
         LOG(log_dg_) << "Trx: " << hash << " ready to pack" << std::endl;
@@ -371,20 +326,16 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
   // sort trx based on sender and nonce
   list_trxs.sort(trxComp);
 
-  std::transform(list_trxs.begin(), list_trxs.end(),
-                 std::back_inserter(to_be_packed_trx),
-                 [](Transaction const &t) { return t.getHash(); });
+  std::transform(list_trxs.begin(), list_trxs.end(), std::back_inserter(to_be_packed_trx), [](Transaction const &t) { return t.getHash(); });
 }
 
-bool TransactionManager::verifyBlockTransactions(
-    DagBlock const &blk, std::vector<Transaction> const &trxs) {
+bool TransactionManager::verifyBlockTransactions(DagBlock const &blk, std::vector<Transaction> const &trxs) {
   bool invalidTransaction = false;
   for (auto const &trx : trxs) {
     auto valid = verifyTransaction(trx);
     if (!valid.first) {
       invalidTransaction = true;
-      LOG(log_er_) << "Invalid transaction " << trx.getHash().toString() << " "
-                   << valid.second;
+      LOG(log_er_) << "Invalid transaction " << trx.getHash().toString() << " " << valid.second;
     }
   }
   if (invalidTransaction) {
@@ -409,9 +360,7 @@ DagFrontier TransactionManager::getDagFrontier() {
 
 void TransactionManager::setDagFrontier(DagFrontier const &frontier) {
   std::unique_lock l(mu_for_dag_frontier_);
-  LOG(log_dg_) << " Update Frontier : " << frontier.pivot
-               << " tips: " << frontier.tips
-               << " dag_frontier: " << dag_frontier_.pivot
+  LOG(log_dg_) << " Update Frontier : " << frontier.pivot << " tips: " << frontier.tips << " dag_frontier: " << dag_frontier_.pivot
                << " dag_tips: " << dag_frontier_.tips;
   dag_frontier_ = frontier;
 }

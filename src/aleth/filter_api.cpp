@@ -9,9 +9,7 @@ using namespace eth;
 using namespace util;
 
 struct FilterAPIImpl : virtual FilterAPI {
-  optional<LogFilter> getLogFilter(FilterID id) const override {
-    return std::nullopt;
-  }
+  optional<LogFilter> getLogFilter(FilterID id) const override { return std::nullopt; }
 
   FilterID newBlockFilter() override { return 0; }
 

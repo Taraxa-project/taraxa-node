@@ -15,20 +15,12 @@ const unsigned NUM_TRX = 40;
 const unsigned NUM_BLK = 4;
 const unsigned BLK_TRX_LEN = 4;
 const unsigned BLK_TRX_OVERLAP = 1;
-auto g_secret = Lazy([] {
-  return dev::Secret(
-      "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-      dev::Secret::ConstructFromStringType::FromHex);
-});
+auto g_secret = Lazy(
+    [] { return dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd", dev::Secret::ConstructFromStringType::FromHex); });
 auto g_key_pair = Lazy([] { return dev::KeyPair(g_secret); });
-auto g_trx_samples =
-    Lazy([] { return samples::createMockTrxSamples(0, NUM_TRX); });
-auto g_signed_trx_samples =
-    Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX, g_secret); });
-auto g_blk_samples = Lazy([] {
-  return samples::createMockDagBlkSamples(0, NUM_BLK, 0, BLK_TRX_LEN,
-                                          BLK_TRX_OVERLAP);
-});
+auto g_trx_samples = Lazy([] { return samples::createMockTrxSamples(0, NUM_TRX); });
+auto g_signed_trx_samples = Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX, g_secret); });
+auto g_blk_samples = Lazy([] { return samples::createMockDagBlkSamples(0, NUM_BLK, 0, BLK_TRX_LEN, BLK_TRX_OVERLAP); });
 
 struct TransactionTest : BaseTest {};
 
@@ -72,24 +64,19 @@ TEST_F(TransactionTest, sig) {
           chainId=chain_id
       )).hash.hex())
    */
-  secret_t sk(
-      "0xb6a431fe9f5a79da0c53702ca5dd619846e21ce5c3b7b77148aa8478240087cd");
+  secret_t sk("0xb6a431fe9f5a79da0c53702ca5dd619846e21ce5c3b7b77148aa8478240087cd");
   addr_t sender("0x9DeAC03F89e7819a241Ee3856715A1Ab76248023");
-  ASSERT_THROW(Transaction(dev::jsToBytes(
-                   "0xf84980808080808024a01404adc97c8b58fef303b2862d0e72378"
-                   "4fb635e7237e0e8d3ea33bbea19c36ca0229e80d57ba91a0f347686"
-                   "30fd21ad86e4c403b307de9ac4550d0ccc81c90fe3")),
+  ASSERT_THROW(Transaction(dev::jsToBytes("0xf84980808080808024a01404adc97c8b58fef303b2862d0e72378"
+                                          "4fb635e7237e0e8d3ea33bbea19c36ca0229e80d57ba91a0f347686"
+                                          "30fd21ad86e4c403b307de9ac4550d0ccc81c90fe3")),
                Transaction::InvalidChainID);
   vector<pair<uint64_t, string>> valid_cases{
       {0, "0xf647d1d47ce927ce2fb9f57e4e2a3c32b037c5e544b44611077f5cc6980b0bc2"},
       {1, "0x49c1cb845df5d3ed238ca37ad25ca96f417e4f22d7911224cf3c2a725985e7ff"},
-      {uint64_t(1) << uint(32),
-       "0xc1651c53d21ad6ddaac0af7ad93947074ef9f3b03479a36b29fa577b9faba8a9"},
+      {uint64_t(1) << uint(32), "0xc1651c53d21ad6ddaac0af7ad93947074ef9f3b03479a36b29fa577b9faba8a9"},
   };
   for (auto& [chain_id, hash_str] : valid_cases) {
-    Transaction t(1, 2, 3, 4, dev::jsToBytes("0xabcd"), sk,
-                  addr_t("0xd3CdA913deB6f67967B99D67aCDFa1712C293601"),
-                  chain_id);
+    Transaction t(1, 2, 3, 4, dev::jsToBytes("0xabcd"), sk, addr_t("0xd3CdA913deB6f67967B99D67aCDFa1712C293601"), chain_id);
     for (auto i : {1, 0}) {
       ASSERT_EQ(t.getSender(), sender);
       ASSERT_EQ(t.getChainID(), chain_id);
@@ -118,8 +105,7 @@ TEST_F(TransactionTest, sig) {
         }
       }
       ASSERT_NE(Transaction(with_modified_payload.out()).getSender(), sender);
-      ASSERT_THROW(Transaction(with_invalid_signature.out()).getSender(),
-                   Transaction::InvalidSignature);
+      ASSERT_THROW(Transaction(with_invalid_signature.out()).getSender(), Transaction::InvalidSignature);
     }
   }
 }
@@ -195,13 +181,11 @@ TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
   do {
     DagFrontier frontier;
     trx_mgr.packTrxs(packed_trxs, frontier);
-    total_packed_trxs.insert(total_packed_trxs.end(), packed_trxs.begin(),
-                             packed_trxs.end());
+    total_packed_trxs.insert(total_packed_trxs.end(), packed_trxs.begin(), packed_trxs.end());
     thisThreadSleepForMicroSeconds(100);
   } while (!packed_trxs.empty());
   wakeup.join();
-  EXPECT_EQ(total_packed_trxs.size(), NUM_TRX)
-      << " Packed Trx: " << ::testing::PrintToString(total_packed_trxs);
+  EXPECT_EQ(total_packed_trxs.size(), NUM_TRX) << " Packed Trx: " << ::testing::PrintToString(total_packed_trxs);
 }
 
 }  // namespace taraxa::core_tests

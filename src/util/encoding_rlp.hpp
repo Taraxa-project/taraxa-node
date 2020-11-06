@@ -18,8 +18,7 @@ template <typename... Params>
 void enc_rlp_tuple(RLPStream& rlp, Params const&... args);
 
 template <typename Param>
-auto enc_rlp(RLPStream& rlp, Param const& target)
-    -> decltype(rlp.append(target), void()) {
+auto enc_rlp(RLPStream& rlp, Param const& target) -> decltype(rlp.append(target), void()) {
   rlp.append(target);
 }
 
@@ -53,9 +52,7 @@ void enc_rlp(RLPStream& rlp, RangeView<Param> const& target) {
 }
 
 template <typename Map>
-auto enc_rlp(RLPStream& rlp, Map const& target)
-    -> decltype(target.size(), target.begin()->first, target.end()->second,
-                void()) {
+auto enc_rlp(RLPStream& rlp, Map const& target) -> decltype(target.size(), target.begin()->first, target.end()->second, void()) {
   rlp.appendList(target.size());
   for (auto const& [k, v] : target) {
     enc_rlp_tuple(rlp, k, v);
@@ -106,8 +103,7 @@ void dec_rlp(RLP const& rlp, vector<Ts...>& target) {
 }
 
 template <typename Map>
-auto dec_rlp(RLP const& rlp, Map& target)
-    -> decltype(target[target.begin()->first], void()) {
+auto dec_rlp(RLP const& rlp, Map& target) -> decltype(target[target.begin()->first], void()) {
   using key_type = remove_cv_t<decltype(target.begin()->first)>;
   for (auto const& i : rlp) {
     auto entry_i = i.begin();

@@ -22,24 +22,18 @@ using namespace vdf_sortition;
 
 struct DagBlockTest : BaseTest {};
 
-auto g_blk_samples = samples::createMockDagBlkSamples(
-    0, NUM_BLK, 0, BLK_TRX_LEN, BLK_TRX_OVERLAP);
+auto g_blk_samples = samples::createMockDagBlkSamples(0, NUM_BLK, 0, BLK_TRX_LEN, BLK_TRX_OVERLAP);
 
-auto g_secret = dev::Secret(
-    "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-    dev::Secret::ConstructFromStringType::FromHex);
+auto g_secret = dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd", dev::Secret::ConstructFromStringType::FromHex);
 auto g_key_pair = dev::KeyPair(g_secret);
 
 TEST_F(DagBlockTest, clear) {
-  std::string str(
-      "8f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f");
+  std::string str("8f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f");
   ASSERT_EQ(str.size(), 64);
   uint256_hash_t test(str);
-  ASSERT_EQ(test.toString(),
-            "8f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f");
+  ASSERT_EQ(test.toString(), "8f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f");
   test.clear();
-  ASSERT_EQ(test.toString(),
-            "0000000000000000000000000000000000000000000000000000000000000000");
+  ASSERT_EQ(test.toString(), "0000000000000000000000000000000000000000000000000000000000000000");
 }
 
 TEST_F(DagBlockTest, serialize_deserialize) {
@@ -58,8 +52,7 @@ TEST_F(DagBlockTest, serialize_deserialize) {
 }
 
 TEST_F(DagBlockTest, send_receive_one) {
-  uint256_hash_t send(
-      "8f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f");
+  uint256_hash_t send("8f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f");
 
   std::vector<uint8_t> data;
   {
@@ -78,11 +71,8 @@ TEST_F(DagBlockTest, send_receive_one) {
 TEST_F(DagBlockTest, send_receive_two) {
   using std::string;
   using std::vector;
-  vector<uint256_hash_t> outgoings{
-      blk_hash_t(
-          "8f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"),
-      blk_hash_t(
-          "7f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f")};
+  vector<uint256_hash_t> outgoings{blk_hash_t("8f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"),
+                                   blk_hash_t("7f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f")};
 
   vector<uint8_t> data;
   {
@@ -105,13 +95,9 @@ TEST_F(DagBlockTest, send_receive_two) {
 TEST_F(DagBlockTest, send_receive_three) {
   using std::string;
   using std::vector;
-  vector<uint256_hash_t> outgoings{
-      blk_hash_t(
-          "8f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"),
-      blk_hash_t(
-          "7f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"),
-      blk_hash_t(
-          "6f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f")};
+  vector<uint256_hash_t> outgoings{blk_hash_t("8f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"),
+                                   blk_hash_t("7f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"),
+                                   blk_hash_t("6f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f")};
 
   vector<uint8_t> data;
   {
@@ -184,16 +170,12 @@ TEST_F(DagBlockTest, sign_verify) {
 TEST_F(DagBlockTest, push_and_pop) {
   auto node_cfgs = make_node_cfgs(1);
   FullNode::Handle node(node_cfgs[0]);
-  BlockManager blk_qu(1024, 2, addr_t(), node->getDB(), nullptr,
-                      node->getTimeLogger());
+  BlockManager blk_qu(1024, 2, addr_t(), node->getDB(), nullptr, node->getTimeLogger());
   blk_qu.start();
-  DagBlock blk1(blk_hash_t(1111), level_t(0),
-                {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)}, {},
-                sig_t(7777), blk_hash_t(888), addr_t(999));
+  DagBlock blk1(blk_hash_t(1111), level_t(0), {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)}, {}, sig_t(7777), blk_hash_t(888), addr_t(999));
 
-  DagBlock blk2(blk_hash_t(21111), level_t(0),
-                {blk_hash_t(2222), blk_hash_t(2333), blk_hash_t(2444)}, {},
-                sig_t(27777), blk_hash_t(2888), addr_t(2999));
+  DagBlock blk2(blk_hash_t(21111), level_t(0), {blk_hash_t(2222), blk_hash_t(2333), blk_hash_t(2444)}, {}, sig_t(27777), blk_hash_t(2888),
+                addr_t(2999));
 
   blk_qu.pushUnverifiedBlock(blk1, true);
   blk_qu.pushUnverifiedBlock(blk2, true);
@@ -207,14 +189,10 @@ TEST_F(DagBlockTest, push_and_pop) {
 }
 
 TEST_F(DagBlockTest, overlap) {
-  DagBlock blk1(blk_hash_t(1111), level_t(1), {},
-                {trx_hash_t(1000), trx_hash_t(2000), trx_hash_t(3000)},
-                sig_t(7777), blk_hash_t(888), addr_t(999));
+  DagBlock blk1(blk_hash_t(1111), level_t(1), {}, {trx_hash_t(1000), trx_hash_t(2000), trx_hash_t(3000)}, sig_t(7777), blk_hash_t(888), addr_t(999));
 
-  DagBlock blk2(
-      blk_hash_t(1112), level_t(1), {},
-      {trx_hash_t(100), trx_hash_t(2000), trx_hash_t(3000), trx_hash_t(1000)},
-      sig_t(7777), blk_hash_t(888), addr_t(999));
+  DagBlock blk2(blk_hash_t(1112), level_t(1), {}, {trx_hash_t(100), trx_hash_t(2000), trx_hash_t(3000), trx_hash_t(1000)}, sig_t(7777),
+                blk_hash_t(888), addr_t(999));
 
   addr_t addr;
   TransactionOrderManager detector(addr, nullptr);

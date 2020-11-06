@@ -11,9 +11,7 @@ namespace taraxa {
 namespace net {
 class NetClient : public jsonrpc::Client {
  public:
-  NetClient(jsonrpc::IClientConnector &conn,
-            jsonrpc::clientVersion_t type = jsonrpc::JSONRPC_CLIENT_V2)
-      : jsonrpc::Client(conn, type) {}
+  NetClient(jsonrpc::IClientConnector &conn, jsonrpc::clientVersion_t type = jsonrpc::JSONRPC_CLIENT_V2) : jsonrpc::Client(conn, type) {}
 
   std::string net_version() throw(jsonrpc::JsonRpcException) {
     Json::Value p;
@@ -22,9 +20,7 @@ class NetClient : public jsonrpc::Client {
     if (result.isString())
       return result.asString();
     else
-      throw jsonrpc::JsonRpcException(
-          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
-          result.toStyledString());
+      throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
   }
   std::string net_peerCount() throw(jsonrpc::JsonRpcException) {
     Json::Value p;
@@ -33,9 +29,7 @@ class NetClient : public jsonrpc::Client {
     if (result.isString())
       return result.asString();
     else
-      throw jsonrpc::JsonRpcException(
-          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
-          result.toStyledString());
+      throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
   }
   bool net_listening() throw(jsonrpc::JsonRpcException) {
     Json::Value p;
@@ -44,9 +38,7 @@ class NetClient : public jsonrpc::Client {
     if (result.isBool())
       return result.asBool();
     else
-      throw jsonrpc::JsonRpcException(
-          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
-          result.toStyledString());
+      throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
   }
 };
 

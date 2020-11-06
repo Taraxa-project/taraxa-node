@@ -74,8 +74,7 @@ struct LoggingOutputConfig {
   std::string file_name;
   uint64_t rotation_size = 0;
   std::string time_based_rotation;
-  std::string format =
-      "%NodeId% %Channel% [%TimeStamp%] %SeverityStr%: %Message%";
+  std::string format = "%NodeId% %Channel% [%TimeStamp%] %SeverityStr%: %Message%";
   uint64_t max_size = 0;
 };
 
@@ -85,11 +84,8 @@ struct LoggingConfig {
   Verbosity verbosity = Verbosity::VerbosityError;
   std::map<std::string, uint16_t> channels;
   std::vector<LoggingOutputConfig> outputs;
-  std::vector<
-      boost::shared_ptr<log_sink<boost::log::sinks::text_ostream_backend>>>
-      console_sinks;
-  std::vector<boost::shared_ptr<log_sink<boost::log::sinks::text_file_backend>>>
-      file_sinks;
+  std::vector<boost::shared_ptr<log_sink<boost::log::sinks::text_ostream_backend>>> console_sinks;
+  std::vector<boost::shared_ptr<log_sink<boost::log::sinks::text_file_backend>>> file_sinks;
 };
 
 struct BlockProposerConfig {

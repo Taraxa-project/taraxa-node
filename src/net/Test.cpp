@@ -20,8 +20,7 @@ using namespace taraxa;
 
 namespace taraxa::net {
 
-Test::Test(std::shared_ptr<taraxa::FullNode> const &_full_node)
-    : full_node_(_full_node) {
+Test::Test(std::shared_ptr<taraxa::FullNode> const &_full_node) : full_node_(_full_node) {
   trx_creater_ = std::async(std::launch::async, [] {});
 }
 
@@ -80,8 +79,7 @@ Json::Value Test::send_coin_transaction(const Json::Value &param1) {
       // get trx receiving time stamp
       auto now = getCurrentTimeMilliSeconds();
       taraxa::Transaction trx(nonce, value, gas_price, gas, data, sk, receiver);
-      LOG(log_time) << "Transaction " << trx.getHash()
-                    << " received at: " << now;
+      LOG(log_time) << "Transaction " << trx.getHash() << " received at: " << now;
       node->getTransactionManager()->insertTransaction(trx, true);
       res = toHex(*trx.rlp());
     }
@@ -104,28 +102,23 @@ Json::Value Test::create_test_coin_transactions(const Json::Value &param1) {
       if (!param1["secret"].empty() && !param1["secret"].asString().empty()) {
         sk = secret_t(param1["secret"].asString());
       }
-      if (trx_creater_.wait_for(std::chrono::seconds(0)) !=
-          std::future_status::ready) {
+      if (trx_creater_.wait_for(std::chrono::seconds(0)) != std::future_status::ready) {
         res = "Busy in creating transactions ... please try later ...";
       } else {
-        trx_creater_ = std::async(
-            std::launch::async,
-            [node, &log_time, delay, number, nonce, receiver, sk]() {
-              // get trx receiving time stamp
-              bytes data;
-              uint i = 0;
-              while (i < number) {
-                auto now = getCurrentTimeMilliSeconds();
-                val_t value = val_t(100);
-                auto trx = taraxa::Transaction(i + nonce, value, 1000, 0, data,
-                                               sk, receiver);
-                LOG(log_time) << "Transaction " << trx.getHash()
-                              << " received at: " << now;
-                node->getTransactionManager()->insertTransaction(trx, false);
-                thisThreadSleepForMicroSeconds(delay);
-                i++;
-              }
-            });
+        trx_creater_ = std::async(std::launch::async, [node, &log_time, delay, number, nonce, receiver, sk]() {
+          // get trx receiving time stamp
+          bytes data;
+          uint i = 0;
+          while (i < number) {
+            auto now = getCurrentTimeMilliSeconds();
+            val_t value = val_t(100);
+            auto trx = taraxa::Transaction(i + nonce, value, 1000, 0, data, sk, receiver);
+            LOG(log_time) << "Transaction " << trx.getHash() << " received at: " << now;
+            node->getTransactionManager()->insertTransaction(trx, false);
+            thisThreadSleepForMicroSeconds(delay);
+            i++;
+          }
+        });
 
         res = "Creating " + std::to_string(number) + " transactions ...";
       }
@@ -143,8 +136,7 @@ Json::Value Test::get_num_proposed_blocks() {
       auto &log_time = node->getTimeLogger();
       auto num_prop_block = node->getNumProposedBlocks();
       res["value"] = Json::UInt64(num_prop_block);
-      LOG(log_time) << "Number of proposed block " << num_prop_block
-                    << std::endl;
+      LOG(log_time) << "Number of proposed block " << num_prop_block << std::endl;
     }
   } catch (std::exception &e) {
     res["status"] = e.what();
@@ -206,22 +198,15 @@ Json::Value Test::get_node_status() {
       res["node_count"] = Json::UInt64(node->getNetwork()->getNodeCount());
       res["blk_executed"] = Json::UInt64(node->getDB()->getNumBlockExecuted());
       res["blk_count"] = Json::UInt64(node->getDB()->getNumDagBlocks());
-      res["trx_executed"] =
-          Json::UInt64(node->getDB()->getNumTransactionExecuted());
-      res["trx_count"] =
-          Json::UInt64(node->getTransactionManager()->getTransactionCount());
+      res["trx_executed"] = Json::UInt64(node->getDB()->getNumTransactionExecuted());
+      res["trx_count"] = Json::UInt64(node->getTransactionManager()->getTransactionCount());
       res["dag_level"] = Json::UInt64(node->getDagManager()->getMaxLevel());
       res["pbft_size"] = Json::UInt64(node->getPbftChain()->getPbftChainSize());
-      res["pbft_sync_queue_size"] =
-          Json::UInt64(node->getPbftChain()->pbftSyncedQueueSize());
-      res["trx_queue_unverified_size"] = Json::UInt64(
-          node->getTransactionManager()->getTransactionQueueSize().first);
-      res["trx_queue_verified_size"] = Json::UInt64(
-          node->getTransactionManager()->getTransactionQueueSize().second);
-      res["blk_queue_unverified_size"] =
-          Json::UInt64(node->getBlockManager()->getDagBlockQueueSize().first);
-      res["blk_queue_verified_size"] =
-          Json::UInt64(node->getBlockManager()->getDagBlockQueueSize().second);
+      res["pbft_sync_queue_size"] = Json::UInt64(node->getPbftChain()->pbftSyncedQueueSize());
+      res["trx_queue_unverified_size"] = Json::UInt64(node->getTransactionManager()->getTransactionQueueSize().first);
+      res["trx_queue_verified_size"] = Json::UInt64(node->getTransactionManager()->getTransactionQueueSize().second);
+      res["blk_queue_unverified_size"] = Json::UInt64(node->getBlockManager()->getDagBlockQueueSize().first);
+      res["blk_queue_verified_size"] = Json::UInt64(node->getBlockManager()->getDagBlockQueueSize().second);
       res["network"] = node->getNetwork()->getTaraxaCapability()->getStatus();
     }
   } catch (std::exception &e) {
@@ -264,9 +249,7 @@ Json::Value Test::get_all_nodes() {
     if (auto node = full_node_.lock()) {
       auto nodes = node->getNetwork()->getAllNodes();
       for (auto const &n : nodes) {
-        res = res.asString() + n.id.toString() + " " +
-              n.endpoint.address().to_string() + ":" +
-              std::to_string(n.endpoint.tcpPort()) + "\n";
+        res = res.asString() + n.id.toString() + " " + n.endpoint.address().to_string() + ":" + std::to_string(n.endpoint.tcpPort()) + "\n";
       }
     }
   } catch (std::exception &e) {
@@ -326,9 +309,7 @@ Json::Value Test::get_votes(const Json::Value &param1) {
       std::shared_ptr<VoteManager> vote_mgr = node->getVoteManager();
       std::shared_ptr<PbftChain> pbft_chain = node->getPbftChain();
       std::vector<Vote> votes =
-          vote_mgr->getVotes(pbft_round, pbft_mgr->getEligibleVoterCount(),
-                             pbft_chain->getLastPbftBlockHash(),
-                             pbft_mgr->getSortitionThreshold());
+          vote_mgr->getVotes(pbft_round, pbft_mgr->getEligibleVoterCount(), pbft_chain->getLastPbftBlockHash(), pbft_mgr->getSortitionThreshold());
       res = vote_mgr->getJsonStr(votes);
     }
   } catch (std::exception &e) {
@@ -395,8 +376,7 @@ Json::Value Test::get_dag_size(const Json::Value &param1) {
   try {
     if (auto node = full_node_.lock()) {
       auto count = node->getDagManager()->getNumVerticesInDag();
-      res["value"] =
-          std::to_string(count.first) + " , " + std::to_string(count.second);
+      res["value"] = std::to_string(count.first) + " , " + std::to_string(count.second);
     }
   } catch (std::exception &e) {
     res["status"] = e.what();
@@ -448,8 +428,7 @@ Json::Value Test::get_pbft_chain_blocks(const Json::Value &param1) {
       else
         height = node->getPbftChain()->getPbftChainSize() - count + 1;
 
-      auto blocks = node->getPbftChain()->getPbftBlocksStr(
-          height, count, include_json.isNull());
+      auto blocks = node->getPbftChain()->getPbftBlocksStr(height, count, include_json.isNull());
       res["value"] = Json::Value(Json::arrayValue);
       count = 0;
       for (auto const &b : blocks) {

@@ -5,13 +5,7 @@ namespace taraxa::final_chain {
 auto map_transactions(Transactions const& trxs) {
   return make_range_view(trxs).map([](auto const& trx) {
     return state_api::EVMTransaction{
-        trx.from(),
-        trx.gasPrice(),
-        trx.isCreation() ? std::nullopt : optional(trx.to()),
-        trx.nonce(),
-        trx.value(),
-        trx.gas(),
-        trx.data(),
+        trx.from(), trx.gasPrice(), trx.isCreation() ? std::nullopt : optional(trx.to()), trx.nonce(), trx.value(), trx.gas(), trx.data(),
     };
   });
 }
@@ -30,8 +24,7 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
       : ChainDBImpl(blk_db, ext_db),
         blk_db(move(blk_db)),
         ext_db(move(ext_db)),
-        state_api((db->stateDbStoragePath()).string(),
-                  [this](auto n) { return ChainDBImpl::hashFromNumber(n); },  //
+        state_api((db->stateDbStoragePath()).string(), [this](auto n) { return ChainDBImpl::hashFromNumber(n); },  //
                   config.state) {
     receipts_buf.reserve(opts.state_api.ExpectedMaxTrxPerBlock);
     auto last_blk = ChainDBImpl::get_last_block();
@@ -40,9 +33,7 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
       assert(state_desc.blk_num == 0);
       auto batch = db->createWriteBatch();
       auto exit_stack = append_block_prepare(batch);
-      append_block(config.genesis_block_fields.author,
-                   config.genesis_block_fields.timestamp, 0,
-                   state_desc.state_root, {}, {});
+      append_block(config.genesis_block_fields.author, config.genesis_block_fields.timestamp, 0, state_desc.state_root, {}, {});
       db->commitWriteBatch(batch);
       refresh_last_block();
       return;
@@ -81,12 +72,9 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
     };
   }
 
-  shared_ptr<BlockHeader> get_last_block() const override {
-    return ChainDBImpl::get_last_block();
-  }
+  shared_ptr<BlockHeader> get_last_block() const override { return ChainDBImpl::get_last_block(); }
 
-  BlockNumber normalize_client_blk_n(
-      optional<BlockNumber> const& client_blk_n) const {
+  BlockNumber normalize_client_blk_n(optional<BlockNumber> const& client_blk_n) const {
     auto last_blk_n = last_block_number();
     if (!client_blk_n) {
       return last_blk_n;
@@ -98,9 +86,7 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
     return ret;
   }
 
-  AdvanceResult advance(DbStorage::BatchPtr batch, Address const& author,
-                        uint64_t timestamp,
-                        Transactions const& transactions) override {
+  AdvanceResult advance(DbStorage::BatchPtr batch, Address const& author, uint64_t timestamp, Transactions const& transactions) override {
     constexpr auto gas_limit = std::numeric_limits<uint64_t>::max();
     auto const& state_transition_result = state_api.transition_state(
         {
@@ -120,15 +106,11 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
       for (auto const& l : r.Logs) {
         logs.emplace_back(l.Address, l.Topics, l.Data);
       }
-      receipts_buf.emplace_back(r.CodeErr.empty() && r.ConsensusErr.empty(),
-                                cumulative_gas_used += r.GasUsed, move(logs),
-                                r.NewContractAddr);
+      receipts_buf.emplace_back(r.CodeErr.empty() && r.ConsensusErr.empty(), cumulative_gas_used += r.GasUsed, move(logs), r.NewContractAddr);
     }
     auto exit_stack = append_block_prepare(batch);
     return {
-        append_block(author, timestamp, gas_limit,
-                     state_transition_result.StateRoot, transactions,
-                     receipts_buf),
+        append_block(author, timestamp, gas_limit, state_transition_result.StateRoot, transactions, receipts_buf),
         receipts_buf,
         state_transition_result,
     };
@@ -139,32 +121,22 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
     refresh_last_block();
   }
 
-  void create_snapshot(uint64_t const& period) override {
-    state_api.create_snapshot(period);
-  }
+  void create_snapshot(uint64_t const& period) override { state_api.create_snapshot(period); }
 
-  optional<state_api::Account> get_account(
-      addr_t const& addr,
-      optional<BlockNumber> blk_n = nullopt) const override {
+  optional<state_api::Account> get_account(addr_t const& addr, optional<BlockNumber> blk_n = nullopt) const override {
     return state_api.get_account(normalize_client_blk_n(blk_n), addr);
   }
 
-  u256 get_account_storage(
-      addr_t const& addr, u256 const& key,
-      optional<BlockNumber> blk_n = nullopt) const override {
-    return state_api.get_account_storage(normalize_client_blk_n(blk_n), addr,
-                                         key);
+  u256 get_account_storage(addr_t const& addr, u256 const& key, optional<BlockNumber> blk_n = nullopt) const override {
+    return state_api.get_account_storage(normalize_client_blk_n(blk_n), addr, key);
   }
 
-  bytes get_code(addr_t const& addr,
-                 optional<BlockNumber> blk_n = nullopt) const override {
+  bytes get_code(addr_t const& addr, optional<BlockNumber> blk_n = nullopt) const override {
     return state_api.get_code_by_address(normalize_client_blk_n(blk_n), addr);
   }
 
-  state_api::ExecutionResult call(state_api::EVMTransaction const& trx,
-                                  optional<BlockNumber> blk_n = nullopt,
-                                  optional<state_api::ExecutionOptions> const&
-                                      opts = nullopt) const override {
+  state_api::ExecutionResult call(state_api::EVMTransaction const& trx, optional<BlockNumber> blk_n = nullopt,
+                                  optional<state_api::ExecutionOptions> const& opts = nullopt) const override {
     auto blk_header = blockHeader(normalize_client_blk_n(blk_n));
     return state_api.dry_run_transaction(blk_header.number(),
                                          {
@@ -176,22 +148,16 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
                                          trx, opts);
   }
 
-  uint64_t dpos_eligible_count(BlockNumber blk_num) const override {
-    return state_api.dpos_eligible_count(normalize_client_blk_n(blk_num));
-  }
+  uint64_t dpos_eligible_count(BlockNumber blk_num) const override { return state_api.dpos_eligible_count(normalize_client_blk_n(blk_num)); }
 
-  bool dpos_is_eligible(BlockNumber blk_num,
-                        addr_t const& addr) const override {
+  bool dpos_is_eligible(BlockNumber blk_num, addr_t const& addr) const override {
     return state_api.dpos_is_eligible(normalize_client_blk_n(blk_num), addr);
   }
 };
 
-unique_ptr<FinalChain> NewFinalChain(shared_ptr<DbStorage> db,
-                                     FinalChain::Config const& config,
-                                     FinalChain::Opts const& opts) {
-  return u_ptr(new FinalChainImpl(
-      db, config, aleth::NewDatabase(db, DbStorage::Columns::aleth_chain),
-      aleth::NewDatabase(db, DbStorage::Columns::aleth_chain_extras), opts));
+unique_ptr<FinalChain> NewFinalChain(shared_ptr<DbStorage> db, FinalChain::Config const& config, FinalChain::Opts const& opts) {
+  return u_ptr(new FinalChainImpl(db, config, aleth::NewDatabase(db, DbStorage::Columns::aleth_chain),
+                                  aleth::NewDatabase(db, DbStorage::Columns::aleth_chain_extras), opts));
 }
 
 Json::Value enc_json(FinalChain::Config const& obj) {
@@ -213,8 +179,7 @@ Json::Value enc_json(FinalChain::Config::GenesisBlockFields const& obj) {
   return json;
 }
 
-void dec_json(Json::Value const& json,
-              FinalChain::Config::GenesisBlockFields& obj) {
+void dec_json(Json::Value const& json, FinalChain::Config::GenesisBlockFields& obj) {
   obj.timestamp = dev::jsToInt(json["timestamp"].asString());
   obj.author = addr_t(json["author"].asString());
 }

@@ -33,9 +33,7 @@ class WSServer;
 class WSSession : public std::enable_shared_from_this<WSSession> {
  public:
   // Take ownership of the socket
-  explicit WSSession(tcp::socket&& socket, addr_t node_addr,
-                     std::shared_ptr<WSServer> ws_server)
-      : ws_(std::move(socket)) {
+  explicit WSSession(tcp::socket&& socket, addr_t node_addr, std::shared_ptr<WSServer> ws_server) : ws_(std::move(socket)) {
     LOG_OBJECTS_CREATE("RPC");
     ws_server_ = ws_server;
   }
@@ -76,11 +74,9 @@ class WSSession : public std::enable_shared_from_this<WSSession> {
 //------------------------------------------------------------------------------
 
 // Accepts incoming connections and launches the sessions
-class WSServer : public std::enable_shared_from_this<WSServer>,
-                 public jsonrpc::AbstractServerConnector {
+class WSServer : public std::enable_shared_from_this<WSServer>, public jsonrpc::AbstractServerConnector {
  public:
-  WSServer(boost::asio::io_context& ioc, tcp::endpoint endpoint,
-           addr_t node_addr);
+  WSServer(boost::asio::io_context& ioc, tcp::endpoint endpoint, addr_t node_addr);
   ~WSServer();
 
   // Start accepting incoming connections
@@ -88,16 +84,12 @@ class WSServer : public std::enable_shared_from_this<WSServer>,
   void newEthBlock(dev::eth::BlockHeader const& payload);
   void newDagBlock(DagBlock const& blk);
   void newDagBlockFinalized(blk_hash_t const& blk, uint64_t period);
-  void newPbftBlockExecuted(
-      PbftBlock const& sche_blk,
-      std::vector<blk_hash_t> const& finalized_dag_blk_hashes);
+  void newPbftBlockExecuted(PbftBlock const& sche_blk, std::vector<blk_hash_t> const& finalized_dag_blk_hashes);
   void newPendingTransaction(trx_hash_t const& trx_hash);
 
   virtual bool StartListening() { return true; };
   virtual bool StopListening() { return true; };
-  virtual bool SendResponse(const std::string& response, void* addInfo = NULL) {
-    return true;
-  };
+  virtual bool SendResponse(const std::string& response, void* addInfo = NULL) { return true; };
 
  private:
   void do_accept();

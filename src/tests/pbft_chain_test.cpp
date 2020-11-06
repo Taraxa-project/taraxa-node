@@ -23,8 +23,7 @@ TEST_F(PbftChainTest, serialize_desiriablize_pbft_block) {
   blk_hash_t dag_block_hash_as_pivot(45678);
   uint64_t period = 1;
   addr_t beneficiary(98765);
-  PbftBlock pbft_block1(prev_block_hash, dag_block_hash_as_pivot, period,
-                        beneficiary, sk);
+  PbftBlock pbft_block1(prev_block_hash, dag_block_hash_as_pivot, period, beneficiary, sk);
 
   auto rlp = pbft_block1.rlp(true);
   PbftBlock pbft_block2(rlp);
@@ -45,8 +44,7 @@ TEST_F(PbftChainTest, pbft_db_test) {
   blk_hash_t dag_blk(123);
   uint64_t period = 1;
   addr_t beneficiary(987);
-  PbftBlock pbft_block1(prev_block_hash, dag_blk, period, beneficiary,
-                        node->getSecretKey());
+  PbftBlock pbft_block1(prev_block_hash, dag_blk, period, beneficiary, node->getSecretKey());
 
   // put into pbft chain and store into DB
   auto batch = db->createWriteBatch();
@@ -95,9 +93,7 @@ TEST_F(PbftChainTest, block_broadcast) {
   const int node_peers = 2;
   for (int i = 0; i < 300; i++) {
     // test timeout is 30 seconds
-    if (nw1->getPeerCount() == node_peers &&
-        nw2->getPeerCount() == node_peers &&
-        nw3->getPeerCount() == node_peers) {
+    if (nw1->getPeerCount() == node_peers && nw2->getPeerCount() == node_peers && nw3->getPeerCount() == node_peers) {
       break;
     }
     taraxa::thisThreadSleepForMilliSeconds(100);
@@ -111,12 +107,10 @@ TEST_F(PbftChainTest, block_broadcast) {
   blk_hash_t dag_blk(123);
   uint64_t period = 1;
   addr_t beneficiary(987);
-  auto pbft_block = s_ptr(new PbftBlock(prev_block_hash, dag_blk, period,
-                                        beneficiary, node1->getSecretKey()));
+  auto pbft_block = s_ptr(new PbftBlock(prev_block_hash, dag_blk, period, beneficiary, node1->getSecretKey()));
 
   node1->getPbftChain()->pushUnverifiedPbftBlock(pbft_block);
-  auto block1_from_node1 =
-      pbft_chain1->getUnverifiedPbftBlock(pbft_block->getBlockHash());
+  auto block1_from_node1 = pbft_chain1->getUnverifiedPbftBlock(pbft_block->getBlockHash());
   ASSERT_TRUE(block1_from_node1);
   EXPECT_EQ(block1_from_node1->getJsonStr(), pbft_block->getJsonStr());
   // node1 put block into pbft chain and store into DB
@@ -135,8 +129,7 @@ TEST_F(PbftChainTest, block_broadcast) {
   EXPECT_EQ(node1->getPbftChain()->getPbftChainSize(), expect_pbft_chain_size);
   // node1 cleanup block1 in PBFT unverified blocks table
   pbft_chain1->cleanupUnverifiedPbftBlocks(*pbft_block);
-  bool find_erased_block =
-      pbft_chain1->findUnverifiedPbftBlock(pbft_block->getBlockHash());
+  bool find_erased_block = pbft_chain1->findUnverifiedPbftBlock(pbft_block->getBlockHash());
   ASSERT_FALSE(find_erased_block);
 
   nw1->onNewPbftBlock(*pbft_block);
@@ -145,10 +138,8 @@ TEST_F(PbftChainTest, block_broadcast) {
   shared_ptr<PbftBlock> pbft_block_from_node3;
   for (int i = 0; i < 300; i++) {
     // test timeout is 30 seconds
-    pbft_block_from_node2 =
-        pbft_chain2->getUnverifiedPbftBlock(pbft_block->getBlockHash());
-    pbft_block_from_node3 =
-        pbft_chain3->getUnverifiedPbftBlock(pbft_block->getBlockHash());
+    pbft_block_from_node2 = pbft_chain2->getUnverifiedPbftBlock(pbft_block->getBlockHash());
+    pbft_block_from_node3 = pbft_chain3->getUnverifiedPbftBlock(pbft_block->getBlockHash());
     if (pbft_block_from_node2 && pbft_block_from_node3) {
       // Both node2 and node3 get the pbft_block
       break;
@@ -175,8 +166,7 @@ TEST_F(PbftChainTest, block_broadcast) {
   EXPECT_EQ(node2->getPbftChain()->getPbftChainSize(), expect_pbft_chain_size);
   // node2 cleanup block1 in PBFT unverified blocks table
   pbft_chain2->cleanupUnverifiedPbftBlocks(*pbft_block);
-  find_erased_block =
-      pbft_chain2->findUnverifiedPbftBlock(pbft_block->getBlockHash());
+  find_erased_block = pbft_chain2->findUnverifiedPbftBlock(pbft_block->getBlockHash());
   ASSERT_FALSE(find_erased_block);
   // node3 put block into pbft chain and store into DB
   auto db3 = node3->getDB();
@@ -193,8 +183,7 @@ TEST_F(PbftChainTest, block_broadcast) {
   EXPECT_EQ(node3->getPbftChain()->getPbftChainSize(), expect_pbft_chain_size);
   // node3 cleanup block1 in PBFT unverified blocks table
   pbft_chain3->cleanupUnverifiedPbftBlocks(*pbft_block);
-  find_erased_block =
-      pbft_chain3->findUnverifiedPbftBlock(pbft_block->getBlockHash());
+  find_erased_block = pbft_chain3->findUnverifiedPbftBlock(pbft_block->getBlockHash());
   ASSERT_FALSE(find_erased_block);
 }
 

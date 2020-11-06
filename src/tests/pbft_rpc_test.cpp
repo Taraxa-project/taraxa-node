@@ -15,11 +15,8 @@ auto g_vrf_sk = Lazy([] {
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
       "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
 });
-auto g_sk = Lazy([] {
-  return secret_t(
-      "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-      dev::Secret::ConstructFromStringType::FromHex);
-});
+auto g_sk =
+    Lazy([] { return secret_t("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd", dev::Secret::ConstructFromStringType::FromHex); });
 struct PbftRpcTest : BaseTest {};
 
 TEST_F(PbftRpcTest, full_node_lambda_input_test) {
@@ -48,14 +45,12 @@ TEST_F(PbftRpcTest, add_cleanup_get_votes) {
   // generate 6 votes, each round has 2 votes
   blk_hash_t blockhash(1);
   PbftVoteTypes type = propose_vote_type;
-  blk_hash_t pbft_chain_last_block_hash =
-      node->getPbftChain()->getLastPbftBlockHash();
+  blk_hash_t pbft_chain_last_block_hash = node->getPbftChain()->getLastPbftBlockHash();
   for (int i = 1; i <= 3; i++) {
     for (int j = 1; j <= 2; j++) {
       uint64_t round = i;
       size_t step = j;
-      Vote vote = node->getPbftManager()->generateVote(
-          blockhash, type, round, step, pbft_chain_last_block_hash);
+      Vote vote = node->getPbftManager()->generateVote(blockhash, type, round, step, pbft_chain_last_block_hash);
       node->getVoteManager()->addVote(vote);
     }
   }
@@ -68,9 +63,8 @@ TEST_F(PbftRpcTest, add_cleanup_get_votes) {
   size_t valid_sortition_players = 1;
   pbft_mgr->setSortitionThreshold(valid_sortition_players);
   uint64_t pbft_round = 2;
-  std::vector<Vote> votes = vote_mgr->getVotes(
-      pbft_round, pbft_chain_last_block_hash, pbft_mgr->getSortitionThreshold(),
-      valid_sortition_players, [](...) { return true; });
+  std::vector<Vote> votes = vote_mgr->getVotes(pbft_round, pbft_chain_last_block_hash, pbft_mgr->getSortitionThreshold(), valid_sortition_players,
+                                               [](...) { return true; });
   EXPECT_EQ(votes.size(), 4);
   for (Vote const &v : votes) {
     EXPECT_GT(v.getRound(), 1);
@@ -122,8 +116,7 @@ TEST_F(PbftRpcTest, transfer_vote) {
   uint64_t period = 1;
   size_t step = 1;
 
-  Vote vote = node2->getPbftManager()->generateVote(blockhash, type, period,
-                                                    step, pbft_blockhash);
+  Vote vote = node2->getPbftManager()->generateVote(blockhash, type, period, step, pbft_blockhash);
 
   node1->getVoteManager()->clearUnverifiedVotesTable();
   node2->getVoteManager()->clearUnverifiedVotesTable();
@@ -131,11 +124,9 @@ TEST_F(PbftRpcTest, transfer_vote) {
   nw2->sendPbftVote(nw1->getNodeId(), vote);
   taraxa::thisThreadSleepForMilliSeconds(100);
 
-  size_t vote_queue_size_in_node1 =
-      node1->getVoteManager()->getUnverifiedVotesSize();
+  size_t vote_queue_size_in_node1 = node1->getVoteManager()->getUnverifiedVotesSize();
   EXPECT_EQ(vote_queue_size_in_node1, 1);
-  size_t vote_queue_size_in_node2 =
-      node2->getVoteManager()->getUnverifiedVotesSize();
+  size_t vote_queue_size_in_node2 = node2->getVoteManager()->getUnverifiedVotesSize();
   EXPECT_EQ(vote_queue_size_in_node2, 0);
 }
 
@@ -153,9 +144,7 @@ TEST_F(PbftRpcTest, vote_broadcast) {
   int node_peers = 2;
   for (int i = 0; i < 300; i++) {
     // test timeout is 30 seconds
-    if (nw1->getPeerCount() == node_peers &&
-        nw2->getPeerCount() == node_peers &&
-        nw3->getPeerCount() == node_peers) {
+    if (nw1->getPeerCount() == node_peers && nw2->getPeerCount() == node_peers && nw3->getPeerCount() == node_peers) {
       break;
     }
     taraxa::thisThreadSleepForMilliSeconds(100);
@@ -178,8 +167,7 @@ TEST_F(PbftRpcTest, vote_broadcast) {
   PbftVoteTypes type = propose_vote_type;
   uint64_t period = 1;
   size_t step = 1;
-  Vote vote = node1->getPbftManager()->generateVote(blockhash, type, period,
-                                                    step, pbft_blockhash);
+  Vote vote = node1->getPbftManager()->generateVote(blockhash, type, period, step, pbft_blockhash);
 
   node1->getVoteManager()->clearUnverifiedVotesTable();
   node2->getVoteManager()->clearUnverifiedVotesTable();

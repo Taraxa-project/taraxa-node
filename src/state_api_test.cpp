@@ -36,8 +36,7 @@ struct TestBlock {
 };
 
 void dec_rlp(RLP const& rlp, TestBlock& target) {
-  dec_rlp_tuple(rlp, target.Hash, target.StateRoot, target.evm_block,
-                target.Transactions, target.UncleBlocks);
+  dec_rlp_tuple(rlp, target.Hash, target.StateRoot, target.evm_block, target.Transactions, target.UncleBlocks);
 }
 
 template <typename T>
@@ -49,9 +48,8 @@ T parse_rlp_file(path const& p) {
 }
 
 TEST_F(StateAPITest, eth_mainnet_smoke) {
-  auto test_blocks = parse_rlp_file<vector<TestBlock>>(
-      path(__FILE__).parent_path().parent_path() / "submodules" / "taraxa-evm" /
-      "taraxa" / "data" / "eth_mainnet_blocks_0_300000.rlp");
+  auto test_blocks = parse_rlp_file<vector<TestBlock>>(path(__FILE__).parent_path().parent_path() / "submodules" / "taraxa-evm" / "taraxa" / "data" /
+                                                       "eth_mainnet_blocks_0_300000.rlp");
 
   ChainConfig chain_config;
   auto& eth_cfg = chain_config.eth_chain_config;
@@ -64,20 +62,17 @@ TEST_F(StateAPITest, eth_mainnet_smoke) {
   eth_cfg.petersburg_block = 7280000;
 
   auto genesis_balances_rlp_hex_c = taraxa_evm_mainnet_genesis_balances();
-  auto genesis_balances_rlp = dev::jsToBytes(string(
-      (char*)genesis_balances_rlp_hex_c.Data, genesis_balances_rlp_hex_c.Len));
+  auto genesis_balances_rlp = dev::jsToBytes(string((char*)genesis_balances_rlp_hex_c.Data, genesis_balances_rlp_hex_c.Len));
   dec_rlp(RLP(genesis_balances_rlp), chain_config.genesis_balances);
 
   Opts opts;
   opts.ExpectedMaxTrxPerBlock = 300;
   opts.MainTrieFullNodeLevelsToCache = 4;
 
-  StateAPI SUT((data_dir / "state").string(),
-               [&](auto n) { return test_blocks[n].Hash; },  //
+  StateAPI SUT((data_dir / "state").string(), [&](auto n) { return test_blocks[n].Hash; },  //
                chain_config, opts);
 
-  ASSERT_EQ(test_blocks[0].StateRoot,
-            SUT.get_last_committed_state_descriptor().state_root);
+  ASSERT_EQ(test_blocks[0].StateRoot, SUT.get_last_committed_state_descriptor().state_root);
   auto progress_pct = numeric_limits<int>::min();
   for (size_t blk_num = 1; blk_num < test_blocks.size(); ++blk_num) {
     if (int n = 100 * blk_num / test_blocks.size(); n >= progress_pct + 10) {
@@ -85,8 +80,7 @@ TEST_F(StateAPITest, eth_mainnet_smoke) {
       cout << "progress: " << (progress_pct = n) << "%" << endl;
     }
     auto const& test_block = test_blocks[blk_num];
-    auto const& result = SUT.transition_state(
-        test_block.evm_block, test_block.Transactions, test_block.UncleBlocks);
+    auto const& result = SUT.transition_state(test_block.evm_block, test_block.Transactions, test_block.UncleBlocks);
     ASSERT_EQ(result.StateRoot, test_block.StateRoot);
     SUT.transition_state_commit();
   }
@@ -105,24 +99,20 @@ TEST_F(StateAPITest, dpos_integration) {
   dpos_cfg.deposit_delay = 2;
   dpos_cfg.withdrawal_delay = 4;
   dpos_cfg.eligibility_balance_threshold = 1000;
-  addr_1_bal_expected -= dpos_cfg.genesis_state[addr_1][addr_1] =
-      dpos_cfg.eligibility_balance_threshold;
+  addr_1_bal_expected -= dpos_cfg.genesis_state[addr_1][addr_1] = dpos_cfg.eligibility_balance_threshold;
 
   uint64_t curr_blk = 0;
-  StateAPI SUT((data_dir / "state").string(),
-               [&](auto n) -> h256 { assert(false); },  //
+  StateAPI SUT((data_dir / "state").string(), [&](auto n) -> h256 { assert(false); },  //
                chain_cfg);
 
   vector<addr_t> expected_eligible_set;
   auto CHECK = [&] {
     string meta = "at block " + to_string(curr_blk);
-    EXPECT_EQ(addr_1_bal_expected, SUT.get_account(curr_blk, addr_1)->Balance)
-        << meta;
+    EXPECT_EQ(addr_1_bal_expected, SUT.get_account(curr_blk, addr_1)->Balance) << meta;
     for (auto const& addr : expected_eligible_set) {
       EXPECT_TRUE(SUT.dpos_is_eligible(curr_blk, addr)) << meta;
     }
-    EXPECT_EQ(SUT.dpos_eligible_count(curr_blk), expected_eligible_set.size())
-        << meta;
+    EXPECT_EQ(SUT.dpos_eligible_count(curr_blk), expected_eligible_set.size()) << meta;
   };
   auto EXEC_AND_CHECK = [&](vector<EVMTransaction> const& trxs) {
     auto result = SUT.transition_state({}, trxs);
@@ -151,10 +141,8 @@ TEST_F(StateAPITest, dpos_integration) {
   expected_eligible_set = {addr_1};
   CHECK();
 
-  addr_1_bal_expected -= transfers[addr_2].value =
-      dpos_cfg.eligibility_balance_threshold;
-  addr_1_bal_expected -= transfers[addr_3].value =
-      dpos_cfg.eligibility_balance_threshold - 1;
+  addr_1_bal_expected -= transfers[addr_2].value = dpos_cfg.eligibility_balance_threshold;
+  addr_1_bal_expected -= transfers[addr_3].value = dpos_cfg.eligibility_balance_threshold - 1;
   EXEC_AND_CHECK({make_dpos_trx()});
 
   u256 withdrawal_val = 1;

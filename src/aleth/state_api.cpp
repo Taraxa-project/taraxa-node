@@ -9,8 +9,7 @@ using namespace std;
 struct StateAPIImpl : virtual Eth::StateAPI {
   shared_ptr<FinalChain> final_chain;
 
-  auto call_internal(BlockNumber _blockNumber, TransactionSkeleton const& trx,
-                     bool free_gas) const {
+  auto call_internal(BlockNumber _blockNumber, TransactionSkeleton const& trx, bool free_gas) const {
     return final_chain->call(
         {
             trx.from,
@@ -26,13 +25,9 @@ struct StateAPIImpl : virtual Eth::StateAPI {
         state_api::ExecutionOptions{true, free_gas});
   }
 
-  bytes call(BlockNumber _blockNumber,
-             TransactionSkeleton const& trx) const override {
-    return call_internal(_blockNumber, trx, false).CodeRet;
-  }
+  bytes call(BlockNumber _blockNumber, TransactionSkeleton const& trx) const override { return call_internal(_blockNumber, trx, false).CodeRet; }
 
-  uint64_t estimateGas(BlockNumber _blockNumber,
-                       TransactionSkeleton const& trx) const override {
+  uint64_t estimateGas(BlockNumber _blockNumber, TransactionSkeleton const& trx) const override {
     return call_internal(_blockNumber, trx, true).GasUsed;
   }
 
@@ -50,9 +45,7 @@ struct StateAPIImpl : virtual Eth::StateAPI {
     return 0;
   }
 
-  bytes codeAt(Address _a, BlockNumber n) const override {
-    return final_chain->get_code(_a, n);
-  }
+  bytes codeAt(Address _a, BlockNumber n) const override { return final_chain->get_code(_a, n); }
 
   h256 stateRootAt(Address _a, BlockNumber n) const override {
     if (auto acc = final_chain->get_account(_a, n)) {
@@ -61,9 +54,7 @@ struct StateAPIImpl : virtual Eth::StateAPI {
     return {};
   }
 
-  u256 stateAt(Address _a, u256 _l, BlockNumber n) const override {
-    return final_chain->get_account_storage(_a, _l, n);
-  }
+  u256 stateAt(Address _a, u256 _l, BlockNumber n) const override { return final_chain->get_account_storage(_a, _l, n); }
 };
 
 unique_ptr<Eth::StateAPI> NewStateAPI(shared_ptr<FinalChain> final_chain) {

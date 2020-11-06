@@ -16,16 +16,14 @@ Json::Value enc_json(VdfConfig const& obj) {
 }
 
 void dec_json(Json::Value const& json, VdfConfig& obj) {
-  obj.difficulty_selection =
-      dev::jsToInt(json["difficulty_selection"].asString());
+  obj.difficulty_selection = dev::jsToInt(json["difficulty_selection"].asString());
   obj.difficulty_min = dev::jsToInt(json["difficulty_min"].asString());
   obj.difficulty_max = dev::jsToInt(json["difficulty_max"].asString());
   obj.difficulty_stale = dev::jsToInt(json["difficulty_stale"].asString());
   obj.lambda_bound = dev::jsToInt(json["lambda_bound"].asString());
 }
 
-VdfSortition::VdfSortition(VdfConfig const& config, addr_t node_addr,
-                           vrf_sk_t const& sk, Message const& msg)
+VdfSortition::VdfSortition(VdfConfig const& config, addr_t node_addr, vrf_sk_t const& sk, Message const& msg)
     : difficulty_selection_(config.difficulty_selection),
       difficulty_min_(config.difficulty_min),
       difficulty_max_(config.difficulty_max),
@@ -87,12 +85,10 @@ void VdfSortition::computeVdfSolution(std::string const& msg) {
   vdf_computation_time_ = t2 - t1;
 }
 
-bool VdfSortition::verifyVdf(level_t propose_block_level,
-                             std::string const& vdf_input) {
+bool VdfSortition::verifyVdf(level_t propose_block_level, std::string const& vdf_input) {
   // Verify propose level
   if (getVrfMessage().level != propose_block_level) {
-    LOG(log_er_) << "The proposal DAG block level is " << propose_block_level
-                 << ", but in VRF message is " << getVrfMessage().level;
+    LOG(log_er_) << "The proposal DAG block level is " << propose_block_level << ", but in VRF message is " << getVrfMessage().level;
     return false;
   }
 
@@ -114,9 +110,7 @@ bool VdfSortition::verifyVdfSolution(std::string const& vdf_input) {
   const auto msg_bytes = vrf_wrapper::getRlpBytes(vdf_input);
   VerifierWesolowski verifier(getLambda(), getDifficulty(), msg_bytes, N);
   if (!verifier(vdf_sol_)) {
-    LOG(log_er_) << "VDF solution verification failed. VDF input " << vdf_input
-                 << ", lambda " << getLambda() << ", difficulty "
-                 << getDifficulty();
+    LOG(log_er_) << "VDF solution verification failed. VDF input " << vdf_input << ", lambda " << getLambda() << ", difficulty " << getDifficulty();
     // std::cout << *this << std::endl;
     return false;
   }

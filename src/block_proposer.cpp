@@ -25,34 +25,27 @@ bool SortitionPropose::propose() {
     return false;
   }
   assert(!frontier.pivot.isZero());
-  auto propose_level =
-      proposer->getProposeLevel(frontier.pivot, frontier.tips) + 1;
+  auto propose_level = proposer->getProposeLevel(frontier.pivot, frontier.tips) + 1;
 
   // get sortition
   vdf_sortition::Message msg(propose_level);
   vdf_sortition::VdfSortition vdf(vdf_config_, node_addr_, vrf_sk_, msg);
   auto difficulty = vdf.getDifficulty();
-  if (difficulty == vdf_config_.difficulty_stale &&
-      propose_level == last_propose_level_ && num_tries_ < max_num_tries_) {
-    LOG(log_dg_) << "Will not propose DAG block. Get difficulty " << difficulty
-                 << " at stale, last propose level " << last_propose_level_
+  if (difficulty == vdf_config_.difficulty_stale && propose_level == last_propose_level_ && num_tries_ < max_num_tries_) {
+    LOG(log_dg_) << "Will not propose DAG block. Get difficulty " << difficulty << " at stale, last propose level " << last_propose_level_
                  << ", has tried " << num_tries_ << " times.";
     num_tries_++;
     return false;
-  } else if (difficulty == vdf_config_.difficulty_stale &&
-             propose_level != last_propose_level_) {
+  } else if (difficulty == vdf_config_.difficulty_stale && propose_level != last_propose_level_) {
     LOG(log_dg_) << "Will not propose DAG block, will reset number of tries. "
                     "Get difficulty "
-                 << difficulty << " at stale, last propose level "
-                 << last_propose_level_ << ", current propose level "
-                 << propose_level;
+                 << difficulty << " at stale, last propose level " << last_propose_level_ << ", current propose level " << propose_level;
     last_propose_level_ = propose_level;
     num_tries_ = 0;
     return false;
   }
   vdf.computeVdfSolution(frontier.pivot.toString());
-  LOG(log_nf_) << "VDF computation time " << vdf.getComputationTime()
-               << " difficulty " << vdf.getDifficulty();
+  LOG(log_nf_) << "VDF computation time " << vdf.getComputationTime() << " difficulty " << vdf.getDifficulty();
   DagBlock blk(frontier.pivot, propose_level, frontier.tips, sharded_trxs, vdf);
   proposer->proposeBlock(blk);
 
@@ -102,26 +95,21 @@ bool BlockProposer::getLatestPivotAndTips(blk_hash_t& pivot, vec_blk_t& tips) {
   std::vector<std::string> tips_string;
   bool ok = dag_mgr_->getLatestPivotAndTips(pivot_string, tips_string);
   if (ok) {
-    LOG(log_nf_) << "BlockProposer: pivot: " << pivot.toString()
-                 << ", tip size = " << tips.size() << std::endl;
+    LOG(log_nf_) << "BlockProposer: pivot: " << pivot.toString() << ", tip size = " << tips.size() << std::endl;
     LOG(log_tr_) << "Tips: " << tips;
   } else {
     LOG(log_er_) << "Pivot and tips unavailable ..." << std::endl;
     return ok;
   }
 
-  LOG(log_time_) << "Pivot and Tips retrieved at: "
-                 << getCurrentTimeMilliSeconds();
+  LOG(log_time_) << "Pivot and Tips retrieved at: " << getCurrentTimeMilliSeconds();
   pivot = blk_hash_t(pivot_string);
   tips.clear();
-  std::transform(tips_string.begin(), tips_string.end(),
-                 std::back_inserter(tips),
-                 [](const std::string& item) { return blk_hash_t(item); });
+  std::transform(tips_string.begin(), tips_string.end(), std::back_inserter(tips), [](const std::string& item) { return blk_hash_t(item); });
   return ok;
 }
 
-bool BlockProposer::getShardedTrxs(uint total_shard, DagFrontier& frontier,
-                                   uint my_shard, vec_trx_t& sharded_trxs) {
+bool BlockProposer::getShardedTrxs(uint total_shard, DagFrontier& frontier, uint my_shard, vec_trx_t& sharded_trxs) {
   vec_trx_t to_be_packed_trx;
   trx_mgr_->packTrxs(to_be_packed_trx, frontier, bp_config_.transaction_limit);
   // Need to update pivot incase a new period is confirmed
@@ -129,8 +117,7 @@ bool BlockProposer::getShardedTrxs(uint total_shard, DagFrontier& frontier,
   if (dag_mgr_) {
     dag_mgr_->getGhostPath(ghost);
     vec_blk_t gg;
-    std::transform(ghost.begin(), ghost.end(), std::back_inserter(gg),
-                   [](std::string const& t) { return blk_hash_t(t); });
+    std::transform(ghost.begin(), ghost.end(), std::back_inserter(gg), [](std::string const& t) { return blk_hash_t(t); });
     for (auto const& g : gg) {
       if (g == frontier.pivot) {  // pivot does not change
         break;
@@ -138,15 +125,13 @@ bool BlockProposer::getShardedTrxs(uint total_shard, DagFrontier& frontier,
       auto iter = std::find(frontier.tips.begin(), frontier.tips.end(), g);
       if (iter != std::end(frontier.tips)) {
         std::swap(frontier.pivot, *iter);
-        LOG(log_si_) << " Swap frontier with pivot: " << *iter
-                     << " tips: " << frontier.pivot;
+        LOG(log_si_) << " Swap frontier with pivot: " << *iter << " tips: " << frontier.pivot;
       }
     }
   }
 
   if (to_be_packed_trx.empty()) {
-    LOG(log_tr_) << "Skip block proposer, zero unpacked transactions ..."
-                 << std::endl;
+    LOG(log_tr_) << "Skip block proposer, zero unpacked transactions ..." << std::endl;
     return false;
   }
   sharded_trxs.clear();
@@ -157,8 +142,7 @@ bool BlockProposer::getShardedTrxs(uint total_shard, DagFrontier& frontier,
     }
   }
   if (sharded_trxs.empty()) {
-    LOG(log_tr_) << "Skip block proposer, zero sharded transactions ..."
-                 << std::endl;
+    LOG(log_tr_) << "Skip block proposer, zero sharded transactions ..." << std::endl;
     return false;
   }
   return true;
@@ -175,8 +159,7 @@ blk_hash_t BlockProposer::getProposeAnchor() const {
   }
 }
 
-level_t BlockProposer::getProposeLevel(blk_hash_t const& pivot,
-                                       vec_blk_t const& tips) {
+level_t BlockProposer::getProposeLevel(blk_hash_t const& pivot, vec_blk_t const& tips) {
   level_t max_level = 0;
   // get current level
   auto pivot_blk = blk_mgr_->getDagBlock(pivot);
@@ -204,12 +187,8 @@ void BlockProposer::proposeBlock(DagBlock& blk) {
   blk_mgr_->insertBlock(blk);
 
   auto now = getCurrentTimeMilliSeconds();
-  LOG(log_time_) << "Propose block " << blk.getHash() << " at: " << now
-                 << " ,trxs: " << blk.getTrxs()
-                 << " , tips: " << blk.getTips().size();
-  LOG(log_nf_) << " Propose block :" << blk.getHash()
-               << " pivot: " << blk.getPivot() << " , number of trx ("
-               << blk.getTrxs().size() << ")";
+  LOG(log_time_) << "Propose block " << blk.getHash() << " at: " << now << " ,trxs: " << blk.getTrxs() << " , tips: " << blk.getTips().size();
+  LOG(log_nf_) << " Propose block :" << blk.getHash() << " pivot: " << blk.getPivot() << " , number of trx (" << blk.getTrxs().size() << ")";
   BlockProposer::num_proposed_blocks.fetch_add(1);
 }
 

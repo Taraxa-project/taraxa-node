@@ -15,8 +15,7 @@ std::string getConfigErr(std::vector<string> path) {
   return res;
 }
 
-Json::Value getConfigData(Json::Value root, std::vector<string> const &path,
-                          bool optional = false) {
+Json::Value getConfigData(Json::Value root, std::vector<string> const &path, bool optional = false) {
   for (auto i = 0; i < path.size(); i++) {
     root = root[path[i]];
     if (root.isNull() && !optional) {
@@ -26,8 +25,7 @@ Json::Value getConfigData(Json::Value root, std::vector<string> const &path,
   return root;
 }
 
-std::string getConfigDataAsString(Json::Value const &root,
-                                  std::vector<string> const &path) {
+std::string getConfigDataAsString(Json::Value const &root, std::vector<string> const &path) {
   try {
     return getConfigData(root, path).asString();
   } catch (Json::Exception &e) {
@@ -35,9 +33,7 @@ std::string getConfigDataAsString(Json::Value const &root,
   }
 }
 
-uint32_t getConfigDataAsUInt(Json::Value const &root,
-                             std::vector<string> const &path,
-                             bool optional = false, uint32_t value = 0) {
+uint32_t getConfigDataAsUInt(Json::Value const &root, std::vector<string> const &path, bool optional = false, uint32_t value = 0) {
   try {
     Json::Value ret = getConfigData(root, path, optional);
     if (ret.isNull()) {
@@ -53,8 +49,7 @@ uint32_t getConfigDataAsUInt(Json::Value const &root,
   }
 }
 
-uint64_t getConfigDataAsUInt64(Json::Value const &root,
-                               std::vector<string> const &path) {
+uint64_t getConfigDataAsUInt64(Json::Value const &root, std::vector<string> const &path) {
   try {
     return getConfigData(root, path).asUInt64();
   } catch (Json::Exception &e) {
@@ -62,8 +57,7 @@ uint64_t getConfigDataAsUInt64(Json::Value const &root,
   }
 }
 
-bool getConfigDataAsBoolean(Json::Value const &root,
-                            std::vector<string> const &path) {
+bool getConfigDataAsBoolean(Json::Value const &root, std::vector<string> const &path) {
   try {
     return getConfigData(root, path).asBool();
   } catch (Json::Exception &e) {
@@ -77,47 +71,33 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object) {
     json_file_name = string_or_object.asString();
     std::ifstream config_doc(json_file_name, std::ifstream::binary);
     if (!config_doc.is_open()) {
-      throw ConfigException(string("Could not open configuration file: ") +
-                            json_file_name);
+      throw ConfigException(string("Could not open configuration file: ") + json_file_name);
     }
     try {
       config_doc >> parsed_from_file;
     } catch (Json::Exception &e) {
-      throw ConfigException(
-          string("Could not parse json configuration file: ") + json_file_name +
-          e.what());
+      throw ConfigException(string("Could not parse json configuration file: ") + json_file_name + e.what());
     }
   }
-  auto const &root =
-      string_or_object.isString() ? parsed_from_file : string_or_object;
+  auto const &root = string_or_object.isString() ? parsed_from_file : string_or_object;
   node_secret = getConfigDataAsString(root, {"node_secret"});
-  vrf_secret =
-      vrf_wrapper::vrf_sk_t(getConfigDataAsString(root, {"vrf_secret"}));
+  vrf_secret = vrf_wrapper::vrf_sk_t(getConfigDataAsString(root, {"vrf_secret"}));
   db_path = getConfigDataAsString(root, {"db_path"});
-  if (auto n = getConfigData(root, {"network_is_boot_node"}, true);
-      !n.isNull()) {
+  if (auto n = getConfigData(root, {"network_is_boot_node"}, true); !n.isNull()) {
     network.network_is_boot_node = n.asBool();
   }
   network.network_address = getConfigDataAsString(root, {"network_address"});
   network.network_tcp_port = getConfigDataAsUInt(root, {"network_tcp_port"});
   network.network_udp_port = getConfigDataAsUInt(root, {"network_udp_port"});
-  network.network_simulated_delay =
-      getConfigDataAsUInt(root, {"network_simulated_delay"});
-  network.network_transaction_interval =
-      getConfigDataAsUInt(root, {"network_transaction_interval"});
-  network.network_min_dag_block_broadcast =
-      getConfigDataAsUInt(root, {"network_min_dag_block_broadcast"}, true, 5);
-  network.network_max_dag_block_broadcast =
-      getConfigDataAsUInt(root, {"network_max_dag_block_broadcast"}, true, 20);
+  network.network_simulated_delay = getConfigDataAsUInt(root, {"network_simulated_delay"});
+  network.network_transaction_interval = getConfigDataAsUInt(root, {"network_transaction_interval"});
+  network.network_min_dag_block_broadcast = getConfigDataAsUInt(root, {"network_min_dag_block_broadcast"}, true, 5);
+  network.network_max_dag_block_broadcast = getConfigDataAsUInt(root, {"network_max_dag_block_broadcast"}, true, 20);
   network.network_bandwidth = getConfigDataAsUInt(root, {"network_bandwidth"});
-  network.network_ideal_peer_count =
-      getConfigDataAsUInt(root, {"network_ideal_peer_count"});
-  network.network_max_peer_count =
-      getConfigDataAsUInt(root, {"network_max_peer_count"});
-  network.network_sync_level_size =
-      getConfigDataAsUInt(root, {"network_sync_level_size"});
-  network.network_encrypted =
-      getConfigDataAsUInt(root, {"network_encrypted"}) != 0;
+  network.network_ideal_peer_count = getConfigDataAsUInt(root, {"network_ideal_peer_count"});
+  network.network_max_peer_count = getConfigDataAsUInt(root, {"network_max_peer_count"});
+  network.network_sync_level_size = getConfigDataAsUInt(root, {"network_sync_level_size"});
+  network.network_encrypted = getConfigDataAsUInt(root, {"network_encrypted"}) != 0;
   for (auto &item : root["network_boot_nodes"]) {
     NodeConfig node;
     node.id = getConfigDataAsString(item, {"id"});
@@ -134,26 +114,19 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object) {
     rpc.ws_port = n.asUInt();
   }
   {  // for test experiments
-    test_params.max_transaction_queue_warn = getConfigDataAsUInt(
-        root, {"test_params", "max_transaction_queue_warn"}, true);
-    test_params.max_transaction_queue_drop = getConfigDataAsUInt(
-        root, {"test_params", "max_transaction_queue_drop"}, true);
+    test_params.max_transaction_queue_warn = getConfigDataAsUInt(root, {"test_params", "max_transaction_queue_warn"}, true);
+    test_params.max_transaction_queue_drop = getConfigDataAsUInt(root, {"test_params", "max_transaction_queue_drop"}, true);
 
-    test_params.max_block_queue_warn = getConfigDataAsUInt(
-        root, {"test_params", "max_block_queue_warn"}, true);
+    test_params.max_block_queue_warn = getConfigDataAsUInt(root, {"test_params", "max_block_queue_warn"}, true);
 
     // Create db snapshot each N pbft block
-    test_params.db_snapshot_each_n_pbft_block = getConfigDataAsUInt(
-        root, {"test_params", "db_snapshot_each_n_pbft_block"}, true);
+    test_params.db_snapshot_each_n_pbft_block = getConfigDataAsUInt(root, {"test_params", "db_snapshot_each_n_pbft_block"}, true);
 
-    test_params.db_max_snapshots =
-        getConfigDataAsUInt(root, {"test_params", "db_max_snapshots"}, true);
+    test_params.db_max_snapshots = getConfigDataAsUInt(root, {"test_params", "db_max_snapshots"}, true);
 
     // DAG proposal
-    test_params.block_proposer.shard =
-        getConfigDataAsUInt(root, {"test_params", "block_proposer", "shard"});
-    test_params.block_proposer.transaction_limit = getConfigDataAsUInt(
-        root, {"test_params", "block_proposer", "transaction_limit"});
+    test_params.block_proposer.shard = getConfigDataAsUInt(root, {"test_params", "block_proposer", "shard"});
+    test_params.block_proposer.transaction_limit = getConfigDataAsUInt(root, {"test_params", "block_proposer", "transaction_limit"});
   }
 
   // Network logging in p2p library creates performance issues even with
@@ -165,8 +138,7 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object) {
       if (on) {
         LoggingConfig logging;
         logging.name = getConfigDataAsString(item, {"name"});
-        logging.verbosity =
-            stringToVerbosity(getConfigDataAsString(item, {"verbosity"}));
+        logging.verbosity = stringToVerbosity(getConfigDataAsString(item, {"verbosity"}));
         for (auto &ch : item["channels"]) {
           std::pair<std::string, uint16_t> channel;
           channel.first = getConfigDataAsString(ch, {"name"});
@@ -179,8 +151,7 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object) {
           if (ch["verbosity"].isNull()) {
             channel.second = logging.verbosity;
           } else {
-            channel.second =
-                stringToVerbosity(getConfigDataAsString(ch, {"verbosity"}));
+            channel.second = stringToVerbosity(getConfigDataAsString(ch, {"verbosity"}));
           }
           logging.channels[channel.first] = channel.second;
         }
@@ -189,13 +160,11 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object) {
           output.type = getConfigDataAsString(o, {"type"});
           output.format = getConfigDataAsString(o, {"format"});
           if (output.type == "file") {
-            output.file_name =
-                (db_path / getConfigDataAsString(o, {"file_name"})).string();
+            output.file_name = (db_path / getConfigDataAsString(o, {"file_name"})).string();
             output.format = getConfigDataAsString(o, {"format"});
             output.max_size = getConfigDataAsUInt64(o, {"max_size"});
             output.rotation_size = getConfigDataAsUInt64(o, {"rotation_size"});
-            output.time_based_rotation =
-                getConfigDataAsString(o, {"time_based_rotation"});
+            output.time_based_rotation = getConfigDataAsString(o, {"time_based_rotation"});
           }
           logging.outputs.push_back(output);
         }
@@ -232,17 +201,12 @@ std::ostream &operator<<(std::ostream &strm, NetworkConfig const &conf) {
   strm << "  network_address: " << conf.network_address << std::endl;
   strm << "  network_tcp_port: " << conf.network_tcp_port << std::endl;
   strm << "  network_udp_port: " << conf.network_udp_port << std::endl;
-  strm << "  network_simulated_delay: " << conf.network_simulated_delay
-       << std::endl;
-  strm << "  network_transaction_interval: "
-       << conf.network_transaction_interval << std::endl;
+  strm << "  network_simulated_delay: " << conf.network_simulated_delay << std::endl;
+  strm << "  network_transaction_interval: " << conf.network_transaction_interval << std::endl;
   strm << "  network_bandwidth: " << conf.network_bandwidth << std::endl;
-  strm << "  network_ideal_peer_count: " << conf.network_ideal_peer_count
-       << std::endl;
-  strm << "  network_max_peer_count: " << conf.network_max_peer_count
-       << std::endl;
-  strm << "  network_sync_level_size: " << conf.network_sync_level_size
-       << std::endl;
+  strm << "  network_ideal_peer_count: " << conf.network_ideal_peer_count << std::endl;
+  strm << "  network_max_peer_count: " << conf.network_max_peer_count << std::endl;
+  strm << "  network_sync_level_size: " << conf.network_sync_level_size << std::endl;
   strm << "  network_id: " << conf.network_id << std::endl;
 
   strm << "  --> boot nodes  ... " << std::endl;

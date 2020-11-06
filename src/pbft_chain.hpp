@@ -27,12 +27,7 @@ class DbStorage;
 class FullNode;
 class Vote;
 
-enum PbftVoteTypes {
-  propose_vote_type = 0,
-  soft_vote_type,
-  cert_vote_type,
-  next_vote_type
-};
+enum PbftVoteTypes { propose_vote_type = 0, soft_vote_type, cert_vote_type, next_vote_type };
 
 class PbftBlock {
   blk_hash_t block_hash_;
@@ -45,9 +40,7 @@ class PbftBlock {
   sig_t signature_;
 
  public:
-  PbftBlock(blk_hash_t const& prev_blk_hash,
-            blk_hash_t const& dag_blk_hash_as_pivot, uint64_t period,
-            addr_t const& beneficiary, secret_t const& sk);
+  PbftBlock(blk_hash_t const& prev_blk_hash, blk_hash_t const& dag_blk_hash_as_pivot, uint64_t period, addr_t const& beneficiary, secret_t const& sk);
   explicit PbftBlock(dev::RLP const& r);
   explicit PbftBlock(bytes const& RLP);
   explicit PbftBlock(std::string const& JSON);
@@ -58,8 +51,7 @@ class PbftBlock {
   void streamRLP(dev::RLPStream& strm, bool include_sig) const;
   bytes rlp(bool include_sig) const;
 
-  static Json::Value toJson(PbftBlock const& b,
-                            std::vector<blk_hash_t> const& dag_blks);
+  static Json::Value toJson(PbftBlock const& b, std::vector<blk_hash_t> const& dag_blks);
 
   auto const& getBlockHash() const { return block_hash_; }
   auto const& getPrevBlockHash() const { return prev_block_hash_; }
@@ -81,15 +73,13 @@ struct PbftBlockCert {
   std::shared_ptr<PbftBlock> pbft_blk;
   std::vector<Vote> cert_votes;
   bytes rlp() const;
-  static void encode_raw(dev::RLPStream& rlp, PbftBlock const& pbft_blk,
-                         dev::bytesConstRef votes_raw);
+  static void encode_raw(dev::RLPStream& rlp, PbftBlock const& pbft_blk, dev::bytesConstRef votes_raw);
 };
 std::ostream& operator<<(std::ostream& strm, PbftBlockCert const& b);
 
 class PbftChain {
  public:
-  explicit PbftChain(std::string const& dag_genesis_hash, addr_t node_addr,
-                     std::shared_ptr<DbStorage> db);
+  explicit PbftChain(std::string const& dag_genesis_hash, addr_t node_addr, std::shared_ptr<DbStorage> db);
 
   void cleanupUnverifiedPbftBlocks(taraxa::PbftBlock const& pbft_block);
 
@@ -97,15 +87,12 @@ class PbftChain {
   blk_hash_t getHeadHash() const;
   blk_hash_t getLastPbftBlockHash() const;
   void setLastPbftBlockHash(blk_hash_t const& last_pbft_block_hash);
-  void setPbftChainHead(blk_hash_t const& head_hash, uint64_t const size,
-                        blk_hash_t const& last_pbft_block_hash);
+  void setPbftChainHead(blk_hash_t const& head_hash, uint64_t const size, blk_hash_t const& last_pbft_block_hash);
 
   PbftBlock getPbftBlockInChain(blk_hash_t const& pbft_block_hash);
-  std::shared_ptr<PbftBlock> getUnverifiedPbftBlock(
-      blk_hash_t const& pbft_block_hash);
+  std::shared_ptr<PbftBlock> getUnverifiedPbftBlock(blk_hash_t const& pbft_block_hash);
   std::vector<PbftBlock> getPbftBlocks(size_t period, size_t count) const;
-  std::vector<std::string> getPbftBlocksStr(size_t period, size_t count,
-                                            bool hash) const;
+  std::vector<std::string> getPbftBlocksStr(size_t period, size_t count, bool hash) const;
   std::string getHeadStr() const;
   std::string getJsonStr() const;
 
@@ -116,8 +103,7 @@ class PbftChain {
   void pushUnverifiedPbftBlock(std::shared_ptr<PbftBlock> const& pbft_block);
   void updatePbftChain(blk_hash_t const& pbft_block_hash);
 
-  bool checkPbftBlockValidationFromSyncing(
-      taraxa::PbftBlock const& pbft_block) const;
+  bool checkPbftBlockValidationFromSyncing(taraxa::PbftBlock const& pbft_block) const;
   bool checkPbftBlockValidation(taraxa::PbftBlock const& pbft_block) const;
 
   uint64_t pbftSyncingPeriod() const;
@@ -134,8 +120,7 @@ class PbftChain {
  private:
   void pbftSyncedSetInsert_(blk_hash_t const& pbft_block_hash);
   void pbftSyncedSetErase_();
-  void insertUnverifiedPbftBlockIntoParentMap_(
-      blk_hash_t const& prev_block_hash, blk_hash_t const& block_hash);
+  void insertUnverifiedPbftBlockIntoParentMap_(blk_hash_t const& prev_block_hash, blk_hash_t const& block_hash);
 
   using uniqueLock_ = boost::unique_lock<boost::shared_mutex>;
   using sharedLock_ = boost::shared_lock<boost::shared_mutex>;
@@ -155,8 +140,7 @@ class PbftChain {
   std::shared_ptr<DbStorage> db_ = nullptr;
 
   // <prev block hash, vector<PBFT proposed blocks waiting for vote>>
-  std::unordered_map<blk_hash_t, std::vector<blk_hash_t>>
-      unverified_blocks_map_;
+  std::unordered_map<blk_hash_t, std::vector<blk_hash_t>> unverified_blocks_map_;
   std::unordered_map<blk_hash_t, std::shared_ptr<PbftBlock>> unverified_blocks_;
 
   // syncing pbft blocks from peers

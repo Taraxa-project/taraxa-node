@@ -17,28 +17,18 @@
 namespace taraxa::core_tests {
 
 const unsigned NUM_TRX = 10;
-auto g_secret = Lazy([] {
-  return dev::Secret(
-      "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-      dev::Secret::ConstructFromStringType::FromHex);
-});
+auto g_secret = Lazy(
+    [] { return dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd", dev::Secret::ConstructFromStringType::FromHex); });
 auto node_key = dev::KeyPair(g_secret);
 
-auto g_trx_samples =
-    Lazy([] { return samples::createMockTrxSamples(0, NUM_TRX); });
-auto g_signed_trx_samples =
-    Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX, g_secret); });
+auto g_trx_samples = Lazy([] { return samples::createMockTrxSamples(0, NUM_TRX); });
+auto g_signed_trx_samples = Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX, g_secret); });
 
 const unsigned NUM_TRX2 = 200;
-auto g_secret2 = Lazy([] {
-  return dev::Secret(
-      "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-      dev::Secret::ConstructFromStringType::FromHex);
-});
-auto g_trx_samples2 =
-    Lazy([] { return samples::createMockTrxSamples(0, NUM_TRX2); });
-auto g_signed_trx_samples2 = Lazy(
-    [] { return samples::createSignedTrxSamples(0, NUM_TRX2, g_secret2); });
+auto g_secret2 = Lazy(
+    [] { return dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd", dev::Secret::ConstructFromStringType::FromHex); });
+auto g_trx_samples2 = Lazy([] { return samples::createMockTrxSamples(0, NUM_TRX2); });
+auto g_signed_trx_samples2 = Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX2, g_secret2); });
 auto three_default_configs = Lazy([] { return make_node_cfgs(3); });
 auto g_conf1 = Lazy([] { return three_default_configs[0]; });
 auto g_conf2 = Lazy([] { return three_default_configs[1]; });
@@ -49,19 +39,13 @@ struct NetworkTest : BaseTest {};
 // Test creates two Network setup and verifies sending block
 // between is successfull
 TEST_F(NetworkTest, transfer_block) {
-  std::shared_ptr<Network> nw1(new taraxa::Network(
-      g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString(),
-      addr_t()));
-  std::shared_ptr<Network> nw2(new taraxa::Network(
-      g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString(),
-      addr_t()));
+  std::shared_ptr<Network> nw1(new taraxa::Network(g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString(), addr_t()));
+  std::shared_ptr<Network> nw2(new taraxa::Network(g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t()));
 
   nw1->start();
   nw2->start();
-  DagBlock blk(
-      blk_hash_t(1111), 0, {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)},
-      {g_signed_trx_samples[0].getHash(), g_signed_trx_samples[1].getHash()},
-      sig_t(7777), blk_hash_t(888), addr_t(999));
+  DagBlock blk(blk_hash_t(1111), 0, {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)},
+               {g_signed_trx_samples[0].getHash(), g_signed_trx_samples[1].getHash()}, sig_t(7777), blk_hash_t(888), addr_t(999));
 
   std::vector<taraxa::bytes> transactions;
   transactions.emplace_back(*g_signed_trx_samples[0].rlp());
@@ -87,12 +71,8 @@ TEST_F(NetworkTest, transfer_block) {
 }
 
 TEST_F(NetworkTest, send_pbft_block) {
-  std::shared_ptr<Network> nw1(new taraxa::Network(
-      g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString(),
-      addr_t()));
-  std::shared_ptr<Network> nw2(new taraxa::Network(
-      g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString(),
-      addr_t()));
+  std::shared_ptr<Network> nw1(new taraxa::Network(g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString(), addr_t()));
+  std::shared_ptr<Network> nw2(new taraxa::Network(g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t()));
 
   nw1->start();
   nw2->start();
@@ -104,10 +84,7 @@ TEST_F(NetworkTest, send_pbft_block) {
   taraxa::thisThreadSleepForMilliSeconds(200);
 
   ASSERT_EQ(1, nw1->getTaraxaCapability()->getAllPeers().size());
-  ASSERT_EQ(chain_size,
-            nw1->getTaraxaCapability()
-                ->getPeer(nw1->getTaraxaCapability()->getAllPeers()[0])
-                ->pbft_chain_size_);
+  ASSERT_EQ(chain_size, nw1->getTaraxaCapability()->getPeer(nw1->getTaraxaCapability()->getAllPeers()[0])->pbft_chain_size_);
   nw2->stop();
   nw1->stop();
 }
@@ -115,12 +92,8 @@ TEST_F(NetworkTest, send_pbft_block) {
 // Test creates two Network setup and verifies sending transaction
 // between is successfull
 TEST_F(NetworkTest, transfer_transaction) {
-  std::shared_ptr<Network> nw1(new taraxa::Network(
-      g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString(),
-      addr_t()));
-  std::shared_ptr<Network> nw2(new taraxa::Network(
-      g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString(),
-      addr_t()));
+  std::shared_ptr<Network> nw1(new taraxa::Network(g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString(), addr_t()));
+  std::shared_ptr<Network> nw2(new taraxa::Network(g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t()));
 
   nw1->start(true);
   nw2->start();
@@ -151,15 +124,9 @@ TEST_F(NetworkTest, transfer_transaction) {
 // connections even with boot nodes down
 TEST_F(NetworkTest, save_network) {
   {
-    std::shared_ptr<Network> nw1(new taraxa::Network(
-        g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString(),
-        addr_t()));
-    std::shared_ptr<Network> nw2(new taraxa::Network(
-        g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString(),
-        addr_t()));
-    std::shared_ptr<Network> nw3(new taraxa::Network(
-        g_conf3->network, g_conf3->chain.dag_genesis_block.getHash().toString(),
-        addr_t()));
+    std::shared_ptr<Network> nw1(new taraxa::Network(g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString(), addr_t()));
+    std::shared_ptr<Network> nw2(new taraxa::Network(g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t()));
+    std::shared_ptr<Network> nw3(new taraxa::Network(g_conf3->network, g_conf3->chain.dag_genesis_block.getHash().toString(), addr_t()));
 
     nw1->start(true);
     nw2->start();
@@ -167,9 +134,7 @@ TEST_F(NetworkTest, save_network) {
 
     for (int i = 0; i < 45; i++) {
       taraxa::thisThreadSleepForSeconds(1);
-      if (2 == nw1->getPeerCount() && 2 == nw2->getPeerCount() &&
-          2 == nw3->getPeerCount())
-        break;
+      if (2 == nw1->getPeerCount() && 2 == nw2->getPeerCount() && 2 == nw3->getPeerCount()) break;
     }
 
     ASSERT_EQ(2, nw1->getPeerCount());
@@ -183,14 +148,10 @@ TEST_F(NetworkTest, save_network) {
     nw3->saveNetwork("/tmp/nw3");
   }
 
-  std::shared_ptr<Network> nw2(new taraxa::Network(
-      g_conf2->network, "/tmp/nw2",
-      g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t(), nullptr,
-      nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, public_t(), 2000));
-  std::shared_ptr<Network> nw3(new taraxa::Network(
-      g_conf3->network, "/tmp/nw3",
-      g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t(), nullptr,
-      nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, public_t(), 2000));
+  std::shared_ptr<Network> nw2(new taraxa::Network(g_conf2->network, "/tmp/nw2", g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t(),
+                                                   nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, public_t(), 2000));
+  std::shared_ptr<Network> nw3(new taraxa::Network(g_conf3->network, "/tmp/nw3", g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t(),
+                                                   nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, public_t(), 2000));
   nw2->start();
   nw3->start();
 
@@ -247,51 +208,44 @@ TEST_F(NetworkTest, node_sync) {
 
   auto propose_level = 1;
   vdf_sortition::Message msg1(propose_level);
-  vdf_sortition::VdfSortition vdf1(vdf_config, node_key.address(), vrf_sk,
-                                   msg1);
+  vdf_sortition::VdfSortition vdf1(vdf_config, node_key.address(), vrf_sk, msg1);
   vdf1.computeVdfSolution(dag_genesis.toString());
   DagBlock blk1(dag_genesis, propose_level, {}, {}, vdf1);
   blk1.sign(sk);
 
   propose_level = 2;
   vdf_sortition::Message msg2(propose_level);
-  vdf_sortition::VdfSortition vdf2(vdf_config, node_key.address(), vrf_sk,
-                                   msg2);
+  vdf_sortition::VdfSortition vdf2(vdf_config, node_key.address(), vrf_sk, msg2);
   vdf2.computeVdfSolution(blk1.getHash().toString());
   DagBlock blk2(blk1.getHash(), propose_level, {}, {}, vdf2);
   blk2.sign(sk);
 
   propose_level = 3;
   vdf_sortition::Message msg3(propose_level);
-  vdf_sortition::VdfSortition vdf3(vdf_config, node_key.address(), vrf_sk,
-                                   msg3);
+  vdf_sortition::VdfSortition vdf3(vdf_config, node_key.address(), vrf_sk, msg3);
   vdf3.computeVdfSolution(blk2.getHash().toString());
   DagBlock blk3(blk2.getHash(), propose_level, {}, {}, vdf3);
   blk3.sign(sk);
 
   propose_level = 4;
   vdf_sortition::Message msg4(propose_level);
-  vdf_sortition::VdfSortition vdf4(vdf_config, node_key.address(), vrf_sk,
-                                   msg4);
+  vdf_sortition::VdfSortition vdf4(vdf_config, node_key.address(), vrf_sk, msg4);
   vdf4.computeVdfSolution(blk3.getHash().toString());
   DagBlock blk4(blk3.getHash(), propose_level, {}, {}, vdf4);
   blk4.sign(sk);
 
   propose_level = 5;
   vdf_sortition::Message msg5(propose_level);
-  vdf_sortition::VdfSortition vdf5(vdf_config, node_key.address(), vrf_sk,
-                                   msg5);
+  vdf_sortition::VdfSortition vdf5(vdf_config, node_key.address(), vrf_sk, msg5);
   vdf5.computeVdfSolution(blk4.getHash().toString());
   DagBlock blk5(blk4.getHash(), propose_level, {}, {}, vdf5);
   blk5.sign(sk);
 
   propose_level = 6;
   vdf_sortition::Message msg6(propose_level);
-  vdf_sortition::VdfSortition vdf6(vdf_config, node_key.address(), vrf_sk,
-                                   msg6);
+  vdf_sortition::VdfSortition vdf6(vdf_config, node_key.address(), vrf_sk, msg6);
   vdf6.computeVdfSolution(blk5.getHash().toString());
-  DagBlock blk6(blk5.getHash(), propose_level, {blk4.getHash(), blk3.getHash()},
-                {}, vdf6);
+  DagBlock blk6(blk5.getHash(), propose_level, {blk4.getHash(), blk3.getHash()}, {}, vdf6);
   blk6.sign(sk);
 
   blks.push_back(blk6);
@@ -344,25 +298,19 @@ TEST_F(NetworkTest, node_pbft_sync) {
   addr_t beneficiary(987);
 
   vdf_sortition::Message msg1(1);
-  vdf_sortition::VdfSortition vdf1(vdf_config, node_key.address(), vrf_sk,
-                                   msg1);
+  vdf_sortition::VdfSortition vdf1(vdf_config, node_key.address(), vrf_sk, msg1);
   vdf1.computeVdfSolution(dag_genesis.toString());
   DagBlock blk1(dag_genesis, 1, {}, {}, vdf1);
   blk1.sign(sk);
   node1->getBlockManager()->insertBlock(blk1);
 
-  PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), period, beneficiary,
-                        node1->getSecretKey());
-  db1->putFinalizedDagBlockHashesByAnchor(*batch,
-                                          pbft_block1.getPivotDagBlockHash(),
-                                          {pbft_block1.getPivotDagBlockHash()});
+  PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), period, beneficiary, node1->getSecretKey());
+  db1->putFinalizedDagBlockHashesByAnchor(*batch, pbft_block1.getPivotDagBlockHash(), {pbft_block1.getPivotDagBlockHash()});
   std::vector<Vote> votes_for_pbft_blk1;
-  votes_for_pbft_blk1.emplace_back(node1->getPbftManager()->generateVote(
-      pbft_block1.getBlockHash(), cert_vote_type, 1, 3, prev_block_hash));
+  votes_for_pbft_blk1.emplace_back(node1->getPbftManager()->generateVote(pbft_block1.getBlockHash(), cert_vote_type, 1, 3, prev_block_hash));
   std::cout << "Generate 1 vote for first PBFT block" << std::endl;
   // Add cert votes in DB
-  db1->addPbftCertVotesToBatch(pbft_block1.getBlockHash(), votes_for_pbft_blk1,
-                               batch);
+  db1->addPbftCertVotesToBatch(pbft_block1.getBlockHash(), votes_for_pbft_blk1, batch);
   // Add PBFT block in DB
   db1->addPbftBlockToBatch(pbft_block1, batch);
   // Update period_pbft_block in DB
@@ -381,8 +329,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
   prev_block_hash = pbft_block1.getBlockHash();
 
   vdf_sortition::Message msg2(2);
-  vdf_sortition::VdfSortition vdf2(vdf_config, node_key.address(), vrf_sk,
-                                   msg2);
+  vdf_sortition::VdfSortition vdf2(vdf_config, node_key.address(), vrf_sk, msg2);
   vdf2.computeVdfSolution(blk1.getHash().toString());
   DagBlock blk2(blk1.getHash(), 2, {}, {}, vdf2);
   blk2.sign(sk);
@@ -391,20 +338,15 @@ TEST_F(NetworkTest, node_pbft_sync) {
   batch = db1->createWriteBatch();
   period = 2;
   beneficiary = addr_t(654);
-  PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), 2, beneficiary,
-                        node1->getSecretKey());
-  db1->putFinalizedDagBlockHashesByAnchor(*batch,
-                                          pbft_block2.getPivotDagBlockHash(),
-                                          {pbft_block2.getPivotDagBlockHash()});
+  PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), 2, beneficiary, node1->getSecretKey());
+  db1->putFinalizedDagBlockHashesByAnchor(*batch, pbft_block2.getPivotDagBlockHash(), {pbft_block2.getPivotDagBlockHash()});
 
   std::vector<Vote> votes_for_pbft_blk2;
-  votes_for_pbft_blk2.emplace_back(node1->getPbftManager()->generateVote(
-      pbft_block2.getBlockHash(), cert_vote_type, 2, 3, prev_block_hash));
+  votes_for_pbft_blk2.emplace_back(node1->getPbftManager()->generateVote(pbft_block2.getBlockHash(), cert_vote_type, 2, 3, prev_block_hash));
   std::cout << "Generate 1 vote for second PBFT block" << std::endl;
   // node1 put block2 into pbft chain and store into DB
   // Add cert votes in DB
-  db1->addPbftCertVotesToBatch(pbft_block2.getBlockHash(), votes_for_pbft_blk2,
-                               batch);
+  db1->addPbftCertVotesToBatch(pbft_block2.getBlockHash(), votes_for_pbft_blk2, batch);
   // Add PBFT block in DB
   db1->addPbftBlockToBatch(pbft_block2, batch);
   // Update period_pbft_block in DB
@@ -427,16 +369,14 @@ TEST_F(NetworkTest, node_pbft_sync) {
   const int timeout_val = 60;
   for (auto i = 0; i < timeout_val; i++) {
     // test timeout is 60 seconds
-    if (nw1->getPeerCount() == node_peers &&
-        nw2->getPeerCount() == node_peers) {
+    if (nw1->getPeerCount() == node_peers && nw2->getPeerCount() == node_peers) {
       checkpoint_passed = true;
       break;
     }
     taraxa::thisThreadSleepForMilliSeconds(1000);
   }
   if (checkpoint_passed == false) {
-    std::cout << "Timeout reached after " << timeout_val << " seconds..."
-              << std::endl;
+    std::cout << "Timeout reached after " << timeout_val << " seconds..." << std::endl;
     ASSERT_EQ(node_peers, nw1->getPeerCount());
     ASSERT_EQ(node_peers, nw2->getPeerCount());
   }
@@ -452,9 +392,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
   std::shared_ptr<PbftChain> pbft_chain2 = node2->getPbftChain();
   blk_hash_t second_pbft_block_hash = pbft_chain2->getLastPbftBlockHash();
   EXPECT_EQ(second_pbft_block_hash, pbft_block2.getBlockHash());
-  blk_hash_t first_pbft_block_hash =
-      pbft_chain2->getPbftBlockInChain(second_pbft_block_hash)
-          .getPrevBlockHash();
+  blk_hash_t first_pbft_block_hash = pbft_chain2->getPbftBlockInChain(second_pbft_block_hash).getPrevBlockHash();
   EXPECT_EQ(first_pbft_block_hash, pbft_block1.getBlockHash());
 }
 
@@ -478,25 +416,19 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   addr_t beneficiary(876);
 
   vdf_sortition::Message msg1(1);
-  vdf_sortition::VdfSortition vdf1(vdf_config, node_key.address(), vrf_sk,
-                                   msg1);
+  vdf_sortition::VdfSortition vdf1(vdf_config, node_key.address(), vrf_sk, msg1);
   vdf1.computeVdfSolution(dag_genesis.toString());
   DagBlock blk1(dag_genesis, 1, {}, {}, vdf1);
   blk1.sign(sk);
   node1->getBlockManager()->insertBlock(blk1);
 
-  PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), period, beneficiary,
-                        node1->getSecretKey());
-  db1->putFinalizedDagBlockHashesByAnchor(*batch,
-                                          pbft_block1.getPivotDagBlockHash(),
-                                          {pbft_block1.getPivotDagBlockHash()});
+  PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), period, beneficiary, node1->getSecretKey());
+  db1->putFinalizedDagBlockHashesByAnchor(*batch, pbft_block1.getPivotDagBlockHash(), {pbft_block1.getPivotDagBlockHash()});
   std::vector<Vote> votes_for_pbft_blk1;
-  votes_for_pbft_blk1.emplace_back(node1->getPbftManager()->generateVote(
-      pbft_block1.getBlockHash(), cert_vote_type, 1, 3, prev_block_hash));
+  votes_for_pbft_blk1.emplace_back(node1->getPbftManager()->generateVote(pbft_block1.getBlockHash(), cert_vote_type, 1, 3, prev_block_hash));
   std::cout << "Generate 1 vote for first PBFT block" << std::endl;
   // Add cert votes in DB
-  db1->addPbftCertVotesToBatch(pbft_block1.getBlockHash(), votes_for_pbft_blk1,
-                               batch);
+  db1->addPbftCertVotesToBatch(pbft_block1.getBlockHash(), votes_for_pbft_blk1, batch);
   // Add PBFT block in DB
   db1->addPbftBlockToBatch(pbft_block1, batch);
   // Update period_pbft_block in DB
@@ -516,8 +448,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   period = 2;
   beneficiary = addr_t(543);
   vdf_sortition::Message msg2(2);
-  vdf_sortition::VdfSortition vdf2(vdf_config, node_key.address(), vrf_sk,
-                                   msg2);
+  vdf_sortition::VdfSortition vdf2(vdf_config, node_key.address(), vrf_sk, msg2);
   vdf2.computeVdfSolution(blk1.getHash().toString());
   DagBlock blk2(blk1.getHash(), 2, {}, {}, vdf2);
   blk2.sign(sk);
@@ -527,11 +458,8 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   period = 2;
   beneficiary = addr_t(654);
 
-  PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), period, beneficiary,
-                        node1->getSecretKey());
-  db1->putFinalizedDagBlockHashesByAnchor(*batch,
-                                          pbft_block2.getPivotDagBlockHash(),
-                                          {pbft_block2.getPivotDagBlockHash()});
+  PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), period, beneficiary, node1->getSecretKey());
+  db1->putFinalizedDagBlockHashesByAnchor(*batch, pbft_block2.getPivotDagBlockHash(), {pbft_block2.getPivotDagBlockHash()});
   std::cout << "There are no votes for the second PBFT block" << std::endl;
   // node1 put block2 into pbft chain and no votes store into DB
   // (malicious player)
@@ -557,16 +485,14 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   const int timeout_val = 60;
   for (auto i = 0; i < timeout_val; i++) {
     // test timeout is 60 seconds
-    if (nw1->getPeerCount() == node_peers &&
-        nw2->getPeerCount() == node_peers) {
+    if (nw1->getPeerCount() == node_peers && nw2->getPeerCount() == node_peers) {
       checkpoint_passed = true;
       break;
     }
     taraxa::thisThreadSleepForMilliSeconds(1000);
   }
   if (checkpoint_passed == false) {
-    std::cout << "Timeout reached after " << timeout_val << " seconds..."
-              << std::endl;
+    std::cout << "Timeout reached after " << timeout_val << " seconds..." << std::endl;
     ASSERT_EQ(node_peers, nw1->getPeerCount());
     ASSERT_EQ(node_peers, nw2->getPeerCount());
   }
@@ -600,8 +526,7 @@ TEST_F(NetworkTest, pbft_next_votes_bundle_sync) {
     PbftVoteTypes type = next_vote_type;
     uint64_t round = 10;
     size_t step = 21;
-    Vote vote = node1->getPbftManager()->generateVote(
-        propose_pbft_block_hash, type, round, step, last_pbft_block_hash);
+    Vote vote = node1->getPbftManager()->generateVote(propose_pbft_block_hash, type, round, step, last_pbft_block_hash);
     next_votes.emplace_back(vote);
   }
   // Update next votes bundle and set PBFT round
@@ -616,8 +541,7 @@ TEST_F(NetworkTest, pbft_next_votes_bundle_sync) {
   int node_peers = 1;
   for (int i = 0; i < 300; i++) {
     // test timeout is 30 seconds
-    if (nw1->getPeerCount() == node_peers &&
-        nw2->getPeerCount() == node_peers) {
+    if (nw1->getPeerCount() == node_peers && nw2->getPeerCount() == node_peers) {
       break;
     }
     taraxa::thisThreadSleepForMilliSeconds(100);
@@ -635,8 +559,7 @@ TEST_F(NetworkTest, pbft_next_votes_bundle_sync) {
   nw2->getTaraxaCapability()->syncPbftNextVotes(node2_pbft_round);
   // Waiting node2 get next votes bundle from node1
   taraxa::thisThreadSleepForMilliSeconds(100);
-  size_t node2_vote_queue_size =
-      node2->getVoteManager()->getUnverifiedVotesSize();
+  size_t node2_vote_queue_size = node2->getVoteManager()->getUnverifiedVotesSize();
   EXPECT_EQ(node2_vote_queue_size, next_votes.size());
 }
 
@@ -657,31 +580,23 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
   vdf_sortition::VdfConfig vdf_config(255, 0, 15, 10, 1500);
   auto propose_level = 1;
   vdf_sortition::Message msg1(propose_level);
-  vdf_sortition::VdfSortition vdf1(vdf_config, node_key.address(), vrf_sk,
-                                   msg1);
+  vdf_sortition::VdfSortition vdf1(vdf_config, node_key.address(), vrf_sk, msg1);
   vdf1.computeVdfSolution(dag_genesis.toString());
-  DagBlock blk1(
-      dag_genesis, propose_level, {},
-      {g_signed_trx_samples[0].getHash(), g_signed_trx_samples[1].getHash()},
-      vdf1);
+  DagBlock blk1(dag_genesis, propose_level, {}, {g_signed_trx_samples[0].getHash(), g_signed_trx_samples[1].getHash()}, vdf1);
   blk1.sign(sk);
-  std::vector<Transaction> tr1(
-      {g_signed_trx_samples[0], g_signed_trx_samples[1]});
+  std::vector<Transaction> tr1({g_signed_trx_samples[0], g_signed_trx_samples[1]});
 
   propose_level = 2;
   vdf_sortition::Message msg2(propose_level);
-  vdf_sortition::VdfSortition vdf2(vdf_config, node_key.address(), vrf_sk,
-                                   msg2);
+  vdf_sortition::VdfSortition vdf2(vdf_config, node_key.address(), vrf_sk, msg2);
   vdf2.computeVdfSolution(blk1.getHash().toString());
-  DagBlock blk2(blk1.getHash(), propose_level, {},
-                {g_signed_trx_samples[2].getHash()}, vdf2);
+  DagBlock blk2(blk1.getHash(), propose_level, {}, {g_signed_trx_samples[2].getHash()}, vdf2);
   blk2.sign(sk);
   std::vector<Transaction> tr2({g_signed_trx_samples[2]});
 
   propose_level = 3;
   vdf_sortition::Message msg3(propose_level);
-  vdf_sortition::VdfSortition vdf3(vdf_config, node_key.address(), vrf_sk,
-                                   msg3);
+  vdf_sortition::VdfSortition vdf3(vdf_config, node_key.address(), vrf_sk, msg3);
   vdf3.computeVdfSolution(blk2.getHash().toString());
   DagBlock blk3(blk2.getHash(), propose_level, {}, {}, vdf3);
   blk3.sign(sk);
@@ -689,39 +604,28 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
 
   propose_level = 4;
   vdf_sortition::Message msg4(propose_level);
-  vdf_sortition::VdfSortition vdf4(vdf_config, node_key.address(), vrf_sk,
-                                   msg4);
+  vdf_sortition::VdfSortition vdf4(vdf_config, node_key.address(), vrf_sk, msg4);
   vdf4.computeVdfSolution(blk3.getHash().toString());
-  DagBlock blk4(
-      blk3.getHash(), propose_level, {},
-      {g_signed_trx_samples[3].getHash(), g_signed_trx_samples[4].getHash()},
-      vdf4);
+  DagBlock blk4(blk3.getHash(), propose_level, {}, {g_signed_trx_samples[3].getHash(), g_signed_trx_samples[4].getHash()}, vdf4);
   blk4.sign(sk);
-  std::vector<Transaction> tr4(
-      {g_signed_trx_samples[3], g_signed_trx_samples[4]});
+  std::vector<Transaction> tr4({g_signed_trx_samples[3], g_signed_trx_samples[4]});
 
   propose_level = 5;
   vdf_sortition::Message msg5(propose_level);
-  vdf_sortition::VdfSortition vdf5(vdf_config, node_key.address(), vrf_sk,
-                                   msg5);
+  vdf_sortition::VdfSortition vdf5(vdf_config, node_key.address(), vrf_sk, msg5);
   vdf5.computeVdfSolution(blk4.getHash().toString());
   DagBlock blk5(
       blk4.getHash(), propose_level, {},
-      {g_signed_trx_samples[5].getHash(), g_signed_trx_samples[6].getHash(),
-       g_signed_trx_samples[7].getHash(), g_signed_trx_samples[8].getHash()},
+      {g_signed_trx_samples[5].getHash(), g_signed_trx_samples[6].getHash(), g_signed_trx_samples[7].getHash(), g_signed_trx_samples[8].getHash()},
       vdf5);
   blk5.sign(sk);
-  std::vector<Transaction> tr5(
-      {g_signed_trx_samples[5], g_signed_trx_samples[6],
-       g_signed_trx_samples[7], g_signed_trx_samples[8]});
+  std::vector<Transaction> tr5({g_signed_trx_samples[5], g_signed_trx_samples[6], g_signed_trx_samples[7], g_signed_trx_samples[8]});
 
   propose_level = 6;
   vdf_sortition::Message msg6(propose_level);
-  vdf_sortition::VdfSortition vdf6(vdf_config, node_key.address(), vrf_sk,
-                                   msg6);
+  vdf_sortition::VdfSortition vdf6(vdf_config, node_key.address(), vrf_sk, msg6);
   vdf6.computeVdfSolution(blk5.getHash().toString());
-  DagBlock blk6(blk5.getHash(), propose_level, {blk4.getHash(), blk3.getHash()},
-                {g_signed_trx_samples[9].getHash()}, vdf6);
+  DagBlock blk6(blk5.getHash(), propose_level, {blk4.getHash(), blk3.getHash()}, {g_signed_trx_samples[9].getHash()}, vdf6);
   blk6.sign(sk);
   std::vector<Transaction> tr6({g_signed_trx_samples[9]});
 
@@ -739,9 +643,7 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
   std::cout << "Waiting Sync for up to 20000 milliseconds ..." << std::endl;
   for (int i = 0; i < 40; i++) {
     taraxa::thisThreadSleepForMilliSeconds(1000);
-    if (node2->getDagManager()->getNumVerticesInDag().first == 7 &&
-        node2->getDagManager()->getNumEdgesInDag().first == 8)
-      break;
+    if (node2->getDagManager()->getNumVerticesInDag().first == 7 && node2->getDagManager()->getNumEdgesInDag().first == 8) break;
   }
 
   // node1->drawGraph("dot.txt");
@@ -771,124 +673,97 @@ TEST_F(NetworkTest, node_sync2) {
   // DAG block1
   auto propose_level = 1;
   vdf_sortition::Message msg1(propose_level);
-  vdf_sortition::VdfSortition vdf1(vdf_config, node_key.address(), vrf_sk,
-                                   msg1);
+  vdf_sortition::VdfSortition vdf1(vdf_config, node_key.address(), vrf_sk, msg1);
   vdf1.computeVdfSolution(dag_genesis.toString());
-  DagBlock blk1(dag_genesis, propose_level, {},
-                {transactions[0].getHash(), transactions[1].getHash()}, vdf1);
+  DagBlock blk1(dag_genesis, propose_level, {}, {transactions[0].getHash(), transactions[1].getHash()}, vdf1);
   blk1.sign(sk);
   std::vector<Transaction> tr1({transactions[0], transactions[1]});
   // DAG block2
   propose_level = 1;
   vdf_sortition::Message msg2(propose_level);
-  vdf_sortition::VdfSortition vdf2(vdf_config, node_key.address(), vrf_sk,
-                                   msg2);
+  vdf_sortition::VdfSortition vdf2(vdf_config, node_key.address(), vrf_sk, msg2);
   vdf2.computeVdfSolution(dag_genesis.toString());
-  DagBlock blk2(dag_genesis, propose_level, {},
-                {transactions[2].getHash(), transactions[3].getHash()}, vdf2);
+  DagBlock blk2(dag_genesis, propose_level, {}, {transactions[2].getHash(), transactions[3].getHash()}, vdf2);
   blk2.sign(sk);
   std::vector<Transaction> tr2({transactions[2], transactions[3]});
   // DAG block3
   propose_level = 2;
   vdf_sortition::Message msg3(propose_level);
-  vdf_sortition::VdfSortition vdf3(vdf_config, node_key.address(), vrf_sk,
-                                   msg3);
+  vdf_sortition::VdfSortition vdf3(vdf_config, node_key.address(), vrf_sk, msg3);
   vdf3.computeVdfSolution(blk1.getHash().toString());
-  DagBlock blk3(blk1.getHash(), propose_level, {},
-                {transactions[4].getHash(), transactions[5].getHash()}, vdf3);
+  DagBlock blk3(blk1.getHash(), propose_level, {}, {transactions[4].getHash(), transactions[5].getHash()}, vdf3);
   blk3.sign(sk);
   std::vector<Transaction> tr3({transactions[4], transactions[5]});
   // DAG block4
   propose_level = 3;
   vdf_sortition::Message msg4(propose_level);
-  vdf_sortition::VdfSortition vdf4(vdf_config, node_key.address(), vrf_sk,
-                                   msg4);
+  vdf_sortition::VdfSortition vdf4(vdf_config, node_key.address(), vrf_sk, msg4);
   vdf4.computeVdfSolution(blk3.getHash().toString());
-  DagBlock blk4(blk3.getHash(), propose_level, {},
-                {transactions[6].getHash(), transactions[7].getHash()}, vdf4);
+  DagBlock blk4(blk3.getHash(), propose_level, {}, {transactions[6].getHash(), transactions[7].getHash()}, vdf4);
   blk4.sign(sk);
   std::vector<Transaction> tr4({transactions[6], transactions[7]});
   // DAG block5
   propose_level = 2;
   vdf_sortition::Message msg5(propose_level);
-  vdf_sortition::VdfSortition vdf5(vdf_config, node_key.address(), vrf_sk,
-                                   msg5);
+  vdf_sortition::VdfSortition vdf5(vdf_config, node_key.address(), vrf_sk, msg5);
   vdf5.computeVdfSolution(blk2.getHash().toString());
-  DagBlock blk5(blk2.getHash(), propose_level, {},
-                {transactions[8].getHash(), transactions[9].getHash()}, vdf5);
+  DagBlock blk5(blk2.getHash(), propose_level, {}, {transactions[8].getHash(), transactions[9].getHash()}, vdf5);
   blk5.sign(sk);
   std::vector<Transaction> tr5({transactions[8], transactions[9]});
   // DAG block6
   propose_level = 2;
   vdf_sortition::Message msg6(propose_level);
-  vdf_sortition::VdfSortition vdf6(vdf_config, node_key.address(), vrf_sk,
-                                   msg6);
+  vdf_sortition::VdfSortition vdf6(vdf_config, node_key.address(), vrf_sk, msg6);
   vdf6.computeVdfSolution(blk1.getHash().toString());
-  DagBlock blk6(blk1.getHash(), propose_level, {},
-                {transactions[10].getHash(), transactions[11].getHash()}, vdf6);
+  DagBlock blk6(blk1.getHash(), propose_level, {}, {transactions[10].getHash(), transactions[11].getHash()}, vdf6);
   blk6.sign(sk);
   std::vector<Transaction> tr6({transactions[10], transactions[11]});
   // DAG block7
   propose_level = 3;
   vdf_sortition::Message msg7(propose_level);
-  vdf_sortition::VdfSortition vdf7(vdf_config, node_key.address(), vrf_sk,
-                                   msg7);
+  vdf_sortition::VdfSortition vdf7(vdf_config, node_key.address(), vrf_sk, msg7);
   vdf7.computeVdfSolution(blk6.getHash().toString());
-  DagBlock blk7(blk6.getHash(), propose_level, {},
-                {transactions[12].getHash(), transactions[13].getHash()}, vdf7);
+  DagBlock blk7(blk6.getHash(), propose_level, {}, {transactions[12].getHash(), transactions[13].getHash()}, vdf7);
   blk7.sign(sk);
   std::vector<Transaction> tr7({transactions[12], transactions[13]});
   // DAG block8
   propose_level = 4;
   vdf_sortition::Message msg8(propose_level);
-  vdf_sortition::VdfSortition vdf8(vdf_config, node_key.address(), vrf_sk,
-                                   msg8);
+  vdf_sortition::VdfSortition vdf8(vdf_config, node_key.address(), vrf_sk, msg8);
   vdf8.computeVdfSolution(blk1.getHash().toString());
-  DagBlock blk8(blk1.getHash(), propose_level, {blk7.getHash()},
-                {transactions[14].getHash(), transactions[15].getHash()}, vdf8);
+  DagBlock blk8(blk1.getHash(), propose_level, {blk7.getHash()}, {transactions[14].getHash(), transactions[15].getHash()}, vdf8);
   blk8.sign(sk);
   std::vector<Transaction> tr8({transactions[14], transactions[15]});
   // DAG block9
   propose_level = 2;
   vdf_sortition::Message msg9(propose_level);
-  vdf_sortition::VdfSortition vdf9(vdf_config, node_key.address(), vrf_sk,
-                                   msg9);
+  vdf_sortition::VdfSortition vdf9(vdf_config, node_key.address(), vrf_sk, msg9);
   vdf9.computeVdfSolution(blk1.getHash().toString());
-  DagBlock blk9(blk1.getHash(), propose_level, {},
-                {transactions[16].getHash(), transactions[17].getHash()}, vdf9);
+  DagBlock blk9(blk1.getHash(), propose_level, {}, {transactions[16].getHash(), transactions[17].getHash()}, vdf9);
   blk9.sign(sk);
   std::vector<Transaction> tr9({transactions[16], transactions[17]});
   // DAG block10
   propose_level = 5;
   vdf_sortition::Message msg10(propose_level);
-  vdf_sortition::VdfSortition vdf10(vdf_config, node_key.address(), vrf_sk,
-                                    msg10);
+  vdf_sortition::VdfSortition vdf10(vdf_config, node_key.address(), vrf_sk, msg10);
   vdf10.computeVdfSolution(blk8.getHash().toString());
-  DagBlock blk10(blk8.getHash(), propose_level, {},
-                 {transactions[18].getHash(), transactions[19].getHash()},
-                 vdf10);
+  DagBlock blk10(blk8.getHash(), propose_level, {}, {transactions[18].getHash(), transactions[19].getHash()}, vdf10);
   blk10.sign(sk);
   std::vector<Transaction> tr10({transactions[18], transactions[19]});
   // DAG block11
   propose_level = 3;
   vdf_sortition::Message msg11(propose_level);
-  vdf_sortition::VdfSortition vdf11(vdf_config, node_key.address(), vrf_sk,
-                                    msg11);
+  vdf_sortition::VdfSortition vdf11(vdf_config, node_key.address(), vrf_sk, msg11);
   vdf11.computeVdfSolution(blk3.getHash().toString());
-  DagBlock blk11(blk3.getHash(), propose_level, {},
-                 {transactions[20].getHash(), transactions[21].getHash()},
-                 vdf11);
+  DagBlock blk11(blk3.getHash(), propose_level, {}, {transactions[20].getHash(), transactions[21].getHash()}, vdf11);
   blk11.sign(sk);
   std::vector<Transaction> tr11({transactions[20], transactions[21]});
   // DAG block12
   propose_level = 3;
   vdf_sortition::Message msg12(propose_level);
-  vdf_sortition::VdfSortition vdf12(vdf_config, node_key.address(), vrf_sk,
-                                    msg12);
+  vdf_sortition::VdfSortition vdf12(vdf_config, node_key.address(), vrf_sk, msg12);
   vdf12.computeVdfSolution(blk5.getHash().toString());
-  DagBlock blk12(blk5.getHash(), propose_level, {},
-                 {transactions[22].getHash(), transactions[23].getHash()},
-                 vdf12);
+  DagBlock blk12(blk5.getHash(), propose_level, {}, {transactions[22].getHash(), transactions[23].getHash()}, vdf12);
   blk12.sign(sk);
   std::vector<Transaction> tr12({transactions[22], transactions[23]});
 
@@ -920,8 +795,7 @@ TEST_F(NetworkTest, node_sync2) {
   trxs.push_back(tr12);
 
   for (auto i = 0; i < blks.size(); ++i) {
-    node1->getBlockManager()->insertBroadcastedBlockWithTransactions(blks[i],
-                                                                     trxs[i]);
+    node1->getBlockManager()->insertBroadcastedBlockWithTransactions(blks[i], trxs[i]);
   }
 
   taraxa::thisThreadSleepForMilliSeconds(200);
@@ -930,9 +804,7 @@ TEST_F(NetworkTest, node_sync2) {
   std::cout << "Waiting Sync for up to 40000 milliseconds ..." << std::endl;
   for (int i = 0; i < 400; i++) {
     taraxa::thisThreadSleepForMilliSeconds(100);
-    if (node2->getDagManager()->getNumVerticesInDag().first == 13 &&
-        node2->getDagManager()->getNumEdgesInDag().first == 13)
-      break;
+    if (node2->getDagManager()->getNumVerticesInDag().first == 13 && node2->getDagManager()->getNumEdgesInDag().first == 13) break;
   }
 
   // node1->drawGraph("dot.txt");
@@ -964,13 +836,9 @@ TEST_F(NetworkTest, node_transaction_sync) {
   taraxa::thisThreadSleepForMilliSeconds(2000);
 
   for (auto const& t : *g_signed_trx_samples) {
-    EXPECT_TRUE(node2->getTransactionManager()->getTransaction(t.getHash()) !=
-                nullptr);
-    if (node2->getTransactionManager()->getTransaction(t.getHash()) !=
-        nullptr) {
-      EXPECT_EQ(
-          t,
-          node2->getTransactionManager()->getTransaction(t.getHash())->first);
+    EXPECT_TRUE(node2->getTransactionManager()->getTransaction(t.getHash()) != nullptr);
+    if (node2->getTransactionManager()->getTransaction(t.getHash()) != nullptr) {
+      EXPECT_EQ(t, node2->getTransactionManager()->getTransaction(t.getHash())->first);
     }
   }
 }
@@ -986,10 +854,8 @@ TEST_F(NetworkTest, node_full_sync) {
 
   std::random_device dev;
   std::mt19937 rng(dev());
-  std::uniform_int_distribution<std::mt19937::result_type> distTransactions(
-      1, 200);
-  std::uniform_int_distribution<std::mt19937::result_type> distNodes(
-      0, numberOfNodes - 2);  // range [0, 3]
+  std::uniform_int_distribution<std::mt19937::result_type> distTransactions(1, 200);
+  std::uniform_int_distribution<std::mt19937::result_type> distNodes(0, numberOfNodes - 2);  // range [0, 3]
 
   int counter = 0;
   std::vector<Transaction> ts;
@@ -1000,9 +866,7 @@ TEST_F(NetworkTest, node_full_sync) {
   for (auto i = 0; i < 50; ++i) {
     std::vector<taraxa::bytes> transactions;
     transactions.emplace_back(*ts[i].rlp());
-    nodes[distNodes(rng)]
-        ->getTransactionManager()
-        ->insertBroadcastedTransactions(transactions);
+    nodes[distNodes(rng)]->getTransactionManager()->insertBroadcastedTransactions(transactions);
     thisThreadSleepForMilliSeconds(distTransactions(rng));
     counter++;
   }
@@ -1012,9 +876,7 @@ TEST_F(NetworkTest, node_full_sync) {
   wait({120s, 500ms}, [&](auto& ctx) {
     // Check 4 nodes DAG syncing
     for (int j = 1; j < numberOfNodes - 1; j++) {
-      WAIT_EXPECT_EQ(ctx,
-                     nodes[j]->getDagManager()->getNumVerticesInDag().first,
-                     nodes[0]->getDagManager()->getNumVerticesInDag().first);
+      WAIT_EXPECT_EQ(ctx, nodes[j]->getDagManager()->getNumVerticesInDag().first, nodes[0]->getDagManager()->getNumVerticesInDag().first);
     }
   });
 
@@ -1026,9 +888,7 @@ TEST_F(NetworkTest, node_full_sync) {
   wait({240s, 1000ms}, [&](auto& ctx) {
     // Check 4 nodes DAG syncing
     for (int j = 1; j < numberOfNodes; j++) {
-      WAIT_EXPECT_EQ(ctx,
-                     nodes[j]->getDagManager()->getNumVerticesInDag().first,
-                     nodes[0]->getDagManager()->getNumVerticesInDag().first);
+      WAIT_EXPECT_EQ(ctx, nodes[j]->getDagManager()->getNumVerticesInDag().first, nodes[0]->getDagManager()->getNumVerticesInDag().first);
       ctx.fail_if(!nodes[j]->getNetwork()->isSynced());
     }
   });
@@ -1037,12 +897,9 @@ TEST_F(NetworkTest, node_full_sync) {
   for (int i = 0; i < numberOfNodes; i++) {
     std::cout << "Index i " << i << std::endl;
     EXPECT_GT(nodes[i]->getDagManager()->getNumVerticesInDag().first, 0);
-    EXPECT_EQ(nodes[i]->getDagManager()->getNumVerticesInDag().first,
-              nodes[0]->getDagManager()->getNumVerticesInDag().first);
-    EXPECT_EQ(nodes[i]->getDagManager()->getNumVerticesInDag().first,
-              nodes[i]->getDB()->getNumDagBlocks());
-    EXPECT_EQ(nodes[i]->getDagManager()->getNumEdgesInDag().first,
-              nodes[0]->getDagManager()->getNumEdgesInDag().first);
+    EXPECT_EQ(nodes[i]->getDagManager()->getNumVerticesInDag().first, nodes[0]->getDagManager()->getNumVerticesInDag().first);
+    EXPECT_EQ(nodes[i]->getDagManager()->getNumVerticesInDag().first, nodes[i]->getDB()->getNumDagBlocks());
+    EXPECT_EQ(nodes[i]->getDagManager()->getNumEdgesInDag().first, nodes[0]->getDagManager()->getNumEdgesInDag().first);
     EXPECT_TRUE(nodes[i]->getNetwork()->isSynced());
   }
 

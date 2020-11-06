@@ -41,38 +41,26 @@ struct FinalChain : virtual ChainDB {
     TransactionReceipts const& receipts;
     state_api::StateTransitionResult const& state_transition_result;
   };
-  virtual AdvanceResult advance(DbStorage::BatchPtr batch,
-                                Address const& author, uint64_t timestamp,
-                                Transactions const& transactions) = 0;
+  virtual AdvanceResult advance(DbStorage::BatchPtr batch, Address const& author, uint64_t timestamp, Transactions const& transactions) = 0;
   virtual shared_ptr<BlockHeader> get_last_block() const = 0;
   virtual void advance_confirm() = 0;
   virtual void create_snapshot(uint64_t const& period) = 0;
-  virtual optional<state_api::Account> get_account(
-      addr_t const& addr, optional<BlockNumber> blk_n = nullopt) const = 0;
-  virtual u256 get_account_storage(
-      addr_t const& addr, u256 const& key,
-      optional<BlockNumber> blk_n = nullopt) const = 0;
-  virtual bytes get_code(addr_t const& addr,
-                         optional<BlockNumber> blk_n = nullopt) const = 0;
-  virtual state_api::ExecutionResult call(
-      state_api::EVMTransaction const& trx,
-      optional<BlockNumber> blk_n = nullopt,
-      optional<state_api::ExecutionOptions> const& opts = nullopt) const = 0;
+  virtual optional<state_api::Account> get_account(addr_t const& addr, optional<BlockNumber> blk_n = nullopt) const = 0;
+  virtual u256 get_account_storage(addr_t const& addr, u256 const& key, optional<BlockNumber> blk_n = nullopt) const = 0;
+  virtual bytes get_code(addr_t const& addr, optional<BlockNumber> blk_n = nullopt) const = 0;
+  virtual state_api::ExecutionResult call(state_api::EVMTransaction const& trx, optional<BlockNumber> blk_n = nullopt,
+                                          optional<state_api::ExecutionOptions> const& opts = nullopt) const = 0;
   virtual std::pair<val_t, bool> getBalance(addr_t const& acc) const = 0;
   virtual uint64_t dpos_eligible_count(BlockNumber blk_num) const = 0;
-  virtual bool dpos_is_eligible(BlockNumber blk_num,
-                                addr_t const& addr) const = 0;
+  virtual bool dpos_is_eligible(BlockNumber blk_num, addr_t const& addr) const = 0;
 };
 
-unique_ptr<FinalChain> NewFinalChain(shared_ptr<DbStorage> db,
-                                     FinalChain::Config const& config,
-                                     FinalChain::Opts const& opts = {});
+unique_ptr<FinalChain> NewFinalChain(shared_ptr<DbStorage> db, FinalChain::Config const& config, FinalChain::Opts const& opts = {});
 
 Json::Value enc_json(FinalChain::Config const& obj);
 void dec_json(Json::Value const& json, FinalChain::Config& obj);
 Json::Value enc_json(FinalChain::Config::GenesisBlockFields const& obj);
-void dec_json(Json::Value const& json,
-              FinalChain::Config::GenesisBlockFields& obj);
+void dec_json(Json::Value const& json, FinalChain::Config::GenesisBlockFields& obj);
 
 }  // namespace taraxa::final_chain
 

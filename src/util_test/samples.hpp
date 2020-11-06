@@ -25,20 +25,14 @@ class TxGenerator {
     return secret;
   }
 
-  auto getWithRandomUniqueSender(
-      val_t const &value = 0, addr_t const &to = addr_t::random(),
-      bytes const &data = str2bytes("00FEDCBA9876543210000000")) const {
-    return Transaction(0, value, 0, TEST_TX_GAS_LIMIT, data,
-                       getRandomUniqueSenderSecret(), to);
+  auto getWithRandomUniqueSender(val_t const &value = 0, addr_t const &to = addr_t::random(),
+                                 bytes const &data = str2bytes("00FEDCBA9876543210000000")) const {
+    return Transaction(0, value, 0, TEST_TX_GAS_LIMIT, data, getRandomUniqueSenderSecret(), to);
   }
-  auto getSerialTrxWithSameSender(
-      uint trx_num, uint64_t const &start_nonce, val_t const &value,
-      addr_t const &receiver = addr_t::random()) const {
+  auto getSerialTrxWithSameSender(uint trx_num, uint64_t const &start_nonce, val_t const &value, addr_t const &receiver = addr_t::random()) const {
     std::vector<Transaction> trxs;
     for (auto i = start_nonce; i < start_nonce + trx_num; ++i) {
-      trxs.emplace_back(Transaction(i, value, 0, TEST_TX_GAS_LIMIT,
-                                    str2bytes("00FEDCBA9876543210000000"),
-                                    getRandomUniqueSenderSecret(), receiver));
+      trxs.emplace_back(Transaction(i, value, 0, TEST_TX_GAS_LIMIT, str2bytes("00FEDCBA9876543210000000"), getRandomUniqueSenderSecret(), receiver));
     }
     return trxs;
   }
@@ -70,10 +64,9 @@ inline bool sendTrx(uint64_t count, unsigned port) {
       }' 0.0.0.0:%s
     )";
   for (auto i = 0; i < count; ++i) {
-    auto retcode = system(
-        fmt(pattern, val_t(TEST_TX_GAS_LIMIT), val_t(0), addr_t::random(),
-            samples::TX_GEN->getRandomUniqueSenderSecret().makeInsecure(), port)
-            .c_str());
+    auto retcode =
+        system(fmt(pattern, val_t(TEST_TX_GAS_LIMIT), val_t(0), addr_t::random(), samples::TX_GEN->getRandomUniqueSenderSecret().makeInsecure(), port)
+                   .c_str());
     if (retcode != 0) {
       return false;
     }
@@ -83,9 +76,7 @@ inline bool sendTrx(uint64_t count, unsigned port) {
 
 struct TestAccount {
   TestAccount() = default;
-  TestAccount(int id, std::string const &sk, std::string const &pk,
-              std::string const &addr)
-      : id(id), sk(sk), pk(pk), addr(addr) {}
+  TestAccount(int id, std::string const &sk, std::string const &pk, std::string const &addr) : id(id), sk(sk), pk(pk), addr(addr) {}
   friend std::ostream;
   int id;
   std::string sk;
@@ -94,13 +85,11 @@ struct TestAccount {
 };
 
 inline std::ostream &operator<<(std::ostream &strm, TestAccount const &acc) {
-  strm << "sk: " << acc.sk << "\npk: " << acc.pk << "\naddr: " << acc.addr
-       << std::endl;
+  strm << "sk: " << acc.sk << "\npk: " << acc.pk << "\naddr: " << acc.addr << std::endl;
   return strm;
 }
 
-inline std::map<int, TestAccount> createTestAccountTable(
-    std::string const &filename) {
+inline std::map<int, TestAccount> createTestAccountTable(std::string const &filename) {
   std::map<int, TestAccount> acc_table;
   std::ifstream file;
   file.open(filename);
@@ -123,8 +112,7 @@ inline std::map<int, TestAccount> createTestAccountTable(
   return acc_table;
 }
 
-inline std::vector<Transaction> createMockTrxSamples(unsigned start,
-                                                     unsigned num) {
+inline std::vector<Transaction> createMockTrxSamples(unsigned start, unsigned num) {
   assert(start + num < std::numeric_limits<unsigned>::max());
   std::vector<Transaction> trxs;
   for (auto i = start; i < num; ++i) {
@@ -141,24 +129,17 @@ inline std::vector<Transaction> createMockTrxSamples(unsigned start,
   return trxs;
 }
 
-inline std::vector<Transaction> createSignedTrxSamples(unsigned start,
-                                                       unsigned num,
-                                                       secret_t const &sk) {
+inline std::vector<Transaction> createSignedTrxSamples(unsigned start, unsigned num, secret_t const &sk) {
   assert(start + num < std::numeric_limits<unsigned>::max());
   std::vector<Transaction> trxs;
   for (auto i = start; i < num; ++i) {
     blk_hash_t hash(i);
-    trxs.emplace_back(Transaction(i, i * 100, 0, 1000000,
-                                  str2bytes("00FEDCBA9876543210000000"), sk,
-                                  addr_t((i + 1) * 100)));
+    trxs.emplace_back(Transaction(i, i * 100, 0, 1000000, str2bytes("00FEDCBA9876543210000000"), sk, addr_t((i + 1) * 100)));
   }
   return trxs;
 }
 
-inline std::vector<DagBlock> createMockDagBlkSamples(unsigned pivot_start,
-                                                     unsigned blk_num,
-                                                     unsigned trx_start,
-                                                     unsigned trx_len,
+inline std::vector<DagBlock> createMockDagBlkSamples(unsigned pivot_start, unsigned blk_num, unsigned trx_start, unsigned trx_len,
                                                      unsigned trx_overlap) {
   assert(pivot_start + blk_num < std::numeric_limits<unsigned>::max());
   std::vector<DagBlock> blks;
@@ -187,16 +168,13 @@ inline std::vector<DagBlock> createMockDagBlkSamples(unsigned pivot_start,
   return blks;
 }
 
-inline std::vector<std::pair<DagBlock, std::vector<Transaction>>>
-createMockDagBlkSamplesWithSignedTransactions(
-    unsigned pivot_start, unsigned blk_num, unsigned trx_start,
-    unsigned trx_len, unsigned trx_overlap, secret_t const &sk) {
+inline std::vector<std::pair<DagBlock, std::vector<Transaction>>> createMockDagBlkSamplesWithSignedTransactions(
+    unsigned pivot_start, unsigned blk_num, unsigned trx_start, unsigned trx_len, unsigned trx_overlap, secret_t const &sk) {
   assert(pivot_start + blk_num < std::numeric_limits<unsigned>::max());
   std::vector<std::pair<DagBlock, std::vector<Transaction>>> blks;
   unsigned trx = trx_start;
   for (auto i = pivot_start; i < blk_num; ++i) {
-    auto full_trx =
-        createSignedTrxSamples(trx_start + i * trx_len, trx_len, sk);
+    auto full_trx = createSignedTrxSamples(trx_start + i * trx_len, trx_len, sk);
     vec_trx_t trxs;
     for (auto t : full_trx) trxs.push_back(t.getHash());
 
@@ -214,9 +192,7 @@ createMockDagBlkSamplesWithSignedTransactions(
 }
 
 //
-inline std::vector<DagBlock> createMockDag0(
-    std::string genesis =
-        "0000000000000000000000000000000000000000000000000000000000000000") {
+inline std::vector<DagBlock> createMockDag0(std::string genesis = "0000000000000000000000000000000000000000000000000000000000000000") {
   std::vector<DagBlock> blks;
   DagBlock dummy;
   DagBlock blk1(blk_hash_t(genesis),  // pivot
@@ -397,9 +373,7 @@ inline std::vector<DagBlock> createMockDag0(
 }
 
 //
-inline std::vector<DagBlock> createMockDag1(
-    std::string genesis =
-        "0000000000000000000000000000000000000000000000000000000000000000") {
+inline std::vector<DagBlock> createMockDag1(std::string genesis = "0000000000000000000000000000000000000000000000000000000000000000") {
   std::vector<DagBlock> blks;
   DagBlock dummy;
   DagBlock blk1(blk_hash_t(genesis),  // pivot

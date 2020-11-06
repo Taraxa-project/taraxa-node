@@ -7,8 +7,7 @@
 
 namespace taraxa::aleth {
 
-std::unique_ptr<dev::rpc::Eth::StateAPI> NewStateAPI(
-    std::shared_ptr<FinalChain> final_chain);
+std::unique_ptr<dev::rpc::Eth::StateAPI> NewStateAPI(std::shared_ptr<FinalChain> final_chain);
 
 }  // namespace taraxa::aleth
 

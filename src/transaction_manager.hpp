@@ -26,19 +26,16 @@ class WSServer;
  *
  */
 
-class TransactionManager
-    : public std::enable_shared_from_this<TransactionManager> {
+class TransactionManager : public std::enable_shared_from_this<TransactionManager> {
  public:
   util::SimpleEvent<trx_hash_t> const event_transaction_accepted{};
 
   using uLock = std::unique_lock<std::mutex>;
   enum class VerifyMode : uint8_t { normal, skip_verify_sig };
 
-  TransactionManager(FullNodeConfig const &conf, addr_t node_addr,
-                     std::shared_ptr<DbStorage> db,
+  TransactionManager(FullNodeConfig const &conf, addr_t node_addr, std::shared_ptr<DbStorage> db,
                      boost::log::sources::severity_channel_logger<> log_time);
-  explicit TransactionManager(std::shared_ptr<DbStorage> db, addr_t node_addr)
-      : db_(db), conf_(), trx_qu_(node_addr), node_addr_(node_addr) {
+  explicit TransactionManager(std::shared_ptr<DbStorage> db, addr_t node_addr) : db_(db), conf_(), trx_qu_(node_addr), node_addr_(node_addr) {
     LOG_OBJECTS_CREATE("TRXMGR");
   }
   std::shared_ptr<TransactionManager> getShared() {
@@ -72,17 +69,14 @@ class TransactionManager
   /**
    * The following function will require a lock for verified qu
    */
-  void packTrxs(vec_trx_t &to_be_packed_trx, DagFrontier &frontier,
-                uint16_t max_trx_to_pack = 0);
+  void packTrxs(vec_trx_t &to_be_packed_trx, DagFrontier &frontier, uint16_t max_trx_to_pack = 0);
   void setVerifyMode(VerifyMode mode) { mode_ = mode; }
 
   // Insert new transaction to unverified queue or if verify flag true
   // synchronously verify and insert into verified queue
-  std::pair<bool, std::string> insertTransaction(Transaction const &trx,
-                                                 bool verify = false);
+  std::pair<bool, std::string> insertTransaction(Transaction const &trx, bool verify = false);
   // Transactions coming from broadcasting is less critical
-  uint32_t insertBroadcastedTransactions(
-      std::vector<taraxa::bytes> const &transactions);
+  uint32_t insertBroadcastedTransactions(std::vector<taraxa::bytes> const &transactions);
 
   std::pair<bool, std::string> verifyTransaction(Transaction const &trx) const;
 
@@ -91,16 +85,13 @@ class TransactionManager
   std::pair<size_t, size_t> getTransactionQueueSize() const;
 
   // Verify transactions in broadcasted blocks
-  bool verifyBlockTransactions(DagBlock const &blk,
-                               std::vector<Transaction> const &trxs);
+  bool verifyBlockTransactions(DagBlock const &blk, std::vector<Transaction> const &trxs);
 
-  std::shared_ptr<std::pair<Transaction, taraxa::bytes>> getTransaction(
-      trx_hash_t const &hash) const;
+  std::shared_ptr<std::pair<Transaction, taraxa::bytes>> getTransaction(trx_hash_t const &hash) const;
   unsigned long getTransactionCount() const;
   // Received block means these trxs are packed by others
 
-  bool saveBlockTransactionAndDeduplicate(
-      DagBlock const &blk, std::vector<Transaction> const &some_trxs);
+  bool saveBlockTransactionAndDeduplicate(DagBlock const &blk, std::vector<Transaction> const &some_trxs);
 
   TransactionQueue &getTransactionQueue() { return trx_qu_; }
   void setDagFrontier(DagFrontier const &frontier);

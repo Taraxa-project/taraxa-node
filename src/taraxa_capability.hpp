@@ -52,31 +52,15 @@ struct InvalidDataException : public std::runtime_error {
 
 class TaraxaPeer : public boost::noncopyable {
  public:
-  TaraxaPeer()
-      : known_blocks_(10000, 1000),
-        known_pbft_blocks_(10000, 1000),
-        known_votes_(10000, 1000),
-        known_transactions_(100000, 10000) {}
+  TaraxaPeer() : known_blocks_(10000, 1000), known_pbft_blocks_(10000, 1000), known_votes_(10000, 1000), known_transactions_(100000, 10000) {}
   explicit TaraxaPeer(NodeID id)
-      : m_id(id),
-        known_blocks_(10000, 1000),
-        known_pbft_blocks_(10000, 1000),
-        known_votes_(10000, 1000),
-        known_transactions_(100000, 10000) {}
+      : m_id(id), known_blocks_(10000, 1000), known_pbft_blocks_(10000, 1000), known_votes_(10000, 1000), known_transactions_(100000, 10000) {}
 
-  bool isBlockKnown(blk_hash_t const &_hash) const {
-    return known_blocks_.count(_hash);
-  }
-  void markBlockAsKnown(blk_hash_t const &_hash) {
-    known_blocks_.insert(_hash);
-  }
+  bool isBlockKnown(blk_hash_t const &_hash) const { return known_blocks_.count(_hash); }
+  void markBlockAsKnown(blk_hash_t const &_hash) { known_blocks_.insert(_hash); }
 
-  bool isTransactionKnown(trx_hash_t const &_hash) const {
-    return known_transactions_.count(_hash);
-  }
-  void markTransactionAsKnown(trx_hash_t const &_hash) {
-    known_transactions_.insert(_hash);
-  }
+  bool isTransactionKnown(trx_hash_t const &_hash) const { return known_transactions_.count(_hash); }
+  void markTransactionAsKnown(trx_hash_t const &_hash) { known_transactions_.insert(_hash); }
 
   void clearAllKnownBlocksAndTransactions() {
     known_transactions_.clear();
@@ -84,17 +68,11 @@ class TaraxaPeer : public boost::noncopyable {
   }
 
   // PBFT
-  bool isVoteKnown(vote_hash_t const &_hash) const {
-    return known_votes_.count(_hash);
-  }
+  bool isVoteKnown(vote_hash_t const &_hash) const { return known_votes_.count(_hash); }
   void markVoteAsKnown(vote_hash_t const &_hash) { known_votes_.insert(_hash); }
 
-  bool isPbftBlockKnown(blk_hash_t const &_hash) const {
-    return known_pbft_blocks_.count(_hash);
-  }
-  void markPbftBlockAsKnown(blk_hash_t const &_hash) {
-    known_pbft_blocks_.insert(_hash);
-  }
+  bool isPbftBlockKnown(blk_hash_t const &_hash) const { return known_pbft_blocks_.count(_hash); }
+  void markPbftBlockAsKnown(blk_hash_t const &_hash) { known_pbft_blocks_.insert(_hash); }
 
   bool checkStatus(uint16_t max_check_count) {
     status_check_count_++;
@@ -103,9 +81,7 @@ class TaraxaPeer : public boost::noncopyable {
 
   void statusReceived() { status_check_count_ = 0; }
 
-  std::map<uint64_t,
-           std::map<blk_hash_t, std::pair<DagBlock, std::vector<Transaction>>>>
-      sync_blocks_;
+  std::map<uint64_t, std::map<blk_hash_t, std::pair<DagBlock, std::vector<Transaction>>>> sync_blocks_;
   bool syncing_ = false;
   uint64_t dag_level_ = 0;
   uint64_t pbft_chain_size_ = 0;
@@ -125,16 +101,10 @@ class TaraxaPeer : public boost::noncopyable {
 
 class TaraxaCapability : public CapabilityFace, public Worker {
  public:
-  TaraxaCapability(Host &_host, NetworkConfig &_conf,
-                   std::string const &genesis, bool const &performance_log,
-                   addr_t node_addr, std::shared_ptr<DbStorage> db,
-                   std::shared_ptr<PbftManager> pbft_mgr,
-                   std::shared_ptr<PbftChain> pbft_chain,
-                   std::shared_ptr<VoteManager> vote_mgr,
-                   std::shared_ptr<DagManager> dag_mgr,
-                   std::shared_ptr<BlockManager> blk_mgr,
-                   std::shared_ptr<TransactionManager> trx_mgr,
-                   uint32_t lambda_ms_min)
+  TaraxaCapability(Host &_host, NetworkConfig &_conf, std::string const &genesis, bool const &performance_log, addr_t node_addr,
+                   std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
+                   std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<BlockManager> blk_mgr,
+                   std::shared_ptr<TransactionManager> trx_mgr, uint32_t lambda_ms_min)
       : Worker("taraxa"),
         host_(_host),
         conf_(_conf),
@@ -142,8 +112,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
         performance_log_(performance_log),
         urng_(std::mt19937_64(std::random_device()())),
         delay_rng_(std::mt19937(std::random_device()())),
-        random_dist_(
-            std::uniform_int_distribution<std::mt19937::result_type>(90, 110)),
+        random_dist_(std::uniform_int_distribution<std::mt19937::result_type>(90, 110)),
         db_(db),
         pbft_mgr_(pbft_mgr),
         pbft_chain_(pbft_chain),
@@ -187,37 +156,29 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   void restartSyncingPbft(bool force = false);
   void delayedPbftSync(NodeID _nodeID, int counter);
   std::pair<bool, blk_hash_t> checkDagBlockValidation(DagBlock const &block);
-  bool interpretCapabilityPacket(NodeID const &_nodeID, unsigned _id,
-                                 RLP const &_r) override;
-  bool interpretCapabilityPacketImpl(NodeID const &_nodeID, unsigned _id,
-                                     RLP const &_r);
+  bool interpretCapabilityPacket(NodeID const &_nodeID, unsigned _id, RLP const &_r) override;
+  bool interpretCapabilityPacketImpl(NodeID const &_nodeID, unsigned _id, RLP const &_r);
   void onDisconnect(NodeID const &_nodeID) override;
   void sendTestMessage(NodeID const &_id, int _x);
   void sendStatus(NodeID const &_id, bool _initial);
-  void onNewBlockReceived(DagBlock block,
-                          std::vector<Transaction> transactions);
+  void onNewBlockReceived(DagBlock block, std::vector<Transaction> transactions);
   void onNewBlockVerified(DagBlock const &block);
-  void onNewTransactions(std::vector<taraxa::bytes> const &transactions,
-                         bool fromNetwork);
-  vector<NodeID> selectPeers(
-      std::function<bool(TaraxaPeer const &)> const &_predicate);
+  void onNewTransactions(std::vector<taraxa::bytes> const &transactions, bool fromNetwork);
+  vector<NodeID> selectPeers(std::function<bool(TaraxaPeer const &)> const &_predicate);
   vector<NodeID> getAllPeers() const;
   Json::Value getStatus() const;
-  std::pair<std::vector<NodeID>, std::vector<NodeID>> randomPartitionPeers(
-      std::vector<NodeID> const &_peers, std::size_t _number);
+  std::pair<std::vector<NodeID>, std::vector<NodeID>> randomPartitionPeers(std::vector<NodeID> const &_peers, std::size_t _number);
   std::pair<int, int> retrieveTestData(NodeID const &_id);
   void sendBlock(NodeID const &_id, taraxa::DagBlock block, bool newBlock);
   void sendSyncedMessage();
   void sendSyncedResponseMessage(NodeID const &_id);
-  void sendBlocks(NodeID const &_id,
-                  std::vector<std::shared_ptr<DagBlock>> blocks);
+  void sendBlocks(NodeID const &_id, std::vector<std::shared_ptr<DagBlock>> blocks);
   void sendLeavesBlocks(NodeID const &_id, std::vector<std::string> blocks);
   void sendBlockHash(NodeID const &_id, taraxa::DagBlock block);
   void requestBlock(NodeID const &_id, blk_hash_t hash, bool newBlock);
   void requestPendingDagBlocks(NodeID const &_id, level_t level);
   void requestLeavesDagBlocks(NodeID const &_id);
-  void sendTransactions(NodeID const &_id,
-                        std::vector<taraxa::bytes> const &transactions);
+  void sendTransactions(NodeID const &_id, std::vector<taraxa::bytes> const &transactions);
   bool processSyncDagBlocks(NodeID const &_id);
 
   std::map<blk_hash_t, taraxa::DagBlock> getBlocks();
@@ -231,11 +192,9 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   void onNewPbftVote(taraxa::Vote const &vote);
   void sendPbftVote(NodeID const &_id, taraxa::Vote const &vote);
   void onNewPbftBlock(taraxa::PbftBlock const &pbft_block);
-  void sendPbftBlock(NodeID const &_id, taraxa::PbftBlock const &pbft_block,
-                     uint64_t const &pbft_chain_size);
+  void sendPbftBlock(NodeID const &_id, taraxa::PbftBlock const &pbft_block, uint64_t const &pbft_chain_size);
   void requestPbftBlocks(NodeID const &_id, size_t height_to_sync);
-  void sendPbftBlocks(NodeID const &_id, size_t height_to_sync,
-                      size_t blocks_to_transfer);
+  void sendPbftBlocks(NodeID const &_id, size_t height_to_sync, size_t blocks_to_transfer);
   void syncPbftNextVotes(uint64_t const pbft_round);
   void requestPbftNextVotes(NodeID const &peerID, uint64_t const pbft_round);
   void sendPbftNextVotes(NodeID const &peerID);
@@ -244,8 +203,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   std::shared_ptr<TaraxaPeer> getPeer(NodeID const &node_id);
   unsigned int getPeersCount();
   void erasePeer(NodeID const &node_id);
-  void insertPeer(NodeID const &node_id,
-                  std::shared_ptr<TaraxaPeer> const &peer);
+  void insertPeer(NodeID const &node_id, std::shared_ptr<TaraxaPeer> const &peer);
 
   bool syncing_ = false;
   bool requesting_pending_dag_blocks_ = false;
@@ -286,8 +244,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   NodeID peer_syncing_pbft;
   std::string genesis_;
   bool performance_log_;
-  mutable std::mt19937_64
-      urng_;  // Mersenne Twister psuedo-random number generator
+  mutable std::mt19937_64 urng_;  // Mersenne Twister psuedo-random number generator
   std::mt19937 delay_rng_;
   bool stopped_ = false;
   std::uniform_int_distribution<std::mt19937::result_type> random_dist_;

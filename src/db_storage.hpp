@@ -20,13 +20,7 @@ using namespace std;
 using namespace dev;
 using namespace rocksdb;
 namespace fs = std::filesystem;
-enum StatusDbField : uint8_t {
-  ExecutedBlkCount = 0,
-  ExecutedTrxCount,
-  TrxCount,
-  DagBlkCount,
-  DagEdgeCount
-};
+enum StatusDbField : uint8_t { ExecutedBlkCount = 0, ExecutedTrxCount, TrxCount, DagBlkCount, DagEdgeCount };
 
 class DbException : public exception {
  public:
@@ -53,12 +47,9 @@ struct DbStorage {
    public:
     static inline auto const& all = all_;
 
-    static inline auto const default_column =
-        all_.emplace_back(Column{kDefaultColumnFamilyName, all_.size()});
+    static inline auto const default_column = all_.emplace_back(Column{kDefaultColumnFamilyName, all_.size()});
 
-#define COLUMN(__name__)              \
-  static inline auto const __name__ = \
-      all_.emplace_back(Column{#__name__, all_.size()})
+#define COLUMN(__name__) static inline auto const __name__ = all_.emplace_back(Column{#__name__, all_.size()})
 
     COLUMN(dag_blocks);
     COLUMN(dag_blocks_index);
@@ -110,11 +101,8 @@ struct DbStorage {
   DbStorage(DbStorage const&) = delete;
   DbStorage& operator=(DbStorage const&) = delete;
 
-  explicit DbStorage(fs::path const& base_path,
-                     uint32_t db_snapshot_each_n_pbft_block = 0,
-                     uint32_t db_max_snapshots = 0,
-                     uint32_t db_revert_to_period = 0,
-                     addr_t node_addr = addr_t());
+  explicit DbStorage(fs::path const& base_path, uint32_t db_snapshot_each_n_pbft_block = 0, uint32_t db_max_snapshots = 0,
+                     uint32_t db_revert_to_period = 0, addr_t node_addr = addr_t());
   ~DbStorage();
 
   auto const& path() const { return path_; }
@@ -132,99 +120,69 @@ struct DbStorage {
   dev::bytes getDagBlockRaw(blk_hash_t const& hash);
   shared_ptr<DagBlock> getDagBlock(blk_hash_t const& hash);
   string getBlocksByLevel(level_t level);
-  std::vector<std::shared_ptr<DagBlock>> getDagBlocksAtLevel(
-      level_t level, int number_of_levels);
+  std::vector<std::shared_ptr<DagBlock>> getDagBlocksAtLevel(level_t level, int number_of_levels);
 
   // DAG state
-  void addDagBlockStateToBatch(BatchPtr const& write_batch,
-                               blk_hash_t const& blk_hash, bool finalized);
-  void removeDagBlockStateToBatch(BatchPtr const& write_batch,
-                                  blk_hash_t const& blk_hash);
+  void addDagBlockStateToBatch(BatchPtr const& write_batch, blk_hash_t const& blk_hash, bool finalized);
+  void removeDagBlockStateToBatch(BatchPtr const& write_batch, blk_hash_t const& blk_hash);
   std::map<blk_hash_t, bool> getAllDagBlockState();
 
   // Transaction
   void saveTransaction(Transaction const& trx);
   dev::bytes getTransactionRaw(trx_hash_t const& hash);
   shared_ptr<Transaction> getTransaction(trx_hash_t const& hash);
-  shared_ptr<pair<Transaction, taraxa::bytes>> getTransactionExt(
-      trx_hash_t const& hash);
+  shared_ptr<pair<Transaction, taraxa::bytes>> getTransactionExt(trx_hash_t const& hash);
   bool transactionInDb(trx_hash_t const& hash);
-  void addTransactionToBatch(Transaction const& trx,
-                             BatchPtr const& write_batch);
+  void addTransactionToBatch(Transaction const& trx, BatchPtr const& write_batch);
 
-  void saveTransactionStatus(trx_hash_t const& trx,
-                             TransactionStatus const& status);
-  void addTransactionStatusToBatch(BatchPtr const& write_batch,
-                                   trx_hash_t const& trx,
-                                   TransactionStatus const& status);
+  void saveTransactionStatus(trx_hash_t const& trx, TransactionStatus const& status);
+  void addTransactionStatusToBatch(BatchPtr const& write_batch, trx_hash_t const& trx, TransactionStatus const& status);
   TransactionStatus getTransactionStatus(trx_hash_t const& hash);
   std::map<trx_hash_t, TransactionStatus> getAllTransactionStatus();
 
   // pbft_blocks
   shared_ptr<PbftBlock> getPbftBlock(blk_hash_t const& hash);
   bool pbftBlockInDb(blk_hash_t const& hash);
-  void addPbftBlockToBatch(PbftBlock const& pbft_block,
-                           BatchPtr const& write_batch);
+  void addPbftBlockToBatch(PbftBlock const& pbft_block, BatchPtr const& write_batch);
   // pbft_blocks (head)
   // TODO: I would recommend storing this differently and not in the same db as
   // regular blocks with real hashes. Need remove from DB
   string getPbftHead(blk_hash_t const& hash);
   void savePbftHead(blk_hash_t const& hash, string const& pbft_chain_head_str);
-  void addPbftHeadToBatch(taraxa::blk_hash_t const& head_hash,
-                          std::string const& head_str,
-                          BatchPtr const& write_batch);
+  void addPbftHeadToBatch(taraxa::blk_hash_t const& head_hash, std::string const& head_str, BatchPtr const& write_batch);
   // status
   uint64_t getStatusField(StatusDbField const& field);
   void saveStatusField(StatusDbField const& field,
                        uint64_t const& value);  // unit test
-  void addStatusFieldToBatch(StatusDbField const& field, uint64_t const& value,
-                             BatchPtr const& write_batch);
+  void addStatusFieldToBatch(StatusDbField const& field, uint64_t const& value, BatchPtr const& write_batch);
   // votes
   bytes getVotes(blk_hash_t const& hash);
-  void addPbftCertVotesToBatch(taraxa::blk_hash_t const& pbft_block_hash,
-                               std::vector<Vote> const& cert_votes,
-                               BatchPtr const& write_batch);
+  void addPbftCertVotesToBatch(taraxa::blk_hash_t const& pbft_block_hash, std::vector<Vote> const& cert_votes, BatchPtr const& write_batch);
   // period_pbft_block
   shared_ptr<blk_hash_t> getPeriodPbftBlock(uint64_t const& period);
-  void addPbftBlockPeriodToBatch(uint64_t const& period,
-                                 taraxa::blk_hash_t const& pbft_block_hash,
-                                 BatchPtr const& write_batch);
+  void addPbftBlockPeriodToBatch(uint64_t const& period, taraxa::blk_hash_t const& pbft_block_hash, BatchPtr const& write_batch);
   // dag_block_period
   shared_ptr<uint64_t> getDagBlockPeriod(blk_hash_t const& hash);
-  void addDagBlockPeriodToBatch(blk_hash_t const& hash, uint64_t const& period,
-                                BatchPtr const& write_batch);
+  void addDagBlockPeriodToBatch(blk_hash_t const& hash, uint64_t const& period, BatchPtr const& write_batch);
 
   uint64_t getDagBlocksCount() const { return dag_blocks_count_.load(); }
   uint64_t getDagEdgeCount() const { return dag_edge_count_.load(); }
 
-  auto getNumTransactionExecuted() {
-    return getStatusField(StatusDbField::ExecutedTrxCount);
-  }
-  auto getNumTransactionInDag() {
-    return getStatusField(StatusDbField::TrxCount);
-  }
-  auto getNumBlockExecuted() {
-    return getStatusField(StatusDbField::ExecutedBlkCount);
-  }
+  auto getNumTransactionExecuted() { return getStatusField(StatusDbField::ExecutedTrxCount); }
+  auto getNumTransactionInDag() { return getStatusField(StatusDbField::TrxCount); }
+  auto getNumBlockExecuted() { return getStatusField(StatusDbField::ExecutedBlkCount); }
   uint64_t getNumDagBlocks() { return getDagBlocksCount(); }
 
-  vector<blk_hash_t> getFinalizedDagBlockHashesByAnchor(
-      blk_hash_t const& anchor);
-  void putFinalizedDagBlockHashesByAnchor(WriteBatch& b,
-                                          blk_hash_t const& anchor,
-                                          vector<blk_hash_t> const& hs);
+  vector<blk_hash_t> getFinalizedDagBlockHashesByAnchor(blk_hash_t const& anchor);
+  void putFinalizedDagBlockHashesByAnchor(WriteBatch& b, blk_hash_t const& anchor, vector<blk_hash_t> const& hs);
 
   void insert(Column const& col, Slice const& k, Slice const& v);
   void remove(Slice key, Column const& column);
   void forEach(Column const& col, OnEntry const& f);
 
-  inline static bytes asBytes(string const& b) {
-    return bytes((byte const*)b.data(), (byte const*)(b.data() + b.size()));
-  }
+  inline static bytes asBytes(string const& b) { return bytes((byte const*)b.data(), (byte const*)(b.data() + b.size())); }
 
-  inline static Slice toSlice(dev::bytesConstRef const& b) {
-    return Slice(reinterpret_cast<char const*>(&b[0]), b.size());
-  }
+  inline static Slice toSlice(dev::bytesConstRef const& b) { return Slice(reinterpret_cast<char const*>(&b[0]), b.size()); }
 
   template <unsigned N>
   inline static Slice toSlice(dev::FixedHash<N> const& h) {
@@ -238,9 +196,7 @@ struct DbStorage {
     return Slice(reinterpret_cast<char const*>(&n), sizeof(N));
   }
 
-  inline static Slice toSlice(string const& str) {
-    return Slice(str.data(), str.size());
-  }
+  inline static Slice toSlice(string const& str) { return Slice(str.data(), str.size()); }
 
   inline static auto const& toSlice(Slice const& s) { return s; }
 
@@ -254,9 +210,7 @@ struct DbStorage {
     return ret;
   }
 
-  inline static auto const& toSlices(std::vector<Slice> const& ss) {
-    return ss;
-  }
+  inline static auto const& toSlices(std::vector<Slice> const& ss) { return ss; }
 
   template <typename K>
   std::string lookup(K const& key, Column const& column) {
@@ -275,15 +229,10 @@ struct DbStorage {
   }
 
   // TODO remove
-  void batch_put(BatchPtr const& batch, Column const& col, Slice const& k,
-                 Slice const& v) {
-    batch_put(*batch, col, k, v);
-  }
+  void batch_put(BatchPtr const& batch, Column const& col, Slice const& k, Slice const& v) { batch_put(*batch, col, k, v); }
 
   // TODO generalize like batch_put
-  void batch_delete(BatchPtr const& batch, Column const& col, Slice const& k) {
-    checkStatus(batch->Delete(handle(col), k));
-  }
+  void batch_delete(BatchPtr const& batch, Column const& col, Slice const& k) { checkStatus(batch->Delete(handle(col), k)); }
 
   static void checkStatus(rocksdb::Status const& status);
 
@@ -297,15 +246,13 @@ struct DbStorage {
     explicit MultiGetQuery(shared_ptr<DbStorage> const& db, uint capacity = 0);
 
     template <typename T>
-    MultiGetQuery& append(Column const& col, vector<T> const& keys,
-                          bool copy_key = true) {
+    MultiGetQuery& append(Column const& col, vector<T> const& keys, bool copy_key = true) {
       auto h = db_->handle(col);
       for (auto const& k : keys) {
         cfs_.emplace_back(h);
         if (copy_key) {
           auto const& slice = toSlice(k);
-          keys_.emplace_back(
-              toSlice(str_pool_.emplace_back(slice.data(), slice.size())));
+          keys_.emplace_back(toSlice(str_pool_.emplace_back(slice.data(), slice.size())));
         } else {
           keys_.emplace_back(toSlice(k));
         }
@@ -314,8 +261,7 @@ struct DbStorage {
     }
 
     template <typename T>
-    MultiGetQuery& append(Column const& col, T const& key,
-                          bool copy_key = true) {
+    MultiGetQuery& append(Column const& col, T const& key, bool copy_key = true) {
       return append(col, vector{toSlice(key)}, copy_key);
     }
 

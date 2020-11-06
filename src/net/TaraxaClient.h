@@ -11,9 +11,7 @@ namespace taraxa {
 namespace net {
 class TaraxaClient : public jsonrpc::Client {
  public:
-  TaraxaClient(jsonrpc::IClientConnector& conn,
-               jsonrpc::clientVersion_t type = jsonrpc::JSONRPC_CLIENT_V2)
-      : jsonrpc::Client(conn, type) {}
+  TaraxaClient(jsonrpc::IClientConnector& conn, jsonrpc::clientVersion_t type = jsonrpc::JSONRPC_CLIENT_V2) : jsonrpc::Client(conn, type) {}
 
   std::string taraxa_protocolVersion() throw(jsonrpc::JsonRpcException) {
     Json::Value p;
@@ -22,12 +20,9 @@ class TaraxaClient : public jsonrpc::Client {
     if (result.isString())
       return result.asString();
     else
-      throw jsonrpc::JsonRpcException(
-          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
-          result.toStyledString());
+      throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
   }
-  Json::Value taraxa_getDagBlockByHash(
-      const std::string& param1, bool param2) throw(jsonrpc::JsonRpcException) {
+  Json::Value taraxa_getDagBlockByHash(const std::string& param1, bool param2) throw(jsonrpc::JsonRpcException) {
     Json::Value p;
     p.append(param1);
     p.append(param2);
@@ -35,12 +30,9 @@ class TaraxaClient : public jsonrpc::Client {
     if (result.isObject())
       return result;
     else
-      throw jsonrpc::JsonRpcException(
-          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
-          result.toStyledString());
+      throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
   }
-  Json::Value taraxa_getDagBlockByLevel(
-      const std::string& param1, bool param2) throw(jsonrpc::JsonRpcException) {
+  Json::Value taraxa_getDagBlockByLevel(const std::string& param1, bool param2) throw(jsonrpc::JsonRpcException) {
     Json::Value p;
     p.append(param1);
     p.append(param2);
@@ -48,9 +40,7 @@ class TaraxaClient : public jsonrpc::Client {
     if (result.isObject())
       return result;
     else
-      throw jsonrpc::JsonRpcException(
-          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
-          result.toStyledString());
+      throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
   }
   std::string taraxa_dagBlockLevel() throw(jsonrpc::JsonRpcException) {
     Json::Value p;
@@ -59,9 +49,7 @@ class TaraxaClient : public jsonrpc::Client {
     if (result.isString())
       return result.asString();
     else
-      throw jsonrpc::JsonRpcException(
-          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
-          result.toStyledString());
+      throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
   }
   std::string taraxa_dagBlockPeriod() throw(jsonrpc::JsonRpcException) {
     Json::Value p;
@@ -70,21 +58,16 @@ class TaraxaClient : public jsonrpc::Client {
     if (result.isString())
       return result.asString();
     else
-      throw jsonrpc::JsonRpcException(
-          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
-          result.toStyledString());
+      throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
   }
-  Json::Value taraxa_getScheduleBlockByPeriod(const std::string& param1) throw(
-      jsonrpc::JsonRpcException) {
+  Json::Value taraxa_getScheduleBlockByPeriod(const std::string& param1) throw(jsonrpc::JsonRpcException) {
     Json::Value p;
     p.append(param1);
     Json::Value result = this->CallMethod("taraxa_getScheduleBlockByPeriod", p);
     if (result.isObject())
       return result;
     else
-      throw jsonrpc::JsonRpcException(
-          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
-          result.toStyledString());
+      throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
   }
   Json::Value taraxa_getConfig() throw(jsonrpc::JsonRpcException) {
     Json::Value p;
@@ -93,9 +76,7 @@ class TaraxaClient : public jsonrpc::Client {
     if (result.isObject())
       return result;
     else
-      throw jsonrpc::JsonRpcException(
-          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
-          result.toStyledString());
+      throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
   }
 };
 

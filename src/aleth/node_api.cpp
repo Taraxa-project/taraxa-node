@@ -15,11 +15,8 @@ struct NodeAPIImpl : virtual Eth::NodeAPI {
   KeyPair key_pair;
   function<void(::taraxa::Transaction const&)> send_trx;
 
-  NodeAPIImpl(decltype(chain_id_) chain_id, decltype(key_pair) key_pair,
-              decltype(send_trx) send_trx)
-      : chain_id_(chain_id),
-        key_pair(move(key_pair)),
-        send_trx(move(send_trx)) {}
+  NodeAPIImpl(decltype(chain_id_) chain_id, decltype(key_pair) key_pair, decltype(send_trx) send_trx)
+      : chain_id_(chain_id), key_pair(move(key_pair)), send_trx(move(send_trx)) {}
 
   uint64_t chain_id() const override { return chain_id_; }
 
@@ -28,9 +25,7 @@ struct NodeAPIImpl : virtual Eth::NodeAPI {
   Address const& address() const override { return key_pair.address(); }
 
   h256 importTransaction(TransactionSkeleton const& t) override {
-    ::taraxa::Transaction trx(t.nonce.value_or(0), t.value,
-                              t.gasPrice.value_or(0), t.gas.value_or(0), t.data,
-                              key_pair.secret(),
+    ::taraxa::Transaction trx(t.nonce.value_or(0), t.value, t.gasPrice.value_or(0), t.gas.value_or(0), t.data, key_pair.secret(),
                               t.to ? optional(t.to) : std::nullopt, chain_id_);
     trx.rlp(true);
     send_trx(trx);
@@ -44,9 +39,7 @@ struct NodeAPIImpl : virtual Eth::NodeAPI {
   }
 };
 
-unique_ptr<Eth::NodeAPI> NewNodeAPI(
-    uint64_t chain_id, KeyPair key_pair,
-    function<void(::taraxa::Transaction const&)> send_trx) {
+unique_ptr<Eth::NodeAPI> NewNodeAPI(uint64_t chain_id, KeyPair key_pair, function<void(::taraxa::Transaction const&)> send_trx) {
   return u_ptr(new NodeAPIImpl(chain_id, move(key_pair), move(send_trx)));
 }
 

@@ -145,12 +145,8 @@ struct Account {
   h256 CodeHash;
   uint64_t CodeSize = 0;
 
-  auto const& storage_root_eth() const {
-    return StorageRootHash ? StorageRootHash : dev::EmptyListSHA3;
-  }
-  auto const& code_hash_eth() const {
-    return CodeSize ? CodeHash : dev::EmptySHA3;
-  }
+  auto const& storage_root_eth() const { return StorageRootHash ? StorageRootHash : dev::EmptyListSHA3; }
+  auto const& code_hash_eth() const { return CodeSize ? CodeHash : dev::EmptySHA3; }
 };
 void dec_rlp(RLP const&, Account&);
 
@@ -191,24 +187,19 @@ class StateAPI {
   string db_path;
 
  public:
-  StateAPI(string const& db_path, function<h256(BlockNumber)> get_blk_hash,
-           ChainConfig const& chain_config, Opts const& opts = {});
+  StateAPI(string const& db_path, function<h256(BlockNumber)> get_blk_hash, ChainConfig const& chain_config, Opts const& opts = {});
   ~StateAPI();
 
-  Proof prove(BlockNumber blk_num, root_t const& state_root, addr_t const& addr,
-              vector<h256> const& keys) const;
+  Proof prove(BlockNumber blk_num, root_t const& state_root, addr_t const& addr, vector<h256> const& keys) const;
   optional<Account> get_account(BlockNumber blk_num, addr_t const& addr) const;
-  u256 get_account_storage(BlockNumber blk_num, addr_t const& addr,
-                           u256 const& key) const;
+  u256 get_account_storage(BlockNumber blk_num, addr_t const& addr, u256 const& key) const;
   bytes get_code_by_address(BlockNumber blk_num, addr_t const& addr) const;
-  ExecutionResult dry_run_transaction(
-      BlockNumber blk_num, EVMBlock const& blk, EVMTransaction const& trx,
-      optional<ExecutionOptions> const& opts = nullopt) const;
+  ExecutionResult dry_run_transaction(BlockNumber blk_num, EVMBlock const& blk, EVMTransaction const& trx,
+                                      optional<ExecutionOptions> const& opts = nullopt) const;
   StateDescriptor get_last_committed_state_descriptor() const;
-  StateTransitionResult const& transition_state(
-      EVMBlock const& block,
-      RangeView<EVMTransaction> const& transactions,  //
-      RangeView<UncleBlock> const& uncles = {});
+  StateTransitionResult const& transition_state(EVMBlock const& block,
+                                                RangeView<EVMTransaction> const& transactions,  //
+                                                RangeView<UncleBlock> const& uncles = {});
   void transition_state_commit();
   void create_snapshot(uint64_t const& period);
   // DPOS

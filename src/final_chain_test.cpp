@@ -38,38 +38,29 @@ struct FinalChainTest : WithDataDir {
   auto advance(Transactions const& trxs, advance_check_opts opts = {}) {
     auto batch = db->createWriteBatch();
     auto author = addr_t::random();
-    uint64_t timestamp =
-        chrono::high_resolution_clock::now().time_since_epoch().count();
+    uint64_t timestamp = chrono::high_resolution_clock::now().time_since_epoch().count();
     auto result = SUT->advance(batch, author, timestamp, trxs);
     db->commitWriteBatch(batch);
     SUT->advance_confirm();
     ++expected_blk_num;
     auto const& blk_h = result.new_header;
     EXPECT_EQ(blk_h.hash(), SUT->get_last_block()->hash());
-    EXPECT_EQ(blk_h.parentHash(),
-              SUT->blockHeader(expected_blk_num - 1).hash());
+    EXPECT_EQ(blk_h.parentHash(), SUT->blockHeader(expected_blk_num - 1).hash());
     EXPECT_EQ(blk_h.number(), expected_blk_num);
     EXPECT_EQ(blk_h.author(), author);
     EXPECT_EQ(blk_h.timestamp(), timestamp);
     EXPECT_EQ(result.receipts.size(), trxs.size());
-    EXPECT_EQ(blk_h.transactionsRoot(),
-              trieRootOver(
-                  trxs.size(), [&](auto i) { return rlp(i); },
-                  [&](auto i) { return trxs[i].rlp(); }));
-    EXPECT_EQ(blk_h.receiptsRoot(),
-              trieRootOver(
-                  trxs.size(), [&](auto i) { return rlp(i); },
-                  [&](auto i) { return result.receipts[i].rlp(); }));
+    EXPECT_EQ(blk_h.transactionsRoot(), trieRootOver(
+                                            trxs.size(), [&](auto i) { return rlp(i); }, [&](auto i) { return trxs[i].rlp(); }));
+    EXPECT_EQ(blk_h.receiptsRoot(), trieRootOver(
+                                        trxs.size(), [&](auto i) { return rlp(i); }, [&](auto i) { return result.receipts[i].rlp(); }));
     EXPECT_EQ(blk_h.gasLimit(), std::numeric_limits<uint64_t>::max());
     EXPECT_EQ(blk_h.extraData(), bytes());
     EXPECT_EQ(blk_h.nonce(), Nonce());
     EXPECT_EQ(blk_h.difficulty(), 0);
     EXPECT_EQ(blk_h.mixHash(), h256());
     EXPECT_EQ(blk_h.sha3Uncles(), EmptyListSHA3);
-    EXPECT_EQ(blk_h.gasUsed(),
-              result.receipts.empty()
-                  ? 0
-                  : result.receipts.back().cumulativeGasUsed());
+    EXPECT_EQ(blk_h.gasUsed(), result.receipts.empty() ? 0 : result.receipts.back().cumulativeGasUsed());
     LogBloom expected_block_log_bloom;
     unordered_map<addr_t, u256> expected_balance_changes;
     unordered_set<addr_t> all_addrs_w_changed_balance;
@@ -78,12 +69,10 @@ struct FinalChainTest : WithDataDir {
       auto const& r = result.receipts[i];
       EXPECT_EQ(r.rlp(), SUT->transactionReceipt(trx.sha3()).rlp());
       EXPECT_EQ(trx.rlp(), SUT->transaction(trx.sha3()).rlp());
-      if (assume_only_toplevel_transfers && trx.value() != 0 &&
-          r.statusCode() == 1) {
+      if (assume_only_toplevel_transfers && trx.value() != 0 && r.statusCode() == 1) {
         auto const& sender = trx.from();
         auto const& sender_bal = expected_balances[sender] -= trx.value();
-        auto const& receiver =
-            trx.isCreation() ? r.contractAddress() : trx.to();
+        auto const& receiver = trx.isCreation() ? r.contractAddress() : trx.to();
         all_addrs_w_changed_balance.insert(sender);
         all_addrs_w_changed_balance.insert(receiver);
         auto const& receiver_bal = expected_balances[receiver] += trx.value();
@@ -104,9 +93,7 @@ struct FinalChainTest : WithDataDir {
       }
       expected_block_log_bloom |= r.bloom();
       auto r_from_db = SUT->localisedTransactionReceipt(trxs[i].sha3());
-      EXPECT_EQ(
-          r_from_db.contractAddress(),
-          result.state_transition_result.ExecutionResults[i].NewContractAddr);
+      EXPECT_EQ(r_from_db.contractAddress(), result.state_transition_result.ExecutionResults[i].NewContractAddr);
       EXPECT_EQ(r_from_db.from(), trx.from());
       EXPECT_EQ(r_from_db.blockHash(), blk_h.hash());
       EXPECT_EQ(r_from_db.blockNumber(), blk_h.number());
@@ -116,12 +103,8 @@ struct FinalChainTest : WithDataDir {
       EXPECT_EQ(r_from_db.bloom(), r.bloom());
       EXPECT_TRUE(r_from_db.hasStatusCode());
       EXPECT_EQ(r_from_db.statusCode(), r.statusCode());
-      EXPECT_EQ(r_from_db.gasUsed(),
-                result.state_transition_result.ExecutionResults[i].GasUsed);
-      EXPECT_EQ(r_from_db.gasUsed(),
-                i == 0 ? r.cumulativeGasUsed()
-                       : r.cumulativeGasUsed() -
-                             result.receipts[i - 1].cumulativeGasUsed());
+      EXPECT_EQ(r_from_db.gasUsed(), result.state_transition_result.ExecutionResults[i].GasUsed);
+      EXPECT_EQ(r_from_db.gasUsed(), i == 0 ? r.cumulativeGasUsed() : r.cumulativeGasUsed() - result.receipts[i - 1].cumulativeGasUsed());
     }
     expected_block_log_bloom.shiftBloom<3>(sha3(blk_h.author().ref()));
     EXPECT_EQ(blk_h.logBloom(), expected_block_log_bloom);
@@ -207,11 +190,9 @@ TEST_F(FinalChainTest, contract) {
       "03ea91906103ee565b5090565b61041091905b8082111561040c57600081600090555060"
       "01016103f4565b5090565b9056fea264697066735822122004585b83cf41cfb8af886165"
       "0679892acca0561c1a8ab45ce31c7fdb15a67b7764736f6c63430006080033";
-  dev::eth::Transaction trx(100, 0, 0, dev::fromHex(contract_deploy_code), 0,
-                            sk);
+  dev::eth::Transaction trx(100, 0, 0, dev::fromHex(contract_deploy_code), 0, sk);
   auto result = advance({trx});
-  auto contract_addr =
-      result.state_transition_result.ExecutionResults[0].NewContractAddr;
+  auto contract_addr = result.state_transition_result.ExecutionResults[0].NewContractAddr;
   auto greet = [&] {
     auto ret = SUT->call({
         addr,
@@ -231,23 +212,20 @@ TEST_F(FinalChainTest, contract) {
             "000000000000000000000000000000000000000000000000000000000000000548"
             "656c6c6f000000000000000000000000000000000000000000000000000000");
   {
-    dev::eth::Transaction trx(
-        11, 0, 0, contract_addr,
-        // setGreeting("Hola")
-        dev::fromHex(
-            "0xa4136862000000000000000000000000000000000000000000000000"
-            "00000000000000200000000000000000000000000000000000000000000"
-            "000000000000000000004486f6c61000000000000000000000000000000"
-            "00000000000000000000000000"),
-        0, sk);
+    dev::eth::Transaction trx(11, 0, 0, contract_addr,
+                              // setGreeting("Hola")
+                              dev::fromHex("0xa4136862000000000000000000000000000000000000000000000000"
+                                           "00000000000000200000000000000000000000000000000000000000000"
+                                           "000000000000000000004486f6c61000000000000000000000000000000"
+                                           "00000000000000000000000000"),
+                              0, sk);
     advance({trx});
   }
-  ASSERT_EQ(
-      greet(),
-      // "Hola"
-      "0x000000000000000000000000000000000000000000000000000000000000002000"
-      "00000000000000000000000000000000000000000000000000000000000004486f"
-      "6c6100000000000000000000000000000000000000000000000000000000");
+  ASSERT_EQ(greet(),
+            // "Hola"
+            "0x000000000000000000000000000000000000000000000000000000000000002000"
+            "00000000000000000000000000000000000000000000000000000000000004486f"
+            "6c6100000000000000000000000000000000000000000000000000000000");
 }
 
 TEST_F(FinalChainTest, coin_transfers) {
@@ -258,8 +236,7 @@ TEST_F(FinalChainTest, coin_transfers) {
   keys.reserve(NUM_ACCS);
   for (size_t i = 0; i < NUM_ACCS; ++i) {
     auto const& k = keys.emplace_back(KeyPair::create());
-    cfg.state.genesis_balances[k.address()] =
-        numeric_limits<u256>::max() / NUM_ACCS;
+    cfg.state.genesis_balances[k.address()] = numeric_limits<u256>::max() / NUM_ACCS;
   }
   cfg.state.execution_options.disable_gas_fee = false;
   init();

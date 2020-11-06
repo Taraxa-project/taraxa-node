@@ -48,26 +48,17 @@ Verbosity stringToVerbosity(std::string _verbosity) {
   throw("Unknown verbosity string");
 }
 
-Logger createTaraxaLogger(int _severity, std::string const &_channel,
-                          addr_t node_id) {
-  Logger logger(boost::log::keywords::severity = _severity,
-                boost::log::keywords::channel = _channel);
+Logger createTaraxaLogger(int _severity, std::string const &_channel, addr_t node_id) {
+  Logger logger(boost::log::keywords::severity = _severity, boost::log::keywords::channel = _channel);
   std::string severity_str = verbosityToString(_severity);
-  logger.add_attribute(
-      "SeverityStr",
-      boost::log::attributes::constant<std::string>(severity_str));
-  logger.add_attribute(
-      "ShortNodeId",
-      boost::log::attributes::constant<uint32_t>(*(uint32_t *)node_id.data()));
-  logger.add_attribute("NodeId", boost::log::attributes::constant<std::string>(
-                                     node_id.toString()));
+  logger.add_attribute("SeverityStr", boost::log::attributes::constant<std::string>(severity_str));
+  logger.add_attribute("ShortNodeId", boost::log::attributes::constant<uint32_t>(*(uint32_t *)node_id.data()));
+  logger.add_attribute("NodeId", boost::log::attributes::constant<std::string>(node_id.toString()));
   return logger;
 }
 
-std::function<void()> setupLoggingConfiguration(addr_t const &node,
-                                                LoggingConfig const &l) {
-  boost::log::core::get()->add_sink(
-      boost::make_shared<log_sink<boost::log::sinks::text_ostream_backend>>());
+std::function<void()> setupLoggingConfiguration(addr_t const &node, LoggingConfig const &l) {
+  boost::log::core::get()->add_sink(boost::make_shared<log_sink<boost::log::sinks::text_ostream_backend>>());
   // If there is no output defined, we default to console output
   auto logging_p = make_shared<LoggingConfig>(l);
   auto &logging = *logging_p;
@@ -75,12 +66,10 @@ std::function<void()> setupLoggingConfiguration(addr_t const &node,
     logging.outputs.push_back(LoggingOutputConfig());
   }
   for (auto &output : logging.outputs) {
-    auto filter = [logging_p, short_node_id_conf = *(uint32_t *)node.data()](
-                      boost::log::attribute_value_set const &_set) {
+    auto filter = [logging_p, short_node_id_conf = *(uint32_t *)node.data()](boost::log::attribute_value_set const &_set) {
       auto const &logging = *logging_p;
       if (logging.channels.count(*_set[channel])) {
-        if (short_node_id_conf == _set[short_node_id] ||
-            _set[short_node_id].empty()) {
+        if (short_node_id_conf == _set[short_node_id] || _set[short_node_id].empty()) {
           auto channel_name = _set[channel].get();
           if (_set[severity] > logging.channels.at(channel_name)) return false;
           return true;
@@ -94,8 +83,7 @@ std::function<void()> setupLoggingConfiguration(addr_t const &node,
       return false;
     };
     if (output.type == "console") {
-      auto sink = boost::make_shared<
-          log_sink<boost::log::sinks::text_ostream_backend>>();
+      auto sink = boost::make_shared<log_sink<boost::log::sinks::text_ostream_backend>>();
       boost::shared_ptr<std::ostream> stream{&std::cout, boost::null_deleter{}};
       sink->locked_backend()->add_stream(stream);
       sink->set_filter(filter);
@@ -106,17 +94,11 @@ std::function<void()> setupLoggingConfiguration(addr_t const &node,
       logging.console_sinks.push_back(sink);
     } else if (output.type == "file") {
       std::vector<std::string> v;
-      boost::algorithm::split(v, output.time_based_rotation,
-                              boost::is_any_of(","));
-      if (v.size() != 3)
-        throw ConfigException("time_based_rotation not configured correctly" +
-                              output.time_based_rotation);
+      boost::algorithm::split(v, output.time_based_rotation, boost::is_any_of(","));
+      if (v.size() != 3) throw ConfigException("time_based_rotation not configured correctly" + output.time_based_rotation);
       auto sink = boost::log::add_file_log(
-          boost::log::keywords::file_name = output.file_name,
-          boost::log::keywords::rotation_size = output.rotation_size,
-          boost::log::keywords::time_based_rotation =
-              boost::log::sinks::file::rotation_at_time_point(
-                  stoi(v[0]), stoi(v[1]), stoi(v[2])),
+          boost::log::keywords::file_name = output.file_name, boost::log::keywords::rotation_size = output.rotation_size,
+          boost::log::keywords::time_based_rotation = boost::log::sinks::file::rotation_at_time_point(stoi(v[0]), stoi(v[1]), stoi(v[2])),
           boost::log::keywords::max_size = output.max_size);
       sink->set_filter(filter);
 
@@ -127,16 +109,11 @@ std::function<void()> setupLoggingConfiguration(addr_t const &node,
     }
 
     boost::log::add_common_attributes();
-    boost::log::core::get()->add_global_attribute(
-        "SeverityStr", boost::log::attributes::make_function(&getThreadName));
+    boost::log::core::get()->add_global_attribute("SeverityStr", boost::log::attributes::make_function(&getThreadName));
   }
 
-  boost::log::core::get()->set_exception_handler(
-      boost::log::make_exception_handler<std::exception>(
-          [](std::exception const &_ex) {
-            std::cerr << "Exception from the logging library: " << _ex.what()
-                      << '\n';
-          }));
+  boost::log::core::get()->set_exception_handler(boost::log::make_exception_handler<std::exception>(
+      [](std::exception const &_ex) { std::cerr << "Exception from the logging library: " << _ex.what() << '\n'; }));
   return [logging_p] {
     auto const &logging = *logging_p;
     boost::log::core::get()->flush();

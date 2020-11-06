@@ -35,9 +35,7 @@ struct ReplayProtectionServiceTest : WithDataDir {
     }
   }
 
-  bool hasNoNonceWatermark(addr_t const& sender_addr) {
-    return !SUT->is_nonce_stale(sender_addr, 0);
-  }
+  bool hasNoNonceWatermark(addr_t const& sender_addr) { return !SUT->is_nonce_stale(sender_addr, 0); }
 
   bool hasNonceWatermark(addr_t const& sender_addr, uint64_t watermark) {
     for (uint64_t i(0); i <= watermark; ++i) {

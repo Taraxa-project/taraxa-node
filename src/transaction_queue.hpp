@@ -24,15 +24,12 @@ class TransactionQueue {
   void pop();
   std::pair<trx_hash_t, listIter> getUnverifiedTransaction();
   void removeTransactionFromBuffer(trx_hash_t const &hash);
-  void addTransactionToVerifiedQueue(trx_hash_t const &hash,
-                                     std::list<Transaction>::iterator);
-  std::unordered_map<trx_hash_t, Transaction> moveVerifiedTrxSnapShot(
-      uint16_t max_trx_to_pack = 0);
+  void addTransactionToVerifiedQueue(trx_hash_t const &hash, std::list<Transaction>::iterator);
+  std::unordered_map<trx_hash_t, Transaction> moveVerifiedTrxSnapShot(uint16_t max_trx_to_pack = 0);
   std::unordered_map<trx_hash_t, Transaction> getVerifiedTrxSnapShot() const;
   std::pair<size_t, size_t> getTransactionQueueSize() const;
   std::vector<Transaction> getNewVerifiedTrxSnapShot();
-  std::unordered_map<trx_hash_t, Transaction> removeBlockTransactionsFromQueue(
-      vec_trx_t const &all_block_trxs);
+  std::unordered_map<trx_hash_t, Transaction> removeBlockTransactionsFromQueue(vec_trx_t const &all_block_trxs);
   unsigned long getVerifiedTrxCount() const;
   std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash) const;
 

@@ -42,8 +42,7 @@ void TransactionQueue::insert(Transaction const &trx, bool verify) {
   LOG(log_nf_) << " Trx: " << hash << " inserted. " << verify << std::endl;
 }
 
-std::pair<trx_hash_t, TransactionQueue::listIter>
-TransactionQueue::getUnverifiedTransaction() {
+std::pair<trx_hash_t, TransactionQueue::listIter> TransactionQueue::getUnverifiedTransaction() {
   std::pair<trx_hash_t, listIter> item;
   {
     uLock lock(shared_mutex_for_unverified_qu_);
@@ -66,17 +65,14 @@ void TransactionQueue::removeTransactionFromBuffer(trx_hash_t const &hash) {
   queued_trxs_.erase(hash);
 }
 
-void TransactionQueue::addTransactionToVerifiedQueue(
-    trx_hash_t const &hash, std::list<Transaction>::iterator iter) {
+void TransactionQueue::addTransactionToVerifiedQueue(trx_hash_t const &hash, std::list<Transaction>::iterator iter) {
   uLock lock(shared_mutex_for_verified_qu_);
   verified_trxs_[hash] = iter;
   new_verified_transactions_ = true;
 }
 
 // The caller is responsible for storing the transaction to db!
-std::unordered_map<trx_hash_t, Transaction>
-TransactionQueue::removeBlockTransactionsFromQueue(
-    vec_trx_t const &all_block_trxs) {
+std::unordered_map<trx_hash_t, Transaction> TransactionQueue::removeBlockTransactionsFromQueue(vec_trx_t const &all_block_trxs) {
   std::unordered_map<trx_hash_t, Transaction> result;
   {
     std::vector<trx_hash_t> removed_trx;
@@ -108,15 +104,13 @@ TransactionQueue::removeBlockTransactionsFromQueue(
   return result;
 }
 
-std::unordered_map<trx_hash_t, Transaction>
-TransactionQueue::getVerifiedTrxSnapShot() const {
+std::unordered_map<trx_hash_t, Transaction> TransactionQueue::getVerifiedTrxSnapShot() const {
   std::unordered_map<trx_hash_t, Transaction> verified_trxs;
   sharedLock lock(shared_mutex_for_verified_qu_);
   for (auto const &trx : verified_trxs_) {
     verified_trxs[trx.first] = *(trx.second);
   }
-  LOG(log_dg_) << "Get: " << verified_trxs.size() << " verified trx out. "
-               << std::endl;
+  LOG(log_dg_) << "Get: " << verified_trxs.size() << " verified trx out. " << std::endl;
   return verified_trxs;
 }
 
@@ -126,23 +120,16 @@ std::vector<Transaction> TransactionQueue::getNewVerifiedTrxSnapShot() {
   {
     if (new_verified_transactions_) {
       new_verified_transactions_ = false;
-      std::transform(
-          verified_trxs_.begin(), verified_trxs_.end(),
-          std::back_inserter(verified_trxs),
-          [](std::pair<const taraxa::trx_hash_t,
-                       taraxa::TransactionQueue::listIter> const &trx) {
-            return *(trx.second);
-          });
-      LOG(log_dg_) << "Get: " << verified_trxs.size()
-                   << "verified trx out for gossiping " << std::endl;
+      std::transform(verified_trxs_.begin(), verified_trxs_.end(), std::back_inserter(verified_trxs),
+                     [](std::pair<const taraxa::trx_hash_t, taraxa::TransactionQueue::listIter> const &trx) { return *(trx.second); });
+      LOG(log_dg_) << "Get: " << verified_trxs.size() << "verified trx out for gossiping " << std::endl;
     }
   }
   return verified_trxs;
 }
 
 // search from queued_trx_
-std::shared_ptr<Transaction> TransactionQueue::getTransaction(
-    trx_hash_t const &hash) const {
+std::shared_ptr<Transaction> TransactionQueue::getTransaction(trx_hash_t const &hash) const {
   {
     sharedLock lock(shared_mutex_for_queued_trxs_);
     auto it = queued_trxs_.find(hash);
@@ -153,8 +140,7 @@ std::shared_ptr<Transaction> TransactionQueue::getTransaction(
   return nullptr;
 }
 
-std::unordered_map<trx_hash_t, Transaction>
-TransactionQueue::moveVerifiedTrxSnapShot(uint16_t max_trx_to_pack) {
+std::unordered_map<trx_hash_t, Transaction> TransactionQueue::moveVerifiedTrxSnapShot(uint16_t max_trx_to_pack) {
   std::unordered_map<trx_hash_t, Transaction> res;
   {
     uLock lock(shared_mutex_for_verified_qu_);

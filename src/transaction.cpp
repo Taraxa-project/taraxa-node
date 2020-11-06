@@ -9,10 +9,8 @@ namespace taraxa {
 using namespace std;
 using namespace dev;
 
-Transaction::Transaction(uint64_t nonce, val_t const &value,
-                         val_t const &gas_price, uint64_t gas, bytes data,
-                         secret_t const &sk, optional<addr_t> const &receiver,
-                         uint64_t chain_id)
+Transaction::Transaction(uint64_t nonce, val_t const &value, val_t const &gas_price, uint64_t gas, bytes data, secret_t const &sk,
+                         optional<addr_t> const &receiver, uint64_t chain_id)
     : nonce_(nonce),
       value_(value),
       gas_price_(gas_price),
@@ -28,8 +26,7 @@ Transaction::Transaction(uint64_t nonce, val_t const &value,
 }
 
 Transaction::Transaction(dev::RLP const &_rlp, bool verify_strict) {
-  auto strictness =
-      verify_strict ? dev::RLP::VeryStrict : dev::RLP::LaissezFaire;
+  auto strictness = verify_strict ? dev::RLP::VeryStrict : dev::RLP::LaissezFaire;
   uint fields_processed = 0;
   for (auto const &el : _rlp) {
     ++fields_processed;
@@ -93,9 +90,8 @@ addr_t const &Transaction::getSender() const {
   if (auto const &ret = get_sender_(); sender_valid_) {
     return ret;
   }
-  throw InvalidSignature(
-      "transaction body: " + toJSON().toStyledString() + "\nOriginal RLP: " +
-      (cached_rlp_ ? dev::toJS(*cached_rlp_) : "wasn't created from rlp"));
+  throw InvalidSignature("transaction body: " + toJSON().toStyledString() +
+                         "\nOriginal RLP: " + (cached_rlp_ ? dev::toJS(*cached_rlp_) : "wasn't created from rlp"));
 }
 
 template <bool for_signature>
@@ -109,8 +105,7 @@ void Transaction::streamRLP(dev::RLPStream &s) const {
   }
   s << value_ << data_;
   if (!for_signature) {
-    s << vrs_.v + uint64_t(chain_id_ ? (chain_id_ * 2 + 35) : 27)
-      << (u256 const &)vrs_.r  //
+    s << vrs_.v + uint64_t(chain_id_ ? (chain_id_ * 2 + 35) : 27) << (u256 const &)vrs_.r  //
       << (u256 const &)vrs_.s;
   } else if (chain_id_) {
     s << chain_id_ << 0 << 0;

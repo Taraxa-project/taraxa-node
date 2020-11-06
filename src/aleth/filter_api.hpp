@@ -10,10 +10,8 @@ namespace taraxa::aleth {
 struct FilterAPI : virtual dev::rpc::Eth::FilterAPI {
   virtual ~FilterAPI() {}
   virtual void note_block(dev::h256 const& blk_hash) = 0;
-  virtual void note_pending_transactions(
-      util::RangeView<dev::h256> const& trx_hashes) = 0;
-  virtual void note_receipts(
-      util::RangeView<dev::eth::TransactionReceipt> const& receipts) = 0;
+  virtual void note_pending_transactions(util::RangeView<dev::h256> const& trx_hashes) = 0;
+  virtual void note_receipts(util::RangeView<dev::eth::TransactionReceipt> const& receipts) = 0;
 };
 
 std::unique_ptr<FilterAPI> NewFilterAPI();
