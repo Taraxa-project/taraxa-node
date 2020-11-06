@@ -4,7 +4,7 @@
 #include <libdevcrypto/Common.h>
 
 #include <array>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <cstdio>
 #include <iostream>
 #include <memory>
@@ -23,10 +23,10 @@
 namespace taraxa::core_tests {
 using namespace std;
 using namespace std::chrono;
-using boost::filesystem::is_regular_file;
-using boost::filesystem::path;
-using boost::filesystem::recursive_directory_iterator;
-using boost::filesystem::remove_all;
+using filesystem::is_regular_file;
+using filesystem::path;
+using filesystem::recursive_directory_iterator;
+using filesystem::remove_all;
 using dev::KeyPair;
 using dev::Secret;
 using ::taraxa::util::lazy::Lazy;

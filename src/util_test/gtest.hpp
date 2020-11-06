@@ -3,7 +3,7 @@
 
 #include <gtest/gtest.h>
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 #include "../static_init.hpp"
 
@@ -27,16 +27,16 @@ struct WithTestInfo : virtual testing::Test {
 };
 
 struct WithDataDir : virtual WithTestInfo {
-  boost::filesystem::path data_dir = boost::filesystem::temp_directory_path() /
+  std::filesystem::path data_dir = std::filesystem::temp_directory_path() /
                                      "taraxa_node_tests" /
                                      current_test_info->test_suite_name() /
                                      current_test_info->test_case_name();
 
   WithDataDir() : WithTestInfo() {
-    boost::filesystem::remove_all(data_dir);
-    boost::filesystem::create_directories(data_dir);
+    std::filesystem::remove_all(data_dir);
+    std::filesystem::create_directories(data_dir);
   }
-  virtual ~WithDataDir() { boost::filesystem::remove_all(data_dir); }
+  virtual ~WithDataDir() { std::filesystem::remove_all(data_dir); }
 };
 
 #endif  // TARAXA_NODE_UTIL_GTEST_HPP_
