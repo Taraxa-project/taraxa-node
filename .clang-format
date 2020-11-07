@@ -1,3 +1,3 @@
 Language: Cpp
 BasedOnStyle: Google
-ColumnLimit: 150
+ColumnLimit: 120
