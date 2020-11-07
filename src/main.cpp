@@ -15,10 +15,11 @@ int main(int argc, const char* argv[]) {
     bool rebuild_network = 0;
     uint64_t revert_to_period = 0;
     boost::program_options::options_description main_options("GENERIC OPTIONS:");
-    main_options.add_options()("help", "Print this help message and exit")("conf_taraxa", boost::program_options::value<string>(&conf_taraxa),
-                                                                           "Config for taraxa node (either json file path or inline json) "
-                                                                           "[required]")(
-        "destroy_db", boost::program_options::bool_switch(&destroy_db), "Destroys all the existing data in the database")(
+    main_options.add_options()("help", "Print this help message and exit")(
+        "conf_taraxa", boost::program_options::value<string>(&conf_taraxa),
+        "Config for taraxa node (either json file path or inline json) "
+        "[required]")("destroy_db", boost::program_options::bool_switch(&destroy_db),
+                      "Destroys all the existing data in the database")(
         "rebuild_network", boost::program_options::bool_switch(&rebuild_network),
         "Delete all saved network/nodes information and rebuild network "
         "from boot nodes")("revert_to_period", boost::program_options::value<uint64_t>(&revert_to_period),

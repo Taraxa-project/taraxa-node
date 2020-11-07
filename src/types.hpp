@@ -36,7 +36,8 @@ template <std::size_t Bytes>
 struct uint_hash_t {
   static_assert((Bytes == 16 || Bytes == 32 || Bytes == 64), "Bytes must be 16, 32 or 64\n");
 
-  using Number = typename std::conditional<Bytes == 16, uint128_t, typename std::conditional<Bytes == 32, uint256_t, uint512_t>::type>::type;
+  using Number = typename std::conditional<Bytes == 16, uint128_t,
+                                           typename std::conditional<Bytes == 32, uint256_t, uint512_t>::type>::type;
   uint_hash_t() = default;  // Must be a trivial type for std::is_pod_v<>=true
   explicit uint_hash_t(Number const &number);
   explicit uint_hash_t(std::string const &str);
@@ -56,7 +57,9 @@ struct uint_hash_t {
   std::string toString() const;
 
   struct hash {
-    size_t operator()(uint_hash_t<Bytes> const &value) const { return boost::hash_range(value.bytes.cbegin(), value.bytes.cend()); }
+    size_t operator()(uint_hash_t<Bytes> const &value) const {
+      return boost::hash_range(value.bytes.cbegin(), value.bytes.cend());
+    }
   };
 
   // debugging

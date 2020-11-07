@@ -40,7 +40,8 @@ class PbftBlock {
   sig_t signature_;
 
  public:
-  PbftBlock(blk_hash_t const& prev_blk_hash, blk_hash_t const& dag_blk_hash_as_pivot, uint64_t period, addr_t const& beneficiary, secret_t const& sk);
+  PbftBlock(blk_hash_t const& prev_blk_hash, blk_hash_t const& dag_blk_hash_as_pivot, uint64_t period,
+            addr_t const& beneficiary, secret_t const& sk);
   explicit PbftBlock(dev::RLP const& r);
   explicit PbftBlock(bytes const& RLP);
   explicit PbftBlock(std::string const& JSON);

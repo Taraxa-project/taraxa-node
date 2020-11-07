@@ -30,7 +30,8 @@ void Dag::getLeaves(std::vector<vertex_hash> &tips) const {
   vertex_index_map_const_t index_map = boost::get(boost::vertex_index, graph_);
   std::vector<vertex_t> leaves;
   collectLeafVertices(leaves);
-  std::transform(leaves.begin(), leaves.end(), std::back_inserter(tips), [index_map](const vertex_t &leaf) { return index_map[leaf]; });
+  std::transform(leaves.begin(), leaves.end(), std::back_inserter(tips),
+                 [index_map](const vertex_t &leaf) { return index_map[leaf]; });
 }
 
 bool Dag::addVEEs(vertex_hash const &new_vertex, vertex_hash const &pivot, std::vector<vertex_hash> const &tips) {
@@ -395,8 +396,8 @@ void DagManager::addDagBlock(DagBlock const &blk, bool finalized, bool save) {
   if (trx_mgr_) {
     trx_mgr_->setDagFrontier(frontier);
   }
-  LOG(log_dg_) << " Update nonce table of blk " << blk.getHash() << "anchor " << anchor_ << " pivot = " << frontier.pivot
-               << " tips: " << frontier.tips;
+  LOG(log_dg_) << " Update nonce table of blk " << blk.getHash() << "anchor " << anchor_
+               << " pivot = " << frontier.pivot << " tips: " << frontier.tips;
 }
 
 void DagManager::drawGraph(std::string const &dotfile) const {
@@ -405,8 +406,8 @@ void DagManager::drawGraph(std::string const &dotfile) const {
   drawTotalGraph("total." + dotfile);
 }
 
-void DagManager::addToDag(std::string const &hash, std::string const &pivot, std::vector<std::string> const &tips, uint64_t level,
-                          const taraxa::DbStorage::BatchPtr &write_batch, bool finalized) {
+void DagManager::addToDag(std::string const &hash, std::string const &pivot, std::vector<std::string> const &tips,
+                          uint64_t level, const taraxa::DbStorage::BatchPtr &write_batch, bool finalized) {
   total_dag_->addVEEs(hash, pivot, tips);
   pivot_tree_->addVEEs(hash, pivot, {});
   db_->addDagBlockStateToBatch(write_batch, blk_hash_t(hash), finalized);
@@ -483,9 +484,10 @@ std::pair<uint64_t, std::shared_ptr<vec_blk_t>> DagManager::getDagBlockOrder(blk
     return {0, std::make_shared<vec_blk_t>(orders)};
   }
 
-  std::transform(blk_orders.begin(), blk_orders.end(), std::back_inserter(orders), [](const std::string &i) { return blk_hash_t(i); });
-  LOG(log_dg_) << "Get period " << new_period << " from " << blk_hash_t(anchor_) << " to " << anchor << " with " << blk_orders.size() << " blks"
-               << std::endl;
+  std::transform(blk_orders.begin(), blk_orders.end(), std::back_inserter(orders),
+                 [](const std::string &i) { return blk_hash_t(i); });
+  LOG(log_dg_) << "Get period " << new_period << " from " << blk_hash_t(anchor_) << " to " << anchor << " with "
+               << blk_orders.size() << " blks" << std::endl;
 
   return {new_period, std::make_shared<vec_blk_t>(orders)};
 }
@@ -496,8 +498,8 @@ uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period,
   LOG(log_dg_) << "setDagBlockOrder called with anchor " << new_anchor << " and period " << period;
   db_->putFinalizedDagBlockHashesByAnchor(*write_batch, new_anchor, dag_order);
   if (period != period_ + 1) {
-    LOG(log_er_) << " Inserting period (" << period << ") anchor " << new_anchor << " does not match ..., previous internal period (" << period_
-                 << ") " << anchor_;
+    LOG(log_er_) << " Inserting period (" << period << ") anchor " << new_anchor
+                 << " does not match ..., previous internal period (" << period_ << ") " << anchor_;
     return 0;
   }
 

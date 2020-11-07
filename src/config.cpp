@@ -33,7 +33,8 @@ std::string getConfigDataAsString(Json::Value const &root, std::vector<string> c
   }
 }
 
-uint32_t getConfigDataAsUInt(Json::Value const &root, std::vector<string> const &path, bool optional = false, uint32_t value = 0) {
+uint32_t getConfigDataAsUInt(Json::Value const &root, std::vector<string> const &path, bool optional = false,
+                             uint32_t value = 0) {
   try {
     Json::Value ret = getConfigData(root, path, optional);
     if (ret.isNull()) {
@@ -114,19 +115,23 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object) {
     rpc.ws_port = n.asUInt();
   }
   {  // for test experiments
-    test_params.max_transaction_queue_warn = getConfigDataAsUInt(root, {"test_params", "max_transaction_queue_warn"}, true);
-    test_params.max_transaction_queue_drop = getConfigDataAsUInt(root, {"test_params", "max_transaction_queue_drop"}, true);
+    test_params.max_transaction_queue_warn =
+        getConfigDataAsUInt(root, {"test_params", "max_transaction_queue_warn"}, true);
+    test_params.max_transaction_queue_drop =
+        getConfigDataAsUInt(root, {"test_params", "max_transaction_queue_drop"}, true);
 
     test_params.max_block_queue_warn = getConfigDataAsUInt(root, {"test_params", "max_block_queue_warn"}, true);
 
     // Create db snapshot each N pbft block
-    test_params.db_snapshot_each_n_pbft_block = getConfigDataAsUInt(root, {"test_params", "db_snapshot_each_n_pbft_block"}, true);
+    test_params.db_snapshot_each_n_pbft_block =
+        getConfigDataAsUInt(root, {"test_params", "db_snapshot_each_n_pbft_block"}, true);
 
     test_params.db_max_snapshots = getConfigDataAsUInt(root, {"test_params", "db_max_snapshots"}, true);
 
     // DAG proposal
     test_params.block_proposer.shard = getConfigDataAsUInt(root, {"test_params", "block_proposer", "shard"});
-    test_params.block_proposer.transaction_limit = getConfigDataAsUInt(root, {"test_params", "block_proposer", "transaction_limit"});
+    test_params.block_proposer.transaction_limit =
+        getConfigDataAsUInt(root, {"test_params", "block_proposer", "transaction_limit"});
   }
 
   // Network logging in p2p library creates performance issues even with

@@ -17,16 +17,20 @@
 namespace taraxa::core_tests {
 
 const unsigned NUM_TRX = 10;
-auto g_secret = Lazy(
-    [] { return dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd", dev::Secret::ConstructFromStringType::FromHex); });
+auto g_secret = Lazy([] {
+  return dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+                     dev::Secret::ConstructFromStringType::FromHex);
+});
 auto node_key = dev::KeyPair(g_secret);
 
 auto g_trx_samples = Lazy([] { return samples::createMockTrxSamples(0, NUM_TRX); });
 auto g_signed_trx_samples = Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX, g_secret); });
 
 const unsigned NUM_TRX2 = 200;
-auto g_secret2 = Lazy(
-    [] { return dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd", dev::Secret::ConstructFromStringType::FromHex); });
+auto g_secret2 = Lazy([] {
+  return dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+                     dev::Secret::ConstructFromStringType::FromHex);
+});
 auto g_trx_samples2 = Lazy([] { return samples::createMockTrxSamples(0, NUM_TRX2); });
 auto g_signed_trx_samples2 = Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX2, g_secret2); });
 auto three_default_configs = Lazy([] { return make_node_cfgs(3); });
@@ -39,13 +43,16 @@ struct NetworkTest : BaseTest {};
 // Test creates two Network setup and verifies sending block
 // between is successfull
 TEST_F(NetworkTest, transfer_block) {
-  std::shared_ptr<Network> nw1(new taraxa::Network(g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString(), addr_t()));
-  std::shared_ptr<Network> nw2(new taraxa::Network(g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t()));
+  std::shared_ptr<Network> nw1(
+      new taraxa::Network(g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString(), addr_t()));
+  std::shared_ptr<Network> nw2(
+      new taraxa::Network(g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t()));
 
   nw1->start();
   nw2->start();
   DagBlock blk(blk_hash_t(1111), 0, {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)},
-               {g_signed_trx_samples[0].getHash(), g_signed_trx_samples[1].getHash()}, sig_t(7777), blk_hash_t(888), addr_t(999));
+               {g_signed_trx_samples[0].getHash(), g_signed_trx_samples[1].getHash()}, sig_t(7777), blk_hash_t(888),
+               addr_t(999));
 
   std::vector<taraxa::bytes> transactions;
   transactions.emplace_back(*g_signed_trx_samples[0].rlp());
@@ -71,8 +78,10 @@ TEST_F(NetworkTest, transfer_block) {
 }
 
 TEST_F(NetworkTest, send_pbft_block) {
-  std::shared_ptr<Network> nw1(new taraxa::Network(g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString(), addr_t()));
-  std::shared_ptr<Network> nw2(new taraxa::Network(g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t()));
+  std::shared_ptr<Network> nw1(
+      new taraxa::Network(g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString(), addr_t()));
+  std::shared_ptr<Network> nw2(
+      new taraxa::Network(g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t()));
 
   nw1->start();
   nw2->start();
@@ -84,7 +93,8 @@ TEST_F(NetworkTest, send_pbft_block) {
   taraxa::thisThreadSleepForMilliSeconds(200);
 
   ASSERT_EQ(1, nw1->getTaraxaCapability()->getAllPeers().size());
-  ASSERT_EQ(chain_size, nw1->getTaraxaCapability()->getPeer(nw1->getTaraxaCapability()->getAllPeers()[0])->pbft_chain_size_);
+  ASSERT_EQ(chain_size,
+            nw1->getTaraxaCapability()->getPeer(nw1->getTaraxaCapability()->getAllPeers()[0])->pbft_chain_size_);
   nw2->stop();
   nw1->stop();
 }
@@ -92,8 +102,10 @@ TEST_F(NetworkTest, send_pbft_block) {
 // Test creates two Network setup and verifies sending transaction
 // between is successfull
 TEST_F(NetworkTest, transfer_transaction) {
-  std::shared_ptr<Network> nw1(new taraxa::Network(g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString(), addr_t()));
-  std::shared_ptr<Network> nw2(new taraxa::Network(g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t()));
+  std::shared_ptr<Network> nw1(
+      new taraxa::Network(g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString(), addr_t()));
+  std::shared_ptr<Network> nw2(
+      new taraxa::Network(g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t()));
 
   nw1->start(true);
   nw2->start();
@@ -124,9 +136,12 @@ TEST_F(NetworkTest, transfer_transaction) {
 // connections even with boot nodes down
 TEST_F(NetworkTest, save_network) {
   {
-    std::shared_ptr<Network> nw1(new taraxa::Network(g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString(), addr_t()));
-    std::shared_ptr<Network> nw2(new taraxa::Network(g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t()));
-    std::shared_ptr<Network> nw3(new taraxa::Network(g_conf3->network, g_conf3->chain.dag_genesis_block.getHash().toString(), addr_t()));
+    std::shared_ptr<Network> nw1(
+        new taraxa::Network(g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString(), addr_t()));
+    std::shared_ptr<Network> nw2(
+        new taraxa::Network(g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t()));
+    std::shared_ptr<Network> nw3(
+        new taraxa::Network(g_conf3->network, g_conf3->chain.dag_genesis_block.getHash().toString(), addr_t()));
 
     nw1->start(true);
     nw2->start();
@@ -148,10 +163,12 @@ TEST_F(NetworkTest, save_network) {
     nw3->saveNetwork("/tmp/nw3");
   }
 
-  std::shared_ptr<Network> nw2(new taraxa::Network(g_conf2->network, "/tmp/nw2", g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t(),
-                                                   nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, public_t(), 2000));
-  std::shared_ptr<Network> nw3(new taraxa::Network(g_conf3->network, "/tmp/nw3", g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t(),
-                                                   nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, public_t(), 2000));
+  std::shared_ptr<Network> nw2(
+      new taraxa::Network(g_conf2->network, "/tmp/nw2", g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t(),
+                          nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, public_t(), 2000));
+  std::shared_ptr<Network> nw3(
+      new taraxa::Network(g_conf3->network, "/tmp/nw3", g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t(),
+                          nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, public_t(), 2000));
   nw2->start();
   nw3->start();
 
@@ -305,9 +322,11 @@ TEST_F(NetworkTest, node_pbft_sync) {
   node1->getBlockManager()->insertBlock(blk1);
 
   PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), period, beneficiary, node1->getSecretKey());
-  db1->putFinalizedDagBlockHashesByAnchor(*batch, pbft_block1.getPivotDagBlockHash(), {pbft_block1.getPivotDagBlockHash()});
+  db1->putFinalizedDagBlockHashesByAnchor(*batch, pbft_block1.getPivotDagBlockHash(),
+                                          {pbft_block1.getPivotDagBlockHash()});
   std::vector<Vote> votes_for_pbft_blk1;
-  votes_for_pbft_blk1.emplace_back(node1->getPbftManager()->generateVote(pbft_block1.getBlockHash(), cert_vote_type, 1, 3, prev_block_hash));
+  votes_for_pbft_blk1.emplace_back(
+      node1->getPbftManager()->generateVote(pbft_block1.getBlockHash(), cert_vote_type, 1, 3, prev_block_hash));
   std::cout << "Generate 1 vote for first PBFT block" << std::endl;
   // Add cert votes in DB
   db1->addPbftCertVotesToBatch(pbft_block1.getBlockHash(), votes_for_pbft_blk1, batch);
@@ -339,10 +358,12 @@ TEST_F(NetworkTest, node_pbft_sync) {
   period = 2;
   beneficiary = addr_t(654);
   PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), 2, beneficiary, node1->getSecretKey());
-  db1->putFinalizedDagBlockHashesByAnchor(*batch, pbft_block2.getPivotDagBlockHash(), {pbft_block2.getPivotDagBlockHash()});
+  db1->putFinalizedDagBlockHashesByAnchor(*batch, pbft_block2.getPivotDagBlockHash(),
+                                          {pbft_block2.getPivotDagBlockHash()});
 
   std::vector<Vote> votes_for_pbft_blk2;
-  votes_for_pbft_blk2.emplace_back(node1->getPbftManager()->generateVote(pbft_block2.getBlockHash(), cert_vote_type, 2, 3, prev_block_hash));
+  votes_for_pbft_blk2.emplace_back(
+      node1->getPbftManager()->generateVote(pbft_block2.getBlockHash(), cert_vote_type, 2, 3, prev_block_hash));
   std::cout << "Generate 1 vote for second PBFT block" << std::endl;
   // node1 put block2 into pbft chain and store into DB
   // Add cert votes in DB
@@ -423,9 +444,11 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   node1->getBlockManager()->insertBlock(blk1);
 
   PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), period, beneficiary, node1->getSecretKey());
-  db1->putFinalizedDagBlockHashesByAnchor(*batch, pbft_block1.getPivotDagBlockHash(), {pbft_block1.getPivotDagBlockHash()});
+  db1->putFinalizedDagBlockHashesByAnchor(*batch, pbft_block1.getPivotDagBlockHash(),
+                                          {pbft_block1.getPivotDagBlockHash()});
   std::vector<Vote> votes_for_pbft_blk1;
-  votes_for_pbft_blk1.emplace_back(node1->getPbftManager()->generateVote(pbft_block1.getBlockHash(), cert_vote_type, 1, 3, prev_block_hash));
+  votes_for_pbft_blk1.emplace_back(
+      node1->getPbftManager()->generateVote(pbft_block1.getBlockHash(), cert_vote_type, 1, 3, prev_block_hash));
   std::cout << "Generate 1 vote for first PBFT block" << std::endl;
   // Add cert votes in DB
   db1->addPbftCertVotesToBatch(pbft_block1.getBlockHash(), votes_for_pbft_blk1, batch);
@@ -459,7 +482,8 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   beneficiary = addr_t(654);
 
   PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), period, beneficiary, node1->getSecretKey());
-  db1->putFinalizedDagBlockHashesByAnchor(*batch, pbft_block2.getPivotDagBlockHash(), {pbft_block2.getPivotDagBlockHash()});
+  db1->putFinalizedDagBlockHashesByAnchor(*batch, pbft_block2.getPivotDagBlockHash(),
+                                          {pbft_block2.getPivotDagBlockHash()});
   std::cout << "There are no votes for the second PBFT block" << std::endl;
   // node1 put block2 into pbft chain and no votes store into DB
   // (malicious player)
@@ -582,7 +606,8 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
   vdf_sortition::Message msg1(propose_level);
   vdf_sortition::VdfSortition vdf1(vdf_config, node_key.address(), vrf_sk, msg1);
   vdf1.computeVdfSolution(dag_genesis.toString());
-  DagBlock blk1(dag_genesis, propose_level, {}, {g_signed_trx_samples[0].getHash(), g_signed_trx_samples[1].getHash()}, vdf1);
+  DagBlock blk1(dag_genesis, propose_level, {}, {g_signed_trx_samples[0].getHash(), g_signed_trx_samples[1].getHash()},
+                vdf1);
   blk1.sign(sk);
   std::vector<Transaction> tr1({g_signed_trx_samples[0], g_signed_trx_samples[1]});
 
@@ -606,7 +631,8 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
   vdf_sortition::Message msg4(propose_level);
   vdf_sortition::VdfSortition vdf4(vdf_config, node_key.address(), vrf_sk, msg4);
   vdf4.computeVdfSolution(blk3.getHash().toString());
-  DagBlock blk4(blk3.getHash(), propose_level, {}, {g_signed_trx_samples[3].getHash(), g_signed_trx_samples[4].getHash()}, vdf4);
+  DagBlock blk4(blk3.getHash(), propose_level, {},
+                {g_signed_trx_samples[3].getHash(), g_signed_trx_samples[4].getHash()}, vdf4);
   blk4.sign(sk);
   std::vector<Transaction> tr4({g_signed_trx_samples[3], g_signed_trx_samples[4]});
 
@@ -614,18 +640,20 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
   vdf_sortition::Message msg5(propose_level);
   vdf_sortition::VdfSortition vdf5(vdf_config, node_key.address(), vrf_sk, msg5);
   vdf5.computeVdfSolution(blk4.getHash().toString());
-  DagBlock blk5(
-      blk4.getHash(), propose_level, {},
-      {g_signed_trx_samples[5].getHash(), g_signed_trx_samples[6].getHash(), g_signed_trx_samples[7].getHash(), g_signed_trx_samples[8].getHash()},
-      vdf5);
+  DagBlock blk5(blk4.getHash(), propose_level, {},
+                {g_signed_trx_samples[5].getHash(), g_signed_trx_samples[6].getHash(),
+                 g_signed_trx_samples[7].getHash(), g_signed_trx_samples[8].getHash()},
+                vdf5);
   blk5.sign(sk);
-  std::vector<Transaction> tr5({g_signed_trx_samples[5], g_signed_trx_samples[6], g_signed_trx_samples[7], g_signed_trx_samples[8]});
+  std::vector<Transaction> tr5(
+      {g_signed_trx_samples[5], g_signed_trx_samples[6], g_signed_trx_samples[7], g_signed_trx_samples[8]});
 
   propose_level = 6;
   vdf_sortition::Message msg6(propose_level);
   vdf_sortition::VdfSortition vdf6(vdf_config, node_key.address(), vrf_sk, msg6);
   vdf6.computeVdfSolution(blk5.getHash().toString());
-  DagBlock blk6(blk5.getHash(), propose_level, {blk4.getHash(), blk3.getHash()}, {g_signed_trx_samples[9].getHash()}, vdf6);
+  DagBlock blk6(blk5.getHash(), propose_level, {blk4.getHash(), blk3.getHash()}, {g_signed_trx_samples[9].getHash()},
+                vdf6);
   blk6.sign(sk);
   std::vector<Transaction> tr6({g_signed_trx_samples[9]});
 
@@ -643,7 +671,9 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
   std::cout << "Waiting Sync for up to 20000 milliseconds ..." << std::endl;
   for (int i = 0; i < 40; i++) {
     taraxa::thisThreadSleepForMilliSeconds(1000);
-    if (node2->getDagManager()->getNumVerticesInDag().first == 7 && node2->getDagManager()->getNumEdgesInDag().first == 8) break;
+    if (node2->getDagManager()->getNumVerticesInDag().first == 7 &&
+        node2->getDagManager()->getNumEdgesInDag().first == 8)
+      break;
   }
 
   // node1->drawGraph("dot.txt");
@@ -731,7 +761,8 @@ TEST_F(NetworkTest, node_sync2) {
   vdf_sortition::Message msg8(propose_level);
   vdf_sortition::VdfSortition vdf8(vdf_config, node_key.address(), vrf_sk, msg8);
   vdf8.computeVdfSolution(blk1.getHash().toString());
-  DagBlock blk8(blk1.getHash(), propose_level, {blk7.getHash()}, {transactions[14].getHash(), transactions[15].getHash()}, vdf8);
+  DagBlock blk8(blk1.getHash(), propose_level, {blk7.getHash()},
+                {transactions[14].getHash(), transactions[15].getHash()}, vdf8);
   blk8.sign(sk);
   std::vector<Transaction> tr8({transactions[14], transactions[15]});
   // DAG block9
@@ -804,7 +835,9 @@ TEST_F(NetworkTest, node_sync2) {
   std::cout << "Waiting Sync for up to 40000 milliseconds ..." << std::endl;
   for (int i = 0; i < 400; i++) {
     taraxa::thisThreadSleepForMilliSeconds(100);
-    if (node2->getDagManager()->getNumVerticesInDag().first == 13 && node2->getDagManager()->getNumEdgesInDag().first == 13) break;
+    if (node2->getDagManager()->getNumVerticesInDag().first == 13 &&
+        node2->getDagManager()->getNumEdgesInDag().first == 13)
+      break;
   }
 
   // node1->drawGraph("dot.txt");
@@ -876,7 +909,8 @@ TEST_F(NetworkTest, node_full_sync) {
   wait({120s, 500ms}, [&](auto& ctx) {
     // Check 4 nodes DAG syncing
     for (int j = 1; j < numberOfNodes - 1; j++) {
-      WAIT_EXPECT_EQ(ctx, nodes[j]->getDagManager()->getNumVerticesInDag().first, nodes[0]->getDagManager()->getNumVerticesInDag().first);
+      WAIT_EXPECT_EQ(ctx, nodes[j]->getDagManager()->getNumVerticesInDag().first,
+                     nodes[0]->getDagManager()->getNumVerticesInDag().first);
     }
   });
 
@@ -888,7 +922,8 @@ TEST_F(NetworkTest, node_full_sync) {
   wait({240s, 1000ms}, [&](auto& ctx) {
     // Check 4 nodes DAG syncing
     for (int j = 1; j < numberOfNodes; j++) {
-      WAIT_EXPECT_EQ(ctx, nodes[j]->getDagManager()->getNumVerticesInDag().first, nodes[0]->getDagManager()->getNumVerticesInDag().first);
+      WAIT_EXPECT_EQ(ctx, nodes[j]->getDagManager()->getNumVerticesInDag().first,
+                     nodes[0]->getDagManager()->getNumVerticesInDag().first);
       ctx.fail_if(!nodes[j]->getNetwork()->isSynced());
     }
   });
@@ -897,7 +932,8 @@ TEST_F(NetworkTest, node_full_sync) {
   for (int i = 0; i < numberOfNodes; i++) {
     std::cout << "Index i " << i << std::endl;
     EXPECT_GT(nodes[i]->getDagManager()->getNumVerticesInDag().first, 0);
-    EXPECT_EQ(nodes[i]->getDagManager()->getNumVerticesInDag().first, nodes[0]->getDagManager()->getNumVerticesInDag().first);
+    EXPECT_EQ(nodes[i]->getDagManager()->getNumVerticesInDag().first,
+              nodes[0]->getDagManager()->getNumVerticesInDag().first);
     EXPECT_EQ(nodes[i]->getDagManager()->getNumVerticesInDag().first, nodes[i]->getDB()->getNumDagBlocks());
     EXPECT_EQ(nodes[i]->getDagManager()->getNumEdgesInDag().first, nodes[0]->getDagManager()->getNumEdgesInDag().first);
     EXPECT_TRUE(nodes[i]->getNetwork()->isSynced());

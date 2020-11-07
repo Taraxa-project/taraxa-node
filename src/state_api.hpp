@@ -187,7 +187,8 @@ class StateAPI {
   string db_path;
 
  public:
-  StateAPI(string const& db_path, function<h256(BlockNumber)> get_blk_hash, ChainConfig const& chain_config, Opts const& opts = {});
+  StateAPI(string const& db_path, function<h256(BlockNumber)> get_blk_hash, ChainConfig const& chain_config,
+           Opts const& opts = {});
   ~StateAPI();
 
   Proof prove(BlockNumber blk_num, root_t const& state_root, addr_t const& addr, vector<h256> const& keys) const;

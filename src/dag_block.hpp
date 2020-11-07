@@ -49,7 +49,8 @@ class DagBlock {
 
  public:
   DagBlock() = default;
-  DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, sig_t signature, blk_hash_t hash, addr_t sender);
+  DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, sig_t signature, blk_hash_t hash,
+           addr_t sender);
   DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs);
   DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, VdfSortition const &vdf);
   explicit DagBlock(Json::Value const &doc);
@@ -124,8 +125,9 @@ struct DagFrontier {
  */
 class BlockManager {
  public:
-  BlockManager(size_t capacity, unsigned verify_threads, addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<TransactionManager> trx_mgr,
-               boost::log::sources::severity_channel_logger<> log_time_, uint32_t queue_limit = 0);
+  BlockManager(size_t capacity, unsigned verify_threads, addr_t node_addr, std::shared_ptr<DbStorage> db,
+               std::shared_ptr<TransactionManager> trx_mgr, boost::log::sources::severity_channel_logger<> log_time_,
+               uint32_t queue_limit = 0);
   ~BlockManager();
   void insertBlock(DagBlock const &blk);
   // Only used in initial syncs when blocks are received with full list of

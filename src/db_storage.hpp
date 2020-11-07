@@ -101,8 +101,8 @@ struct DbStorage {
   DbStorage(DbStorage const&) = delete;
   DbStorage& operator=(DbStorage const&) = delete;
 
-  explicit DbStorage(fs::path const& base_path, uint32_t db_snapshot_each_n_pbft_block = 0, uint32_t db_max_snapshots = 0,
-                     uint32_t db_revert_to_period = 0, addr_t node_addr = addr_t());
+  explicit DbStorage(fs::path const& base_path, uint32_t db_snapshot_each_n_pbft_block = 0,
+                     uint32_t db_max_snapshots = 0, uint32_t db_revert_to_period = 0, addr_t node_addr = addr_t());
   ~DbStorage();
 
   auto const& path() const { return path_; }
@@ -149,7 +149,8 @@ struct DbStorage {
   // regular blocks with real hashes. Need remove from DB
   string getPbftHead(blk_hash_t const& hash);
   void savePbftHead(blk_hash_t const& hash, string const& pbft_chain_head_str);
-  void addPbftHeadToBatch(taraxa::blk_hash_t const& head_hash, std::string const& head_str, BatchPtr const& write_batch);
+  void addPbftHeadToBatch(taraxa::blk_hash_t const& head_hash, std::string const& head_str,
+                          BatchPtr const& write_batch);
   // status
   uint64_t getStatusField(StatusDbField const& field);
   void saveStatusField(StatusDbField const& field,
@@ -157,10 +158,12 @@ struct DbStorage {
   void addStatusFieldToBatch(StatusDbField const& field, uint64_t const& value, BatchPtr const& write_batch);
   // votes
   bytes getVotes(blk_hash_t const& hash);
-  void addPbftCertVotesToBatch(taraxa::blk_hash_t const& pbft_block_hash, std::vector<Vote> const& cert_votes, BatchPtr const& write_batch);
+  void addPbftCertVotesToBatch(taraxa::blk_hash_t const& pbft_block_hash, std::vector<Vote> const& cert_votes,
+                               BatchPtr const& write_batch);
   // period_pbft_block
   shared_ptr<blk_hash_t> getPeriodPbftBlock(uint64_t const& period);
-  void addPbftBlockPeriodToBatch(uint64_t const& period, taraxa::blk_hash_t const& pbft_block_hash, BatchPtr const& write_batch);
+  void addPbftBlockPeriodToBatch(uint64_t const& period, taraxa::blk_hash_t const& pbft_block_hash,
+                                 BatchPtr const& write_batch);
   // dag_block_period
   shared_ptr<uint64_t> getDagBlockPeriod(blk_hash_t const& hash);
   void addDagBlockPeriodToBatch(blk_hash_t const& hash, uint64_t const& period, BatchPtr const& write_batch);
@@ -180,9 +183,13 @@ struct DbStorage {
   void remove(Slice key, Column const& column);
   void forEach(Column const& col, OnEntry const& f);
 
-  inline static bytes asBytes(string const& b) { return bytes((byte const*)b.data(), (byte const*)(b.data() + b.size())); }
+  inline static bytes asBytes(string const& b) {
+    return bytes((byte const*)b.data(), (byte const*)(b.data() + b.size()));
+  }
 
-  inline static Slice toSlice(dev::bytesConstRef const& b) { return Slice(reinterpret_cast<char const*>(&b[0]), b.size()); }
+  inline static Slice toSlice(dev::bytesConstRef const& b) {
+    return Slice(reinterpret_cast<char const*>(&b[0]), b.size());
+  }
 
   template <unsigned N>
   inline static Slice toSlice(dev::FixedHash<N> const& h) {
@@ -229,10 +236,14 @@ struct DbStorage {
   }
 
   // TODO remove
-  void batch_put(BatchPtr const& batch, Column const& col, Slice const& k, Slice const& v) { batch_put(*batch, col, k, v); }
+  void batch_put(BatchPtr const& batch, Column const& col, Slice const& k, Slice const& v) {
+    batch_put(*batch, col, k, v);
+  }
 
   // TODO generalize like batch_put
-  void batch_delete(BatchPtr const& batch, Column const& col, Slice const& k) { checkStatus(batch->Delete(handle(col), k)); }
+  void batch_delete(BatchPtr const& batch, Column const& col, Slice const& k) {
+    checkStatus(batch->Delete(handle(col), k));
+  }
 
   static void checkStatus(rocksdb::Status const& status);
 

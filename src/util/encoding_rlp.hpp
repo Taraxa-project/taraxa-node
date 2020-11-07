@@ -52,7 +52,8 @@ void enc_rlp(RLPStream& rlp, RangeView<Param> const& target) {
 }
 
 template <typename Map>
-auto enc_rlp(RLPStream& rlp, Map const& target) -> decltype(target.size(), target.begin()->first, target.end()->second, void()) {
+auto enc_rlp(RLPStream& rlp, Map const& target)
+    -> decltype(target.size(), target.begin()->first, target.end()->second, void()) {
   rlp.appendList(target.size());
   for (auto const& [k, v] : target) {
     enc_rlp_tuple(rlp, k, v);

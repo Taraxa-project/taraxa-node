@@ -249,7 +249,8 @@ Json::Value Test::get_all_nodes() {
     if (auto node = full_node_.lock()) {
       auto nodes = node->getNetwork()->getAllNodes();
       for (auto const &n : nodes) {
-        res = res.asString() + n.id.toString() + " " + n.endpoint.address().to_string() + ":" + std::to_string(n.endpoint.tcpPort()) + "\n";
+        res = res.asString() + n.id.toString() + " " + n.endpoint.address().to_string() + ":" +
+              std::to_string(n.endpoint.tcpPort()) + "\n";
       }
     }
   } catch (std::exception &e) {
@@ -309,7 +310,8 @@ Json::Value Test::get_votes(const Json::Value &param1) {
       std::shared_ptr<VoteManager> vote_mgr = node->getVoteManager();
       std::shared_ptr<PbftChain> pbft_chain = node->getPbftChain();
       std::vector<Vote> votes =
-          vote_mgr->getVotes(pbft_round, pbft_mgr->getEligibleVoterCount(), pbft_chain->getLastPbftBlockHash(), pbft_mgr->getSortitionThreshold());
+          vote_mgr->getVotes(pbft_round, pbft_mgr->getEligibleVoterCount(), pbft_chain->getLastPbftBlockHash(),
+                             pbft_mgr->getSortitionThreshold());
       res = vote_mgr->getJsonStr(votes);
     }
   } catch (std::exception &e) {

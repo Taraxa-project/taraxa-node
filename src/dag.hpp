@@ -37,11 +37,13 @@ class Dag {
  public:
   // properties
   using vertex_hash = std::string;
-  using vertex_property_t = boost::property<boost::vertex_index_t, std::string, boost::property<boost::vertex_index1_t, uint64_t>>;
+  using vertex_property_t =
+      boost::property<boost::vertex_index_t, std::string, boost::property<boost::vertex_index1_t, uint64_t>>;
   using edge_property_t = boost::property<boost::edge_index_t, uint64_t>;
 
   // graph def
-  using adj_list_t = boost::adjacency_list<boost::setS, boost::hash_setS, boost::directedS, vertex_property_t, edge_property_t>;
+  using adj_list_t =
+      boost::adjacency_list<boost::setS, boost::hash_setS, boost::directedS, vertex_property_t, edge_property_t>;
   using graph_t = boost::labeled_graph<adj_list_t, std::string, boost::hash_mapS>;
   using vertex_t = boost::graph_traits<graph_t>::vertex_descriptor;
   using edge_t = boost::graph_traits<graph_t>::edge_descriptor;
@@ -133,7 +135,8 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::pair<uint64_t, std::shared_ptr<vec_blk_t>> getDagBlockOrder(blk_hash_t const &anchor);
   // receive pbft-povit-blk, update periods and finalized, return size of
   // ordered blocks
-  uint setDagBlockOrder(blk_hash_t const &anchor, uint64_t period, vec_blk_t const &dag_order, const taraxa::DbStorage::BatchPtr &write_batch);
+  uint setDagBlockOrder(blk_hash_t const &anchor, uint64_t period, vec_blk_t const &dag_order,
+                        const taraxa::DbStorage::BatchPtr &write_batch);
 
   bool getLatestPivotAndTips(std::string &pivot, std::vector<std::string> &tips) const;
   void collectTotalLeaves(std::vector<std::string> &leaves) const;

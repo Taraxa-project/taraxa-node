@@ -39,7 +39,9 @@ struct VrfSortitionBase {
     output = vrf_wrapper::getVrfOutput(pk, proof, msg_bytes).value();
   }
   bool verify(VrfMsgFace const &msg);
-  bool operator==(VrfSortitionBase const &other) const { return pk == other.pk && proof == other.proof && output == other.output; }
+  bool operator==(VrfSortitionBase const &other) const {
+    return pk == other.pk && proof == other.proof && output == other.output;
+  }
   virtual std::ostream &print(std::ostream &strm) const {
     strm << "\n[VRF SortitionBase] " << std::endl;
     strm << "  pk: " << pk << std::endl;
@@ -47,7 +49,9 @@ struct VrfSortitionBase {
     strm << "  output: " << output << std::endl;
     return strm;
   }
-  friend std::ostream &operator<<(std::ostream &strm, VrfSortitionBase const &vrf_sortition) { return vrf_sortition.print(strm); }
+  friend std::ostream &operator<<(std::ostream &strm, VrfSortitionBase const &vrf_sortition) {
+    return vrf_sortition.print(strm);
+  }
   vrf_pk_t pk;
   vrf_proof_t proof;
   vrf_output_t output;

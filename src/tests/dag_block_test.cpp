@@ -24,7 +24,8 @@ struct DagBlockTest : BaseTest {};
 
 auto g_blk_samples = samples::createMockDagBlkSamples(0, NUM_BLK, 0, BLK_TRX_LEN, BLK_TRX_OVERLAP);
 
-auto g_secret = dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd", dev::Secret::ConstructFromStringType::FromHex);
+auto g_secret = dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+                            dev::Secret::ConstructFromStringType::FromHex);
 auto g_key_pair = dev::KeyPair(g_secret);
 
 TEST_F(DagBlockTest, clear) {
@@ -172,10 +173,11 @@ TEST_F(DagBlockTest, push_and_pop) {
   FullNode::Handle node(node_cfgs[0]);
   BlockManager blk_qu(1024, 2, addr_t(), node->getDB(), nullptr, node->getTimeLogger());
   blk_qu.start();
-  DagBlock blk1(blk_hash_t(1111), level_t(0), {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)}, {}, sig_t(7777), blk_hash_t(888), addr_t(999));
+  DagBlock blk1(blk_hash_t(1111), level_t(0), {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)}, {}, sig_t(7777),
+                blk_hash_t(888), addr_t(999));
 
-  DagBlock blk2(blk_hash_t(21111), level_t(0), {blk_hash_t(2222), blk_hash_t(2333), blk_hash_t(2444)}, {}, sig_t(27777), blk_hash_t(2888),
-                addr_t(2999));
+  DagBlock blk2(blk_hash_t(21111), level_t(0), {blk_hash_t(2222), blk_hash_t(2333), blk_hash_t(2444)}, {}, sig_t(27777),
+                blk_hash_t(2888), addr_t(2999));
 
   blk_qu.pushUnverifiedBlock(blk1, true);
   blk_qu.pushUnverifiedBlock(blk2, true);
@@ -189,10 +191,12 @@ TEST_F(DagBlockTest, push_and_pop) {
 }
 
 TEST_F(DagBlockTest, overlap) {
-  DagBlock blk1(blk_hash_t(1111), level_t(1), {}, {trx_hash_t(1000), trx_hash_t(2000), trx_hash_t(3000)}, sig_t(7777), blk_hash_t(888), addr_t(999));
-
-  DagBlock blk2(blk_hash_t(1112), level_t(1), {}, {trx_hash_t(100), trx_hash_t(2000), trx_hash_t(3000), trx_hash_t(1000)}, sig_t(7777),
+  DagBlock blk1(blk_hash_t(1111), level_t(1), {}, {trx_hash_t(1000), trx_hash_t(2000), trx_hash_t(3000)}, sig_t(7777),
                 blk_hash_t(888), addr_t(999));
+
+  DagBlock blk2(blk_hash_t(1112), level_t(1), {},
+                {trx_hash_t(100), trx_hash_t(2000), trx_hash_t(3000), trx_hash_t(1000)}, sig_t(7777), blk_hash_t(888),
+                addr_t(999));
 
   addr_t addr;
   TransactionOrderManager detector(addr, nullptr);

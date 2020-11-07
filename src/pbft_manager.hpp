@@ -33,9 +33,11 @@ class PbftManager {
   using time_point = std::chrono::system_clock::time_point;
 
   PbftManager(PbftConfig const &conf, std::string const &genesis, addr_t node_addr, std::shared_ptr<DbStorage> db,
-              std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
-              std::shared_ptr<BlockManager> blk_mgr, std::shared_ptr<FinalChain> final_chain, std::shared_ptr<TransactionOrderManager> trx_ord_mgr,
-              std::shared_ptr<TransactionManager> trx_mgr, secret_t node_sk, vrf_sk_t vrf_sk, uint32_t expected_max_trx_per_block);
+              std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
+              std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<BlockManager> blk_mgr,
+              std::shared_ptr<FinalChain> final_chain, std::shared_ptr<TransactionOrderManager> trx_ord_mgr,
+              std::shared_ptr<TransactionManager> trx_mgr, secret_t node_sk, vrf_sk_t vrf_sk,
+              uint32_t expected_max_trx_per_block);
   ~PbftManager();
 
   void setNetwork(std::shared_ptr<Network> network);
@@ -55,11 +57,13 @@ class PbftManager {
   void getNextVotesForLastRound(std::vector<Vote> &next_votes_bundle);
   void updateNextVotesForRound(std::vector<Vote> next_votes);
 
-  Vote generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, uint64_t period, size_t step, blk_hash_t const &last_pbft_block_hash);
+  Vote generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, uint64_t period, size_t step,
+                    blk_hash_t const &last_pbft_block_hash);
 
   // Notice: Test purpose
   void setSortitionThreshold(size_t const sortition_threshold);
-  std::vector<std::vector<uint>> createMockTrxSchedule(std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>> trx_overlap_table);
+  std::vector<std::vector<uint>> createMockTrxSchedule(
+      std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>> trx_overlap_table);
   bool shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step);
 
   u_long const LAMBDA_ms_MIN;
@@ -111,10 +115,10 @@ class PbftManager {
 
   std::pair<blk_hash_t, bool> blockWithEnoughVotes_(std::vector<Vote> const &votes) const;
 
-  std::map<size_t, std::vector<Vote>, std::greater<size_t>> getVotesOfTypeFromVotesForRoundByStep_(PbftVoteTypes vote_type, std::vector<Vote> &votes,
-                                                                                                   uint64_t round,
-                                                                                                   std::pair<blk_hash_t, bool> blockhash);
-  std::vector<Vote> getVotesOfTypeFromVotesForRoundAndStep_(PbftVoteTypes vote_type, std::vector<Vote> &votes, uint64_t round, size_t step,
+  std::map<size_t, std::vector<Vote>, std::greater<size_t>> getVotesOfTypeFromVotesForRoundByStep_(
+      PbftVoteTypes vote_type, std::vector<Vote> &votes, uint64_t round, std::pair<blk_hash_t, bool> blockhash);
+  std::vector<Vote> getVotesOfTypeFromVotesForRoundAndStep_(PbftVoteTypes vote_type, std::vector<Vote> &votes,
+                                                            uint64_t round, size_t step,
                                                             std::pair<blk_hash_t, bool> blockhash);
 
   std::pair<blk_hash_t, bool> nextVotedBlockForRoundAndStep_(std::vector<Vote> &votes, uint64_t round);
@@ -140,7 +144,8 @@ class PbftManager {
   bool comparePbftBlockScheduleWithDAGblocks_(blk_hash_t const &pbft_block_hash);
   bool comparePbftBlockScheduleWithDAGblocks_(PbftBlock const &pbft_block);
 
-  bool pushCertVotedPbftBlockIntoChain_(blk_hash_t const &cert_voted_block_hash, std::vector<Vote> const &cert_votes_for_round);
+  bool pushCertVotedPbftBlockIntoChain_(blk_hash_t const &cert_voted_block_hash,
+                                        std::vector<Vote> const &cert_votes_for_round);
 
   void pushSyncedPbftBlocksIntoChain_();
 
@@ -237,7 +242,8 @@ class PbftManager {
   dev::eth::Transactions transactions_tmp_buf_;
 
   LOG_OBJECTS_DEFINE;
-  mutable boost::log::sources::severity_channel_logger<> log_nf_test_{dev::createLogger(dev::Verbosity::VerbosityInfo, "PBFT_TEST")};
+  mutable boost::log::sources::severity_channel_logger<> log_nf_test_{
+      dev::createLogger(dev::Verbosity::VerbosityInfo, "PBFT_TEST")};
 };
 
 }  // namespace taraxa

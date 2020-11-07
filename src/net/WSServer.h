@@ -33,7 +33,8 @@ class WSServer;
 class WSSession : public std::enable_shared_from_this<WSSession> {
  public:
   // Take ownership of the socket
-  explicit WSSession(tcp::socket&& socket, addr_t node_addr, std::shared_ptr<WSServer> ws_server) : ws_(std::move(socket)) {
+  explicit WSSession(tcp::socket&& socket, addr_t node_addr, std::shared_ptr<WSServer> ws_server)
+      : ws_(std::move(socket)) {
     LOG_OBJECTS_CREATE("RPC");
     ws_server_ = ws_server;
   }

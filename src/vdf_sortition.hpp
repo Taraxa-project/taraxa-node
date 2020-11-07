@@ -40,8 +40,13 @@ struct VdfConfig {
         difficulty_max(vdf_config.difficulty_max),
         difficulty_stale(vdf_config.difficulty_stale),
         lambda_bound(vdf_config.lambda_bound) {}
-  VdfConfig(uint16_t const selection, uint16_t const min, uint16_t const max, uint16_t const stale, uint16_t const lambda_max_bound)
-      : difficulty_selection(selection), difficulty_min(min), difficulty_max(max), difficulty_stale(stale), lambda_bound(lambda_max_bound) {}
+  VdfConfig(uint16_t const selection, uint16_t const min, uint16_t const max, uint16_t const stale,
+            uint16_t const lambda_max_bound)
+      : difficulty_selection(selection),
+        difficulty_min(min),
+        difficulty_max(max),
+        difficulty_stale(stale),
+        lambda_bound(lambda_max_bound) {}
 
   friend std::ostream& operator<<(std::ostream& strm, VdfConfig const& vdf_config) {
     strm << " [VDF config] " << std::endl;
@@ -75,8 +80,8 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
 
   bytes rlp() const;
   bool operator==(VdfSortition const& other) const {
-    return pk == other.pk && msg_ == other.msg_ && proof == other.proof && output == other.output && vdf_sol_.first == other.vdf_sol_.first &&
-           vdf_sol_.second == other.vdf_sol_.second;
+    return pk == other.pk && msg_ == other.msg_ && proof == other.proof && output == other.output &&
+           vdf_sol_.first == other.vdf_sol_.first && vdf_sol_.second == other.vdf_sol_.second;
   }
   bool operator!=(VdfSortition const& other) const { return !operator==(other); }
 

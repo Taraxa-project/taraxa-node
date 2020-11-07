@@ -26,8 +26,8 @@ struct WithTestInfo : virtual testing::Test {
 };
 
 struct WithDataDir : virtual WithTestInfo {
-  std::filesystem::path data_dir =
-      std::filesystem::temp_directory_path() / "taraxa_node_tests" / current_test_info->test_suite_name() / current_test_info->test_case_name();
+  std::filesystem::path data_dir = std::filesystem::temp_directory_path() / "taraxa_node_tests" /
+                                   current_test_info->test_suite_name() / current_test_info->test_case_name();
 
   WithDataDir() : WithTestInfo() {
     std::filesystem::remove_all(data_dir);

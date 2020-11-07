@@ -50,7 +50,10 @@ class wait_ctx {
   ostream& fail_log;
 
   wait_ctx(uint64_t attempt, uint64_t attempt_count, ostream& fail_log)
-      : is_last_attempt(attempt == attempt_count - 1), attempt(attempt), attempt_count(attempt_count), fail_log(fail_log) {}
+      : is_last_attempt(attempt == attempt_count - 1),
+        attempt(attempt),
+        attempt_count(attempt_count),
+        fail_log(fail_log) {}
 
   void fail() { failed_ = true; }
   auto fail_if(bool cond) {
@@ -158,7 +161,8 @@ inline auto wait_connect(vector<FullNode::Handle> const& nodes, optional<uint> m
   });
 }
 
-inline auto launch_nodes(vector<FullNodeConfig> const& cfgs, optional<uint> min_peers_to_connect = {}, optional<uint> retry_cnt = {}) {
+inline auto launch_nodes(vector<FullNodeConfig> const& cfgs, optional<uint> min_peers_to_connect = {},
+                         optional<uint> retry_cnt = {}) {
   auto node_count = cfgs.size();
   for (auto i = retry_cnt.value_or(4);; --i) {
     vector<FullNode::Handle> nodes(node_count);
@@ -212,9 +216,11 @@ struct TransactionClient {
   wait_opts wait_opts_;
 
  public:
-  explicit TransactionClient(decltype(node_) node, wait_opts const& wait_opts = {60s, 1s}) : node_(move(node)), wait_opts_(wait_opts) {}
+  explicit TransactionClient(decltype(node_) node, wait_opts const& wait_opts = {60s, 1s})
+      : node_(move(node)), wait_opts_(wait_opts) {}
 
-  Context coinTransfer(addr_t const& to, val_t const& val, optional<KeyPair> const& from_k = {}, bool wait_executed = true) const {
+  Context coinTransfer(addr_t const& to, val_t const& val, optional<KeyPair> const& from_k = {},
+                       bool wait_executed = true) const {
     // As long as nonce rules are completely disabled, this hack allows to
     // generate unique nonces that contribute to transaction uniqueness.
     // Without this, it's very possible in these tests to have hash collisions,
@@ -233,7 +239,8 @@ struct TransactionClient {
     ctx.stage = TransactionStage::inserted;
     auto trx_hash = ctx.trx.getHash();
     if (wait_executed) {
-      auto success = wait(wait_opts_, [&, this](auto& ctx) { ctx.fail_if(!node_->getFinalChain()->isKnownTransaction(trx_hash)); });
+      auto success = wait(wait_opts_,
+                          [&, this](auto& ctx) { ctx.fail_if(!node_->getFinalChain()->isKnownTransaction(trx_hash)); });
       if (success) {
         ctx.stage = TransactionStage::executed;
       }
@@ -242,14 +249,16 @@ struct TransactionClient {
   }
 };
 
-inline auto make_dpos_trx(FullNodeConfig const& sender_node_cfg, state_api::DPOSTransfers const& transfers, uint64_t nonce = 0,
-                          u256 const& gas_price = 0, uint64_t extra_gas = 0) {
+inline auto make_dpos_trx(FullNodeConfig const& sender_node_cfg, state_api::DPOSTransfers const& transfers,
+                          uint64_t nonce = 0, u256 const& gas_price = 0, uint64_t extra_gas = 0) {
   StateAPI::DPOSTransactionPrototype proto(transfers);
-  return Transaction(nonce, proto.value, gas_price, proto.minimal_gas + extra_gas, std::move(proto.input), dev::Secret(sender_node_cfg.node_secret),
-                     proto.to, sender_node_cfg.chain.chain_id);
+  return Transaction(nonce, proto.value, gas_price, proto.minimal_gas + extra_gas, std::move(proto.input),
+                     dev::Secret(sender_node_cfg.node_secret), proto.to, sender_node_cfg.chain.chain_id);
 }
 
-inline auto own_balance(shared_ptr<FullNode> const& node) { return node->getFinalChain()->getBalance(node->getAddress()).first; }
+inline auto own_balance(shared_ptr<FullNode> const& node) {
+  return node->getFinalChain()->getBalance(node->getAddress()).first;
+}
 
 inline auto own_effective_genesis_bal(FullNodeConfig const& cfg) {
   return cfg.chain.final_chain.state.effective_genesis_balance(dev::toAddress(dev::Secret(cfg.node_secret)));

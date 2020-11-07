@@ -25,7 +25,8 @@ class ExitStack {
   }
 
   template <typename Action>
-  ExitStack(Action &&action, optional<decltype(actions)::size_type> initial_capacity = nullopt) : ExitStack(initial_capacity) {
+  ExitStack(Action &&action, optional<decltype(actions)::size_type> initial_capacity = nullopt)
+      : ExitStack(initial_capacity) {
     actions.emplace_back(std::forward<Action>(action));
   }
 

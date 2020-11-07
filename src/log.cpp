@@ -66,7 +66,8 @@ std::function<void()> setupLoggingConfiguration(addr_t const &node, LoggingConfi
     logging.outputs.push_back(LoggingOutputConfig());
   }
   for (auto &output : logging.outputs) {
-    auto filter = [logging_p, short_node_id_conf = *(uint32_t *)node.data()](boost::log::attribute_value_set const &_set) {
+    auto filter = [logging_p,
+                   short_node_id_conf = *(uint32_t *)node.data()](boost::log::attribute_value_set const &_set) {
       auto const &logging = *logging_p;
       if (logging.channels.count(*_set[channel])) {
         if (short_node_id_conf == _set[short_node_id] || _set[short_node_id].empty()) {
@@ -95,10 +96,13 @@ std::function<void()> setupLoggingConfiguration(addr_t const &node, LoggingConfi
     } else if (output.type == "file") {
       std::vector<std::string> v;
       boost::algorithm::split(v, output.time_based_rotation, boost::is_any_of(","));
-      if (v.size() != 3) throw ConfigException("time_based_rotation not configured correctly" + output.time_based_rotation);
+      if (v.size() != 3)
+        throw ConfigException("time_based_rotation not configured correctly" + output.time_based_rotation);
       auto sink = boost::log::add_file_log(
-          boost::log::keywords::file_name = output.file_name, boost::log::keywords::rotation_size = output.rotation_size,
-          boost::log::keywords::time_based_rotation = boost::log::sinks::file::rotation_at_time_point(stoi(v[0]), stoi(v[1]), stoi(v[2])),
+          boost::log::keywords::file_name = output.file_name,
+          boost::log::keywords::rotation_size = output.rotation_size,
+          boost::log::keywords::time_based_rotation =
+              boost::log::sinks::file::rotation_at_time_point(stoi(v[0]), stoi(v[1]), stoi(v[2])),
           boost::log::keywords::max_size = output.max_size);
       sink->set_filter(filter);
 

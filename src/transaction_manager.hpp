@@ -35,7 +35,8 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
 
   TransactionManager(FullNodeConfig const &conf, addr_t node_addr, std::shared_ptr<DbStorage> db,
                      boost::log::sources::severity_channel_logger<> log_time);
-  explicit TransactionManager(std::shared_ptr<DbStorage> db, addr_t node_addr) : db_(db), conf_(), trx_qu_(node_addr), node_addr_(node_addr) {
+  explicit TransactionManager(std::shared_ptr<DbStorage> db, addr_t node_addr)
+      : db_(db), conf_(), trx_qu_(node_addr), node_addr_(node_addr) {
     LOG_OBJECTS_CREATE("TRXMGR");
   }
   std::shared_ptr<TransactionManager> getShared() {

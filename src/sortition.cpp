@@ -23,7 +23,8 @@ using uint512_t = boost::multiprecision::uint512_t;
 
 string hashSignature(dev::Signature signature) { return dev::sha3(signature).hex(); }
 
-static boost::log::sources::severity_channel_logger<> log_error_{taraxa::createTaraxaLogger(taraxa::Verbosity::VerbosityError, "SORTI", addr_t())};
+static boost::log::sources::severity_channel_logger<> log_error_{
+    taraxa::createTaraxaLogger(taraxa::Verbosity::VerbosityError, "SORTI", addr_t())};
 
 /*
  * Sortition return true:
@@ -87,7 +88,8 @@ string bigNumberMultiplication(string num1, string num2) {
   std::stringstream result;
   if (num1.length() > SIGNATURE_HASH_SIZE_MAX || num2.length() > SIGNATURE_HASH_SIZE_MAX) {
     LOG(log_error_) << "The length of the input decimal strings cannot larger than 78, "
-                    << "the length of num1: " << num1.length() << ", and the length of num2: " << num2.length() << std::endl;
+                    << "the length of num1: " << num1.length() << ", and the length of num2: " << num2.length()
+                    << std::endl;
     return result.str();
   }
   for (char n : num1) {

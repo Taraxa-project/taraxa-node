@@ -88,7 +88,8 @@ void VdfSortition::computeVdfSolution(std::string const& msg) {
 bool VdfSortition::verifyVdf(level_t propose_block_level, std::string const& vdf_input) {
   // Verify propose level
   if (getVrfMessage().level != propose_block_level) {
-    LOG(log_er_) << "The proposal DAG block level is " << propose_block_level << ", but in VRF message is " << getVrfMessage().level;
+    LOG(log_er_) << "The proposal DAG block level is " << propose_block_level << ", but in VRF message is "
+                 << getVrfMessage().level;
     return false;
   }
 
@@ -110,7 +111,8 @@ bool VdfSortition::verifyVdfSolution(std::string const& vdf_input) {
   const auto msg_bytes = vrf_wrapper::getRlpBytes(vdf_input);
   VerifierWesolowski verifier(getLambda(), getDifficulty(), msg_bytes, N);
   if (!verifier(vdf_sol_)) {
-    LOG(log_er_) << "VDF solution verification failed. VDF input " << vdf_input << ", lambda " << getLambda() << ", difficulty " << getDifficulty();
+    LOG(log_er_) << "VDF solution verification failed. VDF input " << vdf_input << ", lambda " << getLambda()
+                 << ", difficulty " << getDifficulty();
     // std::cout << *this << std::endl;
     return false;
   }

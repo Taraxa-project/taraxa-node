@@ -20,7 +20,8 @@ bool isValidVrfPublicKey(vrf_pk_t const &pk) { return crypto_vrf_is_valid_key((u
 std::optional<vrf_proof_t> getVrfProof(vrf_sk_t const &sk, bytes const &msg) {
   vrf_proof_t proof;
   // crypto_vrf_prove return 0 on success!
-  if (!crypto_vrf_prove((unsigned char *)proof.data(), (const unsigned char *)sk.data(), (const unsigned char *)msg.data(), msg.size())) {
+  if (!crypto_vrf_prove((unsigned char *)proof.data(), (const unsigned char *)sk.data(),
+                        (const unsigned char *)msg.data(), msg.size())) {
     return proof;
   }
   return {};
@@ -29,8 +30,8 @@ std::optional<vrf_proof_t> getVrfProof(vrf_sk_t const &sk, bytes const &msg) {
 std::optional<vrf_output_t> getVrfOutput(vrf_pk_t const &pk, vrf_proof_t const &proof, bytes const &msg) {
   vrf_output_t output;
   // crypto_vrf_verify return 0 on success!
-  if (!crypto_vrf_verify((unsigned char *)output.data(), (const unsigned char *)pk.data(), (const unsigned char *)proof.data(),
-                         (const unsigned char *)msg.data(), msg.size())) {
+  if (!crypto_vrf_verify((unsigned char *)output.data(), (const unsigned char *)pk.data(),
+                         (const unsigned char *)proof.data(), (const unsigned char *)msg.data(), msg.size())) {
     return output;
   }
   return {};

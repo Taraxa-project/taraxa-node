@@ -72,7 +72,8 @@ void TransactionQueue::addTransactionToVerifiedQueue(trx_hash_t const &hash, std
 }
 
 // The caller is responsible for storing the transaction to db!
-std::unordered_map<trx_hash_t, Transaction> TransactionQueue::removeBlockTransactionsFromQueue(vec_trx_t const &all_block_trxs) {
+std::unordered_map<trx_hash_t, Transaction> TransactionQueue::removeBlockTransactionsFromQueue(
+    vec_trx_t const &all_block_trxs) {
   std::unordered_map<trx_hash_t, Transaction> result;
   {
     std::vector<trx_hash_t> removed_trx;
@@ -121,7 +122,9 @@ std::vector<Transaction> TransactionQueue::getNewVerifiedTrxSnapShot() {
     if (new_verified_transactions_) {
       new_verified_transactions_ = false;
       std::transform(verified_trxs_.begin(), verified_trxs_.end(), std::back_inserter(verified_trxs),
-                     [](std::pair<const taraxa::trx_hash_t, taraxa::TransactionQueue::listIter> const &trx) { return *(trx.second); });
+                     [](std::pair<const taraxa::trx_hash_t, taraxa::TransactionQueue::listIter> const &trx) {
+                       return *(trx.second);
+                     });
       LOG(log_dg_) << "Get: " << verified_trxs.size() << "verified trx out for gossiping " << std::endl;
     }
   }

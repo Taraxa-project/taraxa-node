@@ -129,9 +129,13 @@ void TransactionManager::stop() {
   }
 }
 
-std::unordered_map<trx_hash_t, Transaction> TransactionManager::getVerifiedTrxSnapShot() const { return trx_qu_.getVerifiedTrxSnapShot(); }
+std::unordered_map<trx_hash_t, Transaction> TransactionManager::getVerifiedTrxSnapShot() const {
+  return trx_qu_.getVerifiedTrxSnapShot();
+}
 
-std::pair<size_t, size_t> TransactionManager::getTransactionQueueSize() const { return trx_qu_.getTransactionQueueSize(); }
+std::pair<size_t, size_t> TransactionManager::getTransactionQueueSize() const {
+  return trx_qu_.getTransactionQueueSize();
+}
 
 std::vector<taraxa::bytes> TransactionManager::getNewVerifiedTrxSnapShotSerialized() {
   auto verified_trxs = trx_qu_.getNewVerifiedTrxSnapShot();
@@ -147,7 +151,8 @@ std::vector<taraxa::bytes> TransactionManager::getNewVerifiedTrxSnapShotSerializ
 
 unsigned long TransactionManager::getTransactionCount() const { return trx_count_.load(); }
 
-std::shared_ptr<std::pair<Transaction, taraxa::bytes>> TransactionManager::getTransaction(trx_hash_t const &hash) const {
+std::shared_ptr<std::pair<Transaction, taraxa::bytes>> TransactionManager::getTransaction(
+    trx_hash_t const &hash) const {
   std::shared_ptr<std::pair<Transaction, taraxa::bytes>> tr;
   auto t = trx_qu_.getTransaction(hash);
   if (t) {  // find in queue
@@ -158,7 +163,8 @@ std::shared_ptr<std::pair<Transaction, taraxa::bytes>> TransactionManager::getTr
   return tr;
 }
 // Received block means some trx might be packed by others
-bool TransactionManager::saveBlockTransactionAndDeduplicate(DagBlock const &blk, std::vector<Transaction> const &some_trxs) {
+bool TransactionManager::saveBlockTransactionAndDeduplicate(DagBlock const &blk,
+                                                            std::vector<Transaction> const &some_trxs) {
   vec_trx_t const &all_block_trx_hashes = blk.getTrxs();
   if (all_block_trx_hashes.empty()) {
     return true;
@@ -221,10 +227,12 @@ std::pair<bool, std::string> TransactionManager::insertTrx(Transaction const &tr
     auto queue_size = trx_qu_.getTransactionQueueSize();
     if (conf_.test_params.max_transaction_queue_drop > queue_size.first + queue_size.second) {
       LOG(log_wr_) << "Trx: " << hash << "skipped, queue too large. Unverified queue: " << queue_size.first
-                   << "; Verified queue: " << queue_size.second << "; Limit: " << conf_.test_params.max_transaction_queue_drop;
+                   << "; Verified queue: " << queue_size.second
+                   << "; Limit: " << conf_.test_params.max_transaction_queue_drop;
       return std::make_pair(false, "Queue overlfow");
     } else if (conf_.test_params.max_transaction_queue_warn > queue_size.first + queue_size.second) {
-      LOG(log_wr_) << "Warning: queue large. Unverified queue: " << queue_size.first << "; Verified queue: " << queue_size.second
+      LOG(log_wr_) << "Warning: queue large. Unverified queue: " << queue_size.first
+                   << "; Verified queue: " << queue_size.second
                    << "; Limit: " << conf_.test_params.max_transaction_queue_drop;
       return std::make_pair(false, "Queue overlfow");
     }
@@ -326,7 +334,8 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx, DagFrontier &fron
   // sort trx based on sender and nonce
   list_trxs.sort(trxComp);
 
-  std::transform(list_trxs.begin(), list_trxs.end(), std::back_inserter(to_be_packed_trx), [](Transaction const &t) { return t.getHash(); });
+  std::transform(list_trxs.begin(), list_trxs.end(), std::back_inserter(to_be_packed_trx),
+                 [](Transaction const &t) { return t.getHash(); });
 }
 
 bool TransactionManager::verifyBlockTransactions(DagBlock const &blk, std::vector<Transaction> const &trxs) {
@@ -360,8 +369,8 @@ DagFrontier TransactionManager::getDagFrontier() {
 
 void TransactionManager::setDagFrontier(DagFrontier const &frontier) {
   std::unique_lock l(mu_for_dag_frontier_);
-  LOG(log_dg_) << " Update Frontier : " << frontier.pivot << " tips: " << frontier.tips << " dag_frontier: " << dag_frontier_.pivot
-               << " dag_tips: " << dag_frontier_.tips;
+  LOG(log_dg_) << " Update Frontier : " << frontier.pivot << " tips: " << frontier.tips
+               << " dag_frontier: " << dag_frontier_.pivot << " dag_tips: " << dag_frontier_.tips;
   dag_frontier_ = frontier;
 }
 

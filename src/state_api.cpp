@@ -71,7 +71,8 @@ void c_method_args_rlp(taraxa_evm_state_API_ptr this_c, Params const&... args) {
   fn(this_c, map_bytes(rlp.out()), err_handler_c);
 }
 
-StateAPI::StateAPI(string const& db_path, decltype(get_blk_hash) get_blk_hash, ChainConfig const& chain_config, Opts const& opts)
+StateAPI::StateAPI(string const& db_path, decltype(get_blk_hash) get_blk_hash, ChainConfig const& chain_config,
+                   Opts const& opts)
     : get_blk_hash(move(get_blk_hash)),
       get_blk_hash_c{
           this,
@@ -92,7 +93,8 @@ StateAPI::StateAPI(string const& db_path, decltype(get_blk_hash) get_blk_hash, C
 
 StateAPI::~StateAPI() { taraxa_evm_state_api_free(this_c, err_handler_c); }
 
-Proof StateAPI::prove(BlockNumber blk_num, root_t const& state_root, addr_t const& addr, vector<h256> const& keys) const {
+Proof StateAPI::prove(BlockNumber blk_num, root_t const& state_root, addr_t const& addr,
+                      vector<h256> const& keys) const {
   return c_method_args_rlp<Proof, from_rlp, taraxa_evm_state_api_prove>(this_c, blk_num, state_root, addr, keys);
 }
 
@@ -110,21 +112,24 @@ bytes StateAPI::get_code_by_address(BlockNumber blk_num, addr_t const& addr) con
 
 ExecutionResult StateAPI::dry_run_transaction(BlockNumber blk_num, EVMBlock const& blk, EVMTransaction const& trx,
                                               optional<ExecutionOptions> const& opts) const {
-  return c_method_args_rlp<ExecutionResult, from_rlp, taraxa_evm_state_api_dry_run_transaction>(this_c, blk_num, blk, trx, opts);
+  return c_method_args_rlp<ExecutionResult, from_rlp, taraxa_evm_state_api_dry_run_transaction>(this_c, blk_num, blk,
+                                                                                                trx, opts);
 }
 
 StateDescriptor StateAPI::get_last_committed_state_descriptor() const {
   StateDescriptor ret;
-  taraxa_evm_state_api_get_last_committed_state_descriptor(this_c, decoder_cb_c<StateDescriptor, from_rlp>(ret), err_handler_c);
+  taraxa_evm_state_api_get_last_committed_state_descriptor(this_c, decoder_cb_c<StateDescriptor, from_rlp>(ret),
+                                                           err_handler_c);
   return ret;
 }
 
 StateTransitionResult const& StateAPI::transition_state(EVMBlock const& block,  //
-                                                        RangeView<EVMTransaction> const& transactions, RangeView<UncleBlock> const& uncles) {
+                                                        RangeView<EVMTransaction> const& transactions,
+                                                        RangeView<UncleBlock> const& uncles) {
   result_buf_transition_state.ExecutionResults.clear();
   rlp_enc_transition_state.clear();
-  c_method_args_rlp<StateTransitionResult, from_rlp, taraxa_evm_state_api_transition_state>(this_c, rlp_enc_transition_state,
-                                                                                            result_buf_transition_state, block, transactions, uncles);
+  c_method_args_rlp<StateTransitionResult, from_rlp, taraxa_evm_state_api_transition_state>(
+      this_c, rlp_enc_transition_state, result_buf_transition_state, block, transactions, uncles);
   return result_buf_transition_state;
 }
 
@@ -138,7 +143,9 @@ void StateAPI::create_snapshot(uint64_t const& period) {
   taraxa_evm_state_api_db_snapshot(this_c, go_path, 0, err_handler_c);
 }
 
-uint64_t StateAPI::dpos_eligible_count(BlockNumber blk_num) const { return taraxa_evm_state_api_dpos_eligible_count(this_c, blk_num, err_handler_c); }
+uint64_t StateAPI::dpos_eligible_count(BlockNumber blk_num) const {
+  return taraxa_evm_state_api_dpos_eligible_count(this_c, blk_num, err_handler_c);
+}
 
 bool StateAPI::dpos_is_eligible(BlockNumber blk_num, addr_t const& addr) const {
   RLPStream rlp;
@@ -161,11 +168,13 @@ StateAPI::DPOSTransactionPrototype::DPOSTransactionPrototype(DPOSTransfers const
   input = transfers_rlp.invalidate();
 }
 
-void enc_rlp(RLPStream& rlp, ExecutionOptions const& obj) { enc_rlp_tuple(rlp, obj.disable_nonce_check, obj.disable_gas_fee); }
+void enc_rlp(RLPStream& rlp, ExecutionOptions const& obj) {
+  enc_rlp_tuple(rlp, obj.disable_nonce_check, obj.disable_gas_fee);
+}
 
 void enc_rlp(RLPStream& rlp, ETHChainConfig const& obj) {
-  enc_rlp_tuple(rlp, obj.homestead_block, obj.dao_fork_block, obj.eip_150_block, obj.eip_158_block, obj.byzantium_block, obj.constantinople_block,
-                obj.petersburg_block);
+  enc_rlp_tuple(rlp, obj.homestead_block, obj.dao_fork_block, obj.eip_150_block, obj.eip_158_block, obj.byzantium_block,
+                obj.constantinople_block, obj.petersburg_block);
 }
 
 u256 ChainConfig::effective_genesis_balance(addr_t const& addr) const {
@@ -182,22 +191,30 @@ u256 ChainConfig::effective_genesis_balance(addr_t const& addr) const {
 }
 
 void enc_rlp(RLPStream& rlp, ChainConfig const& obj) {
-  enc_rlp_tuple(rlp, obj.eth_chain_config, obj.disable_block_rewards, obj.execution_options, obj.genesis_balances, obj.dpos);
+  enc_rlp_tuple(rlp, obj.eth_chain_config, obj.disable_block_rewards, obj.execution_options, obj.genesis_balances,
+                obj.dpos);
 }
 
-void enc_rlp(RLPStream& rlp, EVMBlock const& obj) { enc_rlp_tuple(rlp, obj.Author, obj.GasLimit, obj.Time, obj.Difficulty); }
+void enc_rlp(RLPStream& rlp, EVMBlock const& obj) {
+  enc_rlp_tuple(rlp, obj.Author, obj.GasLimit, obj.Time, obj.Difficulty);
+}
 
 void enc_rlp(RLPStream& rlp, EVMTransaction const& obj) {
-  enc_rlp_tuple(rlp, obj.From, obj.GasPrice, obj.To ? obj.To->ref() : bytesConstRef(), obj.Nonce, obj.Value, obj.Gas, obj.Input);
+  enc_rlp_tuple(rlp, obj.From, obj.GasPrice, obj.To ? obj.To->ref() : bytesConstRef(), obj.Nonce, obj.Value, obj.Gas,
+                obj.Input);
 }
 
 void enc_rlp(RLPStream& rlp, EVMTransactionWithHash const& obj) { enc_rlp_tuple(rlp, obj.Hash, obj.Transaction); }
 
 void enc_rlp(RLPStream& rlp, UncleBlock const& obj) { enc_rlp_tuple(rlp, obj.Number, obj.Author); }
 
-void enc_rlp(RLPStream& rlp, Opts const& obj) { enc_rlp_tuple(rlp, obj.ExpectedMaxTrxPerBlock, obj.MainTrieFullNodeLevelsToCache); }
+void enc_rlp(RLPStream& rlp, Opts const& obj) {
+  enc_rlp_tuple(rlp, obj.ExpectedMaxTrxPerBlock, obj.MainTrieFullNodeLevelsToCache);
+}
 
-void dec_rlp(RLP const& rlp, Account& obj) { dec_rlp_tuple(rlp, obj.Nonce, obj.Balance, obj.StorageRootHash, obj.CodeHash, obj.CodeSize); }
+void dec_rlp(RLP const& rlp, Account& obj) {
+  dec_rlp_tuple(rlp, obj.Nonce, obj.Balance, obj.StorageRootHash, obj.CodeHash, obj.CodeSize);
+}
 
 void dec_rlp(RLP const& rlp, LogRecord& obj) { dec_rlp_tuple(rlp, obj.Address, obj.Topics, obj.Data); }
 
@@ -215,7 +232,9 @@ void dec_rlp(RLP const& rlp, UncleBlock& obj) { dec_rlp_tuple(rlp, obj.Number, o
 
 void dec_rlp(RLP const& rlp, EVMBlock& obj) { dec_rlp_tuple(rlp, obj.Author, obj.GasLimit, obj.Time, obj.Difficulty); }
 
-void dec_rlp(RLP const& rlp, EVMTransaction& obj) { dec_rlp_tuple(rlp, obj.From, obj.GasPrice, obj.To, obj.Nonce, obj.Value, obj.Gas, obj.Input); }
+void dec_rlp(RLP const& rlp, EVMTransaction& obj) {
+  dec_rlp_tuple(rlp, obj.From, obj.GasPrice, obj.To, obj.Nonce, obj.Value, obj.Gas, obj.Input);
+}
 
 Json::Value enc_json(ExecutionOptions const& obj) {
   Json::Value json(Json::objectValue);

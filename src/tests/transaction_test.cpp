@@ -15,8 +15,10 @@ const unsigned NUM_TRX = 40;
 const unsigned NUM_BLK = 4;
 const unsigned BLK_TRX_LEN = 4;
 const unsigned BLK_TRX_OVERLAP = 1;
-auto g_secret = Lazy(
-    [] { return dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd", dev::Secret::ConstructFromStringType::FromHex); });
+auto g_secret = Lazy([] {
+  return dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+                     dev::Secret::ConstructFromStringType::FromHex);
+});
 auto g_key_pair = Lazy([] { return dev::KeyPair(g_secret); });
 auto g_trx_samples = Lazy([] { return samples::createMockTrxSamples(0, NUM_TRX); });
 auto g_signed_trx_samples = Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX, g_secret); });
@@ -76,7 +78,8 @@ TEST_F(TransactionTest, sig) {
       {uint64_t(1) << uint(32), "0xc1651c53d21ad6ddaac0af7ad93947074ef9f3b03479a36b29fa577b9faba8a9"},
   };
   for (auto& [chain_id, hash_str] : valid_cases) {
-    Transaction t(1, 2, 3, 4, dev::jsToBytes("0xabcd"), sk, addr_t("0xd3CdA913deB6f67967B99D67aCDFa1712C293601"), chain_id);
+    Transaction t(1, 2, 3, 4, dev::jsToBytes("0xabcd"), sk, addr_t("0xd3CdA913deB6f67967B99D67aCDFa1712C293601"),
+                  chain_id);
     for (auto i : {1, 0}) {
       ASSERT_EQ(t.getSender(), sender);
       ASSERT_EQ(t.getChainID(), chain_id);

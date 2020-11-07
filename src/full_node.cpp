@@ -29,8 +29,9 @@ using std::to_string;
 
 FullNode::FullNode(FullNodeConfig const &conf)
     : conf_(conf),
-      kp_(conf_.node_secret.empty() ? dev::KeyPair::create()
-                                    : dev::KeyPair(dev::Secret(conf_.node_secret, dev::Secret::ConstructFromStringType::FromHex))) {}
+      kp_(conf_.node_secret.empty()
+              ? dev::KeyPair::create()
+              : dev::KeyPair(dev::Secret(conf_.node_secret, dev::Secret::ConstructFromStringType::FromHex))) {}
 
 void FullNode::init() {
   fs::create_directories(conf_.db_path);
@@ -64,7 +65,8 @@ void FullNode::init() {
     emplace(trx_mgr_, conf_, node_addr, db_, log_time_);
     // This should go to the constructor
     auto final_chain_head = final_chain_->get_last_block();
-    trx_mgr_->setPendingBlock(aleth::NewPendingBlock(final_chain_head->number(), getAddress(), final_chain_head->hash(), db_));
+    trx_mgr_->setPendingBlock(
+        aleth::NewPendingBlock(final_chain_head->number(), getAddress(), final_chain_head->hash(), db_));
     for (auto const &h : trx_mgr_->getPendingBlock()->transactionHashes()) {
       auto status = db_->getTransactionStatus(h);
       if (status == TransactionStatus::in_queue_unverified || status == TransactionStatus::in_queue_verified) {
@@ -78,15 +80,17 @@ void FullNode::init() {
   auto genesis_hash = conf_.chain.dag_genesis_block.getHash().toString();
   emplace(pbft_chain_, genesis_hash, node_addr, db_);
   { emplace(dag_mgr_, genesis_hash, node_addr, trx_mgr_, pbft_chain_, db_); }
-  emplace(blk_mgr_, 1024 /*capacity*/, 4 /* verifer thread*/, node_addr, db_, trx_mgr_, log_time_, conf_.test_params.max_block_queue_warn);
+  emplace(blk_mgr_, 1024 /*capacity*/, 4 /* verifer thread*/, node_addr, db_, trx_mgr_, log_time_,
+          conf_.test_params.max_block_queue_warn);
   emplace(vote_mgr_, node_addr, final_chain_, pbft_chain_);
   emplace(trx_order_mgr_, node_addr, db_);
-  emplace(pbft_mgr_, conf_.chain.pbft, genesis_hash, node_addr, db_, pbft_chain_, vote_mgr_, dag_mgr_, blk_mgr_, final_chain_, trx_order_mgr_,
-          trx_mgr_, kp_.secret(), conf_.vrf_secret, conf_.opts_final_chain.state_api.ExpectedMaxTrxPerBlock);
-  emplace(blk_proposer_, conf_.test_params.block_proposer, conf_.chain.vdf, dag_mgr_, trx_mgr_, blk_mgr_, node_addr, getSecretKey(),
-          getVrfSecretKey(), log_time_);
-  emplace(network_, conf_.network, conf_.net_file_path().string(), kp_.secret(), genesis_hash, node_addr, db_, pbft_mgr_, pbft_chain_, vote_mgr_,
-          dag_mgr_, blk_mgr_, trx_mgr_, kp_.pub(), conf_.chain.pbft.lambda_ms_min);
+  emplace(pbft_mgr_, conf_.chain.pbft, genesis_hash, node_addr, db_, pbft_chain_, vote_mgr_, dag_mgr_, blk_mgr_,
+          final_chain_, trx_order_mgr_, trx_mgr_, kp_.secret(), conf_.vrf_secret,
+          conf_.opts_final_chain.state_api.ExpectedMaxTrxPerBlock);
+  emplace(blk_proposer_, conf_.test_params.block_proposer, conf_.chain.vdf, dag_mgr_, trx_mgr_, blk_mgr_, node_addr,
+          getSecretKey(), getVrfSecretKey(), log_time_);
+  emplace(network_, conf_.network, conf_.net_file_path().string(), kp_.secret(), genesis_hash, node_addr, db_,
+          pbft_mgr_, pbft_chain_, vote_mgr_, dag_mgr_, blk_mgr_, trx_mgr_, kp_.pub(), conf_.chain.pbft.lambda_ms_min);
   if (auto port = conf_.rpc.port) {
     if (!jsonrpc_io_ctx_) {
       emplace(jsonrpc_io_ctx_);

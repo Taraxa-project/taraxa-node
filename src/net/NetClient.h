@@ -11,7 +11,8 @@ namespace taraxa {
 namespace net {
 class NetClient : public jsonrpc::Client {
  public:
-  NetClient(jsonrpc::IClientConnector &conn, jsonrpc::clientVersion_t type = jsonrpc::JSONRPC_CLIENT_V2) : jsonrpc::Client(conn, type) {}
+  NetClient(jsonrpc::IClientConnector &conn, jsonrpc::clientVersion_t type = jsonrpc::JSONRPC_CLIENT_V2)
+      : jsonrpc::Client(conn, type) {}
 
   std::string net_version() throw(jsonrpc::JsonRpcException) {
     Json::Value p;

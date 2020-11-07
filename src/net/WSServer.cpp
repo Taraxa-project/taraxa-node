@@ -17,8 +17,9 @@ void WSSession::run() {
   ws_.set_option(websocket::stream_base::timeout::suggested(beast::role_type::server));
 
   // Set a decorator to change the Server of the handshake
-  ws_.set_option(websocket::stream_base::decorator(
-      [](websocket::response_type &res) { res.set(http::field::server, std::string(BOOST_BEAST_VERSION_STRING) + " websocket-server-async"); }));
+  ws_.set_option(websocket::stream_base::decorator([](websocket::response_type &res) {
+    res.set(http::field::server, std::string(BOOST_BEAST_VERSION_STRING) + " websocket-server-async");
+  }));
 
   // Accept the websocket handshake
   ws_.async_accept(beast::bind_front_handler(&WSSession::on_accept, shared_from_this()));
@@ -166,7 +167,8 @@ void WSSession::newEthBlock(dev::eth::BlockHeader const &payload) {
 void WSSession::write(const std::string &message) {
   ws_.text(ws_.got_text());
   LOG(log_tr_) << "WS ASYNC WRITE " << message.c_str() << " " << &ws_;
-  ws_.async_write(boost::asio::buffer(message), beast::bind_front_handler(&WSSession::on_write_no_read, shared_from_this()));
+  ws_.async_write(boost::asio::buffer(message),
+                  beast::bind_front_handler(&WSSession::on_write_no_read, shared_from_this()));
 }
 
 void WSSession::writeImpl(const std::string &message) {
@@ -267,7 +269,8 @@ void WSSession::close() {
   ws_.close("close");
 }
 
-WSServer::WSServer(boost::asio::io_context &ioc, tcp::endpoint endpoint, addr_t node_addr) : ioc_(ioc), acceptor_(ioc), node_addr_(node_addr) {
+WSServer::WSServer(boost::asio::io_context &ioc, tcp::endpoint endpoint, addr_t node_addr)
+    : ioc_(ioc), acceptor_(ioc), node_addr_(node_addr) {
   LOG_OBJECTS_CREATE("RPC");
   beast::error_code ec;
 
@@ -316,7 +319,8 @@ WSServer::~WSServer() {
 
 void WSServer::do_accept() {
   // The new connection gets its own strand
-  acceptor_.async_accept(boost::asio::make_strand(ioc_), beast::bind_front_handler(&WSServer::on_accept, shared_from_this()));
+  acceptor_.async_accept(boost::asio::make_strand(ioc_),
+                         beast::bind_front_handler(&WSServer::on_accept, shared_from_this()));
 }
 
 void WSServer::on_accept(beast::error_code ec, tcp::socket socket) {
@@ -359,7 +363,8 @@ void WSServer::newDagBlockFinalized(blk_hash_t const &blk, uint64_t period) {
   }
 }
 
-void WSServer::newPbftBlockExecuted(PbftBlock const &pbft_blk, std::vector<blk_hash_t> const &finalized_dag_blk_hashes) {
+void WSServer::newPbftBlockExecuted(PbftBlock const &pbft_blk,
+                                    std::vector<blk_hash_t> const &finalized_dag_blk_hashes) {
   auto payload = PbftBlock::toJson(pbft_blk, finalized_dag_blk_hashes);
   boost::shared_lock<boost::shared_mutex> lock(sessions_mtx_);
   for (auto const &session : sessions) {

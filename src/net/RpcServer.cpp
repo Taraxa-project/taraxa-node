@@ -80,41 +80,44 @@ std::shared_ptr<RpcConnection> RpcConnection::getShared() {
   }
 }
 
-RpcConnection::RpcConnection(std::shared_ptr<RpcServer> rpc) : rpc_(rpc), socket_(rpc->getIoContext()) { responded_.clear(); }
+RpcConnection::RpcConnection(std::shared_ptr<RpcServer> rpc) : rpc_(rpc), socket_(rpc->getIoContext()) {
+  responded_.clear();
+}
 
 void RpcConnection::read() {
   auto this_sp = getShared();
-  boost::beast::http::async_read(socket_, buffer_, request_, [this_sp](boost::system::error_code const &ec, size_t byte_transfered) {
-    if (!ec) {
-      // define response handler
-      auto replier([this_sp](std::string const &msg) {
-        // prepare response content
-        std::string body = msg;
-        this_sp->write_response(msg);
-        // async write
-        boost::beast::http::async_write(this_sp->socket_, this_sp->response_,
-                                        [this_sp](boost::system::error_code const &ec, size_t byte_transfered) {});
-      });
-      if (this_sp->request_.method() == boost::beast::http::verb::options) {
-        this_sp->write_options_response();
-        // async write
-        boost::beast::http::async_write(this_sp->socket_, this_sp->response_,
-                                        [this_sp](boost::system::error_code const &ec, size_t byte_transfered) {});
-      }
-      if (this_sp->request_.method() == boost::beast::http::verb::post) {
-        string response;
-        if (this_sp->rpc_->GetHandler() != NULL) {
-          LOG(this_sp->rpc_->log_tr_) << "Read: " << this_sp->request_.body();
-          this_sp->rpc_->GetHandler()->HandleRequest(this_sp->request_.body(), response);
+  boost::beast::http::async_read(
+      socket_, buffer_, request_, [this_sp](boost::system::error_code const &ec, size_t byte_transfered) {
+        if (!ec) {
+          // define response handler
+          auto replier([this_sp](std::string const &msg) {
+            // prepare response content
+            std::string body = msg;
+            this_sp->write_response(msg);
+            // async write
+            boost::beast::http::async_write(this_sp->socket_, this_sp->response_,
+                                            [this_sp](boost::system::error_code const &ec, size_t byte_transfered) {});
+          });
+          if (this_sp->request_.method() == boost::beast::http::verb::options) {
+            this_sp->write_options_response();
+            // async write
+            boost::beast::http::async_write(this_sp->socket_, this_sp->response_,
+                                            [this_sp](boost::system::error_code const &ec, size_t byte_transfered) {});
+          }
+          if (this_sp->request_.method() == boost::beast::http::verb::post) {
+            string response;
+            if (this_sp->rpc_->GetHandler() != NULL) {
+              LOG(this_sp->rpc_->log_tr_) << "Read: " << this_sp->request_.body();
+              this_sp->rpc_->GetHandler()->HandleRequest(this_sp->request_.body(), response);
+            }
+            LOG(this_sp->rpc_->log_tr_) << "Write: " << response;
+            replier(response);
+          }
+        } else {
+          LOG(this_sp->rpc_->log_er_) << "Error! RPC conncetion read fail ... " << ec.message() << "\n";
         }
-        LOG(this_sp->rpc_->log_tr_) << "Write: " << response;
-        replier(response);
-      }
-    } else {
-      LOG(this_sp->rpc_->log_er_) << "Error! RPC conncetion read fail ... " << ec.message() << "\n";
-    }
-    (void)byte_transfered;
-  });
+        (void)byte_transfered;
+      });
 }
 
 void RpcConnection::write_response(std::string const &msg) {

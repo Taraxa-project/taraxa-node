@@ -52,9 +52,17 @@ struct InvalidDataException : public std::runtime_error {
 
 class TaraxaPeer : public boost::noncopyable {
  public:
-  TaraxaPeer() : known_blocks_(10000, 1000), known_pbft_blocks_(10000, 1000), known_votes_(10000, 1000), known_transactions_(100000, 10000) {}
+  TaraxaPeer()
+      : known_blocks_(10000, 1000),
+        known_pbft_blocks_(10000, 1000),
+        known_votes_(10000, 1000),
+        known_transactions_(100000, 10000) {}
   explicit TaraxaPeer(NodeID id)
-      : m_id(id), known_blocks_(10000, 1000), known_pbft_blocks_(10000, 1000), known_votes_(10000, 1000), known_transactions_(100000, 10000) {}
+      : m_id(id),
+        known_blocks_(10000, 1000),
+        known_pbft_blocks_(10000, 1000),
+        known_votes_(10000, 1000),
+        known_transactions_(100000, 10000) {}
 
   bool isBlockKnown(blk_hash_t const &_hash) const { return known_blocks_.count(_hash); }
   void markBlockAsKnown(blk_hash_t const &_hash) { known_blocks_.insert(_hash); }
@@ -101,9 +109,10 @@ class TaraxaPeer : public boost::noncopyable {
 
 class TaraxaCapability : public CapabilityFace, public Worker {
  public:
-  TaraxaCapability(Host &_host, NetworkConfig &_conf, std::string const &genesis, bool const &performance_log, addr_t node_addr,
-                   std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
-                   std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<BlockManager> blk_mgr,
+  TaraxaCapability(Host &_host, NetworkConfig &_conf, std::string const &genesis, bool const &performance_log,
+                   addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
+                   std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
+                   std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<BlockManager> blk_mgr,
                    std::shared_ptr<TransactionManager> trx_mgr, uint32_t lambda_ms_min)
       : Worker("taraxa"),
         host_(_host),
@@ -167,7 +176,8 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   vector<NodeID> selectPeers(std::function<bool(TaraxaPeer const &)> const &_predicate);
   vector<NodeID> getAllPeers() const;
   Json::Value getStatus() const;
-  std::pair<std::vector<NodeID>, std::vector<NodeID>> randomPartitionPeers(std::vector<NodeID> const &_peers, std::size_t _number);
+  std::pair<std::vector<NodeID>, std::vector<NodeID>> randomPartitionPeers(std::vector<NodeID> const &_peers,
+                                                                           std::size_t _number);
   std::pair<int, int> retrieveTestData(NodeID const &_id);
   void sendBlock(NodeID const &_id, taraxa::DagBlock block, bool newBlock);
   void sendSyncedMessage();

@@ -19,11 +19,14 @@ class PbftManager;
 
 struct VrfPbftMsg : public vrf_wrapper::VrfMsgFace {
   VrfPbftMsg() = default;
-  VrfPbftMsg(blk_hash_t const& blk, PbftVoteTypes type, uint64_t round, size_t step) : blk(blk), type(type), round(round), step(step) {}
+  VrfPbftMsg(blk_hash_t const& blk, PbftVoteTypes type, uint64_t round, size_t step)
+      : blk(blk), type(type), round(round), step(step) {}
   std::string toString() const override {
     return blk.toString() + "_" + std::to_string(type) + "_" + std::to_string(round) + "_" + std::to_string(step);
   }
-  bool operator==(VrfPbftMsg const& other) const { return blk == other.blk && type == other.type && round == other.round && step == other.step; }
+  bool operator==(VrfPbftMsg const& other) const {
+    return blk == other.blk && type == other.type && round == other.round && step == other.step;
+  }
   friend std::ostream& operator<<(std::ostream& strm, VrfPbftMsg const& pbft_msg) {
     strm << "  [Vrf Pbft Msg] " << std::endl;
     strm << "    blk_hash: " << pbft_msg.blk << std::endl;
@@ -45,7 +48,8 @@ struct VrfPbftSortition : public vrf_wrapper::VrfSortitionBase {
   using vrf_output_t = vrf_wrapper::vrf_output_t;
   using bytes = dev::bytes;
   VrfPbftSortition() = default;
-  VrfPbftSortition(vrf_sk_t const& sk, VrfPbftMsg const& pbft_msg) : pbft_msg(pbft_msg), VrfSortitionBase(sk, pbft_msg) {}
+  VrfPbftSortition(vrf_sk_t const& sk, VrfPbftMsg const& pbft_msg)
+      : pbft_msg(pbft_msg), VrfSortitionBase(sk, pbft_msg) {}
   explicit VrfPbftSortition(bytes const& rlp);
   bytes getRlpBytes() const;
   bool verify() { return VrfSortitionBase::verify(pbft_msg); }
@@ -95,7 +99,9 @@ class Vote {
     voter();
     return dev::verify(cached_voter_, vote_signatue_, msg);
   }
-  bool verifyCanSpeak(size_t threshold, size_t valid_players) const { return vrf_sortition_.canSpeak(threshold, valid_players); }
+  bool verifyCanSpeak(size_t threshold, size_t valid_players) const {
+    return vrf_sortition_.canSpeak(threshold, valid_players);
+  }
 
   friend std::ostream& operator<<(std::ostream& strm, Vote const& vote) {
     strm << "[Vote] " << std::endl;
@@ -133,13 +139,15 @@ class VoteManager {
   void clearUnverifiedVotesTable();
   uint64_t getUnverifiedVotesSize() const;
   // for unit test only
-  std::vector<Vote> getVotes(uint64_t pbft_round, size_t eligible_voter_count, blk_hash_t last_pbft_block_hash, size_t sortition_threshold);
-  std::vector<Vote> getVotes(uint64_t const pbft_round, blk_hash_t const& last_pbft_block_hash, size_t const sortition_threshold,
-                             uint64_t eligible_voter_count, std::function<bool(addr_t const&)> const& is_eligible);
+  std::vector<Vote> getVotes(uint64_t pbft_round, size_t eligible_voter_count, blk_hash_t last_pbft_block_hash,
+                             size_t sortition_threshold);
+  std::vector<Vote> getVotes(uint64_t const pbft_round, blk_hash_t const& last_pbft_block_hash,
+                             size_t const sortition_threshold, uint64_t eligible_voter_count,
+                             std::function<bool(addr_t const&)> const& is_eligible);
   std::string getJsonStr(std::vector<Vote> const& votes);
   std::vector<Vote> getAllVotes();
-  bool pbftBlockHasEnoughValidCertVotes(PbftBlockCert const& pbft_block_and_votes, size_t valid_sortition_players, size_t sortition_threshold,
-                                        size_t pbft_2t_plus_1) const;
+  bool pbftBlockHasEnoughValidCertVotes(PbftBlockCert const& pbft_block_and_votes, size_t valid_sortition_players,
+                                        size_t sortition_threshold, size_t pbft_2t_plus_1) const;
 
  private:
   using uniqueLock_ = boost::unique_lock<boost::shared_mutex>;

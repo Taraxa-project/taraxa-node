@@ -15,8 +15,10 @@ auto g_vrf_sk = Lazy([] {
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
       "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
 });
-auto g_sk =
-    Lazy([] { return secret_t("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd", dev::Secret::ConstructFromStringType::FromHex); });
+auto g_sk = Lazy([] {
+  return secret_t("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+                  dev::Secret::ConstructFromStringType::FromHex);
+});
 struct PbftRpcTest : BaseTest {};
 
 TEST_F(PbftRpcTest, full_node_lambda_input_test) {
@@ -63,8 +65,9 @@ TEST_F(PbftRpcTest, add_cleanup_get_votes) {
   size_t valid_sortition_players = 1;
   pbft_mgr->setSortitionThreshold(valid_sortition_players);
   uint64_t pbft_round = 2;
-  std::vector<Vote> votes = vote_mgr->getVotes(pbft_round, pbft_chain_last_block_hash, pbft_mgr->getSortitionThreshold(), valid_sortition_players,
-                                               [](...) { return true; });
+  std::vector<Vote> votes =
+      vote_mgr->getVotes(pbft_round, pbft_chain_last_block_hash, pbft_mgr->getSortitionThreshold(),
+                         valid_sortition_players, [](...) { return true; });
   EXPECT_EQ(votes.size(), 4);
   for (Vote const &v : votes) {
     EXPECT_GT(v.getRound(), 1);

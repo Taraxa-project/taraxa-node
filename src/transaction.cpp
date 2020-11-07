@@ -9,8 +9,8 @@ namespace taraxa {
 using namespace std;
 using namespace dev;
 
-Transaction::Transaction(uint64_t nonce, val_t const &value, val_t const &gas_price, uint64_t gas, bytes data, secret_t const &sk,
-                         optional<addr_t> const &receiver, uint64_t chain_id)
+Transaction::Transaction(uint64_t nonce, val_t const &value, val_t const &gas_price, uint64_t gas, bytes data,
+                         secret_t const &sk, optional<addr_t> const &receiver, uint64_t chain_id)
     : nonce_(nonce),
       value_(value),
       gas_price_(gas_price),

@@ -25,7 +25,9 @@ struct StateAPIImpl : virtual Eth::StateAPI {
         state_api::ExecutionOptions{true, free_gas});
   }
 
-  bytes call(BlockNumber _blockNumber, TransactionSkeleton const& trx) const override { return call_internal(_blockNumber, trx, false).CodeRet; }
+  bytes call(BlockNumber _blockNumber, TransactionSkeleton const& trx) const override {
+    return call_internal(_blockNumber, trx, false).CodeRet;
+  }
 
   uint64_t estimateGas(BlockNumber _blockNumber, TransactionSkeleton const& trx) const override {
     return call_internal(_blockNumber, trx, true).GasUsed;
@@ -54,7 +56,9 @@ struct StateAPIImpl : virtual Eth::StateAPI {
     return {};
   }
 
-  u256 stateAt(Address _a, u256 _l, BlockNumber n) const override { return final_chain->get_account_storage(_a, _l, n); }
+  u256 stateAt(Address _a, u256 _l, BlockNumber n) const override {
+    return final_chain->get_account_storage(_a, _l, n);
+  }
 };
 
 unique_ptr<Eth::StateAPI> NewStateAPI(shared_ptr<FinalChain> final_chain) {

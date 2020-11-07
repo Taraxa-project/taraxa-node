@@ -48,8 +48,9 @@ T parse_rlp_file(path const& p) {
 }
 
 TEST_F(StateAPITest, eth_mainnet_smoke) {
-  auto test_blocks = parse_rlp_file<vector<TestBlock>>(path(__FILE__).parent_path().parent_path() / "submodules" / "taraxa-evm" / "taraxa" / "data" /
-                                                       "eth_mainnet_blocks_0_300000.rlp");
+  auto test_blocks =
+      parse_rlp_file<vector<TestBlock>>(path(__FILE__).parent_path().parent_path() / "submodules" / "taraxa-evm" /
+                                        "taraxa" / "data" / "eth_mainnet_blocks_0_300000.rlp");
 
   ChainConfig chain_config;
   auto& eth_cfg = chain_config.eth_chain_config;
@@ -62,7 +63,8 @@ TEST_F(StateAPITest, eth_mainnet_smoke) {
   eth_cfg.petersburg_block = 7280000;
 
   auto genesis_balances_rlp_hex_c = taraxa_evm_mainnet_genesis_balances();
-  auto genesis_balances_rlp = dev::jsToBytes(string((char*)genesis_balances_rlp_hex_c.Data, genesis_balances_rlp_hex_c.Len));
+  auto genesis_balances_rlp =
+      dev::jsToBytes(string((char*)genesis_balances_rlp_hex_c.Data, genesis_balances_rlp_hex_c.Len));
   dec_rlp(RLP(genesis_balances_rlp), chain_config.genesis_balances);
 
   Opts opts;

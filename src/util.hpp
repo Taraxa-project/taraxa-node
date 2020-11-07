@@ -102,14 +102,16 @@ template <typename T, typename U = T>
 std::vector<T> asVector(Json::Value const &json, std::string const &key) {
   std::vector<T> v;
   auto key_child = json[key];
-  std::transform(key_child.begin(), key_child.end(), std::back_inserter(v), [](const Json::Value &item) { return T(item.asString()); });
+  std::transform(key_child.begin(), key_child.end(), std::back_inserter(v),
+                 [](const Json::Value &item) { return T(item.asString()); });
   return v;
 }
 
 template <typename T>
 std::vector<T> asVector(Json::Value const &json) {
   std::vector<T> v;
-  std::transform(json.begin(), json.end(), std::back_inserter(v), [](const Json::Value &item) { return T(item.asString()); });
+  std::transform(json.begin(), json.end(), std::back_inserter(v),
+                 [](const Json::Value &item) { return T(item.asString()); });
   return v;
 }
 
@@ -313,7 +315,8 @@ auto u_ptr(T *ptr) {
 }
 
 template <typename T>
-static constexpr auto __is_iterable__(int) -> decltype((++std::declval<T>().begin() == std::declval<T>().end()++), bool()) {
+static constexpr auto __is_iterable__(int)
+    -> decltype((++std::declval<T>().begin() == std::declval<T>().end()++), bool()) {
   return true;
 }
 

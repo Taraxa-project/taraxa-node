@@ -5,7 +5,8 @@ namespace taraxa::final_chain {
 auto map_transactions(Transactions const& trxs) {
   return make_range_view(trxs).map([](auto const& trx) {
     return state_api::EVMTransaction{
-        trx.from(), trx.gasPrice(), trx.isCreation() ? std::nullopt : optional(trx.to()), trx.nonce(), trx.value(), trx.gas(), trx.data(),
+        trx.from(), trx.gasPrice(), trx.isCreation() ? std::nullopt : optional(trx.to()), trx.nonce(), trx.value(),
+        trx.gas(),  trx.data(),
     };
   });
 }
@@ -33,7 +34,8 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
       assert(state_desc.blk_num == 0);
       auto batch = db->createWriteBatch();
       auto exit_stack = append_block_prepare(batch);
-      append_block(config.genesis_block_fields.author, config.genesis_block_fields.timestamp, 0, state_desc.state_root, {}, {});
+      append_block(config.genesis_block_fields.author, config.genesis_block_fields.timestamp, 0, state_desc.state_root,
+                   {}, {});
       db->commitWriteBatch(batch);
       refresh_last_block();
       return;
@@ -86,7 +88,8 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
     return ret;
   }
 
-  AdvanceResult advance(DbStorage::BatchPtr batch, Address const& author, uint64_t timestamp, Transactions const& transactions) override {
+  AdvanceResult advance(DbStorage::BatchPtr batch, Address const& author, uint64_t timestamp,
+                        Transactions const& transactions) override {
     constexpr auto gas_limit = std::numeric_limits<uint64_t>::max();
     auto const& state_transition_result = state_api.transition_state(
         {
@@ -106,7 +109,8 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
       for (auto const& l : r.Logs) {
         logs.emplace_back(l.Address, l.Topics, l.Data);
       }
-      receipts_buf.emplace_back(r.CodeErr.empty() && r.ConsensusErr.empty(), cumulative_gas_used += r.GasUsed, move(logs), r.NewContractAddr);
+      receipts_buf.emplace_back(r.CodeErr.empty() && r.ConsensusErr.empty(), cumulative_gas_used += r.GasUsed,
+                                move(logs), r.NewContractAddr);
     }
     auto exit_stack = append_block_prepare(batch);
     return {
@@ -148,14 +152,17 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
                                          trx, opts);
   }
 
-  uint64_t dpos_eligible_count(BlockNumber blk_num) const override { return state_api.dpos_eligible_count(normalize_client_blk_n(blk_num)); }
+  uint64_t dpos_eligible_count(BlockNumber blk_num) const override {
+    return state_api.dpos_eligible_count(normalize_client_blk_n(blk_num));
+  }
 
   bool dpos_is_eligible(BlockNumber blk_num, addr_t const& addr) const override {
     return state_api.dpos_is_eligible(normalize_client_blk_n(blk_num), addr);
   }
 };
 
-unique_ptr<FinalChain> NewFinalChain(shared_ptr<DbStorage> db, FinalChain::Config const& config, FinalChain::Opts const& opts) {
+unique_ptr<FinalChain> NewFinalChain(shared_ptr<DbStorage> db, FinalChain::Config const& config,
+                                     FinalChain::Opts const& opts) {
   return u_ptr(new FinalChainImpl(db, config, aleth::NewDatabase(db, DbStorage::Columns::aleth_chain),
                                   aleth::NewDatabase(db, DbStorage::Columns::aleth_chain_extras), opts));
 }

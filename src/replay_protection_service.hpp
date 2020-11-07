@@ -24,7 +24,8 @@ struct ReplayProtectionService {
   virtual void update(DbStorage::BatchPtr batch, round_t round, util::RangeView<TransactionInfo> const& trxs) = 0;
 };
 
-std::unique_ptr<ReplayProtectionService> NewReplayProtectionService(ReplayProtectionService::Config config, std::shared_ptr<DbStorage> db);
+std::unique_ptr<ReplayProtectionService> NewReplayProtectionService(ReplayProtectionService::Config config,
+                                                                    std::shared_ptr<DbStorage> db);
 
 Json::Value enc_json(ReplayProtectionService::Config const& obj);
 void dec_json(Json::Value const& json, ReplayProtectionService::Config& obj);

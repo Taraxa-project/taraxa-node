@@ -7,12 +7,17 @@ namespace taraxa {
 
 void thisThreadSleepForSeconds(unsigned sec) { std::this_thread::sleep_for(std::chrono::seconds(sec)); }
 
-void thisThreadSleepForMilliSeconds(unsigned millisec) { std::this_thread::sleep_for(std::chrono::milliseconds(millisec)); }
+void thisThreadSleepForMilliSeconds(unsigned millisec) {
+  std::this_thread::sleep_for(std::chrono::milliseconds(millisec));
+}
 
-void thisThreadSleepForMicroSeconds(unsigned microsec) { std::this_thread::sleep_for(std::chrono::microseconds(microsec)); }
+void thisThreadSleepForMicroSeconds(unsigned microsec) {
+  std::this_thread::sleep_for(std::chrono::microseconds(microsec));
+}
 
 unsigned long getCurrentTimeMilliSeconds() {
-  return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+  return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
+      .count();
 }
 
 }  // namespace taraxa

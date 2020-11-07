@@ -12,68 +12,81 @@ namespace net {
 class TestFace : public ServerInterface<TestFace> {
  public:
   TestFace() {
+    this->bindAndAddMethod(jsonrpc::Procedure("insert_dag_block", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
+                                              "param1", jsonrpc::JSON_OBJECT, NULL),
+                           &taraxa::net::TestFace::insert_dag_blockI);
+    this->bindAndAddMethod(jsonrpc::Procedure("get_dag_block", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
+                                              "param1", jsonrpc::JSON_OBJECT, NULL),
+                           &taraxa::net::TestFace::get_dag_blockI);
+    this->bindAndAddMethod(jsonrpc::Procedure("send_coin_transaction", jsonrpc::PARAMS_BY_POSITION,
+                                              jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT, NULL),
+                           &taraxa::net::TestFace::send_coin_transactionI);
+    this->bindAndAddMethod(jsonrpc::Procedure("create_test_coin_transactions", jsonrpc::PARAMS_BY_POSITION,
+                                              jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT, NULL),
+                           &taraxa::net::TestFace::create_test_coin_transactionsI);
     this->bindAndAddMethod(
-        jsonrpc::Procedure("insert_dag_block", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT, NULL),
-        &taraxa::net::TestFace::insert_dag_blockI);
+        jsonrpc::Procedure("get_num_proposed_blocks", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, NULL),
+        &taraxa::net::TestFace::get_num_proposed_blocksI);
     this->bindAndAddMethod(
-        jsonrpc::Procedure("get_dag_block", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT, NULL),
-        &taraxa::net::TestFace::get_dag_blockI);
+        jsonrpc::Procedure("get_account_address", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, NULL),
+        &taraxa::net::TestFace::get_account_addressI);
+    this->bindAndAddMethod(jsonrpc::Procedure("get_account_balance", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
+                                              "param1", jsonrpc::JSON_OBJECT, NULL),
+                           &taraxa::net::TestFace::get_account_balanceI);
     this->bindAndAddMethod(
-        jsonrpc::Procedure("send_coin_transaction", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT, NULL),
-        &taraxa::net::TestFace::send_coin_transactionI);
+        jsonrpc::Procedure("get_node_count", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, NULL),
+        &taraxa::net::TestFace::get_node_countI);
     this->bindAndAddMethod(
-        jsonrpc::Procedure("create_test_coin_transactions", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT, NULL),
-        &taraxa::net::TestFace::create_test_coin_transactionsI);
-    this->bindAndAddMethod(jsonrpc::Procedure("get_num_proposed_blocks", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, NULL),
-                           &taraxa::net::TestFace::get_num_proposed_blocksI);
-    this->bindAndAddMethod(jsonrpc::Procedure("get_account_address", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, NULL),
-                           &taraxa::net::TestFace::get_account_addressI);
+        jsonrpc::Procedure("get_peer_count", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, NULL),
+        &taraxa::net::TestFace::get_peer_countI);
     this->bindAndAddMethod(
-        jsonrpc::Procedure("get_account_balance", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT, NULL),
-        &taraxa::net::TestFace::get_account_balanceI);
-    this->bindAndAddMethod(jsonrpc::Procedure("get_node_count", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, NULL),
-                           &taraxa::net::TestFace::get_node_countI);
-    this->bindAndAddMethod(jsonrpc::Procedure("get_peer_count", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, NULL),
-                           &taraxa::net::TestFace::get_peer_countI);
-    this->bindAndAddMethod(jsonrpc::Procedure("get_node_status", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, NULL),
-                           &taraxa::net::TestFace::get_node_statusI);
+        jsonrpc::Procedure("get_node_status", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, NULL),
+        &taraxa::net::TestFace::get_node_statusI);
     this->bindAndAddMethod(jsonrpc::Procedure("get_all_peers", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, NULL),
                            &taraxa::net::TestFace::get_all_peersI);
     this->bindAndAddMethod(jsonrpc::Procedure("get_all_nodes", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, NULL),
                            &taraxa::net::TestFace::get_all_nodesI);
-    this->bindAndAddMethod(
-        jsonrpc::Procedure("should_speak", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT, NULL),
-        &taraxa::net::TestFace::should_speakI);
-    this->bindAndAddMethod(jsonrpc::Procedure("place_vote", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT, NULL),
+    this->bindAndAddMethod(jsonrpc::Procedure("should_speak", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
+                                              "param1", jsonrpc::JSON_OBJECT, NULL),
+                           &taraxa::net::TestFace::should_speakI);
+    this->bindAndAddMethod(jsonrpc::Procedure("place_vote", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, "param1",
+                                              jsonrpc::JSON_OBJECT, NULL),
                            &taraxa::net::TestFace::place_voteI);
-    this->bindAndAddMethod(jsonrpc::Procedure("get_votes", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT, NULL),
+    this->bindAndAddMethod(jsonrpc::Procedure("get_votes", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, "param1",
+                                              jsonrpc::JSON_OBJECT, NULL),
                            &taraxa::net::TestFace::get_votesI);
-    this->bindAndAddMethod(jsonrpc::Procedure("draw_graph", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT, NULL),
+    this->bindAndAddMethod(jsonrpc::Procedure("draw_graph", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, "param1",
+                                              jsonrpc::JSON_OBJECT, NULL),
                            &taraxa::net::TestFace::draw_graphI);
+    this->bindAndAddMethod(jsonrpc::Procedure("get_transaction_count", jsonrpc::PARAMS_BY_POSITION,
+                                              jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT, NULL),
+                           &taraxa::net::TestFace::get_transaction_countI);
+    this->bindAndAddMethod(jsonrpc::Procedure("get_executed_trx_count", jsonrpc::PARAMS_BY_POSITION,
+                                              jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT, NULL),
+                           &taraxa::net::TestFace::get_executed_trx_countI);
+    this->bindAndAddMethod(jsonrpc::Procedure("get_executed_blk_count", jsonrpc::PARAMS_BY_POSITION,
+                                              jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT, NULL),
+                           &taraxa::net::TestFace::get_executed_blk_countI);
+    this->bindAndAddMethod(jsonrpc::Procedure("get_dag_size", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
+                                              "param1", jsonrpc::JSON_OBJECT, NULL),
+                           &taraxa::net::TestFace::get_dag_sizeI);
+    this->bindAndAddMethod(jsonrpc::Procedure("get_dag_blk_count", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
+                                              "param1", jsonrpc::JSON_OBJECT, NULL),
+                           &taraxa::net::TestFace::get_dag_blk_countI);
     this->bindAndAddMethod(
-        jsonrpc::Procedure("get_transaction_count", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT, NULL),
-        &taraxa::net::TestFace::get_transaction_countI);
-    this->bindAndAddMethod(
-        jsonrpc::Procedure("get_executed_trx_count", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT, NULL),
-        &taraxa::net::TestFace::get_executed_trx_countI);
-    this->bindAndAddMethod(
-        jsonrpc::Procedure("get_executed_blk_count", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT, NULL),
-        &taraxa::net::TestFace::get_executed_blk_countI);
-    this->bindAndAddMethod(
-        jsonrpc::Procedure("get_dag_size", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT, NULL),
-        &taraxa::net::TestFace::get_dag_sizeI);
-    this->bindAndAddMethod(
-        jsonrpc::Procedure("get_dag_blk_count", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT, NULL),
-        &taraxa::net::TestFace::get_dag_blk_countI);
-    this->bindAndAddMethod(jsonrpc::Procedure("get_pbft_chain_size", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, NULL),
-                           &taraxa::net::TestFace::get_pbft_chain_sizeI);
-    this->bindAndAddMethod(
-        jsonrpc::Procedure("get_pbft_chain_blocks", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT, NULL),
-        &taraxa::net::TestFace::get_pbft_chain_blocksI);
+        jsonrpc::Procedure("get_pbft_chain_size", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, NULL),
+        &taraxa::net::TestFace::get_pbft_chain_sizeI);
+    this->bindAndAddMethod(jsonrpc::Procedure("get_pbft_chain_blocks", jsonrpc::PARAMS_BY_POSITION,
+                                              jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT, NULL),
+                           &taraxa::net::TestFace::get_pbft_chain_blocksI);
   }
 
-  inline virtual void insert_dag_blockI(const Json::Value &request, Json::Value &response) { response = this->insert_dag_block(request[0u]); }
-  inline virtual void get_dag_blockI(const Json::Value &request, Json::Value &response) { response = this->get_dag_block(request[0u]); }
+  inline virtual void insert_dag_blockI(const Json::Value &request, Json::Value &response) {
+    response = this->insert_dag_block(request[0u]);
+  }
+  inline virtual void get_dag_blockI(const Json::Value &request, Json::Value &response) {
+    response = this->get_dag_block(request[0u]);
+  }
   inline virtual void send_coin_transactionI(const Json::Value &request, Json::Value &response) {
     response = this->send_coin_transaction(request[0u]);
   }
@@ -88,7 +101,9 @@ class TestFace : public ServerInterface<TestFace> {
     (void)request;
     response = this->get_account_address();
   }
-  inline virtual void get_account_balanceI(const Json::Value &request, Json::Value &response) { response = this->get_account_balance(request[0u]); }
+  inline virtual void get_account_balanceI(const Json::Value &request, Json::Value &response) {
+    response = this->get_account_balance(request[0u]);
+  }
   inline virtual void get_node_countI(const Json::Value &request, Json::Value &response) {
     (void)request;
     response = this->get_node_count();
@@ -109,10 +124,18 @@ class TestFace : public ServerInterface<TestFace> {
     (void)request;
     response = this->get_all_nodes();
   }
-  inline virtual void should_speakI(const Json::Value &request, Json::Value &response) { response = this->should_speak(request[0u]); }
-  inline virtual void place_voteI(const Json::Value &request, Json::Value &response) { response = this->place_vote(request[0u]); }
-  inline virtual void get_votesI(const Json::Value &request, Json::Value &response) { response = this->get_votes(request[0u]); }
-  inline virtual void draw_graphI(const Json::Value &request, Json::Value &response) { response = this->draw_graph(request[0u]); }
+  inline virtual void should_speakI(const Json::Value &request, Json::Value &response) {
+    response = this->should_speak(request[0u]);
+  }
+  inline virtual void place_voteI(const Json::Value &request, Json::Value &response) {
+    response = this->place_vote(request[0u]);
+  }
+  inline virtual void get_votesI(const Json::Value &request, Json::Value &response) {
+    response = this->get_votes(request[0u]);
+  }
+  inline virtual void draw_graphI(const Json::Value &request, Json::Value &response) {
+    response = this->draw_graph(request[0u]);
+  }
   inline virtual void get_transaction_countI(const Json::Value &request, Json::Value &response) {
     response = this->get_transaction_count(request[0u]);
   }
@@ -122,8 +145,12 @@ class TestFace : public ServerInterface<TestFace> {
   inline virtual void get_executed_blk_countI(const Json::Value &request, Json::Value &response) {
     response = this->get_executed_blk_count(request[0u]);
   }
-  inline virtual void get_dag_sizeI(const Json::Value &request, Json::Value &response) { response = this->get_dag_size(request[0u]); }
-  inline virtual void get_dag_blk_countI(const Json::Value &request, Json::Value &response) { response = this->get_dag_blk_count(request[0u]); }
+  inline virtual void get_dag_sizeI(const Json::Value &request, Json::Value &response) {
+    response = this->get_dag_size(request[0u]);
+  }
+  inline virtual void get_dag_blk_countI(const Json::Value &request, Json::Value &response) {
+    response = this->get_dag_blk_count(request[0u]);
+  }
   inline virtual void get_pbft_chain_sizeI(const Json::Value &request, Json::Value &response) {
     (void)request;
     response = this->get_pbft_chain_size();

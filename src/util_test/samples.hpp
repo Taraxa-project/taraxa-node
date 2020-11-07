@@ -29,10 +29,12 @@ class TxGenerator {
                                  bytes const &data = str2bytes("00FEDCBA9876543210000000")) const {
     return Transaction(0, value, 0, TEST_TX_GAS_LIMIT, data, getRandomUniqueSenderSecret(), to);
   }
-  auto getSerialTrxWithSameSender(uint trx_num, uint64_t const &start_nonce, val_t const &value, addr_t const &receiver = addr_t::random()) const {
+  auto getSerialTrxWithSameSender(uint trx_num, uint64_t const &start_nonce, val_t const &value,
+                                  addr_t const &receiver = addr_t::random()) const {
     std::vector<Transaction> trxs;
     for (auto i = start_nonce; i < start_nonce + trx_num; ++i) {
-      trxs.emplace_back(Transaction(i, value, 0, TEST_TX_GAS_LIMIT, str2bytes("00FEDCBA9876543210000000"), getRandomUniqueSenderSecret(), receiver));
+      trxs.emplace_back(Transaction(i, value, 0, TEST_TX_GAS_LIMIT, str2bytes("00FEDCBA9876543210000000"),
+                                    getRandomUniqueSenderSecret(), receiver));
     }
     return trxs;
   }
@@ -64,9 +66,9 @@ inline bool sendTrx(uint64_t count, unsigned port) {
       }' 0.0.0.0:%s
     )";
   for (auto i = 0; i < count; ++i) {
-    auto retcode =
-        system(fmt(pattern, val_t(TEST_TX_GAS_LIMIT), val_t(0), addr_t::random(), samples::TX_GEN->getRandomUniqueSenderSecret().makeInsecure(), port)
-                   .c_str());
+    auto retcode = system(fmt(pattern, val_t(TEST_TX_GAS_LIMIT), val_t(0), addr_t::random(),
+                              samples::TX_GEN->getRandomUniqueSenderSecret().makeInsecure(), port)
+                              .c_str());
     if (retcode != 0) {
       return false;
     }
@@ -76,7 +78,8 @@ inline bool sendTrx(uint64_t count, unsigned port) {
 
 struct TestAccount {
   TestAccount() = default;
-  TestAccount(int id, std::string const &sk, std::string const &pk, std::string const &addr) : id(id), sk(sk), pk(pk), addr(addr) {}
+  TestAccount(int id, std::string const &sk, std::string const &pk, std::string const &addr)
+      : id(id), sk(sk), pk(pk), addr(addr) {}
   friend std::ostream;
   int id;
   std::string sk;
@@ -134,13 +137,14 @@ inline std::vector<Transaction> createSignedTrxSamples(unsigned start, unsigned 
   std::vector<Transaction> trxs;
   for (auto i = start; i < num; ++i) {
     blk_hash_t hash(i);
-    trxs.emplace_back(Transaction(i, i * 100, 0, 1000000, str2bytes("00FEDCBA9876543210000000"), sk, addr_t((i + 1) * 100)));
+    trxs.emplace_back(
+        Transaction(i, i * 100, 0, 1000000, str2bytes("00FEDCBA9876543210000000"), sk, addr_t((i + 1) * 100)));
   }
   return trxs;
 }
 
-inline std::vector<DagBlock> createMockDagBlkSamples(unsigned pivot_start, unsigned blk_num, unsigned trx_start, unsigned trx_len,
-                                                     unsigned trx_overlap) {
+inline std::vector<DagBlock> createMockDagBlkSamples(unsigned pivot_start, unsigned blk_num, unsigned trx_start,
+                                                     unsigned trx_len, unsigned trx_overlap) {
   assert(pivot_start + blk_num < std::numeric_limits<unsigned>::max());
   std::vector<DagBlock> blks;
   unsigned trx = trx_start;
@@ -169,7 +173,8 @@ inline std::vector<DagBlock> createMockDagBlkSamples(unsigned pivot_start, unsig
 }
 
 inline std::vector<std::pair<DagBlock, std::vector<Transaction>>> createMockDagBlkSamplesWithSignedTransactions(
-    unsigned pivot_start, unsigned blk_num, unsigned trx_start, unsigned trx_len, unsigned trx_overlap, secret_t const &sk) {
+    unsigned pivot_start, unsigned blk_num, unsigned trx_start, unsigned trx_len, unsigned trx_overlap,
+    secret_t const &sk) {
   assert(pivot_start + blk_num < std::numeric_limits<unsigned>::max());
   std::vector<std::pair<DagBlock, std::vector<Transaction>>> blks;
   unsigned trx = trx_start;
@@ -192,7 +197,8 @@ inline std::vector<std::pair<DagBlock, std::vector<Transaction>>> createMockDagB
 }
 
 //
-inline std::vector<DagBlock> createMockDag0(std::string genesis = "0000000000000000000000000000000000000000000000000000000000000000") {
+inline std::vector<DagBlock> createMockDag0(
+    std::string genesis = "0000000000000000000000000000000000000000000000000000000000000000") {
   std::vector<DagBlock> blks;
   DagBlock dummy;
   DagBlock blk1(blk_hash_t(genesis),  // pivot
@@ -373,7 +379,8 @@ inline std::vector<DagBlock> createMockDag0(std::string genesis = "0000000000000
 }
 
 //
-inline std::vector<DagBlock> createMockDag1(std::string genesis = "0000000000000000000000000000000000000000000000000000000000000000") {
+inline std::vector<DagBlock> createMockDag1(
+    std::string genesis = "0000000000000000000000000000000000000000000000000000000000000000") {
   std::vector<DagBlock> blks;
   DagBlock dummy;
   DagBlock blk1(blk_hash_t(genesis),  // pivot

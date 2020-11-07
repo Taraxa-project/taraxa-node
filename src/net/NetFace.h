@@ -16,8 +16,9 @@ class NetFace : public ServerInterface<NetFace> {
                            &taraxa::net::NetFace::net_versionI);
     this->bindAndAddMethod(jsonrpc::Procedure("net_peerCount", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING, NULL),
                            &taraxa::net::NetFace::net_peerCountI);
-    this->bindAndAddMethod(jsonrpc::Procedure("net_listening", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_BOOLEAN, NULL),
-                           &taraxa::net::NetFace::net_listeningI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("net_listening", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_BOOLEAN, NULL),
+        &taraxa::net::NetFace::net_listeningI);
   }
 
   inline virtual void net_versionI(const Json::Value &request, Json::Value &response) {

@@ -11,7 +11,8 @@ namespace taraxa {
 namespace net {
 class TestClient : public jsonrpc::Client {
  public:
-  TestClient(jsonrpc::IClientConnector& conn, jsonrpc::clientVersion_t type = jsonrpc::JSONRPC_CLIENT_V2) : jsonrpc::Client(conn, type) {}
+  TestClient(jsonrpc::IClientConnector& conn, jsonrpc::clientVersion_t type = jsonrpc::JSONRPC_CLIENT_V2)
+      : jsonrpc::Client(conn, type) {}
 
   Json::Value insert_dag_block(const Json::Value& param1) throw(jsonrpc::JsonRpcException) {
     Json::Value p;

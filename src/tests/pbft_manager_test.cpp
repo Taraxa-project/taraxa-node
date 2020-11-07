@@ -11,8 +11,10 @@
 namespace taraxa::core_tests {
 
 const unsigned NUM_TRX = 200;
-auto g_secret = Lazy(
-    [] { return dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd", dev::Secret::ConstructFromStringType::FromHex); });
+auto g_secret = Lazy([] {
+  return dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+                     dev::Secret::ConstructFromStringType::FromHex);
+});
 auto g_key_pair = Lazy([] { return dev::KeyPair(g_secret); });
 auto g_trx_signed_samples = Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX, g_secret); });
 auto g_mock_dag0 = Lazy([] { return samples::createMockDag0(); });
@@ -69,7 +71,8 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
 
   auto init_bal = node_1_expected_bal / nodes.size();
   for (auto i(1); i < nodes.size(); ++i) {
-    Transaction master_boot_node_send_coins(nonce++, init_bal, gas_price, TEST_TX_GAS_LIMIT, data, nodes[0]->getSecretKey(), nodes[i]->getAddress());
+    Transaction master_boot_node_send_coins(nonce++, init_bal, gas_price, TEST_TX_GAS_LIMIT, data,
+                                            nodes[0]->getSecretKey(), nodes[i]->getAddress());
     node_1_expected_bal -= init_bal;
     // broadcast trx and insert
     nodes[0]->getTransactionManager()->insertTransaction(master_boot_node_send_coins);
@@ -80,9 +83,10 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
   EXPECT_HAPPENS({80s, 8s}, [&](auto &ctx) {
     for (auto i(0); i < nodes.size(); ++i) {
       if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
-        std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted() << " transactions, expected " << trxs_count
-                  << std::endl;
-        Transaction dummy_trx(nonce++, 0, 2, TEST_TX_GAS_LIMIT, bytes(), nodes[0]->getSecretKey(), nodes[0]->getAddress());
+        std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted()
+                  << " transactions, expected " << trxs_count << std::endl;
+        Transaction dummy_trx(nonce++, 0, 2, TEST_TX_GAS_LIMIT, bytes(), nodes[0]->getSecretKey(),
+                              nodes[0]->getAddress());
         // broadcast dummy transaction
         nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false);
         trxs_count++;
@@ -111,8 +115,8 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
     valid_voting_players = pbft_mgr->getEligibleVoterCount();
     two_t_plus_one = pbft_mgr->getTwoTPlusOne();
     threshold = pbft_mgr->getSortitionThreshold();
-    std::cout << "Node" << i << " committee " << committee << ", valid voting players " << valid_voting_players << ", 2t+1 " << two_t_plus_one
-              << ", sortition threshold " << threshold << std::endl;
+    std::cout << "Node" << i << " committee " << committee << ", valid voting players " << valid_voting_players
+              << ", 2t+1 " << two_t_plus_one << ", sortition threshold " << threshold << std::endl;
     EXPECT_EQ(valid_voting_players, nodes.size());
     tie(expected_2tPlus1, expected_threshold) = calculate_2tPuls1_threshold(committee, valid_voting_players);
     EXPECT_EQ(two_t_plus_one, expected_2tPlus1);
@@ -124,8 +128,8 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
     // Sending coins in Robin Cycle in order to make all nodes to be active
     // players, but not guarantee
     auto receiver_index = (i + 1) % nodes.size();
-    Transaction send_coins_in_robin_cycle(nonce++, send_coins, gas_price, TEST_TX_GAS_LIMIT, data, nodes[i]->getSecretKey(),
-                                          nodes[receiver_index]->getAddress());
+    Transaction send_coins_in_robin_cycle(nonce++, send_coins, gas_price, TEST_TX_GAS_LIMIT, data,
+                                          nodes[i]->getSecretKey(), nodes[receiver_index]->getAddress());
     // broadcast trx and insert
     nodes[i]->getTransactionManager()->insertTransaction(send_coins_in_robin_cycle, false);
     trxs_count++;
@@ -135,9 +139,10 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
   EXPECT_HAPPENS({80s, 8s}, [&](auto &ctx) {
     for (auto i(0); i < nodes.size(); ++i) {
       if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
-        std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted() << " transactions. Expected " << trxs_count
-                  << std::endl;
-        Transaction dummy_trx(nonce++, 0, 2, TEST_TX_GAS_LIMIT, bytes(), nodes[0]->getSecretKey(), nodes[0]->getAddress());
+        std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted()
+                  << " transactions. Expected " << trxs_count << std::endl;
+        Transaction dummy_trx(nonce++, 0, 2, TEST_TX_GAS_LIMIT, bytes(), nodes[0]->getSecretKey(),
+                              nodes[0]->getAddress());
         // broadcast dummy transaction
         nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false);
         trxs_count++;
@@ -165,8 +170,8 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
     valid_voting_players = pbft_mgr->getEligibleVoterCount();
     two_t_plus_one = pbft_mgr->getTwoTPlusOne();
     threshold = pbft_mgr->getSortitionThreshold();
-    std::cout << "Node" << i << " committee " << committee << ", valid voting players " << valid_voting_players << ", 2t+1 " << two_t_plus_one
-              << ", sortition threshold " << threshold << std::endl;
+    std::cout << "Node" << i << " committee " << committee << ", valid voting players " << valid_voting_players
+              << ", 2t+1 " << two_t_plus_one << ", sortition threshold " << threshold << std::endl;
     EXPECT_EQ(valid_voting_players, nodes.size());
     tie(expected_2tPlus1, expected_threshold) = calculate_2tPuls1_threshold(committee, valid_voting_players);
     EXPECT_EQ(two_t_plus_one, expected_2tPlus1);
@@ -183,7 +188,8 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
   auto gas_price = val_t(2);
   auto receiver = addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0");
   auto data = bytes();
-  Transaction trx_master_boot_node_to_receiver(0, coins_value, gas_price, TEST_TX_GAS_LIMIT, data, node->getSecretKey(), receiver);
+  Transaction trx_master_boot_node_to_receiver(0, coins_value, gas_price, TEST_TX_GAS_LIMIT, data, node->getSecretKey(),
+                                               receiver);
   node->getTransactionManager()->insertTransaction(trx_master_boot_node_to_receiver, false);
 
   for (auto _(0); _ < 120; ++_) {
@@ -227,7 +233,8 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   auto coins_value2 = val_t(100);
   auto gas_price = val_t(2);
   auto data = bytes();
-  Transaction trx_master_boot_node_to_node2(0, coins_value2, gas_price, TEST_TX_GAS_LIMIT, data, nodes[0]->getSecretKey(), node2_addr);
+  Transaction trx_master_boot_node_to_node2(0, coins_value2, gas_price, TEST_TX_GAS_LIMIT, data,
+                                            nodes[0]->getSecretKey(), node2_addr);
   // broadcast trx and insert
   nodes[0]->getTransactionManager()->insertTransaction(trx_master_boot_node_to_node2, false);
 
@@ -266,7 +273,8 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
 
   // create a transaction transfer coins from node1 to node3
   auto coins_value3 = val_t(1000);
-  Transaction trx_master_boot_node_to_node3(1, coins_value3, gas_price, TEST_TX_GAS_LIMIT, data, nodes[0]->getSecretKey(), node3_addr);
+  Transaction trx_master_boot_node_to_node3(1, coins_value3, gas_price, TEST_TX_GAS_LIMIT, data,
+                                            nodes[0]->getSecretKey(), node3_addr);
   // broadcast trx and insert
   nodes[0]->getTransactionManager()->insertTransaction(trx_master_boot_node_to_node3, false);
 
@@ -295,7 +303,8 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   // Vote DAG block
   for (auto _(0); _ < 120; ++_) {
     // test timeout is 60 seconds
-    if (nodes[0]->getPbftChain()->getPbftChainSize() == pbft_chain_size && nodes[1]->getPbftChain()->getPbftChainSize() == pbft_chain_size &&
+    if (nodes[0]->getPbftChain()->getPbftChainSize() == pbft_chain_size &&
+        nodes[1]->getPbftChain()->getPbftChainSize() == pbft_chain_size &&
         nodes[2]->getPbftChain()->getPbftChainSize() == pbft_chain_size) {
       break;
     }

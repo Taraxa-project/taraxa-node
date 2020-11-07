@@ -50,10 +50,12 @@ struct FinalChainTest : WithDataDir {
     EXPECT_EQ(blk_h.author(), author);
     EXPECT_EQ(blk_h.timestamp(), timestamp);
     EXPECT_EQ(result.receipts.size(), trxs.size());
-    EXPECT_EQ(blk_h.transactionsRoot(), trieRootOver(
-                                            trxs.size(), [&](auto i) { return rlp(i); }, [&](auto i) { return trxs[i].rlp(); }));
-    EXPECT_EQ(blk_h.receiptsRoot(), trieRootOver(
-                                        trxs.size(), [&](auto i) { return rlp(i); }, [&](auto i) { return result.receipts[i].rlp(); }));
+    EXPECT_EQ(blk_h.transactionsRoot(),
+              trieRootOver(
+                  trxs.size(), [&](auto i) { return rlp(i); }, [&](auto i) { return trxs[i].rlp(); }));
+    EXPECT_EQ(blk_h.receiptsRoot(),
+              trieRootOver(
+                  trxs.size(), [&](auto i) { return rlp(i); }, [&](auto i) { return result.receipts[i].rlp(); }));
     EXPECT_EQ(blk_h.gasLimit(), std::numeric_limits<uint64_t>::max());
     EXPECT_EQ(blk_h.extraData(), bytes());
     EXPECT_EQ(blk_h.nonce(), Nonce());
@@ -104,7 +106,8 @@ struct FinalChainTest : WithDataDir {
       EXPECT_TRUE(r_from_db.hasStatusCode());
       EXPECT_EQ(r_from_db.statusCode(), r.statusCode());
       EXPECT_EQ(r_from_db.gasUsed(), result.state_transition_result.ExecutionResults[i].GasUsed);
-      EXPECT_EQ(r_from_db.gasUsed(), i == 0 ? r.cumulativeGasUsed() : r.cumulativeGasUsed() - result.receipts[i - 1].cumulativeGasUsed());
+      EXPECT_EQ(r_from_db.gasUsed(),
+                i == 0 ? r.cumulativeGasUsed() : r.cumulativeGasUsed() - result.receipts[i - 1].cumulativeGasUsed());
     }
     expected_block_log_bloom.shiftBloom<3>(sha3(blk_h.author().ref()));
     EXPECT_EQ(blk_h.logBloom(), expected_block_log_bloom);

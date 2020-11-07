@@ -12,19 +12,22 @@ namespace taraxa {
 
 using std::to_string;
 
-DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, sig_t sig, blk_hash_t hash, addr_t sender) try
-    : pivot_(pivot),
-      level_(level),
-      tips_(tips),
-      trxs_(trxs),
-      sig_(sig),
-      hash_(hash),
-      cached_sender_(sender) {
+DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, sig_t sig, blk_hash_t hash,
+                   addr_t sender) try : pivot_(pivot),
+                                        level_(level),
+                                        tips_(tips),
+                                        trxs_(trxs),
+                                        sig_(sig),
+                                        hash_(hash),
+                                        cached_sender_(sender) {
 } catch (std::exception &e) {
   std::cerr << e.what() << std::endl;
   assert(false);
 }
-DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs) try : pivot_(pivot), level_(level), tips_(tips), trxs_(trxs) {
+DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs) try : pivot_(pivot),
+                                                                                          level_(level),
+                                                                                          tips_(tips),
+                                                                                          trxs_(trxs) {
 } catch (std::exception &e) {
   std::cerr << e.what() << std::endl;
   assert(false);
@@ -100,9 +103,13 @@ DagBlock::DagBlock(dev::RLP const &rlp) {
   updateHash();
 }
 
-std::vector<trx_hash_t> DagBlock::extract_transactions_from_rlp(RLP const &rlp) { return rlp[5].toVector<trx_hash_t>(); }
+std::vector<trx_hash_t> DagBlock::extract_transactions_from_rlp(RLP const &rlp) {
+  return rlp[5].toVector<trx_hash_t>();
+}
 
-bool DagBlock::isValid() const { return !(pivot_.isZero() && hash_.isZero() && sig_.isZero() && cached_sender_.isZero()); }
+bool DagBlock::isValid() const {
+  return !(pivot_.isZero() && hash_.isZero() && sig_.isZero() && cached_sender_.isZero());
+}
 
 Json::Value DagBlock::getJson() const {
   Json::Value res;
@@ -180,7 +187,8 @@ bytes DagBlock::rlp(bool include_sig) const {
 blk_hash_t DagBlock::sha3(bool include_sig) const { return dev::sha3(rlp(include_sig)); }
 
 BlockManager::BlockManager(size_t capacity, unsigned num_verifiers, addr_t node_addr, std::shared_ptr<DbStorage> db,
-                           std::shared_ptr<TransactionManager> trx_mgr, boost::log::sources::severity_channel_logger<> log_time, uint32_t queue_limit)
+                           std::shared_ptr<TransactionManager> trx_mgr,
+                           boost::log::sources::severity_channel_logger<> log_time, uint32_t queue_limit)
     : capacity_(capacity),
       num_verifiers_(num_verifiers),
       blk_status_(10000, 100),
@@ -271,16 +279,17 @@ void BlockManager::insertBlock(DagBlock const &blk) {
     return;
   }
   pushUnverifiedBlock(std::move(blk), true /*critical*/);
-  LOG(log_time_) << "Store cblock " << blk.getHash() << " at: " << getCurrentTimeMilliSeconds() << " ,trxs: " << blk.getTrxs().size()
-                 << " , tips: " << blk.getTips().size();
+  LOG(log_time_) << "Store cblock " << blk.getHash() << " at: " << getCurrentTimeMilliSeconds()
+                 << " ,trxs: " << blk.getTrxs().size() << " , tips: " << blk.getTips().size();
 }
 
-void BlockManager::pushUnverifiedBlock(DagBlock const &blk, std::vector<Transaction> const &transactions, bool critical) {
+void BlockManager::pushUnverifiedBlock(DagBlock const &blk, std::vector<Transaction> const &transactions,
+                                       bool critical) {
   if (queue_limit_ > 0) {
     auto queue_size = getDagBlockQueueSize();
     if (queue_limit_ > queue_size.first + queue_size.second) {
-      LOG(log_wr_) << "Warning: block queue large. Unverified queue: " << queue_size.first << "; Verified queue: " << queue_size.second
-                   << "; Limit: " << queue_limit_;
+      LOG(log_wr_) << "Warning: block queue large. Unverified queue: " << queue_size.first
+                   << "; Verified queue: " << queue_size.second << "; Limit: " << queue_limit_;
     }
   }
   seen_blocks_.update(blk.getHash(), blk);
@@ -300,17 +309,20 @@ void BlockManager::pushUnverifiedBlock(DagBlock const &blk, std::vector<Transact
   cond_for_unverified_qu_.notify_one();
 }
 
-void BlockManager::insertBroadcastedBlockWithTransactions(DagBlock const &blk, std::vector<Transaction> const &transactions) {
+void BlockManager::insertBroadcastedBlockWithTransactions(DagBlock const &blk,
+                                                          std::vector<Transaction> const &transactions) {
   if (isBlockKnown(blk.getHash())) {
     LOG(log_dg_) << "Block known " << blk.getHash();
     return;
   }
   pushUnverifiedBlock(blk, transactions, false /*critical*/);
-  LOG(log_time_) << "Store ncblock " << blk.getHash() << " at: " << getCurrentTimeMilliSeconds() << " ,trxs: " << blk.getTrxs().size()
-                 << " , tips: " << blk.getTips().size();
+  LOG(log_time_) << "Store ncblock " << blk.getHash() << " at: " << getCurrentTimeMilliSeconds()
+                 << " ,trxs: " << blk.getTrxs().size() << " , tips: " << blk.getTips().size();
 }
 
-void BlockManager::pushUnverifiedBlock(DagBlock const &blk, bool critical) { pushUnverifiedBlock(blk, std::vector<Transaction>(), critical); }
+void BlockManager::pushUnverifiedBlock(DagBlock const &blk, bool critical) {
+  pushUnverifiedBlock(blk, std::vector<Transaction>(), critical);
+}
 
 std::pair<size_t, size_t> BlockManager::getDagBlockQueueSize() const {
   std::pair<size_t, size_t> res;
@@ -374,7 +386,8 @@ void BlockManager::verifyBlock() {
         // Verify VDF solution
         vdf_sortition::VdfSortition vdf = blk.first.getVdf();
         if (!vdf.verifyVdf(blk.first.getLevel(), blk.first.getPivot().toString())) {
-          LOG(log_er_) << "DAG block " << blk.first.getHash() << " failed on VDF verification with pivot hash " << blk.first.getPivot();
+          LOG(log_er_) << "DAG block " << blk.first.getHash() << " failed on VDF verification with pivot hash "
+                       << blk.first.getPivot();
           valid = false;
         }
       }

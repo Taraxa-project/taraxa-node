@@ -24,8 +24,10 @@ using namespace dev;
 using namespace dev::p2p;
 
 const unsigned NUM_TRX = 9;
-auto g_secret = Lazy(
-    [] { return dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd", dev::Secret::ConstructFromStringType::FromHex); });
+auto g_secret = Lazy([] {
+  return dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+                     dev::Secret::ConstructFromStringType::FromHex);
+});
 auto g_signed_trx_samples = Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX, g_secret); });
 
 struct P2PTest : BaseTest {};
@@ -36,7 +38,8 @@ to find each other. Test confirm that after a delay each node had found
 all other nodes.
 */
 TEST_F(P2PTest, p2p_discovery) {
-  auto secret = dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd", dev::Secret::ConstructFromStringType::FromHex);
+  auto secret = dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+                            dev::Secret::ConstructFromStringType::FromHex);
   auto key = dev::KeyPair(secret);
   const int NUMBER_OF_NODES = 10;
   dev::p2p::Host bootHost("TaraxaNode", key, 20001, dev::p2p::NetworkConfig("127.0.0.1", 20001, false, true));
@@ -87,11 +90,11 @@ TEST_F(P2PTest, capability_send_test) {
   network_conf.network_simulated_delay = 0;
   network_conf.network_bandwidth = 40;
   network_conf.network_transaction_interval = 1000;
-  auto thc1 = make_shared<TaraxaCapability>(host1, network_conf, GENESIS, false, addr_t(), nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-                                            nullptr, 2000);
+  auto thc1 = make_shared<TaraxaCapability>(host1, network_conf, GENESIS, false, addr_t(), nullptr, nullptr, nullptr,
+                                            nullptr, nullptr, nullptr, nullptr, 2000);
   host1.registerCapability(thc1);
-  auto thc2 = make_shared<TaraxaCapability>(host2, network_conf, GENESIS, false, addr_t(), nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-                                            nullptr, 2000);
+  auto thc2 = make_shared<TaraxaCapability>(host2, network_conf, GENESIS, false, addr_t(), nullptr, nullptr, nullptr,
+                                            nullptr, nullptr, nullptr, nullptr, 2000);
   host2.registerCapability(thc2);
   host1.start();
   host2.start();
@@ -149,11 +152,11 @@ TEST_F(P2PTest, capability_send_block) {
   network_conf.network_simulated_delay = 0;
   network_conf.network_bandwidth = 40;
   network_conf.network_transaction_interval = 1000;
-  auto thc1 = make_shared<TaraxaCapability>(host1, network_conf, GENESIS, false, addr_t(), nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-                                            nullptr, 2000);
+  auto thc1 = make_shared<TaraxaCapability>(host1, network_conf, GENESIS, false, addr_t(), nullptr, nullptr, nullptr,
+                                            nullptr, nullptr, nullptr, nullptr, 2000);
   host1.registerCapability(thc1);
-  auto thc2 = make_shared<TaraxaCapability>(host2, network_conf, GENESIS, false, addr_t(), nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-                                            nullptr, 2000);
+  auto thc2 = make_shared<TaraxaCapability>(host2, network_conf, GENESIS, false, addr_t(), nullptr, nullptr, nullptr,
+                                            nullptr, nullptr, nullptr, nullptr, 2000);
   host2.registerCapability(thc2);
   host1.start();
   host2.start();
@@ -185,7 +188,8 @@ TEST_F(P2PTest, capability_send_block) {
   EXPECT_GT(host2.peerCount(), 0);
 
   DagBlock blk(blk_hash_t(1111), 0, {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)},
-               {g_signed_trx_samples[0].getHash(), g_signed_trx_samples[1].getHash()}, sig_t(7777), blk_hash_t(888), addr_t(999));
+               {g_signed_trx_samples[0].getHash(), g_signed_trx_samples[1].getHash()}, sig_t(7777), blk_hash_t(888),
+               addr_t(999));
 
   std::vector<taraxa::bytes> transactions;
   transactions.emplace_back(*g_signed_trx_samples[0].rlp());
@@ -226,13 +230,13 @@ TEST_F(P2PTest, block_propagate) {
   network_conf.network_bandwidth = 40;
   network_conf.network_transaction_interval = 1000;
 
-  auto thc1 = make_shared<TaraxaCapability>(host1, network_conf, GENESIS, false, addr_t(), nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-                                            nullptr, 2000);
+  auto thc1 = make_shared<TaraxaCapability>(host1, network_conf, GENESIS, false, addr_t(), nullptr, nullptr, nullptr,
+                                            nullptr, nullptr, nullptr, nullptr, 2000);
   host1.registerCapability(thc1);
   std::vector<std::shared_ptr<TaraxaCapability>> vCapabilities;
   for (int i = 0; i < nodeCount; i++) {
-    vCapabilities.push_back(make_shared<TaraxaCapability>(*vHosts[i], network_conf, GENESIS, false, addr_t(), nullptr, nullptr, nullptr, nullptr,
-                                                          nullptr, nullptr, nullptr, 2000));
+    vCapabilities.push_back(make_shared<TaraxaCapability>(*vHosts[i], network_conf, GENESIS, false, addr_t(), nullptr,
+                                                          nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, 2000));
     vHosts[i]->registerCapability(vCapabilities[i]);
   }
   host1.start(true);
@@ -254,7 +258,8 @@ TEST_F(P2PTest, block_propagate) {
       vHosts[i]->addNode(host1.id(), NodeIPEndpoint(bi::address::from_string(localhost), port1, port1));
     else
       vHosts[i]->addNode(vHosts[i % 10]->id(),
-                         NodeIPEndpoint(bi::address::from_string(localhost), vHosts[i % 10]->listenPort(), vHosts[i % 10]->listenPort()));
+                         NodeIPEndpoint(bi::address::from_string(localhost), vHosts[i % 10]->listenPort(),
+                                        vHosts[i % 10]->listenPort()));
     this_thread::sleep_for(chrono::milliseconds(20));
   }
 
@@ -294,7 +299,8 @@ TEST_F(P2PTest, block_propagate) {
   EXPECT_GT(host1.peerCount(), 0);
 
   DagBlock blk(blk_hash_t(1111), 0, {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)},
-               {g_signed_trx_samples[0].getHash(), g_signed_trx_samples[1].getHash()}, sig_t(7777), blk_hash_t(0), addr_t(999));
+               {g_signed_trx_samples[0].getHash(), g_signed_trx_samples[1].getHash()}, sig_t(7777), blk_hash_t(0),
+               addr_t(999));
 
   std::vector<taraxa::bytes> transactions;
   transactions.emplace_back(*g_signed_trx_samples[0].rlp());

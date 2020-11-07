@@ -26,7 +26,8 @@ class ProposeModelFace {
  public:
   virtual ~ProposeModelFace() {}
   virtual bool propose() = 0;
-  void setProposer(std::shared_ptr<BlockProposer> proposer, addr_t node_addr, secret_t const& sk, vrf_sk_t const& vrf_sk) {
+  void setProposer(std::shared_ptr<BlockProposer> proposer, addr_t node_addr, secret_t const& sk,
+                   vrf_sk_t const& vrf_sk) {
     proposer_ = proposer;
     node_addr_ = node_addr;
     sk_ = sk;
@@ -66,9 +67,10 @@ class SortitionPropose : public ProposeModelFace {
  */
 class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
  public:
-  BlockProposer(BlockProposerConfig const& bp_config, vdf_sortition::VdfConfig const& vdf_config, std::shared_ptr<DagManager> dag_mgr,
-                std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<BlockManager> blk_mgr, addr_t node_addr, secret_t node_sk,
-                vrf_sk_t vrf_sk, boost::log::sources::severity_channel_logger<> log_time)
+  BlockProposer(BlockProposerConfig const& bp_config, vdf_sortition::VdfConfig const& vdf_config,
+                std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr,
+                std::shared_ptr<BlockManager> blk_mgr, addr_t node_addr, secret_t node_sk, vrf_sk_t vrf_sk,
+                boost::log::sources::severity_channel_logger<> log_time)
       : dag_mgr_(dag_mgr),
         trx_mgr_(trx_mgr),
         blk_mgr_(blk_mgr),

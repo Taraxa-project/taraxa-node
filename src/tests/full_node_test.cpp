@@ -24,8 +24,10 @@ using samples::sendTrx;
 
 const unsigned NUM_TRX = 200;
 const unsigned SYNC_TIMEOUT = 400;
-auto g_secret = Lazy(
-    [] { return dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd", dev::Secret::ConstructFromStringType::FromHex); });
+auto g_secret = Lazy([] {
+  return dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+                     dev::Secret::ConstructFromStringType::FromHex);
+});
 auto g_key_pair = Lazy([] { return dev::KeyPair(g_secret); });
 auto g_trx_signed_samples = Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX, g_secret); });
 auto g_mock_dag0 = Lazy([] { return samples::createMockDag0(); });
@@ -317,9 +319,9 @@ TEST_F(FullNodeTest, sync_five_nodes) {
 
     auto issued_trx_count = context.getIssuedTrxCount();
 
-    if (num_vertices1 == num_vertices2 && num_vertices2 == num_vertices3 && num_vertices3 == num_vertices4 && num_vertices4 == num_vertices5 &&
-        num_trx1 == issued_trx_count && num_trx2 == issued_trx_count && num_trx3 == issued_trx_count && num_trx4 == issued_trx_count &&
-        num_trx5 == issued_trx_count) {
+    if (num_vertices1 == num_vertices2 && num_vertices2 == num_vertices3 && num_vertices3 == num_vertices4 &&
+        num_vertices4 == num_vertices5 && num_trx1 == issued_trx_count && num_trx2 == issued_trx_count &&
+        num_trx3 == issued_trx_count && num_trx4 == issued_trx_count && num_trx5 == issued_trx_count) {
       break;
     }
 
@@ -331,8 +333,8 @@ TEST_F(FullNodeTest, sync_five_nodes) {
                 << " Node 2: Dag size = " << num_vertices2.first << " Trx count = " << num_trx2 << std::endl
                 << " Node 3: Dag size = " << num_vertices3.first << " Trx count = " << num_trx3 << std::endl
                 << " Node 4: Dag size = " << num_vertices4.first << " Trx count = " << num_trx4 << std::endl
-                << " Node 5: Dag size = " << num_vertices5.first << " Trx count = " << num_trx5 << " Issued transaction count = " << issued_trx_count
-                << std::endl;
+                << " Node 5: Dag size = " << num_vertices5.first << " Trx count = " << num_trx5
+                << " Issued transaction count = " << issued_trx_count << std::endl;
     }
 
     taraxa::thisThreadSleepForMilliSeconds(500);
@@ -386,14 +388,14 @@ TEST_F(FullNodeTest, sync_five_nodes) {
     auto trx_packed5 = nodes[4]->getDB()->getNumTransactionInDag();
 
     if (trx_packed1 < trx_executed1) {
-      std::cout << "Warning! " << trx_packed1 << " packed transactions is less than " << trx_executed1 << " executed transactions in node 1"
-                << std::endl;
+      std::cout << "Warning! " << trx_packed1 << " packed transactions is less than " << trx_executed1
+                << " executed transactions in node 1" << std::endl;
     }
 
     if (trx_executed1 == issued_trx_count && trx_executed2 == issued_trx_count && trx_executed3 == issued_trx_count &&
         trx_executed4 == issued_trx_count && trx_executed5 == issued_trx_count) {
-      if (trx_packed1 == issued_trx_count && trx_packed2 == issued_trx_count && trx_packed3 == issued_trx_count && trx_packed4 == issued_trx_count &&
-          trx_packed5 == issued_trx_count) {
+      if (trx_packed1 == issued_trx_count && trx_packed2 == issued_trx_count && trx_packed3 == issued_trx_count &&
+          trx_packed4 == issued_trx_count && trx_packed5 == issued_trx_count) {
         break;
       } else {
         std::cout << "Warning! See all nodes with " << issued_trx_count
@@ -406,28 +408,28 @@ TEST_F(FullNodeTest, sync_five_nodes) {
     if (i % 100 == 0) {
       if (trx_executed1 != issued_trx_count) {
         std::cout << " Node 1: executed blk= " << nodes[0]->getDB()->getNumBlockExecuted()
-                  << " Dag size: " << nodes[0]->getDagManager()->getNumVerticesInDag().first << " executed trx = " << trx_executed1 << "/"
-                  << issued_trx_count << std::endl;
+                  << " Dag size: " << nodes[0]->getDagManager()->getNumVerticesInDag().first
+                  << " executed trx = " << trx_executed1 << "/" << issued_trx_count << std::endl;
       }
       if (trx_executed2 != issued_trx_count) {
         std::cout << " Node 2: executed blk= " << nodes[1]->getDB()->getNumBlockExecuted()
-                  << " Dag size: " << nodes[1]->getDagManager()->getNumVerticesInDag().first << " executed trx = " << trx_executed2 << "/"
-                  << issued_trx_count << std::endl;
+                  << " Dag size: " << nodes[1]->getDagManager()->getNumVerticesInDag().first
+                  << " executed trx = " << trx_executed2 << "/" << issued_trx_count << std::endl;
       }
       if (trx_executed3 != issued_trx_count) {
         std::cout << " Node 3: executed blk= " << nodes[2]->getDB()->getNumBlockExecuted()
-                  << " Dag size: " << nodes[2]->getDagManager()->getNumVerticesInDag().first << " executed trx = " << trx_executed3 << "/"
-                  << issued_trx_count << std::endl;
+                  << " Dag size: " << nodes[2]->getDagManager()->getNumVerticesInDag().first
+                  << " executed trx = " << trx_executed3 << "/" << issued_trx_count << std::endl;
       }
       if (trx_executed4 != issued_trx_count) {
         std::cout << " Node 4: executed blk= " << nodes[3]->getDB()->getNumBlockExecuted()
-                  << " Dag size: " << nodes[3]->getDagManager()->getNumVerticesInDag().first << " executed trx = " << trx_executed4 << "/"
-                  << issued_trx_count << std::endl;
+                  << " Dag size: " << nodes[3]->getDagManager()->getNumVerticesInDag().first
+                  << " executed trx = " << trx_executed4 << "/" << issued_trx_count << std::endl;
       }
       if (trx_executed5 != issued_trx_count) {
         std::cout << " Node 5: executed blk= " << nodes[4]->getDB()->getNumBlockExecuted()
-                  << " Dag size: " << nodes[4]->getDagManager()->getNumVerticesInDag().first << " executed trx = " << trx_executed5 << "/"
-                  << issued_trx_count << std::endl;
+                  << " Dag size: " << nodes[4]->getDagManager()->getNumVerticesInDag().first
+                  << " executed trx = " << trx_executed5 << "/" << issued_trx_count << std::endl;
       }
     }
     if (i == TIMEOUT - 1) {
@@ -445,15 +447,18 @@ TEST_F(FullNodeTest, sync_five_nodes) {
         || node->getDB()->getNumTransactionExecuted() != issued_trx_count  //
         || node->getDB()->getNumTransactionInDag() != issued_trx_count) {
       std::cout << "Node " << k << " :Number of trx packed = " << node->getDB()->getNumTransactionInDag() << std::endl;
-      std::cout << "Node " << k << " :Number of trx executed = " << node->getDB()->getNumTransactionExecuted() << std::endl;
+      std::cout << "Node " << k << " :Number of trx executed = " << node->getDB()->getNumTransactionExecuted()
+                << std::endl;
 
       std::cout << "Node " << k << " :Number of block executed = " << node->getDB()->getNumBlockExecuted() << std::endl;
       auto num_vertices = node->getDagManager()->getNumVerticesInDag();
-      std::cout << "Node " << k << " :Number of vertices in Dag = " << num_vertices.first << " , " << num_vertices.second << std::endl;
+      std::cout << "Node " << k << " :Number of vertices in Dag = " << num_vertices.first << " , "
+                << num_vertices.second << std::endl;
       auto dags = getOrderedDagBlocks(node->getDB());
       for (auto i(0); i < dags.size(); ++i) {
         auto d = dags[i];
-        std::cout << i << " " << d << " trx: " << nodes[0]->getBlockManager()->getDagBlock(d)->getTrxs().size() << std::endl;
+        std::cout << i << " " << d << " trx: " << nodes[0]->getBlockManager()->getDagBlock(d)->getTrxs().size()
+                  << std::endl;
       }
       std::string filename = "debug_dag_" + std::to_string(k);
       node->getDagManager()->drawGraph(filename);
@@ -466,7 +471,8 @@ TEST_F(FullNodeTest, sync_five_nodes) {
 
     EXPECT_EQ(node->getDB()->getNumTransactionExecuted(), issued_trx_count)
         << " \nNum executed in node " << k << " node " << node << " is : " << node->getDB()->getNumTransactionExecuted()
-        << " \nNum linearized blks: " << getOrderedDagBlocks(node->getDB()).size() << " \nNum executed blks: " << node->getDB()->getNumBlockExecuted()
+        << " \nNum linearized blks: " << getOrderedDagBlocks(node->getDB()).size()
+        << " \nNum executed blks: " << node->getDB()->getNumBlockExecuted()
         << " \nNum vertices in DAG: " << node->getDagManager()->getNumVerticesInDag().first << " "
         << node->getDagManager()->getNumVerticesInDag().second << "\n";
 
@@ -474,9 +480,10 @@ TEST_F(FullNodeTest, sync_five_nodes) {
 
     // diff should be larger than 0 but smaller than number of nodes
     // genesis block won't be executed
-    EXPECT_LT(vertices_diff, nodes.size()) << "Failed in node " << k << "node " << node
-                                           << " Number of vertices: " << node->getDagManager()->getNumVerticesInDag().first
-                                           << " Number of executed blks: " << node->getDB()->getNumBlockExecuted() << std::endl;
+    EXPECT_LT(vertices_diff, nodes.size())
+        << "Failed in node " << k << "node " << node
+        << " Number of vertices: " << node->getDagManager()->getNumVerticesInDag().first
+        << " Number of executed blks: " << node->getDB()->getNumBlockExecuted() << std::endl;
     EXPECT_GE(vertices_diff, 0) << "Failed in node " << k << "node " << node
                                 << " Number of vertices: " << node->getDagManager()->getNumVerticesInDag().first
                                 << " Number of executed blks: " << node->getDB()->getNumBlockExecuted() << std::endl;
@@ -932,7 +939,8 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   auto trxs_count = 0;
   auto test_transfer_val = node_1_genesis_bal / node_cfgs.size();
   for (auto i(1); i < nodes.size(); ++i) {
-    Transaction master_boot_node_send_coins(nonce++, test_transfer_val, gas_price, 100000, data, nodes[0]->getSecretKey(), nodes[i]->getAddress());
+    Transaction master_boot_node_send_coins(nonce++, test_transfer_val, gas_price, 100000, data,
+                                            nodes[0]->getSecretKey(), nodes[i]->getAddress());
     // broadcast trx and insert
     nodes[0]->getTransactionManager()->insertTransaction(master_boot_node_send_coins, false);
     trxs_count++;
@@ -942,8 +950,8 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   wait({150s, 15s}, [&](auto &ctx) {
     for (auto i(0); i < nodes.size(); ++i) {
       if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
-        std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted() << " transactions, expected " << trxs_count
-                  << std::endl;
+        std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted()
+                  << " transactions, expected " << trxs_count << std::endl;
         if (ctx.fail(); !ctx.is_last_attempt) {
           Transaction dummy_trx(nonce++, 0, 2, 100000, bytes(), nodes[0]->getSecretKey(), nodes[0]->getAddress());
           // broadcast dummy transaction
@@ -957,7 +965,8 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   // Check account balance for each node
   for (auto i(0); i < nodes.size(); ++i) {
     std::cout << "Checking account balances on node " << i << " ..." << std::endl;
-    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(nodes[0]->getAddress()).first, node_1_genesis_bal - (node_cfgs.size() - 1) * test_transfer_val);
+    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(nodes[0]->getAddress()).first,
+              node_1_genesis_bal - (node_cfgs.size() - 1) * test_transfer_val);
     for (auto j(1); j < nodes.size(); ++j) {
       // For node1 to node4 balances info on each node
       EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(nodes[j]->getAddress()).first, test_transfer_val);
@@ -984,8 +993,8 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   wait({150s, 15s}, [&](auto &ctx) {
     for (auto i(0); i < nodes.size(); ++i) {
       if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
-        std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted() << " transactions, expected " << trxs_count
-                  << std::endl;
+        std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted()
+                  << " transactions, expected " << trxs_count << std::endl;
         if (ctx.fail(); !ctx.is_last_attempt) {
           Transaction dummy_trx(nonce++, 0, 2, 100000, bytes(), nodes[0]->getSecretKey(), nodes[0]->getAddress());
           // broadcast dummy transaction

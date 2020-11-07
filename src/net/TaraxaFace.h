@@ -12,23 +12,29 @@ namespace net {
 class TaraxaFace : public ServerInterface<TaraxaFace> {
  public:
   TaraxaFace() {
-    this->bindAndAddMethod(jsonrpc::Procedure("taraxa_protocolVersion", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING, NULL),
-                           &taraxa::net::TaraxaFace::taraxa_protocolVersionI);
-    this->bindAndAddMethod(jsonrpc::Procedure("taraxa_getDagBlockByHash", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, "param1",
-                                              jsonrpc::JSON_STRING, "param2", jsonrpc::JSON_BOOLEAN, NULL),
-                           &taraxa::net::TaraxaFace::taraxa_getDagBlockByHashI);
-    this->bindAndAddMethod(jsonrpc::Procedure("taraxa_getDagBlockByLevel", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, "param1",
-                                              jsonrpc::JSON_STRING, "param2", jsonrpc::JSON_BOOLEAN, NULL),
-                           &taraxa::net::TaraxaFace::taraxa_getDagBlockByLevelI);
-    this->bindAndAddMethod(jsonrpc::Procedure("taraxa_dagBlockLevel", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING, NULL),
-                           &taraxa::net::TaraxaFace::taraxa_dagBlockLevelI);
-    this->bindAndAddMethod(jsonrpc::Procedure("taraxa_dagBlockPeriod", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING, NULL),
-                           &taraxa::net::TaraxaFace::taraxa_dagBlockPeriodI);
-    this->bindAndAddMethod(jsonrpc::Procedure("taraxa_getScheduleBlockByPeriod", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, "param1",
-                                              jsonrpc::JSON_STRING, NULL),
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("taraxa_protocolVersion", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING, NULL),
+        &taraxa::net::TaraxaFace::taraxa_protocolVersionI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("taraxa_getDagBlockByHash", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, "param1",
+                           jsonrpc::JSON_STRING, "param2", jsonrpc::JSON_BOOLEAN, NULL),
+        &taraxa::net::TaraxaFace::taraxa_getDagBlockByHashI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("taraxa_getDagBlockByLevel", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, "param1",
+                           jsonrpc::JSON_STRING, "param2", jsonrpc::JSON_BOOLEAN, NULL),
+        &taraxa::net::TaraxaFace::taraxa_getDagBlockByLevelI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("taraxa_dagBlockLevel", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING, NULL),
+        &taraxa::net::TaraxaFace::taraxa_dagBlockLevelI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("taraxa_dagBlockPeriod", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING, NULL),
+        &taraxa::net::TaraxaFace::taraxa_dagBlockPeriodI);
+    this->bindAndAddMethod(jsonrpc::Procedure("taraxa_getScheduleBlockByPeriod", jsonrpc::PARAMS_BY_POSITION,
+                                              jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_STRING, NULL),
                            &taraxa::net::TaraxaFace::taraxa_getScheduleBlockByPeriodI);
-    this->bindAndAddMethod(jsonrpc::Procedure("taraxa_getConfig", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, NULL),
-                           &taraxa::net::TaraxaFace::taraxa_getConfigI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("taraxa_getConfig", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, NULL),
+        &taraxa::net::TaraxaFace::taraxa_getConfigI);
   }
 
   inline virtual void taraxa_protocolVersionI(const Json::Value &request, Json::Value &response) {
