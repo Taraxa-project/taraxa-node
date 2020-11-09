@@ -11,8 +11,7 @@ namespace taraxa::core_tests {
 struct DagTest : BaseTest {};
 
 TEST_F(DagTest, build_dag) {
-  const std::string GENESIS =
-      "0000000000000000000000000000000000000000000000000000000000000000";
+  const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
   taraxa::Dag graph(GENESIS, addr_t());
 
   // a genesis vertex
@@ -42,8 +41,7 @@ TEST_F(DagTest, build_dag) {
 }
 
 TEST_F(DagTest, dag_traverse_get_children_tips) {
-  const std::string GENESIS =
-      "0000000000000000000000000000000000000000000000000000000000000000";
+  const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
   taraxa::Dag graph(GENESIS, addr_t());
 
   // a genesis vertex
@@ -93,8 +91,7 @@ TEST_F(DagTest, dag_traverse_get_children_tips) {
 }
 
 TEST_F(DagTest, dag_traverse2_get_children_tips) {
-  const std::string GENESIS =
-      "0000000000000000000000000000000000000000000000000000000000000000";
+  const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
   taraxa::Dag graph(GENESIS, addr_t());
 
   // a genesis vertex
@@ -122,8 +119,7 @@ TEST_F(DagTest, dag_traverse2_get_children_tips) {
 }
 
 TEST_F(DagTest, genesis_get_pivot) {
-  const std::string GENESIS =
-      "0000000000000000000000000000000000000000000000000000000000000000";
+  const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
   taraxa::PivotTree graph(GENESIS, addr_t());
 
   std::vector<std::string> pivot_chain, leaves;
@@ -135,27 +131,18 @@ TEST_F(DagTest, genesis_get_pivot) {
 
 // Use the example on Conflux paper
 TEST_F(DagTest, compute_epoch) {
-  const std::string GENESIS =
-      "0000000000000000000000000000000000000000000000000000000000000000";
+  const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
   auto db_ptr = s_ptr(new DbStorage(data_dir / "db"));
-  auto mgr =
-      std::make_shared<DagManager>(GENESIS, addr_t(), nullptr, nullptr, db_ptr);
-  DagBlock blkA(blk_hash_t(0), 0, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(1),
-                addr_t(1));
-  DagBlock blkB(blk_hash_t(0), 0, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1),
-                blk_hash_t(2), addr_t(1));
-  DagBlock blkC(blk_hash_t(1), 0, {blk_hash_t(2)}, {}, sig_t(1), blk_hash_t(3),
-                addr_t(1));
+  auto mgr = std::make_shared<DagManager>(GENESIS, addr_t(), nullptr, nullptr, db_ptr);
+  DagBlock blkA(blk_hash_t(0), 0, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(1), addr_t(1));
+  DagBlock blkB(blk_hash_t(0), 0, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1), blk_hash_t(2), addr_t(1));
+  DagBlock blkC(blk_hash_t(1), 0, {blk_hash_t(2)}, {}, sig_t(1), blk_hash_t(3), addr_t(1));
   DagBlock blkD(blk_hash_t(1), 0, {}, {}, sig_t(1), blk_hash_t(4), addr_t(1));
-  DagBlock blkE(blk_hash_t(3), 0, {blk_hash_t(4), blk_hash_t(6)}, {}, sig_t(1),
-                blk_hash_t(5), addr_t(1));
+  DagBlock blkE(blk_hash_t(3), 0, {blk_hash_t(4), blk_hash_t(6)}, {}, sig_t(1), blk_hash_t(5), addr_t(1));
   DagBlock blkF(blk_hash_t(2), 0, {}, {}, sig_t(1), blk_hash_t(6), addr_t(1));
-  DagBlock blkG(blk_hash_t(1), 0, {}, {trx_hash_t(4)}, sig_t(1), blk_hash_t(7),
-                addr_t(1));
-  DagBlock blkH(blk_hash_t(5), 0, {blk_hash_t(7), blk_hash_t(9)}, {}, sig_t(1),
-                blk_hash_t(8), addr_t(1));
-  DagBlock blkI(blk_hash_t(10), 0, {blk_hash_t(3)}, {}, sig_t(1), blk_hash_t(9),
-                addr_t(1));
+  DagBlock blkG(blk_hash_t(1), 0, {}, {trx_hash_t(4)}, sig_t(1), blk_hash_t(7), addr_t(1));
+  DagBlock blkH(blk_hash_t(5), 0, {blk_hash_t(7), blk_hash_t(9)}, {}, sig_t(1), blk_hash_t(8), addr_t(1));
+  DagBlock blkI(blk_hash_t(10), 0, {blk_hash_t(3)}, {}, sig_t(1), blk_hash_t(9), addr_t(1));
   DagBlock blkJ(blk_hash_t(6), 0, {}, {}, sig_t(1), blk_hash_t(10), addr_t(1));
   DagBlock blkK(blk_hash_t(8), 0, {}, {}, sig_t(1), blk_hash_t(11), addr_t(1));
   mgr->addDagBlock(blkA);
@@ -227,20 +214,14 @@ TEST_F(DagTest, compute_epoch) {
 }
 
 TEST_F(DagTest, receive_block_in_order) {
-  const std::string GENESIS =
-      "000000000000000000000000000000000000000000000000000000000000000a";
+  const std::string GENESIS = "000000000000000000000000000000000000000000000000000000000000000a";
   auto db_ptr = s_ptr(new DbStorage(data_dir / "db"));
-  auto mgr =
-      std::make_shared<DagManager>(GENESIS, addr_t(), nullptr, nullptr, db_ptr);
+  auto mgr = std::make_shared<DagManager>(GENESIS, addr_t(), nullptr, nullptr, db_ptr);
   // mgr.setVerbose(true);
-  DagBlock genesis_block(blk_hash_t(0), 0, {}, {}, sig_t(777), blk_hash_t(10),
-                         addr_t(15));
-  DagBlock blk1(blk_hash_t(10), 0, {}, {}, sig_t(777), blk_hash_t(1),
-                addr_t(15));
-  DagBlock blk2(blk_hash_t(1), 0, {}, {}, sig_t(777), blk_hash_t(2),
-                addr_t(15));
-  DagBlock blk3(blk_hash_t(10), 0, {blk_hash_t(1), blk_hash_t(2)}, {},
-                sig_t(777), blk_hash_t(3), addr_t(15));
+  DagBlock genesis_block(blk_hash_t(0), 0, {}, {}, sig_t(777), blk_hash_t(10), addr_t(15));
+  DagBlock blk1(blk_hash_t(10), 0, {}, {}, sig_t(777), blk_hash_t(1), addr_t(15));
+  DagBlock blk2(blk_hash_t(1), 0, {}, {}, sig_t(777), blk_hash_t(2), addr_t(15));
+  DagBlock blk3(blk_hash_t(10), 0, {blk_hash_t(1), blk_hash_t(2)}, {}, sig_t(777), blk_hash_t(3), addr_t(15));
 
   mgr->addDagBlock(genesis_block);
   mgr->addDagBlock(blk1);
@@ -256,8 +237,7 @@ TEST_F(DagTest, receive_block_in_order) {
   std::vector<Dag::vertex_t> criticals;
   mgr->getLatestPivotAndTips(pivot, tips);
 
-  EXPECT_EQ(pivot,
-            "0000000000000000000000000000000000000000000000000000000000000002");
+  EXPECT_EQ(pivot, "0000000000000000000000000000000000000000000000000000000000000002");
   EXPECT_EQ(tips.size(), 1);
   EXPECT_EQ(mgr->getNumVerticesInDag().first, 4);
   // total edges
@@ -267,27 +247,18 @@ TEST_F(DagTest, receive_block_in_order) {
 // Use the example on Conflux paper, insert block in different order and make
 // sure block order are the same
 TEST_F(DagTest, compute_epoch_2) {
-  const std::string GENESIS =
-      "0000000000000000000000000000000000000000000000000000000000000000";
+  const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
   auto db_ptr = s_ptr(new DbStorage(data_dir / "db"));
-  auto mgr =
-      std::make_shared<DagManager>(GENESIS, addr_t(), nullptr, nullptr, db_ptr);
-  DagBlock blkA(blk_hash_t(0), 0, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(1),
-                addr_t(1));
-  DagBlock blkB(blk_hash_t(0), 0, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1),
-                blk_hash_t(2), addr_t(1));
-  DagBlock blkC(blk_hash_t(1), 0, {blk_hash_t(2)}, {}, sig_t(1), blk_hash_t(3),
-                addr_t(1));
+  auto mgr = std::make_shared<DagManager>(GENESIS, addr_t(), nullptr, nullptr, db_ptr);
+  DagBlock blkA(blk_hash_t(0), 0, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(1), addr_t(1));
+  DagBlock blkB(blk_hash_t(0), 0, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1), blk_hash_t(2), addr_t(1));
+  DagBlock blkC(blk_hash_t(1), 0, {blk_hash_t(2)}, {}, sig_t(1), blk_hash_t(3), addr_t(1));
   DagBlock blkD(blk_hash_t(1), 0, {}, {}, sig_t(1), blk_hash_t(4), addr_t(1));
-  DagBlock blkE(blk_hash_t(3), 0, {blk_hash_t(4), blk_hash_t(6)}, {}, sig_t(1),
-                blk_hash_t(5), addr_t(1));
+  DagBlock blkE(blk_hash_t(3), 0, {blk_hash_t(4), blk_hash_t(6)}, {}, sig_t(1), blk_hash_t(5), addr_t(1));
   DagBlock blkF(blk_hash_t(2), 0, {}, {}, sig_t(1), blk_hash_t(6), addr_t(1));
-  DagBlock blkG(blk_hash_t(1), 0, {}, {trx_hash_t(4)}, sig_t(1), blk_hash_t(7),
-                addr_t(1));
-  DagBlock blkH(blk_hash_t(5), 0, {blk_hash_t(7), blk_hash_t(9)}, {}, sig_t(1),
-                blk_hash_t(8), addr_t(1));
-  DagBlock blkI(blk_hash_t(10), 0, {blk_hash_t(3)}, {}, sig_t(1), blk_hash_t(9),
-                addr_t(1));
+  DagBlock blkG(blk_hash_t(1), 0, {}, {trx_hash_t(4)}, sig_t(1), blk_hash_t(7), addr_t(1));
+  DagBlock blkH(blk_hash_t(5), 0, {blk_hash_t(7), blk_hash_t(9)}, {}, sig_t(1), blk_hash_t(8), addr_t(1));
+  DagBlock blkI(blk_hash_t(10), 0, {blk_hash_t(3)}, {}, sig_t(1), blk_hash_t(9), addr_t(1));
   DagBlock blkJ(blk_hash_t(6), 0, {}, {}, sig_t(1), blk_hash_t(10), addr_t(1));
   DagBlock blkK(blk_hash_t(9), 0, {}, {}, sig_t(1), blk_hash_t(11), addr_t(1));
 
@@ -360,11 +331,9 @@ TEST_F(DagTest, compute_epoch_2) {
 }
 
 TEST_F(DagTest, get_latest_pivot_tips) {
-  const std::string GENESIS =
-      "0000000000000000000000000000000000000000000000000000000000000000";
+  const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
   auto db_ptr = s_ptr(new DbStorage(data_dir / "db"));
-  auto mgr =
-      std::make_shared<DagManager>(GENESIS, addr_t(), nullptr, nullptr, db_ptr);
+  auto mgr = std::make_shared<DagManager>(GENESIS, addr_t(), nullptr, nullptr, db_ptr);
 
   // mgr.setVerbose(true);
   DagBlock blk1(blk_hash_t(0), 0, {}, {}, sig_t(0), blk_hash_t(1), addr_t(15));
@@ -372,8 +341,7 @@ TEST_F(DagTest, get_latest_pivot_tips) {
   DagBlock blk3(blk_hash_t(2), 0, {}, {}, sig_t(1), blk_hash_t(3), addr_t(15));
   DagBlock blk4(blk_hash_t(1), 0, {}, {}, sig_t(1), blk_hash_t(4), addr_t(15));
   DagBlock blk5(blk_hash_t(4), 0, {}, {}, sig_t(1), blk_hash_t(5), addr_t(15));
-  DagBlock blk6(blk_hash_t(2), 0, {blk_hash_t(5)}, {}, sig_t(1), blk_hash_t(6),
-                addr_t(15));
+  DagBlock blk6(blk_hash_t(2), 0, {blk_hash_t(5)}, {}, sig_t(1), blk_hash_t(6), addr_t(15));
   mgr->addDagBlock(blk1);
   mgr->addDagBlock(blk2);
   mgr->addDagBlock(blk3);
@@ -387,11 +355,9 @@ TEST_F(DagTest, get_latest_pivot_tips) {
   std::vector<Dag::vertex_t> criticals;
   mgr->getLatestPivotAndTips(pivot, tips);
 
-  EXPECT_EQ(pivot,
-            "0000000000000000000000000000000000000000000000000000000000000003");
+  EXPECT_EQ(pivot, "0000000000000000000000000000000000000000000000000000000000000003");
   EXPECT_EQ(tips.size(), 1);
-  EXPECT_EQ(tips[0],
-            "0000000000000000000000000000000000000000000000000000000000000006");
+  EXPECT_EQ(tips[0], "0000000000000000000000000000000000000000000000000000000000000006");
 }
 
 }  // namespace taraxa::core_tests

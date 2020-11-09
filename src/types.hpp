@@ -34,12 +34,10 @@ using resolver_udp_t = boost::asio::ip::udp::resolver;
 
 template <std::size_t Bytes>
 struct uint_hash_t {
-  static_assert((Bytes == 16 || Bytes == 32 || Bytes == 64),
-                "Bytes must be 16, 32 or 64\n");
+  static_assert((Bytes == 16 || Bytes == 32 || Bytes == 64), "Bytes must be 16, 32 or 64\n");
 
-  using Number = typename std::conditional<
-      Bytes == 16, uint128_t,
-      typename std::conditional<Bytes == 32, uint256_t, uint512_t>::type>::type;
+  using Number = typename std::conditional<Bytes == 16, uint128_t,
+                                           typename std::conditional<Bytes == 32, uint256_t, uint512_t>::type>::type;
   uint_hash_t() = default;  // Must be a trivial type for std::is_pod_v<>=true
   explicit uint_hash_t(Number const &number);
   explicit uint_hash_t(std::string const &str);
@@ -107,9 +105,7 @@ using round_t = uint64_t;
 using trx_nonce_t = val_t;
 
 // val_t type related helper functions
-inline val_t operator+=(val_t const &val, val_t const &other) {
-  return val + other;
-}
+inline val_t operator+=(val_t const &val, val_t const &other) { return val + other; }
 inline std::string toString(val_t const &val) {
   std::stringstream strm;
   strm << val;
@@ -124,8 +120,7 @@ unsigned long getTimePoint2Long(time_point_t tp);
 bytes str2bytes(std::string const &str);
 std::string bytes2str(bytes const &data);
 
-inline static const auto MOCK_BLOCK_GAS_LIMIT =
-    std::numeric_limits<uint64_t>::max();
+inline static const auto MOCK_BLOCK_GAS_LIMIT = std::numeric_limits<uint64_t>::max();
 
 }  // namespace taraxa
 

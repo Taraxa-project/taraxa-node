@@ -18,8 +18,7 @@ void dec_json(Json::Value const& json, PbftConfig& obj) {
   obj.lambda_ms_min = dev::jsToInt(json["lambda_ms_min"].asString());
   obj.committee_size = dev::jsToInt(json["committee_size"].asString());
   obj.dag_blocks_size = dev::jsToInt(json["dag_blocks_size"].asString());
-  obj.ghost_path_move_back =
-      dev::jsToInt(json["ghost_path_move_back"].asString());
+  obj.ghost_path_move_back = dev::jsToInt(json["ghost_path_move_back"].asString());
   obj.run_count_votes = json["run_count_votes"].asBool();
 }
 

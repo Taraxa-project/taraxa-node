@@ -25,8 +25,7 @@ class ExitStack {
   }
 
   template <typename Action>
-  ExitStack(Action &&action,
-            optional<decltype(actions)::size_type> initial_capacity = nullopt)
+  ExitStack(Action &&action, optional<decltype(actions)::size_type> initial_capacity = nullopt)
       : ExitStack(initial_capacity) {
     actions.emplace_back(std::forward<Action>(action));
   }
@@ -41,8 +40,7 @@ class ExitStack {
     }
   }
 
-  template <typename Action,
-            typename = enable_if_t<!is_same_v<Action, ExitStack>>>
+  template <typename Action, typename = enable_if_t<!is_same_v<Action, ExitStack>>>
   ExitStack &operator+=(Action &&action) {
     actions.emplace_back(std::forward<Action>(action));
     return *this;

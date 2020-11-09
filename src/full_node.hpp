@@ -101,10 +101,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   }
 
   template <typename T, typename... ConstructorParams>
-  static auto &emplace(std::unique_ptr<T> &ptr,
-                       ConstructorParams &&... ctor_params) {
-    return ptr = std::make_unique<T>(
-               std::forward<ConstructorParams>(ctor_params)...);
+  static auto &emplace(std::unique_ptr<T> &ptr, ConstructorParams &&... ctor_params) {
+    return ptr = std::make_unique<T>(std::forward<ConstructorParams>(ctor_params)...);
   }
 
  public:

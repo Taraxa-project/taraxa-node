@@ -56,9 +56,7 @@ class Lazy {
     return val_ptr_;
   }
 
-  val_t const* get() const {
-    return const_cast<val_t const*>(const_cast<Lazy*>(this)->get());
-  }
+  val_t const* get() const { return const_cast<val_t const*>(const_cast<Lazy*>(this)->get()); }
 
   val_t* operator->() { return get(); }
   val_t const* operator->() const { return get(); }
@@ -66,8 +64,10 @@ class Lazy {
   val_t& operator*() { return *operator->(); }
   val_t const& operator*() const { return *operator->(); }
 
+  // clang-format off
   operator val_t&() { return operator*(); }
   operator val_t const &() const { return operator*(); }
+  // clang-format on
 
   template <typename T>
   auto& operator[](T t) {

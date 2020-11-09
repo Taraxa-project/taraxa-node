@@ -18,8 +18,7 @@ using namespace Json;
 inline const auto DEFAULT_READER = CharReaderBuilder().newCharReader();
 inline const auto DEFAULT_WRITER = StreamWriterBuilder().newStreamWriter();
 
-inline tuple<Value, bool, JSONCPP_STRING> fromStringNothrow(
-    string_view const& str) {
+inline tuple<Value, bool, JSONCPP_STRING> fromStringNothrow(string_view const& str) {
   Value ret;
   Reader reader;
   bool success = reader.parse(str.data(), str.data() + str.size(), ret);
