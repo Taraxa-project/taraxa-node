@@ -42,8 +42,7 @@ bool uint_hash_t<Bytes>::decodeHex(std::string const &str) {
     ok = true;
   } else {
     std::cerr << "uint_hash_t type size is " << bytes.size() * 2 << " chars, "
-              << "but input string has length " << str.size() << " " << str
-              << std::endl;
+              << "but input string has length " << str.size() << " " << str << std::endl;
     ok = false;
   }
   assert(ok);
@@ -134,18 +133,14 @@ void uint_hash_t<Bytes>::rawPrint() const {
 
 template class uint_hash_t<32>;
 template class uint_hash_t<64>;
-template std::ostream &operator<<(std::ostream &strm,
-                                  uint_hash_t<32> const &num);
-template std::ostream &operator<<(std::ostream &strm,
-                                  uint_hash_t<64> const &num);
+template std::ostream &operator<<(std::ostream &strm, uint_hash_t<32> const &num);
+template std::ostream &operator<<(std::ostream &strm, uint_hash_t<64> const &num);
 
 time_point_t getLong2TimePoint(unsigned long l) {
   std::chrono::duration<unsigned long> dur(l);
   return std::chrono::time_point<std::chrono::system_clock>(dur);
 }
-unsigned long getTimePoint2Long(time_point_t tp) {
-  return tp.time_since_epoch().count();
-}
+unsigned long getTimePoint2Long(time_point_t tp) { return tp.time_since_epoch().count(); }
 
 std::ostream &operator<<(std::ostream &strm, bytes const &bytes) {
   for (auto const &b : bytes) {

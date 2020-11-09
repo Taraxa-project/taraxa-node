@@ -64,8 +64,7 @@ class wait_ctx {
   }
   auto failed() const { return failed_; }
 };
-inline bool wait(wait_opts const& opts,
-                 function<void(wait_ctx&)> const& poller) {
+inline bool wait(wait_opts const& opts, function<void(wait_ctx&)> const& poller) {
   struct NullBuffer : streambuf {
     int overflow(int c) override { return c; }
   } static null_buf;
@@ -116,8 +115,7 @@ inline auto const node_cfgs_original = Lazy([] {
   return ret;
 });
 
-template <uint tests_speed = 1, bool enable_rpc_http = false,
-          bool enable_rpc_ws = false>
+template <uint tests_speed = 1, bool enable_rpc_http = false, bool enable_rpc_ws = false>
 inline auto make_node_cfgs(uint count) {
   static_assert(tests_speed <= 5);
   static auto const ret = [] {
@@ -152,8 +150,7 @@ inline auto make_node_cfgs(uint count) {
   return slice(ret, 0, count);
 }
 
-inline auto wait_connect(vector<FullNode::Handle> const& nodes,
-                         optional<uint> min_peers_to_connect = {}) {
+inline auto wait_connect(vector<FullNode::Handle> const& nodes, optional<uint> min_peers_to_connect = {}) {
   auto min_peers = min_peers_to_connect.value_or(nodes.size() - 1);
   return wait({30s, 1s}, [&](auto& ctx) {
     for (auto const& node : nodes) {
@@ -164,8 +161,7 @@ inline auto wait_connect(vector<FullNode::Handle> const& nodes,
   });
 }
 
-inline auto launch_nodes(vector<FullNodeConfig> const& cfgs,
-                         optional<uint> min_peers_to_connect = {},
+inline auto launch_nodes(vector<FullNodeConfig> const& cfgs, optional<uint> min_peers_to_connect = {},
                          optional<uint> retry_cnt = {}) {
   auto node_count = cfgs.size();
   for (auto i = retry_cnt.value_or(4);; --i) {
@@ -200,9 +196,7 @@ struct BaseTest : virtual WithDataDir {
   virtual ~BaseTest(){};
 };
 
-inline auto addr(Secret const& secret = Secret::random()) {
-  return KeyPair(secret).address();
-}
+inline auto addr(Secret const& secret = Secret::random()) { return KeyPair(secret).address(); }
 
 inline auto addr(string const& secret_str) { return addr(Secret(secret_str)); }
 
@@ -222,12 +216,10 @@ struct TransactionClient {
   wait_opts wait_opts_;
 
  public:
-  explicit TransactionClient(decltype(node_) node,
-                             wait_opts const& wait_opts = {60s, 1s})
+  explicit TransactionClient(decltype(node_) node, wait_opts const& wait_opts = {60s, 1s})
       : node_(move(node)), wait_opts_(wait_opts) {}
 
-  Context coinTransfer(addr_t const& to, val_t const& val,
-                       optional<KeyPair> const& from_k = {},
+  Context coinTransfer(addr_t const& to, val_t const& val, optional<KeyPair> const& from_k = {},
                        bool wait_executed = true) const {
     // As long as nonce rules are completely disabled, this hack allows to
     // generate unique nonces that contribute to transaction uniqueness.
@@ -239,20 +231,16 @@ struct TransactionClient {
     static atomic<uint64_t> nonce = 100000;
     Context ctx{
         TransactionStage::created,
-        Transaction(++nonce, val, 0, TEST_TX_GAS_LIMIT, bytes(),
-                    from_k ? from_k->secret() : node_->getSecretKey(), to),
+        Transaction(++nonce, val, 0, TEST_TX_GAS_LIMIT, bytes(), from_k ? from_k->secret() : node_->getSecretKey(), to),
     };
-    if (!node_->getTransactionManager()
-             ->insertTransaction(ctx.trx, false)
-             .first) {
+    if (!node_->getTransactionManager()->insertTransaction(ctx.trx, false).first) {
       return ctx;
     }
     ctx.stage = TransactionStage::inserted;
     auto trx_hash = ctx.trx.getHash();
     if (wait_executed) {
-      auto success = wait(wait_opts_, [&, this](auto& ctx) {
-        ctx.fail_if(!node_->getFinalChain()->isKnownTransaction(trx_hash));
-      });
+      auto success = wait(wait_opts_,
+                          [&, this](auto& ctx) { ctx.fail_if(!node_->getFinalChain()->isKnownTransaction(trx_hash)); });
       if (success) {
         ctx.stage = TransactionStage::executed;
       }
@@ -261,15 +249,11 @@ struct TransactionClient {
   }
 };
 
-inline auto make_dpos_trx(FullNodeConfig const& sender_node_cfg,
-                          state_api::DPOSTransfers const& transfers,
-                          uint64_t nonce = 0, u256 const& gas_price = 0,
-                          uint64_t extra_gas = 0) {
+inline auto make_dpos_trx(FullNodeConfig const& sender_node_cfg, state_api::DPOSTransfers const& transfers,
+                          uint64_t nonce = 0, u256 const& gas_price = 0, uint64_t extra_gas = 0) {
   StateAPI::DPOSTransactionPrototype proto(transfers);
-  return Transaction(nonce, proto.value, gas_price,
-                     proto.minimal_gas + extra_gas, std::move(proto.input),
-                     dev::Secret(sender_node_cfg.node_secret), proto.to,
-                     sender_node_cfg.chain.chain_id);
+  return Transaction(nonce, proto.value, gas_price, proto.minimal_gas + extra_gas, std::move(proto.input),
+                     dev::Secret(sender_node_cfg.node_secret), proto.to, sender_node_cfg.chain.chain_id);
 }
 
 inline auto own_balance(shared_ptr<FullNode> const& node) {
@@ -277,8 +261,7 @@ inline auto own_balance(shared_ptr<FullNode> const& node) {
 }
 
 inline auto own_effective_genesis_bal(FullNodeConfig const& cfg) {
-  return cfg.chain.final_chain.state.effective_genesis_balance(
-      dev::toAddress(dev::Secret(cfg.node_secret)));
+  return cfg.chain.final_chain.state.effective_genesis_balance(dev::toAddress(dev::Secret(cfg.node_secret)));
 }
 
 inline auto make_simple_pbft_block(h256 const& hash, uint64_t period) {
@@ -293,9 +276,7 @@ inline vector<blk_hash_t> getOrderedDagBlocks(shared_ptr<DbStorage> const& db) {
     if (pbft_block_hash) {
       auto pbft_block = db->getPbftBlock(*pbft_block_hash);
       if (pbft_block) {
-        for (auto const& dag_block_hash :
-             db->getFinalizedDagBlockHashesByAnchor(
-                 pbft_block->getPivotDagBlockHash())) {
+        for (auto const& dag_block_hash : db->getFinalizedDagBlockHashesByAnchor(pbft_block->getPivotDagBlockHash())) {
           res.push_back(dag_block_hash);
         }
       }

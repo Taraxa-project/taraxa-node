@@ -15,11 +15,9 @@ namespace taraxa::net {
 class RpcConnection;
 class RpcHandler;
 
-class RpcServer : public std::enable_shared_from_this<RpcServer>,
-                  public jsonrpc::AbstractServerConnector {
+class RpcServer : public std::enable_shared_from_this<RpcServer>, public jsonrpc::AbstractServerConnector {
  public:
-  RpcServer(boost::asio::io_context &io, boost::asio::ip::tcp::endpoint ep,
-            addr_t node_addr);
+  RpcServer(boost::asio::io_context &io, boost::asio::ip::tcp::endpoint ep, addr_t node_addr);
   virtual ~RpcServer() { RpcServer::StopListening(); }
 
   virtual bool StartListening() override;

@@ -17,8 +17,7 @@ using namespace eth;
 
 namespace taraxa::net {
 
-Net::Net(std::shared_ptr<taraxa::FullNode> const& _full_node)
-    : full_node_(_full_node) {}
+Net::Net(std::shared_ptr<taraxa::FullNode> const& _full_node) : full_node_(_full_node) {}
 
 std::string Net::net_version() {
   if (auto full_node = full_node_.lock()) {

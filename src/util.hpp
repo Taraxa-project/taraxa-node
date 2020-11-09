@@ -69,33 +69,21 @@ enum Verbosity {
   mutable boost::log::sources::severity_channel_logger<> log_dg_##group##_; \
   mutable boost::log::sources::severity_channel_logger<> log_tr_##group##_;
 
-#define LOG_OBJECTS_CREATE(channel)                                            \
-  log_si_ =                                                                    \
-      createTaraxaLogger(dev::Verbosity::VerbositySilent, channel, node_addr); \
-  log_er_ =                                                                    \
-      createTaraxaLogger(dev::Verbosity::VerbosityError, channel, node_addr);  \
-  log_wr_ = createTaraxaLogger(dev::Verbosity::VerbosityWarning, channel,      \
-                               node_addr);                                     \
-  log_nf_ =                                                                    \
-      createTaraxaLogger(dev::Verbosity::VerbosityInfo, channel, node_addr);   \
-  log_tr_ =                                                                    \
-      createTaraxaLogger(dev::Verbosity::VerbosityTrace, channel, node_addr);  \
-  log_dg_ =                                                                    \
-      createTaraxaLogger(dev::Verbosity::VerbosityDebug, channel, node_addr);
+#define LOG_OBJECTS_CREATE(channel)                                                   \
+  log_si_ = createTaraxaLogger(dev::Verbosity::VerbositySilent, channel, node_addr);  \
+  log_er_ = createTaraxaLogger(dev::Verbosity::VerbosityError, channel, node_addr);   \
+  log_wr_ = createTaraxaLogger(dev::Verbosity::VerbosityWarning, channel, node_addr); \
+  log_nf_ = createTaraxaLogger(dev::Verbosity::VerbosityInfo, channel, node_addr);    \
+  log_tr_ = createTaraxaLogger(dev::Verbosity::VerbosityTrace, channel, node_addr);   \
+  log_dg_ = createTaraxaLogger(dev::Verbosity::VerbosityDebug, channel, node_addr);
 
-#define LOG_OBJECTS_CREATE_SUB(channel, group)                                 \
-  log_si_##group##_ =                                                          \
-      createTaraxaLogger(dev::Verbosity::VerbositySilent, channel, node_addr); \
-  log_er_##group##_ =                                                          \
-      createTaraxaLogger(dev::Verbosity::VerbosityError, channel, node_addr);  \
-  log_wr_##group##_ = createTaraxaLogger(dev::Verbosity::VerbosityWarning,     \
-                                         channel, node_addr);                  \
-  log_nf_##group##_ =                                                          \
-      createTaraxaLogger(dev::Verbosity::VerbosityInfo, channel, node_addr);   \
-  log_tr_##group##_ =                                                          \
-      createTaraxaLogger(dev::Verbosity::VerbosityTrace, channel, node_addr);  \
-  log_dg_##group##_ =                                                          \
-      createTaraxaLogger(dev::Verbosity::VerbosityDebug, channel, node_addr);
+#define LOG_OBJECTS_CREATE_SUB(channel, group)                                                  \
+  log_si_##group##_ = createTaraxaLogger(dev::Verbosity::VerbositySilent, channel, node_addr);  \
+  log_er_##group##_ = createTaraxaLogger(dev::Verbosity::VerbosityError, channel, node_addr);   \
+  log_wr_##group##_ = createTaraxaLogger(dev::Verbosity::VerbosityWarning, channel, node_addr); \
+  log_nf_##group##_ = createTaraxaLogger(dev::Verbosity::VerbosityInfo, channel, node_addr);    \
+  log_tr_##group##_ = createTaraxaLogger(dev::Verbosity::VerbosityTrace, channel, node_addr);   \
+  log_dg_##group##_ = createTaraxaLogger(dev::Verbosity::VerbosityDebug, channel, node_addr);
 
 struct ProcessReturn {
   enum class Result {
@@ -133,9 +121,7 @@ constexpr inline auto asInteger(enumT const value) {
 }
 
 template <typename E, typename T>
-constexpr inline
-    typename std::enable_if_t<std::is_enum_v<E> && std::is_integral_v<T>, E>
-    toEnum(T value) noexcept {
+constexpr inline typename std::enable_if_t<std::is_enum_v<E> && std::is_integral_v<T>, E> toEnum(T value) noexcept {
   return static_cast<E>(value);
 }
 
@@ -153,27 +139,22 @@ std::ostream &operator<<(std::ostream &strm, std::pair<U, V> const &pair) {
 }
 
 using stream = std::basic_streambuf<uint8_t>;
-using bufferstream = boost::iostreams::stream_buffer<
-    boost::iostreams::basic_array_source<uint8_t>>;
-using vectorstream = boost::iostreams::stream_buffer<
-    boost::iostreams::back_insert_device<std::vector<uint8_t>>>;
+using bufferstream = boost::iostreams::stream_buffer<boost::iostreams::basic_array_source<uint8_t>>;
+using vectorstream = boost::iostreams::stream_buffer<boost::iostreams::back_insert_device<std::vector<uint8_t>>>;
 
 // Read a raw byte stream the size of T and fill value
 // return true if success
 template <typename T>
 bool read(stream &stm, T &value) {
-  static_assert(std::is_standard_layout<T>::value,
-                "Cannot stream read non-standard layout types");
+  static_assert(std::is_standard_layout<T>::value, "Cannot stream read non-standard layout types");
   auto bytes(stm.sgetn(reinterpret_cast<uint8_t *>(&value), sizeof(value)));
   return bytes == sizeof(value);
 }
 
 template <typename T>
 bool write(stream &stm, T const &value) {
-  static_assert(std::is_standard_layout<T>::value,
-                "Cannot stream write non-standard layout types");
-  auto bytes(
-      stm.sputn(reinterpret_cast<uint8_t const *>(&value), sizeof(value)));
+  static_assert(std::is_standard_layout<T>::value, "Cannot stream write non-standard layout types");
+  auto bytes(stm.sputn(reinterpret_cast<uint8_t const *>(&value), sizeof(value)));
   assert(bytes == sizeof(value));
   return bytes == sizeof(value);
 }
@@ -335,8 +316,7 @@ auto u_ptr(T *ptr) {
 
 template <typename T>
 static constexpr auto __is_iterable__(int)
-    -> decltype((++std::declval<T>().begin() == std::declval<T>().end()++),
-                bool()) {
+    -> decltype((++std::declval<T>().begin() == std::declval<T>().end()++), bool()) {
   return true;
 }
 
@@ -360,8 +340,7 @@ static inline void printStackTrace();
 template <class Key>
 class ExpirationCache {
  public:
-  ExpirationCache(uint32_t max_size, uint32_t delete_step)
-      : max_size_(max_size), delete_step_(delete_step) {}
+  ExpirationCache(uint32_t max_size, uint32_t delete_step) : max_size_(max_size), delete_step_(delete_step) {}
 
   void insert(Key const &key) {
     boost::unique_lock lck(mtx_);
@@ -395,8 +374,7 @@ class ExpirationCache {
 };
 
 template <typename T>
-auto slice(std::vector<T> const &v, std::size_t from = -1,
-           std::size_t to = -1) {
+auto slice(std::vector<T> const &v, std::size_t from = -1, std::size_t to = -1) {
   auto b = v.begin();
   return std::vector<T>(from == -1 ? b : b + from, to == -1 ? v.end() : b + to);
 }
@@ -404,8 +382,7 @@ auto slice(std::vector<T> const &v, std::size_t from = -1,
 template <class Key, class Value>
 class ExpirationCacheMap {
  public:
-  ExpirationCacheMap(uint32_t max_size, uint32_t delete_step)
-      : max_size_(max_size), delete_step_(delete_step) {}
+  ExpirationCacheMap(uint32_t max_size, uint32_t delete_step) : max_size_(max_size), delete_step_(delete_step) {}
 
   bool insert(Key const &key, Value const &value) {
     boost::unique_lock lck(mtx_);

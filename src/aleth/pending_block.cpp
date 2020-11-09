@@ -22,9 +22,7 @@ struct PendingBlockImpl : PendingBlock {
     return {block_header.number(), 0, block_header.parentHash(), 0};
   }
 
-  uint64_t transactionsCount() const override {
-    return transactionHashes().size();
-  }
+  uint64_t transactionsCount() const override { return transactionHashes().size(); }
 
   uint64_t transactionsCount(Address const& from) const override {
     uint64_t ret = 0;
@@ -54,11 +52,10 @@ struct PendingBlockImpl : PendingBlock {
 
   h256s transactionHashes() const override {
     h256s ret;
-    db->forEach(DbStorage::Columns::pending_transactions,
-                [&](auto const& k, auto const& _) {
-                  ret.emplace_back(k.data(), h256::FromBinary);
-                  return true;
-                });
+    db->forEach(DbStorage::Columns::pending_transactions, [&](auto const& k, auto const& _) {
+      ret.emplace_back(k.data(), h256::FromBinary);
+      return true;
+    });
     return ret;
   }
 
@@ -69,8 +66,7 @@ struct PendingBlockImpl : PendingBlock {
 
   void add_transactions(RangeView<h256> const& pending_trx_hashes) override {
     pending_trx_hashes.for_each([&, this](auto const& h) {
-      db->insert(DbStorage::Columns::pending_transactions,
-                 DbStorage::toSlice(h.ref()), "_");
+      db->insert(DbStorage::Columns::pending_transactions, DbStorage::toSlice(h.ref()), "_");
     });
   }
 
@@ -84,14 +80,12 @@ struct PendingBlockImpl : PendingBlock {
     header_fields.m_timestamp = dev::utcTime();
     block_header = BlockHeader(header_fields);
     executed_trx_hashes.for_each([&, this](auto const& h) {
-      db->batch_delete(batch, DbStorage::Columns::pending_transactions,
-                       DbStorage::toSlice(h.ref()));
+      db->batch_delete(batch, DbStorage::Columns::pending_transactions, DbStorage::toSlice(h.ref()));
     });
   }
 };
 
-unique_ptr<PendingBlock> NewPendingBlock(uint64_t number, addr_t const& author,
-                                         h256 const& curr_block_hash,
+unique_ptr<PendingBlock> NewPendingBlock(uint64_t number, addr_t const& author, h256 const& curr_block_hash,
                                          shared_ptr<DbStorage> db) {
   auto ret = u_ptr(new PendingBlockImpl);
   BlockHeaderFields header_fields;

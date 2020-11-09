@@ -23,9 +23,7 @@ bool isValidVrfPublicKey(vrf_pk_t const &pk);
 // get proof if public is valid
 std::optional<vrf_proof_t> getVrfProof(vrf_sk_t const &pk, bytes const &msg);
 // get output if proff is valid
-std::optional<vrf_output_t> getVrfOutput(vrf_pk_t const &pk,
-                                         vrf_proof_t const &proof,
-                                         bytes const &msg);
+std::optional<vrf_output_t> getVrfOutput(vrf_pk_t const &pk, vrf_proof_t const &proof, bytes const &msg);
 dev::bytes getRlpBytes(std::string const &str);
 
 struct VrfMsgFace {
@@ -34,8 +32,7 @@ struct VrfMsgFace {
 
 struct VrfSortitionBase {
   VrfSortitionBase() = default;
-  VrfSortitionBase(vrf_sk_t const &sk, VrfMsgFace const &msg)
-      : pk(vrf_wrapper::getVrfPublicKey(sk)) {
+  VrfSortitionBase(vrf_sk_t const &sk, VrfMsgFace const &msg) : pk(vrf_wrapper::getVrfPublicKey(sk)) {
     assert(isValidVrfPublicKey(pk));
     const auto msg_bytes = vrf_wrapper::getRlpBytes(msg.toString());
     proof = vrf_wrapper::getVrfProof(sk, msg_bytes).value();
@@ -52,8 +49,7 @@ struct VrfSortitionBase {
     strm << "  output: " << output << std::endl;
     return strm;
   }
-  friend std::ostream &operator<<(std::ostream &strm,
-                                  VrfSortitionBase const &vrf_sortition) {
+  friend std::ostream &operator<<(std::ostream &strm, VrfSortitionBase const &vrf_sortition) {
     return vrf_sortition.print(strm);
   }
   vrf_pk_t pk;
