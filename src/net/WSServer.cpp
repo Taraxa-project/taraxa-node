@@ -165,9 +165,10 @@ void WSSession::newEthBlock(dev::eth::BlockHeader const &payload) {
 }
 
 void WSSession::write(const std::string &message) {
+  write_buffer_ = message;
   ws_.text(ws_.got_text());
   LOG(log_tr_) << "WS ASYNC WRITE " << message.c_str() << " " << &ws_;
-  ws_.async_write(boost::asio::buffer(message),
+  ws_.async_write(boost::asio::buffer(write_buffer_),
                   beast::bind_front_handler(&WSSession::on_write_no_read, shared_from_this()));
 }
 
