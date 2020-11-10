@@ -62,6 +62,7 @@ class WSSession : public std::enable_shared_from_this<WSSession> {
   std::deque<std::string> queue_messages_;
   websocket::stream<beast::tcp_stream> ws_;
   beast::flat_buffer buffer_;
+  std::string write_buffer_;
   int subscription_id_ = 0;
   int new_heads_subscription_ = 0;
   int new_dag_blocks_subscription_ = 0;
