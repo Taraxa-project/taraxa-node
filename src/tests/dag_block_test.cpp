@@ -50,6 +50,9 @@ TEST_F(DagBlockTest, serialize_deserialize) {
   auto b = blk1.rlp(true);
   DagBlock blk2(b);
   EXPECT_EQ(blk1, blk2);
+
+  DagBlock blk3(blk1.getJsonStr());
+  EXPECT_EQ(blk1, blk3);
 }
 
 TEST_F(DagBlockTest, send_receive_one) {

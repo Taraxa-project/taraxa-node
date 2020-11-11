@@ -73,6 +73,7 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
   VdfSortition() = default;
   explicit VdfSortition(VdfConfig const& config, addr_t node_addr, vrf_sk_t const& sk, Message const& msg);
   explicit VdfSortition(addr_t node_addr, bytes const& b);
+  explicit VdfSortition(addr_t node_addr, Json::Value const& json);
 
   bool verify(std::string const& msg) { return verifyVdfSolution(msg); }
   void computeVdfSolution(std::string const& msg);
@@ -101,6 +102,7 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
   auto getComputationTime() const { return vdf_computation_time_; }
   uint16_t getDifficulty() const;
   uint16_t getLambda() const;
+  Json::Value getJson() const;
 
  private:
   inline static dev::bytes N = dev::asBytes(

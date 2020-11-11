@@ -69,9 +69,9 @@ DagBlock::DagBlock(Json::Value const &doc) {
     timestamp_ = v.asUInt64();
   }
 
-  auto vdf_string = doc["vdf"].asString();
-  if (!vdf_string.empty()) {
-    vdf_ = VdfSortition(cached_sender_, dev::fromHex(vdf_string));
+  // Allow vdf not to be present for genesis
+  if (level_ > 0) {
+    vdf_ = VdfSortition(cached_sender_, doc["vdf"]);
   }
 }
 
@@ -127,7 +127,7 @@ Json::Value DagBlock::getJson() const {
   res["hash"] = dev::toJS(hash_);
   res["sender"] = dev::toJS(sender());
   res["timestamp"] = dev::toJS(timestamp_);
-  res["vdf"] = dev::toJS(dev::toHex(vdf_.rlp()));
+  res["vdf"] = vdf_.getJson();
   return res;
 }
 

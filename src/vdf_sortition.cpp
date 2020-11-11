@@ -56,6 +56,21 @@ VdfSortition::VdfSortition(addr_t node_addr, bytes const& b) {
   lambda_bound_ = rlp[9].toInt<uint16_t>();
 }
 
+VdfSortition::VdfSortition(addr_t node_addr, Json::Value const& json) {
+  LOG_OBJECTS_CREATE("VDF");
+
+  pk = vrf_pk_t(json["pk"].asString());
+  proof = vrf_proof_t(json["proof"].asString());
+  msg_.level = dev::jsToInt(json["level"].asString());
+  vdf_sol_.first = dev::fromHex(json["sol1"].asString());
+  vdf_sol_.second = dev::fromHex(json["sol2"].asString());
+  difficulty_selection_ = dev::jsToInt(json["difficulty_selection"].asString());
+  difficulty_min_ = dev::jsToInt(json["difficulty_min"].asString());
+  difficulty_max_ = dev::jsToInt(json["difficulty_max"].asString());
+  difficulty_stale_ = dev::jsToInt(json["difficulty_stale"].asString());
+  lambda_bound_ = dev::jsToInt(json["lambda_bound"].asString());
+}
+
 bytes VdfSortition::rlp() const {
   dev::RLPStream s;
   s.appendList(10);
@@ -70,6 +85,22 @@ bytes VdfSortition::rlp() const {
   s << difficulty_stale_;
   s << lambda_bound_;
   return s.out();
+}
+
+Json::Value VdfSortition::getJson() const {
+  Json::Value res;
+  res["pk"] = dev::toJS(pk);
+  res["proof"] = dev::toJS(proof);
+  res["level"] = dev::toJS(msg_.level);
+  res["sol1"] = dev::toJS(dev::toHex(vdf_sol_.first));
+  res["sol2"] = dev::toJS(dev::toHex(vdf_sol_.second));
+  res["difficulty_selection"] = dev::toJS(difficulty_selection_);
+  res["difficulty_min"] = dev::toJS(difficulty_min_);
+  res["difficulty_max"] = dev::toJS(difficulty_max_);
+  res["difficulty_stale"] = dev::toJS(difficulty_stale_);
+  res["lambda_bound"] = dev::toJS(lambda_bound_);
+  res["difficulty"] = dev::toJS(getDifficulty());
+  return res;
 }
 
 void VdfSortition::computeVdfSolution(std::string const& msg) {
