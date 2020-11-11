@@ -80,7 +80,7 @@ void FullNode::init() {
   auto genesis_hash = conf_.chain.dag_genesis_block.getHash().toString();
   emplace(pbft_chain_, genesis_hash, node_addr, db_);
   { emplace(dag_mgr_, genesis_hash, node_addr, trx_mgr_, pbft_chain_, db_); }
-  emplace(blk_mgr_, 1024 /*capacity*/, 4 /* verifer thread*/, node_addr, db_, trx_mgr_, log_time_,
+  emplace(blk_mgr_, conf_.chain.vdf, 1024 /*capacity*/, 4 /* verifer thread*/, node_addr, db_, trx_mgr_, log_time_,
           conf_.test_params.max_block_queue_warn);
   emplace(vote_mgr_, node_addr, final_chain_, pbft_chain_);
   emplace(trx_order_mgr_, node_addr, db_);

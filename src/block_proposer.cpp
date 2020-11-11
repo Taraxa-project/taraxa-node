@@ -46,7 +46,7 @@ bool SortitionPropose::propose() {
     num_tries_ = 0;
     return false;
   }
-  vdf.computeVdfSolution(frontier.pivot.toString());
+  vdf.computeVdfSolution(vdf_config_, frontier.pivot.toString());
   LOG(log_nf_) << "VDF computation time " << vdf.getComputationTime() << " difficulty " << vdf.getDifficulty();
   DagBlock blk(frontier.pivot, propose_level, frontier.tips, sharded_trxs, vdf);
   proposer->proposeBlock(blk);

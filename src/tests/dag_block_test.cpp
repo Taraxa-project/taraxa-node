@@ -45,7 +45,7 @@ TEST_F(DagBlockTest, serialize_deserialize) {
   Message msg(3);
   VdfSortition vdf(vdf_config, g_key_pair.address(), sk, msg);
   blk_hash_t vdf_input(200);
-  vdf.computeVdfSolution(vdf_input.toString());
+  vdf.computeVdfSolution(vdf_config, vdf_input.toString());
   DagBlock blk1(blk_hash_t(1), 2, {}, {}, vdf);
   auto b = blk1.rlp(true);
   DagBlock blk2(b);
@@ -174,7 +174,7 @@ TEST_F(DagBlockTest, sign_verify) {
 TEST_F(DagBlockTest, push_and_pop) {
   auto node_cfgs = make_node_cfgs(1);
   FullNode::Handle node(node_cfgs[0]);
-  BlockManager blk_qu(1024, 2, addr_t(), node->getDB(), nullptr, node->getTimeLogger());
+  BlockManager blk_qu(node_cfgs[0].chain.vdf, 1024, 2, addr_t(), node->getDB(), nullptr, node->getTimeLogger());
   blk_qu.start();
   DagBlock blk1(blk_hash_t(1111), level_t(0), {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)}, {}, sig_t(7777),
                 blk_hash_t(888), addr_t(999));

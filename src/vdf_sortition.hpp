@@ -34,7 +34,7 @@ struct Message : public vrf_wrapper::VrfMsgFace {
 
 struct VdfConfig {
   VdfConfig() = default;
-  VdfConfig(vdf_sortition::VdfConfig const& vdf_config)
+  VdfConfig(VdfConfig const& vdf_config)
       : difficulty_selection(vdf_config.difficulty_selection),
         difficulty_min(vdf_config.difficulty_min),
         difficulty_max(vdf_config.difficulty_max),
@@ -75,9 +75,9 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
   explicit VdfSortition(addr_t node_addr, bytes const& b);
   explicit VdfSortition(addr_t node_addr, Json::Value const& json);
 
-  bool verify(std::string const& msg) { return verifyVdfSolution(msg); }
-  void computeVdfSolution(std::string const& msg);
-  bool verifyVdf(level_t propose_block_level, std::string const& vdf_input);
+  void computeVdfSolution(VdfConfig const& config, std::string const& msg);
+  bool verifyVdf(VdfConfig const& config, level_t propose_block_level, std::string const& vdf_input);
+  bool verifyVdfSolution(VdfConfig const& config, std::string const& vdf_msg);
 
   bytes rlp() const;
   bool operator==(VdfSortition const& other) const {
@@ -89,7 +89,6 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
   virtual std::ostream& print(std::ostream& strm) const override {
     VrfSortitionBase::print(strm);
     strm << msg_ << std::endl;
-    strm << " Lambda: " << getLambda() << std::endl;
     strm << " Difficulty: " << getDifficulty() << std::endl;
     strm << " Computation Time: " << vdf_computation_time_ << std::endl;
     strm << " Sol1: " << dev::toHex(vdf_sol_.first) << std::endl;
@@ -101,7 +100,7 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
   Message getVrfMessage() const { return msg_; }
   auto getComputationTime() const { return vdf_computation_time_; }
   uint16_t getDifficulty() const;
-  uint16_t getLambda() const;
+  uint16_t calculateDifficulty(VdfConfig const& config) const;
   Json::Value getJson() const;
 
  private:
@@ -111,16 +110,11 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
       "9f9330e44715b3f2066f903081836c1c83ca29126f8fdc5f5922bf3f9ddb4540171691ac"
       "cc1ef6a34b2a804a18159c89c39b16edee2ede35");
   bool verifyVrf();
-  bool verifyVdfSolution(std::string const& vdf_msg);
 
   Message msg_;
   std::pair<bytes, bytes> vdf_sol_;
   unsigned long vdf_computation_time_ = 0;
-  uint16_t difficulty_selection_ = 0;
-  uint16_t difficulty_min_ = 0;
-  uint16_t difficulty_max_ = 1;
-  uint16_t difficulty_stale_ = 0;
-  uint16_t lambda_bound_ = 1500;  // lambda upper bound, should be constant
+  uint16_t difficulty_ = 0;
 
   LOG_OBJECTS_DEFINE;
 };
