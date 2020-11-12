@@ -225,16 +225,15 @@ std::pair<bool, std::string> TransactionManager::insertTrx(Transaction const &tr
 
   if (conf_.test_params.max_transaction_queue_warn > 0 || conf_.test_params.max_transaction_queue_drop > 0) {
     auto queue_size = trx_qu_.getTransactionQueueSize();
-    if (conf_.test_params.max_transaction_queue_drop > queue_size.first + queue_size.second) {
+    if (conf_.test_params.max_transaction_queue_drop <= queue_size.first + queue_size.second) {
       LOG(log_wr_) << "Trx: " << hash << "skipped, queue too large. Unverified queue: " << queue_size.first
                    << "; Verified queue: " << queue_size.second
                    << "; Limit: " << conf_.test_params.max_transaction_queue_drop;
       return std::make_pair(false, "Queue overlfow");
-    } else if (conf_.test_params.max_transaction_queue_warn > queue_size.first + queue_size.second) {
+    } else if (conf_.test_params.max_transaction_queue_warn <= queue_size.first + queue_size.second) {
       LOG(log_wr_) << "Warning: queue large. Unverified queue: " << queue_size.first
                    << "; Verified queue: " << queue_size.second
                    << "; Limit: " << conf_.test_params.max_transaction_queue_drop;
-      return std::make_pair(false, "Queue overlfow");
     }
   }
 
