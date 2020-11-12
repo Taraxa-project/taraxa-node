@@ -149,6 +149,7 @@ submodules/secp256k1/ok:
 		--disable-jni --with-bignum=no --with-field=64bit \
 		--with-scalar=64bit --with-asm=no \
 		--enable-module-ecdh --enable-module-recovery \
+		--enable-endomorphism \
 		--enable-experimental; \
 	$(MAKE); \
 	$(MAKE) install; \
