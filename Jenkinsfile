@@ -151,7 +151,8 @@ pipeline {
             when { branch 'PR-*' }
             steps {
                 sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${GCP_REGISTRY}/${IMAGE}:${HELM_TEST_NAME}-build-${BUILD_NUMBER}'
-                sh 'docker push ${GCP_REGISTRY}/${IMAGE}:${HELM_TEST_NAME}-build-${BUILD_NUMBER}'
+                sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${GCP_REGISTRY}/${IMAGE}:${GIT_COMMIT}'
+                sh 'docker push ${GCP_REGISTRY}/${IMAGE}:${GIT_COMMIT}'
             }
         }
         stage('Run kubernetes tests') {
