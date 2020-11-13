@@ -178,7 +178,6 @@ lint:
         --suppress=identicalConditionAfterEarlyExit \
         --suppress=noCopyConstructor \
         --suppress=noExplicitConstructor \
-        --suppress=passedByValue \
         --suppress=unreadVariable \
         --suppress=unknownMacro \
         --suppress=useInitializationList \
