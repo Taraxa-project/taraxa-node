@@ -37,18 +37,11 @@ std::optional<vrf_output_t> getVrfOutput(vrf_pk_t const &pk, vrf_proof_t const &
   return {};
 }
 
-dev::bytes getRlpBytes(std::string const &str) {
-  dev::RLPStream rlps;
-  rlps << str;
-  return rlps.out();
-}
-
-bool VrfSortitionBase::verify(VrfMsgFace const &msg) {
+bool VrfSortitionBase::verify(bytes const &msg) {
   if (!isValidVrfPublicKey(pk)) {
     return false;
   }
-  const auto msg_bytes = vrf_wrapper::getRlpBytes(msg.toString());
-  auto res = vrf_wrapper::getVrfOutput(pk, proof, msg_bytes);
+  auto res = vrf_wrapper::getVrfOutput(pk, proof, msg);
   if (res != std::nullopt) {
     output = res.value();
     return true;

@@ -386,7 +386,7 @@ void BlockManager::verifyBlock() {
       if (valid) {
         // Verify VDF solution
         vdf_sortition::VdfSortition vdf = blk.first.getVdf();
-        if (!vdf.verifyVdf(vdf_config_, blk.first.getLevel(), blk.first.getPivot().toString())) {
+        if (!vdf.verifyVdf(vdf_config_, getRlpBytes(blk.first.getLevel()), blk.first.getPivot().asBytes())) {
           LOG(log_er_) << "DAG block " << blk.first.getHash() << " failed on VDF verification with pivot hash "
                        << blk.first.getPivot();
           valid = false;
