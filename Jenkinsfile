@@ -120,16 +120,17 @@ pipeline {
                                        -sS --fail -w '%{http_code}' -o /data/http.out \
                                        --url taraxa-node-smoke-test-${DOCKER_BRANCH_TAG}:7777 \
                                        -d '{
-                                            "jsonrpc": "2.0",
-                                            "id":"0",
-                                            "method": "send_coin_transaction",
-                                            "params":[{
-                                            "nonce": 0,
-                                            "value": 0,
-                                            "gas": 0,
-                                            "gas_price": 0,
-                                            "receiver": "973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0",
-                                            "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd"]
+                                                "jsonrpc": "2.0",
+                                                "id":"0",
+                                                "method": "send_coin_transaction",
+                                                "params":[{
+                                                    "nonce": 0,
+                                                    "value": 0,
+                                                    "gas": 0,
+                                                    "gas_price": 0,
+                                                    "receiver": "973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0",
+                                                    "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd"
+                                                }]
                                             }')
                     cat $PWD/test_build-d/http.out || true
                     if [[ $http_code -eq 200 ]] ; then
@@ -152,6 +153,7 @@ pipeline {
             steps {
                 sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${GCP_REGISTRY}/${IMAGE}:${HELM_TEST_NAME}-build-${BUILD_NUMBER}'
                 sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${GCP_REGISTRY}/${IMAGE}:${GIT_COMMIT}'
+                sh 'docker push ${GCP_REGISTRY}/${IMAGE}:${HELM_TEST_NAME}-build-${BUILD_NUMBER}'
                 sh 'docker push ${GCP_REGISTRY}/${IMAGE}:${GIT_COMMIT}'
             }
         }
