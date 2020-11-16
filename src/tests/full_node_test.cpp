@@ -141,7 +141,7 @@ TEST_F(FullNodeTest, db_test) {
   PbftChain pbft_chain(blk_hash_t(0).toString(), addr_t(), db_ptr);
   db.savePbftHead(pbft_chain.getHeadHash(), pbft_chain.getJsonStr());
   EXPECT_EQ(db.getPbftHead(pbft_chain.getHeadHash()), pbft_chain.getJsonStr());
-  pbft_chain.setLastPbftBlockHash(blk_hash_t(123));
+  pbft_chain.setExecutedLastPbftBlockHash(blk_hash_t(123));
   batch = db.createWriteBatch();
   db.addPbftHeadToBatch(pbft_chain.getHeadHash(), pbft_chain.getJsonStr(), batch);
   db.commitWriteBatch(batch);
@@ -1222,14 +1222,13 @@ TEST_F(FullNodeTest, chain_config_json) {
     "range": "0xa"
   },
   "vdf": {
-		"difficulty_max" : "0x15",
-		"difficulty_min" : "0xf",
+    "difficulty_max" : "0x15",
+		"difficulty_min" : "0x10",
     "difficulty_stale" : "0x16",
-		"lambda_bound" : "0x5dc",
+		"lambda_bound" : "0x64",
 		"threshold_selection" : "0x8000",
 		"threshold_vdf_omit" : "0x7200"
 	}
-
 })";
   Json::Value default_chain_config_json;
   ASSERT_TRUE(Json::Reader().parse(expected_default_chain_cfg_json, default_chain_config_json));

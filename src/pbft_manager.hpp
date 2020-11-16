@@ -7,6 +7,7 @@
 
 #include "block_proposer.hpp"
 #include "config.hpp"
+#include "executor.hpp"
 #include "net/WSServer.h"
 #include "pbft_chain.hpp"
 #include "replay_protection_service.hpp"
@@ -36,8 +37,8 @@ class PbftManager {
               std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
               std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<BlockManager> blk_mgr,
               std::shared_ptr<FinalChain> final_chain, std::shared_ptr<TransactionOrderManager> trx_ord_mgr,
-              std::shared_ptr<TransactionManager> trx_mgr, secret_t node_sk, vrf_sk_t vrf_sk,
-              uint32_t expected_max_trx_per_block);
+              std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<Executor> executor, secret_t node_sk,
+              vrf_sk_t vrf_sk, uint32_t expected_max_trx_per_block);
   ~PbftManager();
 
   void setNetwork(std::shared_ptr<Network> network);
@@ -149,7 +150,8 @@ class PbftManager {
 
   void pushSyncedPbftBlocksIntoChain_();
 
-  bool pushPbftBlock_(PbftBlock const &pbft_block, std::vector<Vote> const &cert_votes);
+  //  bool pushPbftBlock_(PbftBlock const &pbft_block, std::vector<Vote> const &cert_votes);
+  bool pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes);
 
   void updateTwoTPlusOneAndThreshold_();
 
@@ -168,6 +170,7 @@ class PbftManager {
   std::shared_ptr<FinalChain> final_chain_;
   std::shared_ptr<TransactionOrderManager> trx_ord_mgr_;
   std::shared_ptr<TransactionManager> trx_mgr_;
+  std::shared_ptr<Executor> executor_;
   addr_t node_addr_;
   secret_t node_sk_;
   vrf_sk_t vrf_sk_;
