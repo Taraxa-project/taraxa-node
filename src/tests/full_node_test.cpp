@@ -1160,12 +1160,13 @@ TEST_F(FullNodeTest, chain_config_json) {
     "range": "0xa"
   },
   "vdf": {
-    "difficulty_max" : "0x15",
-    "difficulty_min" : "0xf",
-    "difficulty_selection" : "0x80",
-    "difficulty_stale" : "0x16",
-    "lambda_bound" : "0x5dc"
-  }
+		"difficulty_max" : "0x15",
+		"difficulty_min" : "0xf",
+		"lambda_bound" : "0x5dc",
+		"threshold_selection" : "0x80",
+		"threshold_vdf_omit" : "0x72"
+	}
+
 })";
   Json::Value default_chain_config_json;
   ASSERT_TRUE(Json::Reader().parse(expected_default_chain_cfg_json, default_chain_config_json));

@@ -30,21 +30,20 @@ bool SortitionPropose::propose() {
 
   // get sortition
   vdf_sortition::VdfSortition vdf(vdf_config_, node_addr_, vrf_sk_, getRlpBytes(propose_level));
-  auto difficulty = vdf.getDifficulty();
-  if (difficulty == vdf_config_.difficulty_stale && propose_level == last_propose_level_ &&
-      num_tries_ < max_num_tries_) {
-    LOG(log_dg_) << "Will not propose DAG block. Get difficulty " << difficulty << " at stale, last propose level "
-                 << last_propose_level_ << ", has tried " << num_tries_ << " times.";
-    num_tries_++;
-    return false;
-  } else if (difficulty == vdf_config_.difficulty_stale && propose_level != last_propose_level_) {
-    LOG(log_dg_) << "Will not propose DAG block, will reset number of tries. "
-                    "Get difficulty "
-                 << difficulty << " at stale, last propose level " << last_propose_level_ << ", current propose level "
-                 << propose_level;
-    last_propose_level_ = propose_level;
-    num_tries_ = 0;
-    return false;
+  if (vdf.isStale(vdf_config_)) {
+    if (propose_level == last_propose_level_ && num_tries_ < max_num_tries_) {
+      LOG(log_dg_) << "Will not propose DAG block. Get difficulty at stale, last propose level " << last_propose_level_
+                   << ", has tried " << num_tries_ << " times.";
+      num_tries_++;
+      return false;
+    } else if (propose_level != last_propose_level_) {
+      LOG(log_dg_) << "Will not propose DAG block, will reset number of tries. "
+                      "Get difficulty at stale, last propose level "
+                   << last_propose_level_ << ", current propose level " << propose_level;
+      last_propose_level_ = propose_level;
+      num_tries_ = 0;
+      return false;
+    }
   }
   vdf.computeVdfSolution(vdf_config_, frontier.pivot.asBytes());
   LOG(log_nf_) << "VDF computation time " << vdf.getComputationTime() << " difficulty " << vdf.getDifficulty();

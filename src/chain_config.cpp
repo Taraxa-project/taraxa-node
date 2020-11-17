@@ -55,10 +55,10 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
     dpos.eligibility_balance_threshold = 1000000000;
     dpos.genesis_state[root_node_addr][root_node_addr] = dpos.eligibility_balance_threshold;
     // VDF config
-    cfg.vdf.difficulty_selection = 128;
+    cfg.vdf.threshold_selection = 0x80;
+    cfg.vdf.threshold_vdf_omit = 0x72;
     cfg.vdf.difficulty_min = 15;
     cfg.vdf.difficulty_max = 21;
-    cfg.vdf.difficulty_stale = 22;
     cfg.vdf.lambda_bound = 1500;
     // PBFT config
     cfg.pbft.lambda_ms_min = 2000;
