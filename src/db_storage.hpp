@@ -21,6 +21,7 @@ using namespace dev;
 using namespace rocksdb;
 namespace fs = std::filesystem;
 enum StatusDbField : uint8_t { ExecutedBlkCount = 0, ExecutedTrxCount, TrxCount, DagBlkCount, DagEdgeCount };
+enum PbftMrgField : uint8_t { PbftRound = 0, PbftStep };
 
 class DbException : public exception {
  public:
@@ -61,6 +62,7 @@ struct DbStorage {
     COLUMN(executed_transactions);
     COLUMN(trx_status);
     COLUMN(status);
+    COLUMN(pbft_mgr);
     COLUMN(pbft_head);
     COLUMN(pbft_blocks);
     COLUMN(votes);
@@ -139,6 +141,11 @@ struct DbStorage {
   void addTransactionStatusToBatch(BatchPtr const& write_batch, trx_hash_t const& trx, TransactionStatus const& status);
   TransactionStatus getTransactionStatus(trx_hash_t const& hash);
   std::map<trx_hash_t, TransactionStatus> getAllTransactionStatus();
+
+  // PBFT manager
+  uint64_t getPbftMgrField(PbftMrgField const& field);
+  void savePbftMgrField(PbftMrgField const& field, uint64_t const& value);
+  void addPbftMgrFieldToBatch(PbftMrgField const& field, uint64_t const& value, BatchPtr const& write_batch);
 
   // pbft_blocks
   shared_ptr<PbftBlock> getPbftBlock(blk_hash_t const& hash);

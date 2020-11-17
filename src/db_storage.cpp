@@ -331,6 +331,22 @@ void DbStorage::addStatusFieldToBatch(StatusDbField const& field, uint64_t const
 }
 
 // PBFT
+uint64_t DbStorage::getPbftMgrField(PbftMrgField const& field) {
+  auto status = lookup(toSlice((uint8_t)field), Columns::pbft_mgr);
+  if (!status.empty()) {
+    return *(uint64_t*)&status[0];
+  }
+  return 1;
+}
+
+void DbStorage::savePbftMgrField(PbftMrgField const& field, uint64_t const& value) {
+  insert(Columns::pbft_mgr, toSlice((uint8_t)field), toSlice(value));
+}
+
+void DbStorage::addPbftMgrFieldToBatch(PbftMrgField const& field, uint64_t const& value, BatchPtr const& write_batch) {
+  batch_put(write_batch, DbStorage::Columns::pbft_mgr, toSlice((uint8_t)field), toSlice(value));
+}
+
 std::shared_ptr<PbftBlock> DbStorage::getPbftBlock(blk_hash_t const& hash) {
   auto block = lookup(hash, Columns::pbft_blocks);
   if (!block.empty()) {

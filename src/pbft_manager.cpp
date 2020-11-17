@@ -181,6 +181,7 @@ uint64_t PbftManager::getPbftRound() const {
 
 void PbftManager::setPbftRound(uint64_t const round) {
   uniqueLock_ lock(round_access_);
+  db_->savePbftMgrField(PbftMrgField::PbftRound, round);
   round_ = round;
 }
 
@@ -225,18 +226,19 @@ bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
 
 void PbftManager::setPbftStep(size_t const pbft_step) {
   last_step_ = step_;
+  db_->savePbftMgrField(PbftMrgField::PbftStep, pbft_step);
   step_ = pbft_step;
 
-  if (step_ > MAX_STEPS) {
-    // Note: We calculate the lambda for a step independently of prior steps
-    //       in case missed earlier steps.
-    // LAMBDA_ms = 100 * LAMBDA_ms_MIN;
-    // LOG(log_nf_) << "Surpassed max steps, relaxing lambda to " << LAMBDA_ms
-    //             << " ms in round " << getPbftRound() << ", step " << step_;
-    LAMBDA_ms = LAMBDA_ms_MIN;
-  } else {
-    LAMBDA_ms = LAMBDA_ms_MIN;
-  }
+  // if (step_ > MAX_STEPS) {
+  //   // Note: We calculate the lambda for a step independently of prior steps
+  //   //       in case missed earlier steps.
+  //   // LAMBDA_ms = 100 * LAMBDA_ms_MIN;
+  //   // LOG(log_nf_) << "Surpassed max steps, relaxing lambda to " << LAMBDA_ms
+  //   //             << " ms in round " << getPbftRound() << ", step " << step_;
+  //   LAMBDA_ms = LAMBDA_ms_MIN;
+  // } else {
+  //   LAMBDA_ms = LAMBDA_ms_MIN;
+  // }
 }
 
 void PbftManager::getNextVotesForLastRound(std::vector<Vote> &next_votes_bundle) {
@@ -335,14 +337,22 @@ void PbftManager::sleep_() {
 
 void PbftManager::initialState_() {
   // Initial PBFT state
-  state_ = value_proposal_state;
-
   LAMBDA_ms = LAMBDA_ms_MIN;
   STEP_4_DELAY = 2 * LAMBDA_ms;
 
-  setPbftRound(1);
-  step_ = 1;
-  last_step_ = 0;
+  auto round = db_->getPbftMgrField(PbftMrgField::PbftRound);
+  auto step = db_->getPbftMgrField(PbftMrgField::PbftStep);
+  if (round == 1 && step == 1) {
+    // Start at initialization
+    state_ = value_proposal_state;
+    setPbftStep(1);
+  } else {
+    // Start from DB
+    state_ = finish_state;
+    setPbftStep(4);
+  }
+  setPbftRound(round);
+
   // Initial last sync request
   pbft_round_last_requested_sync_ = 0;
   pbft_step_last_requested_sync_ = 0;
@@ -512,7 +522,7 @@ bool PbftManager::stateOperations_() {
   if (state_ == certify_state && have_executed_this_round_ &&
       elapsed_time_in_round_ms_ > 4 * LAMBDA_ms + STEP_4_DELAY + 2 * POLLING_INTERVAL_ms) {
     LOG(log_dg_) << "Skipping step 4 due to execution, will go to step 5 in round " << round;
-    step_ = 5;
+    setPbftStep(5);
     state_ = finish_polling_state;
   }
 

@@ -103,6 +103,21 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(g_trx_signed_samples[1], *db.getTransaction(g_trx_signed_samples[1].getHash()));
   EXPECT_EQ(g_trx_signed_samples[2], *db.getTransaction(g_trx_signed_samples[2].getHash()));
   EXPECT_EQ(g_trx_signed_samples[3], *db.getTransaction(g_trx_signed_samples[3].getHash()));
+  // PBFT manager
+  uint64_t pbft_round = 30;
+  size_t pbft_step = 31;
+  db.savePbftMgrField(PbftMrgField::PbftRound, pbft_round);
+  db.savePbftMgrField(PbftMrgField::PbftStep, pbft_step);
+  EXPECT_EQ(db.getPbftMgrField(PbftMrgField::PbftRound), pbft_round);
+  EXPECT_EQ(db.getPbftMgrField(PbftMrgField::PbftStep), pbft_step);
+  pbft_round = 90;
+  pbft_step = 91;
+  batch = db.createWriteBatch();
+  db.addPbftMgrFieldToBatch(PbftMrgField::PbftRound, pbft_round, batch);
+  db.addPbftMgrFieldToBatch(PbftMrgField::PbftStep, pbft_step, batch);
+  db.commitWriteBatch(batch);
+  EXPECT_EQ(db.getPbftMgrField(PbftMrgField::PbftRound), pbft_round);
+  EXPECT_EQ(db.getPbftMgrField(PbftMrgField::PbftStep), pbft_step);
   // pbft_blocks
   auto pbft_block1 = make_simple_pbft_block(blk_hash_t(1), 2);
   auto pbft_block2 = make_simple_pbft_block(blk_hash_t(2), 3);

@@ -112,6 +112,7 @@ bool VoteManager::addVote(taraxa::Vote const& vote) {
     if (found_round != unverified_votes_.end()) {
       std::map<vote_hash_t, Vote>::const_iterator found_vote = found_round->second.find(hash);
       if (found_vote != found_round->second.end()) {
+        LOG(log_dg_) << "Vote hash " << vote.getHash() << " in unverified map already";
         return false;
       }
       upgradeLock_ locked(lock);
@@ -203,7 +204,9 @@ std::vector<Vote> VoteManager::getVotes(uint64_t const pbft_round, blk_hash_t co
     addr_t voter_account_address = dev::toAddress(v.getVoter());
     // Check if the voter account is valid, malicious vote
     if (!is_eligible(voter_account_address)) {
-      LOG(log_dg_) << "Account " << voter_account_address << " is not eligible to vote";
+      LOG(log_dg_) << "Account " << voter_account_address << " is not eligible to vote. Vote hash " << v.getHash()
+                   << ", block hash " << v.getBlockHash() << ", vote type " << v.getType() << ", in round "
+                   << v.getRound() << ", for step " << v.getStep();
       continue;
     }
     if (voteValidation(last_pbft_block_hash, v, eligible_voter_count, sortition_threshold)) {
