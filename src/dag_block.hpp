@@ -125,9 +125,9 @@ struct DagFrontier {
  */
 class BlockManager {
  public:
-  BlockManager(size_t capacity, unsigned verify_threads, addr_t node_addr, std::shared_ptr<DbStorage> db,
-               std::shared_ptr<TransactionManager> trx_mgr, boost::log::sources::severity_channel_logger<> log_time_,
-               uint32_t queue_limit = 0);
+  BlockManager(vdf_sortition::VdfConfig const &vdf_config, size_t capacity, unsigned verify_threads, addr_t node_addr,
+               std::shared_ptr<DbStorage> db, std::shared_ptr<TransactionManager> trx_mgr,
+               boost::log::sources::severity_channel_logger<> log_time_, uint32_t queue_limit = 0);
   ~BlockManager();
   void insertBlock(DagBlock const &blk);
   // Only used in initial syncs when blocks are received with full list of
@@ -176,6 +176,8 @@ class BlockManager {
 
   std::map<uint64_t, std::deque<std::pair<DagBlock, std::vector<Transaction> > > > unverified_qu_;
   std::map<uint64_t, std::deque<DagBlock> > verified_qu_;
+
+  vdf_sortition::VdfConfig vdf_config_;
 
   LOG_OBJECTS_DEFINE;
 };

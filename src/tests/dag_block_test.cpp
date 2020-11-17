@@ -42,14 +42,17 @@ TEST_F(DagBlockTest, serialize_deserialize) {
   vrf_sk_t sk(
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
       "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
-  Message msg(3);
-  VdfSortition vdf(vdf_config, g_key_pair.address(), sk, msg);
+  level_t level = 3;
+  VdfSortition vdf(vdf_config, g_key_pair.address(), sk, getRlpBytes(level));
   blk_hash_t vdf_input(200);
-  vdf.computeVdfSolution(vdf_input.toString());
+  vdf.computeVdfSolution(vdf_config, vdf_input.asBytes());
   DagBlock blk1(blk_hash_t(1), 2, {}, {}, vdf);
   auto b = blk1.rlp(true);
   DagBlock blk2(b);
   EXPECT_EQ(blk1, blk2);
+
+  DagBlock blk3(blk1.getJsonStr());
+  EXPECT_EQ(blk1, blk3);
 }
 
 TEST_F(DagBlockTest, send_receive_one) {
@@ -171,7 +174,7 @@ TEST_F(DagBlockTest, sign_verify) {
 TEST_F(DagBlockTest, push_and_pop) {
   auto node_cfgs = make_node_cfgs(1);
   FullNode::Handle node(node_cfgs[0]);
-  BlockManager blk_qu(1024, 2, addr_t(), node->getDB(), nullptr, node->getTimeLogger());
+  BlockManager blk_qu(node_cfgs[0].chain.vdf, 1024, 2, addr_t(), node->getDB(), nullptr, node->getTimeLogger());
   blk_qu.start();
   DagBlock blk1(blk_hash_t(1111), level_t(0), {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)}, {}, sig_t(7777),
                 blk_hash_t(888), addr_t(999));

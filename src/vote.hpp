@@ -17,11 +17,11 @@ namespace taraxa {
 class FullNode;
 class PbftManager;
 
-struct VrfPbftMsg : public vrf_wrapper::VrfMsgFace {
+struct VrfPbftMsg {
   VrfPbftMsg() = default;
   VrfPbftMsg(blk_hash_t const& blk, PbftVoteTypes type, uint64_t round, size_t step)
       : blk(blk), type(type), round(round), step(step) {}
-  std::string toString() const override {
+  std::string toString() const {
     return blk.toString() + "_" + std::to_string(type) + "_" + std::to_string(round) + "_" + std::to_string(step);
   }
   bool operator==(VrfPbftMsg const& other) const {
@@ -35,6 +35,17 @@ struct VrfPbftMsg : public vrf_wrapper::VrfMsgFace {
     strm << "    step: " << pbft_msg.step << std::endl;
     return strm;
   }
+
+  bytes getRlpBytes() const {
+    dev::RLPStream s;
+    s.appendList(4);
+    s << blk;
+    s << type;
+    s << round;
+    s << step;
+    return s.out();
+  }
+
   blk_hash_t blk;
   PbftVoteTypes type;
   uint64_t round;
@@ -49,10 +60,10 @@ struct VrfPbftSortition : public vrf_wrapper::VrfSortitionBase {
   using bytes = dev::bytes;
   VrfPbftSortition() = default;
   VrfPbftSortition(vrf_sk_t const& sk, VrfPbftMsg const& pbft_msg)
-      : pbft_msg(pbft_msg), VrfSortitionBase(sk, pbft_msg) {}
+      : pbft_msg(pbft_msg), VrfSortitionBase(sk, pbft_msg.getRlpBytes()) {}
   explicit VrfPbftSortition(bytes const& rlp);
   bytes getRlpBytes() const;
-  bool verify() { return VrfSortitionBase::verify(pbft_msg); }
+  bool verify() { return VrfSortitionBase::verify(pbft_msg.getRlpBytes()); }
   bool operator==(VrfPbftSortition const& other) const {
     return pk == other.pk && pbft_msg == other.pbft_msg && proof == other.proof && output == other.output;
   }

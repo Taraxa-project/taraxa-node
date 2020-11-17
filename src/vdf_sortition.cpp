@@ -23,15 +23,21 @@ void dec_json(Json::Value const& json, VdfConfig& obj) {
   obj.lambda_bound = dev::jsToInt(json["lambda_bound"].asString());
 }
 
-VdfSortition::VdfSortition(VdfConfig const& config, addr_t node_addr, vrf_sk_t const& sk, Message const& msg)
-    : difficulty_selection_(config.difficulty_selection),
-      difficulty_min_(config.difficulty_min),
-      difficulty_max_(config.difficulty_max),
-      difficulty_stale_(config.difficulty_stale),
-      lambda_bound_(config.lambda_bound),
-      msg_(msg),
-      VrfSortitionBase(sk, msg) {
+VdfSortition::VdfSortition(VdfConfig const& config, addr_t node_addr, vrf_sk_t const& sk, bytes const& msg)
+    : VrfSortitionBase(sk, msg) {
   LOG_OBJECTS_CREATE("VDF");
+  difficulty_ = calculateDifficulty(config);
+}
+
+uint16_t VdfSortition::calculateDifficulty(VdfConfig const& config) const {
+  uint16_t difficulty;
+  uint16_t t = uint16_t(output[0]);  // First byte, each byte value [0, 255]
+  if (t <= config.difficulty_selection) {
+    difficulty = config.difficulty_min + t % (config.difficulty_max - config.difficulty_min);
+  } else {
+    difficulty = config.difficulty_stale;
+  }
+  return difficulty;
 }
 
 VdfSortition::VdfSortition(addr_t node_addr, bytes const& b) {
@@ -44,40 +50,48 @@ VdfSortition::VdfSortition(addr_t node_addr, bytes const& b) {
     throw std::invalid_argument("VdfSortition RLP must be a list");
   }
 
-  pk = rlp[0].toHash<vrf_pk_t>();
-  proof = rlp[1].toHash<vrf_proof_t>();
-  msg_.level = rlp[2].toInt<uint64_t>();
-  vdf_sol_.first = rlp[3].toBytes();
-  vdf_sol_.second = rlp[4].toBytes();
-  difficulty_selection_ = rlp[5].toInt<uint16_t>();
-  difficulty_min_ = rlp[6].toInt<uint16_t>();
-  difficulty_max_ = rlp[7].toInt<uint16_t>();
-  difficulty_stale_ = rlp[8].toInt<uint16_t>();
-  lambda_bound_ = rlp[9].toInt<uint16_t>();
+  auto it = rlp.begin();
+  pk = (*it++).toHash<vrf_pk_t>();
+  proof = (*it++).toHash<vrf_proof_t>();
+  vdf_sol_.first = (*it++).toBytes();
+  vdf_sol_.second = (*it++).toBytes();
+  difficulty_ = (*it++).toInt<uint16_t>();
+}
+
+VdfSortition::VdfSortition(addr_t node_addr, Json::Value const& json) {
+  LOG_OBJECTS_CREATE("VDF");
+
+  pk = vrf_pk_t(json["pk"].asString());
+  proof = vrf_proof_t(json["proof"].asString());
+  vdf_sol_.first = dev::fromHex(json["sol1"].asString());
+  vdf_sol_.second = dev::fromHex(json["sol2"].asString());
+  difficulty_ = dev::jsToInt(json["difficulty"].asString());
 }
 
 bytes VdfSortition::rlp() const {
   dev::RLPStream s;
-  s.appendList(10);
+  s.appendList(5);
   s << pk;
   s << proof;
-  s << msg_.level;
   s << vdf_sol_.first;
   s << vdf_sol_.second;
-  s << difficulty_selection_;
-  s << difficulty_min_;
-  s << difficulty_max_;
-  s << difficulty_stale_;
-  s << lambda_bound_;
+  s << difficulty_;
   return s.out();
 }
 
-void VdfSortition::computeVdfSolution(std::string const& msg) {
-  //  bool verified = verifyVrf();
-  //  assert(verified);
-  const auto msg_bytes = vrf_wrapper::getRlpBytes(msg);
+Json::Value VdfSortition::getJson() const {
+  Json::Value res;
+  res["pk"] = dev::toJS(pk);
+  res["proof"] = dev::toJS(proof);
+  res["sol1"] = dev::toJS(dev::toHex(vdf_sol_.first));
+  res["sol2"] = dev::toJS(dev::toHex(vdf_sol_.second));
+  res["difficulty"] = dev::toJS(difficulty_);
+  return res;
+}
+
+void VdfSortition::computeVdfSolution(VdfConfig const& config, bytes const& msg) {
   auto t1 = getCurrentTimeMilliSeconds();
-  VerifierWesolowski verifier(getLambda(), getDifficulty(), msg_bytes, N);
+  VerifierWesolowski verifier(config.lambda_bound, difficulty_, msg, N);
 
   ProverWesolowski prover;
   vdf_sol_ = prover(verifier);  // this line takes time ...
@@ -85,52 +99,33 @@ void VdfSortition::computeVdfSolution(std::string const& msg) {
   vdf_computation_time_ = t2 - t1;
 }
 
-bool VdfSortition::verifyVdf(level_t propose_block_level, std::string const& vdf_input) {
-  // Verify propose level
-  if (getVrfMessage().level != propose_block_level) {
-    LOG(log_er_) << "The proposal DAG block level is " << propose_block_level << ", but in VRF message is "
-                 << getVrfMessage().level;
-    return false;
-  }
-
-  if (!verifyVdfSolution(vdf_input)) {
-    return false;
-  }
-
-  return true;
-}
-
-bool VdfSortition::verifyVrf() { return VrfSortitionBase::verify(msg_); }
-
-bool VdfSortition::verifyVdfSolution(std::string const& vdf_input) {
+bool VdfSortition::verifyVdf(VdfConfig const& config, bytes const& vrf_input, bytes const& vdf_input) {
   // Verify VRF output
-  bool verified = verifyVrf();
-  assert(verified);
+  if (!verifyVrf(vrf_input)) {
+    LOG(log_er_) << "VRF verify failed. VDF input " << vdf_input << ", lambda " << config.lambda_bound
+                 << ", difficulty " << getDifficulty();
+    return false;
+  }
+
+  if (difficulty_ != calculateDifficulty(config)) {
+    LOG(log_er_) << "VDF solution verification failed. Incorrect difficulty. VDF input " << vdf_input << ", lambda "
+                 << config.lambda_bound << ", difficulty " << getDifficulty();
+    return false;
+  }
 
   // Verify VDF solution
-  const auto msg_bytes = vrf_wrapper::getRlpBytes(vdf_input);
-  VerifierWesolowski verifier(getLambda(), getDifficulty(), msg_bytes, N);
+  VerifierWesolowski verifier(config.lambda_bound, getDifficulty(), vdf_input, N);
   if (!verifier(vdf_sol_)) {
-    LOG(log_er_) << "VDF solution verification failed. VDF input " << vdf_input << ", lambda " << getLambda()
+    LOG(log_er_) << "VDF solution verification failed. VDF input " << vdf_input << ", lambda " << config.lambda_bound
                  << ", difficulty " << getDifficulty();
-    // std::cout << *this << std::endl;
     return false;
   }
 
   return true;
 }
 
-uint16_t VdfSortition::getDifficulty() const {
-  uint16_t difficulty;
-  uint16_t t = uint16_t(output[0]);  // First byte, each byte value [0, 255]
-  if (t <= difficulty_selection_) {
-    difficulty = difficulty_min_ + t % (difficulty_max_ - difficulty_min_);
-  } else {
-    difficulty = difficulty_stale_;
-  }
-  return difficulty;
-}
+bool VdfSortition::verifyVrf(bytes const& vrf_input) { return VrfSortitionBase::verify(vrf_input); }
 
-uint16_t VdfSortition::getLambda() const { return lambda_bound_; }
+uint16_t VdfSortition::getDifficulty() const { return difficulty_; }
 
 }  // namespace taraxa::vdf_sortition

@@ -5,6 +5,7 @@
 #include "dag.hpp"
 #include "transaction.hpp"
 #include "transaction_manager.hpp"
+#include "util.hpp"
 
 namespace taraxa {
 
@@ -28,8 +29,7 @@ bool SortitionPropose::propose() {
   auto propose_level = proposer->getProposeLevel(frontier.pivot, frontier.tips) + 1;
 
   // get sortition
-  vdf_sortition::Message msg(propose_level);
-  vdf_sortition::VdfSortition vdf(vdf_config_, node_addr_, vrf_sk_, msg);
+  vdf_sortition::VdfSortition vdf(vdf_config_, node_addr_, vrf_sk_, getRlpBytes(propose_level));
   auto difficulty = vdf.getDifficulty();
   if (difficulty == vdf_config_.difficulty_stale && propose_level == last_propose_level_ &&
       num_tries_ < max_num_tries_) {
@@ -46,8 +46,9 @@ bool SortitionPropose::propose() {
     num_tries_ = 0;
     return false;
   }
-  vdf.computeVdfSolution(frontier.pivot.toString());
+  vdf.computeVdfSolution(vdf_config_, frontier.pivot.asBytes());
   LOG(log_nf_) << "VDF computation time " << vdf.getComputationTime() << " difficulty " << vdf.getDifficulty();
+
   DagBlock blk(frontier.pivot, propose_level, frontier.tips, sharded_trxs, vdf);
   proposer->proposeBlock(blk);
 

@@ -379,6 +379,13 @@ auto slice(std::vector<T> const &v, std::size_t from = -1, std::size_t to = -1) 
   return std::vector<T>(from == -1 ? b : b + from, to == -1 ? v.end() : b + to);
 }
 
+template <typename T>
+auto getRlpBytes(T const &t) {
+  dev::RLPStream s;
+  s << t;
+  return s.out();
+}
+
 template <class Key, class Value>
 class ExpirationCacheMap {
  public:

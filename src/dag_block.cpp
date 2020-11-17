@@ -69,9 +69,9 @@ DagBlock::DagBlock(Json::Value const &doc) {
     timestamp_ = v.asUInt64();
   }
 
-  auto vdf_string = doc["vdf"].asString();
-  if (!vdf_string.empty()) {
-    vdf_ = VdfSortition(cached_sender_, dev::fromHex(vdf_string));
+  // Allow vdf not to be present for genesis
+  if (level_ > 0) {
+    vdf_ = VdfSortition(cached_sender_, doc["vdf"]);
   }
 }
 
@@ -127,7 +127,7 @@ Json::Value DagBlock::getJson() const {
   res["hash"] = dev::toJS(hash_);
   res["sender"] = dev::toJS(sender());
   res["timestamp"] = dev::toJS(timestamp_);
-  res["vdf"] = dev::toJS(dev::toHex(vdf_.rlp()));
+  res["vdf"] = vdf_.getJson();
   return res;
 }
 
@@ -186,8 +186,8 @@ bytes DagBlock::rlp(bool include_sig) const {
 
 blk_hash_t DagBlock::sha3(bool include_sig) const { return dev::sha3(rlp(include_sig)); }
 
-BlockManager::BlockManager(size_t capacity, unsigned num_verifiers, addr_t node_addr, std::shared_ptr<DbStorage> db,
-                           std::shared_ptr<TransactionManager> trx_mgr,
+BlockManager::BlockManager(vdf_sortition::VdfConfig const &vdf_config, size_t capacity, unsigned num_verifiers,
+                           addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<TransactionManager> trx_mgr,
                            boost::log::sources::severity_channel_logger<> log_time, uint32_t queue_limit)
     : capacity_(capacity),
       num_verifiers_(num_verifiers),
@@ -196,7 +196,8 @@ BlockManager::BlockManager(size_t capacity, unsigned num_verifiers, addr_t node_
       queue_limit_(queue_limit),
       db_(db),
       trx_mgr_(trx_mgr),
-      log_time_(log_time) {
+      log_time_(log_time),
+      vdf_config_(vdf_config) {
   LOG_OBJECTS_CREATE("BLKQU");
 }
 
@@ -385,7 +386,7 @@ void BlockManager::verifyBlock() {
       if (valid) {
         // Verify VDF solution
         vdf_sortition::VdfSortition vdf = blk.first.getVdf();
-        if (!vdf.verifyVdf(blk.first.getLevel(), blk.first.getPivot().toString())) {
+        if (!vdf.verifyVdf(vdf_config_, getRlpBytes(blk.first.getLevel()), blk.first.getPivot().asBytes())) {
           LOG(log_er_) << "DAG block " << blk.first.getHash() << " failed on VDF verification with pivot hash "
                        << blk.first.getPivot();
           valid = false;
