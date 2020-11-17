@@ -130,6 +130,7 @@ inline auto make_node_cfgs(uint count) {
         cfg.chain.vdf.threshold_vdf_omit = 230;
         cfg.chain.vdf.difficulty_min = 0;
         cfg.chain.vdf.difficulty_max = 5;
+        cfg.chain.vdf.difficulty_stale = 5;
         cfg.chain.vdf.lambda_bound = 100;
         // PBFT config
         cfg.chain.pbft.lambda_ms_min /= tests_speed;

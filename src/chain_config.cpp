@@ -59,6 +59,7 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
     cfg.vdf.threshold_vdf_omit = 0x72;
     cfg.vdf.difficulty_min = 15;
     cfg.vdf.difficulty_max = 21;
+    cfg.vdf.difficulty_stale = 22;
     cfg.vdf.lambda_bound = 1500;
     // PBFT config
     cfg.pbft.lambda_ms_min = 2000;

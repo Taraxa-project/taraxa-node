@@ -11,6 +11,7 @@ Json::Value enc_json(VdfConfig const& obj) {
   ret["threshold_vdf_omit"] = dev::toJS((uint16_t)obj.threshold_vdf_omit);
   ret["difficulty_min"] = dev::toJS(obj.difficulty_min);
   ret["difficulty_max"] = dev::toJS(obj.difficulty_max);
+  ret["difficulty_stale"] = dev::toJS(obj.difficulty_stale);
   ret["lambda_bound"] = dev::toJS(obj.lambda_bound);
   return ret;
 }
@@ -20,25 +21,29 @@ void dec_json(Json::Value const& json, VdfConfig& obj) {
   obj.threshold_vdf_omit = dev::jsToInt(json["threshold_vdf_omit"].asString());
   obj.difficulty_min = dev::jsToInt(json["difficulty_min"].asString());
   obj.difficulty_max = dev::jsToInt(json["difficulty_max"].asString());
+  obj.difficulty_stale = dev::jsToInt(json["difficulty_stale"].asString());
   obj.lambda_bound = dev::jsToInt(json["lambda_bound"].asString());
 }
 
 VdfSortition::VdfSortition(VdfConfig const& config, addr_t node_addr, vrf_sk_t const& sk, bytes const& msg)
     : VrfSortitionBase(sk, msg) {
   LOG_OBJECTS_CREATE("VDF");
-  if (!omitVdf(config) && !isStale(config)) {
+  if (!omitVdf(config)) {
     difficulty_ = calculateDifficulty(config);
   }
 }
 
-bool VdfSortition::omitVdf(VdfConfig const& config) { return output[0] <= config.threshold_vdf_omit; }
+bool VdfSortition::omitVdf(VdfConfig const& config) const { return output[0] <= config.threshold_vdf_omit; }
 
-bool VdfSortition::isStale(VdfConfig const& config) { return output[0] >= config.threshold_selection; }
+bool VdfSortition::isStale(VdfConfig const& config) const { return output[0] > config.threshold_selection; }
 
 uint16_t VdfSortition::calculateDifficulty(VdfConfig const& config) const {
   uint16_t difficulty;
   uint16_t t = uint16_t(output[0]);  // First byte, each byte value [0, 255]
   difficulty = config.difficulty_min + t % (config.difficulty_max - config.difficulty_min);
+  if (isStale(config) && difficulty > config.difficulty_stale) {
+    difficulty = config.difficulty_stale;
+  }
   return difficulty;
 }
 

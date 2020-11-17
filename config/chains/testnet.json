@@ -64,6 +64,7 @@
       "difficulty_min": "0x10",
       "threshold_selection": "0xff",
       "threshold_vdf_omit": "0xe6",
+      "difficulty_stale": "0x16",
       "lambda_bound": "0x64"
     }
   }

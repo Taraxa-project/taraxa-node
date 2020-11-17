@@ -22,6 +22,7 @@ struct VdfConfig {
         threshold_vdf_omit(vdf_config.threshold_vdf_omit),
         difficulty_min(vdf_config.difficulty_min),
         difficulty_max(vdf_config.difficulty_max),
+        difficulty_stale(vdf_config.difficulty_stale),
         lambda_bound(vdf_config.lambda_bound) {}
   VdfConfig(uint8_t const selection, uint8_t const threshold_vdf_omit, uint16_t const min, uint16_t const max,
             uint16_t const stale, uint16_t const lambda_max_bound)
@@ -29,6 +30,7 @@ struct VdfConfig {
         threshold_vdf_omit(threshold_vdf_omit),
         difficulty_min(min),
         difficulty_max(max),
+        difficulty_stale(stale),
         lambda_bound(lambda_max_bound) {}
 
   friend std::ostream& operator<<(std::ostream& strm, VdfConfig const& vdf_config) {
@@ -37,6 +39,7 @@ struct VdfConfig {
     strm << "    threshold vdf ommit: " << vdf_config.threshold_vdf_omit << std::endl;
     strm << "    difficulty minimum: " << vdf_config.difficulty_min << std::endl;
     strm << "    difficulty maximum: " << vdf_config.difficulty_max << std::endl;
+    strm << "    difficulty stale: " << vdf_config.difficulty_stale << std::endl;
     strm << "    lambda bound: " << vdf_config.lambda_bound << std::endl;
     return strm;
   }
@@ -45,6 +48,7 @@ struct VdfConfig {
   uint8_t threshold_vdf_omit = 0;
   uint16_t difficulty_min = 0;
   uint16_t difficulty_max = 1;
+  uint16_t difficulty_stale = 0;
   uint16_t lambda_bound = 1500;  // lambda upper bound, should be constant
 };
 Json::Value enc_json(VdfConfig const& obj);
@@ -81,8 +85,8 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
   auto getComputationTime() const { return vdf_computation_time_; }
   uint16_t getDifficulty() const;
   uint16_t calculateDifficulty(VdfConfig const& config) const;
-  bool omitVdf(VdfConfig const& config);
-  bool isStale(VdfConfig const& config);
+  bool omitVdf(VdfConfig const& config) const;
+  bool isStale(VdfConfig const& config) const;
   Json::Value getJson() const;
 
  private:

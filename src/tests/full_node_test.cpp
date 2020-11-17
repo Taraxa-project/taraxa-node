@@ -1162,6 +1162,7 @@ TEST_F(FullNodeTest, chain_config_json) {
   "vdf": {
 		"difficulty_max" : "0x15",
 		"difficulty_min" : "0xf",
+    "difficulty_stale" : "0x16",
 		"lambda_bound" : "0x5dc",
 		"threshold_selection" : "0x80",
 		"threshold_vdf_omit" : "0x72"
