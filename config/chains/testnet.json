@@ -61,8 +61,8 @@
     "vdf": {
       "difficulty_max": "0x15",
       "difficulty_min": "0x10",
-      "threshold_selection": "0xffff",
-      "threshold_vdf_omit": "0xe665",
+      "threshold_selection": "0xbffd",
+      "threshold_vdf_omit": "0x6bf7",
       "difficulty_stale": "0x16",
       "lambda_bound": "0x64"
     }

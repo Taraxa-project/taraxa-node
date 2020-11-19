@@ -55,7 +55,7 @@ class SortitionPropose : public ProposeModelFace {
  private:
   vdf_sortition::VdfConfig vdf_config_;
   int num_tries_ = 0;
-  const int max_num_tries_ = 50;  // Wait 5000(ms)
+  const int max_num_tries_ = 20;  // Wait 2000(ms)
   level_t last_propose_level_ = 0;
   std::shared_ptr<DagManager> dag_mgr_;
   std::shared_ptr<TransactionManager> trx_mgr_;

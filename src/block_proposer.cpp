@@ -48,7 +48,11 @@ bool SortitionPropose::propose() {
     }
   }
   vdf.computeVdfSolution(vdf_config_, frontier.pivot.asBytes());
-  bool ok = proposer->getShardedTrxs(sharded_trxs);  //????? before compute?
+  if (vdf.isStale(vdf_config_)) {
+    DagFrontier latestFrontier = dag_mgr_->getDagFrontier();
+    if (latestFrontier.pivot != frontier.pivot) return false;
+  }
+  bool ok = proposer->getShardedTrxs(sharded_trxs);
   if (!ok) {
     return false;
   }
