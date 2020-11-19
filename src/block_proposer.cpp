@@ -19,34 +19,43 @@ bool SortitionPropose::propose() {
     return false;
   }
 
-  vec_trx_t sharded_trxs;
-  DagFrontier frontier;
-  bool ok = proposer->getShardedTrxs(sharded_trxs, frontier);
-  if (!ok) {
+  if (trx_mgr_->getTransactionQueueSize().second == 0) {
     return false;
   }
+
+  vec_trx_t sharded_trxs;
+  DagFrontier frontier = dag_mgr_->getDagFrontier();
+  LOG(log_dg_) << " Get frontier with pivot: " << frontier.pivot << " tips: " << frontier.tips;
+
   assert(!frontier.pivot.isZero());
   auto propose_level = proposer->getProposeLevel(frontier.pivot, frontier.tips) + 1;
 
   // get sortition
   vdf_sortition::VdfSortition vdf(vdf_config_, node_addr_, vrf_sk_, getRlpBytes(propose_level));
-  auto difficulty = vdf.getDifficulty();
-  if (difficulty == vdf_config_.difficulty_stale && propose_level == last_propose_level_ &&
-      num_tries_ < max_num_tries_) {
-    LOG(log_dg_) << "Will not propose DAG block. Get difficulty " << difficulty << " at stale, last propose level "
-                 << last_propose_level_ << ", has tried " << num_tries_ << " times.";
-    num_tries_++;
-    return false;
-  } else if (difficulty == vdf_config_.difficulty_stale && propose_level != last_propose_level_) {
-    LOG(log_dg_) << "Will not propose DAG block, will reset number of tries. "
-                    "Get difficulty "
-                 << difficulty << " at stale, last propose level " << last_propose_level_ << ", current propose level "
-                 << propose_level;
-    last_propose_level_ = propose_level;
-    num_tries_ = 0;
-    return false;
+  if (vdf.isStale(vdf_config_)) {
+    if (propose_level == last_propose_level_ && num_tries_ < max_num_tries_) {
+      LOG(log_dg_) << "Will not propose DAG block. Get difficulty at stale, last propose level " << last_propose_level_
+                   << ", has tried " << num_tries_ << " times.";
+      num_tries_++;
+      return false;
+    } else if (propose_level != last_propose_level_) {
+      LOG(log_dg_) << "Will not propose DAG block, will reset number of tries. "
+                      "Get difficulty at stale, last propose level "
+                   << last_propose_level_ << ", current propose level " << propose_level;
+      last_propose_level_ = propose_level;
+      num_tries_ = 0;
+      return false;
+    }
   }
   vdf.computeVdfSolution(vdf_config_, frontier.pivot.asBytes());
+  if (vdf.isStale(vdf_config_)) {
+    DagFrontier latestFrontier = dag_mgr_->getDagFrontier();
+    if (latestFrontier.pivot != frontier.pivot) return false;
+  }
+  bool ok = proposer->getShardedTrxs(sharded_trxs);
+  if (!ok) {
+    return false;
+  }
   LOG(log_nf_) << "VDF computation time " << vdf.getComputationTime() << " difficulty " << vdf.getDifficulty();
 
   DagBlock blk(frontier.pivot, propose_level, frontier.tips, sharded_trxs, vdf);
@@ -113,27 +122,9 @@ bool BlockProposer::getLatestPivotAndTips(blk_hash_t& pivot, vec_blk_t& tips) {
   return ok;
 }
 
-bool BlockProposer::getShardedTrxs(uint total_shard, DagFrontier& frontier, uint my_shard, vec_trx_t& sharded_trxs) {
+bool BlockProposer::getShardedTrxs(uint total_shard, uint my_shard, vec_trx_t& sharded_trxs) {
   vec_trx_t to_be_packed_trx;
-  trx_mgr_->packTrxs(to_be_packed_trx, frontier, bp_config_.transaction_limit);
-  // Need to update pivot incase a new period is confirmed
-  std::vector<std::string> ghost;
-  if (dag_mgr_) {
-    dag_mgr_->getGhostPath(ghost);
-    vec_blk_t gg;
-    std::transform(ghost.begin(), ghost.end(), std::back_inserter(gg),
-                   [](std::string const& t) { return blk_hash_t(t); });
-    for (auto const& g : gg) {
-      if (g == frontier.pivot) {  // pivot does not change
-        break;
-      }
-      auto iter = std::find(frontier.tips.begin(), frontier.tips.end(), g);
-      if (iter != std::end(frontier.tips)) {
-        std::swap(frontier.pivot, *iter);
-        LOG(log_si_) << " Swap frontier with pivot: " << *iter << " tips: " << frontier.pivot;
-      }
-    }
-  }
+  trx_mgr_->packTrxs(to_be_packed_trx, bp_config_.transaction_limit);
 
   if (to_be_packed_trx.empty()) {
     LOG(log_tr_) << "Skip block proposer, zero unpacked transactions ..." << std::endl;

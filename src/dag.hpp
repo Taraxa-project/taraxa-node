@@ -168,6 +168,8 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
     return std::make_pair(old_anchor_, anchor_);
   }
 
+  DagFrontier getDagFrontier();
+
  private:
   void recoverDag();
   void addToDag(std::string const &hash, std::string const &pivot, std::vector<std::string> const &tips, uint64_t level,
@@ -186,6 +188,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::string genesis_;
   std::map<uint64_t, std::vector<std::string>> non_finalized_blks_;
   std::map<uint64_t, std::vector<std::string>> finalized_blks_;
+  DagFrontier frontier_;
   LOG_OBJECTS_DEFINE;
 };
 

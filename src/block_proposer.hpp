@@ -43,8 +43,9 @@ class ProposeModelFace {
 
 class SortitionPropose : public ProposeModelFace {
  public:
-  SortitionPropose(vdf_sortition::VdfConfig const& vdf_config, addr_t node_addr, std::shared_ptr<DagManager> dag_mgr)
-      : vdf_config_(vdf_config), dag_mgr_(dag_mgr) {
+  SortitionPropose(vdf_sortition::VdfConfig const& vdf_config, addr_t node_addr, std::shared_ptr<DagManager> dag_mgr,
+                   std::shared_ptr<TransactionManager> trx_mgr)
+      : vdf_config_(vdf_config), dag_mgr_(dag_mgr), trx_mgr_(trx_mgr) {
     LOG_OBJECTS_CREATE("PR_MDL");
     LOG(log_nf_) << "Set sorition DAG block proposal" << vdf_config_;
   }
@@ -54,9 +55,10 @@ class SortitionPropose : public ProposeModelFace {
  private:
   vdf_sortition::VdfConfig vdf_config_;
   int num_tries_ = 0;
-  const int max_num_tries_ = 50;  // Wait 5000(ms)
+  const int max_num_tries_ = 20;  // Wait 2000(ms)
   level_t last_propose_level_ = 0;
   std::shared_ptr<DagManager> dag_mgr_;
+  std::shared_ptr<TransactionManager> trx_mgr_;
 
   LOG_OBJECTS_DEFINE;
 };
@@ -80,7 +82,7 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
         node_sk_(node_sk),
         vrf_sk_(vrf_sk) {
     LOG_OBJECTS_CREATE("PR_MDL");
-    propose_model_ = std::make_unique<SortitionPropose>(vdf_config, node_addr, dag_mgr);
+    propose_model_ = std::make_unique<SortitionPropose>(vdf_config, node_addr, dag_mgr, trx_mgr);
     total_trx_shards_ = std::max((unsigned int)bp_config_.shard, 1u);
     auto addr = std::stoull(node_addr.toString().substr(0, 6).c_str(), NULL, 16);
     my_trx_shard_ = addr % bp_config_.shard;
@@ -94,9 +96,7 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   std::shared_ptr<BlockProposer> getShared();
   void setNetwork(std::shared_ptr<Network> network) { network_ = network; }
   void proposeBlock(DagBlock& blk);
-  bool getShardedTrxs(vec_trx_t& sharded_trx, DagFrontier& frontier) {
-    return getShardedTrxs(total_trx_shards_, frontier, my_trx_shard_, sharded_trx);
-  }
+  bool getShardedTrxs(vec_trx_t& sharded_trx) { return getShardedTrxs(total_trx_shards_, my_trx_shard_, sharded_trx); }
   bool getLatestPivotAndTips(blk_hash_t& pivot, vec_blk_t& tips);
   level_t getProposeLevel(blk_hash_t const& pivot, vec_blk_t const& tips);
   blk_hash_t getProposeAnchor() const;
@@ -105,7 +105,7 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   friend ProposeModelFace;
 
  private:
-  bool getShardedTrxs(uint total_shard, DagFrontier& frontier, uint my_shard, vec_trx_t& sharded_trx);
+  bool getShardedTrxs(uint total_shard, uint my_shard, vec_trx_t& sharded_trx);
   addr_t getFullNodeAddress() const;
 
   inline static const uint16_t min_proposal_delay = 100;

@@ -92,7 +92,7 @@ TEST_F(CryptoTest, vrf_valid_Key) {
 }
 
 TEST_F(CryptoTest, vdf_sortition) {
-  vdf_sortition::VdfConfig vdf_config(255, 5, 10, 10, 1500);
+  vdf_sortition::VdfConfig vdf_config(0xffff, 0xe665, 5, 10, 10, 1500);
   vrf_sk_t sk(
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
       "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -107,11 +107,21 @@ TEST_F(CryptoTest, vdf_sortition) {
   EXPECT_TRUE(vdf3.verifyVdf(vdf_config, getRlpBytes(level), vdf_input.asBytes()));
   EXPECT_EQ(vdf, vdf2);
   EXPECT_EQ(vdf, vdf3);
-  std::cout << vdf << std::endl;
+
+  vdf_sortition::VdfConfig vdf_config_no_omit_no_stale(0xffff, 0, 5, 10, 10, 1500);
+  EXPECT_FALSE(vdf.isStale(vdf_config_no_omit_no_stale));
+  EXPECT_FALSE(vdf.omitVdf(vdf_config_no_omit_no_stale));
+
+  vdf_sortition::VdfConfig vdf_config_omit_no_stale(0xffff, 0xff00, 5, 10, 10, 1500);
+  EXPECT_FALSE(vdf.isStale(vdf_config_omit_no_stale));
+  EXPECT_TRUE(vdf.omitVdf(vdf_config_omit_no_stale));
+
+  vdf_sortition::VdfConfig vdf_config_stale(0xfff, 0, 5, 10, 10, 1500);
+  EXPECT_TRUE(vdf.isStale(vdf_config_stale));
 }
 
 TEST_F(CryptoTest, vdf_solution) {
-  vdf_sortition::VdfConfig vdf_config(255, 5, 10, 10, 1500);
+  vdf_sortition::VdfConfig vdf_config(0xffff, 0xe665, 5, 10, 10, 1500);
   vrf_sk_t sk(
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
       "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -133,7 +143,7 @@ TEST_F(CryptoTest, vdf_solution) {
 }
 
 TEST_F(CryptoTest, vdf_proof_verify) {
-  vdf_sortition::VdfConfig vdf_config(255, 5, 10, 10, 1500);
+  vdf_sortition::VdfConfig vdf_config(255, 0, 5, 10, 10, 1500);
   vrf_sk_t sk(
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
       "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -150,7 +160,7 @@ TEST_F(CryptoTest, vdf_proof_verify) {
 TEST_F(CryptoTest, DISABLED_compute_vdf_solution_cost_time) {
   // When difficulty_selection is 255, vdf_sortition.cpp getDifficulty() always
   // return difficulty_stale
-  vrf_sk_t sk(
+  /*vrf_sk_t sk(
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
       "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
   blk_hash_t last_anchor_hash = blk_hash_t("be67f76499af842b5c8e9d22194f19c04711199726b2224854af34365d351124");
@@ -211,7 +221,7 @@ TEST_F(CryptoTest, DISABLED_compute_vdf_solution_cost_time) {
   for (; i < vdf.output.size; i++) {
     std::cout << vdf.output[i] << ", " << vdf.output.hex()[i] << ", " << uint16_t(vdf.output[i]) << std::endl;
   }
-  std::cout << "size: " << i << std::endl;
+  std::cout << "size: " << i << std::endl;*/
 }
 
 TEST_F(CryptoTest, vrf_sortition) {

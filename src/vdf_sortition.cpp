@@ -7,7 +7,8 @@ namespace taraxa::vdf_sortition {
 
 Json::Value enc_json(VdfConfig const& obj) {
   Json::Value ret(Json::objectValue);
-  ret["difficulty_selection"] = dev::toJS(obj.difficulty_selection);
+  ret["threshold_selection"] = dev::toJS(obj.threshold_selection);
+  ret["threshold_vdf_omit"] = dev::toJS(obj.threshold_vdf_omit);
   ret["difficulty_min"] = dev::toJS(obj.difficulty_min);
   ret["difficulty_max"] = dev::toJS(obj.difficulty_max);
   ret["difficulty_stale"] = dev::toJS(obj.difficulty_stale);
@@ -16,7 +17,8 @@ Json::Value enc_json(VdfConfig const& obj) {
 }
 
 void dec_json(Json::Value const& json, VdfConfig& obj) {
-  obj.difficulty_selection = dev::jsToInt(json["difficulty_selection"].asString());
+  obj.threshold_selection = dev::jsToInt(json["threshold_selection"].asString());
+  obj.threshold_vdf_omit = dev::jsToInt(json["threshold_vdf_omit"].asString());
   obj.difficulty_min = dev::jsToInt(json["difficulty_min"].asString());
   obj.difficulty_max = dev::jsToInt(json["difficulty_max"].asString());
   obj.difficulty_stale = dev::jsToInt(json["difficulty_stale"].asString());
@@ -29,13 +31,18 @@ VdfSortition::VdfSortition(VdfConfig const& config, addr_t node_addr, vrf_sk_t c
   difficulty_ = calculateDifficulty(config);
 }
 
+bool VdfSortition::omitVdf(VdfConfig const& config) const { return threshold <= config.threshold_vdf_omit; }
+
+bool VdfSortition::isStale(VdfConfig const& config) const { return threshold > config.threshold_selection; }
+
 uint16_t VdfSortition::calculateDifficulty(VdfConfig const& config) const {
-  uint16_t difficulty;
-  uint16_t t = uint16_t(output[0]);  // First byte, each byte value [0, 255]
-  if (t <= config.difficulty_selection) {
-    difficulty = config.difficulty_min + t % (config.difficulty_max - config.difficulty_min);
-  } else {
-    difficulty = config.difficulty_stale;
+  uint16_t difficulty = 0;
+  if (!omitVdf(config)) {
+    if (isStale(config)) {
+      difficulty = config.difficulty_stale;
+    } else {
+      difficulty = config.difficulty_min + threshold % (config.difficulty_max - config.difficulty_min);
+    }
   }
   return difficulty;
 }
@@ -90,13 +97,15 @@ Json::Value VdfSortition::getJson() const {
 }
 
 void VdfSortition::computeVdfSolution(VdfConfig const& config, bytes const& msg) {
-  auto t1 = getCurrentTimeMilliSeconds();
-  VerifierWesolowski verifier(config.lambda_bound, difficulty_, msg, N);
+  if (!omitVdf(config)) {
+    auto t1 = getCurrentTimeMilliSeconds();
+    VerifierWesolowski verifier(config.lambda_bound, difficulty_, msg, N);
 
-  ProverWesolowski prover;
-  vdf_sol_ = prover(verifier);  // this line takes time ...
-  auto t2 = getCurrentTimeMilliSeconds();
-  vdf_computation_time_ = t2 - t1;
+    ProverWesolowski prover;
+    vdf_sol_ = prover(verifier);  // this line takes time ...
+    auto t2 = getCurrentTimeMilliSeconds();
+    vdf_computation_time_ = t2 - t1;
+  }
 }
 
 bool VdfSortition::verifyVdf(VdfConfig const& config, bytes const& vrf_input, bytes const& vdf_input) {
@@ -107,18 +116,20 @@ bool VdfSortition::verifyVdf(VdfConfig const& config, bytes const& vrf_input, by
     return false;
   }
 
-  if (difficulty_ != calculateDifficulty(config)) {
-    LOG(log_er_) << "VDF solution verification failed. Incorrect difficulty. VDF input " << vdf_input << ", lambda "
-                 << config.lambda_bound << ", difficulty " << getDifficulty();
-    return false;
-  }
+  if (!omitVdf(config)) {
+    if (difficulty_ != calculateDifficulty(config)) {
+      LOG(log_er_) << "VDF solution verification failed. Incorrect difficulty. VDF input " << vdf_input << ", lambda "
+                   << config.lambda_bound << ", difficulty " << getDifficulty();
+      return false;
+    }
 
-  // Verify VDF solution
-  VerifierWesolowski verifier(config.lambda_bound, getDifficulty(), vdf_input, N);
-  if (!verifier(vdf_sol_)) {
-    LOG(log_er_) << "VDF solution verification failed. VDF input " << vdf_input << ", lambda " << config.lambda_bound
-                 << ", difficulty " << getDifficulty();
-    return false;
+    // Verify VDF solution
+    VerifierWesolowski verifier(config.lambda_bound, getDifficulty(), vdf_input, N);
+    if (!verifier(vdf_sol_)) {
+      LOG(log_er_) << "VDF solution verification failed. VDF input " << vdf_input << ", lambda " << config.lambda_bound
+                   << ", difficulty " << getDifficulty();
+      return false;
+    }
   }
 
   return true;

@@ -299,10 +299,9 @@ DagManager::DagManager(std::string const &genesis, addr_t node_addr, std::shared
   string pivot;
   std::vector<std::string> tips;
   getLatestPivotAndTips(pivot, tips);
-  DagFrontier frontier;
-  frontier.pivot = blk_hash_t(pivot);
-  if (trx_mgr) {
-    trx_mgr->setDagFrontier(frontier);
+  frontier_.pivot = blk_hash_t(pivot);
+  for (auto const &t : tips) {
+    frontier_.tips.emplace_back(blk_hash_t(t));
   }
   recoverDag();
 } catch (std::exception &e) {
@@ -363,9 +362,13 @@ bool DagManager::pivotAndTipsAvailable(DagBlock const &blk) {
   return true;
 }
 
+DagFrontier DagManager::getDagFrontier() {
+  uLock lock(mutex_);
+  return frontier_;
+}
+
 void DagManager::addDagBlock(DagBlock const &blk, bool finalized, bool save) {
   auto write_batch = db_->createWriteBatch();
-  DagFrontier frontier;
   {
     uLock lock(mutex_);
     if (save) {
@@ -387,17 +390,15 @@ void DagManager::addDagBlock(DagBlock const &blk, bool finalized, bool save) {
     addToDag(blk_hash_str, pivot_hash.toString(), tips, blk.getLevel(), write_batch, finalized);
 
     auto [p, ts] = getFrontier();
-    frontier.pivot = blk_hash_t(p);
+    frontier_.pivot = blk_hash_t(p);
+    frontier_.tips.clear();
     for (auto const &t : ts) {
-      frontier.tips.emplace_back(blk_hash_t(t));
+      frontier_.tips.emplace_back(blk_hash_t(t));
     }
     db_->commitWriteBatch(write_batch);
   }
-  if (trx_mgr_) {
-    trx_mgr_->setDagFrontier(frontier);
-  }
-  LOG(log_dg_) << " Update nonce table of blk " << blk.getHash() << "anchor " << anchor_
-               << " pivot = " << frontier.pivot << " tips: " << frontier.tips;
+  LOG(log_dg_) << " Update frontier after adding block " << blk.getHash() << "anchor " << anchor_
+               << " pivot = " << frontier_.pivot << " tips: " << frontier_.tips;
 }
 
 void DagManager::drawGraph(std::string const &dotfile) const {
