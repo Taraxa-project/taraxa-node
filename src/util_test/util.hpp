@@ -126,8 +126,8 @@ inline auto make_node_cfgs(uint count) {
     for (auto& cfg : ret) {
       if constexpr (tests_speed != 1) {
         // VDF config
-        cfg.chain.vdf.threshold_selection = 255;
-        cfg.chain.vdf.threshold_vdf_omit = 230;
+        cfg.chain.vdf.threshold_selection = 0xffff;
+        cfg.chain.vdf.threshold_vdf_omit = 0xe665;
         cfg.chain.vdf.difficulty_min = 0;
         cfg.chain.vdf.difficulty_max = 5;
         cfg.chain.vdf.difficulty_stale = 5;

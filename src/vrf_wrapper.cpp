@@ -44,6 +44,7 @@ bool VrfSortitionBase::verify(bytes const &msg) {
   auto res = vrf_wrapper::getVrfOutput(pk, proof, msg);
   if (res != std::nullopt) {
     output = res.value();
+    thresholdFromOutput();
     return true;
   }
   return false;

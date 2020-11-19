@@ -182,8 +182,7 @@ TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
     trx_mgr.stop();
   });
   do {
-    DagFrontier frontier;
-    trx_mgr.packTrxs(packed_trxs, frontier);
+    trx_mgr.packTrxs(packed_trxs);
     total_packed_trxs.insert(total_packed_trxs.end(), packed_trxs.begin(), packed_trxs.end());
     thisThreadSleepForMicroSeconds(100);
   } while (!packed_trxs.empty());

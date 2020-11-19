@@ -70,7 +70,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   /**
    * The following function will require a lock for verified qu
    */
-  void packTrxs(vec_trx_t &to_be_packed_trx, DagFrontier &frontier, uint16_t max_trx_to_pack = 0);
+  void packTrxs(vec_trx_t &to_be_packed_trx, uint16_t max_trx_to_pack = 0);
   void setVerifyMode(VerifyMode mode) { mode_ = mode; }
 
   // Insert new transaction to unverified queue or if verify flag true
@@ -95,10 +95,8 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   bool saveBlockTransactionAndDeduplicate(DagBlock const &blk, std::vector<Transaction> const &some_trxs);
 
   TransactionQueue &getTransactionQueue() { return trx_qu_; }
-  void setDagFrontier(DagFrontier const &frontier);
 
  private:
-  DagFrontier getDagFrontier();
   void verifyQueuedTrxs();
   size_t num_verifiers_ = 4;
   addr_t getFullNodeAddress() const;
@@ -106,7 +104,6 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   std::atomic<bool> stopped_ = true;
   std::shared_ptr<DbStorage> db_ = nullptr;
   TransactionQueue trx_qu_;
-  DagFrontier dag_frontier_;  // Dag boundary seen up to now
   std::atomic<unsigned long> trx_count_ = 0;
   FullNodeConfig conf_;
   std::vector<std::thread> verifiers_;
@@ -120,7 +117,6 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
 
   mutable std::mutex mu_for_nonce_table_;
   mutable std::mutex mu_for_transactions_;
-  mutable std::shared_mutex mu_for_dag_frontier_;
   LOG_OBJECTS_DEFINE;
 };
 }  // namespace taraxa

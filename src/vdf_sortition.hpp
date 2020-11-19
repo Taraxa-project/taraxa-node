@@ -24,7 +24,7 @@ struct VdfConfig {
         difficulty_max(vdf_config.difficulty_max),
         difficulty_stale(vdf_config.difficulty_stale),
         lambda_bound(vdf_config.lambda_bound) {}
-  VdfConfig(uint8_t const selection, uint8_t const threshold_vdf_omit, uint16_t const min, uint16_t const max,
+  VdfConfig(uint16_t const selection, uint16_t const threshold_vdf_omit, uint16_t const min, uint16_t const max,
             uint16_t const stale, uint16_t const lambda_max_bound)
       : threshold_selection(selection),
         threshold_vdf_omit(threshold_vdf_omit),
@@ -44,8 +44,8 @@ struct VdfConfig {
     return strm;
   }
 
-  uint8_t threshold_selection = 0;
-  uint8_t threshold_vdf_omit = 0;
+  uint16_t threshold_selection = 0;
+  uint16_t threshold_vdf_omit = 0;
   uint16_t difficulty_min = 0;
   uint16_t difficulty_max = 1;
   uint16_t difficulty_stale = 0;

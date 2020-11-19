@@ -19,12 +19,14 @@ bool SortitionPropose::propose() {
     return false;
   }
 
-  vec_trx_t sharded_trxs;
-  DagFrontier frontier;
-  bool ok = proposer->getShardedTrxs(sharded_trxs, frontier);
-  if (!ok) {
+  if (trx_mgr_->getTransactionQueueSize().second == 0) {
     return false;
   }
+
+  vec_trx_t sharded_trxs;
+  DagFrontier frontier = dag_mgr_->getDagFrontier();
+  LOG(log_dg_) << " Get frontier with pivot: " << frontier.pivot << " tips: " << frontier.tips;
+
   assert(!frontier.pivot.isZero());
   auto propose_level = proposer->getProposeLevel(frontier.pivot, frontier.tips) + 1;
 
@@ -46,6 +48,10 @@ bool SortitionPropose::propose() {
     }
   }
   vdf.computeVdfSolution(vdf_config_, frontier.pivot.asBytes());
+  bool ok = proposer->getShardedTrxs(sharded_trxs);  //????? before compute?
+  if (!ok) {
+    return false;
+  }
   LOG(log_nf_) << "VDF computation time " << vdf.getComputationTime() << " difficulty " << vdf.getDifficulty();
 
   DagBlock blk(frontier.pivot, propose_level, frontier.tips, sharded_trxs, vdf);
@@ -112,27 +118,9 @@ bool BlockProposer::getLatestPivotAndTips(blk_hash_t& pivot, vec_blk_t& tips) {
   return ok;
 }
 
-bool BlockProposer::getShardedTrxs(uint total_shard, DagFrontier& frontier, uint my_shard, vec_trx_t& sharded_trxs) {
+bool BlockProposer::getShardedTrxs(uint total_shard, uint my_shard, vec_trx_t& sharded_trxs) {
   vec_trx_t to_be_packed_trx;
-  trx_mgr_->packTrxs(to_be_packed_trx, frontier, bp_config_.transaction_limit);
-  // Need to update pivot incase a new period is confirmed
-  std::vector<std::string> ghost;
-  if (dag_mgr_) {
-    dag_mgr_->getGhostPath(ghost);
-    vec_blk_t gg;
-    std::transform(ghost.begin(), ghost.end(), std::back_inserter(gg),
-                   [](std::string const& t) { return blk_hash_t(t); });
-    for (auto const& g : gg) {
-      if (g == frontier.pivot) {  // pivot does not change
-        break;
-      }
-      auto iter = std::find(frontier.tips.begin(), frontier.tips.end(), g);
-      if (iter != std::end(frontier.tips)) {
-        std::swap(frontier.pivot, *iter);
-        LOG(log_si_) << " Swap frontier with pivot: " << *iter << " tips: " << frontier.pivot;
-      }
-    }
-  }
+  trx_mgr_->packTrxs(to_be_packed_trx, bp_config_.transaction_limit);
 
   if (to_be_packed_trx.empty()) {
     LOG(log_tr_) << "Skip block proposer, zero unpacked transactions ..." << std::endl;

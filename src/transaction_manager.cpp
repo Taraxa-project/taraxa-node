@@ -293,12 +293,9 @@ std::pair<bool, std::string> TransactionManager::insertTrx(Transaction const &tr
  * 3. propose transactions for block A
  * 4. update A, B and C status to seen_in_db
  */
-void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx, DagFrontier &frontier, uint16_t max_trx_to_pack) {
+void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx, uint16_t max_trx_to_pack) {
   to_be_packed_trx.clear();
   std::list<Transaction> list_trxs;
-
-  frontier = getDagFrontier();
-  LOG(log_dg_) << " Get frontier with pivot: " << frontier.pivot << " tips: " << frontier.tips;
 
   auto verified_trx = trx_qu_.moveVerifiedTrxSnapShot(max_trx_to_pack);
 
@@ -361,18 +358,6 @@ bool TransactionManager::verifyBlockTransactions(DagBlock const &blk, std::vecto
     return false;
   }
   return true;
-}
-
-DagFrontier TransactionManager::getDagFrontier() {
-  std::shared_lock l(mu_for_dag_frontier_);
-  return dag_frontier_;
-}
-
-void TransactionManager::setDagFrontier(DagFrontier const &frontier) {
-  std::unique_lock l(mu_for_dag_frontier_);
-  LOG(log_dg_) << " Update Frontier : " << frontier.pivot << " tips: " << frontier.tips
-               << " dag_frontier: " << dag_frontier_.pivot << " dag_tips: " << dag_frontier_.tips;
-  dag_frontier_ = frontier;
 }
 
 }  // namespace taraxa

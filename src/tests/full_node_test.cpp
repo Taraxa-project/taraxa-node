@@ -717,7 +717,6 @@ TEST_F(FullNodeTest, sync_two_nodes1) {
     num_vertices2 = nodes[1]->getDagManager()->getNumVerticesInDag();
   }
   EXPECT_GE(num_vertices1.first, 3);
-  EXPECT_GE(num_vertices2.second, 3);
   EXPECT_EQ(num_vertices1, num_vertices2);
 }
 
@@ -816,7 +815,6 @@ TEST_F(FullNodeTest, sync_two_nodes2) {
     vertices2 = nodes[1]->getDagManager()->getNumVerticesInDag();
   }
   EXPECT_GE(vertices1.first, 3);
-  EXPECT_GE(vertices1.second, 3);
   EXPECT_EQ(vertices1, vertices2);
 }
 
@@ -1164,8 +1162,8 @@ TEST_F(FullNodeTest, chain_config_json) {
 		"difficulty_min" : "0xf",
     "difficulty_stale" : "0x16",
 		"lambda_bound" : "0x5dc",
-		"threshold_selection" : "0x80",
-		"threshold_vdf_omit" : "0x72"
+		"threshold_selection" : "0x8000",
+		"threshold_vdf_omit" : "0x7200"
 	}
 
 })";

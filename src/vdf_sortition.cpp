@@ -7,8 +7,8 @@ namespace taraxa::vdf_sortition {
 
 Json::Value enc_json(VdfConfig const& obj) {
   Json::Value ret(Json::objectValue);
-  ret["threshold_selection"] = dev::toJS((uint16_t)obj.threshold_selection);
-  ret["threshold_vdf_omit"] = dev::toJS((uint16_t)obj.threshold_vdf_omit);
+  ret["threshold_selection"] = dev::toJS(obj.threshold_selection);
+  ret["threshold_vdf_omit"] = dev::toJS(obj.threshold_vdf_omit);
   ret["difficulty_min"] = dev::toJS(obj.difficulty_min);
   ret["difficulty_max"] = dev::toJS(obj.difficulty_max);
   ret["difficulty_stale"] = dev::toJS(obj.difficulty_stale);
@@ -28,21 +28,21 @@ void dec_json(Json::Value const& json, VdfConfig& obj) {
 VdfSortition::VdfSortition(VdfConfig const& config, addr_t node_addr, vrf_sk_t const& sk, bytes const& msg)
     : VrfSortitionBase(sk, msg) {
   LOG_OBJECTS_CREATE("VDF");
-  if (!omitVdf(config)) {
-    difficulty_ = calculateDifficulty(config);
-  }
+  difficulty_ = calculateDifficulty(config);
 }
 
-bool VdfSortition::omitVdf(VdfConfig const& config) const { return output[0] <= config.threshold_vdf_omit; }
+bool VdfSortition::omitVdf(VdfConfig const& config) const { return threshold <= config.threshold_vdf_omit; }
 
-bool VdfSortition::isStale(VdfConfig const& config) const { return output[0] > config.threshold_selection; }
+bool VdfSortition::isStale(VdfConfig const& config) const { return threshold > config.threshold_selection; }
 
 uint16_t VdfSortition::calculateDifficulty(VdfConfig const& config) const {
-  uint16_t difficulty;
-  uint16_t t = uint16_t(output[0]);  // First byte, each byte value [0, 255]
-  difficulty = config.difficulty_min + t % (config.difficulty_max - config.difficulty_min);
-  if (isStale(config) && difficulty > config.difficulty_stale) {
-    difficulty = config.difficulty_stale;
+  uint16_t difficulty = 0;
+  if (!omitVdf(config)) {
+    if (isStale(config)) {
+      difficulty = config.difficulty_stale;
+    } else {
+      difficulty = config.difficulty_min + threshold % (config.difficulty_max - config.difficulty_min);
+    }
   }
   return difficulty;
 }
@@ -97,13 +97,15 @@ Json::Value VdfSortition::getJson() const {
 }
 
 void VdfSortition::computeVdfSolution(VdfConfig const& config, bytes const& msg) {
-  auto t1 = getCurrentTimeMilliSeconds();
-  VerifierWesolowski verifier(config.lambda_bound, difficulty_, msg, N);
+  if (!omitVdf(config)) {
+    auto t1 = getCurrentTimeMilliSeconds();
+    VerifierWesolowski verifier(config.lambda_bound, difficulty_, msg, N);
 
-  ProverWesolowski prover;
-  vdf_sol_ = prover(verifier);  // this line takes time ...
-  auto t2 = getCurrentTimeMilliSeconds();
-  vdf_computation_time_ = t2 - t1;
+    ProverWesolowski prover;
+    vdf_sol_ = prover(verifier);  // this line takes time ...
+    auto t2 = getCurrentTimeMilliSeconds();
+    vdf_computation_time_ = t2 - t1;
+  }
 }
 
 bool VdfSortition::verifyVdf(VdfConfig const& config, bytes const& vrf_input, bytes const& vdf_input) {
