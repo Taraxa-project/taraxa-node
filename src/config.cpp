@@ -68,7 +68,7 @@ bool getConfigDataAsBoolean(Json::Value const &root, std::vector<string> const &
 
 Json::Value getJsonFromFileOrString(Json::Value const &value) {
   if (value.isString()) {
-    json_file_name = value.asString();
+    std::string json_file_name = value.asString();
     if (!json_file_name.empty()) {
       std::ifstream config_doc(json_file_name, std::ifstream::binary);
       if (!config_doc.is_open()) {
@@ -90,6 +90,9 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object,
                                Json::Value const &chain_file_name_str_or_json_object) {
   Json::Value chain_parsed_from_file = getJsonFromFileOrString(chain_file_name_str_or_json_object);
   Json::Value parsed_from_file = getJsonFromFileOrString(string_or_object);
+  if (string_or_object.isString()) {
+    json_file_name = string_or_object.asString();
+  }
   auto const &root = string_or_object.isString() ? parsed_from_file : string_or_object;
   node_secret = getConfigDataAsString(root, {"node_secret"});
   vrf_secret = vrf_wrapper::vrf_sk_t(getConfigDataAsString(root, {"vrf_secret"}));
