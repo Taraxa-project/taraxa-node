@@ -202,11 +202,6 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object,
     chain = ChainConfig::predefined();
   }
 
-  if (chain_parsed_from_file.isString()) {
-    chain = ChainConfig::predefined();
-  } else if (chain_parsed_from_file.isObject()) {
-    dec_json(chain_parsed_from_file, chain);
-  }
   network.network_id = chain.chain_id;
   // TODO configurable
   opts_final_chain.state_api.ExpectedMaxTrxPerBlock = 1000;
