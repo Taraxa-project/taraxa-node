@@ -66,20 +66,30 @@ bool getConfigDataAsBoolean(Json::Value const &root, std::vector<string> const &
   }
 }
 
-FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object) {
-  Json::Value parsed_from_file;
-  if (string_or_object.isString()) {
-    json_file_name = string_or_object.asString();
-    std::ifstream config_doc(json_file_name, std::ifstream::binary);
-    if (!config_doc.is_open()) {
-      throw ConfigException(string("Could not open configuration file: ") + json_file_name);
-    }
-    try {
-      config_doc >> parsed_from_file;
-    } catch (Json::Exception &e) {
-      throw ConfigException(string("Could not parse json configuration file: ") + json_file_name + e.what());
+Json::Value getJsonFromFileOrString(Json::Value const &value) {
+  if (value.isString()) {
+    json_file_name = value.asString();
+    if (!json_file_name.empty()) {
+      std::ifstream config_doc(json_file_name, std::ifstream::binary);
+      if (!config_doc.is_open()) {
+        throw ConfigException(string("Could not open configuration file: ") + json_file_name);
+      }
+      try {
+        Json::Value parsed_from_file;
+        config_doc >> parsed_from_file;
+        return parsed_from_file;
+      } catch (Json::Exception &e) {
+        throw ConfigException(string("Could not parse json configuration file: ") + json_file_name + e.what());
+      }
     }
   }
+  return value;
+}
+
+FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object,
+                               Json::Value const &chain_file_name_str_or_json_object) {
+  Json::Value chain_parsed_from_file = getJsonFromFileOrString(chain_file_name_str_or_json_object);
+  Json::Value parsed_from_file = getJsonFromFileOrString(string_or_object);
   auto const &root = string_or_object.isString() ? parsed_from_file : string_or_object;
   node_secret = getConfigDataAsString(root, {"node_secret"});
   vrf_secret = vrf_wrapper::vrf_sk_t(getConfigDataAsString(root, {"vrf_secret"}));
@@ -177,12 +187,22 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object) {
       }
     }
   }
-  if (auto const &v = root["chain_config"]; v.isString()) {
+  if (chain_parsed_from_file.isString() && !chain_parsed_from_file.asString().empty()) {
+    chain = ChainConfig::predefined(chain_parsed_from_file.asString());
+  } else if (chain_parsed_from_file.isObject()) {
+    dec_json(chain_parsed_from_file, chain);
+  } else if (auto const &v = root["chain_config"]; v.isString()) {
     chain = ChainConfig::predefined(v.asString());
   } else if (v.isObject()) {
     dec_json(v, chain);
   } else {
     chain = ChainConfig::predefined();
+  }
+
+  if (chain_parsed_from_file.isString()) {
+    chain = ChainConfig::predefined();
+  } else if (chain_parsed_from_file.isObject()) {
+    dec_json(chain_parsed_from_file, chain);
   }
   network.network_id = chain.chain_id;
   // TODO configurable
