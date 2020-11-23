@@ -33,6 +33,8 @@ class Executor {
 
   void executePbftBlocks_();
 
+  uint32_t sleep_;
+
   unique_ptr<ReplayProtectionService> replay_protection_service_;
   std::shared_ptr<DbStorage> db_ = nullptr;
   std::shared_ptr<DagManager> dag_mgr_ = nullptr;

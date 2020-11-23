@@ -1086,7 +1086,6 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync, 
     auto end_1 = edges_0_to_1[i_0 + 1];
     s.appendList(end_1 - start_1);
     for (uint i_1 = start_1; i_1 < end_1; ++i_1) {
-      s.appendList(2);
       s.appendRaw(level_1[i_1]);
       auto start_2 = edges_1_to_2[i_1];
       auto end_2 = edges_1_to_2[i_1 + 1];
