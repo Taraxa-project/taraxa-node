@@ -8,9 +8,8 @@
 
 #include "pbft_manager.hpp"
 
-#include <libdevcore/SHA3.h>
-
 #include <chrono>
+#include <libdevcore/SHA3.h>
 #include <string>
 
 #include "dag.hpp"
