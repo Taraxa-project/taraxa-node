@@ -100,11 +100,10 @@ void FullNode::init() {
           conf_.test_params.max_block_queue_warn);
   emplace(vote_mgr_, node_addr, final_chain_, pbft_chain_);
   emplace(trx_order_mgr_, node_addr, db_);
-  emplace(executor_, node_addr, db_, dag_mgr_, trx_mgr_, final_chain_, pbft_chain_,
+  emplace(executor_, conf_.chain.pbft.lambda_ms_min, node_addr, db_, dag_mgr_, trx_mgr_, final_chain_, pbft_chain_,
           conf_.test_params.block_proposer.transaction_limit);
   emplace(pbft_mgr_, conf_.chain.pbft, genesis_hash, node_addr, db_, pbft_chain_, vote_mgr_, dag_mgr_, blk_mgr_,
-          final_chain_, trx_order_mgr_, trx_mgr_, executor_, kp_.secret(), conf_.vrf_secret,
-          conf_.opts_final_chain.state_api.ExpectedMaxTrxPerBlock);
+          final_chain_, kp_.secret(), conf_.vrf_secret);
   emplace(blk_proposer_, conf_.test_params.block_proposer, conf_.chain.vdf, dag_mgr_, trx_mgr_, blk_mgr_, node_addr,
           getSecretKey(), getVrfSecretKey(), log_time_);
   emplace(network_, conf_.network, conf_.net_file_path().string(), kp_.secret(), genesis_hash, node_addr, db_,
@@ -122,10 +121,7 @@ void FullNode::init() {
     emplace(jsonrpc_ws_, *jsonrpc_io_ctx_, boost::asio::ip::tcp::endpoint{conf_.rpc.address, *port}, node_addr);
   }
   if (jsonrpc_io_ctx_) {
-    emplace(jsonrpc_api_,
-            new net::Test(getShared()),    //
-            new net::Taraxa(getShared()),  //
-            new net::Net(getShared()),
+    emplace(jsonrpc_api_, new net::Test(getShared()), new net::Taraxa(getShared()), new net::Net(getShared()),
             new dev::rpc::Eth(aleth::NewNodeAPI(conf_.chain.chain_id, kp_.secret(),
                                                 [this](auto const &trx) {
                                                   auto [ok, err_msg] = trx_mgr_->insertTransaction(trx, true);
@@ -137,11 +133,8 @@ void FullNode::init() {
                                                                           dev::toJS(*trx.rlp()), err_msg)));
                                                   }
                                                 }),
-                              trx_mgr_->getFilterAPI(),
-                              aleth::NewStateAPI(final_chain_),  //
-                              trx_mgr_->getPendingBlock(),
-                              final_chain_,  //
-                              [] { return 0; }));
+                              trx_mgr_->getFilterAPI(), aleth::NewStateAPI(final_chain_), trx_mgr_->getPendingBlock(),
+                              final_chain_, [] { return 0; }));
     if (jsonrpc_http_) {
       jsonrpc_api_->addConnector(jsonrpc_http_);
     }
@@ -217,7 +210,6 @@ void FullNode::start() {
     if (jsonrpc_ws_) {
       jsonrpc_ws_->run();
       trx_mgr_->setWsServer(jsonrpc_ws_);
-      //      pbft_mgr_->setWSServer(jsonrpc_ws_);
       executor_->setWSServer(jsonrpc_ws_);
     }
     emplace(jsonrpc_thread_, [this] { jsonrpc_io_ctx_->run(); });
@@ -249,7 +241,6 @@ void FullNode::close() {
     jsonrpc_io_ctx_->stop();
     jsonrpc_thread_->join();
     trx_mgr_->setWsServer(nullptr);
-    //    pbft_mgr_->setWSServer(nullptr);
     executor_->setWSServer(nullptr);
   }
   LOG(log_nf_) << "Node stopped ... ";

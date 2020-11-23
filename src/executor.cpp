@@ -9,11 +9,13 @@ struct ReplayProtectionServiceDummy : ReplayProtectionService {
   void update(DbStorage::BatchPtr batch, round_t round, util::RangeView<TransactionInfo> const &trxs) override {}
 };
 
-Executor::Executor(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<DagManager> dag_mgr,
+Executor::Executor(uint32_t pbft_lambda_time, addr_t node_addr, std::shared_ptr<DbStorage> db,
+                   std::shared_ptr<DagManager> dag_mgr,
                    std::shared_ptr<TransactionManager> trx_mgr,
                    std::shared_ptr<FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain,
                    uint32_t expected_max_trx_per_block)
     : replay_protection_service_(new ReplayProtectionServiceDummy),
+      sleep_(pbft_lambda_time),  // one PBFT lambda time
       node_addr_(node_addr),
       db_(db),
       dag_mgr_(dag_mgr),
@@ -50,19 +52,12 @@ void Executor::run() {
   LOG(log_nf_) << "Executor run...";
   while (!stopped_) {
     executePbftBlocks_();
-    thisThreadSleepForMilliSeconds(sleep);
+    thisThreadSleepForMilliSeconds(sleep_);
   }
 }
 
-// void Executor::pushPbftBlockCertVotes(PbftBlockCert const& pbft_block_cert_votes) {
-//   unexecuted_pbft_blocks_.emplace_back(pbft_block_cert_votes);
-// }
-
 void Executor::executePbftBlocks_() {
   while (!pbft_chain_->unexecutedPbftBlocksEmpty()) {
-//  while (!unexecuted_pbft_blocks_.empty()) {
-//    auto pbft_block_cert_votes = unexecuted_pbft_blocks_.front();
-//    unexecuted_pbft_blocks_.pop_front();
     auto pbft_block_cert_votes = pbft_chain_->unexecutedPbftBlocksFront();
     auto pbft_block = pbft_block_cert_votes.pbft_blk;
     auto const& cert_votes = pbft_block_cert_votes.cert_votes;
@@ -135,16 +130,16 @@ void Executor::executePbftBlocks_() {
       db_->addDagBlockPeriodToBatch(blk_hash, pbft_period, batch);
     }
     auto const &pbft_block_hash = pbft_block->getBlockHash();
-//    // Add cert votes in DB
-//    db_->addPbftCertVotesToBatch(pbft_block_hash, cert_votes, batch);
-//    LOG(log_nf_) << "Storing cert votes of pbft blk " << pbft_block_hash << "\n" << cert_votes;
+    // Add cert votes in DB
+    db_->addPbftCertVotesToBatch(pbft_block_hash, cert_votes, batch);
+    LOG(log_nf_) << "Storing cert votes of pbft blk " << pbft_block_hash << "\n" << cert_votes;
     // Add PBFT block in DB
     db_->addPbftBlockToBatch(*pbft_block, batch);
     // Add period_pbft_block in DB
     db_->addPbftBlockPeriodToBatch(pbft_period, pbft_block_hash, batch);
-//    // Update pbft chain
-//    // TODO: Should remove PBFT chain head from DB. After remove PBFT chain head from DB, update pbft chain should after DB commit
-//    pbft_chain_->updatePbftChain(pbft_block_hash);
+    // Update pbft chain
+    // TODO: Should remove PBFT chain head from DB. After remove PBFT chain head from DB, update pbft chain should after DB commit
+    pbft_chain_->updatePbftChain(pbft_block_hash);
     // Update PBFT chain head block
     db_->addPbftHeadToBatch(pbft_chain_->getHeadHash(), pbft_chain_->getJsonStr(), batch);
     // Set DAG blocks period
@@ -168,10 +163,6 @@ void Executor::executePbftBlocks_() {
       final_chain_->create_snapshot(pbft_period);
     }
 
-//    // Update pbft chain last block hash
-//    pbft_chain_last_block_hash_ = pbft_block_hash;
-//    assert(pbft_chain_last_block_hash_ == pbft_chain_->getLastPbftBlockHash());
-
     // Ethereum filter
     trx_mgr_->getFilterAPI()->note_block(new_eth_header.hash());
     trx_mgr_->getFilterAPI()->note_receipts(trx_receipts);
@@ -183,10 +174,6 @@ void Executor::executePbftBlocks_() {
       ws_server_->newEthBlock(new_eth_header);
     }
     LOG(log_nf_) << node_addr_ << " successful execute pbft block " << pbft_block_hash << " in period " << pbft_period;
-
-//    // Reset proposed PBFT block hash to False for next pbft block proposal
-//    proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
-//    executed_pbft_block_ = true;
   }
 }
 
