@@ -144,8 +144,8 @@ class PbftChain {
   mutable boost::shared_mutex chain_head_access_;
   mutable boost::shared_mutex unexecuted_access_;
 
-  blk_hash_t head_hash_;             // pbft head hash
-  blk_hash_t dag_genesis_hash_;      // dag genesis at height 1
+  blk_hash_t head_hash_;                      // pbft head hash
+  blk_hash_t dag_genesis_hash_;               // dag genesis at height 1
   uint64_t executed_size_;                    // PBFT blocks size in DB
   blk_hash_t executed_last_pbft_block_hash_;  // last PBFT block in DB
 

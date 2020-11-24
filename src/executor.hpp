@@ -16,9 +16,10 @@ namespace taraxa {
 
 class Executor {
  public:
-  Executor(uint32_t pbft_lambda_time, addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<DagManager> dag_mgr,
-           std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<FinalChain> final_chain,
-           std::shared_ptr<PbftChain> pbft_chain, uint32_t expected_max_trx_per_block);
+  Executor(uint32_t pbft_lambda_time, addr_t node_addr, std::shared_ptr<DbStorage> db,
+           std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr,
+           std::shared_ptr<FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain,
+           uint32_t expected_max_trx_per_block);
   ~Executor();
 
   void setWSServer(std::shared_ptr<net::WSServer> ws_server);

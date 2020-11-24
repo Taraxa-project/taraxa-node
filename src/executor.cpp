@@ -10,8 +10,7 @@ struct ReplayProtectionServiceDummy : ReplayProtectionService {
 };
 
 Executor::Executor(uint32_t pbft_lambda_time, addr_t node_addr, std::shared_ptr<DbStorage> db,
-                   std::shared_ptr<DagManager> dag_mgr,
-                   std::shared_ptr<TransactionManager> trx_mgr,
+                   std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr,
                    std::shared_ptr<FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain,
                    uint32_t expected_max_trx_per_block)
     : replay_protection_service_(new ReplayProtectionServiceDummy),
@@ -60,7 +59,7 @@ void Executor::executePbftBlocks_() {
   while (!pbft_chain_->unexecutedPbftBlocksEmpty()) {
     auto pbft_block_cert_votes = pbft_chain_->unexecutedPbftBlocksFront();
     auto pbft_block = pbft_block_cert_votes.pbft_blk;
-    auto const& cert_votes = pbft_block_cert_votes.cert_votes;
+    auto const &cert_votes = pbft_block_cert_votes.cert_votes;
 
     auto const &anchor_hash = pbft_block->getPivotDagBlockHash();
     auto finalized_dag_blk_hashes = std::move(*dag_mgr_->getDagBlockOrder(anchor_hash).second);
@@ -138,13 +137,15 @@ void Executor::executePbftBlocks_() {
     // Add period_pbft_block in DB
     db_->addPbftBlockPeriodToBatch(pbft_period, pbft_block_hash, batch);
     // Update pbft chain
-    // TODO: Should remove PBFT chain head from DB. After remove PBFT chain head from DB, update pbft chain should after DB commit
+    // TODO: Should remove PBFT chain head from DB. After remove PBFT chain head from DB, update pbft chain should after
+    // DB commit
     pbft_chain_->updatePbftChain(pbft_block_hash);
     // Update PBFT chain head block
     db_->addPbftHeadToBatch(pbft_chain_->getHeadHash(), pbft_chain_->getJsonStr(), batch);
     // Set DAG blocks period
     dag_mgr_->setDagBlockOrder(anchor_hash, pbft_period, finalized_dag_blk_hashes, batch);
-    // Remove executed transactions at Ethereum pending block. The Ethereum pending block is same with latest block at Taraxa
+    // Remove executed transactions at Ethereum pending block. The Ethereum pending block is same with latest block at
+    // Taraxa
     trx_mgr_->getPendingBlock()->advance(
         batch, new_eth_header.hash(),
         util::make_range_view(transactions_tmp_buf_).map([](auto const &trx) { return trx.sha3(); }));

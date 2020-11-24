@@ -428,8 +428,8 @@ std::string PbftChain::getJsonStr() const {
   Json::Value json;
   json["head_hash"] = getHeadHash().toString();
   json["dag_genesis_hash"] = dag_genesis_hash_.toString();
-//  json["size"] = (Json::Value::UInt64)getPbftChainSize();
-//  json["last_pbft_block_hash"] = getLastPbftBlockHash().toString();
+  //  json["size"] = (Json::Value::UInt64)getPbftChainSize();
+  //  json["last_pbft_block_hash"] = getLastPbftBlockHash().toString();
   sharedLock_ lock(chain_head_access_);
   json["executed_size"] = (Json::Value::UInt64)executed_size_;
   json["executed_last_pbft_block_hash"] = executed_last_pbft_block_hash_.toString();
