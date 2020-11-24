@@ -283,7 +283,7 @@ class StatusTable {
 };  // namespace taraxa
 
 template <typename... TS>
-std::string fmt(const std::string &pattern, const TS &...args) {
+std::string fmt(const std::string &pattern, const TS &... args) {
   return (boost::format(pattern) % ... % args).str();
 }
 
