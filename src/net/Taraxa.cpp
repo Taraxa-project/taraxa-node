@@ -23,7 +23,7 @@ namespace taraxa::net {
 
 Taraxa::Taraxa(std::shared_ptr<FullNode> const& _full_node) : full_node_(_full_node) {}
 
-string Taraxa::taraxa_protocolVersion() { return toJS(dev::p2p::c_protocolVersion); }
+string Taraxa::taraxa_protocolVersion() { return toJS(FullNode::c_network_protocol_version); }
 
 string Taraxa::taraxa_dagBlockLevel() {
   try {

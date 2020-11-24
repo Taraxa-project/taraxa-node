@@ -215,6 +215,23 @@ Json::Value Test::get_node_status() {
   return res;
 }
 
+Json::Value Test::get_node_version() {
+  Json::Value res;
+  try {
+    if (auto node = full_node_.lock()) {
+      res["node_version"] = getFormattedVersion(FullNode::c_node_major_version, FullNode::c_node_minor_version);
+      res["db_version"] = getFormattedVersion(FullNode::c_database_major_version, FullNode::c_database_minor_version);
+      res["network_version"] = std::to_string(FullNode::c_network_protocol_version);
+      ;
+      res["build_hash"] = GIT_HASH;
+      res["build_time"] = COMPILE_TIME;
+    }
+  } catch (std::exception &e) {
+    res["status"] = e.what();
+  }
+  return res;
+}
+
 Json::Value Test::get_node_count() {
   Json::Value res;
   try {

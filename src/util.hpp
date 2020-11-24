@@ -165,6 +165,9 @@ void thisThreadSleepForMicroSeconds(unsigned microsec);
 
 unsigned long getCurrentTimeMilliSeconds();
 
+// Get version with minor version with two digits
+std::string getFormattedVersion(uint32_t major, uint32_t minor);
+
 /**
  * simple thread_safe hash
  * LRU

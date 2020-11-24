@@ -20,7 +20,15 @@ using namespace std;
 using namespace dev;
 using namespace rocksdb;
 namespace fs = std::filesystem;
-enum StatusDbField : uint8_t { ExecutedBlkCount = 0, ExecutedTrxCount, TrxCount, DagBlkCount, DagEdgeCount };
+enum StatusDbField : uint8_t {
+  ExecutedBlkCount = 0,
+  ExecutedTrxCount,
+  TrxCount,
+  DagBlkCount,
+  DagEdgeCount,
+  DbMajorVersion,
+  DbMinorVersion
+};
 enum PbftMrgField : uint8_t { PbftRound = 0, PbftStep };
 
 class DbException : public exception {
