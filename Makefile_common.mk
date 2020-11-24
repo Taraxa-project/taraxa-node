@@ -23,12 +23,19 @@ DEPS_INSTALL_PREFIX = $(BUILD_BASEDIR)/deps
 JSONCPP_INCLUDE_DIR := /usr/include/jsoncpp
 INCLUDE_DIRS = $(JSONCPP_INCLUDE_DIR) $(DEPS_INSTALL_PREFIX)/include
 LIB_DIRS = $(DEPS_INSTALL_PREFIX)/lib
+
+# Git version and build time
+GIT_HASH=$(shell git rev-parse HEAD)
+COMPILE_TIME=$(shell date -u +'%Y-%m-%d-%H:%M:%S')
+
 # ideally these should be the same in our build and submodule builds
 # to make sure every module sees the sources the same way
 COMPILE_DEFINITIONS := \
 	CRYPTOPP_DISABLE_ASM \
 	BOOST_ALL_DYN_LINK \
-	BOOST_SPIRIT_THREADSAFE
+	BOOST_SPIRIT_THREADSAFE \
+	GIT_HASH="\"$(GIT_HASH)\"" \
+	COMPILE_TIME="\"$(COMPILE_TIME)\""
 UPDATE_SUBMODULES := 1
 # makefile with overrides,
 # also you can put there custom local targets, which can even use variables

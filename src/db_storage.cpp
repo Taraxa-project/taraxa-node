@@ -3,6 +3,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 
+#include "full_node.hpp"
 #include "rocksdb/utilities/checkpoint.h"
 #include "transaction.hpp"
 #include "vote.hpp"
@@ -42,6 +43,19 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
   checkStatus(DB::Open(options, db_path_.string(), descriptors, &handles_, &db_));
   dag_blocks_count_.store(getStatusField(StatusDbField::DagBlkCount));
   dag_edge_count_.store(getStatusField(StatusDbField::DagEdgeCount));
+
+  auto major_version = getStatusField(StatusDbField::DbMajorVersion);
+  auto minor_version = getStatusField(StatusDbField::DbMinorVersion);
+  if (major_version == 0 && minor_version == 0) {
+    saveStatusField(StatusDbField::DbMajorVersion, FullNode::c_database_major_version);
+    saveStatusField(StatusDbField::DbMinorVersion, FullNode::c_database_minor_version);
+  } else {
+    if (major_version != FullNode::c_database_major_version || minor_version != FullNode::c_database_minor_version) {
+      throw DbException(string("Database version mismatch. Version on disk ") +
+                        getFormattedVersion(major_version, minor_version) + " Node version:" +
+                        getFormattedVersion(FullNode::c_database_major_version, FullNode::c_database_minor_version));
+    }
+  }
 }
 
 void DbStorage::loadSnapshots() {

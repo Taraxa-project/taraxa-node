@@ -60,6 +60,11 @@
     "returns": {}
   },
   {
+    "name": "get_node_version",
+    "params": [],
+    "returns": {}
+  },
+  {
     "name": "get_all_peers",
     "params": [],
     "returns": {}
