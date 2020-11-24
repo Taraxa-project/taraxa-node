@@ -25,16 +25,15 @@ Network::Network(NetworkConfig const &config, std::string const &network_file, s
                  std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
                  std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
                  std::shared_ptr<BlockManager> blk_mgr, std::shared_ptr<TransactionManager> trx_mgr, public_t node_pk,
-                 uint32_t lambda_ms_min) try
-    : conf_(config),
-      db_(db),
-      pbft_mgr_(pbft_mgr),
-      pbft_chain_(pbft_chain),
-      vote_mgr_(vote_mgr),
-      dag_mgr_(dag_mgr),
-      blk_mgr_(blk_mgr),
-      trx_mgr_(trx_mgr),
-      node_pk_(node_pk) {
+                 uint32_t lambda_ms_min) try : conf_(config),
+                                               db_(db),
+                                               pbft_mgr_(pbft_mgr),
+                                               pbft_chain_(pbft_chain),
+                                               vote_mgr_(vote_mgr),
+                                               dag_mgr_(dag_mgr),
+                                               blk_mgr_(blk_mgr),
+                                               trx_mgr_(trx_mgr),
+                                               node_pk_(node_pk) {
   LOG_OBJECTS_CREATE("NETWORK");
   LOG(log_nf_) << "Read Network Config: " << std::endl << conf_ << std::endl;
   auto key = dev::KeyPair::create();
