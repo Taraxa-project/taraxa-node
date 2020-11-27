@@ -112,7 +112,8 @@ struct DbStorage {
   DbStorage& operator=(DbStorage const&) = delete;
 
   explicit DbStorage(fs::path const& base_path, uint32_t db_snapshot_each_n_pbft_block = 0,
-                     uint32_t db_max_snapshots = 0, uint32_t db_revert_to_period = 0, addr_t node_addr = addr_t());
+                     uint32_t db_max_snapshots = 0, uint32_t db_revert_to_period = 0, addr_t node_addr = addr_t(),
+                     bool rebuild = 0);
   ~DbStorage();
 
   auto const& path() const { return path_; }

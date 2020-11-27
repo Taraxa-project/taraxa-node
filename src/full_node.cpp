@@ -52,6 +52,11 @@ void FullNode::init() {
     assert(false);
   }
   {
+    if (conf_.test_params.rebuild_db) {
+      emplace(old_db_, conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
+              conf_.test_params.db_max_snapshots, conf_.test_params.db_revert_to_period, node_addr, true);
+    }
+
     emplace(db_, conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block, conf_.test_params.db_max_snapshots,
             conf_.test_params.db_revert_to_period, node_addr);
     if (db_->getNumDagBlocks() == 0) {
@@ -141,11 +146,15 @@ void FullNode::start() {
   if (conf_.network.network_is_boot_node) {
     LOG(log_nf_) << "Starting a boot node ..." << std::endl;
   }
-  network_->start(conf_.network.network_is_boot_node);
+  if (!conf_.test_params.rebuild_db) {
+    network_->start(conf_.network.network_is_boot_node);
+  }
   trx_mgr_->setNetwork(network_);
   trx_mgr_->start();
-  blk_proposer_->setNetwork(network_);
-  blk_proposer_->start();
+  if (!conf_.test_params.rebuild_db) {
+    blk_proposer_->setNetwork(network_);
+    blk_proposer_->start();
+  }
   pbft_mgr_->setNetwork(network_);
   pbft_mgr_->start();
   blk_mgr_->start();
@@ -180,6 +189,74 @@ void FullNode::start() {
       }
     }
   });
+
+  // Read pbft blocks one by one
+  uint64_t period = 1;
+
+  while (true) {
+    std::map<uint64_t, std::map<blk_hash_t, std::pair<DagBlock, std::vector<Transaction>>>> dag_blocks_per_level;
+    auto pbft_hash = old_db_->getPeriodPbftBlock(period);
+    if (pbft_hash == nullptr) {
+      break;
+    }
+    auto pbft_block = old_db_->getPbftBlock(*pbft_hash);
+    auto pivot_dag_hash = pbft_block->getPivotDagBlockHash();
+    std::set<blk_hash_t> pbft_dag_blocks;
+    std::vector<blk_hash_t> dag_blocks;
+    pbft_dag_blocks.emplace(pivot_dag_hash);
+    dag_blocks.push_back(pivot_dag_hash);
+    while (!dag_blocks.empty()) {
+      std::vector<blk_hash_t> new_dag_blocks;
+      for (auto &dag_block_hash : dag_blocks) {
+        auto dag_block = old_db_->getDagBlock(dag_block_hash);
+        auto pivot_hash = dag_block->getPivot();
+        auto tips = dag_block->getTips();
+        if (pbft_dag_blocks.count(pivot_hash) == 0 && db_->getDagBlock(pivot_hash) == nullptr) {
+          pbft_dag_blocks.emplace(pivot_hash);
+          new_dag_blocks.push_back(pivot_hash);
+        }
+        for (auto &tip : tips) {
+          if (pbft_dag_blocks.count(tip) == 0 && db_->getDagBlock(tip) == nullptr) {
+            pbft_dag_blocks.emplace(tip);
+            new_dag_blocks.push_back(tip);
+          }
+        }
+      }
+      dag_blocks = new_dag_blocks;
+    }
+    for (auto &dag_block_hash : pbft_dag_blocks) {
+      std::vector<Transaction> transactions;
+      auto dag_block = old_db_->getDagBlock(dag_block_hash);
+
+      DbStorage::MultiGetQuery db_query(old_db_);
+      db_query.append(DbStorage::Columns::transactions, dag_block->getTrxs());
+      auto db_response = db_query.execute();
+      for (auto &db_trx : db_response) {
+        transactions.push_back(Transaction(asBytes(db_trx)));
+      }
+      dag_blocks_per_level[dag_block->getLevel()][dag_block_hash] = std::make_pair(*dag_block, transactions);
+      for (auto const &block_level : dag_blocks_per_level) {
+        for (auto const &block : block_level.second) {
+          LOG(log_nf_) << "Storing block " << block.second.first.getHash().toString() << " with "
+                       << block.second.second.size() << " transactions";
+          blk_mgr_->insertBroadcastedBlockWithTransactions(block.second.first, block.second.second);
+        }
+      }
+    }
+
+    auto db_votes = old_db_->getVotes(*pbft_hash);
+    vector<Vote> votes;
+    for (auto const &el : RLP(db_votes)) {
+      votes.emplace_back(el);
+    }
+    PbftBlockCert pbft_blk_and_votes(*pbft_block, votes);
+    pbft_chain_->setSyncedPbftBlockIntoQueue(pbft_blk_and_votes);
+    while (pbft_chain_->pbftSyncedQueueSize() > 10) {
+      thisThreadSleepForMilliSeconds(10);
+    }
+    period++;
+  }
+
   if (jsonrpc_io_ctx_) {
     if (jsonrpc_http_) {
       jsonrpc_http_->StartListening();

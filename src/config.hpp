@@ -102,6 +102,7 @@ struct TestParamsConfig {
   uint32_t db_snapshot_each_n_pbft_block = 0;
   uint32_t db_max_snapshots = 0;
   uint32_t db_revert_to_period = 0;
+  bool rebuild_db = 0;
 };
 
 struct FullNodeConfig {
