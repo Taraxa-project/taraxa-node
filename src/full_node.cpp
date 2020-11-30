@@ -59,6 +59,17 @@ void FullNode::init() {
 
     emplace(db_, conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block, conf_.test_params.db_max_snapshots,
             conf_.test_params.db_revert_to_period, node_addr);
+
+    if (db_->hasMinorVersionChanged()) {
+      LOG(log_si_) << "Minor DB version has changed. Rebuilding Db";
+      conf_.test_params.rebuild_db = true;
+      db_ = nullptr;
+      emplace(old_db_, conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
+              conf_.test_params.db_max_snapshots, conf_.test_params.db_revert_to_period, node_addr, true);
+      emplace(db_, conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block, conf_.test_params.db_max_snapshots,
+              conf_.test_params.db_revert_to_period, node_addr);
+    }
+
     if (db_->getNumDagBlocks() == 0) {
       db_->saveDagBlock(conf_.chain.dag_genesis_block);
     }
@@ -190,6 +201,55 @@ void FullNode::start() {
     }
   });
 
+  if (conf_.test_params.rebuild_db) {
+    rebuildDb();
+    LOG(log_si_) << "Rebuild db completed successfully. Restart node without db_rebuild option";
+    started_ = false;
+    return;
+  }
+  if (jsonrpc_io_ctx_) {
+    if (jsonrpc_http_) {
+      jsonrpc_http_->StartListening();
+    }
+    if (jsonrpc_ws_) {
+      jsonrpc_ws_->run();
+      trx_mgr_->setWsServer(jsonrpc_ws_);
+      pbft_mgr_->setWSServer(jsonrpc_ws_);
+    }
+    emplace(jsonrpc_thread_, [this] { jsonrpc_io_ctx_->run(); });
+  }
+  started_ = true;
+  LOG(log_nf_) << "Node started ... ";
+}  // namespace taraxa
+
+void FullNode::close() {
+  util::ExitStack finally;
+  // because `this` shared ptr is given to it
+  finally += [this] { jsonrpc_api_.reset(); };
+  if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
+    return;
+  }
+  blk_proposer_->stop();
+  blk_proposer_->setNetwork(nullptr);
+  pbft_mgr_->stop();
+  pbft_mgr_->setNetwork(nullptr);
+  trx_mgr_->stop();
+  trx_mgr_->setNetwork(nullptr);
+  network_->stop();
+  blk_mgr_->stop();
+  for (auto &t : block_workers_) {
+    t.join();
+  }
+  if (jsonrpc_thread_) {
+    jsonrpc_io_ctx_->stop();
+    jsonrpc_thread_->join();
+    trx_mgr_->setWsServer(nullptr);
+    pbft_mgr_->setWSServer(nullptr);
+  }
+  LOG(log_nf_) << "Node stopped ... ";
+}
+
+void FullNode::rebuildDb() {
   // Read pbft blocks one by one
   uint64_t period = 1;
 
@@ -211,12 +271,12 @@ void FullNode::start() {
         auto dag_block = old_db_->getDagBlock(dag_block_hash);
         auto pivot_hash = dag_block->getPivot();
         auto tips = dag_block->getTips();
-        if (pbft_dag_blocks.count(pivot_hash) == 0 && db_->getDagBlock(pivot_hash) == nullptr) {
+        if (pbft_dag_blocks.count(pivot_hash) == 0 && !(blk_mgr_->isBlockKnown(pivot_hash))) {
           pbft_dag_blocks.emplace(pivot_hash);
           new_dag_blocks.push_back(pivot_hash);
         }
         for (auto &tip : tips) {
-          if (pbft_dag_blocks.count(tip) == 0 && db_->getDagBlock(tip) == nullptr) {
+          if (pbft_dag_blocks.count(tip) == 0 && !(blk_mgr_->isBlockKnown(tip))) {
             pbft_dag_blocks.emplace(tip);
             new_dag_blocks.push_back(tip);
           }
@@ -250,52 +310,21 @@ void FullNode::start() {
       votes.emplace_back(el);
     }
     PbftBlockCert pbft_blk_and_votes(*pbft_block, votes);
+    LOG(log_nf_) << "Adding pbft block into queue " << pbft_block->getBlockHash().toString();
     pbft_chain_->setSyncedPbftBlockIntoQueue(pbft_blk_and_votes);
     while (pbft_chain_->pbftSyncedQueueSize() > 10) {
       thisThreadSleepForMilliSeconds(10);
     }
     period++;
-  }
-
-  if (jsonrpc_io_ctx_) {
-    if (jsonrpc_http_) {
-      jsonrpc_http_->StartListening();
+    if (period - 1 == conf_.test_params.rebuild_db_period) {
+      break;
     }
-    if (jsonrpc_ws_) {
-      jsonrpc_ws_->run();
-      trx_mgr_->setWsServer(jsonrpc_ws_);
-      pbft_mgr_->setWSServer(jsonrpc_ws_);
-    }
-    emplace(jsonrpc_thread_, [this] { jsonrpc_io_ctx_->run(); });
   }
-  LOG(log_nf_) << "Node started ... ";
-}  // namespace taraxa
-
-void FullNode::close() {
-  util::ExitStack finally;
-  // because `this` shared ptr is given to it
-  finally += [this] { jsonrpc_api_.reset(); };
-  if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
-    return;
+  while (pbft_chain_->pbftSyncedQueueSize() > 0 || pbft_chain_->getPbftChainSize() != period - 1) {
+    thisThreadSleepForMilliSeconds(1000);
+    LOG(log_nf_) << "Waiting on PBFT blocks to be processed. Queue size: " << pbft_chain_->pbftSyncedQueueSize()
+                 << " Chain size: " << pbft_chain_->getPbftChainSize();
   }
-  blk_proposer_->stop();
-  blk_proposer_->setNetwork(nullptr);
-  pbft_mgr_->stop();
-  pbft_mgr_->setNetwork(nullptr);
-  trx_mgr_->stop();
-  trx_mgr_->setNetwork(nullptr);
-  network_->stop();
-  blk_mgr_->stop();
-  for (auto &t : block_workers_) {
-    t.join();
-  }
-  if (jsonrpc_thread_) {
-    jsonrpc_io_ctx_->stop();
-    jsonrpc_thread_->join();
-    trx_mgr_->setWsServer(nullptr);
-    pbft_mgr_->setWSServer(nullptr);
-  }
-  LOG(log_nf_) << "Node stopped ... ";
 }
 
 dev::Signature FullNode::signMessage(std::string const &message) { return dev::sign(kp_.secret(), dev::sha3(message)); }
