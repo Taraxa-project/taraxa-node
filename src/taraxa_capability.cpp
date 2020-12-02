@@ -242,7 +242,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
           peer->dag_level_ = peer_level;
           peer->pbft_round_ = peer_pbft_round;
           LOG(log_dg_pbft_sync_) << "peer_pbft_chain_size: " << peer_pbft_chain_size
-                                 << "peer_syncing_pbft_chain_size_: " << peer_syncing_pbft_chain_size_;
+                                 << ", peer_syncing_pbft_chain_size_: " << peer_syncing_pbft_chain_size_;
           if (peer->syncing_) {
             LOG(log_dg_pbft_sync_) << "Other node is behind, prevent gossiping " << _nodeID
                                    << "Our pbft chain size: " << pbft_chain_size
@@ -1233,12 +1233,13 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync, 
   }
   auto level_2 = db_query.execute();
   for (uint i_0 = 0; i_0 < level_0.size(); ++i_0) {
-    s.appendList(1);
+    s.appendList(2);
     s.appendRaw(level_0[i_0].rlp());
     auto start_1 = edges_0_to_1[i_0];
     auto end_1 = edges_0_to_1[i_0 + 1];
     s.appendList(end_1 - start_1);
     for (uint i_1 = start_1; i_1 < end_1; ++i_1) {
+      s.appendList(2);
       s.appendRaw(level_1[i_1]);
       auto start_2 = edges_1_to_2[i_1];
       auto end_2 = edges_1_to_2[i_1 + 1];
