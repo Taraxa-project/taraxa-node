@@ -81,11 +81,13 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
     if (!client_blk_n) {
       return last_blk_n;
     }
-    auto ret = *client_blk_n;
-    if (last_blk_n < ret) {
-      throw ErrFutureBlock();
-    }
-    return ret;
+    // TODO: The check will throw exeception with unexecuted PBFT block number. Oleh please check if safe to remove
+    // auto ret = *client_blk_n;
+    // if (last_blk_n < ret) {
+    //   throw ErrFutureBlock();
+    // }
+    // return ret;
+    return *client_blk_n;
   }
 
   AdvanceResult advance(DbStorage::BatchPtr batch, Address const& author, uint64_t timestamp,
