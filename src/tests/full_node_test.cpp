@@ -200,7 +200,7 @@ TEST_F(FullNodeTest, db_test) {
 TEST_F(FullNodeTest, sync_five_nodes) {
   using namespace std;
 
-  auto node_cfgs = make_node_cfgs<5>(5);
+  auto node_cfgs = make_node_cfgs<20>(5);
   auto nodes = launch_nodes(node_cfgs);
 
   class context {
@@ -792,7 +792,7 @@ TEST_F(FullNodeTest, persist_counter) {
 }
 
 TEST_F(FullNodeTest, sync_two_nodes2) {
-  auto node_cfgs = make_node_cfgs<1, true>(2);
+  auto node_cfgs = make_node_cfgs<20, true>(2);
   auto nodes = launch_nodes(node_cfgs);
 
   // send 1000 trxs
@@ -919,7 +919,7 @@ TEST_F(FullNodeTest, save_network_to_file) {
 }
 
 TEST_F(FullNodeTest, receive_send_transaction) {
-  auto node_cfgs = make_node_cfgs<1, true>(1);
+  auto node_cfgs = make_node_cfgs<20, true>(1);
   FullNode::Handle node(node_cfgs[0], true);
 
   try {
@@ -940,7 +940,7 @@ TEST_F(FullNodeTest, receive_send_transaction) {
 }
 
 TEST_F(FullNodeTest, detect_overlap_transactions) {
-  auto node_cfgs = make_node_cfgs<2>(5);
+  auto node_cfgs = make_node_cfgs<20>(5);
   auto node_1_genesis_bal = own_effective_genesis_bal(node_cfgs[0]);
   auto nodes = launch_nodes(node_cfgs);
   // Even distribute coins from master boot node to other nodes. Since master
@@ -960,7 +960,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   }
 
   std::cout << "Checking all nodes executed transactions at initialization" << std::endl;
-  wait({150s, 15s}, [&](auto &ctx) {
+  wait({150s, 1s}, [&](auto &ctx) {
     for (auto i(0); i < nodes.size(); ++i) {
       if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
         std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted()
@@ -1003,7 +1003,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   }
   std::cout << "Checking all nodes execute transactions from robin cycle" << std::endl;
 
-  wait({150s, 15s}, [&](auto &ctx) {
+  wait({150s, 1s}, [&](auto &ctx) {
     for (auto i(0); i < nodes.size(); ++i) {
       if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
         std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted()
