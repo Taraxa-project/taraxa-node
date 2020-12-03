@@ -15,7 +15,7 @@ using namespace rocksdb;
 namespace fs = std::filesystem;
 
 DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_block, uint32_t db_max_snapshots,
-                     uint32_t db_revert_to_period, addr_t node_addr)
+                     uint32_t db_revert_to_period, addr_t node_addr, bool rebuild)
     : path_(path),
       handles_(Columns::all.size()),
       db_snapshot_each_n_pbft_block_(db_snapshot_each_n_pbft_block),
@@ -23,6 +23,20 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
       node_addr_(node_addr) {
   db_path_ = (path / db_dir);
   state_db_path_ = (path / state_db_dir);
+
+  if (rebuild) {
+    const std::string backup_label = "-rebuild-backup-";
+    auto timestamp = std::to_string(std::chrono::system_clock::now().time_since_epoch().count());
+    auto backup_db_path = db_path_;
+    backup_db_path += (backup_label + timestamp);
+    auto backup_state_db_path = state_db_path_;
+    backup_state_db_path += (backup_label + timestamp);
+    fs::rename(db_path_, backup_db_path);
+    fs::rename(state_db_path_, backup_state_db_path);
+    db_path_ = backup_db_path;
+    state_db_path_ = backup_state_db_path;
+  }
+
   fs::create_directories(db_path_);
   rocksdb::Options options;
   options.create_missing_column_families = true;
@@ -50,10 +64,12 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
     saveStatusField(StatusDbField::DbMajorVersion, FullNode::c_database_major_version);
     saveStatusField(StatusDbField::DbMinorVersion, FullNode::c_database_minor_version);
   } else {
-    if (major_version != FullNode::c_database_major_version || minor_version != FullNode::c_database_minor_version) {
+    if (major_version != FullNode::c_database_major_version) {
       throw DbException(string("Database version mismatch. Version on disk ") +
                         getFormattedVersion(major_version, minor_version) + " Node version:" +
                         getFormattedVersion(FullNode::c_database_major_version, FullNode::c_database_minor_version));
+    } else if (minor_version != FullNode::c_database_minor_version) {
+      minor_version_changed_ = true;
     }
   }
 }

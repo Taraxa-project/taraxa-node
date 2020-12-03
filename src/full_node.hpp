@@ -59,6 +59,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   dev::KeyPair kp_;
   // components
   std::shared_ptr<DbStorage> db_;
+  std::shared_ptr<DbStorage> old_db_;
   std::shared_ptr<DagManager> dag_mgr_;
   std::shared_ptr<BlockManager> blk_mgr_;
   std::shared_ptr<TransactionManager> trx_mgr_;
@@ -85,6 +86,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   LOG_OBJECTS_DEFINE;
   mutable taraxa::Logger log_time_;
 
+  std::atomic_bool started_ = 0;
+
   explicit FullNode(FullNodeConfig const &conf);
 
   void init();
@@ -107,6 +110,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
 
  public:
   void start();
+  bool isStarted() const { return started_; }
   shared_ptr_t getShared() { return shared_from_this(); }
   auto const &getConfig() const { return conf_; }
   auto const &getNetwork() const { return network_; }
@@ -142,6 +146,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
     explicit Handle(FullNodeConfig const &conf, bool start = false);
     ~Handle();
   };
+
+  void rebuildDb();
 
   static constexpr uint16_t c_node_major_version = 0;
   static constexpr uint16_t c_node_minor_version = 1;

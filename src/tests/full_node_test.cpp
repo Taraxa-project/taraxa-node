@@ -196,7 +196,6 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(2, *db.getDagBlockPeriod(blk_hash_t(2)));
 }
 
-// fixme: flaky
 TEST_F(FullNodeTest, sync_five_nodes) {
   using namespace std;
 
@@ -1057,6 +1056,71 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
     unique_trxs.insert(t.first);
   }
 }
+
+TEST_F(FullNodeTest, db_rebuild) {
+  auto trxs_count = 0;
+  auto trxs_count_at_pbft_size_5 = 0;
+  auto pbft_chain_size = 0;
+  {
+    auto node_cfgs = make_node_cfgs<5>(1);
+    auto node_1_genesis_bal = own_effective_genesis_bal(node_cfgs[0]);
+    auto nodes = launch_nodes(node_cfgs);
+    // Even distribute coins from master boot node to other nodes. Since master
+    // boot node owns whole coins, the active players should be only master boot
+    // node at the moment.
+    auto gas_price = val_t(2);
+    auto data = bytes();
+    auto nonce = 0;
+
+    // Issue dummy trx until at least 10 pbft blocks created
+    while (pbft_chain_size < 10) {
+      Transaction dummy_trx(nonce++, 0, 2, 100000, bytes(), nodes[0]->getSecretKey(), nodes[0]->getAddress());
+      nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false);
+      trxs_count++;
+      thisThreadSleepForMilliSeconds(100);
+      pbft_chain_size = nodes[0]->getPbftChain()->getPbftChainSize();
+      if (pbft_chain_size == 5) {
+        trxs_count_at_pbft_size_5 = nodes[0]->getDB()->getNumTransactionExecuted();
+      }
+    }
+    std::cout << "Checking transactions executed" << std::endl;
+    wait({60s, 1s}, [&](auto &ctx) {
+      if (nodes[0]->getDB()->getNumTransactionExecuted() != trxs_count) {
+        std::cout << "node executed " << nodes[0]->getDB()->getNumTransactionExecuted() << " transactions, expected "
+                  << trxs_count << std::endl;
+        ctx.fail();
+      }
+    });
+    pbft_chain_size = nodes[0]->getPbftChain()->getPbftChainSize();
+  }
+
+  {
+    auto node_cfgs = make_node_cfgs<5>(1);
+    node_cfgs[0].test_params.rebuild_db = true;
+    auto nodes = launch_nodes(node_cfgs);
+  }
+
+  {
+    auto node_cfgs = make_node_cfgs<5>(1);
+    auto nodes = launch_nodes(node_cfgs);
+    EXPECT_EQ(nodes[0]->getDB()->getNumTransactionExecuted(), trxs_count);
+    EXPECT_EQ(nodes[0]->getPbftChain()->getPbftChainSize(), pbft_chain_size);
+  }
+
+  {
+    auto node_cfgs = make_node_cfgs<5>(1);
+    node_cfgs[0].test_params.rebuild_db = true;
+    node_cfgs[0].test_params.rebuild_db_period = 5;
+    auto nodes = launch_nodes(node_cfgs);
+  }
+
+  {
+    auto node_cfgs = make_node_cfgs<5>(1);
+    auto nodes = launch_nodes(node_cfgs);
+    EXPECT_EQ(nodes[0]->getDB()->getNumTransactionExecuted(), trxs_count_at_pbft_size_5);
+    EXPECT_EQ(nodes[0]->getPbftChain()->getPbftChainSize(), 5);
+  }
+}  // namespace taraxa::core_tests
 
 TEST_F(FullNodeTest, transfer_to_self) {
   auto node_cfgs = make_node_cfgs<5, true>(3);

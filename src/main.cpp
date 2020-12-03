@@ -13,6 +13,8 @@ int main(int argc, const char* argv[]) {
     string conf_taraxa;
     bool destroy_db = 0;
     bool rebuild_network = 0;
+    bool rebuild_db = 0;
+    uint64_t rebuild_db_period = 0;
     uint64_t revert_to_period = 0;
     boost::program_options::options_description main_options("GENERIC OPTIONS:");
     main_options.add_options()("help", "Print this help message and exit")(
@@ -20,6 +22,11 @@ int main(int argc, const char* argv[]) {
         "Config for taraxa node (either json file path or inline json) "
         "[required]")("destroy_db", boost::program_options::bool_switch(&destroy_db),
                       "Destroys all the existing data in the database")(
+        "rebuild_db", boost::program_options::bool_switch(&rebuild_db),
+        "Reads the raw dag/pbft blocks from the db and executes all the blocks from scratch rebuilding all the other "
+        "database tables - this could take a long time")("rebuild_db_period",
+                                                         boost::program_options::value<uint64_t>(&rebuild_db_period),
+                                                         "Use with rebuild_db - Rebuild db up to a specified period")(
         "rebuild_network", boost::program_options::bool_switch(&rebuild_network),
         "Delete all saved network/nodes information and rebuild network "
         "from boot nodes")("revert_to_period", boost::program_options::value<uint64_t>(&revert_to_period),
@@ -48,12 +55,16 @@ int main(int argc, const char* argv[]) {
       fs::remove_all(cfg.net_file_path());
     }
     cfg.test_params.db_revert_to_period = revert_to_period;
+    cfg.test_params.rebuild_db = rebuild_db;
+    cfg.test_params.rebuild_db_period = rebuild_db_period;
     FullNode::Handle node(cfg, true);
-    cout << "Taraxa node started" << endl;
-    // TODO graceful shutdown
-    mutex mu;
-    unique_lock l(mu);
-    condition_variable().wait(l);
+    if (node->isStarted()) {
+      cout << "Taraxa node started" << endl;
+      // TODO graceful shutdown
+      mutex mu;
+      unique_lock l(mu);
+      condition_variable().wait(l);
+    }
     cout << "Taraxa Node exited ..." << endl;
     return 0;
   } catch (taraxa::ConfigException const& e) {
