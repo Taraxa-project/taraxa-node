@@ -265,6 +265,8 @@ void FullNode::rebuildDb() {
     std::vector<blk_hash_t> dag_blocks;
     pbft_dag_blocks.emplace(pivot_dag_hash);
     dag_blocks.push_back(pivot_dag_hash);
+
+    // Read all the dag blocks from the pbft period
     while (!dag_blocks.empty()) {
       std::vector<blk_hash_t> new_dag_blocks;
       for (auto &dag_block_hash : dag_blocks) {
@@ -284,6 +286,8 @@ void FullNode::rebuildDb() {
       }
       dag_blocks = new_dag_blocks;
     }
+
+    // Read the transactions for dag blocks
     for (auto &dag_block_hash : pbft_dag_blocks) {
       std::vector<Transaction> transactions;
       auto dag_block = old_db_->getDagBlock(dag_block_hash);
@@ -295,15 +299,9 @@ void FullNode::rebuildDb() {
         transactions.push_back(Transaction(asBytes(db_trx)));
       }
       dag_blocks_per_level[dag_block->getLevel()][dag_block_hash] = std::make_pair(*dag_block, transactions);
-      for (auto const &block_level : dag_blocks_per_level) {
-        for (auto const &block : block_level.second) {
-          LOG(log_nf_) << "Storing block " << block.second.first.getHash().toString() << " with "
-                       << block.second.second.size() << " transactions";
-          blk_mgr_->insertBroadcastedBlockWithTransactions(block.second.first, block.second.second);
-        }
-      }
     }
 
+    // Add pbft blocks with votes in queue
     auto db_votes = old_db_->getVotes(*pbft_hash);
     vector<Vote> votes;
     for (auto const &el : RLP(db_votes)) {
@@ -312,10 +310,22 @@ void FullNode::rebuildDb() {
     PbftBlockCert pbft_blk_and_votes(*pbft_block, votes);
     LOG(log_nf_) << "Adding pbft block into queue " << pbft_block->getBlockHash().toString();
     pbft_chain_->setSyncedPbftBlockIntoQueue(pbft_blk_and_votes);
+
+    // Add dag blocks and transactions from above to the queue
+    for (auto const &block_level : dag_blocks_per_level) {
+      for (auto const &block : block_level.second) {
+        LOG(log_nf_) << "Storing block " << block.second.first.getHash().toString() << " with "
+                     << block.second.second.size() << " transactions";
+        blk_mgr_->insertBroadcastedBlockWithTransactions(block.second.first, block.second.second);
+      }
+    }
+
+    // Wait if more than 10 pbft blocks in queue to be processed
     while (pbft_chain_->pbftSyncedQueueSize() > 10) {
       thisThreadSleepForMilliSeconds(10);
     }
     period++;
+
     if (period - 1 == conf_.test_params.rebuild_db_period) {
       break;
     }
