@@ -82,12 +82,12 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
       return last_blk_n;
     }
     // TODO: The check will throw exeception with unexecuted PBFT block number. Oleh please check if safe to remove
-    // auto ret = *client_blk_n;
-    // if (last_blk_n < ret) {
-    //   throw ErrFutureBlock();
-    // }
-    // return ret;
-    return *client_blk_n;
+    // Will remove, catch exception when DPOS throw in GO
+    auto ret = *client_blk_n;
+    if (last_blk_n < ret) {
+      throw ErrFutureBlock();
+    }
+    return ret;
   }
 
   AdvanceResult advance(DbStorage::BatchPtr batch, Address const& author, uint64_t timestamp,

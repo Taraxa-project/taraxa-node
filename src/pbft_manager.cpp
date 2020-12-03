@@ -14,6 +14,7 @@
 #include <string>
 
 #include "dag.hpp"
+#include "final_chain.hpp"
 
 namespace taraxa {
 using vrf_output_t = vrf_wrapper::vrf_output_t;
@@ -179,7 +180,16 @@ void PbftManager::setSortitionThreshold(size_t const sortition_threshold) {
 
 void PbftManager::update_dpos_state_() {
   dpos_period_ = pbft_chain_->getPbftChainSize();
-  eligible_voter_count_ = final_chain_->dpos_eligible_count(dpos_period_);
+  while (true) {
+    try {
+      eligible_voter_count_ = final_chain_->dpos_eligible_count(dpos_period_);
+      break;
+    } catch (final_chain::ErrFutureBlock &c) {
+      LOG(log_nf_) << c.what() << ". PBFT period " << dpos_period_ << " is too far ahead of DPOS, need wait!";
+      // Sleep one PBFT lambda time
+      thisThreadSleepForMilliSeconds(LAMBDA_ms);
+    }
+  }
 }
 
 uint64_t PbftManager::getEligibleVoterCount() const { return eligible_voter_count_; }
