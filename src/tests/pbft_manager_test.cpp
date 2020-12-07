@@ -2,6 +2,7 @@
 
 #include <gtest/gtest.h>
 
+#include "../logger/log.hpp"
 #include "../network.hpp"
 #include "../static_init.hpp"
 #include "../util/lazy.hpp"
@@ -373,17 +374,19 @@ TEST_F(PbftManagerTest, check_committeeSize_greater_than_activePlayers) {
 using namespace taraxa;
 int main(int argc, char **argv) {
   taraxa::static_init();
-  LoggingConfig logging;
-  logging.verbosity = taraxa::VerbosityError;
-  logging.channels["PBFT_CHAIN"] = taraxa::VerbosityError;
-  logging.channels["PBFT_MGR"] = taraxa::VerbosityError;
-  logging.channels["VOTE_MGR"] = taraxa::VerbosityError;
-  logging.channels["SORTI"] = taraxa::VerbosityError;
-  logging.channels["EXETOR"] = taraxa::VerbosityError;
-  logging.channels["BLK_PP"] = taraxa::VerbosityError;
-  logging.channels["FULLND"] = taraxa::VerbosityError;
+  auto logging = logger::createDefaultLoggingConfig();
+  logging.verbosity = logger::Verbosity::Error;
+  logging.channels["PBFT_CHAIN"] = logger::Verbosity::Error;
+  logging.channels["PBFT_MGR"] = logger::Verbosity::Error;
+  logging.channels["VOTE_MGR"] = logger::Verbosity::Error;
+  logging.channels["SORTI"] = logger::Verbosity::Error;
+  logging.channels["EXETOR"] = logger::Verbosity::Error;
+  logging.channels["BLK_PP"] = logger::Verbosity::Error;
+  logging.channels["FULLND"] = logger::Verbosity::Error;
+
   addr_t node_addr;
-  setupLoggingConfiguration(node_addr, logging);
+  logger::InitLogging(logging, node_addr);
+
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

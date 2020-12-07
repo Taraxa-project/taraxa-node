@@ -6,8 +6,6 @@
 
 namespace taraxa {
 
-using Logger = boost::log::sources::severity_channel_logger<>;
-
 std::string getConfigErr(std::vector<string> path) {
   std::string res = "Error in processing configuration file on param: ";
   for (auto i = 0; i < path.size(); i++) res += path[i] + ".";
@@ -171,9 +169,9 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object,
     for (auto &item : root["logging"]["configurations"]) {
       auto on = getConfigDataAsBoolean(item, {"on"});
       if (on) {
-        LoggingConfig logging;
+        logger::Config logging;
         logging.name = getConfigDataAsString(item, {"name"});
-        logging.verbosity = stringToVerbosity(getConfigDataAsString(item, {"verbosity"}));
+        logging.verbosity = logger::stringToVerbosity(getConfigDataAsString(item, {"verbosity"}));
         for (auto &ch : item["channels"]) {
           std::pair<std::string, uint16_t> channel;
           channel.first = getConfigDataAsString(ch, {"name"});
@@ -186,12 +184,12 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object,
           if (ch["verbosity"].isNull()) {
             channel.second = logging.verbosity;
           } else {
-            channel.second = stringToVerbosity(getConfigDataAsString(ch, {"verbosity"}));
+            channel.second = logger::stringToVerbosity(getConfigDataAsString(ch, {"verbosity"}));
           }
           logging.channels[channel.first] = channel.second;
         }
         for (auto &o : item["outputs"]) {
-          LoggingOutputConfig output;
+          logger::Config::OutputConfig output;
           output.type = getConfigDataAsString(o, {"type"});
           output.format = getConfigDataAsString(o, {"format"});
           if (output.type == "file") {

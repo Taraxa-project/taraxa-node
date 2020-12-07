@@ -37,11 +37,13 @@ void FullNode::init() {
   fs::create_directories(conf_.db_path);
   // Initialize logging
   auto const &node_addr = kp_.address();
-  for (auto const &logging : conf_.log_configs) {
-    post_destruction_ += setupLoggingConfiguration(node_addr, logging);
+
+  for (auto &logging : conf_.log_configs) {
+    logging.InitLogging(node_addr);
   }
+
   LOG_OBJECTS_CREATE("FULLND");
-  log_time_ = createTaraxaLogger(dev::Verbosity::VerbosityInfo, "TMSTM", node_addr);
+  log_time_ = logger::createLogger(logger::Verbosity::Info, "TMSTM", node_addr);
 
   LOG(log_si_) << "Node public key: " << EthGreen << kp_.pub().toString() << std::endl
                << "Node address: " << EthRed << node_addr.toString() << std::endl

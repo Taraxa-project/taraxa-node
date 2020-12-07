@@ -86,7 +86,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::atomic_uint64_t received_blocks_ = 0;
   // logging
   LOG_OBJECTS_DEFINE;
-  mutable taraxa::Logger log_time_;
+  mutable logger::Logger log_time_;
 
   std::atomic_bool started_ = 0;
 

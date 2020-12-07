@@ -6,6 +6,7 @@
 #include <utility>
 
 #include "dag.hpp"
+#include "logger/log.hpp"
 #include "transaction_manager.hpp"
 
 namespace taraxa {
@@ -188,7 +189,7 @@ blk_hash_t DagBlock::sha3(bool include_sig) const { return dev::sha3(rlp(include
 
 BlockManager::BlockManager(vdf_sortition::VdfConfig const &vdf_config, size_t capacity, unsigned num_verifiers,
                            addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<TransactionManager> trx_mgr,
-                           boost::log::sources::severity_channel_logger<> log_time, uint32_t queue_limit)
+                           logger::Logger log_time, uint32_t queue_limit)
     : capacity_(capacity),
       num_verifiers_(num_verifiers),
       blk_status_(10000, 100),
