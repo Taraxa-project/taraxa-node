@@ -62,7 +62,7 @@ TEST_F(NetworkTest, transfer_block) {
   taraxa::thisThreadSleepForSeconds(1);
 
   for (auto i = 0; i < 1; ++i) {
-    nw2->sendBlock(nw1->getNodeId(), blk, true);
+    nw2->sendBlock(nw1->getNodeId(), blk);
   }
 
   std::cout << "Waiting packages for 10 seconds ..." << std::endl;

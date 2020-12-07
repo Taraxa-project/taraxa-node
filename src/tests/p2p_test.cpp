@@ -195,7 +195,7 @@ TEST_F(P2PTest, capability_send_block) {
   transactions.emplace_back(*g_signed_trx_samples[0].rlp());
   transactions.emplace_back(*g_signed_trx_samples[1].rlp());
   thc2->onNewTransactions(transactions, true);
-  thc2->sendBlock(host1.id(), blk, true);
+  thc2->sendBlock(host1.id(), blk);
 
   this_thread::sleep_for(chrono::seconds(1));
   auto blocks = thc1->getBlocks();
