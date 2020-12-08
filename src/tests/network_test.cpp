@@ -206,12 +206,13 @@ TEST_F(NetworkTest, node_network_id) {
   }
 }
 
-// Test creates a DAG on one node and verifies
-// that the second node syncs with it and that the resulting
-// DAG on the other end is the same
+// Test creates a DAG on one node and verifies that the second node syncs with it and that the resulting DAG on the
+// other end is the same
 TEST_F(NetworkTest, node_sync) {
   auto node_cfgs = make_node_cfgs<5>(2);
   FullNode::Handle node1(node_cfgs[0], true);
+  // Stop PBFT manager
+  node1->getPbftManager()->stop();
 
   // Allow node to start up
   taraxa::thisThreadSleepForMilliSeconds(1000);
@@ -812,8 +813,9 @@ TEST_F(NetworkTest, node_sync2) {
   for (int i = 0; i < 400; i++) {
     taraxa::thisThreadSleepForMilliSeconds(100);
     if (node2->getDagManager()->getNumVerticesInDag().first == 13 &&
-        node2->getDagManager()->getNumEdgesInDag().first == 13)
+        node2->getDagManager()->getNumEdgesInDag().first == 13) {
       break;
+    }
   }
 
   // node1->drawGraph("dot.txt");

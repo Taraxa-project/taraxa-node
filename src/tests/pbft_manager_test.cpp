@@ -111,7 +111,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
   size_t committee, two_t_plus_one, threshold, expected_2tPlus1, expected_threshold;
   for (auto i(0); i < nodes.size(); ++i) {
     auto pbft_mgr = nodes[i]->getPbftManager();
-    committee = pbft_mgr->COMMITTEE_SIZE;
+    committee = pbft_mgr->getPbftCommitteeSize();
     valid_voting_players = pbft_mgr->getEligibleVoterCount();
     two_t_plus_one = pbft_mgr->getTwoTPlusOne();
     threshold = pbft_mgr->getSortitionThreshold();
@@ -166,7 +166,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
 
   for (auto i(0); i < nodes.size(); ++i) {
     auto pbft_mgr = nodes[i]->getPbftManager();
-    committee = pbft_mgr->COMMITTEE_SIZE;
+    committee = pbft_mgr->getPbftCommitteeSize();
     valid_voting_players = pbft_mgr->getEligibleVoterCount();
     two_t_plus_one = pbft_mgr->getTwoTPlusOne();
     threshold = pbft_mgr->getSortitionThreshold();
@@ -212,6 +212,14 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
     taraxa::thisThreadSleepForMilliSeconds(500);
   }
   EXPECT_EQ(pbft_chain->getPbftChainSize(), pbft_chain_size);
+
+  for (auto _(0); _ < 120; ++_) {
+    // test timeout is 60 seconds
+    if (node->getDB()->getNumTransactionExecuted() != 0) {
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(500);
+  }
 
   std::cout << "Checking nodes sees 1 transaction..." << std::endl;
   ASSERT_EQ(node->getDB()->getNumTransactionExecuted(), 1);
@@ -261,7 +269,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
 
   int pbft_chain_size = 1;
   for (auto i(0); i < nodes.size(); ++i) {
-    EXPECT_EQ(nodes[i]->getPbftChain()->getPbftChainSize(), pbft_chain_size);
+    EXPECT_EQ(nodes[i]->getPbftChain()->getPbftExecutedChainSize(), pbft_chain_size);
   }
 
   for (auto i(0); i < nodes.size(); ++i) {
@@ -303,15 +311,15 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   // Vote DAG block
   for (auto _(0); _ < 120; ++_) {
     // test timeout is 60 seconds
-    if (nodes[0]->getPbftChain()->getPbftChainSize() == pbft_chain_size &&
-        nodes[1]->getPbftChain()->getPbftChainSize() == pbft_chain_size &&
-        nodes[2]->getPbftChain()->getPbftChainSize() == pbft_chain_size) {
+    if (nodes[0]->getPbftChain()->getPbftExecutedChainSize() == pbft_chain_size &&
+        nodes[1]->getPbftChain()->getPbftExecutedChainSize() == pbft_chain_size &&
+        nodes[2]->getPbftChain()->getPbftExecutedChainSize() == pbft_chain_size) {
       break;
     }
     taraxa::thisThreadSleepForMilliSeconds(500);
   }
   for (auto i(0); i < nodes.size(); ++i) {
-    EXPECT_EQ(nodes[i]->getPbftChain()->getPbftChainSize(), pbft_chain_size);
+    EXPECT_EQ(nodes[i]->getPbftChain()->getPbftExecutedChainSize(), pbft_chain_size);
   }
 
   for (auto i(0); i < nodes.size(); ++i) {

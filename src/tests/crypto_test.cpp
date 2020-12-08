@@ -298,7 +298,7 @@ TEST_F(CryptoTest, sortition_rate) {
   int sortition_threshold;
 
   valid_sortition_players = 100;
-  sortition_threshold = node->getPbftManager()->COMMITTEE_SIZE;  // 5
+  sortition_threshold = node->getPbftManager()->getPbftCommitteeSize();  // 5
   // Test for one player sign round messages to get sortition
   // Sortition rate THRESHOLD / PLAYERS = 5%
   for (int i = 0; i < round; i++) {
@@ -313,9 +313,9 @@ TEST_F(CryptoTest, sortition_rate) {
   EXPECT_EQ(count, 54);  // Test experience
 
   count = 0;
-  valid_sortition_players = node->getPbftManager()->COMMITTEE_SIZE;
-  if (node->getPbftManager()->COMMITTEE_SIZE <= valid_sortition_players) {
-    sortition_threshold = node->getPbftManager()->COMMITTEE_SIZE;
+  valid_sortition_players = node->getPbftManager()->getPbftCommitteeSize();
+  if (node->getPbftManager()->getPbftCommitteeSize() <= valid_sortition_players) {
+    sortition_threshold = node->getPbftManager()->getPbftCommitteeSize();
   } else {
     sortition_threshold = valid_sortition_players;
   }

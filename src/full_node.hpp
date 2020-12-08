@@ -18,6 +18,7 @@
 #include "aleth/pending_block.hpp"
 #include "config.hpp"
 #include "db_storage.hpp"
+#include "executor.hpp"
 #include "net/NetFace.h"
 #include "net/RpcServer.h"
 #include "net/TaraxaFace.h"
@@ -70,6 +71,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<VoteManager> vote_mgr_;
   std::shared_ptr<PbftManager> pbft_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
+  std::shared_ptr<Executor> executor_;
   std::shared_ptr<FinalChain> final_chain_;
   std::unique_ptr<boost::asio::io_context> jsonrpc_io_ctx_;
   std::shared_ptr<net::RpcServer> jsonrpc_http_;
@@ -121,6 +123,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   auto const &getPbftManager() const { return pbft_mgr_; }
   auto const &getVoteManager() const { return vote_mgr_; }
   auto const &getPbftChain() const { return pbft_chain_; }
+  auto const &getExecutor() const { return executor_; }
   auto const &getFinalChain() const { return final_chain_; }
   auto const &getTrxOrderMgr() const { return trx_order_mgr_; }
 
