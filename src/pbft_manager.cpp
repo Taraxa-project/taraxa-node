@@ -23,7 +23,7 @@ PbftManager::PbftManager(PbftConfig const &conf, std::string const &genesis, add
                          std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
                          std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
                          std::shared_ptr<BlockManager> blk_mgr, std::shared_ptr<FinalChain> final_chain,
-                         secret_t node_sk, vrf_sk_t vrf_sk)
+                         std::shared_ptr<Executor> executor, secret_t node_sk, vrf_sk_t vrf_sk)
     : LAMBDA_ms_MIN(conf.lambda_ms_min),
       COMMITTEE_SIZE(conf.committee_size),
       DAG_BLOCKS_SIZE(conf.dag_blocks_size),
@@ -37,6 +37,7 @@ PbftManager::PbftManager(PbftConfig const &conf, std::string const &genesis, add
       dag_mgr_(dag_mgr),
       blk_mgr_(blk_mgr),
       final_chain_(final_chain),
+      executor_(executor),
       node_sk_(node_sk),
       vrf_sk_(vrf_sk) {
   LOG_OBJECTS_CREATE("PBFT_MGR");
@@ -1215,6 +1216,9 @@ bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes) {
 
   // Put into PBFT chain unexecuted queue
   pbft_chain_->pushBackUnexecutedPbftBlock(pbft_block_cert_votes);
+
+  // Notify executor
+  executor_->cv_executor.notify_one();
 
   // Update pbft chain last block hash
   pbft_chain_last_block_hash_ = pbft_block_hash;

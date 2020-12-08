@@ -100,10 +100,10 @@ void FullNode::init() {
           conf_.test_params.max_block_queue_warn);
   emplace(vote_mgr_, node_addr, final_chain_, pbft_chain_);
   emplace(trx_order_mgr_, node_addr, db_);
-  emplace(executor_, conf_.chain.pbft.lambda_ms_min, node_addr, db_, dag_mgr_, trx_mgr_, final_chain_, pbft_chain_,
+  emplace(executor_, node_addr, db_, dag_mgr_, trx_mgr_, final_chain_, pbft_chain_,
           conf_.test_params.block_proposer.transaction_limit);
   emplace(pbft_mgr_, conf_.chain.pbft, genesis_hash, node_addr, db_, pbft_chain_, vote_mgr_, dag_mgr_, blk_mgr_,
-          final_chain_, kp_.secret(), conf_.vrf_secret);
+          final_chain_, executor_, kp_.secret(), conf_.vrf_secret);
   emplace(blk_proposer_, conf_.test_params.block_proposer, conf_.chain.vdf, dag_mgr_, trx_mgr_, blk_mgr_, node_addr,
           getSecretKey(), getVrfSecretKey(), log_time_);
   emplace(network_, conf_.network, conf_.net_file_path().string(), kp_.secret(), genesis_hash, node_addr, db_,
@@ -327,10 +327,10 @@ void FullNode::rebuildDb() {
       break;
     }
   }
-  while (pbft_chain_->pbftSyncedQueueSize() > 0 || pbft_chain_->getPbftChainSize() != period - 1) {
+  while (pbft_chain_->pbftSyncedQueueSize() > 0 || pbft_chain_->getPbftExecutedChainSize() != period - 1) {
     thisThreadSleepForMilliSeconds(1000);
     LOG(log_nf_) << "Waiting on PBFT blocks to be processed. Queue size: " << pbft_chain_->pbftSyncedQueueSize()
-                 << " Chain size: " << pbft_chain_->getPbftChainSize();
+                 << " Chain size: " << pbft_chain_->getPbftExecutedChainSize();
   }
 }
 

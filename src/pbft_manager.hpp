@@ -6,6 +6,7 @@
 #include <thread>
 
 #include "config.hpp"
+#include "executor.hpp"
 #include "network.hpp"
 #include "pbft_chain.hpp"
 #include "taraxa_capability.hpp"
@@ -31,7 +32,8 @@ class PbftManager {
   PbftManager(PbftConfig const &conf, std::string const &genesis, addr_t node_addr, std::shared_ptr<DbStorage> db,
               std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
               std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<BlockManager> blk_mgr,
-              std::shared_ptr<FinalChain> final_chain, secret_t node_sk, vrf_sk_t vrf_sk);
+              std::shared_ptr<FinalChain> final_chain, std::shared_ptr<Executor> executor, secret_t node_sk,
+              vrf_sk_t vrf_sk);
   ~PbftManager();
 
   void setNetwork(std::shared_ptr<Network> network);
@@ -147,6 +149,7 @@ class PbftManager {
   std::shared_ptr<TaraxaCapability> capability_ = nullptr;
   std::shared_ptr<BlockManager> blk_mgr_;
   std::shared_ptr<FinalChain> final_chain_;
+  std::shared_ptr<Executor> executor_;
 
   addr_t node_addr_;
   secret_t node_sk_;

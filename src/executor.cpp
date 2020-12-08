@@ -9,12 +9,10 @@ struct ReplayProtectionServiceDummy : ReplayProtectionService {
   void update(DbStorage::BatchPtr batch, round_t round, util::RangeView<TransactionInfo> const &trxs) override {}
 };
 
-Executor::Executor(uint32_t pbft_lambda_time, addr_t node_addr, std::shared_ptr<DbStorage> db,
-                   std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr,
-                   std::shared_ptr<FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain,
-                   uint32_t expected_max_trx_per_block)
+Executor::Executor(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<DagManager> dag_mgr,
+                   std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<FinalChain> final_chain,
+                   std::shared_ptr<PbftChain> pbft_chain, uint32_t expected_max_trx_per_block)
     : replay_protection_service_(new ReplayProtectionServiceDummy),
-      sleep_(pbft_lambda_time),  // one PBFT lambda time
       node_addr_(node_addr),
       db_(db),
       dag_mgr_(dag_mgr),
@@ -43,15 +41,17 @@ void Executor::stop() {
   if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
+  cv_executor.notify_all();
   exec_worker_->join();
   LOG(log_nf_) << "Executor stopped";
 }
 
 void Executor::run() {
   LOG(log_nf_) << "Executor run...";
+  uLock lock(shared_mutex_executor_);
   while (!stopped_) {
+    cv_executor.wait(lock);
     executePbftBlocks_();
-    thisThreadSleepForMilliSeconds(sleep_);
   }
 }
 

@@ -16,10 +16,9 @@ namespace taraxa {
 
 class Executor {
  public:
-  Executor(uint32_t pbft_lambda_time, addr_t node_addr, std::shared_ptr<DbStorage> db,
-           std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr,
-           std::shared_ptr<FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain,
-           uint32_t expected_max_trx_per_block);
+  Executor(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<DagManager> dag_mgr,
+           std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<FinalChain> final_chain,
+           std::shared_ptr<PbftChain> pbft_chain, uint32_t expected_max_trx_per_block);
   ~Executor();
 
   void setWSServer(std::shared_ptr<net::WSServer> ws_server);
@@ -27,10 +26,12 @@ class Executor {
   void stop();
   void run();
 
- private:
-  void executePbftBlocks_();
+  boost::condition_variable_any cv_executor;
 
-  uint32_t sleep_;
+ private:
+  using uLock = boost::unique_lock<boost::shared_mutex>;
+
+  void executePbftBlocks_();
 
   unique_ptr<ReplayProtectionService> replay_protection_service_;
   std::shared_ptr<DbStorage> db_ = nullptr;
@@ -47,6 +48,8 @@ class Executor {
   dev::eth::Transactions transactions_tmp_buf_;
   std::atomic<uint64_t> num_executed_blk_ = 0;
   std::atomic<uint64_t> num_executed_trx_ = 0;
+
+  mutable boost::shared_mutex shared_mutex_executor_;
 
   LOG_OBJECTS_DEFINE;
 };
