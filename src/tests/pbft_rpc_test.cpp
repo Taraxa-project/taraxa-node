@@ -27,7 +27,7 @@ TEST_F(PbftRpcTest, full_node_lambda_input_test) {
 
   node->start();
   auto pbft_mgr = node->getPbftManager();
-  EXPECT_EQ(pbft_mgr->LAMBDA_ms_MIN, 2000);
+  EXPECT_EQ(pbft_mgr->getPbftInitialLambda(), 2000);
 }
 
 // Add votes round 1, 2 and 3 into unverified vote table

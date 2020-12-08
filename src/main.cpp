@@ -11,6 +11,7 @@ int main(int argc, const char* argv[]) {
   static_init();
   try {
     string conf_taraxa;
+    string conf_chain;
     bool destroy_db = 0;
     bool rebuild_network = 0;
     bool rebuild_db = 0;
@@ -47,7 +48,7 @@ int main(int argc, const char* argv[]) {
            << endl;
       return 1;
     }
-    FullNodeConfig cfg(conf_taraxa);
+    FullNodeConfig cfg(conf_taraxa, conf_chain);
     if (destroy_db) {
       fs::remove_all(cfg.db_path);
     }

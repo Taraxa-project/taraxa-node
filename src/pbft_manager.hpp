@@ -5,15 +5,14 @@
 #include <string>
 #include <thread>
 
-#include "block_proposer.hpp"
 #include "config.hpp"
-#include "net/WSServer.h"
+#include "executor.hpp"
+#include "network.hpp"
 #include "pbft_chain.hpp"
-#include "replay_protection_service.hpp"
 #include "taraxa_capability.hpp"
-#include "transaction_order_manager.hpp"
 #include "types.hpp"
 #include "vote.hpp"
+#include "vrf_wrapper.hpp"
 
 // total TARAXA COINS (2^53 -1) "1fffffffffffff"
 #define NULL_BLOCK_HASH blk_hash_t(0)
@@ -22,32 +21,29 @@
 
 namespace taraxa {
 class FullNode;
-class WSServer;
 
 enum PbftStates { value_proposal_state = 1, filter_state, certify_state, finish_state, finish_polling_state };
 
 class PbftManager {
-  unique_ptr<ReplayProtectionService> replay_protection_service;
-
  public:
   using time_point = std::chrono::system_clock::time_point;
+  using vrf_sk_t = vrf_wrapper::vrf_sk_t;
 
   PbftManager(PbftConfig const &conf, std::string const &genesis, addr_t node_addr, std::shared_ptr<DbStorage> db,
               std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
               std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<BlockManager> blk_mgr,
-              std::shared_ptr<FinalChain> final_chain, std::shared_ptr<TransactionOrderManager> trx_ord_mgr,
-              std::shared_ptr<TransactionManager> trx_mgr, secret_t node_sk, vrf_sk_t vrf_sk,
-              uint32_t expected_max_trx_per_block);
+              std::shared_ptr<FinalChain> final_chain, std::shared_ptr<Executor> executor, secret_t node_sk,
+              vrf_sk_t vrf_sk);
   ~PbftManager();
 
   void setNetwork(std::shared_ptr<Network> network);
-  void setWSServer(std::shared_ptr<net::WSServer> ws_server);
   void start();
   void stop();
   void run();
 
-  std::pair<bool, uint64_t> getDagBlockPeriod(blk_hash_t const &hash);
+  bool shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step);
 
+  std::pair<bool, uint64_t> getDagBlockPeriod(blk_hash_t const &hash);
   uint64_t getPbftRound() const;
   void setPbftRound(uint64_t const round);
   size_t getSortitionThreshold() const;
@@ -59,37 +55,24 @@ class PbftManager {
 
   Vote generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, uint64_t period, size_t step,
                     blk_hash_t const &last_pbft_block_hash);
+  uint64_t getEligibleVoterCount() const;
 
   // Notice: Test purpose
   void setSortitionThreshold(size_t const sortition_threshold);
   std::vector<std::vector<uint>> createMockTrxSchedule(
       std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>> trx_overlap_table);
-  bool shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step);
-
-  u_long const LAMBDA_ms_MIN;
-
- private:
-  u_long LAMBDA_ms = 0;
-
- public:
-  size_t const COMMITTEE_SIZE;
-
- private:
-  size_t DAG_BLOCKS_SIZE;
-  size_t GHOST_PATH_MOVE_BACK;
-  bool RUN_COUNT_VOTES;  // TODO: Only for test, need remove later
-
-  void update_dpos_state_();
-  bool is_eligible_(addr_t const &addr);
-
- public:
-  uint64_t getEligibleVoterCount() const;
+  size_t getPbftCommitteeSize() const { return COMMITTEE_SIZE; }
+  u_long getPbftInitialLambda() const { return LAMBDA_ms_MIN; }
 
  private:
   using uniqueLock_ = boost::unique_lock<boost::shared_mutex>;
   using sharedLock_ = boost::shared_lock<boost::shared_mutex>;
   using upgradableLock_ = boost::upgrade_lock<boost::shared_mutex>;
   using upgradeLock_ = boost::upgrade_to_unique_lock<boost::shared_mutex>;
+
+  // DPOS
+  void update_dpos_state_();
+  bool is_eligible_(addr_t const &addr);
 
   void resetStep_();
   bool resetRound_();
@@ -149,7 +132,7 @@ class PbftManager {
 
   void pushSyncedPbftBlocksIntoChain_();
 
-  bool pushPbftBlock_(PbftBlock const &pbft_block, std::vector<Vote> const &cert_votes);
+  bool pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes);
 
   void updateTwoTPlusOneAndThreshold_();
 
@@ -157,6 +140,7 @@ class PbftManager {
   // Using to check if PBFT block has been proposed already in one period
   std::pair<blk_hash_t, bool> proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
 
+  std::shared_ptr<DbStorage> db_ = nullptr;
   std::unique_ptr<std::thread> daemon_ = nullptr;
   std::shared_ptr<VoteManager> vote_mgr_ = nullptr;
   std::shared_ptr<PbftChain> pbft_chain_ = nullptr;
@@ -164,24 +148,27 @@ class PbftManager {
   std::shared_ptr<Network> network_ = nullptr;
   std::shared_ptr<TaraxaCapability> capability_ = nullptr;
   std::shared_ptr<BlockManager> blk_mgr_;
-  std::shared_ptr<net::WSServer> ws_server_;
   std::shared_ptr<FinalChain> final_chain_;
-  std::shared_ptr<TransactionOrderManager> trx_ord_mgr_;
-  std::shared_ptr<TransactionManager> trx_mgr_;
+  std::shared_ptr<Executor> executor_;
+
   addr_t node_addr_;
   secret_t node_sk_;
   vrf_sk_t vrf_sk_;
 
-  // Database
-  std::shared_ptr<DbStorage> db_ = nullptr;
-
-  blk_hash_t pbft_chain_last_block_hash_ = blk_hash_t(0);
-  std::pair<blk_hash_t, bool> next_voted_block_from_previous_round_ = std::make_pair(NULL_BLOCK_HASH, false);
+  u_long const LAMBDA_ms_MIN;
+  u_long LAMBDA_ms = 0;
+  size_t const COMMITTEE_SIZE;
+  size_t DAG_BLOCKS_SIZE;
+  size_t GHOST_PATH_MOVE_BACK;
+  bool RUN_COUNT_VOTES;  // TODO: Only for test, need remove later
 
   PbftStates state_ = value_proposal_state;
   uint64_t round_ = 1;
   size_t step_ = 1;
   u_long STEP_4_DELAY = 0;  // constant
+
+  blk_hash_t pbft_chain_last_block_hash_ = blk_hash_t(0);
+  std::pair<blk_hash_t, bool> next_voted_block_from_previous_round_ = std::make_pair(NULL_BLOCK_HASH, false);
 
   blk_hash_t own_starting_value_for_round_ = NULL_BLOCK_HASH;
   // <round, cert_voted_block_hash>
@@ -237,10 +224,6 @@ class PbftManager {
   time_point current_step_clock_initial_datetime_;
   // END TEST CODE
 
-  std::atomic<uint64_t> num_executed_trx_ = 0;
-  std::atomic<uint64_t> num_executed_blk_ = 0;
-  dev::eth::Transactions transactions_tmp_buf_;
-
   LOG_OBJECTS_DEFINE;
   mutable boost::log::sources::severity_channel_logger<> log_nf_test_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "PBFT_TEST")};
@@ -248,4 +231,4 @@ class PbftManager {
 
 }  // namespace taraxa
 
-#endif  // PBFT_MANAGER_H
+#endif  // TARAXA_NODE_PBFT_MANAGER_HPP

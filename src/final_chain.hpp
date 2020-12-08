@@ -19,6 +19,7 @@ using namespace util;
 
 struct ErrFutureBlock : std::invalid_argument {
   ErrFutureBlock() : invalid_argument("Attempt to query a future block") {}
+  ~ErrFutureBlock() throw() {}
 };
 
 struct FinalChain : virtual ChainDB {

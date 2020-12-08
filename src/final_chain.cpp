@@ -81,6 +81,8 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
     if (!client_blk_n) {
       return last_blk_n;
     }
+    // TODO: The check will throw exeception with unexecuted PBFT block number. Oleh please check if safe to remove
+    // Will remove, catch exception when DPOS throw in GO
     auto ret = *client_blk_n;
     if (last_blk_n < ret) {
       throw ErrFutureBlock();

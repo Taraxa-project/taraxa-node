@@ -206,12 +206,13 @@ TEST_F(NetworkTest, node_network_id) {
   }
 }
 
-// Test creates a DAG on one node and verifies
-// that the second node syncs with it and that the resulting
-// DAG on the other end is the same
+// Test creates a DAG on one node and verifies that the second node syncs with it and that the resulting DAG on the
+// other end is the same
 TEST_F(NetworkTest, node_sync) {
   auto node_cfgs = make_node_cfgs<5>(2);
   FullNode::Handle node1(node_cfgs[0], true);
+  // Stop PBFT manager
+  node1->getPbftManager()->stop();
 
   // Allow node to start up
   taraxa::thisThreadSleepForMilliSeconds(1000);
@@ -290,7 +291,7 @@ TEST_F(NetworkTest, node_sync) {
 // that the second node syncs with it and that the resulting
 // chain on the other end is the same
 TEST_F(NetworkTest, node_pbft_sync) {
-  auto node_cfgs = make_node_cfgs(2);
+  auto node_cfgs = make_node_cfgs<20>(2);
   FullNode::Handle node1(node_cfgs[0], true);
 
   node1->getPbftManager()->stop();
@@ -412,7 +413,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
 }
 
 TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
-  auto node_cfgs = make_node_cfgs(2);
+  auto node_cfgs = make_node_cfgs<20>(2);
   FullNode::Handle node1(node_cfgs[0], true);
 
   node1->getPbftManager()->stop();
@@ -812,8 +813,9 @@ TEST_F(NetworkTest, node_sync2) {
   for (int i = 0; i < 400; i++) {
     taraxa::thisThreadSleepForMilliSeconds(100);
     if (node2->getDagManager()->getNumVerticesInDag().first == 13 &&
-        node2->getDagManager()->getNumEdgesInDag().first == 13)
+        node2->getDagManager()->getNumEdgesInDag().first == 13) {
       break;
+    }
   }
 
   // node1->drawGraph("dot.txt");
@@ -858,12 +860,12 @@ TEST_F(NetworkTest, node_transaction_sync) {
 // resulting DAG is the same on all nodes
 TEST_F(NetworkTest, node_full_sync) {
   constexpr auto numberOfNodes = 5;
-  auto node_cfgs = make_node_cfgs(numberOfNodes);
+  auto node_cfgs = make_node_cfgs<20>(numberOfNodes);
   auto nodes = launch_nodes(slice(node_cfgs, 0, numberOfNodes - 1));
 
   std::random_device dev;
   std::mt19937 rng(dev());
-  std::uniform_int_distribution<std::mt19937::result_type> distTransactions(1, 200);
+  std::uniform_int_distribution<std::mt19937::result_type> distTransactions(1, 20);
   std::uniform_int_distribution<std::mt19937::result_type> distNodes(0, numberOfNodes - 2);  // range [0, 3]
 
   int counter = 0;

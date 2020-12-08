@@ -220,7 +220,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
           peer->dag_level_ = peer_level;
           peer->pbft_round_ = peer_pbft_round;
           LOG(log_dg_pbft_sync_) << "peer_pbft_chain_size: " << peer_pbft_chain_size
-                                 << "peer_syncing_pbft_chain_size_: " << peer_syncing_pbft_chain_size_;
+                                 << ", peer_syncing_pbft_chain_size_: " << peer_syncing_pbft_chain_size_;
           if (peer->syncing_) {
             LOG(log_dg_pbft_sync_) << "Other node is behind, prevent gossiping " << _nodeID
                                    << "Our pbft chain size: " << pbft_chain_size
@@ -1029,10 +1029,10 @@ void TaraxaCapability::onNewPbftBlock(taraxa::PbftBlock const &pbft_block) {
 void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync, size_t blocks_to_transfer) {
   LOG(log_dg_pbft_sync_) << "In sendPbftBlocks, peer want to sync from pbft chain height " << height_to_sync
                          << ", will send at most " << blocks_to_transfer << " pbft blocks to " << _id;
-  auto pbft_blks = pbft_chain_->getPbftBlocks(height_to_sync, blocks_to_transfer);
+  auto pbft_cert_blks = pbft_chain_->getPbftBlocks(height_to_sync, blocks_to_transfer);
   RLPStream s;
-  host_.capabilityHost()->prep(_id, name(), s, PbftBlockPacket, pbft_blks.size());
-  if (pbft_blks.empty()) {
+  host_.capabilityHost()->prep(_id, name(), s, PbftBlockPacket, pbft_cert_blks.size());
+  if (pbft_cert_blks.empty()) {
     host_.capabilityHost()->sealAndSend(_id, s);
     LOG(log_dg_pbft_sync_) << "In sendPbftBlocks, sent no pbft blocks to " << _id;
     return;
@@ -1046,31 +1046,28 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync, 
   // dag_blk_3 -> [trx_7, trx_8]
   //
   // Represented in the following variables:
-  // level_0 = [pbft_blk_1, pbft_blk_2]
-  // level_0_extra = [pbft_blk_1_dag_blk_hashes, pbft_blk_1_votes,
-  //                  pbft_blk_2_dag_blk_hashes, pbft_blk_2_votes]
+  // level_0 = [pbft_cert_blk_1, pbft_cert_blk_2]
+  // level_0_extra = [pbft_blk_1_dag_blk_hashes, pbft_blk_2_dag_blk_hashes]
   // edges_0_to_1 = [0, 2, 3]
   // level_1 = [dag_blk_1, dag_blk_2, dag_blk_3]
   // edges_1_to_2 = [0, 3, 6, 8]
   // level_2 = [trx_1, trx_2, trx_3, trx_4, trx_5, trx_6, trx_7, trx_8]
   //
   // General idea:
-  // level_`k`[i] is parent of level_`k+1` elements with ordinals
-  // in range from (inclusive) edges_`k`_to_`k+1`[i]
-  // to (exclusive) edges_`k`_to_`k+1`[i+1]
+  // level_`k`[i] is parent of level_`k+1` elements with ordinals in range from (inclusive) edges_`k`_to_`k+1`[i] to
+  // (exclusive) edges_`k`_to_`k+1`[i+1]
 
   DbStorage::MultiGetQuery db_query(db_);
-  auto const &level_0 = pbft_blks;
+  auto const &level_0 = pbft_cert_blks;
   for (auto const &b : level_0) {
-    db_query.append(DbStorage::Columns::dag_finalized_blocks, b.getPivotDagBlockHash(), false);
-    db_query.append(DbStorage::Columns::votes, b.getBlockHash(), false);
+    db_query.append(DbStorage::Columns::dag_finalized_blocks, b.pbft_blk->getPivotDagBlockHash(), false);
   }
   auto level_0_extra = db_query.execute();
   vector<uint> edges_0_to_1;
   edges_0_to_1.reserve(1 + level_0.size());
   edges_0_to_1.push_back(0);
   for (uint i_0 = 0; i_0 < level_0.size(); ++i_0) {
-    db_query.append(DbStorage::Columns::dag_blocks, RLP(level_0_extra[0 + 2 * i_0]).toVector<h256>());
+    db_query.append(DbStorage::Columns::dag_blocks, RLP(level_0_extra[i_0]).toVector<h256>());
     edges_0_to_1.push_back(db_query.size());
   }
   auto level_1 = db_query.execute();
@@ -1084,7 +1081,7 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync, 
   auto level_2 = db_query.execute();
   for (uint i_0 = 0; i_0 < level_0.size(); ++i_0) {
     s.appendList(2);
-    PbftBlockCert::encode_raw(s, level_0[i_0], level_0_extra[1 + 2 * i_0]);
+    s.appendRaw(level_0[i_0].rlp());
     auto start_1 = edges_0_to_1[i_0];
     auto end_1 = edges_0_to_1[i_0 + 1];
     s.appendList(end_1 - start_1);

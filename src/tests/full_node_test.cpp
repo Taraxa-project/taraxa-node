@@ -141,7 +141,7 @@ TEST_F(FullNodeTest, db_test) {
   PbftChain pbft_chain(blk_hash_t(0).toString(), addr_t(), db_ptr);
   db.savePbftHead(pbft_chain.getHeadHash(), pbft_chain.getJsonStr());
   EXPECT_EQ(db.getPbftHead(pbft_chain.getHeadHash()), pbft_chain.getJsonStr());
-  pbft_chain.setLastPbftBlockHash(blk_hash_t(123));
+  pbft_chain.setExecutedLastPbftBlockHash(blk_hash_t(123));
   batch = db.createWriteBatch();
   db.addPbftHeadToBatch(pbft_chain.getHeadHash(), pbft_chain.getJsonStr(), batch);
   db.commitWriteBatch(batch);
@@ -199,7 +199,7 @@ TEST_F(FullNodeTest, db_test) {
 TEST_F(FullNodeTest, sync_five_nodes) {
   using namespace std;
 
-  auto node_cfgs = make_node_cfgs<5>(5);
+  auto node_cfgs = make_node_cfgs<20>(5);
   auto nodes = launch_nodes(node_cfgs);
 
   class context {
@@ -791,7 +791,7 @@ TEST_F(FullNodeTest, persist_counter) {
 }
 
 TEST_F(FullNodeTest, sync_two_nodes2) {
-  auto node_cfgs = make_node_cfgs<1, true>(2);
+  auto node_cfgs = make_node_cfgs<20, true>(2);
   auto nodes = launch_nodes(node_cfgs);
 
   // send 1000 trxs
@@ -918,7 +918,7 @@ TEST_F(FullNodeTest, save_network_to_file) {
 }
 
 TEST_F(FullNodeTest, receive_send_transaction) {
-  auto node_cfgs = make_node_cfgs<1, true>(1);
+  auto node_cfgs = make_node_cfgs<20, true>(1);
   FullNode::Handle node(node_cfgs[0], true);
 
   try {
@@ -939,7 +939,7 @@ TEST_F(FullNodeTest, receive_send_transaction) {
 }
 
 TEST_F(FullNodeTest, detect_overlap_transactions) {
-  auto node_cfgs = make_node_cfgs<2>(5);
+  auto node_cfgs = make_node_cfgs<20>(5);
   auto node_1_genesis_bal = own_effective_genesis_bal(node_cfgs[0]);
   auto nodes = launch_nodes(node_cfgs);
   // Even distribute coins from master boot node to other nodes. Since master
@@ -959,7 +959,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   }
 
   std::cout << "Checking all nodes executed transactions at initialization" << std::endl;
-  wait({150s, 15s}, [&](auto &ctx) {
+  wait({150s, 1s}, [&](auto &ctx) {
     for (auto i(0); i < nodes.size(); ++i) {
       if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
         std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted()
@@ -1002,7 +1002,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   }
   std::cout << "Checking all nodes execute transactions from robin cycle" << std::endl;
 
-  wait({150s, 15s}, [&](auto &ctx) {
+  wait({150s, 1s}, [&](auto &ctx) {
     for (auto i(0); i < nodes.size(); ++i) {
       if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
         std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted()
@@ -1078,7 +1078,7 @@ TEST_F(FullNodeTest, db_rebuild) {
       nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false);
       trxs_count++;
       thisThreadSleepForMilliSeconds(100);
-      pbft_chain_size = nodes[0]->getPbftChain()->getPbftChainSize();
+      pbft_chain_size = nodes[0]->getPbftChain()->getPbftExecutedChainSize();
       if (pbft_chain_size == 5) {
         trxs_count_at_pbft_size_5 = nodes[0]->getDB()->getNumTransactionExecuted();
       }
@@ -1091,7 +1091,7 @@ TEST_F(FullNodeTest, db_rebuild) {
         ctx.fail();
       }
     });
-    pbft_chain_size = nodes[0]->getPbftChain()->getPbftChainSize();
+    pbft_chain_size = nodes[0]->getPbftChain()->getPbftExecutedChainSize();
   }
 
   {
@@ -1104,7 +1104,7 @@ TEST_F(FullNodeTest, db_rebuild) {
     auto node_cfgs = make_node_cfgs<5>(1);
     auto nodes = launch_nodes(node_cfgs);
     EXPECT_EQ(nodes[0]->getDB()->getNumTransactionExecuted(), trxs_count);
-    EXPECT_EQ(nodes[0]->getPbftChain()->getPbftChainSize(), pbft_chain_size);
+    EXPECT_EQ(nodes[0]->getPbftChain()->getPbftExecutedChainSize(), pbft_chain_size);
   }
 
   {
@@ -1118,7 +1118,7 @@ TEST_F(FullNodeTest, db_rebuild) {
     auto node_cfgs = make_node_cfgs<5>(1);
     auto nodes = launch_nodes(node_cfgs);
     EXPECT_EQ(nodes[0]->getDB()->getNumTransactionExecuted(), trxs_count_at_pbft_size_5);
-    EXPECT_EQ(nodes[0]->getPbftChain()->getPbftChainSize(), 5);
+    EXPECT_EQ(nodes[0]->getPbftChain()->getPbftExecutedChainSize(), 5);
   }
 }  // namespace taraxa::core_tests
 
@@ -1222,14 +1222,13 @@ TEST_F(FullNodeTest, chain_config_json) {
     "range": "0xa"
   },
   "vdf": {
-		"difficulty_max" : "0x15",
-		"difficulty_min" : "0xf",
+    "difficulty_max" : "0x15",
+		"difficulty_min" : "0x10",
     "difficulty_stale" : "0x16",
-		"lambda_bound" : "0x5dc",
+		"lambda_bound" : "0x64",
 		"threshold_selection" : "0x8000",
 		"threshold_vdf_omit" : "0x7200"
 	}
-
 })";
   Json::Value default_chain_config_json;
   ASSERT_TRUE(Json::Reader().parse(expected_default_chain_cfg_json, default_chain_config_json));
