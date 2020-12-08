@@ -27,12 +27,8 @@ enum SubprotocolPacketType : ::byte {
   NewBlockPacket,
   NewBlockHashPacket,
   GetNewBlockPacket,
-  GetBlockPacket,
-  BlockPacket,
   GetBlocksPacket,
   BlocksPacket,
-  GetLeavesBlocksPacket,
-  LeavesBlocksPacket,
   TransactionPacket,
   TestPacket,
   PbftVotePacket,
@@ -89,7 +85,6 @@ class TaraxaPeer : public boost::noncopyable {
 
   void statusReceived() { status_check_count_ = 0; }
 
-  std::map<uint64_t, std::map<blk_hash_t, std::pair<DagBlock, std::vector<Transaction>>>> sync_blocks_;
   bool syncing_ = false;
   uint64_t dag_level_ = 0;
   uint64_t pbft_chain_size_ = 0;
@@ -179,15 +174,14 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   std::pair<std::vector<NodeID>, std::vector<NodeID>> randomPartitionPeers(std::vector<NodeID> const &_peers,
                                                                            std::size_t _number);
   std::pair<int, int> retrieveTestData(NodeID const &_id);
-  void sendBlock(NodeID const &_id, taraxa::DagBlock block, bool newBlock);
+  void sendBlock(NodeID const &_id, taraxa::DagBlock block);
   void sendSyncedMessage();
   void sendSyncedResponseMessage(NodeID const &_id);
   void sendBlocks(NodeID const &_id, std::vector<std::shared_ptr<DagBlock>> blocks);
   void sendLeavesBlocks(NodeID const &_id, std::vector<std::string> blocks);
   void sendBlockHash(NodeID const &_id, taraxa::DagBlock block);
-  void requestBlock(NodeID const &_id, blk_hash_t hash, bool newBlock);
-  void requestPendingDagBlocks(NodeID const &_id, level_t level);
-  void requestLeavesDagBlocks(NodeID const &_id);
+  void requestBlock(NodeID const &_id, blk_hash_t hash);
+  void requestPendingDagBlocks(NodeID const &_id);
   void sendTransactions(NodeID const &_id, std::vector<taraxa::bytes> const &transactions);
   bool processSyncDagBlocks(NodeID const &_id);
 
@@ -250,6 +244,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   boost::asio::io_service io_service_;
   std::shared_ptr<boost::asio::io_service::work> io_work_;
   unsigned long peer_syncing_pbft_chain_size_ = 1;
+  uint64_t dag_level_ = 0;
   uint64_t pbft_sync_period_ = 1;
   NodeID peer_syncing_pbft;
   std::string genesis_;

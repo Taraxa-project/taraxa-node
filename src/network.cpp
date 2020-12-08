@@ -147,8 +147,8 @@ void Network::sendTest(NodeID const &id) {
   LOG(log_dg_) << "Sent test";
 }
 
-void Network::sendBlock(NodeID const &id, DagBlock const &blk, bool newBlock) {
-  taraxa_capability_->sendBlock(id, blk, newBlock);
+void Network::sendBlock(NodeID const &id, DagBlock const &blk) {
+  taraxa_capability_->sendBlock(id, blk);
   LOG(log_dg_) << "Sent Block:" << blk.getHash().toString();
 }
 

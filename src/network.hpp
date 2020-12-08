@@ -47,7 +47,7 @@ class Network {
   bool isSynced() { return taraxa_capability_ && !taraxa_capability_->syncing_; }
   void rpcAction(boost::system::error_code const &ec, size_t size);
   void sendTest(dev::p2p::NodeID const &id);
-  void sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk, bool newBlock);
+  void sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk);
   void sendTransactions(NodeID const &_id, std::vector<taraxa::bytes> const &transactions);
   void onNewBlockVerified(DagBlock const &blk);
   void onNewTransactions(std::vector<taraxa::bytes> const &transactions);
