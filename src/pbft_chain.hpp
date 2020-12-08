@@ -84,6 +84,7 @@ class PbftChain {
 
   void cleanupUnverifiedPbftBlocks(taraxa::PbftBlock const& pbft_block);
 
+  uint64_t getPbftExecutedChainSize() const;
   uint64_t getPbftChainSize() const;
   blk_hash_t getHeadHash() const;
   blk_hash_t getLastPbftBlockHash() const;
