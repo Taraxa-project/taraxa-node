@@ -102,6 +102,7 @@ struct DbStorage {
   uint32_t snapshots_counter = 0;
   std::set<uint64_t> snapshots_;
   addr_t node_addr_;
+  bool minor_version_changed_ = false;
 
   auto handle(Column const& col) const { return handles_[col.ordinal]; }
 
@@ -112,7 +113,8 @@ struct DbStorage {
   DbStorage& operator=(DbStorage const&) = delete;
 
   explicit DbStorage(fs::path const& base_path, uint32_t db_snapshot_each_n_pbft_block = 0,
-                     uint32_t db_max_snapshots = 0, uint32_t db_revert_to_period = 0, addr_t node_addr = addr_t());
+                     uint32_t db_max_snapshots = 0, uint32_t db_revert_to_period = 0, addr_t node_addr = addr_t(),
+                     bool rebuild = 0);
   ~DbStorage();
 
   auto const& path() const { return path_; }
@@ -197,6 +199,8 @@ struct DbStorage {
   void insert(Column const& col, Slice const& k, Slice const& v);
   void remove(Slice key, Column const& column);
   void forEach(Column const& col, OnEntry const& f);
+
+  bool hasMinorVersionChanged() { return minor_version_changed_; }
 
   inline static bytes asBytes(string const& b) {
     return bytes((byte const*)b.data(), (byte const*)(b.data() + b.size()));
