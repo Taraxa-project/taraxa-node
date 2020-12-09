@@ -181,7 +181,7 @@ void PbftManager::setSortitionThreshold(size_t const sortition_threshold) {
 
 void PbftManager::update_dpos_state_() {
   dpos_period_ = pbft_chain_->getPbftChainSize();
-  while (true) {
+  while (true && !stopped_) {
     try {
       eligible_voter_count_ = final_chain_->dpos_eligible_count(dpos_period_);
       break;
