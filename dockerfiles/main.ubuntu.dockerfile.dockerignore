@@ -1,4 +1,6 @@
 **/*
+!config
+!config/**/*
 !src
 !scripts/clang_format.sh
 !scripts/clang_format_validate.sh
