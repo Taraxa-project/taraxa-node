@@ -31,13 +31,14 @@ ENV APP_PATH /opt/taraxa/taraxa-node
 ENV LD_LIBRARY_PATH /usr/local/lib
 
 RUN mkdir -p ${APP_PATH}/config
+COPY config ${APP_PATH}/config/
+
 WORKDIR ${APP_PATH}
 COPY --from=builder /usr/local/lib/* /usr/local/lib/
 COPY --from=builder ${APP_PATH}/build/bin_tmp/main .
 COPY --from=builder ${APP_PATH}/src/util_test/conf/*.json ./default_config/
 COPY --from=builder /symlink_index.sh /
 COPY --from=builder /apt_deps_runtime.txt /
-COPY config ./config/
 # fix symlinks
 RUN cd /usr/local/lib && /symlink_index.sh restore rm && rm /symlink_index.sh
 RUN \
