@@ -37,6 +37,7 @@ COPY --from=builder ${APP_PATH}/build/bin_tmp/main .
 COPY --from=builder ${APP_PATH}/src/util_test/conf/*.json ./default_config/
 COPY --from=builder /symlink_index.sh /
 COPY --from=builder /apt_deps_runtime.txt /
+COPY ./config ./config
 # fix symlinks
 RUN cd /usr/local/lib && /symlink_index.sh restore rm && rm /symlink_index.sh
 RUN \
