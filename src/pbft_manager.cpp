@@ -188,7 +188,7 @@ void PbftManager::update_dpos_state_() {
     } catch (final_chain::ErrFutureBlock &c) {
       LOG(log_nf_) << c.what() << ". PBFT period " << dpos_period_ << " is too far ahead of DPOS, need wait!";
       // Sleep one PBFT lambda time
-      if (stopped_.load()) break;
+      if (stopped_) break;
       thisThreadSleepForMilliSeconds(LAMBDA_ms);
     }
   }
