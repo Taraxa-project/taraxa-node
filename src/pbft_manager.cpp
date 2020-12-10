@@ -181,7 +181,7 @@ void PbftManager::setSortitionThreshold(size_t const sortition_threshold) {
 
 void PbftManager::update_dpos_state_() {
   dpos_period_ = pbft_chain_->getPbftChainSize();
-  while (true) {
+  do {
     try {
       eligible_voter_count_ = final_chain_->dpos_eligible_count(dpos_period_);
       break;
@@ -189,13 +189,10 @@ void PbftManager::update_dpos_state_() {
       LOG(log_nf_) << c.what() << ". PBFT period " << dpos_period_ << " is too far ahead of DPOS, need wait!"
                    << " PBFT chain size " << pbft_chain_->getPbftChainSize() << ", have executed chain size "
                    << pbft_chain_->getPbftExecutedChainSize();
-      if (stopped_) {
-        break;
-      }
       // Sleep one PBFT lambda time
       thisThreadSleepForMilliSeconds(LAMBDA_ms);
     }
-  }
+  } while (!stopped_);
 }
 
 uint64_t PbftManager::getEligibleVoterCount() const { return eligible_voter_count_; }
