@@ -180,15 +180,19 @@ void PbftManager::setSortitionThreshold(size_t const sortition_threshold) {
 }
 
 void PbftManager::update_dpos_state_() {
+  dpos_period_ = pbft_chain_->getPbftChainSize();
   while (true) {
     try {
-      dpos_period_ = pbft_chain_->getPbftChainSize();
       eligible_voter_count_ = final_chain_->dpos_eligible_count(dpos_period_);
       break;
     } catch (final_chain::ErrFutureBlock &c) {
-      LOG(log_nf_) << c.what() << ". PBFT period " << dpos_period_ << " is too far ahead of DPOS, need wait!";
+      LOG(log_nf_) << c.what() << ". PBFT period " << dpos_period_ << " is too far ahead of DPOS, need wait!"
+                   << " PBFT chain size " << pbft_chain_->getPbftChainSize() << ", have executed chain size "
+                   << pbft_chain_->getPbftExecutedChainSize();
+      if (stopped_) {
+        break;
+      }
       // Sleep one PBFT lambda time
-      if (stopped_) break;
       thisThreadSleepForMilliSeconds(LAMBDA_ms);
     }
   }

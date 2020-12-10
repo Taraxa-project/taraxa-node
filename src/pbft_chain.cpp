@@ -318,6 +318,8 @@ std::vector<std::string> PbftChain::getPbftBlocksStr(size_t period, size_t count
 void PbftChain::updatePbftChain(blk_hash_t const& pbft_block_hash) {
   pbftSyncedSetInsert_(pbft_block_hash);
   uniqueLock_ lock(chain_head_access_);
+  // Delete the PBFT block from PBFT chain unexecuted queue
+  popFrontUnexecutedPbftBlock();
   executed_size_++;
   executed_last_pbft_block_hash_ = pbft_block_hash;
 }
