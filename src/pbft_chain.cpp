@@ -374,10 +374,12 @@ PbftBlockCert PbftChain::unexecutedPbftBlocksBack() const {
 }
 
 void PbftChain::popFrontUnexecutedPbftBlock() {
-  uniqueLock_ lock(unexecuted_access_);
-  auto pbft_block_hash = unexecuted_pbft_blocks_queue_.front().pbft_blk->getBlockHash();
-  unexecuted_pbft_blocks_.erase(pbft_block_hash);
-  unexecuted_pbft_blocks_queue_.pop_front();
+  if (!unexecutedPbftBlocksEmpty()) {
+    uniqueLock_ lock(unexecuted_access_);
+    auto pbft_block_hash = unexecuted_pbft_blocks_queue_.front().pbft_blk->getBlockHash();
+    unexecuted_pbft_blocks_.erase(pbft_block_hash);
+    unexecuted_pbft_blocks_queue_.pop_front();
+  }
 }
 
 void PbftChain::pushBackUnexecutedPbftBlock(PbftBlockCert const& pbft_block_cert_votes) {
