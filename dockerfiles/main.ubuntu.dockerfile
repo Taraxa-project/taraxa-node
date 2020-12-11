@@ -30,8 +30,18 @@ ENV TERM xterm
 ENV APP_PATH /opt/taraxa/taraxa-node
 ENV LD_LIBRARY_PATH /usr/local/lib
 
+RUN apt update -y
+RUN apt upgrade -y
+RUN apt install -y python3-pip
+
+RUN pip3 install eth-keys eth-account
+RUN LIBSODIUM_MAKE_ARGS=-j4 pip3 install pynacl
+RUN pip3 install click 
+
 RUN mkdir -p ${APP_PATH}/config
 WORKDIR ${APP_PATH}
+COPY config ./config/
+COPY cli/taraxa ./taraxa
 COPY --from=builder /usr/local/lib/* /usr/local/lib/
 COPY --from=builder ${APP_PATH}/build/bin_tmp/main .
 COPY --from=builder ${APP_PATH}/src/util_test/conf/*.json ./default_config/
@@ -56,5 +66,5 @@ RUN find /usr \
 # RUN LD_BIND_NOW=1 ./main
 
 ENV GODEBUG cgocheck=0
-ENTRYPOINT ["./main"]
-CMD ["--conf_taraxa", "./default_config/conf_taraxa1.json"]
+ENTRYPOINT ["./taraxa"]
+CMD ["--help"]

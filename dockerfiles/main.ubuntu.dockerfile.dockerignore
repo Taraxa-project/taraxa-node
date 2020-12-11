@@ -6,3 +6,6 @@
 !.clang-format
 !Makefile
 !dockerfiles/main.ubuntu.dockerfile.crypto_test_HACK.sh
+
+!cli/taraxa
+!config
