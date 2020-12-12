@@ -28,7 +28,7 @@ def cli():
 
 @cli.group()
 def config():
-    """Manage chain, network, or node config"""
+    """Manage chain or node config"""
     pass
 
 @cli.command()
@@ -111,11 +111,6 @@ def chain(chain_id, file, genesis, stake, stdout):
     else:
         with open(file, 'w') as outfile:
             json.dump(chain_config, outfile, indent=2)
-
-@config.command()
-def network():
-    """Generate Taraxa network config"""
-    click.echo('Config network...')
     
 @config.command()
 @click.option('--as-boot-node', is_flag=True, help='Configure this node as a boot node')
