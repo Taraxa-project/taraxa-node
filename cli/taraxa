@@ -74,9 +74,43 @@ def start(conf_taraxa, conf_chain):
         click.echo(line)
 
 @config.command()
-def chain():
+@click.option('--chain-id', default=4444, type=int, help='The chain id')
+@click.option('--file', default='./config/chains/private.json', help='The config file to write to')
+@click.option('--genesis', multiple=True, help='Address and values to mint at genesis. (format: address:amount_hex) This can be repeated for multiple addresses.')
+@click.option('--stake', multiple=True, help='Address and values to stake at genesis. (format: from_address:to_address:amount_hex) This can be repeated for multiple addresses.')
+@click.option('--stdout', is_flag=True, help='Write to stdout instead of a file')
+def chain(chain_id, file, genesis, stake, stdout):
     """Generate Taraxa chain config"""
-    click.echo('Config chain...')
+    chain_config = {}
+    # use testnet as template
+    with open(f"./config/chains/testnet.json") as json_file:
+        chain_config = json.load(json_file)
+
+    chain_config['chain_id'] = f"0x{format(chain_id, 'x')}"
+
+    # parse genesis strings
+    genesis_addresses_parsed = {}
+    for i in genesis:
+        a = i.split(':')
+        genesis_addresses_parsed[a[0].lower().replace('0x', '')] = a[1]
+    chain_config['final_chain']['state']['genesis_balances'] = genesis_addresses_parsed
+
+    # parse stake strings
+    stake_addresses_parsed = {}
+    for i in stake:
+        a = i.split(':')
+        if not a[0].lower() in stake_addresses_parsed:
+            stake_addresses_parsed[a[0].lower()] = {}
+        stake_addresses_parsed[a[0].lower()][a[1].lower()] = a[2]
+    chain_config['final_chain']['state']['dpos']['genesis_state'] = stake_addresses_parsed
+
+
+    # output json to console or file
+    if stdout:
+        click.echo(json.dumps(chain_config, indent=2))
+    else:
+        with open(file, 'w') as outfile:
+            json.dump(chain_config, outfile, indent=2)
 
 @config.command()
 def network():
