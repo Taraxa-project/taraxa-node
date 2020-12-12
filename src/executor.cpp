@@ -153,9 +153,6 @@ void Executor::executePbftBlocks_() {
     db_->commitWriteBatch(batch);
     LOG(log_nf_) << "DB write batch committed at period " << pbft_period << " PBFT block hash " << pbft_block_hash;
 
-    // Delete the PBFT block from PBFT chain unexecuted queue
-    pbft_chain_->popFrontUnexecutedPbftBlock();
-
     // After DB commit, confirm in final chain(Ethereum)
     final_chain_->advance_confirm();
 

@@ -320,7 +320,6 @@ std::shared_ptr<DagManager> DagManager::getShared() {
 void DagManager::stop() {
   unique_lock lock(mutex_);
   trx_mgr_ = nullptr;
-  pbft_chain_ = nullptr;
 }
 
 std::pair<uint64_t, uint64_t> DagManager::getNumVerticesInDag() const {

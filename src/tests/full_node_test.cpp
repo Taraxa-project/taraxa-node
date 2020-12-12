@@ -1018,6 +1018,17 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
     }
   });
 
+  wait({15s, 1s}, [&](auto &ctx) {
+    auto num_vertices0 = nodes[0]->getDagManager()->getNumVerticesInDag();
+    auto num_vertices1 = nodes[1]->getDagManager()->getNumVerticesInDag();
+    auto num_vertices2 = nodes[2]->getDagManager()->getNumVerticesInDag();
+    auto num_vertices3 = nodes[3]->getDagManager()->getNumVerticesInDag();
+    auto num_vertices4 = nodes[4]->getDagManager()->getNumVerticesInDag();
+    if (num_vertices0 != num_vertices1 || num_vertices0 != num_vertices2 || num_vertices0 != num_vertices3 ||
+        num_vertices0 != num_vertices4)
+      ctx.fail();
+  });
+
   // Check DAG
   auto num_vertices0 = nodes[0]->getDagManager()->getNumVerticesInDag();
   auto num_vertices1 = nodes[1]->getDagManager()->getNumVerticesInDag();
