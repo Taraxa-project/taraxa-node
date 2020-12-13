@@ -93,14 +93,8 @@ LIBS := \
 	ff \
 	secp256k1 \
 	cryptopp \
-	ethash
-
-resolve_lib = $(shell \
-	$(CXX) $(LIB_DIRS) -l$(1) -shared -o /dev/null &> /dev/null && echo $(1) \
-)
-# Optional linking for some std libs whose presence depends on OS/toolchain.
-LIBS += $(call resolve_lib,atomic)
-LIBS += $(call resolve_lib,stdc++fs)
+	ethash \
+	$(SYS_LIBS)
 
 # needed for golang runtime that comes together with taraxa-evm
 ifeq ($(OS), Darwin)

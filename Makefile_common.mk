@@ -41,6 +41,8 @@ ifeq ($(OS), Darwin)
 	BOOST_MT_SUFFIX := 1
 endif
 UPDATE_SUBMODULES := 1
+# can be used to manage local env specifics of std lib distribution
+SYS_LIBS :=
 # makefile with overrides,
 # also you can put there custom local targets, which can even use variables
 # from the main build
