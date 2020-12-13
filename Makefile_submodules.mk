@@ -58,7 +58,7 @@ submodules/taraxa-evm/ok:
 
 TARAXA_VDF_OPTS :=
 ifneq ($(SYSTEM_HOME_OVERRIDE),)
-	LIBFF_OPTS += OPENSSL_HOME=$(SYSTEM_HOME_OVERRIDE)
+	TARAXA_VDF_OPTS += OPENSSL_HOME=$(SYSTEM_HOME_OVERRIDE)
 endif
 submodules/taraxa-vdf/ok:
 	$(SUBMODULE_BUILD_BEGIN); \

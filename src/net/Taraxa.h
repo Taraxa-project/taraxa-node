@@ -27,6 +27,7 @@ class Taraxa : public TaraxaFace {
   virtual std::string taraxa_dagBlockPeriod() override;
   virtual Json::Value taraxa_getScheduleBlockByPeriod(std::string const& _period) override;
   Json::Value taraxa_getConfig() override;
+  Json::Value taraxa_queryDPOS(Json::Value const& _q) override;
 
  protected:
   std::weak_ptr<taraxa::FullNode> full_node_;

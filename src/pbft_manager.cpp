@@ -185,7 +185,7 @@ void PbftManager::update_dpos_state_() {
     try {
       eligible_voter_count_ = final_chain_->dpos_eligible_count(dpos_period_);
       break;
-    } catch (final_chain::ErrFutureBlock &c) {
+    } catch (state_api::ErrFutureBlock &c) {
       LOG(log_nf_) << c.what() << ". PBFT period " << dpos_period_ << " is too far ahead of DPOS, need wait!"
                    << " PBFT chain size " << pbft_chain_->getPbftChainSize() << ", have executed chain size "
                    << pbft_chain_->getPbftExecutedChainSize();

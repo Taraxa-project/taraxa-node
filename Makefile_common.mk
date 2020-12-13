@@ -9,7 +9,7 @@ _ := $(shell rm -rf Makefile.log.txt)
 # rather, which kind of bash do you prefer, cause this build relies on bash
 SHELL := /bin/bash
 DEBUG := 0
-# rather, which kind of gcc do you prefer, cause this build relies on bash
+# rather, which kind of gcc do you prefer, cause this build relies on gcc
 CXX := g++
 CXX_STD := c++17
 # if there's a need to use custom versions of some libraries,
@@ -36,6 +36,10 @@ COMPILE_DEFINITIONS := \
 	BOOST_SPIRIT_THREADSAFE \
 	GIT_HASH="\"$(GIT_HASH)\"" \
 	COMPILE_TIME="\"$(COMPILE_TIME)\""
+BOOST_MT_SUFFIX := 0
+ifeq ($(OS), Darwin)
+	BOOST_MT_SUFFIX := 1
+endif
 UPDATE_SUBMODULES := 1
 # makefile with overrides,
 # also you can put there custom local targets, which can even use variables
@@ -51,7 +55,7 @@ ifndef COMPILE_FLAGS
 	endif
 endif
 ifndef LINK_FLAGS
-	LINK_FLAGS := -Wl,-rpath $(DEPS_INSTALL_PREFIX)/lib
+	LINK_FLAGS :=
 	ifeq ($(DEBUG), 1)
 		ifeq ($(OS), Darwin)
 			LINK_FLAGS += -rdynamic

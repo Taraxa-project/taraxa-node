@@ -19,6 +19,7 @@
 #include "../util_test/samples.hpp"
 #include "string"
 
+// TODO rename this namespace to `tests`
 namespace taraxa::core_tests {
 using samples::sendTrx;
 

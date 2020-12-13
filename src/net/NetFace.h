@@ -21,16 +21,13 @@ class NetFace : public ServerInterface<NetFace> {
         &taraxa::net::NetFace::net_listeningI);
   }
 
-  inline virtual void net_versionI(const Json::Value &request, Json::Value &response) {
-    (void)request;
+  inline virtual void net_versionI(const Json::Value & /*request*/, Json::Value &response) {
     response = this->net_version();
   }
-  inline virtual void net_peerCountI(const Json::Value &request, Json::Value &response) {
-    (void)request;
+  inline virtual void net_peerCountI(const Json::Value & /*request*/, Json::Value &response) {
     response = this->net_peerCount();
   }
-  inline virtual void net_listeningI(const Json::Value &request, Json::Value &response) {
-    (void)request;
+  inline virtual void net_listeningI(const Json::Value & /*request*/, Json::Value &response) {
     response = this->net_listening();
   }
   virtual std::string net_version() = 0;

@@ -1,18 +1,16 @@
 #include "state_api.hpp"
 
+#include <array>
 #include <string_view>
 
 #include "util/encoding_rlp.hpp"
 #include "util/exit_stack.hpp"
 
+static_assert(sizeof(char) == sizeof(uint8_t));
+
 namespace taraxa::state_api {
 using util::dec_rlp;
 using util::enc_rlp;
-
-string bytes2str(taraxa_evm_Bytes const& b) {
-  static_assert(sizeof(char) == sizeof(uint8_t));
-  return {(char*)b.Data, b.Len};
-}
 
 bytesConstRef map_bytes(taraxa_evm_Bytes const& b) { return {b.Data, b.Len}; }
 
@@ -23,16 +21,13 @@ void from_rlp(taraxa_evm_Bytes b, Result& result) {
   dec_rlp(RLP(map_bytes(b), 0), result);
 }
 
+void to_str(taraxa_evm_Bytes b, string& result) { result = {(char*)b.Data, b.Len}; }
+
 void to_bytes(taraxa_evm_Bytes b, bytes& result) { result.assign(b.Data, b.Data + b.Len); }
 
 void to_u256(taraxa_evm_Bytes b, u256& result) { result = fromBigEndian<u256>(map_bytes(b)); }
 
 void to_h256(taraxa_evm_Bytes b, h256& result) { result = h256(b.Data, h256::ConstructFromPointer); }
-
-taraxa_evm_BytesCallback const err_handler_c{
-    nullptr,
-    [](auto _, auto err_bytes) { BOOST_THROW_EXCEPTION(Error(bytes2str(err_bytes))); },
-};
 
 template <typename Result, void (*decode)(taraxa_evm_Bytes, Result&)>
 taraxa_evm_BytesCallback decoder_cb_c(Result& res) {
@@ -41,6 +36,25 @@ taraxa_evm_BytesCallback decoder_cb_c(Result& res) {
       [](auto receiver, auto b) { decode(b, *(Result*)receiver); },
   };
 }
+
+taraxa_evm_BytesCallback const err_handler_c{
+    nullptr,
+    [](auto _, auto err_bytes) {
+      static string const delim = ": ";
+      static auto const delim_len = delim.size();
+      string_view err_str((char*)err_bytes.Data, err_bytes.Len);
+      auto delim_pos = err_str.find(delim);
+      string type(err_str.substr(0, delim_pos));
+      string msg(err_str.substr(delim_pos + delim_len));
+      if ("github.com/Taraxa-project/taraxa-evm/taraxa/state/state_db/ErrFutureBlock" == type) {
+        BOOST_THROW_EXCEPTION(ErrFutureBlock(type, msg));
+      }
+      string traceback;
+      taraxa_evm_traceback(decoder_cb_c<string, to_str>(traceback));
+      msg += "\nStack Trace:\n" + traceback;
+      BOOST_THROW_EXCEPTION(TaraxaEVMError(type, msg));
+    },
+};
 
 template <typename Result,                            //
           void (*decode)(taraxa_evm_Bytes, Result&),  //
@@ -152,6 +166,10 @@ bool StateAPI::dpos_is_eligible(BlockNumber blk_num, addr_t const& addr) const {
   rlp.reserve(sizeof(BlockNumber) + sizeof(addr_t) + 8, 1);
   enc_rlp_tuple(rlp, blk_num, addr);
   return taraxa_evm_state_api_dpos_is_eligible(this_c, map_bytes(rlp.out()), err_handler_c);
+}
+
+DPOSQueryResult StateAPI::dpos_query(BlockNumber blk_num, DPOSQuery const& q) const {
+  return c_method_args_rlp<DPOSQueryResult, from_rlp, taraxa_evm_state_api_dpos_query>(this_c, blk_num, q);
 }
 
 addr_t const& StateAPI::dpos_contract_addr() {
@@ -335,5 +353,75 @@ void dec_json(Json::Value const& json, DPOSConfig& obj) {
 void dec_rlp(RLP const& rlp, StateDescriptor& obj) { dec_rlp_tuple(rlp, obj.blk_num, obj.state_root); }
 
 void enc_rlp(RLPStream& enc, DPOSTransfer const& obj) { enc_rlp_tuple(enc, obj.value, obj.negative); }
+
+void enc_rlp(RLPStream& enc, DPOSQuery::AccountQuery const& obj) {
+  enc_rlp_tuple(enc, obj.with_staking_balance, obj.with_outbound_deposits, obj.outbound_deposits_addrs_only,
+                obj.with_inbound_deposits, obj.inbound_deposits_addrs_only);
+}
+
+void enc_rlp(RLPStream& enc, DPOSQuery const& obj) { enc_rlp_tuple(enc, obj.with_eligible_count, obj.account_queries); }
+
+void dec_json(Json::Value const& json, DPOSQuery::AccountQuery& obj) {
+  static auto const dec_field = [](Json::Value const& json, char const* name, bool& field) {
+    if (auto const& e = json[name]; !e.isNull()) {
+      field = e.asBool();
+    }
+  };
+  dec_field(json, "with_staking_balance", obj.with_staking_balance);
+  dec_field(json, "with_outbound_deposits", obj.with_outbound_deposits);
+  dec_field(json, "outbound_deposits_addrs_only", obj.outbound_deposits_addrs_only);
+  dec_field(json, "with_inbound_deposits", obj.with_inbound_deposits);
+  dec_field(json, "inbound_deposits_addrs_only", obj.inbound_deposits_addrs_only);
+}
+
+void dec_json(Json::Value const& json, DPOSQuery& obj) {
+  if (auto const& e = json["with_eligible_count"]; !e.isNull()) {
+    obj.with_eligible_count = e.asBool();
+  }
+  auto const& account_queries = json["account_queries"];
+  for (auto const& k : account_queries.getMemberNames()) {
+    dec_json(account_queries[k], obj.account_queries[addr_t(k)]);
+  }
+}
+
+void dec_rlp(RLP const& rlp, DPOSQueryResult::AccountResult& obj) {
+  dec_rlp_tuple(rlp, obj.staking_balance, obj.is_eligible, obj.outbound_deposits, obj.inbound_deposits);
+}
+
+void dec_rlp(RLP const& rlp, DPOSQueryResult& obj) { dec_rlp_tuple(rlp, obj.eligible_count, obj.account_results); }
+
+Json::Value enc_json(DPOSQueryResult::AccountResult const& obj, DPOSQuery::AccountQuery* q) {
+  Json::Value json(Json::objectValue);
+  if (!q || q->with_staking_balance) {
+    json["staking_balance"] = dev::toJS(obj.staking_balance);
+    json["is_eligible"] = obj.is_eligible;
+  }
+  static auto const enc_deposits = [](Json::Value& root, char const* key,
+                                      decltype(obj.inbound_deposits) const& deposits, bool hydrated) {
+    auto& deposits_json = root[key] = Json::Value(hydrated ? Json::objectValue : Json::arrayValue);
+    for (auto const& [k, v] : deposits) {
+      if (hydrated) {
+        deposits_json[dev::toJS(k)] = dev::toJS(v);
+      } else {
+        deposits_json.append(dev::toJS(k));
+      }
+    }
+  };
+  enc_deposits(json, "outbound_deposits", obj.outbound_deposits, !q || !q->outbound_deposits_addrs_only);
+  enc_deposits(json, "inbound_deposits", obj.inbound_deposits, !q || !q->inbound_deposits_addrs_only);
+  return json;
+}
+
+Json::Value enc_json(DPOSQueryResult const& obj, DPOSQuery* q) {
+  Json::Value json(Json::objectValue);
+  if (!q || q->with_eligible_count) {
+    json["eligible_count"] = dev::toJS(obj.eligible_count);
+  }
+  auto& account_results = json["account_results"] = Json::Value(Json::objectValue);
+  for (auto const& [k, v] : obj.account_results) {
+    account_results[dev::toJS(k)] = enc_json(v, q ? &q->account_queries[k] : nullptr);
+  }
+  return json;
+}
 
 }  // namespace taraxa::state_api
