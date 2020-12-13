@@ -1,11 +1,17 @@
 #include "Taraxa.h"
 
+// in our docker build we use libjsonrpccpp 0.7.0, which
+// has the C++17 incompatibility (http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0003r5.html)
+// in some files that is addressed by the following horrible hack.
+// TODO remove it after the lib upgrade (later versions have the root cause fixed).
 #define throw(...)
 #include <jsonrpccpp/client/connectors/httpclient.h>
+
+#include "TaraxaClient.h"
 #undef throw
+// END horrible hack
 
 #include "../util_test/util.hpp"
-#include "TaraxaClient.h"
 
 namespace taraxa::net {
 using namespace core_tests;
