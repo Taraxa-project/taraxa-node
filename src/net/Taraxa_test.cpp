@@ -1,6 +1,8 @@
 #include "Taraxa.h"
 
+#define throw(...)
 #include <jsonrpccpp/client/connectors/httpclient.h>
+#undef throw
 
 #include "../util_test/util.hpp"
 #include "TaraxaClient.h"
