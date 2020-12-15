@@ -33,8 +33,7 @@ class PbftBlock {
   blk_hash_t block_hash_;
   blk_hash_t prev_block_hash_;
   blk_hash_t dag_block_hash_as_pivot_;
-  // PBFT head block is period 0, first PBFT block is period 1
-  uint64_t period_;  // Block index
+  uint64_t period_;  // Block index, PBFT head block is period 0, first PBFT block is period 1
   uint64_t timestamp_;
   addr_t beneficiary_;
   sig_t signature_;
@@ -82,14 +81,10 @@ class PbftChain {
  public:
   explicit PbftChain(std::string const& dag_genesis_hash, addr_t node_addr, std::shared_ptr<DbStorage> db);
 
-  void cleanupUnverifiedPbftBlocks(taraxa::PbftBlock const& pbft_block);
-
-  uint64_t getPbftExecutedChainSize() const;
-  uint64_t getPbftChainSize() const;
   blk_hash_t getHeadHash() const;
+  uint64_t getPbftChainSize() const;
+  uint64_t getPbftExecutedChainSize() const;
   blk_hash_t getLastPbftBlockHash() const;
-  void setExecutedLastPbftBlockHash(blk_hash_t const& last_pbft_block_hash);
-  void setPbftChainHead(blk_hash_t const& head_hash, uint64_t const size, blk_hash_t const& last_pbft_block_hash);
 
   PbftBlock getPbftBlockInChain(blk_hash_t const& pbft_block_hash);
   std::shared_ptr<PbftBlock> getUnverifiedPbftBlock(blk_hash_t const& pbft_block_hash);
@@ -102,22 +97,18 @@ class PbftChain {
   bool findUnverifiedPbftBlock(blk_hash_t const& pbft_block_hash) const;
   bool findPbftBlockInSyncedSet(blk_hash_t const& pbft_block_hash) const;
 
-  // unexecuted PBFT blocks
-  bool unexecutedPbftBlocksEmpty() const;
-  size_t unexecutedPbftBlocksSize() const;
-  PbftBlockCert unexecutedPbftBlocksFront() const;
-  PbftBlockCert unexecutedPbftBlocksBack() const;
-  void popFrontUnexecutedPbftBlock();
-  void pushBackUnexecutedPbftBlock(PbftBlockCert const& pbft_block_cert_votes);
-
+  void cleanupUnverifiedPbftBlocks(taraxa::PbftBlock const& pbft_block);
   void pushUnverifiedPbftBlock(std::shared_ptr<PbftBlock> const& pbft_block);
+
+  bool hasUnexecutedBlocks() const;
   void updatePbftChain(blk_hash_t const& pbft_block_hash);
+  void updateExecutedPbftChainSize();
 
   bool checkPbftBlockValidationFromSyncing(taraxa::PbftBlock const& pbft_block) const;
   bool checkPbftBlockValidation(taraxa::PbftBlock const& pbft_block) const;
 
+  // Syncing
   uint64_t pbftSyncingPeriod() const;
-
   bool pbftSyncedQueueEmpty() const;
   PbftBlockCert pbftSyncedQueueFront() const;
   PbftBlockCert pbftSyncedQueueBack() const;
@@ -131,9 +122,6 @@ class PbftChain {
   void pbftSyncedSetInsert_(blk_hash_t const& pbft_block_hash);
   void pbftSyncedSetErase_();
   void insertUnverifiedPbftBlockIntoParentMap_(blk_hash_t const& prev_block_hash, blk_hash_t const& block_hash);
-  // unexecuted PBFT blocks
-  bool findUnexecutedPbftBlock_(blk_hash_t const& pbft_block_hash);
-  std::shared_ptr<PbftBlock> getUnexecutedPbftBlock_(blk_hash_t const& pbft_block_hash);
 
   using uniqueLock_ = boost::unique_lock<boost::shared_mutex>;
   using sharedLock_ = boost::shared_lock<boost::shared_mutex>;
@@ -143,19 +131,14 @@ class PbftChain {
   mutable boost::shared_mutex sync_access_;
   mutable boost::shared_mutex unverified_access_;
   mutable boost::shared_mutex chain_head_access_;
-  mutable boost::shared_mutex unexecuted_access_;
 
-  blk_hash_t head_hash_;                      // pbft head hash
-  blk_hash_t dag_genesis_hash_;               // dag genesis at height 1
-  uint64_t executed_size_;                    // PBFT blocks size in DB
-  blk_hash_t executed_last_pbft_block_hash_;  // last PBFT block in DB
+  blk_hash_t head_hash_;             // PBFT head hash
+  blk_hash_t dag_genesis_hash_;      // DAG genesis at height 1
+  uint64_t size_;                    // PBFT chain size, includes both executed and unexecuted PBFT blocks
+  uint64_t executed_size_;           // executed PBFT blocks size, as same as last PBFT executed period
+  blk_hash_t last_pbft_block_hash_;  // last PBFT block hash in PBFT chain, may not execute yet
 
   std::shared_ptr<DbStorage> db_ = nullptr;
-
-  // TODO: move to DB
-  std::deque<PbftBlockCert> unexecuted_pbft_blocks_queue_;
-  // <pbft_block_hash, pbft_block>
-  std::unordered_map<blk_hash_t, std::shared_ptr<PbftBlock>> unexecuted_pbft_blocks_;
 
   // <prev block hash, vector<PBFT proposed blocks waiting for vote>>
   std::unordered_map<blk_hash_t, std::vector<blk_hash_t>> unverified_blocks_map_;
