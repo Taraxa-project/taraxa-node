@@ -5,6 +5,7 @@
 #include <thread>
 #include <vector>
 
+#include "../logger/log.hpp"
 #include "../static_init.hpp"
 #include "../transaction_manager.hpp"
 #include "../util_test/samples.hpp"
@@ -195,10 +196,12 @@ TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
 using namespace taraxa;
 int main(int argc, char** argv) {
   static_init();
-  LoggingConfig logging;
+  auto logging = logger::createDefaultLoggingConfig();
+  logging.verbosity = logger::Verbosity::Error;
+
   addr_t node_addr;
-  logging.verbosity = taraxa::VerbosityError;
-  setupLoggingConfiguration(node_addr, logging);
+  logger::InitLogging(logging, node_addr);
+
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

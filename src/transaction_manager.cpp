@@ -6,6 +6,7 @@
 #include <utility>
 
 #include "dag.hpp"
+#include "logger/log.hpp"
 #include "net/WSServer.h"
 #include "network.hpp"
 #include "transaction.hpp"
@@ -23,7 +24,7 @@ auto trxComp = [](Transaction const &t1, Transaction const &t2) -> bool {
 };
 
 TransactionManager::TransactionManager(FullNodeConfig const &conf, addr_t node_addr, std::shared_ptr<DbStorage> db,
-                                       boost::log::sources::severity_channel_logger<> log_time)
+                                       logger::Logger log_time)
     : conf_(conf), trx_qu_(node_addr), node_addr_(node_addr), db_(db), log_time_(log_time) {
   LOG_OBJECTS_CREATE("TRXMGR");
   auto trx_count = db_->getStatusField(taraxa::StatusDbField::TrxCount);
