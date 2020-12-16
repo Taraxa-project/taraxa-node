@@ -6,7 +6,7 @@
 #include <boost/log/utility/exception_handler.hpp>
 #include <boost/log/utility/setup/common_attributes.hpp>
 
-#include "config.hpp"  // just because of ConfigException
+#include "../config.hpp"  // just because of ConfigException
 
 namespace taraxa::logger {
 
