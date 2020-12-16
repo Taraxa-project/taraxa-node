@@ -249,7 +249,7 @@ std::vector<PbftBlockCert> PbftChain::getPbftBlocks(size_t period, size_t count)
       cert_votes.emplace_back(cert_vote);
     }
     if (cert_votes.empty()) {
-      LOG(log_er_) << "DB corrupted - Cannot find any cert votes for PBFT block " << pbft_block;
+      LOG(log_er_) << "Cannot find any cert votes for PBFT block " << pbft_block;
       assert(false);
     }
     PbftBlockCert pbft_block_cert_votes(*pbft_block, cert_votes);
