@@ -48,7 +48,16 @@ int main(int argc, const char* argv[]) {
            << endl;
       return 1;
     }
+
+    // Loads config
     FullNodeConfig cfg(conf_taraxa, conf_chain);
+
+    // Validates config values
+    if (!cfg.validate()) {
+      cerr << "Invalid configration. Please make sure config values are valid";
+      return 1;
+    }
+
     if (destroy_db) {
       fs::remove_all(cfg.db_path);
     }

@@ -1,43 +1,27 @@
 #ifndef TARAXA_NODE_CONFIG_HPP
 #define TARAXA_NODE_CONFIG_HPP
 
-#include <boost/log/attributes/clock.hpp>
-#include <boost/log/attributes/function.hpp>
-#include <boost/log/detail/sink_init_helpers.hpp>
-#include <boost/log/expressions.hpp>
-#include <boost/log/sinks/sync_frontend.hpp>
-#include <boost/log/sinks/text_ostream_backend.hpp>
-#include <boost/log/sources/channel_feature.hpp>
-#include <boost/log/sources/channel_logger.hpp>
-#include <boost/log/sources/global_logger_storage.hpp>
-#include <boost/log/sources/severity_channel_logger.hpp>
-#include <boost/log/support/date_time.hpp>
-#include <boost/log/utility/exception_handler.hpp>
-#include <boost/log/utility/setup/common_attributes.hpp>
-#include <boost/log/utility/setup/console.hpp>
-#include <boost/log/utility/setup/file.hpp>
 #include <string>
 
 #include "chain_config.hpp"
 #include "dag_block.hpp"
-#include "log.hpp"
+#include "logger/Config.hpp"
 #include "types.hpp"
 #include "util.hpp"
 
 namespace taraxa {
-
-using Logger = boost::log::sources::severity_channel_logger<>;
-template <class T>
-using log_sink = boost::log::sinks::synchronous_sink<T>;
 
 struct ConfigException : public std::runtime_error {
   using std::runtime_error::runtime_error;
 };
 
 struct RpcConfig {
-  optional<uint16_t> port;
+  optional<uint16_t> http_port;
   optional<uint16_t> ws_port;
   boost::asio::ip::address address;
+
+  // Number of threads dedicated to the rpc calls processing, default = 5
+  uint16_t threads_num{5};
 };
 
 struct NodeConfig {
@@ -66,26 +50,6 @@ struct NetworkConfig {
   bool network_encrypted = 0;
   bool network_performance_log = 0;
   bool net_log = 0;
-};
-
-struct LoggingOutputConfig {
-  LoggingOutputConfig() = default;
-  std::string type = "console";
-  std::string file_name;
-  uint64_t rotation_size = 0;
-  std::string time_based_rotation;
-  std::string format = "%NodeId% %Channel% [%TimeStamp%] %SeverityStr%: %Message%";
-  uint64_t max_size = 0;
-};
-
-struct LoggingConfig {
-  LoggingConfig() = default;
-  std::string name;
-  Verbosity verbosity = Verbosity::VerbosityError;
-  std::map<std::string, uint16_t> channels;
-  std::vector<LoggingOutputConfig> outputs;
-  std::vector<boost::shared_ptr<log_sink<boost::log::sinks::text_ostream_backend>>> console_sinks;
-  std::vector<boost::shared_ptr<log_sink<boost::log::sinks::text_file_backend>>> file_sinks;
 };
 
 struct BlockProposerConfig {
@@ -121,13 +85,19 @@ struct FullNodeConfig {
   vrf_wrapper::vrf_sk_t vrf_secret;
   fs::path db_path;
   NetworkConfig network;
-  RpcConfig rpc;
+  optional<RpcConfig> rpc;
   TestParamsConfig test_params;
   ChainConfig chain = ChainConfig::predefined();
   FinalChain::Opts opts_final_chain;
-  std::vector<LoggingConfig> log_configs;
+  std::vector<logger::Config> log_configs;
 
   auto net_file_path() const { return db_path / "net"; }
+
+  /**
+   * @brief Validates config values
+   * @return true in case config is valid, otherwise false
+   */
+  bool validate();
 };
 
 std::ostream &operator<<(std::ostream &strm, NodeConfig const &conf);

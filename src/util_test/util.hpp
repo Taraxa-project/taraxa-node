@@ -136,10 +136,10 @@ inline auto make_node_cfgs(uint count) {
         cfg.network.network_transaction_interval /= tests_speed;
       }
       if constexpr (!enable_rpc_http) {
-        cfg.rpc.port = nullopt;
+        cfg.rpc->http_port = nullopt;
       }
       if constexpr (!enable_rpc_ws) {
-        cfg.rpc.ws_port = nullopt;
+        cfg.rpc->ws_port = nullopt;
       }
     }
     return ret;

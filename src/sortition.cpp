@@ -16,6 +16,8 @@
 #include <locale>
 #include <sstream>
 
+#include "logger/log.hpp"
+
 namespace taraxa {
 using std::string;
 using uint256_t = boost::multiprecision::uint256_t;
@@ -23,8 +25,7 @@ using uint512_t = boost::multiprecision::uint512_t;
 
 string hashSignature(dev::Signature signature) { return dev::sha3(signature).hex(); }
 
-static boost::log::sources::severity_channel_logger<> log_error_{
-    taraxa::createTaraxaLogger(taraxa::Verbosity::VerbosityError, "SORTI", addr_t())};
+static logger::Logger log_error_{logger::createLogger(logger::Verbosity::Error, "SORTI", addr_t())};
 
 /*
  * Sortition return true:

@@ -8,13 +8,14 @@
 #include <libdevcrypto/Common.h>
 #include <libethcore/Common.h>
 
+#include <boost/thread/shared_mutex.hpp>
 #include <iostream>
 #include <string>
 #include <vector>
 
+#include "logger/log.hpp"
 #include "pbft_config.hpp"
 #include "types.hpp"
-#include "util.hpp"
 
 /**
  * In pbft_chain, two kinds of blocks:

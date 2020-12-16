@@ -10,6 +10,7 @@
 
 #include "../config.hpp"
 #include "../full_node.hpp"
+#include "../logger/log.hpp"
 #include "../pbft_manager.hpp"
 #include "../sortition.hpp"
 #include "../static_init.hpp"
@@ -361,11 +362,14 @@ TEST_F(CryptoTest, sortition_rate) {
 using namespace taraxa;
 int main(int argc, char** argv) {
   taraxa::static_init();
-  LoggingConfig logging;
-  logging.verbosity = taraxa::VerbosityError;
-  logging.channels["SORTITION"] = taraxa::VerbosityError;
+
+  auto logging = logger::createDefaultLoggingConfig();
+  logging.verbosity = logger::Verbosity::Error;
+  logging.channels["SORTITION"] = logger::Verbosity::Error;
+
   addr_t node_addr;
-  setupLoggingConfiguration(node_addr, logging);
+  logger::InitLogging(logging, node_addr);
+
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
