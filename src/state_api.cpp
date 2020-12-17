@@ -37,23 +37,34 @@ taraxa_evm_BytesCallback decoder_cb_c(Result& res) {
   };
 }
 
-taraxa_evm_BytesCallback const err_handler_c{
-    nullptr,
-    [](auto _, auto err_bytes) {
-      static string const delim = ": ";
-      static auto const delim_len = delim.size();
-      string_view err_str((char*)err_bytes.Data, err_bytes.Len);
-      auto delim_pos = err_str.find(delim);
-      string type(err_str.substr(0, delim_pos));
-      string msg(err_str.substr(delim_pos + delim_len));
-      if ("github.com/Taraxa-project/taraxa-evm/taraxa/state/state_db/ErrFutureBlock" == type) {
-        BOOST_THROW_EXCEPTION(ErrFutureBlock(type, msg));
-      }
-      string traceback;
-      taraxa_evm_traceback(decoder_cb_c<string, to_str>(traceback));
-      msg += "\nStack Trace:\n" + traceback;
-      BOOST_THROW_EXCEPTION(TaraxaEVMError(type, msg));
-    },
+struct ErrorHandler {
+  function<void()> raise;
+  taraxa_evm_BytesCallback const cgo_part{
+      this,
+      [](auto self, auto err_bytes) {
+        auto& raise = decltype(this)(self)->raise;
+        static string const delim = ": ";
+        static auto const delim_len = delim.size();
+        string_view err_str((char*)err_bytes.Data, err_bytes.Len);
+        auto delim_pos = err_str.find(delim);
+        string type(err_str.substr(0, delim_pos));
+        string msg(err_str.substr(delim_pos + delim_len));
+        if ("github.com/Taraxa-project/taraxa-evm/taraxa/state/state_db/ErrFutureBlock" == type) {
+          raise = [err = ErrFutureBlock(move(type), move(msg))] { BOOST_THROW_EXCEPTION(err); };
+          return;
+        }
+        string traceback;
+        taraxa_evm_traceback(decoder_cb_c<string, to_str>(traceback));
+        msg += "\nGo stack trace:\n" + traceback;
+        raise = [err = TaraxaEVMError(move(type), move(msg))] { BOOST_THROW_EXCEPTION(err); };
+      },
+  };
+
+  void check() {
+    if (raise) {
+      raise();
+    }
+  }
 };
 
 template <typename Result,                            //
@@ -63,7 +74,9 @@ template <typename Result,                            //
           typename... Params>
 void c_method_args_rlp(taraxa_evm_state_API_ptr this_c, RLPStream& rlp, Result& ret, Params const&... args) {
   enc_rlp_tuple(rlp, args...);
-  fn(this_c, map_bytes(rlp.out()), decoder_cb_c<Result, decode>(ret), err_handler_c);
+  ErrorHandler err_h;
+  fn(this_c, map_bytes(rlp.out()), decoder_cb_c<Result, decode>(ret), err_h.cgo_part);
+  err_h.check();
 }
 
 template <typename Result,                            //
@@ -82,7 +95,9 @@ template <void (*fn)(taraxa_evm_state_API_ptr, taraxa_evm_Bytes, taraxa_evm_Byte
 void c_method_args_rlp(taraxa_evm_state_API_ptr this_c, Params const&... args) {
   RLPStream rlp;
   enc_rlp_tuple(rlp, args...);
-  fn(this_c, map_bytes(rlp.out()), err_handler_c);
+  ErrorHandler err_h;
+  fn(this_c, map_bytes(rlp.out()), err_h.cgo_part);
+  err_h.check();
 }
 
 StateAPI::StateAPI(string const& db_path, decltype(get_blk_hash) get_blk_hash, ChainConfig const& chain_config,
@@ -102,10 +117,16 @@ StateAPI::StateAPI(string const& db_path, decltype(get_blk_hash) get_blk_hash, C
   rlp_enc_transition_state.reserve(opts.ExpectedMaxTrxPerBlock * 1024, opts.ExpectedMaxTrxPerBlock * 128);
   RLPStream rlp;
   enc_rlp_tuple(rlp, db_path, &get_blk_hash_c, chain_config, opts);
-  this_c = taraxa_evm_state_api_new(map_bytes(rlp.out()), err_handler_c);
+  ErrorHandler err_h;
+  this_c = taraxa_evm_state_api_new(map_bytes(rlp.out()), err_h.cgo_part);
+  err_h.check();
 }
 
-StateAPI::~StateAPI() { taraxa_evm_state_api_free(this_c, err_handler_c); }
+StateAPI::~StateAPI() {
+  ErrorHandler err_h;
+  taraxa_evm_state_api_free(this_c, err_h.cgo_part);
+  err_h.check();
+}
 
 Proof StateAPI::prove(BlockNumber blk_num, root_t const& state_root, addr_t const& addr,
                       vector<h256> const& keys) const {
@@ -132,8 +153,10 @@ ExecutionResult StateAPI::dry_run_transaction(BlockNumber blk_num, EVMBlock cons
 
 StateDescriptor StateAPI::get_last_committed_state_descriptor() const {
   StateDescriptor ret;
+  ErrorHandler err_h;
   taraxa_evm_state_api_get_last_committed_state_descriptor(this_c, decoder_cb_c<StateDescriptor, from_rlp>(ret),
-                                                           err_handler_c);
+                                                           err_h.cgo_part);
+  err_h.check();
   return ret;
 }
 
@@ -147,25 +170,37 @@ StateTransitionResult const& StateAPI::transition_state(EVMBlock const& block,  
   return result_buf_transition_state;
 }
 
-void StateAPI::transition_state_commit() { taraxa_evm_state_api_transition_state_commit(this_c, err_handler_c); }
+void StateAPI::transition_state_commit() {
+  ErrorHandler err_h;
+  taraxa_evm_state_api_transition_state_commit(this_c, err_h.cgo_part);
+  err_h.check();
+}
 
 void StateAPI::create_snapshot(uint64_t const& period) {
   auto path = db_path + to_string(period);
   GoString go_path;
   go_path.p = path.c_str();
   go_path.n = path.size();
-  taraxa_evm_state_api_db_snapshot(this_c, go_path, 0, err_handler_c);
+  ErrorHandler err_h;
+  taraxa_evm_state_api_db_snapshot(this_c, go_path, 0, err_h.cgo_part);
+  err_h.check();
 }
 
 uint64_t StateAPI::dpos_eligible_count(BlockNumber blk_num) const {
-  return taraxa_evm_state_api_dpos_eligible_count(this_c, blk_num, err_handler_c);
+  ErrorHandler err_h;
+  auto ret = taraxa_evm_state_api_dpos_eligible_count(this_c, blk_num, err_h.cgo_part);
+  err_h.check();
+  return ret;
 }
 
 bool StateAPI::dpos_is_eligible(BlockNumber blk_num, addr_t const& addr) const {
   RLPStream rlp;
   rlp.reserve(sizeof(BlockNumber) + sizeof(addr_t) + 8, 1);
   enc_rlp_tuple(rlp, blk_num, addr);
-  return taraxa_evm_state_api_dpos_is_eligible(this_c, map_bytes(rlp.out()), err_handler_c);
+  ErrorHandler err_h;
+  auto ret = taraxa_evm_state_api_dpos_is_eligible(this_c, map_bytes(rlp.out()), err_h.cgo_part);
+  err_h.check();
+  return ret;
 }
 
 DPOSQueryResult StateAPI::dpos_query(BlockNumber blk_num, DPOSQuery const& q) const {
