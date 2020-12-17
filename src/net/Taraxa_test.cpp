@@ -21,7 +21,7 @@ struct TaraxaTest : BaseTest {
   TransactionClient trx_client{nodes[0]};
   FullNode& node = *nodes[0];
   FullNodeConfig const& cfg = node.getConfig();
-  jsonrpc::HttpClient connector{"http://localhost:" + to_string(*cfg.rpc.port)};
+  jsonrpc::HttpClient connector{"http://localhost:" + to_string(*cfg.rpc->http_port)};
   TaraxaClient c{connector};
 };
 
