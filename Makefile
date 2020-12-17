@@ -2,7 +2,7 @@ include Makefile_common.mk Makefile_submodules.mk
 
 # NOTE: to understand $@, $(@D), $+, etc. variables,
 # google 'make automatic variables'
-# NOTE: makefile translates `$$?` into `$?`
+# NOTE: makefile translates `$$` into `$`
 
 # include gcc-generated makefiles that declare dependencies between
 # and .cpp and .hpp files

@@ -42,7 +42,7 @@ ifeq ($(OS), Darwin)
 endif
 UPDATE_SUBMODULES := 1
 # can be used to manage local env specifics of std lib distribution
-SYS_LIBS :=
+SYS_LIBS := stdc++fs
 # makefile with overrides,
 # also you can put there custom local targets, which can even use variables
 # from the main build
