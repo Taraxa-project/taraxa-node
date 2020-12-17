@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "../dag.hpp"
+#include "../logger/log.hpp"
 #include "../net/Taraxa.h"
 #include "../network.hpp"
 #include "../pbft_manager.hpp"

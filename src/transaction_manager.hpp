@@ -4,6 +4,7 @@
 #include "aleth/filter_api.hpp"
 #include "aleth/pending_block.hpp"
 #include "config.hpp"
+#include "logger/log.hpp"
 #include "transaction.hpp"
 #include "transaction_queue.hpp"
 #include "transaction_status.hpp"
@@ -34,7 +35,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   enum class VerifyMode : uint8_t { normal, skip_verify_sig };
 
   TransactionManager(FullNodeConfig const &conf, addr_t node_addr, std::shared_ptr<DbStorage> db,
-                     boost::log::sources::severity_channel_logger<> log_time);
+                     logger::Logger log_time);
   explicit TransactionManager(std::shared_ptr<DbStorage> db, addr_t node_addr)
       : db_(db), conf_(), trx_qu_(node_addr), node_addr_(node_addr) {
     LOG_OBJECTS_CREATE("TRXMGR");
@@ -111,7 +112,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   std::shared_ptr<net::WSServer> ws_server_;
   addr_t node_addr_;
   std::shared_ptr<DagManager> dag_mgr_;
-  boost::log::sources::severity_channel_logger<> log_time_;
+  logger::Logger log_time_;
   std::shared_ptr<aleth::PendingBlock> pending_block_;
   std::shared_ptr<aleth::FilterAPI> filter_api_;
 

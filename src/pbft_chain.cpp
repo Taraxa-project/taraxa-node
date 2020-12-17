@@ -453,10 +453,11 @@ bool PbftChain::isKnownPbftBlockForSyncing(taraxa::blk_hash_t const& pbft_block_
 }
 
 uint64_t PbftChain::pbftSyncingPeriod() const {
-  if (pbft_synced_queue_.empty()) {
+  if (pbftSyncedQueueEmpty()) {
     return getPbftChainSize();
   } else {
-    return pbftSyncedQueueBack().pbft_blk->getPeriod();
+    auto last_synced_votes_block = pbftSyncedQueueBack();
+    return last_synced_votes_block.pbft_blk->getPeriod();
   }
 }
 

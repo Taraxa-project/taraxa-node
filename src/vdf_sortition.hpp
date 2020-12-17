@@ -5,9 +5,9 @@
 
 #include "ProverWesolowski.h"
 #include "libdevcore/CommonData.h"
+#include "logger/log.hpp"
 #include "openssl/bn.h"
 #include "types.hpp"
-#include "util.hpp"
 #include "vrf_wrapper.hpp"
 
 namespace taraxa::vdf_sortition {

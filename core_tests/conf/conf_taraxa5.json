@@ -20,8 +20,11 @@
       "udp_port": 10002
     }
   ],
-  "rpc_port": 7781,
-  "ws_port": 8781,
+  "rpc": {
+    "rpc_port": 7781,
+    "ws_port": 8781,
+    "threads_num": 10
+  },
   "test_params": {
     "max_transaction_queue_warn": 0,
     "max_transaction_queue_drop": 0,

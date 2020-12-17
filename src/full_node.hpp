@@ -81,12 +81,12 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
                                 net::NetFace,     //
                                 dev::rpc::EthFace>>
       jsonrpc_api_;
-  std::unique_ptr<std::thread> jsonrpc_thread_;
+  std::vector<std::thread> jsonrpc_threads_;
   // debug
   std::atomic_uint64_t received_blocks_ = 0;
   // logging
   LOG_OBJECTS_DEFINE;
-  mutable taraxa::Logger log_time_;
+  mutable logger::Logger log_time_;
 
   std::atomic_bool started_ = 0;
 

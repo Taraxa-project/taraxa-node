@@ -10,23 +10,6 @@
 #include <boost/iostreams/device/back_inserter.hpp>
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
-#include <boost/log/attributes/clock.hpp>
-#include <boost/log/attributes/function.hpp>
-#include <boost/log/attributes/scoped_attribute.hpp>
-#include <boost/log/detail/sink_init_helpers.hpp>
-#include <boost/log/expressions.hpp>
-#include <boost/log/sinks/sync_frontend.hpp>
-#include <boost/log/sinks/text_ostream_backend.hpp>
-#include <boost/log/sources/channel_feature.hpp>
-#include <boost/log/sources/channel_logger.hpp>
-#include <boost/log/sources/global_logger_storage.hpp>
-#include <boost/log/sources/record_ostream.hpp>
-#include <boost/log/sources/severity_channel_logger.hpp>
-#include <boost/log/support/date_time.hpp>
-#include <boost/log/utility/exception_handler.hpp>
-#include <boost/log/utility/setup/common_attributes.hpp>
-#include <boost/log/utility/setup/console.hpp>
-#include <boost/log/utility/setup/file.hpp>
 #include <boost/thread.hpp>
 #include <fstream>
 #include <iostream>
@@ -40,50 +23,6 @@
 #include "types.hpp"
 
 namespace taraxa {
-#define LOG BOOST_LOG
-
-// this enum must match enum in aleth logs to corectly support aleths library
-// logging
-enum Verbosity {
-  VerbositySilent = -1,
-  VerbosityError = 0,
-  VerbosityWarning = 1,
-  VerbosityInfo = 2,
-  VerbosityDebug = 3,
-  VerbosityTrace = 4,
-};
-
-#define LOG_OBJECTS_DEFINE                                        \
-  mutable boost::log::sources::severity_channel_logger<> log_si_; \
-  mutable boost::log::sources::severity_channel_logger<> log_er_; \
-  mutable boost::log::sources::severity_channel_logger<> log_wr_; \
-  mutable boost::log::sources::severity_channel_logger<> log_nf_; \
-  mutable boost::log::sources::severity_channel_logger<> log_dg_; \
-  mutable boost::log::sources::severity_channel_logger<> log_tr_;
-
-#define LOG_OBJECTS_DEFINE_SUB(group)                                       \
-  mutable boost::log::sources::severity_channel_logger<> log_si_##group##_; \
-  mutable boost::log::sources::severity_channel_logger<> log_er_##group##_; \
-  mutable boost::log::sources::severity_channel_logger<> log_wr_##group##_; \
-  mutable boost::log::sources::severity_channel_logger<> log_nf_##group##_; \
-  mutable boost::log::sources::severity_channel_logger<> log_dg_##group##_; \
-  mutable boost::log::sources::severity_channel_logger<> log_tr_##group##_;
-
-#define LOG_OBJECTS_CREATE(channel)                                                   \
-  log_si_ = createTaraxaLogger(dev::Verbosity::VerbositySilent, channel, node_addr);  \
-  log_er_ = createTaraxaLogger(dev::Verbosity::VerbosityError, channel, node_addr);   \
-  log_wr_ = createTaraxaLogger(dev::Verbosity::VerbosityWarning, channel, node_addr); \
-  log_nf_ = createTaraxaLogger(dev::Verbosity::VerbosityInfo, channel, node_addr);    \
-  log_tr_ = createTaraxaLogger(dev::Verbosity::VerbosityTrace, channel, node_addr);   \
-  log_dg_ = createTaraxaLogger(dev::Verbosity::VerbosityDebug, channel, node_addr);
-
-#define LOG_OBJECTS_CREATE_SUB(channel, group)                                                  \
-  log_si_##group##_ = createTaraxaLogger(dev::Verbosity::VerbositySilent, channel, node_addr);  \
-  log_er_##group##_ = createTaraxaLogger(dev::Verbosity::VerbosityError, channel, node_addr);   \
-  log_wr_##group##_ = createTaraxaLogger(dev::Verbosity::VerbosityWarning, channel, node_addr); \
-  log_nf_##group##_ = createTaraxaLogger(dev::Verbosity::VerbosityInfo, channel, node_addr);    \
-  log_tr_##group##_ = createTaraxaLogger(dev::Verbosity::VerbosityTrace, channel, node_addr);   \
-  log_dg_##group##_ = createTaraxaLogger(dev::Verbosity::VerbosityDebug, channel, node_addr);
 
 struct ProcessReturn {
   enum class Result {

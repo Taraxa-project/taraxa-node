@@ -7,6 +7,7 @@
 
 #include "config.hpp"
 #include "executor.hpp"
+#include "logger/log.hpp"
 #include "network.hpp"
 #include "pbft_chain.hpp"
 #include "taraxa_capability.hpp"
@@ -225,8 +226,7 @@ class PbftManager {
   // END TEST CODE
 
   LOG_OBJECTS_DEFINE;
-  mutable boost::log::sources::severity_channel_logger<> log_nf_test_{
-      dev::createLogger(dev::Verbosity::VerbosityInfo, "PBFT_TEST")};
+  mutable logger::Logger log_nf_test_{logger::createLogger(taraxa::logger::Verbosity::Info, "PBFT_TEST", node_addr_)};
 };
 
 }  // namespace taraxa

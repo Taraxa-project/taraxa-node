@@ -8,6 +8,7 @@
 
 #include "../block_proposer.hpp"
 #include "../dag.hpp"
+#include "../logger/log.hpp"
 #include "../pbft_manager.hpp"
 #include "../static_init.hpp"
 #include "../util/lazy.hpp"
@@ -963,10 +964,12 @@ TEST_F(NetworkTest, node_full_sync) {
 using namespace taraxa;
 int main(int argc, char** argv) {
   taraxa::static_init();
-  LoggingConfig logging;
-  logging.verbosity = taraxa::VerbosityError;
+  auto logging = logger::createDefaultLoggingConfig();
+  logging.verbosity = logger::Verbosity::Error;
+
   addr_t node_addr;
-  setupLoggingConfiguration(node_addr, logging);
+  logger::InitLogging(logging, node_addr);
+
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
