@@ -29,23 +29,15 @@ _ := $(shell find "$(SRC_DIR)" -type f \
 	&> Makefile.src_cxx.txt \
 )
 
-# List of source files(only files that are not directly in src/ directory are currently listed here)
-# paths are relative tot the $(SRC_DIR)
-SRC_FILES := \
-	logger/log.hpp \
-	logger/log.cpp \
-	logger/Config.hpp \
-	logger/Config.cpp \
-
-_ := $(foreach file,$(SRC_FILES),$("$(SRC_DIR)/$(file)" &>>Makefile.src_cxx.txt))
-
 FILES_CXX_PRINT := cat "$(CURDIR)/Makefile.src_cxx.txt"
 TEST_SRC_QUALIFIER := _test
 NODE_SRCS := $(shell $(FILES_CXX_PRINT) | \
 	grep ".*.cpp" | \
+	grep -v ".*/graphql/*" | \
 	grep -v ".*$(TEST_SRC_QUALIFIER)*" | \
 	grep -v "$(SRC_DIR)/main.cpp" \
 )
+
 NODE_OBJS := $(subst $(SRC_DIR),$(OBJ_DIR),$(NODE_SRCS:.cpp=.o))
 TESTUTIL_SRCS := $(shell $(FILES_CXX_PRINT) | \
 	grep "$(SRC_DIR)/util_$(TEST_SRC_QUALIFIER)/*.cpp" \
