@@ -12,12 +12,16 @@
 #include "../dag.hpp"
 #include "../logger/log.hpp"
 #include "../net/Taraxa.h"
+#include "../net/TaraxaGqlSchemaImpl.h"
 #include "../network.hpp"
 #include "../pbft_manager.hpp"
 #include "../sortition.hpp"
 #include "../static_init.hpp"
 #include "../transaction_manager.hpp"
 #include "../util_test/samples.hpp"
+#include "graphqlservice/GraphQLSchema.h"
+#include "graphqlservice/GraphQLService.h"
+#include "graphqlservice/JSONResponse.h"
 #include "string"
 
 namespace taraxa::core_tests {
@@ -1133,6 +1137,60 @@ TEST_F(FullNodeTest, db_rebuild) {
     EXPECT_EQ(nodes[0]->getPbftChain()->getPbftExecutedChainSize(), 5);
   }
 }  // namespace taraxa::core_tests
+
+TEST_F(FullNodeTest, GraphQLTest) {
+  // Create a node with 5 pbft/eth blocks
+  auto node_cfgs = make_node_cfgs<20>(1);
+  auto nodes = launch_nodes(node_cfgs);
+  auto pbft_chain_size = nodes[0]->getPbftChain()->getPbftExecutedChainSize();
+  int nonce = 0;
+  while (pbft_chain_size < 5) {
+    Transaction dummy_trx(nonce++, 0, 2, 100000, bytes(), nodes[0]->getSecretKey(), nodes[0]->getAddress());
+    nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false);
+    thisThreadSleepForMilliSeconds(100);
+    pbft_chain_size = nodes[0]->getPbftChain()->getPbftExecutedChainSize();
+  }
+
+  // Objects needed to run the query
+  auto q = std::make_shared<graphql::taraxa::Query>(nodes[0]->getFinalChain());
+  auto mutation = std::make_shared<graphql::taraxa::Mutation>();
+  auto _service = std::make_shared<graphql::taraxa::Operations>(q, mutation);
+
+  // Get latest block number with query
+  using namespace graphql;
+  auto query = R"({ block { number } })"_graphql;
+  response::Value variables(response::Type::Map);
+  auto state = std::make_shared<graphql::service::RequestState>();
+  auto result = _service->resolve(std::launch::async, state, query, "", std::move(variables)).get();
+
+  // Verify the result of the query
+  ASSERT_TRUE(result.type() == response::Type::Map);
+  auto errorsItr = result.find("errors");
+  if (errorsItr != result.get<response::MapType>().cend()) {
+    FAIL() << response::toJSON(response::Value(errorsItr->second));
+  }
+  std::cout << response::toJSON(response::Value(result)) << std::endl;
+  auto data = service::ScalarArgument::require("data", result);
+  auto block = service::ScalarArgument::require("block", data);
+  auto number = service::IntArgument::require("number", block);
+  EXPECT_EQ(nodes[0]->getPbftChain()->getPbftExecutedChainSize(), (int)number);
+
+  // Get block hash by number
+  query = R"({ block(number:3) { hash } })"_graphql;
+  result = _service->resolve(std::launch::async, state, query, "", std::move(variables)).get();
+
+  // Verify the result of the query
+  ASSERT_TRUE(result.type() == response::Type::Map);
+  errorsItr = result.find("errors");
+  if (errorsItr != result.get<response::MapType>().cend()) {
+    FAIL() << response::toJSON(response::Value(errorsItr->second));
+  }
+  std::cout << response::toJSON(response::Value(result)) << std::endl;
+  data = service::ScalarArgument::require("data", result);
+  block = service::ScalarArgument::require("block", data);
+  const auto hash = service::StringArgument::require("hash", block);
+  EXPECT_EQ(nodes[0]->getFinalChain()->blockHeader(3).hash().toString(), hash);
+}
 
 TEST_F(FullNodeTest, transfer_to_self) {
   auto node_cfgs = make_node_cfgs<5, true>(3);

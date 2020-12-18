@@ -96,7 +96,12 @@ LIBS := \
 	secp256k1 \
 	cryptopp \
 	ethash \
-	stdc++fs
+	stdc++fs \
+	graphqlservice\
+	graphqlresponse\
+	graphqlservice_nointrospection\
+	graphqlpeg \
+	graphqljson
 TEST_LIBS := \
 	gtest
 # Optional linking for libatomic (part of standard library).
