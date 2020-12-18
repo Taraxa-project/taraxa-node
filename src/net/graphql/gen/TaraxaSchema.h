@@ -3,14 +3,13 @@
 
 #pragma once
 
-#ifndef TARAXAGQLSCHEMA_H
-#define TARAXAGQLSCHEMA_H
+#ifndef TARAXASCHEMA_H
+#define TARAXASCHEMA_H
 
 #include <memory>
 #include <string>
 #include <vector>
 
-#include "graphqlservice/GraphQLParse.h"
 #include "graphqlservice/GraphQLSchema.h"
 #include "graphqlservice/GraphQLService.h"
 
@@ -302,7 +301,6 @@ class Query : public service::Object {
   virtual service::FieldResult<std::vector<std::shared_ptr<Log>>> getLogs(service::FieldParams&& params,
                                                                           FilterCriteria&& filterArg) const;
   virtual service::FieldResult<response::Value> getGasPrice(service::FieldParams&& params) const;
-  virtual service::FieldResult<response::IntType> getProtocolVersion(service::FieldParams&& params) const;
   virtual service::FieldResult<std::shared_ptr<SyncState>> getSyncing(service::FieldParams&& params) const;
   virtual service::FieldResult<response::Value> getChainID(service::FieldParams&& params) const;
 
@@ -313,7 +311,6 @@ class Query : public service::Object {
   std::future<service::ResolverResult> resolveTransaction(service::ResolverParams&& params);
   std::future<service::ResolverResult> resolveLogs(service::ResolverParams&& params);
   std::future<service::ResolverResult> resolveGasPrice(service::ResolverParams&& params);
-  std::future<service::ResolverResult> resolveProtocolVersion(service::ResolverParams&& params);
   std::future<service::ResolverResult> resolveSyncing(service::ResolverParams&& params);
   std::future<service::ResolverResult> resolveChainID(service::ResolverParams&& params);
 
@@ -354,4 +351,4 @@ std::shared_ptr<schema::Schema> GetSchema();
 } /* namespace taraxa */
 } /* namespace graphql */
 
-#endif  // TARAXAGQLSCHEMA_H
+#endif  // TARAXASCHEMA_H

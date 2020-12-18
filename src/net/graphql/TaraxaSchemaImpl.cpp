@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-#include "TaraxaGqlSchemaImpl.h"
+#include "TaraxaSchemaImpl.h"
 
 #include <algorithm>
 #include <array>

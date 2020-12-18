@@ -9,6 +9,7 @@ using namespace std;
 
 int main(int argc, const char* argv[]) {
   static_init();
+
   try {
     string conf_taraxa;
     string conf_chain;

@@ -3,15 +3,15 @@
 
 #pragma once
 
-#ifndef TARAXAGQLSCHEMAIMPL_H
-#define TARAXAGQLSCHEMAIMPL_H
+#ifndef TARAXASCHEMAIMPL_H
+#define TARAXASCHEMAIMPL_H
 
 #include <memory>
 #include <string>
 #include <vector>
 
-#include "../final_chain.hpp"
-#include "TaraxaGqlSchema.h"
+#include "../../final_chain.hpp"
+#include "gen/TaraxaSchema.h"
 
 namespace graphql {
 namespace taraxa {
@@ -49,4 +49,4 @@ class Block : public object::Block {
 } /* namespace taraxa */
 } /* namespace graphql */
 
-#endif  // TARAXAGQLSCHEMAIMPL_H
+#endif  // TARAXASCHEMAIMPL_H

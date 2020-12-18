@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-#include "TaraxaGqlSchema.h"
+#include "TaraxaSchema.h"
 
 #include <algorithm>
 #include <array>
@@ -1137,8 +1137,6 @@ Query::Query()
            {R"gql(logs)gql"sv, [this](service::ResolverParams&& params) { return resolveLogs(std::move(params)); }},
            {R"gql(pending)gql"sv,
             [this](service::ResolverParams&& params) { return resolvePending(std::move(params)); }},
-           {R"gql(protocolVersion)gql"sv,
-            [this](service::ResolverParams&& params) { return resolveProtocolVersion(std::move(params)); }},
            {R"gql(syncing)gql"sv,
             [this](service::ResolverParams&& params) { return resolveSyncing(std::move(params)); }},
            {R"gql(transaction)gql"sv,
@@ -1230,18 +1228,6 @@ std::future<service::ResolverResult> Query::resolveGasPrice(service::ResolverPar
   resolverLock.unlock();
 
   return service::ModifiedResult<response::Value>::convert(std::move(result), std::move(params));
-}
-
-service::FieldResult<response::IntType> Query::getProtocolVersion(service::FieldParams&&) const {
-  throw std::runtime_error(R"ex(Query::getProtocolVersion is not implemented)ex");
-}
-
-std::future<service::ResolverResult> Query::resolveProtocolVersion(service::ResolverParams&& params) {
-  std::unique_lock resolverLock(_resolverMutex);
-  auto result = getProtocolVersion(service::FieldParams(params, std::move(params.fieldDirectives)));
-  resolverLock.unlock();
-
-  return service::ModifiedResult<response::IntType>::convert(std::move(result), std::move(params));
 }
 
 service::FieldResult<std::shared_ptr<SyncState>> Query::getSyncing(service::FieldParams&&) const {
@@ -1615,8 +1601,6 @@ void AddTypesToSchema(const std::shared_ptr<schema::Schema>& schema) {
                                                      R"gql()gql"sv)}),
        schema::Field::Make(R"gql(gasPrice)gql"sv, R"md()md"sv, std::nullopt,
                            schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("BigInt"))),
-       schema::Field::Make(R"gql(protocolVersion)gql"sv, R"md()md"sv, std::nullopt,
-                           schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("Int"))),
        schema::Field::Make(R"gql(syncing)gql"sv, R"md()md"sv, std::nullopt, schema->LookupType("SyncState")),
        schema::Field::Make(R"gql(chainID)gql"sv, R"md()md"sv, std::nullopt,
                            schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("BigInt")))});

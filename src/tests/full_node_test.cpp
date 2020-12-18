@@ -12,7 +12,6 @@
 #include "../dag.hpp"
 #include "../logger/log.hpp"
 #include "../net/Taraxa.h"
-#include "../net/TaraxaGqlSchemaImpl.h"
 #include "../network.hpp"
 #include "../pbft_manager.hpp"
 #include "../sortition.hpp"
@@ -22,6 +21,7 @@
 #include "graphqlservice/GraphQLSchema.h"
 #include "graphqlservice/GraphQLService.h"
 #include "graphqlservice/JSONResponse.h"
+#include "net/graphql/TaraxaSchemaImpl.h"
 #include "string"
 
 namespace taraxa::core_tests {

@@ -8,31 +8,27 @@ file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/gen)
 
 add_custom_command(
         OUTPUT
-        ${CMAKE_CURRENT_BINARY_DIR}/gen/TodaySchema.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/gen/TodaySchema.h
-        COMMAND cppgraphqlgen::schemagen --schema="${CMAKE_CURRENT_SOURCE_DIR}/schema/schema.today.graphql" --prefix="Today" --namespace="today"
-        DEPENDS schema/schema.today.graphql
+        ${CMAKE_CURRENT_BINARY_DIR}/gen/TaraxaSchema.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/gen/TaraxaSchema.h
+        COMMAND cppgraphqlgen::schemagen --schema="${CMAKE_CURRENT_SOURCE_DIR}/schema/schema.taraxa.graphql" --prefix="Taraxa" --namespace="taraxa"
+        DEPENDS schema/schema.taraxa.graphql
         WORKING_DIRECTORY gen
-        COMMENT "Generating mock TodaySchema files")
+        COMMENT "Regenerating TaraxaSchema files")
 
 file(GLOB OLD_GEN_FILES ${CMAKE_CURRENT_SOURCE_DIR}/gen/*)
 
 add_custom_command(
-        OUTPUT updated_samples
+        OUTPUT regenerated_schema_files
         COMMAND ${CMAKE_COMMAND} -E remove -f ${OLD_GEN_FILES}
         COMMAND ${CMAKE_COMMAND} -E copy_directory gen/ ${CMAKE_CURRENT_SOURCE_DIR}/gen/
-        COMMAND ${CMAKE_COMMAND} -E touch updated_samples
+        COMMAND ${CMAKE_COMMAND} -E touch regenerated_schema_files
         DEPENDS
-        ${CMAKE_CURRENT_BINARY_DIR}/gen/TodaySchema.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/gen/TodaySchema.h
-        COMMENT "Updating sample files")
+        ${CMAKE_CURRENT_BINARY_DIR}/gen/TaraxaSchema.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/gen/TaraxaSchema.h
+        COMMENT "Updating TaraxaSchema files")
 
-add_custom_target(update_samples ALL DEPENDS updated_samples)
+add_custom_target(regenerate_schema_files ALL DEPENDS regenerated_schema_files)
 
-add_library(taraxa_graphqlservice STATIC gen/TodaySchema.cpp TodayMock.cpp)
+add_library(taraxa_graphqlservice STATIC gen/TaraxaSchema.cpp TaraxaSchemaImpl.cpp)
 target_link_libraries(taraxa_graphqlservice PUBLIC cppgraphqlgen::graphqlservice cppgraphqlgen::graphqljson)
-add_dependencies(taraxa_graphqlservice update_samples)
-
-add_executable(benchmark benchmark.cpp)
-target_link_libraries(benchmark PRIVATE taraxa_graphqlservice)
-add_dependencies(benchmark update_samples)
+add_dependencies(taraxa_graphqlservice regenerate_schema_files)
