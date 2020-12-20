@@ -74,6 +74,7 @@ ifneq ($(SYSTEM_HOME_OVERRIDE),)
 endif
 # END VARIABLES THAT YOU CAN OVERRIDE
 
-SHELL := PATH=$(SHELL_PATH) $(SHELL)
+# TODO uncomment
+#SHELL := PATH=$(SHELL_PATH) $(SHELL)
 
 endif # Makefile_common
