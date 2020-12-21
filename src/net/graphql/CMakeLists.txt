@@ -29,6 +29,17 @@ add_custom_command(
 
 add_custom_target(regenerate_schema_files ALL DEPENDS regenerated_schema_files)
 
-add_library(taraxa_graphqlservice STATIC gen/TaraxaSchema.cpp TaraxaSchemaImpl.cpp)
-target_link_libraries(taraxa_graphqlservice PUBLIC cppgraphqlgen::graphqlservice cppgraphqlgen::graphqljson)
+add_library(taraxa_graphqlservice STATIC gen/TaraxaSchema.cpp gen/TaraxaSchema.h)
+target_link_libraries(taraxa_graphqlservice PUBLIC
+        cppgraphqlgen::graphqlservice
+        cppgraphqlgen::graphqljson
+        )
 add_dependencies(taraxa_graphqlservice regenerate_schema_files)
+
+#add_library(taraxa_graphqlservice STATIC gen/TaraxaSchema.cpp TaraxaSchemaImpl.cpp)
+#target_link_libraries(taraxa_graphqlservice PUBLIC
+#    cppgraphqlgen::graphqlservice
+#    cppgraphqlgen::graphqljson
+#)
+#
+#add_dependencies(taraxa_graphqlservice regenerate_schema_files)
