@@ -1,18 +1,18 @@
-#include "../dag_block.hpp"
+#include "dag_block.hpp"
 
 #include <gtest/gtest.h>
 
 #include <iostream>
 #include <vector>
 
-#include "../full_node.hpp"
-#include "../logger/log.hpp"
-#include "../static_init.hpp"
-#include "../types.hpp"
-#include "../util.hpp"
-#include "../util_test/samples.hpp"
-#include "../util_test/util.hpp"
-#include "../vdf_sortition.hpp"
+#include "full_node.hpp"
+#include "logger/log.hpp"
+#include "static_init.hpp"
+#include "types.hpp"
+#include "util.hpp"
+#include "util_test/samples.hpp"
+#include "util_test/util.hpp"
+#include "vdf_sortition.hpp"
 
 namespace taraxa::core_tests {
 const unsigned NUM_TRX = 40;

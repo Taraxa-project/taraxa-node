@@ -6,16 +6,23 @@ Makefile_submodules=_
 SHELL := /bin/bash
 CXX_STD := c++17
 
-DEPS_INSTALL_PREFIX?=$(CURDIR)/build/submodules
+DEPS_INSTALL_PREFIX?=$(CURDIR)/submodules
 
 # ideally these should be the same in our build and submodule builds
 # to make sure every module sees the sources the same way
+#COMPILE_DEFINITIONS := \
+#	CRYPTOPP_DISABLE_ASM \
+#	BOOST_ALL_DYN_LINK \
+#	BOOST_SPIRIT_THREADSAFE \
+#	GIT_HASH="\"$(GIT_HASH)\"" \
+#	COMPILE_TIME="\"$(COMPILE_TIME)\""
+
 COMPILE_DEFINITIONS := \
 	CRYPTOPP_DISABLE_ASM \
-	BOOST_ALL_DYN_LINK \
 	BOOST_SPIRIT_THREADSAFE \
 	GIT_HASH="\"$(GIT_HASH)\"" \
 	COMPILE_TIME="\"$(COMPILE_TIME)\""
+
 
 JSONCPP_INCLUDE_DIR := /usr/include/jsoncpp
 INCLUDE_DIRS = $(JSONCPP_INCLUDE_DIR) $(DEPS_INSTALL_PREFIX)/include
@@ -23,6 +30,8 @@ INCLUDE_DIRS = $(JSONCPP_INCLUDE_DIR) $(DEPS_INSTALL_PREFIX)/include
 sinclude local/Makefile_ext.mk # TODO: is this required ??/
 # can't override this
 OS := $(shell uname)
+
+# TODO: is this needed anymore ???
 ifndef COMPILE_FLAGS
 	ifeq ($(DEBUG), 1)
 		COMPILE_FLAGS := -g -O0
@@ -53,13 +62,15 @@ endif
 # these builds are atomic
 
 # list of all submodule build success indicator files
+# TODO: refactor hardcoded $(CURDIR)/submodules/
 SUBMODULE_DEPS := $(addsuffix /ok, $(shell \
-	source Makefile_submodules.sh; \
+	source $(CURDIR)/submodules/Makefile_submodules.sh; \
 	submodule_list; \
 ))
 
+# TODO: refactor hardcoded $(CURDIR)/submodules/
 SUBMODULE_BUILD_BEGIN = \
-	source Makefile_submodules.sh; \
+	source $(CURDIR)/submodules/Makefile_submodules.sh; \
 	mkdir -p $(DEPS_INSTALL_PREFIX); \
 	mkdir -p $(DEPS_INSTALL_PREFIX)/lib; \
 	mkdir -p $(DEPS_INSTALL_PREFIX)/include; \

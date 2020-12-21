@@ -1,12 +1,12 @@
 #include <gtest/gtest.h>
 #include <libdevcore/SHA3.h>
 
-#include "../full_node.hpp"
-#include "../logger/log.hpp"
-#include "../network.hpp"
-#include "../pbft_manager.hpp"
-#include "../static_init.hpp"
-#include "../util_test/util.hpp"
+#include "full_node.hpp"
+#include "logger/log.hpp"
+#include "network.hpp"
+#include "pbft_manager.hpp"
+#include "static_init.hpp"
+#include "util_test/util.hpp"
 
 namespace taraxa::core_tests {
 using namespace vrf_wrapper;

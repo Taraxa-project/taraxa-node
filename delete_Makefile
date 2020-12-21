@@ -109,6 +109,7 @@ LIBATOMIC_NOT_FOUND = $(shell \
 ifeq ($(LIBATOMIC_NOT_FOUND), 0)
     LIBS += atomic
 endif
+
 # needed for golang runtime that comes together with taraxa-evm
 ifeq ($(OS), Darwin)
 	OSX_FRAMEWORKS := CoreFoundation Security

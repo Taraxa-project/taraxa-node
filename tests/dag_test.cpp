@@ -1,11 +1,11 @@
-#include "../dag.hpp"
+#include "dag.hpp"
 
 #include <gtest/gtest.h>
 
-#include "../logger/log.hpp"
-#include "../static_init.hpp"
-#include "../types.hpp"
-#include "../util_test/util.hpp"
+#include "logger/log.hpp"
+#include "static_init.hpp"
+#include "types.hpp"
+#include "util_test/util.hpp"
 
 namespace taraxa::core_tests {
 

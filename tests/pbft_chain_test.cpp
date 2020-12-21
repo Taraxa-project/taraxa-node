@@ -1,4 +1,4 @@
-#include "../pbft_chain.hpp"
+#include "pbft_chain.hpp"
 
 #include <gtest/gtest.h>
 
@@ -6,11 +6,11 @@
 #include <iostream>
 #include <vector>
 
-#include "../logger/log.hpp"
-#include "../network.hpp"
-#include "../pbft_manager.hpp"
-#include "../static_init.hpp"
-#include "../util_test/util.hpp"
+#include "logger/log.hpp"
+#include "network.hpp"
+#include "pbft_manager.hpp"
+#include "static_init.hpp"
+#include "util_test/util.hpp"
 
 namespace taraxa::core_tests {
 

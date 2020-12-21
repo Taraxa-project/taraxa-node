@@ -1,14 +1,14 @@
-#include "../transaction.hpp"
+#include "transaction.hpp"
 
 #include <gtest/gtest.h>
 
 #include <thread>
 #include <vector>
 
-#include "../logger/log.hpp"
-#include "../static_init.hpp"
-#include "../transaction_manager.hpp"
-#include "../util_test/samples.hpp"
+#include "logger/log.hpp"
+#include "static_init.hpp"
+#include "transaction_manager.hpp"
+#include "util_test/samples.hpp"
 
 namespace taraxa::core_tests {
 

@@ -21,7 +21,7 @@ SYSTEM_HOME_OVERRIDE :=
 BUILD_BASEDIR = /home/fornadel/workspace/taraxa/taraxa-node/cmake-build-debug
 
 # This path must be equal to the one provided to Makefile_submodules.mk in main cmake
-DEPS_INSTALL_PREFIX = $(BUILD_BASEDIR)/deps
+DEPS_INSTALL_PREFIX = $(BUILD_BASEDIR)/submodules
 
 # needed only because jsoncpp packaging is not standard across OS
 JSONCPP_INCLUDE_DIR := /usr/include/jsoncpp
