@@ -295,7 +295,10 @@ TEST_F(NetworkTest, node_pbft_sync) {
   auto node_cfgs = make_node_cfgs<20>(2);
   FullNode::Handle node1(node_cfgs[0], true);
 
+  // Stop PBFT manager and executor for syncing test
   node1->getPbftManager()->stop();
+  node1->getExecutor()->stop();
+
   auto db1 = node1->getDB();
   auto pbft_chain1 = node1->getPbftChain();
 
@@ -417,7 +420,10 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   auto node_cfgs = make_node_cfgs<20>(2);
   FullNode::Handle node1(node_cfgs[0], true);
 
+  // Stop PBFT manager and executor for syncing test
   node1->getPbftManager()->stop();
+  node1->getExecutor()->stop();
+
   auto db1 = node1->getDB();
   auto pbft_chain1 = node1->getPbftChain();
 
@@ -431,7 +437,6 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   blk_hash_t prev_block_hash(0);
   uint64_t period = 1;
   addr_t beneficiary(876);
-
   level_t level = 1;
   vdf_sortition::VdfSortition vdf1(vdf_config, node_key.address(), vrf_sk, getRlpBytes(level));
   vdf1.computeVdfSolution(vdf_config, dag_genesis.asBytes());
@@ -480,9 +485,10 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), period, beneficiary, node1->getSecretKey());
   db1->putFinalizedDagBlockHashesByAnchor(*batch, pbft_block2.getPivotDagBlockHash(),
                                           {pbft_block2.getPivotDagBlockHash()});
-  std::cout << "There are no votes for the second PBFT block" << std::endl;
-  // node1 put block2 into pbft chain and no votes store into DB
-  // (malicious player)
+  std::cout << "Use fake votes for the second PBFT block" << std::endl;
+  // node1 put block2 into pbft chain and use fake votes storing into DB (malicious player)
+  // Add fake votes in DB
+  db1->addPbftCertVotesToBatch(pbft_block2.getBlockHash(), votes_for_pbft_blk1, batch);
   // Add PBFT block in DB
   db1->addPbftBlockToBatch(pbft_block2, batch);
   // Update period_pbft_block in DB
