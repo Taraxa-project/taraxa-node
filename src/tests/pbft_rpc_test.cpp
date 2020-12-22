@@ -2,6 +2,7 @@
 #include <libdevcore/SHA3.h>
 
 #include "../full_node.hpp"
+#include "../logger/log.hpp"
 #include "../network.hpp"
 #include "../pbft_manager.hpp"
 #include "../static_init.hpp"
@@ -192,13 +193,15 @@ TEST_F(PbftRpcTest, vote_broadcast) {
 using namespace taraxa;
 int main(int argc, char **argv) {
   taraxa::static_init();
-  LoggingConfig logging;
-  logging.verbosity = taraxa::VerbosityError;
-  logging.channels["NETWORK"] = taraxa::VerbosityError;
-  logging.channels["TARCAP"] = taraxa::VerbosityError;
-  logging.channels["VOTE_MGR"] = taraxa::VerbosityError;
+  auto logging = logger::createDefaultLoggingConfig();
+  logging.verbosity = logger::Verbosity::Error;
+  logging.channels["NETWORK"] = logger::Verbosity::Error;
+  logging.channels["TARCAP"] = logger::Verbosity::Error;
+  logging.channels["VOTE_MGR"] = logger::Verbosity::Error;
+
   addr_t node_addr;
-  setupLoggingConfiguration(node_addr, logging);
+  logger::InitLogging(logging, node_addr);
+
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

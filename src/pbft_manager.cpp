@@ -1212,12 +1212,30 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
 bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes) {
   auto const &pbft_block_hash = pbft_block_cert_votes.pbft_blk->getBlockHash();
   if (db_->pbftBlockInDb(pbft_block_hash)) {
-    LOG(log_er_) << "PBFT block: " << pbft_block_hash << " in DB already, has been executed.";
+    LOG(log_er_) << "PBFT block: " << pbft_block_hash << " in DB already.";
     return false;
   }
 
-  // Put into PBFT chain unexecuted queue
-  pbft_chain_->pushBackUnexecutedPbftBlock(pbft_block_cert_votes);
+  auto pbft_block = pbft_block_cert_votes.pbft_blk;
+  auto const &cert_votes = pbft_block_cert_votes.cert_votes;
+  auto pbft_period = pbft_block->getPeriod();
+
+  auto batch = db_->createWriteBatch();
+  // Add cert votes in DB
+  db_->addPbftCertVotesToBatch(pbft_block_hash, cert_votes, batch);
+  LOG(log_nf_) << "Storing cert votes of pbft blk " << pbft_block_hash << "\n" << cert_votes;
+  // Add period_pbft_block in DB
+  db_->addPbftBlockPeriodToBatch(pbft_period, pbft_block_hash, batch);
+  // Add PBFT block in DB
+  db_->addPbftBlockToBatch(*pbft_block, batch);
+  // update PBFT chain size
+  pbft_chain_->updatePbftChain(pbft_block_hash);
+  // Update PBFT chain head block
+  db_->addPbftHeadToBatch(pbft_chain_->getHeadHash(), pbft_chain_->getJsonStr(), batch);
+  // Commit DB
+  db_->commitWriteBatch(batch);
+  LOG(log_nf_) << node_addr_ << " successful push unexecuted pbft block " << pbft_block_hash << " in period "
+               << pbft_period << " into chain! In round " << getPbftRound();
 
   // Notify executor
   executor_->cv_executor.notify_one();
@@ -1226,9 +1244,6 @@ bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes) {
   pbft_chain_last_block_hash_ = pbft_block_hash;
   assert(pbft_chain_last_block_hash_ == pbft_chain_->getLastPbftBlockHash());
 
-  auto pbft_period = pbft_block_cert_votes.pbft_blk->getPeriod();
-  LOG(log_nf_) << node_addr_ << " successful push pbft block " << pbft_block_hash << " in period " << pbft_period
-               << " into chain! In round " << getPbftRound();
   // Reset proposed PBFT block hash to False for next pbft block proposal
   proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
   executed_pbft_block_ = true;

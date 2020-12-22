@@ -56,13 +56,29 @@ void Executor::run() {
 }
 
 void Executor::executePbftBlocks_() {
-  while (!pbft_chain_->unexecutedPbftBlocksEmpty()) {
-    auto pbft_block_cert_votes = pbft_chain_->unexecutedPbftBlocksFront();
-    auto pbft_block = pbft_block_cert_votes.pbft_blk;
-    auto const &cert_votes = pbft_block_cert_votes.cert_votes;
-
+  while (pbft_chain_->hasUnexecutedBlocks()) {
+    auto pbft_period = pbft_chain_->getPbftExecutedChainSize() + 1;
+    auto pbft_block_hash = db_->getPeriodPbftBlock(pbft_period);
+    if (!pbft_block_hash) {
+      LOG(log_er_) << "DB corrupted - PBFT block period " << pbft_period
+                   << " is not exist in DB period_pbft_block. PBFT chain size " << pbft_chain_->getPbftChainSize();
+      assert(false);
+    }
+    // Get PBFT block in DB
+    auto pbft_block = db_->getPbftBlock(*pbft_block_hash);
+    if (!pbft_block) {
+      LOG(log_er_) << "DB corrupted - Cannot find PBFT block hash " << pbft_block_hash
+                   << " in PBFT chain DB pbft_blocks.";
+      assert(false);
+    }
+    if (pbft_block->getPeriod() != pbft_period) {
+      LOG(log_er_) << "DB corrupted - PBFT block hash " << pbft_block_hash << "has different period "
+                   << pbft_block->getPeriod() << "in block data than in block order db: " << pbft_period;
+      assert(false);
+    }
     auto const &anchor_hash = pbft_block->getPivotDagBlockHash();
     auto finalized_dag_blk_hashes = std::move(*dag_mgr_->getDagBlockOrder(anchor_hash).second);
+
     auto batch = db_->createWriteBatch();
     {
       // This artificial scope will make sure we clean up the big chunk of memory allocated for this batch-processing
@@ -103,7 +119,6 @@ void Executor::executePbftBlocks_() {
     auto const &[new_eth_header, trx_receipts, _] =
         final_chain_->advance(batch, pbft_block->getBeneficiary(), pbft_block->getTimestamp(), transactions_tmp_buf_);
 
-    auto pbft_period = pbft_block->getPeriod();
     // Update replay protection service, like nonce watermark. Nonce watermark has been disabled
     replay_protection_service_->update(batch, pbft_period,
                                        util::make_range_view(transactions_tmp_buf_).map([](auto const &trx) {
@@ -128,27 +143,21 @@ void Executor::executePbftBlocks_() {
     for (auto const blk_hash : finalized_dag_blk_hashes) {
       db_->addDagBlockPeriodToBatch(blk_hash, pbft_period, batch);
     }
-    auto const &pbft_block_hash = pbft_block->getBlockHash();
-    // Add cert votes in DB
-    db_->addPbftCertVotesToBatch(pbft_block_hash, cert_votes, batch);
-    LOG(log_nf_) << "Storing cert votes of pbft blk " << pbft_block_hash << "\n" << cert_votes;
-    // Add PBFT block in DB
-    db_->addPbftBlockToBatch(*pbft_block, batch);
-    // Add period_pbft_block in DB
-    db_->addPbftBlockPeriodToBatch(pbft_period, pbft_block_hash, batch);
-    // Update pbft chain
-    // TODO: Should remove PBFT chain head from DB. After remove PBFT chain head from DB, update pbft chain should after
-    // DB commit
-    pbft_chain_->updatePbftChain(pbft_block_hash);
+
+    // Update executed PBFT blocks size
+    pbft_chain_->updateExecutedPbftChainSize();
     // Update PBFT chain head block
     db_->addPbftHeadToBatch(pbft_chain_->getHeadHash(), pbft_chain_->getJsonStr(), batch);
+
     // Set DAG blocks period
     dag_mgr_->setDagBlockOrder(anchor_hash, pbft_period, finalized_dag_blk_hashes, batch);
+
     // Remove executed transactions at Ethereum pending block. The Ethereum pending block is same with latest block at
     // Taraxa
     trx_mgr_->getPendingBlock()->advance(
         batch, new_eth_header.hash(),
         util::make_range_view(transactions_tmp_buf_).map([](auto const &trx) { return trx.sha3(); }));
+
     // Commit DB
     db_->commitWriteBatch(batch);
     LOG(log_nf_) << "DB write batch committed at period " << pbft_period << " PBFT block hash " << pbft_block_hash;

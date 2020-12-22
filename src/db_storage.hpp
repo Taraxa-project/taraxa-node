@@ -11,9 +11,9 @@
 #include <string_view>
 
 #include "dag_block.hpp"
+#include "logger/log.hpp"
 #include "pbft_chain.hpp"
 #include "transaction_status.hpp"
-#include "util.hpp"
 
 namespace taraxa {
 using namespace std;

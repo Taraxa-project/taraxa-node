@@ -12,6 +12,7 @@
 #include <iostream>
 #include <vector>
 
+#include "../logger/log.hpp"
 #include "../network.hpp"
 #include "../static_init.hpp"
 #include "../taraxa_capability.hpp"
@@ -341,10 +342,11 @@ TEST_F(P2PTest, block_propagate) {
 using namespace taraxa;
 int main(int argc, char **argv) {
   static_init();
-  LoggingConfig logging;
+  auto logging = logger::createDefaultLoggingConfig();
+  logging.verbosity = logger::Verbosity::Error;
+
   addr_t node_addr;
-  logging.verbosity = taraxa::VerbosityError;
-  setupLoggingConfiguration(node_addr, logging);
+  logger::InitLogging(logging, node_addr);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

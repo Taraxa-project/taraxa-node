@@ -136,8 +136,9 @@ std::ostream& operator<<(std::ostream& strm, PbftBlockCert const& b) {
 
 PbftChain::PbftChain(std::string const& dag_genesis_hash, addr_t node_addr, std::shared_ptr<DbStorage> db)
     : head_hash_(blk_hash_t(0)),
+      size_(0),
       executed_size_(0),
-      executed_last_pbft_block_hash_(blk_hash_t(0)),
+      last_pbft_block_hash_(blk_hash_t(0)),
       dag_genesis_hash_(blk_hash_t(dag_genesis_hash)),
       db_(db) {
   LOG_OBJECTS_CREATE("PBFT_CHAIN");
@@ -145,32 +146,24 @@ PbftChain::PbftChain(std::string const& dag_genesis_hash, addr_t node_addr, std:
   auto pbft_head_str = db_->getPbftHead(head_hash_);
   if (pbft_head_str.empty()) {
     // Store PBFT HEAD to db
-    db_->savePbftHead(head_hash_, getJsonStr());
+    auto head_json_str = getJsonStr();
+    db_->savePbftHead(head_hash_, head_json_str);
+    LOG(log_nf_) << "Initialize PBFT chain head " << head_json_str;
   } else {
     Json::Value doc;
     Json::Reader reader;
     reader.parse(pbft_head_str, doc);
-    auto head_hash = blk_hash_t(doc["head_hash"].asString());
-    auto executed_size = doc["executed_size"].asUInt64();
-    auto executed_last_pbft_block_hash = blk_hash_t(doc["executed_last_pbft_block_hash"].asString());
-    setPbftChainHead(head_hash, executed_size, executed_last_pbft_block_hash);
+    {
+      uniqueLock_ lock(chain_head_access_);
+      head_hash_ = blk_hash_t(doc["head_hash"].asString());
+      size_ = doc["size"].asUInt64();
+      executed_size_ = doc["executed_size"].asUInt64();
+      last_pbft_block_hash_ = blk_hash_t(doc["last_pbft_block_hash"].asString());
+    }
+    auto dag_genesis_hash_db = blk_hash_t(doc["dag_genesis_hash"].asString());
+    assert(dag_genesis_hash_ == dag_genesis_hash_db);
+    LOG(log_nf_) << "Retrieve from DB, PBFT chain head " << getJsonStr();
   }
-}
-
-void PbftChain::cleanupUnverifiedPbftBlocks(taraxa::PbftBlock const& pbft_block) {
-  blk_hash_t prev_block_hash = pbft_block.getPrevBlockHash();
-  upgradableLock_ lock(unverified_access_);
-  if (unverified_blocks_map_.find(prev_block_hash) == unverified_blocks_map_.end()) {
-    LOG(log_er_) << "Cannot find the prev PBFT block hash " << prev_block_hash;
-    assert(false);
-  }
-  // cleanup PBFT blocks in unverified_blocks_ table
-  upgradeLock_ locked(lock);
-  for (blk_hash_t const& block_hash : unverified_blocks_map_[prev_block_hash]) {
-    unverified_blocks_.erase(block_hash);
-  }
-  // cleanup PBFT blocks hash in unverified_blocks_map_ table
-  unverified_blocks_map_.erase(prev_block_hash);
 }
 
 blk_hash_t PbftChain::getHeadHash() const {
@@ -178,42 +171,22 @@ blk_hash_t PbftChain::getHeadHash() const {
   return head_hash_;
 }
 
+uint64_t PbftChain::getPbftChainSize() const {
+  sharedLock_ lock(chain_head_access_);
+  return size_;
+}
+
 uint64_t PbftChain::getPbftExecutedChainSize() const {
   sharedLock_ lock(chain_head_access_);
   return executed_size_;
 }
 
-uint64_t PbftChain::getPbftChainSize() const {
-  sharedLock_ lock(chain_head_access_);
-  return executed_size_ + unexecutedPbftBlocksSize();
-}
-
 blk_hash_t PbftChain::getLastPbftBlockHash() const {
-  if (!unexecutedPbftBlocksEmpty()) {
-    return unexecutedPbftBlocksBack().pbft_blk->getBlockHash();
-  }
   sharedLock_ lock(chain_head_access_);
-  return executed_last_pbft_block_hash_;
-}
-
-void PbftChain::setExecutedLastPbftBlockHash(const taraxa::blk_hash_t& executed_last_pbft_block_hash) {
-  uniqueLock_ lock(chain_head_access_);
-  executed_last_pbft_block_hash_ = executed_last_pbft_block_hash;
-}
-
-void PbftChain::setPbftChainHead(const taraxa::blk_hash_t& head_hash, const uint64_t executed_size,
-                                 const taraxa::blk_hash_t& executed_last_pbft_block_hash) {
-  uniqueLock_ lock(chain_head_access_);
-  head_hash_ = head_hash;
-  executed_size_ = executed_size;
-  executed_last_pbft_block_hash_ = executed_last_pbft_block_hash;
+  return last_pbft_block_hash_;
 }
 
 bool PbftChain::findPbftBlockInChain(taraxa::blk_hash_t const& pbft_block_hash) {
-  if (findUnexecutedPbftBlock_(pbft_block_hash)) {
-    return true;
-  }
-
   if (!db_) {
     LOG(log_er_) << "Pbft chain DB unavailable in findPbftBlockInChain!";
     return false;
@@ -232,11 +205,6 @@ bool PbftChain::findPbftBlockInSyncedSet(taraxa::blk_hash_t const& pbft_block_ha
 }
 
 PbftBlock PbftChain::getPbftBlockInChain(const taraxa::blk_hash_t& pbft_block_hash) {
-  auto unexecuted_pbft_block = getUnexecutedPbftBlock_(pbft_block_hash);
-  if (unexecuted_pbft_block) {
-    return *unexecuted_pbft_block;
-  }
-
   auto pbft_block = db_->getPbftBlock(pbft_block_hash);
   if (pbft_block == nullptr) {
     LOG(log_er_) << "Cannot find PBFT block hash " << pbft_block_hash << " in DB";
@@ -256,39 +224,36 @@ std::shared_ptr<PbftBlock> PbftChain::getUnverifiedPbftBlock(const taraxa::blk_h
 std::vector<PbftBlockCert> PbftChain::getPbftBlocks(size_t period, size_t count) {
   std::vector<PbftBlockCert> result;
   for (auto i = period; i < period + count; i++) {
+    // Get PBFT block hash by period
     auto pbft_block_hash = db_->getPeriodPbftBlock(i);
-    if (pbft_block_hash) {
-      // Get Pbft block and cert votes in DB
-      auto pbft_block = db_->getPbftBlock(*pbft_block_hash);
-      if (pbft_block == nullptr) {
-        LOG(log_er_) << "Cannot find PBFT block hash " << pbft_block_hash << " in PBFT chain DB.";
-        break;
-      }
-      if (pbft_block->getPeriod() != i) {
-        LOG(log_er_) << "DB corrupted - PBFT block hash " << pbft_block_hash << "has different period "
-                     << pbft_block->getPeriod() << "in block data then in block order db: " << i;
-        assert(false);
-      }
-      auto cert_votes_raw = db_->getVotes(*pbft_block_hash);
-      vector<Vote> cert_votes;
-      for (auto const& cert_vote : RLP(cert_votes_raw)) {
-        cert_votes.emplace_back(cert_vote);
-      }
-      PbftBlockCert pbft_block_cert_votes(*pbft_block, cert_votes);
-      result.push_back(pbft_block_cert_votes);
-    } else {
-      // Check in unexecuted queue
-      sharedLock_ lock(unexecuted_access_);
-      auto unexecuted_pbft_blocks_queue_it = unexecuted_pbft_blocks_queue_.begin();
-      while (unexecuted_pbft_blocks_queue_it != unexecuted_pbft_blocks_queue_.end()) {
-        auto unexecuted_pbft_period = unexecuted_pbft_blocks_queue_it->pbft_blk->getPeriod();
-        if (unexecuted_pbft_period == i) {
-          result.push_back(*unexecuted_pbft_blocks_queue_it);
-          break;
-        }
-        unexecuted_pbft_blocks_queue_it++;
-      }
+    if (!pbft_block_hash) {
+      LOG(log_er_) << "PBFT block period " << i << " is not exist in DB period_pbft_block.";
+      break;
     }
+    // Get PBFT block in DB
+    auto pbft_block = db_->getPbftBlock(*pbft_block_hash);
+    if (!pbft_block) {
+      LOG(log_er_) << "DB corrupted - Cannot find PBFT block hash " << pbft_block_hash
+                   << " in PBFT chain DB pbft_blocks.";
+      assert(false);
+    }
+    if (pbft_block->getPeriod() != i) {
+      LOG(log_er_) << "DB corrupted - PBFT block hash " << pbft_block_hash << "has different period "
+                   << pbft_block->getPeriod() << "in block data then in block order db: " << i;
+      assert(false);
+    }
+    // Get PBFT cert votes in DB
+    auto cert_votes_raw = db_->getVotes(*pbft_block_hash);
+    vector<Vote> cert_votes;
+    for (auto const& cert_vote : RLP(cert_votes_raw)) {
+      cert_votes.emplace_back(cert_vote);
+    }
+    if (cert_votes.empty()) {
+      LOG(log_er_) << "Cannot find any cert votes for PBFT block " << pbft_block;
+      assert(false);
+    }
+    PbftBlockCert pbft_block_cert_votes(*pbft_block, cert_votes);
+    result.push_back(pbft_block_cert_votes);
   }
   return result;
 }
@@ -315,13 +280,21 @@ std::vector<std::string> PbftChain::getPbftBlocksStr(size_t period, size_t count
   return result;
 }
 
+bool PbftChain::hasUnexecutedBlocks() const {
+  sharedLock_ lock(chain_head_access_);
+  return size_ != executed_size_;
+}
+
 void PbftChain::updatePbftChain(blk_hash_t const& pbft_block_hash) {
   pbftSyncedSetInsert_(pbft_block_hash);
   uniqueLock_ lock(chain_head_access_);
-  // Delete the PBFT block from PBFT chain unexecuted queue
-  popFrontUnexecutedPbftBlock();
+  size_++;
+  last_pbft_block_hash_ = pbft_block_hash;
+}
+
+void PbftChain::updateExecutedPbftChainSize() {
+  uniqueLock_ lock(chain_head_access_);
   executed_size_++;
-  executed_last_pbft_block_hash_ = pbft_block_hash;
 }
 
 bool PbftChain::checkPbftBlockValidationFromSyncing(taraxa::PbftBlock const& pbft_block) const {
@@ -353,53 +326,20 @@ bool PbftChain::checkPbftBlockValidation(taraxa::PbftBlock const& pbft_block) co
   return true;
 }
 
-bool PbftChain::unexecutedPbftBlocksEmpty() const {
-  sharedLock_ lock(unexecuted_access_);
-  return unexecuted_pbft_blocks_queue_.empty();
-}
-
-size_t PbftChain::unexecutedPbftBlocksSize() const {
-  sharedLock_ lock(unexecuted_access_);
-  return unexecuted_pbft_blocks_queue_.size();
-}
-
-PbftBlockCert PbftChain::unexecutedPbftBlocksFront() const {
-  sharedLock_ lock(unexecuted_access_);
-  return unexecuted_pbft_blocks_queue_.front();
-}
-
-PbftBlockCert PbftChain::unexecutedPbftBlocksBack() const {
-  sharedLock_ lock(unexecuted_access_);
-  return unexecuted_pbft_blocks_queue_.back();
-}
-
-void PbftChain::popFrontUnexecutedPbftBlock() {
-  if (!unexecutedPbftBlocksEmpty()) {
-    uniqueLock_ lock(unexecuted_access_);
-    auto pbft_block_hash = unexecuted_pbft_blocks_queue_.front().pbft_blk->getBlockHash();
-    unexecuted_pbft_blocks_.erase(pbft_block_hash);
-    unexecuted_pbft_blocks_queue_.pop_front();
+void PbftChain::cleanupUnverifiedPbftBlocks(taraxa::PbftBlock const& pbft_block) {
+  blk_hash_t prev_block_hash = pbft_block.getPrevBlockHash();
+  upgradableLock_ lock(unverified_access_);
+  if (unverified_blocks_map_.find(prev_block_hash) == unverified_blocks_map_.end()) {
+    LOG(log_er_) << "Cannot find the prev PBFT block hash " << prev_block_hash;
+    assert(false);
   }
-}
-
-void PbftChain::pushBackUnexecutedPbftBlock(PbftBlockCert const& pbft_block_cert_votes) {
-  uniqueLock_ lock(unexecuted_access_);
-  auto pbft_block_hash = pbft_block_cert_votes.pbft_blk->getBlockHash();
-  unexecuted_pbft_blocks_[pbft_block_hash] = pbft_block_cert_votes.pbft_blk;
-  unexecuted_pbft_blocks_queue_.push_back(pbft_block_cert_votes);
-}
-
-bool PbftChain::findUnexecutedPbftBlock_(blk_hash_t const& pbft_block_hash) {
-  sharedLock_ lock(unexecuted_access_);
-  return unexecuted_pbft_blocks_.find(pbft_block_hash) != unexecuted_pbft_blocks_.end();
-}
-
-std::shared_ptr<PbftBlock> PbftChain::getUnexecutedPbftBlock_(blk_hash_t const& pbft_block_hash) {
-  if (findUnexecutedPbftBlock_(pbft_block_hash)) {
-    sharedLock_ lock(unexecuted_access_);
-    return unexecuted_pbft_blocks_[pbft_block_hash];
+  // cleanup PBFT blocks in unverified_blocks_ table
+  upgradeLock_ locked(lock);
+  for (blk_hash_t const& block_hash : unverified_blocks_map_[prev_block_hash]) {
+    unverified_blocks_.erase(block_hash);
   }
-  return nullptr;
+  // cleanup PBFT blocks hash in unverified_blocks_map_ table
+  unverified_blocks_map_.erase(prev_block_hash);
 }
 
 void PbftChain::pushUnverifiedPbftBlock(std::shared_ptr<PbftBlock> const& pbft_block) {
@@ -426,20 +366,23 @@ void PbftChain::pushUnverifiedPbftBlock(std::shared_ptr<PbftBlock> const& pbft_b
 std::string PbftChain::getHeadStr() const {
   std::stringstream strm;
   strm << "[PbftChain]" << std::endl;
-  strm << "head hash: " << getHeadHash().toString() << std::endl;
-  strm << "size: " << getPbftChainSize() << std::endl;
-  strm << "last pbft block hash: " << getLastPbftBlockHash().toString() << std::endl;
+  sharedLock_ lock(chain_head_access_);
+  strm << "head hash: " << head_hash_.toString() << std::endl;
   strm << "DAG genesis hash: " << dag_genesis_hash_.toString() << std::endl;
+  strm << "size: " << size_ << std::endl;
+  strm << "executed blocks size: " << executed_size_ << std::endl;
+  strm << "last pbft block hash: " << last_pbft_block_hash_.toString() << std::endl;
   return strm.str();
 }
 
 std::string PbftChain::getJsonStr() const {
   Json::Value json;
-  json["head_hash"] = getHeadHash().toString();
-  json["dag_genesis_hash"] = dag_genesis_hash_.toString();
   sharedLock_ lock(chain_head_access_);
+  json["head_hash"] = head_hash_.toString();
+  json["dag_genesis_hash"] = dag_genesis_hash_.toString();
+  json["size"] = (Json::Value::UInt64)size_;
   json["executed_size"] = (Json::Value::UInt64)executed_size_;
-  json["executed_last_pbft_block_hash"] = executed_last_pbft_block_hash_.toString();
+  json["last_pbft_block_hash"] = last_pbft_block_hash_.toString();
   return json.toStyledString();
 }
 
@@ -453,10 +396,11 @@ bool PbftChain::isKnownPbftBlockForSyncing(taraxa::blk_hash_t const& pbft_block_
 }
 
 uint64_t PbftChain::pbftSyncingPeriod() const {
-  if (pbft_synced_queue_.empty()) {
+  if (pbftSyncedQueueEmpty()) {
     return getPbftChainSize();
   } else {
-    return pbftSyncedQueueBack().pbft_blk->getPeriod();
+    auto last_synced_votes_block = pbftSyncedQueueBack();
+    return last_synced_votes_block.pbft_blk->getPeriod();
   }
 }
 
