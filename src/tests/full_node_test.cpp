@@ -143,8 +143,13 @@ TEST_F(FullNodeTest, db_test) {
   PbftChain pbft_chain(blk_hash_t(0).toString(), addr_t(), db_ptr);
   db.savePbftHead(pbft_chain.getHeadHash(), pbft_chain.getJsonStr());
   EXPECT_EQ(db.getPbftHead(pbft_chain.getHeadHash()), pbft_chain.getJsonStr());
-  pbft_chain.setExecutedLastPbftBlockHash(blk_hash_t(123));
   batch = db.createWriteBatch();
+  pbft_chain.updatePbftChain(blk_hash_t(123));
+  db.addPbftHeadToBatch(pbft_chain.getHeadHash(), pbft_chain.getJsonStr(), batch);
+  db.commitWriteBatch(batch);
+  EXPECT_EQ(db.getPbftHead(pbft_chain.getHeadHash()), pbft_chain.getJsonStr());
+  batch = db.createWriteBatch();
+  pbft_chain.updateExecutedPbftChainSize();
   db.addPbftHeadToBatch(pbft_chain.getHeadHash(), pbft_chain.getJsonStr(), batch);
   db.commitWriteBatch(batch);
   EXPECT_EQ(db.getPbftHead(pbft_chain.getHeadHash()), pbft_chain.getJsonStr());
@@ -961,7 +966,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   }
 
   std::cout << "Checking all nodes executed transactions at initialization" << std::endl;
-  wait({150s, 1s}, [&](auto &ctx) {
+  wait({150s, 2s}, [&](auto &ctx) {
     for (auto i(0); i < nodes.size(); ++i) {
       if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
         std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted()
@@ -1004,7 +1009,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   }
   std::cout << "Checking all nodes execute transactions from robin cycle" << std::endl;
 
-  wait({150s, 1s}, [&](auto &ctx) {
+  wait({150s, 2s}, [&](auto &ctx) {
     for (auto i(0); i < nodes.size(); ++i) {
       if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
         std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted()
@@ -1020,7 +1025,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
     }
   });
 
-  wait({15s, 1s}, [&](auto &ctx) {
+  wait({30s, 1s}, [&](auto &ctx) {
     auto num_vertices0 = nodes[0]->getDagManager()->getNumVerticesInDag();
     auto num_vertices1 = nodes[1]->getDagManager()->getNumVerticesInDag();
     auto num_vertices2 = nodes[2]->getDagManager()->getNumVerticesInDag();
