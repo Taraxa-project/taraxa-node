@@ -8,6 +8,9 @@ project(taraxa-node)
 set(CMAKE_CXX_COMPILER g++)
 set(CMAKE_CXX_STANDARD 17)
 
+set(CMAKE_OSX_SYSROOT /)
+set(CMAKE_MACOSX_RPATH ON)
+
 set(IS_DEBUG 0)
 if (CMAKE_BUILD_TYPE MATCHES Debug)
     set(IS_DEBUG 1)

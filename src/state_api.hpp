@@ -25,6 +25,16 @@ using rocksdb::ColumnFamilyHandle;
 
 static constexpr auto BlockNumberNIL = std::numeric_limits<BlockNumber>::max();
 
+struct TaraxaEVMError : std::runtime_error {
+  string const type;
+  TaraxaEVMError(string type, string msg) : runtime_error(move(msg)), type(move(type)) {}
+  ~TaraxaEVMError() throw() {}
+};
+struct ErrFutureBlock : TaraxaEVMError {
+  using TaraxaEVMError::TaraxaEVMError;
+  ~ErrFutureBlock() throw() {}
+};
+
 struct ExecutionOptions {
   bool disable_nonce_check = 0;
   bool disable_gas_fee = 0;
@@ -166,7 +176,7 @@ struct Opts {
   uint32_t ExpectedMaxTrxPerBlock = 0;
   uint8_t MainTrieFullNodeLevelsToCache = 0;
 };
-void enc_rlp(RLPStream& enc, Opts const&);
+void enc_rlp(RLPStream& enc, Opts const& obj);
 
 struct StateDescriptor {
   BlockNumber blk_num = 0;
@@ -174,9 +184,38 @@ struct StateDescriptor {
 };
 void dec_rlp(RLP const& rlp, StateDescriptor& obj);
 
-struct Error : std::runtime_error {
-  using runtime_error::runtime_error;
+struct DPOSQuery {
+  bool with_eligible_count = 0;
+  struct AccountQuery {
+    bool with_staking_balance = 0;
+    bool with_outbound_deposits = 0;
+    bool outbound_deposits_addrs_only = 0;
+    bool with_inbound_deposits = 0;
+    bool inbound_deposits_addrs_only = 0;
+  };
+  unordered_map<addr_t, AccountQuery> account_queries;
 };
+void enc_rlp(RLPStream& enc, DPOSQuery::AccountQuery const& obj);
+void enc_rlp(RLPStream& enc, DPOSQuery const& obj);
+void dec_json(Json::Value const& json, DPOSQuery::AccountQuery& obj);
+void dec_json(Json::Value const& json, DPOSQuery& obj);
+
+struct DPOSQueryResult {
+  uint64_t eligible_count = 0;
+  struct AccountResult {
+    u256 staking_balance;
+    bool is_eligible = 0;
+    // intentionally used ordered map to have a stable key order in iteration
+    using deposits_t = map<addr_t, u256>;
+    deposits_t outbound_deposits;
+    deposits_t inbound_deposits;
+  };
+  unordered_map<addr_t, AccountResult> account_results;
+};
+void dec_rlp(RLP const& rlp, DPOSQueryResult::AccountResult& obj);
+void dec_rlp(RLP const& rlp, DPOSQueryResult& obj);
+Json::Value enc_json(DPOSQueryResult::AccountResult const& obj, DPOSQuery::AccountQuery* q = nullptr);
+Json::Value enc_json(DPOSQueryResult const& obj, DPOSQuery* q = nullptr);
 
 class StateAPI {
   function<h256(BlockNumber)> get_blk_hash;
@@ -206,6 +245,7 @@ class StateAPI {
   // DPOS
   uint64_t dpos_eligible_count(BlockNumber blk_num) const;
   bool dpos_is_eligible(BlockNumber blk_num, addr_t const& addr) const;
+  DPOSQueryResult dpos_query(BlockNumber blk_num, DPOSQuery const& q) const;
   static addr_t const& dpos_contract_addr();
   struct DPOSTransactionPrototype {
     uint64_t minimal_gas = 0;  // TODO estimate gas

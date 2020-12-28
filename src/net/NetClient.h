@@ -14,7 +14,7 @@ class NetClient : public jsonrpc::Client {
   NetClient(jsonrpc::IClientConnector &conn, jsonrpc::clientVersion_t type = jsonrpc::JSONRPC_CLIENT_V2)
       : jsonrpc::Client(conn, type) {}
 
-  std::string net_version() throw(jsonrpc::JsonRpcException) {
+  std::string net_version() {
     Json::Value p;
     p = Json::nullValue;
     Json::Value result = this->CallMethod("net_version", p);
@@ -23,7 +23,7 @@ class NetClient : public jsonrpc::Client {
     else
       throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
   }
-  std::string net_peerCount() throw(jsonrpc::JsonRpcException) {
+  std::string net_peerCount() {
     Json::Value p;
     p = Json::nullValue;
     Json::Value result = this->CallMethod("net_peerCount", p);
@@ -32,7 +32,7 @@ class NetClient : public jsonrpc::Client {
     else
       throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
   }
-  bool net_listening() throw(jsonrpc::JsonRpcException) {
+  bool net_listening() {
     Json::Value p;
     p = Json::nullValue;
     Json::Value result = this->CallMethod("net_listening", p);

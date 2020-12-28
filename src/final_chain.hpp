@@ -17,11 +17,6 @@ using namespace dev;
 using namespace eth;
 using namespace util;
 
-struct ErrFutureBlock : std::invalid_argument {
-  ErrFutureBlock() : invalid_argument("Attempt to query a future block") {}
-  ~ErrFutureBlock() throw() {}
-};
-
 struct FinalChain : virtual ChainDB {
   struct Config {
     state_api::ChainConfig state;
@@ -56,6 +51,8 @@ struct FinalChain : virtual ChainDB {
   virtual std::pair<val_t, bool> getBalance(addr_t const& acc) const = 0;
   virtual uint64_t dpos_eligible_count(BlockNumber blk_num) const = 0;
   virtual bool dpos_is_eligible(BlockNumber blk_num, addr_t const& addr) const = 0;
+  virtual state_api::DPOSQueryResult dpos_query(state_api::DPOSQuery const& q,
+                                                optional<BlockNumber> blk_n = nullopt) const = 0;
 };
 
 unique_ptr<FinalChain> NewFinalChain(shared_ptr<DbStorage> db, FinalChain::Config const& config,
