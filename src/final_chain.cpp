@@ -25,8 +25,15 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
       : ChainDBImpl(blk_db, ext_db),
         blk_db(move(blk_db)),
         ext_db(move(ext_db)),
-        state_api((db->stateDbStoragePath()).string(), [this](auto n) { return ChainDBImpl::hashFromNumber(n); },  //
-                  config.state) {
+        state_api([this](auto n) { return ChainDBImpl::hashFromNumber(n); },  //
+                  config.state,
+                  {
+                      1500,
+                      4,
+                  },
+                  {
+                      (db->stateDbStoragePath()).string(),
+                  }) {
     receipts_buf.reserve(opts.state_api.ExpectedMaxTrxPerBlock);
     auto last_blk = ChainDBImpl::get_last_block();
     auto state_desc = state_api.get_last_committed_state_descriptor();

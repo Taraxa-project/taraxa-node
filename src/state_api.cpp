@@ -100,8 +100,8 @@ void c_method_args_rlp(taraxa_evm_state_API_ptr this_c, Params const&... args) {
   err_h.check();
 }
 
-StateAPI::StateAPI(string const& db_path, decltype(get_blk_hash) get_blk_hash, ChainConfig const& chain_config,
-                   Opts const& opts)
+StateAPI::StateAPI(decltype(get_blk_hash) get_blk_hash, ChainConfig const& chain_config, Opts const& opts,
+                   OptsDB const& opts_db)
     : get_blk_hash(move(get_blk_hash)),
       get_blk_hash_c{
           this,
@@ -112,11 +112,11 @@ StateAPI::StateAPI(string const& db_path, decltype(get_blk_hash) get_blk_hash, C
             return ret_c;
           },
       },
-      db_path(db_path) {
+      db_path(opts_db.db_path) {
   result_buf_transition_state.ExecutionResults.reserve(opts.ExpectedMaxTrxPerBlock);
   rlp_enc_transition_state.reserve(opts.ExpectedMaxTrxPerBlock * 1024, opts.ExpectedMaxTrxPerBlock * 128);
   RLPStream rlp;
-  enc_rlp_tuple(rlp, db_path, &get_blk_hash_c, chain_config, opts);
+  enc_rlp_tuple(rlp, &get_blk_hash_c, chain_config, opts, opts_db);
   ErrorHandler err_h;
   this_c = taraxa_evm_state_api_new(map_bytes(rlp.out()), err_h.cgo_part);
   err_h.check();
@@ -263,6 +263,10 @@ void enc_rlp(RLPStream& rlp, UncleBlock const& obj) { enc_rlp_tuple(rlp, obj.Num
 
 void enc_rlp(RLPStream& rlp, Opts const& obj) {
   enc_rlp_tuple(rlp, obj.ExpectedMaxTrxPerBlock, obj.MainTrieFullNodeLevelsToCache);
+}
+
+void enc_rlp(RLPStream& rlp, OptsDB const& obj) {
+  enc_rlp_tuple(rlp, obj.db_path, obj.disable_most_recent_trie_value_views);
 }
 
 void dec_rlp(RLP const& rlp, Account& obj) {

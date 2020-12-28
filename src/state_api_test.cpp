@@ -72,8 +72,11 @@ TEST_F(StateAPITest, eth_mainnet_smoke) {
   opts.ExpectedMaxTrxPerBlock = 300;
   opts.MainTrieFullNodeLevelsToCache = 4;
 
-  StateAPI SUT((data_dir / "state").string(), [&](auto n) { return test_blocks[n].Hash; },  //
-               chain_config, opts);
+  StateAPI SUT([&](auto n) { return test_blocks[n].Hash; },  //
+               chain_config, opts,
+               {
+                   (data_dir / "state").string(),
+               });
 
   ASSERT_EQ(test_blocks[0].StateRoot, SUT.get_last_committed_state_descriptor().state_root);
   auto progress_pct = numeric_limits<int>::min();
@@ -112,8 +115,15 @@ TEST_F(StateAPITest, dpos_integration) {
   addr_1_bal_expected -= dpos_cfg.genesis_state[make_addr(1)][make_addr(1)] = dpos_cfg.eligibility_balance_threshold;
 
   uint64_t curr_blk = 0;
-  StateAPI SUT((data_dir / "state").string(), [&](auto n) -> h256 { assert(false); },  //
-               chain_cfg);
+  StateAPI SUT([&](auto n) -> h256 { assert(false); },  //
+               chain_cfg,
+               {
+                   10,
+                   1,
+               },
+               {
+                   (data_dir / "state").string(),
+               });
 
   unordered_set<addr_t> expected_eligible_set;
   decltype(DPOSQueryResult().account_results) exp_q_acc_res;
