@@ -2,8 +2,9 @@ include Makefile_common.mk Makefile_submodules.mk
 
 # NOTE: to understand $@, $(@D), $+, etc. variables,
 # google 'make automatic variables'
+# NOTE: makefile translates `$$` into `$`
 
-# include gcc-generated makefiles that declare dependencies between 
+# include gcc-generated makefiles that declare dependencies between
 # and .cpp and .hpp files
 include $(shell find $(BUILD_DIR) -path "*.d" 2> /dev/null)
 
@@ -28,16 +29,6 @@ _ := $(shell find "$(SRC_DIR)" -type f \
 	-or -path "*.h" \
 	&> Makefile.src_cxx.txt \
 )
-
-# List of source files(only files that are not directly in src/ directory are currently listed here)
-# paths are relative tot the $(SRC_DIR)
-SRC_FILES := \
-	logger/log.hpp \
-	logger/log.cpp \
-	logger/Config.hpp \
-	logger/Config.cpp \
-
-_ := $(foreach file,$(SRC_FILES),$("$(SRC_DIR)/$(file)" &>>Makefile.src_cxx.txt))
 
 FILES_CXX_PRINT := cat "$(CURDIR)/Makefile.src_cxx.txt"
 TEST_SRC_QUALIFIER := _test
@@ -74,8 +65,8 @@ BOOST_LIBS := \
 	boost_program_options \
 	boost_filesystem \
 	boost_system
-# on mac, boost distribution has that -mt (multithreaded) suffix for some libs
-ifeq ($(OS), Darwin)
+# on Mac, brew boost distribution has that -mt (multithreaded) suffix for some libs
+ifeq ($(BOOST_MT_SUFFIX), 1)
 	BOOST_LIBS += boost_thread-mt boost_log-mt boost_log_setup-mt
 else
 	BOOST_LIBS += boost_thread boost_log boost_log_setup
@@ -104,24 +95,19 @@ LIBS := \
 	secp256k1 \
 	cryptopp \
 	ethash \
-	stdc++fs
-TEST_LIBS := \
-	gtest
-# Optional linking for libatomic (part of standard library).
-# Some toolchains provide this library,
-# and assume programs using <atomic> would link against it.
-# Note: makefile translates `$$?` into `$?`
-LIBATOMIC_NOT_FOUND = $(shell \
-    $(CXX) $(LIB_DIRS) -latomic -shared -o /dev/null &> /dev/null; echo $$? \
-)
-ifeq ($(LIBATOMIC_NOT_FOUND), 0)
-    LIBS += atomic
-endif
+	$(SYS_LIBS)
+
 # needed for golang runtime that comes together with taraxa-evm
 ifeq ($(OS), Darwin)
 	OSX_FRAMEWORKS := CoreFoundation Security
 endif
 
+TEST_LIBS := \
+	gtest \
+	jsonrpccpp-client
+
+# the purpose of this is to escape the comma
+_Wl_rpath_ := -Wl,-rpath
 # base linking command
 LINK = \
 mkdir -p $(@D) && $(strip \
@@ -129,6 +115,7 @@ mkdir -p $(@D) && $(strip \
 	$(addprefix -L, $(LIB_DIRS)) \
 	$(addprefix -l, $(LIBS)) \
 	$(addprefix -framework , $(OSX_FRAMEWORKS)) \
+	$(addprefix $(_Wl_rpath_) , $(LIB_DIRS)) \
 )
 $(BIN_DIR)/main: $(NODE_OBJS) $(OBJ_DIR)/main.o
 	$(LINK)
