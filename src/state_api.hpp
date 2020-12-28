@@ -178,6 +178,11 @@ struct Opts {
 };
 void enc_rlp(RLPStream& enc, Opts const& obj);
 
+struct OptsDB {
+  string db_path;
+  bool use_most_recent_trie_value_views;
+};
+
 struct StateDescriptor {
   BlockNumber blk_num = 0;
   h256 state_root;
