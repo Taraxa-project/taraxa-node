@@ -8,7 +8,7 @@ _ := $(shell rm -rf Makefile.log.txt)
 # VARIABLES THAT YOU CAN OVERRIDE
 # rather, which kind of bash do you prefer, cause this build relies on bash
 SHELL := /bin/bash
-SHELL_PATH := $$PATH
+SHELL_PATH := $(shell echo $$PATH)
 DEBUG := 0
 # rather, which kind of gcc do you prefer, cause this build relies on gcc
 CXX := g++
@@ -74,7 +74,6 @@ ifneq ($(SYSTEM_HOME_OVERRIDE),)
 endif
 # END VARIABLES THAT YOU CAN OVERRIDE
 
-# TODO uncomment
-#SHELL := PATH=$(SHELL_PATH) $(SHELL)
+SHELL := PATH=$(SHELL_PATH) $(SHELL)
 
 endif # Makefile_common
