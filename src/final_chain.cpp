@@ -77,17 +77,7 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
   shared_ptr<BlockHeader> get_last_block() const override { return ChainDBImpl::get_last_block(); }
 
   BlockNumber normalize_client_blk_n(optional<BlockNumber> const& client_blk_n) const {
-    auto last_blk_n = last_block_number();
-    if (!client_blk_n) {
-      return last_blk_n;
-    }
-    // TODO: The check will throw exeception with unexecuted PBFT block number. Oleh please check if safe to remove
-    // Will remove, catch exception when DPOS throw in GO
-    auto ret = *client_blk_n;
-    if (last_blk_n < ret) {
-      throw ErrFutureBlock();
-    }
-    return ret;
+    return client_blk_n ? *client_blk_n : last_block_number();
   }
 
   AdvanceResult advance(DbStorage::BatchPtr batch, Address const& author, uint64_t timestamp,
@@ -154,12 +144,15 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
                                          trx, opts);
   }
 
-  uint64_t dpos_eligible_count(BlockNumber blk_num) const override {
-    return state_api.dpos_eligible_count(normalize_client_blk_n(blk_num));
-  }
+  uint64_t dpos_eligible_count(BlockNumber blk_num) const override { return state_api.dpos_eligible_count(blk_num); }
 
   bool dpos_is_eligible(BlockNumber blk_num, addr_t const& addr) const override {
-    return state_api.dpos_is_eligible(normalize_client_blk_n(blk_num), addr);
+    return state_api.dpos_is_eligible(blk_num, addr);
+  }
+
+  state_api::DPOSQueryResult dpos_query(state_api::DPOSQuery const& q,
+                                        optional<BlockNumber> blk_n = nullopt) const override {
+    return state_api.dpos_query(normalize_client_blk_n(blk_n), q);
   }
 };
 

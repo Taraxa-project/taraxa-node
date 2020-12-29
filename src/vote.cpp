@@ -5,7 +5,6 @@
 #include <libethcore/Common.h>
 
 #include "pbft_manager.hpp"
-#include "sortition.hpp"
 
 namespace taraxa {
 VrfPbftSortition::VrfPbftSortition(bytes const& b) {

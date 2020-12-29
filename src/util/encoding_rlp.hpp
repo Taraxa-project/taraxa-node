@@ -96,6 +96,8 @@ void dec_rlp_sequence(RLP const& rlp, Sequence& target) {
   }
 }
 
+inline void dec_rlp(RLP const& rlp, bool& target) { target = rlp.toInt<uint8_t>(); }
+
 inline void dec_rlp(RLP const& rlp, bytes& target) { target = bytes(rlp); }
 
 template <typename... Ts>

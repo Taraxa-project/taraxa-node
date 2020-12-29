@@ -1,4 +1,4 @@
-#include "Config.hpp"
+#include "config.hpp"
 
 #include <boost/algorithm/string.hpp>
 #include <boost/core/null_deleter.hpp>
@@ -142,7 +142,8 @@ void Config::InitLogging(addr_t const &node) {
     }
 
     boost::log::add_common_attributes();
-    boost::log::core::get()->add_global_attribute("SeverityStr", boost::log::attributes::make_function(&getThreadName));
+    boost::log::core::get()->add_global_attribute("SeverityStr",
+                                                  boost::log::attributes::make_function(&::dev::getThreadName));
   }
 
   boost::log::core::get()->set_exception_handler(boost::log::make_exception_handler<std::exception>(

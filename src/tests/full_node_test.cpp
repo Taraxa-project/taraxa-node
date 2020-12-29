@@ -14,12 +14,12 @@
 #include "../net/Taraxa.h"
 #include "../network.hpp"
 #include "../pbft_manager.hpp"
-#include "../sortition.hpp"
 #include "../static_init.hpp"
 #include "../transaction_manager.hpp"
 #include "../util_test/samples.hpp"
 #include "string"
 
+// TODO rename this namespace to `tests`
 namespace taraxa::core_tests {
 using samples::sendTrx;
 

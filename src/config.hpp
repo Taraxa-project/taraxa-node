@@ -5,7 +5,7 @@
 
 #include "chain_config.hpp"
 #include "dag_block.hpp"
-#include "logger/Config.hpp"
+#include "logger/config.hpp"
 #include "types.hpp"
 #include "util.hpp"
 
