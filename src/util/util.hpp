@@ -20,7 +20,7 @@
 #include <string>
 #include <unordered_set>
 
-#include "types.hpp"
+#include "common/types.hpp"
 
 namespace taraxa {
 

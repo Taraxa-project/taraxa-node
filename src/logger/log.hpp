@@ -1,10 +1,11 @@
-#pragma once
+#ifndef TARAXA_NODE_LOG_H
+#define TARAXA_NODE_LOG_H
 
 #include <boost/log/sources/severity_channel_logger.hpp>
 #include <string>
 
-#include "logger/config.hpp"
-#include "types.hpp"
+#include "common/types.hpp"
+#include "logger/logger_config.hpp"
 
 namespace taraxa::logger {
 
@@ -89,3 +90,5 @@ void InitLogging(Config& logging_config, const addr_t& node_id);
   log_nf_##group##_ = taraxa::logger::createLogger(taraxa::logger::Verbosity::Info, channel, node_addr);    \
   log_tr_##group##_ = taraxa::logger::createLogger(taraxa::logger::Verbosity::Trace, channel, node_addr);   \
   log_dg_##group##_ = taraxa::logger::createLogger(taraxa::logger::Verbosity::Debug, channel, node_addr);
+
+#endif  // TARAXA_NODE_LOG_H

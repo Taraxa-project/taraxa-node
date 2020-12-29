@@ -1,8 +1,7 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.16)
 
 set(CMAKE_CXX_COMPILER g++)
 set(CMAKE_CXX_STANDARD 17)
-
 
 # Enable testing for current directory and below.
 enable_testing(true)
@@ -58,3 +57,7 @@ add_test(final_chain_test final_chain_test)
 add_executable(state_api_test state_api_test.cpp)
 target_link_libraries(state_api_test app_base gtest)
 add_test(state_api_test state_api_test)
+
+add_executable(taraxa_test taraxa_test.cpp)
+target_link_libraries(taraxa_test app_base gtest jsonrpccpp-client)
+add_test(taraxa_test taraxa_test)

@@ -7,9 +7,9 @@
 #include <optional>
 #include <string>
 
+#include "common/types.hpp"
 #include "config/config.hpp"
 #include "consensus/pbft_chain.hpp"
-#include "types.hpp"
 #include "util/util.hpp"
 #include "vrf_wrapper.hpp"
 

@@ -1,11 +1,11 @@
-#include "replay_protection_service.hpp"
+#include "node/replay_protection_service.hpp"
 
 #include <filesystem>
 #include <optional>
 #include <vector>
 
+#include "common/types.hpp"
 #include "transaction_manager/transaction.hpp"
-#include "types.hpp"
 #include "util_test/gtest.hpp"
 #include "util_test/util.hpp"
 

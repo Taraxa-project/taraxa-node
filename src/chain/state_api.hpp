@@ -11,8 +11,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include "db_storage.hpp"
-#include "types.hpp"
+#include "common/types.hpp"
+#include "storage/db_storage.hpp"
 #include "util/encoding_rlp.hpp"
 #include "util/range_view.hpp"
 

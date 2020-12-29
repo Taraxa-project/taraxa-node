@@ -4,11 +4,11 @@
 #include <algorithm>
 
 #include "ProverWesolowski.h"
+#include "common/types.hpp"
 #include "consensus/vrf_wrapper.hpp"
 #include "libdevcore/CommonData.h"
 #include "logger/log.hpp"
 #include "openssl/bn.h"
-#include "types.hpp"
 
 namespace taraxa::vdf_sortition {
 

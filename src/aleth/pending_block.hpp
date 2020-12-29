@@ -3,7 +3,7 @@
 
 #include <libweb3jsonrpc/Eth.h>
 
-#include "db_storage.hpp"
+#include "storage/db_storage.hpp"
 #include "util/range_view.hpp"
 
 namespace taraxa::aleth {

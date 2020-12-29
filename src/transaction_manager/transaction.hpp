@@ -3,7 +3,7 @@
 
 #include <json/json.h>
 
-#include "types.hpp"
+#include "common/types.hpp"
 
 namespace taraxa {
 

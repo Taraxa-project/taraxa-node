@@ -22,10 +22,10 @@
 #include <queue>
 #include <string>
 
+#include "common/types.hpp"
 #include "consensus/pbft_chain.hpp"
 #include "dag_block.hpp"
-#include "db_storage.hpp"
-#include "types.hpp"
+#include "storage/db_storage.hpp"
 #include "util/util.hpp"
 namespace taraxa {
 

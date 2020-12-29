@@ -4,10 +4,9 @@
 #include <libethereum/ChainDBImpl.h>
 
 #include "aleth/database.hpp"
-#include "db_storage.hpp"
-#include "replay_protection_service.hpp"
+#include "common/types.hpp"
 #include "state_api.hpp"
-#include "types.hpp"
+#include "storage/db_storage.hpp"
 #include "util/exit_stack.hpp"
 #include "util/range_view.hpp"
 

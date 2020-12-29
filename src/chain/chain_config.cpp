@@ -11,7 +11,6 @@ Json::Value enc_json(ChainConfig const& obj) {
     json["chain_id"] = dev::toJS(obj.chain_id);
   }
   json["dag_genesis_block"] = obj.dag_genesis_block.getJson();
-  json["replay_protection_service"] = enc_json(obj.replay_protection_service);
   json["vdf"] = enc_json(obj.vdf);
   json["pbft"] = enc_json(obj.pbft);
   json["final_chain"] = enc_json(obj.final_chain);
@@ -23,7 +22,6 @@ void dec_json(Json::Value const& json, ChainConfig& obj) {
     obj.chain_id = dev::jsToInt(e.asString());
   }
   obj.dag_genesis_block = DagBlock(json["dag_genesis_block"]);
-  dec_json(json["replay_protection_service"], obj.replay_protection_service);
   dec_json(json["vdf"], obj.vdf);
   dec_json(json["pbft"], obj.pbft);
   dec_json(json["final_chain"], obj.final_chain);
@@ -44,7 +42,6 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
       "timestamp": 1564617600,
       "vdf": ""
   })"));
-    cfg.replay_protection_service.range = 10;
     cfg.final_chain.state.disable_block_rewards = true;
     cfg.final_chain.state.eth_chain_config.dao_fork_block = state_api::BlockNumberNIL;
     cfg.final_chain.state.execution_options.disable_nonce_check = true;

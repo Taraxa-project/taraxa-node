@@ -4,10 +4,10 @@
 #include <string>
 
 #include "chain/chain_config.hpp"
-#include "dag/dag_block.hpp"
+#include "common/types.hpp"
 #include "config/config_exception.hpp"
-#include "logger/config.hpp"
-#include "types.hpp"
+#include "dag/dag_block.hpp"
+#include "logger/logger_config.hpp"
 #include "util/util.hpp"
 
 namespace taraxa {

@@ -13,9 +13,9 @@
 #include <string>
 #include <vector>
 
+#include "common/types.hpp"
 #include "logger/log.hpp"
 #include "pbft_config.hpp"
-#include "types.hpp"
 
 /**
  * In pbft_chain, two kinds of blocks:

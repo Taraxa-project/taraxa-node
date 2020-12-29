@@ -9,6 +9,6 @@ struct ConfigException : public std::runtime_error {
   using std::runtime_error::runtime_error;
 };
 
-} // taraxa namespace
+}  // namespace taraxa
 
 #endif  // TARAXA_NODE_CONFIG_EXCEPTION_HPP

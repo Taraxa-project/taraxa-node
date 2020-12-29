@@ -2,10 +2,10 @@
 
 #include <gtest/gtest.h>
 
+#include "common/static_init.hpp"
 #include "logger/log.hpp"
 #include "network/network.hpp"
 #include "util/lazy.hpp"
-#include "util/static_init.hpp"
 #include "util_test/samples.hpp"
 #include "util_test/util.hpp"
 

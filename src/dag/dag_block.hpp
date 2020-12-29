@@ -16,8 +16,8 @@
 #include <string>
 #include <thread>
 
+#include "common/types.hpp"
 #include "logger/log.hpp"
-#include "types.hpp"
 #include "vdf_sortition.hpp"
 
 namespace taraxa {

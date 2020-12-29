@@ -5,11 +5,11 @@
 #include <iostream>
 #include <vector>
 
+#include "common/static_init.hpp"
+#include "common/types.hpp"
 #include "dag/vdf_sortition.hpp"
-#include "full_node.hpp"
 #include "logger/log.hpp"
-#include "types.hpp"
-#include "util/static_init.hpp"
+#include "node/full_node.hpp"
 #include "util/util.hpp"
 #include "util_test/samples.hpp"
 #include "util_test/util.hpp"

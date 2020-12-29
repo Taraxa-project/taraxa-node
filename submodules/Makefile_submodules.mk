@@ -1,12 +1,14 @@
 ifndef Makefile_submodules
 Makefile_submodules=_
 
-#include Makefile_common.mk
-
 SHELL := /bin/bash
 CXX_STD := c++17
 
-DEPS_INSTALL_PREFIX?=$(CURDIR)/submodules
+DEPS_INSTALL_PREFIX?=$(CURDIR)/wtf
+
+# Git version and build time
+GIT_HASH=$(shell git rev-parse HEAD)
+COMPILE_TIME=$(shell date -u +'%Y-%m-%d-%H:%M:%S')
 
 # ideally these should be the same in our build and submodule builds
 # to make sure every module sees the sources the same way
@@ -20,11 +22,10 @@ COMPILE_DEFINITIONS := \
 JSONCPP_INCLUDE_DIR := /usr/include/jsoncpp
 INCLUDE_DIRS = $(JSONCPP_INCLUDE_DIR) $(DEPS_INSTALL_PREFIX)/include
 
-sinclude local/Makefile_ext.mk # TODO: is this required ??/
+sinclude local/Makefile_ext.mk
 # can't override this
 OS := $(shell uname)
 
-# TODO: is this needed anymore ???
 ifndef COMPILE_FLAGS
 	ifeq ($(DEBUG), 1)
 		COMPILE_FLAGS := -g -O0
@@ -39,7 +40,7 @@ endif
 # the developers think less about submodules
 ifeq ($(UPDATE_SUBMODULES), 1)
 ifneq (0, $(shell \
-	source Makefile_submodules.sh; \
+	source $(CURDIR)/submodules/Makefile_submodules.sh; \
 	submodule_upd >> Makefile.log.txt; \
 	echo $$?; \
 ))

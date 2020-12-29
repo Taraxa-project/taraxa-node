@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.16)
 
 set(CMAKE_CXX_COMPILER g++)
 set(CMAKE_CXX_STANDARD 17)
@@ -10,5 +10,9 @@ add_custom_target(
         $(MAKE) DEBUG=${IS_DEBUG} DEPS_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR} -f ${CMAKE_CURRENT_SOURCE_DIR}/Makefile_submodules.mk submodules
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 )
+
 add_library(submodules INTERFACE)
 add_dependencies(submodules submodules_build)
+
+set(Submodules_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/include" CACHE STRING "Submodules common include directory")
+set(Submodules_LIB_DIR "${CMAKE_CURRENT_BINARY_DIR}/lib" CACHE STRING "Submodules common binary directory")

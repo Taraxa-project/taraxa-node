@@ -1,11 +1,11 @@
 #include <gtest/gtest.h>
 #include <libdevcore/SHA3.h>
 
+#include "common/static_init.hpp"
 #include "consensus/pbft_manager.hpp"
-#include "full_node.hpp"
 #include "logger/log.hpp"
 #include "network/network.hpp"
-#include "util/static_init.hpp"
+#include "node/full_node.hpp"
 #include "util_test/util.hpp"
 
 namespace taraxa::core_tests {

@@ -4,7 +4,7 @@
 #include "consensus/pbft_manager.hpp"
 #include "consensus/vote.hpp"
 #include "dag/dag.hpp"
-#include "full_node.hpp"
+#include "node/full_node.hpp"
 #include "transaction_manager/transaction_manager.hpp"
 
 using namespace taraxa;

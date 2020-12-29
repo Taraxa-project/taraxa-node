@@ -1,5 +1,5 @@
 
-#include "full_node.hpp"
+#include "node/full_node.hpp"
 
 #include <gtest/gtest.h>
 
@@ -9,18 +9,18 @@
 #include <shared_mutex>
 #include <vector>
 
+#include "common/static_init.hpp"
 #include "consensus/pbft_manager.hpp"
 #include "dag/dag.hpp"
 #include "graphqlservice/GraphQLSchema.h"
 #include "graphqlservice/GraphQLService.h"
 #include "graphqlservice/JSONResponse.h"
 #include "logger/log.hpp"
-#include "net/Taraxa.h"
-#include "net/graphql/TaraxaSchemaImpl.h"
+#include "network/graphql/TaraxaSchemaImpl.h"
 #include "network/network.hpp"
+#include "network/rpc/Taraxa.h"
 #include "string"
 #include "transaction_manager/transaction_manager.hpp"
-#include "util/static_init.hpp"
 #include "util_test/samples.hpp"
 
 // TODO rename this namespace to `tests`
@@ -1292,9 +1292,6 @@ TEST_F(FullNodeTest, chain_config_json) {
     "ghost_path_move_back": "0x1",
     "lambda_ms_min": "0x7d0",
     "run_count_votes": false
-  },
-  "replay_protection_service": {
-    "range": "0xa"
   },
   "vdf": {
     "difficulty_max" : "0x15",

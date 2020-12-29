@@ -5,7 +5,7 @@
 
 #include <filesystem>
 
-#include "util/static_init.hpp"
+#include "common/static_init.hpp"
 
 #define TARAXA_TEST_MAIN(_extension)                         \
   int main(int argc, char** argv) {                          \
