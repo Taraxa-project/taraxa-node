@@ -18,7 +18,6 @@
 #include "net/Taraxa.h"
 #include "net/Test.h"
 #include "pbft_manager.hpp"
-#include "sortition.hpp"
 #include "transaction_manager.hpp"
 #include "transaction_status.hpp"
 
