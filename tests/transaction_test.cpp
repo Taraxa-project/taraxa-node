@@ -6,8 +6,8 @@
 #include <vector>
 
 #include "logger/log.hpp"
-#include "static_init.hpp"
 #include "transaction_manager/transaction_manager.hpp"
+#include "util/static_init.hpp"
 #include "util_test/samples.hpp"
 
 namespace taraxa::core_tests {

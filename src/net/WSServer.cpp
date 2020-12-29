@@ -7,7 +7,7 @@
 #include <libdevcore/CommonJS.h>
 #include <libweb3jsonrpc/JsonHelper.h>
 
-#include "config.hpp"
+#include "config/config.hpp"
 #include "util/util.hpp"
 
 namespace taraxa::net {

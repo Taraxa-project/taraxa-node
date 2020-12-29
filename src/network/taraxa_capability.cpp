@@ -5,7 +5,6 @@
 #include "consensus/vote.hpp"
 #include "dag/dag.hpp"
 #include "full_node.hpp"
-#include "network.hpp"
 #include "transaction_manager/transaction_manager.hpp"
 
 using namespace taraxa;

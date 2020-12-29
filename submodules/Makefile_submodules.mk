@@ -10,19 +10,12 @@ DEPS_INSTALL_PREFIX?=$(CURDIR)/submodules
 
 # ideally these should be the same in our build and submodule builds
 # to make sure every module sees the sources the same way
-#COMPILE_DEFINITIONS := \
-#	CRYPTOPP_DISABLE_ASM \
-#	BOOST_ALL_DYN_LINK \
-#	BOOST_SPIRIT_THREADSAFE \
-#	GIT_HASH="\"$(GIT_HASH)\"" \
-#	COMPILE_TIME="\"$(COMPILE_TIME)\""
-
 COMPILE_DEFINITIONS := \
 	CRYPTOPP_DISABLE_ASM \
+	BOOST_ALL_DYN_LINK \
 	BOOST_SPIRIT_THREADSAFE \
 	GIT_HASH="\"$(GIT_HASH)\"" \
 	COMPILE_TIME="\"$(COMPILE_TIME)\""
-
 
 JSONCPP_INCLUDE_DIR := /usr/include/jsoncpp
 INCLUDE_DIRS = $(JSONCPP_INCLUDE_DIR) $(DEPS_INSTALL_PREFIX)/include

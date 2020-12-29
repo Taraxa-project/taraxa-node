@@ -15,7 +15,7 @@
 #include <mutex>
 #include <string>
 
-#include "config.hpp"
+#include "config/config.hpp"
 #include "consensus/vote.hpp"
 #include "dag/dag_block.hpp"
 #include "taraxa_capability.hpp"

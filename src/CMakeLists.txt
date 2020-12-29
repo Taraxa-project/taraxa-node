@@ -22,19 +22,19 @@ set(SOURCES
         chain/chain_config.hpp
         consensus/vrf_wrapper.hpp
         consensus/executor.hpp
-    network.hpp
-    static_init.hpp
+        network/network.hpp
+        util/static_init.hpp
         dag/vdf_sortition.hpp
         chain/final_chain.hpp
         consensus/pbft_config.hpp
     sortition.hpp
-    taraxa_capability.hpp
+        network/taraxa_capability.hpp
     util/exit_stack.hpp
     util/simple_event.hpp
     util/encoding_rlp.hpp
     util/range_view.hpp
     util/lazy.hpp
-    config.hpp
+        config/config.hpp
     replay_protection_service.hpp
     types.hpp
         dag/dag_block.hpp
@@ -56,7 +56,7 @@ set(SOURCES
         transaction_manager/transaction_queue.hpp
     logger/config.hpp
     logger/log.hpp
-        state_api.hpp
+        chain/state_api.hpp
         consensus/pbft_manager.hpp
     
     # ---- private sources -----
@@ -71,18 +71,18 @@ set(SOURCES
     aleth/database.cpp
     aleth/state_api.cpp
         consensus/executor.cpp
-    taraxa_capability.cpp
+        network/taraxa_capability.cpp
         transaction_manager/transaction_manager.cpp
         dag/vdf_sortition.cpp
         chain/chain_config.cpp
         chain/final_chain.cpp
         consensus/pbft_config.cpp
         consensus/vote.cpp
-    network.cpp
+        network/network.cpp
         util/util.cpp
         consensus/pbft_chain.cpp
     replay_protection_service.cpp
-    config.cpp
+        config/config.cpp
         dag/dag_block.cpp
     full_node.cpp
         consensus/block_proposer.cpp
@@ -93,7 +93,7 @@ set(SOURCES
     net/RpcServer.cpp
     net/graphql/TaraxaSchemaImpl.cpp
         transaction_manager/transaction_order_manager.cpp
-        state_api.cpp
+        chain/state_api.cpp
         transaction_manager/transaction_queue.cpp
         dag/dag.cpp
     logger/config.cpp

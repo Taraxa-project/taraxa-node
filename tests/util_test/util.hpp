@@ -13,10 +13,10 @@
 #include <type_traits>
 #include <vector>
 
-#include "config.hpp"
+#include "config/config.hpp"
 #include "full_node.hpp"
 #include "gtest.hpp"
-#include "network.hpp"
+#include "network/network.hpp"
 #include "transaction_manager/transaction_manager.hpp"
 #include "util/lazy.hpp"
 

@@ -17,11 +17,11 @@
 #include "logger/log.hpp"
 #include "net/Taraxa.h"
 #include "net/graphql/TaraxaSchemaImpl.h"
-#include "network.hpp"
+#include "network/network.hpp"
 #include "sortition.hpp"
-#include "static_init.hpp"
 #include "string"
 #include "transaction_manager/transaction_manager.hpp"
+#include "util/static_init.hpp"
 #include "util_test/samples.hpp"
 
 // TODO rename this namespace to `tests`

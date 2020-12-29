@@ -3,7 +3,7 @@
 
 #include "aleth/filter_api.hpp"
 #include "aleth/pending_block.hpp"
-#include "config.hpp"
+#include "config/config.hpp"
 #include "logger/log.hpp"
 #include "transaction.hpp"
 #include "transaction_queue.hpp"

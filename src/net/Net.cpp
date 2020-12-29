@@ -7,7 +7,7 @@
 #include <libethcore/Common.h>
 
 #include "full_node.hpp"
-#include "network.hpp"
+#include "network/network.hpp"
 
 using namespace dev;
 using namespace std;

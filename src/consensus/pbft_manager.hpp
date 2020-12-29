@@ -5,12 +5,12 @@
 #include <string>
 #include <thread>
 
-#include "config.hpp"
+#include "config/config.hpp"
 #include "executor.hpp"
 #include "logger/log.hpp"
-#include "network.hpp"
+#include "network/network.hpp"
+#include "network/taraxa_capability.hpp"
 #include "pbft_chain.hpp"
-#include "taraxa_capability.hpp"
 #include "types.hpp"
 #include "vote.hpp"
 #include "vrf_wrapper.hpp"

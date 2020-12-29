@@ -8,7 +8,7 @@
 #include <boost/beast.hpp>
 #include <string>
 
-#include "config.hpp"
+#include "config/config.hpp"
 
 namespace taraxa::net {
 

@@ -1,7 +1,7 @@
 #ifndef TARAXA_NODE_TRANSACTION_QUEUE_HPP
 #define TARAXA_NODE_TRANSACTION_QUEUE_HPP
 
-#include "config.hpp"
+#include "config/config.hpp"
 #include "transaction.hpp"
 
 namespace taraxa {

@@ -8,14 +8,14 @@
 #include <iostream>
 #include <string>
 
-#include "config.hpp"
+#include "config/config.hpp"
 #include "consensus/pbft_manager.hpp"
 #include "consensus/vrf_wrapper.hpp"
 #include "dag/vdf_sortition.hpp"
 #include "full_node.hpp"
 #include "logger/log.hpp"
 #include "sortition.hpp"
-#include "static_init.hpp"
+#include "util/static_init.hpp"
 #include "util_test/util.hpp"
 
 namespace taraxa::core_tests {

@@ -7,7 +7,7 @@
 #include <optional>
 #include <string>
 
-#include "config.hpp"
+#include "config/config.hpp"
 #include "consensus/pbft_chain.hpp"
 #include "types.hpp"
 #include "util/util.hpp"

@@ -1,4 +1,4 @@
-#include "network.hpp"
+#include "network/network.hpp"
 
 #include <gtest/gtest.h>
 
@@ -10,8 +10,8 @@
 #include "consensus/pbft_manager.hpp"
 #include "dag/dag.hpp"
 #include "logger/log.hpp"
-#include "static_init.hpp"
 #include "util/lazy.hpp"
+#include "util/static_init.hpp"
 #include "util_test/samples.hpp"
 #include "util_test/util.hpp"
 

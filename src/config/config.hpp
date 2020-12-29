@@ -5,15 +5,12 @@
 
 #include "chain/chain_config.hpp"
 #include "dag/dag_block.hpp"
+#include "config/config_exception.hpp"
 #include "logger/config.hpp"
 #include "types.hpp"
 #include "util/util.hpp"
 
 namespace taraxa {
-
-struct ConfigException : public std::runtime_error {
-  using std::runtime_error::runtime_error;
-};
 
 struct RpcConfig {
   optional<uint16_t> http_port;

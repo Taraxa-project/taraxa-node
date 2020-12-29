@@ -13,10 +13,10 @@
 #include <vector>
 
 #include "logger/log.hpp"
-#include "network.hpp"
-#include "static_init.hpp"
-#include "taraxa_capability.hpp"
+#include "network/network.hpp"
+#include "network/taraxa_capability.hpp"
 #include "util/lazy.hpp"
+#include "util/static_init.hpp"
 #include "util_test/samples.hpp"
 #include "util_test/util.hpp"
 

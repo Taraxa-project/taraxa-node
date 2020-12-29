@@ -18,7 +18,7 @@
 #include <thread>
 #include <vector>
 
-#include "config.hpp"
+#include "config/config.hpp"
 #include "consensus/pbft_chain.hpp"
 #include "dag/dag_block.hpp"
 

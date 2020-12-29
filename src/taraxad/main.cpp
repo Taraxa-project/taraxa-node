@@ -2,7 +2,7 @@
 #include <condition_variable>
 
 #include "full_node.hpp"
-#include "static_init.hpp"
+#include "util/static_init.hpp"
 
 using namespace taraxa;
 using namespace std;

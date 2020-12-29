@@ -10,7 +10,7 @@
 #include <set>
 #include <thread>
 
-#include "config.hpp"
+#include "config/config.hpp"
 #include "consensus/pbft_chain.hpp"
 #include "dag/dag_block.hpp"
 #include "db_storage.hpp"

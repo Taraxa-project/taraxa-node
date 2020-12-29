@@ -8,8 +8,8 @@
 
 #include "consensus/pbft_manager.hpp"
 #include "logger/log.hpp"
-#include "network.hpp"
-#include "static_init.hpp"
+#include "network/network.hpp"
+#include "util/static_init.hpp"
 #include "util_test/util.hpp"
 
 namespace taraxa::core_tests {

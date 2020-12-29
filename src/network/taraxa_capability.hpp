@@ -10,7 +10,7 @@
 #include <set>
 #include <thread>
 
-#include "config.hpp"
+#include "config/config.hpp"
 #include "consensus/vote.hpp"
 #include "dag/dag_block.hpp"
 #include "transaction_manager/transaction.hpp"
