@@ -18,7 +18,6 @@
 #include "net/Taraxa.h"
 #include "net/graphql/TaraxaSchemaImpl.h"
 #include "network/network.hpp"
-#include "sortition.hpp"
 #include "string"
 #include "transaction_manager/transaction_manager.hpp"
 #include "util/static_init.hpp"

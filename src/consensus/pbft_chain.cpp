@@ -258,7 +258,7 @@ std::vector<PbftBlockCert> PbftChain::getPbftBlocks(size_t period, size_t count)
   return result;
 }
 
-// TODO: should remove
+// TODO: should remove, need check
 std::vector<std::string> PbftChain::getPbftBlocksStr(size_t period, size_t count, bool hash) const {
   std::vector<std::string> result;
   for (auto i = period; i < period + count; i++) {

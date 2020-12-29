@@ -14,7 +14,6 @@
 #include "dag/vdf_sortition.hpp"
 #include "full_node.hpp"
 #include "logger/log.hpp"
-#include "sortition.hpp"
 #include "util/static_init.hpp"
 #include "util_test/util.hpp"
 
@@ -92,6 +91,23 @@ TEST_F(CryptoTest, vrf_valid_Key) {
   EXPECT_TRUE(isValidVrfPublicKey(pk));
 }
 
+TEST_F(CryptoTest, vrf_sortition) {
+  vrf_sk_t sk(
+      "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
+      "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
+  blk_hash_t blk(123);
+  VrfPbftMsg msg(blk, PbftVoteTypes::cert_vote_type, 2, 3);
+  VrfPbftSortition sortition(sk, msg);
+  VrfPbftSortition sortition2(sk, msg);
+
+  EXPECT_FALSE(sortition.canSpeak(0, 1));
+  EXPECT_TRUE(sortition.canSpeak(1, 0));
+  auto b = sortition.getRlpBytes();
+  VrfPbftSortition sortition3(b);
+  EXPECT_EQ(sortition, sortition2);
+  EXPECT_EQ(sortition, sortition3);
+}
+
 TEST_F(CryptoTest, vdf_sortition) {
   vdf_sortition::VdfConfig vdf_config(0xffff, 0xe665, 5, 10, 10, 1500);
   vrf_sk_t sk(
@@ -159,17 +175,16 @@ TEST_F(CryptoTest, vdf_proof_verify) {
 }
 
 TEST_F(CryptoTest, DISABLED_compute_vdf_solution_cost_time) {
-  // When difficulty_selection is 255, vdf_sortition.cpp getDifficulty() always
-  // return difficulty_stale
-  /*vrf_sk_t sk(
+  vrf_sk_t sk(
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
       "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
   blk_hash_t last_anchor_hash = blk_hash_t("be67f76499af842b5c8e9d22194f19c04711199726b2224854af34365d351124");
   level_t level = 1;
-  uint16_t difficulty_selection = 255;
+  uint16_t threshold_selection = 0;  // diffculty == diffuclty_stale
+  uint16_t threshold_vdf_omit = 0;   // Force no omit VDF
   uint16_t difficulty_min = 0;
   uint16_t difficulty_max = 0;
-  uint16_t lambda_bound = 1500;
+  uint16_t lambda_bound = 100;
   blk_hash_t proposal_dag_block_pivot_hash1 = blk_hash_t(0);
   blk_hash_t proposal_dag_block_pivot_hash2 =
       blk_hash_t("c9524784c4bf29e6facdd94ef7d214b9f512cdfd0f68184432dab85d053cbc69");
@@ -179,8 +194,8 @@ TEST_F(CryptoTest, DISABLED_compute_vdf_solution_cost_time) {
   // Fix lambda, vary difficulty
   for (uint16_t difficulty_stale = 0; difficulty_stale <= 20; difficulty_stale++) {
     std::cout << "Start at difficulty " << difficulty_stale << " :" << std::endl;
-    vdf_sortition::VdfConfig vdf_config(difficulty_selection, difficulty_min, difficulty_max, difficulty_stale,
-                                        lambda_bound);
+    vdf_sortition::VdfConfig vdf_config(threshold_selection, threshold_vdf_omit, difficulty_min, difficulty_max,
+                                        difficulty_stale, lambda_bound);
     VdfSortition vdf(vdf_config, node_key.address(), sk, getRlpBytes(level));
     vdf.computeVdfSolution(vdf_config, proposal_dag_block_pivot_hash1.asBytes());
     vdf_computation_time = vdf.getComputationTime();
@@ -199,7 +214,8 @@ TEST_F(CryptoTest, DISABLED_compute_vdf_solution_cost_time) {
   uint16_t difficulty_stale = 15;
   for (uint16_t lambda = 100; lambda <= 5000; lambda += 200) {
     std::cout << "Start at lambda " << lambda << " :" << std::endl;
-    vdf_sortition::VdfConfig vdf_config(difficulty_selection, difficulty_min, difficulty_max, difficulty_stale, lambda);
+    vdf_sortition::VdfConfig vdf_config(threshold_selection, threshold_vdf_omit, difficulty_min, difficulty_max,
+                                        difficulty_stale, lambda);
     VdfSortition vdf(vdf_config, node_key.address(), sk, getRlpBytes(level));
     vdf.computeVdfSolution(vdf_config, proposal_dag_block_pivot_hash1.asBytes());
     vdf_computation_time = vdf.getComputationTime();
@@ -215,31 +231,14 @@ TEST_F(CryptoTest, DISABLED_compute_vdf_solution_cost_time) {
               << vdf.getDifficulty() << ", computation cost time " << vdf_computation_time << "(ms)" << std::endl;
   }
 
-  vdf_sortition::VdfConfig vdf_config(128, 15, 21, 22, 1500);
+  vdf_sortition::VdfConfig vdf_config(32768, 29184, 16, 21, 22, 100);
   VdfSortition vdf(vdf_config, node_key.address(), sk, getRlpBytes(level));
   std::cout << "output " << vdf.output << std::endl;
   int i = 0;
   for (; i < vdf.output.size; i++) {
     std::cout << vdf.output[i] << ", " << vdf.output.hex()[i] << ", " << uint16_t(vdf.output[i]) << std::endl;
   }
-  std::cout << "size: " << i << std::endl;*/
-}
-
-TEST_F(CryptoTest, vrf_sortition) {
-  vrf_sk_t sk(
-      "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
-      "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
-  blk_hash_t blk(123);
-  VrfPbftMsg msg(blk, PbftVoteTypes::cert_vote_type, 2, 3);
-  VrfPbftSortition sortition(sk, msg);
-  VrfPbftSortition sortition2(sk, msg);
-
-  EXPECT_FALSE(sortition.canSpeak(5000000, 20000000));
-  EXPECT_TRUE(sortition.canSpeak(1, 1));
-  auto b = sortition.getRlpBytes();
-  VrfPbftSortition sortition3(b);
-  EXPECT_EQ(sortition, sortition2);
-  EXPECT_EQ(sortition, sortition3);
+  std::cout << "size: " << i << std::endl;
 }
 
 TEST_F(CryptoTest, keypair_signature_verify_hash_test) {
@@ -254,79 +253,40 @@ TEST_F(CryptoTest, keypair_signature_verify_hash_test) {
   bool verify = dev::verify(key_pair.pub(), signature, dev::sha3(message));
   EXPECT_EQ(verify, true);
 
-  string credential = taraxa::hashSignature(signature);
+  string credential = dev::sha3(signature).hex();
   EXPECT_EQ(credential.length(), 64);
 }
 
-TEST_F(CryptoTest, hex_to_decimal_test) {
-  string hex = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
-  string hex_decimal =
-      "115792089237316195423570985008687907853269984665640564039457584007913129"
-      "639935";
-  string decimal = taraxa::hexToDecimal(hex);
-  EXPECT_EQ(decimal, hex_decimal);
-}
-
-TEST_F(CryptoTest, big_number_multiplication_test) {
-  // input num is the decimal of the max hash number 64 F
-  string num =
-      "115792089237316195423570985008687907853269984665640564039457584007913129"
-      "639935";
-  string output =
-      "134078079299425970995740249982058461274793658205923933777235614437217640"
-      "300733153926233996657760562857200144823707795108844226016838676547784178"
-      "22746804225";
-  string sum = taraxa::bigNumberMultiplication(num, num);
-  EXPECT_EQ(sum, output);
-}
-
-TEST_F(CryptoTest, sortition_test) {
-  string credential = "0000000000000000000000000000000000000000000000000000000000000001";
-  size_t valid_sortition_players = 10;
-  size_t sortition_threshold = 10;
-  bool sortition = taraxa::sortition(credential, valid_sortition_players, sortition_threshold);
-  EXPECT_EQ(sortition, true);
-}
-
 TEST_F(CryptoTest, sortition_rate) {
-  auto node_cfgs = make_node_cfgs(1);
-  FullNode::Handle node(node_cfgs[0]);
-
-  size_t valid_sortition_players;
-  string message = "This is a test message.";
+  vrf_sk_t sk(
+      "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
+      "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
   int count = 0;
   int round = 1000;
-  int sortition_threshold;
-
-  valid_sortition_players = 100;
-  sortition_threshold = node->getPbftManager()->getPbftCommitteeSize();  // 5
+  int valid_sortition_players = 100;
+  int sortition_threshold = 5;
   // Test for one player sign round messages to get sortition
   // Sortition rate THRESHOLD / PLAYERS = 5%
   for (int i = 0; i < round; i++) {
-    message += std::to_string(i);
-    sig_t signature = node->signMessage(message);
-    sig_hash_t credential = dev::sha3(signature);
-    bool win = sortition(credential.toString(), valid_sortition_players, sortition_threshold);
+    blk_hash_t blk(i);
+    VrfPbftMsg msg(blk, PbftVoteTypes::cert_vote_type, 2, 3);
+    VrfPbftSortition sortition(sk, msg);
+    bool win = sortition.canSpeak(sortition_threshold, valid_sortition_players);
     if (win) {
       count++;
     }
   }
-  EXPECT_EQ(count, 54);  // Test experience
+  EXPECT_EQ(count, 46);  // Test experience
 
   count = 0;
-  valid_sortition_players = node->getPbftManager()->getPbftCommitteeSize();
-  if (node->getPbftManager()->getPbftCommitteeSize() <= valid_sortition_players) {
-    sortition_threshold = node->getPbftManager()->getPbftCommitteeSize();
-  } else {
-    sortition_threshold = valid_sortition_players;
-  }
+  sortition_threshold = valid_sortition_players;
   // Test for one player sign round messages to get sortition
   // Sortition rate THRESHOLD / PLAYERS = 100%
   for (int i = 0; i < round; i++) {
-    message += std::to_string(i);
-    sig_t signature = node->signMessage(message);
-    sig_hash_t credential = dev::sha3(signature);
-    bool win = sortition(credential.toString(), valid_sortition_players, sortition_threshold);
+    blk_hash_t blk(i);
+    VrfPbftMsg msg(blk, PbftVoteTypes::cert_vote_type, 2, 3);
+    VrfPbftSortition sortition(sk, msg);
+    bool win = sortition.canSpeak(sortition_threshold, valid_sortition_players);
     if (win) {
       count++;
     }
@@ -338,15 +298,15 @@ TEST_F(CryptoTest, sortition_rate) {
   count = 0;
   round = 10;
   // Test for number of players sign message to get sortition,
-  // Each player sign round messages, sortition rate for one player:
-  // THRESHOLD / PLAYERS = 100%
+  // Each player sign round messages, sortition rate for one player: THRESHOLD / PLAYERS = 100%
   for (int i = 0; i < valid_sortition_players; i++) {
     dev::KeyPair key_pair = dev::KeyPair::create();
     for (int j = 0; j < round; j++) {
-      message += std::to_string(j);
-      sig_t signature = dev::sign(key_pair.secret(), dev::sha3(message));
-      sig_hash_t credential = dev::sha3(signature);
-      bool win = sortition(credential.toString(), valid_sortition_players, sortition_threshold);
+      auto [pk, sk] = getVrfKeyPair();
+      blk_hash_t blk(i);
+      VrfPbftMsg msg(blk, PbftVoteTypes::cert_vote_type, 2, 3);
+      VrfPbftSortition sortition(sk, msg);
+      bool win = sortition.canSpeak(sortition_threshold, valid_sortition_players);
       if (win) {
         count++;
       }

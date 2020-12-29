@@ -18,7 +18,6 @@
 #include "net/Net.h"
 #include "net/Taraxa.h"
 #include "net/Test.h"
-//#include "sortition.hpp"
 #include "transaction_manager/transaction_manager.hpp"
 #include "transaction_manager/transaction_status.hpp"
 
