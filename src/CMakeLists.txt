@@ -54,9 +54,9 @@ set(SOURCES
         consensus/vote.hpp
         transaction_manager/transaction.hpp
         transaction_manager/transaction_queue.hpp
-    logger/Config.hpp
+    logger/config.hpp
     logger/log.hpp
-    state_api.hpp
+        state_api.hpp
         consensus/pbft_manager.hpp
     
     # ---- private sources -----
@@ -93,10 +93,10 @@ set(SOURCES
     net/RpcServer.cpp
     net/graphql/TaraxaSchemaImpl.cpp
         transaction_manager/transaction_order_manager.cpp
-    state_api.cpp
+        state_api.cpp
         transaction_manager/transaction_queue.cpp
         dag/dag.cpp
-    logger/Config.cpp
+    logger/config.cpp
     logger/log.cpp
     types.cpp
 )

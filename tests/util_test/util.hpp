@@ -20,6 +20,7 @@
 #include "transaction_manager/transaction_manager.hpp"
 #include "util/lazy.hpp"
 
+// TODO rename this namespace to `util_test`
 namespace taraxa::core_tests {
 using namespace std;
 using namespace std::chrono;
@@ -219,19 +220,14 @@ struct TransactionClient {
   explicit TransactionClient(decltype(node_) node, wait_opts const& wait_opts = {60s, 1s})
       : node_(move(node)), wait_opts_(wait_opts) {}
 
-  Context coinTransfer(addr_t const& to, val_t const& val, optional<KeyPair> const& from_k = {},
-                       bool wait_executed = true) const {
-    // As long as nonce rules are completely disabled, this hack allows to
-    // generate unique nonces that contribute to transaction uniqueness.
-    // Without this, it's very possible in these tests to have hash collisions,
-    // if you just use a constant value like 0 or even get the nonce from the
-    // account state. The latter won't work in general because in some tests
-    // we don't wait for previous transactions for a sender to complete before
-    // sending a new one
-    static atomic<uint64_t> nonce = 100000;
+  void must_process_sync(::taraxa::Transaction const& trx) const {
+    ASSERT_EQ(process(trx, true).stage, TransactionStage::executed);
+  }
+
+  Context process(::taraxa::Transaction const& trx, bool wait_executed = true) const {
     Context ctx{
         TransactionStage::created,
-        Transaction(++nonce, val, 0, TEST_TX_GAS_LIMIT, bytes(), from_k ? from_k->secret() : node_->getSecretKey(), to),
+        trx,
     };
     if (!node_->getTransactionManager()->insertTransaction(ctx.trx, false).first) {
       return ctx;
@@ -246,6 +242,21 @@ struct TransactionClient {
       }
     }
     return ctx;
+  }
+
+  Context coinTransfer(addr_t const& to, val_t const& val, optional<KeyPair> const& from_k = {},
+                       bool wait_executed = true) const {
+    // As long as nonce rules are completely disabled, this hack allows to
+    // generate unique nonces that contribute to transaction uniqueness.
+    // Without this, it's very possible in these tests to have hash collisions,
+    // if you just use a constant value like 0 or even get the nonce from the
+    // account state. The latter won't work in general because in some tests
+    // we don't wait for previous transactions for a sender to complete before
+    // sending a new one
+    static atomic<uint64_t> nonce = 100000;
+    return process(
+        Transaction(++nonce, val, 0, TEST_TX_GAS_LIMIT, bytes(), from_k ? from_k->secret() : node_->getSecretKey(), to),
+        wait_executed);
   }
 };
 
@@ -286,6 +297,18 @@ inline vector<blk_hash_t> getOrderedDagBlocks(shared_ptr<DbStorage> const& db) {
     break;
   }
   return res;
+}
+
+inline auto make_addr(uint8_t i) {
+  addr_t ret;
+  ret[10] = i;
+  return ret;
+}
+
+inline auto parse_json(string const& str) {
+  Json::Value ret;
+  EXPECT_TRUE(Json::Reader().parse(str, ret));
+  return ret;
 }
 
 };  // namespace taraxa::core_tests

@@ -97,7 +97,7 @@ submodules/taraxa-evm/ok:
 
 TARAXA_VDF_OPTS :=
 ifneq ($(SYSTEM_HOME_OVERRIDE),)
-	LIBFF_OPTS += OPENSSL_HOME=$(SYSTEM_HOME_OVERRIDE)
+	TARAXA_VDF_OPTS += OPENSSL_HOME=$(SYSTEM_HOME_OVERRIDE)
 endif
 submodules/taraxa-vdf/ok:
 	$(SUBMODULE_BUILD_BEGIN); \
@@ -223,7 +223,7 @@ submodules/libff/ok \
 submodules/secp256k1/ok
 	$(SUBMODULE_BUILD_BEGIN); \
 	copy $(ALETH_ROOT)/utils "*.h" $(DEPS_INSTALL_PREFIX)/include; \
-	$(MAKE) -C $(CURDIR) -f Makefile_submodules.mk UPDATE_SUBMODULES=0 \
+	$(MAKE) -C $(CURDIR) -f $(CURDIR)/submodules/Makefile_submodules.mk UPDATE_SUBMODULES=0 \
 		$(ALETH_OBJS); \
 	ar -rcs $(DEPS_INSTALL_PREFIX)/lib/lib$(TARAXA_ALETH_LIB).a $(ALETH_OBJS); \
 	copy $(ALETH_ROOT) "lib*/*.h" $(DEPS_INSTALL_PREFIX)/include; \

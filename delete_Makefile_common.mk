@@ -8,8 +8,9 @@ _ := $(shell rm -rf Makefile.log.txt)
 # VARIABLES THAT YOU CAN OVERRIDE
 # rather, which kind of bash do you prefer, cause this build relies on bash
 SHELL := /bin/bash
+SHELL_PATH := $$PATH
 DEBUG := 0
-# rather, which kind of gcc do you prefer, cause this build relies on bash
+# rather, which kind of gcc do you prefer, cause this build relies on gcc
 CXX := g++
 CXX_STD := c++17
 # if there's a need to use custom versions of some libraries,
@@ -40,7 +41,13 @@ COMPILE_DEFINITIONS := \
 	BOOST_SPIRIT_THREADSAFE \
 	GIT_HASH="\"$(GIT_HASH)\"" \
 	COMPILE_TIME="\"$(COMPILE_TIME)\""
+BOOST_MT_SUFFIX := 0
+ifeq ($(OS), Darwin)
+	BOOST_MT_SUFFIX := 1
+endif
 UPDATE_SUBMODULES := 1
+# can be used to manage local env specifics of std lib distribution
+SYS_LIBS := stdc++fs
 # makefile with overrides,
 # also you can put there custom local targets, which can even use variables
 # from the main build
@@ -55,7 +62,7 @@ ifndef COMPILE_FLAGS
 	endif
 endif
 ifndef LINK_FLAGS
-	LINK_FLAGS := -Wl,-rpath $(DEPS_INSTALL_PREFIX)/lib
+	LINK_FLAGS :=
 	ifeq ($(DEBUG), 1)
 		ifeq ($(OS), Darwin)
 			LINK_FLAGS += -rdynamic
@@ -67,7 +74,11 @@ endif
 ifneq ($(SYSTEM_HOME_OVERRIDE),)
 	INCLUDE_DIRS := $(SYSTEM_HOME_OVERRIDE)/include $(INCLUDE_DIRS)
 	LIB_DIRS := $(SYSTEM_HOME_OVERRIDE)/lib $(LIB_DIRS)
+	SHELL_PATH := $(SYSTEM_HOME_OVERRIDE)/bin:$(SHELL_PATH)
 endif
 # END VARIABLES THAT YOU CAN OVERRIDE
+
+# TODO uncomment
+#SHELL := PATH=$(SHELL_PATH) $(SHELL)
 
 endif # Makefile_common
