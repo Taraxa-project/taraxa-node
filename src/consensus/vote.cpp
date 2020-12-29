@@ -4,7 +4,7 @@
 #include <libdevcrypto/Common.h>
 #include <libethcore/Common.h>
 
-#include "pbft_manager.hpp"
+#include "consensus/pbft_manager.hpp"
 #include "sortition.hpp"
 
 namespace taraxa {

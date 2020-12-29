@@ -5,31 +5,28 @@ set(CMAKE_CXX_STANDARD 17)
 
 set(SOURCES
     # ---- public headers -----
-    util.hpp
-    util_test/gtest.hpp
-    util_test/util.hpp
-    util_test/samples.hpp
+        util/util.hpp
     full_node.hpp
-    transaction_manager.hpp
+        transaction_manager/transaction_manager.hpp
     db_storage.hpp
-    dag.hpp
-    pbft_chain.hpp
+        dag/dag.hpp
+        consensus/pbft_chain.hpp
     aleth/node_api.hpp
     aleth/filter_api.hpp
     aleth/database.hpp
     aleth/pending_block.hpp
     aleth/state_api.hpp
-    util_json.hpp
-    block_proposer.hpp
-    transaction_status.hpp
-    chain_config.hpp
-    vrf_wrapper.hpp
-    executor.hpp
+        util/util_json.hpp
+        consensus/block_proposer.hpp
+        transaction_manager/transaction_status.hpp
+        chain/chain_config.hpp
+        consensus/vrf_wrapper.hpp
+        consensus/executor.hpp
     network.hpp
     static_init.hpp
-    vdf_sortition.hpp
-    final_chain.hpp
-    pbft_config.hpp
+        dag/vdf_sortition.hpp
+        chain/final_chain.hpp
+        consensus/pbft_config.hpp
     sortition.hpp
     taraxa_capability.hpp
     util/exit_stack.hpp
@@ -40,7 +37,7 @@ set(SOURCES
     config.hpp
     replay_protection_service.hpp
     types.hpp
-    dag_block.hpp
+        dag/dag_block.hpp
     net/Taraxa.h
     net/Test.h
     net/TaraxaClient.h
@@ -53,55 +50,52 @@ set(SOURCES
     net/RpcServer.h
     net/WSServer.h
     net/TestClient.h
-    transaction_order_manager.hpp
-    vote.hpp
-    transaction.hpp
-    transaction_queue.hpp
+        transaction_manager/transaction_order_manager.hpp
+        consensus/vote.hpp
+        transaction_manager/transaction.hpp
+        transaction_manager/transaction_queue.hpp
     logger/Config.hpp
     logger/log.hpp
     state_api.hpp
-    pbft_manager.hpp
+        consensus/pbft_manager.hpp
     
     # ---- private sources -----
     sortition.cpp
-    transaction.cpp
-    pbft_manager.cpp
+        transaction_manager/transaction.cpp
+        consensus/pbft_manager.cpp
     db_storage.cpp
-    vrf_wrapper.cpp
+        consensus/vrf_wrapper.cpp
     aleth/node_api.cpp
     aleth/pending_block.cpp
     aleth/filter_api.cpp
     aleth/database.cpp
     aleth/state_api.cpp
-    executor.cpp
+        consensus/executor.cpp
     taraxa_capability.cpp
-    transaction_manager.cpp
-    vdf_sortition.cpp
-    chain_config.cpp
-    final_chain.cpp
-    pbft_config.cpp
-    final_chain_test.cpp
-    replay_protection_service_test.cpp
-    vote.cpp
-    state_api_test.cpp
+        transaction_manager/transaction_manager.cpp
+        dag/vdf_sortition.cpp
+        chain/chain_config.cpp
+        chain/final_chain.cpp
+        consensus/pbft_config.cpp
+        consensus/vote.cpp
     network.cpp
-    util.cpp
-    pbft_chain.cpp
+        util/util.cpp
+        consensus/pbft_chain.cpp
     replay_protection_service.cpp
     config.cpp
-    dag_block.cpp
+        dag/dag_block.cpp
     full_node.cpp
-    block_proposer.cpp
+        consensus/block_proposer.cpp
     net/Taraxa.cpp
     net/Test.cpp
     net/WSServer.cpp
     net/Net.cpp
     net/RpcServer.cpp
     net/graphql/TaraxaSchemaImpl.cpp
-    transaction_order_manager.cpp
+        transaction_manager/transaction_order_manager.cpp
     state_api.cpp
-    transaction_queue.cpp
-    dag.cpp
+        transaction_manager/transaction_queue.cpp
+        dag/dag.cpp
     logger/Config.cpp
     logger/log.cpp
     types.cpp
@@ -158,25 +152,20 @@ target_compile_definitions(app_base PUBLIC
 #endif
 
 SET(BOOST_COMPONENTS)
-LIST(APPEND BOOST_COMPONENTS program_options
-    system
-    filesystem
-)
+LIST(APPEND BOOST_COMPONENTS program_options system filesystem)
 
 if (APPLE)
-    LIST(APPEND BOOST_COMPONENTS thread-mt
-        log-mt
-        log_setup-mt)
+    LIST(APPEND BOOST_COMPONENTS thread-mt log-mt log_setup-mt)
 else()
-    LIST(APPEND BOOST_COMPONENTS thread
-        log
-        log_setup)
+    LIST(APPEND BOOST_COMPONENTS thread log log_setup)
 endif()
 
 find_package(Boost 1.71 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
-message("BOOST_COMPONENTS: ${BOOST_COMPONENTS}")
-
-message("Boost_FOUND: ${Boost_FOUND}")
+if (Boost_FOUND)
+    message (STATUS "Found Boost components: ${BOOST_COMPONENTS}, Boost version: ${Boost_VERSION}")
+else(Boost_FOUND)
+    MESSAGE(STATUS "Boost not found")
+endif (Boost_FOUND)
 
 target_link_libraries(app_base
     submodules
@@ -220,5 +209,4 @@ target_include_directories(app_base PUBLIC ${Boost_INCLUDE_DIR})
 #LIBS += atomic
 #endif
 
-add_executable(main main.cpp)
-target_link_libraries(main app_base)
+add_subdirectory(taraxad)

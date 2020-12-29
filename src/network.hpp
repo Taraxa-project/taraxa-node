@@ -16,11 +16,11 @@
 #include <string>
 
 #include "config.hpp"
-#include "dag_block.hpp"
+#include "consensus/vote.hpp"
+#include "dag/dag_block.hpp"
 #include "taraxa_capability.hpp"
-#include "transaction.hpp"
-#include "util.hpp"
-#include "vote.hpp"
+#include "transaction_manager/transaction.hpp"
+#include "util/util.hpp"
 
 namespace taraxa {
 

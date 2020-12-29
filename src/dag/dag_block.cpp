@@ -7,7 +7,7 @@
 
 #include "dag.hpp"
 #include "logger/log.hpp"
-#include "transaction_manager.hpp"
+#include "transaction_manager/transaction_manager.hpp"
 
 namespace taraxa {
 

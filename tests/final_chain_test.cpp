@@ -1,11 +1,11 @@
-#include "final_chain.hpp"
+#include "chain/final_chain.hpp"
 
 #include <libdevcore/TrieHash.h>
 
 #include <optional>
 #include <vector>
 
-#include "chain_config.hpp"
+#include "chain/chain_config.hpp"
 #include "util_test/gtest.hpp"
 
 namespace taraxa::final_chain {

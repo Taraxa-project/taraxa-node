@@ -2,10 +2,10 @@
 
 #include <cmath>
 
-#include "dag.hpp"
-#include "transaction.hpp"
-#include "transaction_manager.hpp"
-#include "util.hpp"
+#include "dag/dag.hpp"
+#include "transaction_manager/transaction.hpp"
+#include "transaction_manager/transaction_manager.hpp"
+#include "util/util.hpp"
 
 namespace taraxa {
 

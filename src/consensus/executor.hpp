@@ -3,14 +3,14 @@
 
 #include <atomic>
 
-#include "dag.hpp"
-#include "final_chain.hpp"
+#include "chain/final_chain.hpp"
+#include "consensus/pbft_chain.hpp"
+#include "consensus/vote.hpp"
+#include "dag/dag.hpp"
 #include "net/WSServer.h"
-#include "pbft_chain.hpp"
 #include "replay_protection_service.hpp"
-#include "transaction_manager.hpp"
-#include "util.hpp"
-#include "vote.hpp"
+#include "transaction_manager/transaction_manager.hpp"
+#include "util/util.hpp"
 
 namespace taraxa {
 

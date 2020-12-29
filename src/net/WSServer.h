@@ -19,8 +19,8 @@
 #include <vector>
 
 #include "config.hpp"
-#include "dag_block.hpp"
-#include "pbft_chain.hpp"
+#include "consensus/pbft_chain.hpp"
+#include "dag/dag_block.hpp"
 
 namespace taraxa::net {
 

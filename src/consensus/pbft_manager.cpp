@@ -13,8 +13,8 @@
 #include <chrono>
 #include <string>
 
-#include "dag.hpp"
-#include "final_chain.hpp"
+#include "chain/final_chain.hpp"
+#include "dag/dag.hpp"
 
 namespace taraxa {
 using vrf_output_t = vrf_wrapper::vrf_output_t;

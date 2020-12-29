@@ -8,10 +8,10 @@
 
 #include "boost/thread.hpp"
 #include "config.hpp"
-#include "dag_block.hpp"
+#include "dag/dag_block.hpp"
+#include "dag/vdf_sortition.hpp"
 #include "logger/log.hpp"
 #include "network.hpp"
-#include "vdf_sortition.hpp"
 
 namespace taraxa {
 

@@ -11,16 +11,16 @@
 
 #include "aleth/node_api.hpp"
 #include "aleth/state_api.hpp"
-#include "block_proposer.hpp"
-#include "dag.hpp"
-#include "dag_block.hpp"
+#include "consensus/block_proposer.hpp"
+#include "consensus/pbft_manager.hpp"
+#include "dag/dag.hpp"
+#include "dag/dag_block.hpp"
 #include "net/Net.h"
 #include "net/Taraxa.h"
 #include "net/Test.h"
-#include "pbft_manager.hpp"
 #include "sortition.hpp"
-#include "transaction_manager.hpp"
-#include "transaction_status.hpp"
+#include "transaction_manager/transaction_manager.hpp"
+#include "transaction_manager/transaction_status.hpp"
 
 namespace taraxa {
 

@@ -7,7 +7,7 @@
 
 #include "sodium.h"
 #include "types.hpp"
-#include "util.hpp"
+#include "util/util.hpp"
 
 namespace taraxa::vrf_wrapper {
 

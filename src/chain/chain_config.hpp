@@ -7,9 +7,9 @@
 #include <functional>
 #include <unordered_map>
 
-#include "dag_block.hpp"
+#include "consensus/pbft_config.hpp"
+#include "dag/dag_block.hpp"
 #include "final_chain.hpp"
-#include "pbft_config.hpp"
 #include "util/lazy.hpp"
 
 namespace taraxa::chain_config {

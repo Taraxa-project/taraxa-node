@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.13)
 set(CMAKE_CXX_COMPILER g++)
 set(CMAKE_CXX_STANDARD 17)
 
+
 # Enable testing for current directory and below.
 enable_testing(true)
 
@@ -45,3 +46,15 @@ add_test(pbft_rpc_test pbft_rpc_test)
 add_executable(full_node_test full_node_test.cpp)
 target_link_libraries(full_node_test app_base gtest gtest_main)
 add_test(full_node_test full_node_test)
+
+add_executable(replay_protection_service_test replay_protection_service_test.cpp)
+target_link_libraries(replay_protection_service_test app_base gtest)
+add_test(replay_protection_service_test replay_protection_service_test)
+
+add_executable(final_chain_test final_chain_test.cpp)
+target_link_libraries(final_chain_test app_base gtest)
+add_test(final_chain_test final_chain_test)
+
+add_executable(state_api_test state_api_test.cpp)
+target_link_libraries(state_api_test app_base gtest)
+add_test(state_api_test state_api_test)

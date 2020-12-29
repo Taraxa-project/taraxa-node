@@ -5,10 +5,10 @@
 #include <map>
 #include <string>
 
-#include "../dag_block.hpp"
-#include "../transaction.hpp"
-#include "../util/lazy.hpp"
+#include "dag/dag_block.hpp"
+#include "transaction_manager/transaction.hpp"
 #include "util.hpp"
+#include "util/lazy.hpp"
 
 namespace taraxa::core_tests::samples {
 

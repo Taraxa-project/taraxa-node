@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-#include "../../final_chain.hpp"
+#include "chain/final_chain.hpp"
 #include "gen/TaraxaSchema.h"
 
 namespace graphql {

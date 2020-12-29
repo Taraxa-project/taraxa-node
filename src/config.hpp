@@ -3,11 +3,11 @@
 
 #include <string>
 
-#include "chain_config.hpp"
-#include "dag_block.hpp"
+#include "chain/chain_config.hpp"
+#include "dag/dag_block.hpp"
 #include "logger/Config.hpp"
 #include "types.hpp"
-#include "util.hpp"
+#include "util/util.hpp"
 
 namespace taraxa {
 

@@ -3,7 +3,7 @@
 
 #include <sodium/core.h>
 
-#include "util.hpp"
+#include "util/util.hpp"
 
 namespace taraxa {
 

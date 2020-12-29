@@ -1,12 +1,12 @@
 #include "taraxa_capability.hpp"
 
-#include "dag.hpp"
+#include "consensus/pbft_chain.hpp"
+#include "consensus/pbft_manager.hpp"
+#include "consensus/vote.hpp"
+#include "dag/dag.hpp"
 #include "full_node.hpp"
 #include "network.hpp"
-#include "pbft_chain.hpp"
-#include "pbft_manager.hpp"
-#include "transaction_manager.hpp"
-#include "vote.hpp"
+#include "transaction_manager/transaction_manager.hpp"
 
 using namespace taraxa;
 

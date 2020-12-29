@@ -6,10 +6,10 @@
 #include <iostream>
 #include <vector>
 
-#include "block_proposer.hpp"
-#include "dag.hpp"
+#include "consensus/block_proposer.hpp"
+#include "consensus/pbft_manager.hpp"
+#include "dag/dag.hpp"
 #include "logger/log.hpp"
-#include "pbft_manager.hpp"
 #include "static_init.hpp"
 #include "util/lazy.hpp"
 #include "util_test/samples.hpp"

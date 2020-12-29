@@ -8,7 +8,7 @@
 #include <libweb3jsonrpc/JsonHelper.h>
 
 #include "config.hpp"
-#include "util.hpp"
+#include "util/util.hpp"
 
 namespace taraxa::net {
 

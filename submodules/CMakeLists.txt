@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.13)
 set(CMAKE_CXX_COMPILER g++)
 set(CMAKE_CXX_STANDARD 17)
 
-# TODO: get rid of submodules Makefile... Add here submodules cmake's instead
+# TODO: get rid of submodules Makefile...
 add_custom_target(
         submodules_build
         COMMAND

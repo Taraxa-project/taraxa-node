@@ -8,7 +8,7 @@
 #include <string>
 #include <unordered_map>
 
-#include "util.hpp"
+#include "util/util.hpp"
 
 namespace taraxa {
 using namespace dev;

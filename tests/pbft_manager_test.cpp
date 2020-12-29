@@ -1,4 +1,4 @@
-#include "pbft_manager.hpp"
+#include "consensus/pbft_manager.hpp"
 
 #include <gtest/gtest.h>
 

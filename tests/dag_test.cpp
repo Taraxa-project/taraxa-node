@@ -1,4 +1,4 @@
-#include "dag.hpp"
+#include "dag/dag.hpp"
 
 #include <gtest/gtest.h>
 

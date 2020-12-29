@@ -9,7 +9,8 @@
 #include <shared_mutex>
 #include <vector>
 
-#include "dag.hpp"
+#include "consensus/pbft_manager.hpp"
+#include "dag/dag.hpp"
 #include "graphqlservice/GraphQLSchema.h"
 #include "graphqlservice/GraphQLService.h"
 #include "graphqlservice/JSONResponse.h"
@@ -17,11 +18,10 @@
 #include "net/Taraxa.h"
 #include "net/graphql/TaraxaSchemaImpl.h"
 #include "network.hpp"
-#include "pbft_manager.hpp"
 #include "sortition.hpp"
 #include "static_init.hpp"
 #include "string"
-#include "transaction_manager.hpp"
+#include "transaction_manager/transaction_manager.hpp"
 #include "util_test/samples.hpp"
 
 namespace taraxa::core_tests {

@@ -8,9 +8,9 @@
 #include <string>
 
 #include "config.hpp"
-#include "pbft_chain.hpp"
+#include "consensus/pbft_chain.hpp"
 #include "types.hpp"
-#include "util.hpp"
+#include "util/util.hpp"
 #include "vrf_wrapper.hpp"
 
 namespace taraxa {

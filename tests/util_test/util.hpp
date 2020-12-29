@@ -13,12 +13,12 @@
 #include <type_traits>
 #include <vector>
 
-#include "../config.hpp"
-#include "../full_node.hpp"
-#include "../network.hpp"
-#include "../transaction_manager.hpp"
-#include "../util/lazy.hpp"
+#include "config.hpp"
+#include "full_node.hpp"
 #include "gtest.hpp"
+#include "network.hpp"
+#include "transaction_manager/transaction_manager.hpp"
+#include "util/lazy.hpp"
 
 namespace taraxa::core_tests {
 using namespace std;

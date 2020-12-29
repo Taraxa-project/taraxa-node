@@ -5,11 +5,11 @@
 #include <libdevcore/CommonJS.h>
 
 #include "../network.hpp"
-#include "../pbft_manager.hpp"
-#include "dag.hpp"
-#include "dag_block.hpp"
+#include "consensus/pbft_manager.hpp"
+#include "dag/dag.hpp"
+#include "dag/dag_block.hpp"
 #include "full_node.hpp"
-#include "transaction_manager.hpp"
+#include "transaction_manager/transaction_manager.hpp"
 #include "types.hpp"
 
 using namespace std;

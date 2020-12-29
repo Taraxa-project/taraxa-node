@@ -9,14 +9,14 @@
 #include <string>
 
 #include "config.hpp"
+#include "consensus/pbft_manager.hpp"
+#include "consensus/vrf_wrapper.hpp"
+#include "dag/vdf_sortition.hpp"
 #include "full_node.hpp"
 #include "logger/log.hpp"
-#include "pbft_manager.hpp"
 #include "sortition.hpp"
 #include "static_init.hpp"
 #include "util_test/util.hpp"
-#include "vdf_sortition.hpp"
-#include "vrf_wrapper.hpp"
 
 namespace taraxa::core_tests {
 using namespace vdf;

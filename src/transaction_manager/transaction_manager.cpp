@@ -5,7 +5,7 @@
 #include <string>
 #include <utility>
 
-#include "dag.hpp"
+#include "dag/dag.hpp"
 #include "logger/log.hpp"
 #include "net/WSServer.h"
 #include "network.hpp"

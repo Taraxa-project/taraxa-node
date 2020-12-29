@@ -8,10 +8,10 @@
 
 #include <csignal>
 
-#include "dag.hpp"
-#include "dag_block.hpp"
-#include "pbft_manager.hpp"
-#include "transaction_manager.hpp"
+#include "consensus/pbft_manager.hpp"
+#include "dag/dag.hpp"
+#include "dag/dag_block.hpp"
+#include "transaction_manager/transaction_manager.hpp"
 
 using namespace std;
 using namespace jsonrpc;

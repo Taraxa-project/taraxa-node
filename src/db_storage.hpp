@@ -10,10 +10,10 @@
 #include <functional>
 #include <string_view>
 
-#include "dag_block.hpp"
+#include "consensus/pbft_chain.hpp"
+#include "dag/dag_block.hpp"
 #include "logger/log.hpp"
-#include "pbft_chain.hpp"
-#include "transaction_status.hpp"
+#include "transaction_manager/transaction_status.hpp"
 
 namespace taraxa {
 using namespace std;

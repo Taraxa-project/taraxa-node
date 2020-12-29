@@ -3,10 +3,10 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 
+#include "consensus/vote.hpp"
 #include "full_node.hpp"
 #include "rocksdb/utilities/checkpoint.h"
-#include "transaction.hpp"
-#include "vote.hpp"
+#include "transaction_manager/transaction.hpp"
 
 namespace taraxa {
 using namespace std;

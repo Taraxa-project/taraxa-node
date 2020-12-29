@@ -11,10 +11,10 @@
 #include <thread>
 
 #include "config.hpp"
-#include "dag_block.hpp"
-#include "transaction.hpp"
-#include "util.hpp"
-#include "vote.hpp"
+#include "consensus/vote.hpp"
+#include "dag/dag_block.hpp"
+#include "transaction_manager/transaction.hpp"
+#include "util/util.hpp"
 
 namespace taraxa {
 using namespace std;
