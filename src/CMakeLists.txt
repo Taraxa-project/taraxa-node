@@ -66,7 +66,7 @@ set(SOURCES
     network/rpc/RpcServer.h
     network/rpc/WSServer.h
     network/rpc/TestClient.h
-    network/graphql/TaraxaSchemaImpl.h
+#    network/graphql/TaraxaSchemaImpl.h
     transaction_manager/transaction_order_manager.hpp
     consensus/vote.hpp
     transaction_manager/transaction.hpp
@@ -107,7 +107,7 @@ set(SOURCES
     network/rpc/WSServer.cpp
     network/rpc/Net.cpp
     network/rpc/RpcServer.cpp
-    network/graphql/TaraxaSchemaImpl.cpp
+#    network/graphql/TaraxaSchemaImpl.cpp
     transaction_manager/transaction_order_manager.cpp
     chain/state_api.cpp
     transaction_manager/transaction_queue.cpp
@@ -118,7 +118,7 @@ set(SOURCES
 )
 
 add_subdirectory(network/rpc)
-add_subdirectory(network/graphql)
+#add_subdirectory(network/graphql)
 
 add_library(app_base STATIC ${SOURCES})
 target_include_directories(app_base PUBLIC
@@ -130,7 +130,7 @@ target_include_directories(app_base PUBLIC
 
 target_link_libraries(app_base
     submodules
-    taraxa_graphqlservice
+#    taraxa_graphqlservice
     taraxa-aleth
     taraxa-evm
     vdf

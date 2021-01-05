@@ -42,9 +42,9 @@ add_executable(pbft_rpc_test pbft_rpc_test.cpp)
 target_link_libraries(pbft_rpc_test app_base gtest)
 add_test(pbft_rpc_test pbft_rpc_test)
 
-add_executable(full_node_test full_node_test.cpp)
-target_link_libraries(full_node_test app_base gtest gtest_main)
-add_test(full_node_test full_node_test)
+#add_executable(full_node_test full_node_test.cpp)
+#target_link_libraries(full_node_test app_base gtest gtest_main)
+#add_test(full_node_test full_node_test)
 
 add_executable(replay_protection_service_test replay_protection_service_test.cpp)
 target_link_libraries(replay_protection_service_test app_base gtest)
