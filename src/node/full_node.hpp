@@ -92,7 +92,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   void close();
 
   template <typename T, typename... ConstructorParams>
-  auto &emplace(std::shared_ptr<T> &ptr, ConstructorParams &&... ctor_params) {
+  auto &emplace(std::shared_ptr<T> &ptr, ConstructorParams &&...ctor_params) {
     ptr = std::make_shared<T>(std::forward<ConstructorParams>(ctor_params)...);
     post_destruction_ += [w_ptr = std::weak_ptr<T>(ptr)] {
       // Example of debugging: cout << "checking " << typeid(T).name() << endl;
@@ -102,7 +102,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   }
 
   template <typename T, typename... ConstructorParams>
-  static auto &emplace(std::unique_ptr<T> &ptr, ConstructorParams &&... ctor_params) {
+  static auto &emplace(std::unique_ptr<T> &ptr, ConstructorParams &&...ctor_params) {
     return ptr = std::make_unique<T>(std::forward<ConstructorParams>(ctor_params)...);
   }
 

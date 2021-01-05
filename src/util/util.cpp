@@ -106,9 +106,9 @@ static inline void printStackTrace() {
         fprintf(out, "  %-30s %-38s() %s\n", symbollist[i], begin_name, begin_offset);
       }
 
-#else   // !DARWIN - but is posix
-        // not OSX style
-        // ./module(function+0x15c) [0x8048a6d]
+#else  // !DARWIN - but is posix
+       // not OSX style
+       // ./module(function+0x15c) [0x8048a6d]
     for (char *p = symbollist[i]; *p; ++p) {
       if (*p == '(')
         begin_name = p;
