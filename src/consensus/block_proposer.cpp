@@ -23,12 +23,14 @@ bool SortitionPropose::propose() {
     return false;
   }
 
-  vec_trx_t sharded_trxs;
   DagFrontier frontier = dag_mgr_->getDagFrontier();
-  LOG(log_dg_) << " Get frontier with pivot: " << frontier.pivot << " tips: " << frontier.tips;
-
+  LOG(log_dg_) << "Get frontier with pivot: " << frontier.pivot << " tips: " << frontier.tips;
   assert(!frontier.pivot.isZero());
   auto propose_level = proposer->getProposeLevel(frontier.pivot, frontier.tips) + 1;
+  if (!proposer->validDposProposer(propose_level)) {
+    LOG(log_tr_) << node_addr_ << " is not a valid DPOS proposer for DAG level " << propose_level;
+    return false;
+  }
 
   // get sortition
   vdf_sortition::VdfSortition vdf(vdf_config_, node_addr_, vrf_sk_, getRlpBytes(propose_level));
@@ -52,6 +54,8 @@ bool SortitionPropose::propose() {
     DagFrontier latestFrontier = dag_mgr_->getDagFrontier();
     if (latestFrontier.pivot != frontier.pivot) return false;
   }
+
+  vec_trx_t sharded_trxs;
   bool ok = proposer->getShardedTrxs(sharded_trxs);
   if (!ok) {
     return false;
@@ -188,6 +192,12 @@ void BlockProposer::proposeBlock(DagBlock& blk) {
   LOG(log_nf_) << " Propose block :" << blk.getHash() << " pivot: " << blk.getPivot() << " , number of trx ("
                << blk.getTrxs().size() << ")";
   BlockProposer::num_proposed_blocks.fetch_add(1);
+}
+
+bool BlockProposer::validDposProposer(level_t const propose_level) {
+  // TODO: Use DAG propose level map to period
+  uint64_t period = 0;
+  return final_chain_->dpos_is_eligible(period, node_addr_);
 }
 
 }  // namespace taraxa

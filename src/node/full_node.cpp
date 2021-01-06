@@ -105,8 +105,8 @@ void FullNode::init() {
           conf_.test_params.block_proposer.transaction_limit);
   emplace(pbft_mgr_, conf_.chain.pbft, genesis_hash, node_addr, db_, pbft_chain_, vote_mgr_, dag_mgr_, blk_mgr_,
           final_chain_, executor_, kp_.secret(), conf_.vrf_secret);
-  emplace(blk_proposer_, conf_.test_params.block_proposer, conf_.chain.vdf, dag_mgr_, trx_mgr_, blk_mgr_, node_addr,
-          getSecretKey(), getVrfSecretKey(), log_time_);
+  emplace(blk_proposer_, conf_.test_params.block_proposer, conf_.chain.vdf, dag_mgr_, trx_mgr_, blk_mgr_, final_chain_,
+          node_addr, getSecretKey(), getVrfSecretKey(), log_time_);
   emplace(network_, conf_.network, conf_.net_file_path().string(), kp_.secret(), genesis_hash, node_addr, db_,
           pbft_mgr_, pbft_chain_, vote_mgr_, dag_mgr_, blk_mgr_, trx_mgr_, kp_.pub(), conf_.chain.pbft.lambda_ms_min);
 
@@ -114,10 +114,7 @@ void FullNode::init() {
   if (conf_.rpc) {
     jsonrpc_io_ctx_ = make_unique<boost::asio::io_context>();
 
-    emplace(jsonrpc_api_,
-            new net::Test(getShared()),    //
-            new net::Taraxa(getShared()),  //
-            new net::Net(getShared()),
+    emplace(jsonrpc_api_, new net::Test(getShared()), new net::Taraxa(getShared()), new net::Net(getShared()),
             new dev::rpc::Eth(aleth::NewNodeAPI(conf_.chain.chain_id, kp_.secret(),
                                                 [this](auto const &trx) {
                                                   auto [ok, err_msg] = trx_mgr_->insertTransaction(trx, true);
@@ -129,11 +126,8 @@ void FullNode::init() {
                                                                           dev::toJS(*trx.rlp()), err_msg)));
                                                   }
                                                 }),
-                              trx_mgr_->getFilterAPI(),
-                              aleth::NewStateAPI(final_chain_),  //
-                              trx_mgr_->getPendingBlock(),
-                              final_chain_,  //
-                              [] { return 0; }));
+                              trx_mgr_->getFilterAPI(), aleth::NewStateAPI(final_chain_), trx_mgr_->getPendingBlock(),
+                              final_chain_, [] { return 0; }));
 
     if (conf_.rpc->http_port) {
       jsonrpc_http_ = make_shared<net::RpcServer>(

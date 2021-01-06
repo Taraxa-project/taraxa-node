@@ -72,11 +72,12 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
  public:
   BlockProposer(BlockProposerConfig const& bp_config, vdf_sortition::VdfConfig const& vdf_config,
                 std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr,
-                std::shared_ptr<BlockManager> blk_mgr, addr_t node_addr, secret_t node_sk, vrf_sk_t vrf_sk,
-                logger::Logger log_time)
+                std::shared_ptr<BlockManager> blk_mgr, std::shared_ptr<FinalChain> final_chain, addr_t node_addr,
+                secret_t node_sk, vrf_sk_t vrf_sk, logger::Logger log_time)
       : dag_mgr_(dag_mgr),
         trx_mgr_(trx_mgr),
         blk_mgr_(blk_mgr),
+        final_chain_(final_chain),
         bp_config_(bp_config),
         log_time_(log_time),
         node_addr_(node_addr),
@@ -101,6 +102,7 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   bool getLatestPivotAndTips(blk_hash_t& pivot, vec_blk_t& tips);
   level_t getProposeLevel(blk_hash_t const& pivot, vec_blk_t const& tips);
   blk_hash_t getProposeAnchor() const;
+  bool validDposProposer(level_t const propose_level);
   // debug
   static uint64_t getNumProposedBlocks() { return BlockProposer::num_proposed_blocks; }
   friend ProposeModelFace;
@@ -118,6 +120,7 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   std::shared_ptr<DagManager> dag_mgr_;
   std::shared_ptr<TransactionManager> trx_mgr_;
   std::shared_ptr<BlockManager> blk_mgr_;
+  std::shared_ptr<FinalChain> final_chain_;
   std::shared_ptr<std::thread> proposer_worker_;
   std::unique_ptr<ProposeModelFace> propose_model_;
   std::shared_ptr<Network> network_;
