@@ -178,6 +178,12 @@ struct Opts {
 };
 void enc_rlp(RLPStream& enc, Opts const& obj);
 
+struct OptsDB {
+  string db_path;
+  bool disable_most_recent_trie_value_views = 0;
+};
+void enc_rlp(RLPStream& enc, OptsDB const& obj);
+
 struct StateDescriptor {
   BlockNumber blk_num = 0;
   h256 state_root;
@@ -226,8 +232,8 @@ class StateAPI {
   string db_path;
 
  public:
-  StateAPI(string const& db_path, function<h256(BlockNumber)> get_blk_hash, ChainConfig const& chain_config,
-           Opts const& opts = {});
+  StateAPI(function<h256(BlockNumber)> get_blk_hash, ChainConfig const& chain_config, Opts const& opts,
+           OptsDB const& opts_db);
   ~StateAPI();
 
   Proof prove(BlockNumber blk_num, root_t const& state_root, addr_t const& addr, vector<h256> const& keys) const;

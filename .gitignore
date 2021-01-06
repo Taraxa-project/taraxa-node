@@ -11,3 +11,4 @@ build
 local
 Makefile.log.txt
 Makefile.src_cxx.txt
+.DS_Store
