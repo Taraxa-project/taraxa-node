@@ -106,8 +106,13 @@ void FullNode::init() {
           conf_.test_params.block_proposer.transaction_limit);
   emplace(pbft_mgr_, conf_.chain.pbft, genesis_hash, node_addr, db_, pbft_chain_, vote_mgr_, dag_mgr_, dag_blk_mgr_,
           final_chain_, executor_, kp_.secret(), conf_.vrf_secret);
+<<<<<<< HEAD
   emplace(blk_proposer_, conf_.test_params.block_proposer, conf_.chain.vdf, dag_mgr_, trx_mgr_, dag_blk_mgr_,
           final_chain_, node_addr, getSecretKey(), getVrfSecretKey(), log_time_);
+=======
+  emplace(blk_proposer_, conf_.test_params.block_proposer, conf_.chain.vdf, dag_mgr_, trx_mgr_, blk_mgr_, final_chain_,
+          node_addr, getSecretKey(), getVrfSecretKey(), log_time_);
+>>>>>>> b30f1bb5 (WIP in DAG DPOS proposal. Using genesis DPOS state for DAG proposal)
   emplace(network_, conf_.network, conf_.net_file_path().string(), kp_.secret(), genesis_hash, node_addr, db_,
           pbft_mgr_, pbft_chain_, vote_mgr_, dag_mgr_, dag_blk_mgr_, trx_mgr_, kp_.pub(),
           conf_.chain.pbft.lambda_ms_min);

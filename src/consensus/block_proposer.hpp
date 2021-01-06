@@ -71,11 +71,19 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
  public:
   BlockProposer(BlockProposerConfig const& bp_config, vdf_sortition::VdfConfig const& vdf_config,
                 std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr,
+<<<<<<< HEAD
                 std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<FinalChain> final_chain, addr_t node_addr,
                 secret_t node_sk, vrf_sk_t vrf_sk, logger::Logger log_time)
       : dag_mgr_(dag_mgr),
         trx_mgr_(trx_mgr),
         dag_blk_mgr_(dag_blk_mgr),
+=======
+                std::shared_ptr<BlockManager> blk_mgr, std::shared_ptr<FinalChain> final_chain, addr_t node_addr,
+                secret_t node_sk, vrf_sk_t vrf_sk, logger::Logger log_time)
+      : dag_mgr_(dag_mgr),
+        trx_mgr_(trx_mgr),
+        blk_mgr_(blk_mgr),
+>>>>>>> b30f1bb5 (WIP in DAG DPOS proposal. Using genesis DPOS state for DAG proposal)
         final_chain_(final_chain),
         bp_config_(bp_config),
         log_time_(log_time),
@@ -118,7 +126,11 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   uint16_t my_trx_shard_;
   std::shared_ptr<DagManager> dag_mgr_;
   std::shared_ptr<TransactionManager> trx_mgr_;
+<<<<<<< HEAD
   std::shared_ptr<DagBlockManager> dag_blk_mgr_;
+=======
+  std::shared_ptr<BlockManager> blk_mgr_;
+>>>>>>> b30f1bb5 (WIP in DAG DPOS proposal. Using genesis DPOS state for DAG proposal)
   std::shared_ptr<FinalChain> final_chain_;
   std::shared_ptr<std::thread> proposer_worker_;
   std::unique_ptr<ProposeModelFace> propose_model_;
