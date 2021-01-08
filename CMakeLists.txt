@@ -1,89 +1,124 @@
-# A perfectly functioning cmake build based on the make build.
-# can be used to build the project and for IDE integration.
-# Tested on ubuntu 20.04, but should be fine on Mac too.
+# Defines Taraxa library target.
 
-cmake_minimum_required(VERSION 3.13)
+# Use ccache to speed-up recompilation
+find_program(CCACHE_PROGRAM ccache)
+if(CCACHE_PROGRAM)
+    message(STATUS "Building with ccache")
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
+else()
+    message(STATUS "Building without ccache")
+endif()
 
 project(taraxa-node)
+cmake_minimum_required(VERSION 3.16)
+
+# Set project properties like C++ standard, etc...
 set(CMAKE_CXX_COMPILER g++)
 set(CMAKE_CXX_STANDARD 17)
+#add_compile_options("-Wall" "-Werror") TODO: fix existing issues and uncomment this line
 
-set(CMAKE_OSX_SYSROOT /)
-set(CMAKE_MACOSX_RPATH ON)
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+# Optimization flag apparently needed to get rid of "File too big" assembler errors when compiling in Debug mode
+# See: https://stackoverflow.com/questions/14125007/gcc-string-table-overflow-error-during-compilation/14601779#29479701
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O2") # TODO: originally -g -O0
 
-set(IS_DEBUG 0)
-if (CMAKE_BUILD_TYPE MATCHES Debug)
-    set(IS_DEBUG 1)
-endif ()
-
-macro(read_makefile_var var_name)
-    execute_process(
-        COMMAND
-        make DEBUG=${IS_DEBUG} UPDATE_SUBMODULES=0 print_${var_name}
-        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-        OUTPUT_VARIABLE ${var_name}
-    )
-    string(REPLACE " " ";" ${var_name} ${${var_name}})
-    list(TRANSFORM ${var_name} STRIP)
-endmacro()
-
-read_makefile_var(COMPILE_DEFINITIONS)
-add_compile_definitions(${COMPILE_DEFINITIONS})
-
-read_makefile_var(SRC_DIR)
-read_makefile_var(INCLUDE_DIRS)
-include_directories(${SRC_DIR} ${INCLUDE_DIRS})
-
-read_makefile_var(LINK_FLAGS)
-add_link_options(${LINK_FLAGS})
-
-read_makefile_var(LIB_DIRS)
-link_directories(${LIB_DIRS})
-
-add_custom_target(
-    submodules_build
-    COMMAND
-    $(MAKE) DEBUG=${IS_DEBUG} -f Makefile_submodules.mk submodules
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-)
-add_library(submodules INTERFACE)
-add_dependencies(submodules submodules_build)
-
-read_makefile_var(LIBS)
-read_makefile_var(OSX_FRAMEWORKS)
-list(TRANSFORM OSX_FRAMEWORKS PREPEND "-framework ")
-link_libraries(submodules ${LIBS} ${OSX_FRAMEWORKS})
-
-read_makefile_var(NODE_SRCS)
-add_library(node_objects OBJECT ${NODE_SRCS})
-add_executable(main $<TARGET_OBJECTS:node_objects> src/main.cpp)
-
-read_makefile_var(TEST_LIBS)
-read_makefile_var(TEST_SRCS)
-# TODO turn into object library once there are sources for it
-# Can't do it now, because cmake doesn't allow libraries without sources
-read_makefile_var(TESTUTIL_SRCS)
-foreach (test_src ${TEST_SRCS})
-    string(REPLACE "${SRC_DIR}/" "" __test_target__ ${test_src})
-    string(REPLACE "/" "_" __test_target__ ${__test_target__})
-    get_filename_component(__test_target__ ${__test_target__} NAME_WE)
-    add_executable(${__test_target__}
-                   $<TARGET_OBJECTS:node_objects>
-                   ${TESTUTIL_SRCS}
-                   ${test_src})
-    target_link_libraries(${__test_target__} ${TEST_LIBS})
-    list(APPEND ALL_TESTS_TARGETS ${__test_target__})
-    list(APPEND ALL_TESTS_EXE_PATHS $<TARGET_FILE:${__test_target__}>)
-endforeach ()
-add_custom_target(all_test DEPENDS ${ALL_TESTS_TARGETS})
-add_custom_target(
-    run_test
-    COMMAND scripts/run_commands_long_circuit.sh ${ALL_TESTS_EXE_PATHS}
-    DEPENDS all_test
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+# Get the latest abbreviated commit hash of the working branch
+execute_process(
+    COMMAND git log -1 --format=%h
+    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+    OUTPUT_VARIABLE GIT_HASH
+    OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
-add_custom_target(all_bin DEPENDS main all_test)
+# Get compile time
+execute_process(
+    COMMAND date -u +%Y-%m-%d-%H:%M:%S
+    OUTPUT_VARIABLE COMPILE_TIME
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+add_compile_definitions(
+    BOOST_ALL_DYN_LINK
+    BOOST_SPIRIT_THREADSAFE
+    GIT_HASH=\"${GIT_HASH}\"
+    COMPILE_TIME=\"${COMPILE_TIME}\"
+)
+
+# Find clang-tidy for code static analysis
+# TODO: clang-tidy lint level set to LOW or more.
+set(taraxa_LINT_LEVEL "OFF" CACHE STRING "Lint level during taraxa build (FULL, HIGH, LOW, OFF)")
+find_program(
+    CLANG_TIDY_EXE
+    NAMES "clang-tidy"
+    DOC "Path to clang-tidy executable"
+)
+
+if(NOT CLANG_TIDY_EXE)
+    message(STATUS "clang-tidy not found")
+elseif(VERSION LESS 3.6)
+    messgae(STATUS "clang-tidy found but only supported with CMake version >= 3.6")
+else()
+    message(STATUS "clany-tidy found: ${CLANG_TIDY_EXE}")
+    if("${taraxa_LINT_LEVEL}" STREQUAL "FULL")
+        message(STATUS "Linting level set to: FULL")
+        set(DO_CLANG_TIDY "${CLANG_TIDY_EXE}" "-checks='*'")
+    elseif("${taraxa_LINT_LEVEL}" STREQUAL "HIGH")
+        message(STATUS "Linting level set to: HIGH")
+        set(DO_CLANG_TIDY "${CLANG_TIDY_EXE}" "-checks='boost-use-to-string,clang-analyzer-*,cppcoreguidelines-*,llvm-*,misc-*,performance-*,readability-*'")
+    elseif("${taraxa_LINT_LEVEL}" STREQUAL "LOW")
+        message(STATUS "Linting level set to: LOW")
+        set(DO_CLANG_TIDY "${CLANG_TIDY_EXE}" "-checks='clang-analyzer-*'")
+    else()
+        unset(CLANG_TIDY_EXE)
+        message(STATUS "Linting level set to: OFF")
+    endif()
+endif(NOT CLANG_TIDY_EXE)
+
+# Enable creation of taraxa package containing taraxad binary
+set(ENABLE_PACKAGE_INSTALLER TRUE CACHE BOOL "Build Taraxa package")
+
+if (ENABLE_PACKAGE_INSTALLER)
+    set(VERSION_MAJOR 1)
+    set(VERSION_MINOR 0)
+    set(VERSION_PATCH 0)
+
+    include(InstallRequiredSystemLibraries)
+
+    set(CPACK_OUTPUT_FILE_PREFIX ${CMAKE_BINARY_DIR}/packages)
+    set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install)
+
+    SET(CPACK_PACKAGE_DIRECTORY "${CMAKE_INSTALL_PREFIX}")
+    set(CPACK_PACKAGE_NAME "Taraxa")
+    set(CPACK_PACKAGE_VENDOR "Phragmites Inc.")
+    set(CPACK_PACKAGE_VERSION_MAJOR "${VERSION_MAJOR}")
+    set(CPACK_PACKAGE_VERSION_MINOR "${VERSION_MINOR}")
+    set(CPACK_PACKAGE_VERSION_PATCH "${VERSION_PATCH}")
+    set(CPACK_PACKAGE_VERSION "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
+    set(CPACK_PACKAGE_DESCRIPTION "A client for the Taraxa network")
+    set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "A client for the Taraxa network")
+    set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.md")
+    set(CPACK_PACKAGE_INSTALL_DIRECTORY "Taraxa ${CPACK_PACKAGE_VERSION}")
+
+    if(APPLE)
+        set(CPACK_GENERATOR "DragNDrop")
+    endif()
+
+    if(LINUX)
+        # Linux gets a .tgz
+        SET(CPACK_GENERATOR "TGZ")
+        SET(CPACK_INCLUDE_TOPLEVEL_DIRECTORY 1)
+    endif(LINUX)
+
+    include(CPack)
+endif(ENABLE_PACKAGE_INSTALLER)
+
+# clang-format
+include(clang_format.cmake)
+
+# Add sub-directories cmakes
+add_subdirectory(submodules)
+add_subdirectory(src)
+add_subdirectory(tests)
 
 # An extension of this file that you can play with locally
 include(local/CmakeLists_ext.cmake OPTIONAL)

@@ -3,7 +3,7 @@
 
 #include <libweb3jsonrpc/Eth.h>
 
-#include "../final_chain.hpp"
+#include "chain/final_chain.hpp"
 
 namespace taraxa::aleth {
 

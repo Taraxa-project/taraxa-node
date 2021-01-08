@@ -3,7 +3,7 @@
 
 #include <libdevcore/db.h>
 
-#include "../db_storage.hpp"
+#include "storage/db_storage.hpp"
 
 namespace taraxa::aleth {
 

@@ -1,6 +1,6 @@
 #include "filter_api.hpp"
 
-#include "../util.hpp"
+#include "util/util.hpp"
 
 namespace taraxa::aleth {
 using namespace std;
