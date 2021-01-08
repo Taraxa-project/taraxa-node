@@ -4,9 +4,7 @@
 #include <libdevcore/Common.h>
 #include <libdevcore/RLP.h>
 #include <libdevcore/SHA3.h>
-#include <libdevcore/db.h>
 #include <libdevcrypto/Common.h>
-#include <libethcore/Common.h>
 
 #include <boost/thread/shared_mutex.hpp>
 #include <iostream>

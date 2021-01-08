@@ -5,10 +5,9 @@
 #include "transaction.hpp"
 
 namespace taraxa::aleth {
-using namespace dev;
-using namespace eth;
-using namespace std;
-using namespace util;
+using namespace ::dev;
+using namespace ::std;
+using namespace ::taraxa::util;
 
 // TODO better performance, cache
 // TODO better consistency with the last block
@@ -45,7 +44,7 @@ struct PendingBlockImpl : PendingBlock {
     return ret;
   }
 
-  optional<eth::Transaction> transaction(unsigned index) const override {
+  optional<Transaction> transaction(unsigned index) const override {
     auto trxs = transactions();
     return index < trxs.size() ? optional(trxs[index]) : nullopt;
   }

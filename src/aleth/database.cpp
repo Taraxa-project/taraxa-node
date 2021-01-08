@@ -3,8 +3,7 @@
 #include "util.hpp"
 
 namespace taraxa::aleth {
-using namespace std;
-using ::dev::db::Slice;
+using namespace ::std;
 
 Slice aleth_slice(::rocksdb::Slice const& s) { return {s.data(), s.size()}; }
 ::rocksdb::Slice db_slice(Slice const& s) { return {s.begin(), s.size()}; }

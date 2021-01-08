@@ -26,7 +26,7 @@ INCLUDE_DIRS = $(JSONCPP_INCLUDE_DIR) $(DEPS_INSTALL_PREFIX)/include
 LIB_DIRS = $(DEPS_INSTALL_PREFIX)/lib
 
 # Git version and build time
-GIT_HASH=$(shell git rev-parse HEAD)
+GIT_HASH=$(shell git status &>/dev/null && git rev-parse HEAD)
 COMPILE_TIME=$(shell date -u +'%Y-%m-%d-%H:%M:%S')
 
 # ideally these should be the same in our build and submodule builds

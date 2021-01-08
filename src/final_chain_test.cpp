@@ -193,7 +193,7 @@ TEST_F(FinalChainTest, contract) {
       "03ea91906103ee565b5090565b61041091905b8082111561040c57600081600090555060"
       "01016103f4565b5090565b9056fea264697066735822122004585b83cf41cfb8af886165"
       "0679892acca0561c1a8ab45ce31c7fdb15a67b7764736f6c63430006080033";
-  dev::eth::Transaction trx(100, 0, 0, dev::fromHex(contract_deploy_code), 0, sk);
+  ::taraxa::aleth::Transaction trx(100, 0, 0, dev::fromHex(contract_deploy_code), 0, sk);
   auto result = advance({trx});
   auto contract_addr = result.state_transition_result.ExecutionResults[0].NewContractAddr;
   auto greet = [&] {
@@ -215,13 +215,13 @@ TEST_F(FinalChainTest, contract) {
             "000000000000000000000000000000000000000000000000000000000000000548"
             "656c6c6f000000000000000000000000000000000000000000000000000000");
   {
-    dev::eth::Transaction trx(11, 0, 0, contract_addr,
-                              // setGreeting("Hola")
-                              dev::fromHex("0xa4136862000000000000000000000000000000000000000000000000"
-                                           "00000000000000200000000000000000000000000000000000000000000"
-                                           "000000000000000000004486f6c61000000000000000000000000000000"
-                                           "00000000000000000000000000"),
-                              0, sk);
+    ::taraxa::aleth::Transaction trx(11, 0, 0, contract_addr,
+                                     // setGreeting("Hola")
+                                     dev::fromHex("0xa4136862000000000000000000000000000000000000000000000000"
+                                                  "00000000000000200000000000000000000000000000000000000000000"
+                                                  "000000000000000000004486f6c61000000000000000000000000000000"
+                                                  "00000000000000000000000000"),
+                                     0, sk);
     advance({trx});
   }
   ASSERT_EQ(greet(),

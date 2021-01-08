@@ -1,19 +1,18 @@
 #include "full_node.hpp"
 
-#include <libweb3jsonrpc/Eth.h>
-#include <libweb3jsonrpc/JsonHelper.h>
-
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/filesystem.hpp>
 #include <chrono>
 #include <stdexcept>
 
+#include "aleth/JsonHelper.h"
 #include "aleth/node_api.hpp"
 #include "aleth/state_api.hpp"
 #include "block_proposer.hpp"
 #include "dag.hpp"
 #include "dag_block.hpp"
+#include "net/Eth.h"
 #include "net/Net.h"
 #include "net/Taraxa.h"
 #include "net/Test.h"
@@ -118,22 +117,22 @@ void FullNode::init() {
             new net::Test(getShared()),    //
             new net::Taraxa(getShared()),  //
             new net::Net(getShared()),
-            new dev::rpc::Eth(aleth::NewNodeAPI(conf_.chain.chain_id, kp_.secret(),
-                                                [this](auto const &trx) {
-                                                  auto [ok, err_msg] = trx_mgr_->insertTransaction(trx, true);
-                                                  if (!ok) {
-                                                    BOOST_THROW_EXCEPTION(
-                                                        runtime_error(fmt("Transaction is rejected.\n"
-                                                                          "RLP: %s\n"
-                                                                          "Reason: %s",
-                                                                          dev::toJS(*trx.rlp()), err_msg)));
-                                                  }
-                                                }),
-                              trx_mgr_->getFilterAPI(),
-                              aleth::NewStateAPI(final_chain_),  //
-                              trx_mgr_->getPendingBlock(),
-                              final_chain_,  //
-                              [] { return 0; }));
+            new net::Eth(aleth::NewNodeAPI(conf_.chain.chain_id, kp_.secret(),
+                                           [this](auto const &trx) {
+                                             auto [ok, err_msg] = trx_mgr_->insertTransaction(trx, true);
+                                             if (!ok) {
+                                               BOOST_THROW_EXCEPTION(
+                                                   runtime_error(fmt("Transaction is rejected.\n"
+                                                                     "RLP: %s\n"
+                                                                     "Reason: %s",
+                                                                     dev::toJS(*trx.rlp()), err_msg)));
+                                             }
+                                           }),
+                         trx_mgr_->getFilterAPI(),
+                         aleth::NewStateAPI(final_chain_),  //
+                         trx_mgr_->getPendingBlock(),
+                         final_chain_,  //
+                         [] { return 0; }));
 
     if (conf_.rpc->http_port) {
       jsonrpc_http_ = make_shared<net::RpcServer>(

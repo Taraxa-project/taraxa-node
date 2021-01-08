@@ -183,7 +183,6 @@ submodules/ethash/ok \
 submodules/libff/ok \
 submodules/secp256k1/ok
 	$(SUBMODULE_BUILD_BEGIN); \
-	copy $(ALETH_ROOT)/utils "*.h" $(DEPS_INSTALL_PREFIX)/include; \
 	$(MAKE) -C $(CURDIR) -f Makefile_submodules.mk UPDATE_SUBMODULES=0 \
 		$(ALETH_OBJS); \
 	ar -rcs $(DEPS_INSTALL_PREFIX)/lib/lib$(TARAXA_ALETH_LIB).a $(ALETH_OBJS); \

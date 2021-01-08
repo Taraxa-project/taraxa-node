@@ -3,7 +3,6 @@
 
 #include <libdevcore/SHA3.h>
 #include <libdevcrypto/Common.h>
-#include <libweb3jsonrpc/EthFace.h>
 
 #include <atomic>
 #include <boost/asio.hpp>
@@ -79,7 +78,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::unique_ptr<ModularServer<net::TestFace,
                                 net::TaraxaFace,  //
                                 net::NetFace,     //
-                                dev::rpc::EthFace>>
+                                net::EthFace>>
       jsonrpc_api_;
   std::vector<std::thread> jsonrpc_threads_;
   // debug

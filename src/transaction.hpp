@@ -2,6 +2,8 @@
 #define TARAXA_NODE_TRANSACTION_HPP
 
 #include <json/json.h>
+#include <libdevcore/RLP.h>
+#include <libdevcore/SHA3.h>
 
 #include "types.hpp"
 

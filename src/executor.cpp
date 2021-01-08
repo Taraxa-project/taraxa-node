@@ -104,8 +104,9 @@ void Executor::executePbftBlocks_() {
           continue;
         }
         // Non-executed trxs
-        auto const &trx = transactions_tmp_buf_.emplace_back(
-            &trx_db_results[1 + i * 2], dev::eth::CheckTransaction::None, true, h256(db_query.get_key(1 + i * 2)));
+        auto const &trx =
+            transactions_tmp_buf_.emplace_back(&trx_db_results[1 + i * 2], ::taraxa::aleth::CheckTransaction::None,
+                                               true, h256(db_query.get_key(1 + i * 2)));
         if (replay_protection_service_->is_nonce_stale(trx.sender(), trx.nonce())) {
           transactions_tmp_buf_.pop_back();
           continue;

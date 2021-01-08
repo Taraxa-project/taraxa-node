@@ -2,21 +2,21 @@
 #define TARAXA_NODE_CHAIN_CONFIG_HPP_
 
 #include <json/json.h>
-#include <libethcore/BlockHeader.h>
 
 #include <functional>
 #include <unordered_map>
 
+#include "aleth/BlockHeader.h"
 #include "dag_block.hpp"
 #include "final_chain.hpp"
 #include "pbft_config.hpp"
 #include "util/lazy.hpp"
 
 namespace taraxa::chain_config {
-using dev::eth::BlockHeaderFields;
 using std::function;
 using std::string;
 using std::unordered_map;
+using ::taraxa::aleth::BlockHeaderFields;
 using ::taraxa::util::lazy::Lazy;
 using ::taraxa::util::lazy::LazyVal;
 

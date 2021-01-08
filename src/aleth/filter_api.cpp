@@ -3,10 +3,9 @@
 #include "../util.hpp"
 
 namespace taraxa::aleth {
-using namespace std;
-using namespace dev;
-using namespace eth;
-using namespace util;
+using namespace ::std;
+using namespace ::dev;
+using namespace ::taraxa::util;
 
 struct FilterAPIImpl : virtual FilterAPI {
   optional<LogFilter> getLogFilter(FilterID id) const override { return std::nullopt; }

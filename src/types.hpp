@@ -1,8 +1,9 @@
 #ifndef TARAXA_NODE_TYPES_HPP
 #define TARAXA_NODE_TYPES_HPP
 
+#include <libdevcore/Address.h>
 #include <libdevcore/FixedHash.h>
-#include <libethereum/Transaction.h>
+#include <libdevcrypto/Common.h>
 
 #include <boost/asio.hpp>
 #include <boost/multiprecision/cpp_int.hpp>
@@ -11,6 +12,17 @@
 #include <type_traits>
 
 namespace taraxa {
+
+using dev::Address;
+using dev::AddressSet;
+using dev::bytes;
+using dev::bytesConstRef;
+using dev::h256;
+using dev::h256Hash;
+using dev::h256s;
+using dev::h64;
+using dev::Secret;
+using dev::u256;
 
 // time related
 using time_point_t = std::chrono::system_clock::time_point;
@@ -120,17 +132,6 @@ unsigned long getTimePoint2Long(time_point_t tp);
 bytes str2bytes(std::string const &str);
 std::string bytes2str(bytes const &data);
 
-inline static const auto MOCK_BLOCK_GAS_LIMIT = std::numeric_limits<uint64_t>::max();
-
 }  // namespace taraxa
-
-namespace std {
-// Forward std::hash<taraxa::uint_hash_t> to taraxa::uint_hash_t::hash
-// template <>
-// struct hash<taraxa::blk_hash_t> : taraxa::blk_hash_t::hash {};
-// template <>
-// struct hash<taraxa::sig_t> : taraxa::sig_t::hash {};
-
-}  // namespace std
 
 #endif

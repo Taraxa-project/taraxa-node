@@ -11,16 +11,18 @@
 #include <unordered_map>
 #include <vector>
 
+#include "aleth/Common.h"
 #include "db_storage.hpp"
 #include "types.hpp"
 #include "util/encoding_rlp.hpp"
 #include "util/range_view.hpp"
 
 namespace taraxa::state_api {
-using namespace dev;
-using namespace eth;
-using namespace std;
-using namespace util;
+using namespace ::dev;
+using namespace ::std;
+using namespace ::taraxa::util;
+using namespace ::taraxa::aleth;
+
 using rocksdb::ColumnFamilyHandle;
 
 static constexpr auto BlockNumberNIL = std::numeric_limits<BlockNumber>::max();

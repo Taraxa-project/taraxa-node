@@ -12,7 +12,6 @@
 
 namespace taraxa {
 using namespace dev;
-using namespace eth;
 using namespace util;
 using namespace std;
 

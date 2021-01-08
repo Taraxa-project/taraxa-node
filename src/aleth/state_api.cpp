@@ -1,12 +1,10 @@
 #include "state_api.hpp"
 
 namespace taraxa::aleth {
-using namespace dev;
-using namespace eth;
-using namespace rpc;
-using namespace std;
+using namespace ::dev;
+using namespace ::std;
 
-struct StateAPIImpl : virtual Eth::StateAPI {
+struct StateAPIImpl : virtual net::Eth::StateAPI {
   shared_ptr<FinalChain> final_chain;
 
   auto call_internal(BlockNumber _blockNumber, TransactionSkeleton const& trx, bool free_gas) const {
@@ -61,7 +59,7 @@ struct StateAPIImpl : virtual Eth::StateAPI {
   }
 };
 
-unique_ptr<Eth::StateAPI> NewStateAPI(shared_ptr<FinalChain> final_chain) {
+unique_ptr<net::Eth::StateAPI> NewStateAPI(shared_ptr<FinalChain> final_chain) {
   auto ret = u_ptr(new StateAPIImpl);
   ret->final_chain = move(final_chain);
   return ret;

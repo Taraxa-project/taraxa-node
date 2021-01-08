@@ -45,7 +45,7 @@ class Executor {
   std::atomic<bool> stopped_ = true;
   std::unique_ptr<std::thread> exec_worker_ = nullptr;
 
-  dev::eth::Transactions transactions_tmp_buf_;
+  ::taraxa::aleth::Transactions transactions_tmp_buf_;
   std::atomic<uint64_t> num_executed_blk_ = 0;
   std::atomic<uint64_t> num_executed_trx_ = 0;
 

@@ -3,6 +3,7 @@
 
 #include <execinfo.h>
 #include <json/json.h>
+#include <libdevcore/RLP.h>
 #include <signal.h>
 
 #include <boost/asio.hpp>

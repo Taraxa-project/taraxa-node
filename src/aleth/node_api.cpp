@@ -5,12 +5,10 @@
 #include "util.hpp"
 
 namespace taraxa::aleth {
-using namespace std;
-using namespace dev;
-using namespace eth;
-using namespace rpc;
+using namespace ::std;
+using namespace ::dev;
 
-struct NodeAPIImpl : virtual Eth::NodeAPI {
+struct NodeAPIImpl : virtual net::Eth::NodeAPI {
   uint64_t chain_id_ = 0;
   KeyPair key_pair;
   function<void(::taraxa::Transaction const&)> send_trx;
@@ -39,8 +37,8 @@ struct NodeAPIImpl : virtual Eth::NodeAPI {
   }
 };
 
-unique_ptr<Eth::NodeAPI> NewNodeAPI(uint64_t chain_id, KeyPair key_pair,
-                                    function<void(::taraxa::Transaction const&)> send_trx) {
+unique_ptr<net::Eth::NodeAPI> NewNodeAPI(uint64_t chain_id, KeyPair key_pair,
+                                         function<void(::taraxa::Transaction const&)> send_trx) {
   return u_ptr(new NodeAPIImpl(chain_id, move(key_pair), move(send_trx)));
 }
 

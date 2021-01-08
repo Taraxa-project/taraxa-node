@@ -1,8 +1,7 @@
 #ifndef TARAXA_NODE_FINAL_CHAIN_HPP_
 #define TARAXA_NODE_FINAL_CHAIN_HPP_
 
-#include <libethereum/ChainDBImpl.h>
-
+#include "aleth/ChainDBImpl.h"
 #include "aleth/database.hpp"
 #include "db_storage.hpp"
 #include "replay_protection_service.hpp"
@@ -12,10 +11,10 @@
 #include "util/range_view.hpp"
 
 namespace taraxa::final_chain {
-using namespace std;
-using namespace dev;
-using namespace eth;
-using namespace util;
+using namespace ::std;
+using namespace ::dev;
+using namespace ::taraxa::aleth;
+using namespace ::taraxa::util;
 
 struct FinalChain : virtual ChainDB {
   struct Config {
