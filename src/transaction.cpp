@@ -25,7 +25,8 @@ Transaction::Transaction(uint64_t nonce, val_t const &value, val_t const &gas_pr
   getSender();
 }
 
-Transaction::Transaction(dev::RLP const &_rlp, bool verify_strict) {
+Transaction::Transaction(dev::RLP const &_rlp, bool verify_strict, h256 const &hash)
+    : hash_(hash), hash_initialized_(!hash.isZero()) {
   auto strictness = verify_strict ? dev::RLP::VeryStrict : dev::RLP::LaissezFaire;
   uint fields_processed = 0;
   for (auto const &el : _rlp) {
@@ -118,7 +119,7 @@ shared_ptr<bytes> Transaction::rlp(bool cache) const {
   }
   dev::RLPStream s;
   streamRLP<false>(s);
-  shared_ptr<bytes> ret(new auto(s.invalidate()));
+  auto ret = make_shared<bytes>(s.invalidate());
   return cache ? cached_rlp_ = move(ret) : ret;
 };
 

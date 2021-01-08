@@ -26,7 +26,7 @@ struct PendingBlockImpl : PendingBlock {
   uint64_t transactionsCount(Address const& from) const override {
     uint64_t ret = 0;
     for (auto const& trx : transactions()) {
-      if (trx.from() == from) {
+      if (trx.getSender() == from) {
         ++ret;
       }
     }
@@ -38,7 +38,7 @@ struct PendingBlockImpl : PendingBlock {
     for (auto const& h : transactionHashes()) {
       auto trx_rlp = db->getTransactionRaw(h);
       if (!trx_rlp.empty()) {
-        ret.emplace_back(trx_rlp, CheckTransaction::None);
+        ret.emplace_back(trx_rlp);
       }
     }
     return ret;

@@ -11,7 +11,7 @@
 #include "aleth/ChainDB.h"
 #include "aleth/Common.h"
 #include "aleth/CommonNet.h"
-#include "aleth/Transaction.h"
+#include "aleth/LocalizedTransaction.h"
 
 namespace taraxa::net {
 
@@ -62,8 +62,8 @@ struct Eth : EthFace {
     virtual ::taraxa::aleth::BlockDetails details() const = 0;
     virtual uint64_t transactionsCount() const = 0;
     virtual uint64_t transactionsCount(dev::Address const& from) const = 0;
-    virtual ::taraxa::aleth::Transactions transactions() const = 0;
-    virtual std::optional<::taraxa::aleth::Transaction> transaction(unsigned index) const = 0;
+    virtual Transactions transactions() const = 0;
+    virtual std::optional<Transaction> transaction(unsigned index) const = 0;
     virtual dev::h256s transactionHashes() const = 0;
     virtual ::taraxa::aleth::BlockHeader header() const = 0;
   };

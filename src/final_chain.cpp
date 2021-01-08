@@ -5,8 +5,8 @@ namespace taraxa::final_chain {
 auto map_transactions(Transactions const& trxs) {
   return make_range_view(trxs).map([](auto const& trx) {
     return state_api::EVMTransaction{
-        trx.from(), trx.gasPrice(), trx.isCreation() ? std::nullopt : optional(trx.to()), trx.nonce(), trx.value(),
-        trx.gas(),  trx.data(),
+        trx.getSender(), trx.getGasPrice(), trx.getReceiver(), trx.getNonce(),
+        trx.getValue(),  trx.getGas(),      trx.getData(),
     };
   });
 }

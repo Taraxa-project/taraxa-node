@@ -85,7 +85,7 @@ BlockHeader ChainDBImpl::append_block(Address const& author, uint64_t timestamp,
   BlockLogBlooms blb;
   blb.blooms.reserve(transactions.size());
   for (size_t i(0); i < transactions.size(); ++i) {
-    trxs_rlp.appendRaw(trxs_trie[rlp(i)] = transactions[i].rlp());
+    trxs_rlp.appendRaw(trxs_trie[rlp(i)] = *transactions[i].rlp());
     auto const& receipt = receipts[i];
     receipts_rlp.appendRaw(receipts_trie[rlp(i)] = receipt.rlp());
     header.m_logBloom |= receipt.bloom();
@@ -114,7 +114,7 @@ BlockHeader ChainDBImpl::append_block(Address const& author, uint64_t timestamp,
   TransactionAddress ta;
   ta.blockHash = blk_hash;
   for (auto const& trx : transactions) {
-    extras_db_->insert(toSlice(trx.sha3(), ExtraTransactionAddress), slice_from_slice_like(ta.rlp()));
+    extras_db_->insert(toSlice(trx.getHash(), ExtraTransactionAddress), slice_from_slice_like(ta.rlp()));
     ta.index++;
   }
   extras_db_->insert(toSlice(h256(header.m_number), ExtraBlockHash), slice_from_slice_like(BlockHash(blk_hash).rlp()));
@@ -298,7 +298,7 @@ void ChainDBImpl::prependLogsFromBlock(LogFilter const& _f, h256 const& _blockHa
   auto receipts_ = receipts(_blockHash).receipts;
   for (size_t i = 0; i < receipts_.size(); i++) {
     TransactionReceipt receipt = receipts_[i];
-    auto th = transaction(_blockHash, i).sha3();
+    auto th = transaction(_blockHash, i).getHash();
     LogEntries le = _f.matches(receipt);
     for (unsigned j = 0; j < le.size(); ++j)
       io_logs.insert(io_logs.begin(), LocalisedLogEntry(le[j], _blockHash, numberFromHash(_blockHash), th, i, 0));
@@ -306,7 +306,7 @@ void ChainDBImpl::prependLogsFromBlock(LogFilter const& _f, h256 const& _blockHa
 }
 
 Transaction ChainDBImpl::transaction(h256 _transactionHash) const {
-  return Transaction(transaction_raw(_transactionHash), CheckTransaction::Cheap);
+  return Transaction(transaction_raw(_transactionHash));
 }
 
 LocalisedTransaction ChainDBImpl::localisedTransaction(h256 const& _transactionHash) const {
@@ -325,31 +325,31 @@ Transaction ChainDBImpl::transaction(h256 _blockHash, unsigned _i) const {
   auto bl = block(_blockHash);
   RLP b(bl);
   if (_i < b[1].itemCount())
-    return Transaction(b[1][_i].data(), CheckTransaction::Cheap);
+    return Transaction(dev::RLP(b[1][_i].data()));
   else
     return Transaction();
 }
 
 LocalisedTransaction ChainDBImpl::localisedTransaction(h256 const& _blockHash, unsigned _i) const {
-  Transaction t = Transaction(transaction_raw(_blockHash, _i), CheckTransaction::Cheap);
+  Transaction t = Transaction(transaction_raw(_blockHash, _i));
   return LocalisedTransaction(t, _blockHash, _i, numberFromHash(_blockHash));
 }
 
 LocalisedTransactionReceipt ChainDBImpl::localisedTransactionReceipt(h256 const& _transactionHash) const {
   std::pair<h256, unsigned> tl = transactionLocation(_transactionHash);
-  Transaction t = Transaction(transaction_raw(tl.first, tl.second), CheckTransaction::Cheap);
+  Transaction t = Transaction(transaction_raw(tl.first, tl.second));
   TransactionReceipt tr = transactionReceipt(tl.first, tl.second);
   u256 gasUsed = tr.cumulativeGasUsed();
   if (tl.second > 0) gasUsed -= transactionReceipt(tl.first, tl.second - 1).cumulativeGasUsed();
-  return LocalisedTransactionReceipt(tr, t.sha3(), tl.first, numberFromHash(tl.first), t.from(), t.to(), tl.second,
-                                     gasUsed);
+  return LocalisedTransactionReceipt(tr, t.getHash(), tl.first, numberFromHash(tl.first), t.getSender(),
+                                     t.getReceiver().value_or(ZeroAddress), tl.second, gasUsed);
 }
 
 Transactions ChainDBImpl::transactions(h256 _blockHash) const {
   auto bl = block(_blockHash);
   RLP b(bl);
   Transactions res;
-  for (unsigned i = 0; i < b[1].itemCount(); i++) res.emplace_back(b[1][i].data(), CheckTransaction::Cheap);
+  for (unsigned i = 0; i < b[1].itemCount(); i++) res.emplace_back(RLP(b[1][i].data()));
   return res;
 }
 

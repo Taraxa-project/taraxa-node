@@ -105,14 +105,14 @@ void Executor::executePbftBlocks_() {
         }
         // Non-executed trxs
         auto const &trx =
-            transactions_tmp_buf_.emplace_back(&trx_db_results[1 + i * 2], ::taraxa::aleth::CheckTransaction::None,
-                                               true, h256(db_query.get_key(1 + i * 2)));
-        if (replay_protection_service_->is_nonce_stale(trx.sender(), trx.nonce())) {
+            transactions_tmp_buf_.emplace_back(vector_ref<string::value_type>(trx_db_results[1 + i * 2]).toBytes(),
+                                               false, h256(db_query.get_key(1 + i * 2)));
+        if (replay_protection_service_->is_nonce_stale(trx.getSender(), trx.getNonce())) {
           transactions_tmp_buf_.pop_back();
           continue;
         }
         static string const dummy_val = "_";
-        db_->batch_put(*batch, DbStorage::Columns::executed_transactions, trx.sha3(), dummy_val);
+        db_->batch_put(*batch, DbStorage::Columns::executed_transactions, trx.getHash(), dummy_val);
       }
     }
 
@@ -124,8 +124,8 @@ void Executor::executePbftBlocks_() {
     replay_protection_service_->update(batch, pbft_period,
                                        util::make_range_view(transactions_tmp_buf_).map([](auto const &trx) {
                                          return ReplayProtectionService::TransactionInfo{
-                                             trx.from(),
-                                             trx.nonce(),
+                                             trx.getSender(),
+                                             trx.getNonce(),
                                          };
                                        }));
 
@@ -157,7 +157,7 @@ void Executor::executePbftBlocks_() {
     // Taraxa
     trx_mgr_->getPendingBlock()->advance(
         batch, new_eth_header.hash(),
-        util::make_range_view(transactions_tmp_buf_).map([](auto const &trx) { return trx.sha3(); }));
+        util::make_range_view(transactions_tmp_buf_).map([](auto const &trx) { return trx.getHash(); }));
 
     // Commit DB
     db_->commitWriteBatch(batch);

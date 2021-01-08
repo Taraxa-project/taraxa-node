@@ -8,8 +8,8 @@
 #include "BlockDetails.h"
 #include "BlockHeader.h"
 #include "Common.h"
+#include "LocalizedTransaction.h"
 #include "LogFilter.h"
-#include "Transaction.h"
 #include "TransactionReceipt.h"
 #include "db.h"
 

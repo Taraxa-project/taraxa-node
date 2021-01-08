@@ -2,7 +2,7 @@
 
 #include <jsonrpccpp/common/exception.h>
 
-#include "Transaction.h"
+#include "LocalizedTransaction.h"
 
 using namespace std;
 using namespace dev;
@@ -43,28 +43,28 @@ Json::Value toJson(::taraxa::aleth::BlockHeader const& _bi) {
   return res;
 }
 
-Json::Value toJson(::taraxa::aleth::Transaction const& _t, std::pair<h256, unsigned> _location,
-                   BlockNumber _blockNumber) {
+Json::Value toJson(Transaction const& _t, std::pair<h256, unsigned> _location, BlockNumber _blockNumber) {
   Json::Value res;
-  res["hash"] = toJS(_t.sha3());
-  res["input"] = toJS(_t.data());
-  res["to"] = _t.isCreation() ? Json::Value() : toJS(_t.receiveAddress());
-  res["from"] = toJS(_t.safeSender());
-  res["gas"] = toJS(_t.gas());
-  res["gasPrice"] = toJS(_t.gasPrice());
-  res["nonce"] = toJS(_t.nonce());
-  res["value"] = toJS(_t.value());
+  res["hash"] = toJS(_t.getHash());
+  res["input"] = toJS(_t.getData());
+  res["to"] = toJson(_t.getReceiver());
+  res["from"] = toJS(_t.getSender());
+  res["gas"] = toJS(_t.getGas());
+  res["gasPrice"] = toJS(_t.getGasPrice());
+  res["nonce"] = toJS(_t.getNonce());
+  res["value"] = toJS(_t.getValue());
   res["blockHash"] = toJS(_location.first);
   res["transactionIndex"] = toJS(_location.second);
   res["blockNumber"] = toJS(_blockNumber);
-  res["v"] = toJS(_t.signature().v);
-  res["r"] = toJS(_t.signature().r);
-  res["s"] = toJS(_t.signature().s);
+  auto const& vrs = _t.getVRS();
+  res["r"] = toJS(vrs.r);
+  res["s"] = toJS(vrs.s);
+  res["v"] = toJS(vrs.v);
   return res;
 }
 
 Json::Value toJson(::taraxa::aleth::BlockHeader const& _bi, BlockDetails const& _bd, UncleHashes const& _us,
-                   std::vector<::taraxa::aleth::Transaction> const& _ts) {
+                   std::vector<Transaction> const& _ts) {
   Json::Value res = toJson(_bi);
   res["totalDifficulty"] = toJS(_bd.totalDifficulty);
   res["size"] = toJS(_bd.size);
@@ -120,24 +120,24 @@ Json::Value toJson(::taraxa::aleth::LocalisedTransactionReceipt const& _t) {
   return res;
 }
 
-Json::Value toJson(::taraxa::aleth::Transaction const& _t) {
+Json::Value toJson(Transaction const& _t) {
   Json::Value res;
-  res["to"] = _t.isCreation() ? Json::Value() : toJS(_t.to());
-  res["from"] = toJS(_t.from());
-  res["gas"] = toJS(_t.gas());
-  res["gasPrice"] = toJS(_t.gasPrice());
-  res["value"] = toJS(_t.value());
-  res["data"] = toJS(_t.data(), 32);
-  res["nonce"] = toJS(_t.nonce());
-  res["hash"] = toJS(_t.sha3(WithSignature));
-  res["sighash"] = toJS(_t.sha3(WithoutSignature));
-  res["r"] = toJS(_t.signature().r);
-  res["s"] = toJS(_t.signature().s);
-  res["v"] = toJS(_t.signature().v);
+  res["to"] = toJson(_t.getReceiver());
+  res["from"] = toJS(_t.getSender());
+  res["gas"] = toJS(_t.getGas());
+  res["gasPrice"] = toJS(_t.getGasPrice());
+  res["value"] = toJS(_t.getValue());
+  res["data"] = toJS(_t.getData(), 32);
+  res["nonce"] = toJS(_t.getNonce());
+  res["hash"] = toJS(_t.getHash());
+  auto const& vrs = _t.getVRS();
+  res["r"] = toJS(vrs.r);
+  res["s"] = toJS(vrs.s);
+  res["v"] = toJS(vrs.v);
   return res;
 }
 
-Json::Value toJson(::taraxa::aleth::Transaction const& _t, bytes const& _rlp) {
+Json::Value toJson(Transaction const& _t, bytes const& _rlp) {
   Json::Value res;
   res["raw"] = toJS(_rlp);
   res["tx"] = toJson(_t);
@@ -146,15 +146,15 @@ Json::Value toJson(::taraxa::aleth::Transaction const& _t, bytes const& _rlp) {
 
 Json::Value toJson(::taraxa::aleth::LocalisedTransaction const& _t) {
   Json::Value res;
-  if (_t) {
-    res["hash"] = toJS(_t.sha3());
-    res["input"] = toJS(_t.data());
-    res["to"] = _t.isCreation() ? Json::Value() : toJS(_t.receiveAddress());
-    res["from"] = toJS(_t.safeSender());
-    res["gas"] = toJS(_t.gas());
-    res["gasPrice"] = toJS(_t.gasPrice());
-    res["nonce"] = toJS(_t.nonce());
-    res["value"] = toJS(_t.value());
+  if (!_t.isZero()) {
+    res["hash"] = toJS(_t.getHash());
+    res["input"] = toJS(_t.getData());
+    res["to"] = toJson(_t.getReceiver());
+    res["from"] = toJS(_t.getSender());
+    res["gas"] = toJS(_t.getGas());
+    res["gasPrice"] = toJS(_t.getGasPrice());
+    res["nonce"] = toJS(_t.getNonce());
+    res["value"] = toJS(_t.getValue());
     res["blockHash"] = toJS(_t.blockHash());
     res["transactionIndex"] = toJS(_t.transactionIndex());
     res["blockNumber"] = toJS(_t.blockNumber());
