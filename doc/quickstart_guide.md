@@ -30,3 +30,8 @@ You can see example config [here](doc/example_config.json)
 #### Param2
 #### ...
 TODO: add explanation of all config parameters
+
+
+# Taraxa docker image
+
+Tutorial how to locally build and run taraxa docker image can be found [here](../dockerfiles/README.md).
