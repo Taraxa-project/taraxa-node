@@ -6,7 +6,7 @@ if(NOT CPP_CHECK_EXE)
 else()
     message(STATUS "cppcheck found: ${CPP_CHECK_EXE}")
 
-    add_custom_target(cpp-check
+    add_custom_target(cpp-check ALL
             COMMAND ${CPPCHECK}
                 --error-exitcode=1
                 --enable=warning,style,performance,portability,information
@@ -22,6 +22,8 @@ else()
                 --suppress=unknownMacro
                 #--suppress=useInitializationList
 #                --suppress=syntaxError
+                # because of https://trac.cppcheck.net/ticket/9537 -> state_api.cpp, line 53, TODO: remove this
+                --suppress=internalAstError
 
                 # Only show found errors
                 "--quiet"

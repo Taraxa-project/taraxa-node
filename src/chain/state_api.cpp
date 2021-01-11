@@ -49,10 +49,12 @@ struct ErrorHandler {
         auto delim_pos = err_str.find(delim);
         string type(err_str.substr(0, delim_pos));
         string msg(err_str.substr(delim_pos + delim_len));
-        if ("github.com/Taraxa-project/taraxa-evm/taraxa/state/state_db/ErrFutureBlock" == type) {
+
+        if (type.compare("github.com/Taraxa-project/taraxa-evm/taraxa/state/state_db/ErrFutureBlock") == 0) {
           raise = [err = ErrFutureBlock(move(type), move(msg))] { BOOST_THROW_EXCEPTION(err); };
           return;
         }
+
         string traceback;
         taraxa_evm_traceback(decoder_cb_c<string, to_str>(traceback));
         msg += "\nGo stack trace:\n" + traceback;
