@@ -157,9 +157,5 @@ else()
     target_link_libraries(app_base stdc++fs)
 endif()
 
-if(CLANG_TIDY_EXE)
-    set_target_properties(app_base PROPERTIES CXX_CLANG_TIDY "${DO_CLANG_TIDY}" )
-endif()
-
 # Main taraxad binary
 add_subdirectory(taraxad)

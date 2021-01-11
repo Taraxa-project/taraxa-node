@@ -44,36 +44,6 @@ add_compile_definitions(
     COMPILE_TIME=\"${COMPILE_TIME}\"
 )
 
-# Find clang-tidy for code static analysis
-# TODO: clang-tidy lint level set to LOW or more.
-set(taraxa_LINT_LEVEL "OFF" CACHE STRING "Lint level during taraxa build (FULL, HIGH, LOW, OFF)")
-find_program(
-    CLANG_TIDY_EXE
-    NAMES "clang-tidy"
-    DOC "Path to clang-tidy executable"
-)
-
-if(NOT CLANG_TIDY_EXE)
-    message(STATUS "clang-tidy not found")
-elseif(VERSION LESS 3.6)
-    messgae(STATUS "clang-tidy found but only supported with CMake version >= 3.6")
-else()
-    message(STATUS "clany-tidy found: ${CLANG_TIDY_EXE}")
-    if("${taraxa_LINT_LEVEL}" STREQUAL "FULL")
-        message(STATUS "Linting level set to: FULL")
-        set(DO_CLANG_TIDY "${CLANG_TIDY_EXE}" "-checks='*'")
-    elseif("${taraxa_LINT_LEVEL}" STREQUAL "HIGH")
-        message(STATUS "Linting level set to: HIGH")
-        set(DO_CLANG_TIDY "${CLANG_TIDY_EXE}" "-checks='boost-use-to-string,clang-analyzer-*,cppcoreguidelines-*,llvm-*,misc-*,performance-*,readability-*'")
-    elseif("${taraxa_LINT_LEVEL}" STREQUAL "LOW")
-        message(STATUS "Linting level set to: LOW")
-        set(DO_CLANG_TIDY "${CLANG_TIDY_EXE}" "-checks='clang-analyzer-*'")
-    else()
-        unset(CLANG_TIDY_EXE)
-        message(STATUS "Linting level set to: OFF")
-    endif()
-endif(NOT CLANG_TIDY_EXE)
-
 # Enable creation of taraxa package containing taraxad binary
 set(ENABLE_PACKAGE_INSTALLER TRUE CACHE BOOL "Build Taraxa package")
 
@@ -113,7 +83,13 @@ if (ENABLE_PACKAGE_INSTALLER)
 endif(ENABLE_PACKAGE_INSTALLER)
 
 # clang-format
-include(clang_format.cmake)
+include(cmakefiles/clang_tidy.cmake)
+
+# clang-format
+include(cmakefiles/clang_format.cmake)
+
+# cppcheck
+include(cmakefiles/cppcheck.cmake)
 
 # Add sub-directories cmakes
 add_subdirectory(submodules)

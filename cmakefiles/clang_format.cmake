@@ -8,25 +8,21 @@ else()
 
     # get all project files
     file(GLOB_RECURSE ALL_SOURCE_FILES
-            ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
-            ${CMAKE_CURRENT_SOURCE_DIR}/src/*.hpp
-            ${CMAKE_CURRENT_SOURCE_DIR}/src/*.h
-            ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp
-            ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.hpp
-            ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.h)
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/*.[ch]pp
+            ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.[ch]pp)
 
     # TODO: print error/line
-    add_custom_target(check-format
+    add_custom_target(check-clang-format
             COMMAND ! ${CLANG_FORMAT_EXE} -style=file -fallback-style=none
             --output-replacements-xml
             ${ALL_SOURCE_FILES}
             | grep -q "replacement offset"
-            COMMENT "Checking source code formatting"
+            COMMENT "Checking source code formatting by clang-format"
     )
 
-    add_custom_target(format
+    add_custom_target(clang-format
             COMMAND ${CLANG_FORMAT_EXE} -style=file -i ${ALL_SOURCE_FILES}
-            COMMENT "Formatting source code"
+            COMMENT "Formatting source code by clang-format"
     )
 
 endif()
