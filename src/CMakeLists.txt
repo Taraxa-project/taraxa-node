@@ -6,14 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 # Find boost required components
 set(BOOST_COMPONENTS)
-list(APPEND BOOST_COMPONENTS program_options system filesystem)
-
-if (APPLE)
-    list(APPEND BOOST_COMPONENTS thread-mt log-mt log_setup-mt)
-else()
-    list(APPEND BOOST_COMPONENTS thread log log_setup)
-endif()
-
+list(APPEND BOOST_COMPONENTS program_options system filesystem thread log log_setup)
 find_package(Boost 1.71 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
 if (Boost_FOUND)
     message (STATUS "Found Boost components: ${BOOST_COMPONENTS}, Boost version: ${Boost_VERSION}")
@@ -74,7 +67,7 @@ set(SOURCES
     logger/log.hpp
     chain/state_api.hpp
     consensus/pbft_manager.hpp
-    
+
     # ---- private sources -----
     transaction_manager/transaction.cpp
     consensus/pbft_manager.cpp

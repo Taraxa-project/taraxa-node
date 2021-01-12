@@ -2,40 +2,10 @@ ifndef Makefile_submodules
 Makefile_submodules=_
 
 SHELL := /bin/bash
-CXX_STD := c++17
-
 DEPS_INSTALL_PREFIX?=$(CURDIR)/submodules
-
-# Git version and build time
-GIT_HASH=$(shell git rev-parse HEAD)
-COMPILE_TIME=$(shell date -u +'%Y-%m-%d-%H:%M:%S')
-
-# ideally these should be the same in our build and submodule builds
-# to make sure every module sees the sources the same way
-COMPILE_DEFINITIONS := \
-	CRYPTOPP_DISABLE_ASM \
-	BOOST_ALL_DYN_LINK \
-	BOOST_SPIRIT_THREADSAFE \
-	GIT_HASH="\"$(GIT_HASH)\"" \
-	COMPILE_TIME="\"$(COMPILE_TIME)\""
-
-JSONCPP_INCLUDE_DIR := /usr/include/jsoncpp
-INCLUDE_DIRS = $(JSONCPP_INCLUDE_DIR) $(DEPS_INSTALL_PREFIX)/include
-
-sinclude local/Makefile_ext.mk
-# can't override this
 OS := $(shell uname)
 
-ifndef COMPILE_FLAGS
-	ifeq ($(DEBUG), 1)
-		COMPILE_FLAGS := -g -O0
-	else
-		COMPILE_FLAGS := -O3
-	endif
-endif
-
 # NOTE: there's a supporting file with shell utils: Makefile_submodules.sh
-
 # By default, sync submodules on every `make` invocation to make
 # the developers think less about submodules
 ifeq ($(UPDATE_SUBMODULES), 1)
@@ -123,13 +93,17 @@ submodules/googletest/ok:
 
 # ====================================================
 
+CRYPTOPP_COMPILE_DEFINITIONS :=
+ifneq ($(OS),Darwin)
+	CRYPTOPP_COMPILE_DEFINITIONS := CRYPTOPP_DISABLE_ASM
+endif
 submodules/cryptopp/ok:
 	$(SUBMODULE_BUILD_BEGIN); \
 	if [ $(OS) = 'Darwin' ]; then \
 		$(MAKE); \
 	else \
 		$(MAKE) CXXFLAGS="-DNDEBUG -g2 -O3 -fPIC \
-			$(addprefix -D, $(COMPILE_DEFINITIONS)) \
+			$(addprefix -D, $(CRYPTOPP_COMPILE_DEFINITIONS)) \
 			-pthread -pipe -c"; \
 	fi; \
 	$(MAKE) PREFIX=$(DEPS_INSTALL_PREFIX) install; \
@@ -191,22 +165,28 @@ submodules/secp256k1/ok:
 # ====================================================
 
 ALETH_ROOT := $(CURDIR)/submodules/taraxa-aleth
-ALETH_BUILD_DIR := $(ALETH_ROOT)/build
-ALETH_OBJ_DIR := $(ALETH_BUILD_DIR)/obj
+ALETH_OBJ_DIR := $(ALETH_ROOT)/build/obj
 ALETH_SRCS := $(shell \
 	find $(ALETH_ROOT) -path "$(ALETH_ROOT)/lib*/*.cpp" \
 	-a ! -path "$(ALETH_ROOT)/libweb3jsonrpc/WinPipeServer.cpp" \
 )
 ALETH_OBJS = $(subst $(ALETH_ROOT),$(ALETH_OBJ_DIR),$(ALETH_SRCS:.cpp=.o))
-TARAXA_ALETH_LIB := taraxa-aleth
+ALETH_INCLUDE_DIRS = $(ALETH_ROOT) /usr/include/jsoncpp $(DEPS_INSTALL_PREFIX)/include
+ifneq ($(SYSTEM_HOME_OVERRIDE),)
+	ALETH_INCLUDE_DIRS += $(SYSTEM_HOME_OVERRIDE)/include
+endif
 
 # compile any taraxa-aleth .o file. uses configuration similar to the main build
 $(ALETH_OBJ_DIR)/%.o: $(ALETH_ROOT)/%.cpp
 	mkdir -p $(@D)
 	$(strip \
-		$(CXX) -c -std=$(CXX_STD) $(COMPILE_FLAGS) \
-		$(addprefix -I, $(ALETH_ROOT) $(INCLUDE_DIRS)) \
-		$(addprefix -D, $(COMPILE_DEFINITIONS)) \
+		g++ -c -std=c++17 -O3 \
+		$(addprefix -I,  $(ALETH_INCLUDE_DIRS)) \
+		$(addprefix -D, \
+			$(CRYPTOPP_COMPILE_DEFINITIONS) \
+			BOOST_ALL_DYN_LINK  \
+			BOOST_SPIRIT_THREADSAFE \
+		) \
 		-o $@ $< \
 	)
 
@@ -219,7 +199,7 @@ submodules/secp256k1/ok
 	copy $(ALETH_ROOT)/utils "*.h" $(DEPS_INSTALL_PREFIX)/include; \
 	$(MAKE) -C $(CURDIR) -f $(CURDIR)/submodules/Makefile_submodules.mk UPDATE_SUBMODULES=0 \
 		$(ALETH_OBJS); \
-	ar -rcs $(DEPS_INSTALL_PREFIX)/lib/lib$(TARAXA_ALETH_LIB).a $(ALETH_OBJS); \
+	ar -rcs $(DEPS_INSTALL_PREFIX)/lib/libtaraxa-aleth.a $(ALETH_OBJS); \
 	copy $(ALETH_ROOT) "lib*/*.h" $(DEPS_INSTALL_PREFIX)/include; \
 	$(SUBMODULE_BUILD_END);
 
