@@ -1,5 +1,13 @@
 # Defines Taraxa library target.
 
+if (DEFINED SYSTEM_HOME_OVERRIDE)
+    list(APPEND CMAKE_PREFIX_PATH ${SYSTEM_HOME_OVERRIDE})
+    include_directories(${SYSTEM_HOME_OVERRIDE}/include)
+    link_directories(${SYSTEM_HOME_OVERRIDE}/lib)
+endif ()
+set(CMAKE_OSX_SYSROOT /)
+set(CMAKE_MACOSX_RPATH ON)
+
 # Use ccache to speed-up recompilation
 find_program(CCACHE_PROGRAM ccache)
 if(CCACHE_PROGRAM)
