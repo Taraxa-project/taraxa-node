@@ -68,19 +68,17 @@ struct Eth : EthFace {
  private:
   std::shared_ptr<NodeAPI> node_api;
   std::shared_ptr<FilterAPI> filter_api;
-  std::shared_ptr<StateAPI> state_api;
   std::shared_ptr<PendingBlock> pending_block;
-  std::shared_ptr<FinalChain> chain_db;
+  std::shared_ptr<FinalChain> final_chain_;
   GasPricer gas_pricer;
 
  public:
-  Eth(decltype(node_api) node_api, decltype(filter_api) filter_api, decltype(state_api) state_api,
-      decltype(pending_block) pending_block, decltype(chain_db) chain_db, decltype(gas_pricer) gas_pricer)
+  Eth(decltype(node_api) node_api, decltype(filter_api) filter_api, decltype(pending_block) pending_block,
+      decltype(final_chain_) chain_db, decltype(gas_pricer) gas_pricer)
       : node_api(std::move(node_api)),
         filter_api(std::move(filter_api)),
-        state_api(std::move(state_api)),
         pending_block(std::move(pending_block)),
-        chain_db(std::move(chain_db)),
+        final_chain_(std::move(chain_db)),
         gas_pricer(std::move(gas_pricer)){};
 
   virtual RPCModules implementedModules() const override { return RPCModules{RPCModule{"eth", "1.0"}}; }

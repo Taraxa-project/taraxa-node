@@ -23,8 +23,6 @@ using namespace ::std;
 using namespace ::taraxa::util;
 using namespace ::taraxa::aleth;
 
-using rocksdb::ColumnFamilyHandle;
-
 static constexpr auto BlockNumberNIL = std::numeric_limits<BlockNumber>::max();
 
 struct TaraxaEVMError : std::runtime_error {
@@ -159,7 +157,7 @@ struct Account {
 
   auto const& storage_root_eth() const { return StorageRootHash ? StorageRootHash : dev::EmptyListSHA3; }
   auto const& code_hash_eth() const { return CodeSize ? CodeHash : dev::EmptySHA3; }
-};
+} const ZeroAccount;
 void dec_rlp(RLP const&, Account&);
 
 struct TrieProof {

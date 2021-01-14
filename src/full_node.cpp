@@ -8,7 +8,6 @@
 
 #include "aleth/JsonHelper.h"
 #include "aleth/node_api.hpp"
-#include "aleth/state_api.hpp"
 #include "block_proposer.hpp"
 #include "dag.hpp"
 #include "dag_block.hpp"
@@ -133,7 +132,6 @@ void FullNode::init() {
                                              }
                                            }),
                          trx_mgr_->getFilterAPI(),
-                         aleth::NewStateAPI(final_chain_),  //
                          trx_mgr_->getPendingBlock(),
                          final_chain_,  //
                          [] { return 0; }));
