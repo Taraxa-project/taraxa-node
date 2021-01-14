@@ -83,7 +83,11 @@ TEST_F(FullNodeTest, db_test) {
   // DAG
   auto b = db.createWriteBatch();
   db.saveDagBlock(blk1, b);
+  db.commitWriteBatch(b);
+  b = db.createWriteBatch();
   db.saveDagBlock(blk2, b);
+  db.commitWriteBatch(b);
+  b = db.createWriteBatch();
   db.saveDagBlock(blk3, b);
   db.commitWriteBatch(b);
   EXPECT_EQ(blk1, *db.getDagBlock(blk1.getHash()));
