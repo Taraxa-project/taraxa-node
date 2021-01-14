@@ -79,44 +79,14 @@ will build out of the box without further effort:
     # run taraxa-node
     ./taraxa-node --conf_taraxa /path/to/config/file
 
-## Building on macOS X
+## Building on MacOS
 
-Install Xcode and its command line tools by following the instructions here:
-https://guide.macports.org/#installing.xcode. In OS X 10.11 (El Capitan)
-and newer, you will be prompted to install developer tools when running a
-developer command in the terminal.
-
-Accept the Xcode license if you have not already:
-
-    sudo xcodebuild -license accept
-
-Install Homebrew by following the instructions here: http://brew.sh/
-
-### Initialize Homebrew:
-
-    brew doctor
-    brew update
+Refer to the [MacOS dev doc](../for_devs_on_macos/README.md)
 
 ### Install taraxa-node dependencies:
 
     TODO: add
 
-### Clone the Repository
-
-    git clone https://github.com/Taraxa-project/taraxa-node.git
-    cd taraxa-node
-
-### Compile
-
-    TODO: add
-
-### Running tests
-
-    TODO: add
-
-### Running taraxa-node
-
-    TODO: add
 
 ## Building using "taraxa-builder" docker image
 
