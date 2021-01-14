@@ -57,7 +57,6 @@ pipeline {
     environment {
         GCP_REGISTRY = 'gcr.io/jovial-meridian-249123'
         IMAGE = 'taraxa-node'
-        BASE_IMAGE = 'taraxa-node-base'
         SLACK_CHANNEL = 'jenkins'
         SLACK_TEAM_DOMAIN = 'phragmites'
         DOCKER_BRANCH_TAG = sh(script: './scripts/docker_tag_from_branch.sh "${BRANCH_NAME}"', , returnStdout: true).trim()
@@ -70,14 +69,6 @@ pipeline {
       disableConcurrentBuilds()
     }
     stages {
-        stage('Trigger Base Image Build') {
-            steps {
-              build job: "docker-base-image/${BRANCH_NAME}", parameters: [
-                  string(name: 'upsteam_project_name', value: env.NAME)
-              ], propagate: true, wait: true
-
-            }
-        }
         stage('Docker GCP Registry Login') {
             steps {
                 withCredentials([string(credentialsId: 'gcp_container_registry_key_json', variable: 'GCP_KEY')]) {
@@ -95,10 +86,9 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 sh '''
-                    DOCKER_BUILDKIT=1 docker build --pull --cache-from=${GCP_REGISTRY}/${IMAGE} \
+                    DOCKER_BUILDKIT=1 docker build \
                     -t ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} \
-                    --build-arg BASE_IMAGE=${GCP_REGISTRY}/${BASE_IMAGE}:${DOCKER_BRANCH_TAG} \
-                    -f dockerfiles/main.ubuntu.dockerfile .
+                    -f dockerfiles/taraxa.Dockerfile .
                 '''
             }
         }
