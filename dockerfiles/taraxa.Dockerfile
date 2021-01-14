@@ -1,3 +1,6 @@
+# Default output dir
+ARG OUTPUT_DIR=output
+
 FROM ubuntu:20.04 as deps
 
 # Install standard packages
@@ -44,7 +47,7 @@ ENV PATH=$GOPATH/bin:$GOROOT/bin:$PATH
 # Builder image
 FROM deps as builder
 
-ENV OUTPUT_DIR=output
+ARG OUTPUT_DIR
 ENV INSTALL_DIR=install
 
 WORKDIR /opt/taraxa/
@@ -64,6 +67,7 @@ RUN mkdir $OUTPUT_DIR \
 # Taraxa image
 FROM ubuntu:20.04
 
+ARG OUTPUT_DIR
 WORKDIR /opt/taraxa/taraxa-node
 
 RUN apt-get update \
