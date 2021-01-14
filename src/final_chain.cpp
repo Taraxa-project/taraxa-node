@@ -1,5 +1,7 @@
 #include "final_chain.hpp"
 
+#include "aleth/ChainDBImpl.h"
+
 namespace taraxa::final_chain {
 
 auto map_transactions(Transactions const& trxs) {
@@ -11,20 +13,14 @@ auto map_transactions(Transactions const& trxs) {
   });
 }
 
-struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
-  shared_ptr<aleth::Database> blk_db;
-  shared_ptr<aleth::Database> ext_db;
+struct FinalChainImpl : virtual FinalChain, virtual aleth::ChainDBImpl {
   StateAPI state_api;
   TransactionReceipts receipts_buf;
 
   FinalChainImpl(shared_ptr<DbStorage> db,
-                 Config const& config,     //
-                 decltype(blk_db) blk_db,  //
-                 decltype(ext_db) ext_db,  //
+                 Config const& config,  //
                  FinalChain::Opts const& opts)
-      : ChainDBImpl(blk_db, ext_db),
-        blk_db(move(blk_db)),
-        ext_db(move(ext_db)),
+      : ChainDBImpl(db),
         state_api([this](auto n) { return ChainDBImpl::hashFromNumber(n); },  //
                   config.state,
                   {
@@ -39,11 +35,10 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
     auto state_desc = state_api.get_last_committed_state_descriptor();
     if (!last_blk) {
       assert(state_desc.blk_num == 0);
-      auto batch = db->createWriteBatch();
-      auto exit_stack = append_block_prepare(batch);
-      append_block(config.genesis_block_fields.author, config.genesis_block_fields.timestamp, 0, state_desc.state_root,
-                   {}, {});
-      db->commitWriteBatch(batch);
+      auto b = db->createWriteBatch();
+      append_block(b, config.genesis_block_fields.author, config.genesis_block_fields.timestamp, 0,
+                   state_desc.state_root, {}, {});
+      db->commitWriteBatch(b);
       refresh_last_block();
       return;
     }
@@ -72,22 +67,13 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
     return {0, false};
   }
 
-  util::ExitStack append_block_prepare(DbStorage::BatchPtr const& batch) {
-    blk_db->setBatch(batch);
-    ext_db->setBatch(batch);
-    return [this] {
-      blk_db->setBatch(nullptr);
-      ext_db->setBatch(nullptr);
-    };
-  }
-
   shared_ptr<BlockHeader> get_last_block() const override { return ChainDBImpl::get_last_block(); }
 
   BlockNumber normalize_client_blk_n(optional<BlockNumber> const& client_blk_n) const {
     return client_blk_n ? *client_blk_n : last_block_number();
   }
 
-  AdvanceResult advance(DbStorage::BatchPtr batch, Address const& author, uint64_t timestamp,
+  AdvanceResult advance(DbStorage::Batch& b, Address const& author, uint64_t timestamp,
                         Transactions const& transactions) override {
     constexpr auto gas_limit = std::numeric_limits<uint64_t>::max();
     auto const& state_transition_result = state_api.transition_state(
@@ -111,9 +97,8 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
       receipts_buf.emplace_back(r.CodeErr.empty() && r.ConsensusErr.empty(), cumulative_gas_used += r.GasUsed,
                                 move(logs), r.NewContractAddr);
     }
-    auto exit_stack = append_block_prepare(batch);
     return {
-        append_block(author, timestamp, gas_limit, state_transition_result.StateRoot, transactions, receipts_buf),
+        append_block(b, author, timestamp, gas_limit, state_transition_result.StateRoot, transactions, receipts_buf),
         receipts_buf,
         state_transition_result,
     };
@@ -124,7 +109,7 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
     refresh_last_block();
   }
 
-  void create_snapshot(uint64_t const& period) override { state_api.create_snapshot(period); }
+  void create_state_db_snapshot(uint64_t const& period) override { state_api.create_snapshot(period); }
 
   optional<state_api::Account> get_account(addr_t const& addr, optional<BlockNumber> blk_n = nullopt) const override {
     return state_api.get_account(normalize_client_blk_n(blk_n), addr);
@@ -165,8 +150,7 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
 
 unique_ptr<FinalChain> NewFinalChain(shared_ptr<DbStorage> db, FinalChain::Config const& config,
                                      FinalChain::Opts const& opts) {
-  return u_ptr(new FinalChainImpl(db, config, aleth::NewDatabase(db, DbStorage::Columns::aleth_chain),
-                                  aleth::NewDatabase(db, DbStorage::Columns::aleth_chain_extras), opts));
+  return u_ptr(new FinalChainImpl(move(db), config, opts));
 }
 
 Json::Value enc_json(FinalChain::Config const& obj) {

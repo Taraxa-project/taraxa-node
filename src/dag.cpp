@@ -407,7 +407,7 @@ void DagManager::drawGraph(std::string const &dotfile) const {
 }
 
 void DagManager::addToDag(std::string const &hash, std::string const &pivot, std::vector<std::string> const &tips,
-                          uint64_t level, const taraxa::DbStorage::BatchPtr &write_batch, bool finalized) {
+                          uint64_t level, taraxa::DbStorage::Batch &write_batch, bool finalized) {
   total_dag_->addVEEs(hash, pivot, tips);
   pivot_tree_->addVEEs(hash, pivot, {});
   db_->addDagBlockStateToBatch(write_batch, blk_hash_t(hash), finalized);
@@ -493,10 +493,10 @@ std::pair<uint64_t, std::shared_ptr<vec_blk_t>> DagManager::getDagBlockOrder(blk
 }
 
 uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period, vec_blk_t const &dag_order,
-                                  const taraxa::DbStorage::BatchPtr &write_batch) {
+                                  taraxa::DbStorage::Batch &write_batch) {
   uLock lock(mutex_);
   LOG(log_dg_) << "setDagBlockOrder called with anchor " << new_anchor << " and period " << period;
-  db_->putFinalizedDagBlockHashesByAnchor(*write_batch, new_anchor, dag_order);
+  db_->putFinalizedDagBlockHashesByAnchor(write_batch, new_anchor, dag_order);
   if (period != period_ + 1) {
     LOG(log_er_) << " Inserting period (" << period << ") anchor " << new_anchor
                  << " does not match ..., previous internal period (" << period_ << ") " << anchor_;

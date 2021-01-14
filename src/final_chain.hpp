@@ -1,8 +1,7 @@
 #ifndef TARAXA_NODE_FINAL_CHAIN_HPP_
 #define TARAXA_NODE_FINAL_CHAIN_HPP_
 
-#include "aleth/ChainDBImpl.h"
-#include "aleth/database.hpp"
+#include "aleth/ChainDB.h"
 #include "db_storage.hpp"
 #include "replay_protection_service.hpp"
 #include "state_api.hpp"
@@ -36,11 +35,11 @@ struct FinalChain : virtual ChainDB {
     TransactionReceipts const& receipts;
     state_api::StateTransitionResult const& state_transition_result;
   };
-  virtual AdvanceResult advance(DbStorage::BatchPtr batch, Address const& author, uint64_t timestamp,
+  virtual AdvanceResult advance(DbStorage::Batch& batch, Address const& author, uint64_t timestamp,
                                 Transactions const& transactions) = 0;
   virtual shared_ptr<BlockHeader> get_last_block() const = 0;
   virtual void advance_confirm() = 0;
-  virtual void create_snapshot(uint64_t const& period) = 0;
+  virtual void create_state_db_snapshot(uint64_t const& period) = 0;
   virtual optional<state_api::Account> get_account(addr_t const& addr, optional<BlockNumber> blk_n = nullopt) const = 0;
   virtual u256 get_account_storage(addr_t const& addr, u256 const& key,
                                    optional<BlockNumber> blk_n = nullopt) const = 0;

@@ -120,9 +120,9 @@ struct BlockHash {
   static const unsigned size = 65;
 };
 
-struct TransactionAddress {
-  TransactionAddress() {}
-  TransactionAddress(dev::RLP const& _rlp) {
+struct TransactionLocation {
+  TransactionLocation() {}
+  TransactionLocation(dev::RLP const& _rlp) {
     blockHash = _rlp[0].toHash<h256>();
     index = _rlp[1].toInt<unsigned>();
   }
@@ -143,14 +143,14 @@ struct TransactionAddress {
 using BlockDetailsHash = std::unordered_map<h256, BlockDetails>;
 using BlockLogBloomsHash = std::unordered_map<h256, BlockLogBlooms>;
 using BlockReceiptsHash = std::unordered_map<h256, BlockReceipts>;
-using TransactionAddressHash = std::unordered_map<h256, TransactionAddress>;
+using TransactionAddressHash = std::unordered_map<h256, TransactionLocation>;
 using BlockHashHash = std::unordered_map<uint64_t, BlockHash>;
 using BlocksBloomsHash = std::unordered_map<h256, BlocksBlooms>;
 
 static const BlockDetails NullBlockDetails;
 static const BlockLogBlooms NullBlockLogBlooms;
 static const BlockReceipts NullBlockReceipts;
-static const TransactionAddress NullTransactionAddress;
+static const TransactionLocation NullTransactionAddress;
 static const BlockHash NullBlockHash;
 static const BlocksBlooms NullBlocksBlooms;
 

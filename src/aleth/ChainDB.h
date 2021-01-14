@@ -11,7 +11,6 @@
 #include "LocalizedTransaction.h"
 #include "LogFilter.h"
 #include "TransactionReceipt.h"
-#include "db.h"
 
 namespace taraxa::aleth {
 

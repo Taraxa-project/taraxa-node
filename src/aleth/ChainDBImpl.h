@@ -6,45 +6,29 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "BlockDetails.h"
+#include "BlockHeader.h"
 #include "ChainDB.h"
-
-namespace std {
-template <>
-struct hash<pair<dev::h256, unsigned>> {
-  size_t operator()(pair<dev::h256, unsigned> const& _x) const {
-    return hash<dev::h256>()(_x.first) ^ hash<unsigned>()(_x.second);
-  }
-};
-}  // namespace std
+#include "LocalizedTransaction.h"
+#include "LogEntry.h"
+#include "LogFilter.h"
+#include "TransactionReceipt.h"
+#include "db_storage.hpp"
 
 namespace taraxa::aleth {
 
-static const h256s NullH256s;
-
-Slice toSlice(h256 const& _h, unsigned _sub = 0);
-Slice toSlice(uint64_t _n, unsigned _sub = 0);
-
-enum { ExtraDetails = 0, ExtraBlockHash, ExtraTransactionAddress, ExtraLogBlooms, ExtraReceipts, ExtraBlocksBlooms };
-
-/**
- * @brief Implements the blockchain database. All data this gives is
- * disk-backed.
- * @threadsafe
- */
-class ChainDBImpl : public virtual ChainDB {
-  /// Hash of the last (valid) block on the longest chain.
+class ChainDBImpl : virtual ChainDB {
   mutable boost::shared_mutex last_block_mu_;
   mutable std::shared_ptr<BlockHeader> last_block_;
 
-  std::shared_ptr<DatabaseFace> blocks_db_;
-  std::shared_ptr<DatabaseFace> extras_db_;
+  std::shared_ptr<DbStorage> db_;
 
  public:
-  ChainDBImpl(decltype(blocks_db_) db_blocks,  //
-              decltype(extras_db_) db_extras);
+  ChainDBImpl(decltype(db_) db);
 
-  BlockHeader append_block(Address const& author, uint64_t timestamp, uint64_t gas_limit, h256 const& state_root,
-                           Transactions const& transactions, TransactionReceipts const& receipts);
+  BlockHeader append_block(DbStorage::Batch& b, Address const& author, uint64_t timestamp, uint64_t gas_limit,
+                           h256 const& state_root, Transactions const& transactions,
+                           TransactionReceipts const& receipts);
   void refresh_last_block();
 
   auto get_last_block() const {
@@ -53,7 +37,9 @@ class ChainDBImpl : public virtual ChainDB {
   }
   BlockNumber last_block_number() const { return get_last_block()->number(); }
   /// Get the hash for a given block's number.
-  h256 hashFromNumber(BlockNumber _i) const { return queryExtras<BlockHash, BlockNumber, ExtraBlockHash>(_i).value; }
+  h256 hashFromNumber(BlockNumber _i) const {
+    return queryExtras<BlockHash>(DbStorage::Columns::final_chain_block_number_to_hash, _i).value;
+  }
   /// Returns true if the given block is known (though not necessarily a part of
   /// the canon chain).
   bool isKnown(BlockNumber _block) const;
@@ -65,26 +51,30 @@ class ChainDBImpl : public virtual ChainDB {
   /// Get the familial details concerning a block (or the most recent mined if
   /// none given). Thread-safe.
   BlockDetails blockDetails(BlockNumber n) const { return blockDetails(hashFromNumber(n)); }
-  BlockDetails blockDetails(h256 const& _hash) const { return queryExtras<BlockDetails, ExtraDetails>(_hash); }
+  BlockDetails blockDetails(h256 const& _hash) const {
+    return queryExtras<BlockDetails>(DbStorage::Columns::final_chain_block_details, _hash);
+  }
 
   /// Get the transactions' receipts of a block (or the most recent mined if
   /// none given). Thread-safe. receipts are given in the same order are in the
   /// same order as the transactions
-  BlockReceipts receipts(h256 const& _hash) const { return queryExtras<BlockReceipts, ExtraReceipts>(_hash); }
+  BlockReceipts receipts(h256 const& _hash) const {
+    return queryExtras<BlockReceipts>(DbStorage::Columns::final_chain_receipts, _hash);
+  }
   /// Get the transaction by block hash and index;
   TransactionReceipt transactionReceipt(h256 const& _blockHash, unsigned _i) const {
     return receipts(_blockHash).receipts[_i];
   }
   /// Get the transaction receipt by transaction hash. Thread-safe.
   TransactionReceipt transactionReceipt(h256 const& _transactionHash) const {
-    auto ta = queryExtras<TransactionAddress, ExtraTransactionAddress>(_transactionHash);
+    auto ta = queryExtras<TransactionLocation>(DbStorage::Columns::final_chain_transaction_locations, _transactionHash);
     if (!ta) return bytesConstRef();
     return transactionReceipt(ta.blockHash, ta.index);
   }
 
   /// Returns true if transaction is known. Thread-safe
   bool isKnownTransaction(h256 const& _transactionHash) const {
-    return !!queryExtras<TransactionAddress, ExtraTransactionAddress>(_transactionHash);
+    return !!queryExtras<TransactionLocation>(DbStorage::Columns::final_chain_transaction_locations, _transactionHash);
   }
   bool isKnownTransaction(unsigned _i, BlockNumber n) const { return isKnownTransaction(hashFromNumber(n), _i); }
   bool isKnownTransaction(h256 const& _blockHash, unsigned _i) const;
@@ -167,7 +157,7 @@ class ChainDBImpl : public virtual ChainDB {
    */
   BlocksBlooms blocksBlooms(unsigned _level, unsigned _index) const { return blocksBlooms(chunkId(_level, _index)); }
   BlocksBlooms blocksBlooms(h256 const& _chunkId) const {
-    return queryExtras<BlocksBlooms, ExtraBlocksBlooms>(_chunkId);
+    return queryExtras<BlocksBlooms>(DbStorage::Columns::final_chain_log_blooms_index, _chunkId);
   }
   std::vector<unsigned> withBlockBloom(LogBloom const& _b, unsigned _earliest, unsigned _latest) const;
   std::vector<unsigned> withBlockBloom(LogBloom const& _b, unsigned _earliest, unsigned _latest, unsigned _topLevel,
@@ -175,7 +165,9 @@ class ChainDBImpl : public virtual ChainDB {
   static h256 chunkId(unsigned _level, unsigned _index) { return h256(_index * 0xff + _level); }
   /// Get the transactions' log blooms of a block (or the most recent mined if
   /// none given). Thread-safe.
-  BlockLogBlooms logBlooms(h256 const& _hash) const { return queryExtras<BlockLogBlooms, ExtraLogBlooms>(_hash); }
+  BlockLogBlooms logBlooms(h256 const& _hash) const {
+    return queryExtras<BlockLogBlooms>(DbStorage::Columns::final_chain_log_blooms_index, _hash);
+  }
   void prependLogsFromBlock(LogFilter const& _filter, h256 const& _blockHash, LocalisedLogEntries& io_logs) const;
 
   /// Get a block's transaction (RLP format) for the given block hash (or the
@@ -185,26 +177,21 @@ class ChainDBImpl : public virtual ChainDB {
   }
   /// Get a transaction from its hash. Thread-safe.
   bytes transaction_raw(h256 const& _transactionHash) const {
-    auto ta = queryExtras<TransactionAddress, ExtraTransactionAddress>(_transactionHash);
+    auto ta = queryExtras<TransactionLocation>(DbStorage::Columns::final_chain_transaction_locations, _transactionHash);
     if (!ta) return bytes();
     return transaction_raw(ta.blockHash, ta.index);
   }
   std::pair<h256, unsigned> transactionLocation(h256 const& _transactionHash) const {
-    auto ta = queryExtras<TransactionAddress, ExtraTransactionAddress>(_transactionHash);
+    auto ta = queryExtras<TransactionLocation>(DbStorage::Columns::final_chain_transaction_locations, _transactionHash);
     if (!ta) return std::pair<h256, unsigned>(h256(), 0);
     return std::make_pair(ta.blockHash, ta.index);
   }
 
-  template <class T, class K, unsigned N>
-  T queryExtras(K const& _h) const {
-    auto s = extras_db_->lookup(toSlice(_h, N));
+  template <class T, class K>
+  T queryExtras(DbStorage::Column const& col, K const& k) const {
+    auto s = db_->lookup(k, col);
     if (s.empty()) return T();
     return T(dev::RLP(s));
-  }
-
-  template <class T, unsigned N>
-  T queryExtras(h256 const& _h) const {
-    return queryExtras<T, h256, N>(_h);
   }
 };
 

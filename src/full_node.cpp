@@ -71,7 +71,9 @@ void FullNode::init() {
     }
 
     if (db_->getNumDagBlocks() == 0) {
-      db_->saveDagBlock(conf_.chain.dag_genesis_block);
+      auto b = db_->createWriteBatch();
+      db_->saveDagBlock(conf_.chain.dag_genesis_block, b);
+      db_->commitWriteBatch(b);
     }
   }
   LOG(log_nf_) << "DB initialized ...";

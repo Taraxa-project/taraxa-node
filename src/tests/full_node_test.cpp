@@ -81,9 +81,11 @@ TEST_F(FullNodeTest, db_test) {
   DagBlock blk2(blk_hash_t(1), 1, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(777), blk_hash_t(0xB2), addr_t(999));
   DagBlock blk3(blk_hash_t(0xB1), 2, {}, {trx_hash_t(5)}, sig_t(777), blk_hash_t(0xB6), addr_t(999));
   // DAG
-  db.saveDagBlock(blk1);
-  db.saveDagBlock(blk2);
-  db.saveDagBlock(blk3);
+  auto b = db.createWriteBatch();
+  db.saveDagBlock(blk1, b);
+  db.saveDagBlock(blk2, b);
+  db.saveDagBlock(blk3, b);
+  db.commitWriteBatch(b);
   EXPECT_EQ(blk1, *db.getDagBlock(blk1.getHash()));
   EXPECT_EQ(blk2, *db.getDagBlock(blk2.getHash()));
   EXPECT_EQ(blk3, *db.getDagBlock(blk3.getHash()));

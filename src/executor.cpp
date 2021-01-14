@@ -6,7 +6,7 @@ namespace taraxa {
 
 struct ReplayProtectionServiceDummy : ReplayProtectionService {
   bool is_nonce_stale(addr_t const &addr, uint64_t nonce) const override { return false; }
-  void update(DbStorage::BatchPtr batch, round_t round, util::RangeView<TransactionInfo> const &trxs) override {}
+  void update(DbStorage::Batch &batch, round_t round, util::RangeView<TransactionInfo> const &trxs) override {}
 };
 
 Executor::Executor(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<DagManager> dag_mgr,
@@ -112,7 +112,7 @@ void Executor::executePbftBlocks_() {
           continue;
         }
         static string const dummy_val = "_";
-        db_->batch_put(*batch, DbStorage::Columns::executed_transactions, trx.getHash(), dummy_val);
+        db_->batch_put(batch, DbStorage::Columns::executed_transactions, trx.getHash(), dummy_val);
       }
     }
 
@@ -168,7 +168,7 @@ void Executor::executePbftBlocks_() {
 
     // Creates snapshot if needed
     if (db_->createSnapshot(pbft_period)) {
-      final_chain_->create_snapshot(pbft_period);
+      final_chain_->create_state_db_snapshot(pbft_period);
     }
 
     // Ethereum filter

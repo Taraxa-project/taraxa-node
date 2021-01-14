@@ -321,7 +321,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
   node1->getBlockManager()->insertBlock(blk1);
 
   PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), period, beneficiary, node1->getSecretKey());
-  db1->putFinalizedDagBlockHashesByAnchor(*batch, pbft_block1.getPivotDagBlockHash(),
+  db1->putFinalizedDagBlockHashesByAnchor(batch, pbft_block1.getPivotDagBlockHash(),
                                           {pbft_block1.getPivotDagBlockHash()});
   std::vector<Vote> votes_for_pbft_blk1;
   votes_for_pbft_blk1.emplace_back(
@@ -357,7 +357,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
   period = 2;
   beneficiary = addr_t(654);
   PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), 2, beneficiary, node1->getSecretKey());
-  db1->putFinalizedDagBlockHashesByAnchor(*batch, pbft_block2.getPivotDagBlockHash(),
+  db1->putFinalizedDagBlockHashesByAnchor(batch, pbft_block2.getPivotDagBlockHash(),
                                           {pbft_block2.getPivotDagBlockHash()});
 
   std::vector<Vote> votes_for_pbft_blk2;
@@ -445,7 +445,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   node1->getBlockManager()->insertBlock(blk1);
 
   PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), period, beneficiary, node1->getSecretKey());
-  db1->putFinalizedDagBlockHashesByAnchor(*batch, pbft_block1.getPivotDagBlockHash(),
+  db1->putFinalizedDagBlockHashesByAnchor(batch, pbft_block1.getPivotDagBlockHash(),
                                           {pbft_block1.getPivotDagBlockHash()});
   std::vector<Vote> votes_for_pbft_blk1;
   votes_for_pbft_blk1.emplace_back(
@@ -483,7 +483,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   beneficiary = addr_t(654);
 
   PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), period, beneficiary, node1->getSecretKey());
-  db1->putFinalizedDagBlockHashesByAnchor(*batch, pbft_block2.getPivotDagBlockHash(),
+  db1->putFinalizedDagBlockHashesByAnchor(batch, pbft_block2.getPivotDagBlockHash(),
                                           {pbft_block2.getPivotDagBlockHash()});
   std::cout << "Use fake votes for the second PBFT block" << std::endl;
   // node1 put block2 into pbft chain and use fake votes storing into DB (malicious player)

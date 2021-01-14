@@ -69,7 +69,7 @@ struct PendingBlockImpl : PendingBlock {
     });
   }
 
-  void advance(DbStorage::BatchPtr batch, h256 const& curr_block_hash,
+  void advance(DbStorage::Batch& batch, h256 const& curr_block_hash,
                RangeView<h256> const& executed_trx_hashes) override {
     unique_lock l(mu);
     BlockHeaderFields header_fields;

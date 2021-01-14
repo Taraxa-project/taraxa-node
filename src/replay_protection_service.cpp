@@ -41,7 +41,7 @@ struct SenderState {
   }
 };
 
-rocksdb::Slice db_slice(dev::bytes const& b) { return {(char*)b.data(), b.size()}; }
+DbStorage::Slice db_slice(dev::bytes const& b) { return {(char*)b.data(), b.size()}; }
 
 struct ReplayProtectionServiceImpl : virtual ReplayProtectionService {
   Config config;
@@ -59,7 +59,7 @@ struct ReplayProtectionServiceImpl : virtual ReplayProtectionService {
   }
 
   // TODO use binary types instead of hex strings
-  void update(DbStorage::BatchPtr batch, round_t round, RangeView<TransactionInfo> const& trxs) override {
+  void update(DbStorage::Batch& batch, round_t round, RangeView<TransactionInfo> const& trxs) override {
     unique_lock l(mu);
     unordered_map<string, shared_ptr<SenderState>> sender_states;
     sender_states.reserve(trxs.size);

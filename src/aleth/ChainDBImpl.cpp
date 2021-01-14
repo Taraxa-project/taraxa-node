@@ -6,67 +6,28 @@
 #include <libdevcore/FixedHash.h>
 #include <libdevcore/RLP.h>
 
-#include <boost/filesystem.hpp>
-
 #include "BlockHeader.h"
 #include "Exceptions.h"
 #include "TrieHash.h"
 
-#define ETH_TIMED_IMPORTS 1
-
 namespace taraxa::aleth {
 using namespace ::std;
 using namespace ::dev;
-namespace fs = boost::filesystem;
 
-std::string const LAST_BLOCK_KEY_STRING("last");
-Slice const LAST_BLOCK_KEY(LAST_BLOCK_KEY_STRING);
+std::string const LAST_BLOCK_KEY("final_chain_last_block_hash");
 
-Slice toSlice(h256 const& _h, unsigned _sub) {
-#if ALL_COMPILERS_ARE_CPP11_COMPLIANT
-  static thread_local FixedHash<33> h = _h;
-  h[32] = (uint8_t)_sub;
-  return (Slice)h.ref();
-#else
-  static boost::thread_specific_ptr<FixedHash<33> > t_h;
-  if (!t_h.get()) t_h.reset(new FixedHash<33>);
-  *t_h = FixedHash<33>(_h);
-  (*t_h)[32] = (uint8_t)_sub;
-  return (Slice)t_h->ref();
-#endif  // ALL_COMPILERS_ARE_CPP11_COMPLIANT
-}
-
-Slice toSlice(uint64_t _n, unsigned _sub) {
-#if ALL_COMPILERS_ARE_CPP11_COMPLIANT
-  static thread_local FixedHash<33> h;
-  toBigEndian(_n, bytesRef(h.data() + 24, 8));
-  h[32] = (uint8_t)_sub;
-  return (Slice)h.ref();
-#else
-  static boost::thread_specific_ptr<FixedHash<33> > t_h;
-  if (!t_h.get()) t_h.reset(new FixedHash<33>);
-  bytesRef ref(t_h->data() + 24, 8);
-  toBigEndian(_n, ref);
-  (*t_h)[32] = (uint8_t)_sub;
-  return (Slice)t_h->ref();
-#endif
-}
-
-ChainDBImpl::ChainDBImpl(decltype(blocks_db_) db_blocks, decltype(extras_db_) db_extras)
-    : blocks_db_(std::move(db_blocks)), extras_db_(std::move(db_extras)) {
-  refresh_last_block();
-}
+ChainDBImpl::ChainDBImpl(decltype(db_) db) : db_(std::move(db)) { refresh_last_block(); }
 
 void ChainDBImpl::refresh_last_block() {
-  if (auto h = extras_db_->lookup(LAST_BLOCK_KEY); !h.empty()) {
+  if (auto h = db_->lookup(LAST_BLOCK_KEY, DbStorage::Columns::default_column); !h.empty()) {
     WriteGuard l(last_block_mu_);
     auto hash = h256(h, h256::FromBinary);
     last_block_ = std::make_shared<BlockHeader>(blockHeader(hash));
   }
 }
 
-BlockHeader ChainDBImpl::append_block(Address const& author, uint64_t timestamp, uint64_t gas_limit,
-                                      h256 const& state_root, Transactions const& transactions,
+BlockHeader ChainDBImpl::append_block(DbStorage::Batch& b, Address const& author, uint64_t timestamp,
+                                      uint64_t gas_limit, h256 const& state_root, Transactions const& transactions,
                                       TransactionReceipts const& receipts) {
   BlockHeaderFields header;
   auto last_block = get_last_block();
@@ -99,26 +60,26 @@ BlockHeader ChainDBImpl::append_block(Address const& author, uint64_t timestamp,
   auto const& block_bytes = block_rlp_stream.out();
   auto const& header_bytes = RLP(block_bytes)[0].data();
   auto const& blk_hash = sha3(header_bytes);
-  blocks_db_->insert(toSlice(blk_hash), slice_from_slice_like(block_bytes));
+  db_->batch_put(b, DbStorage::Columns::final_chain_blocks, blk_hash, block_bytes);
   BlockDetails details(header.m_number, 0, header.m_parentHash, header_bytes.size());
-  extras_db_->insert(toSlice(blk_hash, ExtraDetails), slice_from_slice_like(details.rlp()));
-  extras_db_->insert(toSlice(blk_hash, ExtraLogBlooms), slice_from_slice_like(blb.rlp()));
-  extras_db_->insert(toSlice(blk_hash, ExtraReceipts), slice_from_slice_like(receipts_rlp.out()));
+  db_->batch_put(b, DbStorage::Columns::final_chain_block_details, blk_hash, details.rlp());
+  db_->batch_put(b, DbStorage::Columns::final_chain_log_blooms, blk_hash, blb.rlp());
+  db_->batch_put(b, DbStorage::Columns::final_chain_receipts, blk_hash, receipts_rlp.out());
   header.m_logBloom.shiftBloom<3>(sha3(header.m_author.ref()));
   for (uint64_t level = 0, index = header.m_number; level < c_bloomIndexLevels; level++, index /= c_bloomIndexSize) {
     auto h = chunkId(level, index / c_bloomIndexSize);
     auto bb = blocksBlooms(h);
     bb.blooms[index % c_bloomIndexSize] |= header.m_logBloom;
-    extras_db_->insert(toSlice(h, ExtraBlocksBlooms), slice_from_slice_like(bb.rlp()));
+    db_->batch_put(b, DbStorage::Columns::final_chain_log_blooms_index, h, bb.rlp());
   }
-  TransactionAddress ta;
+  TransactionLocation ta;
   ta.blockHash = blk_hash;
   for (auto const& trx : transactions) {
-    extras_db_->insert(toSlice(trx.getHash(), ExtraTransactionAddress), slice_from_slice_like(ta.rlp()));
+    db_->batch_put(b, DbStorage::Columns::final_chain_transaction_locations, trx.getHash(), ta.rlp());
     ta.index++;
   }
-  extras_db_->insert(toSlice(h256(header.m_number), ExtraBlockHash), slice_from_slice_like(BlockHash(blk_hash).rlp()));
-  extras_db_->insert(LAST_BLOCK_KEY, Slice(blk_hash.ref()));
+  db_->batch_put(b, DbStorage::Columns::final_chain_block_number_to_hash, header.m_number, BlockHash(blk_hash).rlp());
+  db_->batch_put(b, DbStorage::Columns::default_column, LAST_BLOCK_KEY, blk_hash);
   return {header, blk_hash};
 }
 
@@ -240,9 +201,13 @@ vector<unsigned> ChainDBImpl::withBlockBloom(LogBloom const& _b, unsigned _earli
   return ret;
 }
 
-bool ChainDBImpl::isKnown(h256 const& _hash) const { return !blocks_db_->lookup(toSlice(_hash)).empty(); }
+bool ChainDBImpl::isKnown(h256 const& _hash) const {
+  return !db_->lookup(_hash, DbStorage::Columns::final_chain_blocks).empty();
+}
 
-std::string ChainDBImpl::block(h256 const& _hash) const { return blocks_db_->lookup(toSlice(_hash)); }
+std::string ChainDBImpl::block(h256 const& _hash) const {
+  return db_->lookup(_hash, DbStorage::Columns::final_chain_blocks);
+}
 
 LocalisedLogEntries ChainDBImpl::logs(LogFilter const& _f) const {
   LocalisedLogEntries ret;

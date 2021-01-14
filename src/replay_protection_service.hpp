@@ -21,7 +21,7 @@ struct ReplayProtectionService {
     addr_t sender;
     uint64_t nonce = 0;
   };
-  virtual void update(DbStorage::BatchPtr batch, round_t round, util::RangeView<TransactionInfo> const& trxs) = 0;
+  virtual void update(DbStorage::Batch& batch, round_t round, util::RangeView<TransactionInfo> const& trxs) = 0;
 };
 
 std::unique_ptr<ReplayProtectionService> NewReplayProtectionService(ReplayProtectionService::Config config,

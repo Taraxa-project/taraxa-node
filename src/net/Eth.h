@@ -8,10 +8,9 @@
 #include <optional>
 
 #include "EthFace.h"
-#include "aleth/ChainDB.h"
 #include "aleth/Common.h"
 #include "aleth/CommonNet.h"
-#include "aleth/LocalizedTransaction.h"
+#include "final_chain.hpp"
 
 namespace taraxa::net {
 
@@ -20,9 +19,9 @@ struct Eth : EthFace {
   struct NodeAPI {
     virtual ~NodeAPI() {}
     virtual uint64_t chain_id() const = 0;
-    virtual ::taraxa::aleth::SyncStatus syncStatus() const = 0;
+    virtual aleth::SyncStatus syncStatus() const = 0;
     virtual dev::Address const& address() const = 0;
-    virtual dev::h256 importTransaction(::taraxa::aleth::TransactionSkeleton const& _t) = 0;
+    virtual dev::h256 importTransaction(aleth::TransactionSkeleton const& _t) = 0;
     virtual dev::h256 importTransaction(dev::bytes&& rlp) = 0;
   };
   struct FilterAPI {
@@ -30,14 +29,14 @@ struct Eth : EthFace {
 
     virtual ~FilterAPI() {}
 
-    virtual std::optional<::taraxa::aleth::LogFilter> getLogFilter(FilterID id) const = 0;
+    virtual std::optional<aleth::LogFilter> getLogFilter(FilterID id) const = 0;
     virtual FilterID newBlockFilter() = 0;
     virtual FilterID newPendingTransactionFilter() = 0;
-    virtual FilterID newLogFilter(::taraxa::aleth::LogFilter const& _filter) = 0;
+    virtual FilterID newLogFilter(aleth::LogFilter const& _filter) = 0;
     virtual bool uninstallFilter(FilterID id) = 0;
 
     struct Consumer {
-      std::function<void(::taraxa::aleth::LocalisedLogEntries const&)> onLogFilterChanges;
+      std::function<void(aleth::LocalisedLogEntries const&)> onLogFilterChanges;
       std::function<void(dev::h256s const&)> onPendingTransactionFilterChanges;
       std::function<void(dev::h256s const&)> onBlockFilterChanges;
     };
@@ -46,26 +45,24 @@ struct Eth : EthFace {
   struct StateAPI {
     virtual ~StateAPI() {}
 
-    virtual dev::bytes call(::taraxa::aleth::BlockNumber _blockNumber,
-                            ::taraxa::aleth::TransactionSkeleton const& trx) const = 0;
-    virtual uint64_t estimateGas(::taraxa::aleth::BlockNumber _blockNumber,
-                                 ::taraxa::aleth::TransactionSkeleton const& trx) const = 0;
-    virtual dev::u256 balanceAt(dev::Address _a, ::taraxa::aleth::BlockNumber _block) const = 0;
-    virtual uint64_t nonceAt(dev::Address _a, ::taraxa::aleth::BlockNumber _block) const = 0;
-    virtual dev::bytes codeAt(dev::Address _a, ::taraxa::aleth::BlockNumber _block) const = 0;
-    virtual dev::h256 stateRootAt(dev::Address _a, ::taraxa::aleth::BlockNumber _block) const = 0;
-    virtual dev::u256 stateAt(dev::Address _a, dev::u256 _l, ::taraxa::aleth::BlockNumber _block) const = 0;
+    virtual dev::bytes call(aleth::BlockNumber _blockNumber, aleth::TransactionSkeleton const& trx) const = 0;
+    virtual uint64_t estimateGas(aleth::BlockNumber _blockNumber, aleth::TransactionSkeleton const& trx) const = 0;
+    virtual dev::u256 balanceAt(dev::Address _a, aleth::BlockNumber _block) const = 0;
+    virtual uint64_t nonceAt(dev::Address _a, aleth::BlockNumber _block) const = 0;
+    virtual dev::bytes codeAt(dev::Address _a, aleth::BlockNumber _block) const = 0;
+    virtual dev::h256 stateRootAt(dev::Address _a, aleth::BlockNumber _block) const = 0;
+    virtual dev::u256 stateAt(dev::Address _a, dev::u256 _l, aleth::BlockNumber _block) const = 0;
   };
   struct PendingBlock {
     virtual ~PendingBlock() {}
 
-    virtual ::taraxa::aleth::BlockDetails details() const = 0;
+    virtual aleth::BlockDetails details() const = 0;
     virtual uint64_t transactionsCount() const = 0;
     virtual uint64_t transactionsCount(dev::Address const& from) const = 0;
     virtual Transactions transactions() const = 0;
     virtual std::optional<Transaction> transaction(unsigned index) const = 0;
     virtual dev::h256s transactionHashes() const = 0;
-    virtual ::taraxa::aleth::BlockHeader header() const = 0;
+    virtual aleth::BlockHeader header() const = 0;
   };
 
  private:
@@ -73,7 +70,7 @@ struct Eth : EthFace {
   std::shared_ptr<FilterAPI> filter_api;
   std::shared_ptr<StateAPI> state_api;
   std::shared_ptr<PendingBlock> pending_block;
-  std::shared_ptr<::taraxa::aleth::ChainDB> chain_db;
+  std::shared_ptr<FinalChain> chain_db;
   GasPricer gas_pricer;
 
  public:
@@ -131,15 +128,15 @@ struct Eth : EthFace {
   virtual Json::Value eth_chainId() override;
 
  private:
-  uint64_t transaction_count(std::optional<::taraxa::aleth::BlockNumber> n, dev::Address const& addr);
+  uint64_t transaction_count(std::optional<aleth::BlockNumber> n, dev::Address const& addr);
 
-  void populateTransactionWithDefaults(::taraxa::aleth::TransactionSkeleton& _t,
-                                       std::optional<::taraxa::aleth::BlockNumber> blk_n = std::nullopt);
-  std::optional<::taraxa::aleth::BlockNumber> jsToBlockNumber(
-      std::string const& _js, std::optional<::taraxa::aleth::BlockNumber> latest_block = std::nullopt);
-  ::taraxa::aleth::BlockNumber jsToBlockNumberPendingAsLatest(
-      std::string const& js, std::optional<::taraxa::aleth::BlockNumber> latest_block = std::nullopt);
-  ::taraxa::aleth::LogFilter toLogFilter(Json::Value const& _json);
+  void populateTransactionWithDefaults(aleth::TransactionSkeleton& _t,
+                                       std::optional<aleth::BlockNumber> blk_n = std::nullopt);
+  std::optional<aleth::BlockNumber> jsToBlockNumber(std::string const& _js,
+                                                    std::optional<aleth::BlockNumber> latest_block = std::nullopt);
+  aleth::BlockNumber jsToBlockNumberPendingAsLatest(std::string const& js,
+                                                    std::optional<aleth::BlockNumber> latest_block = std::nullopt);
+  aleth::LogFilter toLogFilter(Json::Value const& _json);
 };
 
 }  // namespace taraxa::net
