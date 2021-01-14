@@ -160,11 +160,13 @@ fmtcheck:
 	$(FILES_CXX_PRINT) | scripts/clang_format_validate.sh
 
 # run static analysis on all non-test files
+# TODO remove src/aleth suppression after the refactoring in that package
 lint:
 	@echo Running cppcheck...
 	$(FILES_CXX_PRINT) | \
       grep -v ".*$(TEST_SRC_QUALIFIER)*" | \
       cppcheck \
+      	--suppress='*:*/src/aleth/*' \
         --file-list=- \
         --error-exitcode=1 \
         --enable=warning,style,performance,portability,information \
