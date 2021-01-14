@@ -64,9 +64,9 @@ struct PendingBlockImpl : PendingBlock {
   }
 
   void add_transactions(RangeView<h256> const& pending_trx_hashes) override {
-    pending_trx_hashes.for_each([&, this](auto const& h) {
-      db->insert(DbStorage::Columns::pending_transactions, DbStorage::toSlice(h.ref()), "_");
-    });
+    static string const dummy_val = "_";
+    pending_trx_hashes.for_each(
+        [&, this](auto const& h) { db->insert(DbStorage::Columns::pending_transactions, h, dummy_val); });
   }
 
   void advance(DbStorage::Batch& batch, h256 const& curr_block_hash,
@@ -79,7 +79,7 @@ struct PendingBlockImpl : PendingBlock {
     header_fields.m_timestamp = dev::utcTime();
     block_header = BlockHeader(header_fields);
     executed_trx_hashes.for_each([&, this](auto const& h) {
-      db->batch_delete(batch, DbStorage::Columns::pending_transactions, DbStorage::toSlice(h.ref()));
+      batch.remove(DbStorage::Columns::pending_transactions, DbStorage::toSlice(h.ref()));
     });
   }
 };

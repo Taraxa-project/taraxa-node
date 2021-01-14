@@ -1222,18 +1222,18 @@ bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes) {
 
   auto batch = db_->createWriteBatch();
   // Add cert votes in DB
-  db_->addPbftCertVotesToBatch(pbft_block_hash, cert_votes, batch);
+  batch.addPbftCertVotes(pbft_block_hash, cert_votes);
   LOG(log_nf_) << "Storing cert votes of pbft blk " << pbft_block_hash << "\n" << cert_votes;
   // Add period_pbft_block in DB
-  db_->addPbftBlockPeriodToBatch(pbft_period, pbft_block_hash, batch);
+  batch.addPbftBlockPeriod(pbft_period, pbft_block_hash);
   // Add PBFT block in DB
-  db_->addPbftBlockToBatch(*pbft_block, batch);
+  batch.addPbftBlock(*pbft_block);
   // update PBFT chain size
   pbft_chain_->updatePbftChain(pbft_block_hash);
   // Update PBFT chain head block
-  db_->addPbftHeadToBatch(pbft_chain_->getHeadHash(), pbft_chain_->getJsonStr(), batch);
+  batch.addPbftHead(pbft_chain_->getHeadHash(), pbft_chain_->getJsonStr());
   // Commit DB
-  db_->commitWriteBatch(batch);
+  batch.commit();
   LOG(log_nf_) << node_addr_ << " successful push unexecuted pbft block " << pbft_block_hash << " in period "
                << pbft_period << " into chain! In round " << getPbftRound();
 

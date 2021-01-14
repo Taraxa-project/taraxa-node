@@ -173,10 +173,10 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(DagBlock const &blk,
   if (!some_trxs.empty()) {
     auto trx_batch = db_->createWriteBatch();
     for (auto const &trx : some_trxs) {
-      db_->addTransactionToBatch(trx, trx_batch);
+      trx_batch.addTransaction(trx);
       known_trx_hashes.erase(trx.getHash());
     }
-    db_->commitWriteBatch(trx_batch);
+    trx_batch.commit();
   }
 
   bool all_transactions_saved = true;
@@ -205,11 +205,11 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(DagBlock const &blk,
           event_transaction_accepted.pub(trx);
         }
         trx_count_.fetch_add(1);
-        db_->addTransactionStatusToBatch(trx_batch, trx, TransactionStatus::in_block);
+        trx_batch.addTransactionStatus(trx, TransactionStatus::in_block);
       }
       auto trx_count = trx_count_.load();
-      db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_count, trx_batch);
-      db_->commitWriteBatch(trx_batch);
+      trx_batch.addStatusField(StatusDbField::TrxCount, trx_count);
+      trx_batch.commit();
     }
   } else {
     LOG(log_er_) << " Missing transaction - FAILED block verification " << missing_trx;
@@ -308,7 +308,7 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx, uint16_t max_trx_
       auto status = db_->getTransactionStatus(hash);
       if (status == TransactionStatus::in_queue_verified) {
         // Skip if transaction is already in existing block
-        db_->addTransactionStatusToBatch(trx_batch, hash, TransactionStatus::in_block);
+        trx_batch.addTransactionStatus(hash, TransactionStatus::in_block);
         trx_count_.fetch_add(1);
         changed = true;
         LOG(log_dg_) << "Trx: " << hash << " ready to pack" << std::endl;
@@ -319,8 +319,8 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx, uint16_t max_trx_
 
     if (changed) {
       auto trx_count = trx_count_.load();
-      db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_count, trx_batch);
-      db_->commitWriteBatch(trx_batch);
+      trx_batch.addStatusField(StatusDbField::TrxCount, trx_count);
+      trx_batch.commit();
     }
   }
 

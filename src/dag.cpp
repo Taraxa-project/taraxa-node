@@ -371,7 +371,7 @@ void DagManager::addDagBlock(DagBlock const &blk, bool finalized, bool save) {
   {
     uLock lock(mutex_);
     if (save) {
-      db_->saveDagBlock(blk, write_batch);
+      write_batch.saveDagBlock(blk);
     }
     auto blk_hash = blk.getHash();
     auto blk_hash_str = blk_hash.toString();
@@ -394,7 +394,7 @@ void DagManager::addDagBlock(DagBlock const &blk, bool finalized, bool save) {
     for (auto const &t : ts) {
       frontier_.tips.emplace_back(blk_hash_t(t));
     }
-    db_->commitWriteBatch(write_batch);
+    write_batch.commit();
   }
   LOG(log_dg_) << " Update frontier after adding block " << blk.getHash() << "anchor " << anchor_
                << " pivot = " << frontier_.pivot << " tips: " << frontier_.tips;
@@ -410,7 +410,7 @@ void DagManager::addToDag(std::string const &hash, std::string const &pivot, std
                           uint64_t level, taraxa::DbStorage::Batch &write_batch, bool finalized) {
   total_dag_->addVEEs(hash, pivot, tips);
   pivot_tree_->addVEEs(hash, pivot, {});
-  db_->addDagBlockStateToBatch(write_batch, blk_hash_t(hash), finalized);
+  write_batch.addDagBlockState(blk_hash_t(hash), finalized);
   if (finalized) {
     finalized_blks_[level].push_back(hash);
   } else {
@@ -496,7 +496,7 @@ uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period,
                                   taraxa::DbStorage::Batch &write_batch) {
   uLock lock(mutex_);
   LOG(log_dg_) << "setDagBlockOrder called with anchor " << new_anchor << " and period " << period;
-  db_->putFinalizedDagBlockHashesByAnchor(write_batch, new_anchor, dag_order);
+  write_batch.putFinalizedDagBlockHashesByAnchor(new_anchor, dag_order);
   if (period != period_ + 1) {
     LOG(log_er_) << " Inserting period (" << period << ") anchor " << new_anchor
                  << " does not match ..., previous internal period (" << period_ << ") " << anchor_;
@@ -535,7 +535,7 @@ uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period,
       if (leavesSet.count(blk) > 0) {
         addToDag(blk, pivot_hash.toString(), tips, block->getLevel(), write_batch, true);
       } else {
-        db_->removeDagBlockStateToBatch(write_batch, blk_hash_t(blk));
+        write_batch.removeDagBlockState(blk_hash_t(blk));
       }
     }
   }
@@ -558,9 +558,9 @@ uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period,
 
     if (leavesSet.count(blk) > 0 || blk == new_anchor.toString()) {
       addToDag(blk, pivot_hash.toString(), tips, dag_block->getLevel(), write_batch, true);
-      db_->addDagBlockStateToBatch(write_batch, blk_hash_t(blk), true);
+      write_batch.addDagBlockState(blk_hash_t(blk), true);
     } else {
-      db_->removeDagBlockStateToBatch(write_batch, blk_hash_t(blk));
+      write_batch.removeDagBlockState(blk_hash_t(blk));
     }
   }
   assert(new_anchor_found);

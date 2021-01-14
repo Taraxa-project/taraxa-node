@@ -38,7 +38,7 @@ struct FinalChainImpl : virtual FinalChain, virtual aleth::ChainDBImpl {
       auto b = db->createWriteBatch();
       append_block(b, config.genesis_block_fields.author, config.genesis_block_fields.timestamp, 0,
                    state_desc.state_root, {}, {});
-      db->commitWriteBatch(b);
+      b.commit();
       refresh_last_block();
       return;
     }

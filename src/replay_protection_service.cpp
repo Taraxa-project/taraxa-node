@@ -85,13 +85,12 @@ struct ReplayProtectionServiceImpl : virtual ReplayProtectionService {
     });
     stringstream round_data_keys;
     for (auto const& [sender, state] : sender_states_dirty) {
-      db->batch_put(batch, DbStorage::Columns::replay_protection, maxNonceAtRoundKey(round, sender),
-                    to_string(state->nonce_max));
-      db->batch_put(batch, DbStorage::Columns::replay_protection, senderStateKey(sender), db_slice(state->rlp()));
+      batch.put(DbStorage::Columns::replay_protection, maxNonceAtRoundKey(round, sender), to_string(state->nonce_max));
+      batch.put(DbStorage::Columns::replay_protection, senderStateKey(sender), db_slice(state->rlp()));
       round_data_keys << sender << "\n";
     }
     if (auto v = round_data_keys.str(); !v.empty()) {
-      db->batch_put(batch, DbStorage::Columns::replay_protection, roundDataKeysKey(round), v);
+      batch.put(DbStorage::Columns::replay_protection, roundDataKeysKey(round), v);
     }
     if (round < config.range) {
       return;
@@ -109,11 +108,11 @@ struct ReplayProtectionServiceImpl : virtual ReplayProtectionService {
         auto sender_state_key = senderStateKey(line);
         auto state = loadSenderState(sender_state_key);
         state->nonce_watermark = stoull(v);
-        db->batch_put(batch, DbStorage::Columns::replay_protection, sender_state_key, db_slice(state->rlp()));
-        db->batch_delete(batch, DbStorage::Columns::replay_protection, nonce_max_key);
+        batch.put(DbStorage::Columns::replay_protection, sender_state_key, db_slice(state->rlp()));
+        batch.remove(DbStorage::Columns::replay_protection, nonce_max_key);
       }
     }
-    db->batch_delete(batch, DbStorage::Columns::replay_protection, bottom_round_data_keys_key);
+    batch.remove(DbStorage::Columns::replay_protection, bottom_round_data_keys_key);
   }
 
   shared_ptr<SenderState> loadSenderState(string const& key) const {

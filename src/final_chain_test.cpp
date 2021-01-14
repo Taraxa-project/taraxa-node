@@ -16,7 +16,7 @@ struct advance_check_opts {
 };
 
 struct FinalChainTest : WithDataDir {
-  shared_ptr<DbStorage> db{new DbStorage(data_dir / "db")};
+  shared_ptr<DbStorage> db = DbStorage::make(data_dir / "db");
   FinalChain::Config cfg = ChainConfig::predefined().final_chain;
   unique_ptr<FinalChain> SUT;
   bool assume_only_toplevel_transfers = true;
@@ -39,7 +39,7 @@ struct FinalChainTest : WithDataDir {
     auto author = addr_t::random();
     uint64_t timestamp = chrono::high_resolution_clock::now().time_since_epoch().count();
     auto result = SUT->advance(batch, author, timestamp, trxs);
-    db->commitWriteBatch(batch);
+    batch.commit();
     SUT->advance_confirm();
     ++expected_blk_num;
     auto const& blk_h = result.new_header;

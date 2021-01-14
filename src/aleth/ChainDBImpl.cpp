@@ -60,26 +60,26 @@ BlockHeader ChainDBImpl::append_block(DbStorage::Batch& b, Address const& author
   auto const& block_bytes = block_rlp_stream.out();
   auto const& header_bytes = RLP(block_bytes)[0].data();
   auto const& blk_hash = sha3(header_bytes);
-  db_->batch_put(b, DbStorage::Columns::final_chain_blocks, blk_hash, block_bytes);
+  b.put(DbStorage::Columns::final_chain_blocks, blk_hash, block_bytes);
   BlockDetails details(header.m_number, 0, header.m_parentHash, header_bytes.size());
-  db_->batch_put(b, DbStorage::Columns::final_chain_block_details, blk_hash, details.rlp());
-  db_->batch_put(b, DbStorage::Columns::final_chain_log_blooms, blk_hash, blb.rlp());
-  db_->batch_put(b, DbStorage::Columns::final_chain_receipts, blk_hash, receipts_rlp.out());
+  b.put(DbStorage::Columns::final_chain_block_details, blk_hash, details.rlp());
+  b.put(DbStorage::Columns::final_chain_log_blooms, blk_hash, blb.rlp());
+  b.put(DbStorage::Columns::final_chain_receipts, blk_hash, receipts_rlp.out());
   header.m_logBloom.shiftBloom<3>(sha3(header.m_author.ref()));
   for (uint64_t level = 0, index = header.m_number; level < c_bloomIndexLevels; level++, index /= c_bloomIndexSize) {
     auto h = chunkId(level, index / c_bloomIndexSize);
     auto bb = blocksBlooms(h);
     bb.blooms[index % c_bloomIndexSize] |= header.m_logBloom;
-    db_->batch_put(b, DbStorage::Columns::final_chain_log_blooms_index, h, bb.rlp());
+    b.put(DbStorage::Columns::final_chain_log_blooms_index, h, bb.rlp());
   }
   TransactionLocation ta;
   ta.blockHash = blk_hash;
   for (auto const& trx : transactions) {
-    db_->batch_put(b, DbStorage::Columns::final_chain_transaction_locations, trx.getHash(), ta.rlp());
+    b.put(DbStorage::Columns::final_chain_transaction_locations, trx.getHash(), ta.rlp());
     ta.index++;
   }
-  db_->batch_put(b, DbStorage::Columns::final_chain_block_number_to_hash, header.m_number, BlockHash(blk_hash).rlp());
-  db_->batch_put(b, DbStorage::Columns::default_column, LAST_BLOCK_KEY, blk_hash);
+  b.put(DbStorage::Columns::final_chain_block_number_to_hash, header.m_number, BlockHash(blk_hash).rlp());
+  b.put(DbStorage::Columns::default_column, LAST_BLOCK_KEY, blk_hash);
   return {header, blk_hash};
 }
 

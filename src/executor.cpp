@@ -112,7 +112,7 @@ void Executor::executePbftBlocks_() {
           continue;
         }
         static string const dummy_val = "_";
-        db_->batch_put(batch, DbStorage::Columns::executed_transactions, trx.getHash(), dummy_val);
+        batch.put(DbStorage::Columns::executed_transactions, trx.getHash(), dummy_val);
       }
     }
 
@@ -134,21 +134,21 @@ void Executor::executePbftBlocks_() {
     if (dag_blk_count != 0) {
       num_executed_blk_.fetch_add(dag_blk_count);
       num_executed_trx_.fetch_add(transactions_tmp_buf_.size());
-      db_->addStatusFieldToBatch(StatusDbField::ExecutedBlkCount, num_executed_blk_, batch);
-      db_->addStatusFieldToBatch(StatusDbField::ExecutedTrxCount, num_executed_trx_, batch);
+      batch.addStatusField(StatusDbField::ExecutedBlkCount, num_executed_blk_);
+      batch.addStatusField(StatusDbField::ExecutedTrxCount, num_executed_trx_);
       LOG(log_nf_) << node_addr_ << " :   Executed dag blocks index #" << num_executed_blk_ - dag_blk_count << "-"
                    << num_executed_blk_ - 1 << " , Transactions count: " << transactions_tmp_buf_.size();
     }
 
     // Add dag_block_period in DB
     for (auto const blk_hash : finalized_dag_blk_hashes) {
-      db_->addDagBlockPeriodToBatch(blk_hash, pbft_period, batch);
+      batch.addDagBlockPeriod(blk_hash, pbft_period);
     }
 
     // Update executed PBFT blocks size
     pbft_chain_->updateExecutedPbftChainSize();
     // Update PBFT chain head block
-    db_->addPbftHeadToBatch(pbft_chain_->getHeadHash(), pbft_chain_->getJsonStr(), batch);
+    batch.addPbftHead(pbft_chain_->getHeadHash(), pbft_chain_->getJsonStr());
 
     // Set DAG blocks period
     dag_mgr_->setDagBlockOrder(anchor_hash, pbft_period, finalized_dag_blk_hashes, batch);
@@ -160,7 +160,7 @@ void Executor::executePbftBlocks_() {
         util::make_range_view(transactions_tmp_buf_).map([](auto const &trx) { return trx.getHash(); }));
 
     // Commit DB
-    db_->commitWriteBatch(batch);
+    batch.commit();
     LOG(log_nf_) << "DB write batch committed at period " << pbft_period << " PBFT block hash " << pbft_block_hash;
 
     // After DB commit, confirm in final chain(Ethereum)
