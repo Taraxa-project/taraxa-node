@@ -13,7 +13,7 @@ CMAKE_CXX_COMPILER=g++
 ```
 4. Try running a build system target of interest. It might fail due to missing packages (tools, libraries). In that case, you will find them in `brew`. It shouldn't be hard to find what needs to be installed by looking at an error.
 
-Known `brew` package dependencies:
+Some known `brew` package dependencies (this list is not comprehensive):
 ```
 coreutils, go, autoconf, automake, ccache, gflags, gdb, git, gmp, 
 jsoncpp, libscrypt, libtool, make, mpfr, parallel, pkg-config,
