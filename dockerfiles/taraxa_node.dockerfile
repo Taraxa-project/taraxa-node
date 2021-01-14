@@ -9,40 +9,34 @@
 #   docker stop taraxa_node
 #
 # users:
-#   root, passwd: root
+#   root
 
 FROM ubuntu:20.04
 
-# Install standard packages
-RUN apt-get update
-
-# TODO: The goal is to have only taraxad binary with config file in this image -> all deps will be linked statically.
-
 # Install taraxad dynamic dependencies
-#TODO: link everything statically during build
-RUN apt-get install -y \
-    libboost-program-options-dev libboost-system-dev libboost-filesystem-dev libboost-thread-dev libboost-log-dev \
-    libssl-dev \
-    libjsoncpp-dev libjsonrpccpp-dev \
-    libscrypt-dev \
-    librocksdb-dev \
-    libmpfr-dev \
-    libgmp3-dev
-RUN apt-get clean
+# all of these libs are here because of rocksdb, once rocksdb is linked statically it will be removed
+RUN apt-get update \
+    && apt-get install -y \
+        curl \
+        libgflags-dev libsnappy-dev zlib1g-dev libbz2-dev liblz4-dev libzstd-dev \
+        librocksdb-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# TODO: read 'cmake-docker-build-release' dir from taraxa.variables
-#TODO: link everything statically during build
-COPY cmake-docker-build-release/submodules/lib/ /usr/local/lib
-ENV LD_LIBRARY_PATH=/usr/local/lib
+# TODO: when static linking of rocksdb is done, this manual installation or ubuntu package won't be needed at all. AS tmp hack ubuntu package is faster
+# Install rocksdb
+# ARG ROCKSDB_VERSION=5.18.3
+# RUN curl -SL https://github.com/facebook/rocksdb/archive/v$ROCKSDB_VERSION.tar.gz \
+#     | tar -xzC /tmp \
+#     && cd rocksdb-${ROCKSDB_VERSION} \
+#     && CXXFLAGS='-Wno-error=deprecated-copy -Wno-error=pessimizing-move' make -j $(nproc) install \
+#     && rm -rf $(pwd)
 
 # Copy taraxad binary
-COPY cmake-docker-build-release/src/taraxad/taraxad /usr/local/bin
-
-# Copy taraxad config
+# TODO: read 'cmake-docker-build-release' dir from taraxa.variables
 RUN mkdir -p /etc/taraxad
-# TODO: temporary hack -> scripts/taraxad.conf is hardlink to the src/tarxad/configs/taraxad.conf
-COPY scripts/taraxad.conf /etc/taraxad
+COPY cmake-docker-build-release/install/taraxad /usr/local/bin
+COPY cmake-docker-build-release/install/taraxad.conf /etc/taraxad
 
 # Run taraxad
-ENTRYPOINT ["taraxad"]
-CMD ["--conf_taraxa", "etc/taraxad/taraxad.conf"]
+# ENTRYPOINT ["taraxad"]
+# CMD ["--conf_taraxa", "/etc/taraxad/taraxad.conf"]

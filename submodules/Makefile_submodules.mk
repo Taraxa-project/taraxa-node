@@ -76,8 +76,8 @@ submodules/taraxa-vrf/ok:
 	$(SUBMODULE_BUILD_BEGIN); \
 	autoreconf; \
 	automake; \
-	./configure --prefix=$(DEPS_INSTALL_PREFIX); \
-	$(MAKE); \
+	./configure --enable-static="yes" --enable-shared="no" --prefix=$(DEPS_INSTALL_PREFIX); \
+	$(MAKE) -j 4; \
 	$(MAKE) install; \
 	$(SUBMODULE_BUILD_END);
 
@@ -87,7 +87,7 @@ submodules/googletest/ok:
 	$(SUBMODULE_BUILD_BEGIN); \
 	mkdir_cd build; \
 	cmake -DCMAKE_INSTALL_PREFIX=$(DEPS_INSTALL_PREFIX) ..; \
-	$(MAKE); \
+	$(MAKE) -j 4; \
 	$(MAKE) install; \
 	$(SUBMODULE_BUILD_END);
 
@@ -100,7 +100,7 @@ endif
 submodules/cryptopp/ok:
 	$(SUBMODULE_BUILD_BEGIN); \
 	if [ $(OS) = 'Darwin' ]; then \
-		$(MAKE); \
+		$(MAKE) -j 4; \
 	else \
 		$(MAKE) CXXFLAGS="-DNDEBUG -g2 -O3 -fPIC \
 			$(addprefix -D, $(CRYPTOPP_COMPILE_DEFINITIONS)) \
@@ -119,7 +119,7 @@ submodules/ethash/ok:
 		-DBUILD_SHARED_LIBS=OFF \
 		-DETHASH_BUILD_TESTS=OFF \
 		-DHUNTER_ENABLED=OFF; \
-	$(MAKE); \
+	$(MAKE) -j 4; \
 	$(MAKE) install; \
 	$(SUBMODULE_BUILD_END);
 
@@ -140,7 +140,7 @@ submodules/libff/ok:
 	$(SUBMODULE_BUILD_BEGIN); \
 	mkdir_cd build; \
 	cmake -DCMAKE_INSTALL_PREFIX=$(DEPS_INSTALL_PREFIX) .. $(LIBFF_OPTS); \
-	$(MAKE); \
+	$(MAKE) -j 4; \
 	$(MAKE) install; \
 	$(SUBMODULE_BUILD_END);
 
@@ -158,7 +158,7 @@ submodules/secp256k1/ok:
 		--enable-module-ecdh --enable-module-recovery \
 		--enable-endomorphism \
 		--enable-experimental; \
-	$(MAKE); \
+	$(MAKE) -j 4; \
 	$(MAKE) install; \
 	$(SUBMODULE_BUILD_END);
 
@@ -184,7 +184,7 @@ $(ALETH_OBJ_DIR)/%.o: $(ALETH_ROOT)/%.cpp
 		$(addprefix -I,  $(ALETH_INCLUDE_DIRS)) \
 		$(addprefix -D, \
 			$(CRYPTOPP_COMPILE_DEFINITIONS) \
-			BOOST_ALL_DYN_LINK  \
+			BOOST_ALL_STATIC_LINK  \
 			BOOST_SPIRIT_THREADSAFE \
 		) \
 		-o $@ $< \

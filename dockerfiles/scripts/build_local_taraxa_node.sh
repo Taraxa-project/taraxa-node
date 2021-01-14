@@ -28,12 +28,23 @@ docker run -it --rm \
     -v $(pwd)/..:/taraxa-node \
     -w /taraxa-node \
     $taraxa_builder_image \
-    /bin/bash -l -c 'mkdir -p dockerfiles/'$node_local_build_dir';
+    /bin/bash -l -c 'mkdir -p dockerfiles/'$node_local_build_dir'/install;
                      cd dockerfiles/'$node_local_build_dir';
-                     cmake -DCMAKE_BUILD_TYPE=Release ../../;
-                     make -j$(nproc) all'
+
+                     cmake -DCMAKE_BUILD_TYPE=Release \
+                           -DTARAXAD_INSTALL_DIR=./install \
+                           -DTARAXAD_CONF_INSTALL_DIR=./install \
+                           ../../;
+                     make -j$(nproc) all  # automatically runs cppech and clang-format-check
+                     make install;
+
+                     cd tests/
+                     ctest'
+
+# strip taraxad binary
+strip $node_local_build_dir/install/taraxad
 
 # Change the ownership of build directory
-chownDir $node_local_build_dir
+ChownDir $node_local_build_dir
 
 echo $CYAN"Building Taraxa node, branch/tag: \""TODO"\" Completed." $COLOR_END

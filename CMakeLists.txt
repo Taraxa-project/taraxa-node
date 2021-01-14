@@ -5,6 +5,8 @@ if (DEFINED SYSTEM_HOME_OVERRIDE)
     include_directories(${SYSTEM_HOME_OVERRIDE}/include)
     link_directories(${SYSTEM_HOME_OVERRIDE}/lib)
 endif ()
+
+# Mac OS
 set(CMAKE_OSX_SYSROOT /)
 set(CMAKE_MACOSX_RPATH ON)
 
@@ -46,7 +48,7 @@ execute_process(
 )
 
 add_compile_definitions(
-    BOOST_ALL_DYN_LINK
+    #BOOST_ALL_DYN_LINK
     BOOST_SPIRIT_THREADSAFE
     GIT_HASH=\"${GIT_HASH}\"
     COMPILE_TIME=\"${COMPILE_TIME}\"
@@ -90,14 +92,17 @@ if (ENABLE_PACKAGE_INSTALLER)
     include(CPack)
 endif(ENABLE_PACKAGE_INSTALLER)
 
-# clang-format
-include(cmakefiles/clang_tidy.cmake)
+# Custom CMakeModules for finding libraries
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
+
+# clang-tidy
+include(CMakeModules/clang_tidy.cmake)
 
 # clang-format
-include(cmakefiles/clang_format.cmake)
+include(CMakeModules/clang_format.cmake)
 
 # cppcheck
-include(cmakefiles/cppcheck.cmake)
+include(CMakeModules/cppcheck.cmake)
 
 # Add sub-directories cmakes
 add_subdirectory(submodules)
