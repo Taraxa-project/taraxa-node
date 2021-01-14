@@ -58,7 +58,7 @@ RUN mkdir $OUTPUT_DIR \
            -DTARAXAD_INSTALL_DIR=./install \
            -DTARAXAD_CONF_INSTALL_DIR=./install \
            ../ \
-    && make -j$(nproc) all  # automatically runs cppech and clang-format-check \
+    && make -j$(nproc) all \
     && make install \
     && cd tests/ \
     && ctest
@@ -78,7 +78,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 # Keep the old struct for now
-COPY --from=builder $OUTPUT_DIR/src/taraxad/taraxad ./main
+COPY --from=builder /opt/taraxa/$OUTPUT_DIR/src/taraxad/taraxad ./main
 COPY tests/util_test/conf/conf_taraxa1.json ./default_config/
 
 ENV GODEBUG cgocheck=0
