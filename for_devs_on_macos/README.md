@@ -17,5 +17,6 @@ Some known `brew` package dependencies (this list is not comprehensive):
 ```
 coreutils, go, autoconf, automake, ccache, gflags, gdb, git, gmp, 
 jsoncpp, libscrypt, libtool, make, mpfr, parallel, pkg-config,
-rocksdb, snappy, zlib, zstd
+rocksdb, snappy, zlib, zstd, libjson-rpc-cpp
 ```
+You can also `brew install cmake`
