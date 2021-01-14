@@ -19,5 +19,5 @@ cd boost
 ./b2 --prefix=${dst} \
   --with-thread --with-system --with-log \
   --with-filesystem --with-program_options \
-  -j${cpu_cnt} link=shared threading=multi \
+  -j${cpu_cnt} link=static threading=multi \
   install
