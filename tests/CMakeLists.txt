@@ -1,8 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
 
-set(CMAKE_CXX_COMPILER g++)
-set(CMAKE_CXX_STANDARD 17)
-
 # Enable testing for current directory and below.
 enable_testing(true)
 
@@ -59,5 +56,6 @@ target_link_libraries(state_api_test app_base gtest)
 add_test(state_api_test state_api_test)
 
 add_executable(taraxa_test taraxa_test.cpp)
-target_link_libraries(taraxa_test app_base gtest jsonrpccpp-client)
+# TODO: quick fix with linking against jsoncpp-*.so, implement proper solution
+target_link_libraries(taraxa_test app_base gtest jsonrpccpp-common jsonrpccpp-client)
 add_test(taraxa_test taraxa_test)

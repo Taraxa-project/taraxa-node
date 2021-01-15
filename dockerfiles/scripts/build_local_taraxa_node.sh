@@ -32,6 +32,7 @@ docker run -it --rm \
                      cd dockerfiles/'$node_local_build_dir';
 
                      cmake -DCMAKE_BUILD_TYPE=Release \
+                           -DTARAXA_STATIC_BUILD=ON \
                            -DTARAXAD_INSTALL_DIR=./install \
                            -DTARAXAD_CONF_INSTALL_DIR=./install \
                            ../../;
