@@ -17,7 +17,11 @@ namespace fs = std::filesystem;
 DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_block, uint32_t db_max_snapshots,
                      uint32_t db_revert_to_period, addr_t node_addr, bool rebuild)
     : path_(path),
-      handles_(Columns::all.size()),
+      // First - lazy init default column for rocksdb - must be called before accessing rocksdb because of static init
+      // order fail !!! For handles_ initialization is used comma-operator that evaluates first expression, but uses
+      // second expression(Columns::all.size()) as return value See:
+      // https://en.cppreference.com/w/cpp/language/operator_other#Built-in_comma_operator
+      handles_((Columns::Default_column(), Columns::all.size())),
       db_snapshot_each_n_pbft_block_(db_snapshot_each_n_pbft_block),
       db_max_snapshots_(db_max_snapshots),
       node_addr_(node_addr) {

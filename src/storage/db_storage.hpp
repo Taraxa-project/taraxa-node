@@ -51,12 +51,19 @@ struct DbStorage {
   };
 
   class Columns {
+   private:
     static inline vector<Column> all_;
 
    public:
     static inline auto const& all = all_;
 
-    static inline auto const default_column = all_.emplace_back(Column{kDefaultColumnFamilyName, all_.size()});
+    // Fix static initialization order fail by lazy initialization:
+    // When rocksdb linked statically, rocksdb::kDefaultColumnFamilyName is empty during static initialization of
+    // columns, therefore default_column, which depends on rocksdb::kDefaultColumnFamilyName must be lazy initialized
+    static inline auto const Default_column() {
+      static auto const default_column = all_.emplace_back(Column{kDefaultColumnFamilyName, all_.size()});
+      return default_column;
+    }
 
 #define COLUMN(__name__) static inline auto const __name__ = all_.emplace_back(Column{#__name__, all_.size()})
 
