@@ -9,24 +9,15 @@ endif ()
 # Mac OS
 set(CMAKE_OSX_SYSROOT /)
 set(CMAKE_MACOSX_RPATH ON)
-IF (APPLE)
-    set(CMAKE_THREAD_LIBS_INIT "-lpthread")
-    set(CMAKE_HAVE_THREADS_LIBRARY 1)
-    set(CMAKE_USE_WIN32_THREADS_INIT 0)
-    set(CMAKE_USE_PTHREADS_INIT 1)
-    set(THREADS_PREFER_PTHREAD_FLAG ON)
-ENDIF ()
-
-set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 # Use ccache to speed-up recompilation
 find_program(CCACHE_PROGRAM ccache)
-if (CCACHE_PROGRAM)
+if(CCACHE_PROGRAM)
     message(STATUS "Building with ccache")
     set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
-else ()
+else()
     message(STATUS "Building without ccache")
-endif ()
+endif()
 
 project(taraxa-node)
 cmake_minimum_required(VERSION 3.16)
@@ -57,7 +48,7 @@ execute_process(
 )
 
 add_compile_definitions(
-    BOOST_ALL_STATIC_LINK
+    #BOOST_ALL_DYN_LINK
     BOOST_SPIRIT_THREADSAFE
     GIT_HASH=\"${GIT_HASH}\"
     COMPILE_TIME=\"${COMPILE_TIME}\"
@@ -88,18 +79,18 @@ if (ENABLE_PACKAGE_INSTALLER)
     set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
     set(CPACK_PACKAGE_INSTALL_DIRECTORY "Taraxa ${CPACK_PACKAGE_VERSION}")
 
-    if (APPLE)
+    if(APPLE)
         set(CPACK_GENERATOR "DragNDrop")
-    endif ()
+    endif()
 
-    if (LINUX)
+    if(LINUX)
         # Linux gets a .tgz
         SET(CPACK_GENERATOR "TGZ")
         SET(CPACK_INCLUDE_TOPLEVEL_DIRECTORY 1)
-    endif (LINUX)
+    endif(LINUX)
 
     include(CPack)
-endif (ENABLE_PACKAGE_INSTALLER)
+endif(ENABLE_PACKAGE_INSTALLER)
 
 # Custom CMakeModules for finding libraries
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")

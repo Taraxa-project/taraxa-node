@@ -5,10 +5,7 @@ cmake_minimum_required(VERSION 3.16)
 OPTION(TARAXA_STATIC_BUILD "Build taraxad as a static library (ON or OFF)" ON)
 if (TARAXA_STATIC_BUILD)
     #SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++")
-    if (NOT APPLE)
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc")
-    endif ()
+    set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++ -static-libgcc")
 
     set(Boost_USE_STATIC_LIBS ON)
     set(jsoncpp_USE_STATIC_LIBS ON)
@@ -17,9 +14,9 @@ if (TARAXA_STATIC_BUILD)
     set(gmp_USE_STATIC_LIBS ON)
     set(mpfr_USE_STATIC_LIBS ON)
     set(scrypt_USE_STATIC_LIBS ON)
-    #    set(rocksdb_USE_STATIC_LIBS ON)
-    #    set(zstd_USE_STATIC_LIBS ON)
-    #    set(bz2_USE_STATIC_LIBS ON)
+#    set(rocksdb_USE_STATIC_LIBS ON)
+#    set(zstd_USE_STATIC_LIBS ON)
+#    set(bz2_USE_STATIC_LIBS ON)
 endif (TARAXA_STATIC_BUILD)
 
 message(STATUS "TARAXA_STATIC_BUILD: ${TARAXA_STATIC_BUILD}")
@@ -31,8 +28,8 @@ list(APPEND BOOST_COMPONENTS program_options system filesystem thread log log_se
 
 find_package(Boost 1.71 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
 if (Boost_FOUND)
-    message(STATUS "Boost components found: ${BOOST_COMPONENTS}, Boost version: ${Boost_VERSION}")
-else (Boost_FOUND)
+    message (STATUS "Boost components found: ${BOOST_COMPONENTS}, Boost version: ${Boost_VERSION}")
+else(Boost_FOUND)
     message(STATUS "Boost not found")
 endif (Boost_FOUND)
 
@@ -160,53 +157,55 @@ set(SOURCES
     logger/logger_config.cpp
     logger/log.cpp
     common/types.cpp
-    )
+)
 
 add_subdirectory(network/rpc)
 
 add_library(app_base STATIC ${SOURCES})
 target_include_directories(app_base PUBLIC
-                           ${CMAKE_CURRENT_SOURCE_DIR}
-                           ${Boost_INCLUDE_DIR}
-                           ${Submodules_INCLUDE_DIR}
-                           ${jsoncpp_INCLUDE_DIRS}
-                           )
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${Boost_INCLUDE_DIR}
+    ${Submodules_INCLUDE_DIR}
+    ${jsoncpp_INCLUDE_DIRS}
+)
 
 target_link_libraries(app_base
-                      submodules
-                      taraxa-aleth
-                      taraxa-evm
-                      vdf
-                      sodium  # from current submodules(taraxa-vrf) -> will be moved to external package repo
-                      pthread
-                      ssl
-                      ${crypto_LIBRARIES} # TODO: is this lib even required ?
-                      ${CMAKE_DL_LIBS}    # because of libcrypto
-                      ${mpfr_LIBRARIES}
-                      ${gmp_LIBRARIES}
-                      ${Boost_LIBRARIES}
-                      rocksdb
-                      #    ${rocksdb_LIBRARIES}
-                      #    ${snappy_LIBRARIES} # rocksdb dep
-                      #    ${zstd_LIBRARIES}   # rocksdb dep
-                      #    ${bz2_LIBRARIES}    # rocksdb dep
-                      #    ${ZLIB_LIBRARIES}   # rocksdb dep
+    submodules
+    taraxa-aleth
+    taraxa-evm
+    vdf
+    sodium  # from current submodules(taraxa-vrf) -> will be moved to external package repo
+    pthread
+    ssl
+    ${crypto_LIBRARIES} # TODO: is this lib even required ?
+    ${CMAKE_DL_LIBS}    # because of libcrypto
+    ${mpfr_LIBRARIES}
+    ${gmp_LIBRARIES}
+    ${Boost_LIBRARIES}
+    rocksdb
+#    ${rocksdb_LIBRARIES}
+#    ${snappy_LIBRARIES} # rocksdb dep
+#    ${zstd_LIBRARIES}   # rocksdb dep
+#    ${bz2_LIBRARIES}    # rocksdb dep
+#    ${ZLIB_LIBRARIES}   # rocksdb dep
 
-                      ${scrypt_LIBRARIES}
-                      ${jsoncpp_LIBRARIES}
-                      ${jsonrpccpp_SERVER_LIBRARIES}
-                      secp256k1   # from current submodules -> will be moved to external package repo
-                      cryptopp   # from current submodules -> will be moved to external package repo
-                      ethash   # from current submodules -> will be moved to external package repo
-                      )
+    ${scrypt_LIBRARIES}
+    ${jsoncpp_LIBRARIES}
+    ${jsonrpccpp_SERVER_LIBRARIES}
+    secp256k1   # from current submodules -> will be moved to external package repo
+    cryptopp   # from current submodules -> will be moved to external package repo
+    ethash   # from current submodules -> will be moved to external package repo
+)
+
+target_link_directories(app_base PUBLIC ${Submodules_LIB_DIR})
 
 # needed for golang runtime that comes together with taraxa-evm
 if (APPLE)  # if "APPLE" not sufficient, use if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     target_link_libraries(app_base "-framework CoreFoundation")
     target_link_libraries(app_base "-framework Security")
-else ()
+else()
     target_link_libraries(app_base stdc++fs)
-endif ()
+endif()
 
 # Main taraxad binary
 add_subdirectory(taraxad)
