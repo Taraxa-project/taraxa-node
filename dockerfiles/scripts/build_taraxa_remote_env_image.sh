@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source ./taraxa.variables
+source ./taraxa_variables.conf
 source scripts/common.sh
 
 # Load taraxa-builder docker image

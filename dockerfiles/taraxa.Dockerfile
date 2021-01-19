@@ -24,14 +24,13 @@ RUN apt-get update \
         librocksdb-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# TODO: when static linking of rocksdb is done, use manual illation instead of ubuntu package
 # # Install rocksdb
-# ARG ROCKSDB_VERSION=5.18.3
-# RUN curl -SL https://github.com/facebook/rocksdb/archive/v$ROCKSDB_VERSION.tar.gz \
+# RUN curl -SL https://github.com/facebook/rocksdb/archive/v5.18.3.tar.gz \
 #     | tar -xzC /tmp \
-#     && cd /tmp/rocksdb-${ROCKSDB_VERSION} \
-#     && CXXFLAGS='-Wno-error=deprecated-copy -Wno-error=pessimizing-move' make -j $(nproc) install-shared \
+#     && cd /tmp/rocksdb-5.18.3 \
+#     && CXXFLAGS='-Wno-error=deprecated-copy -Wno-error=pessimizing-move' PORTABLE=1 make -j $(nproc) install-static \
 #     && rm -rf $(pwd)
+# ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 
 # Install go
 ARG GO_VERSION=1.13.7
@@ -55,9 +54,10 @@ COPY . .
 RUN mkdir $OUTPUT_DIR \
     && cd $OUTPUT_DIR \
     && cmake -DCMAKE_BUILD_TYPE=Release \
-           -DTARAXAD_INSTALL_DIR=./install \
-           -DTARAXAD_CONF_INSTALL_DIR=./install \
-           ../ \
+             -DTARAXA_STATIC_BUILD=ON \
+             -DTARAXAD_INSTALL_DIR=./install \
+             -DTARAXAD_CONF_INSTALL_DIR=./install \
+             ../ \
     && make -j$(nproc) all \
     && make install \
     && cd tests/ \

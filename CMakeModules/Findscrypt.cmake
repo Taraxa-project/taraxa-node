@@ -17,9 +17,9 @@
 #  scrypt_LIBRARIES         The scrypt library
 
 set(LIB_SUFFIX .so)
-if(scrypt_USE_STATIC_LIBS)
+if (scrypt_USE_STATIC_LIBS)
     set(LIB_SUFFIX .a)
-endif()
+endif ()
 
 find_path(scrypt_INCLUDE_DIR
         NAMES libscrypt.h

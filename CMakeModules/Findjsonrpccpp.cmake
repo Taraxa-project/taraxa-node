@@ -22,9 +22,9 @@
 #  jsonrpccpp_VERSION_PATCH
 
 set(LIB_SUFFIX .so)
-if(jsonrpccpp_USE_STATIC_LIBS)
+if (jsonrpccpp_USE_STATIC_LIBS)
     set(LIB_SUFFIX .a)
-endif()
+endif ()
 
 # only look in default directories
 find_path(
@@ -68,8 +68,8 @@ if (jsonrpccpp_INCLUDE_DIR)
         string (REGEX REPLACE "^#define JSONRPC_CPP_MINOR_VERSION[ \t]+([0-9]+)" "\\1" jsonrpccpp_VERSION_MINOR ${jsonrpccpp_VERSION_MINOR})
         string (REGEX REPLACE "^#define JSONRPC_CPP_PATCH_VERSION[ \t]+([0-9]+)" "\\1" jsonrpccpp_VERSION_PATCH ${jsonrpccpp_VERSION_PATCH})
         set (jsonrpccpp_VERSION ${jsonrpccpp_VERSION_MAJOR}.${jsonrpccpp_VERSION_MINOR}.${jsonrpccpp_VERSION_PATCH})
-    endif()
-endif()
+    endif ()
+endif ()
 
 # handle the QUIETLY and REQUIRED arguments and set jsonrpccpp_FOUND to TRUE
 # if all listed variables are TRUE, hide their existence from configuration view

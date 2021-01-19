@@ -13,37 +13,74 @@
 
 FROM ubuntu:20.04
 
+# Do not set these variables directly here, specify it's values in taraxa_variables.conf file
+ARG ROCKSDB_VERSION
+ARG GO_VERSION
+ARG CMAKE_VERSION
+ARG GCC_VERSION
+ARG CLANG_VERSION
+ARG CPPCHECK_VERSION
+ARG BOOST_VERSION
+ARG GFLAGS_VERSION
+ARG SNAPPY_VERSION
+ARG ZLIB1G_VERSION
+ARG BZ2_VERSION
+ARG LZ4_VERSION
+ARG ZSTD_VERSION
+ARG SSL_VERSION
+ARG JSONCPP_VERSION
+ARG JSONRPCCPP_VERSION
+ARG SCRYPT_VERSION
+ARG MPFR_VERSION
+ARG GMP3_VERSION
+
 # Install standard packages
-# TODO: add rocksdb install deps from https://github.com/Level/rocksdb/blob/master/deps/leveldb/leveldb-rocksdb/INSTALL.md
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends tzdata \
     && apt-get install -y \
         tar \
         curl \
-        cmake ccache gcc g++ clang-format clang-tidy cppcheck \
-        libboost-program-options-dev libboost-system-dev libboost-filesystem-dev libboost-thread-dev libboost-log-dev \
-        libgflags-dev libsnappy-dev zlib1g-dev libbz2-dev liblz4-dev libzstd-dev \
         libtool \
         autoconf \
-        libssl-dev \
-        libjsoncpp-dev libjsonrpccpp-dev \
-        libscrypt-dev \
-        libmpfr-dev \
-        libgmp3-dev \
-        librocksdb-dev \
+        \
+        ccache \
+        cmake=$CMAKE_VERSION \
+        gcc=$GCC_VERSION \
+        g++=$GCC_VERSION \
+        clang-format=$CLANG_VERSION \
+        clang-tidy=$CLANG_VERSION \
+        cppcheck=$CPPCHECK_VERSION \
+        \
+        libboost-program-options-dev=$BOOST_VERSION \
+        libboost-system-dev=$BOOST_VERSION \
+        libboost-filesystem-dev=$BOOST_VERSION \
+        libboost-thread-dev=$BOOST_VERSION \
+        libboost-log-dev=$BOOST_VERSION \
+        \
+        libgflags-dev=$GFLAGS_VERSION \
+        libsnappy-dev=$SNAPPY_VERSION \
+        zlib1g-dev=$ZLIB1G_VERSION \
+        libbz2-dev=$BZ2_VERSION \
+        liblz4-dev=$LZ4_VERSION \
+        libzstd-dev=$ZSTD_VERSION \
+        \
+        libssl-dev=$SSL_VERSION \
+        libjsoncpp-dev=$JSONCPP_VERSION \
+        libjsonrpccpp-dev=$JSONRPCCPP_VERSION \
+        libscrypt-dev=$SCRYPT_VERSION \
+        libmpfr-dev=$MPFR_VERSION \
+        libgmp3-dev=$GMP3_VERSION \
     && rm -rf /var/lib/apt/lists/*
 
-# TODO: when static linking of rocksdb is done, use manual illation instead of ubuntu package
-# # Install rocksdb
-# ARG ROCKSDB_VERSION=5.18.3
-# RUN curl -SL https://github.com/facebook/rocksdb/archive/v$ROCKSDB_VERSION.tar.gz \
-#     | tar -xzC /tmp \
-#     && cd /tmp/rocksdb-${ROCKSDB_VERSION} \
-#     && CXXFLAGS='-Wno-error=deprecated-copy -Wno-error=pessimizing-move' make -j $(nproc) install-shared \
-#     && rm -rf $(pwd)
+# Install rocksdb
+RUN curl -SL https://github.com/facebook/rocksdb/archive/v$ROCKSDB_VERSION.tar.gz \
+    | tar -xzC /tmp \
+    && cd /tmp/rocksdb-${ROCKSDB_VERSION} \
+    && CXXFLAGS='-Wno-error=deprecated-copy -Wno-error=pessimizing-move' make -j $(nproc) install-static \
+    && rm -rf $(pwd)
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 
 # Install go
-ARG GO_VERSION=1.13.7
 RUN curl -SL https://dl.google.com/go/go$GO_VERSION.linux-amd64.tar.gz \
         | tar -xzC /usr/local
 

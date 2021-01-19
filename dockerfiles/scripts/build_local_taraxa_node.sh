@@ -1,7 +1,7 @@
 #!/bin/bash
 
 source scripts/common.sh
-source ./taraxa.variables
+source ./taraxa_variables.conf
 
 if [ ! -d "../../taraxa-node" ];
   then
@@ -28,24 +28,24 @@ docker run -it --rm \
     -v $(pwd)/..:/taraxa-node \
     -w /taraxa-node \
     $taraxa_builder_image \
-    /bin/bash -l -c 'mkdir -p dockerfiles/'$node_local_build_dir'/install;
-                     cd dockerfiles/'$node_local_build_dir';
+    /bin/bash -l -c 'mkdir -p dockerfiles/'$TARAXA_BUILD_DIR'/install;
+                     cd dockerfiles/'$TARAXA_BUILD_DIR';
 
                      cmake -DCMAKE_BUILD_TYPE=Release \
                            -DTARAXA_STATIC_BUILD=ON \
                            -DTARAXAD_INSTALL_DIR=./install \
                            -DTARAXAD_CONF_INSTALL_DIR=./install \
                            ../../;
-                     make -j$(nproc) all  # automatically runs cppech and clang-format-check
+                     make -j$(nproc) all;
                      make install;
 
                      cd tests/
                      ctest'
 
 # strip taraxad binary
-strip $node_local_build_dir/install/taraxad
+strip $TARAXA_BUILD_DIR/install/taraxad
 
 # Change the ownership of build directory
-ChownDir $node_local_build_dir
+ChownDir $TARAXA_BUILD_DIR
 
 echo $CYAN"Building Taraxa node, branch/tag: \""TODO"\" Completed." $COLOR_END

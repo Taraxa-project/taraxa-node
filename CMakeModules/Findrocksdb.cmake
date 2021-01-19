@@ -17,9 +17,9 @@
 #  rocksdb_LIBRARIES         The rocksdb library
 
 set(LIB_SUFFIX .so)
-if(rocksdb_USE_STATIC_LIBS)
+if (rocksdb_USE_STATIC_LIBS)
     set(LIB_SUFFIX .a)
-endif()
+endif ()
 
 find_path(rocksdb_INCLUDE_DIR
         NAMES rocksdb/db.h

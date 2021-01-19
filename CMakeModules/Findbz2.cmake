@@ -17,9 +17,9 @@
 #  bz2_LIBRARIES         The bz2 library
 
 set(LIB_SUFFIX .so)
-if(bz2_USE_STATIC_LIBS)
+if (bz2_USE_STATIC_LIBS)
     set(LIB_SUFFIX .a)
-endif()
+endif ()
 
 find_path(bz2_INCLUDE_DIR
         NAMES bzlib.h

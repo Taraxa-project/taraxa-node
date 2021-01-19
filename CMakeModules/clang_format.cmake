@@ -1,9 +1,9 @@
 # additional target to perform clang-format run, requires clang-format
 find_program(CLANG_FORMAT_EXE NAMES "clang-format" DOC "Path to clang-format executable")
 
-if(NOT CLANG_FORMAT_EXE)
+if (NOT CLANG_FORMAT_EXE)
     message(STATUS "clang-format not found.")
-else()
+else ()
     message(STATUS "clang-format found: ${CLANG_FORMAT_EXE}")
 
     # get all project files
@@ -25,4 +25,4 @@ else()
             COMMENT "Formatting source code by clang-format"
     )
 
-endif()
+endif ()

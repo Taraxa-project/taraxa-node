@@ -1,24 +1,5 @@
 # Defines Taraxa library target.
 
-if (DEFINED SYSTEM_HOME_OVERRIDE)
-    list(APPEND CMAKE_PREFIX_PATH ${SYSTEM_HOME_OVERRIDE})
-    include_directories(${SYSTEM_HOME_OVERRIDE}/include)
-    link_directories(${SYSTEM_HOME_OVERRIDE}/lib)
-endif ()
-
-# Mac OS
-set(CMAKE_OSX_SYSROOT /)
-set(CMAKE_MACOSX_RPATH ON)
-
-# Use ccache to speed-up recompilation
-find_program(CCACHE_PROGRAM ccache)
-if(CCACHE_PROGRAM)
-    message(STATUS "Building with ccache")
-    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
-else()
-    message(STATUS "Building without ccache")
-endif()
-
 project(taraxa-node)
 cmake_minimum_required(VERSION 3.16)
 
@@ -32,26 +13,48 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 # See: https://stackoverflow.com/questions/14125007/gcc-string-table-overflow-error-during-compilation/14601779#29479701
 set(CMAKE_CXX_FLAGS_DEBUG "-g -O2") # TODO: originally -g -O0
 
+# taraxad full static build option
+option(TARAXA_STATIC_BUILD "Build taraxad as a static library (ON or OFF)" ON)
+message(STATUS "TARAXA_STATIC_BUILD: ${TARAXA_STATIC_BUILD}")
+
+# Use ccache to speed-up recompilation
+find_program(CCACHE_PROGRAM ccache)
+if (CCACHE_PROGRAM)
+    message(STATUS "Building with ccache")
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
+else ()
+    message(STATUS "Building without ccache")
+endif ()
+
+# Mac OS
+if (DEFINED SYSTEM_HOME_OVERRIDE)
+    list(APPEND CMAKE_PREFIX_PATH ${SYSTEM_HOME_OVERRIDE})
+    include_directories(${SYSTEM_HOME_OVERRIDE}/include)
+    link_directories(${SYSTEM_HOME_OVERRIDE}/lib)
+endif ()
+
+# Mac OS
+set(CMAKE_OSX_SYSROOT /)
+set(CMAKE_MACOSX_RPATH ON)
+
 # Get the latest abbreviated commit hash of the working branch
 execute_process(
-    COMMAND git log -1 --format=%h
-    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
-    OUTPUT_VARIABLE GIT_HASH
-    OUTPUT_STRIP_TRAILING_WHITESPACE
+        COMMAND git log -1 --format=%h
+        WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+        OUTPUT_VARIABLE GIT_HASH
+        OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
 # Get compile time
 execute_process(
-    COMMAND date -u +%Y-%m-%d-%H:%M:%S
-    OUTPUT_VARIABLE COMPILE_TIME
-    OUTPUT_STRIP_TRAILING_WHITESPACE
+        COMMAND date -u +%Y-%m-%d-%H:%M:%S
+        OUTPUT_VARIABLE COMPILE_TIME
+        OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
 add_compile_definitions(
-    #BOOST_ALL_DYN_LINK
-    BOOST_SPIRIT_THREADSAFE
-    GIT_HASH=\"${GIT_HASH}\"
-    COMPILE_TIME=\"${COMPILE_TIME}\"
+        GIT_HASH=\"${GIT_HASH}\"
+        COMPILE_TIME=\"${COMPILE_TIME}\"
 )
 
 # Enable creation of taraxa package containing taraxad binary
@@ -79,18 +82,18 @@ if (ENABLE_PACKAGE_INSTALLER)
     set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
     set(CPACK_PACKAGE_INSTALL_DIRECTORY "Taraxa ${CPACK_PACKAGE_VERSION}")
 
-    if(APPLE)
+    if (APPLE)
         set(CPACK_GENERATOR "DragNDrop")
-    endif()
+    endif ()
 
-    if(LINUX)
+    if (LINUX)
         # Linux gets a .tgz
         SET(CPACK_GENERATOR "TGZ")
         SET(CPACK_INCLUDE_TOPLEVEL_DIRECTORY 1)
-    endif(LINUX)
+    endif (LINUX)
 
     include(CPack)
-endif(ENABLE_PACKAGE_INSTALLER)
+endif (ENABLE_PACKAGE_INSTALLER)
 
 # Custom CMakeModules for finding libraries
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")

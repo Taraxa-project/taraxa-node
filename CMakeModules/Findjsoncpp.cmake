@@ -17,17 +17,17 @@
 #  jsoncpp_LIBRARIES         The crypto library
 
 
-if(jsoncpp_INCLUDE_DIRS AND jsoncpp_LIBRARIES)
+if (jsoncpp_INCLUDE_DIRS AND jsoncpp_LIBRARIES)
     set(jsoncpp_FIND_QUIETLY TRUE)
-endif(jsoncpp_INCLUDE_DIRS AND jsoncpp_LIBRARIES)
+endif (jsoncpp_INCLUDE_DIRS AND jsoncpp_LIBRARIES)
 
 find_path(jsoncpp_INCLUDE_DIR json/json.h PATH_SUFFIXES jsoncpp/)
 
-if(jsoncpp_USE_STATIC_LIBS)
+if (jsoncpp_USE_STATIC_LIBS)
     find_library(jsoncpp_LIBRARY NAMES libjsoncpp.a jsoncpp)
-else()
+else ()
     find_library(jsoncpp_LIBRARY NAMES libjsoncpp.so jsoncpp)
-endif()
+endif ()
 
 set(jsoncpp_INCLUDE_DIRS ${jsoncpp_INCLUDE_DIR})
 set(jsoncpp_LIBRARIES ${jsoncpp_LIBRARY})
