@@ -87,8 +87,7 @@ pipeline {
             steps {
                 sh '''
                     DOCKER_BUILDKIT=1 docker build \
-                    -t ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} \
-                    -f dockerfiles/taraxa.Dockerfile .
+                    -t ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} .
                 '''
             }
         }

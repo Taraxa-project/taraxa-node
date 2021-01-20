@@ -1,0 +1,11 @@
+.vscode
+.idea
+*.iml
+.DS_Store
+.git
+
+# for Cmake users, name your cmake build dirs like this:
+**/cmake-*
+
+# put here local env stuff
+local
