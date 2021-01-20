@@ -21,16 +21,16 @@ RUN apt-get update \
         libscrypt-dev \
         libmpfr-dev \
         libgmp3-dev \
-        librocksdb-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# # Install rocksdb
-# RUN curl -SL https://github.com/facebook/rocksdb/archive/v5.18.3.tar.gz \
-#     | tar -xzC /tmp \
-#     && cd /tmp/rocksdb-5.18.3 \
-#     && CXXFLAGS='-Wno-error=deprecated-copy -Wno-error=pessimizing-move' PORTABLE=1 make -j $(nproc) install-static \
-#     && rm -rf $(pwd)
-# ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
+# Install rocksdb
+RUN curl -SL https://github.com/facebook/rocksdb/archive/v5.18.3.tar.gz \
+    | tar -xzC /tmp \
+    && cd /tmp/rocksdb-5.18.3 \
+    && CXXFLAGS='-Wno-error=deprecated-copy -Wno-error=pessimizing-move' make -j $(nproc) install-static \
+    && CXXFLAGS='-Wno-error=deprecated-copy -Wno-error=pessimizing-move' make -j $(nproc) install-shared \
+    && rm -rf $(pwd)
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 
 # Install go
 ARG GO_VERSION=1.13.7
@@ -69,13 +69,6 @@ FROM ubuntu:20.04
 
 ARG OUTPUT_DIR
 WORKDIR /opt/taraxa/taraxa-node
-
-RUN apt-get update \
-    && apt-get install -y \
-        curl \
-        libgflags-dev libsnappy-dev zlib1g-dev libbz2-dev liblz4-dev libzstd-dev \
-        librocksdb-dev \
-    && rm -rf /var/lib/apt/lists/*
 
 # Keep the old struct for now
 COPY --from=builder /opt/taraxa/$OUTPUT_DIR/src/taraxad/taraxad ./main
