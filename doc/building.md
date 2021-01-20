@@ -16,27 +16,30 @@ will build out of the box without further effort:
 
     # Required packages
     sudo apt-get install -y \
-        cmake ccache gcc g++ clang clang-format clang-tidy \
         libtool \
         autoconf \
+        ccache cmake gcc g++ clang-format clang-tidy cppcheck \
+        libboost-program-options-dev libboost-system-dev libboost-filesystem-dev libboost-thread-dev libboost-log-dev \
+        libgflags-dev libsnappy-dev zlib1g-dev libbz2-dev liblz4-dev libzstd-dev \
         libssl-dev \
         libjsoncpp-dev libjsonrpccpp-dev \
         libscrypt-dev \
-        librocksdb-dev \
         libmpfr-dev \
         libgmp3-dev
-        
-    # Boost packages (required)
-    sudo apt-get install -y \
-        libboost-program-options-dev \ 
-        libboost-system-dev \
-        libboost-filesystem-dev \ 
-        libboost-thread-dev \
-        libboost-log-dev \
+
         
     # Optional packages (not required, but will make a nicer experience)
     sudo apt-get install -y \
         doxygen
+
+    # rocksdb (required)
+    curl -SL https://github.com/facebook/rocksdb/archive/v5.18.3.tar.gz \
+        | tar -xzC /tmp \
+    && cd /tmp/rocksdb-5.18.3 \
+    && CXXFLAGS='-Wno-error=deprecated-copy -Wno-error=pessimizing-move' PORTABLE=1 make -j $(nproc) install-static \
+    && CXXFLAGS='-Wno-error=deprecated-copy -Wno-error=pessimizing-move' PORTABLE=1 make -j $(nproc) install-shared \
+    && rm -rf $(pwd) \
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 
     # Go (required)
     wget https://dl.google.com/go/go1.13.7.linux-amd64.tar.gz
@@ -58,8 +61,8 @@ will build out of the box without further effort:
 
 ### Compile
 
-    mkdir build
-    cd build
+    mkdir cmake-build
+    cd cmake-build
     cmake -DCMAKE_BUILD_TYPE=Release ../
     make -j$(nproc) taraxad
     
@@ -74,10 +77,13 @@ will build out of the box without further effort:
     ctest
 
 ### Running taraxa-node
-    cd build/src/taraxad
+    cd cmake-build/src/taraxad
 
     # run taraxa-node
-    ./taraxa-node --conf_taraxa /path/to/config/file
+    ./taraxad --conf_taraxa /path/to/config/file
+
+    e.g.:
+    ./taraxad --conf_taraxa configs/taraxad.conf
 
 ## Building on MacOS
 
