@@ -1,8 +1,0 @@
-**/*
-!src
-!scripts/clang_format.sh
-!scripts/clang_format_validate.sh
-!scripts/run_commands_long_circuit.sh
-!.clang-format
-!Makefile
-!dockerfiles/main.ubuntu.dockerfile.crypto_test_HACK.sh

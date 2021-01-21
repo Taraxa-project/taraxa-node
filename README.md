@@ -1,261 +1,42 @@
-### Submodule workflow
-Keep in mind that `make` build will update submodules automatically to their 
-*committed* versions, also cleaning any untracked files if a the current version
-is is different from the committed for a submodule. This should be convenient 
-in most cases, but if you are developing in a submodule and want to 
-incrementally integrate those changes in this repo, you should not forget 
-to *commit* the submodule directory after updating it from the remote.
-The best way to update the local submodule version - is to enter it's directory
-and do git checkout/pull for the branch of interest, or just checkout if there's
-no branch of interest.
+# Introducing Taraxa
 
-#THE FOLLOWING IS HORRIBLY OUTDATED
+Taraxa is a Practical Byzantine Fault Tolerance blockchain.
 
-# Current Build Status
-[![Build Status](https://api.travis-ci.com/Taraxa-project/taraxa-node.svg?token=uj8tJYwJxx7PyPVNRSWp&branch=master)]([https://travis-ci.org/Taraxa-project/taraxa-node](https://travis-ci.com/Taraxa-project/taraxa-node))
+# Whitepaper
 
-# IMPORTANT!!!   *** Developer Notice ***
-Please rebase your `feature` branch **_everyday_** and **_before_** create pull request.
+You can read the Taraxa Whitepaper at [TaraxaWhitePaper.pdf](https://github.com/Taraxa-project/taraxa-whitepapers).
 
-(Or at lease before create pull request). 
+# Quickstart
 
-In your `feature` branch, do:
-```
-  git fetch origin
-  git rebase origin/master
-```
-This makes sure your codebase is up-to-date. 
-Please resolve any conflicts you may find.  :)
+Just want to get up and running quickly? We have pre-built docker images for your convenience. 
+More details are in our [quickstart guide](doc/quickstart_guide.md).
 
-Before filing pull request, please do:
+# Downloading
 
-`make run_test` 
+Latest release can be always found [here](https://github.com/Taraxa-project/taraxa-node/releases).
 
-and make sure all test are passed! :)
+# Building
 
-Please run your code format with `.clang-format` checking. 
+If you would like to build from source, we do have [build instructions](doc/building.md) for Linux (Ubuntu LTS) and macOS.
 
-# Installation:
-```
-git clone https://github.com/Taraxa-project/taraxa-node.git
-```
-**The compilation requires Go 1.12+ and a C++17-compatible compiler**
+# Contributing
 
-## Library dependency:
+Want to contribute to Taraxa repository ? We in Taraxa highly appreciate community work so if you feel like you want to 
+participate you are more than welcome. You can start by reading [contributing tutorial](doc/contributing.md).
 
-```
-cryptopp, libff, ethash, secp256k1, boost, rocksdb, gtest, leveldb
+# Useful doc
+
+- [Git practices](doc/git_practices.md)
+- [Coding practices](doc/coding_practices.md)
+
+# System Requirements
+
+For a full web node, you need at least ...GB of disk space available.
+The block log of the blockchain itself is a little over ...GB.
+It's highly recommended to run taraxad on a fast disk such as an SSD.
+At least ...GB of memory is required for a full web node.
+Any CPU with decent single core performance should be sufficient.
+Taraxa is constantly growing, so you may find you need more disk space to run a full node.
+We are also constantly working on optimizing Taraxa's use of disk space.
 ```
 
-**On MacOS**:
-```
-brew install boost
-brew install rocksdb
-brew install cmake
-brew install leveldb
-brew install libscrypt
-brew install automake
-brew install jsoncpp
-brew install libjson-rpc-cpp
-```
-
-**On Linux**:
-[Refer to the ubuntu env dockerfile 
-to find what dependecies have to be installed](dockerfiles/base.ubuntu.dockerfile)
-
-Some libraries are managed as git submodules, 
-and will be installed automatically during the build
-
-## Demo prometheus-cpp:
-/* To demo the prometheus cpp locally, follow the steps below:
- * ---------------------------  pushgateway  ---------------------------
- * Step 1: download pushgateway binary from https://prometheus.io/download/#pushgateway
- * Step 2: run push gateway at localhost, set port 9091 using: './pushgateway --web.listen-address=0.0.0.0:9091'
- * Step 3: open a browser and access localhost:9091/
- * ---------------------------  prometheus itself  ---------------------------
- * // TODO: current promethes was not connected with the push-gateway
- * Step 4: download prometheus from https://prometheus.io/download/ ; the tar file contains an executable 'prometheus'
- * Step 5: config 'prometheus.yml' (more info: https://prometheus.io/docs/prometheus/latest/configuration/configuration/)
- * Step 6: start the prometheus with './prometheus --config.file=prometheus.yml'
- * ---------------------------  prometheus cpp client:  ---------------------------
- * The prometheus cpp is expected to be built through MakeFile's git submodule (`git submodule update`). 
- 
- Run instructions below if makefile fails
- * Step 7: mkdir -p submodules/prometheus-cpp/
- * Step 8: in the directory, git clone https://github.com/jupp0r/prometheus-cpp.git
- * Step 9: build prometheus_cpp client following the Building section and 'via CMake' sub-section at
- *         https://github.com/jupp0r/prometheus-cpp
- */
-
-```
-make pdemo
-# replace all of the following param for a different pushgateway setup
-# make pdemo PUSHGATEWAY_NAME=pushgateway PUSHGATEWAY_IP=0.0.0.0 PUSHGATEWAY_PORT=9091
-```
-
-Google how to install other libs for your system.
-
-# Run taraxa-node tests:
-Tests are under core_tests/
-```
-make run_test
-```
-# Run taraxa full node
-To run full node requires one configuration file (in JSON format). 
-
-```
-make main
-```
-use `./build/main --help` to check options.
-
-Run example:
-```
-./build/main --conf_taraxa ./core_tests/conf_taraxa1.json -v 1 --log-filename mylog --log-channels FULLND
-```
-The example run taraxa node with _conf_taraxa1.json_ setting. Reports error and warning message (verbosity 1) in log channel _FULLND_. It also pipe message to _mylog_ file.
-
-Please change ip address, binding port, number of threads, etc, in the configuration files accordingly.
-
-Verbosity setting (-v):
-
-0: Error, 1: Warning (default), 2: Info, 3: Debug, 4: Trace 
-
-## Build debug executable:
-
-```
-make main DEBUG=1
-```
-
-## Docker
-
-Docker has to be installed. If it is not, visit this [web](https://docs.docker.com/install/).
-
-### Building Docker Image
-
-```bash
-$ docker build -t taraxa-node -f dockerfiles/Dockerfile .
-```
-
-*The building process takes a lot of time, especially during its first execution.*
-
-### Check Docker images
-
-```bash
-$ docker images
-```
-
-### Running a Docker Container
-
-* Running using the host network mode
-
-```bash
-$ docker run --rm --net=host --name taraxa-node taraxa-node
-```
-
-* Running using the bridge network mode
-
-```bash
-$ docker run --rm -p <host port>:<container port> \
-  --name taraxa-node taraxa-node
-```
-
-Example:
-
-```bash
-$ docker run --rm -p 7777:7777 \
-  --name taraxa-node taraxa-node
-```
-
-* Running with my own config files
-
-```bash
-$ docker run --rm -p <host port>:<container> -v `pwd`/core_tests:/core_tests \
-  --name taraxa-node taraxa-node \
-  --conf_full_node /core_tests/conf_full_node1.json \
-  --conf_network /core_tests/conf_network1.json \
-  --conf_rpc /core_tests/conf_rpc1.json
-```
-
-Example:
-
-```bash
-$ docker run --rm -p 7777:7777 -v `pwd`/core_tests:/core_tests \
-  --name taraxa-node taraxa-node \
-  --conf_full_node /core_tests/conf_full_node1.json \
-  --conf_network /core_tests/conf_network1.json \
-  --conf_rpc /core_tests/conf_rpc1.json
-```
-
-### Check Running Docker containers
-
-```bash
-$ docker ps
-```
-
-### Check Stopped Docker containers
-
-```bash
-$ docker ps -a
-```
-
-### Stop/Kill Docker Container
-
-```bash 
-$ docker stop taraxa-node
-```
-
-```bash 
-$ docker kill taraxa-node
-```
-
-### Remove Stopped Docker Container
-
-```bash 
-$ docker rm taraxa-node
-```
-
-## Base Image for Taraxa Node
-
-### Build Image
-
-```bash
-$ docker build -t taraxa-node-base -f dockerfiles/base.<chosen base image>.dockerfile .
-```
-
-### Tagging Image
-```bash
-$ docker tag taraxa-node-base <account id>.dkr.ecr.<aws region>.amazonaws.com/taraxa-node-base
-```
-
-### Push Image
-
-```bash
-$ docker push <account id>.dkr.ecr.<aws region>.amazonaws.com/taraxa-node-base
-```
-
-> Log into the registry is required.
-
-### Pull Image
-
-```bash
-$ docker pull <account id>.dkr.ecr.<aws region>.amazonaws.com/taraxa-node-base
-```
-
-> Log into the registry is required.
-
-## CPU Profiling 
-Currently, use https://github.com/gperftools/gperftools to run CPU profiling. It works in Linux environment but **NOT** in latest MacOs (Mojave). 
-
-For example, install in Ubuntu:
-```sudo apt-get install google-perftools libgoogle-perftools-dev```
-
-Build with `PERF=1`, for example: `make run_test PERF=1`
-
-To do profiling in a docker, do: 
-```
-docker build -t taraxa-node:builder -f dockerfiles/Dockerfile --target builder .
-```
-Login to docker: 
-```
-docker run -it <image> /bin/bash
-```
