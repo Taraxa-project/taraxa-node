@@ -195,12 +195,7 @@ void BlockProposer::proposeBlock(DagBlock& blk) {
 }
 
 bool BlockProposer::validDposProposer(level_t const propose_level) {
-<<<<<<< HEAD
   uint64_t period = dag_blk_mgr_->getPeriod(propose_level);
-=======
-  // TODO: Use DAG propose level map to period
-  uint64_t period = 0;
->>>>>>> b30f1bb5 (WIP in DAG DPOS proposal. Using genesis DPOS state for DAG proposal)
   return final_chain_->dpos_is_eligible(period, node_addr_);
 }
 
