@@ -3,6 +3,11 @@
 *.iml
 .DS_Store
 .git
+Jenkinsfile
+base-image-build.pipeline.groovy
+for_devs_on_macos
+scripts
+doc
 
 # for Cmake users, name your cmake build dirs like this:
 **/cmake-*

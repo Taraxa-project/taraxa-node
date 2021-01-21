@@ -40,10 +40,10 @@ There are 2 taraxa docker images:
 Contains all dependecies required for building taraxa-node project, you can create local taraxa-builder image 
 by running this command in root directory:
 
-    DOCKER_BUILDKIT=1 docker build --target builder -t taraxa-builder:latest .
+    DOCKER_BUILDKIT=1 docker build --progress=plain --target builder -t taraxa-builder:latest .
     
 
 ### taraxa-node:latest
 Contains final taraxad binary + config. All dependencies are linked statically. To create taraxa-node image, run: 
 
-    DOCKER_BUILDKIT=1 docker build -t taraxa-node:latest .
+    DOCKER_BUILDKIT=1 docker build --progress=plain -t taraxa-node:latest .

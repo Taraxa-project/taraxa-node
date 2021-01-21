@@ -61,8 +61,8 @@ will build out of the box without further effort:
 
 ### Compile
 
-    mkdir build
-    cd build
+    mkdir cmake-build
+    cd cmake-build
     cmake -DCMAKE_BUILD_TYPE=Release ../
     make -j$(nproc) taraxad
     
@@ -77,10 +77,13 @@ will build out of the box without further effort:
     ctest
 
 ### Running taraxa-node
-    cd build/src/taraxad
+    cd cmake-build/src/taraxad
 
     # run taraxa-node
-    ./taraxa-node --conf_taraxa /path/to/config/file
+    ./taraxad --conf_taraxa /path/to/config/file
+
+    e.g.:
+    ./taraxad --conf_taraxa configs/taraxad.conf
 
 ## Building on MacOS
 
