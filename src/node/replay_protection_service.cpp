@@ -1,5 +1,6 @@
 #include "replay_protection_service.hpp"
 
+#include <libdevcore/CommonJS.h>
 #include <libdevcore/RLP.h>
 
 #include <optional>

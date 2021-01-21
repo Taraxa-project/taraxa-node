@@ -1,5 +1,7 @@
 #include "chain/state_api.hpp"
 
+#include <libdevcore/CommonJS.h>
+
 #include <boost/filesystem.hpp>
 #include <fstream>
 #include <optional>

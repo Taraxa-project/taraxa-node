@@ -162,7 +162,7 @@ blk_hash_t BlockProposer::getProposeAnchor() const {
 level_t BlockProposer::getProposeLevel(blk_hash_t const& pivot, vec_blk_t const& tips) {
   level_t max_level = 0;
   // get current level
-  auto pivot_blk = blk_mgr_->getDagBlock(pivot);
+  auto pivot_blk = dag_blk_mgr_->getDagBlock(pivot);
   if (!pivot_blk) {
     LOG(log_er_) << "Cannot find pivot dag block " << pivot;
     return 0;
@@ -170,7 +170,7 @@ level_t BlockProposer::getProposeLevel(blk_hash_t const& pivot, vec_blk_t const&
   max_level = std::max(pivot_blk->getLevel(), max_level);
 
   for (auto const& t : tips) {
-    auto tip_blk = blk_mgr_->getDagBlock(t);
+    auto tip_blk = dag_blk_mgr_->getDagBlock(t);
     if (!tip_blk) {
       LOG(log_er_) << "Cannot find tip dag block " << blk_hash_t(t);
       return 0;
@@ -184,7 +184,7 @@ void BlockProposer::proposeBlock(DagBlock& blk) {
   if (stopped_) return;
 
   blk.sign(node_sk_);
-  blk_mgr_->insertBlock(blk);
+  dag_blk_mgr_->insertBlock(blk);
 
   auto now = getCurrentTimeMilliSeconds();
   LOG(log_time_) << "Propose block " << blk.getHash() << " at: " << now << " ,trxs: " << blk.getTrxs()
@@ -195,8 +195,7 @@ void BlockProposer::proposeBlock(DagBlock& blk) {
 }
 
 bool BlockProposer::validDposProposer(level_t const propose_level) {
-  // TODO: Use DAG propose level map to period
-  uint64_t period = 0;
+  uint64_t period = dag_blk_mgr_->getPeriod(propose_level);
   return final_chain_->dpos_is_eligible(period, node_addr_);
 }
 

@@ -20,6 +20,7 @@
 #include "consensus/pbft_chain.hpp"
 #include "consensus/vote.hpp"
 #include "consensus/vrf_wrapper.hpp"
+#include "dag/dag_block_manager.hpp"
 #include "executor.hpp"
 #include "network/rpc/NetFace.h"
 #include "network/rpc/RpcServer.h"
@@ -62,7 +63,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<DbStorage> db_;
   std::shared_ptr<DbStorage> old_db_;
   std::shared_ptr<DagManager> dag_mgr_;
-  std::shared_ptr<BlockManager> blk_mgr_;
+  std::shared_ptr<DagBlockManager> dag_blk_mgr_;
   std::shared_ptr<TransactionManager> trx_mgr_;
   std::shared_ptr<Network> network_;
   std::shared_ptr<TransactionOrderManager> trx_order_mgr_;
@@ -76,11 +77,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::unique_ptr<boost::asio::io_context> jsonrpc_io_ctx_;
   std::shared_ptr<net::RpcServer> jsonrpc_http_;
   std::shared_ptr<net::WSServer> jsonrpc_ws_;
-  std::unique_ptr<ModularServer<net::TestFace,
-                                net::TaraxaFace,  //
-                                net::NetFace,     //
-                                dev::rpc::EthFace>>
-      jsonrpc_api_;
+  std::unique_ptr<ModularServer<net::TestFace, net::TaraxaFace, net::NetFace, dev::rpc::EthFace>> jsonrpc_api_;
   std::vector<std::thread> jsonrpc_threads_;
   // debug
   std::atomic_uint64_t received_blocks_ = 0;
@@ -96,7 +93,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   void close();
 
   template <typename T, typename... ConstructorParams>
-  auto &emplace(std::shared_ptr<T> &ptr, ConstructorParams &&...ctor_params) {
+  auto &emplace(std::shared_ptr<T> &ptr, ConstructorParams &&... ctor_params) {
     ptr = std::make_shared<T>(std::forward<ConstructorParams>(ctor_params)...);
     post_destruction_ += [w_ptr = std::weak_ptr<T>(ptr)] {
       // Example of debugging: cout << "checking " << typeid(T).name() << endl;
@@ -106,7 +103,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   }
 
   template <typename T, typename... ConstructorParams>
-  static auto &emplace(std::unique_ptr<T> &ptr, ConstructorParams &&...ctor_params) {
+  static auto &emplace(std::unique_ptr<T> &ptr, ConstructorParams &&... ctor_params) {
     return ptr = std::make_unique<T>(std::forward<ConstructorParams>(ctor_params)...);
   }
 
@@ -118,7 +115,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   auto const &getNetwork() const { return network_; }
   auto const &getTransactionManager() const { return trx_mgr_; }
   auto const &getDagManager() const { return dag_mgr_; }
-  auto const &getBlockManager() const { return blk_mgr_; }
+  auto const &getDagBlockManager() const { return dag_blk_mgr_; }
   auto const &getDB() const { return db_; }
   auto const &getPbftManager() const { return pbft_mgr_; }
   auto const &getVoteManager() const { return vote_mgr_; }
