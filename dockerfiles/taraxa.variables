@@ -1,5 +1,0 @@
-taraxa_builder_image=taraxa/taraxa_builder:1.0
-taraxa_remote_env_image=taraxa/taraxa_remote_env:1.0
-taraxa_node_image=taraxa/taraxa_node_dev:1.0
-
-node_local_build_dir=cmake-docker-build-release

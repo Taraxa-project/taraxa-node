@@ -17,9 +17,9 @@
 #  gmp_LIBRARIES         The gmp library
 
 set(LIB_SUFFIX .so)
-if(gmp_USE_STATIC_LIBS)
+if (gmp_USE_STATIC_LIBS)
     set(LIB_SUFFIX .a)
-endif()
+endif ()
 
 find_path(gmp_INCLUDE_DIR
         NAMES gmpxx.h

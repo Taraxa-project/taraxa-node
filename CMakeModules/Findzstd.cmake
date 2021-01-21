@@ -17,9 +17,9 @@
 #  zstd_LIBRARIES         The zstd library
 
 set(LIB_SUFFIX .so)
-if(zstd_USE_STATIC_LIBS)
+if (zstd_USE_STATIC_LIBS)
     set(LIB_SUFFIX .a)
-endif()
+endif ()
 
 find_path(zstd_INCLUDE_DIR
         NAMES zstd.h

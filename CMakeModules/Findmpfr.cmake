@@ -17,9 +17,9 @@
 #  mpfr_LIBRARIES         The mpfr library
 
 set(LIB_SUFFIX .so)
-if(mpfr_USE_STATIC_LIBS)
+if (mpfr_USE_STATIC_LIBS)
     set(LIB_SUFFIX .a)
-endif()
+endif ()
 
 find_path(mpfr_INCLUDE_DIR
         NAMES mpfr.h

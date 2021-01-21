@@ -17,9 +17,9 @@
 #  crypto_LIBRARIES         The crypto library
 
 set(LIB_SUFFIX .so)
-if(crypto_USE_STATIC_LIBS)
+if (crypto_USE_STATIC_LIBS)
     set(LIB_SUFFIX .a)
-endif()
+endif ()
 
 find_path(crypto_INCLUDE_DIR
         NAMES openssl/crypto.h

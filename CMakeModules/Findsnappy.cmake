@@ -17,9 +17,9 @@
 #  snappy_LIBRARIES         The snappy library
 
 set(LIB_SUFFIX .so)
-if(snappy_USE_STATIC_LIBS)
+if (snappy_USE_STATIC_LIBS)
     set(LIB_SUFFIX .a)
-endif()
+endif ()
 
 find_path(snappy_INCLUDE_DIR
         NAMES snappy.h

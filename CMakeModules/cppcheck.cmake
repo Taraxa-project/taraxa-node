@@ -1,9 +1,9 @@
 # additional target to perform cppcheck run, requires cppcheck
 find_program(CPP_CHECK_EXE NAMES "cppcheck" DOC "Path to cppcheck executable")
 
-if(NOT CPP_CHECK_EXE)
+if (NOT CPP_CHECK_EXE)
     message(STATUS "cppcheck not found.")
-else()
+else ()
     message(STATUS "cppcheck found: ${CPP_CHECK_EXE}")
 
     add_custom_target(cpp-check ALL
@@ -21,7 +21,7 @@ else()
                 --suppress=unreadVariable
                 --suppress=unknownMacro
                 #--suppress=useInitializationList
-#                --suppress=syntaxError
+                #--suppress=syntaxError
                 --suppress=internalAstError # because of https://trac.cppcheck.net/ticket/9537 -> state_api.cpp, line 53, TODO: remove this
 
                 # Only show found errors
@@ -35,4 +35,4 @@ else()
 
             COMMENT "Analysing files in src/ by cppcheck"
             )
-endif()
+endif ()

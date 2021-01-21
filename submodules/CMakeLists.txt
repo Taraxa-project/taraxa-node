@@ -1,4 +1,3 @@
-cmake_minimum_required(VERSION 3.16)
 
 set(
     __COMPILE_DEFINITIONS__
@@ -23,6 +22,3 @@ add_dependencies(submodules submodules_build)
 target_compile_definitions(submodules INTERFACE ${__COMPILE_DEFINITIONS__})
 target_include_directories(submodules INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/include)
 target_link_directories(submodules INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/lib)
-
-#set(LIB_DEPS_INSTALL_DIR "/usr/local/lib" CACHE PATH "Libraries install directory")
-#install(DIRECTORY ${Submodules_LIB_DIR}/ DESTINATION ${LIB_DEPS_INSTALL_DIR} COMPONENT submodules)
