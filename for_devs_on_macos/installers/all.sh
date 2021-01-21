@@ -2,7 +2,8 @@
 
 cd $(dirname "$0")
 
-# running sequentially because it requests sudo rights
+./bzip2.sh
 ./openssl.sh
-find . -type f ! -path "./common.sh" -and ! -path "./all.sh" -and ! -path "./openssl.sh" |
+echo ./llvm.sh ./cppcheck.sh ./boost.sh |
+  tr " " "\n" |
   parallel --will-cite -j999

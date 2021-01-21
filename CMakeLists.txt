@@ -15,7 +15,13 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g -O2") # TODO: originally -g -O0
 
 # taraxad full static build option
 option(TARAXA_STATIC_BUILD "Build taraxad as a static library (ON or OFF)" ON)
+if (APPLE)
+    message(STATUS "Disabling the static build because it's not supported on this OS")
+    set(TARAXA_STATIC_BUILD OFF)
+endif ()
 message(STATUS "TARAXA_STATIC_BUILD: ${TARAXA_STATIC_BUILD}")
+
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 # Use ccache to speed-up recompilation
 find_program(CCACHE_PROGRAM ccache)
@@ -28,7 +34,7 @@ endif ()
 
 # Mac OS
 if (DEFINED SYSTEM_HOME_OVERRIDE)
-    list(APPEND CMAKE_PREFIX_PATH ${SYSTEM_HOME_OVERRIDE})
+    list(PREPEND CMAKE_PREFIX_PATH ${SYSTEM_HOME_OVERRIDE})
     include_directories(${SYSTEM_HOME_OVERRIDE}/include)
     link_directories(${SYSTEM_HOME_OVERRIDE}/lib)
 endif ()
@@ -39,22 +45,22 @@ set(CMAKE_MACOSX_RPATH ON)
 
 # Get the latest abbreviated commit hash of the working branch
 execute_process(
-        COMMAND git log -1 --format=%h
-        WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
-        OUTPUT_VARIABLE GIT_HASH
-        OUTPUT_STRIP_TRAILING_WHITESPACE
+    COMMAND git log -1 --format=%h
+    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+    OUTPUT_VARIABLE GIT_HASH
+    OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
 # Get compile time
 execute_process(
-        COMMAND date -u +%Y-%m-%d-%H:%M:%S
-        OUTPUT_VARIABLE COMPILE_TIME
-        OUTPUT_STRIP_TRAILING_WHITESPACE
+    COMMAND date -u +%Y-%m-%d-%H:%M:%S
+    OUTPUT_VARIABLE COMPILE_TIME
+    OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
 add_compile_definitions(
-        GIT_HASH=\"${GIT_HASH}\"
-        COMPILE_TIME=\"${COMPILE_TIME}\"
+    GIT_HASH=\"${GIT_HASH}\"
+    COMPILE_TIME=\"${COMPILE_TIME}\"
 )
 
 # Enable creation of taraxa package containing taraxad binary

@@ -51,7 +51,11 @@ $(DIST)/taraxa-evm.ok:
 	cd taraxa/C; \
 	CGO_CFLAGS_ALLOW='.*' CGO_CXXFLAGS_ALLOW='.*' \
 		CGO_CFLAGS="-O3" CGO_CXXFLAGS="-O3" \
-		go build -buildmode=c-archive -o $${NAME}.a; \
+		go build \
+			-buildmode=c-archive \
+			-ldflags="-linkmode external -extldflags=-static" \
+			-tags=static \
+			-o $${NAME}.a; \
 	copy . "*.h" $${STAGE_DIR}/include/$${NAME}/; \
 	cp $${NAME}.a $${STAGE_DIR}/lib/lib$${NAME}.a; \
 	$(SUBMODULE_BUILD_END);
