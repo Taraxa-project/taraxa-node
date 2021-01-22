@@ -113,6 +113,8 @@ include(CMakeModules/clang_format.cmake)
 # cppcheck
 include(CMakeModules/cppcheck.cmake)
 
+add_custom_target(check-static DEPENDS cpp-check clang-format-check)
+
 # Add sub-directories cmakes
 add_subdirectory(submodules)
 add_subdirectory(src)

@@ -2,8 +2,15 @@ SYSTEM_HOME_OVERRIDE?=
 UPDATE_SUBMODULES?=1
 DIST?=$(CURDIR)/__dist__
 COMPILE_DEFINITIONS?=
+TARAXA_STATIC_BUILD?=
 
 SHELL := /bin/bash
+
+ifeq ($(TARAXA_STATIC_BUILD),1)
+	override COMPILE_DEFINITIONS += BOOST_ALL_STATIC_LINK
+else
+	override COMPILE_DEFINITIONS += BOOST_ALL_DYN_LINK
+endif
 
 # NOTE: there's a supporting file with shell utils: Makefile.sh
 # By default, sync submodules on every `make` invocation to make
@@ -51,16 +58,19 @@ SUBMODULE_BUILD_END = \
 # ====================================================
 
 # TODO explore more cgo compiler optimization flags
+_TARAXA_EVM_BUILD_ENV := \
+	CGO_CFLAGS_ALLOW='.*' \
+	CGO_CXXFLAGS_ALLOW='.*' \
+	CGO_CFLAGS="-O3" \
+	CGO_CXXFLAGS="-O3"
+ifeq ($(TARAXA_STATIC_BUILD),1)
+	_TARAXA_EVM_BUILD_ENV += \
+		CGO_LDFLAGS="-static -lrocksdb -lbz2 -lz -lsnappy -llz4 -lzstd"
+endif
 $(DIST)/taraxa-evm.ok:
 	$(SUBMODULE_BUILD_BEGIN); \
 	cd taraxa/C; \
-	CGO_CFLAGS_ALLOW='.*' CGO_CXXFLAGS_ALLOW='.*' \
-		CGO_CFLAGS="-O3" CGO_CXXFLAGS="-O3" \
-		go build \
-			-buildmode=c-archive \
-			-ldflags="-linkmode external -extldflags=-static" \
-			-tags=static \
-			-o $${NAME}.a; \
+	$(_TARAXA_EVM_BUILD_ENV) go build -buildmode=c-archive -o $${NAME}.a; \
 	copy . "*.h" $${STAGE_DIR}/include/$${NAME}/; \
 	cp $${NAME}.a $${STAGE_DIR}/lib/lib$${NAME}.a; \
 	$(SUBMODULE_BUILD_END);
