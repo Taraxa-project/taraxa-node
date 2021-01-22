@@ -109,7 +109,7 @@ RUN mkdir $BUILD_OUTPUT_DIR \
     && make install \
     && strip bin_install/taraxad \
     && cd tests/ \
-    && ctest
+    && ctest --output-on-failure
 
 
 ###############################################################################
