@@ -3,6 +3,8 @@ UPDATE_SUBMODULES?=1
 DIST?=$(CURDIR)/__dist__
 COMPILE_DEFINITIONS?=
 
+SHELL := /bin/bash
+
 # NOTE: there's a supporting file with shell utils: Makefile.sh
 # By default, sync submodules on every `make` invocation to make
 # the developers think less about submodules
