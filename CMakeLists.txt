@@ -45,22 +45,22 @@ set(CMAKE_MACOSX_RPATH ON)
 
 # Get the latest abbreviated commit hash of the working branch
 execute_process(
-    COMMAND git log -1 --format=%h
-    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
-    OUTPUT_VARIABLE GIT_HASH
-    OUTPUT_STRIP_TRAILING_WHITESPACE
+        COMMAND git log -1 --format=%h
+        WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+        OUTPUT_VARIABLE GIT_HASH
+        OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
 # Get compile time
 execute_process(
-    COMMAND date -u +%Y-%m-%d-%H:%M:%S
-    OUTPUT_VARIABLE COMPILE_TIME
-    OUTPUT_STRIP_TRAILING_WHITESPACE
+        COMMAND date -u +%Y-%m-%d-%H:%M:%S
+        OUTPUT_VARIABLE COMPILE_TIME
+        OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
 add_compile_definitions(
-    GIT_HASH=\"${GIT_HASH}\"
-    COMPILE_TIME=\"${COMPILE_TIME}\"
+        GIT_HASH=\"${GIT_HASH}\"
+        COMPILE_TIME=\"${COMPILE_TIME}\"
 )
 
 # Enable creation of taraxa package containing taraxad binary

@@ -87,7 +87,7 @@ will build out of the box without further effort:
 
 ## Building on MacOS
 
-Refer to the [MacOS dev doc](../for_devs_on_macos/README.md)
+Refer to the [MacOS dev doc](../for_devs/macos/README.md)
 
 ### Install taraxa-node dependencies:
 

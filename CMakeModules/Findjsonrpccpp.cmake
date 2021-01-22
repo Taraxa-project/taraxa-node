@@ -53,21 +53,21 @@ find_library(
 )
 
 # these are the variables to be uses by the calling script
-set (jsonrpccpp_INCLUDE_DIRS ${jsonrpccpp_INCLUDE_DIR})
-set (jsonrpccpp_LIBRARIES ${jsonrpccpp_COMMON_LIBRARY} ${jsonrpccpp_SERVER_LIBRARY} ${jsonrpccpp_CLIENT_LIBRARY})
-set (jsonrpccpp_SERVER_LIBRARIES ${jsonrpccpp_COMMON_LIBRARY} ${jsonrpccpp_SERVER_LIBRARY})
-set (jsonrpccpp_CLIENT_LIBRARIES ${jsonrpccpp_COMMON_LIBRARY} ${jsonrpccpp_CLIENT_LIBRARY})
+set(jsonrpccpp_INCLUDE_DIRS ${jsonrpccpp_INCLUDE_DIR})
+set(jsonrpccpp_LIBRARIES ${jsonrpccpp_COMMON_LIBRARY} ${jsonrpccpp_SERVER_LIBRARY} ${jsonrpccpp_CLIENT_LIBRARY})
+set(jsonrpccpp_SERVER_LIBRARIES ${jsonrpccpp_COMMON_LIBRARY} ${jsonrpccpp_SERVER_LIBRARY})
+set(jsonrpccpp_CLIENT_LIBRARIES ${jsonrpccpp_COMMON_LIBRARY} ${jsonrpccpp_CLIENT_LIBRARY})
 
 if (jsonrpccpp_INCLUDE_DIR)
-    set (jsonrpccpp_VERSION_HEADER "${jsonrpccpp_INCLUDE_DIR}/jsonrpccpp/version.h")
+    set(jsonrpccpp_VERSION_HEADER "${jsonrpccpp_INCLUDE_DIR}/jsonrpccpp/version.h")
     if (EXISTS ${jsonrpccpp_VERSION_HEADER})
-        file (STRINGS ${jsonrpccpp_VERSION_HEADER} jsonrpccpp_VERSION_MAJOR REGEX "^#define JSONRPC_CPP_MAJOR_VERSION[ \t]+[0-9]+$")
-        file (STRINGS ${jsonrpccpp_VERSION_HEADER} jsonrpccpp_VERSION_MINOR REGEX "^#define JSONRPC_CPP_MINOR_VERSION[ \t]+[0-9]+$")
-        file (STRINGS ${jsonrpccpp_VERSION_HEADER} jsonrpccpp_VERSION_PATCH REGEX "^#define JSONRPC_CPP_PATCH_VERSION[ \t]+[0-9]+$")
-        string (REGEX REPLACE "^#define JSONRPC_CPP_MAJOR_VERSION[ \t]+([0-9]+)" "\\1" jsonrpccpp_VERSION_MAJOR ${jsonrpccpp_VERSION_MAJOR})
-        string (REGEX REPLACE "^#define JSONRPC_CPP_MINOR_VERSION[ \t]+([0-9]+)" "\\1" jsonrpccpp_VERSION_MINOR ${jsonrpccpp_VERSION_MINOR})
-        string (REGEX REPLACE "^#define JSONRPC_CPP_PATCH_VERSION[ \t]+([0-9]+)" "\\1" jsonrpccpp_VERSION_PATCH ${jsonrpccpp_VERSION_PATCH})
-        set (jsonrpccpp_VERSION ${jsonrpccpp_VERSION_MAJOR}.${jsonrpccpp_VERSION_MINOR}.${jsonrpccpp_VERSION_PATCH})
+        file(STRINGS ${jsonrpccpp_VERSION_HEADER} jsonrpccpp_VERSION_MAJOR REGEX "^#define JSONRPC_CPP_MAJOR_VERSION[ \t]+[0-9]+$")
+        file(STRINGS ${jsonrpccpp_VERSION_HEADER} jsonrpccpp_VERSION_MINOR REGEX "^#define JSONRPC_CPP_MINOR_VERSION[ \t]+[0-9]+$")
+        file(STRINGS ${jsonrpccpp_VERSION_HEADER} jsonrpccpp_VERSION_PATCH REGEX "^#define JSONRPC_CPP_PATCH_VERSION[ \t]+[0-9]+$")
+        string(REGEX REPLACE "^#define JSONRPC_CPP_MAJOR_VERSION[ \t]+([0-9]+)" "\\1" jsonrpccpp_VERSION_MAJOR ${jsonrpccpp_VERSION_MAJOR})
+        string(REGEX REPLACE "^#define JSONRPC_CPP_MINOR_VERSION[ \t]+([0-9]+)" "\\1" jsonrpccpp_VERSION_MINOR ${jsonrpccpp_VERSION_MINOR})
+        string(REGEX REPLACE "^#define JSONRPC_CPP_PATCH_VERSION[ \t]+([0-9]+)" "\\1" jsonrpccpp_VERSION_PATCH ${jsonrpccpp_VERSION_PATCH})
+        set(jsonrpccpp_VERSION ${jsonrpccpp_VERSION_MAJOR}.${jsonrpccpp_VERSION_MINOR}.${jsonrpccpp_VERSION_PATCH})
     endif ()
 endif ()
 
@@ -81,4 +81,4 @@ find_package_handle_standard_args(
         VERSION_VAR jsonrpccpp_VERSION
 )
 
-mark_as_advanced (jsonrpccpp_INCLUDE_DIR jsonrpccpp_COMMON_LIBRARY jsonrpccpp_SERVER_LIBRARY jsonrpccpp_CLIENT_LIBRARY)
+mark_as_advanced(jsonrpccpp_INCLUDE_DIR jsonrpccpp_COMMON_LIBRARY jsonrpccpp_SERVER_LIBRARY jsonrpccpp_CLIENT_LIBRARY)

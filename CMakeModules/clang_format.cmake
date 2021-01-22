@@ -18,11 +18,11 @@ else ()
             ${ALL_SOURCE_FILES}
             | grep -q "replacement offset"
             COMMENT "Checking source code formatting by clang-format"
-    )
+            )
 
     add_custom_target(clang-format
             COMMAND ${CLANG_FORMAT_EXE} -style=file -i ${ALL_SOURCE_FILES}
             COMMENT "Formatting source code by clang-format"
-    )
+            )
 
 endif ()
