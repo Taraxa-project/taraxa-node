@@ -13,11 +13,11 @@ add_custom_target(rpc_stubs)
 
 foreach (api_name Net Taraxa Test)
     jsonrpcstub_create(
-        gen_rpc_stubs ${api_name}.jsonrpc.json
-        ${CPP_NAMESPACE}::${api_name}Face
-        ${CMAKE_CURRENT_SOURCE_DIR} ${api_name}Face
-        ${CPP_NAMESPACE}::${api_name}Client
-        ${CMAKE_CURRENT_SOURCE_DIR} ${api_name}Client
+            gen_rpc_stubs ${api_name}.jsonrpc.json
+            ${CPP_NAMESPACE}::${api_name}Face
+            ${CMAKE_CURRENT_SOURCE_DIR} ${api_name}Face
+            ${CPP_NAMESPACE}::${api_name}Client
+            ${CMAKE_CURRENT_SOURCE_DIR} ${api_name}Client
     )
     set(server_file ${CMAKE_CURRENT_SOURCE_DIR}/${api_name}Face.h)
     file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${api_name}_fix.cmake "
@@ -29,7 +29,7 @@ string(REPLACE
 file(WRITE ${server_file} \"\${server_file_content}\")
     ")
     add_custom_target(${api_name}_fix COMMAND ${CMAKE_COMMAND} -P
-                      ${CMAKE_CURRENT_BINARY_DIR}/${api_name}_fix.cmake)
+            ${CMAKE_CURRENT_BINARY_DIR}/${api_name}_fix.cmake)
     add_dependencies(${api_name}_fix gen_rpc_stubs)
     add_dependencies(rpc_stubs ${api_name}_fix)
 endforeach ()

@@ -26,8 +26,8 @@ else ()
     endif ()
 
     add_custom_target(clang-tidy
-        COMMAND ${CLANG_TIDY_EXE} ${CLANG_TIDY_CHECKS}
-        COMMENT "Checking source code by clang-tidy"
-        )
+            COMMAND ${CLANG_TIDY_EXE} ${CLANG_TIDY_CHECKS}
+            COMMENT "Checking source code by clang-tidy"
+            )
 
 endif ()

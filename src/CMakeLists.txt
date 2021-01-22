@@ -25,7 +25,7 @@ list(APPEND BOOST_COMPONENTS program_options system filesystem thread log log_se
 
 find_package(Boost 1.71 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
 if (Boost_FOUND)
-    message (STATUS "Boost components found: ${BOOST_COMPONENTS}, Boost version: ${Boost_VERSION}")
+    message(STATUS "Boost components found: ${BOOST_COMPONENTS}, Boost version: ${Boost_VERSION}")
 else (Boost_FOUND)
     message(STATUS "Boost not found")
 endif (Boost_FOUND)
@@ -136,7 +136,7 @@ set(SOURCES
         logger/logger_config.cpp
         logger/log.cpp
         common/types.cpp
-)
+        )
 
 add_subdirectory(network/rpc)
 
@@ -146,7 +146,7 @@ target_include_directories(app_base PUBLIC
         ${Boost_INCLUDE_DIR}
         ${Submodules_INCLUDE_DIR}
         ${jsoncpp_INCLUDE_DIRS}
-)
+        )
 
 target_link_libraries(app_base
         submodules
@@ -173,7 +173,7 @@ target_link_libraries(app_base
         secp256k1   # from current submodules -> will be moved to external package repo
         cryptopp    # from current submodules -> will be moved to external package repo
         ethash      # from current submodules -> will be moved to external package repo
-)
+        )
 
 target_link_directories(app_base PUBLIC ${Submodules_LIB_DIR})
 
