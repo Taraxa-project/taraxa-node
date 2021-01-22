@@ -3,13 +3,15 @@ UPDATE_SUBMODULES?=1
 DIST?=$(CURDIR)/__dist__
 COMPILE_DEFINITIONS?=
 
-SHELL := BASH_ENV=$(CURDIR)/Makefile_env.sh bash
-
 # NOTE: there's a supporting file with shell utils: Makefile.sh
 # By default, sync submodules on every `make` invocation to make
 # the developers think less about submodules
 ifeq ($(UPDATE_SUBMODULES), 1)
-ifneq (0, $(shell submodule_upd >> Makefile.log.txt; echo $$?))
+ifneq (0, $(shell \
+	source Makefile.sh; \
+	submodule_upd &> Makefile.log.txt; \
+	echo $$?; \
+))
 $(error Submodule update failed)
 endif
 endif
@@ -21,6 +23,7 @@ endif
 # the submodule directory from files that are not tracked in git, thus
 # these builds are atomic
 SUBMODULE_BUILD_BEGIN = \
+	source Makefile.sh; \
 	export NAME=$(basename $(@F)); \
 	export SRC_DIR=$(DIST)/src_$${NAME}; \
 	export STAGE_DIR=$(DIST)/dist_$${NAME}; \
@@ -195,7 +198,7 @@ $(DIST)/secp256k1.ok
 
 # ====================================================
 
-SUBMODULES := $(shell grep path ../.gitmodules | sed 's/.*= //' | xargs basename)
+SUBMODULES := $(shell grep path ../.gitmodules | sed 's/.*= submodules\///')
 
 define DECLARE_DEPENDENCIES
 $(DIST)/$(1).ok: $(CURDIR)/$(1)

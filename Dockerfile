@@ -74,7 +74,6 @@ RUN curl -SL https://github.com/facebook/rocksdb/archive/v$ROCKSDB_VERSION.tar.g
     | tar -xzC /tmp \
     && cd /tmp/rocksdb-${ROCKSDB_VERSION} \
     && CXXFLAGS='-Wno-error=deprecated-copy -Wno-error=pessimizing-move' PORTABLE=1 make -j $(nproc) install-static \
-    && CXXFLAGS='-Wno-error=deprecated-copy -Wno-error=pessimizing-move' PORTABLE=1 make -j $(nproc) install-shared \
     && rm -rf $(pwd)
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 
