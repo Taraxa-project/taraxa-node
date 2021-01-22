@@ -57,3 +57,5 @@ add_executable(taraxa_test taraxa_test.cpp)
 # TODO: quick fix with linking against jsoncpp-*.so, implement proper solution
 target_link_libraries(taraxa_test app_base gtest jsonrpccpp-common jsonrpccpp-client)
 add_test(taraxa_test taraxa_test)
+
+add_custom_target(all_tests COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure)
