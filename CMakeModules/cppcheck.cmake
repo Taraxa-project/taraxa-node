@@ -6,7 +6,7 @@ if (NOT CPP_CHECK_EXE)
 else ()
     message(STATUS "cppcheck found: ${CPP_CHECK_EXE}")
 
-    add_custom_target(cpp-check
+    add_custom_target(cpp-check ALL
             COMMAND ${CPP_CHECK_EXE}
             --error-exitcode=1
             --enable=warning,style,performance,portability,information

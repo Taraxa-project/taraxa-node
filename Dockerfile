@@ -105,7 +105,7 @@ RUN mkdir $BUILD_OUTPUT_DIR \
              -DTARAXAD_INSTALL_DIR=./bin_install \
              -DTARAXAD_CONF_INSTALL_DIR=./bin_install \
              ../ \
-    && make -j$(nproc) check-static all \
+    && make -j$(nproc) all \
     && make install \
     && strip bin_install/taraxad \
     && cd tests/ \
