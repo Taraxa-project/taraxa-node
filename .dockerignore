@@ -1,16 +1,10 @@
-.vscode
-.idea
-*.iml
-.DS_Store
-.git
-Jenkinsfile
-base-image-build.pipeline.groovy
-for_devs_on_macos
-scripts
-doc
-
-# for Cmake users, name your cmake build dirs like this:
-**/cmake-*
-
-# put here local env stuff
-local
+**/*
+!src
+!submodules
+!scripts
+!CMakeModules
+!tests
+!clang-format
+!.gitmodules
+!CMakeLists.txt
+!LICENSE

@@ -15,7 +15,13 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g -O2") # TODO: originally -g -O0
 
 # taraxad full static build option
 option(TARAXA_STATIC_BUILD "Build taraxad as a static library (ON or OFF)" ON)
+if (APPLE)
+    message(STATUS "Disabling the static build because it's not supported on this OS")
+    set(TARAXA_STATIC_BUILD OFF)
+endif ()
 message(STATUS "TARAXA_STATIC_BUILD: ${TARAXA_STATIC_BUILD}")
+
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 # Use ccache to speed-up recompilation
 find_program(CCACHE_PROGRAM ccache)
@@ -28,7 +34,7 @@ endif ()
 
 # Mac OS
 if (DEFINED SYSTEM_HOME_OVERRIDE)
-    list(APPEND CMAKE_PREFIX_PATH ${SYSTEM_HOME_OVERRIDE})
+    list(PREPEND CMAKE_PREFIX_PATH ${SYSTEM_HOME_OVERRIDE})
     include_directories(${SYSTEM_HOME_OVERRIDE}/include)
     link_directories(${SYSTEM_HOME_OVERRIDE}/lib)
 endif ()
@@ -106,6 +112,8 @@ include(CMakeModules/clang_format.cmake)
 
 # cppcheck
 include(CMakeModules/cppcheck.cmake)
+
+add_custom_target(check-static DEPENDS cpp-check clang-format-check)
 
 # Add sub-directories cmakes
 add_subdirectory(submodules)

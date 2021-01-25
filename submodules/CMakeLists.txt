@@ -1,18 +1,35 @@
-
+set(__COMPILE_DEFINITIONS__
+        BOOST_SPIRIT_THREADSAFE
+        CRYPTOPP_DISABLE_ASM)
+set(__TARAXA_STATIC_BUILD__ 0)
+if (TARAXA_STATIC_BUILD)
+    set(__TARAXA_STATIC_BUILD__ 1)
+endif ()
 # TODO: get rid of submodules Makefile...
 add_custom_target(
         submodules_build
         COMMAND
         $(MAKE)
         UPDATE_SUBMODULES=${UPDATE_SUBMODULES}
-        DEPS_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}
+        DIST=${CMAKE_CURRENT_BINARY_DIR}
         SYSTEM_HOME_OVERRIDE=${SYSTEM_HOME_OVERRIDE}
-        -f ${CMAKE_CURRENT_SOURCE_DIR}/Makefile_submodules.mk submodules
-        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+        COMPILE_DEFINITIONS="${__COMPILE_DEFINITIONS__}"
+        TARAXA_STATIC_BUILD=${__TARAXA_STATIC_BUILD__}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
-
 add_library(submodules INTERFACE)
 add_dependencies(submodules submodules_build)
-
-set(Submodules_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/include" CACHE STRING "Submodules common include directory")
-set(Submodules_LIB_DIR "${CMAKE_CURRENT_BINARY_DIR}/lib" CACHE STRING "Submodules common binary directory")
+target_compile_definitions(submodules INTERFACE ${__COMPILE_DEFINITIONS__})
+target_include_directories(submodules INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/include)
+target_link_directories(submodules INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/lib)
+target_link_libraries(
+        submodules
+        INTERFACE
+        taraxa-aleth
+        taraxa-evm
+        vdf     # from current submodules -> will be moved to external package repo
+        sodium  # from current submodules(taraxa-vrf) -> will be moved to external package repo
+        secp256k1   # from current submodules -> will be moved to external package repo
+        cryptopp    # from current submodules -> will be moved to external package repo
+        ethash      # from current submodules -> will be moved to external package repo
+)

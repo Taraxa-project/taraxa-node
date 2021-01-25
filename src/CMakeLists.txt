@@ -144,16 +144,11 @@ add_library(app_base STATIC ${SOURCES})
 target_include_directories(app_base PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${Boost_INCLUDE_DIR}
-        ${Submodules_INCLUDE_DIR}
         ${jsoncpp_INCLUDE_DIRS}
         )
 
 target_link_libraries(app_base
         submodules
-        taraxa-aleth
-        taraxa-evm
-        vdf     # from current submodules -> will be moved to external package repo
-        sodium  # from current submodules(taraxa-vrf) -> will be moved to external package repo
         pthread
         #ssl
         ${crypto_LIBRARIES} # TODO: is this lib even required ?
@@ -170,12 +165,7 @@ target_link_libraries(app_base
         ${scrypt_LIBRARIES}
         ${jsoncpp_LIBRARIES}
         ${jsonrpccpp_SERVER_LIBRARIES}
-        secp256k1   # from current submodules -> will be moved to external package repo
-        cryptopp    # from current submodules -> will be moved to external package repo
-        ethash      # from current submodules -> will be moved to external package repo
         )
-
-target_link_directories(app_base PUBLIC ${Submodules_LIB_DIR})
 
 # needed for golang runtime that comes together with taraxa-evm
 if (APPLE)  # if "APPLE" not sufficient, use if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
