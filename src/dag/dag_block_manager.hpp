@@ -1,10 +1,10 @@
 #ifndef TARAXA_NODE_DAG_BLOCK_MANAGER_HPP
 #define TARAXA_NODE_DAG_BLOCK_MANAGER_HPP
 
+#include "chain/final_chain.hpp"
 #include "dag_block.hpp"
-#include "final_chain.hpp"
-#include "transaction.hpp"
-#include "transaction_manager.hpp"
+#include "transaction_manager/transaction.hpp"
+#include "transaction_manager/transaction_manager.hpp"
 #include "vdf_sortition.hpp"
 
 namespace taraxa {

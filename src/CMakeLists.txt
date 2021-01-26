@@ -136,6 +136,7 @@ set(SOURCES
         logger/logger_config.cpp
         logger/log.cpp
         common/types.cpp
+        dag/dag_block_manager.cpp
         )
 
 add_subdirectory(network/rpc)
@@ -177,3 +178,4 @@ endif ()
 
 # Main taraxad binary
 add_subdirectory(taraxad)
+message("Boost_INCLUDE_DIR: ${Boost_INCLUDE_DIR}")
