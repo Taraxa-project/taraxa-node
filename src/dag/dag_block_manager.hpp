@@ -1,19 +1,9 @@
-<<<<<<< HEAD
 #pragma once
 
 #include "chain/final_chain.hpp"
 #include "dag_block.hpp"
 #include "transaction_manager/transaction.hpp"
 #include "transaction_manager/transaction_manager.hpp"
-=======
-#ifndef TARAXA_NODE_DAG_BLOCK_MANAGER_HPP
-#define TARAXA_NODE_DAG_BLOCK_MANAGER_HPP
-
-#include "dag_block.hpp"
-#include "final_chain.hpp"
-#include "transaction.hpp"
-#include "transaction_manager.hpp"
->>>>>>> 532de9d6 (Move dag block manager into DAG module)
 #include "vdf_sortition.hpp"
 
 namespace taraxa {
