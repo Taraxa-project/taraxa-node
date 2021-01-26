@@ -1,9 +1,19 @@
+<<<<<<< HEAD
 #pragma once
 
 #include "chain/final_chain.hpp"
 #include "dag_block.hpp"
 #include "transaction_manager/transaction.hpp"
 #include "transaction_manager/transaction_manager.hpp"
+=======
+#ifndef TARAXA_NODE_DAG_BLOCK_MANAGER_HPP
+#define TARAXA_NODE_DAG_BLOCK_MANAGER_HPP
+
+#include "dag_block.hpp"
+#include "final_chain.hpp"
+#include "transaction.hpp"
+#include "transaction_manager.hpp"
+>>>>>>> 532de9d6 (Move dag block manager into DAG module)
 #include "vdf_sortition.hpp"
 
 namespace taraxa {
@@ -51,8 +61,11 @@ class DagBlockManager {
   std::atomic<bool> stopped_ = true;
   size_t capacity_ = 2048;
   size_t num_verifiers_ = 4;
+<<<<<<< HEAD
   const uint32_t cache_max_size = 10000;
   const uint32_t cache_delete_step = 100;
+=======
+>>>>>>> 532de9d6 (Move dag block manager into DAG module)
 
   std::shared_ptr<DbStorage> db_;
   std::shared_ptr<TransactionManager> trx_mgr_;
@@ -81,3 +94,7 @@ class DagBlockManager {
 };
 
 }  // namespace taraxa
+<<<<<<< HEAD
+=======
+#endif
+>>>>>>> 532de9d6 (Move dag block manager into DAG module)
