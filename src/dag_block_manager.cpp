@@ -2,21 +2,23 @@
 
 namespace taraxa {
 
-DagBlockManager::DagBlockManager(vdf_sortition::VdfConfig const &vdf_config, size_t capacity, unsigned num_verifiers,
-                                 addr_t node_addr, std::shared_ptr<DbStorage> db,
-                                 std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<FinalChain> final_chain,
-                                 std::shared_ptr<PbftChain> pbft_chain, logger::Logger log_time, uint32_t queue_limit)
-    : capacity_(capacity),
+DagBlockManager::DagBlockManager(addr_t node_addr, vdf_sortition::VdfConfig const &vdf_config,
+                                 optional<state_api::DPOSConfig> dpos_config, size_t capacity, unsigned num_verifiers,
+                                 std::shared_ptr<DbStorage> db, std::shared_ptr<TransactionManager> trx_mgr,
+                                 std::shared_ptr<FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain,
+                                 logger::Logger log_time, uint32_t queue_limit)
+    : vdf_config_(vdf_config),
+      dpos_config_(dpos_config),
+      capacity_(capacity),
       num_verifiers_(num_verifiers),
-      blk_status_(10000, 100),
-      seen_blocks_(10000, 100),
-      queue_limit_(queue_limit),
       db_(db),
       trx_mgr_(trx_mgr),
       final_chain_(final_chain),
       pbft_chain_(pbft_chain),
       log_time_(log_time),
-      vdf_config_(vdf_config) {
+      queue_limit_(queue_limit),
+      blk_status_(10000, 100),
+      seen_blocks_(10000, 100) {
   LOG_OBJECTS_CREATE("BLKQU");
 }
 
@@ -223,14 +225,21 @@ void DagBlockManager::verifyBlock() {
       auto dag_block_sender = blk.first.getSender();
       if (!final_chain_->dpos_is_eligible(period, dag_block_sender)) {
         auto executed_period = pbft_chain_->getPbftExecutedChainSize();
-        if (period <= executed_period) {
-          LOG(log_er_) << "Invalid DAG block DPOS. DAG block " << blk.first << " is not eligible for DPOS at period "
-                       << period << " for sender " << dag_block_sender.toString();
-          blk_status_.update(blk.first.getHash(), BlockStatus::invalid);
-          continue;
-        } else {
-          // TODO: Need to handle DAG level far forward period situation
+        auto dpos_period = executed_period;
+        if (dpos_config_) {
+          dpos_period += min(dpos_config_->deposit_delay, dpos_config_->withdrawal_delay);
         }
+        if (period <= dpos_period) {
+          LOG(log_er_) << "Invalid DAG block DPOS. DAG block " << blk.first << " is not eligible for DPOS at period "
+                       << period << " for sender " << dag_block_sender.toString() << ". Executed period "
+                       << executed_period << ", DPOS period " << dpos_period;
+          blk_status_.update(blk.first.getHash(), BlockStatus::invalid);
+        } else {
+          // The DAG block is ahead of DPOS period, add back in unverified queue
+          uLock lock(shared_mutex_for_unverified_qu_);
+          unverified_qu_[blk.first.getLevel()].emplace_back(blk);
+        }
+        continue;
       }
     }
 
