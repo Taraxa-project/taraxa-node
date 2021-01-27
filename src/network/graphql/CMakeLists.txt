@@ -15,7 +15,7 @@ add_custom_command(
         WORKING_DIRECTORY gen
         COMMENT "Regenerating TaraxaSchema files")
 
-file(GLOB OLD_GEN_FILES ${CMAKE_CURRENT_SOURCE_DIR}/gen/*)
+file(GLOB OLD_GEN_FILES ${CMAKE_CURRENT_SOURCE_DIR}/gen/Taraxa*)
 
 add_custom_command(
         OUTPUT regenerated_schema_files

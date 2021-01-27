@@ -30,6 +30,9 @@ else ()
             # Optional: Specified C++ version
             "--std=c++17"
 
+            # Ignore graphql generated files
+            "-i${PROJECT_SOURCE_DIR}/src/network/graphql/gen"
+
             # folder with source files to be checked
             ${PROJECT_SOURCE_DIR}/src
 
