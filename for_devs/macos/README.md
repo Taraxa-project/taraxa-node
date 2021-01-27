@@ -1,7 +1,7 @@
 ## Setting up the project environment
 
 1. Install Homebrew (brew)
-2. Run `<this_directory>/installers/all.sh` to install the right versions of some dependencies that are not available via `brew`. The script will first download things to `<project_root>/local/downloads`, then install them to `<project_root>/local/system_home_override`.
+2. Run `<this_directory>/installers/all.sh` to install the right versions of some dependencies that are not available via `brew`. The script will first download things to `<this_dir>/downloads`, then install them to `<this_Dir>/system_home_override`.
 3. Proceed as per [the general build instructions](../../doc/building.md). When initializing the CMake build system, add these parameters to the CMake command (using `-D<param>=<value>`):
 ```
 # This one adds the optional additional install prefix to look for dependencies
