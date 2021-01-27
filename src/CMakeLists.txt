@@ -16,6 +16,8 @@ if (TARAXA_STATIC_BUILD)
     set(bz2_USE_STATIC_LIBS ON)
     set(snappy_USE_STATIC_LIBS ON)
     set(lz4_USE_STATIC_LIBS ON)
+else (TARAXA_STATIC_BUILD)
+    ADD_DEFINITIONS(-DBOOST_LOG_DYN_LINK)
 endif (TARAXA_STATIC_BUILD)
 
 # Find multithreaded boost components/libs

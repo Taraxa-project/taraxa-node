@@ -1,3 +1,9 @@
+if (TARAXA_STATIC_BUILD)
+    set(Boost_USE_STATIC_LIBS ON)
+else (TARAXA_STATIC_BUILD)
+    ADD_DEFINITIONS(-DBOOST_LOG_DYN_LINK)
+endif (TARAXA_STATIC_BUILD)
+
 # Enable testing for current directory and below.
 enable_testing(true)
 
