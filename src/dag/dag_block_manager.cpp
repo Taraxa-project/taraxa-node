@@ -17,13 +17,8 @@ DagBlockManager::DagBlockManager(addr_t node_addr, vdf_sortition::VdfConfig cons
       pbft_chain_(pbft_chain),
       log_time_(log_time),
       queue_limit_(queue_limit),
-<<<<<<< HEAD
       blk_status_(cache_max_size, cache_delete_step),
       seen_blocks_(cache_max_size, cache_delete_step) {
-=======
-      blk_status_(10000, 100),
-      seen_blocks_(10000, 100) {
->>>>>>> 532de9d6 (Move dag block manager into DAG module)
   LOG_OBJECTS_CREATE("BLKQU");
 }
 
@@ -58,24 +53,12 @@ bool DagBlockManager::isBlockKnown(blk_hash_t const &hash) {
 }
 
 std::shared_ptr<DagBlock> DagBlockManager::getDagBlock(blk_hash_t const &hash) const {
-<<<<<<< HEAD
   auto blk = seen_blocks_.get(hash);
   if (blk.second) {
     return std::make_shared<DagBlock>(blk.first);
   }
 
   return db_->getDagBlock(hash);
-=======
-  std::shared_ptr<DagBlock> ret;
-  auto blk = seen_blocks_.get(hash);
-  if (blk.second) {
-    ret = std::make_shared<DagBlock>(blk.first);
-  }
-  if (!ret) {
-    return db_->getDagBlock(hash);
-  }
-  return ret;
->>>>>>> 532de9d6 (Move dag block manager into DAG module)
 }
 
 bool DagBlockManager::pivotAndTipsValid(DagBlock const &blk) {
@@ -241,11 +224,7 @@ void DagBlockManager::verifyBlock() {
         auto executed_period = pbft_chain_->getPbftExecutedChainSize();
         auto dpos_period = executed_period;
         if (dpos_config_) {
-<<<<<<< HEAD
           dpos_period += dpos_config_->deposit_delay;
-=======
-          dpos_period += min(dpos_config_->deposit_delay, dpos_config_->withdrawal_delay);
->>>>>>> 532de9d6 (Move dag block manager into DAG module)
         }
         if (period <= dpos_period) {
           LOG(log_er_) << "Invalid DAG block DPOS. DAG block " << blk.first << " is not eligible for DPOS at period "
