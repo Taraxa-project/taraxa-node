@@ -96,6 +96,7 @@ set(SOURCES
         logger/logger_config.hpp
         logger/log.hpp
         chain/state_api.hpp
+        dag/dag_block_manager.hpp
         consensus/pbft_manager.hpp
 
         # ---- private sources -----

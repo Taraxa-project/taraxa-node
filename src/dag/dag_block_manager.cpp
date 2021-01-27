@@ -227,7 +227,7 @@ void DagBlockManager::verifyBlock() {
         auto executed_period = pbft_chain_->getPbftExecutedChainSize();
         auto dpos_period = executed_period;
         if (dpos_config_) {
-          dpos_period += min(dpos_config_->deposit_delay, dpos_config_->withdrawal_delay);
+          dpos_period += dpos_config_->deposit_delay;
         }
         if (period <= dpos_period) {
           LOG(log_er_) << "Invalid DAG block DPOS. DAG block " << blk.first << " is not eligible for DPOS at period "
