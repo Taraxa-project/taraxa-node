@@ -1,5 +1,4 @@
-#ifndef TARAXA_NODE_TRANSACTION_MANAGER_HPP
-#define TARAXA_NODE_TRANSACTION_MANAGER_HPP
+#pragma once
 
 #include "aleth/filter_api.hpp"
 #include "aleth/pending_block.hpp"
@@ -121,5 +120,3 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   LOG_OBJECTS_DEFINE;
 };
 }  // namespace taraxa
-
-#endif

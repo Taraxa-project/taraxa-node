@@ -1,5 +1,4 @@
-#ifndef TARAXA_NODE_LOGGER_CONFIG_H
-#define TARAXA_NODE_LOGGER_CONFIG_H
+#pragma once
 
 #include <boost/log/sinks/text_ostream_backend.hpp>
 #include <boost/log/sources/record_ostream.hpp>
@@ -77,5 +76,3 @@ class Config {
 };
 
 }  // namespace taraxa::logger
-
-#endif  // TARAXA_NODE_LOGGER_CONFIG_H

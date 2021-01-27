@@ -1,5 +1,4 @@
-#ifndef TARAXA_NODE_TYPES_HPP
-#define TARAXA_NODE_TYPES_HPP
+#pragma once
 
 #include <libdevcore/FixedHash.h>
 #include <libethereum/Transaction.h>
@@ -132,5 +131,3 @@ namespace std {
 // struct hash<taraxa::sig_t> : taraxa::sig_t::hash {};
 
 }  // namespace std
-
-#endif

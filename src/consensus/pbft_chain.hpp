@@ -1,5 +1,4 @@
-#ifndef TARAXA_NODE_PBFT_CHAIN_HPP
-#define TARAXA_NODE_PBFT_CHAIN_HPP
+#pragma once
 
 #include <libdevcore/Common.h>
 #include <libdevcore/RLP.h>
@@ -154,4 +153,3 @@ class PbftChain {
 std::ostream& operator<<(std::ostream& strm, PbftChain const& pbft_chain);
 
 }  // namespace taraxa
-#endif

@@ -1,5 +1,4 @@
-#ifndef TARAXA_NODE_DAG_HPP
-#define TARAXA_NODE_DAG_HPP
+#pragma once
 
 #include <atomic>
 #include <bitset>
@@ -227,5 +226,3 @@ class edge_label_writer {
 };
 
 }  // namespace taraxa
-
-#endif  // TARAXA_NODE_DAG_HPP

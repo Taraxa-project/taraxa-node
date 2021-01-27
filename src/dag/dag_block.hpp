@@ -1,5 +1,4 @@
-#ifndef TARAXA_NODE_DAG_BLOCKS_HPP
-#define TARAXA_NODE_DAG_BLOCKS_HPP
+#pragma once
 
 #include <libdevcore/CommonJS.h>
 #include <libdevcore/RLP.h>
@@ -183,4 +182,3 @@ class BlockManager {
 };
 
 }  // namespace taraxa
-#endif

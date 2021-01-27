@@ -1,5 +1,4 @@
-#ifndef TARAXA_NODE_UTIL_EXIT_STACK_HPP_
-#define TARAXA_NODE_UTIL_EXIT_STACK_HPP_
+#pragma once
 
 #include <boost/exception/diagnostic_information.hpp>
 #include <functional>
@@ -57,5 +56,3 @@ class ExitStack {
 namespace taraxa::util {
 using exit_stack::ExitStack;
 }
-
-#endif  // TARAXA_NODE_UTIL_EXIT_STACK_HPP_

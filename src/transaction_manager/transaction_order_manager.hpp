@@ -1,6 +1,3 @@
-#ifndef TARAXA_NODE_TRANSACTION_ORDER_MANAGER_HPP
-#define TARAXA_NODE_TRANSACTION_ORDER_MANAGER_HPP
-
 #pragma once
 
 #include <atomic>
@@ -44,5 +41,3 @@ class TransactionOrderManager {
 };
 
 }  // namespace taraxa
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef TARAXA_NODE_EXECUTOR_HPP
-#define TARAXA_NODE_EXECUTOR_HPP
+#pragma once
 
 #include <atomic>
 
@@ -55,5 +54,3 @@ class Executor {
 };
 
 }  // namespace taraxa
-
-#endif  // EXECUTOR_H

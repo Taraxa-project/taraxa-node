@@ -1,5 +1,4 @@
-#ifndef TARAXA_NODE_UTIL_RANGE_VIEW_HPP_
-#define TARAXA_NODE_UTIL_RANGE_VIEW_HPP_
+#pragma once
 
 #include <functional>
 #include <type_traits>
@@ -80,5 +79,3 @@ namespace taraxa::util {
 using range_view::make_range_view;
 using range_view::RangeView;
 }  // namespace taraxa::util
-
-#endif  // TARAXA_NODE_UTIL_RANGE_VIEW_HPP_

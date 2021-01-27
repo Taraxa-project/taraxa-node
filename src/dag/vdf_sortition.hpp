@@ -1,5 +1,4 @@
-#ifndef TARAXA_NODE_VDF_SORTITION_H
-#define TARAXA_NODE_VDF_SORTITION_H
+#pragma once
 
 #include <algorithm>
 
@@ -105,5 +104,3 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
 };
 
 }  // namespace taraxa::vdf_sortition
-
-#endif  // TARAXA_NODE_VDF_SORTITION_H

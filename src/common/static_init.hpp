@@ -1,5 +1,4 @@
-#ifndef TARAXA_NODE__STATIC_INIT_HPP_
-#define TARAXA_NODE__STATIC_INIT_HPP_
+#pragma once
 
 #include <sodium/core.h>
 
@@ -18,5 +17,3 @@ inline void static_init() {
 }
 
 }  // namespace taraxa
-
-#endif  // TARAXA_NODE__STATIC_INIT_HPP_

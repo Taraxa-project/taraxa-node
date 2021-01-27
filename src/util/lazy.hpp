@@ -1,5 +1,4 @@
-#ifndef TARAXA_NODE_UTIL_LAZY_HPP_
-#define TARAXA_NODE_UTIL_LAZY_HPP_
+#pragma once
 
 #include <functional>
 #include <mutex>
@@ -89,5 +88,3 @@ template <typename T>
 using LazyVal = Lazy<function<T()>>;
 
 }  // namespace taraxa::util::lazy
-
-#endif  // TARAXA_NODE_UTIL_LAZY_HPP_
