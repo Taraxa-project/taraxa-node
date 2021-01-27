@@ -4,13 +4,18 @@
 #include "consensus/pbft_manager.hpp"
 #include "consensus/vote.hpp"
 #include "dag/dag_block.hpp"
+#include "graphqlservice/GraphQLSchema.h"
+#include "graphqlservice/GraphQLService.h"
+#include "graphqlservice/JSONResponse.h"
+#include "network/graphql/Query.h"
 #include "transaction_manager/transaction.hpp"
 #include "util/util.hpp"
 
 namespace taraxa::net {
 
-RpcServer::RpcServer(boost::asio::io_context &io, boost::asio::ip::tcp::endpoint ep, addr_t node_addr)
-    : io_context_(io), acceptor_(io), ep_(std::move(ep)) {
+RpcServer::RpcServer(boost::asio::io_context &io, boost::asio::ip::tcp::endpoint ep, addr_t node_addr,
+                     std::shared_ptr<FinalChain> final_chain, ServerType type)
+    : io_context_(io), acceptor_(io), ep_(std::move(ep)), type_(type), final_chain_(final_chain) {
   LOG_OBJECTS_CREATE("RPC");
   LOG(log_si_) << "Taraxa RPC started at port: " << ep_.port();
 }
@@ -106,9 +111,24 @@ void RpcConnection::read() {
           }
           if (this_sp->request_.method() == boost::beast::http::verb::post) {
             string response;
-            if (this_sp->rpc_->GetHandler() != NULL) {
-              LOG(this_sp->rpc_->log_tr_) << "Read: " << this_sp->request_.body();
-              this_sp->rpc_->GetHandler()->HandleRequest(this_sp->request_.body(), response);
+            if (this_sp->rpc_->getType() == RpcServer::RpcType) {
+              if (this_sp->rpc_->GetHandler() != NULL) {
+                LOG(this_sp->rpc_->log_tr_) << "Read: " << this_sp->request_.body();
+                this_sp->rpc_->GetHandler()->HandleRequest(this_sp->request_.body(), response);
+              }
+            } else if (this_sp->rpc_->getType() == RpcServer::GraphQlType) {
+              auto q = std::make_shared<graphql::taraxa::Query>(this_sp->rpc_->getFinalChain(), 0);
+              auto mutation = std::make_shared<graphql::taraxa::Mutation>();
+              auto _service = std::make_shared<graphql::taraxa::Operations>(q, mutation);
+
+              using namespace graphql;
+              auto query = peg::parseString(this_sp->request_.body());
+              response::Value variables(response::Type::Map);
+              auto state = std::make_shared<graphql::service::RequestState>();
+
+              auto result = _service->resolve(std::launch::async, state, query, "", std::move(variables)).get();
+
+              response = response::toJSON(response::Value(result));
             }
             LOG(this_sp->rpc_->log_tr_) << "Write: " << response;
             replier(response);

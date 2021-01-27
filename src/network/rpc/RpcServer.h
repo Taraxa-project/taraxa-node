@@ -7,6 +7,7 @@
 #include <boost/beast.hpp>
 #include <string>
 
+#include "chain/final_chain.hpp"
 #include "config/config.hpp"
 
 namespace taraxa::net {
@@ -16,7 +17,10 @@ class RpcHandler;
 
 class RpcServer : public std::enable_shared_from_this<RpcServer>, public jsonrpc::AbstractServerConnector {
  public:
-  RpcServer(boost::asio::io_context &io, boost::asio::ip::tcp::endpoint ep, addr_t node_addr);
+  enum ServerType { RpcType, GraphQlType };
+
+  RpcServer(boost::asio::io_context &io, boost::asio::ip::tcp::endpoint ep, addr_t node_addr,
+            std::shared_ptr<FinalChain> final_chain = nullptr, ServerType type = RpcType);
   virtual ~RpcServer() { RpcServer::StopListening(); }
 
   virtual bool StartListening() override;
@@ -24,6 +28,8 @@ class RpcServer : public std::enable_shared_from_this<RpcServer>, public jsonrpc
   virtual bool SendResponse(const std::string &response, void *addInfo = NULL);
   void waitForAccept();
   boost::asio::io_context &getIoContext() { return io_context_; }
+  ServerType getType() { return type_; }
+  std::shared_ptr<FinalChain> getFinalChain() { return final_chain_; }
   std::shared_ptr<RpcServer> getShared();
   friend RpcConnection;
   friend RpcHandler;
@@ -33,6 +39,8 @@ class RpcServer : public std::enable_shared_from_this<RpcServer>, public jsonrpc
   boost::asio::io_context &io_context_;
   boost::asio::ip::tcp::endpoint ep_;
   boost::asio::ip::tcp::acceptor acceptor_;
+  ServerType type_;
+  std::shared_ptr<FinalChain> final_chain_;
   LOG_OBJECTS_DEFINE;
 };
 // QQ:

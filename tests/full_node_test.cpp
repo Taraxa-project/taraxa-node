@@ -16,7 +16,7 @@
 #include "consensus/pbft_manager.hpp"
 #include "dag/dag.hpp"
 #include "logger/log.hpp"
-#include "network/graphql/TaraxaSchemaImpl.h"
+#include "network/graphql/Query.h"
 #include "network/network.hpp"
 #include "network/rpc/Taraxa.h"
 #include "string"
@@ -1214,7 +1214,7 @@ TEST_F(FullNodeTest, GraphQLTest) {
   }
 
   // Objects needed to run the query
-  auto q = std::make_shared<graphql::taraxa::Query>(nodes[0]->getFinalChain());
+  auto q = std::make_shared<graphql::taraxa::Query>(nodes[0]->getFinalChain(), 0);
   auto mutation = std::make_shared<graphql::taraxa::Mutation>();
   auto _service = std::make_shared<graphql::taraxa::Operations>(q, mutation);
 
@@ -1234,7 +1234,7 @@ TEST_F(FullNodeTest, GraphQLTest) {
   std::cout << response::toJSON(response::Value(result)) << std::endl;
   auto data = service::ScalarArgument::require("data", result);
   auto block = service::ScalarArgument::require("block", data);
-  auto number = service::IntArgument::require("number", block);
+  auto number = std::stoi(service::StringArgument::require("number", block), 0, 16);
   EXPECT_EQ(nodes[0]->getPbftChain()->getPbftExecutedChainSize(), (int)number);
 
   // Get block hash by number
@@ -1252,6 +1252,23 @@ TEST_F(FullNodeTest, GraphQLTest) {
   block = service::ScalarArgument::require("block", data);
   const auto hash = service::StringArgument::require("hash", block);
   EXPECT_EQ(nodes[0]->getFinalChain()->blockHeader(3).hash().toString(), hash);
+
+  // Get block hash by number
+  query = R"({ block(number: 2) { transactionAt(index: 0) { hash } } })"_graphql;
+  result = _service->resolve(std::launch::async, state, query, "", std::move(variables)).get();
+
+  // Verify the result of the query
+  ASSERT_TRUE(result.type() == response::Type::Map);
+  errorsItr = result.find("errors");
+  if (errorsItr != result.get<response::MapType>().cend()) {
+    FAIL() << response::toJSON(response::Value(errorsItr->second));
+  }
+  std::cout << response::toJSON(response::Value(result)) << std::endl;
+  data = service::ScalarArgument::require("data", result);
+  block = service::ScalarArgument::require("block", data);
+  auto transactionAt = service::ScalarArgument::require("transactionAt", block);
+  const auto hash2 = service::StringArgument::require("hash", transactionAt);
+  EXPECT_EQ(nodes[0]->getFinalChain()->transactionHashes(2)[0].toString(), hash2);
 }
 
 TEST_F(FullNodeTest, transfer_to_self) {

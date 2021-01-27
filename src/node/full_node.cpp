@@ -142,6 +142,12 @@ void FullNode::init() {
           *jsonrpc_io_ctx_, boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->ws_port}, node_addr);
       jsonrpc_api_->addConnector(jsonrpc_ws_);
     }
+
+    if (conf_.rpc->gql_port) {
+      jsonrpc_http_ = make_shared<net::RpcServer>(
+          *jsonrpc_io_ctx_, boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->gql_port}, node_addr,
+          final_chain_, net::RpcServer::GraphQlType);
+    }
   }
 
   LOG(log_time_) << "Start taraxa efficiency evaluation logging:" << std::endl;

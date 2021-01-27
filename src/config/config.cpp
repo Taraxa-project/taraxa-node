@@ -136,6 +136,11 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object,
       rpc->ws_port = ws_port.asUInt();
     }
 
+    // graphQL port
+    if (auto gql_port = getConfigData(rpc_config, {"gql_port"}, true); !gql_port.isNull()) {
+      rpc->gql_port = gql_port.asUInt();
+    }
+
     // number of threads processing rpc calls
     if (auto threads_num = getConfigData(rpc_config, {"threads_num"}, true); !threads_num.isNull()) {
       rpc->threads_num = threads_num.asUInt();

@@ -148,6 +148,7 @@ target_include_directories(app_base PUBLIC
         )
 
 target_link_libraries(app_base
+        taraxa_graphqlservice
         submodules
         pthread
         #ssl
