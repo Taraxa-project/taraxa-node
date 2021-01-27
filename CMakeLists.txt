@@ -3,10 +3,10 @@
 project(taraxa-node)
 cmake_minimum_required(VERSION 3.16)
 
+set(CMAKE_NO_SYSTEM_FROM_IMPORTED ON)
 # Set project properties like C++ standard, etc...
 set(CMAKE_CXX_COMPILER g++)
 set(CMAKE_CXX_STANDARD 17)
-#set(CMAKE_SYSTEM_PREFIX_PATH /usr/local)
 #add_compile_options("-Wall" "-Werror") TODO: fix existing issues and uncomment this line
 
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
@@ -41,7 +41,6 @@ endif ()
 # Mac OS
 set(CMAKE_OSX_SYSROOT /)
 set(CMAKE_MACOSX_RPATH ON)
-set(CMAKE_NO_SYSTEM_FROM_IMPORTED ON)
 
 # Get the latest abbreviated commit hash of the working branch
 execute_process(
