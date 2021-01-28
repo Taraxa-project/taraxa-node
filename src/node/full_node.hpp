@@ -1,5 +1,4 @@
-#ifndef TARAXA_NODE_FULL_NODE_HPP
-#define TARAXA_NODE_FULL_NODE_HPP
+#pragma once
 
 #include <libdevcore/SHA3.h>
 #include <libdevcrypto/Common.h>
@@ -164,5 +163,3 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
 };
 
 }  // namespace taraxa
-
-#endif

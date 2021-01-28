@@ -1,5 +1,4 @@
-#ifndef TARAXA_NODE_NET_RPC_SEERVER_H_
-#define TARAXA_NODE_NET_RPC_SEERVER_H_
+#pragma once
 
 #include <jsonrpccpp/server/abstractserverconnector.h>
 
@@ -66,5 +65,3 @@ class RpcConnection : public std::enable_shared_from_this<RpcConnection> {
 };
 
 }  // namespace taraxa::net
-
-#endif

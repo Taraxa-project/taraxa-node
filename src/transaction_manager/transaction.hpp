@@ -1,5 +1,4 @@
-#ifndef TARAXA_NODE_TRANSACTION_HPP
-#define TARAXA_NODE_TRANSACTION_HPP
+#pragma once
 
 #include <json/json.h>
 
@@ -69,5 +68,3 @@ struct Transaction {
 };
 
 }  // namespace taraxa
-
-#endif

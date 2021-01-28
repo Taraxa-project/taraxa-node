@@ -1,5 +1,4 @@
-#ifndef TARAXA_NODE_REPLAY_PROTECTION_SERVICE_HPP_
-#define TARAXA_NODE_REPLAY_PROTECTION_SERVICE_HPP_
+#pragma once
 
 #include <memory>
 
@@ -31,5 +30,3 @@ Json::Value enc_json(ReplayProtectionService::Config const& obj);
 void dec_json(Json::Value const& json, ReplayProtectionService::Config& obj);
 
 }  // namespace taraxa
-
-#endif  // TARAXA_NODE_REPLAY_PROTECTION_SERVICE_HPP_

@@ -1,5 +1,4 @@
-#ifndef TARAXA_NODE_CONFIG_HPP
-#define TARAXA_NODE_CONFIG_HPP
+#pragma once
 
 #include <string>
 
@@ -102,5 +101,3 @@ std::ostream &operator<<(std::ostream &strm, NetworkConfig const &conf);
 std::ostream &operator<<(std::ostream &strm, FullNodeConfig const &conf);
 
 }  // namespace taraxa
-
-#endif

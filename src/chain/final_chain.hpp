@@ -1,5 +1,4 @@
-#ifndef TARAXA_NODE_FINAL_CHAIN_HPP_
-#define TARAXA_NODE_FINAL_CHAIN_HPP_
+#pragma once
 
 #include <libethereum/ChainDBImpl.h>
 
@@ -68,5 +67,3 @@ namespace taraxa {
 using final_chain::FinalChain;
 using final_chain::NewFinalChain;
 }  // namespace taraxa
-
-#endif  // TARAXA_NODE_FINAL_CHAIN_HPP_

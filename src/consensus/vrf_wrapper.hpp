@@ -1,5 +1,4 @@
-#ifndef TARAXA_NODE_VRF_WRAPPER_H
-#define TARAXA_NODE_VRF_WRAPPER_H
+#pragma once
 
 #include <libdevcore/RLP.h>
 
@@ -55,5 +54,3 @@ struct VrfSortitionBase {
 };
 
 }  // namespace taraxa::vrf_wrapper
-
-#endif  // TARAXA_NODE_VRF_WRAPPER_H

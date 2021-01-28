@@ -1,7 +1,7 @@
-#ifndef TARAXA_NODE_NET_NET_H_
-#define TARAXA_NODE_NET_NET_H_
+#pragma once
 
 #include "NetFace.h"
+
 namespace taraxa {
 class FullNode;
 }
@@ -21,5 +21,3 @@ class Net : public NetFace {
 };
 
 }  // namespace taraxa::net
-
-#endif

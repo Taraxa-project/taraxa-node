@@ -1,5 +1,4 @@
-#ifndef TARAXA_NODE_TRANSACTION_QUEUE_HPP
-#define TARAXA_NODE_TRANSACTION_QUEUE_HPP
+#pragma once
 
 #include "config/config.hpp"
 #include "transaction.hpp"
@@ -56,5 +55,3 @@ class TransactionQueue {
 };
 
 }  // namespace taraxa
-
-#endif

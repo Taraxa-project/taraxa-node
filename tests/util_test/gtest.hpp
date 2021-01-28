@@ -1,5 +1,4 @@
-#ifndef TARAXA_NODE_UTIL_GTEST_HPP_
-#define TARAXA_NODE_UTIL_GTEST_HPP_
+#pragma once
 
 #include <gtest/gtest.h>
 
@@ -35,5 +34,3 @@ struct WithDataDir : virtual WithTestInfo {
   }
   virtual ~WithDataDir() { std::filesystem::remove_all(data_dir); }
 };
-
-#endif  // TARAXA_NODE_UTIL_GTEST_HPP_

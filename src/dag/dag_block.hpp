@@ -1,5 +1,4 @@
-#ifndef TARAXA_NODE_DAG_BLOCK_HPP
-#define TARAXA_NODE_DAG_BLOCK_HPP
+#pragma once
 
 #include "vdf_sortition.hpp"
 
@@ -90,4 +89,3 @@ struct DagFrontier {
 };
 
 }  // namespace taraxa
-#endif

@@ -1,5 +1,4 @@
-#ifndef TARAXA_NODE_CORE_TESTS_CREATE_SAMPLES_HPP
-#define TARAXA_NODE_CORE_TESTS_CREATE_SAMPLES_HPP
+#pragma once
 
 #include <fstream>
 #include <map>
@@ -542,5 +541,3 @@ inline std::vector<DagBlock> createMockDag1(
 }
 
 }  // namespace taraxa::core_tests::samples
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef TARAXA_NODE_DAG_BLOCK_MANAGER_HPP
-#define TARAXA_NODE_DAG_BLOCK_MANAGER_HPP
+#pragma once
 
 #include "chain/final_chain.hpp"
 #include "dag_block.hpp"
@@ -82,4 +81,3 @@ class DagBlockManager {
 };
 
 }  // namespace taraxa
-#endif

@@ -1,5 +1,4 @@
-#ifndef TARAXA_NODE__UTIL_JSON_HPP_
-#define TARAXA_NODE__UTIL_JSON_HPP_
+#pragma once
 
 #include <sstream>
 #include <stdexcept>
@@ -49,5 +48,3 @@ inline string toString(Value const& json) {
 }
 
 }  // namespace taraxa::util_json
-
-#endif  // TARAXA_NODE__UTIL_JSON_HPP_
