@@ -22,7 +22,7 @@ using vrf_output_t = vrf_wrapper::vrf_output_t;
 PbftManager::PbftManager(PbftConfig const &conf, std::string const &genesis, addr_t node_addr,
                          std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
                          std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
-                         std::shared_ptr<BlockManager> blk_mgr, std::shared_ptr<FinalChain> final_chain,
+                         std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<FinalChain> final_chain,
                          std::shared_ptr<Executor> executor, secret_t node_sk, vrf_sk_t vrf_sk)
     : LAMBDA_ms_MIN(conf.lambda_ms_min),
       COMMITTEE_SIZE(conf.committee_size),
@@ -35,7 +35,7 @@ PbftManager::PbftManager(PbftConfig const &conf, std::string const &genesis, add
       pbft_chain_(pbft_chain),
       vote_mgr_(vote_mgr),
       dag_mgr_(dag_mgr),
-      blk_mgr_(blk_mgr),
+      dag_blk_mgr_(dag_blk_mgr),
       final_chain_(final_chain),
       executor_(executor),
       node_sk_(node_sk),
@@ -983,7 +983,7 @@ std::vector<std::vector<uint>> PbftManager::createMockTrxSchedule(
 
   for (auto i = 0; i < trx_overlap_table->size(); i++) {
     blk_hash_t &dag_block_hash = (*trx_overlap_table)[i].first;
-    auto blk = blk_mgr_->getDagBlock(dag_block_hash);
+    auto blk = dag_blk_mgr_->getDagBlock(dag_block_hash);
     if (!blk) {
       LOG(log_er_) << "Cannot create schedule block, DAG block missing " << dag_block_hash;
       continue;

@@ -269,7 +269,7 @@ TEST_F(NetworkTest, node_sync) {
   blks.push_back(blk1);
 
   for (auto i = 0; i < blks.size(); ++i) {
-    node1->getBlockManager()->insertBlock(blks[i]);
+    node1->getDagBlockManager()->insertBlock(blks[i]);
   }
 
   EXPECT_HAPPENS({30s, 500ms}, [&](auto& ctx) {
@@ -318,7 +318,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
   vdf1.computeVdfSolution(vdf_config, dag_genesis.asBytes());
   DagBlock blk1(dag_genesis, 1, {}, {}, vdf1);
   blk1.sign(sk);
-  node1->getBlockManager()->insertBlock(blk1);
+  node1->getDagBlockManager()->insertBlock(blk1);
 
   PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), period, beneficiary, node1->getSecretKey());
   db1->putFinalizedDagBlockHashesByAnchor(*batch, pbft_block1.getPivotDagBlockHash(),
@@ -351,7 +351,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
   vdf2.computeVdfSolution(vdf_config, blk1.getHash().asBytes());
   DagBlock blk2(blk1.getHash(), 2, {}, {}, vdf2);
   blk2.sign(sk);
-  node1->getBlockManager()->insertBlock(blk2);
+  node1->getDagBlockManager()->insertBlock(blk2);
 
   batch = db1->createWriteBatch();
   period = 2;
@@ -442,7 +442,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   vdf1.computeVdfSolution(vdf_config, dag_genesis.asBytes());
   DagBlock blk1(dag_genesis, 1, {}, {}, vdf1);
   blk1.sign(sk);
-  node1->getBlockManager()->insertBlock(blk1);
+  node1->getDagBlockManager()->insertBlock(blk1);
 
   PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), period, beneficiary, node1->getSecretKey());
   db1->putFinalizedDagBlockHashesByAnchor(*batch, pbft_block1.getPivotDagBlockHash(),
@@ -476,7 +476,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   vdf2.computeVdfSolution(vdf_config, blk1.getHash().asBytes());
   DagBlock blk2(blk1.getHash(), 2, {}, {}, vdf2);
   blk2.sign(sk);
-  node1->getBlockManager()->insertBlock(blk2);
+  node1->getDagBlockManager()->insertBlock(blk2);
 
   batch = db1->createWriteBatch();
   period = 2;
@@ -653,12 +653,12 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
   blk6.sign(sk);
   std::vector<Transaction> tr6({g_signed_trx_samples[9]});
 
-  node1->getBlockManager()->insertBroadcastedBlockWithTransactions(blk6, tr6);
-  node1->getBlockManager()->insertBroadcastedBlockWithTransactions(blk5, tr5);
-  node1->getBlockManager()->insertBroadcastedBlockWithTransactions(blk4, tr4);
-  node1->getBlockManager()->insertBroadcastedBlockWithTransactions(blk3, tr3);
-  node1->getBlockManager()->insertBroadcastedBlockWithTransactions(blk2, tr2);
-  node1->getBlockManager()->insertBroadcastedBlockWithTransactions(blk1, tr1);
+  node1->getDagBlockManager()->insertBroadcastedBlockWithTransactions(blk6, tr6);
+  node1->getDagBlockManager()->insertBroadcastedBlockWithTransactions(blk5, tr5);
+  node1->getDagBlockManager()->insertBroadcastedBlockWithTransactions(blk4, tr4);
+  node1->getDagBlockManager()->insertBroadcastedBlockWithTransactions(blk3, tr3);
+  node1->getDagBlockManager()->insertBroadcastedBlockWithTransactions(blk2, tr2);
+  node1->getDagBlockManager()->insertBroadcastedBlockWithTransactions(blk1, tr1);
 
   // To make sure blocks are stored before starting node 2
   taraxa::thisThreadSleepForMilliSeconds(1000);
@@ -810,7 +810,7 @@ TEST_F(NetworkTest, node_sync2) {
   trxs.push_back(tr12);
 
   for (auto i = 0; i < blks.size(); ++i) {
-    node1->getBlockManager()->insertBroadcastedBlockWithTransactions(blks[i], trxs[i]);
+    node1->getDagBlockManager()->insertBroadcastedBlockWithTransactions(blks[i], trxs[i]);
   }
 
   taraxa::thisThreadSleepForMilliSeconds(200);

@@ -97,27 +97,26 @@ void FullNode::init() {
   auto genesis_hash = conf_.chain.dag_genesis_block.getHash().toString();
   emplace(pbft_chain_, genesis_hash, node_addr, db_);
   emplace(dag_mgr_, genesis_hash, node_addr, trx_mgr_, pbft_chain_, db_);
-  emplace(blk_mgr_, conf_.chain.vdf, 1024 /*capacity*/, 4 /* verifer thread*/, node_addr, db_, trx_mgr_, log_time_,
+  emplace(dag_blk_mgr_, node_addr, conf_.chain.vdf, conf_.chain.final_chain.state.dpos, 1024 /*capacity*/,
+          4 /* verifer thread*/, db_, trx_mgr_, final_chain_, pbft_chain_, log_time_,
           conf_.test_params.max_block_queue_warn);
   emplace(vote_mgr_, node_addr, final_chain_, pbft_chain_);
   emplace(trx_order_mgr_, node_addr, db_);
   emplace(executor_, node_addr, db_, dag_mgr_, trx_mgr_, final_chain_, pbft_chain_,
           conf_.test_params.block_proposer.transaction_limit);
-  emplace(pbft_mgr_, conf_.chain.pbft, genesis_hash, node_addr, db_, pbft_chain_, vote_mgr_, dag_mgr_, blk_mgr_,
+  emplace(pbft_mgr_, conf_.chain.pbft, genesis_hash, node_addr, db_, pbft_chain_, vote_mgr_, dag_mgr_, dag_blk_mgr_,
           final_chain_, executor_, kp_.secret(), conf_.vrf_secret);
-  emplace(blk_proposer_, conf_.test_params.block_proposer, conf_.chain.vdf, dag_mgr_, trx_mgr_, blk_mgr_, node_addr,
-          getSecretKey(), getVrfSecretKey(), log_time_);
+  emplace(blk_proposer_, conf_.test_params.block_proposer, conf_.chain.vdf, dag_mgr_, trx_mgr_, dag_blk_mgr_,
+          final_chain_, node_addr, getSecretKey(), getVrfSecretKey(), log_time_);
   emplace(network_, conf_.network, conf_.net_file_path().string(), kp_.secret(), genesis_hash, node_addr, db_,
-          pbft_mgr_, pbft_chain_, vote_mgr_, dag_mgr_, blk_mgr_, trx_mgr_, kp_.pub(), conf_.chain.pbft.lambda_ms_min);
+          pbft_mgr_, pbft_chain_, vote_mgr_, dag_mgr_, dag_blk_mgr_, trx_mgr_, kp_.pub(),
+          conf_.chain.pbft.lambda_ms_min);
 
   // Inits rpc related members
   if (conf_.rpc) {
     jsonrpc_io_ctx_ = make_unique<boost::asio::io_context>();
 
-    emplace(jsonrpc_api_,
-            new net::Test(getShared()),    //
-            new net::Taraxa(getShared()),  //
-            new net::Net(getShared()),
+    emplace(jsonrpc_api_, new net::Test(getShared()), new net::Taraxa(getShared()), new net::Net(getShared()),
             new dev::rpc::Eth(aleth::NewNodeAPI(conf_.chain.chain_id, kp_.secret(),
                                                 [this](auto const &trx) {
                                                   auto [ok, err_msg] = trx_mgr_->insertTransaction(trx, true);
@@ -129,11 +128,8 @@ void FullNode::init() {
                                                                           dev::toJS(*trx.rlp()), err_msg)));
                                                   }
                                                 }),
-                              trx_mgr_->getFilterAPI(),
-                              aleth::NewStateAPI(final_chain_),  //
-                              trx_mgr_->getPendingBlock(),
-                              final_chain_,  //
-                              [] { return 0; }));
+                              trx_mgr_->getFilterAPI(), aleth::NewStateAPI(final_chain_), trx_mgr_->getPendingBlock(),
+                              final_chain_, [] { return 0; }));
 
     if (conf_.rpc->http_port) {
       jsonrpc_http_ = make_shared<net::RpcServer>(
@@ -170,11 +166,11 @@ void FullNode::start() {
   executor_->start();
   pbft_mgr_->setNetwork(network_);
   pbft_mgr_->start();
-  blk_mgr_->start();
+  dag_blk_mgr_->start();
   block_workers_.emplace_back([this]() {
     while (!stopped_) {
       // will block if no verified block available
-      auto blk = blk_mgr_->popVerifiedBlock();
+      auto blk = dag_blk_mgr_->popVerifiedBlock();
 
       if (!stopped_) {
         received_blocks_++;
@@ -193,10 +189,10 @@ void FullNode::start() {
         // where in some race condition older block is verfified faster then
         // new block but should resolve quickly, return block to queue
         if (!stopped_) {
-          if (blk_mgr_->pivotAndTipsValid(blk)) {
+          if (dag_blk_mgr_->pivotAndTipsValid(blk)) {
             LOG(log_dg_) << "Block could not be added to DAG " << blk.getHash().toString();
             received_blocks_--;
-            blk_mgr_->pushVerifiedBlock(blk);
+            dag_blk_mgr_->pushVerifiedBlock(blk);
           }
         }
       }
@@ -242,7 +238,7 @@ void FullNode::close() {
   trx_mgr_->stop();
   trx_mgr_->setNetwork(nullptr);
   network_->stop();
-  blk_mgr_->stop();
+  dag_blk_mgr_->stop();
   for (auto &t : block_workers_) {
     t.join();
   }
@@ -287,12 +283,12 @@ void FullNode::rebuildDb() {
         auto dag_block = old_db_->getDagBlock(dag_block_hash);
         auto pivot_hash = dag_block->getPivot();
         auto tips = dag_block->getTips();
-        if (pbft_dag_blocks.count(pivot_hash) == 0 && !(blk_mgr_->isBlockKnown(pivot_hash))) {
+        if (pbft_dag_blocks.count(pivot_hash) == 0 && !(dag_blk_mgr_->isBlockKnown(pivot_hash))) {
           pbft_dag_blocks.emplace(pivot_hash);
           new_dag_blocks.push_back(pivot_hash);
         }
         for (auto &tip : tips) {
-          if (pbft_dag_blocks.count(tip) == 0 && !(blk_mgr_->isBlockKnown(tip))) {
+          if (pbft_dag_blocks.count(tip) == 0 && !(dag_blk_mgr_->isBlockKnown(tip))) {
             pbft_dag_blocks.emplace(tip);
             new_dag_blocks.push_back(tip);
           }
@@ -330,7 +326,7 @@ void FullNode::rebuildDb() {
       for (auto const &block : block_level.second) {
         LOG(log_nf_) << "Storing block " << block.second.first.getHash().toString() << " with "
                      << block.second.second.size() << " transactions";
-        blk_mgr_->insertBroadcastedBlockWithTransactions(block.second.first, block.second.second);
+        dag_blk_mgr_->insertBroadcastedBlockWithTransactions(block.second.first, block.second.second);
       }
     }
 

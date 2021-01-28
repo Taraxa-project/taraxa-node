@@ -13,6 +13,7 @@
 #include "consensus/pbft_chain.hpp"
 #include "dag/dag_block.hpp"
 #include "logger/log.hpp"
+#include "transaction_manager/transaction.hpp"
 #include "transaction_manager/transaction_status.hpp"
 
 namespace taraxa {
