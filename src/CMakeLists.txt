@@ -179,4 +179,3 @@ endif ()
 
 # Main taraxad binary
 add_subdirectory(taraxad)
-message("Boost_INCLUDE_DIR: ${Boost_INCLUDE_DIR}")

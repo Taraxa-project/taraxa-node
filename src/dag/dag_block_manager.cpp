@@ -17,8 +17,8 @@ DagBlockManager::DagBlockManager(addr_t node_addr, vdf_sortition::VdfConfig cons
       pbft_chain_(pbft_chain),
       log_time_(log_time),
       queue_limit_(queue_limit),
-      blk_status_(10000, 100),
-      seen_blocks_(10000, 100) {
+      blk_status_(cache_max_size, cache_delete_step),
+      seen_blocks_(cache_max_size, cache_delete_step) {
   LOG_OBJECTS_CREATE("BLKQU");
 }
 
@@ -53,15 +53,12 @@ bool DagBlockManager::isBlockKnown(blk_hash_t const &hash) {
 }
 
 std::shared_ptr<DagBlock> DagBlockManager::getDagBlock(blk_hash_t const &hash) const {
-  std::shared_ptr<DagBlock> ret;
   auto blk = seen_blocks_.get(hash);
   if (blk.second) {
-    ret = std::make_shared<DagBlock>(blk.first);
+    return std::make_shared<DagBlock>(blk.first);
   }
-  if (!ret) {
-    return db_->getDagBlock(hash);
-  }
-  return ret;
+
+  return db_->getDagBlock(hash);
 }
 
 bool DagBlockManager::pivotAndTipsValid(DagBlock const &blk) {

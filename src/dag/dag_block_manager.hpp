@@ -52,6 +52,8 @@ class DagBlockManager {
   std::atomic<bool> stopped_ = true;
   size_t capacity_ = 2048;
   size_t num_verifiers_ = 4;
+  const uint32_t cache_max_size = 10000;
+  const uint32_t cache_delete_step = 100;
 
   std::shared_ptr<DbStorage> db_;
   std::shared_ptr<TransactionManager> trx_mgr_;
