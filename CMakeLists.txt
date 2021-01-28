@@ -3,6 +3,7 @@
 project(taraxa-node)
 cmake_minimum_required(VERSION 3.16)
 
+set(CMAKE_NO_SYSTEM_FROM_IMPORTED ON)
 # Set project properties like C++ standard, etc...
 set(CMAKE_CXX_COMPILER g++)
 set(CMAKE_CXX_STANDARD 17)
@@ -35,8 +36,6 @@ endif ()
 # Mac OS
 if (DEFINED SYSTEM_HOME_OVERRIDE)
     list(PREPEND CMAKE_PREFIX_PATH ${SYSTEM_HOME_OVERRIDE})
-    include_directories(${SYSTEM_HOME_OVERRIDE}/include)
-    link_directories(${SYSTEM_HOME_OVERRIDE}/lib)
 endif ()
 
 # Mac OS
