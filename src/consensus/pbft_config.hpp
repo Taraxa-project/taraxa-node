@@ -1,5 +1,4 @@
-#ifndef TARAXA_NODE__PBFT_CONFIG_HPP_
-#define TARAXA_NODE__PBFT_CONFIG_HPP_
+#pragma once
 
 #include <json/json.h>
 
@@ -18,5 +17,3 @@ Json::Value enc_json(PbftConfig const& obj);
 void dec_json(Json::Value const& json, PbftConfig& obj);
 
 }  // namespace taraxa
-
-#endif  // TARAXA_NODE__PBFT_CONFIG_HPP_

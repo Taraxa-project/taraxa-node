@@ -1,5 +1,4 @@
-#ifndef TARAXA_NODE_CHAIN_CONFIG_HPP_
-#define TARAXA_NODE_CHAIN_CONFIG_HPP_
+#pragma once
 
 #include <json/json.h>
 #include <libethcore/BlockHeader.h>
@@ -47,5 +46,3 @@ void dec_json(Json::Value const& json, ChainConfig& obj);
 namespace taraxa {
 using chain_config::ChainConfig;
 }
-
-#endif  // TARAXA_NODE_CHAIN_CONFIG_HPP_

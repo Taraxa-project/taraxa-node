@@ -1,5 +1,4 @@
-#ifndef TARAXA_NODE_UTIL_HPP
-#define TARAXA_NODE_UTIL_HPP
+#pragma once
 
 #include <execinfo.h>
 #include <json/json.h>
@@ -435,5 +434,3 @@ class ExpirationCacheMap {
   uint32_t delete_step_;
   mutable boost::shared_mutex mtx_;
 };
-
-#endif

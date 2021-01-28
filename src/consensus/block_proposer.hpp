@@ -1,5 +1,4 @@
-#ifndef TARAXA_NODE_BLOCK_PROPOSER_HPP
-#define TARAXA_NODE_BLOCK_PROPOSER_HPP
+#pragma once
 
 #include <atomic>
 #include <random>
@@ -132,5 +131,3 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
 };
 
 }  // namespace taraxa
-
-#endif

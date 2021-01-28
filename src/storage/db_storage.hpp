@@ -1,5 +1,4 @@
-#ifndef TARAXA_NODE_DB_STORAGE
-#define TARAXA_NODE_DB_STORAGE
+#pragma once
 
 #include <rocksdb/db.h>
 #include <rocksdb/options.h>
@@ -310,4 +309,3 @@ struct DbStorage {
   };
 };
 }  // namespace taraxa
-#endif

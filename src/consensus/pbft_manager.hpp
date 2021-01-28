@@ -1,5 +1,4 @@
-#ifndef TARAXA_NODE_PBFT_MANAGER_HPP
-#define TARAXA_NODE_PBFT_MANAGER_HPP
+#pragma once
 
 #include <atomic>
 #include <string>
@@ -230,5 +229,3 @@ class PbftManager {
 };
 
 }  // namespace taraxa
-
-#endif  // TARAXA_NODE_PBFT_MANAGER_HPP

@@ -1,5 +1,5 @@
-#ifndef TARAXA_NODE_TARAXA_CAPABILITY_HPP
-#define TARAXA_NODE_TARAXA_CAPABILITY_HPP
+#pragma once
+
 #include <libp2p/Capability.h>
 #include <libp2p/CapabilityHost.h>
 #include <libp2p/Common.h>
@@ -272,4 +272,3 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   LOG_OBJECTS_DEFINE_SUB(net_per);
 };
 }  // namespace taraxa
-#endif

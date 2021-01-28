@@ -1,5 +1,4 @@
-#ifndef TARAXA_NODE_STATE_API_STATE_API_HPP_
-#define TARAXA_NODE_STATE_API_STATE_API_HPP_
+#pragma once
 
 #include <rocksdb/db.h>
 #include <taraxa-evm/taraxa-evm.h>
@@ -268,5 +267,3 @@ class StateAPI {
 namespace taraxa {
 using state_api::StateAPI;
 }
-
-#endif  // TARAXA_NODE_STATE_API_STATE_API_HPP_

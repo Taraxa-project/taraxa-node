@@ -1,5 +1,4 @@
-#ifndef TARAXA_NODE_VOTE_H
-#define TARAXA_NODE_VOTE_H
+#pragma once
 
 #include <libdevcrypto/Common.h>
 
@@ -178,5 +177,3 @@ class VoteManager {
 };
 
 }  // namespace taraxa
-
-#endif  // VOTE_H

@@ -1,5 +1,4 @@
-#ifndef TARAXA_NODE__TRANSACTION_STATUS_HPP_
-#define TARAXA_NODE__TRANSACTION_STATUS_HPP_
+#pragma once
 
 namespace taraxa {
 
@@ -12,5 +11,3 @@ enum class TransactionStatus {
 };
 
 }
-
-#endif  // TARAXA_NODE__TRANSACTION_STATUS_HPP_

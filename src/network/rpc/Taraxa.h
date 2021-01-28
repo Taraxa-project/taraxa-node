@@ -1,5 +1,4 @@
-#ifndef TARAXA_NODE_NET_TARAXA_H_
-#define TARAXA_NODE_NET_TARAXA_H_
+#pragma once
 
 #include <jsonrpccpp/common/exception.h>
 #include <jsonrpccpp/server.h>
@@ -39,5 +38,3 @@ class Taraxa : public TaraxaFace {
 };
 
 }  // namespace taraxa::net
-
-#endif

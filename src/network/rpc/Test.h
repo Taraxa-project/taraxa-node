@@ -1,5 +1,4 @@
-#ifndef TARAXA_NODE_NET_TEST_H_
-#define TARAXA_NODE_NET_TEST_H_
+#pragma once
 
 #include <future>
 
@@ -52,4 +51,4 @@ class Test : public TestFace {
 
 }  // namespace taraxa::net
 
-#endif
+

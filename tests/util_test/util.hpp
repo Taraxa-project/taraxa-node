@@ -1,5 +1,4 @@
-#ifndef TARAXA_NODE_CORE_TESTS_UTIL_HPP
-#define TARAXA_NODE_CORE_TESTS_UTIL_HPP
+#pragma once
 
 #include <libdevcrypto/Common.h>
 
@@ -312,5 +311,3 @@ inline auto parse_json(string const& str) {
 }
 
 };  // namespace taraxa::core_tests
-
-#endif  // TARAXA_NODE_CORE_TESTS_UTIL_HPP_

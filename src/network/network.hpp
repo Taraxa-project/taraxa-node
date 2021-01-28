@@ -1,5 +1,5 @@
-#ifndef TARAXA_NODE_NETWORK_HPP
-#define TARAXA_NODE_NETWORK_HPP
+#pragma once
+
 #include <libdevcrypto/Common.h>
 #include <libp2p/Capability.h>
 #include <libp2p/CapabilityHost.h>
@@ -91,4 +91,3 @@ class Network {
 };
 
 }  // namespace taraxa
-#endif
