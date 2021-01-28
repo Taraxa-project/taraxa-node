@@ -10,7 +10,7 @@
 
 #include "consensus/pbft_manager.hpp"
 #include "dag/dag.hpp"
-#include "dag/dag_block.hpp"
+#include "dag/dag_block_manager.hpp"
 #include "transaction_manager/transaction_manager.hpp"
 
 using namespace std;
@@ -53,7 +53,7 @@ Taraxa::NodePtr Taraxa::tryGetNode() {
 Json::Value Taraxa::taraxa_getDagBlockByHash(string const& _blockHash, bool _includeTransactions) {
   try {
     auto node = tryGetNode();
-    auto block = node->getBlockManager()->getDagBlock(blk_hash_t(_blockHash));
+    auto block = node->getDagBlockManager()->getDagBlock(blk_hash_t(_blockHash));
     if (block) {
       auto block_json = block->getJson();
       auto period = node->getPbftManager()->getDagBlockPeriod(blk_hash_t(block->getHash()));

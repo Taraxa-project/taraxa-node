@@ -477,7 +477,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
       auto dags = getOrderedDagBlocks(node->getDB());
       for (auto i(0); i < dags.size(); ++i) {
         auto d = dags[i];
-        std::cout << i << " " << d << " trx: " << nodes[0]->getBlockManager()->getDagBlock(d)->getTrxs().size()
+        std::cout << i << " " << d << " trx: " << nodes[0]->getDagBlockManager()->getDagBlock(d)->getTrxs().size()
                   << std::endl;
       }
       std::string filename = "debug_dag_" + std::to_string(k);
@@ -522,7 +522,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
 
   auto num_blks = g_mock_dag0->size();
   for (int i = 1; i <= 9; i++) {
-    node->getBlockManager()->insertBlock(g_mock_dag0[i]);
+    node->getDagBlockManager()->insertBlock(g_mock_dag0[i]);
   }
   taraxa::thisThreadSleepForMilliSeconds(200);
   std::string pivot;
@@ -552,7 +552,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   // -------- second period ----------
 
   for (int i = 10; i <= 16; i++) {
-    node->getBlockManager()->insertBlock(g_mock_dag0[i]);
+    node->getDagBlockManager()->insertBlock(g_mock_dag0[i]);
   }
   taraxa::thisThreadSleepForMilliSeconds(200);
 
@@ -576,7 +576,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   // -------- third period ----------
 
   for (int i = 17; i < g_mock_dag0->size(); i++) {
-    node->getBlockManager()->insertBlock(g_mock_dag0[i]);
+    node->getDagBlockManager()->insertBlock(g_mock_dag0[i]);
   }
   taraxa::thisThreadSleepForMilliSeconds(200);
 
@@ -655,7 +655,7 @@ TEST_F(FullNodeTest, reconstruct_dag) {
     taraxa::thisThreadSleepForMilliSeconds(100);
 
     for (int i = 1; i < num_blks; i++) {
-      node->getBlockManager()->insertBlock(g_mock_dag0[i]);
+      node->getDagBlockManager()->insertBlock(g_mock_dag0[i]);
     }
 
     taraxa::thisThreadSleepForMilliSeconds(100);
@@ -675,7 +675,7 @@ TEST_F(FullNodeTest, reconstruct_dag) {
     // TODO: pbft does not support node stop yet, to be fixed ...
     node->getPbftManager()->stop();
     for (int i = 1; i < num_blks; i++) {
-      node->getBlockManager()->insertBlock(g_mock_dag0[i]);
+      node->getDagBlockManager()->insertBlock(g_mock_dag0[i]);
     }
     taraxa::thisThreadSleepForMilliSeconds(100);
     vertices3 = node->getDagManager()->getNumVerticesInDag().first;

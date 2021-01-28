@@ -13,6 +13,7 @@ namespace taraxa {
 
 using std::string;
 class DagBlock;
+class DagManager;
 class FullNode;
 class Network;
 namespace net {

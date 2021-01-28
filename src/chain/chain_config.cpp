@@ -1,5 +1,7 @@
 #include "chain_config.hpp"
 
+#include <libdevcore/CommonJS.h>
+
 #include <sstream>
 
 namespace taraxa::chain_config {

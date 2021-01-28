@@ -39,12 +39,14 @@ void TaraxaCapability::syncPeerPbft(NodeID const &_nodeID, unsigned long height_
 }
 
 std::pair<bool, blk_hash_t> TaraxaCapability::checkDagBlockValidation(DagBlock const &block) {
-  level_t expected_level = 0;
-  if (blk_mgr_->getDagBlock(block.getHash()) != nullptr) {
+  if (dag_blk_mgr_->getDagBlock(block.getHash())) {
+    // The DAG block exist
     return std::make_pair(true, blk_hash_t());
   }
+
+  level_t expected_level = 0;
   for (auto const &tip : block.getTips()) {
-    auto tip_block = blk_mgr_->getDagBlock(tip);
+    auto tip_block = dag_blk_mgr_->getDagBlock(tip);
     if (!tip_block) {
       LOG(log_nf_dag_sync_) << "Block " << block.getHash().toString() << " has a missing tip " << tip.toString();
       return std::make_pair(false, tip);
@@ -52,7 +54,7 @@ std::pair<bool, blk_hash_t> TaraxaCapability::checkDagBlockValidation(DagBlock c
     expected_level = std::max(tip_block->getLevel(), expected_level);
   }
   auto pivot = block.getPivot();
-  auto pivot_block = blk_mgr_->getDagBlock(pivot);
+  auto pivot_block = dag_blk_mgr_->getDagBlock(pivot);
   if (!pivot_block) {
     LOG(log_nf_) << "Block " << block.getHash().toString() << " has a missing pivot " << pivot.toString();
     return std::make_pair(false, pivot);
@@ -238,8 +240,8 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         case NewBlockPacket: {
           DagBlock block(_r[0].data().toBytes());
 
-          if (blk_mgr_ != nullptr) {
-            if (blk_mgr_->isBlockKnown(block.getHash())) {
+          if (dag_blk_mgr_) {
+            if (dag_blk_mgr_->isBlockKnown(block.getHash())) {
               LOG(log_dg_dag_prp_) << "Received NewBlock " << block.getHash().toString() << "that is already known";
               break;
             }
@@ -266,8 +268,8 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
           blk_hash_t hash(_r[0]);
           LOG(log_dg_dag_prp_) << "Received NewBlockHashPacket" << hash.toString();
           peer->markBlockAsKnown(hash);
-          if (blk_mgr_ != nullptr) {
-            if (!blk_mgr_->isBlockKnown(hash) && block_requestes_set_.count(hash) == 0) {
+          if (dag_blk_mgr_) {
+            if (!dag_blk_mgr_->isBlockKnown(hash) && block_requestes_set_.count(hash) == 0) {
               unique_packet_count[_id]++;
               block_requestes_set_.insert(hash);
               requestBlock(_nodeID, hash);
@@ -283,7 +285,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
           peer->markBlockAsKnown(hash);
           LOG(log_dg_dag_prp_) << "Received GetNewBlockPacket" << hash.toString();
 
-          if (blk_mgr_ != nullptr) {
+          if (dag_blk_mgr_) {
             auto block = db_->getDagBlock(hash);
             if (block) {
               sendBlock(_nodeID, *block);
@@ -334,7 +336,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
             LOG(log_nf_dag_sync_) << "Storing block " << block.getHash().toString() << " with "
                                   << newTransactions.size() << " transactions";
             if (block.getLevel() > peer->dag_level_) peer->dag_level_ = block.getLevel();
-            blk_mgr_->insertBroadcastedBlockWithTransactions(block, newTransactions);
+            dag_blk_mgr_->insertBroadcastedBlockWithTransactions(block, newTransactions);
 
             if (iBlock + transactionCount + 1 >= itemCount) break;
           }
@@ -480,7 +482,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
                 LOG(log_nf_dag_sync_) << "Storing block " << block.second.first.getHash().toString() << " with "
                                       << block.second.second.size() << " transactions";
                 if (block.second.first.getLevel() > peer->dag_level_) peer->dag_level_ = block.second.first.getLevel();
-                blk_mgr_->insertBroadcastedBlockWithTransactions(block.second.first, block.second.second);
+                dag_blk_mgr_->insertBroadcastedBlockWithTransactions(block.second.first, block.second.second);
               }
             }
 
@@ -609,9 +611,9 @@ void TaraxaCapability::restartSyncingPbft(bool force) {
                            << " is greater or equal than max node pbft chain size:" << max_pbft_chain_size;
     syncing_ = false;
     if (!requesting_pending_dag_blocks_ &&
-        (force || max_node_dag_level > std::max(dag_mgr_->getMaxLevel(), blk_mgr_->getMaxDagLevelInQueue()))) {
+        (force || max_node_dag_level > std::max(dag_mgr_->getMaxLevel(), dag_blk_mgr_->getMaxDagLevelInQueue()))) {
       LOG(log_nf_dag_sync_) << "Request pending " << max_node_dag_level << " "
-                            << std::max(dag_mgr_->getMaxLevel(), blk_mgr_->getMaxDagLevelInQueue()) << "("
+                            << std::max(dag_mgr_->getMaxLevel(), dag_blk_mgr_->getMaxDagLevelInQueue()) << "("
                             << dag_mgr_->getMaxLevel() << ")";
       requesting_pending_dag_blocks_ = true;
       requesting_pending_dag_blocks_node_id_ = max_pbft_chain_nodeID;
@@ -704,7 +706,7 @@ std::pair<std::vector<NodeID>, std::vector<NodeID>> TaraxaCapability::randomPart
 
 void TaraxaCapability::onNewTransactions(std::vector<taraxa::bytes> const &transactions, bool fromNetwork) {
   if (fromNetwork) {
-    if (blk_mgr_ != nullptr) {
+    if (dag_blk_mgr_) {
       LOG(log_nf_trx_prp_) << "Storing " << transactions.size() << " transactions";
       received_trx_count += transactions.size();
       unique_received_trx_count += trx_mgr_->insertBroadcastedTransactions(transactions);
@@ -753,7 +755,7 @@ void TaraxaCapability::onNewTransactions(std::vector<taraxa::bytes> const &trans
 
 void TaraxaCapability::onNewBlockReceived(DagBlock block, std::vector<Transaction> transactions) {
   LOG(log_nf_dag_prp_) << "Receive DagBlock " << block.getHash() << " #Trx" << transactions.size() << std::endl;
-  if (blk_mgr_ != nullptr) {
+  if (dag_blk_mgr_) {
     auto status = checkDagBlockValidation(block);
     if (!status.first) {
       if (!syncing_ && !requesting_pending_dag_blocks_) restartSyncingPbft();
@@ -761,7 +763,7 @@ void TaraxaCapability::onNewBlockReceived(DagBlock block, std::vector<Transactio
     }
     LOG(log_nf_dag_prp_) << "Storing block " << block.getHash().toString() << " with " << transactions.size()
                          << " transactions";
-    blk_mgr_->insertBroadcastedBlockWithTransactions(block, transactions);
+    dag_blk_mgr_->insertBroadcastedBlockWithTransactions(block, transactions);
 
   } else if (test_blocks_.find(block.getHash()) == test_blocks_.end()) {
     test_blocks_[block.getHash()] = block;
@@ -885,7 +887,7 @@ void TaraxaCapability::sendBlock(NodeID const &_id, taraxa::DagBlock block) {
   taraxa::bytes trx_bytes;
   for (auto trx : transactionsToSend) {
     std::shared_ptr<std::pair<Transaction, taraxa::bytes>> transaction;
-    if (blk_mgr_ != nullptr) {
+    if (dag_blk_mgr_) {
       transaction = trx_mgr_->getTransaction(trx);
     } else {
       assert(test_transactions_.find(trx) != test_transactions_.end());

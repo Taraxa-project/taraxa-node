@@ -1,5 +1,7 @@
 #include "pbft_chain.hpp"
 
+#include <libdevcore/CommonJS.h>
+
 #include "pbft_manager.hpp"
 
 namespace taraxa {

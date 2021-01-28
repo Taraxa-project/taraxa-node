@@ -1,5 +1,7 @@
 #include "state_api.hpp"
 
+#include <libdevcore/CommonJS.h>
+
 #include <array>
 #include <string_view>
 

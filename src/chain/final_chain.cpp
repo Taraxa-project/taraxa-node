@@ -1,5 +1,7 @@
 #include "final_chain.hpp"
 
+#include <libdevcore/CommonJS.h>
+
 namespace taraxa::final_chain {
 
 auto map_transactions(Transactions const& trxs) {
