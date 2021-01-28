@@ -1,5 +1,4 @@
-#ifndef TARAXA_NODE_NET_WS_SERVER_H_
-#define TARAXA_NODE_NET_WS_SERVER_H_
+#pragma once
 
 #include <jsonrpccpp/server/abstractserverconnector.h>
 #include <libethcore/BlockHeader.h>
@@ -106,5 +105,3 @@ class WSServer : public std::enable_shared_from_this<WSServer>, public jsonrpc::
 };
 
 }  // namespace taraxa::net
-
-#endif
