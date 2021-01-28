@@ -175,7 +175,8 @@ TEST_F(DagBlockTest, sign_verify) {
 TEST_F(DagBlockTest, push_and_pop) {
   auto node_cfgs = make_node_cfgs(1);
   FullNode::Handle node(node_cfgs[0]);
-  BlockManager blk_qu(node_cfgs[0].chain.vdf, 1024, 2, addr_t(), node->getDB(), nullptr, node->getTimeLogger());
+  DagBlockManager blk_qu(addr_t(), node_cfgs[0].chain.vdf, node_cfgs[0].chain.final_chain.state.dpos, 1024, 2,
+                         node->getDB(), nullptr, nullptr, nullptr, node->getTimeLogger());
   blk_qu.start();
   DagBlock blk1(blk_hash_t(1111), level_t(0), {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)}, {}, sig_t(7777),
                 blk_hash_t(888), addr_t(999));

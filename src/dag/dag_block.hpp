@@ -1,41 +1,14 @@
-#ifndef TARAXA_NODE_DAG_BLOCKS_HPP
-#define TARAXA_NODE_DAG_BLOCKS_HPP
+#ifndef TARAXA_NODE_DAG_BLOCK_HPP
+#define TARAXA_NODE_DAG_BLOCK_HPP
 
-#include <libdevcore/CommonJS.h>
-#include <libdevcore/RLP.h>
-#include <libdevcore/SHA3.h>
-#include <libdevcrypto/Common.h>
-#include <libethcore/Common.h>
-
-#include <atomic>
-#include <boost/thread.hpp>
-#include <boost/thread/condition_variable.hpp>
-#include <condition_variable>
-#include <deque>
-#include <iostream>
-#include <string>
-#include <thread>
-
-#include "common/types.hpp"
-#include "logger/log.hpp"
 #include "vdf_sortition.hpp"
 
 namespace taraxa {
+
 using std::string;
 using VdfSortition = vdf_sortition::VdfSortition;
-class DagManager;
-class Transaction;
-enum class TransactionStatus;
-class TransactionManager;
-class FullNode;
-class DbStorage;
-// Block definition
 
-/**
- * Note:
- * Need to sign first then sender() and hash() is available
- */
-
+// Note: Need to sign first then sender() and hash() is available
 class DagBlock {
   blk_hash_t pivot_;
   level_t level_ = 0;
@@ -105,10 +78,6 @@ class DagBlock {
   blk_hash_t sha3(bool include_sig) const;
 };
 
-enum class BlockStatus { invalid, proposed, broadcasted, verified, unseen };
-
-using BlockStatusTable = ExpirationCacheMap<blk_hash_t, BlockStatus>;
-
 struct DagFrontier {
   DagFrontier() = default;
   DagFrontier(blk_hash_t const &pivot, vec_blk_t const &tips) : pivot(pivot), tips(tips) {}
@@ -118,68 +87,6 @@ struct DagFrontier {
   }
   blk_hash_t pivot;
   vec_blk_t tips;
-};
-
-/**
- * Thread safe
- */
-class BlockManager {
- public:
-  BlockManager(vdf_sortition::VdfConfig const &vdf_config, size_t capacity, unsigned verify_threads, addr_t node_addr,
-               std::shared_ptr<DbStorage> db, std::shared_ptr<TransactionManager> trx_mgr, logger::Logger log_time_,
-               uint32_t queue_limit = 0);
-  ~BlockManager();
-  void insertBlock(DagBlock const &blk);
-  // Only used in initial syncs when blocks are received with full list of
-  // transactions
-  void insertBroadcastedBlockWithTransactions(DagBlock const &blk, std::vector<Transaction> const &transactions);
-  void pushUnverifiedBlock(DagBlock const &block,
-                           bool critical);  // add to unverified queue
-  void pushUnverifiedBlock(DagBlock const &block, std::vector<Transaction> const &transactions,
-                           bool critical);  // add to unverified queue
-  DagBlock popVerifiedBlock();              // get one verified block and pop
-  void pushVerifiedBlock(DagBlock const &blk);
-  std::pair<size_t, size_t> getDagBlockQueueSize() const;
-  level_t getMaxDagLevelInQueue() const;
-  void start();
-  void stop();
-  bool isBlockKnown(blk_hash_t const &hash);
-  std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash) const;
-  void clearBlockStatausTable() { blk_status_.clear(); }
-  bool pivotAndTipsValid(DagBlock const &blk);
-
- private:
-  using uLock = boost::unique_lock<boost::shared_mutex>;
-  using sharedLock = boost::shared_lock<boost::shared_mutex>;
-  using upgradableLock = boost::upgrade_lock<boost::shared_mutex>;
-  using upgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
-
-  void verifyBlock();
-  std::atomic<bool> stopped_ = true;
-  size_t capacity_ = 2048;
-  size_t num_verifiers_ = 4;
-
-  std::shared_ptr<TransactionManager> trx_mgr_;
-  std::shared_ptr<DbStorage> db_;
-  logger::Logger log_time_;
-  // seen blks
-  BlockStatusTable blk_status_;
-  ExpirationCacheMap<blk_hash_t, DagBlock> seen_blocks_;
-  mutable boost::shared_mutex shared_mutex_;  // shared mutex to check seen_blocks ...
-  std::vector<std::thread> verifiers_;
-  mutable boost::shared_mutex shared_mutex_for_unverified_qu_;
-  mutable boost::shared_mutex shared_mutex_for_verified_qu_;
-
-  boost::condition_variable_any cond_for_unverified_qu_;
-  boost::condition_variable_any cond_for_verified_qu_;
-  uint32_t queue_limit_;
-
-  std::map<uint64_t, std::deque<std::pair<DagBlock, std::vector<Transaction> > > > unverified_qu_;
-  std::map<uint64_t, std::deque<DagBlock> > verified_qu_;
-
-  vdf_sortition::VdfConfig vdf_config_;
-
-  LOG_OBJECTS_DEFINE;
 };
 
 }  // namespace taraxa

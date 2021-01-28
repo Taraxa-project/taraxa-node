@@ -23,12 +23,14 @@ bool SortitionPropose::propose() {
     return false;
   }
 
-  vec_trx_t sharded_trxs;
   DagFrontier frontier = dag_mgr_->getDagFrontier();
-  LOG(log_dg_) << " Get frontier with pivot: " << frontier.pivot << " tips: " << frontier.tips;
-
+  LOG(log_dg_) << "Get frontier with pivot: " << frontier.pivot << " tips: " << frontier.tips;
   assert(!frontier.pivot.isZero());
   auto propose_level = proposer->getProposeLevel(frontier.pivot, frontier.tips) + 1;
+  if (!proposer->validDposProposer(propose_level)) {
+    LOG(log_tr_) << node_addr_ << " is not a valid DPOS proposer for DAG level " << propose_level;
+    return false;
+  }
 
   // get sortition
   vdf_sortition::VdfSortition vdf(vdf_config_, node_addr_, vrf_sk_, getRlpBytes(propose_level));
@@ -52,6 +54,8 @@ bool SortitionPropose::propose() {
     DagFrontier latestFrontier = dag_mgr_->getDagFrontier();
     if (latestFrontier.pivot != frontier.pivot) return false;
   }
+
+  vec_trx_t sharded_trxs;
   bool ok = proposer->getShardedTrxs(sharded_trxs);
   if (!ok) {
     return false;
@@ -158,7 +162,7 @@ blk_hash_t BlockProposer::getProposeAnchor() const {
 level_t BlockProposer::getProposeLevel(blk_hash_t const& pivot, vec_blk_t const& tips) {
   level_t max_level = 0;
   // get current level
-  auto pivot_blk = blk_mgr_->getDagBlock(pivot);
+  auto pivot_blk = dag_blk_mgr_->getDagBlock(pivot);
   if (!pivot_blk) {
     LOG(log_er_) << "Cannot find pivot dag block " << pivot;
     return 0;
@@ -166,7 +170,7 @@ level_t BlockProposer::getProposeLevel(blk_hash_t const& pivot, vec_blk_t const&
   max_level = std::max(pivot_blk->getLevel(), max_level);
 
   for (auto const& t : tips) {
-    auto tip_blk = blk_mgr_->getDagBlock(t);
+    auto tip_blk = dag_blk_mgr_->getDagBlock(t);
     if (!tip_blk) {
       LOG(log_er_) << "Cannot find tip dag block " << blk_hash_t(t);
       return 0;
@@ -180,7 +184,7 @@ void BlockProposer::proposeBlock(DagBlock& blk) {
   if (stopped_) return;
 
   blk.sign(node_sk_);
-  blk_mgr_->insertBlock(blk);
+  dag_blk_mgr_->insertBlock(blk);
 
   auto now = getCurrentTimeMilliSeconds();
   LOG(log_time_) << "Propose block " << blk.getHash() << " at: " << now << " ,trxs: " << blk.getTrxs()
@@ -188,6 +192,11 @@ void BlockProposer::proposeBlock(DagBlock& blk) {
   LOG(log_nf_) << " Propose block :" << blk.getHash() << " pivot: " << blk.getPivot() << " , number of trx ("
                << blk.getTrxs().size() << ")";
   BlockProposer::num_proposed_blocks.fetch_add(1);
+}
+
+bool BlockProposer::validDposProposer(level_t const propose_level) {
+  uint64_t period = dag_blk_mgr_->getPeriod(propose_level);
+  return final_chain_->dpos_is_eligible(period, node_addr_);
 }
 
 }  // namespace taraxa

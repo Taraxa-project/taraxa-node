@@ -7,7 +7,7 @@
 #include "common/types.hpp"
 #include "consensus/pbft_manager.hpp"
 #include "dag/dag.hpp"
-#include "dag/dag_block.hpp"
+#include "dag/dag_block_manager.hpp"
 #include "network/network.hpp"
 #include "node/full_node.hpp"
 #include "transaction_manager/transaction_manager.hpp"
@@ -38,7 +38,7 @@ Json::Value Test::insert_dag_block(const Json::Value &param1) {
 
       DagBlock blk(pivot, 0, tips, {}, signature, hash, sender);
       res = blk.getJsonStr();
-      node->getBlockManager()->insertBlock(std::move(blk));
+      node->getDagBlockManager()->insertBlock(std::move(blk));
     }
   } catch (std::exception &e) {
     res["status"] = e.what();
@@ -51,11 +51,11 @@ Json::Value Test::get_dag_block(const Json::Value &param1) {
   try {
     if (auto node = full_node_.lock()) {
       blk_hash_t hash = blk_hash_t(param1["hash"].asString());
-      auto blk = node->getBlockManager()->getDagBlock(hash);
+      auto blk = node->getDagBlockManager()->getDagBlock(hash);
       if (!blk) {
         res = "Block not available \n";
       } else {
-        res = node->getBlockManager()->getDagBlock(hash)->getJsonStr();
+        res = node->getDagBlockManager()->getDagBlock(hash)->getJsonStr();
       }
     }
   } catch (std::exception &e) {
@@ -205,8 +205,8 @@ Json::Value Test::get_node_status() {
       res["pbft_sync_queue_size"] = Json::UInt64(node->getPbftChain()->pbftSyncedQueueSize());
       res["trx_queue_unverified_size"] = Json::UInt64(node->getTransactionManager()->getTransactionQueueSize().first);
       res["trx_queue_verified_size"] = Json::UInt64(node->getTransactionManager()->getTransactionQueueSize().second);
-      res["blk_queue_unverified_size"] = Json::UInt64(node->getBlockManager()->getDagBlockQueueSize().first);
-      res["blk_queue_verified_size"] = Json::UInt64(node->getBlockManager()->getDagBlockQueueSize().second);
+      res["blk_queue_unverified_size"] = Json::UInt64(node->getDagBlockManager()->getDagBlockQueueSize().first);
+      res["blk_queue_verified_size"] = Json::UInt64(node->getDagBlockManager()->getDagBlockQueueSize().second);
       res["network"] = node->getNetwork()->getTaraxaCapability()->getStatus();
     }
   } catch (std::exception &e) {

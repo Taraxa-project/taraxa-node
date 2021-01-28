@@ -12,7 +12,7 @@
 
 #include "config/config.hpp"
 #include "consensus/vote.hpp"
-#include "dag/dag_block.hpp"
+#include "dag/dag_block_manager.hpp"
 #include "transaction_manager/transaction.hpp"
 #include "util/util.hpp"
 
@@ -107,7 +107,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   TaraxaCapability(Host &_host, NetworkConfig &_conf, std::string const &genesis, bool const &performance_log,
                    addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
                    std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
-                   std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<BlockManager> blk_mgr,
+                   std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
                    std::shared_ptr<TransactionManager> trx_mgr, uint32_t lambda_ms_min)
       : Worker("taraxa"),
         host_(_host),
@@ -122,7 +122,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
         pbft_chain_(pbft_chain),
         vote_mgr_(vote_mgr),
         dag_mgr_(dag_mgr),
-        blk_mgr_(blk_mgr),
+        dag_blk_mgr_(dag_blk_mgr),
         trx_mgr_(trx_mgr),
         lambda_ms_min_(lambda_ms_min) {
     LOG_OBJECTS_CREATE("TARCAP");
@@ -149,7 +149,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   void onStopping() override {
     stopped_ = true;
     if (conf_.network_simulated_delay > 0) io_service_.stop();
-    blk_mgr_ = nullptr;
+    dag_blk_mgr_ = nullptr;
     vote_mgr_ = nullptr;
     dag_mgr_ = nullptr;
     trx_mgr_ = nullptr;
@@ -233,7 +233,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<VoteManager> vote_mgr_;
   std::shared_ptr<DagManager> dag_mgr_;
-  std::shared_ptr<BlockManager> blk_mgr_;
+  std::shared_ptr<DagBlockManager> dag_blk_mgr_;
   std::shared_ptr<TransactionManager> trx_mgr_;
   uint32_t lambda_ms_min_;
 
