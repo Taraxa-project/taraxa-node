@@ -111,18 +111,33 @@ RUN mkdir $BUILD_OUTPUT_DIR \
     && cd tests/ \
     && ctest --output-on-failure
 
+###############################################################################
+# Taraxa Cli #
+###############################################################################
+FROM ubuntu:20.04 as cli
+
+WORKDIR /opt/taraxa
+
+RUN apt-get update \
+    && apt-get install -y python3-pip
+
+COPY cli/requirements.txt cli/requirements.txt
+RUN pip3 install --no-cache-dir -r cli/requirements.txt
+
+COPY cli/taraxa cli/taraxa
+
 
 ###############################################################################
 # Taraxa image containing taraxad binary with statically linked deps + config #
 ###############################################################################
-FROM ubuntu:20.04
+FROM cli
 
 ARG BUILD_OUTPUT_DIR
-WORKDIR /opt/taraxa/taraxa-node
+WORKDIR /opt/taraxa
 
 # Keep the old struct for now
-COPY --from=build /opt/taraxa/$BUILD_OUTPUT_DIR/bin_install/taraxad ./main
-COPY --from=build /opt/taraxa/$BUILD_OUTPUT_DIR/bin_install/taraxad.conf ./default_config/conf_taraxa1.json
+COPY --from=build /opt/taraxa/$BUILD_OUTPUT_DIR/bin_install/taraxad /usr/local/bin/taraxad
+COPY config config
+COPY docker-entrypoint.sh /entrypoint.sh
 
-ENTRYPOINT ["./main"]
-CMD ["--conf_taraxa", "./default_config/conf_taraxa1.json"]
+ENTRYPOINT ["/entrypoint.sh"]
