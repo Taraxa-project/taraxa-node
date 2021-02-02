@@ -28,6 +28,12 @@ ARG JSONRPCCPP_VERSION=0.7.0-1build3
 ARG SCRYPT_VERSION=1.21-3
 ARG MPFR_VERSION=4.0.2-1
 ARG GMP3_VERSION=2:6.2.0+dfsg-4
+ARG PEGTL_VERSION=1.3.1-1
+ARG CPPGRAPHQLGEN_VERSION=3.5.0
+ARG RAPIDJSON_VERSION=1.1.0+dfsg2-5ubuntu1
+ARG GTEST_VERSION=1.10.0-2
+
+
 
 # Install standard packages
 RUN apt-get update \
@@ -66,7 +72,23 @@ RUN apt-get update \
         libscrypt-dev=$SCRYPT_VERSION \
         libmpfr-dev=$MPFR_VERSION \
         libgmp3-dev=$GMP3_VERSION \
+        pegtl-dev=$PEGTL_VERSION \
+        rapidjson-dev=$RAPIDJSON_VERSION \
+        libgtest-dev=$GTEST_VERSION \
     && rm -rf /var/lib/apt/lists/*
+
+# Install cppgraphqlgen
+RUN curl -SL https://github.com/microsoft/cppgraphqlgen/archive/v$CPPGRAPHQLGEN_VERSION.tar.gz \
+    | tar -xzC /tmp \
+    && curl -SL https://github.com/taocpp/PEGTL/archive/7d039707cf835cea63daa78a717e18fcc5bcf95b.tar.gz \
+    | tar -xzC /tmp/cppgraphqlgen-${CPPGRAPHQLGEN_VERSION} \
+    && cp -rT /tmp/cppgraphqlgen-${CPPGRAPHQLGEN_VERSION}/PEGTL-7d039707cf835cea63daa78a717e18fcc5bcf95b /tmp/cppgraphqlgen-${CPPGRAPHQLGEN_VERSION}/PEGTL \
+    && cd /tmp/cppgraphqlgen-${CPPGRAPHQLGEN_VERSION} \
+    && mkdir build \
+    && cd build \
+    && cmake .. \
+    && cmake --build . --target install \
+    && rm -rf $(pwd)
 
 # Install rocksdb
 # TODO: remove shared rocksdb lib -> tmp hack to make submodules build
