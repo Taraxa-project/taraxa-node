@@ -1,6 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
-
 #include "Mutation.h"
 
 #include <algorithm>
@@ -22,8 +19,7 @@
 
 using namespace std::literals;
 
-namespace graphql {
-namespace taraxa {
+namespace graphql::taraxa {
 
 Mutation::Mutation(std::shared_ptr<dev::rpc::Eth::NodeAPI> node_api) : node_api_(node_api) {}
 
@@ -33,5 +29,4 @@ service::FieldResult<response::Value> Mutation::applySendRawTransaction(service:
       dev::toJS(node_api_->importTransaction(jsToBytes(transaction.get<std::string>(), dev::OnFailed::Throw))));
 }
 
-} /* namespace taraxa */
-} /* namespace graphql */
+}  // namespace graphql::taraxa

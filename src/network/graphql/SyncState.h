@@ -1,10 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
-
 #pragma once
-
-#ifndef SRCNETGRAPHQLSYNCSTATE_H
-#define SRCNETGRAPHQLSYNCSTATE_H
 
 #include <libweb3jsonrpc/Eth.h>
 
@@ -16,8 +10,7 @@
 #include "chain/state_api.hpp"
 #include "gen/TaraxaSchema.h"
 
-namespace graphql {
-namespace taraxa {
+namespace graphql::taraxa {
 
 class SyncState : public object::SyncState {
  public:
@@ -31,7 +24,4 @@ class SyncState : public object::SyncState {
   std::shared_ptr<dev::rpc::Eth::NodeAPI> node_api_;
 };
 
-} /* namespace taraxa */
-} /* namespace graphql */
-
-#endif  // SRCNETGRAPHQLSYNCSTATE_H
+}  // namespace graphql::taraxa

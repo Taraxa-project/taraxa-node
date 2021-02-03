@@ -75,6 +75,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<FinalChain> final_chain_;
   std::unique_ptr<boost::asio::io_context> jsonrpc_io_ctx_;
   std::shared_ptr<net::RpcServer> jsonrpc_http_;
+  std::shared_ptr<net::RpcServer> graphql_http_;
   std::shared_ptr<net::WSServer> jsonrpc_ws_;
   std::unique_ptr<ModularServer<net::TestFace, net::TaraxaFace, net::NetFace, dev::rpc::EthFace>> jsonrpc_api_;
   std::vector<std::thread> jsonrpc_threads_;

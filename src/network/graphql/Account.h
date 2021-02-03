@@ -1,10 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
-
 #pragma once
-
-#ifndef SRCNETGRAPHQLACCOUNT_H
-#define SRCNETGRAPHQLACCOUNT_H
 
 #include <memory>
 #include <string>
@@ -14,8 +8,7 @@
 #include "chain/state_api.hpp"
 #include "gen/TaraxaSchema.h"
 
-namespace graphql {
-namespace taraxa {
+namespace graphql::taraxa {
 
 class Account : public object::Account {
  public:
@@ -33,8 +26,4 @@ class Account : public object::Account {
   std::optional<::taraxa::state_api::Account> account_;
   std::shared_ptr<::taraxa::final_chain::FinalChain> final_chain_;
 };
-
-} /* namespace taraxa */
-} /* namespace graphql */
-
-#endif  // SRCNETGRAPHQLACCOUNT_H
+}  // namespace graphql::taraxa

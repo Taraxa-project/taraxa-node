@@ -1,10 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
-
 #pragma once
-
-#ifndef SRCNETGRAPHQLBLOCK_H
-#define SRCNETGRAPHQLBLOCK_H
 
 #include <memory>
 #include <string>
@@ -14,8 +8,7 @@
 #include "chain/state_api.hpp"
 #include "gen/TaraxaSchema.h"
 
-namespace graphql {
-namespace taraxa {
+namespace graphql::taraxa {
 
 class Block : public object::Block {
  public:
@@ -53,7 +46,4 @@ class Block : public object::Block {
   std::shared_ptr<::taraxa::final_chain::FinalChain> final_chain_;
 };
 
-} /* namespace taraxa */
-} /* namespace graphql */
-
-#endif  // SRCNETGRAPHQLBLOCK_H
+}  // namespace graphql::taraxa

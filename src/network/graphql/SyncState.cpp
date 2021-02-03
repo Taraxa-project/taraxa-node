@@ -1,6 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
-
 #include "SyncState.h"
 
 #include <algorithm>
@@ -21,8 +18,7 @@
 
 using namespace std::literals;
 
-namespace graphql {
-namespace taraxa {
+namespace graphql::taraxa {
 
 SyncState::SyncState(std::shared_ptr<dev::rpc::Eth::NodeAPI> node_api) : node_api_(node_api) {}
 
@@ -44,5 +40,4 @@ service::FieldResult<response::Value> SyncState::getHighestBlock(service::FieldP
   return response::Value((response::IntType)sync.highestBlockNumber);
 }
 
-} /* namespace taraxa */
-} /* namespace graphql */
+}  // namespace graphql::taraxa

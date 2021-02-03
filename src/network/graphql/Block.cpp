@@ -1,6 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
-
 #include "Block.h"
 
 #include <algorithm>
@@ -23,8 +20,7 @@
 
 using namespace std::literals;
 
-namespace graphql {
-namespace taraxa {
+namespace graphql::taraxa {
 
 Block::Block(std::shared_ptr<::taraxa::final_chain::FinalChain> final_chain,
              std::shared_ptr<dev::eth::BlockHeader> block_header)
@@ -122,5 +118,4 @@ service::FieldResult<std::shared_ptr<object::Account>> Block::getAccount(service
   return std::make_shared<Account>(final_chain_, block_header_->author());
 }
 
-} /* namespace taraxa */
-} /* namespace graphql */
+}  // namespace graphql::taraxa

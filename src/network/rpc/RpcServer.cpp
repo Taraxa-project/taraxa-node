@@ -111,12 +111,12 @@ void RpcConnection::read() {
           }
           if (this_sp->request_.method() == boost::beast::http::verb::post) {
             string response;
-            if (this_sp->rpc_->getType() == RpcServer::RpcType) {
+            if (this_sp->rpc_->getType() == RpcServer::ServerType::RpcType) {
               if (this_sp->rpc_->GetHandler() != NULL) {
                 LOG(this_sp->rpc_->log_tr_) << "Read: " << this_sp->request_.body();
                 this_sp->rpc_->GetHandler()->HandleRequest(this_sp->request_.body(), response);
               }
-            } else if (this_sp->rpc_->getType() == RpcServer::GraphQlType) {
+            } else if (this_sp->rpc_->getType() == RpcServer::ServerType::GraphQlType) {
               auto q = std::make_shared<graphql::taraxa::Query>(this_sp->rpc_->getFinalChain(), 0);
               auto mutation = std::make_shared<graphql::taraxa::Mutation>();
               auto _service = std::make_shared<graphql::taraxa::Operations>(q, mutation);

@@ -1,10 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
-
 #pragma once
-
-#ifndef SRCNETGRAPHQLLOG_H
-#define SRCNETGRAPHQLLOG_H
 
 #include <memory>
 #include <string>
@@ -14,8 +8,7 @@
 #include "chain/state_api.hpp"
 #include "gen/TaraxaSchema.h"
 
-namespace graphql {
-namespace taraxa {
+namespace graphql::taraxa {
 
 class Log : public object::Log {
  public:
@@ -34,7 +27,4 @@ class Log : public object::Log {
   dev::eth::LocalisedLogEntry log_;
 };
 
-} /* namespace taraxa */
-} /* namespace graphql */
-
-#endif  // SRCNETGRAPHQLLOG_H
+}  // namespace graphql::taraxa

@@ -1,6 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
-
 #include "Query.h"
 
 #include <algorithm>
@@ -24,8 +21,7 @@
 
 using namespace std::literals;
 
-namespace graphql {
-namespace taraxa {
+namespace graphql::taraxa {
 
 Query::Query(std::shared_ptr<::taraxa::final_chain::FinalChain> final_chain, uint64_t chain_id)
     : final_chain_(final_chain), chain_id_(chain_id) {}
@@ -70,5 +66,4 @@ service::FieldResult<response::Value> Query::getChainID(service::FieldParams&& p
 
 Mutation::Mutation() {}
 
-} /* namespace taraxa */
-} /* namespace graphql */
+}  // namespace graphql::taraxa

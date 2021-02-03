@@ -17,8 +17,7 @@
 
 using namespace std::literals;
 
-namespace graphql {
-namespace taraxa {
+namespace graphql::taraxa {
 
 Account::Account(std::shared_ptr<::taraxa::final_chain::FinalChain> final_chain, dev::Address address)
     : address_(address), final_chain_(final_chain) {
@@ -51,5 +50,4 @@ service::FieldResult<response::Value> Account::getStorage(service::FieldParams&&
   return response::Value(dev::toJS(final_chain_->get_account_storage(address_, dev::u256(slotArg.get<std::string>()))));
 }
 
-} /* namespace taraxa */
-} /* namespace graphql */
+}  // namespace graphql::taraxa

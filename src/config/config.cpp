@@ -137,8 +137,8 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object,
     }
 
     // graphQL port
-    if (auto gql_port = getConfigData(rpc_config, {"gql_port"}, true); !gql_port.isNull()) {
-      rpc->gql_port = gql_port.asUInt();
+    if (auto gql_http_port = getConfigData(rpc_config, {"gql_http_port"}, true); !gql_http_port.isNull()) {
+      rpc->gql_http_port = gql_http_port.asUInt();
     }
 
     // number of threads processing rpc calls

@@ -1,6 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
-
 #include "Transaction.h"
 
 #include <algorithm>
@@ -23,8 +20,7 @@
 
 using namespace std::literals;
 
-namespace graphql {
-namespace taraxa {
+namespace graphql::taraxa {
 
 Transaction::Transaction(std::shared_ptr<::taraxa::final_chain::FinalChain> final_chain,
 
@@ -101,5 +97,4 @@ service::FieldResult<response::Value> Transaction::getV(service::FieldParams&&) 
   return response::Value(dev::toJS(transaction_->signature().v));
 }
 
-} /* namespace taraxa */
-} /* namespace graphql */
+}  // namespace graphql::taraxa

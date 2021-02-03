@@ -1,6 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
-
 #include "Log.h"
 
 #include <algorithm>
@@ -23,8 +20,7 @@
 
 using namespace std::literals;
 
-namespace graphql {
-namespace taraxa {
+namespace graphql::taraxa {
 
 Log::Log(std::shared_ptr<::taraxa::final_chain::FinalChain> final_chain, dev::eth::LocalisedLogEntry log)
     : final_chain_(final_chain), log_(log) {}
@@ -53,5 +49,4 @@ service::FieldResult<std::shared_ptr<object::Transaction>> Log::getTransaction(s
       final_chain_, std::make_shared<dev::eth::Transaction>(final_chain_->transaction(log_.transactionHash)));
 }
 
-} /* namespace taraxa */
-} /* namespace graphql */
+}  // namespace graphql::taraxa

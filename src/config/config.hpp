@@ -14,7 +14,7 @@ namespace taraxa {
 struct RpcConfig {
   optional<uint16_t> http_port;
   optional<uint16_t> ws_port;
-  optional<uint16_t> gql_port;
+  optional<uint16_t> gql_http_port;
   boost::asio::ip::address address;
 
   // Number of threads dedicated to the rpc calls processing, default = 5

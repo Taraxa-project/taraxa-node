@@ -1,10 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
-
 #pragma once
-
-#ifndef SRCNETGRAPHQLTRANSACTION_H
-#define SRCNETGRAPHQLTRANSACTION_H
 
 #include <memory>
 #include <string>
@@ -14,8 +8,7 @@
 #include "chain/state_api.hpp"
 #include "gen/TaraxaSchema.h"
 
-namespace graphql {
-namespace taraxa {
+namespace graphql::taraxa {
 
 class Transaction : public object::Transaction {
  public:
@@ -47,7 +40,4 @@ class Transaction : public object::Transaction {
   std::shared_ptr<::taraxa::final_chain::FinalChain> final_chain_;
 };
 
-} /* namespace taraxa */
-} /* namespace graphql */
-
-#endif  // SRCNETGRAPHQLTRANSACTION_H
+}  // namespace graphql::taraxa

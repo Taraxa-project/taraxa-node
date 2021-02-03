@@ -143,10 +143,10 @@ void FullNode::init() {
       jsonrpc_api_->addConnector(jsonrpc_ws_);
     }
 
-    if (conf_.rpc->gql_port) {
-      jsonrpc_http_ = make_shared<net::RpcServer>(
-          *jsonrpc_io_ctx_, boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->gql_port}, node_addr,
-          final_chain_, net::RpcServer::GraphQlType);
+    if (conf_.rpc->gql_http_port) {
+      graphql_http_ = make_shared<net::RpcServer>(
+          *jsonrpc_io_ctx_, boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->gql_http_port}, node_addr,
+          final_chain_, net::RpcServer::ServerType::GraphQlType);
     }
   }
 
@@ -214,6 +214,9 @@ void FullNode::start() {
   if (jsonrpc_io_ctx_) {
     if (jsonrpc_http_) {
       jsonrpc_http_->StartListening();
+    }
+    if (graphql_http_) {
+      graphql_http_->StartListening();
     }
     if (jsonrpc_ws_) {
       jsonrpc_ws_->run();

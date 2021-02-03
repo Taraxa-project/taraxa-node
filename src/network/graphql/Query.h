@@ -1,10 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
-
 #pragma once
-
-#ifndef SRCNETGRAPHQLQUERY_H
-#define SRCNETGRAPHQLQUERY_H
 
 #include <memory>
 #include <string>
@@ -14,8 +8,7 @@
 #include "chain/state_api.hpp"
 #include "gen/TaraxaSchema.h"
 
-namespace graphql {
-namespace taraxa {
+namespace graphql::taraxa {
 
 class Query : public object::Query {
  public:
@@ -42,8 +35,4 @@ class Mutation : public object::Mutation {
 
  private:
 };
-
-} /* namespace taraxa */
-} /* namespace graphql */
-
-#endif  // SRCNETGRAPHQLQUERY_H
+}  // namespace graphql::taraxa

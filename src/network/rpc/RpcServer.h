@@ -17,10 +17,10 @@ class RpcHandler;
 
 class RpcServer : public std::enable_shared_from_this<RpcServer>, public jsonrpc::AbstractServerConnector {
  public:
-  enum ServerType { RpcType, GraphQlType };
+  enum class ServerType { RpcType, GraphQlType };
 
   RpcServer(boost::asio::io_context &io, boost::asio::ip::tcp::endpoint ep, addr_t node_addr,
-            std::shared_ptr<FinalChain> final_chain = nullptr, ServerType type = RpcType);
+            std::shared_ptr<FinalChain> final_chain = nullptr, ServerType type = ServerType::RpcType);
   virtual ~RpcServer() { RpcServer::StopListening(); }
 
   virtual bool StartListening() override;
