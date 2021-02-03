@@ -18,6 +18,7 @@
 #include "graphqlservice/GraphQLService.h"
 #include "graphqlservice/JSONResponse.h"
 #include "graphqlservice/introspection/Introspection.h"
+#include "libdevcore/CommonJS.h"
 
 using namespace std::literals;
 
