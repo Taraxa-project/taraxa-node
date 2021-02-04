@@ -31,22 +31,24 @@ add_custom_target(regenerate_schema_files ALL DEPENDS regenerated_schema_files)
 
 add_library(taraxa_graphqlservice STATIC
         gen/TaraxaSchema.h
-        Account.h
-        Block.h
-        Log.h
-        Query.h
-        Transaction.h
-        Mutation.h
-        SyncState.h
+        account.hpp
+        block.hpp
+        log.hpp
+        query.hpp
+        transaction.hpp
+        mutation.hpp
+        syncstate.hpp
+        graphql_server.hpp
 
         gen/TaraxaSchema.cpp
-        Account.cpp
-        Block.cpp
-        Log.cpp
-        Query.cpp
-        Transaction.cpp
-        Mutation.cpp
-        SyncState.cpp
+        account.cpp
+        block.cpp
+        log.cpp
+        query.cpp
+        transaction.cpp
+        mutation.cpp
+        syncstate.cpp
+        graphql_server.cpp
         )
 target_link_libraries(taraxa_graphqlservice PUBLIC
         cppgraphqlgen::graphqlservice

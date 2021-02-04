@@ -16,7 +16,7 @@
 #include "consensus/pbft_manager.hpp"
 #include "dag/dag.hpp"
 #include "logger/log.hpp"
-#include "network/graphql/Query.h"
+#include "network/graphql/query.hpp"
 #include "network/network.hpp"
 #include "network/rpc/Taraxa.h"
 #include "string"

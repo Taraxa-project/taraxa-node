@@ -69,6 +69,7 @@ set(SOURCES
         chain/final_chain.hpp
         consensus/pbft_config.hpp
         network/taraxa_capability.hpp
+        network/http_server.hpp
         util/exit_stack.hpp
         util/simple_event.hpp
         util/encoding_rlp.hpp
@@ -86,7 +87,7 @@ set(SOURCES
         network/rpc/NetFace.h
         network/rpc/TaraxaFace.h
         network/rpc/TestFace.h
-        network/rpc/RpcServer.h
+        network/rpc/jsonrpc_server.hpp
         network/rpc/WSServer.h
         network/rpc/TestClient.h
         transaction_manager/transaction_order_manager.hpp
@@ -111,6 +112,7 @@ set(SOURCES
         aleth/state_api.cpp
         node/executor.cpp
         network/taraxa_capability.cpp
+        network/http_server.cpp
         transaction_manager/transaction_manager.cpp
         dag/vdf_sortition.cpp
         chain/chain_config.cpp
@@ -129,7 +131,7 @@ set(SOURCES
         network/rpc/Test.cpp
         network/rpc/WSServer.cpp
         network/rpc/Net.cpp
-        network/rpc/RpcServer.cpp
+        network/rpc/jsonrpc_server.cpp
         transaction_manager/transaction_order_manager.cpp
         chain/state_api.cpp
         transaction_manager/transaction_queue.cpp

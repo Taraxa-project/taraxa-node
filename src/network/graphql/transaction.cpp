@@ -1,4 +1,4 @@
-#include "Transaction.h"
+#include "transaction.hpp"
 
 #include <algorithm>
 #include <array>
@@ -9,14 +9,14 @@
 #include <tuple>
 #include <vector>
 
-#include "Account.h"
-#include "Block.h"
-#include "Log.h"
+#include "account.hpp"
+#include "block.hpp"
 #include "graphqlservice/GraphQLSchema.h"
 #include "graphqlservice/GraphQLService.h"
 #include "graphqlservice/JSONResponse.h"
 #include "graphqlservice/introspection/Introspection.h"
 #include "libdevcore/CommonJS.h"
+#include "log.hpp"
 
 using namespace std::literals;
 

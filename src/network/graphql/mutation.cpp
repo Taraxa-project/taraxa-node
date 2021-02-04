@@ -1,4 +1,4 @@
-#include "Mutation.h"
+#include "mutation.hpp"
 
 #include <algorithm>
 #include <array>
@@ -9,13 +9,13 @@
 #include <tuple>
 #include <vector>
 
-#include "Account.h"
-#include "Transaction.h"
+#include "account.hpp"
 #include "graphqlservice/GraphQLSchema.h"
 #include "graphqlservice/GraphQLService.h"
 #include "graphqlservice/JSONResponse.h"
 #include "graphqlservice/introspection/Introspection.h"
 #include "libdevcore/CommonJS.h"
+#include "transaction.hpp"
 
 using namespace std::literals;
 

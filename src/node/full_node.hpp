@@ -21,11 +21,12 @@
 #include "consensus/vrf_wrapper.hpp"
 #include "dag/dag_block_manager.hpp"
 #include "executor.hpp"
+#include "network/graphql/graphql_server.hpp"
 #include "network/rpc/NetFace.h"
-#include "network/rpc/RpcServer.h"
 #include "network/rpc/TaraxaFace.h"
 #include "network/rpc/TestFace.h"
 #include "network/rpc/WSServer.h"
+#include "network/rpc/jsonrpc_server.hpp"
 #include "storage/db_storage.hpp"
 #include "transaction_manager/transaction.hpp"
 #include "transaction_manager/transaction_order_manager.hpp"
@@ -74,8 +75,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<Executor> executor_;
   std::shared_ptr<FinalChain> final_chain_;
   std::unique_ptr<boost::asio::io_context> jsonrpc_io_ctx_;
-  std::shared_ptr<net::RpcServer> jsonrpc_http_;
-  std::shared_ptr<net::RpcServer> graphql_http_;
+  std::shared_ptr<net::JsonRpcServer> jsonrpc_http_;
+  std::shared_ptr<net::GraphQlServer> graphql_http_;
   std::shared_ptr<net::WSServer> jsonrpc_ws_;
   std::unique_ptr<ModularServer<net::TestFace, net::TaraxaFace, net::NetFace, dev::rpc::EthFace>> jsonrpc_api_;
   std::vector<std::thread> jsonrpc_threads_;

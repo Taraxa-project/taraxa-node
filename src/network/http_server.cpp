@@ -1,4 +1,4 @@
-#include "RpcServer.h"
+#include "http_server.hpp"
 
 #include "consensus/pbft_chain.hpp"
 #include "consensus/pbft_manager.hpp"
@@ -7,20 +7,20 @@
 #include "graphqlservice/GraphQLSchema.h"
 #include "graphqlservice/GraphQLService.h"
 #include "graphqlservice/JSONResponse.h"
-#include "network/graphql/Query.h"
+#include "network/graphql/query.hpp"
 #include "transaction_manager/transaction.hpp"
 #include "util/util.hpp"
 
 namespace taraxa::net {
 
-RpcServer::RpcServer(boost::asio::io_context &io, boost::asio::ip::tcp::endpoint ep, addr_t node_addr,
-                     std::shared_ptr<FinalChain> final_chain, ServerType type)
-    : io_context_(io), acceptor_(io), ep_(std::move(ep)), type_(type), final_chain_(final_chain) {
+HttpServer::HttpServer(boost::asio::io_context &io, boost::asio::ip::tcp::endpoint ep, addr_t node_addr,
+                       std::shared_ptr<FinalChain> final_chain)
+    : io_context_(io), acceptor_(io), ep_(std::move(ep)), final_chain_(final_chain) {
   LOG_OBJECTS_CREATE("RPC");
   LOG(log_si_) << "Taraxa RPC started at port: " << ep_.port();
 }
 
-std::shared_ptr<RpcServer> RpcServer::getShared() {
+std::shared_ptr<HttpServer> HttpServer::getShared() {
   try {
     return shared_from_this();
   } catch (std::bad_weak_ptr &e) {
@@ -29,7 +29,7 @@ std::shared_ptr<RpcServer> RpcServer::getShared() {
   }
 }
 
-bool RpcServer::StartListening() {
+bool HttpServer::StartListening() {
   if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
     return true;
   }
@@ -49,8 +49,8 @@ bool RpcServer::StartListening() {
   return true;
 }
 
-void RpcServer::waitForAccept() {
-  std::shared_ptr<RpcConnection> connection(std::make_shared<RpcConnection>(getShared()));
+void HttpServer::waitForAccept() {
+  std::shared_ptr<HttpConnection> connection = createConnection();
   acceptor_.async_accept(connection->getSocket(), [this, connection](boost::system::error_code const &ec) {
     if (!ec) {
       connection->read();
@@ -65,7 +65,7 @@ void RpcServer::waitForAccept() {
   });
 }
 
-bool RpcServer::StopListening() {
+bool HttpServer::StopListening() {
   if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
     return true;
   }
@@ -74,22 +74,22 @@ bool RpcServer::StopListening() {
   return true;
 }
 
-bool RpcServer::SendResponse(const std::string &response, void *addInfo) { return true; }
+bool HttpServer::SendResponse(const std::string &response, void *addInfo) { return true; }
 
-std::shared_ptr<RpcConnection> RpcConnection::getShared() {
+std::shared_ptr<HttpConnection> HttpConnection::getShared() {
   try {
     return shared_from_this();
   } catch (std::bad_weak_ptr &e) {
-    std::cerr << "RpcConnection: " << e.what() << std::endl;
+    std::cerr << "HttpConnection: " << e.what() << std::endl;
     return nullptr;
   }
 }
 
-RpcConnection::RpcConnection(std::shared_ptr<RpcServer> rpc) : rpc_(rpc), socket_(rpc->getIoContext()) {
+HttpConnection::HttpConnection(std::shared_ptr<HttpServer> http) : http_(http), socket_(http->getIoContext()) {
   responded_.clear();
 }
 
-void RpcConnection::read() {
+void HttpConnection::read() {
   auto this_sp = getShared();
   boost::beast::http::async_read(
       socket_, buffer_, request_, [this_sp](boost::system::error_code const &ec, size_t byte_transfered) {
@@ -110,37 +110,19 @@ void RpcConnection::read() {
                                             [this_sp](boost::system::error_code const &ec, size_t byte_transfered) {});
           }
           if (this_sp->request_.method() == boost::beast::http::verb::post) {
-            string response;
-            if (this_sp->rpc_->getType() == RpcServer::ServerType::RpcType) {
-              if (this_sp->rpc_->GetHandler() != NULL) {
-                LOG(this_sp->rpc_->log_tr_) << "Read: " << this_sp->request_.body();
-                this_sp->rpc_->GetHandler()->HandleRequest(this_sp->request_.body(), response);
-              }
-            } else if (this_sp->rpc_->getType() == RpcServer::ServerType::GraphQlType) {
-              auto q = std::make_shared<graphql::taraxa::Query>(this_sp->rpc_->getFinalChain(), 0);
-              auto mutation = std::make_shared<graphql::taraxa::Mutation>();
-              auto _service = std::make_shared<graphql::taraxa::Operations>(q, mutation);
-
-              using namespace graphql;
-              auto query = peg::parseString(this_sp->request_.body());
-              response::Value variables(response::Type::Map);
-              auto state = std::make_shared<graphql::service::RequestState>();
-
-              auto result = _service->resolve(std::launch::async, state, query, "", std::move(variables)).get();
-
-              response = response::toJSON(response::Value(result));
-            }
-            LOG(this_sp->rpc_->log_tr_) << "Write: " << response;
+            LOG(this_sp->http_->log_tr_) << "Read: " << this_sp->request_.body();
+            string response = this_sp->processRequest(this_sp->request_.body());
+            LOG(this_sp->http_->log_tr_) << "Write: " << response;
             replier(response);
           }
         } else {
-          LOG(this_sp->rpc_->log_er_) << "Error! RPC conncetion read fail ... " << ec.message() << "\n";
+          LOG(this_sp->http_->log_er_) << "Error! RPC conncetion read fail ... " << ec.message() << "\n";
         }
         (void)byte_transfered;
       });
 }
 
-void RpcConnection::write_response(std::string const &msg) {
+void HttpConnection::write_response(std::string const &msg) {
   if (!responded_.test_and_set()) {
     response_.set("Content-Type", "application/json");
     response_.set("Access-Control-Allow-Origin", "*");
@@ -154,7 +136,7 @@ void RpcConnection::write_response(std::string const &msg) {
   }
 }
 
-void RpcConnection::write_options_response() {
+void HttpConnection::write_options_response() {
   if (!responded_.test_and_set()) {
     response_.set("Allow", "OPTIONS, GET, HEAD, POST");
     response_.set("Access-Control-Allow-Origin", "*");
