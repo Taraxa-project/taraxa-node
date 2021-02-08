@@ -40,7 +40,7 @@ case $1 in
 
   *)
     echo "You should choose between:"
-    echo "cli, taraxad, sigle, join {NAMED_NETWOTK}"
+    echo "cli, taraxad, single, join {NAMED_NETWOTK}"
     ;;
 
 esac
