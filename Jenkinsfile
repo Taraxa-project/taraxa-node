@@ -1,7 +1,7 @@
 def getChart(){
         dir('taraxa-testnet') {
                 git(
-                    branch: 'use-taraxa-cli',
+                    branch: 'development',
                     url: 'https://github.com/Taraxa-project/taraxa-testnet.git',
                     credentialsId: 'a9e63ab7-4c38-4644-8829-5f1144995c44'
                 )
