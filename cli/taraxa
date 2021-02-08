@@ -1,0 +1,150 @@
+#!/usr/bin/python3
+
+import click
+import json
+import nacl.utils
+import os
+from eth_account import Account
+from eth_keys import keys
+from nacl.encoding import HexEncoder
+from nacl.public import PrivateKey
+from pathlib import Path
+
+# network configs are pre-defined boot nodes for a network
+network_config_folder = Path('./config/networks').rglob('*.json')
+network_configs = [x for x in network_config_folder]
+networks = []
+for path in network_configs:
+    name = os.path.basename(path)
+    networks.append(name.replace('.json', ''))
+click.echo(network_configs)
+
+
+@click.group()
+def cli():
+    """Taraxa CLI"""
+    pass
+
+@cli.group()
+def config():
+    """Manage node config"""
+    pass
+
+@cli.command()
+@click.option('--secret', default='', help='Private key in hex format')
+def account(secret):
+    """Generate or view a Taraxa Account key."""
+    Account.enable_unaudited_hdwallet_features()
+    if secret != '':
+        acct = Account.from_key(private_key=secret) #pylint: disable=no-value-for-parameter
+        mnemonic = ''
+    else:
+        acct, mnemonic = Account.create_with_mnemonic("", 12, "english", "m/44'/60'/0'/0/0")
+    pk = keys.PrivateKey(acct.key)
+    click.echo(f"address: {acct.address.lower()}")
+    click.echo(f"address w/ checksum: {acct.address}")
+    click.echo(f"public key: {pk.public_key}")
+    click.echo(f"private key: {acct.key.hex()}")
+    click.echo(f"mnemonic: {mnemonic}")
+
+@cli.command()
+@click.option('--secret', default='', help='Private key in hex format')
+def vrf(secret):
+    """Generate or view a Taraxa Node VRF key"""
+    if secret != '':
+        sk = PrivateKey(secret, HexEncoder)
+    else:
+        sk = PrivateKey.generate()
+    pk = sk.public_key
+    click.echo(f"public key: {pk.encode().hex()}")
+    click.echo(f"private key: {sk.encode().hex()}")
+
+
+@config.command()
+@click.option('--as-boot-node', is_flag=True, help='Configure this node as a boot node')
+@click.option('--boot-node', multiple=True, help='Use a custom boot node. format: ip_address:port_number/node_id')
+@click.option('--db-path', help='The db dir')
+@click.option('--file', default='./config/taraxa.json', help='The config file to write to')
+@click.option('--network', default="default", type=click.Choice(networks), help='Use boot nodes for a known network. Overwritten by --boot-node')
+@click.option('--network-port-tcp', type=int, help='TCP port to listen on')
+@click.option('--network-port-udp', type=int, help='UDP port to listen on')
+@click.option('--node-secret', help='Use existing private key (node secret)')
+@click.option('--rpc-port-http', type=int, help='HTTP RPC port')
+@click.option('--rpc-port-ws', type=int, help='WS RPC port')
+@click.option('--stdout', is_flag=True, help='Write to stdout instead of a file')
+@click.option('--template', default='./config/_template.json', help='The config file to read from as a template')
+@click.option('--vrf-secret', help='Use existing private key (vrf secret)')
+def node(as_boot_node, boot_node, db_path, file, network, network_port_tcp, network_port_udp, node_secret, rpc_port_http, rpc_port_ws, stdout, template, vrf_secret):
+    """Generate Taraxa node config"""
+    data =  json.loads('{}')
+    template_data = json.loads('{}')
+    config_data = json.loads('{}')
+
+    # expose missing template error to user
+    with open(template) as template_file:
+        template_data = json.load(template_file)
+
+    # use existing values from config if it exists, otherwise skip
+    try:
+        with open(file) as json_file:
+            config_data = json.load(json_file)
+    except IOError:
+        pass
+
+    # use template
+    data = template_data
+
+    if as_boot_node:
+        set_or_use_existing_prop(data, config_data, 'network_is_boot_node', True)
+
+    # update values or fallback to existing values when possible
+    if not node_secret:
+        Account.enable_unaudited_hdwallet_features()
+        acct, mnemonic = Account.create_with_mnemonic("", 12, "english", "m/44'/60'/0'/0/0") # pylint: disable=unused-variable
+        node_secret = acct.key.hex()[2:]
+    set_or_use_existing_prop(data, config_data, 'node_secret', node_secret)
+
+    if not vrf_secret:
+        sk = PrivateKey.generate()
+        vrf_secret = sk.encode().hex()
+    set_or_use_existing_prop(data, config_data, 'vrf_secret', vrf_secret)
+
+    set_or_use_existing_prop(data, config_data, 'rpc_port', rpc_port_http)
+    set_or_use_existing_prop(data, config_data, 'ws_port', rpc_port_ws)
+    set_or_use_existing_prop(data, config_data, 'network_tcp_port', network_port_tcp)
+    set_or_use_existing_prop(data, config_data, 'network_udp_port', network_port_udp)
+    set_or_use_existing_prop(data, config_data, 'db_path', db_path)
+
+    with open(f"./config/networks/{network}.json") as json_file:
+        network_config = json.load(json_file)
+        set_or_use_existing_prop(data, config_data, 'network_boot_nodes', network_config['boot_nodes'])
+
+    # parse boot nodes stings
+    boot_nodes_parsed = []
+    for i in boot_node:
+        boot_node_parsed = {}
+        a = i.split('/')
+        b = a[0].split(':')
+        boot_node_parsed['id'] = a[1]
+        boot_node_parsed['ip'] = b[0]
+        boot_node_parsed['tcp_port'] = int(b[1])
+        boot_node_parsed['udp_port'] = int(b[1])
+        boot_nodes_parsed.append(boot_node_parsed)
+    set_or_use_existing_prop(data, config_data, 'network_boot_nodes', boot_nodes_parsed)
+
+    # output json to console or file
+    if stdout:
+        click.echo(json.dumps(data, indent=2))
+    else:
+        with open(file, 'w') as outfile:
+            json.dump(data, outfile, indent=2)
+
+def set_or_use_existing_prop(config, existing, propname, newval):
+    if newval:
+        config[propname] = newval
+    elif existing.get(propname):
+        config[propname] = existing[propname]
+    return config
+
+if __name__ == '__main__':
+    cli()

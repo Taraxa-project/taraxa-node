@@ -8,3 +8,6 @@
 !.gitmodules
 !CMakeLists.txt
 !LICENSE
+!config
+!docker-entrypoint.sh
+!cli

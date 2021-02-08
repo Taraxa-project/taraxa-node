@@ -101,7 +101,7 @@ pipeline {
                     docker network create --driver=bridge \
                       smoke-test-net-${DOCKER_BRANCH_TAG}
                 '''
-                sh 'docker run --rm -d --name taraxa-node-smoke-test-${DOCKER_BRANCH_TAG} --net smoke-test-net-${DOCKER_BRANCH_TAG} ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER}'
+                sh 'docker run --rm -d --name taraxa-node-smoke-test-${DOCKER_BRANCH_TAG} --net smoke-test-net-${DOCKER_BRANCH_TAG} ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} single'
                 sh '''
                     mkdir -p  $PWD/test_build-d/
                     sleep 30
