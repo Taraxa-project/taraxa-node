@@ -456,6 +456,20 @@ void DbStorage::putFinalizedDagBlockHashesByAnchor(WriteBatch& b, blk_hash_t con
   batch_put(b, DbStorage::Columns::dag_finalized_blocks, anchor, RLPStream().appendVector(hs).out());
 }
 
+bytes DbStorage::getProposalPeriodDagLevelsMap(uint64_t proposal_period) {
+  return asBytes(lookup(proposal_period, Columns::period_levels_map));
+}
+
+void DbStorage::saveProposalPeriodDagLevelsMap(ProposalPeriodDagLevelsMap const& period_levels_map) {
+  insert(Columns::period_levels_map, toSlice(period_levels_map.proposal_period), toSlice(period_levels_map.rlp()));
+}
+
+void DbStorage::addProposalPeriodDagLevelsMapToBatch(ProposalPeriodDagLevelsMap const& period_levels_map,
+                                                     BatchPtr const& write_batch) {
+  batch_put(write_batch, Columns::period_levels_map, toSlice(period_levels_map.proposal_period),
+            toSlice(period_levels_map.rlp()));
+}
+
 void DbStorage::insert(Column const& col, Slice const& k, Slice const& v) {
   checkStatus(db_->Put(write_options_, handle(col), k, v));
 }

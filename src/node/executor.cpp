@@ -10,13 +10,15 @@ struct ReplayProtectionServiceDummy : ReplayProtectionService {
 };
 
 Executor::Executor(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<DagManager> dag_mgr,
-                   std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<FinalChain> final_chain,
-                   std::shared_ptr<PbftChain> pbft_chain, uint32_t expected_max_trx_per_block)
+                   std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
+                   std::shared_ptr<FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain,
+                   uint32_t expected_max_trx_per_block)
     : replay_protection_service_(new ReplayProtectionServiceDummy),
       node_addr_(node_addr),
       db_(db),
       dag_mgr_(dag_mgr),
       trx_mgr_(trx_mgr),
+      dag_blk_mgr_(dag_blk_mgr),
       final_chain_(final_chain),
       pbft_chain_(pbft_chain) {
   LOG_OBJECTS_CREATE("EXECUTOR");
@@ -76,7 +78,13 @@ void Executor::executePbftBlocks_() {
                    << pbft_block->getPeriod() << " in block data than in block order db: " << pbft_period;
       assert(false);
     }
+
     auto const &anchor_hash = pbft_block->getPivotDagBlockHash();
+    auto anchor = db_->getDagBlock(anchor_hash);
+    if (!anchor) {
+      LOG(log_er_) << "Cannot find anchor block: " << anchor_hash << " in DB.";
+      assert(false);
+    }
     auto finalized_dag_blk_hashes = std::move(*dag_mgr_->getDagBlockOrder(anchor_hash).second);
 
     auto batch = db_->createWriteBatch();
@@ -148,6 +156,10 @@ void Executor::executePbftBlocks_() {
     pbft_chain_->updateExecutedPbftChainSize();
     // Update PBFT chain head block
     db_->addPbftHeadToBatch(pbft_chain_->getHeadHash(), pbft_chain_->getJsonStr(), batch);
+
+    // Update proposal period DAG levels map
+    auto new_proposal_period_levels_map = dag_blk_mgr_->newProposePeriodDagLevelsMap(anchor->getLevel());
+    db_->addProposalPeriodDagLevelsMapToBatch(*new_proposal_period_levels_map, batch);
 
     // Set DAG blocks period
     dag_mgr_->setDagBlockOrder(anchor_hash, pbft_period, finalized_dag_blk_hashes, batch);

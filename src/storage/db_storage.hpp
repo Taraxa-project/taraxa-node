@@ -11,6 +11,7 @@
 
 #include "consensus/pbft_chain.hpp"
 #include "dag/dag_block.hpp"
+#include "dag/proposal_period_levels_map.hpp"
 #include "logger/log.hpp"
 #include "transaction_manager/transaction.hpp"
 #include "transaction_manager/transaction_status.hpp"
@@ -87,6 +88,7 @@ struct DbStorage {
     COLUMN(pending_transactions);
     COLUMN(aleth_chain);
     COLUMN(aleth_chain_extras);
+    COLUMN(period_levels_map);
 
 #undef COLUMN
   };
@@ -202,6 +204,12 @@ struct DbStorage {
 
   vector<blk_hash_t> getFinalizedDagBlockHashesByAnchor(blk_hash_t const& anchor);
   void putFinalizedDagBlockHashesByAnchor(WriteBatch& b, blk_hash_t const& anchor, vector<blk_hash_t> const& hs);
+
+  // Proposal period to DAG block levels map
+  bytes getProposalPeriodDagLevelsMap(uint64_t proposal_period);
+  void saveProposalPeriodDagLevelsMap(ProposalPeriodDagLevelsMap const& period_levels_map);
+  void addProposalPeriodDagLevelsMapToBatch(ProposalPeriodDagLevelsMap const& period_levels_map,
+                                            BatchPtr const& write_batch);
 
   void insert(Column const& col, Slice const& k, Slice const& v);
   void remove(Slice key, Column const& column);

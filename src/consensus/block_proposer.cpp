@@ -195,8 +195,14 @@ void BlockProposer::proposeBlock(DagBlock& blk) {
 }
 
 bool BlockProposer::validDposProposer(level_t const propose_level) {
-  uint64_t period = dag_blk_mgr_->getPeriod(propose_level);
-  return final_chain_->dpos_is_eligible(period, node_addr_);
+  auto proposal_period = dag_blk_mgr_->getProposalPeriod(propose_level);
+
+  if (!proposal_period.second) {
+    // Cannot find the proposal period in DB, too far ahead of proposal DAG blocks level
+    return false;
+  }
+
+  return final_chain_->dpos_is_eligible(proposal_period.first, node_addr_);
 }
 
 }  // namespace taraxa
