@@ -316,7 +316,7 @@ std::pair<uint64_t, bool> DagBlockManager::getProposalPeriod(level_t level) {
 
 std::shared_ptr<ProposalPeriodDagLevelsMap> DagBlockManager::newProposePeriodDagLevelsMap(level_t anchor_level) {
   bytes period_levels_bytes = db_->getProposalPeriodDagLevelsMap(current_max_proposal_period_);
-  assert(period_levels_bytes.empty());
+  assert(!period_levels_bytes.empty());
   ProposalPeriodDagLevelsMap last_period_levels_map(period_levels_bytes);
 
   auto propose_period = ++current_max_proposal_period_;

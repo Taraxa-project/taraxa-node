@@ -64,26 +64,26 @@ void Executor::executePbftBlocks_() {
     if (!pbft_block_hash) {
       LOG(log_er_) << "DB corrupted - PBFT block period " << pbft_period
                    << " does not exist in DB period_pbft_block. PBFT chain size " << pbft_chain_->getPbftChainSize();
-      assert(false);
+      break;
     }
     // Get PBFT block in DB
     auto pbft_block = db_->getPbftBlock(*pbft_block_hash);
     if (!pbft_block) {
       LOG(log_er_) << "DB corrupted - Cannot find PBFT block hash " << pbft_block_hash
                    << " in PBFT chain DB pbft_blocks.";
-      assert(false);
+      break;
     }
     if (pbft_block->getPeriod() != pbft_period) {
       LOG(log_er_) << "DB corrupted - PBFT block hash " << pbft_block_hash << "has different period "
                    << pbft_block->getPeriod() << " in block data than in block order db: " << pbft_period;
-      assert(false);
+      break;
     }
 
     auto const &anchor_hash = pbft_block->getPivotDagBlockHash();
     auto anchor = db_->getDagBlock(anchor_hash);
     if (!anchor) {
-      LOG(log_er_) << "Cannot find anchor block: " << anchor_hash << " in DB.";
-      assert(false);
+      LOG(log_er_) << "DB corrupted - Cannot find anchor block: " << anchor_hash << " in DB.";
+      break;
     }
     auto finalized_dag_blk_hashes = std::move(*dag_mgr_->getDagBlockOrder(anchor_hash).second);
 
