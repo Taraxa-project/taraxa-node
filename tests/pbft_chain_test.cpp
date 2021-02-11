@@ -53,14 +53,11 @@ TEST_F(PbftChainTest, pbft_db_test) {
   db->addPbftBlockToBatch(pbft_block, batch);
   // Update PBFT chain
   pbft_chain->updatePbftChain(pbft_block.getBlockHash());
-  // Update executed PBFT chain size
-  node->getFinalChain()->last_block_number();
   // Update PBFT chain head block
   std::string pbft_chain_head_str = pbft_chain->getJsonStr();
   db->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
   db->commitWriteBatch(batch);
   EXPECT_EQ(pbft_chain->getPbftChainSize(), 1);
-  EXPECT_EQ(node->getFinalChain()->last_block_number(), 1);
 
   auto pbft_block_from_db = db->getPbftBlock(pbft_block.getBlockHash());
   EXPECT_EQ(pbft_block.getJsonStr(), pbft_block_from_db->getJsonStr());
