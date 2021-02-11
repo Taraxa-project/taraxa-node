@@ -270,7 +270,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
 
   int pbft_chain_size = 1;
   for (auto i(0); i < nodes.size(); ++i) {
-    EXPECT_EQ(nodes[i]->getPbftChain()->getPbftExecutedChainSize(), pbft_chain_size);
+    EXPECT_EQ(nodes[i]->getFinalChain()->last_block_number(), pbft_chain_size);
   }
 
   for (auto i(0); i < nodes.size(); ++i) {
@@ -312,15 +312,15 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   // Vote DAG block
   for (auto _(0); _ < 120; ++_) {
     // test timeout is 60 seconds
-    if (nodes[0]->getPbftChain()->getPbftExecutedChainSize() == pbft_chain_size &&
-        nodes[1]->getPbftChain()->getPbftExecutedChainSize() == pbft_chain_size &&
-        nodes[2]->getPbftChain()->getPbftExecutedChainSize() == pbft_chain_size) {
+    if (nodes[0]->getFinalChain()->last_block_number() == pbft_chain_size &&
+        nodes[1]->getFinalChain()->last_block_number() == pbft_chain_size &&
+        nodes[2]->getFinalChain()->last_block_number() == pbft_chain_size) {
       break;
     }
     taraxa::thisThreadSleepForMilliSeconds(500);
   }
   for (auto i(0); i < nodes.size(); ++i) {
-    EXPECT_EQ(nodes[i]->getPbftChain()->getPbftExecutedChainSize(), pbft_chain_size);
+    EXPECT_EQ(nodes[i]->getFinalChain()->last_block_number(), pbft_chain_size);
   }
 
   for (auto i(0); i < nodes.size(); ++i) {

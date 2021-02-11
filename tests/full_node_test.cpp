@@ -148,7 +148,6 @@ TEST_F(FullNodeTest, db_test) {
   db.commitWriteBatch(batch);
   EXPECT_EQ(db.getPbftHead(pbft_chain.getHeadHash()), pbft_chain.getJsonStr());
   batch = db.createWriteBatch();
-  pbft_chain.updateExecutedPbftChainSize();
   db.addPbftHeadToBatch(pbft_chain.getHeadHash(), pbft_chain.getJsonStr(), batch);
   db.commitWriteBatch(batch);
   EXPECT_EQ(db.getPbftHead(pbft_chain.getHeadHash()), pbft_chain.getJsonStr());
@@ -1095,7 +1094,7 @@ TEST_F(FullNodeTest, db_rebuild) {
       nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false);
       trxs_count++;
       thisThreadSleepForMilliSeconds(100);
-      pbft_chain_size = nodes[0]->getPbftChain()->getPbftExecutedChainSize();
+      pbft_chain_size = nodes[0]->getFinalChain()->last_block_number();
       if (pbft_chain_size == 5) {
         trxs_count_at_pbft_size_5 = nodes[0]->getDB()->getNumTransactionExecuted();
       }
@@ -1108,7 +1107,7 @@ TEST_F(FullNodeTest, db_rebuild) {
         ctx.fail();
       }
     });
-    pbft_chain_size = nodes[0]->getPbftChain()->getPbftExecutedChainSize();
+    pbft_chain_size = nodes[0]->getFinalChain()->last_block_number();
   }
 
   {
@@ -1121,7 +1120,7 @@ TEST_F(FullNodeTest, db_rebuild) {
     auto node_cfgs = make_node_cfgs<5>(1);
     auto nodes = launch_nodes(node_cfgs);
     EXPECT_EQ(nodes[0]->getDB()->getNumTransactionExecuted(), trxs_count);
-    EXPECT_EQ(nodes[0]->getPbftChain()->getPbftExecutedChainSize(), pbft_chain_size);
+    EXPECT_EQ(nodes[0]->getFinalChain()->last_block_number(), pbft_chain_size);
   }
 
   {
@@ -1135,7 +1134,7 @@ TEST_F(FullNodeTest, db_rebuild) {
     auto node_cfgs = make_node_cfgs<5>(1);
     auto nodes = launch_nodes(node_cfgs);
     EXPECT_EQ(nodes[0]->getDB()->getNumTransactionExecuted(), trxs_count_at_pbft_size_5);
-    EXPECT_EQ(nodes[0]->getPbftChain()->getPbftExecutedChainSize(), 5);
+    EXPECT_EQ(nodes[0]->getFinalChain()->last_block_number(), 5);
   }
 }  // namespace taraxa::core_tests
 
