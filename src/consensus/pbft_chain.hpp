@@ -83,14 +83,12 @@ class PbftChain {
 
   blk_hash_t getHeadHash() const;
   uint64_t getPbftChainSize() const;
-  uint64_t getPbftExecutedChainSize() const;
   blk_hash_t getLastPbftBlockHash() const;
 
   PbftBlock getPbftBlockInChain(blk_hash_t const& pbft_block_hash);
   std::shared_ptr<PbftBlock> getUnverifiedPbftBlock(blk_hash_t const& pbft_block_hash);
   std::vector<PbftBlockCert> getPbftBlocks(size_t period, size_t count);
   std::vector<std::string> getPbftBlocksStr(size_t period, size_t count, bool hash) const;  // Remove
-  std::string getHeadStr() const;
   std::string getJsonStr() const;
 
   bool findPbftBlockInChain(blk_hash_t const& pbft_block_hash);
@@ -100,9 +98,7 @@ class PbftChain {
   void cleanupUnverifiedPbftBlocks(taraxa::PbftBlock const& pbft_block);
   void pushUnverifiedPbftBlock(std::shared_ptr<PbftBlock> const& pbft_block);
 
-  bool hasUnexecutedBlocks() const;
   void updatePbftChain(blk_hash_t const& pbft_block_hash);
-  void updateExecutedPbftChainSize();
 
   bool checkPbftBlockValidationFromSyncing(taraxa::PbftBlock const& pbft_block) const;
   bool checkPbftBlockValidation(taraxa::PbftBlock const& pbft_block) const;
@@ -135,7 +131,6 @@ class PbftChain {
   blk_hash_t head_hash_;             // PBFT head hash
   blk_hash_t dag_genesis_hash_;      // DAG genesis at height 1
   uint64_t size_;                    // PBFT chain size, includes both executed and unexecuted PBFT blocks
-  uint64_t executed_size_;           // executed PBFT blocks size, as same as last PBFT executed period
   blk_hash_t last_pbft_block_hash_;  // last PBFT block hash in PBFT chain, may not execute yet
 
   std::shared_ptr<DbStorage> db_ = nullptr;

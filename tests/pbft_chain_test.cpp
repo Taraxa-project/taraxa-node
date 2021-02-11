@@ -53,14 +53,11 @@ TEST_F(PbftChainTest, pbft_db_test) {
   db->addPbftBlockToBatch(pbft_block, batch);
   // Update PBFT chain
   pbft_chain->updatePbftChain(pbft_block.getBlockHash());
-  // Update executed PBFT chain size
-  pbft_chain->updateExecutedPbftChainSize();
   // Update PBFT chain head block
   std::string pbft_chain_head_str = pbft_chain->getJsonStr();
   db->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
   db->commitWriteBatch(batch);
   EXPECT_EQ(pbft_chain->getPbftChainSize(), 1);
-  EXPECT_EQ(pbft_chain->getPbftExecutedChainSize(), 1);
 
   auto pbft_block_from_db = db->getPbftBlock(pbft_block.getBlockHash());
   EXPECT_EQ(pbft_block.getJsonStr(), pbft_block_from_db->getJsonStr());
@@ -129,7 +126,7 @@ TEST_F(PbftChainTest, block_broadcast) {
   db1->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
   db1->commitWriteBatch(batch);
   EXPECT_EQ(pbft_chain1->getPbftChainSize(), 1);
-  EXPECT_EQ(pbft_chain1->getPbftExecutedChainSize(), 0);
+  EXPECT_EQ(node1->getFinalChain()->last_block_number(), 0);
   // node1 cleanup block1 in PBFT unverified blocks table
   pbft_chain1->cleanupUnverifiedPbftBlocks(*pbft_block);
   bool find_erased_block = pbft_chain1->findUnverifiedPbftBlock(pbft_block->getBlockHash());
@@ -167,7 +164,7 @@ TEST_F(PbftChainTest, block_broadcast) {
   db2->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
   db2->commitWriteBatch(batch);
   EXPECT_EQ(pbft_chain2->getPbftChainSize(), 1);
-  EXPECT_EQ(pbft_chain2->getPbftExecutedChainSize(), 0);
+  EXPECT_EQ(node2->getFinalChain()->last_block_number(), 0);
   // node2 cleanup block1 in PBFT unverified blocks table
   pbft_chain2->cleanupUnverifiedPbftBlocks(*pbft_block);
   find_erased_block = pbft_chain2->findUnverifiedPbftBlock(pbft_block->getBlockHash());
@@ -186,7 +183,7 @@ TEST_F(PbftChainTest, block_broadcast) {
   db3->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
   db3->commitWriteBatch(batch);
   EXPECT_EQ(pbft_chain3->getPbftChainSize(), 1);
-  EXPECT_EQ(pbft_chain3->getPbftExecutedChainSize(), 0);
+  EXPECT_EQ(node3->getFinalChain()->last_block_number(), 0);
   // node3 cleanup block1 in PBFT unverified blocks table
   pbft_chain3->cleanupUnverifiedPbftBlocks(*pbft_block);
   find_erased_block = pbft_chain3->findUnverifiedPbftBlock(pbft_block->getBlockHash());

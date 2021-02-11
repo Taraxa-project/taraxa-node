@@ -221,7 +221,7 @@ void DagBlockManager::verifyBlock() {
       auto period = getPeriod(blk.first.getLevel());
       auto dag_block_sender = blk.first.getSender();
       if (!final_chain_->dpos_is_eligible(period, dag_block_sender)) {
-        auto executed_period = pbft_chain_->getPbftExecutedChainSize();
+        auto executed_period = final_chain_->last_block_number();
         auto dpos_period = executed_period;
         if (dpos_config_) {
           dpos_period += dpos_config_->deposit_delay;

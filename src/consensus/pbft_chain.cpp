@@ -4,6 +4,8 @@
 
 #include "pbft_manager.hpp"
 
+using namespace std;
+
 namespace taraxa {
 
 PbftBlock::PbftBlock(bytes const& b) : PbftBlock(dev::RLP(b)) {}
@@ -139,10 +141,9 @@ std::ostream& operator<<(std::ostream& strm, PbftBlockCert const& b) {
 PbftChain::PbftChain(std::string const& dag_genesis_hash, addr_t node_addr, std::shared_ptr<DbStorage> db)
     : head_hash_(blk_hash_t(0)),
       size_(0),
-      executed_size_(0),
       last_pbft_block_hash_(blk_hash_t(0)),
       dag_genesis_hash_(blk_hash_t(dag_genesis_hash)),
-      db_(db) {
+      db_(move(db)) {
   LOG_OBJECTS_CREATE("PBFT_CHAIN");
   // Get PBFT head from DB
   auto pbft_head_str = db_->getPbftHead(head_hash_);
@@ -151,21 +152,16 @@ PbftChain::PbftChain(std::string const& dag_genesis_hash, addr_t node_addr, std:
     auto head_json_str = getJsonStr();
     db_->savePbftHead(head_hash_, head_json_str);
     LOG(log_nf_) << "Initialize PBFT chain head " << head_json_str;
-  } else {
-    Json::Value doc;
-    Json::Reader reader;
-    reader.parse(pbft_head_str, doc);
-    {
-      uniqueLock_ lock(chain_head_access_);
-      head_hash_ = blk_hash_t(doc["head_hash"].asString());
-      size_ = doc["size"].asUInt64();
-      executed_size_ = doc["executed_size"].asUInt64();
-      last_pbft_block_hash_ = blk_hash_t(doc["last_pbft_block_hash"].asString());
-    }
-    auto dag_genesis_hash_db = blk_hash_t(doc["dag_genesis_hash"].asString());
-    assert(dag_genesis_hash_ == dag_genesis_hash_db);
-    LOG(log_nf_) << "Retrieve from DB, PBFT chain head " << getJsonStr();
+    return;
   }
+  Json::Value doc;
+  istringstream(pbft_head_str) >> doc;
+  head_hash_ = blk_hash_t(doc["head_hash"].asString());
+  size_ = doc["size"].asUInt64();
+  last_pbft_block_hash_ = blk_hash_t(doc["last_pbft_block_hash"].asString());
+  auto dag_genesis_hash_db = blk_hash_t(doc["dag_genesis_hash"].asString());
+  assert(dag_genesis_hash_ == dag_genesis_hash_db);
+  LOG(log_nf_) << "Retrieve from DB, PBFT chain head " << getJsonStr();
 }
 
 blk_hash_t PbftChain::getHeadHash() const {
@@ -176,11 +172,6 @@ blk_hash_t PbftChain::getHeadHash() const {
 uint64_t PbftChain::getPbftChainSize() const {
   sharedLock_ lock(chain_head_access_);
   return size_;
-}
-
-uint64_t PbftChain::getPbftExecutedChainSize() const {
-  sharedLock_ lock(chain_head_access_);
-  return executed_size_;
 }
 
 blk_hash_t PbftChain::getLastPbftBlockHash() const {
@@ -282,21 +273,11 @@ std::vector<std::string> PbftChain::getPbftBlocksStr(size_t period, size_t count
   return result;
 }
 
-bool PbftChain::hasUnexecutedBlocks() const {
-  sharedLock_ lock(chain_head_access_);
-  return size_ != executed_size_;
-}
-
 void PbftChain::updatePbftChain(blk_hash_t const& pbft_block_hash) {
   pbftSyncedSetInsert_(pbft_block_hash);
   uniqueLock_ lock(chain_head_access_);
   size_++;
   last_pbft_block_hash_ = pbft_block_hash;
-}
-
-void PbftChain::updateExecutedPbftChainSize() {
-  uniqueLock_ lock(chain_head_access_);
-  executed_size_++;
 }
 
 bool PbftChain::checkPbftBlockValidationFromSyncing(taraxa::PbftBlock const& pbft_block) const {
@@ -365,31 +346,18 @@ void PbftChain::pushUnverifiedPbftBlock(std::shared_ptr<PbftBlock> const& pbft_b
                << ". Pbft unverified blocks size: " << unverified_blocks_.size();
 }
 
-std::string PbftChain::getHeadStr() const {
-  std::stringstream strm;
-  strm << "[PbftChain]" << std::endl;
-  sharedLock_ lock(chain_head_access_);
-  strm << "head hash: " << head_hash_.toString() << std::endl;
-  strm << "DAG genesis hash: " << dag_genesis_hash_.toString() << std::endl;
-  strm << "size: " << size_ << std::endl;
-  strm << "executed blocks size: " << executed_size_ << std::endl;
-  strm << "last pbft block hash: " << last_pbft_block_hash_.toString() << std::endl;
-  return strm.str();
-}
-
 std::string PbftChain::getJsonStr() const {
   Json::Value json;
   sharedLock_ lock(chain_head_access_);
   json["head_hash"] = head_hash_.toString();
   json["dag_genesis_hash"] = dag_genesis_hash_.toString();
   json["size"] = (Json::Value::UInt64)size_;
-  json["executed_size"] = (Json::Value::UInt64)executed_size_;
   json["last_pbft_block_hash"] = last_pbft_block_hash_.toString();
   return json.toStyledString();
 }
 
 std::ostream& operator<<(std::ostream& strm, PbftChain const& pbft_chain) {
-  strm << pbft_chain.getHeadStr();
+  strm << pbft_chain.getJsonStr();
   return strm;
 }
 

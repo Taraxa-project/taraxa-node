@@ -17,171 +17,189 @@ Executor::Executor(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_
       db_(db),
       dag_mgr_(dag_mgr),
       trx_mgr_(trx_mgr),
-      final_chain_(final_chain),
-      pbft_chain_(pbft_chain) {
+      final_chain_(final_chain) {
   LOG_OBJECTS_CREATE("EXECUTOR");
-  num_executed_blk_ = db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
+  if (auto last_period = pbft_chain->getPbftChainSize(); final_chain_->last_block_number() < last_period) {
+    to_execute_ = load_pbft_blk(last_period);
+  }
+  num_executed_dag_blk_ = db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
   num_executed_trx_ = db_->getStatusField(taraxa::StatusDbField::ExecutedTrxCount);
   transactions_tmp_buf_.reserve(expected_max_trx_per_block);
 }
 
 Executor::~Executor() { stop(); }
 
-void Executor::setWSServer(std::shared_ptr<net::WSServer> ws_server) { ws_server_ = ws_server; }
+void Executor::setWSServer(std::shared_ptr<net::WSServer> ws_server) { ws_server_ = move(ws_server); }
 
 void Executor::start() {
   if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
   LOG(log_nf_) << "Executor start...";
-  exec_worker_ = std::make_unique<std::thread>([this]() { run(); });
+  exec_worker_ = std::make_unique<std::thread>([this]() {
+    LOG(log_nf_) << "Executor run...";
+    while (!stopped_) {
+      tick();
+    }
+  });
 }
 
 void Executor::stop() {
   if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
-  cv_executor.notify_all();
+  cv_.notify_one();
   exec_worker_->join();
   LOG(log_nf_) << "Executor stopped";
 }
 
-void Executor::run() {
-  LOG(log_nf_) << "Executor run...";
-  uLock lock(shared_mutex_executor_);
-  while (!stopped_) {
-    cv_executor.wait(lock);
-    executePbftBlocks_();
+void Executor::execute(std::shared_ptr<PbftBlock> blk) {
+  std::unique_lock l(mu_);
+  to_execute_ = move(blk);
+  cv_.notify_one();
+}
+
+void Executor::tick() {
+  std::shared_ptr<PbftBlock> pbft_block;
+  {
+    std::unique_lock l(mu_);
+    if (!to_execute_) {
+      cv_.wait(l);
+    }
+    if (stopped_) {
+      return;
+    }
+    std::swap(pbft_block, to_execute_);
+  }
+  execute_(*pbft_block);
+  for (auto blk_n = final_chain_->last_block_number(); blk_n < pbft_block->getPeriod(); ++blk_n) {
+    execute_(*load_pbft_blk(blk_n));
   }
 }
 
-void Executor::executePbftBlocks_() {
-  while (pbft_chain_->hasUnexecutedBlocks()) {
-    auto pbft_period = pbft_chain_->getPbftExecutedChainSize() + 1;
-    auto pbft_block_hash = db_->getPeriodPbftBlock(pbft_period);
-    if (!pbft_block_hash) {
-      LOG(log_er_) << "DB corrupted - PBFT block period " << pbft_period
-                   << " does not exist in DB period_pbft_block. PBFT chain size " << pbft_chain_->getPbftChainSize();
-      assert(false);
-    }
-    // Get PBFT block in DB
-    auto pbft_block = db_->getPbftBlock(*pbft_block_hash);
-    if (!pbft_block) {
-      LOG(log_er_) << "DB corrupted - Cannot find PBFT block hash " << pbft_block_hash
-                   << " in PBFT chain DB pbft_blocks.";
-      assert(false);
-    }
-    if (pbft_block->getPeriod() != pbft_period) {
-      LOG(log_er_) << "DB corrupted - PBFT block hash " << pbft_block_hash << "has different period "
-                   << pbft_block->getPeriod() << " in block data than in block order db: " << pbft_period;
-      assert(false);
-    }
-    auto const &anchor_hash = pbft_block->getPivotDagBlockHash();
-    auto finalized_dag_blk_hashes = std::move(*dag_mgr_->getDagBlockOrder(anchor_hash).second);
-
-    auto batch = db_->createWriteBatch();
-    {
-      // This artificial scope will make sure we clean up the big chunk of memory allocated for this batch-processing
-      // stuff as soon as possible
-      transactions_tmp_buf_.clear();
-      DbStorage::MultiGetQuery db_query(db_, transactions_tmp_buf_.capacity() + 100);
-      auto dag_blks_raw = db_query.append(DbStorage::Columns::dag_blocks, finalized_dag_blk_hashes, false).execute();
-      unordered_set<h256> unique_trxs;
-      unique_trxs.reserve(transactions_tmp_buf_.capacity());
-      for (auto const &dag_blk_raw : dag_blks_raw) {
-        for (auto const &trx_h : DagBlock::extract_transactions_from_rlp(RLP(dag_blk_raw))) {
-          if (!unique_trxs.insert(trx_h).second) {
-            continue;
-          }
-          db_query.append(DbStorage::Columns::executed_transactions, trx_h);
-          db_query.append(DbStorage::Columns::transactions, trx_h);
-        }
-      }
-      auto trx_db_results = db_query.execute(false);
-      for (uint i = 0; i < unique_trxs.size(); ++i) {
-        auto has_been_executed = !trx_db_results[0 + i * 2].empty();
-        if (has_been_executed) {
+void Executor::execute_(PbftBlock const &pbft_block) {
+  auto pbft_period = pbft_block.getPeriod();
+  auto const &pbft_block_hash = pbft_block.getBlockHash();
+  auto const &anchor_hash = pbft_block.getPivotDagBlockHash();
+  auto finalized_dag_blk_hashes = db_->getFinalizedDagBlockHashesByAnchor(anchor_hash);
+  auto batch = db_->createWriteBatch();
+  {
+    // This artificial scope will make sure we clean up the big chunk of memory allocated for this batch-processing
+    // stuff as soon as possible
+    DbStorage::MultiGetQuery db_query(db_, transactions_tmp_buf_.capacity() + 100);
+    auto dag_blks_raw = db_query.append(DbStorage::Columns::dag_blocks, finalized_dag_blk_hashes, false).execute();
+    unordered_set<h256> unique_trxs;
+    unique_trxs.reserve(transactions_tmp_buf_.capacity());
+    for (auto const &dag_blk_raw : dag_blks_raw) {
+      for (auto const &trx_h : DagBlock::extract_transactions_from_rlp(RLP(dag_blk_raw))) {
+        if (!unique_trxs.insert(trx_h).second) {
           continue;
         }
-        // Non-executed trxs
-        auto const &trx = transactions_tmp_buf_.emplace_back(
-            &trx_db_results[1 + i * 2], dev::eth::CheckTransaction::None, true, h256(db_query.get_key(1 + i * 2)));
-        if (replay_protection_service_->is_nonce_stale(trx.sender(), trx.nonce())) {
-          transactions_tmp_buf_.pop_back();
-          continue;
-        }
-        static string const dummy_val = "_";
-        db_->batch_put(*batch, DbStorage::Columns::executed_transactions, trx.sha3(), dummy_val);
+        db_query.append(DbStorage::Columns::executed_transactions, trx_h);
+        db_query.append(DbStorage::Columns::transactions, trx_h);
       }
     }
-
-    // Execute transactions in EVM(GO trx engine) and update Ethereum block
-    auto const &[new_eth_header, trx_receipts, _] =
-        final_chain_->advance(batch, pbft_block->getBeneficiary(), pbft_block->getTimestamp(), transactions_tmp_buf_);
-
-    // Update replay protection service, like nonce watermark. Nonce watermark has been disabled
-    replay_protection_service_->update(batch, pbft_period,
-                                       util::make_range_view(transactions_tmp_buf_).map([](auto const &trx) {
-                                         return ReplayProtectionService::TransactionInfo{
-                                             trx.from(),
-                                             trx.nonce(),
-                                         };
-                                       }));
-
-    // Update number of executed DAG blocks and transactions
-    auto dag_blk_count = finalized_dag_blk_hashes.size();
-    if (dag_blk_count != 0) {
-      num_executed_blk_.fetch_add(dag_blk_count);
-      num_executed_trx_.fetch_add(transactions_tmp_buf_.size());
-      db_->addStatusFieldToBatch(StatusDbField::ExecutedBlkCount, num_executed_blk_, batch);
-      db_->addStatusFieldToBatch(StatusDbField::ExecutedTrxCount, num_executed_trx_, batch);
-      LOG(log_nf_) << node_addr_ << " :   Executed dag blocks index #" << num_executed_blk_ - dag_blk_count << "-"
-                   << num_executed_blk_ - 1 << " , Transactions count: " << transactions_tmp_buf_.size();
+    auto trx_db_results = db_query.execute(false);
+    for (uint i = 0; i < unique_trxs.size(); ++i) {
+      auto has_been_executed = !trx_db_results[0 + i * 2].empty();
+      if (has_been_executed) {
+        continue;
+      }
+      // Non-executed trxs
+      auto const &trx = transactions_tmp_buf_.emplace_back(&trx_db_results[1 + i * 2], dev::eth::CheckTransaction::None,
+                                                           true, h256(db_query.get_key(1 + i * 2)));
+      if (replay_protection_service_->is_nonce_stale(trx.sender(), trx.nonce())) {
+        transactions_tmp_buf_.pop_back();
+        continue;
+      }
+      static string const dummy_val = "_";
+      db_->batch_put(*batch, DbStorage::Columns::executed_transactions, trx.sha3(), dummy_val);
     }
-
-    // Add dag_block_period in DB
-    for (auto const blk_hash : finalized_dag_blk_hashes) {
-      db_->addDagBlockPeriodToBatch(blk_hash, pbft_period, batch);
-    }
-
-    // Update executed PBFT blocks size
-    pbft_chain_->updateExecutedPbftChainSize();
-    // Update PBFT chain head block
-    db_->addPbftHeadToBatch(pbft_chain_->getHeadHash(), pbft_chain_->getJsonStr(), batch);
-
-    // Set DAG blocks period
-    dag_mgr_->setDagBlockOrder(anchor_hash, pbft_period, finalized_dag_blk_hashes, batch);
-
-    // Remove executed transactions at Ethereum pending block. The Ethereum pending block is same with latest block at
-    // Taraxa
-    trx_mgr_->getPendingBlock()->advance(
-        batch, new_eth_header.hash(),
-        util::make_range_view(transactions_tmp_buf_).map([](auto const &trx) { return trx.sha3(); }));
-
-    // Commit DB
-    db_->commitWriteBatch(batch);
-    LOG(log_nf_) << "DB write batch committed at period " << pbft_period << " PBFT block hash " << pbft_block_hash;
-
-    // After DB commit, confirm in final chain(Ethereum)
-    final_chain_->advance_confirm();
-
-    // Creates snapshot if needed
-    if (db_->createSnapshot(pbft_period)) {
-      final_chain_->create_snapshot(pbft_period);
-    }
-
-    // Ethereum filter
-    trx_mgr_->getFilterAPI()->note_block(new_eth_header.hash());
-    trx_mgr_->getFilterAPI()->note_receipts(trx_receipts);
-
-    // Update web server
-    if (ws_server_) {
-      ws_server_->newDagBlockFinalized(anchor_hash, pbft_period);
-      ws_server_->newPbftBlockExecuted(*pbft_block, finalized_dag_blk_hashes);
-      ws_server_->newEthBlock(new_eth_header);
-    }
-    LOG(log_nf_) << node_addr_ << " successful execute pbft block " << pbft_block_hash << " in period " << pbft_period;
   }
+
+  // Execute transactions in EVM(GO trx engine) and update Ethereum block
+  auto const &[new_eth_header, trx_receipts, _] =
+      final_chain_->advance(batch, pbft_block.getBeneficiary(), pbft_block.getTimestamp(), transactions_tmp_buf_);
+
+  // Update replay protection service, like nonce watermark. Nonce watermark has been disabled
+  replay_protection_service_->update(batch, pbft_period,
+                                     util::make_range_view(transactions_tmp_buf_).map([](auto const &trx) {
+                                       return ReplayProtectionService::TransactionInfo{
+                                           trx.from(),
+                                           trx.nonce(),
+                                       };
+                                     }));
+
+  // Update number of executed DAG blocks and transactions
+  auto num_executed_dag_blk = num_executed_dag_blk_ + finalized_dag_blk_hashes.size();
+  auto num_executed_trx = num_executed_trx_ + transactions_tmp_buf_.size();
+  if (!finalized_dag_blk_hashes.empty()) {
+    db_->addStatusFieldToBatch(StatusDbField::ExecutedBlkCount, num_executed_dag_blk, batch);
+    db_->addStatusFieldToBatch(StatusDbField::ExecutedTrxCount, num_executed_trx, batch);
+    LOG(log_nf_) << node_addr_ << " :   Executed dag blocks index #"
+                 << num_executed_dag_blk_ - finalized_dag_blk_hashes.size() << "-" << num_executed_dag_blk_ - 1
+                 << " , Transactions count: " << transactions_tmp_buf_.size();
+  }
+
+  // Remove executed transactions at Ethereum pending block. The Ethereum pending block is same with latest block at
+  // Taraxa
+  trx_mgr_->getPendingBlock()->advance(
+      batch, new_eth_header.hash(),
+      util::make_range_view(transactions_tmp_buf_).map([](auto const &trx) { return trx.sha3(); }));
+
+  // Commit DB
+  db_->commitWriteBatch(batch);
+  LOG(log_nf_) << "DB write batch committed at period " << pbft_period << " PBFT block hash " << pbft_block_hash;
+
+  // After DB commit, confirm in final chain(Ethereum)
+  final_chain_->advance_confirm();
+
+  // Only NOW we are fine to modify in-memory states as they have been backed by the db
+
+  num_executed_dag_blk_ = num_executed_dag_blk;
+  num_executed_trx_ = num_executed_trx;
+
+  // Creates snapshot if needed
+  if (db_->createSnapshot(pbft_period)) {
+    final_chain_->create_snapshot(pbft_period);
+  }
+
+  // Ethereum filter
+  trx_mgr_->getFilterAPI()->note_block(new_eth_header.hash());
+  trx_mgr_->getFilterAPI()->note_receipts(trx_receipts);
+
+  // Update web server
+  if (ws_server_) {
+    ws_server_->newDagBlockFinalized(anchor_hash, pbft_period);
+    ws_server_->newPbftBlockExecuted(pbft_block, finalized_dag_blk_hashes);
+    ws_server_->newEthBlock(new_eth_header);
+  }
+
+  transactions_tmp_buf_.clear();
+
+  LOG(log_nf_) << node_addr_ << " successful execute pbft block " << pbft_block_hash << " in period " << pbft_period;
+}
+
+std::shared_ptr<PbftBlock> Executor::load_pbft_blk(uint64_t pbft_period) {
+  auto pbft_block_hash = db_->getPeriodPbftBlock(pbft_period);
+  if (!pbft_block_hash) {
+    LOG(log_er_) << "DB corrupted - PBFT block period " << pbft_period
+                 << " does not exist in DB period_pbft_block. PBFT chain size " << pbft_chain_->getPbftChainSize();
+    assert(false);
+  }
+  // Get PBFT block in DB
+  auto pbft_block = db_->getPbftBlock(*pbft_block_hash);
+  if (!pbft_block) {
+    LOG(log_er_) << "DB corrupted - Cannot find PBFT block hash " << pbft_block_hash
+                 << " in PBFT chain DB pbft_blocks.";
+    assert(false);
+  }
+  if (pbft_block->getPeriod() != pbft_period) {
+    LOG(log_er_) << "DB corrupted - PBFT block hash " << pbft_block_hash << "has different period "
+                 << pbft_block->getPeriod() << " in block data than in block order db: " << pbft_period;
+    assert(false);
+  }
+  return pbft_block;
 }
 
 }  // namespace taraxa
