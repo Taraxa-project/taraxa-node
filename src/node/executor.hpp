@@ -14,6 +14,28 @@
 namespace taraxa {
 
 class Executor {
+  std::mutex mu_;
+  std::condition_variable cv_;
+  std::shared_ptr<PbftBlock> to_execute_;
+
+  std::unique_ptr<ReplayProtectionService> replay_protection_service_;
+  std::shared_ptr<DbStorage> db_;
+  std::shared_ptr<DagManager> dag_mgr_;
+  std::shared_ptr<TransactionManager> trx_mgr_;
+  std::shared_ptr<FinalChain> final_chain_;
+  std::shared_ptr<PbftChain> pbft_chain_;
+  std::shared_ptr<net::WSServer> ws_server_;
+
+  addr_t node_addr_;
+  std::atomic<bool> stopped_ = true;
+  std::unique_ptr<std::thread> exec_worker_;
+
+  dev::eth::Transactions transactions_tmp_buf_;
+  std::atomic<uint64_t> num_executed_blk_ = 0;
+  std::atomic<uint64_t> num_executed_trx_ = 0;
+
+  LOG_OBJECTS_DEFINE;
+
  public:
   Executor(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<DagManager> dag_mgr,
            std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<FinalChain> final_chain,
@@ -23,34 +45,13 @@ class Executor {
   void setWSServer(std::shared_ptr<net::WSServer> ws_server);
   void start();
   void stop();
-  void run();
 
-  boost::condition_variable_any cv_executor;
+  void execute(std::shared_ptr<PbftBlock> blk);
 
  private:
-  using uLock = boost::unique_lock<boost::shared_mutex>;
-
-  void executePbftBlocks_();
-
-  unique_ptr<ReplayProtectionService> replay_protection_service_;
-  std::shared_ptr<DbStorage> db_ = nullptr;
-  std::shared_ptr<DagManager> dag_mgr_ = nullptr;
-  std::shared_ptr<TransactionManager> trx_mgr_;
-  std::shared_ptr<FinalChain> final_chain_;
-  std::shared_ptr<PbftChain> pbft_chain_ = nullptr;
-  std::shared_ptr<net::WSServer> ws_server_;
-
-  addr_t node_addr_;
-  std::atomic<bool> stopped_ = true;
-  std::unique_ptr<std::thread> exec_worker_ = nullptr;
-
-  dev::eth::Transactions transactions_tmp_buf_;
-  std::atomic<uint64_t> num_executed_blk_ = 0;
-  std::atomic<uint64_t> num_executed_trx_ = 0;
-
-  mutable boost::shared_mutex shared_mutex_executor_;
-
-  LOG_OBJECTS_DEFINE;
+  void tick();
+  void execute_(PbftBlock const& blk);
+  std::shared_ptr<PbftBlock> load_pbft_blk(uint64_t pbft_period);
 };
 
 }  // namespace taraxa

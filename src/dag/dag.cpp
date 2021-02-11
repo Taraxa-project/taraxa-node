@@ -494,6 +494,9 @@ std::pair<uint64_t, std::shared_ptr<vec_blk_t>> DagManager::getDagBlockOrder(blk
 
 uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period, vec_blk_t const &dag_order,
                                   const taraxa::DbStorage::BatchPtr &write_batch) {
+  // TODO this function smells. It tries to manage in-memory and persistent state at the same time, which it
+  // clearly lacks scope for. Generally, it's very sensitive to how it's called.
+  // Also, it's clearly used only in conjunction with getDagBlockOrder - makes sense to merge these two.
   uLock lock(mutex_);
   LOG(log_dg_) << "setDagBlockOrder called with anchor " << new_anchor << " and period " << period;
   db_->putFinalizedDagBlockHashesByAnchor(*write_batch, new_anchor, dag_order);

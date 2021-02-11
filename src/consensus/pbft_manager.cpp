@@ -188,7 +188,7 @@ void PbftManager::update_dpos_state_() {
     } catch (state_api::ErrFutureBlock &c) {
       LOG(log_nf_) << c.what() << ". PBFT period " << dpos_period_ << " is too far ahead of DPOS, need wait!"
                    << " PBFT chain size " << pbft_chain_->getPbftChainSize() << ", have executed chain size "
-                   << pbft_chain_->getPbftExecutedChainSize();
+                   << final_chain_->last_block_number();
       // Sleep one PBFT lambda time
       thisThreadSleepForMilliSeconds(LAMBDA_ms);
     }
@@ -1232,13 +1232,23 @@ bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes) {
   pbft_chain_->updatePbftChain(pbft_block_hash);
   // Update PBFT chain head block
   db_->addPbftHeadToBatch(pbft_chain_->getHeadHash(), pbft_chain_->getJsonStr(), batch);
+
+  // Set DAG blocks period
+  auto const &anchor_hash = pbft_block->getPivotDagBlockHash();
+  auto finalized_dag_blk_hashes = *dag_mgr_->getDagBlockOrder(anchor_hash).second;
+  dag_mgr_->setDagBlockOrder(anchor_hash, pbft_period, finalized_dag_blk_hashes, batch);
+
+  // Add dag_block_period in DB
+  for (auto const &blk_hash : finalized_dag_blk_hashes) {
+    db_->addDagBlockPeriodToBatch(blk_hash, pbft_period, batch);
+  }
+
   // Commit DB
   db_->commitWriteBatch(batch);
   LOG(log_nf_) << node_addr_ << " successful push unexecuted pbft block " << pbft_block_hash << " in period "
                << pbft_period << " into chain! In round " << getPbftRound();
 
-  // Notify executor
-  executor_->cv_executor.notify_one();
+  executor_->execute(pbft_block);
 
   // Update pbft chain last block hash
   pbft_chain_last_block_hash_ = pbft_block_hash;

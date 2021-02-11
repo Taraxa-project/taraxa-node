@@ -340,10 +340,10 @@ void FullNode::rebuildDb() {
       break;
     }
   }
-  while (pbft_chain_->pbftSyncedQueueSize() > 0 || pbft_chain_->getPbftExecutedChainSize() != period - 1) {
+  while (pbft_chain_->pbftSyncedQueueSize() > 0 || final_chain_->last_block_number() != period - 1) {
     thisThreadSleepForMilliSeconds(1000);
     LOG(log_nf_) << "Waiting on PBFT blocks to be processed. Queue size: " << pbft_chain_->pbftSyncedQueueSize()
-                 << " Chain size: " << pbft_chain_->getPbftExecutedChainSize();
+                 << " Chain size: " << final_chain_->last_block_number();
   }
 }
 
