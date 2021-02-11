@@ -22,7 +22,7 @@ Executor::Executor(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_
   if (auto last_period = pbft_chain->getPbftChainSize(); final_chain_->last_block_number() < last_period) {
     to_execute_ = load_pbft_blk(last_period);
   }
-  num_executed_blk_ = db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
+  num_executed_dag_blk_ = db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
   num_executed_trx_ = db_->getStatusField(taraxa::StatusDbField::ExecutedTrxCount);
   transactions_tmp_buf_.reserve(expected_max_trx_per_block);
 }
@@ -127,12 +127,13 @@ void Executor::execute_(PbftBlock const &pbft_block) {
                                      }));
 
   // Update number of executed DAG blocks and transactions
-  auto dag_blk_count = finalized_dag_blk_hashes.size();
-  if (dag_blk_count) {
-    db_->addStatusFieldToBatch(StatusDbField::ExecutedBlkCount, num_executed_blk_, batch);
-    db_->addStatusFieldToBatch(StatusDbField::ExecutedTrxCount, num_executed_trx_, batch);
-    LOG(log_nf_) << node_addr_ << " :   Executed dag blocks index #" << num_executed_blk_ - dag_blk_count << "-"
-                 << num_executed_blk_ - 1 << " , Transactions count: " << transactions_tmp_buf_.size();
+  auto num_executed_dag_blk = num_executed_dag_blk_ + finalized_dag_blk_hashes.size();
+  auto num_executed_trx = num_executed_dag_blk_ + transactions_tmp_buf_.size();
+  if (!finalized_dag_blk_hashes.empty()) {
+    db_->addStatusFieldToBatch(StatusDbField::ExecutedBlkCount, num_executed_dag_blk, batch);
+    db_->addStatusFieldToBatch(StatusDbField::ExecutedTrxCount, num_executed_trx, batch);
+    LOG(log_nf_) << node_addr_ << " :   Executed dag blocks index #" << num_executed_dag_blk_ - num_executed_dag_blk
+                 << "-" << num_executed_dag_blk_ - 1 << " , Transactions count: " << transactions_tmp_buf_.size();
   }
 
   // Remove executed transactions at Ethereum pending block. The Ethereum pending block is same with latest block at
@@ -147,8 +148,11 @@ void Executor::execute_(PbftBlock const &pbft_block) {
 
   // After DB commit, confirm in final chain(Ethereum)
   final_chain_->advance_confirm();
-  num_executed_blk_.fetch_add(dag_blk_count);
-  num_executed_trx_.fetch_add(transactions_tmp_buf_.size());
+
+  // Only NOW we are fine to modify in-memory states as they have been backed by the db
+
+  num_executed_dag_blk_ = num_executed_dag_blk;
+  num_executed_trx_ = num_executed_trx;
 
   // Creates snapshot if needed
   if (db_->createSnapshot(pbft_period)) {

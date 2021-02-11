@@ -31,7 +31,7 @@ class Executor {
   std::unique_ptr<std::thread> exec_worker_;
 
   dev::eth::Transactions transactions_tmp_buf_;
-  std::atomic<uint64_t> num_executed_blk_ = 0;
+  std::atomic<uint64_t> num_executed_dag_blk_ = 0;
   std::atomic<uint64_t> num_executed_trx_ = 0;
 
   LOG_OBJECTS_DEFINE;
