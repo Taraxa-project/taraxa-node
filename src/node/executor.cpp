@@ -48,6 +48,7 @@ void Executor::stop() {
   if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
+  cv_.notify_one();
   exec_worker_->join();
   LOG(log_nf_) << "Executor stopped";
 }
@@ -64,6 +65,9 @@ void Executor::tick() {
     std::unique_lock l(mu_);
     if (!to_execute_) {
       cv_.wait(l);
+    }
+    if (stopped_) {
+      return;
     }
     std::swap(pbft_block, to_execute_);
   }
@@ -128,12 +132,13 @@ void Executor::execute_(PbftBlock const &pbft_block) {
 
   // Update number of executed DAG blocks and transactions
   auto num_executed_dag_blk = num_executed_dag_blk_ + finalized_dag_blk_hashes.size();
-  auto num_executed_trx = num_executed_dag_blk_ + transactions_tmp_buf_.size();
+  auto num_executed_trx = num_executed_trx_ + transactions_tmp_buf_.size();
   if (!finalized_dag_blk_hashes.empty()) {
     db_->addStatusFieldToBatch(StatusDbField::ExecutedBlkCount, num_executed_dag_blk, batch);
     db_->addStatusFieldToBatch(StatusDbField::ExecutedTrxCount, num_executed_trx, batch);
-    LOG(log_nf_) << node_addr_ << " :   Executed dag blocks index #" << num_executed_dag_blk_ - num_executed_dag_blk
-                 << "-" << num_executed_dag_blk_ - 1 << " , Transactions count: " << transactions_tmp_buf_.size();
+    LOG(log_nf_) << node_addr_ << " :   Executed dag blocks index #"
+                 << num_executed_dag_blk_ - finalized_dag_blk_hashes.size() << "-" << num_executed_dag_blk_ - 1
+                 << " , Transactions count: " << transactions_tmp_buf_.size();
   }
 
   // Remove executed transactions at Ethereum pending block. The Ethereum pending block is same with latest block at
