@@ -58,7 +58,6 @@ class DagBlockManager {
   const uint32_t cache_delete_step_ = 100;
   uint64_t last_proposal_period_ = 0;
   uint64_t current_max_proposal_period_ = 0;
-  level_t last_anchor_level_ = 0;
 
   std::shared_ptr<DbStorage> db_;
   std::shared_ptr<TransactionManager> trx_mgr_;

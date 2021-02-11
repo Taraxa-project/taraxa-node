@@ -321,8 +321,8 @@ std::shared_ptr<ProposalPeriodDagLevelsMap> DagBlockManager::newProposePeriodDag
 
   auto propose_period = ++current_max_proposal_period_;
   auto level_start = last_period_levels_map.levels_interval.second + 1;
-  auto level_end = anchor_level - last_anchor_level_ + last_period_levels_map.levels_interval.second;
-  last_anchor_level_ = anchor_level;
+  auto level_end = anchor_level + last_period_levels_map.max_levels_per_period;
+  assert(level_end >= level_start);
   ProposalPeriodDagLevelsMap new_period_levels_map(propose_period, level_start, level_end);
 
   return std::make_shared<ProposalPeriodDagLevelsMap>(new_period_levels_map);
