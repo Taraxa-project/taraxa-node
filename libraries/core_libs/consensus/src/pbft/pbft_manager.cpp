@@ -1479,14 +1479,16 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
   if (auto net = network_.lock()) {
     auto round = getPbftRound();
     while (syncBlockQueueSize() > 0) {
-      auto sync_block_opt = processSyncBlock();
-      if (!sync_block_opt) continue;
-      auto &sync_block = *sync_block_opt;
-      auto pbft_block_hash = sync_block.pbft_blk->getBlockHash();
+      auto sync_block = processSyncBlock();
+      if (!sync_block.has_value()) {
+        continue;
+      }
+
+      auto pbft_block_hash = sync_block->pbft_blk->getBlockHash();
       LOG(log_nf_) << "Pick pbft block " << pbft_block_hash << " from synced queue in round " << round;
 
       vec_blk_t dag_blocks_order;
-      if (pushPbftBlock_(sync_block, dag_blocks_order)) {
+      if (pushPbftBlock_(sync_block.value(), dag_blocks_order, true /* syncing flag */)) {
         LOG(log_nf_) << node_addr_ << " push synced PBFT block " << pbft_block_hash << " in round " << round;
       } else {
         LOG(log_er_) << "Failed push PBFT block " << pbft_block_hash << " into chain";

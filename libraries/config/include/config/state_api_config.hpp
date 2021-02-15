@@ -40,8 +40,9 @@ Json::Value enc_json(DPOSConfig const& obj);
 void dec_json(Json::Value const& json, DPOSConfig& obj);
 
 struct ExecutionOptions {
-  bool disable_nonce_check = 0;
-  bool disable_gas_fee = 0;
+  bool disable_nonce_check = false;
+  bool disable_gas_fee = false;
+  bool disable_dag_stats_rewards = false;
 
   HAS_RLP_FIELDS
 };
@@ -50,7 +51,7 @@ void dec_json(Json::Value const& json, ExecutionOptions& obj);
 
 struct Config {
   ETHChainConfig eth_chain_config;
-  bool disable_block_rewards = 0;
+  bool disable_block_rewards = false;
   ExecutionOptions execution_options;
   BalanceMap genesis_balances;
   std::optional<DPOSConfig> dpos;
