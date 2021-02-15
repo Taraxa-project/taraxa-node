@@ -4,30 +4,11 @@
 #include "vdf/sortition.hpp"
 
 namespace taraxa {
-
 using std::string;
 using VdfSortition = vdf_sortition::VdfSortition;
 
 // Note: Need to sign first then sender() and hash() is available
 class DagBlock {
-  // !!! Important: Any change in order or types of DagBlock class members will result in broken RLP ctor and some
-  // methods
-  //                as it is parsed with strong assumption of which member is at which position in rlp bytes
-  //                representation. See "DagBlock(dev::RLP const &_rlp)" or "extract_dag_level_from_rlp". If some change
-  //                needs to be done in class members, please check carefully all possible dependencies it has like for
-  //                example in mentioned methods...
-  blk_hash_t pivot_;
-  level_t level_ = 0;
-  vec_blk_t tips_;
-  vec_trx_t trxs_;  // transactions
-  sig_t sig_;
-  mutable blk_hash_t hash_;
-  mutable util::DefaultConstructCopyableMovable<std::mutex> hash_mu_;
-  uint64_t timestamp_ = 0;
-  vdf_sortition::VdfSortition vdf_;
-  mutable addr_t cached_sender_;  // block creater
-  mutable util::DefaultConstructCopyableMovable<std::mutex> cached_sender_mu_;
-
  public:
   DagBlock() = default;
   // fixme: This constructor is bogus, used only in tests. Eliminate it
@@ -84,6 +65,24 @@ class DagBlock {
   bytes rlp(bool include_sig) const;
 
  private:
+  // !!! Important: Any change in order or types of DagBlock class members will result in broken RLP ctor and some
+  //                methods
+  //                as it is parsed with strong assumption of which member is at which position in rlp bytes
+  //                representation. See "DagBlock(dev::RLP const &_rlp)" or "extract_dag_level_from_rlp". If some
+  //                change needs to be done in class members, please check carefully all possible dependencies it has
+  //                like for example in mentioned methods...
+  blk_hash_t pivot_;
+  level_t level_ = 0;
+  vec_blk_t tips_;
+  vec_trx_t trxs_;  // transactions
+  sig_t sig_;
+  mutable blk_hash_t hash_;
+  mutable util::DefaultConstructCopyableMovable<std::mutex> hash_mu_;
+  uint64_t timestamp_ = 0;
+  vdf_sortition::VdfSortition vdf_;
+  mutable addr_t cached_sender_;  // block creater
+  mutable util::DefaultConstructCopyableMovable<std::mutex> cached_sender_mu_;
+
   void streamRLP(dev::RLPStream &s, bool include_sig) const;
   blk_hash_t sha3(bool include_sig) const;
 };

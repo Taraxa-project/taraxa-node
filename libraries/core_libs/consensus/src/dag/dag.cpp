@@ -566,11 +566,14 @@ uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period,
 
   for (auto &v : non_finalized_blocks) {
     for (auto &blk : v.second) {
-      if (dag_order_set.count(blk) == 0) {
-        auto dag_block = dag_blk_mgr_->getDagBlock(blk);
-        auto pivot_hash = dag_block->getPivot();
-        addToDag(blk, pivot_hash, dag_block->getTips(), dag_block->getLevel(), false);
+      if (dag_order_set.count(blk)) {
+        continue;
       }
+
+      // In case non finalized dag block is not part of pbft block(based on dag_order), push it back to dag
+      auto dag_block = dag_blk_mgr_->getDagBlock(blk);
+      auto pivot_hash = dag_block->getPivot();
+      addToDag(blk, pivot_hash, dag_block->getTips(), dag_block->getLevel(), false);
     }
   }
 

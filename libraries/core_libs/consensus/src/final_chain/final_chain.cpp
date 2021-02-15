@@ -16,7 +16,7 @@ class FinalChainImpl final : public FinalChain {
   shared_ptr<DB> db_;
   StateAPI state_api_;
   // TODO re-enable it
-  unique_ptr<ReplayProtectionService> replay_protection_service_;
+  std::unique_ptr<ReplayProtectionService> replay_protection_service_;
 
   mutable shared_mutex last_block_mu_;
   mutable shared_ptr<BlockHeader> last_block_;
@@ -88,33 +88,61 @@ class FinalChainImpl final : public FinalChain {
   shared_ptr<FinalizationResult> finalize_(NewBlock new_blk, uint64_t period,
                                            finalize_precommit_ext const& precommit_ext) {
     auto batch = db_->createWriteBatch();
-    Transactions to_execute;
+    Transactions txs_to_execute;
+
+    // TODO: why not reading data from SyncBlock rather than looking into db ???
+    auto period_raw = db_->getPeriodDataRaw(period);
+    SyncBlock sync_block(period_raw);
+
+    // Create transactions stats for rewards distribution
+    // TODO: in case we dont want to reward dag authors who include some tx as "not first" this extra processing
+    //       is not necessary
+    DagStats dag_stats;
+    std::vector<DagStats::TransactionStats> txs_stats;
+    for (const auto& dag_block : sync_block.dag_blocks) {
+      const addr_t& dag_block_author = dag_block.getSender();
+
+      // TODO: there is a possibility that some proposer includes only trxs that are later in filtered out due to
+      // replay_protection_service_ or "has_been_executed", but gets rewards for dag block creation
+      // It might or might not be ok, he provided valid block and validated therefore other blocks so he did
+      // some work, on the other hand none of the trxs that he included were actually processed...
+      dag_stats.addDagBlock(dag_block_author);
+
+      for (const auto& tx_hash : dag_block.getTrxs()) {
+        dag_stats.addTransaction(tx_hash, dag_block_author);
+      }
+    }
+
+    // This artificial scope will make sure we clean up the big chunk of memory allocated for this batch-processing
+    // stuff as soon as possible
     {
-      // This artificial scope will make sure we clean up the big chunk of memory allocated for this batch-processing
-      // stuff as soon as possible
-      auto period_raw = db_->getPeriodDataRaw(period);
-      SyncBlock sync_block(period_raw);
       DB::MultiGetQuery db_query(db_, sync_block.transactions.size());
       for (auto const& trx : sync_block.transactions) {
         db_query.append(DB::Columns::final_chain_transaction_location_by_hash, trx.getHash());
       }
+
       auto trx_db_results = db_query.execute(false);
-      to_execute.reserve(sync_block.transactions.size());
+      txs_to_execute.reserve(sync_block.transactions.size());
       for (size_t i = 0; i < sync_block.transactions.size(); ++i) {
         if (auto has_been_executed = !trx_db_results[i].empty(); has_been_executed) {
           continue;
         }
-        // Non-executed trxs
-        auto const& trx = sync_block.transactions[i];
-        if (!(replay_protection_service_ &&
-              replay_protection_service_->is_nonce_stale(trx.getSender(), trx.getNonce()))) [[likely]] {
-          to_execute.push_back(std::move(trx));
+
+        auto const& tx = sync_block.transactions[i];
+        if (!replay_protection_service_ || replay_protection_service_->is_nonce_stale(tx.getSender(), tx.getNonce()))
+            [[likely]] {
+          continue;
         }
+
+        // Non-executed trxs
+        txs_stats.emplace_back(dag_stats.getTransactionStatsRvalue(tx.getHash()));
+        txs_to_execute.push_back(std::move(tx));
       }
     }
-    auto const& [exec_results, state_root] =
-        state_api_.transition_state({new_blk.author, GAS_LIMIT, new_blk.timestamp, BlockHeader::difficulty()},
-                                    to_state_api_transactions(to_execute));
+
+    auto const& [exec_results, state_root] = state_api_.transition_state(
+        {new_blk.author, GAS_LIMIT, new_blk.timestamp, BlockHeader::difficulty()},
+        to_state_api_transactions(txs_to_execute), {}, txs_stats, dag_stats.getBlocksStats());
     TransactionReceipts receipts;
     receipts.reserve(exec_results.size());
     gas_t cumulative_gas_used = 0;
@@ -133,27 +161,27 @@ class FinalChainImpl final : public FinalChain {
       });
     }
     auto blk_header =
-        append_block(batch, new_blk.author, new_blk.timestamp, GAS_LIMIT, state_root, to_execute, receipts);
+        append_block(batch, new_blk.author, new_blk.timestamp, GAS_LIMIT, state_root, txs_to_execute, receipts);
     if (replay_protection_service_) {
       // Update replay protection service, like nonce watermark. Nonce watermark has been disabled
       replay_protection_service_->update(
-          batch, blk_header->number, util::make_range_view(to_execute).map([](auto const& trx) {
+          batch, blk_header->number, util::make_range_view(txs_to_execute).map([](auto const& trx) {
             return ReplayProtectionService::TransactionInfo{trx.getSender(), trx.getNonce()};
           }));
     }
     // Update number of executed DAG blocks and transactions
     auto num_executed_dag_blk = num_executed_dag_blk_ + new_blk.dag_blk_hashes.size();
-    auto num_executed_trx = num_executed_trx_ + to_execute.size();
+    auto num_executed_trx = num_executed_trx_ + txs_to_execute.size();
     if (!new_blk.dag_blk_hashes.empty()) {
       db_->insert(batch, DB::Columns::status, StatusDbField::ExecutedBlkCount, num_executed_dag_blk);
       db_->insert(batch, DB::Columns::status, StatusDbField::ExecutedTrxCount, num_executed_trx);
       LOG(log_nf_) << "Executed dag blocks #" << num_executed_dag_blk_ - new_blk.dag_blk_hashes.size() << "-"
-                   << num_executed_dag_blk_ - 1 << " , Transactions count: " << to_execute.size();
+                   << num_executed_dag_blk_ - 1 << " , Transactions count: " << txs_to_execute.size();
     }
     auto result = make_shared<FinalizationResult>(FinalizationResult{
         move(new_blk),
         blk_header,
-        move(to_execute),
+        move(txs_to_execute),
         move(receipts),
     });
     if (precommit_ext) {

@@ -18,9 +18,9 @@ struct advance_check_opts {
 };
 
 struct FinalChainTest : WithDataDir {
-  shared_ptr<DbStorage> db{new DbStorage(data_dir / "db")};
+  std::shared_ptr<DbStorage> db{new DbStorage(data_dir / "db")};
   Config cfg = ChainConfig::predefined().final_chain;
-  shared_ptr<FinalChain> SUT;
+  std::shared_ptr<FinalChain> SUT;
   bool assume_only_toplevel_transfers = true;
   unordered_map<addr_t, u256> expected_balances;
   uint64_t expected_blk_num = 0;
@@ -275,6 +275,7 @@ TEST_F(FinalChainTest, coin_transfers) {
     cfg.state.genesis_balances[k.address()] = numeric_limits<u256>::max() / NUM_ACCS;
   }
   cfg.state.execution_options.disable_gas_fee = false;
+  cfg.state.execution_options.disable_dag_stats_rewards = true;
   init();
   constexpr auto TRX_GAS = 100000;
   advance({
@@ -302,6 +303,160 @@ TEST_F(FinalChainTest, coin_transfers) {
       {0, 143430, 0, TRX_GAS, {}, keys[331].secret(), keys[420].address()},
       {0, 1313145, 0, TRX_GAS, {}, keys[345].secret(), keys[134].address()},
   });
+}
+
+TEST_F(FinalChainTest, mining_rewards_distribution) {
+  cfg.state.dpos = nullopt;
+  cfg.state.execution_options.disable_gas_fee = false;
+  cfg.state.execution_options.disable_dag_stats_rewards = false;
+  cfg.state.disable_block_rewards = false;
+  cfg.state.genesis_balances = {};
+
+  constexpr uint64_t BLOCKS_COUNT = 5;
+  constexpr uint64_t TRX_COUNT = 10;
+  constexpr uint64_t TRX_GAS = 21000;
+  constexpr uint64_t TRX_GAS_PRICE = 1;
+  constexpr size_t TRANSACTORS_NUM = 10;
+  constexpr size_t MINERS_NUM = 4;
+
+  // Create pbft miner
+  dev::KeyPair pbft_miner = dev::KeyPair::create();
+  cfg.state.genesis_balances[pbft_miner.address()] = 0;
+
+  // Create dag miners
+  std::vector<dev::KeyPair> dag_miners;
+  dag_miners.reserve(MINERS_NUM);
+  for (size_t i = 0; i < MINERS_NUM; ++i) {
+    auto const& k = dag_miners.emplace_back(dev::KeyPair::create());
+    cfg.state.genesis_balances[k.address()] = 0;
+  }
+
+  // Create transactors
+  std::vector<dev::KeyPair> transactors;
+  transactors.reserve(TRANSACTORS_NUM);
+  for (size_t i = 0; i < TRANSACTORS_NUM; ++i) {
+    auto const& k = transactors.emplace_back(dev::KeyPair::create());
+    cfg.state.genesis_balances[k.address()] = 31000;
+  }
+
+  init();
+
+  // Create default transactions
+  auto createTx = [&TRX_GAS, &TRX_GAS_PRICE](const dev::KeyPair& from, const dev::KeyPair& to,
+                                             uint64_t value) -> Transaction {
+//    Transaction tx(value, TRX_GAS_PRICE, TRX_GAS, to.address(), {}, 0, from.secret());
+//    return tx;
+    return Transaction(0 /* TODO: what nonce ? */, value, TRX_GAS_PRICE, TRX_GAS, {}, from.secret(), to.address());
+  };
+
+  std::vector<Transaction> default_txs{
+      createTx(transactors[0], transactors[1], 1000), createTx(transactors[1], transactors[2], 1000),
+      createTx(transactors[2], transactors[3], 1000), createTx(transactors[3], transactors[4], 1000),
+      createTx(transactors[4], transactors[5], 1000), createTx(transactors[5], transactors[6], 1000),
+      createTx(transactors[6], transactors[7], 1000), createTx(transactors[7], transactors[8], 1000),
+      createTx(transactors[8], transactors[9], 1000), createTx(transactors[9], transactors[0], 1000)};
+
+  struct DummyBlock {
+    addr_t miner;
+    std::vector<Transaction> txs;
+  };
+
+  // Create dummy blocks with transactions
+  std::vector<DummyBlock> blocks;
+  blocks.push_back({dag_miners[0].address(), {default_txs[0], default_txs[1], default_txs[2], default_txs[3]}});
+  blocks.push_back({dag_miners[1].address(), {default_txs[3], default_txs[4]}});
+  blocks.push_back({dag_miners[2].address(), {default_txs[5], default_txs[6], default_txs[7]}});
+  blocks.push_back({dag_miners[3].address(), {default_txs[7], default_txs[8]}});
+  blocks.push_back({dag_miners[3].address(), {default_txs[9]}});
+  assert(BLOCKS_COUNT == blocks.size());
+
+  DagStats dag_stats;
+  std::vector<Transaction> unique_txs;
+  std::vector<DagStats::TransactionStats> txs_stats;
+
+  // Simulate algorithm from Executor::executePbftBlocks_()
+  for (const auto& block : blocks) {
+    for (const auto& tx : block.txs) {
+      if (dag_stats.addTransaction(tx.getHash(), block.miner)) {
+        continue;
+      }
+
+      unique_txs.emplace_back(tx);
+    }
+    dag_stats.addDagBlock(block.miner);
+  }
+  for (const auto& tx : unique_txs) {
+    txs_stats.emplace_back(dag_stats.getTransactionStats(tx.getHash()));
+  }
+
+  // Process sorted unique transactions in taraxa-evm
+  auto batch = db->createWriteBatch();
+  auto result = SUT->advance(batch, pbft_miner.address(), {}, unique_txs, {}, txs_stats, dag_stats.getBlocksStats());
+  db->commitWriteBatch(batch);
+  SUT->advance_confirm();
+
+  /*  Rewards distribution model:
+   *
+   *  Fixed pbft block reward:
+   *    25% out of fixed pbft block reward goes to pbft block miner
+   *    75% out OF fixed pbft block reward goes to dag block miners proportionally to how many dag blocks they created
+   *
+   *  All included transaction fees -> rewards:
+   *    100% of txs fees included in dag blocks goes to dag block miners who included them in their blocks
+   *
+   *  Single transaction fee -> reward:
+   *    100% goes to the miner, if he included the tx in his block as the only one miner
+   *
+   *    or
+   *
+   *    75% goes to the miner, who included this tx in his block as first miner
+   *    25% goes to the rest of the miners (uncle miners), who included this tx in their bocks as second, third, etc...
+   *        This 1/4 of tx fee is divided equally between all uncle miners
+   */
+  constexpr uint64_t FIXED_BLOCK_REWARD = 2000000000000000000;
+  constexpr uint64_t TRANSCATION_FEE = TRX_GAS * TRX_GAS_PRICE;
+  constexpr uint64_t FULL_TRANSCATION_REWARD = TRANSCATION_FEE;
+  constexpr uint64_t FIRST_TRANSCATION_REWARD = TRANSCATION_FEE * 0.75;
+  constexpr uint64_t UNCLE_TRANSCATION_REWARD = TRANSCATION_FEE * 0.25;
+  constexpr uint64_t TRANSCATIONS_FEES = TRX_COUNT * TRANSCATION_FEE;
+  constexpr uint64_t PBFT_BLOCK_CREATION_REWARD = FIXED_BLOCK_REWARD * 0.25;
+  constexpr uint64_t DAG_BLOCK_CREATION_REWARD = (FIXED_BLOCK_REWARD * 0.75) / BLOCKS_COUNT;
+
+  // Check pbft block miner reward -> 25% out of fixed pbft block reward
+  EXPECT_EQ(PBFT_BLOCK_CREATION_REWARD, SUT->getBalance(pbft_miner.address()).first);
+
+  // Check miner0 rewards, who created 1 dag block and included 3 txs as the only miner and 1 tx as first miner
+  constexpr uint64_t EXPECTED_MINER0_REWARDS =
+      1 * DAG_BLOCK_CREATION_REWARD + 3 * FULL_TRANSCATION_REWARD + 1 * FIRST_TRANSCATION_REWARD;
+  EXPECT_EQ(EXPECTED_MINER0_REWARDS, SUT->getBalance(dag_miners[0].address()).first);
+
+  // Check miner1 rewards, who created 1 dag block and included 1 uncle tx and 1 tx as the only one miner
+  constexpr uint64_t EXPECTED_MINER1_REWARDS =
+      1 * DAG_BLOCK_CREATION_REWARD + 1 * UNCLE_TRANSCATION_REWARD + 1 * FULL_TRANSCATION_REWARD;
+  EXPECT_EQ(EXPECTED_MINER1_REWARDS, SUT->getBalance(dag_miners[1].address()).first);
+
+  // Check miner2 rewards, who created 1 dag block and included 2 txs as the only miner and 1 tx as first miner
+  constexpr uint64_t EXPECTED_MINER2_REWARDS =
+      1 * DAG_BLOCK_CREATION_REWARD + 2 * FULL_TRANSCATION_REWARD + 1 * FIRST_TRANSCATION_REWARD;
+  EXPECT_EQ(EXPECTED_MINER2_REWARDS, SUT->getBalance(dag_miners[2].address()).first);
+
+  // Check miner3 rewards, who created 2 dag blocks and included 2 txs as first miner and 1 uncle tx
+  constexpr uint64_t EXPECTED_MINER3_REWARDS =
+      2 * DAG_BLOCK_CREATION_REWARD + 2 * FULL_TRANSCATION_REWARD + 1 * UNCLE_TRANSCATION_REWARD;
+  EXPECT_EQ(EXPECTED_MINER3_REWARDS, SUT->getBalance(dag_miners[3].address()).first);
+
+  // Check miner4 rewards, who created 0 dag blocks and included 0 txs
+  constexpr uint64_t EXPECTED_MINER4_REWARDS = 0;
+  EXPECT_EQ(EXPECTED_MINER4_REWARDS, SUT->getBalance(dag_miners[4].address()).first);
+
+  // Check total distributed rewards == rewards that actually should be distributed based on included txs and fixed
+  // block rewards
+  constexpr uint64_t TOTAL_BLOCK_REWARD = FIXED_BLOCK_REWARD + TRANSCATIONS_FEES;
+  auto distributed_rewards = SUT->getBalance(pbft_miner.address()).first;
+  for (const auto& dag_miner : dag_miners) {
+    distributed_rewards += SUT->getBalance(dag_miner.address()).first;
+  }
+  EXPECT_EQ(TOTAL_BLOCK_REWARD, distributed_rewards);
 }
 
 }  // namespace taraxa::final_chain
