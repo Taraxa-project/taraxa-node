@@ -8,7 +8,7 @@
 #include "dag/dag.hpp"
 #include "logger/log.hpp"
 #include "network/network.hpp"
-#include "network/rpc/WSServer.h"
+#include "network/ws_server.hpp"
 #include "transaction.hpp"
 
 using namespace taraxa::net;

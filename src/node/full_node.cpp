@@ -138,9 +138,16 @@ void FullNode::init() {
     }
 
     if (conf_.rpc->ws_port) {
-      jsonrpc_ws_ = make_shared<net::WSServer>(
-          *jsonrpc_io_ctx_, boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->ws_port}, node_addr);
+      jsonrpc_ws_ = make_shared<net::JsonRpcWsServer>(
+          *jsonrpc_io_ctx_, boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->ws_port}, node_addr,
+          final_chain_);
       jsonrpc_api_->addConnector(jsonrpc_ws_);
+    }
+
+    if (conf_.rpc->gql_ws_port) {
+      graphql_ws_ = make_shared<net::GraphQlWsServer>(
+          *jsonrpc_io_ctx_, boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->ws_port}, node_addr,
+          final_chain_);
     }
 
     if (conf_.rpc->gql_http_port) {

@@ -53,9 +53,10 @@ class WSSession : public std::enable_shared_from_this<WSSession> {
   void newPbftBlockExecuted(Json::Value const& payload);
   void newPendingTransaction(trx_hash_t const& trx_hash);
   bool is_closed() { return closed_; }
+  virtual std::string processRequest(std::string request) = 0;
   LOG_OBJECTS_DEFINE;
 
- private:
+ protected:
   void writeImpl(const std::string& message);
   void write(const std::string& message);
   std::deque<std::string> queue_messages_;
@@ -77,7 +78,8 @@ class WSSession : public std::enable_shared_from_this<WSSession> {
 // Accepts incoming connections and launches the sessions
 class WSServer : public std::enable_shared_from_this<WSServer>, public jsonrpc::AbstractServerConnector {
  public:
-  WSServer(boost::asio::io_context& ioc, tcp::endpoint endpoint, addr_t node_addr);
+  WSServer(boost::asio::io_context& ioc, tcp::endpoint endpoint, addr_t node_addr,
+           std::shared_ptr<FinalChain> final_chain = nullptr);
   ~WSServer();
 
   // Start accepting incoming connections
@@ -91,8 +93,11 @@ class WSServer : public std::enable_shared_from_this<WSServer>, public jsonrpc::
   virtual bool StartListening() { return true; };
   virtual bool StopListening() { return true; };
   virtual bool SendResponse(const std::string& response, void* addInfo = NULL) { return true; };
+  virtual std::shared_ptr<WSSession> createSession(tcp::socket& socket) = 0;
 
- private:
+  std::shared_ptr<FinalChain> getFinalChain() { return final_chain_; }
+
+ protected:
   void do_accept();
   void on_accept(beast::error_code ec, tcp::socket socket);
   LOG_OBJECTS_DEFINE;
@@ -102,6 +107,7 @@ class WSServer : public std::enable_shared_from_this<WSServer>, public jsonrpc::
   std::atomic<bool> stopped_ = false;
   boost::shared_mutex sessions_mtx_;
   addr_t node_addr_;
+  std::shared_ptr<FinalChain> final_chain_;
 };
 
 }  // namespace taraxa::net

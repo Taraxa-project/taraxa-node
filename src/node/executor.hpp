@@ -6,7 +6,7 @@
 #include "consensus/pbft_chain.hpp"
 #include "consensus/vote.hpp"
 #include "dag/dag.hpp"
-#include "network/rpc/WSServer.h"
+#include "network/ws_server.hpp"
 #include "node/replay_protection_service.hpp"
 #include "transaction_manager/transaction_manager.hpp"
 #include "util/util.hpp"
