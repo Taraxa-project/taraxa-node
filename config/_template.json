@@ -45,7 +45,7 @@
           },
           {
             "name": "PBFT_MGR",
-            "verbosity": "INFO"
+            "verbosity": "DEBUG"
           },
           {
             "name": "PBFTSYNC",
