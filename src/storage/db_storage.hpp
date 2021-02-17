@@ -195,8 +195,12 @@ struct DbStorage {
 
   shared_ptr<blk_hash_t> getPbftMgrVotedValue(PbftMgrVotedValue const& field);
   void savePbftMgrVotedValue(PbftMgrVotedValue const& field, blk_hash_t const& value);
+<<<<<<< HEAD
   void addPbftMgrVotedValueToBatch(PbftMgrVotedValue const& field, blk_hash_t const& value,
                                    BatchPtr const& write_batch);
+=======
+  void addPbftMgrVotedValueToBatch(PbftMgrVotedValue const& field, blk_hash_t const& value, BatchPtr const& write_batch);
+>>>>>>> 7b4f5b8c (Add fields of PBFT manager in DB, and add unit tests)
 
   shared_ptr<blk_hash_t> getPbftCertVotedBlockHash(uint64_t const& pbft_round);
   void savePbftCertVotedBlockHash(uint64_t const& pbft_round, blk_hash_t const& cert_voted_block_hash);
