@@ -164,7 +164,7 @@ uint64_t PbftManager::getPbftRound() const {
 
 void PbftManager::setPbftRound(uint64_t const round) {
   uniqueLock_ lock(round_access_);
-  db_->savePbftMgrField(PbftMrgField::PbftRound, round);
+  db_->savePbftMgrField(PbftMgrRoundStep::PbftRound, round);
   round_ = round;
 }
 
@@ -220,7 +220,7 @@ bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
 
 void PbftManager::setPbftStep(size_t const pbft_step) {
   last_step_ = step_;
-  db_->savePbftMgrField(PbftMrgField::PbftStep, pbft_step);
+  db_->savePbftMgrField(PbftMgrRoundStep::PbftStep, pbft_step);
   step_ = pbft_step;
 
   // if (step_ > MAX_STEPS) {
@@ -334,8 +334,8 @@ void PbftManager::initialState_() {
   LAMBDA_ms = LAMBDA_ms_MIN;
   STEP_4_DELAY = 2 * LAMBDA_ms;
 
-  auto round = db_->getPbftMgrField(PbftMrgField::PbftRound);
-  auto step = db_->getPbftMgrField(PbftMrgField::PbftStep);
+  auto round = db_->getPbftMgrField(PbftMgrRoundStep::PbftRound);
+  auto step = db_->getPbftMgrField(PbftMgrRoundStep::PbftStep);
   if (round == 1 && step == 1) {
     // Start at initialization
     state_ = value_proposal_state;
