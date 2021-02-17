@@ -66,6 +66,10 @@
           {
             "name": "VOTE_MGR",
             "verbosity": "INFO"
+          },
+          {
+            "name": "EXECUTOR",
+            "verbosity": "INFO"
           }
         ],
         "outputs": [
