@@ -166,17 +166,29 @@ TEST_F(FullNodeTest, db_test) {
   db.savePbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round, blk_hash_t(1));
   db.savePbftMgrVotedValue(PbftMgrVotedValue::soft_voted_block_hash_in_round, blk_hash_t(2));
   db.savePbftMgrVotedValue(PbftMgrVotedValue::next_voted_block_hash_in_previous_round, blk_hash_t(3));
+<<<<<<< HEAD
   EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round), blk_hash_t(1));
   EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::soft_voted_block_hash_in_round), blk_hash_t(2));
   EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::next_voted_block_hash_in_previous_round), blk_hash_t(3));
+=======
+  EXPECT_EQ(db.getPbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round), blk_hash_t(1));
+  EXPECT_EQ(db.getPbftMgrVotedValue(PbftMgrVotedValue::soft_voted_block_hash_in_round), blk_hash_t(2));
+  EXPECT_EQ(db.getPbftMgrVotedValue(PbftMgrVotedValue::next_voted_block_hash_in_previous_round), blk_hash_t(3));
+>>>>>>> 7b4f5b8c (Add fields of PBFT manager in DB, and add unit tests)
   batch = db.createWriteBatch();
   db.addPbftMgrVotedValueToBatch(PbftMgrVotedValue::own_starting_value_in_round, blk_hash_t(4), batch);
   db.addPbftMgrVotedValueToBatch(PbftMgrVotedValue::soft_voted_block_hash_in_round, blk_hash_t(5), batch);
   db.addPbftMgrVotedValueToBatch(PbftMgrVotedValue::next_voted_block_hash_in_previous_round, blk_hash_t(6), batch);
   db.commitWriteBatch(batch);
+<<<<<<< HEAD
   EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round), blk_hash_t(4));
   EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::soft_voted_block_hash_in_round), blk_hash_t(5));
   EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::next_voted_block_hash_in_previous_round), blk_hash_t(6));
+=======
+  EXPECT_EQ(db.getPbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round), blk_hash_t(4));
+  EXPECT_EQ(db.getPbftMgrVotedValue(PbftMgrVotedValue::soft_voted_block_hash_in_round), blk_hash_t(5));
+  EXPECT_EQ(db.getPbftMgrVotedValue(PbftMgrVotedValue::next_voted_block_hash_in_previous_round), blk_hash_t(6));
+>>>>>>> 7b4f5b8c (Add fields of PBFT manager in DB, and add unit tests)
   // pbft_blocks
   auto pbft_block1 = make_simple_pbft_block(blk_hash_t(1), 2);
   auto pbft_block2 = make_simple_pbft_block(blk_hash_t(2), 3);
