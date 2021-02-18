@@ -9,7 +9,7 @@ DagStats::DagStats(uint32_t expected_max_trx_count) {
 }
 
 void DagStats::addDagBlock(const addr_t& block_author) {
-  blocks_stats_.miners_blocks_count_[block_author]++;
+  blocks_stats_.proposers_blocks_count_[block_author]++;
   blocks_stats_.total_blocks_count_++;
 }
 
@@ -47,14 +47,14 @@ bool DagStats::addTransaction(const trx_hash_t& tx_hash, const addr_t& inclusion
   }
 
   // Already processed tx
-  found_tx->second.uncle_miners_.emplace_back(inclusion_block_author);
+  found_tx->second.uncle_proposers_.emplace_back(inclusion_block_author);
   return true;
 }
 
 void DagStats::clear() {
   transactions_stats_map_.clear();
   blocks_stats_.total_blocks_count_ = 0;
-  blocks_stats_.miners_blocks_count_.clear();
+  blocks_stats_.proposers_blocks_count_.clear();
 }
 
 RLP_FIELDS_DEFINE(DagStats::BlocksStats, miners_blocks_count_, total_blocks_count_)
