@@ -66,6 +66,7 @@ def vrf(secret):
 @click.option('--db-path', help='The db dir')
 @click.option('--file', default='./config/taraxa.json', help='The config file to write to')
 @click.option('--network', default="default", type=click.Choice(networks), help='Use boot nodes for a known network. Overwritten by --boot-node')
+@click.option('--log', multiple=True, help='Specify log channel override. format: channel:level')
 @click.option('--network-port-tcp', type=int, help='TCP port to listen on')
 @click.option('--network-port-udp', type=int, help='UDP port to listen on')
 @click.option('--node-secret', help='Use existing private key (node secret)')
@@ -74,7 +75,7 @@ def vrf(secret):
 @click.option('--stdout', is_flag=True, help='Write to stdout instead of a file')
 @click.option('--template', default='./config/_template.json', help='The config file to read from as a template')
 @click.option('--vrf-secret', help='Use existing private key (vrf secret)')
-def node(as_boot_node, boot_node, db_path, file, network, network_port_tcp, network_port_udp, node_secret, rpc_port_http, rpc_port_ws, stdout, template, vrf_secret):
+def node(as_boot_node, boot_node, db_path, file, network, log, network_port_tcp, network_port_udp, node_secret, rpc_port_http, rpc_port_ws, stdout, template, vrf_secret):
     """Generate Taraxa node config"""
     data =  json.loads('{}')
     template_data = json.loads('{}')
@@ -131,6 +132,17 @@ def node(as_boot_node, boot_node, db_path, file, network, network_port_tcp, netw
         boot_node_parsed['udp_port'] = int(b[1])
         boot_nodes_parsed.append(boot_node_parsed)
     set_or_use_existing_prop(data, config_data, 'network_boot_nodes', boot_nodes_parsed)
+
+    # parse log chnanel override settings
+    log_channels_parsed = []
+    for i in log:
+        log_channel_parsed = {}
+        a = i.split(':')
+        log_channel_parsed['name'] = a[0]
+        log_channel_parsed['verbosity'] = a[1]
+        log_channels_parsed.append(log_channel_parsed)
+        for configuration in data["logging"]["configurations"]:
+            configuration.append(log_channel_parsed)
 
     # output json to console or file
     if stdout:
