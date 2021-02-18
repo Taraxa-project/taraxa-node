@@ -18,11 +18,11 @@ class DagStats {
   /**
    * @struct BlocksStats
    * @typedef BlocksStats consists of:
-   *            - dag blocks rewards statistics. It maps miner address -> number of valid dag blocks that he created
+   *            - dag blocks rewards statistics. It maps proposer address -> number of valid dag blocks that he created
    *            - total number of dag blocks
    */
   struct BlocksStats {
-    std::map<addr_t, uint32_t> miners_blocks_count_;
+    std::map<addr_t, uint32_t> proposers_blocks_count_;
     uint32_t total_blocks_count_{0};
 
     HAS_RLP_FIELDS
@@ -31,12 +31,12 @@ class DagStats {
   /**
    * @struct TransactionStats
    * @brief TxStats consists of transaction rewards statistics:
-   *        miner_          - miner, who included tx_ in his dag block as first (his block was ordered as first)
-   *        uncle_miners_   - vector of miners, who included tx_ in their dag blocks after miner_
+   *        proposer_          - proposer, who included tx_ in his dag block as first (his block was ordered as first)
+   *        uncle_proposers_   - vector of proposers, who included tx_ in their dag blocks after proposer_
    */
   struct TransactionStats {
-    addr_t miner_{0};
-    std::vector<addr_t> uncle_miners_;
+    addr_t proposer_{0};
+    std::vector<addr_t> uncle_proposers_;
 
     HAS_RLP_FIELDS
   };
@@ -45,9 +45,9 @@ class DagStats {
   DagStats(uint32_t expected_max_trx_count = 0);
 
   /**
-   * @brief Increment miner's block counter in stats
+   * @brief Increment proposer's block counter in stats
    *
-   * @param block_author address of miner
+   * @param block_author address of proposer
    */
   void addDagBlock(const addr_t& block_author);
 
@@ -84,7 +84,7 @@ class DagStats {
   TransactionStats&& getTransactionStatsRvalue(const trx_hash_t& tx_hash);
 
   /**
-   * @brief Add transaction - it adds miner's address, who included this tx in his block to the rewards stats
+   * @brief Add transaction - it adds proposer's address, who included this tx in his block to the rewards stats
    *
    * @param tx_hash
    * @param inclusion_block_author
@@ -98,7 +98,7 @@ class DagStats {
   void clear();
 
  private:
-  // Blocks Stats contains how many dag blocks each miner created + total number of all dag blocks
+  // Blocks Stats contains how many dag blocks each proposer created + total number of all dag blocks
   BlocksStats blocks_stats_;
 
   // Transactions stats
