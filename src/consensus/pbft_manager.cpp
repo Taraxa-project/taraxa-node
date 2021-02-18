@@ -801,8 +801,10 @@ void PbftManager::secondFinish_() {
       db_->savePbftMgrStatus(PbftMgrStatus::next_voted_soft_value, true);
       next_voted_soft_value_ = true;
     }
-    if (!next_voted_null_block_hash_ && round >= 2 && next_voted_block_from_previous_round_.second &&
-        next_voted_block_from_previous_round_.first == NULL_BLOCK_HASH &&
+    if (!next_voted_null_block_hash_ && round >= 2 &&
+        (next_voted_block_from_previous_round_.second &&
+             next_voted_block_from_previous_round_.first == NULL_BLOCK_HASH ||
+         push_block_values_for_round_.count(round - 1)) &&
         (cert_voted_values_for_round_.find(round) == cert_voted_values_for_round_.end())) {
       LOG(log_dg_) << "Next voting NULL BLOCK for round " << round << ", at step " << step_;
       placeVote_(NULL_BLOCK_HASH, next_vote_type, round, step_);
