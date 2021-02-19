@@ -11,7 +11,7 @@ from nacl.public import PrivateKey
 from pathlib import Path
 
 # network configs are pre-defined boot nodes for a network
-network_config_folder = Path('./config/networks').rglob('*.json')
+network_config_folder = Path('../config/networks').rglob('*.json')
 network_configs = [x for x in network_config_folder]
 networks = []
 for path in network_configs:
@@ -142,7 +142,7 @@ def node(as_boot_node, boot_node, db_path, file, network, log, network_port_tcp,
         log_channel_parsed['verbosity'] = a[1]
         log_channels_parsed.append(log_channel_parsed)
         for configuration in data["logging"]["configurations"]:
-            configuration.append(log_channel_parsed)
+            configuration["channels"].append(log_channel_parsed)
 
     # output json to console or file
     if stdout:
