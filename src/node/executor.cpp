@@ -54,8 +54,11 @@ void Executor::stop() {
 }
 
 void Executor::execute(std::shared_ptr<PbftBlock> blk) {
-  std::unique_lock l(mu_);
-  to_execute_ = move(blk);
+  assert(final_chain_->last_block_number() < blk->getPeriod());
+  {
+    std::unique_lock l(mu_);
+    to_execute_ = move(blk);
+  }
   cv_.notify_one();
 }
 
@@ -71,10 +74,10 @@ void Executor::tick() {
     }
     std::swap(pbft_block, to_execute_);
   }
-  execute_(*pbft_block);
-  for (auto blk_n = final_chain_->last_block_number(); blk_n < pbft_block->getPeriod(); ++blk_n) {
+  for (auto blk_n = final_chain_->last_block_number() + 1; blk_n < pbft_block->getPeriod(); ++blk_n) {
     execute_(*load_pbft_blk(blk_n));
   }
+  execute_(*pbft_block);
 }
 
 void Executor::execute_(PbftBlock const &pbft_block) {
