@@ -11,8 +11,7 @@ from nacl.public import PrivateKey
 from pathlib import Path
 
 # network configs are pre-defined boot nodes for a network
-
-network_config_folder = Path('../config/networks').rglob('*.json')
+network_config_folder = Path('./config/networks').rglob('*.json')
 network_configs = [x for x in network_config_folder]
 networks = []
 for path in network_configs:
