@@ -57,6 +57,9 @@ void Executor::execute(std::shared_ptr<PbftBlock> blk) {
   assert(final_chain_->last_block_number() < blk->getPeriod());
   {
     std::unique_lock l(mu_);
+    if (to_execute_) {
+      assert(to_execute_->getPeriod() < blk->getPeriod());
+    }
     to_execute_ = move(blk);
   }
   cv_.notify_one();
