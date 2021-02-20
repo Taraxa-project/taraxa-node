@@ -69,12 +69,12 @@ def vrf(secret):
 @click.option('--log', multiple=True, help='Specify log channel override. format: channel:level')
 @click.option('--network-port-tcp', type=int, help='TCP port to listen on')
 @click.option('--network-port-udp', type=int, help='UDP port to listen on')
-@click.option('--node-secret', help='Use existing private key (node secret)')
+@click.option('--node-secret', help='Use specific private key (node secret)')
 @click.option('--rpc-port-http', type=int, help='HTTP RPC port')
 @click.option('--rpc-port-ws', type=int, help='WS RPC port')
 @click.option('--stdout', is_flag=True, help='Write to stdout instead of a file')
 @click.option('--template', default='./config/_template.json', help='The config file to read from as a template')
-@click.option('--vrf-secret', help='Use existing private key (vrf secret)')
+@click.option('--vrf-secret', help='Use specific private key (vrf secret)')
 def node(as_boot_node, boot_node, db_path, file, network, log, network_port_tcp, network_port_udp, node_secret, rpc_port_http, rpc_port_ws, stdout, template, vrf_secret):
     """Generate Taraxa node config"""
     data =  json.loads('{}')
@@ -102,13 +102,13 @@ def node(as_boot_node, boot_node, db_path, file, network, log, network_port_tcp,
         Account.enable_unaudited_hdwallet_features()
         acct, mnemonic = Account.create_with_mnemonic("", 12, "english", "m/44'/60'/0'/0/0") # pylint: disable=unused-variable
         node_secret = acct.key.hex()[2:]
-        data["node_secret"] = node_secret
+    data["node_secret"] = node_secret
     
     if not vrf_secret:
         sk = PrivateKey.generate()
         vrf_secret = sk.encode().hex()
-        data["vrf_secret"] = vrf_secret        
-    
+    data["vrf_secret"] = vrf_secret
+
     with open(f"./config/networks/{network}.json") as json_file:
         network_config = json.load(json_file)
         data.update(network_config)

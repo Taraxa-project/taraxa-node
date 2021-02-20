@@ -20,7 +20,7 @@
     }
   ],
   "chain_config": {
-    "chain_id": "0xD903",
+    "chain_id": "0xd903",
     "dag_genesis_block": {
       "hash": "0xc9524784c4bf29e6facdd94ef7d214b9f512cdfd0f68184432dab85d053cbc69",
       "level": "0x0",
@@ -64,8 +64,8 @@
           "disable_nonce_check": true
         },
         "genesis_balances": {
-          "2cd4da7d3b345e022ca7e997c2bb3276a4d3d2e9": "0x1027E72F1F12813088000000",
-          "7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x1027E72F1F12813088000000"
+          "2cd4da7d3b345e022ca7e997c2bb3276a4d3d2e9": "0x1027e72f1f12813088000000",
+          "7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x1027e72f1f12813088000000"
         }
       }
     },
