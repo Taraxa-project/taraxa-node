@@ -20,7 +20,7 @@
     }
   ],
   "chain_config": {
-    "chain_id": "0x1",
+    "chain_id": "0xD903",
     "dag_genesis_block": {
       "hash": "0xc9524784c4bf29e6facdd94ef7d214b9f512cdfd0f68184432dab85d053cbc69",
       "level": "0x0",
@@ -39,14 +39,16 @@
       "state": {
         "disable_block_rewards": true,
         "dpos": {
-          "deposit_delay": "0x0",
-          "eligibility_balance_threshold": "0x3b9aca00",
+          "deposit_delay": "0x64",
+          "eligibility_balance_threshold": "0xd3c21bcecceda0000000",
           "genesis_state": {
-            "0xde2b1203d72d3549ee2f733b00b2789414c7cea5": {
-              "0xde2b1203d72d3549ee2f733b00b2789414c7cea5": "0x3b9aca00"
+            "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": {
+              "0x10ece4be76a0a2a6eb154f7e4b9503932fe7382f": "0xd3c21bcecceda0000000",
+              "0xa932a0fd90b395eaf827b1be428c3cd7b8069cf6": "0xd3c21bcecceda0000000",
+              "0xa3094c300310286e356cc14d3ecad2281f217462": "0xd3c21bcecceda0000000"
             }
           },
-          "withdrawal_delay": "0x0"
+          "withdrawal_delay": "0x64"
         },
         "eth_chain_config": {
           "byzantium_block": "0x0",
@@ -62,7 +64,8 @@
           "disable_nonce_check": true
         },
         "genesis_balances": {
-          "de2b1203d72d3549ee2f733b00b2789414c7cea5": "0x1fffffffffffff"
+          "2cd4da7d3b345e022ca7e997c2bb3276a4d3d2e9": "0x1027E72F1F12813088000000",
+          "7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x1027E72F1F12813088000000"
         }
       }
     },
