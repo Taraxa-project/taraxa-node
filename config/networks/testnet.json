@@ -39,7 +39,8 @@
       "state": {
         "disable_block_rewards": true,
         "dpos": {
-          "deposit_delay": "0x64",
+          "deposit_delay": "0x0",
+          "withdrawal_delay": "0x0",
           "eligibility_balance_threshold": "0xd3c21bcecceda0000000",
           "genesis_state": {
             "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": {
@@ -47,8 +48,7 @@
               "0xa932a0fd90b395eaf827b1be428c3cd7b8069cf6": "0xd3c21bcecceda0000000",
               "0xa3094c300310286e356cc14d3ecad2281f217462": "0xd3c21bcecceda0000000"
             }
-          },
-          "withdrawal_delay": "0x64"
+          }
         },
         "eth_chain_config": {
           "byzantium_block": "0x0",
