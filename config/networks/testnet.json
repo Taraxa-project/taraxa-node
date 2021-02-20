@@ -39,8 +39,8 @@
       "state": {
         "disable_block_rewards": true,
         "dpos": {
-          "deposit_delay": "0x0",
-          "withdrawal_delay": "0x0",
+          "deposit_delay": "0x10",
+          "withdrawal_delay": "0x10",
           "eligibility_balance_threshold": "0xd3c21bcecceda0000000",
           "genesis_state": {
             "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": {
