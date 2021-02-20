@@ -66,6 +66,7 @@ def vrf(secret):
 @click.option('--db-path', help='The db dir')
 @click.option('--file', default='./config/taraxa.json', help='The config file to write to')
 @click.option('--network', default="default", type=click.Choice(networks), help='Use boot nodes for a known network. Overwritten by --boot-node')
+@click.option('--log', multiple=True, help='Specify log channel override. format: channel:level')
 @click.option('--network-port-tcp', type=int, help='TCP port to listen on')
 @click.option('--network-port-udp', type=int, help='UDP port to listen on')
 @click.option('--node-secret', help='Use existing private key (node secret)')
@@ -74,7 +75,7 @@ def vrf(secret):
 @click.option('--stdout', is_flag=True, help='Write to stdout instead of a file')
 @click.option('--template', default='./config/_template.json', help='The config file to read from as a template')
 @click.option('--vrf-secret', help='Use existing private key (vrf secret)')
-def node(as_boot_node, boot_node, db_path, file, network, network_port_tcp, network_port_udp, node_secret, rpc_port_http, rpc_port_ws, stdout, template, vrf_secret):
+def node(as_boot_node, boot_node, db_path, file, network, log, network_port_tcp, network_port_udp, node_secret, rpc_port_http, rpc_port_ws, stdout, template, vrf_secret):
     """Generate Taraxa node config"""
     data =  json.loads('{}')
     template_data = json.loads('{}')
@@ -83,41 +84,34 @@ def node(as_boot_node, boot_node, db_path, file, network, network_port_tcp, netw
     # expose missing template error to user
     with open(template) as template_file:
         template_data = json.load(template_file)
+        data.update(template_data)
 
     # use existing values from config if it exists, otherwise skip
     try:
         with open(file) as json_file:
             config_data = json.load(json_file)
+            data.update(config_data)
     except IOError:
         pass
 
-    # use template
-    data = template_data
-
     if as_boot_node:
-        set_or_use_existing_prop(data, config_data, 'network_is_boot_node', True)
-
+        data["network_is_boot_node"] = True;
+    
     # update values or fallback to existing values when possible
     if not node_secret:
         Account.enable_unaudited_hdwallet_features()
         acct, mnemonic = Account.create_with_mnemonic("", 12, "english", "m/44'/60'/0'/0/0") # pylint: disable=unused-variable
         node_secret = acct.key.hex()[2:]
-    set_or_use_existing_prop(data, config_data, 'node_secret', node_secret)
-
+        data["node_secret"] = node_secret
+    
     if not vrf_secret:
         sk = PrivateKey.generate()
         vrf_secret = sk.encode().hex()
-    set_or_use_existing_prop(data, config_data, 'vrf_secret', vrf_secret)
-
-    set_or_use_existing_prop(data, config_data, 'rpc_port', rpc_port_http)
-    set_or_use_existing_prop(data, config_data, 'ws_port', rpc_port_ws)
-    set_or_use_existing_prop(data, config_data, 'network_tcp_port', network_port_tcp)
-    set_or_use_existing_prop(data, config_data, 'network_udp_port', network_port_udp)
-    set_or_use_existing_prop(data, config_data, 'db_path', db_path)
-
+        data["vrf_secret"] = vrf_secret        
+    
     with open(f"./config/networks/{network}.json") as json_file:
         network_config = json.load(json_file)
-        set_or_use_existing_prop(data, config_data, 'network_boot_nodes', network_config['boot_nodes'])
+        data.update(network_config)
 
     # parse boot nodes stings
     boot_nodes_parsed = []
@@ -130,7 +124,17 @@ def node(as_boot_node, boot_node, db_path, file, network, network_port_tcp, netw
         boot_node_parsed['tcp_port'] = int(b[1])
         boot_node_parsed['udp_port'] = int(b[1])
         boot_nodes_parsed.append(boot_node_parsed)
-    set_or_use_existing_prop(data, config_data, 'network_boot_nodes', boot_nodes_parsed)
+    if boot_nodes_parsed:
+        data["network_boot_nodes"] = boot_nodes_parsed
+    
+    # parse log chnanel override settings
+    for i in log:
+        log_channel_parsed = {}
+        a = i.split(':')
+        log_channel_parsed['name'] = a[0].upper()
+        log_channel_parsed['verbosity'] = a[1].upper()
+        for configuration in data["logging"]["configurations"]:
+            configuration["channels"].append(log_channel_parsed)
 
     # output json to console or file
     if stdout:
@@ -139,12 +143,6 @@ def node(as_boot_node, boot_node, db_path, file, network, network_port_tcp, netw
         with open(file, 'w') as outfile:
             json.dump(data, outfile, indent=2)
 
-def set_or_use_existing_prop(config, existing, propname, newval):
-    if newval:
-        config[propname] = newval
-    elif existing.get(propname):
-        config[propname] = existing[propname]
-    return config
 
 if __name__ == '__main__':
     cli()
