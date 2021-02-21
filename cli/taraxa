@@ -17,8 +17,11 @@ networks = []
 for path in network_configs:
     name = os.path.basename(path)
     networks.append(name.replace('.json', ''))
-click.echo(network_configs)
 
+def nested_set(dic, keys, value):
+    for key in keys[:-1]:
+        dic = dic.setdefault(key, {})
+    dic[keys[-1]] = value
 
 @click.group()
 def cli():
@@ -75,7 +78,8 @@ def vrf(secret):
 @click.option('--stdout', is_flag=True, help='Write to stdout instead of a file')
 @click.option('--template', default='./config/_template.json', help='The config file to read from as a template')
 @click.option('--vrf-secret', help='Use specific private key (vrf secret)')
-def node(as_boot_node, boot_node, db_path, file, network, log, network_port_tcp, network_port_udp, node_secret, rpc_port_http, rpc_port_ws, stdout, template, vrf_secret):
+@click.option('--prop-override', multiple=True, help='Use to override specific property. format: key.key...key:value')
+def node(as_boot_node, boot_node, db_path, file, network, log, network_port_tcp, network_port_udp, node_secret, rpc_port_http, rpc_port_ws, stdout, template, vrf_secret, prop_override):
     """Generate Taraxa node config"""
     data =  json.loads('{}')
     template_data = json.loads('{}')
@@ -135,6 +139,21 @@ def node(as_boot_node, boot_node, db_path, file, network, log, network_port_tcp,
         log_channel_parsed['verbosity'] = a[1].upper()
         for configuration in data["logging"]["configurations"]:
             configuration["channels"].append(log_channel_parsed)
+
+    for i in prop_override:
+        a = i.split(':')
+        keys = a[0].split('.')
+        value_to_parse = a[1]
+
+        if value_to_parse.lower() == "false":
+            click.echo("FOUND FALSE")
+            value_to_parse = False
+        elif value_to_parse.lower() == "true":
+            value_to_parse = True
+        elif value_to_parse.isnumeric(): 
+            value_to_parse = int(value_to_parse)
+
+        nested_set(data, keys, value_to_parse)
 
     # output json to console or file
     if stdout:
