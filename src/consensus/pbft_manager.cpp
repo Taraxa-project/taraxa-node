@@ -1048,10 +1048,10 @@ bool PbftManager::syncRequestedAlreadyThisStep_() const {
 
 void PbftManager::syncPbftChainFromPeers_() {
   if (stopped_) return;
-  if (!pbft_chain_->pbftSyncedQueueEmpty()) {
-    LOG(log_dg_) << "DAG has not synced yet. PBFT chain skips syncing";
-    return;
-  }
+  //if (!pbft_chain_->pbftSyncedQueueEmpty()) {
+  //  LOG(log_dg_) << "DAG has not synced yet. PBFT chain skips syncing";
+  //  return;
+  //}
 
   if (!capability_->syncing_ && !syncRequestedAlreadyThisStep_()) {
     auto round = getPbftRound();
@@ -1104,12 +1104,12 @@ bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(PbftBlock const &pbft_b
   LOG(log_nf_) << "DAG blocks have not sync yet. In period: " << last_period << ", anchor block hash " << anchor_hash
                << " is not found locally";
   LOG(log_dg_) << "SYNCSTARTDEBUG state is finishing state: " << (state_ == finish_state) << " syncing_: " << capability_->syncing_ << " sync requested already this step: " << syncRequestedAlreadyThisStep_();
-  if (state_ == finish_state && !have_executed_this_round_ && !capability_->syncing_ &&
-      !syncRequestedAlreadyThisStep_()) {
-    LOG(log_nf_) << "DAG blocks have not sync yet. In period: " << last_period << " PBFT block anchor: " << anchor_hash
-                 << " .. Triggering sync request";
-    syncPbftChainFromPeers_();
-  }
+  //if (state_ == finish_state && !have_executed_this_round_ && !capability_->syncing_ &&
+  //if (!syncRequestedAlreadyThisStep_()) {
+  LOG(log_nf_) << "DAG blocks have not sync yet. In period: " << last_period << " PBFT block anchor: " << anchor_hash
+               << " .. Triggering sync request";
+  syncPbftChainFromPeers_();
+  //}
   return false;
 }
 
