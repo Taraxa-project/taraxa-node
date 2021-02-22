@@ -1058,7 +1058,7 @@ void PbftManager::syncPbftChainFromPeers_() {
     LOG(log_nf_) << "Restarting pbft sync."
                  << " In round " << round << ", in step " << step_
                  << " Send request to ask missing pbft blocks in chain";
-    capability_->restartSyncingPbft(true);
+    capability_->restartSyncingPbft(false);
     pbft_round_last_requested_sync_ = round;
     pbft_step_last_requested_sync_ = step_;
   }
