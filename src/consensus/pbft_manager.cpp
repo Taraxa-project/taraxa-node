@@ -1048,17 +1048,17 @@ bool PbftManager::syncRequestedAlreadyThisStep_() const {
 
 void PbftManager::syncPbftChainFromPeers_() {
   if (stopped_) return;
-  //if (!pbft_chain_->pbftSyncedQueueEmpty()) {
-  //  LOG(log_dg_) << "DAG has not synced yet. PBFT chain skips syncing";
-  //  return;
-  //}
+  if (!pbft_chain_->pbftSyncedQueueEmpty()) {
+    LOG(log_dg_) << "DAG has not synced yet. PBFT chain skips syncing";
+    return;
+  }
 
   if (!capability_->syncing_ && !syncRequestedAlreadyThisStep_()) {
     auto round = getPbftRound();
     LOG(log_nf_) << "Restarting pbft sync."
                  << " In round " << round << ", in step " << step_
                  << " Send request to ask missing pbft blocks in chain";
-    capability_->restartSyncingPbft();
+    capability_->restartSyncingPbft(true);
     pbft_round_last_requested_sync_ = round;
     pbft_step_last_requested_sync_ = step_;
   }
