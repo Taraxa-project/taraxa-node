@@ -118,7 +118,7 @@ class PbftManager {
 
   bool syncRequestedAlreadyThisStep_() const;
 
-  void syncPbftChainFromPeers_();
+  void syncPbftChainFromPeers_(bool force);
 
   bool nextVotesSyncAlreadyThisRoundStep_();
 
