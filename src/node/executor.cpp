@@ -17,9 +17,10 @@ Executor::Executor(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_
       db_(db),
       dag_mgr_(dag_mgr),
       trx_mgr_(trx_mgr),
-      final_chain_(final_chain) {
+      final_chain_(final_chain),
+      pbft_chain_(pbft_chain) {
   LOG_OBJECTS_CREATE("EXECUTOR");
-  if (auto last_period = pbft_chain->getPbftChainSize(); final_chain_->last_block_number() < last_period) {
+  if (auto last_period = pbft_chain_->getPbftChainSize(); final_chain_->last_block_number() < last_period) {
     to_execute_ = load_pbft_blk(last_period);
   }
   num_executed_dag_blk_ = db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
