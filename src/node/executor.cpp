@@ -17,9 +17,10 @@ Executor::Executor(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_
       db_(db),
       dag_mgr_(dag_mgr),
       trx_mgr_(trx_mgr),
-      final_chain_(final_chain) {
+      final_chain_(final_chain),
+      pbft_chain_(pbft_chain) {
   LOG_OBJECTS_CREATE("EXECUTOR");
-  if (auto last_period = pbft_chain->getPbftChainSize(); final_chain_->last_block_number() < last_period) {
+  if (auto last_period = pbft_chain_->getPbftChainSize(); final_chain_->last_block_number() < last_period) {
     to_execute_ = load_pbft_blk(last_period);
   }
   num_executed_dag_blk_ = db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
@@ -54,8 +55,14 @@ void Executor::stop() {
 }
 
 void Executor::execute(std::shared_ptr<PbftBlock> blk) {
-  std::unique_lock l(mu_);
-  to_execute_ = move(blk);
+  assert(final_chain_->last_block_number() < blk->getPeriod());
+  {
+    std::unique_lock l(mu_);
+    if (to_execute_) {
+      assert(to_execute_->getPeriod() < blk->getPeriod());
+    }
+    to_execute_ = move(blk);
+  }
   cv_.notify_one();
 }
 
@@ -71,10 +78,10 @@ void Executor::tick() {
     }
     std::swap(pbft_block, to_execute_);
   }
-  execute_(*pbft_block);
-  for (auto blk_n = final_chain_->last_block_number(); blk_n < pbft_block->getPeriod(); ++blk_n) {
+  for (auto blk_n = final_chain_->last_block_number() + 1; blk_n < pbft_block->getPeriod(); ++blk_n) {
     execute_(*load_pbft_blk(blk_n));
   }
+  execute_(*pbft_block);
 }
 
 void Executor::execute_(PbftBlock const &pbft_block) {
