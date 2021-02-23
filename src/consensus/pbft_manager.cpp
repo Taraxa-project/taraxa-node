@@ -164,7 +164,7 @@ uint64_t PbftManager::getPbftRound() const {
 
 void PbftManager::setPbftRound(uint64_t const round) {
   uniqueLock_ lock(round_access_);
-  db_->savePbftMgrField(PbftMrgField::PbftRound, round);
+  db_->savePbftMgrField(PbftMgrRoundStep::PbftRound, round);
   round_ = round;
 }
 
@@ -220,7 +220,7 @@ bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
 
 void PbftManager::setPbftStep(size_t const pbft_step) {
   last_step_ = step_;
-  db_->savePbftMgrField(PbftMrgField::PbftStep, pbft_step);
+  db_->savePbftMgrField(PbftMgrRoundStep::PbftStep, pbft_step);
   step_ = pbft_step;
 
   // if (step_ > MAX_STEPS) {
@@ -273,6 +273,24 @@ bool PbftManager::resetRound_() {
     state_ = value_proposal_state;
     LOG(log_dg_) << "Advancing clock to pbft round " << round << ", step 1, and resetting clock.";
 
+    // Identify what block was next voted if any in this last round...
+    auto next_voted_block_from_previous_round = nextVotedBlockForRoundAndStep_(votes_, local_round);
+
+    // Update in DB first
+    auto batch = db_->createWriteBatch();
+    db_->addPbftMgrStatusToBatch(PbftMgrStatus::executed_in_round, false, batch);
+    db_->addPbftMgrStatusToBatch(PbftMgrStatus::cert_voted_in_round, false, batch);
+    db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::own_starting_value_in_round, NULL_BLOCK_HASH, batch);
+    db_->addPbftMgrStatusToBatch(PbftMgrStatus::next_voted_null_block_hash, false, batch);
+    db_->addPbftMgrStatusToBatch(PbftMgrStatus::next_voted_soft_value, false, batch);
+    db_->addPbftMgrStatusToBatch(PbftMgrStatus::soft_voted_block_in_round, false, batch);
+    db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::soft_voted_block_hash_in_round, NULL_BLOCK_HASH, batch);
+    db_->addPbftMgrStatusToBatch(PbftMgrStatus::next_voted_block_in_previous_round,
+                                 next_voted_block_from_previous_round.second, batch);
+    db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::next_voted_block_hash_in_previous_round,
+                                     next_voted_block_from_previous_round.first, batch);
+    db_->commitWriteBatch(batch);
+
     have_executed_this_round_ = false;
     should_have_cert_voted_in_this_round_ = false;
     // reset starting value to NULL_BLOCK_HASH
@@ -286,12 +304,13 @@ bool PbftManager::resetRound_() {
     soft_voted_block_for_this_round_ = std::make_pair(NULL_BLOCK_HASH, false);
 
     // Identify what block was next voted if any in this last round...
-    next_voted_block_from_previous_round_ = nextVotedBlockForRoundAndStep_(votes_, local_round);
+    next_voted_block_from_previous_round_ = next_voted_block_from_previous_round;
 
     if (executed_pbft_block_) {
       update_dpos_state_();
       // reset sortition_threshold and TWO_T_PLUS_ONE
       updateTwoTPlusOneAndThreshold_();
+      db_->savePbftMgrStatus(PbftMgrStatus::executed_block, false);
       executed_pbft_block_ = false;
     }
 
@@ -308,6 +327,11 @@ bool PbftManager::resetRound_() {
       //       sync call won't be supressed for being too
       //       recent (ie. same round and step)
       syncPbftChainFromPeers_();
+      auto batch = db_->createWriteBatch();
+      db_->addPbftMgrStatusToBatch(PbftMgrStatus::next_voted_block_in_previous_round, false, batch);
+      db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::next_voted_block_hash_in_previous_round, NULL_BLOCK_HASH,
+                                       batch);
+      db_->commitWriteBatch(batch);
       next_voted_block_from_previous_round_ = std::make_pair(NULL_BLOCK_HASH, false);
     }
     // Restart while loop...
@@ -334,8 +358,8 @@ void PbftManager::initialState_() {
   LAMBDA_ms = LAMBDA_ms_MIN;
   STEP_4_DELAY = 2 * LAMBDA_ms;
 
-  auto round = db_->getPbftMgrField(PbftMrgField::PbftRound);
-  auto step = db_->getPbftMgrField(PbftMrgField::PbftStep);
+  auto round = db_->getPbftMgrField(PbftMgrRoundStep::PbftRound);
+  auto step = db_->getPbftMgrField(PbftMgrRoundStep::PbftStep);
   if (round == 1 && step == 1) {
     // Start at initialization
     state_ = value_proposal_state;
@@ -351,14 +375,42 @@ void PbftManager::initialState_() {
   pbft_round_last_requested_sync_ = 0;
   pbft_step_last_requested_sync_ = 0;
 
-  own_starting_value_for_round_ = NULL_BLOCK_HASH;
-  soft_voted_block_for_this_round_ = std::make_pair(NULL_BLOCK_HASH, false);
-  next_voted_block_from_previous_round_ = std::make_pair(NULL_BLOCK_HASH, false);
-  executed_pbft_block_ = false;
-  have_executed_this_round_ = false;
-  should_have_cert_voted_in_this_round_ = false;
-  next_voted_soft_value_ = false;
-  next_voted_null_block_hash_ = false;
+  auto own_starting_value = db_->getPbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round);
+  if (own_starting_value) {
+    // From DB
+    own_starting_value_for_round_ = *own_starting_value;
+  } else {
+    // Default value
+    own_starting_value_for_round_ = NULL_BLOCK_HASH;
+  }
+
+  auto soft_voted_block_hash = db_->getPbftMgrVotedValue(PbftMgrVotedValue::soft_voted_block_hash_in_round);
+  auto soft_voted_block = db_->getPbftMgrStatus(PbftMgrStatus::soft_voted_block_in_round);
+  if (soft_voted_block_hash) {
+    // From DB
+    soft_voted_block_for_this_round_ = std::make_pair(*soft_voted_block_hash, soft_voted_block);
+  } else {
+    // Default value
+    soft_voted_block_for_this_round_ = std::make_pair(NULL_BLOCK_HASH, soft_voted_block);
+  }
+
+  auto next_voted_block_hash_in_previous_round =
+      db_->getPbftMgrVotedValue(PbftMgrVotedValue::next_voted_block_hash_in_previous_round);
+  auto next_voted_block_in_previous_round = db_->getPbftMgrStatus(PbftMgrStatus::next_voted_block_in_previous_round);
+  if (next_voted_block_hash_in_previous_round) {
+    // From DB
+    next_voted_block_from_previous_round_ =
+        std::make_pair(*next_voted_block_hash_in_previous_round, next_voted_block_in_previous_round);
+  } else {
+    // Default value
+    next_voted_block_from_previous_round_ = std::make_pair(NULL_BLOCK_HASH, next_voted_block_in_previous_round);
+  }
+
+  executed_pbft_block_ = db_->getPbftMgrStatus(PbftMgrStatus::executed_block);
+  have_executed_this_round_ = db_->getPbftMgrStatus(PbftMgrStatus::executed_in_round);
+  should_have_cert_voted_in_this_round_ = db_->getPbftMgrStatus(PbftMgrStatus::cert_voted_in_round);
+  next_voted_soft_value_ = db_->getPbftMgrStatus(PbftMgrStatus::next_voted_soft_value);
+  next_voted_null_block_hash_ = db_->getPbftMgrStatus(PbftMgrStatus::next_voted_null_block_hash);
 
   round_clock_initial_datetime_ = std::chrono::system_clock::now();
   current_step_clock_initial_datetime_ = round_clock_initial_datetime_;
@@ -438,6 +490,10 @@ void PbftManager::setFinishState_() {
 void PbftManager::setFinishPollingState_() {
   state_ = finish_polling_state;
   setPbftStep(step_ + 1);
+  auto batch = db_->createWriteBatch();
+  db_->addPbftMgrStatusToBatch(PbftMgrStatus::next_voted_soft_value, false, batch);
+  db_->addPbftMgrStatusToBatch(PbftMgrStatus::next_voted_null_block_hash, false, batch);
+  db_->commitWriteBatch(batch);
   next_voted_soft_value_ = false;
   next_voted_null_block_hash_ = false;
   last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
@@ -447,6 +503,10 @@ void PbftManager::setFinishPollingState_() {
 void PbftManager::continueFinishPollingState_(size_t step) {
   state_ = finish_polling_state;
   setPbftStep(step);
+  auto batch = db_->createWriteBatch();
+  db_->addPbftMgrStatusToBatch(PbftMgrStatus::next_voted_soft_value, false, batch);
+  db_->addPbftMgrStatusToBatch(PbftMgrStatus::next_voted_null_block_hash, false, batch);
+  db_->commitWriteBatch(batch);
   next_voted_soft_value_ = false;
   next_voted_null_block_hash_ = false;
 }
@@ -455,12 +515,16 @@ void PbftManager::loopBackFinishState_() {
   auto round = getPbftRound();
   LOG(log_dg_) << "CONSENSUSDBG round " << round << " , step " << step_
                << " | next_voted_soft_value_ = " << next_voted_soft_value_
-               << " soft block = " << soft_voted_block_for_this_round_
+               << " soft block = " << soft_voted_block_for_this_round_.first
                << " next_voted_null_block_hash_ = " << next_voted_null_block_hash_
-               << " next_voted_block_from_previous_round_ = " << next_voted_block_from_previous_round_
+               << " next_voted_block_from_previous_round_ = " << next_voted_block_from_previous_round_.first
                << " cert voted = " << (cert_voted_values_for_round_.find(round) != cert_voted_values_for_round_.end());
   state_ = finish_state;
   setPbftStep(step_ + 1);
+  auto batch = db_->createWriteBatch();
+  db_->addPbftMgrStatusToBatch(PbftMgrStatus::next_voted_soft_value, false, batch);
+  db_->addPbftMgrStatusToBatch(PbftMgrStatus::next_voted_null_block_hash, false, batch);
+  db_->commitWriteBatch(batch);
   next_voted_soft_value_ = false;
   next_voted_null_block_hash_ = false;
   next_step_time_ms_ = step_ * LAMBDA_ms + STEP_4_DELAY;
@@ -502,6 +566,7 @@ bool PbftManager::stateOperations_() {
       // put pbft block into chain
       if (pushCertVotedPbftBlockIntoChain_(cert_voted_block_hash.first, cert_votes_for_round)) {
         push_block_values_for_round_[round] = cert_voted_block_hash.first;
+        db_->savePbftMgrStatus(PbftMgrStatus::executed_in_round, true);
         have_executed_this_round_ = true;
         LOG(log_nf_) << "Write " << cert_votes_for_round.size() << " votes ... in round " << round;
         duration_ = std::chrono::system_clock::now() - now_;
@@ -553,6 +618,7 @@ void PbftManager::proposeBlock_() {
         proposed_block_hash_ = proposeMyPbftBlock_();
       }
       if (proposed_block_hash_.second) {
+        db_->savePbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round, proposed_block_hash_.first);
         own_starting_value_for_round_ = proposed_block_hash_.first;
         LOG(log_nf_) << "Proposing own starting value " << own_starting_value_for_round_ << " for round " << round;
         placeVote_(proposed_block_hash_.first, propose_vote_type, round, step_);
@@ -561,6 +627,8 @@ void PbftManager::proposeBlock_() {
   } else if (round >= 2) {
     if (next_voted_block_from_previous_round_.second &&
         next_voted_block_from_previous_round_.first != NULL_BLOCK_HASH) {
+      db_->savePbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round,
+                                 next_voted_block_from_previous_round_.first);
       own_starting_value_for_round_ = next_voted_block_from_previous_round_.first;
       if (shouldSpeak(propose_vote_type, round, step_)) {
         LOG(log_nf_) << "Proposing next voted block " << next_voted_block_from_previous_round_.first
@@ -581,6 +649,7 @@ void PbftManager::identifyBlock_() {
     // Identity leader
     std::pair<blk_hash_t, bool> leader_block = identifyLeaderBlock_(votes_);
     if (leader_block.second) {
+      db_->savePbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round, leader_block.first);
       own_starting_value_for_round_ = leader_block.first;
       LOG(log_dg_) << "Identify leader block " << leader_block.first << " at round " << round;
       if (shouldSpeak(soft_vote_type, round, step_)) {
@@ -613,7 +682,13 @@ void PbftManager::certifyBlock_() {
   } else if (!should_have_cert_voted_in_this_round_) {
     LOG(log_tr_) << "In step 3";
     if (!soft_voted_block_for_this_round_.second) {
-      soft_voted_block_for_this_round_ = softVotedBlockForRound_(votes_, round);
+      auto soft_voted_block = softVotedBlockForRound_(votes_, round);
+      auto batch = db_->createWriteBatch();
+      db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::soft_voted_block_hash_in_round, soft_voted_block.first,
+                                       batch);
+      db_->addPbftMgrStatusToBatch(PbftMgrStatus::soft_voted_block_in_round, soft_voted_block.second, batch);
+      db_->commitWriteBatch(batch);
+      soft_voted_block_for_this_round_ = soft_voted_block;
     }
     if (soft_voted_block_for_this_round_.second && soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH &&
         comparePbftBlockScheduleWithDAGblocks_(soft_voted_block_for_this_round_.first)) {
@@ -653,6 +728,7 @@ void PbftManager::certifyBlock_() {
 
         // NEED TO KEEP POLLING TO SEE IF WE HAVE 2t+1 cert votes...
         // Here we would cert vote if we can speak....
+        db_->savePbftMgrStatus(PbftMgrStatus::cert_voted_in_round, true);
         should_have_cert_voted_in_this_round_ = true;
         if (shouldSpeak(cert_vote_type, round, step_)) {
           LOG(log_dg_) << "Cert voting " << soft_voted_block_for_this_round_.first << " for round " << round;
@@ -709,20 +785,30 @@ void PbftManager::secondFinish_() {
 
   if (shouldSpeak(next_vote_type, round, step_)) {
     if (!soft_voted_block_for_this_round_.second) {
-      soft_voted_block_for_this_round_ = softVotedBlockForRound_(votes_, round);
+      auto soft_voted_block = softVotedBlockForRound_(votes_, round);
+      auto batch = db_->createWriteBatch();
+      db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::soft_voted_block_hash_in_round, soft_voted_block.first,
+                                       batch);
+      db_->addPbftMgrStatusToBatch(PbftMgrStatus::soft_voted_block_in_round, soft_voted_block.second, batch);
+      db_->commitWriteBatch(batch);
+      soft_voted_block_for_this_round_ = soft_voted_block;
     }
     if (!next_voted_soft_value_ && soft_voted_block_for_this_round_.second &&
         soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH) {
       LOG(log_dg_) << "Next voting " << soft_voted_block_for_this_round_.first << " for round " << round << ", at step "
                    << step_;
       placeVote_(soft_voted_block_for_this_round_.first, next_vote_type, round, step_);
+      db_->savePbftMgrStatus(PbftMgrStatus::next_voted_soft_value, true);
       next_voted_soft_value_ = true;
     }
-    if (!next_voted_null_block_hash_ && round >= 2 && next_voted_block_from_previous_round_.second &&
-        // next_voted_block_from_previous_round_.first == NULL_BLOCK_HASH &&
+    if (!next_voted_null_block_hash_ && round >= 2 &&
+        ((next_voted_block_from_previous_round_.second &&
+          next_voted_block_from_previous_round_.first == NULL_BLOCK_HASH) ||
+         push_block_values_for_round_.count(round - 1)) &&
         (cert_voted_values_for_round_.find(round) == cert_voted_values_for_round_.end())) {
       LOG(log_dg_) << "Next voting NULL BLOCK for round " << round << ", at step " << step_;
       placeVote_(NULL_BLOCK_HASH, next_vote_type, round, step_);
+      db_->savePbftMgrStatus(PbftMgrStatus::next_voted_null_block_hash, true);
       next_voted_null_block_hash_ = true;
     }
   }
@@ -1195,6 +1281,7 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
       update_dpos_state_();
       // update sortition_threshold and TWO_T_PLUS_ONE
       updateTwoTPlusOneAndThreshold_();
+      db_->savePbftMgrStatus(PbftMgrStatus::executed_block, false);
       executed_pbft_block_ = false;
     }
     pbft_synced_queue_size = pbft_chain_->pbftSyncedQueueSize();
@@ -1205,6 +1292,11 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
     pbft_last_observed_synced_queue_size_ = pbft_synced_queue_size;
 
     // Since we pushed via syncing we should reset this...
+    auto batch = db_->createWriteBatch();
+    db_->addPbftMgrStatusToBatch(PbftMgrStatus::next_voted_block_in_previous_round, false, batch);
+    db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::next_voted_block_hash_in_previous_round, NULL_BLOCK_HASH,
+                                     batch);
+    db_->commitWriteBatch(batch);
     next_voted_block_from_previous_round_ = std::make_pair(NULL_BLOCK_HASH, false);
   }
 }
@@ -1256,6 +1348,7 @@ bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes) {
 
   // Reset proposed PBFT block hash to False for next pbft block proposal
   proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
+  db_->savePbftMgrStatus(PbftMgrStatus::executed_block, true);
   executed_pbft_block_ = true;
   return true;
 }

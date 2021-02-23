@@ -45,7 +45,7 @@
           },
           {
             "name": "PBFT_MGR",
-            "verbosity": "INFO"
+            "verbosity": "DEBUG"
           },
           {
             "name": "PBFTSYNC",
@@ -65,6 +65,10 @@
           },
           {
             "name": "VOTE_MGR",
+            "verbosity": "INFO"
+          },
+          {
+            "name": "EXECUTOR",
             "verbosity": "INFO"
           }
         ],
