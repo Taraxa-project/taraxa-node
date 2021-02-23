@@ -9,6 +9,7 @@
 #include <functional>
 #include <string_view>
 
+#include "common/types.hpp"
 #include "consensus/pbft_chain.hpp"
 #include "dag/dag_block.hpp"
 #include "logger/log.hpp"
@@ -20,6 +21,7 @@ using namespace std;
 using namespace dev;
 using namespace rocksdb;
 namespace fs = std::filesystem;
+
 enum StatusDbField : uint8_t {
   ExecutedBlkCount = 0,
   ExecutedTrxCount,
@@ -29,7 +31,22 @@ enum StatusDbField : uint8_t {
   DbMajorVersion,
   DbMinorVersion
 };
-enum PbftMrgField : uint8_t { PbftRound = 0, PbftStep };
+
+enum PbftMgrRoundStep : uint8_t { PbftRound = 0, PbftStep };
+enum PbftMgrStatus {
+  soft_voted_block_in_round = 0,
+  executed_block,
+  executed_in_round,
+  cert_voted_in_round,
+  next_voted_soft_value,
+  next_voted_null_block_hash,
+  next_voted_block_in_previous_round
+};
+enum PbftMgrVotedValue {
+  own_starting_value_in_round = 0,
+  soft_voted_block_hash_in_round,
+  next_voted_block_hash_in_previous_round,
+};
 
 class DbException : public exception {
  public:
@@ -77,7 +94,12 @@ struct DbStorage {
     COLUMN(executed_transactions);
     COLUMN(trx_status);
     COLUMN(status);
-    COLUMN(pbft_mgr);
+    COLUMN(pbft_mgr_round_step);
+    COLUMN(pbft_mgr_status);
+    COLUMN(pbft_mgr_voted_value);
+    COLUMN(pbft_mgr_own_starting_value);
+    COLUMN(pbft_mgr_soft_voted_block);
+    COLUMN(pbft_mgr_next_voted_block_in_previous_round);
     COLUMN(pbft_head);
     COLUMN(pbft_blocks);
     COLUMN(votes);
@@ -160,9 +182,16 @@ struct DbStorage {
   std::map<trx_hash_t, TransactionStatus> getAllTransactionStatus();
 
   // PBFT manager
-  uint64_t getPbftMgrField(PbftMrgField const& field);
-  void savePbftMgrField(PbftMrgField const& field, uint64_t const& value);
-  void addPbftMgrFieldToBatch(PbftMrgField const& field, uint64_t const& value, BatchPtr const& write_batch);
+  uint64_t getPbftMgrField(PbftMgrRoundStep const& field);
+  void savePbftMgrField(PbftMgrRoundStep const& field, uint64_t const& value);
+  void addPbftMgrFieldToBatch(PbftMgrRoundStep const& field, uint64_t const& value, BatchPtr const& write_batch);
+  bool getPbftMgrStatus(PbftMgrStatus const& field);
+  void savePbftMgrStatus(PbftMgrStatus const& field, bool const& value);
+  void addPbftMgrStatusToBatch(PbftMgrStatus const& field, bool const& value, BatchPtr const& write_batch);
+  shared_ptr<blk_hash_t> getPbftMgrVotedValue(PbftMgrVotedValue const& field);
+  void savePbftMgrVotedValue(PbftMgrVotedValue const& field, blk_hash_t const& value);
+  void addPbftMgrVotedValueToBatch(PbftMgrVotedValue const& field, blk_hash_t const& value,
+                                   BatchPtr const& write_batch);
 
   // pbft_blocks
   shared_ptr<PbftBlock> getPbftBlock(blk_hash_t const& hash);
