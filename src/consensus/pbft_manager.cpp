@@ -103,11 +103,6 @@ void PbftManager::run() {
   // Initialize PBFT status
   initialState_();
 
-  if (!capability_->syncing_) {
-    LOG(log_nf_) << "Send sync request on PBFT start...";
-    syncPbftChainFromPeers_();
-  }
-
   while (!stopped_) {
     if (stateOperations_()) {
       continue;
@@ -321,12 +316,11 @@ bool PbftManager::resetRound_() {
     // p2p connection syncing should cover this situation, sync here for safe
     if (consensus_pbft_round > local_round + 1 && capability_->syncing_ == false) {
       LOG(log_nf_) << "Quorum determined round " << consensus_pbft_round << " > 1 + current round " << local_round
-                   << " local round, need to broadcast request for missing "
-                      "certified blocks";
+                   << " local round, need to broadcast request for missing certified blocks";
       // NOTE: Advance round and step before calling sync to make sure
       //       sync call won't be supressed for being too
       //       recent (ie. same round and step)
-      syncPbftChainFromPeers_();
+      syncPbftChainFromPeers_(false);
       auto batch = db_->createWriteBatch();
       db_->addPbftMgrStatusToBatch(PbftMgrStatus::next_voted_block_in_previous_round, false, batch);
       db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::next_voted_block_hash_in_previous_round, NULL_BLOCK_HASH,
@@ -713,12 +707,11 @@ void PbftManager::certifyBlock_() {
           LOG(log_tr_) << "checkPbftBlockValid_ returned true";
           unverified_soft_vote_block_for_this_round_is_valid = true;
         } else {
-          // Get partition, need send request to get missing pbft blocks
-          // from peers
-          LOG(log_er_) << "Soft voted block for this round appears to be invalid, "
-                          "we must be out of sync with pbft chain";
+          // Get partition, need send request to get missing pbft blocks from peers
+          LOG(log_er_)
+              << "Soft voted block for this round appears to be invalid, we must be out of sync with pbft chain";
           if (!capability_->syncing_) {
-            syncPbftChainFromPeers_();
+            syncPbftChainFromPeers_(false);
           }
         }
       }
@@ -814,9 +807,8 @@ void PbftManager::secondFinish_() {
   }
 
   if (step_ > MAX_STEPS && !capability_->syncing_ && !syncRequestedAlreadyThisStep_()) {
-    LOG(log_wr_) << "Suspect PBFT chain behind, inaccurate 2t+1, need "
-                    "to broadcast request for missing blocks";
-    syncPbftChainFromPeers_();
+    LOG(log_wr_) << "Suspect PBFT manger stucked, inaccurate 2t+1, need to broadcast request for missing blocks";
+    syncPbftChainFromPeers_(true);
   }
 
   if (step_ > MAX_STEPS) {
@@ -827,8 +819,7 @@ void PbftManager::secondFinish_() {
   loop_back_finish_state_ = elapsed_time_in_round_ms_ > (step_ + 1) * LAMBDA_ms + STEP_4_DELAY - POLLING_INTERVAL_ms;
 }
 
-// There is a quorum of next-votes and set determine that round p should be the
-// current round...
+// There is a quorum of next-votes and set determine that round p should be the current round...
 uint64_t PbftManager::roundDeterminedFromVotes_() {
   // <<vote_round, vote_step>, count>, <round, step> store in reverse order
   std::map<std::pair<uint64_t, size_t>, size_t, std::greater<std::pair<uint64_t, size_t>>>
@@ -1132,7 +1123,7 @@ bool PbftManager::syncRequestedAlreadyThisStep_() const {
   return getPbftRound() == pbft_round_last_requested_sync_ && step_ == pbft_step_last_requested_sync_;
 }
 
-void PbftManager::syncPbftChainFromPeers_() {
+void PbftManager::syncPbftChainFromPeers_(bool force) {
   if (stopped_) return;
   if (!pbft_chain_->pbftSyncedQueueEmpty()) {
     LOG(log_dg_) << "DAG has not synced yet. PBFT chain skips syncing";
@@ -1141,10 +1132,9 @@ void PbftManager::syncPbftChainFromPeers_() {
 
   if (!capability_->syncing_ && !syncRequestedAlreadyThisStep_()) {
     auto round = getPbftRound();
-    LOG(log_nf_) << "Restarting pbft sync."
-                 << " In round " << round << ", in step " << step_
-                 << " Send request to ask missing pbft blocks in chain";
-    capability_->restartSyncingPbft(false);
+    LOG(log_nf_) << "Restarting pbft sync. In round " << round << ", in step " << step_ << ", forced " << force
+                 << ", Send request to ask missing blocks";
+    capability_->restartSyncingPbft(force);
     pbft_round_last_requested_sync_ = round;
     pbft_step_last_requested_sync_ = step_;
   }
@@ -1193,7 +1183,7 @@ bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(PbftBlock const &pbft_b
       !syncRequestedAlreadyThisStep_()) {
     LOG(log_nf_) << "DAG blocks have not sync yet. In period: " << last_period << " PBFT block anchor: " << anchor_hash
                  << " .. Triggering sync request";
-    syncPbftChainFromPeers_();
+    syncPbftChainFromPeers_(true);
   }
   return false;
 }
@@ -1205,7 +1195,7 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cer
     LOG(log_er_) << "Cert voted block " << cert_voted_block_hash
                  << " is invalid, we must be out of sync with pbft chain";
     if (capability_->syncing_ == false) {
-      syncPbftChainFromPeers_();
+      syncPbftChainFromPeers_(false);
     }
     return false;
   }
