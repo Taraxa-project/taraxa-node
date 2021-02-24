@@ -559,7 +559,6 @@ bool PbftManager::stateOperations_() {
       LOG(log_dg_) << "PBFT block " << cert_voted_block_hash.first << " has enough certed votes";
       // put pbft block into chain
       if (pushCertVotedPbftBlockIntoChain_(cert_voted_block_hash.first, cert_votes_for_round)) {
-        push_block_values_for_round_[round] = cert_voted_block_hash.first;
         db_->savePbftMgrStatus(PbftMgrStatus::executed_in_round, true);
         have_executed_this_round_ = true;
         LOG(log_nf_) << "Write " << cert_votes_for_round.size() << " votes ... in round " << round;
@@ -1327,10 +1326,20 @@ bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes) {
 
   // Commit DB
   db_->commitWriteBatch(batch);
-  LOG(log_nf_) << node_addr_ << " successful push unexecuted pbft block " << pbft_block_hash << " in period "
-               << pbft_period << " into chain! In round " << getPbftRound();
+
+  auto round = getPbftRound();
+  LOG(log_nf_) << node_addr_ << " successful push unexecuted PBFT block " << pbft_block_hash << " in period "
+               << pbft_period << " into chain! In round " << round;
 
   executor_->execute(pbft_block);
+
+  // Update the latest certified block hash in the chain for current round
+  if (cert_voted_values_for_round_.find(round) != cert_voted_values_for_round_.end() &&
+      cert_voted_values_for_round_.find(round)->second == pbft_block_hash) {
+    push_block_values_for_round_[round] = pbft_block_hash;
+    LOG(log_nf_) << node_addr_ << " push certified PBFT block hash " << pbft_block_hash << " in period " << pbft_period
+                 << ", in round " << round;
+  }
 
   // Update pbft chain last block hash
   pbft_chain_last_block_hash_ = pbft_block_hash;
