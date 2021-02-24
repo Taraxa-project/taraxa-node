@@ -559,9 +559,15 @@ bool PbftManager::stateOperations_() {
       LOG(log_dg_) << "PBFT block " << cert_voted_block_hash.first << " has enough certed votes";
       // put pbft block into chain
       if (pushCertVotedPbftBlockIntoChain_(cert_voted_block_hash.first, cert_votes_for_round)) {
+        // Update the latest certified block hash in the chain for current round
+        push_block_values_for_round_[round] = cert_voted_block_hash.first;
+        LOG(log_nf_) << node_addr_ << " push certified PBFT block hash " << cert_voted_block_hash.first << " in round "
+                     << round;
+
         db_->savePbftMgrStatus(PbftMgrStatus::executed_in_round, true);
         have_executed_this_round_ = true;
         LOG(log_nf_) << "Write " << cert_votes_for_round.size() << " votes ... in round " << round;
+
         duration_ = std::chrono::system_clock::now() - now_;
         auto execute_trxs_in_ms = std::chrono::duration_cast<std::chrono::milliseconds>(duration_).count();
         LOG(log_dg_) << "Pushing PBFT block and Execution spent " << execute_trxs_in_ms << " ms. in round " << round;
@@ -1220,8 +1226,9 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
   size_t pbft_synced_queue_size;
   while (!pbft_chain_->pbftSyncedQueueEmpty()) {
     PbftBlockCert pbft_block_and_votes = pbft_chain_->pbftSyncedQueueFront();
+    auto round = getPbftRound();
     LOG(log_dg_) << "Pick pbft block " << pbft_block_and_votes.pbft_blk->getBlockHash()
-                 << " from synced queue in round " << getPbftRound();
+                 << " from synced queue in round " << round;
     if (pbft_chain_->findPbftBlockInChain(pbft_block_and_votes.pbft_blk->getBlockHash())) {
       // pushed already from PBFT unverified queue, remove and skip it
       pbft_chain_->pbftSyncedQueuePopFront();
@@ -1260,7 +1267,15 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
     if (!comparePbftBlockScheduleWithDAGblocks_(*pbft_block_and_votes.pbft_blk)) {
       break;
     }
-    if (!pushPbftBlock_(pbft_block_and_votes)) {
+    if (pushPbftBlock_(pbft_block_and_votes)) {
+      auto pbft_block_hash = pbft_block_and_votes.pbft_blk->getBlockHash();
+      if (cert_voted_values_for_round_.find(round) != cert_voted_values_for_round_.end() &&
+          cert_voted_values_for_round_.find(round)->second == pbft_block_hash) {
+        // Update the latest certified block hash in the chain for current round
+        push_block_values_for_round_[round] = pbft_block_hash;
+        LOG(log_nf_) << node_addr_ << " push certified PBFT block hash " << pbft_block_hash << " in round " << round;
+      }
+    } else {
       LOG(log_er_) << "Failed push PBFT block " << pbft_block_and_votes.pbft_blk->getBlockHash() << " into chain";
       break;
     }
@@ -1327,16 +1342,10 @@ bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes) {
   // Commit DB
   db_->commitWriteBatch(batch);
 
-  auto round = getPbftRound();
   LOG(log_nf_) << node_addr_ << " successful push unexecuted PBFT block " << pbft_block_hash << " in period "
-               << pbft_period << " into chain! In round " << round;
+               << pbft_period << " into chain! In round " << getPbftRound();
 
   executor_->execute(pbft_block);
-
-  // Update the latest certified block hash in the chain for current round
-  push_block_values_for_round_[round] = pbft_block_hash;
-  LOG(log_nf_) << node_addr_ << " push certified PBFT block hash " << pbft_block_hash << " in period " << pbft_period
-               << ", in round " << round;
 
   // Update pbft chain last block hash
   pbft_chain_last_block_hash_ = pbft_block_hash;
