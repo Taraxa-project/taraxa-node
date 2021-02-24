@@ -1343,12 +1343,9 @@ bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes) {
   executor_->execute(pbft_block);
 
   // Update the latest certified block hash in the chain for current round
-  if (cert_voted_values_for_round_.find(round) != cert_voted_values_for_round_.end() &&
-      cert_voted_values_for_round_.find(round)->second == pbft_block_hash) {
-    push_block_values_for_round_[round] = pbft_block_hash;
-    LOG(log_nf_) << node_addr_ << " push certified PBFT block hash " << pbft_block_hash << " in period " << pbft_period
-                 << ", in round " << round;
-  }
+  push_block_values_for_round_[round] = pbft_block_hash;
+  LOG(log_nf_) << node_addr_ << " push certified PBFT block hash " << pbft_block_hash << " in period " << pbft_period
+               << ", in round " << round;
 
   // Update pbft chain last block hash
   pbft_chain_last_block_hash_ = pbft_block_hash;
