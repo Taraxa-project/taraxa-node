@@ -80,6 +80,7 @@ set(SOURCES
         node/replay_protection_service.hpp
         common/types.hpp
         dag/dag_block.hpp
+        network/http_processor.hpp
         network/rpc/Taraxa.h
         network/rpc/Test.h
         network/rpc/TaraxaClient.h
@@ -88,9 +89,9 @@ set(SOURCES
         network/rpc/NetFace.h
         network/rpc/TaraxaFace.h
         network/rpc/TestFace.h
-        network/rpc/jsonrpc_server.hpp
         network/rpc/TestClient.h
         network/rpc/jsonrpc_ws_server.hpp
+        network/rpc/jsonrpc_http_processor.hpp
         transaction_manager/transaction_order_manager.hpp
         consensus/vote.hpp
         transaction_manager/transaction.hpp
@@ -129,11 +130,12 @@ set(SOURCES
         dag/dag_block.cpp
         node/full_node.cpp
         consensus/block_proposer.cpp
+        network/http_processor.cpp
         network/rpc/Taraxa.cpp
         network/rpc/Test.cpp
         network/rpc/Net.cpp
-        network/rpc/jsonrpc_server.cpp
         network/rpc/jsonrpc_ws_server.cpp
+        network/rpc/jsonrpc_http_processor.cpp
         transaction_manager/transaction_order_manager.cpp
         chain/state_api.cpp
         transaction_manager/transaction_queue.cpp
@@ -141,8 +143,7 @@ set(SOURCES
         logger/logger_config.cpp
         logger/log.cpp
         common/types.cpp
-        dag/dag_block_manager.cpp
-        )
+        dag/dag_block_manager.cpp)
 
 add_library(app_base STATIC ${SOURCES})
 target_include_directories(app_base PUBLIC

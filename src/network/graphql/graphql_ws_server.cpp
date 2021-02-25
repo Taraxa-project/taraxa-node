@@ -10,6 +10,7 @@
 #include "config/config.hpp"
 #include "graphqlservice/GraphQLService.h"
 #include "graphqlservice/JSONResponse.h"
+#include "network/graphql/mutation.hpp"
 #include "network/graphql/query.hpp"
 #include "util/util.hpp"
 

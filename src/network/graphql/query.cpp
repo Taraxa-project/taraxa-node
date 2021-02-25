@@ -64,6 +64,4 @@ service::FieldResult<response::Value> Query::getChainID(service::FieldParams&& p
   return response::Value(dev::toJS(chain_id_));
 }
 
-Mutation::Mutation() {}
-
 }  // namespace graphql::taraxa

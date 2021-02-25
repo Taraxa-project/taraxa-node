@@ -31,6 +31,8 @@ You can see example config [here](doc/example_config.json)
 #### ...
 TODO: add explanation of all config parameters
 
+### Node API
+Check out API reference [here](api_reference.md)
 
 # Taraxa docker image
 

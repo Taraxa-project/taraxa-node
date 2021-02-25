@@ -38,8 +38,8 @@ add_library(taraxa_graphqlservice STATIC
         transaction.hpp
         mutation.hpp
         syncstate.hpp
-        graphql_server.hpp
         graphql_ws_server.hpp
+        graphql_http_processor.hpp
 
         gen/TaraxaSchema.cpp
         account.cpp
@@ -49,9 +49,8 @@ add_library(taraxa_graphqlservice STATIC
         transaction.cpp
         mutation.cpp
         syncstate.cpp
-        graphql_server.cpp
         graphql_ws_server.cpp
-        )
+        graphql_http_processor.cpp )
 target_link_libraries(taraxa_graphqlservice PUBLIC
         cppgraphqlgen::graphqlservice
         cppgraphqlgen::graphqljson

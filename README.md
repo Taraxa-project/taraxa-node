@@ -43,6 +43,8 @@ participate you are more than welcome. You can start by reading [contributing tu
 # Useful doc
 - [Git practices](doc/git_practices.md)
 - [Coding practices](doc/coding_practices.md)
+- [Quickstart guide](doc/quickstart_guide.md)
+- [API reference](doc/api_reference.md)
 
 
 # System Requirements

@@ -1,43 +1,42 @@
 #pragma once
 
-#include <jsonrpccpp/server/abstractserverconnector.h>
-
 #include <atomic>
 #include <boost/asio.hpp>
 #include <boost/beast.hpp>
-#include <string>
 
-#include "chain/final_chain.hpp"
-#include "config/config.hpp"
+#include "common/types.hpp"
+#include "http_processor.hpp"
+#include "logger/log.hpp"
 
 namespace taraxa::net {
 
 class HttpConnection;
 class HttpHandler;
 
-class HttpServer : public std::enable_shared_from_this<HttpServer>, public jsonrpc::AbstractServerConnector {
+class HttpServer : public std::enable_shared_from_this<HttpServer> {
  public:
-  HttpServer(boost::asio::io_context &io, boost::asio::ip::tcp::endpoint ep, addr_t node_addr,
-             std::shared_ptr<FinalChain> final_chain = nullptr);
+  HttpServer(boost::asio::io_context& io, const boost::asio::ip::tcp::endpoint& ep, const addr_t& node_addr,
+             const std::shared_ptr<HttpProcessor>& request_processor);
   virtual ~HttpServer() { HttpServer::StopListening(); }
 
-  virtual bool StartListening() override;
-  virtual bool StopListening() override;
-  virtual bool SendResponse(const std::string &response, void *addInfo = NULL);
+  bool StartListening();
+  bool StopListening();
+
   void waitForAccept();
-  boost::asio::io_context &getIoContext() { return io_context_; }
-  std::shared_ptr<FinalChain> getFinalChain() { return final_chain_; }
+  boost::asio::io_context& getIoContext() { return io_context_; }
   std::shared_ptr<HttpServer> getShared();
-  virtual std::shared_ptr<HttpConnection> createConnection() = 0;
+  std::shared_ptr<HttpConnection> createConnection();
   friend HttpConnection;
   friend HttpHandler;
 
  protected:
+  std::shared_ptr<HttpProcessor> request_processor_;
+
+ private:
   std::atomic<bool> stopped_ = true;
-  boost::asio::io_context &io_context_;
+  boost::asio::io_context& io_context_;
   boost::asio::ip::tcp::endpoint ep_;
   boost::asio::ip::tcp::acceptor acceptor_;
-  std::shared_ptr<FinalChain> final_chain_;
   LOG_OBJECTS_DEFINE;
 };
 // QQ:
@@ -52,22 +51,18 @@ class HttpServer : public std::enable_shared_from_this<HttpServer>, public jsonr
 
 class HttpConnection : public std::enable_shared_from_this<HttpConnection> {
  public:
-  explicit HttpConnection(std::shared_ptr<HttpServer> rpc);
+  explicit HttpConnection(const std::shared_ptr<HttpServer>& http_server);
   virtual ~HttpConnection() = default;
   virtual void read();
-  virtual void write_response(std::string const &msg);
-  virtual void write_options_response();
-  boost::asio::ip::tcp::socket &getSocket() { return socket_; }
+  boost::asio::ip::tcp::socket& getSocket() { return socket_; }
   virtual std::shared_ptr<HttpConnection> getShared();
-  virtual std::string processRequest(std::string request) = 0;
 
  protected:
-  std::shared_ptr<HttpServer> http_;
+  std::shared_ptr<HttpServer> server_;
   boost::asio::ip::tcp::socket socket_;
   boost::beast::flat_buffer buffer_;
   boost::beast::http::request<boost::beast::http::string_body> request_;
   boost::beast::http::response<boost::beast::http::string_body> response_;
-  std::atomic_flag responded_;
 };
 
 }  // namespace taraxa::net

@@ -1,21 +1,10 @@
 #include "http_server.hpp"
 
-#include "consensus/pbft_chain.hpp"
-#include "consensus/pbft_manager.hpp"
-#include "consensus/vote.hpp"
-#include "dag/dag_block.hpp"
-#include "graphqlservice/GraphQLSchema.h"
-#include "graphqlservice/GraphQLService.h"
-#include "graphqlservice/JSONResponse.h"
-#include "network/graphql/query.hpp"
-#include "transaction_manager/transaction.hpp"
-#include "util/util.hpp"
-
 namespace taraxa::net {
 
-HttpServer::HttpServer(boost::asio::io_context &io, boost::asio::ip::tcp::endpoint ep, addr_t node_addr,
-                       std::shared_ptr<FinalChain> final_chain)
-    : io_context_(io), acceptor_(io), ep_(std::move(ep)), final_chain_(final_chain) {
+HttpServer::HttpServer(boost::asio::io_context &io, const boost::asio::ip::tcp::endpoint &ep, const addr_t &node_addr,
+                       const std::shared_ptr<HttpProcessor> &request_processor)
+    : io_context_(io), acceptor_(io), ep_(std::move(ep)), request_processor_(request_processor) {
   LOG_OBJECTS_CREATE("RPC");
   LOG(log_si_) << "Taraxa RPC started at port: " << ep_.port();
 }
@@ -28,6 +17,8 @@ std::shared_ptr<HttpServer> HttpServer::getShared() {
     assert(false);
   }
 }
+
+std::shared_ptr<HttpConnection> HttpServer::createConnection() { return std::make_shared<HttpConnection>(getShared()); }
 
 bool HttpServer::StartListening() {
   if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
@@ -74,8 +65,6 @@ bool HttpServer::StopListening() {
   return true;
 }
 
-bool HttpServer::SendResponse(const std::string &response, void *addInfo) { return true; }
-
 std::shared_ptr<HttpConnection> HttpConnection::getShared() {
   try {
     return shared_from_this();
@@ -85,68 +74,31 @@ std::shared_ptr<HttpConnection> HttpConnection::getShared() {
   }
 }
 
-HttpConnection::HttpConnection(std::shared_ptr<HttpServer> http) : http_(http), socket_(http->getIoContext()) {
-  responded_.clear();
-}
+HttpConnection::HttpConnection(const std::shared_ptr<HttpServer> &http_server)
+    : server_(http_server), socket_(http_server->getIoContext()) {}
 
 void HttpConnection::read() {
   auto this_sp = getShared();
   boost::beast::http::async_read(
       socket_, buffer_, request_, [this_sp](boost::system::error_code const &ec, size_t byte_transfered) {
         if (!ec) {
-          // define response handler
-          auto replier([this_sp](std::string const &msg) {
-            // prepare response content
-            std::string body = msg;
-            this_sp->write_response(msg);
-            // async write
-            boost::beast::http::async_write(this_sp->socket_, this_sp->response_,
-                                            [this_sp](boost::system::error_code const &ec, size_t byte_transfered) {});
-          });
-          if (this_sp->request_.method() == boost::beast::http::verb::options) {
-            this_sp->write_options_response();
-            // async write
-            boost::beast::http::async_write(this_sp->socket_, this_sp->response_,
-                                            [this_sp](boost::system::error_code const &ec, size_t byte_transfered) {});
-          }
+          // We support only POST requests for both json rpc as well as graphql at the moment
           if (this_sp->request_.method() == boost::beast::http::verb::post) {
-            LOG(this_sp->http_->log_tr_) << "Read: " << this_sp->request_.body();
-            string response = this_sp->processRequest(this_sp->request_.body());
-            LOG(this_sp->http_->log_tr_) << "Write: " << response;
-            replier(response);
+            LOG(this_sp->server_->log_tr_) << "Read: " << this_sp->request_.body();
+            this_sp->response_ = this_sp->server_->request_processor_->process(this_sp->request_);
+            LOG(this_sp->server_->log_tr_) << "Write: " << this_sp->response_.body();
+
+            boost::beast::http::async_write(this_sp->socket_, this_sp->response_,
+                                            [this_sp](boost::system::error_code const &ec, size_t byte_transfered) {});
           }
         } else {
-          LOG(this_sp->http_->log_er_) << "Error! RPC conncetion read fail ... " << ec.message() << "\n";
+          // TODO: return some official error message, not empty message as of now
+          LOG(this_sp->server_->log_er_) << "Error! RPC conncetion read fail ... " << ec.message() << "\n";
         }
+
+        // TODO: unused pragma
         (void)byte_transfered;
       });
-}
-
-void HttpConnection::write_response(std::string const &msg) {
-  if (!responded_.test_and_set()) {
-    response_.set("Content-Type", "application/json");
-    response_.set("Access-Control-Allow-Origin", "*");
-    response_.set("Access-Control-Allow-Headers", "Accept, Accept-Language, Content-Language, Content-Type");
-    response_.set("Connection", "close");
-    response_.result(boost::beast::http::status::ok);
-    response_.body() = msg;
-    response_.prepare_payload();
-  } else {
-    assert(false && "RPC already responded ...\n");
-  }
-}
-
-void HttpConnection::write_options_response() {
-  if (!responded_.test_and_set()) {
-    response_.set("Allow", "OPTIONS, GET, HEAD, POST");
-    response_.set("Access-Control-Allow-Origin", "*");
-    response_.set("Access-Control-Allow-Headers", "Accept, Accept-Language, Content-Language, Content-Type");
-    response_.set("Connection", "close");
-    response_.result(boost::beast::http::status::no_content);
-    response_.prepare_payload();
-  } else {
-    assert(false && "RPC already responded ...\n");
-  }
 }
 
 }  // namespace taraxa::net

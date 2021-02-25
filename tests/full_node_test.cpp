@@ -16,6 +16,7 @@
 #include "consensus/pbft_manager.hpp"
 #include "dag/dag.hpp"
 #include "logger/log.hpp"
+#include "network/graphql/mutation.hpp"
 #include "network/graphql/query.hpp"
 #include "network/network.hpp"
 #include "network/rpc/Taraxa.h"
@@ -1204,13 +1205,13 @@ TEST_F(FullNodeTest, GraphQLTest) {
   // Create a node with 5 pbft/eth blocks
   auto node_cfgs = make_node_cfgs<20>(1);
   auto nodes = launch_nodes(node_cfgs);
-  auto pbft_chain_size = nodes[0]->getPbftChain()->getPbftExecutedChainSize();
+  auto pbft_chain_size = nodes[0]->getPbftChain()->getPbftChainSize();
   int nonce = 0;
   while (pbft_chain_size < 5) {
     Transaction dummy_trx(nonce++, 0, 2, 100000, bytes(), nodes[0]->getSecretKey(), nodes[0]->getAddress());
     nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false);
     thisThreadSleepForMilliSeconds(100);
-    pbft_chain_size = nodes[0]->getPbftChain()->getPbftExecutedChainSize();
+    pbft_chain_size = nodes[0]->getPbftChain()->getPbftChainSize();
   }
 
   // Objects needed to run the query
@@ -1235,7 +1236,7 @@ TEST_F(FullNodeTest, GraphQLTest) {
   auto data = service::ScalarArgument::require("data", result);
   auto block = service::ScalarArgument::require("block", data);
   auto number = std::stoi(service::StringArgument::require("number", block), 0, 16);
-  EXPECT_EQ(nodes[0]->getPbftChain()->getPbftExecutedChainSize(), (int)number);
+  EXPECT_EQ(nodes[0]->getPbftChain()->getPbftChainSize(), (int)number);
 
   // Get block hash by number
   query = R"({ block(number:3) { hash } })"_graphql;

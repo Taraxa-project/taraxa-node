@@ -29,10 +29,4 @@ class Query : public object::Query {
   uint64_t chain_id_;
 };
 
-class Mutation : public object::Mutation {
- public:
-  explicit Mutation();
-
- private:
-};
 }  // namespace graphql::taraxa

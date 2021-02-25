@@ -15,9 +15,11 @@
 #include "consensus/pbft_manager.hpp"
 #include "dag/dag.hpp"
 #include "dag/dag_block.hpp"
+#include "network/graphql/graphql_http_processor.hpp"
 #include "network/rpc/Net.h"
 #include "network/rpc/Taraxa.h"
 #include "network/rpc/Test.h"
+#include "network/rpc/jsonrpc_http_processor.hpp"
 #include "transaction_manager/transaction_manager.hpp"
 #include "transaction_manager/transaction_status.hpp"
 
@@ -132,9 +134,12 @@ void FullNode::init() {
                               final_chain_, [] { return 0; }));
 
     if (conf_.rpc->http_port) {
-      jsonrpc_http_ = make_shared<net::JsonRpcServer>(
-          *jsonrpc_io_ctx_, boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->http_port}, node_addr);
-      jsonrpc_api_->addConnector(jsonrpc_http_);
+      auto json_rpc_processor = std::make_shared<net::JsonRpcHttpProcessor>();
+      jsonrpc_http_ = std::make_shared<net::HttpServer>(
+          *jsonrpc_io_ctx_, boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->http_port}, node_addr,
+          json_rpc_processor);
+
+      jsonrpc_api_->addConnector(json_rpc_processor);
     }
 
     if (conf_.rpc->ws_port) {
@@ -151,9 +156,9 @@ void FullNode::init() {
     }
 
     if (conf_.rpc->gql_http_port) {
-      graphql_http_ = make_shared<net::GraphQlServer>(
+      graphql_http_ = std::make_shared<net::HttpServer>(
           *jsonrpc_io_ctx_, boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->gql_http_port}, node_addr,
-          final_chain_);
+          std::make_shared<net::GraphQlHttpProcessor>(final_chain_));
     }
   }
 

@@ -14,6 +14,7 @@ namespace graphql::taraxa {
 
 class Mutation : public object::Mutation {
  public:
+  Mutation() = default;
   explicit Mutation(std::shared_ptr<dev::rpc::Eth::NodeAPI> node_api);
 
   virtual service::FieldResult<response::Value> applySendRawTransaction(service::FieldParams&& params,
