@@ -15,6 +15,7 @@
 #include "logger/log.hpp"
 #include "transaction_manager/transaction.hpp"
 #include "transaction_manager/transaction_status.hpp"
+#include "util/memory.hpp"
 
 namespace taraxa {
 using namespace std;
@@ -58,13 +59,22 @@ class DbException : public exception {
   string desc_;
 };
 
-struct DbStorage {
-  using BatchPtr = shared_ptr<rocksdb::WriteBatch>;
+struct DbStorage : std::enable_shared_from_this<DbStorage> {
+  class Batch;
+  friend class Batch;
+
+  using Slice = rocksdb::Slice;
   using OnEntry = function<bool(Slice const&, Slice const&)>;
 
-  struct Column {
-    string const name;
+  class Column {
+    string const name_;
+
+   public:
     size_t const ordinal;
+
+    Column(string name, size_t ordinal) : name_(std::move(name)), ordinal(ordinal) {}
+
+    auto const& name() const { return ordinal ? name_ : rocksdb::kDefaultColumnFamilyName; }
   };
 
   class Columns {
@@ -74,16 +84,9 @@ struct DbStorage {
    public:
     static inline auto const& all = all_;
 
-    // Fix static initialization order fail by lazy initialization:
-    // When rocksdb linked statically, rocksdb::kDefaultColumnFamilyName is empty during static initialization of
-    // columns, therefore default_column, which depends on rocksdb::kDefaultColumnFamilyName must be lazy initialized
-    static inline auto const Default_column() {
-      static auto const default_column = all_.emplace_back(Column{kDefaultColumnFamilyName, all_.size()});
-      return default_column;
-    }
+#define COLUMN(__name__) static inline auto const __name__ = all_.emplace_back(#__name__, all_.size())
 
-#define COLUMN(__name__) static inline auto const __name__ = all_.emplace_back(Column{#__name__, all_.size()})
-
+    COLUMN(default_column);
     COLUMN(dag_blocks);
     COLUMN(dag_blocks_index);
     COLUMN(dag_blocks_state);
@@ -107,8 +110,11 @@ struct DbStorage {
     COLUMN(dag_block_period);
     COLUMN(replay_protection);
     COLUMN(pending_transactions);
-    COLUMN(aleth_chain);
-    COLUMN(aleth_chain_extras);
+    COLUMN(final_chain_blocks);
+    COLUMN(final_chain_block_number_to_hash);
+    COLUMN(final_chain_log_blooms);
+    COLUMN(final_chain_receipts);
+    COLUMN(final_chain_log_blooms_index);
 
 #undef COLUMN
   };
@@ -123,17 +129,14 @@ struct DbStorage {
   vector<ColumnFamilyHandle*> handles_;
   ReadOptions read_options_;
   WriteOptions write_options_;
-  mutex dag_blocks_mutex_;
-  atomic<uint64_t> dag_blocks_count_;
-  atomic<uint64_t> dag_edge_count_;
   uint32_t db_snapshot_each_n_pbft_block_ = 0;
   uint32_t db_max_snapshots_ = 0;
-  uint32_t snapshots_counter = 0;
   std::set<uint64_t> snapshots_;
   addr_t node_addr_;
   bool minor_version_changed_ = false;
 
   auto handle(Column const& col) const { return handles_[col.ordinal]; }
+  static void checkStatus(rocksdb::Status const& status);
 
   LOG_OBJECTS_DEFINE;
 
@@ -141,99 +144,72 @@ struct DbStorage {
   DbStorage(DbStorage const&) = delete;
   DbStorage& operator=(DbStorage const&) = delete;
 
-  explicit DbStorage(fs::path const& base_path, uint32_t db_snapshot_each_n_pbft_block = 0,
-                     uint32_t db_max_snapshots = 0, uint32_t db_revert_to_period = 0, addr_t node_addr = addr_t(),
-                     bool rebuild = 0);
+ private:
+  DbStorage(fs::path const& base_path, uint32_t db_snapshot_each_n_pbft_block, uint32_t db_max_snapshots,
+            addr_t const& node_addr);
+  void init(uint32_t db_revert_to_period, bool rebuild);
+
+ public:
+  static std::shared_ptr<DbStorage> make(fs::path const& base_path, uint32_t db_snapshot_each_n_pbft_block = 0,
+                                         uint32_t db_max_snapshots = 0, uint32_t db_revert_to_period = 0,
+                                         addr_t const& node_addr = addr_t(), bool rebuild = 0);
   ~DbStorage();
 
   auto const& path() const { return path_; }
   auto dbStoragePath() const { return db_path_; }
   auto stateDbStoragePath() const { return state_db_path_; }
-  static BatchPtr createWriteBatch();
-  void commitWriteBatch(BatchPtr const& write_batch);
+  Batch createWriteBatch();
   bool createSnapshot(uint64_t const& period);
   void deleteSnapshot(uint64_t const& period);
   void recoverToPeriod(uint64_t const& period);
   void loadSnapshots();
 
   // DAG
-  void saveDagBlock(DagBlock const& blk, BatchPtr write_batch = nullptr);
   dev::bytes getDagBlockRaw(blk_hash_t const& hash);
   shared_ptr<DagBlock> getDagBlock(blk_hash_t const& hash);
   string getBlocksByLevel(level_t level);
   std::vector<std::shared_ptr<DagBlock>> getDagBlocksAtLevel(level_t level, int number_of_levels);
 
   // DAG state
-  void addDagBlockStateToBatch(BatchPtr const& write_batch, blk_hash_t const& blk_hash, bool finalized);
-  void removeDagBlockStateToBatch(BatchPtr const& write_batch, blk_hash_t const& blk_hash);
   std::map<blk_hash_t, bool> getAllDagBlockState();
 
   // Transaction
-  void saveTransaction(Transaction const& trx);
   dev::bytes getTransactionRaw(trx_hash_t const& hash);
   shared_ptr<Transaction> getTransaction(trx_hash_t const& hash);
   shared_ptr<pair<Transaction, taraxa::bytes>> getTransactionExt(trx_hash_t const& hash);
   bool transactionInDb(trx_hash_t const& hash);
-  void addTransactionToBatch(Transaction const& trx, BatchPtr const& write_batch);
 
-  void saveTransactionStatus(trx_hash_t const& trx, TransactionStatus const& status);
-  void addTransactionStatusToBatch(BatchPtr const& write_batch, trx_hash_t const& trx, TransactionStatus const& status);
   TransactionStatus getTransactionStatus(trx_hash_t const& hash);
   std::map<trx_hash_t, TransactionStatus> getAllTransactionStatus();
 
   // PBFT manager
   uint64_t getPbftMgrField(PbftMgrRoundStep const& field);
-  void savePbftMgrField(PbftMgrRoundStep const& field, uint64_t const& value);
-  void addPbftMgrFieldToBatch(PbftMgrRoundStep const& field, uint64_t const& value, BatchPtr const& write_batch);
   bool getPbftMgrStatus(PbftMgrStatus const& field);
-  void savePbftMgrStatus(PbftMgrStatus const& field, bool const& value);
-  void addPbftMgrStatusToBatch(PbftMgrStatus const& field, bool const& value, BatchPtr const& write_batch);
   shared_ptr<blk_hash_t> getPbftMgrVotedValue(PbftMgrVotedValue const& field);
-  void savePbftMgrVotedValue(PbftMgrVotedValue const& field, blk_hash_t const& value);
-  void addPbftMgrVotedValueToBatch(PbftMgrVotedValue const& field, blk_hash_t const& value,
-                                   BatchPtr const& write_batch);
 
   // pbft_blocks
   shared_ptr<PbftBlock> getPbftBlock(blk_hash_t const& hash);
   bool pbftBlockInDb(blk_hash_t const& hash);
-  void addPbftBlockToBatch(PbftBlock const& pbft_block, BatchPtr const& write_batch);
   // pbft_blocks (head)
   // TODO: I would recommend storing this differently and not in the same db as
   // regular blocks with real hashes. Need remove from DB
   string getPbftHead(blk_hash_t const& hash);
-  void savePbftHead(blk_hash_t const& hash, string const& pbft_chain_head_str);
-  void addPbftHeadToBatch(taraxa::blk_hash_t const& head_hash, std::string const& head_str,
-                          BatchPtr const& write_batch);
   // status
   uint64_t getStatusField(StatusDbField const& field);
-  void saveStatusField(StatusDbField const& field,
-                       uint64_t const& value);  // unit test
-  void addStatusFieldToBatch(StatusDbField const& field, uint64_t const& value, BatchPtr const& write_batch);
+
   // votes
   bytes getVotes(blk_hash_t const& hash);
-  void addPbftCertVotesToBatch(taraxa::blk_hash_t const& pbft_block_hash, std::vector<Vote> const& cert_votes,
-                               BatchPtr const& write_batch);
   // period_pbft_block
   shared_ptr<blk_hash_t> getPeriodPbftBlock(uint64_t const& period);
-  void addPbftBlockPeriodToBatch(uint64_t const& period, taraxa::blk_hash_t const& pbft_block_hash,
-                                 BatchPtr const& write_batch);
   // dag_block_period
   shared_ptr<uint64_t> getDagBlockPeriod(blk_hash_t const& hash);
-  void addDagBlockPeriodToBatch(blk_hash_t const& hash, uint64_t const& period, BatchPtr const& write_batch);
-
-  uint64_t getDagBlocksCount() const { return dag_blocks_count_.load(); }
-  uint64_t getDagEdgeCount() const { return dag_edge_count_.load(); }
 
   auto getNumTransactionExecuted() { return getStatusField(StatusDbField::ExecutedTrxCount); }
   auto getNumTransactionInDag() { return getStatusField(StatusDbField::TrxCount); }
   auto getNumBlockExecuted() { return getStatusField(StatusDbField::ExecutedBlkCount); }
-  uint64_t getNumDagBlocks() { return getDagBlocksCount(); }
 
   vector<blk_hash_t> getFinalizedDagBlockHashesByAnchor(blk_hash_t const& anchor);
-  void putFinalizedDagBlockHashesByAnchor(WriteBatch& b, blk_hash_t const& anchor, vector<blk_hash_t> const& hs);
 
-  void insert(Column const& col, Slice const& k, Slice const& v);
-  void remove(Slice key, Column const& column);
   void forEach(Column const& col, OnEntry const& f);
 
   bool hasMinorVersionChanged() { return minor_version_changed_; }
@@ -275,32 +251,15 @@ struct DbStorage {
   inline static auto const& toSlices(std::vector<Slice> const& ss) { return ss; }
 
   template <typename K>
-  std::string lookup(K const& key, Column const& column) {
+  std::string lookup(Column const& column, K const& key) {
     std::string value;
     auto status = db_->Get(read_options_, handle(column), toSlice(key), &value);
     if (status.IsNotFound()) {
-      return "";
+      return value;
     }
     checkStatus(status);
     return value;
   }
-
-  template <typename K, typename V>
-  void batch_put(WriteBatch& batch, Column const& col, K const& k, V const& v) {
-    checkStatus(batch.Put(handle(col), toSlice(k), toSlice(v)));
-  }
-
-  // TODO remove
-  void batch_put(BatchPtr const& batch, Column const& col, Slice const& k, Slice const& v) {
-    batch_put(*batch, col, k, v);
-  }
-
-  // TODO generalize like batch_put
-  void batch_delete(BatchPtr const& batch, Column const& col, Slice const& k) {
-    checkStatus(batch->Delete(handle(col), k));
-  }
-
-  static void checkStatus(rocksdb::Status const& status);
 
   class MultiGetQuery {
     shared_ptr<DbStorage> const db_;
@@ -335,6 +294,52 @@ struct DbStorage {
     uint size();
     vector<string> execute(bool and_reset = true);
     MultiGetQuery& reset();
+  };
+
+  class Batch {
+    friend class DbStorage;
+
+    rocksdb::WriteBatch b_;
+    shared_ptr<DbStorage> db_;
+    Batch(decltype(db_) db) : db_(std::move(db)) {}
+
+   public:
+    // not copyable. copying a write batch is almost always indicative of a programmer mistake
+    Batch(Batch const&) = delete;
+    Batch& operator=(Batch const&) = delete;
+    // movable
+    Batch(Batch&&) = default;
+    Batch& operator=(Batch&&) = default;
+
+    template <typename K, typename V>
+    Batch& put(Column const& col, K const& k, V const& v) {
+      checkStatus(b_.Put(db_->handle(col), toSlice(k), toSlice(v)));
+      return *this;
+    }
+
+    template <typename K>
+    Batch& remove(Column const& col, K const& k) {
+      checkStatus(b_.Delete(db_->handle(col), toSlice(k)));
+      return *this;
+    }
+
+    Batch& commit();
+    Batch& reset();
+
+    Batch& addDagBlockState(blk_hash_t const& blk_hash, bool finalized);
+    Batch& removeDagBlockState(blk_hash_t const& blk_hash);
+    Batch& addTransaction(Transaction const& trx);
+    Batch& addTransactionStatus(trx_hash_t const& trx, TransactionStatus const& status);
+    Batch& addPbftBlock(PbftBlock const& pbft_block);
+    Batch& addPbftHead(taraxa::blk_hash_t const& head_hash, std::string const& head_str);
+    Batch& addStatusField(StatusDbField const& field, uint64_t const& value);
+    Batch& addPbftCertVotes(taraxa::blk_hash_t const& pbft_block_hash, std::vector<Vote> const& cert_votes);
+    Batch& putFinalizedDagBlockHashesByAnchor(blk_hash_t const& anchor, vector<blk_hash_t> const& hs);
+    Batch& addPbftBlockPeriod(uint64_t const& period, taraxa::blk_hash_t const& pbft_block_hash);
+    Batch& addDagBlockPeriod(blk_hash_t const& hash, uint64_t const& period);
+    Batch& addPbftMgrField(PbftMgrRoundStep const& field, uint64_t const& value);
+    Batch& addPbftMgrStatus(PbftMgrStatus const& field, bool const& value);
+    Batch& addPbftMgrVotedValue(PbftMgrVotedValue const& field, blk_hash_t const& value);
   };
 };
 }  // namespace taraxa

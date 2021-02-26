@@ -1,7 +1,5 @@
 #include "transaction_manager.hpp"
 
-#include <libethcore/Exceptions.h>
-
 #include <string>
 #include <utility>
 
@@ -12,6 +10,8 @@
 #include "transaction.hpp"
 
 using namespace taraxa::net;
+using namespace std;
+
 namespace taraxa {
 auto trxComp = [](Transaction const &t1, Transaction const &t2) -> bool {
   if (t1.getSender() < t2.getSender())
@@ -27,8 +27,19 @@ TransactionManager::TransactionManager(FullNodeConfig const &conf, addr_t node_a
                                        logger::Logger log_time)
     : conf_(conf), trx_qu_(node_addr), node_addr_(node_addr), db_(db), log_time_(log_time) {
   LOG_OBJECTS_CREATE("TRXMGR");
-  auto trx_count = db_->getStatusField(taraxa::StatusDbField::TrxCount);
-  trx_count_.store(trx_count);
+
+  trx_count_ = db_->getStatusField(taraxa::StatusDbField::TrxCount);
+  db_->forEach(DbStorage::Columns::pending_transactions, [&](auto const &k, auto const &_) {
+    h256 h(k.data(), h256::FromBinary);
+    auto status = db_->getTransactionStatus(h);
+    if (status == TransactionStatus::in_queue_unverified || status == TransactionStatus::in_queue_verified) {
+      auto trx = db_->getTransaction(h);
+      if (!insertTrx(*trx, true).first) {
+        LOG(log_er_) << "Pending transaction not valid";
+      }
+    }
+    return true;
+  });
 }
 
 std::pair<bool, std::string> TransactionManager::verifyTransaction(Transaction const &trx) const {
@@ -84,7 +95,7 @@ void TransactionManager::verifyQueuedTrxs() {
     if (!valid.first) {
       {
         uLock lock(mu_for_transactions_);
-        db_->saveTransactionStatus(hash, TransactionStatus::invalid);
+        db_->createWriteBatch().addTransactionStatus(hash, TransactionStatus::invalid).commit();
       }
       trx_qu_.removeTransactionFromBuffer(hash);
       LOG(log_wr_) << " Trx: " << hash << "invalid: " << valid.second << std::endl;
@@ -94,8 +105,8 @@ void TransactionManager::verifyQueuedTrxs() {
       uLock lock(mu_for_transactions_);
       auto status = db_->getTransactionStatus(hash);
       if (status == TransactionStatus::in_queue_unverified) {
-        db_->saveTransactionStatus(hash, TransactionStatus::in_queue_verified);
-        event_transaction_accepted.pub(hash);
+        db_->createWriteBatch().addTransactionStatus(hash, TransactionStatus::in_queue_verified).commit();
+        transaction_accepted.emit(hash);
         lock.unlock();
         trx_qu_.addTransactionToVerifiedQueue(hash, item.second);
       }
@@ -104,8 +115,6 @@ void TransactionManager::verifyQueuedTrxs() {
 }
 
 void TransactionManager::setNetwork(std::shared_ptr<Network> network) { network_ = network; }
-
-void TransactionManager::setWsServer(std::shared_ptr<WSServer> ws_server) { ws_server_ = ws_server; }
 
 void TransactionManager::start() {
   if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
@@ -175,10 +184,10 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(DagBlock const &blk,
   if (!some_trxs.empty()) {
     auto trx_batch = db_->createWriteBatch();
     for (auto const &trx : some_trxs) {
-      db_->addTransactionToBatch(trx, trx_batch);
+      trx_batch.addTransaction(trx);
       known_trx_hashes.erase(trx.getHash());
     }
-    db_->commitWriteBatch(trx_batch);
+    trx_batch.commit();
   }
 
   bool all_transactions_saved = true;
@@ -204,14 +213,14 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(DagBlock const &blk,
             LOG(log_er_) << " Block contains invalid transaction " << trx << " " << valid.second;
             return false;
           }
-          event_transaction_accepted.pub(trx);
+          transaction_accepted.emit(trx);
         }
         trx_count_.fetch_add(1);
-        db_->addTransactionStatusToBatch(trx_batch, trx, TransactionStatus::in_block);
+        trx_batch.addTransactionStatus(trx, TransactionStatus::in_block);
       }
       auto trx_count = trx_count_.load();
-      db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_count, trx_batch);
-      db_->commitWriteBatch(trx_batch);
+      trx_batch.addStatusField(StatusDbField::TrxCount, trx_count);
+      trx_batch.commit();
     }
   } else {
     LOG(log_er_) << " Missing transaction - FAILED block verification " << missing_trx;
@@ -222,7 +231,7 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(DagBlock const &blk,
 
 std::pair<bool, std::string> TransactionManager::insertTrx(Transaction const &trx, bool verify) {
   auto hash = trx.getHash();
-  db_->saveTransaction(trx);
+  db_->createWriteBatch().addTransaction(trx).commit();
 
   if (conf_.test_params.max_transaction_queue_warn > 0 || conf_.test_params.max_transaction_queue_drop > 0) {
     auto queue_size = trx_qu_.getTransactionQueueSize();
@@ -255,11 +264,10 @@ std::pair<bool, std::string> TransactionManager::insertTrx(Transaction const &tr
       } else {
         status = TransactionStatus::in_queue_unverified;
       }
-      db_->saveTransactionStatus(hash, status);
-      event_transaction_accepted.pub(hash);
+      db_->createWriteBatch().addTransactionStatus(hash, status).commit();
       lock.unlock();
       trx_qu_.insert(trx, verify);
-      if (ws_server_) ws_server_->newPendingTransaction(trx.getHash());
+      transaction_accepted.emit(hash);
       return std::make_pair(true, "");
     } else {
       switch (status) {
@@ -310,7 +318,7 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx, uint16_t max_trx_
       auto status = db_->getTransactionStatus(hash);
       if (status == TransactionStatus::in_queue_verified) {
         // Skip if transaction is already in existing block
-        db_->addTransactionStatusToBatch(trx_batch, hash, TransactionStatus::in_block);
+        trx_batch.addTransactionStatus(hash, TransactionStatus::in_block);
         trx_count_.fetch_add(1);
         changed = true;
         LOG(log_dg_) << "Trx: " << hash << " ready to pack" << std::endl;
@@ -321,8 +329,8 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx, uint16_t max_trx_
 
     if (changed) {
       auto trx_count = trx_count_.load();
-      db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_count, trx_batch);
-      db_->commitWriteBatch(trx_batch);
+      trx_batch.addStatusField(StatusDbField::TrxCount, trx_count);
+      trx_batch.commit();
     }
   }
 

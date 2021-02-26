@@ -9,7 +9,6 @@
 #include "logger/log.hpp"
 #include "network/network.hpp"
 #include "network/taraxa_capability.hpp"
-#include "node/executor.hpp"
 #include "pbft_chain.hpp"
 #include "vote.hpp"
 #include "vrf_wrapper.hpp"
@@ -32,8 +31,7 @@ class PbftManager {
   PbftManager(PbftConfig const &conf, std::string const &genesis, addr_t node_addr, std::shared_ptr<DbStorage> db,
               std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
               std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
-              std::shared_ptr<FinalChain> final_chain, std::shared_ptr<Executor> executor, secret_t node_sk,
-              vrf_sk_t vrf_sk);
+              std::shared_ptr<FinalChain> final_chain, secret_t node_sk, vrf_sk_t vrf_sk);
   ~PbftManager();
 
   void setNetwork(std::shared_ptr<Network> network);
@@ -118,7 +116,7 @@ class PbftManager {
 
   bool syncRequestedAlreadyThisStep_() const;
 
-  void syncPbftChainFromPeers_(bool force);
+  void syncPbftChainFromPeers_();
 
   bool nextVotesSyncAlreadyThisRoundStep_();
 
@@ -149,7 +147,6 @@ class PbftManager {
   std::shared_ptr<TaraxaCapability> capability_ = nullptr;
   std::shared_ptr<DagBlockManager> dag_blk_mgr_;
   std::shared_ptr<FinalChain> final_chain_;
-  std::shared_ptr<Executor> executor_;
 
   addr_t node_addr_;
   secret_t node_sk_;

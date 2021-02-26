@@ -1,5 +1,10 @@
 #pragma once
 
+#include <libdevcore/CommonJS.h>
+#include <libdevcore/RLP.h>
+#include <libdevcore/SHA3.h>
+#include <libdevcrypto/Common.h>
+
 #include "vdf_sortition.hpp"
 
 namespace taraxa {

@@ -11,8 +11,7 @@
 static_assert(sizeof(char) == sizeof(uint8_t));
 
 namespace taraxa::state_api {
-using util::dec_rlp;
-using util::enc_rlp;
+using util::rlp;
 
 bytesConstRef map_bytes(taraxa_evm_Bytes const& b) { return {b.Data, b.Len}; }
 
@@ -20,7 +19,7 @@ taraxa_evm_Bytes map_bytes(bytes const& b) { return {const_cast<uint8_t*>(b.data
 
 template <typename Result>
 void from_rlp(taraxa_evm_Bytes b, Result& result) {
-  dec_rlp(RLP(map_bytes(b), 0), result);
+  rlp(RLP(map_bytes(b), 0), result);
 }
 
 void to_str(taraxa_evm_Bytes b, string& result) { result = {(char*)b.Data, b.Len}; }
@@ -76,10 +75,10 @@ template <typename Result,                            //
           void (*fn)(taraxa_evm_state_API_ptr, taraxa_evm_Bytes, taraxa_evm_BytesCallback,
                      taraxa_evm_BytesCallback),  //
           typename... Params>
-void c_method_args_rlp(taraxa_evm_state_API_ptr this_c, RLPStream& rlp, Result& ret, Params const&... args) {
-  enc_rlp_tuple(rlp, args...);
+void c_method_args_rlp(taraxa_evm_state_API_ptr this_c, RLPStream& encoding, Result& ret, Params const&... args) {
+  rlp_tuple(encoding, args...);
   ErrorHandler err_h;
-  fn(this_c, map_bytes(rlp.out()), decoder_cb_c<Result, decode>(ret), err_h.cgo_part);
+  fn(this_c, map_bytes(encoding.out()), decoder_cb_c<Result, decode>(ret), err_h.cgo_part);
   err_h.check();
 }
 
@@ -89,18 +88,18 @@ template <typename Result,                            //
                      taraxa_evm_BytesCallback),  //
           typename... Params>
 Result c_method_args_rlp(taraxa_evm_state_API_ptr this_c, Params const&... args) {
-  RLPStream rlp;
+  RLPStream encoding;
   Result ret;
-  c_method_args_rlp<Result, decode, fn, Params...>(this_c, rlp, ret, args...);
+  c_method_args_rlp<Result, decode, fn, Params...>(this_c, encoding, ret, args...);
   return ret;
 }
 
 template <void (*fn)(taraxa_evm_state_API_ptr, taraxa_evm_Bytes, taraxa_evm_BytesCallback), typename... Params>
 void c_method_args_rlp(taraxa_evm_state_API_ptr this_c, Params const&... args) {
-  RLPStream rlp;
-  enc_rlp_tuple(rlp, args...);
+  RLPStream encoding;
+  rlp_tuple(encoding, args...);
   ErrorHandler err_h;
-  fn(this_c, map_bytes(rlp.out()), err_h.cgo_part);
+  fn(this_c, map_bytes(encoding.out()), err_h.cgo_part);
   err_h.check();
 }
 
@@ -119,10 +118,10 @@ StateAPI::StateAPI(decltype(get_blk_hash) get_blk_hash, ChainConfig const& chain
       db_path(opts_db.db_path) {
   result_buf_transition_state.ExecutionResults.reserve(opts.ExpectedMaxTrxPerBlock);
   rlp_enc_transition_state.reserve(opts.ExpectedMaxTrxPerBlock * 1024, opts.ExpectedMaxTrxPerBlock * 128);
-  RLPStream rlp;
-  enc_rlp_tuple(rlp, &get_blk_hash_c, chain_config, opts, opts_db);
+  RLPStream encoding;
+  rlp_tuple(encoding, reinterpret_cast<uintptr_t>(&get_blk_hash_c), chain_config, opts, opts_db);
   ErrorHandler err_h;
-  this_c = taraxa_evm_state_api_new(map_bytes(rlp.out()), err_h.cgo_part);
+  this_c = taraxa_evm_state_api_new(map_bytes(encoding.out()), err_h.cgo_part);
   err_h.check();
 }
 
@@ -198,11 +197,11 @@ uint64_t StateAPI::dpos_eligible_count(BlockNumber blk_num) const {
 }
 
 bool StateAPI::dpos_is_eligible(BlockNumber blk_num, addr_t const& addr) const {
-  RLPStream rlp;
-  rlp.reserve(sizeof(BlockNumber) + sizeof(addr_t) + 8, 1);
-  enc_rlp_tuple(rlp, blk_num, addr);
+  RLPStream encoding;
+  encoding.reserve(sizeof(BlockNumber) + sizeof(addr_t) + 8, 1);
+  rlp_tuple(encoding, blk_num, addr);
   ErrorHandler err_h;
-  auto ret = taraxa_evm_state_api_dpos_is_eligible(this_c, map_bytes(rlp.out()), err_h.cgo_part);
+  auto ret = taraxa_evm_state_api_dpos_is_eligible(this_c, map_bytes(encoding.out()), err_h.cgo_part);
   err_h.check();
   return ret;
 }
@@ -221,17 +220,8 @@ addr_t const& StateAPI::dpos_contract_addr() {
 
 StateAPI::DPOSTransactionPrototype::DPOSTransactionPrototype(DPOSTransfers const& transfers) {
   RLPStream transfers_rlp;
-  enc_rlp(transfers_rlp, transfers);
+  rlp(transfers_rlp, transfers);
   input = transfers_rlp.invalidate();
-}
-
-void enc_rlp(RLPStream& rlp, ExecutionOptions const& obj) {
-  enc_rlp_tuple(rlp, obj.disable_nonce_check, obj.disable_gas_fee);
-}
-
-void enc_rlp(RLPStream& rlp, ETHChainConfig const& obj) {
-  enc_rlp_tuple(rlp, obj.homestead_block, obj.dao_fork_block, obj.eip_150_block, obj.eip_158_block, obj.byzantium_block,
-                obj.constantinople_block, obj.petersburg_block);
 }
 
 u256 ChainConfig::effective_genesis_balance(addr_t const& addr) const {
@@ -245,56 +235,6 @@ u256 ChainConfig::effective_genesis_balance(addr_t const& addr) const {
     }
   }
   return ret;
-}
-
-void enc_rlp(RLPStream& rlp, ChainConfig const& obj) {
-  enc_rlp_tuple(rlp, obj.eth_chain_config, obj.disable_block_rewards, obj.execution_options, obj.genesis_balances,
-                obj.dpos);
-}
-
-void enc_rlp(RLPStream& rlp, EVMBlock const& obj) {
-  enc_rlp_tuple(rlp, obj.Author, obj.GasLimit, obj.Time, obj.Difficulty);
-}
-
-void enc_rlp(RLPStream& rlp, EVMTransaction const& obj) {
-  enc_rlp_tuple(rlp, obj.From, obj.GasPrice, obj.To ? obj.To->ref() : bytesConstRef(), obj.Nonce, obj.Value, obj.Gas,
-                obj.Input);
-}
-
-void enc_rlp(RLPStream& rlp, EVMTransactionWithHash const& obj) { enc_rlp_tuple(rlp, obj.Hash, obj.Transaction); }
-
-void enc_rlp(RLPStream& rlp, UncleBlock const& obj) { enc_rlp_tuple(rlp, obj.Number, obj.Author); }
-
-void enc_rlp(RLPStream& rlp, Opts const& obj) {
-  enc_rlp_tuple(rlp, obj.ExpectedMaxTrxPerBlock, obj.MainTrieFullNodeLevelsToCache);
-}
-
-void enc_rlp(RLPStream& rlp, OptsDB const& obj) {
-  enc_rlp_tuple(rlp, obj.db_path, obj.disable_most_recent_trie_value_views);
-}
-
-void dec_rlp(RLP const& rlp, Account& obj) {
-  dec_rlp_tuple(rlp, obj.Nonce, obj.Balance, obj.StorageRootHash, obj.CodeHash, obj.CodeSize);
-}
-
-void dec_rlp(RLP const& rlp, LogRecord& obj) { dec_rlp_tuple(rlp, obj.Address, obj.Topics, obj.Data); }
-
-void dec_rlp(RLP const& rlp, ExecutionResult& obj) {
-  dec_rlp_tuple(rlp, obj.CodeRet, obj.NewContractAddr, obj.Logs, obj.GasUsed, obj.CodeErr, obj.ConsensusErr);
-}
-
-void dec_rlp(RLP const& rlp, StateTransitionResult& obj) { dec_rlp_tuple(rlp, obj.ExecutionResults, obj.StateRoot); }
-
-void dec_rlp(RLP const& rlp, TrieProof& obj) { dec_rlp_tuple(rlp, obj.Value, obj.Nodes); }
-
-void dec_rlp(RLP const& rlp, Proof& obj) { dec_rlp_tuple(rlp, obj.AccountProof, obj.StorageProofs); }
-
-void dec_rlp(RLP const& rlp, UncleBlock& obj) { dec_rlp_tuple(rlp, obj.Number, obj.Author); }
-
-void dec_rlp(RLP const& rlp, EVMBlock& obj) { dec_rlp_tuple(rlp, obj.Author, obj.GasLimit, obj.Time, obj.Difficulty); }
-
-void dec_rlp(RLP const& rlp, EVMTransaction& obj) {
-  dec_rlp_tuple(rlp, obj.From, obj.GasPrice, obj.To, obj.Nonce, obj.Value, obj.Gas, obj.Input);
 }
 
 Json::Value enc_json(ExecutionOptions const& obj) {
@@ -367,10 +307,6 @@ void dec_json(Json::Value const& json, BalanceMap& obj) {
   }
 }
 
-void enc_rlp(RLPStream& enc, DPOSConfig const& obj) {
-  enc_rlp_tuple(enc, obj.eligibility_balance_threshold, obj.deposit_delay, obj.withdrawal_delay, obj.genesis_state);
-}
-
 Json::Value enc_json(DPOSConfig const& obj) {
   Json::Value json(Json::objectValue);
   json["eligibility_balance_threshold"] = dev::toJS(obj.eligibility_balance_threshold);
@@ -392,17 +328,6 @@ void dec_json(Json::Value const& json, DPOSConfig& obj) {
     dec_json(genesis_state[k], obj.genesis_state[addr_t(k)]);
   }
 }
-
-void dec_rlp(RLP const& rlp, StateDescriptor& obj) { dec_rlp_tuple(rlp, obj.blk_num, obj.state_root); }
-
-void enc_rlp(RLPStream& enc, DPOSTransfer const& obj) { enc_rlp_tuple(enc, obj.value, obj.negative); }
-
-void enc_rlp(RLPStream& enc, DPOSQuery::AccountQuery const& obj) {
-  enc_rlp_tuple(enc, obj.with_staking_balance, obj.with_outbound_deposits, obj.outbound_deposits_addrs_only,
-                obj.with_inbound_deposits, obj.inbound_deposits_addrs_only);
-}
-
-void enc_rlp(RLPStream& enc, DPOSQuery const& obj) { enc_rlp_tuple(enc, obj.with_eligible_count, obj.account_queries); }
 
 void dec_json(Json::Value const& json, DPOSQuery::AccountQuery& obj) {
   static auto const dec_field = [](Json::Value const& json, char const* name, bool& field) {
@@ -426,12 +351,6 @@ void dec_json(Json::Value const& json, DPOSQuery& obj) {
     dec_json(account_queries[k], obj.account_queries[addr_t(k)]);
   }
 }
-
-void dec_rlp(RLP const& rlp, DPOSQueryResult::AccountResult& obj) {
-  dec_rlp_tuple(rlp, obj.staking_balance, obj.is_eligible, obj.outbound_deposits, obj.inbound_deposits);
-}
-
-void dec_rlp(RLP const& rlp, DPOSQueryResult& obj) { dec_rlp_tuple(rlp, obj.eligible_count, obj.account_results); }
 
 Json::Value enc_json(DPOSQueryResult::AccountResult const& obj, DPOSQuery::AccountQuery* q) {
   Json::Value json(Json::objectValue);

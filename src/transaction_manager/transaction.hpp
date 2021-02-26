@@ -1,6 +1,8 @@
 #pragma once
 
 #include <json/json.h>
+#include <libdevcore/RLP.h>
+#include <libdevcore/SHA3.h>
 
 #include "common/types.hpp"
 
@@ -28,6 +30,7 @@ struct Transaction {
   dev::SignatureStruct vrs_;
   mutable bool hash_initialized_ = false;
   mutable trx_hash_t hash_;
+  bool is_zero_ = false;
   mutable bool sender_initialized_ = false;
   mutable bool sender_valid_ = false;
   mutable addr_t sender_;
@@ -40,15 +43,20 @@ struct Transaction {
 
  public:
   // TODO eliminate and use shared_ptr<Transaction> everywhere
-  Transaction() = default;
+  Transaction() : is_zero_(true){};
   Transaction(uint64_t nonce, val_t const &value, val_t const &gas_price, uint64_t gas, bytes data, secret_t const &sk,
               std::optional<addr_t> const &receiver = std::nullopt, uint64_t chain_id = 0);
-  explicit Transaction(dev::RLP const &_rlp, bool verify_strict = false);
-  explicit Transaction(bytes const &_rlp, bool verify_strict = false) : Transaction(dev::RLP(_rlp), verify_strict) {}
-  explicit Transaction(bytes &&_rlp, bool verify_strict = false) : Transaction(dev::RLP(_rlp), verify_strict) {
-    cached_rlp_.reset(new bytes(std::move(_rlp)));
+  explicit Transaction(dev::RLP const &_rlp, bool verify_strict = false, h256 const &hash = {});
+  explicit Transaction(bytes const &_rlp, bool verify_strict = false, h256 const &hash = {})
+      : Transaction(dev::RLP(_rlp), verify_strict, hash) {}
+  explicit Transaction(bytes &&_rlp, bool verify_strict = false, h256 const &hash = {}, bool cache_rlp = true)
+      : Transaction(dev::RLP(_rlp), verify_strict, hash) {
+    if (cache_rlp) {
+      cached_rlp_.reset(new bytes(std::move(_rlp)));
+    }
   }
 
+  auto isZero() const { return is_zero_; }
   trx_hash_t const &getHash() const;
   addr_t const &getSender() const;
   auto getNonce() const { return nonce_; }
@@ -66,5 +74,7 @@ struct Transaction {
 
   Json::Value toJSON() const;
 };
+
+using Transactions = ::std::vector<Transaction>;
 
 }  // namespace taraxa

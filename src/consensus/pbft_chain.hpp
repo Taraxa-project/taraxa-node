@@ -3,9 +3,7 @@
 #include <libdevcore/Common.h>
 #include <libdevcore/RLP.h>
 #include <libdevcore/SHA3.h>
-#include <libdevcore/db.h>
 #include <libdevcrypto/Common.h>
-#include <libethcore/Common.h>
 
 #include <boost/thread/shared_mutex.hpp>
 #include <iostream>
@@ -113,6 +111,7 @@ class PbftChain {
   void clearSyncedPbftBlocks();
   size_t pbftSyncedQueueSize() const;
   bool isKnownPbftBlockForSyncing(blk_hash_t const& pbft_block_hash);
+  std::shared_ptr<PbftBlock> getPbftBlock(uint64_t pbft_period);
 
  private:
   void pbftSyncedSetInsert_(blk_hash_t const& pbft_block_hash);

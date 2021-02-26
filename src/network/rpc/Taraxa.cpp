@@ -2,22 +2,17 @@
 
 #include <jsonrpccpp/common/exception.h>
 #include <libdevcore/CommonData.h>
-#include <libethcore/CommonJS.h>
-#include <libethereum/TransactionReceipt.h>
 #include <libp2p/Common.h>
-
-#include <csignal>
 
 #include "consensus/pbft_manager.hpp"
 #include "dag/dag.hpp"
-#include "dag/dag_block_manager.hpp"
 #include "transaction_manager/transaction_manager.hpp"
 
 using namespace std;
 using namespace jsonrpc;
 using namespace dev;
-using namespace eth;
 using namespace taraxa;
+using namespace ::taraxa::final_chain;
 
 namespace taraxa::net {
 

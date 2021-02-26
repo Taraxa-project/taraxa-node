@@ -14,7 +14,7 @@
 
 using namespace std;
 using namespace dev;
-using namespace dev::eth;
+using namespace ::taraxa::final_chain;
 using namespace jsonrpc;
 using namespace taraxa;
 
@@ -197,7 +197,7 @@ Json::Value Test::get_node_status() {
       res["peer_count"] = Json::UInt64(node->getNetwork()->getPeerCount());
       res["node_count"] = Json::UInt64(node->getNetwork()->getNodeCount());
       res["blk_executed"] = Json::UInt64(node->getDB()->getNumBlockExecuted());
-      res["blk_count"] = Json::UInt64(node->getDB()->getNumDagBlocks());
+      res["blk_count"] = Json::UInt64(node->getDagManager()->getNumDagBlocks());
       res["trx_executed"] = Json::UInt64(node->getDB()->getNumTransactionExecuted());
       res["trx_count"] = Json::UInt64(node->getTransactionManager()->getTransactionCount());
       res["dag_level"] = Json::UInt64(node->getDagManager()->getMaxLevel());
@@ -407,7 +407,7 @@ Json::Value Test::get_dag_blk_count(const Json::Value &param1) {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {
-      auto count = node->getDB()->getNumDagBlocks();
+      auto count = node->getDagManager()->getNumDagBlocks();
       res["value"] = std::to_string(count);
     }
   } catch (std::exception &e) {

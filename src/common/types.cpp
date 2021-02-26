@@ -1,4 +1,4 @@
-#include "types.hpp"
+#include "common/types.hpp"
 namespace taraxa {
 
 template <std::size_t Bytes>

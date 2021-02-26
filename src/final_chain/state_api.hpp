@@ -12,15 +12,15 @@
 
 #include "common/types.hpp"
 #include "storage/db_storage.hpp"
+#include "types.h"
 #include "util/encoding_rlp.hpp"
 #include "util/range_view.hpp"
 
 namespace taraxa::state_api {
-using namespace dev;
-using namespace eth;
-using namespace std;
-using namespace util;
-using rocksdb::ColumnFamilyHandle;
+using namespace ::dev;
+using namespace ::std;
+using namespace ::taraxa::util;
+using namespace ::taraxa::final_chain;
 
 static constexpr auto BlockNumberNIL = std::numeric_limits<BlockNumber>::max();
 
@@ -37,8 +37,12 @@ struct ErrFutureBlock : TaraxaEVMError {
 struct ExecutionOptions {
   bool disable_nonce_check = 0;
   bool disable_gas_fee = 0;
+
+  template <typename E>
+  void rlp(E encoding) {
+    rlp_tuple(encoding, disable_nonce_check, disable_gas_fee);
+  }
 };
-void enc_rlp(RLPStream&, ExecutionOptions const&);
 Json::Value enc_json(ExecutionOptions const& obj);
 void dec_json(Json::Value const& json, ExecutionOptions& obj);
 
@@ -50,8 +54,13 @@ struct ETHChainConfig {
   BlockNumber byzantium_block = 0;
   BlockNumber constantinople_block = 0;
   BlockNumber petersburg_block = 0;
+
+  template <typename E>
+  void rlp(E encoding) {
+    rlp_tuple(encoding, homestead_block, dao_fork_block, eip_150_block, eip_158_block, byzantium_block,
+              constantinople_block, petersburg_block);
+  }
 };
-void enc_rlp(RLPStream&, ETHChainConfig const&);
 Json::Value enc_json(ETHChainConfig const& obj);
 void dec_json(Json::Value const& json, ETHChainConfig& obj);
 
@@ -64,16 +73,24 @@ struct DPOSConfig {
   BlockNumber deposit_delay = 0;
   BlockNumber withdrawal_delay = 0;
   unordered_map<addr_t, BalanceMap> genesis_state;
+
+  template <typename E>
+  void rlp(E encoding) {
+    rlp_tuple(encoding, eligibility_balance_threshold, deposit_delay, withdrawal_delay, genesis_state);
+  }
 };
-void enc_rlp(RLPStream& enc, DPOSConfig const& obj);
 Json::Value enc_json(DPOSConfig const& obj);
 void dec_json(Json::Value const& json, DPOSConfig& obj);
 
 struct DPOSTransfer {
   u256 value;
   bool negative = 0;
+
+  template <typename E>
+  void rlp(E encoding) {
+    rlp_tuple(encoding, value, negative);
+  }
 };
-void enc_rlp(RLPStream& enc, DPOSTransfer const& obj);
 
 using DPOSTransfers = unordered_map<addr_t, DPOSTransfer>;
 
@@ -84,9 +101,13 @@ struct ChainConfig {
   BalanceMap genesis_balances;
   optional<DPOSConfig> dpos;
 
+  template <typename E>
+  void rlp(E encoding) {
+    rlp_tuple(encoding, eth_chain_config, disable_block_rewards, execution_options, genesis_balances, dpos);
+  }
+
   u256 effective_genesis_balance(addr_t const& addr) const;
 };
-void enc_rlp(RLPStream&, ChainConfig const&);
 Json::Value enc_json(ChainConfig const& obj);
 void dec_json(Json::Value const& json, ChainConfig& obj);
 
@@ -95,9 +116,12 @@ struct EVMBlock {
   gas_t GasLimit = 0;
   uint64_t Time = 0;
   u256 Difficulty;
+
+  template <typename E>
+  void rlp(E encoding) {
+    rlp_tuple(encoding, Author, GasLimit, Time, Difficulty);
+  }
 };
-void enc_rlp(RLPStream&, EVMBlock const&);
-void dec_rlp(RLP const&, EVMBlock&);
 
 struct EVMTransaction {
   addr_t From;
@@ -107,29 +131,33 @@ struct EVMTransaction {
   u256 Value;
   gas_t Gas = 0;
   bytes Input;
-};
-void enc_rlp(RLPStream&, EVMTransaction const&);
-void dec_rlp(RLP const&, EVMTransaction&);
 
-struct EVMTransactionWithHash {
-  h256 Hash;
-  EVMTransaction Transaction;
+  template <typename E>
+  void rlp(E encoding) {
+    rlp_tuple(encoding, From, GasPrice, To ? To->ref() : bytesConstRef(), Nonce, Value, Gas, Input);
+  }
 };
-void enc_rlp(RLPStream&, EVMTransactionWithHash const&);
 
 struct UncleBlock {
   BlockNumber Number = 0;
   addr_t Author;
+
+  template <typename E>
+  void rlp(E encoding) {
+    rlp_tuple(encoding, Number, Author);
+  }
 };
-void enc_rlp(RLPStream&, UncleBlock const&);
-void dec_rlp(RLP const&, UncleBlock&);
 
 struct LogRecord {
   addr_t Address;
   vector<h256> Topics;
   bytes Data;
+
+  template <typename E>
+  void rlp(E encoding) {
+    rlp_tuple(encoding, Address, Topics, Data);
+  }
 };
-void dec_rlp(RLP const& enc, LogRecord& obj);
 
 struct ExecutionResult {
   bytes CodeRet;
@@ -138,14 +166,22 @@ struct ExecutionResult {
   gas_t GasUsed = 0;
   string CodeErr;
   string ConsensusErr;
+
+  template <typename E>
+  void rlp(E encoding) {
+    rlp_tuple(encoding, CodeRet, NewContractAddr, Logs, GasUsed, CodeErr, ConsensusErr);
+  }
 };
-void dec_rlp(RLP const&, ExecutionResult&);
 
 struct StateTransitionResult {
   vector<ExecutionResult> ExecutionResults;
   h256 StateRoot;
+
+  template <typename E>
+  void rlp(E encoding) {
+    rlp_tuple(encoding, ExecutionResults, StateRoot);
+  }
 };
-void dec_rlp(RLP const&, StateTransitionResult&);
 
 struct Account {
   uint64_t Nonce = 0;
@@ -154,59 +190,92 @@ struct Account {
   h256 CodeHash;
   uint64_t CodeSize = 0;
 
-  auto const& storage_root_eth() const { return StorageRootHash ? StorageRootHash : dev::EmptyListSHA3; }
-  auto const& code_hash_eth() const { return CodeSize ? CodeHash : dev::EmptySHA3; }
-};
-void dec_rlp(RLP const&, Account&);
+  template <typename E>
+  void rlp(E encoding) {
+    rlp_tuple(encoding, Nonce, Balance, StorageRootHash, CodeHash, CodeSize);
+  }
+
+  auto const& storage_root_eth() const { return StorageRootHash ? StorageRootHash : EmptyListSHA3; }
+  auto const& code_hash_eth() const { return CodeSize ? CodeHash : EmptySHA3; }
+} const ZeroAccount;
 
 struct TrieProof {
   bytes Value;
   vector<bytes> Nodes;
+
+  template <typename E>
+  void rlp(E encoding) {
+    rlp_tuple(encoding, Value, Nodes);
+  }
 };
-void dec_rlp(RLP const& enc, TrieProof& obj);
 
 struct Proof {
   TrieProof AccountProof;
   vector<TrieProof> StorageProofs;
+
+  template <typename E>
+  void rlp(E encoding) {
+    rlp_tuple(encoding, AccountProof, StorageProofs);
+  }
 };
-void dec_rlp(RLP const& enc, Proof& obj);
 
 struct Opts {
   uint32_t ExpectedMaxTrxPerBlock = 0;
   uint8_t MainTrieFullNodeLevelsToCache = 0;
+
+  template <typename E>
+  void rlp(E encoding) {
+    rlp_tuple(encoding, ExpectedMaxTrxPerBlock, MainTrieFullNodeLevelsToCache);
+  }
 };
-void enc_rlp(RLPStream& enc, Opts const& obj);
 
 struct OptsDB {
   string db_path;
   bool disable_most_recent_trie_value_views = 0;
+
+  template <typename E>
+  void rlp(E encoding) {
+    rlp_tuple(encoding, db_path, disable_most_recent_trie_value_views);
+  }
 };
-void enc_rlp(RLPStream& enc, OptsDB const& obj);
 
 struct StateDescriptor {
   BlockNumber blk_num = 0;
   h256 state_root;
+
+  template <typename E>
+  void rlp(E encoding) {
+    rlp_tuple(encoding, blk_num, state_root);
+  }
 };
-void dec_rlp(RLP const& rlp, StateDescriptor& obj);
 
 struct DPOSQuery {
-  bool with_eligible_count = 0;
   struct AccountQuery {
     bool with_staking_balance = 0;
     bool with_outbound_deposits = 0;
     bool outbound_deposits_addrs_only = 0;
     bool with_inbound_deposits = 0;
     bool inbound_deposits_addrs_only = 0;
+
+    template <typename E>
+    void rlp(E encoding) {
+      rlp_tuple(encoding, with_staking_balance, with_outbound_deposits, outbound_deposits_addrs_only,
+                with_inbound_deposits, inbound_deposits_addrs_only);
+    }
   };
+
+  bool with_eligible_count = 0;
   unordered_map<addr_t, AccountQuery> account_queries;
+
+  template <typename E>
+  void rlp(E encoding) {
+    rlp_tuple(encoding, with_eligible_count, account_queries);
+  }
 };
-void enc_rlp(RLPStream& enc, DPOSQuery::AccountQuery const& obj);
-void enc_rlp(RLPStream& enc, DPOSQuery const& obj);
 void dec_json(Json::Value const& json, DPOSQuery::AccountQuery& obj);
 void dec_json(Json::Value const& json, DPOSQuery& obj);
 
 struct DPOSQueryResult {
-  uint64_t eligible_count = 0;
   struct AccountResult {
     u256 staking_balance;
     bool is_eligible = 0;
@@ -214,11 +283,21 @@ struct DPOSQueryResult {
     using deposits_t = map<addr_t, u256>;
     deposits_t outbound_deposits;
     deposits_t inbound_deposits;
+
+    template <typename E>
+    void rlp(E encoding) {
+      rlp_tuple(encoding, staking_balance, is_eligible, outbound_deposits, inbound_deposits);
+    }
   };
+
+  uint64_t eligible_count = 0;
   unordered_map<addr_t, AccountResult> account_results;
+
+  template <typename E>
+  void rlp(E encoding) {
+    rlp_tuple(encoding, eligible_count, account_results);
+  }
 };
-void dec_rlp(RLP const& rlp, DPOSQueryResult::AccountResult& obj);
-void dec_rlp(RLP const& rlp, DPOSQueryResult& obj);
 Json::Value enc_json(DPOSQueryResult::AccountResult const& obj, DPOSQuery::AccountQuery* q = nullptr);
 Json::Value enc_json(DPOSQueryResult const& obj, DPOSQuery* q = nullptr);
 

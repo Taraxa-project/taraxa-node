@@ -3,6 +3,15 @@
 project(taraxa-node)
 cmake_minimum_required(VERSION 3.16)
 
+# Custom CMakeModules for finding libraries
+list(APPEND CMAKE_MODULE_PATH
+        "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules"
+        "${CMAKE_CURRENT_SOURCE_DIR}/submodules/taraxa-aleth/cmake/")
+include(clang_tidy)
+include(clang_format)
+include(cppcheck)
+include(pch)
+
 set(CMAKE_NO_SYSTEM_FROM_IMPORTED ON)
 # Set project properties like C++ standard, etc...
 set(CMAKE_CXX_COMPILER g++)
@@ -10,12 +19,13 @@ set(CMAKE_CXX_STANDARD 17)
 #add_compile_options("-Wall" "-Werror") TODO: fix existing issues and uncomment this line
 
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-# Optimization flag apparently needed to get rid of "File too big" assembler errors when compiling in Debug mode
+# Optimization flag -O2 apparently needed to get rid of "File too big" assembler errors when compiling in Debug mode
 # See: https://stackoverflow.com/questions/14125007/gcc-string-table-overflow-error-during-compilation/14601779#29479701
-set(CMAKE_CXX_FLAGS_DEBUG "-g -O2") # TODO: originally -g -O0
+# Use -02 here if you encounter the error.
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
 
 # taraxad full static build option
-option(TARAXA_STATIC_BUILD "Build taraxad as a static library (ON or OFF)" ON)
+option(TARAXA_STATIC_BUILD "Build taraxad as a static library (ON or OFF)" OFF)
 if (APPLE)
     message(STATUS "Disabling the static build because it's not supported on this OS")
     set(TARAXA_STATIC_BUILD OFF)
@@ -99,18 +109,6 @@ if (ENABLE_PACKAGE_INSTALLER)
 
     include(CPack)
 endif (ENABLE_PACKAGE_INSTALLER)
-
-# Custom CMakeModules for finding libraries
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
-
-# clang-tidy
-include(CMakeModules/clang_tidy.cmake)
-
-# clang-format
-include(CMakeModules/clang_format.cmake)
-
-# cppcheck
-include(CMakeModules/cppcheck.cmake)
 
 add_custom_target(check-static DEPENDS cpp-check clang-format-check)
 

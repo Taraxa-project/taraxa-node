@@ -1,12 +1,11 @@
 #include "WSServer.h"
 
-#include <json/json.h>
 #include <json/reader.h>
 #include <json/value.h>
 #include <json/writer.h>
 #include <libdevcore/CommonJS.h>
-#include <libweb3jsonrpc/JsonHelper.h>
 
+#include "Eth.h"
 #include "config/config.hpp"
 #include "util/util.hpp"
 
@@ -142,12 +141,12 @@ void WSSession::on_write_no_read(beast::error_code ec, std::size_t bytes_transfe
   }
 }
 
-void WSSession::newEthBlock(dev::eth::BlockHeader const &payload) {
+void WSSession::newEthBlock(::taraxa::final_chain::BlockHeader const &payload) {
   if (new_heads_subscription_ != 0) {
     Json::Value res, params;
     res["jsonrpc"] = "2.0";
     res["method"] = "eth_subscription";
-    params["result"] = dev::eth::toJson(payload);
+    params["result"] = toJson(payload);
     params["subscription"] = dev::toJS(new_heads_subscription_);
     res["params"] = params;
     Json::FastWriter fastWriter;
@@ -373,7 +372,7 @@ void WSServer::newPbftBlockExecuted(PbftBlock const &pbft_blk,
   }
 }
 
-void WSServer::newEthBlock(dev::eth::BlockHeader const &payload) {
+void WSServer::newEthBlock(::taraxa::final_chain::BlockHeader const &payload) {
   boost::shared_lock<boost::shared_mutex> lock(sessions_mtx_);
   for (auto const &session : sessions) {
     if (!session->is_closed()) session->newEthBlock(payload);

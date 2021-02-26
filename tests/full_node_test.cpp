@@ -75,15 +75,21 @@ void send_dummy_trx() {
 struct FullNodeTest : BaseTest {};
 
 TEST_F(FullNodeTest, db_test) {
-  auto db_ptr = s_ptr(new DbStorage(data_dir));
+  auto db_ptr = DbStorage::make(data_dir);
   auto &db = *db_ptr;
   DagBlock blk1(blk_hash_t(1), 1, {}, {trx_hash_t(1), trx_hash_t(2)}, sig_t(777), blk_hash_t(0xB1), addr_t(999));
   DagBlock blk2(blk_hash_t(1), 1, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(777), blk_hash_t(0xB2), addr_t(999));
   DagBlock blk3(blk_hash_t(0xB1), 2, {}, {trx_hash_t(5)}, sig_t(777), blk_hash_t(0xB6), addr_t(999));
   // DAG
-  db.saveDagBlock(blk1);
-  db.saveDagBlock(blk2);
-  db.saveDagBlock(blk3);
+  auto b = db.createWriteBatch();
+  b.saveDagBlock(blk1);
+  b.commit();
+  b = db.createWriteBatch();
+  b.saveDagBlock(blk2);
+  b.commit();
+  b = db.createWriteBatch();
+  b.saveDagBlock(blk3);
+  b.commit();
   EXPECT_EQ(blk1, *db.getDagBlock(blk1.getHash()));
   EXPECT_EQ(blk2, *db.getDagBlock(blk2.getHash()));
   EXPECT_EQ(blk3, *db.getDagBlock(blk3.getHash()));
@@ -93,9 +99,9 @@ TEST_F(FullNodeTest, db_test) {
   db.saveTransaction(g_trx_signed_samples[0]);
   db.saveTransaction(g_trx_signed_samples[1]);
   auto batch = db.createWriteBatch();
-  db.addTransactionToBatch(g_trx_signed_samples[2], batch);
-  db.addTransactionToBatch(g_trx_signed_samples[3], batch);
-  db.commitWriteBatch(batch);
+  batch.addTransaction(g_trx_signed_samples[2]);
+  batch.addTransaction(g_trx_signed_samples[3]);
+  batch.commit();
   EXPECT_TRUE(db.transactionInDb(g_trx_signed_samples[0].getHash()));
   EXPECT_TRUE(db.transactionInDb(g_trx_signed_samples[1].getHash()));
   EXPECT_TRUE(db.transactionInDb(g_trx_signed_samples[2].getHash()));
@@ -183,11 +189,11 @@ TEST_F(FullNodeTest, db_test) {
   auto pbft_block3 = make_simple_pbft_block(blk_hash_t(3), 4);
   auto pbft_block4 = make_simple_pbft_block(blk_hash_t(4), 5);
   batch = db.createWriteBatch();
-  db.addPbftBlockToBatch(pbft_block1, batch);
-  db.addPbftBlockToBatch(pbft_block2, batch);
-  db.addPbftBlockToBatch(pbft_block3, batch);
-  db.addPbftBlockToBatch(pbft_block4, batch);
-  db.commitWriteBatch(batch);
+  batch.addPbftBlock(pbft_block1);
+  batch.addPbftBlock(pbft_block2);
+  batch.addPbftBlock(pbft_block3);
+  batch.addPbftBlock(pbft_block4);
+  batch.commit();
   EXPECT_TRUE(db.pbftBlockInDb(pbft_block1.getBlockHash()));
   EXPECT_TRUE(db.pbftBlockInDb(pbft_block2.getBlockHash()));
   EXPECT_TRUE(db.pbftBlockInDb(pbft_block3.getBlockHash()));
@@ -202,12 +208,12 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(db.getPbftHead(pbft_chain.getHeadHash()), pbft_chain.getJsonStr());
   batch = db.createWriteBatch();
   pbft_chain.updatePbftChain(blk_hash_t(123));
-  db.addPbftHeadToBatch(pbft_chain.getHeadHash(), pbft_chain.getJsonStr(), batch);
-  db.commitWriteBatch(batch);
+  batch.addPbftHead(pbft_chain.getHeadHash(), pbft_chain.getJsonStr());
+  batch.commit();
   EXPECT_EQ(db.getPbftHead(pbft_chain.getHeadHash()), pbft_chain.getJsonStr());
   batch = db.createWriteBatch();
-  db.addPbftHeadToBatch(pbft_chain.getHeadHash(), pbft_chain.getJsonStr(), batch);
-  db.commitWriteBatch(batch);
+  batch.addPbftHead(pbft_chain.getHeadHash(), pbft_chain.getJsonStr());
+  batch.commit();
   EXPECT_EQ(db.getPbftHead(pbft_chain.getHeadHash()), pbft_chain.getJsonStr());
   // status
   db.saveStatusField(StatusDbField::TrxCount, 5);
@@ -215,9 +221,9 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(db.getStatusField(StatusDbField::TrxCount), 5);
   EXPECT_EQ(db.getStatusField(StatusDbField::ExecutedBlkCount), 6);
   batch = db.createWriteBatch();
-  db.addStatusFieldToBatch(StatusDbField::ExecutedBlkCount, 10, batch);
-  db.addStatusFieldToBatch(StatusDbField::ExecutedTrxCount, 20, batch);
-  db.commitWriteBatch(batch);
+  batch.addStatusField(StatusDbField::ExecutedBlkCount, 10);
+  batch.addStatusField(StatusDbField::ExecutedTrxCount, 20);
+  batch.commit();
   EXPECT_EQ(db.getStatusField(StatusDbField::ExecutedBlkCount), 10);
   EXPECT_EQ(db.getStatusField(StatusDbField::ExecutedTrxCount), 20);
   std::vector<Vote> cert_votes;
@@ -232,8 +238,8 @@ TEST_F(FullNodeTest, db_test) {
   cert_votes.emplace_back(vote);
   cert_votes.emplace_back(vote);
   batch = db.createWriteBatch();
-  db.addPbftCertVotesToBatch(vote_pbft_block_hash, cert_votes, batch);
-  db.commitWriteBatch(batch);
+  batch.addPbftCertVotes(vote_pbft_block_hash, cert_votes);
+  batch.commit();
   auto pbft_block = make_simple_pbft_block(vote_pbft_block_hash, 2);
   PbftBlockCert pbft_block_cert_votes(pbft_block, cert_votes);
   auto cert_votes_rlp = db.getVotes(vote_pbft_block_hash);
@@ -245,16 +251,16 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(pbft_block_cert_votes.rlp(), pbft_block_cert_votes_from_db.rlp());
   // period_pbft_block
   batch = db.createWriteBatch();
-  db.addPbftBlockPeriodToBatch(1, blk_hash_t(1), batch);
-  db.addPbftBlockPeriodToBatch(2, blk_hash_t(2), batch);
-  db.commitWriteBatch(batch);
+  batch.addPbftBlockPeriod(1, blk_hash_t(1));
+  batch.addPbftBlockPeriod(2, blk_hash_t(2));
+  batch.commit();
   EXPECT_EQ(*db.getPeriodPbftBlock(1), blk_hash_t(1));
   EXPECT_EQ(*db.getPeriodPbftBlock(2), blk_hash_t(2));
   // dag_block_period
   batch = db.createWriteBatch();
-  db.addDagBlockPeriodToBatch(blk_hash_t(1), 1, batch);
-  db.addDagBlockPeriodToBatch(blk_hash_t(2), 2, batch);
-  db.commitWriteBatch(batch);
+  batch.addDagBlockPeriod(blk_hash_t(1), 1);
+  batch.addDagBlockPeriod(blk_hash_t(2), 2);
+  batch.commit();
   EXPECT_EQ(1, *db.getDagBlockPeriod(blk_hash_t(1)));
   EXPECT_EQ(2, *db.getDagBlockPeriod(blk_hash_t(2)));
 }
@@ -604,7 +610,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   }
   auto write_batch = node->getDB()->createWriteBatch();
   auto num_blks_set = node->getDagManager()->setDagBlockOrder(blk_hash_t(pivot), period, *order, write_batch);
-  node->getDB()->commitWriteBatch(write_batch);
+  write_batch.commit();
   EXPECT_EQ(num_blks_set, 6);
   // -------- second period ----------
 
@@ -627,7 +633,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   }
   write_batch = node->getDB()->createWriteBatch();
   num_blks_set = node->getDagManager()->setDagBlockOrder(blk_hash_t(pivot), period, *order, write_batch);
-  node->getDB()->commitWriteBatch(write_batch);
+  write_batch.commit();
   EXPECT_EQ(num_blks_set, 7);
 
   // -------- third period ----------
@@ -649,7 +655,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   }
   write_batch = node->getDB()->createWriteBatch();
   num_blks_set = node->getDagManager()->setDagBlockOrder(blk_hash_t(pivot), period, *order, write_batch);
-  node->getDB()->commitWriteBatch(write_batch);
+  write_batch.commit();
   EXPECT_EQ(num_blks_set, 5);
 }
 

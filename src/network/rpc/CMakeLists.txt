@@ -1,17 +1,17 @@
 # Note: run make rpc_stubs to re-generate rpc classes
 # TODO: refactor this cmake
 
-cmake_minimum_required(VERSION 3.16)
-set(CPP_NAMESPACE taraxa::net)
+include(EthDependencies)
+include(EthExecutableHelper)
 
-include(../../../submodules/taraxa-aleth/cmake/EthDependencies.cmake)
-include(../../../submodules/taraxa-aleth/cmake/EthExecutableHelper.cmake)
+set(CPP_NAMESPACE taraxa::net)
 
 find_program(ETH_JSON_RPC_STUB jsonrpcstub)
 add_custom_target(gen_rpc_stubs)
 add_custom_target(rpc_stubs)
-
-foreach (api_name Net Taraxa Test)
+file(GLOB API_DEF_FILES "${CMAKE_CURRENT_SOURCE_DIR}/*.jsonrpc.json")
+foreach (api_def_file ${API_DEF_FILES})
+    get_filename_component(api_name ${api_def_file} NAME_WE)
     jsonrpcstub_create(
             gen_rpc_stubs ${api_name}.jsonrpc.json
             ${CPP_NAMESPACE}::${api_name}Face
@@ -24,7 +24,7 @@ foreach (api_name Net Taraxa Test)
 file(READ ${server_file} server_file_content)
 string(REPLACE
        \"include \\\"ModularServer.h\\\"\"
-       \"include <libweb3jsonrpc/ModularServer.h>\"
+       \"include \\\"network/rpc/ModularServer.h\\\"\"
        server_file_content \"\${server_file_content}\")
 file(WRITE ${server_file} \"\${server_file_content}\")
     ")

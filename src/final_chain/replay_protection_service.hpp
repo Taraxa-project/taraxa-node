@@ -9,7 +9,7 @@ namespace taraxa {
 
 struct ReplayProtectionService {
   struct Config {
-    round_t range = 0;
+    uint64_t range = 0;
   };
 
   virtual ~ReplayProtectionService() {}
@@ -20,7 +20,12 @@ struct ReplayProtectionService {
     addr_t sender;
     uint64_t nonce = 0;
   };
-  virtual void update(DbStorage::BatchPtr batch, round_t round, util::RangeView<TransactionInfo> const& trxs) = 0;
+  virtual void update(DbStorage::Batch& batch, uint64_t period, util::RangeView<TransactionInfo> const& trxs) = 0;
+};
+
+struct ReplayProtectionServiceDummy : ReplayProtectionService {
+  bool is_nonce_stale(addr_t const& addr, uint64_t nonce) const override { return false; }
+  void update(DbStorage::Batch& batch, uint64_t period, util::RangeView<TransactionInfo> const& trxs) override {}
 };
 
 std::unique_ptr<ReplayProtectionService> NewReplayProtectionService(ReplayProtectionService::Config config,

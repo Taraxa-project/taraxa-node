@@ -15,7 +15,7 @@ using boost::filesystem::create_directories;
 using boost::filesystem::path;
 using boost::filesystem::remove_all;
 using boost::filesystem::temp_directory_path;
-using util::dec_rlp;
+using util::rlp;
 using namespace std;
 using namespace core_tests;
 
@@ -38,15 +38,15 @@ struct TestBlock {
   vector<UncleBlock> UncleBlocks;
 };
 
-void dec_rlp(RLP const& rlp, TestBlock& target) {
-  dec_rlp_tuple(rlp, target.Hash, target.StateRoot, target.evm_block, target.Transactions, target.UncleBlocks);
+void rlp(RLP const& rlp, TestBlock& target) {
+  rlp_tuple(rlp, target.Hash, target.StateRoot, target.evm_block, target.Transactions, target.UncleBlocks);
 }
 
 template <typename T>
 T parse_rlp_file(path const& p) {
   ifstream strm(p.string());
   T ret;
-  dec_rlp(RLP(string(istreambuf_iterator(strm), {}), 0), ret);
+  rlp(RLP(string(istreambuf_iterator(strm), {}), 0), ret);
   return ret;
 }
 
@@ -68,7 +68,7 @@ TEST_F(StateAPITest, eth_mainnet_smoke) {
   auto genesis_balances_rlp_hex_c = taraxa_evm_mainnet_genesis_balances();
   auto genesis_balances_rlp =
       dev::jsToBytes(string((char*)genesis_balances_rlp_hex_c.Data, genesis_balances_rlp_hex_c.Len));
-  dec_rlp(RLP(genesis_balances_rlp), chain_config.genesis_balances);
+  rlp(RLP(genesis_balances_rlp), chain_config.genesis_balances);
 
   Opts opts;
   opts.ExpectedMaxTrxPerBlock = 300;

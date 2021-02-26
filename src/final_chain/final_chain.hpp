@@ -1,19 +1,18 @@
 #pragma once
 
-#include <libethereum/ChainDBImpl.h>
-
-#include "aleth/database.hpp"
+#include "ChainDB.h"
 #include "common/types.hpp"
 #include "state_api.hpp"
 #include "storage/db_storage.hpp"
+#include "util/event.hpp"
 #include "util/exit_stack.hpp"
 #include "util/range_view.hpp"
 
 namespace taraxa::final_chain {
-using namespace std;
-using namespace dev;
-using namespace eth;
-using namespace util;
+using namespace ::std;
+using namespace ::dev;
+using namespace ::taraxa::final_chain;
+using namespace ::taraxa::util;
 
 struct FinalChain : virtual ChainDB {
   struct Config {
@@ -28,18 +27,24 @@ struct FinalChain : virtual ChainDB {
     state_api::Opts state_api;
   };
 
+  struct BlockExecuted {
+    shared_ptr<PbftBlock const> pbft_blk;
+    vector<blk_hash_t> finalized_dag_blk_hashes;
+    shared_ptr<BlockHeader const> final_chain_blk;
+    TransactionReceipts trx_receipts;
+  };
+
+ protected:
+  util::EventEmitter<BlockExecuted> const block_executed_;
+
+ public:
+  decltype(block_executed_)::Subscriber const& block_executed = block_executed_;
+
   virtual ~FinalChain() {}
 
-  struct AdvanceResult {
-    BlockHeader new_header;
-    TransactionReceipts const& receipts;
-    state_api::StateTransitionResult const& state_transition_result;
-  };
-  virtual AdvanceResult advance(DbStorage::BatchPtr batch, Address const& author, uint64_t timestamp,
-                                Transactions const& transactions) = 0;
+  virtual void execute(std::shared_ptr<PbftBlock> pbft_blk) = 0;
   virtual shared_ptr<BlockHeader> get_last_block() const = 0;
-  virtual void advance_confirm() = 0;
-  virtual void create_snapshot(uint64_t const& period) = 0;
+  virtual void create_state_db_snapshot(uint64_t const& period) = 0;
   virtual optional<state_api::Account> get_account(addr_t const& addr, optional<BlockNumber> blk_n = nullopt) const = 0;
   virtual u256 get_account_storage(addr_t const& addr, u256 const& key,
                                    optional<BlockNumber> blk_n = nullopt) const = 0;
@@ -53,8 +58,11 @@ struct FinalChain : virtual ChainDB {
                                                 optional<BlockNumber> blk_n = nullopt) const = 0;
 };
 
-unique_ptr<FinalChain> NewFinalChain(shared_ptr<DbStorage> db, FinalChain::Config const& config,
-                                     FinalChain::Opts const& opts = {});
+unique_ptr<FinalChain> NewFinalChain(shared_ptr<DbStorage> db,  //
+                                     shared_ptr<PbftChain> pbft_chain,
+                                     FinalChain::Config const& config,   //
+                                     FinalChain::Opts const& opts = {},  //
+                                     addr_t const& node_addr = {});
 
 Json::Value enc_json(FinalChain::Config const& obj);
 void dec_json(Json::Value const& json, FinalChain::Config& obj);

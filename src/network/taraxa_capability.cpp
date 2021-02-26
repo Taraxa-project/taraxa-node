@@ -265,7 +265,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         }
 
         case NewBlockHashPacket: {
-          blk_hash_t hash(_r[0]);
+          auto hash(_r[0].toHash<blk_hash_t>());
           LOG(log_dg_dag_prp_) << "Received NewBlockHashPacket" << hash.toString();
           peer->markBlockAsKnown(hash);
           if (dag_blk_mgr_) {
@@ -281,7 +281,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
           break;
         }
         case GetNewBlockPacket: {
-          blk_hash_t hash(_r[0]);
+          auto hash(_r[0].toHash<blk_hash_t>());
           peer->markBlockAsKnown(hash);
           LOG(log_dg_dag_prp_) << "Received GetNewBlockPacket" << hash.toString();
 
@@ -414,7 +414,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         case NewPbftBlockPacket: {
           LOG(log_dg_pbft_prp_) << "In NewPbftBlockPacket";
 
-          auto pbft_block = s_ptr(new PbftBlock(_r[0]));
+          auto pbft_block = util::s_ptr(new PbftBlock(_r[0]));
           uint64_t pbft_chain_size = _r[1].toInt();
           LOG(log_dg_pbft_prp_) << "Receive proposed PBFT Block " << pbft_block
                                 << " Peer Chain size: " << pbft_chain_size;
@@ -610,8 +610,8 @@ void TaraxaCapability::restartSyncingPbft(bool force) {
                            << pbft_sync_period_ << "(" << pbft_chain_->getPbftChainSize() << ")"
                            << " is greater or equal than max node pbft chain size:" << max_pbft_chain_size;
     syncing_ = false;
-    if (force || (!requesting_pending_dag_blocks_ &&
-                  max_node_dag_level > std::max(dag_mgr_->getMaxLevel(), dag_blk_mgr_->getMaxDagLevelInQueue()))) {
+    if (!requesting_pending_dag_blocks_ &&
+        (force || max_node_dag_level > std::max(dag_mgr_->getMaxLevel(), dag_blk_mgr_->getMaxDagLevelInQueue()))) {
       LOG(log_nf_dag_sync_) << "Request pending " << max_node_dag_level << " "
                             << std::max(dag_mgr_->getMaxLevel(), dag_blk_mgr_->getMaxDagLevelInQueue()) << "("
                             << dag_mgr_->getMaxLevel() << ")";

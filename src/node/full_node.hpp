@@ -2,7 +2,6 @@
 
 #include <libdevcore/SHA3.h>
 #include <libdevcrypto/Common.h>
-#include <libweb3jsonrpc/EthFace.h>
 
 #include <atomic>
 #include <boost/asio.hpp>
@@ -13,14 +12,12 @@
 #include <type_traits>
 #include <vector>
 
-#include "aleth/filter_api.hpp"
-#include "aleth/pending_block.hpp"
 #include "config/config.hpp"
 #include "consensus/pbft_chain.hpp"
 #include "consensus/vote.hpp"
 #include "consensus/vrf_wrapper.hpp"
 #include "dag/dag_block_manager.hpp"
-#include "executor.hpp"
+#include "network/rpc/EthFace.h"
 #include "network/rpc/NetFace.h"
 #include "network/rpc/RpcServer.h"
 #include "network/rpc/TaraxaFace.h"
@@ -29,6 +26,7 @@
 #include "storage/db_storage.hpp"
 #include "transaction_manager/transaction.hpp"
 #include "transaction_manager/transaction_order_manager.hpp"
+#include "util/thread_pool.hpp"
 #include "util/util.hpp"
 
 namespace taraxa {
@@ -37,7 +35,6 @@ class Network;
 class BlockProposer;
 class DagManager;
 class DagBlock;
-class BlockManager;
 class Transaction;
 class TransactionManager;
 class PbftManager;
@@ -71,13 +68,11 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<VoteManager> vote_mgr_;
   std::shared_ptr<PbftManager> pbft_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
-  std::shared_ptr<Executor> executor_;
   std::shared_ptr<FinalChain> final_chain_;
-  std::unique_ptr<boost::asio::io_context> jsonrpc_io_ctx_;
+  std::shared_ptr<util::ThreadPool> rpc_thread_pool_;
   std::shared_ptr<net::RpcServer> jsonrpc_http_;
   std::shared_ptr<net::WSServer> jsonrpc_ws_;
-  std::unique_ptr<ModularServer<net::TestFace, net::TaraxaFace, net::NetFace, dev::rpc::EthFace>> jsonrpc_api_;
-  std::vector<std::thread> jsonrpc_threads_;
+  std::unique_ptr<ModularServer<net::TestFace, net::TaraxaFace, net::NetFace, net::EthFace>> jsonrpc_api_;
   // debug
   std::atomic_uint64_t received_blocks_ = 0;
   // logging
@@ -91,13 +86,19 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   void init();
   void close();
 
-  template <typename T, typename... ConstructorParams>
-  auto &emplace(std::shared_ptr<T> &ptr, ConstructorParams &&... ctor_params) {
-    ptr = std::make_shared<T>(std::forward<ConstructorParams>(ctor_params)...);
+  template <typename T>
+  auto const &register_s_ptr(std::shared_ptr<T> const &ptr) {
     post_destruction_ += [w_ptr = std::weak_ptr<T>(ptr)] {
       // Example of debugging: cout << "checking " << typeid(T).name() << endl;
       assert(w_ptr.use_count() == 0);
     };
+    return ptr;
+  }
+
+  template <typename T, typename... ConstructorParams>
+  auto &emplace(std::shared_ptr<T> &ptr, ConstructorParams &&... ctor_params) {
+    ptr = std::make_shared<T>(std::forward<ConstructorParams>(ctor_params)...);
+    register_s_ptr(ptr);
     return ptr;
   }
 
@@ -119,7 +120,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   auto const &getPbftManager() const { return pbft_mgr_; }
   auto const &getVoteManager() const { return vote_mgr_; }
   auto const &getPbftChain() const { return pbft_chain_; }
-  auto const &getExecutor() const { return executor_; }
   auto const &getFinalChain() const { return final_chain_; }
   auto const &getTrxOrderMgr() const { return trx_order_mgr_; }
 
@@ -132,9 +132,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   auto &getTimeLogger() { return log_time_; }
   auto getNumReceivedBlocks() const { return received_blocks_.load(); }
   uint64_t getNumProposedBlocks() const;
-
-  // PBFT
-  dev::Signature signMessage(std::string const &message);
 
   struct Handle : shared_ptr_t {
     Handle(Handle const &) = delete;

@@ -133,7 +133,7 @@ TEST_F(DagTest, genesis_get_pivot) {
 // Use the example on Conflux paper
 TEST_F(DagTest, compute_epoch) {
   const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
-  auto db_ptr = s_ptr(new DbStorage(data_dir / "db"));
+  auto db_ptr = DbStorage::make(data_dir / "db");
   auto mgr = std::make_shared<DagManager>(GENESIS, addr_t(), nullptr, nullptr, db_ptr);
   DagBlock blkA(blk_hash_t(0), 0, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(1), addr_t(1));
   DagBlock blkB(blk_hash_t(0), 0, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1), blk_hash_t(2), addr_t(1));
@@ -172,7 +172,7 @@ TEST_F(DagTest, compute_epoch) {
 
   auto write_batch = db_ptr->createWriteBatch();
   mgr->setDagBlockOrder(blkA.getHash(), period, *orders, write_batch);
-  db_ptr->commitWriteBatch(write_batch);
+  write_batch.commit();
 
   std::tie(period, orders) = mgr->getDagBlockOrder(blkC.getHash());
   EXPECT_EQ(orders->size(), 2);
@@ -184,21 +184,21 @@ TEST_F(DagTest, compute_epoch) {
 
   write_batch = db_ptr->createWriteBatch();
   mgr->setDagBlockOrder(blkC.getHash(), period, *orders, write_batch);
-  db_ptr->commitWriteBatch(write_batch);
+  write_batch.commit();
 
   std::tie(period, orders) = mgr->getDagBlockOrder(blkE.getHash());
   EXPECT_EQ(orders->size(), 3);
   EXPECT_EQ(period, 3);
   write_batch = db_ptr->createWriteBatch();
   mgr->setDagBlockOrder(blkE.getHash(), period, *orders, write_batch);
-  db_ptr->commitWriteBatch(write_batch);
+  write_batch.commit();
 
   std::tie(period, orders) = mgr->getDagBlockOrder(blkH.getHash());
   EXPECT_EQ(orders->size(), 4);
   EXPECT_EQ(period, 4);
   write_batch = db_ptr->createWriteBatch();
   mgr->setDagBlockOrder(blkH.getHash(), period, *orders, write_batch);
-  db_ptr->commitWriteBatch(write_batch);
+  write_batch.commit();
 
   if (orders->size() == 4) {
     EXPECT_EQ((*orders)[0], blk_hash_t(10));
@@ -211,12 +211,12 @@ TEST_F(DagTest, compute_epoch) {
   EXPECT_EQ(period, 5);
   write_batch = db_ptr->createWriteBatch();
   mgr->setDagBlockOrder(blkK.getHash(), period, *orders, write_batch);
-  db_ptr->commitWriteBatch(write_batch);
+  write_batch.commit();
 }
 
 TEST_F(DagTest, receive_block_in_order) {
   const std::string GENESIS = "000000000000000000000000000000000000000000000000000000000000000a";
-  auto db_ptr = s_ptr(new DbStorage(data_dir / "db"));
+  auto db_ptr = DbStorage::make(data_dir / "db");
   auto mgr = std::make_shared<DagManager>(GENESIS, addr_t(), nullptr, nullptr, db_ptr);
   // mgr.setVerbose(true);
   DagBlock genesis_block(blk_hash_t(0), 0, {}, {}, sig_t(777), blk_hash_t(10), addr_t(15));
@@ -249,7 +249,7 @@ TEST_F(DagTest, receive_block_in_order) {
 // sure block order are the same
 TEST_F(DagTest, compute_epoch_2) {
   const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
-  auto db_ptr = s_ptr(new DbStorage(data_dir / "db"));
+  auto db_ptr = DbStorage::make(data_dir / "db");
   auto mgr = std::make_shared<DagManager>(GENESIS, addr_t(), nullptr, nullptr, db_ptr);
   DagBlock blkA(blk_hash_t(0), 0, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(1), addr_t(1));
   DagBlock blkB(blk_hash_t(0), 0, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1), blk_hash_t(2), addr_t(1));
@@ -289,7 +289,7 @@ TEST_F(DagTest, compute_epoch_2) {
 
   auto write_batch = db_ptr->createWriteBatch();
   mgr->setDagBlockOrder(blkA.getHash(), period, *orders, write_batch);
-  db_ptr->commitWriteBatch(write_batch);
+  write_batch.commit();
 
   std::tie(period, orders) = mgr->getDagBlockOrder(blkC.getHash());
   EXPECT_EQ(orders->size(), 2);
@@ -301,21 +301,21 @@ TEST_F(DagTest, compute_epoch_2) {
 
   write_batch = db_ptr->createWriteBatch();
   mgr->setDagBlockOrder(blkC.getHash(), period, *orders, write_batch);
-  db_ptr->commitWriteBatch(write_batch);
+  write_batch.commit();
 
   std::tie(period, orders) = mgr->getDagBlockOrder(blkE.getHash());
   EXPECT_EQ(orders->size(), 3);
   EXPECT_EQ(period, 3);
   write_batch = db_ptr->createWriteBatch();
   mgr->setDagBlockOrder(blkE.getHash(), period, *orders, write_batch);
-  db_ptr->commitWriteBatch(write_batch);
+  write_batch.commit();
 
   std::tie(period, orders) = mgr->getDagBlockOrder(blkH.getHash());
   EXPECT_EQ(orders->size(), 4);
   EXPECT_EQ(period, 4);
   write_batch = db_ptr->createWriteBatch();
   mgr->setDagBlockOrder(blkH.getHash(), period, *orders, write_batch);
-  db_ptr->commitWriteBatch(write_batch);
+  write_batch.commit();
 
   if (orders->size() == 4) {
     EXPECT_EQ((*orders)[0], blk_hash_t(10));
@@ -328,12 +328,12 @@ TEST_F(DagTest, compute_epoch_2) {
   EXPECT_EQ(period, 5);
   write_batch = db_ptr->createWriteBatch();
   mgr->setDagBlockOrder(blkK.getHash(), period, *orders, write_batch);
-  db_ptr->commitWriteBatch(write_batch);
+  write_batch.commit();
 }
 
 TEST_F(DagTest, get_latest_pivot_tips) {
   const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
-  auto db_ptr = s_ptr(new DbStorage(data_dir / "db"));
+  auto db_ptr = DbStorage::make(data_dir / "db");
   auto mgr = std::make_shared<DagManager>(GENESIS, addr_t(), nullptr, nullptr, db_ptr);
 
   // mgr.setVerbose(true);

@@ -321,25 +321,24 @@ TEST_F(NetworkTest, node_pbft_sync) {
   node1->getDagBlockManager()->insertBlock(blk1);
 
   PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), period, beneficiary, node1->getSecretKey());
-  db1->putFinalizedDagBlockHashesByAnchor(*batch, pbft_block1.getPivotDagBlockHash(),
-                                          {pbft_block1.getPivotDagBlockHash()});
+  batch.putFinalizedDagBlockHashesByAnchor(pbft_block1.getPivotDagBlockHash(), {pbft_block1.getPivotDagBlockHash()});
   std::vector<Vote> votes_for_pbft_blk1;
   votes_for_pbft_blk1.emplace_back(
       node1->getPbftManager()->generateVote(pbft_block1.getBlockHash(), cert_vote_type, 1, 3, prev_block_hash));
   std::cout << "Generate 1 vote for first PBFT block" << std::endl;
   // Add cert votes in DB
-  db1->addPbftCertVotesToBatch(pbft_block1.getBlockHash(), votes_for_pbft_blk1, batch);
+  batch.addPbftCertVotes(pbft_block1.getBlockHash(), votes_for_pbft_blk1);
   // Add PBFT block in DB
-  db1->addPbftBlockToBatch(pbft_block1, batch);
+  batch.addPbftBlock(pbft_block1);
   // Update period_pbft_block in DB
-  db1->addPbftBlockPeriodToBatch(period, pbft_block1.getBlockHash(), batch);
+  batch.addPbftBlockPeriod(period, pbft_block1.getBlockHash());
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block1.getBlockHash());
   // Update PBFT chain head block
   blk_hash_t pbft_chain_head_hash = pbft_chain1->getHeadHash();
   std::string pbft_chain_head_str = pbft_chain1->getJsonStr();
-  db1->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
-  db1->commitWriteBatch(batch);
+  batch.addPbftHead(pbft_chain_head_hash, pbft_chain_head_str);
+  batch.commit();
   int expect_pbft_chain_size = 1;
   EXPECT_EQ(node1->getPbftChain()->getPbftChainSize(), expect_pbft_chain_size);
 
@@ -357,8 +356,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
   period = 2;
   beneficiary = addr_t(654);
   PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), 2, beneficiary, node1->getSecretKey());
-  db1->putFinalizedDagBlockHashesByAnchor(*batch, pbft_block2.getPivotDagBlockHash(),
-                                          {pbft_block2.getPivotDagBlockHash()});
+  batch.putFinalizedDagBlockHashesByAnchor(pbft_block2.getPivotDagBlockHash(), {pbft_block2.getPivotDagBlockHash()});
 
   std::vector<Vote> votes_for_pbft_blk2;
   votes_for_pbft_blk2.emplace_back(
@@ -366,18 +364,18 @@ TEST_F(NetworkTest, node_pbft_sync) {
   std::cout << "Generate 1 vote for second PBFT block" << std::endl;
   // node1 put block2 into pbft chain and store into DB
   // Add cert votes in DB
-  db1->addPbftCertVotesToBatch(pbft_block2.getBlockHash(), votes_for_pbft_blk2, batch);
+  batch.addPbftCertVotes(pbft_block2.getBlockHash(), votes_for_pbft_blk2);
   // Add PBFT block in DB
-  db1->addPbftBlockToBatch(pbft_block2, batch);
+  batch.addPbftBlock(pbft_block2);
   // Update period_pbft_block in DB
-  db1->addPbftBlockPeriodToBatch(period, pbft_block2.getBlockHash(), batch);
+  batch.addPbftBlockPeriod(period, pbft_block2.getBlockHash());
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block2.getBlockHash());
   // Update PBFT chain head block
   pbft_chain_head_hash = pbft_chain1->getHeadHash();
   pbft_chain_head_str = pbft_chain1->getJsonStr();
-  db1->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
-  db1->commitWriteBatch(batch);
+  batch.addPbftHead(pbft_chain_head_hash, pbft_chain_head_str);
+  batch.commit();
   expect_pbft_chain_size = 2;
   EXPECT_EQ(node1->getPbftChain()->getPbftChainSize(), expect_pbft_chain_size);
 
@@ -445,25 +443,24 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   node1->getDagBlockManager()->insertBlock(blk1);
 
   PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), period, beneficiary, node1->getSecretKey());
-  db1->putFinalizedDagBlockHashesByAnchor(*batch, pbft_block1.getPivotDagBlockHash(),
-                                          {pbft_block1.getPivotDagBlockHash()});
+  batch.putFinalizedDagBlockHashesByAnchor(pbft_block1.getPivotDagBlockHash(), {pbft_block1.getPivotDagBlockHash()});
   std::vector<Vote> votes_for_pbft_blk1;
   votes_for_pbft_blk1.emplace_back(
       node1->getPbftManager()->generateVote(pbft_block1.getBlockHash(), cert_vote_type, 1, 3, prev_block_hash));
   std::cout << "Generate 1 vote for first PBFT block" << std::endl;
   // Add cert votes in DB
-  db1->addPbftCertVotesToBatch(pbft_block1.getBlockHash(), votes_for_pbft_blk1, batch);
+  batch.addPbftCertVotes(pbft_block1.getBlockHash(), votes_for_pbft_blk1);
   // Add PBFT block in DB
-  db1->addPbftBlockToBatch(pbft_block1, batch);
+  batch.addPbftBlock(pbft_block1);
   // Update period_pbft_block in DB
-  db1->addPbftBlockPeriodToBatch(period, pbft_block1.getBlockHash(), batch);
+  batch.addPbftBlockPeriod(period, pbft_block1.getBlockHash());
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block1.getBlockHash());
   // Update PBFT chain head block
   blk_hash_t pbft_chain_head_hash = pbft_chain1->getHeadHash();
   std::string pbft_chain_head_str = pbft_chain1->getJsonStr();
-  db1->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
-  db1->commitWriteBatch(batch);
+  batch.addPbftHead(pbft_chain_head_hash, pbft_chain_head_str);
+  batch.commit();
   int expect_pbft_chain_size = 1;
   EXPECT_EQ(node1->getPbftChain()->getPbftChainSize(), expect_pbft_chain_size);
 
@@ -483,23 +480,22 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   beneficiary = addr_t(654);
 
   PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), period, beneficiary, node1->getSecretKey());
-  db1->putFinalizedDagBlockHashesByAnchor(*batch, pbft_block2.getPivotDagBlockHash(),
-                                          {pbft_block2.getPivotDagBlockHash()});
+  batch.putFinalizedDagBlockHashesByAnchor(pbft_block2.getPivotDagBlockHash(), {pbft_block2.getPivotDagBlockHash()});
   std::cout << "Use fake votes for the second PBFT block" << std::endl;
   // node1 put block2 into pbft chain and use fake votes storing into DB (malicious player)
   // Add fake votes in DB
-  db1->addPbftCertVotesToBatch(pbft_block2.getBlockHash(), votes_for_pbft_blk1, batch);
+  batch.addPbftCertVotes(pbft_block2.getBlockHash(), votes_for_pbft_blk1);
   // Add PBFT block in DB
-  db1->addPbftBlockToBatch(pbft_block2, batch);
+  batch.addPbftBlock(pbft_block2);
   // Update period_pbft_block in DB
-  db1->addPbftBlockPeriodToBatch(period, pbft_block2.getBlockHash(), batch);
+  batch.addPbftBlockPeriod(period, pbft_block2.getBlockHash());
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block2.getBlockHash());
   // Update PBFT chain head block
   pbft_chain_head_hash = pbft_chain1->getHeadHash();
   pbft_chain_head_str = pbft_chain1->getJsonStr();
-  db1->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
-  db1->commitWriteBatch(batch);
+  batch.addPbftHead(pbft_chain_head_hash, pbft_chain_head_str);
+  batch.commit();
   expect_pbft_chain_size = 2;
   EXPECT_EQ(node1->getPbftChain()->getPbftChainSize(), expect_pbft_chain_size);
 

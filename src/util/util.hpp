@@ -2,10 +2,10 @@
 
 #include <execinfo.h>
 #include <json/json.h>
+#include <libdevcore/RLP.h>
 #include <signal.h>
 
 #include <boost/asio.hpp>
-#include <boost/format.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
@@ -22,19 +22,6 @@
 #include "common/types.hpp"
 
 namespace taraxa {
-
-struct ProcessReturn {
-  enum class Result {
-    PROGRESS,
-    BAD_SIG,
-    SEEN,
-    NEG_SPEND,
-    UNRECEIVABLE,  // ?
-    MISS_PREV,
-    MISS_SOURCE
-  };
-  taraxa::addr_t user_account;
-};
 
 template <typename T, typename U = T>
 std::vector<T> asVector(Json::Value const &json, std::string const &key) {
@@ -53,16 +40,6 @@ std::vector<T> asVector(Json::Value const &json) {
   return v;
 }
 
-template <typename enumT>
-constexpr inline auto asInteger(enumT const value) {
-  return static_cast<typename std::underlying_type<enumT>::type>(value);
-}
-
-template <typename E, typename T>
-constexpr inline typename std::enable_if_t<std::is_enum_v<E> && std::is_integral_v<T>, E> toEnum(T value) noexcept {
-  return static_cast<E>(value);
-}
-
 template <typename T>
 std::ostream &operator<<(std::ostream &strm, std::vector<T> const &vec) {
   for (auto const &i : vec) {
@@ -70,6 +47,7 @@ std::ostream &operator<<(std::ostream &strm, std::vector<T> const &vec) {
   }
   return strm;
 }
+
 template <typename U, typename V>
 std::ostream &operator<<(std::ostream &strm, std::pair<U, V> const &pair) {
   strm << "[ " << pair.first << " , " << pair.second << "]";
@@ -219,55 +197,6 @@ class StatusTable {
   std::unordered_map<K, typename std::list<std::pair<K, V>>::iterator> status_;
   std::list<std::pair<K, V>> lru_;
 };  // namespace taraxa
-
-template <typename... TS>
-std::string fmt(const std::string &pattern, const TS &... args) {
-  return (boost::format(pattern) % ... % args).str();
-}
-
-template <typename Container, typename What>
-auto std_find(Container &container, What const &what) {
-  auto itr = container.find(what);
-  if (itr != container.end()) {
-    return std::optional(std::move(itr));
-  }
-  return static_cast<std::optional<decltype(itr)>>(std::nullopt);
-}
-
-template <typename Container, typename What>
-auto std_find(Container const &container, What const &what) {
-  auto itr = container.find(what);
-  if (itr != container.end()) {
-    return std::optional(std::move(itr));
-  }
-  return static_cast<std::optional<decltype(itr)>>(std::nullopt);
-}
-
-inline auto noop() { return [](auto...) -> auto {}; }
-
-template <typename T>
-auto s_ptr(T *ptr) {
-  return std::shared_ptr<T>(ptr);
-}
-
-template <typename T>
-auto u_ptr(T *ptr) {
-  return std::unique_ptr<T>(ptr);
-}
-
-template <typename T>
-static constexpr auto __is_iterable__(int)
-    -> decltype((++std::declval<T>().begin() == std::declval<T>().end()++), bool()) {
-  return true;
-}
-
-template <typename T, typename Dummy>
-static constexpr auto __is_iterable__(Dummy) {
-  return false;
-}
-
-template <typename T>
-constexpr bool is_iterable = __is_iterable__<T>(0);
 
 }  // namespace taraxa
 

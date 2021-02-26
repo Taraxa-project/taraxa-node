@@ -1,25 +1,18 @@
 #include "full_node.hpp"
 
-#include <libweb3jsonrpc/Eth.h>
-#include <libweb3jsonrpc/JsonHelper.h>
-
-#include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/filesystem.hpp>
 #include <chrono>
 #include <stdexcept>
 
-#include "aleth/node_api.hpp"
-#include "aleth/state_api.hpp"
 #include "consensus/block_proposer.hpp"
 #include "consensus/pbft_manager.hpp"
 #include "dag/dag.hpp"
-#include "dag/dag_block.hpp"
+#include "network/rpc/Eth.h"
 #include "network/rpc/Net.h"
 #include "network/rpc/Taraxa.h"
 #include "network/rpc/Test.h"
 #include "transaction_manager/transaction_manager.hpp"
-#include "transaction_manager/transaction_status.hpp"
 
 namespace taraxa {
 
@@ -52,97 +45,46 @@ void FullNode::init() {
     LOG(log_er_) << "Genesis block is invalid";
     assert(false);
   }
-  {
-    if (conf_.test_params.rebuild_db) {
-      emplace(old_db_, conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
-              conf_.test_params.db_max_snapshots, conf_.test_params.db_revert_to_period, node_addr, true);
-    }
-
-    emplace(db_, conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block, conf_.test_params.db_max_snapshots,
-            conf_.test_params.db_revert_to_period, node_addr);
-
-    if (db_->hasMinorVersionChanged()) {
-      LOG(log_si_) << "Minor DB version has changed. Rebuilding Db";
-      conf_.test_params.rebuild_db = true;
-      db_ = nullptr;
-      emplace(old_db_, conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
-              conf_.test_params.db_max_snapshots, conf_.test_params.db_revert_to_period, node_addr, true);
-      emplace(db_, conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block, conf_.test_params.db_max_snapshots,
-              conf_.test_params.db_revert_to_period, node_addr);
-    }
-
-    if (db_->getNumDagBlocks() == 0) {
-      db_->saveDagBlock(conf_.chain.dag_genesis_block);
-    }
+  if (conf_.test_params.rebuild_db) {
+    old_db_ =
+        DbStorage::make(conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
+                        conf_.test_params.db_max_snapshots, conf_.test_params.db_revert_to_period, node_addr, true);
   }
+
+  db_ = DbStorage::make(conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
+                        conf_.test_params.db_max_snapshots, conf_.test_params.db_revert_to_period, node_addr);
+
+  if (db_->hasMinorVersionChanged()) {
+    LOG(log_si_) << "Minor DB version has changed. Rebuilding Db";
+    conf_.test_params.rebuild_db = true;
+    db_ = nullptr;
+    old_db_ =
+        DbStorage::make(conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
+                        conf_.test_params.db_max_snapshots, conf_.test_params.db_revert_to_period, node_addr, true);
+    db_ = DbStorage::make(conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
+                          conf_.test_params.db_max_snapshots, conf_.test_params.db_revert_to_period, node_addr);
+  }
+  register_s_ptr(db_);
   LOG(log_nf_) << "DB initialized ...";
 
-  final_chain_ = NewFinalChain(db_, conf_.chain.final_chain, conf_.opts_final_chain);
-  {
-    emplace(trx_mgr_, conf_, node_addr, db_, log_time_);
-    // This should go to the constructor
-    auto final_chain_head = final_chain_->get_last_block();
-    trx_mgr_->setPendingBlock(
-        aleth::NewPendingBlock(final_chain_head->number(), getAddress(), final_chain_head->hash(), db_));
-    for (auto const &h : trx_mgr_->getPendingBlock()->transactionHashes()) {
-      auto status = db_->getTransactionStatus(h);
-      if (status == TransactionStatus::in_queue_unverified || status == TransactionStatus::in_queue_verified) {
-        auto trx = db_->getTransaction(h);
-        if (!trx_mgr_->insertTrx(*trx, true).first) {
-          LOG(log_er_) << "Pending transaction not valid";
-        }
-      }
-    }
-  }
+  final_chain_ = NewFinalChain(db_, pbft_chain_, conf_.chain.final_chain, conf_.opts_final_chain, node_addr);
+  register_s_ptr(final_chain_);
+  emplace(trx_mgr_, conf_, node_addr, db_, log_time_);
   auto genesis_hash = conf_.chain.dag_genesis_block.getHash().toString();
   emplace(pbft_chain_, genesis_hash, node_addr, db_);
-  emplace(dag_mgr_, genesis_hash, node_addr, trx_mgr_, pbft_chain_, db_);
+  emplace(dag_mgr_, conf_.chain.dag_genesis_block, node_addr, trx_mgr_, pbft_chain_, db_);
   emplace(dag_blk_mgr_, node_addr, conf_.chain.vdf, conf_.chain.final_chain.state.dpos, 1024 /*capacity*/,
           4 /* verifer thread*/, db_, trx_mgr_, final_chain_, pbft_chain_, log_time_,
           conf_.test_params.max_block_queue_warn);
   emplace(vote_mgr_, node_addr, final_chain_, pbft_chain_);
   emplace(trx_order_mgr_, node_addr, db_);
-  emplace(executor_, node_addr, db_, dag_mgr_, trx_mgr_, final_chain_, pbft_chain_,
-          conf_.test_params.block_proposer.transaction_limit);
   emplace(pbft_mgr_, conf_.chain.pbft, genesis_hash, node_addr, db_, pbft_chain_, vote_mgr_, dag_mgr_, dag_blk_mgr_,
-          final_chain_, executor_, kp_.secret(), conf_.vrf_secret);
+          final_chain_, kp_.secret(), conf_.vrf_secret);
   emplace(blk_proposer_, conf_.test_params.block_proposer, conf_.chain.vdf, dag_mgr_, trx_mgr_, dag_blk_mgr_,
           final_chain_, node_addr, getSecretKey(), getVrfSecretKey(), log_time_);
   emplace(network_, conf_.network, conf_.net_file_path().string(), kp_.secret(), genesis_hash, node_addr, db_,
           pbft_mgr_, pbft_chain_, vote_mgr_, dag_mgr_, dag_blk_mgr_, trx_mgr_, kp_.pub(),
           conf_.chain.pbft.lambda_ms_min);
-
-  // Inits rpc related members
-  if (conf_.rpc) {
-    jsonrpc_io_ctx_ = make_unique<boost::asio::io_context>();
-
-    emplace(jsonrpc_api_, new net::Test(getShared()), new net::Taraxa(getShared()), new net::Net(getShared()),
-            new dev::rpc::Eth(aleth::NewNodeAPI(conf_.chain.chain_id, kp_.secret(),
-                                                [this](auto const &trx) {
-                                                  auto [ok, err_msg] = trx_mgr_->insertTransaction(trx, true);
-                                                  if (!ok) {
-                                                    BOOST_THROW_EXCEPTION(
-                                                        runtime_error(fmt("Transaction is rejected.\n"
-                                                                          "RLP: %s\n"
-                                                                          "Reason: %s",
-                                                                          dev::toJS(*trx.rlp()), err_msg)));
-                                                  }
-                                                }),
-                              trx_mgr_->getFilterAPI(), aleth::NewStateAPI(final_chain_), trx_mgr_->getPendingBlock(),
-                              final_chain_, [] { return 0; }));
-
-    if (conf_.rpc->http_port) {
-      jsonrpc_http_ = make_shared<net::RpcServer>(
-          *jsonrpc_io_ctx_, boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->http_port}, node_addr);
-      jsonrpc_api_->addConnector(jsonrpc_http_);
-    }
-
-    if (conf_.rpc->ws_port) {
-      jsonrpc_ws_ = make_shared<net::WSServer>(
-          *jsonrpc_io_ctx_, boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->ws_port}, node_addr);
-      jsonrpc_api_->addConnector(jsonrpc_ws_);
-    }
-  }
 
   LOG(log_time_) << "Start taraxa efficiency evaluation logging:" << std::endl;
 }
@@ -151,6 +93,65 @@ void FullNode::start() {
   if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
+
+  if (conf_.rpc) {
+    register_s_ptr(rpc_thread_pool_ = util::ThreadPool::make(conf_.rpc->threads_num));
+    net::EthParams eth_jsonrpc_params;
+    eth_jsonrpc_params.address = getAddress();
+    eth_jsonrpc_params.secret = kp_.secret();
+    eth_jsonrpc_params.chain_id = conf_.chain.chain_id;
+    eth_jsonrpc_params.final_chain = final_chain_;
+    eth_jsonrpc_params.send_trx = [trx_manager = trx_mgr_](auto const &trx) {
+      auto [ok, err_msg] = trx_manager->insertTransaction(trx, true);
+      if (!ok) {
+        BOOST_THROW_EXCEPTION(
+            runtime_error(util::fmt("Transaction is rejected.\n"
+                                    "RLP: %s\n"
+                                    "Reason: %s",
+                                    dev::toJS(*trx.rlp()), err_msg)));
+      }
+      return trx.getHash();
+    };
+    auto eth_json_rpc = net::NewEth(move(eth_jsonrpc_params));
+    emplace(jsonrpc_api_,
+            new net::Test(getShared()),    //
+            new net::Taraxa(getShared()),  //
+            new net::Net(getShared()),     //
+            eth_json_rpc);
+    if (conf_.rpc->http_port) {
+      emplace(jsonrpc_http_, rpc_thread_pool_->unsafe_get_io_context(),
+              boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->http_port}, getAddress());
+      jsonrpc_api_->addConnector(jsonrpc_http_);
+      jsonrpc_http_->StartListening();
+    }
+    if (conf_.rpc->ws_port) {
+      emplace(jsonrpc_ws_, rpc_thread_pool_->unsafe_get_io_context(),
+              boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->ws_port}, getAddress());
+      jsonrpc_api_->addConnector(jsonrpc_ws_);
+      jsonrpc_ws_->run();
+    }
+    auto const &ws = jsonrpc_ws_;
+    final_chain_->block_executed.subscribe(
+        [=](auto const &obj) {
+          eth_json_rpc->note_block(obj.final_chain_blk->hash);
+          eth_json_rpc->note_receipts(obj.trx_receipts);
+          if (ws) {
+            ws->newDagBlockFinalized(obj.pbft_blk->getPivotDagBlockHash(), obj.pbft_blk->getPeriod());
+            ws->newPbftBlockExecuted(*obj.pbft_blk, obj.finalized_dag_blk_hashes);
+            ws->newEthBlock(*obj.final_chain_blk);
+          }
+        },
+        *rpc_thread_pool_);
+    trx_mgr_->transaction_accepted.subscribe(
+        [=](auto const &trx_hash) {
+          eth_json_rpc->note_pending_transactions(vector{trx_hash});
+          if (ws) {
+            ws->newPendingTransaction(trx_hash);
+          }
+        },
+        *rpc_thread_pool_);
+  }
+
   if (conf_.network.network_is_boot_node) {
     LOG(log_nf_) << "Starting a boot node ..." << std::endl;
   }
@@ -163,7 +164,6 @@ void FullNode::start() {
     blk_proposer_->setNetwork(network_);
     blk_proposer_->start();
   }
-  executor_->start();
   pbft_mgr_->setNetwork(network_);
   pbft_mgr_->start();
   dag_blk_mgr_->start();
@@ -205,28 +205,11 @@ void FullNode::start() {
     started_ = false;
     return;
   }
-  if (jsonrpc_io_ctx_) {
-    if (jsonrpc_http_) {
-      jsonrpc_http_->StartListening();
-    }
-    if (jsonrpc_ws_) {
-      jsonrpc_ws_->run();
-      trx_mgr_->setWsServer(jsonrpc_ws_);
-      executor_->setWSServer(jsonrpc_ws_);
-    }
-
-    for (size_t i = 0; i < conf_.rpc->threads_num; ++i) {
-      jsonrpc_threads_.emplace_back([this] { jsonrpc_io_ctx_->run(); });
-    }
-  }
   started_ = true;
   LOG(log_nf_) << "Node started ... ";
-}  // namespace taraxa
+}
 
 void FullNode::close() {
-  util::ExitStack finally;
-  // because `this` shared ptr is given to it
-  finally += [this] { jsonrpc_api_.reset(); };
   if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
@@ -234,7 +217,6 @@ void FullNode::close() {
   blk_proposer_->setNetwork(nullptr);
   pbft_mgr_->stop();
   pbft_mgr_->setNetwork(nullptr);
-  executor_->stop();
   trx_mgr_->stop();
   trx_mgr_->setNetwork(nullptr);
   network_->stop();
@@ -242,20 +224,6 @@ void FullNode::close() {
   for (auto &t : block_workers_) {
     t.join();
   }
-
-  if (jsonrpc_io_ctx_) {
-    if (jsonrpc_ws_) {
-      trx_mgr_->setWsServer(nullptr);
-      executor_->setWSServer(nullptr);
-    }
-
-    jsonrpc_io_ctx_->stop();
-
-    for (size_t i = 0; i < jsonrpc_threads_.size(); ++i) {
-      jsonrpc_threads_[i].join();
-    }
-  }
-
   LOG(log_nf_) << "Node stopped ... ";
 }
 
@@ -346,8 +314,6 @@ void FullNode::rebuildDb() {
                  << " Chain size: " << final_chain_->last_block_number();
   }
 }
-
-dev::Signature FullNode::signMessage(std::string const &message) { return dev::sign(kp_.secret(), dev::sha3(message)); }
 
 uint64_t FullNode::getNumProposedBlocks() const { return BlockProposer::getNumProposedBlocks(); }
 
