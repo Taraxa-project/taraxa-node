@@ -57,8 +57,8 @@ service::FieldResult<std::vector<std::shared_ptr<object::Block>>> Query::getBloc
       break;
     }
 
-    blocks.push_back(
-        std::make_shared<Block>(final_chain_, std::make_shared<dev::eth::BlockHeader>(final_chain_->blockHeader(block_num))));
+    blocks.push_back(std::make_shared<Block>(
+        final_chain_, std::make_shared<dev::eth::BlockHeader>(final_chain_->blockHeader(block_num))));
   }
 
   return blocks;
