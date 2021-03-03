@@ -43,10 +43,24 @@ service::FieldResult<std::shared_ptr<object::Block>> Query::getBlock(service::Fi
 service::FieldResult<std::vector<std::shared_ptr<object::Block>>> Query::getBlocks(
     service::FieldParams&& params, response::Value&& fromArg, std::optional<response::Value>&& toArg) const {
   std::vector<std::shared_ptr<object::Block>> blocks;
-  for (auto i = fromArg.get<int>(); i <= toArg->get<int>(); i++) {
-    blocks.push_back(
-        std::make_shared<Block>(final_chain_, std::make_shared<dev::eth::BlockHeader>(final_chain_->blockHeader(i))));
+
+  // TODO: use pagination limit for all "list" queries
+  uint64_t start_block_num = fromArg.get<int>();
+  uint64_t end_block_num = toArg ? toArg->get<int>() : Query::MAX_PAGINATION_LIMIT;
+
+  if (end_block_num - start_block_num > Query::MAX_PAGINATION_LIMIT) {
+    end_block_num = start_block_num + Query::MAX_PAGINATION_LIMIT;
   }
+
+  for (uint64_t block_num = start_block_num; block_num <= end_block_num; block_num++) {
+    if (!final_chain_->isKnown(block_num)) {
+      break;
+    }
+
+    blocks.push_back(
+        std::make_shared<Block>(final_chain_, std::make_shared<dev::eth::BlockHeader>(final_chain_->blockHeader(block_num))));
+  }
+
   return blocks;
 }
 

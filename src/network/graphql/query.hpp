@@ -25,6 +25,9 @@ class Query : public object::Query {
   virtual service::FieldResult<response::Value> getChainID(service::FieldParams&& params) const override;
 
  private:
+  // TODO: use pagination limit for all "list" queries
+  static constexpr size_t MAX_PAGINATION_LIMIT{ 100 };
+
   std::shared_ptr<::taraxa::final_chain::FinalChain> final_chain_;
   uint64_t chain_id_;
 };
