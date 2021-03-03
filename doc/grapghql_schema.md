@@ -1,8 +1,3 @@
-
-curl -X POST -H 'Content-Type: application/graphql' -d '{ block { number } }' http://localhost:9777
-
-curl -X POST --data '{"jsonrpc":"2.0","method":"eth_gasPrice","params":[],"id":73}' http://localhost:9777
-
 # Schema Types
 
 <details>
