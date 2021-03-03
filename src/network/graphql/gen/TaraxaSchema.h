@@ -59,8 +59,10 @@ class Block;
 class CallResult;
 class SyncState;
 class Pending;
+class CurrentState;
 class Query;
 class Mutation;
+class Subscription;
 
 class Account
 	: public service::Object
@@ -289,6 +291,25 @@ private:
 	std::future<service::ResolverResult> resolve_typename(service::ResolverParams&& params);
 };
 
+class CurrentState
+	: public service::Object
+{
+protected:
+	explicit CurrentState();
+
+public:
+	virtual service::FieldResult<response::Value> getFinalBlock(service::FieldParams&& params) const;
+	virtual service::FieldResult<response::Value> getDagBlockLevel(service::FieldParams&& params) const;
+	virtual service::FieldResult<response::Value> getDagBlockPeriod(service::FieldParams&& params) const;
+
+private:
+	std::future<service::ResolverResult> resolveFinalBlock(service::ResolverParams&& params);
+	std::future<service::ResolverResult> resolveDagBlockLevel(service::ResolverParams&& params);
+	std::future<service::ResolverResult> resolveDagBlockPeriod(service::ResolverParams&& params);
+
+	std::future<service::ResolverResult> resolve_typename(service::ResolverParams&& params);
+};
+
 class Query
 	: public service::Object
 {
@@ -298,22 +319,18 @@ protected:
 public:
 	virtual service::FieldResult<std::shared_ptr<Block>> getBlock(service::FieldParams&& params, std::optional<response::Value>&& numberArg, std::optional<response::Value>&& hashArg) const;
 	virtual service::FieldResult<std::vector<std::shared_ptr<Block>>> getBlocks(service::FieldParams&& params, response::Value&& fromArg, std::optional<response::Value>&& toArg) const;
-	virtual service::FieldResult<std::shared_ptr<Pending>> getPending(service::FieldParams&& params) const;
 	virtual service::FieldResult<std::shared_ptr<Transaction>> getTransaction(service::FieldParams&& params, response::Value&& hashArg) const;
-	virtual service::FieldResult<std::vector<std::shared_ptr<Log>>> getLogs(service::FieldParams&& params, FilterCriteria&& filterArg) const;
 	virtual service::FieldResult<response::Value> getGasPrice(service::FieldParams&& params) const;
-	virtual service::FieldResult<std::shared_ptr<SyncState>> getSyncing(service::FieldParams&& params) const;
 	virtual service::FieldResult<response::Value> getChainID(service::FieldParams&& params) const;
+	virtual service::FieldResult<std::shared_ptr<CurrentState>> getNodeState(service::FieldParams&& params) const;
 
 private:
 	std::future<service::ResolverResult> resolveBlock(service::ResolverParams&& params);
 	std::future<service::ResolverResult> resolveBlocks(service::ResolverParams&& params);
-	std::future<service::ResolverResult> resolvePending(service::ResolverParams&& params);
 	std::future<service::ResolverResult> resolveTransaction(service::ResolverParams&& params);
-	std::future<service::ResolverResult> resolveLogs(service::ResolverParams&& params);
 	std::future<service::ResolverResult> resolveGasPrice(service::ResolverParams&& params);
-	std::future<service::ResolverResult> resolveSyncing(service::ResolverParams&& params);
 	std::future<service::ResolverResult> resolveChainID(service::ResolverParams&& params);
+	std::future<service::ResolverResult> resolveNodeState(service::ResolverParams&& params);
 
 	std::future<service::ResolverResult> resolve_typename(service::ResolverParams&& params);
 	std::future<service::ResolverResult> resolve_schema(service::ResolverParams&& params);
@@ -330,9 +347,28 @@ protected:
 
 public:
 	virtual service::FieldResult<response::Value> applySendRawTransaction(service::FieldParams&& params, response::Value&& dataArg) const;
+	virtual service::FieldResult<response::Value> applyTestMutation(service::FieldParams&& params, response::Value&& dataArg) const;
+	virtual service::FieldResult<response::Value> applyTestMutation2(service::FieldParams&& params) const;
 
 private:
 	std::future<service::ResolverResult> resolveSendRawTransaction(service::ResolverParams&& params);
+	std::future<service::ResolverResult> resolveTestMutation(service::ResolverParams&& params);
+	std::future<service::ResolverResult> resolveTestMutation2(service::ResolverParams&& params);
+
+	std::future<service::ResolverResult> resolve_typename(service::ResolverParams&& params);
+};
+
+class Subscription
+	: public service::Object
+{
+protected:
+	explicit Subscription();
+
+public:
+	virtual service::FieldResult<response::Value> getTestSubscription(service::FieldParams&& params) const;
+
+private:
+	std::future<service::ResolverResult> resolveTestSubscription(service::ResolverParams&& params);
 
 	std::future<service::ResolverResult> resolve_typename(service::ResolverParams&& params);
 };
@@ -343,11 +379,12 @@ class Operations
 	: public service::Request
 {
 public:
-	explicit Operations(std::shared_ptr<object::Query> query, std::shared_ptr<object::Mutation> mutation);
+	explicit Operations(std::shared_ptr<object::Query> query, std::shared_ptr<object::Mutation> mutation, std::shared_ptr<object::Subscription> subscription);
 
 private:
 	std::shared_ptr<object::Query> _query;
 	std::shared_ptr<object::Mutation> _mutation;
+	std::shared_ptr<object::Subscription> _subscription;
 };
 
 std::shared_ptr<schema::Schema> GetSchema();

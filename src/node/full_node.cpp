@@ -151,14 +151,14 @@ void FullNode::init() {
 
     if (conf_.rpc->gql_ws_port) {
       graphql_ws_ = make_shared<net::GraphQlWsServer>(
-          *jsonrpc_io_ctx_, boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->ws_port}, node_addr,
+          *jsonrpc_io_ctx_, boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->gql_ws_port}, node_addr,
           final_chain_);
     }
 
     if (conf_.rpc->gql_http_port) {
       graphql_http_ = std::make_shared<net::HttpServer>(
           *jsonrpc_io_ctx_, boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->gql_http_port}, node_addr,
-          std::make_shared<net::GraphQlHttpProcessor>(final_chain_));
+          std::make_shared<net::GraphQlHttpProcessor>(final_chain_, dag_mgr_));
     }
   }
 
@@ -234,6 +234,10 @@ void FullNode::start() {
       jsonrpc_ws_->run();
       trx_mgr_->setWsServer(jsonrpc_ws_);
       executor_->setWSServer(jsonrpc_ws_);
+    }
+
+    if (graphql_ws_) {
+      graphql_ws_->run();
     }
 
     for (size_t i = 0; i < conf_.rpc->threads_num; ++i) {

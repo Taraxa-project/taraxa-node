@@ -16,8 +16,8 @@ class HttpProcessor {
   virtual Response process(const Request& request) = 0;
 
  protected:
-  virtual Response createOkResponse(const std::string& response_body = "");
-  virtual Response createErrResponse(const std::string& response_body = "");
+  virtual Response createOkResponse(std::string&& response_body = "");
+  virtual Response createErrResponse(std::string&& response_body = "");
 };
 
 }  // namespace taraxa::net

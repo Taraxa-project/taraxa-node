@@ -12,7 +12,7 @@
 
 namespace taraxa::net {
 
-std::string JsonRpcWSSession::processRequest(std::string request) {
+std::string JsonRpcWSSession::processRequest(const std::string &request) {
   Json::Value json;
   Json::Reader reader;
   bool parsingSuccessful = reader.parse(request.c_str(), json);  // parse process
@@ -49,6 +49,12 @@ std::string JsonRpcWSSession::processRequest(std::string request) {
     response = fastWriter.write(json_response);
     ws_.text(ws_.got_text());
     LOG(log_tr_) << "WS WRITE " << response.c_str();
+  } else if (method == "trigger") {
+    dev::eth::BlockHeader testBlockHeader;
+    newEthBlock(testBlockHeader);
+    newEthBlock(testBlockHeader);
+    response = "trigger successful";
+    LOG(log_tr_) << "trigger successful " << response.c_str();
   } else {
     auto ws_server = ws_server_.lock();
     if (ws_server) {

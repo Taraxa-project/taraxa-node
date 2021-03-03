@@ -9,7 +9,7 @@ HttpProcessor::Response JsonRpcHttpProcessor::process(const Request& request) {
     GetHandler()->HandleRequest(request.body(), response_str);
   }
 
-  return createOkResponse(response_str);
+  return createOkResponse(std::move(response_str));
 }
 
 }  // namespace taraxa::net

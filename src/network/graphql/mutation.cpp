@@ -29,4 +29,15 @@ service::FieldResult<response::Value> Mutation::applySendRawTransaction(service:
       dev::toJS(node_api_->importTransaction(jsToBytes(transaction.get<std::string>(), dev::OnFailed::Throw))));
 }
 
+service::FieldResult<response::Value> Mutation::applyTestMutation(service::FieldParams&& params,
+                                                                  response::Value&& dataArg) const {
+  std::cout << "applyTestMutation invoked" << std::endl;
+  return response::Value(122);
+}
+
+service::FieldResult<response::Value> Mutation::applyTestMutation2(service::FieldParams&& params) const {
+  std::cout << "applyTestMutation2 invoked" << std::endl;
+  return response::Value(999);
+}
+
 }  // namespace graphql::taraxa

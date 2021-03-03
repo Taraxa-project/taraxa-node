@@ -51,9 +51,10 @@ void WSSession::on_read(beast::error_code ec, std::size_t bytes_transferred) {
     return;
   }
 
-  LOG(log_tr_) << "WS READ " << ((char *)buffer_.data().data());
+  const std::string request = beast::buffers_to_string(buffer_.cdata());
+  LOG(log_tr_) << "WS READ " << request;
 
-  string response = processRequest((char *)buffer_.data().data());
+  std::string response = processRequest(request);
 
   auto executor = ws_.get_executor();
   if (!executor) {
@@ -115,7 +116,11 @@ void WSSession::newEthBlock(dev::eth::BlockHeader const &payload) {
       closed_ = true;
       return;
     }
+    LOG(log_tr_) << "***1 Before executor.post ";
     executor.post(boost::bind(&WSSession::writeImpl, this, response), std::allocator<void>());
+    // LOG(log_tr_) << "***2 Before executor.post ";
+    // executor.post(boost::bind(&WSSession::writeImpl, this, response), std::allocator<void>());
+    LOG(log_tr_) << "***After executors.post ";
   }
 }
 
@@ -128,7 +133,11 @@ void WSSession::write(const std::string &message) {
 }
 
 void WSSession::writeImpl(const std::string &message) {
+  // TODO: provide mutex for queue_messages_ -> writeImpl might be called mulle times at the same time through
+  // executor.post
   queue_messages_.push_back(message);
+
+  // Instead of mutex for write oprations on WSSession data that happen in writeImpl and subsequent methods calls
   if (queue_messages_.size() > 1) {
     // outstanding async_write
     return;

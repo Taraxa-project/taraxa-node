@@ -10,7 +10,7 @@
 
 namespace graphql::taraxa {
 
-class Account : public object::Account {
+class Account : public graphql::taraxa::object::Account {
  public:
   explicit Account(std::shared_ptr<::taraxa::final_chain::FinalChain> final_chain, dev::Address address);
 

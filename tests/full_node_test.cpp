@@ -18,6 +18,7 @@
 #include "logger/log.hpp"
 #include "network/graphql/mutation.hpp"
 #include "network/graphql/query.hpp"
+#include "network/graphql/subscription.hpp"
 #include "network/network.hpp"
 #include "network/rpc/Taraxa.h"
 #include "string"
@@ -1217,7 +1218,8 @@ TEST_F(FullNodeTest, GraphQLTest) {
   // Objects needed to run the query
   auto q = std::make_shared<graphql::taraxa::Query>(nodes[0]->getFinalChain(), 0);
   auto mutation = std::make_shared<graphql::taraxa::Mutation>();
-  auto _service = std::make_shared<graphql::taraxa::Operations>(q, mutation);
+  auto subscription = std::make_shared<graphql::taraxa::Subscription>();
+  auto _service = std::make_shared<graphql::taraxa::Operations>(q, mutation, subscription);
 
   // Get latest block number with query
   using namespace graphql;

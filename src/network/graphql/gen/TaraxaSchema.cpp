@@ -1275,19 +1275,79 @@ std::future<service::ResolverResult> Pending::resolve_typename(service::Resolver
 	return service::ModifiedResult<response::StringType>::convert(response::StringType{ R"gql(Pending)gql" }, std::move(params));
 }
 
+CurrentState::CurrentState()
+	: service::Object({
+		"CurrentState"
+	}, {
+		{ R"gql(__typename)gql"sv, [this](service::ResolverParams&& params) { return resolve_typename(std::move(params)); } },
+		{ R"gql(finalBlock)gql"sv, [this](service::ResolverParams&& params) { return resolveFinalBlock(std::move(params)); } },
+		{ R"gql(dagBlockLevel)gql"sv, [this](service::ResolverParams&& params) { return resolveDagBlockLevel(std::move(params)); } },
+		{ R"gql(dagBlockPeriod)gql"sv, [this](service::ResolverParams&& params) { return resolveDagBlockPeriod(std::move(params)); } }
+	})
+{
+}
+
+service::FieldResult<response::Value> CurrentState::getFinalBlock(service::FieldParams&&) const
+{
+	throw std::runtime_error(R"ex(CurrentState::getFinalBlock is not implemented)ex");
+}
+
+std::future<service::ResolverResult> CurrentState::resolveFinalBlock(service::ResolverParams&& params)
+{
+	std::unique_lock resolverLock(_resolverMutex);
+	auto directives = std::move(params.fieldDirectives);
+	auto result = getFinalBlock(service::FieldParams(std::move(params), std::move(directives)));
+	resolverLock.unlock();
+
+	return service::ModifiedResult<response::Value>::convert(std::move(result), std::move(params));
+}
+
+service::FieldResult<response::Value> CurrentState::getDagBlockLevel(service::FieldParams&&) const
+{
+	throw std::runtime_error(R"ex(CurrentState::getDagBlockLevel is not implemented)ex");
+}
+
+std::future<service::ResolverResult> CurrentState::resolveDagBlockLevel(service::ResolverParams&& params)
+{
+	std::unique_lock resolverLock(_resolverMutex);
+	auto directives = std::move(params.fieldDirectives);
+	auto result = getDagBlockLevel(service::FieldParams(std::move(params), std::move(directives)));
+	resolverLock.unlock();
+
+	return service::ModifiedResult<response::Value>::convert(std::move(result), std::move(params));
+}
+
+service::FieldResult<response::Value> CurrentState::getDagBlockPeriod(service::FieldParams&&) const
+{
+	throw std::runtime_error(R"ex(CurrentState::getDagBlockPeriod is not implemented)ex");
+}
+
+std::future<service::ResolverResult> CurrentState::resolveDagBlockPeriod(service::ResolverParams&& params)
+{
+	std::unique_lock resolverLock(_resolverMutex);
+	auto directives = std::move(params.fieldDirectives);
+	auto result = getDagBlockPeriod(service::FieldParams(std::move(params), std::move(directives)));
+	resolverLock.unlock();
+
+	return service::ModifiedResult<response::Value>::convert(std::move(result), std::move(params));
+}
+
+std::future<service::ResolverResult> CurrentState::resolve_typename(service::ResolverParams&& params)
+{
+	return service::ModifiedResult<response::StringType>::convert(response::StringType{ R"gql(CurrentState)gql" }, std::move(params));
+}
+
 Query::Query()
 	: service::Object({
 		"Query"
 	}, {
-		{ R"gql(logs)gql"sv, [this](service::ResolverParams&& params) { return resolveLogs(std::move(params)); } },
 		{ R"gql(block)gql"sv, [this](service::ResolverParams&& params) { return resolveBlock(std::move(params)); } },
 		{ R"gql(__type)gql"sv, [this](service::ResolverParams&& params) { return resolve_type(std::move(params)); } },
 		{ R"gql(blocks)gql"sv, [this](service::ResolverParams&& params) { return resolveBlocks(std::move(params)); } },
 		{ R"gql(chainID)gql"sv, [this](service::ResolverParams&& params) { return resolveChainID(std::move(params)); } },
-		{ R"gql(pending)gql"sv, [this](service::ResolverParams&& params) { return resolvePending(std::move(params)); } },
-		{ R"gql(syncing)gql"sv, [this](service::ResolverParams&& params) { return resolveSyncing(std::move(params)); } },
 		{ R"gql(__schema)gql"sv, [this](service::ResolverParams&& params) { return resolve_schema(std::move(params)); } },
 		{ R"gql(gasPrice)gql"sv, [this](service::ResolverParams&& params) { return resolveGasPrice(std::move(params)); } },
+		{ R"gql(nodeState)gql"sv, [this](service::ResolverParams&& params) { return resolveNodeState(std::move(params)); } },
 		{ R"gql(__typename)gql"sv, [this](service::ResolverParams&& params) { return resolve_typename(std::move(params)); } },
 		{ R"gql(transaction)gql"sv, [this](service::ResolverParams&& params) { return resolveTransaction(std::move(params)); } }
 	})
@@ -1329,21 +1389,6 @@ std::future<service::ResolverResult> Query::resolveBlocks(service::ResolverParam
 	return service::ModifiedResult<Block>::convert<service::TypeModifier::List>(std::move(result), std::move(params));
 }
 
-service::FieldResult<std::shared_ptr<Pending>> Query::getPending(service::FieldParams&&) const
-{
-	throw std::runtime_error(R"ex(Query::getPending is not implemented)ex");
-}
-
-std::future<service::ResolverResult> Query::resolvePending(service::ResolverParams&& params)
-{
-	std::unique_lock resolverLock(_resolverMutex);
-	auto directives = std::move(params.fieldDirectives);
-	auto result = getPending(service::FieldParams(std::move(params), std::move(directives)));
-	resolverLock.unlock();
-
-	return service::ModifiedResult<Pending>::convert(std::move(result), std::move(params));
-}
-
 service::FieldResult<std::shared_ptr<Transaction>> Query::getTransaction(service::FieldParams&&, response::Value&&) const
 {
 	throw std::runtime_error(R"ex(Query::getTransaction is not implemented)ex");
@@ -1358,22 +1403,6 @@ std::future<service::ResolverResult> Query::resolveTransaction(service::Resolver
 	resolverLock.unlock();
 
 	return service::ModifiedResult<Transaction>::convert<service::TypeModifier::Nullable>(std::move(result), std::move(params));
-}
-
-service::FieldResult<std::vector<std::shared_ptr<Log>>> Query::getLogs(service::FieldParams&&, FilterCriteria&&) const
-{
-	throw std::runtime_error(R"ex(Query::getLogs is not implemented)ex");
-}
-
-std::future<service::ResolverResult> Query::resolveLogs(service::ResolverParams&& params)
-{
-	auto argFilter = service::ModifiedArgument<taraxa::FilterCriteria>::require("filter", params.arguments);
-	std::unique_lock resolverLock(_resolverMutex);
-	auto directives = std::move(params.fieldDirectives);
-	auto result = getLogs(service::FieldParams(std::move(params), std::move(directives)), std::move(argFilter));
-	resolverLock.unlock();
-
-	return service::ModifiedResult<Log>::convert<service::TypeModifier::List>(std::move(result), std::move(params));
 }
 
 service::FieldResult<response::Value> Query::getGasPrice(service::FieldParams&&) const
@@ -1391,21 +1420,6 @@ std::future<service::ResolverResult> Query::resolveGasPrice(service::ResolverPar
 	return service::ModifiedResult<response::Value>::convert(std::move(result), std::move(params));
 }
 
-service::FieldResult<std::shared_ptr<SyncState>> Query::getSyncing(service::FieldParams&&) const
-{
-	throw std::runtime_error(R"ex(Query::getSyncing is not implemented)ex");
-}
-
-std::future<service::ResolverResult> Query::resolveSyncing(service::ResolverParams&& params)
-{
-	std::unique_lock resolverLock(_resolverMutex);
-	auto directives = std::move(params.fieldDirectives);
-	auto result = getSyncing(service::FieldParams(std::move(params), std::move(directives)));
-	resolverLock.unlock();
-
-	return service::ModifiedResult<SyncState>::convert<service::TypeModifier::Nullable>(std::move(result), std::move(params));
-}
-
 service::FieldResult<response::Value> Query::getChainID(service::FieldParams&&) const
 {
 	throw std::runtime_error(R"ex(Query::getChainID is not implemented)ex");
@@ -1419,6 +1433,21 @@ std::future<service::ResolverResult> Query::resolveChainID(service::ResolverPara
 	resolverLock.unlock();
 
 	return service::ModifiedResult<response::Value>::convert(std::move(result), std::move(params));
+}
+
+service::FieldResult<std::shared_ptr<CurrentState>> Query::getNodeState(service::FieldParams&&) const
+{
+	throw std::runtime_error(R"ex(Query::getNodeState is not implemented)ex");
+}
+
+std::future<service::ResolverResult> Query::resolveNodeState(service::ResolverParams&& params)
+{
+	std::unique_lock resolverLock(_resolverMutex);
+	auto directives = std::move(params.fieldDirectives);
+	auto result = getNodeState(service::FieldParams(std::move(params), std::move(directives)));
+	resolverLock.unlock();
+
+	return service::ModifiedResult<CurrentState>::convert<service::TypeModifier::Nullable>(std::move(result), std::move(params));
 }
 
 std::future<service::ResolverResult> Query::resolve_typename(service::ResolverParams&& params)
@@ -1445,6 +1474,8 @@ Mutation::Mutation()
 		"Mutation"
 	}, {
 		{ R"gql(__typename)gql"sv, [this](service::ResolverParams&& params) { return resolve_typename(std::move(params)); } },
+		{ R"gql(testMutation)gql"sv, [this](service::ResolverParams&& params) { return resolveTestMutation(std::move(params)); } },
+		{ R"gql(testMutation2)gql"sv, [this](service::ResolverParams&& params) { return resolveTestMutation2(std::move(params)); } },
 		{ R"gql(sendRawTransaction)gql"sv, [this](service::ResolverParams&& params) { return resolveSendRawTransaction(std::move(params)); } }
 	})
 {
@@ -1466,20 +1497,83 @@ std::future<service::ResolverResult> Mutation::resolveSendRawTransaction(service
 	return service::ModifiedResult<response::Value>::convert(std::move(result), std::move(params));
 }
 
+service::FieldResult<response::Value> Mutation::applyTestMutation(service::FieldParams&&, response::Value&&) const
+{
+	throw std::runtime_error(R"ex(Mutation::applyTestMutation is not implemented)ex");
+}
+
+std::future<service::ResolverResult> Mutation::resolveTestMutation(service::ResolverParams&& params)
+{
+	auto argData = service::ModifiedArgument<response::Value>::require("data", params.arguments);
+	std::unique_lock resolverLock(_resolverMutex);
+	auto directives = std::move(params.fieldDirectives);
+	auto result = applyTestMutation(service::FieldParams(std::move(params), std::move(directives)), std::move(argData));
+	resolverLock.unlock();
+
+	return service::ModifiedResult<response::Value>::convert(std::move(result), std::move(params));
+}
+
+service::FieldResult<response::Value> Mutation::applyTestMutation2(service::FieldParams&&) const
+{
+	throw std::runtime_error(R"ex(Mutation::applyTestMutation2 is not implemented)ex");
+}
+
+std::future<service::ResolverResult> Mutation::resolveTestMutation2(service::ResolverParams&& params)
+{
+	std::unique_lock resolverLock(_resolverMutex);
+	auto directives = std::move(params.fieldDirectives);
+	auto result = applyTestMutation2(service::FieldParams(std::move(params), std::move(directives)));
+	resolverLock.unlock();
+
+	return service::ModifiedResult<response::Value>::convert(std::move(result), std::move(params));
+}
+
 std::future<service::ResolverResult> Mutation::resolve_typename(service::ResolverParams&& params)
 {
 	return service::ModifiedResult<response::StringType>::convert(response::StringType{ R"gql(Mutation)gql" }, std::move(params));
 }
 
+Subscription::Subscription()
+	: service::Object({
+		"Subscription"
+	}, {
+		{ R"gql(__typename)gql"sv, [this](service::ResolverParams&& params) { return resolve_typename(std::move(params)); } },
+		{ R"gql(testSubscription)gql"sv, [this](service::ResolverParams&& params) { return resolveTestSubscription(std::move(params)); } }
+	})
+{
+}
+
+service::FieldResult<response::Value> Subscription::getTestSubscription(service::FieldParams&&) const
+{
+	throw std::runtime_error(R"ex(Subscription::getTestSubscription is not implemented)ex");
+}
+
+std::future<service::ResolverResult> Subscription::resolveTestSubscription(service::ResolverParams&& params)
+{
+	std::unique_lock resolverLock(_resolverMutex);
+	auto directives = std::move(params.fieldDirectives);
+	auto result = getTestSubscription(service::FieldParams(std::move(params), std::move(directives)));
+	resolverLock.unlock();
+
+	return service::ModifiedResult<response::Value>::convert(std::move(result), std::move(params));
+}
+
+std::future<service::ResolverResult> Subscription::resolve_typename(service::ResolverParams&& params)
+{
+	return service::ModifiedResult<response::StringType>::convert(response::StringType{ R"gql(Subscription)gql" }, std::move(params));
+}
+
 } /* namespace object */
 
-Operations::Operations(std::shared_ptr<object::Query> query, std::shared_ptr<object::Mutation> mutation)
+Operations::Operations(std::shared_ptr<object::Query> query, std::shared_ptr<object::Mutation> mutation, std::shared_ptr<object::Subscription> subscription)
 	: service::Request({
 		{ "query", query },
-		{ "mutation", mutation }
+		{ "mutation", mutation },
+		{ "subscription", subscription }
 	}, GetSchema())
 	, _query(std::move(query))
 	, _mutation(std::move(mutation))
+	, _subscription(std::move(subscription))
 {
 }
 
@@ -1510,10 +1604,14 @@ void AddTypesToSchema(const std::shared_ptr<schema::Schema>& schema)
 	schema->AddType(R"gql(SyncState)gql"sv, typeSyncState);
 	auto typePending = schema::ObjectType::Make(R"gql(Pending)gql"sv, R"md()md");
 	schema->AddType(R"gql(Pending)gql"sv, typePending);
+	auto typeCurrentState = schema::ObjectType::Make(R"gql(CurrentState)gql"sv, R"md()md");
+	schema->AddType(R"gql(CurrentState)gql"sv, typeCurrentState);
 	auto typeQuery = schema::ObjectType::Make(R"gql(Query)gql"sv, R"md()md");
 	schema->AddType(R"gql(Query)gql"sv, typeQuery);
 	auto typeMutation = schema::ObjectType::Make(R"gql(Mutation)gql"sv, R"md()md");
 	schema->AddType(R"gql(Mutation)gql"sv, typeMutation);
+	auto typeSubscription = schema::ObjectType::Make(R"gql(Subscription)gql"sv, R"md()md");
+	schema->AddType(R"gql(Subscription)gql"sv, typeSubscription);
 
 	typeBlockFilterCriteria->AddInputValues({
 		schema::InputValue::Make(R"gql(addresses)gql"sv, R"md()md"sv, schema->WrapType(introspection::TypeKind::LIST, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("Address"))), R"gql()gql"sv),
@@ -1646,6 +1744,11 @@ void AddTypesToSchema(const std::shared_ptr<schema::Schema>& schema)
 			schema::InputValue::Make(R"gql(data)gql"sv, R"md()md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("CallData")), R"gql()gql"sv)
 		})
 	});
+	typeCurrentState->AddFields({
+		schema::Field::Make(R"gql(finalBlock)gql"sv, R"md()md"sv, std::nullopt, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("Long"))),
+		schema::Field::Make(R"gql(dagBlockLevel)gql"sv, R"md()md"sv, std::nullopt, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("Long"))),
+		schema::Field::Make(R"gql(dagBlockPeriod)gql"sv, R"md()md"sv, std::nullopt, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("Long")))
+	});
 	typeQuery->AddFields({
 		schema::Field::Make(R"gql(block)gql"sv, R"md()md"sv, std::nullopt, schema->LookupType("Block"), {
 			schema::InputValue::Make(R"gql(number)gql"sv, R"md()md"sv, schema->LookupType("Long"), R"gql()gql"sv),
@@ -1655,25 +1758,29 @@ void AddTypesToSchema(const std::shared_ptr<schema::Schema>& schema)
 			schema::InputValue::Make(R"gql(from)gql"sv, R"md()md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("Long")), R"gql()gql"sv),
 			schema::InputValue::Make(R"gql(to)gql"sv, R"md()md"sv, schema->LookupType("Long"), R"gql()gql"sv)
 		}),
-		schema::Field::Make(R"gql(pending)gql"sv, R"md()md"sv, std::nullopt, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("Pending"))),
 		schema::Field::Make(R"gql(transaction)gql"sv, R"md()md"sv, std::nullopt, schema->LookupType("Transaction"), {
 			schema::InputValue::Make(R"gql(hash)gql"sv, R"md()md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("Bytes32")), R"gql()gql"sv)
 		}),
-		schema::Field::Make(R"gql(logs)gql"sv, R"md()md"sv, std::nullopt, schema->WrapType(introspection::TypeKind::NON_NULL, schema->WrapType(introspection::TypeKind::LIST, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("Log")))), {
-			schema::InputValue::Make(R"gql(filter)gql"sv, R"md()md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("FilterCriteria")), R"gql()gql"sv)
-		}),
 		schema::Field::Make(R"gql(gasPrice)gql"sv, R"md()md"sv, std::nullopt, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("BigInt"))),
-		schema::Field::Make(R"gql(syncing)gql"sv, R"md()md"sv, std::nullopt, schema->LookupType("SyncState")),
-		schema::Field::Make(R"gql(chainID)gql"sv, R"md()md"sv, std::nullopt, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("BigInt")))
+		schema::Field::Make(R"gql(chainID)gql"sv, R"md()md"sv, std::nullopt, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("BigInt"))),
+		schema::Field::Make(R"gql(nodeState)gql"sv, R"md()md"sv, std::nullopt, schema->LookupType("CurrentState"))
 	});
 	typeMutation->AddFields({
 		schema::Field::Make(R"gql(sendRawTransaction)gql"sv, R"md()md"sv, std::nullopt, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("Bytes32")), {
 			schema::InputValue::Make(R"gql(data)gql"sv, R"md()md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("Bytes")), R"gql()gql"sv)
-		})
+		}),
+		schema::Field::Make(R"gql(testMutation)gql"sv, R"md()md"sv, std::nullopt, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("Long")), {
+			schema::InputValue::Make(R"gql(data)gql"sv, R"md()md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("Long")), R"gql()gql"sv)
+		}),
+		schema::Field::Make(R"gql(testMutation2)gql"sv, R"md()md"sv, std::nullopt, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("Long")))
+	});
+	typeSubscription->AddFields({
+		schema::Field::Make(R"gql(testSubscription)gql"sv, R"md()md"sv, std::nullopt, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("BigInt")))
 	});
 
 	schema->AddQueryType(typeQuery);
 	schema->AddMutationType(typeMutation);
+	schema->AddSubscriptionType(typeSubscription);
 }
 
 std::shared_ptr<schema::Schema> GetSchema()

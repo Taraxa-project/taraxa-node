@@ -18,13 +18,15 @@
 #include "libdevcore/CommonJS.h"
 #include "log.hpp"
 #include "transaction.hpp"
+#include "types/current_state.hpp"
 
 using namespace std::literals;
 
 namespace graphql::taraxa {
 
-Query::Query(std::shared_ptr<::taraxa::final_chain::FinalChain> final_chain, uint64_t chain_id)
-    : final_chain_(final_chain), chain_id_(chain_id) {}
+Query::Query(const std::shared_ptr<::taraxa::final_chain::FinalChain>& final_chain,
+             const std::shared_ptr<::taraxa::DagManager>& dag_mgr, uint64_t chain_id)
+    : final_chain_(final_chain), dag_mgr_(dag_mgr), chain_id_(chain_id) {}
 
 service::FieldResult<std::shared_ptr<object::Block>> Query::getBlock(service::FieldParams&&,
                                                                      std::optional<response::Value>&& number,
@@ -76,6 +78,10 @@ service::FieldResult<response::Value> Query::getGasPrice(service::FieldParams&& 
 
 service::FieldResult<response::Value> Query::getChainID(service::FieldParams&& params) const {
   return response::Value(dev::toJS(chain_id_));
+}
+
+service::FieldResult<std::shared_ptr<object::CurrentState>> Query::getNodeState(service::FieldParams&& params) const {
+  return std::make_shared<CurrentState>(final_chain_, dag_mgr_);
 }
 
 }  // namespace graphql::taraxa

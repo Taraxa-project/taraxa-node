@@ -20,6 +20,11 @@ class Mutation : public object::Mutation {
   virtual service::FieldResult<response::Value> applySendRawTransaction(service::FieldParams&& params,
                                                                         response::Value&& dataArg) const override;
 
+  virtual service::FieldResult<response::Value> applyTestMutation(service::FieldParams&& params,
+                                                                  response::Value&& dataArg) const override;
+
+  virtual service::FieldResult<response::Value> applyTestMutation2(service::FieldParams&& params) const override;
+
  private:
   std::shared_ptr<dev::rpc::Eth::NodeAPI> node_api_;
 };

@@ -11,4 +11,4 @@ class Subscription : public object::Subscription {
   virtual service::FieldResult<response::Value> getTestSubscription(service::FieldParams&& params) const override;
 };
 
-} // graphql::taraxa namespace
+}  // namespace graphql::taraxa

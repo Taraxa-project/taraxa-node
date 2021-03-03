@@ -15,6 +15,7 @@ scalar Long
 schema {
     query: Query
     mutation: Mutation
+    subscription: Subscription
 }
 
 # Account is an Ethereum account at a particular block.
@@ -275,6 +276,13 @@ type Pending {
   estimateGas(data: CallData!): Long!
 }
 
+# CurrentState contains the current state of the client.
+type CurrentState {
+    finalBlock: Long!
+    dagBlockLevel: Long!
+    dagBlockPeriod: Long!
+}
+
 type Query {
     # Block fetches an Ethereum block by number or by hash. If neither is
     # supplied, the most recent known block is returned.
@@ -283,21 +291,30 @@ type Query {
     # to is not supplied, it defaults to the most recent known block.
     blocks(from: Long!, to: Long): [Block!]!
     # Pending returns the current pending state.
-    pending: Pending!
+    # pending: Pending!
     # Transaction returns a transaction specified by its hash.
     transaction(hash: Bytes32!): Transaction
     # Logs returns log entries matching the provided filter.
-    logs(filter: FilterCriteria!): [Log!]!
+    # logs(filter: FilterCriteria!): [Log!]!
     # GasPrice returns the node's estimate of a gas price sufficient to
     # ensure a transaction is mined in a timely fashion.
     gasPrice: BigInt!
     # Syncing returns information on the current synchronisation state.
-    syncing: SyncState
+    # syncing: SyncState
     # ChainID returns the current chain ID for transaction replay protection.
     chainID: BigInt!
+
+    # Current node state
+    nodeState: CurrentState
 }
 
 type Mutation {
     # SendRawTransaction sends an RLP-encoded transaction to the network.
     sendRawTransaction(data: Bytes!): Bytes32!
+    testMutation(data: Long!): Long!
+    testMutation2: Long!
+}
+
+type Subscription {
+    testSubscription: BigInt!
 }

@@ -53,7 +53,7 @@ class WSSession : public std::enable_shared_from_this<WSSession> {
   void newPbftBlockExecuted(Json::Value const& payload);
   void newPendingTransaction(trx_hash_t const& trx_hash);
   bool is_closed() { return closed_; }
-  virtual std::string processRequest(std::string request) = 0;
+  virtual std::string processRequest(const std::string& request) = 0;
   LOG_OBJECTS_DEFINE;
 
  protected:
