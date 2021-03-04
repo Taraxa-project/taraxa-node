@@ -14,17 +14,7 @@ using namespace ::taraxa::state_api;
 
 struct EthImpl : Eth, EthParams {
   struct BlockHeaderWithTransactions : BlockHeader {
-    std::variant<shared_ptr<FinalChain::TransactionHashes>, Transactions> trxs;
-  };
-
-  struct TransactionSkeleton {
-    dev::Address from;
-    dev::u256 value;
-    dev::bytes data;
-    std::optional<dev::Address> to;
-    std::optional<uint64_t> nonce;
-    std::optional<uint64_t> gas;
-    std::optional<dev::u256> gas_price;
+    variant<shared_ptr<FinalChain::TransactionHashes>, Transactions> trxs;
   };
 
   struct TransactionLocationWithBlockHash : TransactionLocation {
@@ -33,7 +23,7 @@ struct EthImpl : Eth, EthParams {
 
   struct LocalisedTransaction {
     Transaction trx;
-    std::optional<TransactionLocationWithBlockHash> trx_loc;
+    optional<TransactionLocationWithBlockHash> trx_loc;
   };
 
   struct ExtendedTransactionLocation : TransactionLocationWithBlockHash {
@@ -44,13 +34,23 @@ struct EthImpl : Eth, EthParams {
     TransactionReceipt r;
     ExtendedTransactionLocation trx_loc;
     addr_t trx_from;
-    std::optional<addr_t> trx_to;
+    optional<addr_t> trx_to;
   };
 
   struct LocalisedLogEntry {
     LogEntry le;
     ExtendedTransactionLocation trx_loc;
     uint position_in_receipt;
+  };
+
+  struct TransactionSkeleton {
+    Address from;
+    u256 value;
+    bytes data;
+    optional<Address> to;
+    optional<uint64_t> nonce;
+    optional<uint64_t> gas;
+    optional<u256> gas_price;
   };
 
   struct FilterAPI {
@@ -138,12 +138,12 @@ struct EthImpl : Eth, EthParams {
     auto t = toTransactionSkeleton(_json);
     populateTransactionWithDefaults(t, final_chain->last_block_number());
     Transaction trx(t.nonce.value_or(0), t.value, t.gas_price.value_or(0), t.gas.value_or(0), t.data, secret,
-                    t.to ? optional(t.to) : std::nullopt, chain_id);
+                    t.to ? optional(t.to) : nullopt, chain_id);
     trx.rlp(true);
     return toJS(send_trx(trx));
   }
 
-  string eth_sendRawTransaction(std::string const& _rlp) override {
+  string eth_sendRawTransaction(string const& _rlp) override {
     return toJS(send_trx(Transaction(jsToBytes(_rlp, OnFailed::Throw), true)));
   }
 
@@ -173,13 +173,9 @@ struct EthImpl : Eth, EthParams {
     return toJson(localisedTransactionReceipt(jsToFixed<32>(_transactionHash)));
   }
 
-  Json::Value eth_getUncleByBlockHashAndIndex(string const&, string const&) override {
-    return Json::Value(Json::nullValue);
-  }
+  Json::Value eth_getUncleByBlockHashAndIndex(string const&, string const&) override { return Json::Value(); }
 
-  Json::Value eth_getUncleByBlockNumberAndIndex(string const&, string const&) override {
-    return Json::Value(Json::nullValue);
-  }
+  Json::Value eth_getUncleByBlockNumberAndIndex(string const&, string const&) override { return Json::Value(); }
 
   string eth_newFilter(Json::Value const& _json) override { return toJS(filters.newLogFilter(toLogFilter(_json))); }
 
@@ -195,7 +191,7 @@ struct EthImpl : Eth, EthParams {
     if (auto filter = filters.getLogFilter(jsToInt(_filterId))) {
       return toJson(logs(*filter));
     }
-    return Json::Value(Json::nullValue);
+    return Json::Value();
   }
 
   Json::Value eth_getLogs(Json::Value const& _json) override { return toJson(logs(toLogFilter(_json))); }
@@ -205,7 +201,7 @@ struct EthImpl : Eth, EthParams {
     return Json::Value(false);
   }
 
-  Json::Value eth_chainId() override { return chain_id ? Json::Value(toJS(chain_id)) : Json::Value(Json::nullValue); }
+  Json::Value eth_chainId() override { return chain_id ? Json::Value(toJS(chain_id)) : Json::Value(); }
 
   void note_block(h256 const& blk_hash) override { filters.note_block(blk_hash); }
 
@@ -303,7 +299,7 @@ struct EthImpl : Eth, EthParams {
     }
   }
 
-  BlockNumber parse_blk_num(string const& json_str, std::optional<BlockNumber> latest_block = {}) {
+  BlockNumber parse_blk_num(string const& json_str, optional<BlockNumber> latest_block = {}) {
     if (json_str == "latest" || json_str == "pending") {
       return latest_block ? *latest_block : final_chain->last_block_number();
     }
@@ -386,11 +382,11 @@ struct EthImpl : Eth, EthParams {
 
   // TODO REMOVE
   DEV_SIMPLE_EXCEPTION(InvalidAddress);
-  static dev::Address toAddress(std::string const& _s) {
+  static Address toAddress(string const& _s) {
     try {
-      auto b = fromHex(_s.substr(0, 2) == "0x" ? _s.substr(2) : _s, dev::WhenError::Throw);
+      auto b = fromHex(_s.substr(0, 2) == "0x" ? _s.substr(2) : _s, WhenError::Throw);
       if (b.size() == 20) return Address(b);
-    } catch (dev::BadHexCharacter&) {
+    } catch (BadHexCharacter&) {
     }
     BOOST_THROW_EXCEPTION(InvalidAddress());
   }
@@ -454,7 +450,7 @@ struct EthImpl : Eth, EthParams {
     Json::Value res = toJson(BlockHeader(obj));
     auto& trxs_json = res["transactions"] = Json::Value(Json::arrayValue);
     if (obj.trxs.index() == 0) {
-      trxs_json = toJson(get<0>(obj.trxs));
+      get<0>(obj.trxs)->for_each([&](auto const& trx_hash) { trxs_json.append(toJson(trx_hash)); });
     } else {
       ExtendedTransactionLocation loc;
       loc.blk_n = obj.number;
@@ -501,11 +497,11 @@ struct EthImpl : Eth, EthParams {
 
   template <typename T>
   static Json::Value toJson(T const& t) {
-    return dev::toJS(t);
+    return toJS(t);
   }
 
   template <typename T>
-  static Json::Value toJson(std::vector<T> const& _es) {
+  static Json::Value toJson(vector<T> const& _es) {
     Json::Value res(Json::arrayValue);
     for (auto const& e : _es) {
       res.append(toJson(e));
@@ -514,8 +510,8 @@ struct EthImpl : Eth, EthParams {
   }
 
   template <typename T>
-  static Json::Value toJson(std::optional<T> const& t) {
-    return t ? toJson(*t) : Json::Value(Json::nullValue);
+  static Json::Value toJson(optional<T> const& t) {
+    return t ? toJson(*t) : Json::Value();
   }
 };
 

@@ -75,8 +75,6 @@ struct FinalChain {
   virtual state_api::DPOSQueryResult dpos_query(state_api::DPOSQuery const& q,
                                                 optional<BlockNumber> blk_n = {}) const = 0;
 
-  virtual void create_state_db_snapshot(uint64_t const& period) = 0;
-
   // TODO move out of here:
 
   pair<val_t, bool> getBalance(addr_t const& addr) const {

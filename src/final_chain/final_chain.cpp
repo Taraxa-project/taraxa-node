@@ -196,7 +196,7 @@ struct FinalChainImpl final : virtual FinalChain {
 
     // Creates snapshot if needed
     if (db_->createSnapshot(pbft_period)) {
-      create_state_db_snapshot(pbft_period);
+      state_api.create_snapshot(pbft_period);
     }
 
     // Only NOW we are fine to modify in-memory states as they have been backed by the db
@@ -594,8 +594,6 @@ struct FinalChainImpl final : virtual FinalChain {
       };
     });
   }
-
-  void create_state_db_snapshot(uint64_t const& period) override { state_api.create_snapshot(period); }
 
   struct TransactionHashesImpl : TransactionHashes {
     string serialized_;
