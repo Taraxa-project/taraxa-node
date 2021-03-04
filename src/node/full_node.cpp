@@ -265,11 +265,11 @@ void FullNode::rebuildDb() {
 
   while (true) {
     std::map<uint64_t, std::map<blk_hash_t, std::pair<DagBlock, std::vector<Transaction>>>> dag_blocks_per_level;
-    auto pbft_hash = old_db_->getPeriodPbftBlock(period);
-    if (pbft_hash == nullptr) {
+    auto pbft_blk_hash = old_db_->getPeriodPbftBlock(period);
+    if (pbft_blk_hash == nullptr) {
       break;
     }
-    auto pbft_block = old_db_->getPbftBlock(*pbft_hash);
+    auto pbft_block = old_db_->getPbftBlock(*pbft_blk_hash);
     auto pivot_dag_hash = pbft_block->getPivotDagBlockHash();
     std::set<blk_hash_t> pbft_dag_blocks;
     std::vector<blk_hash_t> dag_blocks;
@@ -311,13 +311,13 @@ void FullNode::rebuildDb() {
       dag_blocks_per_level[dag_block->getLevel()][dag_block_hash] = std::make_pair(*dag_block, transactions);
     }
 
-    // Add pbft blocks with votes in queue
-    auto db_votes = old_db_->getVotes(*pbft_hash);
-    vector<Vote> votes;
-    for (auto const &el : RLP(db_votes)) {
-      votes.emplace_back(el);
+    // Add pbft blocks with certified votes in queue
+    auto cert_votes = old_db_->getCertVotes(*pbft_blk_hash);
+    if (cert_votes.empty()) {
+      LOG(log_er_) << "Cannot find any cert votes for PBFT block " << pbft_block;
+      assert(false);
     }
-    PbftBlockCert pbft_blk_and_votes(*pbft_block, votes);
+    PbftBlockCert pbft_blk_and_votes(*pbft_block, cert_votes);
     LOG(log_nf_) << "Adding pbft block into queue " << pbft_block->getBlockHash().toString();
     pbft_chain_->setSyncedPbftBlockIntoQueue(pbft_blk_and_votes);
 

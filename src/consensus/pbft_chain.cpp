@@ -236,11 +236,7 @@ std::vector<PbftBlockCert> PbftChain::getPbftBlocks(size_t period, size_t count)
       assert(false);
     }
     // Get PBFT cert votes in DB
-    auto cert_votes_raw = db_->getVotes(*pbft_block_hash);
-    vector<Vote> cert_votes;
-    for (auto const& cert_vote : RLP(cert_votes_raw)) {
-      cert_votes.emplace_back(cert_vote);
-    }
+    auto cert_votes = db_->getCertVotes(*pbft_block_hash);
     if (cert_votes.empty()) {
       LOG(log_er_) << "Cannot find any cert votes for PBFT block " << pbft_block;
       assert(false);

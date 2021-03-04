@@ -3,10 +3,8 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 
-#include "consensus/vote.hpp"
 #include "node/full_node.hpp"
 #include "rocksdb/utilities/checkpoint.h"
-#include "transaction_manager/transaction.hpp"
 
 namespace taraxa {
 using namespace std;
@@ -441,15 +439,52 @@ void DbStorage::addPbftHeadToBatch(taraxa::blk_hash_t const& head_hash, std::str
   batch_put(write_batch, Columns::pbft_head, toSlice(head_hash.asBytes()), head_str);
 }
 
-bytes DbStorage::getVotes(blk_hash_t const& hash) { return asBytes(lookup(hash, Columns::votes)); }
+std::vector<Vote> DbStorage::getCertVotes(blk_hash_t const& hash) {
+  std::vector<Vote> cert_votes;
+  auto cert_votes_raw = asBytes(lookup(toSlice(hash.asBytes()), Columns::cert_votes));
 
-void DbStorage::addPbftCertVotesToBatch(const taraxa::blk_hash_t& pbft_block_hash, const std::vector<Vote>& cert_votes,
-                                        const taraxa::DbStorage::BatchPtr& write_batch) {
+  for (auto const& cert_vote : RLP(cert_votes_raw)) {
+    cert_votes.emplace_back(cert_vote);
+  }
+
+  return cert_votes;
+}
+
+void DbStorage::addCertVotesToBatch(const taraxa::blk_hash_t& pbft_block_hash, const std::vector<Vote>& cert_votes,
+                                    const taraxa::DbStorage::BatchPtr& write_batch) {
   RLPStream s(cert_votes.size());
   for (auto const& v : cert_votes) {
     s.appendRaw(v.rlp());
   }
-  batch_put(*write_batch, Columns::votes, pbft_block_hash, s.out());
+  batch_put(*write_batch, Columns::cert_votes, toSlice(pbft_block_hash.asBytes()), toSlice(s.out()));
+}
+
+std::vector<Vote> DbStorage::getNextVotes(uint64_t const& pbft_round) {
+  std::vector<Vote> next_votes;
+  auto next_votes_raw = asBytes(lookup(toSlice(pbft_round), Columns::next_votes));
+
+  for (auto const& next_vote : RLP(next_votes_raw)) {
+    next_votes.emplace_back(next_vote);
+  }
+
+  return next_votes;
+}
+
+void DbStorage::saveNextVotes(uint64_t const& pbft_round, std::vector<Vote> const& next_votes) {
+  RLPStream s(next_votes.size());
+  for (auto const& v : next_votes) {
+    s.appendRaw(v.rlp());
+  }
+  insert(Columns::next_votes, toSlice(pbft_round), toSlice(s.out()));
+}
+
+void DbStorage::addNextVotesToBatch(uint64_t const& pbft_round, std::vector<Vote> const& next_votes,
+                                    BatchPtr const& write_batch) {
+  RLPStream s(next_votes.size());
+  for (auto const& v : next_votes) {
+    s.appendRaw(v.rlp());
+  }
+  batch_put(*write_batch, Columns::next_votes, toSlice(pbft_round), toSlice(s.out()));
 }
 
 shared_ptr<blk_hash_t> DbStorage::getPeriodPbftBlock(uint64_t const& period) {

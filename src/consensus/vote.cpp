@@ -309,4 +309,97 @@ bool VoteManager::pbftBlockHasEnoughValidCertVotes(PbftBlockCert const& pbft_blo
   return valid_votes.size() >= pbft_2t_plus_1;
 }
 
+NextVotesForPreviousRound::NextVotesForPreviousRound(addr_t node_addr)
+    : enough_votes_for_null_block_hash_(false), voted_value_(blk_hash_t(0)) {
+  LOG_OBJECTS_CREATE("NEXT_VOTES");
+}
+
+void NextVotesForPreviousRound::clear() {
+  uniqueLock_ lock(access_);
+  enough_votes_for_null_block_hash_ = false;
+  voted_value_ = blk_hash_t(0);
+  next_votes_.clear();
+}
+
+bool NextVotesForPreviousRound::haveEnoughVotesForNullBlockHash() const {
+  sharedLock_ lock(access_);
+  return enough_votes_for_null_block_hash_;
+}
+
+blk_hash_t NextVotesForPreviousRound::getVotedValue() const {
+  sharedLock_ lock(access_);
+  return voted_value_;
+}
+
+std::vector<Vote> NextVotesForPreviousRound::getNextVotes() {
+  std::vector<Vote> next_votes_bundle;
+
+  sharedLock_ lock(access_);
+  for (auto const& blk_hash_nv : next_votes_) {
+    for (auto const& v : blk_hash_nv.second) {
+      next_votes_bundle.emplace_back(v);
+    }
+  }
+
+  return next_votes_bundle;
+}
+
+// Assumption is that all votes are validated, in next phase, in the same round and step
+void NextVotesForPreviousRound::update(std::vector<Vote> const& next_votes, size_t const TWO_T_PLUS_ONE) {
+  LOG(log_nf_) << "There are " << next_votes.size() << " next votes for updating.";
+  if (next_votes.empty()) {
+    return;
+  }
+
+  clear();
+
+  upgradableLock_ lock(access_);
+  // Copy all next votes
+  for (auto const& v : next_votes) {
+    LOG(log_dg_) << "Next vote: " << v;
+
+    auto voted_block_hash = v.getBlockHash();
+    if (next_votes_.count(voted_block_hash)) {
+      upgradeLock_ locked(lock);
+      next_votes_[voted_block_hash].emplace_back(v);
+    } else {
+      std::vector<Vote> votes{v};
+      upgradeLock_ locked(lock);
+      next_votes_[voted_block_hash] = votes;
+    }
+  }
+
+  if (TWO_T_PLUS_ONE == 0) {
+    // Next votes from own DB. Don't need check
+    assert(next_votes_.size() == 1 || next_votes_.size() == 2);
+    return;
+  }
+
+  // Protect for malicious players. If no malicious players, will include either/both NULL BLOCK HASH and a non NULL
+  // BLOCK HASH
+  auto it = next_votes_.begin();
+  while (it != next_votes_.end()) {
+    if (it->second.size() >= TWO_T_PLUS_ONE) {
+      LOG(log_nf_) << "Voted PBFT block hash " << it->first << " has " << it->second.size() << " next votes";
+
+      if (it->first == NULL_BLOCK_HASH) {
+        upgradeLock_ locked(lock);
+        enough_votes_for_null_block_hash_ = true;
+      } else {
+        upgradeLock_ locked(lock);
+        voted_value_ = it->first;
+      }
+
+      it++;
+    } else {
+      LOG(log_dg_) << "Voted PBFT block hash " << it->first << " has " << it->second.size()
+                   << " next votes. Not enough, removed!";
+      upgradeLock_ locked(lock);
+      it = next_votes_.erase(it);
+    }
+  }
+
+  assert(next_votes_.size() == 1 || next_votes_.size() == 2);
+}
+
 }  // namespace taraxa

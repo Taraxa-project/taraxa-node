@@ -328,7 +328,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
       node1->getPbftManager()->generateVote(pbft_block1.getBlockHash(), cert_vote_type, 1, 3, prev_block_hash));
   std::cout << "Generate 1 vote for first PBFT block" << std::endl;
   // Add cert votes in DB
-  db1->addPbftCertVotesToBatch(pbft_block1.getBlockHash(), votes_for_pbft_blk1, batch);
+  db1->addCertVotesToBatch(pbft_block1.getBlockHash(), votes_for_pbft_blk1, batch);
   // Add PBFT block in DB
   db1->addPbftBlockToBatch(pbft_block1, batch);
   // Update period_pbft_block in DB
@@ -366,7 +366,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
   std::cout << "Generate 1 vote for second PBFT block" << std::endl;
   // node1 put block2 into pbft chain and store into DB
   // Add cert votes in DB
-  db1->addPbftCertVotesToBatch(pbft_block2.getBlockHash(), votes_for_pbft_blk2, batch);
+  db1->addCertVotesToBatch(pbft_block2.getBlockHash(), votes_for_pbft_blk2, batch);
   // Add PBFT block in DB
   db1->addPbftBlockToBatch(pbft_block2, batch);
   // Update period_pbft_block in DB
@@ -452,7 +452,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
       node1->getPbftManager()->generateVote(pbft_block1.getBlockHash(), cert_vote_type, 1, 3, prev_block_hash));
   std::cout << "Generate 1 vote for first PBFT block" << std::endl;
   // Add cert votes in DB
-  db1->addPbftCertVotesToBatch(pbft_block1.getBlockHash(), votes_for_pbft_blk1, batch);
+  db1->addCertVotesToBatch(pbft_block1.getBlockHash(), votes_for_pbft_blk1, batch);
   // Add PBFT block in DB
   db1->addPbftBlockToBatch(pbft_block1, batch);
   // Update period_pbft_block in DB
@@ -488,7 +488,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   std::cout << "Use fake votes for the second PBFT block" << std::endl;
   // node1 put block2 into pbft chain and use fake votes storing into DB (malicious player)
   // Add fake votes in DB
-  db1->addPbftCertVotesToBatch(pbft_block2.getBlockHash(), votes_for_pbft_blk1, batch);
+  db1->addCertVotesToBatch(pbft_block2.getBlockHash(), votes_for_pbft_blk1, batch);
   // Add PBFT block in DB
   db1->addPbftBlockToBatch(pbft_block2, batch);
   // Update period_pbft_block in DB
@@ -556,7 +556,7 @@ TEST_F(NetworkTest, pbft_next_votes_bundle_sync) {
     next_votes.emplace_back(vote);
   }
   // Update next votes bundle and set PBFT round
-  pbft_mgr1->updateNextVotesForRound(next_votes);
+  pbft_mgr1->getNextVotesForPreviousRoundPtr()->update(next_votes);
   pbft_mgr1->setPbftRound(11);  // Make sure node2 round less than node1
 
   // Start node2

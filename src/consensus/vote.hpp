@@ -176,4 +176,29 @@ class VoteManager {
   LOG_OBJECTS_DEFINE;
 };
 
+class NextVotesForPreviousRound {
+ public:
+  NextVotesForPreviousRound(addr_t node_addr);
+
+  void clear();
+  bool haveEnoughVotesForNullBlockHash() const;
+  blk_hash_t getVotedValue() const;
+  std::vector<Vote> getNextVotes();
+  void update(std::vector<Vote> const& next_votes, size_t const TWO_T_PLUS_ONE = 0);
+
+ private:
+  using uniqueLock_ = boost::unique_lock<boost::shared_mutex>;
+  using sharedLock_ = boost::shared_lock<boost::shared_mutex>;
+  using upgradableLock_ = boost::upgrade_lock<boost::shared_mutex>;
+  using upgradeLock_ = boost::upgrade_to_unique_lock<boost::shared_mutex>;
+
+  mutable boost::shared_mutex access_;
+
+  bool enough_votes_for_null_block_hash_;
+  blk_hash_t voted_value_;                                        // For value is not null block hash
+  std::unordered_map<blk_hash_t, std::vector<Vote>> next_votes_;  // <voted PBFT block hash, next votes list>
+
+  LOG_OBJECTS_DEFINE;
+};
+
 }  // namespace taraxa

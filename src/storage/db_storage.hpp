@@ -40,12 +40,10 @@ enum PbftMgrStatus {
   cert_voted_in_round,
   next_voted_soft_value,
   next_voted_null_block_hash,
-  next_voted_block_in_previous_round
 };
 enum PbftMgrVotedValue {
   own_starting_value_in_round = 0,
   soft_voted_block_hash_in_round,
-  next_voted_block_hash_in_previous_round,
 };
 
 class DbException : public exception {
@@ -102,7 +100,8 @@ struct DbStorage {
     COLUMN(pbft_mgr_next_voted_block_in_previous_round);
     COLUMN(pbft_head);
     COLUMN(pbft_blocks);
-    COLUMN(votes);
+    COLUMN(cert_votes);
+    COLUMN(next_votes);
     COLUMN(period_pbft_block);
     COLUMN(dag_block_period);
     COLUMN(replay_protection);
@@ -209,10 +208,15 @@ struct DbStorage {
   void saveStatusField(StatusDbField const& field,
                        uint64_t const& value);  // unit test
   void addStatusFieldToBatch(StatusDbField const& field, uint64_t const& value, BatchPtr const& write_batch);
-  // votes
-  bytes getVotes(blk_hash_t const& hash);
-  void addPbftCertVotesToBatch(taraxa::blk_hash_t const& pbft_block_hash, std::vector<Vote> const& cert_votes,
-                               BatchPtr const& write_batch);
+  // Certified votes
+  std::vector<Vote> getCertVotes(blk_hash_t const& hash);
+  void addCertVotesToBatch(taraxa::blk_hash_t const& pbft_block_hash, std::vector<Vote> const& cert_votes,
+                           BatchPtr const& write_batch);
+  // Next votes
+  std::vector<Vote> getNextVotes(uint64_t const& pbft_round);
+  void saveNextVotes(uint64_t const& pbft_round, std::vector<Vote> const& next_votes);
+  void addNextVotesToBatch(uint64_t const& pbft_round, std::vector<Vote> const& next_votes,
+                           BatchPtr const& write_batch);
   // period_pbft_block
   shared_ptr<blk_hash_t> getPeriodPbftBlock(uint64_t const& period);
   void addPbftBlockPeriodToBatch(uint64_t const& period, taraxa::blk_hash_t const& pbft_block_hash,
