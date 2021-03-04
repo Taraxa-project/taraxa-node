@@ -1216,7 +1216,7 @@ TEST_F(FullNodeTest, GraphQLTest) {
   }
 
   // Objects needed to run the query
-  auto q = std::make_shared<graphql::taraxa::Query>(nodes[0]->getFinalChain(), 0);
+  auto q = std::make_shared<graphql::taraxa::Query>(nodes[0]->getFinalChain(), nullptr, 0);
   auto mutation = std::make_shared<graphql::taraxa::Mutation>();
   auto subscription = std::make_shared<graphql::taraxa::Subscription>();
   auto _service = std::make_shared<graphql::taraxa::Operations>(q, mutation, subscription);
