@@ -30,9 +30,9 @@ class PbftManager {
 
   PbftManager(PbftConfig const &conf, std::string const &genesis, addr_t node_addr, std::shared_ptr<DbStorage> db,
               std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
-              std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
-              std::shared_ptr<FinalChain> final_chain, std::shared_ptr<Executor> executor, secret_t node_sk,
-              vrf_sk_t vrf_sk);
+              std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr, std::shared_ptr<DagManager> dag_mgr,
+              std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<FinalChain> final_chain,
+              std::shared_ptr<Executor> executor, secret_t node_sk, vrf_sk_t vrf_sk);
   ~PbftManager();
 
   void setNetwork(std::shared_ptr<Network> network);
@@ -134,9 +134,10 @@ class PbftManager {
   // Using to check if PBFT block has been proposed already in one period
   std::pair<blk_hash_t, bool> proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
 
-  std::shared_ptr<DbStorage> db_ = nullptr;
   std::unique_ptr<std::thread> daemon_ = nullptr;
+  std::shared_ptr<DbStorage> db_ = nullptr;
   std::shared_ptr<VoteManager> vote_mgr_ = nullptr;
+  std::shared_ptr<NextVotesForPreviousRound> previous_round_next_votes_ = nullptr;
   std::shared_ptr<PbftChain> pbft_chain_ = nullptr;
   std::shared_ptr<DagManager> dag_mgr_ = nullptr;
   std::shared_ptr<Network> network_ = nullptr;
@@ -144,7 +145,6 @@ class PbftManager {
   std::shared_ptr<DagBlockManager> dag_blk_mgr_;
   std::shared_ptr<FinalChain> final_chain_;
   std::shared_ptr<Executor> executor_;
-  std::shared_ptr<NextVotesForPreviousRound> previous_round_next_votes_;
 
   addr_t node_addr_;
   secret_t node_sk_;

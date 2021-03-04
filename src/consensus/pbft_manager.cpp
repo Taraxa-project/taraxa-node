@@ -21,7 +21,8 @@ using vrf_output_t = vrf_wrapper::vrf_output_t;
 
 PbftManager::PbftManager(PbftConfig const &conf, std::string const &genesis, addr_t node_addr,
                          std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
-                         std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
+                         std::shared_ptr<VoteManager> vote_mgr,
+                         std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr, std::shared_ptr<DagManager> dag_mgr,
                          std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<FinalChain> final_chain,
                          std::shared_ptr<Executor> executor, secret_t node_sk, vrf_sk_t vrf_sk)
     : LAMBDA_ms_MIN(conf.lambda_ms_min),
@@ -34,6 +35,7 @@ PbftManager::PbftManager(PbftConfig const &conf, std::string const &genesis, add
       db_(db),
       pbft_chain_(pbft_chain),
       vote_mgr_(vote_mgr),
+      previous_round_next_votes_(next_votes_mgr),
       dag_mgr_(dag_mgr),
       dag_blk_mgr_(dag_blk_mgr),
       final_chain_(final_chain),
@@ -41,7 +43,6 @@ PbftManager::PbftManager(PbftConfig const &conf, std::string const &genesis, add
       node_sk_(node_sk),
       vrf_sk_(vrf_sk) {
   LOG_OBJECTS_CREATE("PBFT_MGR");
-  previous_round_next_votes_ = std::make_shared<NextVotesForPreviousRound>(node_addr);
   update_dpos_state_();
 }
 

@@ -166,10 +166,10 @@ TEST_F(NetworkTest, save_network) {
 
   std::shared_ptr<Network> nw2(
       new taraxa::Network(g_conf2->network, "/tmp/nw2", g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t(),
-                          nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, public_t(), 2000));
+                          nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, public_t(), 2000));
   std::shared_ptr<Network> nw3(
       new taraxa::Network(g_conf3->network, "/tmp/nw3", g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t(),
-                          nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, public_t(), 2000));
+                          nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, public_t(), 2000));
   nw2->start();
   nw3->start();
 
@@ -546,7 +546,7 @@ TEST_F(NetworkTest, pbft_next_votes_bundle_sync) {
   // Generate 3 next votes
   std::vector<Vote> next_votes;
   for (auto i = 0; i < 3; i++) {
-    blk_hash_t propose_pbft_block_hash(i + 1);
+    blk_hash_t propose_pbft_block_hash(i % 2);  // Next votes could vote on 2 values
     blk_hash_t last_pbft_block_hash(i);
     PbftVoteTypes type = next_vote_type;
     uint64_t round = 10;
@@ -864,7 +864,7 @@ TEST_F(NetworkTest, node_transaction_sync) {
 // intervals on randomly selected nodes It verifies that the blocks created from
 // these transactions which get created on random nodes are synced and the
 // resulting DAG is the same on all nodes
-TEST_F(NetworkTest, node_full_sync) {
+TEST_F(NetworkTest, DISABLED_node_full_sync) {
   constexpr auto numberOfNodes = 5;
   auto node_cfgs = make_node_cfgs<20>(numberOfNodes);
   auto nodes = launch_nodes(slice(node_cfgs, 0, numberOfNodes - 1));

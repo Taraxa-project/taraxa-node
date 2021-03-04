@@ -69,6 +69,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<BlockProposer> blk_proposer_;
   std::vector<std::thread> block_workers_;
   std::shared_ptr<VoteManager> vote_mgr_;
+  std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr_;
   std::shared_ptr<PbftManager> pbft_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<Executor> executor_;
@@ -118,6 +119,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   auto const &getDB() const { return db_; }
   auto const &getPbftManager() const { return pbft_mgr_; }
   auto const &getVoteManager() const { return vote_mgr_; }
+  auto const &getNextVotesManager() const { return next_votes_mgr_; }
   auto const &getPbftChain() const { return pbft_chain_; }
   auto const &getExecutor() const { return executor_; }
   auto const &getFinalChain() const { return final_chain_; }

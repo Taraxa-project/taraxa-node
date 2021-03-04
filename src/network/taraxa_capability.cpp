@@ -1146,7 +1146,7 @@ void TaraxaCapability::requestPbftNextVotes(NodeID const &peerID, uint64_t const
 }
 
 void TaraxaCapability::sendPbftNextVotes(NodeID const &peerID) {
-  std::vector<Vote> next_votes_bundle = pbft_mgr_->getNextVotesForPreviousRoundPtr()->getNextVotes();
+  std::vector<Vote> next_votes_bundle = next_votes_mgr_->getNextVotes();
   LOG(log_dg_next_votes_sync_) << "Send size of " << next_votes_bundle.size() << " PBFT next votes to " << peerID;
 
   RLPStream s;

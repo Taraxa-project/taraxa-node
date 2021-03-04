@@ -107,8 +107,9 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   TaraxaCapability(Host &_host, NetworkConfig &_conf, std::string const &genesis, bool const &performance_log,
                    addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
                    std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
-                   std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
-                   std::shared_ptr<TransactionManager> trx_mgr, uint32_t lambda_ms_min)
+                   std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr, std::shared_ptr<DagManager> dag_mgr,
+                   std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<TransactionManager> trx_mgr,
+                   uint32_t lambda_ms_min)
       : Worker("taraxa"),
         host_(_host),
         conf_(_conf),
@@ -121,6 +122,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
         pbft_mgr_(pbft_mgr),
         pbft_chain_(pbft_chain),
         vote_mgr_(vote_mgr),
+        next_votes_mgr_(next_votes_mgr),
         dag_mgr_(dag_mgr),
         dag_blk_mgr_(dag_blk_mgr),
         trx_mgr_(trx_mgr),
@@ -232,6 +234,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   std::shared_ptr<PbftManager> pbft_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<VoteManager> vote_mgr_;
+  std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr_;
   std::shared_ptr<DagManager> dag_mgr_;
   std::shared_ptr<DagBlockManager> dag_blk_mgr_;
   std::shared_ptr<TransactionManager> trx_mgr_;

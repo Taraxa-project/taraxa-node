@@ -96,6 +96,7 @@ void FullNode::init() {
   }
   auto genesis_hash = conf_.chain.dag_genesis_block.getHash().toString();
   emplace(pbft_chain_, genesis_hash, node_addr, db_);
+  emplace(next_votes_mgr_, node_addr);
   emplace(dag_mgr_, genesis_hash, node_addr, trx_mgr_, pbft_chain_, db_);
   emplace(dag_blk_mgr_, node_addr, conf_.chain.vdf, conf_.chain.final_chain.state.dpos, 1024 /*capacity*/,
           4 /* verifer thread*/, db_, trx_mgr_, final_chain_, pbft_chain_, log_time_,
@@ -104,12 +105,12 @@ void FullNode::init() {
   emplace(trx_order_mgr_, node_addr, db_);
   emplace(executor_, node_addr, db_, dag_mgr_, trx_mgr_, final_chain_, pbft_chain_,
           conf_.test_params.block_proposer.transaction_limit);
-  emplace(pbft_mgr_, conf_.chain.pbft, genesis_hash, node_addr, db_, pbft_chain_, vote_mgr_, dag_mgr_, dag_blk_mgr_,
-          final_chain_, executor_, kp_.secret(), conf_.vrf_secret);
+  emplace(pbft_mgr_, conf_.chain.pbft, genesis_hash, node_addr, db_, pbft_chain_, vote_mgr_, next_votes_mgr_, dag_mgr_,
+          dag_blk_mgr_, final_chain_, executor_, kp_.secret(), conf_.vrf_secret);
   emplace(blk_proposer_, conf_.test_params.block_proposer, conf_.chain.vdf, dag_mgr_, trx_mgr_, dag_blk_mgr_,
           final_chain_, node_addr, getSecretKey(), getVrfSecretKey(), log_time_);
   emplace(network_, conf_.network, conf_.net_file_path().string(), kp_.secret(), genesis_hash, node_addr, db_,
-          pbft_mgr_, pbft_chain_, vote_mgr_, dag_mgr_, dag_blk_mgr_, trx_mgr_, kp_.pub(),
+          pbft_mgr_, pbft_chain_, vote_mgr_, next_votes_mgr_, dag_mgr_, dag_blk_mgr_, trx_mgr_, kp_.pub(),
           conf_.chain.pbft.lambda_ms_min);
 
   // Inits rpc related members
