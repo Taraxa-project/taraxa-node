@@ -42,6 +42,7 @@ class PbftManager {
 
   bool shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step);
 
+  std::shared_ptr<NextVotesForPreviousRound> getNextVotesForPreviousRoundPtr() const;
   std::pair<bool, uint64_t> getDagBlockPeriod(blk_hash_t const &hash);
   uint64_t getPbftRound() const;
   void setPbftRound(uint64_t const round);
@@ -140,6 +141,7 @@ class PbftManager {
   std::shared_ptr<DagBlockManager> dag_blk_mgr_;
   std::shared_ptr<FinalChain> final_chain_;
   std::shared_ptr<Executor> executor_;
+  std::shared_ptr<NextVotesForPreviousRound> previous_round_next_votes_;
 
   addr_t node_addr_;
   secret_t node_sk_;
