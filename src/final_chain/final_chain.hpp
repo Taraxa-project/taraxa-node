@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ChainDB.h"
+#include "LogFilter.h"
 #include "common/types.hpp"
 #include "consensus/pbft_chain.hpp"
 #include "state_api.hpp"
@@ -15,7 +15,7 @@ using namespace ::dev;
 using namespace ::taraxa::final_chain;
 using namespace ::taraxa::util;
 
-struct FinalChain : virtual ChainDB {
+struct FinalChain {
   struct Config {
     state_api::ChainConfig state;
     struct GenesisBlockFields {
@@ -44,22 +44,50 @@ struct FinalChain : virtual ChainDB {
   virtual ~FinalChain() {}
 
   virtual void execute(std::shared_ptr<PbftBlock> pbft_blk) = 0;
-  virtual shared_ptr<BlockHeader> get_last_block() const = 0;
-  virtual void create_state_db_snapshot(uint64_t const& period) = 0;
-  virtual optional<state_api::Account> get_account(addr_t const& addr, optional<BlockNumber> blk_n = nullopt) const = 0;
-  virtual u256 get_account_storage(addr_t const& addr, u256 const& key,
-                                   optional<BlockNumber> blk_n = nullopt) const = 0;
-  virtual bytes get_code(addr_t const& addr, optional<BlockNumber> blk_n = nullopt) const = 0;
-  virtual state_api::ExecutionResult call(state_api::EVMTransaction const& trx, optional<BlockNumber> blk_n = nullopt,
-                                          optional<state_api::ExecutionOptions> const& opts = nullopt) const = 0;
-  virtual std::pair<val_t, bool> getBalance(addr_t const& acc) const = 0;
+
+  virtual shared_ptr<BlockHeader> block_header(optional<BlockNumber> n = {}) const = 0;
+  virtual BlockNumber last_block_number() const = 0;
+  virtual optional<BlockNumber> block_number(h256 const& h) const = 0;
+  virtual optional<h256> block_hash(optional<BlockNumber> n = {}) const = 0;
+
+  struct TransactionHashes {
+    virtual ~TransactionHashes() {}
+
+    virtual size_t count() const = 0;
+    virtual h256 get(size_t i) const = 0;
+    virtual void for_each(function<void(h256 const&)> const& cb) const = 0;
+  };
+  virtual shared_ptr<TransactionHashes> transaction_hashes(optional<BlockNumber> n = {}) const = 0;
+  virtual Transactions transactions(optional<BlockNumber> n = {}) const = 0;
+  virtual optional<TransactionLocation> transaction_location(h256 const& trx_hash,
+                                                             bool with_block_hash = true) const = 0;
+  virtual LogEntries logs(LogFilter const& _filter) const = 0;
+  virtual optional<TransactionReceipt> transaction_receipt(h256 const& _transactionHash) const = 0;
+  virtual uint64_t transactionCount(optional<BlockNumber> n = {}) const = 0;
+  virtual optional<state_api::Account> get_account(addr_t const& addr, optional<BlockNumber> blk_n = {}) const = 0;
+  virtual u256 get_account_storage(addr_t const& addr, u256 const& key, optional<BlockNumber> blk_n = {}) const = 0;
+  virtual bytes get_code(addr_t const& addr, optional<BlockNumber> blk_n = {}) const = 0;
+  virtual state_api::ExecutionResult call(state_api::EVMTransaction const& trx, optional<BlockNumber> blk_n = {},
+                                          optional<state_api::ExecutionOptions> const& opts = {}) const = 0;
+
   virtual uint64_t dpos_eligible_count(BlockNumber blk_num) const = 0;
   virtual bool dpos_is_eligible(BlockNumber blk_num, addr_t const& addr) const = 0;
   virtual state_api::DPOSQueryResult dpos_query(state_api::DPOSQuery const& q,
-                                                optional<BlockNumber> blk_n = nullopt) const = 0;
+                                                optional<BlockNumber> blk_n = {}) const = 0;
+
+  virtual void create_state_db_snapshot(uint64_t const& period) = 0;
+
+  // TODO move out of here:
+
+  pair<val_t, bool> getBalance(addr_t const& addr) const {
+    if (auto acc = get_account(addr)) {
+      return {acc->Balance, true};
+    }
+    return {0, false};
+  }
 };
 
-unique_ptr<FinalChain> NewFinalChain(shared_ptr<DB> db,  //
+unique_ptr<FinalChain> NewFinalChain(shared_ptr<DB> const& db,  //
                                      shared_ptr<PbftChain> pbft_chain,
                                      FinalChain::Config const& config,   //
                                      FinalChain::Opts const& opts = {},  //

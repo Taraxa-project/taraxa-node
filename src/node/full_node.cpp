@@ -46,23 +46,21 @@ void FullNode::init() {
     assert(false);
   }
   if (conf_.test_params.rebuild_db) {
-    old_db_ =
-        DB::make(conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
-                        conf_.test_params.db_max_snapshots, conf_.test_params.db_revert_to_period, node_addr, true);
+    old_db_ = DB::make(conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
+                       conf_.test_params.db_max_snapshots, conf_.test_params.db_revert_to_period, node_addr, true);
   }
 
-  db_ = DB::make(conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
-                        conf_.test_params.db_max_snapshots, conf_.test_params.db_revert_to_period, node_addr);
+  db_ = DB::make(conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block, conf_.test_params.db_max_snapshots,
+                 conf_.test_params.db_revert_to_period, node_addr);
 
   if (db_->hasMinorVersionChanged()) {
     LOG(log_si_) << "Minor DB version has changed. Rebuilding Db";
     conf_.test_params.rebuild_db = true;
     db_ = nullptr;
-    old_db_ =
-        DB::make(conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
-                        conf_.test_params.db_max_snapshots, conf_.test_params.db_revert_to_period, node_addr, true);
-    db_ = DB::make(conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
-                          conf_.test_params.db_max_snapshots, conf_.test_params.db_revert_to_period, node_addr);
+    old_db_ = DB::make(conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
+                       conf_.test_params.db_max_snapshots, conf_.test_params.db_revert_to_period, node_addr, true);
+    db_ = DB::make(conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block, conf_.test_params.db_max_snapshots,
+                   conf_.test_params.db_revert_to_period, node_addr);
   }
   register_s_ptr(db_);
   LOG(log_nf_) << "DB initialized ...";
@@ -101,6 +99,7 @@ void FullNode::start() {
     eth_jsonrpc_params.secret = kp_.secret();
     eth_jsonrpc_params.chain_id = conf_.chain.chain_id;
     eth_jsonrpc_params.final_chain = final_chain_;
+    eth_jsonrpc_params.get_trx = [db = db_](auto const &trx_hash) { return db->getTransaction(trx_hash); };
     eth_jsonrpc_params.send_trx = [trx_manager = trx_mgr_](auto const &trx) {
       auto [ok, err_msg] = trx_manager->insertTransaction(trx, true);
       if (!ok) {

@@ -27,7 +27,7 @@ class Signal {
     cv_.notify_one();
   }
 
-  T await() {
+  T wait() {
     T ret;
     unique_lock l(mu_);
     while (!value_present_) {

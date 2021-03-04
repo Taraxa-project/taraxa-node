@@ -12,18 +12,14 @@
 
 namespace taraxa::net {
 
-Json::Value toJson(final_chain::BlockHeader const& _t);
-Json::Value toJson(final_chain::LocalisedLogEntry const& _t);
-Json::Value toJson(final_chain::LocalisedTransaction const& _t);
-Json::Value toJson(final_chain::LocalisedTransactionReceipt const& _t);
-Json::Value toJson(final_chain::BlockHeaderWithTransactions const& obj);
-Json::Value toJson(final_chain::TransactionSkeleton const& _t);
+Json::Value toJson(final_chain::BlockHeader const& obj);
 
 struct EthParams {
   dev::Address address;
   dev::Secret secret;
   uint64_t chain_id = 0;
   std::shared_ptr<FinalChain> final_chain;
+  std::function<std::shared_ptr<Transaction>(h256 const&)> get_trx;
   std::function<h256 const&(Transaction const& trx)> send_trx;
   std::function<dev::u256()> gas_pricer = [] { return dev::u256(0); };
 };

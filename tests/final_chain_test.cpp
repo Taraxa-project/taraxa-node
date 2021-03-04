@@ -96,7 +96,7 @@ struct FinalChainTest : WithDataDir {
       auto r_from_db = SUT->localisedTransactionReceipt(trxs[i].getHash());
       EXPECT_EQ(r_from_db.contractAddress(), result.state_transition_result.ExecutionResults[i].NewContractAddr);
       EXPECT_EQ(r_from_db.from(), trx.getSender());
-      EXPECT_EQ(r_from_db.blk_h(), blk_h.hash());
+      EXPECT_EQ(r_from_db.blk_n(), blk_h.hash());
       EXPECT_EQ(r_from_db.blockNumber(), blk_h.number());
       EXPECT_EQ(r_from_db.transactionIndex(), i);
       EXPECT_EQ(r_from_db.hash(), trx.getHash());

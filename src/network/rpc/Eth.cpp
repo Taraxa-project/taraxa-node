@@ -12,189 +12,62 @@ using namespace ::dev;
 using namespace ::taraxa::final_chain;
 using namespace ::taraxa::state_api;
 
-// TODO REMOVE
-DEV_SIMPLE_EXCEPTION(InvalidAddress);
-/// Convert the given string into an address.
-inline dev::Address toAddress(std::string const& _s) {
-  try {
-    auto b = fromHex(_s.substr(0, 2) == "0x" ? _s.substr(2) : _s, dev::WhenError::Throw);
-    if (b.size() == 20) return Address(b);
-  } catch (dev::BadHexCharacter&) {
-  }
-  BOOST_THROW_EXCEPTION(InvalidAddress());
-}
-
-template <typename... T>
-Json::Value toJson(T const&... t) {
-  return dev::toJS(t...);
-}
-
-template <typename T>
-Json::Value toJson(std::vector<T> const& _es) {
-  Json::Value res(Json::arrayValue);
-  for (auto const& e : _es) {
-    res.append(toJson(e));
-  }
-  return res;
-}
-
-template <typename T>
-Json::Value toJson(std::optional<T> const& t) {
-  return t ? toJson(*t) : Json::Value(Json::nullValue);
-}
-
-void add(Json::Value& obj, ExtendedTransactionLocation const& info, bool with_hash = true) {
-  obj["blockNumber"] = toJson(info.blk_n);
-  obj["blockHash"] = toJson(info.blk_h);
-  obj["transactionIndex"] = toJson(info.index);
-  if (with_hash) {
-    obj["transactionHash"] = toJson(info.trx_hash);
-  }
-}
-
-Json::Value toJson(Transaction const& trx, ExtendedTransactionLocation const& loc) {
-  Json::Value res(Json::objectValue);
-  add(res, loc, false);
-  res["hash"] = toJson(trx.getHash());
-  res["input"] = toJson(trx.getData());
-  res["to"] = toJson(trx.getReceiver());
-  res["from"] = toJson(trx.getSender());
-  res["gas"] = toJson(trx.getGas());
-  res["gasPrice"] = toJson(trx.getGasPrice());
-  res["nonce"] = toJson(trx.getNonce());
-  res["value"] = toJson(trx.getValue());
-  auto const& vrs = trx.getVRS();
-  res["r"] = toJson(vrs.r);
-  res["s"] = toJson(vrs.s);
-  res["v"] = toJson(vrs.v);
-  return res;
-}
-
-Json::Value toJson(LocalisedTransaction const& lt) { return toJson(lt.trx, lt.trx_loc); }
-
-Json::Value toJson(BlockHeader const& obj) {
-  Json::Value res(Json::objectValue);
-  res["parentHash"] = toJson(obj.parent_hash);
-  res["sha3Uncles"] = toJson(BlockHeader::uncles());
-  res["stateRoot"] = toJson(obj.state_root);
-  res["transactionsRoot"] = toJson(obj.transactions_root);
-  res["receiptsRoot"] = toJson(obj.receipts_root);
-  res["number"] = toJson(obj.number);
-  res["gasUsed"] = toJson(obj.gas_used);
-  res["gasLimit"] = toJson(obj.gas_limit);
-  res["extraData"] = toJson(obj.extra_data);
-  res["logsBloom"] = toJson(obj.log_bloom);
-  res["timestamp"] = toJson(obj.timestamp);
-  res["author"] = res["miner"] = toJson(obj.author);
-  res["mixHash"] = toJson(BlockHeader::mix_hash());
-  res["nonce"] = toJson(BlockHeader::nonce());
-  res["uncles"] = Json::Value(Json::arrayValue);
-
-  res["hash"] = toJson(obj.hash);
-  res["size"] = toJson(obj.ethereum_rlp_size);
-  res["totalDifficulty"] = "0x0";
-  return res;
-}
-
-Json::Value toJson(BlockHeaderWithTransactions const& obj) {
-  Json::Value res = toJson(obj.h);
-  auto& trxs_json = res["transactions"] = Json::Value(Json::arrayValue);
-  if (obj.trxs.index() == 0) {
-    trxs_json = toJson(get<0>(obj.trxs));
-  } else {
-    ExtendedTransactionLocation loc;
-    loc.blk_n = obj.number;
-    loc.blk_h = obj.hash;
-    for (auto const& t : get<1>(obj.trxs)) {
-      trxs_json.append(toJson(t, loc));
-      ++loc.index;
-    }
-  }
-  return res;
-}
-
-Json::Value toJson(LocalisedLogEntry const& lle) {
-  Json::Value res(Json::objectValue);
-  add(res, lle.trx_loc);
-  res["removed"] = false;
-  res["data"] = toJson(lle.le.data);
-  res["address"] = toJson(lle.le.address);
-  res["logIndex"] = toJson(lle.position_in_receipt);
-  auto& topics_json = res["topics"] = Json::Value(Json::arrayValue);
-  for (auto const& t : lle.le.topics) {
-    topics_json.append(toJson(t));
-  }
-  return res;
-}
-
-Json::Value toJson(LocalisedTransactionReceipt const& ltr) {
-  Json::Value res(Json::objectValue);
-  add(res, ltr.trx_loc);
-  res["from"] = toJson(ltr.trx_from);
-  res["to"] = toJson(ltr.trx_to);
-  res["status"] = toString(ltr.r.status_code);
-  res["gasUsed"] = toJson(ltr.r.gas_used);
-  res["cumulativeGasUsed"] = toJson(ltr.r.cumulative_gas_used);
-  res["contractAddress"] = toJson(ltr.r.contract_address);
-  res["logsBloom"] = toJson(ltr.r.bloom());
-  auto& logs_json = res["logs"] = Json::Value(Json::arrayValue);
-  uint log_i = 0;
-  for (auto const& le : ltr.r.logs) {
-    logs_json.append(toJson(LocalisedLogEntry{le, ltr.trx_loc, log_i++}));
-  }
-  return res;
-}
-
-TransactionSkeleton toTransactionSkeleton(Json::Value const& _json) {
-  TransactionSkeleton ret;
-  if (!_json.isObject() || _json.empty()) {
-    return ret;
-  }
-  if (!_json["from"].empty()) {
-    ret.from = toAddress(_json["from"].asString());
-  }
-  if (!_json["to"].empty() && _json["to"].asString() != "0x" && !_json["to"].asString().empty()) {
-    ret.to = toAddress(_json["to"].asString());
-  }
-  if (!_json["value"].empty()) {
-    ret.value = jsToU256(_json["value"].asString());
-  }
-  if (!_json["gas"].empty()) {
-    ret.gas = jsToInt(_json["gas"].asString());
-  }
-  if (!_json["gasPrice"].empty()) {
-    ret.gas_price = jsToU256(_json["gasPrice"].asString());
-  }
-  if (!_json["data"].empty()) {
-    ret.data = jsToBytes(_json["data"].asString(), OnFailed::Throw);
-  }
-  if (!_json["code"].empty()) {
-    ret.data = jsToBytes(_json["code"].asString(), OnFailed::Throw);
-  }
-  if (!_json["nonce"].empty()) {
-    ret.nonce = jsToInt(_json["nonce"].asString());
-  }
-  return ret;
-}
-
-struct Filters {
-  using FilterID = uint64_t;
-
-  optional<LogFilter> getLogFilter(FilterID id) const { return {}; }
-  FilterID newBlockFilter() { return 0; }
-  FilterID newPendingTransactionFilter() { return 0; }
-  FilterID newLogFilter(LogFilter&& _filter) { return 0; }
-  bool uninstallFilter(FilterID id) { return false; }
-
-  void note_block(h256 const& blk_hash) {}
-  void note_pending_transactions(RangeView<h256> const& trx_hashes) {}
-  void note_receipts(RangeView<TransactionReceipt> const& receipts) {}
-
-  Json::Value poll(FilterID id) { return Json::Value(Json::arrayValue); }
-};
-
 struct EthImpl : Eth, EthParams {
-  Filters filters;
+  struct BlockHeaderWithTransactions : BlockHeader {
+    std::variant<shared_ptr<FinalChain::TransactionHashes>, Transactions> trxs;
+  };
+
+  struct TransactionSkeleton {
+    dev::Address from;
+    dev::u256 value;
+    dev::bytes data;
+    std::optional<dev::Address> to;
+    std::optional<uint64_t> nonce;
+    std::optional<uint64_t> gas;
+    std::optional<dev::u256> gas_price;
+  };
+
+  struct TransactionLocationWithBlockHash : TransactionLocation {
+    h256 blk_h;
+  };
+
+  struct LocalisedTransaction {
+    Transaction trx;
+    std::optional<TransactionLocationWithBlockHash> trx_loc;
+  };
+
+  struct ExtendedTransactionLocation : TransactionLocationWithBlockHash {
+    h256 trx_hash;
+  };
+
+  struct LocalisedTransactionReceipt {
+    TransactionReceipt r;
+    ExtendedTransactionLocation trx_loc;
+    addr_t trx_from;
+    std::optional<addr_t> trx_to;
+  };
+
+  struct LocalisedLogEntry {
+    LogEntry le;
+    ExtendedTransactionLocation trx_loc;
+    uint position_in_receipt;
+  };
+
+  struct FilterAPI {
+    using FilterID = uint64_t;
+
+    optional<LogFilter> getLogFilter(FilterID id) const { return {}; }
+    FilterID newBlockFilter() { return 0; }
+    FilterID newPendingTransactionFilter() { return 0; }
+    FilterID newLogFilter(LogFilter&& _filter) { return 0; }
+    bool uninstallFilter(FilterID id) { return false; }
+
+    void note_block(h256 const& blk_hash) {}
+    void note_pending_transactions(RangeView<h256> const& trx_hashes) {}
+    void note_receipts(RangeView<TransactionReceipt> const& receipts) {}
+
+    Json::Value poll(FilterID id) { return Json::Value(Json::arrayValue); }
+  } filters;
 
   EthImpl(EthParams&& prerequisites) : EthParams(move(prerequisites)) {}
 
@@ -250,7 +123,7 @@ struct EthImpl : Eth, EthParams {
   }
 
   Json::Value eth_getBlockTransactionCountByHash(string const& _blockHash) override {
-    return toJson(final_chain->transactionCount(jsToFixed<32>(_blockHash)));
+    return toJson(transactionCount(jsToFixed<32>(_blockHash)));
   }
 
   Json::Value eth_getBlockTransactionCountByNumber(string const& _blockNumber) override {
@@ -275,29 +148,29 @@ struct EthImpl : Eth, EthParams {
   }
 
   Json::Value eth_getBlockByHash(string const& _blockHash, bool _includeTransactions) override {
-    return toJson(final_chain->blockHeaderWithTransactions(jsToFixed<32>(_blockHash), _includeTransactions));
+    return toJson(blockHeaderWithTransactions(jsToFixed<32>(_blockHash), _includeTransactions));
   }
 
   Json::Value eth_getBlockByNumber(string const& _blockNumber, bool _includeTransactions) override {
-    return toJson(final_chain->blockHeaderWithTransactions(parse_blk_num(_blockNumber), _includeTransactions));
+    return toJson(blockHeaderWithTransactions(parse_blk_num(_blockNumber), _includeTransactions));
   }
 
   Json::Value eth_getTransactionByHash(string const& _transactionHash) override {
-    return toJson(final_chain->localisedTransaction(jsToFixed<32>(_transactionHash)));
+    return toJson(localisedTransaction(jsToFixed<32>(_transactionHash)));
   }
 
   Json::Value eth_getTransactionByBlockHashAndIndex(string const& _blockHash,
                                                     string const& _transactionIndex) override {
-    return toJson(final_chain->localisedTransaction(jsToFixed<32>(_blockHash), jsToInt(_transactionIndex)));
+    return toJson(localisedTransaction(jsToFixed<32>(_blockHash), jsToInt(_transactionIndex)));
   }
 
   Json::Value eth_getTransactionByBlockNumberAndIndex(string const& _blockNumber,
                                                       string const& _transactionIndex) override {
-    return toJson(final_chain->localisedTransaction(jsToInt(_transactionIndex), parse_blk_num(_blockNumber)));
+    return toJson(localisedTransaction(jsToInt(_transactionIndex), parse_blk_num(_blockNumber)));
   }
 
   Json::Value eth_getTransactionReceipt(string const& _transactionHash) override {
-    return toJson(final_chain->localisedTransactionReceipt(jsToFixed<32>(_transactionHash)));
+    return toJson(localisedTransactionReceipt(jsToFixed<32>(_transactionHash)));
   }
 
   Json::Value eth_getUncleByBlockHashAndIndex(string const&, string const&) override {
@@ -320,12 +193,12 @@ struct EthImpl : Eth, EthParams {
 
   Json::Value eth_getFilterLogs(string const& _filterId) override {
     if (auto filter = filters.getLogFilter(jsToInt(_filterId))) {
-      return toJson(final_chain->logs(*filter));
+      return toJson(logs(*filter));
     }
     return Json::Value(Json::nullValue);
   }
 
-  Json::Value eth_getLogs(Json::Value const& _json) override { return toJson(final_chain->logs(toLogFilter(_json))); }
+  Json::Value eth_getLogs(Json::Value const& _json) override { return toJson(logs(toLogFilter(_json))); }
 
   Json::Value eth_syncing() override {
     // TODO
@@ -342,8 +215,77 @@ struct EthImpl : Eth, EthParams {
 
   void note_receipts(RangeView<TransactionReceipt> const& receipts) override { filters.note_receipts(receipts); }
 
+  optional<BlockHeaderWithTransactions> blockHeaderWithTransactions(BlockNumber n, bool full_transactions) const {}
+  optional<BlockHeaderWithTransactions> blockHeaderWithTransactions(h256 const& _hash, bool full_transactions) const {}
+
+  optional<LocalisedTransaction> localisedTransaction(h256 const& h) const {
+    auto trx = get_trx(h);
+    if (!trx) {
+      return {};
+    }
+    auto loc = final_chain->transaction_location(h);
+    return LocalisedTransaction{move(*trx),
+                                TransactionLocationWithBlockHash{*loc, *final_chain->block_hash(loc->blk_n)}};
+  }
+
+  optional<LocalisedTransaction> localisedTransaction(uint64_t i, BlockNumber n) const {
+    auto hashes = final_chain->transaction_hashes(n);
+    if (hashes->count() <= i) {
+      return {};
+    }
+    auto trx = get_trx(hashes->get(i));
+    return LocalisedTransaction{move(*trx), TransactionLocationWithBlockHash{n, i, *final_chain->block_hash(n)}};
+  }
+
+  optional<LocalisedTransaction> localisedTransaction(h256 const& _blockHash, uint64_t _i) const {
+    auto blk_n = final_chain->block_number(_blockHash);
+    if (!blk_n) {
+      return {};
+    }
+    return localisedTransaction(_i, *blk_n);
+  }
+
+  optional<LocalisedTransactionReceipt> localisedTransactionReceipt(h256 const& trx_h) const {
+    auto r = final_chain->transaction_receipt(trx_h);
+    if (!r) {
+      return {};
+    }
+    auto loc_trx = localisedTransaction(trx_h);
+    auto const& trx = loc_trx->trx;
+    return LocalisedTransactionReceipt{*r, ExtendedTransactionLocation{*loc_trx->trx_loc, trx_h}, trx.getSender(),
+                                       trx.getReceiver()};
+  }
+
+  vector<LocalisedLogEntry> logs(LogFilter const& f) {
+    // final_chain->logs TODO
+    return {};
+  }
+
+  uint64_t transactionCount(h256 const& block_hash) const {
+    auto n = final_chain->block_number(block_hash);
+    return n ? final_chain->transactionCount(n) : 0;
+  }
+
   uint64_t transaction_count(BlockNumber n, Address const& addr) {
     return final_chain->get_account(addr, n).value_or(ZeroAccount).Nonce;
+  }
+
+  state_api::ExecutionResult call(BlockNumber blk_n, TransactionSkeleton const& trx, bool free_gas) {
+    return final_chain->call(
+        {
+            trx.from,
+            trx.gas_price.value_or(0),
+            trx.to,
+            trx.nonce.value_or(0),
+            trx.value,
+            trx.gas.value_or(0),
+            trx.data,
+        },
+        blk_n,
+        state_api::ExecutionOptions{
+            true,
+            free_gas,
+        });
   }
 
   void populateTransactionWithDefaults(TransactionSkeleton& t, BlockNumber blk_n) {
@@ -410,24 +352,174 @@ struct EthImpl : Eth, EthParams {
     return filter;
   }
 
-  state_api::ExecutionResult call(BlockNumber blk_n, TransactionSkeleton const& trx, bool free_gas) {
-    return final_chain->call(
-        {
-            trx.from,
-            trx.gas_price.value_or(0),
-            trx.to,
-            trx.nonce.value_or(0),
-            trx.value,
-            trx.gas.value_or(0),
-            trx.data,
-        },
-        blk_n,
-        state_api::ExecutionOptions{
-            true,
-            free_gas,
-        });
+  static TransactionSkeleton toTransactionSkeleton(Json::Value const& _json) {
+    TransactionSkeleton ret;
+    if (!_json.isObject() || _json.empty()) {
+      return ret;
+    }
+    if (!_json["from"].empty()) {
+      ret.from = toAddress(_json["from"].asString());
+    }
+    if (!_json["to"].empty() && _json["to"].asString() != "0x" && !_json["to"].asString().empty()) {
+      ret.to = toAddress(_json["to"].asString());
+    }
+    if (!_json["value"].empty()) {
+      ret.value = jsToU256(_json["value"].asString());
+    }
+    if (!_json["gas"].empty()) {
+      ret.gas = jsToInt(_json["gas"].asString());
+    }
+    if (!_json["gasPrice"].empty()) {
+      ret.gas_price = jsToU256(_json["gasPrice"].asString());
+    }
+    if (!_json["data"].empty()) {
+      ret.data = jsToBytes(_json["data"].asString(), OnFailed::Throw);
+    }
+    if (!_json["code"].empty()) {
+      ret.data = jsToBytes(_json["code"].asString(), OnFailed::Throw);
+    }
+    if (!_json["nonce"].empty()) {
+      ret.nonce = jsToInt(_json["nonce"].asString());
+    }
+    return ret;
+  }
+
+  // TODO REMOVE
+  DEV_SIMPLE_EXCEPTION(InvalidAddress);
+  static dev::Address toAddress(std::string const& _s) {
+    try {
+      auto b = fromHex(_s.substr(0, 2) == "0x" ? _s.substr(2) : _s, dev::WhenError::Throw);
+      if (b.size() == 20) return Address(b);
+    } catch (dev::BadHexCharacter&) {
+    }
+    BOOST_THROW_EXCEPTION(InvalidAddress());
+  }
+
+  static void add(Json::Value& obj, optional<TransactionLocationWithBlockHash> const& info) {
+    obj["blockNumber"] = info ? toJson(info->blk_n) : Json::Value();
+    obj["blockHash"] = info ? toJson(info->blk_h) : Json::Value();
+    obj["transactionIndex"] = info ? toJson(info->index) : Json::Value();
+  }
+
+  static void add(Json::Value& obj, ExtendedTransactionLocation const& info) {
+    add(obj, TransactionLocationWithBlockHash(info));
+    obj["transactionHash"] = toJson(info.trx_hash);
+  }
+
+  static Json::Value toJson(Transaction const& trx, optional<TransactionLocationWithBlockHash> const& loc) {
+    Json::Value res(Json::objectValue);
+    add(res, loc);
+    res["hash"] = toJson(trx.getHash());
+    res["input"] = toJson(trx.getData());
+    res["to"] = toJson(trx.getReceiver());
+    res["from"] = toJson(trx.getSender());
+    res["gas"] = toJson(trx.getGas());
+    res["gasPrice"] = toJson(trx.getGasPrice());
+    res["nonce"] = toJson(trx.getNonce());
+    res["value"] = toJson(trx.getValue());
+    auto const& vrs = trx.getVRS();
+    res["r"] = toJson(vrs.r);
+    res["s"] = toJson(vrs.s);
+    res["v"] = toJson(vrs.v);
+    return res;
+  }
+
+  static Json::Value toJson(LocalisedTransaction const& lt) { return toJson(lt.trx, lt.trx_loc); }
+
+  static Json::Value toJson(BlockHeader const& obj) {
+    Json::Value res(Json::objectValue);
+    res["parentHash"] = toJson(obj.parent_hash);
+    res["sha3Uncles"] = toJson(BlockHeader::uncles());
+    res["stateRoot"] = toJson(obj.state_root);
+    res["transactionsRoot"] = toJson(obj.transactions_root);
+    res["receiptsRoot"] = toJson(obj.receipts_root);
+    res["number"] = toJson(obj.number);
+    res["gasUsed"] = toJson(obj.gas_used);
+    res["gasLimit"] = toJson(obj.gas_limit);
+    res["extraData"] = toJson(obj.extra_data);
+    res["logsBloom"] = toJson(obj.log_bloom);
+    res["timestamp"] = toJson(obj.timestamp);
+    res["author"] = res["miner"] = toJson(obj.author);
+    res["mixHash"] = toJson(BlockHeader::mix_hash());
+    res["nonce"] = toJson(BlockHeader::nonce());
+    res["uncles"] = Json::Value(Json::arrayValue);
+
+    res["hash"] = toJson(obj.hash);
+    res["size"] = toJson(obj.ethereum_rlp_size);
+    res["totalDifficulty"] = "0x0";
+    return res;
+  }
+
+  static Json::Value toJson(BlockHeaderWithTransactions const& obj) {
+    Json::Value res = toJson(BlockHeader(obj));
+    auto& trxs_json = res["transactions"] = Json::Value(Json::arrayValue);
+    if (obj.trxs.index() == 0) {
+      trxs_json = toJson(get<0>(obj.trxs));
+    } else {
+      ExtendedTransactionLocation loc;
+      loc.blk_n = obj.number;
+      loc.blk_h = obj.hash;
+      for (auto const& t : get<1>(obj.trxs)) {
+        trxs_json.append(toJson(t, loc));
+        ++loc.index;
+      }
+    }
+    return res;
+  }
+
+  static Json::Value toJson(LocalisedLogEntry const& lle) {
+    Json::Value res(Json::objectValue);
+    add(res, lle.trx_loc);
+    res["removed"] = false;
+    res["data"] = toJson(lle.le.data);
+    res["address"] = toJson(lle.le.address);
+    res["logIndex"] = toJson(lle.position_in_receipt);
+    auto& topics_json = res["topics"] = Json::Value(Json::arrayValue);
+    for (auto const& t : lle.le.topics) {
+      topics_json.append(toJson(t));
+    }
+    return res;
+  }
+
+  static Json::Value toJson(LocalisedTransactionReceipt const& ltr) {
+    Json::Value res(Json::objectValue);
+    add(res, ltr.trx_loc);
+    res["from"] = toJson(ltr.trx_from);
+    res["to"] = toJson(ltr.trx_to);
+    res["status"] = toString(ltr.r.status_code);
+    res["gasUsed"] = toJson(ltr.r.gas_used);
+    res["cumulativeGasUsed"] = toJson(ltr.r.cumulative_gas_used);
+    res["contractAddress"] = toJson(ltr.r.contract_address);
+    res["logsBloom"] = toJson(ltr.r.bloom());
+    auto& logs_json = res["logs"] = Json::Value(Json::arrayValue);
+    uint log_i = 0;
+    for (auto const& le : ltr.r.logs) {
+      logs_json.append(toJson(LocalisedLogEntry{le, ltr.trx_loc, log_i++}));
+    }
+    return res;
+  }
+
+  template <typename T>
+  static Json::Value toJson(T const& t) {
+    return dev::toJS(t);
+  }
+
+  template <typename T>
+  static Json::Value toJson(std::vector<T> const& _es) {
+    Json::Value res(Json::arrayValue);
+    for (auto const& e : _es) {
+      res.append(toJson(e));
+    }
+    return res;
+  }
+
+  template <typename T>
+  static Json::Value toJson(std::optional<T> const& t) {
+    return t ? toJson(*t) : Json::Value(Json::nullValue);
   }
 };
+
+Json::Value toJson(BlockHeader const& obj) { return EthImpl::toJson(obj); }
 
 Eth* NewEth(EthParams&& prerequisites) { return new EthImpl(move(prerequisites)); }
 

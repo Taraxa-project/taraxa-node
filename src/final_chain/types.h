@@ -13,6 +13,7 @@
 
 namespace taraxa::final_chain {
 
+inline static h256 const ZeroHash;
 inline static auto const EmptySHA3 = dev::sha3(dev::bytesConstRef());
 inline static auto const EmptyListSHA3 = dev::sha3(dev::RLPStream(0).out());
 
@@ -22,17 +23,6 @@ using LogBloom = dev::h2048;
 using LogBlooms = std::vector<LogBloom>;
 using Nonce = dev::h64;
 using BlockNumber = uint64_t;
-using TransactionHashes = h256s;
-
-struct TransactionSkeleton {
-  dev::Address from;
-  dev::u256 value;
-  dev::bytes data;
-  std::optional<dev::Address> to;
-  std::optional<uint64_t> nonce;
-  std::optional<uint64_t> gas;
-  std::optional<dev::u256> gas_price;
-};
 
 struct BlockHeader {
   h256 hash;
@@ -77,26 +67,11 @@ struct BlockHeader {
   }
 };
 
-struct BlockHeaderWithTransactions : BlockHeader {
-  BlockHeader h;
-  std::variant<TransactionHashes, Transactions> trxs;
-};
-
 static const unsigned c_bloomIndexSize = 16;
 static const unsigned c_bloomIndexLevels = 2;
 
 using BlockLogBlooms = LogBlooms;
 using BlocksBlooms = std::array<LogBloom, c_bloomIndexSize>;
-
-struct TransactionLocation {
-  h256 blk_h;
-  uint64_t index = 0;
-
-  template <typename E>
-  inline void rlp(E encoding) {
-    util::rlp_tuple(encoding, blk_h, index);
-  }
-};
 
 struct LogEntry {
   Address address;
@@ -143,29 +118,14 @@ struct TransactionReceipt {
 
 using TransactionReceipts = std::vector<TransactionReceipt>;
 
-struct ExtendedTransactionLocation : TransactionLocation {
-  BlockNumber blk_n;
-  h256 trx_hash;
-};
+struct TransactionLocation {
+  BlockNumber blk_n = 0;
+  uint64_t index = 0;
 
-struct LocalisedTransaction {
-  Transaction trx;
-  ExtendedTransactionLocation trx_loc;
+  template <typename E>
+  inline void rlp(E encoding) {
+    util::rlp_tuple(encoding, blk_n, index);
+  }
 };
-
-struct LocalisedTransactionReceipt {
-  TransactionReceipt r;
-  ExtendedTransactionLocation trx_loc;
-  addr_t trx_from;
-  std::optional<addr_t> trx_to;
-};
-
-struct LocalisedLogEntry {
-  LogEntry le;
-  ExtendedTransactionLocation trx_loc;
-  uint position_in_receipt;
-};
-
-using LocalisedLogEntries = std::vector<LocalisedLogEntry>;
 
 }  // namespace taraxa::final_chain

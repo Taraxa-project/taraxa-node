@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <functional>
 #include <string_view>
+#include <type_traits>
 
 #include "common/types.hpp"
 #include "consensus/data.hpp"
@@ -93,10 +94,14 @@ struct DB : std::enable_shared_from_this<DB> {
     COLUMN(dag_block_period);
     COLUMN(replay_protection);
     COLUMN(pending_transactions);
-    COLUMN(final_chain_blocks);
-    COLUMN(final_chain_block_number_to_hash);
+    COLUMN(executed_transactions_by_period);
+    COLUMN(executed_transactions_count_by_period);
+    COLUMN(final_chain_meta);
+    COLUMN(final_chain_block_by_period);
+    COLUMN(final_chain_block_hash_by_period);
+    COLUMN(period_by_final_chain_block_hash);
     COLUMN(final_chain_log_blooms);
-    COLUMN(final_chain_receipts);
+    COLUMN(final_chain_receipt_by_trx_hash);
     COLUMN(final_chain_log_blooms_index);
 
 #undef COLUMN
@@ -212,8 +217,8 @@ struct DB : std::enable_shared_from_this<DB> {
 
   inline static Slice toSlice(dev::bytes const& b) { return toSlice(&b); }
 
-  template <class N, typename = enable_if_t<is_arithmetic<N>::value>>
-  inline static Slice toSlice(N const& n) {
+  template <class N>
+  inline static auto toSlice(N const& n) -> enable_if_t<is_integral_v<N> || is_enum_v<N>, Slice> {
     return Slice(reinterpret_cast<char const*>(&n), sizeof(N));
   }
 
@@ -242,6 +247,16 @@ struct DB : std::enable_shared_from_this<DB> {
     }
     checkStatus(status);
     return value;
+  }
+
+  // consistent with toSlice(number)
+  template <typename Int, typename K>
+  auto lookup_int(Column const& column, K const& key) -> std::enable_if_t<std::is_integral_v<Int>, std::optional<Int>> {
+    auto str = lookup(column, key);
+    if (str.empty()) {
+      return {};
+    }
+    return *reinterpret_cast<Int*>(str.data());
   }
 
   class MultiGetQuery {
@@ -330,5 +345,6 @@ struct DB : std::enable_shared_from_this<DB> {
 
 namespace taraxa {
 using db::DB;
+using db::DbException;
 using db::StatusDbField;
 }  // namespace taraxa
