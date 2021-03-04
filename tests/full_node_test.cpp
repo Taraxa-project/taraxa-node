@@ -214,7 +214,7 @@ TEST_F(FullNodeTest, db_test) {
   // Certified votes
   std::vector<Vote> cert_votes;
   blk_hash_t last_pbft_block_hash(0);
-  VrfPbftMsg msg(last_pbft_block_hash, propose_vote_type, 1, 3);
+  VrfPbftMsg msg(last_pbft_block_hash, soft_vote_type, 1, 2);
   vrf_wrapper::vrf_sk_t vrf_sk(
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
       "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -226,7 +226,7 @@ TEST_F(FullNodeTest, db_test) {
   batch = db.createWriteBatch();
   db.addCertVotesToBatch(voted_pbft_block_hash, cert_votes, batch);
   db.commitWriteBatch(batch);
-  auto pbft_block = make_simple_pbft_block(voted_pbft_block_hash, 2);
+  auto pbft_block = make_simple_pbft_block(voted_pbft_block_hash, 1);
   PbftBlockCert pbft_block_cert_votes(pbft_block, cert_votes);
   auto cert_votes_from_db = db.getCertVotes(voted_pbft_block_hash);
   PbftBlockCert pbft_block_cert_votes_from_db(pbft_block, cert_votes_from_db);

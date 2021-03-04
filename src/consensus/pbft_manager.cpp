@@ -323,16 +323,19 @@ void PbftManager::initialState_() {
     // Start from DB
     state_ = finish_state;
     setPbftStep(4);
+  }
+  setPbftRound(round);
 
+  if (round > 1) {
     // Get next votes for previous round from DB
     auto next_votes_in_previous_round = db_->getNextVotes(round - 1);
     if (next_votes_in_previous_round.empty()) {
-      LOG(log_er_) << "Cannot get any next votes in previous round " << round - 1;
+      LOG(log_er_) << "Cannot get any next votes in previous round " << round - 1 << ". Currrent round " << round
+                   << " step " << step;
       assert(false);
     }
     previous_round_next_votes_->update(next_votes_in_previous_round);
   }
-  setPbftRound(round);
 
   // Initial last sync request
   pbft_round_last_requested_sync_ = 0;
@@ -643,8 +646,7 @@ void PbftManager::certifyBlock_() {
         comparePbftBlockScheduleWithDAGblocks_(soft_voted_block_for_this_round_.first)) {
       LOG(log_tr_) << "Finished comparePbftBlockScheduleWithDAGblocks_";
 
-      // NOTE: If we have already executed this round
-      //       then block won't be found in unverified queue...
+      // NOTE: If we have already executed this round then block won't be found in unverified queue...
       bool executed_soft_voted_block_for_this_round = false;
       if (have_executed_this_round_) {
         LOG(log_tr_) << "Have already executed before certifying in step 3 in round " << round;

@@ -182,8 +182,7 @@ TEST_F(NetworkTest, save_network) {
   ASSERT_EQ(1, nw3->getPeerCount());
 }
 
-// Test creates one node with testnet network ID and one node with main ID and
-// verifies that connection fails
+// Test creates one node with testnet network ID and one node with main ID and verifies that connection fails
 TEST_F(NetworkTest, node_network_id) {
   auto node_cfgs = make_node_cfgs(2);
   {
