@@ -13,8 +13,7 @@
 #include <vector>
 
 #include "config/config.hpp"
-#include "consensus/pbft_chain.hpp"
-#include "consensus/vote.hpp"
+#include "consensus/pbft_manager.hpp"
 #include "consensus/vrf_wrapper.hpp"
 #include "dag/dag_block_manager.hpp"
 #include "network/rpc/EthFace.h"
@@ -23,7 +22,7 @@
 #include "network/rpc/TaraxaFace.h"
 #include "network/rpc/TestFace.h"
 #include "network/rpc/WSServer.h"
-#include "storage/db_storage.hpp"
+#include "storage/db.hpp"
 #include "transaction_manager/transaction.hpp"
 #include "transaction_manager/transaction_order_manager.hpp"
 #include "util/thread_pool.hpp"
@@ -56,8 +55,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   // Ethereum key pair
   dev::KeyPair kp_;
   // components
-  std::shared_ptr<DbStorage> db_;
-  std::shared_ptr<DbStorage> old_db_;
+  std::shared_ptr<DB> db_;
+  std::shared_ptr<DB> old_db_;
   std::shared_ptr<DagManager> dag_mgr_;
   std::shared_ptr<DagBlockManager> dag_blk_mgr_;
   std::shared_ptr<TransactionManager> trx_mgr_;
@@ -96,14 +95,14 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   }
 
   template <typename T, typename... ConstructorParams>
-  auto &emplace(std::shared_ptr<T> &ptr, ConstructorParams &&... ctor_params) {
+  auto &emplace(std::shared_ptr<T> &ptr, ConstructorParams &&...ctor_params) {
     ptr = std::make_shared<T>(std::forward<ConstructorParams>(ctor_params)...);
     register_s_ptr(ptr);
     return ptr;
   }
 
   template <typename T, typename... ConstructorParams>
-  static auto &emplace(std::unique_ptr<T> &ptr, ConstructorParams &&... ctor_params) {
+  static auto &emplace(std::unique_ptr<T> &ptr, ConstructorParams &&...ctor_params) {
     return ptr = std::make_unique<T>(std::forward<ConstructorParams>(ctor_params)...);
   }
 
@@ -144,19 +143,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   };
 
   void rebuildDb();
-
-  static constexpr uint16_t c_node_major_version = 0;
-  static constexpr uint16_t c_node_minor_version = 1;
-
-  // Any time a change in the network protocol is introduced this version should be increased
-  static constexpr uint16_t c_network_protocol_version = 2;
-
-  // Major version is modified when DAG blocks, pbft blocks and any basic building blocks of our blockchan is modified
-  // in the db
-  static constexpr uint16_t c_database_major_version = 0;
-  // Minor version should be modified when changes to the database are made in the tables that can be rebuilt from the
-  // basic tables
-  static constexpr uint16_t c_database_minor_version = 1;
 };
 
 }  // namespace taraxa

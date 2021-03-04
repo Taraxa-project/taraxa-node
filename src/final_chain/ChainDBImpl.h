@@ -9,7 +9,7 @@
 #include "ChainDB.h"
 #include "LogFilter.h"
 #include "TrieCommon.h"
-#include "storage/db_storage.hpp"
+#include "storage/db.hpp"
 #include "util/encoding_rlp.hpp"
 
 namespace taraxa::final_chain {
@@ -20,7 +20,7 @@ struct ChainDBImpl : virtual ChainDB {
   mutable std::shared_mutex last_block_mu_;
   mutable std::shared_ptr<BlockHeader> last_block_;
 
-  std::shared_ptr<DbStorage> db_;
+  std::shared_ptr<DB> db_;
 
  public:
   virtual ~ChainDBImpl(){};
@@ -119,7 +119,7 @@ struct ChainDBImpl : virtual ChainDB {
   unsigned int transactionCount(h256 const& _blockHash) const override { return 0; }
 
   h256 hashFromNumber(BlockNumber _i) const {
-    auto s = db_->lookup(DbStorage::Columns::final_chain_block_number_to_hash, _i);
+    auto s = db_->lookup(DB::Columns::final_chain_block_number_to_hash, _i);
     return s.empty() ? h256() : h256(s, h256::FromBinary);
   }
 
@@ -250,7 +250,7 @@ struct ChainDBImpl : virtual ChainDB {
   BlocksBlooms blocksBlooms(unsigned _level, unsigned _index) const { return blocksBlooms(chunkId(_level, _index)); }
 
   BlocksBlooms blocksBlooms(h256 const& chunk_id) const {
-    db_->lookup(DbStorage::Columns::final_chain_log_blooms_index, chunk_id);
+    db_->lookup(DB::Columns::final_chain_log_blooms_index, chunk_id);
   }
 
   static h256 chunkId(unsigned _level, unsigned _index) { return h256(_index * 0xff + _level); }

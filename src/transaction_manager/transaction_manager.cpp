@@ -23,13 +23,13 @@ auto trxComp = [](Transaction const &t1, Transaction const &t2) -> bool {
   }
 };
 
-TransactionManager::TransactionManager(FullNodeConfig const &conf, addr_t node_addr, std::shared_ptr<DbStorage> db,
+TransactionManager::TransactionManager(FullNodeConfig const &conf, addr_t node_addr, std::shared_ptr<DB> db,
                                        logger::Logger log_time)
     : conf_(conf), trx_qu_(node_addr), node_addr_(node_addr), db_(db), log_time_(log_time) {
   LOG_OBJECTS_CREATE("TRXMGR");
 
   trx_count_ = db_->getStatusField(taraxa::StatusDbField::TrxCount);
-  db_->forEach(DbStorage::Columns::pending_transactions, [&](auto const &k, auto const &_) {
+  db_->forEach(DB::Columns::pending_transactions, [&](auto const &k, auto const &_) {
     h256 h(k.data(), h256::FromBinary);
     auto status = db_->getTransactionStatus(h);
     if (status == TransactionStatus::in_queue_unverified || status == TransactionStatus::in_queue_verified) {

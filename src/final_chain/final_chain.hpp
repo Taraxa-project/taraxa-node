@@ -2,8 +2,9 @@
 
 #include "ChainDB.h"
 #include "common/types.hpp"
+#include "consensus/pbft_chain.hpp"
 #include "state_api.hpp"
-#include "storage/db_storage.hpp"
+#include "storage/db.hpp"
 #include "util/event.hpp"
 #include "util/exit_stack.hpp"
 #include "util/range_view.hpp"
@@ -58,7 +59,7 @@ struct FinalChain : virtual ChainDB {
                                                 optional<BlockNumber> blk_n = nullopt) const = 0;
 };
 
-unique_ptr<FinalChain> NewFinalChain(shared_ptr<DbStorage> db,  //
+unique_ptr<FinalChain> NewFinalChain(shared_ptr<DB> db,  //
                                      shared_ptr<PbftChain> pbft_chain,
                                      FinalChain::Config const& config,   //
                                      FinalChain::Opts const& opts = {},  //

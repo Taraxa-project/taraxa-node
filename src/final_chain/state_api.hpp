@@ -11,7 +11,7 @@
 #include <vector>
 
 #include "common/types.hpp"
-#include "storage/db_storage.hpp"
+#include "storage/db.hpp"
 #include "types.h"
 #include "util/encoding_rlp.hpp"
 #include "util/range_view.hpp"

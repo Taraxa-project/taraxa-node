@@ -14,14 +14,14 @@ Network::Network(NetworkConfig const &config, std::string const &genesis, addr_t
     : Network(config, "", secret_t(), genesis, node_addr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
               public_t(), 2000) {}
 Network::Network(NetworkConfig const &config, std::string const &network_file, std::string const &genesis,
-                 addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
+                 addr_t node_addr, std::shared_ptr<DB> db, std::shared_ptr<PbftManager> pbft_mgr,
                  std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
                  std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
                  std::shared_ptr<TransactionManager> trx_mgr, public_t node_pk, uint32_t lambda_ms_min)
     : Network(config, network_file, secret_t(), genesis, node_addr, db, pbft_mgr, pbft_chain, vote_mgr, dag_mgr,
               dag_blk_mgr, trx_mgr, node_pk, lambda_ms_min) {}
 Network::Network(NetworkConfig const &config, std::string const &network_file, secret_t const &sk,
-                 std::string const &genesis, addr_t node_addr, std::shared_ptr<DbStorage> db,
+                 std::string const &genesis, addr_t node_addr, std::shared_ptr<DB> db,
                  std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
                  std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
                  std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<TransactionManager> trx_mgr,

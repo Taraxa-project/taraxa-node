@@ -1,20 +1,31 @@
 #pragma once
 
-#include <libdevcrypto/Common.h>
-
-#include <deque>
-#include <optional>
-#include <string>
+#include <json/json.h>
+#include <libdevcore/RLP.h>
+#include <libdevcore/SHA3.h>
 
 #include "common/types.hpp"
-#include "config/config.hpp"
-#include "consensus/pbft_chain.hpp"
-#include "util/util.hpp"
 #include "vrf_wrapper.hpp"
 
 namespace taraxa {
-class FullNode;
-class PbftManager;
+
+enum PbftMgrRoundStep : uint8_t { PbftRound = 0, PbftStep };
+enum PbftMgrStatus {
+  soft_voted_block_in_round = 0,
+  executed_block,
+  executed_in_round,
+  cert_voted_in_round,
+  next_voted_soft_value,
+  next_voted_null_block_hash,
+  next_voted_block_in_previous_round
+};
+enum PbftMgrVotedValue {
+  own_starting_value_in_round = 0,
+  soft_voted_block_hash_in_round,
+  next_voted_block_hash_in_previous_round,
+};
+
+enum PbftVoteTypes { propose_vote_type = 0, soft_vote_type, cert_vote_type, next_vote_type };
 
 struct VrfPbftMsg {
   VrfPbftMsg() = default;
@@ -134,46 +145,52 @@ class Vote {
   mutable public_t cached_voter_;
 };
 
-class VoteManager {
- public:
-  VoteManager(addr_t node_addr, std::shared_ptr<FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain)
-      : final_chain_(final_chain), pbft_chain_(pbft_chain) {
-    LOG_OBJECTS_CREATE("VOTE_MGR");
-  }
-  ~VoteManager() {}
+class PbftBlock {
+  blk_hash_t block_hash_;
+  blk_hash_t prev_block_hash_;
+  blk_hash_t dag_block_hash_as_pivot_;
+  uint64_t period_;  // Block index, PBFT head block is period 0, first PBFT block is period 1
+  uint64_t timestamp_;
+  addr_t beneficiary_;
+  sig_t signature_;
 
-  bool voteValidation(blk_hash_t const& last_pbft_block_hash, Vote const& vote, size_t const valid_sortition_players,
-                      size_t const sortition_threshold) const;
-  bool addVote(taraxa::Vote const& vote);
-  void cleanupVotes(uint64_t pbft_round);
-  void clearUnverifiedVotesTable();
-  uint64_t getUnverifiedVotesSize() const;
-  // for unit test only
-  std::vector<Vote> getVotes(uint64_t pbft_round, size_t eligible_voter_count, blk_hash_t last_pbft_block_hash,
-                             size_t sortition_threshold);
-  std::vector<Vote> getVotes(uint64_t const pbft_round, blk_hash_t const& last_pbft_block_hash,
-                             size_t const sortition_threshold, uint64_t eligible_voter_count,
-                             std::function<bool(addr_t const&)> const& is_eligible);
-  std::string getJsonStr(std::vector<Vote> const& votes);
-  std::vector<Vote> getAllVotes();
-  bool pbftBlockHasEnoughValidCertVotes(PbftBlockCert const& pbft_block_and_votes, size_t valid_sortition_players,
-                                        size_t sortition_threshold, size_t pbft_2t_plus_1) const;
+ public:
+  PbftBlock(blk_hash_t const& prev_blk_hash, blk_hash_t const& dag_blk_hash_as_pivot, uint64_t period,
+            addr_t const& beneficiary, secret_t const& sk);
+  explicit PbftBlock(dev::RLP const& r);
+  explicit PbftBlock(bytes const& RLP);
+  explicit PbftBlock(std::string const& JSON);
+
+  blk_hash_t sha3(bool include_sig) const;
+  std::string getJsonStr() const;
+  Json::Value getJson() const;
+  void streamRLP(dev::RLPStream& strm, bool include_sig) const;
+  bytes rlp(bool include_sig) const;
+
+  static Json::Value toJson(PbftBlock const& b, std::vector<blk_hash_t> const& dag_blks);
+
+  auto const& getBlockHash() const { return block_hash_; }
+  auto const& getPrevBlockHash() const { return prev_block_hash_; }
+  auto const& getPivotDagBlockHash() const { return dag_block_hash_as_pivot_; }
+  auto getPeriod() const { return period_; }
+  auto getTimestamp() const { return timestamp_; }
+  auto const& getBeneficiary() const { return beneficiary_; }
 
  private:
-  using uniqueLock_ = boost::unique_lock<boost::shared_mutex>;
-  using sharedLock_ = boost::shared_lock<boost::shared_mutex>;
-  using upgradableLock_ = boost::upgrade_lock<boost::shared_mutex>;
-  using upgradeLock_ = boost::upgrade_to_unique_lock<boost::shared_mutex>;
-
-  // <pbft_round, <vote_hash, vote>>
-  std::map<uint64_t, std::map<vote_hash_t, Vote>> unverified_votes_;
-
-  mutable boost::shared_mutex access_;
-
-  std::shared_ptr<PbftChain> pbft_chain_;
-  std::shared_ptr<FinalChain> final_chain_;
-
-  LOG_OBJECTS_DEFINE;
+  void calculateHash_();
 };
+std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk);
+
+struct PbftBlockCert {
+  PbftBlockCert(PbftBlock const& pbft_blk, std::vector<Vote> const& cert_votes);
+  explicit PbftBlockCert(dev::RLP const& all_rlp);
+  explicit PbftBlockCert(bytes const& all_rlp);
+
+  std::shared_ptr<PbftBlock> pbft_blk;
+  std::vector<Vote> cert_votes;
+  bytes rlp() const;
+  static void encode_raw(dev::RLPStream& rlp, PbftBlock const& pbft_blk, dev::bytesConstRef votes_raw);
+};
+std::ostream& operator<<(std::ostream& strm, PbftBlockCert const& b);
 
 }  // namespace taraxa

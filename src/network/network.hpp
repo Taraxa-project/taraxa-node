@@ -16,7 +16,7 @@
 #include <string>
 
 #include "config/config.hpp"
-#include "consensus/vote.hpp"
+#include "consensus/vote_manager.hpp"
 #include "dag/dag_block_manager.hpp"
 #include "taraxa_capability.hpp"
 #include "transaction_manager/transaction.hpp"
@@ -31,12 +31,12 @@ class Network {
  public:
   Network(NetworkConfig const &config, std::string const &genesis, addr_t node_addr);
   Network(NetworkConfig const &config, std::string const &networkFile, std::string const &genesis, addr_t node_addr,
-          std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
+          std::shared_ptr<DB> db, std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
           std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
           std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<TransactionManager> trx_mgr, public_t node_pk,
           uint32_t lambda_ms_min);
   Network(NetworkConfig const &config, std::string const &networkFile, secret_t const &sk, std::string const &genesis,
-          addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
+          addr_t node_addr, std::shared_ptr<DB> db, std::shared_ptr<PbftManager> pbft_mgr,
           std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
           std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
           std::shared_ptr<TransactionManager> trx_mgr, public_t node_pk, uint32_t lambda_ms_min);
@@ -79,7 +79,7 @@ class Network {
   std::atomic<bool> stopped_ = true;
   std::string network_file_;
 
-  std::shared_ptr<DbStorage> db_;
+  std::shared_ptr<DB> db_;
   std::shared_ptr<PbftManager> pbft_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<VoteManager> vote_mgr_;

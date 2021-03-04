@@ -24,7 +24,7 @@
 #include "common/types.hpp"
 #include "consensus/pbft_chain.hpp"
 #include "dag_block.hpp"
-#include "storage/db_storage.hpp"
+#include "storage/db.hpp"
 #include "transaction_manager/transaction_manager.hpp"
 #include "util/util.hpp"
 
@@ -121,7 +121,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   using sharedLock = std::shared_lock<std::shared_mutex>;
 
   explicit DagManager(DagBlock const &genesis_blk, addr_t node_addr, std::shared_ptr<TransactionManager> trx_mgr,
-                      std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DbStorage> db);
+                      std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DB> db);
   virtual ~DagManager() = default;
   std::shared_ptr<DagManager> getShared();
   void stop();
@@ -136,7 +136,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   // receive pbft-povit-blk, update periods and finalized, return size of
   // ordered blocks
   uint setDagBlockOrder(blk_hash_t const &anchor, uint64_t period, vec_blk_t const &dag_order,
-                        taraxa::DbStorage::Batch &write_batch);
+                        taraxa::DB::Batch &write_batch);
 
   bool getLatestPivotAndTips(std::string &pivot, std::vector<std::string> &tips) const;
 
@@ -179,7 +179,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
  private:
   void recoverDag();
   void addToDag(std::string const &hash, std::string const &pivot, std::vector<std::string> const &tips, uint64_t level,
-                taraxa::DbStorage::Batch &write_batch, bool finalized = false);
+                taraxa::DB::Batch &write_batch, bool finalized = false);
   std::pair<std::string, std::vector<std::string>> getFrontier() const;  // return pivot and tips
 
   uint64_t dag_blocks_count_;
@@ -189,7 +189,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
 
   std::shared_ptr<TransactionManager> trx_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
-  std::shared_ptr<DbStorage> db_;
+  std::shared_ptr<DB> db_;
   std::string genesis_;
   std::string anchor_;                     // anchor of the last period
   std::shared_ptr<Dag> total_dag_;         // contains both pivot and tips

@@ -1,10 +1,11 @@
 #include "dag_block_manager.hpp"
 
 namespace taraxa {
+using namespace std;
 
 DagBlockManager::DagBlockManager(addr_t node_addr, vdf_sortition::VdfConfig const &vdf_config,
                                  optional<state_api::DPOSConfig> dpos_config, size_t capacity, unsigned num_verifiers,
-                                 std::shared_ptr<DbStorage> db, std::shared_ptr<TransactionManager> trx_mgr,
+                                 std::shared_ptr<DB> db, std::shared_ptr<TransactionManager> trx_mgr,
                                  std::shared_ptr<FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain,
                                  logger::Logger log_time, uint32_t queue_limit)
     : vdf_config_(vdf_config),

@@ -47,11 +47,11 @@ void FullNode::init() {
   }
   if (conf_.test_params.rebuild_db) {
     old_db_ =
-        DbStorage::make(conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
+        DB::make(conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
                         conf_.test_params.db_max_snapshots, conf_.test_params.db_revert_to_period, node_addr, true);
   }
 
-  db_ = DbStorage::make(conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
+  db_ = DB::make(conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
                         conf_.test_params.db_max_snapshots, conf_.test_params.db_revert_to_period, node_addr);
 
   if (db_->hasMinorVersionChanged()) {
@@ -59,9 +59,9 @@ void FullNode::init() {
     conf_.test_params.rebuild_db = true;
     db_ = nullptr;
     old_db_ =
-        DbStorage::make(conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
+        DB::make(conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
                         conf_.test_params.db_max_snapshots, conf_.test_params.db_revert_to_period, node_addr, true);
-    db_ = DbStorage::make(conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
+    db_ = DB::make(conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
                           conf_.test_params.db_max_snapshots, conf_.test_params.db_revert_to_period, node_addr);
   }
   register_s_ptr(db_);
@@ -270,8 +270,8 @@ void FullNode::rebuildDb() {
       std::vector<Transaction> transactions;
       auto dag_block = old_db_->getDagBlock(dag_block_hash);
 
-      DbStorage::MultiGetQuery db_query(old_db_);
-      db_query.append(DbStorage::Columns::transactions, dag_block->getTrxs());
+      DB::MultiGetQuery db_query(old_db_);
+      db_query.append(DB::Columns::transactions, dag_block->getTrxs());
       auto db_response = db_query.execute();
       for (auto &db_trx : db_response) {
         transactions.push_back(Transaction(asBytes(db_trx)));

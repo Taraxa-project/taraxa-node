@@ -1,11 +1,7 @@
 #include "taraxa_capability.hpp"
 
 #include "consensus/pbft_chain.hpp"
-#include "consensus/pbft_manager.hpp"
-#include "consensus/vote.hpp"
-#include "dag/dag.hpp"
-#include "node/full_node.hpp"
-#include "transaction_manager/transaction_manager.hpp"
+#include "version.hpp"
 
 using namespace taraxa;
 
@@ -176,18 +172,17 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
                          << ", node major version" << node_major_version << ", node minor version"
                          << node_minor_version;
 
-            if (peer_protocol_version != FullNode::c_network_protocol_version) {
+            if (peer_protocol_version != c_network_protocol_version) {
               LOG(log_er_) << "Incorrect protocol version " << peer_protocol_version << ", host " << _nodeID
                            << " will be disconnected";
               host_.capabilityHost()->disconnect(_nodeID, p2p::UserReason);
             }
             // We need logic when some different node versions might still be compatible
-            if (node_major_version != FullNode::c_node_major_version ||
-                node_minor_version != FullNode::c_node_minor_version) {
+            if (node_major_version != c_node_major_version || node_minor_version != c_node_minor_version) {
               LOG(log_er_) << "Incorrect node version: " << getFormattedVersion(node_major_version, node_minor_version)
                            << ", our node major version"
-                           << getFormattedVersion(FullNode::c_node_major_version, FullNode::c_node_minor_version)
-                           << ", host " << _nodeID << " will be disconnected";
+                           << getFormattedVersion(c_node_major_version, c_node_minor_version) << ", host " << _nodeID
+                           << " will be disconnected";
               host_.capabilityHost()->disconnect(_nodeID, p2p::UserReason);
             }
             if (network_id != conf_.network_id) {
@@ -646,10 +641,9 @@ void TaraxaCapability::sendStatus(NodeID const &_id, bool _initial) {
   RLPStream s;
   if (dag_mgr_) {
     if (_initial) {
-      LOG(log_dg_) << "Sending initial status message to " << _id << ", protocol version "
-                   << FullNode::c_network_protocol_version << ", network id " << conf_.network_id << ", DAG level "
-                   << dag_mgr_->getMaxLevel() << ", genesis " << genesis_ << ", pbft chain size "
-                   << pbft_chain_->getPbftChainSize();
+      LOG(log_dg_) << "Sending initial status message to " << _id << ", protocol version " << c_network_protocol_version
+                   << ", network id " << conf_.network_id << ", DAG level " << dag_mgr_->getMaxLevel() << ", genesis "
+                   << genesis_ << ", pbft chain size " << pbft_chain_->getPbftChainSize();
     }
     auto dag_max_level = dag_mgr_->getMaxLevel();
     auto pbft_chain_size = pbft_chain_->getPbftChainSize();
@@ -659,10 +653,9 @@ void TaraxaCapability::sendStatus(NodeID const &_id, bool _initial) {
     LOG(log_dg_next_votes_sync_) << "Sending status message to " << _id << " with PBFT round: " << pbft_round;
     if (_initial) {
       host_.capabilityHost()->sealAndSend(_id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 9)
-                                                   << FullNode::c_network_protocol_version << conf_.network_id
-                                                   << dag_max_level << genesis_ << pbft_chain_size << syncing_
-                                                   << pbft_round << FullNode::c_node_major_version
-                                                   << FullNode::c_node_minor_version);
+                                                   << c_network_protocol_version << conf_.network_id << dag_max_level
+                                                   << genesis_ << pbft_chain_size << syncing_ << pbft_round
+                                                   << c_node_major_version << c_node_minor_version);
     } else {
       host_.capabilityHost()->sealAndSend(_id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 4)
                                                    << dag_max_level << pbft_chain_size << syncing_ << pbft_round);
@@ -1058,17 +1051,17 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync, 
   // level_`k`[i] is parent of level_`k+1` elements with ordinals in range from (inclusive) edges_`k`_to_`k+1`[i] to
   // (exclusive) edges_`k`_to_`k+1`[i+1]
 
-  DbStorage::MultiGetQuery db_query(db_);
+  DB::MultiGetQuery db_query(db_);
   auto const &level_0 = pbft_cert_blks;
   for (auto const &b : level_0) {
-    db_query.append(DbStorage::Columns::dag_finalized_blocks, b.pbft_blk->getPivotDagBlockHash(), false);
+    db_query.append(DB::Columns::dag_finalized_blocks, b.pbft_blk->getPivotDagBlockHash(), false);
   }
   auto level_0_extra = db_query.execute();
   vector<uint> edges_0_to_1;
   edges_0_to_1.reserve(1 + level_0.size());
   edges_0_to_1.push_back(0);
   for (uint i_0 = 0; i_0 < level_0.size(); ++i_0) {
-    db_query.append(DbStorage::Columns::dag_blocks, RLP(level_0_extra[i_0]).toVector<h256>());
+    db_query.append(DB::Columns::dag_blocks, RLP(level_0_extra[i_0]).toVector<h256>());
     edges_0_to_1.push_back(db_query.size());
   }
   auto level_1 = db_query.execute();
@@ -1076,7 +1069,7 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync, 
   edges_1_to_2.reserve(1 + level_1.size());
   edges_1_to_2.push_back(0);
   for (auto const &dag_blk_raw : level_1) {
-    db_query.append(DbStorage::Columns::transactions, DagBlock::extract_transactions_from_rlp(RLP(dag_blk_raw)));
+    db_query.append(DB::Columns::transactions, DagBlock::extract_transactions_from_rlp(RLP(dag_blk_raw)));
     edges_1_to_2.push_back(db_query.size());
   }
   auto level_2 = db_query.execute();

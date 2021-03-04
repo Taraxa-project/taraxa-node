@@ -32,10 +32,10 @@ struct TransactionManager : std::enable_shared_from_this<TransactionManager> {
   using uLock = std::unique_lock<std::mutex>;
   enum class VerifyMode : uint8_t { normal, skip_verify_sig };
 
-  TransactionManager(FullNodeConfig const &conf, addr_t node_addr, std::shared_ptr<DbStorage> db,
+  TransactionManager(FullNodeConfig const &conf, addr_t node_addr, std::shared_ptr<DB> db,
                      logger::Logger log_time);
 
-  TransactionManager(std::shared_ptr<DbStorage> db, addr_t node_addr) : TransactionManager({}, node_addr, db, {}) {}
+  TransactionManager(std::shared_ptr<DB> db, addr_t node_addr) : TransactionManager({}, node_addr, db, {}) {}
 
   virtual ~TransactionManager() { stop(); }
 
@@ -78,7 +78,7 @@ struct TransactionManager : std::enable_shared_from_this<TransactionManager> {
   size_t num_verifiers_ = 4;
   VerifyMode mode_ = VerifyMode::normal;
   std::atomic<bool> stopped_ = true;
-  std::shared_ptr<DbStorage> db_ = nullptr;
+  std::shared_ptr<DB> db_ = nullptr;
   TransactionQueue trx_qu_;
   std::atomic<unsigned long> trx_count_ = 0;
   FullNodeConfig conf_;

@@ -15,15 +15,16 @@
 
 #include "dag/dag.hpp"
 #include "final_chain/final_chain.hpp"
+#include "network/network.hpp"
+#include "network/taraxa_capability.hpp"
 
 namespace taraxa {
 using vrf_output_t = vrf_wrapper::vrf_output_t;
 
-PbftManager::PbftManager(PbftConfig const &conf, std::string const &genesis, addr_t node_addr,
-                         std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
-                         std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
-                         std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<FinalChain> final_chain,
-                         secret_t node_sk, vrf_sk_t vrf_sk)
+PbftManager::PbftManager(PbftConfig const &conf, std::string const &genesis, addr_t node_addr, std::shared_ptr<DB> db,
+                         std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
+                         std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
+                         std::shared_ptr<FinalChain> final_chain, secret_t node_sk, vrf_sk_t vrf_sk)
     : LAMBDA_ms_MIN(conf.lambda_ms_min),
       COMMITTEE_SIZE(conf.committee_size),
       DAG_BLOCKS_SIZE(conf.dag_blocks_size),

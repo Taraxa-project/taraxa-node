@@ -4,14 +4,13 @@
 #include <string>
 #include <thread>
 
-#include "common/types.hpp"
 #include "config/config.hpp"
+#include "dag/dag.hpp"
+#include "dag/dag_block_manager.hpp"
+#include "data.hpp"
 #include "logger/log.hpp"
-#include "network/network.hpp"
-#include "network/taraxa_capability.hpp"
 #include "pbft_chain.hpp"
-#include "vote.hpp"
-#include "vrf_wrapper.hpp"
+#include "vote_manager.hpp"
 
 // total TARAXA COINS (2^53 -1) "1fffffffffffff"
 #define NULL_BLOCK_HASH blk_hash_t(0)
@@ -19,7 +18,8 @@
 #define MAX_STEPS 13
 
 namespace taraxa {
-class FullNode;
+class Network;
+class TaraxaCapability;
 
 enum PbftStates { value_proposal_state = 1, filter_state, certify_state, finish_state, finish_polling_state };
 
@@ -28,7 +28,7 @@ class PbftManager {
   using time_point = std::chrono::system_clock::time_point;
   using vrf_sk_t = vrf_wrapper::vrf_sk_t;
 
-  PbftManager(PbftConfig const &conf, std::string const &genesis, addr_t node_addr, std::shared_ptr<DbStorage> db,
+  PbftManager(PbftConfig const &conf, std::string const &genesis, addr_t node_addr, std::shared_ptr<DB> db,
               std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
               std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
               std::shared_ptr<FinalChain> final_chain, secret_t node_sk, vrf_sk_t vrf_sk);
@@ -138,7 +138,7 @@ class PbftManager {
   // Using to check if PBFT block has been proposed already in one period
   std::pair<blk_hash_t, bool> proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
 
-  std::shared_ptr<DbStorage> db_ = nullptr;
+  std::shared_ptr<DB> db_ = nullptr;
   std::unique_ptr<std::thread> daemon_ = nullptr;
   std::shared_ptr<VoteManager> vote_mgr_ = nullptr;
   std::shared_ptr<PbftChain> pbft_chain_ = nullptr;

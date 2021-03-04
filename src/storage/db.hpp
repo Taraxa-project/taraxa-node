@@ -10,18 +10,17 @@
 #include <string_view>
 
 #include "common/types.hpp"
-#include "consensus/pbft_chain.hpp"
+#include "consensus/data.hpp"
 #include "dag/dag_block.hpp"
 #include "logger/log.hpp"
 #include "transaction_manager/transaction.hpp"
 #include "transaction_manager/transaction_status.hpp"
 #include "util/memory.hpp"
 
-namespace taraxa {
+namespace taraxa::db {
 using namespace std;
 using namespace dev;
 using namespace rocksdb;
-namespace fs = std::filesystem;
 
 enum StatusDbField : uint8_t {
   ExecutedBlkCount = 0,
@@ -31,22 +30,6 @@ enum StatusDbField : uint8_t {
   DagEdgeCount,
   DbMajorVersion,
   DbMinorVersion
-};
-
-enum PbftMgrRoundStep : uint8_t { PbftRound = 0, PbftStep };
-enum PbftMgrStatus {
-  soft_voted_block_in_round = 0,
-  executed_block,
-  executed_in_round,
-  cert_voted_in_round,
-  next_voted_soft_value,
-  next_voted_null_block_hash,
-  next_voted_block_in_previous_round
-};
-enum PbftMgrVotedValue {
-  own_starting_value_in_round = 0,
-  soft_voted_block_hash_in_round,
-  next_voted_block_hash_in_previous_round,
 };
 
 class DbException : public exception {
@@ -59,7 +42,7 @@ class DbException : public exception {
   string desc_;
 };
 
-struct DbStorage : std::enable_shared_from_this<DbStorage> {
+struct DB : std::enable_shared_from_this<DB> {
   class Batch;
   friend class Batch;
 
@@ -125,7 +108,7 @@ struct DbStorage : std::enable_shared_from_this<DbStorage> {
   fs::path state_db_path_;
   const std::string db_dir = "db";
   const std::string state_db_dir = "state_db";
-  DB* db_;
+  rocksdb::DB* db_;
   vector<ColumnFamilyHandle*> handles_;
   ReadOptions read_options_;
   WriteOptions write_options_;
@@ -141,23 +124,23 @@ struct DbStorage : std::enable_shared_from_this<DbStorage> {
   LOG_OBJECTS_DEFINE;
 
  public:
-  DbStorage(DbStorage const&) = delete;
-  DbStorage& operator=(DbStorage const&) = delete;
+  DB(DB const&) = delete;
+  DB& operator=(DB const&) = delete;
 
  private:
-  DbStorage(fs::path const& base_path, uint32_t db_snapshot_each_n_pbft_block, uint32_t db_max_snapshots,
-            addr_t const& node_addr);
+  DB(fs::path const& base_path, uint32_t db_snapshot_each_n_pbft_block, uint32_t db_max_snapshots,
+     addr_t const& node_addr);
   void init(uint32_t db_revert_to_period, bool rebuild);
 
  public:
-  static std::shared_ptr<DbStorage> make(fs::path const& base_path, uint32_t db_snapshot_each_n_pbft_block = 0,
-                                         uint32_t db_max_snapshots = 0, uint32_t db_revert_to_period = 0,
-                                         addr_t const& node_addr = addr_t(), bool rebuild = 0);
-  ~DbStorage();
+  static std::shared_ptr<DB> make(fs::path const& base_path, uint32_t db_snapshot_each_n_pbft_block = 0,
+                                  uint32_t db_max_snapshots = 0, uint32_t db_revert_to_period = 0,
+                                  addr_t const& node_addr = addr_t(), bool rebuild = 0);
+  ~DB();
 
   auto const& path() const { return path_; }
-  auto dbStoragePath() const { return db_path_; }
-  auto stateDbStoragePath() const { return state_db_path_; }
+  auto dbPath() const { return db_path_; }
+  auto stateDbPath() const { return state_db_path_; }
   Batch createWriteBatch();
   bool createSnapshot(uint64_t const& period);
   void deleteSnapshot(uint64_t const& period);
@@ -262,13 +245,13 @@ struct DbStorage : std::enable_shared_from_this<DbStorage> {
   }
 
   class MultiGetQuery {
-    shared_ptr<DbStorage> const db_;
+    shared_ptr<DB> const db_;
     vector<ColumnFamilyHandle*> cfs_;
     vector<Slice> keys_;
     vector<string> str_pool_;
 
    public:
-    explicit MultiGetQuery(shared_ptr<DbStorage> const& db, uint capacity = 0);
+    explicit MultiGetQuery(shared_ptr<DB> const& db, uint capacity = 0);
 
     template <typename T>
     MultiGetQuery& append(Column const& col, vector<T> const& keys, bool copy_key = true) {
@@ -297,10 +280,10 @@ struct DbStorage : std::enable_shared_from_this<DbStorage> {
   };
 
   class Batch {
-    friend class DbStorage;
+    friend class DB;
 
     rocksdb::WriteBatch b_;
-    shared_ptr<DbStorage> db_;
+    shared_ptr<DB> db_;
     Batch(decltype(db_) db) : db_(std::move(db)) {}
 
    public:
@@ -342,4 +325,10 @@ struct DbStorage : std::enable_shared_from_this<DbStorage> {
     Batch& addPbftMgrVotedValue(PbftMgrVotedValue const& field, blk_hash_t const& value);
   };
 };
+
+}  // namespace taraxa::db
+
+namespace taraxa {
+using db::DB;
+using db::StatusDbField;
 }  // namespace taraxa

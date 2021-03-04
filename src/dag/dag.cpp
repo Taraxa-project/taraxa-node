@@ -12,6 +12,8 @@
 #include "transaction_manager/transaction_manager.hpp"
 
 namespace taraxa {
+using namespace std;
+using namespace dev;
 
 Dag::Dag(std::string const &genesis, addr_t node_addr) {
   LOG_OBJECTS_CREATE("DAGMGR");
@@ -285,7 +287,7 @@ void PivotTree::getGhostPath(vertex_hash const &vertex, std::vector<vertex_hash>
 }
 
 DagManager::DagManager(DagBlock const &genesis_blk, addr_t node_addr, std::shared_ptr<TransactionManager> trx_mgr,
-                       std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DbStorage> db) try
+                       std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DB> db) try
     : trx_mgr_(trx_mgr),
       pbft_chain_(pbft_chain),
       db_(db),
@@ -377,7 +379,7 @@ void DagManager::addDagBlock(DagBlock const &blk, bool finalized, bool save) {
   if (save) {
     auto block_bytes = blk.rlp(true);
     auto block_hash = blk.getHash();
-    write_batch.put(DbStorage::Columns::dag_blocks, block_hash.asBytes(), block_bytes);
+    write_batch.put(DB::Columns::dag_blocks, block_hash.asBytes(), block_bytes);
     auto level = blk.getLevel();
     std::string blocks = db_->getBlocksByLevel(level);
     if (blocks == "") {
@@ -385,16 +387,16 @@ void DagManager::addDagBlock(DagBlock const &blk, bool finalized, bool save) {
     } else {
       blocks = blocks + "," + blk.getHash().toString();
     }
-    write_batch.put(DbStorage::Columns::dag_blocks_index, level, blocks);
+    write_batch.put(DB::Columns::dag_blocks_index, level, blocks);
     ++dag_blocks_count_;
-    write_batch.put(DbStorage::Columns::status, (uint8_t)StatusDbField::DagBlkCount, dag_blocks_count_);
+    write_batch.put(DB::Columns::status, (uint8_t)StatusDbField::DagBlkCount, dag_blocks_count_);
     // Do not count genesis pivot field
     if (blk.getPivot() == blk_hash_t(0)) {
       dag_edge_count_ += blk.getTips().size();
     } else {
       dag_edge_count_ += blk.getTips().size() + 1;
     }
-    write_batch.put(DbStorage::Columns::status, (uint8_t)StatusDbField::DagEdgeCount, dag_edge_count_);
+    write_batch.put(DB::Columns::status, (uint8_t)StatusDbField::DagEdgeCount, dag_edge_count_);
   }
   auto blk_hash = blk.getHash();
   auto blk_hash_str = blk_hash.toString();
@@ -429,7 +431,7 @@ void DagManager::drawGraph(std::string const &dotfile) const {
 }
 
 void DagManager::addToDag(std::string const &hash, std::string const &pivot, std::vector<std::string> const &tips,
-                          uint64_t level, taraxa::DbStorage::Batch &write_batch, bool finalized) {
+                          uint64_t level, taraxa::DB::Batch &write_batch, bool finalized) {
   total_dag_->addVEEs(hash, pivot, tips);
   pivot_tree_->addVEEs(hash, pivot, {});
   write_batch.addDagBlockState(blk_hash_t(hash), finalized);
@@ -511,7 +513,7 @@ std::pair<uint64_t, std::shared_ptr<vec_blk_t>> DagManager::getDagBlockOrder(blk
 }
 
 uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period, vec_blk_t const &dag_order,
-                                  taraxa::DbStorage::Batch &write_batch) {
+                                  taraxa::DB::Batch &write_batch) {
   // TODO this function smells. It tries to manage in-memory and persistent state at the same time, which it
   // clearly lacks scope for. Generally, it's very sensitive to how it's called.
   // Also, it's clearly used only in conjunction with getDagBlockOrder - makes sense to merge these two.

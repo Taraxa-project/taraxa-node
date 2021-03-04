@@ -2,7 +2,6 @@
 
 #include "consensus/pbft_chain.hpp"
 #include "consensus/pbft_manager.hpp"
-#include "consensus/vote.hpp"
 #include "dag/dag_block.hpp"
 #include "transaction_manager/transaction.hpp"
 #include "util/util.hpp"

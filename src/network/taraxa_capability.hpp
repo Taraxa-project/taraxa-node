@@ -11,7 +11,7 @@
 #include <thread>
 
 #include "config/config.hpp"
-#include "consensus/vote.hpp"
+#include "consensus/pbft_manager.hpp"
 #include "dag/dag_block_manager.hpp"
 #include "transaction_manager/transaction.hpp"
 #include "util/util.hpp"
@@ -105,7 +105,7 @@ class TaraxaPeer : public boost::noncopyable {
 class TaraxaCapability : public CapabilityFace, public Worker {
  public:
   TaraxaCapability(Host &_host, NetworkConfig &_conf, std::string const &genesis, bool const &performance_log,
-                   addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
+                   addr_t node_addr, std::shared_ptr<DB> db, std::shared_ptr<PbftManager> pbft_mgr,
                    std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
                    std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
                    std::shared_ptr<TransactionManager> trx_mgr, uint32_t lambda_ms_min)
@@ -228,7 +228,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
 
   std::set<blk_hash_t> block_requestes_set_;
 
-  std::shared_ptr<DbStorage> db_;
+  std::shared_ptr<DB> db_;
   std::shared_ptr<PbftManager> pbft_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<VoteManager> vote_mgr_;

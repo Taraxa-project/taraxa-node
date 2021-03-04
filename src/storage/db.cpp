@@ -1,21 +1,15 @@
-#include "db_storage.hpp"
+#include "db.hpp"
+
+#include <rocksdb/utilities/checkpoint.h>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 
-#include "consensus/vote.hpp"
-#include "node/full_node.hpp"
-#include "rocksdb/utilities/checkpoint.h"
-#include "transaction_manager/transaction.hpp"
+#include "version.hpp"
 
-namespace taraxa {
-using namespace std;
-using namespace dev;
-using namespace rocksdb;
-namespace fs = std::filesystem;
+namespace taraxa::db {
 
-DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_block, uint32_t db_max_snapshots,
-                     addr_t const& node_addr)
+DB::DB(fs::path const& path, uint32_t db_snapshot_each_n_pbft_block, uint32_t db_max_snapshots, addr_t const& node_addr)
     : path_(path),
       handles_(Columns::all.size()),
       db_snapshot_each_n_pbft_block_(db_snapshot_each_n_pbft_block),
@@ -24,7 +18,7 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
   LOG_OBJECTS_CREATE("DBS");
 }
 
-void DbStorage::init(uint32_t db_revert_to_period, bool rebuild) {
+void DB::init(uint32_t db_revert_to_period, bool rebuild) {
   db_path_ = (path_ / db_dir);
   state_db_path_ = (path_ / state_db_dir);
 
@@ -57,36 +51,35 @@ void DbStorage::init(uint32_t db_revert_to_period, bool rebuild) {
     recoverToPeriod(db_revert_to_period);
   }
 
-  checkStatus(DB::Open(options, db_path_.string(), descriptors, &handles_, &db_));
+  checkStatus(rocksdb::DB::Open(options, db_path_.string(), descriptors, &handles_, &db_));
 
   auto major_version = getStatusField(StatusDbField::DbMajorVersion);
   auto minor_version = getStatusField(StatusDbField::DbMinorVersion);
   if (major_version == 0 && minor_version == 0) {
     createWriteBatch()
-        .addStatusField(StatusDbField::DbMajorVersion, FullNode::c_database_major_version)
-        .addStatusField(StatusDbField::DbMinorVersion, FullNode::c_database_minor_version)
+        .addStatusField(StatusDbField::DbMajorVersion, c_database_major_version)
+        .addStatusField(StatusDbField::DbMinorVersion, c_database_minor_version)
         .commit();
   } else {
-    if (major_version != FullNode::c_database_major_version) {
+    if (major_version != c_database_major_version) {
       throw DbException(string("Database version mismatch. Version on disk ") +
-                        getFormattedVersion(major_version, minor_version) + " Node version:" +
-                        getFormattedVersion(FullNode::c_database_major_version, FullNode::c_database_minor_version));
-    } else if (minor_version != FullNode::c_database_minor_version) {
+                        getFormattedVersion(major_version, minor_version) +
+                        " Node version:" + getFormattedVersion(c_database_major_version, c_database_minor_version));
+    } else if (minor_version != c_database_minor_version) {
       minor_version_changed_ = true;
     }
   }
 }
 
-shared_ptr<DbStorage> DbStorage::make(fs::path const& base_path, uint32_t db_snapshot_each_n_pbft_block,
-                                      uint32_t db_max_snapshots, uint32_t db_revert_to_period, addr_t const& node_addr,
-                                      bool rebuild) {
+shared_ptr<DB> DB::make(fs::path const& base_path, uint32_t db_snapshot_each_n_pbft_block, uint32_t db_max_snapshots,
+                        uint32_t db_revert_to_period, addr_t const& node_addr, bool rebuild) {
   // make_shared won't work in this pattern, since the constructors are private
-  auto ret = util::s_ptr(new DbStorage(base_path, db_snapshot_each_n_pbft_block, db_max_snapshots, node_addr));
+  auto ret = util::s_ptr(new DB(base_path, db_snapshot_each_n_pbft_block, db_max_snapshots, node_addr));
   ret->init(db_revert_to_period, rebuild);
   return ret;
 }
 
-void DbStorage::loadSnapshots() {
+void DB::loadSnapshots() {
   // Find all the existing folders containing db and state_db snapshots
   for (fs::directory_iterator itr(path_); itr != fs::directory_iterator(); ++itr) {
     std::string fileName = itr->path().filename().string();
@@ -113,7 +106,7 @@ void DbStorage::loadSnapshots() {
   }
 }
 
-bool DbStorage::createSnapshot(uint64_t const& period) {
+bool DB::createSnapshot(uint64_t const& period) {
   // Only creates snapshot each db_snapshot_each_n_pbft_block_ periods
   if (db_snapshot_each_n_pbft_block_ > 0 && period % db_snapshot_each_n_pbft_block_ == 0) {
     LOG(log_nf_) << "Creating DB snapshot on period: " << period;
@@ -145,7 +138,7 @@ bool DbStorage::createSnapshot(uint64_t const& period) {
   return false;
 }
 
-void DbStorage::recoverToPeriod(uint64_t const& period) {
+void DB::recoverToPeriod(uint64_t const& period) {
   LOG(log_nf_) << "Revet to snapshot from period: " << period;
 
   // Construct the snapshot folder names
@@ -177,7 +170,7 @@ void DbStorage::recoverToPeriod(uint64_t const& period) {
   }
 }
 
-void DbStorage::deleteSnapshot(uint64_t const& period) {
+void DB::deleteSnapshot(uint64_t const& period) {
   LOG(log_nf_) << "Deleting " << period << "snapshot";
 
   // Construct the snapshot folder names
@@ -193,24 +186,22 @@ void DbStorage::deleteSnapshot(uint64_t const& period) {
   LOG(log_dg_) << "Deleted folder: " << period_path;
 }
 
-DbStorage::~DbStorage() {
+DB::~DB() {
   db_->Close();
   delete db_;
 }
 
-void DbStorage::checkStatus(rocksdb::Status const& status) {
+void DB::checkStatus(rocksdb::Status const& status) {
   if (status.ok()) return;
   throw DbException(string("Db error. Status code: ") + to_string(status.code()) +
                     " SubCode: " + to_string(status.subcode()) + " Message:" + status.ToString());
 }
 
-DbStorage::Batch DbStorage::createWriteBatch() { return Batch(shared_from_this()); }
+DB::Batch DB::createWriteBatch() { return Batch(shared_from_this()); }
 
-dev::bytes DbStorage::getDagBlockRaw(blk_hash_t const& hash) {
-  return asBytes(lookup(Columns::dag_blocks, hash.asBytes()));
-}
+dev::bytes DB::getDagBlockRaw(blk_hash_t const& hash) { return asBytes(lookup(Columns::dag_blocks, hash.asBytes())); }
 
-std::shared_ptr<DagBlock> DbStorage::getDagBlock(blk_hash_t const& hash) {
+std::shared_ptr<DagBlock> DB::getDagBlock(blk_hash_t const& hash) {
   auto blk_bytes = getDagBlockRaw(hash);
   if (blk_bytes.size() > 0) {
     return std::make_shared<DagBlock>(blk_bytes);
@@ -218,9 +209,9 @@ std::shared_ptr<DagBlock> DbStorage::getDagBlock(blk_hash_t const& hash) {
   return nullptr;
 }
 
-std::string DbStorage::getBlocksByLevel(level_t level) { return lookup(Columns::dag_blocks_index, level); }
+std::string DB::getBlocksByLevel(level_t level) { return lookup(Columns::dag_blocks_index, level); }
 
-std::vector<std::shared_ptr<DagBlock>> DbStorage::getDagBlocksAtLevel(level_t level, int number_of_levels) {
+std::vector<std::shared_ptr<DagBlock>> DB::getDagBlocksAtLevel(level_t level, int number_of_levels) {
   std::vector<std::shared_ptr<DagBlock>> res;
   for (int i = 0; i < number_of_levels; i++) {
     if (level + i == 0) continue;  // Skip genesis
@@ -238,7 +229,7 @@ std::vector<std::shared_ptr<DagBlock>> DbStorage::getDagBlocksAtLevel(level_t le
   return res;
 }
 
-std::map<blk_hash_t, bool> DbStorage::getAllDagBlockState() {
+std::map<blk_hash_t, bool> DB::getAllDagBlockState() {
   std::map<blk_hash_t, bool> res;
   auto i = util::u_ptr(db_->NewIterator(read_options_, handle(Columns::dag_blocks_state)));
   for (i->SeekToFirst(); i->Valid(); i->Next()) {
@@ -247,7 +238,7 @@ std::map<blk_hash_t, bool> DbStorage::getAllDagBlockState() {
   return res;
 }
 
-TransactionStatus DbStorage::getTransactionStatus(trx_hash_t const& hash) {
+TransactionStatus DB::getTransactionStatus(trx_hash_t const& hash) {
   auto data = lookup(Columns::trx_status, hash.asBytes());
   if (!data.empty()) {
     return (TransactionStatus) * (uint16_t*)&data[0];
@@ -255,7 +246,7 @@ TransactionStatus DbStorage::getTransactionStatus(trx_hash_t const& hash) {
   return TransactionStatus::not_seen;
 }
 
-std::map<trx_hash_t, TransactionStatus> DbStorage::getAllTransactionStatus() {
+std::map<trx_hash_t, TransactionStatus> DB::getAllTransactionStatus() {
   std::map<trx_hash_t, TransactionStatus> res;
   auto i = util::u_ptr(db_->NewIterator(read_options_, handle(Columns::trx_status)));
   for (i->SeekToFirst(); i->Valid(); i->Next()) {
@@ -264,11 +255,11 @@ std::map<trx_hash_t, TransactionStatus> DbStorage::getAllTransactionStatus() {
   return res;
 }
 
-dev::bytes DbStorage::getTransactionRaw(trx_hash_t const& hash) {
+dev::bytes DB::getTransactionRaw(trx_hash_t const& hash) {
   return asBytes(lookup(Columns::transactions, hash.asBytes()));
 }
 
-std::shared_ptr<Transaction> DbStorage::getTransaction(trx_hash_t const& hash) {
+std::shared_ptr<Transaction> DB::getTransaction(trx_hash_t const& hash) {
   auto trx_bytes = getTransactionRaw(hash);
   if (trx_bytes.size() > 0) {
     return std::make_shared<Transaction>(trx_bytes);
@@ -276,7 +267,7 @@ std::shared_ptr<Transaction> DbStorage::getTransaction(trx_hash_t const& hash) {
   return nullptr;
 }
 
-std::shared_ptr<std::pair<Transaction, taraxa::bytes>> DbStorage::getTransactionExt(trx_hash_t const& hash) {
+std::shared_ptr<std::pair<Transaction, taraxa::bytes>> DB::getTransactionExt(trx_hash_t const& hash) {
   auto trx_bytes = asBytes(lookup(Columns::transactions, hash.asBytes()));
   if (trx_bytes.size() > 0) {
     return std::make_shared<std::pair<Transaction, taraxa::bytes>>(trx_bytes, trx_bytes);
@@ -284,18 +275,16 @@ std::shared_ptr<std::pair<Transaction, taraxa::bytes>> DbStorage::getTransaction
   return nullptr;
 }
 
-bool DbStorage::transactionInDb(trx_hash_t const& hash) {
-  return !lookup(Columns::transactions, hash.asBytes()).empty();
-}
+bool DB::transactionInDb(trx_hash_t const& hash) { return !lookup(Columns::transactions, hash.asBytes()).empty(); }
 
-uint64_t DbStorage::getStatusField(StatusDbField const& field) {
+uint64_t DB::getStatusField(StatusDbField const& field) {
   auto status = lookup(Columns::status, (uint8_t)field);
   if (!status.empty()) return *(uint64_t*)&status[0];
   return 0;
 }
 
 // PBFT
-uint64_t DbStorage::getPbftMgrField(PbftMgrRoundStep const& field) {
+uint64_t DB::getPbftMgrField(PbftMgrRoundStep const& field) {
   auto status = lookup(Columns::pbft_mgr_round_step, (uint8_t)field);
   if (!status.empty()) {
     return *(uint64_t*)&status[0];
@@ -303,7 +292,7 @@ uint64_t DbStorage::getPbftMgrField(PbftMgrRoundStep const& field) {
   return 1;
 }
 
-bool DbStorage::getPbftMgrStatus(PbftMgrStatus const& field) {
+bool DB::getPbftMgrStatus(PbftMgrStatus const& field) {
   auto status = lookup(Columns::pbft_mgr_status, toSlice((uint8_t)field));
   if (!status.empty()) {
     return *(bool*)&status[0];
@@ -311,7 +300,7 @@ bool DbStorage::getPbftMgrStatus(PbftMgrStatus const& field) {
   return false;
 }
 
-shared_ptr<blk_hash_t> DbStorage::getPbftMgrVotedValue(PbftMgrVotedValue const& field) {
+shared_ptr<blk_hash_t> DB::getPbftMgrVotedValue(PbftMgrVotedValue const& field) {
   auto hash = asBytes(lookup(Columns::pbft_mgr_voted_value, toSlice((uint8_t)field)));
   if (hash.size() > 0) {
     return make_shared<blk_hash_t>(hash);
@@ -319,7 +308,7 @@ shared_ptr<blk_hash_t> DbStorage::getPbftMgrVotedValue(PbftMgrVotedValue const& 
   return nullptr;
 }
 
-std::shared_ptr<PbftBlock> DbStorage::getPbftBlock(blk_hash_t const& hash) {
+std::shared_ptr<PbftBlock> DB::getPbftBlock(blk_hash_t const& hash) {
   auto block = lookup(Columns::pbft_blocks, hash);
   if (!block.empty()) {
     return util::s_ptr(new PbftBlock(dev::RLP(block)));
@@ -327,9 +316,9 @@ std::shared_ptr<PbftBlock> DbStorage::getPbftBlock(blk_hash_t const& hash) {
   return nullptr;
 }
 
-bool DbStorage::pbftBlockInDb(blk_hash_t const& hash) { return !lookup(Columns::pbft_blocks, hash).empty(); }
+bool DB::pbftBlockInDb(blk_hash_t const& hash) { return !lookup(Columns::pbft_blocks, hash).empty(); }
 
-shared_ptr<blk_hash_t> DbStorage::getPeriodPbftBlock(uint64_t const& period) {
+shared_ptr<blk_hash_t> DB::getPeriodPbftBlock(uint64_t const& period) {
   auto hash = asBytes(lookup(Columns::period_pbft_block, period));
   if (hash.size() > 0) {
     return make_shared<blk_hash_t>(hash);
@@ -337,11 +326,11 @@ shared_ptr<blk_hash_t> DbStorage::getPeriodPbftBlock(uint64_t const& period) {
   return nullptr;
 }
 
-string DbStorage::getPbftHead(blk_hash_t const& hash) { return lookup(Columns::pbft_head, hash.asBytes()); }
+string DB::getPbftHead(blk_hash_t const& hash) { return lookup(Columns::pbft_head, hash.asBytes()); }
 
-bytes DbStorage::getVotes(blk_hash_t const& hash) { return asBytes(lookup(Columns::votes, hash)); }
+bytes DB::getVotes(blk_hash_t const& hash) { return asBytes(lookup(Columns::votes, hash)); }
 
-std::shared_ptr<uint64_t> DbStorage::getDagBlockPeriod(blk_hash_t const& hash) {
+std::shared_ptr<uint64_t> DB::getDagBlockPeriod(blk_hash_t const& hash) {
   auto period = asBytes(lookup(Columns::dag_block_period, hash.asBytes()));
   if (period.size() > 0) {
     return make_shared<uint64_t>(*(uint64_t*)&period[0]);
@@ -349,7 +338,7 @@ std::shared_ptr<uint64_t> DbStorage::getDagBlockPeriod(blk_hash_t const& hash) {
   return nullptr;
 }
 
-vector<blk_hash_t> DbStorage::getFinalizedDagBlockHashesByAnchor(blk_hash_t const& anchor) {
+vector<blk_hash_t> DB::getFinalizedDagBlockHashesByAnchor(blk_hash_t const& anchor) {
   auto raw = lookup(Columns::dag_finalized_blocks, anchor);
   if (raw.empty()) {
     return {};
@@ -357,7 +346,7 @@ vector<blk_hash_t> DbStorage::getFinalizedDagBlockHashesByAnchor(blk_hash_t cons
   return RLP(raw).toVector<blk_hash_t>();
 }
 
-void DbStorage::forEach(Column const& col, OnEntry const& f) {
+void DB::forEach(Column const& col, OnEntry const& f) {
   auto i = util::u_ptr(db_->NewIterator(read_options_, handle(col)));
   for (i->SeekToFirst(); i->Valid(); i->Next()) {
     if (!f(i->key(), i->value())) {
@@ -366,7 +355,7 @@ void DbStorage::forEach(Column const& col, OnEntry const& f) {
   }
 }
 
-DbStorage::MultiGetQuery::MultiGetQuery(shared_ptr<DbStorage> const& db, uint capacity) : db_(db) {
+DB::MultiGetQuery::MultiGetQuery(shared_ptr<DB> const& db, uint capacity) : db_(db) {
   if (capacity) {
     cfs_.reserve(capacity);
     keys_.reserve(capacity);
@@ -374,14 +363,14 @@ DbStorage::MultiGetQuery::MultiGetQuery(shared_ptr<DbStorage> const& db, uint ca
   }
 }
 
-dev::bytesConstRef DbStorage::MultiGetQuery::get_key(uint pos) {
+dev::bytesConstRef DB::MultiGetQuery::get_key(uint pos) {
   auto const& slice = keys_[pos];
   return dev::bytesConstRef((uint8_t*)slice.data(), slice.size());
 }
 
-uint DbStorage::MultiGetQuery::size() { return keys_.size(); }
+uint DB::MultiGetQuery::size() { return keys_.size(); }
 
-vector<string> DbStorage::MultiGetQuery::execute(bool and_reset) {
+vector<string> DB::MultiGetQuery::execute(bool and_reset) {
   auto _size = size();
   if (_size == 0) {
     return {};
@@ -402,29 +391,28 @@ vector<string> DbStorage::MultiGetQuery::execute(bool and_reset) {
   return ret;
 }
 
-DbStorage::MultiGetQuery& DbStorage::MultiGetQuery::reset() {
+DB::MultiGetQuery& DB::MultiGetQuery::reset() {
   cfs_.clear();
   keys_.clear();
   str_pool_.clear();
   return *this;
 }
 
-DbStorage::Batch& DbStorage::Batch::commit() {
+DB::Batch& DB::Batch::commit() {
   checkStatus(db_->db_->Write(db_->write_options_, b_.GetWriteBatch()));
   return *this;
 }
 
-DbStorage::Batch& DbStorage::Batch::reset() {
+DB::Batch& DB::Batch::reset() {
   b_.Clear();
   return *this;
 }
 
-DbStorage::Batch& DbStorage::Batch::addPbftHead(taraxa::blk_hash_t const& head_hash, std::string const& head_str) {
+DB::Batch& DB::Batch::addPbftHead(taraxa::blk_hash_t const& head_hash, std::string const& head_str) {
   return put(Columns::pbft_head, head_hash.asBytes(), head_str);
 }
 
-DbStorage::Batch& DbStorage::Batch::addPbftCertVotes(const taraxa::blk_hash_t& pbft_block_hash,
-                                                     const std::vector<Vote>& cert_votes) {
+DB::Batch& DB::Batch::addPbftCertVotes(const taraxa::blk_hash_t& pbft_block_hash, const std::vector<Vote>& cert_votes) {
   RLPStream s(cert_votes.size());
   for (auto const& v : cert_votes) {
     s.appendRaw(v.rlp());
@@ -432,54 +420,52 @@ DbStorage::Batch& DbStorage::Batch::addPbftCertVotes(const taraxa::blk_hash_t& p
   return put(Columns::votes, pbft_block_hash, s.out());
 }
 
-DbStorage::Batch& DbStorage::Batch::addPbftBlockPeriod(uint64_t const& period,
-                                                       taraxa::blk_hash_t const& pbft_block_hash) {
+DB::Batch& DB::Batch::addPbftBlockPeriod(uint64_t const& period, taraxa::blk_hash_t const& pbft_block_hash) {
   return put(Columns::period_pbft_block, period, pbft_block_hash.asBytes());
 }
 
-DbStorage::Batch& DbStorage::Batch::addDagBlockPeriod(blk_hash_t const& hash, uint64_t const& period) {
+DB::Batch& DB::Batch::addDagBlockPeriod(blk_hash_t const& hash, uint64_t const& period) {
   return put(Columns::dag_block_period, hash.asBytes(), period);
 }
 
-DbStorage::Batch& DbStorage::Batch::putFinalizedDagBlockHashesByAnchor(blk_hash_t const& anchor,
-                                                                       vector<blk_hash_t> const& hs) {
-  return put(DbStorage::Columns::dag_finalized_blocks, anchor, RLPStream().appendVector(hs).out());
+DB::Batch& DB::Batch::putFinalizedDagBlockHashesByAnchor(blk_hash_t const& anchor, vector<blk_hash_t> const& hs) {
+  return put(DB::Columns::dag_finalized_blocks, anchor, RLPStream().appendVector(hs).out());
 }
 
-DbStorage::Batch& DbStorage::Batch::addTransaction(Transaction const& trx) {
-  return put(DbStorage::Columns::transactions, trx.getHash().asBytes(), *trx.rlp());
+DB::Batch& DB::Batch::addTransaction(Transaction const& trx) {
+  return put(DB::Columns::transactions, trx.getHash().asBytes(), *trx.rlp());
 }
 
-DbStorage::Batch& DbStorage::Batch::addDagBlockState(blk_hash_t const& blk_hash, bool finalized) {
+DB::Batch& DB::Batch::addDagBlockState(blk_hash_t const& blk_hash, bool finalized) {
   return put(Columns::dag_blocks_state, blk_hash.asBytes(), finalized);
 }
 
-DbStorage::Batch& DbStorage::Batch::removeDagBlockState(blk_hash_t const& blk_hash) {
+DB::Batch& DB::Batch::removeDagBlockState(blk_hash_t const& blk_hash) {
   return remove(Columns::dag_blocks_state, blk_hash.asBytes());
 }
 
-DbStorage::Batch& DbStorage::Batch::addTransactionStatus(trx_hash_t const& trx, TransactionStatus const& status) {
+DB::Batch& DB::Batch::addTransactionStatus(trx_hash_t const& trx, TransactionStatus const& status) {
   return put(Columns::trx_status, trx.asBytes(), (uint16_t)status);
 }
 
-DbStorage::Batch& DbStorage::Batch::addStatusField(StatusDbField const& field, uint64_t const& value) {
-  return put(DbStorage::Columns::status, (uint8_t)field, value);
+DB::Batch& DB::Batch::addStatusField(StatusDbField const& field, uint64_t const& value) {
+  return put(DB::Columns::status, (uint8_t)field, value);
 }
 
-DbStorage::Batch& DbStorage::Batch::addPbftBlock(const taraxa::PbftBlock& pbft_block) {
+DB::Batch& DB::Batch::addPbftBlock(const taraxa::PbftBlock& pbft_block) {
   return put(Columns::pbft_blocks, pbft_block.getBlockHash(), pbft_block.rlp(true));
 }
 
-DbStorage::Batch& DbStorage::Batch::addPbftMgrField(PbftMgrRoundStep const& field, uint64_t const& value) {
+DB::Batch& DB::Batch::addPbftMgrField(PbftMgrRoundStep const& field, uint64_t const& value) {
   return put(Columns::pbft_mgr_round_step, (uint8_t)field, value);
 }
 
-DbStorage::Batch& DbStorage::Batch::addPbftMgrStatus(PbftMgrStatus const& field, bool const& value) {
+DB::Batch& DB::Batch::addPbftMgrStatus(PbftMgrStatus const& field, bool const& value) {
   return put(Columns::pbft_mgr_status, toSlice((uint8_t)field), toSlice(value));
 }
 
-DbStorage::Batch& DbStorage::Batch::addPbftMgrVotedValue(PbftMgrVotedValue const& field, blk_hash_t const& value) {
+DB::Batch& DB::Batch::addPbftMgrVotedValue(PbftMgrVotedValue const& field, blk_hash_t const& value) {
   return put(Columns::pbft_mgr_voted_value, toSlice((uint8_t)field), toSlice(value.asBytes()));
 }
 
-}  // namespace taraxa
+}  // namespace taraxa::db

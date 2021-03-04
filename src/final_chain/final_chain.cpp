@@ -10,7 +10,7 @@ using namespace std;
 using namespace dev;
 
 struct FinalChainImpl final : virtual FinalChain, virtual ChainDBImpl {
-  shared_ptr<DbStorage> db_;
+  shared_ptr<DB> db_;
   shared_ptr<PbftChain> pbft_chain_;
   StateAPI state_api;
   unique_ptr<ReplayProtectionService> replay_protection_service_{new ReplayProtectionServiceDummy};
@@ -24,7 +24,7 @@ struct FinalChainImpl final : virtual FinalChain, virtual ChainDBImpl {
 
   LOG_OBJECTS_DEFINE;
 
-  FinalChainImpl(shared_ptr<DbStorage> const& db,  //
+  FinalChainImpl(shared_ptr<DB> const& db,  //
                  shared_ptr<PbftChain> pbft_chain,
                  Config const& config,          //
                  FinalChain::Opts const& opts,  //
@@ -38,11 +38,11 @@ struct FinalChainImpl final : virtual FinalChain, virtual ChainDBImpl {
                       4,
                   },
                   {
-                      (db->stateDbStoragePath()).string(),
+                      (db->stateDbPath()).string(),
                   }) {
     LOG_OBJECTS_CREATE("EXECUTOR");
     auto state_db_descriptor = state_api.get_last_committed_state_descriptor();
-    if (auto last_blk_raw = db_->lookup(DbStorage::Columns::default_column, LAST_BLOCK_KEY); last_blk_raw.empty()) {
+    if (auto last_blk_raw = db_->lookup(DB::Columns::default_column, LAST_BLOCK_KEY); last_blk_raw.empty()) {
       assert(state_db_descriptor.blk_num == 0);
       auto batch = db->createWriteBatch();
       last_block_ = append_block(batch, config.genesis_block_fields.author, config.genesis_block_fields.timestamp, 0,
@@ -100,18 +100,18 @@ struct FinalChainImpl final : virtual FinalChain, virtual ChainDBImpl {
     {
       // This artificial scope will make sure we clean up the big chunk of memory allocated for this batch-processing
       // stuff as soon as possible
-      DbStorage::MultiGetQuery db_query(db_, transactions_.capacity() + 100);
-      auto dag_blks_raw = db_query.append(DbStorage::Columns::dag_blocks, finalized_dag_blk_hashes, false).execute();
+      DB::MultiGetQuery db_query(db_, transactions_.capacity() + 100);
+      auto dag_blks_raw = db_query.append(DB::Columns::dag_blocks, finalized_dag_blk_hashes, false).execute();
       unordered_set<h256> unique_trxs;
       unique_trxs.reserve(transactions_.capacity());
       for (auto const& dag_blk_raw : dag_blks_raw) {
         for (auto const& trx_h : DagBlock::extract_transactions_from_rlp(RLP(dag_blk_raw))) {
-          batch.remove(DbStorage::Columns::pending_transactions, trx_h);
+          batch.remove(DB::Columns::pending_transactions, trx_h);
           if (!unique_trxs.insert(trx_h).second) {
             continue;
           }
-          db_query.append(DbStorage::Columns::executed_transactions, trx_h);
-          db_query.append(DbStorage::Columns::transactions, trx_h);
+          db_query.append(DB::Columns::executed_transactions, trx_h);
+          db_query.append(DB::Columns::transactions, trx_h);
         }
       }
       auto trx_db_results = db_query.execute(false);
@@ -195,7 +195,7 @@ struct FinalChainImpl final : virtual FinalChain, virtual ChainDBImpl {
     LOG(log_nf_) << " successful execute pbft block " << pbft_block_hash << " in period " << pbft_period;
   }
 
-  shared_ptr<BlockHeader> append_block(DbStorage::Batch& batch, addr_t const& author, uint64_t timestamp,
+  shared_ptr<BlockHeader> append_block(DB::Batch& batch, addr_t const& author, uint64_t timestamp,
                                        uint64_t gas_limit, h256 const& state_root, Transactions const& transactions,
                                        TransactionReceipts const& receipts) {
     auto blk_header_ptr = make_shared<BlockHeader>();
@@ -220,7 +220,7 @@ struct FinalChainImpl final : virtual FinalChain, virtual ChainDBImpl {
       auto const& receipt = receipts[i];
       rlp_strm.clear(), util::rlp(rlp_strm, receipt);
       receipts_trie[i_rlp] = rlp_strm.out();
-      batch.put(DbStorage::Columns::final_chain_receipts, trx.getHash(), rlp_strm.out());
+      batch.put(DB::Columns::final_chain_receipts, trx.getHash(), rlp_strm.out());
       auto bloom = receipt.bloom();
       blk_header.log_bloom |= bloom;
       blk_log_blooms.push_back(bloom);
@@ -231,9 +231,9 @@ struct FinalChainImpl final : virtual FinalChain, virtual ChainDBImpl {
     blk_header.ethereum_rlp_size = rlp_strm.out().size();
     blk_header.hash = sha3(rlp_strm.out());
     rlp_strm.clear(), blk_header.rlp(rlp_strm);
-    batch.put(DbStorage::Columns::final_chain_blocks, blk_header.hash, rlp_strm.out());
+    batch.put(DB::Columns::final_chain_blocks, blk_header.hash, rlp_strm.out());
     rlp_strm.clear(), util::rlp(rlp_strm, blk_log_blooms);
-    batch.put(DbStorage::Columns::final_chain_log_blooms, blk_header.hash, rlp_strm.out());
+    batch.put(DB::Columns::final_chain_log_blooms, blk_header.hash, rlp_strm.out());
     auto log_bloom_for_index = blk_header.log_bloom;
     log_bloom_for_index.shiftBloom<3>(sha3(blk_header.author.ref()));
     for (uint64_t level = 0, index = blk_header.number; level < c_bloomIndexLevels;
@@ -242,16 +242,16 @@ struct FinalChainImpl final : virtual FinalChain, virtual ChainDBImpl {
       auto prev_value = blocksBlooms(chunk_id);
       prev_value[index % c_bloomIndexSize] |= log_bloom_for_index;
       rlp_strm.clear(), util::rlp(rlp_strm, prev_value);
-      batch.put(DbStorage::Columns::final_chain_log_blooms_index, chunk_id, rlp_strm.out());
+      batch.put(DB::Columns::final_chain_log_blooms_index, chunk_id, rlp_strm.out());
     }
     TransactionLocation tl{blk_header.hash};
     for (auto const& trx : transactions) {
       rlp_strm.clear(), util::rlp(rlp_strm, tl);
-      batch.put(DbStorage::Columns::executed_transactions, trx.getHash(), rlp_strm.out());
+      batch.put(DB::Columns::executed_transactions, trx.getHash(), rlp_strm.out());
       ++tl.index;
     }
-    batch.put(DbStorage::Columns::final_chain_block_number_to_hash, blk_header.number, blk_header.hash);
-    batch.put(DbStorage::Columns::default_column, LAST_BLOCK_KEY, blk_header.hash);
+    batch.put(DB::Columns::final_chain_block_number_to_hash, blk_header.number, blk_header.hash);
+    batch.put(DB::Columns::default_column, LAST_BLOCK_KEY, blk_header.hash);
     return blk_header_ptr;
   }
 
@@ -319,7 +319,7 @@ struct FinalChainImpl final : virtual FinalChain, virtual ChainDBImpl {
   void create_state_db_snapshot(uint64_t const& period) override { state_api.create_snapshot(period); }
 };
 
-unique_ptr<FinalChain> NewFinalChain(shared_ptr<DbStorage> db,  //
+unique_ptr<FinalChain> NewFinalChain(shared_ptr<DB> db,  //
                                      shared_ptr<PbftChain> pbft_chain,
                                      FinalChain::Config const& config,  //
                                      FinalChain::Opts const& opts, addr_t const& node_addr) {

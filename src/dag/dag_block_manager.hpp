@@ -16,8 +16,8 @@ using BlockStatusTable = ExpirationCacheMap<blk_hash_t, BlockStatus>;
 class DagBlockManager {
  public:
   DagBlockManager(addr_t node_addr, vdf_sortition::VdfConfig const &vdf_config,
-                  optional<state_api::DPOSConfig> dpos_config, size_t capacity, unsigned verify_threads,
-                  std::shared_ptr<DbStorage> db, std::shared_ptr<TransactionManager> trx_mgr,
+                  std::optional<state_api::DPOSConfig> dpos_config, size_t capacity, unsigned verify_threads,
+                  std::shared_ptr<DB> db, std::shared_ptr<TransactionManager> trx_mgr,
                   std::shared_ptr<FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain,
                   logger::Logger log_time_, uint32_t queue_limit = 0);
   ~DagBlockManager();
@@ -54,7 +54,7 @@ class DagBlockManager {
   const uint32_t cache_max_size = 10000;
   const uint32_t cache_delete_step = 100;
 
-  std::shared_ptr<DbStorage> db_;
+  std::shared_ptr<DB> db_;
   std::shared_ptr<TransactionManager> trx_mgr_;
   std::shared_ptr<FinalChain> final_chain_;
   std::shared_ptr<PbftChain> pbft_chain_;
@@ -75,7 +75,7 @@ class DagBlockManager {
   std::map<uint64_t, std::deque<DagBlock> > verified_qu_;
 
   vdf_sortition::VdfConfig vdf_config_;
-  optional<state_api::DPOSConfig> dpos_config_;
+  std::optional<state_api::DPOSConfig> dpos_config_;
 
   LOG_OBJECTS_DEFINE;
 };

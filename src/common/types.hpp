@@ -7,10 +7,13 @@
 #include <boost/asio.hpp>
 #include <boost/multiprecision/cpp_int.hpp>
 #include <chrono>
+#include <filesystem>
 #include <string>
 #include <type_traits>
 
 namespace taraxa {
+
+namespace fs = std::filesystem;
 
 using dev::Address;
 using dev::AddressSet;

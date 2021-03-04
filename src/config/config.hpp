@@ -12,8 +12,8 @@
 namespace taraxa {
 
 struct RpcConfig {
-  optional<uint16_t> http_port;
-  optional<uint16_t> ws_port;
+  std::optional<uint16_t> http_port;
+  std::optional<uint16_t> ws_port;
   boost::asio::ip::address address;
 
   // Number of threads dedicated to the rpc calls processing, default = 5
@@ -81,7 +81,7 @@ struct FullNodeConfig {
   vrf_wrapper::vrf_sk_t vrf_secret;
   fs::path db_path;
   NetworkConfig network;
-  optional<RpcConfig> rpc;
+  std::optional<RpcConfig> rpc;
   TestParamsConfig test_params;
   ChainConfig chain = ChainConfig::predefined();
   FinalChain::Opts opts_final_chain;
