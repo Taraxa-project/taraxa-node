@@ -23,11 +23,6 @@ struct ChainDBImpl : virtual ChainDB {
   std::shared_ptr<DbStorage> db_;
 
  public:
-  ChainDBImpl(decltype(db_) db) : db_(std::move(db)) {
-    if (auto hash_str = db_->lookup(DbStorage::Columns::default_column, LAST_BLOCK_KEY); !hash_str.empty()) {
-      //      last_block_ = std::make_shared<BlockHeader>(blockHeader(h256(hash_str, h256::FromBinary)));
-    }
-  }
   virtual ~ChainDBImpl(){};
 
   BlockNumber last_block_number() const {  // TODO
