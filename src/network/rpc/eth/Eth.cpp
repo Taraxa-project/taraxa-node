@@ -6,7 +6,7 @@
 
 #include "transaction_manager/transaction_manager.hpp"
 
-namespace taraxa::net {
+namespace taraxa::net::rpc::eth {
 using namespace ::std;
 using namespace ::dev;
 using namespace ::taraxa::final_chain;
@@ -690,4 +690,4 @@ Json::Value toJson(BlockHeader const& obj) { return EthImpl::toJson(obj); }
 
 Eth* NewEth(EthParams&& prerequisites) { return new EthImpl(move(prerequisites)); }
 
-}  // namespace taraxa::net
+}  // namespace taraxa::net::rpc::eth

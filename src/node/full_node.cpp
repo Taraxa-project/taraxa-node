@@ -8,10 +8,10 @@
 #include "consensus/block_proposer.hpp"
 #include "consensus/pbft_manager.hpp"
 #include "dag/dag.hpp"
-#include "network/rpc/Eth.h"
 #include "network/rpc/Net.h"
 #include "network/rpc/Taraxa.h"
 #include "network/rpc/Test.h"
+#include "network/rpc/eth/Eth.h"
 #include "transaction_manager/transaction_manager.hpp"
 
 namespace taraxa {
@@ -94,13 +94,13 @@ void FullNode::start() {
 
   if (conf_.rpc) {
     register_s_ptr(rpc_thread_pool_ = util::ThreadPool::make(conf_.rpc->threads_num));
-    net::EthParams eth_jsonrpc_params;
-    eth_jsonrpc_params.address = getAddress();
-    eth_jsonrpc_params.secret = kp_.secret();
-    eth_jsonrpc_params.chain_id = conf_.chain.chain_id;
-    eth_jsonrpc_params.final_chain = final_chain_;
-    eth_jsonrpc_params.get_trx = [db = db_](auto const &trx_hash) { return db->getTransaction(trx_hash); };
-    eth_jsonrpc_params.send_trx = [trx_manager = trx_mgr_](auto const &trx) {
+    net::rpc::eth::EthParams eth_rpc_params;
+    eth_rpc_params.address = getAddress();
+    eth_rpc_params.secret = kp_.secret();
+    eth_rpc_params.chain_id = conf_.chain.chain_id;
+    eth_rpc_params.final_chain = final_chain_;
+    eth_rpc_params.get_trx = [db = db_](auto const &trx_hash) { return db->getTransaction(trx_hash); };
+    eth_rpc_params.send_trx = [trx_manager = trx_mgr_](auto const &trx) {
       auto [ok, err_msg] = trx_manager->insertTransaction(trx, true);
       if (!ok) {
         BOOST_THROW_EXCEPTION(
@@ -111,7 +111,7 @@ void FullNode::start() {
       }
       return trx.getHash();
     };
-    auto eth_json_rpc = net::NewEth(move(eth_jsonrpc_params));
+    auto eth_json_rpc = net::rpc::eth::NewEth(move(eth_rpc_params));
     emplace(jsonrpc_api_,
             new net::Test(getShared()),    //
             new net::Taraxa(getShared()),  //

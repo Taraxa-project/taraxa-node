@@ -5,8 +5,8 @@
 #include <json/writer.h>
 #include <libdevcore/CommonJS.h>
 
-#include "Eth.h"
 #include "config/config.hpp"
+#include "network/rpc/eth/Eth.h"
 #include "util/util.hpp"
 
 namespace taraxa::net {
@@ -146,7 +146,7 @@ void WSSession::newEthBlock(::taraxa::final_chain::BlockHeader const &payload) {
     Json::Value res, params;
     res["jsonrpc"] = "2.0";
     res["method"] = "eth_subscription";
-    params["result"] = toJson(payload);
+    params["result"] = rpc::eth::toJson(payload);
     params["subscription"] = dev::toJS(new_heads_subscription_);
     res["params"] = params;
     Json::FastWriter fastWriter;

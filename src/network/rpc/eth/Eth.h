@@ -7,10 +7,10 @@
 #include <memory>
 #include <optional>
 
-#include "EthFace.h"
 #include "final_chain/final_chain.hpp"
+#include "network/rpc/EthFace.h"
 
-namespace taraxa::net {
+namespace taraxa::net::rpc::eth {
 
 Json::Value toJson(final_chain::BlockHeader const& obj);
 
@@ -24,7 +24,7 @@ struct EthParams {
   std::function<dev::u256()> gas_pricer = [] { return dev::u256(0); };
 };
 
-struct Eth : virtual EthFace {
+struct Eth : virtual ::taraxa::net::EthFace {
   virtual ~Eth() {}
 
   virtual void note_block(dev::h256 const& blk_hash) = 0;
@@ -34,4 +34,4 @@ struct Eth : virtual EthFace {
 
 Eth* NewEth(EthParams&&);
 
-}  // namespace taraxa::net
+}  // namespace taraxa::net::rpc::eth
