@@ -16,10 +16,10 @@
 #include <thread>
 #include <vector>
 
-#include "final_chain/types.h"
 #include "config/config.hpp"
 #include "consensus/pbft_chain.hpp"
 #include "dag/dag_block.hpp"
+#include "final_chain/data.hpp"
 
 namespace taraxa::net {
 

@@ -7,8 +7,8 @@
 
 #include "consensus/pbft_config.hpp"
 #include "dag/dag_block.hpp"
+#include "final_chain/data.hpp"
 #include "final_chain/final_chain.hpp"
-#include "final_chain/types.h"
 #include "util/lazy.hpp"
 
 namespace taraxa::chain_config {

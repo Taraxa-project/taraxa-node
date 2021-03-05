@@ -12,7 +12,7 @@
 
 #include "common/types.hpp"
 #include "storage/db.hpp"
-#include "types.h"
+#include "data.hpp"
 #include "util/encoding_rlp.hpp"
 #include "util/range_view.hpp"
 

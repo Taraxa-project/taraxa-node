@@ -2,6 +2,7 @@
 
 #include "common/types.hpp"
 #include "consensus/pbft_chain.hpp"
+#include "data.hpp"
 #include "state_api.hpp"
 #include "storage/db.hpp"
 #include "util/event.hpp"

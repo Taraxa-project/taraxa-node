@@ -1,10 +1,11 @@
-#include "Eth.h"
+#include "../Eth.h"
 
 #include <json/json.h>
 #include <libdevcore/CommonData.h>
 #include <libdevcore/CommonJS.h>
 
-#include "transaction_manager/transaction_manager.hpp"
+#include "Filters.hpp"
+#include "LogReader.hpp"
 
 namespace taraxa::net::rpc::eth {
 using namespace ::std;
@@ -13,66 +14,10 @@ using namespace ::taraxa::final_chain;
 using namespace ::taraxa::state_api;
 
 struct EthImpl : Eth, EthParams {
-  struct TransactionLocationWithBlockHash : TransactionLocation {
-    h256 blk_h;
-  };
+  LogReader log_reader;
+  Filters filters;
 
-  struct LocalisedTransaction {
-    Transaction trx;
-    optional<TransactionLocationWithBlockHash> trx_loc;
-  };
-
-  struct ExtendedTransactionLocation : TransactionLocationWithBlockHash {
-    h256 trx_hash;
-  };
-
-  struct LocalisedTransactionReceipt {
-    TransactionReceipt r;
-    ExtendedTransactionLocation trx_loc;
-    addr_t trx_from;
-    optional<addr_t> trx_to;
-  };
-
-  struct LocalisedLogEntry {
-    LogEntry le;
-    ExtendedTransactionLocation trx_loc;
-    uint64_t position_in_receipt = 0;
-  };
-
-  struct TransactionSkeleton {
-    Address from;
-    u256 value;
-    bytes data;
-    optional<Address> to;
-    optional<uint64_t> nonce;
-    optional<uint64_t> gas;
-    optional<u256> gas_price;
-  };
-
-  struct LogFilter {
-    BlockNumber from_block = 0;
-    BlockNumber to_block = 0;
-    AddressSet addresses;
-    array<unordered_set<h256>, 4> topics;
-  };
-
-  struct FilterAPI {
-    using FilterID = uint64_t;
-
-    optional<LogFilter> getLogFilter(FilterID id) const { return {}; }
-    FilterID newBlockFilter() { return 0; }
-    FilterID newPendingTransactionFilter() { return 0; }
-    FilterID newLogFilter(LogFilter&& _filter) { return 0; }
-    bool uninstallFilter(FilterID id) { return false; }
-
-    void note_block(h256 const& blk_hash) {}
-    void note_pending_transactions(RangeView<h256> const& trx_hashes) {}
-    void note_receipts(RangeView<TransactionReceipt> const& receipts) {}
-
-    Json::Value poll(FilterID id) { return Json::Value(Json::arrayValue); }
-  } filters;
-
-  EthImpl(EthParams&& prerequisites) : EthParams(move(prerequisites)) {}
+  EthImpl(EthParams&& prerequisites) : EthParams(move(prerequisites)), log_reader{final_chain} {}
 
   virtual RPCModules implementedModules() const override { return RPCModules{RPCModule{"eth", "1.0"}}; }
 
@@ -195,12 +140,12 @@ struct EthImpl : Eth, EthParams {
 
   Json::Value eth_getFilterLogs(string const& _filterId) override {
     if (auto filter = filters.getLogFilter(jsToInt(_filterId))) {
-      return toJson(logs(*filter));
+      return toJson(log_reader.logs(*filter));
     }
     return Json::Value(Json::arrayValue);
   }
 
-  Json::Value eth_getLogs(Json::Value const& _json) override { return toJson(logs(toLogFilter(_json))); }
+  Json::Value eth_getLogs(Json::Value const& _json) override { return toJson(log_reader.logs(toLogFilter(_json))); }
 
   Json::Value eth_syncing() override {
     // TODO
@@ -247,21 +192,33 @@ struct EthImpl : Eth, EthParams {
       return {};
     }
     auto loc = final_chain->transaction_location(h);
-    return LocalisedTransaction{move(*trx),
-                                TransactionLocationWithBlockHash{*loc, *final_chain->block_hash(loc->blk_n)}};
+    return LocalisedTransaction{
+        move(*trx),
+        TransactionLocationWithBlockHash{
+            *loc,
+            *final_chain->block_hash(loc->blk_n),
+        },
+    };
   }
 
-  optional<LocalisedTransaction> get_transaction(uint64_t i, BlockNumber n) const {
-    auto hashes = final_chain->transaction_hashes(n);
-    if (hashes->count() <= i) {
+  optional<LocalisedTransaction> get_transaction(uint64_t trx_pos, BlockNumber blk_n) const {
+    auto hashes = final_chain->transaction_hashes(blk_n);
+    if (hashes->count() <= trx_pos) {
       return {};
     }
-    auto trx = get_trx(hashes->get(i));
-    return LocalisedTransaction{move(*trx), TransactionLocationWithBlockHash{n, i, *final_chain->block_hash(n)}};
+    auto trx = get_trx(hashes->get(trx_pos));
+    return LocalisedTransaction{
+        move(*trx),
+        TransactionLocationWithBlockHash{
+            blk_n,
+            trx_pos,
+            *final_chain->block_hash(blk_n),
+        },
+    };
   }
 
-  optional<LocalisedTransaction> get_transaction(h256 const& _blockHash, uint64_t _i) const {
-    auto blk_n = final_chain->block_number(_blockHash);
+  optional<LocalisedTransaction> get_transaction(h256 const& blk_h, uint64_t _i) const {
+    auto blk_n = final_chain->block_number(blk_h);
     if (!blk_n) {
       return {};
     }
@@ -275,8 +232,12 @@ struct EthImpl : Eth, EthParams {
     }
     auto loc_trx = get_transaction(trx_h);
     auto const& trx = loc_trx->trx;
-    return LocalisedTransactionReceipt{*r, ExtendedTransactionLocation{*loc_trx->trx_loc, trx_h}, trx.getSender(),
-                                       trx.getReceiver()};
+    return LocalisedTransactionReceipt{
+        *r,
+        ExtendedTransactionLocation{*loc_trx->trx_loc, trx_h},
+        trx.getSender(),
+        trx.getReceiver(),
+    };
   }
 
   uint64_t transactionCount(h256 const& block_hash) const {
@@ -319,177 +280,6 @@ struct EthImpl : Eth, EthParams {
     if (!t.gas) {
       t.gas = 90000;
     }
-  }
-
-  bool is_range_only(LogFilter const& f) const {
-    if (!f.addresses.empty()) {
-      return false;
-    }
-    for (auto const& t : f.topics) {
-      if (!t.empty()) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  /// @returns bloom possibilities for all addresses and topics
-  std::vector<LogBloom> bloomPossibilities(LogFilter const& f) const {
-    // return combination of each of the addresses/topics
-    vector<LogBloom> ret;
-    // | every address with every topic
-    for (auto const& i : f.addresses) {
-      // 1st case, there are addresses and topics
-      //
-      // m_addresses = [a0, a1];
-      // m_topics = [[t0], [t1a, t1b], [], []];
-      //
-      // blooms = [
-      // a0 | t0, a0 | t1a | t1b,
-      // a1 | t0, a1 | t1a | t1b
-      // ]
-      //
-      for (auto const& t : f.topics) {
-        if (t.empty()) {
-          continue;
-        }
-        auto b = LogBloom().shiftBloom<3>(sha3(i));
-        for (auto const& j : t) {
-          b = b.shiftBloom<3>(sha3(j));
-        }
-        ret.push_back(b);
-      }
-    }
-
-    // 2nd case, there are no topics
-    //
-    // m_addresses = [a0, a1];
-    // m_topics = [[t0], [t1a, t1b], [], []];
-    //
-    // blooms = [a0, a1];
-    //
-    if (ret.empty()) {
-      for (auto const& i : f.addresses) {
-        ret.push_back(LogBloom().shiftBloom<3>(sha3(i)));
-      }
-    }
-
-    // 3rd case, there are no addresses, at least create blooms from topics
-    //
-    // m_addresses = [];
-    // m_topics = [[t0], [t1a, t1b], [], []];
-    //
-    // blooms = [t0, t1a | t1b];
-    //
-    if (f.addresses.empty()) {
-      for (auto const& t : f.topics) {
-        if (t.size()) {
-          LogBloom b;
-          for (auto const& j : t) {
-            b = b.shiftBloom<3>(sha3(j));
-          }
-          ret.push_back(b);
-        }
-      }
-    }
-    return ret;
-  }
-
-  // TODO bloom const&
-  bool matches(LogFilter const& f, LogBloom b) const {
-    if (!f.addresses.empty()) {
-      auto ok = false;
-      for (auto const& i : f.addresses) {
-        if (b.containsBloom<3>(sha3(i))) {
-          ok = true;
-          break;
-        }
-      }
-      if (!ok) {
-        return false;
-      }
-    }
-    for (auto const& t : f.topics) {
-      if (t.empty()) {
-        continue;
-      }
-      auto ok = false;
-      for (auto const& i : t) {
-        if (b.containsBloom<3>(sha3(i))) {
-          ok = true;
-          break;
-        }
-      }
-      if (!ok) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  vector<size_t> matches(LogFilter const& f, TransactionReceipt const& r) const {
-    vector<size_t> ret;
-    if (!matches(f, r.bloom())) {
-      return ret;
-    }
-    for (uint log_i = 0; log_i < r.logs.size(); ++log_i) {
-      auto const& e = r.logs[log_i];
-      if (!f.addresses.empty() && !f.addresses.count(e.address)) {
-        continue;
-      }
-      auto ok = true;
-      for (size_t i = 0; i < f.topics.size(); ++i) {
-        if (!f.topics[i].empty() && (e.topics.size() < i || !f.topics[i].count(e.topics[i]))) {
-          ok = false;
-          break;
-        }
-      }
-      if (ok) {
-        ret.push_back(log_i);
-      }
-    }
-    return ret;
-  }
-
-  vector<LocalisedLogEntry> logs(LogFilter const& f) const {
-    auto range_only = is_range_only(f);
-    vector<LocalisedLogEntry> ret;
-    auto action = [&](BlockNumber blk_n) {
-      TransactionLocationWithBlockHash trx_loc{blk_n, 0, *final_chain->block_hash(blk_n)};
-      final_chain->transaction_hashes(trx_loc.blk_n)->for_each([&](auto const& trx_h) {
-        auto r = *final_chain->transaction_receipt(trx_h);
-        auto action = [&](size_t log_i) {
-          ret.push_back({r.logs[log_i], {trx_loc, trx_h}, log_i});
-          //
-        };
-        if (range_only) {
-          for (size_t i = 0; i < r.logs.size(); ++i) {
-            action(i);
-          }
-        } else {
-          for (auto i : matches(f, r)) {
-            action(i);
-          }
-        }
-        ++trx_loc.index;
-      });
-    };
-    if (range_only) {
-      for (auto blk_n = f.from_block; blk_n <= f.to_block; ++blk_n) {
-        action(blk_n);
-      }
-      return ret;
-    }
-    set<BlockNumber> matchingBlocks;
-    for (auto const& bloom : bloomPossibilities(f)) {
-      for (auto blk_n : final_chain->withBlockBloom(bloom, f.from_block, f.to_block)) {
-        matchingBlocks.insert(blk_n);
-      }
-    }
-    for (auto blk_n : matchingBlocks) {
-      action(blk_n);
-    }
-    return ret;
   }
 
   DEV_SIMPLE_EXCEPTION(InvalidAddress);

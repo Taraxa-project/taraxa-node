@@ -1,35 +1,31 @@
 #pragma once
 
-#include <jsonrpccpp/common/exception.h>
-#include <jsonrpccpp/server.h>
-
-#include <iosfwd>
-#include <memory>
-#include <optional>
-
 #include "final_chain/final_chain.hpp"
 #include "network/rpc/EthFace.h"
 
 namespace taraxa::net::rpc::eth {
+using namespace ::taraxa::final_chain;
+using namespace ::std;
+using namespace ::dev;
 
-Json::Value toJson(final_chain::BlockHeader const& obj);
+Json::Value toJson(BlockHeader const& obj);
 
 struct EthParams {
-  dev::Address address;
-  dev::Secret secret;
+  Address address;
+  Secret secret;
   uint64_t chain_id = 0;
-  std::shared_ptr<FinalChain> final_chain;
-  std::function<std::shared_ptr<Transaction>(h256 const&)> get_trx;
-  std::function<h256 const&(Transaction const& trx)> send_trx;
-  std::function<dev::u256()> gas_pricer = [] { return dev::u256(0); };
+  shared_ptr<FinalChain> final_chain;
+  function<shared_ptr<Transaction>(h256 const&)> get_trx;
+  function<h256 const&(Transaction const& trx)> send_trx;
+  function<u256()> gas_pricer = [] { return u256(0); };
 };
 
 struct Eth : virtual ::taraxa::net::EthFace {
   virtual ~Eth() {}
 
-  virtual void note_block(dev::h256 const& blk_hash) = 0;
-  virtual void note_pending_transactions(util::RangeView<dev::h256> const& trx_hashes) = 0;
-  virtual void note_receipts(util::RangeView<final_chain::TransactionReceipt> const& receipts) = 0;
+  virtual void note_block(h256 const& blk_hash) = 0;
+  virtual void note_pending_transactions(util::RangeView<h256> const& trx_hashes) = 0;
+  virtual void note_receipts(util::RangeView<TransactionReceipt> const& receipts) = 0;
 };
 
 Eth* NewEth(EthParams&&);
