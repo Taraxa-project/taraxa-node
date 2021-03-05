@@ -89,6 +89,7 @@ class TaraxaPeer : public boost::noncopyable {
   uint64_t dag_level_ = 0;
   uint64_t pbft_chain_size_ = 0;
   uint64_t pbft_round_ = 1;
+  size_t pbft_previous_round_next_votes_size_ = 0;
 
  private:
   ExpirationCache<blk_hash_t> known_blocks_;
@@ -201,8 +202,9 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   void sendPbftBlock(NodeID const &_id, taraxa::PbftBlock const &pbft_block, uint64_t const &pbft_chain_size);
   void requestPbftBlocks(NodeID const &_id, size_t height_to_sync);
   void sendPbftBlocks(NodeID const &_id, size_t height_to_sync, size_t blocks_to_transfer);
-  void syncPbftNextVotes(uint64_t const pbft_round);
-  void requestPbftNextVotes(NodeID const &peerID, uint64_t const pbft_round);
+  void syncPbftNextVotes(uint64_t const pbft_round, size_t const pbft_previous_round_next_votes_size);
+  void requestPbftNextVotes(NodeID const &peerID, uint64_t const pbft_round,
+                            size_t const pbft_previous_round_next_votes_size);
   void sendPbftNextVotes(NodeID const &peerID);
 
   // Peers
@@ -249,7 +251,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   unsigned long peer_syncing_pbft_chain_size_ = 1;
   uint64_t dag_level_ = 0;
   uint64_t pbft_sync_period_ = 1;
-  NodeID peer_syncing_pbft;
+  NodeID peer_syncing_pbft_;
   std::string genesis_;
   bool performance_log_;
   mutable std::mt19937_64 urng_;  // Mersenne Twister psuedo-random number generator

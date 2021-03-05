@@ -142,10 +142,6 @@ void PbftManager::run() {
   }
 }
 
-std::shared_ptr<NextVotesForPreviousRound> PbftManager::getNextVotesForPreviousRoundPtr() const {
-  return previous_round_next_votes_;
-}
-
 std::pair<bool, uint64_t> PbftManager::getDagBlockPeriod(blk_hash_t const &hash) {
   std::pair<bool, uint64_t> res;
   auto value = db_->getDagBlockPeriod(hash);
@@ -323,7 +319,8 @@ void PbftManager::initialState_() {
   } else {
     // Start from DB
     state_ = finish_state;
-    setPbftStep(4);
+    step = 4;
+    setPbftStep(step);
   }
   setPbftRound(round);
 
@@ -337,6 +334,11 @@ void PbftManager::initialState_() {
     }
     previous_round_next_votes_->update(next_votes_in_previous_round);
   }
+  LOG(log_nf_) << "Node initialize at round " << round << " step " << step
+               << ". Previous round has enough next votes for NULL_BLOCK_HASH: " << std::boolalpha
+               << previous_round_next_votes_->haveEnoughVotesForNullBlockHash() << ", voted value "
+               << previous_round_next_votes_->getVotedValue() << ", next votes size in previous round is "
+               << previous_round_next_votes_->getNextVotesSize();
 
   // Initial last sync request
   pbft_round_last_requested_sync_ = 0;
@@ -768,11 +770,6 @@ void PbftManager::secondFinish_() {
     syncPbftChainFromPeers_(true);
   }
 
-  if (step_ > MAX_STEPS) {
-    LOG(log_tr_) << "Suspect PBFT round behind, need to sync with peers";
-    syncNextVotes_();
-  }
-
   loop_back_finish_state_ = elapsed_time_in_round_ms_ > (step_ + 1) * LAMBDA_ms + STEP_4_DELAY - POLLING_INTERVAL_ms;
 }
 
@@ -1064,28 +1061,6 @@ void PbftManager::syncPbftChainFromPeers_(bool force) {
     capability_->restartSyncingPbft(force);
     pbft_round_last_requested_sync_ = round;
     pbft_step_last_requested_sync_ = step_;
-  }
-}
-
-bool PbftManager::nextVotesSyncAlreadyThisRoundStep_() {
-  return getPbftRound() == pbft_round_last_next_votes_sync_ && step_ == pbft_step_last_next_votes_sync_;
-}
-
-void PbftManager::syncNextVotes_() {
-  if (stopped_) {
-    return;
-  }
-  //  if (capability_->syncing_) {
-  //    LOG(log_dg_) << "Cannot sync next votes bundle, PBFT chain is syncing";
-  //    return;
-  //  }
-
-  if (!nextVotesSyncAlreadyThisRoundStep_()) {
-    auto round = getPbftRound();
-    LOG(log_wr_) << "Syncing next votes. Send syncing request at round " << round << ", step " << step_;
-    capability_->syncPbftNextVotes(round);
-    pbft_round_last_next_votes_sync_ = round;
-    pbft_step_last_next_votes_sync_ = step_;
   }
 }
 

@@ -122,8 +122,8 @@ bool VoteManager::addVote(taraxa::Vote const& vote) {
       unverified_votes_[pbft_round] = votes;
     }
   }
-  LOG(log_dg_) << "Add vote " << hash << ", block hash " << vote.getBlockHash() << ", vote type " << vote.getType()
-               << ", in round " << pbft_round << ", for step " << vote.getStep();
+  LOG(log_dg_) << "Add unverified vote " << vote;
+
   return true;
 }
 
@@ -310,7 +310,7 @@ bool VoteManager::pbftBlockHasEnoughValidCertVotes(PbftBlockCert const& pbft_blo
 }
 
 NextVotesForPreviousRound::NextVotesForPreviousRound(addr_t node_addr)
-    : enough_votes_for_null_block_hash_(false), voted_value_(blk_hash_t(0)) {
+    : enough_votes_for_null_block_hash_(false), voted_value_(blk_hash_t(0)), next_votes_size_(0) {
   LOG_OBJECTS_CREATE("NEXT_VOTES");
 }
 
@@ -318,6 +318,7 @@ void NextVotesForPreviousRound::clear() {
   uniqueLock_ lock(access_);
   enough_votes_for_null_block_hash_ = false;
   voted_value_ = blk_hash_t(0);
+  next_votes_size_ = 0;
   next_votes_.clear();
 }
 
@@ -340,8 +341,19 @@ std::vector<Vote> NextVotesForPreviousRound::getNextVotes() {
       next_votes_bundle.emplace_back(v);
     }
   }
+  assert(next_votes_bundle.size() == next_votes_size_);
 
   return next_votes_bundle;
+}
+
+size_t NextVotesForPreviousRound::getNextVotesSize() const {
+  sharedLock_ lock(access_);
+  return next_votes_size_;
+}
+
+void NextVotesForPreviousRound::setNextVotesSize(size_t const size) {
+  uniqueLock_ lock(access_);
+  next_votes_size_ = size;
 }
 
 // Assumption is that all votes are validated, in next phase, in the same round and step
@@ -353,53 +365,64 @@ void NextVotesForPreviousRound::update(std::vector<Vote> const& next_votes, size
 
   clear();
 
-  upgradableLock_ lock(access_);
-  // Copy all next votes
-  for (auto const& v : next_votes) {
-    LOG(log_dg_) << "Next vote: " << v;
+  {
+    upgradableLock_ lock(access_);
+    // Copy all next votes
+    for (auto const& v : next_votes) {
+      LOG(log_dg_) << "Next vote: " << v;
 
-    auto voted_block_hash = v.getBlockHash();
-    if (next_votes_.count(voted_block_hash)) {
-      upgradeLock_ locked(lock);
-      next_votes_[voted_block_hash].emplace_back(v);
-    } else {
-      std::vector<Vote> votes{v};
-      upgradeLock_ locked(lock);
-      next_votes_[voted_block_hash] = votes;
+      auto voted_block_hash = v.getBlockHash();
+      if (next_votes_.count(voted_block_hash)) {
+        upgradeLock_ locked(lock);
+        next_votes_[voted_block_hash].emplace_back(v);
+      } else {
+        std::vector<Vote> votes{v};
+        upgradeLock_ locked(lock);
+        next_votes_[voted_block_hash] = votes;
+      }
     }
   }
 
+  auto next_votes_size = next_votes.size();
+
   if (TWO_T_PLUS_ONE == 0) {
-    // Next votes from own DB. Don't need check
+    // Next votes from own DB. Don't need compare with 2t+1
     assert(next_votes_.size() == 1 || next_votes_.size() == 2);
+    setNextVotesSize(next_votes_size);
     return;
   }
 
   // Protect for malicious players. If no malicious players, will include either/both NULL BLOCK HASH and a non NULL
   // BLOCK HASH
-  auto it = next_votes_.begin();
-  while (it != next_votes_.end()) {
-    if (it->second.size() >= TWO_T_PLUS_ONE) {
-      LOG(log_nf_) << "Voted PBFT block hash " << it->first << " has " << it->second.size() << " next votes";
+  {
+    upgradableLock_ lock(access_);
+    auto it = next_votes_.begin();
+    while (it != next_votes_.end()) {
+      if (it->second.size() >= TWO_T_PLUS_ONE) {
+        LOG(log_nf_) << "Voted PBFT block hash " << it->first << " has " << it->second.size() << " next votes";
 
-      if (it->first == NULL_BLOCK_HASH) {
-        upgradeLock_ locked(lock);
-        enough_votes_for_null_block_hash_ = true;
+        if (it->first == NULL_BLOCK_HASH) {
+          upgradeLock_ locked(lock);
+          enough_votes_for_null_block_hash_ = true;
+        } else {
+          upgradeLock_ locked(lock);
+          voted_value_ = it->first;
+        }
+
+        it++;
       } else {
+        LOG(log_dg_) << "Voted PBFT block hash " << it->first << " has " << it->second.size()
+                     << " next votes. Not enough, removed!";
+        next_votes_size -= it->second.size();
         upgradeLock_ locked(lock);
-        voted_value_ = it->first;
+        it = next_votes_.erase(it);
       }
-
-      it++;
-    } else {
-      LOG(log_dg_) << "Voted PBFT block hash " << it->first << " has " << it->second.size()
-                   << " next votes. Not enough, removed!";
-      upgradeLock_ locked(lock);
-      it = next_votes_.erase(it);
     }
   }
 
   assert(next_votes_.size() == 1 || next_votes_.size() == 2);
+
+  setNextVotesSize(next_votes_size);
 }
 
 }  // namespace taraxa

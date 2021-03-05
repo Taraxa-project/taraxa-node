@@ -42,7 +42,6 @@ class PbftManager {
 
   bool shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step);
 
-  std::shared_ptr<NextVotesForPreviousRound> getNextVotesForPreviousRoundPtr() const;
   std::pair<bool, uint64_t> getDagBlockPeriod(blk_hash_t const &hash);
   uint64_t getPbftRound() const;
   void setPbftRound(uint64_t const round);
@@ -113,10 +112,6 @@ class PbftManager {
   bool syncRequestedAlreadyThisStep_() const;
 
   void syncPbftChainFromPeers_(bool force);
-
-  bool nextVotesSyncAlreadyThisRoundStep_();
-
-  void syncNextVotes_();
 
   bool comparePbftBlockScheduleWithDAGblocks_(blk_hash_t const &pbft_block_hash);
   bool comparePbftBlockScheduleWithDAGblocks_(PbftBlock const &pbft_block);
@@ -190,8 +185,6 @@ class PbftManager {
 
   uint64_t pbft_round_last_requested_sync_ = 0;
   size_t pbft_step_last_requested_sync_ = 0;
-  uint64_t pbft_round_last_next_votes_sync_ = 0;
-  size_t pbft_step_last_next_votes_sync_ = 0;
 
   size_t pbft_last_observed_synced_queue_size_ = 0;
 

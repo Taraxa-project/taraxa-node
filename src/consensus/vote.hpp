@@ -181,9 +181,16 @@ class NextVotesForPreviousRound {
   NextVotesForPreviousRound(addr_t node_addr);
 
   void clear();
+
   bool haveEnoughVotesForNullBlockHash() const;
+
   blk_hash_t getVotedValue() const;
+
   std::vector<Vote> getNextVotes();
+
+  size_t getNextVotesSize() const;
+  void setNextVotesSize(size_t const size);
+
   void update(std::vector<Vote> const& next_votes, size_t const TWO_T_PLUS_ONE = 0);
 
  private:
@@ -195,7 +202,8 @@ class NextVotesForPreviousRound {
   mutable boost::shared_mutex access_;
 
   bool enough_votes_for_null_block_hash_;
-  blk_hash_t voted_value_;                                        // For value is not null block hash
+  blk_hash_t voted_value_;  // For value is not null block hash
+  size_t next_votes_size_;
   std::unordered_map<blk_hash_t, std::vector<Vote>> next_votes_;  // <voted PBFT block hash, next votes list>
 
   LOG_OBJECTS_DEFINE;
