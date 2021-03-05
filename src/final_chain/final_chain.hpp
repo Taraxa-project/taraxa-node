@@ -1,6 +1,5 @@
 #pragma once
 
-#include "LogFilter.h"
 #include "common/types.hpp"
 #include "consensus/pbft_chain.hpp"
 #include "state_api.hpp"
@@ -49,7 +48,6 @@ struct FinalChain {
   virtual BlockNumber last_block_number() const = 0;
   virtual optional<BlockNumber> block_number(h256 const& h) const = 0;
   virtual optional<h256> block_hash(optional<BlockNumber> n = {}) const = 0;
-
   struct TransactionHashes {
     virtual ~TransactionHashes() {}
 
@@ -61,9 +59,10 @@ struct FinalChain {
   virtual Transactions transactions(optional<BlockNumber> n = {}) const = 0;
   virtual optional<TransactionLocation> transaction_location(h256 const& trx_hash,
                                                              bool with_block_hash = true) const = 0;
-  virtual LogEntries logs(LogFilter const& _filter) const = 0;
   virtual optional<TransactionReceipt> transaction_receipt(h256 const& _transactionHash) const = 0;
   virtual uint64_t transactionCount(optional<BlockNumber> n = {}) const = 0;
+  virtual vector<BlockNumber> withBlockBloom(LogBloom const& b, BlockNumber from, BlockNumber to) const = 0;
+
   virtual optional<state_api::Account> get_account(addr_t const& addr, optional<BlockNumber> blk_n = {}) const = 0;
   virtual u256 get_account_storage(addr_t const& addr, u256 const& key, optional<BlockNumber> blk_n = {}) const = 0;
   virtual bytes get_code(addr_t const& addr, optional<BlockNumber> blk_n = {}) const = 0;

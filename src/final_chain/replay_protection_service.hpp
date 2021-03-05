@@ -5,7 +5,7 @@
 #include "storage/db.hpp"
 #include "util/range_view.hpp"
 
-namespace taraxa {
+namespace taraxa::final_chain {
 
 struct ReplayProtectionService {
   struct Config {
@@ -34,4 +34,4 @@ std::unique_ptr<ReplayProtectionService> NewReplayProtectionService(ReplayProtec
 Json::Value enc_json(ReplayProtectionService::Config const& obj);
 void dec_json(Json::Value const& json, ReplayProtectionService::Config& obj);
 
-}  // namespace taraxa
+}  // namespace taraxa::final_chain

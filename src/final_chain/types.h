@@ -19,7 +19,6 @@ inline static auto const EmptyListSHA3 = dev::sha3(dev::RLPStream(0).out());
 
 /// The log bloom's size (2048-bit).
 using LogBloom = dev::h2048;
-/// Many log blooms.
 using LogBlooms = std::vector<LogBloom>;
 using Nonce = dev::h64;
 using BlockNumber = uint64_t;
@@ -67,8 +66,8 @@ struct BlockHeader {
   }
 };
 
-static const unsigned c_bloomIndexSize = 16;
-static const unsigned c_bloomIndexLevels = 2;
+static constexpr auto c_bloomIndexSize = 16;
+static constexpr auto c_bloomIndexLevels = 2;
 
 using BlockLogBlooms = LogBlooms;
 using BlocksBlooms = std::array<LogBloom, c_bloomIndexSize>;

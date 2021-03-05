@@ -13,10 +13,6 @@ using namespace ::taraxa::final_chain;
 using namespace ::taraxa::state_api;
 
 struct EthImpl : Eth, EthParams {
-  struct BlockHeaderWithTransactions : BlockHeader {
-    variant<shared_ptr<FinalChain::TransactionHashes>, Transactions> trxs;
-  };
-
   struct TransactionLocationWithBlockHash : TransactionLocation {
     h256 blk_h;
   };
@@ -40,7 +36,7 @@ struct EthImpl : Eth, EthParams {
   struct LocalisedLogEntry {
     LogEntry le;
     ExtendedTransactionLocation trx_loc;
-    uint position_in_receipt;
+    uint64_t position_in_receipt = 0;
   };
 
   struct TransactionSkeleton {
@@ -51,6 +47,13 @@ struct EthImpl : Eth, EthParams {
     optional<uint64_t> nonce;
     optional<uint64_t> gas;
     optional<u256> gas_price;
+  };
+
+  struct LogFilter {
+    BlockNumber from_block = 0;
+    BlockNumber to_block = 0;
+    AddressSet addresses;
+    array<unordered_set<h256>, 4> topics;
   };
 
   struct FilterAPI {
@@ -112,7 +115,7 @@ struct EthImpl : Eth, EthParams {
 
   string eth_estimateGas(Json::Value const& _json) override {
     auto t = toTransactionSkeleton(_json);
-    // TODO WTF?
+    // TODO What is this?
     auto blk_n = parse_blk_num("latest");
     populateTransactionWithDefaults(t, blk_n);
     return toJS(call(blk_n, t, true).GasUsed);
@@ -148,29 +151,32 @@ struct EthImpl : Eth, EthParams {
   }
 
   Json::Value eth_getBlockByHash(string const& _blockHash, bool _includeTransactions) override {
-    return toJson(blockHeaderWithTransactions(jsToFixed<32>(_blockHash), _includeTransactions));
+    if (auto blk_n = final_chain->block_number(jsToFixed<32>(_blockHash)); blk_n) {
+      return toJson(get_block_by_number(*blk_n, _includeTransactions));
+    }
+    return Json::Value();
   }
 
   Json::Value eth_getBlockByNumber(string const& _blockNumber, bool _includeTransactions) override {
-    return toJson(blockHeaderWithTransactions(parse_blk_num(_blockNumber), _includeTransactions));
+    return toJson(get_block_by_number(parse_blk_num(_blockNumber), _includeTransactions));
   }
 
   Json::Value eth_getTransactionByHash(string const& _transactionHash) override {
-    return toJson(localisedTransaction(jsToFixed<32>(_transactionHash)));
+    return toJson(get_transaction(jsToFixed<32>(_transactionHash)));
   }
 
   Json::Value eth_getTransactionByBlockHashAndIndex(string const& _blockHash,
                                                     string const& _transactionIndex) override {
-    return toJson(localisedTransaction(jsToFixed<32>(_blockHash), jsToInt(_transactionIndex)));
+    return toJson(get_transaction(jsToFixed<32>(_blockHash), jsToInt(_transactionIndex)));
   }
 
   Json::Value eth_getTransactionByBlockNumberAndIndex(string const& _blockNumber,
                                                       string const& _transactionIndex) override {
-    return toJson(localisedTransaction(jsToInt(_transactionIndex), parse_blk_num(_blockNumber)));
+    return toJson(get_transaction(jsToInt(_transactionIndex), parse_blk_num(_blockNumber)));
   }
 
   Json::Value eth_getTransactionReceipt(string const& _transactionHash) override {
-    return toJson(localisedTransactionReceipt(jsToFixed<32>(_transactionHash)));
+    return toJson(get_transaction_receipt(jsToFixed<32>(_transactionHash)));
   }
 
   Json::Value eth_getUncleByBlockHashAndIndex(string const&, string const&) override { return Json::Value(); }
@@ -191,7 +197,7 @@ struct EthImpl : Eth, EthParams {
     if (auto filter = filters.getLogFilter(jsToInt(_filterId))) {
       return toJson(logs(*filter));
     }
-    return Json::Value();
+    return Json::Value(Json::arrayValue);
   }
 
   Json::Value eth_getLogs(Json::Value const& _json) override { return toJson(logs(toLogFilter(_json))); }
@@ -211,10 +217,31 @@ struct EthImpl : Eth, EthParams {
 
   void note_receipts(RangeView<TransactionReceipt> const& receipts) override { filters.note_receipts(receipts); }
 
-  optional<BlockHeaderWithTransactions> blockHeaderWithTransactions(BlockNumber n, bool full_transactions) const {}
-  optional<BlockHeaderWithTransactions> blockHeaderWithTransactions(h256 const& _hash, bool full_transactions) const {}
+  Json::Value get_block_by_number(BlockNumber blk_n, bool include_transactions) {
+    auto blk_header = final_chain->block_header(blk_n);
+    if (!blk_header) {
+      return Json::Value();
+    }
+    auto ret = toJson(*blk_header);
+    auto& trxs_json = ret["transactions"] = Json::Value(Json::arrayValue);
+    if (include_transactions) {
+      ExtendedTransactionLocation loc;
+      loc.blk_n = blk_header->number;
+      loc.blk_h = blk_header->hash;
+      for (auto const& t : final_chain->transactions(blk_n)) {
+        trxs_json.append(toJson(t, loc));
+        ++loc.index;
+      }
+    } else {
+      final_chain->transaction_hashes(blk_n)->for_each([&](auto const& trx_hash) {
+        trxs_json.append(toJson(trx_hash));
+        //
+      });
+    }
+    return ret;
+  }
 
-  optional<LocalisedTransaction> localisedTransaction(h256 const& h) const {
+  optional<LocalisedTransaction> get_transaction(h256 const& h) const {
     auto trx = get_trx(h);
     if (!trx) {
       return {};
@@ -224,7 +251,7 @@ struct EthImpl : Eth, EthParams {
                                 TransactionLocationWithBlockHash{*loc, *final_chain->block_hash(loc->blk_n)}};
   }
 
-  optional<LocalisedTransaction> localisedTransaction(uint64_t i, BlockNumber n) const {
+  optional<LocalisedTransaction> get_transaction(uint64_t i, BlockNumber n) const {
     auto hashes = final_chain->transaction_hashes(n);
     if (hashes->count() <= i) {
       return {};
@@ -233,28 +260,23 @@ struct EthImpl : Eth, EthParams {
     return LocalisedTransaction{move(*trx), TransactionLocationWithBlockHash{n, i, *final_chain->block_hash(n)}};
   }
 
-  optional<LocalisedTransaction> localisedTransaction(h256 const& _blockHash, uint64_t _i) const {
+  optional<LocalisedTransaction> get_transaction(h256 const& _blockHash, uint64_t _i) const {
     auto blk_n = final_chain->block_number(_blockHash);
     if (!blk_n) {
       return {};
     }
-    return localisedTransaction(_i, *blk_n);
+    return get_transaction(_i, *blk_n);
   }
 
-  optional<LocalisedTransactionReceipt> localisedTransactionReceipt(h256 const& trx_h) const {
+  optional<LocalisedTransactionReceipt> get_transaction_receipt(h256 const& trx_h) const {
     auto r = final_chain->transaction_receipt(trx_h);
     if (!r) {
       return {};
     }
-    auto loc_trx = localisedTransaction(trx_h);
+    auto loc_trx = get_transaction(trx_h);
     auto const& trx = loc_trx->trx;
     return LocalisedTransactionReceipt{*r, ExtendedTransactionLocation{*loc_trx->trx_loc, trx_h}, trx.getSender(),
                                        trx.getReceiver()};
-  }
-
-  vector<LocalisedLogEntry> logs(LogFilter const& f) {
-    // final_chain->logs TODO
-    return {};
   }
 
   uint64_t transactionCount(h256 const& block_hash) const {
@@ -299,53 +321,186 @@ struct EthImpl : Eth, EthParams {
     }
   }
 
-  BlockNumber parse_blk_num(string const& json_str, optional<BlockNumber> latest_block = {}) {
-    if (json_str == "latest" || json_str == "pending") {
-      return latest_block ? *latest_block : final_chain->last_block_number();
+  bool is_range_only(LogFilter const& f) const {
+    if (!f.addresses.empty()) {
+      return false;
     }
-    return json_str == "earliest" ? 0 : jsToInt(json_str);
+    for (auto const& t : f.topics) {
+      if (!t.empty()) {
+        return false;
+      }
+    }
+    return true;
   }
 
-  LogFilter toLogFilter(Json::Value const& json) {
-    auto latest_block = final_chain->last_block_number();
-    LogFilter filter(latest_block, latest_block);
-    if (!json.isObject() || json.empty()) {
-      return filter;
-    }
-    // check only !empty. it should throw exceptions if input params are
-    // incorrect
-    if (auto const& fromBlock = json["fromBlock"]; !fromBlock.empty()) {
-      filter.withEarliest(parse_blk_num(fromBlock.asString(), latest_block));
-    }
-    if (auto const& toBlock = json["toBlock"]; !toBlock.empty()) {
-      filter.withLatest(parse_blk_num(toBlock.asString(), latest_block));
-    }
-    if (auto const& address = json["address"]; !address.empty()) {
-      if (address.isArray()) {
-        for (auto const& i : address) {
-          filter.address(toAddress(i.asString()));
+  /// @returns bloom possibilities for all addresses and topics
+  std::vector<LogBloom> bloomPossibilities(LogFilter const& f) const {
+    // return combination of each of the addresses/topics
+    vector<LogBloom> ret;
+    // | every address with every topic
+    for (auto const& i : f.addresses) {
+      // 1st case, there are addresses and topics
+      //
+      // m_addresses = [a0, a1];
+      // m_topics = [[t0], [t1a, t1b], [], []];
+      //
+      // blooms = [
+      // a0 | t0, a0 | t1a | t1b,
+      // a1 | t0, a1 | t1a | t1b
+      // ]
+      //
+      for (auto const& t : f.topics) {
+        if (t.empty()) {
+          continue;
         }
-      } else {
-        filter.address(toAddress(address.asString()));
+        auto b = LogBloom().shiftBloom<3>(sha3(i));
+        for (auto const& j : t) {
+          b = b.shiftBloom<3>(sha3(j));
+        }
+        ret.push_back(b);
       }
     }
-    if (auto const& topics = json["topics"]; !topics.empty()) {
-      for (unsigned i = 0; i < topics.size(); i++) {
-        auto const& topic = topics[i];
-        if (topic.isArray()) {
-          for (auto const& t : topic) {
-            if (!t.isNull()) {
-              filter.topic(i, jsToFixed<32>(t.asString()));
-            }
+
+    // 2nd case, there are no topics
+    //
+    // m_addresses = [a0, a1];
+    // m_topics = [[t0], [t1a, t1b], [], []];
+    //
+    // blooms = [a0, a1];
+    //
+    if (ret.empty()) {
+      for (auto const& i : f.addresses) {
+        ret.push_back(LogBloom().shiftBloom<3>(sha3(i)));
+      }
+    }
+
+    // 3rd case, there are no addresses, at least create blooms from topics
+    //
+    // m_addresses = [];
+    // m_topics = [[t0], [t1a, t1b], [], []];
+    //
+    // blooms = [t0, t1a | t1b];
+    //
+    if (f.addresses.empty()) {
+      for (auto const& t : f.topics) {
+        if (t.size()) {
+          LogBloom b;
+          for (auto const& j : t) {
+            b = b.shiftBloom<3>(sha3(j));
           }
-        } else if (!topic.isNull()) {
-          // if it is anything else then string, it
-          // should and will fail
-          filter.topic(i, jsToFixed<32>(topic.asString()));
+          ret.push_back(b);
         }
       }
     }
-    return filter;
+    return ret;
+  }
+
+  // TODO bloom const&
+  bool matches(LogFilter const& f, LogBloom b) const {
+    if (!f.addresses.empty()) {
+      auto ok = false;
+      for (auto const& i : f.addresses) {
+        if (b.containsBloom<3>(sha3(i))) {
+          ok = true;
+          break;
+        }
+      }
+      if (!ok) {
+        return false;
+      }
+    }
+    for (auto const& t : f.topics) {
+      if (t.empty()) {
+        continue;
+      }
+      auto ok = false;
+      for (auto const& i : t) {
+        if (b.containsBloom<3>(sha3(i))) {
+          ok = true;
+          break;
+        }
+      }
+      if (!ok) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  vector<size_t> matches(LogFilter const& f, TransactionReceipt const& r) const {
+    vector<size_t> ret;
+    if (!matches(f, r.bloom())) {
+      return ret;
+    }
+    for (uint log_i = 0; log_i < r.logs.size(); ++log_i) {
+      auto const& e = r.logs[log_i];
+      if (!f.addresses.empty() && !f.addresses.count(e.address)) {
+        continue;
+      }
+      auto ok = true;
+      for (size_t i = 0; i < f.topics.size(); ++i) {
+        if (!f.topics[i].empty() && (e.topics.size() < i || !f.topics[i].count(e.topics[i]))) {
+          ok = false;
+          break;
+        }
+      }
+      if (ok) {
+        ret.push_back(log_i);
+      }
+    }
+    return ret;
+  }
+
+  vector<LocalisedLogEntry> logs(LogFilter const& f) const {
+    auto range_only = is_range_only(f);
+    vector<LocalisedLogEntry> ret;
+    auto action = [&](BlockNumber blk_n) {
+      TransactionLocationWithBlockHash trx_loc{blk_n, 0, *final_chain->block_hash(blk_n)};
+      final_chain->transaction_hashes(trx_loc.blk_n)->for_each([&](auto const& trx_h) {
+        auto r = *final_chain->transaction_receipt(trx_h);
+        auto action = [&](size_t log_i) {
+          ret.push_back({r.logs[log_i], {trx_loc, trx_h}, log_i});
+          //
+        };
+        if (range_only) {
+          for (size_t i = 0; i < r.logs.size(); ++i) {
+            action(i);
+          }
+        } else {
+          for (auto i : matches(f, r)) {
+            action(i);
+          }
+        }
+        ++trx_loc.index;
+      });
+    };
+    if (range_only) {
+      for (auto blk_n = f.from_block; blk_n <= f.to_block; ++blk_n) {
+        action(blk_n);
+      }
+      return ret;
+    }
+    set<BlockNumber> matchingBlocks;
+    for (auto const& bloom : bloomPossibilities(f)) {
+      for (auto blk_n : final_chain->withBlockBloom(bloom, f.from_block, f.to_block)) {
+        matchingBlocks.insert(blk_n);
+      }
+    }
+    for (auto blk_n : matchingBlocks) {
+      action(blk_n);
+    }
+    return ret;
+  }
+
+  DEV_SIMPLE_EXCEPTION(InvalidAddress);
+  static Address toAddress(string const& s) {
+    try {
+      if (auto b = fromHex(s.substr(0, 2) == "0x" ? s.substr(2) : s, WhenError::Throw); b.size() == Address::size) {
+        return Address(b);
+      }
+    } catch (BadHexCharacter&) {
+    }
+    BOOST_THROW_EXCEPTION(InvalidAddress());
   }
 
   static TransactionSkeleton toTransactionSkeleton(Json::Value const& _json) {
@@ -380,15 +535,49 @@ struct EthImpl : Eth, EthParams {
     return ret;
   }
 
-  // TODO REMOVE
-  DEV_SIMPLE_EXCEPTION(InvalidAddress);
-  static Address toAddress(string const& _s) {
-    try {
-      auto b = fromHex(_s.substr(0, 2) == "0x" ? _s.substr(2) : _s, WhenError::Throw);
-      if (b.size() == 20) return Address(b);
-    } catch (BadHexCharacter&) {
+  BlockNumber parse_blk_num(string const& json_str, optional<BlockNumber> latest_block = {}) {
+    if (json_str == "latest" || json_str == "pending") {
+      return latest_block ? *latest_block : final_chain->last_block_number();
     }
-    BOOST_THROW_EXCEPTION(InvalidAddress());
+    return json_str == "earliest" ? 0 : jsToInt(json_str);
+  }
+
+  LogFilter toLogFilter(Json::Value const& json) {
+    auto latest_block = final_chain->last_block_number();
+    LogFilter filter{latest_block, latest_block};
+    if (!json.isObject() || json.empty()) {
+      return filter;
+    }
+    if (auto const& fromBlock = json["fromBlock"]; !fromBlock.empty()) {
+      filter.from_block = parse_blk_num(fromBlock.asString(), latest_block);
+    }
+    if (auto const& toBlock = json["toBlock"]; !toBlock.empty()) {
+      filter.to_block = parse_blk_num(toBlock.asString(), latest_block);
+    }
+    if (auto const& address = json["address"]; !address.empty()) {
+      if (address.isArray()) {
+        for (auto const& i : address) {
+          filter.addresses.insert(toAddress(i.asString()));
+        }
+      } else {
+        filter.addresses.insert(toAddress(address.asString()));
+      }
+    }
+    if (auto const& topics = json["topics"]; !topics.empty()) {
+      for (uint32_t i = 0; i < topics.size(); i++) {
+        auto const& topic = topics[i];
+        if (topic.isArray()) {
+          for (auto const& t : topic) {
+            if (!t.isNull()) {
+              filter.topics[i].insert(jsToFixed<32>(t.asString()));
+            }
+          }
+        } else if (!topic.isNull()) {
+          filter.topics[i].insert(jsToFixed<32>(topic.asString()));
+        }
+      }
+    }
+    return filter;
   }
 
   static void add(Json::Value& obj, optional<TransactionLocationWithBlockHash> const& info) {
@@ -439,27 +628,9 @@ struct EthImpl : Eth, EthParams {
     res["mixHash"] = toJson(BlockHeader::mix_hash());
     res["nonce"] = toJson(BlockHeader::nonce());
     res["uncles"] = Json::Value(Json::arrayValue);
-
     res["hash"] = toJson(obj.hash);
     res["size"] = toJson(obj.ethereum_rlp_size);
     res["totalDifficulty"] = "0x0";
-    return res;
-  }
-
-  static Json::Value toJson(BlockHeaderWithTransactions const& obj) {
-    Json::Value res = toJson(BlockHeader(obj));
-    auto& trxs_json = res["transactions"] = Json::Value(Json::arrayValue);
-    if (obj.trxs.index() == 0) {
-      get<0>(obj.trxs)->for_each([&](auto const& trx_hash) { trxs_json.append(toJson(trx_hash)); });
-    } else {
-      ExtendedTransactionLocation loc;
-      loc.blk_n = obj.number;
-      loc.blk_h = obj.hash;
-      for (auto const& t : get<1>(obj.trxs)) {
-        trxs_json.append(toJson(t, loc));
-        ++loc.index;
-      }
-    }
     return res;
   }
 

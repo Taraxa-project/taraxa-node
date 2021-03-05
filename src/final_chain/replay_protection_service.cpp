@@ -11,7 +11,7 @@
 
 #include "util/util.hpp"
 
-namespace taraxa {
+namespace taraxa::final_chain {
 using namespace dev;
 using namespace util;
 using namespace std;
@@ -28,7 +28,7 @@ struct SenderState {
   uint64_t nonce_max = 0;
   optional<uint64_t> nonce_watermark;
 
-  SenderState(uint64_t nonce_max) : nonce_max(nonce_max) {}
+  explicit SenderState(uint64_t nonce_max) : nonce_max(nonce_max) {}
   explicit SenderState(RLP const& rlp)
       : nonce_max(rlp[0].toInt<trx_nonce_t>()),
         nonce_watermark(rlp[1].toInt<bool>() ? optional(rlp[2].toInt<uint64_t>()) : std::nullopt) {}
@@ -47,7 +47,6 @@ DB::Slice db_slice(dev::bytes const& b) { return {(char*)b.data(), b.size()}; }
 struct ReplayProtectionServiceImpl : virtual ReplayProtectionService {
   Config config;
   shared_ptr<DB> db;
-  // TODO optimistic lock
   shared_mutex mutable mu;
 
   bool is_nonce_stale(addr_t const& addr, uint64_t nonce) const override {
@@ -142,4 +141,4 @@ void dec_json(Json::Value const& json, ReplayProtectionService::Config& obj) {
   obj.range = dev::jsToInt(json["range"].asString());
 }
 
-}  // namespace taraxa
+}  // namespace taraxa::final_chain

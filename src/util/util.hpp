@@ -23,6 +23,17 @@
 
 namespace taraxa {
 
+template <typename Int1, typename Int2>
+auto int_pow(Int1 x, Int2 y) {
+  if (!y) {
+    return 1;
+  }
+  while (--y > 0) {
+    x *= x;
+  }
+  return x;
+}
+
 template <typename T, typename U = T>
 std::vector<T> asVector(Json::Value const &json, std::string const &key) {
   std::vector<T> v;
