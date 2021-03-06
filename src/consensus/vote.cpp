@@ -127,6 +127,12 @@ bool VoteManager::addVote(taraxa::Vote const& vote) {
   return true;
 }
 
+void VoteManager::addVotes(std::vector<Vote> const& votes) {
+  for (auto const& v : votes) {
+    addVote(v);
+  }
+}
+
 // cleanup votes < pbft_round
 void VoteManager::cleanupVotes(uint64_t pbft_round) {
   upgradableLock_ lock(access_);
@@ -309,8 +315,8 @@ bool VoteManager::pbftBlockHasEnoughValidCertVotes(PbftBlockCert const& pbft_blo
   return valid_votes.size() >= pbft_2t_plus_1;
 }
 
-NextVotesForPreviousRound::NextVotesForPreviousRound(addr_t node_addr)
-    : enough_votes_for_null_block_hash_(false), voted_value_(blk_hash_t(0)), next_votes_size_(0) {
+NextVotesForPreviousRound::NextVotesForPreviousRound(addr_t node_addr, std::shared_ptr<DbStorage> db)
+    : db_(db), enough_votes_for_null_block_hash_(false), voted_value_(blk_hash_t(0)), next_votes_size_(0) {
   LOG_OBJECTS_CREATE("NEXT_VOTES");
 }
 
@@ -356,7 +362,7 @@ void NextVotesForPreviousRound::setNextVotesSize(size_t const size) {
   next_votes_size_ = size;
 }
 
-// Assumption is that all votes are validated, in next phase, in the same round and step
+// Assumption is that all votes are validated, in next voting phase, in the same round and step
 void NextVotesForPreviousRound::update(std::vector<Vote> const& next_votes, size_t const TWO_T_PLUS_ONE) {
   LOG(log_nf_) << "There are " << next_votes.size() << " next votes for updating.";
   if (next_votes.empty()) {
@@ -369,7 +375,7 @@ void NextVotesForPreviousRound::update(std::vector<Vote> const& next_votes, size
     upgradableLock_ lock(access_);
     // Copy all next votes
     for (auto const& v : next_votes) {
-      LOG(log_dg_) << "Next vote: " << v;
+      LOG(log_dg_) << "Add next vote: " << v;
 
       auto voted_block_hash = v.getBlockHash();
       if (next_votes_.count(voted_block_hash)) {
@@ -394,6 +400,7 @@ void NextVotesForPreviousRound::update(std::vector<Vote> const& next_votes, size
 
   // Protect for malicious players. If no malicious players, will include either/both NULL BLOCK HASH and a non NULL
   // BLOCK HASH
+  LOG(log_nf_) << "PBFT 2t+1 is " << TWO_T_PLUS_ONE;
   {
     upgradableLock_ lock(access_);
     auto it = next_votes_.begin();
@@ -423,6 +430,47 @@ void NextVotesForPreviousRound::update(std::vector<Vote> const& next_votes, size
   assert(next_votes_.size() == 1 || next_votes_.size() == 2);
 
   setNextVotesSize(next_votes_size);
+}
+
+// Assumption is that all synced votes are in next voting phase, in the same round and step. Voted values have maximum 2
+// block hash, NULL_BLOCK_HASH and a non NULL_BLOCK_HASH
+void NextVotesForPreviousRound::updateWithSyncedVotes(std::vector<Vote> const& next_votes) {
+  if (next_votes.empty()) {
+    return;
+  }
+
+  std::unordered_map<blk_hash_t, std::vector<Vote>> synced_next_votes;
+  // Check synced next votes validation
+  for (auto i = 0; i < next_votes.size(); i++) {
+    if (next_votes[i].getType() != next_vote_type) {
+      LOG(log_er_) << "Synced next vote is not at next voting phase. Vote " << next_votes[i];
+      return;
+    } else if (next_votes[i].getRound() != next_votes[0].getRound()) {
+      LOG(log_er_) << "Synced next votes have a different voted PBFT round. Vote1 " << next_votes[0] << ", Vote2 "
+                   << next_votes[i];
+      return;
+    } else if (next_votes[i].getStep() != next_votes[0].getStep()) {
+      LOG(log_er_) << "Synced next votes have a different voted PBFT step. Vote1 " << next_votes[0] << ", Vote2 "
+                   << next_votes[i];
+      return;
+    }
+
+    auto voted_block_hash = next_votes[i].getBlockHash();
+    if (synced_next_votes.count(voted_block_hash)) {
+      synced_next_votes[voted_block_hash].emplace_back();
+    } else {
+      std::vector<Vote> votes{next_votes[i]};
+      synced_next_votes[voted_block_hash] = votes;
+    }
+  }
+
+  if (synced_next_votes.size() == 1 || synced_next_votes.size() == 2) {
+    // Update DB for the PBFT round
+    auto voted_round = next_votes[0].getRound();
+    db_->saveNextVotes(voted_round, next_votes);
+
+    update(next_votes);
+  }
 }
 
 }  // namespace taraxa

@@ -213,16 +213,17 @@ TEST_F(FullNodeTest, db_test) {
 
   // Certified votes
   std::vector<Vote> cert_votes;
-  blk_hash_t last_pbft_block_hash(0);
-  VrfPbftMsg msg(last_pbft_block_hash, soft_vote_type, 1, 2);
-  vrf_wrapper::vrf_sk_t vrf_sk(
-      "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
-      "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
-  VrfPbftSortition vrf_sortition(vrf_sk, msg);
   blk_hash_t voted_pbft_block_hash(10);
-  Vote vote(g_secret, vrf_sortition, voted_pbft_block_hash);
-  cert_votes.emplace_back(vote);
-  cert_votes.emplace_back(vote);
+  for (auto i = 0; i < 3; i++) {
+    blk_hash_t last_pbft_block_hash(i);
+    VrfPbftMsg msg(last_pbft_block_hash, cert_vote_type, 2, 3);
+    vrf_wrapper::vrf_sk_t vrf_sk(
+        "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
+        "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
+    VrfPbftSortition vrf_sortition(vrf_sk, msg);
+    Vote vote(g_secret, vrf_sortition, voted_pbft_block_hash);
+    cert_votes.emplace_back(vote);
+  }
   batch = db.createWriteBatch();
   db.addCertVotesToBatch(voted_pbft_block_hash, cert_votes, batch);
   db.commitWriteBatch(batch);
@@ -231,6 +232,41 @@ TEST_F(FullNodeTest, db_test) {
   auto cert_votes_from_db = db.getCertVotes(voted_pbft_block_hash);
   PbftBlockCert pbft_block_cert_votes_from_db(pbft_block, cert_votes_from_db);
   EXPECT_EQ(pbft_block_cert_votes.rlp(), pbft_block_cert_votes_from_db.rlp());
+
+  // Next votes
+  std::vector<Vote> next_votes;
+  blk_hash_t last_pbft_block_hash(0);
+  auto round = 3, step = 5;
+  for (auto i = 0; i < 3; i++) {
+    blk_hash_t voted_pbft_block_hash(i);
+    VrfPbftMsg msg(last_pbft_block_hash, cert_vote_type, round, step);
+    vrf_wrapper::vrf_sk_t vrf_sk(
+        "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
+        "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
+    VrfPbftSortition vrf_sortition(vrf_sk, msg);
+    Vote vote(g_secret, vrf_sortition, voted_pbft_block_hash);
+    next_votes.emplace_back(vote);
+  }
+  db.saveNextVotes(round, next_votes);
+  auto next_votes_from_db = db.getNextVotes(round);
+  EXPECT_EQ(next_votes.size(), next_votes_from_db.size());
+  EXPECT_EQ(next_votes_from_db.size(), 3);
+  for (auto i = 3; i < 5; i++) {
+    blk_hash_t voted_pbft_block_hash(i);
+    VrfPbftMsg msg(last_pbft_block_hash, cert_vote_type, round, step);
+    vrf_wrapper::vrf_sk_t vrf_sk(
+        "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
+        "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
+    VrfPbftSortition vrf_sortition(vrf_sk, msg);
+    Vote vote(g_secret, vrf_sortition, voted_pbft_block_hash);
+    next_votes.emplace_back(vote);
+  }
+  batch = db.createWriteBatch();
+  db.addNextVotesToBatch(round, next_votes, batch);
+  db.commitWriteBatch(batch);
+  next_votes_from_db = db.getNextVotes(round);
+  EXPECT_EQ(next_votes.size(), next_votes_from_db.size());
+  EXPECT_EQ(next_votes_from_db.size(), 5);
 
   // period_pbft_block
   batch = db.createWriteBatch();

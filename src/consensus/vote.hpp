@@ -144,7 +144,10 @@ class VoteManager {
 
   bool voteValidation(blk_hash_t const& last_pbft_block_hash, Vote const& vote, size_t const valid_sortition_players,
                       size_t const sortition_threshold) const;
+
   bool addVote(taraxa::Vote const& vote);
+  void addVotes(std::vector<Vote> const& votes);
+
   void cleanupVotes(uint64_t pbft_round);
   void clearUnverifiedVotesTable();
   uint64_t getUnverifiedVotesSize() const;
@@ -178,7 +181,7 @@ class VoteManager {
 
 class NextVotesForPreviousRound {
  public:
-  NextVotesForPreviousRound(addr_t node_addr);
+  NextVotesForPreviousRound(addr_t node_addr, std::shared_ptr<DbStorage> db);
 
   void clear();
 
@@ -193,6 +196,8 @@ class NextVotesForPreviousRound {
 
   void update(std::vector<Vote> const& next_votes, size_t const TWO_T_PLUS_ONE = 0);
 
+  void updateWithSyncedVotes(std::vector<Vote> const& votes);
+
  private:
   using uniqueLock_ = boost::unique_lock<boost::shared_mutex>;
   using sharedLock_ = boost::shared_lock<boost::shared_mutex>;
@@ -200,6 +205,8 @@ class NextVotesForPreviousRound {
   using upgradeLock_ = boost::upgrade_to_unique_lock<boost::shared_mutex>;
 
   mutable boost::shared_mutex access_;
+
+  std::shared_ptr<DbStorage> db_;
 
   bool enough_votes_for_null_block_hash_;
   blk_hash_t voted_value_;  // For value is not null block hash

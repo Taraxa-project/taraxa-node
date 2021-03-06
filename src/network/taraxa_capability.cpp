@@ -145,39 +145,40 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
     if (peer) {
       packet_size[_id] += _r.actualSize();
       packet_count[_id]++;
+
       switch (_id) {
         case SyncedPacket: {
           LOG(log_dg_dag_sync_) << "Received synced message from " << _nodeID;
+
           peer->syncing_ = false;
           peer->clearAllKnownBlocksAndTransactions();
-        } break;
+
+          break;
+        }
         case StatusPacket: {
           peer->statusReceived();
           bool initial_status = _r.itemCount() == 10;
-          uint64_t peer_dag_max_level;
-          uint64_t peer_pbft_chain_size;
-          uint64_t peer_pbft_round;
-          size_t peer_pbft_previous_round_next_votes_size;
           auto pbft_chain_size = pbft_chain_->getPbftChainSize();
 
           if (initial_status) {
             auto it = _r.begin();
             auto const peer_protocol_version = (*it++).toInt<unsigned>();
             auto const network_id = (*it++).toPositiveInt64();
-            peer_dag_max_level = (*it++).toPositiveInt64();
+            peer->dag_level_ = (*it++).toPositiveInt64();
             auto const genesis_hash = (*it++).toString();
-            peer_pbft_chain_size = (*it++).toPositiveInt64();
+            peer->pbft_chain_size_ = (*it++).toPositiveInt64();
             peer->syncing_ = (*it++).toInt();
-            peer_pbft_round = (*it++).toPositiveInt64();
-            peer_pbft_previous_round_next_votes_size = (*it++).toInt<unsigned>();
+            peer->pbft_round_ = (*it++).toPositiveInt64();
+            peer->pbft_previous_round_next_votes_size_ = (*it++).toInt<unsigned>();
             auto node_major_version = (*it++).toInt();
             auto node_minor_version = (*it++).toInt();
+
             LOG(log_dg_) << "Received initial status message from " << _nodeID << ", peer protocol version "
                          << peer_protocol_version << ", network id " << network_id << ", peer DAG max level "
-                         << peer_dag_max_level << ", genesis " << genesis_ << ", peer pbft chain size "
-                         << peer_pbft_chain_size << ", peer syncing " << peer->syncing_ << ", peer pbft round "
-                         << peer_pbft_round << ", peer pbft previous round next votes size "
-                         << peer_pbft_previous_round_next_votes_size << ", node major version" << node_major_version
+                         << peer->dag_level_ << ", genesis " << genesis_ << ", peer pbft chain size "
+                         << peer->pbft_chain_size_ << ", peer syncing " << peer->syncing_ << ", peer pbft round "
+                         << peer->pbft_round_ << ", peer pbft previous round next votes size "
+                         << peer->pbft_previous_round_next_votes_size_ << ", node major version" << node_major_version
                          << ", node minor version" << node_minor_version;
 
             if (peer_protocol_version != FullNode::c_network_protocol_version) {
@@ -205,36 +206,34 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
             }
             // Only on the initial status message the other node might not
             // have still started syncing so double check with pbft chain size
-            peer->syncing_ |= peer_pbft_chain_size < pbft_chain_size;
+            peer->syncing_ |= peer->pbft_chain_size_ < pbft_chain_size;
           } else {
             auto it = _r.begin();
-            peer_dag_max_level = (*it++).toPositiveInt64();
-            peer_pbft_chain_size = (*it++).toPositiveInt64();
+            peer->dag_level_ = (*it++).toPositiveInt64();
+            peer->pbft_chain_size_ = (*it++).toPositiveInt64();
             peer->syncing_ = (*it++).toInt();
-            peer_pbft_round = (*it++).toPositiveInt64();
-            peer_pbft_previous_round_next_votes_size = (*it++).toInt<unsigned>();
-            LOG(log_dg_) << "Received status message from " << _nodeID << ", peer DAG max level " << peer_dag_max_level
-                         << ", peer pbft chain size " << peer_pbft_chain_size << ", peer syncing " << peer->syncing_
-                         << ", peer pbft round " << peer_pbft_round << ", peer pbft previous round next votes size "
-                         << peer_pbft_previous_round_next_votes_size;
+            peer->pbft_round_ = (*it++).toPositiveInt64();
+            peer->pbft_previous_round_next_votes_size_ = (*it++).toInt<unsigned>();
+
+            LOG(log_dg_) << "Received status message from " << _nodeID << ", peer DAG max level " << peer->dag_level_
+                         << ", peer pbft chain size " << peer->pbft_chain_size_ << ", peer syncing " << peer->syncing_
+                         << ", peer pbft round " << peer->pbft_round_ << ", peer pbft previous round next votes size "
+                         << peer->pbft_previous_round_next_votes_size_;
           }
+
           LOG(log_dg_dag_sync_) << "Received status message from " << _nodeID
-                                << " peer DAG max level:" << peer_dag_max_level;
-          LOG(log_dg_pbft_sync_) << "Received status message from " << _nodeID
-                                 << " PBFT chain size:" << peer_pbft_chain_size << " " << peer->syncing_;
+                                << " peer DAG max level:" << peer->dag_level_;
+          LOG(log_dg_pbft_sync_) << "Received status message from " << _nodeID << ", peer sycning: " << peer->syncing_
+                                 << ", PBFT chain size:" << peer->pbft_chain_size_
+                                 << ". Own peer syncing pbft chain size: " << peer_syncing_pbft_chain_size_;
           LOG(log_dg_next_votes_sync_) << "Received status message from " << _nodeID << ", PBFT round "
-                                       << peer_pbft_round << ", peer PBFT previous round next votes size "
-                                       << peer_pbft_previous_round_next_votes_size;
-          peer->pbft_chain_size_ = peer_pbft_chain_size;
-          peer->dag_level_ = peer_dag_max_level;
-          peer->pbft_round_ = peer_pbft_round;
-          peer->pbft_previous_round_next_votes_size_ = peer_pbft_previous_round_next_votes_size;
-          LOG(log_dg_pbft_sync_) << "peer pbft chain size: " << peer_pbft_chain_size
-                                 << ", peer syncing pbft chain size: " << peer_syncing_pbft_chain_size_;
+                                       << peer->pbft_round_ << ", peer PBFT previous round next votes size "
+                                       << peer->pbft_previous_round_next_votes_size_;
+
           if (peer->syncing_) {
             LOG(log_dg_pbft_sync_) << "Peer node has a short PBFT chain, prevent gossiping to " << _nodeID
                                    << ". Own pbft chain size " << pbft_chain_size << " Peer pbft chain size "
-                                   << peer_pbft_chain_size;
+                                   << peer->pbft_chain_size_;
             if (syncing_ && peer_syncing_pbft_ == _nodeID) {
               // We are currently syncing to a node that just reported it is not synced, force a switch to a new node
               restartSyncingPbft(true);
@@ -243,9 +242,9 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
 
           auto pbft_current_round = pbft_mgr_->getPbftRound();
           auto pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesSize();
-          if (pbft_current_round < peer_pbft_round ||
-              (pbft_current_round == peer_pbft_round &&
-               pbft_previous_round_next_votes_size < peer_pbft_previous_round_next_votes_size)) {
+          if (pbft_current_round < peer->pbft_round_ ||
+              (pbft_current_round == peer->pbft_round_ &&
+               pbft_previous_round_next_votes_size < peer->pbft_previous_round_next_votes_size_)) {
             syncPbftNextVotes(pbft_current_round, pbft_previous_round_next_votes_size);
           }
 
@@ -415,13 +414,32 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         }
         case PbftNextVotesPacket: {
           auto next_votes_count = _r.itemCount();
+          if (next_votes_count == 0) {
+            LOG(log_er_next_votes_sync_) << "Synced 0 next votes from peer " << _nodeID
+                                         << ". The peer may be a malicous player, will be disconnected";
+            host_.capabilityHost()->disconnect(_nodeID, p2p::UserReason);
+
+            break;
+          }
           LOG(log_nf_next_votes_sync_) << "Received " << next_votes_count << " next votes from peer " << _nodeID;
 
+          std::vector<Vote> next_votes;
           for (auto i = 0; i < next_votes_count; i++) {
             Vote next_vote(_r[i].data().toBytes());
             LOG(log_nf_next_votes_sync_) << "Received PBFT next vote " << next_vote.getHash();
-            // TODO: Cannot add next votes to unverified queue, need update NextVotesForPreviousRound
-            vote_mgr_->addVote(next_vote);
+
+            next_votes.emplace_back(next_vote);
+          }
+
+          auto pbft_current_round = pbft_mgr_->getPbftRound();
+          auto pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesSize();
+          auto peer_pbft_round = next_votes[0].getRound() + 1;
+
+          if (pbft_current_round < peer_pbft_round) {
+            // Add into votes unverified queue
+            vote_mgr_->addVotes(next_votes);
+          } else if (pbft_current_round == peer_pbft_round && pbft_previous_round_next_votes_size < next_votes_count) {
+            next_votes_mgr_->updateWithSyncedVotes(next_votes);
           }
 
           break;
@@ -1179,9 +1197,9 @@ void TaraxaCapability::syncPbftNextVotes(uint64_t const pbft_round, size_t const
                     (pbft_round == peer_max_pbft_round &&
                      pbft_previous_round_next_votes_size < peer_max_previous_round_next_votes_size))) {
     LOG(log_dg_next_votes_sync_) << "Syncing PBFT next votes. Current PBFT round " << pbft_round
-                                 << " previous round next votes size " << pbft_previous_round_next_votes_size
-                                 << ", peer " << peer_node_ID << " is in PBFT round " << peer_max_pbft_round
-                                 << " previous round next votes size " << peer_max_previous_round_next_votes_size;
+                                 << ", previous round next votes size " << pbft_previous_round_next_votes_size
+                                 << ". Peer " << peer_node_ID << " is in PBFT round " << peer_max_pbft_round
+                                 << ", previous round next votes size " << peer_max_previous_round_next_votes_size;
     requestPbftNextVotes(peer_node_ID, pbft_round, pbft_previous_round_next_votes_size);
   }
 }
@@ -1199,6 +1217,10 @@ void TaraxaCapability::requestPbftNextVotes(NodeID const &peerID, uint64_t const
 
 void TaraxaCapability::sendPbftNextVotes(NodeID const &peerID) {
   std::vector<Vote> next_votes_bundle = next_votes_mgr_->getNextVotes();
+  if (next_votes_bundle.empty()) {
+    LOG(log_er_next_votes_sync_) << "There are 0 next votes for previous PBFT round";
+    return;
+  }
   LOG(log_nf_next_votes_sync_) << "Send out size of " << next_votes_bundle.size() << " PBFT next votes to " << peerID;
 
   RLPStream s;
