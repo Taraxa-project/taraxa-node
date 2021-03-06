@@ -25,7 +25,7 @@ struct EthParams {
   uint64_t chain_id = 0;
   shared_ptr<FinalChain> final_chain;
   function<shared_ptr<Transaction>(h256 const&)> get_trx;
-  function<h256 const&(Transaction const& trx)> send_trx;
+  function<void(Transaction const& trx)> send_trx;
   function<u256()> gas_pricer = [] { return u256(0); };
   WatchesConfig watches_cfg;
 };

@@ -85,12 +85,17 @@ struct EthImpl : Eth, EthParams {
   string eth_sendTransaction(Json::Value const& _json) override {
     auto t = toTransactionSkeleton(_json);
     set_transaction_defaults(t, final_chain->last_block_number());
-    return toJS(send_trx(Transaction(t.nonce.value_or(0), t.value, t.gas_price.value_or(0), t.gas.value_or(0), t.data,
-                                     secret, t.to ? optional(t.to) : nullopt, chain_id)));
+    Transaction trx(t.nonce.value_or(0), t.value, t.gas_price.value_or(0), t.gas.value_or(0), t.data, secret,
+                    t.to ? optional(t.to) : nullopt, chain_id);
+    send_trx(trx);
+    trx.rlp(true);
+    return toJS(trx.getHash());
   }
 
   string eth_sendRawTransaction(string const& _rlp) override {
-    return toJS(send_trx(Transaction(jsToBytes(_rlp, OnFailed::Throw), true)));
+    Transaction trx(jsToBytes(_rlp, OnFailed::Throw), true);
+    send_trx(trx);
+    return toJS(trx.getHash());
   }
 
   Json::Value eth_getBlockByHash(string const& _blockHash, bool _includeTransactions) override {

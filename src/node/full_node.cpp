@@ -109,7 +109,6 @@ void FullNode::start() {
                                     "Reason: %s",
                                     dev::toJS(*trx.rlp()), err_msg)));
       }
-      return trx.getHash();
     };
     auto eth_json_rpc = net::rpc::eth::NewEth(move(eth_rpc_params));
     emplace(jsonrpc_api_,
