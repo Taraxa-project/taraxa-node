@@ -2,7 +2,7 @@
 
 #include <chrono>
 
-#include "LogReader.hpp"
+#include "LogFilter.hpp"
 #include "data.hpp"
 
 namespace taraxa::net::rpc::eth {
@@ -10,11 +10,20 @@ namespace taraxa::net::rpc::eth {
 // TODO taraxa simple exception
 DEV_SIMPLE_EXCEPTION(WatchLimitExceeded);
 
-using dummy_t = uint8_t;
-template <typename InputType, typename OutputType = InputType, typename Params = dummy_t>
+using WatchID = uint64_t;
+
+inline auto const watch_id_type_mask_bits = WatchType(ceil(log2(float(COUNT))));
+
+struct placeholder_t {};
+template <WatchType type_, typename InputType_, typename OutputType_ = placeholder_t, typename Params = placeholder_t>
 struct WatchGroup {
+  static constexpr auto type = type_;
+  using InputType = InputType_;
+  using OutputType = conditional_t<is_same_v<OutputType_, placeholder_t>, InputType, OutputType_>;
   using time_point = chrono::system_clock::time_point;
-  using WatchID = uint64_t;
+  using Updater = function<void(Params const&,     //
+                                InputType const&,  //
+                                function<void(OutputType const&)> const& /*do_update*/)>;
 
   struct Watch {
     Params params;
@@ -23,15 +32,15 @@ struct WatchGroup {
   };
 
  private:
-  WatchGroupConfig cfg;
-  function<void(Params const&, InputType const&, function<void(OutputType const&)> const&)> updater;
-  unordered_map<WatchID, Watch> watches;
-  shared_mutex watches_mu;
-  WatchID watch_id_seq = 0;
+  WatchGroupConfig cfg_;
+  Updater updater_;
+  mutable unordered_map<WatchID, Watch> watches_;
+  mutable shared_mutex watches_mu_;
+  mutable WatchID watch_id_seq_ = 0;
 
  public:
-  WatchGroup(WatchGroupConfig const& cfg = {}, decltype(updater)&& updater = {}) : cfg(cfg), updater(move(updater)) {
-    assert(cfg.idle_timeout.count() != 0);
+  WatchGroup(WatchesConfig const& cfg = {}, Updater&& updater = {}) : cfg_(cfg[type]), updater_(move(updater)) {
+    assert(cfg_.idle_timeout.count() != 0);
     if constexpr (is_same_v<InputType, OutputType>) {
       if (!updater) {
         updater = [](auto const& params, auto const& input, auto const& do_update) { do_update(input); };
@@ -39,60 +48,58 @@ struct WatchGroup {
     }
   }
 
-  WatchID install_watch(Params&& predicate_params = {}) {
-    unique_lock l(watches_mu);
-    if (watches.size() == cfg.max_watches) {
+  WatchID install_watch(Params&& params = {}) const {
+    unique_lock l(watches_mu_);
+    if (watches_.size() == cfg_.max_watches) {
       throw WatchLimitExceeded();
     }
-    auto id = ++watch_id_seq;
-    watches[id] = {move(predicate_params), chrono::system_clock::now()};
+    auto id = ((++watch_id_seq_) << watch_id_type_mask_bits) + type;
+    watches_.insert_or_assign(id, Watch{move(params), chrono::system_clock::now()});
     return id;
   }
 
-  bool uninstall_watch(WatchID watch_id) {
-    unique_lock l(watches_mu);
-    return watches.erase(watch_id);
+  bool uninstall_watch(WatchID watch_id) const {
+    unique_lock l(watches_mu_);
+    return watches_.erase(watch_id);
   }
 
-  void uninstall_stale_watches() {
-    unique_lock l(watches_mu);
+  void uninstall_stale_watches() const {
+    unique_lock l(watches_mu_);
     auto t_now = chrono::system_clock::now();
     bool did_uninstall = false;
-    for (auto& [id, watch] : watches) {
-      if (cfg.idle_timeout <= (t_now - watch.last_touched).seconds()) {
-        watches.erase(id);
+    for (auto& [id, watch] : watches_) {
+      if (cfg_.idle_timeout <= chrono::duration_cast<chrono::seconds>(t_now - watch.last_touched)) {
+        watches_.erase(id);
         did_uninstall = true;
       }
     }
-    if (auto num_buckets = watches.bucket_count(); did_uninstall && (1 << 10) < num_buckets) {
-      if (auto desired_num_buckets = 1 << uint(ceil(log2(watches.size()))); desired_num_buckets < num_buckets) {
-        watches.rehash(desired_num_buckets);
+    if (auto num_buckets = watches_.bucket_count(); did_uninstall && (1 << 10) < num_buckets) {
+      if (auto desired_num_buckets = 1 << uint(ceil(log2(watches_.size()))); desired_num_buckets != num_buckets) {
+        watches_.rehash(desired_num_buckets);
       }
     }
   }
 
-  optional<Params> get_watch_params(WatchID watch_id) {
-    shared_lock l(watches_mu);
-    if (auto entry = watches.find(watch_id); entry != watches.end()) {
+  optional<Params> get_watch_params(WatchID watch_id) const {
+    shared_lock l(watches_mu_);
+    if (auto entry = watches_.find(watch_id); entry != watches_.end()) {
       return entry->second.params;
     }
     return {};
   }
 
-  void process_updates(util::RangeView<InputType> const& input) {
-    input.for_each([this](auto const& obj_in) {
-      shared_lock l(watches_mu);
-      for (auto& entry : watches) {
-        auto& watch = entry.second;
-        updater(watch.params, obj_in, [&](auto const& obj_out) { watch.updates.push_back(obj_out); });
-      }
-    });
+  void process_update(InputType const& obj_in) const {
+    shared_lock l(watches_mu_);
+    for (auto& entry : watches_) {
+      auto& watch = entry.second;
+      updater_(watch.params, obj_in, [&](auto const& obj_out) { watch.updates.push_back(obj_out); });
+    }
   }
 
-  vector<InputType> poll(WatchID watch_id) {
-    vector<InputType> ret;
-    shared_lock l(watches_mu);
-    if (auto entry = watches.find(watch_id); entry != watches.end()) {
+  auto poll(WatchID watch_id) const {
+    vector<OutputType> ret;
+    shared_lock l(watches_mu_);
+    if (auto entry = watches_.find(watch_id); entry != watches_.end()) {
       auto& watch = entry->second;
       swap(ret, watch.updates);
       watch.last_touched = chrono::system_clock::now();
@@ -101,46 +108,59 @@ struct WatchGroup {
   }
 };
 
-class Watches {
-  using WatchID = string;
+struct Watches {
+  WatchesConfig const cfg;
 
-  WatchGroup<h256> new_blocks;
-  WatchGroup<h256> new_transactions;
-  WatchGroup<TransactionReceipt, LogFilter> logs;
-  thread watch_cleaner;
-  atomic<bool> destructor_called = false;
+  WatchGroup<WatchType::new_blocks, h256> const new_blocks{cfg};
+  WatchGroup<WatchType::new_transactions, h256> const new_transactions{cfg};
+  WatchGroup<WatchType::logs,  //
+             pair<ExtendedTransactionLocation const&, TransactionReceipt const&>, LocalisedLogEntry, LogFilter> const
+      logs{
+          cfg,
+          [](auto const& log_filter, auto const& input, auto const& do_update) {
+            auto const& [trx_loc, receipt] = input;
+            log_filter.match_one(trx_loc, receipt, do_update);
+          },
+      };
+
+  template <typename Visitor>
+  auto visit(WatchType type, Visitor&& visitor) {
+    switch (type) {
+      case WatchType::new_blocks:
+        return visitor(&new_blocks);
+      case WatchType::new_transactions:
+        return visitor(&new_transactions);
+      case WatchType::logs:
+        return visitor(&logs);
+      default:
+        assert(false);
+    }
+  }
+
+ private:
+  thread watch_cleaner_;
+  atomic<bool> destructor_called_ = false;
 
  public:
-  Watches(WatchesConfig const& cfg)
-      : new_blocks(cfg.new_blocks),
-        new_transactions(cfg.new_transactions),
-        logs(cfg.logs,
-             [](auto const& log_filter, auto const& receipt, auto const& do_update) {
-               //
-               //
-             }),
-        watch_cleaner([this] {
-          while (!destructor_called) {
+  Watches(WatchesConfig const& _cfg)
+      : cfg(_cfg), watch_cleaner_([this] {
+          while (!destructor_called_) {
             //
           }
         }) {}
 
   ~Watches() {
-    destructor_called = true;
-    watch_cleaner.join();
+    destructor_called_ = true;
+    watch_cleaner_.join();
   }
 
-  optional<LogFilter> getLogFilter(WatchID const& id) const { return {}; }
-  WatchID newBlockFilter() { return 0; }
-  WatchID newPendingTransactionFilter() { return 0; }
-  WatchID newLogFilter(LogFilter&& _filter) { return 0; }
-  bool uninstallFilter(WatchID const& id) { return false; }
-
-  void note_block(h256 const& blk_hash) { new_blocks.process_updates(vector{blk_hash}); }
-  void note_pending_transactions(RangeView<h256> const& trx_hashes) { new_transactions.process_updates(trx_hashes); }
-  void note_receipts(RangeView<TransactionReceipt> const& receipts) { logs.process_updates(receipts); }
-
-  Json::Value poll(WatchID const& id) { return Json::Value(Json::arrayValue); }
+  template <typename Visitor>
+  auto visit_by_id(WatchID watch_id, Visitor&& visitor) {
+    if (auto type = WatchType(watch_id & ((1 << watch_id_type_mask_bits) - 1)); type < COUNT) {
+      return visit(type, forward<Visitor>(visitor));
+    }
+    return visitor(decltype (&new_blocks)(nullptr));
+  }
 };
 
 }  // namespace taraxa::net::rpc::eth

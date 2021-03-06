@@ -167,7 +167,7 @@ struct FinalChainImpl final : virtual FinalChain {
           r.GasUsed,
           cumulative_gas_used += r.GasUsed,
           move(logs),
-          r.NewContractAddr,
+          r.NewContractAddr ? optional(r.NewContractAddr) : nullopt,
       });
     }
 
@@ -207,9 +207,7 @@ struct FinalChainImpl final : virtual FinalChain {
       last_block_ = blk_header;
     }
 
-    block_executed_.emit({pbft_blk_ptr, move(finalized_dag_blk_hashes), blk_header, move(receipts)});
-
-    to_execute.clear();
+    block_executed_.emit({pbft_blk_ptr, move(finalized_dag_blk_hashes), blk_header, move(to_execute), move(receipts)});
 
     LOG(log_nf_) << " successful execute pbft block " << pbft_block_hash << " in period " << pbft_period;
   }

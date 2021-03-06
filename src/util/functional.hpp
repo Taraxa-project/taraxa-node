@@ -10,6 +10,4 @@ inline task_executor_t current_thread_executor() {
   return [](auto &&task) { task(); };
 }
 
-inline auto noop() { return [](auto...) -> auto {}; }
-
 }  // namespace taraxa::util

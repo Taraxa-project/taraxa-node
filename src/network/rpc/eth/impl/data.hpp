@@ -42,11 +42,4 @@ struct TransactionSkeleton {
   optional<u256> gas_price;
 };
 
-struct LogFilter {
-  BlockNumber from_block = 0;
-  BlockNumber to_block = 0;
-  AddressSet addresses;
-  array<unordered_set<h256>, 4> topics;
-};
-
 }  // namespace taraxa::net::rpc::eth

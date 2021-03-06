@@ -29,9 +29,10 @@ struct FinalChain {
   };
 
   struct BlockExecuted {
-    shared_ptr<PbftBlock const> pbft_blk;
+    shared_ptr<PbftBlock> pbft_blk;
     vector<blk_hash_t> finalized_dag_blk_hashes;
     shared_ptr<BlockHeader const> final_chain_blk;
+    Transactions trxs;
     TransactionReceipts trx_receipts;
   };
 

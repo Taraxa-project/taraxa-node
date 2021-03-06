@@ -8,16 +8,19 @@ using namespace ::taraxa::final_chain;
 using namespace ::std;
 using namespace ::dev;
 
+enum WatchType {
+  new_blocks,
+  new_transactions,
+  logs,
+
+  // do not touch
+  COUNT,
+};
 struct WatchGroupConfig {
   uint64_t max_watches = 0;
   chrono::seconds idle_timeout{5 * 60};
 };
-
-struct WatchesConfig {
-  WatchGroupConfig new_blocks;
-  WatchGroupConfig new_transactions;
-  WatchGroupConfig logs;
-};
+using WatchesConfig = array<WatchGroupConfig, WatchType::COUNT>;
 
 struct EthParams {
   Address address;
@@ -33,9 +36,8 @@ struct EthParams {
 struct Eth : virtual ::taraxa::net::EthFace {
   virtual ~Eth() {}
 
-  virtual void note_block(h256 const& blk_hash) = 0;
+  virtual void note_block_executed(BlockHeader const&, Transactions const&, TransactionReceipts const&) = 0;
   virtual void note_pending_transactions(util::RangeView<h256> const& trx_hashes) = 0;
-  virtual void note_receipts(util::RangeView<TransactionReceipt> const& receipts) = 0;
 };
 
 Eth* NewEth(EthParams&&);

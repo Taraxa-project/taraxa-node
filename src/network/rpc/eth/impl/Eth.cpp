@@ -4,7 +4,7 @@
 #include <libdevcore/CommonData.h>
 #include <libdevcore/CommonJS.h>
 
-#include "LogReader.hpp"
+#include "LogFilter.hpp"
 #include "Watches.hpp"
 
 namespace taraxa::net::rpc::eth {
@@ -14,10 +14,9 @@ using namespace ::taraxa::final_chain;
 using namespace ::taraxa::state_api;
 
 struct EthImpl : Eth, EthParams {
-  LogReader log_reader;
   Watches watches;
 
-  EthImpl(EthParams&& prerequisites) : EthParams(move(prerequisites)), log_reader{final_chain}, watches(watches_cfg) {}
+  EthImpl(EthParams&& prerequisites) : EthParams(move(prerequisites)), watches(watches_cfg) {}
 
   virtual RPCModules implementedModules() const override { return RPCModules{RPCModule{"eth", "1.0"}}; }
 
@@ -131,24 +130,37 @@ struct EthImpl : Eth, EthParams {
 
   Json::Value eth_getUncleByBlockNumberAndIndex(string const&, string const&) override { return Json::Value(); }
 
-  string eth_newFilter(Json::Value const& _json) override { return watches.newLogFilter(toLogFilter(_json)); }
+  string eth_newFilter(Json::Value const& _json) override {
+    return toJS(watches.logs.install_watch(parse_log_filter(_json)));
+  }
 
-  string eth_newBlockFilter() override { return watches.newBlockFilter(); }
+  string eth_newBlockFilter() override { return toJS(watches.new_blocks.install_watch()); }
 
-  string eth_newPendingTransactionFilter() override { return watches.newPendingTransactionFilter(); }
+  string eth_newPendingTransactionFilter() override { return toJS(watches.new_transactions.install_watch()); }
 
-  bool eth_uninstallFilter(string const& _filterId) override { return watches.uninstallFilter(_filterId); }
+  bool eth_uninstallFilter(string const& _filterId) override {
+    auto watch_id = jsToInt(_filterId);
+    return watches.visit_by_id(watch_id, [=](auto watch) { return watch ? watch->uninstall_watch(watch_id) : false; });
+  }
 
-  Json::Value eth_getFilterChanges(string const& _filterId) override { return watches.poll(_filterId); }
+  Json::Value eth_getFilterChanges(string const& _filterId) override {
+    auto watch_id = jsToInt(_filterId);
+    return watches.visit_by_id(watch_id, [=](auto watch) {
+      return watch ? toJson(watch->poll(watch_id)) : Json::Value(Json::arrayValue);
+      //
+    });
+  }
 
   Json::Value eth_getFilterLogs(string const& _filterId) override {
-    if (auto filter = watches.getLogFilter(_filterId)) {
-      return toJson(log_reader.logs(*filter));
+    if (auto filter = watches.logs.get_watch_params(jsToInt(_filterId))) {
+      return toJson(filter->match_all(*final_chain));
     }
     return Json::Value(Json::arrayValue);
   }
 
-  Json::Value eth_getLogs(Json::Value const& _json) override { return toJson(log_reader.logs(toLogFilter(_json))); }
+  Json::Value eth_getLogs(Json::Value const& _json) override {
+    return toJson(parse_log_filter(_json).match_all(*final_chain));
+  }
 
   Json::Value eth_syncing() override {
     // TODO
@@ -157,13 +169,20 @@ struct EthImpl : Eth, EthParams {
 
   Json::Value eth_chainId() override { return chain_id ? Json::Value(toJS(chain_id)) : Json::Value(); }
 
-  void note_block(h256 const& blk_hash) override { watches.note_block(blk_hash); }
-
-  void note_pending_transactions(RangeView<h256> const& trx_hashes) override {
-    watches.note_pending_transactions(trx_hashes);
+  void note_block_executed(BlockHeader const& blk_header, Transactions const& trxs,
+                           TransactionReceipts const& receipts) override {
+    watches.new_blocks.process_update(blk_header.hash);
+    ExtendedTransactionLocation trx_loc{blk_header.number, 0, blk_header.hash};
+    for (; trx_loc.index < trxs.size(); ++trx_loc.index) {
+      trx_loc.trx_hash = trxs[trx_loc.index].getHash();
+      using LogsInput = typename decltype(watches.logs)::InputType;
+      watches.logs.process_update(LogsInput(trx_loc, receipts[trx_loc.index]));
+    }
   }
 
-  void note_receipts(RangeView<TransactionReceipt> const& receipts) override { watches.note_receipts(receipts); }
+  void note_pending_transactions(RangeView<h256> const& trx_hashes) override {
+    trx_hashes.for_each([this](auto const& trx_h) { watches.new_transactions.process_update(trx_h); });
+  }
 
   Json::Value get_block_by_number(BlockNumber blk_n, bool include_transactions) {
     auto blk_header = final_chain->block_header(blk_n);
@@ -328,49 +347,52 @@ struct EthImpl : Eth, EthParams {
     return ret;
   }
 
-  BlockNumber parse_blk_num(string const& json_str, optional<BlockNumber> latest_block = {}) {
-    if (json_str == "latest" || json_str == "pending") {
-      return latest_block ? *latest_block : final_chain->last_block_number();
+  static optional<BlockNumber> parse_blk_num_opt(string const& blk_num_str) {
+    if (blk_num_str == "latest" || blk_num_str == "pending") {
+      return {};
     }
-    return json_str == "earliest" ? 0 : jsToInt(json_str);
+    return blk_num_str == "earliest" ? 0 : jsToInt(blk_num_str);
   }
 
-  LogFilter toLogFilter(Json::Value const& json) {
-    auto latest_block = final_chain->last_block_number();
-    LogFilter filter{latest_block, latest_block};
-    if (!json.isObject() || json.empty()) {
-      return filter;
-    }
+  BlockNumber parse_blk_num(string const& blk_num_str) {
+    auto ret = parse_blk_num_opt(blk_num_str);
+    return ret ? *ret : final_chain->last_block_number();
+  }
+
+  LogFilter parse_log_filter(Json::Value const& json) {
+    optional<BlockNumber> from_block, to_block;
+    AddressSet addresses;
+    LogFilter::Topics topics;
     if (auto const& fromBlock = json["fromBlock"]; !fromBlock.empty()) {
-      filter.from_block = parse_blk_num(fromBlock.asString(), latest_block);
+      from_block = parse_blk_num_opt(fromBlock.asString());
     }
     if (auto const& toBlock = json["toBlock"]; !toBlock.empty()) {
-      filter.to_block = parse_blk_num(toBlock.asString(), latest_block);
+      to_block = parse_blk_num_opt(toBlock.asString());
     }
     if (auto const& address = json["address"]; !address.empty()) {
       if (address.isArray()) {
-        for (auto const& i : address) {
-          filter.addresses.insert(toAddress(i.asString()));
+        for (auto const& obj : address) {
+          addresses.insert(toAddress(obj.asString()));
         }
       } else {
-        filter.addresses.insert(toAddress(address.asString()));
+        addresses.insert(toAddress(address.asString()));
       }
     }
-    if (auto const& topics = json["topics"]; !topics.empty()) {
-      for (uint32_t i = 0; i < topics.size(); i++) {
-        auto const& topic = topics[i];
-        if (topic.isArray()) {
-          for (auto const& t : topic) {
+    if (auto const& topics_json = json["topics"]; !topics_json.empty()) {
+      for (uint32_t i = 0; i < topics_json.size(); i++) {
+        auto const& topic_json = topics_json[i];
+        if (topic_json.isArray()) {
+          for (auto const& t : topic_json) {
             if (!t.isNull()) {
-              filter.topics[i].insert(jsToFixed<32>(t.asString()));
+              topics[i].insert(jsToFixed<32>(t.asString()));
             }
           }
-        } else if (!topic.isNull()) {
-          filter.topics[i].insert(jsToFixed<32>(topic.asString()));
+        } else if (!topic_json.isNull()) {
+          topics[i].insert(jsToFixed<32>(topic_json.asString()));
         }
       }
     }
-    return filter;
+    return LogFilter(move(from_block), move(to_block), move(addresses), move(topics));
   }
 
   static void add(Json::Value& obj, optional<TransactionLocationWithBlockHash> const& info) {
@@ -449,7 +471,7 @@ struct EthImpl : Eth, EthParams {
     res["status"] = toString(ltr.r.status_code);
     res["gasUsed"] = toJson(ltr.r.gas_used);
     res["cumulativeGasUsed"] = toJson(ltr.r.cumulative_gas_used);
-    res["contractAddress"] = toJson(ltr.r.contract_address);
+    res["contractAddress"] = toJson(ltr.r.new_contract_address);
     res["logsBloom"] = toJson(ltr.r.bloom());
     auto& logs_json = res["logs"] = Json::Value(Json::arrayValue);
     uint log_i = 0;

@@ -99,11 +99,11 @@ struct TransactionReceipt {
   uint64_t gas_used = 0;
   uint64_t cumulative_gas_used = 0;
   LogEntries logs;
-  Address contract_address;
+  std::optional<Address> new_contract_address;
 
   template <typename E>
   inline void rlp(E encoding) {
-    util::rlp_tuple(encoding, status_code, gas_used, cumulative_gas_used, logs, contract_address);
+    util::rlp_tuple(encoding, status_code, gas_used, cumulative_gas_used, logs, new_contract_address);
   }
 
   auto bloom() const {

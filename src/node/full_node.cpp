@@ -131,8 +131,7 @@ void FullNode::start() {
     auto const &ws = jsonrpc_ws_;
     final_chain_->block_executed.subscribe(
         [=](auto const &obj) {
-          eth_json_rpc->note_block(obj.final_chain_blk->hash);
-          eth_json_rpc->note_receipts(obj.trx_receipts);
+          eth_json_rpc->note_block_executed(*obj.final_chain_blk, obj.trxs, obj.trx_receipts);
           if (ws) {
             ws->newDagBlockFinalized(obj.pbft_blk->getPivotDagBlockHash(), obj.pbft_blk->getPeriod());
             ws->newPbftBlockExecuted(*obj.pbft_blk, obj.finalized_dag_blk_hashes);
