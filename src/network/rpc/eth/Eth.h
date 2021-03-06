@@ -8,7 +8,16 @@ using namespace ::taraxa::final_chain;
 using namespace ::std;
 using namespace ::dev;
 
-Json::Value toJson(BlockHeader const& obj);
+struct WatchGroupConfig {
+  uint64_t max_watches = 0;
+  chrono::seconds idle_timeout{5 * 60};
+};
+
+struct WatchesConfig {
+  WatchGroupConfig new_blocks;
+  WatchGroupConfig new_transactions;
+  WatchGroupConfig logs;
+};
 
 struct EthParams {
   Address address;
@@ -18,6 +27,7 @@ struct EthParams {
   function<shared_ptr<Transaction>(h256 const&)> get_trx;
   function<h256 const&(Transaction const& trx)> send_trx;
   function<u256()> gas_pricer = [] { return u256(0); };
+  WatchesConfig watches_cfg;
 };
 
 struct Eth : virtual ::taraxa::net::EthFace {
@@ -29,5 +39,7 @@ struct Eth : virtual ::taraxa::net::EthFace {
 };
 
 Eth* NewEth(EthParams&&);
+
+Json::Value toJson(BlockHeader const& obj);
 
 }  // namespace taraxa::net::rpc::eth

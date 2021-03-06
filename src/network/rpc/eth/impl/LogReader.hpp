@@ -8,7 +8,7 @@ namespace taraxa::net::rpc::eth {
 struct LogReader {
   shared_ptr<FinalChain> final_chain;
 
-  bool is_range_only(LogFilter const& f) const {
+  static bool is_range_only(LogFilter const& f) {
     if (!f.addresses.empty()) {
       return false;
     }
@@ -21,7 +21,7 @@ struct LogReader {
   }
 
   /// @returns bloom possibilities for all addresses and topics
-  std::vector<LogBloom> bloomPossibilities(LogFilter const& f) const {
+  static std::vector<LogBloom> bloomPossibilities(LogFilter const& f) {
     // return combination of each of the addresses/topics
     vector<LogBloom> ret;
     // | every address with every topic
@@ -83,7 +83,7 @@ struct LogReader {
   }
 
   // TODO bloom const&
-  bool matches(LogFilter const& f, LogBloom b) const {
+  static bool matches(LogFilter const& f, LogBloom b) {
     if (!f.addresses.empty()) {
       auto ok = false;
       for (auto const& i : f.addresses) {
@@ -114,12 +114,12 @@ struct LogReader {
     return true;
   }
 
-  vector<size_t> matches(LogFilter const& f, TransactionReceipt const& r) const {
+  static vector<size_t> matches(LogFilter const& f, TransactionReceipt const& r) {
     vector<size_t> ret;
     if (!matches(f, r.bloom())) {
       return ret;
     }
-    for (uint log_i = 0; log_i < r.logs.size(); ++log_i) {
+    for (size_t log_i = 0; log_i < r.logs.size(); ++log_i) {
       auto const& e = r.logs[log_i];
       if (!f.addresses.empty() && !f.addresses.count(e.address)) {
         continue;
