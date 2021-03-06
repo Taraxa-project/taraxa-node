@@ -492,7 +492,6 @@ bool PbftManager::stateOperations_() {
   // Reset continue finish polling state
   continue_finish_polling_state_ = false;
 
-  // NOTE: PUSHING OF SYNCED BLOCKS CAN TAKE A LONG TIME SHOULD DO BEFORE WE SET THE ELAPSED TIME IN ROUND
   pushSyncedPbftBlocksIntoChain_();
 
   now_ = std::chrono::system_clock::now();
