@@ -200,6 +200,8 @@ class NextVotesForPreviousRound {
 
   void updateWithSyncedVotes(std::vector<Vote> const& votes, size_t const pbft_2t_plus_1);
 
+  void updateWithSyncedVotes(std::vector<Vote> const& votes);
+
  private:
   using uniqueLock_ = boost::unique_lock<boost::shared_mutex>;
   using sharedLock_ = boost::shared_lock<boost::shared_mutex>;
