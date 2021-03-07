@@ -67,10 +67,9 @@ struct WatchGroup {
 
   void uninstall_stale_watches() const {
     unique_lock l(watches_mu_);
-    auto t_now = high_resolution_clock::now();
     bool did_uninstall = false;
     for (auto& [id, watch] : watches_) {
-      if (cfg_.idle_timeout <= duration_cast<seconds>(t_now - watch.last_touched)) {
+      if (cfg_.idle_timeout <= duration_cast<seconds>(high_resolution_clock::now() - watch.last_touched)) {
         watches_.erase(id);
         did_uninstall = true;
       }
