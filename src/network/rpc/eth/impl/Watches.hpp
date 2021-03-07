@@ -1,11 +1,13 @@
 #pragma once
 
 #include <chrono>
+#include <queue>
 
 #include "LogFilter.hpp"
 #include "data.hpp"
 
 namespace taraxa::net::rpc::eth {
+using namespace chrono;
 
 // TODO taraxa simple exception
 DEV_SIMPLE_EXCEPTION(WatchLimitExceeded);
@@ -20,7 +22,7 @@ struct WatchGroup {
   static constexpr auto type = type_;
   using InputType = InputType_;
   using OutputType = conditional_t<is_same_v<OutputType_, placeholder_t>, InputType, OutputType_>;
-  using time_point = chrono::system_clock::time_point;
+  using time_point = high_resolution_clock::time_point;
   using Updater = function<void(Params const&,     //
                                 InputType const&,  //
                                 function<void(OutputType const&)> const& /*do_update*/)>;
@@ -50,11 +52,11 @@ struct WatchGroup {
 
   WatchID install_watch(Params&& params = {}) const {
     unique_lock l(watches_mu_);
-    if (watches_.size() == cfg_.max_watches) {
+    if (cfg_.max_watches && watches_.size() == cfg_.max_watches) {
       throw WatchLimitExceeded();
     }
     auto id = ((++watch_id_seq_) << watch_id_type_mask_bits) + type;
-    watches_.insert_or_assign(id, Watch{move(params), chrono::system_clock::now()});
+    watches_.insert_or_assign(id, Watch{move(params), high_resolution_clock::now()});
     return id;
   }
 
@@ -65,10 +67,10 @@ struct WatchGroup {
 
   void uninstall_stale_watches() const {
     unique_lock l(watches_mu_);
-    auto t_now = chrono::system_clock::now();
+    auto t_now = high_resolution_clock::now();
     bool did_uninstall = false;
     for (auto& [id, watch] : watches_) {
-      if (cfg_.idle_timeout <= chrono::duration_cast<chrono::seconds>(t_now - watch.last_touched)) {
+      if (cfg_.idle_timeout <= duration_cast<seconds>(t_now - watch.last_touched)) {
         watches_.erase(id);
         did_uninstall = true;
       }
@@ -102,7 +104,7 @@ struct WatchGroup {
     if (auto entry = watches_.find(watch_id); entry != watches_.end()) {
       auto& watch = entry->second;
       swap(ret, watch.updates);
-      watch.last_touched = chrono::system_clock::now();
+      watch.last_touched = high_resolution_clock::now();
     }
     return ret;
   }
@@ -143,9 +145,35 @@ struct Watches {
 
  public:
   Watches(WatchesConfig const& _cfg)
-      : cfg(_cfg), watch_cleaner_([this] {
-          while (!destructor_called_) {
-            //
+      : cfg(_cfg),  //
+        watch_cleaner_([this] {
+          struct WatchEntry {
+            WatchType type;
+            high_resolution_clock::time_point deadline;
+
+            bool operator<(WatchEntry const& other) const { return deadline < other.deadline; }
+          };
+          priority_queue<WatchEntry> q;
+          for (uint type = 0; type < COUNT; ++type) {
+            q.push({WatchType(type), high_resolution_clock::now() + cfg[type].idle_timeout});
+          }
+          for (;;) {
+            auto soonest = q.top();
+            q.pop();
+            for (;;) {
+              if (destructor_called_) {
+                return;
+              }
+              auto t_0 = high_resolution_clock::now();
+              if (soonest.deadline <= t_0) {
+                break;
+              }
+              static nanoseconds const sleep_limit = 2s;
+              this_thread::sleep_for(min(sleep_limit, duration_cast<nanoseconds>(soonest.deadline - t_0)));
+            }
+            visit(soonest.type, [](auto watch) { watch->uninstall_stale_watches(); });
+            soonest.deadline = high_resolution_clock::now() + cfg[soonest.type].idle_timeout;
+            q.push(soonest);
           }
         }) {}
 
