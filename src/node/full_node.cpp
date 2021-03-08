@@ -158,7 +158,7 @@ void FullNode::init() {
     if (conf_.rpc->gql_http_port) {
       graphql_http_ = std::make_shared<net::HttpServer>(
           *jsonrpc_io_ctx_, boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->gql_http_port}, node_addr,
-          std::make_shared<net::GraphQlHttpProcessor>(final_chain_, dag_mgr_));
+          std::make_shared<net::GraphQlHttpProcessor>(final_chain_, dag_mgr_, dag_blk_mgr_, pbft_mgr_, trx_mgr_));
     }
   }
 

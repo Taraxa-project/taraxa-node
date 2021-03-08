@@ -55,6 +55,7 @@ namespace object {
 class Account;
 class Log;
 class Transaction;
+class DagBlock;
 class Block;
 class CallResult;
 class SyncState;
@@ -155,6 +156,35 @@ private:
 	std::future<service::ResolverResult> resolveR(service::ResolverParams&& params);
 	std::future<service::ResolverResult> resolveS(service::ResolverParams&& params);
 	std::future<service::ResolverResult> resolveV(service::ResolverParams&& params);
+
+	std::future<service::ResolverResult> resolve_typename(service::ResolverParams&& params);
+};
+
+class DagBlock
+	: public service::Object
+{
+protected:
+	explicit DagBlock();
+
+public:
+	virtual service::FieldResult<response::Value> getHash(service::FieldParams&& params) const;
+	virtual service::FieldResult<response::Value> getPivot(service::FieldParams&& params) const;
+	virtual service::FieldResult<std::vector<response::Value>> getTips(service::FieldParams&& params) const;
+	virtual service::FieldResult<response::Value> getLevel(service::FieldParams&& params) const;
+	virtual service::FieldResult<std::optional<response::Value>> getPbftPeriod(service::FieldParams&& params) const;
+	virtual service::FieldResult<std::shared_ptr<Account>> getAuthor(service::FieldParams&& params) const;
+	virtual service::FieldResult<response::Value> getTimestamp(service::FieldParams&& params) const;
+	virtual service::FieldResult<std::optional<std::vector<std::shared_ptr<Transaction>>>> getTransactions(service::FieldParams&& params) const;
+
+private:
+	std::future<service::ResolverResult> resolveHash(service::ResolverParams&& params);
+	std::future<service::ResolverResult> resolvePivot(service::ResolverParams&& params);
+	std::future<service::ResolverResult> resolveTips(service::ResolverParams&& params);
+	std::future<service::ResolverResult> resolveLevel(service::ResolverParams&& params);
+	std::future<service::ResolverResult> resolvePbftPeriod(service::ResolverParams&& params);
+	std::future<service::ResolverResult> resolveAuthor(service::ResolverParams&& params);
+	std::future<service::ResolverResult> resolveTimestamp(service::ResolverParams&& params);
+	std::future<service::ResolverResult> resolveTransactions(service::ResolverParams&& params);
 
 	std::future<service::ResolverResult> resolve_typename(service::ResolverParams&& params);
 };
@@ -322,6 +352,8 @@ public:
 	virtual service::FieldResult<std::shared_ptr<Transaction>> getTransaction(service::FieldParams&& params, response::Value&& hashArg) const;
 	virtual service::FieldResult<response::Value> getGasPrice(service::FieldParams&& params) const;
 	virtual service::FieldResult<response::Value> getChainID(service::FieldParams&& params) const;
+	virtual service::FieldResult<std::shared_ptr<DagBlock>> getDagBlock(service::FieldParams&& params, std::optional<response::Value>&& hashArg) const;
+	virtual service::FieldResult<std::vector<std::shared_ptr<DagBlock>>> getDagBlocks(service::FieldParams&& params, std::optional<response::Value>&& dagLevelArg, std::optional<response::IntType>&& countArg, std::optional<response::BooleanType>&& reverseArg) const;
 	virtual service::FieldResult<std::shared_ptr<CurrentState>> getNodeState(service::FieldParams&& params) const;
 
 private:
@@ -330,6 +362,8 @@ private:
 	std::future<service::ResolverResult> resolveTransaction(service::ResolverParams&& params);
 	std::future<service::ResolverResult> resolveGasPrice(service::ResolverParams&& params);
 	std::future<service::ResolverResult> resolveChainID(service::ResolverParams&& params);
+	std::future<service::ResolverResult> resolveDagBlock(service::ResolverParams&& params);
+	std::future<service::ResolverResult> resolveDagBlocks(service::ResolverParams&& params);
 	std::future<service::ResolverResult> resolveNodeState(service::ResolverParams&& params);
 
 	std::future<service::ResolverResult> resolve_typename(service::ResolverParams&& params);

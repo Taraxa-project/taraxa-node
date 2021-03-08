@@ -52,7 +52,7 @@ add_library(taraxa_graphqlservice STATIC
         #syncstate.cpp
         graphql_ws_server.cpp
         graphql_http_processor.cpp
-        subscription.cpp types/current_state.cpp types/current_state.hpp)
+        subscription.cpp types/current_state.cpp types/current_state.hpp types/dag_block.cpp types/dag_block.hpp)
 target_link_libraries(taraxa_graphqlservice PUBLIC
         cppgraphqlgen::graphqlservice
         cppgraphqlgen::graphqljson

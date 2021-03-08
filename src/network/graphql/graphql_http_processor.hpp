@@ -13,7 +13,11 @@ namespace taraxa::net {
 
 class GraphQlHttpProcessor : public HttpProcessor {
  public:
-  GraphQlHttpProcessor(const std::shared_ptr<FinalChain>& final_chain, const std::shared_ptr<DagManager>& dag_mgr);
+  GraphQlHttpProcessor(const std::shared_ptr<::taraxa::final_chain::FinalChain>& final_chain,
+                       const std::shared_ptr<::taraxa::DagManager>& dag_manager,
+                       const std::shared_ptr<::taraxa::DagBlockManager>& dag_block_manager,
+                       const std::shared_ptr<::taraxa::PbftManager>& pbft_manager,
+                       const std::shared_ptr<::taraxa::TransactionManager>& transaction_manager);
   Response process(const Request& request) override;
 
  private:

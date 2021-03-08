@@ -61,6 +61,10 @@ std::shared_ptr<DagBlock> DagBlockManager::getDagBlock(blk_hash_t const &hash) c
   return db_->getDagBlock(hash);
 }
 
+std::vector<std::shared_ptr<DagBlock>> DagBlockManager::getDagBlocksAtLevel(level_t level, int number_of_levels) const {
+  return db_->getDagBlocksAtLevel(level, number_of_levels);
+}
+
 bool DagBlockManager::pivotAndTipsValid(DagBlock const &blk) {
   auto status = blk_status_.get(blk.getPivot());
   if (status.second && status.first == BlockStatus::invalid) {

@@ -1,6 +1,6 @@
 # Bytes32 is a 32 byte binary string, represented as 0x-prefixed hexadecimal.
 scalar Bytes32
-# Address is a 20 byte Ethereum address, represented as 0x-prefixed hexadecimal.
+# Address is a 20 byte Taraxa address, represented as 0x-prefixed hexadecimal.
 scalar Address
 # Bytes is an arbitrary length binary string, represented as 0x-prefixed hexadecimal.
 # An empty byte string is represented as '0x'. Byte strings must have an even number of hexadecimal nybbles.
@@ -18,7 +18,7 @@ schema {
     subscription: Subscription
 }
 
-# Account is an Ethereum account at a particular block.
+# Account is an Taraxa account at a particular block.
 type Account {
     # Address is the address owning the account.
     address: Address!
@@ -36,7 +36,7 @@ type Account {
     storage(slot: Bytes32!): Bytes32!
 }
 
-# Log is an Ethereum event log.
+# Log is an Taraxa event log.
 type Log {
     # Index is the index of this log in the block.
     index: Int!
@@ -51,7 +51,7 @@ type Log {
     transaction: Transaction!
 }
 
-# Transaction is an Ethereum transaction.
+# Transaction is an Taraxa transaction.
 type Transaction {
     # Hash is the hash of this transaction.
     hash: Bytes32!
@@ -122,7 +122,38 @@ input BlockFilterCriteria {
     topics: [[Bytes32!]!]
 }
 
-# Block is an Ethereum block.
+ # Taraxa Dag Block
+ # TODO: vdf and signature are not included - is it needed ?
+ type DagBlock {
+    # Hash is the block hash of this block.
+    hash: Bytes32!
+
+    # Pivot is hash of the dag block that this block points to as a pivot
+    # Pivot is ghost pointer ???
+    pivot: Bytes32!
+
+    # Tips are hashes of dag blocks that this block points to
+    tips: [Bytes32!]!
+
+    # Level is dag level, on which this block exists in dag structure
+    level: Long!
+
+    # PbftPeriod, in which dag block is included.
+    # null in case it was not yet processed by pbft consensus
+    pbftPeriod: Long
+
+    # Author is the account that created this block.
+    author: Account!
+
+    # Timestamp is the unix timestamp at which this block was mined.
+    timestamp: Long!
+
+    # Transactions is a list of transactions associated with this block. If
+    # transactions are unavailable for this block, this field will be null.
+    transactions: [Transaction!]
+ }
+
+# Taraxa Final block
 type Block {
     # Number is the number of this block, starting at 0 for the genesis block.
     number: Long!
@@ -184,7 +215,7 @@ type Block {
     transactionAt(index: Int!): Transaction
     # Logs returns a filtered set of logs from this block.
     logs(filter: BlockFilterCriteria!): [Log!]!
-    # Account fetches an Ethereum account at the current block's state.
+    # Account fetches an Taraxa account at the current block's state.
     account(address: Address!): Account!
     # Call executes a local call operation at the current block's state.
     call(data: CallData!): CallResult
@@ -267,7 +298,7 @@ type Pending {
   transactionCount: Int!
   # Transactions is a list of transactions in the current pending state.
   transactions: [Transaction!]
-  # Account fetches an Ethereum account for the pending state.
+  # Account fetches an Taraxa account for the pending state.
   account(address: Address!): Account!
   # Call executes a local call operation for the pending state.
   call(data: CallData!): CallResult
@@ -284,7 +315,7 @@ type CurrentState {
 }
 
 type Query {
-    # Block fetches an Ethereum block by number or by hash. If neither is
+    # Block fetches an Taraxa block by number or by hash. If neither is
     # supplied, the most recent known block is returned.
     block(number: Long, hash: Bytes32): Block
     # Blocks returns all the blocks between two numbers, inclusive. If
@@ -303,6 +334,15 @@ type Query {
     # syncing: SyncState
     # ChainID returns the current chain ID for transaction replay protection.
     chainID: BigInt!
+
+    # DagBlock fetches an Taraxa Dag block by hash. If not
+    # supplied, the most recent known dag block is returned.
+    dagBlock(hash: Bytes32): DagBlock
+
+    # DagBlocks returns dag blocks at provided dagLevel, or current dag max level if dagLevel not specified
+    # If count is specified, complement blocks to dag level blocks are fetched so there is count blocks returned in total
+    # If reverse flag is specified, complement blocks are fetched from dagLevel - n, otherwise dagLevel + n
+    dagBlocks(dagLevel: Long, count: Int, reverse: Boolean): [DagBlock!]!
 
     # Current node state
     nodeState: CurrentState

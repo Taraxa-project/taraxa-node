@@ -36,6 +36,7 @@ class DagBlockManager {
   void stop();
   bool isBlockKnown(blk_hash_t const &hash);
   std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash) const;
+  std::vector<std::shared_ptr<DagBlock>> getDagBlocksAtLevel(level_t level, int number_of_levels = 1) const;
   void clearBlockStatausTable() { blk_status_.clear(); }
   bool pivotAndTipsValid(DagBlock const &blk);
   uint64_t getPeriod(level_t level);
@@ -71,8 +72,8 @@ class DagBlockManager {
   boost::condition_variable_any cond_for_verified_qu_;
   uint32_t queue_limit_;
 
-  std::map<uint64_t, std::deque<std::pair<DagBlock, std::vector<Transaction> > > > unverified_qu_;
-  std::map<uint64_t, std::deque<DagBlock> > verified_qu_;
+  std::map<uint64_t, std::deque<std::pair<DagBlock, std::vector<Transaction>>>> unverified_qu_;
+  std::map<uint64_t, std::deque<DagBlock>> verified_qu_;
 
   vdf_sortition::VdfConfig vdf_config_;
   optional<state_api::DPOSConfig> dpos_config_;

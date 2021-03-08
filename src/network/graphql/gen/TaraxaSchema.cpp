@@ -569,6 +569,148 @@ std::future<service::ResolverResult> Transaction::resolve_typename(service::Reso
 	return service::ModifiedResult<response::StringType>::convert(response::StringType{ R"gql(Transaction)gql" }, std::move(params));
 }
 
+DagBlock::DagBlock()
+	: service::Object({
+		"DagBlock"
+	}, {
+		{ R"gql(hash)gql"sv, [this](service::ResolverParams&& params) { return resolveHash(std::move(params)); } },
+		{ R"gql(tips)gql"sv, [this](service::ResolverParams&& params) { return resolveTips(std::move(params)); } },
+		{ R"gql(level)gql"sv, [this](service::ResolverParams&& params) { return resolveLevel(std::move(params)); } },
+		{ R"gql(pivot)gql"sv, [this](service::ResolverParams&& params) { return resolvePivot(std::move(params)); } },
+		{ R"gql(author)gql"sv, [this](service::ResolverParams&& params) { return resolveAuthor(std::move(params)); } },
+		{ R"gql(timestamp)gql"sv, [this](service::ResolverParams&& params) { return resolveTimestamp(std::move(params)); } },
+		{ R"gql(__typename)gql"sv, [this](service::ResolverParams&& params) { return resolve_typename(std::move(params)); } },
+		{ R"gql(pbftPeriod)gql"sv, [this](service::ResolverParams&& params) { return resolvePbftPeriod(std::move(params)); } },
+		{ R"gql(transactions)gql"sv, [this](service::ResolverParams&& params) { return resolveTransactions(std::move(params)); } }
+	})
+{
+}
+
+service::FieldResult<response::Value> DagBlock::getHash(service::FieldParams&&) const
+{
+	throw std::runtime_error(R"ex(DagBlock::getHash is not implemented)ex");
+}
+
+std::future<service::ResolverResult> DagBlock::resolveHash(service::ResolverParams&& params)
+{
+	std::unique_lock resolverLock(_resolverMutex);
+	auto directives = std::move(params.fieldDirectives);
+	auto result = getHash(service::FieldParams(std::move(params), std::move(directives)));
+	resolverLock.unlock();
+
+	return service::ModifiedResult<response::Value>::convert(std::move(result), std::move(params));
+}
+
+service::FieldResult<response::Value> DagBlock::getPivot(service::FieldParams&&) const
+{
+	throw std::runtime_error(R"ex(DagBlock::getPivot is not implemented)ex");
+}
+
+std::future<service::ResolverResult> DagBlock::resolvePivot(service::ResolverParams&& params)
+{
+	std::unique_lock resolverLock(_resolverMutex);
+	auto directives = std::move(params.fieldDirectives);
+	auto result = getPivot(service::FieldParams(std::move(params), std::move(directives)));
+	resolverLock.unlock();
+
+	return service::ModifiedResult<response::Value>::convert(std::move(result), std::move(params));
+}
+
+service::FieldResult<std::vector<response::Value>> DagBlock::getTips(service::FieldParams&&) const
+{
+	throw std::runtime_error(R"ex(DagBlock::getTips is not implemented)ex");
+}
+
+std::future<service::ResolverResult> DagBlock::resolveTips(service::ResolverParams&& params)
+{
+	std::unique_lock resolverLock(_resolverMutex);
+	auto directives = std::move(params.fieldDirectives);
+	auto result = getTips(service::FieldParams(std::move(params), std::move(directives)));
+	resolverLock.unlock();
+
+	return service::ModifiedResult<response::Value>::convert<service::TypeModifier::List>(std::move(result), std::move(params));
+}
+
+service::FieldResult<response::Value> DagBlock::getLevel(service::FieldParams&&) const
+{
+	throw std::runtime_error(R"ex(DagBlock::getLevel is not implemented)ex");
+}
+
+std::future<service::ResolverResult> DagBlock::resolveLevel(service::ResolverParams&& params)
+{
+	std::unique_lock resolverLock(_resolverMutex);
+	auto directives = std::move(params.fieldDirectives);
+	auto result = getLevel(service::FieldParams(std::move(params), std::move(directives)));
+	resolverLock.unlock();
+
+	return service::ModifiedResult<response::Value>::convert(std::move(result), std::move(params));
+}
+
+service::FieldResult<std::optional<response::Value>> DagBlock::getPbftPeriod(service::FieldParams&&) const
+{
+	throw std::runtime_error(R"ex(DagBlock::getPbftPeriod is not implemented)ex");
+}
+
+std::future<service::ResolverResult> DagBlock::resolvePbftPeriod(service::ResolverParams&& params)
+{
+	std::unique_lock resolverLock(_resolverMutex);
+	auto directives = std::move(params.fieldDirectives);
+	auto result = getPbftPeriod(service::FieldParams(std::move(params), std::move(directives)));
+	resolverLock.unlock();
+
+	return service::ModifiedResult<response::Value>::convert<service::TypeModifier::Nullable>(std::move(result), std::move(params));
+}
+
+service::FieldResult<std::shared_ptr<Account>> DagBlock::getAuthor(service::FieldParams&&) const
+{
+	throw std::runtime_error(R"ex(DagBlock::getAuthor is not implemented)ex");
+}
+
+std::future<service::ResolverResult> DagBlock::resolveAuthor(service::ResolverParams&& params)
+{
+	std::unique_lock resolverLock(_resolverMutex);
+	auto directives = std::move(params.fieldDirectives);
+	auto result = getAuthor(service::FieldParams(std::move(params), std::move(directives)));
+	resolverLock.unlock();
+
+	return service::ModifiedResult<Account>::convert(std::move(result), std::move(params));
+}
+
+service::FieldResult<response::Value> DagBlock::getTimestamp(service::FieldParams&&) const
+{
+	throw std::runtime_error(R"ex(DagBlock::getTimestamp is not implemented)ex");
+}
+
+std::future<service::ResolverResult> DagBlock::resolveTimestamp(service::ResolverParams&& params)
+{
+	std::unique_lock resolverLock(_resolverMutex);
+	auto directives = std::move(params.fieldDirectives);
+	auto result = getTimestamp(service::FieldParams(std::move(params), std::move(directives)));
+	resolverLock.unlock();
+
+	return service::ModifiedResult<response::Value>::convert(std::move(result), std::move(params));
+}
+
+service::FieldResult<std::optional<std::vector<std::shared_ptr<Transaction>>>> DagBlock::getTransactions(service::FieldParams&&) const
+{
+	throw std::runtime_error(R"ex(DagBlock::getTransactions is not implemented)ex");
+}
+
+std::future<service::ResolverResult> DagBlock::resolveTransactions(service::ResolverParams&& params)
+{
+	std::unique_lock resolverLock(_resolverMutex);
+	auto directives = std::move(params.fieldDirectives);
+	auto result = getTransactions(service::FieldParams(std::move(params), std::move(directives)));
+	resolverLock.unlock();
+
+	return service::ModifiedResult<Transaction>::convert<service::TypeModifier::Nullable, service::TypeModifier::List>(std::move(result), std::move(params));
+}
+
+std::future<service::ResolverResult> DagBlock::resolve_typename(service::ResolverParams&& params)
+{
+	return service::ModifiedResult<response::StringType>::convert(response::StringType{ R"gql(DagBlock)gql" }, std::move(params));
+}
+
 Block::Block()
 	: service::Object({
 		"Block"
@@ -1346,7 +1488,9 @@ Query::Query()
 		{ R"gql(blocks)gql"sv, [this](service::ResolverParams&& params) { return resolveBlocks(std::move(params)); } },
 		{ R"gql(chainID)gql"sv, [this](service::ResolverParams&& params) { return resolveChainID(std::move(params)); } },
 		{ R"gql(__schema)gql"sv, [this](service::ResolverParams&& params) { return resolve_schema(std::move(params)); } },
+		{ R"gql(dagBlock)gql"sv, [this](service::ResolverParams&& params) { return resolveDagBlock(std::move(params)); } },
 		{ R"gql(gasPrice)gql"sv, [this](service::ResolverParams&& params) { return resolveGasPrice(std::move(params)); } },
+		{ R"gql(dagBlocks)gql"sv, [this](service::ResolverParams&& params) { return resolveDagBlocks(std::move(params)); } },
 		{ R"gql(nodeState)gql"sv, [this](service::ResolverParams&& params) { return resolveNodeState(std::move(params)); } },
 		{ R"gql(__typename)gql"sv, [this](service::ResolverParams&& params) { return resolve_typename(std::move(params)); } },
 		{ R"gql(transaction)gql"sv, [this](service::ResolverParams&& params) { return resolveTransaction(std::move(params)); } }
@@ -1433,6 +1577,40 @@ std::future<service::ResolverResult> Query::resolveChainID(service::ResolverPara
 	resolverLock.unlock();
 
 	return service::ModifiedResult<response::Value>::convert(std::move(result), std::move(params));
+}
+
+service::FieldResult<std::shared_ptr<DagBlock>> Query::getDagBlock(service::FieldParams&&, std::optional<response::Value>&&) const
+{
+	throw std::runtime_error(R"ex(Query::getDagBlock is not implemented)ex");
+}
+
+std::future<service::ResolverResult> Query::resolveDagBlock(service::ResolverParams&& params)
+{
+	auto argHash = service::ModifiedArgument<response::Value>::require<service::TypeModifier::Nullable>("hash", params.arguments);
+	std::unique_lock resolverLock(_resolverMutex);
+	auto directives = std::move(params.fieldDirectives);
+	auto result = getDagBlock(service::FieldParams(std::move(params), std::move(directives)), std::move(argHash));
+	resolverLock.unlock();
+
+	return service::ModifiedResult<DagBlock>::convert<service::TypeModifier::Nullable>(std::move(result), std::move(params));
+}
+
+service::FieldResult<std::vector<std::shared_ptr<DagBlock>>> Query::getDagBlocks(service::FieldParams&&, std::optional<response::Value>&&, std::optional<response::IntType>&&, std::optional<response::BooleanType>&&) const
+{
+	throw std::runtime_error(R"ex(Query::getDagBlocks is not implemented)ex");
+}
+
+std::future<service::ResolverResult> Query::resolveDagBlocks(service::ResolverParams&& params)
+{
+	auto argDagLevel = service::ModifiedArgument<response::Value>::require<service::TypeModifier::Nullable>("dagLevel", params.arguments);
+	auto argCount = service::ModifiedArgument<response::IntType>::require<service::TypeModifier::Nullable>("count", params.arguments);
+	auto argReverse = service::ModifiedArgument<response::BooleanType>::require<service::TypeModifier::Nullable>("reverse", params.arguments);
+	std::unique_lock resolverLock(_resolverMutex);
+	auto directives = std::move(params.fieldDirectives);
+	auto result = getDagBlocks(service::FieldParams(std::move(params), std::move(directives)), std::move(argDagLevel), std::move(argCount), std::move(argReverse));
+	resolverLock.unlock();
+
+	return service::ModifiedResult<DagBlock>::convert<service::TypeModifier::List>(std::move(result), std::move(params));
 }
 
 service::FieldResult<std::shared_ptr<CurrentState>> Query::getNodeState(service::FieldParams&&) const
@@ -1596,6 +1774,8 @@ void AddTypesToSchema(const std::shared_ptr<schema::Schema>& schema)
 	schema->AddType(R"gql(Log)gql"sv, typeLog);
 	auto typeTransaction = schema::ObjectType::Make(R"gql(Transaction)gql"sv, R"md()md");
 	schema->AddType(R"gql(Transaction)gql"sv, typeTransaction);
+	auto typeDagBlock = schema::ObjectType::Make(R"gql(DagBlock)gql"sv, R"md()md");
+	schema->AddType(R"gql(DagBlock)gql"sv, typeDagBlock);
 	auto typeBlock = schema::ObjectType::Make(R"gql(Block)gql"sv, R"md()md");
 	schema->AddType(R"gql(Block)gql"sv, typeBlock);
 	auto typeCallResult = schema::ObjectType::Make(R"gql(CallResult)gql"sv, R"md()md");
@@ -1675,6 +1855,16 @@ void AddTypesToSchema(const std::shared_ptr<schema::Schema>& schema)
 		schema::Field::Make(R"gql(r)gql"sv, R"md()md"sv, std::nullopt, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("BigInt"))),
 		schema::Field::Make(R"gql(s)gql"sv, R"md()md"sv, std::nullopt, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("BigInt"))),
 		schema::Field::Make(R"gql(v)gql"sv, R"md()md"sv, std::nullopt, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("BigInt")))
+	});
+	typeDagBlock->AddFields({
+		schema::Field::Make(R"gql(hash)gql"sv, R"md()md"sv, std::nullopt, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("Bytes32"))),
+		schema::Field::Make(R"gql(pivot)gql"sv, R"md()md"sv, std::nullopt, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("Bytes32"))),
+		schema::Field::Make(R"gql(tips)gql"sv, R"md()md"sv, std::nullopt, schema->WrapType(introspection::TypeKind::NON_NULL, schema->WrapType(introspection::TypeKind::LIST, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("Bytes32"))))),
+		schema::Field::Make(R"gql(level)gql"sv, R"md()md"sv, std::nullopt, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("Long"))),
+		schema::Field::Make(R"gql(pbftPeriod)gql"sv, R"md()md"sv, std::nullopt, schema->LookupType("Long")),
+		schema::Field::Make(R"gql(author)gql"sv, R"md()md"sv, std::nullopt, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("Account"))),
+		schema::Field::Make(R"gql(timestamp)gql"sv, R"md()md"sv, std::nullopt, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("Long"))),
+		schema::Field::Make(R"gql(transactions)gql"sv, R"md()md"sv, std::nullopt, schema->WrapType(introspection::TypeKind::LIST, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("Transaction"))))
 	});
 	typeBlock->AddFields({
 		schema::Field::Make(R"gql(number)gql"sv, R"md()md"sv, std::nullopt, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("Long"))),
@@ -1763,6 +1953,14 @@ void AddTypesToSchema(const std::shared_ptr<schema::Schema>& schema)
 		}),
 		schema::Field::Make(R"gql(gasPrice)gql"sv, R"md()md"sv, std::nullopt, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("BigInt"))),
 		schema::Field::Make(R"gql(chainID)gql"sv, R"md()md"sv, std::nullopt, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("BigInt"))),
+		schema::Field::Make(R"gql(dagBlock)gql"sv, R"md()md"sv, std::nullopt, schema->LookupType("DagBlock"), {
+			schema::InputValue::Make(R"gql(hash)gql"sv, R"md()md"sv, schema->LookupType("Bytes32"), R"gql()gql"sv)
+		}),
+		schema::Field::Make(R"gql(dagBlocks)gql"sv, R"md()md"sv, std::nullopt, schema->WrapType(introspection::TypeKind::NON_NULL, schema->WrapType(introspection::TypeKind::LIST, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("DagBlock")))), {
+			schema::InputValue::Make(R"gql(dagLevel)gql"sv, R"md()md"sv, schema->LookupType("Long"), R"gql()gql"sv),
+			schema::InputValue::Make(R"gql(count)gql"sv, R"md()md"sv, schema->LookupType("Int"), R"gql()gql"sv),
+			schema::InputValue::Make(R"gql(reverse)gql"sv, R"md()md"sv, schema->LookupType("Boolean"), R"gql()gql"sv)
+		}),
 		schema::Field::Make(R"gql(nodeState)gql"sv, R"md()md"sv, std::nullopt, schema->LookupType("CurrentState"))
 	});
 	typeMutation->AddFields({

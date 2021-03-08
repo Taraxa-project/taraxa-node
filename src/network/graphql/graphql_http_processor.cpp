@@ -9,10 +9,14 @@ namespace taraxa::net {
 
 using namespace graphql;
 
-GraphQlHttpProcessor::GraphQlHttpProcessor(const std::shared_ptr<FinalChain>& final_chain,
-                                           const std::shared_ptr<DagManager>& dag_mgr)
+GraphQlHttpProcessor::GraphQlHttpProcessor(const std::shared_ptr<::taraxa::final_chain::FinalChain>& final_chain,
+                                           const std::shared_ptr<::taraxa::DagManager>& dag_manager,
+                                           const std::shared_ptr<::taraxa::DagBlockManager>& dag_block_manager,
+                                           const std::shared_ptr<::taraxa::PbftManager>& pbft_manager,
+                                           const std::shared_ptr<::taraxa::TransactionManager>& transaction_manager)
     : HttpProcessor(),
-      query_(std::make_shared<graphql::taraxa::Query>(final_chain, dag_mgr, 0)),
+      query_(std::make_shared<graphql::taraxa::Query>(final_chain, dag_manager, dag_block_manager, pbft_manager,
+                                                      transaction_manager, 0)),
       mutation_(std::make_shared<graphql::taraxa::Mutation>()),
       subscription_(std::make_shared<graphql::taraxa::Subscription>()),
       operations_(query_, mutation_, subscription_) {}
