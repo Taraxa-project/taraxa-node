@@ -121,6 +121,17 @@ TEST_F(FullNodeTest, db_test) {
   db.commitWriteBatch(batch);
   EXPECT_EQ(db.getPbftMgrField(PbftMgrRoundStep::PbftRound), pbft_round);
   EXPECT_EQ(db.getPbftMgrField(PbftMgrRoundStep::PbftStep), pbft_step);
+
+  // PBFT 2t+1
+  db.savePbft2TPlus1(10, 3);
+  EXPECT_EQ(db.getPbft2TPlus1(10), 3);
+  batch = db.createWriteBatch();
+  db.addPbft2TPlus1ToBatch(10, 6, batch);
+  db.addPbft2TPlus1ToBatch(11, 3, batch);
+  db.commitWriteBatch(batch);
+  EXPECT_EQ(db.getPbft2TPlus1(10), 6);
+  EXPECT_EQ(db.getPbft2TPlus1(11), 3);
+
   // PBFT manager status
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::soft_voted_block_in_round));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::executed_block));

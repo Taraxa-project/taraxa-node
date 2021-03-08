@@ -363,7 +363,7 @@ void NextVotesForPreviousRound::setNextVotesSize(size_t const size) {
 }
 
 // Assumption is that all votes are validated, in next voting phase, in the same round and step
-void NextVotesForPreviousRound::update(std::vector<Vote> const& next_votes, size_t const TWO_T_PLUS_ONE) {
+void NextVotesForPreviousRound::update(std::vector<Vote> const& next_votes, size_t const pbft_2t_plus_1) {
   LOG(log_nf_) << "There are " << next_votes.size() << " next votes for updating.";
   if (next_votes.empty()) {
     return;
@@ -371,70 +371,53 @@ void NextVotesForPreviousRound::update(std::vector<Vote> const& next_votes, size
 
   clear();
 
-  {
-    upgradableLock_ lock(access_);
-    // Copy all next votes
-    for (auto const& v : next_votes) {
-      LOG(log_dg_) << "Add next vote: " << v;
+  uniqueLock_ lock(access_);
+  // Copy all next votes
+  for (auto const& v : next_votes) {
+    LOG(log_dg_) << "Add next vote: " << v;
 
-      auto voted_block_hash = v.getBlockHash();
-      if (next_votes_.count(voted_block_hash)) {
-        upgradeLock_ locked(lock);
-        next_votes_[voted_block_hash].emplace_back(v);
-      } else {
-        std::vector<Vote> votes{v};
-        upgradeLock_ locked(lock);
-        next_votes_[voted_block_hash] = votes;
-      }
+    auto voted_block_hash = v.getBlockHash();
+    if (next_votes_.count(voted_block_hash)) {
+      next_votes_[voted_block_hash].emplace_back(v);
+    } else {
+      std::vector<Vote> votes{v};
+      next_votes_[voted_block_hash] = votes;
     }
-  }
-
-  auto next_votes_size = next_votes.size();
-
-  if (TWO_T_PLUS_ONE == 0) {
-    // Next votes from own DB. Don't need compare with 2t+1
-    assert(next_votes_.size() == 1 || next_votes_.size() == 2);
-    setNextVotesSize(next_votes_size);
-    return;
   }
 
   // Protect for malicious players. If no malicious players, will include either/both NULL BLOCK HASH and a non NULL
   // BLOCK HASH
-  LOG(log_nf_) << "PBFT 2t+1 is " << TWO_T_PLUS_ONE;
-  {
-    upgradableLock_ lock(access_);
-    auto it = next_votes_.begin();
-    while (it != next_votes_.end()) {
-      if (it->second.size() >= TWO_T_PLUS_ONE) {
-        LOG(log_nf_) << "Voted PBFT block hash " << it->first << " has " << it->second.size() << " next votes";
+  LOG(log_nf_) << "PBFT 2t+1 is " << pbft_2t_plus_1;
+  auto next_votes_size = next_votes.size();
 
-        if (it->first == NULL_BLOCK_HASH) {
-          upgradeLock_ locked(lock);
-          enough_votes_for_null_block_hash_ = true;
-        } else {
-          upgradeLock_ locked(lock);
-          voted_value_ = it->first;
-        }
+  auto it = next_votes_.begin();
+  while (it != next_votes_.end()) {
+    if (it->second.size() >= pbft_2t_plus_1) {
+      LOG(log_nf_) << "Voted PBFT block hash " << it->first << " has " << it->second.size() << " next votes";
 
-        it++;
+      if (it->first == NULL_BLOCK_HASH) {
+        enough_votes_for_null_block_hash_ = true;
       } else {
-        LOG(log_dg_) << "Voted PBFT block hash " << it->first << " has " << it->second.size()
-                     << " next votes. Not enough, removed!";
-        next_votes_size -= it->second.size();
-        upgradeLock_ locked(lock);
-        it = next_votes_.erase(it);
+        voted_value_ = it->first;
       }
+      it++;
+    } else {
+      LOG(log_dg_) << "Voted PBFT block hash " << it->first << " has " << it->second.size()
+                   << " next votes. Not enough, removed!";
+      next_votes_size -= it->second.size();
+      it = next_votes_.erase(it);
     }
   }
 
-  assert(next_votes_.size() == 1 || next_votes_.size() == 2);
+  next_votes_size_ = next_votes_size;
 
-  setNextVotesSize(next_votes_size);
+  assert(next_votes_.size() == 1 || next_votes_.size() == 2);
 }
 
 // Assumption is that all synced votes are in next voting phase, in the same round and step. Voted values have maximum 2
 // block hash, NULL_BLOCK_HASH and a non NULL_BLOCK_HASH
-void NextVotesForPreviousRound::updateWithSyncedVotes(std::vector<Vote> const& next_votes) {
+void NextVotesForPreviousRound::updateWithSyncedVotes(std::vector<Vote> const& next_votes,
+                                                      size_t const pbft_2t_plus_1) {
   if (next_votes.empty()) {
     return;
   }
@@ -469,7 +452,7 @@ void NextVotesForPreviousRound::updateWithSyncedVotes(std::vector<Vote> const& n
     auto voted_round = next_votes[0].getRound();
     db_->saveNextVotes(voted_round, next_votes);
 
-    update(next_votes);
+    update(next_votes, pbft_2t_plus_1);
   }
 }
 

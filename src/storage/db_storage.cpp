@@ -380,6 +380,23 @@ void DbStorage::addPbftMgrFieldToBatch(PbftMgrRoundStep const& field, uint64_t c
   batch_put(write_batch, DbStorage::Columns::pbft_mgr_round_step, toSlice((uint8_t)field), toSlice(value));
 }
 
+size_t DbStorage::getPbft2TPlus1(uint64_t const& round) {
+  auto status = lookup(toSlice(round), Columns::pbft_round_2t_plus_1);
+  if (!status.empty()) {
+    return *(size_t*)&status[0];
+  }
+  return 0;
+}
+
+void DbStorage::savePbft2TPlus1(uint64_t const& pbft_round, size_t const& pbft_2t_plus_1) {
+  insert(Columns::pbft_round_2t_plus_1, toSlice(pbft_round), toSlice(pbft_2t_plus_1));
+}
+
+void DbStorage::addPbft2TPlus1ToBatch(uint64_t const& pbft_round, size_t const& pbft_2t_plus_1,
+                                      BatchPtr const& write_batch) {
+  batch_put(write_batch, DbStorage::Columns::pbft_round_2t_plus_1, toSlice(pbft_round), toSlice(pbft_2t_plus_1));
+}
+
 bool DbStorage::getPbftMgrStatus(PbftMgrStatus const& field) {
   auto status = lookup(toSlice((uint8_t)field), Columns::pbft_mgr_status);
   if (!status.empty()) {

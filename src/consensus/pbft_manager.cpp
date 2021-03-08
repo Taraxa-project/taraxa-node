@@ -248,7 +248,7 @@ bool PbftManager::resetRound_() {
     setPbftRound(consensus_pbft_round);
     resetStep_();
     state_ = value_proposal_state;
-    LOG(log_dg_) << "Advancing clock to pbft round " << round << ", step 1, and resetting clock.";
+    LOG(log_dg_) << "Advancing clock to pbft round " << consensus_pbft_round << ", step 1, and resetting clock.";
 
     // Update in DB first
     auto batch = db_->createWriteBatch();
@@ -332,7 +332,13 @@ void PbftManager::initialState_() {
                    << " step " << step;
       assert(false);
     }
-    previous_round_next_votes_->update(next_votes_in_previous_round);
+    auto previous_round_2t_plus_1 = db_->getPbft2TPlus1(round - 1);
+    if (previous_round_2t_plus_1 == 0) {
+      LOG(log_er_) << "Cannot get PBFT 2t+1 in previous round " << round - 1 << ". Current round " << round << " step "
+                   << step;
+      assert(false);
+    }
+    previous_round_next_votes_->update(next_votes_in_previous_round, previous_round_2t_plus_1);
   }
   LOG(log_nf_) << "Node initialize at round " << round << " step " << step
                << ". Previous round has enough next votes for NULL_BLOCK_HASH: " << std::boolalpha
@@ -799,11 +805,15 @@ uint64_t PbftManager::roundDeterminedFromVotes_() {
           next_vote_type, votes_, rs_votes.first.first, rs_votes.first.second, std::make_pair(NULL_BLOCK_HASH, false));
       if (blockWithEnoughVotes_(next_votes_for_round_step).second) {
         LOG(log_dg_) << "Found sufficient next votes in round " << rs_votes.first.first << ", step "
-                     << rs_votes.first.second;
-        // Update next votes and store in DB
+                     << rs_votes.first.second << ", PBFT 2t+1 " << TWO_T_PLUS_ONE;
+        // Update next votes
         previous_round_next_votes_->update(next_votes_for_round_step, TWO_T_PLUS_ONE);
         auto next_votes = previous_round_next_votes_->getNextVotes();
-        db_->saveNextVotes(round, next_votes);
+
+        auto batch = db_->createWriteBatch();
+        db_->addPbft2TPlus1ToBatch(rs_votes.first.first, TWO_T_PLUS_ONE, batch);
+        db_->addNextVotesToBatch(rs_votes.first.first, next_votes, batch);
+        db_->commitWriteBatch(batch);
 
         return rs_votes.first.first + 1;
       }

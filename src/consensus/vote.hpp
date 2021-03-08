@@ -194,9 +194,9 @@ class NextVotesForPreviousRound {
   size_t getNextVotesSize() const;
   void setNextVotesSize(size_t const size);
 
-  void update(std::vector<Vote> const& next_votes, size_t const TWO_T_PLUS_ONE = 0);
+  void update(std::vector<Vote> const& next_votes, size_t const pbft_2t_plus_1);
 
-  void updateWithSyncedVotes(std::vector<Vote> const& votes);
+  void updateWithSyncedVotes(std::vector<Vote> const& votes, size_t const pbft_2t_plus_1);
 
  private:
   using uniqueLock_ = boost::unique_lock<boost::shared_mutex>;

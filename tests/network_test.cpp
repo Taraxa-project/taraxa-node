@@ -558,7 +558,8 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_behind_round) {
   }
 
   // Update next votes bundle and set PBFT round
-  node1->getNextVotesManager()->update(next_votes);
+  auto pbft_2t_plus_1 = 1;
+  node1->getNextVotesManager()->update(next_votes, pbft_2t_plus_1);
   pbft_mgr1->setPbftRound(2);  // Make sure node2 PBFT round is less than node1
 
   FullNode::Handle node2(node_cfgs[1], true);
@@ -620,12 +621,19 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round) {
   }
 
   // Update next votes bundle
-  node1->getNextVotesManager()->update(next_votes);
+  auto pbft_2t_plus_1 = 2;
+  node1->getNextVotesManager()->update(next_votes, pbft_2t_plus_1);
+  // next votes size is 2, the set of size 1 has been deleted
 
   FullNode::Handle node2(node_cfgs[1], true);
   // Stop PBFT manager, that will place vote
   std::shared_ptr<PbftManager> pbft_mgr2 = node2->getPbftManager();
+  pbft_mgr2->stop();
   // Make sure node2 has same PBFT round with node1, default PBFT round is 1
+
+  // Set PBFT previous round 2t+1 for syncing
+  auto pbft_previous_round = 0;
+  node2->getDB()->savePbft2TPlus1(pbft_previous_round, pbft_2t_plus_1);
 
   std::shared_ptr<Network> nw1 = node1->getNetwork();
   std::shared_ptr<Network> nw2 = node2->getNetwork();
@@ -641,7 +649,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round) {
   EXPECT_EQ(nw1->getPeerCount(), 1);
   EXPECT_EQ(nw2->getPeerCount(), 1);
 
-  auto expect_size = next_votes.size();
+  auto expect_size = next_votes.size() - 1;
   auto node2_next_votes_mgr = node2->getNextVotesManager();
   auto node2_next_votes_size = node2_next_votes_mgr->getNextVotesSize();
   // Wait 6 PBFT lambda time for sending network status

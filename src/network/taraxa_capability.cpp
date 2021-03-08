@@ -439,7 +439,12 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
             // Add into votes unverified queue
             vote_mgr_->addVotes(next_votes);
           } else if (pbft_current_round == peer_pbft_round && pbft_previous_round_next_votes_size < next_votes_count) {
-            next_votes_mgr_->updateWithSyncedVotes(next_votes);
+            auto pbft_2t_plus_1 = db_->getPbft2TPlus1(pbft_current_round - 1);
+            if (pbft_2t_plus_1) {
+              next_votes_mgr_->updateWithSyncedVotes(next_votes, pbft_2t_plus_1);
+            } else {
+              LOG(log_er_) << "Cannot get PBFT 2t+1 in PBFT round " << pbft_current_round - 1;
+            }
           }
 
           break;

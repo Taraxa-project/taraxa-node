@@ -93,11 +93,9 @@ struct DbStorage {
     COLUMN(trx_status);
     COLUMN(status);
     COLUMN(pbft_mgr_round_step);
+    COLUMN(pbft_round_2t_plus_1);
     COLUMN(pbft_mgr_status);
     COLUMN(pbft_mgr_voted_value);
-    COLUMN(pbft_mgr_own_starting_value);
-    COLUMN(pbft_mgr_soft_voted_block);
-    COLUMN(pbft_mgr_next_voted_block_in_previous_round);
     COLUMN(pbft_head);
     COLUMN(pbft_blocks);
     COLUMN(cert_votes);
@@ -184,9 +182,15 @@ struct DbStorage {
   uint64_t getPbftMgrField(PbftMgrRoundStep const& field);
   void savePbftMgrField(PbftMgrRoundStep const& field, uint64_t const& value);
   void addPbftMgrFieldToBatch(PbftMgrRoundStep const& field, uint64_t const& value, BatchPtr const& write_batch);
+
+  size_t getPbft2TPlus1(uint64_t const& pbft_round);
+  void savePbft2TPlus1(uint64_t const& pbft_round, size_t const& pbft_2t_plus_1);
+  void addPbft2TPlus1ToBatch(uint64_t const& pbft_round, size_t const& pbft_2t_plus_1, BatchPtr const& write_batch);
+
   bool getPbftMgrStatus(PbftMgrStatus const& field);
   void savePbftMgrStatus(PbftMgrStatus const& field, bool const& value);
   void addPbftMgrStatusToBatch(PbftMgrStatus const& field, bool const& value, BatchPtr const& write_batch);
+
   shared_ptr<blk_hash_t> getPbftMgrVotedValue(PbftMgrVotedValue const& field);
   void savePbftMgrVotedValue(PbftMgrVotedValue const& field, blk_hash_t const& value);
   void addPbftMgrVotedValueToBatch(PbftMgrVotedValue const& field, blk_hash_t const& value,
