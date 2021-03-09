@@ -24,7 +24,7 @@ struct FinalChainTest : WithDataDir {
   uint64_t expected_blk_num = 0;
 
   void init() {
-      SUT = NewFinalChain(db, cfg);
+    SUT = NewFinalChain(db, cfg);
     for (auto const& [addr, _] : cfg.state.genesis_balances) {
       auto acc_actual = SUT->get_account(addr);
       ASSERT_TRUE(acc_actual);
@@ -37,12 +37,11 @@ struct FinalChainTest : WithDataDir {
   auto advance(Transactions const& trxs, advance_check_opts opts = {}) {
     auto author = addr_t::random();
     uint64_t timestamp = chrono::high_resolution_clock::now().time_since_epoch().count();
-    auto result = SUT->execute(batch, author, timestamp, trxs);
-    SUT->advance_confirm();
+    auto result = SUT->finalize(batch, author, timestamp, trxs);
     ++expected_blk_num;
     auto const& blk_h = result.new_header;
-    EXPECT_EQ(blk_h.hash(), SUT->get_last_block()->hash());
-    EXPECT_EQ(blk_h.parentHash(), SUT->blockHeader(expected_blk_num - 1).hash());
+    EXPECT_EQ(blk_h.hash(), SUT->block_header()->hash);
+    EXPECT_EQ(blk_h.parentHash(), SUT->block_header(expected_blk_num - 1)->hash);
     EXPECT_EQ(blk_h.number(), expected_blk_num);
     EXPECT_EQ(blk_h.author(), author);
     EXPECT_EQ(blk_h.timestamp(), timestamp);
@@ -66,8 +65,8 @@ struct FinalChainTest : WithDataDir {
     for (size_t i = 0; i < trxs.size(); ++i) {
       auto const& trx = trxs[i];
       auto const& r = result.receipts[i];
-      EXPECT_EQ(r.rlp(), SUT->transactionReceipt(trx.getHash()).rlp());
-      EXPECT_EQ(*trx.rlp(), *SUT->transaction(trx.getHash()).rlp());
+      EXPECT_EQ(r.rlp(), SUT->transaction_receipt(trx.getHash()).rlp());
+      EXPECT_EQ(*trx.rlp(), db->getTransaction(trx.getHash())->rlp());
       if (assume_only_toplevel_transfers && trx.getValue() != 0 && r.statusCode() == 1) {
         auto const& sender = trx.getSender();
         auto const& sender_bal = expected_balances[sender] -= trx.getValue();
@@ -91,8 +90,8 @@ struct FinalChainTest : WithDataDir {
         EXPECT_EQ(r.bloom(), LogBloom());
       }
       expected_block_log_bloom |= r.bloom();
-      auto r_from_db = SUT->localisedTransactionReceipt(trxs[i].getHash());
-      EXPECT_EQ(r_from_db.contractAddress(), result.state_transition_result.ExecutionResults[i].NewContractAddr);
+      auto r_from_db = *SUT->transaction_receipt(trxs[i].getHash());
+      EXPECT_EQ(r_from_db.new_contract_address, result.state_transition_result.ExecutionResults[i].NewContractAddr);
       EXPECT_EQ(r_from_db.from(), trx.getSender());
       EXPECT_EQ(r_from_db.blk_n(), blk_h.hash());
       EXPECT_EQ(r_from_db.blockNumber(), blk_h.number());
