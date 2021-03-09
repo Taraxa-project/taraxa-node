@@ -96,6 +96,7 @@ struct DbStorage {
     COLUMN(pbft_round_2t_plus_1);
     COLUMN(pbft_mgr_status);
     COLUMN(pbft_mgr_voted_value);
+    COLUMN(pbft_chain_pushed_values);
     COLUMN(pbft_head);
     COLUMN(pbft_blocks);
     COLUMN(cert_votes);
@@ -195,6 +196,11 @@ struct DbStorage {
   void savePbftMgrVotedValue(PbftMgrVotedValue const& field, blk_hash_t const& value);
   void addPbftMgrVotedValueToBatch(PbftMgrVotedValue const& field, blk_hash_t const& value,
                                    BatchPtr const& write_batch);
+
+  shared_ptr<blk_hash_t> getPbftChainPushedValue(uint64_t const& pbft_round);
+  void savePbftChainPushedValue(uint64_t const& pbft_round, blk_hash_t const& pushed_block_hash);
+  void addPbftChainPushedValueToBatch(uint64_t const& pbft_round, blk_hash_t const& pushed_block_hash,
+                                      BatchPtr const& write_batch);
 
   // pbft_blocks
   shared_ptr<PbftBlock> getPbftBlock(blk_hash_t const& hash);

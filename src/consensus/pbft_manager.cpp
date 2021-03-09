@@ -312,19 +312,30 @@ void PbftManager::initialState_() {
 
   auto round = db_->getPbftMgrField(PbftMgrRoundStep::PbftRound);
   auto step = db_->getPbftMgrField(PbftMgrRoundStep::PbftStep);
-  if (round == 1 && step == 1) {
-    // Start at initialization
-    state_ = value_proposal_state;
-    setPbftStep(1);
-  } else {
-    // Start from DB
-    state_ = finish_state;
-    step = 4;
-    setPbftStep(step);
-  }
+  setPbftStep(step);
   setPbftRound(round);
+  if (step == 1) {
+    state_ = value_proposal_state;
+  } else if (step == 2) {
+    state_ = filter_state;
+  } else if (step == 3) {
+    state_ = certify_state;
+  } else if (step % 2 == 0) {
+    state_ = finish_state;
+  } else {
+    state_ = finish_polling_state;
+  }
 
   if (round > 1) {
+    auto pushed_block_hash_in_previous_round = db_->getPbftChainPushedValue(round - 1);
+    if (pushed_block_hash_in_previous_round) {
+      push_block_values_for_round_[round - 1] = *pushed_block_hash_in_previous_round;
+      LOG(log_nf_) << "Initialize pushed block hash " << *pushed_block_hash_in_previous_round << " for previous round "
+                   << round - 1;
+    } else {
+      LOG(log_nf_) << "Node didn't push any values in previous round " << round - 1;
+    }
+
     // Get next votes for previous round from DB
     auto next_votes_in_previous_round = db_->getNextVotes(round - 1);
     if (next_votes_in_previous_round.empty()) {
@@ -525,11 +536,14 @@ bool PbftManager::stateOperations_() {
       // put pbft block into chain
       if (pushCertVotedPbftBlockIntoChain_(cert_voted_block_hash.first, cert_votes_for_round)) {
         // Update the latest certified block hash in the chain for current round
+        auto batch = db_->createWriteBatch();
+        db_->addPbftChainPushedValueToBatch(round, cert_voted_block_hash.first, batch);
+        db_->addPbftMgrStatusToBatch(PbftMgrStatus::executed_in_round, true, batch);
+        db_->commitWriteBatch(batch);
+
         push_block_values_for_round_[round] = cert_voted_block_hash.first;
         LOG(log_nf_) << node_addr_ << " push certified PBFT block hash " << cert_voted_block_hash.first << " in round "
                      << round;
-
-        db_->savePbftMgrStatus(PbftMgrStatus::executed_in_round, true);
         have_executed_this_round_ = true;
         LOG(log_nf_) << "Write " << cert_votes_for_round.size() << " votes ... in round " << round;
 
@@ -1178,9 +1192,10 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
       auto pbft_block_hash = pbft_block_and_votes.pbft_blk->getBlockHash();
       if (cert_voted_values_for_round_.find(round) != cert_voted_values_for_round_.end() &&
           cert_voted_values_for_round_.find(round)->second == pbft_block_hash) {
-        // Update the latest certified block hash in the chain for current round
+        // Update the latest sycned block hash in the chain for current round
+        db_->savePbftChainPushedValue(round, pbft_block_hash);
         push_block_values_for_round_[round] = pbft_block_hash;
-        LOG(log_nf_) << node_addr_ << " push certified PBFT block hash " << pbft_block_hash << " in round " << round;
+        LOG(log_nf_) << node_addr_ << " push synced PBFT block hash " << pbft_block_hash << " in round " << round;
       }
     } else {
       LOG(log_er_) << "Failed push PBFT block " << pbft_block_and_votes.pbft_blk->getBlockHash() << " into chain";

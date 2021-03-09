@@ -165,6 +165,7 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::cert_voted_in_round));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::next_voted_soft_value));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::next_voted_null_block_hash));
+
   // PBFT manager voted value
   EXPECT_EQ(db.getPbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round), nullptr);
   EXPECT_EQ(db.getPbftMgrVotedValue(PbftMgrVotedValue::soft_voted_block_hash_in_round), nullptr);
@@ -178,6 +179,18 @@ TEST_F(FullNodeTest, db_test) {
   db.commitWriteBatch(batch);
   EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round), blk_hash_t(4));
   EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::soft_voted_block_hash_in_round), blk_hash_t(5));
+
+  // PBFT pushed block hash
+  EXPECT_EQ(db.getPbftChainPushedValue(1), nullptr);
+  db.savePbftChainPushedValue(1, blk_hash_t(1));
+  EXPECT_EQ(*db.getPbftChainPushedValue(1), blk_hash_t(1));
+  batch = db.createWriteBatch();
+  db.addPbftChainPushedValueToBatch(1, blk_hash_t(2), batch);
+  db.addPbftChainPushedValueToBatch(2, blk_hash_t(3), batch);
+  db.commitWriteBatch(batch);
+  EXPECT_EQ(*db.getPbftChainPushedValue(1), blk_hash_t(2));
+  EXPECT_EQ(*db.getPbftChainPushedValue(2), blk_hash_t(3));
+
   // pbft_blocks
   auto pbft_block1 = make_simple_pbft_block(blk_hash_t(1), 2);
   auto pbft_block2 = make_simple_pbft_block(blk_hash_t(2), 3);
