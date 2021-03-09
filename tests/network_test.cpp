@@ -913,7 +913,7 @@ TEST_F(NetworkTest, node_full_sync) {
     EXPECT_GT(nodes[i]->getDagManager()->getNumVerticesInDag().first, 0);
     EXPECT_EQ(nodes[i]->getDagManager()->getNumVerticesInDag().first,
               nodes[0]->getDagManager()->getNumVerticesInDag().first);
-    EXPECT_EQ(nodes[i]->getDagManager()->getNumVerticesInDag().first, nodes[i]->getDB()->getNumDagBlocks());
+    EXPECT_EQ(nodes[i]->getDagManager()->getNumVerticesInDag().first, nodes[i]->getDagManager()->getNumDagBlocks());
     EXPECT_EQ(nodes[i]->getDagManager()->getNumEdgesInDag().first, nodes[0]->getDagManager()->getNumEdgesInDag().first);
     EXPECT_TRUE(nodes[i]->getNetwork()->isSynced());
   }

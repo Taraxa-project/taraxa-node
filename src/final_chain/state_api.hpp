@@ -11,8 +11,8 @@
 #include <vector>
 
 #include "common/types.hpp"
-#include "storage/db.hpp"
 #include "data.hpp"
+#include "storage/db.hpp"
 #include "util/encoding_rlp.hpp"
 #include "util/range_view.hpp"
 
@@ -134,7 +134,7 @@ struct EVMTransaction {
 
   template <typename E>
   void rlp(E encoding) {
-    rlp_tuple(encoding, From, GasPrice, To ? To->ref() : bytesConstRef(), Nonce, Value, Gas, Input);
+    rlp_tuple(encoding, From, GasPrice, To, Nonce, Value, Gas, Input);
   }
 };
 

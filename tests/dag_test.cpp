@@ -132,9 +132,8 @@ TEST_F(DagTest, genesis_get_pivot) {
 
 // Use the example on Conflux paper
 TEST_F(DagTest, compute_epoch) {
-  const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
   auto db_ptr = DB::make(data_dir / "db");
-  auto mgr = std::make_shared<DagManager>(GENESIS, addr_t(), nullptr, nullptr, db_ptr);
+  auto mgr = std::make_shared<DagManager>(ChainConfig::predefined().dag_genesis_block, db_ptr);
   DagBlock blkA(blk_hash_t(0), 0, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(1), addr_t(1));
   DagBlock blkB(blk_hash_t(0), 0, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1), blk_hash_t(2), addr_t(1));
   DagBlock blkC(blk_hash_t(1), 0, {blk_hash_t(2)}, {}, sig_t(1), blk_hash_t(3), addr_t(1));
@@ -215,9 +214,8 @@ TEST_F(DagTest, compute_epoch) {
 }
 
 TEST_F(DagTest, receive_block_in_order) {
-  const std::string GENESIS = "000000000000000000000000000000000000000000000000000000000000000a";
   auto db_ptr = DB::make(data_dir / "db");
-  auto mgr = std::make_shared<DagManager>(GENESIS, addr_t(), nullptr, nullptr, db_ptr);
+  auto mgr = std::make_shared<DagManager>(ChainConfig::predefined().dag_genesis_block, db_ptr);
   // mgr.setVerbose(true);
   DagBlock genesis_block(blk_hash_t(0), 0, {}, {}, sig_t(777), blk_hash_t(10), addr_t(15));
   DagBlock blk1(blk_hash_t(10), 0, {}, {}, sig_t(777), blk_hash_t(1), addr_t(15));
@@ -248,9 +246,8 @@ TEST_F(DagTest, receive_block_in_order) {
 // Use the example on Conflux paper, insert block in different order and make
 // sure block order are the same
 TEST_F(DagTest, compute_epoch_2) {
-  const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
   auto db_ptr = DB::make(data_dir / "db");
-  auto mgr = std::make_shared<DagManager>(GENESIS, addr_t(), nullptr, nullptr, db_ptr);
+  auto mgr = std::make_shared<DagManager>(ChainConfig::predefined().dag_genesis_block, db_ptr);
   DagBlock blkA(blk_hash_t(0), 0, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(1), addr_t(1));
   DagBlock blkB(blk_hash_t(0), 0, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1), blk_hash_t(2), addr_t(1));
   DagBlock blkC(blk_hash_t(1), 0, {blk_hash_t(2)}, {}, sig_t(1), blk_hash_t(3), addr_t(1));
@@ -332,9 +329,8 @@ TEST_F(DagTest, compute_epoch_2) {
 }
 
 TEST_F(DagTest, get_latest_pivot_tips) {
-  const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
   auto db_ptr = DB::make(data_dir / "db");
-  auto mgr = std::make_shared<DagManager>(GENESIS, addr_t(), nullptr, nullptr, db_ptr);
+  auto mgr = std::make_shared<DagManager>(ChainConfig::predefined().dag_genesis_block, db_ptr);
 
   // mgr.setVerbose(true);
   DagBlock blk1(blk_hash_t(0), 0, {}, {}, sig_t(0), blk_hash_t(1), addr_t(15));

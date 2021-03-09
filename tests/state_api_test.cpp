@@ -36,11 +36,12 @@ struct TestBlock {
   EVMBlock evm_block;
   vector<EVMTransaction> Transactions;
   vector<UncleBlock> UncleBlocks;
-};
 
-void rlp(RLP const& rlp, TestBlock& target) {
-  rlp_tuple(rlp, target.Hash, target.StateRoot, target.evm_block, target.Transactions, target.UncleBlocks);
-}
+  template <typename E>
+  void rlp(E encoding) {
+    rlp_tuple(encoding, Hash, StateRoot, evm_block, Transactions, UncleBlocks);
+  }
+};
 
 template <typename T>
 T parse_rlp_file(path const& p) {

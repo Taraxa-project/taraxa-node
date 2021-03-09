@@ -286,10 +286,9 @@ void PivotTree::getGhostPath(vertex_hash const &vertex, std::vector<vertex_hash>
   }
 }
 
-DagManager::DagManager(DagBlock const &genesis_blk, addr_t node_addr, std::shared_ptr<TransactionManager> trx_mgr,
-                       std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DB> db) try
-    : trx_mgr_(trx_mgr),
-      pbft_chain_(pbft_chain),
+DagManager::DagManager(DagBlock const &genesis_blk, std::shared_ptr<DB> db, std::shared_ptr<PbftChain> pbft_chain,
+                       addr_t node_addr)
+    : pbft_chain_(pbft_chain),
       db_(db),
       genesis_(genesis_blk.getHash().toString()),
       anchor_(genesis_),
@@ -297,7 +296,6 @@ DagManager::DagManager(DagBlock const &genesis_blk, addr_t node_addr, std::share
       pivot_tree_(std::make_shared<PivotTree>(genesis_, node_addr)),
       period_(0) {
   LOG_OBJECTS_CREATE("DAGMGR");
-  DagBlock blk;
   string pivot;
   std::vector<std::string> tips;
   getLatestPivotAndTips(pivot, tips);
@@ -311,22 +309,6 @@ DagManager::DagManager(DagBlock const &genesis_blk, addr_t node_addr, std::share
   if (dag_blocks_count_ == 0) {
     addDagBlock(genesis_blk);
   }
-} catch (std::exception &e) {
-  std::cerr << e.what() << std::endl;
-}
-
-std::shared_ptr<DagManager> DagManager::getShared() {
-  try {
-    return shared_from_this();
-  } catch (std::bad_weak_ptr &e) {
-    std::cerr << "DagManager: " << e.what() << std::endl;
-    return nullptr;
-  }
-}
-
-void DagManager::stop() {
-  unique_lock lock(mutex_);
-  trx_mgr_ = nullptr;
 }
 
 std::pair<uint64_t, uint64_t> DagManager::getNumVerticesInDag() const {

@@ -77,17 +77,15 @@ struct FullNodeTest : BaseTest {};
 TEST_F(FullNodeTest, db_test) {
   auto db_ptr = DB::make(data_dir);
   auto &db = *db_ptr;
+  auto batch = db.createWriteBatch();
   DagBlock blk1(blk_hash_t(1), 1, {}, {trx_hash_t(1), trx_hash_t(2)}, sig_t(777), blk_hash_t(0xB1), addr_t(999));
   DagBlock blk2(blk_hash_t(1), 1, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(777), blk_hash_t(0xB2), addr_t(999));
   DagBlock blk3(blk_hash_t(0xB1), 2, {}, {trx_hash_t(5)}, sig_t(777), blk_hash_t(0xB6), addr_t(999));
   // DAG
-  auto batch = db.createWriteBatch();
-  batch.saveDagBlock(blk1);
-  batch.commit().reset();
-  batch.saveDagBlock(blk2);
-  batch.commit().reset();
-  batch.saveDagBlock(blk3);
-  batch.commit().reset();
+  DagManager dag_mgr(ChainConfig::predefined().dag_genesis_block, db_ptr);
+  dag_mgr.addDagBlock(blk1);
+  dag_mgr.addDagBlock(blk2);
+  dag_mgr.addDagBlock(blk3);
   EXPECT_EQ(blk1, *db.getDagBlock(blk1.getHash()));
   EXPECT_EQ(blk2, *db.getDagBlock(blk2.getHash()));
   EXPECT_EQ(blk3, *db.getDagBlock(blk3.getHash()));

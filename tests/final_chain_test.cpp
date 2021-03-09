@@ -7,15 +7,15 @@
 #include "final_chain/TrieCommon.h"
 #include "util_test/gtest.hpp"
 
-namespace taraxa::final_chain {
-using namespace std;
+ namespace taraxa::final_chain {
+ using namespace std;
 
-struct advance_check_opts {
+ struct advance_check_opts {
   bool dont_assume_no_logs = 0;
   bool dont_assume_all_trx_success = 0;
 };
 
-struct FinalChainTest : WithDataDir {
+ struct FinalChainTest : WithDataDir {
   shared_ptr<DB> db = DB::make(data_dir / "db");
   FinalChain::Config cfg = ChainConfig::predefined().final_chain;
   unique_ptr<FinalChain> SUT;
@@ -51,7 +51,9 @@ struct FinalChainTest : WithDataDir {
                   trxs.size(), [&](auto i) { return dev::rlp(i); }, [&](auto i) { return *trxs[i].rlp(); }));
     EXPECT_EQ(blk_h.receiptsRoot(),
               trieRootOver(
-                  trxs.size(), [&](auto i) { return dev::rlp(i); }, [&](auto i) { return result.receipts[i].rlp(); }));
+                  trxs.size(), [&](auto i) { return dev::rlp(i); }, [&](auto i) {
+
+                    return result.receipts[i].rlp(); }));
     EXPECT_EQ(blk_h.gasLimit(), std::numeric_limits<uint64_t>::max());
     EXPECT_EQ(blk_h.extraData(), bytes());
     EXPECT_EQ(blk_h.nonce(), Nonce());
@@ -64,13 +66,12 @@ struct FinalChainTest : WithDataDir {
     unordered_set<addr_t> all_addrs_w_changed_balance;
     for (size_t i = 0; i < trxs.size(); ++i) {
       auto const& trx = trxs[i];
-      auto const& r = result.receipts[i];
-      EXPECT_EQ(r.rlp(), SUT->transaction_receipt(trx.getHash()).rlp());
+      auto r = *SUT->transaction_receipt(trx.getHash());
       EXPECT_EQ(*trx.rlp(), db->getTransaction(trx.getHash())->rlp());
-      if (assume_only_toplevel_transfers && trx.getValue() != 0 && r.statusCode() == 1) {
+      if (assume_only_toplevel_transfers && trx.getValue() != 0 && r.status_code == 1) {
         auto const& sender = trx.getSender();
         auto const& sender_bal = expected_balances[sender] -= trx.getValue();
-        auto const& receiver = !trx.getReceiver() ? r.contractAddress() : *trx.getReceiver();
+        auto const& receiver = !trx.getReceiver() ? *r.new_contract_address : *trx.getReceiver();
         all_addrs_w_changed_balance.insert(sender);
         all_addrs_w_changed_balance.insert(receiver);
         auto const& receiver_bal = expected_balances[receiver] += trx.getValue();
@@ -81,28 +82,25 @@ struct FinalChainTest : WithDataDir {
           expected_balance_changes[receiver] = receiver_bal;
         }
       }
-      EXPECT_TRUE(r.hasStatusCode());
       if (!opts.dont_assume_all_trx_success) {
-        EXPECT_EQ(r.statusCode(), 1);
+        EXPECT_EQ(r.status_code, 1);
       }
       if (!opts.dont_assume_no_logs) {
-        EXPECT_EQ(r.log().size(), 0);
+        EXPECT_EQ(r.logs.size(), 0);
         EXPECT_EQ(r.bloom(), LogBloom());
       }
       expected_block_log_bloom |= r.bloom();
-      auto r_from_db = *SUT->transaction_receipt(trxs[i].getHash());
-      EXPECT_EQ(r_from_db.new_contract_address, result.state_transition_result.ExecutionResults[i].NewContractAddr);
-      EXPECT_EQ(r_from_db.from(), trx.getSender());
-      EXPECT_EQ(r_from_db.blk_n(), blk_h.hash());
-      EXPECT_EQ(r_from_db.blockNumber(), blk_h.number());
-      EXPECT_EQ(r_from_db.transactionIndex(), i);
-      EXPECT_EQ(r_from_db.hash(), trx.getHash());
-      EXPECT_EQ(r_from_db.to(), trx.getReceiver().value_or(ZeroAddress));
-      EXPECT_EQ(r_from_db.bloom(), r.bloom());
-      EXPECT_TRUE(r_from_db.hasStatusCode());
-      EXPECT_EQ(r_from_db.statusCode(), r.statusCode());
-      EXPECT_EQ(r_from_db.gasUsed(), result.state_transition_result.ExecutionResults[i].GasUsed);
-      EXPECT_EQ(r_from_db.gasUsed(),
+      EXPECT_EQ(r.new_contract_address, result.state_transition_result.ExecutionResults[i].NewContractAddr);
+      EXPECT_EQ(r.from(), trx.getSender());
+      EXPECT_EQ(r.blk_n(), blk_h.hash());
+      EXPECT_EQ(r.blockNumber(), blk_h.number());
+      EXPECT_EQ(r.transactionIndex(), i);
+      EXPECT_EQ(r.hash(), trx.getHash());
+      EXPECT_EQ(r.to(), trx.getReceiver().value_or(ZeroAddress));
+      EXPECT_EQ(r.bloom(), r.bloom());
+      EXPECT_EQ(r.status_code, r.statusCode());
+      EXPECT_EQ(r.gas_used, result.state_transition_result.ExecutionResults[i].GasUsed);
+      EXPECT_EQ(r.gas_used,
                 i == 0 ? r.cumulativeGasUsed() : r.cumulativeGasUsed() - result.receipts[i - 1].cumulativeGasUsed());
     }
     expected_block_log_bloom.shiftBloom<3>(sha3(blk_h.author().ref()));
@@ -126,7 +124,7 @@ struct FinalChainTest : WithDataDir {
   }
 };
 
-TEST_F(FinalChainTest, genesis_balances) {
+ TEST_F(FinalChainTest, genesis_balances) {
   cfg.state.dpos = nullopt;
   cfg.state.genesis_balances = {};
   cfg.state.genesis_balances[addr_t::random()] = 0;
@@ -135,7 +133,7 @@ TEST_F(FinalChainTest, genesis_balances) {
   init();
 }
 
-TEST_F(FinalChainTest, contract) {
+ TEST_F(FinalChainTest, contract) {
   auto sender_keys = KeyPair::create();
   auto const& addr = sender_keys.address();
   auto const& sk = sender_keys.secret();
@@ -236,7 +234,7 @@ TEST_F(FinalChainTest, contract) {
             "6c6100000000000000000000000000000000000000000000000000000000");
 }
 
-TEST_F(FinalChainTest, coin_transfers) {
+ TEST_F(FinalChainTest, coin_transfers) {
   constexpr size_t NUM_ACCS = 500;
   cfg.state.genesis_balances = {};
   cfg.state.dpos = nullopt;

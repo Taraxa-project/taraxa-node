@@ -5,12 +5,10 @@
 #include <vector>
 
 #include "common/types.hpp"
-#include "transaction_manager/transaction.hpp"
 #include "util_test/gtest.hpp"
-#include "util_test/util.hpp"
 
-namespace taraxa::replay_protection_service {
-using namespace taraxa;
+namespace taraxa::final_chain {
+using namespace std;
 
 struct ReplayProtectionServiceTest : WithDataDir {
   round_t range = 0;
@@ -128,6 +126,6 @@ TEST_F(ReplayProtectionServiceTest, multi_senders_2) {
   }
 }
 
-}  // namespace taraxa::replay_protection_service
+}  // namespace taraxa::final_chain
 
 TARAXA_TEST_MAIN({})

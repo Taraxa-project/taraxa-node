@@ -115,16 +115,14 @@ class PivotTree : public Dag {
 };
 class FullNode;
 
-class DagManager : public std::enable_shared_from_this<DagManager> {
+class DagManager {
  public:
   using uLock = std::unique_lock<std::shared_mutex>;
   using sharedLock = std::shared_lock<std::shared_mutex>;
 
-  explicit DagManager(DagBlock const &genesis_blk, addr_t node_addr, std::shared_ptr<TransactionManager> trx_mgr,
-                      std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DB> db);
+  explicit DagManager(DagBlock const &genesis_blk, std::shared_ptr<DB> db, std::shared_ptr<PbftChain> pbft_chain = {},
+                      addr_t node_addr = {});
   virtual ~DagManager() = default;
-  std::shared_ptr<DagManager> getShared();
-  void stop();
 
   bool pivotAndTipsAvailable(DagBlock const &blk);
   void addDagBlock(DagBlock const &blk, bool finalized = false,
@@ -187,7 +185,6 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::atomic<level_t> max_level_ = 0;
   mutable std::shared_mutex mutex_;
 
-  std::shared_ptr<TransactionManager> trx_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<DB> db_;
   std::string genesis_;
