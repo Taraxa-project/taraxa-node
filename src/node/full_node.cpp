@@ -131,17 +131,17 @@ void FullNode::start() {
     auto const &ws = jsonrpc_ws_;
     final_chain_->block_executed.subscribe(
         [=](auto const &obj) {
-          eth_json_rpc->note_block_executed(*obj.final_chain_blk, obj.trxs, obj.trx_receipts);
+          eth_json_rpc->note_block_executed(*obj->final_chain_blk, obj->trxs, obj->trx_receipts);
           if (ws) {
-            ws->newDagBlockFinalized(obj.pbft_blk->getPivotDagBlockHash(), obj.pbft_blk->getPeriod());
-            ws->newPbftBlockExecuted(*obj.pbft_blk, obj.finalized_dag_blk_hashes);
-            ws->newEthBlock(*obj.final_chain_blk);
+            ws->newDagBlockFinalized(obj->pbft_blk->getPivotDagBlockHash(), obj->pbft_blk->getPeriod());
+            ws->newPbftBlockExecuted(*obj->pbft_blk, obj->finalized_dag_blk_hashes);
+            ws->newEthBlock(*obj->final_chain_blk);
           }
         },
         util::ThreadPool::as_task_executor(rpc_thread_pool_));
     trx_mgr_->transaction_accepted.subscribe(
         [=](auto const &trx_hash) {
-          eth_json_rpc->note_pending_transactions(vector{trx_hash});
+          eth_json_rpc->note_pending_transaction(trx_hash);
           if (ws) {
             ws->newPendingTransaction(trx_hash);
           }

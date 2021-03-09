@@ -1,5 +1,7 @@
 #pragma once
 
+#include <future>
+
 #include "common/types.hpp"
 #include "consensus/pbft_chain.hpp"
 #include "data.hpp"
@@ -28,7 +30,7 @@ struct FinalChain {
     state_api::Opts state_api;
   };
 
-  struct BlockExecuted {
+  struct BlockFinalized {
     shared_ptr<PbftBlock> pbft_blk;
     vector<blk_hash_t> finalized_dag_blk_hashes;
     shared_ptr<BlockHeader const> final_chain_blk;
@@ -37,14 +39,14 @@ struct FinalChain {
   };
 
  protected:
-  util::EventEmitter<BlockExecuted> const block_executed_;
+  util::EventEmitter<shared_ptr<BlockFinalized>> const block_executed_;
 
  public:
   decltype(block_executed_)::Subscriber const& block_executed = block_executed_;
 
   virtual ~FinalChain() {}
 
-  virtual void finalize(std::shared_ptr<PbftBlock> pbft_blk) = 0;
+  virtual future<shared_ptr<BlockFinalized>> finalize(shared_ptr<PbftBlock> pbft_blk) = 0;
 
   virtual shared_ptr<BlockHeader> block_header(optional<BlockNumber> n = {}) const = 0;
   virtual BlockNumber last_block_number() const = 0;

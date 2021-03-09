@@ -37,7 +37,7 @@ struct Eth : virtual ::taraxa::net::EthFace {
   virtual ~Eth() {}
 
   virtual void note_block_executed(BlockHeader const&, Transactions const&, TransactionReceipts const&) = 0;
-  virtual void note_pending_transactions(util::RangeView<h256> const& trx_hashes) = 0;
+  virtual void note_pending_transaction(h256 const& trx_hash) = 0;
 };
 
 Eth* NewEth(EthParams&&);

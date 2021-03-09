@@ -27,7 +27,7 @@ struct FinalChainImpl final : virtual FinalChain {
 
   LOG_OBJECTS_DEFINE;
 
-  FinalChainImpl(shared_ptr<DB> const& db,  //
+  FinalChainImpl(shared_ptr<DB> const& db,      //
                  Config const& config,          //
                  FinalChain::Opts const& opts,  //
                  addr_t const& node_addr)
@@ -71,12 +71,14 @@ struct FinalChainImpl final : virtual FinalChain {
     num_executed_trx_ = db_->getStatusField(taraxa::StatusDbField::ExecutedTrxCount);
   }
 
-  void finalize(shared_ptr<PbftBlock> pbft_blk) override {
+  future<shared_ptr<BlockFinalized>> finalize(shared_ptr<PbftBlock> pbft_blk) override {
     assert(pbft_blk);
-    executor_thread_.post([this, pbft_blk] { finalize_(pbft_blk); });
+    auto p = make_shared<promise<shared_ptr<BlockFinalized>>>();
+    executor_thread_.post([this, pbft_blk, p] { p->set_value(finalize_(pbft_blk)); });
+    return p->get_future();
   }
 
-  void finalize_(shared_ptr<PbftBlock> pbft_blk_ptr) {
+  shared_ptr<BlockFinalized> finalize_(shared_ptr<PbftBlock> pbft_blk_ptr) {
     auto const& pbft_block = *pbft_blk_ptr;
     auto pbft_period = pbft_block.getPeriod();
     auto const& pbft_block_hash = pbft_block.getBlockHash();
@@ -181,9 +183,17 @@ struct FinalChainImpl final : virtual FinalChain {
       last_block_ = blk_header;
     }
 
-    block_executed_.emit({pbft_blk_ptr, move(finalized_dag_blk_hashes), blk_header, move(to_execute), move(receipts)});
+    auto result = s_ptr(new BlockFinalized{
+        pbft_blk_ptr,
+        move(finalized_dag_blk_hashes),
+        blk_header,
+        move(to_execute),
+        move(receipts),
+    });
+    block_executed_.emit(result);
 
     LOG(log_nf_) << " successful execute pbft block " << pbft_block_hash << " in period " << pbft_period;
+    return result;
   }
 
   shared_ptr<BlockHeader> append_block(DB::Batch& batch, addr_t const& author, uint64_t timestamp, uint64_t gas_limit,
@@ -438,7 +448,7 @@ struct FinalChainImpl final : virtual FinalChain {
   };
 };
 
-unique_ptr<FinalChain> NewFinalChain(shared_ptr<DB> const& db,  //
+unique_ptr<FinalChain> NewFinalChain(shared_ptr<DB> const& db,          //
                                      FinalChain::Config const& config,  //
                                      FinalChain::Opts const& opts, addr_t const& node_addr) {
   return util::u_ptr(new FinalChainImpl(db, config, opts, node_addr));

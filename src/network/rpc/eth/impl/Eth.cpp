@@ -180,9 +180,7 @@ struct EthImpl : Eth, EthParams {
     }
   }
 
-  void note_pending_transactions(RangeView<h256> const& trx_hashes) override {
-    trx_hashes.for_each([this](auto const& trx_h) { watches.new_transactions.process_update(trx_h); });
-  }
+  void note_pending_transaction(h256 const& trx_hash) override { watches.new_transactions.process_update(trx_hash); }
 
   Json::Value get_block_by_number(BlockNumber blk_n, bool include_transactions) {
     auto blk_header = final_chain->block_header(blk_n);
