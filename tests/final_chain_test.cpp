@@ -1,9 +1,9 @@
-#include "chain/final_chain.hpp"
+#include "final_chain/final_chain.hpp"
 
 #include <optional>
 #include <vector>
 
-#include "chain/chain_config.hpp"
+#include "config/chain_config.hpp"
 #include "final_chain/TrieCommon.h"
 #include "util_test/gtest.hpp"
 
@@ -24,7 +24,7 @@ struct FinalChainTest : WithDataDir {
   uint64_t expected_blk_num = 0;
 
   void init() {
-    SUT = NewFinalChain(db, cfg);
+      SUT = NewFinalChain(db, cfg);
     for (auto const& [addr, _] : cfg.state.genesis_balances) {
       auto acc_actual = SUT->get_account(addr);
       ASSERT_TRUE(acc_actual);
@@ -35,11 +35,9 @@ struct FinalChainTest : WithDataDir {
   }
 
   auto advance(Transactions const& trxs, advance_check_opts opts = {}) {
-    auto batch = db->createWriteBatch();
     auto author = addr_t::random();
     uint64_t timestamp = chrono::high_resolution_clock::now().time_since_epoch().count();
-    auto result = SUT->advance(batch, author, timestamp, trxs);
-    batch.commit();
+    auto result = SUT->execute(batch, author, timestamp, trxs);
     SUT->advance_confirm();
     ++expected_blk_num;
     auto const& blk_h = result.new_header;
@@ -51,10 +49,10 @@ struct FinalChainTest : WithDataDir {
     EXPECT_EQ(result.receipts.size(), trxs.size());
     EXPECT_EQ(blk_h.transactionsRoot(),
               trieRootOver(
-                  trxs.size(), [&](auto i) { return rlp(i); }, [&](auto i) { return *trxs[i].rlp(); }));
+                  trxs.size(), [&](auto i) { return dev::rlp(i); }, [&](auto i) { return *trxs[i].rlp(); }));
     EXPECT_EQ(blk_h.receiptsRoot(),
               trieRootOver(
-                  trxs.size(), [&](auto i) { return rlp(i); }, [&](auto i) { return result.receipts[i].rlp(); }));
+                  trxs.size(), [&](auto i) { return dev::rlp(i); }, [&](auto i) { return result.receipts[i].rlp(); }));
     EXPECT_EQ(blk_h.gasLimit(), std::numeric_limits<uint64_t>::max());
     EXPECT_EQ(blk_h.extraData(), bytes());
     EXPECT_EQ(blk_h.nonce(), Nonce());
@@ -117,6 +115,15 @@ struct FinalChainTest : WithDataDir {
       }
     }
     return result;
+  }
+
+  template <class T, class U>
+  static h256 trieRootOver(uint _itemCount, T const& _getKey, U const& _getValue) {
+    dev::BytesMap m;
+    for (uint i = 0; i < _itemCount; ++i) {
+      m[_getKey(i)] = _getValue(i);
+    }
+    return hash256(m);
   }
 };
 

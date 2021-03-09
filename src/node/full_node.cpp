@@ -65,7 +65,7 @@ void FullNode::init() {
   register_s_ptr(db_);
   LOG(log_nf_) << "DB initialized ...";
 
-  final_chain_ = NewFinalChain(db_, pbft_chain_, conf_.chain.final_chain, conf_.opts_final_chain, node_addr);
+  final_chain_ = NewFinalChain(db_, conf_.chain.final_chain, conf_.opts_final_chain, node_addr);
   register_s_ptr(final_chain_);
   emplace(trx_mgr_, conf_, node_addr, db_, log_time_);
   auto genesis_hash = conf_.chain.dag_genesis_block.getHash().toString();
@@ -93,7 +93,7 @@ void FullNode::start() {
   }
 
   if (conf_.rpc) {
-    register_s_ptr(rpc_thread_pool_ = util::ThreadPool::make(conf_.rpc->threads_num));
+    emplace(rpc_thread_pool_, conf_.rpc->threads_num);
     net::rpc::eth::EthParams eth_rpc_params;
     eth_rpc_params.address = getAddress();
     eth_rpc_params.secret = kp_.secret();
@@ -138,7 +138,7 @@ void FullNode::start() {
             ws->newEthBlock(*obj.final_chain_blk);
           }
         },
-        *rpc_thread_pool_);
+        util::ThreadPool::as_task_executor(rpc_thread_pool_));
     trx_mgr_->transaction_accepted.subscribe(
         [=](auto const &trx_hash) {
           eth_json_rpc->note_pending_transactions(vector{trx_hash});
@@ -146,7 +146,7 @@ void FullNode::start() {
             ws->newPendingTransaction(trx_hash);
           }
         },
-        *rpc_thread_pool_);
+        util::ThreadPool::as_task_executor(rpc_thread_pool_));
   }
 
   if (conf_.network.network_is_boot_node) {

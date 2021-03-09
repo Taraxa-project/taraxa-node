@@ -7,6 +7,7 @@
 #include "dag/dag_block.hpp"
 #include "transaction_manager/transaction.hpp"
 #include "util.hpp"
+#include "util/fmt.hpp"
 #include "util/lazy.hpp"
 
 namespace taraxa::core_tests::samples {
@@ -65,8 +66,8 @@ inline bool sendTrx(uint64_t count, unsigned port) {
       }' 0.0.0.0:%s
     )";
   for (auto i = 0; i < count; ++i) {
-    auto retcode = system(fmt(pattern, val_t(TEST_TX_GAS_LIMIT), val_t(0), addr_t::random(),
-                              samples::TX_GEN->getRandomUniqueSenderSecret().makeInsecure(), port)
+    auto retcode = system(util::fmt(pattern, val_t(TEST_TX_GAS_LIMIT), val_t(0), addr_t::random(),
+                                    samples::TX_GEN->getRandomUniqueSenderSecret().makeInsecure(), port)
                               .c_str());
     if (retcode != 0) {
       return false;

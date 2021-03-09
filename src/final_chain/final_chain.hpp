@@ -44,7 +44,7 @@ struct FinalChain {
 
   virtual ~FinalChain() {}
 
-  virtual void execute(std::shared_ptr<PbftBlock> pbft_blk) = 0;
+  virtual void finalize(std::shared_ptr<PbftBlock> pbft_blk) = 0;
 
   virtual shared_ptr<BlockHeader> block_header(optional<BlockNumber> n = {}) const = 0;
   virtual BlockNumber last_block_number() const = 0;
@@ -59,8 +59,7 @@ struct FinalChain {
   };
   virtual shared_ptr<TransactionHashes> transaction_hashes(optional<BlockNumber> n = {}) const = 0;
   virtual Transactions transactions(optional<BlockNumber> n = {}) const = 0;
-  virtual optional<TransactionLocation> transaction_location(h256 const& trx_hash,
-                                                             bool with_block_hash = true) const = 0;
+  virtual optional<TransactionLocation> transaction_location(h256 const& trx_hash) const = 0;
   virtual optional<TransactionReceipt> transaction_receipt(h256 const& _transactionHash) const = 0;
   virtual uint64_t transactionCount(optional<BlockNumber> n = {}) const = 0;
   virtual vector<BlockNumber> withBlockBloom(LogBloom const& b, BlockNumber from, BlockNumber to) const = 0;
@@ -86,8 +85,7 @@ struct FinalChain {
   }
 };
 
-unique_ptr<FinalChain> NewFinalChain(shared_ptr<DB> const& db,  //
-                                     shared_ptr<PbftChain> pbft_chain,
+unique_ptr<FinalChain> NewFinalChain(shared_ptr<DB> const& db,           //
                                      FinalChain::Config const& config,   //
                                      FinalChain::Opts const& opts = {},  //
                                      addr_t const& node_addr = {});

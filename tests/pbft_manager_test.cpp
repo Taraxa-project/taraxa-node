@@ -63,7 +63,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
     trxs_count++;
     EXPECT_HAPPENS({60s, 1s}, [&](auto &ctx) {
       for (auto &node : nodes) {
-        if (ctx.fail_if(!node->getFinalChain()->isKnownTransaction(trx.getHash()))) {
+        if (ctx.fail_if(!node->getFinalChain()->transaction_location(trx.getHash()))) {
           return;
         }
       }

@@ -100,6 +100,12 @@ void PbftManager::stop() {
 void PbftManager::run() {
   LOG(log_nf_) << "PBFT running ...";
 
+  for (auto unexecuted_period = final_chain_->last_block_number() + 1, curr_period = pbft_chain_->getPbftChainSize();
+       unexecuted_period <= curr_period;  //
+       ++unexecuted_period) {
+    final_chain_->finalize(pbft_chain_->getPbftBlock(unexecuted_period));
+  }
+
   // Initialize PBFT status
   initialState_();
 
@@ -1329,6 +1335,7 @@ bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes) {
 
   // Set DAG blocks period
   auto const &anchor_hash = pbft_block->getPivotDagBlockHash();
+  // TODO fix get/set dag block order
   auto finalized_dag_blk_hashes = *dag_mgr_->getDagBlockOrder(anchor_hash).second;
   dag_mgr_->setDagBlockOrder(anchor_hash, pbft_period, finalized_dag_blk_hashes, batch);
 
@@ -1344,7 +1351,7 @@ bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes) {
   LOG(log_nf_) << node_addr_ << " successful push unexecuted pbft block " << pbft_block_hash << " in period "
                << pbft_period << " into chain! In round " << getPbftRound();
 
-  final_chain_->execute(pbft_block);
+  final_chain_->finalize(pbft_block);
 
   // Update pbft chain last block hash
   pbft_chain_last_block_hash_ = pbft_block_hash;

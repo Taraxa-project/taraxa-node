@@ -11,8 +11,6 @@ ThreadPool::ThreadPool(size_t num_threads) : ioc_work_(boost::asio::make_work_gu
   }
 }
 
-std::shared_ptr<ThreadPool> ThreadPool::make(size_t num_threads) { return s_ptr(new ThreadPool(num_threads)); }
-
 ThreadPool::~ThreadPool() {
   ioc_.stop();
   for (auto &th : threads_) {

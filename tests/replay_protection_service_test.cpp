@@ -1,4 +1,4 @@
-#include "node/replay_protection_service.hpp"
+#include "final_chain/replay_protection_service.hpp"
 
 #include <filesystem>
 #include <optional>

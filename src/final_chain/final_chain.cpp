@@ -3,7 +3,7 @@
 #include "TrieCommon.h"
 #include "replay_protection_service.hpp"
 #include "transaction_manager/transaction_manager.hpp"
-#include "util/signal.hpp"
+#include "util/thread_pool.hpp"
 
 namespace taraxa::final_chain {
 using namespace std;
@@ -13,7 +13,6 @@ enum DBMetaKeys { LAST_PERIOD = 1 };
 
 struct FinalChainImpl final : virtual FinalChain {
   shared_ptr<DB> db_;
-  shared_ptr<PbftChain> pbft_chain_;
   StateAPI state_api;
   unique_ptr<ReplayProtectionService> replay_protection_service_{new ReplayProtectionServiceDummy};
 
@@ -21,8 +20,7 @@ struct FinalChainImpl final : virtual FinalChain {
   mutable shared_ptr<BlockHeader> last_block_;
 
   uint64_t transaction_count_hint_;
-  util::Signal<shared_ptr<PbftBlock>> to_execute_;
-  unique_ptr<thread> exec_worker_;
+  util::ThreadPool executor_thread_{1};
 
   atomic<uint64_t> num_executed_dag_blk_ = 0;
   atomic<uint64_t> num_executed_trx_ = 0;
@@ -30,12 +28,10 @@ struct FinalChainImpl final : virtual FinalChain {
   LOG_OBJECTS_DEFINE;
 
   FinalChainImpl(shared_ptr<DB> const& db,  //
-                 shared_ptr<PbftChain> pbft_chain,
                  Config const& config,          //
                  FinalChain::Opts const& opts,  //
                  addr_t const& node_addr)
       : db_(db),
-        pbft_chain_(move(pbft_chain)),
         state_api([this](auto n) { return block_hash(n).value_or(ZeroHash); },  //
                   config.state,
                   {
@@ -73,36 +69,14 @@ struct FinalChainImpl final : virtual FinalChain {
     }
     num_executed_dag_blk_ = db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
     num_executed_trx_ = db_->getStatusField(taraxa::StatusDbField::ExecutedTrxCount);
-    if (auto last_period = pbft_chain_->getPbftChainSize(); last_block_->number < last_period) {
-      execute(pbft_chain_->getPbftBlock(last_period));
-    }
-    exec_worker_ = std::make_unique<std::thread>([this]() {
-      LOG(log_nf_) << "Executor run...";
-      for (;;) {
-        auto pbft_block = to_execute_.wait();
-        if (!pbft_block) {
-          break;
-        }
-        for (auto blk_n = last_block_number() + 1; blk_n < pbft_block->getPeriod(); ++blk_n) {
-          execute_(pbft_chain_->getPbftBlock(blk_n));
-        }
-        execute_(pbft_block);
-      }
-    });
   }
 
-  ~FinalChainImpl() override {
-    to_execute_.emit(nullptr);
-    exec_worker_->join();
-    LOG(log_nf_) << "Executor stopped";
-  }
-
-  void execute(shared_ptr<PbftBlock> pbft_blk) override {
+  void finalize(shared_ptr<PbftBlock> pbft_blk) override {
     assert(pbft_blk);
-    to_execute_.emit(move(pbft_blk));
+    executor_thread_.post([this, pbft_blk] { finalize_(pbft_blk); });
   }
 
-  void execute_(shared_ptr<PbftBlock> const& pbft_blk_ptr) {
+  void finalize_(shared_ptr<PbftBlock> pbft_blk_ptr) {
     auto const& pbft_block = *pbft_blk_ptr;
     auto pbft_period = pbft_block.getPeriod();
     auto const& pbft_block_hash = pbft_block.getBlockHash();
@@ -307,7 +281,7 @@ struct FinalChainImpl final : virtual FinalChain {
     return make_shared<TransactionHashesImpl>(db_->lookup(DB::Columns::final_chain_block_by_period, last_if_absent(n)));
   }
 
-  optional<TransactionLocation> transaction_location(h256 const& trx_hash, bool with_block_hash = true) const override {
+  optional<TransactionLocation> transaction_location(h256 const& trx_hash) const override {
     auto raw = db_->lookup(DB::Columns::executed_transactions, trx_hash);
     if (raw.empty()) {
       return {};
@@ -465,10 +439,9 @@ struct FinalChainImpl final : virtual FinalChain {
 };
 
 unique_ptr<FinalChain> NewFinalChain(shared_ptr<DB> const& db,  //
-                                     shared_ptr<PbftChain> pbft_chain,
                                      FinalChain::Config const& config,  //
                                      FinalChain::Opts const& opts, addr_t const& node_addr) {
-  return util::u_ptr(new FinalChainImpl(db, move(pbft_chain), config, opts, node_addr));
+  return util::u_ptr(new FinalChainImpl(db, config, opts, node_addr));
 }
 
 Json::Value enc_json(FinalChain::Config const& obj) {

@@ -11,10 +11,8 @@ class ThreadPool : std::enable_shared_from_this<ThreadPool> {
   boost::asio::executor_work_guard<decltype(ioc_)::executor_type> ioc_work_;
   std::vector<std::thread> threads_;
 
-  explicit ThreadPool(size_t num_threads);
-
  public:
-  static std::shared_ptr<ThreadPool> make(size_t num_threads);
+  explicit ThreadPool(size_t num_threads);
   ~ThreadPool();
 
   ThreadPool(ThreadPool const &) = delete;
@@ -23,12 +21,12 @@ class ThreadPool : std::enable_shared_from_this<ThreadPool> {
   auto &unsafe_get_io_context() { return ioc_; }
 
   template <typename... T>
-  auto post(T &&... args) {
+  auto post(T &&...args) {
     return boost::asio::post(ioc_, std::forward<T>(args)...);
   }
 
-  operator task_executor_t() {
-    return [self = shared_from_this()](auto &&task) { self->post(std::forward<task_t>(task)); };
+  static task_executor_t as_task_executor(std::shared_ptr<ThreadPool> th_pool) {
+    return [=](auto &&task) { th_pool->post(std::forward<task_t>(task)); };
   }
 };
 
