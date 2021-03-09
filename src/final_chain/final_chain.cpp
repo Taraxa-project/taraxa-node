@@ -190,7 +190,7 @@ struct FinalChainImpl final : virtual FinalChain {
         move(to_execute),
         move(receipts),
     });
-    block_executed_.emit(result);
+    block_finalized_.emit(result);
 
     LOG(log_nf_) << " successful execute pbft block " << pbft_block_hash << " in period " << pbft_period;
     return result;

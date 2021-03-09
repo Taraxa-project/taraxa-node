@@ -39,10 +39,10 @@ struct FinalChain {
   };
 
  protected:
-  util::EventEmitter<shared_ptr<BlockFinalized>> const block_executed_;
+  util::EventEmitter<shared_ptr<BlockFinalized>> const block_finalized_;
 
  public:
-  decltype(block_executed_)::Subscriber const& block_executed = block_executed_;
+  decltype(block_finalized_)::Subscriber const& block_finalized = block_finalized_;
 
   virtual ~FinalChain() {}
 

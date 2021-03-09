@@ -129,7 +129,7 @@ void FullNode::start() {
       jsonrpc_ws_->run();
     }
     auto const &ws = jsonrpc_ws_;
-    final_chain_->block_executed.subscribe(
+    final_chain_->block_finalized.subscribe(
         [=](auto const &obj) {
           eth_json_rpc->note_block_executed(*obj->final_chain_blk, obj->trxs, obj->trx_receipts);
           if (ws) {
