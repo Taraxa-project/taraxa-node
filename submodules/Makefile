@@ -1,8 +1,10 @@
 SYSTEM_HOME_OVERRIDE?=
+OPENSSL_ROOT_DIR?=
 UPDATE_SUBMODULES?=1
 DIST?=$(CURDIR)/__dist__
 COMPILE_DEFINITIONS?=
 TARAXA_STATIC_BUILD?=
+CONAN_INCLUDE_DIRS?=
 
 SHELL := /bin/bash
 
@@ -78,8 +80,8 @@ $(DIST)/taraxa-evm.ok:
 # ====================================================
 
 TARAXA_VDF_OPTS :=
-ifneq ($(SYSTEM_HOME_OVERRIDE),)
-	TARAXA_VDF_OPTS += OPENSSL_HOME=$(SYSTEM_HOME_OVERRIDE)
+ifneq ($(OPENSSL_ROOT_DIR),)
+	TARAXA_VDF_OPTS += OPENSSL_HOME=$(OPENSSL_ROOT_DIR)
 endif
 $(DIST)/taraxa-vdf.ok:
 	$(SUBMODULE_BUILD_BEGIN); \
@@ -101,58 +103,58 @@ $(DIST)/taraxa-vrf.ok:
 
 # ====================================================
 
-$(DIST)/googletest.ok:
-	$(SUBMODULE_BUILD_BEGIN); \
-	mkdir_cd build; \
-	cmake -DCMAKE_INSTALL_PREFIX=$${STAGE_DIR} ..; \
-	$(MAKE); \
-	$(MAKE) install; \
-	$(SUBMODULE_BUILD_END);
+# $(DIST)/googletest.ok:
+# 	$(SUBMODULE_BUILD_BEGIN); \
+# 	mkdir_cd build; \
+# 	cmake -DCMAKE_INSTALL_PREFIX=$${STAGE_DIR} ..; \
+# 	$(MAKE); \
+# 	$(MAKE) install; \
+# 	$(SUBMODULE_BUILD_END);
 
 # ====================================================
 
-$(DIST)/cryptopp.ok:
-	$(SUBMODULE_BUILD_BEGIN); \
-	$(MAKE) CXXFLAGS="-DNDEBUG -O3 -fPIC \
-		$(addprefix -D, $(COMPILE_DEFINITIONS)) \
-		-fvisibility=hidden -pthread -pipe -c"; \
-	$(MAKE) PREFIX=$${STAGE_DIR} install; \
-	$(SUBMODULE_BUILD_END);
+# $(DIST)/cryptopp.ok:
+# 	$(SUBMODULE_BUILD_BEGIN); \
+# 	$(MAKE) CXXFLAGS="-DNDEBUG -O3 -fPIC \
+# 		$(addprefix -D, $(COMPILE_DEFINITIONS)) \
+# 		-fvisibility=hidden -pthread -pipe -c"; \
+# 	$(MAKE) PREFIX=$${STAGE_DIR} install; \
+# 	$(SUBMODULE_BUILD_END);
 
 # ====================================================
 
-$(DIST)/ethash.ok:
-	$(SUBMODULE_BUILD_BEGIN); \
-	mkdir_cd build; \
-	cmake -DCMAKE_INSTALL_PREFIX=$${STAGE_DIR} .. \
-		-DBUILD_TESTING=OFF \
-		-DBUILD_SHARED_LIBS=OFF \
-		-DETHASH_BUILD_TESTS=OFF \
-		-DHUNTER_ENABLED=OFF; \
-	$(MAKE); \
-	$(MAKE) install; \
-	$(SUBMODULE_BUILD_END);
+# $(DIST)/ethash.ok:
+# 	$(SUBMODULE_BUILD_BEGIN); \
+# 	mkdir_cd build; \
+# 	cmake -DCMAKE_INSTALL_PREFIX=$${STAGE_DIR} .. \
+# 		-DBUILD_TESTING=OFF \
+# 		-DBUILD_SHARED_LIBS=OFF \
+# 		-DETHASH_BUILD_TESTS=OFF \
+# 		-DHUNTER_ENABLED=OFF; \
+# 	$(MAKE); \
+# 	$(MAKE) install; \
+# 	$(SUBMODULE_BUILD_END);
 
 # ====================================================
 
-LIBFF_OPTS := \
-	-DBUILD_TESTING=OFF \
-	-DBUILD_SHARED_LIBS=OFF \
-	-DWITH_PROCPS=OFF \
-	-DCMAKE_C_COMPILER=gcc \
-	-DCMAKE_CXX_COMPILER=c++
-ifneq ($(SYSTEM_HOME_OVERRIDE),)
-	LIBFF_OPTS += \
-		-DOPENSSL_ROOT_DIR=$(SYSTEM_HOME_OVERRIDE) \
-		-DOPENSSL_LIBRARIES=$(SYSTEM_HOME_OVERRIDE)/lib
-endif
-$(DIST)/libff.ok:
-	$(SUBMODULE_BUILD_BEGIN); \
-	mkdir_cd build; \
-	cmake -DCMAKE_INSTALL_PREFIX=$${STAGE_DIR} .. $(LIBFF_OPTS); \
-	$(MAKE); \
-	$(MAKE) install; \
-	$(SUBMODULE_BUILD_END);
+# LIBFF_OPTS := \
+# 	-DBUILD_TESTING=OFF \
+# 	-DBUILD_SHARED_LIBS=OFF \
+# 	-DWITH_PROCPS=OFF \
+# 	-DCMAKE_C_COMPILER=gcc \
+# 	-DCMAKE_CXX_COMPILER=c++
+# ifneq ($(OPENSSL_ROOT_DIR),)
+# 	LIBFF_OPTS += \
+# 		-DOPENSSL_ROOT_DIR=$(OPENSSL_ROOT_DIR) \
+# 		-DOPENSSL_LIBRARIES=$(OPENSSL_ROOT_DIR)/lib
+# endif
+# $(DIST)/libff.ok:
+# 	$(SUBMODULE_BUILD_BEGIN); \
+# 	mkdir_cd build; \
+# 	cmake -DCMAKE_INSTALL_PREFIX=$${STAGE_DIR} .. $(LIBFF_OPTS); \
+# 	$(MAKE); \
+# 	$(MAKE) install; \
+# 	$(SUBMODULE_BUILD_END);
 
 # ====================================================
 
@@ -174,27 +176,27 @@ $(DIST)/secp256k1.ok:
 
 # ====================================================
 
-ALETH_ROOT := $(DIST)/src_taraxa-aleth
-ALETH_OBJ_DIR := $(ALETH_ROOT)/build/obj
-ALETH_SRCS := $(shell \
-	cd taraxa-aleth; find * -path "lib*/*.cpp" \
-	-a ! -path "libweb3jsonrpc/WinPipeServer.cpp" \
-)
-ALETH_OBJS = $(addprefix $(ALETH_OBJ_DIR)/, $(ALETH_SRCS:.cpp=.o))
-ALETH_INCLUDE_DIRS = $(ALETH_ROOT) $(ALETH_ROOT)/utils /usr/include/jsoncpp $(DIST)/include
-ifneq ($(SYSTEM_HOME_OVERRIDE),)
-	ALETH_INCLUDE_DIRS += $(SYSTEM_HOME_OVERRIDE)/include
-endif
+# ALETH_ROOT := $(DIST)/src_taraxa-aleth
+# ALETH_OBJ_DIR := $(ALETH_ROOT)/build/obj
+# ALETH_SRCS := $(shell \
+# 	cd taraxa-aleth; find * -path "lib*/*.cpp" \
+# 	-a ! -path "libweb3jsonrpc/WinPipeServer.cpp" \
+# )
+# ALETH_OBJS = $(addprefix $(ALETH_OBJ_DIR)/, $(ALETH_SRCS:.cpp=.o))
+# ALETH_INCLUDE_DIRS = $(ALETH_ROOT) $(ALETH_ROOT)/utils /usr/include/jsoncpp $(DIST)/include
+# ifneq ($(CONAN_INCLUDE_DIRS),)
+# 	ALETH_INCLUDE_DIRS += $(CONAN_INCLUDE_DIRS)
+# endif
 
-# compile any taraxa-aleth .o file. uses configuration similar to the main build
-$(ALETH_OBJ_DIR)/%.o: $(ALETH_ROOT)/%.cpp
-	mkdir -p $(@D)
-	$(strip \
-		g++ -c -std=c++17 -O3 -fvisibility=hidden \
-		$(addprefix -I,  $(ALETH_INCLUDE_DIRS)) \
-		$(addprefix -D, $(COMPILE_DEFINITIONS)) \
-		-o $@ $< \
-	)
+# # compile any taraxa-aleth .o file. uses configuration similar to the main build
+# $(ALETH_OBJ_DIR)/%.o: $(ALETH_ROOT)/%.cpp
+# 	mkdir -p $(@D)
+# 	$(strip \
+# 		g++ -c -std=c++17 -O3 -fvisibility=hidden \
+# 		$(addprefix -I,  $(ALETH_INCLUDE_DIRS)) \
+# 		$(addprefix -D, $(COMPILE_DEFINITIONS)) \
+# 		-o $@ $< \
+# 	)
 
 $(DIST)/taraxa-aleth.ok: \
 $(DIST)/cryptopp.ok \

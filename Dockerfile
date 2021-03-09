@@ -45,37 +45,40 @@ RUN apt-get update \
         g++=$GCC_VERSION \
         clang-format=$CLANG_VERSION \
         clang-tidy=$CLANG_VERSION \
-        cppcheck=$CPPCHECK_VERSION \
+        # cppcheck=$CPPCHECK_VERSION \
         \
-        libboost-program-options-dev=$BOOST_VERSION \
-        libboost-system-dev=$BOOST_VERSION \
-        libboost-filesystem-dev=$BOOST_VERSION \
-        libboost-thread-dev=$BOOST_VERSION \
-        libboost-log-dev=$BOOST_VERSION \
+        # libboost-program-options-dev=$BOOST_VERSION \
+        # libboost-system-dev=$BOOST_VERSION \
+        # libboost-filesystem-dev=$BOOST_VERSION \
+        # libboost-thread-dev=$BOOST_VERSION \
+        # libboost-log-dev=$BOOST_VERSION \
         \
         libgflags-dev=$GFLAGS_VERSION \
-        libsnappy-dev=$SNAPPY_VERSION \
-        zlib1g-dev=$ZLIB1G_VERSION \
-        libbz2-dev=$BZ2_VERSION \
-        liblz4-dev=$LZ4_VERSION \
-        libzstd-dev=$ZSTD_VERSION \
+        # libsnappy-dev=$SNAPPY_VERSION \
+        # zlib1g-dev=$ZLIB1G_VERSION \
+        # libbz2-dev=$BZ2_VERSION \
+        # liblz4-dev=$LZ4_VERSION \
+        # libzstd-dev=$ZSTD_VERSION \
         \
-        libssl-dev=$SSL_VERSION \
-        libjsoncpp-dev=$JSONCPP_VERSION \
-        libjsonrpccpp-dev=$JSONRPCCPP_VERSION \
+        # libssl-dev=$SSL_VERSION \
+        # libjsoncpp-dev=$JSONCPP_VERSION \
+        # libjsonrpccpp-dev=$JSONRPCCPP_VERSION \
         libscrypt-dev=$SCRYPT_VERSION \
-        libmpfr-dev=$MPFR_VERSION \
-        libgmp3-dev=$GMP3_VERSION \
+        # libmpfr-dev=$MPFR_VERSION \
+        # libgmp3-dev=$GMP3_VERSION \
+        python3-pip \
     && rm -rf /var/lib/apt/lists/*
+
+RUN pip3 install conan
 
 # Install rocksdb
 # TODO: remove shared rocksdb lib -> tmp hack to make submodules build
-RUN curl -SL https://github.com/facebook/rocksdb/archive/v$ROCKSDB_VERSION.tar.gz \
-    | tar -xzC /tmp \
-    && cd /tmp/rocksdb-${ROCKSDB_VERSION} \
-    && CXXFLAGS='-Wno-error=deprecated-copy -Wno-error=pessimizing-move' PORTABLE=1 make -j $(nproc) install-static \
-    && rm -rf $(pwd)
-ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
+# RUN curl -SL https://github.com/facebook/rocksdb/archive/v$ROCKSDB_VERSION.tar.gz \
+#     | tar -xzC /tmp \
+#     && cd /tmp/rocksdb-${ROCKSDB_VERSION} \
+#     && CXXFLAGS='-Wno-error=deprecated-copy -Wno-error=pessimizing-move' PORTABLE=1 make -j $(nproc) install-static \
+#     && rm -rf $(pwd)
+# ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 
 # Install go
 RUN curl -SL https://dl.google.com/go/go$GO_VERSION.linux-amd64.tar.gz \
@@ -98,18 +101,19 @@ ARG BUILD_OUTPUT_DIR
 # Build taraxa-node project
 WORKDIR /opt/taraxa/
 COPY . .
-RUN mkdir $BUILD_OUTPUT_DIR \
-    && cd $BUILD_OUTPUT_DIR \
-    && cmake -DCMAKE_BUILD_TYPE=Release \
-             -DTARAXA_STATIC_BUILD=ON \
-             -DTARAXAD_INSTALL_DIR=./bin_install \
-             -DTARAXAD_CONF_INSTALL_DIR=./bin_install \
-             ../ \
-    && make -j$(nproc) all \
-    && make install \
-    && strip bin_install/taraxad \
-    && cd tests/ \
-    && ctest --output-on-failure
+RUN conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
+RUN conan install -if $BUILD_OUTPUT_DIR --build missing .
+# RUN cd $BUILD_OUTPUT_DIR \
+#     && cmake -DCMAKE_BUILD_TYPE=Release \
+#              -DTARAXA_STATIC_BUILD=ON \
+#              -DTARAXAD_INSTALL_DIR=./bin_install \
+#              -DTARAXAD_CONF_INSTALL_DIR=./bin_install \
+#              ../ \
+#     && make -j$(nproc) all \
+#     && make install \
+#     && strip bin_install/taraxad \
+#     && cd tests/ \
+#     && ctest --output-on-failure
 
 ###############################################################################
 # Taraxa Cli #

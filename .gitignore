@@ -10,3 +10,10 @@ cmake-*
 local
 
 .DS_Store
+
+# build directory
+build
+
+# clang-format and clang-tidy binaries
+clang-format
+clang-tidy
