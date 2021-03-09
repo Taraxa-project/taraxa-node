@@ -137,6 +137,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
     LOG_OBJECTS_CREATE_SUB("PBFTPRP", pbft_prp);
     LOG_OBJECTS_CREATE_SUB("VOTEPRP", vote_prp);
     LOG_OBJECTS_CREATE_SUB("NETPER", net_per);
+    LOG_OBJECTS_CREATE_SUB("PBFTSYNC_TEST", pbft_sync_testing);
     for (uint8_t it = 0; it != PacketCount; it++) {
       packet_count[it] = 0;
       packet_size[it] = 0;
@@ -274,5 +275,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   LOG_OBJECTS_DEFINE_SUB(pbft_prp);
   LOG_OBJECTS_DEFINE_SUB(vote_prp);
   LOG_OBJECTS_DEFINE_SUB(net_per);
+
+  LOG_OBJECTS_DEFINE_SUB(pbft_sync_testing);
 };
 }  // namespace taraxa

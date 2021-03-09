@@ -1,5 +1,11 @@
 #include "taraxa_capability.hpp"
 
+#include <chrono>
+#include <ctime>
+#include <iomanip>
+#include <sstream>
+#include <string>
+
 #include "consensus/pbft_chain.hpp"
 #include "consensus/pbft_manager.hpp"
 #include "consensus/vote.hpp"
@@ -8,6 +14,30 @@
 #include "transaction_manager/transaction_manager.hpp"
 
 using namespace taraxa;
+
+std::string time_in_HH_MM_SS_MMM() {
+  using namespace std::chrono;
+
+  // get current time
+  auto now = system_clock::now();
+
+  // get number of milliseconds for the current second
+  // (remainder after division into seconds)
+  auto ms = duration_cast<milliseconds>(now.time_since_epoch()) % 1000;
+
+  // convert to std::time_t in order to convert to std::tm (broken time)
+  auto timer = system_clock::to_time_t(now);
+
+  // convert to broken time
+  std::tm bt = *std::localtime(&timer);
+
+  std::ostringstream oss;
+
+  oss << std::put_time(&bt, "%H:%M:%S");  // HH:MM:SS
+  oss << '.' << std::setfill('0') << std::setw(3) << ms.count();
+
+  return oss.str();
+}
 
 std::shared_ptr<TaraxaPeer> TaraxaCapability::getPeer(NodeID const &node_id) {
   boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
@@ -483,7 +513,10 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
           break;
         }
         case GetPbftBlockPacket: {
-          LOG(log_dg_pbft_sync_) << "Received GetPbftBlockPacket Block";
+          LOG(log_dg_pbft_sync_testing_) << "Received GetPbftBlockPacket from: " << _nodeID.toString()
+                                         << ", time: " << time_in_HH_MM_SS_MMM();
+          std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+
           size_t height_to_sync = _r[0].toInt();
           size_t my_chain_size = pbft_chain_->getPbftChainSize();
           size_t blocks_to_transfer = 0;
@@ -493,6 +526,12 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
           }
           LOG(log_dg_pbft_sync_) << "Send pbftblocks to " << _nodeID;
           sendPbftBlocks(_nodeID, height_to_sync, blocks_to_transfer);
+
+          auto duration =
+              std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - begin).count();
+          LOG(log_dg_pbft_sync_testing_) << "FINISHED Received GetPbftBlockPacket from: " << _nodeID.toString()
+                                         << ", duration: " << duration << " [ms]";
+
           break;
         }
         // no cert vote needed (propose block)
@@ -518,6 +557,9 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         }
         // need cert votes (syncing)
         case PbftBlockPacket: {
+          LOG(log_dg_pbft_sync_testing_) << "Received PbftBlockPacket from: " << _nodeID.toString()
+                                         << ", time: " << time_in_HH_MM_SS_MMM();
+
           auto pbft_blk_count = _r.itemCount();
           LOG(log_dg_pbft_sync_) << "In PbftBlockPacket received, num pbft blocks: " << pbft_blk_count;
           pbft_sync_period_ = pbft_chain_->pbftSyncingPeriod();
@@ -1028,7 +1070,16 @@ void TaraxaCapability::requestPbftBlocks(NodeID const &_id, size_t height_to_syn
   host_.capabilityHost()->prep(_id, name(), s, GetPbftBlockPacket, 1);
   s << height_to_sync;
   LOG(log_dg_pbft_sync_) << "Sending GetPbftBlockPacket with height: " << height_to_sync;
+
+  std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+  auto start_time = std::chrono::duration_cast<std::chrono::milliseconds>(begin.time_since_epoch()).count();
+  LOG(log_dg_pbft_sync_testing_) << "Sending GetPbftBlockPacket to: " << _id.toString()
+                                 << ", height: " << height_to_sync << ", time: " << time_in_HH_MM_SS_MMM();
   host_.capabilityHost()->sealAndSend(_id, s);
+  auto duration =
+      std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - begin).count();
+  LOG(log_dg_pbft_sync_testing_) << "FINISHED Sending GetPbftBlockPacket to: " << _id.toString()
+                                 << ", height: " << height_to_sync << ", duration: " << duration << " [ms]";
 }
 
 void TaraxaCapability::requestPendingDagBlocks(NodeID const &_id) {
