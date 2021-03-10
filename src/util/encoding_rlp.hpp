@@ -81,17 +81,19 @@ auto rlp(RLPEncoderRef encoding, Sequence const& target)
 }
 
 template <typename Param, typename... Params>
-void rlp(RLPEncoderRef encoding, Param const& target, Params const&... rest) {
+void __enc_rlp_tuple_body__(RLPEncoderRef encoding, Param const& target, Params const&... rest) {
   rlp(encoding, target);
   if constexpr (sizeof...(rest) != 0) {
-    rlp(encoding, rest...);
+    __enc_rlp_tuple_body__(encoding, rest...);
   }
 }
 
 template <typename... Params>
 void rlp_tuple(RLPEncoderRef encoding, Params const&... args) {
-  encoding.target.appendList(sizeof...(args));
-  rlp(encoding, args...);
+  constexpr auto num_elements = sizeof...(args);
+  static_assert(0 < num_elements);
+  encoding.target.appendList(num_elements);
+  __enc_rlp_tuple_body__(encoding, args...);
 }
 
 template <typename... Params>
@@ -169,6 +171,7 @@ struct InvalidEncodingSize : std::invalid_argument {
 template <typename... Params>
 void rlp_tuple(RLPDecoderRef encoding, Params&... args) {
   constexpr auto num_elements = sizeof...(args);
+  static_assert(0 < num_elements);
   auto list_begin = encoding.target.begin();
   auto num_elements_processed = __dec_rlp_tuple_body__(list_begin, encoding.target.end(), encoding.strictness, args...);
   if (num_elements != num_elements_processed) {
@@ -177,6 +180,14 @@ void rlp_tuple(RLPDecoderRef encoding, Params&... args) {
 }
 
 }  // namespace taraxa::util::encoding_rlp
+
+#define RLP_FIELDS(...)                                                  \
+  void rlp(::taraxa::util::encoding_rlp::RLPDecoderRef encoding) {       \
+    ::taraxa::util::encoding_rlp::rlp_tuple(encoding, __VA_ARGS__);      \
+  }                                                                      \
+  void rlp(::taraxa::util::encoding_rlp::RLPEncoderRef encoding) const { \
+    ::taraxa::util::encoding_rlp::rlp_tuple(encoding, __VA_ARGS__);      \
+  }
 
 namespace taraxa::util {
 using encoding_rlp::InvalidEncodingSize;

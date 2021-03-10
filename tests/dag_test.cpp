@@ -215,14 +215,13 @@ TEST_F(DagTest, compute_epoch) {
 
 TEST_F(DagTest, receive_block_in_order) {
   auto db_ptr = DB::make(data_dir / "db");
-  auto mgr = std::make_shared<DagManager>(ChainConfig::predefined().dag_genesis_block, db_ptr);
   // mgr.setVerbose(true);
   DagBlock genesis_block(blk_hash_t(0), 0, {}, {}, sig_t(777), blk_hash_t(10), addr_t(15));
+  auto mgr = std::make_shared<DagManager>(genesis_block, db_ptr);
   DagBlock blk1(blk_hash_t(10), 0, {}, {}, sig_t(777), blk_hash_t(1), addr_t(15));
   DagBlock blk2(blk_hash_t(1), 0, {}, {}, sig_t(777), blk_hash_t(2), addr_t(15));
   DagBlock blk3(blk_hash_t(10), 0, {blk_hash_t(1), blk_hash_t(2)}, {}, sig_t(777), blk_hash_t(3), addr_t(15));
 
-  mgr->addDagBlock(genesis_block);
   mgr->addDagBlock(blk1);
   mgr->addDagBlock(blk2);
   EXPECT_EQ(mgr->getNumVerticesInDag().first, 3);
@@ -330,16 +329,14 @@ TEST_F(DagTest, compute_epoch_2) {
 
 TEST_F(DagTest, get_latest_pivot_tips) {
   auto db_ptr = DB::make(data_dir / "db");
-  auto mgr = std::make_shared<DagManager>(ChainConfig::predefined().dag_genesis_block, db_ptr);
-
-  // mgr.setVerbose(true);
   DagBlock blk1(blk_hash_t(0), 0, {}, {}, sig_t(0), blk_hash_t(1), addr_t(15));
+  auto mgr = std::make_shared<DagManager>(blk1, db_ptr);
+  // mgr.setVerbose(true);
   DagBlock blk2(blk_hash_t(1), 0, {}, {}, sig_t(1), blk_hash_t(2), addr_t(15));
   DagBlock blk3(blk_hash_t(2), 0, {}, {}, sig_t(1), blk_hash_t(3), addr_t(15));
   DagBlock blk4(blk_hash_t(1), 0, {}, {}, sig_t(1), blk_hash_t(4), addr_t(15));
   DagBlock blk5(blk_hash_t(4), 0, {}, {}, sig_t(1), blk_hash_t(5), addr_t(15));
   DagBlock blk6(blk_hash_t(2), 0, {blk_hash_t(5)}, {}, sig_t(1), blk_hash_t(6), addr_t(15));
-  mgr->addDagBlock(blk1);
   mgr->addDagBlock(blk2);
   mgr->addDagBlock(blk3);
   mgr->addDagBlock(blk4);

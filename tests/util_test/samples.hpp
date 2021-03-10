@@ -379,31 +379,22 @@ inline std::vector<DagBlock> createMockDag0(
 }
 
 //
-inline std::vector<DagBlock> createMockDag1(
-    std::string genesis = "0000000000000000000000000000000000000000000000000000000000000000") {
+inline std::vector<DagBlock> createMockDag1(h256 const &genesis_hash) {
   std::vector<DagBlock> blks;
-  DagBlock dummy;
-  DagBlock blk1(blk_hash_t(genesis),  // pivot
-                1,                    // level
-                {},                   // tips
-                {},                   // trxs
-                sig_t(0),             // sig
-                blk_hash_t(1),        // hash
-                addr_t(123));
 
-  DagBlock blk2(blk_hash_t(genesis),  // pivot
-                1,                    // level
-                {},                   // tips
-                {},                   // trxs
-                sig_t(0),             // sig
-                blk_hash_t(2),        // hash
+  DagBlock blk2(genesis_hash,   // pivot
+                1,              // level
+                {},             // tips
+                {},             // trxs
+                sig_t(0),       // sig
+                blk_hash_t(2),  // hash
                 addr_t(123));
-  DagBlock blk3(blk_hash_t(genesis),  // pivot
-                1,                    // level
-                {},                   // tips
-                {},                   // trxs
-                sig_t(0),             // sig
-                blk_hash_t(3),        // hash
+  DagBlock blk3(genesis_hash,   // pivot
+                1,              // level
+                {},             // tips
+                {},             // trxs
+                sig_t(0),       // sig
+                blk_hash_t(3),  // hash
                 addr_t(123));
   DagBlock blk4(blk_hash_t(1),  // pivot
                 2,              // level
@@ -517,8 +508,6 @@ inline std::vector<DagBlock> createMockDag1(
                  sig_t(0),        // sig
                  blk_hash_t(19),  // hash
                  addr_t(123));
-  blks.emplace_back(dummy);
-  blks.emplace_back(blk1);
   blks.emplace_back(blk2);
   blks.emplace_back(blk3);
   blks.emplace_back(blk4);

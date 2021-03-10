@@ -206,23 +206,29 @@ struct DB : std::enable_shared_from_this<DB> {
     return bytes((byte const*)b.data(), (byte const*)(b.data() + b.size()));
   }
 
-  inline static Slice toSlice(dev::bytesConstRef const& b) {
-    return Slice(reinterpret_cast<char const*>(&b[0]), b.size());
+  template <typename T>
+  inline static Slice make_slice(T const* begin, size_t size) {
+    if (!size) {
+      return {};
+    }
+    return {reinterpret_cast<char const*>(begin), size};
   }
+
+  inline static Slice toSlice(dev::bytesConstRef const& b) { return make_slice(b.data(), b.size()); }
 
   template <unsigned N>
   inline static Slice toSlice(dev::FixedHash<N> const& h) {
-    return {reinterpret_cast<char const*>(h.data()), N};
+    return make_slice(h.data(), N);
   }
 
-  inline static Slice toSlice(dev::bytes const& b) { return toSlice(&b); }
+  inline static Slice toSlice(dev::bytes const& b) { return make_slice(b.data(), b.size()); }
 
   template <class N>
   inline static auto toSlice(N const& n) -> enable_if_t<is_integral_v<N> || is_enum_v<N>, Slice> {
-    return Slice(reinterpret_cast<char const*>(&n), sizeof(N));
+    return make_slice(&n, sizeof(N));
   }
 
-  inline static Slice toSlice(string const& str) { return Slice(str.data(), str.size()); }
+  inline static Slice toSlice(string const& str) { return make_slice(str.data(), str.size()); }
 
   inline static auto const& toSlice(Slice const& s) { return s; }
 

@@ -357,51 +357,53 @@ DagFrontier DagManager::getDagFrontier() {
 
 void DagManager::addDagBlock(DagBlock const &blk, bool finalized, bool save) {
   auto write_batch = db_->createWriteBatch();
-  uLock lock(mutex_);
-  if (save) {
-    auto block_bytes = blk.rlp(true);
-    auto block_hash = blk.getHash();
-    write_batch.put(DB::Columns::dag_blocks, block_hash.asBytes(), block_bytes);
-    auto level = blk.getLevel();
-    std::string blocks = db_->getBlocksByLevel(level);
-    if (blocks == "") {
-      blocks = blk.getHash().toString();
-    } else {
-      blocks = blocks + "," + blk.getHash().toString();
+  {
+    uLock lock(mutex_);
+    if (save) {
+      auto block_bytes = blk.rlp(true);
+      auto block_hash = blk.getHash();
+      write_batch.put(DB::Columns::dag_blocks, block_hash.asBytes(), block_bytes);
+      auto level = blk.getLevel();
+      std::string blocks = db_->getBlocksByLevel(level);
+      if (blocks == "") {
+        blocks = blk.getHash().toString();
+      } else {
+        blocks = blocks + "," + blk.getHash().toString();
+      }
+      write_batch.put(DB::Columns::dag_blocks_index, level, blocks);
+      ++dag_blocks_count_;
+      write_batch.put(DB::Columns::status, (uint8_t)StatusDbField::DagBlkCount, dag_blocks_count_);
+      // Do not count genesis pivot field
+      if (blk.getPivot() == blk_hash_t(0)) {
+        dag_edge_count_ += blk.getTips().size();
+      } else {
+        dag_edge_count_ += blk.getTips().size() + 1;
+      }
+      write_batch.put(DB::Columns::status, (uint8_t)StatusDbField::DagEdgeCount, dag_edge_count_);
     }
-    write_batch.put(DB::Columns::dag_blocks_index, level, blocks);
-    ++dag_blocks_count_;
-    write_batch.put(DB::Columns::status, (uint8_t)StatusDbField::DagBlkCount, dag_blocks_count_);
-    // Do not count genesis pivot field
-    if (blk.getPivot() == blk_hash_t(0)) {
-      dag_edge_count_ += blk.getTips().size();
-    } else {
-      dag_edge_count_ += blk.getTips().size() + 1;
+    auto blk_hash = blk.getHash();
+    auto blk_hash_str = blk_hash.toString();
+    auto pivot_hash = blk.getPivot();
+
+    std::vector<std::string> tips;
+    for (auto const &t : blk.getTips()) {
+      std::string tip = t.toString();
+      tips.push_back(tip);
     }
-    write_batch.put(DB::Columns::status, (uint8_t)StatusDbField::DagEdgeCount, dag_edge_count_);
+
+    level_t current_max_level = max_level_;
+    max_level_ = std::max(current_max_level, blk.getLevel());
+
+    addToDag(blk_hash_str, pivot_hash.toString(), tips, blk.getLevel(), write_batch, finalized);
+
+    auto [p, ts] = getFrontier();
+    frontier_.pivot = blk_hash_t(p);
+    frontier_.tips.clear();
+    for (auto const &t : ts) {
+      frontier_.tips.emplace_back(blk_hash_t(t));
+    }
+    write_batch.commit();
   }
-  auto blk_hash = blk.getHash();
-  auto blk_hash_str = blk_hash.toString();
-  auto pivot_hash = blk.getPivot();
-
-  std::vector<std::string> tips;
-  for (auto const &t : blk.getTips()) {
-    std::string tip = t.toString();
-    tips.push_back(tip);
-  }
-
-  level_t current_max_level = max_level_;
-  max_level_ = std::max(current_max_level, blk.getLevel());
-
-  addToDag(blk_hash_str, pivot_hash.toString(), tips, blk.getLevel(), write_batch, finalized);
-
-  auto [p, ts] = getFrontier();
-  frontier_.pivot = blk_hash_t(p);
-  frontier_.tips.clear();
-  for (auto const &t : ts) {
-    frontier_.tips.emplace_back(blk_hash_t(t));
-  }
-  write_batch.commit();
   LOG(log_dg_) << " Update frontier after adding block " << blk.getHash() << "anchor " << anchor_
                << " pivot = " << frontier_.pivot << " tips: " << frontier_.tips;
 }

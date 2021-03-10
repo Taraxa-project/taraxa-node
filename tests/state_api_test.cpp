@@ -37,10 +37,7 @@ struct TestBlock {
   vector<EVMTransaction> Transactions;
   vector<UncleBlock> UncleBlocks;
 
-  template <typename E>
-  void rlp(E encoding) {
-    rlp_tuple(encoding, Hash, StateRoot, evm_block, Transactions, UncleBlocks);
-  }
+  RLP_FIELDS(Hash, StateRoot, evm_block, Transactions, UncleBlocks)
 };
 
 template <typename T>

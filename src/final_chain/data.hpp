@@ -39,6 +39,9 @@ struct BlockHeader {
 
   uint64_t ethereum_rlp_size = 0;
 
+  RLP_FIELDS(hash, ethereum_rlp_size, parent_hash, author, state_root, transactions_root, receipts_root, log_bloom,
+             number, gas_limit, gas_used, timestamp, extra_data)
+
   static h256 const& uncles() { return EmptyListSHA3; }
   static Nonce const& nonce() {
     static const Nonce ret;
@@ -53,13 +56,7 @@ struct BlockHeader {
     return ret;
   }
 
-  template <typename E>
-  inline void rlp(E encoding) {
-    util::rlp_tuple(encoding, hash, ethereum_rlp_size, parent_hash, author, state_root, transactions_root,
-                    receipts_root, log_bloom, number, gas_limit, gas_used, timestamp, extra_data);
-  }
-
-  void ethereum_rlp(dev::RLPStream& encoding) {
+  void ethereum_rlp(dev::RLPStream& encoding) const {
     util::rlp_tuple(encoding, parent_hash, BlockHeader::uncles(), author, state_root, transactions_root, receipts_root,
                     log_bloom, BlockHeader::difficulty(), number, gas_limit, gas_used, timestamp, extra_data,
                     BlockHeader::mix_hash(), BlockHeader::nonce());
@@ -77,10 +74,7 @@ struct LogEntry {
   h256s topics;
   bytes data;
 
-  template <typename E>
-  inline void rlp(E encoding) {
-    util::rlp_tuple(encoding, address, topics, data);
-  }
+  RLP_FIELDS(address, topics, data)
 
   auto bloom() const {
     LogBloom ret;
@@ -101,10 +95,7 @@ struct TransactionReceipt {
   LogEntries logs;
   std::optional<Address> new_contract_address;
 
-  template <typename E>
-  inline void rlp(E encoding) {
-    util::rlp_tuple(encoding, status_code, gas_used, cumulative_gas_used, logs, new_contract_address);
-  }
+  RLP_FIELDS(status_code, gas_used, cumulative_gas_used, logs, new_contract_address)
 
   auto bloom() const {
     LogBloom ret;
@@ -121,10 +112,7 @@ struct TransactionLocation {
   BlockNumber blk_n = 0;
   uint64_t index = 0;
 
-  template <typename E>
-  inline void rlp(E encoding) {
-    util::rlp_tuple(encoding, blk_n, index);
-  }
+  RLP_FIELDS(blk_n, index)
 };
 
 }  // namespace taraxa::final_chain
