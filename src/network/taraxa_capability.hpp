@@ -159,6 +159,8 @@ class TaraxaCapability : public CapabilityFace, public Worker {
     trx_mgr_ = nullptr;
   }
 
+  void sealAndSendWrapper(NodeID const &nodeID, RLPStream &s, unsigned packet_type);
+
   void onConnect(NodeID const &_nodeID, u256 const &) override;
   void syncPeerPbft(NodeID const &_nodeID, unsigned long height_to_sync);
   void restartSyncingPbft(bool force = false);
