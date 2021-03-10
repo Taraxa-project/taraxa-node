@@ -802,7 +802,8 @@ void PbftManager::secondFinish_() {
   }
 
   if (step_ > MAX_STEPS && !capability_->syncing_ && !syncRequestedAlreadyThisStep_()) {
-    LOG(log_wr_) << "Suspect PBFT manger stucked, inaccurate 2t+1, need to broadcast request for missing blocks";
+    LOG(log_wr_) << "Suspect PBFT consensus is behind or stalled, perhaps inaccurate 2t+1, need to broadcast request "
+                    "for missing blocks";
     syncPbftChainFromPeers_(true);
   }
 
@@ -1056,8 +1057,10 @@ std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_(std::vector<Vote> 
     if (v.getRound() == round && v.getType() == propose_vote_type) {
       // We should not pick any null block as leader (proposed when
       // no new blocks found, or maliciously) if others have blocks.
-      if (round == 1 || v.getBlockHash() != NULL_BLOCK_HASH) {
-        leader_candidates.emplace_back(std::make_pair(v.getCredential(), v.getBlockHash()));
+      auto proposed_block_hash = v.getBlockHash();
+      if (round == 1 ||
+          (proposed_block_hash != NULL_BLOCK_HASH && !pbft_chain_->findPbftBlockInChain(proposed_block_hash))) {
+        leader_candidates.emplace_back(std::make_pair(v.getCredential(), proposed_block_hash));
       }
     }
   }
