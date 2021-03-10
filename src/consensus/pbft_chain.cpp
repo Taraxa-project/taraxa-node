@@ -308,26 +308,4 @@ void PbftChain::insertUnverifiedPbftBlockIntoParentMap_(blk_hash_t const& prev_b
   }
 }
 
-std::shared_ptr<PbftBlock> PbftChain::getPbftBlock(uint64_t pbft_period) {
-  auto pbft_block_hash = db_->getPeriodPbftBlock(pbft_period);
-  if (!pbft_block_hash) {
-    LOG(log_er_) << "DB corrupted - PBFT block period " << pbft_period
-                 << " does not exist in DB period_pbft_block. PBFT chain size " << getPbftChainSize();
-    assert(false);
-  }
-  // Get PBFT block in DB
-  auto pbft_block = db_->getPbftBlock(*pbft_block_hash);
-  if (!pbft_block) {
-    LOG(log_er_) << "DB corrupted - Cannot find PBFT block hash " << pbft_block_hash
-                 << " in PBFT chain DB pbft_blocks.";
-    assert(false);
-  }
-  if (pbft_block->getPeriod() != pbft_period) {
-    LOG(log_er_) << "DB corrupted - PBFT block hash " << pbft_block_hash << "has different period "
-                 << pbft_block->getPeriod() << " in block data than in block order db: " << pbft_period;
-    assert(false);
-  }
-  return pbft_block;
-}
-
 }  // namespace taraxa

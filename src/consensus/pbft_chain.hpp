@@ -57,7 +57,6 @@ class PbftChain {
   void clearSyncedPbftBlocks();
   size_t pbftSyncedQueueSize() const;
   bool isKnownPbftBlockForSyncing(blk_hash_t const& pbft_block_hash);
-  std::shared_ptr<PbftBlock> getPbftBlock(uint64_t pbft_period);
 
  private:
   void pbftSyncedSetInsert_(blk_hash_t const& pbft_block_hash);

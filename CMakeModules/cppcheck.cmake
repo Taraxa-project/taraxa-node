@@ -22,7 +22,6 @@ else ()
             --suppress=unknownMacro
             #--suppress=useInitializationList
             #--suppress=syntaxError
-#            --suppress=internalAstError # because of https://trac.cppcheck.net/ticket/9537 -> state_api.cpp, line 53, TODO: remove this
 
             # Only show found errors
             "--quiet"
