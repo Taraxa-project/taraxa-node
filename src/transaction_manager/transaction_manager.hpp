@@ -32,8 +32,7 @@ struct TransactionManager : std::enable_shared_from_this<TransactionManager> {
   using uLock = std::unique_lock<std::mutex>;
   enum class VerifyMode : uint8_t { normal, skip_verify_sig };
 
-  TransactionManager(FullNodeConfig const &conf, addr_t node_addr, std::shared_ptr<DB> db,
-                     logger::Logger log_time);
+  TransactionManager(FullNodeConfig const &conf, addr_t node_addr, std::shared_ptr<DB> db, logger::Logger log_time);
 
   TransactionManager(std::shared_ptr<DB> db, addr_t node_addr) : TransactionManager({}, node_addr, db, {}) {}
 

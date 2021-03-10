@@ -7,15 +7,15 @@
 #include "final_chain/TrieCommon.h"
 #include "util_test/gtest.hpp"
 
- namespace taraxa::final_chain {
- using namespace std;
+namespace taraxa::final_chain {
+using namespace std;
 
- struct advance_check_opts {
+struct advance_check_opts {
   bool dont_assume_no_logs = 0;
   bool dont_assume_all_trx_success = 0;
 };
 
- struct FinalChainTest : WithDataDir {
+struct FinalChainTest : WithDataDir {
   shared_ptr<DB> db = DB::make(data_dir / "db");
   FinalChain::Config cfg = ChainConfig::predefined().final_chain;
   unique_ptr<FinalChain> SUT;
@@ -51,9 +51,7 @@
                   trxs.size(), [&](auto i) { return dev::rlp(i); }, [&](auto i) { return *trxs[i].rlp(); }));
     EXPECT_EQ(blk_h.receiptsRoot(),
               trieRootOver(
-                  trxs.size(), [&](auto i) { return dev::rlp(i); }, [&](auto i) {
-
-                    return result.receipts[i].rlp(); }));
+                  trxs.size(), [&](auto i) { return dev::rlp(i); }, [&](auto i) { return result.receipts[i].rlp(); }));
     EXPECT_EQ(blk_h.gasLimit(), std::numeric_limits<uint64_t>::max());
     EXPECT_EQ(blk_h.extraData(), bytes());
     EXPECT_EQ(blk_h.nonce(), Nonce());
@@ -124,7 +122,7 @@
   }
 };
 
- TEST_F(FinalChainTest, genesis_balances) {
+TEST_F(FinalChainTest, genesis_balances) {
   cfg.state.dpos = nullopt;
   cfg.state.genesis_balances = {};
   cfg.state.genesis_balances[addr_t::random()] = 0;
@@ -133,7 +131,7 @@
   init();
 }
 
- TEST_F(FinalChainTest, contract) {
+TEST_F(FinalChainTest, contract) {
   auto sender_keys = KeyPair::create();
   auto const& addr = sender_keys.address();
   auto const& sk = sender_keys.secret();
@@ -234,7 +232,7 @@
             "6c6100000000000000000000000000000000000000000000000000000000");
 }
 
- TEST_F(FinalChainTest, coin_transfers) {
+TEST_F(FinalChainTest, coin_transfers) {
   constexpr size_t NUM_ACCS = 500;
   cfg.state.genesis_balances = {};
   cfg.state.dpos = nullopt;
