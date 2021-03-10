@@ -211,7 +211,7 @@ std::shared_ptr<PbftBlock> PbftChain::getUnverifiedPbftBlock(const taraxa::blk_h
     sharedLock_ lock(unverified_access_);
     return unverified_blocks_[pbft_block_hash];
   }
-  return {};
+  return nullptr;
 }
 
 std::vector<PbftBlockCert> PbftChain::getPbftBlocks(size_t period, size_t count) {

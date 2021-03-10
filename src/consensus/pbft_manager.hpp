@@ -183,6 +183,9 @@ class PbftManager {
   bool go_finish_state_ = false;
   bool loop_back_finish_state_ = false;
 
+  size_t wait_proposal_block_rounds_ = 0;
+  size_t max_wait_rounds_for_proposal_block_ = 5;
+
   uint64_t pbft_round_last_requested_sync_ = 0;
   size_t pbft_step_last_requested_sync_ = 0;
 

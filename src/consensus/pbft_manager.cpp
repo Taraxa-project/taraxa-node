@@ -253,7 +253,6 @@ bool PbftManager::resetRound_() {
     // Update in DB first
     auto batch = db_->createWriteBatch();
     db_->addPbftMgrStatusToBatch(PbftMgrStatus::executed_in_round, false, batch);
-    db_->addPbftMgrStatusToBatch(PbftMgrStatus::cert_voted_in_round, false, batch);
     db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::own_starting_value_in_round, NULL_BLOCK_HASH, batch);
     db_->addPbftMgrStatusToBatch(PbftMgrStatus::next_voted_null_block_hash, false, batch);
     db_->addPbftMgrStatusToBatch(PbftMgrStatus::next_voted_soft_value, false, batch);
@@ -312,19 +311,25 @@ void PbftManager::initialState_() {
 
   auto round = db_->getPbftMgrField(PbftMgrRoundStep::PbftRound);
   auto step = db_->getPbftMgrField(PbftMgrRoundStep::PbftStep);
+  if (round == 1 && step == 1) {
+    // Node start from scratch
+    state_ = value_proposal_state;
+  } else if (step < 4) {
+    // Node start from DB, skip step 1 or 2 or 3
+    step = 4;
+    state_ = finish_state;
+  } else if (step % 2 == 0) {
+    // Node start from DB in first finishing state
+    state_ = finish_state;
+  } else if (step % 2 == 1) {
+    // Node start from DB in second finishing state
+    state_ = finish_polling_state;
+  } else {
+    LOG(log_er_) << "Unexpected condition at round " << round << " step " << step;
+    assert(false);
+  }
   setPbftStep(step);
   setPbftRound(round);
-  if (step == 1) {
-    state_ = value_proposal_state;
-  } else if (step == 2) {
-    state_ = filter_state;
-  } else if (step == 3) {
-    state_ = certify_state;
-  } else if (step % 2 == 0) {
-    state_ = finish_state;
-  } else {
-    state_ = finish_polling_state;
-  }
 
   if (round > 1) {
     auto pushed_block_hash_in_previous_round = db_->getPbftChainPushedValue(round - 1);
@@ -382,9 +387,14 @@ void PbftManager::initialState_() {
 
   executed_pbft_block_ = db_->getPbftMgrStatus(PbftMgrStatus::executed_block);
   have_executed_this_round_ = db_->getPbftMgrStatus(PbftMgrStatus::executed_in_round);
-  should_have_cert_voted_in_this_round_ = db_->getPbftMgrStatus(PbftMgrStatus::cert_voted_in_round);
   next_voted_soft_value_ = db_->getPbftMgrStatus(PbftMgrStatus::next_voted_soft_value);
   next_voted_null_block_hash_ = db_->getPbftMgrStatus(PbftMgrStatus::next_voted_null_block_hash);
+
+  auto cert_voted_block_hash = db_->getPbftCertVotedBlockHash(round);
+  if (cert_voted_block_hash) {
+    LOG(log_nf_) << "Initialize cert voted block hash " << *cert_voted_block_hash << " for round " << round;
+    cert_voted_values_for_round_[round] = *cert_voted_block_hash;
+  }
 
   round_clock_initial_datetime_ = std::chrono::system_clock::now();
   current_step_clock_initial_datetime_ = round_clock_initial_datetime_;
@@ -673,9 +683,7 @@ void PbftManager::certifyBlock_() {
       if (have_executed_this_round_) {
         LOG(log_tr_) << "Have already executed before certifying in step 3 in round " << round;
         if (pbft_chain_last_block_hash_ == soft_voted_block_for_this_round_.first) {
-          LOG(log_tr_) << "Having executed, last block in chain is the "
-                          "soft voted block in round "
-                       << round;
+          LOG(log_tr_) << "Having executed, last block in chain is the soft voted block in round " << round;
           executed_soft_voted_block_for_this_round = true;
         }
       }
@@ -696,16 +704,25 @@ void PbftManager::certifyBlock_() {
       }
 
       if (executed_soft_voted_block_for_this_round || unverified_soft_vote_block_for_this_round_is_valid) {
-        cert_voted_values_for_round_[round] = soft_voted_block_for_this_round_.first;
-
         // NEED TO KEEP POLLING TO SEE IF WE HAVE 2t+1 cert votes...
         // Here we would cert vote if we can speak....
-        db_->savePbftMgrStatus(PbftMgrStatus::cert_voted_in_round, true);
-        should_have_cert_voted_in_this_round_ = true;
         if (shouldSpeak(cert_vote_type, round, step_)) {
-          LOG(log_dg_) << "Cert voting " << soft_voted_block_for_this_round_.first << " for round " << round;
+          LOG(log_dg_) << "Cert voting " << soft_voted_block_for_this_round_.first << " in round " << round;
+
+          // comparePbftBlockScheduleWithDAGblocks_ has checked the cert voted block exist
+          auto cert_voted_block = pbft_chain_->getUnverifiedPbftBlock(soft_voted_block_for_this_round_.first);
+
+          auto batch = db_->createWriteBatch();
+          db_->addPbftCertVotedBlockHashToBatch(round, soft_voted_block_for_this_round_.first, batch);
+          db_->addPbftCertVotedBlockToBatch(*cert_voted_block, batch);
+          db_->commitWriteBatch(batch);
+
+          cert_voted_values_for_round_[round] = soft_voted_block_for_this_round_.first;
+
           // generate cert vote
           placeVote_(soft_voted_block_for_this_round_.first, cert_vote_type, round, step_);
+
+          should_have_cert_voted_in_this_round_ = true;
         }
       }
     }
@@ -1087,12 +1104,34 @@ void PbftManager::syncPbftChainFromPeers_(bool force) {
   }
 }
 
+// Must be in certifying step, and has seen enough soft-votes for some value != NULL_BLOCK_HASH
 bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(blk_hash_t const &pbft_block_hash) {
   auto pbft_block = pbft_chain_->getUnverifiedPbftBlock(pbft_block_hash);
   if (!pbft_block) {
-    LOG(log_dg_) << "Have not got the PBFT block yet. block hash: " << pbft_block_hash;
-    return false;
+    LOG(log_nf_) << "Can't get proposal block " << pbft_block_hash << " in unverified queue";
+
+    pbft_block = db_->getPbftCertVotedBlock(pbft_block_hash);
+    if (!pbft_block) {
+      LOG(log_nf_) << "Can't get proposal block " << pbft_block_hash << " in DB. Have not got the PBFT block "
+                   << pbft_block_hash << " yet.";
+
+      if (wait_proposal_block_rounds_ < max_wait_rounds_for_proposal_block_) {
+        LOG(log_nf_) << "Have been waiting " << wait_proposal_block_rounds_ << " rounds for proposal block "
+                     << pbft_block_hash;
+        wait_proposal_block_rounds_++;
+      } else {
+        LOG(log_nf_) << "Have been waiting " << wait_proposal_block_rounds_ << " rounds for proposal block "
+                     << pbft_block_hash << ", reset own starting value to NULL_BLOCK_HASH";
+        db_->savePbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round, NULL_BLOCK_HASH);
+        own_starting_value_for_round_ = NULL_BLOCK_HASH;
+      }
+
+      return false;
+    }
+    // Read from DB pushing into unverified queue
+    pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
   }
+
   return comparePbftBlockScheduleWithDAGblocks_(*pbft_block);
 }
 

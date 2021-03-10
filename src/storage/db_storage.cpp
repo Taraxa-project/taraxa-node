@@ -430,6 +430,41 @@ void DbStorage::addPbftMgrVotedValueToBatch(PbftMgrVotedValue const& field, blk_
   batch_put(write_batch, Columns::pbft_mgr_voted_value, toSlice((uint8_t)field), toSlice(value.asBytes()));
 }
 
+shared_ptr<blk_hash_t> DbStorage::getPbftCertVotedBlockHash(uint64_t const& pbft_round) {
+  auto hash = asBytes(lookup(toSlice(pbft_round), Columns::pbft_cert_voted_block_hash));
+  if (hash.size() > 0) {
+    return make_shared<blk_hash_t>(hash);
+  }
+  return nullptr;
+}
+
+void DbStorage::savePbftCertVotedBlockHash(uint64_t const& pbft_round, blk_hash_t const& cert_voted_block_hash) {
+  insert(Columns::pbft_cert_voted_block_hash, toSlice(pbft_round), toSlice(cert_voted_block_hash.asBytes()));
+}
+
+void DbStorage::addPbftCertVotedBlockHashToBatch(uint64_t const& pbft_round, blk_hash_t const& cert_voted_block_hash,
+                                                 BatchPtr const& write_batch) {
+  batch_put(*write_batch, Columns::pbft_cert_voted_block_hash, toSlice(pbft_round),
+            toSlice(cert_voted_block_hash.asBytes()));
+}
+
+shared_ptr<PbftBlock> DbStorage::getPbftCertVotedBlock(blk_hash_t const& block_hash) {
+  auto block = lookup(toSlice(block_hash.asBytes()), Columns::pbft_cert_voted_block);
+  if (!block.empty()) {
+    return s_ptr(new PbftBlock(dev::RLP(block)));
+  }
+  return nullptr;
+}
+
+void DbStorage::savePbftCertVotedBlock(PbftBlock const& pbft_block) {
+  insert(Columns::pbft_cert_voted_block, toSlice(pbft_block.getBlockHash().asBytes()), toSlice(pbft_block.rlp(true)));
+}
+
+void DbStorage::addPbftCertVotedBlockToBatch(PbftBlock const& pbft_block, BatchPtr const& write_batch) {
+  batch_put(*write_batch, Columns::pbft_cert_voted_block, toSlice(pbft_block.getBlockHash().asBytes()),
+            toSlice(pbft_block.rlp(true)));
+}
+
 shared_ptr<blk_hash_t> DbStorage::getPbftChainPushedValue(uint64_t const& pbft_round) {
   auto hash = asBytes(lookup(toSlice(pbft_round), Columns::pbft_chain_pushed_values));
   if (hash.size() > 0) {

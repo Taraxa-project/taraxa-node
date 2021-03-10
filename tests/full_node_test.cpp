@@ -89,6 +89,7 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(blk3, *db.getDagBlock(blk3.getHash()));
   EXPECT_EQ(db.getBlocksByLevel(1), blk1.getHash().toString() + "," + blk2.getHash().toString());
   EXPECT_EQ(db.getBlocksByLevel(2), blk3.getHash().toString());
+
   // Transaction
   db.saveTransaction(g_trx_signed_samples[0]);
   db.saveTransaction(g_trx_signed_samples[1]);
@@ -104,6 +105,7 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(g_trx_signed_samples[1], *db.getTransaction(g_trx_signed_samples[1].getHash()));
   EXPECT_EQ(g_trx_signed_samples[2], *db.getTransaction(g_trx_signed_samples[2].getHash()));
   EXPECT_EQ(g_trx_signed_samples[3], *db.getTransaction(g_trx_signed_samples[3].getHash()));
+
   // PBFT manager round and step
   EXPECT_EQ(db.getPbftMgrField(PbftMgrRoundStep::PbftRound), 1);
   EXPECT_EQ(db.getPbftMgrField(PbftMgrRoundStep::PbftStep), 1);
@@ -136,33 +138,28 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::soft_voted_block_in_round));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::executed_block));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::executed_in_round));
-  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::cert_voted_in_round));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::next_voted_soft_value));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::next_voted_null_block_hash));
   db.savePbftMgrStatus(PbftMgrStatus::soft_voted_block_in_round, true);
   db.savePbftMgrStatus(PbftMgrStatus::executed_block, true);
   db.savePbftMgrStatus(PbftMgrStatus::executed_in_round, true);
-  db.savePbftMgrStatus(PbftMgrStatus::cert_voted_in_round, true);
   db.savePbftMgrStatus(PbftMgrStatus::next_voted_soft_value, true);
   db.savePbftMgrStatus(PbftMgrStatus::next_voted_null_block_hash, true);
   EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::soft_voted_block_in_round));
   EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::executed_block));
   EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::executed_in_round));
-  EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::cert_voted_in_round));
   EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::next_voted_soft_value));
   EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::next_voted_null_block_hash));
   batch = db.createWriteBatch();
   db.addPbftMgrStatusToBatch(PbftMgrStatus::soft_voted_block_in_round, false, batch);
   db.addPbftMgrStatusToBatch(PbftMgrStatus::executed_block, false, batch);
   db.addPbftMgrStatusToBatch(PbftMgrStatus::executed_in_round, false, batch);
-  db.addPbftMgrStatusToBatch(PbftMgrStatus::cert_voted_in_round, false, batch);
   db.addPbftMgrStatusToBatch(PbftMgrStatus::next_voted_soft_value, false, batch);
   db.addPbftMgrStatusToBatch(PbftMgrStatus::next_voted_null_block_hash, false, batch);
   db.commitWriteBatch(batch);
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::soft_voted_block_in_round));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::executed_block));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::executed_in_round));
-  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::cert_voted_in_round));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::next_voted_soft_value));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::next_voted_null_block_hash));
 
@@ -180,6 +177,34 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round), blk_hash_t(4));
   EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::soft_voted_block_hash_in_round), blk_hash_t(5));
 
+  // PBFT cert voted block hash
+  EXPECT_EQ(db.getPbftCertVotedBlockHash(1), nullptr);
+  db.savePbftCertVotedBlockHash(1, blk_hash_t(1));
+  EXPECT_EQ(*db.getPbftCertVotedBlockHash(1), blk_hash_t(1));
+  batch = db.createWriteBatch();
+  db.addPbftCertVotedBlockHashToBatch(1, blk_hash_t(2), batch);
+  db.addPbftCertVotedBlockHashToBatch(2, blk_hash_t(3), batch);
+  db.commitWriteBatch(batch);
+  EXPECT_EQ(*db.getPbftCertVotedBlockHash(1), blk_hash_t(2));
+  EXPECT_EQ(*db.getPbftCertVotedBlockHash(2), blk_hash_t(3));
+
+  // PBFT cert voted block
+  auto pbft_block1 = make_simple_pbft_block(blk_hash_t(1), 1);
+  auto pbft_block2 = make_simple_pbft_block(blk_hash_t(2), 2);
+  auto pbft_block3 = make_simple_pbft_block(blk_hash_t(3), 3);
+  auto pbft_block4 = make_simple_pbft_block(blk_hash_t(4), 4);
+  EXPECT_EQ(db.getPbftCertVotedBlock(blk_hash_t(1)), nullptr);
+  db.savePbftCertVotedBlock(pbft_block1);
+  EXPECT_EQ(db.getPbftCertVotedBlock(pbft_block1.getBlockHash())->rlp(false), pbft_block1.rlp(false));
+  batch = db.createWriteBatch();
+  db.addPbftCertVotedBlockToBatch(pbft_block2, batch);
+  db.addPbftCertVotedBlockToBatch(pbft_block3, batch);
+  db.addPbftCertVotedBlockToBatch(pbft_block4, batch);
+  db.commitWriteBatch(batch);
+  EXPECT_EQ(db.getPbftCertVotedBlock(pbft_block2.getBlockHash())->rlp(false), pbft_block2.rlp(false));
+  EXPECT_EQ(db.getPbftCertVotedBlock(pbft_block3.getBlockHash())->rlp(false), pbft_block3.rlp(false));
+  EXPECT_EQ(db.getPbftCertVotedBlock(pbft_block4.getBlockHash())->rlp(false), pbft_block4.rlp(false));
+
   // PBFT pushed block hash
   EXPECT_EQ(db.getPbftChainPushedValue(1), nullptr);
   db.savePbftChainPushedValue(1, blk_hash_t(1));
@@ -192,10 +217,10 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(*db.getPbftChainPushedValue(2), blk_hash_t(3));
 
   // pbft_blocks
-  auto pbft_block1 = make_simple_pbft_block(blk_hash_t(1), 2);
-  auto pbft_block2 = make_simple_pbft_block(blk_hash_t(2), 3);
-  auto pbft_block3 = make_simple_pbft_block(blk_hash_t(3), 4);
-  auto pbft_block4 = make_simple_pbft_block(blk_hash_t(4), 5);
+  pbft_block1 = make_simple_pbft_block(blk_hash_t(1), 2);
+  pbft_block2 = make_simple_pbft_block(blk_hash_t(2), 3);
+  pbft_block3 = make_simple_pbft_block(blk_hash_t(3), 4);
+  pbft_block4 = make_simple_pbft_block(blk_hash_t(4), 5);
   batch = db.createWriteBatch();
   db.addPbftBlockToBatch(pbft_block1, batch);
   db.addPbftBlockToBatch(pbft_block2, batch);
@@ -210,6 +235,7 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(db.getPbftBlock(pbft_block2.getBlockHash())->rlp(false), pbft_block2.rlp(false));
   EXPECT_EQ(db.getPbftBlock(pbft_block3.getBlockHash())->rlp(false), pbft_block3.rlp(false));
   EXPECT_EQ(db.getPbftBlock(pbft_block4.getBlockHash())->rlp(false), pbft_block4.rlp(false));
+
   // pbft_blocks (head)
   PbftChain pbft_chain(blk_hash_t(0).toString(), addr_t(), db_ptr);
   db.savePbftHead(pbft_chain.getHeadHash(), pbft_chain.getJsonStr());
@@ -223,6 +249,7 @@ TEST_F(FullNodeTest, db_test) {
   db.addPbftHeadToBatch(pbft_chain.getHeadHash(), pbft_chain.getJsonStr(), batch);
   db.commitWriteBatch(batch);
   EXPECT_EQ(db.getPbftHead(pbft_chain.getHeadHash()), pbft_chain.getJsonStr());
+
   // status
   db.saveStatusField(StatusDbField::TrxCount, 5);
   db.saveStatusField(StatusDbField::ExecutedBlkCount, 6);
@@ -299,6 +326,7 @@ TEST_F(FullNodeTest, db_test) {
   db.commitWriteBatch(batch);
   EXPECT_EQ(*db.getPeriodPbftBlock(1), blk_hash_t(1));
   EXPECT_EQ(*db.getPeriodPbftBlock(2), blk_hash_t(2));
+
   // dag_block_period
   batch = db.createWriteBatch();
   db.addDagBlockPeriodToBatch(blk_hash_t(1), 1, batch);

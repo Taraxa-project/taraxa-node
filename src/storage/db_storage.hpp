@@ -37,7 +37,6 @@ enum PbftMgrStatus {
   soft_voted_block_in_round = 0,
   executed_block,
   executed_in_round,
-  cert_voted_in_round,
   next_voted_soft_value,
   next_voted_null_block_hash,
 };
@@ -96,6 +95,8 @@ struct DbStorage {
     COLUMN(pbft_round_2t_plus_1);
     COLUMN(pbft_mgr_status);
     COLUMN(pbft_mgr_voted_value);
+    COLUMN(pbft_cert_voted_block_hash);
+    COLUMN(pbft_cert_voted_block);
     COLUMN(pbft_chain_pushed_values);
     COLUMN(pbft_head);
     COLUMN(pbft_blocks);
@@ -196,6 +197,15 @@ struct DbStorage {
   void savePbftMgrVotedValue(PbftMgrVotedValue const& field, blk_hash_t const& value);
   void addPbftMgrVotedValueToBatch(PbftMgrVotedValue const& field, blk_hash_t const& value,
                                    BatchPtr const& write_batch);
+
+  shared_ptr<blk_hash_t> getPbftCertVotedBlockHash(uint64_t const& pbft_round);
+  void savePbftCertVotedBlockHash(uint64_t const& pbft_round, blk_hash_t const& cert_voted_block_hash);
+  void addPbftCertVotedBlockHashToBatch(uint64_t const& pbft_round, blk_hash_t const& cert_voted_block_hash,
+                                        BatchPtr const& write_batch);
+
+  shared_ptr<PbftBlock> getPbftCertVotedBlock(blk_hash_t const& block_hash);
+  void savePbftCertVotedBlock(PbftBlock const& pbft_block);
+  void addPbftCertVotedBlockToBatch(PbftBlock const& pbft_block, BatchPtr const& write_batch);
 
   shared_ptr<blk_hash_t> getPbftChainPushedValue(uint64_t const& pbft_round);
   void savePbftChainPushedValue(uint64_t const& pbft_round, blk_hash_t const& pushed_block_hash);
