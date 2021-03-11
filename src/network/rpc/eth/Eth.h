@@ -40,7 +40,7 @@ struct Eth : virtual ::taraxa::net::EthFace {
   virtual void note_pending_transaction(h256 const& trx_hash) = 0;
 };
 
-Eth* NewEth(EthParams&&);
+std::shared_ptr<Eth> NewEth(EthParams&&);
 
 Json::Value toJson(BlockHeader const& obj);
 

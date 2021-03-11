@@ -6,8 +6,6 @@
 #include <stdexcept>
 
 #include "consensus/block_proposer.hpp"
-#include "consensus/pbft_manager.hpp"
-#include "dag/dag.hpp"
 #include "network/rpc/Net.h"
 #include "network/rpc/Taraxa.h"
 #include "network/rpc/Test.h"
@@ -112,9 +110,12 @@ void FullNode::start() {
     };
     auto eth_json_rpc = net::rpc::eth::NewEth(move(eth_rpc_params));
     emplace(jsonrpc_api_,
-            new net::Test(getShared()),    //
-            new net::Taraxa(getShared()),  //
-            new net::Net(getShared()),     //
+            make_shared<net::Test>(shared_from_this()),    // TODO Because this object refers to FullNode, the
+                                                           // lifecycle/dependency management is more complicated
+            make_shared<net::Taraxa>(shared_from_this()),  // TODO Because this object refers to FullNode, the
+                                                           // lifecycle/dependency management is more complicated
+            make_shared<net::Net>(shared_from_this()),     // TODO Because this object refers to FullNode, the
+                                                           // lifecycle/dependency management is more complicated
             eth_json_rpc);
     if (conf_.rpc->http_port) {
       emplace(jsonrpc_http_, rpc_thread_pool_->unsafe_get_io_context(),
@@ -128,25 +129,28 @@ void FullNode::start() {
       jsonrpc_api_->addConnector(jsonrpc_ws_);
       jsonrpc_ws_->run();
     }
-    auto const &ws = jsonrpc_ws_;
     final_chain_->block_finalized.subscribe(
-        [=](auto const &obj) {
-          eth_json_rpc->note_block_executed(*obj->final_chain_blk, obj->trxs, obj->trx_receipts);
-          if (ws) {
-            ws->newDagBlockFinalized(obj->pbft_blk->getPivotDagBlockHash(), obj->pbft_blk->getPeriod());
-            ws->newPbftBlockExecuted(*obj->pbft_blk, obj->finalized_dag_blk_hashes);
-            ws->newEthBlock(*obj->final_chain_blk);
+        [eth_json_rpc = weak_ptr(eth_json_rpc), ws = weak_ptr(jsonrpc_ws_)](auto const &obj) {
+          if (auto p = eth_json_rpc.lock(); p) {
+            p->note_block_executed(*obj->final_chain_blk, obj->trxs, obj->trx_receipts);
+          }
+          if (auto p = ws.lock(); p) {
+            p->newDagBlockFinalized(obj->pbft_blk->getPivotDagBlockHash(), obj->pbft_blk->getPeriod());
+            p->newPbftBlockExecuted(*obj->pbft_blk, obj->finalized_dag_blk_hashes);
+            p->newEthBlock(*obj->final_chain_blk);
           }
         },
-        util::ThreadPool::as_task_executor(rpc_thread_pool_));
+        *rpc_thread_pool_);
     trx_mgr_->transaction_accepted.subscribe(
-        [=](auto const &trx_hash) {
-          eth_json_rpc->note_pending_transaction(trx_hash);
-          if (ws) {
-            ws->newPendingTransaction(trx_hash);
+        [eth_json_rpc = weak_ptr(eth_json_rpc), ws = weak_ptr(jsonrpc_ws_)](auto const &trx_hash) {
+          if (auto p = eth_json_rpc.lock(); p) {
+            p->note_pending_transaction(trx_hash);
+          }
+          if (auto p = ws.lock(); p) {
+            p->newPendingTransaction(trx_hash);
           }
         },
-        util::ThreadPool::as_task_executor(rpc_thread_pool_));
+        *rpc_thread_pool_);
   }
 
   if (conf_.network.network_is_boot_node) {
@@ -210,6 +214,7 @@ void FullNode::close() {
   if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
+  jsonrpc_api_ = nullptr;  // TODO Because it indirectly refers to FullNode
   blk_proposer_->stop();
   blk_proposer_->setNetwork(nullptr);
   pbft_mgr_->stop();

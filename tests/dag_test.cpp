@@ -133,9 +133,10 @@ TEST_F(DagTest, genesis_get_pivot) {
 // Use the example on Conflux paper
 TEST_F(DagTest, compute_epoch) {
   auto db_ptr = DB::make(data_dir / "db");
-  auto mgr = std::make_shared<DagManager>(ChainConfig::predefined().dag_genesis_block, db_ptr);
-  DagBlock blkA(blk_hash_t(0), 0, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(1), addr_t(1));
-  DagBlock blkB(blk_hash_t(0), 0, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1), blk_hash_t(2), addr_t(1));
+  auto const& genesis = ChainConfig::predefined().dag_genesis_block;
+  auto mgr = std::make_shared<DagManager>(genesis, db_ptr);
+  DagBlock blkA(genesis.getHash(), 0, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(1), addr_t(1));
+  DagBlock blkB(genesis.getHash(), 0, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1), blk_hash_t(2), addr_t(1));
   DagBlock blkC(blk_hash_t(1), 0, {blk_hash_t(2)}, {}, sig_t(1), blk_hash_t(3), addr_t(1));
   DagBlock blkD(blk_hash_t(1), 0, {}, {}, sig_t(1), blk_hash_t(4), addr_t(1));
   DagBlock blkE(blk_hash_t(3), 0, {blk_hash_t(4), blk_hash_t(6)}, {}, sig_t(1), blk_hash_t(5), addr_t(1));
@@ -246,9 +247,10 @@ TEST_F(DagTest, receive_block_in_order) {
 // sure block order are the same
 TEST_F(DagTest, compute_epoch_2) {
   auto db_ptr = DB::make(data_dir / "db");
-  auto mgr = std::make_shared<DagManager>(ChainConfig::predefined().dag_genesis_block, db_ptr);
-  DagBlock blkA(blk_hash_t(0), 0, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(1), addr_t(1));
-  DagBlock blkB(blk_hash_t(0), 0, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1), blk_hash_t(2), addr_t(1));
+  auto const& genesis = ChainConfig::predefined().dag_genesis_block;
+  auto mgr = std::make_shared<DagManager>(genesis, db_ptr);
+  DagBlock blkA(genesis.getHash(), 0, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(1), addr_t(1));
+  DagBlock blkB(genesis.getHash(), 0, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1), blk_hash_t(2), addr_t(1));
   DagBlock blkC(blk_hash_t(1), 0, {blk_hash_t(2)}, {}, sig_t(1), blk_hash_t(3), addr_t(1));
   DagBlock blkD(blk_hash_t(1), 0, {}, {}, sig_t(1), blk_hash_t(4), addr_t(1));
   DagBlock blkE(blk_hash_t(3), 0, {blk_hash_t(4), blk_hash_t(6)}, {}, sig_t(1), blk_hash_t(5), addr_t(1));

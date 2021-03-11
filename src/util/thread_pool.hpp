@@ -25,8 +25,8 @@ class ThreadPool : std::enable_shared_from_this<ThreadPool> {
     return boost::asio::post(ioc_, std::forward<T>(args)...);
   }
 
-  static task_executor_t as_task_executor(std::shared_ptr<ThreadPool> th_pool) {
-    return [=](auto &&task) { th_pool->post(std::forward<task_t>(task)); };
+  operator task_executor_t() {
+    return [this](auto &&task) { post(std::forward<task_t>(task)); };
   }
 };
 

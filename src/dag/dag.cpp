@@ -307,7 +307,9 @@ DagManager::DagManager(DagBlock const &genesis_blk, std::shared_ptr<DB> db, std:
   dag_blocks_count_ = db_->getStatusField(StatusDbField::DagBlkCount);
   dag_edge_count_ = db_->getStatusField(StatusDbField::DagEdgeCount);
   if (dag_blocks_count_ == 0) {
-    addDagBlock(genesis_blk);
+    auto batch = db_->createWriteBatch();
+    addDagBlock(genesis_blk, batch);
+    batch.commit();
   }
 }
 
@@ -355,31 +357,35 @@ DagFrontier DagManager::getDagFrontier() {
   return frontier_;
 }
 
+void DagManager::addDagBlock(DagBlock const &blk, DB::Batch &write_batch) {
+  auto block_bytes = blk.rlp(true);
+  auto block_hash = blk.getHash();
+  write_batch.put(DB::Columns::dag_blocks, block_hash.asBytes(), block_bytes);
+  auto level = blk.getLevel();
+  std::string blocks = db_->getBlocksByLevel(level);
+  if (blocks == "") {
+    blocks = blk.getHash().toString();
+  } else {
+    blocks = blocks + "," + blk.getHash().toString();
+  }
+  write_batch.put(DB::Columns::dag_blocks_index, level, blocks);
+  ++dag_blocks_count_;
+  write_batch.put(DB::Columns::status, (uint8_t)StatusDbField::DagBlkCount, dag_blocks_count_);
+  // Do not count genesis pivot field
+  if (blk.getPivot() == blk_hash_t(0)) {
+    dag_edge_count_ += blk.getTips().size();
+  } else {
+    dag_edge_count_ += blk.getTips().size() + 1;
+  }
+  write_batch.put(DB::Columns::status, (uint8_t)StatusDbField::DagEdgeCount, dag_edge_count_);
+}
+
 void DagManager::addDagBlock(DagBlock const &blk, bool finalized, bool save) {
   auto write_batch = db_->createWriteBatch();
   {
     uLock lock(mutex_);
     if (save) {
-      auto block_bytes = blk.rlp(true);
-      auto block_hash = blk.getHash();
-      write_batch.put(DB::Columns::dag_blocks, block_hash.asBytes(), block_bytes);
-      auto level = blk.getLevel();
-      std::string blocks = db_->getBlocksByLevel(level);
-      if (blocks == "") {
-        blocks = blk.getHash().toString();
-      } else {
-        blocks = blocks + "," + blk.getHash().toString();
-      }
-      write_batch.put(DB::Columns::dag_blocks_index, level, blocks);
-      ++dag_blocks_count_;
-      write_batch.put(DB::Columns::status, (uint8_t)StatusDbField::DagBlkCount, dag_blocks_count_);
-      // Do not count genesis pivot field
-      if (blk.getPivot() == blk_hash_t(0)) {
-        dag_edge_count_ += blk.getTips().size();
-      } else {
-        dag_edge_count_ += blk.getTips().size() + 1;
-      }
-      write_batch.put(DB::Columns::status, (uint8_t)StatusDbField::DagEdgeCount, dag_edge_count_);
+      addDagBlock(blk, write_batch);
     }
     auto blk_hash = blk.getHash();
     auto blk_hash_str = blk_hash.toString();

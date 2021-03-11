@@ -501,6 +501,6 @@ struct EthImpl : Eth, EthParams {
 
 Json::Value toJson(BlockHeader const& obj) { return EthImpl::toJson(obj); }
 
-Eth* NewEth(EthParams&& prerequisites) { return new EthImpl(move(prerequisites)); }
+shared_ptr<Eth> NewEth(EthParams&& prerequisites) { return make_shared<EthImpl>(move(prerequisites)); }
 
 }  // namespace taraxa::net::rpc::eth

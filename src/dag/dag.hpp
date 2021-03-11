@@ -125,6 +125,11 @@ class DagManager {
   virtual ~DagManager() = default;
 
   bool pivotAndTipsAvailable(DagBlock const &blk);
+
+ private:
+  void addDagBlock(DagBlock const &blk, DB::Batch &write_batch);
+
+ public:
   void addDagBlock(DagBlock const &blk, bool finalized = false,
                    bool save = true);  // insert to buffer if fail
 

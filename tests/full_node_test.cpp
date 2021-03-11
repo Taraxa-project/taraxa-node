@@ -571,10 +571,10 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   auto nodes = launch_nodes(node_cfgs);
   auto &node = nodes[0];
 
-  g_mock_dag0 = samples::createMockDag1(node->getConfig().chain.dag_genesis_block.getHash());
+  g_mock_dag0 = samples::createMockDag1(node_cfgs[0].chain.dag_genesis_block);
 
   auto num_blks = g_mock_dag0->size();
-  for (int i = 0; i < 9; i++) {
+  for (int i = 1; i <= 9; i++) {
     node->getDagBlockManager()->insertBlock(g_mock_dag0[i]);
   }
   taraxa::thisThreadSleepForMilliSeconds(200);
