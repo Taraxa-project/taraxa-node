@@ -16,7 +16,6 @@
 #include "dag/dag.hpp"
 #include "final_chain/final_chain.hpp"
 #include "network/network.hpp"
-#include "network/taraxa_capability.hpp"
 
 namespace taraxa {
 using vrf_output_t = vrf_wrapper::vrf_output_t;
@@ -1309,12 +1308,11 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
     }
     // Remove from PBFT synced queue
     pbft_chain_->pbftSyncedQueuePopFront();
-    auto batch = db_->createWriteBatch();
     if (executed_pbft_block_) {
       update_dpos_state_();
       // update sortition_threshold and TWO_T_PLUS_ONE
       updateTwoTPlusOneAndThreshold_();
-      batch.addPbftMgrStatus(PbftMgrStatus::executed_block, false);
+      db_->createWriteBatch().addPbftMgrStatus(PbftMgrStatus::executed_block, false).commit();
       executed_pbft_block_ = false;
     }
     pbft_synced_queue_size = pbft_chain_->pbftSyncedQueueSize();
@@ -1325,7 +1323,8 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
     pbft_last_observed_synced_queue_size_ = pbft_synced_queue_size;
 
     // Since we pushed via syncing we should reset this...
-    batch.addPbftMgrStatus(PbftMgrStatus::next_voted_block_in_previous_round, false)
+    db_->createWriteBatch()
+        .addPbftMgrStatus(PbftMgrStatus::next_voted_block_in_previous_round, false)
         .addPbftMgrVotedValue(PbftMgrVotedValue::next_voted_block_hash_in_previous_round, NULL_BLOCK_HASH)
         .commit();
     next_voted_block_from_previous_round_ = std::make_pair(NULL_BLOCK_HASH, false);

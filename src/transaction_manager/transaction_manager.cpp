@@ -203,8 +203,8 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(DagBlock const &blk,
 
   if (all_transactions_saved) {
     uLock lock(mu_for_transactions_);
-    auto trx_batch = db_->createWriteBatch();
     for (auto const &trx : all_block_trx_hashes) {
+      auto trx_batch = db_->createWriteBatch();
       auto status = db_->getTransactionStatus(trx);
       if (status != TransactionStatus::in_block) {
         if (status == TransactionStatus::in_queue_unverified) {
