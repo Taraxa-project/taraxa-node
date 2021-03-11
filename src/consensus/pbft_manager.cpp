@@ -1198,6 +1198,9 @@ bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(blk_hash_t const &pbft_
       }
       return false;
     }
+    // Back to zero rounds since couldn't get proposal block...
+    wait_proposal_block_rounds_ = 0;
+
     // Read from DB pushing into unverified queue
     pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
   }
