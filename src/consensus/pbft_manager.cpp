@@ -608,7 +608,7 @@ void PbftManager::proposeBlock_() {
           LOG(log_nf_) << "Can't get proposal block " << own_starting_value_for_round_ << " in database";
         }
       }
-      if (!pbft_block) {
+      if (pbft_block) {
         LOG(log_nf_) << "Rebroadcasting next voted block " << own_starting_value_for_round_
                      << " from previous round. In round " << round;
         // broadcast pbft block
