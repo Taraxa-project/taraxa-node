@@ -110,7 +110,7 @@ add_none_cmake_target(vdf libvdf.a "${VDF_LIBRARY_COMMAND}")
 ## run autotools
 set(VRF_AUTOTOOLS_CMD "autoreconf && automake")
 ## run configure
-set(VRF_AUTOTOOLS_CMD "${VRF_AUTOTOOLS_CMD} && ./configure --enable-static=\"yes\" --enable-shared=\"no\" --prefix=${CMAKE_CURRENT_SOURCE_DIR}/taraxa-vrf")
+set(VRF_AUTOTOOLS_CMD "${VRF_AUTOTOOLS_CMD} && ./configure --enable-static=\"yes\" --enable-shared=\"no\" --prefix=${CMAKE_BINARY_DIR}/deps/taraxa-vrf")
 add_none_cmake_target(vrf libsodium.a "${VRF_AUTOTOOLS_CMD} && ${CMAKE_MAKE_PROGRAM} && ${CMAKE_MAKE_PROGRAM} install")
 
 
