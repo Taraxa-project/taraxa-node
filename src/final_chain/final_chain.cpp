@@ -75,7 +75,7 @@ struct FinalChainImpl final : virtual FinalChain {
   future<shared_ptr<BlockFinalized>> finalize(shared_ptr<PbftBlock> pbft_blk) override {
     assert(pbft_blk);
     auto p = make_shared<promise<shared_ptr<BlockFinalized>>>();
-    executor_thread_.post([this, pbft_blk, p] { p->set_value(finalize_(pbft_blk)); });
+    executor_([this, pbft_blk, p] { p->set_value(finalize_(pbft_blk)); });
     return p->get_future();
   }
 

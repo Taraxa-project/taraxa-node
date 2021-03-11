@@ -30,13 +30,8 @@ Transaction::Transaction(uint64_t nonce, val_t const &value, val_t const &gas_pr
 Transaction::Transaction(dev::RLP const &_rlp, bool verify_strict, h256 const &hash)
     : hash_(hash), hash_initialized_(!hash.isZero()) {
   uint64_t v_ethereum_version = 0;
-  try {
-    util::rlp_tuple(util::RLPDecoderRef(_rlp, verify_strict), nonce_, gas_price_, gas_, receiver_, value_, data_,
-                    v_ethereum_version, vrs_.r, vrs_.s);
-  } catch (util::InvalidEncodingSize const &) {
-    // TODO maybe no need for the specialized exception
-    throw InvalidEncodingSize();
-  }
+  util::rlp_tuple(util::RLPDecoderRef(_rlp, verify_strict), nonce_, gas_price_, gas_, receiver_, value_, data_,
+                  v_ethereum_version, vrs_.r, vrs_.s);
   vrs_.v = ~v_ethereum_version & uint8_t(1);
   if (v_ethereum_version -= (27 + vrs_.v)) {
     if (v_ethereum_version > 8) {
