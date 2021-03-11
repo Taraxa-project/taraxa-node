@@ -34,26 +34,9 @@ add_library(
 target_include_directories(ethash PUBLIC ${include_dir})
 
 # Add aleth
-## create stubs and aliases for aleth targets
-find_package(Boost 1.71 REQUIRED system filesystem log thread )
-
-add_library(ethash::ethash ALIAS ethash)
-
-# add_library(libscrypt INTERFACE ${scrypt_LIBRARIES})
-# add_library(libscrypt::scrypt ALIAS libscrypt)
-
-add_library(libscrypt::scrypt INTERFACE)
-target_link_libraries(libscrypt::scrypt ${scrypt_LIBRARIES})
-
-add_library(jsoncpp_lib_static ALIAS CONAN_PKG::jsoncpp)
-add_library(libjson-rpc-cpp::server ALIAS CONAN_PKG::libjson-rpc-cpp)
-add_library(cryptopp-static ALIAS CONAN_PKG::cryptopp)
 
 ## indicate that aleth build like submodule
 set(ALETH_SUBMODULE ON)
-
-# set(CMAKE_CXX_VISIBILITY_PRES  ET default)
-
 
 ## add new targets
 add_subdirectory(taraxa-aleth/libdevcore)
@@ -65,18 +48,12 @@ add_subdirectory(taraxa-aleth/libweb3jsonrpc)
 
 ## include directory to avoid compile erros
 target_include_directories(devcore PUBLIC "taraxa-aleth")
-target_include_directories(devcrypto PUBLIC ${CONAN_INCLUDE_DIRS_CRYPTOPP} secp256k1/include)
-
-# ## set different visibility for devcrypto
-# set_target_properties(devcrypto PROPERTIES CXX_VISIBILITY_PRESET default)
-# target_compile_options(devcore PRIVATE -Wl --exclude-libs ALL)
-# target_link_options(devcore PRIVATE -Wl --exclude-libs ALL)
-# set(CMAKE_CXX_VISIBILITY_PRESET hidden)
-
-
 ## create aleth target for just included targets
 add_library(aleth INTERFACE)
 target_link_libraries(aleth INTERFACE ethereum devcore ethcore devcrypto web3jsonrpc)
+
+
+include(ExternalProject)
 
 ## add not cmake target
 ## libprefix - submodule prefix (examples: vrf/vdf/evm)
@@ -84,30 +61,49 @@ target_link_libraries(aleth INTERFACE ethereum devcore ethcore devcrypto web3jso
 ## libincludepath - relative path (after `*/include/`) to headers (examples: ""/""/tarxa-evm)
 ## buildcommand - build command of library (example: "${CMAKE_MAKE_PROGRAM} OPENSSL_HOME=${CONAN_OPENSSL_ROOT} all")
 function(add_none_cmake_target libprefix libname buildcommand)
-    # split argument because it goes as string
-    separate_arguments(MAKE_COMMAND UNIX_COMMAND ${buildcommand})
-    # set the output destination
-    set(TARAXA_${libprefix}_LIB ${CMAKE_CURRENT_SOURCE_DIR}/taraxa-${libprefix}/lib/${libname})
-    # create a custom target called build_taraxa_${libprefix}
-    add_custom_target(build_taraxa_${libprefix} 
-                      COMMAND ${MAKE_COMMAND}
-                      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/taraxa-${libprefix}/
-                      COMMENT "Original taraxa-${libprefix} makefile target")
+    # prefix of build dir
+    set(prefix "${CMAKE_BINARY_DIR}/deps")
+    # write it to file
+    # because if we use it as it is we will have an error with enviroment vars
+    # they will be interpreted in the wrong key (CGO_CFLAGS_ALLOW='.*' goes as "CGO_CFLAGS_ALLOW=.*")
+    set(${libprefix}_SHFILE ${prefix}/setenv_for_taraxa_${libprefix}.sh)
+    file(WRITE ${${libprefix}_SHFILE} "${buildcommand}")
+    # library path
+    set(${libprefix}_LIBRARY "${prefix}/taraxa-${libprefix}/lib/${libname}")
+    # inlcude path
+    set(${libprefix}_INCLUDE_DIR "${prefix}/taraxa-${libprefix}/include")
+    ExternalProject_Add(
+        ${libprefix}_lib_submodule
+        PREFIX ${prefix}
+        SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/taraxa-${libprefix}
+        BINARY_DIR ${prefix}/taraxa-${libprefix}
+        CONFIGURE_COMMAND cp -r <SOURCE_DIR> ${prefix}
+        BUILD_COMMAND chmod +x ${${libprefix}_SHFILE} && bash ${${libprefix}_SHFILE}
+        INSTALL_COMMAND ""
+        BUILD_BYPRODUCTS ${${libprefix}_LIBRARY}
+    )
 
-    # now create an imported static target
     add_library(taraxa-${libprefix} STATIC IMPORTED GLOBAL)
-    # Import target "taraxa-${libprefix}" for configuration ""
-    set_property(TARGET taraxa-${libprefix} APPEND PROPERTY IMPORTED_CONFIGURATIONS NOCONFIG)
-    set_target_properties(taraxa-${libprefix} PROPERTIES IMPORTED_LOCATION_NOCONFIG "${TARAXA_${libprefix}_LIB}")
-    set_target_properties(taraxa-${libprefix} PROPERTIES INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/taraxa-${libprefix}/include")
-    set_target_properties(taraxa-${libprefix} PROPERTIES ADDITIONAL_CLEAN_FILES "${TARAXA_${libprefix}_LIB}")
-
-    # now you can use taraxa-${libprefix} as if it were a regular cmake built target in your project
-    add_dependencies(taraxa-${libprefix} build_taraxa_${libprefix})
+    file(MAKE_DIRECTORY "${${libprefix}_INCLUDE_DIR}")  # Must exist.
+    set_property(TARGET taraxa-${libprefix} PROPERTY IMPORTED_CONFIGURATIONS Release)
+    set_property(TARGET taraxa-${libprefix} PROPERTY IMPORTED_LOCATION_RELEASE "${${libprefix}_LIBRARY}")
+    set_property(TARGET taraxa-${libprefix} PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${${libprefix}_INCLUDE_DIR}")
+    add_dependencies(taraxa-${libprefix} ${libprefix}_lib_submodule)
 endfunction()
 
 # Add taraxa-vdf
-add_none_cmake_target(vdf libvdf.a "${CMAKE_MAKE_PROGRAM} OPENSSL_HOME=${CONAN_OPENSSL_ROOT} all")
+## 1.swap MPFR_LDFLAGS and GMP_LDFLAGS cause we will have ld errors
+##   on ubuntu in other case (undefined refernces from mpfr to gmp).
+##   in makefile ld flags goes as $(OPENSSL_LDFLAGS) $(GMP_LDFLAGS) $(MPFR_LDFLAGS) 
+## 2. Add `-ldl -lpthread` to link or we will have errors on ubuntu
+set(VDF_LIBRARY_COMMAND "\
+ ${CMAKE_MAKE_PROGRAM}\
+ OPENSSL_HOME=\"${CONAN_OPENSSL_ROOT}\"\
+ MPFR_LDFLAGS=\"-ldl -lpthread -L${CONAN_LIB_DIRS_GMP} -lgmpxx -lgmp\"\
+ GMP_LDFLAGS=\"-L${CONAN_LIB_DIRS_MPFR} -lmpfr\"\
+ CPPFLAGS=\"-I./include -I${CONAN_INCLUDE_DIRS_OPENSSL} -I${CONAN_INCLUDE_DIRS_GMP} -I${CONAN_INCLUDE_DIRS_MPFR} -std=c++17\"\
+ all")
+add_none_cmake_target(vdf libvdf.a "${VDF_LIBRARY_COMMAND}")
 
 
 # Add taraxa-vrf
@@ -119,12 +115,33 @@ add_none_cmake_target(vrf libsodium.a "${VRF_AUTOTOOLS_CMD} && ${CMAKE_MAKE_PROG
 
 
 # Add tarxa-evm
+## add include of libs
+set(EVM_BUILD_INCLUDE "\
+ -I${CONAN_INCLUDE_DIRS_BZIP2}\
+ -I${CONAN_INCLUDE_DIRS_ZLIB}\
+ -I${CONAN_INCLUDE_DIRS_ROCKSDB}\
+ -I${CONAN_INCLUDE_DIRS_SNAPPY}\
+ -I${CONAN_INCLUDE_DIRS_LZ4}\
+ -I${CONAN_INCLUDE_DIRS_ZSTD}")
+## set C flags
+set(EVM_BUILD_CGO_CFLAGS "-O3 ${EVM_BUILD_INCLUDE}")
+## add link of libs
+set(EVM_BUILD_LD "\
+ -L${CONAN_LIB_DIRS_BZIP2} -lbz2\
+ -L${CONAN_LIB_DIRS_ZLIB} -lz\
+ -L${CONAN_LIB_DIRS_ROCKSDB} -lrocksdb\
+ -L${CONAN_LIB_DIRS_SNAPPY} -lsnappy\
+ -L${CONAN_LIB_DIRS_LZ4} -llz4\
+ -L${CONAN_LIB_DIRS_ZSTD} -lzstd")
 ## go env settings
-set(EVM_BUILD_ENV "CGO_CFLAGS_ALLOW='.*' CGO_CXXFLAGS_ALLOW='.*' CGO_CFLAGS=\"-O3\" CGO_CXXFLAGS=\"-O3\"")
-## add to search list dirs with libraries from conan
-set(EVM_BUILD_LD "-L${CONAN_LIB_DIRS_BZIP2} -L${CONAN_LIB_DIRS_ZLIB} -L${CONAN_LIB_DIRS_ROCKSDB} -L${CONAN_LIB_DIRS_SNAPPY} -L${CONAN_LIB_DIRS_LZ4} -L${CONAN_LIB_DIRS_ZSTD}")
+set(EVM_BUILD_ENV "\
+ CGO_CFLAGS_ALLOW='.*'\
+ CGO_CXXFLAGS_ALLOW='.*'\
+ CGO_CXXFLAGS=\"-O3\"\
+ CGO_CFLAGS=\"${EVM_BUILD_CGO_CFLAGS}\"\
+ CGO_LDFLAGS=\"${EVM_BUILD_LD}\"")
 ## if we need full static build use flag
-if(NOT APPLE)
+if(TARAXA_STATIC_BUILD)
     set(EVM_BUILD_LD "${EVM_BUILD_LD} -static")
     ## name of the static library
     set(EVM_LIBRARY_NAME "${CMAKE_STATIC_LIBRARY_PREFIX}taraxaevm${CMAKE_STATIC_LIBRARY_SUFFIX}")
@@ -132,10 +149,8 @@ else()
     ## name of the shared library
     set(EVM_LIBRARY_NAME "${CMAKE_SHARED_LIBRARY_PREFIX}taraxaevm${CMAKE_SHARED_LIBRARY_SUFFIX}")
 endif()
-## add libraries to link
-set(EVM_BUILD_LD "${EVM_BUILD_LD} -lrocksdb -lbz2 -lz -lsnappy -llz4 -lzstd")
 ## add build command
-set(EVM_BUILD_COMMAND "cd taraxa/C && ${EVM_BUILD_ENV} CGO_LDFLAGS=\"${EVM_BUILD_LD}\" go build -buildmode=c-archive -o ${EVM_LIBRARY_NAME}")
+set(EVM_BUILD_COMMAND "cd taraxa/C && ${EVM_BUILD_ENV} go build -buildmode=c-archive -o ${EVM_LIBRARY_NAME}")
 ## cp headers into `taraxa-evm/include`
 set(EVM_AFTER_BUILD_COMMAND "cd - && mkdir -p include/taraxa-evm && cp taraxa/C/*.h include/taraxa-evm/.")
 ## cp library into `taraxa-evm/lib`

@@ -104,21 +104,10 @@ if (TARAXA_STATIC_BUILD)
     set(CMAKE_FIND_LIBRARY_SUFFIXES ".a") # zlib does not support zlib_USE_STATIC_LIBS or similar approach
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++ -static-libgcc")
 
-    set(Boost_USE_STATIC_LIBS ON)
-    set(jsoncpp_USE_STATIC_LIBS ON)
-    set(jsonrpccpp_USE_STATIC_LIBS ON)
-    set(crypto_USE_STATIC_LIBS ON)
-    set(gmp_USE_STATIC_LIBS ON)
-    set(mpfr_USE_STATIC_LIBS ON)
     set(scrypt_USE_STATIC_LIBS ON)
-    set(rocksdb_USE_STATIC_LIBS ON)
-    set(zstd_USE_STATIC_LIBS ON)
-    set(bz2_USE_STATIC_LIBS ON)
-    set(snappy_USE_STATIC_LIBS ON)
-    set(lz4_USE_STATIC_LIBS ON)
 endif (TARAXA_STATIC_BUILD)
 
-# conan
+# fix for boost thread library on MacOS
 IF(APPLE)
     set(CMAKE_THREAD_LIBS_INIT "-lpthread")
     set(CMAKE_HAVE_THREADS_LIBRARY 1)
@@ -126,45 +115,35 @@ IF(APPLE)
     set(CMAKE_USE_PTHREADS_INIT 1)
     set(THREADS_PREFER_PTHREAD_FLAG ON)
 ENDIF()
-set(Boost_USE_MULTITHREADED ON)
 
+# conan package manager
 if(CONAN_EXPORTED)
-  include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-  conan_basic_setup(TARGETS)
+    ## conan called from system
+    include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+    conan_basic_setup(TARGETS)
 else()
-  if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
-    message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
-    file(DOWNLOAD "https://github.com/conan-io/cmake-conan/raw/v0.16/conan.cmake"
-        "${CMAKE_BINARY_DIR}/conan.cmake"
-        TLS_VERIFY ON)
-  endif()
+    ## conan from cmake
+    if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
+        message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
+        file(DOWNLOAD "https://github.com/conan-io/cmake-conan/raw/v0.16/conan.cmake"
+            "${CMAKE_BINARY_DIR}/conan.cmake"
+            TLS_VERIFY ON)
+    endif()
 
-  include(${CMAKE_BINARY_DIR}/conan.cmake)
+    include(${CMAKE_BINARY_DIR}/conan.cmake)
 
-  conan_add_remote(NAME bincrafters INDEX 1
-                   URL https://api.bintray.com/conan/bincrafters/public-conan
-                   VERIFY_SSL True)
+    conan_add_remote(NAME bincrafters INDEX 1
+                    URL https://api.bintray.com/conan/bincrafters/public-conan
+                    VERIFY_SSL True)
 
-  conan_cmake_run(CONANFILE conanfile.py BUILD_TYPE ${CMAKE_BUILD_TYPE} BUILD missing
-                  BASIC_SETUP CMAKE_TARGETS KEEP_RPATHS)
+    conan_cmake_run(CONANFILE conanfile.py BUILD_TYPE ${CMAKE_BUILD_TYPE} BUILD missing
+                    BASIC_SETUP CMAKE_TARGETS KEEP_RPATHS)
 endif()
 
 # Custom CMakeModules for finding libraries
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 
-# Find jsoncpp lib
-# find_package(jsoncpp REQUIRED)
-# find_package(jsonrpccpp REQUIRED)
-find_package(crypto REQUIRED) # Find crypto lib # TODO: check if really required
-# find_package(gmp REQUIRED)
-# find_package(mpfr REQUIRED)
 find_package(scrypt REQUIRED)
-# find_package(rocksdb REQUIRED)
-# find_package(zstd REQUIRED)
-# find_package(bz2 REQUIRED)
-# find_package(ZLIB REQUIRED)
-# find_package(snappy REQUIRED)
-# find_package(lz4 REQUIRED)
 
 # clang-tidy
 include(CMakeModules/clang_tidy.cmake)
