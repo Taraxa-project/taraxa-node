@@ -626,8 +626,7 @@ void PbftManager::identifyBlock_() {
         placeVote_(leader_block.first, soft_vote_type, round, step_);
       }
     }
-  } else if (auto voted_value = previous_round_next_votes_->getVotedValue();
-             round >= 2 && voted_value != NULL_BLOCK_HASH) {
+  } else if (round >= 2 && voted_value != NULL_BLOCK_HASH) {
     if (shouldSpeak(soft_vote_type, round, step_)) {
       LOG(log_dg_) << "Soft voting " << voted_value << " from previous round";
       placeVote_(voted_value, soft_vote_type, round, step_);
