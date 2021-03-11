@@ -1120,7 +1120,7 @@ bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(blk_hash_t const &pbft_
 
       if (!round_began_wait_proposal_block_) {
         round_began_wait_proposal_block_ = round_;
-      } else {
+      } else if (round_ > round_began_wait_proposal_block_) {
         size_t wait_proposal_block_rounds = round_ - round_began_wait_proposal_block_;
         if (wait_proposal_block_rounds < max_wait_rounds_for_proposal_block_) {
           LOG(log_nf_) << "Have been waiting " << wait_proposal_block_rounds << " rounds for proposal block "
@@ -1134,12 +1134,11 @@ bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(blk_hash_t const &pbft_
       }
       return false;
     }
-    // Back to zero to signify no longer waiting...
-    round_began_wait_proposal_block_ = 0;
-
     // Read from DB pushing into unverified queue
     pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
   }
+  // Back to zero to signify no longer waiting...
+  round_began_wait_proposal_block_ = 0;
 
   return comparePbftBlockScheduleWithDAGblocks_(*pbft_block);
 }
