@@ -609,14 +609,13 @@ void PbftManager::proposeBlock_() {
         }
       }
       if (pbft_block) {
-        LOG(log_nf_) << "Rebroadcasting next voted block " << own_starting_value_for_round_
+        LOG(log_nf_) << "Rebroadcasting and proposing next voted block " << own_starting_value_for_round_
                      << " from previous round. In round " << round;
         // broadcast pbft block
         network_->onNewPbftBlock(*pbft_block);
+        // place vote
+        placeVote_(own_starting_value_for_round_, propose_vote_type, round, step_);
       }
-      LOG(log_nf_) << "Proposing next voted block " << own_starting_value_for_round_
-                   << " from previous round. In round " << round;
-      placeVote_(own_starting_value_for_round_, propose_vote_type, round, step_);
     }
   }
 }
