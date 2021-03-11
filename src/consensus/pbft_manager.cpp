@@ -1118,21 +1118,24 @@ bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(blk_hash_t const &pbft_
       LOG(log_nf_) << "Can't get proposal block " << pbft_block_hash << " in DB. Have not got the PBFT block "
                    << pbft_block_hash << " yet.";
 
-      if (wait_proposal_block_rounds_ < max_wait_rounds_for_proposal_block_) {
-        LOG(log_nf_) << "Have been waiting " << wait_proposal_block_rounds_ << " rounds for proposal block "
-                     << pbft_block_hash;
-        wait_proposal_block_rounds_++;
+      if (!round_began_wait_proposal_block_) {
+        round_began_wait_proposal_block_ = round_;
       } else {
-        LOG(log_nf_) << "Have been waiting " << wait_proposal_block_rounds_ << " rounds for proposal block "
-                     << pbft_block_hash << ", reset own starting value to NULL_BLOCK_HASH";
-        db_->savePbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round, NULL_BLOCK_HASH);
-        own_starting_value_for_round_ = NULL_BLOCK_HASH;
+        size_t wait_proposal_block_rounds = round_ - round_began_wait_proposal_block_;
+        if (wait_proposal_block_rounds < max_wait_rounds_for_proposal_block_) {
+          LOG(log_nf_) << "Have been waiting " << wait_proposal_block_rounds << " rounds for proposal block "
+                       << pbft_block_hash;
+        } else {
+          LOG(log_nf_) << "Have been waiting " << wait_proposal_block_rounds << " rounds for proposal block "
+                       << pbft_block_hash << ", reset own starting value to NULL_BLOCK_HASH";
+          db_->savePbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round, NULL_BLOCK_HASH);
+          own_starting_value_for_round_ = NULL_BLOCK_HASH;
+        }
       }
-
       return false;
     }
-    // Back to zero rounds since couldn't get proposal block...
-    wait_proposal_block_rounds_ = 0;
+    // Back to zero to signify no longer waiting...
+    round_began_wait_proposal_block_ = 0;
 
     // Read from DB pushing into unverified queue
     pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
