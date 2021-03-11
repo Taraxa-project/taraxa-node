@@ -135,7 +135,7 @@ def node(as_boot_node, boot_node, db_path, file, network, log, network_port_tcp,
     for i in log:
         log_channel_parsed = {}
         a = i.split(':')
-        log_channel_parsed['name'] = a[0].upper()
+        log_channel_parsed['name'] = a[0]
         log_channel_parsed['verbosity'] = a[1].upper()
         for configuration in data["logging"]["configurations"]:
             configuration["channels"].append(log_channel_parsed)
