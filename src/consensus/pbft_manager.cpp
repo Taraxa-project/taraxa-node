@@ -1115,10 +1115,9 @@ bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(blk_hash_t const &pbft_
 
     pbft_block = db_->getPbftCertVotedBlock(pbft_block_hash);
     if (!pbft_block) {
-      LOG(log_nf_) << "Can't get proposal block " << pbft_block_hash << " in DB. Have not got the PBFT block "
-                   << pbft_block_hash << " yet.";
-
       if (!round_began_wait_proposal_block_) {
+        LOG(log_nf_) << "Can't get proposal block " << pbft_block_hash << " in DB. Have not got the PBFT block "
+                     << pbft_block_hash << " yet.";
         round_began_wait_proposal_block_ = round_;
       } else if (round_ > round_began_wait_proposal_block_) {
         size_t wait_proposal_block_rounds = round_ - round_began_wait_proposal_block_;
