@@ -600,6 +600,20 @@ void PbftManager::proposeBlock_() {
     db_->savePbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round, voted_value);
     own_starting_value_for_round_ = voted_value;
     if (shouldSpeak(propose_vote_type, round, step_)) {
+      auto pbft_block = pbft_chain_->getUnverifiedPbftBlock(own_starting_value_for_round_);
+      if (!pbft_block) {
+        LOG(log_nf_) << "Can't get proposal block " << own_starting_value_for_round_ << " in unverified queue";
+        pbft_block = db_->getPbftCertVotedBlock(own_starting_value_for_round_);
+        if (!pbft_block) {
+          LOG(log_nf_) << "Can't get proposal block " << own_starting_value_for_round_ << " in database";
+        }
+      }
+      if (!pbft_block) {
+        LOG(log_nf_) << "Rebroadcasting next voted block " << own_starting_value_for_round_
+                     << " from previous round. In round " << round;
+        // broadcast pbft block
+        network_->onNewPbftBlock(*pbft_block);
+      }
       LOG(log_nf_) << "Proposing next voted block " << own_starting_value_for_round_
                    << " from previous round. In round " << round;
       placeVote_(own_starting_value_for_round_, propose_vote_type, round, step_);
