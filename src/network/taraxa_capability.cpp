@@ -146,7 +146,7 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID, unsigned
     } catch (std::exception const &_e) {                                                              \
       LOG(log_er_) << "RANDOM_TAG line: " << __LINE__ << ", rlp value: " << dev::toHex(val.toBytes()) \
                    << ", err: " << _e.what();                                                         \
-      throw _e;                                                                                       \
+      throw;                                                                                          \
     }                                                                                                 \
   }(_rlp)
 
