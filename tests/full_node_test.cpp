@@ -205,18 +205,9 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(db.getPbftCertVotedBlock(pbft_block3.getBlockHash())->rlp(false), pbft_block3.rlp(false));
   EXPECT_EQ(db.getPbftCertVotedBlock(pbft_block4.getBlockHash())->rlp(false), pbft_block4.rlp(false));
 
-  // PBFT pushed block hash
-  EXPECT_EQ(db.getPbftChainPushedValue(1), nullptr);
-  db.savePbftChainPushedValue(1, blk_hash_t(1));
-  EXPECT_EQ(*db.getPbftChainPushedValue(1), blk_hash_t(1));
-  batch = db.createWriteBatch();
-  db.addPbftChainPushedValueToBatch(1, blk_hash_t(2), batch);
-  db.addPbftChainPushedValueToBatch(2, blk_hash_t(3), batch);
-  db.commitWriteBatch(batch);
-  EXPECT_EQ(*db.getPbftChainPushedValue(1), blk_hash_t(2));
-  EXPECT_EQ(*db.getPbftChainPushedValue(2), blk_hash_t(3));
-
   // pbft_blocks
+  EXPECT_FALSE(db.pbftBlockInDb(blk_hash_t(0)));
+  EXPECT_FALSE(db.pbftBlockInDb(blk_hash_t(1)));
   pbft_block1 = make_simple_pbft_block(blk_hash_t(1), 2);
   pbft_block2 = make_simple_pbft_block(blk_hash_t(2), 3);
   pbft_block3 = make_simple_pbft_block(blk_hash_t(3), 4);

@@ -332,15 +332,6 @@ void PbftManager::initialState_() {
   setPbftRound(round);
 
   if (round > 1) {
-    auto pushed_block_hash_in_previous_round = db_->getPbftChainPushedValue(round - 1);
-    if (pushed_block_hash_in_previous_round) {
-      push_block_values_for_round_[round - 1] = *pushed_block_hash_in_previous_round;
-      LOG(log_nf_) << "Initialize pushed block hash " << *pushed_block_hash_in_previous_round << " for previous round "
-                   << round - 1;
-    } else {
-      LOG(log_nf_) << "Node didn't push any values in previous round " << round - 1;
-    }
-
     // Get next votes for previous round from DB
     auto next_votes_in_previous_round = db_->getNextVotes(round - 1);
     if (next_votes_in_previous_round.empty()) {
@@ -545,15 +536,7 @@ bool PbftManager::stateOperations_() {
       LOG(log_dg_) << "PBFT block " << cert_voted_block_hash.first << " has enough certed votes";
       // put pbft block into chain
       if (pushCertVotedPbftBlockIntoChain_(cert_voted_block_hash.first, cert_votes_for_round)) {
-        // Update the latest certified block hash in the chain for current round
-        auto batch = db_->createWriteBatch();
-        db_->addPbftChainPushedValueToBatch(round, cert_voted_block_hash.first, batch);
-        db_->addPbftMgrStatusToBatch(PbftMgrStatus::executed_in_round, true, batch);
-        db_->commitWriteBatch(batch);
-
-        push_block_values_for_round_[round] = cert_voted_block_hash.first;
-        LOG(log_nf_) << node_addr_ << " push certified PBFT block hash " << cert_voted_block_hash.first << " in round "
-                     << round;
+        db_->savePbftMgrStatus(PbftMgrStatus::executed_in_round, true);
         have_executed_this_round_ = true;
         LOG(log_nf_) << "Write " << cert_votes_for_round.size() << " votes ... in round " << round;
 
@@ -579,12 +562,13 @@ bool PbftManager::stateOperations_() {
 void PbftManager::proposeBlock_() {
   // Value Proposal
   auto round = getPbftRound();
+  auto voted_value = previous_round_next_votes_->getVotedValue();
 
   LOG(log_tr_) << "PBFT value proposal state in round " << round;
   if (round > 1) {
     if (previous_round_next_votes_->haveEnoughVotesForNullBlockHash()) {
       LOG(log_nf_) << "Previous round " << round - 1 << " next voted block is NULL_BLOCK_HASH";
-    } else if (auto voted_value = previous_round_next_votes_->getVotedValue(); voted_value != NULL_BLOCK_HASH) {
+    } else if (voted_value != NULL_BLOCK_HASH) {
       LOG(log_nf_) << "Previous round " << round - 1 << " next voted block is " << voted_value;
     } else {
       LOG(log_er_) << "Previous round " << round - 1 << " doesn't have enough next votes";
@@ -597,7 +581,7 @@ void PbftManager::proposeBlock_() {
       LOG(log_nf_) << "Proposing value of NULL_BLOCK_HASH " << NULL_BLOCK_HASH << " for round 1 by protocol";
       placeVote_(own_starting_value_for_round_, propose_vote_type, round, step_);
     }
-  } else if (push_block_values_for_round_.count(round - 1) ||
+  } else if (pbft_chain_->findPbftBlockInChain(voted_value) ||
              (round >= 2 && previous_round_next_votes_->haveEnoughVotesForNullBlockHash())) {
     if (shouldSpeak(propose_vote_type, round, step_)) {
       // PBFT block only be proposed once in one period
@@ -612,8 +596,7 @@ void PbftManager::proposeBlock_() {
         placeVote_(own_starting_value_for_round_, propose_vote_type, round, step_);
       }
     }
-  } else if (auto voted_value = previous_round_next_votes_->getVotedValue();
-             round >= 2 && voted_value != NULL_BLOCK_HASH) {
+  } else if (round >= 2 && voted_value != NULL_BLOCK_HASH) {
     db_->savePbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round, voted_value);
     own_starting_value_for_round_ = voted_value;
     if (shouldSpeak(propose_vote_type, round, step_)) {
@@ -627,8 +610,10 @@ void PbftManager::proposeBlock_() {
 void PbftManager::identifyBlock_() {
   // The Filtering Step
   auto round = getPbftRound();
+  auto voted_value = previous_round_next_votes_->getVotedValue();
   LOG(log_tr_) << "PBFT filtering state in round " << round;
-  if (round == 1 || push_block_values_for_round_.count(round - 1) ||
+
+  if (round == 1 || pbft_chain_->findPbftBlockInChain(voted_value) ||
       (round >= 2 && previous_round_next_votes_->haveEnoughVotesForNullBlockHash())) {
     // Identity leader
     std::pair<blk_hash_t, bool> leader_block = identifyLeaderBlock_(votes_);
@@ -782,6 +767,7 @@ void PbftManager::secondFinish_() {
       db_->commitWriteBatch(batch);
       soft_voted_block_for_this_round_ = soft_voted_block;
     }
+
     if (!next_voted_soft_value_ && soft_voted_block_for_this_round_.second &&
         soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH) {
       LOG(log_dg_) << "Next voting " << soft_voted_block_for_this_round_.first << " for round " << round << ", at step "
@@ -790,9 +776,11 @@ void PbftManager::secondFinish_() {
       db_->savePbftMgrStatus(PbftMgrStatus::next_voted_soft_value, true);
       next_voted_soft_value_ = true;
     }
+
+    auto voted_value = previous_round_next_votes_->getVotedValue();
     if (!next_voted_null_block_hash_ && round >= 2 &&
         (previous_round_next_votes_->haveEnoughVotesForNullBlockHash() ||
-         push_block_values_for_round_.count(round - 1)) &&
+         pbft_chain_->findPbftBlockInChain(voted_value)) &&
         (cert_voted_values_for_round_.find(round) == cert_voted_values_for_round_.end())) {
       LOG(log_dg_) << "Next voting NULL BLOCK for round " << round << ", at step " << step_;
       placeVote_(NULL_BLOCK_HASH, next_vote_type, round, step_);
@@ -1231,14 +1219,8 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
       break;
     }
     if (pushPbftBlock_(pbft_block_and_votes)) {
-      auto pbft_block_hash = pbft_block_and_votes.pbft_blk->getBlockHash();
-      if (cert_voted_values_for_round_.find(round) != cert_voted_values_for_round_.end() &&
-          cert_voted_values_for_round_.find(round)->second == pbft_block_hash) {
-        // Update the latest sycned block hash in the chain for current round
-        db_->savePbftChainPushedValue(round, pbft_block_hash);
-        push_block_values_for_round_[round] = pbft_block_hash;
-        LOG(log_nf_) << node_addr_ << " push synced PBFT block hash " << pbft_block_hash << " in round " << round;
-      }
+      LOG(log_nf_) << node_addr_ << " push synced PBFT block " << pbft_block_and_votes.pbft_blk->getBlockHash()
+                   << " in round " << round;
     } else {
       LOG(log_er_) << "Failed push PBFT block " << pbft_block_and_votes.pbft_blk->getBlockHash() << " into chain";
       break;

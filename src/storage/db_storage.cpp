@@ -465,23 +465,6 @@ void DbStorage::addPbftCertVotedBlockToBatch(PbftBlock const& pbft_block, BatchP
             toSlice(pbft_block.rlp(true)));
 }
 
-shared_ptr<blk_hash_t> DbStorage::getPbftChainPushedValue(uint64_t const& pbft_round) {
-  auto hash = asBytes(lookup(toSlice(pbft_round), Columns::pbft_chain_pushed_values));
-  if (hash.size() > 0) {
-    return make_shared<blk_hash_t>(hash);
-  }
-  return nullptr;
-}
-
-void DbStorage::savePbftChainPushedValue(uint64_t const& pbft_round, blk_hash_t const& pushed_block_hash) {
-  insert(Columns::pbft_chain_pushed_values, toSlice(pbft_round), toSlice(pushed_block_hash.asBytes()));
-}
-
-void DbStorage::addPbftChainPushedValueToBatch(uint64_t const& pbft_round, blk_hash_t const& pushed_block_hash,
-                                               BatchPtr const& write_batch) {
-  batch_put(write_batch, Columns::pbft_chain_pushed_values, toSlice(pbft_round), toSlice(pushed_block_hash.asBytes()));
-}
-
 std::shared_ptr<PbftBlock> DbStorage::getPbftBlock(blk_hash_t const& hash) {
   auto block = lookup(hash, Columns::pbft_blocks);
   if (!block.empty()) {

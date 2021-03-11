@@ -162,8 +162,6 @@ class PbftManager {
   blk_hash_t own_starting_value_for_round_ = NULL_BLOCK_HASH;
   // <round, cert_voted_block_hash>
   std::unordered_map<size_t, blk_hash_t> cert_voted_values_for_round_;
-  // <round, block_hash_added_into_chain>
-  std::unordered_map<size_t, blk_hash_t> push_block_values_for_round_;
   std::pair<blk_hash_t, bool> soft_voted_block_for_this_round_ = std::make_pair(NULL_BLOCK_HASH, false);
 
   std::vector<Vote> votes_;

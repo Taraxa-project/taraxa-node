@@ -180,11 +180,6 @@ blk_hash_t PbftChain::getLastPbftBlockHash() const {
 }
 
 bool PbftChain::findPbftBlockInChain(taraxa::blk_hash_t const& pbft_block_hash) {
-  if (!db_) {
-    LOG(log_er_) << "Pbft chain DB unavailable in findPbftBlockInChain!";
-    return false;
-  }
-  assert(db_);
   return db_->pbftBlockInDb(pbft_block_hash);
 }
 
