@@ -139,6 +139,17 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID, unsigned
   return true;
 }
 
+#define __DBG__(_rlp)                                                                                 \
+  [&](auto const &val) {                                                                              \
+    try {                                                                                             \
+      return val.toPositiveInt64();                                                                   \
+    } catch (std::exception const &_e) {                                                              \
+      LOG(log_er_) << "RANDOM_TAG line: " << __LINE__ << ", rlp value: " << dev::toHex(val.toBytes()) \
+                   << ", err: " << _e.what();                                                         \
+      throw _e;                                                                                       \
+    }                                                                                                 \
+  }(_rlp)
+
 bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsigned _id, RLP const &_r) {
   try {
     auto peer = getPeer(_nodeID);
@@ -163,12 +174,12 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
           if (initial_status) {
             auto it = _r.begin();
             auto const peer_protocol_version = (*it++).toInt<unsigned>();
-            auto const network_id = (*it++).toPositiveInt64();
-            peer->dag_level_ = (*it++).toPositiveInt64();
+            auto const network_id = __DBG__(*it++);
+            peer->dag_level_ = __DBG__(*it++);
             auto const genesis_hash = (*it++).toString();
-            peer->pbft_chain_size_ = (*it++).toPositiveInt64();
+            peer->pbft_chain_size_ = __DBG__(*it++);
             peer->syncing_ = (*it++).toInt();
-            peer->pbft_round_ = (*it++).toPositiveInt64();
+            peer->pbft_round_ = __DBG__(*it++);
             peer->pbft_previous_round_next_votes_size_ = (*it++).toInt<unsigned>();
             auto node_major_version = (*it++).toInt();
             auto node_minor_version = (*it++).toInt();
@@ -209,10 +220,10 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
             peer->syncing_ |= peer->pbft_chain_size_ < pbft_chain_size;
           } else {
             auto it = _r.begin();
-            peer->dag_level_ = (*it++).toPositiveInt64();
-            peer->pbft_chain_size_ = (*it++).toPositiveInt64();
+            peer->dag_level_ = __DBG__(*it++);
+            peer->pbft_chain_size_ = __DBG__(*it++);
             peer->syncing_ = (*it++).toInt();
-            peer->pbft_round_ = (*it++).toPositiveInt64();
+            peer->pbft_round_ = __DBG__(*it++);
             peer->pbft_previous_round_next_votes_size_ = (*it++).toInt<unsigned>();
 
             LOG(log_dg_) << "Received status message from " << _nodeID << ", peer DAG max level " << peer->dag_level_
@@ -392,7 +403,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         case GetPbftNextVotes: {
           LOG(log_dg_next_votes_sync_) << "Received GetPbftNextVotes request";
 
-          uint64_t peer_pbft_round = _r[0].toPositiveInt64();
+          uint64_t peer_pbft_round = __DBG__(_r[0]);
           size_t peer_pbft_previous_round_next_votes_size = _r[1].toInt<unsigned>();
           uint64_t pbft_round = pbft_mgr_->getPbftRound();
           size_t pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesSize();
