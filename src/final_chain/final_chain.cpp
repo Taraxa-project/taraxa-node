@@ -21,6 +21,7 @@ struct FinalChainImpl final : virtual FinalChain {
 
   uint64_t transaction_count_hint_;
   util::ThreadPool executor_thread_{1};
+  util::task_executor_t executor_ = executor_thread_.strand();
 
   atomic<uint64_t> num_executed_dag_blk_ = 0;
   atomic<uint64_t> num_executed_trx_ = 0;
