@@ -224,18 +224,16 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
           LOG(log_dg_dag_sync_) << "Received status message from " << _nodeID
                                 << " peer DAG max level:" << peer->dag_level_;
           LOG(log_dg_pbft_sync_) << "Received status message from " << _nodeID << ", peer sycning: " << peer->syncing_
-                                 << ", PBFT chain size:" << peer->pbft_chain_size_
-                                 << ". Own peer syncing pbft chain size: " << peer_syncing_pbft_chain_size_;
+                                 << ", PBFT chain size:" << peer->pbft_chain_size_;
           LOG(log_dg_next_votes_sync_) << "Received status message from " << _nodeID << ", PBFT round "
                                        << peer->pbft_round_ << ", peer PBFT previous round next votes size "
                                        << peer->pbft_previous_round_next_votes_size_;
 
           if (peer->syncing_) {
-            LOG(log_dg_pbft_sync_) << "Peer node has a short PBFT chain, prevent gossiping to " << _nodeID
-                                   << ". Own pbft chain size " << pbft_chain_size << " Peer pbft chain size "
-                                   << peer->pbft_chain_size_;
             if (syncing_ && peer_syncing_pbft_ == _nodeID) {
               // We are currently syncing to a node that just reported it is not synced, force a switch to a new node
+              LOG(log_nf_) << "Restart syncing, currently syncing from the node " << _nodeID
+                           << " that is itself syncing";
               restartSyncingPbft(true);
             }
           }
@@ -653,7 +651,6 @@ void TaraxaCapability::restartSyncingPbft(bool force) {
       requesting_pending_dag_blocks_ = false;
       syncing_ = true;
       peer_syncing_pbft_ = max_pbft_chain_nodeID;
-      peer_syncing_pbft_chain_size_ = max_pbft_chain_size;
       syncPeerPbft(peer_syncing_pbft_, pbft_sync_period_ + 1);
     }
   } else {
