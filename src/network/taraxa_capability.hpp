@@ -218,10 +218,6 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   std::unordered_map<NodeID, int> cnt_received_messages_;
   std::unordered_map<NodeID, int> test_sums_;
 
-  std::set<blk_hash_t> verified_blocks_;
-  std::condition_variable condition_for_verified_blocks_;
-  std::mutex mtx_for_verified_blocks;
-
   // Only used for testing without the full node set
   std::map<blk_hash_t, taraxa::DagBlock> test_blocks_;
   std::map<trx_hash_t, Transaction> test_transactions_;
