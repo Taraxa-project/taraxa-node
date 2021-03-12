@@ -22,28 +22,6 @@ using namespace std;
 using namespace dev;
 using namespace dev::p2p;
 
-//enum SubprotocolPacketType : ::byte {
-//  StatusPacket = 0x0,
-//  NewBlockPacket,
-//  NewBlockHashPacket,
-//  GetNewBlockPacket,
-//  GetBlocksPacket,
-//  BlocksPacket,
-//  TransactionPacket,
-//  TestPacket,
-//  PbftVotePacket,
-//  GetPbftNextVotes,
-//  PbftNextVotesPacket,
-//  NewPbftBlockPacket,
-//  GetPbftBlockPacket,
-//  PbftBlockPacket,
-//  SyncedPacket,
-//  SyncedResponsePacket,
-//  PacketCount
-//};
-//
-//std::string packetToPacketName(const ::byte &packet_type);
-
 struct InvalidDataException : public std::runtime_error {
   using std::runtime_error::runtime_error;
 };
@@ -196,7 +174,6 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   void logNetPerformanceStats();
   void doBackgroundWork();
   void sendTransactions();
-  //std::string packetToPacketName(byte const &packet) const;
 
   // PBFT
   void onNewPbftVote(taraxa::Vote const &vote);
