@@ -789,11 +789,6 @@ void TaraxaCapability::sendSyncedMessage() {
 
 void TaraxaCapability::onNewBlockVerified(DagBlock const &block) {
   LOG(log_dg_dag_prp_) << "Verified NewBlock " << block.getHash().toString();
-  verified_blocks_.insert(block.getHash());
-  {
-    std::unique_lock<std::mutex> lck(mtx_for_verified_blocks);
-    condition_for_verified_blocks_.notify_all();
-  }
   auto const peersWithoutBlock =
       selectPeers([&](TaraxaPeer const &_peer) { return !_peer.isBlockKnown(block.getHash()); });
 
