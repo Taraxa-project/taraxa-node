@@ -13,6 +13,7 @@
 #include "config/config.hpp"
 #include "consensus/vote.hpp"
 #include "dag/dag_block_manager.hpp"
+#include "packets_stats.hpp"
 #include "transaction_manager/transaction.hpp"
 #include "util/util.hpp"
 
@@ -20,27 +21,6 @@ namespace taraxa {
 using namespace std;
 using namespace dev;
 using namespace dev::p2p;
-
-enum SubprotocolPacketType : ::byte {
-
-  StatusPacket = 0x0,
-  NewBlockPacket,
-  NewBlockHashPacket,
-  GetNewBlockPacket,
-  GetBlocksPacket,
-  BlocksPacket,
-  TransactionPacket,
-  TestPacket,
-  PbftVotePacket,
-  GetPbftNextVotes,
-  PbftNextVotesPacket,
-  NewPbftBlockPacket,
-  GetPbftBlockPacket,
-  PbftBlockPacket,
-  SyncedPacket,
-  SyncedResponsePacket,
-  PacketCount
-};
 
 struct InvalidDataException : public std::runtime_error {
   using std::runtime_error::runtime_error;
@@ -105,8 +85,8 @@ class TaraxaPeer : public boost::noncopyable {
 
 class TaraxaCapability : public CapabilityFace, public Worker {
  public:
-  TaraxaCapability(Host &_host, NetworkConfig &_conf, std::string const &genesis, bool const &performance_log,
-                   addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
+  TaraxaCapability(Host &_host, NetworkConfig &_conf, std::string const &genesis, addr_t node_addr,
+                   std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
                    std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
                    std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr, std::shared_ptr<DagManager> dag_mgr,
                    std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<TransactionManager> trx_mgr,
@@ -115,7 +95,6 @@ class TaraxaCapability : public CapabilityFace, public Worker {
         host_(_host),
         conf_(_conf),
         genesis_(genesis),
-        performance_log_(performance_log),
         urng_(std::mt19937_64(std::random_device()())),
         delay_rng_(std::mt19937(std::random_device()())),
         random_dist_(std::uniform_int_distribution<std::mt19937::result_type>(90, 110)),
@@ -158,6 +137,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
     trx_mgr_ = nullptr;
   }
 
+  void sealAndSend(NodeID const &nodeID, RLPStream &s, unsigned packet_type);
   void onConnect(NodeID const &_nodeID, u256 const &) override;
   void syncPeerPbft(NodeID const &_nodeID, unsigned long height_to_sync);
   void restartSyncingPbft(bool force = false);
@@ -191,9 +171,9 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   std::map<blk_hash_t, taraxa::DagBlock> getBlocks();
   std::map<trx_hash_t, taraxa::Transaction> getTransactions();
 
+  void logNetPerformanceStats();
   void doBackgroundWork();
   void sendTransactions();
-  std::string packetToPacketName(byte const &packet) const;
 
   // PBFT
   void onNewPbftVote(taraxa::Vote const &vote);
@@ -252,7 +232,8 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   uint64_t pbft_sync_period_ = 1;
   NodeID peer_syncing_pbft_;
   std::string genesis_;
-  bool performance_log_;
+  PacketsStats perf_sent_packets_stats_;
+  PacketsStats perf_received_packets_stats_;
   mutable std::mt19937_64 urng_;  // Mersenne Twister psuedo-random number generator
   std::mt19937 delay_rng_;
   bool stopped_ = false;

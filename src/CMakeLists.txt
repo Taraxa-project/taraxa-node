@@ -98,6 +98,8 @@ set(SOURCES
         chain/state_api.hpp
         dag/dag_block_manager.hpp
         consensus/pbft_manager.hpp
+        network/packets_stats.hpp
+        network/packet_type.hpp
 
         # ---- private sources -----
         transaction_manager/transaction.cpp
@@ -110,6 +112,7 @@ set(SOURCES
         aleth/database.cpp
         aleth/state_api.cpp
         node/executor.cpp
+        network/packets_stats.cpp
         network/taraxa_capability.cpp
         transaction_manager/transaction_manager.cpp
         dag/vdf_sortition.cpp

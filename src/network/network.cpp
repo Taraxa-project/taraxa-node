@@ -63,9 +63,9 @@ Network::Network(NetworkConfig const &config, std::string const &network_file, s
         dev::p2p::NetworkConfig(conf_.network_address, conf_.network_tcp_port, false, true), conf_.network_encrypted,
         conf_.network_ideal_peer_count, conf_.network_max_peer_count, conf_.net_log);
   }
-  taraxa_capability_ = std::make_shared<TaraxaCapability>(*host_.get(), conf_, genesis, conf_.network_performance_log,
-                                                          node_addr, db, pbft_mgr, pbft_chain, vote_mgr, next_votes_mgr,
-                                                          dag_mgr, dag_blk_mgr, trx_mgr, lambda_ms_min);
+  taraxa_capability_ =
+      std::make_shared<TaraxaCapability>(*host_.get(), conf_, genesis, node_addr, db, pbft_mgr, pbft_chain, vote_mgr,
+                                         next_votes_mgr, dag_mgr, dag_blk_mgr, trx_mgr, lambda_ms_min);
   host_->registerCapability(taraxa_capability_);
 } catch (std::exception &e) {
   std::cerr << "Construct Network Error ... " << e.what() << "\n";
