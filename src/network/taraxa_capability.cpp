@@ -1,5 +1,11 @@
 #include "taraxa_capability.hpp"
 
+#include <chrono>
+#include <ctime>
+#include <iomanip>
+#include <sstream>
+#include <string>
+
 #include "consensus/pbft_chain.hpp"
 #include "consensus/pbft_manager.hpp"
 #include "consensus/vote.hpp"
@@ -8,6 +14,26 @@
 #include "transaction_manager/transaction_manager.hpp"
 
 using namespace taraxa;
+
+void TaraxaCapability::sealAndSend(NodeID const &nodeID, RLPStream &s, unsigned packet_type) {
+  if (conf_.network_performance_log) {
+    const auto time = std::chrono::system_clock::now();
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+
+    host_.capabilityHost()->sealAndSend(nodeID, s);
+
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - begin);
+    PacketStats packet_stats{nodeID, time, s.out().size(), duration};
+
+    if (conf_.network_performance_log_interval) {
+      perf_sent_packets_stats_.addPacket(packet_type, packet_stats);
+    }
+
+    LOG(log_dg_net_per_) << "Sent packet:" << packet_stats;
+  } else {
+    host_.capabilityHost()->sealAndSend(nodeID, s);
+  }
+}
 
 std::shared_ptr<TaraxaPeer> TaraxaCapability::getPeer(NodeID const &node_id) {
   boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
@@ -80,63 +106,59 @@ void TaraxaCapability::onConnect(NodeID const &_nodeID, u256 const &) {
 
 bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID, unsigned _id, RLP const &_r) {
   if (stopped_) return true;
-  if (conf_.network_simulated_delay == 0) {
-    if (performance_log_) {
-      static std::map<unsigned, std::pair<uint32_t, uint64_t>> perf_data;
-      static std::chrono::steady_clock::time_point begin_perf = std::chrono::steady_clock::now();
-      std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-      LOG(log_dg_net_per_) << packetToPacketName(_id) << " received";
-      auto ret = interpretCapabilityPacketImpl(_nodeID, _id, _r);
-      std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-      auto dur = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
-      if (dur > 100000) {
-        LOG(log_nf_net_per_) << packetToPacketName(_id) << " processed in: " << dur << "[µs]";
-      } else {
-        LOG(log_dg_net_per_) << packetToPacketName(_id) << " processed in: " << dur << "[µs]";
-      }
-      perf_data[_id].first++;
-      perf_data[_id].second += dur;
-      if (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - begin_perf).count() >
-          20) {
-        uint32_t total_count = 0;
-        uint64_t total_time = 0;
-        for (auto const &it : perf_data) {
-          total_count += it.second.first;
-          total_time += it.second.second;
-          LOG(log_nf_net_per_) << packetToPacketName(it.first) << " No: " << it.second.first
-                               << " - Avg time: " << it.second.second / it.second.first << "[µs]";
-        }
-        LOG(log_nf_net_per_) << "All packets"
-                             << " No: " << total_count << " - Avg time: " << total_time / total_count << "[µs]";
-        begin_perf = end;
-      }
 
-      return ret;
-    } else
-      return interpretCapabilityPacketImpl(_nodeID, _id, _r);
+  if (conf_.network_simulated_delay != 0) {
+    // RLP contains memory it does not own so deep copy of bytes is needed
+    dev::bytes rBytes = _r.data().toBytes();
+    int messageSize = rBytes.size() * 8;
+    unsigned int dist = *((int *)this->host_.id().data()) ^ *((int *)_nodeID.data());
+    unsigned int delay = dist % conf_.network_simulated_delay;
+
+    auto bandwidth = conf_.network_bandwidth ? conf_.network_bandwidth : 40;
+    unsigned int bandwidth_delay = messageSize / (bandwidth * 1000);  // in ms
+
+    // Random component up to +-10%
+    int random_component = random_dist_(delay_rng_);
+
+    unsigned int total_delay = (delay + bandwidth_delay) * random_component / 100;
+    LOG(log_dg_) << "Delaying packet by: (" << delay << " , " << bandwidth_delay << " ), actual delay =" << total_delay
+                 << " milliseconds";
+    auto timer = std::make_shared<boost::asio::deadline_timer>(io_service_);
+    timer->expires_from_now(boost::posix_time::milliseconds(total_delay));
+    timer->async_wait(([this, _nodeID, _id, rBytes, timer](const boost::system::error_code &ec) {
+      RLP _rCopy(rBytes);
+      interpretCapabilityPacketImpl(_nodeID, _id, _rCopy);
+    }));
+    return true;
   }
-  // RLP contains memory it does not own so deep copy of bytes is needed
-  dev::bytes rBytes = _r.data().toBytes();
-  int messageSize = rBytes.size() * 8;
-  unsigned int dist = *((int *)this->host_.id().data()) ^ *((int *)_nodeID.data());
-  unsigned int delay = dist % conf_.network_simulated_delay;
 
-  auto bandwidth = conf_.network_bandwidth ? conf_.network_bandwidth : 40;
-  unsigned int bandwidth_delay = messageSize / (bandwidth * 1000);  // in ms
+  if (conf_.network_performance_log) {
+    // TODO: remove one_time_log
+    static bool tc_one_time_log = true;
+    if (tc_one_time_log) {
+      LOG(log_nf_net_per_) << "*** TaraxaCapability(interpretCapabilityPacket) thread id: "
+                           << std::this_thread::get_id();
+      tc_one_time_log = false;
+    }
 
-  // Random component up to +-10%
-  int random_component = random_dist_(delay_rng_);
+    const auto time = std::chrono::system_clock::now();
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
-  unsigned int total_delay = (delay + bandwidth_delay) * random_component / 100;
-  LOG(log_dg_) << "Delaying packet by: (" << delay << " , " << bandwidth_delay << " ), actual delay =" << total_delay
-               << " milliseconds";
-  auto timer = std::make_shared<boost::asio::deadline_timer>(io_service_);
-  timer->expires_from_now(boost::posix_time::milliseconds(total_delay));
-  timer->async_wait(([this, _nodeID, _id, rBytes, timer](const boost::system::error_code &ec) {
-    RLP _rCopy(rBytes);
-    interpretCapabilityPacketImpl(_nodeID, _id, _rCopy);
-  }));
-  return true;
+    auto ret = interpretCapabilityPacketImpl(_nodeID, _id, _r);
+
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - begin);
+    PacketStats packet_stats{_nodeID, time, _r.actualSize(), duration};
+
+    if (conf_.network_performance_log_interval) {
+      perf_received_packets_stats_.addPacket(_id, packet_stats);
+    }
+
+    LOG(log_dg_net_per_) << "Received packet:" << packet_stats;
+
+    return ret;
+  }
+
+  return interpretCapabilityPacketImpl(_nodeID, _id, _r);
 }
 
 #define __DBG__(_rlp)                                                                                 \
@@ -484,7 +506,6 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
           break;
         }
         case GetPbftBlockPacket: {
-          LOG(log_dg_pbft_sync_) << "Received GetPbftBlockPacket Block";
           size_t height_to_sync = _r[0].toInt();
           size_t my_chain_size = pbft_chain_->getPbftChainSize();
           size_t blocks_to_transfer = 0;
@@ -724,7 +745,7 @@ void TaraxaCapability::onDisconnect(NodeID const &_nodeID) {
 
 void TaraxaCapability::sendTestMessage(NodeID const &_id, int _x) {
   RLPStream s;
-  host_.capabilityHost()->sealAndSend(_id, host_.capabilityHost()->prep(_id, name(), s, TestPacket, 1) << _x);
+  sealAndSend(_id, host_.capabilityHost()->prep(_id, name(), s, TestPacket, 1) << _x, TestPacket);
 }
 
 void TaraxaCapability::sendStatus(NodeID const &_id, bool _initial) {
@@ -759,7 +780,7 @@ void TaraxaCapability::sendStatus(NodeID const &_id, bool _initial) {
                    << syncing_ << ", " << pbft_round << ", " << pbft_previous_round_next_votes_size << ", "
                    << FullNode::c_node_major_version << ", " << FullNode::c_node_minor_version;
 
-      host_.capabilityHost()->sealAndSend(_id, rlp);
+      sealAndSend(_id, rlp, StatusPacket);
     } else {
       RLPStream rlp = host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 5)
                       << dag_max_level << pbft_chain_size << syncing_ << pbft_round
@@ -770,7 +791,7 @@ void TaraxaCapability::sendStatus(NodeID const &_id, bool _initial) {
                    << "bytes: " << rlp.out() << ", data: " << dag_max_level << ", " << pbft_chain_size << ", "
                    << syncing_ << ", " << pbft_round << ", " << pbft_previous_round_next_votes_size;
 
-      host_.capabilityHost()->sealAndSend(_id, rlp);
+      sealAndSend(_id, rlp, StatusPacket);
     }
   }
 }
@@ -888,7 +909,7 @@ void TaraxaCapability::sendSyncedMessage() {
   for (auto &peer : getAllPeers()) {
     RLPStream s;
     host_.capabilityHost()->prep(peer, name(), s, SyncedPacket, 0);
-    host_.capabilityHost()->sealAndSend(peer, s);
+    sealAndSend(peer, s, SyncedPacket);
   }
 }
 
@@ -959,7 +980,7 @@ void TaraxaCapability::sendBlocks(NodeID const &_id, std::vector<std::shared_ptr
     }
     s.appendRaw(trx_bytes, blockTransactions[block->getHash()].size());
   }
-  host_.capabilityHost()->sealAndSend(_id, s);
+  sealAndSend(_id, s, BlocksPacket);
 }
 
 void TaraxaCapability::sendTransactions(NodeID const &_id, std::vector<taraxa::bytes> const &transactions) {
@@ -971,7 +992,7 @@ void TaraxaCapability::sendTransactions(NodeID const &_id, std::vector<taraxa::b
     trx_bytes.insert(trx_bytes.end(), std::begin(transaction), std::end(transaction));
   }
   s.appendRaw(trx_bytes, transactions.size());
-  host_.capabilityHost()->sealAndSend(_id, s);
+  sealAndSend(_id, s, TransactionPacket);
 }
 
 void TaraxaCapability::sendBlock(NodeID const &_id, taraxa::DagBlock block) {
@@ -999,7 +1020,7 @@ void TaraxaCapability::sendBlock(NodeID const &_id, taraxa::DagBlock block) {
     trx_bytes.insert(trx_bytes.end(), std::begin(transaction->second), std::end(transaction->second));
   }
   s.appendRaw(trx_bytes, transactionsToSend.size());
-  host_.capabilityHost()->sealAndSend(_id, s);
+  sealAndSend(_id, s, NewBlockPacket);
   LOG(log_dg_dag_prp_) << "Send DagBlock " << block.getHash() << " #Trx: " << transactionsToSend.size() << std::endl;
 }
 
@@ -1008,7 +1029,7 @@ void TaraxaCapability::sendBlockHash(NodeID const &_id, taraxa::DagBlock block) 
   RLPStream s;
   host_.capabilityHost()->prep(_id, name(), s, NewBlockHashPacket, 1);
   s.append(block.getHash());
-  host_.capabilityHost()->sealAndSend(_id, s);
+  sealAndSend(_id, s, NewBlockHashPacket);
 }
 
 void TaraxaCapability::requestBlock(NodeID const &_id, blk_hash_t hash) {
@@ -1016,7 +1037,7 @@ void TaraxaCapability::requestBlock(NodeID const &_id, blk_hash_t hash) {
   RLPStream s;
   host_.capabilityHost()->prep(_id, name(), s, GetNewBlockPacket, 1);
   s.append(hash);
-  host_.capabilityHost()->sealAndSend(_id, s);
+  sealAndSend(_id, s, GetNewBlockPacket);
 }
 
 void TaraxaCapability::requestPbftBlocks(NodeID const &_id, size_t height_to_sync) {
@@ -1024,14 +1045,14 @@ void TaraxaCapability::requestPbftBlocks(NodeID const &_id, size_t height_to_syn
   host_.capabilityHost()->prep(_id, name(), s, GetPbftBlockPacket, 1);
   s << height_to_sync;
   LOG(log_dg_pbft_sync_) << "Sending GetPbftBlockPacket with height: " << height_to_sync;
-  host_.capabilityHost()->sealAndSend(_id, s);
+  sealAndSend(_id, s, GetPbftBlockPacket);
 }
 
 void TaraxaCapability::requestPendingDagBlocks(NodeID const &_id) {
   RLPStream s;
   host_.capabilityHost()->prep(_id, name(), s, GetBlocksPacket, 0);
   LOG(log_nf_dag_sync_) << "Sending GetBlocksPacket";
-  host_.capabilityHost()->sealAndSend(_id, s);
+  sealAndSend(_id, s, GetBlocksPacket);
 }
 
 std::pair<int, int> TaraxaCapability::retrieveTestData(NodeID const &_id) {
@@ -1072,16 +1093,39 @@ void TaraxaCapability::doBackgroundWork() {
   host_.scheduleExecution(check_status_interval_, [this]() { doBackgroundWork(); });
 }
 
+void TaraxaCapability::logNetPerformanceStats() {
+  // TODO: remove one_time_log
+  static bool one_time_log = true;
+  if (one_time_log) {
+    LOG(log_nf_net_per_) << "*** boost scheduler(logNetPerformanceStats) thread id: " << std::this_thread::get_id();
+    one_time_log = false;
+  }
+
+  LOG(log_nf_net_per_) << "Sent packets stats:" << perf_sent_packets_stats_;
+  LOG(log_nf_net_per_) << "Received packets stats:" << perf_received_packets_stats_;
+
+  host_.scheduleExecution(conf_.network_performance_log_interval, [this]() { logNetPerformanceStats(); });
+
+  perf_received_packets_stats_.clearData();
+  perf_received_packets_stats_.clearData();
+}
+
 void TaraxaCapability::onStarting() {
   if (conf_.network_simulated_delay > 0) {
     const int number_of_delayed_threads = 5;
     io_work_ = std::make_shared<boost::asio::io_service::work>(io_service_);
     for (int i = 0; i < number_of_delayed_threads; ++i) delay_threads_.create_thread([&]() { io_service_.run(); });
   }
+
   if (conf_.network_transaction_interval > 0)
     host_.scheduleExecution(conf_.network_transaction_interval, [this]() { sendTransactions(); });
+
   check_status_interval_ = 6 * lambda_ms_min_;
   host_.scheduleExecution(check_status_interval_, [this]() { doBackgroundWork(); });
+
+  if (conf_.network_performance_log_interval && conf_.network_performance_log) {
+    host_.scheduleExecution(conf_.network_performance_log_interval, [this]() { logNetPerformanceStats(); });
+  }
 }
 
 void TaraxaCapability::onNewPbftVote(taraxa::Vote const &vote) {
@@ -1106,7 +1150,7 @@ void TaraxaCapability::sendPbftVote(NodeID const &_id, taraxa::Vote const &vote)
   RLPStream s;
   host_.capabilityHost()->prep(_id, name(), s, PbftVotePacket, 1);
   s.append(vote_rlp);
-  host_.capabilityHost()->sealAndSend(_id, s);
+  sealAndSend(_id, s, PbftVotePacket);
 }
 
 void TaraxaCapability::onNewPbftBlock(taraxa::PbftBlock const &pbft_block) {
@@ -1133,7 +1177,7 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync, 
   RLPStream s;
   host_.capabilityHost()->prep(_id, name(), s, PbftBlockPacket, pbft_cert_blks.size());
   if (pbft_cert_blks.empty()) {
-    host_.capabilityHost()->sealAndSend(_id, s);
+    sealAndSend(_id, s, PbftBlockPacket);
     LOG(log_dg_pbft_sync_) << "In sendPbftBlocks, sent no pbft blocks to " << _id;
     return;
   }
@@ -1196,7 +1240,7 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync, 
       }
     }
   }
-  host_.capabilityHost()->sealAndSend(_id, s);
+  sealAndSend(_id, s, PbftBlockPacket);
   // Question: will send multiple times to a same receiver, why?
   LOG(log_dg_pbft_sync_) << "Sending PbftCertBlocks to " << _id;
 }
@@ -1209,7 +1253,7 @@ void TaraxaCapability::sendPbftBlock(NodeID const &_id, taraxa::PbftBlock const 
   host_.capabilityHost()->prep(_id, name(), s, NewPbftBlockPacket, 2);
   pbft_block.streamRLP(s, true);
   s << pbft_chain_size;
-  host_.capabilityHost()->sealAndSend(_id, s);
+  sealAndSend(_id, s, NewPbftBlockPacket);
 }
 
 void TaraxaCapability::syncPbftNextVotes(uint64_t const pbft_round, size_t const pbft_previous_round_next_votes_size) {
@@ -1260,7 +1304,7 @@ void TaraxaCapability::requestPbftNextVotes(NodeID const &peerID, uint64_t const
   s << pbft_previous_round_next_votes_size;
   LOG(log_dg_next_votes_sync_) << "Sending GetPbftNextVotes with round " << pbft_round
                                << " previous round next votes size " << pbft_previous_round_next_votes_size;
-  host_.capabilityHost()->sealAndSend(peerID, s);
+  sealAndSend(peerID, s, GetPbftNextVotes);
 }
 
 void TaraxaCapability::sendPbftNextVotes(NodeID const &peerID) {
@@ -1277,7 +1321,7 @@ void TaraxaCapability::sendPbftNextVotes(NodeID const &peerID) {
     s.appendRaw(next_vote.rlp());
     LOG(log_nf_next_votes_sync_) << "Send out next vote " << next_vote.getHash() << " to peer " << peerID;
   }
-  host_.capabilityHost()->sealAndSend(peerID, s);
+  sealAndSend(peerID, s, PbftNextVotesPacket);
 }
 
 void TaraxaCapability::broadcastPreviousRoundNextVotesBundle() {
@@ -1327,45 +1371,4 @@ Json::Value TaraxaCapability::getStatus() const {
     counters["unique transaction %"] = Json::UInt64(unique_received_trx_count * 100 / received_trx_count);
   res["counters"] = counters;
   return res;
-}
-
-std::string TaraxaCapability::packetToPacketName(byte const &packet) const {
-  switch (packet) {
-    case StatusPacket:
-      return "StatusPacket";
-    case NewBlockPacket:
-      return "NewBlockPacket";
-    case NewBlockHashPacket:
-      return "NewBlockHashPacket";
-    case GetNewBlockPacket:
-      return "GetNewBlockPacket";
-    case GetBlocksPacket:
-      return "GetBlocksPacket";
-    case BlocksPacket:
-      return "BlocksPacket";
-    case TransactionPacket:
-      return "TransactionPacket";
-    case TestPacket:
-      return "TestPacket";
-    case PbftVotePacket:
-      return "PbftVotePacket";
-    case GetPbftNextVotes:
-      return "GetPbftNextVotes";
-    case PbftNextVotesPacket:
-      return "PbftNextVotesPacket";
-    case NewPbftBlockPacket:
-      return "NewPbftBlockPacket";
-    case GetPbftBlockPacket:
-      return "GetPbftBlockPacket";
-    case PbftBlockPacket:
-      return "PbftBlockPacket";
-    case PacketCount:
-      return "PacketCount";
-    case SyncedPacket:
-      return "SyncedPacket";
-    case SyncedResponsePacket:
-      return "SyncedResponsePacket";
-  }
-
-  return std::to_string(packet);
 }

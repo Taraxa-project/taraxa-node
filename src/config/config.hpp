@@ -45,6 +45,7 @@ struct NetworkConfig {
   uint64_t network_id;
   bool network_encrypted = 0;
   bool network_performance_log = 0;
+  uint16_t network_performance_log_interval = 0;
   bool net_log = 0;
 };
 

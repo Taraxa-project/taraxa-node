@@ -103,6 +103,8 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object,
   network.network_udp_port = getConfigDataAsUInt(root, {"network_udp_port"});
   network.network_simulated_delay = getConfigDataAsUInt(root, {"network_simulated_delay"});
   network.network_transaction_interval = getConfigDataAsUInt(root, {"network_transaction_interval"});
+  network.network_performance_log_interval =
+      getConfigDataAsUInt(root, {"network_performance_log_interval"}, true, 30000);
   network.network_min_dag_block_broadcast = getConfigDataAsUInt(root, {"network_min_dag_block_broadcast"}, true, 5);
   network.network_max_dag_block_broadcast = getConfigDataAsUInt(root, {"network_max_dag_block_broadcast"}, true, 20);
   network.network_bandwidth = getConfigDataAsUInt(root, {"network_bandwidth"});
