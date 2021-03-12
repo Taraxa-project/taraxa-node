@@ -13,6 +13,7 @@
 #include "config/config.hpp"
 #include "consensus/vote.hpp"
 #include "dag/dag_block_manager.hpp"
+#include "packets_stats.hpp"
 #include "transaction_manager/transaction.hpp"
 #include "util/util.hpp"
 
@@ -21,70 +22,27 @@ using namespace std;
 using namespace dev;
 using namespace dev::p2p;
 
-enum SubprotocolPacketType : ::byte {
-  StatusPacket = 0x0,
-  NewBlockPacket,
-  NewBlockHashPacket,
-  GetNewBlockPacket,
-  GetBlocksPacket,
-  BlocksPacket,
-  TransactionPacket,
-  TestPacket,
-  PbftVotePacket,
-  GetPbftNextVotes,
-  PbftNextVotesPacket,
-  NewPbftBlockPacket,
-  GetPbftBlockPacket,
-  PbftBlockPacket,
-  SyncedPacket,
-  SyncedResponsePacket,
-  PacketCount
-};
-
-std::string packetToPacketName(const ::byte &packet_type);
-
-class PacketsStats {
- public:
-  struct PacketStats {
-    NodeID node_{0};
-    std::chrono::system_clock::time_point time_;
-    size_t size_{0};
-    std::chrono::milliseconds total_duration_{0};  // [ms]
-
-    friend ostream &operator<<(ostream &os, const PacketStats &stats) {
-      const std::time_t t = std::chrono::system_clock::to_time_t(stats.time_);
-      os << "node: " << stats.node_.toString() << ", size: " << stats.size_ << " [B]"
-         << ", time: " << std::ctime(&t) << ", processing duration: " << stats.total_duration_.count() << " [ms]";
-      return os;
-    }
-  };
-
-  struct PacketAvgStats {
-    size_t total_count_{0};
-    unsigned long total_size_{0};
-    std::chrono::milliseconds total_duration_{0};
-
-    friend ostream &operator<<(ostream &os, const PacketAvgStats &stats) {
-      os << "total_count_: " << stats.total_count_ << ", total_size_: " << stats.total_size_ << " [B]"
-         << ", avg_size_: " << stats.total_size_ / stats.total_count_ << " [B]"
-         << ", total_duration_: " << stats.total_duration_.count() << " [ms]"
-         << ", avg total_duration_: " << stats.total_duration_.count() / stats.total_count_ << " [ms]";
-      return os;
-    }
-  };
-
-  using PacketType = unsigned;
-
- public:
-  PacketsStats();
-
-  void addPacket(PacketType packet_type, const PacketStats &packet);
-  void clearData();
-  friend ostream &operator<<(ostream &os, const PacketsStats &packets_stats);
-
- private:
-  std::map<PacketType, PacketAvgStats> stats_;
-};
+//enum SubprotocolPacketType : ::byte {
+//  StatusPacket = 0x0,
+//  NewBlockPacket,
+//  NewBlockHashPacket,
+//  GetNewBlockPacket,
+//  GetBlocksPacket,
+//  BlocksPacket,
+//  TransactionPacket,
+//  TestPacket,
+//  PbftVotePacket,
+//  GetPbftNextVotes,
+//  PbftNextVotesPacket,
+//  NewPbftBlockPacket,
+//  GetPbftBlockPacket,
+//  PbftBlockPacket,
+//  SyncedPacket,
+//  SyncedResponsePacket,
+//  PacketCount
+//};
+//
+//std::string packetToPacketName(const ::byte &packet_type);
 
 struct InvalidDataException : public std::runtime_error {
   using std::runtime_error::runtime_error;
@@ -180,7 +138,6 @@ class TaraxaCapability : public CapabilityFace, public Worker {
     LOG_OBJECTS_CREATE_SUB("PBFTPRP", pbft_prp);
     LOG_OBJECTS_CREATE_SUB("VOTEPRP", vote_prp);
     LOG_OBJECTS_CREATE_SUB("NETPER", net_per);
-    LOG_OBJECTS_CREATE_SUB("PBFTSYNC_TEST", pbft_sync_testing);
     for (uint8_t it = 0; it != PacketCount; it++) {
       packet_count[it] = 0;
       packet_size[it] = 0;
@@ -239,7 +196,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   void logNetPerformanceStats();
   void doBackgroundWork();
   void sendTransactions();
-  std::string packetToPacketName(byte const &packet) const;
+  //std::string packetToPacketName(byte const &packet) const;
 
   // PBFT
   void onNewPbftVote(taraxa::Vote const &vote);
@@ -321,7 +278,5 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   LOG_OBJECTS_DEFINE_SUB(pbft_prp);
   LOG_OBJECTS_DEFINE_SUB(vote_prp);
   LOG_OBJECTS_DEFINE_SUB(net_per);
-
-  LOG_OBJECTS_DEFINE_SUB(pbft_sync_testing);
 };
 }  // namespace taraxa

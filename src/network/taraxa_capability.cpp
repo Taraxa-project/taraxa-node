@@ -23,7 +23,7 @@ void TaraxaCapability::sealAndSend(NodeID const &nodeID, RLPStream &s, unsigned 
     host_.capabilityHost()->sealAndSend(nodeID, s);
 
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - begin);
-    PacketsStats::PacketStats packet_stats{nodeID, time, s.out().size(), duration};
+    PacketStats packet_stats{nodeID, time, s.out().size(), duration};
 
     if (conf_.network_performance_log_interval) {
       perf_sent_packets_stats_.addPacket(packet_type, packet_stats);
@@ -147,7 +147,7 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID, unsigned
     auto ret = interpretCapabilityPacketImpl(_nodeID, _id, _r);
 
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - begin);
-    PacketsStats::PacketStats packet_stats{_nodeID, time, _r.actualSize(), duration};
+    PacketStats packet_stats{_nodeID, time, _r.actualSize(), duration};
 
     if (conf_.network_performance_log_interval) {
       perf_received_packets_stats_.addPacket(_id, packet_stats);
@@ -1364,108 +1364,44 @@ Json::Value TaraxaCapability::getStatus() const {
   return res;
 }
 
-PacketsStats::PacketsStats() { clearData(); }
-
-void PacketsStats::addPacket(PacketType packet_type, const PacketStats &packet) {
-  auto &packet_stats = stats_[packet_type];
-
-  packet_stats.total_count_++;
-  packet_stats.total_size_ += packet.size_;
-  packet_stats.total_duration_ += packet.total_duration_;
-}
-
-void PacketsStats::clearData() {
-  for (PacketType idx = StatusPacket; idx <= PacketCount; idx++) {
-    stats_[idx] = PacketAvgStats();
-  }
-}
-
-ostream &operator<<(ostream &os, const PacketsStats &packets_stats) {bool initial_status = _r.itemCount() == 10;
-  for (const auto &it : packets_stats.stats_) {
-    os << packetToPacketName(it.first) << ": [" << it.second << " ]" << std::endl;
-  }
-  return os;
-}
-
-std::string packetToPacketName(const ::byte &packet_type) {
-  switch (packet_type) {
-    case StatusPacket:
-      return "StatusPacket";
-    case NewBlockPacket:
-      return "NewBlockPacket";
-    case NewBlockHashPacket:
-      return "NewBlockHashPacket";
-    case GetNewBlockPacket:
-      return "GetNewBlockPacket";
-    case GetBlocksPacket:
-      return "GetBlocksPacket";
-    case BlocksPacket:
-      return "BlocksPacket";
-    case TransactionPacket:
-      return "TransactionPacket";
-    case TestPacket:
-      return "TestPacket";
-    case PbftVotePacket:
-      return "PbftVotePacket";
-    case GetPbftNextVotes:
-      return "GetPbftNextVotes";
-    case PbftNextVotesPacket:
-      return "PbftNextVotesPacket";
-    case NewPbftBlockPacket:
-      return "NewPbftBlockPacket";
-    case GetPbftBlockPacket:
-      return "GetPbftBlockPacket";
-    case PbftBlockPacket:
-      return "PbftBlockPacket";
-    case PacketCount:
-      return "PacketCount";
-    case SyncedPacket:
-      return "SyncedPacket";
-    case SyncedResponsePacket:
-      return "SyncedResponsePacket";
-  }
-
-  return std::to_string(packet_type);
-}
-
-// TODO: delete
-std::string TaraxaCapability::packetToPacketName(byte const &packet) const {
-  switch (packet) {
-    case StatusPacket:
-      return "StatusPacket";
-    case NewBlockPacket:
-      return "NewBlockPacket";
-    case NewBlockHashPacket:
-      return "NewBlockHashPacket";
-    case GetNewBlockPacket:
-      return "GetNewBlockPacket";
-    case GetBlocksPacket:
-      return "GetBlocksPacket";
-    case BlocksPacket:
-      return "BlocksPacket";
-    case TransactionPacket:
-      return "TransactionPacket";
-    case TestPacket:
-      return "TestPacket";
-    case PbftVotePacket:
-      return "PbftVotePacket";
-    case GetPbftNextVotes:
-      return "GetPbftNextVotes";
-    case PbftNextVotesPacket:
-      return "PbftNextVotesPacket";
-    case NewPbftBlockPacket:
-      return "NewPbftBlockPacket";
-    case GetPbftBlockPacket:
-      return "GetPbftBlockPacket";
-    case PbftBlockPacket:
-      return "PbftBlockPacket";
-    case PacketCount:
-      return "PacketCount";
-    case SyncedPacket:
-      return "SyncedPacket";
-    case SyncedResponsePacket:
-      return "SyncedResponsePacket";
-  }
-
-  return std::to_string(packet);
-}
+//// TODO: delete
+//std::string TaraxaCapability::packetToPacketName(byte const &packet) const {
+//  switch (packet) {
+//    case StatusPacket:
+//      return "StatusPacket";
+//    case NewBlockPacket:
+//      return "NewBlockPacket";
+//    case NewBlockHashPacket:
+//      return "NewBlockHashPacket";
+//    case GetNewBlockPacket:
+//      return "GetNewBlockPacket";
+//    case GetBlocksPacket:
+//      return "GetBlocksPacket";
+//    case BlocksPacket:
+//      return "BlocksPacket";
+//    case TransactionPacket:
+//      return "TransactionPacket";
+//    case TestPacket:
+//      return "TestPacket";
+//    case PbftVotePacket:
+//      return "PbftVotePacket";
+//    case GetPbftNextVotes:
+//      return "GetPbftNextVotes";
+//    case PbftNextVotesPacket:
+//      return "PbftNextVotesPacket";
+//    case NewPbftBlockPacket:
+//      return "NewPbftBlockPacket";
+//    case GetPbftBlockPacket:
+//      return "GetPbftBlockPacket";
+//    case PbftBlockPacket:
+//      return "PbftBlockPacket";
+//    case PacketCount:
+//      return "PacketCount";
+//    case SyncedPacket:
+//      return "SyncedPacket";
+//    case SyncedResponsePacket:
+//      return "SyncedResponsePacket";
+//  }
+//
+//  return std::to_string(packet);
+//}
