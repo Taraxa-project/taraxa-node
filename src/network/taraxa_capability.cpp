@@ -171,8 +171,13 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
           bool initial_status = _r.itemCount() == 10;
           auto pbft_chain_size = pbft_chain_->getPbftChainSize();
 
+          LOG(log_dg_) << "RANDOM_TAG [Node " << host_.id().toString() << "] received StatusPacket 1/2 from [Node "
+                       << _nodeID.toString() << "]: "
+                       << "bytes: " << _r.data() << ", itemCount: " << _r.itemCount();
+
           if (initial_status) {
             auto it = _r.begin();
+
             auto const peer_protocol_version = (*it++).toInt<unsigned>();
             auto const network_id = __DBG__(*it++);
             peer->dag_level_ = __DBG__(*it++);
@@ -184,13 +189,24 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
             auto node_major_version = (*it++).toInt();
             auto node_minor_version = (*it++).toInt();
 
-            LOG(log_dg_) << "Received initial status message from " << _nodeID << ", peer protocol version "
-                         << peer_protocol_version << ", network id " << network_id << ", peer DAG max level "
-                         << peer->dag_level_ << ", genesis " << genesis_ << ", peer pbft chain size "
-                         << peer->pbft_chain_size_ << ", peer syncing " << peer->syncing_ << ", peer pbft round "
-                         << peer->pbft_round_ << ", peer pbft previous round next votes size "
-                         << peer->pbft_previous_round_next_votes_size_ << ", node major version" << node_major_version
-                         << ", node minor version" << node_minor_version;
+            LOG(log_dg_) << "RANDOM_TAG [Node " << host_.id().toString()
+                         << "] received initial StatusPacket 2/2 from [Node " << _nodeID.toString() << "]: "
+                         << "data: " << peer_protocol_version << ", " << network_id << ", " << peer->dag_level_ << ", "
+                         << genesis_hash << ", " << peer->pbft_chain_size_ << ", " << peer->syncing_ << ", "
+                         << peer->pbft_round_ << ", " << peer->pbft_previous_round_next_votes_size_ << ", "
+                         << node_major_version << ", " << node_minor_version;
+
+            //            LOG(log_dg_) << "Received initial status message from " << _nodeID << ", peer protocol version
+            //            "
+            //                         << peer_protocol_version << ", network id " << network_id << ", peer DAG max
+            //                         level "
+            //                         << peer->dag_level_ << ", genesis " << genesis_ << ", peer pbft chain size "
+            //                         << peer->pbft_chain_size_ << ", peer syncing " << peer->syncing_ << ", peer pbft
+            //                         round "
+            //                         << peer->pbft_round_ << ", peer pbft previous round next votes size "
+            //                         << peer->pbft_previous_round_next_votes_size_ << ", node major version" <<
+            //                         node_major_version
+            //                         << ", node minor version" << node_minor_version;
 
             if (peer_protocol_version != FullNode::c_network_protocol_version) {
               LOG(log_er_) << "Incorrect protocol version " << peer_protocol_version << ", host " << _nodeID
@@ -226,10 +242,18 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
             peer->pbft_round_ = __DBG__(*it++);
             peer->pbft_previous_round_next_votes_size_ = (*it++).toInt<unsigned>();
 
-            LOG(log_dg_) << "Received status message from " << _nodeID << ", peer DAG max level " << peer->dag_level_
-                         << ", peer pbft chain size " << peer->pbft_chain_size_ << ", peer syncing " << peer->syncing_
-                         << ", peer pbft round " << peer->pbft_round_ << ", peer pbft previous round next votes size "
-                         << peer->pbft_previous_round_next_votes_size_;
+            LOG(log_dg_) << "RANDOM_TAG [Node << " << host_.id().toString()
+                         << "] received standard StatusPacket 2/2 from [Node " << _nodeID.toString() << "]: "
+                         << ", data: " << peer->dag_level_ << ", " << peer->pbft_chain_size_ << ", " << peer->syncing_
+                         << ", " << peer->pbft_round_ << ", " << peer->pbft_previous_round_next_votes_size_;
+
+            //            LOG(log_dg_) << "Received status message from " << _nodeID << ", peer DAG max level " <<
+            //            peer->dag_level_
+            //                         << ", peer pbft chain size " << peer->pbft_chain_size_ << ", peer syncing " <<
+            //                         peer->syncing_
+            //                         << ", peer pbft round " << peer->pbft_round_ << ", peer pbft previous round next
+            //                         votes size "
+            //                         << peer->pbft_previous_round_next_votes_size_;
           }
 
           LOG(log_dg_dag_sync_) << "Received status message from " << _nodeID
@@ -723,15 +747,30 @@ void TaraxaCapability::sendStatus(NodeID const &_id, bool _initial) {
                                  << ", previous round next votes size " << pbft_previous_round_next_votes_size;
 
     if (_initial) {
-      host_.capabilityHost()->sealAndSend(_id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 10)
-                                                   << FullNode::c_network_protocol_version << conf_.network_id
-                                                   << dag_max_level << genesis_ << pbft_chain_size << syncing_
-                                                   << pbft_round << pbft_previous_round_next_votes_size
-                                                   << FullNode::c_node_major_version << FullNode::c_node_minor_version);
+      RLPStream rlp = host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 10)
+                      << FullNode::c_network_protocol_version << conf_.network_id << dag_max_level << genesis_
+                      << pbft_chain_size << syncing_ << pbft_round << pbft_previous_round_next_votes_size
+                      << FullNode::c_node_major_version << FullNode::c_node_minor_version;
+
+      LOG(log_dg_) << "RANDOM_TAG [Node " << host_.id().toString() << "] send initial StatusPacket to [Node "
+                   << _id.toString() << "]: "
+                   << "bytes: " << rlp.out() << ", data: " << FullNode::c_network_protocol_version << ", "
+                   << conf_.network_id << ", " << dag_max_level << ", " << genesis_ << ", " << pbft_chain_size << ", "
+                   << syncing_ << ", " << pbft_round << ", " << pbft_previous_round_next_votes_size << ", "
+                   << FullNode::c_node_major_version << ", " << FullNode::c_node_minor_version;
+
+      host_.capabilityHost()->sealAndSend(_id, rlp);
     } else {
-      host_.capabilityHost()->sealAndSend(_id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 5)
-                                                   << dag_max_level << pbft_chain_size << syncing_ << pbft_round
-                                                   << pbft_previous_round_next_votes_size);
+      RLPStream rlp = host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 5)
+                      << dag_max_level << pbft_chain_size << syncing_ << pbft_round
+                      << pbft_previous_round_next_votes_size;
+
+      LOG(log_dg_) << "RANDOM_TAG [Node " << host_.id().toString() << "] send standard StatusPacket to [Node "
+                   << _id.toString() << "]: "
+                   << "bytes: " << rlp.out() << ", data: " << dag_max_level << ", " << pbft_chain_size << ", "
+                   << syncing_ << ", " << pbft_round << ", " << pbft_previous_round_next_votes_size;
+
+      host_.capabilityHost()->sealAndSend(_id, rlp);
     }
   }
 }
