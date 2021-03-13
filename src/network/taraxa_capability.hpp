@@ -186,6 +186,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   void requestPbftNextVotes(NodeID const &peerID, uint64_t const pbft_round,
                             size_t const pbft_previous_round_next_votes_size);
   void sendPbftNextVotes(NodeID const &peerID);
+  void broadcastPreviousRoundNextVotesBundle();
 
   // Peers
   std::shared_ptr<TaraxaPeer> getPeer(NodeID const &node_id);

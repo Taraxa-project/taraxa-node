@@ -807,6 +807,11 @@ void PbftManager::secondFinish_() {
     syncPbftChainFromPeers_(true);
   }
 
+  if (step_ > MAX_STEPS) {
+    LOG(log_nf_) << "Node " << node_addr_ << " broadcast next votes for previous round. In round " << round;
+    network_->broadcastPreviousRoundNextVotesBundle();
+  }
+
   loop_back_finish_state_ = elapsed_time_in_round_ms_ > (step_ + 1) * LAMBDA_ms + STEP_4_DELAY - POLLING_INTERVAL_ms;
 }
 

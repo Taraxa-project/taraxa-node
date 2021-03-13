@@ -470,7 +470,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         case PbftNextVotesPacket: {
           auto next_votes_count = _r.itemCount();
           if (next_votes_count == 0) {
-            LOG(log_er_next_votes_sync_) << "Synced 0 next votes from peer " << _nodeID
+            LOG(log_er_next_votes_sync_) << "Receive 0 next votes from peer " << _nodeID
                                          << ". The peer may be a malicous player, will be disconnected";
             host_.capabilityHost()->disconnect(_nodeID, p2p::UserReason);
 
@@ -493,7 +493,8 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
           if (pbft_current_round < peer_pbft_round) {
             // Add into votes unverified queue
             vote_mgr_->addVotes(next_votes);
-          } else if (pbft_current_round == peer_pbft_round && pbft_previous_round_next_votes_size < next_votes_count) {
+          } else if (pbft_current_round == peer_pbft_round) {
+            // Update previous round next votes
             auto pbft_2t_plus_1 = db_->getPbft2TPlus1(pbft_current_round - 1);
             if (pbft_2t_plus_1) {
               next_votes_mgr_->updateWithSyncedVotes(next_votes, pbft_2t_plus_1);
@@ -1326,6 +1327,19 @@ void TaraxaCapability::sendPbftNextVotes(NodeID const &peerID) {
     LOG(log_nf_next_votes_sync_) << "Send out next vote " << next_vote.getHash() << " to peer " << peerID;
   }
   sealAndSend(peerID, s, PbftNextVotesPacket);
+}
+
+void TaraxaCapability::broadcastPreviousRoundNextVotesBundle() {
+  std::vector<NodeID> peers_to_send;
+  {
+    boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
+    for (auto const &peer : peers_) {
+      peers_to_send.push_back(peer.first);
+    }
+  }
+  for (auto const &peer : peers_to_send) {
+    sendPbftNextVotes(peer);
+  }
 }
 
 Json::Value TaraxaCapability::getStatus() const {
