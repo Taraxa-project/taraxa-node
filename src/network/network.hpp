@@ -69,6 +69,7 @@ class Network {
   void sendPbftVote(NodeID const &id, Vote const &vote);
   void onNewPbftBlock(PbftBlock const &pbft_block);
   void sendPbftBlock(NodeID const &id, PbftBlock const &pbft_block, uint64_t const &pbft_chain_size);
+  void broadcastPreviousRoundNextVotesBundle();
 
   std::pair<bool, bi::tcp::endpoint> resolveHost(string const &addr, uint16_t port);
 

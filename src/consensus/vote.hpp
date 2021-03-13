@@ -185,6 +185,8 @@ class NextVotesForPreviousRound {
 
   void clear();
 
+  bool find(blk_hash_t next_vote_hash);
+
   bool haveEnoughVotesForNullBlockHash() const;
 
   blk_hash_t getVotedValue() const;
@@ -212,6 +214,7 @@ class NextVotesForPreviousRound {
   blk_hash_t voted_value_;  // For value is not null block hash
   size_t next_votes_size_;
   std::unordered_map<blk_hash_t, std::vector<Vote>> next_votes_;  // <voted PBFT block hash, next votes list>
+  std::unordered_set<blk_hash_t> next_votes_set_;
 
   LOG_OBJECTS_DEFINE;
 };

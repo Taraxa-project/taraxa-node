@@ -199,4 +199,9 @@ void Network::sendPbftBlock(const NodeID &id, const taraxa::PbftBlock &pbft_bloc
   taraxa_capability_->sendPbftBlock(id, pbft_block, pbft_chain_size);
 }
 
+void Network::broadcastPreviousRoundNextVotesBundle() {
+  LOG(log_dg_) << "Network broadcast previous round next votes bundle";
+  taraxa_capability_->broadcastPreviousRoundNextVotesBundle();
+}
+
 }  // namespace taraxa
