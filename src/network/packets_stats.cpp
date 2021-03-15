@@ -21,12 +21,12 @@ void PacketsStats::clearData() {
 void PacketsStats::PacketAvgStats::clearData() {
   total_count_ = 0;
   total_size_ = 0;
-  total_duration_ = std::chrono::milliseconds(0);
+  total_duration_ = std::chrono::microseconds(0);
 }
 
 std::ostream &operator<<(std::ostream &os, const PacketStats &stats) {
   const std::time_t t = std::chrono::system_clock::to_time_t(stats.time_);
-  os << "node: " << stats.node_.toString() << ", size: " << stats.size_ << " [B]"
+  os << "node: " << stats.node_ << ", size: " << stats.size_ << " [B]"
      << ", time: " << std::ctime(&t) << ", processing duration: " << stats.total_duration_.count() << " [us]";
   return os;
 }
@@ -42,13 +42,22 @@ std::ostream &operator<<(std::ostream &os, const PacketsStats::PacketAvgStats &s
 }
 
 std::ostream &operator<<(std::ostream &os, const PacketsStats &packets_stats) {
-  for (const auto &it : packets_stats.stats_) {
-    if (it.second.total_count_ == 0) {
+  os << "[";
+  size_t idx = 0;
+  for (const auto &stats : packets_stats.stats_) {
+    if (stats.second.total_count_ == 0) {
       continue;
     }
 
-    os << packetToPacketName(it.first) << "-> " << it.second << std::endl;
+    if (idx > 0) {
+      os << ",";
+    }
+
+    os << "[" << packetToPacketName(stats.first) << " -> " << stats.second << "]";
+    idx++;
   }
+  os << "]";
+
   return os;
 }
 
