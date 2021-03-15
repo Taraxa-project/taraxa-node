@@ -34,8 +34,10 @@ class TaraxaConan(ConanFile):
             thetarfile.extractall()
             if not find_format:
                 shutil.move(dirname + "/bin/" + clang_format, clang_format)
+                find_format = True
             if not find_tidy:
                 shutil.move(dirname + "/bin/" + clang_tidy, clang_tidy)
+                find_tidy = True
             shutil.rmtree(dirname)
         if find_format and path_to_format == None:
             path_to_format = os.path.abspath(os.getcwd()) + "/" + clang_format

@@ -117,12 +117,11 @@ IF(APPLE)
 ENDIF()
 
 # conan package manager
-if(CONAN_EXPORTED)
-    ## conan called from system
+if(EXISTS ${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+    ## conan install already called
     include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
     conan_basic_setup(TARGETS)
 else()
-    ## conan from cmake
     if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
         message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
         file(DOWNLOAD "https://github.com/conan-io/cmake-conan/raw/v0.16/conan.cmake"
