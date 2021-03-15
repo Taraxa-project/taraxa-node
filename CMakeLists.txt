@@ -117,7 +117,7 @@ IF(APPLE)
 ENDIF()
 
 # conan package manager
-if(EXISTS ${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+if(CONAN_EXPORTED)
     ## conan install already called
     include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
     conan_basic_setup(TARGETS)
