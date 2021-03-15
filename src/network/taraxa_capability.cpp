@@ -19,11 +19,12 @@ void TaraxaCapability::sealAndSend(NodeID const &nodeID, RLPStream &s, unsigned 
   if (conf_.network_performance_log) {
     const auto time = std::chrono::system_clock::now();
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+    auto packet_size = s.out().size();
 
     host_.capabilityHost()->sealAndSend(nodeID, s);
 
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - begin);
-    PacketStats packet_stats{nodeID, time, s.out().size(), duration};
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - begin);
+    PacketStats packet_stats{nodeID, time, packet_size, duration};
 
     if (conf_.network_performance_log_interval) {
       perf_sent_packets_stats_.addPacket(packet_type, packet_stats);
@@ -129,24 +130,17 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID, unsigned
       RLP _rCopy(rBytes);
       interpretCapabilityPacketImpl(_nodeID, _id, _rCopy);
     }));
+
     return true;
   }
 
   if (conf_.network_performance_log) {
-    // TODO: remove one_time_log
-    static bool tc_one_time_log = true;
-    if (tc_one_time_log) {
-      LOG(log_nf_net_per_) << "*** TaraxaCapability(interpretCapabilityPacket) thread id: "
-                           << std::this_thread::get_id();
-      tc_one_time_log = false;
-    }
-
     const auto time = std::chrono::system_clock::now();
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
     auto ret = interpretCapabilityPacketImpl(_nodeID, _id, _r);
 
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - begin);
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - begin);
     PacketStats packet_stats{_nodeID, time, _r.actualSize(), duration};
 
     if (conf_.network_performance_log_interval) {
@@ -1099,19 +1093,12 @@ void TaraxaCapability::doBackgroundWork() {
 }
 
 void TaraxaCapability::logNetPerformanceStats() {
-  // TODO: remove one_time_log
-  static bool one_time_log = true;
-  if (one_time_log) {
-    LOG(log_nf_net_per_) << "*** boost scheduler(logNetPerformanceStats) thread id: " << std::this_thread::get_id();
-    one_time_log = false;
-  }
-
   LOG(log_nf_net_per_) << "Sent packets stats:" << perf_sent_packets_stats_;
   LOG(log_nf_net_per_) << "Received packets stats:" << perf_received_packets_stats_;
 
   host_.scheduleExecution(conf_.network_performance_log_interval, [this]() { logNetPerformanceStats(); });
 
-  perf_received_packets_stats_.clearData();
+  perf_sent_packets_stats_.clearData();
   perf_received_packets_stats_.clearData();
 }
 
