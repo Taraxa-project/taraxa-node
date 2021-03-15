@@ -58,10 +58,11 @@ In general to build you need to:
 
 But you can do it that way too:
 
-    conan install -if build --build missing .
-    cd cmake-build
+    cd build
     cmake -DCMAKE_BUILD_TYPE=Release ../
     make -j$(nproc) taraxad
+
+> Also, you can just install deps without building project with `conan install -if build --build missing .`.
 
 And optional:
 
