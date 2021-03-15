@@ -16,23 +16,32 @@
 using namespace taraxa;
 
 void TaraxaCapability::sealAndSend(NodeID const &nodeID, RLPStream &s, unsigned packet_type) {
-  if (conf_.network_performance_log) {
-    const auto time = std::chrono::system_clock::now();
-    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-    auto packet_size = s.out().size();
+  try {
+    if (conf_.network_performance_log) {
+      const auto time = std::chrono::system_clock::now();
+      std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+      auto packet_size = s.out().size();
 
-    host_.capabilityHost()->sealAndSend(nodeID, s);
+      host_.capabilityHost()->sealAndSend(nodeID, s);
 
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - begin);
-    PacketStats packet_stats{nodeID, time, packet_size, duration};
+      auto duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - begin);
+      PacketStats packet_stats{nodeID, time, packet_size, duration};
 
-    if (conf_.network_performance_log_interval) {
-      perf_sent_packets_stats_.addPacket(packet_type, packet_stats);
+      if (conf_.network_performance_log_interval) {
+        perf_sent_packets_stats_.addPacket(packet_type, packet_stats);
+      }
+
+      LOG(log_dg_net_per_) << "(\"" << host_.id() << "\") sent " << packetToPacketName(packet_type) << " packet to (\""
+                           << nodeID << "\"). Stats: " << packet_stats;
+    } else {
+      host_.capabilityHost()->sealAndSend(nodeID, s);
     }
-
-    LOG(log_dg_net_per_) << "(\"" << host_.id() << "\") sent " << packetToPacketName(packet_type) << " packet to (\"" << nodeID << "\"). Stats: " << packet_stats;
-  } else {
-    host_.capabilityHost()->sealAndSend(nodeID, s);
+  } catch (const std::exception &e) {
+    LOG(log_er_) << "Caught exception in sealAndSend: " << e.what();
+    throw;
+  } catch (...) {
+    LOG(log_er_) << "Caught unknown exception in sealAndSend.";
+    throw;
   }
 }
 
@@ -106,53 +115,62 @@ void TaraxaCapability::onConnect(NodeID const &_nodeID, u256 const &) {
 }
 
 bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID, unsigned _id, RLP const &_r) {
-  if (stopped_) return true;
+  try {
+    if (stopped_) return true;
 
-  if (conf_.network_simulated_delay != 0) {
-    // RLP contains memory it does not own so deep copy of bytes is needed
-    dev::bytes rBytes = _r.data().toBytes();
-    int messageSize = rBytes.size() * 8;
-    unsigned int dist = *((int *)this->host_.id().data()) ^ *((int *)_nodeID.data());
-    unsigned int delay = dist % conf_.network_simulated_delay;
+    if (conf_.network_simulated_delay != 0) {
+      // RLP contains memory it does not own so deep copy of bytes is needed
+      dev::bytes rBytes = _r.data().toBytes();
+      int messageSize = rBytes.size() * 8;
+      unsigned int dist = *((int *)this->host_.id().data()) ^ *((int *)_nodeID.data());
+      unsigned int delay = dist % conf_.network_simulated_delay;
 
-    auto bandwidth = conf_.network_bandwidth ? conf_.network_bandwidth : 40;
-    unsigned int bandwidth_delay = messageSize / (bandwidth * 1000);  // in ms
+      auto bandwidth = conf_.network_bandwidth ? conf_.network_bandwidth : 40;
+      unsigned int bandwidth_delay = messageSize / (bandwidth * 1000);  // in ms
 
-    // Random component up to +-10%
-    int random_component = random_dist_(delay_rng_);
+      // Random component up to +-10%
+      int random_component = random_dist_(delay_rng_);
 
-    unsigned int total_delay = (delay + bandwidth_delay) * random_component / 100;
-    LOG(log_dg_) << "Delaying packet by: (" << delay << " , " << bandwidth_delay << " ), actual delay =" << total_delay
-                 << " milliseconds";
-    auto timer = std::make_shared<boost::asio::deadline_timer>(io_service_);
-    timer->expires_from_now(boost::posix_time::milliseconds(total_delay));
-    timer->async_wait(([this, _nodeID, _id, rBytes, timer](const boost::system::error_code &ec) {
-      RLP _rCopy(rBytes);
-      interpretCapabilityPacketImpl(_nodeID, _id, _rCopy);
-    }));
+      unsigned int total_delay = (delay + bandwidth_delay) * random_component / 100;
+      LOG(log_dg_) << "Delaying packet by: (" << delay << " , " << bandwidth_delay
+                   << " ), actual delay =" << total_delay << " milliseconds";
+      auto timer = std::make_shared<boost::asio::deadline_timer>(io_service_);
+      timer->expires_from_now(boost::posix_time::milliseconds(total_delay));
+      timer->async_wait(([this, _nodeID, _id, rBytes, timer](const boost::system::error_code &ec) {
+        RLP _rCopy(rBytes);
+        interpretCapabilityPacketImpl(_nodeID, _id, _rCopy);
+      }));
 
-    return true;
-  }
-
-  if (conf_.network_performance_log) {
-    const auto time = std::chrono::system_clock::now();
-    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-
-    auto ret = interpretCapabilityPacketImpl(_nodeID, _id, _r);
-
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - begin);
-    PacketStats packet_stats{_nodeID, time, _r.actualSize(), duration};
-
-    if (conf_.network_performance_log_interval) {
-      perf_received_packets_stats_.addPacket(_id, packet_stats);
+      return true;
     }
 
-    LOG(log_dg_net_per_) << "(\"" << host_.id() << "\") received " << packetToPacketName(_id) << " packet from (\"" << _nodeID << "\"). Stats: " << packet_stats;
+    if (conf_.network_performance_log) {
+      const auto time = std::chrono::system_clock::now();
+      std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
-    return ret;
+      auto ret = interpretCapabilityPacketImpl(_nodeID, _id, _r);
+
+      auto duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - begin);
+      PacketStats packet_stats{_nodeID, time, _r.actualSize(), duration};
+
+      if (conf_.network_performance_log_interval) {
+        perf_received_packets_stats_.addPacket(_id, packet_stats);
+      }
+
+      LOG(log_dg_net_per_) << "(\"" << host_.id() << "\") received " << packetToPacketName(_id) << " packet from (\""
+                           << _nodeID << "\"). Stats: " << packet_stats;
+
+      return ret;
+    }
+
+    return interpretCapabilityPacketImpl(_nodeID, _id, _r);
+  } catch (const std::exception &e) {
+    LOG(log_er_) << "Caught exception in interpretCapabilityPacket: " << e.what();
+    throw;
+  } catch (...) {
+    LOG(log_er_) << "Caught unknown exception in sealAndSend.";
+    throw;
   }
-
-  return interpretCapabilityPacketImpl(_nodeID, _id, _r);
 }
 
 #define __DBG__(_rlp)                                                                                 \
@@ -183,6 +201,10 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
           break;
         }
         case StatusPacket: {
+          if (_r.itemCount() != 5 && _r.itemCount() != 10) {
+            LOG(log_er_) << "Malformed StatusPacket. bytes: " << _r.data() << ", itemCount: " << _r.itemCount();
+          }
+
           peer->statusReceived();
           bool initial_status = _r.itemCount() == 10;
           auto pbft_chain_size = pbft_chain_->getPbftChainSize();
@@ -1076,6 +1098,8 @@ void TaraxaCapability::sendTransactions() {
 }
 
 void TaraxaCapability::doBackgroundWork() {
+  LOG(log_dg_) << "Periodic status check/send invoked. Num of registered peers: " << peers_.size();
+
   for (auto const &peer : peers_) {
     // Disconnect any node that did not send any message for 3 status intervals
     if (!peer.second->checkStatus(5)) {

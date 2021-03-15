@@ -44,7 +44,7 @@ std::ostream &operator<<(std::ostream &os, const PacketsStats::PacketAvgStats &s
 std::ostream &operator<<(std::ostream &os, const PacketsStats &packets_stats) {
   os << "[";
   size_t idx = 0;
-  for (const auto& stats : packets_stats.stats_) {
+  for (const auto &stats : packets_stats.stats_) {
     if (stats.second.total_count_ == 0) {
       continue;
     }
