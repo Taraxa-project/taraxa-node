@@ -30,7 +30,7 @@ void TaraxaCapability::sealAndSend(NodeID const &nodeID, RLPStream &s, unsigned 
       perf_sent_packets_stats_.addPacket(packet_type, packet_stats);
     }
 
-    LOG(log_dg_net_per_) << "Sent packet:" << packet_stats;
+    LOG(log_dg_net_per_) << "(\"" << host_.id() << "\") sent " << packetToPacketName(packet_type) << " packet to (\"" << nodeID << "\"). Stats: " << packet_stats;
   } else {
     host_.capabilityHost()->sealAndSend(nodeID, s);
   }
@@ -147,7 +147,7 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID, unsigned
       perf_received_packets_stats_.addPacket(_id, packet_stats);
     }
 
-    LOG(log_dg_net_per_) << "Received packet:" << packet_stats;
+    LOG(log_dg_net_per_) << "(\"" << host_.id() << "\") received " << packetToPacketName(_id) << " packet from (\"" << _nodeID << "\"). Stats: " << packet_stats;
 
     return ret;
   }
@@ -187,8 +187,8 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
           bool initial_status = _r.itemCount() == 10;
           auto pbft_chain_size = pbft_chain_->getPbftChainSize();
 
-          LOG(log_dg_) << "RANDOM_TAG [Node " << host_.id().toString() << "] received StatusPacket 1/2 from [Node "
-                       << _nodeID.toString() << "]: "
+          LOG(log_dg_) << "RANDOM_TAG [Node " << host_.id() << "] received StatusPacket 1/2 from [Node " << _nodeID
+                       << "]: "
                        << "bytes: " << _r.data() << ", itemCount: " << _r.itemCount();
 
           if (initial_status) {
@@ -205,8 +205,8 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
             auto node_major_version = (*it++).toInt();
             auto node_minor_version = (*it++).toInt();
 
-            LOG(log_dg_) << "RANDOM_TAG [Node " << host_.id().toString()
-                         << "] received initial StatusPacket 2/2 from [Node " << _nodeID.toString() << "]: "
+            LOG(log_dg_) << "RANDOM_TAG [Node " << host_.id() << "] received initial StatusPacket 2/2 from [Node "
+                         << _nodeID << "]: "
                          << "data: " << peer_protocol_version << ", " << network_id << ", " << peer->dag_level_ << ", "
                          << genesis_hash << ", " << peer->pbft_chain_size_ << ", " << peer->syncing_ << ", "
                          << peer->pbft_round_ << ", " << peer->pbft_previous_round_next_votes_size_ << ", "
@@ -258,8 +258,8 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
             peer->pbft_round_ = __DBG__(*it++);
             peer->pbft_previous_round_next_votes_size_ = (*it++).toInt<unsigned>();
 
-            LOG(log_dg_) << "RANDOM_TAG [Node << " << host_.id().toString()
-                         << "] received standard StatusPacket 2/2 from [Node " << _nodeID.toString() << "]: "
+            LOG(log_dg_) << "RANDOM_TAG [Node << " << host_.id() << "] received standard StatusPacket 2/2 from [Node "
+                         << _nodeID << "]: "
                          << ", data: " << peer->dag_level_ << ", " << peer->pbft_chain_size_ << ", " << peer->syncing_
                          << ", " << peer->pbft_round_ << ", " << peer->pbft_previous_round_next_votes_size_;
 
@@ -767,8 +767,7 @@ void TaraxaCapability::sendStatus(NodeID const &_id, bool _initial) {
                       << pbft_chain_size << syncing_ << pbft_round << pbft_previous_round_next_votes_size
                       << FullNode::c_node_major_version << FullNode::c_node_minor_version;
 
-      LOG(log_dg_) << "RANDOM_TAG [Node " << host_.id().toString() << "] send initial StatusPacket to [Node "
-                   << _id.toString() << "]: "
+      LOG(log_dg_) << "RANDOM_TAG [Node " << host_.id() << "] send initial StatusPacket to [Node " << _id << "]: "
                    << "bytes: " << rlp.out() << ", data: " << FullNode::c_network_protocol_version << ", "
                    << conf_.network_id << ", " << dag_max_level << ", " << genesis_ << ", " << pbft_chain_size << ", "
                    << syncing_ << ", " << pbft_round << ", " << pbft_previous_round_next_votes_size << ", "
@@ -780,8 +779,7 @@ void TaraxaCapability::sendStatus(NodeID const &_id, bool _initial) {
                       << dag_max_level << pbft_chain_size << syncing_ << pbft_round
                       << pbft_previous_round_next_votes_size;
 
-      LOG(log_dg_) << "RANDOM_TAG [Node " << host_.id().toString() << "] send standard StatusPacket to [Node "
-                   << _id.toString() << "]: "
+      LOG(log_dg_) << "RANDOM_TAG [Node " << host_.id() << "] send standard StatusPacket to [Node " << _id << "]: "
                    << "bytes: " << rlp.out() << ", data: " << dag_max_level << ", " << pbft_chain_size << ", "
                    << syncing_ << ", " << pbft_round << ", " << pbft_previous_round_next_votes_size;
 
@@ -1093,8 +1091,8 @@ void TaraxaCapability::doBackgroundWork() {
 }
 
 void TaraxaCapability::logNetPerformanceStats() {
-  LOG(log_nf_net_per_) << "Sent packets stats:" << perf_sent_packets_stats_;
-  LOG(log_nf_net_per_) << "Received packets stats:" << perf_received_packets_stats_;
+  LOG(log_nf_net_per_) << "Sent packets stats: " << perf_sent_packets_stats_;
+  LOG(log_nf_net_per_) << "Received packets stats: " << perf_received_packets_stats_;
 
   host_.scheduleExecution(conf_.network_performance_log_interval, [this]() { logNetPerformanceStats(); });
 

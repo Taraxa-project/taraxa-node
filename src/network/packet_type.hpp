@@ -60,5 +60,5 @@ static std::string packetToPacketName(const ::byte &packet_type) {
       return "SyncedResponsePacket";
   }
 
-  return "Unknown packet: " + std::to_string(packet_type);
+  return "Unknown packet(byteIdx: " + std::to_string(packet_type) + ")";
 }
