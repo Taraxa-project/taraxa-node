@@ -99,6 +99,7 @@ struct DbStorage {
     COLUMN(pbft_cert_voted_block);
     COLUMN(pbft_head);
     COLUMN(pbft_blocks);
+    COLUMN(soft_votes);
     COLUMN(cert_votes);
     COLUMN(next_votes);
     COLUMN(period_pbft_block);
@@ -222,6 +223,14 @@ struct DbStorage {
   void saveStatusField(StatusDbField const& field,
                        uint64_t const& value);  // unit test
   void addStatusFieldToBatch(StatusDbField const& field, uint64_t const& value, BatchPtr const& write_batch);
+
+  // Soft votes
+  std::vector<Vote> getSoftVotes(uint64_t const& pbft_round);
+  void saveSoftVotes(uint64_t const& pbft_round, std::vector<Vote> const& soft_votes);
+  void addSoftVotesToBatch(uint64_t const& pbft_round, std::vector<Vote> const& soft_votes,
+                           BatchPtr const& write_batch);
+  void removeSoftVotesToBatch(uint64_t const& pbft_round, BatchPtr const& write_batch);
+
   // Certified votes
   std::vector<Vote> getCertVotes(blk_hash_t const& hash);
   void addCertVotesToBatch(taraxa::blk_hash_t const& pbft_block_hash, std::vector<Vote> const& cert_votes,

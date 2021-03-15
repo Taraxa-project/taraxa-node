@@ -253,6 +253,47 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(db.getStatusField(StatusDbField::ExecutedBlkCount), 10);
   EXPECT_EQ(db.getStatusField(StatusDbField::ExecutedTrxCount), 20);
 
+  // Soft votes
+  auto round = 1, step = 2;
+  std::vector<Vote> soft_votes = db.getSoftVotes(round);
+  EXPECT_TRUE(soft_votes.empty());
+  blk_hash_t last_pbft_block_hash(0);
+  for (auto i = 0; i < 3; i++) {
+    blk_hash_t voted_pbft_block_hash(i);
+    VrfPbftMsg msg(last_pbft_block_hash, soft_vote_type, round, step);
+    vrf_wrapper::vrf_sk_t vrf_sk(
+        "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
+        "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
+    VrfPbftSortition vrf_sortition(vrf_sk, msg);
+    Vote vote(g_secret, vrf_sortition, voted_pbft_block_hash);
+    soft_votes.emplace_back(vote);
+  }
+  db.saveSoftVotes(round, soft_votes);
+  auto soft_votes_from_db = db.getSoftVotes(round);
+  EXPECT_EQ(soft_votes.size(), soft_votes_from_db.size());
+  EXPECT_EQ(soft_votes_from_db.size(), 3);
+  for (auto i = 3; i < 5; i++) {
+    blk_hash_t voted_pbft_block_hash(i);
+    VrfPbftMsg msg(last_pbft_block_hash, soft_vote_type, round, step);
+    vrf_wrapper::vrf_sk_t vrf_sk(
+        "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
+        "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
+    VrfPbftSortition vrf_sortition(vrf_sk, msg);
+    Vote vote(g_secret, vrf_sortition, voted_pbft_block_hash);
+    soft_votes.emplace_back(vote);
+  }
+  batch = db.createWriteBatch();
+  db.addSoftVotesToBatch(round, soft_votes, batch);
+  db.commitWriteBatch(batch);
+  soft_votes_from_db = db.getSoftVotes(round);
+  EXPECT_EQ(soft_votes.size(), soft_votes_from_db.size());
+  EXPECT_EQ(soft_votes_from_db.size(), 5);
+  batch = db.createWriteBatch();
+  db.removeSoftVotesToBatch(round, batch);
+  db.commitWriteBatch(batch);
+  soft_votes_from_db = db.getSoftVotes(round);
+  EXPECT_TRUE(soft_votes_from_db.empty());
+
   // Certified votes
   std::vector<Vote> cert_votes;
   blk_hash_t voted_pbft_block_hash(10);
@@ -277,8 +318,8 @@ TEST_F(FullNodeTest, db_test) {
 
   // Next votes
   std::vector<Vote> next_votes;
-  blk_hash_t last_pbft_block_hash(0);
-  auto round = 3, step = 5;
+  last_pbft_block_hash = blk_hash_t(0);
+  round = 3, step = 5;
   for (auto i = 0; i < 3; i++) {
     blk_hash_t voted_pbft_block_hash(i);
     VrfPbftMsg msg(last_pbft_block_hash, cert_vote_type, round, step);

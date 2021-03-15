@@ -101,8 +101,6 @@ class PbftManager {
 
   void placeVote_(blk_hash_t const &blockhash, PbftVoteTypes vote_type, uint64_t round, size_t step);
 
-  std::pair<blk_hash_t, bool> softVotedBlockForRound_(std::vector<Vote> &votes, uint64_t round);
-
   std::pair<blk_hash_t, bool> proposeMyPbftBlock_();
 
   std::pair<blk_hash_t, bool> identifyLeaderBlock_(std::vector<Vote> const &votes);
