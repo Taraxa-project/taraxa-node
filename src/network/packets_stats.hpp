@@ -13,7 +13,7 @@ struct PacketStats {
   dev::p2p::NodeID node_{0};
   std::chrono::system_clock::time_point time_;
   size_t size_{0};
-  std::chrono::milliseconds total_duration_{0};  // [ms]
+  std::chrono::microseconds total_duration_{0};
   friend std::ostream &operator<<(std::ostream &os, const PacketStats &stats);
 };
 
@@ -22,7 +22,7 @@ class PacketsStats {
   struct PacketAvgStats {
     size_t total_count_{0};
     unsigned long total_size_{0};
-    std::chrono::milliseconds total_duration_{0};
+    std::chrono::microseconds total_duration_{0};
 
     void clearData();
     friend std::ostream &operator<<(std::ostream &os, const PacketAvgStats &stats);

@@ -27,7 +27,7 @@ void PacketsStats::PacketAvgStats::clearData() {
 std::ostream &operator<<(std::ostream &os, const PacketStats &stats) {
   const std::time_t t = std::chrono::system_clock::to_time_t(stats.time_);
   os << "node: " << stats.node_.toString() << ", size: " << stats.size_ << " [B]"
-     << ", time: " << std::ctime(&t) << ", processing duration: " << stats.total_duration_.count() << " [ms]";
+     << ", time: " << std::ctime(&t) << ", processing duration: " << stats.total_duration_.count() << " [us]";
   return os;
 }
 
@@ -36,8 +36,8 @@ std::ostream &operator<<(std::ostream &os, const PacketsStats::PacketAvgStats &s
 
   os << "total_count_: " << stats.total_count_ << ", total_size_: " << stats.total_size_ << " [B]"
      << ", avg_size_: " << stats.total_size_ / divisor << " [B]"
-     << ", total_duration_: " << stats.total_duration_.count() << " [ms]"
-     << ", avg total_duration_: " << stats.total_duration_.count() / divisor << " [ms]";
+     << ", total_duration_: " << stats.total_duration_.count() << " [us]"
+     << ", avg total_duration_: " << stats.total_duration_.count() / divisor << " [us]";
   return os;
 }
 
