@@ -11,7 +11,6 @@ namespace taraxa {
 
 struct PacketStats {
   dev::p2p::NodeID node_{0};
-  std::chrono::system_clock::time_point time_;
   size_t size_{0};
   std::chrono::microseconds total_duration_{0};
   friend std::ostream &operator<<(std::ostream &os, const PacketStats &stats);
