@@ -605,10 +605,10 @@ void PbftManager::proposeBlock_() {
     if (shouldSpeak(propose_vote_type, round, step_)) {
       auto pbft_block = pbft_chain_->getUnverifiedPbftBlock(own_starting_value_for_round_);
       if (!pbft_block) {
-        LOG(log_nf_) << "Can't get proposal block " << own_starting_value_for_round_ << " in unverified queue";
+        LOG(log_dg_) << "Can't get proposal block " << own_starting_value_for_round_ << " in unverified queue";
         pbft_block = db_->getPbftCertVotedBlock(own_starting_value_for_round_);
         if (!pbft_block) {
-          LOG(log_nf_) << "Can't get proposal block " << own_starting_value_for_round_ << " in database";
+          LOG(log_dg_) << "Can't get proposal block " << own_starting_value_for_round_ << " in database";
         }
       }
       if (pbft_block) {
@@ -638,13 +638,13 @@ void PbftManager::identifyBlock_() {
       own_starting_value_for_round_ = leader_block.first;
       LOG(log_dg_) << "Identify leader block " << leader_block.first << " at round " << round;
       if (shouldSpeak(soft_vote_type, round, step_)) {
-        LOG(log_dg_) << "Soft voting block " << leader_block.first << " at round " << round;
+        LOG(log_nf_) << "Soft voting block " << leader_block.first << " at round " << round;
         placeVote_(leader_block.first, soft_vote_type, round, step_);
       }
     }
   } else if (round >= 2 && voted_value != NULL_BLOCK_HASH) {
     if (shouldSpeak(soft_vote_type, round, step_)) {
-      LOG(log_dg_) << "Soft voting " << voted_value << " from previous round";
+      LOG(log_nf_) << "Soft voting " << voted_value << " from previous round";
       placeVote_(voted_value, soft_vote_type, round, step_);
     }
   }
@@ -683,7 +683,7 @@ void PbftManager::certifyBlock_() {
       soft_voted_block_for_this_round_ = soft_voted_block_hash;
 
       if (soft_voted_block_hash.second && soft_voted_block_hash.first != NULL_BLOCK_HASH) {
-        LOG(log_nf_) << "Node has seen enough soft votes voted at " << soft_voted_block_for_this_round_.first
+        LOG(log_dg_) << "Node has seen enough soft votes voted at " << soft_voted_block_for_this_round_.first
                      << ", regossip soft votes. In round " << round;
         for (auto const &sv : soft_votes) {
           network_->onNewPbftVote(sv);
@@ -724,7 +724,7 @@ void PbftManager::certifyBlock_() {
         // NEED TO KEEP POLLING TO SEE IF WE HAVE 2t+1 cert votes...
         // Here we would cert vote if we can speak....
         if (shouldSpeak(cert_vote_type, round, step_)) {
-          LOG(log_dg_) << "Cert voting " << soft_voted_block_for_this_round_.first << " in round " << round;
+          LOG(log_nf_) << "Cert voting " << soft_voted_block_for_this_round_.first << " in round " << round;
 
           // comparePbftBlockScheduleWithDAGblocks_ has checked the cert voted block exist
           auto cert_voted_block = pbft_chain_->getUnverifiedPbftBlock(soft_voted_block_for_this_round_.first);
@@ -753,14 +753,14 @@ void PbftManager::firstFinish_() {
   LOG(log_tr_) << "PBFT first finishing state at step " << step_ << " in round " << round;
   if (shouldSpeak(next_vote_type, round, step_)) {
     if (cert_voted_values_for_round_.find(round) != cert_voted_values_for_round_.end()) {
-      LOG(log_dg_) << "Next voting cert voted value " << cert_voted_values_for_round_[round] << " for round " << round
+      LOG(log_nf_) << "Next voting cert voted value " << cert_voted_values_for_round_[round] << " for round " << round
                    << " , step " << step_;
       placeVote_(cert_voted_values_for_round_[round], next_vote_type, round, step_);
     } else if (round >= 2 && previous_round_next_votes_->haveEnoughVotesForNullBlockHash()) {
-      LOG(log_dg_) << "Next voting NULL BLOCK for round " << round << ", at step " << step_;
+      LOG(log_nf_) << "Next voting NULL BLOCK for round " << round << ", at step " << step_;
       placeVote_(NULL_BLOCK_HASH, next_vote_type, round, step_);
     } else {
-      LOG(log_dg_) << "Next voting nodes own starting value " << own_starting_value_for_round_ << " for round " << round
+      LOG(log_nf_) << "Next voting nodes own starting value " << own_starting_value_for_round_ << " for round " << round
                    << ", at step " << step_;
       placeVote_(own_starting_value_for_round_, next_vote_type, round, step_);
     }
@@ -816,7 +816,7 @@ void PbftManager::secondFinish_() {
         network_->onNewPbftVote(sv);
       }
 
-      LOG(log_dg_) << "Next voting " << soft_voted_block_for_this_round_.first << " for round " << round << ", at step "
+      LOG(log_nf_) << "Next voting " << soft_voted_block_for_this_round_.first << " for round " << round << ", at step "
                    << step_;
       placeVote_(soft_voted_block_for_this_round_.first, next_vote_type, round, step_);
 
@@ -829,7 +829,7 @@ void PbftManager::secondFinish_() {
         (previous_round_next_votes_->haveEnoughVotesForNullBlockHash() ||
          pbft_chain_->findPbftBlockInChain(voted_value)) &&
         (cert_voted_values_for_round_.find(round) == cert_voted_values_for_round_.end())) {
-      LOG(log_dg_) << "Next voting NULL BLOCK for round " << round << ", at step " << step_;
+      LOG(log_nf_) << "Next voting NULL BLOCK for round " << round << ", at step " << step_;
       placeVote_(NULL_BLOCK_HASH, next_vote_type, round, step_);
 
       db_->savePbftMgrStatus(PbftMgrStatus::next_voted_null_block_hash, true);
@@ -838,13 +838,13 @@ void PbftManager::secondFinish_() {
   }
 
   if (step_ > MAX_STEPS && !capability_->syncing_ && !syncRequestedAlreadyThisStep_()) {
-    LOG(log_wr_) << "Suspect PBFT consensus is behind or stalled, perhaps inaccurate 2t+1, need to broadcast request "
+    LOG(log_dg_) << "Suspect PBFT consensus is behind or stalled, perhaps inaccurate 2t+1, need to broadcast request "
                     "for missing blocks";
     syncPbftChainFromPeers_(true);
   }
 
   if (step_ > MAX_STEPS && !broadcastAlreadyThisStep_()) {
-    LOG(log_nf_) << "Node " << node_addr_ << " broadcast next votes for previous round. In round " << round << " step "
+    LOG(log_dg_) << "Node " << node_addr_ << " broadcast next votes for previous round. In round " << round << " step "
                  << step_;
     network_->broadcastPreviousRoundNextVotesBundle();
     pbft_round_last_broadcast_ = round;
@@ -1152,22 +1152,20 @@ bool PbftManager::broadcastAlreadyThisStep_() const {
 bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(blk_hash_t const &pbft_block_hash) {
   auto pbft_block = pbft_chain_->getUnverifiedPbftBlock(pbft_block_hash);
   if (!pbft_block) {
-    LOG(log_nf_) << "Can't get proposal block " << pbft_block_hash << " in unverified queue";
-
     pbft_block = db_->getPbftCertVotedBlock(pbft_block_hash);
     if (!pbft_block) {
       auto round = getPbftRound();
       if (!round_began_wait_proposal_block_) {
-        LOG(log_nf_) << "Can't get proposal block " << pbft_block_hash << " in DB. Have not got the PBFT block "
+        LOG(log_dg_) << "Can't get proposal block " << pbft_block_hash << " in DB. Have not got the PBFT block "
                      << pbft_block_hash << " yet.";
         round_began_wait_proposal_block_ = round;
       } else if (round > round_began_wait_proposal_block_) {
         auto wait_proposal_block_rounds = round - round_began_wait_proposal_block_;
         if (wait_proposal_block_rounds < max_wait_rounds_for_proposal_block_) {
-          LOG(log_nf_) << "Have been waiting " << wait_proposal_block_rounds << " rounds for proposal block "
+          LOG(log_dg_) << "Have been waiting " << wait_proposal_block_rounds << " rounds for proposal block "
                        << pbft_block_hash;
         } else {
-          LOG(log_nf_) << "Have been waiting " << wait_proposal_block_rounds << " rounds for proposal block "
+          LOG(log_dg_) << "Have been waiting " << wait_proposal_block_rounds << " rounds for proposal block "
                        << pbft_block_hash << ", reset own starting value to NULL_BLOCK_HASH";
           db_->savePbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round, NULL_BLOCK_HASH);
           own_starting_value_for_round_ = NULL_BLOCK_HASH;
