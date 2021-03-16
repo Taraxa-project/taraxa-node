@@ -491,6 +491,38 @@ void DbStorage::addPbftHeadToBatch(taraxa::blk_hash_t const& head_hash, std::str
   batch_put(write_batch, Columns::pbft_head, toSlice(head_hash.asBytes()), head_str);
 }
 
+std::vector<Vote> DbStorage::getSoftVotes(uint64_t const& pbft_round) {
+  std::vector<Vote> soft_votes;
+  auto soft_votes_raw = asBytes(lookup(toSlice(pbft_round), Columns::soft_votes));
+
+  for (auto const& soft_vote : RLP(soft_votes_raw)) {
+    soft_votes.emplace_back(soft_vote);
+  }
+
+  return soft_votes;
+}
+
+void DbStorage::saveSoftVotes(uint64_t const& pbft_round, std::vector<Vote> const& soft_votes) {
+  RLPStream s(soft_votes.size());
+  for (auto const& v : soft_votes) {
+    s.appendRaw(v.rlp());
+  }
+  insert(Columns::soft_votes, toSlice(pbft_round), toSlice(s.out()));
+}
+
+void DbStorage::addSoftVotesToBatch(uint64_t const& pbft_round, std::vector<Vote> const& soft_votes,
+                                    BatchPtr const& write_batch) {
+  RLPStream s(soft_votes.size());
+  for (auto const& v : soft_votes) {
+    s.appendRaw(v.rlp());
+  }
+  batch_put(write_batch, Columns::soft_votes, toSlice(pbft_round), toSlice(s.out()));
+}
+
+void DbStorage::removeSoftVotesToBatch(uint64_t const& pbft_round, BatchPtr const& write_batch) {
+  batch_delete(write_batch, Columns::soft_votes, toSlice(pbft_round));
+}
+
 std::vector<Vote> DbStorage::getCertVotes(blk_hash_t const& hash) {
   std::vector<Vote> cert_votes;
   auto cert_votes_raw = asBytes(lookup(toSlice(hash.asBytes()), Columns::cert_votes));
