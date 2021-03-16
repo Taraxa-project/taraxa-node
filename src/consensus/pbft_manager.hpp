@@ -111,6 +111,8 @@ class PbftManager {
 
   void syncPbftChainFromPeers_(bool force);
 
+  bool broadcastAlreadyThisStep_() const;
+
   bool comparePbftBlockScheduleWithDAGblocks_(blk_hash_t const &pbft_block_hash);
   bool comparePbftBlockScheduleWithDAGblocks_(PbftBlock const &pbft_block);
 
@@ -184,6 +186,8 @@ class PbftManager {
 
   uint64_t pbft_round_last_requested_sync_ = 0;
   size_t pbft_step_last_requested_sync_ = 0;
+  uint64_t pbft_round_last_broadcast_ = 0;
+  size_t pbft_step_last_broadcast_ = 0;
 
   size_t pbft_last_observed_synced_queue_size_ = 0;
 

@@ -843,9 +843,12 @@ void PbftManager::secondFinish_() {
     syncPbftChainFromPeers_(true);
   }
 
-  if (step_ > MAX_STEPS) {
-    LOG(log_nf_) << "Node " << node_addr_ << " broadcast next votes for previous round. In round " << round;
+  if (step_ > MAX_STEPS && !broadcastAlreadyThisStep_()) {
+    LOG(log_nf_) << "Node " << node_addr_ << " broadcast next votes for previous round. In round " << round << " step "
+                 << step_;
     network_->broadcastPreviousRoundNextVotesBundle();
+    pbft_round_last_broadcast_ = round;
+    pbft_step_last_broadcast_ = step_;
   }
 
   loop_back_finish_state_ = elapsed_time_in_round_ms_ > (step_ + 1) * LAMBDA_ms + STEP_4_DELAY - POLLING_INTERVAL_ms;
@@ -1139,6 +1142,10 @@ void PbftManager::syncPbftChainFromPeers_(bool force) {
     pbft_round_last_requested_sync_ = round;
     pbft_step_last_requested_sync_ = step_;
   }
+}
+
+bool PbftManager::broadcastAlreadyThisStep_() const {
+  return getPbftRound() == pbft_round_last_broadcast_ && step_ == pbft_step_last_broadcast_;
 }
 
 // Must be in certifying step, and has seen enough soft-votes for some value != NULL_BLOCK_HASH
