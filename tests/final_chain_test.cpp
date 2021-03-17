@@ -56,7 +56,7 @@ struct FinalChainTest : WithDataDir {
     EXPECT_EQ(blk_h.receiptsRoot(),
               trieRootOver(
                   trxs.size(), [&](auto i) { return rlp(i); }, [&](auto i) { return result.receipts[i].rlp(); }));
-    EXPECT_EQ(blk_h.gasLimit(), std::numeric_limits<uint64_t>::max());
+    EXPECT_EQ(blk_h.gasLimit(), ((uint64_t)1 << 53) - 1);
     EXPECT_EQ(blk_h.extraData(), bytes());
     EXPECT_EQ(blk_h.nonce(), Nonce());
     EXPECT_EQ(blk_h.difficulty(), 0);
