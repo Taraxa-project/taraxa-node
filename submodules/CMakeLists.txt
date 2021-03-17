@@ -133,13 +133,6 @@ set(EVM_BUILD_LD "\
  -L${CONAN_LIB_DIRS_SNAPPY} -lsnappy\
  -L${CONAN_LIB_DIRS_LZ4} -llz4\
  -L${CONAN_LIB_DIRS_ZSTD} -lzstd")
-## go env settings
-set(EVM_BUILD_ENV "\
- CGO_CFLAGS_ALLOW='.*'\
- CGO_CXXFLAGS_ALLOW='.*'\
- CGO_CXXFLAGS=\"-O3\"\
- CGO_CFLAGS=\"${EVM_BUILD_CGO_CFLAGS}\"\
- CGO_LDFLAGS=\"${EVM_BUILD_LD}\"")
 ## if we need full static build use flag
 if(TARAXA_STATIC_BUILD)
     set(EVM_BUILD_LD "${EVM_BUILD_LD} -static")
@@ -149,6 +142,13 @@ else()
     ## name of the shared library
     set(EVM_LIBRARY_NAME "${CMAKE_SHARED_LIBRARY_PREFIX}taraxaevm${CMAKE_SHARED_LIBRARY_SUFFIX}")
 endif()
+## go env settings
+set(EVM_BUILD_ENV "\
+ CGO_CFLAGS_ALLOW='.*'\
+ CGO_CXXFLAGS_ALLOW='.*'\
+ CGO_CXXFLAGS=\"-O3\"\
+ CGO_CFLAGS=\"${EVM_BUILD_CGO_CFLAGS}\"\
+ CGO_LDFLAGS=\"${EVM_BUILD_LD}\"")
 ## add build command
 set(EVM_BUILD_COMMAND "cd taraxa/C && ${EVM_BUILD_ENV} go build -buildmode=c-archive -o ${EVM_LIBRARY_NAME}")
 ## cp headers into `taraxa-evm/include`
