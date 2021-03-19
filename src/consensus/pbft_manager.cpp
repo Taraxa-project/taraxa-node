@@ -541,7 +541,7 @@ bool PbftManager::stateOperations_() {
       if (pushCertVotedPbftBlockIntoChain_(cert_voted_block_hash.first, cert_votes_for_round)) {
         db_->savePbftMgrStatus(PbftMgrStatus::executed_in_round, true);
         have_executed_this_round_ = true;
-        LOG(log_nf_) << "Write " << cert_votes_for_round.size() << " votes ... in round " << round;
+        LOG(log_nf_) << "Write " << cert_votes_for_round.size() << " cert votes ... in round " << round;
 
         duration_ = std::chrono::system_clock::now() - now_;
         auto execute_trxs_in_ms = std::chrono::duration_cast<std::chrono::milliseconds>(duration_).count();
