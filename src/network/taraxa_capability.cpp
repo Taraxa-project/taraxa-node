@@ -383,10 +383,16 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
           LOG(log_dg_vote_prp_) << "Received PBFT vote " << vote.getHash();
           peer->markVoteAsKnown(vote.getHash());
 
-          if (vote_mgr_->addVote(vote)) {
+          auto pbft_round = vote.getRound();
+          auto vote_hash = vote.getHash();
+          if (!vote_mgr_->voteInUnverifiedMap(pbft_round, vote_hash) &&
+              !vote_mgr_->voteInVerifiedMap(pbft_round, vote_hash)) {
+            db_->saveUnverifiedVote(vote);
+            vote_mgr_->addUnverifiedVote(vote);
             unique_packet_count[_id]++;
             onNewPbftVote(vote);
           }
+
           break;
         }
         case GetPbftNextVotes: {
@@ -435,7 +441,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
 
           if (pbft_current_round < peer_pbft_round) {
             // Add into votes unverified queue
-            vote_mgr_->addVotes(next_votes);
+            vote_mgr_->addUnverifiedVotes(next_votes);
           } else if (pbft_current_round == peer_pbft_round) {
             // Update previous round next votes
             auto pbft_2t_plus_1 = db_->getPbft2TPlus1(pbft_current_round - 1);
@@ -1051,7 +1057,7 @@ void TaraxaCapability::onNewPbftVote(taraxa::Vote const &vote) {
 
 void TaraxaCapability::sendPbftVote(NodeID const &_id, taraxa::Vote const &vote) {
   LOG(log_dg_vote_prp_) << "sendPbftVote " << vote.getHash() << " to " << _id;
-  auto vote_rlp = vote.rlp();
+  auto vote_rlp = vote.rlp(true);
 
   RLPStream s;
   host_.capabilityHost()->prep(_id, name(), s, PbftVotePacket, 1);
