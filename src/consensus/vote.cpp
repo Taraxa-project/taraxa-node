@@ -226,6 +226,11 @@ bool VoteManager::voteInVerifiedMap(uint64_t const& pbft_round, vote_hash_t cons
   return false;
 }
 
+void VoteManager::clearVerifiedVotesTable() {
+  uniqueLock_ lock(verified_votes_access_);
+  verified_votes_.clear();
+}
+
 std::vector<Vote> VoteManager::getVerifiedVotes() {
   std::vector<Vote> votes;
 

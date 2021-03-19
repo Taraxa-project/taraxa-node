@@ -33,9 +33,9 @@ add_executable(p2p_test p2p_test.cpp)
 target_link_libraries(p2p_test app_base CONAN_PKG::gtest)
 add_test(p2p_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/p2p_test)
 
-add_executable(pbft_rpc_test pbft_rpc_test.cpp)
-target_link_libraries(pbft_rpc_test app_base CONAN_PKG::gtest)
-add_test(pbft_rpc_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/pbft_rpc_test)
+add_executable(vote_test vote_test.cpp)
+target_link_libraries(vote_test app_base CONAN_PKG::gtest)
+add_test(vote_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/vote_test)
 
 add_executable(full_node_test full_node_test.cpp)
 target_link_libraries(full_node_test app_base CONAN_PKG::gtest)

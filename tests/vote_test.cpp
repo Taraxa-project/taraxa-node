@@ -20,30 +20,33 @@ auto g_sk = Lazy([] {
   return secret_t("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
                   dev::Secret::ConstructFromStringType::FromHex);
 });
-struct PbftRpcTest : BaseTest {};
-
-TEST_F(PbftRpcTest, full_node_lambda_input_test) {
-  auto node_cfgs = make_node_cfgs(1);
-  FullNode::Handle node(node_cfgs[0]);
-
-  node->start();
-  auto pbft_mgr = node->getPbftManager();
-  EXPECT_EQ(pbft_mgr->getPbftInitialLambda(), 2000);
-}
+struct VoteTest : BaseTest {};
 
 // Add votes round 1, 2 and 3 into unverified vote table
-// Get votes round 2, will remove round 1 in the table, and return round 2 & 3
-// votes
-TEST_F(PbftRpcTest, add_cleanup_get_votes) {
+// Get votes round 2, will remove round 1 in the table, and return round 2 & 3 votes
+TEST_F(VoteTest, add_cleanup_get_votes) {
   auto node_cfgs = make_node_cfgs(1);
   FullNode::Handle node(node_cfgs[0]);
 
   // stop PBFT manager, that will place vote
-  std::shared_ptr<PbftManager> pbft_mgr = node->getPbftManager();
+  auto pbft_mgr = node->getPbftManager();
   pbft_mgr->stop();
 
-  std::shared_ptr<VoteManager> vote_mgr = node->getVoteManager();
-  node->getVoteManager()->clearUnverifiedVotesTable();
+  // Clear unverified votes and verified votes table
+  auto db = node->getDB();
+  auto vote_mgr = node->getVoteManager();
+  auto unverified_votes = db->getUnverifiedVotes();
+  auto verified_votes = db->getVerifiedVotes();
+  auto batch = db->createWriteBatch();
+  for (auto const &v : unverified_votes) {
+    db->removeUnverifiedVoteToBatch(v.getHash(), batch);
+  }
+  for (auto const &v : verified_votes) {
+    db->removeVerifiedVoteToBatch(v.getHash(), batch);
+  }
+  db->commitWriteBatch(batch);
+  vote_mgr->clearUnverifiedVotesTable();
+  vote_mgr->clearVerifiedVotesTable();
 
   // generate 6 votes, each round has 2 votes
   blk_hash_t blockhash(1);
@@ -82,7 +85,7 @@ TEST_F(PbftRpcTest, add_cleanup_get_votes) {
   EXPECT_EQ(votes_size, 0);
 }
 
-TEST_F(PbftRpcTest, reconstruct_votes) {
+TEST_F(VoteTest, reconstruct_votes) {
   public_t pk(12345);
   sig_t sortition_sig(1234567);
   sig_t vote_sig(9878766);
@@ -99,7 +102,7 @@ TEST_F(PbftRpcTest, reconstruct_votes) {
 }
 
 // Generate a vote, send the vote from node2 to node1
-TEST_F(PbftRpcTest, transfer_vote) {
+TEST_F(VoteTest, transfer_vote) {
   auto node_cfgs = make_node_cfgs(2);
   auto nodes = launch_nodes(node_cfgs);
   auto &node1 = nodes[0];
@@ -143,7 +146,7 @@ TEST_F(PbftRpcTest, transfer_vote) {
   EXPECT_EQ(vote_queue_size_in_node2, 0);
 }
 
-TEST_F(PbftRpcTest, vote_broadcast) {
+TEST_F(VoteTest, vote_broadcast) {
   auto node_cfgs = make_node_cfgs(3);
   auto nodes = launch_nodes(node_cfgs);
   auto &node1 = nodes[0];
