@@ -544,6 +544,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
           if (pbft_chain_size > peer->pbft_chain_size_) peer->pbft_chain_size_ = pbft_chain_size;
 
           if (pbft_chain_ && !pbft_chain_->findUnverifiedPbftBlock(pbft_block->getBlockHash())) {
+            LOG(log_dg_) << "NewPbftBlockPacket packet received & block not stored in unverified blocks.";
             // TODO: need to check block validation, like proposed
             // vote(maybe
             //  come later), if get sortition etc

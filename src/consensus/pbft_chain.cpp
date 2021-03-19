@@ -322,6 +322,7 @@ void PbftChain::pushUnverifiedPbftBlock(std::shared_ptr<PbftBlock> const& pbft_b
   if (prev_block_hash != getLastPbftBlockHash()) {
     if (findPbftBlockInChain(block_hash)) {
       // The block comes from slow node, drop
+      LOG(log_dg_) << "Unverified block no pushed - probably comes from slow node.";
       return;
     } else {
       // TODO: The block comes from fast node that should insert.
