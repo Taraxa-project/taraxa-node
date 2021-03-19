@@ -5,6 +5,7 @@ namespace taraxa {
 PacketsStats::PacketsStats(SubprotocolPacketType packetsCount) : packets_count_(packetsCount) { clearData(); }
 
 void PacketsStats::addPacket(PacketType packet_type, const PacketStats &packet) {
+  std::lock_guard<std::mutex> guard(mutex_);
   auto &packet_stats = stats_[packet_type];
 
   packet_stats.total_count_++;
@@ -13,6 +14,7 @@ void PacketsStats::addPacket(PacketType packet_type, const PacketStats &packet) 
 }
 
 void PacketsStats::clearData() {
+  std::lock_guard<std::mutex> guard(mutex_);
   for (PacketType idx = 0; idx < static_cast<PacketType>(packets_count_); idx++) {
     stats_[idx].clearData();
   }

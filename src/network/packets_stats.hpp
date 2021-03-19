@@ -39,6 +39,7 @@ class PacketsStats {
  private:
   std::unordered_map<PacketType, PacketAvgStats> stats_;
   SubprotocolPacketType packets_count_;
+  std::mutex mutex_;
 };
 
 }  // namespace taraxa
