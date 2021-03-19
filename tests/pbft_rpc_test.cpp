@@ -54,7 +54,7 @@ TEST_F(PbftRpcTest, add_cleanup_get_votes) {
       uint64_t round = i;
       size_t step = j;
       Vote vote = node->getPbftManager()->generateVote(blockhash, type, round, step, pbft_chain_last_block_hash);
-      node->getVoteManager()->addVote(vote);
+      node->getVoteManager()->addUnverifiedVote(vote);
     }
   }
   // Test add vote
@@ -67,8 +67,8 @@ TEST_F(PbftRpcTest, add_cleanup_get_votes) {
   pbft_mgr->setSortitionThreshold(valid_sortition_players);
   uint64_t pbft_round = 2;
   std::vector<Vote> votes =
-      vote_mgr->getVotes(pbft_round, pbft_chain_last_block_hash, pbft_mgr->getSortitionThreshold(),
-                         valid_sortition_players, [](...) { return true; });
+      vote_mgr->getVerifiedVotes(pbft_round, pbft_chain_last_block_hash, pbft_mgr->getSortitionThreshold(),
+                                 valid_sortition_players, [](...) { return true; });
   EXPECT_EQ(votes.size(), 4);
   for (Vote const &v : votes) {
     EXPECT_GT(v.getRound(), 1);

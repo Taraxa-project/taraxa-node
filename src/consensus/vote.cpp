@@ -46,7 +46,7 @@ Vote::Vote(dev::RLP const& rlp) {
   if (!rlp.isList()) throw std::invalid_argument("vote RLP must be a list");
   blockhash_ = rlp[0].toHash<blk_hash_t>();
   vrf_sortition_ = VrfPbftSortition(rlp[1].toBytes());
-  vote_signatue_ = rlp[2].toHash<sig_t>();
+  vote_signature_ = rlp[2].toHash<sig_t>();
   vote_hash_ = sha3(true);
 }
 
@@ -54,7 +54,7 @@ Vote::Vote(bytes const& b) : Vote(dev::RLP(b)) {}
 
 Vote::Vote(secret_t const& node_sk, VrfPbftSortition const& vrf_sortition, blk_hash_t const& blockhash)
     : vrf_sortition_(vrf_sortition), blockhash_(blockhash) {
-  vote_signatue_ = dev::sign(node_sk, sha3(false));
+  vote_signature_ = dev::sign(node_sk, sha3(false));
   vote_hash_ = sha3(true);
 }
 
@@ -65,7 +65,7 @@ bytes Vote::rlp(bool inc_sig) const {
   s << blockhash_;
   s << vrf_sortition_.getRlpBytes();
   if (inc_sig) {
-    s << vote_signatue_;
+    s << vote_signature_;
   }
 
   return s.out();
@@ -73,87 +73,118 @@ bytes Vote::rlp(bool inc_sig) const {
 
 void Vote::voter() const {
   if (cached_voter_) return;
-  cached_voter_ = dev::recover(vote_signatue_, sha3(false));
+  cached_voter_ = dev::recover(vote_signature_, sha3(false));
   assert(cached_voter_);
 }
 
-bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash, taraxa::Vote const& vote,
-                                 size_t const valid_sortition_players, size_t const sortition_threshold) const {
-  if (last_pbft_block_hash != vote.getVrfSortition().pbft_msg.blk) {
-    LOG(log_tr_) << "Last pbft block hash does not match " << last_pbft_block_hash;
-    return false;
-  }
+VoteManager::VoteManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<FinalChain> final_chain,
+                         std::shared_ptr<PbftChain> pbft_chain)
+    : db_(db), final_chain_(final_chain), pbft_chain_(pbft_chain) {
+  LOG_OBJECTS_CREATE("VOTE_MGR");
+  // Retrieve votes from DB
+  {
+    auto unverified_votes = db_->getUnverifiedVotes();
 
-  if (!vote.getVrfSortition().verify()) {
-    LOG(log_wr_) << "Invalid vrf proof, vote hash " << vote.getHash();
-    return false;
+    uniqueLock_ lock(unverified_votes_access_);
+    for (auto const& v : unverified_votes) {
+      auto pbft_round = v.getRound();
+      auto hash = v.getHash();
+      if (unverified_votes_.count(pbft_round)) {
+        unverified_votes_[pbft_round][hash] = v;
+      } else {
+        std::unordered_map<vote_hash_t, Vote> votes{std::make_pair(hash, v)};
+        unverified_votes_[pbft_round] = votes;
+      }
+      LOG(log_dg_) << "Retrieve unverified vote " << v;
+    }
   }
+  {
+    auto verified_votes = db_->getVerifiedVotes();
 
-  if (!vote.verifyVote()) {
-    LOG(log_wr_) << "Invalid vote signature, vote hash " << vote.getHash();
-    return false;
+    uniqueLock_ lock(verified_votes_access_);
+    for (auto const& v : verified_votes) {
+      auto pbft_round = v.getRound();
+      auto hash = v.getHash();
+      if (verified_votes_.count(pbft_round)) {
+        verified_votes_[pbft_round][hash] = v;
+      } else {
+        std::unordered_map<vote_hash_t, Vote> votes{std::make_pair(hash, v)};
+        verified_votes_[pbft_round] = votes;
+      }
+      LOG(log_dg_) << "Retrieve verified vote " << v;
+    }
   }
-
-  if (!vote.verifyCanSpeak(sortition_threshold, valid_sortition_players)) {
-    LOG(log_wr_) << "Vote sortition failed, sortition proof " << vote.getSortitionProof();
-    return false;
-  }
-  return true;
 }
 
-bool VoteManager::addVote(taraxa::Vote const& vote) {
+void VoteManager::addUnverifiedVote(taraxa::Vote const& vote) {
   uint64_t pbft_round = vote.getRound();
   auto hash = vote.getHash();
-
   {
-    upgradableLock_ lock(access_);
-    std::map<uint64_t, std::map<vote_hash_t, Vote>>::const_iterator found_round = unverified_votes_.find(pbft_round);
+    upgradableLock_ lock(unverified_votes_access_);
+    std::map<uint64_t, std::unordered_map<vote_hash_t, Vote>>::const_iterator found_round =
+        unverified_votes_.find(pbft_round);
     if (found_round != unverified_votes_.end()) {
-      std::map<vote_hash_t, Vote>::const_iterator found_vote = found_round->second.find(hash);
+      std::unordered_map<vote_hash_t, Vote>::const_iterator found_vote = found_round->second.find(hash);
       if (found_vote != found_round->second.end()) {
-        LOG(log_dg_) << "Vote hash " << vote.getHash() << " in unverified map already";
-        return false;
+        LOG(log_dg_) << "Vote " << hash << " is in unverified map already";
+        return;
       }
       upgradeLock_ locked(lock);
       unverified_votes_[pbft_round][hash] = vote;
     } else {
-      std::map<vote_hash_t, Vote> votes{std::make_pair(hash, vote)};
+      std::unordered_map<vote_hash_t, Vote> votes{std::make_pair(hash, vote)};
       upgradeLock_ locked(lock);
       unverified_votes_[pbft_round] = votes;
     }
   }
   LOG(log_dg_) << "Add unverified vote " << vote;
-
-  return true;
 }
 
-void VoteManager::addVotes(std::vector<Vote> const& votes) {
+void VoteManager::addUnverifiedVotes(std::vector<Vote> const& votes) {
   for (auto const& v : votes) {
-    addVote(v);
+    addUnverifiedVote(v);
   }
 }
 
-// cleanup votes < pbft_round
-void VoteManager::cleanupVotes(uint64_t pbft_round) {
-  upgradableLock_ lock(access_);
-  std::map<uint64_t, std::map<vote_hash_t, Vote>>::iterator it = unverified_votes_.begin();
-
-  upgradeLock_ locked(lock);
-  while (it != unverified_votes_.end() && it->first < pbft_round) {
-    it = unverified_votes_.erase(it);
+void VoteManager::removeUnverifiedVote(uint64_t const& pbft_round, vote_hash_t const& vote_hash) {
+  upgradableLock_ lock(unverified_votes_access_);
+  if (unverified_votes_.count(pbft_round)) {
+    upgradeLock_ locked(lock);
+    unverified_votes_[pbft_round].erase(vote_hash);
   }
+}
+
+bool VoteManager::voteInUnverifiedMap(uint64_t const& pbft_round, vote_hash_t const& vote_hash) {
+  sharedLock_ lock(unverified_votes_access_);
+  if (unverified_votes_.count(pbft_round)) {
+    return unverified_votes_[pbft_round].count(vote_hash);
+  }
+
+  return false;
+}
+
+std::vector<Vote> VoteManager::getUnverifiedVotes() {
+  std::vector<Vote> votes;
+
+  sharedLock_ lock(unverified_votes_access_);
+  for (auto const& round_votes : unverified_votes_) {
+    std::transform(round_votes.second.begin(), round_votes.second.end(), std::back_inserter(votes),
+                   [](std::pair<const taraxa::vote_hash_t, taraxa::Vote> const& v) { return v.second; });
+  }
+
+  return votes;
 }
 
 void VoteManager::clearUnverifiedVotesTable() {
-  uniqueLock_ lock(access_);
+  uniqueLock_ lock(unverified_votes_access_);
   unverified_votes_.clear();
 }
 
 uint64_t VoteManager::getUnverifiedVotesSize() const {
   uint64_t size = 0;
 
-  sharedLock_ lock(access_);
-  std::map<uint64_t, std::map<vote_hash_t, Vote>>::const_iterator it;
+  sharedLock_ lock(unverified_votes_access_);
+  std::map<uint64_t, std::unordered_map<vote_hash_t, Vote>>::const_iterator it;
   for (it = unverified_votes_.begin(); it != unverified_votes_.end(); ++it) {
     size += it->second.size();
   }
@@ -161,109 +192,156 @@ uint64_t VoteManager::getUnverifiedVotesSize() const {
   return size;
 }
 
-// Return all verified votes >= pbft_round
-// For unit test only
-std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round, size_t eligible_voter_count,
-                                        blk_hash_t last_pbft_block_hash, size_t sortition_threshold) {
-  cleanupVotes(pbft_round);
+void VoteManager::addVerifiedVote(Vote const& vote) {
+  auto pbft_round = vote.getRound();
+  auto hash = vote.getHash();
 
-  std::vector<Vote> verified_votes;
-
-  auto votes_to_verify = getAllVotes();
-  for (auto const& v : votes_to_verify) {
-    // vote verification
-    addr_t vote_address = dev::toAddress(v.getVoter());
-    std::pair<val_t, bool> account_balance = final_chain_->getBalance(vote_address);
-    if (!account_balance.second) {
-      // New node join, it doesn't have other nodes info.
-      // Wait unit sync PBFT chain with peers, and execute to get states.
-      LOG(log_dg_) << "Cannot find the vote account balance. vote hash: " << v.getHash()
-                   << " vote address: " << vote_address;
-      continue;
-    }
-    if (voteValidation(last_pbft_block_hash, v, eligible_voter_count, sortition_threshold)) {
-      verified_votes.emplace_back(v);
+  {
+    upgradableLock_ lock(verified_votes_access_);
+    std::map<uint64_t, std::unordered_map<vote_hash_t, Vote>>::const_iterator found_round =
+        verified_votes_.find(pbft_round);
+    if (found_round != verified_votes_.end()) {
+      std::unordered_map<vote_hash_t, Vote>::const_iterator found_vote = found_round->second.find(hash);
+      if (found_vote != found_round->second.end()) {
+        LOG(log_dg_) << "Vote " << hash << " is in verified map already";
+        return;
+      }
+      upgradeLock_ locked(lock);
+      verified_votes_[pbft_round][hash] = vote;
+    } else {
+      std::unordered_map<vote_hash_t, Vote> votes{std::make_pair(hash, vote)};
+      upgradeLock_ locked(lock);
+      verified_votes_[pbft_round] = votes;
     }
   }
-
-  return verified_votes;
+  LOG(log_dg_) << "Add verified vote " << vote;
 }
 
-// Return all verified votes >= pbft_round
-std::vector<Vote> VoteManager::getVotes(uint64_t const pbft_round, blk_hash_t const& last_pbft_block_hash,
-                                        size_t const sortition_threshold, uint64_t eligible_voter_count,
-                                        std::function<bool(addr_t const&)> const& is_eligible) {
-  // Cleanup votes for previous rounds
-  cleanupVotes(pbft_round);
-
-  // Track how many errant votes were found
-  // and if sufficient number in the future we will
-  // use this to trigger sync...
-  uint64_t next_vote_with_different_prev_block_has_count = 0;
-
-  std::vector<Vote> verified_votes;
-
-  auto votes_to_verify = getAllVotes();
-  for (auto const& v : votes_to_verify) {
-    // vote verification
-    addr_t voter_account_address = dev::toAddress(v.getVoter());
-    // Check if the voter account is valid, malicious vote
-    if (!is_eligible(voter_account_address)) {
-      LOG(log_dg_) << "Account " << voter_account_address << " is not eligible to vote. Vote hash " << v.getHash()
-                   << ", block hash " << v.getBlockHash() << ", vote type " << v.getType() << ", in round "
-                   << v.getRound() << ", for step " << v.getStep();
-      continue;
-    }
-    if (voteValidation(last_pbft_block_hash, v, eligible_voter_count, sortition_threshold)) {
-      verified_votes.emplace_back(v);
-    } else if (v.getRound() == pbft_round && v.getType() == next_vote_type) {
-      // We know that votes in our current round should reference our latest
-      // PBFT chain block This is not immune to malacious attack!!!
-      LOG(log_dg_) << "Next vote in current round " << pbft_round << " points to different block hash "
-                   << last_pbft_block_hash << " | vote: " << v << " voter address: " << voter_account_address;
-      next_vote_with_different_prev_block_has_count++;
-    }
+bool VoteManager::voteInVerifiedMap(uint64_t const& pbft_round, vote_hash_t const& vote_hash) {
+  sharedLock_ lock(verified_votes_access_);
+  if (verified_votes_.count(pbft_round)) {
+    return verified_votes_[pbft_round].count(vote_hash);
   }
 
-  if (next_vote_with_different_prev_block_has_count > 0) {
-    LOG(log_er_) << "Get votes found " << next_vote_with_different_prev_block_has_count << " next votes in round "
-                 << pbft_round << " pointing to different previous pbft chain block hash";
-  }
-
-  return verified_votes;
+  return false;
 }
 
-std::string VoteManager::getJsonStr(std::vector<Vote> const& votes) {
-  Json::Value ptroot;
-  Json::Value ptvotes(Json::arrayValue);
-
-  for (Vote const& v : votes) {
-    Json::Value ptvote;
-    ptvote["vote_hash"] = v.getHash().toString();
-    ptvote["accounthash"] = v.getVoter().toString();
-    ptvote["sortition_proof"] = v.getSortitionProof().toString();
-    ptvote["vote_signature"] = v.getVoteSignature().toString();
-    ptvote["blockhash"] = v.getBlockHash().toString();
-    ptvote["type"] = v.getType();
-    ptvote["round"] = Json::Value::UInt64(v.getRound());
-    ptvote["step"] = Json::Value::UInt64(v.getStep());
-    ptvotes.append(ptvote);
-  }
-  ptroot["votes"] = ptvotes;
-
-  return ptroot.toStyledString();
-}
-
-// Return all votes in map unverified_votes_
-std::vector<Vote> VoteManager::getAllVotes() {
+std::vector<Vote> VoteManager::getVerifiedVotes() {
   std::vector<Vote> votes;
 
-  sharedLock_ lock(access_);
-  for (auto const& round_votes : unverified_votes_) {
+  sharedLock_ lock(verified_votes_access_);
+  for (auto const& round_votes : verified_votes_) {
     std::transform(round_votes.second.begin(), round_votes.second.end(), std::back_inserter(votes),
                    [](std::pair<const taraxa::vote_hash_t, taraxa::Vote> const& v) { return v.second; });
   }
+
   return votes;
+}
+
+// Return all verified votes >= pbft_round
+std::vector<Vote> VoteManager::getVerifiedVotes(uint64_t const pbft_round, blk_hash_t const& last_pbft_block_hash,
+                                                size_t const sortition_threshold, uint64_t eligible_voter_count,
+                                                std::function<bool(addr_t const&)> const& is_eligible) {
+  // Cleanup votes for previous rounds
+  cleanupVotes(pbft_round);
+
+  std::vector<Vote> verified_votes;
+  auto votes_to_verify = getUnverifiedVotes();
+
+  for (auto const& v : votes_to_verify) {
+    addr_t voter_account_address = dev::toAddress(v.getVoter());
+    // Check if the voter account is valid, malicious vote
+    if (!is_eligible(voter_account_address)) {
+      LOG(log_er_) << "Account " << voter_account_address << " is not eligible to vote. Vote: " << v;
+      continue;
+    }
+
+    if (voteValidation(last_pbft_block_hash, v, eligible_voter_count, sortition_threshold)) {
+      verified_votes.emplace_back(v);
+    }
+  }
+
+  auto batch = db_->createWriteBatch();
+  for (auto const& v : verified_votes) {
+    db_->addVerifiedVoteToBatch(v, batch);
+    db_->removeUnverifiedVoteToBatch(v.getHash(), batch);
+  }
+  db_->commitWriteBatch(batch);
+
+  for (auto const& v : verified_votes) {
+    addVerifiedVote(v);
+    removeUnverifiedVote(v.getRound(), v.getHash());
+  }
+
+  return getVerifiedVotes();
+}
+
+// cleanup votes < pbft_round
+void VoteManager::cleanupVotes(uint64_t pbft_round) {
+  // Remove unverified votes
+  vector<vote_hash_t> remove_unverified_votes_hash;
+  {
+    upgradableLock_ lock(unverified_votes_access_);
+    std::map<uint64_t, std::unordered_map<vote_hash_t, Vote>>::iterator it = unverified_votes_.begin();
+
+    upgradeLock_ locked(lock);
+    while (it != unverified_votes_.end() && it->first < pbft_round) {
+      for (auto const& v : it->second) {
+        remove_unverified_votes_hash.emplace_back(v.first);
+      }
+      it = unverified_votes_.erase(it);
+    }
+  }
+  auto batch = db_->createWriteBatch();
+  for (auto const& v_hash : remove_unverified_votes_hash) {
+    db_->removeUnverifiedVoteToBatch(v_hash, batch);
+  }
+  db_->commitWriteBatch(batch);
+
+  // Remove verified votes
+  vector<vote_hash_t> remove_verified_votes_hash;
+  {
+    upgradableLock_ lock(verified_votes_access_);
+    std::map<uint64_t, std::unordered_map<vote_hash_t, Vote>>::iterator it = verified_votes_.begin();
+
+    upgradeLock_ locked(lock);
+    while (it != verified_votes_.end() && it->first < pbft_round) {
+      for (auto const& v : it->second) {
+        remove_verified_votes_hash.emplace_back(v.first);
+      }
+      it = verified_votes_.erase(it);
+    }
+  }
+  batch = db_->createWriteBatch();
+  for (auto const& v_hash : remove_verified_votes_hash) {
+    db_->removeVerifiedVoteToBatch(v_hash, batch);
+  }
+  db_->commitWriteBatch(batch);
+}
+
+bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash, taraxa::Vote const& vote,
+                                 size_t const valid_sortition_players, size_t const sortition_threshold) const {
+  if (last_pbft_block_hash != vote.getVrfSortition().pbft_msg.blk) {
+    LOG(log_tr_) << "Last pbft block hash does not match " << last_pbft_block_hash << ". " << vote;
+    return false;
+  }
+
+  if (!vote.getVrfSortition().verify()) {
+    LOG(log_er_) << "Invalid vrf proof. " << vote;
+    return false;
+  }
+
+  if (!vote.verifyVote()) {
+    LOG(log_er_) << "Invalid vote signature. " << vote;
+    return false;
+  }
+
+  if (!vote.verifyCanSpeak(sortition_threshold, valid_sortition_players)) {
+    LOG(log_er_) << "Vote sortition failed. " << vote;
+    return false;
+  }
+
+  return true;
 }
 
 bool VoteManager::pbftBlockHasEnoughValidCertVotes(PbftBlockCert const& pbft_block_and_votes,
@@ -313,6 +391,27 @@ bool VoteManager::pbftBlockHasEnoughValidCertVotes(PbftBlockCert const& pbft_blo
                  << ". The last block in pbft chain is " << pbft_chain_last_block_hash;
   }
   return valid_votes.size() >= pbft_2t_plus_1;
+}
+
+std::string VoteManager::getJsonStr(std::vector<Vote> const& votes) {
+  Json::Value ptroot;
+  Json::Value ptvotes(Json::arrayValue);
+
+  for (Vote const& v : votes) {
+    Json::Value ptvote;
+    ptvote["vote_hash"] = v.getHash().toString();
+    ptvote["accounthash"] = v.getVoter().toString();
+    ptvote["sortition_proof"] = v.getSortitionProof().toString();
+    ptvote["vote_signature"] = v.getVoteSignature().toString();
+    ptvote["blockhash"] = v.getBlockHash().toString();
+    ptvote["type"] = v.getType();
+    ptvote["round"] = Json::Value::UInt64(v.getRound());
+    ptvote["step"] = Json::Value::UInt64(v.getStep());
+    ptvotes.append(ptvote);
+  }
+  ptroot["votes"] = ptvotes;
+
+  return ptroot.toStyledString();
 }
 
 NextVotesForPreviousRound::NextVotesForPreviousRound(addr_t node_addr, std::shared_ptr<DbStorage> db)

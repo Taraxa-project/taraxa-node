@@ -1095,7 +1095,7 @@ void TaraxaCapability::onNewPbftVote(taraxa::Vote const &vote) {
 
 void TaraxaCapability::sendPbftVote(NodeID const &_id, taraxa::Vote const &vote) {
   LOG(log_dg_vote_prp_) << "sendPbftVote " << vote.getHash() << " to " << _id;
-  sealAndSend(_id, PbftVotePacket, RLPStream(1) << vote.rlp());
+  sealAndSend(_id, PbftVotePacket, RLPStream(1) << vote.rlp(true));
 }
 
 void TaraxaCapability::onNewPbftBlock(taraxa::PbftBlock const &pbft_block) {

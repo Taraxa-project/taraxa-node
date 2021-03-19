@@ -45,7 +45,7 @@ struct VrfPbftMsg {
     return s.out();
   }
 
-  blk_hash_t blk;
+  blk_hash_t blk;  // Last PBFT block hash in chain
   PbftVoteTypes type;
   uint64_t round;
   size_t step;
@@ -98,7 +98,7 @@ class Vote {
   auto getVrfSortition() const { return vrf_sortition_; }
   auto getSortitionProof() const { return vrf_sortition_.proof; }
   auto getCredential() const { return vrf_sortition_.output; }
-  sig_t getVoteSignature() const { return vote_signatue_; }
+  sig_t getVoteSignature() const { return vote_signature_; }
   blk_hash_t getBlockHash() const { return blockhash_; }
   PbftVoteTypes getType() const { return vrf_sortition_.pbft_msg.type; }
   uint64_t getRound() const { return vrf_sortition_.pbft_msg.round; }
@@ -107,7 +107,7 @@ class Vote {
   bool verifyVote() const {
     auto msg = sha3(false);
     voter();
-    return dev::verify(cached_voter_, vote_signatue_, msg);
+    return dev::verify(cached_voter_, vote_signature_, msg);
   }
   bool verifyCanSpeak(size_t threshold, size_t valid_players) const {
     return vrf_sortition_.canSpeak(threshold, valid_players);
@@ -117,7 +117,7 @@ class Vote {
     strm << "[Vote] " << std::endl;
     strm << "  vote_hash: " << vote.vote_hash_ << std::endl;
     strm << "  voter: " << vote.getVoter() << std::endl;
-    strm << "  vote_signatue: " << vote.vote_signatue_ << std::endl;
+    strm << "  vote_signatue: " << vote.vote_signature_ << std::endl;
     strm << "  blockhash: " << vote.blockhash_ << std::endl;
     strm << "  vrf_sorition: " << vote.vrf_sortition_ << std::endl;
     return strm;
@@ -128,39 +128,45 @@ class Vote {
   void voter() const;
 
   vote_hash_t vote_hash_;  // hash of this vote
-  blk_hash_t blockhash_;
-  sig_t vote_signatue_;
+  blk_hash_t blockhash_;   // Voted PBFT block hash
+  sig_t vote_signature_;
   VrfPbftSortition vrf_sortition_;
   mutable public_t cached_voter_;
 };
 
 class VoteManager {
  public:
-  VoteManager(addr_t node_addr, std::shared_ptr<FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain)
-      : final_chain_(final_chain), pbft_chain_(pbft_chain) {
-    LOG_OBJECTS_CREATE("VOTE_MGR");
-  }
+  VoteManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<FinalChain> final_chain,
+              std::shared_ptr<PbftChain> pbft_chain);
   ~VoteManager() {}
+
+  // Unverified votes
+  void addUnverifiedVote(Vote const& vote);
+  void addUnverifiedVotes(std::vector<Vote> const& votes);
+  void removeUnverifiedVote(uint64_t const& pbft_round, vote_hash_t const& vote_hash);
+  bool voteInUnverifiedMap(uint64_t const& pbft_round, vote_hash_t const& vote_hash);
+  std::vector<Vote> getUnverifiedVotes();
+  void clearUnverifiedVotesTable();
+  uint64_t getUnverifiedVotesSize() const;
+
+  // Verified votes
+  void addVerifiedVote(Vote const& vote);
+  bool voteInVerifiedMap(uint64_t const& pbft_round, vote_hash_t const& vote_hash);
+  std::vector<Vote> getVerifiedVotes();
+
+  std::vector<Vote> getVerifiedVotes(uint64_t const pbft_round, blk_hash_t const& last_pbft_block_hash,
+                                     size_t const sortition_threshold, uint64_t eligible_voter_count,
+                                     std::function<bool(addr_t const&)> const& is_eligible);
+
+  void cleanupVotes(uint64_t pbft_round);
 
   bool voteValidation(blk_hash_t const& last_pbft_block_hash, Vote const& vote, size_t const valid_sortition_players,
                       size_t const sortition_threshold) const;
 
-  bool addVote(taraxa::Vote const& vote);
-  void addVotes(std::vector<Vote> const& votes);
-
-  void cleanupVotes(uint64_t pbft_round);
-  void clearUnverifiedVotesTable();
-  uint64_t getUnverifiedVotesSize() const;
-  // for unit test only
-  std::vector<Vote> getVotes(uint64_t pbft_round, size_t eligible_voter_count, blk_hash_t last_pbft_block_hash,
-                             size_t sortition_threshold);
-  std::vector<Vote> getVotes(uint64_t const pbft_round, blk_hash_t const& last_pbft_block_hash,
-                             size_t const sortition_threshold, uint64_t eligible_voter_count,
-                             std::function<bool(addr_t const&)> const& is_eligible);
-  std::string getJsonStr(std::vector<Vote> const& votes);
-  std::vector<Vote> getAllVotes();
   bool pbftBlockHasEnoughValidCertVotes(PbftBlockCert const& pbft_block_and_votes, size_t valid_sortition_players,
                                         size_t sortition_threshold, size_t pbft_2t_plus_1) const;
+
+  std::string getJsonStr(std::vector<Vote> const& votes);
 
  private:
   using uniqueLock_ = boost::unique_lock<boost::shared_mutex>;
@@ -169,10 +175,13 @@ class VoteManager {
   using upgradeLock_ = boost::upgrade_to_unique_lock<boost::shared_mutex>;
 
   // <pbft_round, <vote_hash, vote>>
-  std::map<uint64_t, std::map<vote_hash_t, Vote>> unverified_votes_;
+  std::map<uint64_t, std::unordered_map<vote_hash_t, Vote>> unverified_votes_;
+  std::map<uint64_t, std::unordered_map<vote_hash_t, Vote>> verified_votes_;
 
-  mutable boost::shared_mutex access_;
+  mutable boost::shared_mutex unverified_votes_access_;
+  mutable boost::shared_mutex verified_votes_access_;
 
+  std::shared_ptr<DbStorage> db_;
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<FinalChain> final_chain_;
 
