@@ -180,6 +180,15 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
   }
 }
 
+TEST_F(PbftManagerTest, full_node_lambda_input_test) {
+  auto node_cfgs = make_node_cfgs(1);
+  FullNode::Handle node(node_cfgs[0]);
+
+  node->start();
+  auto pbft_mgr = node->getPbftManager();
+  EXPECT_EQ(pbft_mgr->getPbftInitialLambda(), 2000);
+}
+
 TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
   auto node_cfgs = make_node_cfgs<5>(1);
   FullNode::Handle node(node_cfgs[0], true);
