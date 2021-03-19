@@ -101,7 +101,7 @@ void FullNode::init() {
   emplace(dag_blk_mgr_, node_addr, conf_.chain.vdf, conf_.chain.final_chain.state.dpos, 1024 /*capacity*/,
           4 /* verifer thread*/, db_, trx_mgr_, final_chain_, pbft_chain_, log_time_,
           conf_.test_params.max_block_queue_warn);
-  emplace(vote_mgr_, node_addr, final_chain_, pbft_chain_);
+  emplace(vote_mgr_, node_addr, db_, final_chain_, pbft_chain_);
   emplace(trx_order_mgr_, node_addr, db_);
   emplace(executor_, node_addr, db_, dag_mgr_, trx_mgr_, final_chain_, pbft_chain_,
           conf_.test_params.block_proposer.transaction_limit);
