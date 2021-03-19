@@ -8,6 +8,7 @@
 #include "transaction_queue.hpp"
 #include "transaction_status.hpp"
 #include "util/simple_event.hpp"
+#include "util/weak_ref.hpp"
 
 namespace taraxa {
 
@@ -108,7 +109,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   std::atomic<unsigned long> trx_count_ = 0;
   FullNodeConfig conf_;
   std::vector<std::thread> verifiers_;
-  std::shared_ptr<Network> network_;
+  util::WeakRef<Network> network_;
   std::shared_ptr<net::WSServer> ws_server_;
   addr_t node_addr_;
   std::shared_ptr<DagManager> dag_mgr_;

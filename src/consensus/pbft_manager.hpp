@@ -145,8 +145,7 @@ class PbftManager {
   std::shared_ptr<VoteManager> vote_mgr_ = nullptr;
   std::shared_ptr<PbftChain> pbft_chain_ = nullptr;
   std::shared_ptr<DagManager> dag_mgr_ = nullptr;
-  std::shared_ptr<Network> network_ = nullptr;
-  std::shared_ptr<TaraxaCapability> capability_ = nullptr;
+  util::WeakRef<Network> network_;
   std::shared_ptr<DagBlockManager> dag_blk_mgr_;
   std::shared_ptr<FinalChain> final_chain_;
   std::shared_ptr<Executor> executor_;

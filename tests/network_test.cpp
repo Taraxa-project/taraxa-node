@@ -44,10 +44,8 @@ struct NetworkTest : BaseTest {};
 // Test creates two Network setup and verifies sending block
 // between is successfull
 TEST_F(NetworkTest, transfer_block) {
-  std::shared_ptr<Network> nw1(
-      new taraxa::Network(g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString(), addr_t()));
-  std::shared_ptr<Network> nw2(
-      new taraxa::Network(g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t()));
+  std::unique_ptr<Network> nw1(new taraxa::Network(g_conf1->network));
+  std::unique_ptr<Network> nw2(new taraxa::Network(g_conf2->network));
 
   nw1->start();
   nw2->start();
@@ -72,17 +70,15 @@ TEST_F(NetworkTest, transfer_block) {
     if (nw1->getReceivedBlocksCount()) break;
     taraxa::thisThreadSleepForMilliSeconds(100);
   }
-  nw2->stop();
+  nw2 = nullptr;
   unsigned long long num_received = nw1->getReceivedBlocksCount();
-  nw1->stop();
+  nw1 = nullptr;
   ASSERT_EQ(1, num_received);
 }
 
 TEST_F(NetworkTest, send_pbft_block) {
-  std::shared_ptr<Network> nw1(
-      new taraxa::Network(g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString(), addr_t()));
-  std::shared_ptr<Network> nw2(
-      new taraxa::Network(g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t()));
+  std::unique_ptr<Network> nw1(new taraxa::Network(g_conf1->network));
+  std::unique_ptr<Network> nw2(new taraxa::Network(g_conf2->network));
 
   nw1->start();
   nw2->start();
@@ -96,19 +92,15 @@ TEST_F(NetworkTest, send_pbft_block) {
   ASSERT_EQ(1, nw1->getTaraxaCapability()->getAllPeers().size());
   ASSERT_EQ(chain_size,
             nw1->getTaraxaCapability()->getPeer(nw1->getTaraxaCapability()->getAllPeers()[0])->pbft_chain_size_);
-  nw2->stop();
-  nw1->stop();
 }
 
 // Test creates two Network setup and verifies sending transaction
 // between is successfull
 TEST_F(NetworkTest, transfer_transaction) {
-  std::shared_ptr<Network> nw1(
-      new taraxa::Network(g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString(), addr_t()));
-  std::shared_ptr<Network> nw2(
-      new taraxa::Network(g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t()));
+  std::unique_ptr<Network> nw1(new taraxa::Network(g_conf1->network));
+  std::unique_ptr<Network> nw2(new taraxa::Network(g_conf2->network));
 
-  nw1->start(true);
+  nw1->start();
   nw2->start();
   std::vector<taraxa::bytes> transactions;
   transactions.push_back(*g_signed_trx_samples[0].rlp());
@@ -126,9 +118,9 @@ TEST_F(NetworkTest, transfer_transaction) {
     taraxa::thisThreadSleepForSeconds(1);
   }
 
-  nw2->stop();
+  nw2 = nullptr;
   unsigned long long num_received = nw1->getReceivedTransactionsCount();
-  nw1->stop();
+  nw1 = nullptr;
   ASSERT_EQ(3, num_received);
 }
 
@@ -137,14 +129,11 @@ TEST_F(NetworkTest, transfer_transaction) {
 // connections even with boot nodes down
 TEST_F(NetworkTest, save_network) {
   {
-    std::shared_ptr<Network> nw1(
-        new taraxa::Network(g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString(), addr_t()));
-    std::shared_ptr<Network> nw2(
-        new taraxa::Network(g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t()));
-    std::shared_ptr<Network> nw3(
-        new taraxa::Network(g_conf3->network, g_conf3->chain.dag_genesis_block.getHash().toString(), addr_t()));
+    std::shared_ptr<Network> nw1(new taraxa::Network(g_conf1->network));
+    std::shared_ptr<Network> nw2(new taraxa::Network(g_conf2->network, "/tmp/nw2"));
+    std::shared_ptr<Network> nw3(new taraxa::Network(g_conf3->network, "/tmp/nw3"));
 
-    nw1->start(true);
+    nw1->start();
     nw2->start();
     nw3->start();
 
@@ -156,20 +145,10 @@ TEST_F(NetworkTest, save_network) {
     ASSERT_EQ(2, nw1->getPeerCount());
     ASSERT_EQ(2, nw2->getPeerCount());
     ASSERT_EQ(2, nw3->getPeerCount());
-
-    nw1->stop();
-    nw2->stop();
-    nw3->stop();
-    nw2->saveNetwork("/tmp/nw2");
-    nw3->saveNetwork("/tmp/nw3");
   }
 
-  std::shared_ptr<Network> nw2(
-      new taraxa::Network(g_conf2->network, "/tmp/nw2", g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t(),
-                          nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, public_t(), 2000));
-  std::shared_ptr<Network> nw3(
-      new taraxa::Network(g_conf3->network, "/tmp/nw3", g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t(),
-                          nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, public_t(), 2000));
+  std::shared_ptr<Network> nw2(new taraxa::Network(g_conf2->network, "/tmp/nw2"));
+  std::shared_ptr<Network> nw3(new taraxa::Network(g_conf3->network, "/tmp/nw3"));
   nw2->start();
   nw3->start();
 

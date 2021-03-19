@@ -43,14 +43,18 @@ TEST_F(P2PTest, p2p_discovery) {
                             dev::Secret::ConstructFromStringType::FromHex);
   auto key = dev::KeyPair(secret);
   const int NUMBER_OF_NODES = 10;
-  dev::p2p::Host bootHost("TaraxaNode", key, 20001, dev::p2p::NetworkConfig("127.0.0.1", 20001, false, true));
-  bootHost.start(true);
+  dev::p2p::NetworkConfig net_conf("127.0.0.1", 20001, false, true);
+  TaraxaNetworkConfig taraxa_net_conf;
+  taraxa_net_conf.is_boot_node = true;
+  dev::p2p::Host bootHost("TaraxaNode", Network::makeENR(key, net_conf), net_conf, taraxa_net_conf);
+  bootHost.start();
   printf("Started Node id: %s\n", bootHost.id().hex().c_str());
 
   std::vector<std::shared_ptr<dev::p2p::Host>> nodes;
   for (int i = 0; i < NUMBER_OF_NODES; i++) {
-    nodes.push_back(std::make_shared<dev::p2p::Host>("TaraxaNode", dev::KeyPair::create(), 20002 + i,
-                                                     dev::p2p::NetworkConfig("127.0.0.1", 20002 + i, false, true)));
+    dev::p2p::NetworkConfig net_conf("127.0.0.1", 20002 + i, false, true);
+    nodes.push_back(
+        std::make_shared<dev::p2p::Host>("TaraxaNode", Network::makeENR(dev::KeyPair::create(), net_conf), net_conf));
     nodes[i]->start();
     nodes[i]->addNode(dev::Public("7b1fcf0ec1078320117b96e9e9ad9032c06d030cf4024a598347a4"
                                   "623a14a421d4"
@@ -80,25 +84,24 @@ to each other and that a test packet message can be sent from one host
 to the other using TaraxaCapability
 */
 TEST_F(P2PTest, capability_send_test) {
-  const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
   int const step = 10;
   const char *const localhost = "127.0.0.1";
   dev::p2p::NetworkConfig prefs1(localhost, 10002, false, true);
   dev::p2p::NetworkConfig prefs2(localhost, 10003, false, true);
-  dev::p2p::Host host1("Test", 10002, prefs1);
-  dev::p2p::Host host2("Test", 10003, prefs2);
+  dev::p2p::Host host1("Test", Network::makeENR(KeyPair::create(), prefs1), prefs1);
+  dev::p2p::Host host2("Test", Network::makeENR(KeyPair::create(), prefs2), prefs2);
   NetworkConfig network_conf;
   network_conf.network_simulated_delay = 0;
   network_conf.network_bandwidth = 40;
   network_conf.network_transaction_interval = 1000;
-  auto thc1 = make_shared<TaraxaCapability>(host1, network_conf, GENESIS, false, addr_t(), nullptr, nullptr, nullptr,
-                                            nullptr, nullptr, nullptr, nullptr, 2000);
+  util::ThreadPool tp(1, false);
+  auto thc1 = make_shared<TaraxaCapability>(host1, tp.unsafe_get_io_context(), network_conf);
   host1.registerCapability(thc1);
-  auto thc2 = make_shared<TaraxaCapability>(host2, network_conf, GENESIS, false, addr_t(), nullptr, nullptr, nullptr,
-                                            nullptr, nullptr, nullptr, nullptr, 2000);
+  auto thc2 = make_shared<TaraxaCapability>(host2, tp.unsafe_get_io_context(), network_conf);
   host2.registerCapability(thc2);
   host1.start();
   host2.start();
+  tp.start();
   auto port1 = host1.listenPort();
   auto port2 = host2.listenPort();
   EXPECT_NE(port1, 0);
@@ -142,25 +145,24 @@ to each other and that a block packet message can be sent from one host
 to the other using TaraxaCapability
 */
 TEST_F(P2PTest, capability_send_block) {
-  const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
   int const step = 10;
   const char *const localhost = "127.0.0.1";
   dev::p2p::NetworkConfig prefs1(localhost, 10002, false, true);
   dev::p2p::NetworkConfig prefs2(localhost, 10003, false, true);
-  dev::p2p::Host host1("Test", 10002, prefs1);
-  dev::p2p::Host host2("Test", 10003, prefs2);
+  dev::p2p::Host host1("Test", Network::makeENR(KeyPair::create(), prefs1), prefs1);
+  dev::p2p::Host host2("Test", Network::makeENR(KeyPair::create(), prefs2), prefs2);
   NetworkConfig network_conf;
   network_conf.network_simulated_delay = 0;
   network_conf.network_bandwidth = 40;
   network_conf.network_transaction_interval = 1000;
-  auto thc1 = make_shared<TaraxaCapability>(host1, network_conf, GENESIS, false, addr_t(), nullptr, nullptr, nullptr,
-                                            nullptr, nullptr, nullptr, nullptr, 2000);
+  util::ThreadPool tp(1, false);
+  auto thc1 = make_shared<TaraxaCapability>(host1, tp.unsafe_get_io_context(), network_conf);
   host1.registerCapability(thc1);
-  auto thc2 = make_shared<TaraxaCapability>(host2, network_conf, GENESIS, false, addr_t(), nullptr, nullptr, nullptr,
-                                            nullptr, nullptr, nullptr, nullptr, 2000);
+  auto thc2 = make_shared<TaraxaCapability>(host2, tp.unsafe_get_io_context(), network_conf);
   host2.registerCapability(thc2);
   host1.start();
   host2.start();
+  tp.start();
   auto port1 = host1.listenPort();
   auto port2 = host2.listenPort();
   EXPECT_NE(port1, 0);
@@ -217,34 +219,39 @@ propagated to all other hosts. Test verifies that each node has received
 the block
 */
 TEST_F(P2PTest, block_propagate) {
-  const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
   int const nodeCount = 10;
   const char *const localhost = "127.0.0.1";
   dev::p2p::NetworkConfig prefs1(localhost, 10002, false, true);
   std::vector<dev::p2p::NetworkConfig> vPrefs;
-  for (int i = 0; i < nodeCount; i++) vPrefs.push_back(dev::p2p::NetworkConfig(localhost, 10002 + i + 1, false, true));
-  dev::p2p::Host host1("Test", 10002, prefs1);
+  for (int i = 0; i < nodeCount; i++) {
+    vPrefs.push_back(dev::p2p::NetworkConfig(localhost, 10002 + i + 1, false, true));
+  }
+  TaraxaNetworkConfig taraxa_net_conf_1;
+  taraxa_net_conf_1.is_boot_node = true;
+  dev::p2p::Host host1("Test", Network::makeENR(KeyPair::create(), prefs1), prefs1, taraxa_net_conf_1);
   std::vector<shared_ptr<Host>> vHosts;
-  for (int i = 0; i < nodeCount; i++) vHosts.push_back(make_shared<dev::p2p::Host>("Test", 10002 + i + 1, vPrefs[i]));
+  for (int i = 0; i < nodeCount; i++) {
+    vHosts.push_back(make_shared<dev::p2p::Host>("Test", Network::makeENR(KeyPair::create(), vPrefs[i]), vPrefs[i]));
+  }
   NetworkConfig network_conf;
   network_conf.network_simulated_delay = 0;
   network_conf.network_bandwidth = 40;
   network_conf.network_transaction_interval = 1000;
 
-  auto thc1 = make_shared<TaraxaCapability>(host1, network_conf, GENESIS, false, addr_t(), nullptr, nullptr, nullptr,
-                                            nullptr, nullptr, nullptr, nullptr, 2000);
+  util::ThreadPool tp(1, false);
+  auto thc1 = make_shared<TaraxaCapability>(host1, tp.unsafe_get_io_context(), network_conf);
   host1.registerCapability(thc1);
   std::vector<std::shared_ptr<TaraxaCapability>> vCapabilities;
   for (int i = 0; i < nodeCount; i++) {
-    vCapabilities.push_back(make_shared<TaraxaCapability>(*vHosts[i], network_conf, GENESIS, false, addr_t(), nullptr,
-                                                          nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, 2000));
+    vCapabilities.push_back(make_shared<TaraxaCapability>(*vHosts[i], tp.unsafe_get_io_context(), network_conf));
     vHosts[i]->registerCapability(vCapabilities[i]);
   }
-  host1.start(true);
+  host1.start();
   for (int i = 0; i < nodeCount; i++) {
     vHosts[i]->start();
     this_thread::sleep_for(chrono::milliseconds(10));
   }
+  tp.start();
   printf("Starting %d hosts\n", nodeCount);
   auto port1 = host1.listenPort();
   EXPECT_NE(port1, 0);

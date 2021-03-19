@@ -46,10 +46,7 @@ PbftManager::PbftManager(PbftConfig const &conf, std::string const &genesis, add
 
 PbftManager::~PbftManager() { stop(); }
 
-void PbftManager::setNetwork(std::shared_ptr<Network> network) {
-  network_ = network;
-  capability_ = network ? network->getTaraxaCapability() : nullptr;
-}
+void PbftManager::setNetwork(std::shared_ptr<Network> network) { network_.reset(network); }
 
 void PbftManager::start() {
   if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
@@ -313,8 +310,9 @@ bool PbftManager::resetRound_() {
     last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
     current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
 
+    auto syncing = network_.visit([](auto net) { return net->getTaraxaCapability()->syncing_; });
     // p2p connection syncing should cover this situation, sync here for safe
-    if (consensus_pbft_round > local_round + 1 && capability_->syncing_ == false) {
+    if (consensus_pbft_round > local_round + 1 && !syncing) {
       LOG(log_nf_) << "Quorum determined round " << consensus_pbft_round << " > 1 + current round " << local_round
                    << " local round, need to broadcast request for missing certified blocks";
       // NOTE: Advance round and step before calling sync to make sure
@@ -715,7 +713,8 @@ void PbftManager::certifyBlock_() {
           // Get partition, need send request to get missing pbft blocks from peers
           LOG(log_er_)
               << "Soft voted block for this round appears to be invalid, we must be out of sync with pbft chain";
-          if (!capability_->syncing_) {
+          auto syncing = network_.visit([](auto net) { return net->getTaraxaCapability()->syncing_; });
+          if (!syncing) {
             syncPbftChainFromPeers_(false);
           }
         }
@@ -811,7 +810,8 @@ void PbftManager::secondFinish_() {
     }
   }
 
-  if (step_ > MAX_STEPS && !capability_->syncing_ && !syncRequestedAlreadyThisStep_()) {
+  auto syncing = network_.visit([](auto net) { return net->getTaraxaCapability()->syncing_; });
+  if (step_ > MAX_STEPS && !syncing && !syncRequestedAlreadyThisStep_()) {
     LOG(log_wr_) << "Suspect PBFT manger stucked, inaccurate 2t+1, need to broadcast request for missing blocks";
     syncPbftChainFromPeers_(true);
   }
@@ -974,7 +974,7 @@ void PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteTypes 
   LOG(log_dg_) << "vote block hash: " << blockhash << " vote type: " << vote_type << " round: " << round
                << " step: " << step << " vote hash " << vote.getHash();
   // pbft vote broadcast
-  network_->onNewPbftVote(vote);
+  network_.visit([&](auto net) { net->onNewPbftVote(vote); });
 }
 
 std::pair<blk_hash_t, bool> PbftManager::softVotedBlockForRound_(std::vector<taraxa::Vote> &votes, uint64_t round) {
@@ -1046,7 +1046,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
   // push pbft block
   pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
   // broadcast pbft block
-  network_->onNewPbftBlock(*pbft_block);
+  network_.visit([&](auto net) { net->onNewPbftBlock(*pbft_block); });
 
   LOG(log_dg_) << node_addr_ << " propose PBFT block succussful! "
                << " in round: " << getPbftRound() << " in step: " << step_ << " PBFT block: " << pbft_block;
@@ -1135,11 +1135,12 @@ void PbftManager::syncPbftChainFromPeers_(bool force) {
     return;
   }
 
-  if (!capability_->syncing_ && !syncRequestedAlreadyThisStep_()) {
+  auto syncing = network_.visit([](auto net) { return net->getTaraxaCapability()->syncing_; });
+  if (!syncing && !syncRequestedAlreadyThisStep_()) {
     auto round = getPbftRound();
     LOG(log_nf_) << "Restarting pbft sync. In round " << round << ", in step " << step_ << ", forced " << force
                  << ", Send request to ask missing blocks";
-    capability_->restartSyncingPbft(force);
+    network_.visit([&](auto net) { net->getTaraxaCapability()->restartSyncingPbft(force); });
     pbft_round_last_requested_sync_ = round;
     pbft_step_last_requested_sync_ = step_;
   }
@@ -1161,7 +1162,7 @@ void PbftManager::syncNextVotes_() {
   if (!nextVotesSyncAlreadyThisRoundStep_()) {
     auto round = getPbftRound();
     LOG(log_wr_) << "Syncing next votes. Send syncing request at round " << round << ", step " << step_;
-    capability_->syncPbftNextVotes(round);
+    network_.visit([&](auto net) { net->getTaraxaCapability()->syncPbftNextVotes(round); });
     pbft_round_last_next_votes_sync_ = round;
     pbft_step_last_next_votes_sync_ = step_;
   }
@@ -1184,8 +1185,8 @@ bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(PbftBlock const &pbft_b
   auto last_period = pbft_chain_->getPbftChainSize();
   LOG(log_nf_) << "DAG blocks have not sync yet. In period: " << last_period << ", anchor block hash " << anchor_hash
                << " is not found locally";
-  if (state_ == finish_state && !have_executed_this_round_ && !capability_->syncing_ &&
-      !syncRequestedAlreadyThisStep_()) {
+  auto syncing = network_.visit([](auto net) { return net->getTaraxaCapability()->syncing_; });
+  if (state_ == finish_state && !have_executed_this_round_ && !syncing && !syncRequestedAlreadyThisStep_()) {
     LOG(log_nf_) << "DAG blocks have not sync yet. In period: " << last_period << " PBFT block anchor: " << anchor_hash
                  << " .. Triggering sync request";
     syncPbftChainFromPeers_(true);
@@ -1199,7 +1200,8 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cer
     // Get partition, need send request to get missing pbft blocks from peers
     LOG(log_er_) << "Cert voted block " << cert_voted_block_hash
                  << " is invalid, we must be out of sync with pbft chain";
-    if (capability_->syncing_ == false) {
+    auto syncing = network_.visit([](auto net) { return net->getTaraxaCapability()->syncing_; });
+    if (!syncing) {
       syncPbftChainFromPeers_(false);
     }
     return false;

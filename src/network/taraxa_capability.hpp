@@ -102,66 +102,28 @@ class TaraxaPeer : public boost::noncopyable {
   uint16_t status_check_count_ = 0;
 };
 
-class TaraxaCapability : public CapabilityFace, public Worker {
- public:
-  TaraxaCapability(Host &_host, NetworkConfig &_conf, std::string const &genesis, bool const &performance_log,
-                   addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
-                   std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
-                   std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
-                   std::shared_ptr<TransactionManager> trx_mgr, uint32_t lambda_ms_min)
-      : Worker("taraxa"),
-        host_(_host),
-        conf_(_conf),
-        genesis_(genesis),
-        performance_log_(performance_log),
-        urng_(std::mt19937_64(std::random_device()())),
-        delay_rng_(std::mt19937(std::random_device()())),
-        random_dist_(std::uniform_int_distribution<std::mt19937::result_type>(90, 110)),
-        db_(db),
-        pbft_mgr_(pbft_mgr),
-        pbft_chain_(pbft_chain),
-        vote_mgr_(vote_mgr),
-        dag_mgr_(dag_mgr),
-        dag_blk_mgr_(dag_blk_mgr),
-        trx_mgr_(trx_mgr),
-        lambda_ms_min_(lambda_ms_min) {
-    LOG_OBJECTS_CREATE("TARCAP");
-    LOG_OBJECTS_CREATE_SUB("PBFTSYNC", pbft_sync);
-    LOG_OBJECTS_CREATE_SUB("DAGSYNC", dag_sync);
-    LOG_OBJECTS_CREATE_SUB("NEXTVOTESSYNC", next_votes_sync);
-    LOG_OBJECTS_CREATE_SUB("DAGPRP", dag_prp);
-    LOG_OBJECTS_CREATE_SUB("TRXPRP", trx_prp);
-    LOG_OBJECTS_CREATE_SUB("PBFTPRP", pbft_prp);
-    LOG_OBJECTS_CREATE_SUB("VOTEPRP", vote_prp);
-    LOG_OBJECTS_CREATE_SUB("NETPER", net_per);
-    for (uint8_t it = 0; it != PacketCount; it++) {
-      packet_count[it] = 0;
-      packet_size[it] = 0;
-      unique_packet_count[it] = 0;
-    }
-  }
+struct TaraxaCapability : CapabilityFace {
+  TaraxaCapability(Host &_host, ba::io_service &io_service, NetworkConfig const &_conf,
+                   std::shared_ptr<DbStorage> db = {}, std::shared_ptr<PbftManager> pbft_mgr = {},
+                   std::shared_ptr<PbftChain> pbft_chain = {}, std::shared_ptr<VoteManager> vote_mgr = {},
+                   std::shared_ptr<DagManager> dag_mgr = {}, std::shared_ptr<DagBlockManager> dag_blk_mgr = {},
+                   std::shared_ptr<TransactionManager> trx_mgr = {}, bool performance_log = false,
+                   addr_t const &node_addr = {});
+
   virtual ~TaraxaCapability() = default;
+
   std::string name() const override { return "taraxa"; }
   unsigned version() const override { return 1; }
   unsigned messageCount() const override { return PacketCount; }
-
-  void onStarting() override;
-  void onStopping() override {
-    stopped_ = true;
-    if (conf_.network_simulated_delay > 0) io_service_.stop();
-    dag_blk_mgr_ = nullptr;
-    vote_mgr_ = nullptr;
-    dag_mgr_ = nullptr;
-    trx_mgr_ = nullptr;
-  }
 
   void onConnect(NodeID const &_nodeID, u256 const &) override;
   void syncPeerPbft(NodeID const &_nodeID, unsigned long height_to_sync);
   void restartSyncingPbft(bool force = false);
   void delayedPbftSync(NodeID _nodeID, int counter);
   std::pair<bool, blk_hash_t> checkDagBlockValidation(DagBlock const &block);
-  bool interpretCapabilityPacket(NodeID const &_nodeID, unsigned _id, RLP const &_r) override;
-  bool interpretCapabilityPacketImpl(NodeID const &_nodeID, unsigned _id, RLP const &_r);
+  void interpretCapabilityPacket(NodeID const &_nodeID, unsigned _id, RLP const &_r) override;
+  void interpretCapabilityPacket_(NodeID const &_nodeID, unsigned _id, RLP const &_r);
+  void interpretCapabilityPacketImpl(NodeID const &_nodeID, unsigned _id, RLP const &_r);
   void onDisconnect(NodeID const &_nodeID) override;
   void sendTestMessage(NodeID const &_id, int _x);
   void sendStatus(NodeID const &_id, bool _initial);
@@ -176,21 +138,18 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   std::pair<int, int> retrieveTestData(NodeID const &_id);
   void sendBlock(NodeID const &_id, taraxa::DagBlock block);
   void sendSyncedMessage();
-  void sendSyncedResponseMessage(NodeID const &_id);
   void sendBlocks(NodeID const &_id, std::vector<std::shared_ptr<DagBlock>> blocks);
-  void sendLeavesBlocks(NodeID const &_id, std::vector<std::string> blocks);
   void sendBlockHash(NodeID const &_id, taraxa::DagBlock block);
   void requestBlock(NodeID const &_id, blk_hash_t hash);
   void requestPendingDagBlocks(NodeID const &_id);
   void sendTransactions(NodeID const &_id, std::vector<taraxa::bytes> const &transactions);
-  bool processSyncDagBlocks(NodeID const &_id);
 
   std::map<blk_hash_t, taraxa::DagBlock> getBlocks();
   std::map<trx_hash_t, taraxa::Transaction> getTransactions();
 
   void doBackgroundWork();
   void sendTransactions();
-  std::string packetToPacketName(byte const &packet) const;
+  std::string packetTypeToString(unsigned int _packetType) const override;
 
   // PBFT
   void onNewPbftVote(taraxa::Vote const &vote);
@@ -214,7 +173,11 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   NodeID requesting_pending_dag_blocks_node_id_;
 
  private:
+  void handle_read_exception(NodeID const &_nodeID, unsigned _id, RLP const &_r);
+
   Host &host_;
+  boost::asio::io_service &io_service_;
+
   std::unordered_map<NodeID, int> cnt_received_messages_;
   std::unordered_map<NodeID, int> test_sums_;
 
@@ -236,18 +199,13 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   std::unordered_map<NodeID, std::shared_ptr<TaraxaPeer>> peers_;
   mutable boost::shared_mutex peers_mutex_;
   NetworkConfig conf_;
-  boost::thread_group delay_threads_;
-  boost::asio::io_service io_service_;
-  std::shared_ptr<boost::asio::io_service::work> io_work_;
   unsigned long peer_syncing_pbft_chain_size_ = 1;
   uint64_t dag_level_ = 0;
   uint64_t pbft_sync_period_ = 1;
   NodeID peer_syncing_pbft;
-  std::string genesis_;
   bool performance_log_;
   mutable std::mt19937_64 urng_;  // Mersenne Twister psuedo-random number generator
   std::mt19937 delay_rng_;
-  bool stopped_ = false;
   std::uniform_int_distribution<std::mt19937::result_type> random_dist_;
   uint16_t check_status_interval_ = 0;
 
