@@ -100,7 +100,6 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object,
   }
   network.network_address = getConfigDataAsString(root, {"network_address"});
   network.network_tcp_port = getConfigDataAsUInt(root, {"network_tcp_port"});
-  network.network_udp_port = getConfigDataAsUInt(root, {"network_udp_port"});
   network.network_simulated_delay = getConfigDataAsUInt(root, {"network_simulated_delay"});
   network.network_transaction_interval = getConfigDataAsUInt(root, {"network_transaction_interval"});
   network.network_min_dag_block_broadcast = getConfigDataAsUInt(root, {"network_min_dag_block_broadcast"}, true, 5);
@@ -109,12 +108,10 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object,
   network.network_ideal_peer_count = getConfigDataAsUInt(root, {"network_ideal_peer_count"});
   network.network_max_peer_count = getConfigDataAsUInt(root, {"network_max_peer_count"});
   network.network_sync_level_size = getConfigDataAsUInt(root, {"network_sync_level_size"});
-  network.network_encrypted = getConfigDataAsUInt(root, {"network_encrypted"}) != 0;
   for (auto &item : root["network_boot_nodes"]) {
     NodeConfig node;
     node.id = getConfigDataAsString(item, {"id"});
     node.ip = getConfigDataAsString(item, {"ip"});
-    node.udp_port = getConfigDataAsUInt(item, {"udp_port"});
     node.tcp_port = getConfigDataAsUInt(item, {"tcp_port"});
     network.network_boot_nodes.push_back(node);
   }
@@ -164,7 +161,6 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object,
 
   // Network logging in p2p library creates performance issues even with
   // channel/verbosity off Disable it completely in net channel is not present
-  network.net_log = false;
   if (!root["logging"].isNull()) {
     for (auto &item : root["logging"]["configurations"]) {
       auto on = getConfigDataAsBoolean(item, {"on"});
@@ -175,9 +171,6 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object,
         for (auto &ch : item["channels"]) {
           std::pair<std::string, uint16_t> channel;
           channel.first = getConfigDataAsString(ch, {"name"});
-          if (channel.first == "net") {
-            network.net_log = true;
-          }
           if (channel.first == "NETPER") {
             network.network_performance_log = true;
           }
@@ -239,9 +232,18 @@ bool FullNodeConfig::validate() {
       return false;
     }
   }
-
+  // TODO validate that the boot node list doesn't contain self (although it's not critical)
+  for (auto const &node : network.network_boot_nodes) {
+    if (node.ip.empty()) {
+      cerr << "Boot node ip is empty:" << node.ip << ":" << node.tcp_port;
+      return false;
+    }
+    if (node.tcp_port == 0 || node.tcp_port > 65535) {
+      cerr << "Boot node port invalid: " << node.tcp_port;
+      return false;
+    }
+  }
   // TODO: add validation of other config values
-
   return true;
 }
 
@@ -249,7 +251,6 @@ std::ostream &operator<<(std::ostream &strm, NodeConfig const &conf) {
   strm << "  [Node Config] " << std::endl;
   strm << "    node_id: " << conf.id << std::endl;
   strm << "    node_ip: " << conf.ip << std::endl;
-  strm << "    node_udp_port: " << conf.udp_port << std::endl;
   strm << "    node_tcp_port: " << conf.tcp_port << std::endl;
   return strm;
 }
@@ -260,7 +261,6 @@ std::ostream &operator<<(std::ostream &strm, NetworkConfig const &conf) {
   strm << "  network_is_boot_node: " << conf.network_is_boot_node << std::endl;
   strm << "  network_address: " << conf.network_address << std::endl;
   strm << "  network_tcp_port: " << conf.network_tcp_port << std::endl;
-  strm << "  network_udp_port: " << conf.network_udp_port << std::endl;
   strm << "  network_simulated_delay: " << conf.network_simulated_delay << std::endl;
   strm << "  network_transaction_interval: " << conf.network_transaction_interval << std::endl;
   strm << "  network_bandwidth: " << conf.network_bandwidth << std::endl;

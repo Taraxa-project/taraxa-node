@@ -46,7 +46,7 @@ std::pair<bool, std::string> TransactionManager::verifyTransaction(Transaction c
 std::pair<bool, std::string> TransactionManager::insertTransaction(Transaction const &trx, bool verify) {
   auto ret = insertTrx(trx, verify);
   if (ret.first && conf_.network.network_transaction_interval == 0) {
-    network_->onNewTransactions({*trx.rlp()});
+    network_.visit([&](auto net) { net->onNewTransactions({*trx.rlp()}); });
   }
   return ret;
 }
@@ -103,7 +103,7 @@ void TransactionManager::verifyQueuedTrxs() {
   }
 }
 
-void TransactionManager::setNetwork(std::shared_ptr<Network> network) { network_ = network; }
+void TransactionManager::setNetwork(std::shared_ptr<Network> network) { network_.reset(network); }
 
 void TransactionManager::setWsServer(std::shared_ptr<WSServer> ws_server) { ws_server_ = ws_server; }
 

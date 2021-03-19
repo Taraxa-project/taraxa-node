@@ -206,6 +206,7 @@ $(DIST)/secp256k1.ok
 	$(MAKE) -C $(CURDIR) UPDATE_SUBMODULES=0 $(ALETH_OBJS); \
 	ar -rcs $${STAGE_DIR}/lib/lib$${NAME}.a $(ALETH_OBJS); \
 	copy . "lib*/*.h" $${STAGE_DIR}/include; \
+	copy . "lib*/*.hpp" $${STAGE_DIR}/include; \
 	$(SUBMODULE_BUILD_END);
 
 # ====================================================

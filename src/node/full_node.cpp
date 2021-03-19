@@ -109,9 +109,8 @@ void FullNode::init() {
           dag_blk_mgr_, final_chain_, executor_, kp_.secret(), conf_.vrf_secret);
   emplace(blk_proposer_, conf_.test_params.block_proposer, conf_.chain.vdf, dag_mgr_, trx_mgr_, dag_blk_mgr_,
           final_chain_, node_addr, getSecretKey(), getVrfSecretKey(), log_time_);
-  emplace(network_, conf_.network, conf_.net_file_path().string(), kp_.secret(), genesis_hash, node_addr, db_,
-          pbft_mgr_, pbft_chain_, vote_mgr_, next_votes_mgr_, dag_mgr_, dag_blk_mgr_, trx_mgr_, kp_.pub(),
-          conf_.chain.pbft.lambda_ms_min);
+  emplace(network_, conf_.network, conf_.net_file_path().string(), kp_, db_, pbft_mgr_, pbft_chain_, vote_mgr_,
+          next_votes_mgr_, dag_mgr_, dag_blk_mgr_, trx_mgr_);
 
   // Inits rpc related members
   if (conf_.rpc) {
@@ -156,7 +155,7 @@ void FullNode::start() {
     LOG(log_nf_) << "Starting a boot node ..." << std::endl;
   }
   if (!conf_.test_params.rebuild_db) {
-    network_->start(conf_.network.network_is_boot_node);
+    network_->start();
   }
   trx_mgr_->setNetwork(network_);
   trx_mgr_->start();
@@ -232,13 +231,9 @@ void FullNode::close() {
     return;
   }
   blk_proposer_->stop();
-  blk_proposer_->setNetwork(nullptr);
   pbft_mgr_->stop();
-  pbft_mgr_->setNetwork(nullptr);
   executor_->stop();
   trx_mgr_->stop();
-  trx_mgr_->setNetwork(nullptr);
-  network_->stop();
   dag_blk_mgr_->stop();
   for (auto &t : block_workers_) {
     t.join();
