@@ -144,7 +144,10 @@ class VoteManager {
 
   bool voteValidation(blk_hash_t const& last_pbft_block_hash, Vote const& vote, size_t const valid_sortition_players,
                       size_t const sortition_threshold) const;
+
   bool addVote(taraxa::Vote const& vote);
+  void addVotes(std::vector<Vote> const& votes);
+
   void cleanupVotes(uint64_t pbft_round);
   void clearUnverifiedVotesTable();
   uint64_t getUnverifiedVotesSize() const;
@@ -172,6 +175,46 @@ class VoteManager {
 
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<FinalChain> final_chain_;
+
+  LOG_OBJECTS_DEFINE;
+};
+
+class NextVotesForPreviousRound {
+ public:
+  NextVotesForPreviousRound(addr_t node_addr, std::shared_ptr<DbStorage> db);
+
+  void clear();
+
+  bool find(blk_hash_t next_vote_hash);
+
+  bool haveEnoughVotesForNullBlockHash() const;
+
+  blk_hash_t getVotedValue() const;
+
+  std::vector<Vote> getNextVotes();
+
+  size_t getNextVotesSize() const;
+  void setNextVotesSize(size_t const size);
+
+  void update(std::vector<Vote> const& next_votes, size_t const pbft_2t_plus_1);
+
+  void updateWithSyncedVotes(std::vector<Vote> const& votes, size_t const pbft_2t_plus_1);
+
+ private:
+  using uniqueLock_ = boost::unique_lock<boost::shared_mutex>;
+  using sharedLock_ = boost::shared_lock<boost::shared_mutex>;
+  using upgradableLock_ = boost::upgrade_lock<boost::shared_mutex>;
+  using upgradeLock_ = boost::upgrade_to_unique_lock<boost::shared_mutex>;
+
+  mutable boost::shared_mutex access_;
+
+  std::shared_ptr<DbStorage> db_;
+
+  bool enough_votes_for_null_block_hash_;
+  blk_hash_t voted_value_;  // For value is not null block hash
+  size_t next_votes_size_;
+  std::unordered_map<blk_hash_t, std::vector<Vote>> next_votes_;  // <voted PBFT block hash, next votes list>
+  std::unordered_set<blk_hash_t> next_votes_set_;
 
   LOG_OBJECTS_DEFINE;
 };
