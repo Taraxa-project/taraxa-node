@@ -100,6 +100,7 @@ set(SOURCES
         consensus/pbft_manager.hpp
 
         # ---- private sources -----
+        util/thread_pool.cpp
         transaction_manager/transaction.cpp
         consensus/pbft_manager.cpp
         storage/db_storage.cpp

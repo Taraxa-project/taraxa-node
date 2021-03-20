@@ -129,14 +129,13 @@ class PbftManager {
   // Using to check if PBFT block has been proposed already in one period
   std::pair<blk_hash_t, bool> proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
 
-  std::unique_ptr<std::thread> daemon_;
-  std::shared_ptr<DbStorage> db_;
-  std::shared_ptr<VoteManager> vote_mgr_;
-  std::shared_ptr<NextVotesForPreviousRound> previous_round_next_votes_;
-  std::shared_ptr<PbftChain> pbft_chain_;
-  std::shared_ptr<DagManager> dag_mgr_;
-  std::shared_ptr<Network> network_;
-  std::shared_ptr<TaraxaCapability> capability_;
+  std::shared_ptr<DbStorage> db_ = nullptr;
+  std::unique_ptr<std::thread> daemon_ = nullptr;
+  std::shared_ptr<VoteManager> vote_mgr_ = nullptr;
+  std::shared_ptr<NextVotesForPreviousRound> previous_round_next_votes_ = nullptr;
+  std::shared_ptr<PbftChain> pbft_chain_ = nullptr;
+  std::shared_ptr<DagManager> dag_mgr_ = nullptr;
+  util::WeakRef<Network> network_;
   std::shared_ptr<DagBlockManager> dag_blk_mgr_;
   std::shared_ptr<FinalChain> final_chain_;
   std::shared_ptr<Executor> executor_;

@@ -266,8 +266,8 @@ Json::Value Test::get_all_nodes() {
     if (auto node = full_node_.lock()) {
       auto nodes = node->getNetwork()->getAllNodes();
       for (auto const &n : nodes) {
-        res = res.asString() + n.id.toString() + " " + n.endpoint.address().to_string() + ":" +
-              std::to_string(n.endpoint.tcpPort()) + "\n";
+        res = res.asString() + n.id().toString() + " " + n.endpoint().address().to_string() + ":" +
+              std::to_string(n.endpoint().tcpPort()) + "\n";
       }
     }
   } catch (std::exception &e) {

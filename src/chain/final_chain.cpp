@@ -91,7 +91,7 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
 
   AdvanceResult advance(DbStorage::BatchPtr batch, Address const& author, uint64_t timestamp,
                         Transactions const& transactions) override {
-    constexpr auto gas_limit = std::numeric_limits<uint64_t>::max();
+    constexpr auto gas_limit = ((uint64_t)1 << 53) - 1;
     auto const& state_transition_result = state_api.transition_state(
         {
             author,
