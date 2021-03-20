@@ -233,4 +233,3 @@ class TestClient : public jsonrpc::Client {
 
 }  // namespace net
 }  // namespace taraxa
-
