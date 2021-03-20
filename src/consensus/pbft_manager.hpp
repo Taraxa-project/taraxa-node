@@ -14,7 +14,6 @@
 #include "vote.hpp"
 #include "vrf_wrapper.hpp"
 
-// total TARAXA COINS (2^53 -1) "1fffffffffffff"
 #define NULL_BLOCK_HASH blk_hash_t(0)
 #define POLLING_INTERVAL_ms 100  // milliseconds...
 #define MAX_STEPS 13
@@ -31,9 +30,9 @@ class PbftManager {
 
   PbftManager(PbftConfig const &conf, std::string const &genesis, addr_t node_addr, std::shared_ptr<DbStorage> db,
               std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
-              std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
-              std::shared_ptr<FinalChain> final_chain, std::shared_ptr<Executor> executor, secret_t node_sk,
-              vrf_sk_t vrf_sk);
+              std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr, std::shared_ptr<DagManager> dag_mgr,
+              std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<FinalChain> final_chain,
+              std::shared_ptr<Executor> executor, secret_t node_sk, vrf_sk_t vrf_sk);
   ~PbftManager();
 
   void setNetwork(std::shared_ptr<Network> network);
@@ -50,8 +49,6 @@ class PbftManager {
   size_t getTwoTPlusOne() const;
   void setTwoTPlusOne(size_t const two_t_plus_one);
   void setPbftStep(size_t const pbft_step);
-  void getNextVotesForLastRound(std::vector<Vote> &next_votes_bundle);
-  void updateNextVotesForRound(std::vector<Vote> next_votes);
 
   Vote generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, uint64_t period, size_t step,
                     blk_hash_t const &last_pbft_block_hash);
@@ -98,17 +95,11 @@ class PbftManager {
 
   std::pair<blk_hash_t, bool> blockWithEnoughVotes_(std::vector<Vote> const &votes) const;
 
-  std::map<size_t, std::vector<Vote>, std::greater<size_t>> getVotesOfTypeFromVotesForRoundByStep_(
-      PbftVoteTypes vote_type, std::vector<Vote> &votes, uint64_t round, std::pair<blk_hash_t, bool> blockhash);
   std::vector<Vote> getVotesOfTypeFromVotesForRoundAndStep_(PbftVoteTypes vote_type, std::vector<Vote> &votes,
                                                             uint64_t round, size_t step,
                                                             std::pair<blk_hash_t, bool> blockhash);
 
-  std::pair<blk_hash_t, bool> nextVotedBlockForRoundAndStep_(std::vector<Vote> &votes, uint64_t round);
-
   void placeVote_(blk_hash_t const &blockhash, PbftVoteTypes vote_type, uint64_t round, size_t step);
-
-  std::pair<blk_hash_t, bool> softVotedBlockForRound_(std::vector<Vote> &votes, uint64_t round);
 
   std::pair<blk_hash_t, bool> proposeMyPbftBlock_();
 
@@ -120,9 +111,7 @@ class PbftManager {
 
   void syncPbftChainFromPeers_(bool force);
 
-  bool nextVotesSyncAlreadyThisRoundStep_();
-
-  void syncNextVotes_();
+  bool broadcastAlreadyThisStep_() const;
 
   bool comparePbftBlockScheduleWithDAGblocks_(blk_hash_t const &pbft_block_hash);
   bool comparePbftBlockScheduleWithDAGblocks_(PbftBlock const &pbft_block);
@@ -143,6 +132,7 @@ class PbftManager {
   std::shared_ptr<DbStorage> db_ = nullptr;
   std::unique_ptr<std::thread> daemon_ = nullptr;
   std::shared_ptr<VoteManager> vote_mgr_ = nullptr;
+  std::shared_ptr<NextVotesForPreviousRound> previous_round_next_votes_ = nullptr;
   std::shared_ptr<PbftChain> pbft_chain_ = nullptr;
   std::shared_ptr<DagManager> dag_mgr_ = nullptr;
   util::WeakRef<Network> network_;
@@ -167,15 +157,12 @@ class PbftManager {
   u_long STEP_4_DELAY = 0;  // constant
 
   blk_hash_t pbft_chain_last_block_hash_ = blk_hash_t(0);
-  std::pair<blk_hash_t, bool> next_voted_block_from_previous_round_ = std::make_pair(NULL_BLOCK_HASH, false);
 
   blk_hash_t own_starting_value_for_round_ = NULL_BLOCK_HASH;
   // <round, cert_voted_block_hash>
   std::unordered_map<size_t, blk_hash_t> cert_voted_values_for_round_;
-  // <round, block_hash_added_into_chain>
-  std::unordered_map<size_t, blk_hash_t> push_block_values_for_round_;
   std::pair<blk_hash_t, bool> soft_voted_block_for_this_round_ = std::make_pair(NULL_BLOCK_HASH, false);
-  std::unordered_map<vote_hash_t, Vote> next_votes_for_last_round_;
+
   std::vector<Vote> votes_;
 
   time_point round_clock_initial_datetime_;
@@ -193,10 +180,13 @@ class PbftManager {
   bool go_finish_state_ = false;
   bool loop_back_finish_state_ = false;
 
+  uint64_t round_began_wait_proposal_block_ = 0;
+  size_t max_wait_rounds_for_proposal_block_ = 5;
+
   uint64_t pbft_round_last_requested_sync_ = 0;
   size_t pbft_step_last_requested_sync_ = 0;
-  uint64_t pbft_round_last_next_votes_sync_ = 0;
-  size_t pbft_step_last_next_votes_sync_ = 0;
+  uint64_t pbft_round_last_broadcast_ = 0;
+  size_t pbft_step_last_broadcast_ = 0;
 
   size_t pbft_last_observed_synced_queue_size_ = 0;
 
@@ -211,7 +201,6 @@ class PbftManager {
   std::condition_variable stop_cv_;
   std::mutex stop_mtx_;
   mutable boost::shared_mutex round_access_;
-  mutable boost::shared_mutex next_votes_access_;
 
   // TODO: will remove later, TEST CODE
   void countVotes_();

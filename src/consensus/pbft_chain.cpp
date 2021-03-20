@@ -180,11 +180,6 @@ blk_hash_t PbftChain::getLastPbftBlockHash() const {
 }
 
 bool PbftChain::findPbftBlockInChain(taraxa::blk_hash_t const& pbft_block_hash) {
-  if (!db_) {
-    LOG(log_er_) << "Pbft chain DB unavailable in findPbftBlockInChain!";
-    return false;
-  }
-  assert(db_);
   return db_->pbftBlockInDb(pbft_block_hash);
 }
 
@@ -211,7 +206,7 @@ std::shared_ptr<PbftBlock> PbftChain::getUnverifiedPbftBlock(const taraxa::blk_h
     sharedLock_ lock(unverified_access_);
     return unverified_blocks_[pbft_block_hash];
   }
-  return {};
+  return nullptr;
 }
 
 std::vector<PbftBlockCert> PbftChain::getPbftBlocks(size_t period, size_t count) {
@@ -236,11 +231,7 @@ std::vector<PbftBlockCert> PbftChain::getPbftBlocks(size_t period, size_t count)
       assert(false);
     }
     // Get PBFT cert votes in DB
-    auto cert_votes_raw = db_->getVotes(*pbft_block_hash);
-    vector<Vote> cert_votes;
-    for (auto const& cert_vote : RLP(cert_votes_raw)) {
-      cert_votes.emplace_back(cert_vote);
-    }
+    auto cert_votes = db_->getCertVotes(*pbft_block_hash);
     if (cert_votes.empty()) {
       LOG(log_er_) << "Cannot find any cert votes for PBFT block " << pbft_block;
       assert(false);

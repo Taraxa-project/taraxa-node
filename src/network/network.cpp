@@ -35,6 +35,7 @@ std::pair<bool, bi::tcp::endpoint> resolveHost(string const &addr, uint16_t port
 Network::Network(NetworkConfig const &config, std::filesystem::path const &network_file_path, dev::KeyPair const &key,
                  std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
                  std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
+                 std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr,
                  std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
                  std::shared_ptr<TransactionManager> trx_mgr)
     : conf_(config), tp_(config.network_num_threads, false), network_file_(network_file_path) {
@@ -80,7 +81,7 @@ Network::Network(NetworkConfig const &config, std::filesystem::path const &netwo
     host_ = std::make_shared<dev::p2p::Host>(net_version, makeENR(key, net_conf), net_conf, move(taraxa_net_conf));
   }
   taraxa_capability_ =
-      std::make_shared<TaraxaCapability>(*host_, tp_.unsafe_get_io_context(), conf_, db, pbft_mgr, pbft_chain, vote_mgr,
+      std::make_shared<TaraxaCapability>(*host_, tp_.unsafe_get_io_context(), conf_, db, pbft_mgr, pbft_chain, vote_mgr, next_votes_mgr,
                                          dag_mgr, dag_blk_mgr, trx_mgr, conf_.network_performance_log, key.address());
   host_->registerCapability(taraxa_capability_);
 }
@@ -180,6 +181,11 @@ std::pair<dev::Secret, dev::p2p::ENR> Network::makeENR(KeyPair const &key, p2p::
           key.secret(), net_conf.publicIPAddress.empty() ? bi::address{} : bi::make_address(net_conf.publicIPAddress),
           net_conf.listenPort, net_conf.listenPort),
   };
+}
+
+void Network::broadcastPreviousRoundNextVotesBundle() {
+  LOG(log_dg_) << "Network broadcast previous round next votes bundle";
+  taraxa_capability_->broadcastPreviousRoundNextVotesBundle();
 }
 
 }  // namespace taraxa

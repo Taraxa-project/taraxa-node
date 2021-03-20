@@ -30,7 +30,8 @@ class Network {
   Network(NetworkConfig const &config, std::filesystem::path const &network_file_path = {},
           dev::KeyPair const &key = dev::KeyPair::create(), std::shared_ptr<DbStorage> db = {},
           std::shared_ptr<PbftManager> pbft_mgr = {}, std::shared_ptr<PbftChain> pbft_chain = {},
-          std::shared_ptr<VoteManager> vote_mgr = {}, std::shared_ptr<DagManager> dag_mgr = {},
+          std::shared_ptr<VoteManager> vote_mgr = {}, std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr = {},
+          std::shared_ptr<DagManager> dag_mgr = {},
           std::shared_ptr<DagBlockManager> dag_blk_mgr = {}, std::shared_ptr<TransactionManager> trx_mgr = {});
   ~Network();
 
@@ -60,6 +61,7 @@ class Network {
   void sendPbftVote(NodeID const &id, Vote const &vote);
   void onNewPbftBlock(PbftBlock const &pbft_block);
   void sendPbftBlock(NodeID const &id, PbftBlock const &pbft_block, uint64_t const &pbft_chain_size);
+  void broadcastPreviousRoundNextVotesBundle();
 
  private:
   NetworkConfig conf_;
@@ -69,6 +71,7 @@ class Network {
   std::shared_ptr<TaraxaCapability> taraxa_capability_;
   std::map<Public, NodeIPEndpoint> boot_nodes_;
   std::atomic<bool> stopped_ = true;
+
 
   LOG_OBJECTS_DEFINE;
 };
