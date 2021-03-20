@@ -1,0 +1,15 @@
+include/Lottery.hpp
+include/VerifierPietrzak.h
+include/types.h
+include/RSWPuzzle.h
+include/Hash2Prime.h
+include/Player.h
+include/ProverPietrzak.h
+include/zallocator.hpp
+include/util.h
+include/VerifierWesolowski.h
+include/ProverWesolowski.h
+include/Hash.h
+include/BigNum.h
+include/SafePrime.h
+lib/libvdf.a
