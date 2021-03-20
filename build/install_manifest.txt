@@ -1,2 +1,0 @@
-/usr/local/bin/taraxad
-/etc/taraxad/taraxad.conf

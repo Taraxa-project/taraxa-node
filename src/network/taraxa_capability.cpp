@@ -231,7 +231,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
                      << peer->dag_level_ << ", genesis " << dag_mgr_->get_genesis() << ", peer pbft chain size "
                      << peer->pbft_chain_size_ << ", peer syncing " << peer->syncing_ << ", peer pbft round "
                      << peer->pbft_round_ << ", peer pbft previous round next votes size "
-                     << peer->pbft_previous_round_next_votes_size_ << ", node major version" << node_major_version
+                     << peer->pbft_previous_round_next_votes_size_  << ", node major version" << node_major_version 
                      << ", node minor version" << node_minor_version;
 
         if (peer_protocol_version != FullNode::c_network_protocol_version) {
@@ -267,9 +267,9 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         peer->pbft_round_ = (*it++).toPositiveInt64();
         peer->pbft_previous_round_next_votes_size_ = (*it++).toInt<unsigned>();
         LOG(log_dg_) << "Received status message from " << _nodeID << ", peer DAG max level " << peer->dag_level_
-                     << ", peer pbft chain size " << peer->pbft_chain_size_ << ", peer syncing " << peer->syncing_
-                     << ", peer pbft round " << peer->pbft_round_ << ", peer pbft previous round next votes size "
-                     << peer->pbft_previous_round_next_votes_size_;
+                         << ", peer pbft chain size " << peer->pbft_chain_size_ << ", peer syncing " << peer->syncing_
+                         << ", peer pbft round " << peer->pbft_round_ << ", peer pbft previous round next votes size "
+                         << peer->pbft_previous_round_next_votes_size_;
       }
       LOG(log_dg_dag_sync_) << "Received status message from " << _nodeID << " DAG level:" << peer_level;
       LOG(log_dg_pbft_sync_) << "Received status message from " << _nodeID
@@ -764,7 +764,7 @@ void TaraxaCapability::sendStatus(NodeID const &_id, bool _initial) {
       host_.capabilityHost()->sealAndSend(_id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 10)
                                                    << FullNode::c_network_protocol_version << conf_.network_id
                                                    << dag_max_level << dag_mgr_->get_genesis() << pbft_chain_size
-                                                   << syncing_ << pbft_round << pbft_previous_round_next_votes_size
+                                                   << syncing_ << pbft_round << pbft_previous_round_next_votes_size 
                                                    << FullNode::c_node_major_version << FullNode::c_node_minor_version);
     } else {
       host_.capabilityHost()->sealAndSend(_id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 5)

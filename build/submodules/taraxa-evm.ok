@@ -1,4 +1,0 @@
-include/taraxa-evm/common.h
-include/taraxa-evm/taraxa-evm.h
-include/taraxa-evm/state.h
-lib/libtaraxa-evm.a
