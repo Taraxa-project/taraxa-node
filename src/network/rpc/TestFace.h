@@ -192,4 +192,3 @@ class TestFace : public ServerInterface<TestFace> {
 
 }  // namespace net
 }  // namespace taraxa
-

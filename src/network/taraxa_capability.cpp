@@ -768,8 +768,7 @@ void TaraxaCapability::sendStatus(NodeID const &_id, bool _initial) {
                                                    << FullNode::c_network_protocol_version << conf_.network_id
                                                    << dag_max_level << dag_mgr_->get_genesis() << pbft_chain_size
                                                    << syncing_ << pbft_round << pbft_previous_round_next_votes_size
-                                                   << FullNode::c_node_major_version
-                                                   << FullNode::c_node_minor_version);
+                                                   << FullNode::c_node_major_version << FullNode::c_node_minor_version);
     } else {
       host_.capabilityHost()->sealAndSend(_id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 5)
                                                    << dag_max_level << pbft_chain_size << syncing_ << pbft_round

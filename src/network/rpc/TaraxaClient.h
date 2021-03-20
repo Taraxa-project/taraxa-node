@@ -91,4 +91,3 @@ class TaraxaClient : public jsonrpc::Client {
 
 }  // namespace net
 }  // namespace taraxa
-

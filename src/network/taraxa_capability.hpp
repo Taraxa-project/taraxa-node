@@ -107,10 +107,9 @@ struct TaraxaCapability : CapabilityFace {
   TaraxaCapability(Host &_host, ba::io_service &io_service, NetworkConfig const &_conf,
                    std::shared_ptr<DbStorage> db = {}, std::shared_ptr<PbftManager> pbft_mgr = {},
                    std::shared_ptr<PbftChain> pbft_chain = {}, std::shared_ptr<VoteManager> vote_mgr = {},
-                   std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr,
-                   std::shared_ptr<DagManager> dag_mgr = {}, std::shared_ptr<DagBlockManager> dag_blk_mgr = {},
-                   std::shared_ptr<TransactionManager> trx_mgr = {}, bool performance_log = false,
-                   addr_t const &node_addr = {});
+                   std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr, std::shared_ptr<DagManager> dag_mgr = {},
+                   std::shared_ptr<DagBlockManager> dag_blk_mgr = {}, std::shared_ptr<TransactionManager> trx_mgr = {},
+                   bool performance_log = false, addr_t const &node_addr = {});
 
   virtual ~TaraxaCapability() = default;
 

@@ -25,7 +25,7 @@ class ThreadPool : std::enable_shared_from_this<ThreadPool> {
   void stop();
 
   template <typename... T>
-  auto post(T &&... args) {
+  auto post(T &&...args) {
     return boost::asio::post(ioc_, std::forward<T>(args)...);
   }
 

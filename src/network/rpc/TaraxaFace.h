@@ -79,4 +79,3 @@ class TaraxaFace : public ServerInterface<TaraxaFace> {
 
 }  // namespace net
 }  // namespace taraxa
-

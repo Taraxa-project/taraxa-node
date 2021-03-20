@@ -132,7 +132,7 @@ class PbftManager {
   std::shared_ptr<DbStorage> db_ = nullptr;
   std::unique_ptr<std::thread> daemon_ = nullptr;
   std::shared_ptr<VoteManager> vote_mgr_ = nullptr;
- std::shared_ptr<NextVotesForPreviousRound> previous_round_next_votes_ = nullptr;
+  std::shared_ptr<NextVotesForPreviousRound> previous_round_next_votes_ = nullptr;
   std::shared_ptr<PbftChain> pbft_chain_ = nullptr;
   std::shared_ptr<DagManager> dag_mgr_ = nullptr;
   util::WeakRef<Network> network_;

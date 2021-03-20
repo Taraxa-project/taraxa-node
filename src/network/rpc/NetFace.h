@@ -39,4 +39,3 @@ class NetFace : public ServerInterface<NetFace> {
 
 }  // namespace net
 }  // namespace taraxa
-
