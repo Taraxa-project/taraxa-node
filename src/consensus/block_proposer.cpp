@@ -90,8 +90,8 @@ void BlockProposer::start() {
   proposer_worker_ = std::make_shared<std::thread>([this]() {
     while (!stopped_) {
       // Blocks are not proposed if we are behind the network and still syncing
-      auto is_synced = network_.visit([](auto net) { return net->pbft_syncing(); });
-      if (!is_synced) {
+      auto syncing = network_.visit([](auto net) { return net->pbft_syncing(); });
+      if (syncing) {
         continue;
       }
       propose_model_->propose();
