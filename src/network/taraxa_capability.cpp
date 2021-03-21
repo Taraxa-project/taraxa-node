@@ -279,7 +279,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         LOG(log_dg_pbft_sync_) << "Other node is behind, prevent gossiping " << _nodeID
                                << "Our pbft chain size: " << pbft_chain_size
                                << " Peer pbft chain size: " << peer->pbft_chain_size_;
-        if (syncing_ && peer_syncing_pbft == _nodeID) {
+        if (syncing_ && peer_syncing_pbft_ == _nodeID) {
           // We are currently syncing to a node that just reported it is
           // not synced, force a switch to a new node
           restartSyncingPbft(true);
@@ -655,7 +655,7 @@ void TaraxaCapability::delayedPbftSync(NodeID _nodeID, int counter) {
     LOG(log_dg_pbft_sync_) << "Syncing PBFT is stopping";
     return;
   }
-  if (syncing_ && peer_syncing_pbft == _nodeID) {
+  if (syncing_ && peer_syncing_pbft_ == _nodeID) {
     if (pbft_sync_period_ > pbft_chain_->getPbftChainSize() + (10 * conf_.network_sync_level_size)) {
       LOG(log_dg_pbft_sync_) << "Syncing pbft blocks faster than processing " << pbft_sync_period_ << " "
                              << pbft_chain_->getPbftChainSize();
