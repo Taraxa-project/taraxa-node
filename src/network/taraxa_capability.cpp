@@ -634,12 +634,13 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       }
       break;
     }
-    case TestPacket:
+    case TestPacket: {
       LOG(log_dg_) << "Received TestPacket";
       ++cnt_received_messages_[_nodeID];
       test_sums_[_nodeID] += _r[0].toInt();
       BOOST_ASSERT(_id == TestPacket);
       break;
+    }
   };
 }
 
