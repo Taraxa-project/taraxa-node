@@ -30,8 +30,9 @@ class Network {
   Network(NetworkConfig const &config, std::filesystem::path const &network_file_path = {},
           dev::KeyPair const &key = dev::KeyPair::create(), std::shared_ptr<DbStorage> db = {},
           std::shared_ptr<PbftManager> pbft_mgr = {}, std::shared_ptr<PbftChain> pbft_chain = {},
-          std::shared_ptr<VoteManager> vote_mgr = {}, std::shared_ptr<DagManager> dag_mgr = {},
-          std::shared_ptr<DagBlockManager> dag_blk_mgr = {}, std::shared_ptr<TransactionManager> trx_mgr = {});
+          std::shared_ptr<VoteManager> vote_mgr = {}, std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr = {},
+          std::shared_ptr<DagManager> dag_mgr = {}, std::shared_ptr<DagBlockManager> dag_blk_mgr = {},
+          std::shared_ptr<TransactionManager> trx_mgr = {});
   ~Network();
 
   static std::pair<dev::Secret, dev::p2p::ENR> makeENR(dev::KeyPair const &key,
@@ -60,6 +61,7 @@ class Network {
   void sendPbftVote(NodeID const &id, Vote const &vote);
   void onNewPbftBlock(PbftBlock const &pbft_block);
   void sendPbftBlock(NodeID const &id, PbftBlock const &pbft_block, uint64_t const &pbft_chain_size);
+  void broadcastPreviousRoundNextVotesBundle();
 
  private:
   NetworkConfig conf_;

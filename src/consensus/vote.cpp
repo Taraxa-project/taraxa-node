@@ -122,9 +122,15 @@ bool VoteManager::addVote(taraxa::Vote const& vote) {
       unverified_votes_[pbft_round] = votes;
     }
   }
-  LOG(log_dg_) << "Add vote " << hash << ", block hash " << vote.getBlockHash() << ", vote type " << vote.getType()
-               << ", in round " << pbft_round << ", for step " << vote.getStep();
+  LOG(log_dg_) << "Add unverified vote " << vote;
+
   return true;
+}
+
+void VoteManager::addVotes(std::vector<Vote> const& votes) {
+  for (auto const& v : votes) {
+    addVote(v);
+  }
 }
 
 // cleanup votes < pbft_round
@@ -307,6 +313,211 @@ bool VoteManager::pbftBlockHasEnoughValidCertVotes(PbftBlockCert const& pbft_blo
                  << ". The last block in pbft chain is " << pbft_chain_last_block_hash;
   }
   return valid_votes.size() >= pbft_2t_plus_1;
+}
+
+NextVotesForPreviousRound::NextVotesForPreviousRound(addr_t node_addr, std::shared_ptr<DbStorage> db)
+    : db_(db), enough_votes_for_null_block_hash_(false), voted_value_(blk_hash_t(0)), next_votes_size_(0) {
+  LOG_OBJECTS_CREATE("NEXT_VOTES");
+}
+
+void NextVotesForPreviousRound::clear() {
+  uniqueLock_ lock(access_);
+  enough_votes_for_null_block_hash_ = false;
+  voted_value_ = blk_hash_t(0);
+  next_votes_size_ = 0;
+  next_votes_.clear();
+  next_votes_set_.clear();
+}
+
+bool NextVotesForPreviousRound::find(blk_hash_t next_vote_hash) {
+  sharedLock_ lock(access_);
+  return next_votes_set_.find(next_vote_hash) != next_votes_set_.end();
+}
+
+bool NextVotesForPreviousRound::haveEnoughVotesForNullBlockHash() const {
+  sharedLock_ lock(access_);
+  return enough_votes_for_null_block_hash_;
+}
+
+blk_hash_t NextVotesForPreviousRound::getVotedValue() const {
+  sharedLock_ lock(access_);
+  return voted_value_;
+}
+
+std::vector<Vote> NextVotesForPreviousRound::getNextVotes() {
+  std::vector<Vote> next_votes_bundle;
+
+  sharedLock_ lock(access_);
+  for (auto const& blk_hash_nv : next_votes_) {
+    for (auto const& v : blk_hash_nv.second) {
+      next_votes_bundle.emplace_back(v);
+    }
+  }
+  assert(next_votes_bundle.size() == next_votes_size_);
+
+  return next_votes_bundle;
+}
+
+size_t NextVotesForPreviousRound::getNextVotesSize() const {
+  sharedLock_ lock(access_);
+  return next_votes_size_;
+}
+
+void NextVotesForPreviousRound::setNextVotesSize(size_t const size) {
+  uniqueLock_ lock(access_);
+  next_votes_size_ = size;
+}
+
+// Assumption is that all votes are validated, in next voting phase, in the same round and step
+void NextVotesForPreviousRound::update(std::vector<Vote> const& next_votes, size_t const pbft_2t_plus_1) {
+  LOG(log_nf_) << "There are " << next_votes.size() << " next votes for updating.";
+  if (next_votes.empty()) {
+    return;
+  }
+
+  clear();
+
+  uniqueLock_ lock(access_);
+  // Copy all next votes
+  for (auto const& v : next_votes) {
+    LOG(log_dg_) << "Add next vote: " << v;
+
+    next_votes_set_.insert(v.getHash());
+    auto voted_block_hash = v.getBlockHash();
+    if (next_votes_.count(voted_block_hash)) {
+      next_votes_[voted_block_hash].emplace_back(v);
+    } else {
+      std::vector<Vote> votes{v};
+      next_votes_[voted_block_hash] = votes;
+    }
+  }
+
+  // Protect for malicious players. If no malicious players, will include either/both NULL BLOCK HASH and a non NULL
+  // BLOCK HASH
+  LOG(log_nf_) << "PBFT 2t+1 is " << pbft_2t_plus_1;
+  auto next_votes_size = next_votes.size();
+
+  auto it = next_votes_.begin();
+  while (it != next_votes_.end()) {
+    if (it->second.size() >= pbft_2t_plus_1) {
+      LOG(log_nf_) << "Voted PBFT block hash " << it->first << " has " << it->second.size() << " next votes";
+
+      if (it->first == NULL_BLOCK_HASH) {
+        enough_votes_for_null_block_hash_ = true;
+      } else {
+        voted_value_ = it->first;
+      }
+      it++;
+    } else {
+      LOG(log_dg_) << "Voted PBFT block hash " << it->first << " has " << it->second.size()
+                   << " next votes. Not enough, removed!";
+      for (auto const& v : it->second) {
+        next_votes_set_.erase(v.getHash());
+      }
+      next_votes_size -= it->second.size();
+      it = next_votes_.erase(it);
+    }
+  }
+
+  next_votes_size_ = next_votes_size;
+
+  if (next_votes_set_.size() != next_votes_size_) {
+    LOG(log_er_) << "Size of next votes set is " << next_votes_set_.size() << ", but next votes size is "
+                 << next_votes_size_;
+    assert(next_votes_set_.size() == next_votes_size_);
+  }
+  if (next_votes_.size() != 1 && next_votes_.size() != 2) {
+    LOG(log_er_) << "There are " << next_votes_.size() << " voted values.";
+    for (auto const& voted_value : next_votes_) {
+      LOG(log_er_) << "Voted value " << voted_value.first;
+    }
+    assert(next_votes_.size() == 1 || next_votes_.size() == 2);
+  }
+}
+
+// Assumption is that all synced votes are in next voting phase, in the same round. Voted values have maximum 2 block
+// hash, NULL_BLOCK_HASH and a non NULL_BLOCK_HASH
+void NextVotesForPreviousRound::updateWithSyncedVotes(std::vector<Vote> const& next_votes,
+                                                      size_t const pbft_2t_plus_1) {
+  if (next_votes.empty()) {
+    LOG(log_er_) << "Synced next votes is empty.";
+    return;
+  }
+
+  auto update_votes = getNextVotes();
+  if (update_votes.empty()) {
+    LOG(log_nf_) << "Own next votes for previous round is empty. Node just start, reject for protecting overwrite own "
+                    "next votes.";
+    return;
+  }
+
+  std::unordered_map<blk_hash_t, std::vector<Vote>> synced_next_votes;
+  // All next votes should be in the next voting phase and in the same voted round
+  for (auto i = 0; i < next_votes.size(); i++) {
+    if (next_votes[i].getType() != next_vote_type) {
+      LOG(log_er_) << "Synced next vote is not at next voting phase. Vote " << next_votes[i];
+      return;
+    } else if (next_votes[i].getRound() != next_votes[0].getRound()) {
+      LOG(log_er_) << "Synced next votes have a different voted PBFT round. Vote1 " << next_votes[0] << ", Vote2 "
+                   << next_votes[i];
+      return;
+    }
+
+    auto voted_block_hash = next_votes[i].getBlockHash();
+    if (synced_next_votes.count(voted_block_hash)) {
+      synced_next_votes[voted_block_hash].emplace_back(next_votes[i]);
+    } else {
+      std::vector<Vote> votes{next_votes[i]};
+      synced_next_votes[voted_block_hash] = votes;
+    }
+  }
+
+  // Next votes for same voted value should be in the same step
+  for (auto const& voted_value_and_votes : synced_next_votes) {
+    auto votes = voted_value_and_votes.second;
+    auto voted_step = votes[0].getStep();
+    for (auto i = 1; i < votes.size(); i++) {
+      if (votes[i].getStep() != voted_step) {
+        LOG(log_er_) << "Synced next votes have a different voted PBFT step. Vote1 " << votes[0] << ", Vote2 "
+                     << votes[i];
+        return;
+      }
+    }
+  }
+
+  if (synced_next_votes.size() != 1 && synced_next_votes.size() != 2) {
+    LOG(log_er_) << "Synced next votes voted " << synced_next_votes.size() << " values";
+    for (auto const& voted_value_and_votes : synced_next_votes) {
+      LOG(log_er_) << "Synced next votes voted value " << voted_value_and_votes.first;
+    }
+    return;
+  }
+
+  std::unordered_map<blk_hash_t, std::vector<Vote>> own_votes;
+  {
+    sharedLock_ lock(access_);
+    own_votes = next_votes_;
+  }
+  bool updated = false;
+
+  // Don't update votes for same voted value
+  for (auto const& voted_value_and_votes : synced_next_votes) {
+    if (!own_votes.count(voted_value_and_votes.first)) {
+      LOG(log_nf_) << "Don't have the voted value " << voted_value_and_votes.first << " for previous round. Add votes";
+      for (auto const& v : voted_value_and_votes.second) {
+        update_votes.emplace_back(v);
+      }
+      updated = true;
+    }
+  }
+
+  if (updated) {
+    // Update next votes DB for the PBFT round
+    auto voted_round = update_votes[0].getRound();
+    db_->saveNextVotes(voted_round, update_votes);
+
+    update(update_votes, pbft_2t_plus_1);
+  }
 }
 
 }  // namespace taraxa

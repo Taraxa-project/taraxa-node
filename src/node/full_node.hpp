@@ -69,6 +69,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<BlockProposer> blk_proposer_;
   std::vector<std::thread> block_workers_;
   std::shared_ptr<VoteManager> vote_mgr_;
+  std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr_;
   std::shared_ptr<PbftManager> pbft_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<Executor> executor_;
@@ -118,6 +119,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   auto const &getDB() const { return db_; }
   auto const &getPbftManager() const { return pbft_mgr_; }
   auto const &getVoteManager() const { return vote_mgr_; }
+  auto const &getNextVotesManager() const { return next_votes_mgr_; }
   auto const &getPbftChain() const { return pbft_chain_; }
   auto const &getExecutor() const { return executor_; }
   auto const &getFinalChain() const { return final_chain_; }
@@ -152,11 +154,11 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   static constexpr uint16_t c_node_minor_version = 1;
 
   // Any time a change in the network protocol is introduced this version should be increased
-  static constexpr uint16_t c_network_protocol_version = 2;
+  static constexpr uint16_t c_network_protocol_version = 3;
 
   // Major version is modified when DAG blocks, pbft blocks and any basic building blocks of our blockchan is modified
   // in the db
-  static constexpr uint16_t c_database_major_version = 0;
+  static constexpr uint16_t c_database_major_version = 1;
   // Minor version should be modified when changes to the database are made in the tables that can be rebuilt from the
   // basic tables
   static constexpr uint16_t c_database_minor_version = 1;
