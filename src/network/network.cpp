@@ -129,6 +129,90 @@ void Network::start() {
   LOG(log_nf_) << "Started Node id: " << host_->id();
 }
 
+bool Network::isStarted() { return !stopped_; }
+
+std::list<NodeEntry> Network::getAllNodes() const { return host_->getNodes(); }
+
+unsigned Network::getPeerCount() { return taraxa_capability_->getPeersCount(); }
+
+unsigned Network::getNodeCount() { return host_->getNodeCount(); }
+
+Json::Value Network::getStatus() { return taraxa_capability_->getStatus(); }
+
+std::vector<NodeID> Network::getAllPeers() const { return taraxa_capability_->getAllPeers(); }
+
+void Network::onNewBlockVerified(shared_ptr<DagBlock> const &blk) {
+  tp_.post([=] {
+    taraxa_capability_->onNewBlockVerified(*blk);
+    LOG(log_dg_) << "On new block verified:" << blk->getHash().toString();
+  });
+}
+
+void Network::onNewTransactions(std::vector<taraxa::bytes> transactions) {
+  tp_.post([=, transactions = std::move(transactions)] {
+    taraxa_capability_->onNewTransactions(transactions, true);
+    LOG(log_dg_) << "On new transactions" << transactions.size();
+  });
+}
+
+void Network::restartSyncingPbft(bool force) {
+  tp_.post([=] { taraxa_capability_->restartSyncingPbft(force); });
+}
+
+void Network::onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_block) {
+  tp_.post([=] {
+    LOG(log_dg_) << "Network broadcast PBFT block: " << pbft_block->getBlockHash();
+    taraxa_capability_->onNewPbftBlock(*pbft_block);
+  });
+}
+
+bool Network::pbft_syncing() { return taraxa_capability_->pbft_syncing(); }
+
+void Network::onNewPbftVotes(std::vector<Vote> votes) {
+  tp_.post([=, votes = std::move(votes)] {
+    for (auto const &vote : votes) {
+      LOG(log_dg_) << "Network broadcast PBFT vote: " << vote.getHash();
+      taraxa_capability_->onNewPbftVote(vote);
+    }
+  });
+}
+
+void Network::broadcastPreviousRoundNextVotesBundle() {
+  tp_.post([=] {
+    LOG(log_dg_) << "Network broadcast previous round next votes bundle";
+    taraxa_capability_->broadcastPreviousRoundNextVotesBundle();
+  });
+}
+
+// METHODS USED IN TESTS ONLY
+void Network::sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk) {
+  taraxa_capability_->sendBlock(id, blk);
+  LOG(log_dg_) << "Sent Block:" << blk.getHash().toString();
+}
+
+void Network::sendTransactions(NodeID const &_id, std::vector<taraxa::bytes> const &transactions) {
+  taraxa_capability_->sendTransactions(_id, transactions);
+  LOG(log_dg_) << "Sent transactions:" << transactions.size();
+}
+
+dev::p2p::NodeID Network::getNodeId() { return host_->id(); };
+
+int Network::getReceivedBlocksCount() { return taraxa_capability_->getBlocks().size(); }
+
+int Network::getReceivedTransactionsCount() { return taraxa_capability_->getTransactions().size(); }
+
+std::shared_ptr<TaraxaPeer> Network::getPeer(NodeID const &id) { return taraxa_capability_->getPeer(id); }
+
+void Network::sendPbftBlock(NodeID const &id, PbftBlock const &pbft_block, uint64_t const &pbft_chain_size) {
+  LOG(log_dg_) << "Network send PBFT block: " << pbft_block.getBlockHash() << " to: " << id;
+  taraxa_capability_->sendPbftBlock(id, pbft_block, pbft_chain_size);
+}
+
+void Network::sendPbftVote(NodeID const &id, Vote const &vote) {
+  LOG(log_dg_) << "Network sent PBFT vote: " << vote.getHash() << " to: " << id;
+  taraxa_capability_->sendPbftVote(id, vote);
+}
+
 std::pair<dev::Secret, dev::p2p::ENR> Network::makeENR(KeyPair const &key, p2p::NetworkConfig const &net_conf) {
   return pair{
       key.secret(),

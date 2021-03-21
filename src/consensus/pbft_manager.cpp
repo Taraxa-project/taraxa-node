@@ -811,7 +811,7 @@ void PbftManager::secondFinish_() {
       LOG(log_dg_) << "Node has seen enough soft votes voted at " << soft_voted_block_for_this_round_.first
                    << ", regossip soft votes. In round " << round << " step " << step_;
       if (auto net = network_.lock()) {
-        net->onNewPbftVotes({db_->getSoftVotes(round)});
+        net->onNewPbftVotes(db_->getSoftVotes(round));
       }
 
       LOG(log_nf_) << "Next voting " << soft_voted_block_for_this_round_.first << " for round " << round << ", at step "

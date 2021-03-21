@@ -103,11 +103,7 @@ class TaraxaPeer : public boost::noncopyable {
   uint16_t status_check_count_ = 0;
 };
 
-class Network;
-
 struct TaraxaCapability : virtual CapabilityFace {
-  friend class Network;
-
   TaraxaCapability(Host &_host, ba::io_service &io_service, NetworkConfig const &_conf,
                    std::shared_ptr<DbStorage> db = {}, std::shared_ptr<PbftManager> pbft_mgr = {},
                    std::shared_ptr<PbftChain> pbft_chain = {}, std::shared_ptr<VoteManager> vote_mgr = {},
@@ -121,6 +117,8 @@ struct TaraxaCapability : virtual CapabilityFace {
   std::string name() const override { return "taraxa"; }
   unsigned version() const override { return 1; }
   unsigned messageCount() const override { return PacketCount; }
+
+  bool pbft_syncing() const { return syncing_.load(); }
 
   void onConnect(NodeID const &_nodeID, u256 const &) override;
   void syncPeerPbft(NodeID const &_nodeID, unsigned long height_to_sync);
