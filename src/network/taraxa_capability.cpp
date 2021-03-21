@@ -27,6 +27,7 @@ TaraxaCapability::TaraxaCapability(Host &_host, ba::io_service &io_service, Netw
       pbft_mgr_(pbft_mgr),
       pbft_chain_(pbft_chain),
       vote_mgr_(vote_mgr),
+      next_votes_mgr_(next_votes_mgr),
       dag_mgr_(dag_mgr),
       dag_blk_mgr_(dag_blk_mgr),
       trx_mgr_(trx_mgr),
