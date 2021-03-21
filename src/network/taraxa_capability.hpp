@@ -103,7 +103,11 @@ class TaraxaPeer : public boost::noncopyable {
   uint16_t status_check_count_ = 0;
 };
 
-struct TaraxaCapability : CapabilityFace {
+class Network;
+
+struct TaraxaCapability : virtual CapabilityFace {
+  friend class Network;
+
   TaraxaCapability(Host &_host, ba::io_service &io_service, NetworkConfig const &_conf,
                    std::shared_ptr<DbStorage> db = {}, std::shared_ptr<PbftManager> pbft_mgr = {},
                    std::shared_ptr<PbftChain> pbft_chain = {}, std::shared_ptr<VoteManager> vote_mgr = {},
@@ -172,15 +176,15 @@ struct TaraxaCapability : CapabilityFace {
   void erasePeer(NodeID const &node_id);
   void insertPeer(NodeID const &node_id, std::shared_ptr<TaraxaPeer> const &peer);
 
-  bool syncing_ = false;
-  bool requesting_pending_dag_blocks_ = false;
-  NodeID requesting_pending_dag_blocks_node_id_;
-
  private:
   void handle_read_exception(NodeID const &_nodeID, unsigned _id, RLP const &_r);
 
   Host &host_;
   boost::asio::io_service &io_service_;
+
+  atomic<bool> syncing_ = false;
+  bool requesting_pending_dag_blocks_ = false;
+  NodeID requesting_pending_dag_blocks_node_id_;
 
   std::unordered_map<NodeID, int> cnt_received_messages_;
   std::unordered_map<NodeID, int> test_sums_;

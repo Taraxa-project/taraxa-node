@@ -207,7 +207,7 @@ Json::Value Test::get_node_status() {
       res["trx_queue_verified_size"] = Json::UInt64(node->getTransactionManager()->getTransactionQueueSize().second);
       res["blk_queue_unverified_size"] = Json::UInt64(node->getDagBlockManager()->getDagBlockQueueSize().first);
       res["blk_queue_verified_size"] = Json::UInt64(node->getDagBlockManager()->getDagBlockQueueSize().second);
-      res["network"] = node->getNetwork()->getTaraxaCapability()->getStatus();
+      res["network"] = node->getNetwork()->getStatus();
     }
   } catch (std::exception &e) {
     res["status"] = e.what();

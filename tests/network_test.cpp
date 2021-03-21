@@ -89,9 +89,8 @@ TEST_F(NetworkTest, send_pbft_block) {
   nw2->sendPbftBlock(nw1->getNodeId(), pbft_block, chain_size);
   taraxa::thisThreadSleepForMilliSeconds(200);
 
-  ASSERT_EQ(1, nw1->getTaraxaCapability()->getAllPeers().size());
-  ASSERT_EQ(chain_size,
-            nw1->getTaraxaCapability()->getPeer(nw1->getTaraxaCapability()->getAllPeers()[0])->pbft_chain_size_);
+  ASSERT_EQ(1, nw1->getPeerCount());
+  ASSERT_EQ(chain_size, nw1->getPeer(nw1->getAllPeers()[0])->pbft_chain_size_);
 }
 
 // Test creates two Network setup and verifies sending transaction
@@ -1071,7 +1070,7 @@ TEST_F(NetworkTest, node_full_sync) {
     for (int j = 1; j < numberOfNodes; j++) {
       WAIT_EXPECT_EQ(ctx, nodes[j]->getDagManager()->getNumVerticesInDag().first,
                      nodes[0]->getDagManager()->getNumVerticesInDag().first);
-      ctx.fail_if(!nodes[j]->getNetwork()->isSynced());
+      ctx.fail_if(nodes[j]->getNetwork()->pbft_syncing());
     }
   });
 
@@ -1083,7 +1082,7 @@ TEST_F(NetworkTest, node_full_sync) {
               nodes[0]->getDagManager()->getNumVerticesInDag().first);
     EXPECT_EQ(nodes[i]->getDagManager()->getNumVerticesInDag().first, nodes[i]->getDB()->getNumDagBlocks());
     EXPECT_EQ(nodes[i]->getDagManager()->getNumEdgesInDag().first, nodes[0]->getDagManager()->getNumEdgesInDag().first);
-    EXPECT_TRUE(nodes[i]->getNetwork()->isSynced());
+    EXPECT_TRUE(!nodes[i]->getNetwork()->pbft_syncing());
   }
 
   // Write any DAG diff

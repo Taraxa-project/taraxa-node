@@ -99,10 +99,6 @@ Network::~Network() {
   }
 }
 
-NetworkConfig Network::getConfig() { return conf_; }
-
-bool Network::isStarted() { return !stopped_; }
-
 void Network::start() {
   if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
     return;
@@ -131,51 +127,6 @@ void Network::start() {
   tp_.start();
   LOG(log_nf_) << "Started Network address: " << conf_.network_address << ":" << conf_.network_tcp_port << std::endl;
   LOG(log_nf_) << "Started Node id: " << host_->id();
-}
-
-void Network::sendBlock(NodeID const &id, DagBlock const &blk) {
-  taraxa_capability_->sendBlock(id, blk);
-  LOG(log_dg_) << "Sent Block:" << blk.getHash().toString();
-}
-
-void Network::sendTransactions(NodeID const &id, std::vector<taraxa::bytes> const &transactions) {
-  taraxa_capability_->sendTransactions(id, transactions);
-  LOG(log_dg_) << "Sent transactions:" << transactions.size();
-}
-
-void Network::onNewBlockVerified(DagBlock const &blk) {
-  taraxa_capability_->onNewBlockVerified(blk);
-  LOG(log_dg_) << "On new block verified:" << blk.getHash().toString();
-}
-
-void Network::onNewTransactions(std::vector<taraxa::bytes> const &transactions) {
-  taraxa_capability_->onNewTransactions(transactions, true);
-  LOG(log_dg_) << "On new transactions" << transactions.size();
-}
-
-void Network::onNewPbftVote(Vote const &vote) {
-  LOG(log_dg_) << "Network broadcast PBFT vote: " << vote.getHash();
-  taraxa_capability_->onNewPbftVote(vote);
-}
-
-void Network::sendPbftVote(NodeID const &id, Vote const &vote) {
-  LOG(log_dg_) << "Network sent PBFT vote: " << vote.getHash() << " to: " << id;
-  taraxa_capability_->sendPbftVote(id, vote);
-}
-
-void Network::onNewPbftBlock(const taraxa::PbftBlock &pbft_block) {
-  LOG(log_dg_) << "Network broadcast PBFT block: " << pbft_block.getBlockHash();
-  taraxa_capability_->onNewPbftBlock(pbft_block);
-}
-
-void Network::sendPbftBlock(const NodeID &id, const taraxa::PbftBlock &pbft_block, uint64_t const &pbft_chain_size) {
-  LOG(log_dg_) << "Network send PBFT block: " << pbft_block.getBlockHash() << " to: " << id;
-  taraxa_capability_->sendPbftBlock(id, pbft_block, pbft_chain_size);
-}
-
-void Network::broadcastPreviousRoundNextVotesBundle() {
-  LOG(log_dg_) << "Network broadcast previous round next votes bundle";
-  taraxa_capability_->broadcastPreviousRoundNextVotesBundle();
 }
 
 std::pair<dev::Secret, dev::p2p::ENR> Network::makeENR(KeyPair const &key, p2p::NetworkConfig const &net_conf) {
