@@ -185,5 +185,6 @@ std::pair<dev::Secret, dev::p2p::ENR> Network::makeENR(KeyPair const &key, p2p::
           key.secret(), net_conf.publicIPAddress.empty() ? bi::address{} : bi::make_address(net_conf.publicIPAddress),
           net_conf.listenPort, net_conf.listenPort),
   };
+}
 
 }  // namespace taraxa
