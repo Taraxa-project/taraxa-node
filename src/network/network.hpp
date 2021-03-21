@@ -40,7 +40,7 @@ class Network {
 
   void start();
   bool isStarted();
-  bool isSynced() { return taraxa_capability_ && !taraxa_capability_->syncing_; }
+  bool isSynced() const { return taraxa_capability_ && taraxa_capability_->isSynced(); }
   void sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk);
   void sendTransactions(NodeID const &_id, std::vector<taraxa::bytes> const &transactions);
   void onNewBlockVerified(DagBlock const &blk);

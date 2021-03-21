@@ -172,7 +172,8 @@ struct TaraxaCapability : CapabilityFace {
   void erasePeer(NodeID const &node_id);
   void insertPeer(NodeID const &node_id, std::shared_ptr<TaraxaPeer> const &peer);
 
-  bool syncing_ = false;
+  bool isSynced() const { return !syncing_; }
+
   bool requesting_pending_dag_blocks_ = false;
   NodeID requesting_pending_dag_blocks_node_id_;
 
@@ -208,6 +209,7 @@ struct TaraxaCapability : CapabilityFace {
   uint64_t dag_level_ = 0;
   uint64_t pbft_sync_period_ = 1;
   NodeID peer_syncing_pbft_;
+  std::atomic<bool> syncing_ = false;
   bool performance_log_;
   mutable std::mt19937_64 urng_;  // Mersenne Twister psuedo-random number generator
   std::mt19937 delay_rng_;

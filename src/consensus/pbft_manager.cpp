@@ -711,7 +711,7 @@ void PbftManager::certifyBlock_() {
           // Get partition, need send request to get missing pbft blocks from peers
           LOG(log_er_)
               << "Soft voted block for this round appears to be invalid, we must be out of sync with pbft chain";
-          auto syncing = network_.visit([](auto net) { return net->getTaraxaCapability()->syncing_; });
+          auto syncing = network_.visit([](auto net) { return net->isSynced(); });
           if (!syncing) {
             syncPbftChainFromPeers_(false);
           }
@@ -835,7 +835,7 @@ void PbftManager::secondFinish_() {
     }
   }
 
-  auto syncing = network_.visit([](auto net) { return net->getTaraxaCapability()->syncing_; });
+  auto syncing = network_.visit([](auto net) { return net->isSynced(); });
   if (step_ > MAX_STEPS && !syncing && !syncRequestedAlreadyThisStep_()) {
     LOG(log_wr_) << "Suspect PBFT consensus is behind or stalled, perhaps inaccurate 2t+1, need to broadcast request "
                     "for missing blocks";
@@ -1133,7 +1133,7 @@ void PbftManager::syncPbftChainFromPeers_(bool force) {
     return;
   }
 
-  auto syncing = network_.visit([](auto net) { return net->getTaraxaCapability()->syncing_; });
+  auto syncing = network_.visit([](auto net) { return net->isSynced(); });
   if (!syncing && !syncRequestedAlreadyThisStep_()) {
     auto round = getPbftRound();
     LOG(log_nf_) << "Restarting pbft sync. In round " << round << ", in step " << step_ << ", forced " << force
@@ -1190,7 +1190,7 @@ bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(PbftBlock const &pbft_b
   auto last_period = pbft_chain_->getPbftChainSize();
   LOG(log_nf_) << "DAG blocks have not sync yet. In period: " << last_period << ", anchor block hash " << anchor_hash
                << " is not found locally";
-  auto syncing = network_.visit([](auto net) { return net->getTaraxaCapability()->syncing_; });
+  auto syncing = network_.visit([](auto net) { return net->isSynced(); });
   if (state_ == finish_state && !have_executed_this_round_ && !syncing && !syncRequestedAlreadyThisStep_()) {
     LOG(log_nf_) << "DAG blocks have not sync yet. In period: " << last_period << " PBFT block anchor: " << anchor_hash
                  << " .. Triggering sync request";
@@ -1205,7 +1205,7 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cer
     // Get partition, need send request to get missing pbft blocks from peers
     LOG(log_er_) << "Cert voted block " << cert_voted_block_hash
                  << " is invalid, we must be out of sync with pbft chain";
-    auto syncing = network_.visit([](auto net) { return net->getTaraxaCapability()->syncing_; });
+    auto syncing = network_.visit([](auto net) { return net->isSynced(); });
     if (!syncing) {
       syncPbftChainFromPeers_(false);
     }
