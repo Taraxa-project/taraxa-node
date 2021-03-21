@@ -79,9 +79,9 @@ Network::Network(NetworkConfig const &config, std::filesystem::path const &netwo
   } else {
     host_ = std::make_shared<dev::p2p::Host>(net_version, makeENR(key, net_conf), net_conf, move(taraxa_net_conf));
   }
-  taraxa_capability_ =
-      std::make_shared<TaraxaCapability>(*host_, tp_.unsafe_get_io_context(), conf_, db, pbft_mgr, pbft_chain, vote_mgr,
-                                         dag_mgr, dag_blk_mgr, trx_mgr, conf_.network_performance_log, key.address());
+  taraxa_capability_ = std::make_shared<TaraxaCapability>(*host_, tp_.unsafe_get_io_context(), conf_, db, pbft_mgr,
+                                                          pbft_chain, vote_mgr, next_votes_mgr, dag_mgr, dag_blk_mgr,
+                                                          trx_mgr, conf_.network_performance_log, key.address());
   host_->registerCapability(taraxa_capability_);
 }
 

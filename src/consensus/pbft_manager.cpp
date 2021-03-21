@@ -612,7 +612,7 @@ void PbftManager::proposeBlock_() {
         LOG(log_nf_) << "Rebroadcasting and proposing next voted block " << own_starting_value_for_round_
                      << " from previous round. In round " << round;
         // broadcast pbft block
-        network_->onNewPbftBlock(*pbft_block);
+        network_.visit([&](auto net) { net->onNewPbftBlock(*pbft_block); });
         // place vote
         placeVote_(own_starting_value_for_round_, propose_vote_type, round, step_);
       }
@@ -683,7 +683,7 @@ void PbftManager::certifyBlock_() {
         LOG(log_dg_) << "Node has seen enough soft votes voted at " << soft_voted_block_for_this_round_.first
                      << ", regossip soft votes. In round " << round;
         for (auto const &sv : soft_votes) {
-          network_->onNewPbftVote(sv);
+          network_.visit([&](auto net) { net->onNewPbftVote(sv); });
         }
       }
     }
@@ -811,7 +811,7 @@ void PbftManager::secondFinish_() {
                    << ", regossip soft votes. In round " << round << " step " << step_;
       auto soft_votes = db_->getSoftVotes(round);
       for (auto const &sv : soft_votes) {
-        network_->onNewPbftVote(sv);
+        network_.visit([&](auto net) { net->onNewPbftVote(sv); });
       }
 
       LOG(log_nf_) << "Next voting " << soft_voted_block_for_this_round_.first << " for round " << round << ", at step "
@@ -845,7 +845,7 @@ void PbftManager::secondFinish_() {
   if (step_ > MAX_STEPS && !broadcastAlreadyThisStep_()) {
     LOG(log_dg_) << "Node " << node_addr_ << " broadcast next votes for previous round. In round " << round << " step "
                  << step_;
-    network_->broadcastPreviousRoundNextVotesBundle();
+    network_.visit([&](auto net) { net->broadcastPreviousRoundNextVotesBundle(); });
     pbft_round_last_broadcast_ = round;
     pbft_step_last_broadcast_ = step_;
   }

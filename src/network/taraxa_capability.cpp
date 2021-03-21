@@ -9,10 +9,10 @@
 #include "util/boost_asio.hpp"
 
 namespace taraxa {
-
 TaraxaCapability::TaraxaCapability(Host &_host, ba::io_service &io_service, NetworkConfig const &_conf,
                                    std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
                                    std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
+                                   std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr,
                                    std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
                                    std::shared_ptr<TransactionManager> trx_mgr, bool performance_log,
                                    addr_t const &node_addr)
@@ -442,6 +442,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       uint64_t peer_pbft_round = _r[0].toPositiveInt64();
       size_t peer_pbft_previous_round_next_votes_size = _r[1].toInt<unsigned>();
       uint64_t pbft_round = pbft_mgr_->getPbftRound();
+      size_t pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesSize();
       if (pbft_round > peer_pbft_round ||
           (pbft_round == peer_pbft_round &&
            pbft_previous_round_next_votes_size > peer_pbft_previous_round_next_votes_size)) {
@@ -609,7 +610,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
           }
         } else {
           LOG(log_dg_pbft_sync_) << "Received PbftBlockPacket from node " << _nodeID
-                                 << " but currently syncing with peer " << peer_syncing_pbft;
+                                 << " but currently syncing with peer " << peer_syncing_pbft_;
         }
       } else {
         LOG(log_dg_pbft_sync_) << "Syncing PBFT is completed";
@@ -696,7 +697,7 @@ void TaraxaCapability::restartSyncingPbft(bool force) {
     syncing_ = true;
     peer_syncing_pbft_ = max_pbft_chain_nodeID;
     peer_syncing_pbft_chain_size_ = max_pbft_chain_size;
-    syncPeerPbft(peer_syncing_pbft, pbft_sync_period_ + 1);
+    syncPeerPbft(peer_syncing_pbft_, pbft_sync_period_ + 1);
   } else {
     LOG(log_nf_pbft_sync_) << "Restarting syncing PBFT not needed since our pbft chain "
                               "size: "
