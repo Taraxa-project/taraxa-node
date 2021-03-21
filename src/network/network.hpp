@@ -54,15 +54,15 @@ class Network {
 
   auto getAllPeers() const { return taraxa_capability_->getAllPeers(); }
 
-  void onNewBlockVerified(DagBlock const &blk) {
+  void onNewBlockVerified(shared_ptr<DagBlock> const &blk) {
     tp_.post([=] {
-      taraxa_capability_->onNewBlockVerified(blk);
-      LOG(log_dg_) << "On new block verified:" << blk.getHash().toString();
+      taraxa_capability_->onNewBlockVerified(*blk);
+      LOG(log_dg_) << "On new block verified:" << blk->getHash().toString();
     });
   }
 
-  void onNewTransactions(std::vector<taraxa::bytes> const &transactions) {
-    tp_.post([=] {
+  void onNewTransactions(std::vector<taraxa::bytes> transactions) {
+    tp_.post([=, transactions = std::move(transactions)] {
       taraxa_capability_->onNewTransactions(transactions, true);
       LOG(log_dg_) << "On new transactions" << transactions.size();
     });
@@ -72,19 +72,21 @@ class Network {
     tp_.post([=] { taraxa_capability_->restartSyncingPbft(force); });
   }
 
-  void onNewPbftBlock(PbftBlock const &pbft_block) {
+  void onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_block) {
     tp_.post([=] {
-      LOG(log_dg_) << "Network broadcast PBFT block: " << pbft_block.getBlockHash();
-      taraxa_capability_->onNewPbftBlock(pbft_block);
+      LOG(log_dg_) << "Network broadcast PBFT block: " << pbft_block->getBlockHash();
+      taraxa_capability_->onNewPbftBlock(*pbft_block);
     });
   }
 
   auto pbft_syncing() { return taraxa_capability_->syncing_.load(); }
 
-  void onNewPbftVote(Vote const &vote) {
-    tp_.post([=] {
-      LOG(log_dg_) << "Network broadcast PBFT vote: " << vote.getHash();
-      taraxa_capability_->onNewPbftVote(vote);
+  void onNewPbftVotes(std::vector<Vote> votes) {
+    tp_.post([=, votes = std::move(votes)] {
+      for (auto const &vote : votes) {
+        LOG(log_dg_) << "Network broadcast PBFT vote: " << vote.getHash();
+        taraxa_capability_->onNewPbftVote(vote);
+      }
     });
   }
 

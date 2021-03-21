@@ -170,7 +170,8 @@ void FullNode::start() {
   block_workers_.emplace_back([this]() {
     while (!stopped_) {
       // will block if no verified block available
-      auto blk = dag_blk_mgr_->popVerifiedBlock();
+      auto blk_ptr = std::make_shared<DagBlock>(dag_blk_mgr_->popVerifiedBlock());
+      auto const &blk = *blk_ptr;
 
       if (!stopped_) {
         received_blocks_++;
@@ -181,7 +182,7 @@ void FullNode::start() {
         if (jsonrpc_ws_) {
           jsonrpc_ws_->newDagBlock(blk);
         }
-        network_->onNewBlockVerified(blk);
+        network_->onNewBlockVerified(blk_ptr);
         LOG(log_time_) << "Broadcast block " << blk.getHash() << " at: " << getCurrentTimeMilliSeconds();
       } else {
         // Networking makes sure that dag block that reaches queue already had

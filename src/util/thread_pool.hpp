@@ -29,6 +29,16 @@ class ThreadPool : std::enable_shared_from_this<ThreadPool> {
     return boost::asio::post(ioc_, std::forward<T>(args)...);
   }
 
+  auto post_fut(task_t &&task) {
+    auto p = std::make_unique<std::promise<void>>();
+    auto fut = p->get_future();
+    post([task = std::move(task), p = std::move(p)] {
+      task();
+      p->set_value();
+    });
+    return fut;
+  }
+
   operator task_executor_t() {
     return [this](auto &&task) { post(std::forward<task_t>(task)); };
   }
