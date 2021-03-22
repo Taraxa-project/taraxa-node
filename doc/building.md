@@ -71,6 +71,8 @@ And optional:
 
 ### Running tests
 
+> OSX: maybe you need to set a new limit for max open files per thread/process: `ulimit -n 200000`
+
     conan install -if build --build missing .
     conan build -bf build -sf . .
     cd tests

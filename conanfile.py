@@ -49,16 +49,16 @@ class TaraxaConan(ConanFile):
     def requirements(self):
         self.requires("boost/1.71.0")
         self.requires("cppcheck/2.3")
-        self.requires("openssl/1.1.1j")
+        self.requires("openssl/1.1.1f")
         self.requires("cryptopp/8.4.0")
         self.requires("gtest/1.10.0")
-        self.requires("rocksdb/6.10.2")
+        self.requires("rocksdb/6.8.1")
         self.requires("jsoncpp/1.9.4")
-        self.requires("gmp/6.2.1")
+        self.requires("gmp/6.2.0")
         self.requires("mpfr/4.0.2")
-        self.requires("snappy/1.1.7")
-        self.requires("zstd/1.4.9")
-        self.requires("lz4/1.9.3")
+        self.requires("snappy/1.1.8")
+        self.requires("zstd/1.4.4")
+        self.requires("lz4/1.9.2")
 
         # add from bincrafters remote
         # note: you need to run `conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan` before it

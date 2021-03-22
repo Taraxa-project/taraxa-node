@@ -60,7 +60,8 @@ include(ExternalProject)
 ## libpath - name of compiled library (examples: libvdf.a/libsodium.a/libtaraxaevm.dylib)
 ## libincludepath - relative path (after `*/include/`) to headers (examples: ""/""/tarxa-evm)
 ## buildcommand - build command of library (example: "${CMAKE_MAKE_PROGRAM} OPENSSL_HOME=${CONAN_OPENSSL_ROOT} all")
-function(add_none_cmake_target libprefix libname buildcommand)
+## buildalways - always build that target
+function(add_none_cmake_target libprefix libname buildcommand buildalways)
     # prefix of build dir
     set(prefix "${CMAKE_BINARY_DIR}/deps")
     # write it to file
@@ -81,6 +82,7 @@ function(add_none_cmake_target libprefix libname buildcommand)
         BUILD_COMMAND chmod +x ${${libprefix}_SHFILE} && bash ${${libprefix}_SHFILE}
         INSTALL_COMMAND ""
         BUILD_BYPRODUCTS ${${libprefix}_LIBRARY}
+        ALWAYS ${buildalways}
     )
 
     add_library(taraxa-${libprefix} STATIC IMPORTED GLOBAL)
@@ -103,7 +105,7 @@ set(VDF_LIBRARY_COMMAND "\
  GMP_LDFLAGS=\"-L${CONAN_LIB_DIRS_MPFR} -lmpfr\"\
  CPPFLAGS=\"-I./include -I${CONAN_INCLUDE_DIRS_OPENSSL} -I${CONAN_INCLUDE_DIRS_GMP} -I${CONAN_INCLUDE_DIRS_MPFR} -std=c++17\"\
  all")
-add_none_cmake_target(vdf libvdf.a "${VDF_LIBRARY_COMMAND}")
+add_none_cmake_target(vdf libvdf.a "${VDF_LIBRARY_COMMAND}" 0)
 
 
 # Add taraxa-vrf
@@ -111,7 +113,7 @@ add_none_cmake_target(vdf libvdf.a "${VDF_LIBRARY_COMMAND}")
 set(VRF_AUTOTOOLS_CMD "autoreconf && automake")
 ## run configure
 set(VRF_AUTOTOOLS_CMD "${VRF_AUTOTOOLS_CMD} && ./configure --enable-static=\"yes\" --enable-shared=\"no\" --prefix=${CMAKE_BINARY_DIR}/deps/taraxa-vrf")
-add_none_cmake_target(vrf libsodium.a "${VRF_AUTOTOOLS_CMD} && ${CMAKE_MAKE_PROGRAM} && ${CMAKE_MAKE_PROGRAM} install")
+add_none_cmake_target(vrf libsodium.a "${VRF_AUTOTOOLS_CMD} && ${CMAKE_MAKE_PROGRAM} && ${CMAKE_MAKE_PROGRAM} install" 0)
 
 
 # Add tarxa-evm
@@ -160,4 +162,4 @@ set(EVM_AFTER_BUILD_COMMAND "${EVM_AFTER_BUILD_COMMAND} && mv include/taraxa-evm
 ## final command
 set(EVM_LIBRARY_COMMAND "${EVM_BUILD_COMMAND} && ${EVM_AFTER_BUILD_COMMAND}")
 
-add_none_cmake_target(evm "${EVM_LIBRARY_NAME}" "${EVM_LIBRARY_COMMAND}")
+add_none_cmake_target(evm "${EVM_LIBRARY_NAME}" "${EVM_LIBRARY_COMMAND}" 1)
