@@ -641,11 +641,19 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
           }
         }
       } else {
-        syncing_ = false;
         LOG(log_dg_pbft_sync_) << "Syncing PBFT is completed";
-        // TODO: Why need to clear all DAG blocks and transactions?
-        // This is inside PbftBlockPacket. Why don't clear PBFT blocks and votes?
-        sendSyncedMessage();
+        // We are pbft synced with the node we are connected to but
+        // calling restartSyncingPbft will check if some nodes have
+        // greater pbft chain size and we should continue syncing with
+        // them. Or sync pending DAG blocks
+        restartSyncingPbft(true);
+        // We are pbft synced, send message to other node to start
+        // gossiping new blocks
+        if (!syncing_) {
+          // TODO: Why need to clear all DAG blocks and transactions?
+          // This is inside PbftBlockPacket. Why don't clear PBFT blocks and votes?
+          sendSyncedMessage();
+        }
       }
 
       break;
@@ -766,34 +774,37 @@ void TaraxaCapability::sendTestMessage(NodeID const &_id, int _x) {
 }
 
 void TaraxaCapability::sendStatus(NodeID const &_id, bool _initial) {
-  if (_initial) {
-    LOG(log_dg_) << "Sending initial status message to " << _id << ", protocol version "
-                 << FullNode::c_network_protocol_version << ", network id " << conf_.network_id << ", genesis "
-                 << dag_mgr_->get_genesis() << ", node major version " << FullNode::c_node_major_version
-                 << ", node minor version " << FullNode::c_node_minor_version;
-  }
+  if (dag_mgr_) {
+    if (_initial) {
+      LOG(log_dg_) << "Sending initial status message to " << _id << ", protocol version "
+                   << FullNode::c_network_protocol_version << ", network id " << conf_.network_id << ", genesis "
+                   << dag_mgr_->get_genesis() << ", node major version " << FullNode::c_node_major_version
+                   << ", node minor version " << FullNode::c_node_minor_version;
+    }
 
-  auto dag_max_level = dag_mgr_->getMaxLevel();
-  auto pbft_chain_size = pbft_chain_->getPbftChainSize();
-  auto pbft_round = pbft_mgr_->getPbftRound();
-  auto pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesSize();
-  LOG(log_dg_dag_sync_) << "Sending status message to " << _id << " with dag level: " << dag_max_level;
-  LOG(log_dg_pbft_sync_) << "Sending status message to " << _id << " with pbft chain size: " << pbft_chain_size
-                         << ", syncing: " << std::boolalpha << syncing_;
-  LOG(log_dg_next_votes_sync_) << "Sending status message to " << _id << " with PBFT round: " << pbft_round
-                               << ", previous round next votes size " << pbft_previous_round_next_votes_size;
+    auto dag_max_level = dag_mgr_->getMaxLevel();
+    auto pbft_chain_size = pbft_chain_->getPbftChainSize();
+    auto pbft_round = pbft_mgr_->getPbftRound();
+    auto pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesSize();
+    LOG(log_dg_dag_sync_) << "Sending status message to " << _id << " with dag level: " << dag_max_level;
+    LOG(log_dg_pbft_sync_) << "Sending status message to " << _id << " with pbft chain size: " << pbft_chain_size
+                           << ", syncing: " << std::boolalpha << syncing_;
+    LOG(log_dg_next_votes_sync_) << "Sending status message to " << _id << " with PBFT round: " << pbft_round
+                                 << ", previous round next votes size " << pbft_previous_round_next_votes_size;
 
-  RLPStream s;
-  if (_initial) {
-    host_.capabilityHost()->sealAndSend(_id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 10)
-                                                 << FullNode::c_network_protocol_version << conf_.network_id
-                                                 << dag_max_level << dag_mgr_->get_genesis() << pbft_chain_size
-                                                 << syncing_.load() << pbft_round << pbft_previous_round_next_votes_size
-                                                 << FullNode::c_node_major_version << FullNode::c_node_minor_version);
-  } else {
-    host_.capabilityHost()->sealAndSend(_id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 5)
-                                                 << dag_max_level << pbft_chain_size << syncing_.load() << pbft_round
-                                                 << pbft_previous_round_next_votes_size);
+    RLPStream s;
+    if (_initial) {
+      host_.capabilityHost()->sealAndSend(_id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 10)
+                                                   << FullNode::c_network_protocol_version << conf_.network_id
+                                                   << dag_max_level << dag_mgr_->get_genesis() << pbft_chain_size
+                                                   << syncing_.load() << pbft_round
+                                                   << pbft_previous_round_next_votes_size
+                                                   << FullNode::c_node_major_version << FullNode::c_node_minor_version);
+    } else {
+      host_.capabilityHost()->sealAndSend(_id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 5)
+                                                   << dag_max_level << pbft_chain_size << syncing_.load() << pbft_round
+                                                   << pbft_previous_round_next_votes_size);
+    }
   }
 }
 
