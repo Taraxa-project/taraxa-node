@@ -534,7 +534,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       }
 
       auto pbft_synced_period = pbft_chain_->pbftSyncingPeriod();
-      if (pbft_synced_period > pbft_block->getPeriod()) {
+      if (pbft_synced_period >= pbft_block->getPeriod()) {
         LOG(log_dg_pbft_prp_) << "Drop it! Synced PBFT block at period " << pbft_block->getPeriod()
                               << ", own PBFT chain has synced at period " << pbft_synced_period;
         return;
