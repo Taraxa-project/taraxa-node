@@ -103,7 +103,6 @@ add_library(app_base STATIC ${SOURCES})
 # TODO: have some problems with include dirs for imported targets
 get_target_property(TARAXA_VDF_INCUDE taraxa-vdf INTERFACE_INCLUDE_DIRECTORIES)
 get_target_property(TARAXA_VRF_INCUDE taraxa-vrf INTERFACE_INCLUDE_DIRECTORIES)
-get_target_property(TARAXA_EVM_INCUDE taraxa-evm INTERFACE_INCLUDE_DIRECTORIES)
 
 target_include_directories(app_base PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
