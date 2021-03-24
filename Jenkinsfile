@@ -1,3 +1,8 @@
+library identifier: 'jenkinsfile-library@master', retriever: modernSCM(
+    [$class: 'GitSCMSource',
+     remote: 'https://github.com/Taraxa-project/jenkinsfile-library.git',
+     credentialsId: 'a9e63ab7-4c38-4644-8829-5f1144995c44'])
+
 def getChart(){
         dir('taraxa-testnet') {
                 git(
@@ -57,8 +62,6 @@ pipeline {
     environment {
         GCP_REGISTRY = 'gcr.io/jovial-meridian-249123'
         IMAGE = 'taraxa-node'
-        SLACK_CHANNEL = 'jenkins'
-        SLACK_TEAM_DOMAIN = 'phragmites'
         DOCKER_BRANCH_TAG = sh(script: './scripts/docker_tag_from_branch.sh "${BRANCH_NAME}"', , returnStdout: true).trim()
         HELM_TEST_NAME = sh(script: 'echo ${BRANCH_NAME} | sed "s/[^A-Za-z0-9\\-]*//g" | tr "[:upper:]" "[:lower:]"', returnStdout: true).trim()
         KIBANA_URL='kibana.gcp.taraxa.io'
@@ -184,12 +187,10 @@ post {
         cleanWs()
     }
     success {
-      slackSend (channel: "${SLACK_CHANNEL}", teamDomain: "${SLACK_TEAM_DOMAIN}", tokenCredentialId: 'SLACK_TOKEN_ID',
-                color: '#00FF00', message: "SUCCESSFUL: Job '${JOB_NAME} [${BUILD_NUMBER}]' (${BUILD_URL})")
+      slackSendCustom(status: 'success')
     }
     failure {
-      slackSend (channel: "${SLACK_CHANNEL}", teamDomain: "${SLACK_TEAM_DOMAIN}", tokenCredentialId: 'SLACK_TOKEN_ID',
-                color: '#FF0000', message: "FAILED: Job '${JOB_NAME} [${BUILD_NUMBER}]' (${BUILD_URL})")
+      slackSendCustom(status: 'failed')
     }
   }
 }
