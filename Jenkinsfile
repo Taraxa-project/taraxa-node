@@ -1,4 +1,4 @@
-library identifier: 'jenkinsfile-library@master', retriever: modernSCM(
+library identifier: 'jenkinsfile-library@main', retriever: modernSCM(
     [$class: 'GitSCMSource',
      remote: 'https://github.com/Taraxa-project/jenkinsfile-library.git',
      credentialsId: 'a9e63ab7-4c38-4644-8829-5f1144995c44'])
