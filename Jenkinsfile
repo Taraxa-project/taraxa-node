@@ -72,20 +72,6 @@ pipeline {
       disableConcurrentBuilds()
     }
     stages {
-        stage('Docker GCP Registry Login') {
-            steps {
-                withCredentials([string(credentialsId: 'gcp_container_registry_key_json', variable: 'GCP_KEY')]) {
-                  sh 'echo ${GCP_KEY} | docker login -u _json_key --password-stdin https://gcr.io'
-                }
-            }
-        }
-        stage('Docker-Hub Registry Login') {
-            steps {
-                withCredentials([string(credentialsId: 'docker_hub_taraxa_pass', variable: 'HUB_PASS')]) {
-                  sh 'echo ${HUB_PASS} | docker login -u taraxa --password-stdin'
-                }
-            }
-        }
         stage('Build Docker Image') {
             steps {
                 sh '''
@@ -143,10 +129,7 @@ pipeline {
         stage('Push Docker Image For test') {
             when { branch 'PR-*' }
             steps {
-                sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${GCP_REGISTRY}/${IMAGE}:${HELM_TEST_NAME}-build-${BUILD_NUMBER}'
-                sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${GCP_REGISTRY}/${IMAGE}:${GIT_COMMIT}'
-                sh 'docker push ${GCP_REGISTRY}/${IMAGE}:${HELM_TEST_NAME}-build-${BUILD_NUMBER}'
-                sh 'docker push ${GCP_REGISTRY}/${IMAGE}:${GIT_COMMIT}'
+                dockerTagAndPush(registry: 'gcr', build_image: "${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER}", push_image: "${IMAGE}", latest: "false")
             }
         }
         stage('Run kubernetes tests') {
@@ -164,21 +147,17 @@ pipeline {
                 }
             }
         }
-        stage('Push Docker Image') {
+        stage('Push Docker Image Develop') {
+            when {branch 'develop'}
+            steps {
+                dockerTagAndPush(registry: 'gcr', build_image: "${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER}", push_image: "${IMAGE}", image_branch: "${GIT_BRANCH}")
+            }
+        }
+        stage('Push Docker Image Master') {
             when {branch 'master'}
             steps {
-                sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${GCP_REGISTRY}/${IMAGE}:${GIT_COMMIT}'
-                sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${GCP_REGISTRY}/${IMAGE}:${START_TIME}'
-                sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${GCP_REGISTRY}/${IMAGE}:${START_TIME}-${GIT_COMMIT}'
-                sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${GCP_REGISTRY}/${IMAGE}:latest'
-                sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${GCP_REGISTRY}/${IMAGE}'
-                sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} taraxa/${IMAGE}:${GIT_COMMIT}'
-                sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} taraxa/${IMAGE}:${START_TIME}'
-                sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} taraxa/${IMAGE}:${START_TIME}-${GIT_COMMIT}'
-                sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} taraxa/${IMAGE}:latest'
-                sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} taraxa/${IMAGE}'
-                sh 'docker push ${GCP_REGISTRY}/${IMAGE}'
-                sh 'docker push taraxa/${IMAGE}'
+                dockerTagAndPush(registry: 'gcr', build_image: "${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER}", push_image: "${IMAGE}")
+                dockerTagAndPush(registry: 'hub', build_image: "${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER}", push_image: "${IMAGE}")
             }
         }
     }
