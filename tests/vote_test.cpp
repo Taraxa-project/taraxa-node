@@ -22,6 +22,101 @@ auto g_sk = Lazy([] {
 });
 struct VoteTest : BaseTest {};
 
+void clearAllVotes(FullNode::Handle &node) {
+  // Clear unverified votes and verified votes table
+  auto db = node->getDB();
+  auto vote_mgr = node->getVoteManager();
+  auto unverified_votes = db->getUnverifiedVotes();
+  auto verified_votes = db->getVerifiedVotes();
+
+  auto batch = db->createWriteBatch();
+  for (auto const &v : unverified_votes) {
+    db->removeUnverifiedVoteToBatch(v.getHash(), batch);
+  }
+  for (auto const &v : verified_votes) {
+    db->removeVerifiedVoteToBatch(v.getHash(), batch);
+  }
+  db->commitWriteBatch(batch);
+
+  vote_mgr->clearUnverifiedVotesTable();
+  vote_mgr->clearVerifiedVotesTable();
+}
+
+TEST_F(VoteTest, unverified_votes) {
+  auto node_cfgs = make_node_cfgs(1);
+  FullNode::Handle node(node_cfgs[0]);
+
+  // stop PBFT manager, that will place vote
+  auto pbft_mgr = node->getPbftManager();
+  pbft_mgr->stop();
+
+  clearAllVotes(node);
+
+  // Generate a vote
+  blk_hash_t pbft_chain_last_block_hash = node->getPbftChain()->getLastPbftBlockHash();
+  blk_hash_t blockhash(1);
+  PbftVoteTypes type = propose_vote_type;
+  auto round = 1;
+  auto step = 1;
+  Vote vote = pbft_mgr->generateVote(blockhash, type, round, step, pbft_chain_last_block_hash);
+
+  auto vote_mgr = node->getVoteManager();
+  vote_mgr->addUnverifiedVote(vote);
+  EXPECT_TRUE(vote_mgr->voteInUnverifiedMap(vote.getRound(), vote.getHash()));
+
+  // Generate 3 votes, (round = 1, step = 1) is duplicate
+  std::vector<Vote> unverified_votes;
+  for (auto i = 1; i <= 3; i++) {
+    round = i;
+    step = i;
+    Vote vote = pbft_mgr->generateVote(blockhash, type, round, step, pbft_chain_last_block_hash);
+    unverified_votes.emplace_back(vote);
+  }
+
+  vote_mgr->addUnverifiedVotes(unverified_votes);
+  EXPECT_EQ(vote_mgr->getUnverifiedVotes().size(), unverified_votes.size());
+  EXPECT_EQ(vote_mgr->getUnverifiedVotesSize(), unverified_votes.size());
+
+  vote_mgr->removeUnverifiedVote(unverified_votes[0].getRound(), unverified_votes[0].getHash());
+  EXPECT_FALSE(vote_mgr->voteInUnverifiedMap(unverified_votes[0].getRound(), unverified_votes[0].getHash()));
+  EXPECT_EQ(vote_mgr->getUnverifiedVotes().size(), unverified_votes.size() - 1);
+  EXPECT_EQ(vote_mgr->getUnverifiedVotesSize(), unverified_votes.size() - 1);
+
+  vote_mgr->clearUnverifiedVotesTable();
+  EXPECT_TRUE(vote_mgr->getUnverifiedVotes().empty());
+  EXPECT_EQ(vote_mgr->getUnverifiedVotesSize(), 0);
+}
+
+TEST_F(VoteTest, verified_votes) {
+  auto node_cfgs = make_node_cfgs(1);
+  FullNode::Handle node(node_cfgs[0]);
+
+  // stop PBFT manager, that will place vote
+  auto pbft_mgr = node->getPbftManager();
+  pbft_mgr->stop();
+
+  clearAllVotes(node);
+
+  // Generate a vote
+  blk_hash_t pbft_chain_last_block_hash = node->getPbftChain()->getLastPbftBlockHash();
+  blk_hash_t blockhash(1);
+  PbftVoteTypes type = soft_vote_type;
+  auto round = 1;
+  auto step = 2;
+  Vote vote = pbft_mgr->generateVote(blockhash, type, round, step, pbft_chain_last_block_hash);
+
+  auto vote_mgr = node->getVoteManager();
+  vote_mgr->addVerifiedVote(vote);
+  EXPECT_TRUE(vote_mgr->voteInVerifiedMap(vote.getRound(), vote.getHash()));
+  // Test same vote cannot add twice
+  vote_mgr->addVerifiedVote(vote);
+  EXPECT_EQ(vote_mgr->getVerifiedVotes().size(), 1);
+
+  vote_mgr->clearVerifiedVotesTable();
+  EXPECT_FALSE(vote_mgr->voteInVerifiedMap(vote.getRound(), vote.getHash()));
+  EXPECT_EQ(vote_mgr->getVerifiedVotes().size(), 0);
+}
+
 // Add votes round 1, 2 and 3 into unverified vote table
 // Get votes round 2, will remove round 1 in the table, and return round 2 & 3 votes
 TEST_F(VoteTest, add_cleanup_get_votes) {
@@ -32,23 +127,10 @@ TEST_F(VoteTest, add_cleanup_get_votes) {
   auto pbft_mgr = node->getPbftManager();
   pbft_mgr->stop();
 
-  // Clear unverified votes and verified votes table
-  auto db = node->getDB();
-  auto vote_mgr = node->getVoteManager();
-  auto unverified_votes = db->getUnverifiedVotes();
-  auto verified_votes = db->getVerifiedVotes();
-  auto batch = db->createWriteBatch();
-  for (auto const &v : unverified_votes) {
-    db->removeUnverifiedVoteToBatch(v.getHash(), batch);
-  }
-  for (auto const &v : verified_votes) {
-    db->removeVerifiedVoteToBatch(v.getHash(), batch);
-  }
-  db->commitWriteBatch(batch);
-  vote_mgr->clearUnverifiedVotesTable();
-  vote_mgr->clearVerifiedVotesTable();
+  clearAllVotes(node);
 
   // generate 6 votes, each round has 2 votes
+  auto vote_mgr = node->getVoteManager();
   blk_hash_t blockhash(1);
   PbftVoteTypes type = propose_vote_type;
   blk_hash_t pbft_chain_last_block_hash = node->getPbftChain()->getLastPbftBlockHash();
@@ -56,12 +138,13 @@ TEST_F(VoteTest, add_cleanup_get_votes) {
     for (int j = 1; j <= 2; j++) {
       uint64_t round = i;
       size_t step = j;
-      Vote vote = node->getPbftManager()->generateVote(blockhash, type, round, step, pbft_chain_last_block_hash);
-      node->getVoteManager()->addUnverifiedVote(vote);
+      Vote vote = pbft_mgr->generateVote(blockhash, type, round, step, pbft_chain_last_block_hash);
+      vote_mgr->addUnverifiedVote(vote);
     }
   }
+
   // Test add vote
-  size_t votes_size = node->getVoteManager()->getUnverifiedVotesSize();
+  size_t votes_size = vote_mgr->getUnverifiedVotesSize();
   EXPECT_EQ(votes_size, 6);
 
   // Test get votes
@@ -78,11 +161,11 @@ TEST_F(VoteTest, add_cleanup_get_votes) {
   }
 
   // Test cleanup votes
-  votes_size = node->getVoteManager()->getUnverifiedVotesSize();
-  EXPECT_EQ(votes_size, 4);
+  auto verified_votes = vote_mgr->getVerifiedVotes();
+  EXPECT_EQ(verified_votes.size(), 4);
   vote_mgr->cleanupVotes(4);  // cleanup round 2 & 3
-  votes_size = node->getVoteManager()->getUnverifiedVotesSize();
-  EXPECT_EQ(votes_size, 0);
+  verified_votes = vote_mgr->getVerifiedVotes();
+  EXPECT_TRUE(verified_votes.empty());
 }
 
 TEST_F(VoteTest, reconstruct_votes) {
@@ -116,19 +199,16 @@ TEST_F(VoteTest, transfer_vote) {
   pbft_mgr1->stop();
   pbft_mgr2->stop();
 
+  clearAllVotes(node1);
+  clearAllVotes(node2);
+
   // generate vote
   blk_hash_t blockhash(11);
   blk_hash_t pbft_blockhash(991);
   PbftVoteTypes type = propose_vote_type;
   uint64_t period = 1;
   size_t step = 1;
-
   Vote vote = pbft_mgr2->generateVote(blockhash, type, period, step, pbft_blockhash);
-
-  auto vote_mgr1 = node1->getVoteManager();
-  auto vote_mgr2 = node2->getVoteManager();
-  vote_mgr1->clearUnverifiedVotesTable();
-  vote_mgr2->clearUnverifiedVotesTable();
 
   nw2->sendPbftVote(nw1->getNodeId(), vote);
 
@@ -177,6 +257,10 @@ TEST_F(VoteTest, vote_broadcast) {
   pbft_mgr2->stop();
   pbft_mgr3->stop();
 
+  clearAllVotes(node1);
+  clearAllVotes(node2);
+  clearAllVotes(node3);
+
   // generate vote
   blk_hash_t blockhash(1);
   blk_hash_t pbft_blockhash(1);
@@ -184,13 +268,6 @@ TEST_F(VoteTest, vote_broadcast) {
   uint64_t period = 1;
   size_t step = 1;
   Vote vote = pbft_mgr1->generateVote(blockhash, type, period, step, pbft_blockhash);
-
-  auto vote_mgr1 = node1->getVoteManager();
-  auto vote_mgr2 = node2->getVoteManager();
-  auto vote_mgr3 = node3->getVoteManager();
-  vote_mgr1->clearUnverifiedVotesTable();
-  vote_mgr2->clearUnverifiedVotesTable();
-  vote_mgr3->clearUnverifiedVotesTable();
 
   nw1->onNewPbftVotes(vector{vote});
 

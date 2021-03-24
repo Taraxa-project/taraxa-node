@@ -357,12 +357,13 @@ bool VoteManager::pbftBlockHasEnoughValidCertVotes(PbftBlockCert const& pbft_blo
                     "malicious player.";
     return false;
   }
+
   blk_hash_t pbft_chain_last_block_hash = pbft_chain_->getLastPbftBlockHash();
   std::vector<Vote> valid_votes;
   auto first_cert_vote_round = pbft_block_and_votes.cert_votes[0].getRound();
+
   for (auto const& v : pbft_block_and_votes.cert_votes) {
-    // Any info is wrong that can determine the synced PBFT block comes from a
-    // malicious player
+    // Any info is wrong that can determine the synced PBFT block comes from a malicious player
     if (v.getType() != cert_vote_type) {
       LOG(log_er_) << "For PBFT block " << pbft_block_and_votes.pbft_blk->getBlockHash() << ", cert vote "
                    << v.getHash() << " has wrong vote type " << v.getType();
@@ -381,6 +382,7 @@ bool VoteManager::pbftBlockHasEnoughValidCertVotes(PbftBlockCert const& pbft_blo
                    << v.getHash() << " has wrong vote block hash " << v.getBlockHash();
       break;
     }
+
     if (voteValidation(pbft_chain_last_block_hash, v, valid_sortition_players, sortition_threshold)) {
       valid_votes.emplace_back(v);
     } else {
@@ -388,6 +390,7 @@ bool VoteManager::pbftBlockHasEnoughValidCertVotes(PbftBlockCert const& pbft_blo
                    << v.getHash() << " failed validation";
     }
   }
+
   if (valid_votes.size() < pbft_2t_plus_1) {
     LOG(log_er_) << "PBFT block " << pbft_block_and_votes.pbft_blk->getBlockHash() << " with "
                  << pbft_block_and_votes.cert_votes.size() << " cert votes. Has " << valid_votes.size()
@@ -395,6 +398,7 @@ bool VoteManager::pbftBlockHasEnoughValidCertVotes(PbftBlockCert const& pbft_blo
                  << valid_sortition_players << ", sortition threshold is " << sortition_threshold
                  << ". The last block in pbft chain is " << pbft_chain_last_block_hash;
   }
+
   return valid_votes.size() >= pbft_2t_plus_1;
 }
 
