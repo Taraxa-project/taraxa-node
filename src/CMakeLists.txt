@@ -114,7 +114,6 @@ target_include_directories(app_base PUBLIC
         )
 
 target_link_libraries(app_base
-        aleth
         taraxa-vrf
         taraxa-vdf
         taraxa-evm
@@ -132,6 +131,7 @@ target_link_libraries(app_base
         CONAN_PKG::mpfr
         CONAN_PKG::libjson-rpc-cpp
         ${scrypt_LIBRARIES}
+        aleth #  FIXME: THIS LIB CAUSES LINKING ORDER SENSITIVITY
         )
 
 # needed for golang runtime that comes together with taraxa-evm
