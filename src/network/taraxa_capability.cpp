@@ -208,7 +208,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
     case SyncedPacket: {
       LOG(log_dg_dag_sync_) << "Received synced message from " << _nodeID;
       peer->syncing_ = false;
-      peer->clearAllKnownBlocksAndTransactions();
+      //peer->clearAllKnownBlocksAndTransactions();
       break;
     }
     case StatusPacket: {
