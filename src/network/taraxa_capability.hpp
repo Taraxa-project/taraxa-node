@@ -154,7 +154,7 @@ struct TaraxaCapability : virtual CapabilityFace {
   uint64_t getSimulatedNetworkDelay(const RLP &packet_rlp, const NodeID &nodeID);
 
   void doBackgroundWork();
-  void logNetPerformanceStats();
+  void logPacketsStats();
   void sendTransactions();
   std::string packetTypeToString(unsigned int _packetType) const override;
 

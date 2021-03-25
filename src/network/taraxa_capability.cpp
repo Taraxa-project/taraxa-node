@@ -47,7 +47,7 @@ TaraxaCapability::TaraxaCapability(Host &_host, ba::io_service &io_service, Netw
   util::post(io_service_, check_status_interval_, [this] { doBackgroundWork(); });
 
   if (conf_.network_performance_log_interval > 0) {
-    util::post(io_service_, conf_.network_performance_log_interval, [this] { logNetPerformanceStats(); });
+    util::post(io_service_, conf_.network_performance_log_interval, [this] { logPacketsStats(); });
   }
 }
 
@@ -195,7 +195,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
     case SyncedPacket: {
       LOG(log_dg_dag_sync_) << "Received synced message from " << _nodeID;
       peer->syncing_ = false;
-      //peer->clearAllKnownBlocksAndTransactions();
+      // peer->clearAllKnownBlocksAndTransactions();
       break;
     }
     case StatusPacket: {
@@ -1097,14 +1097,17 @@ void TaraxaCapability::doBackgroundWork() {
   util::post(io_service_, check_status_interval_, [this] { doBackgroundWork(); });
 }
 
-void TaraxaCapability::logNetPerformanceStats() {
-  LOG(log_nf_net_per_) << "Received packets stats: " << received_packets_stats_;
-  LOG(log_nf_net_per_) << "Sent packets stats: " << sent_packets_stats_;
+void TaraxaCapability::logPacketsStats() {
+  static PacketsStats previous_received_packets_stats = received_packets_stats_;
+  static PacketsStats previous_sent_packets_stats = sent_packets_stats_;
 
-  sent_packets_stats_.clearData();
-  received_packets_stats_.clearData();
+  LOG(log_nf_net_per_) << "Received packets stats: " << received_packets_stats_ - previous_received_packets_stats;
+  LOG(log_nf_net_per_) << "Sent packets stats: " << sent_packets_stats_ - previous_sent_packets_stats;
 
-  util::post(io_service_, conf_.network_performance_log_interval, [this] { logNetPerformanceStats(); });
+  previous_received_packets_stats = received_packets_stats_;
+  previous_sent_packets_stats = sent_packets_stats_;
+
+  util::post(io_service_, conf_.network_performance_log_interval, [this] { logPacketsStats(); });
 }
 
 void TaraxaCapability::onNewPbftVote(taraxa::Vote const &vote) {
@@ -1348,6 +1351,9 @@ Json::Value TaraxaCapability::getStatus() const {
         if (unique > 0) {
           packet_stats_json["unique"] = Json::UInt64(unique);
           packet_stats_json["unique %"] = Json::UInt64(unique * 100 / total);
+          packet_stats_json["unique avg packet size"] = Json::UInt64(packet_stats->total_unique_size_ / unique);
+          packet_stats_json["unique avg packet processing duration"] =
+              Json::UInt64(packet_stats->total_unique_duration_.count() / unique);
         }
         stats_json[packetTypeToString(it)] = packet_stats_json;
       }

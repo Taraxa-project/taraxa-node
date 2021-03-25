@@ -2,6 +2,13 @@
 
 namespace taraxa {
 
+PacketsStats::PacketsStats(const PacketsStats &ro) : stats_(ro.stats_), mutex_() {}
+
+PacketsStats &PacketsStats::operator=(const PacketsStats &ro) {
+  stats_ = ro.stats_;
+  return *this;
+}
+
 void PacketsStats::addPacket(const std::string &packet_type, const PacketStats &packet) {
   std::lock_guard<std::mutex> guard(mutex_);
   auto &packet_stats = stats_[packet_type];
@@ -17,7 +24,7 @@ void PacketsStats::addPacket(const std::string &packet_type, const PacketStats &
   packet_stats.total_duration_ += packet.total_duration_;
 }
 
-std::optional<const PacketsStats::PacketAvgStats> PacketsStats::getPacketStats(const std::string &packet_type) const {
+std::optional<PacketsStats::PacketAvgStats> PacketsStats::getPacketStats(const std::string &packet_type) const {
   const auto found_stats = stats_.find(packet_type);
 
   if (found_stats == stats_.end()) {
@@ -27,15 +34,24 @@ std::optional<const PacketsStats::PacketAvgStats> PacketsStats::getPacketStats(c
   return {found_stats->second};
 }
 
-void PacketsStats::clearData() {
-  std::lock_guard<std::mutex> guard(mutex_);
-  stats_.clear();
+PacketsStats::PacketAvgStats PacketsStats::PacketAvgStats::operator-(const PacketAvgStats &ro) const {
+  PacketAvgStats result;
+
+  result.total_count_ = total_count_ - ro.total_count_;
+  result.total_size_ = total_size_ - ro.total_size_;
+  result.total_duration_ = total_duration_ - ro.total_duration_;
+  result.total_unique_count_ = total_unique_count_ - ro.total_unique_count_;
+  result.total_unique_size_ = total_unique_size_ - ro.total_unique_size_;
+  result.total_unique_duration_ = total_unique_duration_ - ro.total_unique_duration_;
+
+  return result;
 }
 
 std::ostream &operator<<(std::ostream &os, const PacketStats &stats) {
   os << "node: " << stats.node_.abridged() << ", size: " << stats.size_ << " [B]"
      << ", processing duration: " << stats.total_duration_.count() << " [us]"
      << ", is unique: " << stats.is_unique_;
+
   return os;
 }
 
@@ -59,6 +75,25 @@ std::ostream &operator<<(std::ostream &os, const PacketsStats::PacketAvgStats &s
   }
 
   return os;
+}
+
+PacketsStats PacketsStats::operator-(const PacketsStats &ro) const {
+  PacketsStats result;
+
+  for (const auto &packet_stats : stats_) {
+    const auto ro_packet_stats = ro.getPacketStats(packet_stats.first);
+
+    if (ro_packet_stats == std::nullopt) {
+      result.stats_[packet_stats.first] = packet_stats.second;
+    } else {
+      PacketAvgStats packet_avg_stats_result = packet_stats.second - ro_packet_stats.value();
+      if (packet_avg_stats_result.total_count_ > 0) {
+        result.stats_[packet_stats.first] = std::move(packet_avg_stats_result);
+      }
+    }
+  }
+
+  return result;
 }
 
 std::ostream &operator<<(std::ostream &os, const PacketsStats &packets_stats) {
