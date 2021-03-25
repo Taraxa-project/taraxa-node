@@ -101,6 +101,8 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object,
   network.network_address = getConfigDataAsString(root, {"network_address"});
   network.network_tcp_port = getConfigDataAsUInt(root, {"network_tcp_port"});
   network.network_simulated_delay = getConfigDataAsUInt(root, {"network_simulated_delay"});
+  network.network_performance_log_interval =
+      getConfigDataAsUInt(root, {"network_performance_log_interval"}, true, 30000 /*ms*/);
   network.network_transaction_interval = getConfigDataAsUInt(root, {"network_transaction_interval"});
   network.network_min_dag_block_broadcast = getConfigDataAsUInt(root, {"network_min_dag_block_broadcast"}, true, 5);
   network.network_max_dag_block_broadcast = getConfigDataAsUInt(root, {"network_max_dag_block_broadcast"}, true, 20);
@@ -171,9 +173,6 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object,
         for (auto &ch : item["channels"]) {
           std::pair<std::string, uint16_t> channel;
           channel.first = getConfigDataAsString(ch, {"name"});
-          if (channel.first == "NETPER") {
-            network.network_performance_log = true;
-          }
           if (ch["verbosity"].isNull()) {
             channel.second = logging.verbosity;
           } else {

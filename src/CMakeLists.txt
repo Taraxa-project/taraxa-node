@@ -78,6 +78,7 @@ set(SOURCES
         node/replay_protection_service.hpp
         common/types.hpp
         dag/dag_block.hpp
+        network/packets_stats.hpp
         network/rpc/Taraxa.h
         network/rpc/Test.h
         network/rpc/TaraxaClient.h
@@ -126,6 +127,7 @@ set(SOURCES
         dag/dag_block.cpp
         node/full_node.cpp
         consensus/block_proposer.cpp
+        network/packets_stats.cpp
         network/rpc/Taraxa.cpp
         network/rpc/Test.cpp
         network/rpc/WSServer.cpp

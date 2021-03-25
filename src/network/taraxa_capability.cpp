@@ -15,12 +15,10 @@ TaraxaCapability::TaraxaCapability(Host &_host, ba::io_service &io_service, Netw
                                    std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
                                    std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr,
                                    std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
-                                   std::shared_ptr<TransactionManager> trx_mgr, bool performance_log,
-                                   addr_t const &node_addr)
+                                   std::shared_ptr<TransactionManager> trx_mgr, addr_t const &node_addr)
     : host_(_host),
       io_service_(io_service),
       conf_(_conf),
-      performance_log_(performance_log),
       urng_(std::mt19937_64(std::random_device()())),
       delay_rng_(std::mt19937(std::random_device()())),
       random_dist_(std::uniform_int_distribution<std::mt19937::result_type>(90, 110)),
@@ -42,16 +40,15 @@ TaraxaCapability::TaraxaCapability(Host &_host, ba::io_service &io_service, Netw
   LOG_OBJECTS_CREATE_SUB("PBFTPRP", pbft_prp);
   LOG_OBJECTS_CREATE_SUB("VOTEPRP", vote_prp);
   LOG_OBJECTS_CREATE_SUB("NETPER", net_per);
-  for (uint8_t it = 0; it != PacketCount; it++) {
-    packet_count[it] = 0;
-    packet_size[it] = 0;
-    unique_packet_count[it] = 0;
-  }
   if (conf_.network_transaction_interval > 0) {
     util::post(io_service_, conf_.network_transaction_interval, [this] { sendTransactions(); });
   }
   check_status_interval_ = 6 * lambda_ms_min_;
   util::post(io_service_, check_status_interval_, [this] { doBackgroundWork(); });
+
+  if (conf_.network_performance_log_interval > 0) {
+    util::post(io_service_, conf_.network_performance_log_interval, [this] { logPacketsStats(); });
+  }
 }
 
 std::shared_ptr<TaraxaPeer> TaraxaCapability::getPeer(NodeID const &node_id) {
@@ -81,6 +78,28 @@ void TaraxaCapability::insertPeer(NodeID const &node_id, std::shared_ptr<TaraxaP
 void TaraxaCapability::syncPeerPbft(NodeID const &_nodeID, unsigned long height_to_sync) {
   LOG(log_nf_pbft_sync_) << "Sync peer node " << _nodeID << " from pbft chain height " << height_to_sync;
   requestPbftBlocks(_nodeID, height_to_sync);
+}
+
+void TaraxaCapability::sealAndSend(NodeID const &nodeID, RLPStream &s, unsigned packet_type) {
+  try {
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+    auto packet_size = s.out().size();
+
+    host_.capabilityHost()->sealAndSend(nodeID, s);
+
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - begin);
+    PacketStats packet_stats{nodeID, packet_size, false, duration};
+    sent_packets_stats_.addPacket(packetTypeToString(packet_type), packet_stats);
+
+    LOG(log_dg_net_per_) << "(\"" << host_.id() << "\") sent " << packetTypeToString(packet_type) << " packet to (\""
+                         << nodeID << "\"). Stats: " << packet_stats;
+  } catch (const std::exception &e) {
+    LOG(log_er_) << "Caught exception in sealAndSend: " << e.what();
+    throw;
+  } catch (...) {
+    LOG(log_er_) << "Caught unknown exception in sealAndSend.";
+    throw;
+  }
 }
 
 std::pair<bool, blk_hash_t> TaraxaCapability::checkDagBlockValidation(DagBlock const &block) {
@@ -125,57 +144,11 @@ void TaraxaCapability::onConnect(NodeID const &_nodeID, u256 const &) {
   });
 }
 
-void TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID, unsigned _id, RLP const &_r) {
-  ba::post(io_service_, [=, bb = _r.data().toBytes()] {
-    RLP r(bb);
-    try {
-      interpretCapabilityPacket_(_nodeID, _id, r);
-    } catch (...) {
-      handle_read_exception(_nodeID, _id, r);
-    }
-  });
-}
-
-void TaraxaCapability::interpretCapabilityPacket_(NodeID const &_nodeID, unsigned _id, RLP const &_r) {
-  if (conf_.network_simulated_delay == 0) {
-    if (performance_log_) {
-      static std::map<unsigned, std::pair<uint32_t, uint64_t>> perf_data;
-      static std::chrono::steady_clock::time_point begin_perf = std::chrono::steady_clock::now();
-      std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-      LOG(log_dg_net_per_) << packetTypeToString(_id) << " received";
-      interpretCapabilityPacketImpl(_nodeID, _id, _r);
-      std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-      auto dur = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
-      if (dur > 100000) {
-        LOG(log_nf_net_per_) << packetTypeToString(_id) << " processed in: " << dur << "[µs]";
-      } else {
-        LOG(log_dg_net_per_) << packetTypeToString(_id) << " processed in: " << dur << "[µs]";
-      }
-      perf_data[_id].first++;
-      perf_data[_id].second += dur;
-      if (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - begin_perf).count() >
-          20) {
-        uint32_t total_count = 0;
-        uint64_t total_time = 0;
-        for (auto const &it : perf_data) {
-          total_count += it.second.first;
-          total_time += it.second.second;
-          LOG(log_nf_net_per_) << packetTypeToString(it.first) << " No: " << it.second.first
-                               << " - Avg time: " << it.second.second / it.second.first << "[µs]";
-        }
-        LOG(log_nf_net_per_) << "All packets"
-                             << " No: " << total_count << " - Avg time: " << total_time / total_count << "[µs]";
-        begin_perf = end;
-      }
-      return;
-    }
-    interpretCapabilityPacketImpl(_nodeID, _id, _r);
-    return;
-  }
+uint64_t TaraxaCapability::getSimulatedNetworkDelay(const RLP &packet_rlp, const NodeID &nodeID) {
   // RLP contains memory it does not own so deep copy of bytes is needed
-  dev::bytes rBytes = _r.data().toBytes();
+  dev::bytes rBytes = packet_rlp.data().toBytes();
   int messageSize = rBytes.size() * 8;
-  unsigned int dist = *((int *)this->host_.id().data()) ^ *((int *)_nodeID.data());
+  unsigned int dist = *((int *)this->host_.id().data()) ^ *((int *)nodeID.data());
   unsigned int delay = dist % conf_.network_simulated_delay;
 
   auto bandwidth = conf_.network_bandwidth ? conf_.network_bandwidth : 40;
@@ -184,31 +157,45 @@ void TaraxaCapability::interpretCapabilityPacket_(NodeID const &_nodeID, unsigne
   // Random component up to +-10%
   int random_component = random_dist_(delay_rng_);
 
-  unsigned int total_delay = (delay + bandwidth_delay) * random_component / 100;
-  LOG(log_dg_) << "Delaying packet by: (" << delay << " , " << bandwidth_delay << " ), actual delay =" << total_delay
-               << " milliseconds";
-  util::post(io_service_, total_delay, [=, rBytes = move(rBytes)] {
-    RLP r(rBytes);
+  return (delay + bandwidth_delay) * random_component / 100;
+}
+
+void TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID, unsigned _id, RLP const &_r) {
+  // Delay is used only when we want to simulate some network delay
+  uint64_t delay = conf_.network_simulated_delay ? getSimulatedNetworkDelay(_r, _nodeID) : 0;
+
+  util::post(io_service_, delay, [=, bb = _r.data().toBytes()] {
+    RLP r(bb);
     try {
-      interpretCapabilityPacketImpl(_nodeID, _id, r);
+      std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+      PacketStats packet_stats{_nodeID, r.actualSize(), false, std::chrono::microseconds(0)};
+
+      interpretCapabilityPacketImpl(_nodeID, _id, r, packet_stats);
+
+      auto duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - begin);
+      packet_stats.total_duration_ = duration;
+      received_packets_stats_.addPacket(packetTypeToString(_id), packet_stats);
+
+      LOG(log_dg_net_per_) << "(\"" << host_.id() << "\") received " << packetTypeToString(_id) << " packet from (\""
+                           << _nodeID << "\"). Stats: " << packet_stats;
     } catch (...) {
       handle_read_exception(_nodeID, _id, r);
     }
   });
 }
 
-void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsigned _id, RLP const &_r) {
+void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsigned _id, RLP const &_r,
+                                                     PacketStats &packet_stats) {
   auto peer = getPeer(_nodeID);
   if (!peer) {
     return;
   }
-  packet_size[_id] += _r.actualSize();
-  packet_count[_id]++;
+
   switch (_id) {
     case SyncedPacket: {
       LOG(log_dg_dag_sync_) << "Received synced message from " << _nodeID;
       peer->syncing_ = false;
-      //peer->clearAllKnownBlocksAndTransactions();
+      // peer->clearAllKnownBlocksAndTransactions();
       break;
     }
     case StatusPacket: {
@@ -311,7 +298,8 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
           break;
         }
       }
-      unique_packet_count[_id]++;
+
+      packet_stats.is_unique_ = true;
 
       auto transactionsCount = _r.itemCount() - 1;
       LOG(log_dg_dag_prp_) << "Received NewBlockPacket " << transactionsCount;
@@ -335,7 +323,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       peer->markBlockAsKnown(hash);
       if (dag_blk_mgr_) {
         if (!dag_blk_mgr_->isBlockKnown(hash) && block_requestes_set_.count(hash) == 0) {
-          unique_packet_count[_id]++;
+          packet_stats.is_unique_ = true;
           block_requestes_set_.insert(hash);
           requestBlock(_nodeID, hash);
         }
@@ -436,7 +424,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       peer->markVoteAsKnown(vote.getHash());
 
       if (vote_mgr_->addVote(vote)) {
-        unique_packet_count[_id]++;
+        packet_stats.is_unique_ = true;
         onNewPbftVote(vote);
       }
       break;
@@ -540,8 +528,11 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         return;
       }
 
-      if (!pbft_chain_->findUnverifiedPbftBlock(pbft_block->getBlockHash())) {
-        unique_packet_count[_id]++;
+      if (pbft_chain_ && !pbft_chain_->findUnverifiedPbftBlock(pbft_block->getBlockHash())) {
+        // TODO: need to check block validation, like proposed
+        // vote(maybe
+        //  come later), if get sortition etc
+        packet_stats.is_unique_ = true;
         pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
         onNewPbftBlock(*pbft_block);
       }
@@ -770,7 +761,7 @@ void TaraxaCapability::onDisconnect(NodeID const &_nodeID) {
 
 void TaraxaCapability::sendTestMessage(NodeID const &_id, int _x) {
   RLPStream s;
-  host_.capabilityHost()->sealAndSend(_id, host_.capabilityHost()->prep(_id, name(), s, TestPacket, 1) << _x);
+  sealAndSend(_id, host_.capabilityHost()->prep(_id, name(), s, TestPacket, 1) << _x, TestPacket);
 }
 
 void TaraxaCapability::sendStatus(NodeID const &_id, bool _initial) {
@@ -794,16 +785,19 @@ void TaraxaCapability::sendStatus(NodeID const &_id, bool _initial) {
 
     RLPStream s;
     if (_initial) {
-      host_.capabilityHost()->sealAndSend(_id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 10)
-                                                   << FullNode::c_network_protocol_version << conf_.network_id
-                                                   << dag_max_level << dag_mgr_->get_genesis() << pbft_chain_size
-                                                   << syncing_.load() << pbft_round
-                                                   << pbft_previous_round_next_votes_size
-                                                   << FullNode::c_node_major_version << FullNode::c_node_minor_version);
+      sealAndSend(_id,
+                  host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 10)
+                      << FullNode::c_network_protocol_version << conf_.network_id << dag_max_level
+                      << dag_mgr_->get_genesis() << pbft_chain_size << syncing_.load() << pbft_round
+                      << pbft_previous_round_next_votes_size << FullNode::c_node_major_version
+                      << FullNode::c_node_minor_version,
+                  StatusPacket);
     } else {
-      host_.capabilityHost()->sealAndSend(_id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 5)
-                                                   << dag_max_level << pbft_chain_size << syncing_.load() << pbft_round
-                                                   << pbft_previous_round_next_votes_size);
+      sealAndSend(_id,
+                  host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 5)
+                      << dag_max_level << pbft_chain_size << syncing_.load() << pbft_round
+                      << pbft_previous_round_next_votes_size,
+                  StatusPacket);
     }
   }
 }
@@ -921,7 +915,7 @@ void TaraxaCapability::sendSyncedMessage() {
   for (auto &peer : getAllPeers()) {
     RLPStream s;
     host_.capabilityHost()->prep(peer, name(), s, SyncedPacket, 0);
-    host_.capabilityHost()->sealAndSend(peer, s);
+    sealAndSend(peer, s, SyncedPacket);
   }
 }
 
@@ -990,7 +984,7 @@ void TaraxaCapability::sendBlocks(NodeID const &_id, std::vector<std::shared_ptr
     }
     s.appendRaw(trx_bytes, blockTransactions[block->getHash()].size());
   }
-  host_.capabilityHost()->sealAndSend(_id, s);
+  sealAndSend(_id, s, BlocksPacket);
 }
 
 void TaraxaCapability::sendTransactions(NodeID const &_id, std::vector<taraxa::bytes> const &transactions) {
@@ -1002,7 +996,7 @@ void TaraxaCapability::sendTransactions(NodeID const &_id, std::vector<taraxa::b
     trx_bytes.insert(trx_bytes.end(), std::begin(transaction), std::end(transaction));
   }
   s.appendRaw(trx_bytes, transactions.size());
-  host_.capabilityHost()->sealAndSend(_id, s);
+  sealAndSend(_id, s, TransactionPacket);
 }
 
 void TaraxaCapability::sendBlock(NodeID const &_id, taraxa::DagBlock block) {
@@ -1030,7 +1024,7 @@ void TaraxaCapability::sendBlock(NodeID const &_id, taraxa::DagBlock block) {
     trx_bytes.insert(trx_bytes.end(), std::begin(transaction->second), std::end(transaction->second));
   }
   s.appendRaw(trx_bytes, transactionsToSend.size());
-  host_.capabilityHost()->sealAndSend(_id, s);
+  sealAndSend(_id, s, NewBlockPacket);
   LOG(log_dg_dag_prp_) << "Send DagBlock " << block.getHash() << " #Trx: " << transactionsToSend.size() << std::endl;
 }
 
@@ -1039,7 +1033,7 @@ void TaraxaCapability::sendBlockHash(NodeID const &_id, taraxa::DagBlock block) 
   RLPStream s;
   host_.capabilityHost()->prep(_id, name(), s, NewBlockHashPacket, 1);
   s.append(block.getHash());
-  host_.capabilityHost()->sealAndSend(_id, s);
+  sealAndSend(_id, s, NewBlockHashPacket);
 }
 
 void TaraxaCapability::requestBlock(NodeID const &_id, blk_hash_t hash) {
@@ -1047,7 +1041,7 @@ void TaraxaCapability::requestBlock(NodeID const &_id, blk_hash_t hash) {
   RLPStream s;
   host_.capabilityHost()->prep(_id, name(), s, GetNewBlockPacket, 1);
   s.append(hash);
-  host_.capabilityHost()->sealAndSend(_id, s);
+  sealAndSend(_id, s, GetNewBlockPacket);
 }
 
 void TaraxaCapability::requestPbftBlocks(NodeID const &_id, size_t height_to_sync) {
@@ -1055,14 +1049,14 @@ void TaraxaCapability::requestPbftBlocks(NodeID const &_id, size_t height_to_syn
   host_.capabilityHost()->prep(_id, name(), s, GetPbftBlockPacket, 1);
   s << height_to_sync;
   LOG(log_dg_pbft_sync_) << "Sending GetPbftBlockPacket with height: " << height_to_sync;
-  host_.capabilityHost()->sealAndSend(_id, s);
+  sealAndSend(_id, s, GetPbftBlockPacket);
 }
 
 void TaraxaCapability::requestPendingDagBlocks(NodeID const &_id) {
   RLPStream s;
   host_.capabilityHost()->prep(_id, name(), s, GetBlocksPacket, 0);
   LOG(log_nf_dag_sync_) << "Sending GetBlocksPacket";
-  host_.capabilityHost()->sealAndSend(_id, s);
+  sealAndSend(_id, s, GetBlocksPacket);
 }
 
 std::pair<int, int> TaraxaCapability::retrieveTestData(NodeID const &_id) {
@@ -1103,6 +1097,19 @@ void TaraxaCapability::doBackgroundWork() {
   util::post(io_service_, check_status_interval_, [this] { doBackgroundWork(); });
 }
 
+void TaraxaCapability::logPacketsStats() {
+  static PacketsStats previous_received_packets_stats = received_packets_stats_;
+  static PacketsStats previous_sent_packets_stats = sent_packets_stats_;
+
+  LOG(log_nf_net_per_) << "Received packets stats: " << received_packets_stats_ - previous_received_packets_stats;
+  LOG(log_nf_net_per_) << "Sent packets stats: " << sent_packets_stats_ - previous_sent_packets_stats;
+
+  previous_received_packets_stats = received_packets_stats_;
+  previous_sent_packets_stats = sent_packets_stats_;
+
+  util::post(io_service_, conf_.network_performance_log_interval, [this] { logPacketsStats(); });
+}
+
 void TaraxaCapability::onNewPbftVote(taraxa::Vote const &vote) {
   std::vector<NodeID> peers_to_send;
   {
@@ -1125,7 +1132,7 @@ void TaraxaCapability::sendPbftVote(NodeID const &_id, taraxa::Vote const &vote)
   RLPStream s;
   host_.capabilityHost()->prep(_id, name(), s, PbftVotePacket, 1);
   s.append(vote_rlp);
-  host_.capabilityHost()->sealAndSend(_id, s);
+  sealAndSend(_id, s, PbftVotePacket);
 }
 
 void TaraxaCapability::onNewPbftBlock(taraxa::PbftBlock const &pbft_block) {
@@ -1153,9 +1160,9 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync, 
   RLPStream s;
   host_.capabilityHost()->prep(_id, name(), s, PbftBlockPacket, pbft_cert_blks.size());
   if (pbft_cert_blks.empty()) {
-    // Send empty PBFT blocks to peer for talking to peer syncing has completed
-    host_.capabilityHost()->sealAndSend(_id, s);
-    LOG(log_dg_pbft_sync_) << "In sendPbftBlocks, no pbft blocks send to " << _id;
+    sealAndSend(_id, s, PbftBlockPacket);
+    LOG(log_dg_pbft_sync_) << "In sendPbftBlocks, sent no pbft blocks to " << _id;
+
     return;
   }
 
@@ -1217,7 +1224,8 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync, 
       }
     }
   }
-  host_.capabilityHost()->sealAndSend(_id, s);
+  sealAndSend(_id, s, PbftBlockPacket);
+  // Question: will send multiple times to a same receiver, why?
 
   LOG(log_dg_pbft_sync_) << "Sending PbftCertBlocks to " << _id;
 }
@@ -1230,7 +1238,7 @@ void TaraxaCapability::sendPbftBlock(NodeID const &_id, taraxa::PbftBlock const 
   host_.capabilityHost()->prep(_id, name(), s, NewPbftBlockPacket, 2);
   pbft_block.streamRLP(s, true);
   s << pbft_chain_size;
-  host_.capabilityHost()->sealAndSend(_id, s);
+  sealAndSend(_id, s, NewPbftBlockPacket);
 }
 
 void TaraxaCapability::syncPbftNextVotes(uint64_t const pbft_round, size_t const pbft_previous_round_next_votes_size) {
@@ -1277,7 +1285,7 @@ void TaraxaCapability::requestPbftNextVotes(NodeID const &peerID, uint64_t const
   s << pbft_previous_round_next_votes_size;
   LOG(log_dg_next_votes_sync_) << "Sending GetPbftNextVotes with round " << pbft_round
                                << " previous round next votes size " << pbft_previous_round_next_votes_size;
-  host_.capabilityHost()->sealAndSend(peerID, s);
+  sealAndSend(peerID, s, GetPbftNextVotes);
 }
 
 void TaraxaCapability::sendPbftNextVotes(NodeID const &peerID) {
@@ -1294,7 +1302,7 @@ void TaraxaCapability::sendPbftNextVotes(NodeID const &peerID) {
     s.appendRaw(next_vote.rlp());
     LOG(log_nf_next_votes_sync_) << "Send out next vote " << next_vote.getHash() << " to peer " << peerID;
   }
-  host_.capabilityHost()->sealAndSend(peerID, s);
+  sealAndSend(peerID, s, PbftNextVotesPacket);
 }
 
 void TaraxaCapability::broadcastPreviousRoundNextVotesBundle() {
@@ -1323,26 +1331,49 @@ Json::Value TaraxaCapability::getStatus() const {
     peer_status["dag_synced"] = !peer.second->syncing_;
     res["peers"].append(peer_status);
   }
-  Json::Value counters;
-  for (uint8_t it = 0; it != PacketCount; it++) {
-    Json::Value counter;
-    auto total = packet_count.find(it)->second;
-    counter["total"] = Json::UInt64(total);
-    if (total > 0) {
-      counter["avg packet size"] = Json::UInt64(packet_size.find(it)->second / total);
-      auto unique = unique_packet_count.find(it)->second;
-      if (unique > 0) {
-        counter["unique"] = Json::UInt64(unique);
-        counter["unique %"] = Json::UInt64(unique * 100 / total);
+
+  auto createPacketsStatsJson = [&](const PacketsStats &stats) -> Json::Value {
+    Json::Value stats_json;
+    for (uint8_t it = 0; it != PacketCount; it++) {
+      Json::Value packet_stats_json;
+      const auto packet_stats = stats.getPacketStats(packetTypeToString(it));
+      if (packet_stats == std::nullopt) {
+        continue;
       }
-      counters[packetTypeToString(it)] = counter;
+
+      auto total = packet_stats->total_count_;
+      packet_stats_json["total"] = Json::UInt64(total);
+      if (total > 0) {
+        packet_stats_json["avg packet size"] = Json::UInt64(packet_stats->total_size_ / total);
+        packet_stats_json["avg packet processing duration"] =
+            Json::UInt64(packet_stats->total_duration_.count() / total);
+        auto unique = packet_stats->total_unique_count_;
+        if (unique > 0) {
+          packet_stats_json["unique"] = Json::UInt64(unique);
+          packet_stats_json["unique %"] = Json::UInt64(unique * 100 / total);
+          packet_stats_json["unique avg packet size"] = Json::UInt64(packet_stats->total_unique_size_ / unique);
+          packet_stats_json["unique avg packet processing duration"] =
+              Json::UInt64(packet_stats->total_unique_duration_.count() / unique);
+        }
+        stats_json[packetTypeToString(it)] = packet_stats_json;
+      }
     }
-  }
-  counters["transaction count"] = Json::UInt64(received_trx_count);
-  counters["unique transaction count"] = Json::UInt64(unique_received_trx_count);
+
+    return stats_json;
+  };
+
+  Json::Value received_packet_stats_json = createPacketsStatsJson(received_packets_stats_);
+
+  received_packet_stats_json["transaction count"] = Json::UInt64(received_trx_count);
+  received_packet_stats_json["unique transaction count"] = Json::UInt64(unique_received_trx_count);
   if (received_trx_count)
-    counters["unique transaction %"] = Json::UInt64(unique_received_trx_count * 100 / received_trx_count);
-  res["counters"] = counters;
+    received_packet_stats_json["unique transaction %"] =
+        Json::UInt64(unique_received_trx_count * 100 / received_trx_count);
+  res["received packets stats"] = received_packet_stats_json;
+
+  Json::Value sent_packet_stats_json = createPacketsStatsJson(sent_packets_stats_);
+  res["sent packets stats"] = sent_packet_stats_json;
+
   return res;
 }
 
