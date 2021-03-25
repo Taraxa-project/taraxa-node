@@ -92,7 +92,7 @@ void TaraxaCapability::sealAndSend(NodeID const &nodeID, RLPStream &s, unsigned 
     sent_packets_stats_.addPacket(packetTypeToString(packet_type), packet_stats);
 
     LOG(log_dg_net_per_) << "(\"" << host_.id() << "\") sent " << packetTypeToString(packet_type) << " packet to (\""
-                         << nodeID << "\"). Stats: " << packet_stats << ", threadID: " << std::this_thread::get_id();
+                         << nodeID << "\"). Stats: " << packet_stats;
   } catch (const std::exception &e) {
     LOG(log_er_) << "Caught exception in sealAndSend: " << e.what();
     throw;
@@ -168,7 +168,7 @@ void TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID, unsigned
     RLP r(bb);
     try {
       std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-      PacketStats packet_stats{_nodeID, _r.actualSize(), false, std::chrono::microseconds(0)};
+      PacketStats packet_stats{_nodeID, r.actualSize(), false, std::chrono::microseconds(0)};
 
       interpretCapabilityPacketImpl(_nodeID, _id, r, packet_stats);
 
@@ -177,7 +177,7 @@ void TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID, unsigned
       received_packets_stats_.addPacket(packetTypeToString(_id), packet_stats);
 
       LOG(log_dg_net_per_) << "(\"" << host_.id() << "\") received " << packetTypeToString(_id) << " packet from (\""
-                           << _nodeID << "\"). Stats: " << packet_stats << ", threadID: " << std::this_thread::get_id();
+                           << _nodeID << "\"). Stats: " << packet_stats;
     } catch (...) {
       handle_read_exception(_nodeID, _id, r);
     }
@@ -187,7 +187,6 @@ void TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID, unsigned
 void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsigned _id, RLP const &_r,
                                                      PacketStats &packet_stats) {
   auto peer = getPeer(_nodeID);
-
   if (!peer) {
     return;
   }
