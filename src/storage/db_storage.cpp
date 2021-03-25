@@ -186,7 +186,10 @@ void DbStorage::deleteSnapshot(uint64_t const& period) {
 }
 
 DbStorage::~DbStorage() {
-  db_->Close();
+  for (auto cf : handles_) {
+    checkStatus(db_->DestroyColumnFamilyHandle(cf));
+  }
+  checkStatus(db_->Close());
   delete db_;
 }
 
