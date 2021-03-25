@@ -50,6 +50,15 @@ ENV GOROOT=/usr/local/go
 ENV GOPATH=$HOME/.go
 ENV PATH=$GOPATH/bin:$GOROOT/bin:$PATH
 
+# Default output dir containing build artifacts
+ARG BUILD_OUTPUT_DIR
+
+# Install conan deps
+WORKDIR /opt/taraxa/
+COPY conanfile.py .
+RUN conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
+RUN conan install -if $BUILD_OUTPUT_DIR --build missing .
+
 
 ###################################################################
 # Build stage - use builder image for actual build of taraxa node #
@@ -62,8 +71,6 @@ ARG BUILD_OUTPUT_DIR
 # Build taraxa-node project
 WORKDIR /opt/taraxa/
 COPY . .
-RUN conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
-RUN conan install -if $BUILD_OUTPUT_DIR --build missing .
 RUN cd $BUILD_OUTPUT_DIR \
     && cmake -DCMAKE_BUILD_TYPE=Release \
              -DTARAXA_STATIC_BUILD=ON \

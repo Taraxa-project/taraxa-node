@@ -136,7 +136,7 @@ set(EVM_AFTER_BUILD_COMMAND ${EVM_AFTER_BUILD_COMMAND} && mv include/taraxa-evm/
 ## final command
 set(EVM_LIBRARY_COMMAND ${EVM_BUILD_COMMAND} && ${EVM_AFTER_BUILD_COMMAND})
 
-file(GLOB_RECURSE TARAXA_EVM_SOURCES "*.go" )
+file(GLOB_RECURSE TARAXA_EVM_SOURCES "taraxa-evm/*.go" )
 list(APPEND TARAXA_EVM_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/taraxa-evm/taraxa/C/common.h
     ${CMAKE_CURRENT_SOURCE_DIR}/taraxa-evm/taraxa/C/state.h)
