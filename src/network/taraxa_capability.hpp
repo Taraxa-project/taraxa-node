@@ -207,7 +207,6 @@ struct TaraxaCapability : virtual CapabilityFace {
   mutable boost::shared_mutex peers_mutex_;
   NetworkConfig conf_;
   uint64_t dag_level_ = 0;
-  uint64_t pbft_sync_period_ = 1;
   NodeID peer_syncing_pbft_;
   std::string genesis_;
   bool performance_log_;
