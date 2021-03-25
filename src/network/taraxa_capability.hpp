@@ -13,6 +13,7 @@
 #include "config/config.hpp"
 #include "consensus/vote.hpp"
 #include "dag/dag_block_manager.hpp"
+#include "packets_stats.hpp"
 #include "transaction_manager/transaction.hpp"
 #include "util/util.hpp"
 
@@ -109,8 +110,7 @@ struct TaraxaCapability : virtual CapabilityFace {
                    std::shared_ptr<PbftChain> pbft_chain = {}, std::shared_ptr<VoteManager> vote_mgr = {},
                    std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr = {},
                    std::shared_ptr<DagManager> dag_mgr = {}, std::shared_ptr<DagBlockManager> dag_blk_mgr = {},
-                   std::shared_ptr<TransactionManager> trx_mgr = {}, bool performance_log = false,
-                   addr_t const &node_addr = {});
+                   std::shared_ptr<TransactionManager> trx_mgr = {}, addr_t const &node_addr = {});
 
   virtual ~TaraxaCapability() = default;
 
@@ -118,6 +118,7 @@ struct TaraxaCapability : virtual CapabilityFace {
   unsigned version() const override { return 1; }
   unsigned messageCount() const override { return PacketCount; }
 
+  void sealAndSend(NodeID const &nodeID, RLPStream &s, unsigned packet_type);
   bool pbft_syncing() const { return syncing_.load(); }
 
   void onConnect(NodeID const &_nodeID, u256 const &) override;
@@ -126,8 +127,7 @@ struct TaraxaCapability : virtual CapabilityFace {
   void delayedPbftSync(NodeID _nodeID, int counter);
   std::pair<bool, blk_hash_t> checkDagBlockValidation(DagBlock const &block);
   void interpretCapabilityPacket(NodeID const &_nodeID, unsigned _id, RLP const &_r) override;
-  void interpretCapabilityPacket_(NodeID const &_nodeID, unsigned _id, RLP const &_r);
-  void interpretCapabilityPacketImpl(NodeID const &_nodeID, unsigned _id, RLP const &_r);
+  void interpretCapabilityPacketImpl(NodeID const &_nodeID, unsigned _id, RLP const &_r, PacketStats &packet_stats);
   void onDisconnect(NodeID const &_nodeID) override;
   void sendTestMessage(NodeID const &_id, int _x);
   void sendStatus(NodeID const &_id, bool _initial);
@@ -151,7 +151,10 @@ struct TaraxaCapability : virtual CapabilityFace {
   std::map<blk_hash_t, taraxa::DagBlock> getBlocks();
   std::map<trx_hash_t, taraxa::Transaction> getTransactions();
 
+  uint64_t getSimulatedNetworkDelay(const RLP &packet_rlp, const NodeID &nodeID);
+
   void doBackgroundWork();
+  void logNetPerformanceStats();
   void sendTransactions();
   std::string packetTypeToString(unsigned int _packetType) const override;
 
@@ -216,11 +219,11 @@ struct TaraxaCapability : virtual CapabilityFace {
   std::uniform_int_distribution<std::mt19937::result_type> random_dist_;
   uint16_t check_status_interval_ = 0;
 
-  std::map<uint8_t, uint64_t> packet_count;
-  std::map<uint8_t, uint64_t> packet_size;
-  std::map<uint8_t, uint64_t> unique_packet_count;
   uint64_t received_trx_count = 0;
   uint64_t unique_received_trx_count = 0;
+
+  PacketsStats sent_packets_stats_;
+  PacketsStats received_packets_stats_;
 
   LOG_OBJECTS_DEFINE;
   LOG_OBJECTS_DEFINE_SUB(pbft_sync);
