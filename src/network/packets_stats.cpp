@@ -84,7 +84,7 @@ std::ostream &operator<<(std::ostream &os, const PacketStats &stats) {
      << ", is unique: " << stats.is_unique_;
 
   if (stats.debug_info_) {
-    os << ", debug info: " << stats.debug_info_.get();
+    os << ", debug info: " << *stats.debug_info_;
   }
 
   return os;

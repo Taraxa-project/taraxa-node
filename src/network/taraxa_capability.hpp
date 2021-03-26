@@ -13,6 +13,7 @@
 #include "config/config.hpp"
 #include "consensus/vote.hpp"
 #include "dag/dag_block_manager.hpp"
+#include "network/transaction_packet_debug_info.hpp"
 #include "packets_stats.hpp"
 #include "transaction_manager/transaction.hpp"
 #include "util/thread_pool.hpp"
@@ -134,7 +135,8 @@ struct TaraxaCapability : virtual CapabilityFace {
   void sendStatus(NodeID const &_id, bool _initial);
   void onNewBlockReceived(DagBlock block, std::vector<Transaction> transactions);
   void onNewBlockVerified(DagBlock const &block);
-  void onNewTransactions(std::vector<taraxa::bytes> const &transactions, bool fromNetwork);
+  void onNewTransactions(std::vector<taraxa::bytes> const &transactions, bool fromNetwork,
+                         std::optional<std::reference_wrapper<TransactionPacketDebugInfo>> debug_info = std::nullopt);
   vector<NodeID> selectPeers(std::function<bool(TaraxaPeer const &)> const &_predicate);
   vector<NodeID> getAllPeers() const;
   Json::Value getStatus() const;

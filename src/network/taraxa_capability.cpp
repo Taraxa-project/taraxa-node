@@ -6,6 +6,7 @@
 #include "dag/dag.hpp"
 #include "node/full_node.hpp"
 #include "transaction_manager/transaction_manager.hpp"
+#include "transaction_packet_debug_info.hpp"
 #include "util/boost_asio.hpp"
 
 namespace taraxa {
@@ -395,6 +396,9 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       break;
     }
     case TransactionPacket: {
+      TransactionPacketDebugInfo tx_packet_dbg_info;
+      auto begin = std::chrono::steady_clock::now();
+
       std::string receivedTransactions;
       std::vector<taraxa::bytes> transactions;
       auto transactionCount = _r.itemCount();
@@ -404,13 +408,19 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         peer->markTransactionAsKnown(transaction.getHash());
         transactions.emplace_back(_r[iTransaction].data().toBytes());
       }
+
+      tx_packet_dbg_info.txs_rlp_transform_duration =
+          std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - begin);
+
       if (transactionCount > 0) {
         LOG(log_dg_trx_prp_) << "Received TransactionPacket with " << _r.itemCount() << " transactions";
         LOG(log_tr_trx_prp_) << "Received TransactionPacket with " << _r.itemCount()
                              << " transactions:" << receivedTransactions.c_str();
 
-        onNewTransactions(transactions, true);
+        onNewTransactions(transactions, true, {tx_packet_dbg_info});
       }
+
+      packet_stats.setDebugInfo(std::make_unique<TransactionPacketDebugInfo>(tx_packet_dbg_info));
       break;
     }
     case PbftVotePacket: {
@@ -833,12 +843,13 @@ std::pair<std::vector<NodeID>, std::vector<NodeID>> TaraxaCapability::randomPart
   return std::make_pair(move(part1), move(part2));
 }
 
-void TaraxaCapability::onNewTransactions(std::vector<taraxa::bytes> const &transactions, bool fromNetwork) {
+void TaraxaCapability::onNewTransactions(std::vector<taraxa::bytes> const &transactions, bool fromNetwork,
+                                         std::optional<std::reference_wrapper<TransactionPacketDebugInfo>> debug_info) {
   if (fromNetwork) {
     if (dag_blk_mgr_) {
       LOG(log_nf_trx_prp_) << "Storing " << transactions.size() << " transactions";
       received_trx_count += transactions.size();
-      unique_received_trx_count += trx_mgr_->insertBroadcastedTransactions(transactions);
+      unique_received_trx_count += trx_mgr_->insertBroadcastedTransactions(transactions, debug_info);
     } else {
       for (auto const &transaction : transactions) {
         Transaction trx(transaction);

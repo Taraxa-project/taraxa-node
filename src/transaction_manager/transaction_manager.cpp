@@ -53,14 +53,15 @@ std::pair<bool, std::string> TransactionManager::insertTransaction(Transaction c
 
 uint32_t TransactionManager::insertBroadcastedTransactions(
     // transactions coming from broadcastin is less critical
-    std::vector<taraxa::bytes> const &transactions) {
+    std::vector<taraxa::bytes> const &transactions,
+    std::optional<std::reference_wrapper<TransactionPacketDebugInfo>> debug_info) {
   if (stopped_) {
     return 0;
   }
   uint32_t new_trx_count = 0;
   for (auto const &t : transactions) {
     Transaction trx(t);
-    if (insertTrx(trx, false).first) new_trx_count++;
+    if (insertTrx(trx, false, debug_info).first) new_trx_count++;
     LOG(log_time_) << "Transaction " << trx.getHash() << " brkreceived at: " << getCurrentTimeMilliSeconds();
   }
   return new_trx_count;
@@ -220,7 +221,8 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(DagBlock const &blk,
   return all_transactions_saved;
 }
 
-std::pair<bool, std::string> TransactionManager::insertTrx(Transaction const &trx, bool verify) {
+std::pair<bool, std::string> TransactionManager::insertTrx(
+    Transaction const &trx, bool verify, std::optional<std::reference_wrapper<TransactionPacketDebugInfo>> debug_info) {
   auto hash = trx.getHash();
   db_->saveTransaction(trx);
 

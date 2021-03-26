@@ -81,6 +81,7 @@ set(SOURCES
         dag/dag_block.hpp
         network/packets_stats.hpp
         network/packet_debug_info.hpp
+        network/transaction_packet_debug_info.hpp
         network/rpc/Taraxa.h
         network/rpc/Test.h
         network/rpc/TaraxaClient.h

@@ -4,6 +4,7 @@
 #include "aleth/pending_block.hpp"
 #include "config/config.hpp"
 #include "logger/log.hpp"
+#include "network/transaction_packet_debug_info.hpp"
 #include "transaction.hpp"
 #include "transaction_queue.hpp"
 #include "transaction_status.hpp"
@@ -55,7 +56,9 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   void stop();
   void setNetwork(std::weak_ptr<Network> network);
   void setWsServer(std::shared_ptr<net::WSServer> ws_server);
-  std::pair<bool, std::string> insertTrx(Transaction const &trx, bool verify);
+  std::pair<bool, std::string> insertTrx(
+      Transaction const &trx, bool verify,
+      std::optional<std::reference_wrapper<TransactionPacketDebugInfo>> debug_info = std::nullopt);
 
   void setPendingBlock(std::shared_ptr<aleth::PendingBlock> pending_block) {
     pending_block_ = pending_block;
@@ -78,7 +81,9 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   // synchronously verify and insert into verified queue
   std::pair<bool, std::string> insertTransaction(Transaction const &trx, bool verify = false);
   // Transactions coming from broadcasting is less critical
-  uint32_t insertBroadcastedTransactions(std::vector<taraxa::bytes> const &transactions);
+  uint32_t insertBroadcastedTransactions(
+      std::vector<taraxa::bytes> const &transactions,
+      std::optional<std::reference_wrapper<TransactionPacketDebugInfo>> debug_info = std::nullopt);
 
   std::pair<bool, std::string> verifyTransaction(Transaction const &trx) const;
 
