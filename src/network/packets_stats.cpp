@@ -2,6 +2,37 @@
 
 namespace taraxa {
 
+PacketStats::PacketStats(const dev::p2p::NodeID &nodeID, uint64_t size)
+    : node_(nodeID),
+      size_(size),
+      is_unique_(false),
+      total_duration_(0),
+      debug_info_(nullptr),
+      processing_start_time_(std::chrono::microseconds(0)) {
+  restartStopWatch();
+}
+
+void PacketStats::setDebugInfo(std::unique_ptr<PacketDebugInfo> &&dbg_info) { debug_info_ = std::move(dbg_info); }
+
+std::unique_ptr<PacketDebugInfo> &PacketStats::getDebugInfo() { return debug_info_; }
+
+void PacketStats::setUnique(bool flag) { is_unique_ = flag; }
+
+void PacketStats::restartStopWatch() {
+  processing_start_time_ = std::chrono::steady_clock::now();
+  total_duration_ = std::chrono::microseconds(0);
+}
+
+void PacketStats::stopStopWatch() {
+  total_duration_ =
+      std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - processing_start_time_);
+}
+
+std::chrono::microseconds PacketStats::getActualProcessingDuration() {
+  return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() -
+                                                               processing_start_time_);
+}
+
 PacketsStats::PacketsStats(const PacketsStats &ro) : stats_(ro.stats_), mutex_() {}
 
 PacketsStats &PacketsStats::operator=(const PacketsStats &ro) {
@@ -51,6 +82,10 @@ std::ostream &operator<<(std::ostream &os, const PacketStats &stats) {
   os << "node: " << stats.node_.abridged() << ", size: " << stats.size_ << " [B]"
      << ", processing duration: " << stats.total_duration_.count() << " [us]"
      << ", is unique: " << stats.is_unique_;
+
+  if (stats.debug_info_) {
+    os << ", debug info: " << stats.debug_info_.get();
+  }
 
   return os;
 }

@@ -15,6 +15,7 @@
 #include "dag/dag_block_manager.hpp"
 #include "packets_stats.hpp"
 #include "transaction_manager/transaction.hpp"
+#include "util/thread_pool.hpp"
 #include "util/util.hpp"
 
 namespace taraxa {
@@ -223,6 +224,8 @@ struct TaraxaCapability : virtual CapabilityFace {
 
   PacketsStats sent_packets_stats_;
   PacketsStats received_packets_stats_;
+
+  util::ThreadPool periodic_events_tp_;
 
   LOG_OBJECTS_DEFINE;
   LOG_OBJECTS_DEFINE_SUB(pbft_sync);

@@ -59,6 +59,7 @@ set(SOURCES
         aleth/state_api.hpp
         util/util_json.hpp
         consensus/block_proposer.hpp
+        consensus/block_proposer.hpp
         transaction_manager/transaction_status.hpp
         chain/chain_config.hpp
         consensus/vrf_wrapper.hpp
@@ -79,6 +80,7 @@ set(SOURCES
         common/types.hpp
         dag/dag_block.hpp
         network/packets_stats.hpp
+        network/packet_debug_info.hpp
         network/rpc/Taraxa.h
         network/rpc/Test.h
         network/rpc/TaraxaClient.h
@@ -140,8 +142,7 @@ set(SOURCES
         logger/logger_config.cpp
         logger/log.cpp
         common/types.cpp
-        dag/dag_block_manager.cpp
-        )
+        dag/dag_block_manager.cpp)
 
 add_subdirectory(network/rpc)
 

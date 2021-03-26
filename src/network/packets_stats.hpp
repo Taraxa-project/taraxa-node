@@ -6,14 +6,33 @@
 #include <optional>
 #include <ostream>
 
+#include "packet_debug_info.hpp"
+
 namespace taraxa {
 
-struct PacketStats {
-  dev::p2p::NodeID node_{0};
-  uint64_t size_{0};
-  bool is_unique_{false};
-  std::chrono::microseconds total_duration_{0};
+class PacketStats {
+ public:
+  PacketStats() = default;
+  PacketStats(const dev::p2p::NodeID &nodeID, uint64_t size);
+
+  void setDebugInfo(std::unique_ptr<PacketDebugInfo> &&dbg_info);
+  std::unique_ptr<PacketDebugInfo> &getDebugInfo();
+  void setUnique(bool flag = true);
+
+  void restartStopWatch();
+  void stopStopWatch();
+  std::chrono::microseconds getActualProcessingDuration();
+
+ private:
+  dev::p2p::NodeID node_;
+  uint64_t size_;
+  bool is_unique_;
+  std::chrono::microseconds total_duration_;
+  std::unique_ptr<PacketDebugInfo> debug_info_;
+  std::chrono::steady_clock::time_point processing_start_time_;
+
   friend std::ostream &operator<<(std::ostream &os, const PacketStats &stats);
+  friend class PacketsStats;
 };
 
 class PacketsStats {

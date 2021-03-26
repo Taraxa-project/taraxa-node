@@ -30,7 +30,8 @@ TaraxaCapability::TaraxaCapability(Host &_host, ba::io_service &io_service, Netw
       dag_mgr_(dag_mgr),
       dag_blk_mgr_(dag_blk_mgr),
       trx_mgr_(trx_mgr),
-      lambda_ms_min_(pbft_mgr_ ? pbft_mgr_->getPbftInitialLambda() : 2000) {
+      lambda_ms_min_(pbft_mgr_ ? pbft_mgr_->getPbftInitialLambda() : 2000),
+      periodic_events_tp_(1, false) {
   LOG_OBJECTS_CREATE("TARCAP");
   LOG_OBJECTS_CREATE_SUB("PBFTSYNC", pbft_sync);
   LOG_OBJECTS_CREATE_SUB("DAGSYNC", dag_sync);
@@ -47,7 +48,9 @@ TaraxaCapability::TaraxaCapability(Host &_host, ba::io_service &io_service, Netw
   util::post(io_service_, check_status_interval_, [this] { doBackgroundWork(); });
 
   if (conf_.network_performance_log_interval > 0) {
-    util::post(io_service_, conf_.network_performance_log_interval, [this] { logPacketsStats(); });
+    util::post(periodic_events_tp_.unsafe_get_io_context(), conf_.network_performance_log_interval,
+               [this] { logPacketsStats(); });
+    periodic_events_tp_.start();
   }
 }
 
@@ -82,13 +85,10 @@ void TaraxaCapability::syncPeerPbft(NodeID const &_nodeID, unsigned long height_
 
 void TaraxaCapability::sealAndSend(NodeID const &nodeID, RLPStream &s, unsigned packet_type) {
   try {
-    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-    auto packet_size = s.out().size();
-
+    PacketStats packet_stats(nodeID, s.out().size());
     host_.capabilityHost()->sealAndSend(nodeID, s);
+    packet_stats.stopStopWatch();
 
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - begin);
-    PacketStats packet_stats{nodeID, packet_size, false, duration};
     sent_packets_stats_.addPacket(packetTypeToString(packet_type), packet_stats);
 
     LOG(log_dg_net_per_) << "(\"" << host_.id() << "\") sent " << packetTypeToString(packet_type) << " packet to (\""
@@ -167,13 +167,10 @@ void TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID, unsigned
   util::post(io_service_, delay, [=, bb = _r.data().toBytes()] {
     RLP r(bb);
     try {
-      std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-      PacketStats packet_stats{_nodeID, r.actualSize(), false, std::chrono::microseconds(0)};
-
+      PacketStats packet_stats(_nodeID, r.actualSize());
       interpretCapabilityPacketImpl(_nodeID, _id, r, packet_stats);
+      packet_stats.stopStopWatch();
 
-      auto duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - begin);
-      packet_stats.total_duration_ = duration;
       received_packets_stats_.addPacket(packetTypeToString(_id), packet_stats);
 
       LOG(log_dg_net_per_) << "(\"" << host_.id() << "\") received " << packetTypeToString(_id) << " packet from (\""
@@ -299,7 +296,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         }
       }
 
-      packet_stats.is_unique_ = true;
+      packet_stats.setUnique();
 
       auto transactionsCount = _r.itemCount() - 1;
       LOG(log_dg_dag_prp_) << "Received NewBlockPacket " << transactionsCount;
@@ -323,7 +320,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       peer->markBlockAsKnown(hash);
       if (dag_blk_mgr_) {
         if (!dag_blk_mgr_->isBlockKnown(hash) && block_requestes_set_.count(hash) == 0) {
-          packet_stats.is_unique_ = true;
+          packet_stats.setUnique();
           block_requestes_set_.insert(hash);
           requestBlock(_nodeID, hash);
         }
@@ -424,7 +421,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       peer->markVoteAsKnown(vote.getHash());
 
       if (vote_mgr_->addVote(vote)) {
-        packet_stats.is_unique_ = true;
+        packet_stats.setUnique();
         onNewPbftVote(vote);
       }
       break;
@@ -532,7 +529,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         // TODO: need to check block validation, like proposed
         // vote(maybe
         //  come later), if get sortition etc
-        packet_stats.is_unique_ = true;
+        packet_stats.setUnique();
         pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
         onNewPbftBlock(*pbft_block);
       }
