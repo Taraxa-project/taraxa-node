@@ -21,6 +21,8 @@ will build out of the box without further effort:
         ccache cmake gcc g++ clang-format clang-tidy cppcheck 
         libgflags-dev\
         libscrypt-dev \
+        libjsoncpp-dev \
+        libjsonrpccpp-dev \
         python3-pip
 
         
@@ -47,22 +49,18 @@ will build out of the box without further effort:
 
 ### Compile
 
-Add bincrafters repository to conan:
-
-    conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
-
 In general to build you need to:
 
-    conan install -if build --build missing .
-    conan build -bf build -sf . .
+    conan install -if cmake-build --build missing .
+    conan build -bf cmake-build -sf . .
 
 But you can do it that way too:
 
-    cd build
+    cd cmake-build
     cmake -DCMAKE_BUILD_TYPE=Release ../
     make -j$(nproc) taraxad
 
-> Also, you can just install deps without building project with `conan install -if build --build missing .`.
+> Also, you can just install deps without building project with `conan install -if cmake-build --build missing .`.
 
 And optional:
 
@@ -73,8 +71,8 @@ And optional:
 
 > OSX: maybe you need to set a new limit for max open files per thread/process: `ulimit -n 200000`
 
-    conan install -if build --build missing .
-    conan build -bf build -sf . .
+    conan install -if cmake-build --build missing .
+    conan build -bf cmake-build -sf . .
     cd tests
 
     # run tests
@@ -94,7 +92,7 @@ And optional:
 Some known `brew` package dependencies (this list is not comprehensive):
 ```
 coreutils, go, autoconf, automake, ccache, gflags,
-gdb, git, libscrypt, libtool, makepkg-config, cmake
+git, libscrypt, libtool, makepkg-config, cmake, libjson-rpc-cpp
 ```
 
 Also you need `conan` and follow build instructions above.
