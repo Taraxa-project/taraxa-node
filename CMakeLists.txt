@@ -105,6 +105,8 @@ if (TARAXA_STATIC_BUILD)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++ -static-libgcc")
 
     set(scrypt_USE_STATIC_LIBS ON)
+    set(jsoncpp_USE_STATIC_LIBS ON)
+    set(jsonrpccpp_USE_STATIC_LIBS ON)
 endif (TARAXA_STATIC_BUILD)
 
 # fix for boost thread library on MacOS
@@ -143,6 +145,8 @@ endif()
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 
 find_package(scrypt REQUIRED)
+find_package(jsoncpp REQUIRED)
+find_package(jsonrpccpp REQUIRED)
 
 # clang-tidy
 include(CMakeModules/clang_tidy.cmake)

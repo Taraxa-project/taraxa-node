@@ -108,8 +108,8 @@ target_include_directories(app_base PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${TARAXA_VDF_INCUDE}
         ${TARAXA_VRF_INCUDE}
-        ${TARAXA_EVM_INCUDE}
         ${CONAN_INCLUDE_DIRS}
+        ${jsoncpp_INCLUDE_DIRS}
         )
 
 target_link_libraries(app_base
@@ -124,12 +124,12 @@ target_link_libraries(app_base
         CONAN_PKG::zstd
         CONAN_PKG::lz4
         CONAN_PKG::rocksdb
-        CONAN_PKG::jsoncpp
         CONAN_PKG::bzip2
         CONAN_PKG::zlib
         CONAN_PKG::mpfr
-        CONAN_PKG::libjson-rpc-cpp
         ${scrypt_LIBRARIES}
+        ${jsoncpp_LIBRARIES}
+        ${jsonrpccpp_SERVER_LIBRARIES}
         aleth #  FIXME: THIS LIB CAUSES LINKING ORDER SENSITIVITY
         )
 

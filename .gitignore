@@ -11,9 +11,6 @@ local
 
 .DS_Store
 
-# build directory
-build
-
-# clang-format and clang-tidy binaries
+# clang-format and clang-tidy binaries (only for macos users)
 clang-format
 clang-tidy

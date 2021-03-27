@@ -54,7 +54,7 @@ target_link_libraries(state_api_test app_base CONAN_PKG::gtest)
 add_test(state_api_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/state_api_test)
 
 add_executable(taraxa_test taraxa_test.cpp)
-target_link_libraries(taraxa_test app_base CONAN_PKG::gtest)
+target_link_libraries(taraxa_test app_base CONAN_PKG::gtest ${jsonrpccpp_COMMON_LIBRARY} ${jsonrpccpp_CLIENT_LIBRARY})
 add_test(taraxa_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/taraxa_test)
 
 add_custom_target(all_tests COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure)

@@ -53,16 +53,11 @@ class TaraxaConan(ConanFile):
         self.requires("cryptopp/8.4.0")
         self.requires("gtest/1.10.0")
         self.requires("rocksdb/6.8.1")
-        self.requires("jsoncpp/1.9.4")
         self.requires("gmp/6.2.0")
         self.requires("mpfr/4.0.2")
         self.requires("snappy/1.1.8")
         self.requires("zstd/1.4.4")
         self.requires("lz4/1.9.2")
-
-        # add from bincrafters remote
-        # note: you need to run `conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan` before it
-        self.requires("libjson-rpc-cpp/1.3.0@bincrafters/stable")
         
         # if it darwin we will check for some clang utils
         if platform.system() == "Darwin":
@@ -104,13 +99,6 @@ class TaraxaConan(ConanFile):
         self._configure_boost_libs()
         # Configure gtest
         self.options["gtest"].build_gmock = False
-        # TODO: quick fix clang(ld) warning about hidden symbols in static library
-        #       not used at now cause in that case we need to move dynamic library to binary
-        # self.options["cryptopp"].shared = False
-        # Configure libjson-rpc-cpp
-        self.options["libjson-rpc-cpp"].shared = False
-        self.options["libjson-rpc-cpp"].with_http_server = True
-        self.options["libjson-rpc-cpp"].with_http_client = True
 
     def _configure_cmake(self):
         cmake = CMake(self)
