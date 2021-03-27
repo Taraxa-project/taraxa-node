@@ -117,6 +117,9 @@ target_link_libraries(app_base
         taraxa-vdf
         taraxa-evm
         pthread
+        ${scrypt_LIBRARIES}
+        ${jsoncpp_LIBRARIES}
+        ${jsonrpccpp_SERVER_LIBRARIES}
         CONAN_PKG::boost
         CONAN_PKG::openssl
         CONAN_PKG::gmp
@@ -127,9 +130,6 @@ target_link_libraries(app_base
         CONAN_PKG::bzip2
         CONAN_PKG::zlib
         CONAN_PKG::mpfr
-        ${scrypt_LIBRARIES}
-        ${jsoncpp_LIBRARIES}
-        ${jsonrpccpp_SERVER_LIBRARIES}
         aleth #  FIXME: THIS LIB CAUSES LINKING ORDER SENSITIVITY
         )
 
