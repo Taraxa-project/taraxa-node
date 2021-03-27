@@ -89,6 +89,7 @@ class TaraxaPeer : public boost::noncopyable {
   uint64_t dag_level_ = 0;
   uint64_t pbft_chain_size_ = 0;
   uint64_t pbft_round_ = 1;
+  size_t pbft_previous_round_next_votes_size_ = 0;
 
  private:
   ExpirationCache<blk_hash_t> known_blocks_;
@@ -107,8 +108,9 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   TaraxaCapability(Host &_host, NetworkConfig &_conf, std::string const &genesis, bool const &performance_log,
                    addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
                    std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
-                   std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
-                   std::shared_ptr<TransactionManager> trx_mgr, uint32_t lambda_ms_min)
+                   std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr, std::shared_ptr<DagManager> dag_mgr,
+                   std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<TransactionManager> trx_mgr,
+                   uint32_t lambda_ms_min)
       : Worker("taraxa"),
         host_(_host),
         conf_(_conf),
@@ -121,6 +123,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
         pbft_mgr_(pbft_mgr),
         pbft_chain_(pbft_chain),
         vote_mgr_(vote_mgr),
+        next_votes_mgr_(next_votes_mgr),
         dag_mgr_(dag_mgr),
         dag_blk_mgr_(dag_blk_mgr),
         trx_mgr_(trx_mgr),
@@ -199,9 +202,11 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   void sendPbftBlock(NodeID const &_id, taraxa::PbftBlock const &pbft_block, uint64_t const &pbft_chain_size);
   void requestPbftBlocks(NodeID const &_id, size_t height_to_sync);
   void sendPbftBlocks(NodeID const &_id, size_t height_to_sync, size_t blocks_to_transfer);
-  void syncPbftNextVotes(uint64_t const pbft_round);
-  void requestPbftNextVotes(NodeID const &peerID, uint64_t const pbft_round);
+  void syncPbftNextVotes(uint64_t const pbft_round, size_t const pbft_previous_round_next_votes_size);
+  void requestPbftNextVotes(NodeID const &peerID, uint64_t const pbft_round,
+                            size_t const pbft_previous_round_next_votes_size);
   void sendPbftNextVotes(NodeID const &peerID);
+  void broadcastPreviousRoundNextVotesBundle();
 
   // Peers
   std::shared_ptr<TaraxaPeer> getPeer(NodeID const &node_id);
@@ -228,6 +233,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   std::shared_ptr<PbftManager> pbft_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<VoteManager> vote_mgr_;
+  std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr_;
   std::shared_ptr<DagManager> dag_mgr_;
   std::shared_ptr<DagBlockManager> dag_blk_mgr_;
   std::shared_ptr<TransactionManager> trx_mgr_;
@@ -239,10 +245,9 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   boost::thread_group delay_threads_;
   boost::asio::io_service io_service_;
   std::shared_ptr<boost::asio::io_service::work> io_work_;
-  unsigned long peer_syncing_pbft_chain_size_ = 1;
   uint64_t dag_level_ = 0;
   uint64_t pbft_sync_period_ = 1;
-  NodeID peer_syncing_pbft;
+  NodeID peer_syncing_pbft_;
   std::string genesis_;
   bool performance_log_;
   mutable std::mt19937_64 urng_;  // Mersenne Twister psuedo-random number generator

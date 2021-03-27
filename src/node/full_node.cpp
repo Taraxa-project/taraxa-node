@@ -96,6 +96,7 @@ void FullNode::init() {
   }
   auto genesis_hash = conf_.chain.dag_genesis_block.getHash().toString();
   emplace(pbft_chain_, genesis_hash, node_addr, db_);
+  emplace(next_votes_mgr_, node_addr, db_);
   emplace(dag_mgr_, genesis_hash, node_addr, trx_mgr_, pbft_chain_, db_);
   emplace(dag_blk_mgr_, node_addr, conf_.chain.vdf, conf_.chain.final_chain.state.dpos, 1024 /*capacity*/,
           4 /* verifer thread*/, db_, trx_mgr_, final_chain_, pbft_chain_, log_time_,
@@ -104,12 +105,12 @@ void FullNode::init() {
   emplace(trx_order_mgr_, node_addr, db_);
   emplace(executor_, node_addr, db_, dag_mgr_, trx_mgr_, final_chain_, pbft_chain_,
           conf_.test_params.block_proposer.transaction_limit);
-  emplace(pbft_mgr_, conf_.chain.pbft, genesis_hash, node_addr, db_, pbft_chain_, vote_mgr_, dag_mgr_, dag_blk_mgr_,
-          final_chain_, executor_, kp_.secret(), conf_.vrf_secret);
+  emplace(pbft_mgr_, conf_.chain.pbft, genesis_hash, node_addr, db_, pbft_chain_, vote_mgr_, next_votes_mgr_, dag_mgr_,
+          dag_blk_mgr_, final_chain_, executor_, kp_.secret(), conf_.vrf_secret);
   emplace(blk_proposer_, conf_.test_params.block_proposer, conf_.chain.vdf, dag_mgr_, trx_mgr_, dag_blk_mgr_,
           final_chain_, node_addr, getSecretKey(), getVrfSecretKey(), log_time_);
   emplace(network_, conf_.network, conf_.net_file_path().string(), kp_.secret(), genesis_hash, node_addr, db_,
-          pbft_mgr_, pbft_chain_, vote_mgr_, dag_mgr_, dag_blk_mgr_, trx_mgr_, kp_.pub(),
+          pbft_mgr_, pbft_chain_, vote_mgr_, next_votes_mgr_, dag_mgr_, dag_blk_mgr_, trx_mgr_, kp_.pub(),
           conf_.chain.pbft.lambda_ms_min);
 
   // Inits rpc related members
@@ -265,11 +266,11 @@ void FullNode::rebuildDb() {
 
   while (true) {
     std::map<uint64_t, std::map<blk_hash_t, std::pair<DagBlock, std::vector<Transaction>>>> dag_blocks_per_level;
-    auto pbft_hash = old_db_->getPeriodPbftBlock(period);
-    if (pbft_hash == nullptr) {
+    auto pbft_blk_hash = old_db_->getPeriodPbftBlock(period);
+    if (pbft_blk_hash == nullptr) {
       break;
     }
-    auto pbft_block = old_db_->getPbftBlock(*pbft_hash);
+    auto pbft_block = old_db_->getPbftBlock(*pbft_blk_hash);
     auto pivot_dag_hash = pbft_block->getPivotDagBlockHash();
     std::set<blk_hash_t> pbft_dag_blocks;
     std::vector<blk_hash_t> dag_blocks;
@@ -311,13 +312,13 @@ void FullNode::rebuildDb() {
       dag_blocks_per_level[dag_block->getLevel()][dag_block_hash] = std::make_pair(*dag_block, transactions);
     }
 
-    // Add pbft blocks with votes in queue
-    auto db_votes = old_db_->getVotes(*pbft_hash);
-    vector<Vote> votes;
-    for (auto const &el : RLP(db_votes)) {
-      votes.emplace_back(el);
+    // Add pbft blocks with certified votes in queue
+    auto cert_votes = old_db_->getCertVotes(*pbft_blk_hash);
+    if (cert_votes.empty()) {
+      LOG(log_er_) << "Cannot find any cert votes for PBFT block " << pbft_block;
+      assert(false);
     }
-    PbftBlockCert pbft_blk_and_votes(*pbft_block, votes);
+    PbftBlockCert pbft_blk_and_votes(*pbft_block, cert_votes);
     LOG(log_nf_) << "Adding pbft block into queue " << pbft_block->getBlockHash().toString();
     pbft_chain_->setSyncedPbftBlockIntoQueue(pbft_blk_and_votes);
 

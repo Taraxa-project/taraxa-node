@@ -3,10 +3,8 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 
-#include "consensus/vote.hpp"
 #include "node/full_node.hpp"
 #include "rocksdb/utilities/checkpoint.h"
-#include "transaction_manager/transaction.hpp"
 
 namespace taraxa {
 using namespace std;
@@ -385,6 +383,23 @@ void DbStorage::addPbftMgrFieldToBatch(PbftMgrRoundStep const& field, uint64_t c
   batch_put(write_batch, DbStorage::Columns::pbft_mgr_round_step, toSlice((uint8_t)field), toSlice(value));
 }
 
+size_t DbStorage::getPbft2TPlus1(uint64_t const& round) {
+  auto status = lookup(toSlice(round), Columns::pbft_round_2t_plus_1);
+  if (!status.empty()) {
+    return *(size_t*)&status[0];
+  }
+  return 0;
+}
+
+void DbStorage::savePbft2TPlus1(uint64_t const& pbft_round, size_t const& pbft_2t_plus_1) {
+  insert(Columns::pbft_round_2t_plus_1, toSlice(pbft_round), toSlice(pbft_2t_plus_1));
+}
+
+void DbStorage::addPbft2TPlus1ToBatch(uint64_t const& pbft_round, size_t const& pbft_2t_plus_1,
+                                      BatchPtr const& write_batch) {
+  batch_put(write_batch, DbStorage::Columns::pbft_round_2t_plus_1, toSlice(pbft_round), toSlice(pbft_2t_plus_1));
+}
+
 bool DbStorage::getPbftMgrStatus(PbftMgrStatus const& field) {
   auto status = lookup(toSlice((uint8_t)field), Columns::pbft_mgr_status);
   if (!status.empty()) {
@@ -418,6 +433,41 @@ void DbStorage::addPbftMgrVotedValueToBatch(PbftMgrVotedValue const& field, blk_
   batch_put(write_batch, Columns::pbft_mgr_voted_value, toSlice((uint8_t)field), toSlice(value.asBytes()));
 }
 
+shared_ptr<blk_hash_t> DbStorage::getPbftCertVotedBlockHash(uint64_t const& pbft_round) {
+  auto hash = asBytes(lookup(toSlice(pbft_round), Columns::pbft_cert_voted_block_hash));
+  if (hash.size() > 0) {
+    return make_shared<blk_hash_t>(hash);
+  }
+  return nullptr;
+}
+
+void DbStorage::savePbftCertVotedBlockHash(uint64_t const& pbft_round, blk_hash_t const& cert_voted_block_hash) {
+  insert(Columns::pbft_cert_voted_block_hash, toSlice(pbft_round), toSlice(cert_voted_block_hash.asBytes()));
+}
+
+void DbStorage::addPbftCertVotedBlockHashToBatch(uint64_t const& pbft_round, blk_hash_t const& cert_voted_block_hash,
+                                                 BatchPtr const& write_batch) {
+  batch_put(*write_batch, Columns::pbft_cert_voted_block_hash, toSlice(pbft_round),
+            toSlice(cert_voted_block_hash.asBytes()));
+}
+
+shared_ptr<PbftBlock> DbStorage::getPbftCertVotedBlock(blk_hash_t const& block_hash) {
+  auto block = lookup(toSlice(block_hash.asBytes()), Columns::pbft_cert_voted_block);
+  if (!block.empty()) {
+    return s_ptr(new PbftBlock(dev::RLP(block)));
+  }
+  return nullptr;
+}
+
+void DbStorage::savePbftCertVotedBlock(PbftBlock const& pbft_block) {
+  insert(Columns::pbft_cert_voted_block, toSlice(pbft_block.getBlockHash().asBytes()), toSlice(pbft_block.rlp(true)));
+}
+
+void DbStorage::addPbftCertVotedBlockToBatch(PbftBlock const& pbft_block, BatchPtr const& write_batch) {
+  batch_put(*write_batch, Columns::pbft_cert_voted_block, toSlice(pbft_block.getBlockHash().asBytes()),
+            toSlice(pbft_block.rlp(true)));
+}
+
 std::shared_ptr<PbftBlock> DbStorage::getPbftBlock(blk_hash_t const& hash) {
   auto block = lookup(hash, Columns::pbft_blocks);
   if (!block.empty()) {
@@ -444,15 +494,84 @@ void DbStorage::addPbftHeadToBatch(taraxa::blk_hash_t const& head_hash, std::str
   batch_put(write_batch, Columns::pbft_head, toSlice(head_hash.asBytes()), head_str);
 }
 
-bytes DbStorage::getVotes(blk_hash_t const& hash) { return asBytes(lookup(hash, Columns::votes)); }
+std::vector<Vote> DbStorage::getSoftVotes(uint64_t const& pbft_round) {
+  std::vector<Vote> soft_votes;
+  auto soft_votes_raw = asBytes(lookup(toSlice(pbft_round), Columns::soft_votes));
 
-void DbStorage::addPbftCertVotesToBatch(const taraxa::blk_hash_t& pbft_block_hash, const std::vector<Vote>& cert_votes,
-                                        const taraxa::DbStorage::BatchPtr& write_batch) {
+  for (auto const& soft_vote : RLP(soft_votes_raw)) {
+    soft_votes.emplace_back(soft_vote);
+  }
+
+  return soft_votes;
+}
+
+void DbStorage::saveSoftVotes(uint64_t const& pbft_round, std::vector<Vote> const& soft_votes) {
+  RLPStream s(soft_votes.size());
+  for (auto const& v : soft_votes) {
+    s.appendRaw(v.rlp());
+  }
+  insert(Columns::soft_votes, toSlice(pbft_round), toSlice(s.out()));
+}
+
+void DbStorage::addSoftVotesToBatch(uint64_t const& pbft_round, std::vector<Vote> const& soft_votes,
+                                    BatchPtr const& write_batch) {
+  RLPStream s(soft_votes.size());
+  for (auto const& v : soft_votes) {
+    s.appendRaw(v.rlp());
+  }
+  batch_put(write_batch, Columns::soft_votes, toSlice(pbft_round), toSlice(s.out()));
+}
+
+void DbStorage::removeSoftVotesToBatch(uint64_t const& pbft_round, BatchPtr const& write_batch) {
+  batch_delete(write_batch, Columns::soft_votes, toSlice(pbft_round));
+}
+
+std::vector<Vote> DbStorage::getCertVotes(blk_hash_t const& hash) {
+  std::vector<Vote> cert_votes;
+  auto cert_votes_raw = asBytes(lookup(toSlice(hash.asBytes()), Columns::cert_votes));
+
+  for (auto const& cert_vote : RLP(cert_votes_raw)) {
+    cert_votes.emplace_back(cert_vote);
+  }
+
+  return cert_votes;
+}
+
+void DbStorage::addCertVotesToBatch(const taraxa::blk_hash_t& pbft_block_hash, const std::vector<Vote>& cert_votes,
+                                    const taraxa::DbStorage::BatchPtr& write_batch) {
   RLPStream s(cert_votes.size());
   for (auto const& v : cert_votes) {
     s.appendRaw(v.rlp());
   }
-  batch_put(*write_batch, Columns::votes, pbft_block_hash, s.out());
+  batch_put(*write_batch, Columns::cert_votes, toSlice(pbft_block_hash.asBytes()), toSlice(s.out()));
+}
+
+std::vector<Vote> DbStorage::getNextVotes(uint64_t const& pbft_round) {
+  std::vector<Vote> next_votes;
+  auto next_votes_raw = asBytes(lookup(toSlice(pbft_round), Columns::next_votes));
+
+  for (auto const& next_vote : RLP(next_votes_raw)) {
+    next_votes.emplace_back(next_vote);
+  }
+
+  return next_votes;
+}
+
+void DbStorage::saveNextVotes(uint64_t const& pbft_round, std::vector<Vote> const& next_votes) {
+  RLPStream s(next_votes.size());
+  for (auto const& v : next_votes) {
+    s.appendRaw(v.rlp());
+  }
+  insert(Columns::next_votes, toSlice(pbft_round), toSlice(s.out()));
+}
+
+void DbStorage::addNextVotesToBatch(uint64_t const& pbft_round, std::vector<Vote> const& next_votes,
+                                    BatchPtr const& write_batch) {
+  RLPStream s(next_votes.size());
+  for (auto const& v : next_votes) {
+    s.appendRaw(v.rlp());
+  }
+  batch_put(*write_batch, Columns::next_votes, toSlice(pbft_round), toSlice(s.out()));
 }
 
 shared_ptr<blk_hash_t> DbStorage::getPeriodPbftBlock(uint64_t const& period) {
