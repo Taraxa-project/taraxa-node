@@ -102,6 +102,7 @@ set(SOURCES
         chain/state_api.hpp
         dag/dag_block_manager.hpp
         consensus/pbft_manager.hpp
+        util/timer.hpp
 
         # ---- private sources -----
         util/thread_pool.cpp

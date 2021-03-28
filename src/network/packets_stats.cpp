@@ -9,7 +9,7 @@ PacketStats::PacketStats(const dev::p2p::NodeID &nodeID, uint64_t size)
       total_duration_(0),
       debug_info_(nullptr),
       processing_start_time_(std::chrono::microseconds(0)) {
-  restartStopWatch();
+  restartTimer();
 }
 
 void PacketStats::setDebugInfo(std::unique_ptr<PacketDebugInfo> &&dbg_info) { debug_info_ = std::move(dbg_info); }
@@ -18,19 +18,13 @@ std::unique_ptr<PacketDebugInfo> &PacketStats::getDebugInfo() { return debug_inf
 
 void PacketStats::setUnique(bool flag) { is_unique_ = flag; }
 
-void PacketStats::restartStopWatch() {
-  processing_start_time_ = std::chrono::steady_clock::now();
-  total_duration_ = std::chrono::microseconds(0);
+void PacketStats::restartTimer() {
+  processing_start_time_ = taraxa::startTimer();
+  total_duration_ = 0;
 }
 
-void PacketStats::stopStopWatch() {
-  total_duration_ =
-      std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - processing_start_time_);
-}
-
-std::chrono::microseconds PacketStats::getActualProcessingDuration() {
-  return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() -
-                                                               processing_start_time_);
+void PacketStats::stopTimer() {
+  total_duration_ = taraxa::stopTimer(processing_start_time_);
 }
 
 PacketsStats::PacketsStats(const PacketsStats &ro) : stats_(ro.stats_), mutex_() {}
@@ -80,7 +74,7 @@ PacketsStats::PacketAvgStats PacketsStats::PacketAvgStats::operator-(const Packe
 
 std::ostream &operator<<(std::ostream &os, const PacketStats &stats) {
   os << "node: " << stats.node_.abridged() << ", size: " << stats.size_ << " [B]"
-     << ", processing duration: " << stats.total_duration_.count() << " [us]"
+     << ", processing duration: " << stats.total_duration_ << " [us]"
      << ", is unique: " << stats.is_unique_;
 
   if (stats.debug_info_) {
@@ -95,8 +89,8 @@ std::ostream &operator<<(std::ostream &os, const PacketsStats::PacketAvgStats &s
 
   os << "total_count_: " << stats.total_count_ << ", total_size_: " << stats.total_size_ << " [B]"
      << ", avg_size_: " << stats.total_size_ / divisor << " [B]"
-     << ", total_duration_: " << stats.total_duration_.count() << " [us]"
-     << ", avg total_duration_: " << stats.total_duration_.count() / divisor << " [us]";
+     << ", total_duration_: " << stats.total_duration_ << " [us]"
+     << ", avg total_duration_: " << stats.total_duration_ / divisor << " [us]";
 
   // Most packet dont support total_unique_count_, print this stats only for those, who have some unique packets
   // registered
@@ -105,8 +99,8 @@ std::ostream &operator<<(std::ostream &os, const PacketsStats::PacketAvgStats &s
     os << ", total_unique_count_: " << stats.total_unique_count_ << ", total_unique_size_: " << stats.total_unique_size_
        << " [B]"
        << ", avg_unique_size_: " << stats.total_unique_size_ / unique_divisor << " [B]"
-       << ", total_unique_duration_: " << stats.total_unique_duration_.count() << " [us]"
-       << ", avg total_unique_duration_: " << stats.total_unique_duration_.count() / unique_divisor << " [us]";
+       << ", total_unique_duration_: " << stats.total_unique_duration_ << " [us]"
+       << ", avg total_unique_duration_: " << stats.total_unique_duration_ / unique_divisor << " [us]";
   }
 
   return os;

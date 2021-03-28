@@ -2,9 +2,9 @@
 
 #include <libp2p/Common.h>
 
-#include <chrono>
 #include <optional>
 #include <ostream>
+#include "util/timer.hpp"
 
 #include "packet_debug_info.hpp"
 
@@ -19,15 +19,19 @@ class PacketStats {
   std::unique_ptr<PacketDebugInfo> &getDebugInfo();
   void setUnique(bool flag = true);
 
-  void restartStopWatch();
-  void stopStopWatch();
-  std::chrono::microseconds getActualProcessingDuration();
+  void restartTimer();
+  void stopTimer();
+
+  template<typename DurationType = std::chrono::microseconds>
+  uint64_t getActualProcessingDuration() {
+    return taraxa::stopTimer<DurationType>(processing_start_time_);
+  }
 
  private:
   dev::p2p::NodeID node_;
   uint64_t size_;
   bool is_unique_;
-  std::chrono::microseconds total_duration_;
+  uint64_t total_duration_; // [us]
   std::unique_ptr<PacketDebugInfo> debug_info_;
   std::chrono::steady_clock::time_point processing_start_time_;
 
@@ -41,12 +45,12 @@ class PacketsStats {
     // Stats for all unique packets
     uint64_t total_count_{0};
     uint64_t total_size_{0};
-    std::chrono::microseconds total_duration_{0};
+    uint64_t total_duration_{0}; // [us]
 
     // Stats for unique packets
     uint64_t total_unique_count_{0};
-    unsigned long total_unique_size_{0};
-    std::chrono::microseconds total_unique_duration_{0};
+    uint64_t total_unique_size_{0};
+    uint64_t total_unique_duration_{0}; // [us]
     friend std::ostream &operator<<(std::ostream &os, const PacketAvgStats &stats);
 
     PacketAvgStats operator-(const PacketAvgStats &ro) const;
