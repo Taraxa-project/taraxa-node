@@ -9,9 +9,7 @@ namespace taraxa {
  *
  * @return std::chrono::steady_clock::time_point
  */
-inline std::chrono::steady_clock::time_point startTimer() {
-  return std::chrono::steady_clock::now();
-}
+inline std::chrono::steady_clock::time_point startTimer() { return std::chrono::steady_clock::now(); }
 
 /**
  * @brief Stops the timer
@@ -20,7 +18,7 @@ inline std::chrono::steady_clock::time_point startTimer() {
  * @param begin time obtained by startTimer()
  * @return number of milli/micro/nano/... seconds according to DurationType
  */
-template<typename DurationType = std::chrono::microseconds>
+template <typename DurationType = std::chrono::microseconds>
 inline uint64_t stopTimer(const std::chrono::steady_clock::time_point& begin) {
   return std::chrono::duration_cast<DurationType>(std::chrono::steady_clock::now() - begin).count();
 }
@@ -37,4 +35,4 @@ inline uint64_t stopTimer(const std::chrono::steady_clock::time_point& begin) {
  *
  */
 
-} // taraxa namespace
+}  // namespace taraxa

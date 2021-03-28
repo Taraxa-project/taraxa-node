@@ -4,9 +4,9 @@
 
 #include <optional>
 #include <ostream>
-#include "util/timer.hpp"
 
 #include "packet_debug_info.hpp"
+#include "util/timer.hpp"
 
 namespace taraxa {
 
@@ -22,7 +22,7 @@ class PacketStats {
   void restartTimer();
   void stopTimer();
 
-  template<typename DurationType = std::chrono::microseconds>
+  template <typename DurationType = std::chrono::microseconds>
   uint64_t getActualProcessingDuration() {
     return taraxa::stopTimer<DurationType>(processing_start_time_);
   }
@@ -31,7 +31,7 @@ class PacketStats {
   dev::p2p::NodeID node_;
   uint64_t size_;
   bool is_unique_;
-  uint64_t total_duration_; // [us]
+  uint64_t total_duration_;  // [us]
   std::unique_ptr<PacketDebugInfo> debug_info_;
   std::chrono::steady_clock::time_point processing_start_time_;
 
@@ -45,12 +45,12 @@ class PacketsStats {
     // Stats for all unique packets
     uint64_t total_count_{0};
     uint64_t total_size_{0};
-    uint64_t total_duration_{0}; // [us]
+    uint64_t total_duration_{0};  // [us]
 
     // Stats for unique packets
     uint64_t total_unique_count_{0};
     uint64_t total_unique_size_{0};
-    uint64_t total_unique_duration_{0}; // [us]
+    uint64_t total_unique_duration_{0};  // [us]
     friend std::ostream &operator<<(std::ostream &os, const PacketAvgStats &stats);
 
     PacketAvgStats operator-(const PacketAvgStats &ro) const;

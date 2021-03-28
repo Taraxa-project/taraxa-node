@@ -23,9 +23,7 @@ void PacketStats::restartTimer() {
   total_duration_ = 0;
 }
 
-void PacketStats::stopTimer() {
-  total_duration_ = taraxa::stopTimer(processing_start_time_);
-}
+void PacketStats::stopTimer() { total_duration_ = taraxa::stopTimer(processing_start_time_); }
 
 PacketsStats::PacketsStats(const PacketsStats &ro) : stats_(ro.stats_), mutex_() {}
 

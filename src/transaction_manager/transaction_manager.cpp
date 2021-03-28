@@ -10,6 +10,7 @@
 #include "network/network.hpp"
 #include "network/rpc/WSServer.h"
 #include "transaction.hpp"
+#include "util/timer.hpp"
 
 using namespace taraxa::net;
 namespace taraxa {
@@ -59,10 +60,19 @@ uint32_t TransactionManager::insertBroadcastedTransactions(
     return 0;
   }
   uint32_t new_trx_count = 0;
+
+  std::chrono::steady_clock::time_point tx_insert_start;
   for (auto const &t : transactions) {
+    if (debug_info) {
+      debug_info->get().pushNewTxDbgInfo();
+      tx_insert_start = startTimer();
+    }
+
     Transaction trx(t);
     if (insertTrx(trx, false, debug_info).first) new_trx_count++;
     LOG(log_time_) << "Transaction " << trx.getHash() << " brkreceived at: " << getCurrentTimeMilliSeconds();
+
+    if (debug_info) debug_info->get().actMeasuredTx().total = stopTimer(tx_insert_start);
   }
   return new_trx_count;
 }
@@ -224,7 +234,11 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(DagBlock const &blk,
 std::pair<bool, std::string> TransactionManager::insertTrx(
     Transaction const &trx, bool verify, std::optional<std::reference_wrapper<TransactionPacketDebugInfo>> debug_info) {
   auto hash = trx.getHash();
+
+  std::chrono::steady_clock::time_point db_save_tx_start;
+  if (debug_info) db_save_tx_start = startTimer();
   db_->saveTransaction(trx);
+  if (debug_info) debug_info->get().actMeasuredTx().db_save_tx = stopTimer(db_save_tx_start);
 
   if (conf_.test_params.max_transaction_queue_warn > 0 || conf_.test_params.max_transaction_queue_drop > 0) {
     auto queue_size = trx_qu_.getTransactionQueueSize();
@@ -249,6 +263,9 @@ std::pair<bool, std::string> TransactionManager::insertTrx(
   }
 
   if (verified.first) {
+    std::chrono::steady_clock::time_point db_save_tx_status_start;
+    if (debug_info) db_save_tx_status_start = startTimer();
+
     uLock lock(mu_for_transactions_);
     auto status = db_->getTransactionStatus(hash);
     if (status == TransactionStatus::not_seen) {
@@ -260,8 +277,17 @@ std::pair<bool, std::string> TransactionManager::insertTrx(
       db_->saveTransactionStatus(hash, status);
       event_transaction_accepted.pub(hash);
       lock.unlock();
+
+      if (debug_info) debug_info->get().actMeasuredTx().db_save_tx_status = stopTimer(db_save_tx_status_start);
+
+      std::chrono::steady_clock::time_point trx_qe_insert_start = startTimer();
+      if (debug_info) trx_qe_insert_start = startTimer();
+
       trx_qu_.insert(trx, verify);
       if (ws_server_) ws_server_->newPendingTransaction(trx.getHash());
+
+      if (debug_info) debug_info->get().actMeasuredTx().trx_qe_insert = stopTimer(trx_qe_insert_start);
+
       return std::make_pair(true, "");
     } else {
       switch (status) {

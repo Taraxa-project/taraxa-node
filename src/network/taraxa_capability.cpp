@@ -8,6 +8,7 @@
 #include "transaction_manager/transaction_manager.hpp"
 #include "transaction_packet_debug_info.hpp"
 #include "util/boost_asio.hpp"
+#include "util/timer.hpp"
 
 namespace taraxa {
 
@@ -88,7 +89,7 @@ void TaraxaCapability::sealAndSend(NodeID const &nodeID, RLPStream &s, unsigned 
   try {
     PacketStats packet_stats(nodeID, s.out().size());
     host_.capabilityHost()->sealAndSend(nodeID, s);
-    packet_stats.stopStopWatch();
+    packet_stats.stopTimer();
 
     sent_packets_stats_.addPacket(packetTypeToString(packet_type), packet_stats);
 
@@ -170,7 +171,7 @@ void TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID, unsigned
     try {
       PacketStats packet_stats(_nodeID, r.actualSize());
       interpretCapabilityPacketImpl(_nodeID, _id, r, packet_stats);
-      packet_stats.stopStopWatch();
+      packet_stats.stopTimer();
 
       received_packets_stats_.addPacket(packetTypeToString(_id), packet_stats);
 
@@ -397,7 +398,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
     }
     case TransactionPacket: {
       TransactionPacketDebugInfo tx_packet_dbg_info;
-      auto begin = std::chrono::steady_clock::now();
+      const auto begin = startTimer();
 
       std::string receivedTransactions;
       std::vector<taraxa::bytes> transactions;
@@ -409,8 +410,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         transactions.emplace_back(_r[iTransaction].data().toBytes());
       }
 
-      tx_packet_dbg_info.txs_rlp_transform_duration =
-          std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - begin);
+      tx_packet_dbg_info.txs_rlp_transform_duration = stopTimer(begin);
 
       if (transactionCount > 0) {
         LOG(log_dg_trx_prp_) << "Received TransactionPacket with " << _r.itemCount() << " transactions";
@@ -1353,15 +1353,14 @@ Json::Value TaraxaCapability::getStatus() const {
       packet_stats_json["total"] = Json::UInt64(total);
       if (total > 0) {
         packet_stats_json["avg packet size"] = Json::UInt64(packet_stats->total_size_ / total);
-        packet_stats_json["avg packet processing duration"] =
-            Json::UInt64(packet_stats->total_duration_.count() / total);
+        packet_stats_json["avg packet processing duration"] = Json::UInt64(packet_stats->total_duration_ / total);
         auto unique = packet_stats->total_unique_count_;
         if (unique > 0) {
           packet_stats_json["unique"] = Json::UInt64(unique);
           packet_stats_json["unique %"] = Json::UInt64(unique * 100 / total);
           packet_stats_json["unique avg packet size"] = Json::UInt64(packet_stats->total_unique_size_ / unique);
           packet_stats_json["unique avg packet processing duration"] =
-              Json::UInt64(packet_stats->total_unique_duration_.count() / unique);
+              Json::UInt64(packet_stats->total_unique_duration_ / unique);
         }
         stats_json[packetTypeToString(it)] = packet_stats_json;
       }
