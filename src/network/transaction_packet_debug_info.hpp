@@ -20,14 +20,14 @@ class TransactionPacketDebugInfo : public PacketDebugInfo {
     uint64_t part4;
     uint64_t part5;
     bool was_verified;
-    Transaction tx;
+    Json::Value tx;
 
     friend std::ostream &operator<<(std::ostream &os, const TxInsertTimes &insert_times) {
       os << "(" << std::to_string(insert_times.total) << ", " << std::to_string(insert_times.rlp_transform) << ", "
          << std::to_string(insert_times.part1) << ", " << std::to_string(insert_times.part2) << ", "
          << std::to_string(insert_times.part3) << ", " << std::to_string(insert_times.part4) << ", "
-         << std::to_string(insert_times.part5) << ", " << std::to_string(insert_times.was_verified) << ")"
-         << " -> tx: " << insert_times.tx.toJSON();
+         << std::to_string(insert_times.part5) << ", " << std::to_string(insert_times.was_verified)
+         << " -> tx: " << insert_times.tx << ")";
 
       return os;
     }

@@ -69,7 +69,6 @@ uint32_t TransactionManager::insertBroadcastedTransactions(
     }
 
     Transaction trx(t);
-    if (debug_info) debug_info->get().actMeasuredTx().rlp_transform = stopTimer(tx_insert_start);
 
     if (insertTrx(trx, false, debug_info).first) new_trx_count++;
     LOG(log_time_) << "Transaction " << trx.getHash() << " brkreceived at: " << getCurrentTimeMilliSeconds();
@@ -238,22 +237,25 @@ std::pair<bool, std::string> TransactionManager::insertTrx(
   std::chrono::steady_clock::time_point part1_start;
   if (debug_info) {
     part1_start = startTimer();
-    debug_info->get().actMeasuredTx().tx = trx;
+    debug_info->get().actMeasuredTx().tx = trx.toJSON();
   }
   auto hash = trx.getHash();
   db_->saveTransaction(trx);
   if (debug_info) debug_info->get().actMeasuredTx().part1 = stopTimer(part1_start);
 
-  std::chrono::steady_clock::time_point part2_start;
-  if (debug_info) part2_start = startTimer();
-
   if (conf_.test_params.max_transaction_queue_warn > 0 || conf_.test_params.max_transaction_queue_drop > 0) {
+    std::chrono::steady_clock::time_point part2_start;
+    if (debug_info) part2_start = startTimer();
+
     auto queue_size = trx_qu_.getTransactionQueueSize();
     if (conf_.test_params.max_transaction_queue_drop > 0 &&
         conf_.test_params.max_transaction_queue_drop <= queue_size.first + queue_size.second) {
       LOG(log_wr_) << "Trx: " << hash << "skipped, queue too large. Unverified queue: " << queue_size.first
                    << "; Verified queue: " << queue_size.second
                    << "; Limit: " << conf_.test_params.max_transaction_queue_drop;
+
+      if (debug_info) debug_info->get().actMeasuredTx().part2 = stopTimer(part2_start);
+
       return std::make_pair(false, "Queue overlfow");
     } else if (conf_.test_params.max_transaction_queue_warn > 0 &&
                conf_.test_params.max_transaction_queue_warn <= queue_size.first + queue_size.second) {
@@ -262,8 +264,6 @@ std::pair<bool, std::string> TransactionManager::insertTrx(
                    << "; Limit: " << conf_.test_params.max_transaction_queue_drop;
     }
   }
-
-  if (debug_info) debug_info->get().actMeasuredTx().part2 = stopTimer(part2_start);
 
   std::chrono::steady_clock::time_point part3_start;
   if (debug_info) part3_start = startTimer();
