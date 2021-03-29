@@ -271,7 +271,6 @@ std::pair<bool, std::string> TransactionManager::insertTrx(
   std::pair<bool, std::string> verified;
   verified.first = true;
   if (verify && mode_ != VerifyMode::skip_verify_sig) {
-    if (debug_info) debug_info->get().actMeasuredTx().was_verified = true;
     verified = verifyTransaction(trx);
   }
 
