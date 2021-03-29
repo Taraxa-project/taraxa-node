@@ -69,6 +69,8 @@ uint32_t TransactionManager::insertBroadcastedTransactions(
     }
 
     Transaction trx(t);
+    if (debug_info) debug_info->get().actMeasuredTx().rlp_transform = stopTimer(tx_insert_start);
+
     if (insertTrx(trx, false, debug_info).first) new_trx_count++;
     LOG(log_time_) << "Transaction " << trx.getHash() << " brkreceived at: " << getCurrentTimeMilliSeconds();
 
@@ -233,12 +235,17 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(DagBlock const &blk,
 
 std::pair<bool, std::string> TransactionManager::insertTrx(
     Transaction const &trx, bool verify, std::optional<std::reference_wrapper<TransactionPacketDebugInfo>> debug_info) {
+  std::chrono::steady_clock::time_point part1_start;
+  if (debug_info) {
+    part1_start = startTimer();
+    debug_info->get().actMeasuredTx().tx = trx;
+  }
   auto hash = trx.getHash();
-
-  std::chrono::steady_clock::time_point db_save_tx_start;
-  if (debug_info) db_save_tx_start = startTimer();
   db_->saveTransaction(trx);
-  if (debug_info) debug_info->get().actMeasuredTx().db_save_tx = stopTimer(db_save_tx_start);
+  if (debug_info) debug_info->get().actMeasuredTx().part1 = stopTimer(part1_start);
+
+  std::chrono::steady_clock::time_point part2_start;
+  if (debug_info) part2_start = startTimer();
 
   if (conf_.test_params.max_transaction_queue_warn > 0 || conf_.test_params.max_transaction_queue_drop > 0) {
     auto queue_size = trx_qu_.getTransactionQueueSize();
@@ -256,15 +263,23 @@ std::pair<bool, std::string> TransactionManager::insertTrx(
     }
   }
 
+  if (debug_info) debug_info->get().actMeasuredTx().part2 = stopTimer(part2_start);
+
+  std::chrono::steady_clock::time_point part3_start;
+  if (debug_info) part3_start = startTimer();
+
   std::pair<bool, std::string> verified;
   verified.first = true;
   if (verify && mode_ != VerifyMode::skip_verify_sig) {
+    if (debug_info) debug_info->get().actMeasuredTx().was_verified = true;
     verified = verifyTransaction(trx);
   }
 
+  if (debug_info) debug_info->get().actMeasuredTx().part3 = stopTimer(part3_start);
+
   if (verified.first) {
-    std::chrono::steady_clock::time_point db_save_tx_status_start;
-    if (debug_info) db_save_tx_status_start = startTimer();
+    std::chrono::steady_clock::time_point part4_start;
+    if (debug_info) part4_start = startTimer();
 
     uLock lock(mu_for_transactions_);
     auto status = db_->getTransactionStatus(hash);
@@ -278,15 +293,15 @@ std::pair<bool, std::string> TransactionManager::insertTrx(
       event_transaction_accepted.pub(hash);
       lock.unlock();
 
-      if (debug_info) debug_info->get().actMeasuredTx().db_save_tx_status = stopTimer(db_save_tx_status_start);
+      if (debug_info) debug_info->get().actMeasuredTx().part4 = stopTimer(part4_start);
 
-      std::chrono::steady_clock::time_point trx_qe_insert_start = startTimer();
-      if (debug_info) trx_qe_insert_start = startTimer();
+      std::chrono::steady_clock::time_point part5_start = startTimer();
+      if (debug_info) part5_start = startTimer();
 
       trx_qu_.insert(trx, verify);
       if (ws_server_) ws_server_->newPendingTransaction(trx.getHash());
 
-      if (debug_info) debug_info->get().actMeasuredTx().trx_qe_insert = stopTimer(trx_qe_insert_start);
+      if (debug_info) debug_info->get().actMeasuredTx().part5 = stopTimer(part5_start);
 
       return std::make_pair(true, "");
     } else {
