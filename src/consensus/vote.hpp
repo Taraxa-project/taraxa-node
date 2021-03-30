@@ -195,7 +195,9 @@ class NextVotesForPreviousRound {
 
   void clear();
 
-  bool find(blk_hash_t next_vote_hash);
+  bool find(vote_hash_t next_vote_hash);
+
+  bool enoughNextVotes() const;
 
   bool haveEnoughVotesForNullBlockHash() const;
 
@@ -204,7 +206,10 @@ class NextVotesForPreviousRound {
   std::vector<Vote> getNextVotes();
 
   size_t getNextVotesSize() const;
-  void setNextVotesSize(size_t const size);
+
+  void addNextVote(Vote const& next_vote, size_t const pbft_2t_plus_1);
+
+  void addNextVotes(std::vector<Vote> const& next_votes, size_t const pbft_2t_plus_1);
 
   void update(std::vector<Vote> const& next_votes, size_t const pbft_2t_plus_1);
 
@@ -216,6 +221,8 @@ class NextVotesForPreviousRound {
   using upgradableLock_ = boost::upgrade_lock<boost::shared_mutex>;
   using upgradeLock_ = boost::upgrade_to_unique_lock<boost::shared_mutex>;
 
+  void assertError_(std::vector<Vote> next_votes_1, std::vector<Vote> next_votes_2) const;
+
   mutable boost::shared_mutex access_;
 
   std::shared_ptr<DbStorage> db_;
@@ -224,7 +231,7 @@ class NextVotesForPreviousRound {
   blk_hash_t voted_value_;  // For value is not null block hash
   size_t next_votes_size_;
   std::unordered_map<blk_hash_t, std::vector<Vote>> next_votes_;  // <voted PBFT block hash, next votes list>
-  std::unordered_set<blk_hash_t> next_votes_set_;
+  std::unordered_set<vote_hash_t> next_votes_set_;
 
   LOG_OBJECTS_DEFINE;
 };
