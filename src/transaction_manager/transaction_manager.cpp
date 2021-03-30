@@ -290,16 +290,22 @@ std::pair<bool, std::string> TransactionManager::insertTrx(
     if (debug_info) part4_start = startTimer();
 
     uLock lock(mu_for_transactions_);
+
+    if (debug_info) debug_info->get().actMeasuredTx().part4 = stopTimer(part4_start);
+
+    std::chrono::steady_clock::time_point part5_start;
+    if (debug_info) part5_start = startTimer();
+
     auto status = db_->getTransactionStatus(hash);
 
     if (debug_info) {
       debug_info->get().actMeasuredTx().prosessing_steps += ", tx status obtained";
-      debug_info->get().actMeasuredTx().part4 = stopTimer(part4_start);
+      debug_info->get().actMeasuredTx().part5 = stopTimer(part5_start);
     }
 
     if (status == TransactionStatus::not_seen) {
-      std::chrono::steady_clock::time_point part5_start = startTimer();
-      if (debug_info) part5_start = startTimer();
+      std::chrono::steady_clock::time_point part6_start = startTimer();
+      if (debug_info) part6_start = startTimer();
 
       if (verify) {
         status = TransactionStatus::in_queue_verified;
@@ -312,18 +318,18 @@ std::pair<bool, std::string> TransactionManager::insertTrx(
 
       if (debug_info) {
         debug_info->get().actMeasuredTx().prosessing_steps += ", new tx status saved";
-        debug_info->get().actMeasuredTx().part5 = stopTimer(part4_start);
+        debug_info->get().actMeasuredTx().part6 = stopTimer(part6_start);
       }
 
-      std::chrono::steady_clock::time_point part6_start = startTimer();
-      if (debug_info) part6_start = startTimer();
+      std::chrono::steady_clock::time_point part7_start = startTimer();
+      if (debug_info) part7_start = startTimer();
 
       trx_qu_.insert(trx, verify);
       if (ws_server_) ws_server_->newPendingTransaction(trx.getHash());
 
       if (debug_info) {
         debug_info->get().actMeasuredTx().prosessing_steps += ", tx inserted in tx_que";
-        debug_info->get().actMeasuredTx().part6 = stopTimer(part6_start);
+        debug_info->get().actMeasuredTx().part7 = stopTimer(part7_start);
       }
 
       return std::make_pair(true, "");
