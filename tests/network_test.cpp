@@ -693,7 +693,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
 
   // Generate 3 next votes for node1
   std::vector<Vote> next_votes1;
-  blk_hash_t voted_pbft_block_hash1(blk_hash_t(1));
+  blk_hash_t voted_pbft_block_hash1(blk_hash_t(0));
   for (auto i = 0; i < 3; i++) {
     blk_hash_t last_pbft_block_hash(i);
     PbftVoteTypes type = next_vote_type;

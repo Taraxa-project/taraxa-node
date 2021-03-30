@@ -619,6 +619,19 @@ std::vector<Vote> DbStorage::getNextVotes(uint64_t const& pbft_round) {
   return next_votes;
 }
 
+bool DbStorage::findNextVote(uint64_t const& pbft_round, vote_hash_t const& vote_hash) {
+  auto next_votes_raw = asBytes(lookup(toSlice(pbft_round), Columns::next_votes));
+
+  for (auto const& next_vote_rlp : RLP(next_votes_raw)) {
+    Vote next_vote(next_vote_rlp);
+    if (next_vote.getHash() == vote_hash) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 void DbStorage::saveNextVotes(uint64_t const& pbft_round, std::vector<Vote> const& next_votes) {
   RLPStream s(next_votes.size());
   for (auto const& v : next_votes) {

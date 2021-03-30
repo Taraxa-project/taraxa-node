@@ -273,6 +273,107 @@ TEST_F(VoteTest, vote_broadcast) {
   EXPECT_EQ(vote_queue_size3, 1);
 }
 
+TEST_F(VoteTest, previous_round_next_votes) {
+  auto node0_sk_str = "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd";
+  auto node1_sk_str = "e6af8ca3b4074243f9214e16ac94831f17be38810d09a3edeb56ab55be848a1e";
+  auto node2_sk_str = "f1261c9f09b0b483486c3b298f7c1ee001ff37e10023596528af93e34ba13f5f";
+  std::vector<dev::Secret> nodes_sk;
+  nodes_sk.emplace_back(dev::Secret(node0_sk_str, dev::Secret::ConstructFromStringType::FromHex));
+  nodes_sk.emplace_back(dev::Secret(node1_sk_str, dev::Secret::ConstructFromStringType::FromHex));
+  nodes_sk.emplace_back(dev::Secret(node2_sk_str, dev::Secret::ConstructFromStringType::FromHex));
+  std::vector<dev::KeyPair> nodes_kp;
+  for (auto const &sk : nodes_sk) {
+    nodes_kp.emplace_back(dev::KeyPair(sk));
+  }
+
+  auto db = s_ptr(new DbStorage(data_dir));
+  auto const &node_addr = nodes_kp[0].address();
+  auto next_votes_mgr = s_ptr(new NextVotesForPreviousRound(node_addr, db));
+  auto pbft_2t_plus_1 = 3;
+
+  // Generate a vote from node0 voted at NULL_BLOCK_HASH
+  blk_hash_t last_pbft_block_hash(0);
+  auto round = 1;
+  auto step = 4;
+  VrfPbftMsg msg(last_pbft_block_hash, next_vote_type, round, step);
+  VrfPbftSortition vrf_sortition(g_vrf_sk, msg);
+  blk_hash_t voted_pbft_block_hash(0);
+  Vote vote(nodes_sk[0], vrf_sortition, voted_pbft_block_hash);
+  std::vector<Vote> next_votes_1;
+  next_votes_1.emplace_back(vote);
+
+  next_votes_mgr->addNextVote(vote, pbft_2t_plus_1);
+  EXPECT_TRUE(next_votes_mgr->find(vote.getHash()));
+  EXPECT_FALSE(next_votes_mgr->haveEnoughVotesForNullBlockHash());
+  EXPECT_EQ(next_votes_mgr->getNextVotes().size(), next_votes_1.size());
+  EXPECT_EQ(next_votes_mgr->getNextVotesSize(), next_votes_1.size());
+
+  // Generate vote from node1 and node2 voted at NULL_BLOCK_HASH
+  for (auto i = 1; i < 3; i++) {
+    Vote vote(nodes_sk[i], vrf_sortition, voted_pbft_block_hash);
+    next_votes_1.emplace_back(vote);
+  }
+  EXPECT_EQ(next_votes_1.size(), 3);
+
+  // Enough votes for NULL_BLOCK_HASH
+  next_votes_mgr->addNextVotes(next_votes_1, pbft_2t_plus_1);
+  EXPECT_TRUE(next_votes_mgr->haveEnoughVotesForNullBlockHash());
+  EXPECT_EQ(next_votes_mgr->getNextVotes().size(), next_votes_1.size());
+  EXPECT_EQ(next_votes_mgr->getNextVotesSize(), next_votes_1.size());
+
+  // Generate 3 votes voted at value blk_hash_t(1)
+  voted_pbft_block_hash = blk_hash_t(1);
+  step = 5;
+  std::vector<Vote> next_votes_2;
+  for (auto i = 0; i < 3; i++) {
+    Vote vote(nodes_sk[i], vrf_sortition, voted_pbft_block_hash);
+    next_votes_2.emplace_back(vote);
+  }
+  EXPECT_EQ(next_votes_2.size(), 3);
+
+  // Enough votes for blk_hash_t(1)
+  next_votes_mgr->updateWithSyncedVotes(next_votes_2, pbft_2t_plus_1);
+  EXPECT_EQ(next_votes_mgr->getVotedValue(), voted_pbft_block_hash);
+  EXPECT_TRUE(next_votes_mgr->enoughNextVotes());
+  auto expect_size = next_votes_1.size() + next_votes_2.size();
+  EXPECT_EQ(expect_size, 6);
+  EXPECT_EQ(next_votes_mgr->getNextVotes().size(), expect_size);
+  EXPECT_EQ(next_votes_mgr->getNextVotesSize(), expect_size);
+
+  // Copy next_votes_1 and next_votes_2 into next_votes_3
+  std::vector<Vote> next_votes_3;
+  next_votes_3.reserve(expect_size);
+  next_votes_3.insert(next_votes_3.end(), next_votes_1.begin(), next_votes_1.end());
+  next_votes_3.insert(next_votes_3.end(), next_votes_2.begin(), next_votes_2.end());
+  EXPECT_EQ(next_votes_3.size(), 6);
+
+  // Should not update anything
+  next_votes_mgr->addNextVotes(next_votes_3, pbft_2t_plus_1);
+  EXPECT_EQ(next_votes_mgr->getNextVotes().size(), expect_size);
+  EXPECT_EQ(next_votes_mgr->getNextVotesSize(), expect_size);
+
+  // Should not update anything
+  next_votes_mgr->updateWithSyncedVotes(next_votes_3, pbft_2t_plus_1);
+  EXPECT_EQ(next_votes_mgr->getNextVotes().size(), next_votes_3.size());
+  EXPECT_EQ(next_votes_mgr->getNextVotesSize(), next_votes_3.size());
+
+  // Generate 3 votes voted at value blk_hash_t(2)
+  voted_pbft_block_hash = blk_hash_t(2);
+  round = 2;
+  std::vector<Vote> next_votes_4;
+  for (auto i = 0; i < 3; i++) {
+    Vote vote(nodes_sk[i], vrf_sortition, voted_pbft_block_hash);
+    next_votes_4.emplace_back(vote);
+  }
+
+  next_votes_mgr->update(next_votes_4, pbft_2t_plus_1);
+  EXPECT_FALSE(next_votes_mgr->haveEnoughVotesForNullBlockHash());
+  EXPECT_EQ(next_votes_mgr->getVotedValue(), voted_pbft_block_hash);
+  EXPECT_FALSE(next_votes_mgr->enoughNextVotes());
+  EXPECT_EQ(next_votes_mgr->getNextVotes().size(), next_votes_4.size());
+  EXPECT_EQ(next_votes_mgr->getNextVotesSize(), next_votes_4.size());
+}
+
 }  // namespace taraxa::core_tests
 
 using namespace taraxa;
