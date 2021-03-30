@@ -18,6 +18,7 @@ class TransactionPacketDebugInfo : public PacketDebugInfo {
     uint64_t part3;
     uint64_t part4;
     uint64_t part5;
+    uint64_t part6;
     Json::Value tx;
     std::string prosessing_steps;
 
@@ -27,8 +28,9 @@ class TransactionPacketDebugInfo : public PacketDebugInfo {
 
       os << "(" << std::to_string(insert_times.total) << ", " << std::to_string(insert_times.part1) << ", "
          << std::to_string(insert_times.part2) << ", " << std::to_string(insert_times.part3) << ", "
-         << std::to_string(insert_times.part4) << ", " << std::to_string(insert_times.part5)
-         << " -> processing steps: {" << insert_times.prosessing_steps << "}, tx: " << tx_json << ")";
+         << std::to_string(insert_times.part4) << ", " << std::to_string(insert_times.part5) << ", "
+         << std::to_string(insert_times.part6) << " -> processing steps: {" << insert_times.prosessing_steps
+         << "}, tx: " << tx_json << ")";
 
       return os;
     }
@@ -54,6 +56,7 @@ class TransactionPacketDebugInfo : public PacketDebugInfo {
     uint64_t tx_avg_part3 = 0;
     uint64_t tx_avg_part4 = 0;
     uint64_t tx_avg_part5 = 0;
+    uint64_t tx_avg_part6 = 0;
 
     os << "Txs count: " << txs_count << ", rlp transform duration: " << txs_rlp_transform_duration
        << ", txs inserts(>= 1000us): [";
@@ -69,6 +72,7 @@ class TransactionPacketDebugInfo : public PacketDebugInfo {
       tx_avg_part3 += tx_times.part3;
       tx_avg_part4 += tx_times.part4;
       tx_avg_part5 += tx_times.part5;
+      tx_avg_part6 += tx_times.part6;
     }
     os << "], ";
 
@@ -76,7 +80,7 @@ class TransactionPacketDebugInfo : public PacketDebugInfo {
 
     os << "Txs avg times: (" << tx_avg_total / divider << ", " << tx_avg_part1 / divider << ", "
        << tx_avg_part2 / divider << ", " << tx_avg_part3 / divider << ", " << tx_avg_part4 / divider << ", "
-       << tx_avg_part5 / divider << ")";
+       << tx_avg_part5 / divider << ", " << tx_avg_part6 / divider << ")";
 
     return os.str();
   }
