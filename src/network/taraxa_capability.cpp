@@ -410,7 +410,6 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         transactions.emplace_back(_r[iTransaction].data().toBytes());
       }
 
-      tx_packet_dbg_info.txs_count = transactions.size();
       tx_packet_dbg_info.txs_rlp_transform_duration = stopTimer(begin);
 
       if (transactionCount > 0) {

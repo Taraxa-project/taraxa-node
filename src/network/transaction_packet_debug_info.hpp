@@ -19,23 +19,30 @@ class TransactionPacketDebugInfo : public PacketDebugInfo {
     uint64_t part4;
     uint64_t part5;
     Json::Value tx;
+    std::string prosessing_steps;
 
     friend std::ostream &operator<<(std::ostream &os, const TxInsertTimes &insert_times) {
+      std::string tx_json = insert_times.tx.toStyledString();
+      tx_json.erase(std::remove(tx_json.begin(), tx_json.end(), '\n'), tx_json.end());
+
       os << "(" << std::to_string(insert_times.total) << ", " << std::to_string(insert_times.part1) << ", "
          << std::to_string(insert_times.part2) << ", " << std::to_string(insert_times.part3) << ", "
          << std::to_string(insert_times.part4) << ", " << std::to_string(insert_times.part5)
-         << " -> tx: " << insert_times.tx << ")";
+         << " -> processing steps: {" << insert_times.prosessing_steps << "}, tx: " << tx_json << ")";
 
       return os;
     }
   };
 
  public:
-  uint64_t txs_count;                   // [us]
+  uint64_t txs_count{0};
   uint64_t txs_rlp_transform_duration;  // [us]
   std::vector<TxInsertTimes> txs_insert_times;
 
-  void pushNewTxDbgInfo() { txs_insert_times.emplace_back(); }
+  void pushNewTxDbgInfo() {
+    txs_insert_times.emplace_back();
+    txs_count++;
+  }
   inline TxInsertTimes &actMeasuredTx() { return txs_insert_times.back(); }
 
   std::string debugInfoToString() const override {

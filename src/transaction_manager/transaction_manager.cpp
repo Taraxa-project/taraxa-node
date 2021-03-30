@@ -241,24 +241,32 @@ std::pair<bool, std::string> TransactionManager::insertTrx(
   }
   auto hash = trx.getHash();
   db_->saveTransaction(trx);
-  if (debug_info) debug_info->get().actMeasuredTx().part1 = stopTimer(part1_start);
+
+  if (debug_info) {
+    debug_info->get().actMeasuredTx().prosessing_steps = "saved in db, ";
+    debug_info->get().actMeasuredTx().part1 = stopTimer(part1_start);
+  }
 
   if (conf_.test_params.max_transaction_queue_warn > 0 || conf_.test_params.max_transaction_queue_drop > 0) {
     std::chrono::steady_clock::time_point part2_start;
     if (debug_info) part2_start = startTimer();
 
     auto queue_size = trx_qu_.getTransactionQueueSize();
+
+    if (debug_info) {
+      debug_info->get().actMeasuredTx().prosessing_steps += ", test_pars if";
+      debug_info->get().actMeasuredTx().part2 = stopTimer(part2_start);
+    }
     if (conf_.test_params.max_transaction_queue_drop > 0 &&
         conf_.test_params.max_transaction_queue_drop <= queue_size.first + queue_size.second) {
+      if (debug_info) debug_info->get().actMeasuredTx().prosessing_steps += ", drop if";
       LOG(log_wr_) << "Trx: " << hash << "skipped, queue too large. Unverified queue: " << queue_size.first
                    << "; Verified queue: " << queue_size.second
                    << "; Limit: " << conf_.test_params.max_transaction_queue_drop;
-
-      if (debug_info) debug_info->get().actMeasuredTx().part2 = stopTimer(part2_start);
-
       return std::make_pair(false, "Queue overlfow");
     } else if (conf_.test_params.max_transaction_queue_warn > 0 &&
                conf_.test_params.max_transaction_queue_warn <= queue_size.first + queue_size.second) {
+      if (debug_info) debug_info->get().actMeasuredTx().prosessing_steps += ", max if";
       LOG(log_wr_) << "Warning: queue large. Unverified queue: " << queue_size.first
                    << "; Verified queue: " << queue_size.second
                    << "; Limit: " << conf_.test_params.max_transaction_queue_drop;
@@ -272,6 +280,7 @@ std::pair<bool, std::string> TransactionManager::insertTrx(
   verified.first = true;
   if (verify && mode_ != VerifyMode::skip_verify_sig) {
     verified = verifyTransaction(trx);
+    if (debug_info) debug_info->get().actMeasuredTx().prosessing_steps += ", tx verified";
   }
 
   if (debug_info) debug_info->get().actMeasuredTx().part3 = stopTimer(part3_start);
@@ -292,7 +301,10 @@ std::pair<bool, std::string> TransactionManager::insertTrx(
       event_transaction_accepted.pub(hash);
       lock.unlock();
 
-      if (debug_info) debug_info->get().actMeasuredTx().part4 = stopTimer(part4_start);
+      if (debug_info) {
+        debug_info->get().actMeasuredTx().prosessing_steps += ", tx status saved";
+        debug_info->get().actMeasuredTx().part4 = stopTimer(part4_start);
+      }
 
       std::chrono::steady_clock::time_point part5_start = startTimer();
       if (debug_info) part5_start = startTimer();
@@ -300,10 +312,16 @@ std::pair<bool, std::string> TransactionManager::insertTrx(
       trx_qu_.insert(trx, verify);
       if (ws_server_) ws_server_->newPendingTransaction(trx.getHash());
 
-      if (debug_info) debug_info->get().actMeasuredTx().part5 = stopTimer(part5_start);
+      if (debug_info) {
+        debug_info->get().actMeasuredTx().prosessing_steps += ", tx inserted in tx_que";
+        debug_info->get().actMeasuredTx().part5 = stopTimer(part5_start);
+      }
 
       return std::make_pair(true, "");
     } else {
+      if (debug_info)
+        debug_info->get().actMeasuredTx().prosessing_steps +=
+            std::string(", tx seen: " + std::to_string(static_cast<int>(status)));
       switch (status) {
         case TransactionStatus::in_queue_verified:
           LOG(log_nf_) << "Trx: " << hash << "skip, seen in queue. " << std::endl;
