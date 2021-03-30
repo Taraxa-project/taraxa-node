@@ -133,10 +133,6 @@ else()
 
     include(${CMAKE_BINARY_DIR}/conan.cmake)
 
-    conan_add_remote(NAME bincrafters INDEX 1
-                    URL https://api.bintray.com/conan/bincrafters/public-conan
-                    VERIFY_SSL True)
-
     conan_cmake_run(CONANFILE conanfile.py BUILD_TYPE ${CMAKE_BUILD_TYPE} BUILD missing
                     BASIC_SETUP CMAKE_TARGETS KEEP_RPATHS)
 endif()
