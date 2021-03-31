@@ -93,8 +93,13 @@ void TaraxaCapability::sealAndSend(NodeID const &nodeID, RLPStream &s, unsigned 
 
     sent_packets_stats_.addPacket(packetTypeToString(packet_type), packet_stats);
 
-    LOG(log_dg_net_per_) << "(\"" << host_.id() << "\") sent " << packetTypeToString(packet_type) << " packet to (\""
-                         << nodeID << "\"). Stats: " << packet_stats;
+    if (packet_type == StatusPacket) {
+        LOG(log_dg_net_per_) << "(\"" << host_.id() << "\") sent " << packetTypeToString(packet_type) << " packet to (\""
+                             << nodeID << "\"). Stats: " << packet_stats << ", RLP: " << RLP(s.out(), false);
+    } else {
+        LOG(log_dg_net_per_) << "(\"" << host_.id() << "\") sent " << packetTypeToString(packet_type) << " packet to (\""
+                             << nodeID << "\"). Stats: " << packet_stats;
+    }
   } catch (const std::exception &e) {
     LOG(log_er_) << "Caught exception in sealAndSend: " << e.what();
     throw;
@@ -170,13 +175,13 @@ void TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID, unsigned
     RLP r(bb);
     try {
       PacketStats packet_stats(_nodeID, r.actualSize());
+      LOG(log_dg_net_per_) << "(\"" << host_.id() << "\") received " << packetTypeToString(_id) << " packet from (\""
+                           << _nodeID << "\"). Stats: " << packet_stats;
+
       interpretCapabilityPacketImpl(_nodeID, _id, r, packet_stats);
       packet_stats.stopTimer();
 
       received_packets_stats_.addPacket(packetTypeToString(_id), packet_stats);
-
-      LOG(log_dg_net_per_) << "(\"" << host_.id() << "\") received " << packetTypeToString(_id) << " packet from (\""
-                           << _nodeID << "\"). Stats: " << packet_stats;
     } catch (...) {
       handle_read_exception(_nodeID, _id, r);
     }
@@ -674,7 +679,9 @@ void TaraxaCapability::handle_read_exception(NodeID const &_nodeID, unsigned _pa
     // TODO be more precise about the error handling
     LOG(log_er_) << "Read exception: " << _e.what() << ". PacketType: " << packetTypeToString(_packetType) << " ("
                  << _packetType << "). RLP: " << _r;
-    host_.capabilityHost()->disconnect(_nodeID, BadProtocol);
+
+    // TODO: nodes crash on this call, commented out for test only
+    //host_.capabilityHost()->disconnect(_nodeID, BadProtocol);
   }
 }
 
