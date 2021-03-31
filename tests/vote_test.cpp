@@ -305,25 +305,15 @@ TEST_F(VoteTest, previous_round_next_votes) {
   auto next_votes_mgr = s_ptr(new NextVotesForPreviousRound(node_addr, db));
   auto pbft_2t_plus_1 = 3;
 
-  // Generate a vote from node0 voted at NULL_BLOCK_HASH
+  // Generate 3 votes voted at NULL_BLOCK_HASH
+  std::vector<Vote> next_votes_1;
   blk_hash_t last_pbft_block_hash(0);
   auto round = 1;
   auto step = 4;
   VrfPbftMsg msg(last_pbft_block_hash, next_vote_type, round, step);
   VrfPbftSortition vrf_sortition(g_vrf_sk, msg);
   blk_hash_t voted_pbft_block_hash(0);
-  Vote vote(nodes_sk[0], vrf_sortition, voted_pbft_block_hash);
-  std::vector<Vote> next_votes_1;
-  next_votes_1.emplace_back(vote);
-
-  next_votes_mgr->addNextVote(vote, pbft_2t_plus_1);
-  EXPECT_TRUE(next_votes_mgr->find(vote.getHash()));
-  EXPECT_FALSE(next_votes_mgr->haveEnoughVotesForNullBlockHash());
-  EXPECT_EQ(next_votes_mgr->getNextVotes().size(), next_votes_1.size());
-  EXPECT_EQ(next_votes_mgr->getNextVotesSize(), next_votes_1.size());
-
-  // Generate vote from node1 and node2 voted at NULL_BLOCK_HASH
-  for (auto i = 1; i < 3; i++) {
+  for (auto i = 0; i < 3; i++) {
     Vote vote(nodes_sk[i], vrf_sortition, voted_pbft_block_hash);
     next_votes_1.emplace_back(vote);
   }

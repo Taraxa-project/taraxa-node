@@ -207,8 +207,6 @@ class NextVotesForPreviousRound {
 
   size_t getNextVotesSize() const;
 
-  void addNextVote(Vote const& next_vote, size_t const pbft_2t_plus_1);
-
   void addNextVotes(std::vector<Vote> const& next_votes, size_t const pbft_2t_plus_1);
 
   void update(std::vector<Vote> const& next_votes, size_t const pbft_2t_plus_1);
@@ -230,7 +228,9 @@ class NextVotesForPreviousRound {
   bool enough_votes_for_null_block_hash_;
   blk_hash_t voted_value_;  // For value is not null block hash
   size_t next_votes_size_;
-  std::unordered_map<blk_hash_t, std::vector<Vote>> next_votes_;  // <voted PBFT block hash, next votes list>
+  // <voted PBFT block hash, next votes list that have greater or equal to 2t+1 votes voted at the PBFT block hash>
+  // only save votes >= 2t+1 voted at same value in map and set
+  std::unordered_map<blk_hash_t, std::vector<Vote>> next_votes_;
   std::unordered_set<vote_hash_t> next_votes_set_;
 
   LOG_OBJECTS_DEFINE;

@@ -255,7 +255,6 @@ struct DbStorage {
                            BatchPtr const& write_batch);
   // Next votes
   std::vector<Vote> getNextVotes(uint64_t const& pbft_round);
-  bool findNextVote(uint64_t const& pbft_round, vote_hash_t const& vote_hash);
   void saveNextVotes(uint64_t const& pbft_round, std::vector<Vote> const& next_votes);
   void addNextVotesToBatch(uint64_t const& pbft_round, std::vector<Vote> const& next_votes,
                            BatchPtr const& write_batch);
