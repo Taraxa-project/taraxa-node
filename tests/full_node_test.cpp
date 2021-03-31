@@ -379,7 +379,6 @@ TEST_F(FullNodeTest, db_test) {
   round = 3, step = 5;
   std::vector<Vote> next_votes = db.getNextVotes(round);
   EXPECT_TRUE(next_votes.empty());
-  EXPECT_FALSE(db.findNextVote(round, vote_hash_t(1)));
   for (auto i = 0; i < 3; i++) {
     blk_hash_t voted_pbft_block_hash(i);
     VrfPbftMsg msg(last_pbft_block_hash, next_vote_type, round, step);
@@ -391,9 +390,6 @@ TEST_F(FullNodeTest, db_test) {
     next_votes.emplace_back(vote);
   }
   db.saveNextVotes(round, next_votes);
-  for (auto const &v : next_votes) {
-    EXPECT_TRUE(db.findNextVote(round, v.getHash()));
-  }
   auto next_votes_from_db = db.getNextVotes(round);
   EXPECT_EQ(next_votes.size(), next_votes_from_db.size());
   EXPECT_EQ(next_votes_from_db.size(), 3);

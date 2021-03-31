@@ -387,36 +387,9 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
 
           auto pbft_round = pbft_mgr_->getPbftRound();
           auto vote_round = vote.getRound();
-          auto vote_type = vote.getType();
 
-          if (vote_round < pbft_round) {
-            if (vote_round == pbft_round - 1 && vote_type == next_vote_type) {
-              if (next_votes_mgr_->enoughNextVotes()) {
-                return true;
-              }
-
-              if (db_->findNextVote(vote_round, vote_hash)) {
-                return true;
-              }
-              auto next_votes = db_->getNextVotes(vote_round);
-              next_votes.emplace_back(vote);
-              db_->saveNextVotes(vote_round, next_votes);
-
-              if (next_votes_mgr_->find(vote_hash)) {
-                return true;
-              }
-              auto pbft_2t_plus_1 = db_->getPbft2TPlus1(vote_round);
-              if (pbft_2t_plus_1) {
-                next_votes_mgr_->addNextVote(vote, pbft_2t_plus_1);
-              } else {
-                LOG(log_er_) << "Cannot get PBFT 2t+1 in round " << vote_round;
-              }
-
-              unique_packet_count[_id]++;
-              onNewPbftVote(vote);
-            }
-          } else if (!vote_mgr_->voteInUnverifiedMap(vote_round, vote_hash) &&
-                     !vote_mgr_->voteInVerifiedMap(vote_round, vote_hash)) {
+          if (vote_round >= pbft_round && !vote_mgr_->voteInUnverifiedMap(vote_round, vote_hash) &&
+              !vote_mgr_->voteInVerifiedMap(vote_round, vote_hash)) {
             // vote round >= PBFT round
             db_->saveUnverifiedVote(vote);
             vote_mgr_->addUnverifiedVote(vote);
