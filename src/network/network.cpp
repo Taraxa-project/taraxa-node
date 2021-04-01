@@ -39,21 +39,6 @@ Network::Network(NetworkConfig const &config, std::filesystem::path const &netwo
     : conf_(config), tp_(config.network_num_threads, false), network_file_(network_file_path) {
   auto const &node_addr = key.address();
   LOG_OBJECTS_CREATE("NETWORK");
-  diagnostic_thread_.reset(new std::thread([this] {
-    auto sleep_duration = 2s;  // So that the node terminates in a timely manner
-    auto log_interval = 30s;
-    assert(log_interval.count() % sleep_duration.count() == 0 && sleep_duration < log_interval);
-    auto num_sleeps_left = 0;
-    while (!stopped_) {
-      if (num_sleeps_left != 0) {
-        std::this_thread::sleep_for(sleep_duration);
-        --num_sleeps_left;
-        continue;
-      }
-      num_sleeps_left = log_interval / sleep_duration;
-      LOG(log_nf_) << "NET_TP_NUM_PENDING_TASKS=" << tp_.num_pending_tasks();
-    }
-  }));
 
   LOG(log_nf_) << "Read Network Config: " << std::endl << conf_ << std::endl;
 
@@ -141,6 +126,22 @@ void Network::start() {
   tp_.start();
   LOG(log_nf_) << "Started Network address: " << conf_.network_address << ":" << conf_.network_tcp_port << std::endl;
   LOG(log_nf_) << "Started Node id: " << host_->id();
+  diagnostic_thread_ = make_unique<std::thread>([this] {
+    auto sleep_duration = 2s;  // So that the node terminates in a timely manner
+    auto log_interval = 30s;
+    assert(log_interval.count() % sleep_duration.count() == 0 && sleep_duration < log_interval);
+    auto num_sleeps_left = 0;
+    while (!stopped_) {
+      if (num_sleeps_left != 0) {
+        std::this_thread::sleep_for(sleep_duration);
+        --num_sleeps_left;
+        continue;
+      }
+      num_sleeps_left = log_interval / sleep_duration;
+      LOG(log_nf_) << "NET_TP_NUM_PENDING_TASKS=" << tp_.num_pending_tasks();
+    }
+    cout << "exit" << endl;
+  });
 }
 
 bool Network::isStarted() { return !stopped_; }
