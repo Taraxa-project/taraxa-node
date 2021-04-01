@@ -666,7 +666,8 @@ void TaraxaCapability::handle_read_exception(NodeID const &_nodeID, unsigned _pa
     // TODO be more precise about the error handling
     LOG(log_er_) << "Read exception: " << _e.what() << ". PacketType: " << packetTypeToString(_packetType) << " ("
                  << _packetType << "). RLP: " << _r;
-    host_.capabilityHost()->disconnect(_nodeID, BadProtocol);
+    // TODO (oleh) uncomment when this line stops causing crash
+//    host_.capabilityHost()->disconnect(_nodeID, BadProtocol);
   }
 }
 
