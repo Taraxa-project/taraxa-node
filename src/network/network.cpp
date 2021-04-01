@@ -140,7 +140,6 @@ void Network::start() {
       num_sleeps_left = log_interval / sleep_duration;
       LOG(log_nf_) << "NET_TP_NUM_PENDING_TASKS=" << tp_.num_pending_tasks();
     }
-    cout << "exit" << endl;
   });
 }
 
