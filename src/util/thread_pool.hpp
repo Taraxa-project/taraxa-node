@@ -7,10 +7,14 @@
 namespace taraxa::util {
 
 class ThreadPool : std::enable_shared_from_this<ThreadPool> {
+  using asio_callback = std::function<void(boost::system::error_code const &)>;
+
   boost::asio::io_context ioc_;
   boost::asio::executor_work_guard<decltype(ioc_)::executor_type> ioc_work_;
   std::vector<std::thread> threads_;
   std::mutex threads_mu_;
+
+  std::atomic<uint64_t> debug_num_pending_tasks_ = 0;
 
  public:
   explicit ThreadPool(size_t num_threads, bool _start = true);
@@ -19,23 +23,23 @@ class ThreadPool : std::enable_shared_from_this<ThreadPool> {
   ThreadPool(ThreadPool const &) = delete;
   ThreadPool &operator=(ThreadPool const &) = delete;
 
-  auto &unsafe_get_io_context() { return ioc_; }
+  uint64_t num_pending_tasks() { return debug_num_pending_tasks_; }
 
   void start();
   void stop();
 
-  template <typename... T>
-  auto post(T &&... args) {
-    return boost::asio::post(ioc_, std::forward<T>(args)...);
+  void post(uint64_t do_in_ms, asio_callback action);
+  void post(uint64_t do_in_ms, std::function<void()> action);
+
+  template <typename Action>
+  auto post(Action &&action) {
+    return post(0, std::forward<Action>(action));
   }
 
-  operator task_executor_t() {
-    return [this](auto &&task) { post(std::forward<task_t>(task)); };
-  }
-
-  task_executor_t strand() {
-    return [s = boost::asio::make_strand(ioc_)](auto &&task) { boost::asio::post(s, std::forward<task_t>(task)); };
-  }
+  struct Periodicity {
+    uint64_t period_ms = 0, delay_ms = period_ms;
+  };
+  void post_periodic(Periodicity const &periodicity, std::function<void()> action);
 };
 
 }  // namespace taraxa::util
