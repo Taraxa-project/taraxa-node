@@ -7,7 +7,6 @@
 #include <boost/tokenizer.hpp>
 
 #include "taraxa_capability.hpp"
-#include "util/boost_asio.hpp"
 
 namespace taraxa {
 
@@ -79,9 +78,8 @@ Network::Network(NetworkConfig const &config, std::filesystem::path const &netwo
   } else {
     host_ = std::make_shared<dev::p2p::Host>(net_version, makeENR(key, net_conf), net_conf, move(taraxa_net_conf));
   }
-  taraxa_capability_ =
-      std::make_shared<TaraxaCapability>(*host_, tp_.unsafe_get_io_context(), conf_, db, pbft_mgr, pbft_chain, vote_mgr,
-                                         next_votes_mgr, dag_mgr, dag_blk_mgr, trx_mgr, key.address());
+  taraxa_capability_ = std::make_shared<TaraxaCapability>(*host_, tp_, conf_, db, pbft_mgr, pbft_chain, vote_mgr,
+                                                          next_votes_mgr, dag_mgr, dag_blk_mgr, trx_mgr, key.address());
   host_->registerCapability(taraxa_capability_);
 }
 
@@ -97,6 +95,7 @@ Network::~Network() {
       LOG(log_dg_) << "Network saved to: " << network_file_;
     }
   }
+  diagnostic_thread_->join();
 }
 
 void Network::start() {
@@ -110,7 +109,7 @@ void Network::start() {
       host_->addNode(k, v);
     }
     // Every 30 seconds check if connected to another node and refresh boot nodes
-    util::post_periodic(tp_.unsafe_get_io_context(), {30000}, [this] {
+    tp_.post_periodic({30000}, [this] {
       // If node count drops to zero add boot nodes again and retry
       if (getNodeCount() == 0) {
         for (auto const &[k, v] : boot_nodes_) {
@@ -127,6 +126,21 @@ void Network::start() {
   tp_.start();
   LOG(log_nf_) << "Started Network address: " << conf_.network_address << ":" << conf_.network_tcp_port << std::endl;
   LOG(log_nf_) << "Started Node id: " << host_->id();
+  diagnostic_thread_ = make_unique<std::thread>([this] {
+    auto sleep_duration = 2s;  // So that the node terminates in a timely manner
+    auto log_interval = 30s;
+    assert(log_interval.count() % sleep_duration.count() == 0 && sleep_duration < log_interval);
+    auto num_sleeps_left = 0;
+    while (!stopped_) {
+      if (num_sleeps_left != 0) {
+        std::this_thread::sleep_for(sleep_duration);
+        --num_sleeps_left;
+        continue;
+      }
+      num_sleeps_left = log_interval / sleep_duration;
+      LOG(log_nf_) << "NET_TP_NUM_PENDING_TASKS=" << tp_.num_pending_tasks();
+    }
+  });
 }
 
 bool Network::isStarted() { return !stopped_; }
