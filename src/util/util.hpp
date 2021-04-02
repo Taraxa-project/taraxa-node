@@ -287,11 +287,14 @@ class ExpirationCache {
     boost::unique_lock lck(mtx_);
     cache_.insert(key);
     expiration_.push_back(key);
-    if (cache_.size() > max_size_) {
+    /*if (cache_.size() > max_size_) {
       for (auto i = 0; i < delete_step_; i++) {
         cache_.erase(expiration_.front());
         expiration_.pop_front();
       }
+    }*/
+    if (cache_.size() > max_size_) {
+      eraseOldest();
     }
   }
 
@@ -307,6 +310,12 @@ class ExpirationCache {
   }
 
  private:
+  virtual void eraseOldest() {
+    for (auto i = 0; i < delete_step_; i++) {
+      cache_.erase(expiration_.front());
+      expiration_.pop_front();
+    }
+  }
   std::unordered_set<Key> cache_;
   std::deque<Key> expiration_;
   uint32_t max_size_;
