@@ -172,8 +172,6 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(DagBlock const &blk,
     return true;
   }
 
-  trx_qu_.removeBlockTransactionsFromQueue(all_block_trx_hashes);
-
   std::set<trx_hash_t> known_trx_hashes(all_block_trx_hashes.begin(), all_block_trx_hashes.end());
 
   if (!some_trxs.empty()) {
@@ -220,6 +218,8 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(DagBlock const &blk,
   } else {
     LOG(log_er_) << " Missing transaction - FAILED block verification " << missing_trx;
   }
+
+  if (all_transactions_saved) trx_qu_.removeBlockTransactionsFromQueue(all_block_trx_hashes);
 
   return all_transactions_saved;
 }
