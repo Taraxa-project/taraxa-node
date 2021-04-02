@@ -171,6 +171,9 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(DagBlock const &blk,
   if (all_block_trx_hashes.empty()) {
     return true;
   }
+
+  trx_qu_.removeBlockTransactionsFromQueue(all_block_trx_hashes);
+
   std::set<trx_hash_t> known_trx_hashes(all_block_trx_hashes.begin(), all_block_trx_hashes.end());
 
   if (!some_trxs.empty()) {
