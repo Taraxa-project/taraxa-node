@@ -20,6 +20,7 @@ bool SortitionPropose::propose() {
   }
 
   if (trx_mgr_->getTransactionQueueSize().second == 0) {
+    LOG(log_dg_) << "tx queue size == 0" << std::endl;
     return false;
   }
 
@@ -52,7 +53,10 @@ bool SortitionPropose::propose() {
   vdf.computeVdfSolution(vdf_config_, frontier.pivot.asBytes());
   if (vdf.isStale(vdf_config_)) {
     DagFrontier latestFrontier = dag_mgr_->getDagFrontier();
-    if (latestFrontier.pivot != frontier.pivot) return false;
+    if (latestFrontier.pivot != frontier.pivot) {
+      LOG(log_dg_) << "latestFrontier.pivot != frontier.pivot" << std::endl;
+      return false;
+    }
   }
 
   vec_trx_t sharded_trxs;
