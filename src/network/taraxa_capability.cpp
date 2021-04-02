@@ -92,11 +92,11 @@ void TaraxaCapability::sealAndSend(NodeID const &nodeID, RLPStream &s, unsigned 
     sent_packets_stats_.addPacket(packetTypeToString(packet_type), packet_stats);
 
     if (packet_type == StatusPacket) {
-        LOG(log_dg_net_per_) << "(\"" << host_.id() << "\") sent " << packetTypeToString(packet_type) << " packet to (\""
-                             << nodeID << "\"). Stats: " << packet_stats << ", RLP: " << RLP(s.out(), false);
+      LOG(log_dg_net_per_) << "(\"" << host_.id() << "\") sent " << packetTypeToString(packet_type) << " packet to (\""
+                           << nodeID << "\"). Stats: " << packet_stats << ", RLP: " << RLP(s.out(), false);
     } else {
-        LOG(log_dg_net_per_) << "(\"" << host_.id() << "\") sent " << packetTypeToString(packet_type) << " packet to (\""
-                             << nodeID << "\"). Stats: " << packet_stats;
+      LOG(log_dg_net_per_) << "(\"" << host_.id() << "\") sent " << packetTypeToString(packet_type) << " packet to (\""
+                           << nodeID << "\"). Stats: " << packet_stats;
     }
   } catch (const std::exception &e) {
     LOG(log_er_) << "Caught exception in sealAndSend: " << e.what();
@@ -678,7 +678,7 @@ void TaraxaCapability::handle_read_exception(NodeID const &_nodeID, unsigned _pa
     LOG(log_er_) << "Read exception: " << _e.what() << ". PacketType: " << packetTypeToString(_packetType) << " ("
                  << _packetType << "). RLP: " << _r;
     // TODO (oleh) uncomment when this line stops causing crash
-//    host_.capabilityHost()->disconnect(_nodeID, BadProtocol);
+    //    host_.capabilityHost()->disconnect(_nodeID, BadProtocol);
   }
 }
 
