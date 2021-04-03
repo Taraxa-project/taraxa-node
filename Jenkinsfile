@@ -80,6 +80,30 @@ pipeline {
                 '''
             }
         }
+        stage('Build Docker Image for tests') {
+            steps {
+                sh '''
+                    DOCKER_BUILDKIT=1 docker build --target build \
+                    -t ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER}-ctest .
+                '''
+            }
+        }
+        stage('Run ctest') {
+            steps {
+                sh '''
+                    mkdir -p  $PWD/tmp_docker
+                    docker run --rm -v $PWD/tmp_docker:/tmp --name taraxa-node-ctest-$DOCKER_BRANCH_TAG ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER}-ctest sh -c \
+                       'cd cmake-docker-build-release/tests \
+                           && ctest --output-on-failure'
+                '''
+            }
+            post {
+                failure {
+                    zip zipFile: 'coredumpAndTmp.zip', archive: false, dir: 'tmp_docker'
+                    archiveArtifacts artifacts: 'coredumpAndTmp.zip', fingerprint: true
+                }
+            }
+        }
         stage('Smoke Test') {
             steps {
                 sh '''
