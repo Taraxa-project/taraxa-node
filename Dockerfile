@@ -82,9 +82,7 @@ RUN cd $BUILD_OUTPUT_DIR \
              ../ \
     && make -j$(nproc) all \
     && make install \
-    && strip bin_install/taraxad \
-    && cd tests/ \
-    && ctest --output-on-failure
+    && strip bin_install/taraxad
 
 ###############################################################################
 # Taraxa Cli #
