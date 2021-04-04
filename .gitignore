@@ -10,3 +10,7 @@ cmake-*
 local
 
 .DS_Store
+
+# clang-format and clang-tidy binaries (only for macos users)
+clang-format
+clang-tidy

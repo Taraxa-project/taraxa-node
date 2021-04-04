@@ -93,7 +93,7 @@ pipeline {
                 sh '''
                     mkdir -p  $PWD/tmp_docker
                     docker run --rm -v $PWD/tmp_docker:/tmp --name taraxa-node-ctest-$DOCKER_BRANCH_TAG ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER}-ctest sh -c \
-                       'cd cmake-docker-build-release/tests \
+                       'cd cmake-docker-build-debug/tests \
                            && ctest --output-on-failure'
                 '''
             }

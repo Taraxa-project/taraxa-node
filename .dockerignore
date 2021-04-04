@@ -11,3 +11,4 @@
 !config
 !docker-entrypoint.sh
 !cli
+!conanfile.py
