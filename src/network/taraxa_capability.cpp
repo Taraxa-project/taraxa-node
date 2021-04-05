@@ -621,7 +621,7 @@ void TaraxaCapability::delayedPbftSync(NodeID _nodeID, int counter) {
     if (pbft_sync_period > pbft_chain_->getPbftChainSize() + (10 * conf_.network_sync_level_size)) {
       LOG(log_dg_pbft_sync_) << "Syncing pbft blocks faster than processing " << pbft_sync_period << " "
                              << pbft_chain_->getPbftChainSize();
-      host_.scheduleExecution(1000, [this, _nodeID]() { delayedPbftSync(_nodeID, counter+1); });
+      host_.scheduleExecution(1000, [this, _nodeID, counter]() { delayedPbftSync(_nodeID, counter+1); });
     } else {
       syncPeerPbft(_nodeID, pbft_sync_period + 1);
     }
