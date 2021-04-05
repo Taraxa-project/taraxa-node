@@ -651,6 +651,32 @@ void TaraxaCapability::restartSyncingPbft(bool force) {
     }
   }
 
+  auto pbft_sync_period = pbft_chain_->pbftSyncingPeriod();
+  if (max_pbft_chain_size > pbft_sync_period) {
+    LOG(log_si_pbft_sync_) << "Restarting syncing PBFT from peer " << max_pbft_chain_nodeID << ", peer PBFT chain size "
+                           << max_pbft_chain_size << ", own PBFT chain synced at period " << pbft_sync_period;
+    requesting_pending_dag_blocks_ = false;
+    // TODO: When set sycning to false if never get peer response?
+    syncing_ = true;
+    peer_syncing_pbft_ = max_pbft_chain_nodeID;
+    syncPeerPbft(peer_syncing_pbft_, pbft_sync_period + 1);
+  } else {
+    LOG(log_nf_pbft_sync_) << "Restarting syncing PBFT not needed since our pbft chain size: " << pbft_sync_period
+                           << "(" << pbft_chain_->getPbftChainSize() << ")"
+                           << " is greater or equal than max node pbft chain size:" << max_pbft_chain_size;
+    syncing_ = false;
+    if (force || (!requesting_pending_dag_blocks_ &&
+                  max_node_dag_level > std::max(dag_mgr_->getMaxLevel(), dag_blk_mgr_->getMaxDagLevelInQueue()))) {
+      LOG(log_nf_dag_sync_) << "Request pending " << max_node_dag_level << " "
+                            << std::max(dag_mgr_->getMaxLevel(), dag_blk_mgr_->getMaxDagLevelInQueue()) << "("
+                            << dag_mgr_->getMaxLevel() << ")";
+      requesting_pending_dag_blocks_ = true;
+      requesting_pending_dag_blocks_node_id_ = max_pbft_chain_nodeID;
+      requestPendingDagBlocks(max_pbft_chain_nodeID);
+    }
+  }
+}
+
 void TaraxaCapability::onDisconnect(NodeID const &_nodeID) {
   LOG(log_nf_) << "Node " << _nodeID << " disconnected";
   cnt_received_messages_.erase(_nodeID);
