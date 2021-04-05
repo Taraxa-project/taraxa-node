@@ -32,14 +32,15 @@ class Network {
   Network(NetworkConfig const &config, std::string const &genesis, addr_t node_addr);
   Network(NetworkConfig const &config, std::string const &networkFile, std::string const &genesis, addr_t node_addr,
           std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
-          std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
-          std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<TransactionManager> trx_mgr, public_t node_pk,
-          uint32_t lambda_ms_min);
+          std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr,
+          std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
+          std::shared_ptr<TransactionManager> trx_mgr, public_t node_pk, uint32_t lambda_ms_min);
   Network(NetworkConfig const &config, std::string const &networkFile, secret_t const &sk, std::string const &genesis,
           addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
           std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
-          std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
-          std::shared_ptr<TransactionManager> trx_mgr, public_t node_pk, uint32_t lambda_ms_min);
+          std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr, std::shared_ptr<DagManager> dag_mgr,
+          std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<TransactionManager> trx_mgr, public_t node_pk,
+          uint32_t lambda_ms_min);
   ~Network();
   void start(bool boot_node = false);
   void stop();
@@ -68,6 +69,7 @@ class Network {
   void sendPbftVote(NodeID const &id, Vote const &vote);
   void onNewPbftBlock(PbftBlock const &pbft_block);
   void sendPbftBlock(NodeID const &id, PbftBlock const &pbft_block, uint64_t const &pbft_chain_size);
+  void broadcastPreviousRoundNextVotesBundle();
 
   std::pair<bool, bi::tcp::endpoint> resolveHost(string const &addr, uint16_t port);
 
@@ -83,6 +85,7 @@ class Network {
   std::shared_ptr<PbftManager> pbft_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<VoteManager> vote_mgr_;
+  std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr_;
   std::shared_ptr<DagManager> dag_mgr_;
   std::shared_ptr<DagBlockManager> dag_blk_mgr_;
   std::shared_ptr<TransactionManager> trx_mgr_;

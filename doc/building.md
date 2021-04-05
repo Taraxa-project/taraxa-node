@@ -18,28 +18,16 @@ will build out of the box without further effort:
     sudo apt-get install -y \
         libtool \
         autoconf \
-        ccache cmake gcc g++ clang-format clang-tidy cppcheck \
-        libboost-program-options-dev libboost-system-dev libboost-filesystem-dev libboost-thread-dev libboost-log-dev \
-        libgflags-dev libsnappy-dev zlib1g-dev libbz2-dev liblz4-dev libzstd-dev \
-        libssl-dev \
-        libjsoncpp-dev libjsonrpccpp-dev \
+        ccache cmake gcc g++ clang-format clang-tidy cppcheck 
+        libgflags-dev\
         libscrypt-dev \
-        libmpfr-dev \
-        libgmp3-dev
+        libjsoncpp-dev \
+        libjsonrpccpp-dev \
+        python3-pip
 
         
-    # Optional packages (not required, but will make a nicer experience)
-    sudo apt-get install -y \
-        doxygen
-
-    # rocksdb (required)
-    curl -SL https://github.com/facebook/rocksdb/archive/v5.18.3.tar.gz \
-        | tar -xzC /tmp \
-    && cd /tmp/rocksdb-5.18.3 \
-    && CXXFLAGS='-Wno-error=deprecated-copy -Wno-error=pessimizing-move' PORTABLE=1 make -j $(nproc) install-static \
-    && CXXFLAGS='-Wno-error=deprecated-copy -Wno-error=pessimizing-move' PORTABLE=1 make -j $(nproc) install-shared \
-    && rm -rf $(pwd) \
-    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
+    # Install conan package manager
+    pip3 install conan
 
     # Go (required)
     wget https://dl.google.com/go/go1.13.7.linux-amd64.tar.gz
@@ -61,16 +49,30 @@ will build out of the box without further effort:
 
 ### Compile
 
-    mkdir cmake-build
+In general to build you need to:
+
+    conan install -if cmake-build --build missing .
+    conan build -bf cmake-build -sf . .
+
+But you can do it that way too:
+
     cd cmake-build
     cmake -DCMAKE_BUILD_TYPE=Release ../
     make -j$(nproc) taraxad
-    
+
+> Also, you can just install deps without building project with `conan install -if cmake-build --build missing .`.
+
+And optional:
+
     # optional
     make install  # defaults to /usr/local
 
 ### Running tests
-    make -j$(nproc) all
+
+> OSX: maybe you need to set a new limit for max open files per thread/process: `ulimit -n 200000`
+
+    conan install -if cmake-build --build missing .
+    conan build -bf cmake-build -sf . .
     cd tests
 
     # run tests
@@ -87,7 +89,13 @@ will build out of the box without further effort:
 
 ## Building on MacOS
 
-Refer to the [MacOS dev doc](../for_devs/macos/README.md)
+Some known `brew` package dependencies (this list is not comprehensive):
+```
+coreutils, go, autoconf, automake, ccache, gflags,
+git, libscrypt, libtool, makepkg-config, cmake, libjson-rpc-cpp
+```
+
+Also you need `conan` and follow build instructions above.
 
 ### Install taraxa-node dependencies:
 
