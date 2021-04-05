@@ -479,7 +479,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
           if (pbft_synced_period > pbft_block->getPeriod()) {
             LOG(log_dg_pbft_prp_) << "Drop it! Synced PBFT block at period " << pbft_block->getPeriod()
                                   << ", own PBFT chain has synced at period " << pbft_synced_period;
-            return;
+            break;
           }
 
           if (!pbft_chain_->findUnverifiedPbftBlock(pbft_block->getBlockHash())) {
@@ -509,7 +509,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
                                      << ", PBFT chain size: " << pbft_chain_->getPbftChainSize()
                                      << ", synced queue size : " << pbft_chain_->pbftSyncedQueueSize();
               syncing_ = false;
-              return;
+              break;
             }
 
             if (peer->pbft_chain_size_ < pbft_blk_and_votes.pbft_blk->getPeriod()) {
@@ -542,7 +542,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
                                          << ", PBFT chain size: " << pbft_chain_->getPbftChainSize()
                                          << ", synced queue size: " << pbft_chain_->pbftSyncedQueueSize();
                   syncing_ = false;
-                  return;
+                  break;
                 }
                 LOG(log_nf_dag_sync_) << "Storing DAG block " << block.second.first.getHash().toString() << " with "
                                       << block.second.second.size() << " transactions";
