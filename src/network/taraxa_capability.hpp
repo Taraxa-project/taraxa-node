@@ -246,7 +246,6 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   boost::asio::io_service io_service_;
   std::shared_ptr<boost::asio::io_service::work> io_work_;
   uint64_t dag_level_ = 0;
-  uint64_t pbft_sync_period_ = 1;
   NodeID peer_syncing_pbft_;
   std::string genesis_;
   bool performance_log_;
