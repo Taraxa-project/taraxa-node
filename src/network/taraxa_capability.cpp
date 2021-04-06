@@ -6,18 +6,17 @@
 #include "dag/dag.hpp"
 #include "node/full_node.hpp"
 #include "transaction_manager/transaction_manager.hpp"
-#include "util/boost_asio.hpp"
 
 namespace taraxa {
 
-TaraxaCapability::TaraxaCapability(Host &_host, ba::io_service &io_service, NetworkConfig const &_conf,
+TaraxaCapability::TaraxaCapability(Host &_host, util::ThreadPool &tp, NetworkConfig const &_conf,
                                    std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
                                    std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
                                    std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr,
                                    std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
                                    std::shared_ptr<TransactionManager> trx_mgr, addr_t const &node_addr)
     : host_(_host),
-      io_service_(io_service),
+      tp_(tp),
       conf_(_conf),
       urng_(std::mt19937_64(std::random_device()())),
       delay_rng_(std::mt19937(std::random_device()())),
@@ -41,13 +40,13 @@ TaraxaCapability::TaraxaCapability(Host &_host, ba::io_service &io_service, Netw
   LOG_OBJECTS_CREATE_SUB("VOTEPRP", vote_prp);
   LOG_OBJECTS_CREATE_SUB("NETPER", net_per);
   if (conf_.network_transaction_interval > 0) {
-    util::post(io_service_, conf_.network_transaction_interval, [this] { sendTransactions(); });
+    tp_.post(conf_.network_transaction_interval, [this] { sendTransactions(); });
   }
   check_status_interval_ = 6 * lambda_ms_min_;
-  util::post(io_service_, check_status_interval_, [this] { doBackgroundWork(); });
+  tp_.post(check_status_interval_, [this] { doBackgroundWork(); });
 
   if (conf_.network_performance_log_interval > 0) {
-    util::post(io_service_, conf_.network_performance_log_interval, [this] { logPacketsStats(); });
+    tp_.post(conf_.network_performance_log_interval, [this] { logPacketsStats(); });
   }
 }
 
@@ -134,7 +133,7 @@ std::pair<bool, blk_hash_t> TaraxaCapability::checkDagBlockValidation(DagBlock c
 }
 
 void TaraxaCapability::onConnect(NodeID const &_nodeID, u256 const &) {
-  ba::post(io_service_, [=] {
+  tp_.post([=] {
     LOG(log_nf_) << "Node " << _nodeID << " connected";
     cnt_received_messages_[_nodeID] = 0;
     test_sums_[_nodeID] = 0;
@@ -164,7 +163,7 @@ void TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID, unsigned
   // Delay is used only when we want to simulate some network delay
   uint64_t delay = conf_.network_simulated_delay ? getSimulatedNetworkDelay(_r, _nodeID) : 0;
 
-  util::post(io_service_, delay, [=, bb = _r.data().toBytes()] {
+  tp_.post(delay, [=, bb = _r.data().toBytes()] {
     RLP r(bb);
     try {
       std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
@@ -626,7 +625,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
           if (pbft_sync_period > pbft_chain_->getPbftChainSize() + (10 * conf_.network_sync_level_size)) {
             LOG(log_dg_pbft_sync_) << "Syncing pbft blocks too fast than processing. Has synced period "
                                    << pbft_sync_period << ", PBFT chain size " << pbft_chain_->getPbftChainSize();
-            util::post(io_service_, 1000, [this, _nodeID] { delayedPbftSync(_nodeID, 1); });
+            tp_.post(1000, [this, _nodeID] { delayedPbftSync(_nodeID, 1); });
           } else {
             syncPeerPbft(_nodeID, pbft_sync_period + 1);
           }
@@ -687,7 +686,7 @@ void TaraxaCapability::delayedPbftSync(NodeID _nodeID, int counter) {
     if (pbft_sync_period > pbft_chain_->getPbftChainSize() + (10 * conf_.network_sync_level_size)) {
       LOG(log_dg_pbft_sync_) << "Syncing pbft blocks faster than processing " << pbft_sync_period << " "
                              << pbft_chain_->getPbftChainSize();
-      util::post(io_service_, 1000, [this, _nodeID, counter] { delayedPbftSync(_nodeID, counter + 1); });
+      tp_.post(1000, [this, _nodeID, counter] { delayedPbftSync(_nodeID, counter + 1); });
     } else {
       syncPeerPbft(_nodeID, pbft_sync_period + 1);
     }
@@ -744,7 +743,7 @@ void TaraxaCapability::restartSyncingPbft(bool force) {
 }
 
 void TaraxaCapability::onDisconnect(NodeID const &_nodeID) {
-  ba::post(io_service_, [=] {
+  tp_.post([=] {
     LOG(log_nf_) << "Node " << _nodeID << " disconnected";
     cnt_received_messages_.erase(_nodeID);
     test_sums_.erase(_nodeID);
@@ -1079,7 +1078,7 @@ std::map<trx_hash_t, taraxa::Transaction> TaraxaCapability::getTransactions() { 
 void TaraxaCapability::sendTransactions() {
   if (trx_mgr_) {
     onNewTransactions(trx_mgr_->getNewVerifiedTrxSnapShotSerialized(), false);
-    util::post(io_service_, conf_.network_transaction_interval, [this] { sendTransactions(); });
+    tp_.post(conf_.network_transaction_interval, [this] { sendTransactions(); });
   }
 }
 
@@ -1095,7 +1094,7 @@ void TaraxaCapability::doBackgroundWork() {
       sendStatus(peer.first, false);
     }
   }
-  util::post(io_service_, check_status_interval_, [this] { doBackgroundWork(); });
+  tp_.post(check_status_interval_, [this] { doBackgroundWork(); });
 }
 
 void TaraxaCapability::logPacketsStats() {
@@ -1108,7 +1107,7 @@ void TaraxaCapability::logPacketsStats() {
   previous_received_packets_stats = received_packets_stats_;
   previous_sent_packets_stats = sent_packets_stats_;
 
-  util::post(io_service_, conf_.network_performance_log_interval, [this] { logPacketsStats(); });
+  tp_.post(conf_.network_performance_log_interval, [this] { logPacketsStats(); });
 }
 
 void TaraxaCapability::onNewPbftVote(taraxa::Vote const &vote) {

@@ -95,9 +95,9 @@ TEST_F(P2PTest, capability_send_test) {
   network_conf.network_bandwidth = 40;
   network_conf.network_transaction_interval = 1000;
   util::ThreadPool tp(1, false);
-  auto thc1 = make_shared<TaraxaCapability>(host1, tp.unsafe_get_io_context(), network_conf);
+  auto thc1 = make_shared<TaraxaCapability>(host1, tp, network_conf);
   host1.registerCapability(thc1);
-  auto thc2 = make_shared<TaraxaCapability>(host2, tp.unsafe_get_io_context(), network_conf);
+  auto thc2 = make_shared<TaraxaCapability>(host2, tp, network_conf);
   host2.registerCapability(thc2);
   host1.start();
   host2.start();
@@ -156,9 +156,9 @@ TEST_F(P2PTest, capability_send_block) {
   network_conf.network_bandwidth = 40;
   network_conf.network_transaction_interval = 1000;
   util::ThreadPool tp(1, false);
-  auto thc1 = make_shared<TaraxaCapability>(host1, tp.unsafe_get_io_context(), network_conf);
+  auto thc1 = make_shared<TaraxaCapability>(host1, tp, network_conf);
   host1.registerCapability(thc1);
-  auto thc2 = make_shared<TaraxaCapability>(host2, tp.unsafe_get_io_context(), network_conf);
+  auto thc2 = make_shared<TaraxaCapability>(host2, tp, network_conf);
   host2.registerCapability(thc2);
   host1.start();
   host2.start();
@@ -239,11 +239,11 @@ TEST_F(P2PTest, block_propagate) {
   network_conf.network_transaction_interval = 1000;
 
   util::ThreadPool tp(1, false);
-  auto thc1 = make_shared<TaraxaCapability>(host1, tp.unsafe_get_io_context(), network_conf);
+  auto thc1 = make_shared<TaraxaCapability>(host1, tp, network_conf);
   host1.registerCapability(thc1);
   std::vector<std::shared_ptr<TaraxaCapability>> vCapabilities;
   for (int i = 0; i < nodeCount; i++) {
-    vCapabilities.push_back(make_shared<TaraxaCapability>(*vHosts[i], tp.unsafe_get_io_context(), network_conf));
+    vCapabilities.push_back(make_shared<TaraxaCapability>(*vHosts[i], tp, network_conf));
     vHosts[i]->registerCapability(vCapabilities[i]);
   }
   host1.start();
