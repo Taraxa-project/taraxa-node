@@ -1,5 +1,5 @@
 # Default output dir containing build artifacts
-ARG BUILD_OUTPUT_DIR=cmake-docker-build-debug
+ARG BUILD_OUTPUT_DIR=cmake-docker-build-release
 
 #############################################
 # builder image - contains all dependencies #
@@ -75,7 +75,7 @@ ARG BUILD_OUTPUT_DIR
 WORKDIR /opt/taraxa/
 COPY . .
 RUN cd $BUILD_OUTPUT_DIR \
-    && cmake -DCMAKE_BUILD_TYPE=Debug \
+    && cmake -DCMAKE_BUILD_TYPE=Release \
              -DTARAXA_STATIC_BUILD=ON \
              -DTARAXAD_INSTALL_DIR=./bin_install \
              -DTARAXAD_CONF_INSTALL_DIR=./bin_install \
