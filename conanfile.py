@@ -21,10 +21,8 @@ class TaraxaConan(ConanFile):
     def _add_clang_utils_on_darwin(self):
         clang_format = "clang-format"
         clang_tidy = "clang-tidy"
-        path_to_format = shutil.which(clang_format)
-        path_to_tidy = shutil.which(clang_tidy)
-        find_format = shutil.which(clang_format) != None or os.path.exists(clang_format)
-        find_tidy = shutil.which(clang_tidy) != None or os.path.exists(clang_tidy)
+        find_format = os.path.exists(clang_format)
+        find_tidy = os.path.exists(clang_tidy)
         if not find_format or not find_tidy:
             print("downloading LLVM...")
             dirname = "clang+llvm-10.0.0-x86_64-apple-darwin"
@@ -39,9 +37,9 @@ class TaraxaConan(ConanFile):
                 shutil.move(dirname + "/bin/" + clang_tidy, clang_tidy)
                 find_tidy = True
             shutil.rmtree(dirname)
-        if find_format and path_to_format == None:
+        if find_format:
             path_to_format = os.path.abspath(os.getcwd()) + "/" + clang_format
-        if find_tidy and path_to_tidy == None:
+        if find_tidy:
             path_to_tidy = os.path.abspath(os.getcwd()) + "/" + clang_tidy
         print("clang-format path: " + path_to_format)
         print("clang-tidy path: " + path_to_tidy)
