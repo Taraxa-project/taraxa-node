@@ -95,7 +95,15 @@ coreutils, go, autoconf, automake, ccache, gflags,
 git, libscrypt, libtool, makepkg-config, cmake, libjson-rpc-cpp
 ```
 
-Also you need `conan` and follow build instructions above.
+> Optional: `export CC=gcc`
+
+    conan install -if cmake-build --build missing .
+    conan build -bf cmake-build -sf . .
+
+Or do
+    conan install -if cmake-build --build missing .
+    cd cmake-build
+    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=gcc -DSYSTEM_HOME_OVERRIDE=<path to project dir> ..
 
 ### Install taraxa-node dependencies:
 
