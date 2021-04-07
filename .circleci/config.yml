@@ -3,22 +3,6 @@ version: 2.1
 orbs:
   gcp-gcr: circleci/gcp-gcr@0.13.0
 
-workflows:
-  build-and-release:
-    filters:
-      branches: 
-        only: 
-          - develop
-          - circleci
-  jobs: 
-    - create-builder-image
-    - build-linux:
-        requires: 
-          - builder-image
-    - release-linux:
-        requires: 
-          - build-linux
-
 jobs: 
    build-and-push:
     executor: gcp-gcr/default
@@ -38,3 +22,20 @@ jobs:
        - checkout
        - run: ls -l
              
+workflows:
+  build-and-release:
+    filters:
+      branches: 
+        only: 
+          - develop
+          - circleci
+
+  jobs: 
+    - create-builder-image
+    - build-linux:
+        requires: 
+          - builder-image
+    - release-linux:
+        requires: 
+          - build-linux
+
