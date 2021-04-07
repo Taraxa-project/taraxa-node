@@ -9,9 +9,11 @@ jobs:
     steps:
       - checkout
       - gcp-gcr/gcr-auth
-      - gcp-gcr/build-image:
+      - gcp-gcr/build_and_push_image:
           image: taraxa-node/taraxa-node-builder
+          path: builder
           no_output_timeout: 20m
+
       - gcp-gcr/push-image:
           image: taraxa-node/taraxa-node-builder
      
