@@ -27,6 +27,8 @@ workflows:
     jobs: 
       - create-builder-image
       - build-linux:
+          context:
+            - taraxa-node
           requires: 
             - create-builder-image
 #      - release-linux:
