@@ -4,19 +4,6 @@ orbs:
   gcp-gcr: circleci/gcp-gcr@0.13.0
 
 jobs: 
-   create-builder-image:
-    executor: gcp-gcr/default
-    steps:
-      - checkout
-      - gcp-gcr/gcr-auth
-      - gcp-gcr/build-and-push-image:
-          image: taraxa-node/taraxa-node-builder
-          path: builder
-          no_output_timeout: 20m
-
-      - gcp-gcr/push-image:
-          image: taraxa-node/taraxa-node-builder
-     
    build-linux:
      docker:
       - image: gcr.io/taraxa-node/taraxa-node-builder:latest
@@ -27,9 +14,9 @@ jobs:
 workflows:
   build-and-release:
     jobs: 
-      - create-builder-image:
-          context:
-            - taraxa-node
+      - gcp-gcr/build-and-push-image:
+          context: taraxa-node
+          image: taraxa-node/taraxa-node-builder
       - build-linux:
           requires: 
             - create-builder-image
