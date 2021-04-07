@@ -24,11 +24,6 @@ jobs:
              
 workflows:
   build-and-release:
-    filters:
-      branches: 
-        only: 
-          - develop
-          - circleci
     jobs: 
       - create-builder-image
       - build-linux:
