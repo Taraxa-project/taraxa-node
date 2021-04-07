@@ -497,7 +497,7 @@ void DbStorage::addPbftHeadToBatch(taraxa::blk_hash_t const& head_hash, std::str
 std::vector<Vote> DbStorage::getUnverifiedVotes() {
   vector<Vote> votes;
 
-  auto it = db_->NewIterator(read_options_, handle(Columns::unverified_votes));
+  auto it = u_ptr(db_->NewIterator(read_options_, handle(Columns::unverified_votes)));
   for (it->SeekToFirst(); it->Valid(); it->Next()) {
     votes.emplace_back(asBytes(it->value().ToString()));
   }
@@ -528,7 +528,7 @@ void DbStorage::removeUnverifiedVoteToBatch(vote_hash_t const& vote_hash, BatchP
 std::vector<Vote> DbStorage::getVerifiedVotes() {
   vector<Vote> votes;
 
-  auto it = db_->NewIterator(read_options_, handle(Columns::verified_votes));
+  auto it = u_ptr(db_->NewIterator(read_options_, handle(Columns::verified_votes)));
   for (it->SeekToFirst(); it->Valid(); it->Next()) {
     votes.emplace_back(asBytes(it->value().ToString()));
   }
