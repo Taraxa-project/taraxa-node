@@ -25,7 +25,7 @@ jobs:
 workflows:
   build-and-release:
     jobs: 
-      - create-builder-image
+      - create-builder-image:
           context:
             - taraxa-node
       - build-linux:
