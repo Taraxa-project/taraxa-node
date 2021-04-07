@@ -1,0 +1,36 @@
+version: 2.1
+orbs:
+  gcp-gcr: circleci/gcp-gcr@0.13.0
+
+workflows:
+  build-and0release:
+    filters:
+      branches: 
+        only: 
+          - develop
+          - circleci
+  jobs: 
+    - create-builder-image
+    - build-linux
+      requires: 
+        - builder-image
+    - release-linux
+      requires: 
+        - build-linux
+
+jobs: 
+   build-and-push:
+    executor: gcp-gcr/default
+    steps:
+      - checkout
+      - gcp-gcr/gcr-auth
+      - gcp-gcr/build-image:
+          image: taraxa-node/taraxa-node-builder
+          no_output_timeout: 20m
+      - gcp-gcr/push-image:
+          image: taraxa-node/taraxa-node-builder
+     
+   build-linux:
+     docker:
+      image: gcr.io/taraxa-node/taraxa-node-builder:latest
+             
