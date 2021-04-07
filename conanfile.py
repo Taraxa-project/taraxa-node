@@ -20,11 +20,10 @@ class TaraxaConan(ConanFile):
 
     def _add_clang_utils_on_darwin(self):
         current_path = os.getcwd()
-        source_path = os.path.dirname(current_path)
         clang_format = "clang-format"
         clang_tidy = "clang-tidy"
-        path_to_format = source_path + "/" + clang_format
-        path_to_tidy = source_path + "/" + clang_tidy
+        path_to_format = current_path + "/" + clang_format
+        path_to_tidy = current_path + "/" + clang_tidy
         find_format = os.path.exists(path_to_format)
         find_tidy = os.path.exists(path_to_tidy)
         if not find_format or not find_tidy:

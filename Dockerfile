@@ -60,7 +60,7 @@ ARG BUILD_OUTPUT_DIR
 # Install conan deps
 WORKDIR /opt/taraxa/
 COPY conanfile.py .
-RUN conan install -if $BUILD_OUTPUT_DIR --build missing .
+RUN conan install -if $BUILD_OUTPUT_DIR --build missing -s build_type=Debug .
 
 
 ###################################################################
