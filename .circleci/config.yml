@@ -30,7 +30,7 @@ workflows:
           - develop
           - circleci
     jobs: 
-      - create-builder-image:
+      - create-builder-image
       - build-linux:
           requires: 
             - builder-image
