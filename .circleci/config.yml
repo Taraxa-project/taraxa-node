@@ -29,13 +29,12 @@ workflows:
         only: 
           - develop
           - circleci
-
-  jobs: 
-    - create-builder-image
-    - build-linux:
-        requires: 
-          - builder-image
-    - release-linux:
-        requires: 
-          - build-linux
+    jobs: 
+      - create-builder-image:
+      - build-linux:
+          requires: 
+            - builder-image
+      - release-linux:
+          requires: 
+            - build-linux
 
