@@ -79,16 +79,13 @@ TEST_F(NetworkTest, transfer_block) {
 }
 
 TEST_F(NetworkTest, send_pbft_block) {
-  std::shared_ptr<Network> nw1(
-      new taraxa::Network(g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString(), addr_t()));
-  std::shared_ptr<Network> nw2(
-      new taraxa::Network(g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t()));
+  auto node_cfgs = make_node_cfgs<5>(2);
+  auto nodes = launch_nodes(node_cfgs, 1);
+  auto nw1 = nodes[0]->getNetwork();
+  auto nw2 = nodes[1]->getNetwork();
 
-  nw1->start();
-  nw2->start();
   auto pbft_block = make_simple_pbft_block(blk_hash_t(1), 2);
   uint64_t chain_size = 111;
-  taraxa::thisThreadSleepForSeconds(1);
 
   nw2->sendPbftBlock(nw1->getNodeId(), pbft_block, chain_size);
   taraxa::thisThreadSleepForMilliSeconds(200);
