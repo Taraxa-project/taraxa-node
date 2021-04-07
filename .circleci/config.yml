@@ -17,6 +17,7 @@ workflows:
       - gcp-gcr/build-and-push-image:
           context: taraxa-node
           image: taraxa-node/taraxa-node-builder
+          path: builder
       - build-linux:
           requires: 
             - gcp-gcr/build-and-push-image
