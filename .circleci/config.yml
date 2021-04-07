@@ -4,7 +4,7 @@ orbs:
   gcp-gcr: circleci/gcp-gcr@0.13.0
 
 workflows:
-  build-and0release:
+  build-and-release:
     filters:
       branches: 
         only: 
@@ -13,11 +13,9 @@ workflows:
   jobs: 
     - create-builder-image
     - build-linux
-      requires: 
-        - builder-image
+      requires: builder-image
     - release-linux
-      requires: 
-        - build-linux
+      requires: build-linux
 
 jobs: 
    build-and-push:
