@@ -4,7 +4,7 @@ orbs:
   gcp-gcr: circleci/gcp-gcr@0.13.0
 
 jobs: 
-   build-and-push:
+   create-builder-image:
     executor: gcp-gcr/default
     steps:
       - checkout
