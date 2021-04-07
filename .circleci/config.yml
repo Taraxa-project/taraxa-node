@@ -19,7 +19,7 @@ workflows:
           image: taraxa-node/taraxa-node-builder
       - build-linux:
           requires: 
-            - create-builder-image
+            - gcp-gcr/build-and-push-image
 #      - release-linux:
 #          requires: 
 #            - build-linux
