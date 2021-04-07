@@ -33,7 +33,7 @@ jobs:
      
    build-linux:
      docker:
-      image: gcr.io/taraxa-node/taraxa-node-builder:latest
+      - image: gcr.io/taraxa-node/taraxa-node-builder:latest
      steps:
        - checkout
        - run: ls -l
