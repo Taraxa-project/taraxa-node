@@ -21,7 +21,7 @@ jobs:
         auth:
           username: _json_key  # default username when using a JSON key file to authenticate
           password: $GCLOUD_SERVICE_KEY 
-     resource_class: medium
+     resource_class: xlarge
      steps:
        - git/checkout-with-submodules
        - run:
@@ -33,7 +33,7 @@ jobs:
               -DTARAXAD_INSTALL_DIR=./bin_install \
               -DTARAXAD_CONF_INSTALL_DIR=./bin_install \
               ../ \
-              && make -j2 all \
+              && make -j8 all \
               && make install \
               && strip bin_install/taraxad
              
