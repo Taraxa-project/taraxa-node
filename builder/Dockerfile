@@ -29,6 +29,7 @@ RUN apt-get update \
         binutils \
         \
         ccache \
+        git \
         cmake=$CMAKE_VERSION \
         gcc=$GCC_VERSION \
         g++=$GCC_VERSION \
