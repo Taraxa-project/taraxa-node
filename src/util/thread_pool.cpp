@@ -21,6 +21,11 @@ void ThreadPool::start() {
   }
 }
 
+bool ThreadPool::is_running() const {
+  std::unique_lock l(threads_mu_);
+  return !threads_.empty();
+}
+
 void ThreadPool::stop() {
   std::unique_lock l(threads_mu_);
   ioc_.stop();
@@ -29,6 +34,38 @@ void ThreadPool::stop() {
   }
   threads_.clear();
   ioc_.restart();  // for potential restart
+}
+
+void ThreadPool::post(uint64_t do_in_ms, asio_callback action) {
+  ++debug_num_pending_tasks_;
+  if (!do_in_ms) {
+    boost::asio::post(ioc_, [this, action = std::move(action)] {
+      action({});
+      --debug_num_pending_tasks_;
+    });
+    return;
+  }
+  auto timer = std::make_shared<boost::asio::deadline_timer>(ioc_);
+  timer->expires_from_now(boost::posix_time::milliseconds(do_in_ms));
+  timer->async_wait([this, action = std::move(action), timer](auto const &err_code) {
+    action(err_code);
+    --debug_num_pending_tasks_;
+  });
+}
+
+void ThreadPool::post(uint64_t do_in_ms, std::function<void()> action) {
+  post(do_in_ms, [action = std::move(action)](auto const &err_code) {
+    if (!err_code) {
+      action();
+    }
+  });
+}
+
+void ThreadPool::post_loop(Periodicity const &periodicity, std::function<void()> action) {
+  post(periodicity.delay_ms, [=, action = move(action)]() mutable {
+    action();
+    post_loop({periodicity.period_ms}, move(action));
+  });
 }
 
 ThreadPool::~ThreadPool() { stop(); }
