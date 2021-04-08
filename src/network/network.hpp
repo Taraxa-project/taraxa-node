@@ -2,7 +2,6 @@
 
 #include <libdevcrypto/Common.h>
 #include <libp2p/Capability.h>
-#include <libp2p/CapabilityHost.h>
 #include <libp2p/Common.h>
 #include <libp2p/Host.h>
 #include <libp2p/Network.h>
@@ -34,10 +33,10 @@ class Network {
           std::shared_ptr<VoteManager> vote_mgr = {}, std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr = {},
           std::shared_ptr<DagManager> dag_mgr = {}, std::shared_ptr<DagBlockManager> dag_blk_mgr = {},
           std::shared_ptr<TransactionManager> trx_mgr = {});
+
   ~Network();
 
-  static std::pair<dev::Secret, dev::p2p::ENR> makeENR(dev::KeyPair const &key,
-                                                       dev::p2p::NetworkConfig const &net_conf);
+  static std::pair<bool, bi::tcp::endpoint> resolveHost(string const &addr, uint16_t port);
 
   // METHODS USED IN REAL CODE
   void start();
@@ -70,12 +69,10 @@ class Network {
  private:
   NetworkConfig conf_;
   util::ThreadPool tp_;
-  std::filesystem::path network_file_;
   std::shared_ptr<dev::p2p::Host> host_;
   std::shared_ptr<TaraxaCapability> taraxa_capability_;
   std::map<Public, NodeIPEndpoint> boot_nodes_;
-  std::atomic<bool> stopped_ = true;
-  std::unique_ptr<std::thread> diagnostic_thread_;
+  util::ThreadPool diagnostic_thread_{1, false};
 
   LOG_OBJECTS_DEFINE;
 };

@@ -49,7 +49,6 @@ SUBMODULE_BUILD_BEGIN = \
 	mkdir_cd $${SRC_DIR}; \
 	cp -r $(CURDIR)/$${NAME}/* ./
 SUBMODULE_BUILD_END = \
-	rm -rf $${SRC_DIR}; \
 	cd $${STAGE_DIR}; \
 	cp -r * $(DIST)/; \
 	find * -type f &> $@; \
