@@ -15,7 +15,7 @@ jobs:
         JSONRPCCPP_VERSION: "0.7.0-1build3"
         SCRYPT_VERSION: "1.21-3"
         GOROOT: "/usr/local/go"
-        GOPATH: "$HOME/.go"
+        GOPATH: "/root/.go"
      docker:
       - image: gcr.io/$GOOGLE_PROJECT_ID/taraxa-node/builder
         auth:
