@@ -18,9 +18,21 @@ jobs:
    build-linux:
      docker:
       - image: gcr.io/taraxa-node/taraxa-node-builder:latest
+        auth:
+          username: _json_key  # default username when using a JSON key file to authenticate
+          password: $GCLOUD_SERVICE_KEY 
      steps:
        - checkout
-       - run: ls -l
+       - run:
+          command: |
+              cmake -DCMAKE_BUILD_TYPE=Debug \
+              -DTARAXA_STATIC_BUILD=ON \
+              -DTARAXAD_INSTALL_DIR=./bin_install \
+              -DTARAXAD_CONF_INSTALL_DIR=./bin_install \
+              ../ \
+              && make -j$(nproc) all \
+              && make install \
+              && strip bin_install/taraxad
              
 workflows:
   build-and-release:
@@ -29,11 +41,8 @@ workflows:
 #          context: taraxa-node
 #          image: taraxa-node/taraxa-node-builder
 #          path: builder
-      - create-node-builder:
-          context: taraxa-node 
       - build-linux:
-          requires: 
-            - create-node-builder
+           context: taraxa-node
 #      - release-linux:
 #          requires: 
 #            - build-linux
