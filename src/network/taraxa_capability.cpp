@@ -250,8 +250,8 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       LOG(log_dg_dag_sync_) << "Received status message from " << _nodeID << " peer DAG max level:" << peer->dag_level_;
       LOG(log_dg_pbft_sync_) << "Received status message from " << _nodeID << ", peer sycning: " << std::boolalpha
                              << peer->syncing_ << ", peer PBFT chain size:" << peer->pbft_chain_size_;
-      LOG(log_dg_next_votes_sync_) << "Received status message from " << _nodeID << ", peer PBFT round "
-                                   << peer->pbft_round_ << ", peer PBFT previous round next votes size "
+      LOG(log_dg_next_votes_sync_) << "Received status message from " << _nodeID << ", PBFT round " << peer->pbft_round_
+                                   << ", peer PBFT previous round next votes size "
                                    << peer->pbft_previous_round_next_votes_size_;
 
       auto pbft_synced_period = pbft_chain_->pbftSyncingPeriod();
@@ -516,10 +516,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         return;
       }
 
-      if (pbft_chain_ && !pbft_chain_->findUnverifiedPbftBlock(pbft_block->getBlockHash())) {
-        // TODO: need to check block validation, like proposed
-        // vote(maybe
-        //  come later), if get sortition etc
+      if (!pbft_chain_->findUnverifiedPbftBlock(pbft_block->getBlockHash())) {
         packet_stats.is_unique_ = true;
         pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
         onNewPbftBlock(*pbft_block);
@@ -527,8 +524,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
 
       break;
     }
-
-    // need cert votes (syncing)
+      // need cert votes (syncing)
     case PbftBlockPacket: {
       auto pbft_blk_count = _r.itemCount();
       LOG(log_dg_pbft_sync_) << "In PbftBlockPacket received, num pbft blocks: " << pbft_blk_count;
@@ -624,7 +620,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         // We are pbft synced with the node we are connected to but
         // calling restartSyncingPbft will check if some nodes have
         // greater pbft chain size and we should continue syncing with
-        // them. Or sync pending DAG blocks
+        // them, Or sync pending DAG blocks
         restartSyncingPbft(true);
         // We are pbft synced, send message to other node to start
         // gossiping new blocks
@@ -637,7 +633,6 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
 
       break;
     }
-
     case TestPacket: {
       LOG(log_dg_) << "Received TestPacket";
       ++cnt_received_messages_[_nodeID];
@@ -664,9 +659,8 @@ void TaraxaCapability::handle_read_exception(weak_ptr<Session> session, unsigned
 void TaraxaCapability::delayedPbftSync(NodeID _nodeID, int counter) {
   auto pbft_sync_period = pbft_chain_->pbftSyncingPeriod();
   if (counter > 60) {
-    LOG(log_er_pbft_sync_) << "Pbft blocks stuck in queue, no new block processed "
-                              "in 60 seconds "
-                           << pbft_sync_period << " " << pbft_chain_->getPbftChainSize();
+    LOG(log_er_pbft_sync_) << "Pbft blocks stuck in queue, no new block processed in 60 seconds " << pbft_sync_period
+                           << " " << pbft_chain_->getPbftChainSize();
     syncing_ = false;
     LOG(log_dg_pbft_sync_) << "Syncing PBFT is stopping";
     return;
@@ -1120,7 +1114,7 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync, 
   auto pbft_cert_blks = pbft_chain_->getPbftBlocks(height_to_sync, blocks_to_transfer);
   if (pbft_cert_blks.empty()) {
     sealAndSend(_id, PbftBlockPacket, RLPStream(0));
-    LOG(log_dg_pbft_sync_) << "In sendPbftBlocks, sent no pbft blocks to " << _id;
+    LOG(log_dg_pbft_sync_) << "In sendPbftBlocks, send no pbft blocks to " << _id;
     return;
   }
   RLPStream s(pbft_cert_blks.size());
@@ -1183,8 +1177,6 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync, 
     }
   }
   sealAndSend(_id, PbftBlockPacket, move(s));
-  // Question: will send multiple times to a same receiver, why?
-
   LOG(log_dg_pbft_sync_) << "Sending PbftCertBlocks to " << _id;
 }
 
