@@ -2,9 +2,9 @@ version: 2.1
 
 jobs: 
    build-linux:
-     docker:
      environment:
         BUILD_OUTPUT_DIR: "cmake-docker-build-debug"
+     docker:
       - image: gcr.io/$GOOGLE_PROJECT_ID/taraxa-node/builder
         auth:
           username: _json_key  # default username when using a JSON key file to authenticate
