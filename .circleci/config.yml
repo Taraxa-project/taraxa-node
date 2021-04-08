@@ -1,23 +1,9 @@
 version: 2.1
 
-orbs:
-  gcp-gcr: circleci/gcp-gcr@0.13.0
-
 jobs: 
-   create-node-builder:
-    executor: gcp-gcr/default
-    steps:
-      - checkout
-      - gcp-gcr/gcr-auth
-      - run: echo "$GOOGLE_PROJECT_ID"
-      - gcp-gcr/build-image:
-          image: taraxa-node/builder
-          path: builder
-          no_output_timeout: 20m
-          registry-url: gcr.io
    build-linux:
      docker:
-      - image: gcr.io/$GCLOUD_SERVICE_KEY/taraxa-node/taraxa-node-builder:latest
+      - image: gcr.io/$GOOGLE_PROJECT_ID/taraxa-node/taraxa-node-builder:latest
         auth:
           username: _json_key  # default username when using a JSON key file to authenticate
           password: $GCLOUD_SERVICE_KEY 
