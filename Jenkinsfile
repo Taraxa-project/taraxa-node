@@ -18,17 +18,19 @@ def getChart(){
 
 def helmVersion() {
     println "Checking client/server version"
-    sh "helm version"
+    sh "helm3 version"
 }
 
 def helmInstallChart(String test_name, String image, String tag) {
     dir ('taraxa-testnet/tests') {
+        println "Creating namespace ${test_name}"
+        sh "kubectl create ns ${test_name} || true"
         println "Installing helm chart"
         sh """
-            helm install --name ${test_name} taraxa-node \
+            helm3 install ${test_name} taraxa-node \
                 --wait \
                 --atomic \
-                --timeout 1200 \
+                --timeout 1200s \
                 --namespace ${test_name} \
                 --set replicaCount=5 \
                 --set test.pythontester.script=jenkins.py \
@@ -43,16 +45,16 @@ def helmTestChart(String test_name) {
     dir ('taraxa-testnet/tests') {
         println "Running helm test"
         sh """
-            helm test ${test_name} \
-                --timeout 3600 \
-                --cleanup
+            helm3 test ${test_name} \
+                --namespace ${test_name} \
+                --timeout 3600s
         """
     }
 }
 
 def helmCleanChart(String test_name) {
     println "Cleaning helm test ${test_name}"
-    sh "helm delete --purge ${test_name} || true"
+    sh "helm3 delete --namespace ${test_name} ${test_name} || true"
     println "Cleaning namespace ${test_name}"
     sh "kubectl delete ns ${test_name} || true"
 }
@@ -93,7 +95,7 @@ pipeline {
                 sh '''
                     mkdir -p  $PWD/tmp_docker
                     docker run --rm -v $PWD/tmp_docker:/tmp --name taraxa-node-ctest-$DOCKER_BRANCH_TAG ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER}-ctest sh -c \
-                       'cd cmake-docker-build-release/tests \
+                       'cd cmake-docker-build-debug/tests \
                            && ctest --output-on-failure'
                 '''
             }
