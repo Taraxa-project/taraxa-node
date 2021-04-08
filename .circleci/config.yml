@@ -27,7 +27,7 @@ jobs:
        - run:
           command: |
               export PATH=$PATH:$GOPATH/bin:$GOROOT/bin && \
-              && echo nproc && nproc && mkdir $BUILD_OUTPUT_DIR && cd $BUILD_OUTPUT_DIR &&  pwd && \
+              echo nproc && nproc && mkdir $BUILD_OUTPUT_DIR && cd $BUILD_OUTPUT_DIR &&  pwd && \
               cmake -DCMAKE_BUILD_TYPE=Debug \
               -DTARAXA_STATIC_BUILD=ON \
               -DTARAXAD_INSTALL_DIR=./bin_install \
