@@ -1,5 +1,7 @@
 version: 2.1
-
+orbs:
+  git: opuscapita/git@0.0.3
+   
 jobs: 
    build-linux:
      environment:
@@ -20,7 +22,7 @@ jobs:
           username: _json_key  # default username when using a JSON key file to authenticate
           password: $GCLOUD_SERVICE_KEY 
      steps:
-       - checkout
+       - git/checkout-with-submodules
        - run:
           command: |
               export PATH=$PATH:$GOPATH/bin:$GOROOT/bin && \
