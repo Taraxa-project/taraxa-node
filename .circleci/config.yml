@@ -3,14 +3,18 @@ version: 2.1
 jobs: 
    build-linux:
      docker:
+     environment:
+        BUILD_OUTPUT_DIR: "cmake-docker-build-debug"
       - image: gcr.io/$GOOGLE_PROJECT_ID/taraxa-node/builder
         auth:
           username: _json_key  # default username when using a JSON key file to authenticate
           password: $GCLOUD_SERVICE_KEY 
      steps:
+       - run: cd /opt/taraxa
        - checkout
        - run:
           command: |
+              cd $BUILD_OUTPUT_DIR && \
               cmake -DCMAKE_BUILD_TYPE=Debug \
               -DTARAXA_STATIC_BUILD=ON \
               -DTARAXAD_INSTALL_DIR=./bin_install \
