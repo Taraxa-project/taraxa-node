@@ -17,6 +17,7 @@ jobs:
         GOROOT: "/usr/local/go"
         GOPATH: "/root/.go"
      docker:
+     resource_class: xlarge
       - image: gcr.io/$GOOGLE_PROJECT_ID/taraxa-node/builder
         auth:
           username: _json_key  # default username when using a JSON key file to authenticate
