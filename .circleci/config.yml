@@ -33,7 +33,7 @@ jobs:
               -DTARAXAD_INSTALL_DIR=./bin_install \
               -DTARAXAD_CONF_INSTALL_DIR=./bin_install \
               ../ \
-              && make -j8 all \
+              && make -j16 all \
               && make install \
               && strip bin_install/taraxad
              
