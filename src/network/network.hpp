@@ -75,6 +75,7 @@ class Network {
   std::shared_ptr<TaraxaCapability> taraxa_capability_;
   std::map<Public, NodeIPEndpoint> boot_nodes_;
   std::atomic<bool> stopped_ = true;
+  std::unique_ptr<std::thread> diagnostic_thread_;
 
   LOG_OBJECTS_DEFINE;
 };
