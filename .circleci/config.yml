@@ -2,9 +2,19 @@ version: 2.1
 
 jobs: 
    build-linux:
-     working_directory: /opt/taraxa
      environment:
         BUILD_OUTPUT_DIR: "cmake-docker-build-debug"
+        CLANG_VERSION: "1:10.0-50~exp1"
+        GO_VERSION: "1.13.7"
+        CMAKE_VERSION: "3.16.3-1ubuntu1"
+        GCC_VERSION: "4:9.3.0-1ubuntu2"
+        GFLAGS_VERSION: "2.2.2-1build1"
+        JSONCPP_VERSION: "1.7.4-3.1ubuntu2"
+        JSONRPCCPP_VERSION: "0.7.0-1build3"
+        SCRYPT_VERSION: "1.21-3"
+        GOROOT: "/usr/local/go"
+        GOPATH: "$HOME/.go"
+        PATH: "$GOPATH/bin:$GOROOT/bin:$PATH"
      docker:
       - image: gcr.io/$GOOGLE_PROJECT_ID/taraxa-node/builder
         auth:
@@ -14,7 +24,7 @@ jobs:
        - checkout
        - run:
           command: |
-              pwd && ls && cd $BUILD_OUTPUT_DIR && \
+              ls && mkdir $BUILD_OUTPUT_DIR && cd $BUILD_OUTPUT_DIR &&  pwd && \
               cmake -DCMAKE_BUILD_TYPE=Debug \
               -DTARAXA_STATIC_BUILD=ON \
               -DTARAXAD_INSTALL_DIR=./bin_install \
