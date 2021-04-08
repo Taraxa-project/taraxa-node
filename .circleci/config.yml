@@ -9,6 +9,7 @@ jobs:
     steps:
       - checkout
       - gcp-gcr/gcr-auth
+      - run: echo "$GOOGLE_PROJECT_ID"
       - gcp-gcr/build-image:
           image: taraxa-node/builder
           path: builder
