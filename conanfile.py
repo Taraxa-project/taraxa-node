@@ -19,7 +19,7 @@ class TaraxaConan(ConanFile):
     generators = "cmake"
 
     def _add_clang_utils_on_darwin(self):
-        current_path = os.getcwd()
+        current_path = self.recipe_folder # dir with conanfile.py
         clang_format = "clang-format"
         clang_tidy = "clang-tidy"
         path_to_format = current_path + "/" + clang_format
