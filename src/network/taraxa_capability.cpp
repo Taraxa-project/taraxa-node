@@ -157,10 +157,18 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         }
         case StatusPacket: {
           peer->statusReceived();
-          bool initial_status = _r.itemCount() == 10;
+          if (_r.itemCountStrict() != 2) {
+            throw new runtime_error("status packet has unexpected field count");
+          }
+          auto payload = _r[1].toBytesConstRef();
+          if (_r[0].toHash<dev::h256>() != dev::sha3(payload)) {
+            throw new runtime_error("status packet hash doesn't correspond to the payload");
+          }
+          RLP r(payload);
 
+          bool initial_status = r.itemCount() == 10;
           if (initial_status) {
-            auto it = _r.begin();
+            auto it = r.begin();
             auto const peer_protocol_version = (*it++).toInt<unsigned>();
             auto const network_id = (*it++).toPositiveInt64();
             peer->dag_level_ = (*it++).toPositiveInt64();
@@ -204,7 +212,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
               host_.capabilityHost()->disconnect(_nodeID, p2p::UserReason);
             }
           } else {
-            auto it = _r.begin();
+            auto it = r.begin();
             peer->dag_level_ = (*it++).toPositiveInt64();
             peer->pbft_chain_size_ = (*it++).toPositiveInt64();
             peer->syncing_ = (*it++).toInt();
@@ -731,18 +739,17 @@ void TaraxaCapability::sendStatus(NodeID const &_id, bool _initial) {
     LOG(log_dg_next_votes_sync_) << "Sending status message to " << _id << " with PBFT round: " << pbft_round
                                  << ", previous round next votes size " << pbft_previous_round_next_votes_size;
 
-    RLPStream s;
+    RLPStream s(_initial ? 10 : 5);
     if (_initial) {
-      host_.capabilityHost()->sealAndSend(_id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 10)
-                                                   << FullNode::c_network_protocol_version << conf_.network_id
-                                                   << dag_max_level << genesis_ << pbft_chain_size << syncing_
-                                                   << pbft_round << pbft_previous_round_next_votes_size
-                                                   << FullNode::c_node_major_version << FullNode::c_node_minor_version);
+      s << FullNode::c_network_protocol_version << conf_.network_id << dag_max_level << genesis_
+        << pbft_chain_size << syncing_ << pbft_round << pbft_previous_round_next_votes_size
+        << FullNode::c_node_major_version << FullNode::c_node_minor_version;
     } else {
-      host_.capabilityHost()->sealAndSend(_id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 5)
-                                                   << dag_max_level << pbft_chain_size << syncing_ << pbft_round
-                                                   << pbft_previous_round_next_votes_size);
+      s << dag_max_level << pbft_chain_size << syncing_ << pbft_round << pbft_previous_round_next_votes_size;
     }
+    auto payload = move(s.invalidate());
+
+    host_.capabilityHost()->sealAndSend(_id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 2) << dev::sha3(payload) << payload);
   }
 }
 
