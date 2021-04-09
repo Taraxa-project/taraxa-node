@@ -38,11 +38,14 @@ jobs:
               && strip bin_install/taraxad
        - persist_to_workspace:
            root: ~/
-           path: project/cmake-docker-build-debug
-  run-ctest:
-     steps: 
+           paths: [ project/cmake-docker-build-debug ]
+   run-ctest:
+      docker:
+        - image: cimg/base:2020.01
+
+      steps: 
        - attach_workspace: 
-         at: ~/
+          at: ~/
        - run: project/cmake/docker-build-debug/ctest --output-on-failure
              
 workflows:
@@ -54,7 +57,9 @@ workflows:
 #          path: builder
       - build-linux:
            context: taraxa-node
-      - run-ctest
+      - run-ctest:
+         requires:
+           - build-linux
 #      - release-linux:
 #          requires: 
 #            - build-linux
