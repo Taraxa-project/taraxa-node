@@ -29,7 +29,6 @@ jobs:
 #          command: |
 #              hexport PATH=$PATH:$GOPATH/bin:$GOROOT/bin && \
 #              mkdir $BUILD_OUTPUT_DIR && cd $BUILD_OUTPUT_DIR &&  pwd && \
-       - run: mkdir /root/project/$BUILD_OUTPUT_DIR
        - run: |
               cmake -DCMAKE_BUILD_TYPE=Debug \
               -DTARAXA_STATIC_BUILD=ON \
