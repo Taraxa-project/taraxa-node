@@ -158,11 +158,11 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         case StatusPacket: {
           peer->statusReceived();
           if (_r.itemCountStrict() != 2) {
-            throw new runtime_error("status packet has unexpected field count");
+            throw InvalidDataException("status packet has unexpected field count");
           }
           auto payload = _r[1].toBytesConstRef();
           if (_r[0].toHash<dev::h256>() != dev::sha3(payload)) {
-            throw new runtime_error("status packet hash doesn't correspond to the payload");
+            throw InvalidDataException("status packet hash doesn't correspond to the payload");
           }
           RLP r(payload);
 
