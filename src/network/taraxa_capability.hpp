@@ -105,7 +105,7 @@ class TaraxaPeer : public boost::noncopyable {
 };
 
 struct TaraxaCapability : virtual CapabilityFace {
-  TaraxaCapability(shared_ptr<Host> _host, NetworkConfig const &_conf, std::shared_ptr<DbStorage> db = {},
+  TaraxaCapability(weak_ptr<Host> _host, NetworkConfig const &_conf, std::shared_ptr<DbStorage> db = {},
                    std::shared_ptr<PbftManager> pbft_mgr = {}, std::shared_ptr<PbftChain> pbft_chain = {},
                    std::shared_ptr<VoteManager> vote_mgr = {},
                    std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr = {},
@@ -183,7 +183,8 @@ struct TaraxaCapability : virtual CapabilityFace {
  private:
   void handle_read_exception(weak_ptr<Session> session, unsigned _id, RLP const &_r);
 
-  shared_ptr<Host> host_;
+  weak_ptr<Host> host_;
+  NodeID node_id_;
   util::ThreadPool tp_{1, false};
 
   atomic<bool> syncing_ = false;

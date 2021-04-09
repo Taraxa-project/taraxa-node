@@ -9,7 +9,7 @@
 
 namespace taraxa {
 
-TaraxaCapability::TaraxaCapability(shared_ptr<Host> _host, NetworkConfig const &_conf, std::shared_ptr<DbStorage> db,
+TaraxaCapability::TaraxaCapability(weak_ptr<Host> _host, NetworkConfig const &_conf, std::shared_ptr<DbStorage> db,
                                    std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
                                    std::shared_ptr<VoteManager> vote_mgr,
                                    std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr,
@@ -38,6 +38,9 @@ TaraxaCapability::TaraxaCapability(shared_ptr<Host> _host, NetworkConfig const &
   LOG_OBJECTS_CREATE_SUB("PBFTPRP", pbft_prp);
   LOG_OBJECTS_CREATE_SUB("VOTEPRP", vote_prp);
   LOG_OBJECTS_CREATE_SUB("NETPER", net_per);
+  auto host = host_.lock();
+  assert(host);
+  node_id_ = host->id();
   if (conf_.network_transaction_interval > 0) {
     tp_.post(conf_.network_transaction_interval, [this] { sendTransactions(); });
   }
@@ -78,14 +81,18 @@ void TaraxaCapability::syncPeerPbft(NodeID const &_nodeID, unsigned long height_
 }
 
 void TaraxaCapability::sealAndSend(NodeID const &nodeID, unsigned packet_type, RLPStream rlp) {
+  auto host = host_.lock();
+  if (!host) {
+    return;
+  }
   auto packet_size = rlp.out().size();
   auto begin = std::chrono::steady_clock::now();
-  host_->send(nodeID, name(), packet_type, move(rlp.invalidate()), [=] {
+  host->send(nodeID, name(), packet_type, move(rlp.invalidate()), [=] {
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - begin);
     tp_.post([=] {  // schedule it out of the socket session thread. although maybe it's an overkill
       PacketStats packet_stats{nodeID, packet_size, false, duration};
       sent_packets_stats_.addPacket(packetTypeToString(packet_type), packet_stats);
-      LOG(log_dg_net_per_) << "(\"" << host_->id() << "\") sent " << packetTypeToString(packet_type) << " packet to (\""
+      LOG(log_dg_net_per_) << "(\"" << host->id() << "\") sent " << packetTypeToString(packet_type) << " packet to (\""
                            << nodeID << "\"). Stats: " << packet_stats;
     });
   });
@@ -137,7 +144,7 @@ uint64_t TaraxaCapability::getSimulatedNetworkDelay(const RLP &packet_rlp, const
   // RLP contains memory it does not own so deep copy of bytes is needed
   dev::bytes rBytes = packet_rlp.data().toBytes();
   int messageSize = rBytes.size() * 8;
-  unsigned int dist = *((int *)this->host_->id().data()) ^ *((int *)nodeID.data());
+  unsigned int dist = *((int *)node_id_.data()) ^ *((int *)nodeID.data());
   unsigned int delay = dist % conf_.network_simulated_delay;
 
   auto bandwidth = conf_.network_bandwidth ? conf_.network_bandwidth : 40;
@@ -167,18 +174,21 @@ void TaraxaCapability::interpretCapabilityPacket(weak_ptr<Session> session, unsi
     packet_stats.total_duration_ = duration;
     received_packets_stats_.addPacket(packetTypeToString(_id), packet_stats);
 
-    LOG(log_dg_net_per_) << "(\"" << host_->id() << "\") received " << packetTypeToString(_id) << " packet from (\""
+    LOG(log_dg_net_per_) << "(\"" << node_id_ << "\") received " << packetTypeToString(_id) << " packet from (\""
                          << _nodeID << "\"). Stats: " << packet_stats;
   });
 }
 
 void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsigned _id, RLP const &_r,
                                                      PacketStats &packet_stats) {
+  auto host = host_.lock();
+  if (!host) {
+    return;
+  }
   auto peer = getPeer(_nodeID);
   if (!peer) {
     return;
   }
-
   switch (_id) {
     case SyncedPacket: {
       LOG(log_dg_dag_sync_) << "Received synced message from " << _nodeID;
@@ -214,7 +224,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         if (peer_protocol_version != FullNode::c_network_protocol_version) {
           LOG(log_er_) << "Incorrect protocol version " << peer_protocol_version << ", host " << _nodeID
                        << " will be disconnected";
-          host_->disconnect(_nodeID, p2p::UserReason);
+          host->disconnect(_nodeID, p2p::UserReason);
         }
         // We need logic when some different node versions might still be compatible
         if (node_major_version != FullNode::c_node_major_version ||
@@ -223,15 +233,15 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
                        << ", our node major version"
                        << getFormattedVersion(FullNode::c_node_major_version, FullNode::c_node_minor_version)
                        << ", host " << _nodeID << " will be disconnected";
-          host_->disconnect(_nodeID, p2p::UserReason);
+          host->disconnect(_nodeID, p2p::UserReason);
         }
         if (network_id != conf_.network_id) {
           LOG(log_er_) << "Incorrect network id " << network_id << ", host " << _nodeID << " will be disconnected";
-          host_->disconnect(_nodeID, p2p::UserReason);
+          host->disconnect(_nodeID, p2p::UserReason);
         }
         if (genesis_hash != dag_mgr_->get_genesis()) {
           LOG(log_er_) << "Incorrect genesis hash " << genesis_hash << ", host " << _nodeID << " will be disconnected";
-          host_->disconnect(_nodeID, p2p::UserReason);
+          host->disconnect(_nodeID, p2p::UserReason);
         }
       } else {
         auto it = _r.begin();
@@ -443,7 +453,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       if (next_votes_count == 0) {
         LOG(log_er_next_votes_sync_) << "Receive 0 next votes from peer " << _nodeID
                                      << ". The peer may be a malicous player, will be disconnected";
-        host_->disconnect(_nodeID, p2p::UserReason);
+        host->disconnect(_nodeID, p2p::UserReason);
 
         break;
       }
@@ -648,8 +658,8 @@ void TaraxaCapability::handle_read_exception(weak_ptr<Session> session, unsigned
     throw;
   } catch (std::exception const &_e) {
     // TODO be more precise about the error handling
-    LOG(log_er_) << "Read exception: " << _e.what() << ". PacketType: " << packetTypeToString(_packetType) << " ("
-                 << _packetType << "). RLP: " << _r;
+    cout << "Read exception: " << _e.what() << ". PacketType: " << packetTypeToString(_packetType) << " ("
+         << _packetType << "). RLP: " << _r << endl;
     if (auto session_p = session.lock()) {
       session_p->disconnect(BadProtocol);
     }
@@ -1043,11 +1053,15 @@ void TaraxaCapability::sendTransactions() {
 }
 
 void TaraxaCapability::doBackgroundWork() {
+  auto host = host_.lock();
+  if (!host) {
+    return;
+  }
   for (auto const &peer : peers_) {
     // Disconnect any node that did not send any message for 3 status intervals
     if (!peer.second->checkStatus(5)) {
       LOG(log_nf_) << "Host disconnected, no status message in " << 5 * check_status_interval_ << " ms" << peer.first;
-      host_->disconnect(peer.first, p2p::PingTimeout);
+      host->disconnect(peer.first, p2p::PingTimeout);
     }
     // Send status message
     else {
