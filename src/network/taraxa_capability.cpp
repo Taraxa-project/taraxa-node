@@ -668,8 +668,8 @@ void TaraxaCapability::handle_read_exception(weak_ptr<Session> session, unsigned
     throw;
   } catch (std::exception const &_e) {
     // TODO be more precise about the error handling
-    cout << "Read exception: " << _e.what() << ". PacketType: " << packetTypeToString(_packetType) << " ("
-         << _packetType << "). RLP: " << _r << endl;
+    LOG(log_er_) << "Read exception: " << _e.what() << ". PacketType: " << packetTypeToString(_packetType) << " ("
+                 << _packetType << "). RLP: " << _r;
     if (auto session_p = session.lock()) {
       session_p->disconnect(BadProtocol);
     }
