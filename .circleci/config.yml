@@ -49,6 +49,7 @@ workflows:
   build-and-release:
     jobs:
       - gcp-gcr/build-and-push-image:
+          executor: docker
           image: taraxa-node/taraxa-node-builder
           context: taraxa-node
           path: builder
