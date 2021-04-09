@@ -25,7 +25,7 @@ jobs:
      resource_class: xlarge
      steps:
        - git/checkout-with-submodules
-       - run:
+#       - run:
 #          command: |
 #              hexport PATH=$PATH:$GOPATH/bin:$GOROOT/bin && \
 #              mkdir $BUILD_OUTPUT_DIR && cd $BUILD_OUTPUT_DIR &&  pwd && \
