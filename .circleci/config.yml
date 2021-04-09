@@ -21,22 +21,25 @@ jobs:
         auth:
           username: _json_key  # default username when using a JSON key file to authenticate
           password: $GCLOUD_SERVICE_KEY 
+     working_directory: ~/project/cmake-docker-build-debug
      resource_class: xlarge
      steps:
        - git/checkout-with-submodules
        - run:
-          command: |
-              export PATH=$PATH:$GOPATH/bin:$GOROOT/bin && \
-              mkdir $BUILD_OUTPUT_DIR && cd $BUILD_OUTPUT_DIR &&  pwd && \
+#          command: |
+#              hexport PATH=$PATH:$GOPATH/bin:$GOROOT/bin && \
+#              mkdir $BUILD_OUTPUT_DIR && cd $BUILD_OUTPUT_DIR &&  pwd && \
+       - run: mkdir /root/project/$BUILD_OUTPUT_DIR
+       - run: |
               cmake -DCMAKE_BUILD_TYPE=Debug \
               -DTARAXA_STATIC_BUILD=ON \
               -DTARAXAD_INSTALL_DIR=./bin_install \
               -DTARAXAD_CONF_INSTALL_DIR=./bin_install \
               ../ \
-              && make -j10 all \
-              && make install \
-              && strip bin_install/taraxad
-       - run:  pwd && echo ---- && ls -l && cd tests && ctest --output-on-failure
+       - run: make -j10 all 
+       - run: make install \
+       - run: strip bin_install/taraxad
+       - run: cd $BUILD_OUTPUT_DIR/tests && ctest --output-on-failure
 workflows:
   build-and-release:
     jobs:
