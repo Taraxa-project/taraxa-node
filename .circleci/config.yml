@@ -1,6 +1,8 @@
 version: 2.1
 orbs:
   git: opuscapita/git@0.0.3
+  gcp-gcr: circleci/gcp-gcr@0.13.0
+
    
 jobs: 
    build-linux:
@@ -54,8 +56,9 @@ workflows:
           use-docker-layer-caching: true
       - build-linux:
            context: taraxa-node
-           requires: gcp-gcr/build-and-push-image
+           requires: [ gcp-gcr/build-and-push-image ]
 #      - release-linux:
 #          requires: 
 #            - build-linux
+
 
