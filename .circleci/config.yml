@@ -37,20 +37,23 @@ jobs:
               -DTARAXA_STATIC_BUILD=ON \
               -DTARAXAD_INSTALL_DIR=./bin_install \
               -DTARAXAD_CONF_INSTALL_DIR=./bin_install \
-              ../ \
+              ../ 
        - run: cd $BUILD_OUTPUT_DIR && make -j10 all 
-       - run: cd $BUILD_OUTPUT_DIR && make install \
+       - run: cd $BUILD_OUTPUT_DIR && make install 
        - run: cd $BUILD_OUTPUT_DIR && strip bin_install/taraxad
        - run: cd $BUILD_OUTPUT_DIR/tests && ctest --output-on-failure
 workflows:
   build-and-release:
     jobs:
-#      - gcp-gcr/build-and-push-image:
-#          context: taraxa-node
-#          image: taraxa-node/taraxa-node-builder
-#          path: builder
+      - gcp-gcr/build-and-push-image:
+          image: taraxa-node/taraxa-node-builder
+          context: taraxa-node
+          path: builder
+          setup-remote-docker: true
+          use-docker-layer-caching: true
       - build-linux:
            context: taraxa-node
+           requires: gcp-gcr/build-and-push-image
 #      - release-linux:
 #          requires: 
 #            - build-linux
