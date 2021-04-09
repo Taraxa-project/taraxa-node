@@ -27,7 +27,7 @@ jobs:
        - run:
           command: |
               export PATH=$PATH:$GOPATH/bin:$GOROOT/bin && \
-              echo nproc && nproc && mkdir $BUILD_OUTPUT_DIR && cd $BUILD_OUTPUT_DIR &&  pwd && \
+              mkdir $BUILD_OUTPUT_DIR && cd $BUILD_OUTPUT_DIR &&  pwd && \
               cmake -DCMAKE_BUILD_TYPE=Debug \
               -DTARAXA_STATIC_BUILD=ON \
               -DTARAXAD_INSTALL_DIR=./bin_install \
@@ -36,15 +36,7 @@ jobs:
               && make -j10 all \
               && make install \
               && strip bin_install/taraxad
-       - persist_to_workspace:
-           root: ~/
-           path: project/cmake-docker-build-debug
-  run-ctest:
-     steps: 
-       - attach_workspace: 
-         at: ~/
-       - run: project/cmake/docker-build-debug/ctest --output-on-failure
-             
+       - run:  pwd && echo ---- && ls -l && cd tests && ctest --output-on-failure
 workflows:
   build-and-release:
     jobs:
@@ -54,7 +46,6 @@ workflows:
 #          path: builder
       - build-linux:
            context: taraxa-node
-      - run-ctest
 #      - release-linux:
 #          requires: 
 #            - build-linux
