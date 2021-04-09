@@ -36,6 +36,14 @@ jobs:
               && make -j10 all \
               && make install \
               && strip bin_install/taraxad
+       - persist_to_workspace:
+           root: ~/
+           path: project/cmake-docker-build-debug
+  run-ctest:
+     steps: 
+       - attach_workspace: 
+         at: ~/
+       - run: project/cmake/docker-build-debug/ctest --output-on-failure
              
 workflows:
   build-and-release:
@@ -46,6 +54,7 @@ workflows:
 #          path: builder
       - build-linux:
            context: taraxa-node
+      - run-ctest
 #      - release-linux:
 #          requires: 
 #            - build-linux
