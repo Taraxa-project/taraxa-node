@@ -158,6 +158,11 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         case StatusPacket: {
           peer->statusReceived();
           if (_r.itemCountStrict() != 2) {
+            LOG(log_er_) << "Item Count Strict " << _r.itemCountStrict();
+            auto it = _r.begin();
+            while (it != _r.end()) {
+              LOG(log_er_) << (*it++).toString();
+            }
             throw InvalidDataException("status packet has unexpected field count");
           }
           auto payload = _r[1].toBytesConstRef();
@@ -741,15 +746,16 @@ void TaraxaCapability::sendStatus(NodeID const &_id, bool _initial) {
 
     RLPStream s(_initial ? 10 : 5);
     if (_initial) {
-      s << FullNode::c_network_protocol_version << conf_.network_id << dag_max_level << genesis_
-        << pbft_chain_size << syncing_ << pbft_round << pbft_previous_round_next_votes_size
-        << FullNode::c_node_major_version << FullNode::c_node_minor_version;
+      s << FullNode::c_network_protocol_version << conf_.network_id << dag_max_level << genesis_ << pbft_chain_size
+        << syncing_ << pbft_round << pbft_previous_round_next_votes_size << FullNode::c_node_major_version
+        << FullNode::c_node_minor_version;
     } else {
       s << dag_max_level << pbft_chain_size << syncing_ << pbft_round << pbft_previous_round_next_votes_size;
     }
     auto payload = move(s.invalidate());
 
-    host_.capabilityHost()->sealAndSend(_id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 2) << dev::sha3(payload) << payload);
+    host_.capabilityHost()->sealAndSend(_id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 2)
+                                                 << dev::sha3(payload) << payload);
   }
 }
 
