@@ -50,7 +50,8 @@ jobs:
        - store_artifacts:
          path:  /root/project/cmake-docker-build-debug/taraxad
        - persist_to_workspace:
-         path: /root/project/taraxad
+          root: /root/project/cmake-docker-build-debug/
+          paths: [ taraxad ]
 
 workflows:
   build-and-release:
@@ -65,13 +66,15 @@ workflows:
       - build-linux:
            context: taraxa-node
 #           requires: [ gcp-gcr/build-and-push-image ]
-      - github-release:
-          attach_to_workspace: true
-          workspace_root: project
+      - github-release/create:
+          attach-workspace: true
+          workspace-root: project
           path: cmake-docker-build-debug/taraxad
           filters:
-            branches: [ develop , circleci ]
-            filters:  /^v\d+\.\d+\.\d+$/
+            branches: 
+              only: [ develop , circleci ]
+            tags:  
+              only: /^v\d+\.\d+\.\d+$/
           requires: 
             - build-linux
 
