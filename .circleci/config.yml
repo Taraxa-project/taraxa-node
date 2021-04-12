@@ -1,6 +1,8 @@
 version: 2.1
 orbs:
   git: opuscapita/git@0.0.3
+  github-release: izumin5210/github-release@0.1.1
+
 #  gcp-gcr: circleci/gcp-gcr@0.13.0
 
    
@@ -27,8 +29,8 @@ jobs:
      resource_class: xlarge
      steps:
        - git/checkout-with-submodules
-       - setup_remote_docker:
-           docker_layer_caching: true
+#       - setup_remote_docker:
+#           docker_layer_caching: true
 #       - run:
 #          command: |
 #              hexport PATH=$PATH:$GOPATH/bin:$GOROOT/bin && \
@@ -45,6 +47,11 @@ jobs:
        - run: cd $BUILD_OUTPUT_DIR && make install 
        - run: cd $BUILD_OUTPUT_DIR && strip bin_install/taraxad
        - run: cd $BUILD_OUTPUT_DIR/tests && ctest --output-on-failure
+       - store_artifacts:
+         path:  $BUILD_OUTPUT_DIR/taraxad
+       - persist_to_workspace:
+         path: $BUILD_OUTPUT_DIR/taraxad
+
 workflows:
   build-and-release:
     jobs:
@@ -58,8 +65,14 @@ workflows:
       - build-linux:
            context: taraxa-node
 #           requires: [ gcp-gcr/build-and-push-image ]
-#      - release-linux:
-#          requires: 
-#            - build-linux
+      - github-release:
+          attach_to_workspace: true
+          workspace_root: project
+          path: cmake-docker-build-debug/taraxad
+          filters:
+            branches: [ develop , circleci ]
+            filters:  /^v\d+\.\d+\.\d+$/
+          requires: 
+            - build-linux
 
 
