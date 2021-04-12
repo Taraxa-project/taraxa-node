@@ -48,9 +48,10 @@ jobs:
        - run: cd $BUILD_OUTPUT_DIR && strip bin_install/taraxad
        - run: cd $BUILD_OUTPUT_DIR/tests && ctest --output-on-failure
        - store_artifacts:
-         path:  $BUILD_OUTPUT_DIR/taraxad
+          path:  $BUILD_OUTPUT_DIR/taraxad
        - persist_to_workspace:
-         path: $BUILD_OUTPUT_DIR/taraxad
+          root: $BUILD_OUTPUT_DIR
+          paths: [ taraxad ]
 
 workflows:
   build-and-release:
@@ -65,13 +66,15 @@ workflows:
       - build-linux:
            context: taraxa-node
 #           requires: [ gcp-gcr/build-and-push-image ]
-      - github-release:
-          attach_to_workspace: true
-          workspace_root: project
+      - github-release/create:
+          attach-workspace: true
+          workspace-root: project
           path: cmake-docker-build-debug/taraxad
           filters:
-            branches: [ develop , circleci ]
-            filters:  /^v\d+\.\d+\.\d+$/
+            branches: 
+              only: [ develop , circleci ]
+            tags:  
+              only: /^v\d+\.\d+\.\d+$/
           requires: 
             - build-linux
 
