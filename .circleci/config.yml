@@ -41,8 +41,8 @@ jobs:
         - run: 
            name: Run CMAKE
            command: | 
-        - run: |
-           mkdir $BUILD_OUTPUT_DIR
+        - run: 
+           command: mkdir $BUILD_OUTPUT_DIR
         - run: 
             name: Cmake
             command: | 
