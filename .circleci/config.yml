@@ -61,9 +61,9 @@ jobs:
            command: cd $BUILD_OUTPUT_DIR && strip bin_install/taraxad
 #       - run: cd $BUILD_OUTPUT_DIR/tests && ctest --output-on-failure
         - store_artifacts:
-           path:  /opt/taraxa/cmake-docker-build-debug/bin_install/taraxad
+           path:  /root/project/cmake-docker-build-debug/bin_install/taraxad
         - persist_to_workspace:
-           root: /opt/taraxa/cmake-docker-build-debug/bin_install
+           root: /root/project/cmake-docker-build-debug/bin_install
            paths: [ taraxad ]
 
 workflows:
@@ -81,7 +81,7 @@ workflows:
 #           requires: [ gcp-gcr/build-and-push-image ]
       - github-release/create:
           attach-workspace: true
-          workspace-root: /opt/taraxa/cmake-docker-build-debug/bin_install
+          workspace-root: /root/project/cmake-docker-build-debug/bin_install
           path: taraxad
           filters:
 #            branches: 
