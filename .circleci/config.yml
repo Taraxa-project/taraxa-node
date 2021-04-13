@@ -85,6 +85,7 @@ workflows:
           context: taraxa-node
 #         requires: [ gcp-gcr/build-and-push-image ]
       - github-release/create:
+          context: taraxa-node
           attach-workspace: true
           workspace-root: cmake-docker-build-debug
           path: bin_install/taraxad
