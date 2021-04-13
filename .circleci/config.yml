@@ -40,9 +40,6 @@ jobs:
 #       - setup_remote_docker:
 #           docker_layer_caching: true
         - run: 
-           name: Run CMAKE
-           command: | 
-        - run: 
            command: mkdir $BUILD_OUTPUT_DIR
         - run: 
             name: Cmake
