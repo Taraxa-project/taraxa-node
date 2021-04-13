@@ -44,10 +44,12 @@ jobs:
 #          command: |
 #              export PATH=$PATH:$GOPATH/bin:$GOROOT/bin && \
 #              mkdir $BUILD_OUTPUT_DIR && cd $BUILD_OUTPUT_DIR &&  pwd && \
-       - run: mkdir $BUILD_OUTPUT_DIR
        - run: 
           name: Run CMAKE
           command: | 
+       - run: |
+           mkdir $BUILD_OUTPUT_DIR
+       - run: | 
               cd $BUILD_OUTPUT_DIR &&
               cmake -DCMAKE_BUILD_TYPE=Debug \
               -DTARAXA_STATIC_BUILD=ON \
