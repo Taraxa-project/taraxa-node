@@ -34,13 +34,13 @@ jobs:
               git submodule sync
               git submodule update --init --recursive --jobs 8
         - run: 
+           command: mkdir $BUILD_OUTPUT_DIR
+        - run: 
            name: Copy /opt/taraxa/existing files to project
            command: cp -rp /opt/taraxa/cmake-docker-build-debug/* /root/project/cmake-docker-build-debug/
 #       - git/checkout-with-submodules
 #       - setup_remote_docker:
 #           docker_layer_caching: true
-        - run: 
-           command: mkdir $BUILD_OUTPUT_DIR
         - run: 
             name: Cmake
             command: | 
