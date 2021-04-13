@@ -1128,16 +1128,19 @@ bool PbftManager::syncRequestedAlreadyThisStep_() const {
 }
 
 void PbftManager::syncPbftChainFromPeers_(bool force) {
-  if (stopped_) return;
+  if (stopped_) {
+    return;
+  }
   if (!pbft_chain_->pbftSyncedQueueEmpty()) {
-    LOG(log_dg_) << "DAG has not synced yet. PBFT chain skips syncing";
+    LOG(log_dg_) << "PBFT synced queue is processing, skips syncing. Synced queue size "
+                 << pbft_chain_->pbftSyncedQueueSize();
     return;
   }
 
   if (!capability_->syncing_ && !syncRequestedAlreadyThisStep_()) {
     auto round = getPbftRound();
-    LOG(log_nf_) << "Restarting pbft sync. In round " << round << ", in step " << step_ << ", forced " << force
-                 << ", Send request to ask missing blocks";
+    LOG(log_nf_) << "Restarting pbft sync. In round " << round << ", in step " << step_ << ", forced " << std::boolalpha
+                 << force << ", Send request to ask missing blocks";
     capability_->restartSyncingPbft(force);
     pbft_round_last_requested_sync_ = round;
     pbft_step_last_requested_sync_ = step_;
@@ -1187,13 +1190,15 @@ bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(PbftBlock const &pbft_b
   if (!dag_mgr_->getDagBlockOrder(anchor_hash).second->empty()) {
     return true;
   }
+
+  auto round = getPbftRound();
   auto last_period = pbft_chain_->getPbftChainSize();
-  LOG(log_nf_) << "DAG blocks have not sync yet. In period: " << last_period << ", anchor block hash " << anchor_hash
-               << " is not found locally";
-  if (state_ == finish_state && !have_executed_this_round_ && !capability_->syncing_ &&
-      !syncRequestedAlreadyThisStep_()) {
-    LOG(log_nf_) << "DAG blocks have not sync yet. In period: " << last_period << " PBFT block anchor: " << anchor_hash
-                 << " .. Triggering sync request";
+  if (syncRequestedAlreadyThisStep_()) {
+    LOG(log_nf_) << "DAG blocks have not sync yet. PBFT syncing has sent at PBFT round " << round << " step " << step_
+                 << ". last period " << last_period << ", anchor block hash " << anchor_hash << " is not found locally";
+  } else {
+    LOG(log_nf_) << "DAG blocks have not sync yet. last period " << last_period << ", anchor hash " << anchor_hash
+                 << ". Will trigger syncing request at round " << round << " step " << step_;
     syncPbftChainFromPeers_(true);
   }
   return false;
