@@ -52,7 +52,7 @@ jobs:
               ../ 
         - run: 
            name: make
-           command: cd $BUILD_OUTPUT_DIR && make -j6 all 
+           command: cd $BUILD_OUTPUT_DIR && make -j4 all 
         - run: 
            name: make install 
            command: cd $BUILD_OUTPUT_DIR && make install 
