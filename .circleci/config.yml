@@ -121,8 +121,8 @@ workflows:
 #         requires: [ gcp-gcr/build-and-push-image ]
       - build-mac:
           filters:
-            branches:
-              only: [ circleci ]
+            #branches:
+            #  only: [ circleci ]
           context: taraxa-node
       - github-release/create:
           context: taraxa-node
