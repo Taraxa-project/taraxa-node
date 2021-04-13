@@ -24,7 +24,8 @@ using namespace dev::p2p;
 
 enum SubprotocolPacketType : ::byte {
 
-  StatusPacket = 0x0,
+  InitialStatusPacket = 0x0,
+  UpdatedStatusPacket,
   NewBlockPacket,
   NewBlockHashPacket,
   GetNewBlockPacket,

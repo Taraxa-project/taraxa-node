@@ -196,77 +196,107 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       // peer->clearAllKnownBlocksAndTransactions();
       break;
     }
-    case StatusPacket: {
+    case InitialStatusPacket: {
       peer->statusReceived();
 
-      if (_r.itemCountStrict() != 2) {
-        throw new runtime_error("status packet has unexpected field count");
-      }
       auto payload = _r[1].toBytesConstRef();
       if (_r[0].toHash<dev::h256>() != dev::sha3(payload)) {
-        throw new runtime_error("status packet hash doesn't correspond to the payload");
+        throw new runtime_error("InitialStatusPacket hash doesn't correspond to the payload");
       }
       RLP r(payload);
 
-      bool initial_status = r.itemCount() == 10;
+      auto it = r.begin();
+      auto const peer_protocol_version = (*it++).toInt<unsigned>();
+      auto const network_id = (*it++).toPositiveInt64();
+      peer->dag_level_ = (*it++).toPositiveInt64();
+      auto const genesis_hash = (*it++).toString();
+      peer->pbft_chain_size_ = (*it++).toPositiveInt64();
+      peer->syncing_ = (*it++).toInt();
+      peer->pbft_round_ = (*it++).toPositiveInt64();
+      peer->pbft_previous_round_next_votes_size_ = (*it++).toInt<unsigned>();
+      auto node_major_version = (*it++).toInt();
+      auto node_minor_version = (*it++).toInt();
 
-      if (initial_status) {
-        auto it = r.begin();
-        auto const peer_protocol_version = (*it++).toInt<unsigned>();
-        auto const network_id = (*it++).toPositiveInt64();
-        peer->dag_level_ = (*it++).toPositiveInt64();
-        auto const genesis_hash = (*it++).toString();
-        peer->pbft_chain_size_ = (*it++).toPositiveInt64();
-        peer->syncing_ = (*it++).toInt();
-        peer->pbft_round_ = (*it++).toPositiveInt64();
-        peer->pbft_previous_round_next_votes_size_ = (*it++).toInt<unsigned>();
-        auto node_major_version = (*it++).toInt();
-        auto node_minor_version = (*it++).toInt();
+      LOG(log_dg_) << "Received initial status message from " << _nodeID << ", peer protocol version "
+                   << peer_protocol_version << ", network id " << network_id << ", peer DAG max level "
+                   << peer->dag_level_ << ", genesis " << dag_mgr_->get_genesis() << ", peer pbft chain size "
+                   << peer->pbft_chain_size_ << ", peer syncing " << std::boolalpha << peer->syncing_
+                   << ", peer pbft round " << peer->pbft_round_ << ", peer pbft previous round next votes size "
+                   << peer->pbft_previous_round_next_votes_size_ << ", node major version" << node_major_version
+                   << ", node minor version" << node_minor_version;
 
-        LOG(log_dg_) << "Received initial status message from " << _nodeID << ", peer protocol version "
-                     << peer_protocol_version << ", network id " << network_id << ", peer DAG max level "
-                     << peer->dag_level_ << ", genesis " << dag_mgr_->get_genesis() << ", peer pbft chain size "
-                     << peer->pbft_chain_size_ << ", peer syncing " << std::boolalpha << peer->syncing_
-                     << ", peer pbft round " << peer->pbft_round_ << ", peer pbft previous round next votes size "
-                     << peer->pbft_previous_round_next_votes_size_ << ", node major version" << node_major_version
-                     << ", node minor version" << node_minor_version;
+      if (peer_protocol_version != FullNode::c_network_protocol_version) {
+        LOG(log_er_) << "Incorrect protocol version " << peer_protocol_version << ", host " << _nodeID
+                     << " will be disconnected";
+        host->disconnect(_nodeID, p2p::UserReason);
+      }
+      // We need logic when some different node versions might still be compatible
+      if (node_major_version != FullNode::c_node_major_version ||
+          node_minor_version != FullNode::c_node_minor_version) {
+        LOG(log_er_) << "Incorrect node version: " << getFormattedVersion(node_major_version, node_minor_version)
+                     << ", our node major version"
+                     << getFormattedVersion(FullNode::c_node_major_version, FullNode::c_node_minor_version)
+                     << ", host " << _nodeID << " will be disconnected";
+        host->disconnect(_nodeID, p2p::UserReason);
+      }
+      if (network_id != conf_.network_id) {
+        LOG(log_er_) << "Incorrect network id " << network_id << ", host " << _nodeID << " will be disconnected";
+        host->disconnect(_nodeID, p2p::UserReason);
+      }
+      if (genesis_hash != dag_mgr_->get_genesis()) {
+        LOG(log_er_) << "Incorrect genesis hash " << genesis_hash << ", host " << _nodeID << " will be disconnected";
+        host->disconnect(_nodeID, p2p::UserReason);
+      }
+      
+      LOG(log_dg_dag_sync_) << "Received status message from " << _nodeID << " peer DAG max level:" << peer->dag_level_;
+      LOG(log_dg_pbft_sync_) << "Received status message from " << _nodeID << ", peer sycning: " << std::boolalpha
+                             << peer->syncing_ << ", peer PBFT chain size:" << peer->pbft_chain_size_;
+      LOG(log_dg_next_votes_sync_) << "Received status message from " << _nodeID << ", PBFT round " << peer->pbft_round_
+                                   << ", peer PBFT previous round next votes size "
+                                   << peer->pbft_previous_round_next_votes_size_;
 
-        if (peer_protocol_version != FullNode::c_network_protocol_version) {
-          LOG(log_er_) << "Incorrect protocol version " << peer_protocol_version << ", host " << _nodeID
-                       << " will be disconnected";
-          host->disconnect(_nodeID, p2p::UserReason);
+      auto pbft_synced_period = pbft_chain_->pbftSyncingPeriod();
+      if (pbft_synced_period + 1 < peer->pbft_chain_size_) {
+        LOG(log_nf_) << "Restart PBFT chain syncing. Own synced PBFT at period " << pbft_synced_period
+                     << ", peer PBFT chain size " << peer->pbft_chain_size_;
+        if (pbft_synced_period + 5 < peer->pbft_chain_size_) {
+          restartSyncingPbft(true);
+        } else {
+          restartSyncingPbft(false);
         }
-        // We need logic when some different node versions might still be compatible
-        if (node_major_version != FullNode::c_node_major_version ||
-            node_minor_version != FullNode::c_node_minor_version) {
-          LOG(log_er_) << "Incorrect node version: " << getFormattedVersion(node_major_version, node_minor_version)
-                       << ", our node major version"
-                       << getFormattedVersion(FullNode::c_node_major_version, FullNode::c_node_minor_version)
-                       << ", host " << _nodeID << " will be disconnected";
-          host->disconnect(_nodeID, p2p::UserReason);
-        }
-        if (network_id != conf_.network_id) {
-          LOG(log_er_) << "Incorrect network id " << network_id << ", host " << _nodeID << " will be disconnected";
-          host->disconnect(_nodeID, p2p::UserReason);
-        }
-        if (genesis_hash != dag_mgr_->get_genesis()) {
-          LOG(log_er_) << "Incorrect genesis hash " << genesis_hash << ", host " << _nodeID << " will be disconnected";
-          host->disconnect(_nodeID, p2p::UserReason);
-        }
-      } else {
-        auto it = r.begin();
-        peer->dag_level_ = (*it++).toPositiveInt64();
-        peer->pbft_chain_size_ = (*it++).toPositiveInt64();
-        peer->syncing_ = (*it++).toInt();
-        peer->pbft_round_ = (*it++).toPositiveInt64();
-        peer->pbft_previous_round_next_votes_size_ = (*it++).toInt<unsigned>();
-
-        LOG(log_dg_) << "Received status message from " << _nodeID << ", peer DAG max level " << peer->dag_level_
-                     << ", peer pbft chain size " << peer->pbft_chain_size_ << ", peer syncing " << std::boolalpha
-                     << peer->syncing_ << ", peer pbft round " << peer->pbft_round_
-                     << ", peer pbft previous round next votes size " << peer->pbft_previous_round_next_votes_size_;
       }
 
+      auto pbft_current_round = pbft_mgr_->getPbftRound();
+      auto pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesSize();
+      if (pbft_current_round < peer->pbft_round_ ||
+          (pbft_current_round == peer->pbft_round_ &&
+           pbft_previous_round_next_votes_size < peer->pbft_previous_round_next_votes_size_)) {
+        syncPbftNextVotes(pbft_current_round, pbft_previous_round_next_votes_size);
+      }
+
+      break;
+    }
+    case UpdateStatusPacket: {
+      peer->statusReceived();
+
+      auto payload = _r[1].toBytesConstRef();
+      if (_r[0].toHash<dev::h256>() != dev::sha3(payload)) {
+        throw new runtime_error("UpdateStatusPacket hash doesn't correspond to the payload");
+      }
+      RLP r(payload);
+
+      auto it = r.begin();
+      peer->dag_level_ = (*it++).toPositiveInt64();
+      peer->pbft_chain_size_ = (*it++).toPositiveInt64();
+      peer->syncing_ = (*it++).toInt();
+      peer->pbft_round_ = (*it++).toPositiveInt64();
+      peer->pbft_previous_round_next_votes_size_ = (*it++).toInt<unsigned>();
+
+      LOG(log_dg_) << "Received status message from " << _nodeID << ", peer DAG max level " << peer->dag_level_
+                   << ", peer pbft chain size " << peer->pbft_chain_size_ << ", peer syncing " << std::boolalpha
+                   << peer->syncing_ << ", peer pbft round " << peer->pbft_round_
+                   << ", peer pbft previous round next votes size " << peer->pbft_previous_round_next_votes_size_;
+      
       LOG(log_dg_dag_sync_) << "Received status message from " << _nodeID << " peer DAG max level:" << peer->dag_level_;
       LOG(log_dg_pbft_sync_) << "Received status message from " << _nodeID << ", peer sycning: " << std::boolalpha
                              << peer->syncing_ << ", peer PBFT chain size:" << peer->pbft_chain_size_;
@@ -789,11 +819,14 @@ void TaraxaCapability::sendStatus(NodeID const &_id, bool _initial) {
       s << FullNode::c_network_protocol_version << conf_.network_id << dag_max_level << dag_mgr_->get_genesis()
         << pbft_chain_size << syncing_.load() << pbft_round << pbft_previous_round_next_votes_size
         << FullNode::c_node_major_version << FullNode::c_node_minor_version;
+      auto payload = move(s.invalidate());
+      sealAndSend(_id, InitialStatusPacket, RLPStream(2) << dev::sha3(payload) << payload);
     } else {
       s << dag_max_level << pbft_chain_size << syncing_.load() << pbft_round << pbft_previous_round_next_votes_size;
+      auto payload = move(s.invalidate());
+      sealAndSend(_id, UpdateStatusPacket, RLPStream(2) << dev::sha3(payload) << payload);
     }
-    auto payload = move(s.invalidate());
-    sealAndSend(_id, StatusPacket, RLPStream(2) << dev::sha3(payload) << payload);
+    
   }
 }
 
@@ -1345,8 +1378,10 @@ Json::Value TaraxaCapability::getStatus() const {
 
 string TaraxaCapability::packetTypeToString(unsigned int packet) const {
   switch (packet) {
-    case StatusPacket:
-      return "StatusPacket";
+    case InitialStatusPacket:
+      return "InitialStatusPacket";
+    case UpdateStatusPacket:
+      return "UpdateStatusPacket";
     case NewBlockPacket:
       return "NewBlockPacket";
     case NewBlockHashPacket:
