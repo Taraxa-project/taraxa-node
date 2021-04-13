@@ -48,9 +48,9 @@ jobs:
        - run: cd $BUILD_OUTPUT_DIR && strip bin_install/taraxad
        - run: cd $BUILD_OUTPUT_DIR/tests && ctest --output-on-failure
        - store_artifacts:
-         path:  /root/project/cmake-docker-build-debug/taraxad
+         path:  /root/project/cmake-docker-build-debug/bin-install/taraxad
        - persist_to_workspace:
-          root: /root/project/cmake-docker-build-debug/
+          root: /root/project/cmake-docker-build-debug/bin-install
           paths: [ taraxad ]
 
 workflows:
