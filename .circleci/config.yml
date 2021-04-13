@@ -20,20 +20,28 @@ jobs:
         SCRYPT_VERSION: "1.21-3"
         GOROOT: "/usr/local/go"
         GOPATH: "/root/.go"
+     working_directory: /opt/taraxa
      docker:
 
       - image: gcr.io/$GOOGLE_PROJECT_ID/taraxa-node/builder
         auth:
           username: _json_key  # default username when using a JSON key file to authenticate
           password: $GCLOUD_SERVICE_KEY 
-     resource_class: xlarge
+     resource_class: large
      steps:
-       - git/checkout-with-submodules
+        - checkout
+           path: .
+        - run:       
+           name: Checkout Submodules
+           command: |
+              git submodule sync
+              git submodule update --init --recursive --jobs 8
+#       - git/checkout-with-submodules
 #       - setup_remote_docker:
 #           docker_layer_caching: true
 #       - run:
 #          command: |
-#              hexport PATH=$PATH:$GOPATH/bin:$GOROOT/bin && \
+#              export PATH=$PATH:$GOPATH/bin:$GOROOT/bin && \
 #              mkdir $BUILD_OUTPUT_DIR && cd $BUILD_OUTPUT_DIR &&  pwd && \
        - run: mkdir $BUILD_OUTPUT_DIR
        - run: | 
@@ -43,14 +51,14 @@ jobs:
               -DTARAXAD_INSTALL_DIR=./bin_install \
               -DTARAXAD_CONF_INSTALL_DIR=./bin_install \
               ../ 
-       - run: cd $BUILD_OUTPUT_DIR && make -j10 all 
+       - run: cd $BUILD_OUTPUT_DIR && make -j6 all 
        - run: cd $BUILD_OUTPUT_DIR && make install 
        - run: cd $BUILD_OUTPUT_DIR && strip bin_install/taraxad
 #       - run: cd $BUILD_OUTPUT_DIR/tests && ctest --output-on-failure
        - store_artifacts:
-          path:  /root/project/cmake-docker-build-debug/bin_install/taraxad
+          path:  /opt/taraxa/cmake-docker-build-debug/bin_install/taraxad
        - persist_to_workspace:
-          root: /root/project/cmake-docker-build-debug/bin_install
+          root: /opt/taraxa/cmake-docker-build-debug/bin_install
           paths: [ taraxad ]
 
 workflows:
@@ -58,7 +66,7 @@ workflows:
     jobs:
 #      - gcp-gcr/build-and-push-image:
 #          executor: docker
-#          image: taraxa-node/taraxa-node-builder
+#          image: taraxa-node/taraxa-builder
 #          context: taraxa-node
 #          path: builder
 #          setup-remote-docker: true
@@ -68,14 +76,12 @@ workflows:
 #           requires: [ gcp-gcr/build-and-push-image ]
       - github-release/create:
           attach-workspace: true
-          workspace-root: project
-          path: cmake-docker-build-debug/taraxad
-#          filters:
+          workspace-root: /opt/taraxa/cmake-docker-build-debug/bin_install
+          path: taraxad
+          filters:
 #            branches: 
 #              only: [ develop , circleci ]
-#            tags:  
-#              only: /^v\d+\.\d+\.\d+$/
+            tags:  
+              only: /^v\d+\.\d+\.\d+$/
           requires: 
             - build-linux
-
-
