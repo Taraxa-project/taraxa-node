@@ -24,7 +24,8 @@ using namespace dev::p2p;
 
 enum SubprotocolPacketType : ::byte {
 
-  StatusPacket = 0x0,
+  InitialStatusPacket = 0x0,
+  UpdateStatusPacket,
   NewBlockPacket,
   NewBlockHashPacket,
   GetNewBlockPacket,
@@ -40,9 +41,7 @@ enum SubprotocolPacketType : ::byte {
   PbftBlockPacket,
   SyncedPacket,
   SyncedResponsePacket,
-  PacketCount,
-  InitialStatusPacket,
-  UpdateStatusPacket
+  PacketCount
 };
 
 struct InvalidDataException : public std::runtime_error {

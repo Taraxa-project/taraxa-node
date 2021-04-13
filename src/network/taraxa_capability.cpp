@@ -196,11 +196,6 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       // peer->clearAllKnownBlocksAndTransactions();
       break;
     }
-    case StatusPacket: {
-      LOG(log_er_) << "Obsolete StatusPacket received, will disconnect.";
-      host->disconnect(_nodeID, p2p::UserReason);
-      break;
-    }
     case InitialStatusPacket: {
       peer->statusReceived();
 
@@ -1383,8 +1378,6 @@ Json::Value TaraxaCapability::getStatus() const {
 
 string TaraxaCapability::packetTypeToString(unsigned int packet) const {
   switch (packet) {
-    case StatusPacket:
-      return "StatusPacket(Obsolete)";
     case InitialStatusPacket:
       return "InitialStatusPacket";
     case UpdateStatusPacket:
