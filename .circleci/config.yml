@@ -44,33 +44,35 @@ jobs:
 #          command: |
 #              export PATH=$PATH:$GOPATH/bin:$GOROOT/bin && \
 #              mkdir $BUILD_OUTPUT_DIR && cd $BUILD_OUTPUT_DIR &&  pwd && \
-       - run: 
-          name: Run CMAKE
-          command: | 
-       - run: |
+        - run: 
+           name: Run CMAKE
+           command: | 
+        - run: |
            mkdir $BUILD_OUTPUT_DIR
-       - run: | 
+        - run: 
+            name: Cmake
+            command: | 
               cd $BUILD_OUTPUT_DIR &&
               cmake -DCMAKE_BUILD_TYPE=Debug \
               -DTARAXA_STATIC_BUILD=ON \
               -DTARAXAD_INSTALL_DIR=./bin_install \
               -DTARAXAD_CONF_INSTALL_DIR=./bin_install \
               ../ 
-       - run: 
-          name: make
-          command: cd $BUILD_OUTPUT_DIR && make -j6 all 
-       - run: 
-          name: make install 
-          command: cd $BUILD_OUTPUT_DIR && make install 
-       - run: 
-          name: strip binary
-          command: cd $BUILD_OUTPUT_DIR && strip bin_install/taraxad
+        - run: 
+           name: make
+           command: cd $BUILD_OUTPUT_DIR && make -j6 all 
+        - run: 
+           name: make install 
+           command: cd $BUILD_OUTPUT_DIR && make install 
+        - run: 
+           name: strip binary
+           command: cd $BUILD_OUTPUT_DIR && strip bin_install/taraxad
 #       - run: cd $BUILD_OUTPUT_DIR/tests && ctest --output-on-failure
-       - store_artifacts:
-          path:  /opt/taraxa/cmake-docker-build-debug/bin_install/taraxad
-       - persist_to_workspace:
-          root: /opt/taraxa/cmake-docker-build-debug/bin_install
-          paths: [ taraxad ]
+        - store_artifacts:
+           path:  /opt/taraxa/cmake-docker-build-debug/bin_install/taraxad
+        - persist_to_workspace:
+           root: /opt/taraxa/cmake-docker-build-debug/bin_install
+           paths: [ taraxad ]
 
 workflows:
   build-and-release:
