@@ -9,8 +9,8 @@ orbs:
 jobs: 
    build-mac:
      macos:
-      xcode: 11.3.0
-      environment:
+       xcode: 11.3.0
+     environment:
         BUILD_OUTPUT_DIR: "cmake-docker-build-debug"
         CLANG_VERSION: "1:10.0-50~exp1"
         GO_VERSION: "1.13.7"
@@ -22,7 +22,7 @@ jobs:
         SCRYPT_VERSION: "1.21-3"
         GOROOT: "/usr/local/go"
         GOPATH: "/root/.go"
-      steps: 
+     steps: 
         - checkout
         - run: 
            name: Checkout Submodules
