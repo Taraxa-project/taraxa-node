@@ -35,7 +35,7 @@ jobs:
               git submodule update --init --recursive --jobs 8
         - run: 
            name: Copy /opt/taraxa/existing files to project
-           command: cp -rp /opt/taraxa/cmake-docker-build-debug/* project/cmake-docker-build-debug/
+           command: cp -rp /opt/taraxa/cmake-docker-build-debug/* /root/project/cmake-docker-build-debug/
 #       - git/checkout-with-submodules
 #       - setup_remote_docker:
 #           docker_layer_caching: true
