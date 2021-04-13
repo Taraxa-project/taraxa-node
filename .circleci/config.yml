@@ -73,8 +73,8 @@ workflows:
           filters:
             branches: 
               only: [ develop , circleci ]
-            tags:  
-              only: /^v\d+\.\d+\.\d+$/
+#            tags:  
+#              only: /^v\d+\.\d+\.\d+$/
           requires: 
             - build-linux
 
