@@ -179,7 +179,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
             peer->dag_level_ = (*it++).toPositiveInt64();
             auto const genesis_hash = (*it++).toString();
             peer->pbft_chain_size_ = (*it++).toPositiveInt64();
-            peer->syncing_ = (*it++).toInt();
+            peer->syncing_ = (*it++).toInt() == 1 ? true : false;
             peer->pbft_round_ = (*it++).toPositiveInt64();
             peer->pbft_previous_round_next_votes_size_ = (*it++).toInt<unsigned>();
             auto node_major_version = (*it++).toInt();
@@ -220,7 +220,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
             auto it = r.begin();
             peer->dag_level_ = (*it++).toPositiveInt64();
             peer->pbft_chain_size_ = (*it++).toPositiveInt64();
-            peer->syncing_ = (*it++).toInt();
+            peer->syncing_ = (*it++).toInt() == 1 ? true : false;
             peer->pbft_round_ = (*it++).toPositiveInt64();
             peer->pbft_previous_round_next_votes_size_ = (*it++).toInt<unsigned>();
 
@@ -763,10 +763,11 @@ void TaraxaCapability::sendStatus(NodeID const &_id, bool _initial) {
   RLPStream s(_initial ? 10 : 5);
   if (_initial) {
     s << FullNode::c_network_protocol_version << conf_.network_id << dag_max_level << genesis_ << pbft_chain_size
-      << syncing_ << pbft_round << pbft_previous_round_next_votes_size << FullNode::c_node_major_version
+      << (int)(syncing_ ? 1 : 0) << pbft_round << pbft_previous_round_next_votes_size << FullNode::c_node_major_version
       << FullNode::c_node_minor_version;
   } else {
-    s << dag_max_level << pbft_chain_size << syncing_ << pbft_round << pbft_previous_round_next_votes_size;
+    s << dag_max_level << pbft_chain_size << (int)(syncing_ ? 1 : 0) << pbft_round
+      << pbft_previous_round_next_votes_size;
   }
   auto payload = move(s.invalidate());
 
