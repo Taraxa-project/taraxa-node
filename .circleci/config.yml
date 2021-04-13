@@ -63,7 +63,7 @@ jobs:
         - store_artifacts:
            path: /root/project/cmake-docker-build-debug/bin_install/taraxad
         - persist_to_workspace:
-           root: project/cmake-docker-build-debug/
+           root: cmake-docker-build-debug
            paths: [ bin_install ]
 
 workflows:
@@ -81,7 +81,7 @@ workflows:
 #           requires: [ gcp-gcr/build-and-push-image ]
       - github-release/create:
           attach-workspace: true
-          workspace-root: project/cmake-docker-build-debug/
+          workspace-root: cmake-docker-build-debug
           path: bin_install/taraxad
           filters:
 #            branches: 
