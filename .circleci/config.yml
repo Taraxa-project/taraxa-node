@@ -83,6 +83,7 @@ workflows:
           attach-workspace: true
           workspace-root: cmake-docker-build-debug
           path: bin_install/taraxad
+          tag: v0.0.1
           filters:
 #            branches: 
 #              only: [ develop , circleci ]
