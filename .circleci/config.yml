@@ -29,9 +29,9 @@ jobs:
           password: $GCLOUD_SERVICE_KEY 
      resource_class: large
      steps:
-        - checkout:
+       - checkout:
            path: .
-        - run:       
+       - run:       
            name: Checkout Submodules
            command: |
               git submodule sync
@@ -43,7 +43,8 @@ jobs:
 #          command: |
 #              export PATH=$PATH:$GOPATH/bin:$GOROOT/bin && \
 #              mkdir $BUILD_OUTPUT_DIR && cd $BUILD_OUTPUT_DIR &&  pwd && \
-       - run: mkdir $BUILD_OUTPUT_DIR
+       - run: |
+           mkdir $BUILD_OUTPUT_DIR
        - run: | 
               cd $BUILD_OUTPUT_DIR &&
               cmake -DCMAKE_BUILD_TYPE=Debug \
