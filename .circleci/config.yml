@@ -5,7 +5,6 @@ orbs:
 
 #  gcp-gcr: circleci/gcp-gcr@0.13.0
 
-   
 jobs: 
    build-linux:
      environment:
@@ -21,7 +20,6 @@ jobs:
         GOROOT: "/usr/local/go"
         GOPATH: "/root/.go"
      docker:
-
       - image: gcr.io/$GOOGLE_PROJECT_ID/taraxa-node/builder
         auth:
           username: _json_key  # default username when using a JSON key file to authenticate
@@ -40,10 +38,6 @@ jobs:
 #       - git/checkout-with-submodules
 #       - setup_remote_docker:
 #           docker_layer_caching: true
-#       - run:
-#          command: |
-#              export PATH=$PATH:$GOPATH/bin:$GOROOT/bin && \
-#              mkdir $BUILD_OUTPUT_DIR && cd $BUILD_OUTPUT_DIR &&  pwd && \
         - run: 
            name: Run CMAKE
            command: | 
