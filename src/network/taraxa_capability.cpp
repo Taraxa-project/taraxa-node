@@ -726,37 +726,52 @@ void TaraxaCapability::sendTestMessage(NodeID const &_id, int _x) {
 }
 
 void TaraxaCapability::sendStatus(NodeID const &_id, bool _initial) {
-  if (dag_mgr_) {
-    if (_initial) {
-      LOG(log_dg_) << "Sending initial status message to " << _id << ", protocol version "
-                   << FullNode::c_network_protocol_version << ", network id " << conf_.network_id << ", genesis "
-                   << genesis_ << ", node major version " << FullNode::c_node_major_version << ", node minor version "
-                   << FullNode::c_node_minor_version;
-    }
-
-    auto dag_max_level = dag_mgr_->getMaxLevel();
-    auto pbft_chain_size = pbft_chain_->getPbftChainSize();
-    auto pbft_round = pbft_mgr_->getPbftRound();
-    auto pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesSize();
-    LOG(log_dg_dag_sync_) << "Sending status message to " << _id << " with dag level: " << dag_max_level;
-    LOG(log_dg_pbft_sync_) << "Sending status message to " << _id << " with pbft chain size: " << pbft_chain_size
-                           << ", syncing: " << std::boolalpha << syncing_;
-    LOG(log_dg_next_votes_sync_) << "Sending status message to " << _id << " with PBFT round: " << pbft_round
-                                 << ", previous round next votes size " << pbft_previous_round_next_votes_size;
-
-    RLPStream s(_initial ? 10 : 5);
-    if (_initial) {
-      s << FullNode::c_network_protocol_version << conf_.network_id << dag_max_level << genesis_ << pbft_chain_size
-        << syncing_ << pbft_round << pbft_previous_round_next_votes_size << FullNode::c_node_major_version
-        << FullNode::c_node_minor_version;
-    } else {
-      s << dag_max_level << pbft_chain_size << syncing_ << pbft_round << pbft_previous_round_next_votes_size;
-    }
-    auto payload = move(s.invalidate());
-
-    host_.capabilityHost()->sealAndSend(_id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 2)
-                                                 << dev::sha3(payload) << payload);
+  if (!dag_mgr_) {
+    LOG(log_nf_) << "DAG manager has not been available yet";
+    return;
   }
+  if (!pbft_chain_) {
+    LOG(log_nf_) << "PBFT chain has not been available yet";
+    return;
+  }
+  if (!pbft_mgr_) {
+    LOG(log_nf_) << "PBFT manager has not been available yet";
+    return;
+  }
+  if (!next_votes_mgr_) {
+    LOG(log_nf_) << "Next vote manager of previous PBFT round has not been available yet";
+    return;
+  }
+
+  if (_initial) {
+    LOG(log_dg_) << "Sending initial status message to " << _id << ", protocol version "
+                 << FullNode::c_network_protocol_version << ", network id " << conf_.network_id << ", genesis "
+                 << genesis_ << ", node major version " << FullNode::c_node_major_version << ", node minor version "
+                 << FullNode::c_node_minor_version;
+  }
+
+  auto dag_max_level = dag_mgr_->getMaxLevel();
+  auto pbft_chain_size = pbft_chain_->getPbftChainSize();
+  auto pbft_round = pbft_mgr_->getPbftRound();
+  auto pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesSize();
+  LOG(log_dg_dag_sync_) << "Sending status message to " << _id << " with dag level: " << dag_max_level;
+  LOG(log_dg_pbft_sync_) << "Sending status message to " << _id << " with pbft chain size: " << pbft_chain_size
+                         << ", syncing: " << std::boolalpha << syncing_;
+  LOG(log_dg_next_votes_sync_) << "Sending status message to " << _id << " with PBFT round: " << pbft_round
+                               << ", previous round next votes size " << pbft_previous_round_next_votes_size;
+
+  RLPStream s(_initial ? 10 : 5);
+  if (_initial) {
+    s << FullNode::c_network_protocol_version << conf_.network_id << dag_max_level << genesis_ << pbft_chain_size
+      << syncing_ << pbft_round << pbft_previous_round_next_votes_size << FullNode::c_node_major_version
+      << FullNode::c_node_minor_version;
+  } else {
+    s << dag_max_level << pbft_chain_size << syncing_ << pbft_round << pbft_previous_round_next_votes_size;
+  }
+  auto payload = move(s.invalidate());
+
+  host_.capabilityHost()->sealAndSend(_id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 2)
+                                               << dev::sha3(payload) << payload);
 }
 
 vector<NodeID> TaraxaCapability::selectPeers(std::function<bool(TaraxaPeer const &)> const &_predicate) {
