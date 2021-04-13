@@ -120,7 +120,7 @@ workflows:
           context: taraxa-node
 #         requires: [ gcp-gcr/build-and-push-image ]
       - build-mac:
-          filters:
+          #filters:
             #branches:
             #  only: [ circleci ]
           context: taraxa-node
