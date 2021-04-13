@@ -77,16 +77,21 @@ workflows:
 #          setup-remote-docker: true
 #          use-docker-layer-caching: true
       - build-linux:
-           context: taraxa-node
-#           requires: [ gcp-gcr/build-and-push-image ]
+          filters:
+            branches: 
+              only: [ develop , circleci ]
+            tags:  
+              only: /^v\d+\.\d+\.\d+$/
+          context: taraxa-node
+#         requires: [ gcp-gcr/build-and-push-image ]
       - github-release/create:
           attach-workspace: true
           workspace-root: cmake-docker-build-debug
           path: bin_install/taraxad
           tag: v0.0.1
           filters:
-#            branches: 
-#              only: [ develop , circleci ]
+            branches: 
+              only: [ develop , circleci ]
             tags:  
               only: /^v\d+\.\d+\.\d+$/
           requires: 
