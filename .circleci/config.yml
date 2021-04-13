@@ -46,7 +46,7 @@ jobs:
        - run: cd $BUILD_OUTPUT_DIR && make -j10 all 
        - run: cd $BUILD_OUTPUT_DIR && make install 
        - run: cd $BUILD_OUTPUT_DIR && strip bin_install/taraxad
-       - run: cd $BUILD_OUTPUT_DIR/tests && ctest --output-on-failure
+#       - run: cd $BUILD_OUTPUT_DIR/tests && ctest --output-on-failure
        - store_artifacts:
           path:  /root/project/cmake-docker-build-debug/bin_install/taraxad
        - persist_to_workspace:
@@ -70,9 +70,9 @@ workflows:
           attach-workspace: true
           workspace-root: project
           path: cmake-docker-build-debug/taraxad
-          filters:
-            branches: 
-              only: [ develop , circleci ]
+#          filters:
+#            branches: 
+#              only: [ develop , circleci ]
 #            tags:  
 #              only: /^v\d+\.\d+\.\d+$/
           requires: 
