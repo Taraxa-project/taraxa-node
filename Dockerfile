@@ -60,7 +60,7 @@ ARG BUILD_OUTPUT_DIR
 # Install conan deps
 WORKDIR /opt/taraxa/
 COPY conanfile.py .
-RUN conan install -if $BUILD_OUTPUT_DIR --build missing .
+RUN conan install -if $BUILD_OUTPUT_DIR --build missing -s build_type=Debug .
 
 
 ###################################################################
@@ -77,6 +77,7 @@ COPY . .
 RUN cd $BUILD_OUTPUT_DIR \
     && cmake -DCMAKE_BUILD_TYPE=Debug \
              -DTARAXA_STATIC_BUILD=ON \
+             -DTARAXA_ENABLE_SANITIZERS=ON \
              -DTARAXAD_INSTALL_DIR=./bin_install \
              -DTARAXAD_CONF_INSTALL_DIR=./bin_install \
              ../ \
