@@ -23,6 +23,7 @@ jobs:
         SCRYPT_VERSION: "1.21-3"
         GOROOT: "/usr/local/go"
         GOPATH: "/root/.go"
+        CC: "gcc"
      steps: 
         - checkout
         - run: 
@@ -33,13 +34,13 @@ jobs:
         - run:
            name: Brew install dependencies
            command: |
-              brew install coreutils, go, autoconf, automake, ccache, gflags,\
-                   git, libscrypt, libtool, makepkg-config, cmake, libjson-rpc-cpp
+              brew install coreutils go autoconf automake ccache gflags \
+                   libscrypt libtool cmake libjson-rpc-cpp
         - run:
            name: connan install 
            command: conan install -if cmake-build --build missing .
         - run: 
-           name: Build
+           name: conan Build
            command: conan build -bf cmake-build -sf . .
    build-linux:
      environment:
