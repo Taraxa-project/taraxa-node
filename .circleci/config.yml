@@ -35,9 +35,17 @@ jobs:
            command: |
               brew install go  ccache gflags &&
               brew install libscrypt libtool cmake libjson-rpc-cpp conan
+        - restore_cache:
+          keys:
+            - conan-cache-v1--{{ checksum "conanfile.py" }}
+            - conan-cache-v1
         - run:
            name: connan install 
            command: conan install -if cmake-build --build missing .
+        - save_cache:
+          paths:
+            - ~/.conan
+          key: conan-cache-v1--{{ checksum "conanfile.py" }}
         - run: 
            name: conan Build
            command: |
@@ -46,7 +54,7 @@ jobs:
              export CC=gcc &&
              export CPATH=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/include &&
              conan build -bf cmake-build -sf . . 
-             cp cmake-build/bin/taraxad/ cmake-build/taraxad-macos
+             cp cmake-build/bin/taraxad cmake-build/taraxad-macos
         - store_artifacts:
            path: /Users/distiller/project/cmake-build/bin/taraxad
         - persist_to_workspace:
