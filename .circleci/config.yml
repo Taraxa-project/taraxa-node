@@ -124,21 +124,13 @@ workflows:
       - build-linux:
           filters:
             branches: 
-              only: 
-               - develop
-               - circleci
-            tags:
-              ignore: /.*/
+              only: [ develop, cirleci ]
           context: taraxa-node
 #         requires: [ gcp-gcr/build-and-push-image ]
       - build-mac:
           filters:
             branches:
-              only: 
-               - develop
-               - circleci
-            tags:
-              ignore: /.*/
+              only: [ develop, cirleci ]
           context: taraxa-node
       - github-release/create:
           context: taraxa-node
@@ -147,7 +139,7 @@ workflows:
           path: cmake-docker-build-debug/bin_install/taraxad-amd64
           filters:
             branches: 
-              only: [ develop , circleci ]
+              only: [ develop, cirleci ]
             tags:  
               only: /^v\d+\.\d+\.\d+$/
           requires: 
@@ -160,7 +152,7 @@ workflows:
           path: bin/taraxad-macos
           filters:
             branches: 
-              only: [ develop , circleci ]
+              only: [ develop, cirleci ]
             tags:  
               only: /^v\d+\.\d+\.\d+$/
           requires: 
