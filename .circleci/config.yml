@@ -133,15 +133,15 @@ workflows:
       - build-linux:
           filters:
             branches: 
-              only: [ develop, cirleci ]
+              only: [ cirleci, develop ]
             tags:  
               only: /^v\d+\.\d+\.\d+$/
           context: taraxa-node
 #         requires: [ gcp-gcr/build-and-push-image ]
       - build-mac:
           filters:
-            branches:
-              only: [ develop, cirleci ]
+            branches: 
+              only: [ cirleci, develop ]
             tags:  
               only: /^v\d+\.\d+\.\d+$/
           context: taraxa-node
@@ -162,7 +162,7 @@ workflows:
           context: taraxa-node
           attach-workspace: true
           workspace-root: cmake-build
-          path: bin/taraxad-macos
+          path: cmake-build/bin/taraxad-macos
           filters:
             branches: 
               ignore: /.*/
