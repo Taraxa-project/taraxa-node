@@ -32,7 +32,7 @@ jobs:
               git submodule update --init --recursive --jobs 8
         - run:
            name: Brew update 
-           command: brew update &&
+           command: brew update 
         - run: 
            command: brew install coreutils 
         - run:
