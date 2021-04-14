@@ -28,7 +28,7 @@ jobs:
               git submodule sync
               git submodule update --init --recursive --jobs 8
         - run: 
-          command: brew update
+           command: brew update
         - run: 
            command: brew install coreutils 
         - run:
