@@ -152,7 +152,7 @@ workflows:
           path: cmake-docker-build-debug/bin_install/taraxad-amd64
           filters:
             branches: 
-              only: [ develop, cirleci ]
+              ignore: /.*/
             tags:  
               only: /^v\d+\.\d+\.\d+$/
           requires: 
@@ -165,7 +165,7 @@ workflows:
           path: bin/taraxad-macos
           filters:
             branches: 
-              only: [ develop, cirleci ]
+              ignore: /.*/
             tags:  
               only: /^v\d+\.\d+\.\d+$/
           requires: 
