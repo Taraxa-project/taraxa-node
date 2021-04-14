@@ -28,6 +28,13 @@ if (APPLE)
 endif ()
 message(STATUS "TARAXA_STATIC_BUILD: ${TARAXA_STATIC_BUILD}")
 
+# enable sanitizers
+option(TARAXA_ENABLE_SANITIZERS "Enable sanitizers (ON or OFF)" ON)
+if (TARAXA_ENABLE_SANITIZERS)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fsanitize=undefined")
+endif()
+message(STATUS "TARAXA_ENABLE_SANITIZERS: ${TARAXA_ENABLE_SANITIZERS}")
+
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 # Use ccache to speed-up recompilation
