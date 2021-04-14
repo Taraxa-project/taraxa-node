@@ -12,7 +12,6 @@ jobs:
      macos:
        xcode: 12.0.0
      environment:
-        BUILD_OUTPUT_DIR: "cmake-docker-build-debug"
         CLANG_VERSION: "1:10.0-50~exp1"
         GO_VERSION: "1.13.7"
         CMAKE_VERSION: "3.16.3-1ubuntu1"
@@ -21,8 +20,7 @@ jobs:
         JSONCPP_VERSION: "1.7.4-3.1ubuntu2"
         JSONRPCCPP_VERSION: "0.7.0-1build3"
         SCRYPT_VERSION: "1.21-3"
-        GOROOT: "/usr/local/go"
-        GOPATH: "/root/.go"
+        HOMEBREW_NO_AUTO_UPDATE: 1
      steps: 
         - checkout
         - run: 
@@ -30,9 +28,6 @@ jobs:
            command: |
               git submodule sync
               git submodule update --init --recursive --jobs 8
-        - run:
-           name: Brew update 
-           command: brew update 
         - run: 
            command: brew install coreutils 
         - run:
@@ -50,6 +45,12 @@ jobs:
              export CC=gcc &&
              export CPATH=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/include &&
              conan build -bf cmake-build -sf . . 
+             cp cmake-build/bin/taraxad/ cmake-build/taraxad-macos
+        - store_artifacts:
+           path: /Users/distiller/project/cmake-build/bin/taraxad
+        - persist_to_workspace:
+           root: cmake-build
+           paths: [ bin ]
    build-linux:
      environment:
         BUILD_OUTPUT_DIR: "cmake-docker-build-debug"
@@ -124,21 +125,31 @@ workflows:
           filters:
             branches: 
               only: [ develop , circleci ]
-            tags:  
-              only: /^v\d+\.\d+\.\d+$/
           context: taraxa-node
 #         requires: [ gcp-gcr/build-and-push-image ]
       - build-mac:
-          #filters:
-            #branches:
-            #  only: [ circleci ]
+          filters:
+            branches:
+              only: [ develop, circleci ]
           context: taraxa-node
       - github-release/create:
           context: taraxa-node
           attach-workspace: true
           workspace-root: cmake-docker-build-debug
           path: cmake-docker-build-debug/bin_install/taraxad-amd64
-          #tag: v0.0.1
+          filters:
+            branches: 
+              only: [ develop , circleci ]
+            tags:  
+              only: /^v\d+\.\d+\.\d+$/
+          requires: 
+            - build-linux
+            - build-mac
+      - github-release/create:
+          context: taraxa-node
+          attach-workspace: true
+          workspace-root: cmake-build
+          path: bin/taraxad-macos
           filters:
             branches: 
               only: [ develop , circleci ]
