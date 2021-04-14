@@ -20,7 +20,6 @@ jobs:
         JSONCPP_VERSION: "1.7.4-3.1ubuntu2"
         JSONRPCCPP_VERSION: "0.7.0-1build3"
         SCRYPT_VERSION: "1.21-3"
-#        HOMEBREW_NO_AUTO_UPDATE: 1
      steps: 
         - checkout
         - run: 
@@ -28,6 +27,8 @@ jobs:
            command: |
               git submodule sync
               git submodule update --init --recursive --jobs 8
+        - run: 
+          command: brew update
         - run: 
            command: brew install coreutils 
         - run:
