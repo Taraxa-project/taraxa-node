@@ -57,6 +57,7 @@ TEST_F(CryptoTest, VerifierWesolowski) {
 
   EXPECT_FALSE(verifier(sol2));
   EXPECT_FALSE(verifier(sol3));
+  BN_clear_free(N_bn);
 }
 
 TEST_F(CryptoTest, vrf_proof_verify) {
