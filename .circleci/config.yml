@@ -37,7 +37,7 @@ jobs:
            command: brew install coreutils 
         - run:
            command: |
-              brew install go autoconf automake ccache gflags &&
+              brew install go  ccache gflags &&
               brew install libscrypt libtool cmake libjson-rpc-cpp conan
         - run:
            name: connan install 
