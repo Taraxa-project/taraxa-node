@@ -54,7 +54,7 @@ jobs:
              export CC=gcc &&
              export CPATH=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/include &&
              conan build -bf cmake-build -sf . .  &&
-             cp cmake-build/bin/taraxad cmake-build/taraxad-macos
+             cp cmake-build/bin/taraxad cmake-build/bin/taraxad-macos
         - store_artifacts:
            path: /Users/distiller/project/cmake-build/bin/taraxad
         - persist_to_workspace:
