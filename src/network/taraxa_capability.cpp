@@ -812,6 +812,7 @@ void TaraxaCapability::sendStatus(NodeID const &_id, bool _initial) {
       sealAndSend(_id, UpdateStatusPacket,
                   RLPStream(5) << dag_max_level << pbft_chain_size << syncing_.load() << pbft_round
                                << pbft_previous_round_next_votes_size);
+
     }
   }
 }
