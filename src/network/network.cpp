@@ -10,38 +10,15 @@
 
 namespace taraxa {
 
-std::pair<bool, bi::tcp::endpoint> resolveHost(string const &addr, uint16_t port) {
-  static boost::asio::io_service s_resolverIoService;
-  boost::system::error_code ec;
-  bi::address address = bi::address::from_string(addr, ec);
-  bi::tcp::endpoint ep(bi::address(), port);
-  if (!ec) {
-    ep.address(address);
-  } else {
-    boost::system::error_code ec;
-    // resolve returns an iterator (host can resolve to multiple addresses)
-    bi::tcp::resolver r(s_resolverIoService);
-    auto it = r.resolve({bi::tcp::v4(), addr, toString(port)}, ec);
-    if (ec) {
-      return std::make_pair(false, bi::tcp::endpoint());
-    } else {
-      ep = *it;
-    }
-  }
-  return std::make_pair(true, ep);
-}
-
 Network::Network(NetworkConfig const &config, std::filesystem::path const &network_file_path, dev::KeyPair const &key,
                  std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
                  std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
                  std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr, std::shared_ptr<DagManager> dag_mgr,
                  std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<TransactionManager> trx_mgr)
-    : conf_(config), tp_(config.network_num_threads, false), network_file_(network_file_path) {
+    : conf_(config), tp_(config.network_num_threads, false) {
   auto const &node_addr = key.address();
   LOG_OBJECTS_CREATE("NETWORK");
-
   LOG(log_nf_) << "Read Network Config: " << std::endl << conf_ << std::endl;
-
   // TODO make all these properties configurable
   dev::p2p::NetworkConfig net_conf;
   net_conf.listenIPAddress = conf_.network_address;
@@ -51,12 +28,12 @@ Network::Network(NetworkConfig const &config, std::filesystem::path const &netwo
   net_conf.traverseNAT = false;
   net_conf.publicIPAddress = {};
   net_conf.pin = false;
-
   TaraxaNetworkConfig taraxa_net_conf;
   taraxa_net_conf.ideal_peer_count = conf_.network_ideal_peer_count;
   // TODO conf_.network_max_peer_count -> conf_.peer_count_stretch
   taraxa_net_conf.peer_stretch = conf_.network_max_peer_count / conf_.network_ideal_peer_count;
   taraxa_net_conf.is_boot_node = conf_.network_is_boot_node;
+  taraxa_net_conf.expected_parallelism = tp_.capacity();
   for (auto const &node : conf_.network_boot_nodes) {
     Public pub(node.id);
     if (pub == key.pub()) {
@@ -69,81 +46,53 @@ Network::Network(NetworkConfig const &config, std::filesystem::path const &netwo
   }
   LOG(log_nf_) << " Number of boot node added: " << boot_nodes_.size() << std::endl;
   string net_version = "TaraxaNode";  // TODO maybe give a proper name?
-  dev::bytes networkData;
-  if (!network_file_.empty()) {
-    networkData = contents(network_file_.string());
+  auto construct_capabilities = [&, this](auto host) {
+    taraxa_capability_ = std::make_shared<TaraxaCapability>(
+        host, conf_, db, pbft_mgr, pbft_chain, vote_mgr, next_votes_mgr, dag_mgr, dag_blk_mgr, trx_mgr, key.address());
+    return Host::CapabilityList{taraxa_capability_};
+  };
+  host_ = dev::p2p::Host::make(net_version, construct_capabilities, key, net_conf, move(taraxa_net_conf),
+                               network_file_path);
+  for (uint i = 0; i < tp_.capacity(); ++i) {
+    tp_.post_loop({}, [this] { host_->do_work(); });
   }
-  if (!networkData.empty()) {
-    host_ = std::make_shared<dev::p2p::Host>(net_version, net_conf, move(taraxa_net_conf), &networkData);
-  } else {
-    host_ = std::make_shared<dev::p2p::Host>(net_version, makeENR(key, net_conf), net_conf, move(taraxa_net_conf));
-  }
-  taraxa_capability_ = std::make_shared<TaraxaCapability>(*host_, tp_, conf_, db, pbft_mgr, pbft_chain, vote_mgr,
-                                                          next_votes_mgr, dag_mgr, dag_blk_mgr, trx_mgr, key.address());
-  host_->registerCapability(taraxa_capability_);
-}
-
-Network::~Network() {
-  if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
-    return;
-  }
-  tp_.stop();
-  host_->stop();
-  if (!network_file_.empty()) {
-    if (auto netData = host_->saveNetwork(); !netData.empty()) {
-      writeFile(network_file_.string(), &netData);
-      LOG(log_dg_) << "Network saved to: " << network_file_;
-    }
-  }
-  diagnostic_thread_->join();
-}
-
-void Network::start() {
-  if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
-    return;
-  }
-  assert(!host_->isStarted());
-  host_->start();
   if (!boot_nodes_.empty()) {
     for (auto const &[k, v] : boot_nodes_) {
-      host_->addNode(k, v);
+      host_->addNode(Node(k, v, PeerType::Required));
     }
     // Every 30 seconds check if connected to another node and refresh boot nodes
-    tp_.post_periodic({30000}, [this] {
+    tp_.post_loop({30000}, [this] {
       // If node count drops to zero add boot nodes again and retry
       if (getNodeCount() == 0) {
         for (auto const &[k, v] : boot_nodes_) {
-          host_->addNode(k, v);
+          host_->addNode(Node(k, v, PeerType::Required));
         }
       }
-      if (host_->peerCount() == 0) {
+      if (host_->peer_count() == 0) {
         for (auto const &[k, _] : boot_nodes_) {
           host_->invalidateNode(k);
         }
       }
     });
   }
-  tp_.start();
-  LOG(log_nf_) << "Started Network address: " << conf_.network_address << ":" << conf_.network_tcp_port << std::endl;
-  LOG(log_nf_) << "Started Node id: " << host_->id();
-  diagnostic_thread_ = make_unique<std::thread>([this] {
-    auto sleep_duration = 2s;  // So that the node terminates in a timely manner
-    auto log_interval = 30s;
-    assert(log_interval.count() % sleep_duration.count() == 0 && sleep_duration < log_interval);
-    auto num_sleeps_left = 0;
-    while (!stopped_) {
-      if (num_sleeps_left != 0) {
-        std::this_thread::sleep_for(sleep_duration);
-        --num_sleeps_left;
-        continue;
-      }
-      num_sleeps_left = log_interval / sleep_duration;
-      LOG(log_nf_) << "NET_TP_NUM_PENDING_TASKS=" << tp_.num_pending_tasks();
-    }
-  });
+  diagnostic_thread_.post_loop({30000},
+                               [this] { LOG(log_nf_) << "NET_TP_NUM_PENDING_TASKS=" << tp_.num_pending_tasks(); });
 }
 
-bool Network::isStarted() { return !stopped_; }
+Network::~Network() {
+  tp_.stop();
+  diagnostic_thread_.stop();
+}
+
+void Network::start() {
+  tp_.start();
+  taraxa_capability_->start();
+  diagnostic_thread_.start();
+  LOG(log_nf_) << "Started Network address: " << conf_.network_address << ":" << conf_.network_tcp_port << std::endl;
+  LOG(log_nf_) << "Started Node id: " << host_->id();
+}
+
+bool Network::isStarted() { return tp_.is_running(); }
 
 std::list<NodeEntry> Network::getAllNodes() const { return host_->getNodes(); }
 
@@ -227,13 +176,25 @@ void Network::sendPbftVote(NodeID const &id, Vote const &vote) {
   taraxa_capability_->sendPbftVote(id, vote);
 }
 
-std::pair<dev::Secret, dev::p2p::ENR> Network::makeENR(KeyPair const &key, p2p::NetworkConfig const &net_conf) {
-  return pair{
-      key.secret(),
-      IdentitySchemeV4::createENR(
-          key.secret(), net_conf.publicIPAddress.empty() ? bi::address{} : bi::make_address(net_conf.publicIPAddress),
-          net_conf.listenPort, net_conf.listenPort),
-  };
+std::pair<bool, bi::tcp::endpoint> Network::resolveHost(string const &addr, uint16_t port) {
+  static boost::asio::io_service s_resolverIoService;
+  boost::system::error_code ec;
+  bi::address address = bi::address::from_string(addr, ec);
+  bi::tcp::endpoint ep(bi::address(), port);
+  if (!ec) {
+    ep.address(address);
+  } else {
+    boost::system::error_code ec;
+    // resolve returns an iterator (host can resolve to multiple addresses)
+    bi::tcp::resolver r(s_resolverIoService);
+    auto it = r.resolve({bi::tcp::v4(), addr, toString(port)}, ec);
+    if (ec) {
+      return std::make_pair(false, bi::tcp::endpoint());
+    } else {
+      ep = *it;
+    }
+  }
+  return std::make_pair(true, ep);
 }
 
 }  // namespace taraxa

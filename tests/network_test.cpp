@@ -126,10 +126,14 @@ TEST_F(NetworkTest, transfer_transaction) {
 // is successfull. Once restored from the file it is able to reestablish
 // connections even with boot nodes down
 TEST_F(NetworkTest, save_network) {
+  std::filesystem::remove_all("/tmp/nw2");
+  std::filesystem::remove_all("/tmp/nw3");
+  auto key2 = dev::KeyPair::create();
+  auto key3 = dev::KeyPair::create();
   {
     std::shared_ptr<Network> nw1(new taraxa::Network(g_conf1->network));
-    std::shared_ptr<Network> nw2(new taraxa::Network(g_conf2->network, "/tmp/nw2"));
-    std::shared_ptr<Network> nw3(new taraxa::Network(g_conf3->network, "/tmp/nw3"));
+    std::shared_ptr<Network> nw2(new taraxa::Network(g_conf2->network, "/tmp/nw2", key2));
+    std::shared_ptr<Network> nw3(new taraxa::Network(g_conf3->network, "/tmp/nw3", key3));
 
     nw1->start();
     nw2->start();
@@ -145,8 +149,8 @@ TEST_F(NetworkTest, save_network) {
     ASSERT_EQ(2, nw3->getPeerCount());
   }
 
-  std::shared_ptr<Network> nw2(new taraxa::Network(g_conf2->network, "/tmp/nw2"));
-  std::shared_ptr<Network> nw3(new taraxa::Network(g_conf3->network, "/tmp/nw3"));
+  std::shared_ptr<Network> nw2(new taraxa::Network(g_conf2->network, "/tmp/nw2", key2));
+  std::shared_ptr<Network> nw3(new taraxa::Network(g_conf3->network, "/tmp/nw3", key3));
   nw2->start();
   nw3->start();
 

@@ -12,20 +12,22 @@ class ThreadPool : std::enable_shared_from_this<ThreadPool> {
   boost::asio::io_context ioc_;
   boost::asio::executor_work_guard<decltype(ioc_)::executor_type> ioc_work_;
   std::vector<std::thread> threads_;
-  std::mutex threads_mu_;
+  mutable std::mutex threads_mu_;
 
   std::atomic<uint64_t> debug_num_pending_tasks_ = 0;
 
  public:
-  explicit ThreadPool(size_t num_threads, bool _start = true);
+  explicit ThreadPool(size_t num_threads = std::thread::hardware_concurrency(), bool _start = true);
   ~ThreadPool();
 
   ThreadPool(ThreadPool const &) = delete;
   ThreadPool &operator=(ThreadPool const &) = delete;
 
-  uint64_t num_pending_tasks() { return debug_num_pending_tasks_; }
+  auto capacity() const { return threads_.capacity(); }
+  uint64_t num_pending_tasks() const { return debug_num_pending_tasks_; }
 
   void start();
+  bool is_running() const;
   void stop();
 
   void post(uint64_t do_in_ms, asio_callback action);
@@ -39,7 +41,7 @@ class ThreadPool : std::enable_shared_from_this<ThreadPool> {
   struct Periodicity {
     uint64_t period_ms = 0, delay_ms = period_ms;
   };
-  void post_periodic(Periodicity const &periodicity, std::function<void()> action);
+  void post_loop(Periodicity const &periodicity, std::function<void()> action);
 };
 
 }  // namespace taraxa::util

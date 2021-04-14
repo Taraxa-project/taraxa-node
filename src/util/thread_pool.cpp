@@ -21,6 +21,11 @@ void ThreadPool::start() {
   }
 }
 
+bool ThreadPool::is_running() const {
+  std::unique_lock l(threads_mu_);
+  return !threads_.empty();
+}
+
 void ThreadPool::stop() {
   std::unique_lock l(threads_mu_);
   ioc_.stop();
@@ -56,11 +61,10 @@ void ThreadPool::post(uint64_t do_in_ms, std::function<void()> action) {
   });
 }
 
-void ThreadPool::post_periodic(Periodicity const &periodicity, std::function<void()> action) {
-  // TODO avoid copying `action` every iteration
-  post(periodicity.delay_ms, [=] {
+void ThreadPool::post_loop(Periodicity const &periodicity, std::function<void()> action) {
+  post(periodicity.delay_ms, [=, action = move(action)]() mutable {
     action();
-    post_periodic({periodicity.period_ms}, action);
+    post_loop({periodicity.period_ms}, move(action));
   });
 }
 

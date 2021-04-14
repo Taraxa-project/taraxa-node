@@ -1,7 +1,6 @@
 #pragma once
 
 #include <libp2p/Capability.h>
-#include <libp2p/CapabilityHost.h>
 #include <libp2p/Common.h>
 #include <libp2p/Host.h>
 #include <libp2p/Session.h>
@@ -106,30 +105,33 @@ class TaraxaPeer : public boost::noncopyable {
 };
 
 struct TaraxaCapability : virtual CapabilityFace {
-  TaraxaCapability(Host &_host, util::ThreadPool &tp, NetworkConfig const &_conf, std::shared_ptr<DbStorage> db = {},
+  TaraxaCapability(weak_ptr<Host> _host, NetworkConfig const &_conf, std::shared_ptr<DbStorage> db = {},
                    std::shared_ptr<PbftManager> pbft_mgr = {}, std::shared_ptr<PbftChain> pbft_chain = {},
                    std::shared_ptr<VoteManager> vote_mgr = {},
                    std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr = {},
                    std::shared_ptr<DagManager> dag_mgr = {}, std::shared_ptr<DagBlockManager> dag_blk_mgr = {},
                    std::shared_ptr<TransactionManager> trx_mgr = {}, addr_t const &node_addr = {});
 
-  virtual ~TaraxaCapability() = default;
+  virtual ~TaraxaCapability() { tp_.stop(); }
 
   std::string name() const override { return "taraxa"; }
   unsigned version() const override { return 1; }
   unsigned messageCount() const override { return PacketCount; }
+  void onConnect(weak_ptr<Session> session, u256 const &) override;
+  void interpretCapabilityPacket(weak_ptr<Session> session, unsigned _id, RLP const &_r) override;
+  void onDisconnect(NodeID const &_nodeID) override;
 
-  void sealAndSend(NodeID const &nodeID, RLPStream &s, unsigned packet_type);
+  // TODO remove managing thread pool inside this class
+  void start() { tp_.start(); }
+
+  void sealAndSend(NodeID const &nodeID, unsigned packet_type, RLPStream rlp);
   bool pbft_syncing() const { return syncing_.load(); }
 
-  void onConnect(NodeID const &_nodeID, u256 const &) override;
   void syncPeerPbft(NodeID const &_nodeID, unsigned long height_to_sync);
   void restartSyncingPbft(bool force = false);
   void delayedPbftSync(NodeID _nodeID, int counter);
   std::pair<bool, blk_hash_t> checkDagBlockValidation(DagBlock const &block);
-  void interpretCapabilityPacket(NodeID const &_nodeID, unsigned _id, RLP const &_r) override;
   void interpretCapabilityPacketImpl(NodeID const &_nodeID, unsigned _id, RLP const &_r, PacketStats &packet_stats);
-  void onDisconnect(NodeID const &_nodeID) override;
   void sendTestMessage(NodeID const &_id, int _x);
   void sendStatus(NodeID const &_id, bool _initial);
   void onNewBlockReceived(DagBlock block, std::vector<Transaction> transactions);
@@ -179,10 +181,11 @@ struct TaraxaCapability : virtual CapabilityFace {
   void insertPeer(NodeID const &node_id, std::shared_ptr<TaraxaPeer> const &peer);
 
  private:
-  void handle_read_exception(NodeID const &_nodeID, unsigned _id, RLP const &_r);
+  void handle_read_exception(weak_ptr<Session> session, unsigned _id, RLP const &_r);
 
-  Host &host_;
-  util::ThreadPool &tp_;
+  weak_ptr<Host> host_;
+  NodeID node_id_;
+  util::ThreadPool tp_{1, false};
 
   atomic<bool> syncing_ = false;
   bool requesting_pending_dag_blocks_ = false;
