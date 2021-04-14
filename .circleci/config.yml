@@ -31,10 +31,13 @@ jobs:
               git submodule sync
               git submodule update --init --recursive --jobs 8
         - run:
-           name: Brew install dependencies
+           name: Brew update 
+           command: brew update &&
+        - run: 
+           command: brew install coreutils 
+        - run:
            command: |
-              brew update &&
-              brew install coreutils go autoconf automake ccache gflags &&
+              brew install go autoconf automake ccache gflags &&
               brew install libscrypt libtool cmake libjson-rpc-cpp conan
         - run:
            name: connan install 
