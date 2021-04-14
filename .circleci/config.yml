@@ -45,6 +45,8 @@ jobs:
         - run: 
            name: conan Build
            command: |
+             export GOPATH=$HOME/golang &&
+             export GOROOT=/usr/local/opt/go/libexec &&
              export CC=gcc &&
              export CPATH=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/include &&
              conan build -bf cmake-build -sf . . 
