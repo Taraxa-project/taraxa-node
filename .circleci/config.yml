@@ -53,7 +53,7 @@ jobs:
              export GOROOT=/usr/local/opt/go/libexec &&
              export CC=gcc &&
              export CPATH=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/include &&
-             conan build -bf cmake-build -sf . . 
+             conan build -bf cmake-build -sf . .  &&
              cp cmake-build/bin/taraxad cmake-build/taraxad-macos
         - store_artifacts:
            path: /Users/distiller/project/cmake-build/bin/taraxad
@@ -133,7 +133,7 @@ workflows:
       - build-linux:
           filters:
             branches: 
-              only: [ cirleci, develop ]
+              ignore: /.*/
             tags:  
               only: /^v\d+\.\d+\.\d+$/
           context: taraxa-node
@@ -141,7 +141,7 @@ workflows:
       - build-mac:
           filters:
             branches: 
-              only: [ cirleci, develop ]
+              ignore: /.*/
             tags:  
               only: /^v\d+\.\d+\.\d+$/
           context: taraxa-node
