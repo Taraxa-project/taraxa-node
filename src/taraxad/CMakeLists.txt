@@ -1,4 +1,4 @@
-add_executable(taraxad main.cpp)
+add_executable(taraxad main.cpp taraxad_version.hpp)
 target_link_libraries(taraxad PRIVATE app_base)
 
 set(TARAXAD_INSTALL_DIR "/usr/local/bin" CACHE PATH "Aplication install directory")
