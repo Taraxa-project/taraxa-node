@@ -22,7 +22,7 @@ void ThreadPool::start() {
 }
 
 bool ThreadPool::is_running() const {
-  std::unique_lock l(threads_mu_);
+  std::shared_lock l(threads_mu_);
   return !threads_.empty();
 }
 
@@ -54,10 +54,12 @@ void ThreadPool::post(uint64_t do_in_ms, asio_callback action) {
 }
 
 void ThreadPool::post(uint64_t do_in_ms, std::function<void()> action) {
-  post(do_in_ms, [action = std::move(action)](auto const &err_code) {
-    if (!err_code) {
+  post(do_in_ms, [action = std::move(action)](auto const &err) {
+    if (!err) {
       action();
+      return;
     }
+    assert(err == boost::asio::error::operation_aborted);
   });
 }
 

@@ -27,7 +27,8 @@ using std::string;
 using std::to_string;
 
 FullNode::FullNode(FullNodeConfig const &conf)
-    : conf_(conf),
+    : post_destruction_ctx_(make_shared<PostDestructionContext>()),
+      conf_(conf),
       kp_(conf_.node_secret.empty()
               ? dev::KeyPair::create()
               : dev::KeyPair(dev::Secret(conf_.node_secret, dev::Secret::ConstructFromStringType::FromHex))) {}

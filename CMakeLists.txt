@@ -29,7 +29,7 @@ endif ()
 message(STATUS "TARAXA_STATIC_BUILD: ${TARAXA_STATIC_BUILD}")
 
 # enable sanitizers
-option(TARAXA_ENABLE_SANITIZERS "Enable sanitizers (ON or OFF)" ON)
+option(TARAXA_ENABLE_SANITIZERS "Enable sanitizers (ON or OFF)" OFF)
 if (TARAXA_ENABLE_SANITIZERS)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fsanitize=undefined")
 endif()

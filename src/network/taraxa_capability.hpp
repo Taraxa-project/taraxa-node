@@ -112,7 +112,10 @@ struct TaraxaCapability : virtual CapabilityFace {
                    std::shared_ptr<DagManager> dag_mgr = {}, std::shared_ptr<DagBlockManager> dag_blk_mgr = {},
                    std::shared_ptr<TransactionManager> trx_mgr = {}, addr_t const &node_addr = {});
 
-  virtual ~TaraxaCapability() { tp_.stop(); }
+  virtual ~TaraxaCapability() {
+    tp_.stop();
+    std::cout << "DESTROYING TARCAP" << std::endl;
+  }
 
   std::string name() const override { return "taraxa"; }
   unsigned version() const override;
