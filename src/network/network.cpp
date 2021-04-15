@@ -84,6 +84,7 @@ Network::Network(NetworkConfig const &config, std::filesystem::path const &netwo
 
 Network::~Network() {
   tp_.stop();
+  taraxa_capability_->stop();
   diagnostic_thread_.stop();
 }
 

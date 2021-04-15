@@ -112,7 +112,7 @@ struct TaraxaCapability : virtual CapabilityFace {
                    std::shared_ptr<DagManager> dag_mgr = {}, std::shared_ptr<DagBlockManager> dag_blk_mgr = {},
                    std::shared_ptr<TransactionManager> trx_mgr = {}, addr_t const &node_addr = {});
 
-  virtual ~TaraxaCapability() { tp_.stop(); }
+  virtual ~TaraxaCapability() { stop(); }
 
   std::string name() const override { return "taraxa"; }
   unsigned version() const override;
@@ -123,6 +123,7 @@ struct TaraxaCapability : virtual CapabilityFace {
 
   // TODO remove managing thread pool inside this class
   void start() { tp_.start(); }
+  void stop() { tp_.stop(); }
 
   void sealAndSend(NodeID const &nodeID, unsigned packet_type, RLPStream rlp);
   bool pbft_syncing() const { return syncing_.load(); }
