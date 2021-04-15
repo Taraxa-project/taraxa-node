@@ -112,8 +112,9 @@ jobs:
         - run: 
            name: strip binary
            command: cd $BUILD_OUTPUT_DIR && strip bin_install/taraxad && cp bin_install/taraxad bin_install/taraxad-amd64
-           
-#       - run: cd $BUILD_OUTPUT_DIR/tests && ctest --output-on-failure
+        - run: 
+           name: Execute ctest 
+           command: cd $BUILD_OUTPUT_DIR/tests && ctest --output-on-failure
         - store_artifacts:
            path: /root/project/cmake-docker-build-debug/bin_install/taraxad
         - persist_to_workspace:
