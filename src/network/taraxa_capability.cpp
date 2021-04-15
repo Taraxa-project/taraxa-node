@@ -92,7 +92,7 @@ void TaraxaCapability::sealAndSend(NodeID const &nodeID, unsigned packet_type, R
     tp_.post([=] {  // schedule it out of the socket session thread. although maybe it's an overkill
       PacketStats packet_stats{nodeID, packet_size, false, duration};
       sent_packets_stats_.addPacket(packetTypeToString(packet_type), packet_stats);
-      LOG(log_dg_net_per_) << "(\"" << host->id() << "\") sent " << packetTypeToString(packet_type) << " packet to (\""
+      LOG(log_dg_net_per_) << "(\"" << node_id_ << "\") sent " << packetTypeToString(packet_type) << " packet to (\""
                            << nodeID << "\"). Stats: " << packet_stats;
     });
   });
