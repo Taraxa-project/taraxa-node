@@ -1,9 +1,9 @@
 #include <boost/program_options.hpp>
 #include <condition_variable>
 
-#include "taraxad_version.hpp"
 #include "common/static_init.hpp"
 #include "node/full_node.hpp"
+#include "taraxad_version.hpp"
 
 using namespace taraxa;
 using namespace std;
@@ -22,22 +22,18 @@ int main(int argc, const char* argv[]) {
     uint64_t rebuild_db_period = 0;
     uint64_t revert_to_period = 0;
     bpo::options_description main_options("GENERIC OPTIONS:");
-    main_options.add_options()
-        ("help", "Print this help message and exit")
-        ("version", "Print version of taraxd")
-        ("conf_taraxa", bpo::value<string>(&conf_taraxa),
-        "Config for taraxa node (either json file path or inline json) [required]")
-        ("destroy_db", bpo::bool_switch(&destroy_db), "Destroys all the existing data in the database")
-        ("rebuild_db", bpo::bool_switch(&rebuild_db), 
-            "Reads the raw dag/pbft blocks from the db and executes all the blocks from scratch rebuilding all the other "
-            "database tables - this could take a long time")
-        ("rebuild_db_period", bpo::value<uint64_t>(&rebuild_db_period),
-            "Use with rebuild_db - Rebuild db up to a specified period")
-        ("rebuild_network", bpo::bool_switch(&rebuild_network),
-            "Delete all saved network/nodes information and rebuild network "
-            "from boot nodes")
-        ("revert_to_period", bpo::value<uint64_t>(&revert_to_period),
-            "Revert db/state to specified period (specify period) ");
+    main_options.add_options()("help", "Print this help message and exit")("version", "Print version of taraxd")(
+        "conf_taraxa", bpo::value<string>(&conf_taraxa),
+        "Config for taraxa node (either json file path or inline json) [required]")(
+        "destroy_db", bpo::bool_switch(&destroy_db), "Destroys all the existing data in the database")(
+        "rebuild_db", bpo::bool_switch(&rebuild_db),
+        "Reads the raw dag/pbft blocks from the db and executes all the blocks from scratch rebuilding all the other "
+        "database tables - this could take a long time")("rebuild_db_period", bpo::value<uint64_t>(&rebuild_db_period),
+                                                         "Use with rebuild_db - Rebuild db up to a specified period")(
+        "rebuild_network", bpo::bool_switch(&rebuild_network),
+        "Delete all saved network/nodes information and rebuild network "
+        "from boot nodes")("revert_to_period", bpo::value<uint64_t>(&revert_to_period),
+                           "Revert db/state to specified period (specify period) ");
     bpo::options_description allowed_options("Allowed options");
     allowed_options.add(main_options);
     bpo::variables_map option_vars;

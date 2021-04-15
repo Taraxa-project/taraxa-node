@@ -115,7 +115,7 @@ struct TaraxaCapability : virtual CapabilityFace {
   virtual ~TaraxaCapability() { tp_.stop(); }
 
   std::string name() const override { return "taraxa"; }
-  unsigned version() const override { return 1; }
+  unsigned version() const override;
   unsigned messageCount() const override { return PacketCount; }
   void onConnect(weak_ptr<Session> session, u256 const &) override;
   void interpretCapabilityPacket(weak_ptr<Session> session, unsigned _id, RLP const &_r) override;
