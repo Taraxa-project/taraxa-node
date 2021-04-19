@@ -98,7 +98,7 @@ jobs:
             name: Cmake
             command: | 
               cd $BUILD_OUTPUT_DIR &&
-              cmake -DCMAKE_BUILD_TYPE=Debug \
+              cmake -DCMAKE_BUILD_TYPE=Release \
               -DTARAXA_STATIC_BUILD=ON \
               -DTARAXAD_INSTALL_DIR=./bin_install \
               -DTARAXAD_CONF_INSTALL_DIR=./bin_install \
