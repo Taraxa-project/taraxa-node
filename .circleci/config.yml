@@ -88,9 +88,9 @@ jobs:
               git submodule update --init --recursive --jobs 8
         - run: 
            command: mkdir $BUILD_OUTPUT_DIR
-        - run: 
-           name: Copy /opt/taraxa/existing files to project
-           command: cp -rp /opt/taraxa/cmake-docker-build-debug/* /root/project/cmake-docker-build-debug/
+       # - run: 
+       #    name: Copy /opt/taraxa/existing files to project
+       #    command: cp -rp /opt/taraxa/cmake-docker-build-debug/* /root/project/cmake-docker-build-debug/
 #       - git/checkout-with-submodules
 #       - setup_remote_docker:
 #           docker_layer_caching: true
@@ -111,7 +111,7 @@ jobs:
            command: cd $BUILD_OUTPUT_DIR && make install 
         - run: 
            name: strip binary
-           command: cd $BUILD_OUTPUT_DIR && strip bin_install/taraxad && cp bin_install/taraxad bin_install/taraxad-amd64
+           command: cd $BUILD_OUTPUT_DIR && strip bin_install/taraxad && cp bin_install/taraxad bin_install/taraxad-x86_64
         - run: 
            name: Execute ctest 
            command: cd $BUILD_OUTPUT_DIR/tests && ctest --output-on-failure
@@ -150,7 +150,7 @@ workflows:
           context: taraxa-node
           attach-workspace: true
           workspace-root: cmake-docker-build-debug
-          path: cmake-docker-build-debug/bin_install/taraxad-amd64
+          path: cmake-docker-build-debug/bin_install/taraxad-x86_64
           filters:
             branches: 
               ignore: /.*/
