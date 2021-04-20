@@ -94,6 +94,9 @@ jobs:
 #       - git/checkout-with-submodules
 #       - setup_remote_docker:
 #           docker_layer_caching: true
+        - run:
+            name: make clang-format
+            command: cd $BUILD_OUTPUT_DIR && make clang-format && make clang-format-check
         - run: 
             name: Cmake
             command: | 
