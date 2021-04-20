@@ -66,7 +66,6 @@ jobs:
                cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=gcc -DSYSTEM_HOME_OVERRIDE=/Users/root/project/cmake-build  ../
                make -j 4
                cp cmake-build/bin/taraxad cmake-build/bin/taraxad-macos
-        - run: 
         - store_artifacts:
            path: /Users/distiller/project/cmake-build/bin/taraxad
         - persist_to_workspace:
