@@ -54,7 +54,8 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
       return;
     }
     if (state_desc.blk_num != blk_n - 1) {
-      cerr << "state db last executed block number (" << state_desc.blk_num << ") is expected to be " << blk_n - 1;
+      cerr << "state db last executed block number (" << state_desc.blk_num << ") is expected to be " << blk_n - 1
+           << endl;
       exit(1);
     }
     auto res = state_api.transition_state(
