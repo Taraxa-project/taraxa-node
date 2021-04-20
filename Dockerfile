@@ -81,8 +81,7 @@ RUN cd $BUILD_OUTPUT_DIR \
              -DTARAXAD_CONF_INSTALL_DIR=./bin_install \
              ../ \
     && make -j$(nproc) all \
-    && make install \
-    && strip bin_install/taraxad
+    && make install
 
 ###############################################################################
 # Taraxa Cli #
