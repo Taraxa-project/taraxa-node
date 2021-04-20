@@ -46,15 +46,27 @@ jobs:
            paths:
              - ~/.conan
            key: conan-cache-v2-mac--{{ checksum "conanfile.py" }}
+#        - run: 
+#           name: conan Build
+#           command: |
+#             export GOPATH=$HOME/golang &&
+#             export GOROOT=/usr/local/opt/go/libexec &&
+#             export CC=gcc &&
+#             export CPATH=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/include &&
+#             conan build -bf cmake-build -sf . .  &&
+#             cp cmake-build/bin/taraxad cmake-build/bin/taraxad-macos
         - run: 
-           name: conan Build
-           command: |
-             export GOPATH=$HOME/golang &&
-             export GOROOT=/usr/local/opt/go/libexec &&
-             export CC=gcc &&
-             export CPATH=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/include &&
-             conan build -bf cmake-build -sf . .  &&
-             cp cmake-build/bin/taraxad cmake-build/bin/taraxad-macos
+           name: Cmake
+             command: |
+               export GOPATH=$HOME/golang &&
+               export GOROOT=/usr/local/opt/go/libexec &&
+               export CC=gcc &&
+               export CPATH=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/include &&
+               cd /root/project/cmake-build 
+               cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=gcc -DSYSTEM_HOME_OVERRIDE=/Users/root/project/cmake-build  ../
+               make -j 4
+               cp cmake-build/bin/taraxad cmake-build/bin/taraxad-macos
+        - run: 
         - store_artifacts:
            path: /Users/distiller/project/cmake-build/bin/taraxad
         - persist_to_workspace:
