@@ -94,9 +94,6 @@ jobs:
 #       - git/checkout-with-submodules
 #       - setup_remote_docker:
 #           docker_layer_caching: true
-        - run:
-            name: make clang-format
-            command: cd $BUILD_OUTPUT_DIR && make clang-format && make clang-format-check
         - run: 
             name: Cmake
             command: | 
@@ -106,6 +103,9 @@ jobs:
               -DTARAXAD_INSTALL_DIR=./bin_install \
               -DTARAXAD_CONF_INSTALL_DIR=./bin_install \
               ../ 
+        - run:
+            name: make clang-format
+            command: cd $BUILD_OUTPUT_DIR && make clang-format && make clang-format-check
         - run: 
            name: make
            command: cd $BUILD_OUTPUT_DIR && make -j10 all 
