@@ -88,6 +88,18 @@ jobs:
               git submodule update --init --recursive --jobs 8
         - run: 
            command: mkdir $BUILD_OUTPUT_DIR
+        - restore_cache:
+           keys:
+            - conan-cache-v1-linux--{{ checksum "conanfile.py" }}
+            - conan-cache-v1-linux
+        - run:
+          name: Conan
+          command: conan install -if $BUILD_OUTPUT_DIR --build missing -s build_type=Release
+        - save_cache:
+           paths:
+             - ~/.conan
+           key: conan-cache-v1-mac--{{ checksum "conanfile.py" }}
+
        # - run: 
        #    name: Copy /opt/taraxa/existing files to project
        #    command: cp -rp /opt/taraxa/cmake-docker-build-debug/* /root/project/cmake-docker-build-debug/
