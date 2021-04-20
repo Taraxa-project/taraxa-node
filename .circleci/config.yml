@@ -57,7 +57,7 @@ jobs:
 #             cp cmake-build/bin/taraxad cmake-build/bin/taraxad-macos
         - run: 
            name: Cmake
-             command: |
+           command: |
                export GOPATH=$HOME/golang &&
                export GOROOT=/usr/local/opt/go/libexec &&
                export CC=gcc &&
