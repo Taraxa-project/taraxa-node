@@ -94,7 +94,7 @@ jobs:
             - conan-cache-v1-linux
         - run:
            name: Conan
-           command: conan install -if $BUILD_OUTPUT_DIR --build missing -s build_type=Release
+           command: conan install -if $BUILD_OUTPUT_DIR --build missing -s build_type=Release .
         - save_cache:
            paths:
              - ~/.conan
