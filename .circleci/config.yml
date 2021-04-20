@@ -35,10 +35,10 @@ jobs:
            command: |
               brew install go  ccache gflags &&
               brew install libscrypt libtool cmake libjson-rpc-cpp conan
-        - restore_cache:
-           keys:
-            - conan-cache-v1-mac--{{ checksum "conanfile.py" }}
-            - conan-cache-v1-mac
+       # - restore_cache:
+       #    keys:
+       #     - conan-cache-v1-mac--{{ checksum "conanfile.py" }}
+       #     - conan-cache-v1-mac
         - run:
            name: connan install 
            command: conan install -if cmake-build --build missing .
