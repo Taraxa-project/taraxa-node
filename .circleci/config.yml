@@ -98,7 +98,7 @@ jobs:
         - save_cache:
            paths:
              - ~/.conan
-           key: conan-cache-v1-mac--{{ checksum "conanfile.py" }}
+           key: conan-cache-v1-linux--{{ checksum "conanfile.py" }}
 
        # - run: 
        #    name: Copy /opt/taraxa/existing files to project
