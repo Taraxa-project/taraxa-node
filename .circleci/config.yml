@@ -108,7 +108,7 @@ jobs:
             command: cd $BUILD_OUTPUT_DIR && make clang-format && make clang-format-check
         - run: 
            name: make
-           command: cd $BUILD_OUTPUT_DIR && make -j10 all 
+           command: cd $BUILD_OUTPUT_DIR && make -j8 all 
         - run: 
            name: make install 
            command: cd $BUILD_OUTPUT_DIR && make install 
