@@ -149,7 +149,9 @@ struct DbStorage {
   auto dbStoragePath() const { return db_path_; }
   auto stateDbStoragePath() const { return state_db_path_; }
   static BatchPtr createWriteBatch();
-  void commitWriteBatch(BatchPtr const& write_batch);
+  void commitWriteBatch(BatchPtr const& write_batch, rocksdb::WriteOptions const& opts);
+  void commitWriteBatch(BatchPtr const& write_batch) { commitWriteBatch(write_batch, write_options_); }
+
   bool createSnapshot(uint64_t const& period);
   void deleteSnapshot(uint64_t const& period);
   void recoverToPeriod(uint64_t const& period);
