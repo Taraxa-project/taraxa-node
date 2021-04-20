@@ -58,7 +58,6 @@ jobs:
         - run: 
            name: Cmake
            command: |
-               mkdir cmake-build
                cd cmake-build
                export GOPATH=$HOME/golang &&
                export GOROOT=/usr/local/opt/go/libexec &&
