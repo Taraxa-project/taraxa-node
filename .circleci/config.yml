@@ -65,7 +65,7 @@ jobs:
                export CPATH=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/include &&
                cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=gcc -DSYSTEM_HOME_OVERRIDE=/Users/root/project/cmake-build  ../
                make -j 4
-               cp cmake-build/bin/taraxad cmake-build/bin/taraxad-macos
+               cp bin/taraxad cmake-build/bin/taraxad-macos
         - store_artifacts:
            path: /Users/distiller/project/cmake-build/bin/taraxad-macos
         - persist_to_workspace:
