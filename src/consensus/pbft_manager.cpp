@@ -985,6 +985,7 @@ void PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteTypes 
   LOG(log_dg_) << "Place vote: " << vote;
 
   // pbft vote broadcast
+  vector<Vote> votes{vote};
   if (auto net = network_.lock()) {
     net->onNewPbftVotes(move(votes));
   }
