@@ -425,7 +425,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         // vote round >= PBFT round
         db_->saveUnverifiedVote(vote);
         vote_mgr_->addUnverifiedVote(vote);
-        unique_packet_count[_id]++;
+        packet_stats.is_unique_ = true;
         onNewPbftVote(vote);
       }
 
