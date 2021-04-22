@@ -686,7 +686,9 @@ void PbftManager::certifyBlock_() {
         LOG(log_dg_) << "Node has seen enough soft votes voted at " << soft_voted_block_for_this_round_.first
                      << ", regossip soft votes. In round " << round;
         if (auto net = network_.lock()) {
-          net->onNewPbftVotes(move(soft_votes));
+          for (auto const &sv : soft_votes) {
+            net->onNewPbftVote(move(sv));
+          }
         }
       }
     }
@@ -801,8 +803,11 @@ void PbftManager::secondFinish_() {
         soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH) {
       LOG(log_dg_) << "Node has seen enough soft votes voted at " << soft_voted_block_for_this_round_.first
                    << ", regossip soft votes. In round " << round << " step " << step_;
+      auto soft_votes = db_->getSoftVotes(round);
       if (auto net = network_.lock()) {
-        net->onNewPbftVotes(db_->getSoftVotes(round));
+        for (auto const &sv : soft_votes) {
+          net->onNewPbftVote(move(sv));
+        }
       }
 
       LOG(log_nf_) << "Next voting " << soft_voted_block_for_this_round_.first << " for round " << round << ", at step "
@@ -985,9 +990,8 @@ void PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteTypes 
   LOG(log_dg_) << "Place vote: " << vote;
 
   // pbft vote broadcast
-  vector<Vote> votes{vote};
   if (auto net = network_.lock()) {
-    net->onNewPbftVotes(move(votes));
+    net->onNewPbftVote(move(vote));
   }
 }
 
