@@ -35,7 +35,7 @@ class PbftManager {
               std::shared_ptr<Executor> executor, secret_t node_sk, vrf_sk_t vrf_sk);
   ~PbftManager();
 
-  void setNetwork(std::shared_ptr<Network> network);
+  void setNetwork(std::weak_ptr<Network> network);
   void start();
   void stop();
   void run();
@@ -124,6 +124,7 @@ class PbftManager {
   bool pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes);
 
   void updateTwoTPlusOneAndThreshold_();
+  bool is_syncing_();
 
   std::atomic<bool> stopped_ = true;
   // Using to check if PBFT block has been proposed already in one period
@@ -135,8 +136,7 @@ class PbftManager {
   std::shared_ptr<NextVotesForPreviousRound> previous_round_next_votes_;
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<DagManager> dag_mgr_;
-  std::shared_ptr<Network> network_;
-  std::shared_ptr<TaraxaCapability> capability_;
+  std::weak_ptr<Network> network_;
   std::shared_ptr<DagBlockManager> dag_blk_mgr_;
   std::shared_ptr<FinalChain> final_chain_;
   std::shared_ptr<Executor> executor_;
