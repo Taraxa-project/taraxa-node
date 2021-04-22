@@ -95,7 +95,7 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   void start();
   void stop();
   std::shared_ptr<BlockProposer> getShared();
-  void setNetwork(std::shared_ptr<Network> network) { network_ = network; }
+  void setNetwork(std::weak_ptr<Network> network) { network_ = move(network); }
   void proposeBlock(DagBlock& blk);
   bool getShardedTrxs(vec_trx_t& sharded_trx) { return getShardedTrxs(total_trx_shards_, my_trx_shard_, sharded_trx); }
   bool getLatestPivotAndTips(blk_hash_t& pivot, vec_blk_t& tips);
@@ -122,7 +122,7 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   std::shared_ptr<FinalChain> final_chain_;
   std::shared_ptr<std::thread> proposer_worker_;
   std::unique_ptr<ProposeModelFace> propose_model_;
-  std::shared_ptr<Network> network_;
+  std::weak_ptr<Network> network_;
   logger::Logger log_time_;
   addr_t node_addr_;
   secret_t node_sk_;

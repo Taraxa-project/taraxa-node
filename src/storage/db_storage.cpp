@@ -204,8 +204,8 @@ void DbStorage::remove(Slice key, Column const& column) {
   checkStatus(status);
 }
 
-void DbStorage::commitWriteBatch(BatchPtr const& write_batch) {
-  auto status = db_->Write(write_options_, write_batch->GetWriteBatch());
+void DbStorage::commitWriteBatch(BatchPtr const& write_batch, rocksdb::WriteOptions const& opts) {
+  auto status = db_->Write(opts, write_batch->GetWriteBatch());
   checkStatus(status);
 }
 

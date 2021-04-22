@@ -155,7 +155,11 @@ void Executor::execute_(PbftBlock const &pbft_block) {
       util::make_range_view(transactions_tmp_buf_).map([](auto const &trx) { return trx.sha3(); }));
 
   // Commit DB
-  db_->commitWriteBatch(batch);
+  {
+    rocksdb::WriteOptions opts;
+    opts.sync = true;
+    db_->commitWriteBatch(batch, opts);
+  }
   LOG(log_nf_) << "DB write batch committed at period " << pbft_period << " PBFT block hash " << pbft_block_hash;
 
   // After DB commit, confirm in final chain(Ethereum)
