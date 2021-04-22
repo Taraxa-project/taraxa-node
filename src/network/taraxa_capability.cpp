@@ -477,7 +477,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
 
       if (pbft_current_round < peer_pbft_round) {
         // Add into votes unverified queue
-        vote_mgr_->addVotes(next_votes);
+        vote_mgr_->addUnverifiedVotes(next_votes);
       } else if (pbft_current_round == peer_pbft_round) {
         // Update previous round next votes
         auto pbft_2t_plus_1 = db_->getPbft2TPlus1(pbft_current_round - 1);
