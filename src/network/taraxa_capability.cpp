@@ -384,28 +384,13 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         if (block.getLevel() > peer->dag_level_) peer->dag_level_ = block.getLevel();
         dag_blk_mgr_->insertBroadcastedBlockWithTransactions(block, newTransactions);
 
-          break;
-        }
-        case PbftNextVotesPacket: {
-          auto next_votes_count = _r.itemCount();
-          if (next_votes_count == 0) {
-            LOG(log_er_next_votes_sync_) << "Receive 0 next votes from peer " << _nodeID
-                                         << ". The peer may be a malicous player, will be disconnected";
-            host_.capabilityHost()->disconnect(_nodeID, p2p::UserReason);
-
-            break;
-          }
-          LOG(log_nf_next_votes_sync_) << "Received " << next_votes_count << " next votes from peer " << _nodeID;
         if (iBlock + transactionCount + 1 >= itemCount) break;
       }
 
-          std::vector<Vote> next_votes;
-          for (auto i = 0; i < next_votes_count; i++) {
-            Vote next_vote(_r[i].data().toBytes());
-            LOG(log_nf_next_votes_sync_) << "Received PBFT next vote " << next_vote.getHash();
       LOG(log_nf_dag_sync_) << "Received Dag Blocks: " << received_dag_blocks_str;
       break;
     }
+
     case TransactionPacket: {
       std::string receivedTransactions;
       std::vector<taraxa::bytes> transactions;

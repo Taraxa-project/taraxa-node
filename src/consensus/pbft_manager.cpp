@@ -844,7 +844,7 @@ void PbftManager::secondFinish_() {
 
   if (elapsed_time_in_round_ms_ > end_time_for_step) {
     // Should not happen, add log here for safety checking
-    //if (have_executed_this_round_) {
+    // if (have_executed_this_round_) {
     //  LOG(log_dg_) << "PBFT Reached round " << round << " at step " << step_ << " late due to execution";
     //} else {
     //  LOG(log_dg_) << "PBFT Reached round " << round << " at step " << step_ << " late without executing";
