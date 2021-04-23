@@ -138,7 +138,7 @@ bool Network::pbft_syncing() { return taraxa_capability_->pbft_syncing(); }
 void Network::onNewPbftVote(Vote const &vote) {
   tp_.post([=] {
     LOG(log_dg_) << "Network broadcast PBFT vote: " << vote.getHash();
-    taraxa_capability_->onNewPbftVote(*vote);
+    taraxa_capability_->onNewPbftVote(vote);
   });
 }
 
