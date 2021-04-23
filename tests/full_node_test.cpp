@@ -366,6 +366,28 @@ TEST_F(FullNodeTest, db_test) {
   db.commitWriteBatch(batch);
   EXPECT_EQ(1, *db.getDagBlockPeriod(blk_hash_t(1)));
   EXPECT_EQ(2, *db.getDagBlockPeriod(blk_hash_t(2)));
+
+  // DPOS proposal period DAG levels map
+  EXPECT_TRUE(db.getProposalPeriodDagLevelsMap(0).empty());
+  ProposalPeriodDagLevelsMap proposal_period_0_levels;
+  db.saveProposalPeriodDagLevelsMap(proposal_period_0_levels);
+  auto period_0_levels_bytes = db.getProposalPeriodDagLevelsMap(0);
+  EXPECT_FALSE(period_0_levels_bytes.empty());
+  ProposalPeriodDagLevelsMap period_0_levels_from_db(period_0_levels_bytes);
+  EXPECT_EQ(period_0_levels_from_db.proposal_period, 0);
+  EXPECT_EQ(period_0_levels_from_db.levels_interval.first, 0);
+  EXPECT_EQ(period_0_levels_from_db.levels_interval.second, proposal_period_0_levels.max_levels_per_period);
+  EXPECT_EQ(period_0_levels_from_db.levels_interval.second, 100);
+  batch = db.createWriteBatch();
+  ProposalPeriodDagLevelsMap proposal_period_1_levels(1, 101, 110);
+  db.addProposalPeriodDagLevelsMapToBatch(proposal_period_1_levels, batch);
+  db.commitWriteBatch(batch);
+  auto period_1_levels_bytes = db.getProposalPeriodDagLevelsMap(1);
+  EXPECT_FALSE(period_1_levels_bytes.empty());
+  ProposalPeriodDagLevelsMap period_1_levels_from_db(period_1_levels_bytes);
+  EXPECT_EQ(period_1_levels_from_db.proposal_period, 1);
+  EXPECT_EQ(period_1_levels_from_db.levels_interval.first, 101);
+  EXPECT_EQ(period_1_levels_from_db.levels_interval.second, 110);
 }
 
 TEST_F(FullNodeTest, sync_five_nodes) {

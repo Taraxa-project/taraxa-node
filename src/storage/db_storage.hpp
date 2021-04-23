@@ -12,6 +12,7 @@
 #include "common/types.hpp"
 #include "consensus/pbft_chain.hpp"
 #include "dag/dag_block.hpp"
+#include "dag/proposal_period_levels_map.hpp"
 #include "logger/log.hpp"
 #include "transaction_manager/transaction.hpp"
 #include "transaction_manager/transaction_status.hpp"
@@ -104,6 +105,7 @@ struct DbStorage {
     COLUMN(next_votes);
     COLUMN(period_pbft_block);
     COLUMN(dag_block_period);
+    COLUMN(proposal_period_levels_map);
     COLUMN(replay_protection);
     COLUMN(pending_transactions);
     COLUMN(aleth_chain);
@@ -222,8 +224,7 @@ struct DbStorage {
                           BatchPtr const& write_batch);
   // status
   uint64_t getStatusField(StatusDbField const& field);
-  void saveStatusField(StatusDbField const& field,
-                       uint64_t const& value);  // unit test
+  void saveStatusField(StatusDbField const& field, uint64_t const& value);
   void addStatusFieldToBatch(StatusDbField const& field, uint64_t const& value, BatchPtr const& write_batch);
 
   // Soft votes
@@ -260,6 +261,12 @@ struct DbStorage {
 
   vector<blk_hash_t> getFinalizedDagBlockHashesByAnchor(blk_hash_t const& anchor);
   void putFinalizedDagBlockHashesByAnchor(WriteBatch& b, blk_hash_t const& anchor, vector<blk_hash_t> const& hs);
+
+  // Proposal period to DAG block levels map
+  bytes getProposalPeriodDagLevelsMap(uint64_t proposal_period);
+  void saveProposalPeriodDagLevelsMap(ProposalPeriodDagLevelsMap const& period_levels_map);
+  void addProposalPeriodDagLevelsMapToBatch(ProposalPeriodDagLevelsMap const& period_levels_map,
+                                            BatchPtr const& write_batch);
 
   void insert(Column const& col, Slice const& k, Slice const& v);
   void remove(Slice key, Column const& column);
