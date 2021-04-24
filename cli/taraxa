@@ -35,11 +35,21 @@ def config():
 
 @cli.command()
 @click.option('--secret', default='', help='Private key in hex format')
-def account(secret):
+@click.option('--file', default='', help='Path to the config file where we can find the node secret')
+def account(secret, file):
     """Generate or view a Taraxa Account key."""
     Account.enable_unaudited_hdwallet_features()
     if secret != '':
         acct = Account.from_key(private_key=secret) #pylint: disable=no-value-for-parameter
+        mnemonic = ''
+    elif file != '':
+        config_data = json.loads('{}')
+        try:
+            with open(file) as json_file:
+                config_data = json.load(json_file)
+        except IOError:
+            pass
+        acct = Account.from_key(private_key=config_data["node_secret"]) #pylint: disable=no-value-for-parameter
         mnemonic = ''
     else:
         acct, mnemonic = Account.create_with_mnemonic("", 12, "english", "m/44'/60'/0'/0/0")
