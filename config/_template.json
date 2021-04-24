@@ -12,7 +12,7 @@
   "network_bandwidth": 40,
   "network_ideal_peer_count": 10,
   "network_max_peer_count": 50,
-  "network_sync_level_size": 1,
+  "network_sync_level_size": 10,
   "network_boot_nodes": [],
   "rpc": {
     "http_port": 7777,
@@ -47,26 +47,6 @@
           },
           {
             "name": "PBFT_MGR",
-            "verbosity": "DEBUG"
-          },
-          {
-            "name": "PBFTSYNC",
-            "verbosity": "INFO"
-          },
-          {
-            "name": "NEXTVOTESSYNC",
-            "verbosity": "INFO"
-          },
-          {
-            "name": "TARCAP",
-            "verbosity": "INFO"
-          },
-          {
-            "name": "NETPER",
-            "verbosity": "INFO"
-          },
-          {
-            "name": "VOTE_MGR",
             "verbosity": "INFO"
           },
           {

@@ -777,16 +777,6 @@ void PbftManager::secondFinish_() {
   //                      (step_ - MAX_STEPS + 1) * LAMBDA_ms_BIG + STEP_4_DELAY
   //                      + 2 * POLLING_INTERVAL_ms;
   // }
-  if (elapsed_time_in_round_ms_ > end_time_for_step) {
-    // Should not happen, add log here for safety checking
-    if (have_executed_this_round_) {
-      LOG(log_dg_) << "PBFT Reached round " << round << " at step " << step_ << " late due to execution";
-    } else {
-      LOG(log_dg_) << "PBFT Reached round " << round << " at step " << step_ << " late without executing";
-    }
-    continue_finish_polling_state_ = true;
-    return;
-  }
 
   if (shouldSpeak(next_vote_type, round, step_)) {
     if (!soft_voted_block_for_this_round_.second) {
@@ -849,6 +839,17 @@ void PbftManager::secondFinish_() {
     }
     pbft_round_last_broadcast_ = round;
     pbft_step_last_broadcast_ = step_;
+  }
+
+  if (elapsed_time_in_round_ms_ > end_time_for_step) {
+    // Should not happen, add log here for safety checking
+    //if (have_executed_this_round_) {
+    //  LOG(log_dg_) << "PBFT Reached round " << round << " at step " << step_ << " late due to execution";
+    //} else {
+    //  LOG(log_dg_) << "PBFT Reached round " << round << " at step " << step_ << " late without executing";
+    //}
+    continue_finish_polling_state_ = true;
+    return;
   }
 
   loop_back_finish_state_ = elapsed_time_in_round_ms_ > (step_ + 1) * LAMBDA_ms + STEP_4_DELAY - POLLING_INTERVAL_ms;

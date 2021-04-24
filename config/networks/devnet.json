@@ -20,7 +20,7 @@
     }
   ],
   "chain_config": {
-    "chain_id": "0x2",
+    "chain_id": "0x3",
     "dag_genesis_block": {
       "hash": "0xc9524784c4bf29e6facdd94ef7d214b9f512cdfd0f68184432dab85d053cbc69",
       "level": "0x0",
@@ -70,7 +70,7 @@
       }
     },
     "pbft": {
-      "committee_size": "0x64",
+      "committee_size": "0x5",
       "dag_blocks_size": "0xa",
       "ghost_path_move_back": "0x0",
       "lambda_ms_min": "0x29a",
