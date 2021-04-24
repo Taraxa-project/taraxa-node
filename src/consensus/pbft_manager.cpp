@@ -1336,17 +1336,8 @@ bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes) {
   // Update PBFT chain head block
   db_->addPbftHeadToBatch(pbft_chain_->getHeadHash(), pbft_chain_->getJsonStr(), batch);
 
-  // Update proposal period DAG levels map
-  auto const &anchor_hash = pbft_block->getPivotDagBlockHash();
-  // auto anchor = db_->getDagBlock(anchor_hash);
-  // if (!anchor) {
-  //   LOG(log_er_) << "DB corrupted - Cannot find anchor block: " << anchor_hash << " in DB.";
-  //   return false;
-  // }
-  // auto new_proposal_period_levels_map = dag_blk_mgr_->newProposePeriodDagLevelsMap(anchor->getLevel());
-  // db_->addProposalPeriodDagLevelsMapToBatch(*new_proposal_period_levels_map, batch);
-
   // Set DAG blocks period
+  auto const &anchor_hash = pbft_block->getPivotDagBlockHash();
   auto finalized_dag_blk_hashes = *dag_mgr_->getDagBlockOrder(anchor_hash).second;
   dag_mgr_->setDagBlockOrder(anchor_hash, pbft_period, finalized_dag_blk_hashes, batch);
 
