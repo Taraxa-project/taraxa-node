@@ -1,5 +1,4 @@
-#ifndef TARAXA_NODE_UTIL_ENCODING_RLP_HPP_
-#define TARAXA_NODE_UTIL_ENCODING_RLP_HPP_
+#pragma once
 
 #include <libdevcore/RLP.h>
 
@@ -7,8 +6,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include "../util.hpp"
 #include "range_view.hpp"
+#include "util.hpp"
 
 namespace taraxa::util::encoding_rlp {
 using namespace std;
@@ -140,5 +139,3 @@ using encoding_rlp::enc_rlp;
 using encoding_rlp::enc_rlp_tuple;
 using encoding_rlp::RLPNull;
 }  // namespace taraxa::util
-
-#endif  // TARAXA_NODE_UTIL_ENCODING_RLP_HPP_

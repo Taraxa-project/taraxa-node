@@ -1,5 +1,4 @@
-#ifndef TARAXA_NODE_UTIL_SIMPLE_EVENT_HPP_
-#define TARAXA_NODE_UTIL_SIMPLE_EVENT_HPP_
+#pragma once
 
 #include <functional>
 #include <shared_mutex>
@@ -42,5 +41,3 @@ class SimpleEvent {
 namespace taraxa::util {
 using simple_event::SimpleEvent;
 }
-
-#endif  // TARAXA_NODE_UTIL_SIMPLE_EVENT_HPP_

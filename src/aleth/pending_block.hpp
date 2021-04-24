@@ -1,9 +1,8 @@
-#ifndef TARAXA_NODE_ALETH_PENDING_BLOCK_HPP_
-#define TARAXA_NODE_ALETH_PENDING_BLOCK_HPP_
+#pragma once
 
 #include <libweb3jsonrpc/Eth.h>
 
-#include "db_storage.hpp"
+#include "storage/db_storage.hpp"
 #include "util/range_view.hpp"
 
 namespace taraxa::aleth {
@@ -19,5 +18,3 @@ std::unique_ptr<PendingBlock> NewPendingBlock(uint64_t number, addr_t const& aut
                                               std::shared_ptr<DbStorage> db);
 
 }  // namespace taraxa::aleth
-
-#endif  // TARAXA_NODE_ALETH_PENDING_BLOCK_HPP_

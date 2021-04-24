@@ -1,0 +1,14 @@
+**/*
+!src
+!submodules
+!scripts
+!CMakeModules
+!tests
+!clang-format
+!.gitmodules
+!CMakeLists.txt
+!LICENSE
+!config
+!docker-entrypoint.sh
+!cli
+!conanfile.py

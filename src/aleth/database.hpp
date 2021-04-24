@@ -1,9 +1,8 @@
-#ifndef TARAXA_NODE_ALETH_DATABASE_ADAPTER_HPP_
-#define TARAXA_NODE_ALETH_DATABASE_ADAPTER_HPP_
+#pragma once
 
 #include <libdevcore/db.h>
 
-#include "../db_storage.hpp"
+#include "storage/db_storage.hpp"
 
 namespace taraxa::aleth {
 
@@ -15,5 +14,3 @@ struct Database : virtual dev::db::DatabaseFace {
 std::unique_ptr<Database> NewDatabase(std::shared_ptr<DbStorage> db, DbStorage::Column column);
 
 }  // namespace taraxa::aleth
-
-#endif  // TARAXA_NODE_ALETH_DATABASE_ADAPTER_HPP_

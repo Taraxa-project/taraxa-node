@@ -3,8 +3,8 @@
 #include <boost/log/sources/severity_channel_logger.hpp>
 #include <string>
 
-#include "logger/config.hpp"
-#include "types.hpp"
+#include "common/types.hpp"
+#include "logger/logger_config.hpp"
 
 namespace taraxa::logger {
 
