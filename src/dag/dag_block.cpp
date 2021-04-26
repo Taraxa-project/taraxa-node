@@ -134,18 +134,21 @@ bool DagBlock::verifySig() const {
 
 blk_hash_t const &DagBlock::getHash() const {
   if (!hash_) {
-    std::unique_lock l(cached_sender_mu_.val);
-    if (!hash_) {
-      hash_ = sha3(true);
+    std::unique_lock l(hash_mu_.val, std::try_to_lock);
+    if (!l.owns_lock()) {
+      l.lock();
+      return hash_;
     }
+    hash_ = sha3(true);
   };
   return hash_;
 }
 
 addr_t const &DagBlock::getSender() const {
   if (!cached_sender_) {
-    std::unique_lock l(cached_sender_mu_.val);
-    if (cached_sender_) {
+    std::unique_lock l(cached_sender_mu_.val, std::try_to_lock);
+    if (!l.owns_lock()) {
+      l.lock();
       return cached_sender_;
     }
     if (!sig_) {
