@@ -59,8 +59,6 @@ DagBlock::DagBlock(Json::Value const &doc) {
   tips_ = asVector<blk_hash_t, std::string>(doc, "tips");
   trxs_ = asVector<trx_hash_t, std::string>(doc, "trxs");
   sig_ = sig_t(doc["sig"].asString());
-  hash_ = blk_hash_t(doc["hash"].asString());
-  cached_sender_ = addr_t(doc["sender"].asString());
   pivot_ = blk_hash_t(doc["pivot"].asString());
   if (auto const &v = doc["timestamp"]; v.isString()) {
     timestamp_ = dev::jsToInt(v.asString());
