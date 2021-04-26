@@ -45,8 +45,8 @@ class DagBlock {
     for (auto const &t : u.trxs_) str << t.abridged() << " ";
     str << std::endl;
     str << "	signature	= " << u.sig_.abridged() << std::endl;
-    str << "	hash		= " << u.hash_.abridged() << std::endl;
-    str << "	sender		= " << u.cached_sender_.abridged() << std::endl;
+    str << "	hash		= " << u.getHash().abridged() << std::endl;
+    str << "	sender		= " << u.getSender().abridged() << std::endl;
     str << "  vdf = " << u.vdf_ << std::endl;
     return str;
   }
