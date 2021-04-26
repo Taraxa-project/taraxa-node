@@ -59,7 +59,7 @@ class DagBlock {
   auto const &getVdf() const { return vdf_; }
 
   addr_t getSender() const { return sender(); }
-  Json::Value getJson() const;
+  Json::Value getJson(bool with_derived_fields = true) const;
   std::string getJsonStr() const;
   bool isValid() const;
   addr_t sender() const;

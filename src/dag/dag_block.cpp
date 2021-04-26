@@ -14,21 +14,14 @@ namespace taraxa {
 using std::to_string;
 
 DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, sig_t sig, blk_hash_t hash,
-                   addr_t sender) try : pivot_(pivot),
-                                        level_(level),
-                                        tips_(tips),
-                                        trxs_(trxs),
-                                        sig_(sig),
-                                        hash_(hash),
-                                        cached_sender_(sender) {
+                   addr_t sender) try
+    : pivot_(pivot), level_(level), tips_(tips), trxs_(trxs), sig_(sig), hash_(hash), cached_sender_(sender) {
 } catch (std::exception &e) {
   std::cerr << e.what() << std::endl;
   assert(false);
 }
-DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs) try : pivot_(pivot),
-                                                                                          level_(level),
-                                                                                          tips_(tips),
-                                                                                          trxs_(trxs) {
+DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs) try
+    : pivot_(pivot), level_(level), tips_(tips), trxs_(trxs) {
 } catch (std::exception &e) {
   std::cerr << e.what() << std::endl;
   assert(false);
@@ -110,7 +103,7 @@ bool DagBlock::isValid() const {
   return !(pivot_.isZero() && hash_.isZero() && sig_.isZero() && cached_sender_.isZero());
 }
 
-Json::Value DagBlock::getJson() const {
+Json::Value DagBlock::getJson(bool with_derived_fields) const {
   Json::Value res;
   res["pivot"] = dev::toJS(pivot_);
   res["level"] = dev::toJS(level_);
@@ -123,10 +116,14 @@ Json::Value DagBlock::getJson() const {
     res["transactions"].append(dev::toJS(t));
   }
   res["sig"] = dev::toJS(sig_);
-  res["hash"] = dev::toJS(hash_);
-  res["sender"] = dev::toJS(sender());
+  if (with_derived_fields) {
+    res["hash"] = dev::toJS(hash_);
+    res["sender"] = dev::toJS(sender());
+  }
   res["timestamp"] = dev::toJS(timestamp_);
-  res["vdf"] = vdf_.getJson();
+  if (0 < level_) {
+    res["vdf"] = vdf_.getJson();
+  }
   return res;
 }
 
