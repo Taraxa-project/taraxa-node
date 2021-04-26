@@ -39,14 +39,14 @@
       "state": {
         "disable_block_rewards": true,
         "dpos": {
-          "deposit_delay": "0x10",
-          "withdrawal_delay": "0x10",
-          "eligibility_balance_threshold": "0xd3c21bcecceda0000000",
+          "deposit_delay": "0x5",
+          "withdrawal_delay": "0x5",
+          "eligibility_balance_threshold": "0xf4240",
           "genesis_state": {
             "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": {
-              "0x10ece4be76a0a2a6eb154f7e4b9503932fe7382f": "0xd3c21bcecceda0000000",
-              "0xa932a0fd90b395eaf827b1be428c3cd7b8069cf6": "0xd3c21bcecceda0000000",
-              "0xa3094c300310286e356cc14d3ecad2281f217462": "0xd3c21bcecceda0000000"
+              "0x10ece4be76a0a2a6eb154f7e4b9503932fe7382f": "0xf4240",
+              "0xa932a0fd90b395eaf827b1be428c3cd7b8069cf6": "0xf4240",
+              "0xa3094c300310286e356cc14d3ecad2281f217462": "0xf4240"
             }
           }
         },
