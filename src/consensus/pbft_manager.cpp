@@ -202,6 +202,7 @@ bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
     LOG(log_tr_) << "Account " << node_addr_ << " is not eligible to vote";
     return false;
   }
+  LOG(log_nf_) << "Account " << node_addr_ << " is delegated at period " << dpos_period_;
   // compute sortition
   VrfPbftMsg msg(pbft_chain_last_block_hash_, type, round, step);
   VrfPbftSortition vrf_sortition(vrf_sk_, msg);
@@ -843,7 +844,7 @@ void PbftManager::secondFinish_() {
 
   if (elapsed_time_in_round_ms_ > end_time_for_step) {
     // Should not happen, add log here for safety checking
-    //if (have_executed_this_round_) {
+    // if (have_executed_this_round_) {
     //  LOG(log_dg_) << "PBFT Reached round " << round << " at step " << step_ << " late due to execution";
     //} else {
     //  LOG(log_dg_) << "PBFT Reached round " << round << " at step " << step_ << " late without executing";
