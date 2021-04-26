@@ -187,6 +187,10 @@ void PbftManager::update_dpos_state_() {
       thisThreadSleepForMilliSeconds(LAMBDA_ms);
     }
   } while (!stopped_);
+
+  if (is_eligible_(node_addr_)) {
+    LOG(log_nf_) << "Account " << node_addr_ << " is delegated at period " << dpos_period_;
+  }
 }
 
 uint64_t PbftManager::getEligibleVoterCount() const { return eligible_voter_count_; }
@@ -202,7 +206,7 @@ bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
     LOG(log_tr_) << "Account " << node_addr_ << " is not eligible to vote";
     return false;
   }
-  LOG(log_nf_) << "Account " << node_addr_ << " is delegated at period " << dpos_period_;
+
   // compute sortition
   VrfPbftMsg msg(pbft_chain_last_block_hash_, type, round, step);
   VrfPbftSortition vrf_sortition(vrf_sk_, msg);
