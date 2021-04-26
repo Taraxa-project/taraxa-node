@@ -1,5 +1,6 @@
 #pragma once
 
+#include "util/default_construct_copyable_movable.hpp"
 #include "vdf_sortition.hpp"
 
 namespace taraxa {
@@ -14,10 +15,12 @@ class DagBlock {
   vec_blk_t tips_;
   vec_trx_t trxs_;  // transactions
   sig_t sig_;
-  blk_hash_t hash_;
+  mutable blk_hash_t hash_;
+  mutable DefaultConstructCopyableMovable<std::mutex> hash_mu_;
   uint64_t timestamp_ = 0;
   vdf_sortition::VdfSortition vdf_;
   mutable addr_t cached_sender_;  // block creater
+  mutable DefaultConstructCopyableMovable<std::mutex> cached_sender_mu_;
 
  public:
   DagBlock() = default;
@@ -55,20 +58,14 @@ class DagBlock {
   auto const &getTips() const { return tips_; }
   auto const &getTrxs() const { return trxs_; }
   auto const &getSig() const { return sig_; }
-  auto const &getHash() const { return hash_; }
+  blk_hash_t const &getHash() const;
   auto const &getVdf() const { return vdf_; }
 
-  addr_t getSender() const { return sender(); }
+  addr_t const &getSender() const;
   Json::Value getJson(bool with_derived_fields = true) const;
   std::string getJsonStr() const;
-  bool isValid() const;
-  addr_t sender() const;
   void sign(secret_t const &sk);
-  void updateHash() {
-    if (!hash_) {
-      hash_ = dev::sha3(rlp(true));
-    }
-  }
+
   bool verifySig() const;
   bytes rlp(bool include_sig) const;
 

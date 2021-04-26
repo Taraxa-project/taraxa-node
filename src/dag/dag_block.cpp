@@ -14,31 +14,15 @@ namespace taraxa {
 using std::to_string;
 
 DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, sig_t sig, blk_hash_t hash,
-                   addr_t sender) try : pivot_(pivot),
-                                        level_(level),
-                                        tips_(tips),
-                                        trxs_(trxs),
-                                        sig_(sig),
-                                        hash_(hash),
-                                        cached_sender_(sender) {
-} catch (std::exception &e) {
-  std::cerr << e.what() << std::endl;
-  assert(false);
-}
-DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs) try : pivot_(pivot),
-                                                                                          level_(level),
-                                                                                          tips_(tips),
-                                                                                          trxs_(trxs) {
-} catch (std::exception &e) {
-  std::cerr << e.what() << std::endl;
-  assert(false);
-}
-DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, VdfSortition const &vdf) try
+                   addr_t sender)
+    : pivot_(pivot), level_(level), tips_(tips), trxs_(trxs), sig_(sig), hash_(hash), cached_sender_(sender) {}
+
+DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs)
+    : pivot_(pivot), level_(level), tips_(tips), trxs_(trxs) {}
+
+DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, VdfSortition const &vdf)
     : DagBlock(pivot, level, tips, trxs) {
   vdf_ = vdf;
-} catch (std::exception &e) {
-  std::cerr << e.what() << std::endl;
-  assert(false);
 }
 
 DagBlock::DagBlock(string const &json)
@@ -99,15 +83,10 @@ DagBlock::DagBlock(dev::RLP const &rlp) {
     }
     ++field_n;
   }
-  updateHash();
 }
 
 std::vector<trx_hash_t> DagBlock::extract_transactions_from_rlp(RLP const &rlp) {
   return rlp[5].toVector<trx_hash_t>();
-}
-
-bool DagBlock::isValid() const {
-  return !(pivot_.isZero() && hash_.isZero() && sig_.isZero() && cached_sender_.isZero());
 }
 
 Json::Value DagBlock::getJson(bool with_derived_fields) const {
@@ -125,7 +104,7 @@ Json::Value DagBlock::getJson(bool with_derived_fields) const {
   res["sig"] = dev::toJS(sig_);
   if (with_derived_fields) {
     res["hash"] = dev::toJS(hash_);
-    res["sender"] = dev::toJS(sender());
+    res["sender"] = dev::toJS(getSender());
   }
   res["timestamp"] = dev::toJS(timestamp_);
   if (0 < level_) {
@@ -144,8 +123,6 @@ void DagBlock::sign(secret_t const &sk) {
     timestamp_ = dev::utcTime();
     sig_ = dev::sign(sk, sha3(false));
   }
-  sender();
-  updateHash();
 }
 
 bool DagBlock::verifySig() const {
@@ -155,10 +132,24 @@ bool DagBlock::verifySig() const {
   return dev::verify(pk, sig_, msg);
 }
 
-addr_t DagBlock::sender() const {
+blk_hash_t const &DagBlock::getHash() const {
+  if (!hash_) {
+    std::unique_lock l(cached_sender_mu_.val);
+    if (!hash_) {
+      hash_ = sha3(true);
+    }
+  };
+  return hash_;
+}
+
+addr_t const &DagBlock::getSender() const {
   if (!cached_sender_) {
+    std::unique_lock l(cached_sender_mu_.val);
+    if (cached_sender_) {
+      return cached_sender_;
+    }
     if (!sig_) {
-      return addr_t{};
+      return cached_sender_;
     }
     auto p = dev::recover(sig_, sha3(false));
     assert(p);
