@@ -2,19 +2,19 @@
   "network_boot_nodes" : [
     {
       "id": "1105725ff38294f42197a3851c87631610956404678a25f90da5f989bb590413a62665cadde1b820de3e9098367909110bba6d62d248444ce45547a703bd8d10",
-      "ip": "104.154.116.107",
+      "ip": "boot-node-1.devnet.taraxa.io",
       "tcp_port": 10002,
       "udp_port": 10002
     },
     {
       "id": "9869d8c263ce97d2e32c7ce5e746a8bab53227ccf279f850bbf9def1ddb7fbc08dfb29e8f1ceb93c5b83d08e06618e0993c6db7e55caa05a44605bdb74fbb0da",
-      "ip": "35.238.25.204",
+      "ip": "boot-node-2.devnet.taraxa.io",
       "tcp_port": 10002,
       "udp_port": 10002
     },
     {
       "id": "d7c8b4a8cc43549cdbb0f40c090559ae5d2584ba25aed95913f10fae9bceb17421f3250ee95126f33a77f679f4c7e806a0a9e643aa5aaec723f9e3155e85a820",
-      "ip": "34.66.134.211",
+      "ip": "boot-node-3.devnet.taraxa.io",
       "tcp_port": 10002,
       "udp_port": 10002
     }
