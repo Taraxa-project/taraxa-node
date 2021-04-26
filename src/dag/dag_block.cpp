@@ -14,14 +14,21 @@ namespace taraxa {
 using std::to_string;
 
 DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, sig_t sig, blk_hash_t hash,
-                   addr_t sender) try
-    : pivot_(pivot), level_(level), tips_(tips), trxs_(trxs), sig_(sig), hash_(hash), cached_sender_(sender) {
+                   addr_t sender) try : pivot_(pivot),
+                                        level_(level),
+                                        tips_(tips),
+                                        trxs_(trxs),
+                                        sig_(sig),
+                                        hash_(hash),
+                                        cached_sender_(sender) {
 } catch (std::exception &e) {
   std::cerr << e.what() << std::endl;
   assert(false);
 }
-DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs) try
-    : pivot_(pivot), level_(level), tips_(tips), trxs_(trxs) {
+DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs) try : pivot_(pivot),
+                                                                                          level_(level),
+                                                                                          tips_(tips),
+                                                                                          trxs_(trxs) {
 } catch (std::exception &e) {
   std::cerr << e.what() << std::endl;
   assert(false);
