@@ -17,12 +17,13 @@ DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t tr
                    addr_t sender)
     : pivot_(pivot), level_(level), tips_(tips), trxs_(trxs), sig_(sig), hash_(hash), cached_sender_(sender) {}
 
-DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs)
-    : pivot_(pivot), level_(level), tips_(tips), trxs_(trxs) {}
+DagBlock::DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, secret_t const &sk)
+    : DagBlock(pivot, level, move(tips), move(trxs), VdfSortition(), sk) {}
 
-DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, VdfSortition const &vdf)
-    : DagBlock(pivot, level, tips, trxs) {
-  vdf_ = vdf;
+DagBlock::DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, VdfSortition const &vdf,
+                   secret_t const &sk)
+    : pivot_(pivot), level_(level), tips_(move(tips)), trxs_(move(trxs)), timestamp_(dev::utcTime()), vdf_(vdf) {
+  sig_ = dev::sign(sk, sha3(false));
 }
 
 DagBlock::DagBlock(string const &json)
@@ -116,13 +117,6 @@ Json::Value DagBlock::getJson(bool with_derived_fields) const {
 std::string DagBlock::getJsonStr() const {
   Json::StreamWriterBuilder builder;
   return Json::writeString(builder, getJson());
-}
-
-void DagBlock::sign(secret_t const &sk) {
-  if (!sig_) {
-    timestamp_ = dev::utcTime();
-    sig_ = dev::sign(sk, sha3(false));
-  }
 }
 
 bool DagBlock::verifySig() const {

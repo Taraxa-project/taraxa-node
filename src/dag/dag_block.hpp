@@ -24,10 +24,13 @@ class DagBlock {
 
  public:
   DagBlock() = default;
+  // fixme: This constructor is bogus, used only in tests. Eliminate it
   DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, sig_t signature, blk_hash_t hash,
            addr_t sender);
-  DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs);
-  DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, VdfSortition const &vdf);
+  // fixme: used only in tests, Eliminate it
+  DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, secret_t const &sk);
+  DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, VdfSortition const &vdf,
+           secret_t const &sk);
   explicit DagBlock(Json::Value const &doc);
   explicit DagBlock(string const &json);
   explicit DagBlock(dev::RLP const &_rlp);
@@ -64,7 +67,6 @@ class DagBlock {
   addr_t const &getSender() const;
   Json::Value getJson(bool with_derived_fields = true) const;
   std::string getJsonStr() const;
-  void sign(secret_t const &sk);
 
   bool verifySig() const;
   bytes rlp(bool include_sig) const;
