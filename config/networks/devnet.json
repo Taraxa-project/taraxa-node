@@ -22,10 +22,8 @@
   "chain_config": {
     "chain_id": "0x3",
     "dag_genesis_block": {
-      "hash": "0xc9524784c4bf29e6facdd94ef7d214b9f512cdfd0f68184432dab85d053cbc69",
       "level": "0x0",
       "pivot": "0x0000000000000000000000000000000000000000000000000000000000000000",
-      "sender": "0xde2b1203d72d3549ee2f733b00b2789414c7cea5",
       "sig": "0xb7e22d46c1ba94d5e8347b01d137b5c428fcbbeaf0a77fb024cbbf1517656ff00d04f7f25be608c321b0d7483c402c294ff46c49b265305d046a52236c0a363701",
       "timestamp": "0x5d422b80",
       "tips": [],
@@ -44,9 +42,9 @@
           "eligibility_balance_threshold": "0xf4240",
           "genesis_state": {
             "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": {
-              "0x10ece4be76a0a2a6eb154f7e4b9503932fe7382f": "0xf4240",
-              "0xa932a0fd90b395eaf827b1be428c3cd7b8069cf6": "0xf4240",
-              "0xa3094c300310286e356cc14d3ecad2281f217462": "0xf4240"
+              "0x780fe8b2226cf212c55635de399ee4c2a860810c": "0xf4240",
+              "0x56e0de6933d9d0453d0363caf42b136eb5854e4e": "0xf4240",
+              "0x71bdcbec7e3642782447b0fbf31eed068dfbdbb1": "0xf4240"
             }
           }
         },
