@@ -25,6 +25,7 @@ jobs:
               fi
             fi
        - checkout
+       - gcp-gcr/gcr-auth
        - setup_remote_docker:
           docker_layer_caching: true
        - gcp-gcr/build-image: 
