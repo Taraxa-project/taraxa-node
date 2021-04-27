@@ -3,11 +3,32 @@ orbs:
   git: opuscapita/git@0.0.3
   github-release: izumin5210/github-release@0.1.1
 
-#  gcp-gcr: circleci/gcp-gcr@0.13.0
-
+  gcp-gcr: circleci/gcp-gcr@0.13.0
 
 
 jobs: 
+   create-and-push-builder:
+     executor: gcp-gcr/default
+     steps:
+       - run:
+          name: Local build handling
+          command: |
+            if [[ ${CIRCLE_SHELL_ENV} =~ "localbuild" ]]; then
+              if [ -d /workdir ]; then
+                ln -s /workdir /tmp/_circleci_local_build_repo
+              else
+                echo "Run this local build using: circleci build -v \$(pwd):/workdir"
+                exit 1
+              fi
+            fi
+       - checkout
+       - setup_remote_docker:
+          docker_layer_caching: true
+       - gcp-gcr/build-image: 
+           extra_build_args: --target builder
+           image: taraxa-node/builder
+       - gcp-gcr/push-image:
+           image: taraxa-node/builder
    build-mac:
      macos:
        xcode: 12.0.0
@@ -153,13 +174,13 @@ jobs:
 workflows:
   build-and-release:
     jobs:
-#      - gcp-gcr/build-and-push-image:
-#          executor: docker
-#          image: taraxa-node/taraxa-builder
-#          context: taraxa-node
-#          path: builder
-#          setup-remote-docker: true
-#          use-docker-layer-caching: true
+      - create-and-push-builder
+      #- gcp-gcr/build-and-push-image:
+      #    executor: docker
+      #    image: taraxa-node/taraxa-builder
+      #    context: taraxa-node
+      #    setup-remote-docker: true
+      #    use-docker-layer-caching: true
       - build-linux:
           filters:
             branches: 
