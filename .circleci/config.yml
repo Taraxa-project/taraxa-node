@@ -9,8 +9,6 @@ orbs:
 jobs: 
    create-and-push-builder:
      executor: gcp-gcr/default
-#     docker: 
-#       - image: buildpack-deps:trusty 
      steps:
        ### This step is to enable local testing with circleci cli tool
        - run:
@@ -25,8 +23,6 @@ jobs:
               fi
             fi
        - checkout
-       #- setup_remote_docker:
-       #   docker_layer_caching: true
        - gcp-gcr/build-image: 
            extra_build_args: --target builder
            image: taraxa-node/builder
@@ -178,6 +174,7 @@ workflows:
   build-and-release:
     jobs:
       - create-and-push-builder:
+          context: taraxa-node
           filters:
             branches: 
               only: 
