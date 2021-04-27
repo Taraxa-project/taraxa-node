@@ -310,7 +310,6 @@ TEST_F(P2PTest, block_propagate) {
   transactions.emplace_back(*g_signed_trx_samples[1].rlp());
   thc1->onNewTransactions(transactions, true);
   std::vector<Transaction> transactions2;
-  blk.updateHash();
   thc1->onNewBlockReceived(blk, transactions2);
 
   for (int i = 0; i < 50; i++) {

@@ -69,6 +69,11 @@ Transaction::Transaction(dev::RLP const &_rlp, bool verify_strict) {
 
 trx_hash_t const &Transaction::getHash() const {
   if (!hash_initialized_) {
+    std::unique_lock l(hash_mu_.val, std::try_to_lock);
+    if (!l.owns_lock()) {
+      l.lock();
+      return hash_;
+    }
     hash_initialized_ = true;
     hash_ = dev::sha3(*rlp());
   }
@@ -77,6 +82,11 @@ trx_hash_t const &Transaction::getHash() const {
 
 addr_t const &Transaction::get_sender_() const {
   if (!sender_initialized_) {
+    std::unique_lock l(sender_mu_.val, std::try_to_lock);
+    if (!l.owns_lock()) {
+      l.lock();
+      return sender_;
+    }
     sender_initialized_ = true;
     if (auto pubkey = recover(vrs_, hash_for_signature()); pubkey) {
       sender_ = toAddress(pubkey);
@@ -116,9 +126,17 @@ shared_ptr<bytes> Transaction::rlp(bool cache) const {
   if (cached_rlp_) {
     return cached_rlp_;
   }
+  std::unique_ptr<std::unique_lock<std::mutex>> l;
+  if (cache) {
+    l = make_unique<std::unique_lock<std::mutex>>(sender_mu_.val, std::try_to_lock);
+    if (!l->owns_lock()) {
+      l->lock();
+      return cached_rlp_;
+    }
+  }
   dev::RLPStream s;
   streamRLP<false>(s);
-  shared_ptr<bytes> ret(new auto(s.invalidate()));
+  auto ret = make_shared<bytes>(move(s.invalidate()));
   return cache ? cached_rlp_ = move(ret) : ret;
 };
 
