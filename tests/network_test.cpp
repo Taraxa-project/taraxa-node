@@ -674,8 +674,9 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
     next_votes1.emplace_back(vote);
   }
 
+  auto next_votes_mgr1 = node1->getNextVotesManager();
   // Update node1 next votes bundle
-  node1->getNextVotesManager()->update(next_votes1, pbft_2t_plus_1);
+  next_votes_mgr1->update(next_votes1, pbft_2t_plus_1);
 
   FullNode::Handle node2(node_cfgs[1], true);
   // Stop PBFT manager, that will place vote
@@ -695,8 +696,9 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
     next_votes2.emplace_back(vote);
   }
 
+  auto next_votes_mgr2 = node2->getNextVotesManager();
   // Update node2 next votes bundle
-  node2->getNextVotesManager()->update(next_votes2, pbft_2t_plus_1);
+  next_votes_mgr2->update(next_votes2, pbft_2t_plus_1);
 
   // Set node2 PBFT previous round 2t+1 for networking
   auto pbft_previous_round = 0;
@@ -719,15 +721,20 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
   // Node1 broadcast next votes1 to node2
   nw1->broadcastPreviousRoundNextVotesBundle();
 
-  taraxa::thisThreadSleepForMilliSeconds(100);
+  auto node2_expect_size = next_votes1.size() + next_votes2.size();
+  for (auto _(0); _ < 600; ++_) {
+    if (node2_expect_size == next_votes_mgr2->getNextVotesSize()) {
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(100);
+  }
 
   // Expect node1 print out "ERROR: Cannot get PBFT 2t+1 in PBFT round 0"
-  auto node1_next_votes_size = node1->getNextVotesManager()->getNextVotesSize();
+  auto node1_next_votes_size = next_votes_mgr1->getNextVotesSize();
   auto node1_expect_size = next_votes1.size();
   EXPECT_EQ(node1_next_votes_size, node1_expect_size);
 
-  auto node2_next_votes_size = node2->getNextVotesManager()->getNextVotesSize();
-  auto node2_expect_size = next_votes1.size() + next_votes2.size();
+  auto node2_next_votes_size = next_votes_mgr2->getNextVotesSize();
   EXPECT_EQ(node2_next_votes_size, node2_expect_size);
 
   // Set node1 PBFT previous round 2t+1 for networking
@@ -736,10 +743,15 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
   // Node2 broadcast updated next votes to node1
   nw2->broadcastPreviousRoundNextVotesBundle();
 
-  taraxa::thisThreadSleepForMilliSeconds(100);
+  node1_expect_size = next_votes1.size() + next_votes2.size();
+  for (auto _(0); _ < 600; ++_) {
+    if (node1_expect_size == next_votes_mgr1->getNextVotesSize()) {
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(100);
+  }
 
   node1_next_votes_size = node1->getNextVotesManager()->getNextVotesSize();
-  node1_expect_size = next_votes1.size() + next_votes2.size();
   EXPECT_EQ(node1_next_votes_size, node1_expect_size);
 }
 
