@@ -212,6 +212,8 @@ TEST_F(VoteTest, transfer_vote) {
 
   nw2->sendPbftVote(nw1->getNodeId(), vote);
 
+  auto vote_mgr1 = node1->getVoteManager();
+  auto vote_mgr2 = node2->getVoteManager();
   for (auto _(0); _ < 600; ++_) {
     // test timeout is 60 seconds
     if (1 == vote_mgr1->getUnverifiedVotesSize()) {
@@ -271,6 +273,9 @@ TEST_F(VoteTest, vote_broadcast) {
 
   nw1->onNewPbftVotes(vector{vote});
 
+  auto vote_mgr1 = node1->getVoteManager();
+  auto vote_mgr2 = node2->getVoteManager();
+  auto vote_mgr3 = node3->getVoteManager();
   for (auto _(0); _ < 600; ++_) {
     // test timeout is 60 seconds
     if (1 == vote_mgr2->getUnverifiedVotesSize() && 1 == vote_mgr3->getUnverifiedVotesSize()) {

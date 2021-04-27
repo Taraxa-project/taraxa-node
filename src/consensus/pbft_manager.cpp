@@ -997,7 +997,6 @@ void PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteTypes 
 
   db_->saveVerifiedVote(vote);
   vote_mgr_->addVerifiedVote(vote);
-  
   LOG(log_dg_) << "Place vote: " << vote;
 
   // pbft vote broadcast
