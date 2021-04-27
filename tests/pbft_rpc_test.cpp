@@ -177,7 +177,7 @@ TEST_F(PbftRpcTest, vote_broadcast) {
   node2->getVoteManager()->clearUnverifiedVotesTable();
   node3->getVoteManager()->clearUnverifiedVotesTable();
 
-  nw1->onNewPbftVote(vote);
+  nw1->onNewPbftVotes(vector{vote});
   taraxa::thisThreadSleepForMilliSeconds(100);
 
   size_t vote_queue_size1 = node1->getVoteManager()->getUnverifiedVotesSize();

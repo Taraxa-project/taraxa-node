@@ -126,6 +126,8 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::shared_ptr<DagManager> getShared();
   void stop();
 
+  std::string const &get_genesis() { return genesis_; }
+
   bool pivotAndTipsAvailable(DagBlock const &blk);
   void addDagBlock(DagBlock const &blk, bool finalized = false,
                    bool save = true);  // insert to buffer if fail

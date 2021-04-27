@@ -48,10 +48,7 @@ PbftManager::PbftManager(PbftConfig const &conf, std::string const &genesis, add
 
 PbftManager::~PbftManager() { stop(); }
 
-void PbftManager::setNetwork(std::shared_ptr<Network> network) {
-  network_ = network;
-  capability_ = network ? network->getTaraxaCapability() : nullptr;
-}
+void PbftManager::setNetwork(std::weak_ptr<Network> network) { network_ = move(network); }
 
 void PbftManager::start() {
   if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
@@ -190,6 +187,10 @@ void PbftManager::update_dpos_state_() {
       thisThreadSleepForMilliSeconds(LAMBDA_ms);
     }
   } while (!stopped_);
+
+  if (is_eligible_(node_addr_)) {
+    LOG(log_nf_) << "Account " << node_addr_ << " is delegated at period " << dpos_period_;
+  }
 }
 
 uint64_t PbftManager::getEligibleVoterCount() const { return eligible_voter_count_; }
@@ -205,6 +206,7 @@ bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
     LOG(log_tr_) << "Account " << node_addr_ << " is not eligible to vote";
     return false;
   }
+
   // compute sortition
   VrfPbftMsg msg(pbft_chain_last_block_hash_, type, round, step);
   VrfPbftSortition vrf_sortition(vrf_sk_, msg);
@@ -615,7 +617,9 @@ void PbftManager::proposeBlock_() {
         LOG(log_nf_) << "Rebroadcasting and proposing next voted block " << own_starting_value_for_round_
                      << " from previous round. In round " << round;
         // broadcast pbft block
-        network_->onNewPbftBlock(*pbft_block);
+        if (auto net = network_.lock()) {
+          net->onNewPbftBlock(pbft_block);
+        }
         // place vote
         placeVote_(own_starting_value_for_round_, propose_vote_type, round, step_);
       }
@@ -685,8 +689,8 @@ void PbftManager::certifyBlock_() {
       if (soft_voted_block_hash.second && soft_voted_block_hash.first != NULL_BLOCK_HASH) {
         LOG(log_dg_) << "Node has seen enough soft votes voted at " << soft_voted_block_for_this_round_.first
                      << ", regossip soft votes. In round " << round;
-        for (auto const &sv : soft_votes) {
-          network_->onNewPbftVote(sv);
+        if (auto net = network_.lock()) {
+          net->onNewPbftVotes(move(soft_votes));
         }
       }
     }
@@ -714,7 +718,7 @@ void PbftManager::certifyBlock_() {
           // Get partition, need send request to get missing pbft blocks from peers
           LOG(log_er_)
               << "Soft voted block for this round appears to be invalid, we must be out of sync with pbft chain";
-          if (!capability_->syncing_) {
+          if (!is_syncing_()) {
             syncPbftChainFromPeers_(false);
           }
         }
@@ -778,16 +782,6 @@ void PbftManager::secondFinish_() {
   //                      (step_ - MAX_STEPS + 1) * LAMBDA_ms_BIG + STEP_4_DELAY
   //                      + 2 * POLLING_INTERVAL_ms;
   // }
-  if (elapsed_time_in_round_ms_ > end_time_for_step) {
-    // Should not happen, add log here for safety checking
-    if (have_executed_this_round_) {
-      LOG(log_dg_) << "PBFT Reached round " << round << " at step " << step_ << " late due to execution";
-    } else {
-      LOG(log_dg_) << "PBFT Reached round " << round << " at step " << step_ << " late without executing";
-    }
-    continue_finish_polling_state_ = true;
-    return;
-  }
 
   if (shouldSpeak(next_vote_type, round, step_)) {
     if (!soft_voted_block_for_this_round_.second) {
@@ -811,9 +805,8 @@ void PbftManager::secondFinish_() {
         soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH) {
       LOG(log_dg_) << "Node has seen enough soft votes voted at " << soft_voted_block_for_this_round_.first
                    << ", regossip soft votes. In round " << round << " step " << step_;
-      auto soft_votes = db_->getSoftVotes(round);
-      for (auto const &sv : soft_votes) {
-        network_->onNewPbftVote(sv);
+      if (auto net = network_.lock()) {
+        net->onNewPbftVotes(db_->getSoftVotes(round));
       }
 
       LOG(log_nf_) << "Next voting " << soft_voted_block_for_this_round_.first << " for round " << round << ", at step "
@@ -837,7 +830,7 @@ void PbftManager::secondFinish_() {
     }
   }
 
-  if (step_ > MAX_STEPS && !capability_->syncing_ && !syncRequestedAlreadyThisStep_()) {
+  if (step_ > MAX_STEPS && !is_syncing_() && !syncRequestedAlreadyThisStep_()) {
     LOG(log_dg_) << "Suspect PBFT consensus is behind or stalled, perhaps inaccurate 2t+1, need to broadcast request "
                     "for missing blocks";
     syncPbftChainFromPeers_(true);
@@ -846,9 +839,22 @@ void PbftManager::secondFinish_() {
   if (step_ > MAX_STEPS && !broadcastAlreadyThisStep_()) {
     LOG(log_dg_) << "Node " << node_addr_ << " broadcast next votes for previous round. In round " << round << " step "
                  << step_;
-    network_->broadcastPreviousRoundNextVotesBundle();
+    if (auto net = network_.lock()) {
+      net->broadcastPreviousRoundNextVotesBundle();
+    }
     pbft_round_last_broadcast_ = round;
     pbft_step_last_broadcast_ = step_;
+  }
+
+  if (elapsed_time_in_round_ms_ > end_time_for_step) {
+    // Should not happen, add log here for safety checking
+    // if (have_executed_this_round_) {
+    //  LOG(log_dg_) << "PBFT Reached round " << round << " at step " << step_ << " late due to execution";
+    //} else {
+    //  LOG(log_dg_) << "PBFT Reached round " << round << " at step " << step_ << " late without executing";
+    //}
+    continue_finish_polling_state_ = true;
+    return;
   }
 
   loop_back_finish_state_ = elapsed_time_in_round_ms_ > (step_ + 1) * LAMBDA_ms + STEP_4_DELAY - POLLING_INTERVAL_ms;
@@ -974,12 +980,15 @@ Vote PbftManager::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, 
 
 void PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteTypes vote_type, uint64_t round,
                              size_t step) {
-  Vote vote = generateVote(blockhash, vote_type, round, step, pbft_chain_last_block_hash_);
+  vector<Vote> votes{generateVote(blockhash, vote_type, round, step, pbft_chain_last_block_hash_)};
+  auto const &vote = votes[0];
   vote_mgr_->addVote(vote);
   LOG(log_dg_) << "vote block hash: " << blockhash << " vote type: " << vote_type << " round: " << round
                << " step: " << step << " vote hash " << vote.getHash();
   // pbft vote broadcast
-  network_->onNewPbftVote(vote);
+  if (auto net = network_.lock()) {
+    net->onNewPbftVotes(move(votes));
+  }
 }
 
 std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
@@ -1043,7 +1052,9 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
   // push pbft block
   pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
   // broadcast pbft block
-  network_->onNewPbftBlock(*pbft_block);
+  if (auto net = network_.lock()) {
+    net->onNewPbftBlock(pbft_block);
+  }
 
   LOG(log_dg_) << node_addr_ << " propose PBFT block succussful! "
                << " in round: " << getPbftRound() << " in step: " << step_ << " PBFT block: " << pbft_block;
@@ -1137,11 +1148,13 @@ void PbftManager::syncPbftChainFromPeers_(bool force) {
     return;
   }
 
-  if (!capability_->syncing_ && !syncRequestedAlreadyThisStep_()) {
+  if (!is_syncing_() && !syncRequestedAlreadyThisStep_()) {
     auto round = getPbftRound();
     LOG(log_nf_) << "Restarting pbft sync. In round " << round << ", in step " << step_ << ", forced " << std::boolalpha
                  << force << ", Send request to ask missing blocks";
-    capability_->restartSyncingPbft(force);
+    if (auto net = network_.lock()) {
+      net->restartSyncingPbft(force);
+    }
     pbft_round_last_requested_sync_ = round;
     pbft_step_last_requested_sync_ = step_;
   }
@@ -1210,7 +1223,7 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cer
     // Get partition, need send request to get missing pbft blocks from peers
     LOG(log_er_) << "Cert voted block " << cert_voted_block_hash
                  << " is invalid, we must be out of sync with pbft chain";
-    if (capability_->syncing_ == false) {
+    if (!is_syncing_()) {
       syncPbftChainFromPeers_(false);
     }
     return false;
@@ -1407,6 +1420,13 @@ void PbftManager::countVotes_() {
                       << "(ms) has " << current_step_votes << " votes";
     thisThreadSleepForMilliSeconds(POLLING_INTERVAL_ms / 2);
   }
+}
+
+bool PbftManager::is_syncing_() {
+  if (auto net = network_.lock()) {
+    return net->pbft_syncing();
+  }
+  return false;
 }
 
 }  // namespace taraxa

@@ -8,6 +8,7 @@ from eth_account import Account
 from eth_keys import keys
 from nacl.encoding import HexEncoder
 from nacl.public import PrivateKey
+from nacl.signing import SigningKey
 from pathlib import Path
 
 # network configs are pre-defined boot nodes for a network
@@ -35,11 +36,21 @@ def config():
 
 @cli.command()
 @click.option('--secret', default='', help='Private key in hex format')
-def account(secret):
+@click.option('--file', default='', help='Path to the config file where we can find the node secret')
+def account(secret, file):
     """Generate or view a Taraxa Account key."""
     Account.enable_unaudited_hdwallet_features()
     if secret != '':
         acct = Account.from_key(private_key=secret) #pylint: disable=no-value-for-parameter
+        mnemonic = ''
+    elif file != '':
+        config_data = json.loads('{}')
+        try:
+            with open(file) as json_file:
+                config_data = json.load(json_file)
+        except IOError:
+            pass
+        acct = Account.from_key(private_key=config_data["node_secret"]) #pylint: disable=no-value-for-parameter
         mnemonic = ''
     else:
         acct, mnemonic = Account.create_with_mnemonic("", 12, "english", "m/44'/60'/0'/0/0")
@@ -53,14 +64,7 @@ def account(secret):
 @cli.command()
 @click.option('--secret', default='', help='Private key in hex format')
 def vrf(secret):
-    """Generate or view a Taraxa Node VRF key"""
-    if secret != '':
-        sk = PrivateKey(secret, HexEncoder)
-    else:
-        sk = PrivateKey.generate()
-    pk = sk.public_key
-    click.echo(f"public key: {pk.encode().hex()}")
-    click.echo(f"private key: {sk.encode().hex()}")
+    click.echo(f"this method is no longer supported")
 
 
 @config.command()
@@ -109,8 +113,11 @@ def node(as_boot_node, boot_node, db_path, file, network, log, network_port_tcp,
     data["node_secret"] = node_secret
     
     if not vrf_secret:
-        sk = PrivateKey.generate()
-        vrf_secret = sk.encode().hex()
+        signing_key = SigningKey.generate()
+        # This gives you the 32 bytes seed
+        bytes(signing_key)
+        # This gives you the 64 bytes actual key
+        vrf_secret = signing_key._signing_key.hex()
     data["vrf_secret"] = vrf_secret
 
     with open(f"./config/networks/{network}.json") as json_file:
@@ -159,8 +166,11 @@ def node(as_boot_node, boot_node, db_path, file, network, log, network_port_tcp,
     if stdout:
         click.echo(json.dumps(data, indent=2))
     else:
-        with open(file, 'w') as outfile:
-            json.dump(data, outfile, indent=2)
+        if not os.path.exists(file):
+            with open(file, 'w') as outfile:
+                json.dump(data, outfile, indent=2)
+        else:
+            click.echo(f"{file} already exists, new config NOT written!")
 
 
 if __name__ == '__main__':

@@ -49,6 +49,11 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   using vrf_sk_t = vrf_wrapper::vrf_sk_t;
   using vrf_proof_t = vrf_wrapper::vrf_proof_t;
 
+  struct PostDestructionContext {
+    uint num_shared_pointers_to_check = 0;
+    bool have_leaked_shared_pointers = false;
+  };
+  std::shared_ptr<PostDestructionContext> post_destruction_ctx_;
   // Has to be destroyed last, hence on top
   util::ExitStack post_destruction_;
 
@@ -95,9 +100,17 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   template <typename T, typename... ConstructorParams>
   auto &emplace(std::shared_ptr<T> &ptr, ConstructorParams &&... ctor_params) {
     ptr = std::make_shared<T>(std::forward<ConstructorParams>(ctor_params)...);
-    post_destruction_ += [w_ptr = std::weak_ptr<T>(ptr)] {
-      // Example of debugging: cout << "checking " << typeid(T).name() << endl;
-      assert(w_ptr.use_count() == 0);
+    ++post_destruction_ctx_->num_shared_pointers_to_check;
+    post_destruction_ += [w_ptr = std::weak_ptr<T>(ptr), ctx = post_destruction_ctx_] {
+      if (w_ptr.use_count() != 0) {
+        cerr << "in taraxa::FullNode a shared pointer to type " << typeid(T).name() << " has not been released "
+             << endl;
+        ctx->have_leaked_shared_pointers = true;
+      }
+      if (--ctx->num_shared_pointers_to_check == 0 && ctx->have_leaked_shared_pointers) {
+        assert(false);
+        exit(1);
+      }
     };
     return ptr;
   }
