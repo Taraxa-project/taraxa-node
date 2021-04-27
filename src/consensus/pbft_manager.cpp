@@ -180,8 +180,9 @@ void PbftManager::update_dpos_state_() {
       eligible_voter_count_ = final_chain_->dpos_eligible_count(dpos_period_);
       break;
     } catch (state_api::ErrFutureBlock &c) {
-      LOG(log_nf_) << c.what() << ". PBFT period " << dpos_period_ << " is too far ahead of DPOS, need wait!"
-                   << " PBFT chain size " << pbft_chain_->getPbftChainSize() << ", have executed chain size "
+      LOG(log_er_) << c.what();
+      LOG(log_nf_) << "PBFT period " << dpos_period_ << " is too far ahead of DPOS, need wait! PBFT chain size "
+                   << pbft_chain_->getPbftChainSize() << ", have executed chain size "
                    << final_chain_->last_block_number();
       // Sleep one PBFT lambda time
       thisThreadSleepForMilliSeconds(LAMBDA_ms);
@@ -195,7 +196,15 @@ void PbftManager::update_dpos_state_() {
 
 uint64_t PbftManager::getEligibleVoterCount() const { return eligible_voter_count_; }
 
-bool PbftManager::is_eligible_(addr_t const &addr) { return final_chain_->dpos_is_eligible(dpos_period_, addr); }
+bool PbftManager::is_eligible_(addr_t const &addr) {
+  try {
+    return final_chain_->dpos_is_eligible(dpos_period_, addr);
+  } catch (state_api::ErrFutureBlock &c) {
+    LOG(log_er_) << c.what();
+    LOG(log_nf_) << "Period " << dpos_period_ << " is too far ahead of DPOS";
+    return false;
+  }
+}
 
 bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
   //  if (capability_->syncing_) {
