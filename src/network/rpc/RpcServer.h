@@ -27,7 +27,7 @@ struct RpcServer final : std::enable_shared_from_this<RpcServer>, jsonrpc::Abstr
   using ApiExceptionHandler = std::function<Error()>;
 
   /**
-   * @param api_error_handler - if given, is a function that is called when an API method exception is caught.
+   * @param api_ex_handler - if given, is a function that is called when an API method exception is caught.
    * It is supposed to re-throw the current exception internally (using `throw;`), catch it, and meaningfully convert
    * to APIError. It is also allowed to not handle the original exception on re-throw - in which case the default
    * exception handling behavior will be applied by the caller.
