@@ -120,17 +120,26 @@ TEST_F(PbftRpcTest, transfer_vote) {
   uint64_t period = 1;
   size_t step = 1;
 
-  Vote vote = node2->getPbftManager()->generateVote(blockhash, type, period, step, pbft_blockhash);
+  Vote vote = pbft_mgr2->generateVote(blockhash, type, period, step, pbft_blockhash);
 
-  node1->getVoteManager()->clearUnverifiedVotesTable();
-  node2->getVoteManager()->clearUnverifiedVotesTable();
+  auto vote_mgr1 = node1->getVoteManager();
+  auto vote_mgr2 = node2->getVoteManager();
+  vote_mgr1->clearUnverifiedVotesTable();
+  vote_mgr2->clearUnverifiedVotesTable();
 
   nw2->sendPbftVote(nw1->getNodeId(), vote);
-  taraxa::thisThreadSleepForMilliSeconds(100);
 
-  size_t vote_queue_size_in_node1 = node1->getVoteManager()->getUnverifiedVotesSize();
+  for (auto _(0); _ < 600; ++_) {
+    // test timeout is 60 seconds
+    if (1 == vote_mgr1->getUnverifiedVotesSize()) {
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(100);
+  }
+
+  size_t vote_queue_size_in_node1 = vote_mgr1->getUnverifiedVotesSize();
   EXPECT_EQ(vote_queue_size_in_node1, 1);
-  size_t vote_queue_size_in_node2 = node2->getVoteManager()->getUnverifiedVotesSize();
+  size_t vote_queue_size_in_node2 = vote_mgr2->getUnverifiedVotesSize();
   EXPECT_EQ(vote_queue_size_in_node2, 0);
 }
 
@@ -171,18 +180,28 @@ TEST_F(PbftRpcTest, vote_broadcast) {
   PbftVoteTypes type = propose_vote_type;
   uint64_t period = 1;
   size_t step = 1;
-  Vote vote = node1->getPbftManager()->generateVote(blockhash, type, period, step, pbft_blockhash);
+  Vote vote = pbft_mgr1->generateVote(blockhash, type, period, step, pbft_blockhash);
 
-  node1->getVoteManager()->clearUnverifiedVotesTable();
-  node2->getVoteManager()->clearUnverifiedVotesTable();
-  node3->getVoteManager()->clearUnverifiedVotesTable();
+  auto vote_mgr1 = node1->getVoteManager();
+  auto vote_mgr2 = node2->getVoteManager();
+  auto vote_mgr3 = node3->getVoteManager();
+  vote_mgr1->clearUnverifiedVotesTable();
+  vote_mgr2->clearUnverifiedVotesTable();
+  vote_mgr3->clearUnverifiedVotesTable();
 
   nw1->onNewPbftVotes(vector{vote});
-  taraxa::thisThreadSleepForMilliSeconds(100);
 
-  size_t vote_queue_size1 = node1->getVoteManager()->getUnverifiedVotesSize();
-  size_t vote_queue_size2 = node2->getVoteManager()->getUnverifiedVotesSize();
-  size_t vote_queue_size3 = node3->getVoteManager()->getUnverifiedVotesSize();
+  for (auto _(0); _ < 600; ++_) {
+    // test timeout is 60 seconds
+    if (1 == vote_mgr2->getUnverifiedVotesSize() && 1 == vote_mgr3->getUnverifiedVotesSize()) {
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(100);
+  }
+
+  size_t vote_queue_size1 = vote_mgr1->getUnverifiedVotesSize();
+  size_t vote_queue_size2 = vote_mgr2->getUnverifiedVotesSize();
+  size_t vote_queue_size3 = vote_mgr3->getUnverifiedVotesSize();
   EXPECT_EQ(vote_queue_size1, 0);
   EXPECT_EQ(vote_queue_size2, 1);
   EXPECT_EQ(vote_queue_size3, 1);
