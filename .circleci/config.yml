@@ -8,8 +8,11 @@ orbs:
 
 jobs: 
    create-and-push-builder:
-     executor: gcp-gcr/default
+     #executor: gcp-gcr/default
+     docker: 
+       - image: buildpack-deps:trusty 
      steps:
+       ### This step is to enable local testing with circleci cli tool
        - run:
           name: Local build handling
           command: |
