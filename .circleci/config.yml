@@ -174,7 +174,10 @@ jobs:
 workflows:
   build-and-release:
     jobs:
-      - create-and-push-builder
+      - create-and-push-builder:
+          filters:
+            branches: 
+              only: develop,cirleci
       #- gcp-gcr/build-and-push-image:
       #    executor: docker
       #    image: taraxa-node/taraxa-builder
