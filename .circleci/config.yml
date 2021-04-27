@@ -177,7 +177,9 @@ workflows:
       - create-and-push-builder:
           filters:
             branches: 
-              only: develop,cirleci
+              only: 
+               - develop
+               - cirleci
       #- gcp-gcr/build-and-push-image:
       #    executor: docker
       #    image: taraxa-node/taraxa-builder
