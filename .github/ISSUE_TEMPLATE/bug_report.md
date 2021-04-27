@@ -8,13 +8,9 @@ assignees: ''
 ---
 
 ### Description
-
 <!-- Describe your issue here. -->
 
 ### Environment
-
-
-
 <!--
 * Use docker command to find node image version: docker images --format '{{.ID}}' 'taraxa/taraxa-node:latest' 
 * Operating System details.
