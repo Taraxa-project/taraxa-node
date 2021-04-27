@@ -198,7 +198,13 @@ void BlockProposer::proposeBlock(blk_hash_t const& pivot, level_t level, vec_blk
 
 bool BlockProposer::validDposProposer(level_t const propose_level) {
   uint64_t period = dag_blk_mgr_->getPeriod(propose_level);
-  return final_chain_->dpos_is_eligible(period, node_addr_);
+  try {
+    return final_chain_->dpos_is_eligible(period, node_addr_);
+  } catch (state_api::ErrFutureBlock& c) {
+    LOG(log_er_) << c.what();
+    LOG(log_nf_) << "Proposal period " << period << " is too far ahead of DPOS";
+    return false;
+  }
 }
 
 }  // namespace taraxa

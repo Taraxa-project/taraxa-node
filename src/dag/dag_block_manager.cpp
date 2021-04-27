@@ -220,7 +220,17 @@ void DagBlockManager::verifyBlock() {
       // Verify DPOS
       auto period = getPeriod(blk.first.getLevel());
       auto dag_block_sender = blk.first.getSender();
-      if (!final_chain_->dpos_is_eligible(period, dag_block_sender)) {
+      bool dpos_qualified;
+      try {
+        dpos_qualified = final_chain_->dpos_is_eligible(period, dag_block_sender);
+      } catch (state_api::ErrFutureBlock &c) {
+        LOG(log_er_) << c.what();
+        LOG(log_nf_) << "Verify proposal period " << period << " is too far ahead of DPOS";
+        uLock lock(shared_mutex_for_unverified_qu_);
+        unverified_qu_[blk.first.getLevel()].emplace_back(blk);
+        continue;
+      }
+      if (!dpos_qualified) {
         auto executed_period = final_chain_->last_block_number();
         auto dpos_period = executed_period;
         if (dpos_config_) {
