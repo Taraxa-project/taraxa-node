@@ -122,7 +122,6 @@ void RpcConnection::process_request() {
   response_.set("Access-Control-Allow-Headers", "Accept, Accept-Language, Content-Language, Content-Type");
   response_.set("Connection", "close");
   response_.prepare_payload();
-  // async write
   boost::beast::http::async_write(socket_, response_,
                                   [this_sp = shared_from_this()](auto const &ec, auto bytes_transfered) {});
 }

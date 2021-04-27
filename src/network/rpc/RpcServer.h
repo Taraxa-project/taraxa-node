@@ -50,15 +50,6 @@ struct RpcServer final : std::enable_shared_from_this<RpcServer>, jsonrpc::Abstr
   ApiExceptionHandler api_ex_handler_;
   LOG_OBJECTS_DEFINE;
 };
-// QQ:
-// Why RpcConnection and Rpc use different io_context?
-// Rpc use a io_context to create acceptor
-// RpcConnection use the io_context from node to create socket
-
-// node and rpc use same io_context
-
-// QQ:
-// atomic_flag responded, is RpcConnection multithreaded??
 
 class RpcConnection : public std::enable_shared_from_this<RpcConnection> {
  public:
