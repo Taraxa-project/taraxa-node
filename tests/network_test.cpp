@@ -751,7 +751,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
     taraxa::thisThreadSleepForMilliSeconds(100);
   }
 
-  node1_next_votes_size = node1->getNextVotesManager()->getNextVotesSize();
+  node1_next_votes_size = next_votes_mgr1->getNextVotesSize();
   EXPECT_EQ(node1_next_votes_size, node1_expect_size);
 }
 
