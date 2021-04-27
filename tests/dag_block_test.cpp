@@ -48,7 +48,7 @@ TEST_F(DagBlockTest, serialize_deserialize) {
   VdfSortition vdf(vdf_config, g_key_pair.address(), sk, getRlpBytes(level));
   blk_hash_t vdf_input(200);
   vdf.computeVdfSolution(vdf_config, vdf_input.asBytes());
-  DagBlock blk1(blk_hash_t(1), 2, {}, {}, vdf);
+  DagBlock blk1(blk_hash_t(1), 2, {}, {}, vdf, secret_t::random());
   auto b = blk1.rlp(true);
   DagBlock blk2(b);
   EXPECT_EQ(blk1, blk2);
@@ -129,13 +129,13 @@ TEST_F(DagBlockTest, sender_and_hash_verify) {
                 {blk_hash_t(222),  // tips
                  blk_hash_t(333), blk_hash_t(444)},
                 {trx_hash_t(555),  // trxs
-                 trx_hash_t(666)});
-  blk1.sign(g_secret);
-  EXPECT_EQ(g_key_pair.address(), blk1.sender());
+                 trx_hash_t(666)},
+                g_secret);
+  EXPECT_EQ(g_key_pair.address(), blk1.getSender());
   EXPECT_TRUE(blk1.verifySig());
 
   DagBlock blk_from_rlp(blk1.rlp(true));
-  EXPECT_EQ(blk_from_rlp.sender(), blk1.sender());
+  EXPECT_EQ(blk_from_rlp.getSender(), blk1.getSender());
   EXPECT_EQ(blk_from_rlp.getHash(), blk1.getHash());
 }
 
@@ -145,17 +145,17 @@ TEST_F(DagBlockTest, sign_verify) {
                 {blk_hash_t(222),  // tips
                  blk_hash_t(333), blk_hash_t(444)},
                 {trx_hash_t(555),  // trxs
-                 trx_hash_t(666)});
+                 trx_hash_t(666)},
+                g_secret);
   DagBlock blk1c(blk_hash_t(111),   // pivot
                  0,                 // level
                  {blk_hash_t(222),  // tips
                   blk_hash_t(333), blk_hash_t(444)},
                  {trx_hash_t(555),  // trxs
-                  trx_hash_t(666)});
-  blk1.sign(g_secret);
-  blk1c.sign(g_secret);
+                  trx_hash_t(666)},
+                 g_secret);
   EXPECT_EQ(blk1.getSig(), blk1c.getSig()) << blk1 << std::endl << blk1c;
-  EXPECT_EQ(blk1.sender(), blk1c.sender());
+  EXPECT_EQ(blk1.getSender(), blk1c.getSender());
   EXPECT_EQ(blk1.getHash(), blk1c.getHash());
 
   EXPECT_TRUE(blk1.verifySig());
@@ -163,12 +163,11 @@ TEST_F(DagBlockTest, sign_verify) {
   DagBlock blk2(blk_hash_t(9999),  // pivot
                 0,                 // level
                 {},                // tips,
-                {});               // trxs
-  blk2.sign(g_secret);
+                {}, g_secret);     // trxs
 
   EXPECT_NE(blk1.getSig(), blk2.getSig());
   EXPECT_NE(blk1.getHash(), blk2.getHash());
-  EXPECT_EQ(blk2.sender(), blk1.sender());
+  EXPECT_EQ(blk2.getSender(), blk1.getSender());
 
   EXPECT_TRUE(blk2.verifySig());
 }

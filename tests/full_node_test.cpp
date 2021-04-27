@@ -1377,22 +1377,12 @@ TEST_F(FullNodeTest, transfer_to_self) {
 TEST_F(FullNodeTest, chain_config_json) {
   string expected_default_chain_cfg_json = R"({
   "dag_genesis_block": {
-    "hash": "0xc9524784c4bf29e6facdd94ef7d214b9f512cdfd0f68184432dab85d053cbc69",
     "level": "0x0",
     "pivot": "0x0000000000000000000000000000000000000000000000000000000000000000",
-    "sender": "0xde2b1203d72d3549ee2f733b00b2789414c7cea5",
     "sig": "0xb7e22d46c1ba94d5e8347b01d137b5c428fcbbeaf0a77fb024cbbf1517656ff00d04f7f25be608c321b0d7483c402c294ff46c49b265305d046a52236c0a363701",
     "timestamp": "0x5d422b80",
     "tips": [],
-    "transactions": [],
-    "vdf" : 
-		{
-			"difficulty" : "0x0",
-		  "pk" : "0x0000000000000000000000000000000000000000000000000000000000000000",
-		  "proof" : "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-		  "sol1" : "0x",
-		  "sol2" : "0x"
-		}
+    "transactions": []
   },
   "final_chain": {
     "genesis_block_fields": {
