@@ -159,6 +159,8 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
 
   uint64_t dpos_eligible_count(BlockNumber blk_num) const override { return state_api.dpos_eligible_count(blk_num); }
 
+  uint64_t dpos_eligible_vote_count(BlockNumber blk_num) const override { return state_api.dpos_eligible_vote_count(blk_num); }
+
   bool dpos_is_eligible(BlockNumber blk_num, addr_t const& addr) const override {
     return state_api.dpos_is_eligible(blk_num, addr);
   }
