@@ -92,8 +92,6 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object,
     json_file_name = string_or_object.asString();
   }
   auto const &root = string_or_object.isString() ? parsed_from_file : string_or_object;
-  node_secret = getConfigDataAsString(root, {"node_secret"});
-  vrf_secret = vrf_wrapper::vrf_sk_t(getConfigDataAsString(root, {"vrf_secret"}));
   db_path = getConfigDataAsString(root, {"db_path"});
   if (auto n = getConfigData(root, {"network_is_boot_node"}, true); !n.isNull()) {
     network.network_is_boot_node = n.asBool();
