@@ -431,6 +431,28 @@ TEST_F(FullNodeTest, db_test) {
   db.commitWriteBatch(batch);
   EXPECT_EQ(1, *db.getDagBlockPeriod(blk_hash_t(1)));
   EXPECT_EQ(2, *db.getDagBlockPeriod(blk_hash_t(2)));
+
+  // DPOS proposal period DAG levels map
+  EXPECT_TRUE(db.getProposalPeriodDagLevelsMap(0).empty());
+  ProposalPeriodDagLevelsMap proposal_period_0_levels;
+  db.saveProposalPeriodDagLevelsMap(proposal_period_0_levels);
+  auto period_0_levels_bytes = db.getProposalPeriodDagLevelsMap(0);
+  EXPECT_FALSE(period_0_levels_bytes.empty());
+  ProposalPeriodDagLevelsMap period_0_levels_from_db(period_0_levels_bytes);
+  EXPECT_EQ(period_0_levels_from_db.proposal_period, 0);
+  EXPECT_EQ(period_0_levels_from_db.levels_interval.first, 0);
+  EXPECT_EQ(period_0_levels_from_db.levels_interval.second, proposal_period_0_levels.max_levels_per_period);
+  EXPECT_EQ(period_0_levels_from_db.levels_interval.second, 100);
+  batch = db.createWriteBatch();
+  ProposalPeriodDagLevelsMap proposal_period_1_levels(1, 101, 110);
+  db.addProposalPeriodDagLevelsMapToBatch(proposal_period_1_levels, batch);
+  db.commitWriteBatch(batch);
+  auto period_1_levels_bytes = db.getProposalPeriodDagLevelsMap(1);
+  EXPECT_FALSE(period_1_levels_bytes.empty());
+  ProposalPeriodDagLevelsMap period_1_levels_from_db(period_1_levels_bytes);
+  EXPECT_EQ(period_1_levels_from_db.proposal_period, 1);
+  EXPECT_EQ(period_1_levels_from_db.levels_interval.first, 101);
+  EXPECT_EQ(period_1_levels_from_db.levels_interval.second, 110);
 }
 
 TEST_F(FullNodeTest, sync_five_nodes) {
@@ -1308,29 +1330,35 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
 TEST_F(FullNodeTest, db_rebuild) {
   auto trxs_count = 0;
   auto trxs_count_at_pbft_size_5 = 0;
-  auto pbft_chain_size = 0;
+  auto executed_trxs = 0;
+  auto executed_chain_size = 0;
+
   {
     auto node_cfgs = make_node_cfgs<5>(1);
     auto node_1_genesis_bal = own_effective_genesis_bal(node_cfgs[0]);
     auto nodes = launch_nodes(node_cfgs);
-    // Even distribute coins from master boot node to other nodes. Since master
-    // boot node owns whole coins, the active players should be only master boot
-    // node at the moment.
+
     auto gas_price = val_t(2);
     auto data = bytes();
     auto nonce = 0;
 
     // Issue dummy trx until at least 10 pbft blocks created
-    while (pbft_chain_size < 10) {
-      Transaction dummy_trx(nonce++, 0, 2, 100000, bytes(), nodes[0]->getSecretKey(), nodes[0]->getAddress());
+    while (executed_chain_size < 10) {
+      Transaction dummy_trx(nonce++, 0, gas_price, TEST_TX_GAS_LIMIT, bytes(), nodes[0]->getSecretKey(),
+                            nodes[0]->getAddress());
       nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false);
       trxs_count++;
       thisThreadSleepForMilliSeconds(100);
-      pbft_chain_size = nodes[0]->getFinalChain()->last_block_number();
-      if (pbft_chain_size == 5) {
+      executed_chain_size = nodes[0]->getFinalChain()->last_block_number();
+      if (executed_chain_size == 5) {
         trxs_count_at_pbft_size_5 = nodes[0]->getDB()->getNumTransactionExecuted();
       }
     }
+    executed_trxs = nodes[0]->getDB()->getNumTransactionExecuted();
+    std::cout << "Executed transactions " << trxs_count_at_pbft_size_5 << " at chain size 5" << std::endl;
+    std::cout << "Total executed transactions " << executed_trxs << std::endl;
+    std::cout << "Executed chain size " << executed_chain_size << std::endl;
+
     std::cout << "Checking transactions executed" << std::endl;
     wait({60s, 1s}, [&](auto &ctx) {
       if (nodes[0]->getDB()->getNumTransactionExecuted() != trxs_count) {
@@ -1339,23 +1367,29 @@ TEST_F(FullNodeTest, db_rebuild) {
         ctx.fail();
       }
     });
-    pbft_chain_size = nodes[0]->getFinalChain()->last_block_number();
+    executed_chain_size = nodes[0]->getFinalChain()->last_block_number();
+    std::cout << "Executed transactions " << trxs_count_at_pbft_size_5 << " at chain size 5" << std::endl;
+    std::cout << "Total executed transactions " << executed_trxs << std::endl;
+    std::cout << "Executed chain size " << executed_chain_size << std::endl;
   }
 
   {
+    std::cout << "Test rebuild DB" << std::endl;
     auto node_cfgs = make_node_cfgs<5>(1);
     node_cfgs[0].test_params.rebuild_db = true;
     auto nodes = launch_nodes(node_cfgs);
   }
 
   {
+    std::cout << "Check rebuild DB" << std::endl;
     auto node_cfgs = make_node_cfgs<5>(1);
     auto nodes = launch_nodes(node_cfgs);
     EXPECT_EQ(nodes[0]->getDB()->getNumTransactionExecuted(), trxs_count);
-    EXPECT_EQ(nodes[0]->getFinalChain()->last_block_number(), pbft_chain_size);
+    EXPECT_EQ(nodes[0]->getFinalChain()->last_block_number(), executed_chain_size);
   }
 
   {
+    std::cout << "Test rebuild for period 5" << std::endl;
     auto node_cfgs = make_node_cfgs<5>(1);
     node_cfgs[0].test_params.rebuild_db = true;
     node_cfgs[0].test_params.rebuild_db_period = 5;
@@ -1363,12 +1397,13 @@ TEST_F(FullNodeTest, db_rebuild) {
   }
 
   {
+    std::cout << "Check rebuild for period 5" << std::endl;
     auto node_cfgs = make_node_cfgs<5>(1);
     auto nodes = launch_nodes(node_cfgs);
     EXPECT_EQ(nodes[0]->getDB()->getNumTransactionExecuted(), trxs_count_at_pbft_size_5);
     EXPECT_EQ(nodes[0]->getFinalChain()->last_block_number(), 5);
   }
-}  // namespace taraxa::core_tests
+}
 
 TEST_F(FullNodeTest, transfer_to_self) {
   auto node_cfgs = make_node_cfgs<5, true>(3);

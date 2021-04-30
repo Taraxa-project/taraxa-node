@@ -10,13 +10,15 @@ struct ReplayProtectionServiceDummy : ReplayProtectionService {
 };
 
 Executor::Executor(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<DagManager> dag_mgr,
-                   std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<FinalChain> final_chain,
-                   std::shared_ptr<PbftChain> pbft_chain, uint32_t expected_max_trx_per_block)
+                   std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
+                   std::shared_ptr<FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain,
+                   uint32_t expected_max_trx_per_block)
     : replay_protection_service_(new ReplayProtectionServiceDummy),
       node_addr_(node_addr),
       db_(db),
       dag_mgr_(dag_mgr),
       trx_mgr_(trx_mgr),
+      dag_blk_mgr_(dag_blk_mgr),
       final_chain_(final_chain),
       pbft_chain_(pbft_chain) {
   LOG_OBJECTS_CREATE("EXECUTOR");
@@ -147,6 +149,15 @@ void Executor::execute_(PbftBlock const &pbft_block) {
                  << num_executed_dag_blk_ - finalized_dag_blk_hashes.size() << "-" << num_executed_dag_blk_ - 1
                  << " , Transactions count: " << transactions_tmp_buf_.size();
   }
+
+  // Update proposal period DAG levels map
+  auto anchor = db_->getDagBlock(anchor_hash);
+  if (!anchor) {
+    LOG(log_er_) << "DB corrupted - Cannot find anchor block: " << anchor_hash << " in DB.";
+    assert(false);
+  }
+  auto new_proposal_period_levels_map = dag_blk_mgr_->newProposePeriodDagLevelsMap(anchor->getLevel());
+  db_->addProposalPeriodDagLevelsMapToBatch(*new_proposal_period_levels_map, batch);
 
   // Remove executed transactions at Ethereum pending block. The Ethereum pending block is same with latest block at
   // Taraxa

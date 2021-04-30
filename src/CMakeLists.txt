@@ -53,6 +53,7 @@ set(SOURCES
         logger/log.hpp
         chain/state_api.hpp
         dag/dag_block_manager.hpp
+        dag/proposal_period_levels_map.hpp
         consensus/pbft_manager.hpp
 
         # ---- private sources -----
@@ -96,6 +97,7 @@ set(SOURCES
         logger/log.cpp
         common/types.cpp
         dag/dag_block_manager.cpp
+        dag/proposal_period_levels_map.cpp
         util/jsoncpp.cpp
         network/rpc/rpc_error_handler.cpp
         )

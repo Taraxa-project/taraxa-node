@@ -38,7 +38,10 @@ class DagBlockManager {
   std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash) const;
   void clearBlockStatausTable() { blk_status_.clear(); }
   bool pivotAndTipsValid(DagBlock const &blk);
-  uint64_t getPeriod(level_t level);
+  uint64_t getLastProposalPeriod() const;
+  void setLastProposalPeriod(uint64_t const period);
+  std::pair<uint64_t, bool> getProposalPeriod(level_t level);
+  std::shared_ptr<ProposalPeriodDagLevelsMap> newProposePeriodDagLevelsMap(level_t anchor_level);
 
  private:
   using uLock = boost::unique_lock<boost::shared_mutex>;
@@ -51,8 +54,10 @@ class DagBlockManager {
   std::atomic<bool> stopped_ = true;
   size_t capacity_ = 2048;
   size_t num_verifiers_ = 4;
-  const uint32_t cache_max_size = 10000;
-  const uint32_t cache_delete_step = 100;
+  const uint32_t cache_max_size_ = 10000;
+  const uint32_t cache_delete_step_ = 100;
+  uint64_t last_proposal_period_ = 0;
+  uint64_t current_max_proposal_period_ = 0;
 
   std::shared_ptr<DbStorage> db_;
   std::shared_ptr<TransactionManager> trx_mgr_;
@@ -66,6 +71,7 @@ class DagBlockManager {
   std::vector<std::thread> verifiers_;
   mutable boost::shared_mutex shared_mutex_for_unverified_qu_;
   mutable boost::shared_mutex shared_mutex_for_verified_qu_;
+  mutable boost::shared_mutex shared_mutex_last_proposal_period_;
 
   boost::condition_variable_any cond_for_unverified_qu_;
   boost::condition_variable_any cond_for_verified_qu_;
