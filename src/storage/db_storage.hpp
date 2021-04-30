@@ -100,9 +100,11 @@ struct DbStorage {
     COLUMN(pbft_cert_voted_block);
     COLUMN(pbft_head);
     COLUMN(pbft_blocks);
-    COLUMN(soft_votes);
-    COLUMN(cert_votes);
-    COLUMN(next_votes);
+    COLUMN(unverified_votes);
+    COLUMN(verified_votes);
+    COLUMN(soft_votes);  // only for current PBFT round
+    COLUMN(cert_votes);  // for each PBFT block
+    COLUMN(next_votes);  // only for previous PBFT round
     COLUMN(period_pbft_block);
     COLUMN(dag_block_period);
     COLUMN(proposal_period_levels_map);
@@ -227,6 +229,20 @@ struct DbStorage {
   void saveStatusField(StatusDbField const& field, uint64_t const& value);
   void addStatusFieldToBatch(StatusDbField const& field, uint64_t const& value, BatchPtr const& write_batch);
 
+  // Unverified votes
+  std::vector<Vote> getUnverifiedVotes();
+  shared_ptr<Vote> getUnverifiedVote(vote_hash_t const& vote_hash);
+  void saveUnverifiedVote(Vote const& vote);
+  void addUnverifiedVoteToBatch(Vote const& vote, BatchPtr const& write_batch);
+  void removeUnverifiedVoteToBatch(vote_hash_t const& vote_hash, BatchPtr const& write_batch);
+
+  // Verified votes
+  std::vector<Vote> getVerifiedVotes();
+  shared_ptr<Vote> getVerifiedVote(vote_hash_t const& vote_hash);
+  void saveVerifiedVote(Vote const& vote);
+  void addVerifiedVoteToBatch(Vote const& vote, BatchPtr const& write_batch);
+  void removeVerifiedVoteToBatch(vote_hash_t const& vote_hash, BatchPtr const& write_batch);
+
   // Soft votes
   std::vector<Vote> getSoftVotes(uint64_t const& pbft_round);
   void saveSoftVotes(uint64_t const& pbft_round, std::vector<Vote> const& soft_votes);
@@ -243,6 +259,8 @@ struct DbStorage {
   void saveNextVotes(uint64_t const& pbft_round, std::vector<Vote> const& next_votes);
   void addNextVotesToBatch(uint64_t const& pbft_round, std::vector<Vote> const& next_votes,
                            BatchPtr const& write_batch);
+  void removeNextVotesToBatch(uint64_t const& pbft_round, BatchPtr const& write_batch);
+
   // period_pbft_block
   shared_ptr<blk_hash_t> getPeriodPbftBlock(uint64_t const& period);
   void addPbftBlockPeriodToBatch(uint64_t const& period, taraxa::blk_hash_t const& pbft_block_hash,
