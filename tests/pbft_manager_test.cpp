@@ -331,6 +331,15 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
 
 }
 
+TEST_F(PbftManagerTest, full_node_lambda_input_test) {
+  auto node_cfgs = make_node_cfgs(1);
+  FullNode::Handle node(node_cfgs[0]);
+
+  node->start();
+  auto pbft_mgr = node->getPbftManager();
+  EXPECT_EQ(pbft_mgr->getPbftInitialLambda(), 2000);
+}
+
 TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
   auto node_cfgs = make_node_cfgs<20>(1);
   FullNode::Handle node(node_cfgs[0], true);
