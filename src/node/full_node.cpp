@@ -18,6 +18,7 @@
 #include "network/rpc/Net.h"
 #include "network/rpc/Taraxa.h"
 #include "network/rpc/Test.h"
+#include "network/rpc/rpc_error_handler.hpp"
 #include "transaction_manager/transaction_manager.hpp"
 #include "transaction_manager/transaction_status.hpp"
 
@@ -134,7 +135,8 @@ void FullNode::init() {
 
     if (conf_.rpc->http_port) {
       jsonrpc_http_ = make_shared<net::RpcServer>(
-          *jsonrpc_io_ctx_, boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->http_port}, node_addr);
+          *jsonrpc_io_ctx_, boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->http_port}, node_addr,
+          net::handle_rpc_error);
       jsonrpc_api_->addConnector(jsonrpc_http_);
     }
 
