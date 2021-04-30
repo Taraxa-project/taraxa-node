@@ -45,7 +45,6 @@ class WSSession : public std::enable_shared_from_this<WSSession> {
   void on_accept(beast::error_code ec);
   void do_read();
   void on_read(beast::error_code ec, std::size_t bytes_transferred);
-  void on_write(beast::error_code ec, std::size_t bytes_transferred);
   void on_write_no_read(beast::error_code ec, std::size_t bytes_transferred);
   void newEthBlock(dev::eth::BlockHeader const& payload);
   void newDagBlock(DagBlock const& blk);
