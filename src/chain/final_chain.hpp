@@ -48,6 +48,9 @@ struct FinalChain : virtual ChainDB {
                                           optional<state_api::ExecutionOptions> const& opts = nullopt) const = 0;
   virtual std::pair<val_t, bool> getBalance(addr_t const& acc) const = 0;
   virtual uint64_t dpos_eligible_count(BlockNumber blk_num) const = 0;
+  virtual uint64_t dpos_eligible_total_vote_count(BlockNumber blk_num) const = 0;
+  virtual uint64_t dpos_eligible_vote_count(BlockNumber blk_num, addr_t const& addr) const = 0;
+  
   virtual bool dpos_is_eligible(BlockNumber blk_num, addr_t const& addr) const = 0;
   virtual state_api::DPOSQueryResult dpos_query(state_api::DPOSQuery const& q,
                                                 optional<BlockNumber> blk_n = nullopt) const = 0;
