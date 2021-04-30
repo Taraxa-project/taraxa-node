@@ -49,8 +49,8 @@ void send_2_nodes_trxs() {
                                       "nonce": 600 , 
                                       "receiver":"4fae949ac2b72960fbe857b56532e2d3c8418d5e"}]}' 0.0.0.0:7778)";
   std::cout << "Sending trxs ..." << std::endl;
-  std::thread t1([sendtrx1]() { system(sendtrx1.c_str()); });
-  std::thread t2([sendtrx2]() { system(sendtrx2.c_str()); });
+  std::thread t1([sendtrx1]() { EXPECT_FALSE(system(sendtrx1.c_str())); });
+  std::thread t2([sendtrx2]() { EXPECT_FALSE(system(sendtrx2.c_str())); });
 
   t1.join();
   t2.join();
@@ -69,7 +69,7 @@ void send_dummy_trx() {
                                         "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"}]}' 0.0.0.0:7777 > /dev/null)";
 
   std::cout << "Send dummy transaction ..." << std::endl;
-  system(dummy_trx.c_str());
+  EXPECT_FALSE(system(dummy_trx.c_str()));
 }
 
 struct FullNodeTest : BaseTest {};
@@ -1006,7 +1006,7 @@ TEST_F(FullNodeTest, single_node_run_two_transactions) {
                                       ]}' 0.0.0.0:7777)";
 
   std::cout << "Send first trx ..." << std::endl;
-  system(send_raw_trx1.c_str());
+  EXPECT_FALSE(system(send_raw_trx1.c_str()));
   std::cout << "First trx received ..." << std::endl;
 
   EXPECT_HAPPENS({60s, 1s}, [&](auto &ctx) {
@@ -1017,7 +1017,7 @@ TEST_F(FullNodeTest, single_node_run_two_transactions) {
 
   std::cout << "First trx executed ..." << std::endl;
   std::cout << "Send second trx ..." << std::endl;
-  system(send_raw_trx2.c_str());
+  EXPECT_FALSE(system(send_raw_trx2.c_str()));
 
   EXPECT_HAPPENS({60s, 1s}, [&](auto &ctx) {
     WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), 2);
@@ -1043,7 +1043,7 @@ TEST_F(FullNodeTest, two_nodes_run_two_transactions) {
                                       ]}' 0.0.0.0:7777)";
 
   std::cout << "Send first trx ..." << std::endl;
-  system(send_raw_trx1.c_str());
+  EXPECT_FALSE(system(send_raw_trx1.c_str()));
   std::cout << "First trx received ..." << std::endl;
 
   auto trx_executed1 = nodes[0]->getDB()->getNumTransactionExecuted();
@@ -1058,7 +1058,7 @@ TEST_F(FullNodeTest, two_nodes_run_two_transactions) {
   EXPECT_EQ(trx_executed1, 1);
   std::cout << "First trx executed ..." << std::endl;
   std::cout << "Send second trx ..." << std::endl;
-  system(send_raw_trx2.c_str());
+  EXPECT_FALSE(system(send_raw_trx2.c_str()));
 
   trx_executed1 = nodes[0]->getDB()->getNumTransactionExecuted();
 
@@ -1314,7 +1314,7 @@ TEST_F(FullNodeTest, transfer_to_self) {
   auto initial_bal = nodes[0]->getFinalChain()->getBalance(node_addr);
   auto trx_count(100);
   EXPECT_TRUE(initial_bal.second);
-  system(fmt(R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0",
+  EXPECT_FALSE(system(fmt(R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0",
   "method": "create_test_coin_transactions",
   "params": [{
     "secret":"3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
@@ -1322,8 +1322,8 @@ TEST_F(FullNodeTest, transfer_to_self) {
     "number": %s,
     "nonce": 0,
     "receiver": "%s"}]}' 0.0.0.0:7777)",
-             trx_count, node_addr)
-             .data());
+                          trx_count, node_addr)
+                          .data()));
   thisThreadSleepForSeconds(5);
   EXPECT_EQ(nodes[0]->getTransactionManager()->getTransactionCount(), trx_count);
   auto trx_executed1 = nodes[0]->getDB()->getNumTransactionExecuted();
@@ -1401,7 +1401,7 @@ TEST_F(FullNodeTest, chain_config_json) {
 	}
 })";
   Json::Value default_chain_config_json;
-  ASSERT_TRUE(Json::Reader().parse(expected_default_chain_cfg_json, default_chain_config_json));
+  istringstream(expected_default_chain_cfg_json) >> default_chain_config_json;
   ASSERT_EQ(default_chain_config_json, enc_json(ChainConfig::predefined()));
   Json::Value test_node_config_json;
   std::ifstream((DIR_CONF / "conf_taraxa1.json").string(), std::ifstream::binary) >> test_node_config_json;
