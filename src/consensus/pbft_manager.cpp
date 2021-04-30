@@ -177,7 +177,8 @@ void PbftManager::update_dpos_state_() {
   dpos_period_ = pbft_chain_->getPbftChainSize();
   do {
     try {
-      eligible_voter_count_ = final_chain_->dpos_eligible_total_vote_count(dpos_period_);
+      eligible_voter_count_ = final_chain_->dpos_eligible_count(dpos_period_);
+      eligible_total_vote_count_ = final_chain_->dpos_eligible_total_vote_count(dpos_period_);
       break;
     } catch (state_api::ErrFutureBlock &c) {
       LOG(log_er_) << c.what();
@@ -195,6 +196,8 @@ void PbftManager::update_dpos_state_() {
 }
 
 uint64_t PbftManager::getEligibleVoterCount() const { return eligible_voter_count_; }
+
+uint64_t PbftManager::getEligibleTotalVoteCount() const { return eligible_total_vote_count_; }
 
 bool PbftManager::is_eligible_(addr_t const &addr) {
   try {
