@@ -123,7 +123,7 @@ bytes PbftBlockCert::rlp() const {
   s.appendRaw(pbft_blk->rlp(true));
   s.appendList(cert_votes.size());
   for (auto const& v : cert_votes) {
-    s.appendRaw(v.rlp());
+    s.appendRaw(v.rlp(true));
   }
   return s.out();
 }

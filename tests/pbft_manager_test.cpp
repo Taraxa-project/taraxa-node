@@ -37,7 +37,7 @@ pair<size_t, size_t> calculate_2tPuls1_threshold(size_t committee_size, size_t v
 }
 
 void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_size) {
-  auto node_cfgs = make_node_cfgs<5>(5);
+  auto node_cfgs = make_node_cfgs<20>(5);
   auto node_1_expected_bal = own_effective_genesis_bal(node_cfgs[0]);
   for (auto &cfg : node_cfgs) {
     cfg.chain.pbft.committee_size = committee_size;
@@ -322,8 +322,17 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
 
 }
 
+TEST_F(PbftManagerTest, full_node_lambda_input_test) {
+  auto node_cfgs = make_node_cfgs(1);
+  FullNode::Handle node(node_cfgs[0]);
+
+  node->start();
+  auto pbft_mgr = node->getPbftManager();
+  EXPECT_EQ(pbft_mgr->getPbftInitialLambda(), 2000);
+}
+
 TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
-  auto node_cfgs = make_node_cfgs<5>(1);
+  auto node_cfgs = make_node_cfgs<20>(1);
   FullNode::Handle node(node_cfgs[0], true);
 
   // create a transaction
@@ -372,7 +381,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
 }
 
 TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
-  auto node_cfgs = make_node_cfgs<5>(3);
+  auto node_cfgs = make_node_cfgs<20>(3);
   auto node1_genesis_bal = own_effective_genesis_bal(node_cfgs[0]);
   auto nodes = launch_nodes(node_cfgs);
 
@@ -500,9 +509,9 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   }
 }
 
-TEST_F(PbftManagerTest, DISABLED_check_committeeSize_less_or_equal_to_activePlayers) {
-  // Set committee size to 1, make sure to be committee <= active_players
-  check_2tPlus1_validVotingPlayers_activePlayers_threshold(1);
+TEST_F(PbftManagerTest, check_committeeSize_less_or_equal_to_activePlayers) {
+  // Set committee size to 3, make sure to be committee <= active_players
+  check_2tPlus1_validVotingPlayers_activePlayers_threshold(3);
 }
 
 TEST_F(PbftManagerTest, check_committeeSize_greater_than_activePlayers) {
@@ -518,13 +527,6 @@ int main(int argc, char **argv) {
   taraxa::static_init();
   auto logging = logger::createDefaultLoggingConfig();
   logging.verbosity = logger::Verbosity::Error;
-  logging.channels["PBFT_CHAIN"] = logger::Verbosity::Error;
-  logging.channels["PBFT_MGR"] = logger::Verbosity::Error;
-  logging.channels["VOTE_MGR"] = logger::Verbosity::Error;
-  logging.channels["SORTI"] = logger::Verbosity::Error;
-  logging.channels["EXETOR"] = logger::Verbosity::Error;
-  logging.channels["BLK_PP"] = logger::Verbosity::Error;
-  logging.channels["FULLND"] = logger::Verbosity::Error;
 
   addr_t node_addr;
   logger::InitLogging(logging, node_addr);

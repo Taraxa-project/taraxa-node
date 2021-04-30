@@ -538,8 +538,9 @@ bool PbftManager::stateOperations_() {
   LOG(log_tr_) << "PBFT current step is " << step_;
 
   // Get votes
-  votes_ = vote_mgr_->getVotes(round, pbft_chain_last_block_hash_, sortition_threshold_, getEligibleVoterCount(),
-                               [this](auto const &addr) { return is_eligible_(addr); });
+  votes_ =
+      vote_mgr_->getVerifiedVotes(round, pbft_chain_last_block_hash_, sortition_threshold_, getEligibleVoterCount(),
+                                  [this](auto const &addr) { return is_eligible_(addr); });
   LOG(log_tr_) << "There are " << votes_.size() << " total votes in round " << round;
 
   // CHECK IF WE HAVE RECEIVED 2t+1 CERT VOTES FOR A BLOCK IN OUR CURRENT
@@ -907,6 +908,9 @@ uint64_t PbftManager::roundDeterminedFromVotes_() {
         auto batch = db_->createWriteBatch();
         db_->addPbft2TPlus1ToBatch(rs_votes.first.first, TWO_T_PLUS_ONE, batch);
         db_->addNextVotesToBatch(rs_votes.first.first, next_votes, batch);
+        if (round > 1) {
+          db_->removeNextVotesToBatch(round - 1, batch);
+        }
         db_->commitWriteBatch(batch);
 
         return rs_votes.first.first + 1;
@@ -986,7 +990,6 @@ Vote PbftManager::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, 
   VrfPbftSortition vrf_sortition(vrf_sk_, msg);
   Vote vote(node_sk_, vrf_sortition, blockhash);
 
-  LOG(log_dg_) << "last pbft block hash " << last_pbft_block_hash << " vote: " << vote.getHash();
   return vote;
 }
 
@@ -994,9 +997,11 @@ void PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteTypes 
                              size_t step) {
   vector<Vote> votes{generateVote(blockhash, vote_type, round, step, pbft_chain_last_block_hash_)};
   auto const &vote = votes[0];
-  vote_mgr_->addVote(vote);
-  LOG(log_dg_) << "vote block hash: " << blockhash << " vote type: " << vote_type << " round: " << round
-               << " step: " << step << " vote hash " << vote.getHash();
+
+  db_->saveVerifiedVote(vote);
+  vote_mgr_->addVerifiedVote(vote);
+  LOG(log_dg_) << "Place vote: " << vote;
+
   // pbft vote broadcast
   if (auto net = network_.lock()) {
     net->onNewPbftVotes(move(votes));
@@ -1395,7 +1400,12 @@ void PbftManager::updateTwoTPlusOneAndThreshold_() {
 void PbftManager::countVotes_() {
   auto round = getPbftRound();
   while (!monitor_stop_) {
-    std::vector<Vote> votes = vote_mgr_->getAllVotes();
+    auto verified_votes = vote_mgr_->getVerifiedVotes();
+    auto unverified_votes = vote_mgr_->getUnverifiedVotes();
+    std::vector<Vote> votes;
+    votes.reserve(verified_votes.size() + unverified_votes.size());
+    votes.insert(votes.end(), verified_votes.begin(), verified_votes.end());
+    votes.insert(votes.end(), unverified_votes.begin(), unverified_votes.end());
 
     size_t last_step_votes = 0;
     size_t current_step_votes = 0;
