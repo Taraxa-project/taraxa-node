@@ -3,6 +3,7 @@
 #include <libdevcore/CommonJS.h>
 
 #include "pbft_manager.hpp"
+#include "util/jsoncpp.hpp"
 
 using namespace std;
 
@@ -33,9 +34,7 @@ PbftBlock::PbftBlock(blk_hash_t const& prev_blk_hash, blk_hash_t const& dag_blk_
 }
 
 PbftBlock::PbftBlock(std::string const& str) {
-  Json::Value doc;
-  Json::Reader reader;
-  reader.parse(str, doc);
+  auto doc = util::parse_json(str);
   block_hash_ = blk_hash_t(doc["block_hash"].asString());
   prev_block_hash_ = blk_hash_t(doc["prev_block_hash"].asString());
   dag_block_hash_as_pivot_ = blk_hash_t(doc["dag_block_hash_as_pivot"].asString());
