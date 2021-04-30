@@ -53,6 +53,7 @@ class PbftManager {
   Vote generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, uint64_t period, size_t step,
                     blk_hash_t const &last_pbft_block_hash);
   uint64_t getEligibleVoterCount() const;
+  uint64_t getEligibleTotalVoteCount() const;
 
   // Notice: Test purpose
   void setSortitionThreshold(size_t const sortition_threshold);
@@ -193,6 +194,7 @@ class PbftManager {
 
   std::atomic<uint64_t> dpos_period_;
   std::atomic<uint64_t> eligible_voter_count_;
+  std::atomic<uint64_t> eligible_total_vote_count_;
   size_t sortition_threshold_ = 0;
   // 2t+1 minimum number of votes for consensus
   size_t TWO_T_PLUS_ONE = 0;

@@ -197,6 +197,8 @@ void PbftManager::update_dpos_state_() {
 
 uint64_t PbftManager::getEligibleVoterCount() const { return eligible_voter_count_; }
 
+uint64_t PbftManager::getEligibleTotalVoteCount() const { return eligible_total_vote_count_; }
+
 bool PbftManager::is_eligible_(addr_t const &addr) {
   try {
     return final_chain_->dpos_is_eligible(dpos_period_, addr);
