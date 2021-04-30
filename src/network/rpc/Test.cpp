@@ -326,9 +326,14 @@ Json::Value Test::get_votes(const Json::Value &param1) {
       std::shared_ptr<PbftManager> pbft_mgr = node->getPbftManager();
       std::shared_ptr<VoteManager> vote_mgr = node->getVoteManager();
       std::shared_ptr<PbftChain> pbft_chain = node->getPbftChain();
-      std::vector<Vote> votes =
-          vote_mgr->getVotes(pbft_round, pbft_mgr->getEligibleVoterCount(), pbft_chain->getLastPbftBlockHash(),
-                             pbft_mgr->getSortitionThreshold());
+
+      auto verified_votes = vote_mgr->getVerifiedVotes();
+      auto unverified_votes = vote_mgr->getUnverifiedVotes();
+      std::vector<Vote> votes;
+      votes.reserve(verified_votes.size() + unverified_votes.size());
+      votes.insert(votes.end(), verified_votes.begin(), verified_votes.end());
+      votes.insert(votes.end(), unverified_votes.begin(), unverified_votes.end());
+
       res = vote_mgr->getJsonStr(votes);
     }
   } catch (std::exception &e) {
