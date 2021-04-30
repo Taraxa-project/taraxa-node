@@ -353,7 +353,12 @@ bool DbStorage::transactionInDb(trx_hash_t const& hash) {
 
 uint64_t DbStorage::getStatusField(StatusDbField const& field) {
   auto status = lookup(toSlice((uint8_t)field), Columns::status);
-  if (!status.empty()) return *(uint64_t*)&status[0];
+  if (!status.empty()) {
+    uint64_t value;
+    memcpy(&value, status.data(), sizeof(uint64_t));
+    return value;
+  }
+
   return 0;
 }
 
@@ -369,8 +374,11 @@ void DbStorage::addStatusFieldToBatch(StatusDbField const& field, uint64_t const
 uint64_t DbStorage::getPbftMgrField(PbftMgrRoundStep const& field) {
   auto status = lookup(toSlice((uint8_t)field), Columns::pbft_mgr_round_step);
   if (!status.empty()) {
-    return *(uint64_t*)&status[0];
+    uint64_t value;
+    memcpy(&value, status.data(), sizeof(uint64_t));
+    return value;
   }
+
   return 1;
 }
 
@@ -385,9 +393,13 @@ void DbStorage::addPbftMgrFieldToBatch(PbftMgrRoundStep const& field, uint64_t c
 
 size_t DbStorage::getPbft2TPlus1(uint64_t const& round) {
   auto status = lookup(toSlice(round), Columns::pbft_round_2t_plus_1);
+
   if (!status.empty()) {
-    return *(size_t*)&status[0];
+    size_t value;
+    memcpy(&value, status.data(), sizeof(size_t));
+    return value;
   }
+
   return 0;
 }
 
@@ -676,6 +688,21 @@ vector<blk_hash_t> DbStorage::getFinalizedDagBlockHashesByAnchor(blk_hash_t cons
 void DbStorage::putFinalizedDagBlockHashesByAnchor(WriteBatch& b, blk_hash_t const& anchor,
                                                    vector<blk_hash_t> const& hs) {
   batch_put(b, DbStorage::Columns::dag_finalized_blocks, anchor, RLPStream().appendVector(hs).out());
+}
+
+bytes DbStorage::getProposalPeriodDagLevelsMap(uint64_t proposal_period) {
+  return asBytes(lookup(toSlice(proposal_period), Columns::proposal_period_levels_map));
+}
+
+void DbStorage::saveProposalPeriodDagLevelsMap(ProposalPeriodDagLevelsMap const& period_levels_map) {
+  insert(Columns::proposal_period_levels_map, toSlice(period_levels_map.proposal_period),
+         toSlice(period_levels_map.rlp()));
+}
+
+void DbStorage::addProposalPeriodDagLevelsMapToBatch(ProposalPeriodDagLevelsMap const& period_levels_map,
+                                                     BatchPtr const& write_batch) {
+  batch_put(write_batch, Columns::proposal_period_levels_map, toSlice(period_levels_map.proposal_period),
+            toSlice(period_levels_map.rlp()));
 }
 
 void DbStorage::insert(Column const& col, Slice const& k, Slice const& v) {
