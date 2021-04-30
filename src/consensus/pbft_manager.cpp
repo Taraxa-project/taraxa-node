@@ -177,7 +177,7 @@ void PbftManager::update_dpos_state_() {
   dpos_period_ = pbft_chain_->getPbftChainSize();
   do {
     try {
-      eligible_voter_count_ = final_chain_->dpos_eligible_count(dpos_period_);
+      eligible_voter_count_ = final_chain_->dpos_eligible_total_vote_count(dpos_period_);
       break;
     } catch (state_api::ErrFutureBlock &c) {
       LOG(log_er_) << c.what();
