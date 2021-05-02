@@ -18,37 +18,45 @@ class PbftManager;
 
 struct VrfPbftMsg {
   VrfPbftMsg() = default;
-  VrfPbftMsg(blk_hash_t const& blk, PbftVoteTypes type, uint64_t round, size_t step)
-      : blk(blk), type(type), round(round), step(step) {}
+  VrfPbftMsg(blk_hash_t const& blk, PbftVoteTypes type, uint64_t round, size_t step, size_t weighted_index)
+      : blk(blk), type(type), round(round), step(step), weighted_index(weighted_index) {}
+
   std::string toString() const {
-    return blk.toString() + "_" + std::to_string(type) + "_" + std::to_string(round) + "_" + std::to_string(step);
+    return blk.toString() + "_" + std::to_string(type) + "_" + std::to_string(round) + "_" + std::to_string(step) +
+           "_" + std::to_string(weighted_index);
   }
+
   bool operator==(VrfPbftMsg const& other) const {
-    return blk == other.blk && type == other.type && round == other.round && step == other.step;
+    return blk == other.blk && type == other.type && round == other.round && step == other.step &&
+           weighted_index == other.weighted_index;
   }
+
   friend std::ostream& operator<<(std::ostream& strm, VrfPbftMsg const& pbft_msg) {
     strm << "  [Vrf Pbft Msg] " << std::endl;
     strm << "    blk_hash: " << pbft_msg.blk << std::endl;
     strm << "    type: " << pbft_msg.type << std::endl;
     strm << "    round: " << pbft_msg.round << std::endl;
     strm << "    step: " << pbft_msg.step << std::endl;
+    strm << "    weighted_index" << pbft_msg.weighted_index << std::endl;
     return strm;
   }
 
   bytes getRlpBytes() const {
     dev::RLPStream s;
-    s.appendList(4);
+    s.appendList(5);
     s << blk;
     s << type;
     s << round;
     s << step;
+    s << weighted_index;
     return s.out();
   }
 
-  blk_hash_t blk;  // Last PBFT block hash in chain
+  blk_hash_t blk;  // PBFT chain last block hash
   PbftVoteTypes type;
   uint64_t round;
   size_t step;
+  size_t weighted_index;
 };
 
 struct VrfPbftSortition : public vrf_wrapper::VrfSortitionBase {
@@ -103,6 +111,7 @@ class Vote {
   PbftVoteTypes getType() const { return vrf_sortition_.pbft_msg.type; }
   uint64_t getRound() const { return vrf_sortition_.pbft_msg.round; }
   size_t getStep() const { return vrf_sortition_.pbft_msg.step; }
+  size_t getWeightedIndex() const { return vrf_sortition_.pbft_msg.weighted_index; }
   bytes rlp(bool inc_sig = true) const;
   bool verifyVote() const {
     auto msg = sha3(false);

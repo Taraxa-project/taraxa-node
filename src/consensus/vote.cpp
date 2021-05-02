@@ -7,37 +7,47 @@
 #include "consensus/pbft_manager.hpp"
 
 namespace taraxa {
+
 VrfPbftSortition::VrfPbftSortition(bytes const& b) {
   dev::RLP const rlp(b);
-  if (!rlp.isList()) throw std::invalid_argument("VrfPbftSortition RLP must be a list");
+  if (!rlp.isList()) {
+    throw std::invalid_argument("VrfPbftSortition RLP must be a list");
+  }
+
   pk = rlp[0].toHash<vrf_pk_t>();
   pbft_msg.blk = rlp[1].toHash<blk_hash_t>();
   pbft_msg.type = PbftVoteTypes(rlp[2].toInt<uint>());
   pbft_msg.round = rlp[3].toInt<uint64_t>();
   pbft_msg.step = rlp[4].toInt<size_t>();
-  proof = rlp[5].toHash<vrf_proof_t>();
+  pbft_msg.weighted_index = rlp[5].toInt<size_t>();
+  proof = rlp[6].toHash<vrf_proof_t>();
+
   verify();
 }
+
 bytes VrfPbftSortition::getRlpBytes() const {
   dev::RLPStream s;
+
   s.appendList(6);
   s << pk;
   s << pbft_msg.blk;
   s << pbft_msg.type;
   s << pbft_msg.round;
   s << pbft_msg.step;
+  s << pbft_msg.weighted_index;
   s << proof;
+
   return s.out();
 }
 
 /*
  * Sortition return true:
- * CREDENTIAL / SIGNATURE_HASH_MAX <= SORTITION THRESHOLD / VALID PLAYERS
- * i.e., CREDENTIAL * VALID PLAYERS <= SORTITION THRESHOLD * SIGNATURE_HASH_MAX
+ * CREDENTIAL(VRF output) / MAX_HASH(max512bits) <= SORTITION THRESHOLD / DPOS TOTAL VOTES COUNT
+ * i.e., CREDENTIAL * DPOS TOTAL VOTES COUNT <= SORTITION THRESHOLD * MAX_HASH
  * otherwise return false
  */
-bool VrfPbftSortition::canSpeak(size_t threshold, size_t valid_players) const {
-  uint1024_t left = (uint1024_t)((uint512_t)output) * valid_players;
+bool VrfPbftSortition::canSpeak(size_t threshold, size_t dpos_total_votes_count) const {
+  uint1024_t left = (uint1024_t)((uint512_t)output) * dpos_total_votes_count;
   uint1024_t right = (uint1024_t)max512bits * threshold;
   return left <= right;
 }
@@ -245,8 +255,8 @@ std::vector<Vote> VoteManager::getVerifiedVotes() {
 
 // Return all verified votes >= pbft_round
 std::vector<Vote> VoteManager::getVerifiedVotes(uint64_t const pbft_round, blk_hash_t const& last_pbft_block_hash,
-                                                size_t const sortition_threshold, uint64_t eligible_voter_count,
-                                                std::function<bool(addr_t const&)> const& is_eligible) {
+                                        size_t const sortition_threshold, uint64_t dpos_total_votes_count,
+                                        std::function<bool(addr_t const&)> const& dpos_eligible_vote_count) {
   // Cleanup votes for previous rounds
   cleanupVotes(pbft_round);
 
@@ -256,12 +266,14 @@ std::vector<Vote> VoteManager::getVerifiedVotes(uint64_t const pbft_round, blk_h
   for (auto const& v : votes_to_verify) {
     addr_t voter_account_address = dev::toAddress(v.getVoter());
     // Check if the voter account is valid, malicious vote
-    if (!is_eligible(voter_account_address)) {
+    auto vote_weighted_index = v.getWeightedIndex();
+    auto dpos_votes_count = dpos_eligible_vote_count(voter_account_address);
+    if (vote_weighted_index >= dpos_votes_count) {
       LOG(log_dg_) << "Account " << voter_account_address << " is not eligible to vote. Vote: " << v;
       continue;
     }
 
-    if (voteValidation(last_pbft_block_hash, v, eligible_voter_count, sortition_threshold)) {
+    if (voteValidation(last_pbft_block_hash, v, dpos_total_votes_count, sortition_threshold)) {
       verified_votes.emplace_back(v);
     }
   }
