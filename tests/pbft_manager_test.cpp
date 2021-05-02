@@ -190,7 +190,6 @@ TEST_F(PbftManagerTest, full_node_lambda_input_test) {
 }
 
 TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
-
   auto node_cfgs = make_node_cfgs<5>(5);
   auto node_1_expected_bal = own_effective_genesis_bal(node_cfgs[0]);
   for (auto &cfg : node_cfgs) {
@@ -222,7 +221,7 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
     }
     auto trx = make_dpos_trx(node_cfgs[0], delegations, nonce++);
     nodes[0]->getTransactionManager()->insertTransaction(trx);
-    
+
     trxs_count++;
     EXPECT_HAPPENS({120s, 1s}, [&](auto &ctx) {
       for (auto &node : nodes) {
@@ -271,7 +270,7 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
       EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(nodes[j]->getAddress()).first, init_bal);
     }
   }
-  
+
   auto send_coins = 1;
   for (auto i(0); i < nodes.size(); ++i) {
     // Sending coins in Robin Cycle in order to make all nodes to be active
@@ -321,14 +320,14 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
     eligible_total_vote_count = pbft_mgr->getEligibleTotalVoteCount();
     two_t_plus_one = pbft_mgr->getTwoTPlusOne();
     threshold = pbft_mgr->getSortitionThreshold();
-    std::cout << "Node" << i << " committee " << committee << ", eligible total vote count " << eligible_total_vote_count
-              << ", 2t+1 " << two_t_plus_one << ", sortition threshold " << threshold << std::endl;
+    std::cout << "Node" << i << " committee " << committee << ", eligible total vote count "
+              << eligible_total_vote_count << ", 2t+1 " << two_t_plus_one << ", sortition threshold " << threshold
+              << std::endl;
     EXPECT_EQ(eligible_total_vote_count, expected_eligible_total_vote);
     tie(expected_2tPlus1, expected_threshold) = calculate_2tPuls1_threshold(committee, eligible_total_vote_count);
     EXPECT_EQ(two_t_plus_one, expected_2tPlus1);
     EXPECT_EQ(threshold, expected_threshold);
   }
-
 }
 
 TEST_F(PbftManagerTest, full_node_lambda_input_test) {
@@ -341,7 +340,6 @@ TEST_F(PbftManagerTest, full_node_lambda_input_test) {
 }
 
 TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
-
   auto node_cfgs = make_node_cfgs<5>(5);
   auto node_1_expected_bal = own_effective_genesis_bal(node_cfgs[0]);
   for (auto &cfg : node_cfgs) {
@@ -373,7 +371,7 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
     }
     auto trx = make_dpos_trx(node_cfgs[0], delegations, nonce++);
     nodes[0]->getTransactionManager()->insertTransaction(trx);
-    
+
     trxs_count++;
     EXPECT_HAPPENS({120s, 1s}, [&](auto &ctx) {
       for (auto &node : nodes) {
@@ -422,7 +420,7 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
       EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(nodes[j]->getAddress()).first, init_bal);
     }
   }
-  
+
   auto send_coins = 1;
   for (auto i(0); i < nodes.size(); ++i) {
     // Sending coins in Robin Cycle in order to make all nodes to be active
@@ -472,8 +470,9 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
     eligible_total_vote_count = pbft_mgr->getEligibleTotalVoteCount();
     two_t_plus_one = pbft_mgr->getTwoTPlusOne();
     threshold = pbft_mgr->getSortitionThreshold();
-    std::cout << "Node" << i << " committee " << committee << ", eligible total vote count " << eligible_total_vote_count
-              << ", 2t+1 " << two_t_plus_one << ", sortition threshold " << threshold << std::endl;
+    std::cout << "Node" << i << " committee " << committee << ", eligible total vote count "
+              << eligible_total_vote_count << ", 2t+1 " << two_t_plus_one << ", sortition threshold " << threshold
+              << std::endl;
     EXPECT_EQ(eligible_total_vote_count, expected_eligible_total_vote);
     tie(expected_2tPlus1, expected_threshold) = calculate_2tPuls1_threshold(committee, eligible_total_vote_count);
     EXPECT_EQ(two_t_plus_one, expected_2tPlus1);
