@@ -38,7 +38,10 @@ struct RpcServer final : std::enable_shared_from_this<RpcServer>, jsonrpc::Abstr
 
   bool StartListening() override;
   bool StopListening() override;
-  bool SendResponse(const std::string &response, void *addInfo = NULL) override;
+  // TODO: error: only virtual member functions can be marked 'override'
+  // After PR710, the compile error happens. Leave Oleh to fix
+  // bool SendResponse(const std::string &response, void *addInfo = NULL) override;
+  bool SendResponse(const std::string &response, void *addInfo = NULL);
 
  private:
   void accept();

@@ -526,8 +526,9 @@ bool PbftManager::stateOperations_() {
   LOG(log_tr_) << "PBFT current step is " << step_;
 
   // Get votes
-  votes_ = vote_mgr_->getVerifiedVotes(round, pbft_chain_last_block_hash_, sortition_threshold_, getDposTotalVotesCount(),
-                               [this](auto const &addr) { return dpos_eligible_vote_count_(addr); });
+  votes_ =
+      vote_mgr_->getVerifiedVotes(round, pbft_chain_last_block_hash_, sortition_threshold_, getDposTotalVotesCount(),
+                                  [this](auto const &addr) { return dpos_eligible_vote_count_(addr); });
   LOG(log_tr_) << "There are " << votes_.size() << " total votes in round " << round;
 
   // CHECK IF WE HAVE RECEIVED 2t+1 CERT VOTES FOR A BLOCK IN OUR CURRENT
