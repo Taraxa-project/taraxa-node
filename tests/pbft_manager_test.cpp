@@ -113,7 +113,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
   for (auto i(0); i < nodes.size(); ++i) {
     auto pbft_mgr = nodes[i]->getPbftManager();
     committee = pbft_mgr->getPbftCommitteeSize();
-    valid_voting_players = pbft_mgr->getEligibleVoterCount();
+    valid_voting_players = pbft_mgr->getDposTotalVotesCount();
     two_t_plus_one = pbft_mgr->getTwoTPlusOne();
     threshold = pbft_mgr->getSortitionThreshold();
     std::cout << "Node" << i << " committee " << committee << ", valid voting players " << valid_voting_players
@@ -168,7 +168,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
   for (auto i(0); i < nodes.size(); ++i) {
     auto pbft_mgr = nodes[i]->getPbftManager();
     committee = pbft_mgr->getPbftCommitteeSize();
-    valid_voting_players = pbft_mgr->getEligibleVoterCount();
+    valid_voting_players = pbft_mgr->getDposTotalVotesCount();
     two_t_plus_one = pbft_mgr->getTwoTPlusOne();
     threshold = pbft_mgr->getSortitionThreshold();
     std::cout << "Node" << i << " committee " << committee << ", valid voting players " << valid_voting_players
