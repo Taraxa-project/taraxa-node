@@ -70,6 +70,7 @@ class PbftManager {
   // DPOS
   void update_dpos_state_();
   size_t dpos_eligible_vote_count_(addr_t const &addr);
+  bool is_eligible_(addr_t const &addr);
 
   void resetStep_();
   bool resetRound_();

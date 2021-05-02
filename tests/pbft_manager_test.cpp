@@ -659,8 +659,8 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
 }
 
 TEST_F(PbftManagerTest, check_committeeSize_less_or_equal_to_activePlayers) {
-  // Set committee size to 3, make sure to be committee <= active_players
-  check_2tPlus1_validVotingPlayers_activePlayers_threshold(3);
+  // Set committee size to 5, make sure to be committee <= active_players
+  check_2tPlus1_validVotingPlayers_activePlayers_threshold(5);
 }
 
 TEST_F(PbftManagerTest, check_committeeSize_greater_than_activePlayers) {

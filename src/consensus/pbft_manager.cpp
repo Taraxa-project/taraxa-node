@@ -205,7 +205,25 @@ size_t PbftManager::dpos_eligible_vote_count_(addr_t const &addr) {
   }
 }
 
+bool PbftManager::is_eligible_(addr_t const &addr) {
+  try {
+    return final_chain_->dpos_is_eligible(dpos_period_, addr);
+  } catch (state_api::ErrFutureBlock &c) {
+    LOG(log_er_) << c.what() << ". Period " << dpos_period_ << " is too far ahead of DPOS";
+    return false;
+  }
+}
+
 bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step, size_t weighted_index) {
+  //  if (capability_->syncing_) {
+  //    LOG(log_tr_) << "PBFT chain is syncing, cannot propose and vote";
+  //    return false;
+  //  }
+  if (!is_eligible_(node_addr_)) {
+    LOG(log_tr_) << "Account " << node_addr_ << " is not eligible to vote";
+    return false;
+  }
+
   // compute sortition
   VrfPbftMsg msg(pbft_chain_last_block_hash_, type, round, step, weighted_index);
   VrfPbftSortition vrf_sortition(vrf_sk_, msg);
