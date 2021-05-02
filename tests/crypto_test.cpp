@@ -277,7 +277,7 @@ TEST_F(CryptoTest, sortition_rate) {
       count++;
     }
   }
-  EXPECT_EQ(count, 46);  // Test experience
+  EXPECT_EQ(count, 44);  // Test experience
 
   count = 0;
   sortition_threshold = valid_sortition_players;

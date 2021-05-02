@@ -37,7 +37,7 @@ struct VrfPbftMsg {
     strm << "    type: " << pbft_msg.type << std::endl;
     strm << "    round: " << pbft_msg.round << std::endl;
     strm << "    step: " << pbft_msg.step << std::endl;
-    strm << "    weighted_index" << pbft_msg.weighted_index << std::endl;
+    strm << "    weighted_index: " << pbft_msg.weighted_index << std::endl;
     return strm;
   }
 
@@ -118,8 +118,8 @@ class Vote {
     voter();
     return dev::verify(cached_voter_, vote_signature_, msg);
   }
-  bool verifyCanSpeak(size_t threshold, size_t valid_players) const {
-    return vrf_sortition_.canSpeak(threshold, valid_players);
+  bool verifyCanSpeak(size_t threshold, size_t dpos_total_votes_count) const {
+    return vrf_sortition_.canSpeak(threshold, dpos_total_votes_count);
   }
 
   friend std::ostream& operator<<(std::ostream& strm, Vote const& vote) {
