@@ -61,8 +61,8 @@ void dec_json(Json::Value const& json, BalanceMap& obj);
 
 struct DPOSConfig {
   u256 eligibility_balance_threshold;
-  BlockNumber deposit_delay = 0;
-  BlockNumber withdrawal_delay = 0;
+  BlockNumber deposit_delay = 1;
+  BlockNumber withdrawal_delay = 2;
   unordered_map<addr_t, BalanceMap> genesis_state;
 };
 void enc_rlp(RLPStream& enc, DPOSConfig const& obj);
