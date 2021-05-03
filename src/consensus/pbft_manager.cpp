@@ -205,25 +205,7 @@ size_t PbftManager::dpos_eligible_vote_count_(addr_t const &addr) {
   }
 }
 
-bool PbftManager::is_eligible_(addr_t const &addr) {
-  try {
-    return final_chain_->dpos_is_eligible(dpos_period_, addr);
-  } catch (state_api::ErrFutureBlock &c) {
-    LOG(log_er_) << c.what() << ". Period " << dpos_period_ << " is too far ahead of DPOS";
-    return false;
-  }
-}
-
 bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step, size_t weighted_index) {
-  //  if (capability_->syncing_) {
-  //    LOG(log_tr_) << "PBFT chain is syncing, cannot propose and vote";
-  //    return false;
-  //  }
-  if (!is_eligible_(node_addr_)) {
-    LOG(log_tr_) << "Account " << node_addr_ << " is not eligible to vote";
-    return false;
-  }
-
   // compute sortition
   VrfPbftMsg msg(pbft_chain_last_block_hash_, type, round, step, weighted_index);
   VrfPbftSortition vrf_sortition(vrf_sk_, msg);
@@ -1016,7 +998,9 @@ size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteType
   vector<Vote> votes;
 
   for (auto weighted_index(0); weighted_index < weighted_votes_count_; weighted_index++) {
-    if (step == 1 && weighted_index > 0) break;
+    if (step == 1 && weighted_index > 0) {
+      break;
+    }
     if (shouldSpeak(propose_vote_type, round, step_, weighted_index)) {
       auto vote = generateVote(blockhash, vote_type, round, step, weighted_index, pbft_chain_last_block_hash_);
       votes.emplace_back(vote);
@@ -1025,14 +1009,16 @@ size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteType
     }
   }
 
+  auto size = votes.size();
+
   // pbft votes broadcast
-  if (!votes.empty()) {
+  if (size) {
     if (auto net = network_.lock()) {
-      net->onNewPbftVotes(votes);
+      net->onNewPbftVotes(move(votes));
     }
   }
 
-  return votes.size();
+  return size;
 }
 
 std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
