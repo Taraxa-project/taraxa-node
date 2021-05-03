@@ -1016,12 +1016,12 @@ size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteType
   vector<Vote> votes;
 
   for (auto weighted_index(0); weighted_index < weighted_votes_count_; weighted_index++) {
+    if (step == 1 && weighted_index > 0) break;
     if (shouldSpeak(propose_vote_type, round, step_, weighted_index)) {
       auto vote = generateVote(blockhash, vote_type, round, step, weighted_index, pbft_chain_last_block_hash_);
       votes.emplace_back(vote);
       db_->saveVerifiedVote(vote);
       vote_mgr_->addVerifiedVote(vote);
-      LOG(log_dg_) << "Place vote: " << vote;
     }
   }
 
