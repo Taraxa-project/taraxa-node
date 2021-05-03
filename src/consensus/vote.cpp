@@ -7,37 +7,47 @@
 #include "consensus/pbft_manager.hpp"
 
 namespace taraxa {
+
 VrfPbftSortition::VrfPbftSortition(bytes const& b) {
   dev::RLP const rlp(b);
-  if (!rlp.isList()) throw std::invalid_argument("VrfPbftSortition RLP must be a list");
+  if (!rlp.isList()) {
+    throw std::invalid_argument("VrfPbftSortition RLP must be a list");
+  }
+
   pk = rlp[0].toHash<vrf_pk_t>();
   pbft_msg.blk = rlp[1].toHash<blk_hash_t>();
   pbft_msg.type = PbftVoteTypes(rlp[2].toInt<uint>());
   pbft_msg.round = rlp[3].toInt<uint64_t>();
   pbft_msg.step = rlp[4].toInt<size_t>();
-  proof = rlp[5].toHash<vrf_proof_t>();
+  pbft_msg.weighted_index = rlp[5].toInt<size_t>();
+  proof = rlp[6].toHash<vrf_proof_t>();
+
   verify();
 }
+
 bytes VrfPbftSortition::getRlpBytes() const {
   dev::RLPStream s;
-  s.appendList(6);
+
+  s.appendList(7);
   s << pk;
   s << pbft_msg.blk;
   s << pbft_msg.type;
   s << pbft_msg.round;
   s << pbft_msg.step;
+  s << pbft_msg.weighted_index;
   s << proof;
+
   return s.out();
 }
 
 /*
  * Sortition return true:
- * CREDENTIAL / SIGNATURE_HASH_MAX <= SORTITION THRESHOLD / VALID PLAYERS
- * i.e., CREDENTIAL * VALID PLAYERS <= SORTITION THRESHOLD * SIGNATURE_HASH_MAX
+ * CREDENTIAL(VRF output) / MAX_HASH(max512bits) <= SORTITION THRESHOLD / DPOS TOTAL VOTES COUNT
+ * i.e., CREDENTIAL * DPOS TOTAL VOTES COUNT <= SORTITION THRESHOLD * MAX_HASH
  * otherwise return false
  */
-bool VrfPbftSortition::canSpeak(size_t threshold, size_t valid_players) const {
-  uint1024_t left = (uint1024_t)((uint512_t)output) * valid_players;
+bool VrfPbftSortition::canSpeak(size_t threshold, size_t dpos_total_votes_count) const {
+  uint1024_t left = (uint1024_t)((uint512_t)output) * dpos_total_votes_count;
   uint1024_t right = (uint1024_t)max512bits * threshold;
   return left <= right;
 }
@@ -245,8 +255,8 @@ std::vector<Vote> VoteManager::getVerifiedVotes() {
 
 // Return all verified votes >= pbft_round
 std::vector<Vote> VoteManager::getVerifiedVotes(uint64_t const pbft_round, blk_hash_t const& last_pbft_block_hash,
-                                                size_t const sortition_threshold, uint64_t eligible_voter_count,
-                                                std::function<bool(addr_t const&)> const& is_eligible) {
+                                                size_t const sortition_threshold, uint64_t dpos_total_votes_count,
+                                                std::function<size_t(addr_t const&)> const& dpos_eligible_vote_count) {
   // Cleanup votes for previous rounds
   cleanupVotes(pbft_round);
 
@@ -256,12 +266,18 @@ std::vector<Vote> VoteManager::getVerifiedVotes(uint64_t const pbft_round, blk_h
   for (auto const& v : votes_to_verify) {
     addr_t voter_account_address = dev::toAddress(v.getVoter());
     // Check if the voter account is valid, malicious vote
-    if (!is_eligible(voter_account_address)) {
+    auto vote_weighted_index = v.getWeightedIndex();
+    auto dpos_votes_count = dpos_eligible_vote_count(voter_account_address);
+    if (vote_weighted_index > 0 && v.getStep() == 1) {
+      LOG(log_dg_) << "Account " << voter_account_address << " attempted to vote with weighted index > 0 in propose step. Vote: " << v;
+      continue;
+    }
+    if (vote_weighted_index >= dpos_votes_count) {
       LOG(log_dg_) << "Account " << voter_account_address << " is not eligible to vote. Vote: " << v;
       continue;
     }
 
-    if (voteValidation(last_pbft_block_hash, v, eligible_voter_count, sortition_threshold)) {
+    if (voteValidation(last_pbft_block_hash, v, dpos_total_votes_count, sortition_threshold)) {
       verified_votes.emplace_back(v);
     }
   }
@@ -325,7 +341,7 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
 }
 
 bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash, taraxa::Vote const& vote,
-                                 size_t const valid_sortition_players, size_t const sortition_threshold) const {
+                                 size_t const dpos_total_votes_count, size_t const sortition_threshold) const {
   if (last_pbft_block_hash != vote.getVrfSortition().pbft_msg.blk) {
     LOG(log_tr_) << "Last pbft block hash does not match " << last_pbft_block_hash << ". " << vote;
     return false;
@@ -341,8 +357,9 @@ bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
     return false;
   }
 
-  if (!vote.verifyCanSpeak(sortition_threshold, valid_sortition_players)) {
-    LOG(log_er_) << "Vote sortition failed. " << vote;
+  if (!vote.verifyCanSpeak(sortition_threshold, dpos_total_votes_count)) {
+    LOG(log_er_) << "Vote sortition failed. Sortition threshold " << sortition_threshold << ", DPOS total votes count "
+                 << dpos_total_votes_count << vote;
     return false;
   }
 
@@ -350,7 +367,7 @@ bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
 }
 
 bool VoteManager::pbftBlockHasEnoughValidCertVotes(PbftBlockCert const& pbft_block_and_votes,
-                                                   size_t valid_sortition_players, size_t sortition_threshold,
+                                                   size_t dpos_total_votes_count, size_t sortition_threshold,
                                                    size_t pbft_2t_plus_1) const {
   if (pbft_block_and_votes.cert_votes.empty()) {
     LOG(log_er_) << "No any cert votes! The synced PBFT block comes from a "
@@ -383,7 +400,7 @@ bool VoteManager::pbftBlockHasEnoughValidCertVotes(PbftBlockCert const& pbft_blo
       break;
     }
 
-    if (voteValidation(pbft_chain_last_block_hash, v, valid_sortition_players, sortition_threshold)) {
+    if (voteValidation(pbft_chain_last_block_hash, v, dpos_total_votes_count, sortition_threshold)) {
       valid_votes.emplace_back(v);
     } else {
       LOG(log_wr_) << "For PBFT block " << pbft_block_and_votes.pbft_blk->getBlockHash() << ", cert vote "
@@ -394,8 +411,8 @@ bool VoteManager::pbftBlockHasEnoughValidCertVotes(PbftBlockCert const& pbft_blo
   if (valid_votes.size() < pbft_2t_plus_1) {
     LOG(log_er_) << "PBFT block " << pbft_block_and_votes.pbft_blk->getBlockHash() << " with "
                  << pbft_block_and_votes.cert_votes.size() << " cert votes. Has " << valid_votes.size()
-                 << " valid cert votes. 2t+1 is " << pbft_2t_plus_1 << ", Valid sortition players "
-                 << valid_sortition_players << ", sortition threshold is " << sortition_threshold
+                 << " valid cert votes. 2t+1 is " << pbft_2t_plus_1 << ", DPOS total votes count "
+                 << dpos_total_votes_count << ", sortition threshold is " << sortition_threshold
                  << ". The last block in pbft chain is " << pbft_chain_last_block_hash;
   }
 
