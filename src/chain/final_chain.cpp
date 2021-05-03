@@ -171,20 +171,6 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
     return state_api.dpos_is_eligible(blk_num, addr);
   }
 
-  size_t dpos_eligible_total_vote_count(BlockNumber blk_num) const override {
-    // TODO: need to return real value
-    state_api.dpos_eligible_count(blk_num);
-  }
-
-  size_t dpos_eligible_vote_count(BlockNumber blk_num, addr_t const& addr) const override {
-    // TODO: need to return real value
-    if (state_api.dpos_is_eligible(blk_num, addr)) {
-      return 1;
-    } else {
-      return 0;
-    }
-  }
-
   state_api::DPOSQueryResult dpos_query(state_api::DPOSQuery const& q,
                                         optional<BlockNumber> blk_n = nullopt) const override {
     return state_api.dpos_query(normalize_client_blk_n(blk_n), q);
