@@ -1028,7 +1028,7 @@ size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteType
   // pbft votes broadcast
   if (!votes.empty()) {
     if (auto net = network_.lock()) {
-      net->onNewPbftVotes(move(votes));
+      net->onNewPbftVotes(votes);
     }
   }
 

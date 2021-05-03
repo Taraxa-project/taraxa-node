@@ -256,7 +256,7 @@ std::vector<Vote> VoteManager::getVerifiedVotes() {
 // Return all verified votes >= pbft_round
 std::vector<Vote> VoteManager::getVerifiedVotes(uint64_t const pbft_round, blk_hash_t const& last_pbft_block_hash,
                                                 size_t const sortition_threshold, uint64_t dpos_total_votes_count,
-                                                std::function<bool(addr_t const&)> const& dpos_eligible_vote_count) {
+                                                std::function<size_t(addr_t const&)> const& dpos_eligible_vote_count) {
   // Cleanup votes for previous rounds
   cleanupVotes(pbft_round);
 
