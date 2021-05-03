@@ -166,7 +166,7 @@ class VoteManager {
 
   std::vector<Vote> getVerifiedVotes(uint64_t const pbft_round, blk_hash_t const& last_pbft_block_hash,
                                      size_t const sortition_threshold, uint64_t eligible_voter_count,
-                                     std::function<bool(addr_t const&)> const& is_eligible);
+                                     std::function<size_t(addr_t const&)> const& is_eligible);
 
   void cleanupVotes(uint64_t pbft_round);
 
