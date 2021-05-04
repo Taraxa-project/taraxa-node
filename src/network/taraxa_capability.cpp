@@ -804,10 +804,12 @@ vector<NodeID> TaraxaCapability::selectPeers(std::function<bool(TaraxaPeer const
 
 vector<NodeID> TaraxaCapability::getAllPeers() const {
   vector<NodeID> peers;
+
   boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
   std::transform(
       peers_.begin(), peers_.end(), std::back_inserter(peers),
       [](std::pair<const dev::p2p::NodeID, std::shared_ptr<taraxa::TaraxaPeer>> const &peer) { return peer.first; });
+
   return peers;
 }
 
@@ -1099,6 +1101,7 @@ void TaraxaCapability::onNewPbftVote(taraxa::Vote const &vote) {
       }
     }
   }
+
   for (auto const &peer : peers_to_send) {
     sendPbftVote(peer, vote);
   }
@@ -1120,6 +1123,7 @@ void TaraxaCapability::onNewPbftBlock(taraxa::PbftBlock const &pbft_block) {
       }
     }
   }
+
   for (auto const &peer : peers_to_send) {
     sendPbftBlock(peer, pbft_block, my_chain_size);
   }
@@ -1268,13 +1272,8 @@ void TaraxaCapability::sendPbftNextVotes(NodeID const &peerID) {
 }
 
 void TaraxaCapability::broadcastPreviousRoundNextVotesBundle() {
-  std::vector<NodeID> peers_to_send;
-  {
-    boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
-    for (auto const &peer : peers_) {
-      peers_to_send.push_back(peer.first);
-    }
-  }
+  std::vector<NodeID> peers_to_send = getAllPeers();
+
   for (auto const &peer : peers_to_send) {
     sendPbftNextVotes(peer);
   }
