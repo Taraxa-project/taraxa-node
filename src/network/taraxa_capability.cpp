@@ -804,10 +804,13 @@ vector<NodeID> TaraxaCapability::selectPeers(std::function<bool(TaraxaPeer const
 
 vector<NodeID> TaraxaCapability::getAllPeers() const {
   vector<NodeID> peers;
+
   boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
-  std::transform(
-      peers_.begin(), peers_.end(), std::back_inserter(peers),
-      [](std::pair<const dev::p2p::NodeID, std::shared_ptr<taraxa::TaraxaPeer>> const &peer) { return peer.first; });
+  for (auto const &peer : peers_) {
+    LOG(log_nf_) << "Connected with peer " << peer.first;
+    peers.emplace_back(peer.first);
+  }
+
   return peers;
 }
 
@@ -1090,15 +1093,8 @@ void TaraxaCapability::logPacketsStats() {
 }
 
 void TaraxaCapability::onNewPbftVote(taraxa::Vote const &vote) {
-  std::vector<NodeID> peers_to_send;
-  {
-    boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
-    for (auto const &peer : peers_) {
-      if (!peer.second->isVoteKnown(vote.getHash())) {
-        peers_to_send.push_back(peer.first);
-      }
-    }
-  }
+  std::vector<NodeID> peers_to_send = getAllPeers();
+
   for (auto const &peer : peers_to_send) {
     sendPbftVote(peer, vote);
   }
@@ -1110,16 +1106,9 @@ void TaraxaCapability::sendPbftVote(NodeID const &_id, taraxa::Vote const &vote)
 }
 
 void TaraxaCapability::onNewPbftBlock(taraxa::PbftBlock const &pbft_block) {
-  std::vector<NodeID> peers_to_send;
+  std::vector<NodeID> peers_to_send = getAllPeers();
   auto my_chain_size = pbft_chain_->getPbftChainSize();
-  {
-    boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
-    for (auto const &peer : peers_) {
-      if (!peer.second->isPbftBlockKnown(pbft_block.getBlockHash())) {
-        peers_to_send.push_back(peer.first);
-      }
-    }
-  }
+
   for (auto const &peer : peers_to_send) {
     sendPbftBlock(peer, pbft_block, my_chain_size);
   }
@@ -1268,13 +1257,8 @@ void TaraxaCapability::sendPbftNextVotes(NodeID const &peerID) {
 }
 
 void TaraxaCapability::broadcastPreviousRoundNextVotesBundle() {
-  std::vector<NodeID> peers_to_send;
-  {
-    boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
-    for (auto const &peer : peers_) {
-      peers_to_send.push_back(peer.first);
-    }
-  }
+  std::vector<NodeID> peers_to_send = getAllPeers();
+
   for (auto const &peer : peers_to_send) {
     sendPbftNextVotes(peer);
   }
