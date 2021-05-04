@@ -13,7 +13,6 @@ set(SOURCES
         aleth/database.hpp
         aleth/pending_block.hpp
         aleth/state_api.hpp
-        util/util_json.hpp
         consensus/block_proposer.hpp
         transaction_manager/transaction_status.hpp
         chain/chain_config.hpp
@@ -54,6 +53,7 @@ set(SOURCES
         logger/log.hpp
         chain/state_api.hpp
         dag/dag_block_manager.hpp
+        dag/proposal_period_levels_map.hpp
         consensus/pbft_manager.hpp
 
         # ---- private sources -----
@@ -97,6 +97,9 @@ set(SOURCES
         logger/log.cpp
         common/types.cpp
         dag/dag_block_manager.cpp
+        dag/proposal_period_levels_map.cpp
+        util/jsoncpp.cpp
+        network/rpc/rpc_error_handler.cpp
         )
 
 add_subdirectory(network/rpc)

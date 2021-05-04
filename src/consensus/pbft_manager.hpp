@@ -40,7 +40,7 @@ class PbftManager {
   void stop();
   void run();
 
-  bool shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step);
+  bool shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step, size_t weighted_index);
 
   std::pair<bool, uint64_t> getDagBlockPeriod(blk_hash_t const &hash);
   uint64_t getPbftRound() const;
@@ -50,9 +50,9 @@ class PbftManager {
   void setTwoTPlusOne(size_t const two_t_plus_one);
   void setPbftStep(size_t const pbft_step);
 
-  Vote generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, uint64_t period, size_t step,
+  Vote generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, uint64_t round, size_t step, size_t weighted_index,
                     blk_hash_t const &last_pbft_block_hash);
-  uint64_t getEligibleVoterCount() const;
+  size_t getDposTotalVotesCount() const;
 
   // Notice: Test purpose
   void setSortitionThreshold(size_t const sortition_threshold);
@@ -69,6 +69,7 @@ class PbftManager {
 
   // DPOS
   void update_dpos_state_();
+  size_t dpos_eligible_vote_count_(addr_t const &addr);
   bool is_eligible_(addr_t const &addr);
 
   void resetStep_();
@@ -99,7 +100,7 @@ class PbftManager {
                                                             uint64_t round, size_t step,
                                                             std::pair<blk_hash_t, bool> blockhash);
 
-  void placeVote_(blk_hash_t const &blockhash, PbftVoteTypes vote_type, uint64_t round, size_t step);
+  size_t placeVote_(blk_hash_t const &blockhash, PbftVoteTypes vote_type, uint64_t round, size_t step);
 
   std::pair<blk_hash_t, bool> proposeMyPbftBlock_();
 
@@ -192,7 +193,9 @@ class PbftManager {
   size_t pbft_last_observed_synced_queue_size_ = 0;
 
   std::atomic<uint64_t> dpos_period_;
-  std::atomic<uint64_t> eligible_voter_count_;
+  std::atomic<size_t> dpos_votes_count_;
+  std::atomic<size_t> weighted_votes_count_;
+
   size_t sortition_threshold_ = 0;
   // 2t+1 minimum number of votes for consensus
   size_t TWO_T_PLUS_ONE = 0;
