@@ -807,7 +807,6 @@ vector<NodeID> TaraxaCapability::getAllPeers() const {
 
   boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
   for (auto const &peer : peers_) {
-    LOG(log_nf_) << "Connected with peer " << peer.first;
     peers.emplace_back(peer.first);
   }
 
