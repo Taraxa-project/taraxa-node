@@ -269,7 +269,8 @@ std::vector<Vote> VoteManager::getVerifiedVotes(uint64_t const pbft_round, blk_h
     auto vote_weighted_index = v.getWeightedIndex();
     auto dpos_votes_count = dpos_eligible_vote_count(voter_account_address);
     if (vote_weighted_index > 0 && v.getStep() == 1) {
-      LOG(log_dg_) << "Account " << voter_account_address << " attempted to vote with weighted index > 0 in propose step. Vote: " << v;
+      LOG(log_dg_) << "Account " << voter_account_address
+                   << " attempted to vote with weighted index > 0 in propose step. Vote: " << v;
       continue;
     }
     if (vote_weighted_index >= dpos_votes_count) {

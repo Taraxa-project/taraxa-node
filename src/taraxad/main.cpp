@@ -100,53 +100,96 @@ Json::Value getVrfSecretKey() {
   }
 }
 
-Json::Value getNetworkBootNodes(int network_identifier) {
+Json::Value mainnetBootNodes() {
+  cout << "Mainnet has not supported yet" << endl;
+  exit(1);
+}
+
+Json::Value testnetBootNodes() {
   Json::Value network_boot_nodes(Json::arrayValue);
 
+  Json::Value boot_node1(Json::objectValue);
+  boot_node1["id"] =
+      "1105725ff38294f42197a3851c87631610956404678a25f90da5f989bb590413a62665cadde1b820de3e9098367909110bba6d62d248"
+      "444ce45547a703bd8d10";
+  boot_node1["ip"] = "boot-node-0.testnet.taraxa.io";
+  boot_node1["tcp_port"] = 10002;
+  boot_node1["udp_port"] = 10002;
+  network_boot_nodes.append(boot_node1);
+
+  Json::Value boot_node2(Json::objectValue);
+  boot_node2["id"] =
+      "9869d8c263ce97d2e32c7ce5e746a8bab53227ccf279f850bbf9def1ddb7fbc08dfb29e8f1ceb93c5b83d08e06618e0993c6db7e55ca"
+      "a05a44605bdb74fbb0da";
+  boot_node2["ip"] = "boot-node-1.testnet.taraxa.io";
+  boot_node2["tcp_port"] = 10002;
+  boot_node2["udp_port"] = 10002;
+  network_boot_nodes.append(boot_node2);
+
+  Json::Value boot_node3(Json::objectValue);
+  boot_node3["id"] =
+      "d7c8b4a8cc43549cdbb0f40c090559ae5d2584ba25aed95913f10fae9bceb17421f3250ee95126f33a77f679f4c7e806a0a9e643aa5a"
+      "aec723f9e3155e85a820";
+  boot_node3["ip"] = "boot-node-2.testnet.taraxa.io";
+  boot_node3["tcp_port"] = 10002;
+  boot_node3["udp_port"] = 10002;
+  network_boot_nodes.append(boot_node3);
+
+  return network_boot_nodes;
+}
+
+Json::Value devnetBootNodes() {
+  Json::Value network_boot_nodes(Json::arrayValue);
+
+  Json::Value boot_node1(Json::objectValue);
+  boot_node1["id"] =
+      "1105725ff38294f42197a3851c87631610956404678a25f90da5f989bb590413a62665cadde1b820de3e9098367909110bba6d62d248444c"
+      "e45547a703bd8d10";
+  boot_node1["ip"] = "boot-node-1.devnet.taraxa.io";
+  boot_node1["tcp_port"] = 10002;
+  boot_node1["udp_port"] = 10002;
+  network_boot_nodes.append(boot_node1);
+
+  Json::Value boot_node2(Json::objectValue);
+  boot_node2["id"] =
+      "9869d8c263ce97d2e32c7ce5e746a8bab53227ccf279f850bbf9def1ddb7fbc08dfb29e8f1ceb93c5b83d08e06618e0993c6db7e55caa05a"
+      "44605bdb74fbb0da";
+  boot_node2["ip"] = "boot-node-2.devnet.taraxa.io";
+  boot_node2["tcp_port"] = 10002;
+  boot_node2["udp_port"] = 10002;
+  network_boot_nodes.append(boot_node2);
+
+  Json::Value boot_node3(Json::objectValue);
+  boot_node3["id"] =
+      "d7c8b4a8cc43549cdbb0f40c090559ae5d2584ba25aed95913f10fae9bceb17421f3250ee95126f33a77f679f4c7e806a0a9e643aa5aaec7"
+      "23f9e3155e85a820";
+  boot_node3["ip"] = "boot-node-3.devnet.taraxa.io";
+  boot_node3["tcp_port"] = 10002;
+  boot_node3["udp_port"] = 10002;
+  network_boot_nodes.append(boot_node3);
+
+  return network_boot_nodes;
+}
+
+Json::Value getNetworkBootNodes(int network_identifier) {
   switch (network_identifier) {
     case 1: {
-      cout << "Mainnet has not supported yet" << endl;
-      exit(1);
+      // Mainnet
+      return mainnetBootNodes();
     }
     case 2: {
-      Json::Value boot_node1(Json::objectValue);
-      boot_node1["id"] =
-          "1105725ff38294f42197a3851c87631610956404678a25f90da5f989bb590413a62665cadde1b820de3e9098367909110bba6d62d248"
-          "444ce45547a703bd8d10";
-      boot_node1["ip"] = "boot-node-0.testnet.taraxa.io";
-      boot_node1["tcp_port"] = 10002;
-      boot_node1["udp_port"] = 10002;
-      network_boot_nodes.append(boot_node1);
-      Json::Value boot_node2(Json::objectValue);
-      boot_node2["id"] =
-          "9869d8c263ce97d2e32c7ce5e746a8bab53227ccf279f850bbf9def1ddb7fbc08dfb29e8f1ceb93c5b83d08e06618e0993c6db7e55ca"
-          "a05a44605bdb74fbb0da";
-      boot_node2["ip"] = "boot-node-1.testnet.taraxa.io";
-      boot_node2["tcp_port"] = 10002;
-      boot_node2["udp_port"] = 10002;
-      network_boot_nodes.append(boot_node2);
-      Json::Value boot_node3(Json::objectValue);
-      boot_node3["id"] =
-          "d7c8b4a8cc43549cdbb0f40c090559ae5d2584ba25aed95913f10fae9bceb17421f3250ee95126f33a77f679f4c7e806a0a9e643aa5a"
-          "aec723f9e3155e85a820";
-      boot_node3["ip"] = "boot-node-2.testnet.taraxa.io";
-      boot_node3["tcp_port"] = 10002;
-      boot_node3["udp_port"] = 10002;
-      network_boot_nodes.append(boot_node3);
-
-      break;
+      // Testnet
+      return testnetBootNodes();
     }
     case 3: {
-      cout << "Devnet has not supported yet" << endl;
-      exit(1);
+      // Devnet
+      return devnetBootNodes();
     }
     default: {
       cerr << "Wrong network identifier " << network_identifier << " (1=Mainnet, 2=Testnet, 3=Devnet)" << endl;
       exit(1);
     }
   }
-
-  return network_boot_nodes;
 }
 
 Json::Value generateLogging() {
@@ -187,7 +230,12 @@ Json::Value generateLogging() {
   return logging;
 }
 
-Json::Value generateChainConfig() {
+Json::Value mainnetChainConfig() {
+  cout << "Mainnet has not supported yet" << endl;
+  exit(1);
+}
+
+Json::Value testnetChainConfig() {
   Json::Value chain_config(Json::objectValue);
   chain_config["chain_id"] = "0x2";
 
@@ -197,7 +245,79 @@ Json::Value generateChainConfig() {
   dag_genesis_block["sig"] =
       "0xb7e22d46c1ba94d5e8347b01d137b5c428fcbbeaf0a77fb024cbbf1517656ff00d04f7f25be608c321b0d7483c402c294ff46c49b26530"
       "5d046a52236c0a363701";
-  dag_genesis_block["timestamp"] = "0x5fee49e0";
+  dag_genesis_block["timestamp"] = "0x5fee6600";
+  dag_genesis_block["tips"] = Json::Value(Json::arrayValue);
+  dag_genesis_block["transactions"] = Json::Value(Json::arrayValue);
+
+  auto &final_chain = chain_config["final_chain"] = Json::Value(Json::objectValue);
+
+  auto &genesis_block_fields = final_chain["genesis_block_fields"] = Json::Value(Json::objectValue);
+  genesis_block_fields["author"] = "0x0000000000000000000000000000000000000000";
+  genesis_block_fields["timestamp"] = "0x5d422b80";
+
+  auto &state = final_chain["state"] = Json::Value(Json::objectValue);
+  state["disable_block_rewards"] = true;
+
+  auto &dpos = state["dpos"] = Json::Value(Json::objectValue);
+  dpos["deposit_delay"] = "0x5";
+  dpos["withdrawal_delay"] = "0x5";
+  dpos["eligibility_balance_threshold"] = "0xf4240";
+
+  auto &genesis_state = dpos["genesis_state"] = Json::Value(Json::objectValue);
+  auto delegate_from = "0x6c05d6e367a8c798308efbf4cefc1a18921a6f89";
+  auto &delegate_to = genesis_state[delegate_from] = Json::Value(Json::objectValue);
+  delegate_to["0x18551e353aa65bc0ffbdf9d93b7ad4a8fe29cf95"] = "0xf4240";
+  delegate_to["0xc578bb5fc3dac3e96a8c4cb126c71d2dc9082817"] = "0xf4240";
+  delegate_to["0x5c9afb23fba3967ca6102fb60c9949f6a38cd9e8"] = "0xf4240";
+
+  auto &eth_chain_config = state["eth_chain_config"] = Json::Value(Json::objectValue);
+  eth_chain_config["byzantium_block"] = "0x0";
+  eth_chain_config["constantinople_block"] = "0x0";
+  eth_chain_config["dao_fork_block"] = "0xffffffffffffffff";
+  eth_chain_config["eip_150_block"] = "0x0";
+  eth_chain_config["eip_158_block"] = "0x0";
+  eth_chain_config["homestead_block"] = "0x0";
+  eth_chain_config["petersburg_block"] = "0x0";
+
+  auto &execution_options = state["execution_options"] = Json::Value(Json::objectValue);
+  execution_options["disable_gas_fee"] = false;
+  execution_options["disable_nonce_check"] = true;
+
+  auto &genesis_balances = state["genesis_balances"] = Json::Value(Json::objectValue);
+  auto addr1 = "6c05d6e367a8c798308efbf4cefc1a18921a6f89";
+  auto addr2 = "f4a52b8f6dc8ab046fec6ad02e77023c044342e4";
+  genesis_balances[addr1] = "0x1027e72f1f12813088000000";
+  genesis_balances[addr2] = "0x1027e72f1f12813088000000";
+
+  auto &pbft = chain_config["pbft"] = Json::Value(Json::objectValue);
+  pbft["committee_size"] = "0x64";
+  pbft["dag_blocks_size"] = "0xa";
+  pbft["ghost_path_move_back"] = "0x0";
+  pbft["lambda_ms_min"] = "0x29a";
+  pbft["run_count_votes"] = false;
+
+  auto &vdf = chain_config["vdf"] = Json::Value(Json::objectValue);
+  vdf["difficulty_max"] = "0x12";
+  vdf["difficulty_min"] = "0x10";
+  vdf["threshold_selection"] = "0xbffd";
+  vdf["threshold_vdf_omit"] = "0x6bf7";
+  vdf["difficulty_stale"] = "0x13";
+  vdf["lambda_bound"] = "0x64";
+
+  return chain_config;
+}
+
+Json::Value devnetChainConfig() {
+  Json::Value chain_config(Json::objectValue);
+  chain_config["chain_id"] = "0x3";
+
+  auto &dag_genesis_block = chain_config["dag_genesis_block"] = Json::Value(Json::objectValue);
+  dag_genesis_block["level"] = "0x0";
+  dag_genesis_block["pivot"] = "0x0000000000000000000000000000000000000000000000000000000000000000";
+  dag_genesis_block["sig"] =
+      "0xb7e22d46c1ba94d5e8347b01d137b5c428fcbbeaf0a77fb024cbbf1517656ff00d04f7f25be608c321b0d7483c402c294ff46c49b26530"
+      "5d046a52236c0a363701";
+  dag_genesis_block["timestamp"] = "0x5d422b80";
   dag_genesis_block["tips"] = Json::Value(Json::arrayValue);
   dag_genesis_block["transactions"] = Json::Value(Json::arrayValue);
 
@@ -218,9 +338,9 @@ Json::Value generateChainConfig() {
   auto &genesis_state = dpos["genesis_state"] = Json::Value(Json::objectValue);
   auto delegate_from = "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde";
   auto &delegate_to = genesis_state[delegate_from] = Json::Value(Json::objectValue);
-  delegate_to["0x10ece4be76a0a2a6eb154f7e4b9503932fe7382f"] = "0xf4240";
-  delegate_to["0xa932a0fd90b395eaf827b1be428c3cd7b8069cf6"] = "0xf4240";
-  delegate_to["0xa3094c300310286e356cc14d3ecad2281f217462"] = "0xf4240";
+  delegate_to["0x780fe8b2226cf212c55635de399ee4c2a860810c"] = "0xf4240";
+  delegate_to["0x56e0de6933d9d0453d0363caf42b136eb5854e4e"] = "0xf4240";
+  delegate_to["0x71bdcbec7e3642782447b0fbf31eed068dfbdbb1"] = "0xf4240";
 
   auto &eth_chain_config = state["eth_chain_config"] = Json::Value(Json::objectValue);
   eth_chain_config["byzantium_block"] = "0x0";
@@ -242,7 +362,7 @@ Json::Value generateChainConfig() {
   genesis_balances[addr2] = "0x1027e72f1f12813088000000";
 
   auto &pbft = chain_config["pbft"] = Json::Value(Json::objectValue);
-  pbft["committee_size"] = "0x64";
+  pbft["committee_size"] = "0x5";
   pbft["dag_blocks_size"] = "0xa";
   pbft["ghost_path_move_back"] = "0x0";
   pbft["lambda_ms_min"] = "0x29a";
@@ -257,6 +377,27 @@ Json::Value generateChainConfig() {
   vdf["lambda_bound"] = "0x64";
 
   return chain_config;
+}
+
+Json::Value generateChainConfig(int network_identifier) {
+  switch (network_identifier) {
+    case 1: {
+      // Mainnet
+      return mainnetChainConfig();
+    }
+    case 2: {
+      // Testnet
+      return testnetChainConfig();
+    }
+    case 3: {
+      // Devnet
+      return devnetChainConfig();
+    }
+    default: {
+      cerr << "Wrong network identifier " << network_identifier << " (1=Mainnet, 2=Testnet, 3=Devnet)" << endl;
+      exit(1);
+    }
+  }
 }
 
 Json::Value generateConfigFile(string &db_path, bool boot_node, int network_identifier) {
@@ -323,7 +464,7 @@ Json::Value generateConfigFile(string &db_path, bool boot_node, int network_iden
 
   config_file["logging"] = generateLogging();
 
-  config_file["chain_config"] = generateChainConfig();
+  config_file["chain_config"] = generateChainConfig(network_identifier);
 
   return config_file;
 }
