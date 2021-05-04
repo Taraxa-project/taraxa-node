@@ -82,6 +82,7 @@ Network::Network(NetworkConfig const &config, std::filesystem::path const &netwo
                                [this] { LOG(log_nf_) << "NET_TP_NUM_PENDING_TASKS=" << tp_.num_pending_tasks(); });
   diagnostic_thread_.post_loop({30000}, [this] {
     auto peers = getAllPeers();
+    LOG(log_nf_) << "There are " << peers.size() << " peers connected";
     for (auto const &peer : peers) {
       LOG(log_nf_) << "Connected with peer " << peer;
     }
