@@ -5,10 +5,12 @@
 #include <signal.h>
 
 #include <boost/asio.hpp>
+#include <boost/exception/all.hpp>
 #include <boost/format.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
+#include <boost/stacktrace.hpp>
 #include <boost/thread.hpp>
 #include <fstream>
 #include <iostream>
@@ -35,6 +37,13 @@ struct ProcessReturn {
   };
   taraxa::addr_t user_account;
 };
+
+typedef boost::error_info<struct tag_stacktrace, boost::stacktrace::stacktrace> traced;
+
+template <class E>
+void throw_with_trace(const E &e) {
+  throw boost::enable_error_info(e) << traced(boost::stacktrace::stacktrace());
+}
 
 template <typename T, typename U = T>
 std::vector<T> asVector(Json::Value const &json, std::string const &key) {

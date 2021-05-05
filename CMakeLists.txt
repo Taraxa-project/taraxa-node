@@ -11,14 +11,15 @@ configure_file(${CMAKE_SOURCE_DIR}/config/version/taraxad_version.hpp.in ${CMAKE
 
 set(CMAKE_NO_SYSTEM_FROM_IMPORTED ON)
 # Set project properties like C++ standard, etc...
-set(CMAKE_CXX_COMPILER g++)
+#set(CMAKE_CXX_COMPILER g++)
 set(CMAKE_CXX_STANDARD 17)
 #add_compile_options("-Wall" "-Werror") TODO: fix existing issues and uncomment this line
 
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 # Optimization flag apparently needed to get rid of "File too big" assembler errors when compiling in Debug mode
 # See: https://stackoverflow.com/questions/14125007/gcc-string-table-overflow-error-during-compilation/14601779#29479701
-set(CMAKE_CXX_FLAGS_DEBUG "-g -O2") # TODO: originally -g -O0
+#set(CMAKE_CXX_FLAGS_DEBUG "-g -O2") # TODO: originally -g -O0
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O0") # TODO: originally -g -O0
 
 # taraxad full static build option
 option(TARAXA_STATIC_BUILD "Build taraxad as a static library (ON or OFF)" ON)
@@ -27,6 +28,16 @@ if (APPLE)
     set(TARAXA_STATIC_BUILD OFF)
 endif ()
 message(STATUS "TARAXA_STATIC_BUILD: ${TARAXA_STATIC_BUILD}")
+
+# For boost stacktrace
+SET(CMAKE_ENABLE_EXPORTS TRUE)
+add_definitions(-DBOOST_STACKTRACE_USE_ADDR2LINE)
+if (APPLE)
+  set(CMAKE_CXX_FLAGS_DEBUG -DBOOST_STACKTRACE_GNU_SOURCE_NOT_REQUIRED)
+endif()
+
+# For backward-cpp
+add_definitions(-DBACKWARD_HAS_BFD=1)
 
 # enable sanitizers
 option(TARAXA_ENABLE_SANITIZERS "Enable sanitizers (ON or OFF)" OFF)

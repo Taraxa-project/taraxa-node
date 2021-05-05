@@ -3,6 +3,8 @@
 #include <cxxabi.h>
 #include <dlfcn.h>
 #include <errno.h>
+#include <execinfo.h>
+#include <stdio.h>
 namespace taraxa {
 
 void thisThreadSleepForSeconds(unsigned sec) { std::this_thread::sleep_for(std::chrono::seconds(sec)); }
@@ -31,6 +33,9 @@ std::string getFormattedVersion(uint32_t major, uint32_t minor) {
 }  // namespace taraxa
 
 void abortHandler(int sig) {
+  ::signal(sig, SIG_DFL);
+  //boost::stacktrace::safe_dump_to("./backtrace.dump");
+
   const char *name = NULL;
   switch (sig) {
     case SIGABRT:
@@ -51,9 +56,13 @@ void abortHandler(int sig) {
   } else {
     std::cerr << "Caught signal " << sig << std::endl;
   }
-  printStackTrace();
+
+  std::cout << boost::stacktrace::stacktrace();
+  //posix_print_stack_trace();
+  // printStackTrace();
   exit(sig);
 }
+
 
 static inline void printStackTrace() {
   std::cerr << "Stack Trace: " << std::endl;
