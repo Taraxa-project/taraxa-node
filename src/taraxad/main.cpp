@@ -3,9 +3,12 @@
 
 #include "common/static_init.hpp"
 #include "node/full_node.hpp"
+#include "taraxad_version.hpp"
 
 using namespace taraxa;
 using namespace std;
+
+namespace bpo = boost::program_options;
 
 int main(int argc, const char* argv[]) {
   static_init();
@@ -18,29 +21,31 @@ int main(int argc, const char* argv[]) {
     bool rebuild_db = 0;
     uint64_t rebuild_db_period = 0;
     uint64_t revert_to_period = 0;
-    boost::program_options::options_description main_options("GENERIC OPTIONS:");
-    main_options.add_options()("help", "Print this help message and exit")(
-        "conf_taraxa", boost::program_options::value<string>(&conf_taraxa),
-        "Config for taraxa node (either json file path or inline json) "
-        "[required]")("destroy_db", boost::program_options::bool_switch(&destroy_db),
-                      "Destroys all the existing data in the database")(
-        "rebuild_db", boost::program_options::bool_switch(&rebuild_db),
+    bpo::options_description main_options("GENERIC OPTIONS:");
+    main_options.add_options()("help", "Print this help message and exit")("version", "Print version of taraxd")(
+        "conf_taraxa", bpo::value<string>(&conf_taraxa),
+        "Config for taraxa node (either json file path or inline json) [required]")(
+        "destroy_db", bpo::bool_switch(&destroy_db), "Destroys all the existing data in the database")(
+        "rebuild_db", bpo::bool_switch(&rebuild_db),
         "Reads the raw dag/pbft blocks from the db and executes all the blocks from scratch rebuilding all the other "
-        "database tables - this could take a long time")("rebuild_db_period",
-                                                         boost::program_options::value<uint64_t>(&rebuild_db_period),
+        "database tables - this could take a long time")("rebuild_db_period", bpo::value<uint64_t>(&rebuild_db_period),
                                                          "Use with rebuild_db - Rebuild db up to a specified period")(
-        "rebuild_network", boost::program_options::bool_switch(&rebuild_network),
+        "rebuild_network", bpo::bool_switch(&rebuild_network),
         "Delete all saved network/nodes information and rebuild network "
-        "from boot nodes")("revert_to_period", boost::program_options::value<uint64_t>(&revert_to_period),
+        "from boot nodes")("revert_to_period", bpo::value<uint64_t>(&revert_to_period),
                            "Revert db/state to specified period (specify period) ");
-    boost::program_options::options_description allowed_options("Allowed options");
+    bpo::options_description allowed_options("Allowed options");
     allowed_options.add(main_options);
-    boost::program_options::variables_map option_vars;
-    auto parsed_line = boost::program_options::parse_command_line(argc, argv, allowed_options);
-    boost::program_options::store(parsed_line, option_vars);
-    boost::program_options::notify(option_vars);
+    bpo::variables_map option_vars;
+    auto parsed_line = bpo::parse_command_line(argc, argv, allowed_options);
+    bpo::store(parsed_line, option_vars);
+    bpo::notify(option_vars);
     if (option_vars.count("help")) {
       cout << allowed_options << endl;
+      return 1;
+    }
+    if (option_vars.count("version")) {
+      cout << TARAXAD_VERSION << endl;
       return 1;
     }
     if (!option_vars.count("conf_taraxa")) {

@@ -12,6 +12,7 @@
 #include "common/types.hpp"
 #include "consensus/pbft_chain.hpp"
 #include "dag/dag_block.hpp"
+#include "dag/proposal_period_levels_map.hpp"
 #include "logger/log.hpp"
 #include "transaction_manager/transaction.hpp"
 #include "transaction_manager/transaction_status.hpp"
@@ -99,11 +100,14 @@ struct DbStorage {
     COLUMN(pbft_cert_voted_block);
     COLUMN(pbft_head);
     COLUMN(pbft_blocks);
-    COLUMN(soft_votes);
-    COLUMN(cert_votes);
-    COLUMN(next_votes);
+    COLUMN(unverified_votes);
+    COLUMN(verified_votes);
+    COLUMN(soft_votes);  // only for current PBFT round
+    COLUMN(cert_votes);  // for each PBFT block
+    COLUMN(next_votes);  // only for previous PBFT round
     COLUMN(period_pbft_block);
     COLUMN(dag_block_period);
+    COLUMN(proposal_period_levels_map);
     COLUMN(replay_protection);
     COLUMN(pending_transactions);
     COLUMN(aleth_chain);
@@ -149,7 +153,9 @@ struct DbStorage {
   auto dbStoragePath() const { return db_path_; }
   auto stateDbStoragePath() const { return state_db_path_; }
   static BatchPtr createWriteBatch();
-  void commitWriteBatch(BatchPtr const& write_batch);
+  void commitWriteBatch(BatchPtr const& write_batch, rocksdb::WriteOptions const& opts);
+  void commitWriteBatch(BatchPtr const& write_batch) { commitWriteBatch(write_batch, write_options_); }
+
   bool createSnapshot(uint64_t const& period);
   void deleteSnapshot(uint64_t const& period);
   void recoverToPeriod(uint64_t const& period);
@@ -220,9 +226,22 @@ struct DbStorage {
                           BatchPtr const& write_batch);
   // status
   uint64_t getStatusField(StatusDbField const& field);
-  void saveStatusField(StatusDbField const& field,
-                       uint64_t const& value);  // unit test
+  void saveStatusField(StatusDbField const& field, uint64_t const& value);
   void addStatusFieldToBatch(StatusDbField const& field, uint64_t const& value, BatchPtr const& write_batch);
+
+  // Unverified votes
+  std::vector<Vote> getUnverifiedVotes();
+  shared_ptr<Vote> getUnverifiedVote(vote_hash_t const& vote_hash);
+  void saveUnverifiedVote(Vote const& vote);
+  void addUnverifiedVoteToBatch(Vote const& vote, BatchPtr const& write_batch);
+  void removeUnverifiedVoteToBatch(vote_hash_t const& vote_hash, BatchPtr const& write_batch);
+
+  // Verified votes
+  std::vector<Vote> getVerifiedVotes();
+  shared_ptr<Vote> getVerifiedVote(vote_hash_t const& vote_hash);
+  void saveVerifiedVote(Vote const& vote);
+  void addVerifiedVoteToBatch(Vote const& vote, BatchPtr const& write_batch);
+  void removeVerifiedVoteToBatch(vote_hash_t const& vote_hash, BatchPtr const& write_batch);
 
   // Soft votes
   std::vector<Vote> getSoftVotes(uint64_t const& pbft_round);
@@ -240,6 +259,8 @@ struct DbStorage {
   void saveNextVotes(uint64_t const& pbft_round, std::vector<Vote> const& next_votes);
   void addNextVotesToBatch(uint64_t const& pbft_round, std::vector<Vote> const& next_votes,
                            BatchPtr const& write_batch);
+  void removeNextVotesToBatch(uint64_t const& pbft_round, BatchPtr const& write_batch);
+
   // period_pbft_block
   shared_ptr<blk_hash_t> getPeriodPbftBlock(uint64_t const& period);
   void addPbftBlockPeriodToBatch(uint64_t const& period, taraxa::blk_hash_t const& pbft_block_hash,
@@ -258,6 +279,12 @@ struct DbStorage {
 
   vector<blk_hash_t> getFinalizedDagBlockHashesByAnchor(blk_hash_t const& anchor);
   void putFinalizedDagBlockHashesByAnchor(WriteBatch& b, blk_hash_t const& anchor, vector<blk_hash_t> const& hs);
+
+  // Proposal period to DAG block levels map
+  bytes getProposalPeriodDagLevelsMap(uint64_t proposal_period);
+  void saveProposalPeriodDagLevelsMap(ProposalPeriodDagLevelsMap const& period_levels_map);
+  void addProposalPeriodDagLevelsMapToBatch(ProposalPeriodDagLevelsMap const& period_levels_map,
+                                            BatchPtr const& write_batch);
 
   void insert(Column const& col, Slice const& k, Slice const& v);
   void remove(Slice key, Column const& column);

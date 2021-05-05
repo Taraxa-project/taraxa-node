@@ -60,7 +60,7 @@ ARG BUILD_OUTPUT_DIR
 # Install conan deps
 WORKDIR /opt/taraxa/
 COPY conanfile.py .
-RUN conan install -if $BUILD_OUTPUT_DIR --build missing .
+RUN conan install -if $BUILD_OUTPUT_DIR --build missing -s build_type=Debug .
 
 
 ###################################################################
@@ -81,8 +81,7 @@ RUN cd $BUILD_OUTPUT_DIR \
              -DTARAXAD_CONF_INSTALL_DIR=./bin_install \
              ../ \
     && make -j$(nproc) all \
-    && make install \
-    && strip bin_install/taraxad
+    && make install
 
 ###############################################################################
 # Taraxa Cli #

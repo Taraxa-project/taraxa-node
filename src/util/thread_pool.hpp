@@ -1,6 +1,7 @@
 #pragma once
 
 #include <boost/asio.hpp>
+#include <shared_mutex>
 
 #include "functional.hpp"
 
@@ -12,7 +13,7 @@ class ThreadPool : std::enable_shared_from_this<ThreadPool> {
   boost::asio::io_context ioc_;
   boost::asio::executor_work_guard<decltype(ioc_)::executor_type> ioc_work_;
   std::vector<std::thread> threads_;
-  mutable std::mutex threads_mu_;
+  mutable std::shared_mutex threads_mu_;
 
   std::atomic<uint64_t> debug_num_pending_tasks_ = 0;
 
@@ -31,7 +32,7 @@ class ThreadPool : std::enable_shared_from_this<ThreadPool> {
   void stop();
 
   void post(uint64_t do_in_ms, asio_callback action);
-  void post(uint64_t do_in_ms, std::function<void()> action);
+  void post(uint64_t err, std::function<void()> action);
 
   template <typename Action>
   auto post(Action &&action) {

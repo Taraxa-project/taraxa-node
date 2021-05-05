@@ -1,16 +1,5 @@
 #include "network/rpc/Taraxa.h"
-
-// in our docker build we use libjsonrpccpp 0.7.0, which
-// has the C++17 incompatibility (http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0003r5.html)
-// in some files that is addressed by the following horrible hack.
-// TODO remove it after the lib upgrade (later versions have the root cause fixed).
-#define throw(...)
-#include <jsonrpccpp/client/connectors/httpclient.h>
-
-#include "network/rpc/TaraxaClient.h"
-#undef throw
-// END horrible hack
-
+#include "util/jsoncpp.hpp"
 #include "util_test/util.hpp"
 
 namespace taraxa::net {
@@ -21,8 +10,7 @@ struct TaraxaTest : BaseTest {
   TransactionClient trx_client{nodes[0]};
   FullNode& node = *nodes[0];
   FullNodeConfig const& cfg = node.getConfig();
-  jsonrpc::HttpClient connector{"http://localhost:" + to_string(*cfg.rpc->http_port)};
-  TaraxaClient c{connector};
+  filesystem::path response_file = data_dir / "response.json";
 };
 
 TEST_F(TaraxaTest, queryDPOS) {
@@ -36,7 +24,7 @@ TEST_F(TaraxaTest, queryDPOS) {
    * The following is a flat json array of request and expected response pairs,
    * evaluated and checked in the order of occurrence.
    */
-  auto req_res = parse_json(R"([
+  auto req_res = util::parse_json(R"([
   {
     "account_queries": {
       "0x0000000000000000000001000000000000000000": {
@@ -250,7 +238,19 @@ TEST_F(TaraxaTest, queryDPOS) {
   for (uint i = 0, itrs = req_res.size() / 2; i < itrs; ++i) {
     auto const& req = req_res[0 + 2 * i];
     auto const& res_expected = req_res[1 + 2 * i];
-    EXPECT_EQ(res_expected, c.taraxa_queryDPOS(req));
+    // TODO make/use generic jsonrpc request util. json-rpc-cpp client utils are bugged
+    Json::Value req_wrapper(Json::objectValue);
+    req_wrapper["jsonrpc"] = "2.0";
+    req_wrapper["id"] = "0";
+    req_wrapper["method"] = "taraxa_queryDPOS";
+    (req_wrapper["params"] = Json::Value(Json::arrayValue)).append(req);
+    stringstream curl_cmd;
+    curl_cmd << "curl -m 10 -s -X POST -d '" << util::to_string(req_wrapper) << "' 0.0.0.0:" << *cfg.rpc->http_port
+             << " >" << response_file;
+    EXPECT_FALSE(system(curl_cmd.str().c_str()));
+    Json::Value res_wrapper;
+    ifstream(response_file) >> res_wrapper;
+    EXPECT_EQ(res_expected, res_wrapper["result"]);
   }
 }
 

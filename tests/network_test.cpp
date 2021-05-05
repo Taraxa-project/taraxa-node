@@ -208,38 +208,32 @@ TEST_F(NetworkTest, node_sync) {
   auto propose_level = 1;
   vdf_sortition::VdfSortition vdf1(vdf_config, node_key.address(), vrf_sk, getRlpBytes(propose_level));
   vdf1.computeVdfSolution(vdf_config, dag_genesis.asBytes());
-  DagBlock blk1(dag_genesis, propose_level, {}, {}, vdf1);
-  blk1.sign(sk);
+  DagBlock blk1(dag_genesis, propose_level, {}, {}, vdf1, sk);
 
   propose_level = 2;
   vdf_sortition::VdfSortition vdf2(vdf_config, node_key.address(), vrf_sk, getRlpBytes(propose_level));
   vdf2.computeVdfSolution(vdf_config, blk1.getHash().asBytes());
-  DagBlock blk2(blk1.getHash(), propose_level, {}, {}, vdf2);
-  blk2.sign(sk);
+  DagBlock blk2(blk1.getHash(), propose_level, {}, {}, vdf2, sk);
 
   propose_level = 3;
   vdf_sortition::VdfSortition vdf3(vdf_config, node_key.address(), vrf_sk, getRlpBytes(propose_level));
   vdf3.computeVdfSolution(vdf_config, blk2.getHash().asBytes());
-  DagBlock blk3(blk2.getHash(), propose_level, {}, {}, vdf3);
-  blk3.sign(sk);
+  DagBlock blk3(blk2.getHash(), propose_level, {}, {}, vdf3, sk);
 
   propose_level = 4;
   vdf_sortition::VdfSortition vdf4(vdf_config, node_key.address(), vrf_sk, getRlpBytes(propose_level));
   vdf4.computeVdfSolution(vdf_config, blk3.getHash().asBytes());
-  DagBlock blk4(blk3.getHash(), propose_level, {}, {}, vdf4);
-  blk4.sign(sk);
+  DagBlock blk4(blk3.getHash(), propose_level, {}, {}, vdf4, sk);
 
   propose_level = 5;
   vdf_sortition::VdfSortition vdf5(vdf_config, node_key.address(), vrf_sk, getRlpBytes(propose_level));
   vdf5.computeVdfSolution(vdf_config, blk4.getHash().asBytes());
-  DagBlock blk5(blk4.getHash(), propose_level, {}, {}, vdf5);
-  blk5.sign(sk);
+  DagBlock blk5(blk4.getHash(), propose_level, {}, {}, vdf5, sk);
 
   propose_level = 6;
   vdf_sortition::VdfSortition vdf6(vdf_config, node_key.address(), vrf_sk, getRlpBytes(propose_level));
   vdf6.computeVdfSolution(vdf_config, blk5.getHash().asBytes());
-  DagBlock blk6(blk5.getHash(), propose_level, {blk4.getHash(), blk3.getHash()}, {}, vdf6);
-  blk6.sign(sk);
+  DagBlock blk6(blk5.getHash(), propose_level, {blk4.getHash(), blk3.getHash()}, {}, vdf6, sk);
 
   blks.push_back(blk6);
   blks.push_back(blk5);
@@ -296,8 +290,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
   level_t level = 1;
   vdf_sortition::VdfSortition vdf1(vdf_config, node_key.address(), vrf_sk, getRlpBytes(level));
   vdf1.computeVdfSolution(vdf_config, dag_genesis.asBytes());
-  DagBlock blk1(dag_genesis, 1, {}, {}, vdf1);
-  blk1.sign(sk);
+  DagBlock blk1(dag_genesis, 1, {}, {}, vdf1, sk);
   node1->getDagBlockManager()->insertBlock(blk1);
 
   PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), period, beneficiary, node1->getSecretKey());
@@ -305,7 +298,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
                                           {pbft_block1.getPivotDagBlockHash()});
   std::vector<Vote> votes_for_pbft_blk1;
   votes_for_pbft_blk1.emplace_back(
-      node1->getPbftManager()->generateVote(pbft_block1.getBlockHash(), cert_vote_type, 1, 3, prev_block_hash));
+      node1->getPbftManager()->generateVote(pbft_block1.getBlockHash(), cert_vote_type, 1, 3, 0, prev_block_hash));
   std::cout << "Generate 1 vote for first PBFT block" << std::endl;
   // Add cert votes in DB
   db1->addCertVotesToBatch(pbft_block1.getBlockHash(), votes_for_pbft_blk1, batch);
@@ -329,8 +322,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
   level = 2;
   vdf_sortition::VdfSortition vdf2(vdf_config, node_key.address(), vrf_sk, getRlpBytes(level));
   vdf2.computeVdfSolution(vdf_config, blk1.getHash().asBytes());
-  DagBlock blk2(blk1.getHash(), 2, {}, {}, vdf2);
-  blk2.sign(sk);
+  DagBlock blk2(blk1.getHash(), 2, {}, {}, vdf2, sk);
   node1->getDagBlockManager()->insertBlock(blk2);
 
   batch = db1->createWriteBatch();
@@ -342,7 +334,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
 
   std::vector<Vote> votes_for_pbft_blk2;
   votes_for_pbft_blk2.emplace_back(
-      node1->getPbftManager()->generateVote(pbft_block2.getBlockHash(), cert_vote_type, 2, 3, prev_block_hash));
+      node1->getPbftManager()->generateVote(pbft_block2.getBlockHash(), cert_vote_type, 2, 3, 0, prev_block_hash));
   std::cout << "Generate 1 vote for second PBFT block" << std::endl;
   // node1 put block2 into pbft chain and store into DB
   // Add cert votes in DB
@@ -420,8 +412,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   level_t level = 1;
   vdf_sortition::VdfSortition vdf1(vdf_config, node_key.address(), vrf_sk, getRlpBytes(level));
   vdf1.computeVdfSolution(vdf_config, dag_genesis.asBytes());
-  DagBlock blk1(dag_genesis, 1, {}, {}, vdf1);
-  blk1.sign(sk);
+  DagBlock blk1(dag_genesis, 1, {}, {}, vdf1, sk);
   node1->getDagBlockManager()->insertBlock(blk1);
 
   PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), period, beneficiary, node1->getSecretKey());
@@ -429,7 +420,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
                                           {pbft_block1.getPivotDagBlockHash()});
   std::vector<Vote> votes_for_pbft_blk1;
   votes_for_pbft_blk1.emplace_back(
-      node1->getPbftManager()->generateVote(pbft_block1.getBlockHash(), cert_vote_type, 1, 3, prev_block_hash));
+      node1->getPbftManager()->generateVote(pbft_block1.getBlockHash(), cert_vote_type, 1, 3, 0, prev_block_hash));
   std::cout << "Generate 1 vote for first PBFT block" << std::endl;
   // Add cert votes in DB
   db1->addCertVotesToBatch(pbft_block1.getBlockHash(), votes_for_pbft_blk1, batch);
@@ -454,8 +445,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   level = 2;
   vdf_sortition::VdfSortition vdf2(vdf_config, node_key.address(), vrf_sk, getRlpBytes(level));
   vdf2.computeVdfSolution(vdf_config, blk1.getHash().asBytes());
-  DagBlock blk2(blk1.getHash(), 2, {}, {}, vdf2);
-  blk2.sign(sk);
+  DagBlock blk2(blk1.getHash(), 2, {}, {}, vdf2, sk);
   node1->getDagBlockManager()->insertBlock(blk2);
 
   batch = db1->createWriteBatch();
@@ -528,13 +518,14 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_behind_round) {
 
   // Generate 3 next votes
   std::vector<Vote> next_votes;
+  auto weighted_index = 0;
   for (auto i = 0; i < 3; i++) {
     blk_hash_t voted_pbft_block_hash(i % 2);  // Next votes could vote on 2 values
     blk_hash_t last_pbft_block_hash(i);
     PbftVoteTypes type = next_vote_type;
     uint64_t round = 1;
     size_t step = 5;
-    Vote vote = pbft_mgr1->generateVote(voted_pbft_block_hash, type, round, step, last_pbft_block_hash);
+    Vote vote = pbft_mgr1->generateVote(voted_pbft_block_hash, type, round, step, weighted_index, last_pbft_block_hash);
     next_votes.emplace_back(vote);
   }
 
@@ -593,13 +584,15 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_1) {
 
   // Generate 4 next votes for noode1
   std::vector<Vote> next_votes1;
+  auto weighted_index = 0;
   for (auto i = 0; i < 4; i++) {
     blk_hash_t voted_pbft_block_hash1(i % 2);  // Next votes could vote on 2 values
     blk_hash_t last_pbft_block_hash(i);
     PbftVoteTypes type = next_vote_type;
     uint64_t round = 0;
     size_t step = 5;
-    Vote vote = pbft_mgr1->generateVote(voted_pbft_block_hash1, type, round, step, last_pbft_block_hash);
+    Vote vote =
+        pbft_mgr1->generateVote(voted_pbft_block_hash1, type, round, step, weighted_index, last_pbft_block_hash);
     next_votes1.emplace_back(vote);
   }
 
@@ -620,7 +613,8 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_1) {
     PbftVoteTypes type = next_vote_type;
     uint64_t round = 0;
     size_t step = 5;
-    Vote vote = pbft_mgr1->generateVote(voted_pbft_block_hash2, type, round, step, last_pbft_block_hash);
+    Vote vote =
+        pbft_mgr1->generateVote(voted_pbft_block_hash2, type, round, step, weighted_index, last_pbft_block_hash);
     next_votes2.emplace_back(vote);
   }
 
@@ -674,18 +668,21 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
 
   // Generate 3 next votes for node1
   std::vector<Vote> next_votes1;
-  blk_hash_t voted_pbft_block_hash1(blk_hash_t(1));
+  blk_hash_t voted_pbft_block_hash1(blk_hash_t(0));
+  auto weighted_index = 0;
   for (auto i = 0; i < 3; i++) {
     blk_hash_t last_pbft_block_hash(i);
     PbftVoteTypes type = next_vote_type;
     uint64_t round = 0;
     size_t step = 5;
-    Vote vote = pbft_mgr1->generateVote(voted_pbft_block_hash1, type, round, step, last_pbft_block_hash);
+    Vote vote =
+        pbft_mgr1->generateVote(voted_pbft_block_hash1, type, round, step, weighted_index, last_pbft_block_hash);
     next_votes1.emplace_back(vote);
   }
 
+  auto next_votes_mgr1 = node1->getNextVotesManager();
   // Update node1 next votes bundle
-  node1->getNextVotesManager()->update(next_votes1, pbft_2t_plus_1);
+  next_votes_mgr1->update(next_votes1, pbft_2t_plus_1);
 
   FullNode::Handle node2(node_cfgs[1], true);
   // Stop PBFT manager, that will place vote
@@ -701,12 +698,14 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
     PbftVoteTypes type = next_vote_type;
     uint64_t round = 0;
     size_t step = 6;
-    Vote vote = pbft_mgr1->generateVote(voted_pbft_block_hash2, type, round, step, last_pbft_block_hash);
+    Vote vote =
+        pbft_mgr1->generateVote(voted_pbft_block_hash2, type, round, step, weighted_index, last_pbft_block_hash);
     next_votes2.emplace_back(vote);
   }
 
+  auto next_votes_mgr2 = node2->getNextVotesManager();
   // Update node2 next votes bundle
-  node2->getNextVotesManager()->update(next_votes2, pbft_2t_plus_1);
+  next_votes_mgr2->update(next_votes2, pbft_2t_plus_1);
 
   // Set node2 PBFT previous round 2t+1 for networking
   auto pbft_previous_round = 0;
@@ -729,15 +728,20 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
   // Node1 broadcast next votes1 to node2
   nw1->broadcastPreviousRoundNextVotesBundle();
 
-  taraxa::thisThreadSleepForMilliSeconds(100);
+  auto node2_expect_size = next_votes1.size() + next_votes2.size();
+  for (auto _(0); _ < 600; ++_) {
+    if (node2_expect_size == next_votes_mgr2->getNextVotesSize()) {
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(100);
+  }
 
   // Expect node1 print out "ERROR: Cannot get PBFT 2t+1 in PBFT round 0"
-  auto node1_next_votes_size = node1->getNextVotesManager()->getNextVotesSize();
+  auto node1_next_votes_size = next_votes_mgr1->getNextVotesSize();
   auto node1_expect_size = next_votes1.size();
   EXPECT_EQ(node1_next_votes_size, node1_expect_size);
 
-  auto node2_next_votes_size = node2->getNextVotesManager()->getNextVotesSize();
-  auto node2_expect_size = next_votes1.size() + next_votes2.size();
+  auto node2_next_votes_size = next_votes_mgr2->getNextVotesSize();
   EXPECT_EQ(node2_next_votes_size, node2_expect_size);
 
   // Set node1 PBFT previous round 2t+1 for networking
@@ -746,10 +750,15 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
   // Node2 broadcast updated next votes to node1
   nw2->broadcastPreviousRoundNextVotesBundle();
 
-  taraxa::thisThreadSleepForMilliSeconds(100);
-
-  node1_next_votes_size = node1->getNextVotesManager()->getNextVotesSize();
   node1_expect_size = next_votes1.size() + next_votes2.size();
+  for (auto _(0); _ < 600; ++_) {
+    if (node1_expect_size == next_votes_mgr1->getNextVotesSize()) {
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(100);
+  }
+
+  node1_next_votes_size = next_votes_mgr1->getNextVotesSize();
   EXPECT_EQ(node1_next_votes_size, node1_expect_size);
 }
 
@@ -772,30 +781,26 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
   vdf_sortition::VdfSortition vdf1(vdf_config, node_key.address(), vrf_sk, getRlpBytes(propose_level));
   vdf1.computeVdfSolution(vdf_config, dag_genesis.asBytes());
   DagBlock blk1(dag_genesis, propose_level, {}, {g_signed_trx_samples[0].getHash(), g_signed_trx_samples[1].getHash()},
-                vdf1);
-  blk1.sign(sk);
+                vdf1, sk);
   std::vector<Transaction> tr1({g_signed_trx_samples[0], g_signed_trx_samples[1]});
 
   propose_level = 2;
   vdf_sortition::VdfSortition vdf2(vdf_config, node_key.address(), vrf_sk, getRlpBytes(propose_level));
   vdf2.computeVdfSolution(vdf_config, blk1.getHash().asBytes());
-  DagBlock blk2(blk1.getHash(), propose_level, {}, {g_signed_trx_samples[2].getHash()}, vdf2);
-  blk2.sign(sk);
+  DagBlock blk2(blk1.getHash(), propose_level, {}, {g_signed_trx_samples[2].getHash()}, vdf2, sk);
   std::vector<Transaction> tr2({g_signed_trx_samples[2]});
 
   propose_level = 3;
   vdf_sortition::VdfSortition vdf3(vdf_config, node_key.address(), vrf_sk, getRlpBytes(propose_level));
   vdf3.computeVdfSolution(vdf_config, blk2.getHash().asBytes());
-  DagBlock blk3(blk2.getHash(), propose_level, {}, {}, vdf3);
-  blk3.sign(sk);
+  DagBlock blk3(blk2.getHash(), propose_level, {}, {}, vdf3, sk);
   std::vector<Transaction> tr3;
 
   propose_level = 4;
   vdf_sortition::VdfSortition vdf4(vdf_config, node_key.address(), vrf_sk, getRlpBytes(propose_level));
   vdf4.computeVdfSolution(vdf_config, blk3.getHash().asBytes());
   DagBlock blk4(blk3.getHash(), propose_level, {},
-                {g_signed_trx_samples[3].getHash(), g_signed_trx_samples[4].getHash()}, vdf4);
-  blk4.sign(sk);
+                {g_signed_trx_samples[3].getHash(), g_signed_trx_samples[4].getHash()}, vdf4, sk);
   std::vector<Transaction> tr4({g_signed_trx_samples[3], g_signed_trx_samples[4]});
 
   propose_level = 5;
@@ -804,8 +809,7 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
   DagBlock blk5(blk4.getHash(), propose_level, {},
                 {g_signed_trx_samples[5].getHash(), g_signed_trx_samples[6].getHash(),
                  g_signed_trx_samples[7].getHash(), g_signed_trx_samples[8].getHash()},
-                vdf5);
-  blk5.sign(sk);
+                vdf5, sk);
   std::vector<Transaction> tr5(
       {g_signed_trx_samples[5], g_signed_trx_samples[6], g_signed_trx_samples[7], g_signed_trx_samples[8]});
 
@@ -813,8 +817,7 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
   vdf_sortition::VdfSortition vdf6(vdf_config, node_key.address(), vrf_sk, getRlpBytes(propose_level));
   vdf6.computeVdfSolution(vdf_config, blk5.getHash().asBytes());
   DagBlock blk6(blk5.getHash(), propose_level, {blk4.getHash(), blk3.getHash()}, {g_signed_trx_samples[9].getHash()},
-                vdf6);
-  blk6.sign(sk);
+                vdf6, sk);
   std::vector<Transaction> tr6({g_signed_trx_samples[9]});
 
   node1->getDagBlockManager()->insertBroadcastedBlockWithTransactions(blk6, tr6);
@@ -864,86 +867,77 @@ TEST_F(NetworkTest, node_sync2) {
   auto propose_level = 1;
   vdf_sortition::VdfSortition vdf1(vdf_config, node_key.address(), vrf_sk, getRlpBytes(propose_level));
   vdf1.computeVdfSolution(vdf_config, dag_genesis.asBytes());
-  DagBlock blk1(dag_genesis, propose_level, {}, {transactions[0].getHash(), transactions[1].getHash()}, vdf1);
-  blk1.sign(sk);
+  DagBlock blk1(dag_genesis, propose_level, {}, {transactions[0].getHash(), transactions[1].getHash()}, vdf1, sk);
   std::vector<Transaction> tr1({transactions[0], transactions[1]});
   // DAG block2
   propose_level = 1;
   vdf_sortition::VdfSortition vdf2(vdf_config, node_key.address(), vrf_sk, getRlpBytes(propose_level));
   vdf2.computeVdfSolution(vdf_config, dag_genesis.asBytes());
-  DagBlock blk2(dag_genesis, propose_level, {}, {transactions[2].getHash(), transactions[3].getHash()}, vdf2);
-  blk2.sign(sk);
+  DagBlock blk2(dag_genesis, propose_level, {}, {transactions[2].getHash(), transactions[3].getHash()}, vdf2, sk);
   std::vector<Transaction> tr2({transactions[2], transactions[3]});
   // DAG block3
   propose_level = 2;
   vdf_sortition::VdfSortition vdf3(vdf_config, node_key.address(), vrf_sk, getRlpBytes(propose_level));
   vdf3.computeVdfSolution(vdf_config, blk1.getHash().asBytes());
-  DagBlock blk3(blk1.getHash(), propose_level, {}, {transactions[4].getHash(), transactions[5].getHash()}, vdf3);
-  blk3.sign(sk);
+  DagBlock blk3(blk1.getHash(), propose_level, {}, {transactions[4].getHash(), transactions[5].getHash()}, vdf3, sk);
   std::vector<Transaction> tr3({transactions[4], transactions[5]});
   // DAG block4
   propose_level = 3;
   vdf_sortition::VdfSortition vdf4(vdf_config, node_key.address(), vrf_sk, getRlpBytes(propose_level));
   vdf4.computeVdfSolution(vdf_config, blk3.getHash().asBytes());
-  DagBlock blk4(blk3.getHash(), propose_level, {}, {transactions[6].getHash(), transactions[7].getHash()}, vdf4);
-  blk4.sign(sk);
+  DagBlock blk4(blk3.getHash(), propose_level, {}, {transactions[6].getHash(), transactions[7].getHash()}, vdf4, sk);
   std::vector<Transaction> tr4({transactions[6], transactions[7]});
   // DAG block5
   propose_level = 2;
   vdf_sortition::VdfSortition vdf5(vdf_config, node_key.address(), vrf_sk, getRlpBytes(propose_level));
   vdf5.computeVdfSolution(vdf_config, blk2.getHash().asBytes());
-  DagBlock blk5(blk2.getHash(), propose_level, {}, {transactions[8].getHash(), transactions[9].getHash()}, vdf5);
-  blk5.sign(sk);
+  DagBlock blk5(blk2.getHash(), propose_level, {}, {transactions[8].getHash(), transactions[9].getHash()}, vdf5, sk);
   std::vector<Transaction> tr5({transactions[8], transactions[9]});
   // DAG block6
   propose_level = 2;
   vdf_sortition::VdfSortition vdf6(vdf_config, node_key.address(), vrf_sk, getRlpBytes(propose_level));
   vdf6.computeVdfSolution(vdf_config, blk1.getHash().asBytes());
-  DagBlock blk6(blk1.getHash(), propose_level, {}, {transactions[10].getHash(), transactions[11].getHash()}, vdf6);
-  blk6.sign(sk);
+  DagBlock blk6(blk1.getHash(), propose_level, {}, {transactions[10].getHash(), transactions[11].getHash()}, vdf6, sk);
   std::vector<Transaction> tr6({transactions[10], transactions[11]});
   // DAG block7
   propose_level = 3;
   vdf_sortition::VdfSortition vdf7(vdf_config, node_key.address(), vrf_sk, getRlpBytes(propose_level));
   vdf7.computeVdfSolution(vdf_config, blk6.getHash().asBytes());
-  DagBlock blk7(blk6.getHash(), propose_level, {}, {transactions[12].getHash(), transactions[13].getHash()}, vdf7);
-  blk7.sign(sk);
+  DagBlock blk7(blk6.getHash(), propose_level, {}, {transactions[12].getHash(), transactions[13].getHash()}, vdf7, sk);
   std::vector<Transaction> tr7({transactions[12], transactions[13]});
   // DAG block8
   propose_level = 4;
   vdf_sortition::VdfSortition vdf8(vdf_config, node_key.address(), vrf_sk, getRlpBytes(propose_level));
   vdf8.computeVdfSolution(vdf_config, blk1.getHash().asBytes());
   DagBlock blk8(blk1.getHash(), propose_level, {blk7.getHash()},
-                {transactions[14].getHash(), transactions[15].getHash()}, vdf8);
-  blk8.sign(sk);
+                {transactions[14].getHash(), transactions[15].getHash()}, vdf8, sk);
   std::vector<Transaction> tr8({transactions[14], transactions[15]});
   // DAG block9
   propose_level = 2;
   vdf_sortition::VdfSortition vdf9(vdf_config, node_key.address(), vrf_sk, getRlpBytes(propose_level));
   vdf9.computeVdfSolution(vdf_config, blk1.getHash().asBytes());
-  DagBlock blk9(blk1.getHash(), propose_level, {}, {transactions[16].getHash(), transactions[17].getHash()}, vdf9);
-  blk9.sign(sk);
+  DagBlock blk9(blk1.getHash(), propose_level, {}, {transactions[16].getHash(), transactions[17].getHash()}, vdf9, sk);
   std::vector<Transaction> tr9({transactions[16], transactions[17]});
   // DAG block10
   propose_level = 5;
   vdf_sortition::VdfSortition vdf10(vdf_config, node_key.address(), vrf_sk, getRlpBytes(propose_level));
   vdf10.computeVdfSolution(vdf_config, blk8.getHash().asBytes());
-  DagBlock blk10(blk8.getHash(), propose_level, {}, {transactions[18].getHash(), transactions[19].getHash()}, vdf10);
-  blk10.sign(sk);
+  DagBlock blk10(blk8.getHash(), propose_level, {}, {transactions[18].getHash(), transactions[19].getHash()}, vdf10,
+                 sk);
   std::vector<Transaction> tr10({transactions[18], transactions[19]});
   // DAG block11
   propose_level = 3;
   vdf_sortition::VdfSortition vdf11(vdf_config, node_key.address(), vrf_sk, getRlpBytes(propose_level));
   vdf11.computeVdfSolution(vdf_config, blk3.getHash().asBytes());
-  DagBlock blk11(blk3.getHash(), propose_level, {}, {transactions[20].getHash(), transactions[21].getHash()}, vdf11);
-  blk11.sign(sk);
+  DagBlock blk11(blk3.getHash(), propose_level, {}, {transactions[20].getHash(), transactions[21].getHash()}, vdf11,
+                 sk);
   std::vector<Transaction> tr11({transactions[20], transactions[21]});
   // DAG block12
   propose_level = 3;
   vdf_sortition::VdfSortition vdf12(vdf_config, node_key.address(), vrf_sk, getRlpBytes(propose_level));
   vdf12.computeVdfSolution(vdf_config, blk5.getHash().asBytes());
-  DagBlock blk12(blk5.getHash(), propose_level, {}, {transactions[22].getHash(), transactions[23].getHash()}, vdf12);
-  blk12.sign(sk);
+  DagBlock blk12(blk5.getHash(), propose_level, {}, {transactions[22].getHash(), transactions[23].getHash()}, vdf12,
+                 sk);
   std::vector<Transaction> tr12({transactions[22], transactions[23]});
 
   blks.push_back(blk1);

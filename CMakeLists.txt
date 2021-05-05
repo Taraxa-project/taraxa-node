@@ -1,7 +1,13 @@
-# Defines Taraxa library target.
-
-project(taraxa-node)
 cmake_minimum_required(VERSION 3.16)
+
+# Get current of the project
+execute_process(COMMAND ${CMAKE_SOURCE_DIR}/config/version/get_version.sh OUTPUT_VARIABLE TARAXA_VESION OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+# Defines Taraxa library target.
+project(taraxa-node VERSION ${TARAXA_VESION})
+
+# Configure file with version
+configure_file(${CMAKE_SOURCE_DIR}/config/version/taraxad_version.hpp.in ${CMAKE_SOURCE_DIR}/src/taraxad/taraxad_version.hpp)
 
 set(CMAKE_NO_SYSTEM_FROM_IMPORTED ON)
 # Set project properties like C++ standard, etc...
@@ -21,6 +27,13 @@ if (APPLE)
     set(TARAXA_STATIC_BUILD OFF)
 endif ()
 message(STATUS "TARAXA_STATIC_BUILD: ${TARAXA_STATIC_BUILD}")
+
+# enable sanitizers
+option(TARAXA_ENABLE_SANITIZERS "Enable sanitizers (ON or OFF)" OFF)
+if (TARAXA_ENABLE_SANITIZERS)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fsanitize=undefined")
+endif()
+message(STATUS "TARAXA_ENABLE_SANITIZERS: ${TARAXA_ENABLE_SANITIZERS}")
 
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 

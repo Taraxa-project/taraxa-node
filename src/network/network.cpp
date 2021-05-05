@@ -54,7 +54,10 @@ Network::Network(NetworkConfig const &config, std::filesystem::path const &netwo
   host_ = dev::p2p::Host::make(net_version, construct_capabilities, key, net_conf, move(taraxa_net_conf),
                                network_file_path);
   for (uint i = 0; i < tp_.capacity(); ++i) {
-    tp_.post_loop({}, [this] { host_->do_work(); });
+    tp_.post_loop({100 + i * 20}, [this] {
+      while (0 < host_->do_work())
+        ;
+    });
   }
   if (!boot_nodes_.empty()) {
     for (auto const &[k, v] : boot_nodes_) {
@@ -77,10 +80,18 @@ Network::Network(NetworkConfig const &config, std::filesystem::path const &netwo
   }
   diagnostic_thread_.post_loop({30000},
                                [this] { LOG(log_nf_) << "NET_TP_NUM_PENDING_TASKS=" << tp_.num_pending_tasks(); });
+  diagnostic_thread_.post_loop({30000}, [this] {
+    auto peers = getAllPeers();
+    LOG(log_nf_) << "There are " << peers.size() << " peers connected";
+    for (auto const &peer : peers) {
+      LOG(log_nf_) << "Connected with peer " << peer;
+    }
+  });
 }
 
 Network::~Network() {
   tp_.stop();
+  taraxa_capability_->stop();
   diagnostic_thread_.stop();
 }
 

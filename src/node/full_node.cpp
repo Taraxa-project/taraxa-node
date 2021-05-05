@@ -18,6 +18,7 @@
 #include "network/rpc/Net.h"
 #include "network/rpc/Taraxa.h"
 #include "network/rpc/Test.h"
+#include "network/rpc/rpc_error_handler.hpp"
 #include "transaction_manager/transaction_manager.hpp"
 #include "transaction_manager/transaction_status.hpp"
 
@@ -27,7 +28,8 @@ using std::string;
 using std::to_string;
 
 FullNode::FullNode(FullNodeConfig const &conf)
-    : conf_(conf),
+    : post_destruction_ctx_(make_shared<PostDestructionContext>()),
+      conf_(conf),
       kp_(conf_.node_secret.empty()
               ? dev::KeyPair::create()
               : dev::KeyPair(dev::Secret(conf_.node_secret, dev::Secret::ConstructFromStringType::FromHex))) {}
@@ -101,9 +103,9 @@ void FullNode::init() {
   emplace(dag_blk_mgr_, node_addr, conf_.chain.vdf, conf_.chain.final_chain.state.dpos, 1024 /*capacity*/,
           4 /* verifer thread*/, db_, trx_mgr_, final_chain_, pbft_chain_, log_time_,
           conf_.test_params.max_block_queue_warn);
-  emplace(vote_mgr_, node_addr, final_chain_, pbft_chain_);
+  emplace(vote_mgr_, node_addr, db_, final_chain_, pbft_chain_);
   emplace(trx_order_mgr_, node_addr, db_);
-  emplace(executor_, node_addr, db_, dag_mgr_, trx_mgr_, final_chain_, pbft_chain_,
+  emplace(executor_, node_addr, db_, dag_mgr_, trx_mgr_, dag_blk_mgr_, final_chain_, pbft_chain_,
           conf_.test_params.block_proposer.transaction_limit);
   emplace(pbft_mgr_, conf_.chain.pbft, genesis_hash, node_addr, db_, pbft_chain_, vote_mgr_, next_votes_mgr_, dag_mgr_,
           dag_blk_mgr_, final_chain_, executor_, kp_.secret(), conf_.vrf_secret);
@@ -133,7 +135,8 @@ void FullNode::init() {
 
     if (conf_.rpc->http_port) {
       jsonrpc_http_ = make_shared<net::RpcServer>(
-          *jsonrpc_io_ctx_, boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->http_port}, node_addr);
+          *jsonrpc_io_ctx_, boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->http_port}, node_addr,
+          net::handle_rpc_error);
       jsonrpc_api_->addConnector(jsonrpc_http_);
     }
 

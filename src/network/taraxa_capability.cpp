@@ -92,7 +92,7 @@ void TaraxaCapability::sealAndSend(NodeID const &nodeID, unsigned packet_type, R
     tp_.post([=] {  // schedule it out of the socket session thread. although maybe it's an overkill
       PacketStats packet_stats{nodeID, packet_size, false, duration};
       sent_packets_stats_.addPacket(packetTypeToString(packet_type), packet_stats);
-      LOG(log_dg_net_per_) << "(\"" << host->id() << "\") sent " << packetTypeToString(packet_type) << " packet to (\""
+      LOG(log_dg_net_per_) << "(\"" << node_id_ << "\") sent " << packetTypeToString(packet_type) << " packet to (\""
                            << nodeID << "\"). Stats: " << packet_stats;
     });
   });
@@ -179,6 +179,8 @@ void TaraxaCapability::interpretCapabilityPacket(weak_ptr<Session> session, unsi
   });
 }
 
+unsigned TaraxaCapability::version() const { return FullNode::c_network_protocol_version; }
+
 void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsigned _id, RLP const &_r,
                                                      PacketStats &packet_stats) {
   auto host = host_.lock();
@@ -198,11 +200,10 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
     }
     case StatusPacket: {
       peer->statusReceived();
-      bool initial_status = _r.itemCount() == 10;
+      bool initial_status = _r.itemCount() == 9;
 
       if (initial_status) {
         auto it = _r.begin();
-        auto const peer_protocol_version = (*it++).toInt<unsigned>();
         auto const network_id = (*it++).toPositiveInt64();
         peer->dag_level_ = (*it++).toPositiveInt64();
         auto const genesis_hash = (*it++).toString();
@@ -213,19 +214,13 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         auto node_major_version = (*it++).toInt();
         auto node_minor_version = (*it++).toInt();
 
-        LOG(log_dg_) << "Received initial status message from " << _nodeID << ", peer protocol version "
-                     << peer_protocol_version << ", network id " << network_id << ", peer DAG max level "
-                     << peer->dag_level_ << ", genesis " << dag_mgr_->get_genesis() << ", peer pbft chain size "
-                     << peer->pbft_chain_size_ << ", peer syncing " << std::boolalpha << peer->syncing_
-                     << ", peer pbft round " << peer->pbft_round_ << ", peer pbft previous round next votes size "
-                     << peer->pbft_previous_round_next_votes_size_ << ", node major version" << node_major_version
-                     << ", node minor version" << node_minor_version;
+        LOG(log_dg_) << "Received initial status message from " << _nodeID << ", network id " << network_id
+                     << ", peer DAG max level " << peer->dag_level_ << ", genesis " << dag_mgr_->get_genesis()
+                     << ", peer pbft chain size " << peer->pbft_chain_size_ << ", peer syncing " << std::boolalpha
+                     << peer->syncing_ << ", peer pbft round " << peer->pbft_round_
+                     << ", peer pbft previous round next votes size " << peer->pbft_previous_round_next_votes_size_
+                     << ", node major version" << node_major_version << ", node minor version" << node_minor_version;
 
-        if (peer_protocol_version != FullNode::c_network_protocol_version) {
-          LOG(log_er_) << "Incorrect protocol version " << peer_protocol_version << ", host " << _nodeID
-                       << " will be disconnected";
-          host->disconnect(_nodeID, p2p::UserReason);
-        }
         // We need logic when some different node versions might still be compatible
         if (node_major_version != FullNode::c_node_major_version ||
             node_minor_version != FullNode::c_node_minor_version) {
@@ -414,19 +409,30 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       }
       break;
     }
+
     case PbftVotePacket: {
       LOG(log_dg_vote_prp_) << "In PbftVotePacket";
 
       Vote vote(_r[0].toBytes());
-      LOG(log_dg_vote_prp_) << "Received PBFT vote " << vote.getHash();
-      peer->markVoteAsKnown(vote.getHash());
+      auto vote_hash = vote.getHash();
+      LOG(log_dg_vote_prp_) << "Received PBFT vote " << vote_hash;
+      peer->markVoteAsKnown(vote_hash);
 
-      if (vote_mgr_->addVote(vote)) {
+      auto pbft_round = pbft_mgr_->getPbftRound();
+      auto vote_round = vote.getRound();
+
+      if (vote_round >= pbft_round && !vote_mgr_->voteInUnverifiedMap(vote_round, vote_hash) &&
+          !vote_mgr_->voteInVerifiedMap(vote_round, vote_hash)) {
+        // vote round >= PBFT round
+        db_->saveUnverifiedVote(vote);
+        vote_mgr_->addUnverifiedVote(vote);
         packet_stats.is_unique_ = true;
         onNewPbftVote(vote);
       }
+
       break;
     }
+
     case GetPbftNextVotes: {
       LOG(log_dg_next_votes_sync_) << "Received GetPbftNextVotes request";
 
@@ -473,7 +479,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
 
       if (pbft_current_round < peer_pbft_round) {
         // Add into votes unverified queue
-        vote_mgr_->addVotes(next_votes);
+        vote_mgr_->addUnverifiedVotes(next_votes);
       } else if (pbft_current_round == peer_pbft_round) {
         // Update previous round next votes
         auto pbft_2t_plus_1 = db_->getPbft2TPlus1(pbft_current_round - 1);
@@ -758,10 +764,10 @@ void TaraxaCapability::sendTestMessage(NodeID const &_id, int _x) { sealAndSend(
 void TaraxaCapability::sendStatus(NodeID const &_id, bool _initial) {
   if (dag_mgr_) {
     if (_initial) {
-      LOG(log_dg_) << "Sending initial status message to " << _id << ", protocol version "
-                   << FullNode::c_network_protocol_version << ", network id " << conf_.network_id << ", genesis "
-                   << dag_mgr_->get_genesis() << ", node major version " << FullNode::c_node_major_version
-                   << ", node minor version " << FullNode::c_node_minor_version;
+      LOG(log_dg_) << "Sending initial status message to " << _id << ", protocol version " << version()
+                   << ", network id " << conf_.network_id << ", genesis " << dag_mgr_->get_genesis()
+                   << ", node major version " << FullNode::c_node_major_version << ", node minor version "
+                   << FullNode::c_node_minor_version;
     }
 
     auto dag_max_level = dag_mgr_->getMaxLevel();
@@ -776,10 +782,9 @@ void TaraxaCapability::sendStatus(NodeID const &_id, bool _initial) {
 
     if (_initial) {
       sealAndSend(_id, StatusPacket,
-                  RLPStream(10) << FullNode::c_network_protocol_version << conf_.network_id << dag_max_level
-                                << dag_mgr_->get_genesis() << pbft_chain_size << syncing_.load() << pbft_round
-                                << pbft_previous_round_next_votes_size << FullNode::c_node_major_version
-                                << FullNode::c_node_minor_version);
+                  RLPStream(9) << conf_.network_id << dag_max_level << dag_mgr_->get_genesis() << pbft_chain_size
+                               << syncing_.load() << pbft_round << pbft_previous_round_next_votes_size
+                               << FullNode::c_node_major_version << FullNode::c_node_minor_version);
     } else {
       sealAndSend(_id, StatusPacket,
                   RLPStream(5) << dag_max_level << pbft_chain_size << syncing_.load() << pbft_round
@@ -799,10 +804,12 @@ vector<NodeID> TaraxaCapability::selectPeers(std::function<bool(TaraxaPeer const
 
 vector<NodeID> TaraxaCapability::getAllPeers() const {
   vector<NodeID> peers;
+
   boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
   std::transform(
       peers_.begin(), peers_.end(), std::back_inserter(peers),
       [](std::pair<const dev::p2p::NodeID, std::shared_ptr<taraxa::TaraxaPeer>> const &peer) { return peer.first; });
+
   return peers;
 }
 
@@ -1094,6 +1101,7 @@ void TaraxaCapability::onNewPbftVote(taraxa::Vote const &vote) {
       }
     }
   }
+
   for (auto const &peer : peers_to_send) {
     sendPbftVote(peer, vote);
   }
@@ -1101,7 +1109,7 @@ void TaraxaCapability::onNewPbftVote(taraxa::Vote const &vote) {
 
 void TaraxaCapability::sendPbftVote(NodeID const &_id, taraxa::Vote const &vote) {
   LOG(log_dg_vote_prp_) << "sendPbftVote " << vote.getHash() << " to " << _id;
-  sealAndSend(_id, PbftVotePacket, RLPStream(1) << vote.rlp());
+  sealAndSend(_id, PbftVotePacket, RLPStream(1) << vote.rlp(true));
 }
 
 void TaraxaCapability::onNewPbftBlock(taraxa::PbftBlock const &pbft_block) {
@@ -1115,6 +1123,7 @@ void TaraxaCapability::onNewPbftBlock(taraxa::PbftBlock const &pbft_block) {
       }
     }
   }
+
   for (auto const &peer : peers_to_send) {
     sendPbftBlock(peer, pbft_block, my_chain_size);
   }
@@ -1263,13 +1272,8 @@ void TaraxaCapability::sendPbftNextVotes(NodeID const &peerID) {
 }
 
 void TaraxaCapability::broadcastPreviousRoundNextVotesBundle() {
-  std::vector<NodeID> peers_to_send;
-  {
-    boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
-    for (auto const &peer : peers_) {
-      peers_to_send.push_back(peer.first);
-    }
-  }
+  std::vector<NodeID> peers_to_send = getAllPeers();
+
   for (auto const &peer : peers_to_send) {
     sendPbftNextVotes(peer);
   }
