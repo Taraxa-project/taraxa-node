@@ -256,4 +256,4 @@ TEST_F(TaraxaTest, queryDPOS) {
 
 }  // namespace taraxa::net
 
-TARAXA_TEST_MAIN({});
+TARAXA_TEST_MAIN({})

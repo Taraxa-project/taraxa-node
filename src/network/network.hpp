@@ -74,7 +74,7 @@ class Network {
   std::map<Public, NodeIPEndpoint> boot_nodes_;
   util::ThreadPool diagnostic_thread_{1, false};
 
-  LOG_OBJECTS_DEFINE;
+  LOG_OBJECTS_DEFINE
 };
 
 }  // namespace taraxa

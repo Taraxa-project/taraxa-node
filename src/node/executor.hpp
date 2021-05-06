@@ -36,7 +36,7 @@ class Executor {
   std::atomic<uint64_t> num_executed_dag_blk_ = 0;
   std::atomic<uint64_t> num_executed_trx_ = 0;
 
-  LOG_OBJECTS_DEFINE;
+  LOG_OBJECTS_DEFINE
 
  public:
   Executor(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<DagManager> dag_mgr,

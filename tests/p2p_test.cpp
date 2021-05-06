@@ -45,7 +45,7 @@ TEST_F(P2PTest, p2p_discovery) {
   dev::p2p::NetworkConfig net_conf("127.0.0.1", 20001, false, true);
   TaraxaNetworkConfig taraxa_net_conf;
   taraxa_net_conf.is_boot_node = true;
-  auto dummy_capability_constructor = [](auto host) { return Host::CapabilityList{}; };
+  auto dummy_capability_constructor = [](auto /*host*/) { return Host::CapabilityList{}; };
   util::ThreadPool tp;
   auto bootHost = Host::make("TaraxaNode", dummy_capability_constructor, key, net_conf, taraxa_net_conf);
   tp.post_loop({}, [=] { bootHost->do_work(); });
@@ -209,7 +209,9 @@ TEST_F(P2PTest, capability_send_block) {
   auto blocks = thc1->getBlocks();
   auto rtransactions = thc1->getTransactions();
   EXPECT_EQ(blocks.size(), 1);
-  if (blocks.size()) EXPECT_EQ(blk, blocks.begin()->second);
+  if (blocks.size()) {
+    EXPECT_EQ(blk, blocks.begin()->second);
+  }
   EXPECT_EQ(rtransactions.size(), 2);
   if (rtransactions.size() == 2) {
     EXPECT_EQ(Transaction(transactions[0]), rtransactions[g_signed_trx_samples[0].getHash()]);
@@ -336,7 +338,9 @@ TEST_F(P2PTest, block_propagate) {
     }
   }
   EXPECT_EQ(blocks1.size(), 1);
-  if (blocks1.size()) EXPECT_EQ(blk, blocks1.begin()->second);
+  if (blocks1.size()) {
+    EXPECT_EQ(blk, blocks1.begin()->second);
+  }
 }
 }  // namespace taraxa::core_tests
 

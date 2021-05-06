@@ -129,7 +129,7 @@ bool BlockProposer::getLatestPivotAndTips(blk_hash_t& pivot, vec_blk_t& tips) {
   return ok;
 }
 
-bool BlockProposer::getShardedTrxs(uint total_shard, uint my_shard, vec_trx_t& sharded_trxs) {
+bool BlockProposer::getShardedTrxs(vec_trx_t& sharded_trxs) {
   vec_trx_t to_be_packed_trx;
   trx_mgr_->packTrxs(to_be_packed_trx, bp_config_.transaction_limit);
 

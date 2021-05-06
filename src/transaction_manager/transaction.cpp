@@ -138,7 +138,7 @@ shared_ptr<bytes> Transaction::rlp(bool cache) const {
   streamRLP<false>(s);
   auto ret = make_shared<bytes>(move(s.invalidate()));
   return cache ? cached_rlp_ = move(ret) : ret;
-};
+}
 
 trx_hash_t Transaction::hash_for_signature() const {
   dev::RLPStream s;
