@@ -46,7 +46,7 @@ if (TARAXA_ENABLE_SANITIZERS)
 endif()
 message(STATUS "TARAXA_ENABLE_SANITIZERS: ${TARAXA_ENABLE_SANITIZERS}")
 
-set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+#set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 # Use ccache to speed-up recompilation
 find_program(CCACHE_PROGRAM ccache)
