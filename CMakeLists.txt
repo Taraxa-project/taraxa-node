@@ -9,7 +9,6 @@ project(taraxa-node VERSION ${TARAXA_VESION})
 # Configure file with version
 configure_file(${CMAKE_SOURCE_DIR}/config/version/taraxad_version.hpp.in ${CMAKE_SOURCE_DIR}/src/taraxad/taraxad_version.hpp)
 
-set(CMAKE_NO_SYSTEM_FROM_IMPORTED ON)
 # Set project properties like C++ standard, etc...
 set(CMAKE_CXX_COMPILER g++)
 set(CMAKE_CXX_STANDARD 17)
@@ -44,11 +43,6 @@ if (CCACHE_PROGRAM)
     set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
 else ()
     message(STATUS "Building without ccache")
-endif ()
-
-# Mac OS
-if (DEFINED SYSTEM_HOME_OVERRIDE)
-    list(PREPEND CMAKE_PREFIX_PATH ${SYSTEM_HOME_OVERRIDE})
 endif ()
 
 # Mac OS
