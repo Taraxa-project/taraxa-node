@@ -67,7 +67,7 @@ struct VrfPbftSortition : public vrf_wrapper::VrfSortitionBase {
   using bytes = dev::bytes;
   VrfPbftSortition() = default;
   VrfPbftSortition(vrf_sk_t const& sk, VrfPbftMsg const& pbft_msg)
-      : pbft_msg(pbft_msg), VrfSortitionBase(sk, pbft_msg.getRlpBytes()) {}
+      : VrfSortitionBase(sk, pbft_msg.getRlpBytes()), pbft_msg(pbft_msg) {}
   explicit VrfPbftSortition(bytes const& rlp);
   bytes getRlpBytes() const;
   bool verify() { return VrfSortitionBase::verify(pbft_msg.getRlpBytes()); }
@@ -195,7 +195,7 @@ class VoteManager {
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<FinalChain> final_chain_;
 
-  LOG_OBJECTS_DEFINE;
+  LOG_OBJECTS_DEFINE
 };
 
 class NextVotesForPreviousRound {
@@ -242,7 +242,7 @@ class NextVotesForPreviousRound {
   std::unordered_map<blk_hash_t, std::vector<Vote>> next_votes_;
   std::unordered_set<vote_hash_t> next_votes_set_;
 
-  LOG_OBJECTS_DEFINE;
+  LOG_OBJECTS_DEFINE
 };
 
 }  // namespace taraxa

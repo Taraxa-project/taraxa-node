@@ -244,7 +244,7 @@ TEST_F(VoteTest, vote_broadcast) {
   std::shared_ptr<Network> nw2 = node2->getNetwork();
   std::shared_ptr<Network> nw3 = node3->getNetwork();
 
-  int node_peers = 2;
+  unsigned node_peers = 2;
   for (int i = 0; i < 300; i++) {
     // test timeout is 30 seconds
     if (nw1->getPeerCount() == node_peers && nw2->getPeerCount() == node_peers && nw3->getPeerCount() == node_peers) {

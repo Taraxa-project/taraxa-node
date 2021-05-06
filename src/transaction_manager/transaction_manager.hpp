@@ -104,9 +104,9 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   VerifyMode mode_ = VerifyMode::normal;
   std::atomic<bool> stopped_ = true;
   std::shared_ptr<DbStorage> db_ = nullptr;
+  FullNodeConfig conf_;
   TransactionQueue trx_qu_;
   std::atomic<unsigned long> trx_count_ = 0;
-  FullNodeConfig conf_;
   std::vector<std::thread> verifiers_;
   std::weak_ptr<Network> network_;
   std::shared_ptr<net::WSServer> ws_server_;
@@ -118,6 +118,6 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
 
   mutable std::mutex mu_for_nonce_table_;
   mutable std::mutex mu_for_transactions_;
-  LOG_OBJECTS_DEFINE;
+  LOG_OBJECTS_DEFINE
 };
 }  // namespace taraxa

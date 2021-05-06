@@ -172,7 +172,7 @@ std::unordered_map<trx_hash_t, Transaction> TransactionQueue::moveVerifiedTrxSna
   if (res.size() > 0) {
     LOG(log_dg_) << "Copy " << res.size() << " verified trx. " << std::endl;
   }
-  return std::move(res);
+  return res;
 }
 
 unsigned long TransactionQueue::getVerifiedTrxCount() const {

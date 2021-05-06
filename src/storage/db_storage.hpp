@@ -138,7 +138,7 @@ struct DbStorage {
 
   auto handle(Column const& col) const { return handles_[col.ordinal]; }
 
-  LOG_OBJECTS_DEFINE;
+  LOG_OBJECTS_DEFINE
 
  public:
   DbStorage(DbStorage const&) = delete;

@@ -64,7 +64,7 @@ inline bool sendTrx(uint64_t count, unsigned port) {
         ]
       }' 0.0.0.0:%s
     )";
-  for (auto i = 0; i < count; ++i) {
+  for (uint64_t i = 0; i < count; ++i) {
     auto retcode = system(fmt(pattern, val_t(TEST_TX_GAS_LIMIT), val_t(0), addr_t::random(),
                               samples::TX_GEN->getRandomUniqueSenderSecret().makeInsecure(), port)
                               .c_str());
@@ -151,10 +151,10 @@ inline std::vector<DagBlock> createMockDagBlkSamples(unsigned pivot_start, unsig
     blk_hash_t pivot(i);
     blk_hash_t hash(i + 1);
     vec_trx_t trxs;
-    for (auto i = 0; i < trx_len; ++i, trx++) {
+    for (unsigned i = 0; i < trx_len; ++i, trx++) {
       trxs.emplace_back(trx_hash_t(trx));
     }
-    for (auto i = 0; i < trx_overlap; ++i) {
+    for (unsigned i = 0; i < trx_overlap; ++i) {
       trx--;
     }
 
@@ -172,11 +172,10 @@ inline std::vector<DagBlock> createMockDagBlkSamples(unsigned pivot_start, unsig
 }
 
 inline std::vector<std::pair<DagBlock, std::vector<Transaction>>> createMockDagBlkSamplesWithSignedTransactions(
-    unsigned pivot_start, unsigned blk_num, unsigned trx_start, unsigned trx_len, unsigned trx_overlap,
+    unsigned pivot_start, unsigned blk_num, unsigned trx_start, unsigned trx_len, unsigned /*trx_overlap*/,
     secret_t const &sk) {
   assert(pivot_start + blk_num < std::numeric_limits<unsigned>::max());
   std::vector<std::pair<DagBlock, std::vector<Transaction>>> blks;
-  unsigned trx = trx_start;
   for (auto i = pivot_start; i < blk_num; ++i) {
     auto full_trx = createSignedTrxSamples(trx_start + i * trx_len, trx_len, sk);
     vec_trx_t trxs;

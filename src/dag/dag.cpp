@@ -261,7 +261,7 @@ void PivotTree::getGhostPath(vertex_hash const &vertex, std::vector<vertex_hash>
   while (1) {
     pivot_chain.emplace_back(index_map[root]);
     size_t heavist = 0;
-    vertex_t next;
+    vertex_t next = root;
 
     for (std::tie(s, e) = adjacenct_vertices(root, graph_); s != e; s++) {
       if (!weight_map.count(*s)) continue;  // bigger timestamp
@@ -286,14 +286,14 @@ void PivotTree::getGhostPath(vertex_hash const &vertex, std::vector<vertex_hash>
 
 DagManager::DagManager(std::string const &genesis, addr_t node_addr, std::shared_ptr<TransactionManager> trx_mgr,
                        std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DbStorage> db) try
-    : total_dag_(std::make_shared<Dag>(genesis, node_addr)),
-      pivot_tree_(std::make_shared<PivotTree>(genesis, node_addr)),
-      genesis_(genesis),
+    : pivot_tree_(std::make_shared<PivotTree>(genesis, node_addr)),
+      total_dag_(std::make_shared<Dag>(genesis, node_addr)),
       trx_mgr_(trx_mgr),
       pbft_chain_(pbft_chain),
       db_(db),
       anchor_(genesis),
-      period_(0) {
+      period_(0),
+      genesis_(genesis) {
   LOG_OBJECTS_CREATE("DAGMGR");
   DagBlock blk;
   string pivot;

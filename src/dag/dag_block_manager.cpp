@@ -7,18 +7,18 @@ DagBlockManager::DagBlockManager(addr_t node_addr, vdf_sortition::VdfConfig cons
                                  std::shared_ptr<DbStorage> db, std::shared_ptr<TransactionManager> trx_mgr,
                                  std::shared_ptr<FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain,
                                  logger::Logger log_time, uint32_t queue_limit)
-    : vdf_config_(vdf_config),
-      dpos_config_(dpos_config),
-      capacity_(capacity),
+    : capacity_(capacity),
       num_verifiers_(num_verifiers),
       db_(db),
       trx_mgr_(trx_mgr),
       final_chain_(final_chain),
       pbft_chain_(pbft_chain),
       log_time_(log_time),
-      queue_limit_(queue_limit),
       blk_status_(cache_max_size_, cache_delete_step_),
-      seen_blocks_(cache_max_size_, cache_delete_step_) {
+      seen_blocks_(cache_max_size_, cache_delete_step_),
+      queue_limit_(queue_limit),
+      vdf_config_(vdf_config),
+      dpos_config_(dpos_config) {
   // Set default DAG level proposal period map
   ProposalPeriodDagLevelsMap period_levels_map;
   db_->saveProposalPeriodDagLevelsMap(period_levels_map);
@@ -34,7 +34,7 @@ void DagBlockManager::start() {
   }
   LOG(log_nf_) << "Create verifier threads = " << num_verifiers_ << std::endl;
   verifiers_.clear();
-  for (auto i = 0; i < num_verifiers_; ++i) {
+  for (size_t i = 0; i < num_verifiers_; ++i) {
     verifiers_.emplace_back([this, i]() { this->verifyBlock(); });
   }
 }

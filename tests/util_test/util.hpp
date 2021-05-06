@@ -304,4 +304,4 @@ inline auto make_addr(uint8_t i) {
   return ret;
 }
 
-};  // namespace taraxa::core_tests
+}  // namespace taraxa::core_tests

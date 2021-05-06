@@ -51,7 +51,7 @@ class ExitStack {
   }
 };
 
-};  // namespace taraxa::util::exit_stack
+}  // namespace taraxa::util::exit_stack
 
 namespace taraxa::util {
 using exit_stack::ExitStack;
