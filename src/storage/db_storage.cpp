@@ -80,7 +80,6 @@ void DbStorage::loadSnapshots() {
   // Find all the existing folders containing db and state_db snapshots
   for (fs::directory_iterator itr(path_); itr != fs::directory_iterator(); ++itr) {
     std::string fileName = itr->path().filename().string();
-    bool delete_dir = false;
     uint64_t dir_period = 0;
 
     try {

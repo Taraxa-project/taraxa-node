@@ -153,7 +153,7 @@ bytes str2bytes(std::string const &str) {
   assert(str.size() % 2 == 0);
   bytes data;
   // convert it to byte stream
-  for (auto i = 0; i < str.size(); i += 2) {
+  for (size_t i = 0; i < str.size(); i += 2) {
     std::string s = str.substr(i, 2);
     auto t = std::stoul(s, nullptr, 16);
     assert(t < 256);

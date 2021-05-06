@@ -83,7 +83,7 @@ class DagBlockManager {
   vdf_sortition::VdfConfig vdf_config_;
   optional<state_api::DPOSConfig> dpos_config_;
 
-  LOG_OBJECTS_DEFINE;
+  LOG_OBJECTS_DEFINE
 };
 
 }  // namespace taraxa

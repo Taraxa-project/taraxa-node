@@ -72,7 +72,7 @@ TEST_F(StateAPITest, dpos_integration) {
   addr_1_bal_expected -= dpos_cfg.genesis_state[make_addr(1)][make_addr(1)] = dpos_cfg.eligibility_balance_threshold;
 
   uint64_t curr_blk = 0;
-  StateAPI SUT([&](auto n) -> h256 { assert(false); },  //
+  StateAPI SUT([&](auto /*n*/) -> h256 { assert(false); },  //
                chain_cfg,
                {
                    10,
@@ -115,7 +115,6 @@ TEST_F(StateAPITest, dpos_integration) {
         auto meta__ = meta_ + " (" + label + ")";
         EXPECT_EQ(deposits_exp.size(), deposits_act.size()) << meta__;
         for (auto& [addr, deposit_v_exp] : deposits_exp) {
-          auto& deposit_v_act = deposits_act[addr];
           EXPECT_EQ(deposit_v_exp, deposits_act[addr]) << meta__;
         }
       }
@@ -214,7 +213,7 @@ TEST_F(StateAPITest, eth_mainnet_smoke) {
 
   ASSERT_EQ(test_blocks[0].StateRoot, SUT.get_last_committed_state_descriptor().state_root);
   auto progress_pct = numeric_limits<int>::min();
-  auto num_blk_to_exec = 150000;  // test_blocks.size() will provide more coverage but will be slower
+  size_t num_blk_to_exec = 150000;  // test_blocks.size() will provide more coverage but will be slower
   for (size_t blk_num = 1; blk_num < num_blk_to_exec; ++blk_num) {
     if (int n = 100 * blk_num / num_blk_to_exec; n >= progress_pct + 10) {
       // I'm aware about \r and flush(), but it doesn't always work
@@ -229,4 +228,4 @@ TEST_F(StateAPITest, eth_mainnet_smoke) {
 
 }  // namespace taraxa::state_api
 
-TARAXA_TEST_MAIN({});
+TARAXA_TEST_MAIN({})

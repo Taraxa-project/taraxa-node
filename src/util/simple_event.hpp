@@ -9,14 +9,14 @@ using namespace std;
 
 template <typename... Ts>
 class SimpleEvent {
-  using handler_t = function<void(Ts const &... ts)>;
+  using handler_t = function<void(Ts const &...ts)>;
 
   mutable uint64_t next_id = 0;
   mutable unordered_map<uint64_t, handler_t> handlers;
   mutable shared_mutex mu;
 
  public:
-  void pub(Ts const &... ts) const {
+  void pub(Ts const &...ts) const {
     shared_lock l(mu);
     for (auto const &[_, handler] : handlers) {
       handler(ts...);

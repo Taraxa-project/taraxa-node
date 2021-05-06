@@ -51,7 +51,7 @@ class TransactionQueue {
   mutable boost::shared_mutex shared_mutex_for_unverified_qu_;
   boost::condition_variable_any cond_for_unverified_qu_;
 
-  LOG_OBJECTS_DEFINE;
+  LOG_OBJECTS_DEFINE
 };
 
 }  // namespace taraxa

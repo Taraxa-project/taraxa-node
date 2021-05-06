@@ -52,7 +52,7 @@ struct PendingBlockImpl : PendingBlock {
 
   h256s transactionHashes() const override {
     h256s ret;
-    db->forEach(DbStorage::Columns::pending_transactions, [&](auto const& k, auto const& _) {
+    db->forEach(DbStorage::Columns::pending_transactions, [&](auto const& k, auto const&) {
       ret.emplace_back(k.data(), h256::FromBinary);
       return true;
     });

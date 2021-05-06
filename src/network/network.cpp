@@ -169,7 +169,7 @@ void Network::sendTransactions(NodeID const &_id, std::vector<taraxa::bytes> con
   LOG(log_dg_) << "Sent transactions:" << transactions.size();
 }
 
-dev::p2p::NodeID Network::getNodeId() { return host_->id(); };
+dev::p2p::NodeID Network::getNodeId() { return host_->id(); }
 
 int Network::getReceivedBlocksCount() { return taraxa_capability_->getBlocks().size(); }
 

@@ -63,7 +63,7 @@ Vote::Vote(dev::RLP const& rlp) {
 Vote::Vote(bytes const& b) : Vote(dev::RLP(b)) {}
 
 Vote::Vote(secret_t const& node_sk, VrfPbftSortition const& vrf_sortition, blk_hash_t const& blockhash)
-    : vrf_sortition_(vrf_sortition), blockhash_(blockhash) {
+    : blockhash_(blockhash), vrf_sortition_(vrf_sortition) {
   vote_signature_ = dev::sign(node_sk, sha3(false));
   vote_hash_ = sha3(true);
 }
@@ -89,7 +89,7 @@ void Vote::voter() const {
 
 VoteManager::VoteManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<FinalChain> final_chain,
                          std::shared_ptr<PbftChain> pbft_chain)
-    : db_(db), final_chain_(final_chain), pbft_chain_(pbft_chain) {
+    : db_(db), pbft_chain_(pbft_chain), final_chain_(final_chain) {
   LOG_OBJECTS_CREATE("VOTE_MGR");
   // Retrieve votes from DB
   {
@@ -680,7 +680,7 @@ void NextVotesForPreviousRound::updateWithSyncedVotes(std::vector<Vote> const& n
 
   std::unordered_map<blk_hash_t, std::vector<Vote>> synced_next_votes;
   // All next votes should be in the next voting phase and in the same voted round
-  for (auto i = 0; i < next_votes.size(); i++) {
+  for (size_t i = 0; i < next_votes.size(); i++) {
     if (next_votes[i].getType() != next_vote_type) {
       LOG(log_er_) << "Synced next vote is not at next voting phase. Vote " << next_votes[i];
       return;
@@ -703,7 +703,7 @@ void NextVotesForPreviousRound::updateWithSyncedVotes(std::vector<Vote> const& n
   for (auto const& voted_value_and_votes : synced_next_votes) {
     auto votes = voted_value_and_votes.second;
     auto voted_step = votes[0].getStep();
-    for (auto i = 1; i < votes.size(); i++) {
+    for (size_t i = 1; i < votes.size(); i++) {
       if (votes[i].getStep() != voted_step) {
         LOG(log_er_) << "Synced next votes have a different voted PBFT step. Vote1 " << votes[0] << ", Vote2 "
                      << votes[i];

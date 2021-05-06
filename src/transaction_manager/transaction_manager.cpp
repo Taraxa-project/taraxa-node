@@ -25,7 +25,7 @@ auto trxComp = [](Transaction const &t1, Transaction const &t2) -> bool {
 
 TransactionManager::TransactionManager(FullNodeConfig const &conf, addr_t node_addr, std::shared_ptr<DbStorage> db,
                                        logger::Logger log_time)
-    : conf_(conf), trx_qu_(node_addr), node_addr_(node_addr), db_(db), log_time_(log_time) {
+    : db_(db), conf_(conf), trx_qu_(node_addr), node_addr_(node_addr), log_time_(log_time) {
   LOG_OBJECTS_CREATE("TRXMGR");
   auto trx_count = db_->getStatusField(taraxa::StatusDbField::TrxCount);
   trx_count_.store(trx_count);
@@ -113,7 +113,7 @@ void TransactionManager::start() {
   }
   trx_qu_.start();
   verifiers_.clear();
-  for (auto i = 0; i < num_verifiers_; ++i) {
+  for (size_t i = 0; i < num_verifiers_; ++i) {
     LOG(log_nf_) << "Create Transaction verifier ... " << std::endl;
     verifiers_.emplace_back([this]() { verifyQueuedTrxs(); });
   }
