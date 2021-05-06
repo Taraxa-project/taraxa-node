@@ -13,7 +13,7 @@ set(CMAKE_NO_SYSTEM_FROM_IMPORTED ON)
 # Set project properties like C++ standard, etc...
 set(CMAKE_CXX_COMPILER g++)
 set(CMAKE_CXX_STANDARD 17)
-#add_compile_options("-Wall" "-Werror") TODO: fix existing issues and uncomment this line
+add_compile_options(-Wall -pedantic -Wextra -Werror -Wno-unknown-pragmas)
 
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 # Optimization flag apparently needed to get rid of "File too big" assembler errors when compiling in Debug mode
