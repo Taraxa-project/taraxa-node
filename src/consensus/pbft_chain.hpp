@@ -143,7 +143,7 @@ class PbftChain {
   std::deque<PbftBlockCert> pbft_synced_queue_;
   std::unordered_set<blk_hash_t> pbft_synced_set_;
 
-  LOG_OBJECTS_DEFINE;
+  LOG_OBJECTS_DEFINE
 };
 std::ostream& operator<<(std::ostream& strm, PbftChain const& pbft_chain);
 

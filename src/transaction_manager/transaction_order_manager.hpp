@@ -37,7 +37,7 @@ class TransactionOrderManager {
  private:
   TransactionExecStatusTable status_;
   std::shared_ptr<DbStorage> db_;
-  LOG_OBJECTS_DEFINE;
+  LOG_OBJECTS_DEFINE
 };
 
 }  // namespace taraxa

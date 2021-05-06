@@ -18,14 +18,14 @@ will build out of the box without further effort:
     sudo apt-get install -y \
         libtool \
         autoconf \
-        ccache cmake gcc g++ clang-format clang-tidy cppcheck 
+        ccache cmake gcc g++ clang-format clang-tidy cppcheck \
         libgflags-dev\
         libscrypt-dev \
         libjsoncpp-dev \
         libjsonrpccpp-dev \
         python3-pip
 
-        
+
     # Install conan package manager
     pip3 install conan
 
@@ -103,7 +103,7 @@ git, libscrypt, libtool, makepkg-config, cmake, libjson-rpc-cpp
 Or do
     conan install -if cmake-build --build missing .
     cd cmake-build
-    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=gcc -DSYSTEM_HOME_OVERRIDE=<path to project dir> ..
+    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=gcc ..
 
 ### Install taraxa-node dependencies:
 

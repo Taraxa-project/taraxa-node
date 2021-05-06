@@ -8,13 +8,13 @@ namespace taraxa {
 
 std::string getConfigErr(std::vector<string> path) {
   std::string res = "Error in processing configuration file on param: ";
-  for (auto i = 0; i < path.size(); i++) res += path[i] + ".";
+  for (size_t i = 0; i < path.size(); i++) res += path[i] + ".";
   res += " ";
   return res;
 }
 
 Json::Value getConfigData(Json::Value root, std::vector<string> const &path, bool optional = false) {
-  for (auto i = 0; i < path.size(); i++) {
+  for (size_t i = 0; i < path.size(); i++) {
     root = root[path[i]];
     if (root.isNull() && !optional) {
       throw ConfigException(getConfigErr(path) + "Element missing: " + path[i]);
@@ -235,7 +235,7 @@ bool FullNodeConfig::validate() {
       cerr << "Boot node ip is empty:" << node.ip << ":" << node.tcp_port;
       return false;
     }
-    if (node.tcp_port == 0 || node.tcp_port > 65535) {
+    if (node.tcp_port == 0) {
       cerr << "Boot node port invalid: " << node.tcp_port;
       return false;
     }
