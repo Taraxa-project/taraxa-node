@@ -98,8 +98,6 @@ class TaraxaConan(ConanFile):
     def _configure_cmake(self):
         cmake = CMake(self)
         # set find path to clang utils dowloaded by that script
-        if platform.system() == "Darwin":
-            cmake.definitions["SYSTEM_HOME_OVERRIDE"] = self.source_folder
         cmake.configure()
         return cmake
 

@@ -46,11 +46,6 @@ else ()
 endif ()
 
 # Mac OS
-if (DEFINED SYSTEM_HOME_OVERRIDE)
-    list(PREPEND CMAKE_PREFIX_PATH ${SYSTEM_HOME_OVERRIDE})
-endif ()
-
-# Mac OS
 set(CMAKE_OSX_SYSROOT /)
 set(CMAKE_MACOSX_RPATH ON)
 
