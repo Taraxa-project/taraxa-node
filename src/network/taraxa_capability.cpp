@@ -298,7 +298,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       LOG(log_dg_dag_prp_) << "Received NewBlockPacket " << transactionsCount;
 
       std::vector<Transaction> newTransactions;
-      for (unsigned long iTransaction = 1; iTransaction < transactionsCount + 1; iTransaction++) {
+      for (size_t iTransaction = 1; iTransaction < transactionsCount + 1; iTransaction++) {
         Transaction transaction(_r[iTransaction].data().toBytes());
         newTransactions.push_back(transaction);
         peer->markTransactionAsKnown(transaction.getHash());
