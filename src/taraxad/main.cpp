@@ -245,7 +245,7 @@ Json::Value testnetChainConfig() {
   dag_genesis_block["sig"] =
       "0xb7e22d46c1ba94d5e8347b01d137b5c428fcbbeaf0a77fb024cbbf1517656ff00d04f7f25be608c321b0d7483c402c294ff46c49b26530"
       "5d046a52236c0a363701";
-  dag_genesis_block["timestamp"] = "0x5fee6600";
+  dag_genesis_block["timestamp"] = "0x5fee6601";
   dag_genesis_block["tips"] = Json::Value(Json::arrayValue);
   dag_genesis_block["transactions"] = Json::Value(Json::arrayValue);
 
@@ -253,7 +253,7 @@ Json::Value testnetChainConfig() {
 
   auto &genesis_block_fields = final_chain["genesis_block_fields"] = Json::Value(Json::objectValue);
   genesis_block_fields["author"] = "0x0000000000000000000000000000000000000000";
-  genesis_block_fields["timestamp"] = "0x5d422b80";
+  genesis_block_fields["timestamp"] = "0x5fee6601";
 
   auto &state = final_chain["state"] = Json::Value(Json::objectValue);
   state["disable_block_rewards"] = true;
@@ -290,7 +290,7 @@ Json::Value testnetChainConfig() {
   genesis_balances[addr2] = "0x1027e72f1f12813088000000";
 
   auto &pbft = chain_config["pbft"] = Json::Value(Json::objectValue);
-  pbft["committee_size"] = "0x64";
+  pbft["committee_size"] = "0x3e8";
   pbft["dag_blocks_size"] = "0xa";
   pbft["ghost_path_move_back"] = "0x0";
   pbft["lambda_ms_min"] = "0x29a";
@@ -317,7 +317,7 @@ Json::Value devnetChainConfig() {
   dag_genesis_block["sig"] =
       "0xb7e22d46c1ba94d5e8347b01d137b5c428fcbbeaf0a77fb024cbbf1517656ff00d04f7f25be608c321b0d7483c402c294ff46c49b26530"
       "5d046a52236c0a363701";
-  dag_genesis_block["timestamp"] = "0x5d422b80";
+  dag_genesis_block["timestamp"] = "0x5d422b81";
   dag_genesis_block["tips"] = Json::Value(Json::arrayValue);
   dag_genesis_block["transactions"] = Json::Value(Json::arrayValue);
 
@@ -325,7 +325,7 @@ Json::Value devnetChainConfig() {
 
   auto &genesis_block_fields = final_chain["genesis_block_fields"] = Json::Value(Json::objectValue);
   genesis_block_fields["author"] = "0x0000000000000000000000000000000000000000";
-  genesis_block_fields["timestamp"] = "0x5d422b80";
+  genesis_block_fields["timestamp"] = "0x5d422b81";
 
   auto &state = final_chain["state"] = Json::Value(Json::objectValue);
   state["disable_block_rewards"] = true;
@@ -362,7 +362,7 @@ Json::Value devnetChainConfig() {
   genesis_balances[addr2] = "0x1027e72f1f12813088000000";
 
   auto &pbft = chain_config["pbft"] = Json::Value(Json::objectValue);
-  pbft["committee_size"] = "0x5";
+  pbft["committee_size"] = "0x3e8";
   pbft["dag_blocks_size"] = "0xa";
   pbft["ghost_path_move_back"] = "0x0";
   pbft["lambda_ms_min"] = "0x29a";
