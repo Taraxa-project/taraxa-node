@@ -32,41 +32,9 @@ std::string getFormattedVersion(uint32_t major, uint32_t minor) {
 
 }  // namespace taraxa
 
-void abortHandler(int sig) {
-  ::signal(sig, SIG_DFL);
-  //boost::stacktrace::safe_dump_to("./backtrace.dump");
-
-  const char *name = NULL;
-  switch (sig) {
-    case SIGABRT:
-      name = "SIGABRT";
-      break;
-    case SIGSEGV:
-      name = "SIGSEGV";
-      break;
-    case SIGILL:
-      name = "SIGILL";
-      break;
-    case SIGFPE:
-      name = "SIGFPE";
-      break;
-  }
-  if (name) {
-    std::cerr << "Caught signal " << sig << " (" << name << ")" << std::endl;
-  } else {
-    std::cerr << "Caught signal " << sig << std::endl;
-  }
-
-  std::cout << boost::stacktrace::stacktrace();
-  //posix_print_stack_trace();
-  // printStackTrace();
-  exit(sig);
-}
-
-
 static inline void printStackTrace() {
   std::cerr << "Stack Trace: " << std::endl;
-  uint max_frames = 63;
+  const uint max_frames = 63;
   // storage array for stack trace address data
   void *addrlist[max_frames + 1];
 
@@ -153,4 +121,31 @@ static inline void printStackTrace() {
     }
   }
   free(symbollist);
+}
+
+void abortHandler(int sig) {
+  const char *name = NULL;
+  switch (sig) {
+    case SIGABRT:
+      name = "SIGABRT";
+      break;
+    case SIGSEGV:
+      name = "SIGSEGV";
+      break;
+    case SIGILL:
+      name = "SIGILL";
+      break;
+    case SIGFPE:
+      name = "SIGFPE";
+      break;
+  }
+  if (name) {
+    std::cerr << "Caught signal " << sig << " (" << name << ")" << std::endl;
+  } else {
+    std::cerr << "Caught signal " << sig << std::endl;
+  }
+
+  std::cout << boost::stacktrace::stacktrace();
+  //printStackTrace();
+  exit(sig);
 }
