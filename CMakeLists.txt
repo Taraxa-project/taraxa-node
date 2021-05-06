@@ -9,7 +9,6 @@ project(taraxa-node VERSION ${TARAXA_VESION})
 # Configure file with version
 configure_file(${CMAKE_SOURCE_DIR}/config/version/taraxad_version.hpp.in ${CMAKE_SOURCE_DIR}/src/taraxad/taraxad_version.hpp)
 
-set(CMAKE_NO_SYSTEM_FROM_IMPORTED ON)
 # Set project properties like C++ standard, etc...
 set(CMAKE_CXX_COMPILER g++)
 set(CMAKE_CXX_STANDARD 17)
