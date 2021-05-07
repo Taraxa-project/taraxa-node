@@ -73,10 +73,6 @@ ARG BUILD_OUTPUT_DIR
 
 # Build taraxa-node project
 WORKDIR /opt/taraxa/
-
-# Core dumps
-RUN mkdir /opt/taraxa/dumps/
-
 COPY . .
 RUN cd $BUILD_OUTPUT_DIR \
     && cmake -DCMAKE_BUILD_TYPE=Debug \
