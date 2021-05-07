@@ -246,7 +246,7 @@ TEST_F(NetworkTest, node_sync) {
     node1->getDagBlockManager()->insertBlock(blks[i]);
   }
 
-  EXPECT_HAPPENS({30s, 500ms}, [&](auto& ctx) {
+  EXPECT_HAPPENS({120s, 500ms}, [&](auto& ctx) {
     WAIT_EXPECT_EQ(ctx, node1->getNumReceivedBlocks(), blks.size());
     WAIT_EXPECT_EQ(ctx, node1->getDagManager()->getNumVerticesInDag().first, 7);
     WAIT_EXPECT_EQ(ctx, node1->getDagManager()->getNumEdgesInDag().first, 8);
@@ -255,7 +255,7 @@ TEST_F(NetworkTest, node_sync) {
   FullNode::Handle node2(node_cfgs[1], true);
 
   std::cout << "Waiting Sync..." << std::endl;
-  EXPECT_HAPPENS({45s, 1500ms}, [&](auto& ctx) {
+  EXPECT_HAPPENS({120s, 1500ms}, [&](auto& ctx) {
     WAIT_EXPECT_EQ(ctx, node2->getNumReceivedBlocks(), blks.size());
     WAIT_EXPECT_EQ(ctx, node2->getDagManager()->getNumVerticesInDag().first, 7);
     WAIT_EXPECT_EQ(ctx, node2->getDagManager()->getNumEdgesInDag().first, 8);
