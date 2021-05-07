@@ -843,7 +843,7 @@ void PbftManager::secondFinish_() {
     }
   }
 
-  if (step_ > MAX_STEPS && !is_syncing_() && !syncRequestedAlreadyThisStep_() && (step_ - MAX_STEPS - 1) % 100 == 0) {
+  if (step_ > MAX_STEPS && !is_syncing_() && !syncRequestedAlreadyThisStep_() && (step_ - MAX_STEPS - (MAX_STEPS % 2 ? 1 : 2)) % 100 == 0) {
     LOG(log_dg_) << "Suspect PBFT consensus is behind or stalled, perhaps inaccurate 2t+1, need to broadcast request "
                     "for missing blocks";
     syncPbftChainFromPeers_(true);
