@@ -50,12 +50,12 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
   auto gas_price = val_t(2);
   auto data = bytes();
   auto nonce = 0;  // fixme: the following nonce approach is not correct anyway
-  auto trxs_count = 0;
+  uint64_t trxs_count = 0;
 
   {
     auto min_stake_to_vote = node_cfgs[0].chain.final_chain.state.dpos->eligibility_balance_threshold;
     state_api::DPOSTransfers delegations;
-    for (auto i(1); i < nodes.size(); ++i) {
+    for (size_t i(1); i < nodes.size(); ++i) {
       node_1_expected_bal -= delegations[nodes[i]->getAddress()].value = min_stake_to_vote;
     }
     auto trx = make_dpos_trx(node_cfgs[0], delegations, nonce++);
@@ -71,7 +71,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
   }
 
   auto init_bal = node_1_expected_bal / nodes.size();
-  for (auto i(1); i < nodes.size(); ++i) {
+  for (size_t i(1); i < nodes.size(); ++i) {
     Transaction master_boot_node_send_coins(nonce++, init_bal, gas_price, TEST_TX_GAS_LIMIT, data,
                                             nodes[0]->getSecretKey(), nodes[i]->getAddress());
     node_1_expected_bal -= init_bal;
@@ -82,7 +82,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
 
   std::cout << "Checking all nodes executed transactions from master boot node" << std::endl;
   EXPECT_HAPPENS({80s, 8s}, [&](auto &ctx) {
-    for (auto i(0); i < nodes.size(); ++i) {
+    for (size_t i(0); i < nodes.size(); ++i) {
       if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
         std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted()
                   << " transactions, expected " << trxs_count << std::endl;
@@ -96,21 +96,21 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
       }
     }
   });
-  for (auto i(0); i < nodes.size(); ++i) {
+  for (size_t i(0); i < nodes.size(); ++i) {
     EXPECT_EQ(nodes[i]->getDB()->getNumTransactionExecuted(), trxs_count);
   }
 
-  for (auto i(0); i < nodes.size(); ++i) {
+  for (size_t i(0); i < nodes.size(); ++i) {
     std::cout << "Checking account balances on node " << i << " ..." << std::endl;
     EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(nodes[0]->getAddress()).first, node_1_expected_bal);
-    for (auto j(1); j < nodes.size(); ++j) {
+    for (size_t j(1); j < nodes.size(); ++j) {
       // For node1 to node4 balances info on each node
       EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(nodes[j]->getAddress()).first, init_bal);
     }
   }
   uint64_t valid_voting_players = 0;
   size_t committee, two_t_plus_one, threshold, expected_2tPlus1, expected_threshold;
-  for (auto i(0); i < nodes.size(); ++i) {
+  for (size_t i(0); i < nodes.size(); ++i) {
     auto pbft_mgr = nodes[i]->getPbftManager();
     committee = pbft_mgr->getPbftCommitteeSize();
     valid_voting_players = pbft_mgr->getDposTotalVotesCount();
@@ -125,7 +125,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
   }
 
   auto send_coins = 1;
-  for (auto i(0); i < nodes.size(); ++i) {
+  for (size_t i(0); i < nodes.size(); ++i) {
     // Sending coins in Robin Cycle in order to make all nodes to be active
     // players, but not guarantee
     auto receiver_index = (i + 1) % nodes.size();
@@ -138,7 +138,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
 
   std::cout << "Checking all nodes execute transactions from robin cycle" << std::endl;
   EXPECT_HAPPENS({80s, 8s}, [&](auto &ctx) {
-    for (auto i(0); i < nodes.size(); ++i) {
+    for (size_t i(0); i < nodes.size(); ++i) {
       if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
         std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted()
                   << " transactions. Expected " << trxs_count << std::endl;
@@ -152,20 +152,20 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
       }
     }
   });
-  for (auto i = 0; i < nodes.size(); i++) {
+  for (size_t i = 0; i < nodes.size(); i++) {
     EXPECT_EQ(nodes[i]->getDB()->getNumTransactionExecuted(), trxs_count);
   }
   // Account balances should not change in robin cycle
-  for (auto i(0); i < nodes.size(); ++i) {
+  for (size_t i(0); i < nodes.size(); ++i) {
     std::cout << "Checking account balances on node " << i << " ..." << std::endl;
     EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(nodes[0]->getAddress()).first, node_1_expected_bal);
-    for (auto j(1); j < nodes.size(); ++j) {
+    for (size_t j(1); j < nodes.size(); ++j) {
       // For node1 to node4 account balances info on each node
       EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(nodes[j]->getAddress()).first, init_bal);
     }
   }
 
-  for (auto i(0); i < nodes.size(); ++i) {
+  for (size_t i(0); i < nodes.size(); ++i) {
     auto pbft_mgr = nodes[i]->getPbftManager();
     committee = pbft_mgr->getPbftCommitteeSize();
     valid_voting_players = pbft_mgr->getDposTotalVotesCount();
@@ -203,7 +203,7 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
   auto gas_price = val_t(2);
   auto data = bytes();
   auto nonce = 0;  // fixme: the following nonce approach is not correct anyway
-  auto trxs_count = 0;
+  uint64_t trxs_count = 0;
 
   auto expected_eligible_total_vote = 1;
   auto curent_votes_for_node = 1;
@@ -212,7 +212,7 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
     auto min_stake_to_vote = node_cfgs[0].chain.final_chain.state.dpos->eligibility_balance_threshold;
     auto stake_to_vote = min_stake_to_vote;
     state_api::DPOSTransfers delegations;
-    for (auto i(1); i < nodes.size(); ++i) {
+    for (size_t i(1); i < nodes.size(); ++i) {
       stake_to_vote += min_stake_to_vote;
       curent_votes_for_node++;
       expected_eligible_total_vote += curent_votes_for_node;
@@ -233,7 +233,7 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
   }
 
   auto init_bal = node_1_expected_bal / nodes.size() / 2;
-  for (auto i(1); i < nodes.size(); ++i) {
+  for (size_t i(1); i < nodes.size(); ++i) {
     Transaction master_boot_node_send_coins(nonce++, init_bal, gas_price, TEST_TX_GAS_LIMIT, data,
                                             nodes[0]->getSecretKey(), nodes[i]->getAddress());
     node_1_expected_bal -= init_bal;
@@ -244,7 +244,7 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
 
   std::cout << "Checking all nodes executed transactions from master boot node" << std::endl;
   EXPECT_HAPPENS({80s, 8s}, [&](auto &ctx) {
-    for (auto i(0); i < nodes.size(); ++i) {
+    for (size_t i(0); i < nodes.size(); ++i) {
       if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
         std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted()
                   << " transactions, expected " << trxs_count << std::endl;
@@ -258,21 +258,21 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
       }
     }
   });
-  for (auto i(0); i < nodes.size(); ++i) {
+  for (size_t i(0); i < nodes.size(); ++i) {
     EXPECT_EQ(nodes[i]->getDB()->getNumTransactionExecuted(), trxs_count);
   }
 
-  for (auto i(0); i < nodes.size(); ++i) {
+  for (size_t i(0); i < nodes.size(); ++i) {
     std::cout << "Checking account balances on node " << i << " ..." << std::endl;
     EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(nodes[0]->getAddress()).first, node_1_expected_bal);
-    for (auto j(1); j < nodes.size(); ++j) {
+    for (size_t j(1); j < nodes.size(); ++j) {
       // For node1 to node4 balances info on each node
       EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(nodes[j]->getAddress()).first, init_bal);
     }
   }
 
   auto send_coins = 1;
-  for (auto i(0); i < nodes.size(); ++i) {
+  for (size_t i(0); i < nodes.size(); ++i) {
     // Sending coins in Robin Cycle in order to make all nodes to be active
     // players, but not guarantee
     auto receiver_index = (i + 1) % nodes.size();
@@ -285,7 +285,7 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
 
   std::cout << "Checking all nodes execute transactions from robin cycle" << std::endl;
   EXPECT_HAPPENS({80s, 8s}, [&](auto &ctx) {
-    for (auto i(0); i < nodes.size(); ++i) {
+    for (size_t i(0); i < nodes.size(); ++i) {
       if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
         std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted()
                   << " transactions. Expected " << trxs_count << std::endl;
@@ -299,14 +299,14 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
       }
     }
   });
-  for (auto i = 0; i < nodes.size(); i++) {
+  for (size_t i = 0; i < nodes.size(); i++) {
     EXPECT_EQ(nodes[i]->getDB()->getNumTransactionExecuted(), trxs_count);
   }
   // Account balances should not change in robin cycle
-  for (auto i(0); i < nodes.size(); ++i) {
+  for (size_t i(0); i < nodes.size(); ++i) {
     std::cout << "Checking account balances on node " << i << " ..." << std::endl;
     EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(nodes[0]->getAddress()).first, node_1_expected_bal);
-    for (auto j(1); j < nodes.size(); ++j) {
+    for (size_t j(1); j < nodes.size(); ++j) {
       // For node1 to node4 account balances info on each node
       EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(nodes[j]->getAddress()).first, init_bal);
     }
@@ -314,7 +314,7 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
 
   uint64_t eligible_total_vote_count = 0;
   size_t committee, two_t_plus_one, threshold, expected_2tPlus1, expected_threshold;
-  for (auto i(0); i < nodes.size(); ++i) {
+  for (size_t i(0); i < nodes.size(); ++i) {
     auto pbft_mgr = nodes[i]->getPbftManager();
     committee = pbft_mgr->getPbftCommitteeSize();
     eligible_total_vote_count = pbft_mgr->getDposTotalVotesCount();
@@ -354,7 +354,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
 
   std::shared_ptr<PbftChain> pbft_chain = node->getPbftChain();
   // Vote DAG block
-  int pbft_chain_size = 1;
+  uint64_t pbft_chain_size = 1;
   for (auto _(0); _ < 120; ++_) {
     // test timeout is 60 seconds
     if (pbft_chain->getPbftChainSize() == pbft_chain_size) {
@@ -403,7 +403,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   for (auto _(0); _ < 120; ++_) {
     checkpoint_passed = true;
     // test timeout is 60 seconds
-    for (auto i(0); i < nodes.size(); ++i) {
+    for (size_t i(0); i < nodes.size(); ++i) {
       if (nodes[i]->getDB()->getNumTransactionExecuted() == 0) {
         checkpoint_passed = false;
       }
@@ -413,17 +413,17 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   }
 
   if (checkpoint_passed == false) {
-    for (auto i(0); i < nodes.size(); ++i) {
+    for (size_t i(0); i < nodes.size(); ++i) {
       ASSERT_EQ(nodes[i]->getDB()->getNumTransactionExecuted(), 1);
     }
   }
 
-  int pbft_chain_size = 1;
-  for (auto i(0); i < nodes.size(); ++i) {
+  uint64_t pbft_chain_size = 1;
+  for (size_t i(0); i < nodes.size(); ++i) {
     EXPECT_EQ(nodes[i]->getFinalChain()->last_block_number(), pbft_chain_size);
   }
 
-  for (auto i(0); i < nodes.size(); ++i) {
+  for (size_t i(0); i < nodes.size(); ++i) {
     std::cout << "Checking account balances on node " << i << " ..." << std::endl;
     EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node1_addr).first, node1_genesis_bal - 100);
     EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node2_addr).first, 100);
@@ -443,7 +443,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   for (auto _(0); _ < 120; ++_) {
     checkpoint_passed = true;
     // test timeout is 60 seconds
-    for (auto i(0); i < nodes.size(); ++i) {
+    for (size_t i(0); i < nodes.size(); ++i) {
       if (nodes[i]->getDB()->getNumTransactionExecuted() != 2) {
         checkpoint_passed = false;
       }
@@ -453,7 +453,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   }
 
   if (checkpoint_passed == false) {
-    for (auto i(0); i < nodes.size(); ++i) {
+    for (size_t i(0); i < nodes.size(); ++i) {
       ASSERT_EQ(nodes[i]->getDB()->getNumTransactionExecuted(), 1);
     }
   }
@@ -469,11 +469,11 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
     }
     taraxa::thisThreadSleepForMilliSeconds(500);
   }
-  for (auto i(0); i < nodes.size(); ++i) {
+  for (size_t i(0); i < nodes.size(); ++i) {
     EXPECT_EQ(nodes[i]->getFinalChain()->last_block_number(), pbft_chain_size);
   }
 
-  for (auto i(0); i < nodes.size(); ++i) {
+  for (size_t i(0); i < nodes.size(); ++i) {
     std::cout << "Checking account balances on node " << i << " ..." << std::endl;
     EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node1_addr).first, node1_genesis_bal - 1100);
     EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node2_addr).first, 100);

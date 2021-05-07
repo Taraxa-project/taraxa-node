@@ -70,7 +70,6 @@ class PbftManager {
   // DPOS
   void update_dpos_state_();
   size_t dpos_eligible_vote_count_(addr_t const &addr);
-  bool is_eligible_(addr_t const &addr);
 
   void resetStep_();
   bool resetRound_();
@@ -133,9 +132,9 @@ class PbftManager {
 
   std::unique_ptr<std::thread> daemon_;
   std::shared_ptr<DbStorage> db_;
-  std::shared_ptr<VoteManager> vote_mgr_;
   std::shared_ptr<NextVotesForPreviousRound> previous_round_next_votes_;
   std::shared_ptr<PbftChain> pbft_chain_;
+  std::shared_ptr<VoteManager> vote_mgr_;
   std::shared_ptr<DagManager> dag_mgr_;
   std::weak_ptr<Network> network_;
   std::shared_ptr<DagBlockManager> dag_blk_mgr_;
@@ -170,8 +169,8 @@ class PbftManager {
   time_point round_clock_initial_datetime_;
   time_point now_;
   std::chrono::duration<double> duration_;
-  long next_step_time_ms_ = 0;
-  long elapsed_time_in_round_ms_ = 0;
+  u_long next_step_time_ms_ = 0;
+  u_long elapsed_time_in_round_ms_ = 0;
 
   bool executed_pbft_block_ = false;
   bool have_executed_this_round_ = false;
@@ -216,7 +215,7 @@ class PbftManager {
   time_point current_step_clock_initial_datetime_;
   // END TEST CODE
 
-  LOG_OBJECTS_DEFINE;
+  LOG_OBJECTS_DEFINE
   mutable logger::Logger log_nf_test_{logger::createLogger(taraxa::logger::Verbosity::Info, "PBFT_TEST", node_addr_)};
 };
 

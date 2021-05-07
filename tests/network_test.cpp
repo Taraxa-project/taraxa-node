@@ -242,7 +242,7 @@ TEST_F(NetworkTest, node_sync) {
   blks.push_back(blk2);
   blks.push_back(blk1);
 
-  for (auto i = 0; i < blks.size(); ++i) {
+  for (size_t i = 0; i < blks.size(); ++i) {
     node1->getDagBlockManager()->insertBlock(blks[i]);
   }
 
@@ -313,7 +313,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
   std::string pbft_chain_head_str = pbft_chain1->getJsonStr();
   db1->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
   db1->commitWriteBatch(batch);
-  int expect_pbft_chain_size = 1;
+  uint64_t expect_pbft_chain_size = 1;
   EXPECT_EQ(node1->getPbftChain()->getPbftChainSize(), expect_pbft_chain_size);
 
   // generate second PBFT block sample
@@ -494,7 +494,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   }
 
   std::cout << "Waiting Sync for max 1 minutes..." << std::endl;
-  int sync_pbft_chain_size = 1;
+  uint64_t sync_pbft_chain_size = 1;
   for (int i = 0; i < 600; i++) {
     if (node2->getPbftChain()->getPbftChainSize() >= sync_pbft_chain_size) {
       break;
@@ -542,7 +542,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_behind_round) {
   std::shared_ptr<Network> nw1 = node1->getNetwork();
   std::shared_ptr<Network> nw2 = node2->getNetwork();
   // Wait node1 and node2 connect to each other
-  int node_peers = 1;
+  unsigned node_peers = 1;
   for (int i = 0; i < 300; i++) {
     // test timeout is 30 seconds
     if (nw1->getPeerCount() == node_peers && nw2->getPeerCount() == node_peers) {
@@ -628,7 +628,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_1) {
   std::shared_ptr<Network> nw1 = node1->getNetwork();
   std::shared_ptr<Network> nw2 = node2->getNetwork();
   // Wait node1 and node2 connect to each other
-  int node_peers = 1;
+  unsigned node_peers = 1;
   for (int i = 0; i < 300; i++) {
     // test timeout is 30 seconds
     if (nw1->getPeerCount() == node_peers && nw2->getPeerCount() == node_peers) {
@@ -714,7 +714,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
   std::shared_ptr<Network> nw1 = node1->getNetwork();
   std::shared_ptr<Network> nw2 = node2->getNetwork();
   // Wait node1 and node2 connect to each other
-  int node_peers = 1;
+  unsigned node_peers = 1;
   for (int i = 0; i < 300; i++) {
     // test timeout is 30 seconds
     if (nw1->getPeerCount() == node_peers && nw2->getPeerCount() == node_peers) {
@@ -967,7 +967,7 @@ TEST_F(NetworkTest, node_sync2) {
   trxs.push_back(tr11);
   trxs.push_back(tr12);
 
-  for (auto i = 0; i < blks.size(); ++i) {
+  for (size_t i = 0; i < blks.size(); ++i) {
     node1->getDagBlockManager()->insertBroadcastedBlockWithTransactions(blks[i], trxs[i]);
   }
 

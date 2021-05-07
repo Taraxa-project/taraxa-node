@@ -16,6 +16,7 @@ using namespace vrf_wrapper;
 
 struct VdfConfig {
   VdfConfig() = default;
+  VdfConfig(VdfConfig&&) = default;
   VdfConfig(VdfConfig const& vdf_config)
       : threshold_selection(vdf_config.threshold_selection),
         threshold_vdf_omit(vdf_config.threshold_vdf_omit),
@@ -31,6 +32,9 @@ struct VdfConfig {
         difficulty_max(max),
         difficulty_stale(stale),
         lambda_bound(lambda_max_bound) {}
+
+  VdfConfig& operator=(VdfConfig&&) = default;
+  VdfConfig& operator=(const VdfConfig&) = default;
 
   friend std::ostream& operator<<(std::ostream& strm, VdfConfig const& vdf_config) {
     strm << " [VDF config] " << std::endl;
@@ -100,7 +104,7 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
   unsigned long vdf_computation_time_ = 0;
   uint16_t difficulty_ = 0;
 
-  LOG_OBJECTS_DEFINE;
+  LOG_OBJECTS_DEFINE
 };
 
 }  // namespace taraxa::vdf_sortition

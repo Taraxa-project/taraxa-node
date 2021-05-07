@@ -25,23 +25,23 @@ PbftManager::PbftManager(PbftConfig const &conf, std::string const &genesis, add
                          std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr, std::shared_ptr<DagManager> dag_mgr,
                          std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<FinalChain> final_chain,
                          std::shared_ptr<Executor> executor, secret_t node_sk, vrf_sk_t vrf_sk)
-    : LAMBDA_ms_MIN(conf.lambda_ms_min),
-      COMMITTEE_SIZE(conf.committee_size),
-      DAG_BLOCKS_SIZE(conf.dag_blocks_size),
-      GHOST_PATH_MOVE_BACK(conf.ghost_path_move_back),
-      RUN_COUNT_VOTES(conf.run_count_votes),
-      dag_genesis_(genesis),
-      node_addr_(node_addr),
-      db_(db),
+    : db_(db),
+      previous_round_next_votes_(next_votes_mgr),
       pbft_chain_(pbft_chain),
       vote_mgr_(vote_mgr),
-      previous_round_next_votes_(next_votes_mgr),
       dag_mgr_(dag_mgr),
       dag_blk_mgr_(dag_blk_mgr),
       final_chain_(final_chain),
       executor_(executor),
+      node_addr_(node_addr),
       node_sk_(node_sk),
-      vrf_sk_(vrf_sk) {
+      vrf_sk_(vrf_sk),
+      LAMBDA_ms_MIN(conf.lambda_ms_min),
+      COMMITTEE_SIZE(conf.committee_size),
+      DAG_BLOCKS_SIZE(conf.dag_blocks_size),
+      GHOST_PATH_MOVE_BACK(conf.ghost_path_move_back),
+      RUN_COUNT_VOTES(conf.run_count_votes),
+      dag_genesis_(genesis) {
   LOG_OBJECTS_CREATE("PBFT_MGR");
   update_dpos_state_();
 }
@@ -205,25 +205,7 @@ size_t PbftManager::dpos_eligible_vote_count_(addr_t const &addr) {
   }
 }
 
-bool PbftManager::is_eligible_(addr_t const &addr) {
-  try {
-    return final_chain_->dpos_is_eligible(dpos_period_, addr);
-  } catch (state_api::ErrFutureBlock &c) {
-    LOG(log_er_) << c.what() << ". Period " << dpos_period_ << " is too far ahead of DPOS";
-    return false;
-  }
-}
-
 bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step, size_t weighted_index) {
-  //  if (capability_->syncing_) {
-  //    LOG(log_tr_) << "PBFT chain is syncing, cannot propose and vote";
-  //    return false;
-  //  }
-  if (!is_eligible_(node_addr_)) {
-    LOG(log_tr_) << "Account " << node_addr_ << " is not eligible to vote";
-    return false;
-  }
-
   // compute sortition
   VrfPbftMsg msg(pbft_chain_last_block_hash_, type, round, step, weighted_index);
   VrfPbftSortition vrf_sortition(vrf_sk_, msg);
@@ -804,7 +786,7 @@ void PbftManager::secondFinish_() {
   // Odd number steps from 5 are in second finish
   auto round = getPbftRound();
   LOG(log_tr_) << "PBFT second finishing state at step " << step_ << " in round " << round;
-  long end_time_for_step = (step_ + 1) * LAMBDA_ms + STEP_4_DELAY + 2 * POLLING_INTERVAL_ms;
+  auto end_time_for_step = (step_ + 1) * LAMBDA_ms + STEP_4_DELAY + 2 * POLLING_INTERVAL_ms;
   // if (step_ > MAX_STEPS) {
   //  u_long LAMBDA_ms_BIG = 100 * LAMBDA_ms_MIN;
   //  end_time_for_step = MAX_STEPS * LAMBDA_ms_MIN +
@@ -861,7 +843,7 @@ void PbftManager::secondFinish_() {
     }
   }
 
-  if (step_ > MAX_STEPS && !is_syncing_() && !syncRequestedAlreadyThisStep_()) {
+  if (step_ > MAX_STEPS && !is_syncing_() && !syncRequestedAlreadyThisStep_() && (step_ - MAX_STEPS - 2) % 100 == 0) {
     LOG(log_dg_) << "Suspect PBFT consensus is behind or stalled, perhaps inaccurate 2t+1, need to broadcast request "
                     "for missing blocks";
     syncPbftChainFromPeers_(true);
@@ -1015,8 +997,10 @@ size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteType
                                size_t step) {
   vector<Vote> votes;
 
-  for (auto weighted_index(0); weighted_index < weighted_votes_count_; weighted_index++) {
-    if (step == 1 && weighted_index > 0) break;
+  for (size_t weighted_index(0); weighted_index < weighted_votes_count_; weighted_index++) {
+    if (step == 1 && weighted_index > 0) {
+      break;
+    }
     if (shouldSpeak(propose_vote_type, round, step_, weighted_index)) {
       auto vote = generateVote(blockhash, vote_type, round, step, weighted_index, pbft_chain_last_block_hash_);
       votes.emplace_back(vote);
@@ -1025,20 +1009,22 @@ size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteType
     }
   }
 
+  auto size = votes.size();
+
   // pbft votes broadcast
-  if (!votes.empty()) {
+  if (size) {
     if (auto net = network_.lock()) {
-      net->onNewPbftVotes(votes);
+      net->onNewPbftVotes(move(votes));
     }
   }
 
-  return votes.size();
+  return size;
 }
 
 std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
   bool able_to_propose = false;
   auto round = getPbftRound();
-  for (auto weighted_index(0); weighted_index < weighted_votes_count_; weighted_index++) {
+  for (size_t weighted_index(0); weighted_index < weighted_votes_count_; weighted_index++) {
     if (shouldSpeak(propose_vote_type, round, step_, weighted_index)) {
       able_to_propose = true;
       break;
@@ -1070,10 +1056,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
   blk_hash_t dag_block_hash;
   if (ghost.size() <= DAG_BLOCKS_SIZE) {
     // Move back GHOST_PATH_MOVE_BACK DAG blocks for DAG sycning
-    int ghost_index = ghost.size() - 1 - GHOST_PATH_MOVE_BACK;
-    if (ghost_index <= 0) {
-      ghost_index = 0;
-    }
+    auto ghost_index = (ghost.size() < GHOST_PATH_MOVE_BACK + 1) ? 0 : (ghost.size() - 1 - GHOST_PATH_MOVE_BACK);
     while (ghost_index < ghost.size() - 1) {
       if (ghost[ghost_index] != last_period_dag_anchor_block_hash) {
         break;
@@ -1127,7 +1110,7 @@ std::vector<std::vector<uint>> PbftManager::createMockTrxSchedule(
     return blocks_trx_modes;
   }
 
-  for (auto i = 0; i < trx_overlap_table->size(); i++) {
+  for (size_t i = 0; i < trx_overlap_table->size(); i++) {
     blk_hash_t &dag_block_hash = (*trx_overlap_table)[i].first;
     auto blk = dag_blk_mgr_->getDagBlock(dag_block_hash);
     if (!blk) {
@@ -1137,7 +1120,7 @@ std::vector<std::vector<uint>> PbftManager::createMockTrxSchedule(
 
     auto num_trx = blk->getTrxs().size();
     std::vector<uint> block_trx_modes;
-    for (auto j = 0; j < num_trx; j++) {
+    for (size_t j = 0; j < num_trx; j++) {
       if ((*trx_overlap_table)[i].second[j]) {
         // trx sequential mode
         block_trx_modes.emplace_back(1);

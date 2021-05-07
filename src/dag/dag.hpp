@@ -93,7 +93,7 @@ class Dag {
   vertex_t genesis_;  // root node
 
  protected:
-  LOG_OBJECTS_DEFINE;
+  LOG_OBJECTS_DEFINE
 };
 
 /**
@@ -193,7 +193,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::map<uint64_t, std::vector<std::string>> non_finalized_blks_;
   std::map<uint64_t, std::vector<std::string>> finalized_blks_;
   DagFrontier frontier_;
-  LOG_OBJECTS_DEFINE;
+  LOG_OBJECTS_DEFINE
 };
 
 // for graphviz

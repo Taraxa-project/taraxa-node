@@ -4,7 +4,7 @@ Taraxa is a Practical Byzantine Fault Tolerance blockchain.
 
 
 # Whitepaper
-You can read the Taraxa Whitepaper at [TaraxaWhitePaper.pdf](https://github.com/Taraxa-project/taraxa-whitepapers).
+You can read the Taraxa Whitepaper at https://www.taraxa.io/whitepaper.
 
 
 # Quickstart

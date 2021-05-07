@@ -114,6 +114,11 @@ target_include_directories(app_base PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${TARAXA_VDF_INCUDE}
         ${TARAXA_VRF_INCUDE}
+        )
+
+# system libs should be included via -isystem so compiler knows how to
+# treat them. e.g. do not check for warnings
+target_include_directories(app_base SYSTEM PUBLIC
         ${CONAN_INCLUDE_DIRS}
         ${jsoncpp_INCLUDE_DIRS}
         )

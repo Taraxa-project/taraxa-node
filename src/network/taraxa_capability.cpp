@@ -16,10 +16,6 @@ TaraxaCapability::TaraxaCapability(weak_ptr<Host> _host, NetworkConfig const &_c
                                    std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
                                    std::shared_ptr<TransactionManager> trx_mgr, addr_t const &node_addr)
     : host_(move(_host)),
-      conf_(_conf),
-      urng_(std::mt19937_64(std::random_device()())),
-      delay_rng_(std::mt19937(std::random_device()())),
-      random_dist_(std::uniform_int_distribution<std::mt19937::result_type>(90, 110)),
       db_(db),
       pbft_mgr_(pbft_mgr),
       pbft_chain_(pbft_chain),
@@ -28,7 +24,11 @@ TaraxaCapability::TaraxaCapability(weak_ptr<Host> _host, NetworkConfig const &_c
       dag_mgr_(dag_mgr),
       dag_blk_mgr_(dag_blk_mgr),
       trx_mgr_(trx_mgr),
-      lambda_ms_min_(pbft_mgr_ ? pbft_mgr_->getPbftInitialLambda() : 2000) {
+      lambda_ms_min_(pbft_mgr_ ? pbft_mgr_->getPbftInitialLambda() : 2000),
+      conf_(_conf),
+      urng_(std::mt19937_64(std::random_device()())),
+      delay_rng_(std::mt19937(std::random_device()())),
+      random_dist_(std::uniform_int_distribution<std::mt19937::result_type>(90, 110)) {
   LOG_OBJECTS_CREATE("TARCAP");
   LOG_OBJECTS_CREATE_SUB("PBFTSYNC", pbft_sync);
   LOG_OBJECTS_CREATE_SUB("DAGSYNC", dag_sync);
@@ -70,7 +70,7 @@ void TaraxaCapability::erasePeer(NodeID const &node_id) {
   peers_.erase(node_id);
 }
 
-void TaraxaCapability::insertPeer(NodeID const &node_id, std::shared_ptr<TaraxaPeer> const &peer) {
+void TaraxaCapability::insertPeer(NodeID const &node_id) {
   boost::unique_lock<boost::shared_mutex> lock(peers_mutex_);
   peers_.emplace(std::make_pair(node_id, std::make_shared<TaraxaPeer>(node_id)));
 }
@@ -135,7 +135,7 @@ void TaraxaCapability::onConnect(weak_ptr<Session> session, u256 const &) {
     cnt_received_messages_[_nodeID] = 0;
     test_sums_[_nodeID] = 0;
 
-    insertPeer(_nodeID, std::make_shared<TaraxaPeer>(_nodeID));
+    insertPeer(_nodeID);
     sendStatus(_nodeID, true);
   });
 }
@@ -204,7 +204,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
 
       if (initial_status) {
         auto it = _r.begin();
-        auto const network_id = (*it++).toPositiveInt64();
+        auto const network_id = (*it++).toInt<uint64_t>();
         peer->dag_level_ = (*it++).toPositiveInt64();
         auto const genesis_hash = (*it++).toString();
         peer->pbft_chain_size_ = (*it++).toPositiveInt64();
@@ -298,7 +298,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       LOG(log_dg_dag_prp_) << "Received NewBlockPacket " << transactionsCount;
 
       std::vector<Transaction> newTransactions;
-      for (auto iTransaction = 1; iTransaction < transactionsCount + 1; iTransaction++) {
+      for (size_t iTransaction = 1; iTransaction < transactionsCount + 1; iTransaction++) {
         Transaction transaction(_r[iTransaction].data().toBytes());
         newTransactions.push_back(transaction);
         peer->markTransactionAsKnown(transaction.getHash());
@@ -357,14 +357,14 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
     case BlocksPacket: {
       std::string received_dag_blocks_str;
       auto itemCount = _r.itemCount();
-      int transactionCount = 0;
+      size_t transactionCount = 0;
       requesting_pending_dag_blocks_ = false;
-      for (auto iBlock = 0; iBlock < itemCount; iBlock++) {
+      for (size_t iBlock = 0; iBlock < itemCount; iBlock++) {
         DagBlock block(_r[iBlock + transactionCount].data().toBytes());
         peer->markBlockAsKnown(block.getHash());
 
         std::vector<Transaction> newTransactions;
-        for (int i = 0; i < block.getTrxs().size(); i++) {
+        for (size_t i = 0; i < block.getTrxs().size(); i++) {
           transactionCount++;
           Transaction transaction(_r[iBlock + transactionCount].data().toBytes());
           newTransactions.push_back(transaction);
@@ -394,7 +394,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       std::string receivedTransactions;
       std::vector<taraxa::bytes> transactions;
       auto transactionCount = _r.itemCount();
-      for (auto iTransaction = 0; iTransaction < transactionCount; iTransaction++) {
+      for (size_t iTransaction = 0; iTransaction < transactionCount; iTransaction++) {
         Transaction transaction(_r[iTransaction].data().toBytes());
         receivedTransactions += transaction.getHash().toString() + " ";
         peer->markTransactionAsKnown(transaction.getHash());
@@ -466,7 +466,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       LOG(log_nf_next_votes_sync_) << "Received " << next_votes_count << " next votes from peer " << _nodeID;
 
       std::vector<Vote> next_votes;
-      for (auto i = 0; i < next_votes_count; i++) {
+      for (size_t i = 0; i < next_votes_count; i++) {
         Vote next_vote(_r[i].data().toBytes());
         LOG(log_nf_next_votes_sync_) << "Received PBFT next vote " << next_vote.getHash();
 
@@ -474,7 +474,6 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       }
 
       auto pbft_current_round = pbft_mgr_->getPbftRound();
-      auto pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesSize();
       auto peer_pbft_round = next_votes[0].getRound() + 1;
 
       if (pbft_current_round < peer_pbft_round) {
@@ -804,10 +803,12 @@ vector<NodeID> TaraxaCapability::selectPeers(std::function<bool(TaraxaPeer const
 
 vector<NodeID> TaraxaCapability::getAllPeers() const {
   vector<NodeID> peers;
+
   boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
   std::transform(
       peers_.begin(), peers_.end(), std::back_inserter(peers),
       [](std::pair<const dev::p2p::NodeID, std::shared_ptr<taraxa::TaraxaPeer>> const &peer) { return peer.first; });
+
   return peers;
 }
 
@@ -1099,6 +1100,7 @@ void TaraxaCapability::onNewPbftVote(taraxa::Vote const &vote) {
       }
     }
   }
+
   for (auto const &peer : peers_to_send) {
     sendPbftVote(peer, vote);
   }
@@ -1120,6 +1122,7 @@ void TaraxaCapability::onNewPbftBlock(taraxa::PbftBlock const &pbft_block) {
       }
     }
   }
+
   for (auto const &peer : peers_to_send) {
     sendPbftBlock(peer, pbft_block, my_chain_size);
   }
@@ -1268,13 +1271,8 @@ void TaraxaCapability::sendPbftNextVotes(NodeID const &peerID) {
 }
 
 void TaraxaCapability::broadcastPreviousRoundNextVotesBundle() {
-  std::vector<NodeID> peers_to_send;
-  {
-    boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
-    for (auto const &peer : peers_) {
-      peers_to_send.push_back(peer.first);
-    }
-  }
+  std::vector<NodeID> peers_to_send = getAllPeers();
+
   for (auto const &peer : peers_to_send) {
     sendPbftNextVotes(peer);
   }

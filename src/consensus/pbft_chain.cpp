@@ -139,9 +139,9 @@ std::ostream& operator<<(std::ostream& strm, PbftBlockCert const& b) {
 
 PbftChain::PbftChain(std::string const& dag_genesis_hash, addr_t node_addr, std::shared_ptr<DbStorage> db)
     : head_hash_(blk_hash_t(0)),
+      dag_genesis_hash_(blk_hash_t(dag_genesis_hash)),
       size_(0),
       last_pbft_block_hash_(blk_hash_t(0)),
-      dag_genesis_hash_(blk_hash_t(dag_genesis_hash)),
       db_(move(db)) {
   LOG_OBJECTS_CREATE("PBFT_CHAIN");
   // Get PBFT head from DB

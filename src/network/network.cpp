@@ -80,6 +80,13 @@ Network::Network(NetworkConfig const &config, std::filesystem::path const &netwo
   }
   diagnostic_thread_.post_loop({30000},
                                [this] { LOG(log_nf_) << "NET_TP_NUM_PENDING_TASKS=" << tp_.num_pending_tasks(); });
+  diagnostic_thread_.post_loop({30000}, [this] {
+    auto peers = getAllPeers();
+    LOG(log_nf_) << "There are " << peers.size() << " peers connected";
+    for (auto const &peer : peers) {
+      LOG(log_nf_) << "Connected with peer " << peer;
+    }
+  });
 }
 
 Network::~Network() {
@@ -162,7 +169,7 @@ void Network::sendTransactions(NodeID const &_id, std::vector<taraxa::bytes> con
   LOG(log_dg_) << "Sent transactions:" << transactions.size();
 }
 
-dev::p2p::NodeID Network::getNodeId() { return host_->id(); };
+dev::p2p::NodeID Network::getNodeId() { return host_->id(); }
 
 int Network::getReceivedBlocksCount() { return taraxa_capability_->getBlocks().size(); }
 

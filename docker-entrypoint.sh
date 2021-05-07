@@ -1,6 +1,8 @@
 #!/bin/bash
 
 export TARAXA_CONF_PATH=${TARAXA_CONF_PATH:=/opt/taraxa/config.json}
+export TARAXA_PERSISTENT_PATH=${TARAXA_PERSISTENT_PATH:=/opt/taraxa/data}
+export TARAXA_COPY_COREDUMPS=${TARAXA_COPY_COREDUMPS:=true}
 
 case $1 in
 
@@ -10,7 +12,7 @@ case $1 in
 
   taraxad)
     echo "Starting taraxad..."
-    exec taraxad "${@:2}"
+    taraxad "${@:2}"
     ;;
 
   join)
@@ -20,7 +22,7 @@ case $1 in
         --file $TARAXA_CONF_PATH
 
     echo "Starting taraxad..."
-    exec taraxad \
+    taraxad \
             --conf_taraxa $TARAXA_CONF_PATH
     ;;
 
@@ -31,7 +33,7 @@ case $1 in
         --file $TARAXA_CONF_PATH
 
     echo "Starting taraxad..."
-    exec taraxad \
+    taraxad \
             --conf_taraxa $TARAXA_CONF_PATH
     ;;
   exec)
@@ -44,3 +46,9 @@ case $1 in
     ;;
 
 esac
+
+# Hack to copy coredumps on  K8s (gke) current /proc/sys/kernel/core_pattern
+if [ "$TARAXA_COPY_COREDUMPS" = true ] ; then
+    echo "Copying dump (if any) to $TARAXA_PERSISTENT_PATH"
+    find / -maxdepth 1 -type f -name '*core*' -exec cp -v "{}" $TARAXA_PERSISTENT_PATH  \;
+fi
