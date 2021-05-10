@@ -998,9 +998,6 @@ std::vector<Vote> PbftManager::getVotesOfTypeFromVotesForRoundAndStep_(PbftVoteT
 
 Vote PbftManager::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, uint64_t round, size_t step,
                                size_t weighted_index, blk_hash_t const &last_pbft_block_hash) {
-  // Since VRF last PBFT block has only update in each of new round, should not equal to voted value
-  assert(blockhash != last_pbft_block_hash);
-
   // sortition proof
   VrfPbftMsg msg(last_pbft_block_hash, type, round, step, weighted_index);
   VrfPbftSortition vrf_sortition(vrf_sk_, msg);
