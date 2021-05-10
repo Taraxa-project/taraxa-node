@@ -998,7 +998,7 @@ Vote PbftManager::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, 
 size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteTypes vote_type, uint64_t round,
                                size_t step) {
   if (blockhash == pbft_chain_last_block_hash_) {
-    return;
+    return 0;
   }
 
   vector<Vote> votes;

@@ -465,7 +465,8 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       }
 
       auto pbft_current_round = pbft_mgr_->getPbftRound();
-      auto peer_pbft_round = next_votes[0].getRound() + 1;
+      Vote vote(_r[0].data().toBytes());
+      auto peer_pbft_round = vote.getRound() + 1;
       LOG(log_nf_next_votes_sync_) << "Received " << next_votes_count << " next votes from peer " << _nodeID
                                    << " node current round " << pbft_current_round << ", peer pbft round "
                                    << peer_pbft_round;
