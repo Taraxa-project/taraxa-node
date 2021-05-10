@@ -44,6 +44,7 @@ enum PbftMgrStatus {
 enum PbftMgrVotedValue {
   own_starting_value_in_round = 0,
   soft_voted_block_hash_in_round,
+  vrf_pbft_chain_last_block_hash,
 };
 
 class DbException : public exception {

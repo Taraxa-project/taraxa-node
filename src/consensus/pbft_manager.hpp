@@ -157,7 +157,7 @@ class PbftManager {
   size_t step_ = 1;
   u_long STEP_4_DELAY = 0;  // constant
 
-  blk_hash_t pbft_chain_last_block_hash_ = blk_hash_t(0);
+  blk_hash_t vrf_pbft_chain_last_block_hash_ = blk_hash_t(0);
 
   blk_hash_t own_starting_value_for_round_ = NULL_BLOCK_HASH;
   // <round, cert_voted_block_hash>
