@@ -985,6 +985,8 @@ std::vector<Vote> PbftManager::getVotesOfTypeFromVotesForRoundAndStep_(PbftVoteT
 
 Vote PbftManager::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, uint64_t round, size_t step,
                                size_t weighted_index, blk_hash_t const &last_pbft_block_hash) {
+  assert(blockhash != last_pbft_block_hash);
+
   // sortition proof
   VrfPbftMsg msg(last_pbft_block_hash, type, round, step, weighted_index);
   VrfPbftSortition vrf_sortition(vrf_sk_, msg);
@@ -995,6 +997,10 @@ Vote PbftManager::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, 
 
 size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteTypes vote_type, uint64_t round,
                                size_t step) {
+  if (blockhash == pbft_chain_last_block_hash_) {
+    return;
+  }
+
   vector<Vote> votes;
 
   for (size_t weighted_index(0); weighted_index < weighted_votes_count_; weighted_index++) {
