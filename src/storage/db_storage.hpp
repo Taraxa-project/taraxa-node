@@ -44,6 +44,7 @@ enum PbftMgrStatus {
 enum PbftMgrVotedValue {
   own_starting_value_in_round = 0,
   soft_voted_block_hash_in_round,
+  vrf_pbft_chain_last_block_hash,
 };
 
 class DbException : public exception {
@@ -232,6 +233,7 @@ struct DbStorage {
   // Unverified votes
   std::vector<Vote> getUnverifiedVotes();
   shared_ptr<Vote> getUnverifiedVote(vote_hash_t const& vote_hash);
+  bool unverifiedVoteExist(vote_hash_t const& vote_hash);
   void saveUnverifiedVote(Vote const& vote);
   void addUnverifiedVoteToBatch(Vote const& vote, BatchPtr const& write_batch);
   void removeUnverifiedVoteToBatch(vote_hash_t const& vote_hash, BatchPtr const& write_batch);
