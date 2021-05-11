@@ -227,6 +227,17 @@ void VoteManager::addVerifiedVote(Vote const& vote) {
   LOG(log_dg_) << "Add verified vote " << vote;
 }
 
+void VoteManager::removeVerifiedVotes(std::vector<Vote> const& votes) {
+  uniqueLock_ lock(verified_votes_access_);
+  for (auto const& v : votes) {
+    auto round = v.getRound();
+    if (verified_votes_.count(round)) {
+      verified_votes_[round].erase(v.getHash());
+      LOG(log_dg_) << "Reverify failed vote " << v;
+    }
+  }
+}
+
 bool VoteManager::voteInVerifiedMap(uint64_t const& pbft_round, vote_hash_t const& vote_hash) {
   sharedLock_ lock(verified_votes_access_);
   if (verified_votes_.count(pbft_round)) {
@@ -296,6 +307,35 @@ std::vector<Vote> VoteManager::getVerifiedVotes(uint64_t const pbft_round, blk_h
   }
 
   return getVerifiedVotes();
+}
+
+// All verified votes(in the current round) need to reverify, since new PBFT blocks synced into chain
+void VoteManager::reverifyVotes(blk_hash_t const& last_pbft_block_hash, uint64_t dpos_total_votes_count,
+                                size_t const sortition_threshold) {
+  std::vector<Vote> failed_votes;
+
+  auto votes_to_verify = getVerifiedVotes();
+
+  for (auto const& v : votes_to_verify) {
+    if (!voteValidation(last_pbft_block_hash, v, dpos_total_votes_count, sortition_threshold)) {
+      failed_votes.emplace_back(v);
+    }
+  }
+
+  auto size = failed_votes.size();
+  LOG(log_nf_) << "Reverify all verified votes. There are " << size << " failed in vote validation";
+
+  if (size) {
+    // Remove from verified votes DB
+    auto batch = db_->createWriteBatch();
+    for (auto const& v : failed_votes) {
+      db_->removeVerifiedVoteToBatch(v.getHash(), batch);
+    }
+    db_->commitWriteBatch(batch);
+
+    // Remove from verified queue
+    removeVerifiedVotes(failed_votes);
+  }
 }
 
 // cleanup votes < pbft_round

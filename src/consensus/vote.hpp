@@ -108,6 +108,7 @@ class Vote {
   auto getCredential() const { return vrf_sortition_.output; }
   sig_t getVoteSignature() const { return vote_signature_; }
   blk_hash_t getBlockHash() const { return blockhash_; }
+  blk_hash_t getVrfLastPbftBlockHash() const { return vrf_sortition_.pbft_msg.blk; }
   PbftVoteTypes getType() const { return vrf_sortition_.pbft_msg.type; }
   uint64_t getRound() const { return vrf_sortition_.pbft_msg.round; }
   size_t getStep() const { return vrf_sortition_.pbft_msg.step; }
@@ -160,13 +161,17 @@ class VoteManager {
 
   // Verified votes
   void addVerifiedVote(Vote const& vote);
+  void removeVerifiedVotes(std::vector<Vote> const& votes);
   bool voteInVerifiedMap(uint64_t const& pbft_round, vote_hash_t const& vote_hash);
   void clearVerifiedVotesTable();
   std::vector<Vote> getVerifiedVotes();
 
   std::vector<Vote> getVerifiedVotes(uint64_t const pbft_round, blk_hash_t const& last_pbft_block_hash,
-                                     size_t const sortition_threshold, uint64_t eligible_voter_count,
-                                     std::function<size_t(addr_t const&)> const& is_eligible);
+                                     size_t const sortition_threshold, uint64_t dpos_total_votes_count,
+                                     std::function<size_t(addr_t const&)> const& dpos_eligible_vote_count);
+
+  void reverifyVotes(blk_hash_t const& last_pbft_block_hash, uint64_t dpos_total_votes_count,
+                     size_t const sortition_threshold);
 
   void cleanupVotes(uint64_t pbft_round);
 
