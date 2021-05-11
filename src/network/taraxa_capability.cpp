@@ -205,21 +205,14 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       if (initial_status) {
         auto it = _r.begin();
         auto const network_id = (*it++).toInt<uint64_t>();
-        peer->dag_level_ = (*it++).toPositiveInt64();
+        auto peer_dag_level = (*it++).toPositiveInt64();
         auto const genesis_hash = (*it++).toString();
-        peer->pbft_chain_size_ = (*it++).toPositiveInt64();
-        peer->syncing_ = (*it++).toInt();
-        peer->pbft_round_ = (*it++).toPositiveInt64();
-        peer->pbft_previous_round_next_votes_size_ = (*it++).toInt<unsigned>();
+        auto peer_pbft_chain_size = (*it++).toPositiveInt64();
+        auto peer_syncing = (*it++).toInt();
+        auto peer_pbft_round = (*it++).toPositiveInt64();
+        auto peer_pbft_previous_round_next_votes_size = (*it++).toInt<unsigned>();
         auto node_major_version = (*it++).toInt();
         auto node_minor_version = (*it++).toInt();
-
-        LOG(log_dg_) << "Received initial status message from " << _nodeID << ", network id " << network_id
-                     << ", peer DAG max level " << peer->dag_level_ << ", genesis " << dag_mgr_->get_genesis()
-                     << ", peer pbft chain size " << peer->pbft_chain_size_ << ", peer syncing " << std::boolalpha
-                     << peer->syncing_ << ", peer pbft round " << peer->pbft_round_
-                     << ", peer pbft previous round next votes size " << peer->pbft_previous_round_next_votes_size_
-                     << ", node major version" << node_major_version << ", node minor version" << node_minor_version;
 
         // We need logic when some different node versions might still be compatible
         if (node_major_version != FullNode::c_node_major_version ||
@@ -229,15 +222,34 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
                        << getFormattedVersion(FullNode::c_node_major_version, FullNode::c_node_minor_version)
                        << ", host " << _nodeID << " will be disconnected";
           host->disconnect(_nodeID, p2p::UserReason);
+          break;
         }
+
         if (network_id != conf_.network_id) {
           LOG(log_er_) << "Incorrect network id " << network_id << ", host " << _nodeID << " will be disconnected";
           host->disconnect(_nodeID, p2p::UserReason);
+          break;
         }
+
         if (genesis_hash != dag_mgr_->get_genesis()) {
           LOG(log_er_) << "Incorrect genesis hash " << genesis_hash << ", host " << _nodeID << " will be disconnected";
           host->disconnect(_nodeID, p2p::UserReason);
+          break;
         }
+
+        peer->dag_level_ = peer_dag_level;
+        peer->pbft_chain_size_ = peer_pbft_chain_size;
+        peer->syncing_ = peer_syncing;
+        peer->pbft_round_ = peer_pbft_round;
+        peer->pbft_previous_round_next_votes_size_ = peer_pbft_previous_round_next_votes_size;
+
+        LOG(log_dg_) << "Received initial status message from " << _nodeID << ", network id " << network_id
+                     << ", peer DAG max level " << peer->dag_level_ << ", genesis " << genesis_hash
+                     << ", peer pbft chain size " << peer->pbft_chain_size_ << ", peer syncing " << std::boolalpha
+                     << peer->syncing_ << ", peer pbft round " << peer->pbft_round_
+                     << ", peer pbft previous round next votes size " << peer->pbft_previous_round_next_votes_size_
+                     << ", node major version" << node_major_version << ", node minor version" << node_minor_version;
+
       } else {
         auto it = _r.begin();
         peer->dag_level_ = (*it++).toPositiveInt64();
@@ -753,8 +765,7 @@ void TaraxaCapability::onDisconnect(NodeID const &_nodeID) {
     if (syncing_ && peer_syncing_pbft_ == _nodeID && getPeersCount() > 0) {
       LOG(log_dg_pbft_sync_) << "Syncing PBFT is stopping";
       restartSyncingPbft(true);
-    }
-    if (requesting_pending_dag_blocks_ && requesting_pending_dag_blocks_node_id_ == _nodeID) {
+    } else if (requesting_pending_dag_blocks_ && requesting_pending_dag_blocks_node_id_ == _nodeID) {
       requesting_pending_dag_blocks_ = false;
       restartSyncingPbft(true);
     }
