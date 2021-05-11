@@ -152,6 +152,15 @@ void VoteManager::addUnverifiedVote(taraxa::Vote const& vote) {
 
 void VoteManager::addUnverifiedVotes(std::vector<Vote> const& votes) {
   for (auto const& v : votes) {
+    if (voteInUnverifiedMap(v.getRound(), v.getHash())) {
+      LOG(log_dg_) << "Vote is in unverified queue already " << v;
+      continue;
+    }
+    if (db_->unverifiedVoteExist(v.getHash())) {
+      // Vote in unverified DB but not in unverified queue
+      LOG(log_dg_) << "The vote failed reverification, drop it. " << v;
+      continue;
+    }
     addUnverifiedVote(v);
   }
 }
@@ -225,6 +234,22 @@ void VoteManager::addVerifiedVote(Vote const& vote) {
     }
   }
   LOG(log_dg_) << "Add verified vote " << vote;
+}
+
+// All verified votes need to remove, since new PBFT blocks synced into chain
+void VoteManager::removeVerifiedVotes() {
+  auto votes = getVerifiedVotes();
+  LOG(log_nf_) << "Remove " << votes.size() << " verified votes.";
+
+  auto batch = db_->createWriteBatch();
+  for (auto const& v : votes) {
+    db_->removeVerifiedVoteToBatch(v.getHash(), batch);
+    // Add back to unverified votes DB, for reject to add the failed votes into unverified queue again
+    db_->addUnverifiedVoteToBatch(v, batch);
+  }
+  db_->commitWriteBatch(batch);
+
+  clearVerifiedVotesTable();
 }
 
 bool VoteManager::voteInVerifiedMap(uint64_t const& pbft_round, vote_hash_t const& vote_hash) {
