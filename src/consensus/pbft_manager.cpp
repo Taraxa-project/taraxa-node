@@ -1384,8 +1384,8 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
     LOG(log_nf_) << "Synced new pbft blocks. Update last PBFT block hash " << vrf_pbft_chain_last_block_hash_
                  << " for VRF sortitin";
 
-    // Reverify all votes for current round
-    vote_mgr_->reverifyVotes(vrf_pbft_chain_last_block_hash_, getDposTotalVotesCount(), sortition_threshold_);
+    // Remove all verified votes. Since new PBFT blocks have synced into chain, last PBFT block hash has changed
+    vote_mgr_->removeVerifiedVotes();
   }
 }
 
