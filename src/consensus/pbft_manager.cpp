@@ -250,8 +250,15 @@ bool PbftManager::resetRound_() {
     setPbftRound(consensus_pbft_round);
     resetStep_();
     state_ = value_proposal_state;
+
     // Update VRF pbft chain last block hash in each new round
-    vrf_pbft_chain_last_block_hash_ = pbft_chain_->getLastPbftBlockHash();
+    auto last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
+    if (vrf_pbft_chain_last_block_hash_ != last_pbft_block_hash) {
+      vrf_pbft_chain_last_block_hash_ = last_pbft_block_hash;
+      vote_mgr_->removeVerifiedVotes();
+      LOG(log_nf_) << "In new round " << consensus_pbft_round << ", update VRF last PBFT block hash "
+                   << vrf_pbft_chain_last_block_hash_ << ". Remove all verified votes";
+    }
 
     LOG(log_dg_) << "Advancing clock to pbft round " << consensus_pbft_round << ", step 1, and resetting clock.";
 
@@ -1297,7 +1304,8 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cer
     return false;
   }
   PbftBlockCert pbft_block_cert_votes(*pbft_block, cert_votes_for_round);
-  if (!pushPbftBlock_(pbft_block_cert_votes)) {
+  bool updated_vrf_last_pbft_block_hash = false;
+  if (!pushPbftBlock_(pbft_block_cert_votes, false, updated_vrf_last_pbft_block_hash)) {
     LOG(log_er_) << "Failed push PBFT block " << pbft_block->getBlockHash() << " into chain";
     return false;
   }
@@ -1308,6 +1316,7 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cer
 
 void PbftManager::pushSyncedPbftBlocksIntoChain_() {
   size_t pbft_synced_queue_size;
+  bool updated_vrf_last_pbft_block_hash = false;
   while (!pbft_chain_->pbftSyncedQueueEmpty()) {
     PbftBlockCert pbft_block_and_votes = pbft_chain_->pbftSyncedQueueFront();
     auto round = getPbftRound();
@@ -1352,7 +1361,7 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
     if (!comparePbftBlockScheduleWithDAGblocks_(*pbft_block_and_votes.pbft_blk)) {
       break;
     }
-    if (pushPbftBlock_(pbft_block_and_votes)) {
+    if (pushPbftBlock_(pbft_block_and_votes, true, updated_vrf_last_pbft_block_hash)) {
       LOG(log_nf_) << node_addr_ << " push synced PBFT block " << pbft_block_and_votes.pbft_blk->getBlockHash()
                    << " in round " << round;
     } else {
@@ -1377,19 +1386,15 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
     pbft_last_observed_synced_queue_size_ = pbft_synced_queue_size;
   }
 
-  auto last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
-  if (last_pbft_block_hash != vrf_pbft_chain_last_block_hash_) {
-    vrf_pbft_chain_last_block_hash_ = last_pbft_block_hash;
-    db_->savePbftMgrVotedValue(PbftMgrVotedValue::vrf_pbft_chain_last_block_hash, vrf_pbft_chain_last_block_hash_);
-    LOG(log_nf_) << "Synced new pbft blocks. Update last PBFT block hash " << vrf_pbft_chain_last_block_hash_
-                 << " for VRF sortitin";
-
-    // Remove all verified votes. Since new PBFT blocks have synced into chain, last PBFT block hash has changed
+  if (updated_vrf_last_pbft_block_hash) {
+    LOG(log_nf_)
+        << "Remove all verified votes. Since new PBFT blocks have synced into chain, last PBFT block hash has changed.";
     vote_mgr_->removeVerifiedVotes();
   }
 }
 
-bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes) {
+bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes, bool syncing,
+                                 bool &updated_vrf_last_pbft_block_hash) {
   auto const &pbft_block_hash = pbft_block_cert_votes.pbft_blk->getBlockHash();
   if (db_->pbftBlockInDb(pbft_block_hash)) {
     LOG(log_er_) << "PBFT block: " << pbft_block_hash << " in DB already.";
@@ -1421,6 +1426,15 @@ bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes) {
   // Add dag_block_period in DB
   for (auto const &blk_hash : finalized_dag_blk_hashes) {
     db_->addDagBlockPeriodToBatch(blk_hash, pbft_period, batch);
+  }
+
+  // Update last PBFT block hash when synced PBFT blocks that is not voted at the current round
+  if (syncing && cert_votes[0].getRound() != getPbftRound()) {
+    db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::vrf_pbft_chain_last_block_hash, pbft_block_hash, batch);
+    vrf_pbft_chain_last_block_hash_ = pbft_block_hash;
+    updated_vrf_last_pbft_block_hash = true;
+    LOG(log_nf_) << "Sycned PBFT block. Update last PBFT block hash " << vrf_pbft_chain_last_block_hash_
+                 << " for VRF sortition";
   }
 
   // Commit DB
