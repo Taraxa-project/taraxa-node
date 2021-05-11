@@ -12,7 +12,7 @@ configure_file(${CMAKE_SOURCE_DIR}/config/version/taraxad_version.hpp.in ${CMAKE
 # Set project properties like C++ standard, etc...
 set(CMAKE_CXX_COMPILER g++)
 set(CMAKE_CXX_STANDARD 17)
-# add_compile_options(-Wall -pedantic -Wextra -Werror -Wno-unknown-pragmas)
+add_compile_options(-Wall -pedantic -Wextra -Werror -Wno-unknown-pragmas)
 
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 # Optimization flag apparently needed to get rid of "File too big" assembler errors when compiling in Debug mode
