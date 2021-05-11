@@ -261,6 +261,7 @@ TEST_F(FullNodeTest, db_test) {
   // Unverified votes
   std::vector<Vote> unverified_votes = db.getUnverifiedVotes();
   EXPECT_TRUE(unverified_votes.empty());
+  EXPECT_FALSE(db.unverifiedVoteExist(blk_hash_t(0)));
   blk_hash_t last_pbft_block_hash(0);
   blk_hash_t voted_pbft_block_hash(1);
   auto weighted_index = 0;
@@ -276,16 +277,21 @@ TEST_F(FullNodeTest, db_test) {
     unverified_votes.emplace_back(vote);
   }
   db.saveUnverifiedVote(unverified_votes[0]);
+  EXPECT_TRUE(db.unverifiedVoteExist(unverified_votes[0].getHash()));
   EXPECT_EQ(db.getUnverifiedVote(unverified_votes[0].getHash())->rlp(true), unverified_votes[0].rlp(true));
   batch = db.createWriteBatch();
   db.addUnverifiedVoteToBatch(unverified_votes[1], batch);
   db.addUnverifiedVoteToBatch(unverified_votes[2], batch);
   db.commitWriteBatch(batch);
+  EXPECT_TRUE(db.unverifiedVoteExist(unverified_votes[1].getHash()));
+  EXPECT_TRUE(db.unverifiedVoteExist(unverified_votes[2].getHash()));
   EXPECT_EQ(db.getUnverifiedVotes().size(), unverified_votes.size());
   batch = db.createWriteBatch();
   db.removeUnverifiedVoteToBatch(unverified_votes[0].getHash(), batch);
   db.removeUnverifiedVoteToBatch(unverified_votes[1].getHash(), batch);
   db.commitWriteBatch(batch);
+  EXPECT_FALSE(db.unverifiedVoteExist(unverified_votes[0].getHash()));
+  EXPECT_FALSE(db.unverifiedVoteExist(unverified_votes[1].getHash()));
   EXPECT_EQ(db.getUnverifiedVotes().size(), unverified_votes.size() - 2);
 
   // Verified votes

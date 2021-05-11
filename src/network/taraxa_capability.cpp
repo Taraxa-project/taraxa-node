@@ -470,7 +470,6 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       LOG(log_nf_next_votes_sync_) << "Received " << next_votes_count << " next votes from peer " << _nodeID
                                    << " node current round " << pbft_current_round << ", peer pbft round "
                                    << peer_pbft_round;
-      // check all votes have same last block hash
 
       std::vector<Vote> next_votes;
       for (size_t i = 0; i < next_votes_count; i++) {

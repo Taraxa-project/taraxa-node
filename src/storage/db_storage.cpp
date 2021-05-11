@@ -524,6 +524,15 @@ shared_ptr<Vote> DbStorage::getUnverifiedVote(vote_hash_t const& vote_hash) {
   return nullptr;
 }
 
+bool DbStorage::unverifiedVoteExist(vote_hash_t const& vote_hash) {
+  auto vote = asBytes(lookup(toSlice(vote_hash.asBytes()), Columns::unverified_votes));
+  if (vote.empty()) {
+    return false;
+  }
+
+  return true;
+}
+
 void DbStorage::saveUnverifiedVote(Vote const& vote) {
   insert(Columns::unverified_votes, toSlice(vote.getHash().asBytes()), toSlice(vote.rlp(true)));
 }

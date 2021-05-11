@@ -152,6 +152,15 @@ void VoteManager::addUnverifiedVote(taraxa::Vote const& vote) {
 
 void VoteManager::addUnverifiedVotes(std::vector<Vote> const& votes) {
   for (auto const& v : votes) {
+    if (voteInUnverifiedMap(v.getRound(), v.getHash())) {
+      LOG(log_dg_) << "Vote is in unverified queue already " << v;
+      continue;
+    }
+    if (db_->unverifiedVoteExist(v.getHash())) {
+      // Vote in unverified DB but not in unverified queue
+      LOG(log_dg_) << "The vote failed reverification, drop it. " << v;
+      continue;
+    }
     addUnverifiedVote(v);
   }
 }
@@ -330,6 +339,8 @@ void VoteManager::reverifyVotes(blk_hash_t const& last_pbft_block_hash, uint64_t
     auto batch = db_->createWriteBatch();
     for (auto const& v : failed_votes) {
       db_->removeVerifiedVoteToBatch(v.getHash(), batch);
+      // Add back to unverified votes DB, for reject to add the failed votes into unverified queue again
+      db_->addUnverifiedVoteToBatch(v, batch);
     }
     db_->commitWriteBatch(batch);
 
