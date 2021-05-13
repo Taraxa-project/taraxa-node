@@ -1215,7 +1215,7 @@ void PbftManager::syncPbftChainFromPeers_(bool force) {
                  << pbft_chain_->pbftSyncedQueueSize();
 
     // So we don't print will request sync logs needlessly...
-    pbft_round_last_requested_sync_ = round;
+    pbft_round_last_requested_sync_ = getPbftRound();
     pbft_step_last_requested_sync_ = step_;
     return;
   }
