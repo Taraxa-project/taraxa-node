@@ -368,11 +368,6 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
 
 bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash, taraxa::Vote const& vote,
                                  size_t const dpos_total_votes_count, size_t const sortition_threshold) const {
-  if (last_pbft_block_hash != vote.getVrfSortition().pbft_msg.blk) {
-    LOG(log_tr_) << "Last pbft block hash does not match " << last_pbft_block_hash << ". " << vote;
-    return false;
-  }
-
   if (!vote.getVrfSortition().verify()) {
     LOG(log_er_) << "Invalid vrf proof. " << vote;
     return false;
