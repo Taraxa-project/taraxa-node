@@ -194,7 +194,9 @@ void PbftManager::update_dpos_state_() {
                << node_addr_ << " has " << weighted_votes_count_ << " weighted votes";
 }
 
-size_t PbftManager::getDposTotalVotesCount() const { return dpos_votes_count_; }
+size_t PbftManager::getDposTotalVotesCount() const { return dpos_votes_count_.load(); }
+
+size_t PbftManager::getDposWeightedVotesCount() const { return weighted_votes_count_.load(); }
 
 size_t PbftManager::dpos_eligible_vote_count_(addr_t const &addr) {
   try {
