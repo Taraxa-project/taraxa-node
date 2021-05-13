@@ -1175,9 +1175,9 @@ void TaraxaCapability::logNodeStats() {
                        << dag_level_growh << " dag levels)";
 
   // Update syncing interval counts
-  syncing_interval_count_ = syncing_ ? syncing_interval_count_++ : 0;
+  syncing_interval_count_ = syncing_ ? (syncing_interval_count_ + 1) : 0;
   syncing_stalled_interval_count_ =
-      syncing_ && !making_pbft_chain_progress && !making_dag_progress ? syncing_stalled_interval_count_++ : 0;
+      syncing_ && !making_pbft_chain_progress && !making_dag_progress ? (syncing_stalled_interval_count_ + 1) : 0;
   if (is_syncing) {
     intervals_syncing_since_launch++;
   } else {
