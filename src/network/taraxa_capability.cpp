@@ -1248,7 +1248,7 @@ void TaraxaCapability::logNodeStats() {
       auto syncing_stalled_time_sec =
           static_cast<float>(summary_interval_ms_ * syncing_stalled_interval_count_) / 1000.0f;
       LOG(log_sii_summary_) << "STATUS: SYNCING STALLED. NO PROGRESS MADE IN LAST " << std::setprecision(2)
-                           << syncing_stalled_time_sec << " SECONDS";
+                            << syncing_stalled_time_sec << " SECONDS";
     } else {
       LOG(log_si_summary_) << "STATUS: STUCK. NODE HAS NOT RESTARTED SYNCING";
     }
