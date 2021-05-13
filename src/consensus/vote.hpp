@@ -166,14 +166,13 @@ class VoteManager {
   void clearVerifiedVotesTable();
   std::vector<Vote> getVerifiedVotes();
 
-  std::vector<Vote> getVerifiedVotes(uint64_t const pbft_round, blk_hash_t const& last_pbft_block_hash,
-                                     size_t const sortition_threshold, uint64_t dpos_total_votes_count,
+  std::vector<Vote> getVerifiedVotes(uint64_t const pbft_round, size_t const sortition_threshold,
+                                     uint64_t dpos_total_votes_count,
                                      std::function<size_t(addr_t const&)> const& dpos_eligible_vote_count);
 
   void cleanupVotes(uint64_t pbft_round);
 
-  bool voteValidation(blk_hash_t const& last_pbft_block_hash, Vote const& vote, size_t const valid_sortition_players,
-                      size_t const sortition_threshold) const;
+  bool voteValidation(Vote const& vote, size_t const valid_sortition_players, size_t const sortition_threshold) const;
 
   bool pbftBlockHasEnoughValidCertVotes(PbftBlockCert const& pbft_block_and_votes, size_t valid_sortition_players,
                                         size_t sortition_threshold, size_t pbft_2t_plus_1) const;
