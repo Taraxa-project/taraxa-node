@@ -233,7 +233,7 @@ struct TaraxaCapability : virtual CapabilityFace {
   uint64_t local_pbft_round_prev_interval_ = 0;
   uint64_t local_chain_size_prev_interval_ = 0;
   uint64_t local_pbft_sync_period_prev_interval_ = 0;
-  uint64_t syncing_interval_count_ = 0; 
+  uint64_t syncing_interval_count_ = 0;
   uint64_t intervals_in_sync_since_launch = 0;
   uint64_t intervals_syncing_since_launch = 0;
   uint64_t syncing_stalled_interval_count_ = 0;
