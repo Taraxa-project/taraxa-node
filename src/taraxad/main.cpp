@@ -14,6 +14,8 @@ using namespace std;
 
 namespace bpo = boost::program_options;
 
+enum networks { Mainnet = 1, Testnet, Devnet };
+
 string getHomeDir() {
   struct passwd *pw = getpwuid(getuid());
   const char *homedir = pw->pw_dir;
@@ -44,14 +46,15 @@ bool fileExist(string file) {
   }
 }
 
-bool writeFile(string file_name, Json::Value json) {
+void writeFile(string file_name, Json::Value json) {
   ofstream ofile(file_name);
+
   if (ofile.is_open()) {
     ofile << json;
-    return true;
   } else {
-    cerr << "Cannot open file " << file_name << endl;
-    return false;
+    stringstream err;
+    err << "Cannot open file " << file_name << endl;
+    throw invalid_argument(err.str());
   }
 }
 
@@ -81,8 +84,9 @@ Json::Value getAccountSecretKey() {
     ifile.close();
     return account_json["node_secret"];
   } else {
-    cerr << "Cannot open file " << account_file << endl;
-    exit(1);
+    stringstream err;
+    err << "Cannot open file " << account_file << endl;
+    throw invalid_argument(err.str());
   }
 }
 
@@ -95,15 +99,13 @@ Json::Value getVrfSecretKey() {
     ifile.close();
     return vrf_json["vrf_secret"];
   } else {
-    cerr << "Cannot open file " << vrf_file << endl;
-    exit(1);
+    stringstream err;
+    err << "Cannot open file " << vrf_file << endl;
+    throw invalid_argument(err.str());
   }
 }
 
-Json::Value mainnetBootNodes() {
-  cout << "Mainnet has not supported yet" << endl;
-  exit(1);
-}
+Json::Value mainnetBootNodes() { throw invalid_argument("Mainnet has not supported yet"); }
 
 Json::Value testnetBootNodes() {
   Json::Value network_boot_nodes(Json::arrayValue);
@@ -173,21 +175,19 @@ Json::Value devnetBootNodes() {
 
 Json::Value getNetworkBootNodes(int network_identifier) {
   switch (network_identifier) {
-    case 1: {
-      // Mainnet
+    case Mainnet: {
       return mainnetBootNodes();
     }
-    case 2: {
-      // Testnet
+    case Testnet: {
       return testnetBootNodes();
     }
-    case 3: {
-      // Devnet
+    case Devnet: {
       return devnetBootNodes();
     }
     default: {
-      cerr << "Wrong network identifier " << network_identifier << " (1=Mainnet, 2=Testnet, 3=Devnet)" << endl;
-      exit(1);
+      stringstream err;
+      err << "Wrong network identifier " << network_identifier << " (1=Mainnet, 2=Testnet, 3=Devnet)" << endl;
+      throw invalid_argument(err.str());
     }
   }
 }
@@ -230,10 +230,7 @@ Json::Value generateLogging() {
   return logging;
 }
 
-Json::Value mainnetChainConfig() {
-  cout << "Mainnet has not supported yet" << endl;
-  exit(1);
-}
+Json::Value mainnetChainConfig() { throw invalid_argument("Mainnet has not supported yet"); }
 
 Json::Value testnetChainConfig() {
   Json::Value chain_config(Json::objectValue);
@@ -245,7 +242,7 @@ Json::Value testnetChainConfig() {
   dag_genesis_block["sig"] =
       "0xb7e22d46c1ba94d5e8347b01d137b5c428fcbbeaf0a77fb024cbbf1517656ff00d04f7f25be608c321b0d7483c402c294ff46c49b26530"
       "5d046a52236c0a363701";
-  dag_genesis_block["timestamp"] = "0x5fee6601";
+  dag_genesis_block["timestamp"] = "0x5fee6603";
   dag_genesis_block["tips"] = Json::Value(Json::arrayValue);
   dag_genesis_block["transactions"] = Json::Value(Json::arrayValue);
 
@@ -253,7 +250,7 @@ Json::Value testnetChainConfig() {
 
   auto &genesis_block_fields = final_chain["genesis_block_fields"] = Json::Value(Json::objectValue);
   genesis_block_fields["author"] = "0x0000000000000000000000000000000000000000";
-  genesis_block_fields["timestamp"] = "0x5fee6601";
+  genesis_block_fields["timestamp"] = "0x5fee6603";
 
   auto &state = final_chain["state"] = Json::Value(Json::objectValue);
   state["disable_block_rewards"] = true;
@@ -317,7 +314,7 @@ Json::Value devnetChainConfig() {
   dag_genesis_block["sig"] =
       "0xb7e22d46c1ba94d5e8347b01d137b5c428fcbbeaf0a77fb024cbbf1517656ff00d04f7f25be608c321b0d7483c402c294ff46c49b26530"
       "5d046a52236c0a363701";
-  dag_genesis_block["timestamp"] = "0x5d422b81";
+  dag_genesis_block["timestamp"] = "0x5d422b83";
   dag_genesis_block["tips"] = Json::Value(Json::arrayValue);
   dag_genesis_block["transactions"] = Json::Value(Json::arrayValue);
 
@@ -325,7 +322,7 @@ Json::Value devnetChainConfig() {
 
   auto &genesis_block_fields = final_chain["genesis_block_fields"] = Json::Value(Json::objectValue);
   genesis_block_fields["author"] = "0x0000000000000000000000000000000000000000";
-  genesis_block_fields["timestamp"] = "0x5d422b81";
+  genesis_block_fields["timestamp"] = "0x5d422b83";
 
   auto &state = final_chain["state"] = Json::Value(Json::objectValue);
   state["disable_block_rewards"] = true;
@@ -381,21 +378,19 @@ Json::Value devnetChainConfig() {
 
 Json::Value generateChainConfig(int network_identifier) {
   switch (network_identifier) {
-    case 1: {
-      // Mainnet
+    case Mainnet: {
       return mainnetChainConfig();
     }
-    case 2: {
-      // Testnet
+    case Testnet: {
       return testnetChainConfig();
     }
-    case 3: {
-      // Devnet
+    case Devnet: {
       return devnetChainConfig();
     }
     default: {
-      cerr << "Wrong network identifier " << network_identifier << " (1=Mainnet, 2=Testnet, 3=Devnet)" << endl;
-      exit(1);
+      stringstream err;
+      err << "Wrong network identifier " << network_identifier << " (1=Mainnet, 2=Testnet, 3=Devnet)" << endl;
+      throw invalid_argument(err.str());
     }
   }
 }
@@ -410,10 +405,7 @@ Json::Value generateConfigFile(string &db_path, bool boot_node, int network_iden
     auto account_json = getAccountJson(account);
 
     // Create account file
-    auto account_file = getAccountFile();
-    if (!writeFile(account_file, account_json)) {
-      exit(1);
-    }
+    writeFile(account_file, account_json);
   }
 
   // VRF
@@ -423,9 +415,7 @@ Json::Value generateConfigFile(string &db_path, bool boot_node, int network_iden
     auto json = getVrfJson(sk, pk);
 
     // Create VRF file
-    if (!writeFile(vrf_file, json)) {
-      exit(1);
-    }
+    writeFile(vrf_file, json);
   }
 
   // DB
@@ -536,7 +526,7 @@ int main(int argc, const char *argv[]) {
       commandsInfo();
       cout << node_options << endl;
 
-      return 1;
+      return 0;
     }
 
     // Commands
@@ -556,14 +546,12 @@ int main(int argc, const char *argv[]) {
         auto account_file = getAccountFile();
         if (fileExist(account_file)) {
           cout << "Account file exist at " << account_file << endl;
-          return 1;
+          return 0;
         }
 
         auto account = dev::KeyPair::create();
         auto json = getAccountJson(account);
-        if (!writeFile(account_file, json)) {
-          return 1;
-        }
+        writeFile(account_file, json);
 
         cout << "Generate account file at " << account_file << endl;
         cout << "Please save the secret key at a safe place. Account secret key: " << toHex(account.secret().ref())
@@ -571,23 +559,21 @@ int main(int argc, const char *argv[]) {
         cout << "Account public key: " << account.pub() << endl;
         cout << "Account address: " << account.address() << endl;
 
-        return 1;
+        return 0;
       }
 
       if (cmd == "account-from-key") {
         auto account_file = getAccountFile();
         if (fileExist(account_file)) {
           cout << "Account file exist at " << account_file << endl;
-          return 1;
+          return 0;
         }
 
         auto account_sk = command_vm["subargs"].as<string>();
         auto sk = dev::Secret(account_sk, dev::Secret::ConstructFromStringType::FromHex);
         auto account = dev::KeyPair(sk);
         auto json = getAccountJson(account);
-        if (!writeFile(account_file, json)) {
-          return 1;
-        }
+        writeFile(account_file, json);
 
         cout << "Generate account file at " << account_file << endl;
         cout << "Please save the secret key at a safe place. Account secret key: " << toHex(account.secret().ref())
@@ -595,54 +581,50 @@ int main(int argc, const char *argv[]) {
         cout << "Account public key: " << account.pub() << endl;
         cout << "Account address: " << account.address() << endl;
 
-        return 1;
+        return 0;
       }
 
       if (cmd == "vrf") {
         auto vrf_file = getVrfFile();
         if (fileExist(vrf_file)) {
           cout << "VRF file exist at " << vrf_file << endl;
-          return 1;
+          return 0;
         }
 
         auto [pk, sk] = taraxa::vrf_wrapper::getVrfKeyPair();
         auto json = getVrfJson(sk, pk);
-        if (!writeFile(vrf_file, json)) {
-          return 1;
-        }
+        writeFile(vrf_file, json);
 
         cout << "Generate VRF file at " << vrf_file << endl;
         cout << "Please save the secret key at a safe place. VRF secret key: " << sk << endl;
         cout << "VRF public key: " << pk << endl;
 
-        return 1;
+        return 0;
       }
 
       if (cmd == "vrf-from-key") {
         auto vrf_file = getVrfFile();
         if (fileExist(vrf_file)) {
           cout << "VRF file exist at " << vrf_file << endl;
-          return 1;
+          return 0;
         }
 
         auto vrf_sk = command_vm["subargs"].as<string>();
         auto sk = taraxa::vrf_wrapper::vrf_sk_t(vrf_sk);
         auto pk = taraxa::vrf_wrapper::getVrfPublicKey(sk);
         auto json = getVrfJson(sk, pk);
-        if (!writeFile(vrf_file, json)) {
-          return 1;
-        }
+        writeFile(vrf_file, json);
 
         cout << "Generate VRF file at " << vrf_file << endl;
         cout << "Please save the secret key at a safe place. VRF secret key: " << sk << endl;
         cout << "VRF public key: " << pk << endl;
 
-        return 1;
+        return 0;
       }
 
       if (cmd == "version") {
         cout << TARAXAD_VERSION << endl;
-        return 1;
+        return 0;
       }
 
       if (cmd != "node") {
@@ -663,8 +645,9 @@ int main(int argc, const char *argv[]) {
         ofile << config;
         ofile.close();
       } else {
-        cerr << "Cannot open config file " << config_file << endl;
-        return 1;
+        stringstream err;
+        err << "Cannot open config file " << config_file << endl;
+        throw invalid_argument(err.str());
       }
     }
 
