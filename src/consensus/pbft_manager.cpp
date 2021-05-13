@@ -194,7 +194,9 @@ void PbftManager::update_dpos_state_() {
                << node_addr_ << " has " << weighted_votes_count_ << " weighted votes";
 }
 
-size_t PbftManager::getDposTotalVotesCount() const { return dpos_votes_count_; }
+size_t PbftManager::getDposTotalVotesCount() const { return dpos_votes_count_.load(); }
+
+size_t PbftManager::getDposWeightedVotesCount() const { return weighted_votes_count_.load(); }
 
 size_t PbftManager::dpos_eligible_vote_count_(addr_t const &addr) {
   try {
@@ -545,8 +547,7 @@ bool PbftManager::stateOperations_() {
   LOG(log_tr_) << "PBFT current step is " << step_;
 
   // Get votes
-  votes_ = vote_mgr_->getVerifiedVotes(round, vrf_pbft_chain_last_block_hash_, sortition_threshold_,
-                                       getDposTotalVotesCount(),
+  votes_ = vote_mgr_->getVerifiedVotes(round, sortition_threshold_, getDposTotalVotesCount(),
                                        [this](auto const &addr) { return dpos_eligible_vote_count_(addr); });
   LOG(log_tr_) << "There are " << votes_.size() << " total votes in round " << round;
 

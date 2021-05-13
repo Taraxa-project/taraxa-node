@@ -53,6 +53,7 @@ class PbftManager {
   Vote generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, uint64_t round, size_t step, size_t weighted_index,
                     blk_hash_t const &last_pbft_block_hash);
   size_t getDposTotalVotesCount() const;
+  size_t getDposWeightedVotesCount() const;
 
   // Notice: Test purpose
   void setSortitionThreshold(size_t const sortition_threshold);
