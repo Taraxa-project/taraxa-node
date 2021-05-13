@@ -279,8 +279,8 @@ std::vector<Vote> VoteManager::getVerifiedVotes() {
 }
 
 // Return all verified votes >= pbft_round
-std::vector<Vote> VoteManager::getVerifiedVotes(uint64_t const pbft_round, blk_hash_t const& last_pbft_block_hash,
-                                                size_t const sortition_threshold, uint64_t dpos_total_votes_count,
+std::vector<Vote> VoteManager::getVerifiedVotes(uint64_t const pbft_round, size_t const sortition_threshold,
+                                                uint64_t dpos_total_votes_count,
                                                 std::function<size_t(addr_t const&)> const& dpos_eligible_vote_count) {
   // Cleanup votes for previous rounds
   cleanupVotes(pbft_round);
@@ -303,7 +303,7 @@ std::vector<Vote> VoteManager::getVerifiedVotes(uint64_t const pbft_round, blk_h
       continue;
     }
 
-    if (voteValidation(last_pbft_block_hash, v, dpos_total_votes_count, sortition_threshold)) {
+    if (voteValidation(v, dpos_total_votes_count, sortition_threshold)) {
       verified_votes.emplace_back(v);
     }
   }
@@ -366,8 +366,8 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
   db_->commitWriteBatch(batch);
 }
 
-bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash, taraxa::Vote const& vote,
-                                 size_t const dpos_total_votes_count, size_t const sortition_threshold) const {
+bool VoteManager::voteValidation(taraxa::Vote const& vote, size_t const dpos_total_votes_count,
+                                 size_t const sortition_threshold) const {
   if (!vote.getVrfSortition().verify()) {
     LOG(log_er_) << "Invalid vrf proof. " << vote;
     return false;
@@ -396,7 +396,6 @@ bool VoteManager::pbftBlockHasEnoughValidCertVotes(PbftBlockCert const& pbft_blo
     return false;
   }
 
-  blk_hash_t pbft_chain_last_block_hash = pbft_chain_->getLastPbftBlockHash();
   std::vector<Vote> valid_votes;
   auto first_cert_vote_round = pbft_block_and_votes.cert_votes[0].getRound();
 
@@ -421,7 +420,7 @@ bool VoteManager::pbftBlockHasEnoughValidCertVotes(PbftBlockCert const& pbft_blo
       break;
     }
 
-    if (voteValidation(pbft_chain_last_block_hash, v, dpos_total_votes_count, sortition_threshold)) {
+    if (voteValidation(v, dpos_total_votes_count, sortition_threshold)) {
       valid_votes.emplace_back(v);
     } else {
       LOG(log_wr_) << "For PBFT block " << pbft_block_and_votes.pbft_blk->getBlockHash() << ", cert vote "
@@ -433,8 +432,7 @@ bool VoteManager::pbftBlockHasEnoughValidCertVotes(PbftBlockCert const& pbft_blo
     LOG(log_er_) << "PBFT block " << pbft_block_and_votes.pbft_blk->getBlockHash() << " with "
                  << pbft_block_and_votes.cert_votes.size() << " cert votes. Has " << valid_votes.size()
                  << " valid cert votes. 2t+1 is " << pbft_2t_plus_1 << ", DPOS total votes count "
-                 << dpos_total_votes_count << ", sortition threshold is " << sortition_threshold
-                 << ". The last block in pbft chain is " << pbft_chain_last_block_hash;
+                 << dpos_total_votes_count << ", sortition threshold is " << sortition_threshold;
   }
 
   return valid_votes.size() >= pbft_2t_plus_1;
