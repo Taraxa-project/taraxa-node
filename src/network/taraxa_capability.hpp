@@ -158,6 +158,7 @@ struct TaraxaCapability : virtual CapabilityFace {
   uint64_t getSimulatedNetworkDelay(const RLP &packet_rlp, const NodeID &nodeID);
 
   void doBackgroundWork();
+  void logNodeStats();
   void logPacketsStats();
   void sendTransactions();
   std::string packetTypeToString(unsigned int _packetType) const override;
@@ -226,6 +227,17 @@ struct TaraxaCapability : virtual CapabilityFace {
   uint64_t received_trx_count = 0;
   uint64_t unique_received_trx_count = 0;
 
+  // Node stats info history
+  uint64_t summary_interval_ms_ = 30000;
+  level_t local_max_level_in_dag_prev_interval_ = 0;
+  uint64_t local_pbft_round_prev_interval_ = 0;
+  uint64_t local_chain_size_prev_interval_ = 0;
+  uint64_t local_pbft_sync_period_prev_interval_ = 0;
+  uint64_t syncing_interval_count_ = 0; 
+  uint64_t intervals_in_sync_since_launch = 0;
+  uint64_t intervals_syncing_since_launch = 0;
+  uint64_t syncing_stalled_interval_count_ = 0;
+
   PacketsStats sent_packets_stats_;
   PacketsStats received_packets_stats_;
 
@@ -238,5 +250,6 @@ struct TaraxaCapability : virtual CapabilityFace {
   LOG_OBJECTS_DEFINE_SUB(pbft_prp)
   LOG_OBJECTS_DEFINE_SUB(vote_prp)
   LOG_OBJECTS_DEFINE_SUB(net_per)
+  LOG_OBJECTS_DEFINE_SUB(summary)
 };
 }  // namespace taraxa
