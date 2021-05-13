@@ -1227,34 +1227,34 @@ void TaraxaCapability::logNodeStats() {
 
   if (making_pbft_chain_progress) {
     if (is_syncing) {
-      LOG(log_nf_summary_) << "STATUS: GOOD. ACTIVELY SYNCING";
+      LOG(log_si_summary_) << "STATUS: GOOD. ACTIVELY SYNCING";
     } else if (local_weighted_votes) {
-      LOG(log_nf_summary_) << "STATUS: GOOD. NODE SYNCED AND PARTICIPATING IN CONSENSUS";
+      LOG(log_si_summary_) << "STATUS: GOOD. NODE SYNCED AND PARTICIPATING IN CONSENSUS";
     } else {
-      LOG(log_nf_summary_) << "STATUS: GOOD. NODE SYNCED";
+      LOG(log_si_summary_) << "STATUS: GOOD. NODE SYNCED";
     }
   } else if (is_syncing && (making_pbft_sync_period_progress || making_dag_progress)) {
-    LOG(log_nf_summary_) << "STATUS: PENDING SYNCED DATA";
+    LOG(log_si_summary_) << "STATUS: PENDING SYNCED DATA";
   } else if (!is_syncing && making_pbft_consensus_progress) {
     if (local_weighted_votes) {
-      LOG(log_nf_summary_) << "STATUS: PARTICIPATING IN CONSENSUS BUT NO NEW FINALIZED BLOCKS";
+      LOG(log_si_summary_) << "STATUS: PARTICIPATING IN CONSENSUS BUT NO NEW FINALIZED BLOCKS";
     } else {
-      LOG(log_nf_summary_) << "STATUS: NODE SYNCED BUT NO NEW FINALIZED BLOCKS";
+      LOG(log_si_summary_) << "STATUS: NODE SYNCED BUT NO NEW FINALIZED BLOCKS";
     }
   } else if (!is_syncing && making_dag_progress) {
-    LOG(log_nf_summary_) << "STATUS: PBFT STALLED, POSSIBLY PARTITIONED. NODE HAS NOT RESTARTED SYNCING";
+    LOG(log_si_summary_) << "STATUS: PBFT STALLED, POSSIBLY PARTITIONED. NODE HAS NOT RESTARTED SYNCING";
   } else if (peers_size) {
     if (is_syncing) {
       auto syncing_stalled_time_sec =
           static_cast<float>(summary_interval_ms_ * syncing_stalled_interval_count_) / 1000.0f;
-      LOG(log_nf_summary_) << "STATUS: SYNCING STALLED. NO PROGRESS MADE IN LAST " << std::setprecision(2)
+      LOG(log_sii_summary_) << "STATUS: SYNCING STALLED. NO PROGRESS MADE IN LAST " << std::setprecision(2)
                            << syncing_stalled_time_sec << " SECONDS";
     } else {
-      LOG(log_nf_summary_) << "STATUS: STUCK. NODE HAS NOT RESTARTED SYNCING";
+      LOG(log_si_summary_) << "STATUS: STUCK. NODE HAS NOT RESTARTED SYNCING";
     }
   } else {
     // Peer size is zero...
-    LOG(log_nf_summary_) << "STATUS: NOT CONNECTED TO ANY PEERS. POSSIBLE CONFIG ISSUE OR NETWORK CONNECTIVITY";
+    LOG(log_si_summary_) << "STATUS: NOT CONNECTED TO ANY PEERS. POSSIBLE CONFIG ISSUE OR NETWORK CONNECTIVITY";
   }
 
   // Node stats info history
