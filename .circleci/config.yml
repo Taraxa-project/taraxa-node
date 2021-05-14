@@ -1,0 +1,234 @@
+version: 2.1
+orbs:
+  git: opuscapita/git@0.0.3
+  github-release: izumin5210/github-release@0.1.1
+
+  gcp-gcr: circleci/gcp-gcr@0.13.0
+
+
+jobs: 
+   create-and-push-builder:
+     #executor: gcp-gcr/default
+     docker:
+       - image: circleci/buildpack-deps:stretch
+     steps:
+       ### This step is to enable local testing with circleci cli tool
+       - run:
+          name: Local build handling
+          command: |
+            if [[ ${CIRCLE_SHELL_ENV} =~ "localbuild" ]]; then
+              if [ -d /workdir ]; then
+                ln -s /workdir /tmp/_circleci_local_build_repo
+              else
+                echo "Run this local build using: circleci build -v \$(pwd):/workdir"
+                exit 1
+              fi
+            fi
+       - checkout
+       - gcp-gcr/gcr-auth
+       - setup_remote_docker:
+          docker_layer_caching: true
+       - gcp-gcr/build-image: 
+           extra_build_args: --target builder
+           image: taraxa-node/builder
+       - gcp-gcr/push-image:
+           image: taraxa-node/builder
+   build-mac:
+     macos:
+       xcode: 12.0.0
+     environment:
+        CLANG_VERSION: "1:10.0-50~exp1"
+        GO_VERSION: "1.13.7"
+        CMAKE_VERSION: "3.16.3-1ubuntu1"
+        GCC_VERSION: "4:9.3.0-1ubuntu2"
+        GFLAGS_VERSION: "2.2.2-1build1"
+        JSONCPP_VERSION: "1.7.4-3.1ubuntu2"
+        JSONRPCCPP_VERSION: "0.7.0-1build3"
+        SCRYPT_VERSION: "1.21-3"
+     steps: 
+        - checkout
+        - run: 
+           name: Checkout Submodules
+           command: |
+              git submodule sync
+              git submodule update --init --recursive --jobs 8
+        - run: 
+           command: brew update
+        - run: 
+           command: brew install coreutils 
+        - run:
+           command: |
+              brew install go  ccache gflags &&
+              brew install libscrypt libtool cmake libjson-rpc-cpp conan
+        - restore_cache:
+           keys:
+            - conan-cache-v2-mac--{{ checksum "conanfile.py" }}
+            - conan-cache-v2-mac
+        - run:
+           name: connan install 
+           command: conan install -if cmake-build --build missing .
+        - save_cache:
+           paths:
+             - ~/.conan
+           key: conan-cache-v2-mac--{{ checksum "conanfile.py" }}
+#        - run: 
+#           name: conan Build
+#           command: |
+#             export GOPATH=$HOME/golang &&
+#             export GOROOT=/usr/local/opt/go/libexec &&
+#             export CC=gcc &&
+#             export CPATH=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/include &&
+#             conan build -bf cmake-build -sf . .  &&
+#             cp cmake-build/bin/taraxad cmake-build/bin/taraxad-macos
+        - run: 
+           name: Cmake
+           command: |
+               cd cmake-build
+               export GOPATH=$HOME/golang &&
+               export GOROOT=/usr/local/opt/go/libexec &&
+               export CC=gcc &&
+               export CPATH=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/include &&
+               cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=gcc -DSYSTEM_HOME_OVERRIDE=/Users/root/project/cmake-build  ../ &&
+               make -j 6  && 
+               cp bin/taraxad bin/taraxad-macos
+        - run: 
+           name: Execute ctest 
+           command: cd cmake-build/tests && ctest --output-on-failure
+        - store_artifacts:
+           path: /Users/distiller/project/cmake-build/bin/taraxad-macos
+        - persist_to_workspace:
+           root: cmake-build
+           paths: [ bin ]
+   build-linux:
+     environment:
+        BUILD_OUTPUT_DIR: "cmake-docker-build-debug"
+        CLANG_VERSION: "1:10.0-50~exp1"
+        GO_VERSION: "1.13.7"
+        CMAKE_VERSION: "3.16.3-1ubuntu1"
+        GCC_VERSION: "4:9.3.0-1ubuntu2"
+        GFLAGS_VERSION: "2.2.2-1build1"
+        JSONCPP_VERSION: "1.7.4-3.1ubuntu2"
+        JSONRPCCPP_VERSION: "0.7.0-1build3"
+        SCRYPT_VERSION: "1.21-3"
+        GOROOT: "/usr/local/go"
+        GOPATH: "/root/.go"
+     docker:
+      - image: gcr.io/$GOOGLE_PROJECT_ID/taraxa-node/builder
+        auth:
+          username: _json_key  # default username when using a JSON key file to authenticate
+          password: $GCLOUD_SERVICE_KEY 
+     resource_class: xlarge
+     steps:
+        - checkout
+        - run:       
+           name: Checkout Submodules
+           command: |
+              git submodule sync
+              git submodule update --init --recursive --jobs 8
+        - run: 
+           command: mkdir $BUILD_OUTPUT_DIR
+        - restore_cache:
+           keys:
+            - conan-cache-v1-linux--{{ checksum "conanfile.py" }}
+            - conan-cache-v1-linux
+        - run:
+           name: Conan
+           command: conan install -if $BUILD_OUTPUT_DIR --build missing -s build_type=Release .
+        - save_cache:
+           paths:
+             - ~/.conan
+           key: conan-cache-v1-linux--{{ checksum "conanfile.py" }}
+
+       # - run: 
+       #    name: Copy /opt/taraxa/existing files to project
+       #    command: cp -rp /opt/taraxa/cmake-docker-build-debug/* /root/project/cmake-docker-build-debug/
+#       - git/checkout-with-submodules
+#       - setup_remote_docker:
+#           docker_layer_caching: true
+        - run: 
+            name: Cmake
+            command: | 
+              cd $BUILD_OUTPUT_DIR &&
+              cmake -DCMAKE_BUILD_TYPE=Release \
+              -DTARAXA_STATIC_BUILD=ON \
+              -DTARAXAD_INSTALL_DIR=./bin_install \
+              -DTARAXAD_CONF_INSTALL_DIR=./bin_install \
+              ../ 
+        - run:
+            name: make clang-format
+            command: cd $BUILD_OUTPUT_DIR && make clang-format && make clang-format-check
+        - run: 
+           name: make
+           command: cd $BUILD_OUTPUT_DIR && make -j8 all 
+        - run: 
+           name: make install 
+           command: cd $BUILD_OUTPUT_DIR && make install 
+        - run: 
+           name: strip binary
+           command: cd $BUILD_OUTPUT_DIR && strip bin_install/taraxad && cp bin_install/taraxad bin_install/taraxad-x86_64
+        - run: 
+           name: Execute ctest 
+           command: cd $BUILD_OUTPUT_DIR/tests && ctest --output-on-failure
+        - store_artifacts:
+           path: /root/project/cmake-docker-build-debug/bin_install/taraxad
+        - persist_to_workspace:
+           root: cmake-docker-build-debug
+           paths: [ bin_install ]
+
+workflows:
+  build-and-release:
+    jobs:
+      - create-and-push-builder:
+          context: taraxa-node
+          filters:
+            branches: 
+              only: 
+                #- develop
+               - cirleci
+      #- gcp-gcr/build-and-push-image:
+      #    executor: docker
+      #    image: taraxa-node/taraxa-builder
+      #    context: taraxa-node
+      #    setup-remote-docker: true
+      #    use-docker-layer-caching: true
+      - build-linux:
+          filters:
+            branches: 
+              ignore: /.*/
+            tags:  
+              only: /^v\d+\.\d+\.\d+$/
+          context: taraxa-node
+#         requires: [ gcp-gcr/build-and-push-image ]
+      - build-mac:
+          filters:
+            branches: 
+              ignore: /.*/
+            tags:  
+              only: /^v\d+\.\d+\.\d+$/
+          context: taraxa-node
+      - github-release/create:
+          context: taraxa-node
+          attach-workspace: true
+          workspace-root: cmake-docker-build-debug
+          path: cmake-docker-build-debug/bin_install/taraxad-x86_64
+          filters:
+            branches: 
+              ignore: /.*/
+            tags:  
+              only: /^v\d+\.\d+\.\d+$/
+          requires: 
+            - build-linux
+            - build-mac
+      - github-release/create:
+          context: taraxa-node
+          attach-workspace: true
+          workspace-root: cmake-build
+          path: cmake-build/bin/taraxad-macos
+          filters:
+            branches: 
+              ignore: /.*/
+            tags:  
+              only: /^v\d+\.\d+\.\d+$/
+          requires: 
+            - build-linux
+            - build-mac
