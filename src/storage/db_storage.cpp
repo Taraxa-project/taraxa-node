@@ -698,6 +698,26 @@ void DbStorage::putFinalizedDagBlockHashesByAnchor(WriteBatch& b, blk_hash_t con
   batch_put(b, DbStorage::Columns::dag_finalized_blocks, anchor, RLPStream().appendVector(hs).out());
 }
 
+uint64_t DbStorage::getDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus const& field) {
+  auto status = lookup(toSlice((uint8_t)field), Columns::dpos_proposal_period_levels_status);
+  if (!status.empty()) {
+    uint64_t value;
+    memcpy(&value, status.data(), sizeof(uint64_t));
+    return value;
+  }
+
+  return 0;
+}
+
+void DbStorage::saveDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus const& field, uint64_t const& value) {
+  insert(Columns::dpos_proposal_period_levels_status, toSlice((uint8_t)field), toSlice(value));
+}
+
+void DbStorage::addDposProposalPeriodLevelsFieldToBatch(DposProposalPeriodLevelsStatus const& field,
+                                                        uint64_t const& value, BatchPtr const& write_batch) {
+  batch_put(write_batch, Columns::dpos_proposal_period_levels_status, toSlice((uint8_t)field), toSlice(value));
+}
+
 bytes DbStorage::getProposalPeriodDagLevelsMap(uint64_t proposal_period) {
   return asBytes(lookup(toSlice(proposal_period), Columns::proposal_period_levels_map));
 }
