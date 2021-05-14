@@ -94,6 +94,7 @@ class TaraxaConan(ConanFile):
         self._configure_boost_libs()
         # Configure gtest
         self.options["gtest"].build_gmock = False
+        self.options["rocksdb"].use_rtti = True
 
     def _configure_cmake(self):
         cmake = CMake(self)
