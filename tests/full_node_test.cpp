@@ -37,20 +37,20 @@ void send_2_nodes_trxs() {
   std::string sendtrx1 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
                                       "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-                                      "delay": 500, 
-                                      "number": 600, 
-                                      "nonce": 0, 
+                                      "delay": 500,
+                                      "number": 600,
+                                      "nonce": 0,
                                       "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"}]}' 0.0.0.0:7777)";
   std::string sendtrx2 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
                                       "params": [{ "secret": "e6af8ca3b4074243f9214e16ac94831f17be38810d09a3edeb56ab55be848a1e",
-                                      "delay": 700, 
-                                      "number": 400, 
-                                      "nonce": 600 , 
+                                      "delay": 700,
+                                      "number": 400,
+                                      "nonce": 600 ,
                                       "receiver":"4fae949ac2b72960fbe857b56532e2d3c8418d5e"}]}' 0.0.0.0:7778)";
   std::cout << "Sending trxs ..." << std::endl;
-  std::thread t1([sendtrx1]() { system(sendtrx1.c_str()); });
-  std::thread t2([sendtrx2]() { system(sendtrx2.c_str()); });
+  std::thread t1([sendtrx1]() { EXPECT_FALSE(system(sendtrx1.c_str())); });
+  std::thread t2([sendtrx2]() { EXPECT_FALSE(system(sendtrx2.c_str())); });
 
   t1.join();
   t2.join();
@@ -69,7 +69,7 @@ void send_dummy_trx() {
                                         "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"}]}' 0.0.0.0:7777 > /dev/null)";
 
   std::cout << "Send dummy transaction ..." << std::endl;
-  system(dummy_trx.c_str());
+  EXPECT_FALSE(system(dummy_trx.c_str()));
 }
 
 struct FullNodeTest : BaseTest {};
@@ -166,16 +166,21 @@ TEST_F(FullNodeTest, db_test) {
   // PBFT manager voted value
   EXPECT_EQ(db.getPbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round), nullptr);
   EXPECT_EQ(db.getPbftMgrVotedValue(PbftMgrVotedValue::soft_voted_block_hash_in_round), nullptr);
+  EXPECT_EQ(db.getPbftMgrVotedValue(PbftMgrVotedValue::vrf_pbft_chain_last_block_hash), nullptr);
   db.savePbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round, blk_hash_t(1));
   db.savePbftMgrVotedValue(PbftMgrVotedValue::soft_voted_block_hash_in_round, blk_hash_t(2));
+  db.savePbftMgrVotedValue(PbftMgrVotedValue::vrf_pbft_chain_last_block_hash, blk_hash_t(3));
   EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round), blk_hash_t(1));
   EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::soft_voted_block_hash_in_round), blk_hash_t(2));
+  EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::vrf_pbft_chain_last_block_hash), blk_hash_t(3));
   batch = db.createWriteBatch();
   db.addPbftMgrVotedValueToBatch(PbftMgrVotedValue::own_starting_value_in_round, blk_hash_t(4), batch);
   db.addPbftMgrVotedValueToBatch(PbftMgrVotedValue::soft_voted_block_hash_in_round, blk_hash_t(5), batch);
+  db.addPbftMgrVotedValueToBatch(PbftMgrVotedValue::vrf_pbft_chain_last_block_hash, blk_hash_t(6), batch);
   db.commitWriteBatch(batch);
   EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round), blk_hash_t(4));
   EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::soft_voted_block_hash_in_round), blk_hash_t(5));
+  EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::vrf_pbft_chain_last_block_hash), blk_hash_t(6));
 
   // PBFT cert voted block hash
   EXPECT_EQ(db.getPbftCertVotedBlockHash(1), nullptr);
@@ -253,14 +258,82 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(db.getStatusField(StatusDbField::ExecutedBlkCount), 10);
   EXPECT_EQ(db.getStatusField(StatusDbField::ExecutedTrxCount), 20);
 
+  // Unverified votes
+  std::vector<Vote> unverified_votes = db.getUnverifiedVotes();
+  EXPECT_TRUE(unverified_votes.empty());
+  EXPECT_FALSE(db.unverifiedVoteExist(blk_hash_t(0)));
+  blk_hash_t last_pbft_block_hash(0);
+  blk_hash_t voted_pbft_block_hash(1);
+  auto weighted_index = 0;
+  for (auto i = 0; i < 3; i++) {
+    auto round = i;
+    auto step = i;
+    VrfPbftMsg msg(last_pbft_block_hash, soft_vote_type, round, step, weighted_index);
+    vrf_wrapper::vrf_sk_t vrf_sk(
+        "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
+        "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
+    VrfPbftSortition vrf_sortition(vrf_sk, msg);
+    Vote vote(g_secret, vrf_sortition, voted_pbft_block_hash);
+    unverified_votes.emplace_back(vote);
+  }
+  db.saveUnverifiedVote(unverified_votes[0]);
+  EXPECT_TRUE(db.unverifiedVoteExist(unverified_votes[0].getHash()));
+  EXPECT_EQ(db.getUnverifiedVote(unverified_votes[0].getHash())->rlp(true), unverified_votes[0].rlp(true));
+  batch = db.createWriteBatch();
+  db.addUnverifiedVoteToBatch(unverified_votes[1], batch);
+  db.addUnverifiedVoteToBatch(unverified_votes[2], batch);
+  db.commitWriteBatch(batch);
+  EXPECT_TRUE(db.unverifiedVoteExist(unverified_votes[1].getHash()));
+  EXPECT_TRUE(db.unverifiedVoteExist(unverified_votes[2].getHash()));
+  EXPECT_EQ(db.getUnverifiedVotes().size(), unverified_votes.size());
+  batch = db.createWriteBatch();
+  db.removeUnverifiedVoteToBatch(unverified_votes[0].getHash(), batch);
+  db.removeUnverifiedVoteToBatch(unverified_votes[1].getHash(), batch);
+  db.commitWriteBatch(batch);
+  EXPECT_FALSE(db.unverifiedVoteExist(unverified_votes[0].getHash()));
+  EXPECT_FALSE(db.unverifiedVoteExist(unverified_votes[1].getHash()));
+  EXPECT_EQ(db.getUnverifiedVotes().size(), unverified_votes.size() - 2);
+
+  // Verified votes
+  std::vector<Vote> verified_votes = db.getVerifiedVotes();
+  EXPECT_TRUE(verified_votes.empty());
+  last_pbft_block_hash = blk_hash_t(1);
+  voted_pbft_block_hash = blk_hash_t(2);
+  weighted_index = 0;
+  for (auto i = 0; i < 3; i++) {
+    auto round = i;
+    auto step = i;
+    VrfPbftMsg msg(last_pbft_block_hash, next_vote_type, round, step, weighted_index);
+    vrf_wrapper::vrf_sk_t vrf_sk(
+        "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
+        "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
+    VrfPbftSortition vrf_sortition(vrf_sk, msg);
+    Vote vote(g_secret, vrf_sortition, voted_pbft_block_hash);
+    verified_votes.emplace_back(vote);
+  }
+  db.saveVerifiedVote(verified_votes[0]);
+  EXPECT_EQ(db.getVerifiedVote(verified_votes[0].getHash())->rlp(true), verified_votes[0].rlp(true));
+  batch = db.createWriteBatch();
+  db.addVerifiedVoteToBatch(verified_votes[1], batch);
+  db.addVerifiedVoteToBatch(verified_votes[2], batch);
+  db.commitWriteBatch(batch);
+  EXPECT_EQ(db.getVerifiedVotes().size(), verified_votes.size());
+  batch = db.createWriteBatch();
+  for (size_t i = 0; i < verified_votes.size(); i++) {
+    db.removeVerifiedVoteToBatch(verified_votes[i].getHash(), batch);
+  }
+  db.commitWriteBatch(batch);
+  EXPECT_TRUE(db.getVerifiedVotes().empty());
+
   // Soft votes
   auto round = 1, step = 2;
   std::vector<Vote> soft_votes = db.getSoftVotes(round);
   EXPECT_TRUE(soft_votes.empty());
-  blk_hash_t last_pbft_block_hash(0);
+  last_pbft_block_hash = blk_hash_t(0);
+  weighted_index = 0;
   for (auto i = 0; i < 3; i++) {
     blk_hash_t voted_pbft_block_hash(i);
-    VrfPbftMsg msg(last_pbft_block_hash, soft_vote_type, round, step);
+    VrfPbftMsg msg(last_pbft_block_hash, soft_vote_type, round, step, weighted_index);
     vrf_wrapper::vrf_sk_t vrf_sk(
         "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
         "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -274,7 +347,7 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(soft_votes_from_db.size(), 3);
   for (auto i = 3; i < 5; i++) {
     blk_hash_t voted_pbft_block_hash(i);
-    VrfPbftMsg msg(last_pbft_block_hash, soft_vote_type, round, step);
+    VrfPbftMsg msg(last_pbft_block_hash, soft_vote_type, round, step, weighted_index);
     vrf_wrapper::vrf_sk_t vrf_sk(
         "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
         "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -296,10 +369,11 @@ TEST_F(FullNodeTest, db_test) {
 
   // Certified votes
   std::vector<Vote> cert_votes;
-  blk_hash_t voted_pbft_block_hash(10);
+  voted_pbft_block_hash = blk_hash_t(10);
+  weighted_index = 0;
   for (auto i = 0; i < 3; i++) {
     blk_hash_t last_pbft_block_hash(i);
-    VrfPbftMsg msg(last_pbft_block_hash, cert_vote_type, 2, 3);
+    VrfPbftMsg msg(last_pbft_block_hash, cert_vote_type, 2, 3, weighted_index);
     vrf_wrapper::vrf_sk_t vrf_sk(
         "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
         "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -317,12 +391,13 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(pbft_block_cert_votes.rlp(), pbft_block_cert_votes_from_db.rlp());
 
   // Next votes
-  std::vector<Vote> next_votes;
-  last_pbft_block_hash = blk_hash_t(0);
   round = 3, step = 5;
+  weighted_index = 0;
+  std::vector<Vote> next_votes = db.getNextVotes(round);
+  EXPECT_TRUE(next_votes.empty());
   for (auto i = 0; i < 3; i++) {
     blk_hash_t voted_pbft_block_hash(i);
-    VrfPbftMsg msg(last_pbft_block_hash, cert_vote_type, round, step);
+    VrfPbftMsg msg(last_pbft_block_hash, next_vote_type, round, step, weighted_index);
     vrf_wrapper::vrf_sk_t vrf_sk(
         "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
         "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -334,9 +409,10 @@ TEST_F(FullNodeTest, db_test) {
   auto next_votes_from_db = db.getNextVotes(round);
   EXPECT_EQ(next_votes.size(), next_votes_from_db.size());
   EXPECT_EQ(next_votes_from_db.size(), 3);
+  next_votes.clear();
   for (auto i = 3; i < 5; i++) {
     blk_hash_t voted_pbft_block_hash(i);
-    VrfPbftMsg msg(last_pbft_block_hash, cert_vote_type, round, step);
+    VrfPbftMsg msg(last_pbft_block_hash, next_vote_type, round, step, weighted_index);
     vrf_wrapper::vrf_sk_t vrf_sk(
         "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
         "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -349,7 +425,12 @@ TEST_F(FullNodeTest, db_test) {
   db.commitWriteBatch(batch);
   next_votes_from_db = db.getNextVotes(round);
   EXPECT_EQ(next_votes.size(), next_votes_from_db.size());
-  EXPECT_EQ(next_votes_from_db.size(), 5);
+  EXPECT_EQ(next_votes_from_db.size(), 2);
+  batch = db.createWriteBatch();
+  db.removeNextVotesToBatch(round, batch);
+  db.commitWriteBatch(batch);
+  next_votes_from_db = db.getNextVotes(round);
+  EXPECT_TRUE(next_votes_from_db.empty());
 
   // period_pbft_block
   batch = db.createWriteBatch();
@@ -366,6 +447,37 @@ TEST_F(FullNodeTest, db_test) {
   db.commitWriteBatch(batch);
   EXPECT_EQ(1, *db.getDagBlockPeriod(blk_hash_t(1)));
   EXPECT_EQ(2, *db.getDagBlockPeriod(blk_hash_t(2)));
+
+  // DPOS proposal period DAG levels status
+  EXPECT_EQ(0, db.getDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus::max_proposal_period));
+  db.saveDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus::max_proposal_period, 5);
+  EXPECT_EQ(5, db.getDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus::max_proposal_period));
+  batch = db.createWriteBatch();
+  db.addDposProposalPeriodLevelsFieldToBatch(DposProposalPeriodLevelsStatus::max_proposal_period, 10, batch);
+  db.commitWriteBatch(batch);
+  EXPECT_EQ(10, db.getDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus::max_proposal_period));
+
+  // DPOS proposal period DAG levels map
+  EXPECT_TRUE(db.getProposalPeriodDagLevelsMap(0).empty());
+  ProposalPeriodDagLevelsMap proposal_period_0_levels;
+  db.saveProposalPeriodDagLevelsMap(proposal_period_0_levels);
+  auto period_0_levels_bytes = db.getProposalPeriodDagLevelsMap(0);
+  EXPECT_FALSE(period_0_levels_bytes.empty());
+  ProposalPeriodDagLevelsMap period_0_levels_from_db(period_0_levels_bytes);
+  EXPECT_EQ(period_0_levels_from_db.proposal_period, 0);
+  EXPECT_EQ(period_0_levels_from_db.levels_interval.first, 0);
+  EXPECT_EQ(period_0_levels_from_db.levels_interval.second, proposal_period_0_levels.max_levels_per_period);
+  EXPECT_EQ(period_0_levels_from_db.levels_interval.second, 100);
+  batch = db.createWriteBatch();
+  ProposalPeriodDagLevelsMap proposal_period_1_levels(1, 101, 110);
+  db.addProposalPeriodDagLevelsMapToBatch(proposal_period_1_levels, batch);
+  db.commitWriteBatch(batch);
+  auto period_1_levels_bytes = db.getProposalPeriodDagLevelsMap(1);
+  EXPECT_FALSE(period_1_levels_bytes.empty());
+  ProposalPeriodDagLevelsMap period_1_levels_from_db(period_1_levels_bytes);
+  EXPECT_EQ(period_1_levels_from_db.proposal_period, 1);
+  EXPECT_EQ(period_1_levels_from_db.levels_interval.first, 101);
+  EXPECT_EQ(period_1_levels_from_db.levels_interval.second, 110);
 }
 
 TEST_F(FullNodeTest, sync_five_nodes) {
@@ -435,7 +547,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
     uint16_t thread_completed = 0;
     std::mutex m;
     std::condition_variable cv;
-    for (auto i(1); i < nodes.size(); ++i) {
+    for (size_t i(1); i < nodes.size(); ++i) {
       threads.emplace_back([i, &context, &nodes, &thread_completed, &init_bal, &m, &cv] {
         context.coin_transfer(0, nodes[i]->getAddress(), init_bal, true);
         {
@@ -466,8 +578,8 @@ TEST_F(FullNodeTest, sync_five_nodes) {
   {
     vector<thread> threads;
     vector<bool> thread_completed;
-    for (auto i(0); i < nodes.size(); ++i) thread_completed.push_back(false);
-    for (auto i(0); i < nodes.size(); ++i) {
+    for (size_t i(0); i < nodes.size(); ++i) thread_completed.push_back(false);
+    for (size_t i(0); i < nodes.size(); ++i) {
       auto to = i < nodes.size() - 1 ? nodes[i + 1]->getAddress() : addr_t("d79b2575d932235d87ea2a08387ae489c31aa2c9");
       threads.emplace_back([i, to, &context, &thread_completed] {
         for (auto _(0); _ < 10; ++_) {
@@ -490,7 +602,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
   std::cout << "Issued transatnion count " << context.getIssuedTrxCount();
 
   auto TIMEOUT = SYNC_TIMEOUT;
-  for (auto i = 0; i < TIMEOUT; i++) {
+  for (unsigned i = 0; i < TIMEOUT; i++) {
     auto num_vertices1 = nodes[0]->getDagManager()->getNumVerticesInDag();
     auto num_vertices2 = nodes[1]->getDagManager()->getNumVerticesInDag();
     auto num_vertices3 = nodes[2]->getDagManager()->getNumVerticesInDag();
@@ -560,7 +672,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
   std::cout << "All transactions received ..." << std::endl;
 
   TIMEOUT = SYNC_TIMEOUT * 10;
-  for (auto i = 0; i < TIMEOUT; i++) {
+  for (unsigned i = 0; i < TIMEOUT; i++) {
     auto trx_executed1 = nodes[0]->getDB()->getNumTransactionExecuted();
     auto trx_executed2 = nodes[1]->getDB()->getNumTransactionExecuted();
     auto trx_executed3 = nodes[2]->getDB()->getNumTransactionExecuted();
@@ -629,7 +741,6 @@ TEST_F(FullNodeTest, sync_five_nodes) {
     k++;
     auto vertices_diff = node->getDagManager()->getNumVerticesInDag().first - 1 - node->getDB()->getNumBlockExecuted();
     if (vertices_diff >= nodes.size()                                      //
-        || vertices_diff < 0                                               //
         || node->getDB()->getNumTransactionExecuted() != issued_trx_count  //
         || node->getDB()->getNumTransactionInDag() != issued_trx_count) {
       std::cout << "Node " << k << " :Number of trx packed = " << node->getDB()->getNumTransactionInDag() << std::endl;
@@ -641,7 +752,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
       std::cout << "Node " << k << " :Number of vertices in Dag = " << num_vertices.first << " , "
                 << num_vertices.second << std::endl;
       auto dags = getOrderedDagBlocks(node->getDB());
-      for (auto i(0); i < dags.size(); ++i) {
+      for (size_t i(0); i < dags.size(); ++i) {
         auto d = dags[i];
         std::cout << i << " " << d << " trx: " << nodes[0]->getDagBlockManager()->getDagBlock(d)->getTrxs().size()
                   << std::endl;
@@ -686,7 +797,6 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
 
   g_mock_dag0 = samples::createMockDag1(node->getConfig().chain.dag_genesis_block.getHash().toString());
 
-  auto num_blks = g_mock_dag0->size();
   for (int i = 1; i <= 9; i++) {
     node->getDagBlockManager()->insertBlock(g_mock_dag0[i]);
   }
@@ -741,7 +851,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
 
   // -------- third period ----------
 
-  for (int i = 17; i < g_mock_dag0->size(); i++) {
+  for (size_t i = 17; i < g_mock_dag0->size(); i++) {
     node->getDagBlockManager()->insertBlock(g_mock_dag0[i]);
   }
   taraxa::thisThreadSleepForMilliSeconds(200);
@@ -820,7 +930,7 @@ TEST_F(FullNodeTest, reconstruct_dag) {
 
     taraxa::thisThreadSleepForMilliSeconds(100);
 
-    for (int i = 1; i < num_blks; i++) {
+    for (size_t i = 1; i < num_blks; i++) {
       node->getDagBlockManager()->insertBlock(g_mock_dag0[i]);
     }
 
@@ -840,7 +950,7 @@ TEST_F(FullNodeTest, reconstruct_dag) {
     FullNode::Handle node(node_cfgs[0], true);
     // TODO: pbft does not support node stop yet, to be fixed ...
     node->getPbftManager()->stop();
-    for (int i = 1; i < num_blks; i++) {
+    for (size_t i = 1; i < num_blks; i++) {
       node->getDagBlockManager()->insertBlock(g_mock_dag0[i]);
     }
     taraxa::thisThreadSleepForMilliSeconds(100);
@@ -870,7 +980,7 @@ TEST_F(FullNodeTest, sync_two_nodes1) {
   auto num_trx1 = nodes[0]->getTransactionManager()->getTransactionCount();
   auto num_trx2 = nodes[1]->getTransactionManager()->getTransactionCount();
   // add more delay if sync is not done
-  for (auto i = 0; i < SYNC_TIMEOUT; i++) {
+  for (unsigned i = 0; i < SYNC_TIMEOUT; i++) {
     if (num_trx1 == 1000 && num_trx2 == 1000) break;
     taraxa::thisThreadSleepForMilliSeconds(500);
     num_trx1 = nodes[0]->getTransactionManager()->getTransactionCount();
@@ -881,7 +991,7 @@ TEST_F(FullNodeTest, sync_two_nodes1) {
 
   auto num_vertices1 = nodes[0]->getDagManager()->getNumVerticesInDag();
   auto num_vertices2 = nodes[1]->getDagManager()->getNumVerticesInDag();
-  for (auto i = 0; i < SYNC_TIMEOUT; i++) {
+  for (unsigned i = 0; i < SYNC_TIMEOUT; i++) {
     if (num_vertices1.first > 3 && num_vertices2.first > 3 && num_vertices1 == num_vertices2) break;
     taraxa::thisThreadSleepForMilliSeconds(500);
     num_vertices1 = nodes[0]->getDagManager()->getNumVerticesInDag();
@@ -907,7 +1017,7 @@ TEST_F(FullNodeTest, persist_counter) {
     num_trx1 = nodes[0]->getTransactionManager()->getTransactionCount();
     num_trx2 = nodes[1]->getTransactionManager()->getTransactionCount();
     // add more delay if sync is not done
-    for (auto i = 0; i < SYNC_TIMEOUT; i++) {
+    for (unsigned i = 0; i < SYNC_TIMEOUT; i++) {
       if (num_trx1 == 1000 && num_trx2 == 1000) break;
       taraxa::thisThreadSleepForMilliSeconds(500);
       num_trx1 = nodes[0]->getTransactionManager()->getTransactionCount();
@@ -929,7 +1039,7 @@ TEST_F(FullNodeTest, persist_counter) {
     num_exe_trx1 = nodes[0]->getDB()->getNumTransactionExecuted();
     num_exe_trx2 = nodes[1]->getDB()->getNumTransactionExecuted();
     // add more delay if sync is not done
-    for (auto i = 0; i < SYNC_TIMEOUT; i++) {
+    for (unsigned i = 0; i < SYNC_TIMEOUT; i++) {
       if (num_exe_trx1 == 1001 && num_exe_trx2 == 1001) break;
       taraxa::thisThreadSleepForMilliSeconds(200);
       num_exe_trx1 = nodes[0]->getDB()->getNumTransactionExecuted();
@@ -979,7 +1089,7 @@ TEST_F(FullNodeTest, sync_two_nodes2) {
   auto vertices1 = nodes[0]->getDagManager()->getNumVerticesInDag();
   auto vertices2 = nodes[1]->getDagManager()->getNumVerticesInDag();
   // let nodes[1] sync nodes[0]
-  for (auto i = 0; i < SYNC_TIMEOUT; i++) {
+  for (unsigned i = 0; i < SYNC_TIMEOUT; i++) {
     if (vertices1 == vertices2 && vertices1.first > 3) break;
     taraxa::thisThreadSleepForMilliSeconds(500);
     vertices1 = nodes[0]->getDagManager()->getNumVerticesInDag();
@@ -1006,7 +1116,7 @@ TEST_F(FullNodeTest, single_node_run_two_transactions) {
                                       ]}' 0.0.0.0:7777)";
 
   std::cout << "Send first trx ..." << std::endl;
-  system(send_raw_trx1.c_str());
+  EXPECT_FALSE(system(send_raw_trx1.c_str()));
   std::cout << "First trx received ..." << std::endl;
 
   EXPECT_HAPPENS({60s, 1s}, [&](auto &ctx) {
@@ -1017,7 +1127,7 @@ TEST_F(FullNodeTest, single_node_run_two_transactions) {
 
   std::cout << "First trx executed ..." << std::endl;
   std::cout << "Send second trx ..." << std::endl;
-  system(send_raw_trx2.c_str());
+  EXPECT_FALSE(system(send_raw_trx2.c_str()));
 
   EXPECT_HAPPENS({60s, 1s}, [&](auto &ctx) {
     WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), 2);
@@ -1043,12 +1153,12 @@ TEST_F(FullNodeTest, two_nodes_run_two_transactions) {
                                       ]}' 0.0.0.0:7777)";
 
   std::cout << "Send first trx ..." << std::endl;
-  system(send_raw_trx1.c_str());
+  EXPECT_FALSE(system(send_raw_trx1.c_str()));
   std::cout << "First trx received ..." << std::endl;
 
   auto trx_executed1 = nodes[0]->getDB()->getNumTransactionExecuted();
 
-  for (auto i(0); i < SYNC_TIMEOUT; ++i) {
+  for (unsigned i(0); i < SYNC_TIMEOUT; ++i) {
     trx_executed1 = nodes[0]->getDB()->getNumTransactionExecuted();
     if (trx_executed1 == 1) break;
     thisThreadSleepForMilliSeconds(500);
@@ -1058,11 +1168,11 @@ TEST_F(FullNodeTest, two_nodes_run_two_transactions) {
   EXPECT_EQ(trx_executed1, 1);
   std::cout << "First trx executed ..." << std::endl;
   std::cout << "Send second trx ..." << std::endl;
-  system(send_raw_trx2.c_str());
+  EXPECT_FALSE(system(send_raw_trx2.c_str()));
 
   trx_executed1 = nodes[0]->getDB()->getNumTransactionExecuted();
 
-  for (auto i(0); i < SYNC_TIMEOUT; ++i) {
+  for (unsigned i(0); i < SYNC_TIMEOUT; ++i) {
     trx_executed1 = nodes[0]->getDB()->getNumTransactionExecuted();
     if (trx_executed1 == 2) break;
     thisThreadSleepForMilliSeconds(1000);
@@ -1079,7 +1189,7 @@ TEST_F(FullNodeTest, save_network_to_file) {
     FullNode::Handle node2(node_cfgs[1], true);
     FullNode::Handle node3(node_cfgs[2], true);
 
-    for (int i = 0; i < SYNC_TIMEOUT; i++) {
+    for (unsigned i = 0; i < SYNC_TIMEOUT; i++) {
       taraxa::thisThreadSleepForSeconds(1);
       if (1 == node2->getNetwork()->getPeerCount() && 1 == node3->getNetwork()->getPeerCount()) break;
     }
@@ -1101,7 +1211,7 @@ TEST_F(FullNodeTest, receive_send_transaction) {
   std::cout << "1000 transaction are sent through RPC ..." << std::endl;
 
   auto num_proposed_blk = node->getNumProposedBlocks();
-  for (auto i = 0; i < SYNC_TIMEOUT; i++) {
+  for (unsigned i = 0; i < SYNC_TIMEOUT; i++) {
     if (num_proposed_blk > 0) {
       break;
     }
@@ -1120,9 +1230,9 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   auto gas_price = val_t(2);
   auto data = bytes();
   auto nonce = 0;
-  auto trxs_count = 0;
+  uint64_t trxs_count = 0;
   auto test_transfer_val = node_1_genesis_bal / node_cfgs.size();
-  for (auto i(1); i < nodes.size(); ++i) {
+  for (size_t i(1); i < nodes.size(); ++i) {
     Transaction master_boot_node_send_coins(nonce++, test_transfer_val, gas_price, 100000, data,
                                             nodes[0]->getSecretKey(), nodes[i]->getAddress());
     // broadcast trx and insert
@@ -1132,7 +1242,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
 
   std::cout << "Checking all nodes executed transactions at initialization" << std::endl;
   wait({150s, 2s}, [&](auto &ctx) {
-    for (auto i(0); i < nodes.size(); ++i) {
+    for (size_t i(0); i < nodes.size(); ++i) {
       if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
         std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted()
                   << " transactions, expected " << trxs_count << std::endl;
@@ -1147,11 +1257,11 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
     }
   });
   // Check account balance for each node
-  for (auto i(0); i < nodes.size(); ++i) {
+  for (size_t i(0); i < nodes.size(); ++i) {
     std::cout << "Checking account balances on node " << i << " ..." << std::endl;
     EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(nodes[0]->getAddress()).first,
               node_1_genesis_bal - (node_cfgs.size() - 1) * test_transfer_val);
-    for (auto j(1); j < nodes.size(); ++j) {
+    for (size_t j(1); j < nodes.size(); ++j) {
       // For node1 to node4 balances info on each node
       EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(nodes[j]->getAddress()).first, test_transfer_val);
     }
@@ -1159,7 +1269,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
 
   // Sending coins in Robin Cycle
   auto send_coins = 1;
-  for (auto i(0); i < nodes.size(); ++i) {
+  for (size_t i(0); i < nodes.size(); ++i) {
     auto receiver_index = (i + 1) % nodes.size();
     // Each node sends 500 transactions
     auto j = 0;
@@ -1175,7 +1285,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   std::cout << "Checking all nodes execute transactions from robin cycle" << std::endl;
 
   wait({150s, 2s}, [&](auto &ctx) {
-    for (auto i(0); i < nodes.size(); ++i) {
+    for (size_t i(0); i < nodes.size(); ++i) {
       if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
         std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted()
                   << " transactions, expected " << trxs_count << std::endl;
@@ -1241,31 +1351,36 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
 }
 
 TEST_F(FullNodeTest, db_rebuild) {
-  auto trxs_count = 0;
+  uint64_t trxs_count = 0;
   auto trxs_count_at_pbft_size_5 = 0;
-  auto pbft_chain_size = 0;
+  auto executed_trxs = 0;
+  auto executed_chain_size = 0;
+
   {
     auto node_cfgs = make_node_cfgs<5>(1);
-    auto node_1_genesis_bal = own_effective_genesis_bal(node_cfgs[0]);
     auto nodes = launch_nodes(node_cfgs);
-    // Even distribute coins from master boot node to other nodes. Since master
-    // boot node owns whole coins, the active players should be only master boot
-    // node at the moment.
+
     auto gas_price = val_t(2);
     auto data = bytes();
     auto nonce = 0;
 
     // Issue dummy trx until at least 10 pbft blocks created
-    while (pbft_chain_size < 10) {
-      Transaction dummy_trx(nonce++, 0, 2, 100000, bytes(), nodes[0]->getSecretKey(), nodes[0]->getAddress());
+    while (executed_chain_size < 10) {
+      Transaction dummy_trx(nonce++, 0, gas_price, TEST_TX_GAS_LIMIT, bytes(), nodes[0]->getSecretKey(),
+                            nodes[0]->getAddress());
       nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false);
       trxs_count++;
       thisThreadSleepForMilliSeconds(100);
-      pbft_chain_size = nodes[0]->getFinalChain()->last_block_number();
-      if (pbft_chain_size == 5) {
+      executed_chain_size = nodes[0]->getFinalChain()->last_block_number();
+      if (executed_chain_size == 5) {
         trxs_count_at_pbft_size_5 = nodes[0]->getDB()->getNumTransactionExecuted();
       }
     }
+    executed_trxs = nodes[0]->getDB()->getNumTransactionExecuted();
+    std::cout << "Executed transactions " << trxs_count_at_pbft_size_5 << " at chain size 5" << std::endl;
+    std::cout << "Total executed transactions " << executed_trxs << std::endl;
+    std::cout << "Executed chain size " << executed_chain_size << std::endl;
+
     std::cout << "Checking transactions executed" << std::endl;
     wait({60s, 1s}, [&](auto &ctx) {
       if (nodes[0]->getDB()->getNumTransactionExecuted() != trxs_count) {
@@ -1274,23 +1389,29 @@ TEST_F(FullNodeTest, db_rebuild) {
         ctx.fail();
       }
     });
-    pbft_chain_size = nodes[0]->getFinalChain()->last_block_number();
+    executed_chain_size = nodes[0]->getFinalChain()->last_block_number();
+    std::cout << "Executed transactions " << trxs_count_at_pbft_size_5 << " at chain size 5" << std::endl;
+    std::cout << "Total executed transactions " << executed_trxs << std::endl;
+    std::cout << "Executed chain size " << executed_chain_size << std::endl;
   }
 
   {
+    std::cout << "Test rebuild DB" << std::endl;
     auto node_cfgs = make_node_cfgs<5>(1);
     node_cfgs[0].test_params.rebuild_db = true;
     auto nodes = launch_nodes(node_cfgs);
   }
 
   {
+    std::cout << "Check rebuild DB" << std::endl;
     auto node_cfgs = make_node_cfgs<5>(1);
     auto nodes = launch_nodes(node_cfgs);
     EXPECT_EQ(nodes[0]->getDB()->getNumTransactionExecuted(), trxs_count);
-    EXPECT_EQ(nodes[0]->getFinalChain()->last_block_number(), pbft_chain_size);
+    EXPECT_EQ(nodes[0]->getFinalChain()->last_block_number(), executed_chain_size);
   }
 
   {
+    std::cout << "Test rebuild for period 5" << std::endl;
     auto node_cfgs = make_node_cfgs<5>(1);
     node_cfgs[0].test_params.rebuild_db = true;
     node_cfgs[0].test_params.rebuild_db_period = 5;
@@ -1298,12 +1419,13 @@ TEST_F(FullNodeTest, db_rebuild) {
   }
 
   {
+    std::cout << "Check rebuild for period 5" << std::endl;
     auto node_cfgs = make_node_cfgs<5>(1);
     auto nodes = launch_nodes(node_cfgs);
     EXPECT_EQ(nodes[0]->getDB()->getNumTransactionExecuted(), trxs_count_at_pbft_size_5);
     EXPECT_EQ(nodes[0]->getFinalChain()->last_block_number(), 5);
   }
-}  // namespace taraxa::core_tests
+}
 
 TEST_F(FullNodeTest, transfer_to_self) {
   auto node_cfgs = make_node_cfgs<5, true>(3);
@@ -1312,9 +1434,9 @@ TEST_F(FullNodeTest, transfer_to_self) {
   std::cout << "Send first trx ..." << std::endl;
   auto node_addr = nodes[0]->getAddress();
   auto initial_bal = nodes[0]->getFinalChain()->getBalance(node_addr);
-  auto trx_count(100);
+  uint64_t trx_count(100);
   EXPECT_TRUE(initial_bal.second);
-  system(fmt(R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0",
+  EXPECT_FALSE(system(fmt(R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0",
   "method": "create_test_coin_transactions",
   "params": [{
     "secret":"3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
@@ -1322,13 +1444,13 @@ TEST_F(FullNodeTest, transfer_to_self) {
     "number": %s,
     "nonce": 0,
     "receiver": "%s"}]}' 0.0.0.0:7777)",
-             trx_count, node_addr)
-             .data());
+                          trx_count, node_addr)
+                          .data()));
   thisThreadSleepForSeconds(5);
   EXPECT_EQ(nodes[0]->getTransactionManager()->getTransactionCount(), trx_count);
   auto trx_executed1 = nodes[0]->getDB()->getNumTransactionExecuted();
   send_dummy_trx();
-  for (auto i(0); i < SYNC_TIMEOUT; ++i) {
+  for (unsigned i(0); i < SYNC_TIMEOUT; ++i) {
     trx_executed1 = nodes[0]->getDB()->getNumTransactionExecuted();
     if (trx_executed1 == trx_count + 1) break;
     thisThreadSleepForMilliSeconds(100);
@@ -1401,7 +1523,7 @@ TEST_F(FullNodeTest, chain_config_json) {
 	}
 })";
   Json::Value default_chain_config_json;
-  ASSERT_TRUE(Json::Reader().parse(expected_default_chain_cfg_json, default_chain_config_json));
+  istringstream(expected_default_chain_cfg_json) >> default_chain_config_json;
   ASSERT_EQ(default_chain_config_json, enc_json(ChainConfig::predefined()));
   Json::Value test_node_config_json;
   std::ifstream((DIR_CONF / "conf_taraxa1.json").string(), std::ifstream::binary) >> test_node_config_json;

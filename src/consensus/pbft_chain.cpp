@@ -3,6 +3,7 @@
 #include <libdevcore/CommonJS.h>
 
 #include "pbft_manager.hpp"
+#include "util/jsoncpp.hpp"
 
 using namespace std;
 
@@ -33,9 +34,7 @@ PbftBlock::PbftBlock(blk_hash_t const& prev_blk_hash, blk_hash_t const& dag_blk_
 }
 
 PbftBlock::PbftBlock(std::string const& str) {
-  Json::Value doc;
-  Json::Reader reader;
-  reader.parse(str, doc);
+  auto doc = util::parse_json(str);
   block_hash_ = blk_hash_t(doc["block_hash"].asString());
   prev_block_hash_ = blk_hash_t(doc["prev_block_hash"].asString());
   dag_block_hash_as_pivot_ = blk_hash_t(doc["dag_block_hash_as_pivot"].asString());
@@ -124,7 +123,7 @@ bytes PbftBlockCert::rlp() const {
   s.appendRaw(pbft_blk->rlp(true));
   s.appendList(cert_votes.size());
   for (auto const& v : cert_votes) {
-    s.appendRaw(v.rlp());
+    s.appendRaw(v.rlp(true));
   }
   return s.out();
 }
@@ -140,9 +139,9 @@ std::ostream& operator<<(std::ostream& strm, PbftBlockCert const& b) {
 
 PbftChain::PbftChain(std::string const& dag_genesis_hash, addr_t node_addr, std::shared_ptr<DbStorage> db)
     : head_hash_(blk_hash_t(0)),
+      dag_genesis_hash_(blk_hash_t(dag_genesis_hash)),
       size_(0),
       last_pbft_block_hash_(blk_hash_t(0)),
-      dag_genesis_hash_(blk_hash_t(dag_genesis_hash)),
       db_(move(db)) {
   LOG_OBJECTS_CREATE("PBFT_CHAIN");
   // Get PBFT head from DB

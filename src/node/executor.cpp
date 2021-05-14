@@ -5,20 +5,23 @@
 namespace taraxa {
 
 struct ReplayProtectionServiceDummy : ReplayProtectionService {
-  bool is_nonce_stale(addr_t const &addr, uint64_t nonce) const override { return false; }
-  void update(DbStorage::BatchPtr batch, round_t round, util::RangeView<TransactionInfo> const &trxs) override {}
+  bool is_nonce_stale(addr_t const & /*addr*/, uint64_t /*nonce*/) const override { return false; }
+  void update(DbStorage::BatchPtr /*batch*/, round_t /*round*/,
+              util::RangeView<TransactionInfo> const & /*trxs*/) override {}
 };
 
 Executor::Executor(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<DagManager> dag_mgr,
-                   std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<FinalChain> final_chain,
-                   std::shared_ptr<PbftChain> pbft_chain, uint32_t expected_max_trx_per_block)
+                   std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
+                   std::shared_ptr<FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain,
+                   uint32_t expected_max_trx_per_block)
     : replay_protection_service_(new ReplayProtectionServiceDummy),
-      node_addr_(node_addr),
       db_(db),
       dag_mgr_(dag_mgr),
       trx_mgr_(trx_mgr),
+      dag_blk_mgr_(dag_blk_mgr),
       final_chain_(final_chain),
-      pbft_chain_(pbft_chain) {
+      pbft_chain_(pbft_chain),
+      node_addr_(node_addr) {
   LOG_OBJECTS_CREATE("EXECUTOR");
   if (auto last_period = pbft_chain_->getPbftChainSize(); final_chain_->last_block_number() < last_period) {
     to_execute_ = load_pbft_blk(last_period);
@@ -147,6 +150,18 @@ void Executor::execute_(PbftBlock const &pbft_block) {
                  << num_executed_dag_blk_ - finalized_dag_blk_hashes.size() << "-" << num_executed_dag_blk_ - 1
                  << " , Transactions count: " << transactions_tmp_buf_.size();
   }
+
+  // Update proposal period DAG levels map
+  auto anchor = db_->getDagBlock(anchor_hash);
+  if (!anchor) {
+    LOG(log_er_) << "DB corrupted - Cannot find anchor block: " << anchor_hash << " in DB.";
+    assert(false);
+  }
+  auto new_proposal_period_levels_map = dag_blk_mgr_->newProposePeriodDagLevelsMap(anchor->getLevel());
+  db_->addProposalPeriodDagLevelsMapToBatch(*new_proposal_period_levels_map, batch);
+  auto dpos_current_max_proposal_period = dag_blk_mgr_->getCurrentMaxProposalPeriod();
+  db_->addDposProposalPeriodLevelsFieldToBatch(DposProposalPeriodLevelsStatus::max_proposal_period,
+                                               dpos_current_max_proposal_period, batch);
 
   // Remove executed transactions at Ethereum pending block. The Ethereum pending block is same with latest block at
   // Taraxa

@@ -304,10 +304,4 @@ inline auto make_addr(uint8_t i) {
   return ret;
 }
 
-inline auto parse_json(string const& str) {
-  Json::Value ret;
-  EXPECT_TRUE(Json::Reader().parse(str, ret));
-  return ret;
-}
-
-};  // namespace taraxa::core_tests
+}  // namespace taraxa::core_tests

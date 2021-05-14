@@ -41,9 +41,9 @@ bool SortitionPropose::propose() {
       num_tries_++;
       return false;
     } else if (propose_level != last_propose_level_) {
-      LOG(log_dg_) << "Will not propose DAG block, will reset number of tries. "
-                      "Get difficulty at stale, last propose level "
-                   << last_propose_level_ << ", current propose level " << propose_level;
+      LOG(log_dg_)
+          << "Will not propose DAG block, will reset number of tries. Get difficulty at stale, last propose level "
+          << last_propose_level_ << ", current propose level " << propose_level;
       last_propose_level_ = propose_level;
       num_tries_ = 0;
       return false;
@@ -52,7 +52,9 @@ bool SortitionPropose::propose() {
   vdf.computeVdfSolution(vdf_config_, frontier.pivot.asBytes());
   if (vdf.isStale(vdf_config_)) {
     DagFrontier latestFrontier = dag_mgr_->getDagFrontier();
-    if (latestFrontier.pivot != frontier.pivot) return false;
+    if (latestFrontier.pivot != frontier.pivot) {
+      return false;
+    }
   }
 
   vec_trx_t sharded_trxs;
@@ -127,7 +129,7 @@ bool BlockProposer::getLatestPivotAndTips(blk_hash_t& pivot, vec_blk_t& tips) {
   return ok;
 }
 
-bool BlockProposer::getShardedTrxs(uint total_shard, uint my_shard, vec_trx_t& sharded_trxs) {
+bool BlockProposer::getShardedTrxs(vec_trx_t& sharded_trxs) {
   vec_trx_t to_be_packed_trx;
   trx_mgr_->packTrxs(to_be_packed_trx, bp_config_.transaction_limit);
 
@@ -197,8 +199,19 @@ void BlockProposer::proposeBlock(blk_hash_t const& pivot, level_t level, vec_blk
 }
 
 bool BlockProposer::validDposProposer(level_t const propose_level) {
-  uint64_t period = dag_blk_mgr_->getPeriod(propose_level);
-  return final_chain_->dpos_is_eligible(period, node_addr_);
+  auto proposal_period = dag_blk_mgr_->getProposalPeriod(propose_level);
+  if (!proposal_period.second) {
+    LOG(log_nf_) << "Cannot find the proposal level " << propose_level
+                 << " in DB, too far ahead of proposal DAG blocks level";
+    return false;
+  }
+
+  try {
+    return final_chain_->dpos_is_eligible(proposal_period.first, node_addr_);
+  } catch (state_api::ErrFutureBlock& c) {
+    LOG(log_er_) << "Proposal period " << proposal_period.first << " is too far ahead of DPOS. " << c.what();
+    return false;
+  }
 }
 
 }  // namespace taraxa

@@ -40,7 +40,7 @@ class PbftManager {
   void stop();
   void run();
 
-  bool shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step);
+  bool shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step, size_t weighted_index);
 
   std::pair<bool, uint64_t> getDagBlockPeriod(blk_hash_t const &hash);
   uint64_t getPbftRound() const;
@@ -50,9 +50,10 @@ class PbftManager {
   void setTwoTPlusOne(size_t const two_t_plus_one);
   void setPbftStep(size_t const pbft_step);
 
-  Vote generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, uint64_t period, size_t step,
+  Vote generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, uint64_t round, size_t step, size_t weighted_index,
                     blk_hash_t const &last_pbft_block_hash);
-  uint64_t getEligibleVoterCount() const;
+  size_t getDposTotalVotesCount() const;
+  size_t getDposWeightedVotesCount() const;
 
   // Notice: Test purpose
   void setSortitionThreshold(size_t const sortition_threshold);
@@ -69,7 +70,7 @@ class PbftManager {
 
   // DPOS
   void update_dpos_state_();
-  bool is_eligible_(addr_t const &addr);
+  size_t dpos_eligible_vote_count_(addr_t const &addr);
 
   void resetStep_();
   bool resetRound_();
@@ -97,9 +98,10 @@ class PbftManager {
 
   std::vector<Vote> getVotesOfTypeFromVotesForRoundAndStep_(PbftVoteTypes vote_type, std::vector<Vote> &votes,
                                                             uint64_t round, size_t step,
+                                                            blk_hash_t const &last_pbft_block_hash,
                                                             std::pair<blk_hash_t, bool> blockhash);
 
-  void placeVote_(blk_hash_t const &blockhash, PbftVoteTypes vote_type, uint64_t round, size_t step);
+  size_t placeVote_(blk_hash_t const &blockhash, PbftVoteTypes vote_type, uint64_t round, size_t step);
 
   std::pair<blk_hash_t, bool> proposeMyPbftBlock_();
 
@@ -121,7 +123,7 @@ class PbftManager {
 
   void pushSyncedPbftBlocksIntoChain_();
 
-  bool pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes);
+  bool pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes, bool syncing, bool &updated_vrf_last_pbft_block_hash);
 
   void updateTwoTPlusOneAndThreshold_();
   bool is_syncing_();
@@ -132,9 +134,9 @@ class PbftManager {
 
   std::unique_ptr<std::thread> daemon_;
   std::shared_ptr<DbStorage> db_;
-  std::shared_ptr<VoteManager> vote_mgr_;
   std::shared_ptr<NextVotesForPreviousRound> previous_round_next_votes_;
   std::shared_ptr<PbftChain> pbft_chain_;
+  std::shared_ptr<VoteManager> vote_mgr_;
   std::shared_ptr<DagManager> dag_mgr_;
   std::weak_ptr<Network> network_;
   std::shared_ptr<DagBlockManager> dag_blk_mgr_;
@@ -157,7 +159,7 @@ class PbftManager {
   size_t step_ = 1;
   u_long STEP_4_DELAY = 0;  // constant
 
-  blk_hash_t pbft_chain_last_block_hash_ = blk_hash_t(0);
+  blk_hash_t vrf_pbft_chain_last_block_hash_ = blk_hash_t(0);
 
   blk_hash_t own_starting_value_for_round_ = NULL_BLOCK_HASH;
   // <round, cert_voted_block_hash>
@@ -169,8 +171,8 @@ class PbftManager {
   time_point round_clock_initial_datetime_;
   time_point now_;
   std::chrono::duration<double> duration_;
-  long next_step_time_ms_ = 0;
-  long elapsed_time_in_round_ms_ = 0;
+  u_long next_step_time_ms_ = 0;
+  u_long elapsed_time_in_round_ms_ = 0;
 
   bool executed_pbft_block_ = false;
   bool have_executed_this_round_ = false;
@@ -192,7 +194,9 @@ class PbftManager {
   size_t pbft_last_observed_synced_queue_size_ = 0;
 
   std::atomic<uint64_t> dpos_period_;
-  std::atomic<uint64_t> eligible_voter_count_;
+  std::atomic<size_t> dpos_votes_count_;
+  std::atomic<size_t> weighted_votes_count_;
+
   size_t sortition_threshold_ = 0;
   // 2t+1 minimum number of votes for consensus
   size_t TWO_T_PLUS_ONE = 0;
@@ -213,7 +217,7 @@ class PbftManager {
   time_point current_step_clock_initial_datetime_;
   // END TEST CODE
 
-  LOG_OBJECTS_DEFINE;
+  LOG_OBJECTS_DEFINE
   mutable logger::Logger log_nf_test_{logger::createLogger(taraxa::logger::Verbosity::Info, "PBFT_TEST", node_addr_)};
 };
 

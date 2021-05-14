@@ -51,15 +51,15 @@ class TaraxaPeer : public boost::noncopyable {
  public:
   TaraxaPeer()
       : known_blocks_(10000, 1000),
+        known_transactions_(100000, 10000),
         known_pbft_blocks_(10000, 1000),
-        known_votes_(10000, 1000),
-        known_transactions_(100000, 10000) {}
+        known_votes_(10000, 1000) {}
   explicit TaraxaPeer(NodeID id)
       : m_id(id),
         known_blocks_(10000, 1000),
+        known_transactions_(100000, 10000),
         known_pbft_blocks_(10000, 1000),
-        known_votes_(10000, 1000),
-        known_transactions_(100000, 10000) {}
+        known_votes_(10000, 1000) {}
 
   bool isBlockKnown(blk_hash_t const &_hash) const { return known_blocks_.count(_hash); }
   void markBlockAsKnown(blk_hash_t const &_hash) { known_blocks_.insert(_hash); }
@@ -93,13 +93,13 @@ class TaraxaPeer : public boost::noncopyable {
   size_t pbft_previous_round_next_votes_size_ = 0;
 
  private:
+  NodeID m_id;
+
   ExpirationCache<blk_hash_t> known_blocks_;
   ExpirationCache<trx_hash_t> known_transactions_;
   // PBFT
-  ExpirationCache<vote_hash_t> known_votes_;  // for peers
   ExpirationCache<blk_hash_t> known_pbft_blocks_;
-
-  NodeID m_id;
+  ExpirationCache<vote_hash_t> known_votes_;  // for peers
 
   uint16_t status_check_count_ = 0;
 };
@@ -158,6 +158,7 @@ struct TaraxaCapability : virtual CapabilityFace {
   uint64_t getSimulatedNetworkDelay(const RLP &packet_rlp, const NodeID &nodeID);
 
   void doBackgroundWork();
+  void logNodeStats();
   void logPacketsStats();
   void sendTransactions();
   std::string packetTypeToString(unsigned int _packetType) const override;
@@ -179,7 +180,7 @@ struct TaraxaCapability : virtual CapabilityFace {
   std::shared_ptr<TaraxaPeer> getPeer(NodeID const &node_id);
   unsigned int getPeersCount();
   void erasePeer(NodeID const &node_id);
-  void insertPeer(NodeID const &node_id, std::shared_ptr<TaraxaPeer> const &peer);
+  void insertPeer(NodeID const &node_id);
 
  private:
   void handle_read_exception(weak_ptr<Session> session, unsigned _id, RLP const &_r);
@@ -226,17 +227,29 @@ struct TaraxaCapability : virtual CapabilityFace {
   uint64_t received_trx_count = 0;
   uint64_t unique_received_trx_count = 0;
 
+  // Node stats info history
+  uint64_t summary_interval_ms_ = 30000;
+  level_t local_max_level_in_dag_prev_interval_ = 0;
+  uint64_t local_pbft_round_prev_interval_ = 0;
+  uint64_t local_chain_size_prev_interval_ = 0;
+  uint64_t local_pbft_sync_period_prev_interval_ = 0;
+  uint64_t syncing_interval_count_ = 0;
+  uint64_t intervals_in_sync_since_launch = 0;
+  uint64_t intervals_syncing_since_launch = 0;
+  uint64_t syncing_stalled_interval_count_ = 0;
+
   PacketsStats sent_packets_stats_;
   PacketsStats received_packets_stats_;
 
-  LOG_OBJECTS_DEFINE;
-  LOG_OBJECTS_DEFINE_SUB(pbft_sync);
-  LOG_OBJECTS_DEFINE_SUB(dag_sync);
-  LOG_OBJECTS_DEFINE_SUB(next_votes_sync);
-  LOG_OBJECTS_DEFINE_SUB(dag_prp);
-  LOG_OBJECTS_DEFINE_SUB(trx_prp);
-  LOG_OBJECTS_DEFINE_SUB(pbft_prp);
-  LOG_OBJECTS_DEFINE_SUB(vote_prp);
-  LOG_OBJECTS_DEFINE_SUB(net_per);
+  LOG_OBJECTS_DEFINE
+  LOG_OBJECTS_DEFINE_SUB(pbft_sync)
+  LOG_OBJECTS_DEFINE_SUB(dag_sync)
+  LOG_OBJECTS_DEFINE_SUB(next_votes_sync)
+  LOG_OBJECTS_DEFINE_SUB(dag_prp)
+  LOG_OBJECTS_DEFINE_SUB(trx_prp)
+  LOG_OBJECTS_DEFINE_SUB(pbft_prp)
+  LOG_OBJECTS_DEFINE_SUB(vote_prp)
+  LOG_OBJECTS_DEFINE_SUB(net_per)
+  LOG_OBJECTS_DEFINE_SUB(summary)
 };
 }  // namespace taraxa

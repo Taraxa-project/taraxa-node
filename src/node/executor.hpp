@@ -6,6 +6,7 @@
 #include "consensus/pbft_chain.hpp"
 #include "consensus/vote.hpp"
 #include "dag/dag.hpp"
+#include "dag/dag_block_manager.hpp"
 #include "network/rpc/WSServer.h"
 #include "node/replay_protection_service.hpp"
 #include "transaction_manager/transaction_manager.hpp"
@@ -22,6 +23,7 @@ class Executor {
   std::shared_ptr<DbStorage> db_;
   std::shared_ptr<DagManager> dag_mgr_;
   std::shared_ptr<TransactionManager> trx_mgr_;
+  std::shared_ptr<DagBlockManager> dag_blk_mgr_;
   std::shared_ptr<FinalChain> final_chain_;
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<net::WSServer> ws_server_;
@@ -34,12 +36,13 @@ class Executor {
   std::atomic<uint64_t> num_executed_dag_blk_ = 0;
   std::atomic<uint64_t> num_executed_trx_ = 0;
 
-  LOG_OBJECTS_DEFINE;
+  LOG_OBJECTS_DEFINE
 
  public:
   Executor(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<DagManager> dag_mgr,
-           std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<FinalChain> final_chain,
-           std::shared_ptr<PbftChain> pbft_chain, uint32_t expected_max_trx_per_block);
+           std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
+           std::shared_ptr<FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain,
+           uint32_t expected_max_trx_per_block);
   ~Executor();
 
   void setWSServer(std::shared_ptr<net::WSServer> ws_server);
