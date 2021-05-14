@@ -24,7 +24,7 @@ case $1 in
 
     echo "Starting taraxad..."
     taraxad \
-            --conf_taraxa $TARAXA_CONF_PATH
+            --config $TARAXA_CONF_PATH
     ;;
 
   single)
@@ -35,7 +35,7 @@ case $1 in
 
     echo "Starting taraxad..."
     taraxad \
-            --conf_taraxa $TARAXA_CONF_PATH
+            --config $TARAXA_CONF_PATH
     ;;
   exec)
     exec "${@:2}"
