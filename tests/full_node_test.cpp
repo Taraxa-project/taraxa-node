@@ -448,6 +448,15 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(1, *db.getDagBlockPeriod(blk_hash_t(1)));
   EXPECT_EQ(2, *db.getDagBlockPeriod(blk_hash_t(2)));
 
+  // DPOS proposal period DAG levels status
+  EXPECT_EQ(0, db.getDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus::max_proposal_period));
+  db.saveDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus::max_proposal_period, 5);
+  EXPECT_EQ(5, db.getDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus::max_proposal_period));
+  batch = db.createWriteBatch();
+  db.addDposProposalPeriodLevelsFieldToBatch(DposProposalPeriodLevelsStatus::max_proposal_period, 10, batch);
+  db.commitWriteBatch(batch);
+  EXPECT_EQ(10, db.getDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus::max_proposal_period));
+
   // DPOS proposal period DAG levels map
   EXPECT_TRUE(db.getProposalPeriodDagLevelsMap(0).empty());
   ProposalPeriodDagLevelsMap proposal_period_0_levels;
