@@ -38,6 +38,7 @@ TaraxaCapability::TaraxaCapability(weak_ptr<Host> _host, NetworkConfig const &_c
   LOG_OBJECTS_CREATE_SUB("PBFTPRP", pbft_prp);
   LOG_OBJECTS_CREATE_SUB("VOTEPRP", vote_prp);
   LOG_OBJECTS_CREATE_SUB("NETPER", net_per);
+  LOG_OBJECTS_CREATE_SUB("SUMMARY", summary);
   auto host = host_.lock();
   assert(host);
   node_id_ = host->id();
@@ -49,6 +50,9 @@ TaraxaCapability::TaraxaCapability(weak_ptr<Host> _host, NetworkConfig const &_c
   if (conf_.network_performance_log_interval > 0) {
     tp_.post(conf_.network_performance_log_interval, [this] { logPacketsStats(); });
   }
+
+  summary_interval_ms_ = 5 * 6 * lambda_ms_min_;
+  tp_.post(summary_interval_ms_, [this] { logNodeStats(); });
 }
 
 std::shared_ptr<TaraxaPeer> TaraxaCapability::getPeer(NodeID const &node_id) {
@@ -1088,7 +1092,178 @@ void TaraxaCapability::doBackgroundWork() {
       sendStatus(peer.first, false);
     }
   }
+
   tp_.post(check_status_interval_, [this] { doBackgroundWork(); });
+}
+
+void TaraxaCapability::logNodeStats() {
+  // TODO: Put this in its proper place and improve it...
+
+  bool is_syncing = syncing_.load();
+
+  NodeID max_pbft_round_nodeID;
+  NodeID max_pbft_chain_nodeID;
+  NodeID max_node_dag_level_nodeID;
+  uint64_t peer_max_pbft_round = 1;
+  uint64_t peer_max_pbft_chain_size = 1;
+  uint64_t peer_max_node_dag_level = 1;
+  size_t peers_size;
+  {
+    boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
+    peers_size = peers_.size();
+    for (auto const peer : peers_) {
+      // Find max pbft chain size
+      if (peer.second->pbft_chain_size_ > peer_max_pbft_chain_size) {
+        peer_max_pbft_chain_size = peer.second->pbft_chain_size_;
+        max_pbft_chain_nodeID = peer.first;
+      }
+
+      // Find max dag level
+      if (peer.second->dag_level_ > peer_max_node_dag_level) {
+        peer_max_node_dag_level = peer.second->dag_level_;
+        max_node_dag_level_nodeID = peer.first;
+      }
+
+      // Find max peer PBFT round
+      if (peer.second->pbft_round_ > peer_max_pbft_round) {
+        peer_max_pbft_round = peer.second->pbft_round_;
+        max_pbft_round_nodeID = peer.first;
+      }
+    }
+  }
+
+  // Local transaction queue info...
+  auto local_unverified_queue_size = trx_mgr_->getTransactionQueueSize().first;
+  auto local_verified_queue_size = trx_mgr_->getTransactionQueueSize().second;
+
+  // Local dag info...
+  auto local_max_level_in_dag = dag_mgr_->getMaxLevel();
+  auto local_max_dag_level_in_queue = dag_blk_mgr_->getMaxDagLevelInQueue();
+  // auto local_dag_nonfinalized_blocks_size = dag_mgr_->getNonFinalizedBlocks().size();
+
+  // Local pbft info...
+  uint64_t local_pbft_round = pbft_mgr_->getPbftRound();
+  auto local_chain_size = pbft_chain_->getPbftChainSize();
+
+  auto local_dpos_total_votes_count = pbft_mgr_->getDposTotalVotesCount();
+  auto local_weighted_votes = pbft_mgr_->getDposWeightedVotesCount();
+  auto local_twotplusone = pbft_mgr_->getTwoTPlusOne();
+
+  // Syncing period...
+  auto local_pbft_sync_period = pbft_chain_->pbftSyncingPeriod();
+
+  // Decide if making progress...
+  auto pbft_consensus_rounds_advanced = local_pbft_round - local_pbft_round_prev_interval_;
+  auto pbft_chain_size_growth = local_chain_size - local_chain_size_prev_interval_;
+  auto pbft_sync_period_progress = local_pbft_sync_period - local_pbft_sync_period_prev_interval_;
+  auto dag_level_growh = local_max_level_in_dag - local_max_level_in_dag_prev_interval_;
+
+  bool making_pbft_consensus_progress = (pbft_consensus_rounds_advanced > 0);
+  bool making_pbft_chain_progress = (pbft_chain_size_growth > 0);
+  bool making_pbft_sync_period_progress = (pbft_sync_period_progress > 0);
+  bool making_dag_progress = (dag_level_growh > 0);
+
+  LOG(log_dg_summary_) << "Making PBFT chain progress: " << std::boolalpha << making_pbft_chain_progress
+                       << " (advanced " << pbft_chain_size_growth << " blocks)";
+  if (is_syncing) {
+    LOG(log_dg_summary_) << "Making PBFT sync period progress: " << std::boolalpha << making_pbft_sync_period_progress
+                         << " (synced " << pbft_sync_period_progress << " blocks)";
+  }
+  LOG(log_dg_summary_) << "Making PBFT consensus progress: " << std::boolalpha << making_pbft_consensus_progress
+                       << " (advanced " << pbft_consensus_rounds_advanced << " rounds)";
+  LOG(log_dg_summary_) << "Making DAG progress: " << std::boolalpha << making_dag_progress << " (grew "
+                       << dag_level_growh << " dag levels)";
+
+  // Update syncing interval counts
+  syncing_interval_count_ = syncing_ ? (syncing_interval_count_ + 1) : 0;
+  syncing_stalled_interval_count_ =
+      syncing_ && !making_pbft_chain_progress && !making_dag_progress ? (syncing_stalled_interval_count_ + 1) : 0;
+  if (is_syncing) {
+    intervals_syncing_since_launch++;
+  } else {
+    intervals_in_sync_since_launch++;
+  }
+
+  LOG(log_nf_summary_) << "Connected to " << peers_size << " peers";
+
+  if (is_syncing) {
+    // Syncing...
+    auto percent_synced = (local_pbft_sync_period * 100) / peer_max_pbft_chain_size;
+    auto syncing_time_sec = static_cast<float>(summary_interval_ms_ * syncing_interval_count_) / 1000.0f;
+    LOG(log_nf_summary_) << "Syncing for " << std::setprecision(2) << syncing_time_sec << " seconds, " << percent_synced
+                         << "% synced";
+    LOG(log_nf_summary_) << "Currently syncing from node " << peer_syncing_pbft_;
+    LOG(log_nf_summary_) << "Max peer PBFT chain size:      " << peer_max_pbft_chain_size << " (peer "
+                         << max_pbft_chain_nodeID << ")";
+    LOG(log_nf_summary_) << "Max peer PBFT consensus round: " << peer_max_pbft_round << " (peer "
+                         << max_pbft_round_nodeID << ")";
+    LOG(log_nf_summary_) << "Max peer DAG level:            " << peer_max_node_dag_level << " (peer "
+                         << max_node_dag_level_nodeID << ")";
+  } else {
+    auto sync_percentage =
+        (100 * intervals_in_sync_since_launch) / (intervals_in_sync_since_launch + intervals_syncing_since_launch);
+    LOG(log_nf_summary_) << "In sync since launch for " << sync_percentage << "% of the time";
+    LOG(log_nf_summary_) << "Queued unverified transaction: " << local_unverified_queue_size;
+    LOG(log_nf_summary_) << "Queued verified transaction:   " << local_verified_queue_size;
+    LOG(log_nf_summary_) << "Max DAG block level in DAG:    " << local_max_level_in_dag;
+    LOG(log_nf_summary_) << "Max DAG block level in queue:  " << local_max_dag_level_in_queue;
+    LOG(log_nf_summary_) << "PBFT chain size:               " << local_chain_size;
+    LOG(log_nf_summary_) << "Current PBFT round:            " << local_pbft_round;
+    LOG(log_nf_summary_) << "DPOS total votes count:        " << local_dpos_total_votes_count;
+    LOG(log_nf_summary_) << "PBFT consensus 2t+1 threshold: " << local_twotplusone;
+    LOG(log_nf_summary_) << "Node elligible vote count:     " << local_weighted_votes;
+  }
+
+  LOG(log_nf_summary_) << "In the last " << std::setprecision(0) << summary_interval_ms_ / 1000 << " seconds...";
+
+  if (is_syncing) {
+    LOG(log_nf_summary_) << "PBFT sync period progress:     " << pbft_sync_period_progress;
+  }
+  {
+    LOG(log_nf_summary_) << "PBFT chain blocks added:       " << pbft_chain_size_growth;
+    LOG(log_nf_summary_) << "PBFT rounds advanced:          " << pbft_consensus_rounds_advanced;
+    LOG(log_nf_summary_) << "DAG level growth:              " << dag_level_growh;
+  }
+
+  if (making_pbft_chain_progress) {
+    if (is_syncing) {
+      LOG(log_si_summary_) << "STATUS: GOOD. ACTIVELY SYNCING";
+    } else if (local_weighted_votes) {
+      LOG(log_si_summary_) << "STATUS: GOOD. NODE SYNCED AND PARTICIPATING IN CONSENSUS";
+    } else {
+      LOG(log_si_summary_) << "STATUS: GOOD. NODE SYNCED";
+    }
+  } else if (is_syncing && (making_pbft_sync_period_progress || making_dag_progress)) {
+    LOG(log_si_summary_) << "STATUS: PENDING SYNCED DATA";
+  } else if (!is_syncing && making_pbft_consensus_progress) {
+    if (local_weighted_votes) {
+      LOG(log_si_summary_) << "STATUS: PARTICIPATING IN CONSENSUS BUT NO NEW FINALIZED BLOCKS";
+    } else {
+      LOG(log_si_summary_) << "STATUS: NODE SYNCED BUT NO NEW FINALIZED BLOCKS";
+    }
+  } else if (!is_syncing && making_dag_progress) {
+    LOG(log_si_summary_) << "STATUS: PBFT STALLED, POSSIBLY PARTITIONED. NODE HAS NOT RESTARTED SYNCING";
+  } else if (peers_size) {
+    if (is_syncing) {
+      auto syncing_stalled_time_sec =
+          static_cast<float>(summary_interval_ms_ * syncing_stalled_interval_count_) / 1000.0f;
+      LOG(log_si_summary_) << "STATUS: SYNCING STALLED. NO PROGRESS MADE IN LAST " << std::setprecision(2)
+                            << syncing_stalled_time_sec << " SECONDS";
+    } else {
+      LOG(log_si_summary_) << "STATUS: STUCK. NODE HAS NOT RESTARTED SYNCING";
+    }
+  } else {
+    // Peer size is zero...
+    LOG(log_si_summary_) << "STATUS: NOT CONNECTED TO ANY PEERS. POSSIBLE CONFIG ISSUE OR NETWORK CONNECTIVITY";
+  }
+
+  // Node stats info history
+  local_max_level_in_dag_prev_interval_ = local_max_level_in_dag;
+  local_pbft_round_prev_interval_ = local_pbft_round;
+  local_chain_size_prev_interval_ = local_chain_size;
+  local_pbft_sync_period_prev_interval_ = local_pbft_sync_period;
+
+  tp_.post(summary_interval_ms_, [this] { logNodeStats(); });
 }
 
 void TaraxaCapability::logPacketsStats() {
