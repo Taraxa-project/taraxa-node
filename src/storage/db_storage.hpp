@@ -47,6 +47,8 @@ enum PbftMgrVotedValue {
   vrf_pbft_chain_last_block_hash,
 };
 
+enum DposProposalPeriodLevelsStatus : uint8_t { max_proposal_period = 0 };
+
 class DbException : public exception {
  public:
   explicit DbException(string const& desc) : desc_(desc) {}
@@ -108,6 +110,7 @@ struct DbStorage {
     COLUMN(next_votes);  // only for previous PBFT round
     COLUMN(period_pbft_block);
     COLUMN(dag_block_period);
+    COLUMN(dpos_proposal_period_levels_status);
     COLUMN(proposal_period_levels_map);
     COLUMN(replay_protection);
     COLUMN(pending_transactions);
@@ -282,7 +285,13 @@ struct DbStorage {
   vector<blk_hash_t> getFinalizedDagBlockHashesByAnchor(blk_hash_t const& anchor);
   void putFinalizedDagBlockHashesByAnchor(WriteBatch& b, blk_hash_t const& anchor, vector<blk_hash_t> const& hs);
 
-  // Proposal period to DAG block levels map
+  // DPOS proposal period levels status
+  uint64_t getDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus const& field);
+  void saveDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus const& field, uint64_t const& value);
+  void addDposProposalPeriodLevelsFieldToBatch(DposProposalPeriodLevelsStatus const& field, uint64_t const& value,
+                                               BatchPtr const& write_batch);
+
+  // DPOS proposal period to DAG block levels map
   bytes getProposalPeriodDagLevelsMap(uint64_t proposal_period);
   void saveProposalPeriodDagLevelsMap(ProposalPeriodDagLevelsMap const& period_levels_map);
   void addProposalPeriodDagLevelsMapToBatch(ProposalPeriodDagLevelsMap const& period_levels_map,
