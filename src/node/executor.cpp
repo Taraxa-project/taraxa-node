@@ -159,6 +159,9 @@ void Executor::execute_(PbftBlock const &pbft_block) {
   }
   auto new_proposal_period_levels_map = dag_blk_mgr_->newProposePeriodDagLevelsMap(anchor->getLevel());
   db_->addProposalPeriodDagLevelsMapToBatch(*new_proposal_period_levels_map, batch);
+  auto dpos_current_max_proposal_period = dag_blk_mgr_->getCurrentMaxProposalPeriod();
+  db_->addDposProposalPeriodLevelsFieldToBatch(DposProposalPeriodLevelsStatus::max_proposal_period,
+                                               dpos_current_max_proposal_period, batch);
 
   // Remove executed transactions at Ethereum pending block. The Ethereum pending block is same with latest block at
   // Taraxa
