@@ -38,19 +38,7 @@
         "verbosity": "INFO",
         "channels": [
           {
-            "name": "FULLND",
-            "verbosity": "INFO"
-          },
-          {
-            "name": "PBFT_CHAIN",
-            "verbosity": "INFO"
-          },
-          {
-            "name": "PBFT_MGR",
-            "verbosity": "INFO"
-          },
-          {
-            "name": "EXECUTOR",
+            "name": "SUMMARY",
             "verbosity": "INFO"
           }
         ],
