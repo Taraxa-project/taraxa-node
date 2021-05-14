@@ -19,11 +19,17 @@ DagBlockManager::DagBlockManager(addr_t node_addr, vdf_sortition::VdfConfig cons
       queue_limit_(queue_limit),
       vdf_config_(vdf_config),
       dpos_config_(dpos_config) {
-  // Set default DAG level proposal period map
-  ProposalPeriodDagLevelsMap period_levels_map;
-  db_->saveProposalPeriodDagLevelsMap(period_levels_map);
-
   LOG_OBJECTS_CREATE("BLKQU");
+
+  // Set DAG level proposal period map
+  current_max_proposal_period_ =
+      db_->getDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus::max_proposal_period);
+  last_proposal_period_ = current_max_proposal_period_;
+  if (current_max_proposal_period_ == 0) {
+    // Node start from scratch
+    ProposalPeriodDagLevelsMap period_levels_map;
+    db_->saveProposalPeriodDagLevelsMap(period_levels_map);
+  }
 }
 
 DagBlockManager::~DagBlockManager() { stop(); }
@@ -278,6 +284,8 @@ void DagBlockManager::verifyBlock() {
     LOG(log_dg_) << "Verified block: " << blk.first.getHash() << std::endl;
   }
 }
+
+uint64_t DagBlockManager::getCurrentMaxProposalPeriod() const { return current_max_proposal_period_; }
 
 uint64_t DagBlockManager::getLastProposalPeriod() const {
   sharedLock lock(shared_mutex_last_proposal_period_);
