@@ -275,16 +275,16 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
                                    << ", peer PBFT previous round next votes size "
                                    << peer->pbft_previous_round_next_votes_size_;
 
-      auto pbft_synced_period = pbft_chain_->pbftSyncingPeriod();
-      if (pbft_synced_period + 1 < peer->pbft_chain_size_) {
-        LOG(log_nf_) << "Restart PBFT chain syncing. Own synced PBFT at period " << pbft_synced_period
-                     << ", peer PBFT chain size " << peer->pbft_chain_size_;
-        if (pbft_synced_period + 5 < peer->pbft_chain_size_) {
-          restartSyncingPbft(true);
-        } else {
-          restartSyncingPbft(false);
-        }
-      }
+      // auto pbft_synced_period = pbft_chain_->pbftSyncingPeriod();
+      // if (pbft_synced_period + 1 < peer->pbft_chain_size_) {
+      //   LOG(log_nf_) << "Restart PBFT chain syncing. Own synced PBFT at period " << pbft_synced_period
+      //                << ", peer PBFT chain size " << peer->pbft_chain_size_;
+      //   if (pbft_synced_period + 5 < peer->pbft_chain_size_) {
+      //     restartSyncingPbft(true);
+      //   } else {
+      //     restartSyncingPbft(false);
+      //   }
+      // }
 
       auto pbft_current_round = pbft_mgr_->getPbftRound();
       auto pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesSize();
@@ -898,11 +898,11 @@ void TaraxaCapability::onNewTransactions(std::vector<taraxa::bytes> const &trans
 void TaraxaCapability::onNewBlockReceived(DagBlock block, std::vector<Transaction> transactions) {
   LOG(log_nf_dag_prp_) << "Receive DagBlock " << block.getHash() << " #Trx" << transactions.size() << std::endl;
   if (dag_blk_mgr_) {
-    auto status = checkDagBlockValidation(block);
-    if (!status.first) {
-      if (!syncing_ && !requesting_pending_dag_blocks_) restartSyncingPbft();
-      return;
-    }
+    // auto status = checkDagBlockValidation(block);
+    // if (!status.first) {
+    //   if (!syncing_ && !requesting_pending_dag_blocks_) restartSyncingPbft();
+    //   return;
+    // }
     LOG(log_nf_dag_prp_) << "Storing block " << block.getHash().toString() << " with " << transactions.size()
                          << " transactions";
     dag_blk_mgr_->insertBroadcastedBlockWithTransactions(block, transactions);
