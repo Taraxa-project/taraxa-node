@@ -127,9 +127,9 @@ void PbftManager::run() {
       case finish_polling_state:
         secondFinish_();
         setNextState_();
-        if (continue_finish_polling_state_) {
-          continue;
-        }
+        //if (continue_finish_polling_state_) {
+        //  continue;
+        //}
         break;
       default:
         LOG(log_er_) << "Unknown PBFT state " << state_;
@@ -449,23 +449,23 @@ void PbftManager::setNextState_() {
       setFinishPollingState_();
       break;
     case finish_polling_state:
-      if (continue_finish_polling_state_) {
-        continueFinishPollingState_(step_ + 2);
+      //if (continue_finish_polling_state_) {
+      //  continueFinishPollingState_(step_ + 2);
+      //} else {
+      if (loop_back_finish_state_) {
+        loopBackFinishState_();
       } else {
-        if (loop_back_finish_state_) {
-          loopBackFinishState_();
-        } else {
-          next_step_time_ms_ += POLLING_INTERVAL_ms;
-        }
+        next_step_time_ms_ += POLLING_INTERVAL_ms;
       }
+      //}
       break;
     default:
       LOG(log_er_) << "Unknown PBFT state " << state_;
       assert(false);
   }
-  if (!continue_finish_polling_state_) {
-    LOG(log_tr_) << "next step time(ms): " << next_step_time_ms_;
-  }
+  //if (!continue_finish_polling_state_) {
+  LOG(log_tr_) << "next step time(ms): " << next_step_time_ms_;
+  //}
 }
 
 void PbftManager::setFilterState_() {
@@ -805,7 +805,7 @@ void PbftManager::secondFinish_() {
   // Odd number steps from 5 are in second finish
   auto round = getPbftRound();
   LOG(log_tr_) << "PBFT second finishing state at step " << step_ << " in round " << round;
-  auto end_time_for_step = (step_ + 1) * LAMBDA_ms + STEP_4_DELAY + 2 * POLLING_INTERVAL_ms;
+  auto end_time_for_step = (step_ + 1) * LAMBDA_ms + STEP_4_DELAY - POLLING_INTERVAL_ms;
   // if (step_ > MAX_STEPS) {
   //  u_long LAMBDA_ms_BIG = 100 * LAMBDA_ms_MIN;
   //  end_time_for_step = MAX_STEPS * LAMBDA_ms_MIN +
@@ -878,6 +878,7 @@ void PbftManager::secondFinish_() {
     pbft_step_last_broadcast_ = step_;
   }
 
+  /*
   if (elapsed_time_in_round_ms_ > end_time_for_step) {
     // Should not happen, add log here for safety checking
     // if (have_executed_this_round_) {
@@ -888,8 +889,9 @@ void PbftManager::secondFinish_() {
     continue_finish_polling_state_ = true;
     return;
   }
+  */
 
-  loop_back_finish_state_ = elapsed_time_in_round_ms_ > (step_ + 1) * LAMBDA_ms + STEP_4_DELAY - POLLING_INTERVAL_ms;
+  loop_back_finish_state_ = elapsed_time_in_round_ms_ > end_time_for_step;
 }
 
 // There is a quorum of next-votes and set determine that round p should be the current round...
