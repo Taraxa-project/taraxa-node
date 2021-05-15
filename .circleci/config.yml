@@ -7,8 +7,46 @@ orbs:
 
 
 jobs: 
+   build-docker-image:
+    environment:
+      IMAGE=taraxa-node
+#    docker: 
+#      - image: circleci/buildpack-deps:stretch
+#      - image: ubuntu-1604:201903-01
+#        user: root
+    machine:
+      image: ubuntu-1604:202007-01
+    resource_class: xlarge
+    steps:
+      - checkout
+      - run: 
+         name: Checkout Submodules
+         command: |
+              git submodule sync
+              git submodule update --init --recursive --jobs 8
+      - run:
+         name: Docker Build
+         command: |
+           if [[ ${CIRCLE_SHELL_ENV} =~ "localbuild" ]]; then
+              export CIRCLE_BRANCH=circleci
+              export CIRCLE_BUILD_NUM=300
+           fi
+           echo 'export CIRCLE_BRANCH=cirleci' >>$BASH_ENV
+           echo 'export CIRCLE_BUILD_NUM=300'  >>$BASH_ENV
+           #echo 'export DOCKER_BUILDKIT=1' >>$BASH_ENV
+           export DOCKER_BRANCH_TAG=$(./scripts/docker_tag_from_branch.sh $CIRCLE_BRANCH)
+           #DOCKER_BUILDKIT=1 docker build -t "${IMAGE}-${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}" .
+      #- setup_remote_docker:
+      #   docker_layer_caching: true
+      - gcp-gcr/build-image:
+         image: $IMAGE-$DOCKER_BRANCH_TAG-$CIRCLE_BUILD_NUM
+      - gcp-gcr/build-image:
+         image: $IMAGE-DOCKER_BRANCH_TAG-$CIRCLE_BUILD_NUM-ctest
+         extra_build_args: --target build
+      - run:
+         command: docker run $IMAGE-DOCKER_BRANCH_TAG-$CIRCLE_BUILD_NUM-ctest bash
+
    create-and-push-builder:
-     #executor: gcp-gcr/default
      docker:
        - image: circleci/buildpack-deps:stretch
      steps:
@@ -176,6 +214,15 @@ jobs:
            paths: [ bin_install ]
 
 workflows:
+  deploy-testnet:
+    jobs:
+      - build-docker-image:
+         context: taraxa-node
+         filters:
+          branches: 
+            only: 
+              - circleci
+
   build-and-release:
     jobs:
       - create-and-push-builder:
@@ -183,14 +230,9 @@ workflows:
           filters:
             branches: 
               only: 
-                #- develop
+#               - develop
                - cirleci
-      #- gcp-gcr/build-and-push-image:
-      #    executor: docker
-      #    image: taraxa-node/taraxa-builder
-      #    context: taraxa-node
-      #    setup-remote-docker: true
-      #    use-docker-layer-caching: true
+
       - build-linux:
           filters:
             branches: 
