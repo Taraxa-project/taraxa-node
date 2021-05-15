@@ -35,10 +35,8 @@ jobs:
            echo 'export CIRCLE_BUILD_NUM=300'  >>$BASH_ENV
            echo "export DOCKER_BRANCH_TAG=$(./scripts/docker_tag_from_branch.sh $CIRCLE_BRANCH)" >>$BASH_ENV
       - gcp-gcr/build-image:
-         name: Build Image
          image: $IMAGE-$DOCKER_BRANCH_TAG-$CIRCLE_BUILD_NUM
       - gcp-gcr/build-image:
-         name: Build Ctest Image
          image: $IMAGE-$DOCKER_BRANCH_TAG-$CIRCLE_BUILD_NUM-ctest
          extra_build_args: --target build
       - run:
