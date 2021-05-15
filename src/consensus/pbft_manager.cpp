@@ -1213,8 +1213,7 @@ void PbftManager::syncPbftChainFromPeers_(PbftSyncRequestReason reason, taraxa::
 
   if (!is_syncing_() && !syncRequestedAlreadyThisStep_()) {
     auto round = getPbftRound();
-    auto last_period = pbft_chain_->getPbftChainSize();
-
+    
     bool force = false;
 
     switch (reason) {
