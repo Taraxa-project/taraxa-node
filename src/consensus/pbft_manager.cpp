@@ -314,12 +314,17 @@ void PbftManager::sleep_() {
   now_ = std::chrono::system_clock::now();
   duration_ = now_ - round_clock_initial_datetime_;
   elapsed_time_in_round_ms_ = std::chrono::duration_cast<std::chrono::milliseconds>(duration_).count();
-  auto time_to_sleep_for_ms = next_step_time_ms_ - elapsed_time_in_round_ms_;
-  if (time_to_sleep_for_ms > 0) {
+  LOG(log_tr_) << "next step time(ms): " << next_step_time_ms_
+               << "   elapsed time in round(ms): " << elapsed_time_in_round_ms_;
+  // Add 25ms for practical reality that a thread will not stall for less than 10-25 ms...
+  if (next_step_time_ms_ > elapsed_time_in_round_ms_ + 25) {
+    auto time_to_sleep_for_ms = next_step_time_ms_ - elapsed_time_in_round_ms_;
     LOG(log_tr_) << "Time to sleep(ms): " << time_to_sleep_for_ms << " in round " << getPbftRound() << ", step "
                  << step_;
     std::unique_lock<std::mutex> lock(stop_mtx_);
     stop_cv_.wait_for(lock, std::chrono::milliseconds(time_to_sleep_for_ms));
+  } else {
+    LOG(log_tr_) << "Skipping sleep, running late...";
   }
 }
 
