@@ -579,14 +579,7 @@ bool PbftManager::stateOperations_() {
       }
     }
   }
-  // We skip step 4 due to having missed it while executing....
-  if (state_ == certify_state && have_executed_this_round_ &&
-      elapsed_time_in_round_ms_ > 4 * LAMBDA_ms + STEP_4_DELAY + 2 * POLLING_INTERVAL_ms) {
-    LOG(log_dg_) << "Skipping step 4 due to execution, will go to step 5 in round " << round;
-    setPbftStep(5);
-    state_ = finish_polling_state;
-  }
-
+  
   return resetRound_();
 }
 
