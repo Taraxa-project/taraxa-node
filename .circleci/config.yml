@@ -42,7 +42,12 @@ jobs:
          image: $IMAGE-$DOCKER_BRANCH_TAG-$CIRCLE_BUILD_NUM-ctest
          extra_build_args: --target build
       - run:
-         command: docker run $IMAGE-DOCKER_BRANCH_TAG-$CIRCLE_BUILD_NUM-ctest bash
+         name: Run Ctest
+         command: |
+           mkdir -p  $PWD/tmp_docker 
+           docker run --rm -v $PWD/tmp_docker:/tmp --name taraxa-node-ctest-$DOCKER_BRANCH_TAG ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER}-ctest sh -c \
+                       'cd cmake-docker-build-debug/tests \
+           && ctest --output-on-failure'docker run $IMAGE-DOCKER_BRANCH_TAG-$CIRCLE_BUILD_NUM-ctest bash
 
    create-and-push-builder:
      docker:
