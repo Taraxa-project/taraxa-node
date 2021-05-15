@@ -1248,13 +1248,13 @@ void PbftManager::syncPbftChainFromPeers_(PbftSyncRequestReason reason, taraxa::
         } else {
           LOG(log_nf_) << "Restarting sync in round " << round << ", step " << step_;
         }
-
-        if (auto net = network_.lock()) {
-          net->restartSyncingPbft(force);
-        }
-        pbft_round_last_requested_sync_ = round;
-        pbft_step_last_requested_sync_ = step_;
     }
+
+    if (auto net = network_.lock()) {
+      net->restartSyncingPbft(force);
+    }
+    pbft_round_last_requested_sync_ = round;
+    pbft_step_last_requested_sync_ = step_;
   }
 }
 
