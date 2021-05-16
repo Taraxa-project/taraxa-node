@@ -315,8 +315,7 @@ void PbftManager::sleep_() {
   now_ = std::chrono::system_clock::now();
   duration_ = now_ - round_clock_initial_datetime_;
   elapsed_time_in_round_ms_ = std::chrono::duration_cast<std::chrono::milliseconds>(duration_).count();
-  LOG(log_tr_) << "next step time(ms): " << next_step_time_ms_
-               << "   elapsed time in round(ms): " << elapsed_time_in_round_ms_;
+  LOG(log_tr_) << "elapsed time in round(ms): " << elapsed_time_in_round_ms_;
   // Add 25ms for practical reality that a thread will not stall for less than 10-25 ms...
   if (next_step_time_ms_ > elapsed_time_in_round_ms_ + 25) {
     auto time_to_sleep_for_ms = next_step_time_ms_ - elapsed_time_in_round_ms_;
@@ -547,6 +546,11 @@ bool PbftManager::stateOperations_() {
   // Get votes
   votes_ = vote_mgr_->getVerifiedVotes(round, sortition_threshold_, getDposTotalVotesCount(),
                                        [this](auto const &addr) { return dpos_eligible_vote_count_(addr); });
+
+  auto get_verified_votes_execution_time = std::chrono::system_clock::now() - now_;
+  LOG(log_tr_) << "State operation getVerifiedVotes execution time (ms): "
+               << std::chrono::duration_cast<std::chrono::milliseconds>(get_verified_votes_execution_time).count();
+
   LOG(log_tr_) << "There are " << votes_.size() << " total votes in round " << round;
 
   // CHECK IF WE HAVE RECEIVED 2t+1 CERT VOTES FOR A BLOCK IN OUR CURRENT
@@ -574,7 +578,7 @@ bool PbftManager::stateOperations_() {
   }
 
   auto execution_time = std::chrono::system_clock::now() - now_;
-  LOG(log_tr_) << "State operations execution time (ms): "
+  LOG(log_tr_) << "State operations total execution time (ms): "
                << std::chrono::duration_cast<std::chrono::milliseconds>(execution_time).count();
 
   return resetRound_();
