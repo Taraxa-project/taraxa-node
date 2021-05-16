@@ -45,7 +45,7 @@ jobs:
                         && ctest --output-on-failure && sleep 100' &
             sleep 5 && sudo killall -3 ctest 
             if [ -f tmp_docker/core* ];then
-              chmod 777 tmp_docker/core*
+              sudo chmod 777 tmp_docker/core*
             fi
       - store_artifacts:
           path: tmp_docker
