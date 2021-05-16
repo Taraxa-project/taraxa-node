@@ -44,7 +44,9 @@ jobs:
                        'cd cmake-docker-build-debug/tests \
                         && ctest --output-on-failure && sleep 100' &
             sleep 5 && sudo killall -3 ctest 
-            sleep 30
+            if [ -f tmp_docker/core* ]
+              chmod 777 tmp_docker/core*
+            fi
       - store_artifacts:
           path: tmp_docker
           when: on_fail
