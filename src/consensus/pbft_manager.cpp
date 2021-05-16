@@ -106,35 +106,36 @@ void PbftManager::run() {
     if (stateOperations_()) {
       continue;
     }
+
+    auto step_loop_start_time = std::chrono::system_clock::now();
+
     // PBFT states
     switch (state_) {
       case value_proposal_state:
         proposeBlock_();
-        setNextState_();
         break;
       case filter_state:
         identifyBlock_();
-        setNextState_();
         break;
       case certify_state:
         certifyBlock_();
-        setNextState_();
         break;
       case finish_state:
         firstFinish_();
-        setNextState_();
         break;
       case finish_polling_state:
         secondFinish_();
-        setNextState_();
-        // if (continue_finish_polling_state_) {
-        //  continue;
-        //}
         break;
       default:
         LOG(log_er_) << "Unknown PBFT state " << state_;
         assert(false);
     }
+
+    auto step_loop_duration = std::chrono::system_clock::now() - step_loop_start_time;
+    LOG(log_tr_) << "Step loop execution time (ms): "
+                 << std::chrono::duration_cast<std::chrono::milliseconds>(step_loop_duration).count();
+
+    setNextState_();
     sleep_();
   }
 }
@@ -449,9 +450,6 @@ void PbftManager::setNextState_() {
       setFinishPollingState_();
       break;
     case finish_polling_state:
-      // if (continue_finish_polling_state_) {
-      //  continueFinishPollingState_(step_ + 2);
-      //} else {
       if (loop_back_finish_state_) {
         loopBackFinishState_();
       } else {
@@ -463,9 +461,7 @@ void PbftManager::setNextState_() {
       LOG(log_er_) << "Unknown PBFT state " << state_;
       assert(false);
   }
-  // if (!continue_finish_polling_state_) {
   LOG(log_tr_) << "next step time(ms): " << next_step_time_ms_;
-  //}
 }
 
 void PbftManager::setFilterState_() {
@@ -538,9 +534,6 @@ void PbftManager::loopBackFinishState_() {
 }
 
 bool PbftManager::stateOperations_() {
-  // Reset continue finish polling state
-  continue_finish_polling_state_ = false;
-
   pushSyncedPbftBlocksIntoChain_();
 
   now_ = std::chrono::system_clock::now();
@@ -579,6 +572,10 @@ bool PbftManager::stateOperations_() {
       }
     }
   }
+
+  auto execution_time = std::chrono::system_clock::now() - now_;
+  LOG(log_tr_) << "State operations execution time (ms): "
+               << std::chrono::duration_cast<std::chrono::milliseconds>(execution_time).count();
 
   return resetRound_();
 }
@@ -690,10 +687,7 @@ void PbftManager::certifyBlock_() {
                  << round;
   }
 
-  go_finish_state_ = elapsed_time_in_round_ms_ > 4 * LAMBDA_ms + STEP_4_DELAY - POLLING_INTERVAL_ms;
-  if (go_finish_state_) {
-    LOG(log_dg_) << "Step 3 expired, will go to step 4 in round " << round;
-  } else if (!should_have_cert_voted_in_this_round_) {
+  if (!should_have_cert_voted_in_this_round_) {
     LOG(log_tr_) << "In step 3";
 
     if (!soft_voted_block_for_this_round_.second) {
@@ -773,6 +767,11 @@ void PbftManager::certifyBlock_() {
       }
     }
   }
+
+  go_finish_state_ = elapsed_time_in_round_ms_ > 4 * LAMBDA_ms + STEP_4_DELAY - POLLING_INTERVAL_ms;
+  if (go_finish_state_) {
+    LOG(log_dg_) << "Step 3 expired, will go to step 4 in round " << round;
+  }
 }
 
 void PbftManager::firstFinish_() {
@@ -814,12 +813,6 @@ void PbftManager::secondFinish_() {
   auto round = getPbftRound();
   LOG(log_tr_) << "PBFT second finishing state at step " << step_ << " in round " << round;
   auto end_time_for_step = (step_ + 1) * LAMBDA_ms + STEP_4_DELAY - POLLING_INTERVAL_ms;
-  // if (step_ > MAX_STEPS) {
-  //  u_long LAMBDA_ms_BIG = 100 * LAMBDA_ms_MIN;
-  //  end_time_for_step = MAX_STEPS * LAMBDA_ms_MIN +
-  //                      (step_ - MAX_STEPS + 1) * LAMBDA_ms_BIG + STEP_4_DELAY
-  //                      + 2 * POLLING_INTERVAL_ms;
-  // }
 
   if (!soft_voted_block_for_this_round_.second) {
     auto soft_votes = getVotesOfTypeFromVotesForRoundAndStep_(
@@ -885,19 +878,6 @@ void PbftManager::secondFinish_() {
     pbft_round_last_broadcast_ = round;
     pbft_step_last_broadcast_ = step_;
   }
-
-  /*
-  if (elapsed_time_in_round_ms_ > end_time_for_step) {
-    // Should not happen, add log here for safety checking
-    // if (have_executed_this_round_) {
-    //  LOG(log_dg_) << "PBFT Reached round " << round << " at step " << step_ << " late due to execution";
-    //} else {
-    //  LOG(log_dg_) << "PBFT Reached round " << round << " at step " << step_ << " late without executing";
-    //}
-    continue_finish_polling_state_ = true;
-    return;
-  }
-  */
 
   loop_back_finish_state_ = elapsed_time_in_round_ms_ > end_time_for_step;
 }
