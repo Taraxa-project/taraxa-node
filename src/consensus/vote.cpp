@@ -303,9 +303,17 @@ std::vector<Vote> VoteManager::getVerifiedVotes(uint64_t const pbft_round, size_
       continue;
     }
 
+    auto start = std::chrono::system_clock::now();
+
     if (voteValidation(v, dpos_total_votes_count, sortition_threshold)) {
       verified_votes.emplace_back(v);
     }
+
+    auto vote_validation_duration = std::chrono::system_clock::now() - start;
+    auto vote_validation_execution_time_ms =
+        std::chrono::duration_cast<std::chrono::milliseconds>(vote_validation_duration).count();
+
+    LOG(log_dg_) << "vote validation execution times (ms): " << vote_validation_execution_time_ms;
   }
 
   auto batch = db_->createWriteBatch();
@@ -381,11 +389,11 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
   auto unverified_vote_cleanup_execution_time_ms =
       std::chrono::duration_cast<std::chrono::milliseconds>(unverified_vote_cleanup_finish).count();
   auto unverified_vote_cleanup_db_execution_time_ms =
-      std::chrono::duration_cast<std::chrono::milliseconds>(unverified_vote_cleanup_finish).count();
+      std::chrono::duration_cast<std::chrono::milliseconds>(unverified_vote_cleanup_db_finish).count();
   auto verified_vote_cleanup_execution_time_ms =
-      std::chrono::duration_cast<std::chrono::milliseconds>(unverified_vote_cleanup_finish).count();
+      std::chrono::duration_cast<std::chrono::milliseconds>(verified_vote_cleanup_finish).count();
   auto verified_vote_cleanup_db_execution_time_ms =
-      std::chrono::duration_cast<std::chrono::milliseconds>(unverified_vote_cleanup_finish).count();
+      std::chrono::duration_cast<std::chrono::milliseconds>(verified_vote_cleanup_db_finish).count();
 
   LOG(log_dg_) << "unverified vote cleanup execution times (ms): " << unverified_vote_cleanup_execution_time_ms;
   LOG(log_dg_) << "unverified vote cleanup db execution times (ms): " << unverified_vote_cleanup_db_execution_time_ms;
