@@ -44,7 +44,7 @@ jobs:
          name: Run Ctest
          command: |
            sudo service apport stop
-           sudo echo '/tmp/core.%t.%e.%p' >/proc/sys/kernel/core_pattern
+           sudo bash -c 'echo /tmp/core.%t.%e.%p >/proc/sys/kernel/core_pattern'
            mkdir -p  $PWD/tmp_docker 
            docker run --rm -v $PWD/tmp_docker:/tmp --name taraxa-node-ctest-$DOCKER_BRANCH_TAG gcr.io/$GOOGLE_PROJECT_ID/${IMAGE}-${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}-ctest sh -c \
                        'cd cmake-docker-build-debug/tests \
