@@ -10,10 +10,6 @@ jobs:
    build-docker-image:
     environment:
       IMAGE=taraxa-node
-#    docker: 
-#      - image: circleci/buildpack-deps:stretch
-#      - image: ubuntu-1604:201903-01
-#        user: root
     machine:
       image: ubuntu-1604:202007-01
       docker_layer_caching: true
@@ -26,15 +22,18 @@ jobs:
               git submodule sync
               git submodule update --init --recursive --jobs 8
       - run:
-         name: Docker Build
+         name: Prepare Environment
          command: |
            if [[ ${CIRCLE_SHELL_ENV} =~ "localbuild" ]]; then
               export CIRCLE_BRANCH=circleci
               export CIRCLE_BUILD_NUM=300
            fi
-           echo 'export CIRCLE_BRANCH=cirleci' >>$BASH_ENV
-           echo 'export CIRCLE_BUILD_NUM=300'  >>$BASH_ENV
+#           echo 'export CIRCLE_BRANCH=cirleci' >>$BASH_ENV
+#           echo 'export CIRCLE_BUILD_NUM=300'  >>$BASH_ENV
            echo "export DOCKER_BRANCH_TAG=$(./scripts/docker_tag_from_branch.sh $CIRCLE_BRANCH)" >>$BASH_ENV
+           sudo service apport stop
+           sudo bash -c 'echo /tmp/core.%t.%e.%p >/proc/sys/kernel/core_pattern'
+           mkdir -p  $PWD/tmp_docker 
       - gcp-gcr/build-image:
          image: $IMAGE-$DOCKER_BRANCH_TAG-$CIRCLE_BUILD_NUM
       - gcp-gcr/build-image:
@@ -43,12 +42,10 @@ jobs:
       - run:
          name: Run Ctest
          command: |
-           sudo service apport stop
-           sudo bash -c 'echo /tmp/core.%t.%e.%p >/proc/sys/kernel/core_pattern'
-           mkdir -p  $PWD/tmp_docker 
-           docker run --rm -v $PWD/tmp_docker:/tmp --name taraxa-node-ctest-$DOCKER_BRANCH_TAG gcr.io/$GOOGLE_PROJECT_ID/${IMAGE}-${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}-ctest sh -c \
+           docker run -d --rm -v $PWD/tmp_docker:/tmp --name taraxa-node-ctest-$DOCKER_BRANCH_TAG gcr.io/$GOOGLE_PROJECT_ID/${IMAGE}-${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}-ctest sh -c \
                        'cd cmake-docker-build-debug/tests \
-                        && ctest --output-on-failure'
+                        && ctest --output-on-failure && sleep 100'
+            sleep 30 && killal -3 ctest
       - store_artifacts:
           path: tmp_docker
           when: on_fail
