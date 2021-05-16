@@ -127,7 +127,7 @@ void PbftManager::run() {
       case finish_polling_state:
         secondFinish_();
         setNextState_();
-        //if (continue_finish_polling_state_) {
+        // if (continue_finish_polling_state_) {
         //  continue;
         //}
         break;
@@ -449,7 +449,7 @@ void PbftManager::setNextState_() {
       setFinishPollingState_();
       break;
     case finish_polling_state:
-      //if (continue_finish_polling_state_) {
+      // if (continue_finish_polling_state_) {
       //  continueFinishPollingState_(step_ + 2);
       //} else {
       if (loop_back_finish_state_) {
@@ -463,7 +463,7 @@ void PbftManager::setNextState_() {
       LOG(log_er_) << "Unknown PBFT state " << state_;
       assert(false);
   }
-  //if (!continue_finish_polling_state_) {
+  // if (!continue_finish_polling_state_) {
   LOG(log_tr_) << "next step time(ms): " << next_step_time_ms_;
   //}
 }
@@ -579,7 +579,7 @@ bool PbftManager::stateOperations_() {
       }
     }
   }
-  
+
   return resetRound_();
 }
 
@@ -793,6 +793,14 @@ void PbftManager::firstFinish_() {
       LOG(log_nf_) << "Next votes " << place_votes << " voting NULL BLOCK for round " << round << ", at step " << step_;
     }
   } else {
+    if (own_starting_value_for_round_ == NULL_BLOCK_HASH) {
+      auto voted_value = previous_round_next_votes_->getVotedValue();
+      if (voted_value != NULL_BLOCK_HASH) {
+        db_->savePbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round, voted_value);
+        own_starting_value_for_round_ = voted_value;
+        LOG(log_dg_) << "Updating own starting to previous round next voted value of " << voted_value;
+      }
+    }
     auto place_votes = placeVote_(own_starting_value_for_round_, next_vote_type, round, step_);
     if (place_votes) {
       LOG(log_nf_) << "Next votes " << place_votes << " voting nodes own starting value "
