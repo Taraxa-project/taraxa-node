@@ -17,6 +17,7 @@ jobs:
     machine:
       image: ubuntu-1604:202007-01
       docker_layer_caching: true
+      user: root
     resource_class: xlarge
     steps:
       - checkout
@@ -43,7 +44,8 @@ jobs:
       - run:
          name: Run Ctest
          command: |
-           docker images -a 
+           service apport stop
+           echo '/tmp/core.%t.%e.%p' >/proc/sys/kernel/core_pattern
            mkdir -p  $PWD/tmp_docker 
            docker run --rm -v $PWD/tmp_docker:/tmp --name taraxa-node-ctest-$DOCKER_BRANCH_TAG gcr.io/$GOOGLE_PROJECT_ID/${IMAGE}-${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}-ctest sh -c \
                        'cd cmake-docker-build-debug/tests \
