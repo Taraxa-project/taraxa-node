@@ -48,7 +48,9 @@ jobs:
            docker run --rm -v $PWD/tmp_docker:/tmp --name taraxa-node-ctest-$DOCKER_BRANCH_TAG gcr.io/$GOOGLE_PROJECT_ID/${IMAGE}-${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}-ctest sh -c \
                        'cd cmake-docker-build-debug/tests \
                         && ctest --output-on-failure'
-          
+      - store_artifacts:
+          path: /tmp
+          when: on_fail
 
    create-and-push-builder:
      docker:
