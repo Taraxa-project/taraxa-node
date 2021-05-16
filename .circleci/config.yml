@@ -42,8 +42,8 @@ jobs:
          command: |
            docker run -d --rm -v $PWD/tmp_docker:/tmp --name taraxa-node-ctest-$DOCKER_BRANCH_TAG gcr.io/$GOOGLE_PROJECT_ID/${IMAGE}-${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}-ctest sh -c \
                        'cd cmake-docker-build-debug/tests \
-                        && ctest --output-on-failure && sleep 100'
-            sleep 30 && killall -3 ctest
+                        && ctest --output-on-failure && sleep 100' &
+            sleep 5 && sudo killall -3 ctest
       - store_artifacts:
           path: tmp_docker
           when: on_fail
