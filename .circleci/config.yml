@@ -28,8 +28,6 @@ jobs:
               export CIRCLE_BRANCH=circleci
               export CIRCLE_BUILD_NUM=300
            fi
-#           echo 'export CIRCLE_BRANCH=cirleci' >>$BASH_ENV
-#           echo 'export CIRCLE_BUILD_NUM=300'  >>$BASH_ENV
            echo "export DOCKER_BRANCH_TAG=$(./scripts/docker_tag_from_branch.sh $CIRCLE_BRANCH)" >>$BASH_ENV
            sudo service apport stop
            sudo bash -c 'echo /tmp/core.%t.%e.%p >/proc/sys/kernel/core_pattern'
