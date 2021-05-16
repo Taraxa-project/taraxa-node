@@ -325,6 +325,8 @@ std::vector<Vote> VoteManager::getVerifiedVotes(uint64_t const pbft_round, size_
 
 // cleanup votes < pbft_round
 void VoteManager::cleanupVotes(uint64_t pbft_round) {
+  auto start = std::chrono::system_clock::now();
+
   // Remove unverified votes
   vector<vote_hash_t> remove_unverified_votes_hash;
   {
@@ -339,11 +341,16 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
       it = unverified_votes_.erase(it);
     }
   }
+
+  auto unverified_vote_cleanup_finish = std::chrono::system_clock::now() - start;
+
   auto batch = db_->createWriteBatch();
   for (auto const& v_hash : remove_unverified_votes_hash) {
     db_->removeUnverifiedVoteToBatch(v_hash, batch);
   }
   db_->commitWriteBatch(batch);
+
+  auto unverified_vote_cleanup_db_finish = std::chrono::system_clock::now() - start;
 
   // Remove verified votes
   vector<vote_hash_t> remove_verified_votes_hash;
@@ -359,11 +366,31 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
       it = verified_votes_.erase(it);
     }
   }
+
+  auto verified_vote_cleanup_finish = std::chrono::system_clock::now() - start;
+
   batch = db_->createWriteBatch();
   for (auto const& v_hash : remove_verified_votes_hash) {
     db_->removeVerifiedVoteToBatch(v_hash, batch);
   }
+
   db_->commitWriteBatch(batch);
+
+  auto verified_vote_cleanup_db_finish = std::chrono::system_clock::now() - start;
+
+  auto unverified_vote_cleanup_execution_time_ms =
+      std::chrono::duration_cast<std::chrono::milliseconds>(unverified_vote_cleanup_finish).count();
+  auto unverified_vote_cleanup_db_execution_time_ms =
+      std::chrono::duration_cast<std::chrono::milliseconds>(unverified_vote_cleanup_finish).count();
+  auto verified_vote_cleanup_execution_time_ms =
+      std::chrono::duration_cast<std::chrono::milliseconds>(unverified_vote_cleanup_finish).count();
+  auto verified_vote_cleanup_db_execution_time_ms =
+      std::chrono::duration_cast<std::chrono::milliseconds>(unverified_vote_cleanup_finish).count();
+
+  LOG(log_dg_) << "unverified vote cleanup execution times (ms): " << unverified_vote_cleanup_execution_time_ms;
+  LOG(log_dg_) << "unverified vote cleanup db execution times (ms): " << unverified_vote_cleanup_db_execution_time_ms;
+  LOG(log_dg_) << "verified vote cleanup execution times (ms): " << verified_vote_cleanup_execution_time_ms;
+  LOG(log_dg_) << "verified vote cleanup db execution times (ms): " << verified_vote_cleanup_db_execution_time_ms;
 }
 
 bool VoteManager::voteValidation(taraxa::Vote const& vote, size_t const dpos_total_votes_count,
