@@ -50,7 +50,7 @@ jobs:
                        'cd cmake-docker-build-debug/tests \
                         && ctest --output-on-failure'
       - store_artifacts:
-          path: /tmp
+          path: tmp_docker
           when: on_fail
 
    create-and-push-builder:
