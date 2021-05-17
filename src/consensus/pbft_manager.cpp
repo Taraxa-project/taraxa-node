@@ -107,8 +107,6 @@ void PbftManager::run() {
       continue;
     }
 
-    auto step_loop_start_time = std::chrono::system_clock::now();
-
     // PBFT states
     switch (state_) {
       case value_proposal_state:
@@ -130,10 +128,6 @@ void PbftManager::run() {
         LOG(log_er_) << "Unknown PBFT state " << state_;
         assert(false);
     }
-
-    auto step_loop_duration = std::chrono::system_clock::now() - step_loop_start_time;
-    LOG(log_tr_) << "Step loop execution time (ms): "
-                 << std::chrono::duration_cast<std::chrono::milliseconds>(step_loop_duration).count();
 
     setNextState_();
     sleep_();
@@ -577,10 +571,6 @@ bool PbftManager::stateOperations_() {
     }
   }
 
-  auto execution_time = std::chrono::system_clock::now() - now_;
-  LOG(log_tr_) << "State operations total execution time (ms): "
-               << std::chrono::duration_cast<std::chrono::milliseconds>(execution_time).count();
-
   return resetRound_();
 }
 
@@ -685,13 +675,16 @@ void PbftManager::certifyBlock_() {
   // The Certifying Step
   auto round = getPbftRound();
   LOG(log_tr_) << "PBFT certifying state in round " << round;
+
+  go_finish_state_ = elapsed_time_in_round_ms_ > 4 * LAMBDA_ms + STEP_4_DELAY - POLLING_INTERVAL_ms;
+
   if (elapsed_time_in_round_ms_ < 2 * LAMBDA_ms) {
     // Should not happen, add log here for safety checking
     LOG(log_er_) << "PBFT Reached step 3 too quickly after only " << elapsed_time_in_round_ms_ << " (ms) in round "
                  << round;
-  }
-
-  if (!should_have_cert_voted_in_this_round_) {
+  } else if (go_finish_state_) {
+    LOG(log_dg_) << "Step 3 expired, will go to step 4 in round " << round;
+  } else if (!should_have_cert_voted_in_this_round_) {
     LOG(log_tr_) << "In step 3";
 
     if (!soft_voted_block_for_this_round_.second) {
@@ -770,11 +763,6 @@ void PbftManager::certifyBlock_() {
         }
       }
     }
-  }
-
-  go_finish_state_ = elapsed_time_in_round_ms_ > 4 * LAMBDA_ms + STEP_4_DELAY - POLLING_INTERVAL_ms;
-  if (go_finish_state_) {
-    LOG(log_dg_) << "Step 3 expired, will go to step 4 in round " << round;
   }
 }
 

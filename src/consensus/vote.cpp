@@ -393,16 +393,18 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
       if (rit->second.empty()) {
         // std::advance(rit, 1);
         empty_rounds.push_back(vote_round);
-      } 
+      }
 
       ++rit;
     }
 
-    for (auto const &r : empty_rounds) {
+    for (auto const& r : empty_rounds) {
       unverified_votes_.erase(r);
     }
 
-    LOG(log_dg_) << "Removed " << stale_removed_votes_count << " stale votes from unverified queue";
+    if (stale_removed_votes_count) {
+      LOG(log_nf_) << "Removed " << stale_removed_votes_count << " stale votes from unverified queue";
+    }
   }
 
   auto batch = db_->createWriteBatch();
