@@ -28,7 +28,9 @@ jobs:
               export CIRCLE_BRANCH=circleci
               export CIRCLE_BUILD_NUM=300
            fi
+           echo "HELM_TEST_NAME=$(echo ${BRANCH_NAME} | sed 's/[^A-Za-z0-9\\-]*//g' | tr '[:upper:]' '[:lower:]')" >>$BASH_ENV
            echo "export DOCKER_BRANCH_TAG=$(./scripts/docker_tag_from_branch.sh $CIRCLE_BRANCH)" >>$BASH_ENV
+           cat $BASH_ENV
            sudo service apport stop
            sudo bash -c 'echo /tmp/core.%t.%e.%p >/proc/sys/kernel/core_pattern'
            mkdir -p  $PWD/tmp_docker 
@@ -90,7 +92,8 @@ jobs:
           else
               exit $http_code
           fi
-
+          docker kill taraxa-node-smoke-test-${DOCKER_BRANCH_TAG} || true
+          docker network rm smoke-test-net-${DOCKER_BRANCH_TAG} || true
       - store_artifacts:
           path: tmp_docker
 
