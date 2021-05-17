@@ -1190,8 +1190,7 @@ void TaraxaCapability::logNodeStats() {
     // Syncing...
     auto percent_synced = (local_pbft_sync_period * 100) / peer_max_pbft_chain_size;
     auto syncing_time_sec = summary_interval_ms_ * syncing_interval_count_ / 1000;
-    LOG(log_nf_summary_) << "Syncing for " << syncing_time_sec << " seconds, " << percent_synced
-                         << "% synced";
+    LOG(log_nf_summary_) << "Syncing for " << syncing_time_sec << " seconds, " << percent_synced << "% synced";
     LOG(log_nf_summary_) << "Currently syncing from node " << peer_syncing_pbft_;
     LOG(log_nf_summary_) << "Max peer PBFT chain size:      " << peer_max_pbft_chain_size << " (peer "
                          << max_pbft_chain_nodeID << ")";
@@ -1248,8 +1247,8 @@ void TaraxaCapability::logNodeStats() {
   } else if (peers_size) {
     if (is_syncing) {
       auto syncing_stalled_time_sec = summary_interval_ms_ * syncing_stalled_interval_count_ / 1000;
-      LOG(log_si_summary_) << "STATUS: SYNCING STALLED. NO PROGRESS MADE IN LAST "
-                           << syncing_stalled_time_sec << " SECONDS";
+      LOG(log_si_summary_) << "STATUS: SYNCING STALLED. NO PROGRESS MADE IN LAST " << syncing_stalled_time_sec
+                           << " SECONDS";
     } else {
       LOG(log_si_summary_) << "STATUS: STUCK. NODE HAS NOT RESTARTED SYNCING";
     }
