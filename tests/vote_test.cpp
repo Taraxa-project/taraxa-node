@@ -164,7 +164,7 @@ TEST_F(VoteTest, add_cleanup_get_votes) {
 
   // Test cleanup votes
   auto verified_votes = vote_mgr->getVerifiedVotes();
-  EXPECT_EQ(verified_votes.size(), 4);
+  EXPECT_EQ(verified_votes.size(), 2);
   vote_mgr->cleanupVotes(4);  // cleanup round 2 & 3
   verified_votes = vote_mgr->getVerifiedVotes();
   EXPECT_TRUE(verified_votes.empty());

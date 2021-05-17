@@ -290,33 +290,27 @@ std::vector<Vote> VoteManager::getVerifiedVotes(uint64_t const pbft_round, size_
   auto votes_to_verify = getUnverifiedVotes();
 
   for (auto const& v : votes_to_verify) {
-    addr_t voter_account_address = dev::toAddress(v.getVoter());
-    // Check if the voter account is valid, malicious vote
-    auto vote_weighted_index = v.getWeightedIndex();
-    auto dpos_votes_count = dpos_eligible_vote_count(voter_account_address);
-    if (vote_weighted_index > 0 && v.getStep() == 1) {
-      LOG(log_dg_) << "Account " << voter_account_address
-                   << " attempted to vote with weighted index > 0 in propose step. Vote: " << v;
-      continue;
-    }
-    if (vote_weighted_index >= dpos_votes_count) {
-      LOG(log_dg_) << "Account " << voter_account_address << " is not eligible to vote. Vote: " << v;
-      continue;
-    }
-
-    auto start = std::chrono::system_clock::now();
-
+    
     if (is_syncing || v.getRound() <= pbft_round) {
+
+      addr_t voter_account_address = dev::toAddress(v.getVoter());
+      // Check if the voter account is valid, malicious vote
+      auto vote_weighted_index = v.getWeightedIndex();
+      auto dpos_votes_count = dpos_eligible_vote_count(voter_account_address);
+      if (vote_weighted_index > 0 && v.getStep() == 1) {
+        LOG(log_dg_) << "Account " << voter_account_address
+                     << " attempted to vote with weighted index > 0 in propose step. Vote: " << v;
+        continue;
+      }
+      if (vote_weighted_index >= dpos_votes_count) {
+        LOG(log_dg_) << "Account " << voter_account_address << " is not eligible to vote. Vote: " << v;
+        continue;
+      }
+
       if (voteValidation(v, dpos_total_votes_count, sortition_threshold)) {
         verified_votes.emplace_back(v);
       }
     }
-
-    std::chrono::duration<double> vote_validation_duration = std::chrono::system_clock::now() - start;
-    auto vote_validation_execution_time_ms =
-        std::chrono::duration_cast<std::chrono::milliseconds>(vote_validation_duration).count();
-
-    LOG(log_dg_) << "vote validation execution times (ms): " << vote_validation_execution_time_ms;
   }
 
   auto batch = db_->createWriteBatch();
