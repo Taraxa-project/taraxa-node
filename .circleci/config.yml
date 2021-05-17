@@ -40,7 +40,7 @@ jobs:
       - run:
          name: Run Ctest
          command: |
-           docker run --rm -v $PWD/tmp_docker:/tmp --name taraxa-node-ctest-$DOCKER_BRANCH_TAG gcr.io/$GOOGLE_PROJECT_ID/${IMAGE}-${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}-ctest sh -c \
+           docker run -d --rm -v $PWD/tmp_docker:/tmp --name taraxa-node-ctest-$DOCKER_BRANCH_TAG gcr.io/$GOOGLE_PROJECT_ID/${IMAGE}-${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}-ctest sh -c \
                        'cd cmake-docker-build-debug/tests \
                         && ctest --output-on-failure' 
       - run:
@@ -53,6 +53,10 @@ jobs:
       - run: 
          name: Run SmokeTest
          command: |
+          if [ ! -z "$(docker network list --format '{{.Name}}' | grep -o smoke-test-net-${DOCKER_BRANCH_TAG})" ]; then
+            docker network rm \
+              smoke-test-net-${DOCKER_BRANCH_TAG} >/dev/null;
+          fi         
           docker network create --driver=bridge \
                       smoke-test-net-${DOCKER_BRANCH_TAG}
           docker run --rm -d \
