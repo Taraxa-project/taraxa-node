@@ -42,14 +42,45 @@ jobs:
          command: |
            docker run -d --rm -v $PWD/tmp_docker:/tmp --name taraxa-node-ctest-$DOCKER_BRANCH_TAG gcr.io/$GOOGLE_PROJECT_ID/${IMAGE}-${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}-ctest sh -c \
                        'cd cmake-docker-build-debug/tests \
-                        && ctest --output-on-failure && sleep 100' &
-            sleep 5 && sudo killall -3 ctest 
+                        && ctest --output-on-failure && sleep 100' 
+      - run:
+          name: Chmod core dump if fail
+          command: |
             if [ -f tmp_docker/core* ];then
               sudo chmod 777 tmp_docker/core*
             fi
+          when: on_fail
+      - run: 
+        name: Run SmokeTest
+        command: |
+          docker run --rm -d --name taraxa-node-smoke-test-${DOCKER_BRANCH_TAG} ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} single
+          mkdir -p  $PWD/test_build-d/
+          sleep 30
+          http_code=$(docker run --rm  -v $PWD/test_build-d:/data byrnedo/alpine-curl \
+                -sS --fail -w '%{http_code}' -o /data/http.out \
+                --url taraxa-node-smoke-test-${DOCKER_BRANCH_TAG}:7777 \
+                -d '{
+                        "jsonrpc": "2.0",
+                        "id":"0",
+                        "method": "send_coin_transaction",
+                        "params":[{
+                            "nonce": 0,
+                            "value": 0,
+                            "gas": 0,
+                            "gas_price": 0,
+                            "receiver": "973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0",
+                            "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd"
+                        }]
+                    }')
+          cat $PWD/test_build-d/http.out || true
+          if [[ $http_code -eq 200 ]] ; then
+              exit 0
+          else
+              exit $http_code
+          fi
+
       - store_artifacts:
           path: tmp_docker
-          when: on_fail
 
    create-and-push-builder:
      docker:
