@@ -95,6 +95,7 @@ jobs:
           fi
           docker kill taraxa-node-smoke-test-${DOCKER_BRANCH_TAG} || true
           docker network rm smoke-test-net-${DOCKER_BRANCH_TAG} || true
+          docker images -a
       - gcp-gcr/tag-image:
          image: $IMAGE-$DOCKER_BRANCH_TAG-$CIRCLE_BUILD_NUM
          source-tag: latest
