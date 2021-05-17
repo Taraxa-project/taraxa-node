@@ -381,7 +381,7 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
             }
           }
         }
-        it++;
+        ++it;
       }
     }
   }
