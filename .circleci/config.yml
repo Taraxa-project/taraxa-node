@@ -104,7 +104,7 @@ jobs:
          tag: $DOCKER_BRANCH_TAG-$CIRCLE_BUILD_NUM
          when:
           condition:
-            equal: [ "develop", << pipeline.parameters.job_env >> ]
+            equal: [ "develop", << pipeline.git.branch >> ]
 
       - gcp-gcr/tag-image:
          image: $IMAGE-$DOCKER_BRANCH_TAG-$CIRCLE_BUILD_NUM
