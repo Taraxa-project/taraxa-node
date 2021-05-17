@@ -189,7 +189,7 @@ class VoteManager {
   std::map<uint64_t, std::unordered_map<vote_hash_t, Vote>> unverified_votes_;
   std::map<uint64_t, std::unordered_map<vote_hash_t, Vote>> verified_votes_;
 
-  std::vector<vote_hash_t> votes_invalid_in_current_final_chain_period_;
+  std::unordered_set<vote_hash_t> votes_invalid_in_current_final_chain_period_;
   h256 current_period_final_chain_block_hash_;
   std::map<addr_t, uint64_t> max_received_round_for_address_;
 

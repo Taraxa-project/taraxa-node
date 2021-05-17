@@ -448,7 +448,6 @@ void PbftManager::setNextState_() {
       } else {
         next_step_time_ms_ += POLLING_INTERVAL_ms;
       }
-      //}
       break;
     default:
       LOG(log_er_) << "Unknown PBFT state " << state_;
@@ -540,10 +539,6 @@ bool PbftManager::stateOperations_() {
   // Get votes
   votes_ = vote_mgr_->getVerifiedVotes(round, sortition_threshold_, getDposTotalVotesCount(),
                                        [this](auto const &addr) { return dpos_eligible_vote_count_(addr); });
-
-  auto get_verified_votes_execution_time = std::chrono::system_clock::now() - now_;
-  LOG(log_tr_) << "State operation getVerifiedVotes execution time (ms): "
-               << std::chrono::duration_cast<std::chrono::milliseconds>(get_verified_votes_execution_time).count();
 
   LOG(log_tr_) << "There are " << votes_.size() << " total votes in round " << round;
 

@@ -327,7 +327,7 @@ std::vector<Vote> VoteManager::getVerifiedVotes(uint64_t const pbft_round, size_
     if (vote_is_valid) {
       verified_votes.emplace_back(v);
     } else {
-      votes_invalid_in_current_final_chain_period_.push_back(v.getHash());
+      votes_invalid_in_current_final_chain_period_.emplace(v.getHash());
     }
   }
 
