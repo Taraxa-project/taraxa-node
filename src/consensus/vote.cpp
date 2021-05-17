@@ -387,9 +387,11 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
         ++v;
       }
 
-      std::advance(rit, 1);
       if (rit->second.empty()) {
+        std::advance(rit, 1);
         unverified_votes_.erase(rit.base());
+      } else {
+        ++rit;
       }
     }
 
