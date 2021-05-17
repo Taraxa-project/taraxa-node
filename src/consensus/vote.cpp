@@ -365,8 +365,6 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
 
     size_t stale_removed_votes_count = 0;
 
-    std::vector<uint64_t> empty_rounds;
-
     rit = unverified_votes_.rbegin();
     while (rit != unverified_votes_.rend()) {
       auto vote_round = rit->first;
@@ -390,16 +388,10 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
         ++v;
       }
 
+      std::advance(rit, 1);
       if (rit->second.empty()) {
-        // std::advance(rit, 1);
-        empty_rounds.push_back(vote_round);
+        unverified_votes_.erase(rit.base());
       }
-
-      ++rit;
-    }
-
-    for (auto const& r : empty_rounds) {
-      unverified_votes_.erase(r);
     }
 
     if (stale_removed_votes_count) {
