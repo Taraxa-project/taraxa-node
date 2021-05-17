@@ -376,8 +376,8 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
           max_received_round_for_address_[voter_account_address] = vote_round;
         } else {
           if (max_received_round_for_address_[voter_account_address] > vote_round + 1) {
-            rit->second.erase(v.first);
             remove_unverified_votes_hash.emplace_back(v.first);
+            rit->second.erase(v.first);
           } else if (vote_round > max_received_round_for_address_[voter_account_address]) {
             max_received_round_for_address_[voter_account_address] = vote_round;
           }
