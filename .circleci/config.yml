@@ -30,9 +30,10 @@ jobs:
            fi
            echo "HELM_TEST_NAME=$(echo $CIRCLE_BRANCH | sed 's/[^A-Za-z0-9\\-]*//g' | tr '[:upper:]' '[:lower:]')" >>$BASH_ENV
            echo "export DOCKER_BRANCH_TAG=$(./scripts/docker_tag_from_branch.sh $CIRCLE_BRANCH)" >>$BASH_ENV
-           cat $BASH_ENV
+           echo "START_TIME=$(date +%Y%m%d-%Hh%Mm%Ss)" >>$BASH_ENV
            sudo service apport stop
            sudo bash -c 'echo /tmp/core.%t.%e.%p >/proc/sys/kernel/core_pattern'
+
            mkdir -p  $PWD/tmp_docker 
       - gcp-gcr/build-image:
          image: $IMAGE-$DOCKER_BRANCH_TAG-$CIRCLE_BUILD_NUM
@@ -94,6 +95,10 @@ jobs:
           fi
           docker kill taraxa-node-smoke-test-${DOCKER_BRANCH_TAG} || true
           docker network rm smoke-test-net-${DOCKER_BRANCH_TAG} || true
+      - gcp-gcr/tag-image:
+         image: $IMAGE-$DOCKER_BRANCH_TAG-$CIRCLE_BUILD_NUM
+         source-tag: latest
+         target-tag: 
       - store_artifacts:
           path: tmp_docker
 
