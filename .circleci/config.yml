@@ -61,7 +61,7 @@ jobs:
           sleep 30
           http_code=$(docker run --rm  -v $PWD/test_build-d:/data byrnedo/alpine-curl \
                 -sS --fail -w '%{http_code}' -o /data/http.out \
-                --url gcr.io/$GOOGLE_PROJECT_ID/${IMAGE}-${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}:7777 \
+                --url taraxa-node-smoke-test-${DOCKER_BRANCH_TAG}:7777 \
                 -d '{
                         "jsonrpc": "2.0",
                         "id":"0",
