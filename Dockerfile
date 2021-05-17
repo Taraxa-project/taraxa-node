@@ -76,6 +76,7 @@ WORKDIR /opt/taraxa/
 COPY . .
 RUN cd $BUILD_OUTPUT_DIR \
     && cmake -DCMAKE_BUILD_TYPE=Debug \
+             -DTARAXA_ENABLE_LTO=ON \
              -DTARAXA_STATIC_BUILD=ON \
              -DTARAXAD_INSTALL_DIR=./bin_install \
              -DTARAXAD_CONF_INSTALL_DIR=./bin_install \
