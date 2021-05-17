@@ -53,7 +53,7 @@ jobs:
       - run: 
          name: Run SmokeTest
          command: |
-          docker run --rm -d --name taraxa-node-smoke-test-${DOCKER_BRANCH_TAG} ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} single
+          docker run --rm -d --name taraxa-node-smoke-test-${DOCKER_BRANCH_TAG}gcr.io/$GOOGLE_PROJECT_ID/${IMAGE}-${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} single
           mkdir -p  $PWD/test_build-d/
           sleep 30
           http_code=$(docker run --rm  -v $PWD/test_build-d:/data byrnedo/alpine-curl \
