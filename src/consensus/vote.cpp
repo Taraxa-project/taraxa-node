@@ -363,6 +363,32 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
       }
       it = unverified_votes_.erase(it);
     }
+
+    while (it != unverified_votes_.end()) {
+      if (it->second.empty()) {
+        it = unverified_votes_.erase(it);
+      } else if (it->first < pbft_round) {
+        for (auto const& v : it->second) {
+          remove_unverified_votes_hash.emplace_back(v.first);
+        }
+        it = unverified_votes_.erase(it);
+      } else {
+        for (auto const& v : it->second) {
+          // Check if vote is a stale vote for given address...
+          addr_t voter_account_address = dev::toAddress(v.second.getVoter());
+          auto found_in_map = max_received_round_for_address_.find(voter_account_address);
+          if (found_in_map != max_received_round_for_address_.end()) {
+            max_received_round_for_address_[voter_account_address] = v.second.getRound();
+          } else {
+            if (max_received_round_for_address_[voter_account_address] > v.second.getRound() + 1) {
+              remove_unverified_votes_hash.emplace_back(v.first);
+            } else if (v.second.getRound() > max_received_round_for_address_[voter_account_address]) {
+              max_received_round_for_address_[voter_account_address] = v.second.getRound();
+            }
+          }
+        }
+      }
+    }
   }
 
   std::chrono::duration<double> unverified_vote_cleanup_finish = std::chrono::system_clock::now() - start;
