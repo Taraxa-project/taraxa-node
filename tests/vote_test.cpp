@@ -155,8 +155,8 @@ TEST_F(VoteTest, add_cleanup_get_votes) {
   size_t valid_sortition_players = 1;
   pbft_mgr->setSortitionThreshold(valid_sortition_players);
   uint64_t pbft_round = 2;
-  std::vector<Vote> votes = vote_mgr->getVerifiedVotes(pbft_round, pbft_mgr->getSortitionThreshold(),
-                                                       valid_sortition_players, [](...) { return true; });
+  std::vector<Vote> votes = vote_mgr->getVerifiedVotes(
+      pbft_round, pbft_mgr->getSortitionThreshold(), valid_sortition_players, [](...) { return true; }, false);
   EXPECT_EQ(votes.size(), 4);
   for (Vote const &v : votes) {
     EXPECT_GT(v.getRound(), 1);
