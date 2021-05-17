@@ -66,8 +66,9 @@ jobs:
               single
           mkdir -p  $PWD/test_build-d/
           sleep 30
-          http_code=$(docker run --rm  -v $PWD/test_build-d:/data byrnedo/alpine-curl \
-                --net smoke-test-net-${DOCKER_BRANCH_TAG}
+          http_code=$(docker run --rm  -v $PWD/test_build-d:/data \
+                --net smoke-test-net-${DOCKER_BRANCH_TAG} \
+                byrnedo/alpine-curl \
                 -sS --fail -w '%{http_code}' -o /data/http.out \
                 --url taraxa-node-smoke-test-${DOCKER_BRANCH_TAG}:7777 \
                 -d '{
