@@ -306,7 +306,7 @@ std::vector<Vote> VoteManager::getVerifiedVotes(uint64_t const pbft_round, size_
 
     auto start = std::chrono::system_clock::now();
 
-    if (is_syncing || v.getRound() == pbft_round) {
+    if (is_syncing || v.getRound() <= pbft_round) {
       if (voteValidation(v, dpos_total_votes_count, sortition_threshold)) {
         verified_votes.emplace_back(v);
       }
