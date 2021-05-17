@@ -357,13 +357,6 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
     std::map<uint64_t, std::unordered_map<vote_hash_t, Vote>>::iterator it = unverified_votes_.begin();
 
     upgradeLock_ locked(lock);
-    while (it != unverified_votes_.end() && it->first < pbft_round) {
-      for (auto const& v : it->second) {
-        remove_unverified_votes_hash.emplace_back(v.first);
-      }
-      it = unverified_votes_.erase(it);
-    }
-
     while (it != unverified_votes_.end()) {
       if (it->second.empty()) {
         it = unverified_votes_.erase(it);
@@ -377,7 +370,7 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
           // Check if vote is a stale vote for given address...
           addr_t voter_account_address = dev::toAddress(v.second.getVoter());
           auto found_in_map = max_received_round_for_address_.find(voter_account_address);
-          if (found_in_map != max_received_round_for_address_.end()) {
+          if (found_in_map == max_received_round_for_address_.end()) {
             max_received_round_for_address_[voter_account_address] = v.second.getRound();
           } else {
             if (max_received_round_for_address_[voter_account_address] > v.second.getRound() + 1) {
@@ -387,6 +380,7 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
             }
           }
         }
+        it++;
       }
     }
   }
