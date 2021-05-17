@@ -124,6 +124,9 @@ VoteManager::VoteManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::s
       LOG(log_dg_) << "Retrieve verified vote " << v;
     }
   }
+
+  current_period_final_chain_block_hash_ = final_chain_->get_last_block()->hash();
+
 }
 
 void VoteManager::addUnverifiedVote(taraxa::Vote const& vote) {
@@ -289,28 +292,43 @@ std::vector<Vote> VoteManager::getVerifiedVotes(uint64_t const pbft_round, size_
   std::vector<Vote> verified_votes;
   auto votes_to_verify = getUnverifiedVotes();
 
-  for (auto const& v : votes_to_verify) {
-    
-    if (is_syncing || v.getRound() <= pbft_round) {
+  h256 latest_final_chain_block_hash = final_chain_->get_last_block()->hash();
 
-      addr_t voter_account_address = dev::toAddress(v.getVoter());
-      // Check if the voter account is valid, malicious vote
-      auto vote_weighted_index = v.getWeightedIndex();
-      auto dpos_votes_count = dpos_eligible_vote_count(voter_account_address);
-      if (vote_weighted_index > 0 && v.getStep() == 1) {
-        LOG(log_dg_) << "Account " << voter_account_address
-                     << " attempted to vote with weighted index > 0 in propose step. Vote: " << v;
-        continue;
-      }
-      if (vote_weighted_index >= dpos_votes_count) {
-        LOG(log_dg_) << "Account " << voter_account_address << " is not eligible to vote. Vote: " << v;
-        continue;
-      }
-
-      if (voteValidation(v, dpos_total_votes_count, sortition_threshold)) {
-        verified_votes.emplace_back(v);
-      }
+  if (latest_final_chain_block_hash != current_period_final_chain_block_hash_) {
+    current_period_final_chain_block_hash_ = latest_final_chain_block_hash;
+    if (!votes_invalid_in_current_final_chain_period_.empty()) {
+      LOG(log_dg_) << "After new final chain block, will now re-attempt to validate " << votes_invalid_in_current_final_chain_period_.size() << " unverified PBFT votes";
+      votes_invalid_in_current_final_chain_period_.clear();
     }
+  }
+
+  for (auto const& v : votes_to_verify) {
+
+    if (std::find(votes_invalid_in_current_final_chain_period_.begin(), votes_invalid_in_current_final_chain_period_.end(), v.getHash()) != votes_invalid_in_current_final_chain_period_.end()) continue;
+    
+    bool vote_is_valid = true;    
+
+    addr_t voter_account_address = dev::toAddress(v.getVoter());
+    // Check if the voter account is valid, malicious vote
+    auto vote_weighted_index = v.getWeightedIndex();
+    auto dpos_votes_count = dpos_eligible_vote_count(voter_account_address);
+    if (vote_weighted_index > 0 && v.getStep() == 1) {
+      LOG(log_dg_) << "Account " << voter_account_address
+                   << " attempted to vote with weighted index > 0 in propose step. Vote: " << v;
+      vote_is_valid = false;
+    } else if (vote_weighted_index >= dpos_votes_count) {
+      LOG(log_dg_) << "Account " << voter_account_address << " is not eligible to vote. Vote: " << v;
+      vote_is_valid = false;
+    } else {
+      vote_is_valid = voteValidation(v, dpos_total_votes_count, sortition_threshold);
+    }
+
+    if (vote_is_valid) {
+      verified_votes.emplace_back(v);
+    } else {
+      votes_invalid_in_current_final_chain_period_.push_back(v.getHash());
+    }
+    
   }
 
   auto batch = db_->createWriteBatch();
