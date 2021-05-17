@@ -544,9 +544,8 @@ bool PbftManager::stateOperations_() {
   LOG(log_tr_) << "PBFT current step is " << step_;
 
   // Get votes
-  votes_ = vote_mgr_->getVerifiedVotes(
-      round, sortition_threshold_, getDposTotalVotesCount(),
-      [this](auto const &addr) { return dpos_eligible_vote_count_(addr); }, is_syncing_());
+  votes_ = vote_mgr_->getVerifiedVotes(round, sortition_threshold_, getDposTotalVotesCount(),
+                                       [this](auto const &addr) { return dpos_eligible_vote_count_(addr); });
 
   auto get_verified_votes_execution_time = std::chrono::system_clock::now() - now_;
   LOG(log_tr_) << "State operation getVerifiedVotes execution time (ms): "

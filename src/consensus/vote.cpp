@@ -126,7 +126,6 @@ VoteManager::VoteManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::s
   }
 
   current_period_final_chain_block_hash_ = final_chain_->get_last_block()->hash();
-
 }
 
 void VoteManager::addUnverifiedVote(taraxa::Vote const& vote) {
@@ -284,8 +283,7 @@ std::vector<Vote> VoteManager::getVerifiedVotes() {
 // Return all verified votes >= pbft_round
 std::vector<Vote> VoteManager::getVerifiedVotes(uint64_t const pbft_round, size_t const sortition_threshold,
                                                 uint64_t dpos_total_votes_count,
-                                                std::function<size_t(addr_t const&)> const& dpos_eligible_vote_count,
-                                                bool is_syncing) {
+                                                std::function<size_t(addr_t const&)> const& dpos_eligible_vote_count) {
   // Cleanup votes for previous rounds
   cleanupVotes(pbft_round);
 
@@ -297,16 +295,19 @@ std::vector<Vote> VoteManager::getVerifiedVotes(uint64_t const pbft_round, size_
   if (latest_final_chain_block_hash != current_period_final_chain_block_hash_) {
     current_period_final_chain_block_hash_ = latest_final_chain_block_hash;
     if (!votes_invalid_in_current_final_chain_period_.empty()) {
-      LOG(log_dg_) << "After new final chain block, will now re-attempt to validate " << votes_invalid_in_current_final_chain_period_.size() << " unverified PBFT votes";
+      LOG(log_dg_) << "After new final chain block, will now re-attempt to validate "
+                   << votes_invalid_in_current_final_chain_period_.size() << " unverified PBFT votes";
       votes_invalid_in_current_final_chain_period_.clear();
     }
   }
 
   for (auto const& v : votes_to_verify) {
+    if (std::find(votes_invalid_in_current_final_chain_period_.begin(),
+                  votes_invalid_in_current_final_chain_period_.end(),
+                  v.getHash()) != votes_invalid_in_current_final_chain_period_.end())
+      continue;
 
-    if (std::find(votes_invalid_in_current_final_chain_period_.begin(), votes_invalid_in_current_final_chain_period_.end(), v.getHash()) != votes_invalid_in_current_final_chain_period_.end()) continue;
-    
-    bool vote_is_valid = true;    
+    bool vote_is_valid = true;
 
     addr_t voter_account_address = dev::toAddress(v.getVoter());
     // Check if the voter account is valid, malicious vote
@@ -328,7 +329,6 @@ std::vector<Vote> VoteManager::getVerifiedVotes(uint64_t const pbft_round, size_
     } else {
       votes_invalid_in_current_final_chain_period_.push_back(v.getHash());
     }
-    
   }
 
   auto batch = db_->createWriteBatch();

@@ -168,8 +168,7 @@ class VoteManager {
 
   std::vector<Vote> getVerifiedVotes(uint64_t const pbft_round, size_t const sortition_threshold,
                                      uint64_t dpos_total_votes_count,
-                                     std::function<size_t(addr_t const&)> const& dpos_eligible_vote_count,
-                                     bool is_syncing);
+                                     std::function<size_t(addr_t const&)> const& dpos_eligible_vote_count);
 
   void cleanupVotes(uint64_t pbft_round);
 
