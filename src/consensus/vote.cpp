@@ -355,33 +355,40 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
   {
     upgradableLock_ lock(unverified_votes_access_);
     std::map<uint64_t, std::unordered_map<vote_hash_t, Vote>>::iterator it = unverified_votes_.begin();
+    std::map<uint64_t, std::unordered_map<vote_hash_t, Vote>>::reverse_iterator rit;
 
     upgradeLock_ locked(lock);
-    while (it != unverified_votes_.end()) {
-      if (it->second.empty()) {
-        it = unverified_votes_.erase(it);
-      } else if (it->first < pbft_round) {
-        for (auto const& v : it->second) {
-          remove_unverified_votes_hash.emplace_back(v.first);
-        }
-        it = unverified_votes_.erase(it);
-      } else {
-        for (auto const& v : it->second) {
-          // Check if vote is a stale vote for given address...
-          addr_t voter_account_address = dev::toAddress(v.second.getVoter());
-          auto found_in_map = max_received_round_for_address_.find(voter_account_address);
-          if (found_in_map == max_received_round_for_address_.end()) {
-            max_received_round_for_address_[voter_account_address] = v.second.getRound();
-          } else {
-            if (max_received_round_for_address_[voter_account_address] > v.second.getRound() + 1) {
-              it->second.erase(v.first);
-              remove_unverified_votes_hash.emplace_back(v.first);
-            } else if (v.second.getRound() > max_received_round_for_address_[voter_account_address]) {
-              max_received_round_for_address_[voter_account_address] = v.second.getRound();
-            }
+    while (it != unverified_votes_.end() && it->first < pbft_round) {
+      for (auto const& v : it->second) {
+        remove_unverified_votes_hash.emplace_back(v.first);
+      }
+      it = unverified_votes_.erase(it);
+    }
+
+    rit = unverified_votes_.rbegin();
+    while (rit != unverified_votes_.rend()) {
+      auto vote_round = rit->first;
+      for (auto const& v : rit->second) {
+        // Check if vote is a stale vote for given address...
+        addr_t voter_account_address = dev::toAddress(v.second.getVoter());
+        auto found_in_map = max_received_round_for_address_.find(voter_account_address);
+        if (found_in_map == max_received_round_for_address_.end()) {
+          max_received_round_for_address_[voter_account_address] = vote_round;
+        } else {
+          if (max_received_round_for_address_[voter_account_address] > vote_round + 1) {
+            rit->second.erase(v.first);
+            remove_unverified_votes_hash.emplace_back(v.first);
+          } else if (vote_round > max_received_round_for_address_[voter_account_address]) {
+            max_received_round_for_address_[voter_account_address] = vote_round;
           }
         }
-        ++it;
+      }
+
+      if (rit->second.empty()) {
+        std::advance(rit, 1);
+        unverified_votes_.erase(rit.base());
+      } else {
+        ++rit;
       }
     }
   }
