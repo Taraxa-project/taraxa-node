@@ -302,10 +302,9 @@ std::vector<Vote> VoteManager::getVerifiedVotes(uint64_t const pbft_round, size_
   }
 
   for (auto const& v : votes_to_verify) {
-    if (std::find(votes_invalid_in_current_final_chain_period_.begin(),
-                  votes_invalid_in_current_final_chain_period_.end(),
-                  v.getHash()) != votes_invalid_in_current_final_chain_period_.end())
+    if (votes_invalid_in_current_final_chain_period_.count(v.getHash())) {
       continue;
+    }
 
     bool vote_is_valid = true;
 
