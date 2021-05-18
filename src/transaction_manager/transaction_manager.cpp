@@ -206,11 +206,13 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(DagBlock const &blk,
         trx_count_.fetch_add(1);
         db_->addTransactionStatusToBatch(trx_batch, trx, TransactionStatus::in_block);
       }
-
-      auto trx_count = trx_count_.load();
-      db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_count, trx_batch);
-      db_->commitWriteBatch(trx_batch);
     }
+
+    // Write prepared batch to db
+    auto trx_count = trx_count_.load();
+    db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_count, trx_batch);
+
+    db_->commitWriteBatch(trx_batch);
   } else {
         LOG(log_er_) << " Missing transaction - FAILED block verification " << missing_trx;
   }
