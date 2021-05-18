@@ -104,8 +104,8 @@ void DbStorage::loadSnapshots() {
 
 bool DbStorage::createSnapshot(uint64_t const& period) {
   // Only creates snapshot each db_snapshot_each_n_pbft_block_ periods
-  if (db_snapshot_each_n_pbft_block_ > 0 && period % db_snapshot_each_n_pbft_block_ == 0
-      && snapshots_.find(period) == snapshots_.end()) {
+  if (db_snapshot_each_n_pbft_block_ > 0 && period % db_snapshot_each_n_pbft_block_ == 0 &&
+      snapshots_.find(period) == snapshots_.end()) {
     LOG(log_nf_) << "Creating DB snapshot on period: " << period;
 
     // Create rocskd checkpoint/snapshot
