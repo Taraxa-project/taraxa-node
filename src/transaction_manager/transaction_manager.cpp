@@ -95,8 +95,8 @@ void TransactionManager::verifyQueuedTrxs() {
       auto status = db_->getTransactionStatus(hash);
       if (status == TransactionStatus::in_queue_unverified) {
         db_->saveTransactionStatus(hash, TransactionStatus::in_queue_verified);
-        event_transaction_accepted.pub(hash);
         lock.unlock();
+
         trx_qu_.addTransactionToVerifiedQueue(hash, item.second);
       }
     }
@@ -204,11 +204,12 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(DagBlock const &blk,
             LOG(log_er_) << " Block contains invalid transaction " << trx << " " << valid.second;
             return false;
           }
-          event_transaction_accepted.pub(trx);
         }
+
         trx_count_.fetch_add(1);
         db_->addTransactionStatusToBatch(trx_batch, trx, TransactionStatus::in_block);
       }
+
       auto trx_count = trx_count_.load();
       db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_count, trx_batch);
       db_->commitWriteBatch(trx_batch);
@@ -258,8 +259,8 @@ std::pair<bool, std::string> TransactionManager::insertTrx(Transaction const &tr
         status = TransactionStatus::in_queue_unverified;
       }
       db_->saveTransactionStatus(hash, status);
-      event_transaction_accepted.pub(hash);
       lock.unlock();
+
       trx_qu_.insert(trx, verify);
       if (ws_server_) ws_server_->newPendingTransaction(trx.getHash());
       return std::make_pair(true, "");
