@@ -289,7 +289,6 @@ std::vector<Vote> VoteManager::getVerifiedVotes(uint64_t const pbft_round, size_
 
   std::vector<Vote> verified_votes;
   auto votes_to_verify = getUnverifiedVotes();
-  LOG(log_nf_) << "There are " << votes_to_verify.size() << " votes need to verify.";
 
   h256 latest_final_chain_block_hash = final_chain_->get_last_block()->hash();
 
@@ -301,8 +300,6 @@ std::vector<Vote> VoteManager::getVerifiedVotes(uint64_t const pbft_round, size_
       votes_invalid_in_current_final_chain_period_.clear();
     }
   }
-
-  LOG(log_nf_) << "There are " << votes_invalid_in_current_final_chain_period_.size() << " votes marked as invalid";
 
   for (auto const& v : votes_to_verify) {
     if (votes_invalid_in_current_final_chain_period_.count(v.getHash())) {
