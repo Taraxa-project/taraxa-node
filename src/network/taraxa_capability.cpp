@@ -574,14 +574,30 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         peer->markPbftBlockAsKnown(pbft_blk_hash);
         LOG(log_nf_pbft_sync_) << "Received pbft block: " << pbft_blk_and_votes.pbft_blk->getBlockHash();
 
-        if (pbft_sync_period + 1 != pbft_blk_and_votes.pbft_blk->getPeriod()) {
-          LOG(log_er_pbft_sync_) << "PBFT SYNC ERROR, UNEXPECTED PBFT BLOCK HEIGHT: "
-                                 << pbft_blk_and_votes.pbft_blk->getPeriod()
-                                 << ", has synced period: " << pbft_sync_period
-                                 << ", PBFT chain size: " << pbft_chain_->getPbftChainSize()
-                                 << ", synced queue size : " << pbft_chain_->pbftSyncedQueueSize();
-          syncing_ = false;
+        if (pbft_chain_->isKnownPbftBlockForSyncing(pbft_blk_hash)) {
+          // Already have this block...
           return;
+        } else {
+          blk_hash_t last_local_pbft_blockhash;
+          if (pbft_chain_->pbftSyncedQueueEmpty()) {
+            // Look at the chain...
+            last_local_pbft_blockhash = pbft_chain_->getLastPbftBlockHash();
+          } else {
+            last_local_pbft_blockhash = pbft_chain_->pbftSyncedQueueBack().pbft_blk->getBlockHash();
+          }
+
+          if (last_local_pbft_blockhash != pbft_blk_and_votes.pbft_blk->getPrevBlockHash()) {
+            // This block is out of order...
+            if (_nodeID == peer_syncing_pbft_) {
+              LOG(log_si_pbft_sync_) << "PBFT SYNC ERROR, UNEXPECTED PBFT BLOCK HEIGHT: "
+                                     << pbft_blk_and_votes.pbft_blk->getPeriod()
+                                     << ", has synced period: " << pbft_sync_period
+                                     << ", PBFT chain size: " << pbft_chain_->getPbftChainSize()
+                                     << ", synced queue size : " << pbft_chain_->pbftSyncedQueueSize();
+              syncing_ = false;
+            }
+            return;
+          }
         }
 
         if (peer->pbft_chain_size_ < pbft_blk_and_votes.pbft_blk->getPeriod()) {
@@ -608,12 +624,14 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
           for (auto const &block : block_level.second) {
             auto status = checkDagBlockValidation(block.second.first);
             if (!status.first) {
-              LOG(log_er_pbft_sync_) << "PBFT SYNC ERROR, DAG missing a tip/pivot in period "
-                                     << pbft_blk_and_votes.pbft_blk->getPeriod()
-                                     << ", has synced period: " << pbft_sync_period
-                                     << ", PBFT chain size: " << pbft_chain_->getPbftChainSize()
-                                     << ", synced queue size: " << pbft_chain_->pbftSyncedQueueSize();
-              syncing_ = false;
+              if (peer_syncing_pbft_ == _nodeID) {
+                LOG(log_si_pbft_sync_) << "PBFT SYNC ERROR, DAG missing a tip/pivot in period "
+                                       << pbft_blk_and_votes.pbft_blk->getPeriod()
+                                       << ", has synced period: " << pbft_sync_period
+                                       << ", PBFT chain size: " << pbft_chain_->getPbftChainSize()
+                                       << ", synced queue size: " << pbft_chain_->pbftSyncedQueueSize();
+                syncing_ = false;
+              }
               return;
             }
             LOG(log_nf_dag_sync_) << "Storing DAG block " << block.second.first.getHash().toString() << " with "
