@@ -1228,20 +1228,10 @@ void TaraxaCapability::logNodeStats() {
     LOG(log_nf_summary_) << "DPOS total votes count:        " << local_dpos_total_votes_count;
     LOG(log_nf_summary_) << "PBFT consensus 2t+1 threshold: " << local_twotplusone;
     LOG(log_nf_summary_) << "Node elligible vote count:     " << local_weighted_votes;
+    LOG(log_nf_summary_) << "Unverified votes size:         " << vote_mgr_->getUnverifiedVotesSize();
   }
 
-  LOG(log_nf_summary_) << "In the last " << std::setprecision(0) << summary_interval_ms_ / 1000 << " seconds...";
-
-  if (is_syncing) {
-    LOG(log_nf_summary_) << "PBFT sync period progress:     " << pbft_sync_period_progress;
-  }
-  {
-    LOG(log_nf_summary_) << "PBFT chain blocks added:       " << pbft_chain_size_growth;
-    LOG(log_nf_summary_) << "PBFT rounds advanced:          " << pbft_consensus_rounds_advanced;
-    LOG(log_nf_summary_) << "DAG level growth:              " << dag_level_growh;
-  }
-
-  LOG(log_nf_summary_) << "##################################";
+  LOG(log_nf_summary_) << "------------- tl;dr -------------";
 
   if (making_pbft_chain_progress) {
     if (is_syncing) {
@@ -1273,6 +1263,19 @@ void TaraxaCapability::logNodeStats() {
     // Peer size is zero...
     LOG(log_si_summary_) << "STATUS: NOT CONNECTED TO ANY PEERS. POSSIBLE CONFIG ISSUE OR NETWORK CONNECTIVITY";
   }
+
+  LOG(log_nf_summary_) << "In the last " << std::setprecision(0) << summary_interval_ms_ / 1000 << " seconds...";
+
+  if (is_syncing) {
+    LOG(log_nf_summary_) << "PBFT sync period progress:     " << pbft_sync_period_progress;
+  }
+  {
+    LOG(log_nf_summary_) << "PBFT chain blocks added:       " << pbft_chain_size_growth;
+    LOG(log_nf_summary_) << "PBFT rounds advanced:          " << pbft_consensus_rounds_advanced;
+    LOG(log_nf_summary_) << "DAG level growth:              " << dag_level_growh;
+  }
+
+  LOG(log_nf_summary_) << "##################################";
 
   // Node stats info history
   local_max_level_in_dag_prev_interval_ = local_max_level_in_dag;
