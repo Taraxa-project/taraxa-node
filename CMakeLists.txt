@@ -21,7 +21,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g -O2") # TODO: originally -g -O0
 
 # Enable LTO
 option(TARAXA_ENABLE_LTO "Build taraxad with LTO (ON or OFF)" OFF)
-if(TARAXA_ENABLE_LTO)
+if(TARAXA_ENABLE_LTO AND NOT TARAXA_STATIC_BUILD)
     include(CheckIPOSupported)
     check_ipo_supported(RESULT supported OUTPUT error)
     if( supported )
