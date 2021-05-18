@@ -1213,7 +1213,7 @@ void PbftManager::syncPbftChainFromPeers_(PbftSyncRequestReason reason, taraxa::
 
   if (!is_syncing_() && !syncRequestedAlreadyThisStep_()) {
     auto round = getPbftRound();
-    
+
     bool force = false;
 
     switch (reason) {
@@ -1228,11 +1228,10 @@ void PbftManager::syncPbftChainFromPeers_(PbftSyncRequestReason reason, taraxa::
         LOG(log_nf_) << "Cert voted block " << relevant_blk_hash
                      << " is invalid, we must be out of sync with pbft chain.";
       case invalid_soft_voted_block:
-        // CONCERN: Should we sync here?  Any malicious player can propose an invalid soft voted block...
-        // Get partition, send request to get missing pbft blocks from peers
-        // LOG(log_er_)
-        //    << "Soft voted block for this round appears to be invalid, we must be out of sync with pbft chain";
-        return;
+        // TODO: Address CONCERN of should we sync here?  Any malicious player can propose an invalid soft voted
+        // block... Honest nodes will soft vote for any malicious block before receiving it and verifying it.
+        LOG(log_nf_) << "Soft voted block for this round appears to be invalid, perhaps node out of sync";
+        break;
       case exceeded_max_steps:
         LOG(log_nf_) << "Suspect consensus is partitioned, reached step " << step_ << " in round " << round
                      << " without advancing.";
@@ -1309,9 +1308,7 @@ bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(PbftBlock const &pbft_b
 bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cert_voted_block_hash,
                                                    std::vector<Vote> const &cert_votes_for_round) {
   if (!checkPbftBlockValid_(cert_voted_block_hash)) {
-    if (!is_syncing_()) {
-      syncPbftChainFromPeers_(invalid_cert_voted_block, cert_voted_block_hash);
-    }
+    syncPbftChainFromPeers_(invalid_cert_voted_block, cert_voted_block_hash);
     return false;
   }
   auto pbft_block = pbft_chain_->getUnverifiedPbftBlock(cert_voted_block_hash);

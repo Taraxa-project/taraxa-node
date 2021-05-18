@@ -275,16 +275,20 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
                                    << ", peer PBFT previous round next votes size "
                                    << peer->pbft_previous_round_next_votes_size_;
 
-      // auto pbft_synced_period = pbft_chain_->pbftSyncingPeriod();
-      // if (pbft_synced_period + 1 < peer->pbft_chain_size_) {
-      //   LOG(log_nf_) << "Restart PBFT chain syncing. Own synced PBFT at period " << pbft_synced_period
-      //                << ", peer PBFT chain size " << peer->pbft_chain_size_;
-      //   if (pbft_synced_period + 5 < peer->pbft_chain_size_) {
-      //     restartSyncingPbft(true);
-      //   } else {
-      //     restartSyncingPbft(false);
-      //   }
-      // }
+      // TODO: Address the CONCERN that it isn't NECESSARY to sync here
+      // and by syncing here we open node up to attack of sending bogus
+      // status.  We also have nothing to punish a node failing to send
+      // sync info.
+      auto pbft_synced_period = pbft_chain_->pbftSyncingPeriod();
+      if (pbft_synced_period + 1 < peer->pbft_chain_size_) {
+        LOG(log_nf_) << "Restart PBFT chain syncing. Own synced PBFT at period " << pbft_synced_period
+                     << ", peer PBFT chain size " << peer->pbft_chain_size_;
+        if (pbft_synced_period + 5 < peer->pbft_chain_size_) {
+          restartSyncingPbft(true);
+        } else {
+          restartSyncingPbft(false);
+        }
+      }
 
       auto pbft_current_round = pbft_mgr_->getPbftRound();
       auto pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesSize();
