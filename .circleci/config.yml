@@ -107,9 +107,32 @@ jobs:
       - run:
          name: Add Tags and push images
          command: |
+           echo ${GCLOUD_SERVICE_KEY} | docker login -u _json_key --password-stdin https://gcr.io
+           docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:${CIRCLE_SHA1}
            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:${START_TIME}
            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:${START_TIME}-${CIRCLE_SHA1}
+           docker push ${GCP_IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+           docker push ${GCP_IMAGE}:${START_TIME}
+           docker push ${GCP_IMAGE}:${CIRCLE_SHA1}
+           docker push ${GCP_IMAGE}:${START_TIME}-${CIRCLE_SHA1}
+           if [[ ! ${CIRCLE_BRANCH =~ ^PR-* }]];then
+              docker push ${GCP_IMAGE}:latest
+           fi
+           if [[ ${CIRCLE_BRANCH} == "master" ]];then
+             echo ${DOCKERHUB_PASS} | docker login -u taraxa --password-stdin
+             docker push ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+             docker push ${IMAGE}:${START_TIME}
+             docker push ${IMAGE}:${CIRCLE_SHA1}
+             docker push ${IMAGE}:${START_TIME}-${CIRCLE_SHA1}
+             if [[ ! ${CIRCLE_BRANCH =~ ^PR-* }]];then
+               docker push ${IMAGE}:latest
+             fi
+           fi
+      - run:
+         name: Get helm chart
+         command: |
+            git clone --branch development  https://github.com/Taraxa-project/taraxa-testnet.git
 
       - store_artifacts:
           path: tmp_docker 
