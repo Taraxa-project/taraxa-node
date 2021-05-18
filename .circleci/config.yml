@@ -29,9 +29,9 @@ jobs:
               export CIRCLE_BRANCH=circleci
               export CIRCLE_BUILD_NUM=300
            fi
-           echo "HELM_TEST_NAME=$(echo $CIRCLE_BRANCH | sed 's/[^A-Za-z0-9\\-]*//g' | tr '[:upper:]' '[:lower:]')" >>$BASH_ENV
+           echo "export HELM_TEST_NAME=$(echo $CIRCLE_BRANCH | sed 's/[^A-Za-z0-9\\-]*//g' | tr '[:upper:]' '[:lower:]')" >>$BASH_ENV
            echo "export DOCKER_BRANCH_TAG=$(./scripts/docker_tag_from_branch.sh $CIRCLE_BRANCH)" >>$BASH_ENV
-           echo "START_TIME=$(date +%Y%m%d-%Hh%Mm%Ss)" >>$BASH_ENV
+           echo "export START_TIME=$(date +%Y%m%d-%Hh%Mm%Ss)" >>$BASH_ENV
            sudo service apport stop
            sudo bash -c 'echo /tmp/core.%t.%e.%p >/proc/sys/kernel/core_pattern'
 
@@ -39,16 +39,17 @@ jobs:
       - run:
          name: Docker Build taraxa-node
          command: |
-           docker build -t $IMAGE:$DOCKER_BRANCH_TAG-$CIRCLE_BUILD_NUM .
+           docker build -t ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} .
       - run:
          name: Docker Build taraxa-node-ctest
          command: |
-          docker build -t $IMAGE-ctest:$DOCKER_BRANCH_TAG-$CIRCLE_BUILD_NUM \
+          docker build -t ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} \
             --target build .
       - run:
          name: Run Ctest
          command: |
-           docker run -d --rm -v $PWD/tmp_docker:/tmp --name taraxa-node-ctest-$DOCKER_BRANCH_TAG \
+           docker run -d --rm -v $PWD/tmp_docker:/tmp \
+                       --name taraxa-node-ctest-${DOCKER_BRANCH_TAG} \
                        ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}\
                         sh -c \
                        'cd cmake-docker-build-debug/tests \
@@ -106,12 +107,12 @@ jobs:
       - run:
          name: Add Tags and push images
          command: |
-           docker tag $IMAGE:$DOCKER_BRANCH_TAG-$CIRCLE_BUILD_NUM $GCP_IMAGE:$DOCKER_BRANCH_TAG-$CIRCLE_BUILD_NUM
-           docker tag $IMAGE:$DOCKER_BRANCH_TAG-$CIRCLE_BUILD_NUM $GCP_IMAGE:$START_TIME
-           docker tag $IMAGE:$DOCKER_BRANCH_TAG-$CIRCLE_BUILD_NUM $GCP_IMAGE:$START_TIME-$CIRCLE_SHA1
+           docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+           docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:${START_TIME}
+           docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:${START_TIME}-${CIRCLE_SHA1}
 
       - store_artifacts:
-          path: tmp_docker
+          path: tmp_docker 
 
    create-and-push-builder:
      docker:
