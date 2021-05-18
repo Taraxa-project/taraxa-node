@@ -9,9 +9,9 @@
 #include <chrono>
 #include <stdexcept>
 
+#include "aleth/dummy_eth_apis.hpp"
 #include "aleth/node_api.hpp"
 #include "aleth/state_api.hpp"
-#include "aleth/dummy_eth_apis.hpp"
 #include "consensus/block_proposer.hpp"
 #include "consensus/pbft_manager.hpp"
 #include "dag/dag.hpp"
@@ -118,8 +118,8 @@ void FullNode::init() {
                                                                           dev::toJS(*trx.rlp()), err_msg)));
                                                   }
                                                 }),
-                              std::make_shared<aleth::DummyFilterAPI>() /*trx_mgr_->getFilterAPI()*/, aleth::NewStateAPI(final_chain_), std::make_shared<aleth::DummyPendingBlock>(),
-                              final_chain_, [] { return 0; }));
+                              std::make_shared<aleth::DummyFilterAPI>(), aleth::NewStateAPI(final_chain_),
+                              std::make_shared<aleth::DummyPendingBlock>(), final_chain_, [] { return 0; }));
 
     if (conf_.rpc->http_port) {
       jsonrpc_http_ = make_shared<net::RpcServer>(
