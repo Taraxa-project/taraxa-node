@@ -198,7 +198,7 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(DagBlock const &blk,
         if (status == TransactionStatus::in_queue_unverified) {
           auto valid = verifyTransaction(db_->getTransactionExt(trx)->first);
           if (!valid.first) {
-                LOG(log_er_) << " Block contains invalid transaction " << trx << " " << valid.second;
+            LOG(log_er_) << " Block contains invalid transaction " << trx << " " << valid.second;
             return false;
           }
         }
@@ -214,7 +214,7 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(DagBlock const &blk,
 
     db_->commitWriteBatch(trx_batch);
   } else {
-        LOG(log_er_) << " Missing transaction - FAILED block verification " << missing_trx;
+    LOG(log_er_) << " Missing transaction - FAILED block verification " << missing_trx;
   }
 
   if (all_transactions_saved) trx_qu_.removeBlockTransactionsFromQueue(all_block_trx_hashes);
