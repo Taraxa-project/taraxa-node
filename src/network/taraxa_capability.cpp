@@ -902,11 +902,6 @@ void TaraxaCapability::onNewTransactions(std::vector<taraxa::bytes> const &trans
 void TaraxaCapability::onNewBlockReceived(DagBlock block, std::vector<Transaction> transactions) {
   LOG(log_nf_dag_prp_) << "Receive DagBlock " << block.getHash() << " #Trx" << transactions.size() << std::endl;
   if (dag_blk_mgr_) {
-    // auto status = checkDagBlockValidation(block);
-    // if (!status.first) {
-    //   if (!syncing_ && !requesting_pending_dag_blocks_) restartSyncingPbft();
-    //   return;
-    // }
     LOG(log_nf_dag_prp_) << "Storing block " << block.getHash().toString() << " with " << transactions.size()
                          << " transactions";
     dag_blk_mgr_->insertBroadcastedBlockWithTransactions(block, transactions);
