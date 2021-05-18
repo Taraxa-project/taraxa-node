@@ -44,7 +44,7 @@ jobs:
          name: Docker Build taraxa-node-ctest
          command: |
           docker build -t $IMAGE-ctest:$DOCKER_BRANCH_TAG-$CIRCLE_BUILD_NUM \
-            --target build
+            --target build .
       - run:
          name: Run Ctest
          command: |
