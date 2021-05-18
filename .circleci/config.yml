@@ -36,13 +36,15 @@ jobs:
            sudo bash -c 'echo /tmp/core.%t.%e.%p >/proc/sys/kernel/core_pattern'
 
            mkdir -p  $PWD/tmp_docker 
-      - gcp-gcr/build-image:
-         image: $IMAGE
-         tag: $DOCKER_BRANCH_TAG-$CIRCLE_BUILD_NUM
-      - gcp-gcr/build-image:
-         image: $IMAGE-ctest
-         tag: $DOCKER_BRANCH_TAG-$CIRCLE_BUILD_NUM
-         extra_build_args: --target build
+      - run:
+         name: Docker Build taraxa-node
+         command: |
+           docker build -t $IMAGE:$DOCKER_BRANCH_TAG-$CIRCLE_BUILD_NUM .
+      - run:
+         name: Docker Build taraxa-node-ctest
+         command:|
+          docker build -t $IMAGE-ctest:$DOCKER_BRANCH_TAG-$CIRCLE_BUILD_NUM \
+            --target build
       - run:
          name: Run Ctest
          command: |
