@@ -10,6 +10,7 @@ jobs:
    build-docker-image:
     environment:
       IMAGE=taraxa-node
+      GCP_IMAGE=gcr.io/$GOOGLE_PROJECT_ID/${IMAGE}
     machine:
       image: ubuntu-1604:202007-01
       docker_layer_caching: true
@@ -36,16 +37,18 @@ jobs:
 
            mkdir -p  $PWD/tmp_docker 
       - gcp-gcr/build-image:
-         image: $IMAGE-$DOCKER_BRANCH_TAG-$CIRCLE_BUILD_NUM
+         image: $IMAGE
          tag: $DOCKER_BRANCH_TAG-$CIRCLE_BUILD_NUM
       - gcp-gcr/build-image:
-         image: $IMAGE-$DOCKER_BRANCH_TAG-$CIRCLE_BUILD_NUM-ctest
+         image: $IMAGE-ctest
          tag: $DOCKER_BRANCH_TAG-$CIRCLE_BUILD_NUM
          extra_build_args: --target build
       - run:
          name: Run Ctest
          command: |
-           docker run -d --rm -v $PWD/tmp_docker:/tmp --name taraxa-node-ctest-$DOCKER_BRANCH_TAG gcr.io/$GOOGLE_PROJECT_ID/${IMAGE}-${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}-ctest sh -c \
+           docker run -d --rm -v $PWD/tmp_docker:/tmp --name taraxa-node-ctest-$DOCKER_BRANCH_TAG \
+                       ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}-ctest\
+                        sh -c \
                        'cd cmake-docker-build-debug/tests \
                         && ctest --output-on-failure' 
       - run:
@@ -67,7 +70,7 @@ jobs:
           docker run --rm -d \
               --name taraxa-node-smoke-test-${DOCKER_BRANCH_TAG} \
               --net smoke-test-net-${DOCKER_BRANCH_TAG} \
-              gcr.io/$GOOGLE_PROJECT_ID/${IMAGE}-${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} \
+              ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} \
               single
           mkdir -p  $PWD/test_build-d/
           sleep 30
@@ -98,18 +101,13 @@ jobs:
           docker kill taraxa-node-smoke-test-${DOCKER_BRANCH_TAG} || true
           docker network rm smoke-test-net-${DOCKER_BRANCH_TAG} || true
           docker images -a
-      - gcp-gcr/gcr-auth
-      - gcp-gcr/push-image:
-         image: $IMAGE-$DOCKER_BRANCH_TAG-$CIRCLE_BUILD_NUM
-         tag: $DOCKER_BRANCH_TAG-$CIRCLE_BUILD_NUM
-         when:
-          condition:
-            equal: [ "develop", << pipeline.git.branch >> ]
+      - run:
+         name: Add Tags and push images
+         command: |
+           docker tag $IMAGE:$DOCKER_BRANCH_TAG-$CIRCLE_BUILD_NUM $GCP_IMAGE:$DOCKER_BRANCH_TAG-$CIRCLE_BUILD_NUM
+           docker tag $IMAGE:$DOCKER_BRANCH_TAG-$CIRCLE_BUILD_NUM $GCP_IMAGE:$START_TIME
+           docker tag $IMAGE:$DOCKER_BRANCH_TAG-$CIRCLE_BUILD_NUM $GCP_IMAGE:$START_TIME-$CIRCLE_SHA1
 
-      - gcp-gcr/tag-image:
-         image: $IMAGE-$DOCKER_BRANCH_TAG-$CIRCLE_BUILD_NUM
-         source-tag: $DOCKER_BRANCH_TAG-$CIRCLE_BUILD_NUM
-         target-tag: $IMAGE-$CIRCLE_SHA1
       - store_artifacts:
           path: tmp_docker
 
