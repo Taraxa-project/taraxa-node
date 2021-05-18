@@ -116,7 +116,7 @@ jobs:
            docker push ${GCP_IMAGE}:${START_TIME}
            docker push ${GCP_IMAGE}:${CIRCLE_SHA1}
            docker push ${GCP_IMAGE}:${START_TIME}-${CIRCLE_SHA1}
-           if [[ ! ${CIRCLE_BRANCH =~ ^PR-* }]];then
+           if [[ ! ${CIRCLE_BRANCH} =~ ^PR-* ]];then
               docker push ${GCP_IMAGE}:latest
            fi
            if [[ ${CIRCLE_BRANCH} == "master" ]];then
@@ -125,7 +125,7 @@ jobs:
              docker push ${IMAGE}:${START_TIME}
              docker push ${IMAGE}:${CIRCLE_SHA1}
              docker push ${IMAGE}:${START_TIME}-${CIRCLE_SHA1}
-             if [[ ! ${CIRCLE_BRANCH =~ ^PR-* }]];then
+             if [[ ! ${CIRCLE_BRANCH} =~ ^PR-* ]];then
                docker push ${IMAGE}:latest
              fi
            fi
