@@ -94,7 +94,7 @@ endfunction()
 # Add taraxa-vdf
 set(VDF_LIBRARY_COMMAND "\
  ${CMAKE_MAKE_PROGRAM}\
- CPPFLAGS=\"-I./include -I${CONAN_INCLUDE_DIRS_OPENSSL} -I${CONAN_INCLUDE_DIRS_GMP} -I${CONAN_INCLUDE_DIRS_MPFR} -std=c++17\"\
+ CPPFLAGS=\"-I./include -I${CONAN_INCLUDE_DIRS_OPENSSL} -I${CONAN_INCLUDE_DIRS_GMP} -I${CONAN_INCLUDE_DIRS_MPFR} -std=c++17 -O3\"\
  lib/libvdf.a")
 add_make_target(vdf libvdf.a "${VDF_LIBRARY_COMMAND}")
 

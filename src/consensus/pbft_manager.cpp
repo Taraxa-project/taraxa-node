@@ -728,12 +728,7 @@ void PbftManager::certifyBlock_() {
           LOG(log_tr_) << "checkPbftBlockValid_ returned true";
           unverified_soft_vote_block_for_this_round_is_valid = true;
         } else {
-          // Get partition, need send request to get missing pbft blocks from peers
-          LOG(log_er_)
-              << "Soft voted block for this round appears to be invalid, we must be out of sync with pbft chain";
-          if (!is_syncing_()) {
-            syncPbftChainFromPeers_(false);
-          }
+          syncPbftChainFromPeers_(invalid_soft_voted_block, soft_voted_block_for_this_round_.first);
         }
       }
 
@@ -851,9 +846,7 @@ void PbftManager::secondFinish_() {
   }
 
   if (step_ > MAX_STEPS && !is_syncing_() && !syncRequestedAlreadyThisStep_() && (step_ - MAX_STEPS - 2) % 100 == 0) {
-    LOG(log_dg_) << "Suspect PBFT consensus is behind or stalled, perhaps inaccurate 2t+1, need to broadcast request "
-                    "for missing blocks";
-    syncPbftChainFromPeers_(true);
+    syncPbftChainFromPeers_(exceeded_max_steps, NULL_BLOCK_HASH);
   }
 
   if (step_ > MAX_STEPS && !broadcastAlreadyThisStep_()) {
@@ -1169,32 +1162,69 @@ std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_(std::vector<Vote> 
 }
 
 bool PbftManager::checkPbftBlockValid_(blk_hash_t const &block_hash) const {
-  auto cert_voted_block = pbft_chain_->getUnverifiedPbftBlock(block_hash);
-  if (!cert_voted_block) {
+  auto block = pbft_chain_->getUnverifiedPbftBlock(block_hash);
+  if (!block) {
     LOG(log_er_) << "Cannot find the unverified pbft block, block hash " << block_hash;
     return false;
   }
-  return pbft_chain_->checkPbftBlockValidation(*cert_voted_block);
+  return pbft_chain_->checkPbftBlockValidation(*block);
 }
 
 bool PbftManager::syncRequestedAlreadyThisStep_() const {
   return getPbftRound() == pbft_round_last_requested_sync_ && step_ == pbft_step_last_requested_sync_;
 }
 
-void PbftManager::syncPbftChainFromPeers_(bool force) {
+void PbftManager::syncPbftChainFromPeers_(PbftSyncRequestReason reason, taraxa::blk_hash_t const &relevant_blk_hash) {
   if (stopped_) {
     return;
   }
+
   if (!pbft_chain_->pbftSyncedQueueEmpty()) {
-    LOG(log_dg_) << "PBFT synced queue is processing, skips syncing. Synced queue size "
+    LOG(log_tr_) << "PBFT synced queue is still processing so skip syncing. Synced queue size "
                  << pbft_chain_->pbftSyncedQueueSize();
+
     return;
   }
 
   if (!is_syncing_() && !syncRequestedAlreadyThisStep_()) {
     auto round = getPbftRound();
-    LOG(log_nf_) << "Restarting pbft sync. In round " << round << ", in step " << step_ << ", forced " << std::boolalpha
-                 << force << ", Send request to ask missing blocks";
+
+    bool force = false;
+
+    switch (reason) {
+      case missing_dag_blk:
+        LOG(log_nf_) << "DAG blocks have not synced yet, anchor block " << relevant_blk_hash << " not present in DAG.";
+        // We want to force syncing the DAG...
+        force = true;
+
+        break;
+      case invalid_cert_voted_block:
+        // Get partition, need send request to get missing pbft blocks from peers
+        LOG(log_nf_) << "Cert voted block " << relevant_blk_hash
+                     << " is invalid, we must be out of sync with pbft chain.";
+        break;
+      case invalid_soft_voted_block:
+        // TODO: Address CONCERN of should we sync here?  Any malicious player can propose an invalid soft voted
+        // block... Honest nodes will soft vote for any malicious block before receiving it and verifying it.
+        LOG(log_nf_) << "Soft voted block for this round appears to be invalid, perhaps node out of sync";
+        break;
+      case exceeded_max_steps:
+        LOG(log_nf_) << "Suspect consensus is partitioned, reached step " << step_ << " in round " << round
+                     << " without advancing.";
+        // We want to force sycning the DAG...
+        force = true;
+        break;
+      default:
+        LOG(log_er_) << "Unknown PBFT sync request reason " << reason;
+        assert(false);
+
+        if (force) {
+          LOG(log_nf_) << "Restarting sync in round " << round << ", step " << step_ << ", and forcing DAG sync";
+        } else {
+          LOG(log_nf_) << "Restarting sync in round " << round << ", step " << step_;
+        }
+    }
+
     if (auto net = network_.lock()) {
       net->restartSyncingPbft(force);
     }
@@ -1247,28 +1277,14 @@ bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(PbftBlock const &pbft_b
     return true;
   }
 
-  auto round = getPbftRound();
-  auto last_period = pbft_chain_->getPbftChainSize();
-  if (syncRequestedAlreadyThisStep_()) {
-    LOG(log_nf_) << "DAG blocks have not sync yet. PBFT syncing has sent at PBFT round " << round << " step " << step_
-                 << ". last period " << last_period << ", anchor block hash " << anchor_hash << " is not found locally";
-  } else {
-    LOG(log_nf_) << "DAG blocks have not sync yet. last period " << last_period << ", anchor hash " << anchor_hash
-                 << ". Will trigger syncing request at round " << round << " step " << step_;
-    syncPbftChainFromPeers_(true);
-  }
+  syncPbftChainFromPeers_(missing_dag_blk, anchor_hash);
   return false;
 }
 
 bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cert_voted_block_hash,
                                                    std::vector<Vote> const &cert_votes_for_round) {
   if (!checkPbftBlockValid_(cert_voted_block_hash)) {
-    // Get partition, need send request to get missing pbft blocks from peers
-    LOG(log_er_) << "Cert voted block " << cert_voted_block_hash
-                 << " is invalid, we must be out of sync with pbft chain";
-    if (!is_syncing_()) {
-      syncPbftChainFromPeers_(false);
-    }
+    syncPbftChainFromPeers_(invalid_cert_voted_block, cert_voted_block_hash);
     return false;
   }
   auto pbft_block = pbft_chain_->getUnverifiedPbftBlock(cert_voted_block_hash);
@@ -1363,8 +1379,8 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
   }
 
   if (updated_vrf_last_pbft_block_hash) {
-    LOG(log_nf_)
-        << "Remove all verified votes. Since new PBFT blocks have synced into chain, last PBFT block hash has changed.";
+    LOG(log_nf_) << "Remove all verified votes. Since new PBFT blocks have synced into chain, last PBFT block hash "
+                    "has changed.";
     vote_mgr_->removeVerifiedVotes();
   }
 }
@@ -1384,7 +1400,8 @@ bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes, boo
   auto batch = db_->createWriteBatch();
   // Add cert votes in DB
   db_->addCertVotesToBatch(pbft_block_hash, cert_votes, batch);
-  LOG(log_nf_) << "Storing cert votes of pbft blk " << pbft_block_hash << "\n" << cert_votes;
+  LOG(log_nf_) << "Storing cert votes of pbft blk " << pbft_block_hash;
+  LOG(log_dg_) << "Stored following cert votes:\n" << cert_votes;
   // Add period_pbft_block in DB
   db_->addPbftBlockPeriodToBatch(pbft_period, pbft_block_hash, batch);
   // Add PBFT block in DB
