@@ -1227,6 +1227,7 @@ void PbftManager::syncPbftChainFromPeers_(PbftSyncRequestReason reason, taraxa::
         // Get partition, need send request to get missing pbft blocks from peers
         LOG(log_nf_) << "Cert voted block " << relevant_blk_hash
                      << " is invalid, we must be out of sync with pbft chain.";
+        break;
       case invalid_soft_voted_block:
         // TODO: Address CONCERN of should we sync here?  Any malicious player can propose an invalid soft voted
         // block... Honest nodes will soft vote for any malicious block before receiving it and verifying it.
