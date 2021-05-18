@@ -571,7 +571,8 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         LOG(log_nf_pbft_sync_) << "Received pbft block: " << pbft_blk_and_votes.pbft_blk->getBlockHash();
 
         if (pbft_chain_->isKnownPbftBlockForSyncing(pbft_blk_hash)) {
-          // This is ok I gues...?
+          // Already have this block...
+          return;
         } else {
           blk_hash_t last_local_pbft_blockhash;
           if (pbft_chain_->pbftSyncedQueueEmpty()) {
