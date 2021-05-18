@@ -82,20 +82,16 @@ void TransactionManager::verifyQueuedTrxs() {
     }
     // mark invalid
     if (!valid.first) {
-      {
-        uLock lock(mu_for_transactions_);
-        db_->saveTransactionStatus(hash, TransactionStatus::invalid);
-      }
+      db_->saveTransactionStatus(hash, TransactionStatus::invalid);
       trx_qu_.removeTransactionFromBuffer(hash);
+
       LOG(log_wr_) << " Trx: " << hash << "invalid: " << valid.second << std::endl;
       continue;
     }
     {
-      uLock lock(mu_for_transactions_);
       auto status = db_->getTransactionStatus(hash);
       if (status == TransactionStatus::in_queue_unverified) {
         db_->saveTransactionStatus(hash, TransactionStatus::in_queue_verified);
-        lock.unlock();
 
         trx_qu_.addTransactionToVerifiedQueue(hash, item.second);
       }
@@ -163,6 +159,7 @@ std::shared_ptr<std::pair<Transaction, taraxa::bytes>> TransactionManager::getTr
   }
   return tr;
 }
+
 // Received block means some trx might be packed by others
 bool TransactionManager::saveBlockTransactionAndDeduplicate(DagBlock const &blk,
                                                             std::vector<Transaction> const &some_trxs) {
@@ -193,15 +190,15 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(DagBlock const &blk,
   }
 
   if (all_transactions_saved) {
-    uLock lock(mu_for_transactions_);
     auto trx_batch = db_->createWriteBatch();
+
     for (auto const &trx : all_block_trx_hashes) {
       auto status = db_->getTransactionStatus(trx);
       if (status != TransactionStatus::in_block) {
         if (status == TransactionStatus::in_queue_unverified) {
           auto valid = verifyTransaction(db_->getTransactionExt(trx)->first);
           if (!valid.first) {
-            LOG(log_er_) << " Block contains invalid transaction " << trx << " " << valid.second;
+                LOG(log_er_) << " Block contains invalid transaction " << trx << " " << valid.second;
             return false;
           }
         }
@@ -215,7 +212,7 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(DagBlock const &blk,
       db_->commitWriteBatch(trx_batch);
     }
   } else {
-    LOG(log_er_) << " Missing transaction - FAILED block verification " << missing_trx;
+        LOG(log_er_) << " Missing transaction - FAILED block verification " << missing_trx;
   }
 
   if (all_transactions_saved) trx_qu_.removeBlockTransactionsFromQueue(all_block_trx_hashes);
@@ -250,7 +247,6 @@ std::pair<bool, std::string> TransactionManager::insertTrx(Transaction const &tr
   }
 
   if (verified.first) {
-    uLock lock(mu_for_transactions_);
     auto status = db_->getTransactionStatus(hash);
     if (status == TransactionStatus::not_seen) {
       if (verify) {
@@ -259,7 +255,6 @@ std::pair<bool, std::string> TransactionManager::insertTrx(Transaction const &tr
         status = TransactionStatus::in_queue_unverified;
       }
       db_->saveTransactionStatus(hash, status);
-      lock.unlock();
 
       trx_qu_.insert(trx, verify);
       if (ws_server_) ws_server_->newPendingTransaction(trx.getHash());
@@ -306,7 +301,6 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx, uint16_t max_trx_
   bool changed = false;
   auto trx_batch = db_->createWriteBatch();
   {
-    uLock lock(mu_for_transactions_);
     for (auto const &i : verified_trx) {
       trx_hash_t const &hash = i.first;
       Transaction const &trx = i.second;
