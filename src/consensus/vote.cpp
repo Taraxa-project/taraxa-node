@@ -287,6 +287,7 @@ std::vector<Vote> VoteManager::getVerifiedVotes(uint64_t const pbft_round, size_
   // Cleanup votes for previous rounds
   cleanupVotes(pbft_round);
 
+  std::vector<Vote> future_unverifiable_votes;
   std::vector<Vote> verified_votes;
   auto votes_to_verify = getUnverifiedVotes();
 
@@ -327,6 +328,9 @@ std::vector<Vote> VoteManager::getVerifiedVotes(uint64_t const pbft_round, size_
       verified_votes.emplace_back(v);
     } else {
       votes_invalid_in_current_final_chain_period_.emplace(v.getHash());
+      if (v.getRound() > pbft_round + 1) {
+        future_unverifiable_votes.emplace_back(v);
+      }
     }
   }
 
@@ -335,10 +339,19 @@ std::vector<Vote> VoteManager::getVerifiedVotes(uint64_t const pbft_round, size_
     db_->addVerifiedVoteToBatch(v, batch);
     db_->removeUnverifiedVoteToBatch(v.getHash(), batch);
   }
+
+  for (auto const& v : future_unverifiable_votes) {
+    db_->removeUnverifiedVoteToBatch(v.getHash(), batch);
+  }
+
   db_->commitWriteBatch(batch);
 
   for (auto const& v : verified_votes) {
     addVerifiedVote(v);
+    removeUnverifiedVote(v.getRound(), v.getHash());
+  }
+
+  for (auto const& v : future_unverifiable_votes) {
     removeUnverifiedVote(v.getRound(), v.getHash());
   }
 
@@ -388,7 +401,7 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
       }
 
       if (rit->second.empty()) {
-        rit = decltype(rit){ unverified_votes_.erase(std::next(rit).base()) };
+        rit = decltype(rit){unverified_votes_.erase(std::next(rit).base())};
       } else {
         ++rit;
       }
