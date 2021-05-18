@@ -124,6 +124,8 @@ VoteManager::VoteManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::s
       LOG(log_dg_) << "Retrieve verified vote " << v;
     }
   }
+
+  current_period_final_chain_block_hash_ = final_chain_->get_last_block()->hash();
 }
 
 void VoteManager::addUnverifiedVote(taraxa::Vote const& vote) {
@@ -288,7 +290,24 @@ std::vector<Vote> VoteManager::getVerifiedVotes(uint64_t const pbft_round, size_
   std::vector<Vote> verified_votes;
   auto votes_to_verify = getUnverifiedVotes();
 
+  h256 latest_final_chain_block_hash = final_chain_->get_last_block()->hash();
+
+  if (latest_final_chain_block_hash != current_period_final_chain_block_hash_) {
+    current_period_final_chain_block_hash_ = latest_final_chain_block_hash;
+    if (!votes_invalid_in_current_final_chain_period_.empty()) {
+      LOG(log_dg_) << "After new final chain block, will now re-attempt to validate "
+                   << votes_invalid_in_current_final_chain_period_.size() << " unverified PBFT votes";
+      votes_invalid_in_current_final_chain_period_.clear();
+    }
+  }
+
   for (auto const& v : votes_to_verify) {
+    if (votes_invalid_in_current_final_chain_period_.count(v.getHash())) {
+      continue;
+    }
+
+    bool vote_is_valid = true;
+
     addr_t voter_account_address = dev::toAddress(v.getVoter());
     // Check if the voter account is valid, malicious vote
     auto vote_weighted_index = v.getWeightedIndex();
@@ -296,15 +315,18 @@ std::vector<Vote> VoteManager::getVerifiedVotes(uint64_t const pbft_round, size_
     if (vote_weighted_index > 0 && v.getStep() == 1) {
       LOG(log_dg_) << "Account " << voter_account_address
                    << " attempted to vote with weighted index > 0 in propose step. Vote: " << v;
-      continue;
-    }
-    if (vote_weighted_index >= dpos_votes_count) {
+      vote_is_valid = false;
+    } else if (vote_weighted_index >= dpos_votes_count) {
       LOG(log_dg_) << "Account " << voter_account_address << " is not eligible to vote. Vote: " << v;
-      continue;
+      vote_is_valid = false;
+    } else {
+      vote_is_valid = voteValidation(v, dpos_total_votes_count, sortition_threshold);
     }
 
-    if (voteValidation(v, dpos_total_votes_count, sortition_threshold)) {
+    if (vote_is_valid) {
       verified_votes.emplace_back(v);
+    } else {
+      votes_invalid_in_current_final_chain_period_.emplace(v.getHash());
     }
   }
 
@@ -330,6 +352,7 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
   {
     upgradableLock_ lock(unverified_votes_access_);
     std::map<uint64_t, std::unordered_map<vote_hash_t, Vote>>::iterator it = unverified_votes_.begin();
+    std::map<uint64_t, std::unordered_map<vote_hash_t, Vote>>::reverse_iterator rit;
 
     upgradeLock_ locked(lock);
     while (it != unverified_votes_.end() && it->first < pbft_round) {
@@ -338,7 +361,44 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
       }
       it = unverified_votes_.erase(it);
     }
+
+    size_t stale_removed_votes_count = 0;
+
+    rit = unverified_votes_.rbegin();
+    while (rit != unverified_votes_.rend()) {
+      auto vote_round = rit->first;
+      auto v = rit->second.begin();
+      while (v != rit->second.end()) {
+        // Check if vote is a stale vote for given address...
+        addr_t voter_account_address = dev::toAddress(v->second.getVoter());
+        auto found_in_map = max_received_round_for_address_.find(voter_account_address);
+        if (found_in_map == max_received_round_for_address_.end()) {
+          max_received_round_for_address_[voter_account_address] = vote_round;
+        } else {
+          if (max_received_round_for_address_[voter_account_address] > vote_round + 1) {
+            remove_unverified_votes_hash.emplace_back(v->first);
+            v = rit->second.erase(v);
+            stale_removed_votes_count++;
+            continue;
+          } else if (vote_round > max_received_round_for_address_[voter_account_address]) {
+            max_received_round_for_address_[voter_account_address] = vote_round;
+          }
+        }
+        ++v;
+      }
+
+      if (rit->second.empty()) {
+        rit = decltype(rit){ unverified_votes_.erase(std::next(rit).base()) };
+      } else {
+        ++rit;
+      }
+    }
+
+    if (stale_removed_votes_count) {
+      LOG(log_nf_) << "Removed " << stale_removed_votes_count << " stale votes from unverified queue";
+    }
   }
+
   auto batch = db_->createWriteBatch();
   for (auto const& v_hash : remove_unverified_votes_hash) {
     db_->removeUnverifiedVoteToBatch(v_hash, batch);
@@ -359,10 +419,12 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
       it = verified_votes_.erase(it);
     }
   }
+
   batch = db_->createWriteBatch();
   for (auto const& v_hash : remove_verified_votes_hash) {
     db_->removeVerifiedVoteToBatch(v_hash, batch);
   }
+
   db_->commitWriteBatch(batch);
 }
 

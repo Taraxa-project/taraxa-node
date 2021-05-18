@@ -186,7 +186,6 @@ class PbftManager {
   bool should_have_cert_voted_in_this_round_ = false;
   bool next_voted_soft_value_ = false;
   bool next_voted_null_block_hash_ = false;
-  bool continue_finish_polling_state_ = false;
   bool go_finish_state_ = false;
   bool loop_back_finish_state_ = false;
 
