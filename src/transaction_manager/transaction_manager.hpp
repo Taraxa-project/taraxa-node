@@ -98,8 +98,6 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   std::shared_ptr<DagManager> dag_mgr_;
   logger::Logger log_time_;
 
-  mutable std::mutex mu_for_nonce_table_;
-  mutable std::mutex mu_for_transactions_;
   LOG_OBJECTS_DEFINE
 };
 }  // namespace taraxa
