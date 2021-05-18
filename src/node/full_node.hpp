@@ -13,8 +13,6 @@
 #include <type_traits>
 #include <vector>
 
-#include "aleth/filter_api.hpp"
-#include "aleth/pending_block.hpp"
 #include "config/config.hpp"
 #include "consensus/pbft_chain.hpp"
 #include "consensus/vote.hpp"

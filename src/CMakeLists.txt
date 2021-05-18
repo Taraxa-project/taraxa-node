@@ -9,10 +9,9 @@ set(SOURCES
         dag/dag.hpp
         consensus/pbft_chain.hpp
         aleth/node_api.hpp
-        aleth/filter_api.hpp
         aleth/database.hpp
-        aleth/pending_block.hpp
         aleth/state_api.hpp
+        aleth/dummy_eth_apis.hpp
         consensus/block_proposer.hpp
         transaction_manager/transaction_status.hpp
         chain/chain_config.hpp
@@ -25,7 +24,6 @@ set(SOURCES
         consensus/pbft_config.hpp
         network/taraxa_capability.hpp
         util/exit_stack.hpp
-        util/simple_event.hpp
         util/encoding_rlp.hpp
         util/range_view.hpp
         util/lazy.hpp
@@ -63,8 +61,6 @@ set(SOURCES
         storage/db_storage.cpp
         consensus/vrf_wrapper.cpp
         aleth/node_api.cpp
-        aleth/pending_block.cpp
-        aleth/filter_api.cpp
         aleth/database.cpp
         aleth/state_api.cpp
         node/executor.cpp

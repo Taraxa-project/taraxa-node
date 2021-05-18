@@ -11,6 +11,7 @@
 
 #include "aleth/node_api.hpp"
 #include "aleth/state_api.hpp"
+#include "aleth/dummy_eth_apis.hpp"
 #include "consensus/block_proposer.hpp"
 #include "consensus/pbft_manager.hpp"
 #include "dag/dag.hpp"
@@ -80,22 +81,9 @@ void FullNode::init() {
   LOG(log_nf_) << "DB initialized ...";
 
   final_chain_ = NewFinalChain(db_, conf_.chain.final_chain, conf_.opts_final_chain);
-  {
-    emplace(trx_mgr_, conf_, node_addr, db_, log_time_);
-    // This should go to the constructor
-    auto final_chain_head = final_chain_->get_last_block();
-    trx_mgr_->setPendingBlock(
-        aleth::NewPendingBlock(final_chain_head->number(), getAddress(), final_chain_head->hash(), db_));
-    for (auto const &h : trx_mgr_->getPendingBlock()->transactionHashes()) {
-      auto status = db_->getTransactionStatus(h);
-      if (status == TransactionStatus::in_queue_unverified || status == TransactionStatus::in_queue_verified) {
-        auto trx = db_->getTransaction(h);
-        if (!trx_mgr_->insertTrx(*trx, true).first) {
-          LOG(log_er_) << "Pending transaction not valid";
-        }
-      }
-    }
-  }
+
+  emplace(trx_mgr_, conf_, node_addr, db_, log_time_);
+
   auto genesis_hash = conf_.chain.dag_genesis_block.getHash().toString();
   emplace(pbft_chain_, genesis_hash, node_addr, db_);
   emplace(next_votes_mgr_, node_addr, db_);
@@ -130,7 +118,7 @@ void FullNode::init() {
                                                                           dev::toJS(*trx.rlp()), err_msg)));
                                                   }
                                                 }),
-                              trx_mgr_->getFilterAPI(), aleth::NewStateAPI(final_chain_), trx_mgr_->getPendingBlock(),
+                              std::make_shared<aleth::DummyFilterAPI>() /*trx_mgr_->getFilterAPI()*/, aleth::NewStateAPI(final_chain_), std::make_shared<aleth::DummyPendingBlock>(),
                               final_chain_, [] { return 0; }));
 
     if (conf_.rpc->http_port) {
