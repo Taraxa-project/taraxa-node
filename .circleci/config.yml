@@ -10,7 +10,6 @@ jobs:
    build-docker-image:
     environment:
       - IMAGE: taraxa-node
-      - GCP_IMAGE: gcr.io/$GOOGLE_PROJECT_ID/${IMAGE}
     machine:
       image: ubuntu-1604:202007-01
       docker_layer_caching: true
@@ -32,6 +31,7 @@ jobs:
            echo "export HELM_TEST_NAME=$(echo $CIRCLE_BRANCH | sed 's/[^A-Za-z0-9\\-]*//g' | tr '[:upper:]' '[:lower:]')" >>$BASH_ENV
            echo "export DOCKER_BRANCH_TAG=$(./scripts/docker_tag_from_branch.sh $CIRCLE_BRANCH)" >>$BASH_ENV
            echo "export START_TIME=$(date +%Y%m%d-%Hh%Mm%Ss)" >>$BASH_ENV
+           echo "export GCP_IMAGE=gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE}" >> $BASH_ENV
            sudo service apport stop
            sudo bash -c 'echo /tmp/core.%t.%e.%p >/proc/sys/kernel/core_pattern'
 
