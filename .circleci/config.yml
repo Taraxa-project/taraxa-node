@@ -117,7 +117,8 @@ jobs:
            docker push ${GCP_IMAGE}:${CIRCLE_SHA1}
            docker push ${GCP_IMAGE}:${START_TIME}-${CIRCLE_SHA1}
            if [[ ! ${CIRCLE_BRANCH} =~ ^PR-* ]];then
-              docker push ${GCP_IMAGE}:latest
+              docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:latest
+              #docker push ${GCP_IMAGE}:latest
            fi
            if [[ ${CIRCLE_BRANCH} == "master" ]];then
              echo ${DOCKERHUB_PASS} | docker login -u taraxa --password-stdin
@@ -126,7 +127,8 @@ jobs:
              docker push ${IMAGE}:${CIRCLE_SHA1}
              docker push ${IMAGE}:${START_TIME}-${CIRCLE_SHA1}
              if [[ ! ${CIRCLE_BRANCH} =~ ^PR-* ]];then
-               docker push ${IMAGE}:latest
+               docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${IMAGE}:latest
+               #docker push ${IMAGE}:latest
              fi
            fi
       - run:
