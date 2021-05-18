@@ -4,8 +4,8 @@
   "db_path": "/tmp/taraxa",
   "network_is_boot_node": true,
   "network_address": "0.0.0.0",
-  "network_tcp_port": 10002,
-  "network_udp_port": 10002,
+  "network_tcp_port": 10007,
+  "network_udp_port": 10007,
   "network_simulated_delay": 0,
   "network_transaction_interval": 100,
   "network_encrypted": 1,
@@ -17,8 +17,8 @@
     {
       "ip": "127.0.0.1",
       "id": "7b1fcf0ec1078320117b96e9e9ad9032c06d030cf4024a598347a4623a14a421d4f030cf25ef368ab394a45e920e14b57a259a09c41767dd50d1da27b627412a",
-      "tcp_port": 10002,
-      "udp_port": 10002
+      "tcp_port": 10007,
+      "udp_port": 10007
     }
   ],
   "rpc": {
