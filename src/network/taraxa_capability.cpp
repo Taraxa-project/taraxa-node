@@ -275,6 +275,10 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
                                    << ", peer PBFT previous round next votes size "
                                    << peer->pbft_previous_round_next_votes_size_;
 
+      // TODO: Address the CONCERN that it isn't NECESSARY to sync here
+      // and by syncing here we open node up to attack of sending bogus
+      // status.  We also have nothing to punish a node failing to send
+      // sync info.
       auto pbft_synced_period = pbft_chain_->pbftSyncingPeriod();
       if (pbft_synced_period + 1 < peer->pbft_chain_size_) {
         LOG(log_nf_) << "Restart PBFT chain syncing. Own synced PBFT at period " << pbft_synced_period
@@ -570,14 +574,30 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         peer->markPbftBlockAsKnown(pbft_blk_hash);
         LOG(log_nf_pbft_sync_) << "Received pbft block: " << pbft_blk_and_votes.pbft_blk->getBlockHash();
 
-        if (pbft_sync_period + 1 != pbft_blk_and_votes.pbft_blk->getPeriod()) {
-          LOG(log_er_pbft_sync_) << "PBFT SYNC ERROR, UNEXPECTED PBFT BLOCK HEIGHT: "
-                                 << pbft_blk_and_votes.pbft_blk->getPeriod()
-                                 << ", has synced period: " << pbft_sync_period
-                                 << ", PBFT chain size: " << pbft_chain_->getPbftChainSize()
-                                 << ", synced queue size : " << pbft_chain_->pbftSyncedQueueSize();
-          syncing_ = false;
+        if (pbft_chain_->isKnownPbftBlockForSyncing(pbft_blk_hash)) {
+          // Already have this block...
           return;
+        } else {
+          blk_hash_t last_local_pbft_blockhash;
+          if (pbft_chain_->pbftSyncedQueueEmpty()) {
+            // Look at the chain...
+            last_local_pbft_blockhash = pbft_chain_->getLastPbftBlockHash();
+          } else {
+            last_local_pbft_blockhash = pbft_chain_->pbftSyncedQueueBack().pbft_blk->getBlockHash();
+          }
+
+          if (last_local_pbft_blockhash != pbft_blk_and_votes.pbft_blk->getPrevBlockHash()) {
+            // This block is out of order...
+            if (_nodeID == peer_syncing_pbft_) {
+              LOG(log_si_pbft_sync_) << "PBFT SYNC ERROR, UNEXPECTED PBFT BLOCK HEIGHT: "
+                                     << pbft_blk_and_votes.pbft_blk->getPeriod()
+                                     << ", has synced period: " << pbft_sync_period
+                                     << ", PBFT chain size: " << pbft_chain_->getPbftChainSize()
+                                     << ", synced queue size : " << pbft_chain_->pbftSyncedQueueSize();
+              syncing_ = false;
+            }
+            return;
+          }
         }
 
         if (peer->pbft_chain_size_ < pbft_blk_and_votes.pbft_blk->getPeriod()) {
@@ -604,12 +624,14 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
           for (auto const &block : block_level.second) {
             auto status = checkDagBlockValidation(block.second.first);
             if (!status.first) {
-              LOG(log_er_pbft_sync_) << "PBFT SYNC ERROR, DAG missing a tip/pivot in period "
-                                     << pbft_blk_and_votes.pbft_blk->getPeriod()
-                                     << ", has synced period: " << pbft_sync_period
-                                     << ", PBFT chain size: " << pbft_chain_->getPbftChainSize()
-                                     << ", synced queue size: " << pbft_chain_->pbftSyncedQueueSize();
-              syncing_ = false;
+              if (peer_syncing_pbft_ == _nodeID) {
+                LOG(log_si_pbft_sync_) << "PBFT SYNC ERROR, DAG missing a tip/pivot in period "
+                                       << pbft_blk_and_votes.pbft_blk->getPeriod()
+                                       << ", has synced period: " << pbft_sync_period
+                                       << ", PBFT chain size: " << pbft_chain_->getPbftChainSize()
+                                       << ", synced queue size: " << pbft_chain_->pbftSyncedQueueSize();
+                syncing_ = false;
+              }
               return;
             }
             LOG(log_nf_dag_sync_) << "Storing DAG block " << block.second.first.getHash().toString() << " with "
@@ -898,11 +920,6 @@ void TaraxaCapability::onNewTransactions(std::vector<taraxa::bytes> const &trans
 void TaraxaCapability::onNewBlockReceived(DagBlock block, std::vector<Transaction> transactions) {
   LOG(log_nf_dag_prp_) << "Receive DagBlock " << block.getHash() << " #Trx" << transactions.size() << std::endl;
   if (dag_blk_mgr_) {
-    auto status = checkDagBlockValidation(block);
-    if (!status.first) {
-      if (!syncing_ && !requesting_pending_dag_blocks_) restartSyncingPbft();
-      return;
-    }
     LOG(log_nf_dag_prp_) << "Storing block " << block.getHash().toString() << " with " << transactions.size()
                          << " transactions";
     dag_blk_mgr_->insertBroadcastedBlockWithTransactions(block, transactions);
@@ -1189,9 +1206,8 @@ void TaraxaCapability::logNodeStats() {
   if (is_syncing) {
     // Syncing...
     auto percent_synced = (local_pbft_sync_period * 100) / peer_max_pbft_chain_size;
-    auto syncing_time_sec = static_cast<float>(summary_interval_ms_ * syncing_interval_count_) / 1000.0f;
-    LOG(log_nf_summary_) << "Syncing for " << std::setprecision(2) << syncing_time_sec << " seconds, " << percent_synced
-                         << "% synced";
+    auto syncing_time_sec = summary_interval_ms_ * syncing_interval_count_ / 1000;
+    LOG(log_nf_summary_) << "Syncing for " << syncing_time_sec << " seconds, " << percent_synced << "% synced";
     LOG(log_nf_summary_) << "Currently syncing from node " << peer_syncing_pbft_;
     LOG(log_nf_summary_) << "Max peer PBFT chain size:      " << peer_max_pbft_chain_size << " (peer "
                          << max_pbft_chain_nodeID << ")";
@@ -1212,18 +1228,10 @@ void TaraxaCapability::logNodeStats() {
     LOG(log_nf_summary_) << "DPOS total votes count:        " << local_dpos_total_votes_count;
     LOG(log_nf_summary_) << "PBFT consensus 2t+1 threshold: " << local_twotplusone;
     LOG(log_nf_summary_) << "Node elligible vote count:     " << local_weighted_votes;
+    LOG(log_nf_summary_) << "Unverified votes size:         " << vote_mgr_->getUnverifiedVotesSize();
   }
 
-  LOG(log_nf_summary_) << "In the last " << std::setprecision(0) << summary_interval_ms_ / 1000 << " seconds...";
-
-  if (is_syncing) {
-    LOG(log_nf_summary_) << "PBFT sync period progress:     " << pbft_sync_period_progress;
-  }
-  {
-    LOG(log_nf_summary_) << "PBFT chain blocks added:       " << pbft_chain_size_growth;
-    LOG(log_nf_summary_) << "PBFT rounds advanced:          " << pbft_consensus_rounds_advanced;
-    LOG(log_nf_summary_) << "DAG level growth:              " << dag_level_growh;
-  }
+  LOG(log_nf_summary_) << "------------- tl;dr -------------";
 
   if (making_pbft_chain_progress) {
     if (is_syncing) {
@@ -1245,10 +1253,9 @@ void TaraxaCapability::logNodeStats() {
     LOG(log_si_summary_) << "STATUS: PBFT STALLED, POSSIBLY PARTITIONED. NODE HAS NOT RESTARTED SYNCING";
   } else if (peers_size) {
     if (is_syncing) {
-      auto syncing_stalled_time_sec =
-          static_cast<float>(summary_interval_ms_ * syncing_stalled_interval_count_) / 1000.0f;
-      LOG(log_si_summary_) << "STATUS: SYNCING STALLED. NO PROGRESS MADE IN LAST " << std::setprecision(2)
-                           << syncing_stalled_time_sec << " SECONDS";
+      auto syncing_stalled_time_sec = summary_interval_ms_ * syncing_stalled_interval_count_ / 1000;
+      LOG(log_si_summary_) << "STATUS: SYNCING STALLED. NO PROGRESS MADE IN LAST " << syncing_stalled_time_sec
+                           << " SECONDS";
     } else {
       LOG(log_si_summary_) << "STATUS: STUCK. NODE HAS NOT RESTARTED SYNCING";
     }
@@ -1256,6 +1263,19 @@ void TaraxaCapability::logNodeStats() {
     // Peer size is zero...
     LOG(log_si_summary_) << "STATUS: NOT CONNECTED TO ANY PEERS. POSSIBLE CONFIG ISSUE OR NETWORK CONNECTIVITY";
   }
+
+  LOG(log_nf_summary_) << "In the last " << std::setprecision(0) << summary_interval_ms_ / 1000 << " seconds...";
+
+  if (is_syncing) {
+    LOG(log_nf_summary_) << "PBFT sync period progress:     " << pbft_sync_period_progress;
+  }
+  {
+    LOG(log_nf_summary_) << "PBFT chain blocks added:       " << pbft_chain_size_growth;
+    LOG(log_nf_summary_) << "PBFT rounds advanced:          " << pbft_consensus_rounds_advanced;
+    LOG(log_nf_summary_) << "DAG level growth:              " << dag_level_growh;
+  }
+
+  LOG(log_nf_summary_) << "##################################";
 
   // Node stats info history
   local_max_level_in_dag_prev_interval_ = local_max_level_in_dag;

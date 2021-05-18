@@ -183,7 +183,7 @@ workflows:
           filters:
             branches: 
               only: 
-               - develop
+                #- develop
                - cirleci
       #- gcp-gcr/build-and-push-image:
       #    executor: docker

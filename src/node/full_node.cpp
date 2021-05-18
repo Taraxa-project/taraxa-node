@@ -96,7 +96,15 @@ void FullNode::init() {
       }
     }
   }
+
   auto genesis_hash = conf_.chain.dag_genesis_block.getHash().toString();
+  auto dag_genesis_hash_from_db = db_->getBlocksByLevel(0);
+  if (genesis_hash != dag_genesis_hash_from_db) {
+    LOG(log_er_) << "The DAG genesis block hash " << genesis_hash << " in config is different with "
+                 << dag_genesis_hash_from_db << " in DB";
+    assert(false);
+  }
+
   emplace(pbft_chain_, genesis_hash, node_addr, db_);
   emplace(next_votes_mgr_, node_addr, db_);
   emplace(dag_mgr_, genesis_hash, node_addr, trx_mgr_, pbft_chain_, db_);
