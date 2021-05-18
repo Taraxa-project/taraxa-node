@@ -163,7 +163,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
 
   void rebuildDb();
 
-  static constexpr uint16_t c_node_major_version = 0;
+  static constexpr uint16_t c_node_major_version = 1;
   static constexpr uint16_t c_node_minor_version = 1;
 
   // Any time a change in the network protocol is introduced this version should be increased
