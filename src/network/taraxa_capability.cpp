@@ -275,6 +275,10 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
                                    << ", peer PBFT previous round next votes size "
                                    << peer->pbft_previous_round_next_votes_size_;
 
+      // TODO: Address the CONCERN that it isn't NECESSARY to sync here
+      // and by syncing here we open node up to attack of sending bogus
+      // status.  We also have nothing to punish a node failing to send
+      // sync info.
       auto pbft_synced_period = pbft_chain_->pbftSyncingPeriod();
       if (pbft_synced_period + 1 < peer->pbft_chain_size_) {
         LOG(log_nf_) << "Restart PBFT chain syncing. Own synced PBFT at period " << pbft_synced_period
@@ -916,11 +920,6 @@ void TaraxaCapability::onNewTransactions(std::vector<taraxa::bytes> const &trans
 void TaraxaCapability::onNewBlockReceived(DagBlock block, std::vector<Transaction> transactions) {
   LOG(log_nf_dag_prp_) << "Receive DagBlock " << block.getHash() << " #Trx" << transactions.size() << std::endl;
   if (dag_blk_mgr_) {
-    auto status = checkDagBlockValidation(block);
-    if (!status.first) {
-      if (!syncing_ && !requesting_pending_dag_blocks_) restartSyncingPbft();
-      return;
-    }
     LOG(log_nf_dag_prp_) << "Storing block " << block.getHash().toString() << " with " << transactions.size()
                          << " transactions";
     dag_blk_mgr_->insertBroadcastedBlockWithTransactions(block, transactions);
