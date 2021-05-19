@@ -48,7 +48,7 @@ jobs:
       - run:
          name: Run Ctest
          command: |
-           docker run -d --rm -v $PWD/tmp_docker:/tmp \
+           docker run --rm -v $PWD/tmp_docker:/tmp \
                        --name taraxa-node-ctest-${DOCKER_BRANCH_TAG} \
                        ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}\
                         sh -c \
@@ -132,38 +132,42 @@ jobs:
              fi
            fi
       - run:
-         name: Get helm chart
+         name: Install/configure helm and chart
          command: |
-            git clone --branch development  https://github.com/Taraxa-project/taraxa-testnet.git
-      - run:
-         name: Install kubeconfig
-         command: |
-          mkdir -p $HOME/.kube
-          echo -n "${KUBECONFIG}" | base64 --decode > $HOME/.kube/config
-      - run:
-         name: install helm
-         command: |
-           curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-      - run:
-         name: Install helm chart
-         command: |
-              helm list --namespace taraxa-community-prod
-              #helm install --name ${DOCKER_BRANCH_TAG} taraxa-node \
-              #  --wait \
-              #  --atomic \
-              #  --timeout 1200 \
-              #  --namespace ${DOCKER_BRANCH_TAG} \
-              #  --set replicaCount=5 \
-              #  --set test.pythontester.script=jenkins.py \
-              #  --set image.repository=${GCP_IMAGE} \
-              #  --set image.tag=${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} \
-              #  -f taraxa-node/values.yaml
+            if [[ ${CIRCLE_BRANCH} =~ ^PR-* ]];then
+              git clone --branch development  https://github.com/Taraxa-project/taraxa-testnet.git
+              mkdir -p $HOME/.kube
+              echo -n "${KUBE_CONFIG}" | base64 --decode > $HOME/.kube/config
+              curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+              helm install --name ${HELM_TEST_NAME} taraxa-node \
+                --wait \
+                --atomic \
+                --timeout 1200 \
+                --namespace ${HELM_TEST_NAME} \
+                --set replicaCount=5 \
+                --set test.pythontester.script=jenkins.py \
+                --set image.repository=${GCP_IMAGE} \
+                --set image.tag=${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} \
+                -f taraxa-node/values.yaml
+            fi
       - run:
          name: Run helm test
          command: |
-            #helm test ${DOCKER_BRANCH_TAG} \
-            #    --timeout 3600 \
-            #    --cleanup
+            if [[ ${CIRCLE_BRANCH =~ ^PR-* }]];then
+              helm test ${HELM_TEST_NAME} \
+                --timeout 3600 \
+                --cleanup
+              ./scripts/kibana-url.sh || true
+            fi
+      - run:
+         name: Cleanup helm tests
+         command: |
+           if [[ ${CIRCLE_BRANCH ~= ^PR-* }]];then
+              helm delete --purge ${HELM_TEST_NAME} || true
+              curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+              chmod +x ./kubectl
+              ./kubectl delete ns ${HELM_TEST_NAME || true"
+           fi
 
       - store_artifacts:
           path: tmp_docker 
@@ -344,8 +348,10 @@ workflows:
           branches: 
             only: 
               - circleci
-              
-
+              - develop
+              - master
+              - /^PR-*/
+                           
   build-and-release:
     jobs:
       - create-and-push-builder:
