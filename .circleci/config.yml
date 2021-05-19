@@ -147,7 +147,7 @@ jobs:
       - run:
          name: Install helm chart
          command: |
-              hel list
+              helm list --namespace taraxa-community-prod
               #helm install --name ${DOCKER_BRANCH_TAG} taraxa-node \
               #  --wait \
               #  --atomic \
