@@ -51,19 +51,105 @@ std::pair<bool, std::string> TransactionManager::insertTransaction(Transaction c
   return ret;
 }
 
-uint32_t TransactionManager::insertBroadcastedTransactions(
-    // transactions coming from broadcastin is less critical
-    std::vector<taraxa::bytes> const &transactions) {
+uint32_t TransactionManager::insertBroadcastedTransactions(const std::vector<taraxa::bytes> &raw_trxs) {
   if (stopped_) {
     return 0;
   }
-  uint32_t new_trx_count = 0;
-  for (auto const &t : transactions) {
-    Transaction trx(t);
-    if (insertTrx(trx, false).first) new_trx_count++;
-    LOG(log_time_) << "Transaction " << trx.getHash() << " brkreceived at: " << getCurrentTimeMilliSeconds();
+
+  const auto queues_sizes = trx_qu_.getTransactionQueueSize();
+  size_t combined_queues_size =
+      queues_sizes.first /* unverified txs queue */ + queues_sizes.second /* verified txs queue */;
+
+  size_t queue_overflow_warn = conf_.test_params.max_transaction_queue_warn;
+  size_t queue_overflow_drop = conf_.test_params.max_transaction_queue_drop;
+
+  auto queuesOverflowWarnMsg = [&combined_queues_size, &queues_sizes, &queue_overflow_drop]() -> std::string {
+    std::ostringstream oss;
+    oss << "Warning: queues too large: "
+        << "Combined queues size: " << combined_queues_size << ", Unverified queue: " << queues_sizes.first
+        << ", Verified queue: " << queues_sizes.second << ", Limit: " << queue_overflow_drop;
+
+    return oss.str();
+  };
+
+  if (queue_overflow_drop && combined_queues_size >= queue_overflow_drop) {
+    LOG(log_wr_) << queuesOverflowWarnMsg();
+    LOG(log_wr_) << "Broadcasted transactions will not be processed !";
+
+    return 0;
+  } else if (queue_overflow_warn && combined_queues_size >= queue_overflow_warn) {
+    LOG(log_wr_) << queuesOverflowWarnMsg();
   }
-  return new_trx_count;
+
+  std::vector<trx_hash_t> trxs_hashes;
+  std::vector<Transaction> trxs;
+  std::vector<Transaction> unseen_trxs;
+
+  trxs_hashes.reserve(raw_trxs.size());
+  trxs.reserve(raw_trxs.size());
+  unseen_trxs.reserve(raw_trxs.size());
+
+  for (const auto &raw_trx : raw_trxs) {
+    Transaction trx = Transaction(raw_trx);
+
+    trxs_hashes.push_back(trx.getHash());
+    trxs.push_back(std::move(trx));
+  }
+
+  // Get transactions statuses from db
+  DbStorage::MultiGetQuery db_query(db_);
+  db_query.append(DbStorage::Columns::trx_status, trxs_hashes);
+  auto db_trxs_statuses = db_query.execute();
+
+  auto write_batch = db_->createWriteBatch();
+  for (size_t idx = 0; idx < db_trxs_statuses.size(); idx++) {
+    auto &trx_raw_status = db_trxs_statuses[idx];
+    const trx_hash_t &trx_hash = trxs_hashes[idx];
+
+    TransactionStatus trx_status =
+        trx_raw_status.empty() ? TransactionStatus::not_seen : (TransactionStatus) * (uint16_t *)&trx_raw_status[0];
+    // TransactionStatus trx_status = trx_raw_status.empty() ? TransactionStatus::not_seen :
+    // static_cast<TransactionStatus>(*reinterpret_cast<uint16_t*>(&trx_raw_status[0]));
+
+    LOG(log_dg_) << "Broadcasted transaction " << trx_hash << " received at: " << getCurrentTimeMilliSeconds();
+
+    // Trx status was already saved in db -> it means we already processed this trx
+    // Do not process it again
+    if (trx_status != TransactionStatus::not_seen) {
+      switch (trx_status) {
+        case TransactionStatus::in_queue_verified:
+          LOG(log_dg_) << "Trx: " << trx_hash << " skipped, seen in verified queue.";
+          break;
+        case TransactionStatus::in_queue_unverified:
+          LOG(log_dg_) << "Trx: " << trx_hash << " skipped, seen in unverified queue.";
+          break;
+        case TransactionStatus::in_block:
+          LOG(log_dg_) << "Trx: " << trx_hash << " skipped, seen in block.";
+          break;
+        case TransactionStatus::invalid:
+          LOG(log_dg_) << "Trx: " << trx_hash << " skipped, seen but invalid.";
+          break;
+        default:
+          LOG(log_dg_) << "Trx: " << trx_hash << " skipped, unknown trx status saved in db.";
+      }
+
+      continue;
+    }
+
+    const Transaction &trx = trxs[idx];
+
+    db_->addTransactionToBatch(trx, write_batch);
+    db_->addTransactionStatusToBatch(write_batch, trx_hash, TransactionStatus::in_queue_unverified);
+
+    unseen_trxs.push_back(std::move(trx));
+    if (ws_server_) ws_server_->newPendingTransaction(trx_hash);
+  }
+
+  db_->commitWriteBatch(write_batch);
+  trx_qu_.insertUnverifiedTrxs(unseen_trxs);
+
+  LOG(log_nf_) << raw_trxs.size() << " received txs processed (" << unseen_trxs.size() << " unseen -> inserted into db).";
+  return unseen_trxs.size();
 }
 
 void TransactionManager::verifyQueuedTrxs() {

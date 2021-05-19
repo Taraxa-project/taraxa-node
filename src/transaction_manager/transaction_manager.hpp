@@ -62,7 +62,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   // synchronously verify and insert into verified queue
   std::pair<bool, std::string> insertTransaction(Transaction const &trx, bool verify = false);
   // Transactions coming from broadcasting is less critical
-  uint32_t insertBroadcastedTransactions(std::vector<taraxa::bytes> const &transactions);
+  uint32_t insertBroadcastedTransactions(const std::vector<taraxa::bytes> &raw_trxs);
 
   std::pair<bool, std::string> verifyTransaction(Transaction const &trx) const;
 
