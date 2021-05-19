@@ -362,7 +362,7 @@ bool DagManager::pivotAndTipsAvailable(DagBlock const &blk) {
 }
 
 DagFrontier DagManager::getDagFrontier() {
-  uLock lock(mutex_);
+  sharedLock lock(mutex_);
   return frontier_;
 }
 
