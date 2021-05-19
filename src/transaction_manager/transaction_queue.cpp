@@ -42,6 +42,32 @@ void TransactionQueue::insert(Transaction const &trx, bool verify) {
   LOG(log_nf_) << " Trx: " << hash << " inserted. " << verify << std::endl;
 }
 
+void TransactionQueue::insertUnverifiedTrxs(const vector<Transaction> &trxs) {
+  if (trxs.empty()) {
+    return;
+  }
+
+  std::vector<listIter> iters;
+  iters.reserve(trxs.size());
+
+  {
+    listIter iter;
+    uLock lock(shared_mutex_for_queued_trxs_);
+    for (const auto &trx : trxs) {
+      iter = trx_buffer_.insert(trx_buffer_.end(), trx);
+      assert(iter != trx_buffer_.end());
+      queued_trxs_[trx.getHash()] = iter;
+      iters.push_back(iter);
+    }
+  }
+
+  uLock lock(shared_mutex_for_unverified_qu_);
+  for (size_t idx = 0; idx < trxs.size(); idx++) {
+    unverified_hash_qu_.emplace_back(std::make_pair(trxs[idx].getHash(), iters[idx]));
+    cond_for_unverified_qu_.notify_one();
+  }
+}
+
 std::pair<trx_hash_t, TransactionQueue::listIter> TransactionQueue::getUnverifiedTransaction() {
   std::pair<trx_hash_t, listIter> item;
   {

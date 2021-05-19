@@ -19,6 +19,14 @@ class TransactionQueue {
   void start();
   void stop();
   void insert(Transaction const &trx, bool verify);
+
+  /**
+   * @brief Insert batch of unverified transactions at once
+   * @param trxs
+   * @param verify
+   */
+  void insertUnverifiedTrxs(const vector<Transaction> &trxs);
+
   Transaction top();
   void pop();
   std::pair<trx_hash_t, listIter> getUnverifiedTransaction();
