@@ -23,6 +23,13 @@ class FullNode;
 
 enum PbftStates { value_proposal_state = 1, filter_state, certify_state, finish_state, finish_polling_state };
 
+enum PbftSyncRequestReason {
+  missing_dag_blk = 1,
+  invalid_cert_voted_block,
+  invalid_soft_voted_block,
+  exceeded_max_steps
+};
+
 class PbftManager {
  public:
   using time_point = std::chrono::system_clock::time_point;
@@ -111,7 +118,7 @@ class PbftManager {
 
   bool syncRequestedAlreadyThisStep_() const;
 
-  void syncPbftChainFromPeers_(bool force);
+  void syncPbftChainFromPeers_(PbftSyncRequestReason reason, taraxa::blk_hash_t const &relevant_blk_hash);
 
   bool broadcastAlreadyThisStep_() const;
 
@@ -179,7 +186,6 @@ class PbftManager {
   bool should_have_cert_voted_in_this_round_ = false;
   bool next_voted_soft_value_ = false;
   bool next_voted_null_block_hash_ = false;
-  bool continue_finish_polling_state_ = false;
   bool go_finish_state_ = false;
   bool loop_back_finish_state_ = false;
 
