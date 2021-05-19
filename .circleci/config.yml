@@ -166,7 +166,7 @@ jobs:
               helm delete --purge ${HELM_TEST_NAME} || true
               curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
               chmod +x ./kubectl
-              ./kubectl delete ns ${HELM_TEST_NAME || true"
+              ./kubectl delete ns ${HELM_TEST_NAME || true
            fi
 
       - store_artifacts:
