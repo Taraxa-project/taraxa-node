@@ -135,6 +135,35 @@ jobs:
          name: Get helm chart
          command: |
             git clone --branch development  https://github.com/Taraxa-project/taraxa-testnet.git
+      - run:
+         name: Install kubeconfig
+         command: |
+          mkdir -p $HOME/.kube
+          echo -n "${KUBECONFIG}" | base64 --decode > $HOME/.kube/config
+      - run:
+         name: install helm
+         command: |
+           curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+      - run:
+         name: Install helm chart
+         command: |
+              hel list
+              #helm install --name ${DOCKER_BRANCH_TAG} taraxa-node \
+              #  --wait \
+              #  --atomic \
+              #  --timeout 1200 \
+              #  --namespace ${DOCKER_BRANCH_TAG} \
+              #  --set replicaCount=5 \
+              #  --set test.pythontester.script=jenkins.py \
+              #  --set image.repository=${GCP_IMAGE} \
+              #  --set image.tag=${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} \
+              #  -f taraxa-node/values.yaml
+      - run:
+         name: Run helm test
+         command: |
+            #helm test ${DOCKER_BRANCH_TAG} \
+            #    --timeout 3600 \
+            #    --cleanup
 
       - store_artifacts:
           path: tmp_docker 
@@ -309,12 +338,13 @@ jobs:
 workflows:
   deploy-testnet:
     jobs:
-      - build-docker-image:
+      - build-and-push-docker-image:
          context: taraxa-node
          filters:
           branches: 
             only: 
               - circleci
+              
 
   build-and-release:
     jobs:
