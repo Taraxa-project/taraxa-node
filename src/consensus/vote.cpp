@@ -148,19 +148,22 @@ void VoteManager::addUnverifiedVote(taraxa::Vote const& vote) {
       upgradeLock_ locked(lock);
       unverified_votes_[pbft_round] = votes;
     }
+
+    db_->saveUnverifiedVote(vote);
   }
+
   LOG(log_dg_) << "Add unverified vote " << vote;
 }
 
 void VoteManager::addUnverifiedVotes(std::vector<Vote> const& votes) {
   for (auto const& v : votes) {
     if (voteInUnverifiedMap(v.getRound(), v.getHash())) {
-      LOG(log_dg_) << "Vote is in unverified queue already " << v;
+      LOG(log_dg_) << "The vote is in unverified queue already " << v;
       continue;
     }
     if (db_->unverifiedVoteExist(v.getHash())) {
       // Vote in unverified DB but not in unverified queue
-      LOG(log_dg_) << "The vote failed reverification, drop it. " << v;
+      LOG(log_dg_) << "The vote is in unverified DB already " << v;
       continue;
     }
     addUnverifiedVote(v);
@@ -246,8 +249,6 @@ void VoteManager::removeVerifiedVotes() {
   auto batch = db_->createWriteBatch();
   for (auto const& v : votes) {
     db_->removeVerifiedVoteToBatch(v.getHash(), batch);
-    // Add back to unverified votes DB, for reject to add the failed votes into unverified queue again
-    db_->addUnverifiedVoteToBatch(v, batch);
   }
   db_->commitWriteBatch(batch);
 
@@ -389,6 +390,7 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
           max_received_round_for_address_[voter_account_address] = vote_round;
         } else {
           if (max_received_round_for_address_[voter_account_address] > vote_round + 1) {
+            LOG(log_dg_) << "Remove unverified vote " << v->first;
             remove_unverified_votes_hash.emplace_back(v->first);
             v = rit->second.erase(v);
             stale_removed_votes_count++;
@@ -401,6 +403,7 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
       }
 
       if (rit->second.empty()) {
+        LOG(log_dg_) << "Remove round " << rit->first << " in unverified queue";
         rit = decltype(rit){unverified_votes_.erase(std::next(rit).base())};
       } else {
         ++rit;

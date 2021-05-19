@@ -444,7 +444,6 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       if (vote_round >= pbft_round && !vote_mgr_->voteInUnverifiedMap(vote_round, vote_hash) &&
           !vote_mgr_->voteInVerifiedMap(vote_round, vote_hash)) {
         // vote round >= PBFT round
-        db_->saveUnverifiedVote(vote);
         vote_mgr_->addUnverifiedVote(vote);
         packet_stats.is_unique_ = true;
         onNewPbftVote(vote);
