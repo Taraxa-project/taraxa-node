@@ -70,11 +70,6 @@ class PbftManager {
   u_long getPbftInitialLambda() const { return LAMBDA_ms_MIN; }
 
  private:
-  using uniqueLock_ = boost::unique_lock<boost::shared_mutex>;
-  using sharedLock_ = boost::shared_lock<boost::shared_mutex>;
-  using upgradableLock_ = boost::upgrade_lock<boost::shared_mutex>;
-  using upgradeLock_ = boost::upgrade_to_unique_lock<boost::shared_mutex>;
-
   // DPOS
   void update_dpos_state_();
   size_t dpos_eligible_vote_count_(addr_t const &addr);
@@ -162,7 +157,7 @@ class PbftManager {
   bool RUN_COUNT_VOTES;  // TODO: Only for test, need remove later
 
   PbftStates state_ = value_proposal_state;
-  uint64_t round_ = 1;
+  std::atomic<uint64_t> round_ = 1;
   size_t step_ = 1;
   u_long STEP_4_DELAY = 0;  // constant
 
@@ -211,7 +206,6 @@ class PbftManager {
 
   std::condition_variable stop_cv_;
   std::mutex stop_mtx_;
-  mutable boost::shared_mutex round_access_;
 
   // TODO: will remove later, TEST CODE
   void countVotes_();

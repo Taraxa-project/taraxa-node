@@ -92,11 +92,11 @@ bool DagBlockManager::pivotAndTipsValid(DagBlock const &blk) {
 level_t DagBlockManager::getMaxDagLevelInQueue() const {
   level_t max_level = 0;
   {
-    uLock lock(shared_mutex_for_unverified_qu_);
+    sharedLock lock(shared_mutex_for_unverified_qu_);
     if (unverified_qu_.size() != 0) max_level = unverified_qu_.rbegin()->first;
   }
   {
-    uLock lock(shared_mutex_for_verified_qu_);
+    sharedLock lock(shared_mutex_for_verified_qu_);
     if (verified_qu_.size() != 0) max_level = std::max(verified_qu_.rbegin()->first, max_level);
   }
   return max_level;
@@ -156,7 +156,7 @@ void DagBlockManager::pushUnverifiedBlock(DagBlock const &blk, bool critical) {
 std::pair<size_t, size_t> DagBlockManager::getDagBlockQueueSize() const {
   std::pair<size_t, size_t> res;
   {
-    uLock lock(shared_mutex_for_unverified_qu_);
+    sharedLock lock(shared_mutex_for_unverified_qu_);
     res.first = 0;
     for (auto &it : unverified_qu_) {
       res.first += it.second.size();
@@ -164,7 +164,7 @@ std::pair<size_t, size_t> DagBlockManager::getDagBlockQueueSize() const {
   }
 
   {
-    uLock lock(shared_mutex_for_verified_qu_);
+    sharedLock lock(shared_mutex_for_verified_qu_);
     res.second = 0;
     for (auto &it : verified_qu_) {
       res.second += it.second.size();
@@ -287,15 +287,9 @@ void DagBlockManager::verifyBlock() {
 
 uint64_t DagBlockManager::getCurrentMaxProposalPeriod() const { return current_max_proposal_period_; }
 
-uint64_t DagBlockManager::getLastProposalPeriod() const {
-  sharedLock lock(shared_mutex_last_proposal_period_);
-  return last_proposal_period_;
-}
+uint64_t DagBlockManager::getLastProposalPeriod() const { return last_proposal_period_; }
 
-void DagBlockManager::setLastProposalPeriod(uint64_t const period) {
-  uLock lock(shared_mutex_last_proposal_period_);
-  last_proposal_period_ = period;
-}
+void DagBlockManager::setLastProposalPeriod(uint64_t const period) { last_proposal_period_ = period; }
 
 std::pair<uint64_t, bool> DagBlockManager::getProposalPeriod(level_t level) {
   std::pair<uint64_t, bool> result;

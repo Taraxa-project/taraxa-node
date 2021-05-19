@@ -891,7 +891,7 @@ void TaraxaCapability::onNewTransactions(std::vector<taraxa::bytes> const &trans
     std::map<NodeID, std::vector<taraxa::bytes>> transactionsToSend;
     std::map<NodeID, std::vector<trx_hash_t>> transactionsHashToSend;
     {
-      boost::unique_lock<boost::shared_mutex> lock(peers_mutex_);
+      boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
       for (auto &peer : peers_) {
         if (!peer.second->syncing_) {
           for (auto const &transaction : transactions) {
