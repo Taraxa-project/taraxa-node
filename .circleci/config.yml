@@ -162,7 +162,7 @@ jobs:
       - run:
          name: Cleanup helm tests
          command: |
-           if [[ ${CIRCLE_BRANCH} ~= ^PR-* ]];then
+           if [[ ${CIRCLE_BRANCH} =~ ^PR-* ]];then
               helm delete --purge ${HELM_TEST_NAME} || true
               curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
               chmod +x ./kubectl
