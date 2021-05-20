@@ -157,7 +157,7 @@ jobs:
          command: |
             if [[ ${PR} != "false" ]];then
               helm test ${HELM_TEST_NAME} \
-                --timeout 3600 \
+                --timeout 3600s \
                 --namespace ${HELM_TEST_NAME}
               ./scripts/kibana-url.sh || true
             fi
