@@ -146,17 +146,19 @@ std::shared_ptr<Transaction> TransactionQueue::getTransaction(trx_hash_t const &
 std::unordered_map<trx_hash_t, Transaction> TransactionQueue::moveVerifiedTrxSnapShot(uint16_t max_trx_to_pack) {
   std::unordered_map<trx_hash_t, Transaction> res;
   {
-    uLock lock(shared_mutex_for_verified_qu_);
+    upgradableLock lock(shared_mutex_for_verified_qu_);
     if (max_trx_to_pack == 0) {
       for (auto const &trx : verified_trxs_) {
         res[trx.first] = *(trx.second);
       }
+      upgradeLock locked(lock);
       verified_trxs_.clear();
     } else {
       auto it = verified_trxs_.begin();
       uint16_t counter = 0;
       while (it != verified_trxs_.end() && max_trx_to_pack != counter) {
         res[it->first] = *(it->second);
+        upgradeLock locked(lock);
         it = verified_trxs_.erase(it);
         counter++;
       }
@@ -183,11 +185,11 @@ unsigned long TransactionQueue::getVerifiedTrxCount() const {
 std::pair<size_t, size_t> TransactionQueue::getTransactionQueueSize() const {
   std::pair<size_t, size_t> res;
   {
-    uLock lock(shared_mutex_for_unverified_qu_);
+    sharedLock lock(shared_mutex_for_unverified_qu_);
     res.first = unverified_hash_qu_.size();
   }
   {
-    uLock lock(shared_mutex_for_verified_qu_);
+    sharedLock lock(shared_mutex_for_verified_qu_);
     res.second = verified_trxs_.size();
   }
   return res;

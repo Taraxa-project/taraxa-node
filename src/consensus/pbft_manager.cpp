@@ -146,13 +146,9 @@ std::pair<bool, uint64_t> PbftManager::getDagBlockPeriod(blk_hash_t const &hash)
   return res;
 }
 
-uint64_t PbftManager::getPbftRound() const {
-  sharedLock_ lock(round_access_);
-  return round_;
-}
+uint64_t PbftManager::getPbftRound() const { return round_; }
 
 void PbftManager::setPbftRound(uint64_t const round) {
-  uniqueLock_ lock(round_access_);
   db_->savePbftMgrField(PbftMgrRoundStep::PbftRound, round);
   round_ = round;
 }
