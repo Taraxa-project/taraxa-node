@@ -139,7 +139,7 @@ jobs:
               mkdir -p $HOME/.kube
               echo -n "${KUBE_CONFIG}" | base64 --decode > $HOME/.kube/config
               curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-              helm install --name ${HELM_TEST_NAME} taraxa-node \
+              helm install  ${HELM_TEST_NAME} taraxa-node \
                 --wait \
                 --atomic \
                 --timeout 1200 \
