@@ -19,6 +19,19 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 # See: https://stackoverflow.com/questions/14125007/gcc-string-table-overflow-error-during-compilation/14601779#29479701
 set(CMAKE_CXX_FLAGS_DEBUG "-g -O2") # TODO: originally -g -O0
 
+# Enable LTO
+option(TARAXA_ENABLE_LTO "Build taraxad with LTO (ON or OFF)" OFF)
+if(TARAXA_ENABLE_LTO AND NOT TARAXA_STATIC_BUILD)
+    include(CheckIPOSupported)
+    check_ipo_supported(RESULT supported OUTPUT error)
+    if( supported )
+        message(STATUS "IPO / LTO enabled")
+        set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+    else()
+        message(STATUS "IPO / LTO not supported: <${error}>")
+    endif()
+endif()
+
 # taraxad full static build option
 option(TARAXA_STATIC_BUILD "Build taraxad as a static library (ON or OFF)" ON)
 if (APPLE)
@@ -150,6 +163,17 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 find_package(scrypt REQUIRED)
 find_package(jsoncpp REQUIRED)
 find_package(jsonrpccpp REQUIRED)
+
+# Building with gperftools
+option(TARAXA_GPERF "Build taraxad with GPERFTOOLS" OFF)
+if(TARAXA_GPERF)
+    find_library(TCMALLOC_LIB NAMES tcmalloc)
+    if(TCMALLOC_LIB)
+        message("Found TCMALLOC_LIB: ${TCMALLOC_LIB}")
+    else()
+        message(FATAL_ERROR "TCMALLOC_LIB library not found")
+    endif()
+endif()
 
 # clang-tidy
 include(CMakeModules/clang_tidy.cmake)

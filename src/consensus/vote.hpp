@@ -100,9 +100,14 @@ class Vote {
 
   vote_hash_t getHash() const { return vote_hash_; }
   public_t getVoter() const {
-    voter();
+    if (!cached_voter_) cached_voter_ = dev::recover(vote_signature_, sha3(false));
     return cached_voter_;
   }
+  addr_t getVoterAddr() const {
+    if (!cached_voter_addr_) cached_voter_addr_ = dev::toAddress(getVoter());
+    return cached_voter_addr_;
+  }
+
   auto getVrfSortition() const { return vrf_sortition_; }
   auto getSortitionProof() const { return vrf_sortition_.proof; }
   auto getCredential() const { return vrf_sortition_.output; }
@@ -115,9 +120,8 @@ class Vote {
   size_t getWeightedIndex() const { return vrf_sortition_.pbft_msg.weighted_index; }
   bytes rlp(bool inc_sig = true) const;
   bool verifyVote() const {
-    auto msg = sha3(false);
-    voter();
-    return dev::verify(cached_voter_, vote_signature_, msg);
+    auto pk = getVoter();
+    return !pk.isZero();  // recoverd public key means that it was verified
   }
   bool verifyCanSpeak(size_t threshold, size_t dpos_total_votes_count) const {
     return vrf_sortition_.canSpeak(threshold, dpos_total_votes_count);
@@ -135,13 +139,13 @@ class Vote {
 
  private:
   blk_hash_t sha3(bool inc_sig) const { return dev::sha3(rlp(inc_sig)); }
-  void voter() const;
 
   vote_hash_t vote_hash_;  // hash of this vote
   blk_hash_t blockhash_;   // Voted PBFT block hash
   sig_t vote_signature_;
   VrfPbftSortition vrf_sortition_;
   mutable public_t cached_voter_;
+  mutable addr_t cached_voter_addr_;
 };
 
 class VoteManager {
@@ -188,6 +192,10 @@ class VoteManager {
   // <pbft_round, <vote_hash, vote>>
   std::map<uint64_t, std::unordered_map<vote_hash_t, Vote>> unverified_votes_;
   std::map<uint64_t, std::unordered_map<vote_hash_t, Vote>> verified_votes_;
+
+  std::unordered_set<vote_hash_t> votes_invalid_in_current_final_chain_period_;
+  h256 current_period_final_chain_block_hash_;
+  std::map<addr_t, uint64_t> max_received_round_for_address_;
 
   mutable boost::shared_mutex unverified_votes_access_;
   mutable boost::shared_mutex verified_votes_access_;
