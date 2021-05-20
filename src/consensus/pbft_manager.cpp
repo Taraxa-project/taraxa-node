@@ -272,6 +272,7 @@ bool PbftManager::resetRound_() {
     soft_voted_block_for_this_round_ = std::make_pair(NULL_BLOCK_HASH, false);
 
     if (executed_pbft_block_) {
+      vote_mgr_->removeVerifiedVotes();
       update_dpos_state_();
       // reset sortition_threshold and TWO_T_PLUS_ONE
       updateTwoTPlusOneAndThreshold_();
@@ -1330,6 +1331,7 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
     // Remove from PBFT synced queue
     pbft_chain_->pbftSyncedQueuePopFront();
     if (executed_pbft_block_) {
+      vote_mgr_->removeVerifiedVotes();
       update_dpos_state_();
       // update sortition_threshold and TWO_T_PLUS_ONE
       updateTwoTPlusOneAndThreshold_();
