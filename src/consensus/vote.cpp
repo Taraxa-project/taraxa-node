@@ -81,13 +81,6 @@ bytes Vote::rlp(bool inc_sig) const {
   return s.out();
 }
 
-void Vote::process() const {
-  if (cached_voter_) return;
-  cached_voter_ = dev::recover(vote_signature_, sha3(false));
-  assert(cached_voter_);
-  cached_voter_addr_ = dev::toAddress(cached_voter_);
-}
-
 VoteManager::VoteManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<FinalChain> final_chain,
                          std::shared_ptr<PbftChain> pbft_chain)
     : db_(db), pbft_chain_(pbft_chain), final_chain_(final_chain) {
@@ -132,7 +125,7 @@ VoteManager::VoteManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::s
 void VoteManager::addUnverifiedVote(taraxa::Vote const& vote) {
   uint64_t pbft_round = vote.getRound();
   auto hash = vote.getHash();
-  vote.process();  // speed up we do not need to calcualte again
+  vote.getVoterAddr();  // this will cache object variables - speed up
   {
     upgradableLock_ lock(unverified_votes_access_);
     std::map<uint64_t, std::unordered_map<vote_hash_t, Vote>>::const_iterator found_round =
