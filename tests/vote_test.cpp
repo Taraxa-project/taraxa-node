@@ -53,13 +53,12 @@ TEST_F(VoteTest, unverified_votes) {
   clearAllVotes(node);
 
   // Generate a vote
-  blk_hash_t pbft_chain_last_block_hash = node->getPbftChain()->getLastPbftBlockHash();
   blk_hash_t blockhash(1);
   PbftVoteTypes type = propose_vote_type;
   auto round = 1;
   auto step = 1;
   auto weighted_index = 0;
-  Vote vote = pbft_mgr->generateVote(blockhash, type, round, step, weighted_index, pbft_chain_last_block_hash);
+  Vote vote = pbft_mgr->generateVote(blockhash, type, round, step, weighted_index);
 
   auto vote_mgr = node->getVoteManager();
   vote_mgr->addUnverifiedVote(vote);
@@ -70,7 +69,7 @@ TEST_F(VoteTest, unverified_votes) {
   for (auto i = 1; i <= 3; i++) {
     round = i;
     step = i;
-    Vote vote = pbft_mgr->generateVote(blockhash, type, round, step, weighted_index, pbft_chain_last_block_hash);
+    Vote vote = pbft_mgr->generateVote(blockhash, type, round, step, weighted_index);
     unverified_votes.emplace_back(vote);
   }
 
@@ -99,13 +98,12 @@ TEST_F(VoteTest, verified_votes) {
   clearAllVotes(node);
 
   // Generate a vote
-  blk_hash_t pbft_chain_last_block_hash = node->getPbftChain()->getLastPbftBlockHash();
   blk_hash_t blockhash(1);
   PbftVoteTypes type = soft_vote_type;
   auto round = 1;
   auto step = 2;
   auto weighted_index = 0;
-  Vote vote = pbft_mgr->generateVote(blockhash, type, round, step, weighted_index, pbft_chain_last_block_hash);
+  Vote vote = pbft_mgr->generateVote(blockhash, type, round, step, weighted_index);
 
   auto vote_mgr = node->getVoteManager();
   vote_mgr->addVerifiedVote(vote);
@@ -135,13 +133,12 @@ TEST_F(VoteTest, add_cleanup_get_votes) {
   auto vote_mgr = node->getVoteManager();
   blk_hash_t blockhash(1);
   PbftVoteTypes type = propose_vote_type;
-  blk_hash_t pbft_chain_last_block_hash = node->getPbftChain()->getLastPbftBlockHash();
   auto weighted_index = 0;
   for (int i = 1; i <= 3; i++) {
     for (int j = 1; j <= 2; j++) {
       uint64_t round = i;
       size_t step = j;
-      Vote vote = pbft_mgr->generateVote(blockhash, type, round, step, weighted_index, pbft_chain_last_block_hash);
+      Vote vote = pbft_mgr->generateVote(blockhash, type, round, step, weighted_index);
       vote_mgr->addUnverifiedVote(vote);
     }
   }
@@ -174,14 +171,14 @@ TEST_F(VoteTest, reconstruct_votes) {
   public_t pk(12345);
   sig_t sortition_sig(1234567);
   sig_t vote_sig(9878766);
-  blk_hash_t blk_hash(111111);
+  blk_hash_t propose_blk_hash(111111);
   PbftVoteTypes type(propose_vote_type);
   uint64_t round(999);
   size_t step(2);
   size_t weighted_index(0);
-  VrfPbftMsg msg(blk_hash_t(123), type, round, step, weighted_index);
+  VrfPbftMsg msg(type, round, step, weighted_index);
   VrfPbftSortition vrf_sortition(g_vrf_sk, msg);
-  Vote vote1(g_sk, vrf_sortition, blk_hash);
+  Vote vote1(g_sk, vrf_sortition, propose_blk_hash);
   auto rlp = vote1.rlp();
   Vote vote2(rlp);
   EXPECT_EQ(vote1, vote2);
@@ -206,13 +203,12 @@ TEST_F(VoteTest, transfer_vote) {
   clearAllVotes(node2);
 
   // generate vote
-  blk_hash_t blockhash(11);
-  blk_hash_t pbft_blockhash(991);
+  blk_hash_t propose_blockhash(11);
   PbftVoteTypes type = propose_vote_type;
   uint64_t period = 1;
   size_t step = 1;
   auto weighted_index = 0;
-  Vote vote = pbft_mgr2->generateVote(blockhash, type, period, step, weighted_index, pbft_blockhash);
+  Vote vote = pbft_mgr2->generateVote(propose_blockhash, type, period, step, weighted_index);
 
   nw2->sendPbftVote(nw1->getNodeId(), vote);
 
@@ -268,13 +264,12 @@ TEST_F(VoteTest, vote_broadcast) {
   clearAllVotes(node3);
 
   // generate vote
-  blk_hash_t blockhash(1);
-  blk_hash_t pbft_blockhash(1);
+  blk_hash_t propose_block_hash(1);
   PbftVoteTypes type = propose_vote_type;
   uint64_t period = 1;
   size_t step = 1;
   auto weighted_index = 0;
-  Vote vote = pbft_mgr1->generateVote(blockhash, type, period, step, weighted_index, pbft_blockhash);
+  Vote vote = pbft_mgr1->generateVote(propose_block_hash, type, period, step, weighted_index);
 
   nw1->onNewPbftVotes(vector{vote});
 
@@ -317,11 +312,10 @@ TEST_F(VoteTest, previous_round_next_votes) {
 
   // Generate 3 votes voted at NULL_BLOCK_HASH
   std::vector<Vote> next_votes_1;
-  blk_hash_t last_pbft_block_hash(0);
   auto round = 1;
   auto step = 4;
   auto weighted_index = 0;
-  VrfPbftMsg msg(last_pbft_block_hash, next_vote_type, round, step, weighted_index);
+  VrfPbftMsg msg(next_vote_type, round, step, weighted_index);
   VrfPbftSortition vrf_sortition(g_vrf_sk, msg);
   blk_hash_t voted_pbft_block_hash(0);
   for (auto i = 0; i < 3; i++) {

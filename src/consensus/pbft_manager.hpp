@@ -57,8 +57,9 @@ class PbftManager {
   void setTwoTPlusOne(size_t const two_t_plus_one);
   void setPbftStep(size_t const pbft_step);
 
-  Vote generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, uint64_t round, size_t step, size_t weighted_index,
-                    blk_hash_t const &last_pbft_block_hash);
+  Vote generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, uint64_t round, size_t step,
+                    size_t weighted_index);
+
   size_t getDposTotalVotesCount() const;
   size_t getDposWeightedVotesCount() const;
 
@@ -100,7 +101,6 @@ class PbftManager {
 
   std::vector<Vote> getVotesOfTypeFromVotesForRoundAndStep_(PbftVoteTypes vote_type, std::vector<Vote> &votes,
                                                             uint64_t round, size_t step,
-                                                            blk_hash_t const &last_pbft_block_hash,
                                                             std::pair<blk_hash_t, bool> blockhash);
 
   size_t placeVote_(blk_hash_t const &blockhash, PbftVoteTypes vote_type, uint64_t round, size_t step);
@@ -125,7 +125,7 @@ class PbftManager {
 
   void pushSyncedPbftBlocksIntoChain_();
 
-  bool pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes, bool syncing, bool &updated_vrf_last_pbft_block_hash);
+  bool pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes);
 
   void updateTwoTPlusOneAndThreshold_();
   bool is_syncing_();
@@ -160,8 +160,6 @@ class PbftManager {
   std::atomic<uint64_t> round_ = 1;
   size_t step_ = 1;
   u_long STEP_4_DELAY = 0;  // constant
-
-  blk_hash_t vrf_pbft_chain_last_block_hash_ = blk_hash_t(0);
 
   blk_hash_t own_starting_value_for_round_ = NULL_BLOCK_HASH;
   // <round, cert_voted_block_hash>
