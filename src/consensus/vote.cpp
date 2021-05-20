@@ -15,12 +15,11 @@ VrfPbftSortition::VrfPbftSortition(bytes const& b) {
   }
 
   pk = rlp[0].toHash<vrf_pk_t>();
-  pbft_msg.blk = rlp[1].toHash<blk_hash_t>();
-  pbft_msg.type = PbftVoteTypes(rlp[2].toInt<uint>());
-  pbft_msg.round = rlp[3].toInt<uint64_t>();
-  pbft_msg.step = rlp[4].toInt<size_t>();
-  pbft_msg.weighted_index = rlp[5].toInt<size_t>();
-  proof = rlp[6].toHash<vrf_proof_t>();
+  pbft_msg.type = PbftVoteTypes(rlp[1].toInt<uint>());
+  pbft_msg.round = rlp[2].toInt<uint64_t>();
+  pbft_msg.step = rlp[3].toInt<size_t>();
+  pbft_msg.weighted_index = rlp[4].toInt<size_t>();
+  proof = rlp[5].toHash<vrf_proof_t>();
 
   verify();
 }
@@ -28,9 +27,8 @@ VrfPbftSortition::VrfPbftSortition(bytes const& b) {
 bytes VrfPbftSortition::getRlpBytes() const {
   dev::RLPStream s;
 
-  s.appendList(7);
+  s.appendList(6);
   s << pk;
-  s << pbft_msg.blk;
   s << pbft_msg.type;
   s << pbft_msg.round;
   s << pbft_msg.step;
@@ -231,22 +229,6 @@ void VoteManager::addVerifiedVote(Vote const& vote) {
     }
   }
   LOG(log_dg_) << "Add verified vote " << vote;
-}
-
-// All verified votes need to remove, since new PBFT blocks synced into chain
-void VoteManager::removeVerifiedVotes() {
-  auto votes = getVerifiedVotes();
-  LOG(log_nf_) << "Remove " << votes.size() << " verified votes.";
-
-  auto batch = db_->createWriteBatch();
-  for (auto const& v : votes) {
-    db_->removeVerifiedVoteToBatch(v.getHash(), batch);
-    // Add back to unverified votes DB, for reject to add the failed votes into unverified queue again
-    db_->addUnverifiedVoteToBatch(v, batch);
-  }
-  db_->commitWriteBatch(batch);
-
-  clearVerifiedVotesTable();
 }
 
 bool VoteManager::voteInVerifiedMap(uint64_t const& pbft_round, vote_hash_t const& vote_hash) {

@@ -18,22 +18,20 @@ class PbftManager;
 
 struct VrfPbftMsg {
   VrfPbftMsg() = default;
-  VrfPbftMsg(blk_hash_t const& blk, PbftVoteTypes type, uint64_t round, size_t step, size_t weighted_index)
-      : blk(blk), type(type), round(round), step(step), weighted_index(weighted_index) {}
+  VrfPbftMsg(PbftVoteTypes type, uint64_t round, size_t step, size_t weighted_index)
+      : type(type), round(round), step(step), weighted_index(weighted_index) {}
 
   std::string toString() const {
-    return blk.toString() + "_" + std::to_string(type) + "_" + std::to_string(round) + "_" + std::to_string(step) +
-           "_" + std::to_string(weighted_index);
+    return std::to_string(type) + "_" + std::to_string(round) + "_" + std::to_string(step) + "_" +
+           std::to_string(weighted_index);
   }
 
   bool operator==(VrfPbftMsg const& other) const {
-    return blk == other.blk && type == other.type && round == other.round && step == other.step &&
-           weighted_index == other.weighted_index;
+    return type == other.type && round == other.round && step == other.step && weighted_index == other.weighted_index;
   }
 
   friend std::ostream& operator<<(std::ostream& strm, VrfPbftMsg const& pbft_msg) {
     strm << "  [Vrf Pbft Msg] " << std::endl;
-    strm << "    blk_hash: " << pbft_msg.blk << std::endl;
     strm << "    type: " << pbft_msg.type << std::endl;
     strm << "    round: " << pbft_msg.round << std::endl;
     strm << "    step: " << pbft_msg.step << std::endl;
@@ -43,8 +41,7 @@ struct VrfPbftMsg {
 
   bytes getRlpBytes() const {
     dev::RLPStream s;
-    s.appendList(5);
-    s << blk;
+    s.appendList(4);
     s << type;
     s << round;
     s << step;
@@ -52,7 +49,6 @@ struct VrfPbftMsg {
     return s.out();
   }
 
-  blk_hash_t blk;  // PBFT chain last block hash
   PbftVoteTypes type;
   uint64_t round;
   size_t step;
@@ -113,7 +109,6 @@ class Vote {
   auto getCredential() const { return vrf_sortition_.output; }
   sig_t getVoteSignature() const { return vote_signature_; }
   blk_hash_t getBlockHash() const { return blockhash_; }
-  blk_hash_t getVrfLastPbftBlockHash() const { return vrf_sortition_.pbft_msg.blk; }
   PbftVoteTypes getType() const { return vrf_sortition_.pbft_msg.type; }
   uint64_t getRound() const { return vrf_sortition_.pbft_msg.round; }
   size_t getStep() const { return vrf_sortition_.pbft_msg.step; }
@@ -165,7 +160,6 @@ class VoteManager {
 
   // Verified votes
   void addVerifiedVote(Vote const& vote);
-  void removeVerifiedVotes();
   bool voteInVerifiedMap(uint64_t const& pbft_round, vote_hash_t const& vote_hash);
   void clearVerifiedVotesTable();
   std::vector<Vote> getVerifiedVotes();
