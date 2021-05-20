@@ -139,10 +139,12 @@ jobs:
               mkdir -p $HOME/.kube
               echo -n "${KUBE_CONFIG}" | base64 --decode > $HOME/.kube/config
               curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+              cd taraxa-testnet/tests
               helm install  ${HELM_TEST_NAME} taraxa-node \
                 --wait \
                 --atomic \
                 --timeout 1200s \
+                --create-namespace 
                 --namespace ${HELM_TEST_NAME} \
                 --set replicaCount=5 \
                 --set test.pythontester.script=jenkins.py \
@@ -156,7 +158,7 @@ jobs:
             if [[ ${PR} != "false" ]];then
               helm test ${HELM_TEST_NAME} \
                 --timeout 3600 \
-                --cleanup
+                --namespace ${HELM_TEST_NAME}
               ./scripts/kibana-url.sh || true
             fi
       - run:
