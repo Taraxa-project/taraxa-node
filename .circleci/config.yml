@@ -352,6 +352,7 @@ workflows:
           branches: 
             only: 
               - circleci
+              - circleci-prtest
               - develop
               - master
               - /^PR-*/
