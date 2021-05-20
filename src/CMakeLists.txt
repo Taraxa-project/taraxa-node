@@ -152,5 +152,9 @@ else ()
     target_link_libraries(app_base stdc++fs)
 endif ()
 
+if(TCMALLOC_LIB)
+    target_link_libraries(app_base ${TCMALLOC_LIB}) # MUST BE LINKED LAST!!!
+endif()
+
 # Main taraxad binary
 add_subdirectory(taraxad)
