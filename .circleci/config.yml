@@ -144,7 +144,7 @@ jobs:
                 --wait \
                 --atomic \
                 --timeout 1200s \
-                --create-namespace 
+                --create-namespace \
                 --namespace ${HELM_TEST_NAME} \
                 --set replicaCount=5 \
                 --set test.pythontester.script=jenkins.py \
