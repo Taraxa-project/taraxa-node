@@ -15,9 +15,26 @@ In Taraxa, we are using git-flow workflow based on this [git-branching-model](ht
 Unlike the main branches (master, develop) these branches always have a limited life time since they will be removed eventually.
 Each of these branches have a specific purpose, e.g. developing a new feature.
 
-### Feature branches
+### Standard Feature branches
 
 Feature branches are used to develop new features and merged back to develop. Basically all features, bug-fixes, refactors, etc...
+
+May branch off from:  
+`develop`
+
+Must merge back into:  
+`develop`
+
+Branch naming convention:  
+`no prefix` is used as 99% of branches will be feature branches, such prefix would be redundant.
+
+### Long-term Feature branches
+
+Same logic applies as for `Standard feature branches` with one minor change. This is a feature that we expect to work on for
+relatively long time and multiple developers might be working on it simultaneously. They would use this `feature/*` branch as base branch so it would
+basically become a temporary develop for them...  
+
+Such cases are rare though...
 
 May branch off from:  
 `develop`
@@ -120,13 +137,13 @@ github issue (and vice versa), use branch naming convention:
 
 e.g. :
 
-    feature/issue-1234/new-best-feature
+    issue-1234/new-best-feature
 
 # Example
 
 Let's take this doc change as an example.
 
-- According to our conventions, it is a `feature` branch, so `feature/*` branch naming convention should be used
+- According to our conventions, it is a `standard feature` branch, so `no prefix` for branch name should be used
 - As it is feature branch, it can be branched off only from `develop`
 - There is an existing [github issue #760](https://github.com/Taraxa-project/taraxa-node/issues/760) for this feature,
   so `issue-<NUMBER>/*` branch naming convention should be used
@@ -137,11 +154,11 @@ Let's take this doc change as an example.
 
     git checkout develop
     
-    git checkout -b "feature/issue-760/proposed-git-flow-conventions"
+    git checkout -b "issue-760/proposed-git-flow-conventions"
     // do changes to the repo files...
     git add <files>
     git commit -m "docs(git-flow): added proposed conventions for git-flow (branches, commits)"
-    git push origin feature/issue-760/proposed-git-flow-conventions
+    git push origin issue-760/proposed-git-flow-conventions
     
     // If there were some new changes added to the develop branch in the meantime, use rebase pull
     git pull --rebase origin develop
