@@ -121,6 +121,7 @@ std::string DagBlock::getJsonStr() const {
 
 bool DagBlock::verifySig() const {
   if (!sig_) return false;
+  if (cached_sender_) return true;
   auto msg = sha3(false);
   auto pk = dev::recover(sig_, msg);  // recover is equal to verify
   return !pk.isZero();

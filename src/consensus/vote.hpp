@@ -100,15 +100,14 @@ class Vote {
 
   vote_hash_t getHash() const { return vote_hash_; }
   public_t getVoter() const {
-    process();
+    if (!cached_voter_) cached_voter_ = dev::recover(vote_signature_, sha3(false));
     return cached_voter_;
   }
   addr_t getVoterAddr() const {
-    process();
+    if (!cached_voter_addr_) cached_voter_addr_ = dev::toAddress(getVoter());
     return cached_voter_addr_;
   }
 
-  void process() const;
   auto getVrfSortition() const { return vrf_sortition_; }
   auto getSortitionProof() const { return vrf_sortition_.proof; }
   auto getCredential() const { return vrf_sortition_.output; }
@@ -121,8 +120,8 @@ class Vote {
   size_t getWeightedIndex() const { return vrf_sortition_.pbft_msg.weighted_index; }
   bytes rlp(bool inc_sig = true) const;
   bool verifyVote() const {
-    process();
-    return !cached_voter_.isZero();  // recoverd public key means that it was verified
+    auto pk = getVoter();
+    return !pk.isZero();  // recoverd public key means that it was verified
   }
   bool verifyCanSpeak(size_t threshold, size_t dpos_total_votes_count) const {
     return vrf_sortition_.canSpeak(threshold, dpos_total_votes_count);
