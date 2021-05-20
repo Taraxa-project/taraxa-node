@@ -49,7 +49,7 @@ jobs:
       - run:
          name: Run Ctest
          command: |
-           docker run --rm -v $PWD/tmp_docker:/tmp \
+           docker run -d --rm -v $PWD/tmp_docker:/tmp \
                        --name taraxa-node-ctest-${DOCKER_BRANCH_TAG} \
                        ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}\
                         sh -c \
@@ -142,7 +142,7 @@ jobs:
               helm install  ${HELM_TEST_NAME} taraxa-node \
                 --wait \
                 --atomic \
-                --timeout 1200 \
+                --timeout 1200s \
                 --namespace ${HELM_TEST_NAME} \
                 --set replicaCount=5 \
                 --set test.pythontester.script=jenkins.py \
