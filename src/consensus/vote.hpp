@@ -100,9 +100,15 @@ class Vote {
 
   vote_hash_t getHash() const { return vote_hash_; }
   public_t getVoter() const {
-    voter();
+    process();
     return cached_voter_;
   }
+  addr_t getVoterAddr() const {
+    process();
+    return cached_voter_addr_;
+  }
+
+  void process() const;
   auto getVrfSortition() const { return vrf_sortition_; }
   auto getSortitionProof() const { return vrf_sortition_.proof; }
   auto getCredential() const { return vrf_sortition_.output; }
@@ -115,9 +121,8 @@ class Vote {
   size_t getWeightedIndex() const { return vrf_sortition_.pbft_msg.weighted_index; }
   bytes rlp(bool inc_sig = true) const;
   bool verifyVote() const {
-    auto msg = sha3(false);
-    voter();
-    return dev::verify(cached_voter_, vote_signature_, msg);
+    process();
+    return !cached_voter_.isZero();  // recoverd public key means that it was verified
   }
   bool verifyCanSpeak(size_t threshold, size_t dpos_total_votes_count) const {
     return vrf_sortition_.canSpeak(threshold, dpos_total_votes_count);
@@ -135,13 +140,13 @@ class Vote {
 
  private:
   blk_hash_t sha3(bool inc_sig) const { return dev::sha3(rlp(inc_sig)); }
-  void voter() const;
 
   vote_hash_t vote_hash_;  // hash of this vote
   blk_hash_t blockhash_;   // Voted PBFT block hash
   sig_t vote_signature_;
   VrfPbftSortition vrf_sortition_;
   mutable public_t cached_voter_;
+  mutable addr_t cached_voter_addr_;
 };
 
 class VoteManager {

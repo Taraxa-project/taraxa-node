@@ -81,10 +81,11 @@ bytes Vote::rlp(bool inc_sig) const {
   return s.out();
 }
 
-void Vote::voter() const {
+void Vote::process() const {
   if (cached_voter_) return;
   cached_voter_ = dev::recover(vote_signature_, sha3(false));
   assert(cached_voter_);
+  cached_voter_addr_ = dev::toAddress(cached_voter_);
 }
 
 VoteManager::VoteManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<FinalChain> final_chain,
@@ -131,6 +132,7 @@ VoteManager::VoteManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::s
 void VoteManager::addUnverifiedVote(taraxa::Vote const& vote) {
   uint64_t pbft_round = vote.getRound();
   auto hash = vote.getHash();
+  vote.process();  // speed up we do not need to calcualte again
   {
     upgradableLock_ lock(unverified_votes_access_);
     std::map<uint64_t, std::unordered_map<vote_hash_t, Vote>>::const_iterator found_round =
@@ -309,7 +311,7 @@ std::vector<Vote> VoteManager::getVerifiedVotes(uint64_t const pbft_round, size_
 
     bool vote_is_valid = true;
 
-    addr_t voter_account_address = dev::toAddress(v.getVoter());
+    addr_t voter_account_address = v.getVoterAddr();
     // Check if the voter account is valid, malicious vote
     auto vote_weighted_index = v.getWeightedIndex();
     auto dpos_votes_count = dpos_eligible_vote_count(voter_account_address);
@@ -383,7 +385,7 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
       auto v = rit->second.begin();
       while (v != rit->second.end()) {
         // Check if vote is a stale vote for given address...
-        addr_t voter_account_address = dev::toAddress(v->second.getVoter());
+        addr_t voter_account_address = v->second.getVoterAddr();
         auto found_in_map = max_received_round_for_address_.find(voter_account_address);
         if (found_in_map == max_received_round_for_address_.end()) {
           max_received_round_for_address_[voter_account_address] = vote_round;
