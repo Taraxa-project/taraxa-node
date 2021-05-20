@@ -116,20 +116,28 @@ jobs:
            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:${START_TIME}
            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:${START_TIME}-${CIRCLE_SHA1}
+           docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:latest
+           docker push ${GCP_IMAGE}:latest
            docker push ${GCP_IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
            docker push ${GCP_IMAGE}:${START_TIME}
            docker push ${GCP_IMAGE}:${CIRCLE_SHA1}
            docker push ${GCP_IMAGE}:${START_TIME}-${CIRCLE_SHA1}
            if [[ ${PR} != "false" ]];then
               docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${IMAGE}:pr-${PR}-${CIRCLE_BUILD_NUM} 
-              docker push ${GCP_IMAGE}:latest
+              docker push ${IMAGE}:pr-${PR}-${CIRCLE_BUILD_NUM} 
            fi
            if [[ ${CIRCLE_BRANCH} == "master" ]];then
-             echo ${DOCKERHUB_PASS} | docker login -u taraxa --password-stdin
-             docker push ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
-             docker push ${IMAGE}:${START_TIME}
-             docker push ${IMAGE}:${CIRCLE_SHA1}
-             docker push ${IMAGE}:${START_TIME}-${CIRCLE_SHA1}
+              echo ${DOCKERHUB_PASS} | docker login -u taraxa --password-stdin
+              docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${IMAGE}:${CIRCLE_SHA1}
+              docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+              docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${IMAGE}:${START_TIME}
+              docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${IMAGE}:${START_TIME}-${CIRCLE_SHA1}
+              docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${IMAGE}:latest
+              docker push ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+              docker push ${IMAGE}:${START_TIME}
+              docker push ${IMAGE}:${CIRCLE_SHA1}
+              docker push ${IMAGE}:${START_TIME}-${CIRCLE_SHA1}
+              docker push ${IMAGE}:latest
            fi
       - run:
          name: Install/configure helm and chart
