@@ -50,7 +50,6 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   void stop();
   void setNetwork(std::weak_ptr<Network> network);
   void setWsServer(std::shared_ptr<net::WSServer> ws_server);
-  std::pair<bool, std::string> insertTrx(Transaction const &trx, bool verify);
 
   /**
    * The following function will require a lock for verified qu
@@ -58,10 +57,24 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   void packTrxs(vec_trx_t &to_be_packed_trx, uint16_t max_trx_to_pack = 0);
   void setVerifyMode(VerifyMode mode) { mode_ = mode; }
 
-  // Insert new transaction to unverified queue or if verify flag true
-  // synchronously verify and insert into verified queue
-  std::pair<bool, std::string> insertTransaction(Transaction const &trx, bool verify = false);
-  // Transactions coming from broadcasting is less critical
+  /**
+   * @brief Inserts new transaction to queue and db
+   *
+   * @param trx transaction to be processed
+   * @param verify - if set to true, tx is also verified and inserted (if valid) into verified queue and db
+   *                 otherwise inserted into unverified queue and db
+   * @param broadcast - if set to true, tx is broadcasted to the network
+   * @return std::pair<bool, std::string> -> pair<OK status, ERR message>
+   */
+  std::pair<bool, std::string> insertTransaction(Transaction const &trx, bool verify = true, bool broadcast = true);
+
+  /**
+   * @brief Inserts batch of unverified broadcasted transactions to unverified queue and db
+   *
+   * @note Some of the transactions might be already processed -> they are not processed and inserted again
+   * @param raw_trxs transactions to be processed
+   * @return number of successfully inserted unseen transactions
+   */
   uint32_t insertBroadcastedTransactions(const std::vector<taraxa::bytes> &raw_trxs);
 
   std::pair<bool, std::string> verifyTransaction(Transaction const &trx) const;
@@ -80,6 +93,14 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   bool saveBlockTransactionAndDeduplicate(DagBlock const &blk, std::vector<Transaction> const &some_trxs);
 
   TransactionQueue &getTransactionQueue() { return trx_qu_; }
+
+ private:
+  /**
+   * @brief Checks if transaction queue is overflowed
+   *
+   * @return true if transaction queue is overflowed, otherwise false
+   */
+  bool checkQueueOverflow();
 
  private:
   void verifyQueuedTrxs();

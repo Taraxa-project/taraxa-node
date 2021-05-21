@@ -116,7 +116,7 @@ void FullNode::init() {
     emplace(jsonrpc_api_, new net::Test(getShared()), new net::Taraxa(getShared()), new net::Net(getShared()),
             new dev::rpc::Eth(aleth::NewNodeAPI(conf_.chain.chain_id, kp_.secret(),
                                                 [this](auto const &trx) {
-                                                  auto [ok, err_msg] = trx_mgr_->insertTransaction(trx, true);
+                                                  auto [ok, err_msg] = trx_mgr_->insertTransaction(trx);
                                                   if (!ok) {
                                                     BOOST_THROW_EXCEPTION(
                                                         runtime_error(fmt("Transaction is rejected.\n"

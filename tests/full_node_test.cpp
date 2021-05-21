@@ -1228,7 +1228,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
     Transaction master_boot_node_send_coins(nonce++, test_transfer_val, gas_price, 100000, data,
                                             nodes[0]->getSecretKey(), nodes[i]->getAddress());
     // broadcast trx and insert
-    nodes[0]->getTransactionManager()->insertTransaction(master_boot_node_send_coins, false);
+    nodes[0]->getTransactionManager()->insertTransaction(master_boot_node_send_coins, false, true);
     trxs_count++;
   }
 
@@ -1241,7 +1241,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
         if (ctx.fail(); !ctx.is_last_attempt) {
           Transaction dummy_trx(nonce++, 0, 2, 100000, bytes(), nodes[0]->getSecretKey(), nodes[0]->getAddress());
           // broadcast dummy transaction
-          nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false);
+          nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false, true);
           trxs_count++;
           return;
         }
@@ -1269,7 +1269,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
       Transaction send_coins_in_robin_cycle(nonce++, send_coins, gas_price, 100000, data, nodes[i]->getSecretKey(),
                                             nodes[receiver_index]->getAddress());
       // broadcast trx and insert
-      nodes[i]->getTransactionManager()->insertTransaction(send_coins_in_robin_cycle, false);
+      nodes[i]->getTransactionManager()->insertTransaction(send_coins_in_robin_cycle, false, true);
       trxs_count++;
     }
     std::cout << "Node" << i << " sends " << j << " transactions to Node" << receiver_index << std::endl;
@@ -1284,7 +1284,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
         if (ctx.fail(); !ctx.is_last_attempt) {
           Transaction dummy_trx(nonce++, 0, 2, 100000, bytes(), nodes[0]->getSecretKey(), nodes[0]->getAddress());
           // broadcast dummy transaction
-          nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false);
+          nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false, true);
           trxs_count++;
           return;
         }
@@ -1360,7 +1360,7 @@ TEST_F(FullNodeTest, db_rebuild) {
     while (executed_chain_size < 10) {
       Transaction dummy_trx(nonce++, 0, gas_price, TEST_TX_GAS_LIMIT, bytes(), nodes[0]->getSecretKey(),
                             nodes[0]->getAddress());
-      nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false);
+      nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false, true);
       trxs_count++;
       thisThreadSleepForMilliSeconds(100);
       executed_chain_size = nodes[0]->getFinalChain()->last_block_number();
