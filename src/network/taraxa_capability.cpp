@@ -195,11 +195,6 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
   if (!peer) {
     return;
   }
-
-  if (!peer->passed_initial_ && _id != StatusPacket) {
-    return;
-  }
-
   switch (_id) {
     case SyncedPacket: {
       LOG(log_dg_dag_sync_) << "Received synced message from " << _nodeID;
@@ -264,6 +259,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       } else {
         if (!peer->passed_initial_) {
           LOG(log_er_) << "Don't receive host " << _nodeID << " initial status packet, will be disconnected";
+          host->disconnect(_nodeID, p2p::UserReason);
           break;
         }
 
