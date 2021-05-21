@@ -57,7 +57,7 @@ class DagBlockManager {
   size_t num_verifiers_ = 4;
   const uint32_t cache_max_size_ = 10000;
   const uint32_t cache_delete_step_ = 100;
-  uint64_t last_proposal_period_ = 0;
+  std::atomic<uint64_t> last_proposal_period_ = 0;
   uint64_t current_max_proposal_period_ = 0;
 
   std::shared_ptr<DbStorage> db_;
@@ -68,11 +68,9 @@ class DagBlockManager {
   // seen blks
   BlockStatusTable blk_status_;
   ExpirationCacheMap<blk_hash_t, DagBlock> seen_blocks_;
-  mutable boost::shared_mutex shared_mutex_;  // shared mutex to check seen_blocks ...
   std::vector<std::thread> verifiers_;
   mutable boost::shared_mutex shared_mutex_for_unverified_qu_;
   mutable boost::shared_mutex shared_mutex_for_verified_qu_;
-  mutable boost::shared_mutex shared_mutex_last_proposal_period_;
 
   boost::condition_variable_any cond_for_unverified_qu_;
   boost::condition_variable_any cond_for_verified_qu_;

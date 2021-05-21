@@ -15,12 +15,11 @@ VrfPbftSortition::VrfPbftSortition(bytes const& b) {
   }
 
   pk = rlp[0].toHash<vrf_pk_t>();
-  pbft_msg.blk = rlp[1].toHash<blk_hash_t>();
-  pbft_msg.type = PbftVoteTypes(rlp[2].toInt<uint>());
-  pbft_msg.round = rlp[3].toInt<uint64_t>();
-  pbft_msg.step = rlp[4].toInt<size_t>();
-  pbft_msg.weighted_index = rlp[5].toInt<size_t>();
-  proof = rlp[6].toHash<vrf_proof_t>();
+  pbft_msg.type = PbftVoteTypes(rlp[1].toInt<uint>());
+  pbft_msg.round = rlp[2].toInt<uint64_t>();
+  pbft_msg.step = rlp[3].toInt<size_t>();
+  pbft_msg.weighted_index = rlp[4].toInt<size_t>();
+  proof = rlp[5].toHash<vrf_proof_t>();
 
   verify();
 }
@@ -28,9 +27,8 @@ VrfPbftSortition::VrfPbftSortition(bytes const& b) {
 bytes VrfPbftSortition::getRlpBytes() const {
   dev::RLPStream s;
 
-  s.appendList(7);
+  s.appendList(6);
   s << pk;
-  s << pbft_msg.blk;
   s << pbft_msg.type;
   s << pbft_msg.round;
   s << pbft_msg.step;
@@ -81,12 +79,6 @@ bytes Vote::rlp(bool inc_sig) const {
   return s.out();
 }
 
-void Vote::voter() const {
-  if (cached_voter_) return;
-  cached_voter_ = dev::recover(vote_signature_, sha3(false));
-  assert(cached_voter_);
-}
-
 VoteManager::VoteManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<FinalChain> final_chain,
                          std::shared_ptr<PbftChain> pbft_chain)
     : db_(db), pbft_chain_(pbft_chain), final_chain_(final_chain) {
@@ -131,6 +123,7 @@ VoteManager::VoteManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::s
 void VoteManager::addUnverifiedVote(taraxa::Vote const& vote) {
   uint64_t pbft_round = vote.getRound();
   auto hash = vote.getHash();
+  vote.getVoterAddr();  // this will cache object variables - speed up
   {
     upgradableLock_ lock(unverified_votes_access_);
     std::map<uint64_t, std::unordered_map<vote_hash_t, Vote>>::const_iterator found_round =
@@ -155,12 +148,12 @@ void VoteManager::addUnverifiedVote(taraxa::Vote const& vote) {
 void VoteManager::addUnverifiedVotes(std::vector<Vote> const& votes) {
   for (auto const& v : votes) {
     if (voteInUnverifiedMap(v.getRound(), v.getHash())) {
-      LOG(log_dg_) << "Vote is in unverified queue already " << v;
+      LOG(log_dg_) << "The vote is in unverified queue already " << v;
       continue;
     }
     if (db_->unverifiedVoteExist(v.getHash())) {
       // Vote in unverified DB but not in unverified queue
-      LOG(log_dg_) << "The vote failed reverification, drop it. " << v;
+      LOG(log_dg_) << "The vote is in unverified DB already " << v;
       continue;
     }
     addUnverifiedVote(v);
@@ -238,20 +231,25 @@ void VoteManager::addVerifiedVote(Vote const& vote) {
   LOG(log_dg_) << "Add verified vote " << vote;
 }
 
-// All verified votes need to remove, since new PBFT blocks synced into chain
+// Move all verified votes back to unverified queue/DB. Since PBFT chain pushed new blocks, that will affect DPOS
+// eligible vote count and players' eligibility
 void VoteManager::removeVerifiedVotes() {
   auto votes = getVerifiedVotes();
+  if (votes.empty()) {
+    return;
+  }
+
+  clearVerifiedVotesTable();
   LOG(log_nf_) << "Remove " << votes.size() << " verified votes.";
+
+  addUnverifiedVotes(votes);
 
   auto batch = db_->createWriteBatch();
   for (auto const& v : votes) {
     db_->removeVerifiedVoteToBatch(v.getHash(), batch);
-    // Add back to unverified votes DB, for reject to add the failed votes into unverified queue again
     db_->addUnverifiedVoteToBatch(v, batch);
   }
   db_->commitWriteBatch(batch);
-
-  clearVerifiedVotesTable();
 }
 
 bool VoteManager::voteInVerifiedMap(uint64_t const& pbft_round, vote_hash_t const& vote_hash) {
@@ -309,7 +307,7 @@ std::vector<Vote> VoteManager::getVerifiedVotes(uint64_t const pbft_round, size_
 
     bool vote_is_valid = true;
 
-    addr_t voter_account_address = dev::toAddress(v.getVoter());
+    addr_t voter_account_address = v.getVoterAddr();
     // Check if the voter account is valid, malicious vote
     auto vote_weighted_index = v.getWeightedIndex();
     auto dpos_votes_count = dpos_eligible_vote_count(voter_account_address);
@@ -383,12 +381,13 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
       auto v = rit->second.begin();
       while (v != rit->second.end()) {
         // Check if vote is a stale vote for given address...
-        addr_t voter_account_address = dev::toAddress(v->second.getVoter());
+        addr_t voter_account_address = v->second.getVoterAddr();
         auto found_in_map = max_received_round_for_address_.find(voter_account_address);
         if (found_in_map == max_received_round_for_address_.end()) {
           max_received_round_for_address_[voter_account_address] = vote_round;
         } else {
           if (max_received_round_for_address_[voter_account_address] > vote_round + 1) {
+            LOG(log_dg_) << "Remove unverified vote " << v->first;
             remove_unverified_votes_hash.emplace_back(v->first);
             v = rit->second.erase(v);
             stale_removed_votes_count++;
@@ -401,6 +400,7 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
       }
 
       if (rit->second.empty()) {
+        LOG(log_dg_) << "Remove round " << rit->first << " in unverified queue";
         rit = decltype(rit){unverified_votes_.erase(std::next(rit).base())};
       } else {
         ++rit;
