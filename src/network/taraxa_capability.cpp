@@ -241,8 +241,6 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
           break;
         }
 
-        peer->passed_initial_ = true;
-
         peer->dag_level_ = peer_dag_level;
         peer->pbft_chain_size_ = peer_pbft_chain_size;
         peer->syncing_ = peer_syncing;
@@ -257,12 +255,6 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
                      << ", node major version" << node_major_version << ", node minor version" << node_minor_version;
 
       } else {
-        if (!peer->passed_initial_) {
-          LOG(log_er_) << "Don't receive host " << _nodeID << " initial status packet, will be disconnected";
-          host->disconnect(_nodeID, p2p::UserReason);
-          break;
-        }
-
         auto it = _r.begin();
         peer->dag_level_ = (*it++).toPositiveInt64();
         peer->pbft_chain_size_ = (*it++).toPositiveInt64();

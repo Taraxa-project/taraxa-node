@@ -86,7 +86,6 @@ class TaraxaPeer : public boost::noncopyable {
 
   void statusReceived() { status_check_count_ = 0; }
 
-  bool passed_initial_ = false;
   bool syncing_ = false;
   uint64_t dag_level_ = 0;
   uint64_t pbft_chain_size_ = 0;
