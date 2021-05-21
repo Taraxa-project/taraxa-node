@@ -163,12 +163,6 @@ void Executor::execute_(PbftBlock const &pbft_block) {
   db_->addDposProposalPeriodLevelsFieldToBatch(DposProposalPeriodLevelsStatus::max_proposal_period,
                                                dpos_current_max_proposal_period, batch);
 
-  // Remove executed transactions at Ethereum pending block. The Ethereum pending block is same with latest block at
-  // Taraxa
-  trx_mgr_->getPendingBlock()->advance(
-      batch, new_eth_header.hash(),
-      util::make_range_view(transactions_tmp_buf_).map([](auto const &trx) { return trx.sha3(); }));
-
   // Commit DB
   {
     rocksdb::WriteOptions opts;
@@ -189,10 +183,6 @@ void Executor::execute_(PbftBlock const &pbft_block) {
   if (db_->createSnapshot(pbft_period)) {
     final_chain_->create_snapshot(pbft_period);
   }
-
-  // Ethereum filter
-  trx_mgr_->getFilterAPI()->note_block(new_eth_header.hash());
-  trx_mgr_->getFilterAPI()->note_receipts(trx_receipts);
 
   // Update web server
   if (ws_server_) {

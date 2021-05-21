@@ -41,7 +41,7 @@ struct NodeAPIImpl : virtual Eth::NodeAPI {
 
 unique_ptr<Eth::NodeAPI> NewNodeAPI(uint64_t chain_id, KeyPair key_pair,
                                     function<void(::taraxa::Transaction const&)> send_trx) {
-  return u_ptr(new NodeAPIImpl(chain_id, move(key_pair), move(send_trx)));
+  return std::make_unique<NodeAPIImpl>(chain_id, move(key_pair), move(send_trx));
 }
 
 }  // namespace taraxa::aleth
