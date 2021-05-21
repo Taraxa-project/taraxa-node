@@ -196,7 +196,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
     return;
   }
 
-  if (!peer->passed_initial_ && _id != StatusPacket) {
+  if (dag_mgr_ && !peer->passed_initial_ && _id != StatusPacket) {
     return;
   }
 
@@ -263,7 +263,6 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
 
       } else {
         if (!peer->passed_initial_) {
-          LOG(log_er_) << "Don't receive host " << _nodeID << " initial status packet, will be disconnected";
           break;
         }
 
