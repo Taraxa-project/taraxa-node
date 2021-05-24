@@ -13,6 +13,7 @@ workflows:
    deploy_testnet:
     default: true
     type: boolean
+    
   deploy-testnet:
     jobs:
       - build-and-push-docker-image:
