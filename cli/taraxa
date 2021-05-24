@@ -1,18 +1,16 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 import click
 import json
-import nacl.utils
 import os
 from eth_account import Account
 from eth_keys import keys
-from nacl.encoding import HexEncoder
-from nacl.public import PrivateKey
 from nacl.signing import SigningKey
 from pathlib import Path
 
+base_path = os.path.realpath(os.path.dirname(os.path.realpath(__file__)) + '/../')
 # network configs are pre-defined boot nodes for a network
-network_config_folder = Path('./config/networks').rglob('*.json')
+network_config_folder = Path(f'{base_path}/config/networks').rglob('*.json')
 network_configs = [x for x in network_config_folder]
 networks = []
 for path in network_configs:
@@ -80,7 +78,7 @@ def vrf(secret):
 @click.option('--rpc-port-http', type=int, help='HTTP RPC port')
 @click.option('--rpc-port-ws', type=int, help='WS RPC port')
 @click.option('--stdout', is_flag=True, help='Write to stdout instead of a file')
-@click.option('--template', default='./config/_template.json', help='The config file to read from as a template')
+@click.option('--template', default=f'{base_path}/config/_template.json', help='The config file to read from as a template')
 @click.option('--vrf-secret', help='Use specific private key (vrf secret)')
 @click.option('--prop-override', multiple=True, help='Use to override specific property. format: key.key...key:value')
 def node(as_boot_node, boot_node, db_path, file, network, log, network_port_tcp, network_port_udp, node_secret, rpc_port_http, rpc_port_ws, stdout, template, vrf_secret, prop_override):
@@ -120,7 +118,7 @@ def node(as_boot_node, boot_node, db_path, file, network, log, network_port_tcp,
         vrf_secret = signing_key._signing_key.hex()
     data["vrf_secret"] = vrf_secret
 
-    with open(f"./config/networks/{network}.json") as json_file:
+    with open(f"{base_path}/config/networks/{network}.json") as json_file:
         network_config = json.load(json_file)
         data.update(network_config)
 
