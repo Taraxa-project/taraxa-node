@@ -579,7 +579,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       LOG(log_dg_pbft_sync_) << "In PbftBlockPacket received, num pbft blocks: " << pbft_blk_count;
 
       auto pbft_sync_period = pbft_chain_->pbftSyncingPeriod();
-      for (auto const &pbft_blk_tuple : _r) {
+      for (auto const pbft_blk_tuple : _r) {
         PbftBlockCert pbft_blk_and_votes(pbft_blk_tuple[0]);
         auto pbft_blk_hash = pbft_blk_and_votes.pbft_blk->getBlockHash();
         peer->markPbftBlockAsKnown(pbft_blk_hash);
@@ -617,12 +617,12 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
 
         string received_dag_blocks_str;
         map<uint64_t, map<blk_hash_t, pair<DagBlock, vector<Transaction>>>> dag_blocks_per_level;
-        for (auto const &dag_blk_struct : pbft_blk_tuple[1]) {
+        for (auto const dag_blk_struct : pbft_blk_tuple[1]) {
           DagBlock dag_blk(dag_blk_struct[0]);
           auto const &dag_blk_h = dag_blk.getHash();
           peer->markBlockAsKnown(dag_blk_h);
           vector<Transaction> newTransactions;
-          for (auto const &trx_raw : dag_blk_struct[1]) {
+          for (auto const trx_raw : dag_blk_struct[1]) {
             auto &trx = newTransactions.emplace_back(trx_raw);
             peer->markTransactionAsKnown(trx.getHash());
           }

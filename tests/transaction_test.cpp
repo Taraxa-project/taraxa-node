@@ -94,7 +94,7 @@ TEST_F(TransactionTest, sig) {
       RLPStream with_invalid_signature(9);
       uint fields_processed = 0;
       auto rlp = t.rlp();
-      for (auto const& el : RLP(*rlp)) {
+      for (auto const el : RLP(*rlp)) {
         if (auto el_modified = el.toBytes(); ++fields_processed <= 6) {
           for (auto& b : el_modified) {
             b = ~b;

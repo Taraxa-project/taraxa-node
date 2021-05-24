@@ -111,7 +111,7 @@ PbftBlockCert::PbftBlockCert(PbftBlock const& pbft_blk, std::vector<Vote> const&
 
 PbftBlockCert::PbftBlockCert(dev::RLP const& rlp) {
   pbft_blk.reset(new PbftBlock(rlp[0]));
-  for (auto const& el : rlp[1]) {
+  for (auto const el : rlp[1]) {
     cert_votes.emplace_back(el);
   }
 }
