@@ -1,6 +1,8 @@
-
-
-
+version: 2
+parameters: 
+  deploy_testnet:
+    default: true
+    type: boolean
 
 #orbs:
 #  git: opuscapita/git@0.0.3
@@ -8,79 +10,6 @@
 
 #  gcp-gcr: circleci/gcp-gcr@0.13.0
 #
-workflows:
- version: 2
-
-# parameters: 
-#   deploy_testnet:
-#    default: true
-#    type: boolean
-
-
-  deploy-testnet:
-    jobs:
-      - build-and-push-docker-image:
-         context: taraxa-node
-         filters:
-          branches: 
-            only: 
-              - circleci
-              - develop
-              - master
-
-                           
-  build-and-release:
-    jobs:
-      - create-and-push-builder:
-          context: taraxa-node
-          filters:
-            branches: 
-              only: 
-#               - develop
-               - cirleci
-
-      - build-linux:
-          filters:
-            branches: 
-              ignore: /.*/
-            tags:  
-              only: /^v\d+\.\d+\.\d+$/
-          context: taraxa-node
-#         requires: [ gcp-gcr/build-and-push-image ]
-      - build-mac:
-          filters:
-            branches: 
-              ignore: /.*/
-            tags:  
-              only: /^v\d+\.\d+\.\d+$/
-          context: taraxa-node
-      - github-release/create:
-          context: taraxa-node
-          attach-workspace: true
-          workspace-root: cmake-docker-build-debug
-          path: cmake-docker-build-debug/bin_install/taraxad-x86_64
-          filters:
-            branches: 
-              ignore: /.*/
-            tags:  
-              only: /^v\d+\.\d+\.\d+$/
-          requires: 
-            - build-linux
-            - build-mac
-      - github-release/create:
-          context: taraxa-node
-          attach-workspace: true
-          workspace-root: cmake-build
-          path: cmake-build/bin/taraxad-macos
-          filters:
-            branches: 
-              ignore: /.*/
-            tags:  
-              only: /^v\d+\.\d+\.\d+$/
-          requires: 
-            - build-linux
-            - build-mac
-
 
 jobs: 
    build-and-push-docker-image:
@@ -425,3 +354,68 @@ jobs:
            root: cmake-docker-build-debug
            paths: [ bin_install ]
 
+workflows:
+  version: 2
+  deploy-testnet:
+    jobs:
+      - build-and-push-docker-image:
+         context: taraxa-node
+         filters:
+          branches: 
+            only: 
+              - circleci
+              - develop
+              - master
+
+                           
+  build-and-release:
+    jobs:
+      - create-and-push-builder:
+          context: taraxa-node
+          filters:
+            branches: 
+              only: 
+#               - develop
+               - cirleci
+
+      - build-linux:
+          filters:
+            branches: 
+              ignore: /.*/
+            tags:  
+              only: /^v\d+\.\d+\.\d+$/
+          context: taraxa-node
+#         requires: [ gcp-gcr/build-and-push-image ]
+      - build-mac:
+          filters:
+            branches: 
+              ignore: /.*/
+            tags:  
+              only: /^v\d+\.\d+\.\d+$/
+          context: taraxa-node
+      - github-release/create:
+          context: taraxa-node
+          attach-workspace: true
+          workspace-root: cmake-docker-build-debug
+          path: cmake-docker-build-debug/bin_install/taraxad-x86_64
+          filters:
+            branches: 
+              ignore: /.*/
+            tags:  
+              only: /^v\d+\.\d+\.\d+$/
+          requires: 
+            - build-linux
+            - build-mac
+      - github-release/create:
+          context: taraxa-node
+          attach-workspace: true
+          workspace-root: cmake-build
+          path: cmake-build/bin/taraxad-macos
+          filters:
+            branches: 
+              ignore: /.*/
+            tags:  
+              only: /^v\d+\.\d+\.\d+$/
+          requires: 
+            - build-linux
+            - build-mac
