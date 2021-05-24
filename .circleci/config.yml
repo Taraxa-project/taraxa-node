@@ -9,11 +9,14 @@
 #  gcp-gcr: circleci/gcp-gcr@0.13.0
 #
 workflows:
- parameters: 
-   deploy_testnet:
-    default: true
-    type: boolean
-    
+ version: 2
+
+# parameters: 
+#   deploy_testnet:
+#    default: true
+#    type: boolean
+
+
   deploy-testnet:
     jobs:
       - build-and-push-docker-image:
