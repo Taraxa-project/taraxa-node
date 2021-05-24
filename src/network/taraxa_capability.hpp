@@ -216,10 +216,8 @@ struct TaraxaCapability : virtual CapabilityFace {
   std::unordered_map<NodeID, std::shared_ptr<TaraxaPeer>> peers_;
   mutable boost::shared_mutex peers_mutex_;
   NetworkConfig conf_;
-  uint64_t dag_level_ = 0;
   NodeID peer_syncing_pbft_;
   std::string genesis_;
-  bool performance_log_;
   mutable std::mt19937_64 urng_;  // Mersenne Twister psuedo-random number generator
   std::mt19937 delay_rng_;
   std::uniform_int_distribution<std::mt19937::result_type> random_dist_;

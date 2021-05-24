@@ -36,10 +36,10 @@ class BlockProposer;
 class DagManager;
 class DagBlock;
 class BlockManager;
-class Transaction;
+struct Transaction;
 class TransactionManager;
 class PbftManager;
-class NetworkConfig;
+struct NetworkConfig;
 
 class FullNode : public std::enable_shared_from_this<FullNode> {
   using shared_ptr_t = std::shared_ptr<FullNode>;
@@ -58,7 +58,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::atomic<bool> stopped_ = true;
   // configuration
   FullNodeConfig conf_;
-  uint64_t propose_threshold_ = 512;
   // Ethereum key pair
   dev::KeyPair kp_;
   // components

@@ -77,7 +77,7 @@ struct DbStorage {
     // Fix static initialization order fail by lazy initialization:
     // When rocksdb linked statically, rocksdb::kDefaultColumnFamilyName is empty during static initialization of
     // columns, therefore default_column, which depends on rocksdb::kDefaultColumnFamilyName must be lazy initialized
-    static inline auto const Default_column() {
+    static inline auto Default_column() {
       static auto const default_column = all_.emplace_back(Column{kDefaultColumnFamilyName, all_.size()});
       return default_column;
     }
@@ -134,7 +134,6 @@ struct DbStorage {
   atomic<uint64_t> dag_edge_count_;
   uint32_t db_snapshot_each_n_pbft_block_ = 0;
   uint32_t db_max_snapshots_ = 0;
-  uint32_t snapshots_counter = 0;
   std::set<uint64_t> snapshots_;
   addr_t node_addr_;
   bool minor_version_changed_ = false;

@@ -755,7 +755,7 @@ void TaraxaCapability::restartSyncingPbft(bool force) {
   uint64_t max_node_dag_level = 0;
   {
     boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
-    for (auto const peer : peers_) {
+    for (auto const& peer : peers_) {
       if (peer.second->pbft_chain_size_ > max_pbft_chain_size) {
         max_pbft_chain_size = peer.second->pbft_chain_size_;
         max_pbft_chain_nodeID = peer.first;
@@ -1139,7 +1139,7 @@ void TaraxaCapability::logNodeStats() {
   {
     boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
     peers_size = peers_.size();
-    for (auto const peer : peers_) {
+    for (auto const& peer : peers_) {
       // Find max pbft chain size
       if (peer.second->pbft_chain_size_ > peer_max_pbft_chain_size) {
         peer_max_pbft_chain_size = peer.second->pbft_chain_size_;
