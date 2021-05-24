@@ -1,9 +1,9 @@
-version: 2.1
+version: 2.0
 parameters: 
   deploy_testnet:
     default: true
     type: boolean
-    
+
 orbs:
   git: opuscapita/git@0.0.3
   github-release: izumin5210/github-release@0.1.1
