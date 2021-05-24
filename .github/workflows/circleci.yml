@@ -23,4 +23,4 @@ jobs:
         -H 'Content-Type: application/json' \
         -H 'Accept: application/json' \
         -d "{\"branch\":\"${CIRCLE_BRANCH}\"}" \
-        https://circleci.com/api/v2/project/Taraxa/taraxa-node/pipeline
+        https://circleci.com/api/v2/project/Taraxa-project/taraxa-node/pipeline
