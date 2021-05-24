@@ -1,8 +1,5 @@
 version: 2
-parameters: 
-  deploy_testnet:
-    default: true
-    type: boolean
+
 
 #orbs:
 #  git: opuscapita/git@0.0.3
