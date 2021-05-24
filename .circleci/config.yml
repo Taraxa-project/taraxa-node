@@ -4,12 +4,12 @@ parameters:
     default: true
     type: boolean
 
-orbs:
-  git: opuscapita/git@0.0.3
-  github-release: izumin5210/github-release@0.1.1
+#orbs:
+#  git: opuscapita/git@0.0.3
+#  github-release: izumin5210/github-release@0.1.1#
 
-  gcp-gcr: circleci/gcp-gcr@0.13.0
-
+#  gcp-gcr: circleci/gcp-gcr@0.13.0
+#
 
 jobs: 
    build-and-push-docker-image:
@@ -204,14 +204,14 @@ jobs:
               fi
             fi
        - checkout
-       - gcp-gcr/gcr-auth
-       - setup_remote_docker:
-          docker_layer_caching: true
-       - gcp-gcr/build-image: 
-           extra_build_args: --target builder
-           image: taraxa-node/builder
-       - gcp-gcr/push-image:
-           image: taraxa-node/builder
+#       - gcp-gcr/gcr-auth
+#       - setup_remote_docker:
+#          docker_layer_caching: true
+#       - gcp-gcr/build-image: 
+#           extra_build_args: --target builder
+#           image: taraxa-node/builder
+#       - gcp-gcr/push-image:
+#           image: taraxa-node/builder
    build-mac:
      macos:
        xcode: 12.0.0
