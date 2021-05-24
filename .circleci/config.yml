@@ -352,6 +352,7 @@ jobs:
            paths: [ bin_install ]
 
 workflows:
+  version: 2
   deploy-testnet:
     jobs:
       - build-and-push-docker-image:
