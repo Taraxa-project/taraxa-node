@@ -45,15 +45,15 @@ class TaraxaConan(ConanFile):
         self.requires("boost/1.71.0")
         self.requires("cppcheck/2.3")
         self.requires("openssl/1.1.1f")
-        self.requires("cryptopp/8.4.0")
+        self.requires("cryptopp/8.5.0")
         self.requires("gtest/1.10.0")
         self.requires("rocksdb/6.8.1")
-        self.requires("gmp/6.2.0")
+        self.requires("gmp/6.2.1")
         self.requires("mpfr/4.0.2")
         self.requires("snappy/1.1.8")
         self.requires("zstd/1.4.4")
         self.requires("lz4/1.9.2")
-        
+
         # if it darwin we will check for some clang utils
         if platform.system() == "Darwin":
             self._add_clang_utils_on_darwin()

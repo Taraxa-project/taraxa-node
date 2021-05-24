@@ -131,8 +131,8 @@ void uint_hash_t<Bytes>::rawPrint() const {
 
 // create instance to be linked in other sourc files
 
-template class uint_hash_t<32>;
-template class uint_hash_t<64>;
+template struct uint_hash_t<32>;
+template struct uint_hash_t<64>;
 template std::ostream &operator<<(std::ostream &strm, uint_hash_t<32> const &num);
 template std::ostream &operator<<(std::ostream &strm, uint_hash_t<64> const &num);
 
