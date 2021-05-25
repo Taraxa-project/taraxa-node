@@ -23,5 +23,5 @@ jobs:
         -u ${TOKEN}: \
         -H 'Content-Type: application/json' \
         -H 'Accept: application/json' \
-        -d "{\"branch\":\"${CIRCLE_BRANCH}\"}" \
+        -d "{\"branch\":\"${CIRCLE_BRANCH}, \"CIRCLE_PULL_REQUEST\":\"${{ github.GITHUB_REF }}\"\"}" \
         https://circleci.com/api/v2/project/gh/Taraxa-project/taraxa-node/pipeline
