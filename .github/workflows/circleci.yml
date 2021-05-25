@@ -17,11 +17,12 @@ jobs:
     - name: Tickle CircleCI
       env:
         CIRCLE_BRANCH: ${{ github.base_ref }}
+        PR: ${{ github.github_ref }}
         TOKEN: ${{ secrets.CIRCLE_TOKEN }}
       run: |
         curl -X POST \
         -u ${TOKEN}: \
         -H 'Content-Type: application/json' \
         -H 'Accept: application/json' \
-        -d "{\"branch\":\"${CIRCLE_BRANCH}, \"CIRCLE_PULL_REQUEST\":\"${{ github.GITHUB_REF }}\"\"}" \
+        -d "{\"branch\":\"${CIRCLE_BRANCH}\",\"CIRCLE_PULL_REQUEST\":\"${PR}\"\"}" \
         https://circleci.com/api/v2/project/gh/Taraxa-project/taraxa-node/pipeline
