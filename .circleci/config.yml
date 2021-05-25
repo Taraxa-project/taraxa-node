@@ -358,6 +358,7 @@ jobs:
         - persist_to_workspace:
            root: cmake-docker-build-debug
            paths: [ bin_install ]
+           
 
 workflows:
   version: 2
