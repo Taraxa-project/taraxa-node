@@ -46,8 +46,6 @@ jobs:
            echo "export PR=$( [[ -z ${CIRCLE_PULL_REQUEST+x} ]] && echo false || echo $(basename ${CIRCLE_PULL_REQUEST}) )" >>$BASH_ENV
            sudo service apport stop
            sudo bash -c 'echo /tmp/core.%t.%e.%p >/proc/sys/kernel/core_pattern'
-           cat $BASH_ENV
-           sleep 10
 
            mkdir -p  $PWD/tmp_docker 
       - run:
@@ -136,13 +134,12 @@ jobs:
            docker push ${GCP_IMAGE}:${CIRCLE_SHA1}
            docker push ${GCP_IMAGE}:${START_TIME}-${CIRCLE_SHA1}
            if [[ ${PR} != "false" ]];then
-              docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP-IMAGE}:pr-${PR}-${CIRCLE_BUILD_NUM} 
+              docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:pr-${PR}-${CIRCLE_BUILD_NUM} 
               docker push ${GCP-IMAGE}:pr-${PR}-${CIRCLE_BUILD_NUM} 
            fi
            if [[ ${CIRCLE_BRANCH} == "master" ]];then
               echo ${DOCKERHUB_PASS} | docker login -u taraxa --password-stdin
               docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${IMAGE}:${CIRCLE_SHA1}
-              docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
               docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${IMAGE}:${START_TIME}
               docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${IMAGE}:${START_TIME}-${CIRCLE_SHA1}
               docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${IMAGE}:latest
