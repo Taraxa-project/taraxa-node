@@ -16,7 +16,7 @@ jobs:
     steps:
     - name: Tickle CircleCI
       env:
-        CIRCLE_BRANCH: ${{ github.head_ref }}
+        CIRCLE_BRANCH: ${{ github.base_ref }}
         TOKEN: ${{ secrets.CIRCLE_TOKEN }}
       run: |
         curl -X POST \
