@@ -364,12 +364,12 @@ jobs:
 
 workflows:
   version: 2
-  deploy-testnet:
+  build-and-deploy-image:
     jobs:
       - build-and-push-docker-image:
          context: taraxa-node
                            
-  build-and-release:
+  create-builder-image:
     jobs:
       - create-and-push-builder:
           context: taraxa-node
