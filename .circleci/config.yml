@@ -45,6 +45,8 @@ jobs:
            echo "export PR=$( [[ -z ${CIRCLE_PULL_REQUEST+x} ]] && echo false || echo $(basename ${CIRCLE_PULL_REQUEST}) )" >>$BASH_ENV
            sudo service apport stop
            sudo bash -c 'echo /tmp/core.%t.%e.%p >/proc/sys/kernel/core_pattern'
+           cat $BASH_ENV
+           sleep 10
 
            mkdir -p  $PWD/tmp_docker 
       - run:
