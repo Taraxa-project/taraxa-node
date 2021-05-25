@@ -372,9 +372,10 @@ workflows:
           branches: 
             only: 
               - circleci
-              - /^circleci-.*/
+              - /^circleci-.*/ 
               - develop
               - master
+              
 
                            
   build-and-release:
