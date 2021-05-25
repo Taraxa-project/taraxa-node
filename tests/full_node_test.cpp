@@ -166,21 +166,16 @@ TEST_F(FullNodeTest, db_test) {
   // PBFT manager voted value
   EXPECT_EQ(db.getPbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round), nullptr);
   EXPECT_EQ(db.getPbftMgrVotedValue(PbftMgrVotedValue::soft_voted_block_hash_in_round), nullptr);
-  EXPECT_EQ(db.getPbftMgrVotedValue(PbftMgrVotedValue::vrf_pbft_chain_last_block_hash), nullptr);
   db.savePbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round, blk_hash_t(1));
   db.savePbftMgrVotedValue(PbftMgrVotedValue::soft_voted_block_hash_in_round, blk_hash_t(2));
-  db.savePbftMgrVotedValue(PbftMgrVotedValue::vrf_pbft_chain_last_block_hash, blk_hash_t(3));
   EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round), blk_hash_t(1));
   EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::soft_voted_block_hash_in_round), blk_hash_t(2));
-  EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::vrf_pbft_chain_last_block_hash), blk_hash_t(3));
   batch = db.createWriteBatch();
   db.addPbftMgrVotedValueToBatch(PbftMgrVotedValue::own_starting_value_in_round, blk_hash_t(4), batch);
   db.addPbftMgrVotedValueToBatch(PbftMgrVotedValue::soft_voted_block_hash_in_round, blk_hash_t(5), batch);
-  db.addPbftMgrVotedValueToBatch(PbftMgrVotedValue::vrf_pbft_chain_last_block_hash, blk_hash_t(6), batch);
   db.commitWriteBatch(batch);
   EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round), blk_hash_t(4));
   EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::soft_voted_block_hash_in_round), blk_hash_t(5));
-  EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::vrf_pbft_chain_last_block_hash), blk_hash_t(6));
 
   // PBFT cert voted block hash
   EXPECT_EQ(db.getPbftCertVotedBlockHash(1), nullptr);
@@ -262,13 +257,12 @@ TEST_F(FullNodeTest, db_test) {
   std::vector<Vote> unverified_votes = db.getUnverifiedVotes();
   EXPECT_TRUE(unverified_votes.empty());
   EXPECT_FALSE(db.unverifiedVoteExist(blk_hash_t(0)));
-  blk_hash_t last_pbft_block_hash(0);
   blk_hash_t voted_pbft_block_hash(1);
   auto weighted_index = 0;
   for (auto i = 0; i < 3; i++) {
     auto round = i;
     auto step = i;
-    VrfPbftMsg msg(last_pbft_block_hash, soft_vote_type, round, step, weighted_index);
+    VrfPbftMsg msg(soft_vote_type, round, step, weighted_index);
     vrf_wrapper::vrf_sk_t vrf_sk(
         "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
         "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -297,13 +291,12 @@ TEST_F(FullNodeTest, db_test) {
   // Verified votes
   std::vector<Vote> verified_votes = db.getVerifiedVotes();
   EXPECT_TRUE(verified_votes.empty());
-  last_pbft_block_hash = blk_hash_t(1);
   voted_pbft_block_hash = blk_hash_t(2);
   weighted_index = 0;
   for (auto i = 0; i < 3; i++) {
     auto round = i;
     auto step = i;
-    VrfPbftMsg msg(last_pbft_block_hash, next_vote_type, round, step, weighted_index);
+    VrfPbftMsg msg(next_vote_type, round, step, weighted_index);
     vrf_wrapper::vrf_sk_t vrf_sk(
         "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
         "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -329,11 +322,10 @@ TEST_F(FullNodeTest, db_test) {
   auto round = 1, step = 2;
   std::vector<Vote> soft_votes = db.getSoftVotes(round);
   EXPECT_TRUE(soft_votes.empty());
-  last_pbft_block_hash = blk_hash_t(0);
   weighted_index = 0;
   for (auto i = 0; i < 3; i++) {
     blk_hash_t voted_pbft_block_hash(i);
-    VrfPbftMsg msg(last_pbft_block_hash, soft_vote_type, round, step, weighted_index);
+    VrfPbftMsg msg(soft_vote_type, round, step, weighted_index);
     vrf_wrapper::vrf_sk_t vrf_sk(
         "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
         "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -347,7 +339,7 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(soft_votes_from_db.size(), 3);
   for (auto i = 3; i < 5; i++) {
     blk_hash_t voted_pbft_block_hash(i);
-    VrfPbftMsg msg(last_pbft_block_hash, soft_vote_type, round, step, weighted_index);
+    VrfPbftMsg msg(soft_vote_type, round, step, weighted_index);
     vrf_wrapper::vrf_sk_t vrf_sk(
         "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
         "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -372,8 +364,8 @@ TEST_F(FullNodeTest, db_test) {
   voted_pbft_block_hash = blk_hash_t(10);
   weighted_index = 0;
   for (auto i = 0; i < 3; i++) {
-    blk_hash_t last_pbft_block_hash(i);
-    VrfPbftMsg msg(last_pbft_block_hash, cert_vote_type, 2, 3, weighted_index);
+    weighted_index = i;
+    VrfPbftMsg msg(cert_vote_type, 2, 3, weighted_index);
     vrf_wrapper::vrf_sk_t vrf_sk(
         "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
         "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -397,7 +389,7 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_TRUE(next_votes.empty());
   for (auto i = 0; i < 3; i++) {
     blk_hash_t voted_pbft_block_hash(i);
-    VrfPbftMsg msg(last_pbft_block_hash, next_vote_type, round, step, weighted_index);
+    VrfPbftMsg msg(next_vote_type, round, step, weighted_index);
     vrf_wrapper::vrf_sk_t vrf_sk(
         "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
         "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -412,7 +404,7 @@ TEST_F(FullNodeTest, db_test) {
   next_votes.clear();
   for (auto i = 3; i < 5; i++) {
     blk_hash_t voted_pbft_block_hash(i);
-    VrfPbftMsg msg(last_pbft_block_hash, next_vote_type, round, step, weighted_index);
+    VrfPbftMsg msg(next_vote_type, round, step, weighted_index);
     vrf_wrapper::vrf_sk_t vrf_sk(
         "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
         "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -1236,7 +1228,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
     Transaction master_boot_node_send_coins(nonce++, test_transfer_val, gas_price, 100000, data,
                                             nodes[0]->getSecretKey(), nodes[i]->getAddress());
     // broadcast trx and insert
-    nodes[0]->getTransactionManager()->insertTransaction(master_boot_node_send_coins, false);
+    nodes[0]->getTransactionManager()->insertTransaction(master_boot_node_send_coins, false, true);
     trxs_count++;
   }
 
@@ -1249,7 +1241,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
         if (ctx.fail(); !ctx.is_last_attempt) {
           Transaction dummy_trx(nonce++, 0, 2, 100000, bytes(), nodes[0]->getSecretKey(), nodes[0]->getAddress());
           // broadcast dummy transaction
-          nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false);
+          nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false, true);
           trxs_count++;
           return;
         }
@@ -1277,7 +1269,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
       Transaction send_coins_in_robin_cycle(nonce++, send_coins, gas_price, 100000, data, nodes[i]->getSecretKey(),
                                             nodes[receiver_index]->getAddress());
       // broadcast trx and insert
-      nodes[i]->getTransactionManager()->insertTransaction(send_coins_in_robin_cycle, false);
+      nodes[i]->getTransactionManager()->insertTransaction(send_coins_in_robin_cycle, false, true);
       trxs_count++;
     }
     std::cout << "Node" << i << " sends " << j << " transactions to Node" << receiver_index << std::endl;
@@ -1292,7 +1284,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
         if (ctx.fail(); !ctx.is_last_attempt) {
           Transaction dummy_trx(nonce++, 0, 2, 100000, bytes(), nodes[0]->getSecretKey(), nodes[0]->getAddress());
           // broadcast dummy transaction
-          nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false);
+          nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false, true);
           trxs_count++;
           return;
         }
@@ -1368,7 +1360,7 @@ TEST_F(FullNodeTest, db_rebuild) {
     while (executed_chain_size < 10) {
       Transaction dummy_trx(nonce++, 0, gas_price, TEST_TX_GAS_LIMIT, bytes(), nodes[0]->getSecretKey(),
                             nodes[0]->getAddress());
-      nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false);
+      nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false, true);
       trxs_count++;
       thisThreadSleepForMilliSeconds(100);
       executed_chain_size = nodes[0]->getFinalChain()->last_block_number();

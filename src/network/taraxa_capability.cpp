@@ -195,6 +195,11 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
   if (!peer) {
     return;
   }
+
+  if (dag_mgr_ && !peer->passed_initial_ && _id != StatusPacket) {
+    return;
+  }
+
   switch (_id) {
     case SyncedPacket: {
       LOG(log_dg_dag_sync_) << "Received synced message from " << _nodeID;
@@ -241,6 +246,8 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
           break;
         }
 
+        peer->passed_initial_ = true;
+
         peer->dag_level_ = peer_dag_level;
         peer->pbft_chain_size_ = peer_pbft_chain_size;
         peer->syncing_ = peer_syncing;
@@ -255,6 +262,10 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
                      << ", node major version" << node_major_version << ", node minor version" << node_minor_version;
 
       } else {
+        if (!peer->passed_initial_) {
+          break;
+        }
+
         auto it = _r.begin();
         peer->dag_level_ = (*it++).toPositiveInt64();
         peer->pbft_chain_size_ = (*it++).toPositiveInt64();
@@ -891,7 +902,7 @@ void TaraxaCapability::onNewTransactions(std::vector<taraxa::bytes> const &trans
     std::map<NodeID, std::vector<taraxa::bytes>> transactionsToSend;
     std::map<NodeID, std::vector<trx_hash_t>> transactionsHashToSend;
     {
-      boost::unique_lock<boost::shared_mutex> lock(peers_mutex_);
+      boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
       for (auto &peer : peers_) {
         if (!peer.second->syncing_) {
           for (auto const &transaction : transactions) {

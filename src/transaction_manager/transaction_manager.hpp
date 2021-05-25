@@ -1,13 +1,10 @@
 #pragma once
 
-#include "aleth/filter_api.hpp"
-#include "aleth/pending_block.hpp"
 #include "config/config.hpp"
 #include "logger/log.hpp"
 #include "transaction.hpp"
 #include "transaction_queue.hpp"
 #include "transaction_status.hpp"
-#include "util/simple_event.hpp"
 
 namespace taraxa {
 
@@ -29,8 +26,6 @@ class WSServer;
 
 class TransactionManager : public std::enable_shared_from_this<TransactionManager> {
  public:
-  util::SimpleEvent<trx_hash_t> const event_transaction_accepted{};
-
   using uLock = std::unique_lock<std::mutex>;
   enum class VerifyMode : uint8_t { normal, skip_verify_sig };
 
@@ -55,18 +50,6 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   void stop();
   void setNetwork(std::weak_ptr<Network> network);
   void setWsServer(std::shared_ptr<net::WSServer> ws_server);
-  std::pair<bool, std::string> insertTrx(Transaction const &trx, bool verify);
-
-  void setPendingBlock(std::shared_ptr<aleth::PendingBlock> pending_block) {
-    pending_block_ = pending_block;
-    filter_api_ = aleth::NewFilterAPI();
-    event_transaction_accepted.sub([=](auto const &h) {
-      pending_block_->add_transactions(vector{h});
-      filter_api_->note_pending_transactions(vector{h});
-    });
-  }
-  auto getPendingBlock() const { return pending_block_; }
-  auto getFilterAPI() const { return filter_api_; }
 
   /**
    * The following function will require a lock for verified qu
@@ -74,11 +57,25 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   void packTrxs(vec_trx_t &to_be_packed_trx, uint16_t max_trx_to_pack = 0);
   void setVerifyMode(VerifyMode mode) { mode_ = mode; }
 
-  // Insert new transaction to unverified queue or if verify flag true
-  // synchronously verify and insert into verified queue
-  std::pair<bool, std::string> insertTransaction(Transaction const &trx, bool verify = false);
-  // Transactions coming from broadcasting is less critical
-  uint32_t insertBroadcastedTransactions(std::vector<taraxa::bytes> const &transactions);
+  /**
+   * @brief Inserts new transaction to queue and db
+   *
+   * @param trx transaction to be processed
+   * @param verify - if set to true, tx is also verified and inserted (if valid) into verified queue and db
+   *                 otherwise inserted into unverified queue and db
+   * @param broadcast - if set to true, tx is broadcasted to the network
+   * @return std::pair<bool, std::string> -> pair<OK status, ERR message>
+   */
+  std::pair<bool, std::string> insertTransaction(Transaction const &trx, bool verify = true, bool broadcast = true);
+
+  /**
+   * @brief Inserts batch of unverified broadcasted transactions to unverified queue and db
+   *
+   * @note Some of the transactions might be already processed -> they are not processed and inserted again
+   * @param raw_trxs transactions to be processed
+   * @return number of successfully inserted unseen transactions
+   */
+  uint32_t insertBroadcastedTransactions(const std::vector<taraxa::bytes> &raw_trxs);
 
   std::pair<bool, std::string> verifyTransaction(Transaction const &trx) const;
 
@@ -98,6 +95,14 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   TransactionQueue &getTransactionQueue() { return trx_qu_; }
 
  private:
+  /**
+   * @brief Checks if transaction queue is overflowed
+   *
+   * @return true if transaction queue is overflowed, otherwise false
+   */
+  bool checkQueueOverflow();
+
+ private:
   void verifyQueuedTrxs();
   size_t num_verifiers_ = 4;
   addr_t getFullNodeAddress() const;
@@ -113,11 +118,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   addr_t node_addr_;
   std::shared_ptr<DagManager> dag_mgr_;
   logger::Logger log_time_;
-  std::shared_ptr<aleth::PendingBlock> pending_block_;
-  std::shared_ptr<aleth::FilterAPI> filter_api_;
 
-  mutable std::mutex mu_for_nonce_table_;
-  mutable std::mutex mu_for_transactions_;
   LOG_OBJECTS_DEFINE
 };
 }  // namespace taraxa
