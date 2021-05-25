@@ -3,6 +3,7 @@ version: 2.1
 parameters: 
   pull_request:
     type: string
+    default: ""
 
   deploy_testnet:
     default: true
