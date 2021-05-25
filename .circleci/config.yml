@@ -1,6 +1,9 @@
 version: 2.1
 
 parameters: 
+  pull_request:
+    type: string
+
   deploy_testnet:
     default: true
     type: boolean
@@ -16,6 +19,7 @@ jobs:
    build-and-push-docker-image:
     environment:
       - IMAGE: taraxa-node
+      - CIRCLE_PULL_REQUEST: << pipeline.parameters.pull_request >>
     machine:
       image: ubuntu-1604:202007-01
       docker_layer_caching: true
