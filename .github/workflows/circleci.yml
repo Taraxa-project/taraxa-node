@@ -19,8 +19,8 @@ jobs:
         CIRCLE_BRANCH: ${{ github.head_ref }}
       run: |
         curl -X POST \
-        -u ${CIRCLECI_TOKEN}: \
+        -u {{ secrets.CIRCLE_TOKEN }}: \
         -H 'Content-Type: application/json' \
         -H 'Accept: application/json' \
         -d "{\"branch\":\"${CIRCLE_BRANCH}\"}" \
-        https://circleci.com/api/v2/project/Taraxa-project/taraxa-node/pipeline
+        https://circleci.com/api/v2/project/gh/Taraxa-project/taraxa-node/pipeline
