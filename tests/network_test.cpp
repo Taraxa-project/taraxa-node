@@ -1042,27 +1042,98 @@ TEST_F(NetworkTest, node_full_sync) {
   ASSERT_EQ(counter, 50);  // 50 transactions
 
   std::cout << "Waiting Sync ..." << std::endl;
-  wait({120s, 500ms}, [&](auto& ctx) {
+
+  wait({60s, 500ms}, [&](auto& ctx) {
     // Check 4 nodes DAG syncing
     for (int j = 1; j < numberOfNodes - 1; j++) {
-      WAIT_EXPECT_EQ(ctx, nodes[j]->getDagManager()->getNumVerticesInDag().first,
-                     nodes[0]->getDagManager()->getNumVerticesInDag().first);
+      if (ctx.fail_if(nodes[j]->getDagManager()->getNumVerticesInDag().first !=
+                      nodes[0]->getDagManager()->getNumVerticesInDag().first)) {
+        return;
+      }
     }
   });
+
+  bool dag_synced = true;
+  auto node0_vertices = nodes[0]->getDagManager()->getNumVerticesInDag().first;
+  cout << "node0 vertices " << node0_vertices << endl;
+  for (int i(1); i < numberOfNodes - 1; i++) {
+    auto node_vertices = nodes[i]->getDagManager()->getNumVerticesInDag().first;
+    cout << "node" << i << " vertices " << node_vertices << endl;
+    if (node_vertices != node0_vertices) {
+      dag_synced = false;
+    }
+  }
+  // When last level have more than 1 DAG blocks, send a dummy transaction to converge DAG
+  if (!dag_synced) {
+    cout << "Send dummy trx" << endl;
+    Transaction dummy_trx(counter++, 0, 2, TEST_TX_GAS_LIMIT, bytes(), nodes[0]->getSecretKey(),
+                          nodes[0]->getAddress());
+    // broadcast dummy transaction
+    nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false);
+
+    wait({60s, 500ms}, [&](auto& ctx) {
+      // Check 4 nodes DAG syncing
+      for (int j = 1; j < numberOfNodes - 1; j++) {
+        WAIT_EXPECT_EQ(ctx, nodes[j]->getDagManager()->getNumVerticesInDag().first,
+                       nodes[0]->getDagManager()->getNumVerticesInDag().first);
+        ctx.fail_if(nodes[j]->getNetwork()->pbft_syncing());
+      }
+    });
+  }
+
+  EXPECT_GT(nodes[0]->getDagManager()->getNumVerticesInDag().first, 0);
+  for (int i(1); i < numberOfNodes - 1; i++) {
+    std::cout << "Index i " << i << std::endl;
+    EXPECT_GT(nodes[i]->getDagManager()->getNumVerticesInDag().first, 0);
+    EXPECT_EQ(nodes[i]->getDagManager()->getNumVerticesInDag().first,
+              nodes[0]->getDagManager()->getNumVerticesInDag().first);
+    EXPECT_EQ(nodes[i]->getDagManager()->getNumVerticesInDag().first, nodes[i]->getDB()->getNumDagBlocks());
+    EXPECT_EQ(nodes[i]->getDagManager()->getNumEdgesInDag().first, nodes[0]->getDagManager()->getNumEdgesInDag().first);
+    EXPECT_TRUE(!nodes[i]->getNetwork()->pbft_syncing());
+  }
 
   // Bootstrapping node5 join the network
   nodes.emplace_back(FullNode::Handle(node_cfgs[numberOfNodes - 1], true));
   EXPECT_TRUE(wait_connect(nodes));
 
-  std::cout << "Waiting Sync..." << std::endl;
-  wait({240s, 1000ms}, [&](auto& ctx) {
-    // Check 4 nodes DAG syncing
+  std::cout << "Waiting Sync for node5..." << std::endl;
+  wait({60s, 500ms}, [&](auto& ctx) {
+    // Check 5 nodes DAG syncing
     for (int j = 1; j < numberOfNodes; j++) {
-      WAIT_EXPECT_EQ(ctx, nodes[j]->getDagManager()->getNumVerticesInDag().first,
-                     nodes[0]->getDagManager()->getNumVerticesInDag().first);
-      ctx.fail_if(nodes[j]->getNetwork()->pbft_syncing());
+      if (ctx.fail_if(nodes[j]->getDagManager()->getNumVerticesInDag().first !=
+                      nodes[0]->getDagManager()->getNumVerticesInDag().first)) {
+        return;
+      }
     }
   });
+
+  dag_synced = true;
+  node0_vertices = nodes[0]->getDagManager()->getNumVerticesInDag().first;
+  cout << "node0 vertices " << node0_vertices << endl;
+  for (int i(1); i < numberOfNodes; i++) {
+    auto node_vertices = nodes[i]->getDagManager()->getNumVerticesInDag().first;
+    cout << "node" << i << " vertices " << node_vertices << endl;
+    if (node_vertices != node0_vertices) {
+      dag_synced = false;
+    }
+  }
+  // When last level have more than 1 DAG blocks, send a dummy transaction to converge DAG
+  if (!dag_synced) {
+    cout << "Send dummy trx" << endl;
+    Transaction dummy_trx(counter++, 0, 2, TEST_TX_GAS_LIMIT, bytes(), nodes[0]->getSecretKey(),
+                          nodes[0]->getAddress());
+    // broadcast dummy transaction
+    nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false);
+
+    wait({60s, 500ms}, [&](auto& ctx) {
+      // Check all 5 nodes DAG syncing
+      for (int j = 1; j < numberOfNodes; j++) {
+        WAIT_EXPECT_EQ(ctx, nodes[j]->getDagManager()->getNumVerticesInDag().first,
+                       nodes[0]->getDagManager()->getNumVerticesInDag().first);
+        ctx.fail_if(nodes[j]->getNetwork()->pbft_syncing());
+      }
+    });
+  }
 
   EXPECT_GT(nodes[0]->getDagManager()->getNumVerticesInDag().first, 0);
   for (int i = 0; i < numberOfNodes; i++) {
