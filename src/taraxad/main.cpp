@@ -202,6 +202,10 @@ Json::Value generateLogging() {
   standard["verbosity"] = "INFO";
 
   auto &channels = standard["channels"] = Json::Value(Json::arrayValue);
+  Json::Value summary(Json::objectValue);
+  summary["name"] = "SUMMARY";
+  summary["verbosity"] = "INFO";
+  channels.append(summary);
   Json::Value full_node(Json::objectValue);
   full_node["name"] = "FULLND";
   full_node["verbosity"] = "INFO";
@@ -242,7 +246,7 @@ Json::Value testnetChainConfig() {
   dag_genesis_block["sig"] =
       "0xb7e22d46c1ba94d5e8347b01d137b5c428fcbbeaf0a77fb024cbbf1517656ff00d04f7f25be608c321b0d7483c402c294ff46c49b26530"
       "5d046a52236c0a363701";
-  dag_genesis_block["timestamp"] = "0x5fee6603";
+  dag_genesis_block["timestamp"] = "0x608c9a00";
   dag_genesis_block["tips"] = Json::Value(Json::arrayValue);
   dag_genesis_block["transactions"] = Json::Value(Json::arrayValue);
 
@@ -250,7 +254,7 @@ Json::Value testnetChainConfig() {
 
   auto &genesis_block_fields = final_chain["genesis_block_fields"] = Json::Value(Json::objectValue);
   genesis_block_fields["author"] = "0x0000000000000000000000000000000000000000";
-  genesis_block_fields["timestamp"] = "0x5fee6603";
+  genesis_block_fields["timestamp"] = "0x608c9a00";
 
   auto &state = final_chain["state"] = Json::Value(Json::objectValue);
   state["disable_block_rewards"] = true;
@@ -314,7 +318,7 @@ Json::Value devnetChainConfig() {
   dag_genesis_block["sig"] =
       "0xb7e22d46c1ba94d5e8347b01d137b5c428fcbbeaf0a77fb024cbbf1517656ff00d04f7f25be608c321b0d7483c402c294ff46c49b26530"
       "5d046a52236c0a363701";
-  dag_genesis_block["timestamp"] = "0x5d422b83";
+  dag_genesis_block["timestamp"] = "0x5d422b84";
   dag_genesis_block["tips"] = Json::Value(Json::arrayValue);
   dag_genesis_block["transactions"] = Json::Value(Json::arrayValue);
 
@@ -322,7 +326,7 @@ Json::Value devnetChainConfig() {
 
   auto &genesis_block_fields = final_chain["genesis_block_fields"] = Json::Value(Json::objectValue);
   genesis_block_fields["author"] = "0x0000000000000000000000000000000000000000";
-  genesis_block_fields["timestamp"] = "0x5d422b83";
+  genesis_block_fields["timestamp"] = "0x5d422b84";
 
   auto &state = final_chain["state"] = Json::Value(Json::objectValue);
   state["disable_block_rewards"] = true;
