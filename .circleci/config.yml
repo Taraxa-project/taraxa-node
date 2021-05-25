@@ -5,12 +5,12 @@ parameters:
     default: true
     type: boolean
 
-#orbs:
-#  git: opuscapita/git@0.0.3
-#  github-release: izumin5210/github-release@0.1.1#
+orbs:
+  git: opuscapita/git@0.0.3
+  github-release: izumin5210/github-release@0.1.1#
 
-#  gcp-gcr: circleci/gcp-gcr@0.13.0
-#
+  gcp-gcr: circleci/gcp-gcr@0.13.0
+
 
 jobs: 
    build-and-push-docker-image:
