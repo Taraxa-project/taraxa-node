@@ -135,7 +135,7 @@ jobs:
            docker push ${GCP_IMAGE}:${START_TIME}-${CIRCLE_SHA1}
            if [[ ${PR} != "false" ]];then
               docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:pr-${PR}-${CIRCLE_BUILD_NUM} 
-              docker push ${GCP-IMAGE}:pr-${PR}-${CIRCLE_BUILD_NUM} 
+              docker push ${GCP_IMAGE}:pr-${PR}-${CIRCLE_BUILD_NUM} 
            fi
            if [[ ${CIRCLE_BRANCH} == "master" ]];then
               echo ${DOCKERHUB_PASS} | docker login -u taraxa --password-stdin
