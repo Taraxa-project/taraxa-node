@@ -368,15 +368,6 @@ workflows:
     jobs:
       - build-and-push-docker-image:
          context: taraxa-node
-         filters:
-          branches: 
-            only: 
-              - circleci
-              - /^circleci-.*/ 
-              - develop
-              - master
-              
-
                            
   build-and-release:
     jobs:
