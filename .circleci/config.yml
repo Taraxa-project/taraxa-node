@@ -75,24 +75,24 @@ jobs:
       - run: 
          name: Run SmokeTest
          command: |
-          if [ ! -z "$(docker network list --format '{{.Name}}' | grep -o smoke-test-net-${DOCKER_BRANCH_TAG})" ]; then
+          if [ ! -z "$(docker network list --format '{{.Name}}' | grep -o smoketest-${DOCKER_BRANCH_TAG:0:52})" ]; then
             docker network rm \
-              smoke-test-net-${DOCKER_BRANCH_TAG} >/dev/null;
-          fi         
+            smoketest-${DOCKER_BRANCH_TAG:0:52} >/dev/null;
+          fi
           docker network create --driver=bridge \
-                      smoke-test-net-${DOCKER_BRANCH_TAG}
+                      smoketest-${DOCKER_BRANCH_TAG:0:52}
           docker run --rm -d \
-              --name taraxa-node-smoke-test-${DOCKER_BRANCH_TAG} \
-              --net smoke-test-net-${DOCKER_BRANCH_TAG} \
+              --name smoketest-${DOCKER_BRANCH_TAG:0:52} \
+              --net smoketest-${DOCKER_BRANCH_TAG:0:52} \
               ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} \
               single
           mkdir -p  $PWD/test_build-d/
           sleep 30
           http_code=$(docker run --rm  -v $PWD/test_build-d:/data \
-                --net smoke-test-net-${DOCKER_BRANCH_TAG} \
+                --net smoketest-${DOCKER_BRANCH_TAG:0:52} \
                 byrnedo/alpine-curl \
                 -sS --fail -w '%{http_code}' -o /data/http.out \
-                --url taraxa-node-smoke-test-${DOCKER_BRANCH_TAG}:7777 \
+                --url smoketest-${DOCKER_BRANCH_TAG:0:52}:7777 \
                 -d '{
                         "jsonrpc": "2.0",
                         "id":"0",
@@ -106,12 +106,12 @@ jobs:
                             "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd"
                         }]
                     }')
-          cat $PWD/test_build-d/http.out || true
-          if [[ $http_code -eq 200 ]] ; then
-              exit 0
-          else
-              exit $http_code
-          fi
+            cat $PWD/test_build-d/http.out || true
+            if [[ $http_code -eq 200 ]] ; then
+                exit 0
+            else
+                exit $http_code
+            fi
 
 
       - run:
