@@ -134,7 +134,7 @@ struct TaraxaCapability : virtual CapabilityFace {
   void delayedPbftSync(NodeID _nodeID, int counter);
   std::pair<bool, blk_hash_t> checkDagBlockValidation(DagBlock const &block);
   void interpretCapabilityPacketImpl(NodeID const &_nodeID, unsigned _id, RLP const &_r, PacketStats &packet_stats);
-  void sendTestMessage(NodeID const &_id, int _x);
+  void sendTestMessage(NodeID const &_id, int _x, std::vector<char> const &data);
   void sendStatus(NodeID const &_id, bool _initial);
   void onNewBlockReceived(DagBlock block, std::vector<Transaction> transactions);
   void onNewBlockVerified(DagBlock const &block);
