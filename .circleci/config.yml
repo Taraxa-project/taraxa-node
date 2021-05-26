@@ -43,6 +43,8 @@ jobs:
            echo "export START_TIME=$(date +%Y%m%d-%Hh%Mm%Ss)" >>$BASH_ENV
            echo "export GCP_IMAGE=gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE}" >> $BASH_ENV
            echo "export PR=$( [[ -z ${CIRCLE_PULL_REQUEST+x} ]] && echo false || echo $(basename ${CIRCLE_PULL_REQUEST}) )" >>$BASH_ENV
+           #echo "export HELM_TEST_NAME=$(echo $CIRCLE_BRANCH | sed 's/[^A-Za-z0-9\\-]*//g' | tr '[:upper:]' '[:lower:]')" >>$BASH_ENV
+           echo "HELM_TEST_NAME=PR-${PR}" >> $BASH_ENV
            sudo service apport stop
            sudo bash -c 'echo /tmp/core.%t.%e.%p >/proc/sys/kernel/core_pattern'
 
@@ -147,7 +149,7 @@ jobs:
               echo -n "${KUBE_CONFIG}" | base64 --decode > $HOME/.kube/config
               curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
               cd taraxa-testnet/tests
-              helm install  ${HELM_TEST_NAME} taraxa-node \
+              helm install  ${HELM_TEST_NAME:0:40} taraxa-node \
                 --wait \
                 --atomic \
                 --timeout 1200s \
@@ -210,8 +212,8 @@ jobs:
          name: Cleanup smoke tests
          when: always
          command: |
-          docker kill taraxa-node-smoke-test-${DOCKER_BRANCH_TAG} || true
-          docker network rm smoke-test-net-${DOCKER_BRANCH_TAG} || true
+          docker kill smoketest-${DOCKER_BRANCH_TAG:0:52} || true
+          docker network rm smoketest-${DOCKER_BRANCH_TAG:0:52} || true
 
       - store_artifacts:
           path: tmp_docker 
