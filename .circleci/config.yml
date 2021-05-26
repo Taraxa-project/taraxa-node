@@ -1,4 +1,14 @@
 version: 2.1
+
+parameters: 
+  pull_request:
+    type: string
+    default: ""
+
+  deploy_testnet:
+    default: true
+    type: boolean
+
 orbs:
   git: opuscapita/git@0.0.3
   github-release: izumin5210/github-release@0.1.1
@@ -7,8 +17,206 @@ orbs:
 
 
 jobs: 
+   build-and-push-docker-image:
+    environment:
+      - IMAGE: taraxa-node
+    machine:
+      image: ubuntu-2004:202010-01
+      docker_layer_caching: true
+    resource_class: xlarge
+    steps:
+      - checkout
+      - run: 
+         name: Checkout Submodules
+         command: |
+              git submodule sync
+              git submodule update --init --recursive --jobs 8
+      - run:
+         name: Prepare Environment
+         command: |
+           if [[ ${CIRCLE_SHELL_ENV} =~ "localbuild" ]]; then
+              export CIRCLE_BRANCH=circleci
+              export CIRCLE_BUILD_NUM=300
+           fi
+           echo "export HELM_TEST_NAME=$(echo $CIRCLE_BRANCH | sed 's/[^A-Za-z0-9\\-]*//g' | tr '[:upper:]' '[:lower:]')" >>$BASH_ENV
+           echo "export DOCKER_BRANCH_TAG=$(./scripts/docker_tag_from_branch.sh $CIRCLE_BRANCH)" >>$BASH_ENV
+           echo "export START_TIME=$(date +%Y%m%d-%Hh%Mm%Ss)" >>$BASH_ENV
+           echo "export GCP_IMAGE=gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE}" >> $BASH_ENV
+           echo "export PR=$( [[ -z ${CIRCLE_PULL_REQUEST+x} ]] && echo false || echo $(basename ${CIRCLE_PULL_REQUEST}) )" >>$BASH_ENV
+           sudo service apport stop
+           sudo bash -c 'echo /tmp/core.%t.%e.%p >/proc/sys/kernel/core_pattern'
+
+           mkdir -p  $PWD/tmp_docker 
+      - run:
+         name: Docker Build taraxa-node
+         command: |
+           docker build -t ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} .
+      - run:
+         name: Docker Build taraxa-node-ctest
+         command: |
+          docker build -t ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} \
+            --target build .
+      - run:
+         name: Run Ctest
+         command: |
+           docker run  --rm -v $PWD/tmp_docker:/tmp \
+                       --name taraxa-node-ctest-${DOCKER_BRANCH_TAG} \
+                       ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}\
+                        sh -c \
+                       'cd cmake-docker-build-debug/tests \
+                        && ctest --output-on-failure' 
+      - run:
+          name: Chmod core dump if fail
+          command: |
+            if [ -f tmp_docker/core* ];then
+              sudo chmod 777 tmp_docker/core*
+            fi
+          when: on_fail
+      - run: 
+         name: Run SmokeTest
+         command: |
+          if [ ! -z "$(docker network list --format '{{.Name}}' | grep -o smoke-test-net-${DOCKER_BRANCH_TAG})" ]; then
+            docker network rm \
+              smoke-test-net-${DOCKER_BRANCH_TAG} >/dev/null;
+          fi         
+          docker network create --driver=bridge \
+                      smoke-test-net-${DOCKER_BRANCH_TAG}
+          docker run --rm -d \
+              --name taraxa-node-smoke-test-${DOCKER_BRANCH_TAG} \
+              --net smoke-test-net-${DOCKER_BRANCH_TAG} \
+              ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} \
+              single
+          mkdir -p  $PWD/test_build-d/
+          sleep 30
+          http_code=$(docker run --rm  -v $PWD/test_build-d:/data \
+                --net smoke-test-net-${DOCKER_BRANCH_TAG} \
+                byrnedo/alpine-curl \
+                -sS --fail -w '%{http_code}' -o /data/http.out \
+                --url taraxa-node-smoke-test-${DOCKER_BRANCH_TAG}:7777 \
+                -d '{
+                        "jsonrpc": "2.0",
+                        "id":"0",
+                        "method": "send_coin_transaction",
+                        "params":[{
+                            "nonce": 0,
+                            "value": 0,
+                            "gas": 0,
+                            "gas_price": 0,
+                            "receiver": "973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0",
+                            "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd"
+                        }]
+                    }')
+          cat $PWD/test_build-d/http.out || true
+          if [[ $http_code -eq 200 ]] ; then
+              exit 0
+          else
+              exit $http_code
+          fi
+
+
+      - run:
+         name: Tag images
+         command: |
+           echo ${GCLOUD_SERVICE_KEY} | docker login -u _json_key --password-stdin https://gcr.io
+           if [[ ${CIRCLE_BRANCH} == "develop" ]]; then
+              docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}-develop:${CIRCLE_SHA1}
+              docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}-develop:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+              docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}-develop:${START_TIME}
+              docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}-develop:${START_TIME}-${CIRCLE_SHA1}
+              docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}-develop:latest
+           fi
+           docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:${CIRCLE_SHA1}
+           docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+           docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:${START_TIME}
+           docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:${START_TIME}-${CIRCLE_SHA1}
+           docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:latest
+           docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${IMAGE}:${CIRCLE_SHA1}
+           docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${IMAGE}:${START_TIME}
+           docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${IMAGE}:${START_TIME}-${CIRCLE_SHA1}
+           docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${IMAGE}:latest           
+           if [[ ${PR} != "false" ]];then
+              docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:pr-${PR}-${CIRCLE_BUILD_NUM} 
+           fi
+      - run:
+         name: Install/configure helm and chart
+         command: |
+            if [[ ${PR} != "false" ]];then
+              docker push ${GCP_IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+              git clone --branch development  https://github.com/Taraxa-project/taraxa-testnet.git
+              mkdir -p $HOME/.kube
+              echo -n "${KUBE_CONFIG}" | base64 --decode > $HOME/.kube/config
+              curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+              cd taraxa-testnet/tests
+              helm install  ${HELM_TEST_NAME} taraxa-node \
+                --wait \
+                --atomic \
+                --timeout 1200s \
+                --create-namespace \
+                --namespace ${HELM_TEST_NAME} \
+                --set replicaCount=5 \
+                --set test.pythontester.script=jenkins.py \
+                --set image.repository=${GCP_IMAGE} \
+                --set image.tag=${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} \
+                -f taraxa-node/values.yaml
+            fi
+      - run:
+         name: Run helm test
+         command: |
+            if [[ ${PR} != "false" ]];then
+              helm test ${HELM_TEST_NAME} \
+                --timeout 3600s \
+                --namespace ${HELM_TEST_NAME}
+              ./scripts/kibana-url.sh || true
+            fi
+      - run:
+         name: Cleanup helm tests
+         when: always
+         command: |
+           if [[ ${PR} != "false" ]];then
+              helm delete ${HELM_TEST_NAME} || true
+              curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+              chmod +x ./kubectl
+              ./kubectl delete ns ${HELM_TEST_NAME} || true
+           fi
+      - run: 
+         name: Push Images
+         command: |
+           if [[ ${CIRCLE_BRANCH} == "develop"   ]];then
+              docker push ${GCP_IMAGE}-develop:latest
+              docker push ${GCP_IMAGE}-develop:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+              docker push ${GCP_IMAGE}-develop:${START_TIME}
+              docker push ${GCP_IMAGE}-develop:${CIRCLE_SHA1}
+              docker push ${GCP_IMAGE}-develop:${START_TIME}-${CIRCLE_SHA1}
+           fi
+
+           if [[ ${PR} != "false" ]];then
+              docker push ${GCP_IMAGE}:pr-${PR}-${CIRCLE_BUILD_NUM} 
+           fi
+           if [[ ${CIRCLE_BRANCH} == "master" ]];then
+              echo ${DOCKERHUB_PASS} | docker login -u taraxa --password-stdin
+              docker push ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+              docker push ${IMAGE}:${START_TIME}
+              docker push ${IMAGE}:${CIRCLE_SHA1}
+              docker push ${IMAGE}:${START_TIME}-${CIRCLE_SHA1}
+              docker push ${IMAGE}:latest
+              docker push ${GCP_IMAGE}:latest
+              docker push ${GCP_IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+              docker push ${GCP_IMAGE}:${START_TIME}
+              docker push ${GCP_IMAGE}:${CIRCLE_SHA1}
+              docker push ${GCP_IMAGE}:${START_TIME}-${CIRCLE_SHA1}
+           fi
+
+      - run:
+         name: Cleanup smoke tests
+         when: always
+         command: |
+          docker kill taraxa-node-smoke-test-${DOCKER_BRANCH_TAG} || true
+          docker network rm smoke-test-net-${DOCKER_BRANCH_TAG} || true
+
+      - store_artifacts:
+          path: tmp_docker 
+
    create-and-push-builder:
-     #executor: gcp-gcr/default
      docker:
        - image: circleci/buildpack-deps:stretch
      steps:
@@ -174,23 +382,25 @@ jobs:
         - persist_to_workspace:
            root: cmake-docker-build-debug
            paths: [ bin_install ]
+           
 
 workflows:
-  build-and-release:
+  version: 2
+  build-and-deploy-image:
+    jobs:
+      - build-and-push-docker-image:
+         context: taraxa-node
+                           
+  create-builder-image:
     jobs:
       - create-and-push-builder:
           context: taraxa-node
           filters:
             branches: 
               only: 
-                #- develop
+#               - develop
                - cirleci
-      #- gcp-gcr/build-and-push-image:
-      #    executor: docker
-      #    image: taraxa-node/taraxa-builder
-      #    context: taraxa-node
-      #    setup-remote-docker: true
-      #    use-docker-layer-caching: true
+
       - build-linux:
           filters:
             branches: 
@@ -198,7 +408,6 @@ workflows:
             tags:  
               only: /^v\d+\.\d+\.\d+$/
           context: taraxa-node
-#         requires: [ gcp-gcr/build-and-push-image ]
       - build-mac:
           filters:
             branches: 
