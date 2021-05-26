@@ -809,7 +809,9 @@ void TaraxaCapability::onDisconnect(NodeID const &_nodeID) {
   });
 }
 
-void TaraxaCapability::sendTestMessage(NodeID const &_id, int _x) { sealAndSend(_id, TestPacket, RLPStream(1) << _x); }
+void TaraxaCapability::sendTestMessage(NodeID const &_id, int _x, std::vector<char> const &data) {
+  sealAndSend(_id, TestPacket, RLPStream(2) << _x << data);
+}
 
 void TaraxaCapability::sendStatus(NodeID const &_id, bool _initial) {
   if (dag_mgr_) {

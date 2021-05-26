@@ -84,8 +84,10 @@ to the other using TaraxaCapability
 TEST_F(P2PTest, capability_send_test) {
   int const step = 10;
   const char *const localhost = "127.0.0.1";
-  dev::p2p::NetworkConfig prefs1(localhost, 10002, false, true);
+  dev::p2p::NetworkConfig prefs1(localhost, 10007, false, true);
+  prefs1.discovery = false;
   dev::p2p::NetworkConfig prefs2(localhost, 10003, false, true);
+  prefs2.discovery = false;
   NetworkConfig network_conf;
   network_conf.network_simulated_delay = 0;
   network_conf.network_bandwidth = 40;
@@ -131,11 +133,12 @@ TEST_F(P2PTest, capability_send_test) {
   EXPECT_GT(host1->peer_count(), 0);
   EXPECT_GT(host2->peer_count(), 0);
 
-  int const target = 64;
+  int const target = 10;
   int checksum = 0;
-  for (int i = 0; i < target; checksum += i++) thc2->sendTestMessage(host1->id(), i);
+  std::vector<char> dummy_data(15 * 1024 * 1024);  // 15MB memory buffer
+  for (int i = 0; i < target; checksum += i++) thc2->sendTestMessage(host1->id(), i, dummy_data);
 
-  this_thread::sleep_for(chrono::seconds(target / 64 + 1));
+  this_thread::sleep_for(chrono::seconds(target / 2));
   std::pair<int, int> testData = thc1->retrieveTestData(host2->id());
   EXPECT_EQ(target, testData.first);
   EXPECT_EQ(checksum, testData.second);
@@ -146,11 +149,14 @@ Test creates two host/network/capability and verifies that host connect
 to each other and that a block packet message can be sent from one host
 to the other using TaraxaCapability
 */
+
 TEST_F(P2PTest, capability_send_block) {
   int const step = 10;
   const char *const localhost = "127.0.0.1";
-  dev::p2p::NetworkConfig prefs1(localhost, 10002, false, true);
+  dev::p2p::NetworkConfig prefs1(localhost, 10007, false, true);
+  prefs1.discovery = false;
   dev::p2p::NetworkConfig prefs2(localhost, 10003, false, true);
+  prefs2.discovery = false;
   NetworkConfig network_conf;
   network_conf.network_simulated_delay = 0;
   network_conf.network_bandwidth = 40;
@@ -228,10 +234,10 @@ the block
 TEST_F(P2PTest, block_propagate) {
   int const nodeCount = 10;
   const char *const localhost = "127.0.0.1";
-  dev::p2p::NetworkConfig prefs1(localhost, 10002, false, true);
+  dev::p2p::NetworkConfig prefs1(localhost, 10007, false, true);
   std::vector<dev::p2p::NetworkConfig> vPrefs;
   for (int i = 0; i < nodeCount; i++) {
-    vPrefs.push_back(dev::p2p::NetworkConfig(localhost, 10002 + i + 1, false, true));
+    vPrefs.push_back(dev::p2p::NetworkConfig(localhost, 10007 + i + 1, false, true));
   }
   TaraxaNetworkConfig taraxa_net_conf_1;
   taraxa_net_conf_1.is_boot_node = true;
