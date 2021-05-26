@@ -1013,11 +1013,10 @@ void TaraxaCapability::onNewBlockVerified(DagBlock const &block) {
 void TaraxaCapability::sendBlocks(NodeID const &_id, std::vector<std::shared_ptr<DagBlock>> blocks) {
   taraxa::bytes packet_bytes;
   size_t packet_items_count = 0;
-  size_t dag_block_items_count = 0;
   size_t blocks_counter = 0;
 
   for (auto &block : blocks) {
-    dag_block_items_count = 0;
+    size_t dag_block_items_count = 0;
     size_t previous_block_packet_size = packet_bytes.size();
 
     // Add dag block rlp to the sent bytes array
