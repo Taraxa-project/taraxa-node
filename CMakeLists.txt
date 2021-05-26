@@ -132,10 +132,6 @@ endif (ENABLE_PACKAGE_INSTALLER)
 if (TARAXA_STATIC_BUILD)
     set(CMAKE_FIND_LIBRARY_SUFFIXES ".a") # zlib does not support zlib_USE_STATIC_LIBS or similar approach
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++ -static-libgcc")
-
-    set(scrypt_USE_STATIC_LIBS ON)
-    set(jsoncpp_USE_STATIC_LIBS ON)
-    set(jsonrpccpp_USE_STATIC_LIBS ON)
 endif (TARAXA_STATIC_BUILD)
 
 # fix for boost thread library on MacOS
@@ -168,10 +164,6 @@ endif()
 
 # Custom CMakeModules for finding libraries
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
-
-find_package(scrypt REQUIRED)
-find_package(jsoncpp REQUIRED)
-find_package(jsonrpccpp REQUIRED)
 
 # Building with gperftools
 option(TARAXA_GPERF "Build taraxad with GPERFTOOLS" OFF)

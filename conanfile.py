@@ -45,7 +45,7 @@ class TaraxaConan(ConanFile):
         self.requires("boost/1.71.0")
         self.requires("cppcheck/2.3")
         self.requires("openssl/1.1.1f")
-        self.requires("cryptopp/8.5.0")
+        self.requires("cryptopp/8.4.0")
         self.requires("gtest/1.10.0")
         self.requires("rocksdb/6.8.1")
         self.requires("gmp/6.2.1")
@@ -53,6 +53,7 @@ class TaraxaConan(ConanFile):
         self.requires("snappy/1.1.8")
         self.requires("zstd/1.4.4")
         self.requires("lz4/1.9.2")
+        self.requires("libjson-rpc-cpp/1.1.0@bincrafters/stable")
 
         # if it darwin we will check for some clang utils
         if platform.system() == "Darwin":
@@ -95,6 +96,7 @@ class TaraxaConan(ConanFile):
         # Configure gtest
         self.options["gtest"].build_gmock = False
         self.options["rocksdb"].use_rtti = True
+        self.options["libjson-rpc-cpp"].shared = False
 
     def _configure_cmake(self):
         cmake = CMake(self)
