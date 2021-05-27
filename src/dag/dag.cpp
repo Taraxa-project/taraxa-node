@@ -38,7 +38,6 @@ bool Dag::addVEEs(vertex_hash const &new_vertex, vertex_hash const &pivot, std::
   assert(!new_vertex.empty());
 
   // add vertex
-  auto now(std::chrono::system_clock::now());
   vertex_t ret = add_vertex(new_vertex, graph_);
   boost::get(boost::vertex_index, graph_)[ret] = new_vertex;
   edge_index_map_t weight_map = boost::get(boost::edge_index, graph_);

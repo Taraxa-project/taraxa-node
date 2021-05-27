@@ -90,7 +90,7 @@ void dec_rlp(RLP const& rlp, optional<Param>& target) {
 
 template <typename Sequence>
 void dec_rlp_sequence(RLP const& rlp, Sequence& target) {
-  for (auto const& i : rlp) {
+  for (auto const i : rlp) {
     dec_rlp(i, target.emplace_back());
   }
 }
@@ -107,7 +107,7 @@ void dec_rlp(RLP const& rlp, vector<Ts...>& target) {
 template <typename Map>
 auto dec_rlp(RLP const& rlp, Map& target) -> decltype(target[target.begin()->first], void()) {
   using key_type = remove_cv_t<decltype(target.begin()->first)>;
-  for (auto const& i : rlp) {
+  for (auto const i : rlp) {
     auto entry_i = i.begin();
     key_type key;
     dec_rlp(*entry_i, key);

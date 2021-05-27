@@ -51,6 +51,7 @@ will build out of the box without further effort:
 
 In general to build you need to:
 
+    conan remote add -f bincrafters "https://api.bintray.com/conan/bincrafters/public-conan" 
     conan install -if cmake-build --build missing .
     conan build -bf cmake-build -sf . .
 
@@ -71,6 +72,7 @@ And optional:
 
 > OSX: maybe you need to set a new limit for max open files per thread/process: `ulimit -n 200000`
 
+    conan remote add -f bincrafters "https://api.bintray.com/conan/bincrafters/public-conan" 
     conan install -if cmake-build --build missing .
     conan build -bf cmake-build -sf . .
     cd tests
@@ -92,15 +94,17 @@ And optional:
 Some known `brew` package dependencies (this list is not comprehensive):
 ```
 coreutils, go, autoconf, automake, ccache, gflags,
-git, libscrypt, libtool, makepkg-config, cmake, libjson-rpc-cpp
+git, libtool, makepkg-config, cmake
 ```
 
 > Optional: `export CC=gcc`
 
+    conan remote add -f bincrafters "https://api.bintray.com/conan/bincrafters/public-conan" 
     conan install -if cmake-build --build missing .
     conan build -bf cmake-build -sf . .
 
 Or do
+    conan remote add -f bincrafters "https://api.bintray.com/conan/bincrafters/public-conan" 
     conan install -if cmake-build --build missing .
     cd cmake-build
     cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=gcc ..

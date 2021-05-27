@@ -1,5 +1,8 @@
 .vscode
 
+# clangd indexer cache
+.cache
+
 .idea
 *.iml
 
@@ -8,6 +11,7 @@ cmake-*
 
 # put here local env stuff
 local
+/local-net-data/
 
 .DS_Store
 
