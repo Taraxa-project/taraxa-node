@@ -250,9 +250,6 @@ jobs:
         CMAKE_VERSION: "3.16.3-1ubuntu1"
         GCC_VERSION: "4:9.3.0-1ubuntu2"
         GFLAGS_VERSION: "2.2.2-1build1"
-        JSONCPP_VERSION: "1.7.4-3.1ubuntu2"
-        JSONRPCCPP_VERSION: "0.7.0-1build3"
-        SCRYPT_VERSION: "1.21-3"
      steps: 
         - checkout
         - run: 
@@ -267,7 +264,7 @@ jobs:
         - run:
            command: |
               brew install go  ccache gflags &&
-              brew install libscrypt libtool cmake libjson-rpc-cpp conan
+              brew install libtool cmake conan
         - restore_cache:
            keys:
             - conan-cache-v2-mac--{{ checksum "conanfile.py" }}
@@ -318,9 +315,6 @@ jobs:
         CMAKE_VERSION: "3.16.3-1ubuntu1"
         GCC_VERSION: "4:9.3.0-1ubuntu2"
         GFLAGS_VERSION: "2.2.2-1build1"
-        JSONCPP_VERSION: "1.7.4-3.1ubuntu2"
-        JSONRPCCPP_VERSION: "0.7.0-1build3"
-        SCRYPT_VERSION: "1.21-3"
         GOROOT: "/usr/local/go"
         GOPATH: "/root/.go"
      docker:
