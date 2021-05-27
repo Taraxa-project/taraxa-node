@@ -6,20 +6,19 @@ ARG BUILD_OUTPUT_DIR=cmake-docker-build-debug
 #############################################
 FROM ubuntu:20.04 as builder
 
-# for clang-format and clang-tidy
-ARG CLANG_VERSION=1:10.0-50~exp1
-
 # deps versions
 ARG GO_VERSION=1.13.7
 ARG CMAKE_VERSION=3.16.3-1ubuntu1
 ARG GCC_VERSION=4:9.3.0-1ubuntu2
 ARG GFLAGS_VERSION=2.2.2-1build1
+ARG CLANG_FORMAT_VERSION=clang+llvm-10.0.0-x86_64-linux-gnu-ubuntu-18.04
 
 # Install standard packages
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends tzdata \
     && apt-get install -y \
         tar \
+        xz-utils \
         curl \
         libtool \
         autoconf \
@@ -29,12 +28,19 @@ RUN apt-get update \
         cmake=$CMAKE_VERSION \
         gcc=$GCC_VERSION \
         g++=$GCC_VERSION \
-        clang-format=$CLANG_VERSION \
-        clang-tidy=$CLANG_VERSION \
         libgflags-dev=$GFLAGS_VERSION \
         \
         python3-pip \
     && rm -rf /var/lib/apt/lists/*
+
+
+# install clang-format and clang-tidy
+RUN curl -SLs https://github.com/llvm/llvm-project/releases/download/llvmorg-10.0.0/$CLANG_FORMAT_VERSION.tar.xz \
+        | tar -xJ && \
+    mv $CLANG_FORMAT_VERSION/bin/clang-format /usr/bin/clang-format && \
+    mv $CLANG_FORMAT_VERSION/bin/clang-tidy /usr/bin/clang-tidy && \
+    rm -rf $CLANG_FORMAT_VERSION && \
+    rm -f $CLANG_FORMAT_VERSION.tar.xz
 
 # Install conan
 RUN pip3 install conan
