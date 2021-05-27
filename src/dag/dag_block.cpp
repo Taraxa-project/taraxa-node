@@ -61,7 +61,7 @@ DagBlock::DagBlock(Json::Value const &doc) {
 
 DagBlock::DagBlock(dev::RLP const &rlp) {
   if (!rlp.isList()) {
-    throw std::invalid_argument("transaction RLP must be a list");
+    throw std::invalid_argument("DagBlock RLP must be a list");
   }
   uint field_n = 0;
   for (auto const &el : rlp) {
