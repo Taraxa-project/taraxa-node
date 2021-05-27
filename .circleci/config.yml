@@ -300,7 +300,9 @@ jobs:
                cp bin/taraxad bin/taraxad-macos
         - run: 
            name: Execute ctest 
-           command: cd cmake-build/tests && ctest --output-on-failure
+           command: |
+             ulimit -n 1024
+             cd cmake-build/tests && ctest --output-on-failure
         - store_artifacts:
            path: /Users/distiller/project/cmake-build/bin/taraxad-macos
         - persist_to_workspace:
@@ -371,7 +373,9 @@ jobs:
            command: cd $BUILD_OUTPUT_DIR && strip bin_install/taraxad && cp bin_install/taraxad bin_install/taraxad-x86_64
         - run: 
            name: Execute ctest 
-           command: cd $BUILD_OUTPUT_DIR/tests && ctest --output-on-failure
+           command: |
+             ulimit -n 1024
+             cd $BUILD_OUTPUT_DIR/tests && ctest --output-on-failure
         - store_artifacts:
            path: /root/project/cmake-docker-build-debug/bin_install/taraxad
         - persist_to_workspace:
