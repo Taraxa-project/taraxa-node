@@ -240,7 +240,7 @@ struct TaraxaCapability : virtual CapabilityFace {
   PacketsStats sent_packets_stats_;
   PacketsStats received_packets_stats_;
 
-  const uint32_t MAX_PACKET_SIZE = 15 * 1024 * 1024; // 15 MB -> 15 * 1024 * 1024 B
+  const uint32_t MAX_PACKET_SIZE = 15 * 1024 * 1024;  // 15 MB -> 15 * 1024 * 1024 B
 
   LOG_OBJECTS_DEFINE
   LOG_OBJECTS_DEFINE_SUB(pbft_sync)
