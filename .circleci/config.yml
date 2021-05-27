@@ -245,7 +245,6 @@ jobs:
      macos:
        xcode: 12.0.0
      environment:
-        CLANG_VERSION: "1:10.0-50~exp1"
         GO_VERSION: "1.13.7"
         CMAKE_VERSION: "3.16.3-1ubuntu1"
         GCC_VERSION: "4:9.3.0-1ubuntu2"
@@ -310,7 +309,6 @@ jobs:
    build-linux:
      environment:
         BUILD_OUTPUT_DIR: "cmake-docker-build-debug"
-        CLANG_VERSION: "1:10.0-50~exp1"
         GO_VERSION: "1.13.7"
         CMAKE_VERSION: "3.16.3-1ubuntu1"
         GCC_VERSION: "4:9.3.0-1ubuntu2"
@@ -362,9 +360,6 @@ jobs:
               -DTARAXAD_INSTALL_DIR=./bin_install \
               -DTARAXAD_CONF_INSTALL_DIR=./bin_install \
               ../ 
-        - run:
-            name: make clang-format
-            command: cd $BUILD_OUTPUT_DIR && make clang-format && make clang-format-check
         - run: 
            name: make
            command: cd $BUILD_OUTPUT_DIR && make -j8 all 
