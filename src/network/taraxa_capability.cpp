@@ -428,7 +428,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         auto status = checkDagBlockValidation(block);
         if (!status.first) {
           LOG(log_nf_dag_sync_) << "DagBlockValidation failed " << status.second;
-          break;
+          continue;
         }
 
         LOG(log_nf_dag_sync_) << "Storing block " << block.getHash().toString() << " with " << newTransactions.size()

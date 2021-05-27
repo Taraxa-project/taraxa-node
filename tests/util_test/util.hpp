@@ -103,6 +103,15 @@ inline bool wait(wait_opts const& opts, function<void(wait_ctx&)> const& poller)
   }                                         \
   assert(true)  // to justify trailing semicolon
 
+#define WAIT_EXPECT_NE(ctx, o1, o2)         \
+  if (o1 == o2) {                           \
+    if (ctx.fail(); !ctx.is_last_attempt) { \
+      return;                               \
+    }                                       \
+    EXPECT_NE(o1, o2);                      \
+  }                                         \
+  assert(true)  // to justify trailing semicolon
+
 inline auto const node_cfgs_original = Lazy([] {
   vector<FullNodeConfig> ret;
   for (int i = 1;; ++i) {
