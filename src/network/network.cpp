@@ -164,6 +164,11 @@ void Network::sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk) {
   LOG(log_dg_) << "Sent Block:" << blk.getHash().toString();
 }
 
+void Network::sendBlocks(dev::p2p::NodeID const &id, std::vector<std::shared_ptr<DagBlock>> blocks) {
+  LOG(log_dg_) << "Sending Blocks:" << blocks.size();
+  taraxa_capability_->sendBlocks(id, std::move(blocks));
+}
+
 void Network::sendTransactions(NodeID const &_id, std::vector<taraxa::bytes> const &transactions) {
   taraxa_capability_->sendTransactions(_id, transactions);
   LOG(log_dg_) << "Sent transactions:" << transactions.size();

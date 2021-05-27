@@ -156,7 +156,6 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::pair<uint64_t, uint64_t> getNumVerticesInDag() const;
   std::pair<uint64_t, uint64_t> getNumEdgesInDag() const;
   level_t getMaxLevel() const {
-    sharedLock lock(mutex_);
     return max_level_;
   }
 
