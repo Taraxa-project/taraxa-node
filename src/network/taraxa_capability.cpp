@@ -1,12 +1,13 @@
 #include "taraxa_capability.hpp"
 
+#include <algorithm>
+
 #include "consensus/pbft_chain.hpp"
 #include "consensus/pbft_manager.hpp"
 #include "consensus/vote.hpp"
 #include "dag/dag.hpp"
 #include "node/full_node.hpp"
 #include "transaction_manager/transaction_manager.hpp"
-#include <algorithm>
 
 namespace taraxa {
 
@@ -98,8 +99,7 @@ void TaraxaCapability::sealAndSend(NodeID const &nodeID, unsigned packet_type, R
   // or handled in some other way in high level code - e.g. function that creates such packet and calls sealAndSend
   if (packet_size > MAX_PACKET_SIZE) {
     LOG(log_er_) << "Trying to send packet bigger than PACKET_MAX_SIZE(" << MAX_PACKET_SIZE << ") - rejected !"
-                 << " Packet type: " << packetTypeToString(packet_type)
-                 << ", size: " << packet_size
+                 << " Packet type: " << packetTypeToString(packet_type) << ", size: " << packet_size
                  << ", receiver: " << nodeID.abridged();
     return;
   }
@@ -1024,7 +1024,7 @@ void TaraxaCapability::sendBlocks(NodeID const &_id, std::vector<std::shared_ptr
     // Add dag block rlp to the sent bytes array
     taraxa::bytes block_bytes = block->rlp(true);
     packet_bytes.insert(packet_bytes.end(), std::begin(block_bytes), std::end(block_bytes));
-    dag_block_items_count++; // + 1 new dag blog
+    dag_block_items_count++;  // + 1 new dag blog
 
     for (auto trx : block->getTrxs()) {
       auto t = trx_mgr_->getTransaction(trx);
@@ -1038,18 +1038,19 @@ void TaraxaCapability::sendBlocks(NodeID const &_id, std::vector<std::shared_ptr
 
       // Add dag block transaction rlp to the sent bytes array
       packet_bytes.insert(packet_bytes.end(), std::begin(t->second), std::end(t->second));
-      dag_block_items_count++; // + 1 new tx from dag blog
+      dag_block_items_count++;  // + 1 new tx from dag blog
     }
 
     LOG(log_dg_dag_sync_) << "Send DagBlock " << block->getHash() << "Trxs count: " << block->getTrxs().size();
 
     // Split packet into multiple smaller ones if total size is > MAX_PACKET_SIZE
     if (packet_bytes.size() > MAX_PACKET_SIZE) {
-      LOG(log_nf_dag_sync_) << "Sending partial BlocksPacket due tu MAX_PACKET_SIZE limit. "
-                            << blocks_counter << " blocks out of " << blocks.size() << " sent.";
+      LOG(log_nf_dag_sync_) << "Sending partial BlocksPacket due tu MAX_PACKET_SIZE limit. " << blocks_counter
+                            << " blocks out of " << blocks.size() << " sent.";
 
       taraxa::bytes removed_bytes;
-      std::copy(packet_bytes.begin() + previous_block_packet_size, packet_bytes.end(), std::back_inserter(removed_bytes));
+      std::copy(packet_bytes.begin() + previous_block_packet_size, packet_bytes.end(),
+                std::back_inserter(removed_bytes));
       packet_bytes.resize(previous_block_packet_size);
 
       RLPStream s(packet_items_count);
