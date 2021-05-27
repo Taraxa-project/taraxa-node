@@ -18,3 +18,6 @@
 	path = submodules/taraxa-aleth
 	url = ../taraxa-aleth.git
 	ignore = dirty
+[submodule "submodules/libscrypt"]
+	path = submodules/libscrypt
+	url = https://github.com/tomleavy/libscrypt.git

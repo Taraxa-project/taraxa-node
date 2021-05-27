@@ -3,12 +3,11 @@
 namespace taraxa {
 
 DagBlockManager::DagBlockManager(addr_t node_addr, vdf_sortition::VdfConfig const &vdf_config,
-                                 optional<state_api::DPOSConfig> dpos_config, size_t capacity, unsigned num_verifiers,
+                                 optional<state_api::DPOSConfig> dpos_config, unsigned num_verifiers,
                                  std::shared_ptr<DbStorage> db, std::shared_ptr<TransactionManager> trx_mgr,
                                  std::shared_ptr<FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain,
                                  logger::Logger log_time, uint32_t queue_limit)
-    : capacity_(capacity),
-      num_verifiers_(num_verifiers),
+    : num_verifiers_(num_verifiers),
       db_(db),
       trx_mgr_(trx_mgr),
       final_chain_(final_chain),
@@ -41,7 +40,7 @@ void DagBlockManager::start() {
   LOG(log_nf_) << "Create verifier threads = " << num_verifiers_ << std::endl;
   verifiers_.clear();
   for (size_t i = 0; i < num_verifiers_; ++i) {
-    verifiers_.emplace_back([this, i]() { this->verifyBlock(); });
+    verifiers_.emplace_back([this]() { this->verifyBlock(); });
   }
 }
 

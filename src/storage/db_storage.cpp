@@ -581,7 +581,7 @@ std::vector<Vote> DbStorage::getSoftVotes(uint64_t const& pbft_round) {
   std::vector<Vote> soft_votes;
   auto soft_votes_raw = asBytes(lookup(toSlice(pbft_round), Columns::soft_votes));
 
-  for (auto const& soft_vote : RLP(soft_votes_raw)) {
+  for (auto const soft_vote : RLP(soft_votes_raw)) {
     soft_votes.emplace_back(soft_vote);
   }
 
@@ -613,7 +613,7 @@ std::vector<Vote> DbStorage::getCertVotes(blk_hash_t const& hash) {
   std::vector<Vote> cert_votes;
   auto cert_votes_raw = asBytes(lookup(toSlice(hash.asBytes()), Columns::cert_votes));
 
-  for (auto const& cert_vote : RLP(cert_votes_raw)) {
+  for (auto const cert_vote : RLP(cert_votes_raw)) {
     cert_votes.emplace_back(cert_vote);
   }
 
@@ -633,7 +633,7 @@ std::vector<Vote> DbStorage::getNextVotes(uint64_t const& pbft_round) {
   std::vector<Vote> next_votes;
   auto next_votes_raw = asBytes(lookup(toSlice(pbft_round), Columns::next_votes));
 
-  for (auto const& next_vote : RLP(next_votes_raw)) {
+  for (auto const next_vote : RLP(next_votes_raw)) {
     next_votes.emplace_back(next_vote);
   }
 

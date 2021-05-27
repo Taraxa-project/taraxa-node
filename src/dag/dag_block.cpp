@@ -64,7 +64,7 @@ DagBlock::DagBlock(dev::RLP const &rlp) {
     throw std::invalid_argument("transaction RLP must be a list");
   }
   uint field_n = 0;
-  for (auto const &el : rlp) {
+  for (auto const el : rlp) {
     if (field_n == 0) {
       pivot_ = el.toHash<blk_hash_t>();
     } else if (field_n == 1) {
