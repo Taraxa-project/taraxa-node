@@ -273,6 +273,9 @@ jobs:
             - conan-cache-v2-mac--{{ checksum "conanfile.py" }}
             - conan-cache-v2-mac
         - run:
+           name: add conan bincrafters remote
+           command: conan remote add -f bincrafters "https://api.bintray.com/conan/bincrafters/public-conan"
+        - run:
            name: connan install 
            command: conan install -if cmake-build --build missing .
         - save_cache:
@@ -339,6 +342,9 @@ jobs:
            keys:
             - conan-cache-v1-linux--{{ checksum "conanfile.py" }}
             - conan-cache-v1-linux
+        - run:
+           name: Add conan bincrafters remote
+           command: conan remote add -f bincrafters "https://api.bintray.com/conan/bincrafters/public-conan"
         - run:
            name: Conan
            command: conan install -if $BUILD_OUTPUT_DIR --build missing -s build_type=Release .
