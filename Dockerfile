@@ -14,9 +14,6 @@ ARG GO_VERSION=1.13.7
 ARG CMAKE_VERSION=3.16.3-1ubuntu1
 ARG GCC_VERSION=4:9.3.0-1ubuntu2
 ARG GFLAGS_VERSION=2.2.2-1build1
-ARG JSONCPP_VERSION=1.7.4-3.1ubuntu2
-ARG JSONRPCCPP_VERSION=0.7.0-1build3
-ARG SCRYPT_VERSION=1.21-3
 
 # Install standard packages
 RUN apt-get update \
@@ -35,9 +32,6 @@ RUN apt-get update \
         clang-format=$CLANG_VERSION \
         clang-tidy=$CLANG_VERSION \
         libgflags-dev=$GFLAGS_VERSION \
-        libjsoncpp-dev=$JSONCPP_VERSION \
-        libjsonrpccpp-dev=$JSONRPCCPP_VERSION \
-        libscrypt-dev=$SCRYPT_VERSION \
         \
         python3-pip \
     && rm -rf /var/lib/apt/lists/*
@@ -60,6 +54,7 @@ ARG BUILD_OUTPUT_DIR
 # Install conan deps
 WORKDIR /opt/taraxa/
 COPY conanfile.py .
+RUN conan remote add -f bincrafters "https://api.bintray.com/conan/bincrafters/public-conan"
 RUN conan install -if $BUILD_OUTPUT_DIR --build missing -s build_type=Debug .
 
 
