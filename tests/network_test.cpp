@@ -1144,16 +1144,10 @@ TEST_F(NetworkTest, node_full_sync) {
   wait({60s, 500ms}, [&](auto& ctx) {
     // Check 5 nodes DAG syncing
     for (int j = 1; j < numberOfNodes; j++) {
-<<<<<<< HEAD
       if (ctx.fail_if(nodes[j]->getDagManager()->getNumVerticesInDag().first !=
                       nodes[0]->getDagManager()->getNumVerticesInDag().first)) {
         return;
       }
-=======
-      WAIT_EXPECT_EQ(ctx, nodes[j]->getDagManager()->getNumVerticesInDag().first,
-                     nodes[0]->getDagManager()->getNumVerticesInDag().first)
-      ctx.fail_if(nodes[j]->getNetwork()->pbft_syncing());
->>>>>>> 9ed10a76 (chore(test): some clean-up & change of buffer size)
     }
   });
 
