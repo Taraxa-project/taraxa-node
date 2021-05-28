@@ -135,7 +135,7 @@ TEST_F(P2PTest, capability_send_test) {
 
   int const target = 10;
   int checksum = 0;
-  std::vector<char> dummy_data(15 * 1024 * 1024);  // 15MB memory buffer
+  std::vector<char> dummy_data(10 * 1024 * 1024);  // 10MB memory buffer
   for (int i = 0; i < target; checksum += i++) thc2->sendTestMessage(host1->id(), i, dummy_data);
 
   this_thread::sleep_for(chrono::seconds(target / 2));

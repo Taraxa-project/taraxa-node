@@ -117,7 +117,7 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
 
   std::cout << "Waiting Sync ..." << std::endl;
   wait({5s, 300ms},
-       [&](auto& ctx) { WAIT_EXPECT_NE(ctx, nodes[1]->getDagBlockManager()->getDagBlock(block_hash), nullptr); });
+       [&](auto& ctx) { WAIT_EXPECT_NE(ctx, nodes[1]->getDagBlockManager()->getDagBlock(block_hash), nullptr) });
 }
 
 TEST_F(NetworkTest, send_pbft_block) {
@@ -291,18 +291,18 @@ TEST_F(NetworkTest, node_sync) {
   }
 
   EXPECT_HAPPENS({30s, 500ms}, [&](auto& ctx) {
-    WAIT_EXPECT_EQ(ctx, node1->getNumReceivedBlocks(), blks.size());
-    WAIT_EXPECT_EQ(ctx, node1->getDagManager()->getNumVerticesInDag().first, 7);
-    WAIT_EXPECT_EQ(ctx, node1->getDagManager()->getNumEdgesInDag().first, 8);
+    WAIT_EXPECT_EQ(ctx, node1->getNumReceivedBlocks(), blks.size())
+    WAIT_EXPECT_EQ(ctx, node1->getDagManager()->getNumVerticesInDag().first, 7)
+    WAIT_EXPECT_EQ(ctx, node1->getDagManager()->getNumEdgesInDag().first, 8)
   });
 
   FullNode::Handle node2(node_cfgs[1], true);
 
   std::cout << "Waiting Sync..." << std::endl;
   EXPECT_HAPPENS({45s, 1500ms}, [&](auto& ctx) {
-    WAIT_EXPECT_EQ(ctx, node2->getNumReceivedBlocks(), blks.size());
-    WAIT_EXPECT_EQ(ctx, node2->getDagManager()->getNumVerticesInDag().first, 7);
-    WAIT_EXPECT_EQ(ctx, node2->getDagManager()->getNumEdgesInDag().first, 8);
+    WAIT_EXPECT_EQ(ctx, node2->getNumReceivedBlocks(), blks.size())
+    WAIT_EXPECT_EQ(ctx, node2->getDagManager()->getNumVerticesInDag().first, 7)
+    WAIT_EXPECT_EQ(ctx, node2->getDagManager()->getNumEdgesInDag().first, 8)
   });
 }
 
@@ -1144,10 +1144,16 @@ TEST_F(NetworkTest, node_full_sync) {
   wait({60s, 500ms}, [&](auto& ctx) {
     // Check 5 nodes DAG syncing
     for (int j = 1; j < numberOfNodes; j++) {
+<<<<<<< HEAD
       if (ctx.fail_if(nodes[j]->getDagManager()->getNumVerticesInDag().first !=
                       nodes[0]->getDagManager()->getNumVerticesInDag().first)) {
         return;
       }
+=======
+      WAIT_EXPECT_EQ(ctx, nodes[j]->getDagManager()->getNumVerticesInDag().first,
+                     nodes[0]->getDagManager()->getNumVerticesInDag().first)
+      ctx.fail_if(nodes[j]->getNetwork()->pbft_syncing());
+>>>>>>> 9ed10a76 (chore(test): some clean-up & change of buffer size)
     }
   });
 
