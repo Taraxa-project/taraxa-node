@@ -180,7 +180,7 @@ endif()
 include(CMakeModules/clang_tidy.cmake)
 
 # clang-format
-# include(CMakeModules/clang_format.cmake)
+include(CMakeModules/clang_format.cmake)
 
 # cppcheck
 include(CMakeModules/cppcheck.cmake)
