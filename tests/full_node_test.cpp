@@ -1112,9 +1112,9 @@ TEST_F(FullNodeTest, single_node_run_two_transactions) {
   std::cout << "First trx received ..." << std::endl;
 
   EXPECT_HAPPENS({60s, 1s}, [&](auto &ctx) {
-    WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), 1);
-    WAIT_EXPECT_EQ(ctx, node->getTransactionManager()->getTransactionCount(), 1);
-    WAIT_EXPECT_EQ(ctx, node->getDagManager()->getNumVerticesInDag().first, 2);
+    WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), 1)
+    WAIT_EXPECT_EQ(ctx, node->getTransactionManager()->getTransactionCount(), 1)
+    WAIT_EXPECT_EQ(ctx, node->getDagManager()->getNumVerticesInDag().first, 2)
   });
 
   std::cout << "First trx executed ..." << std::endl;
@@ -1122,9 +1122,9 @@ TEST_F(FullNodeTest, single_node_run_two_transactions) {
   EXPECT_FALSE(system(send_raw_trx2.c_str()));
 
   EXPECT_HAPPENS({60s, 1s}, [&](auto &ctx) {
-    WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), 2);
-    WAIT_EXPECT_EQ(ctx, node->getTransactionManager()->getTransactionCount(), 2);
-    WAIT_EXPECT_EQ(ctx, node->getDagManager()->getNumVerticesInDag().first, 3);
+    WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), 2)
+    WAIT_EXPECT_EQ(ctx, node->getTransactionManager()->getTransactionCount(), 2)
+    WAIT_EXPECT_EQ(ctx, node->getDagManager()->getNumVerticesInDag().first, 3)
   });
 }
 
