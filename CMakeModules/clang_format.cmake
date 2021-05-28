@@ -1,5 +1,16 @@
 # additional target to perform clang-format run, requires clang-format
-find_program(CLANG_FORMAT_EXE NAMES "clang-format" PATHS ${CMAKE_CURRENT_SOURCE_DIR} DOC "Path to clang-format executable" REQUIRED NO_DEFAULT_PATH)
+
+if (APPLE)
+    find_program(CLANG_FORMAT_EXE NAMES "clang-format" PATHS ${CMAKE_CURRENT_SOURCE_DIR} 
+            DOC "Path to clang-format executable" 
+            REQUIRED NO_DEFAULT_PATH
+            )
+elseif() 
+    find_program(CLANG_FORMAT_EXE NAMES "clang-format" 
+            DOC "Path to clang-format executable" 
+            REQUIRED
+            )
+endif()
 
 if (NOT CLANG_FORMAT_EXE)
     message(STATUS "clang-format not found.")
