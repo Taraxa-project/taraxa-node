@@ -43,6 +43,9 @@ jobs:
            echo "export START_TIME=$(date +%Y%m%d-%Hh%Mm%Ss)" >>$BASH_ENV
            echo "export GCP_IMAGE=gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE}" >> $BASH_ENV
            echo "export PR=$( [[ -z ${CIRCLE_PULL_REQUEST+x} ]] && echo false || echo $(basename ${CIRCLE_PULL_REQUEST}) )" >>$BASH_ENV
+           #echo "export HELM_TEST_NAME=$(echo $CIRCLE_BRANCH | sed 's/[^A-Za-z0-9\\-]*//g' | tr '[:upper:]' '[:lower:]')" >>$BASH_ENV
+           export PR=$( [[ -z ${CIRCLE_PULL_REQUEST+x} ]] && echo false || echo $(basename ${CIRCLE_PULL_REQUEST}) )           
+           echo "export HELM_TEST_NAME=pr-${PR}" >> $BASH_ENV
            sudo service apport stop
            sudo bash -c 'echo /tmp/core.%t.%e.%p >/proc/sys/kernel/core_pattern'
 
@@ -75,24 +78,24 @@ jobs:
       - run: 
          name: Run SmokeTest
          command: |
-          if [ ! -z "$(docker network list --format '{{.Name}}' | grep -o smoke-test-net-${DOCKER_BRANCH_TAG})" ]; then
+          if [ ! -z "$(docker network list --format '{{.Name}}' | grep -o smoketest-${DOCKER_BRANCH_TAG:0:52})" ]; then
             docker network rm \
-              smoke-test-net-${DOCKER_BRANCH_TAG} >/dev/null;
-          fi         
+            smoketest-${DOCKER_BRANCH_TAG:0:52} >/dev/null;
+          fi
           docker network create --driver=bridge \
-                      smoke-test-net-${DOCKER_BRANCH_TAG}
+                      smoketest-${DOCKER_BRANCH_TAG:0:52}
           docker run --rm -d \
-              --name taraxa-node-smoke-test-${DOCKER_BRANCH_TAG} \
-              --net smoke-test-net-${DOCKER_BRANCH_TAG} \
+              --name smoketest-${DOCKER_BRANCH_TAG:0:52} \
+              --net smoketest-${DOCKER_BRANCH_TAG:0:52} \
               ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} \
               single
           mkdir -p  $PWD/test_build-d/
           sleep 30
           http_code=$(docker run --rm  -v $PWD/test_build-d:/data \
-                --net smoke-test-net-${DOCKER_BRANCH_TAG} \
+                --net smoketest-${DOCKER_BRANCH_TAG:0:52} \
                 byrnedo/alpine-curl \
                 -sS --fail -w '%{http_code}' -o /data/http.out \
-                --url taraxa-node-smoke-test-${DOCKER_BRANCH_TAG}:7777 \
+                --url smoketest-${DOCKER_BRANCH_TAG:0:52}:7777 \
                 -d '{
                         "jsonrpc": "2.0",
                         "id":"0",
@@ -106,12 +109,12 @@ jobs:
                             "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd"
                         }]
                     }')
-          cat $PWD/test_build-d/http.out || true
-          if [[ $http_code -eq 200 ]] ; then
-              exit 0
-          else
-              exit $http_code
-          fi
+            cat $PWD/test_build-d/http.out || true
+            if [[ $http_code -eq 200 ]] ; then
+                exit 0
+            else
+                exit $http_code
+            fi
 
 
       - run:
@@ -147,7 +150,7 @@ jobs:
               echo -n "${KUBE_CONFIG}" | base64 --decode > $HOME/.kube/config
               curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
               cd taraxa-testnet/tests
-              helm install  ${HELM_TEST_NAME} taraxa-node \
+              helm install  ${HELM_TEST_NAME:0:40} taraxa-node \
                 --wait \
                 --atomic \
                 --timeout 1200s \
@@ -210,8 +213,8 @@ jobs:
          name: Cleanup smoke tests
          when: always
          command: |
-          docker kill taraxa-node-smoke-test-${DOCKER_BRANCH_TAG} || true
-          docker network rm smoke-test-net-${DOCKER_BRANCH_TAG} || true
+          docker kill smoketest-${DOCKER_BRANCH_TAG:0:52} || true
+          docker network rm smoketest-${DOCKER_BRANCH_TAG:0:52} || true
 
       - store_artifacts:
           path: tmp_docker 
@@ -245,10 +248,14 @@ jobs:
      macos:
        xcode: 12.0.0
      environment:
+        CLANG_VERSION: "1:10.0-50~exp1"
         GO_VERSION: "1.13.7"
         CMAKE_VERSION: "3.16.3-1ubuntu1"
         GCC_VERSION: "4:9.3.0-1ubuntu2"
         GFLAGS_VERSION: "2.2.2-1build1"
+        JSONCPP_VERSION: "1.7.4-3.1ubuntu2"
+        JSONRPCCPP_VERSION: "0.7.0-1build3"
+        SCRYPT_VERSION: "1.21-3"
      steps: 
         - checkout
         - run: 
@@ -263,14 +270,11 @@ jobs:
         - run:
            command: |
               brew install go  ccache gflags &&
-              brew install libtool cmake conan
+              brew install libscrypt libtool cmake libjson-rpc-cpp conan
         - restore_cache:
            keys:
             - conan-cache-v2-mac--{{ checksum "conanfile.py" }}
             - conan-cache-v2-mac
-        - run:
-           name: add conan bincrafters remote
-           command: conan remote add -f bincrafters "https://api.bintray.com/conan/bincrafters/public-conan"
         - run:
            name: connan install 
            command: conan install -if cmake-build --build missing .
@@ -311,10 +315,14 @@ jobs:
    build-linux:
      environment:
         BUILD_OUTPUT_DIR: "cmake-docker-build-debug"
+        CLANG_VERSION: "1:10.0-50~exp1"
         GO_VERSION: "1.13.7"
         CMAKE_VERSION: "3.16.3-1ubuntu1"
         GCC_VERSION: "4:9.3.0-1ubuntu2"
         GFLAGS_VERSION: "2.2.2-1build1"
+        JSONCPP_VERSION: "1.7.4-3.1ubuntu2"
+        JSONRPCCPP_VERSION: "0.7.0-1build3"
+        SCRYPT_VERSION: "1.21-3"
         GOROOT: "/usr/local/go"
         GOPATH: "/root/.go"
      docker:
@@ -336,9 +344,6 @@ jobs:
            keys:
             - conan-cache-v1-linux--{{ checksum "conanfile.py" }}
             - conan-cache-v1-linux
-        - run:
-           name: Add conan bincrafters remote
-           command: conan remote add -f bincrafters "https://api.bintray.com/conan/bincrafters/public-conan"
         - run:
            name: Conan
            command: conan install -if $BUILD_OUTPUT_DIR --build missing -s build_type=Release .
@@ -362,6 +367,9 @@ jobs:
               -DTARAXAD_INSTALL_DIR=./bin_install \
               -DTARAXAD_CONF_INSTALL_DIR=./bin_install \
               ../ 
+        - run:
+            name: make clang-format
+            command: cd $BUILD_OUTPUT_DIR && make clang-format && make clang-format-check
         - run: 
            name: make
            command: cd $BUILD_OUTPUT_DIR && make -j8 all 
@@ -374,8 +382,8 @@ jobs:
         - run: 
            name: Execute ctest 
            command: |
-             ulimit -n 1024
-             cd $BUILD_OUTPUT_DIR/tests && ctest --output-on-failure
+            ulimit -n 1024
+            cd $BUILD_OUTPUT_DIR/tests && ctest --output-on-failure
         - store_artifacts:
            path: /root/project/cmake-docker-build-debug/bin_install/taraxad
         - persist_to_workspace:
