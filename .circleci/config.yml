@@ -278,15 +278,6 @@ jobs:
            paths:
              - ~/.conan
            key: conan-cache-v2-mac--{{ checksum "conanfile.py" }}
-#        - run:
-#           name: conan Build
-#           command: |
-#             export GOPATH=$HOME/golang &&
-#             export GOROOT=/usr/local/opt/go/libexec &&
-#             export CC=gcc &&
-#             export CPATH=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/include &&
-#             conan build -bf cmake-build -sf . .  &&
-#             cp cmake-build/bin/taraxad cmake-build/bin/taraxad-macos
         - run:
            name: Cmake
            command: |
@@ -346,13 +337,6 @@ jobs:
            paths:
              - ~/.conan
            key: conan-cache-v1-linux--{{ checksum "conanfile.py" }}
-
-       # - run:
-       #    name: Copy /opt/taraxa/existing files to project
-       #    command: cp -rp /opt/taraxa/cmake-docker-build-debug/* /root/project/cmake-docker-build-debug/
-#       - git/checkout-with-submodules
-#       - setup_remote_docker:
-#           docker_layer_caching: true
         - run:
             name: Cmake
             command: |
