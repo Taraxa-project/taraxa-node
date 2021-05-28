@@ -27,7 +27,7 @@
     "db_max_snapshots": 5,
     "block_proposer": {
       "shard": 1,
-      "transaction_limit": 0
+      "transaction_limit": 250
     }
   },
   "logging": {
