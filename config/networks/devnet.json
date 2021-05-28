@@ -1,19 +1,19 @@
 {
   "network_boot_nodes" : [
     {
-      "id": "1105725ff38294f42197a3851c87631610956404678a25f90da5f989bb590413a62665cadde1b820de3e9098367909110bba6d62d248444ce45547a703bd8d10",
+      "id": "d8c2b2082a640796e15c36d7480d948513f8aee28dc967434ec06f94a354004c877e025eb4d83afa69e7c5860f65135e334792a7963197af87f0dcf455b6e321",
       "ip": "boot-node-1.devnet.taraxa.io",
       "tcp_port": 10002,
       "udp_port": 10002
     },
     {
-      "id": "9869d8c263ce97d2e32c7ce5e746a8bab53227ccf279f850bbf9def1ddb7fbc08dfb29e8f1ceb93c5b83d08e06618e0993c6db7e55caa05a44605bdb74fbb0da",
+      "id": "58d0c9161a57e2715683bec8e1f4b382cf552b8db44b85370b21c18c4212e1f82fcef1a31dca40ead9d9145759f9f220bee9593123cd8f47682de8958c6f4f48",
       "ip": "boot-node-2.devnet.taraxa.io",
       "tcp_port": 10002,
       "udp_port": 10002
     },
     {
-      "id": "d7c8b4a8cc43549cdbb0f40c090559ae5d2584ba25aed95913f10fae9bceb17421f3250ee95126f33a77f679f4c7e806a0a9e643aa5aaec723f9e3155e85a820",
+      "id": "009f72d5d68b849aeadf24001de184fff475a6499079f1ab21a7e5b47ae8dc52582f47b3b829c02eb4f9a161197571da54e9e24579653943558394b2f9e80075",
       "ip": "boot-node-3.devnet.taraxa.io",
       "tcp_port": 10002,
       "udp_port": 10002
@@ -25,14 +25,14 @@
       "level": "0x0",
       "pivot": "0x0000000000000000000000000000000000000000000000000000000000000000",
       "sig": "0xb7e22d46c1ba94d5e8347b01d137b5c428fcbbeaf0a77fb024cbbf1517656ff00d04f7f25be608c321b0d7483c402c294ff46c49b265305d046a52236c0a363701",
-      "timestamp": "0x5d422b84",
+      "timestamp": "0x60aee100",
       "tips": [],
       "transactions": []
     },
     "final_chain": {
       "genesis_block_fields": {
         "author": "0x0000000000000000000000000000000000000000",
-        "timestamp": "0x5d422b84"
+        "timestamp": "0x60aee100"
       },
       "state": {
         "disable_block_rewards": true,

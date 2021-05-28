@@ -1,5 +1,7 @@
 #include "taraxa_capability.hpp"
 
+#include <algorithm>
+
 #include "consensus/pbft_chain.hpp"
 #include "consensus/pbft_manager.hpp"
 #include "consensus/vote.hpp"
@@ -89,7 +91,19 @@ void TaraxaCapability::sealAndSend(NodeID const &nodeID, unsigned packet_type, R
   if (!host) {
     return;
   }
+
   auto packet_size = rlp.out().size();
+
+  // This situation should never happen - packets bigger than 16MB cannot be sent due to networking layer limitations.
+  // If we are trying to send packets bigger than that, it should be split to multiple packets
+  // or handled in some other way in high level code - e.g. function that creates such packet and calls sealAndSend
+  if (packet_size > MAX_PACKET_SIZE) {
+    LOG(log_er_) << "Trying to send packet bigger than PACKET_MAX_SIZE(" << MAX_PACKET_SIZE << ") - rejected !"
+                 << " Packet type: " << packetTypeToString(packet_type) << ", size: " << packet_size
+                 << ", receiver: " << nodeID.abridged();
+    return;
+  }
+
   auto begin = std::chrono::steady_clock::now();
   host->send(nodeID, name(), packet_type, move(rlp.invalidate()), [=] {
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - begin);
@@ -407,7 +421,8 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         auto status = checkDagBlockValidation(block);
         if (!status.first) {
           LOG(log_nf_dag_sync_) << "DagBlockValidation failed " << status.second;
-          break;
+          if (iBlock + transactionCount + 1 >= itemCount) break;
+          continue;
         }
 
         LOG(log_nf_dag_sync_) << "Storing block " << block.getHash().toString() << " with " << newTransactions.size()
@@ -809,7 +824,9 @@ void TaraxaCapability::onDisconnect(NodeID const &_nodeID) {
   });
 }
 
-void TaraxaCapability::sendTestMessage(NodeID const &_id, int _x) { sealAndSend(_id, TestPacket, RLPStream(1) << _x); }
+void TaraxaCapability::sendTestMessage(NodeID const &_id, int _x, std::vector<char> const &data) {
+  sealAndSend(_id, TestPacket, RLPStream(2) << _x << data);
+}
 
 void TaraxaCapability::sendStatus(NodeID const &_id, bool _initial) {
   if (dag_mgr_) {
@@ -990,10 +1007,19 @@ void TaraxaCapability::onNewBlockVerified(DagBlock const &block) {
 }
 
 void TaraxaCapability::sendBlocks(NodeID const &_id, std::vector<std::shared_ptr<DagBlock>> blocks) {
-  std::map<blk_hash_t, std::vector<taraxa::bytes>> blockTransactions;
-  int totalTransactionsCount = 0;
+  taraxa::bytes packet_bytes;
+  size_t packet_items_count = 0;
+  size_t blocks_counter = 0;
+
   for (auto &block : blocks) {
-    std::vector<taraxa::bytes> transactions;
+    size_t dag_block_items_count = 0;
+    size_t previous_block_packet_size = packet_bytes.size();
+
+    // Add dag block rlp to the sent bytes array
+    taraxa::bytes block_bytes = block->rlp(true);
+    packet_bytes.insert(packet_bytes.end(), std::begin(block_bytes), std::end(block_bytes));
+    dag_block_items_count++;  // + 1 new dag blog
+
     for (auto trx : block->getTrxs()) {
       auto t = trx_mgr_->getTransaction(trx);
       if (!t) {
@@ -1003,23 +1029,41 @@ void TaraxaCapability::sendBlocks(NodeID const &_id, std::vector<std::shared_ptr
         // better solution needed
         return;
       }
-      transactions.push_back(t->second);
-      totalTransactionsCount++;
+
+      // Add dag block transaction rlp to the sent bytes array
+      packet_bytes.insert(packet_bytes.end(), std::begin(t->second), std::end(t->second));
+      dag_block_items_count++;  // + 1 new tx from dag blog
     }
-    blockTransactions[block->getHash()] = transactions;
-    LOG(log_nf_dag_sync_) << "Send DagBlock " << block->getHash() << "# Trx: " << transactions.size() << std::endl;
+
+    LOG(log_tr_dag_sync_) << "Send DagBlock " << block->getHash() << "Trxs count: " << block->getTrxs().size();
+
+    // Split packet into multiple smaller ones if total size is > MAX_PACKET_SIZE
+    if (packet_bytes.size() > MAX_PACKET_SIZE) {
+      LOG(log_dg_dag_sync_) << "Sending partial BlocksPacket due tu MAX_PACKET_SIZE limit. "
+                            << blocks_counter << " blocks out of " << blocks.size() << " PbftBlockPacketsent.";
+
+      taraxa::bytes removed_bytes;
+      std::copy(packet_bytes.begin() + previous_block_packet_size, packet_bytes.end(),
+                std::back_inserter(removed_bytes));
+      packet_bytes.resize(previous_block_packet_size);
+
+      RLPStream s(packet_items_count);
+      s.appendRaw(packet_bytes, packet_items_count);
+      sealAndSend(_id, BlocksPacket, std::move(s));
+
+      packet_bytes = std::move(removed_bytes);
+      packet_items_count = 0;
+    }
+
+    packet_items_count += dag_block_items_count;
+    blocks_counter++;
   }
 
-  RLPStream s(blocks.size() + totalTransactionsCount);
-  for (auto &block : blocks) {
-    s.appendRaw(block->rlp(true));
-    taraxa::bytes trx_bytes;
-    for (auto &trx : blockTransactions[block->getHash()]) {
-      trx_bytes.insert(trx_bytes.end(), std::begin(trx), std::end(trx));
-    }
-    s.appendRaw(trx_bytes, blockTransactions[block->getHash()].size());
-  }
-  sealAndSend(_id, BlocksPacket, move(s));
+  LOG(log_dg_dag_sync_) << "Sending final BlocksPacket.";
+
+  RLPStream s(packet_items_count);
+  s.appendRaw(packet_bytes, packet_items_count);
+  sealAndSend(_id, BlocksPacket, std::move(s));
 }
 
 void TaraxaCapability::sendTransactions(NodeID const &_id, std::vector<taraxa::bytes> const &transactions) {
@@ -1368,58 +1412,129 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync, 
   // dag_blk_3 -> [trx_7, trx_8]
   //
   // Represented in the following variables:
-  // level_0 = [pbft_cert_blk_1, pbft_cert_blk_2]
-  // level_0_extra = [pbft_blk_1_dag_blk_hashes, pbft_blk_2_dag_blk_hashes]
-  // edges_0_to_1 = [0, 2, 3]
-  // level_1 = [dag_blk_1, dag_blk_2, dag_blk_3]
-  // edges_1_to_2 = [0, 3, 6, 8]
-  // level_2 = [trx_1, trx_2, trx_3, trx_4, trx_5, trx_6, trx_7, trx_8]
-  //
+  // pbft_blocks = [pbft_cert_blk_1, pbft_cert_blk_2]
+  // pbft_blocks_extra = [pbft_blk_1_dag_blk_hashes, pbft_blk_2_dag_blk_hashes]
+  // dag_blocks_indexes = [0, 2, 3]
+  // dag_blocks = [dag_blk_1, dag_blk_2, dag_blk_3]
+  // transactions_indexes = [0, 3, 6, 8]
+  // transactions = [trx_1, trx_2, trx_3, trx_4, trx_5, trx_6, trx_7, trx_8]
   // General idea:
   // level_`k`[i] is parent of level_`k+1` elements with ordinals in range from (inclusive) edges_`k`_to_`k+1`[i] to
   // (exclusive) edges_`k`_to_`k+1`[i+1]
 
   DbStorage::MultiGetQuery db_query(db_);
-  auto const &level_0 = pbft_cert_blks;
-  for (auto const &b : level_0) {
+  auto const &pbft_blocks = pbft_cert_blks;
+  for (auto const &b : pbft_blocks) {
     db_query.append(DbStorage::Columns::dag_finalized_blocks, b.pbft_blk->getPivotDagBlockHash(), false);
   }
-  auto level_0_extra = db_query.execute();
-  vector<uint> edges_0_to_1;
-  edges_0_to_1.reserve(1 + level_0.size());
-  edges_0_to_1.push_back(0);
-  for (uint i_0 = 0; i_0 < level_0.size(); ++i_0) {
-    db_query.append(DbStorage::Columns::dag_blocks, RLP(level_0_extra[i_0]).toVector<h256>());
-    edges_0_to_1.push_back(db_query.size());
+  auto pbft_blocks_extra = db_query.execute();
+
+  // indexes to dag_blocks vector, based on which we know which dag blocks belong to which pbft block
+  // pbft block 0 dag blocks indexes -> <dag_blocks_indexes[0], dag_blocks_indexes[1]> -> <start_idx, end_idx>
+  // pbft block 0 dag blocks -> [dag_blocks[start_idx], dag_blocks[start_idx + 1], dag_blocks[end_idx]]
+  //
+  // pbft block 1 dag blocks indexes -> <dag_blocks_indexes[1], dag_blocks_indexes[2]> -> <start_idx, end_idx>
+  // pbft block 1 dag blocks -> [dag_blocks[start_idx], dag_blocks[start_idx + 1], dag_blocks[end_idx]]
+  //
+  // pbft block 1 dag blocks indexes -> <dag_blocks_indexes[N], dag_blocks_indexes[N+1]> -> <start_idx, end_idx>
+  // pbft block 1 dag blocks -> [dag_blocks[start_idx], dag_blocks[start_idx + 1], dag_blocks[end_idx]]
+  vector<uint> dag_blocks_indexes;
+  dag_blocks_indexes.reserve(1 + pbft_blocks.size());
+  dag_blocks_indexes.push_back(0);
+  for (uint i_0 = 0; i_0 < pbft_blocks.size(); ++i_0) {
+    db_query.append(DbStorage::Columns::dag_blocks, RLP(pbft_blocks_extra[i_0]).toVector<h256>());
+    dag_blocks_indexes.push_back(db_query.size());
   }
-  auto level_1 = db_query.execute();
-  vector<uint> edges_1_to_2;
-  edges_1_to_2.reserve(1 + level_1.size());
-  edges_1_to_2.push_back(0);
-  for (auto const &dag_blk_raw : level_1) {
+  auto dag_blocks = db_query.execute();
+
+  // indexes to transactions vector, based on which we know which transactions belong to which dag block
+  // dag block 0 transactions indexes -> <transactions_indexes[0], transactions_indexes[1]> -> <start_idx, end_idx>
+  // dag block 0 transactions -> [transactions[start_idx], transactions[start_idx + 1], transactions[end_idx]]
+  //
+  // dag block 1 transactions indexes -> <transactions_indexes[1], transactions_indexes[2]> -> <start_idx, end_idx>
+  // dag block 1 transactions -> [transactions[start_idx], transactions[start_idx + 1], transactions[end_idx]]
+  //
+  // dag block 1 transactions indexes -> <transactions_indexes[N], transactions_indexes[N+1]> -> <start_idx, end_idx>
+  // dag block 1 transactions -> [transactions[start_idx], transactions[start_idx + 1], transactions[end_idx]]
+  vector<uint> transactions_indexes;
+  transactions_indexes.reserve(1 + dag_blocks.size());
+  transactions_indexes.push_back(0);
+  for (auto const &dag_blk_raw : dag_blocks) {
     db_query.append(DbStorage::Columns::transactions, DagBlock::extract_transactions_from_rlp(RLP(dag_blk_raw)));
-    edges_1_to_2.push_back(db_query.size());
+    transactions_indexes.push_back(db_query.size());
   }
-  auto level_2 = db_query.execute();
-  for (uint i_0 = 0; i_0 < level_0.size(); ++i_0) {
-    s.appendList(2);
-    s.appendRaw(level_0[i_0].rlp());
-    auto start_1 = edges_0_to_1[i_0];
-    auto end_1 = edges_0_to_1[i_0 + 1];
-    s.appendList(end_1 - start_1);
-    for (uint i_1 = start_1; i_1 < end_1; ++i_1) {
-      s.appendList(2);
-      s.appendRaw(level_1[i_1]);
-      auto start_2 = edges_1_to_2[i_1];
-      auto end_2 = edges_1_to_2[i_1 + 1];
-      s.appendList(end_2 - start_2);
-      for (uint i_2 = start_2; i_2 < end_2; ++i_2) {
-        s.appendRaw(level_2[i_2]);
+  auto transactions = db_query.execute();
+
+  // Creates final packet out of provided pbft blocks rlp representations
+  auto create_packet = [_id](std::vector<dev::bytes>&& pbft_blocks) -> RLPStream {
+    RLPStream packet_rlp;
+    packet_rlp.appendList(pbft_blocks.size());
+    for (const dev::bytes& block_rlp : pbft_blocks) {
+      packet_rlp.appendRaw(std::move(block_rlp));
+    }
+
+    return packet_rlp;
+  };
+
+  std::vector<dev::bytes> pbft_blocks_rlps;
+  uint64_t act_packet_size = 0;
+
+  // Iterate through pbft blocks
+  for (uint pbft_block_idx = 0; pbft_block_idx < pbft_blocks.size(); ++pbft_block_idx) {
+    RLPStream pbft_block_rlp;
+    auto start_1 = dag_blocks_indexes[pbft_block_idx];
+    auto end_1 = dag_blocks_indexes[pbft_block_idx + 1];
+
+    pbft_block_rlp.appendList(2); // item #1 - pbft block rlp, item #2 - list of dag blocks
+    pbft_block_rlp.appendRaw(pbft_blocks[pbft_block_idx].rlp());
+    pbft_block_rlp.appendList(end_1 - start_1);
+
+    // Iterate through dag blocks blocks / per pbft block
+    for (uint dag_block_idx = start_1; dag_block_idx < end_1; ++dag_block_idx) {
+      auto start_2 = transactions_indexes[dag_block_idx];
+      auto end_2 = transactions_indexes[dag_block_idx + 1];
+
+      pbft_block_rlp.appendList(2); // item #1 - dag block rlp, item #2 - list of dag block transactions
+      pbft_block_rlp.appendRaw(dag_blocks[dag_block_idx]);
+      pbft_block_rlp.appendList(end_2 - start_2);
+
+      // Iterate through txs / per dag block
+      for (uint trx_idx = start_2; trx_idx < end_2; ++trx_idx) {
+        pbft_block_rlp.appendRaw(transactions[trx_idx]);
       }
     }
+
+    // Check if PBFT blocks need to be split and sent in multiple packets so we dont exceed
+    // MAX_PACKET_SIZE (15 MB) limit
+    if (act_packet_size + pbft_block_rlp.out().size() > MAX_PACKET_SIZE) {
+      if (pbft_blocks_rlps.empty()) {
+        // If this log is present in log, it means there was created such big pbft block, that we are not able to send
+        // it through network
+        // This situation should never ever happen !!!
+        LOG(log_er_) << "Unable to send pbft block: " << pbft_blocks[pbft_block_idx].pbft_blk->getBlockHash().abridged()
+                     << " due to MAX_PACKET_SIZE(" << MAX_PACKET_SIZE << ") limit. "
+                     << "Block size: " << pbft_block_rlp.out().size() << " [B]";
+        // Skip this block as it would not go through network anyway
+        continue;
+      }
+
+      LOG(log_dg_dag_sync_) << "Sending partial PbftBlockPacket due tu MAX_PACKET_SIZE limit. "
+                            << pbft_block_idx + 1 << " blocks out of " << pbft_blocks.size() << " sent.";
+
+      // Send partial packet
+      sealAndSend(_id, PbftBlockPacket, create_packet(std::move(pbft_blocks_rlps)));
+
+      act_packet_size = 0;
+      pbft_blocks_rlps.clear();
+    }
+
+    act_packet_size += pbft_block_rlp.out().size();
+    pbft_blocks_rlps.emplace_back(pbft_block_rlp.invalidate());
   }
-  sealAndSend(_id, PbftBlockPacket, move(s));
-  LOG(log_dg_pbft_sync_) << "Sending PbftCertBlocks to " << _id;
+
+  // Send final packet
+  sealAndSend(_id, PbftBlockPacket, create_packet(std::move(pbft_blocks_rlps)));
+  LOG(log_dg_pbft_sync_) << "Sending final PbftBlockPacket to " << _id;
 }
 
 void TaraxaCapability::sendPbftBlock(NodeID const &_id, taraxa::PbftBlock const &pbft_block,

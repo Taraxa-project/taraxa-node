@@ -56,6 +56,7 @@ class Network {
 
   // METHODS USED IN TESTS ONLY
   void sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk);
+  void sendBlocks(dev::p2p::NodeID const &id, std::vector<std::shared_ptr<DagBlock>> blocks);
   void sendTransactions(NodeID const &_id, std::vector<taraxa::bytes> const &transactions);
   dev::p2p::NodeID getNodeId();
   int getReceivedBlocksCount();

@@ -76,6 +76,50 @@ TEST_F(NetworkTest, transfer_block) {
   ASSERT_EQ(1, num_received);
 }
 
+// Test creates two Network setup and verifies sending blocks
+// between is successfull
+TEST_F(NetworkTest, transfer_lot_of_blocks) {
+  auto node_cfgs = make_node_cfgs<20, true>(2);
+  auto nodes = launch_nodes(node_cfgs);
+
+  std::vector<std::shared_ptr<DagBlock>> dag_blocks;
+  std::vector<trx_hash_t> trx_hashes;
+  std::vector<taraxa::bytes> trx_bytes;
+
+  // creating a lot of trxs
+  auto trxs = samples::createSignedTrxSamples(0, 1500, g_secret);
+  for (const auto& trx : trxs) {
+    trx_bytes.emplace_back(*trx.rlp());
+    trx_hashes.push_back(trx.getHash());
+  }
+
+  // creating lot of non valid blocks just for size
+  for (int i = 0; i < 100; ++i) {
+    DagBlock blk(blk_hash_t(1111 + i), 0, {blk_hash_t(222 + i), blk_hash_t(333 + i), blk_hash_t(444 + i)}, trx_hashes,
+                 sig_t(7777 + i), blk_hash_t(888 + i), addr_t(999 + i));
+    dag_blocks.emplace_back(std::make_shared<DagBlock>(blk));
+  }
+
+  // add one valid as last
+  auto dag_genesis = nodes[1]->getConfig().chain.dag_genesis_block.getHash();
+  vdf_sortition::VdfConfig vdf_config(node_cfgs[1].chain.vdf);
+  vdf_sortition::VdfSortition vdf(vdf_config, node_key.address(), nodes[1]->getVrfSecretKey(), getRlpBytes(1));
+  vdf.computeVdfSolution(vdf_config, dag_genesis.asBytes());
+  DagBlock blk(dag_genesis, 1, {}, {samples::createSignedTrxSamples(0, 1, g_secret)[0].getHash()}, vdf,
+               nodes[1]->getSecretKey());
+
+  auto block_hash = blk.getHash();
+  dag_blocks.emplace_back(std::make_shared<DagBlock>(blk));
+
+  nodes[0]->getNetwork()->onNewTransactions(std::move(trx_bytes));
+  taraxa::thisThreadSleepForSeconds(1);
+  nodes[0]->getNetwork()->sendBlocks(nodes[1]->getNetwork()->getNodeId(), std::move(dag_blocks));
+
+  std::cout << "Waiting Sync ..." << std::endl;
+  wait({5s, 300ms},
+       [&](auto& ctx) { WAIT_EXPECT_NE(ctx, nodes[1]->getDagBlockManager()->getDagBlock(block_hash), nullptr) });
+}
+
 TEST_F(NetworkTest, send_pbft_block) {
   auto node_cfgs = make_node_cfgs<5>(2);
   auto nodes = launch_nodes(node_cfgs, 1);
@@ -247,18 +291,18 @@ TEST_F(NetworkTest, node_sync) {
   }
 
   EXPECT_HAPPENS({30s, 500ms}, [&](auto& ctx) {
-    WAIT_EXPECT_EQ(ctx, node1->getNumReceivedBlocks(), blks.size());
-    WAIT_EXPECT_EQ(ctx, node1->getDagManager()->getNumVerticesInDag().first, 7);
-    WAIT_EXPECT_EQ(ctx, node1->getDagManager()->getNumEdgesInDag().first, 8);
+    WAIT_EXPECT_EQ(ctx, node1->getNumReceivedBlocks(), blks.size())
+    WAIT_EXPECT_EQ(ctx, node1->getDagManager()->getNumVerticesInDag().first, 7)
+    WAIT_EXPECT_EQ(ctx, node1->getDagManager()->getNumEdgesInDag().first, 8)
   });
 
   FullNode::Handle node2(node_cfgs[1], true);
 
   std::cout << "Waiting Sync..." << std::endl;
   EXPECT_HAPPENS({45s, 1500ms}, [&](auto& ctx) {
-    WAIT_EXPECT_EQ(ctx, node2->getNumReceivedBlocks(), blks.size());
-    WAIT_EXPECT_EQ(ctx, node2->getDagManager()->getNumVerticesInDag().first, 7);
-    WAIT_EXPECT_EQ(ctx, node2->getDagManager()->getNumEdgesInDag().first, 8);
+    WAIT_EXPECT_EQ(ctx, node2->getNumReceivedBlocks(), blks.size())
+    WAIT_EXPECT_EQ(ctx, node2->getDagManager()->getNumVerticesInDag().first, 7)
+    WAIT_EXPECT_EQ(ctx, node2->getDagManager()->getNumEdgesInDag().first, 8)
   });
 }
 

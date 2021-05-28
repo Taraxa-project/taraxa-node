@@ -18,6 +18,7 @@ RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends tzdata \
     && apt-get install -y \
         tar \
+        git \
         xz-utils \
         curl \
         libtool \
