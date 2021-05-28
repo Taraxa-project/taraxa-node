@@ -103,9 +103,6 @@ void TaraxaCapability::sealAndSend(NodeID const &nodeID, unsigned packet_type, R
                  << ", receiver: " << nodeID.abridged();
     return;
   }
-  if (packet_type == BlocksPacket) {
-    LOG(log_dg_dag_sync_) << "DBG: Before host->send.";
-  }
 
   auto begin = std::chrono::steady_clock::now();
   host->send(nodeID, name(), packet_type, move(rlp.invalidate()), [=] {
@@ -117,10 +114,6 @@ void TaraxaCapability::sealAndSend(NodeID const &nodeID, unsigned packet_type, R
                            << nodeID << "\"). Stats: " << packet_stats;
     });
   });
-
-  if (packet_type == BlocksPacket) {
-    LOG(log_dg_dag_sync_) << "DBG: after host->send.";
-  }
 }
 
 std::pair<bool, blk_hash_t> TaraxaCapability::checkDagBlockValidation(DagBlock const &block) {
@@ -1521,7 +1514,7 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync, 
         LOG(log_er_) << "Unable to send pbft block: " << pbft_blocks[pbft_block_idx].pbft_blk->getBlockHash().abridged()
                      << " due to MAX_PACKET_SIZE(" << MAX_PACKET_SIZE << ") limit. "
                      << "Block size: " << pbft_block_rlp.out().size() << " [B]";
-        // Skip this block as it would go through network anyway
+        // Skip this block as it would not go through network anyway
         continue;
       }
 
