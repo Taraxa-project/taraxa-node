@@ -15,7 +15,6 @@
 #include "util_test/util.hpp"
 
 namespace taraxa::core_tests {
-const unsigned NUM_TRX = 40;
 const unsigned NUM_BLK = 4;
 const unsigned BLK_TRX_LEN = 4;
 const unsigned BLK_TRX_OVERLAP = 1;
@@ -175,7 +174,7 @@ TEST_F(DagBlockTest, sign_verify) {
 TEST_F(DagBlockTest, push_and_pop) {
   auto node_cfgs = make_node_cfgs(1);
   FullNode::Handle node(node_cfgs[0]);
-  DagBlockManager blk_qu(addr_t(), node_cfgs[0].chain.vdf, node_cfgs[0].chain.final_chain.state.dpos, 1024, 2,
+  DagBlockManager blk_qu(addr_t(), node_cfgs[0].chain.vdf, node_cfgs[0].chain.final_chain.state.dpos, 1024,
                          node->getDB(), nullptr, nullptr, nullptr, node->getTimeLogger());
   blk_qu.start();
   DagBlock blk1(blk_hash_t(1111), level_t(0), {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)}, {}, sig_t(7777),

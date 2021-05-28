@@ -23,7 +23,7 @@
  */
 namespace taraxa {
 
-class DbStorage;
+struct DbStorage;
 class FullNode;
 class Vote;
 

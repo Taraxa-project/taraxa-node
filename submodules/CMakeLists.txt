@@ -33,25 +33,12 @@ add_library(
 )
 target_include_directories(ethash PUBLIC ${include_dir})
 
+# Add scrypt 
+add_subdirectory(libscrypt)
+include_directories(libscrypt)
+
 # Add aleth
-
-## indicate that aleth build like submodule
-set(ALETH_SUBMODULE ON)
-
-## add new targets
-add_subdirectory(taraxa-aleth/libdevcore)
-add_subdirectory(taraxa-aleth/libdevcrypto)
-add_subdirectory(taraxa-aleth/libethcore)
-add_subdirectory(taraxa-aleth/libp2p)
-add_subdirectory(taraxa-aleth/libethereum)
-add_subdirectory(taraxa-aleth/libweb3jsonrpc)
-
-## include directory to avoid compile erros
-target_include_directories(devcore PUBLIC "taraxa-aleth")
-## create aleth target for just included targets
-add_library(aleth INTERFACE)
-target_link_libraries(aleth INTERFACE ethereum devcore ethcore devcrypto web3jsonrpc)
-
+add_subdirectory(taraxa-aleth)
 
 include(ExternalProject)
 

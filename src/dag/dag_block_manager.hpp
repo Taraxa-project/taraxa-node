@@ -16,7 +16,7 @@ using BlockStatusTable = ExpirationCacheMap<blk_hash_t, BlockStatus>;
 class DagBlockManager {
  public:
   DagBlockManager(addr_t node_addr, vdf_sortition::VdfConfig const &vdf_config,
-                  optional<state_api::DPOSConfig> dpos_config, size_t capacity, unsigned verify_threads,
+                  optional<state_api::DPOSConfig> dpos_config, unsigned verify_threads,
                   std::shared_ptr<DbStorage> db, std::shared_ptr<TransactionManager> trx_mgr,
                   std::shared_ptr<FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain,
                   logger::Logger log_time_, uint32_t queue_limit = 0);
@@ -53,7 +53,6 @@ class DagBlockManager {
   void verifyBlock();
 
   std::atomic<bool> stopped_ = true;
-  size_t capacity_ = 2048;
   size_t num_verifiers_ = 4;
   const uint32_t cache_max_size_ = 10000;
   const uint32_t cache_delete_step_ = 100;
