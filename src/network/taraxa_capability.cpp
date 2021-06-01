@@ -213,6 +213,9 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
   if (dag_mgr_ && !peer->passed_initial_ && _id != StatusPacket) {
     return;
   }
+  //Any packet means that we are comunicating so let's not disconnect
+  //e.g. we could sned a lot of data and status packet can be in send queue
+  peer->statusReceived();
 
   switch (_id) {
     case SyncedPacket: {
@@ -222,7 +225,6 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       break;
     }
     case StatusPacket: {
-      peer->statusReceived();
       bool initial_status = _r.itemCount() == 9;
 
       if (initial_status) {
@@ -1153,18 +1155,20 @@ void TaraxaCapability::doBackgroundWork() {
   if (!host) {
     return;
   }
-  for (auto const &peer : peers_) {
-    // Disconnect any node that did not send any message for 3 status intervals
-    if (!peer.second->checkStatus(5)) {
-      LOG(log_nf_) << "Host disconnected, no status message in " << 5 * check_status_interval_ << " ms" << peer.first;
-      host->disconnect(peer.first, p2p::PingTimeout);
-    }
-    // Send status message
-    else {
-      sendStatus(peer.first, false);
+  {
+    boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
+    for (auto const &peer : peers_) {
+      // Disconnect any node that did not send any message for 3 status intervals
+      if (!peer.second->checkStatus(5)) {
+        LOG(log_nf_) << "Host disconnected, no status message in " << 5 * check_status_interval_ << " ms" << peer.first;
+        host->disconnect(peer.first, p2p::PingTimeout);
+      }
+      // Send status message
+      else {
+        sendStatus(peer.first, false);
+      }
     }
   }
-
   tp_.post(check_status_interval_, [this] { doBackgroundWork(); });
 }
 
