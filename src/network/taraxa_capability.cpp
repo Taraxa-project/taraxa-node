@@ -1159,8 +1159,8 @@ void TaraxaCapability::checkLiveness() {
     boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
     for (auto const &peer : peers_) {
       // Disconnect any node that did not send any message for 3 status intervals
-      if (!peer.second->isAlive(5)) {
-        LOG(log_nf_) << "Host disconnected, no status message in " << 5 * check_alive_interval_ << " ms" << peer.first;
+      if (!peer.second->isAlive(MAX_CHECK_ALIVE_COUNT)) {
+        LOG(log_nf_) << "Host disconnected, no status message in " << MAX_CHECK_ALIVE_COUNT * check_alive_interval_ << " ms" << peer.first;
         host->disconnect(peer.first, p2p::PingTimeout);
       }
       // Send status message
