@@ -47,8 +47,8 @@ TaraxaCapability::TaraxaCapability(weak_ptr<Host> _host, NetworkConfig const &_c
   if (conf_.network_transaction_interval > 0) {
     tp_.post(conf_.network_transaction_interval, [this] { sendTransactions(); });
   }
-  check_status_interval_ = 6 * lambda_ms_min_;
-  tp_.post(check_status_interval_, [this] { doBackgroundWork(); });
+  check_alive_interval_ = 6 * lambda_ms_min_;
+  tp_.post(check_alive_interval_, [this] { checkLiveness(); });
   if (conf_.network_performance_log_interval > 0) {
     tp_.post(conf_.network_performance_log_interval, [this] { logPacketsStats(); });
   }
@@ -215,7 +215,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
   }
   //Any packet means that we are comunicating so let's not disconnect
   //e.g. we could sned a lot of data and status packet can be in send queue
-  peer->statusReceived();
+  peer->setAlive();
 
   switch (_id) {
     case SyncedPacket: {
@@ -1150,7 +1150,7 @@ void TaraxaCapability::sendTransactions() {
   }
 }
 
-void TaraxaCapability::doBackgroundWork() {
+void TaraxaCapability::checkLiveness() {
   auto host = host_.lock();
   if (!host) {
     return;
@@ -1159,8 +1159,8 @@ void TaraxaCapability::doBackgroundWork() {
     boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
     for (auto const &peer : peers_) {
       // Disconnect any node that did not send any message for 3 status intervals
-      if (!peer.second->checkStatus(5)) {
-        LOG(log_nf_) << "Host disconnected, no status message in " << 5 * check_status_interval_ << " ms" << peer.first;
+      if (!peer.second->isAlive(5)) {
+        LOG(log_nf_) << "Host disconnected, no status message in " << 5 * check_alive_interval_ << " ms" << peer.first;
         host->disconnect(peer.first, p2p::PingTimeout);
       }
       // Send status message
@@ -1169,7 +1169,7 @@ void TaraxaCapability::doBackgroundWork() {
       }
     }
   }
-  tp_.post(check_status_interval_, [this] { doBackgroundWork(); });
+  tp_.post(check_alive_interval_, [this] { checkLiveness(); });
 }
 
 void TaraxaCapability::logNodeStats() {
