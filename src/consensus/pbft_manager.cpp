@@ -1112,7 +1112,7 @@ std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_(std::vector<Vote> 
       // no new blocks found, or maliciously) if others have blocks.
       auto proposed_block_hash = v.getBlockHash();
       if (round == 1 ||
-          (proposed_block_hash != NULL_BLOCK_HASH && !pbft_chain_->findPbftBlockInChain(proposed_block_hash))) {
+          (proposed_block_hash != NULL_BLOCK_HASH && checkPbftBlockValid_(proposed_block_hash))) {
         leader_candidates.emplace_back(std::make_pair(v.getCredential(), proposed_block_hash));
       }
     }
