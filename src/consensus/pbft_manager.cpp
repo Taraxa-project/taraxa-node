@@ -569,6 +569,7 @@ void PbftManager::proposeBlock_() {
                    << " for round 1 by protocol";
     }
   } else if (pbft_chain_->findPbftBlockInChain(voted_value) ||
+             (pbft_chain_->getUnverifiedPbftBlock(voted_value) && !checkPbftBlockValid_(voted_value)) ||
              (round >= 2 && previous_round_next_votes_->haveEnoughVotesForNullBlockHash())) {
     // PBFT block only be proposed once in one period
     if (!proposed_block_hash_.second || proposed_block_hash_.first == NULL_BLOCK_HASH) {
@@ -1113,7 +1114,16 @@ std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_(std::vector<Vote> 
       auto proposed_block_hash = v.getBlockHash();
       if (round == 1 ||
           (proposed_block_hash != NULL_BLOCK_HASH && !pbft_chain_->findPbftBlockInChain(proposed_block_hash))) {
-        leader_candidates.emplace_back(std::make_pair(v.getCredential(), proposed_block_hash));
+        auto block = pbft_chain_->getUnverifiedPbftBlock(proposed_block_hash);
+        if (block) {
+          // Received the proposed block already
+          if (pbft_chain_->checkPbftBlockValidation(*block)) {
+            leader_candidates.emplace_back(std::make_pair(v.getCredential(), proposed_block_hash));
+          }
+        } else {
+          // Have not received the proposed block yet. Identify a leader without even needing to have the block yet.
+          leader_candidates.emplace_back(std::make_pair(v.getCredential(), proposed_block_hash));
+        }
       }
     }
   }
