@@ -214,7 +214,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
     return;
   }
   // Any packet means that we are comunicating so let's not disconnect
-  // e.g. we could sned a lot of data and status packet can be in send queue
+  // e.g. we could send a lot of data and status packet can be in send queue
   peer->setAlive();
 
   switch (_id) {
