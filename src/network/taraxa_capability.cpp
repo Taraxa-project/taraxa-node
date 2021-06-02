@@ -47,8 +47,8 @@ TaraxaCapability::TaraxaCapability(weak_ptr<Host> _host, NetworkConfig const &_c
   if (conf_.network_transaction_interval > 0) {
     tp_.post(conf_.network_transaction_interval, [this] { sendTransactions(); });
   }
-  check_status_interval_ = 6 * lambda_ms_min_;
-  tp_.post(check_status_interval_, [this] { doBackgroundWork(); });
+  check_alive_interval_ = 6 * lambda_ms_min_;
+  tp_.post(check_alive_interval_, [this] { checkLiveness(); });
   if (conf_.network_performance_log_interval > 0) {
     tp_.post(conf_.network_performance_log_interval, [this] { logPacketsStats(); });
   }
@@ -213,6 +213,9 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
   if (dag_mgr_ && !peer->passed_initial_ && _id != StatusPacket) {
     return;
   }
+  // Any packet means that we are comunicating so let's not disconnect
+  // e.g. we could send a lot of data and status packet can be in send queue
+  peer->setAlive();
 
   switch (_id) {
     case SyncedPacket: {
@@ -222,7 +225,6 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       break;
     }
     case StatusPacket: {
-      peer->statusReceived();
       bool initial_status = _r.itemCount() == 9;
 
       if (initial_status) {
@@ -770,7 +772,7 @@ void TaraxaCapability::restartSyncingPbft(bool force) {
   uint64_t max_node_dag_level = 0;
   {
     boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
-    for (auto const& peer : peers_) {
+    for (auto const &peer : peers_) {
       if (peer.second->pbft_chain_size_ > max_pbft_chain_size) {
         max_pbft_chain_size = peer.second->pbft_chain_size_;
         max_pbft_chain_nodeID = peer.first;
@@ -1039,8 +1041,8 @@ void TaraxaCapability::sendBlocks(NodeID const &_id, std::vector<std::shared_ptr
 
     // Split packet into multiple smaller ones if total size is > MAX_PACKET_SIZE
     if (packet_bytes.size() > MAX_PACKET_SIZE) {
-      LOG(log_dg_dag_sync_) << "Sending partial BlocksPacket due tu MAX_PACKET_SIZE limit. "
-                            << blocks_counter << " blocks out of " << blocks.size() << " PbftBlockPacketsent.";
+      LOG(log_dg_dag_sync_) << "Sending partial BlocksPacket due tu MAX_PACKET_SIZE limit. " << blocks_counter
+                            << " blocks out of " << blocks.size() << " PbftBlockPacketsent.";
 
       taraxa::bytes removed_bytes;
       std::copy(packet_bytes.begin() + previous_block_packet_size, packet_bytes.end(),
@@ -1148,24 +1150,27 @@ void TaraxaCapability::sendTransactions() {
   }
 }
 
-void TaraxaCapability::doBackgroundWork() {
+void TaraxaCapability::checkLiveness() {
   auto host = host_.lock();
   if (!host) {
     return;
   }
-  for (auto const &peer : peers_) {
-    // Disconnect any node that did not send any message for 3 status intervals
-    if (!peer.second->checkStatus(5)) {
-      LOG(log_nf_) << "Host disconnected, no status message in " << 5 * check_status_interval_ << " ms" << peer.first;
-      host->disconnect(peer.first, p2p::PingTimeout);
-    }
-    // Send status message
-    else {
-      sendStatus(peer.first, false);
+  {
+    boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
+    for (auto const &peer : peers_) {
+      // Disconnect any node that did not send any message for 3 status intervals
+      if (!peer.second->isAlive(MAX_CHECK_ALIVE_COUNT)) {
+        LOG(log_nf_) << "Host disconnected, no status message in " << MAX_CHECK_ALIVE_COUNT * check_alive_interval_
+                     << " ms" << peer.first;
+        host->disconnect(peer.first, p2p::PingTimeout);
+      }
+      // Send status message
+      else {
+        sendStatus(peer.first, false);
+      }
     }
   }
-
-  tp_.post(check_status_interval_, [this] { doBackgroundWork(); });
+  tp_.post(check_alive_interval_, [this] { checkLiveness(); });
 }
 
 void TaraxaCapability::logNodeStats() {
@@ -1183,7 +1188,7 @@ void TaraxaCapability::logNodeStats() {
   {
     boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
     peers_size = peers_.size();
-    for (auto const& peer : peers_) {
+    for (auto const &peer : peers_) {
       // Find max pbft chain size
       if (peer.second->pbft_chain_size_ > peer_max_pbft_chain_size) {
         peer_max_pbft_chain_size = peer.second->pbft_chain_size_;
@@ -1466,10 +1471,10 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync, 
   auto transactions = db_query.execute();
 
   // Creates final packet out of provided pbft blocks rlp representations
-  auto create_packet = [_id](std::vector<dev::bytes>&& pbft_blocks) -> RLPStream {
+  auto create_packet = [_id](std::vector<dev::bytes> &&pbft_blocks) -> RLPStream {
     RLPStream packet_rlp;
     packet_rlp.appendList(pbft_blocks.size());
-    for (const dev::bytes& block_rlp : pbft_blocks) {
+    for (const dev::bytes &block_rlp : pbft_blocks) {
       packet_rlp.appendRaw(std::move(block_rlp));
     }
 
@@ -1485,7 +1490,7 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync, 
     auto start_1 = dag_blocks_indexes[pbft_block_idx];
     auto end_1 = dag_blocks_indexes[pbft_block_idx + 1];
 
-    pbft_block_rlp.appendList(2); // item #1 - pbft block rlp, item #2 - list of dag blocks
+    pbft_block_rlp.appendList(2);  // item #1 - pbft block rlp, item #2 - list of dag blocks
     pbft_block_rlp.appendRaw(pbft_blocks[pbft_block_idx].rlp());
     pbft_block_rlp.appendList(end_1 - start_1);
 
@@ -1494,7 +1499,7 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync, 
       auto start_2 = transactions_indexes[dag_block_idx];
       auto end_2 = transactions_indexes[dag_block_idx + 1];
 
-      pbft_block_rlp.appendList(2); // item #1 - dag block rlp, item #2 - list of dag block transactions
+      pbft_block_rlp.appendList(2);  // item #1 - dag block rlp, item #2 - list of dag block transactions
       pbft_block_rlp.appendRaw(dag_blocks[dag_block_idx]);
       pbft_block_rlp.appendList(end_2 - start_2);
 
@@ -1518,8 +1523,8 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync, 
         continue;
       }
 
-      LOG(log_dg_dag_sync_) << "Sending partial PbftBlockPacket due tu MAX_PACKET_SIZE limit. "
-                            << pbft_block_idx + 1 << " blocks out of " << pbft_blocks.size() << " sent.";
+      LOG(log_dg_dag_sync_) << "Sending partial PbftBlockPacket due tu MAX_PACKET_SIZE limit. " << pbft_block_idx + 1
+                            << " blocks out of " << pbft_blocks.size() << " sent.";
 
       // Send partial packet
       sealAndSend(_id, PbftBlockPacket, create_packet(std::move(pbft_blocks_rlps)));
