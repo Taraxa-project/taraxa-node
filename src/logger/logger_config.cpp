@@ -99,10 +99,8 @@ void Config::InitLogging(addr_t const &node) {
         return true;
       }
     } else {
-      if (channels.size() == 0) {
-        if (_set[severity] > verbosity) return false;
-        return true;
-      }
+      if (_set[severity] > verbosity) return false;
+      return true;
     }
     return false;
   };

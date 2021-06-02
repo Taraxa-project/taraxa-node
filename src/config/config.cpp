@@ -164,6 +164,11 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object,
   // Network logging in p2p library creates performance issues even with
   // channel/verbosity off Disable it completely in net channel is not present
   if (!root["logging"].isNull()) {
+    if(auto path = getConfigData(root["logging"], {"log_path"}, true); !path.isNull()) {
+      log_path = path.asString();
+    } else {
+      log_path = db_path / "logs";
+    }
     for (auto &item : root["logging"]["configurations"]) {
       auto on = getConfigDataAsBoolean(item, {"on"});
       if (on) {
@@ -185,7 +190,7 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object,
           output.type = getConfigDataAsString(o, {"type"});
           output.format = getConfigDataAsString(o, {"format"});
           if (output.type == "file") {
-            output.file_name = (db_path / getConfigDataAsString(o, {"file_name"})).string();
+            output.file_name = (log_path / getConfigDataAsString(o, {"file_name"})).string();
             output.format = getConfigDataAsString(o, {"format"});
             output.max_size = getConfigDataAsUInt64(o, {"max_size"});
             output.rotation_size = getConfigDataAsUInt64(o, {"rotation_size"});

@@ -37,6 +37,7 @@ FullNode::FullNode(FullNodeConfig const &conf)
 
 void FullNode::init() {
   fs::create_directories(conf_.db_path);
+  fs::create_directories(conf_.log_path);
   // Initialize logging
   auto const &node_addr = kp_.address();
 
@@ -95,9 +96,8 @@ void FullNode::init() {
   emplace(pbft_chain_, genesis_hash, node_addr, db_);
   emplace(next_votes_mgr_, node_addr, db_);
   emplace(dag_mgr_, genesis_hash, node_addr, trx_mgr_, pbft_chain_, db_);
-  emplace(dag_blk_mgr_, node_addr, conf_.chain.vdf, conf_.chain.final_chain.state.dpos,
-          4 /* verifer thread*/, db_, trx_mgr_, final_chain_, pbft_chain_, log_time_,
-          conf_.test_params.max_block_queue_warn);
+  emplace(dag_blk_mgr_, node_addr, conf_.chain.vdf, conf_.chain.final_chain.state.dpos, 4 /* verifer thread*/, db_,
+          trx_mgr_, final_chain_, pbft_chain_, log_time_, conf_.test_params.max_block_queue_warn);
   emplace(vote_mgr_, node_addr, db_, final_chain_, pbft_chain_);
   emplace(trx_order_mgr_, node_addr, db_);
   emplace(executor_, node_addr, db_, dag_mgr_, trx_mgr_, dag_blk_mgr_, final_chain_, pbft_chain_,

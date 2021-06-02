@@ -79,12 +79,12 @@ class TaraxaPeer : public boost::noncopyable {
   bool isPbftBlockKnown(blk_hash_t const &_hash) const { return known_pbft_blocks_.count(_hash); }
   void markPbftBlockAsKnown(blk_hash_t const &_hash) { known_pbft_blocks_.insert(_hash); }
 
-  bool checkStatus(uint16_t max_check_count) {
-    status_check_count_++;
-    return status_check_count_ <= max_check_count;
+  bool isAlive(uint16_t max_check_count) {
+    alive_check_count_++;
+    return alive_check_count_ <= max_check_count;
   }
 
-  void statusReceived() { status_check_count_ = 0; }
+  void setAlive() { alive_check_count_ = 0; }
 
   bool passed_initial_ = false;
   bool syncing_ = false;
@@ -102,7 +102,7 @@ class TaraxaPeer : public boost::noncopyable {
   ExpirationCache<blk_hash_t> known_pbft_blocks_;
   ExpirationCache<vote_hash_t> known_votes_;  // for peers
 
-  uint16_t status_check_count_ = 0;
+  std::atomic<uint16_t> alive_check_count_ = 0;
 };
 
 struct TaraxaCapability : virtual CapabilityFace {
@@ -158,7 +158,7 @@ struct TaraxaCapability : virtual CapabilityFace {
 
   uint64_t getSimulatedNetworkDelay(const RLP &packet_rlp, const NodeID &nodeID);
 
-  void doBackgroundWork();
+  void checkLiveness();
   void logNodeStats();
   void logPacketsStats();
   void sendTransactions();
@@ -221,7 +221,7 @@ struct TaraxaCapability : virtual CapabilityFace {
   mutable std::mt19937_64 urng_;  // Mersenne Twister psuedo-random number generator
   std::mt19937 delay_rng_;
   std::uniform_int_distribution<std::mt19937::result_type> random_dist_;
-  uint16_t check_status_interval_ = 0;
+  uint16_t check_alive_interval_ = 0;
 
   uint64_t received_trx_count = 0;
   uint64_t unique_received_trx_count = 0;
@@ -241,6 +241,7 @@ struct TaraxaCapability : virtual CapabilityFace {
   PacketsStats received_packets_stats_;
 
   const uint32_t MAX_PACKET_SIZE = 15 * 1024 * 1024;  // 15 MB -> 15 * 1024 * 1024 B
+  const uint16_t MAX_CHECK_ALIVE_COUNT = 5;
 
   LOG_OBJECTS_DEFINE
   LOG_OBJECTS_DEFINE_SUB(pbft_sync)
