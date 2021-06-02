@@ -188,18 +188,18 @@ jobs:
               docker push ${GCP_IMAGE}-develop:${START_TIME}
               docker push ${GCP_IMAGE}-develop:${CIRCLE_SHA1}
               docker push ${GCP_IMAGE}-develop:${START_TIME}-${CIRCLE_SHA1}
+              echo ${DOCKERHUB_PASS} | docker login -u taraxa --password-stdin
+              docker push taraxa/${IMAGE}:${CIRCLE_SHA1}
+              docker push taraxa/${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+              docker push taraxa/${IMAGE}:${START_TIME}
+              docker push taraxa/${IMAGE}:${START_TIME}-${CIRCLE_SHA1}
+              docker push taraxa/${IMAGE}:latest
            fi
 
            if [[ ${PR} != "false" ]];then
               docker push ${GCP_IMAGE}:pr-${PR}-${CIRCLE_BUILD_NUM}
            fi
            if [[ ${CIRCLE_BRANCH} == "master" ]];then
-              echo ${DOCKERHUB_PASS} | docker login -u taraxa --password-stdin
-              docker push taraxa/${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
-              docker push taraxa/${IMAGE}:${START_TIME}
-              docker push taraxa/${IMAGE}:${CIRCLE_SHA1}
-              docker push taraxa/${IMAGE}:${START_TIME}-${CIRCLE_SHA1}
-              docker push taraxa/${IMAGE}:latest
               docker push ${GCP_IMAGE}:latest
               docker push ${GCP_IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
               docker push ${GCP_IMAGE}:${START_TIME}
