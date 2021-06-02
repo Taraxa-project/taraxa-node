@@ -37,6 +37,7 @@ FullNode::FullNode(FullNodeConfig const &conf)
 
 void FullNode::init() {
   fs::create_directories(conf_.db_path);
+  fs::create_directories(conf_.log_path);
   // Initialize logging
   auto const &node_addr = kp_.address();
 
