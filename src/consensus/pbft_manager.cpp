@@ -570,8 +570,7 @@ void PbftManager::proposeBlock_() {
       LOG(log_nf_) << "Proposing " << place_votes << " values of NULL_BLOCK_HASH " << NULL_BLOCK_HASH
                    << " for round 1 by protocol";
     }
-  } else if (pbft_chain_->findPbftBlockInChain(voted_value) ||
-             (pbft_chain_->getUnverifiedPbftBlock(voted_value) && !checkPbftBlockValid_(voted_value)) ||
+  } else if (giveUpVotedBlock_(voted_value) ||
              (round >= 2 && previous_round_next_votes_->haveEnoughVotesForNullBlockHash())) {
     // PBFT block only be proposed once in one period
     if (!proposed_block_hash_.second || proposed_block_hash_.first == NULL_BLOCK_HASH) {
@@ -622,7 +621,7 @@ void PbftManager::identifyBlock_() {
   auto voted_value = previous_round_next_votes_->getVotedValue();
   LOG(log_tr_) << "PBFT filtering state in round " << round;
 
-  if (round == 1 || pbft_chain_->findPbftBlockInChain(voted_value) ||
+  if (round == 1 || giveUpVotedBlock_(voted_value) ||
       (round >= 2 && previous_round_next_votes_->haveEnoughVotesForNullBlockHash())) {
     // Identity leader
     std::pair<blk_hash_t, bool> leader_block = identifyLeaderBlock_(votes_);
@@ -741,20 +740,21 @@ void PbftManager::firstFinish_() {
   auto round = getPbftRound();
   LOG(log_tr_) << "PBFT first finishing state at step " << step_ << " in round " << round;
 
+  auto voted_value = previous_round_next_votes_->getVotedValue();
   if (cert_voted_values_for_round_.find(round) != cert_voted_values_for_round_.end()) {
     auto place_votes = placeVote_(cert_voted_values_for_round_[round], next_vote_type, round, step_);
     if (place_votes) {
       LOG(log_nf_) << "Next votes " << place_votes << " voting cert voted value " << cert_voted_values_for_round_[round]
                    << " for round " << round << " , step " << step_;
     }
-  } else if (round >= 2 && previous_round_next_votes_->haveEnoughVotesForNullBlockHash()) {
+  } else if ((round >= 2 && previous_round_next_votes_->haveEnoughVotesForNullBlockHash()) ||
+             giveUpVotedBlock_(voted_value)) {
     auto place_votes = placeVote_(NULL_BLOCK_HASH, next_vote_type, round, step_);
     if (place_votes) {
       LOG(log_nf_) << "Next votes " << place_votes << " voting NULL BLOCK for round " << round << ", at step " << step_;
     }
   } else {
     if (own_starting_value_for_round_ == NULL_BLOCK_HASH) {
-      auto voted_value = previous_round_next_votes_->getVotedValue();
       if (voted_value != NULL_BLOCK_HASH && !reset_own_value_to_null_block_hash_in_this_round_) {
         db_->savePbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round, voted_value);
         own_starting_value_for_round_ = voted_value;
@@ -813,7 +813,7 @@ void PbftManager::secondFinish_() {
   auto voted_value = previous_round_next_votes_->getVotedValue();
   if (!next_voted_null_block_hash_ && round >= 2 &&
       (previous_round_next_votes_->haveEnoughVotesForNullBlockHash() ||
-       pbft_chain_->findPbftBlockInChain(voted_value)) &&
+       giveUpVotedBlock_(voted_value)) &&
       (cert_voted_values_for_round_.find(round) == cert_voted_values_for_round_.end())) {
     auto place_votes = placeVote_(NULL_BLOCK_HASH, next_vote_type, round, step_);
     if (place_votes) {
@@ -1417,6 +1417,50 @@ void PbftManager::updateTwoTPlusOneAndThreshold_() {
   TWO_T_PLUS_ONE = sortition_threshold_ * 2 / 3 + 1;
   LOG(log_nf_) << "Committee size " << COMMITTEE_SIZE << ", DPOS total votes count " << dpos_total_votes_count
                << ". Update 2t+1 " << TWO_T_PLUS_ONE << ", Threshold " << sortition_threshold_;
+}
+
+bool PbftManager::giveUpVotedBlock_(blk_hash_t const &block_hash) {
+  if (pbft_chain_->findPbftBlockInChain(block_hash)) {
+    return true;
+  }
+
+  auto pbft_block = pbft_chain_->getUnverifiedPbftBlock(block_hash);
+  if (!pbft_block) {
+    pbft_block = db_->getPbftCertVotedBlock(block_hash);
+    if (!pbft_block) {
+      LOG(log_dg_) << "Cannot find PBFT block " << block_hash << " in both queue and DB, have not got yet";
+      auto round = getPbftRound();
+      if (!round_began_wait_voted_block_) {
+        round_began_wait_voted_block_ = round;
+        LOG(log_dg_) << "Set began waiting voted block " << block_hash << " at round "
+                     << round_began_wait_voted_block_;
+      } else if (round > round_began_wait_voted_block_) {
+        auto wait_voted_block_rounds = round - round_began_wait_voted_block_;
+        if (wait_voted_block_rounds < max_wait_rounds_for_proposal_block_) {
+          LOG(log_dg_) << "Have been waiting " << wait_voted_block_rounds << " rounds for voted block "
+                       << block_hash;
+        } else {
+          LOG(log_dg_) << "Have been waiting " << wait_voted_block_rounds << " rounds for voted block "
+                       << block_hash << ", give up voted value.";
+          return true;
+        }
+      }
+      return false;
+    }
+    // Read from DB pushing into unverified queue
+    pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
+  }
+  // Back to zero to signify no longer waiting...
+  round_began_wait_voted_block_ = 0;
+
+  if (pbft_block) {
+    if (!checkPbftBlockValid_(block_hash)) {
+      // Received the block, but not valid
+      return true;
+    }
+  }
+
+  return false;
 }
 
 void PbftManager::countVotes_() {

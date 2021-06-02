@@ -130,6 +130,8 @@ class PbftManager {
   void updateTwoTPlusOneAndThreshold_();
   bool is_syncing_();
 
+  bool giveUpVotedBlock_(blk_hash_t const &block_hash);
+
   std::atomic<bool> stopped_ = true;
   // Using to check if PBFT block has been proposed already in one period
   std::pair<blk_hash_t, bool> proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
@@ -185,6 +187,7 @@ class PbftManager {
 
   uint64_t round_began_wait_proposal_block_ = 0;
   size_t max_wait_rounds_for_proposal_block_ = 5;
+  uint64_t round_began_wait_voted_block_ = 0;
 
   uint64_t pbft_round_last_requested_sync_ = 0;
   size_t pbft_step_last_requested_sync_ = 0;
