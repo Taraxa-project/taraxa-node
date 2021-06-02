@@ -77,6 +77,7 @@ struct FullNodeConfig {
   std::string node_secret;
   vrf_wrapper::vrf_sk_t vrf_secret;
   fs::path db_path;
+  fs::path log_path;
   NetworkConfig network;
   optional<RpcConfig> rpc;
   TestParamsConfig test_params;
