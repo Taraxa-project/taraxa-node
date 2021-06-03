@@ -5,7 +5,7 @@
 #ifndef JSONRPC_CPP_STUB_TARAXA_NET_ETHFACE_H_
 #define JSONRPC_CPP_STUB_TARAXA_NET_ETHFACE_H_
 
-#include "network/rpc/ModularServer.h"
+#include <libweb3jsonrpc/ModularServer.h>
 
 namespace taraxa {
     namespace net {
