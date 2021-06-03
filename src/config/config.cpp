@@ -164,7 +164,7 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object,
   // Network logging in p2p library creates performance issues even with
   // channel/verbosity off Disable it completely in net channel is not present
   if (!root["logging"].isNull()) {
-    if(auto path = getConfigData(root["logging"], {"log_path"}, true); !path.isNull()) {
+    if (auto path = getConfigData(root["logging"], {"log_path"}, true); !path.isNull()) {
       log_path = path.asString();
     } else {
       log_path = db_path / "logs";

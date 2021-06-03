@@ -1471,7 +1471,7 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync, 
   auto transactions = db_query.execute();
 
   // Creates final packet out of provided pbft blocks rlp representations
-  auto create_packet = [](std::vector<dev::bytes>&& pbft_blocks) -> RLPStream {
+  auto create_packet = [](std::vector<dev::bytes> &&pbft_blocks) -> RLPStream {
     RLPStream packet_rlp;
     packet_rlp.appendList(pbft_blocks.size());
     for (const dev::bytes &block_rlp : pbft_blocks) {
