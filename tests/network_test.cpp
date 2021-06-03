@@ -122,7 +122,7 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
 
 TEST_F(NetworkTest, send_pbft_block) {
   auto node_cfgs = make_node_cfgs<5>(2);
-  auto nodes = launch_nodes(node_cfgs, 1);
+  auto nodes = launch_nodes(node_cfgs);
   auto nw1 = nodes[0]->getNetwork();
   auto nw2 = nodes[1]->getNetwork();
 
