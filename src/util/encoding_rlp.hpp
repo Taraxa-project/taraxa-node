@@ -180,7 +180,19 @@ void rlp_tuple(RLPDecoderRef encoding, Params&... args) {
 
 }  // namespace taraxa::util::encoding_rlp
 
-#define RLP_FIELDS(...)                                                  \
+#define HAS_RLP_FIELDS                                            \
+  void rlp(::taraxa::util::encoding_rlp::RLPDecoderRef encoding); \
+  void rlp(::taraxa::util::encoding_rlp::RLPEncoderRef encoding) const;
+
+#define RLP_FIELDS_DEFINE(_class_, ...)                                           \
+  void _class_::rlp(::taraxa::util::encoding_rlp::RLPDecoderRef encoding) {       \
+    ::taraxa::util::encoding_rlp::rlp_tuple(encoding, __VA_ARGS__);               \
+  }                                                                               \
+  void _class_::rlp(::taraxa::util::encoding_rlp::RLPEncoderRef encoding) const { \
+    ::taraxa::util::encoding_rlp::rlp_tuple(encoding, __VA_ARGS__);               \
+  }
+
+#define RLP_FIELDS_DEFINE_INPLACE(...)                                   \
   void rlp(::taraxa::util::encoding_rlp::RLPDecoderRef encoding) {       \
     ::taraxa::util::encoding_rlp::rlp_tuple(encoding, __VA_ARGS__);      \
   }                                                                      \

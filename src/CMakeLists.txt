@@ -16,8 +16,10 @@ set(SOURCES
         dag/proposal_period_levels_map.cpp
         dag/vdf_sortition.cpp
         final_chain/TrieCommon.cpp
+        final_chain/data.cpp
         final_chain/final_chain.cpp
         final_chain/state_api.cpp
+        final_chain/state_api_data.cpp
         final_chain/replay_protection_service.cpp
         logger/log.cpp
         logger/logger_config.cpp
@@ -92,9 +94,9 @@ else ()
     target_link_libraries(app_base stdc++fs)
 endif ()
 
-if(TCMALLOC_LIB)
+if (TCMALLOC_LIB)
     target_link_libraries(app_base ${TCMALLOC_LIB}) # MUST BE LINKED LAST!!!
-endif()
+endif ()
 
 # Main taraxad binary
 add_subdirectory(taraxad)

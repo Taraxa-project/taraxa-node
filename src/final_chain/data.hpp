@@ -13,15 +13,10 @@
 
 namespace taraxa::final_chain {
 
-inline static h256 const ZeroHash;
-inline static auto const EmptySHA3 = dev::sha3(dev::bytesConstRef());
-inline static auto const EmptyListSHA3 = dev::sha3(dev::RLPStream(0).out());
-
 /// The log bloom's size (2048-bit).
 using LogBloom = dev::h2048;
 using LogBlooms = std::vector<LogBloom>;
 using Nonce = dev::h64;
-using BlockNumber = uint64_t;
 
 struct BlockHeader {
   h256 hash;
@@ -30,7 +25,7 @@ struct BlockHeader {
   h256 transactions_root;
   h256 receipts_root;
   LogBloom log_bloom;
-  BlockNumber number = 0;
+  EthBlockNumber number = 0;
   uint64_t gas_limit = 0;
   uint64_t gas_used = 0;
   bytes extra_data;
@@ -39,28 +34,14 @@ struct BlockHeader {
 
   uint64_t ethereum_rlp_size = 0;
 
-  RLP_FIELDS(hash, ethereum_rlp_size, parent_hash, author, state_root, transactions_root, receipts_root, log_bloom,
-             number, gas_limit, gas_used, timestamp, extra_data)
+  HAS_RLP_FIELDS
 
-  static h256 const& uncles() { return EmptyListSHA3; }
-  static Nonce const& nonce() {
-    static const Nonce ret;
-    return ret;
-  }
-  static u256 const& difficulty() {
-    static const u256 ret = 0;
-    return ret;
-  }
-  static h256 const& mix_hash() {
-    static const h256 ret;
-    return ret;
-  }
+  static h256 const& uncles();
+  static Nonce const& nonce();
+  static u256 const& difficulty();
+  static h256 const& mix_hash();
 
-  void ethereum_rlp(dev::RLPStream& encoding) const {
-    util::rlp_tuple(encoding, parent_hash, BlockHeader::uncles(), author, state_root, transactions_root, receipts_root,
-                    log_bloom, BlockHeader::difficulty(), number, gas_limit, gas_used, timestamp, extra_data,
-                    BlockHeader::mix_hash(), BlockHeader::nonce());
-  }
+  void ethereum_rlp(dev::RLPStream& encoding) const;
 };
 
 static constexpr auto c_bloomIndexSize = 16;
@@ -74,16 +55,9 @@ struct LogEntry {
   h256s topics;
   bytes data;
 
-  RLP_FIELDS(address, topics, data)
+  HAS_RLP_FIELDS
 
-  auto bloom() const {
-    LogBloom ret;
-    ret.shiftBloom<3>(sha3(address.ref()));
-    for (auto t : topics) {
-      ret.shiftBloom<3>(sha3(t.ref()));
-    }
-    return ret;
-  }
+  LogBloom bloom() const;
 };
 
 using LogEntries = std::vector<LogEntry>;
@@ -95,24 +69,18 @@ struct TransactionReceipt {
   LogEntries logs;
   std::optional<Address> new_contract_address;
 
-  RLP_FIELDS(status_code, gas_used, cumulative_gas_used, logs, new_contract_address)
+  HAS_RLP_FIELDS
 
-  auto bloom() const {
-    LogBloom ret;
-    for (auto const& l : logs) {
-      ret |= l.bloom();
-    }
-    return ret;
-  }
+  LogBloom bloom() const;
 };
 
 using TransactionReceipts = std::vector<TransactionReceipt>;
 
 struct TransactionLocation {
-  BlockNumber blk_n = 0;
+  EthBlockNumber blk_n = 0;
   uint64_t index = 0;
 
-  RLP_FIELDS(blk_n, index)
+  HAS_RLP_FIELDS
 };
 
 }  // namespace taraxa::final_chain

@@ -40,20 +40,22 @@ struct FinalChain : virtual ChainDB {
   virtual shared_ptr<BlockHeader> get_last_block() const = 0;
   virtual void advance_confirm() = 0;
   virtual void create_snapshot(uint64_t const& period) = 0;
-  virtual optional<state_api::Account> get_account(addr_t const& addr, optional<BlockNumber> blk_n = nullopt) const = 0;
+  virtual optional<state_api::Account> get_account(addr_t const& addr,
+                                                   optional<EthBlockNumber> blk_n = nullopt) const = 0;
   virtual u256 get_account_storage(addr_t const& addr, u256 const& key,
-                                   optional<BlockNumber> blk_n = nullopt) const = 0;
-  virtual bytes get_code(addr_t const& addr, optional<BlockNumber> blk_n = nullopt) const = 0;
-  virtual state_api::ExecutionResult call(state_api::EVMTransaction const& trx, optional<BlockNumber> blk_n = nullopt,
+                                   optional<EthBlockNumber> blk_n = nullopt) const = 0;
+  virtual bytes get_code(addr_t const& addr, optional<EthBlockNumber> blk_n = nullopt) const = 0;
+  virtual state_api::ExecutionResult call(state_api::EVMTransaction const& trx,
+                                          optional<EthBlockNumber> blk_n = nullopt,
                                           optional<state_api::ExecutionOptions> const& opts = nullopt) const = 0;
   virtual std::pair<val_t, bool> getBalance(addr_t const& acc) const = 0;
-  virtual uint64_t dpos_eligible_count(BlockNumber blk_num) const = 0;
-  virtual uint64_t dpos_eligible_total_vote_count(BlockNumber blk_num) const = 0;
-  virtual uint64_t dpos_eligible_vote_count(BlockNumber blk_num, addr_t const& addr) const = 0;
+  virtual uint64_t dpos_eligible_count(EthBlockNumber blk_num) const = 0;
+  virtual uint64_t dpos_eligible_total_vote_count(EthBlockNumber blk_num) const = 0;
+  virtual uint64_t dpos_eligible_vote_count(EthBlockNumber blk_num, addr_t const& addr) const = 0;
 
-  virtual bool dpos_is_eligible(BlockNumber blk_num, addr_t const& addr) const = 0;
+  virtual bool dpos_is_eligible(EthBlockNumber blk_num, addr_t const& addr) const = 0;
   virtual state_api::DPOSQueryResult dpos_query(state_api::DPOSQuery const& q,
-                                                optional<BlockNumber> blk_n = nullopt) const = 0;
+                                                optional<EthBlockNumber> blk_n = nullopt) const = 0;
 };
 
 unique_ptr<FinalChain> NewFinalChain(shared_ptr<DbStorage> db, FinalChain::Config const& config,

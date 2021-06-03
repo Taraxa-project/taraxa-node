@@ -48,10 +48,10 @@ struct FinalChain {
 
   virtual future<shared_ptr<BlockFinalized>> finalize(shared_ptr<PbftBlock> pbft_blk) = 0;
 
-  virtual shared_ptr<BlockHeader> block_header(optional<BlockNumber> n = {}) const = 0;
-  virtual BlockNumber last_block_number() const = 0;
-  virtual optional<BlockNumber> block_number(h256 const& h) const = 0;
-  virtual optional<h256> block_hash(optional<BlockNumber> n = {}) const = 0;
+  virtual shared_ptr<BlockHeader> block_header(optional<EthBlockNumber> n = {}) const = 0;
+  virtual EthBlockNumber last_block_number() const = 0;
+  virtual optional<EthBlockNumber> block_number(h256 const& h) const = 0;
+  virtual optional<h256> block_hash(optional<EthBlockNumber> n = {}) const = 0;
   struct TransactionHashes {
     virtual ~TransactionHashes() {}
 
@@ -59,26 +59,26 @@ struct FinalChain {
     virtual h256 get(size_t i) const = 0;
     virtual void for_each(function<void(h256 const&)> const& cb) const = 0;
   };
-  virtual shared_ptr<TransactionHashes> transaction_hashes(optional<BlockNumber> n = {}) const = 0;
-  virtual Transactions transactions(optional<BlockNumber> n = {}) const = 0;
+  virtual shared_ptr<TransactionHashes> transaction_hashes(optional<EthBlockNumber> n = {}) const = 0;
+  virtual Transactions transactions(optional<EthBlockNumber> n = {}) const = 0;
   virtual optional<TransactionLocation> transaction_location(h256 const& trx_hash) const = 0;
   virtual optional<TransactionReceipt> transaction_receipt(h256 const& _transactionHash) const = 0;
-  virtual uint64_t transactionCount(optional<BlockNumber> n = {}) const = 0;
-  virtual vector<BlockNumber> withBlockBloom(LogBloom const& b, BlockNumber from, BlockNumber to) const = 0;
+  virtual uint64_t transactionCount(optional<EthBlockNumber> n = {}) const = 0;
+  virtual vector<EthBlockNumber> withBlockBloom(LogBloom const& b, EthBlockNumber from, EthBlockNumber to) const = 0;
 
-  virtual optional<state_api::Account> get_account(addr_t const& addr, optional<BlockNumber> blk_n = {}) const = 0;
-  virtual u256 get_account_storage(addr_t const& addr, u256 const& key, optional<BlockNumber> blk_n = {}) const = 0;
-  virtual bytes get_code(addr_t const& addr, optional<BlockNumber> blk_n = {}) const = 0;
-  virtual state_api::ExecutionResult call(state_api::EVMTransaction const& trx, optional<BlockNumber> blk_n = {},
+  virtual optional<state_api::Account> get_account(addr_t const& addr, optional<EthBlockNumber> blk_n = {}) const = 0;
+  virtual u256 get_account_storage(addr_t const& addr, u256 const& key, optional<EthBlockNumber> blk_n = {}) const = 0;
+  virtual bytes get_code(addr_t const& addr, optional<EthBlockNumber> blk_n = {}) const = 0;
+  virtual state_api::ExecutionResult call(state_api::EVMTransaction const& trx, optional<EthBlockNumber> blk_n = {},
                                           optional<state_api::ExecutionOptions> const& opts = {}) const = 0;
 
-  virtual uint64_t dpos_eligible_count(BlockNumber blk_num) const = 0;
-  virtual uint64_t dpos_eligible_total_vote_count(BlockNumber blk_num) const = 0;
-  virtual uint64_t dpos_eligible_vote_count(BlockNumber blk_num, addr_t const& addr) const = 0;
+  virtual uint64_t dpos_eligible_count(EthBlockNumber blk_num) const = 0;
+  virtual uint64_t dpos_eligible_total_vote_count(EthBlockNumber blk_num) const = 0;
+  virtual uint64_t dpos_eligible_vote_count(EthBlockNumber blk_num, addr_t const& addr) const = 0;
 
-  virtual bool dpos_is_eligible(BlockNumber blk_num, addr_t const& addr) const = 0;
+  virtual bool dpos_is_eligible(EthBlockNumber blk_num, addr_t const& addr) const = 0;
   virtual state_api::DPOSQueryResult dpos_query(state_api::DPOSQuery const& q,
-                                                optional<BlockNumber> blk_n = {}) const = 0;
+                                                optional<EthBlockNumber> blk_n = {}) const = 0;
 
   // TODO move out of here:
 

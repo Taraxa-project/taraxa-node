@@ -131,24 +131,24 @@ StateAPI::~StateAPI() {
   err_h.check();
 }
 
-Proof StateAPI::prove(BlockNumber blk_num, root_t const& state_root, addr_t const& addr,
+Proof StateAPI::prove(EthBlockNumber blk_num, root_t const& state_root, addr_t const& addr,
                       vector<h256> const& keys) const {
   return c_method_args_rlp<Proof, from_rlp, taraxa_evm_state_api_prove>(this_c, blk_num, state_root, addr, keys);
 }
 
-optional<Account> StateAPI::get_account(BlockNumber blk_num, addr_t const& addr) const {
+optional<Account> StateAPI::get_account(EthBlockNumber blk_num, addr_t const& addr) const {
   return c_method_args_rlp<optional<Account>, from_rlp, taraxa_evm_state_api_get_account>(this_c, blk_num, addr);
 }
 
-u256 StateAPI::get_account_storage(BlockNumber blk_num, addr_t const& addr, u256 const& key) const {
+u256 StateAPI::get_account_storage(EthBlockNumber blk_num, addr_t const& addr, u256 const& key) const {
   return c_method_args_rlp<u256, to_u256, taraxa_evm_state_api_get_account_storage>(this_c, blk_num, addr, key);
 }
 
-bytes StateAPI::get_code_by_address(BlockNumber blk_num, addr_t const& addr) const {
+bytes StateAPI::get_code_by_address(EthBlockNumber blk_num, addr_t const& addr) const {
   return c_method_args_rlp<bytes, to_bytes, taraxa_evm_state_api_get_code_by_address>(this_c, blk_num, addr);
 }
 
-ExecutionResult StateAPI::dry_run_transaction(BlockNumber blk_num, EVMBlock const& blk, EVMTransaction const& trx,
+ExecutionResult StateAPI::dry_run_transaction(EthBlockNumber blk_num, EVMBlock const& blk, EVMTransaction const& trx,
                                               optional<ExecutionOptions> const& opts) const {
   return c_method_args_rlp<ExecutionResult, from_rlp, taraxa_evm_state_api_dry_run_transaction>(this_c, blk_num, blk,
                                                                                                 trx, opts);
@@ -189,23 +189,23 @@ void StateAPI::create_snapshot(uint64_t const& period) {
   err_h.check();
 }
 
-uint64_t StateAPI::dpos_eligible_count(BlockNumber blk_num) const {
+uint64_t StateAPI::dpos_eligible_count(EthBlockNumber blk_num) const {
   ErrorHandler err_h;
   auto ret = taraxa_evm_state_api_dpos_eligible_count(this_c, blk_num, err_h.cgo_part);
   err_h.check();
   return ret;
 }
 
-uint64_t StateAPI::dpos_eligible_total_vote_count(BlockNumber blk_num) const {
+uint64_t StateAPI::dpos_eligible_total_vote_count(EthBlockNumber blk_num) const {
   ErrorHandler err_h;
   auto ret = taraxa_evm_state_api_dpos_eligible_vote_count(this_c, blk_num, err_h.cgo_part);
   err_h.check();
   return ret;
 }
 
-uint64_t StateAPI::dpos_eligible_vote_count(BlockNumber blk_num, addr_t const& addr) const {
+uint64_t StateAPI::dpos_eligible_vote_count(EthBlockNumber blk_num, addr_t const& addr) const {
   RLPStream encoding;
-  encoding.reserve(sizeof(BlockNumber) + sizeof(addr_t) + 8, 1);
+  encoding.reserve(sizeof(EthBlockNumber) + sizeof(addr_t) + 8, 1);
   rlp_tuple(encoding, blk_num, addr);
   ErrorHandler err_h;
   auto ret = taraxa_evm_state_api_dpos_get_eligible_vote_count(this_c, map_bytes(encoding.out()), err_h.cgo_part);
@@ -213,9 +213,9 @@ uint64_t StateAPI::dpos_eligible_vote_count(BlockNumber blk_num, addr_t const& a
   return ret;
 }
 
-bool StateAPI::dpos_is_eligible(BlockNumber blk_num, addr_t const& addr) const {
+bool StateAPI::dpos_is_eligible(EthBlockNumber blk_num, addr_t const& addr) const {
   RLPStream encoding;
-  encoding.reserve(sizeof(BlockNumber) + sizeof(addr_t) + 8, 1);
+  encoding.reserve(sizeof(EthBlockNumber) + sizeof(addr_t) + 8, 1);
   rlp_tuple(encoding, blk_num, addr);
   ErrorHandler err_h;
   auto ret = taraxa_evm_state_api_dpos_is_eligible(this_c, map_bytes(encoding.out()), err_h.cgo_part);
@@ -223,7 +223,7 @@ bool StateAPI::dpos_is_eligible(BlockNumber blk_num, addr_t const& addr) const {
   return ret;
 }
 
-DPOSQueryResult StateAPI::dpos_query(BlockNumber blk_num, DPOSQuery const& q) const {
+DPOSQueryResult StateAPI::dpos_query(EthBlockNumber blk_num, DPOSQuery const& q) const {
   return c_method_args_rlp<DPOSQueryResult, from_rlp, taraxa_evm_state_api_dpos_query>(this_c, blk_num, q);
 }
 
@@ -239,168 +239,6 @@ StateAPI::DPOSTransactionPrototype::DPOSTransactionPrototype(DPOSTransfers const
   RLPStream transfers_rlp;
   rlp(transfers_rlp, transfers);
   input = transfers_rlp.invalidate();
-}
-
-u256 ChainConfig::effective_genesis_balance(addr_t const& addr) const {
-  if (!genesis_balances.count(addr)) {
-    return 0;
-  }
-  auto ret = genesis_balances.at(addr);
-  if (dpos && dpos->genesis_state.count(addr)) {
-    for (auto const& [_, val] : dpos->genesis_state.at(addr)) {
-      ret -= val;
-    }
-  }
-  return ret;
-}
-
-Json::Value enc_json(ExecutionOptions const& obj) {
-  Json::Value json(Json::objectValue);
-  json["disable_nonce_check"] = obj.disable_nonce_check;
-  json["disable_gas_fee"] = obj.disable_gas_fee;
-  return json;
-}
-
-void dec_json(Json::Value const& json, ExecutionOptions& obj) {
-  obj.disable_nonce_check = json["disable_nonce_check"].asBool();
-  obj.disable_gas_fee = json["disable_gas_fee"].asBool();
-}
-
-Json::Value enc_json(ETHChainConfig const& obj) {
-  Json::Value json(Json::objectValue);
-  json["homestead_block"] = dev::toJS(obj.homestead_block);
-  json["dao_fork_block"] = dev::toJS(obj.dao_fork_block);
-  json["eip_150_block"] = dev::toJS(obj.eip_150_block);
-  json["eip_158_block"] = dev::toJS(obj.eip_158_block);
-  json["byzantium_block"] = dev::toJS(obj.byzantium_block);
-  json["constantinople_block"] = dev::toJS(obj.constantinople_block);
-  json["petersburg_block"] = dev::toJS(obj.petersburg_block);
-  return json;
-}
-
-void dec_json(Json::Value const& json, ETHChainConfig& obj) {
-  obj.homestead_block = dev::jsToInt(json["homestead_block"].asString());
-  obj.dao_fork_block = dev::jsToInt(json["dao_fork_block"].asString());
-  obj.eip_150_block = dev::jsToInt(json["eip_150_block"].asString());
-  obj.eip_158_block = dev::jsToInt(json["eip_158_block"].asString());
-  obj.byzantium_block = dev::jsToInt(json["byzantium_block"].asString());
-  obj.constantinople_block = dev::jsToInt(json["constantinople_block"].asString());
-  obj.petersburg_block = dev::jsToInt(json["petersburg_block"].asString());
-}
-
-Json::Value enc_json(ChainConfig const& obj) {
-  Json::Value json(Json::objectValue);
-  json["eth_chain_config"] = enc_json(obj.eth_chain_config);
-  json["execution_options"] = enc_json(obj.execution_options);
-  json["disable_block_rewards"] = obj.disable_block_rewards;
-  json["genesis_balances"] = enc_json(obj.genesis_balances);
-  if (obj.dpos) {
-    json["dpos"] = enc_json(*obj.dpos);
-  }
-  return json;
-}
-
-void dec_json(Json::Value const& json, ChainConfig& obj) {
-  dec_json(json["eth_chain_config"], obj.eth_chain_config);
-  dec_json(json["execution_options"], obj.execution_options);
-  obj.disable_block_rewards = json["disable_block_rewards"].asBool();
-  dec_json(json["genesis_balances"], obj.genesis_balances);
-  if (auto const& dpos = json["dpos"]; !dpos.isNull()) {
-    dec_json(dpos, obj.dpos.emplace());
-  }
-}
-
-Json::Value enc_json(BalanceMap const& obj) {
-  Json::Value json(Json::objectValue);
-  for (auto const& [k, v] : obj) {
-    json[dev::toJS(k)] = dev::toJS(v);
-  }
-  return json;
-}
-
-void dec_json(Json::Value const& json, BalanceMap& obj) {
-  for (auto const& k : json.getMemberNames()) {
-    obj[addr_t(k)] = dev::jsToU256(json[k].asString());
-  }
-}
-
-Json::Value enc_json(DPOSConfig const& obj) {
-  Json::Value json(Json::objectValue);
-  json["eligibility_balance_threshold"] = dev::toJS(obj.eligibility_balance_threshold);
-  json["deposit_delay"] = dev::toJS(obj.deposit_delay);
-  json["withdrawal_delay"] = dev::toJS(obj.withdrawal_delay);
-  auto& genesis_state = json["genesis_state"] = Json::Value(Json::objectValue);
-  for (auto const& [k, v] : obj.genesis_state) {
-    genesis_state[dev::toJS(k)] = enc_json(v);
-  }
-  return json;
-}
-
-void dec_json(Json::Value const& json, DPOSConfig& obj) {
-  obj.eligibility_balance_threshold = dev::jsToU256(json["eligibility_balance_threshold"].asString());
-  obj.deposit_delay = dev::jsToInt(json["deposit_delay"].asString());
-  obj.withdrawal_delay = dev::jsToInt(json["withdrawal_delay"].asString());
-  auto const& genesis_state = json["genesis_state"];
-  for (auto const& k : genesis_state.getMemberNames()) {
-    dec_json(genesis_state[k], obj.genesis_state[addr_t(k)]);
-  }
-}
-
-void dec_json(Json::Value const& json, DPOSQuery::AccountQuery& obj) {
-  static auto const dec_field = [](Json::Value const& json, char const* name, bool& field) {
-    if (auto const& e = json[name]; !e.isNull()) {
-      field = e.asBool();
-    }
-  };
-  dec_field(json, "with_staking_balance", obj.with_staking_balance);
-  dec_field(json, "with_outbound_deposits", obj.with_outbound_deposits);
-  dec_field(json, "outbound_deposits_addrs_only", obj.outbound_deposits_addrs_only);
-  dec_field(json, "with_inbound_deposits", obj.with_inbound_deposits);
-  dec_field(json, "inbound_deposits_addrs_only", obj.inbound_deposits_addrs_only);
-}
-
-void dec_json(Json::Value const& json, DPOSQuery& obj) {
-  if (auto const& e = json["with_eligible_count"]; !e.isNull()) {
-    obj.with_eligible_count = e.asBool();
-  }
-  auto const& account_queries = json["account_queries"];
-  for (auto const& k : account_queries.getMemberNames()) {
-    dec_json(account_queries[k], obj.account_queries[addr_t(k)]);
-  }
-}
-
-Json::Value enc_json(DPOSQueryResult::AccountResult const& obj, DPOSQuery::AccountQuery* q) {
-  Json::Value json(Json::objectValue);
-  if (!q || q->with_staking_balance) {
-    json["staking_balance"] = dev::toJS(obj.staking_balance);
-    json["is_eligible"] = obj.is_eligible;
-  }
-  static auto const enc_deposits = [](Json::Value& root, char const* key,
-                                      decltype(obj.inbound_deposits) const& deposits, bool hydrated) {
-    auto& deposits_json = root[key] = Json::Value(hydrated ? Json::objectValue : Json::arrayValue);
-    for (auto const& [k, v] : deposits) {
-      if (hydrated) {
-        deposits_json[dev::toJS(k)] = dev::toJS(v);
-      } else {
-        deposits_json.append(dev::toJS(k));
-      }
-    }
-  };
-  enc_deposits(json, "outbound_deposits", obj.outbound_deposits, !q || !q->outbound_deposits_addrs_only);
-  enc_deposits(json, "inbound_deposits", obj.inbound_deposits, !q || !q->inbound_deposits_addrs_only);
-  return json;
-}
-
-Json::Value enc_json(DPOSQueryResult const& obj, DPOSQuery* q) {
-  Json::Value json(Json::objectValue);
-  if (!q || q->with_eligible_count) {
-    json["eligible_count"] = dev::toJS(obj.eligible_count);
-  }
-  auto& account_results = json["account_results"] = Json::Value(Json::objectValue);
-  for (auto const& [k, v] : obj.account_results) {
-    account_results[dev::toJS(k)] = enc_json(v, q ? &q->account_queries[k] : nullptr);
-  }
-  return json;
 }
 
 }  // namespace taraxa::state_api

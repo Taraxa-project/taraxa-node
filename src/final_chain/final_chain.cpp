@@ -3,6 +3,7 @@
 #include <libdevcore/CommonJS.h>
 
 #include "TrieCommon.h"
+#include "common/constants.hpp"
 #include "replay_protection_service.hpp"
 #include "transaction_manager/transaction_manager.hpp"
 #include "util/thread_pool.hpp"
@@ -47,7 +48,7 @@ struct FinalChainImpl final : virtual FinalChain {
         transaction_count_hint_(opts.state_api.ExpectedMaxTrxPerBlock) {
     LOG_OBJECTS_CREATE("EXECUTOR");
     auto state_db_descriptor = state_api.get_last_committed_state_descriptor();
-    if (auto last_period = db_->lookup_int<BlockNumber>(LAST_PERIOD, DB::Columns::final_chain_meta); last_period) {
+    if (auto last_period = db_->lookup_int<EthBlockNumber>(LAST_PERIOD, DB::Columns::final_chain_meta); last_period) {
       last_block_ = make_shared<BlockHeader>();
       last_block_->rlp(RLP(db_->lookup(*last_period, DB::Columns::final_chain_block_by_period)));
       if (last_block_->number != state_db_descriptor.blk_num) {
@@ -263,7 +264,7 @@ struct FinalChainImpl final : virtual FinalChain {
     return blk_header_ptr;
   }
 
-  shared_ptr<BlockHeader> block_header(optional<BlockNumber> n = {}) const override {
+  shared_ptr<BlockHeader> block_header(optional<EthBlockNumber> n = {}) const override {
     if (!n) {
       shared_lock l(last_block_mu_);
       return last_block_;
@@ -273,13 +274,13 @@ struct FinalChainImpl final : virtual FinalChain {
     return ret;
   }
 
-  BlockNumber last_block_number() const override { return block_header()->number; }
+  EthBlockNumber last_block_number() const override { return block_header()->number; }
 
-  optional<BlockNumber> block_number(h256 const& h) const override {
-    return db_->lookup_int<BlockNumber>(h, DB::Columns::period_by_final_chain_block_hash);
+  optional<EthBlockNumber> block_number(h256 const& h) const override {
+    return db_->lookup_int<EthBlockNumber>(h, DB::Columns::period_by_final_chain_block_hash);
   }
 
-  optional<h256> block_hash(optional<BlockNumber> n = {}) const override {
+  optional<h256> block_hash(optional<EthBlockNumber> n = {}) const override {
     if (!n) {
       return block_header()->hash;
     }
@@ -290,7 +291,7 @@ struct FinalChainImpl final : virtual FinalChain {
     return h256(raw, h256::FromBinary);
   };
 
-  shared_ptr<TransactionHashes> transaction_hashes(optional<BlockNumber> n = {}) const override {
+  shared_ptr<TransactionHashes> transaction_hashes(optional<EthBlockNumber> n = {}) const override {
     return make_shared<TransactionHashesImpl>(db_->lookup(last_if_absent(n), DB::Columns::final_chain_block_by_period));
   }
 
@@ -314,11 +315,11 @@ struct FinalChainImpl final : virtual FinalChain {
     return ret;
   }
 
-  uint64_t transactionCount(optional<BlockNumber> n = {}) const override {
+  uint64_t transactionCount(optional<EthBlockNumber> n = {}) const override {
     return db_->lookup_int<uint64_t>(last_if_absent(n), DB::Columns::executed_transactions_count_by_period).value_or(0);
   }
 
-  Transactions transactions(optional<BlockNumber> n = {}) const override {
+  Transactions transactions(optional<EthBlockNumber> n = {}) const override {
     Transactions ret;
     auto hashes = transaction_hashes(n);
     ret.reserve(hashes->count());
@@ -326,30 +327,30 @@ struct FinalChainImpl final : virtual FinalChain {
     return ret;
   }
 
-  vector<BlockNumber> withBlockBloom(LogBloom const& b, BlockNumber from, BlockNumber to) const override {
-    vector<BlockNumber> ret;
+  vector<EthBlockNumber> withBlockBloom(LogBloom const& b, EthBlockNumber from, EthBlockNumber to) const override {
+    vector<EthBlockNumber> ret;
     // start from the top-level
     auto u = int_pow(c_bloomIndexSize, c_bloomIndexLevels);
     // run through each of the top-level blocks
-    for (BlockNumber index = from / u; index <= (to + u - 1) / u; ++index) {
+    for (EthBlockNumber index = from / u; index <= (to + u - 1) / u; ++index) {
       dev::operator+=(ret, withBlockBloom(b, from, to, c_bloomIndexLevels - 1, index));
     }
     return ret;
   }
 
-  optional<state_api::Account> get_account(addr_t const& addr, optional<BlockNumber> blk_n = {}) const override {
+  optional<state_api::Account> get_account(addr_t const& addr, optional<EthBlockNumber> blk_n = {}) const override {
     return state_api.get_account(last_if_absent(blk_n), addr);
   }
 
-  u256 get_account_storage(addr_t const& addr, u256 const& key, optional<BlockNumber> blk_n = {}) const override {
+  u256 get_account_storage(addr_t const& addr, u256 const& key, optional<EthBlockNumber> blk_n = {}) const override {
     return state_api.get_account_storage(last_if_absent(blk_n), addr, key);
   }
 
-  bytes get_code(addr_t const& addr, optional<BlockNumber> blk_n = {}) const override {
+  bytes get_code(addr_t const& addr, optional<EthBlockNumber> blk_n = {}) const override {
     return state_api.get_code_by_address(last_if_absent(blk_n), addr);
   }
 
-  state_api::ExecutionResult call(state_api::EVMTransaction const& trx, optional<BlockNumber> blk_n = {},
+  state_api::ExecutionResult call(state_api::EVMTransaction const& trx, optional<EthBlockNumber> blk_n = {},
                                   optional<state_api::ExecutionOptions> const& opts = {}) const override {
     auto const& blk_header = *block_header(last_if_absent(blk_n));
     return state_api.dry_run_transaction(blk_header.number,
@@ -362,26 +363,26 @@ struct FinalChainImpl final : virtual FinalChain {
                                          trx, opts);
   }
 
-  uint64_t dpos_eligible_count(BlockNumber blk_num) const override { return state_api.dpos_eligible_count(blk_num); }
+  uint64_t dpos_eligible_count(EthBlockNumber blk_num) const override { return state_api.dpos_eligible_count(blk_num); }
 
-  uint64_t dpos_eligible_total_vote_count(BlockNumber blk_num) const override {
+  uint64_t dpos_eligible_total_vote_count(EthBlockNumber blk_num) const override {
     return state_api.dpos_eligible_total_vote_count(blk_num);
   }
 
-  uint64_t dpos_eligible_vote_count(BlockNumber blk_num, addr_t const& addr) const override {
+  uint64_t dpos_eligible_vote_count(EthBlockNumber blk_num, addr_t const& addr) const override {
     return state_api.dpos_eligible_vote_count(blk_num, addr);
   }
 
-  bool dpos_is_eligible(BlockNumber blk_num, addr_t const& addr) const override {
+  bool dpos_is_eligible(EthBlockNumber blk_num, addr_t const& addr) const override {
     return state_api.dpos_is_eligible(blk_num, addr);
   }
 
   state_api::DPOSQueryResult dpos_query(state_api::DPOSQuery const& q,
-                                        optional<BlockNumber> blk_n = {}) const override {
+                                        optional<EthBlockNumber> blk_n = {}) const override {
     return state_api.dpos_query(last_if_absent(blk_n), q);
   }
 
-  BlockNumber last_if_absent(optional<BlockNumber> const& client_blk_n) const {
+  EthBlockNumber last_if_absent(optional<EthBlockNumber> const& client_blk_n) const {
     return client_blk_n ? *client_blk_n : last_block_number();
   }
 
@@ -401,11 +402,11 @@ struct FinalChainImpl final : virtual FinalChain {
     return {};
   }
 
-  static h256 block_blooms_chunk_id(BlockNumber level, BlockNumber index) { return h256(index * 0xff + level); }
+  static h256 block_blooms_chunk_id(EthBlockNumber level, EthBlockNumber index) { return h256(index * 0xff + level); }
 
-  vector<BlockNumber> withBlockBloom(LogBloom const& b, BlockNumber from, BlockNumber to, BlockNumber level,
-                                     BlockNumber index) const {
-    vector<BlockNumber> ret;
+  vector<EthBlockNumber> withBlockBloom(LogBloom const& b, EthBlockNumber from, EthBlockNumber to, EthBlockNumber level,
+                                        EthBlockNumber index) const {
+    vector<EthBlockNumber> ret;
     auto uCourse = int_pow(c_bloomIndexSize, level + 1);
     auto uFine = int_pow(c_bloomIndexSize, level);
     auto obegin = index == from / uCourse ? from / uFine % c_bloomIndexSize : 0;

@@ -182,7 +182,7 @@ struct EthImpl : Eth, EthParams {
 
   void note_pending_transaction(h256 const& trx_hash) override { watches.new_transactions.process_update(trx_hash); }
 
-  Json::Value get_block_by_number(BlockNumber blk_n, bool include_transactions) {
+  Json::Value get_block_by_number(EthBlockNumber blk_n, bool include_transactions) {
     auto blk_header = final_chain->block_header(blk_n);
     if (!blk_header) {
       return Json::Value();
@@ -221,7 +221,7 @@ struct EthImpl : Eth, EthParams {
     };
   }
 
-  optional<LocalisedTransaction> get_transaction(uint64_t trx_pos, BlockNumber blk_n) const {
+  optional<LocalisedTransaction> get_transaction(uint64_t trx_pos, EthBlockNumber blk_n) const {
     auto hashes = final_chain->transaction_hashes(blk_n);
     if (hashes->count() <= trx_pos) {
       return {};
@@ -265,11 +265,11 @@ struct EthImpl : Eth, EthParams {
     return n ? final_chain->transactionCount(n) : 0;
   }
 
-  uint64_t transaction_count(BlockNumber n, Address const& addr) {
+  uint64_t transaction_count(EthBlockNumber n, Address const& addr) {
     return final_chain->get_account(addr, n).value_or(ZeroAccount).Nonce;
   }
 
-  state_api::ExecutionResult call(BlockNumber blk_n, TransactionSkeleton const& trx, bool free_gas) {
+  state_api::ExecutionResult call(EthBlockNumber blk_n, TransactionSkeleton const& trx, bool free_gas) {
     return final_chain->call(
         {
             trx.from,
@@ -287,7 +287,7 @@ struct EthImpl : Eth, EthParams {
         });
   }
 
-  void set_transaction_defaults(TransactionSkeleton& t, BlockNumber blk_n) {
+  void set_transaction_defaults(TransactionSkeleton& t, EthBlockNumber blk_n) {
     if (!t.from) {
       t.from = address;
     }
@@ -345,20 +345,20 @@ struct EthImpl : Eth, EthParams {
     return ret;
   }
 
-  static optional<BlockNumber> parse_blk_num_opt(string const& blk_num_str) {
+  static optional<EthBlockNumber> parse_blk_num_opt(string const& blk_num_str) {
     if (blk_num_str == "latest" || blk_num_str == "pending") {
       return std::nullopt;
     }
     return blk_num_str == "earliest" ? 0 : jsToInt(blk_num_str);
   }
 
-  BlockNumber parse_blk_num(string const& blk_num_str) {
+  EthBlockNumber parse_blk_num(string const& blk_num_str) {
     auto ret = parse_blk_num_opt(blk_num_str);
     return ret ? *ret : final_chain->last_block_number();
   }
 
   LogFilter parse_log_filter(Json::Value const& json) {
-    optional<BlockNumber> from_block, to_block;
+    optional<EthBlockNumber> from_block, to_block;
     AddressSet addresses;
     LogFilter::Topics topics;
     if (auto const& fromBlock = json["fromBlock"]; !fromBlock.empty()) {

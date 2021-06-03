@@ -57,7 +57,7 @@ struct FinalChainTest : WithDataDir {
     EXPECT_EQ(blk_h.nonce(), Nonce());
     EXPECT_EQ(blk_h.difficulty(), 0);
     EXPECT_EQ(blk_h.mixHash(), h256());
-    EXPECT_EQ(blk_h.sha3Uncles(), EmptyListSHA3);
+    EXPECT_EQ(blk_h.sha3Uncles(), EmptyRLPListSHA3);
     EXPECT_EQ(blk_h.gasUsed(), result.receipts.empty() ? 0 : result.receipts.back().cumulativeGasUsed());
     LogBloom expected_block_log_bloom;
     unordered_map<addr_t, u256> expected_balance_changes;

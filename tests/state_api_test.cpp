@@ -37,7 +37,7 @@ struct TestBlock {
   vector<EVMTransaction> Transactions;
   vector<UncleBlock> UncleBlocks;
 
-  RLP_FIELDS(Hash, StateRoot, evm_block, Transactions, UncleBlocks)
+  RLP_FIELDS_DEFINE_INPLACE(Hash, StateRoot, evm_block, Transactions, UncleBlocks)
 };
 
 template <typename T>

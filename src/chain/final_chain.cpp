@@ -89,7 +89,7 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
 
   shared_ptr<BlockHeader> get_last_block() const override { return ChainDBImpl::get_last_block(); }
 
-  BlockNumber normalize_client_blk_n(optional<BlockNumber> const& client_blk_n) const {
+  EthBlockNumber normalize_client_blk_n(optional<EthBlockNumber> const& client_blk_n) const {
     return client_blk_n ? *client_blk_n : last_block_number();
   }
 
@@ -132,19 +132,21 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
 
   void create_snapshot(uint64_t const& period) override { state_api.create_snapshot(period); }
 
-  optional<state_api::Account> get_account(addr_t const& addr, optional<BlockNumber> blk_n = nullopt) const override {
+  optional<state_api::Account> get_account(addr_t const& addr,
+                                           optional<EthBlockNumber> blk_n = nullopt) const override {
     return state_api.get_account(normalize_client_blk_n(blk_n), addr);
   }
 
-  u256 get_account_storage(addr_t const& addr, u256 const& key, optional<BlockNumber> blk_n = nullopt) const override {
+  u256 get_account_storage(addr_t const& addr, u256 const& key,
+                           optional<EthBlockNumber> blk_n = nullopt) const override {
     return state_api.get_account_storage(normalize_client_blk_n(blk_n), addr, key);
   }
 
-  bytes get_code(addr_t const& addr, optional<BlockNumber> blk_n = nullopt) const override {
+  bytes get_code(addr_t const& addr, optional<EthBlockNumber> blk_n = nullopt) const override {
     return state_api.get_code_by_address(normalize_client_blk_n(blk_n), addr);
   }
 
-  state_api::ExecutionResult call(state_api::EVMTransaction const& trx, optional<BlockNumber> blk_n = nullopt,
+  state_api::ExecutionResult call(state_api::EVMTransaction const& trx, optional<EthBlockNumber> blk_n = nullopt,
                                   optional<state_api::ExecutionOptions> const& opts = nullopt) const override {
     auto blk_header = blockHeader(normalize_client_blk_n(blk_n));
     return state_api.dry_run_transaction(blk_header.number(),
@@ -157,22 +159,22 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
                                          trx, opts);
   }
 
-  uint64_t dpos_eligible_count(BlockNumber blk_num) const override { return state_api.dpos_eligible_count(blk_num); }
+  uint64_t dpos_eligible_count(EthBlockNumber blk_num) const override { return state_api.dpos_eligible_count(blk_num); }
 
-  uint64_t dpos_eligible_total_vote_count(BlockNumber blk_num) const override {
+  uint64_t dpos_eligible_total_vote_count(EthBlockNumber blk_num) const override {
     return state_api.dpos_eligible_total_vote_count(blk_num);
   }
 
-  virtual uint64_t dpos_eligible_vote_count(BlockNumber blk_num, addr_t const& addr) const override {
+  virtual uint64_t dpos_eligible_vote_count(EthBlockNumber blk_num, addr_t const& addr) const override {
     return state_api.dpos_eligible_vote_count(blk_num, addr);
   }
 
-  bool dpos_is_eligible(BlockNumber blk_num, addr_t const& addr) const override {
+  bool dpos_is_eligible(EthBlockNumber blk_num, addr_t const& addr) const override {
     return state_api.dpos_is_eligible(blk_num, addr);
   }
 
   state_api::DPOSQueryResult dpos_query(state_api::DPOSQuery const& q,
-                                        optional<BlockNumber> blk_n = nullopt) const override {
+                                        optional<EthBlockNumber> blk_n = nullopt) const override {
     return state_api.dpos_query(normalize_client_blk_n(blk_n), q);
   }
 };

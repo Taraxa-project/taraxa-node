@@ -9,8 +9,8 @@ struct LogFilter {
   using Topics = array<unordered_set<h256>, 4>;
 
  private:
-  optional<BlockNumber> from_block_;
-  optional<BlockNumber> to_block_;
+  optional<EthBlockNumber> from_block_;
+  optional<EthBlockNumber> to_block_;
   AddressSet addresses_;
   Topics topics_;
   bool is_range_only_ = false;
@@ -145,7 +145,7 @@ struct LogFilter {
   }
 
  public:
-  bool blk_number_matches(BlockNumber blk_n) const {
+  bool blk_number_matches(EthBlockNumber blk_n) const {
     return from_block_ && *from_block_ <= blk_n && to_block_ && blk_n <= *to_block_;
   }
 
@@ -166,7 +166,7 @@ struct LogFilter {
 
   vector<LocalisedLogEntry> match_all(FinalChain const& final_chain) const {
     vector<LocalisedLogEntry> ret;
-    auto action = [&, this](BlockNumber blk_n) {
+    auto action = [&, this](EthBlockNumber blk_n) {
       ExtendedTransactionLocation trx_loc{{{blk_n, 0}, *final_chain.block_hash(blk_n)}, {}};
       final_chain.transaction_hashes(trx_loc.blk_n)->for_each([&, this](auto const& trx_h) {
         trx_loc.trx_hash = trx_h;
@@ -182,7 +182,7 @@ struct LogFilter {
       }
       return ret;
     }
-    set<BlockNumber> matchingBlocks;
+    set<EthBlockNumber> matchingBlocks;
     for (auto const& bloom : bloomPossibilities()) {
       for (auto blk_n : final_chain.withBlockBloom(bloom, from_blk_n, to_blk_n)) {
         matchingBlocks.insert(blk_n);

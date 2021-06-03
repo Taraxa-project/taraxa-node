@@ -26,6 +26,8 @@ using dev::h64;
 using dev::Secret;
 using dev::u256;
 
+using EthBlockNumber = uint64_t;
+
 // time related
 using time_point_t = std::chrono::system_clock::time_point;
 using time_stamp_t = unsigned long;
