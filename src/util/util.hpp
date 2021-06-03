@@ -6,6 +6,7 @@
 #include <signal.h>
 
 #include <boost/asio.hpp>
+#include <boost/format.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
@@ -207,6 +208,21 @@ class StatusTable {
   std::unordered_map<K, typename std::list<std::pair<K, V>>::iterator> status_;
   std::list<std::pair<K, V>> lru_;
 };  // namespace taraxa
+
+template <typename... TS>
+std::string fmt(const std::string &pattern, const TS &... args) {
+  return (boost::format(pattern) % ... % args).str();
+}
+
+template <typename T>
+auto s_ptr(T *ptr) {
+  return std::shared_ptr<T>(ptr);
+}
+
+template <typename T>
+auto u_ptr(T *ptr) {
+  return std::unique_ptr<T>(ptr);
+}
 
 }  // namespace taraxa
 

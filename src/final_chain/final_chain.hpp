@@ -73,6 +73,9 @@ struct FinalChain {
                                           optional<state_api::ExecutionOptions> const& opts = {}) const = 0;
 
   virtual uint64_t dpos_eligible_count(BlockNumber blk_num) const = 0;
+  virtual uint64_t dpos_eligible_total_vote_count(BlockNumber blk_num) const = 0;
+  virtual uint64_t dpos_eligible_vote_count(BlockNumber blk_num, addr_t const& addr) const = 0;
+
   virtual bool dpos_is_eligible(BlockNumber blk_num, addr_t const& addr) const = 0;
   virtual state_api::DPOSQueryResult dpos_query(state_api::DPOSQuery const& q,
                                                 optional<BlockNumber> blk_n = {}) const = 0;

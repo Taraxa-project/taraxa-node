@@ -27,6 +27,8 @@ class ThreadPool : std::enable_shared_from_this<ThreadPool> {
   auto capacity() const { return threads_.capacity(); }
   uint64_t num_pending_tasks() const { return debug_num_pending_tasks_; }
 
+  auto &unsafe_get_io_context() { return ioc_; }
+
   void start();
   bool is_running() const;
   void stop();
@@ -43,6 +45,14 @@ class ThreadPool : std::enable_shared_from_this<ThreadPool> {
     uint64_t period_ms = 0, delay_ms = period_ms;
   };
   void post_loop(Periodicity const &periodicity, std::function<void()> action);
+
+  operator task_executor_t() {
+    return [this](auto &&task) { post(std::forward<task_t>(task)); };
+  }
+
+  task_executor_t strand() {
+    return [s = boost::asio::make_strand(ioc_)](auto &&task) { boost::asio::post(s, std::forward<task_t>(task)); };
+  }
 };
 
 }  // namespace taraxa::util

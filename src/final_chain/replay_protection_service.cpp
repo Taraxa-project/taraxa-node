@@ -73,7 +73,7 @@ struct ReplayProtectionServiceImpl : virtual ReplayProtectionService {
       } else {
         sender_state = loadSenderState(senderStateKey(sender_addr));
         if (!sender_state) {
-          sender_states[sender_addr] = sender_states_dirty[sender_addr] = util::s_ptr(new SenderState(trx.nonce));
+          sender_states[sender_addr] = sender_states_dirty[sender_addr] = s_ptr(new SenderState(trx.nonce));
           return;
         }
         sender_states[sender_addr] = sender_state;
@@ -97,14 +97,14 @@ struct ReplayProtectionServiceImpl : virtual ReplayProtectionService {
     }
     auto bottom_round = round - config.range;
     auto bottom_round_data_keys_key = roundDataKeysKey(bottom_round);
-    auto keys = db->lookup(DB::Columns::replay_protection, bottom_round_data_keys_key);
+    auto keys = db->lookup(bottom_round_data_keys_key, DB::Columns::replay_protection);
     if (keys.empty()) {
       return;
     }
     istringstream is(keys);
     for (string line; getline(is, line);) {
       auto nonce_max_key = maxNonceAtRoundKey(bottom_round, line);
-      if (auto v = db->lookup(DB::Columns::replay_protection, nonce_max_key); !v.empty()) {
+      if (auto v = db->lookup(nonce_max_key, DB::Columns::replay_protection); !v.empty()) {
         auto sender_state_key = senderStateKey(line);
         auto state = loadSenderState(sender_state_key);
         state->nonce_watermark = stoull(v);
@@ -116,8 +116,8 @@ struct ReplayProtectionServiceImpl : virtual ReplayProtectionService {
   }
 
   shared_ptr<SenderState> loadSenderState(string const& key) const {
-    if (auto v = db->lookup(DB::Columns::replay_protection, key); !v.empty()) {
-      return util::s_ptr(new SenderState(RLP(v)));
+    if (auto v = db->lookup(key, DB::Columns::replay_protection); !v.empty()) {
+      return s_ptr(new SenderState(RLP(v)));
     }
     return nullptr;
   }
@@ -125,7 +125,7 @@ struct ReplayProtectionServiceImpl : virtual ReplayProtectionService {
 
 std::unique_ptr<ReplayProtectionService> NewReplayProtectionService(ReplayProtectionService::Config config,
                                                                     std::shared_ptr<DB> db) {
-  auto ret = util::u_ptr(new ReplayProtectionServiceImpl);
+  auto ret = u_ptr(new ReplayProtectionServiceImpl);
   ret->config = move(config);
   ret->db = move(db);
   return ret;

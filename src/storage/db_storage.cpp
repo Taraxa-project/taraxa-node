@@ -15,11 +15,7 @@ namespace fs = std::filesystem;
 DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_block, uint32_t db_max_snapshots,
                      uint32_t db_revert_to_period, addr_t node_addr, bool rebuild)
     : path_(path),
-      // First - lazy init default column for rocksdb - must be called before accessing rocksdb because of static init
-      // order fail !!! For handles_ initialization is used comma-operator that evaluates first expression, but uses
-      // second expression(Columns::all.size()) as return value See:
-      // https://en.cppreference.com/w/cpp/language/operator_other#Built-in_comma_operator
-      handles_((Columns::Default_column(), Columns::all.size())),
+      handles_(Columns::all.size()),
       db_snapshot_each_n_pbft_block_(db_snapshot_each_n_pbft_block),
       db_max_snapshots_(db_max_snapshots),
       node_addr_(node_addr) {
@@ -45,7 +41,7 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
   options.create_if_missing = true;
   vector<ColumnFamilyDescriptor> descriptors;
   std::transform(Columns::all.begin(), Columns::all.end(), std::back_inserter(descriptors),
-                 [](const Column& col) { return ColumnFamilyDescriptor(col.name, ColumnFamilyOptions()); });
+                 [](const Column& col) { return ColumnFamilyDescriptor(col.name(), ColumnFamilyOptions()); });
   LOG_OBJECTS_CREATE("DBS");
 
   // Iterate over the db folders and populate snapshot set
@@ -56,7 +52,7 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
     recoverToPeriod(db_revert_to_period);
   }
 
-  checkStatus(DB::Open(options, db_path_.string(), descriptors, &handles_, &db_));
+  checkStatus(rocksdb::DB::Open(options, db_path_.string(), descriptors, &handles_, &db_));
   dag_blocks_count_.store(getStatusField(StatusDbField::DagBlkCount));
   dag_edge_count_.store(getStatusField(StatusDbField::DagEdgeCount));
 
@@ -787,6 +783,16 @@ DbStorage::MultiGetQuery& DbStorage::MultiGetQuery::reset() {
   cfs_.clear();
   keys_.clear();
   str_pool_.clear();
+  return *this;
+}
+
+DB::Batch& DB::Batch::commit() {
+  checkStatus(db_->db_->Write(db_->write_options_, b_.GetWriteBatch()));
+  return *this;
+}
+
+DB::Batch& DB::Batch::reset() {
+  b_.Clear();
   return *this;
 }
 

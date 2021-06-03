@@ -18,8 +18,8 @@ struct EventSubscriber {
 
  protected:
   class State {
-    friend class EventSubscriber;
-    friend class EventEmitter<Payload>;
+    friend struct EventSubscriber;
+    friend struct EventEmitter<Payload>;
 
     uint64_t next_subscription_id_ = 0;
     map<uint64_t, Handler> subs_;

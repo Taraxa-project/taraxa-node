@@ -1,7 +1,5 @@
 #include "transaction_manager.hpp"
 
-#include <libethcore/Exceptions.h>
-
 #include <string>
 #include <utility>
 

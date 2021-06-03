@@ -1,5 +1,7 @@
 #include "final_chain.hpp"
 
+#include <libdevcore/CommonJS.h>
+
 #include "TrieCommon.h"
 #include "replay_protection_service.hpp"
 #include "transaction_manager/transaction_manager.hpp"
@@ -26,7 +28,7 @@ struct FinalChainImpl final : virtual FinalChain {
   atomic<uint64_t> num_executed_dag_blk_ = 0;
   atomic<uint64_t> num_executed_trx_ = 0;
 
-  LOG_OBJECTS_DEFINE;
+  LOG_OBJECTS_DEFINE
 
   FinalChainImpl(shared_ptr<DB> const& db,      //
                  Config const& config,          //
@@ -40,14 +42,14 @@ struct FinalChainImpl final : virtual FinalChain {
                       4,
                   },
                   {
-                      (db->stateDbPath()).string(),
+                      db->stateDbStoragePath().string(),
                   }),
         transaction_count_hint_(opts.state_api.ExpectedMaxTrxPerBlock) {
     LOG_OBJECTS_CREATE("EXECUTOR");
     auto state_db_descriptor = state_api.get_last_committed_state_descriptor();
-    if (auto last_period = db_->lookup_int<BlockNumber>(DB::Columns::final_chain_meta, LAST_PERIOD); last_period) {
+    if (auto last_period = db_->lookup_int<BlockNumber>(LAST_PERIOD, DB::Columns::final_chain_meta); last_period) {
       last_block_ = make_shared<BlockHeader>();
-      last_block_->rlp(RLP(db_->lookup(DB::Columns::final_chain_block_by_period, *last_period)));
+      last_block_->rlp(RLP(db_->lookup(*last_period, DB::Columns::final_chain_block_by_period)));
       if (last_block_->number != state_db_descriptor.blk_num) {
         assert(state_db_descriptor.blk_num == last_block_->number - 1);
         auto res = state_api.transition_state(
@@ -63,7 +65,7 @@ struct FinalChainImpl final : virtual FinalChain {
       }
     } else {
       assert(state_db_descriptor.blk_num == 0);
-      auto batch = db->createWriteBatch();
+      DB::Batch batch(db);
       last_block_ = append_block(batch, config.genesis_block_fields.author, config.genesis_block_fields.timestamp, 0,
                                  state_db_descriptor.state_root);
       batch.commit();
@@ -85,7 +87,7 @@ struct FinalChainImpl final : virtual FinalChain {
     auto const& pbft_block_hash = pbft_block.getBlockHash();
     auto const& anchor_hash = pbft_block.getPivotDagBlockHash();
     auto finalized_dag_blk_hashes = db_->getFinalizedDagBlockHashesByAnchor(anchor_hash);
-    auto batch = db_->createWriteBatch();
+    DB::Batch batch(db_);
 
     Transactions to_execute;
     {
@@ -160,8 +162,8 @@ struct FinalChainImpl final : virtual FinalChain {
     auto num_executed_dag_blk = num_executed_dag_blk_ + finalized_dag_blk_hashes.size();
     auto num_executed_trx = num_executed_trx_ + to_execute.size();
     if (!finalized_dag_blk_hashes.empty()) {
-      batch.addStatusField(StatusDbField::ExecutedBlkCount, num_executed_dag_blk);
-      batch.addStatusField(StatusDbField::ExecutedTrxCount, num_executed_trx);
+      batch.put(DB::Columns::status, StatusDbField::ExecutedBlkCount, num_executed_dag_blk);
+      batch.put(DB::Columns::status, StatusDbField::ExecutedTrxCount, num_executed_trx);
       LOG(log_nf_) << "Executed dag blocks #" << num_executed_dag_blk_ - finalized_dag_blk_hashes.size() << "-"
                    << num_executed_dag_blk_ - 1 << " , Transactions count: " << to_execute.size();
     }
@@ -267,21 +269,21 @@ struct FinalChainImpl final : virtual FinalChain {
       return last_block_;
     }
     auto ret = make_shared<BlockHeader>();
-    ret->rlp(RLP(db_->lookup(DB::Columns::final_chain_block_by_period, *n)));
+    ret->rlp(RLP(db_->lookup(*n, DB::Columns::final_chain_block_by_period)));
     return ret;
   }
 
   BlockNumber last_block_number() const override { return block_header()->number; }
 
   optional<BlockNumber> block_number(h256 const& h) const override {
-    return db_->lookup_int<BlockNumber>(DB::Columns::period_by_final_chain_block_hash, h);
+    return db_->lookup_int<BlockNumber>(h, DB::Columns::period_by_final_chain_block_hash);
   }
 
   optional<h256> block_hash(optional<BlockNumber> n = {}) const override {
     if (!n) {
       return block_header()->hash;
     }
-    auto raw = db_->lookup(DB::Columns::final_chain_block_hash_by_period, *n);
+    auto raw = db_->lookup(*n, DB::Columns::final_chain_block_hash_by_period);
     if (raw.empty()) {
       return {};
     }
@@ -289,11 +291,11 @@ struct FinalChainImpl final : virtual FinalChain {
   };
 
   shared_ptr<TransactionHashes> transaction_hashes(optional<BlockNumber> n = {}) const override {
-    return make_shared<TransactionHashesImpl>(db_->lookup(DB::Columns::final_chain_block_by_period, last_if_absent(n)));
+    return make_shared<TransactionHashesImpl>(db_->lookup(last_if_absent(n), DB::Columns::final_chain_block_by_period));
   }
 
   optional<TransactionLocation> transaction_location(h256 const& trx_hash) const override {
-    auto raw = db_->lookup(DB::Columns::executed_transactions, trx_hash);
+    auto raw = db_->lookup(trx_hash, DB::Columns::executed_transactions);
     if (raw.empty()) {
       return {};
     }
@@ -303,7 +305,7 @@ struct FinalChainImpl final : virtual FinalChain {
   }
 
   optional<TransactionReceipt> transaction_receipt(h256 const& trx_h) const override {
-    auto raw = db_->lookup(DB::Columns::final_chain_receipt_by_trx_hash, trx_h);
+    auto raw = db_->lookup(trx_h, DB::Columns::final_chain_receipt_by_trx_hash);
     if (raw.empty()) {
       return {};
     }
@@ -313,7 +315,7 @@ struct FinalChainImpl final : virtual FinalChain {
   }
 
   uint64_t transactionCount(optional<BlockNumber> n = {}) const override {
-    return db_->lookup_int<uint64_t>(DB::Columns::executed_transactions_count_by_period, last_if_absent(n)).value_or(0);
+    return db_->lookup_int<uint64_t>(last_if_absent(n), DB::Columns::executed_transactions_count_by_period).value_or(0);
   }
 
   Transactions transactions(optional<BlockNumber> n = {}) const override {
@@ -362,6 +364,14 @@ struct FinalChainImpl final : virtual FinalChain {
 
   uint64_t dpos_eligible_count(BlockNumber blk_num) const override { return state_api.dpos_eligible_count(blk_num); }
 
+  uint64_t dpos_eligible_total_vote_count(BlockNumber blk_num) const override {
+    return state_api.dpos_eligible_total_vote_count(blk_num);
+  }
+
+  uint64_t dpos_eligible_vote_count(BlockNumber blk_num, addr_t const& addr) const override {
+    return state_api.dpos_eligible_vote_count(blk_num, addr);
+  }
+
   bool dpos_is_eligible(BlockNumber blk_num, addr_t const& addr) const override {
     return state_api.dpos_is_eligible(blk_num, addr);
   }
@@ -385,7 +395,7 @@ struct FinalChainImpl final : virtual FinalChain {
   }
 
   BlocksBlooms block_blooms(h256 const& chunk_id) const {
-    if (auto raw = db_->lookup(DB::Columns::final_chain_log_blooms_index, chunk_id); !raw.empty()) {
+    if (auto raw = db_->lookup(chunk_id, DB::Columns::final_chain_log_blooms_index); !raw.empty()) {
       return RLP(raw).toArray<LogBloom, c_bloomIndexSize>();
     }
     return {};
@@ -452,7 +462,7 @@ struct FinalChainImpl final : virtual FinalChain {
 unique_ptr<FinalChain> NewFinalChain(shared_ptr<DB> const& db,          //
                                      FinalChain::Config const& config,  //
                                      FinalChain::Opts const& opts, addr_t const& node_addr) {
-  return util::u_ptr(new FinalChainImpl(db, config, opts, node_addr));
+  return u_ptr(new FinalChainImpl(db, config, opts, node_addr));
 }
 
 Json::Value enc_json(FinalChain::Config const& obj) {

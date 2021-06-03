@@ -116,7 +116,7 @@ VoteManager::VoteManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::s
     }
   }
 
-  current_period_final_chain_block_hash_ = final_chain_->get_last_block()->hash();
+  current_period_final_chain_block_hash_ = final_chain_->block_header()->hash;
 }
 
 void VoteManager::addUnverifiedVote(taraxa::Vote const& vote) {
@@ -288,7 +288,7 @@ std::vector<Vote> VoteManager::getVerifiedVotes(uint64_t const pbft_round, size_
   std::vector<Vote> verified_votes;
   auto votes_to_verify = getUnverifiedVotes();
 
-  h256 latest_final_chain_block_hash = final_chain_->get_last_block()->hash();
+  h256 latest_final_chain_block_hash = final_chain_->block_header()->hash;
 
   if (latest_final_chain_block_hash != current_period_final_chain_block_hash_) {
     current_period_final_chain_block_hash_ = latest_final_chain_block_hash;

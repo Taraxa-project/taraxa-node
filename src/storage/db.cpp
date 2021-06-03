@@ -1,10 +1,9 @@
-#include "db_storage.hpp"
-
 #include <rocksdb/utilities/checkpoint.h>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 
+#include "db_storage.hpp"
 #include "version.hpp"
 
 namespace taraxa::db {
@@ -74,7 +73,7 @@ void DB::init(uint32_t db_revert_to_period, bool rebuild) {
 shared_ptr<DB> DB::make(fs::path const& base_path, uint32_t db_snapshot_each_n_pbft_block, uint32_t db_max_snapshots,
                         uint32_t db_revert_to_period, addr_t const& node_addr, bool rebuild) {
   // make_shared won't work in this pattern, since the constructors are private
-  auto ret = util::s_ptr(new DB(base_path, db_snapshot_each_n_pbft_block, db_max_snapshots, node_addr));
+  auto ret = s_ptr(new DB(base_path, db_snapshot_each_n_pbft_block, db_max_snapshots, node_addr));
   ret->init(db_revert_to_period, rebuild);
   return ret;
 }
@@ -311,7 +310,7 @@ shared_ptr<blk_hash_t> DB::getPbftMgrVotedValue(PbftMgrVotedValue const& field) 
 std::shared_ptr<PbftBlock> DB::getPbftBlock(blk_hash_t const& hash) {
   auto block = lookup(Columns::pbft_blocks, hash);
   if (!block.empty()) {
-    return util::s_ptr(new PbftBlock(dev::RLP(block)));
+    return s_ptr(new PbftBlock(dev::RLP(block)));
   }
   return nullptr;
 }

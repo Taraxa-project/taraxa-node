@@ -315,7 +315,6 @@ TEST_F(NetworkTest, node_pbft_sync) {
 
   // Stop PBFT manager and executor for syncing test
   node1->getPbftManager()->stop();
-  node1->getExecutor()->stop();
 
   auto db1 = node1->getDB();
   auto pbft_chain1 = node1->getPbftChain();
@@ -438,7 +437,6 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
 
   // Stop PBFT manager and executor for syncing test
   node1->getPbftManager()->stop();
-  node1->getExecutor()->stop();
 
   auto db1 = node1->getDB();
   auto pbft_chain1 = node1->getPbftChain();

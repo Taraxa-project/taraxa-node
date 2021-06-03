@@ -62,12 +62,19 @@ struct DbStorage;
 using DB = DbStorage;
 
 struct DbStorage {
+  using Slice = rocksdb::Slice;
   using BatchPtr = shared_ptr<rocksdb::WriteBatch>;
   using OnEntry = function<bool(Slice const&, Slice const&)>;
 
-  struct Column {
-    string const name;
+  class Column {
+    string const name_;
+
+   public:
     size_t const ordinal;
+
+    Column(string name, size_t ordinal) : name_(std::move(name)), ordinal(ordinal) {}
+
+    auto const& name() const { return ordinal ? name_ : rocksdb::kDefaultColumnFamilyName; }
   };
 
   class Columns {
@@ -308,23 +315,29 @@ struct DbStorage {
     return bytes((byte const*)b.data(), (byte const*)(b.data() + b.size()));
   }
 
-  inline static Slice toSlice(dev::bytesConstRef const& b) {
-    return Slice(reinterpret_cast<char const*>(&b[0]), b.size());
+  template <typename T>
+  inline static Slice make_slice(T const* begin, size_t size) {
+    if (!size) {
+      return {};
+    }
+    return {reinterpret_cast<char const*>(begin), size};
   }
+
+  inline static Slice toSlice(dev::bytesConstRef const& b) { return make_slice(b.data(), b.size()); }
 
   template <unsigned N>
   inline static Slice toSlice(dev::FixedHash<N> const& h) {
-    return {reinterpret_cast<char const*>(h.data()), N};
+    return make_slice(h.data(), N);
   }
 
-  inline static Slice toSlice(dev::bytes const& b) { return toSlice(&b); }
+  inline static Slice toSlice(dev::bytes const& b) { return make_slice(b.data(), b.size()); }
 
-  template <class N, typename = enable_if_t<is_arithmetic<N>::value>>
-  inline static Slice toSlice(N const& n) {
-    return Slice(reinterpret_cast<char const*>(&n), sizeof(N));
+  template <class N>
+  inline static auto toSlice(N const& n) -> enable_if_t<is_integral_v<N> || is_enum_v<N>, Slice> {
+    return make_slice(&n, sizeof(N));
   }
 
-  inline static Slice toSlice(string const& str) { return Slice(str.data(), str.size()); }
+  inline static Slice toSlice(string const& str) { return make_slice(str.data(), str.size()); }
 
   inline static auto const& toSlice(Slice const& s) { return s; }
 
@@ -345,10 +358,20 @@ struct DbStorage {
     std::string value;
     auto status = db_->Get(read_options_, handle(column), toSlice(key), &value);
     if (status.IsNotFound()) {
-      return "";
+      return value;
     }
     checkStatus(status);
     return value;
+  }
+
+  // consistent with toSlice(number)
+  template <typename Int, typename K>
+  auto lookup_int(K const& key, Column const& column) -> std::enable_if_t<std::is_integral_v<Int>, std::optional<Int>> {
+    auto str = lookup(key, column);
+    if (str.empty()) {
+      return std::nullopt;
+    }
+    return *reinterpret_cast<Int*>(str.data());
   }
 
   template <typename K, typename V>
@@ -401,6 +424,37 @@ struct DbStorage {
     uint size();
     vector<string> execute(bool and_reset = true);
     MultiGetQuery& reset();
+  };
+
+  class Batch {
+    friend DB;
+
+    rocksdb::WriteBatch b_;
+    shared_ptr<DB> db_;
+
+   public:
+    Batch(decltype(db_) db) : db_(std::move(db)) {}
+    // not copyable. copying a write batch is almost always indicative of a programmer mistake
+    Batch(Batch const&) = delete;
+    Batch& operator=(Batch const&) = delete;
+    // movable
+    Batch(Batch&&) = default;
+    Batch& operator=(Batch&&) = default;
+
+    template <typename K, typename V>
+    Batch& put(Column const& col, K const& k, V const& v) {
+      checkStatus(b_.Put(db_->handle(col), toSlice(k), toSlice(v)));
+      return *this;
+    }
+
+    template <typename K>
+    Batch& remove(Column const& col, K const& k) {
+      checkStatus(b_.Delete(db_->handle(col), toSlice(k)));
+      return *this;
+    }
+
+    Batch& commit();
+    Batch& reset();
   };
 };
 }  // namespace taraxa

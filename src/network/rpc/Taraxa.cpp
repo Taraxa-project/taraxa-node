@@ -2,6 +2,7 @@
 
 #include <jsonrpccpp/common/exception.h>
 #include <libdevcore/CommonData.h>
+#include <libdevcore/CommonJS.h>
 #include <libp2p/Common.h>
 
 #include "consensus/pbft_manager.hpp"

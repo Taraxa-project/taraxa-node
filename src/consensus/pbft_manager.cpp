@@ -13,8 +13,8 @@
 #include <chrono>
 #include <string>
 
-#include "final_chain/final_chain.hpp"
 #include "dag/dag.hpp"
+#include "final_chain/final_chain.hpp"
 
 namespace taraxa {
 using vrf_output_t = vrf_wrapper::vrf_output_t;
@@ -24,7 +24,7 @@ PbftManager::PbftManager(PbftConfig const &conf, std::string const &genesis, add
                          std::shared_ptr<VoteManager> vote_mgr,
                          std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr, std::shared_ptr<DagManager> dag_mgr,
                          std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<FinalChain> final_chain,
-                         std::shared_ptr<Executor> executor, secret_t node_sk, vrf_sk_t vrf_sk)
+                         secret_t node_sk, vrf_sk_t vrf_sk)
     : db_(db),
       previous_round_next_votes_(next_votes_mgr),
       pbft_chain_(pbft_chain),
@@ -32,7 +32,6 @@ PbftManager::PbftManager(PbftConfig const &conf, std::string const &genesis, add
       dag_mgr_(dag_mgr),
       dag_blk_mgr_(dag_blk_mgr),
       final_chain_(final_chain),
-      executor_(executor),
       node_addr_(node_addr),
       node_sk_(node_sk),
       vrf_sk_(vrf_sk),
@@ -1400,7 +1399,7 @@ bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes) {
   LOG(log_nf_) << node_addr_ << " successful push unexecuted PBFT block " << pbft_block_hash << " in period "
                << pbft_period << " into chain! In round " << getPbftRound();
 
-  executor_->execute(pbft_block);
+  final_chain_->finalize(pbft_block);
 
   // Reset proposed PBFT block hash to False for next pbft block proposal
   proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);

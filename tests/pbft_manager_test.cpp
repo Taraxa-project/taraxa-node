@@ -226,7 +226,7 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
     trxs_count++;
     EXPECT_HAPPENS({120s, 1s}, [&](auto &ctx) {
       for (auto &node : nodes) {
-        if (ctx.fail_if(!node->getFinalChain()->isKnownTransaction(trx.getHash()))) {
+        if (ctx.fail_if(!node->getFinalChain()->transaction_location(trx.getHash()))) {
           return;
         }
       }

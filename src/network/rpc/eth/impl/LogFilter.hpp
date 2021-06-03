@@ -167,7 +167,7 @@ struct LogFilter {
   vector<LocalisedLogEntry> match_all(FinalChain const& final_chain) const {
     vector<LocalisedLogEntry> ret;
     auto action = [&, this](BlockNumber blk_n) {
-      ExtendedTransactionLocation trx_loc{blk_n, 0, *final_chain.block_hash(blk_n)};
+      ExtendedTransactionLocation trx_loc{{{blk_n, 0}, *final_chain.block_hash(blk_n)}, {}};
       final_chain.transaction_hashes(trx_loc.blk_n)->for_each([&, this](auto const& trx_h) {
         trx_loc.trx_hash = trx_h;
         match_one(trx_loc, *final_chain.transaction_receipt(trx_h), [&](auto const& lle) { ret.push_back(lle); });

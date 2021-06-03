@@ -45,7 +45,7 @@ struct WatchGroup {
     assert(cfg_.idle_timeout.count() != 0);
     if constexpr (is_same_v<InputType, OutputType>) {
       if (!updater) {
-        updater = [](auto const& params, auto const& input, auto const& do_update) { do_update(input); };
+        updater = [](auto const&, auto const& input, auto const& do_update) { do_update(input); };
       }
     }
   }
@@ -56,7 +56,7 @@ struct WatchGroup {
       throw WatchLimitExceeded();
     }
     auto id = ((++watch_id_seq_) << watch_id_type_mask_bits) + type;
-    watches_.insert_or_assign(id, Watch{move(params), high_resolution_clock::now()});
+    watches_.insert_or_assign(id, Watch{move(params), high_resolution_clock::now(), {}});
     return id;
   }
 
@@ -75,7 +75,7 @@ struct WatchGroup {
       }
     }
     if (auto num_buckets = watches_.bucket_count(); did_uninstall && (1 << 10) < num_buckets) {
-      if (auto desired_num_buckets = 1 << uint(ceil(log2(watches_.size()))); desired_num_buckets != num_buckets) {
+      if (size_t desired_num_buckets = 1 << uint(ceil(log2(watches_.size()))); desired_num_buckets != num_buckets) {
         watches_.rehash(desired_num_buckets);
       }
     }
