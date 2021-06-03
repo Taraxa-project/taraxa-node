@@ -224,7 +224,7 @@ bool FullNodeConfig::validate() {
   // Validates rpc config values
   if (rpc) {
     if (!rpc->http_port && !rpc->ws_port) {
-      std::cerr << "Either rpc::http_port or rpc::ws_port post must be specified for rpc";
+      cerr << "Either rpc::http_port or rpc::ws_port post must be specified for rpc";
       return false;
     }
 
@@ -232,7 +232,7 @@ bool FullNodeConfig::validate() {
     const uint16_t max_threads_num = 200;
 
     if (rpc->threads_num <= 0 || rpc->threads_num > max_threads_num) {
-      std::cerr << "rpc::threads_num must be in range (0, " << max_threads_num << ">";
+      cerr << "rpc::threads_num must be in range (0, " << max_threads_num << ">";
       return false;
     }
   }

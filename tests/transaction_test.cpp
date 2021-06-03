@@ -116,7 +116,7 @@ TEST_F(TransactionTest, sig) {
 }
 
 TEST_F(TransactionTest, verifiers) {
-  TransactionManager trx_mgr(DB::make(data_dir), addr_t());
+  TransactionManager trx_mgr(s_ptr(new DbStorage(data_dir)), addr_t());
   trx_mgr.setVerifyMode(TransactionManager::VerifyMode::skip_verify_sig);
   trx_mgr.start();
 
@@ -138,7 +138,7 @@ TEST_F(TransactionTest, verifiers) {
 }
 
 TEST_F(TransactionTest, transaction_limit) {
-  TransactionManager trx_mgr(DB::make(data_dir), addr_t());
+  TransactionManager trx_mgr(s_ptr(new DbStorage(data_dir)), addr_t());
   trx_mgr.setVerifyMode(TransactionManager::VerifyMode::skip_verify_sig);
   trx_mgr.start();
 
@@ -165,7 +165,7 @@ TEST_F(TransactionTest, transaction_limit) {
 }
 
 TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
-  TransactionManager trx_mgr(DB::make(data_dir), addr_t());
+  TransactionManager trx_mgr(s_ptr(new DbStorage(data_dir)), addr_t());
   trx_mgr.start();
 
   std::thread insertTrx([&trx_mgr]() {

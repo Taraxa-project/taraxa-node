@@ -11,7 +11,6 @@
 #include "network/network.hpp"
 #include "node/full_node.hpp"
 #include "transaction_manager/transaction_manager.hpp"
-#include "version.hpp"
 
 using namespace std;
 using namespace dev;
@@ -198,7 +197,7 @@ Json::Value Test::get_node_status() {
       res["peer_count"] = Json::UInt64(node->getNetwork()->getPeerCount());
       res["node_count"] = Json::UInt64(node->getNetwork()->getNodeCount());
       res["blk_executed"] = Json::UInt64(node->getDB()->getNumBlockExecuted());
-      res["blk_count"] = Json::UInt64(node->getDagManager()->getNumDagBlocks());
+      res["blk_count"] = Json::UInt64(node->getDB()->getNumDagBlocks());
       res["trx_executed"] = Json::UInt64(node->getDB()->getNumTransactionExecuted());
       res["trx_count"] = Json::UInt64(node->getTransactionManager()->getTransactionCount());
       res["dag_level"] = Json::UInt64(node->getDagManager()->getMaxLevel());
@@ -220,9 +219,9 @@ Json::Value Test::get_node_version() {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {
-      res["node_version"] = getFormattedVersion(c_node_major_version, c_node_minor_version);
-      res["db_version"] = getFormattedVersion(c_database_major_version, c_database_minor_version);
-      res["network_version"] = std::to_string(c_network_protocol_version);
+      res["node_version"] = getFormattedVersion(FullNode::c_node_major_version, FullNode::c_node_minor_version);
+      res["db_version"] = getFormattedVersion(FullNode::c_database_major_version, FullNode::c_database_minor_version);
+      res["network_version"] = std::to_string(FullNode::c_network_protocol_version);
       ;
       res["build_hash"] = GIT_HASH;
       res["build_time"] = COMPILE_TIME;
@@ -410,7 +409,7 @@ Json::Value Test::get_dag_blk_count(const Json::Value & /*param1*/) {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {
-      auto count = node->getDagManager()->getNumDagBlocks();
+      auto count = node->getDB()->getNumDagBlocks();
       res["value"] = std::to_string(count);
     }
   } catch (std::exception &e) {

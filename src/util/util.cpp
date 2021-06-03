@@ -2,7 +2,7 @@
 
 #include <cxxabi.h>
 #include <dlfcn.h>
-
+#include <errno.h>
 namespace taraxa {
 
 void thisThreadSleepForSeconds(unsigned sec) { std::this_thread::sleep_for(std::chrono::seconds(sec)); }

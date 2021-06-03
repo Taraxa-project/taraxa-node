@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "storage/db.hpp"
+#include "storage/db_storage.hpp"
 #include "util/range_view.hpp"
 
 namespace taraxa::final_chain {

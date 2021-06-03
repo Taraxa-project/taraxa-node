@@ -10,8 +10,8 @@
 #include "transaction_manager/transaction_manager.hpp"
 
 namespace taraxa {
-using namespace std;
-using namespace dev;
+
+using std::to_string;
 
 DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, sig_t sig, blk_hash_t hash,
                    addr_t sender)

@@ -58,7 +58,6 @@ std::ostream &operator<<(std::ostream &strm, std::vector<T> const &vec) {
   }
   return strm;
 }
-
 template <typename U, typename V>
 std::ostream &operator<<(std::ostream &strm, std::pair<U, V> const &pair) {
   strm << "[ " << pair.first << " , " << pair.second << "]";

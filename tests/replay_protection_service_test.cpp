@@ -12,7 +12,7 @@ using namespace std;
 
 struct ReplayProtectionServiceTest : WithDataDir {
   round_t range = 0;
-  shared_ptr<DB> db = DB::make(data_dir);
+  shared_ptr<DbStorage> db{new DbStorage(data_dir)};
   shared_ptr<ReplayProtectionService> SUT;
   vector<vector<ReplayProtectionService::TransactionInfo>> history;
   round_t curr_round = 0;
@@ -28,7 +28,7 @@ struct ReplayProtectionServiceTest : WithDataDir {
     for (round_t i(0); i < cnt; ++i) {
       auto batch = db->createWriteBatch();
       SUT->update(batch, curr_round, history[curr_round]);
-      batch.commit();
+      db->commitWriteBatch(batch);
       ++curr_round;
     }
   }

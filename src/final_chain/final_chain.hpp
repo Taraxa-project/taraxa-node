@@ -6,7 +6,7 @@
 #include "consensus/pbft_chain.hpp"
 #include "data.hpp"
 #include "state_api.hpp"
-#include "storage/db.hpp"
+#include "storage/db_storage.hpp"
 #include "util/event.hpp"
 #include "util/exit_stack.hpp"
 #include "util/range_view.hpp"

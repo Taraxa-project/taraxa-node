@@ -204,11 +204,11 @@ uint64_t StateAPI::dpos_eligible_total_vote_count(BlockNumber blk_num) const {
 }
 
 uint64_t StateAPI::dpos_eligible_vote_count(BlockNumber blk_num, addr_t const& addr) const {
-  RLPStream rlp;
-  rlp.reserve(sizeof(BlockNumber) + sizeof(addr_t) + 8, 1);
-  enc_rlp_tuple(rlp, blk_num, addr);
+  RLPStream encoding;
+  encoding.reserve(sizeof(BlockNumber) + sizeof(addr_t) + 8, 1);
+  rlp_tuple(encoding, blk_num, addr);
   ErrorHandler err_h;
-  auto ret = taraxa_evm_state_api_dpos_get_eligible_vote_count(this_c, map_bytes(rlp.out()), err_h.cgo_part);
+  auto ret = taraxa_evm_state_api_dpos_get_eligible_vote_count(this_c, map_bytes(encoding.out()), err_h.cgo_part);
   err_h.check();
   return ret;
 }

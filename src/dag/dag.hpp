@@ -11,6 +11,7 @@
 #include <boost/graph/labeled_graph.hpp>
 #include <boost/graph/properties.hpp>
 #include <boost/property_map/property_map.hpp>
+#include <boost/thread.hpp>
 #include <chrono>
 #include <condition_variable>
 #include <iostream>
@@ -18,16 +19,14 @@
 #include <list>
 #include <mutex>
 #include <queue>
-#include <shared_mutex>
 #include <string>
 
 #include "common/types.hpp"
 #include "consensus/pbft_chain.hpp"
 #include "dag_block.hpp"
-#include "storage/db.hpp"
+#include "storage/db_storage.hpp"
 #include "transaction_manager/transaction_manager.hpp"
 #include "util/util.hpp"
-
 namespace taraxa {
 
 /**
@@ -113,25 +112,23 @@ class PivotTree : public Dag {
 
   void getGhostPath(vertex_hash const &vertex, std::vector<vertex_hash> &pivot_chain) const;
 };
+class DagBuffer;
 class FullNode;
 
-class DagManager {
+class DagManager : public std::enable_shared_from_this<DagManager> {
  public:
-  using uLock = std::unique_lock<std::shared_mutex>;
-  using sharedLock = std::shared_lock<std::shared_mutex>;
+  using uLock = boost::unique_lock<boost::shared_mutex>;
+  using sharedLock = boost::shared_lock<boost::shared_mutex>;
 
-  explicit DagManager(DagBlock const &genesis_blk, std::shared_ptr<DB> db, std::shared_ptr<PbftChain> pbft_chain = {},
-                      addr_t node_addr = {});
+  explicit DagManager(std::string const &genesis, addr_t node_addr, std::shared_ptr<TransactionManager> trx_mgr,
+                      std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DbStorage> db);
   virtual ~DagManager() = default;
+  std::shared_ptr<DagManager> getShared();
+  void stop();
 
   std::string const &get_genesis() { return genesis_; }
 
   bool pivotAndTipsAvailable(DagBlock const &blk);
-
- private:
-  void addDagBlock(DagBlock const &blk, DB::Batch &write_batch);
-
- public:
   void addDagBlock(DagBlock const &blk, bool finalized = false,
                    bool save = true);  // insert to buffer if fail
 
@@ -141,9 +138,10 @@ class DagManager {
   // receive pbft-povit-blk, update periods and finalized, return size of
   // ordered blocks
   uint setDagBlockOrder(blk_hash_t const &anchor, uint64_t period, vec_blk_t const &dag_order,
-                        taraxa::DB::Batch &write_batch);
+                        const taraxa::DbStorage::BatchPtr &write_batch);
 
   bool getLatestPivotAndTips(std::string &pivot, std::vector<std::string> &tips) const;
+  void collectTotalLeaves(std::vector<std::string> &leaves) const;
 
   void getGhostPath(std::string const &source, std::vector<std::string> &ghost) const;
   void getGhostPath(std::vector<std::string> &ghost) const;  // get ghost path from last anchor
@@ -173,30 +171,22 @@ class DagManager {
 
   DagFrontier getDagFrontier();
 
-  uint64_t getNumDagBlocks() const {
-    sharedLock l(mutex_);
-    return dag_blocks_count_;
-  }
-
  private:
   void recoverDag();
   void addToDag(std::string const &hash, std::string const &pivot, std::vector<std::string> const &tips, uint64_t level,
-                taraxa::DB::Batch &write_batch, bool finalized = false);
+                const taraxa::DbStorage::BatchPtr &write_batch, bool finalized = false);
   std::pair<std::string, std::vector<std::string>> getFrontier() const;  // return pivot and tips
-
-  uint64_t dag_blocks_count_;
-  uint64_t dag_edge_count_;
   std::atomic<level_t> max_level_ = 0;
-  mutable std::shared_mutex mutex_;
-
-  std::shared_ptr<PbftChain> pbft_chain_;
-  std::shared_ptr<DB> db_;
-  std::string genesis_;
-  std::string anchor_;                     // anchor of the last period
-  std::shared_ptr<Dag> total_dag_;         // contains both pivot and tips
+  mutable boost::shared_mutex mutex_;
   std::shared_ptr<PivotTree> pivot_tree_;  // only contains pivot edges
-  uint64_t period_;                        // last period
-  std::string old_anchor_;                 // anchor of the second to last period
+  std::shared_ptr<Dag> total_dag_;         // contains both pivot and tips
+  std::shared_ptr<TransactionManager> trx_mgr_;
+  std::shared_ptr<PbftChain> pbft_chain_;
+  std::shared_ptr<DbStorage> db_;
+  std::string anchor_;      // anchor of the last period
+  std::string old_anchor_;  // anchor of the second to last period
+  uint64_t period_;         // last period
+  std::string genesis_;
   std::map<uint64_t, std::vector<std::string>> non_finalized_blks_;
   std::map<uint64_t, std::vector<std::string>> finalized_blks_;
   DagFrontier frontier_;

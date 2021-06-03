@@ -59,7 +59,7 @@ TEST_F(DagBlockTest, serialize_deserialize) {
 TEST_F(DagBlockTest, send_receive_one) {
   uint256_hash_t send("8f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f");
 
-  bytes data;
+  std::vector<uint8_t> data;
   {
     vectorstream strm(data);
     write(strm, send);
@@ -79,7 +79,7 @@ TEST_F(DagBlockTest, send_receive_two) {
   vector<uint256_hash_t> outgoings{blk_hash_t("8f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"),
                                    blk_hash_t("7f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f")};
 
-  bytes data;
+  vector<uint8_t> data;
   {
     vectorstream strm(data);
     for (auto const& i : outgoings) {
@@ -104,7 +104,7 @@ TEST_F(DagBlockTest, send_receive_three) {
                                    blk_hash_t("7f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"),
                                    blk_hash_t("6f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f")};
 
-  bytes data;
+  vector<uint8_t> data;
   {
     vectorstream strm(data);
     for (auto const& i : outgoings) {

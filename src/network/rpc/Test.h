@@ -4,6 +4,10 @@
 
 #include "TestFace.h"
 
+namespace dev::eth {
+class Client;
+}
+
 namespace taraxa {
 class FullNode;
 }

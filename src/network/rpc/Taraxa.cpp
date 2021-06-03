@@ -6,8 +6,8 @@
 
 #include "consensus/pbft_manager.hpp"
 #include "dag/dag.hpp"
+#include "dag/dag_block_manager.hpp"
 #include "transaction_manager/transaction_manager.hpp"
-#include "version.hpp"
 
 using namespace std;
 using namespace jsonrpc;
@@ -19,7 +19,7 @@ namespace taraxa::net {
 
 Taraxa::Taraxa(std::shared_ptr<FullNode> const& _full_node) : full_node_(_full_node) {}
 
-string Taraxa::taraxa_protocolVersion() { return toJS(c_network_protocol_version); }
+string Taraxa::taraxa_protocolVersion() { return toJS(FullNode::c_network_protocol_version); }
 
 string Taraxa::taraxa_dagBlockLevel() {
   try {

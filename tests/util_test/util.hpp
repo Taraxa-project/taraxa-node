@@ -285,7 +285,7 @@ inline auto make_simple_pbft_block(h256 const& hash, uint64_t period) {
   return PbftBlock(hash, blk_hash_t(0), period, addr_t(0), secret_t::random());
 }
 
-inline vector<blk_hash_t> getOrderedDagBlocks(shared_ptr<DB> const& db) {
+inline vector<blk_hash_t> getOrderedDagBlocks(shared_ptr<DbStorage> const& db) {
   uint64_t period = 1;
   vector<blk_hash_t> res;
   while (true) {
