@@ -58,6 +58,9 @@ class DbException : public exception {
   string desc_;
 };
 
+struct DbStorage;
+using DB = DbStorage;
+
 struct DbStorage {
   using BatchPtr = shared_ptr<rocksdb::WriteBatch>;
   using OnEntry = function<bool(Slice const&, Slice const&)>;
@@ -74,16 +77,9 @@ struct DbStorage {
    public:
     static inline auto const& all = all_;
 
-    // Fix static initialization order fail by lazy initialization:
-    // When rocksdb linked statically, rocksdb::kDefaultColumnFamilyName is empty during static initialization of
-    // columns, therefore default_column, which depends on rocksdb::kDefaultColumnFamilyName must be lazy initialized
-    static inline auto Default_column() {
-      static auto const default_column = all_.emplace_back(Column{kDefaultColumnFamilyName, all_.size()});
-      return default_column;
-    }
+#define COLUMN(__name__) static inline auto const __name__ = all_.emplace_back(#__name__, all_.size())
 
-#define COLUMN(__name__) static inline auto const __name__ = all_.emplace_back(Column{#__name__, all_.size()})
-
+    COLUMN(default_column);
     COLUMN(dag_blocks);
     COLUMN(dag_blocks_index);
     COLUMN(dag_blocks_state);
@@ -113,8 +109,15 @@ struct DbStorage {
     COLUMN(proposal_period_levels_map);
     COLUMN(replay_protection);
     COLUMN(pending_transactions);
-    COLUMN(aleth_chain);
-    COLUMN(aleth_chain_extras);
+    COLUMN(executed_transactions_by_period);
+    COLUMN(executed_transactions_count_by_period);
+    COLUMN(final_chain_meta);
+    COLUMN(final_chain_block_by_period);
+    COLUMN(final_chain_block_hash_by_period);
+    COLUMN(period_by_final_chain_block_hash);
+    COLUMN(final_chain_log_blooms);
+    COLUMN(final_chain_receipt_by_trx_hash);
+    COLUMN(final_chain_log_blooms_index);
 
 #undef COLUMN
   };
@@ -125,7 +128,7 @@ struct DbStorage {
   fs::path state_db_path_;
   const std::string db_dir = "db";
   const std::string state_db_dir = "state_db";
-  DB* db_;
+  rocksdb::DB* db_;
   vector<ColumnFamilyHandle*> handles_;
   ReadOptions read_options_;
   WriteOptions write_options_;

@@ -13,7 +13,7 @@
 #include <chrono>
 #include <string>
 
-#include "chain/final_chain.hpp"
+#include "final_chain/final_chain.hpp"
 #include "dag/dag.hpp"
 
 namespace taraxa {

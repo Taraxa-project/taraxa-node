@@ -18,7 +18,6 @@
 #include "consensus/vote.hpp"
 #include "consensus/vrf_wrapper.hpp"
 #include "dag/dag_block_manager.hpp"
-#include "executor.hpp"
 #include "network/rpc/NetFace.h"
 #include "network/rpc/RpcServer.h"
 #include "network/rpc/TaraxaFace.h"

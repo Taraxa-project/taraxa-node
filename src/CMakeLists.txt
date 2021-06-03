@@ -1,101 +1,45 @@
 # TODO: Break this cmake(app_base target) into smaller libraries with their own cmakes, e.g. network, chain, dag, etc... could be separate libraries
 
 set(SOURCES
-        # ---- public headers -----
-        util/util.hpp
-        node/full_node.hpp
-        transaction_manager/transaction_manager.hpp
-        storage/db_storage.hpp
-        dag/dag.hpp
-        consensus/pbft_chain.hpp
-        aleth/node_api.hpp
-        aleth/database.hpp
-        aleth/state_api.hpp
-        aleth/dummy_eth_apis.hpp
-        consensus/block_proposer.hpp
-        transaction_manager/transaction_status.hpp
-        chain/chain_config.hpp
-        consensus/vrf_wrapper.hpp
-        node/executor.hpp
-        network/network.hpp
-        common/static_init.hpp
-        dag/vdf_sortition.hpp
-        chain/final_chain.hpp
-        consensus/pbft_config.hpp
-        network/taraxa_capability.hpp
-        util/exit_stack.hpp
-        util/encoding_rlp.hpp
-        util/range_view.hpp
-        util/lazy.hpp
-        config/config.hpp
-        node/replay_protection_service.hpp
-        common/types.hpp
-        dag/dag_block.hpp
-        network/packets_stats.hpp
-        network/rpc/Taraxa.h
-        network/rpc/Test.h
-        network/rpc/TaraxaClient.h
-        network/rpc/NetClient.h
-        network/rpc/Net.h
-        network/rpc/NetFace.h
-        network/rpc/TaraxaFace.h
-        network/rpc/TestFace.h
-        network/rpc/RpcServer.h
-        network/rpc/WSServer.h
-        network/rpc/TestClient.h
-        transaction_manager/transaction_order_manager.hpp
-        consensus/vote.hpp
-        transaction_manager/transaction.hpp
-        transaction_manager/transaction_queue.hpp
-        logger/logger_config.hpp
-        logger/log.hpp
-        chain/state_api.hpp
-        dag/dag_block_manager.hpp
-        dag/proposal_period_levels_map.hpp
-        consensus/pbft_manager.hpp
-
-        # ---- private sources -----
-        util/thread_pool.cpp
-        transaction_manager/transaction.cpp
-        consensus/pbft_manager.cpp
-        storage/db_storage.cpp
-        consensus/vrf_wrapper.cpp
-        aleth/node_api.cpp
-        aleth/database.cpp
-        aleth/state_api.cpp
-        node/executor.cpp
-        network/taraxa_capability.cpp
-        transaction_manager/transaction_manager.cpp
-        dag/vdf_sortition.cpp
-        chain/chain_config.cpp
-        chain/final_chain.cpp
-        consensus/pbft_config.cpp
-        consensus/vote.cpp
-        network/network.cpp
-        util/util.cpp
-        consensus/pbft_chain.cpp
-        node/replay_protection_service.cpp
+        common/types.cpp
+        config/chain_config.cpp
         config/config.cpp
-        dag/dag_block.cpp
-        node/full_node.cpp
+        consensus/pbft_manager.cpp
+        consensus/vote.cpp
+        consensus/pbft_config.cpp
         consensus/block_proposer.cpp
-        network/packets_stats.cpp
+        consensus/vrf_wrapper.cpp
+        consensus/pbft_chain.cpp
+        dag/dag_block_manager.cpp
+        dag/dag.cpp
+        dag/dag_block.cpp
+        dag/proposal_period_levels_map.cpp
+        dag/vdf_sortition.cpp
+        final_chain/TrieCommon.cpp
+        final_chain/final_chain.cpp
+        final_chain/state_api.cpp
+        final_chain/replay_protection_service.cpp
+        logger/log.cpp
+        logger/logger_config.cpp
         network/rpc/Taraxa.cpp
-        network/rpc/Test.cpp
         network/rpc/WSServer.cpp
         network/rpc/Net.cpp
+        network/rpc/Test.cpp
         network/rpc/RpcServer.cpp
-        transaction_manager/transaction_order_manager.cpp
-        chain/state_api.cpp
-        transaction_manager/transaction_queue.cpp
-        dag/dag.cpp
-        logger/logger_config.cpp
-        logger/log.cpp
-        common/types.cpp
-        dag/dag_block_manager.cpp
-        dag/proposal_period_levels_map.cpp
-        util/jsoncpp.cpp
         network/rpc/rpc_error_handler.cpp
+        network/rpc/eth/impl/Eth.cpp
+        network/network.cpp
+        network/packets_stats.cpp
+        network/taraxa_capability.cpp
+        node/full_node.cpp
+        storage/db_storage.cpp
+        transaction_manager/transaction.cpp
+        transaction_manager/transaction_queue.cpp
+        transaction_manager/transaction_order_manager.cpp
+        transaction_manager/transaction_manager.cpp
+        util/jsoncpp.cpp
+        util/util.cpp
+        util/thread_pool.cpp
         )
 
 add_subdirectory(network/rpc)
@@ -148,9 +92,9 @@ else ()
     target_link_libraries(app_base stdc++fs)
 endif ()
 
-if(TCMALLOC_LIB)
+if (TCMALLOC_LIB)
     target_link_libraries(app_base ${TCMALLOC_LIB}) # MUST BE LINKED LAST!!!
-endif()
+endif ()
 
 # Main taraxad binary
 add_subdirectory(taraxad)

@@ -2,7 +2,6 @@
 
 #include <libdevcore/SHA3.h>
 #include <libdevcrypto/Common.h>
-#include <libethcore/Common.h>
 
 #include "consensus/pbft_manager.hpp"
 
