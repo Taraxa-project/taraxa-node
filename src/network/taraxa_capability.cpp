@@ -230,6 +230,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       // peer->clearAllKnownBlocksAndTransactions();
       break;
     }
+
     case StatusPacket: {
       bool initial_status = _r.itemCount() == 9;
 
@@ -335,6 +336,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
 
       break;
     }
+
     // Means a new block is proposed, full block body and all transaction
     // are received.
     case NewBlockPacket: {
@@ -381,6 +383,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       }
       break;
     }
+
     case GetNewBlockPacket: {
       blk_hash_t hash(_r[0]);
       peer->markBlockAsKnown(hash);
@@ -397,8 +400,9 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       }
       break;
     }
-    case GetBlocksPacket: {
-      LOG(log_dg_dag_sync_) << "Received GetBlocksPacket";
+
+    case GetDagBlocksSyncPacket: {
+      LOG(log_dg_dag_sync_) << "Received GetDagBlocksSyncPacket";
       std::vector<std::shared_ptr<DagBlock>> dag_blocks;
       auto blocks = dag_mgr_->getNonFinalizedBlocks();
       for (auto &level_blocks : blocks) {
@@ -409,7 +413,8 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       sendBlocks(_nodeID, dag_blocks);
       break;
     }
-    case BlocksPacket: {
+
+    case DagBlocksSyncPacket: {
       std::string received_dag_blocks_str;
       auto itemCount = _r.itemCount();
       size_t transactionCount = 0;
@@ -446,7 +451,8 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       LOG(log_nf_dag_sync_) << "Received Dag Blocks: " << received_dag_blocks_str;
       break;
     }
-    case TransactionPacket: {
+
+    case TransactionsPacket: {
       std::string receivedTransactions;
       std::vector<taraxa::bytes> transactions;
       auto transactionCount = _r.itemCount();
@@ -457,8 +463,8 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         transactions.emplace_back(_r[iTransaction].data().toBytes());
       }
       if (transactionCount > 0) {
-        LOG(log_dg_trx_prp_) << "Received TransactionPacket with " << _r.itemCount() << " transactions";
-        LOG(log_tr_trx_prp_) << "Received TransactionPacket with " << _r.itemCount()
+        LOG(log_dg_trx_prp_) << "Received TransactionsPacket with " << _r.itemCount() << " transactions";
+        LOG(log_tr_trx_prp_) << "Received TransactionsPacket with " << _r.itemCount()
                              << " transactions:" << receivedTransactions.c_str();
 
         onNewTransactions(transactions, true);
@@ -510,6 +516,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
 
       break;
     }
+
     case PbftNextVotesPacket: {
       auto next_votes_count = _r.itemCount();
       if (next_votes_count == 0) {
@@ -551,24 +558,6 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       break;
     }
 
-    case GetPbftBlockPacket: {
-      LOG(log_dg_pbft_sync_) << "Received GetPbftBlockPacket Block";
-
-      size_t height_to_sync = _r[0].toInt();
-      // Here need PBFT chain size, not synced period since synced blocks has not verified yet.
-      size_t my_chain_size = pbft_chain_->getPbftChainSize();
-      size_t blocks_to_transfer = 0;
-      if (my_chain_size >= height_to_sync) {
-        blocks_to_transfer =
-            std::min((uint64_t)conf_.network_sync_level_size, (uint64_t)(my_chain_size - (height_to_sync - 1)));
-      }
-
-      LOG(log_dg_pbft_sync_) << "Will send " << blocks_to_transfer << " PBFT blocks to " << _nodeID;
-      // If blocks_to_transfer is 0, send peer empty PBFT blocks for talking to peer syncing has completed
-      sendPbftBlocks(_nodeID, height_to_sync, blocks_to_transfer);
-      break;
-    }
-
     // no cert vote needed (propose block)
     case NewPbftBlockPacket: {
       LOG(log_dg_pbft_prp_) << "In NewPbftBlockPacket";
@@ -598,10 +587,29 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
 
       break;
     }
-      // need cert votes (syncing)
-    case PbftBlockPacket: {
+
+    case GetPbftBlocksSyncPacket: {
+          LOG(log_dg_pbft_sync_) << "Received GetPbftBlocksSyncPacket Block";
+
+      size_t height_to_sync = _r[0].toInt();
+      // Here need PBFT chain size, not synced period since synced blocks has not verified yet.
+      size_t my_chain_size = pbft_chain_->getPbftChainSize();
+      size_t blocks_to_transfer = 0;
+      if (my_chain_size >= height_to_sync) {
+        blocks_to_transfer =
+            std::min((uint64_t)conf_.network_sync_level_size, (uint64_t)(my_chain_size - (height_to_sync - 1)));
+      }
+
+          LOG(log_dg_pbft_sync_) << "Will send " << blocks_to_transfer << " PBFT blocks to " << _nodeID;
+      // If blocks_to_transfer is 0, send peer empty PBFT blocks for talking to peer syncing has completed
+      sendPbftBlocks(_nodeID, height_to_sync, blocks_to_transfer);
+      break;
+    }
+
+    // need cert votes (syncing)
+    case PbftBlocksSyncPacket: {
       auto pbft_blk_count = _r.itemCount();
-      LOG(log_dg_pbft_sync_) << "In PbftBlockPacket received, num pbft blocks: " << pbft_blk_count;
+      LOG(log_dg_pbft_sync_) << "In PbftBlocksSyncPacket received, num pbft blocks: " << pbft_blk_count;
 
       auto pbft_sync_period = pbft_chain_->pbftSyncingPeriod();
       for (auto const pbft_blk_tuple : _r) {
@@ -718,13 +726,14 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         // gossiping new blocks
         if (!syncing_) {
           // TODO: Why need to clear all DAG blocks and transactions?
-          // This is inside PbftBlockPacket. Why don't clear PBFT blocks and votes?
+          // This is inside PbftBlocksSyncPacket. Why don't clear PBFT blocks and votes?
           sendSyncedMessage();
         }
       }
 
       break;
     }
+
     case TestPacket: {
       LOG(log_dg_) << "Received TestPacket";
       ++cnt_received_messages_[_nodeID];
@@ -1057,8 +1066,8 @@ void TaraxaCapability::sendBlocks(NodeID const &_id, std::vector<std::shared_ptr
 
     // Split packet into multiple smaller ones if total size is > MAX_PACKET_SIZE
     if (packet_bytes.size() > MAX_PACKET_SIZE) {
-      LOG(log_dg_dag_sync_) << "Sending partial BlocksPacket due to MAX_PACKET_SIZE limit. " << blocks_counter
-                            << " blocks out of " << blocks.size() << " PbftBlockPacketsent.";
+      LOG(log_dg_dag_sync_) << "Sending partial PbftBlocksSyncPacket due to MAX_PACKET_SIZE limit. " << blocks_counter
+                            << " blocks out of " << blocks.size() << " sent.";
 
       taraxa::bytes removed_bytes;
       std::copy(packet_bytes.begin() + previous_block_packet_size, packet_bytes.end(),
@@ -1067,7 +1076,7 @@ void TaraxaCapability::sendBlocks(NodeID const &_id, std::vector<std::shared_ptr
 
       RLPStream s(packet_items_count);
       s.appendRaw(packet_bytes, packet_items_count);
-      sealAndSend(_id, BlocksPacket, std::move(s));
+      sealAndSend(_id, DagBlocksSyncPacket, std::move(s));
 
       packet_bytes = std::move(removed_bytes);
       packet_items_count = 0;
@@ -1077,11 +1086,11 @@ void TaraxaCapability::sendBlocks(NodeID const &_id, std::vector<std::shared_ptr
     blocks_counter++;
   }
 
-  LOG(log_dg_dag_sync_) << "Sending final BlocksPacket with " << blocks_counter << " blocks.";
+  LOG(log_dg_dag_sync_) << "Sending final DagBlocksSyncPacket with " << blocks_counter << " blocks.";
 
   RLPStream s(packet_items_count);
   s.appendRaw(packet_bytes, packet_items_count);
-  sealAndSend(_id, BlocksPacket, std::move(s));
+  sealAndSend(_id, DagBlocksSyncPacket, std::move(s));
 }
 
 void TaraxaCapability::sendTransactions(NodeID const &_id, std::vector<taraxa::bytes> const &transactions) {
@@ -1092,7 +1101,7 @@ void TaraxaCapability::sendTransactions(NodeID const &_id, std::vector<taraxa::b
     trx_bytes.insert(trx_bytes.end(), std::begin(transaction), std::end(transaction));
   }
   s.appendRaw(trx_bytes, transactions.size());
-  sealAndSend(_id, TransactionPacket, move(s));
+  sealAndSend(_id, TransactionsPacket, move(s));
 }
 
 void TaraxaCapability::sendBlock(NodeID const &_id, taraxa::DagBlock block) {
@@ -1134,13 +1143,13 @@ void TaraxaCapability::requestBlock(NodeID const &_id, blk_hash_t hash) {
 }
 
 void TaraxaCapability::requestPbftBlocks(NodeID const &_id, size_t height_to_sync) {
-  LOG(log_dg_pbft_sync_) << "Sending GetPbftBlockPacket with height: " << height_to_sync;
-  sealAndSend(_id, GetPbftBlockPacket, RLPStream(1) << height_to_sync);
+  LOG(log_dg_pbft_sync_) << "Sending GetPbftBlocksSyncPacket with height: " << height_to_sync;
+  sealAndSend(_id, GetPbftBlocksSyncPacket, RLPStream(1) << height_to_sync);
 }
 
 void TaraxaCapability::requestPendingDagBlocks(NodeID const &_id) {
-  LOG(log_nf_dag_sync_) << "Sending GetBlocksPacket";
-  sealAndSend(_id, GetBlocksPacket, RLPStream(0));
+  LOG(log_nf_dag_sync_) << "Sending GetDagBlocksSyncPacket";
+  sealAndSend(_id, GetDagBlocksSyncPacket, RLPStream(0));
 }
 
 std::pair<int, int> TaraxaCapability::retrieveTestData(NodeID const &_id) {
@@ -1420,7 +1429,7 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync, 
   // If blocks_to_transfer is 0, will return empty PBFT blocks
   auto pbft_cert_blks = pbft_chain_->getPbftBlocks(height_to_sync, blocks_to_transfer);
   if (pbft_cert_blks.empty()) {
-    sealAndSend(_id, PbftBlockPacket, RLPStream(0));
+    sealAndSend(_id, PbftBlocksSyncPacket, RLPStream(0));
     LOG(log_dg_pbft_sync_) << "In sendPbftBlocks, send no pbft blocks to " << _id;
     return;
   }
@@ -1539,11 +1548,11 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync, 
         continue;
       }
 
-      LOG(log_dg_dag_sync_) << "Sending partial PbftBlockPacket due tu MAX_PACKET_SIZE limit. " << pbft_block_idx + 1
+      LOG(log_dg_dag_sync_) << "Sending partial PbftBlocksSyncPacket due tu MAX_PACKET_SIZE limit. " << pbft_block_idx + 1
                             << " blocks out of " << pbft_blocks.size() << " sent.";
 
       // Send partial packet
-      sealAndSend(_id, PbftBlockPacket, create_packet(std::move(pbft_blocks_rlps)));
+      sealAndSend(_id, PbftBlocksSyncPacket, create_packet(std::move(pbft_blocks_rlps)));
 
       act_packet_size = 0;
       pbft_blocks_rlps.clear();
@@ -1554,8 +1563,8 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync, 
   }
 
   // Send final packet
-  sealAndSend(_id, PbftBlockPacket, create_packet(std::move(pbft_blocks_rlps)));
-  LOG(log_dg_pbft_sync_) << "Sending final PbftBlockPacket to " << _id;
+  sealAndSend(_id, PbftBlocksSyncPacket, create_packet(std::move(pbft_blocks_rlps)));
+  LOG(log_dg_pbft_sync_) << "Sending final PbftBlocksSyncPacket to " << _id;
 }
 
 void TaraxaCapability::sendPbftBlock(NodeID const &_id, taraxa::PbftBlock const &pbft_block,
@@ -1714,12 +1723,12 @@ string TaraxaCapability::packetTypeToString(unsigned int packet) const {
       return "NewBlockHashPacket";
     case GetNewBlockPacket:
       return "GetNewBlockPacket";
-    case GetBlocksPacket:
-      return "GetBlocksPacket";
-    case BlocksPacket:
-      return "BlocksPacket";
-    case TransactionPacket:
-      return "TransactionPacket";
+    case GetDagBlocksSyncPacket:
+      return "GetDagBlocksSyncPacket";
+    case DagBlocksSyncPacket:
+      return "DagBlocksSyncPacket";
+    case TransactionsPacket:
+      return "TransactionsPacket";
     case TestPacket:
       return "TestPacket";
     case PbftVotePacket:
@@ -1730,10 +1739,10 @@ string TaraxaCapability::packetTypeToString(unsigned int packet) const {
       return "PbftNextVotesPacket";
     case NewPbftBlockPacket:
       return "NewPbftBlockPacket";
-    case GetPbftBlockPacket:
-      return "GetPbftBlockPacket";
-    case PbftBlockPacket:
-      return "PbftBlockPacket";
+    case GetPbftBlocksSyncPacket:
+      return "GetPbftBlocksSyncPacket";
+    case PbftBlocksSyncPacket:
+      return "PbftBlocksSyncPacket";
     case PacketCount:
       return "PacketCount";
     case SyncedPacket:
