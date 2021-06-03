@@ -267,6 +267,8 @@ bool PbftManager::resetRound_() {
     next_voted_null_block_hash_ = false;
     next_voted_soft_value_ = false;
 
+    reset_own_value_to_null_block_hash_in_this_round_ = false;
+
     // Key thing is to set .second to false to mark that we have not
     // identified a soft voted block in the new upcoming round...
     soft_voted_block_for_this_round_ = std::make_pair(NULL_BLOCK_HASH, false);
@@ -753,7 +755,7 @@ void PbftManager::firstFinish_() {
     }
   } else {
     if (own_starting_value_for_round_ == NULL_BLOCK_HASH) {
-      if (voted_value != NULL_BLOCK_HASH) {
+      if (voted_value != NULL_BLOCK_HASH && !reset_own_value_to_null_block_hash_in_this_round_) {
         db_->savePbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round, voted_value);
         own_starting_value_for_round_ = voted_value;
         LOG(log_dg_) << "Updating own starting to previous round next voted value of " << voted_value;
@@ -1237,6 +1239,7 @@ bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(blk_hash_t const &pbft_
                        << pbft_block_hash << ", reset own starting value to NULL_BLOCK_HASH";
           db_->savePbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round, NULL_BLOCK_HASH);
           own_starting_value_for_round_ = NULL_BLOCK_HASH;
+          reset_own_value_to_null_block_hash_in_this_round_ = true;
         }
       }
       return false;

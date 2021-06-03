@@ -183,6 +183,7 @@ class PbftManager {
   bool next_voted_null_block_hash_ = false;
   bool go_finish_state_ = false;
   bool loop_back_finish_state_ = false;
+  bool reset_own_value_to_null_block_hash_in_this_round_ = false;
 
   uint64_t round_began_wait_proposal_block_ = 0;
   size_t max_wait_rounds_for_proposal_block_ = 5;
