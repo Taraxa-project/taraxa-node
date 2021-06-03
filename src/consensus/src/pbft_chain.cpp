@@ -1,8 +1,8 @@
-#include "pbft_chain.hpp"
-
 #include <libdevcore/CommonJS.h>
 
-#include "pbft_manager.hpp"
+#include <consensus/pbft_chain.hpp>
+#include <consensus/pbft_manager.hpp>
+
 #include "util/jsoncpp.hpp"
 
 using namespace std;

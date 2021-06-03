@@ -6,11 +6,10 @@
  * @Last Modified time: 2019-08-15
  */
 
-#include "pbft_manager.hpp"
-
 #include <libdevcore/SHA3.h>
 
 #include <chrono>
+#include <consensus/pbft_manager.hpp>
 #include <string>
 
 #include "dag/dag.hpp"

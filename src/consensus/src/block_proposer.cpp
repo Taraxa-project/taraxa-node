@@ -1,6 +1,5 @@
-#include "block_proposer.hpp"
-
 #include <cmath>
+#include <consensus/block_proposer.hpp>
 
 #include "dag/dag.hpp"
 #include "transaction_manager/transaction.hpp"

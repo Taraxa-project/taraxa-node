@@ -1,5 +1,3 @@
-#include "vote.hpp"
-
 #include <libdevcore/SHA3.h>
 #include <libdevcrypto/Common.h>
 

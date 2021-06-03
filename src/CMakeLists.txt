@@ -1,24 +1,17 @@
 # TODO: Break this cmake(app_base target) into smaller libraries with their own cmakes, e.g. network, chain, dag, etc... could be separate libraries
 
-set(SOURCES
-        # headers
+set(HEADERS
         cli/config.hpp
         cli/tools.hpp
+
         common/constants.hpp
         common/static_init.hpp
         common/types.hpp
+
         config/config_exception.hpp
         config/chain_config.hpp
         config/config.hpp
         config/version.hpp
-        consensus/pbft_manager.hpp
-        consensus/block_proposer.hpp
-        consensus/vote.hpp
-        consensus/pbft_chain.hpp
-        consensus/vrf_wrapper.hpp
-        consensus/pbft_config.hpp
-        consensus/sync_block.hpp
-        consensus/sync_queue.hpp
         dag/dag.hpp
         dag/dag_block_manager.hpp
         dag/dag_block.hpp
@@ -96,21 +89,15 @@ set(SOURCES
         network/rpc/TaraxaClient.h
         network/rpc/NetFace.h
         network/rpc/TestFace.h
+        )
 
-        # sources
+set(SOURCES
         cli/config.cpp
         cli/tools.cpp
         common/constants.cpp
         config/chain_config.cpp
         config/config.cpp
-        consensus/pbft_manager.cpp
-        consensus/vote.cpp
-        consensus/pbft_config.cpp
-        consensus/block_proposer.cpp
-        consensus/vrf_wrapper.cpp
-        consensus/pbft_chain.cpp
-        consensus/sync_block.cpp
-        consensus/sync_queue.cpp
+        
         dag/dag_block_manager.cpp
         dag/dag.cpp
         dag/dag_block.cpp
@@ -169,9 +156,10 @@ set(SOURCES
         util/util.cpp
         util/thread_pool.cpp)
 
-add_subdirectory(network/rpc)
+add_library(app_base ${SOURCES} ${HEADERS})
 
-add_library(app_base ${SOURCES})
+add_subdirectory(network/rpc)
+add_subdirectory(consensus)
 
 # TODO: have some problems with include dirs for imported targets
 get_target_property(TARAXA_VDF_INCUDE taraxa-vdf INTERFACE_INCLUDE_DIRECTORIES)
@@ -183,16 +171,17 @@ target_include_directories(app_base PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${TARAXA_VDF_INCUDE}
         ${TARAXA_VRF_INCUDE}
-        )
+)
 
 # system libs should be included via -isystem so compiler knows how to
 # treat them. e.g. do not check for warnings
 target_include_directories(app_base SYSTEM PUBLIC
         ${CONAN_INCLUDE_DIRS}
         ${jsoncpp_INCLUDE_DIRS}
-        )
+)
 
 target_link_libraries(app_base
+        consensus
         taraxa-vrf
         taraxa-vdf
         taraxa-evm
