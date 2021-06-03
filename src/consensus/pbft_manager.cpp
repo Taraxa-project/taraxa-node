@@ -812,8 +812,7 @@ void PbftManager::secondFinish_() {
 
   auto voted_value = previous_round_next_votes_->getVotedValue();
   if (!next_voted_null_block_hash_ && round >= 2 &&
-      (previous_round_next_votes_->haveEnoughVotesForNullBlockHash() ||
-       giveUpVotedBlock_(voted_value)) &&
+      (previous_round_next_votes_->haveEnoughVotesForNullBlockHash() || giveUpVotedBlock_(voted_value)) &&
       (cert_voted_values_for_round_.find(round) == cert_voted_values_for_round_.end())) {
     auto place_votes = placeVote_(NULL_BLOCK_HASH, next_vote_type, round, step_);
     if (place_votes) {
@@ -1432,16 +1431,14 @@ bool PbftManager::giveUpVotedBlock_(blk_hash_t const &block_hash) {
       auto round = getPbftRound();
       if (!round_began_wait_voted_block_) {
         round_began_wait_voted_block_ = round;
-        LOG(log_dg_) << "Set began waiting voted block " << block_hash << " at round "
-                     << round_began_wait_voted_block_;
+        LOG(log_dg_) << "Set began waiting voted block " << block_hash << " at round " << round_began_wait_voted_block_;
       } else if (round > round_began_wait_voted_block_) {
         auto wait_voted_block_rounds = round - round_began_wait_voted_block_;
         if (wait_voted_block_rounds < max_wait_rounds_for_proposal_block_) {
-          LOG(log_dg_) << "Have been waiting " << wait_voted_block_rounds << " rounds for voted block "
-                       << block_hash;
+          LOG(log_dg_) << "Have been waiting " << wait_voted_block_rounds << " rounds for voted block " << block_hash;
         } else {
-          LOG(log_dg_) << "Have been waiting " << wait_voted_block_rounds << " rounds for voted block "
-                       << block_hash << ", give up voted value.";
+          LOG(log_dg_) << "Have been waiting " << wait_voted_block_rounds << " rounds for voted block " << block_hash
+                       << ", give up voted value.";
           return true;
         }
       }
