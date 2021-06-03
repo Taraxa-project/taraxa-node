@@ -12,7 +12,7 @@
   "network_bandwidth": 40,
   "network_ideal_peer_count": 10,
   "network_max_peer_count": 50,
-  "network_sync_level_size": 1,
+  "network_sync_level_size": 10,
   "network_boot_nodes": [],
   "rpc": {
     "http_port": 7777,
@@ -27,7 +27,7 @@
     "db_max_snapshots": 5,
     "block_proposer": {
       "shard": 1,
-      "transaction_limit": 0
+      "transaction_limit": 250
     }
   },
   "logging": {
@@ -35,42 +35,10 @@
       {
         "name": "standard",
         "on": true,
-        "verbosity": "INFO",
+        "verbosity": "ERROR",
         "channels": [
           {
-            "name": "FULLND",
-            "verbosity": "INFO"
-          },
-          {
-            "name": "PBFT_CHAIN",
-            "verbosity": "INFO"
-          },
-          {
-            "name": "PBFT_MGR",
-            "verbosity": "DEBUG"
-          },
-          {
-            "name": "PBFTSYNC",
-            "verbosity": "INFO"
-          },
-          {
-            "name": "NEXTVOTESSYNC",
-            "verbosity": "INFO"
-          },
-          {
-            "name": "TARCAP",
-            "verbosity": "INFO"
-          },
-          {
-            "name": "NETPER",
-            "verbosity": "INFO"
-          },
-          {
-            "name": "VOTE_MGR",
-            "verbosity": "INFO"
-          },
-          {
-            "name": "EXECUTOR",
+            "name": "SUMMARY",
             "verbosity": "INFO"
           }
         ],

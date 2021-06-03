@@ -118,12 +118,22 @@ Json::Value Taraxa::taraxa_getConfig() { return enc_json(tryGetNode()->getConfig
 
 Json::Value Taraxa::taraxa_queryDPOS(Json::Value const& _q) {
   std::optional<BlockNumber> blk_n;
-  if (auto const& blk_n_json = _q["block_number"]; !blk_n_json.isNull()) {
+  auto const& blk_n_json = _q["block_number"];
+  if (!blk_n_json.isNull()) {
     blk_n = dev::jsToInt(blk_n_json.asString());
   }
   state_api::DPOSQuery q;
   dec_json(_q, q);
-  auto res = tryGetNode()->getFinalChain()->dpos_query(q, blk_n);
+
+  state_api::DPOSQueryResult res;
+  try {
+    res = tryGetNode()->getFinalChain()->dpos_query(q, blk_n);
+  } catch (state_api::ErrFutureBlock& c) {
+    std::stringstream err;
+    err << "Block number " << blk_n_json << " is too far ahead of DPOS. " << c.what();
+    BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS, err.str()));
+  }
+
   return enc_json(res, &q);
 }
 

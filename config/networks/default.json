@@ -1,7 +1,7 @@
 {
   "network_boot_nodes": [
     {
-      "ip": "127.0.0.1",
+      "ip": "0.0.0.0",
       "id": "7b1fcf0ec1078320117b96e9e9ad9032c06d030cf4024a598347a4623a14a421d4f030cf25ef368ab394a45e920e14b57a259a09c41767dd50d1da27b627412a",
       "tcp_port": 10002,
       "udp_port": 10002

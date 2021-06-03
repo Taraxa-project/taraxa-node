@@ -5,8 +5,6 @@
 #include <string>
 #include <utility>
 
-#include "util/encoding_rlp.hpp"
-
 namespace taraxa {
 using namespace std;
 using namespace dev;
@@ -27,23 +25,55 @@ Transaction::Transaction(uint64_t nonce, val_t const &value, val_t const &gas_pr
   getSender();
 }
 
-Transaction::Transaction(dev::RLP const &_rlp, bool verify_strict, h256 const &hash)
-    : hash_(hash), hash_initialized_(!hash.isZero()) {
-  uint64_t v_ethereum_version = 0;
-  util::rlp_tuple(util::RLPDecoderRef(_rlp, verify_strict), nonce_, gas_price_, gas_, receiver_, value_, data_,
-                  v_ethereum_version, vrs_.r, vrs_.s);
-  vrs_.v = ~v_ethereum_version & uint8_t(1);
-  if (v_ethereum_version -= (27 + vrs_.v)) {
-    if (v_ethereum_version > 8) {
-      chain_id_ = (v_ethereum_version - 8) / 2;
+Transaction::Transaction(dev::RLP const &_rlp, bool verify_strict) {
+  auto strictness = verify_strict ? dev::RLP::VeryStrict : dev::RLP::LaissezFaire;
+  uint fields_processed = 0;
+  for (auto const el : _rlp) {
+    ++fields_processed;
+    if (fields_processed == 1) {
+      nonce_ = el.toInt<uint64_t>(strictness);
+    } else if (fields_processed == 2) {
+      gas_price_ = el.toInt<dev::u256>(strictness);
+    } else if (fields_processed == 3) {
+      gas_ = el.toInt<uint64_t>(strictness);
+    } else if (fields_processed == 4) {
+      if (!el.isEmpty()) {
+        receiver_ = el.toHash<dev::Address>(strictness);
+      }
+    } else if (fields_processed == 5) {
+      value_ = el.toInt<dev::u256>(strictness);
+    } else if (fields_processed == 6) {
+      data_ = el.toBytes(strictness);
+    } else if (fields_processed == 7) {
+      auto v_ethereum_version = el.toInt<uint64_t>(strictness);
+      vrs_.v = ~v_ethereum_version & uint8_t(1);
+      if (v_ethereum_version -= (27 + vrs_.v)) {
+        if (v_ethereum_version > 8) {
+          chain_id_ = (v_ethereum_version - 8) / 2;
+        } else {
+          BOOST_THROW_EXCEPTION(InvalidChainID());
+        }
+      }
+    } else if (fields_processed == 8) {
+      vrs_.r = el.toInt<dev::u256>(strictness);
+    } else if (fields_processed == 9) {
+      vrs_.s = el.toInt<dev::u256>(strictness);
     } else {
-      BOOST_THROW_EXCEPTION(InvalidChainID());
+      break;
     }
+  }
+  if (fields_processed != 9) {
+    BOOST_THROW_EXCEPTION(InvalidEncodingSize());
   }
 }
 
 trx_hash_t const &Transaction::getHash() const {
   if (!hash_initialized_) {
+    std::unique_lock l(hash_mu_.val, std::try_to_lock);
+    if (!l.owns_lock()) {
+      l.lock();
+      return hash_;
+    }
     hash_initialized_ = true;
     hash_ = dev::sha3(*rlp());
   }
@@ -52,6 +82,11 @@ trx_hash_t const &Transaction::getHash() const {
 
 addr_t const &Transaction::get_sender_() const {
   if (!sender_initialized_) {
+    std::unique_lock l(sender_mu_.val, std::try_to_lock);
+    if (!l.owns_lock()) {
+      l.lock();
+      return sender_;
+    }
     sender_initialized_ = true;
     if (auto pubkey = recover(vrs_, hash_for_signature()); pubkey) {
       sender_ = toAddress(pubkey);
@@ -91,11 +126,19 @@ shared_ptr<bytes> Transaction::rlp(bool cache) const {
   if (cached_rlp_) {
     return cached_rlp_;
   }
+  std::unique_ptr<std::unique_lock<std::mutex>> l;
+  if (cache) {
+    l = make_unique<std::unique_lock<std::mutex>>(sender_mu_.val, std::try_to_lock);
+    if (!l->owns_lock()) {
+      l->lock();
+      return cached_rlp_;
+    }
+  }
   dev::RLPStream s;
   streamRLP<false>(s);
-  auto ret = make_shared<bytes>(s.invalidate());
+  auto ret = make_shared<bytes>(move(s.invalidate()));
   return cache ? cached_rlp_ = move(ret) : ret;
-};
+}
 
 trx_hash_t Transaction::hash_for_signature() const {
   dev::RLPStream s;

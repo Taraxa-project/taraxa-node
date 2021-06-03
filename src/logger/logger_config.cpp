@@ -12,10 +12,7 @@ namespace taraxa::logger {
 
 BOOST_LOG_ATTRIBUTE_KEYWORD(channel, "Channel", std::string)
 BOOST_LOG_ATTRIBUTE_KEYWORD(short_node_id, "ShortNodeId", uint32_t)
-BOOST_LOG_ATTRIBUTE_KEYWORD(node_id, "NodeId", std::string)
-BOOST_LOG_ATTRIBUTE_KEYWORD(timestamp, "TimeStamp", boost::posix_time::ptime)
 BOOST_LOG_ATTRIBUTE_KEYWORD(severity, "Severity", int)
-BOOST_LOG_ATTRIBUTE_KEYWORD(severity_string, "SeverityStr", std::string)
 
 Verbosity stringToVerbosity(std::string _verbosity) {
   if (_verbosity == "SILENT") return Verbosity::Silent;
@@ -102,10 +99,8 @@ void Config::InitLogging(addr_t const &node) {
         return true;
       }
     } else {
-      if (channels.size() == 0) {
-        if (_set[severity] > verbosity) return false;
-        return true;
-      }
+      if (_set[severity] > verbosity) return false;
+      return true;
     }
     return false;
   };

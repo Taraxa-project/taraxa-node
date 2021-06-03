@@ -45,7 +45,6 @@ class WSSession : public std::enable_shared_from_this<WSSession> {
   void on_accept(beast::error_code ec);
   void do_read();
   void on_read(beast::error_code ec, std::size_t bytes_transferred);
-  void on_write(beast::error_code ec, std::size_t bytes_transferred);
   void on_write_no_read(beast::error_code ec, std::size_t bytes_transferred);
   void newEthBlock(::taraxa::final_chain::BlockHeader const& payload);
   void newDagBlock(DagBlock const& blk);
@@ -53,7 +52,7 @@ class WSSession : public std::enable_shared_from_this<WSSession> {
   void newPbftBlockExecuted(Json::Value const& payload);
   void newPendingTransaction(trx_hash_t const& trx_hash);
   bool is_closed() { return closed_; }
-  LOG_OBJECTS_DEFINE;
+  LOG_OBJECTS_DEFINE
 
  private:
   void writeImpl(const std::string& message);
@@ -90,12 +89,12 @@ class WSServer : public std::enable_shared_from_this<WSServer>, public jsonrpc::
 
   virtual bool StartListening() { return true; };
   virtual bool StopListening() { return true; };
-  virtual bool SendResponse(const std::string& response, void* addInfo = NULL) { return true; };
+  virtual bool SendResponse(const std::string & /*response*/, void * /*addInfo*/) { return true; };
 
  private:
   void do_accept();
   void on_accept(beast::error_code ec, tcp::socket socket);
-  LOG_OBJECTS_DEFINE;
+  LOG_OBJECTS_DEFINE
   boost::asio::io_context& ioc_;
   tcp::acceptor acceptor_;
   std::list<std::shared_ptr<WSSession>> sessions;

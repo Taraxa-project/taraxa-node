@@ -131,8 +131,8 @@ void uint_hash_t<Bytes>::rawPrint() const {
 
 // create instance to be linked in other sourc files
 
-template class uint_hash_t<32>;
-template class uint_hash_t<64>;
+template struct uint_hash_t<32>;
+template struct uint_hash_t<64>;
 template std::ostream &operator<<(std::ostream &strm, uint_hash_t<32> const &num);
 template std::ostream &operator<<(std::ostream &strm, uint_hash_t<64> const &num);
 
@@ -153,7 +153,7 @@ bytes str2bytes(std::string const &str) {
   assert(str.size() % 2 == 0);
   bytes data;
   // convert it to byte stream
-  for (auto i = 0; i < str.size(); i += 2) {
+  for (size_t i = 0; i < str.size(); i += 2) {
     std::string s = str.substr(i, 2);
     auto t = std::stoul(s, nullptr, 16);
     assert(t < 256);

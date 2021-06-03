@@ -1,16 +1,27 @@
 #include "full_node.hpp"
 
+#include <libweb3jsonrpc/Eth.h>
+#include <libweb3jsonrpc/JsonHelper.h>
+
+#include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/filesystem.hpp>
 #include <chrono>
 #include <stdexcept>
 
+#include "aleth/dummy_eth_apis.hpp"
+#include "aleth/node_api.hpp"
+#include "aleth/state_api.hpp"
 #include "consensus/block_proposer.hpp"
+#include "consensus/pbft_manager.hpp"
+#include "dag/dag.hpp"
+#include "dag/dag_block.hpp"
 #include "network/rpc/Net.h"
 #include "network/rpc/Taraxa.h"
 #include "network/rpc/Test.h"
-#include "network/rpc/eth/Eth.h"
+#include "network/rpc/rpc_error_handler.hpp"
 #include "transaction_manager/transaction_manager.hpp"
+#include "transaction_manager/transaction_status.hpp"
 
 namespace taraxa {
 
@@ -18,13 +29,15 @@ using std::string;
 using std::to_string;
 
 FullNode::FullNode(FullNodeConfig const &conf)
-    : conf_(conf),
+    : post_destruction_ctx_(make_shared<PostDestructionContext>()),
+      conf_(conf),
       kp_(conf_.node_secret.empty()
               ? dev::KeyPair::create()
               : dev::KeyPair(dev::Secret(conf_.node_secret, dev::Secret::ConstructFromStringType::FromHex))) {}
 
 void FullNode::init() {
   fs::create_directories(conf_.db_path);
+  fs::create_directories(conf_.log_path);
   // Initialize logging
   auto const &node_addr = kp_.address();
 
@@ -43,44 +56,91 @@ void FullNode::init() {
     LOG(log_er_) << "Genesis block is invalid";
     assert(false);
   }
-  if (conf_.test_params.rebuild_db) {
-    old_db_ = DB::make(conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
-                       conf_.test_params.db_max_snapshots, conf_.test_params.db_revert_to_period, node_addr, true);
-  }
+  {
+    if (conf_.test_params.rebuild_db) {
+      emplace(old_db_, conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
+              conf_.test_params.db_max_snapshots, conf_.test_params.db_revert_to_period, node_addr, true);
+    }
 
-  db_ = DB::make(conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block, conf_.test_params.db_max_snapshots,
-                 conf_.test_params.db_revert_to_period, node_addr);
+    emplace(db_, conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block, conf_.test_params.db_max_snapshots,
+            conf_.test_params.db_revert_to_period, node_addr);
 
-  if (db_->hasMinorVersionChanged()) {
-    LOG(log_si_) << "Minor DB version has changed. Rebuilding Db";
-    conf_.test_params.rebuild_db = true;
-    db_ = nullptr;
-    old_db_ = DB::make(conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
-                       conf_.test_params.db_max_snapshots, conf_.test_params.db_revert_to_period, node_addr, true);
-    db_ = DB::make(conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block, conf_.test_params.db_max_snapshots,
-                   conf_.test_params.db_revert_to_period, node_addr);
+    if (db_->hasMinorVersionChanged()) {
+      LOG(log_si_) << "Minor DB version has changed. Rebuilding Db";
+      conf_.test_params.rebuild_db = true;
+      db_ = nullptr;
+      emplace(old_db_, conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
+              conf_.test_params.db_max_snapshots, conf_.test_params.db_revert_to_period, node_addr, true);
+      emplace(db_, conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block, conf_.test_params.db_max_snapshots,
+              conf_.test_params.db_revert_to_period, node_addr);
+    }
+
+    if (db_->getNumDagBlocks() == 0) {
+      db_->saveDagBlock(conf_.chain.dag_genesis_block);
+    }
   }
-  register_s_ptr(db_);
   LOG(log_nf_) << "DB initialized ...";
 
-  final_chain_ = NewFinalChain(db_, conf_.chain.final_chain, conf_.opts_final_chain, node_addr);
-  register_s_ptr(final_chain_);
+  final_chain_ = NewFinalChain(db_, conf_.chain.final_chain, conf_.opts_final_chain);
+
   emplace(trx_mgr_, conf_, node_addr, db_, log_time_);
+
   auto genesis_hash = conf_.chain.dag_genesis_block.getHash().toString();
+  auto dag_genesis_hash_from_db = db_->getBlocksByLevel(0);
+  if (genesis_hash != dag_genesis_hash_from_db) {
+    LOG(log_er_) << "The DAG genesis block hash " << genesis_hash << " in config is different with "
+                 << dag_genesis_hash_from_db << " in DB";
+    assert(false);
+  }
+
   emplace(pbft_chain_, genesis_hash, node_addr, db_);
-  emplace(dag_mgr_, conf_.chain.dag_genesis_block, db_, pbft_chain_, node_addr);
-  emplace(dag_blk_mgr_, node_addr, conf_.chain.vdf, conf_.chain.final_chain.state.dpos, 1024 /*capacity*/,
-          4 /* verifer thread*/, db_, trx_mgr_, final_chain_, pbft_chain_, log_time_,
-          conf_.test_params.max_block_queue_warn);
-  emplace(vote_mgr_, node_addr, final_chain_, pbft_chain_);
+  emplace(next_votes_mgr_, node_addr, db_);
+  emplace(dag_mgr_, genesis_hash, node_addr, trx_mgr_, pbft_chain_, db_);
+  emplace(dag_blk_mgr_, node_addr, conf_.chain.vdf, conf_.chain.final_chain.state.dpos, 4 /* verifer thread*/, db_,
+          trx_mgr_, final_chain_, pbft_chain_, log_time_, conf_.test_params.max_block_queue_warn);
+  emplace(vote_mgr_, node_addr, db_, final_chain_, pbft_chain_);
   emplace(trx_order_mgr_, node_addr, db_);
-  emplace(pbft_mgr_, conf_.chain.pbft, genesis_hash, node_addr, db_, pbft_chain_, vote_mgr_, dag_mgr_, dag_blk_mgr_,
-          final_chain_, kp_.secret(), conf_.vrf_secret);
+  emplace(executor_, node_addr, db_, dag_mgr_, trx_mgr_, dag_blk_mgr_, final_chain_, pbft_chain_,
+          conf_.test_params.block_proposer.transaction_limit);
+  emplace(pbft_mgr_, conf_.chain.pbft, genesis_hash, node_addr, db_, pbft_chain_, vote_mgr_, next_votes_mgr_, dag_mgr_,
+          dag_blk_mgr_, final_chain_, executor_, kp_.secret(), conf_.vrf_secret);
   emplace(blk_proposer_, conf_.test_params.block_proposer, conf_.chain.vdf, dag_mgr_, trx_mgr_, dag_blk_mgr_,
           final_chain_, node_addr, getSecretKey(), getVrfSecretKey(), log_time_);
-  emplace(network_, conf_.network, conf_.net_file_path().string(), kp_.secret(), genesis_hash, node_addr, db_,
-          pbft_mgr_, pbft_chain_, vote_mgr_, dag_mgr_, dag_blk_mgr_, trx_mgr_, kp_.pub(),
-          conf_.chain.pbft.lambda_ms_min);
+  emplace(network_, conf_.network, conf_.net_file_path().string(), kp_, db_, pbft_mgr_, pbft_chain_, vote_mgr_,
+          next_votes_mgr_, dag_mgr_, dag_blk_mgr_, trx_mgr_);
+
+  // Inits rpc related members
+  if (conf_.rpc) {
+    jsonrpc_io_ctx_ = make_unique<boost::asio::io_context>();
+
+    emplace(jsonrpc_api_, new net::Test(getShared()), new net::Taraxa(getShared()), new net::Net(getShared()),
+            new dev::rpc::Eth(aleth::NewNodeAPI(conf_.chain.chain_id, kp_.secret(),
+                                                [this](auto const &trx) {
+                                                  auto [ok, err_msg] = trx_mgr_->insertTransaction(trx);
+                                                  if (!ok) {
+                                                    BOOST_THROW_EXCEPTION(
+                                                        runtime_error(fmt("Transaction is rejected.\n"
+                                                                          "RLP: %s\n"
+                                                                          "Reason: %s",
+                                                                          dev::toJS(*trx.rlp()), err_msg)));
+                                                  }
+                                                }),
+                              std::make_shared<aleth::DummyFilterAPI>(), aleth::NewStateAPI(final_chain_),
+                              std::make_shared<aleth::DummyPendingBlock>(), final_chain_, [] { return 0; }));
+
+    if (conf_.rpc->http_port) {
+      jsonrpc_http_ = make_shared<net::RpcServer>(
+          *jsonrpc_io_ctx_, boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->http_port}, node_addr,
+          net::handle_rpc_error);
+      jsonrpc_api_->addConnector(jsonrpc_http_);
+    }
+
+    if (conf_.rpc->ws_port) {
+      jsonrpc_ws_ = make_shared<net::WSServer>(
+          *jsonrpc_io_ctx_, boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->ws_port}, node_addr);
+      jsonrpc_api_->addConnector(jsonrpc_ws_);
+    }
+  }
 
   LOG(log_time_) << "Start taraxa efficiency evaluation logging:" << std::endl;
 }
@@ -89,75 +149,11 @@ void FullNode::start() {
   if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
-
-  if (conf_.rpc) {
-    emplace(rpc_thread_pool_, conf_.rpc->threads_num);
-    net::rpc::eth::EthParams eth_rpc_params;
-    eth_rpc_params.address = getAddress();
-    eth_rpc_params.secret = kp_.secret();
-    eth_rpc_params.chain_id = conf_.chain.chain_id;
-    eth_rpc_params.final_chain = final_chain_;
-    eth_rpc_params.get_trx = [db = db_](auto const &trx_hash) { return db->getTransaction(trx_hash); };
-    eth_rpc_params.send_trx = [trx_manager = trx_mgr_](auto const &trx) {
-      auto [ok, err_msg] = trx_manager->insertTransaction(trx, true);
-      if (!ok) {
-        BOOST_THROW_EXCEPTION(
-            runtime_error(util::fmt("Transaction is rejected.\n"
-                                    "RLP: %s\n"
-                                    "Reason: %s",
-                                    dev::toJS(*trx.rlp()), err_msg)));
-      }
-    };
-    auto eth_json_rpc = net::rpc::eth::NewEth(move(eth_rpc_params));
-    emplace(jsonrpc_api_,
-            make_shared<net::Test>(shared_from_this()),    // TODO Because this object refers to FullNode, the
-                                                           // lifecycle/dependency management is more complicated
-            make_shared<net::Taraxa>(shared_from_this()),  // TODO Because this object refers to FullNode, the
-                                                           // lifecycle/dependency management is more complicated
-            make_shared<net::Net>(shared_from_this()),     // TODO Because this object refers to FullNode, the
-                                                           // lifecycle/dependency management is more complicated
-            eth_json_rpc);
-    if (conf_.rpc->http_port) {
-      emplace(jsonrpc_http_, rpc_thread_pool_->unsafe_get_io_context(),
-              boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->http_port}, getAddress());
-      jsonrpc_api_->addConnector(jsonrpc_http_);
-      jsonrpc_http_->StartListening();
-    }
-    if (conf_.rpc->ws_port) {
-      emplace(jsonrpc_ws_, rpc_thread_pool_->unsafe_get_io_context(),
-              boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->ws_port}, getAddress());
-      jsonrpc_api_->addConnector(jsonrpc_ws_);
-      jsonrpc_ws_->run();
-    }
-    final_chain_->block_finalized.subscribe(
-        [eth_json_rpc = weak_ptr(eth_json_rpc), ws = weak_ptr(jsonrpc_ws_)](auto const &obj) {
-          if (auto p = eth_json_rpc.lock(); p) {
-            p->note_block_executed(*obj->final_chain_blk, obj->trxs, obj->trx_receipts);
-          }
-          if (auto p = ws.lock(); p) {
-            p->newDagBlockFinalized(obj->pbft_blk->getPivotDagBlockHash(), obj->pbft_blk->getPeriod());
-            p->newPbftBlockExecuted(*obj->pbft_blk, obj->finalized_dag_blk_hashes);
-            p->newEthBlock(*obj->final_chain_blk);
-          }
-        },
-        *rpc_thread_pool_);
-    trx_mgr_->transaction_accepted.subscribe(
-        [eth_json_rpc = weak_ptr(eth_json_rpc), ws = weak_ptr(jsonrpc_ws_)](auto const &trx_hash) {
-          if (auto p = eth_json_rpc.lock(); p) {
-            p->note_pending_transaction(trx_hash);
-          }
-          if (auto p = ws.lock(); p) {
-            p->newPendingTransaction(trx_hash);
-          }
-        },
-        *rpc_thread_pool_);
-  }
-
   if (conf_.network.network_is_boot_node) {
     LOG(log_nf_) << "Starting a boot node ..." << std::endl;
   }
   if (!conf_.test_params.rebuild_db) {
-    network_->start(conf_.network.network_is_boot_node);
+    network_->start();
   }
   trx_mgr_->setNetwork(network_);
   trx_mgr_->start();
@@ -165,13 +161,15 @@ void FullNode::start() {
     blk_proposer_->setNetwork(network_);
     blk_proposer_->start();
   }
+  executor_->start();
   pbft_mgr_->setNetwork(network_);
   pbft_mgr_->start();
   dag_blk_mgr_->start();
   block_workers_.emplace_back([this]() {
     while (!stopped_) {
       // will block if no verified block available
-      auto blk = dag_blk_mgr_->popVerifiedBlock();
+      auto blk_ptr = std::make_shared<DagBlock>(dag_blk_mgr_->popVerifiedBlock());
+      auto const &blk = *blk_ptr;
 
       if (!stopped_) {
         received_blocks_++;
@@ -182,7 +180,7 @@ void FullNode::start() {
         if (jsonrpc_ws_) {
           jsonrpc_ws_->newDagBlock(blk);
         }
-        network_->onNewBlockVerified(blk);
+        network_->onNewBlockVerified(blk_ptr);
         LOG(log_time_) << "Broadcast block " << blk.getHash() << " at: " << getCurrentTimeMilliSeconds();
       } else {
         // Networking makes sure that dag block that reaches queue already had
@@ -206,26 +204,53 @@ void FullNode::start() {
     started_ = false;
     return;
   }
+  if (jsonrpc_io_ctx_) {
+    if (jsonrpc_http_) {
+      jsonrpc_http_->StartListening();
+    }
+    if (jsonrpc_ws_) {
+      jsonrpc_ws_->run();
+      trx_mgr_->setWsServer(jsonrpc_ws_);
+      executor_->setWSServer(jsonrpc_ws_);
+    }
+
+    for (size_t i = 0; i < conf_.rpc->threads_num; ++i) {
+      jsonrpc_threads_.emplace_back([this] { jsonrpc_io_ctx_->run(); });
+    }
+  }
   started_ = true;
   LOG(log_nf_) << "Node started ... ";
-}
+}  // namespace taraxa
 
 void FullNode::close() {
+  util::ExitStack finally;
+  // because `this` shared ptr is given to it
+  finally += [this] { jsonrpc_api_.reset(); };
   if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
-  jsonrpc_api_ = nullptr;  // TODO Because it indirectly refers to FullNode
   blk_proposer_->stop();
-  blk_proposer_->setNetwork(nullptr);
   pbft_mgr_->stop();
-  pbft_mgr_->setNetwork(nullptr);
+  executor_->stop();
   trx_mgr_->stop();
-  trx_mgr_->setNetwork(nullptr);
-  network_->stop();
   dag_blk_mgr_->stop();
   for (auto &t : block_workers_) {
     t.join();
   }
+
+  if (jsonrpc_io_ctx_) {
+    if (jsonrpc_ws_) {
+      trx_mgr_->setWsServer(nullptr);
+      executor_->setWSServer(nullptr);
+    }
+
+    jsonrpc_io_ctx_->stop();
+
+    for (size_t i = 0; i < jsonrpc_threads_.size(); ++i) {
+      jsonrpc_threads_[i].join();
+    }
+  }
+
   LOG(log_nf_) << "Node stopped ... ";
 }
 
@@ -235,11 +260,11 @@ void FullNode::rebuildDb() {
 
   while (true) {
     std::map<uint64_t, std::map<blk_hash_t, std::pair<DagBlock, std::vector<Transaction>>>> dag_blocks_per_level;
-    auto pbft_hash = old_db_->getPeriodPbftBlock(period);
-    if (pbft_hash == nullptr) {
+    auto pbft_blk_hash = old_db_->getPeriodPbftBlock(period);
+    if (pbft_blk_hash == nullptr) {
       break;
     }
-    auto pbft_block = old_db_->getPbftBlock(*pbft_hash);
+    auto pbft_block = old_db_->getPbftBlock(*pbft_blk_hash);
     auto pivot_dag_hash = pbft_block->getPivotDagBlockHash();
     std::set<blk_hash_t> pbft_dag_blocks;
     std::vector<blk_hash_t> dag_blocks;
@@ -272,8 +297,8 @@ void FullNode::rebuildDb() {
       std::vector<Transaction> transactions;
       auto dag_block = old_db_->getDagBlock(dag_block_hash);
 
-      DB::MultiGetQuery db_query(old_db_);
-      db_query.append(DB::Columns::transactions, dag_block->getTrxs());
+      DbStorage::MultiGetQuery db_query(old_db_);
+      db_query.append(DbStorage::Columns::transactions, dag_block->getTrxs());
       auto db_response = db_query.execute();
       for (auto &db_trx : db_response) {
         transactions.push_back(Transaction(asBytes(db_trx)));
@@ -281,13 +306,13 @@ void FullNode::rebuildDb() {
       dag_blocks_per_level[dag_block->getLevel()][dag_block_hash] = std::make_pair(*dag_block, transactions);
     }
 
-    // Add pbft blocks with votes in queue
-    auto db_votes = old_db_->getVotes(*pbft_hash);
-    vector<Vote> votes;
-    for (auto const &el : RLP(db_votes)) {
-      votes.emplace_back(el);
+    // Add pbft blocks with certified votes in queue
+    auto cert_votes = old_db_->getCertVotes(*pbft_blk_hash);
+    if (cert_votes.empty()) {
+      LOG(log_er_) << "Cannot find any cert votes for PBFT block " << pbft_block;
+      assert(false);
     }
-    PbftBlockCert pbft_blk_and_votes(*pbft_block, votes);
+    PbftBlockCert pbft_blk_and_votes(*pbft_block, cert_votes);
     LOG(log_nf_) << "Adding pbft block into queue " << pbft_block->getBlockHash().toString();
     pbft_chain_->setSyncedPbftBlockIntoQueue(pbft_blk_and_votes);
 
@@ -316,6 +341,8 @@ void FullNode::rebuildDb() {
                  << " Chain size: " << final_chain_->last_block_number();
   }
 }
+
+dev::Signature FullNode::signMessage(std::string const &message) { return dev::sign(kp_.secret(), dev::sha3(message)); }
 
 uint64_t FullNode::getNumProposedBlocks() const { return BlockProposer::getNumProposedBlocks(); }
 

@@ -265,6 +265,9 @@ class StateAPI {
   void create_snapshot(uint64_t const& period);
   // DPOS
   uint64_t dpos_eligible_count(BlockNumber blk_num) const;
+  uint64_t dpos_eligible_total_vote_count(BlockNumber blk_num) const;
+  uint64_t dpos_eligible_vote_count(BlockNumber blk_num, addr_t const& addr) const;
+
   bool dpos_is_eligible(BlockNumber blk_num, addr_t const& addr) const;
   DPOSQueryResult dpos_query(BlockNumber blk_num, DPOSQuery const& q) const;
   static addr_t const& dpos_contract_addr();

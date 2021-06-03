@@ -1,12 +1,12 @@
 #include "WSServer.h"
 
-#include <json/reader.h>
 #include <json/value.h>
 #include <json/writer.h>
 #include <libdevcore/CommonJS.h>
+#include <libweb3jsonrpc/JsonHelper.h>
 
 #include "config/config.hpp"
-#include "network/rpc/eth/Eth.h"
+#include "util/jsoncpp.hpp"
 #include "util/util.hpp"
 
 namespace taraxa::net {
@@ -53,10 +53,10 @@ void WSSession::on_read(beast::error_code ec, std::size_t bytes_transferred) {
   LOG(log_tr_) << "WS READ " << ((char *)buffer_.data().data());
 
   Json::Value json;
-  Json::Reader reader;
-  bool parsingSuccessful = reader.parse((char *)buffer_.data().data(), json);  // parse process
-  if (!parsingSuccessful) {
-    LOG(log_er_) << "Failed to parse" << reader.getFormattedErrorMessages();
+  try {
+    json = util::parse_json({(char *)buffer_.data().data(), buffer_.data().size()});
+  } catch (Json::Exception const &e) {
+    LOG(log_er_) << "Failed to parse" << e.what();
     closed_ = true;
     return;
   }
@@ -84,8 +84,7 @@ void WSSession::on_read(beast::error_code ec, std::size_t bytes_transferred) {
       }
     }
     json_response["result"] = dev::toJS(subscription_id_);
-    Json::FastWriter fastWriter;
-    response = fastWriter.write(json_response);
+    response = util::to_string(json_response);
     ws_.text(ws_.got_text());
     LOG(log_tr_) << "WS WRITE " << response.c_str();
   } else {
@@ -141,16 +140,15 @@ void WSSession::on_write_no_read(beast::error_code ec, std::size_t bytes_transfe
   }
 }
 
-void WSSession::newEthBlock(::taraxa::final_chain::BlockHeader const &payload) {
+void WSSession::newEthBlock(dev::eth::BlockHeader const &payload) {
   if (new_heads_subscription_ != 0) {
     Json::Value res, params;
     res["jsonrpc"] = "2.0";
     res["method"] = "eth_subscription";
-    params["result"] = rpc::eth::toJson(payload);
+    params["result"] = dev::eth::toJson(payload);
     params["subscription"] = dev::toJS(new_heads_subscription_);
     res["params"] = params;
-    Json::FastWriter fastWriter;
-    std::string response = fastWriter.write(res);
+    auto response = util::to_string(res);
     ws_.text(ws_.got_text());
     LOG(log_tr_) << "WS WRITE " << response.c_str();
     auto executor = ws_.get_executor();
@@ -189,8 +187,7 @@ void WSSession::newDagBlock(DagBlock const &blk) {
     params["result"] = blk.getJson();
     params["subscription"] = dev::toJS(new_dag_blocks_subscription_);
     res["params"] = params;
-    Json::FastWriter fastWriter;
-    std::string response = fastWriter.write(res);
+    auto response = util::to_string(res);
     auto executor = ws_.get_executor();
     if (!executor) {
       LOG(log_tr_) << "Executor missing - WS closed";
@@ -211,8 +208,7 @@ void WSSession::newDagBlockFinalized(blk_hash_t const &blk, uint64_t period) {
     params["result"] = result;
     params["subscription"] = dev::toJS(new_dag_block_finalized_subscription_);
     res["params"] = params;
-    Json::FastWriter fastWriter;
-    std::string response = fastWriter.write(res);
+    auto response = util::to_string(res);
     auto executor = ws_.get_executor();
     if (!executor) {
       LOG(log_tr_) << "Executor missing - WS closed";
@@ -232,8 +228,7 @@ void WSSession::newPbftBlockExecuted(Json::Value const &payload) {
     params["result"] = result;
     params["subscription"] = dev::toJS(new_pbft_block_executed_subscription_);
     res["params"] = params;
-    Json::FastWriter fastWriter;
-    std::string response = fastWriter.write(res);
+    auto response = util::to_string(res);
     auto executor = ws_.get_executor();
     if (!executor) {
       LOG(log_tr_) << "Executor missing - WS closed";
@@ -252,8 +247,7 @@ void WSSession::newPendingTransaction(trx_hash_t const &trx_hash) {
     params["result"] = dev::toJS(trx_hash);
     params["subscription"] = dev::toJS(new_transactions_subscription_);
     res["params"] = params;
-    Json::FastWriter fastWriter;
-    std::string response = fastWriter.write(res);
+    auto response = util::to_string(res);
     auto executor = ws_.get_executor();
     if (!executor) {
       LOG(log_tr_) << "Executor missing - WS closed";
@@ -372,7 +366,7 @@ void WSServer::newPbftBlockExecuted(PbftBlock const &pbft_blk,
   }
 }
 
-void WSServer::newEthBlock(::taraxa::final_chain::BlockHeader const &payload) {
+void WSServer::newEthBlock(dev::eth::BlockHeader const &payload) {
   boost::shared_lock<boost::shared_mutex> lock(sessions_mtx_);
   for (auto const &session : sessions) {
     if (!session->is_closed()) session->newEthBlock(payload);

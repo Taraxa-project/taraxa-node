@@ -29,6 +29,12 @@ struct ChainConfig {
   static LazyVal<std::unordered_map<string, ChainConfig>> const predefined_;
 
  public:
+  ChainConfig() = default;
+  ChainConfig(ChainConfig&&) = default;
+  ChainConfig(const ChainConfig&) = default;
+  ChainConfig& operator=(ChainConfig&&) = default;
+  ChainConfig& operator=(const ChainConfig&) = default;
+
   static auto const& predefined(std::string const& name = "default") {
     if (auto i = predefined_->find(name); i != predefined_->end()) {
       return i->second;

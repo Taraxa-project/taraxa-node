@@ -100,8 +100,15 @@ inline bool wait(wait_opts const& opts, function<void(wait_ctx&)> const& poller)
       return;                               \
     }                                       \
     EXPECT_EQ(o1, o2);                      \
-  }                                         \
-  assert(true)  // to justify trailing semicolon
+  }
+
+#define WAIT_EXPECT_NE(ctx, o1, o2)         \
+  if (o1 == o2) {                           \
+    if (ctx.fail(); !ctx.is_last_attempt) { \
+      return;                               \
+    }                                       \
+    EXPECT_NE(o1, o2);                      \
+  }
 
 inline auto const node_cfgs_original = Lazy([] {
   vector<FullNodeConfig> ret;
@@ -228,7 +235,7 @@ struct TransactionClient {
         TransactionStage::created,
         trx,
     };
-    if (!node_->getTransactionManager()->insertTransaction(ctx.trx, false).first) {
+    if (!node_->getTransactionManager()->insertTransaction(ctx.trx, false, true).first) {
       return ctx;
     }
     ctx.stage = TransactionStage::inserted;
@@ -304,10 +311,4 @@ inline auto make_addr(uint8_t i) {
   return ret;
 }
 
-inline auto parse_json(string const& str) {
-  Json::Value ret;
-  EXPECT_TRUE(Json::Reader().parse(str, ret));
-  return ret;
-}
-
-};  // namespace taraxa::core_tests
+}  // namespace taraxa::core_tests

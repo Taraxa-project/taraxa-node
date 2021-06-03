@@ -1,7 +1,7 @@
 #pragma once
 
+#include "chain/final_chain.hpp"
 #include "dag_block.hpp"
-#include "final_chain/final_chain.hpp"
 #include "transaction_manager/transaction.hpp"
 #include "transaction_manager/transaction_manager.hpp"
 #include "vdf_sortition.hpp"
@@ -16,10 +16,9 @@ using BlockStatusTable = ExpirationCacheMap<blk_hash_t, BlockStatus>;
 class DagBlockManager {
  public:
   DagBlockManager(addr_t node_addr, vdf_sortition::VdfConfig const &vdf_config,
-                  std::optional<state_api::DPOSConfig> dpos_config, size_t capacity, unsigned verify_threads,
-                  std::shared_ptr<DB> db, std::shared_ptr<TransactionManager> trx_mgr,
-                  std::shared_ptr<FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain,
-                  logger::Logger log_time_, uint32_t queue_limit = 0);
+                  optional<state_api::DPOSConfig> dpos_config, unsigned verify_threads, std::shared_ptr<DbStorage> db,
+                  std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<FinalChain> final_chain,
+                  std::shared_ptr<PbftChain> pbft_chain, logger::Logger log_time_, uint32_t queue_limit = 0);
   ~DagBlockManager();
   void insertBlock(DagBlock const &blk);
   // Only used in initial syncs when blocks are received with full list of transactions
@@ -38,7 +37,11 @@ class DagBlockManager {
   std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash) const;
   void clearBlockStatausTable() { blk_status_.clear(); }
   bool pivotAndTipsValid(DagBlock const &blk);
-  uint64_t getPeriod(level_t level);
+  uint64_t getCurrentMaxProposalPeriod() const;
+  uint64_t getLastProposalPeriod() const;
+  void setLastProposalPeriod(uint64_t const period);
+  std::pair<uint64_t, bool> getProposalPeriod(level_t level);
+  std::shared_ptr<ProposalPeriodDagLevelsMap> newProposePeriodDagLevelsMap(level_t anchor_level);
 
  private:
   using uLock = boost::unique_lock<boost::shared_mutex>;
@@ -49,12 +52,13 @@ class DagBlockManager {
   void verifyBlock();
 
   std::atomic<bool> stopped_ = true;
-  size_t capacity_ = 2048;
   size_t num_verifiers_ = 4;
-  const uint32_t cache_max_size = 10000;
-  const uint32_t cache_delete_step = 100;
+  const uint32_t cache_max_size_ = 10000;
+  const uint32_t cache_delete_step_ = 100;
+  std::atomic<uint64_t> last_proposal_period_ = 0;
+  uint64_t current_max_proposal_period_ = 0;
 
-  std::shared_ptr<DB> db_;
+  std::shared_ptr<DbStorage> db_;
   std::shared_ptr<TransactionManager> trx_mgr_;
   std::shared_ptr<FinalChain> final_chain_;
   std::shared_ptr<PbftChain> pbft_chain_;
@@ -62,7 +66,6 @@ class DagBlockManager {
   // seen blks
   BlockStatusTable blk_status_;
   ExpirationCacheMap<blk_hash_t, DagBlock> seen_blocks_;
-  mutable boost::shared_mutex shared_mutex_;  // shared mutex to check seen_blocks ...
   std::vector<std::thread> verifiers_;
   mutable boost::shared_mutex shared_mutex_for_unverified_qu_;
   mutable boost::shared_mutex shared_mutex_for_verified_qu_;
@@ -75,9 +78,9 @@ class DagBlockManager {
   std::map<uint64_t, std::deque<DagBlock> > verified_qu_;
 
   vdf_sortition::VdfConfig vdf_config_;
-  std::optional<state_api::DPOSConfig> dpos_config_;
+  optional<state_api::DPOSConfig> dpos_config_;
 
-  LOG_OBJECTS_DEFINE;
+  LOG_OBJECTS_DEFINE
 };
 
 }  // namespace taraxa

@@ -1,65 +1,58 @@
 #pragma once
 
-#include <json/json.h>
-#include <libdevcore/RLP.h>
-#include <libdevcore/SHA3.h>
+#include <libdevcrypto/Common.h>
+
+#include <deque>
+#include <optional>
+#include <string>
 
 #include "common/types.hpp"
+#include "config/config.hpp"
+#include "consensus/pbft_chain.hpp"
+#include "util/util.hpp"
 #include "vrf_wrapper.hpp"
 
 namespace taraxa {
-
-enum PbftMgrRoundStep : uint8_t { PbftRound = 0, PbftStep };
-enum PbftMgrStatus {
-  soft_voted_block_in_round = 0,
-  executed_block,
-  executed_in_round,
-  cert_voted_in_round,
-  next_voted_soft_value,
-  next_voted_null_block_hash,
-  next_voted_block_in_previous_round
-};
-enum PbftMgrVotedValue {
-  own_starting_value_in_round = 0,
-  soft_voted_block_hash_in_round,
-  next_voted_block_hash_in_previous_round,
-};
-
-enum PbftVoteTypes { propose_vote_type = 0, soft_vote_type, cert_vote_type, next_vote_type };
+class FullNode;
+class PbftManager;
 
 struct VrfPbftMsg {
   VrfPbftMsg() = default;
-  VrfPbftMsg(blk_hash_t const& blk, PbftVoteTypes type, uint64_t round, size_t step)
-      : blk(blk), type(type), round(round), step(step) {}
+  VrfPbftMsg(PbftVoteTypes type, uint64_t round, size_t step, size_t weighted_index)
+      : type(type), round(round), step(step), weighted_index(weighted_index) {}
+
   std::string toString() const {
-    return blk.toString() + "_" + std::to_string(type) + "_" + std::to_string(round) + "_" + std::to_string(step);
+    return std::to_string(type) + "_" + std::to_string(round) + "_" + std::to_string(step) + "_" +
+           std::to_string(weighted_index);
   }
+
   bool operator==(VrfPbftMsg const& other) const {
-    return blk == other.blk && type == other.type && round == other.round && step == other.step;
+    return type == other.type && round == other.round && step == other.step && weighted_index == other.weighted_index;
   }
+
   friend std::ostream& operator<<(std::ostream& strm, VrfPbftMsg const& pbft_msg) {
     strm << "  [Vrf Pbft Msg] " << std::endl;
-    strm << "    blk_hash: " << pbft_msg.blk << std::endl;
     strm << "    type: " << pbft_msg.type << std::endl;
     strm << "    round: " << pbft_msg.round << std::endl;
     strm << "    step: " << pbft_msg.step << std::endl;
+    strm << "    weighted_index: " << pbft_msg.weighted_index << std::endl;
     return strm;
   }
 
   bytes getRlpBytes() const {
     dev::RLPStream s;
     s.appendList(4);
-    s << blk;
     s << type;
     s << round;
     s << step;
+    s << weighted_index;
     return s.out();
   }
 
-  blk_hash_t blk;
   PbftVoteTypes type;
   uint64_t round;
   size_t step;
+  size_t weighted_index;
 };
 
 struct VrfPbftSortition : public vrf_wrapper::VrfSortitionBase {
@@ -70,7 +63,7 @@ struct VrfPbftSortition : public vrf_wrapper::VrfSortitionBase {
   using bytes = dev::bytes;
   VrfPbftSortition() = default;
   VrfPbftSortition(vrf_sk_t const& sk, VrfPbftMsg const& pbft_msg)
-      : pbft_msg(pbft_msg), VrfSortitionBase(sk, pbft_msg.getRlpBytes()) {}
+      : VrfSortitionBase(sk, pbft_msg.getRlpBytes()), pbft_msg(pbft_msg) {}
   explicit VrfPbftSortition(bytes const& rlp);
   bytes getRlpBytes() const;
   bool verify() { return VrfSortitionBase::verify(pbft_msg.getRlpBytes()); }
@@ -103,32 +96,37 @@ class Vote {
 
   vote_hash_t getHash() const { return vote_hash_; }
   public_t getVoter() const {
-    voter();
+    if (!cached_voter_) cached_voter_ = dev::recover(vote_signature_, sha3(false));
     return cached_voter_;
   }
+  addr_t getVoterAddr() const {
+    if (!cached_voter_addr_) cached_voter_addr_ = dev::toAddress(getVoter());
+    return cached_voter_addr_;
+  }
+
   auto getVrfSortition() const { return vrf_sortition_; }
   auto getSortitionProof() const { return vrf_sortition_.proof; }
   auto getCredential() const { return vrf_sortition_.output; }
-  sig_t getVoteSignature() const { return vote_signatue_; }
+  sig_t getVoteSignature() const { return vote_signature_; }
   blk_hash_t getBlockHash() const { return blockhash_; }
   PbftVoteTypes getType() const { return vrf_sortition_.pbft_msg.type; }
   uint64_t getRound() const { return vrf_sortition_.pbft_msg.round; }
   size_t getStep() const { return vrf_sortition_.pbft_msg.step; }
+  size_t getWeightedIndex() const { return vrf_sortition_.pbft_msg.weighted_index; }
   bytes rlp(bool inc_sig = true) const;
   bool verifyVote() const {
-    auto msg = sha3(false);
-    voter();
-    return dev::verify(cached_voter_, vote_signatue_, msg);
+    auto pk = getVoter();
+    return !pk.isZero();  // recoverd public key means that it was verified
   }
-  bool verifyCanSpeak(size_t threshold, size_t valid_players) const {
-    return vrf_sortition_.canSpeak(threshold, valid_players);
+  bool verifyCanSpeak(size_t threshold, size_t dpos_total_votes_count) const {
+    return vrf_sortition_.canSpeak(threshold, dpos_total_votes_count);
   }
 
   friend std::ostream& operator<<(std::ostream& strm, Vote const& vote) {
     strm << "[Vote] " << std::endl;
     strm << "  vote_hash: " << vote.vote_hash_ << std::endl;
     strm << "  voter: " << vote.getVoter() << std::endl;
-    strm << "  vote_signatue: " << vote.vote_signatue_ << std::endl;
+    strm << "  vote_signatue: " << vote.vote_signature_ << std::endl;
     strm << "  blockhash: " << vote.blockhash_ << std::endl;
     strm << "  vrf_sorition: " << vote.vrf_sortition_ << std::endl;
     return strm;
@@ -136,61 +134,119 @@ class Vote {
 
  private:
   blk_hash_t sha3(bool inc_sig) const { return dev::sha3(rlp(inc_sig)); }
-  void voter() const;
 
   vote_hash_t vote_hash_;  // hash of this vote
-  blk_hash_t blockhash_;
-  sig_t vote_signatue_;
+  blk_hash_t blockhash_;   // Voted PBFT block hash
+  sig_t vote_signature_;
   VrfPbftSortition vrf_sortition_;
   mutable public_t cached_voter_;
+  mutable addr_t cached_voter_addr_;
 };
 
-class PbftBlock {
-  blk_hash_t block_hash_;
-  blk_hash_t prev_block_hash_;
-  blk_hash_t dag_block_hash_as_pivot_;
-  uint64_t period_;  // Block index, PBFT head block is period 0, first PBFT block is period 1
-  uint64_t timestamp_;
-  addr_t beneficiary_;
-  sig_t signature_;
-
+class VoteManager {
  public:
-  PbftBlock(blk_hash_t const& prev_blk_hash, blk_hash_t const& dag_blk_hash_as_pivot, uint64_t period,
-            addr_t const& beneficiary, secret_t const& sk);
-  explicit PbftBlock(dev::RLP const& r);
-  explicit PbftBlock(bytes const& RLP);
-  explicit PbftBlock(std::string const& JSON);
+  VoteManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<FinalChain> final_chain,
+              std::shared_ptr<PbftChain> pbft_chain);
+  ~VoteManager() {}
 
-  blk_hash_t sha3(bool include_sig) const;
-  std::string getJsonStr() const;
-  Json::Value getJson() const;
-  void streamRLP(dev::RLPStream& strm, bool include_sig) const;
-  bytes rlp(bool include_sig) const;
+  // Unverified votes
+  void addUnverifiedVote(Vote const& vote);
+  void addUnverifiedVotes(std::vector<Vote> const& votes);
+  void removeUnverifiedVote(uint64_t const& pbft_round, vote_hash_t const& vote_hash);
+  bool voteInUnverifiedMap(uint64_t const& pbft_round, vote_hash_t const& vote_hash);
+  std::vector<Vote> getUnverifiedVotes();
+  void clearUnverifiedVotesTable();
+  uint64_t getUnverifiedVotesSize() const;
 
-  static Json::Value toJson(PbftBlock const& b, std::vector<blk_hash_t> const& dag_blks);
+  // Verified votes
+  void addVerifiedVote(Vote const& vote);
+  void removeVerifiedVotes();
+  bool voteInVerifiedMap(uint64_t const& pbft_round, vote_hash_t const& vote_hash);
+  void clearVerifiedVotesTable();
+  std::vector<Vote> getVerifiedVotes();
 
-  auto const& getBlockHash() const { return block_hash_; }
-  auto const& getPrevBlockHash() const { return prev_block_hash_; }
-  auto const& getPivotDagBlockHash() const { return dag_block_hash_as_pivot_; }
-  auto getPeriod() const { return period_; }
-  auto getTimestamp() const { return timestamp_; }
-  auto const& getBeneficiary() const { return beneficiary_; }
+  std::vector<Vote> getVerifiedVotes(uint64_t const pbft_round, size_t const sortition_threshold,
+                                     uint64_t dpos_total_votes_count,
+                                     std::function<size_t(addr_t const&)> const& dpos_eligible_vote_count);
+
+  void cleanupVotes(uint64_t pbft_round);
+
+  bool voteValidation(Vote const& vote, size_t const valid_sortition_players, size_t const sortition_threshold) const;
+
+  bool pbftBlockHasEnoughValidCertVotes(PbftBlockCert const& pbft_block_and_votes, size_t valid_sortition_players,
+                                        size_t sortition_threshold, size_t pbft_2t_plus_1) const;
+
+  std::string getJsonStr(std::vector<Vote> const& votes);
 
  private:
-  void calculateHash_();
-};
-std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk);
+  using uniqueLock_ = boost::unique_lock<boost::shared_mutex>;
+  using sharedLock_ = boost::shared_lock<boost::shared_mutex>;
+  using upgradableLock_ = boost::upgrade_lock<boost::shared_mutex>;
+  using upgradeLock_ = boost::upgrade_to_unique_lock<boost::shared_mutex>;
 
-struct PbftBlockCert {
-  PbftBlockCert(PbftBlock const& pbft_blk, std::vector<Vote> const& cert_votes);
-  explicit PbftBlockCert(dev::RLP const& all_rlp);
-  explicit PbftBlockCert(bytes const& all_rlp);
+  // <pbft_round, <vote_hash, vote>>
+  std::map<uint64_t, std::unordered_map<vote_hash_t, Vote>> unverified_votes_;
+  std::map<uint64_t, std::unordered_map<vote_hash_t, Vote>> verified_votes_;
 
-  std::shared_ptr<PbftBlock> pbft_blk;
-  std::vector<Vote> cert_votes;
-  bytes rlp() const;
-  static void encode_raw(dev::RLPStream& rlp, PbftBlock const& pbft_blk, dev::bytesConstRef votes_raw);
+  std::unordered_set<vote_hash_t> votes_invalid_in_current_final_chain_period_;
+  h256 current_period_final_chain_block_hash_;
+  std::map<addr_t, uint64_t> max_received_round_for_address_;
+
+  mutable boost::shared_mutex unverified_votes_access_;
+  mutable boost::shared_mutex verified_votes_access_;
+
+  std::shared_ptr<DbStorage> db_;
+  std::shared_ptr<PbftChain> pbft_chain_;
+  std::shared_ptr<FinalChain> final_chain_;
+
+  LOG_OBJECTS_DEFINE
 };
-std::ostream& operator<<(std::ostream& strm, PbftBlockCert const& b);
+
+class NextVotesForPreviousRound {
+ public:
+  NextVotesForPreviousRound(addr_t node_addr, std::shared_ptr<DbStorage> db);
+
+  void clear();
+
+  bool find(vote_hash_t next_vote_hash);
+
+  bool enoughNextVotes() const;
+
+  bool haveEnoughVotesForNullBlockHash() const;
+
+  blk_hash_t getVotedValue() const;
+
+  std::vector<Vote> getNextVotes();
+
+  size_t getNextVotesSize() const;
+
+  void addNextVotes(std::vector<Vote> const& next_votes, size_t const pbft_2t_plus_1);
+
+  void update(std::vector<Vote> const& next_votes, size_t const pbft_2t_plus_1);
+
+  void updateWithSyncedVotes(std::vector<Vote> const& votes, size_t const pbft_2t_plus_1);
+
+ private:
+  using uniqueLock_ = boost::unique_lock<boost::shared_mutex>;
+  using sharedLock_ = boost::shared_lock<boost::shared_mutex>;
+  using upgradableLock_ = boost::upgrade_lock<boost::shared_mutex>;
+  using upgradeLock_ = boost::upgrade_to_unique_lock<boost::shared_mutex>;
+
+  void assertError_(std::vector<Vote> next_votes_1, std::vector<Vote> next_votes_2) const;
+
+  mutable boost::shared_mutex access_;
+
+  std::shared_ptr<DbStorage> db_;
+
+  bool enough_votes_for_null_block_hash_;
+  blk_hash_t voted_value_;  // For value is not null block hash
+  size_t next_votes_size_;
+  // <voted PBFT block hash, next votes list that have greater or equal to 2t+1 votes voted at the PBFT block hash>
+  // only save votes >= 2t+1 voted at same value in map and set
+  std::unordered_map<blk_hash_t, std::vector<Vote>> next_votes_;
+  std::unordered_set<vote_hash_t> next_votes_set_;
+
+  LOG_OBJECTS_DEFINE
+};
 
 }  // namespace taraxa

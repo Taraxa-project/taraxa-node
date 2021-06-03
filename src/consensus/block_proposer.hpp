@@ -60,7 +60,7 @@ class SortitionPropose : public ProposeModelFace {
   std::shared_ptr<DagManager> dag_mgr_;
   std::shared_ptr<TransactionManager> trx_mgr_;
 
-  LOG_OBJECTS_DEFINE;
+  LOG_OBJECTS_DEFINE
 };
 
 /**
@@ -73,11 +73,11 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
                 std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr,
                 std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<FinalChain> final_chain, addr_t node_addr,
                 secret_t node_sk, vrf_sk_t vrf_sk, logger::Logger log_time)
-      : dag_mgr_(dag_mgr),
+      : bp_config_(bp_config),
+        dag_mgr_(dag_mgr),
         trx_mgr_(trx_mgr),
         dag_blk_mgr_(dag_blk_mgr),
         final_chain_(final_chain),
-        bp_config_(bp_config),
         log_time_(log_time),
         node_addr_(node_addr),
         node_sk_(node_sk),
@@ -95,9 +95,9 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   void start();
   void stop();
   std::shared_ptr<BlockProposer> getShared();
-  void setNetwork(std::shared_ptr<Network> network) { network_ = network; }
-  void proposeBlock(DagBlock& blk);
-  bool getShardedTrxs(vec_trx_t& sharded_trx) { return getShardedTrxs(total_trx_shards_, my_trx_shard_, sharded_trx); }
+  void setNetwork(std::weak_ptr<Network> network) { network_ = move(network); }
+  void proposeBlock(blk_hash_t const& pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, VdfSortition const& vdf);
+  bool getShardedTrxs(vec_trx_t& sharded_trx);
   bool getLatestPivotAndTips(blk_hash_t& pivot, vec_blk_t& tips);
   level_t getProposeLevel(blk_hash_t const& pivot, vec_blk_t const& tips);
   blk_hash_t getProposeAnchor() const;
@@ -107,7 +107,6 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   friend ProposeModelFace;
 
  private:
-  bool getShardedTrxs(uint total_shard, uint my_shard, vec_trx_t& sharded_trx);
   addr_t getFullNodeAddress() const;
 
   inline static const uint16_t min_proposal_delay = 100;
@@ -122,12 +121,12 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   std::shared_ptr<FinalChain> final_chain_;
   std::shared_ptr<std::thread> proposer_worker_;
   std::unique_ptr<ProposeModelFace> propose_model_;
-  std::shared_ptr<Network> network_;
+  std::weak_ptr<Network> network_;
   logger::Logger log_time_;
   addr_t node_addr_;
   secret_t node_sk_;
   vrf_sk_t vrf_sk_;
-  LOG_OBJECTS_DEFINE;
+  LOG_OBJECTS_DEFINE
 };
 
 }  // namespace taraxa

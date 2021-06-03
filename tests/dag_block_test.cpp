@@ -15,13 +15,13 @@
 #include "util_test/util.hpp"
 
 namespace taraxa::core_tests {
-const unsigned NUM_TRX = 40;
 const unsigned NUM_BLK = 4;
 const unsigned BLK_TRX_LEN = 4;
 const unsigned BLK_TRX_OVERLAP = 1;
 using namespace vdf_sortition;
 
 struct DagBlockTest : BaseTest {};
+struct DagBlockMgrTest : BaseTest {};
 
 auto g_blk_samples = samples::createMockDagBlkSamples(0, NUM_BLK, 0, BLK_TRX_LEN, BLK_TRX_OVERLAP);
 
@@ -47,7 +47,7 @@ TEST_F(DagBlockTest, serialize_deserialize) {
   VdfSortition vdf(vdf_config, g_key_pair.address(), sk, getRlpBytes(level));
   blk_hash_t vdf_input(200);
   vdf.computeVdfSolution(vdf_config, vdf_input.asBytes());
-  DagBlock blk1(blk_hash_t(1), 2, {}, {}, vdf);
+  DagBlock blk1(blk_hash_t(1), 2, {}, {}, vdf, secret_t::random());
   auto b = blk1.rlp(true);
   DagBlock blk2(b);
   EXPECT_EQ(blk1, blk2);
@@ -128,13 +128,13 @@ TEST_F(DagBlockTest, sender_and_hash_verify) {
                 {blk_hash_t(222),  // tips
                  blk_hash_t(333), blk_hash_t(444)},
                 {trx_hash_t(555),  // trxs
-                 trx_hash_t(666)});
-  blk1.sign(g_secret);
-  EXPECT_EQ(g_key_pair.address(), blk1.sender());
+                 trx_hash_t(666)},
+                g_secret);
+  EXPECT_EQ(g_key_pair.address(), blk1.getSender());
   EXPECT_TRUE(blk1.verifySig());
 
   DagBlock blk_from_rlp(blk1.rlp(true));
-  EXPECT_EQ(blk_from_rlp.sender(), blk1.sender());
+  EXPECT_EQ(blk_from_rlp.getSender(), blk1.getSender());
   EXPECT_EQ(blk_from_rlp.getHash(), blk1.getHash());
 }
 
@@ -144,17 +144,17 @@ TEST_F(DagBlockTest, sign_verify) {
                 {blk_hash_t(222),  // tips
                  blk_hash_t(333), blk_hash_t(444)},
                 {trx_hash_t(555),  // trxs
-                 trx_hash_t(666)});
+                 trx_hash_t(666)},
+                g_secret);
   DagBlock blk1c(blk_hash_t(111),   // pivot
                  0,                 // level
                  {blk_hash_t(222),  // tips
                   blk_hash_t(333), blk_hash_t(444)},
                  {trx_hash_t(555),  // trxs
-                  trx_hash_t(666)});
-  blk1.sign(g_secret);
-  blk1c.sign(g_secret);
+                  trx_hash_t(666)},
+                 g_secret);
   EXPECT_EQ(blk1.getSig(), blk1c.getSig()) << blk1 << std::endl << blk1c;
-  EXPECT_EQ(blk1.sender(), blk1c.sender());
+  EXPECT_EQ(blk1.getSender(), blk1c.getSender());
   EXPECT_EQ(blk1.getHash(), blk1c.getHash());
 
   EXPECT_TRUE(blk1.verifySig());
@@ -162,12 +162,11 @@ TEST_F(DagBlockTest, sign_verify) {
   DagBlock blk2(blk_hash_t(9999),  // pivot
                 0,                 // level
                 {},                // tips,
-                {});               // trxs
-  blk2.sign(g_secret);
+                {}, g_secret);     // trxs
 
   EXPECT_NE(blk1.getSig(), blk2.getSig());
   EXPECT_NE(blk1.getHash(), blk2.getHash());
-  EXPECT_EQ(blk2.sender(), blk1.sender());
+  EXPECT_EQ(blk2.getSender(), blk1.getSender());
 
   EXPECT_TRUE(blk2.verifySig());
 }
@@ -175,7 +174,7 @@ TEST_F(DagBlockTest, sign_verify) {
 TEST_F(DagBlockTest, push_and_pop) {
   auto node_cfgs = make_node_cfgs(1);
   FullNode::Handle node(node_cfgs[0]);
-  DagBlockManager blk_qu(addr_t(), node_cfgs[0].chain.vdf, node_cfgs[0].chain.final_chain.state.dpos, 1024, 2,
+  DagBlockManager blk_qu(addr_t(), node_cfgs[0].chain.vdf, node_cfgs[0].chain.final_chain.state.dpos, 1024,
                          node->getDB(), nullptr, nullptr, nullptr, node->getTimeLogger());
   blk_qu.start();
   DagBlock blk1(blk_hash_t(1111), level_t(0), {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)}, {}, sig_t(7777),
@@ -216,6 +215,34 @@ TEST_F(DagBlockTest, overlap) {
   EXPECT_FALSE(overlap2[1]);
   EXPECT_FALSE(overlap2[2]);
   EXPECT_FALSE(overlap2[3]);
+}
+
+TEST_F(DagBlockMgrTest, proposal_period) {
+  auto node_cfgs = make_node_cfgs(1);
+  FullNode::Handle node(node_cfgs[0]);
+  auto db = node->getDB();
+  auto dag_blk_mgr = node->getDagBlockManager();
+
+  // Proposal period 0 has in DB already at DAG block manager constructor
+  auto proposal_period_1 = dag_blk_mgr->newProposePeriodDagLevelsMap(10);  // interval levels [101, 110]
+  db->saveProposalPeriodDagLevelsMap(*proposal_period_1);
+  auto proposal_period_2 = dag_blk_mgr->newProposePeriodDagLevelsMap(30);  // interval levels [111, 130]
+  db->saveProposalPeriodDagLevelsMap(*proposal_period_2);
+
+  auto proposal_period = dag_blk_mgr->getProposalPeriod(1);
+  EXPECT_TRUE(proposal_period.second);
+  EXPECT_EQ(proposal_period.first, 0);
+  proposal_period = dag_blk_mgr->getProposalPeriod(101);
+  EXPECT_TRUE(proposal_period.second);
+  EXPECT_EQ(proposal_period.first, 1);
+  proposal_period = dag_blk_mgr->getProposalPeriod(111);
+  EXPECT_TRUE(proposal_period.second);
+  EXPECT_EQ(proposal_period.first, 2);
+  proposal_period = dag_blk_mgr->getProposalPeriod(130);
+  EXPECT_TRUE(proposal_period.second);
+  EXPECT_EQ(proposal_period.first, 2);
+  proposal_period = dag_blk_mgr->getProposalPeriod(131);
+  EXPECT_FALSE(proposal_period.second);
 }
 
 }  // namespace taraxa::core_tests

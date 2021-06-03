@@ -129,7 +129,7 @@ TEST_F(PbftChainTest, block_broadcast) {
   bool find_erased_block = pbft_chain1->findUnverifiedPbftBlock(pbft_block->getBlockHash());
   ASSERT_FALSE(find_erased_block);
 
-  nw1->onNewPbftBlock(*pbft_block);
+  nw1->onNewPbftBlock(pbft_block);
 
   shared_ptr<PbftBlock> pbft_block_from_node2;
   shared_ptr<PbftBlock> pbft_block_from_node3;

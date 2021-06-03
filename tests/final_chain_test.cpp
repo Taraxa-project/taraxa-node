@@ -1,10 +1,11 @@
-#include "final_chain/final_chain.hpp"
+#include "chain/final_chain.hpp"
+
+#include <libdevcore/TrieHash.h>
 
 #include <optional>
 #include <vector>
 
-#include "config/chain_config.hpp"
-#include "final_chain/TrieCommon.h"
+#include "chain/chain_config.hpp"
 #include "util_test/gtest.hpp"
 
 namespace taraxa::final_chain {
@@ -16,7 +17,7 @@ struct advance_check_opts {
 };
 
 struct FinalChainTest : WithDataDir {
-  shared_ptr<DB> db = DB::make(data_dir / "db");
+  shared_ptr<DbStorage> db{new DbStorage(data_dir / "db")};
   FinalChain::Config cfg = ChainConfig::predefined().final_chain;
   unique_ptr<FinalChain> SUT;
   bool assume_only_toplevel_transfers = true;
@@ -35,24 +36,27 @@ struct FinalChainTest : WithDataDir {
   }
 
   auto advance(Transactions const& trxs, advance_check_opts opts = {}) {
+    auto batch = db->createWriteBatch();
     auto author = addr_t::random();
     uint64_t timestamp = chrono::high_resolution_clock::now().time_since_epoch().count();
-    auto result = SUT->finalize(batch, author, timestamp, trxs);
+    auto result = SUT->advance(batch, author, timestamp, trxs);
+    db->commitWriteBatch(batch);
+    SUT->advance_confirm();
     ++expected_blk_num;
     auto const& blk_h = result.new_header;
-    EXPECT_EQ(blk_h.hash(), SUT->block_header()->hash);
-    EXPECT_EQ(blk_h.parentHash(), SUT->block_header(expected_blk_num - 1)->hash);
+    EXPECT_EQ(blk_h.hash(), SUT->get_last_block()->hash());
+    EXPECT_EQ(blk_h.parentHash(), SUT->blockHeader(expected_blk_num - 1).hash());
     EXPECT_EQ(blk_h.number(), expected_blk_num);
     EXPECT_EQ(blk_h.author(), author);
     EXPECT_EQ(blk_h.timestamp(), timestamp);
     EXPECT_EQ(result.receipts.size(), trxs.size());
     EXPECT_EQ(blk_h.transactionsRoot(),
               trieRootOver(
-                  trxs.size(), [&](auto i) { return dev::rlp(i); }, [&](auto i) { return *trxs[i].rlp(); }));
+                  trxs.size(), [&](auto i) { return rlp(i); }, [&](auto i) { return trxs[i].rlp(); }));
     EXPECT_EQ(blk_h.receiptsRoot(),
               trieRootOver(
-                  trxs.size(), [&](auto i) { return dev::rlp(i); }, [&](auto i) { return result.receipts[i].rlp(); }));
-    EXPECT_EQ(blk_h.gasLimit(), std::numeric_limits<uint64_t>::max());
+                  trxs.size(), [&](auto i) { return rlp(i); }, [&](auto i) { return result.receipts[i].rlp(); }));
+    EXPECT_EQ(blk_h.gasLimit(), ((uint64_t)1 << 53) - 1);
     EXPECT_EQ(blk_h.extraData(), bytes());
     EXPECT_EQ(blk_h.nonce(), Nonce());
     EXPECT_EQ(blk_h.difficulty(), 0);
@@ -64,15 +68,16 @@ struct FinalChainTest : WithDataDir {
     unordered_set<addr_t> all_addrs_w_changed_balance;
     for (size_t i = 0; i < trxs.size(); ++i) {
       auto const& trx = trxs[i];
-      auto r = *SUT->transaction_receipt(trx.getHash());
-      EXPECT_EQ(*trx.rlp(), db->getTransaction(trx.getHash())->rlp());
-      if (assume_only_toplevel_transfers && trx.getValue() != 0 && r.status_code == 1) {
-        auto const& sender = trx.getSender();
-        auto const& sender_bal = expected_balances[sender] -= trx.getValue();
-        auto const& receiver = !trx.getReceiver() ? *r.new_contract_address : *trx.getReceiver();
+      auto const& r = result.receipts[i];
+      EXPECT_EQ(r.rlp(), SUT->transactionReceipt(trx.sha3()).rlp());
+      EXPECT_EQ(trx.rlp(), SUT->transaction(trx.sha3()).rlp());
+      if (assume_only_toplevel_transfers && trx.value() != 0 && r.statusCode() == 1) {
+        auto const& sender = trx.from();
+        auto const& sender_bal = expected_balances[sender] -= trx.value();
+        auto const& receiver = trx.isCreation() ? r.contractAddress() : trx.to();
         all_addrs_w_changed_balance.insert(sender);
         all_addrs_w_changed_balance.insert(receiver);
-        auto const& receiver_bal = expected_balances[receiver] += trx.getValue();
+        auto const& receiver_bal = expected_balances[receiver] += trx.value();
         if (SUT->get_account(sender)->CodeSize == 0) {
           expected_balance_changes[sender] = sender_bal;
         }
@@ -80,25 +85,28 @@ struct FinalChainTest : WithDataDir {
           expected_balance_changes[receiver] = receiver_bal;
         }
       }
+      EXPECT_TRUE(r.hasStatusCode());
       if (!opts.dont_assume_all_trx_success) {
-        EXPECT_EQ(r.status_code, 1);
+        EXPECT_EQ(r.statusCode(), 1);
       }
       if (!opts.dont_assume_no_logs) {
-        EXPECT_EQ(r.logs.size(), 0);
+        EXPECT_EQ(r.log().size(), 0);
         EXPECT_EQ(r.bloom(), LogBloom());
       }
       expected_block_log_bloom |= r.bloom();
-      EXPECT_EQ(r.new_contract_address, result.state_transition_result.ExecutionResults[i].NewContractAddr);
-      EXPECT_EQ(r.from(), trx.getSender());
-      EXPECT_EQ(r.blk_n(), blk_h.hash());
-      EXPECT_EQ(r.blockNumber(), blk_h.number());
-      EXPECT_EQ(r.transactionIndex(), i);
-      EXPECT_EQ(r.hash(), trx.getHash());
-      EXPECT_EQ(r.to(), trx.getReceiver().value_or(ZeroAddress));
-      EXPECT_EQ(r.bloom(), r.bloom());
-      EXPECT_EQ(r.status_code, r.statusCode());
-      EXPECT_EQ(r.gas_used, result.state_transition_result.ExecutionResults[i].GasUsed);
-      EXPECT_EQ(r.gas_used,
+      auto r_from_db = SUT->localisedTransactionReceipt(trxs[i].sha3());
+      EXPECT_EQ(r_from_db.contractAddress(), result.state_transition_result.ExecutionResults[i].NewContractAddr);
+      EXPECT_EQ(r_from_db.from(), trx.from());
+      EXPECT_EQ(r_from_db.blockHash(), blk_h.hash());
+      EXPECT_EQ(r_from_db.blockNumber(), blk_h.number());
+      EXPECT_EQ(r_from_db.transactionIndex(), i);
+      EXPECT_EQ(r_from_db.hash(), trx.sha3());
+      EXPECT_EQ(r_from_db.to(), trx.to());
+      EXPECT_EQ(r_from_db.bloom(), r.bloom());
+      EXPECT_TRUE(r_from_db.hasStatusCode());
+      EXPECT_EQ(r_from_db.statusCode(), r.statusCode());
+      EXPECT_EQ(r_from_db.gasUsed(), result.state_transition_result.ExecutionResults[i].GasUsed);
+      EXPECT_EQ(r_from_db.gasUsed(),
                 i == 0 ? r.cumulativeGasUsed() : r.cumulativeGasUsed() - result.receipts[i - 1].cumulativeGasUsed());
     }
     expected_block_log_bloom.shiftBloom<3>(sha3(blk_h.author().ref()));
@@ -110,15 +118,6 @@ struct FinalChainTest : WithDataDir {
       }
     }
     return result;
-  }
-
-  template <class T, class U>
-  static h256 trieRootOver(uint _itemCount, T const& _getKey, U const& _getValue) {
-    dev::BytesMap m;
-    for (uint i = 0; i < _itemCount; ++i) {
-      m[_getKey(i)] = _getValue(i);
-    }
-    return hash256(m);
   }
 };
 
@@ -194,7 +193,7 @@ TEST_F(FinalChainTest, contract) {
       "03ea91906103ee565b5090565b61041091905b8082111561040c57600081600090555060"
       "01016103f4565b5090565b9056fea264697066735822122004585b83cf41cfb8af886165"
       "0679892acca0561c1a8ab45ce31c7fdb15a67b7764736f6c63430006080033";
-  Transaction trx(0, 100, 0, 0, dev::fromHex(contract_deploy_code), sk);
+  dev::eth::Transaction trx(100, 0, 0, dev::fromHex(contract_deploy_code), 0, sk);
   auto result = advance({trx});
   auto contract_addr = result.state_transition_result.ExecutionResults[0].NewContractAddr;
   auto greet = [&] {
@@ -216,13 +215,13 @@ TEST_F(FinalChainTest, contract) {
             "000000000000000000000000000000000000000000000000000000000000000548"
             "656c6c6f000000000000000000000000000000000000000000000000000000");
   {
-    Transaction trx(0, 11, 0, 0,
-                    // setGreeting("Hola")
-                    dev::fromHex("0xa4136862000000000000000000000000000000000000000000000000"
-                                 "00000000000000200000000000000000000000000000000000000000000"
-                                 "000000000000000000004486f6c61000000000000000000000000000000"
-                                 "00000000000000000000000000"),
-                    sk, contract_addr);
+    dev::eth::Transaction trx(11, 0, 0, contract_addr,
+                              // setGreeting("Hola")
+                              dev::fromHex("0xa4136862000000000000000000000000000000000000000000000000"
+                                           "00000000000000200000000000000000000000000000000000000000000"
+                                           "000000000000000000004486f6c61000000000000000000000000000000"
+                                           "00000000000000000000000000"),
+                              0, sk);
     advance({trx});
   }
   ASSERT_EQ(greet(),
@@ -246,29 +245,29 @@ TEST_F(FinalChainTest, coin_transfers) {
   init();
   constexpr auto TRX_GAS = 100000;
   advance({
-      {0, 13, 0, TRX_GAS, {}, keys[10].secret(), keys[10].address()},
-      {0, 11300, 0, TRX_GAS, {}, keys[102].secret(), keys[44].address()},
-      {0, 1040, 0, TRX_GAS, {}, keys[122].secret(), keys[50].address()},
+      {13, 0, TRX_GAS, keys[10].address(), {}, 0, keys[10].secret()},
+      {11300, 0, TRX_GAS, keys[44].address(), {}, 0, keys[102].secret()},
+      {1040, 0, TRX_GAS, keys[50].address(), {}, 0, keys[122].secret()},
   });
   advance({});
   advance({
-      {0, 0, 0, TRX_GAS, {}, keys[2].secret(), keys[1].address()},
-      {0, 131, 0, TRX_GAS, {}, keys[133].secret(), keys[133].address()},
+      {0, 0, TRX_GAS, keys[1].address(), {}, 0, keys[2].secret()},
+      {131, 0, TRX_GAS, keys[133].address(), {}, 0, keys[133].secret()},
   });
   advance({
-      {0, 100441, 0, TRX_GAS, {}, keys[177].secret(), keys[431].address()},
-      {0, 2300, 0, TRX_GAS, {}, keys[131].secret(), keys[343].address()},
-      {0, 130, 0, TRX_GAS, {}, keys[11].secret(), keys[23].address()},
+      {100441, 0, TRX_GAS, keys[431].address(), {}, 0, keys[177].secret()},
+      {2300, 0, TRX_GAS, keys[343].address(), {}, 0, keys[131].secret()},
+      {130, 0, TRX_GAS, keys[23].address(), {}, 0, keys[11].secret()},
   });
   advance({});
   advance({
-      {0, 100431, 0, TRX_GAS, {}, keys[135].secret(), keys[232].address()},
-      {0, 13411, 0, TRX_GAS, {}, keys[112].secret(), keys[34].address()},
-      {0, 130, 0, TRX_GAS, {}, keys[133].secret(), keys[233].address()},
-      {0, 343434, 0, TRX_GAS, {}, keys[13].secret(), keys[213].address()},
-      {0, 131313, 0, TRX_GAS, {}, keys[405].secret(), keys[344].address()},
-      {0, 143430, 0, TRX_GAS, {}, keys[331].secret(), keys[420].address()},
-      {0, 1313145, 0, TRX_GAS, {}, keys[345].secret(), keys[134].address()},
+      {100431, 0, TRX_GAS, keys[232].address(), {}, 0, keys[135].secret()},
+      {13411, 0, TRX_GAS, keys[34].address(), {}, 0, keys[112].secret()},
+      {130, 0, TRX_GAS, keys[233].address(), {}, 0, keys[133].secret()},
+      {343434, 0, TRX_GAS, keys[213].address(), {}, 0, keys[13].secret()},
+      {131313, 0, TRX_GAS, keys[344].address(), {}, 0, keys[405].secret()},
+      {143430, 0, TRX_GAS, keys[420].address(), {}, 0, keys[331].secret()},
+      {1313145, 0, TRX_GAS, keys[134].address(), {}, 0, keys[345].secret()},
   });
 }
 

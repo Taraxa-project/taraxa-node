@@ -12,7 +12,7 @@ Json::Value enc_json(ChainConfig const& obj) {
   if (obj.chain_id) {
     json["chain_id"] = dev::toJS(obj.chain_id);
   }
-  json["dag_genesis_block"] = obj.dag_genesis_block.getJson();
+  json["dag_genesis_block"] = obj.dag_genesis_block.getJson(false);
   json["vdf"] = enc_json(obj.vdf);
   json["pbft"] = enc_json(obj.pbft);
   json["final_chain"] = enc_json(obj.final_chain);

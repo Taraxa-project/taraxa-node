@@ -8,13 +8,13 @@ namespace taraxa {
 
 std::string getConfigErr(std::vector<string> path) {
   std::string res = "Error in processing configuration file on param: ";
-  for (auto i = 0; i < path.size(); i++) res += path[i] + ".";
+  for (size_t i = 0; i < path.size(); i++) res += path[i] + ".";
   res += " ";
   return res;
 }
 
 Json::Value getConfigData(Json::Value root, std::vector<string> const &path, bool optional = false) {
-  for (auto i = 0; i < path.size(); i++) {
+  for (size_t i = 0; i < path.size(); i++) {
     root = root[path[i]];
     if (root.isNull() && !optional) {
       throw ConfigException(getConfigErr(path) + "Element missing: " + path[i]);
@@ -100,8 +100,9 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object,
   }
   network.network_address = getConfigDataAsString(root, {"network_address"});
   network.network_tcp_port = getConfigDataAsUInt(root, {"network_tcp_port"});
-  network.network_udp_port = getConfigDataAsUInt(root, {"network_udp_port"});
   network.network_simulated_delay = getConfigDataAsUInt(root, {"network_simulated_delay"});
+  network.network_performance_log_interval =
+      getConfigDataAsUInt(root, {"network_performance_log_interval"}, true, 30000 /*ms*/);
   network.network_transaction_interval = getConfigDataAsUInt(root, {"network_transaction_interval"});
   network.network_min_dag_block_broadcast = getConfigDataAsUInt(root, {"network_min_dag_block_broadcast"}, true, 5);
   network.network_max_dag_block_broadcast = getConfigDataAsUInt(root, {"network_max_dag_block_broadcast"}, true, 20);
@@ -109,12 +110,10 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object,
   network.network_ideal_peer_count = getConfigDataAsUInt(root, {"network_ideal_peer_count"});
   network.network_max_peer_count = getConfigDataAsUInt(root, {"network_max_peer_count"});
   network.network_sync_level_size = getConfigDataAsUInt(root, {"network_sync_level_size"});
-  network.network_encrypted = getConfigDataAsUInt(root, {"network_encrypted"}) != 0;
   for (auto &item : root["network_boot_nodes"]) {
     NodeConfig node;
     node.id = getConfigDataAsString(item, {"id"});
     node.ip = getConfigDataAsString(item, {"ip"});
-    node.udp_port = getConfigDataAsUInt(item, {"udp_port"});
     node.tcp_port = getConfigDataAsUInt(item, {"tcp_port"});
     network.network_boot_nodes.push_back(node);
   }
@@ -164,8 +163,12 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object,
 
   // Network logging in p2p library creates performance issues even with
   // channel/verbosity off Disable it completely in net channel is not present
-  network.net_log = false;
   if (!root["logging"].isNull()) {
+    if (auto path = getConfigData(root["logging"], {"log_path"}, true); !path.isNull()) {
+      log_path = path.asString();
+    } else {
+      log_path = db_path / "logs";
+    }
     for (auto &item : root["logging"]["configurations"]) {
       auto on = getConfigDataAsBoolean(item, {"on"});
       if (on) {
@@ -175,12 +178,6 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object,
         for (auto &ch : item["channels"]) {
           std::pair<std::string, uint16_t> channel;
           channel.first = getConfigDataAsString(ch, {"name"});
-          if (channel.first == "net") {
-            network.net_log = true;
-          }
-          if (channel.first == "NETPER") {
-            network.network_performance_log = true;
-          }
           if (ch["verbosity"].isNull()) {
             channel.second = logging.verbosity;
           } else {
@@ -193,7 +190,7 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object,
           output.type = getConfigDataAsString(o, {"type"});
           output.format = getConfigDataAsString(o, {"format"});
           if (output.type == "file") {
-            output.file_name = (db_path / getConfigDataAsString(o, {"file_name"})).string();
+            output.file_name = (log_path / getConfigDataAsString(o, {"file_name"})).string();
             output.format = getConfigDataAsString(o, {"format"});
             output.max_size = getConfigDataAsUInt64(o, {"max_size"});
             output.rotation_size = getConfigDataAsUInt64(o, {"rotation_size"});
@@ -239,9 +236,18 @@ bool FullNodeConfig::validate() {
       return false;
     }
   }
-
+  // TODO validate that the boot node list doesn't contain self (although it's not critical)
+  for (auto const &node : network.network_boot_nodes) {
+    if (node.ip.empty()) {
+      cerr << "Boot node ip is empty:" << node.ip << ":" << node.tcp_port;
+      return false;
+    }
+    if (node.tcp_port == 0) {
+      cerr << "Boot node port invalid: " << node.tcp_port;
+      return false;
+    }
+  }
   // TODO: add validation of other config values
-
   return true;
 }
 
@@ -249,7 +255,6 @@ std::ostream &operator<<(std::ostream &strm, NodeConfig const &conf) {
   strm << "  [Node Config] " << std::endl;
   strm << "    node_id: " << conf.id << std::endl;
   strm << "    node_ip: " << conf.ip << std::endl;
-  strm << "    node_udp_port: " << conf.udp_port << std::endl;
   strm << "    node_tcp_port: " << conf.tcp_port << std::endl;
   return strm;
 }
@@ -260,7 +265,6 @@ std::ostream &operator<<(std::ostream &strm, NetworkConfig const &conf) {
   strm << "  network_is_boot_node: " << conf.network_is_boot_node << std::endl;
   strm << "  network_address: " << conf.network_address << std::endl;
   strm << "  network_tcp_port: " << conf.network_tcp_port << std::endl;
-  strm << "  network_udp_port: " << conf.network_udp_port << std::endl;
   strm << "  network_simulated_delay: " << conf.network_simulated_delay << std::endl;
   strm << "  network_transaction_interval: " << conf.network_transaction_interval << std::endl;
   strm << "  network_bandwidth: " << conf.network_bandwidth << std::endl;

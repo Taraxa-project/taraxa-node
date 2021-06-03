@@ -57,6 +57,7 @@ TEST_F(CryptoTest, VerifierWesolowski) {
 
   EXPECT_FALSE(verifier(sol2));
   EXPECT_FALSE(verifier(sol3));
+  BN_clear_free(N_bn);
 }
 
 TEST_F(CryptoTest, vrf_proof_verify) {
@@ -95,8 +96,7 @@ TEST_F(CryptoTest, vrf_sortition) {
   vrf_sk_t sk(
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
       "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
-  blk_hash_t blk(123);
-  VrfPbftMsg msg(blk, PbftVoteTypes::cert_vote_type, 2, 3);
+  VrfPbftMsg msg(PbftVoteTypes::cert_vote_type, 2, 3, 0);
   VrfPbftSortition sortition(sk, msg);
   VrfPbftSortition sortition2(sk, msg);
 
@@ -178,7 +178,6 @@ TEST_F(CryptoTest, DISABLED_compute_vdf_solution_cost_time) {
   vrf_sk_t sk(
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
       "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
-  blk_hash_t last_anchor_hash = blk_hash_t("be67f76499af842b5c8e9d22194f19c04711199726b2224854af34365d351124");
   level_t level = 1;
   uint16_t threshold_selection = 0;  // diffculty == diffuclty_stale
   uint16_t threshold_vdf_omit = 0;   // Force no omit VDF
@@ -267,24 +266,29 @@ TEST_F(CryptoTest, sortition_rate) {
   int sortition_threshold = 5;
   // Test for one player sign round messages to get sortition
   // Sortition rate THRESHOLD / PLAYERS = 5%
+  uint64_t pbft_round;
+  size_t pbft_step = 3;
+  size_t weighted_index;
   for (int i = 0; i < round; i++) {
-    blk_hash_t blk(i);
-    VrfPbftMsg msg(blk, PbftVoteTypes::cert_vote_type, 2, 3);
+    pbft_round = i;
+    weighted_index = i;
+    VrfPbftMsg msg(PbftVoteTypes::cert_vote_type, pbft_round, pbft_step, weighted_index);
     VrfPbftSortition sortition(sk, msg);
     bool win = sortition.canSpeak(sortition_threshold, valid_sortition_players);
     if (win) {
       count++;
     }
   }
-  EXPECT_EQ(count, 46);  // Test experience
+  EXPECT_EQ(count, 54);  // Test experience
 
   count = 0;
   sortition_threshold = valid_sortition_players;
   // Test for one player sign round messages to get sortition
   // Sortition rate THRESHOLD / PLAYERS = 100%
   for (int i = 0; i < round; i++) {
-    blk_hash_t blk(i);
-    VrfPbftMsg msg(blk, PbftVoteTypes::cert_vote_type, 2, 3);
+    pbft_round = i;
+    weighted_index = i;
+    VrfPbftMsg msg(PbftVoteTypes::cert_vote_type, pbft_round, pbft_step, weighted_index);
     VrfPbftSortition sortition(sk, msg);
     bool win = sortition.canSpeak(sortition_threshold, valid_sortition_players);
     if (win) {
@@ -303,8 +307,9 @@ TEST_F(CryptoTest, sortition_rate) {
     dev::KeyPair key_pair = dev::KeyPair::create();
     for (int j = 0; j < round; j++) {
       auto [pk, sk] = getVrfKeyPair();
-      blk_hash_t blk(i);
-      VrfPbftMsg msg(blk, PbftVoteTypes::cert_vote_type, 2, 3);
+      pbft_round = i;
+      weighted_index = i;
+      VrfPbftMsg msg(PbftVoteTypes::cert_vote_type, pbft_round, pbft_step, weighted_index);
       VrfPbftSortition sortition(sk, msg);
       bool win = sortition.canSpeak(sortition_threshold, valid_sortition_players);
       if (win) {

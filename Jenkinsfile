@@ -1,3 +1,8 @@
+library identifier: 'jenkinsfile-library@main', retriever: modernSCM(
+    [$class: 'GitSCMSource',
+     remote: 'https://github.com/Taraxa-project/jenkinsfile-library.git',
+     credentialsId: 'a9e63ab7-4c38-4644-8829-5f1144995c44'])
+
 def getChart(){
         dir('taraxa-testnet') {
                 git(
@@ -13,17 +18,19 @@ def getChart(){
 
 def helmVersion() {
     println "Checking client/server version"
-    sh "helm version"
+    sh "helm3 version"
 }
 
 def helmInstallChart(String test_name, String image, String tag) {
     dir ('taraxa-testnet/tests') {
+        println "Creating namespace ${test_name}"
+        sh "kubectl create ns ${test_name} || true"
         println "Installing helm chart"
         sh """
-            helm install --name ${test_name} taraxa-node \
+            helm3 install ${test_name} taraxa-node \
                 --wait \
                 --atomic \
-                --timeout 1200 \
+                --timeout 1200s \
                 --namespace ${test_name} \
                 --set replicaCount=5 \
                 --set test.pythontester.script=jenkins.py \
@@ -38,16 +45,16 @@ def helmTestChart(String test_name) {
     dir ('taraxa-testnet/tests') {
         println "Running helm test"
         sh """
-            helm test ${test_name} \
-                --timeout 3600 \
-                --cleanup
+            helm3 test ${test_name} \
+                --namespace ${test_name} \
+                --timeout 3600s
         """
     }
 }
 
 def helmCleanChart(String test_name) {
     println "Cleaning helm test ${test_name}"
-    sh "helm delete --purge ${test_name} || true"
+    sh "helm3 delete --namespace ${test_name} ${test_name} || true"
     println "Cleaning namespace ${test_name}"
     sh "kubectl delete ns ${test_name} || true"
 }
@@ -57,8 +64,6 @@ pipeline {
     environment {
         GCP_REGISTRY = 'gcr.io/jovial-meridian-249123'
         IMAGE = 'taraxa-node'
-        SLACK_CHANNEL = 'jenkins'
-        SLACK_TEAM_DOMAIN = 'phragmites'
         DOCKER_BRANCH_TAG = sh(script: './scripts/docker_tag_from_branch.sh "${BRANCH_NAME}"', , returnStdout: true).trim()
         HELM_TEST_NAME = sh(script: 'echo ${BRANCH_NAME} | sed "s/[^A-Za-z0-9\\-]*//g" | tr "[:upper:]" "[:lower:]"', returnStdout: true).trim()
         KIBANA_URL='kibana.gcp.taraxa.io'
@@ -69,26 +74,36 @@ pipeline {
       disableConcurrentBuilds()
     }
     stages {
-        stage('Docker GCP Registry Login') {
-            steps {
-                withCredentials([string(credentialsId: 'gcp_container_registry_key_json', variable: 'GCP_KEY')]) {
-                  sh 'echo ${GCP_KEY} | docker login -u _json_key --password-stdin https://gcr.io'
-                }
-            }
-        }
-        stage('Docker-Hub Registry Login') {
-            steps {
-                withCredentials([string(credentialsId: 'docker_hub_taraxa_pass', variable: 'HUB_PASS')]) {
-                  sh 'echo ${HUB_PASS} | docker login -u taraxa --password-stdin'
-                }
-            }
-        }
         stage('Build Docker Image') {
             steps {
                 sh '''
                     DOCKER_BUILDKIT=1 docker build \
                     -t ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} .
                 '''
+            }
+        }
+        stage('Build Docker Image for tests') {
+            steps {
+                sh '''
+                    DOCKER_BUILDKIT=1 docker build --target build \
+                    -t ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER}-ctest .
+                '''
+            }
+        }
+        stage('Run ctest') {
+            steps {
+                sh '''
+                    mkdir -p  $PWD/tmp_docker
+                    docker run --rm -v $PWD/tmp_docker:/tmp --name taraxa-node-ctest-$DOCKER_BRANCH_TAG ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER}-ctest sh -c \
+                       'cd cmake-docker-build-debug/tests \
+                           && ctest --output-on-failure'
+                '''
+            }
+            post {
+                failure {
+                    zip zipFile: 'coredumpAndTmp.zip', archive: false, dir: 'tmp_docker'
+                    archiveArtifacts artifacts: 'coredumpAndTmp.zip', fingerprint: true
+                }
             }
         }
         stage('Smoke Test') {
@@ -140,10 +155,7 @@ pipeline {
         stage('Push Docker Image For test') {
             when { branch 'PR-*' }
             steps {
-                sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${GCP_REGISTRY}/${IMAGE}:${HELM_TEST_NAME}-build-${BUILD_NUMBER}'
-                sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${GCP_REGISTRY}/${IMAGE}:${GIT_COMMIT}'
-                sh 'docker push ${GCP_REGISTRY}/${IMAGE}:${HELM_TEST_NAME}-build-${BUILD_NUMBER}'
-                sh 'docker push ${GCP_REGISTRY}/${IMAGE}:${GIT_COMMIT}'
+                dockerTagAndPush(registry: 'gcr', build_image: "${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER}", push_image: "${IMAGE}", latest: "false")
             }
         }
         stage('Run kubernetes tests') {
@@ -161,21 +173,17 @@ pipeline {
                 }
             }
         }
-        stage('Push Docker Image') {
+        stage('Push Docker Image Develop') {
+            when {branch 'develop'}
+            steps {
+                dockerTagAndPush(registry: 'gcr', build_image: "${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER}", push_image: "${IMAGE}", image_branch: "${GIT_BRANCH}")
+            }
+        }
+        stage('Push Docker Image Master') {
             when {branch 'master'}
             steps {
-                sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${GCP_REGISTRY}/${IMAGE}:${GIT_COMMIT}'
-                sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${GCP_REGISTRY}/${IMAGE}:${START_TIME}'
-                sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${GCP_REGISTRY}/${IMAGE}:${START_TIME}-${GIT_COMMIT}'
-                sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${GCP_REGISTRY}/${IMAGE}:latest'
-                sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${GCP_REGISTRY}/${IMAGE}'
-                sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} taraxa/${IMAGE}:${GIT_COMMIT}'
-                sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} taraxa/${IMAGE}:${START_TIME}'
-                sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} taraxa/${IMAGE}:${START_TIME}-${GIT_COMMIT}'
-                sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} taraxa/${IMAGE}:latest'
-                sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} taraxa/${IMAGE}'
-                sh 'docker push ${GCP_REGISTRY}/${IMAGE}'
-                sh 'docker push taraxa/${IMAGE}'
+                dockerTagAndPush(registry: 'gcr', build_image: "${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER}", push_image: "${IMAGE}")
+                dockerTagAndPush(registry: 'hub', build_image: "${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER}", push_image: "${IMAGE}")
             }
         }
     }
@@ -184,12 +192,10 @@ post {
         cleanWs()
     }
     success {
-      slackSend (channel: "${SLACK_CHANNEL}", teamDomain: "${SLACK_TEAM_DOMAIN}", tokenCredentialId: 'SLACK_TOKEN_ID',
-                color: '#00FF00', message: "SUCCESSFUL: Job '${JOB_NAME} [${BUILD_NUMBER}]' (${BUILD_URL})")
+      slackSendCustom(status: 'success')
     }
     failure {
-      slackSend (channel: "${SLACK_CHANNEL}", teamDomain: "${SLACK_TEAM_DOMAIN}", tokenCredentialId: 'SLACK_TOKEN_ID',
-                color: '#FF0000', message: "FAILED: Job '${JOB_NAME} [${BUILD_NUMBER}]' (${BUILD_URL})")
+      slackSendCustom(status: 'failed')
     }
   }
 }

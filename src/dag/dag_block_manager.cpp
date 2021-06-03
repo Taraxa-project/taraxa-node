@@ -1,26 +1,34 @@
 #include "dag_block_manager.hpp"
 
 namespace taraxa {
-using namespace std;
 
 DagBlockManager::DagBlockManager(addr_t node_addr, vdf_sortition::VdfConfig const &vdf_config,
-                                 optional<state_api::DPOSConfig> dpos_config, size_t capacity, unsigned num_verifiers,
-                                 std::shared_ptr<DB> db, std::shared_ptr<TransactionManager> trx_mgr,
+                                 optional<state_api::DPOSConfig> dpos_config, unsigned num_verifiers,
+                                 std::shared_ptr<DbStorage> db, std::shared_ptr<TransactionManager> trx_mgr,
                                  std::shared_ptr<FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain,
                                  logger::Logger log_time, uint32_t queue_limit)
-    : vdf_config_(vdf_config),
-      dpos_config_(dpos_config),
-      capacity_(capacity),
-      num_verifiers_(num_verifiers),
+    : num_verifiers_(num_verifiers),
       db_(db),
       trx_mgr_(trx_mgr),
       final_chain_(final_chain),
       pbft_chain_(pbft_chain),
       log_time_(log_time),
+      blk_status_(cache_max_size_, cache_delete_step_),
+      seen_blocks_(cache_max_size_, cache_delete_step_),
       queue_limit_(queue_limit),
-      blk_status_(cache_max_size, cache_delete_step),
-      seen_blocks_(cache_max_size, cache_delete_step) {
+      vdf_config_(vdf_config),
+      dpos_config_(dpos_config) {
   LOG_OBJECTS_CREATE("BLKQU");
+
+  // Set DAG level proposal period map
+  current_max_proposal_period_ =
+      db_->getDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus::max_proposal_period);
+  last_proposal_period_ = current_max_proposal_period_;
+  if (current_max_proposal_period_ == 0) {
+    // Node start from scratch
+    ProposalPeriodDagLevelsMap period_levels_map;
+    db_->saveProposalPeriodDagLevelsMap(period_levels_map);
+  }
 }
 
 DagBlockManager::~DagBlockManager() { stop(); }
@@ -31,8 +39,8 @@ void DagBlockManager::start() {
   }
   LOG(log_nf_) << "Create verifier threads = " << num_verifiers_ << std::endl;
   verifiers_.clear();
-  for (auto i = 0; i < num_verifiers_; ++i) {
-    verifiers_.emplace_back([this, i]() { this->verifyBlock(); });
+  for (size_t i = 0; i < num_verifiers_; ++i) {
+    verifiers_.emplace_back([this]() { this->verifyBlock(); });
   }
 }
 
@@ -83,11 +91,11 @@ bool DagBlockManager::pivotAndTipsValid(DagBlock const &blk) {
 level_t DagBlockManager::getMaxDagLevelInQueue() const {
   level_t max_level = 0;
   {
-    uLock lock(shared_mutex_for_unverified_qu_);
+    sharedLock lock(shared_mutex_for_unverified_qu_);
     if (unverified_qu_.size() != 0) max_level = unverified_qu_.rbegin()->first;
   }
   {
-    uLock lock(shared_mutex_for_verified_qu_);
+    sharedLock lock(shared_mutex_for_verified_qu_);
     if (verified_qu_.size() != 0) max_level = std::max(verified_qu_.rbegin()->first, max_level);
   }
   return max_level;
@@ -147,7 +155,7 @@ void DagBlockManager::pushUnverifiedBlock(DagBlock const &blk, bool critical) {
 std::pair<size_t, size_t> DagBlockManager::getDagBlockQueueSize() const {
   std::pair<size_t, size_t> res;
   {
-    uLock lock(shared_mutex_for_unverified_qu_);
+    sharedLock lock(shared_mutex_for_unverified_qu_);
     res.first = 0;
     for (auto &it : unverified_qu_) {
       res.first += it.second.size();
@@ -155,7 +163,7 @@ std::pair<size_t, size_t> DagBlockManager::getDagBlockQueueSize() const {
   }
 
   {
-    uLock lock(shared_mutex_for_verified_qu_);
+    sharedLock lock(shared_mutex_for_verified_qu_);
     res.second = 0;
     for (auto &it : verified_qu_) {
       res.second += it.second.size();
@@ -210,6 +218,7 @@ void DagBlockManager::verifyBlock() {
         blk_status_.update(blk.first.getHash(), BlockStatus::invalid);
         continue;
       }
+
       // Verify VDF solution
       vdf_sortition::VdfSortition vdf = blk.first.getVdf();
       if (!vdf.verifyVdf(vdf_config_, getRlpBytes(blk.first.getLevel()), blk.first.getPivot().asBytes())) {
@@ -218,22 +227,39 @@ void DagBlockManager::verifyBlock() {
         blk_status_.update(blk.first.getHash(), BlockStatus::invalid);
         continue;
       }
+
       // Verify DPOS
-      auto period = getPeriod(blk.first.getLevel());
+      auto propose_period = getProposalPeriod(blk.first.getLevel());
+      if (!propose_period.second) {
+        // Cannot find the proposal period in DB yet. The slow node gets an ahead block, puts back.
+        LOG(log_nf_) << "Cannot find proposal period " << propose_period.first << " in DB for DAG block " << blk.first;
+        uLock lock(shared_mutex_for_unverified_qu_);
+        unverified_qu_[blk.first.getLevel()].emplace_back(blk);
+        continue;
+      }
       auto dag_block_sender = blk.first.getSender();
-      if (!final_chain_->dpos_is_eligible(period, dag_block_sender)) {
+      bool dpos_qualified;
+      try {
+        dpos_qualified = final_chain_->dpos_is_eligible(propose_period.first, dag_block_sender);
+      } catch (state_api::ErrFutureBlock &c) {
+        LOG(log_er_) << "Verify proposal period " << propose_period.first << " is too far ahead of DPOS. " << c.what();
+        uLock lock(shared_mutex_for_unverified_qu_);
+        unverified_qu_[blk.first.getLevel()].emplace_back(blk);
+        continue;
+      }
+      if (!dpos_qualified) {
         auto executed_period = final_chain_->last_block_number();
         auto dpos_period = executed_period;
         if (dpos_config_) {
           dpos_period += dpos_config_->deposit_delay;
         }
-        if (period <= dpos_period) {
+        if (propose_period.first <= dpos_period) {
           LOG(log_er_) << "Invalid DAG block DPOS. DAG block " << blk.first << " is not eligible for DPOS at period "
-                       << period << " for sender " << dag_block_sender.toString() << ". Executed period "
+                       << propose_period.first << " for sender " << dag_block_sender.toString() << ". Executed period "
                        << executed_period << ", DPOS period " << dpos_period;
           blk_status_.update(blk.first.getHash(), BlockStatus::invalid);
         } else {
-          // The DAG block is ahead of DPOS period, add back in unverified queue
+          // The incoming DAG block is ahead of DPOS period, add back in unverified queue
           uLock lock(shared_mutex_for_unverified_qu_);
           unverified_qu_[blk.first.getLevel()].emplace_back(blk);
         }
@@ -258,9 +284,58 @@ void DagBlockManager::verifyBlock() {
   }
 }
 
-uint64_t DagBlockManager::getPeriod(level_t level) {
-  // TODO: Use DAG block level map to period
-  return 0;
+uint64_t DagBlockManager::getCurrentMaxProposalPeriod() const { return current_max_proposal_period_; }
+
+uint64_t DagBlockManager::getLastProposalPeriod() const { return last_proposal_period_; }
+
+void DagBlockManager::setLastProposalPeriod(uint64_t const period) { last_proposal_period_ = period; }
+
+std::pair<uint64_t, bool> DagBlockManager::getProposalPeriod(level_t level) {
+  std::pair<uint64_t, bool> result;
+
+  // Threads safe
+  auto proposal_period = getLastProposalPeriod();
+  while (true) {
+    bytes period_levels_bytes = db_->getProposalPeriodDagLevelsMap(proposal_period);
+    if (period_levels_bytes.empty()) {
+      // Cannot find the proposal period in DB, too far ahead of proposal DAG blocks
+      result = std::make_pair(proposal_period, false);
+      assert(proposal_period);  // Avoid overflow
+      proposal_period--;
+      break;
+    }
+
+    ProposalPeriodDagLevelsMap period_levels_map(period_levels_bytes);
+    if (level >= period_levels_map.levels_interval.first && level <= period_levels_map.levels_interval.second) {
+      // proposal level stay in the period
+      result = std::make_pair(period_levels_map.proposal_period, true);
+      break;
+    } else if (level > period_levels_map.levels_interval.second) {
+      proposal_period++;
+    } else {
+      // propsoal level less than the interval
+      assert(proposal_period);  // Avoid overflow
+      proposal_period--;
+    }
+  }
+
+  setLastProposalPeriod(proposal_period);
+
+  return result;
+}
+
+std::shared_ptr<ProposalPeriodDagLevelsMap> DagBlockManager::newProposePeriodDagLevelsMap(level_t anchor_level) {
+  bytes period_levels_bytes = db_->getProposalPeriodDagLevelsMap(current_max_proposal_period_);
+  assert(!period_levels_bytes.empty());
+  ProposalPeriodDagLevelsMap last_period_levels_map(period_levels_bytes);
+
+  auto propose_period = ++current_max_proposal_period_;
+  auto level_start = last_period_levels_map.levels_interval.second + 1;
+  auto level_end = anchor_level + last_period_levels_map.max_levels_per_period;
+  assert(level_end >= level_start);
+  ProposalPeriodDagLevelsMap new_period_levels_map(propose_period, level_start, level_end);
+
+  return std::make_shared<ProposalPeriodDagLevelsMap>(new_period_levels_map);
 }
 
 }  // namespace taraxa

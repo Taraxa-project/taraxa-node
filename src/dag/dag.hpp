@@ -94,7 +94,7 @@ class Dag {
   vertex_t genesis_;  // root node
 
  protected:
-  LOG_OBJECTS_DEFINE;
+  LOG_OBJECTS_DEFINE
 };
 
 /**
@@ -123,6 +123,8 @@ class DagManager {
   explicit DagManager(DagBlock const &genesis_blk, std::shared_ptr<DB> db, std::shared_ptr<PbftChain> pbft_chain = {},
                       addr_t node_addr = {});
   virtual ~DagManager() = default;
+
+  std::string const &get_genesis() { return genesis_; }
 
   bool pivotAndTipsAvailable(DagBlock const &blk);
 
@@ -155,10 +157,7 @@ class DagManager {
 
   std::pair<uint64_t, uint64_t> getNumVerticesInDag() const;
   std::pair<uint64_t, uint64_t> getNumEdgesInDag() const;
-  level_t getMaxLevel() const {
-    sharedLock lock(mutex_);
-    return max_level_;
-  }
+  level_t getMaxLevel() const { return max_level_; }
 
   // DAG anchors
   uint64_t getLatestPeriod() const {
@@ -201,7 +200,7 @@ class DagManager {
   std::map<uint64_t, std::vector<std::string>> non_finalized_blks_;
   std::map<uint64_t, std::vector<std::string>> finalized_blks_;
   DagFrontier frontier_;
-  LOG_OBJECTS_DEFINE;
+  LOG_OBJECTS_DEFINE
 };
 
 // for graphviz

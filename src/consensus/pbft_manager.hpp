@@ -4,42 +4,50 @@
 #include <string>
 #include <thread>
 
+#include "common/types.hpp"
 #include "config/config.hpp"
-#include "dag/dag.hpp"
-#include "dag/dag_block_manager.hpp"
-#include "data.hpp"
 #include "logger/log.hpp"
+#include "network/network.hpp"
+#include "network/taraxa_capability.hpp"
+#include "node/executor.hpp"
 #include "pbft_chain.hpp"
-#include "vote_manager.hpp"
+#include "vote.hpp"
+#include "vrf_wrapper.hpp"
 
-// total TARAXA COINS (2^53 -1) "1fffffffffffff"
 #define NULL_BLOCK_HASH blk_hash_t(0)
 #define POLLING_INTERVAL_ms 100  // milliseconds...
 #define MAX_STEPS 13
 
 namespace taraxa {
-class Network;
-class TaraxaCapability;
+class FullNode;
 
 enum PbftStates { value_proposal_state = 1, filter_state, certify_state, finish_state, finish_polling_state };
+
+enum PbftSyncRequestReason {
+  missing_dag_blk = 1,
+  invalid_cert_voted_block,
+  invalid_soft_voted_block,
+  exceeded_max_steps
+};
 
 class PbftManager {
  public:
   using time_point = std::chrono::system_clock::time_point;
   using vrf_sk_t = vrf_wrapper::vrf_sk_t;
 
-  PbftManager(PbftConfig const &conf, std::string const &genesis, addr_t node_addr, std::shared_ptr<DB> db,
+  PbftManager(PbftConfig const &conf, std::string const &genesis, addr_t node_addr, std::shared_ptr<DbStorage> db,
               std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
-              std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
-              std::shared_ptr<FinalChain> final_chain, secret_t node_sk, vrf_sk_t vrf_sk);
+              std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr, std::shared_ptr<DagManager> dag_mgr,
+              std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<FinalChain> final_chain,
+              std::shared_ptr<Executor> executor, secret_t node_sk, vrf_sk_t vrf_sk);
   ~PbftManager();
 
-  void setNetwork(std::shared_ptr<Network> network);
+  void setNetwork(std::weak_ptr<Network> network);
   void start();
   void stop();
   void run();
 
-  bool shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step);
+  bool shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step, size_t weighted_index);
 
   std::pair<bool, uint64_t> getDagBlockPeriod(blk_hash_t const &hash);
   uint64_t getPbftRound() const;
@@ -48,12 +56,12 @@ class PbftManager {
   size_t getTwoTPlusOne() const;
   void setTwoTPlusOne(size_t const two_t_plus_one);
   void setPbftStep(size_t const pbft_step);
-  void getNextVotesForLastRound(std::vector<Vote> &next_votes_bundle);
-  void updateNextVotesForRound(std::vector<Vote> next_votes);
 
-  Vote generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, uint64_t period, size_t step,
-                    blk_hash_t const &last_pbft_block_hash);
-  uint64_t getEligibleVoterCount() const;
+  Vote generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, uint64_t round, size_t step,
+                    size_t weighted_index);
+
+  size_t getDposTotalVotesCount() const;
+  size_t getDposWeightedVotesCount() const;
 
   // Notice: Test purpose
   void setSortitionThreshold(size_t const sortition_threshold);
@@ -63,14 +71,9 @@ class PbftManager {
   u_long getPbftInitialLambda() const { return LAMBDA_ms_MIN; }
 
  private:
-  using uniqueLock_ = boost::unique_lock<boost::shared_mutex>;
-  using sharedLock_ = boost::shared_lock<boost::shared_mutex>;
-  using upgradableLock_ = boost::upgrade_lock<boost::shared_mutex>;
-  using upgradeLock_ = boost::upgrade_to_unique_lock<boost::shared_mutex>;
-
   // DPOS
   void update_dpos_state_();
-  bool is_eligible_(addr_t const &addr);
+  size_t dpos_eligible_vote_count_(addr_t const &addr);
 
   void resetStep_();
   bool resetRound_();
@@ -96,17 +99,11 @@ class PbftManager {
 
   std::pair<blk_hash_t, bool> blockWithEnoughVotes_(std::vector<Vote> const &votes) const;
 
-  std::map<size_t, std::vector<Vote>, std::greater<size_t>> getVotesOfTypeFromVotesForRoundByStep_(
-      PbftVoteTypes vote_type, std::vector<Vote> &votes, uint64_t round, std::pair<blk_hash_t, bool> blockhash);
   std::vector<Vote> getVotesOfTypeFromVotesForRoundAndStep_(PbftVoteTypes vote_type, std::vector<Vote> &votes,
                                                             uint64_t round, size_t step,
                                                             std::pair<blk_hash_t, bool> blockhash);
 
-  std::pair<blk_hash_t, bool> nextVotedBlockForRoundAndStep_(std::vector<Vote> &votes, uint64_t round);
-
-  void placeVote_(blk_hash_t const &blockhash, PbftVoteTypes vote_type, uint64_t round, size_t step);
-
-  std::pair<blk_hash_t, bool> softVotedBlockForRound_(std::vector<Vote> &votes, uint64_t round);
+  size_t placeVote_(blk_hash_t const &blockhash, PbftVoteTypes vote_type, uint64_t round, size_t step);
 
   std::pair<blk_hash_t, bool> proposeMyPbftBlock_();
 
@@ -116,11 +113,9 @@ class PbftManager {
 
   bool syncRequestedAlreadyThisStep_() const;
 
-  void syncPbftChainFromPeers_(bool force);
+  void syncPbftChainFromPeers_(PbftSyncRequestReason reason, taraxa::blk_hash_t const &relevant_blk_hash);
 
-  bool nextVotesSyncAlreadyThisRoundStep_();
-
-  void syncNextVotes_();
+  bool broadcastAlreadyThisStep_() const;
 
   bool comparePbftBlockScheduleWithDAGblocks_(blk_hash_t const &pbft_block_hash);
   bool comparePbftBlockScheduleWithDAGblocks_(PbftBlock const &pbft_block);
@@ -133,20 +128,24 @@ class PbftManager {
   bool pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes);
 
   void updateTwoTPlusOneAndThreshold_();
+  bool is_syncing_();
+
+  bool giveUpVotedBlock_(blk_hash_t const &block_hash);
 
   std::atomic<bool> stopped_ = true;
   // Using to check if PBFT block has been proposed already in one period
   std::pair<blk_hash_t, bool> proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
 
-  std::shared_ptr<DB> db_ = nullptr;
-  std::unique_ptr<std::thread> daemon_ = nullptr;
-  std::shared_ptr<VoteManager> vote_mgr_ = nullptr;
-  std::shared_ptr<PbftChain> pbft_chain_ = nullptr;
-  std::shared_ptr<DagManager> dag_mgr_ = nullptr;
-  std::shared_ptr<Network> network_ = nullptr;
-  std::shared_ptr<TaraxaCapability> capability_ = nullptr;
+  std::unique_ptr<std::thread> daemon_;
+  std::shared_ptr<DbStorage> db_;
+  std::shared_ptr<NextVotesForPreviousRound> previous_round_next_votes_;
+  std::shared_ptr<PbftChain> pbft_chain_;
+  std::shared_ptr<VoteManager> vote_mgr_;
+  std::shared_ptr<DagManager> dag_mgr_;
+  std::weak_ptr<Network> network_;
   std::shared_ptr<DagBlockManager> dag_blk_mgr_;
   std::shared_ptr<FinalChain> final_chain_;
+  std::shared_ptr<Executor> executor_;
 
   addr_t node_addr_;
   secret_t node_sk_;
@@ -160,46 +159,47 @@ class PbftManager {
   bool RUN_COUNT_VOTES;  // TODO: Only for test, need remove later
 
   PbftStates state_ = value_proposal_state;
-  uint64_t round_ = 1;
+  std::atomic<uint64_t> round_ = 1;
   size_t step_ = 1;
   u_long STEP_4_DELAY = 0;  // constant
-
-  blk_hash_t pbft_chain_last_block_hash_ = blk_hash_t(0);
-  std::pair<blk_hash_t, bool> next_voted_block_from_previous_round_ = std::make_pair(NULL_BLOCK_HASH, false);
 
   blk_hash_t own_starting_value_for_round_ = NULL_BLOCK_HASH;
   // <round, cert_voted_block_hash>
   std::unordered_map<size_t, blk_hash_t> cert_voted_values_for_round_;
-  // <round, block_hash_added_into_chain>
-  std::unordered_map<size_t, blk_hash_t> push_block_values_for_round_;
   std::pair<blk_hash_t, bool> soft_voted_block_for_this_round_ = std::make_pair(NULL_BLOCK_HASH, false);
-  std::unordered_map<vote_hash_t, Vote> next_votes_for_last_round_;
+
   std::vector<Vote> votes_;
 
   time_point round_clock_initial_datetime_;
   time_point now_;
   std::chrono::duration<double> duration_;
-  long next_step_time_ms_ = 0;
-  long elapsed_time_in_round_ms_ = 0;
+  u_long next_step_time_ms_ = 0;
+  u_long elapsed_time_in_round_ms_ = 0;
 
   bool executed_pbft_block_ = false;
   bool have_executed_this_round_ = false;
   bool should_have_cert_voted_in_this_round_ = false;
   bool next_voted_soft_value_ = false;
   bool next_voted_null_block_hash_ = false;
-  bool continue_finish_polling_state_ = false;
   bool go_finish_state_ = false;
   bool loop_back_finish_state_ = false;
+  bool reset_own_value_to_null_block_hash_in_this_round_ = false;
+
+  uint64_t round_began_wait_proposal_block_ = 0;
+  size_t max_wait_rounds_for_proposal_block_ = 5;
+  uint64_t round_began_wait_voted_block_ = 0;
 
   uint64_t pbft_round_last_requested_sync_ = 0;
   size_t pbft_step_last_requested_sync_ = 0;
-  uint64_t pbft_round_last_next_votes_sync_ = 0;
-  size_t pbft_step_last_next_votes_sync_ = 0;
+  uint64_t pbft_round_last_broadcast_ = 0;
+  size_t pbft_step_last_broadcast_ = 0;
 
   size_t pbft_last_observed_synced_queue_size_ = 0;
 
   std::atomic<uint64_t> dpos_period_;
-  std::atomic<uint64_t> eligible_voter_count_;
+  std::atomic<size_t> dpos_votes_count_;
+  std::atomic<size_t> weighted_votes_count_;
+
   size_t sortition_threshold_ = 0;
   // 2t+1 minimum number of votes for consensus
   size_t TWO_T_PLUS_ONE = 0;
@@ -208,8 +208,6 @@ class PbftManager {
 
   std::condition_variable stop_cv_;
   std::mutex stop_mtx_;
-  mutable boost::shared_mutex round_access_;
-  mutable boost::shared_mutex next_votes_access_;
 
   // TODO: will remove later, TEST CODE
   void countVotes_();
@@ -221,7 +219,7 @@ class PbftManager {
   time_point current_step_clock_initial_datetime_;
   // END TEST CODE
 
-  LOG_OBJECTS_DEFINE;
+  LOG_OBJECTS_DEFINE
   mutable logger::Logger log_nf_test_{logger::createLogger(taraxa::logger::Verbosity::Info, "PBFT_TEST", node_addr_)};
 };
 

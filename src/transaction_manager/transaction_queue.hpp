@@ -19,6 +19,14 @@ class TransactionQueue {
   void start();
   void stop();
   void insert(Transaction const &trx, bool verify);
+
+  /**
+   * @brief Insert batch of unverified transactions at once
+   * @param trxs
+   * @param verify
+   */
+  void insertUnverifiedTrxs(const vector<Transaction> &trxs);
+
   Transaction top();
   void pop();
   std::pair<trx_hash_t, listIter> getUnverifiedTransaction();
@@ -51,7 +59,7 @@ class TransactionQueue {
   mutable boost::shared_mutex shared_mutex_for_unverified_qu_;
   boost::condition_variable_any cond_for_unverified_qu_;
 
-  LOG_OBJECTS_DEFINE;
+  LOG_OBJECTS_DEFINE
 };
 
 }  // namespace taraxa

@@ -2,15 +2,146 @@
 
 #include <libdevcore/CommonJS.h>
 
-namespace taraxa {
-using namespace std;
-using namespace dev;
+#include "pbft_manager.hpp"
+#include "util/jsoncpp.hpp"
 
-PbftChain::PbftChain(std::string const& dag_genesis_hash, addr_t node_addr, std::shared_ptr<DB> db)
+using namespace std;
+
+namespace taraxa {
+
+PbftBlock::PbftBlock(bytes const& b) : PbftBlock(dev::RLP(b)) {}
+
+PbftBlock::PbftBlock(dev::RLP const& r) {
+  dev::RLP const rlp(r);
+  if (!rlp.isList()) throw std::invalid_argument("PBFT RLP must be a list");
+  prev_block_hash_ = rlp[0].toHash<blk_hash_t>();
+  dag_block_hash_as_pivot_ = rlp[1].toHash<blk_hash_t>();
+  period_ = rlp[2].toInt<uint64_t>();
+  timestamp_ = rlp[3].toInt<uint64_t>();
+  signature_ = rlp[4].toHash<sig_t>();
+  calculateHash_();
+}
+
+PbftBlock::PbftBlock(blk_hash_t const& prev_blk_hash, blk_hash_t const& dag_blk_hash_as_pivot, uint64_t period,
+                     addr_t const& beneficiary, secret_t const& sk)
+    : prev_block_hash_(prev_blk_hash),
+      dag_block_hash_as_pivot_(dag_blk_hash_as_pivot),
+      period_(period),
+      beneficiary_(beneficiary) {
+  timestamp_ = dev::utcTime();
+  signature_ = dev::sign(sk, sha3(false));
+  calculateHash_();
+}
+
+PbftBlock::PbftBlock(std::string const& str) {
+  auto doc = util::parse_json(str);
+  block_hash_ = blk_hash_t(doc["block_hash"].asString());
+  prev_block_hash_ = blk_hash_t(doc["prev_block_hash"].asString());
+  dag_block_hash_as_pivot_ = blk_hash_t(doc["dag_block_hash_as_pivot"].asString());
+  period_ = doc["period"].asUInt64();
+  timestamp_ = doc["timestamp"].asUInt64();
+  signature_ = sig_t(doc["signature"].asString());
+  beneficiary_ = addr_t(doc["beneficiary"].asString());
+}
+
+Json::Value PbftBlock::toJson(PbftBlock const& b, std::vector<blk_hash_t> const& dag_blks) {
+  auto ret = b.getJson();
+  // Legacy schema
+  auto& schedule_json = ret["schedule"] = Json::Value(Json::objectValue);
+  auto& dag_blks_json = schedule_json["dag_blocks_order"] = Json::Value(Json::arrayValue);
+  for (auto const& h : dag_blks) {
+    dag_blks_json.append(dev::toJS(h));
+  }
+  return ret;
+}
+
+void PbftBlock::calculateHash_() {
+  if (!block_hash_) {
+    block_hash_ = dev::sha3(rlp(true));
+  } else {
+    // Hash sould only be calculated once
+    assert(false);
+  }
+  auto p = dev::recover(signature_, sha3(false));
+  assert(p);
+  beneficiary_ = dev::right160(dev::sha3(dev::bytesConstRef(p.data(), sizeof(p))));
+}
+
+blk_hash_t PbftBlock::sha3(bool include_sig) const { return dev::sha3(rlp(include_sig)); }
+
+std::string PbftBlock::getJsonStr() const { return getJson().toStyledString(); }
+
+Json::Value PbftBlock::getJson() const {
+  Json::Value json;
+  json["prev_block_hash"] = prev_block_hash_.toString();
+  json["dag_block_hash_as_pivot"] = dag_block_hash_as_pivot_.toString();
+  json["period"] = (Json::Value::UInt64)period_;
+  json["timestamp"] = (Json::Value::UInt64)timestamp_;
+  json["block_hash"] = block_hash_.toString();
+  json["signature"] = signature_.toString();
+  json["beneficiary"] = beneficiary_.toString();
+  return json;
+}
+
+// Using to setup PBFT block hash
+void PbftBlock::streamRLP(dev::RLPStream& strm, bool include_sig) const {
+  strm.appendList(include_sig ? 5 : 4);
+  strm << prev_block_hash_;
+  strm << dag_block_hash_as_pivot_;
+  strm << period_;
+  strm << timestamp_;
+  if (include_sig) {
+    strm << signature_;
+  }
+}
+
+bytes PbftBlock::rlp(bool include_sig) const {
+  RLPStream strm;
+  streamRLP(strm, include_sig);
+  return strm.out();
+}
+
+std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk) {
+  strm << pbft_blk.getJsonStr();
+  return strm;
+}
+
+PbftBlockCert::PbftBlockCert(PbftBlock const& pbft_blk, std::vector<Vote> const& cert_votes)
+    : pbft_blk(new PbftBlock(pbft_blk)), cert_votes(cert_votes) {}
+
+PbftBlockCert::PbftBlockCert(dev::RLP const& rlp) {
+  pbft_blk.reset(new PbftBlock(rlp[0]));
+  for (auto const el : rlp[1]) {
+    cert_votes.emplace_back(el);
+  }
+}
+
+PbftBlockCert::PbftBlockCert(bytes const& all_rlp) : PbftBlockCert(dev::RLP(all_rlp)) {}
+
+bytes PbftBlockCert::rlp() const {
+  RLPStream s(2);
+  s.appendRaw(pbft_blk->rlp(true));
+  s.appendList(cert_votes.size());
+  for (auto const& v : cert_votes) {
+    s.appendRaw(v.rlp(true));
+  }
+  return s.out();
+}
+
+void PbftBlockCert::encode_raw(RLPStream& rlp, PbftBlock const& pbft_blk, dev::bytesConstRef votes_raw) {
+  rlp.appendList(2).appendRaw(pbft_blk.rlp(true)).appendRaw(votes_raw);
+}
+
+std::ostream& operator<<(std::ostream& strm, PbftBlockCert const& b) {
+  strm << "[PbftBlockCert] : " << b.pbft_blk << " , num of votes " << b.cert_votes.size() << std::endl;
+  return strm;
+}
+
+PbftChain::PbftChain(std::string const& dag_genesis_hash, addr_t node_addr, std::shared_ptr<DbStorage> db)
     : head_hash_(blk_hash_t(0)),
+      dag_genesis_hash_(blk_hash_t(dag_genesis_hash)),
       size_(0),
       last_pbft_block_hash_(blk_hash_t(0)),
-      dag_genesis_hash_(blk_hash_t(dag_genesis_hash)),
       db_(move(db)) {
   LOG_OBJECTS_CREATE("PBFT_CHAIN");
   // Get PBFT head from DB
@@ -18,9 +149,7 @@ PbftChain::PbftChain(std::string const& dag_genesis_hash, addr_t node_addr, std:
   if (pbft_head_str.empty()) {
     // Store PBFT HEAD to db
     auto head_json_str = getJsonStr();
-    auto b = db_->createWriteBatch();
-    b.addPbftHead(head_hash_, head_json_str);
-    b.commit();
+    db_->savePbftHead(head_hash_, head_json_str);
     LOG(log_nf_) << "Initialize PBFT chain head " << head_json_str;
     return;
   }
@@ -50,11 +179,6 @@ blk_hash_t PbftChain::getLastPbftBlockHash() const {
 }
 
 bool PbftChain::findPbftBlockInChain(taraxa::blk_hash_t const& pbft_block_hash) {
-  if (!db_) {
-    LOG(log_er_) << "Pbft chain DB unavailable in findPbftBlockInChain!";
-    return false;
-  }
-  assert(db_);
   return db_->pbftBlockInDb(pbft_block_hash);
 }
 
@@ -81,7 +205,7 @@ std::shared_ptr<PbftBlock> PbftChain::getUnverifiedPbftBlock(const taraxa::blk_h
     sharedLock_ lock(unverified_access_);
     return unverified_blocks_[pbft_block_hash];
   }
-  return {};
+  return nullptr;
 }
 
 std::vector<PbftBlockCert> PbftChain::getPbftBlocks(size_t period, size_t count) {
@@ -106,11 +230,7 @@ std::vector<PbftBlockCert> PbftChain::getPbftBlocks(size_t period, size_t count)
       assert(false);
     }
     // Get PBFT cert votes in DB
-    auto cert_votes_raw = db_->getVotes(*pbft_block_hash);
-    vector<Vote> cert_votes;
-    for (auto const& cert_vote : RLP(cert_votes_raw)) {
-      cert_votes.emplace_back(cert_vote);
-    }
+    auto cert_votes = db_->getCertVotes(*pbft_block_hash);
     if (cert_votes.empty()) {
       LOG(log_er_) << "Cannot find any cert votes for PBFT block " << pbft_block;
       assert(false);

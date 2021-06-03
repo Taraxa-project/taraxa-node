@@ -12,8 +12,6 @@
 #include "transaction_manager/transaction_manager.hpp"
 
 namespace taraxa {
-using namespace std;
-using namespace dev;
 
 Dag::Dag(std::string const &genesis, addr_t node_addr) {
   LOG_OBJECTS_CREATE("DAGMGR");
@@ -40,7 +38,6 @@ bool Dag::addVEEs(vertex_hash const &new_vertex, vertex_hash const &pivot, std::
   assert(!new_vertex.empty());
 
   // add vertex
-  auto now(std::chrono::system_clock::now());
   vertex_t ret = add_vertex(new_vertex, graph_);
   boost::get(boost::vertex_index, graph_)[ret] = new_vertex;
   edge_index_map_t weight_map = boost::get(boost::edge_index, graph_);
@@ -263,7 +260,7 @@ void PivotTree::getGhostPath(vertex_hash const &vertex, std::vector<vertex_hash>
   while (1) {
     pivot_chain.emplace_back(index_map[root]);
     size_t heavist = 0;
-    vertex_t next;
+    vertex_t next = root;
 
     for (std::tie(s, e) = adjacenct_vertices(root, graph_); s != e; s++) {
       if (!weight_map.count(*s)) continue;  // bigger timestamp
@@ -286,16 +283,18 @@ void PivotTree::getGhostPath(vertex_hash const &vertex, std::vector<vertex_hash>
   }
 }
 
-DagManager::DagManager(DagBlock const &genesis_blk, std::shared_ptr<DB> db, std::shared_ptr<PbftChain> pbft_chain,
-                       addr_t node_addr)
-    : pbft_chain_(pbft_chain),
+DagManager::DagManager(std::string const &genesis, addr_t node_addr, std::shared_ptr<TransactionManager> trx_mgr,
+                       std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DbStorage> db) try
+    : pivot_tree_(std::make_shared<PivotTree>(genesis, node_addr)),
+      total_dag_(std::make_shared<Dag>(genesis, node_addr)),
+      trx_mgr_(trx_mgr),
+      pbft_chain_(pbft_chain),
       db_(db),
-      genesis_(genesis_blk.getHash().toString()),
-      anchor_(genesis_),
-      total_dag_(std::make_shared<Dag>(genesis_, node_addr)),
-      pivot_tree_(std::make_shared<PivotTree>(genesis_, node_addr)),
-      period_(0) {
+      anchor_(genesis),
+      period_(0),
+      genesis_(genesis) {
   LOG_OBJECTS_CREATE("DAGMGR");
+  DagBlock blk;
   string pivot;
   std::vector<std::string> tips;
   getLatestPivotAndTips(pivot, tips);
@@ -304,23 +303,32 @@ DagManager::DagManager(DagBlock const &genesis_blk, std::shared_ptr<DB> db, std:
     frontier_.tips.emplace_back(blk_hash_t(t));
   }
   recoverDag();
-  dag_blocks_count_ = db_->getStatusField(StatusDbField::DagBlkCount);
-  dag_edge_count_ = db_->getStatusField(StatusDbField::DagEdgeCount);
-  if (dag_blocks_count_ == 0) {
-    auto batch = db_->createWriteBatch();
-    addDagBlock(genesis_blk, batch);
-    batch.commit();
+} catch (std::exception &e) {
+  std::cerr << e.what() << std::endl;
+}
+
+std::shared_ptr<DagManager> DagManager::getShared() {
+  try {
+    return shared_from_this();
+  } catch (std::bad_weak_ptr &e) {
+    std::cerr << "DagManager: " << e.what() << std::endl;
+    return nullptr;
   }
+}
+
+void DagManager::stop() {
+  unique_lock lock(mutex_);
+  trx_mgr_ = nullptr;
 }
 
 std::pair<uint64_t, uint64_t> DagManager::getNumVerticesInDag() const {
   sharedLock lock(mutex_);
-  return {dag_blocks_count_, total_dag_->getNumVertices()};
+  return {db_->getNumDagBlocks(), total_dag_->getNumVertices()};
 }
 
 std::pair<uint64_t, uint64_t> DagManager::getNumEdgesInDag() const {
   sharedLock lock(mutex_);
-  return {dag_edge_count_, total_dag_->getNumEdges()};
+  return {db_->getDagEdgeCount(), total_dag_->getNumEdges()};
 }
 
 void DagManager::drawTotalGraph(std::string const &str) const {
@@ -353,31 +361,8 @@ bool DagManager::pivotAndTipsAvailable(DagBlock const &blk) {
 }
 
 DagFrontier DagManager::getDagFrontier() {
-  uLock lock(mutex_);
+  sharedLock lock(mutex_);
   return frontier_;
-}
-
-void DagManager::addDagBlock(DagBlock const &blk, DB::Batch &write_batch) {
-  auto block_bytes = blk.rlp(true);
-  auto block_hash = blk.getHash();
-  write_batch.put(DB::Columns::dag_blocks, block_hash.asBytes(), block_bytes);
-  auto level = blk.getLevel();
-  std::string blocks = db_->getBlocksByLevel(level);
-  if (blocks == "") {
-    blocks = blk.getHash().toString();
-  } else {
-    blocks = blocks + "," + blk.getHash().toString();
-  }
-  write_batch.put(DB::Columns::dag_blocks_index, level, blocks);
-  ++dag_blocks_count_;
-  write_batch.put(DB::Columns::status, (uint8_t)StatusDbField::DagBlkCount, dag_blocks_count_);
-  // Do not count genesis pivot field
-  if (blk.getPivot() == blk_hash_t(0)) {
-    dag_edge_count_ += blk.getTips().size();
-  } else {
-    dag_edge_count_ += blk.getTips().size() + 1;
-  }
-  write_batch.put(DB::Columns::status, (uint8_t)StatusDbField::DagEdgeCount, dag_edge_count_);
 }
 
 void DagManager::addDagBlock(DagBlock const &blk, bool finalized, bool save) {
@@ -385,7 +370,7 @@ void DagManager::addDagBlock(DagBlock const &blk, bool finalized, bool save) {
   {
     uLock lock(mutex_);
     if (save) {
-      addDagBlock(blk, write_batch);
+      db_->saveDagBlock(blk, write_batch);
     }
     auto blk_hash = blk.getHash();
     auto blk_hash_str = blk_hash.toString();
@@ -408,7 +393,7 @@ void DagManager::addDagBlock(DagBlock const &blk, bool finalized, bool save) {
     for (auto const &t : ts) {
       frontier_.tips.emplace_back(blk_hash_t(t));
     }
-    write_batch.commit();
+    db_->commitWriteBatch(write_batch);
   }
   LOG(log_dg_) << " Update frontier after adding block " << blk.getHash() << "anchor " << anchor_
                << " pivot = " << frontier_.pivot << " tips: " << frontier_.tips;
@@ -421,10 +406,10 @@ void DagManager::drawGraph(std::string const &dotfile) const {
 }
 
 void DagManager::addToDag(std::string const &hash, std::string const &pivot, std::vector<std::string> const &tips,
-                          uint64_t level, taraxa::DB::Batch &write_batch, bool finalized) {
+                          uint64_t level, const taraxa::DbStorage::BatchPtr &write_batch, bool finalized) {
   total_dag_->addVEEs(hash, pivot, tips);
   pivot_tree_->addVEEs(hash, pivot, {});
-  write_batch.addDagBlockState(blk_hash_t(hash), finalized);
+  db_->addDagBlockStateToBatch(write_batch, blk_hash_t(hash), finalized);
   if (finalized) {
     finalized_blks_[level].push_back(hash);
   } else {
@@ -460,6 +445,10 @@ std::pair<std::string, std::vector<std::string>> DagManager::getFrontier() const
   return {pivot, tips};
 }
 
+void DagManager::collectTotalLeaves(std::vector<std::string> &leaves) const {
+  sharedLock lock(mutex_);
+  total_dag_->getLeaves(leaves);
+}
 void DagManager::getGhostPath(std::string const &source, std::vector<std::string> &ghost) const {
   sharedLock lock(mutex_);
   pivot_tree_->getGhostPath(source, ghost);
@@ -503,13 +492,13 @@ std::pair<uint64_t, std::shared_ptr<vec_blk_t>> DagManager::getDagBlockOrder(blk
 }
 
 uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period, vec_blk_t const &dag_order,
-                                  taraxa::DB::Batch &write_batch) {
+                                  const taraxa::DbStorage::BatchPtr &write_batch) {
   // TODO this function smells. It tries to manage in-memory and persistent state at the same time, which it
   // clearly lacks scope for. Generally, it's very sensitive to how it's called.
   // Also, it's clearly used only in conjunction with getDagBlockOrder - makes sense to merge these two.
   uLock lock(mutex_);
   LOG(log_dg_) << "setDagBlockOrder called with anchor " << new_anchor << " and period " << period;
-  write_batch.putFinalizedDagBlockHashesByAnchor(new_anchor, dag_order);
+  db_->putFinalizedDagBlockHashesByAnchor(*write_batch, new_anchor, dag_order);
   if (period != period_ + 1) {
     LOG(log_er_) << " Inserting period (" << period << ") anchor " << new_anchor
                  << " does not match ..., previous internal period (" << period_ << ") " << anchor_;
@@ -548,7 +537,7 @@ uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period,
       if (leavesSet.count(blk) > 0) {
         addToDag(blk, pivot_hash.toString(), tips, block->getLevel(), write_batch, true);
       } else {
-        write_batch.removeDagBlockState(blk_hash_t(blk));
+        db_->removeDagBlockStateToBatch(write_batch, blk_hash_t(blk));
       }
     }
   }
@@ -571,9 +560,9 @@ uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period,
 
     if (leavesSet.count(blk) > 0 || blk == new_anchor.toString()) {
       addToDag(blk, pivot_hash.toString(), tips, dag_block->getLevel(), write_batch, true);
-      write_batch.addDagBlockState(blk_hash_t(blk), true);
+      db_->addDagBlockStateToBatch(write_batch, blk_hash_t(blk), true);
     } else {
-      write_batch.removeDagBlockState(blk_hash_t(blk));
+      db_->removeDagBlockStateToBatch(write_batch, blk_hash_t(blk));
     }
   }
   assert(new_anchor_found);

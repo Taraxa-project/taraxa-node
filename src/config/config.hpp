@@ -24,7 +24,6 @@ struct NodeConfig {
   std::string id;
   std::string ip;
   uint16_t tcp_port = 0;
-  uint16_t udp_port = 0;
 };
 
 struct NetworkConfig {
@@ -32,7 +31,6 @@ struct NetworkConfig {
   bool network_is_boot_node = 0;
   std::string network_address;
   uint16_t network_tcp_port = 0;
-  uint16_t network_udp_port = 0;
   std::vector<NodeConfig> network_boot_nodes;
   uint16_t network_simulated_delay = 0;
   uint16_t network_bandwidth = 0;
@@ -43,9 +41,8 @@ struct NetworkConfig {
   uint16_t network_max_dag_block_broadcast = 0;
   uint16_t network_sync_level_size = 0;
   uint64_t network_id;
-  bool network_encrypted = 0;
-  bool network_performance_log = 0;
-  bool net_log = 0;
+  uint16_t network_performance_log_interval = 0;
+  uint16_t network_num_threads = max(uint(1), uint(std::thread::hardware_concurrency() / 2));
 };
 
 struct BlockProposerConfig {
@@ -80,6 +77,7 @@ struct FullNodeConfig {
   std::string node_secret;
   vrf_wrapper::vrf_sk_t vrf_secret;
   fs::path db_path;
+  fs::path log_path;
   NetworkConfig network;
   std::optional<RpcConfig> rpc;
   TestParamsConfig test_params;

@@ -1,36 +1,23 @@
-[submodule "submodules/cryptopp"]
-	path = submodules/cryptopp
-	url = https://github.com/weidai11/cryptopp.git
-	ignore = dirty
 [submodule "submodules/ethash"]
 	path = submodules/ethash
 	url = https://github.com/chfast/ethash
 	ignore = dirty
-[submodule "submodules/secp256k1"]
-	path = submodules/secp256k1
-	url = https://github.com/chfast/secp256k1
-	ignore = dirty
-[submodule "submodules/libff"]
-	path = submodules/libff
-	url = https://github.com/scipr-lab/libff
-	ignore = dirty
 [submodule "submodules/taraxa-evm"]
 	path = submodules/taraxa-evm
-	url = https://github.com/Taraxa-project/taraxa-evm.git
+	url = ../taraxa-evm.git
 	ignore = dirty
 [submodule "submodules/taraxa-vdf"]
 	path = submodules/taraxa-vdf
-	url = https://github.com/Taraxa-project/taraxa-vdf.git
+	url = ../taraxa-vdf.git
 	ignore = dirty
 [submodule "submodules/taraxa-vrf"]
 	path = submodules/taraxa-vrf
-	url = https://github.com/Taraxa-project/taraxa-vrf.git
-	ignore = dirty
-[submodule "submodules/googletest"]
-	path = submodules/googletest
-	url = https://github.com/google/googletest
+	url = ../taraxa-vrf.git
 	ignore = dirty
 [submodule "submodules/taraxa-aleth"]
 	path = submodules/taraxa-aleth
-	url = https://github.com/Taraxa-project/taraxa-aleth.git
+	url = ../taraxa-aleth.git
 	ignore = dirty
+[submodule "submodules/libscrypt"]
+	path = submodules/libscrypt
+	url = https://github.com/tomleavy/libscrypt.git

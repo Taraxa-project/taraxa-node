@@ -1,10 +1,6 @@
 #pragma once
 
-#include <libdevcore/CommonJS.h>
-#include <libdevcore/RLP.h>
-#include <libdevcore/SHA3.h>
-#include <libdevcrypto/Common.h>
-
+#include "util/default_construct_copyable_movable.hpp"
 #include "vdf_sortition.hpp"
 
 namespace taraxa {
@@ -19,17 +15,22 @@ class DagBlock {
   vec_blk_t tips_;
   vec_trx_t trxs_;  // transactions
   sig_t sig_;
-  blk_hash_t hash_;
+  mutable blk_hash_t hash_;
+  mutable DefaultConstructCopyableMovable<std::mutex> hash_mu_;
   uint64_t timestamp_ = 0;
   vdf_sortition::VdfSortition vdf_;
   mutable addr_t cached_sender_;  // block creater
+  mutable DefaultConstructCopyableMovable<std::mutex> cached_sender_mu_;
 
  public:
   DagBlock() = default;
+  // fixme: This constructor is bogus, used only in tests. Eliminate it
   DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, sig_t signature, blk_hash_t hash,
            addr_t sender);
-  DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs);
-  DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, VdfSortition const &vdf);
+  // fixme: used only in tests, Eliminate it
+  DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, secret_t const &sk);
+  DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, VdfSortition const &vdf,
+           secret_t const &sk);
   explicit DagBlock(Json::Value const &doc);
   explicit DagBlock(string const &json);
   explicit DagBlock(dev::RLP const &_rlp);
@@ -47,8 +48,8 @@ class DagBlock {
     for (auto const &t : u.trxs_) str << t.abridged() << " ";
     str << std::endl;
     str << "	signature	= " << u.sig_.abridged() << std::endl;
-    str << "	hash		= " << u.hash_.abridged() << std::endl;
-    str << "	sender		= " << u.cached_sender_.abridged() << std::endl;
+    str << "	hash		= " << u.getHash().abridged() << std::endl;
+    str << "	sender		= " << u.getSender().abridged() << std::endl;
     str << "  vdf = " << u.vdf_ << std::endl;
     return str;
   }
@@ -60,20 +61,13 @@ class DagBlock {
   auto const &getTips() const { return tips_; }
   auto const &getTrxs() const { return trxs_; }
   auto const &getSig() const { return sig_; }
-  auto const &getHash() const { return hash_; }
+  blk_hash_t const &getHash() const;
   auto const &getVdf() const { return vdf_; }
 
-  addr_t getSender() const { return sender(); }
-  Json::Value getJson() const;
+  addr_t const &getSender() const;
+  Json::Value getJson(bool with_derived_fields = true) const;
   std::string getJsonStr() const;
-  bool isValid() const;
-  addr_t sender() const;
-  void sign(secret_t const &sk);
-  void updateHash() {
-    if (!hash_) {
-      hash_ = dev::sha3(rlp(true));
-    }
-  }
+
   bool verifySig() const;
   bytes rlp(bool include_sig) const;
 

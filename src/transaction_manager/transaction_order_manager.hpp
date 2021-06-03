@@ -11,7 +11,7 @@
 #include "config/config.hpp"
 #include "consensus/pbft_chain.hpp"
 #include "dag/dag_block.hpp"
-#include "storage/db.hpp"
+#include "storage/db_storage.hpp"
 #include "util/util.hpp"
 
 namespace taraxa {
@@ -25,7 +25,7 @@ using TrxOverlapInBlock = std::pair<blk_hash_t, std::vector<bool>>;
 
 class TransactionOrderManager {
  public:
-  TransactionOrderManager(addr_t const& node_addr, std::shared_ptr<DB> db) : db_(std::move(db)) {
+  TransactionOrderManager(addr_t const& node_addr, std::shared_ptr<DbStorage> db) : db_(std::move(db)) {
     LOG_OBJECTS_CREATE("TRXORD");
   }
   void clear() { status_.clear(); }
@@ -36,8 +36,8 @@ class TransactionOrderManager {
 
  private:
   TransactionExecStatusTable status_;
-  std::shared_ptr<DB> db_;
-  LOG_OBJECTS_DEFINE;
+  std::shared_ptr<DbStorage> db_;
+  LOG_OBJECTS_DEFINE
 };
 
 }  // namespace taraxa

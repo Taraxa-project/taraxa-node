@@ -216,7 +216,6 @@ class StatusTable {
  * https://oroboro.com/stack-trace-on-crash/
  */
 void abortHandler(int sig);
-static inline void printStackTrace();
 
 template <class Key>
 class ExpirationCache {
@@ -228,7 +227,7 @@ class ExpirationCache {
     cache_.insert(key);
     expiration_.push_back(key);
     if (cache_.size() > max_size_) {
-      for (auto i = 0; i < delete_step_; i++) {
+      for (uint32_t i = 0; i < delete_step_; i++) {
         cache_.erase(expiration_.front());
         expiration_.pop_front();
       }
@@ -257,7 +256,7 @@ class ExpirationCache {
 template <typename T>
 auto slice(std::vector<T> const &v, std::size_t from = -1, std::size_t to = -1) {
   auto b = v.begin();
-  return std::vector<T>(from == -1 ? b : b + from, to == -1 ? v.end() : b + to);
+  return std::vector<T>(from == (std::size_t)-1 ? b : b + from, to == (std::size_t)-1 ? v.end() : b + to);
 }
 
 template <typename T>
@@ -312,7 +311,7 @@ class ExpirationCacheMap {
     cache_[key] = value;
     expiration_.push_back(key);
     if (cache_.size() > max_size_) {
-      for (auto i = 0; i < delete_step_; i++) {
+      for (uint32_t i = 0; i < delete_step_; i++) {
         cache_.erase(expiration_.front());
         expiration_.pop_front();
       }
@@ -331,7 +330,7 @@ class ExpirationCacheMap {
     cache_[key] = value;
     expiration_.push_back(key);
     if (cache_.size() > max_size_) {
-      for (auto i = 0; i < delete_step_; i++) {
+      for (uint32_t i = 0; i < delete_step_; i++) {
         cache_.erase(expiration_.front());
         expiration_.pop_front();
       }
@@ -363,7 +362,7 @@ class ExpirationCacheMap {
 
  protected:
   virtual void eraseOldest() {
-    for (auto i = 0; i < delete_step_; i++) {
+    for (uint32_t i = 0; i < delete_step_; i++) {
       cache_.erase(expiration_.front());
       expiration_.pop_front();
     }
