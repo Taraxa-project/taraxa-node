@@ -130,10 +130,10 @@ TEST_F(NetworkTest, send_pbft_block) {
   uint64_t chain_size = 111;
 
   nw2->sendPbftBlock(nw1->getNodeId(), pbft_block, chain_size);
-  taraxa::thisThreadSleepForMilliSeconds(200);
 
-  ASSERT_EQ(1, nw1->getPeerCount());
-  ASSERT_EQ(chain_size, nw1->getPeer(nw1->getAllPeers()[0])->pbft_chain_size_);
+  auto node2_id = nw2->getNodeId();
+  EXPECT_HAPPENS({10s, 200ms},
+                 [&](auto& ctx) { WAIT_EXPECT_EQ(ctx, nw1->getPeer(node2_id)->pbft_chain_size_, chain_size) });
 }
 
 // Test creates two Network setup and verifies sending transaction
