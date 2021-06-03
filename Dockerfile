@@ -32,6 +32,7 @@ RUN apt-get update \
         libgflags-dev=$GFLAGS_VERSION \
         \
         python3-pip \
+        libncurses5 \
     && rm -rf /var/lib/apt/lists/*
 
 
