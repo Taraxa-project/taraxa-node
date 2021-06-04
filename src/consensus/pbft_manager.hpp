@@ -125,7 +125,7 @@ class PbftManager {
 
   void pushSyncedPbftBlocksIntoChain_();
 
-  bool pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes);
+  bool pushPbftBlock(PbftBlockCert const &pbft_block_cert_votes, bool synced_block = false);
 
   void updateTwoTPlusOneAndThreshold_();
   bool is_syncing_();
