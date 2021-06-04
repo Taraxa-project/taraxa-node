@@ -35,7 +35,7 @@ struct BlockHeader {
 
   HAS_RLP_FIELDS
 
-  static h256 const& uncles();
+  static h256 const& uncles_hash();
   static Nonce const& nonce();
   static u256 const& difficulty();
   static h256 const& mix_hash();

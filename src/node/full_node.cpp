@@ -119,8 +119,7 @@ void FullNode::start() {
     eth_rpc_params.final_chain = final_chain_;
     eth_rpc_params.get_trx = [db = db_](auto const &trx_hash) { return db->getTransaction(trx_hash); };
     eth_rpc_params.send_trx = [trx_manager = trx_mgr_](auto const &trx) {
-      auto [ok, err_msg] = trx_manager->insertTransaction(trx, true);
-      if (!ok) {
+      if (auto [ok, err_msg] = trx_manager->insertTransaction(trx); !ok) {
         BOOST_THROW_EXCEPTION(
             runtime_error(fmt("Transaction is rejected.\n"
                               "RLP: %s\n"
@@ -167,11 +166,11 @@ void FullNode::start() {
         *rpc_thread_pool_);
     trx_mgr_->transaction_accepted.subscribe(
         [eth_json_rpc = weak_ptr(eth_json_rpc), ws = weak_ptr(jsonrpc_ws_)](auto const &trx_hash) {
-          if (auto p = eth_json_rpc.lock(); p) {
-            p->note_pending_transaction(trx_hash);
+          if (auto _eth_json_rpc = eth_json_rpc.lock(); _eth_json_rpc) {
+            _eth_json_rpc->note_pending_transaction(trx_hash);
           }
-          if (auto p = ws.lock(); p) {
-            p->newPendingTransaction(trx_hash);
+          if (auto _ws = ws.lock(); _ws) {
+            _ws->newPendingTransaction(trx_hash);
           }
         },
         *rpc_thread_pool_);

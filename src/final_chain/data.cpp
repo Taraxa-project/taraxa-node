@@ -8,12 +8,12 @@ RLP_FIELDS_DEFINE(BlockHeader, hash, ethereum_rlp_size, parent_hash, author, sta
                   receipts_root, log_bloom, number, gas_limit, gas_used, timestamp, extra_data)
 
 void BlockHeader::ethereum_rlp(dev::RLPStream& encoding) const {
-  util::rlp_tuple(encoding, parent_hash, BlockHeader::uncles(), author, state_root, transactions_root, receipts_root,
-                  log_bloom, BlockHeader::difficulty(), number, gas_limit, gas_used, timestamp, extra_data,
-                  BlockHeader::mix_hash(), BlockHeader::nonce());
+  util::rlp_tuple(encoding, parent_hash, BlockHeader::uncles_hash(), author, state_root, transactions_root,
+                  receipts_root, log_bloom, BlockHeader::difficulty(), number, gas_limit, gas_used, timestamp,
+                  extra_data, BlockHeader::mix_hash(), BlockHeader::nonce());
 }
 
-h256 const& BlockHeader::uncles() { return EmptyRLPListSHA3; }
+h256 const& BlockHeader::uncles_hash() { return EmptyRLPListSHA3; }
 
 Nonce const& BlockHeader::nonce() {
   static const Nonce ret;

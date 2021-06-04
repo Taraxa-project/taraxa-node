@@ -45,9 +45,9 @@ add_executable(replay_protection_service_test replay_protection_service_test.cpp
 target_link_libraries(replay_protection_service_test app_base CONAN_PKG::gtest)
 add_test(replay_protection_service_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/replay_protection_service_test)
 
-#add_executable(final_chain_test final_chain_test.cpp)
-#target_link_libraries(final_chain_test app_base CONAN_PKG::gtest)
-#add_test(final_chain_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/final_chain_test)
+add_executable(final_chain_test final_chain_test.cpp)
+target_link_libraries(final_chain_test app_base CONAN_PKG::gtest)
+add_test(final_chain_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/final_chain_test)
 
 add_executable(state_api_test state_api_test.cpp)
 target_link_libraries(state_api_test app_base CONAN_PKG::gtest)

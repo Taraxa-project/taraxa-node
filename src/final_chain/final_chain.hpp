@@ -18,6 +18,8 @@ using namespace ::taraxa::final_chain;
 using namespace ::taraxa::util;
 
 struct FinalChain {
+  static constexpr auto GAS_LIMIT = ((uint64_t)1 << 53) - 1;
+
   struct Config {
     state_api::ChainConfig state;
     struct GenesisBlockFields {
@@ -31,7 +33,7 @@ struct FinalChain {
   };
 
   struct NewBlock {
-    addr_t beneficiary;
+    addr_t author;
     uint64_t timestamp;
     vector<h256> dag_blk_hashes;
     h256 hash;
@@ -54,7 +56,7 @@ struct FinalChain {
   using finalize_precommit_ext = std::function<void(FinalizationResult const&, DB::Batch&)>;
   virtual future<shared_ptr<FinalizationResult const>> finalize(NewBlock new_blk, finalize_precommit_ext = {}) = 0;
 
-  virtual shared_ptr<BlockHeader> block_header(optional<EthBlockNumber> n = {}) const = 0;
+  virtual shared_ptr<BlockHeader const> block_header(optional<EthBlockNumber> n = {}) const = 0;
   virtual EthBlockNumber last_block_number() const = 0;
   virtual optional<EthBlockNumber> block_number(h256 const& h) const = 0;
   virtual optional<h256> block_hash(optional<EthBlockNumber> n = {}) const = 0;

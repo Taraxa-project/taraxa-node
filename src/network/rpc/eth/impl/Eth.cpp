@@ -426,7 +426,7 @@ struct EthImpl : Eth, EthParams {
   static Json::Value toJson(BlockHeader const& obj) {
     Json::Value res(Json::objectValue);
     res["parentHash"] = toJson(obj.parent_hash);
-    res["sha3Uncles"] = toJson(BlockHeader::uncles());
+    res["sha3Uncles"] = toJson(BlockHeader::uncles_hash());
     res["stateRoot"] = toJson(obj.state_root);
     res["transactionsRoot"] = toJson(obj.transactions_root);
     res["receiptsRoot"] = toJson(obj.receipts_root);

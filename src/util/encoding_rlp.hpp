@@ -13,12 +13,7 @@ namespace taraxa::util::encoding_rlp {
 using namespace std;
 using namespace dev;
 
-struct RLPEncoderRef {
-  RLPStream& target;
-
-  RLPEncoderRef(RLPStream& target) : target(target) {}
-};
-
+using RLPEncoderRef = RLPStream&;
 struct RLPDecoderRef {
   RLP const& target;
   RLP::Strictness strictness;
@@ -33,12 +28,12 @@ void rlp_tuple(RLPEncoderRef encoding, Params const&... args);
 
 template <typename T>
 auto rlp(RLPEncoderRef encoding, T const& target) -> decltype(RLP().toInt<T>(), void()) {
-  encoding.target.append(target);
+  encoding.append(target);
 }
 
 template <unsigned N>
 void rlp(RLPEncoderRef encoding, FixedHash<N> const& target) {
-  encoding.target.append(target);
+  encoding.append(target);
 }
 
 template <typename T>
@@ -46,22 +41,22 @@ inline auto rlp(RLPEncoderRef encoding, T const& target) -> decltype(target.rlp(
   target.rlp(encoding);
 }
 
-inline auto rlp(RLPEncoderRef encoding, string const& target) { encoding.target.append(target); }
+inline auto rlp(RLPEncoderRef encoding, string const& target) { encoding.append(target); }
 
-inline auto rlp(RLPEncoderRef encoding, bytes const& target) { encoding.target.append(target); }
+inline auto rlp(RLPEncoderRef encoding, bytes const& target) { encoding.append(target); }
 
 template <typename Param>
 void rlp(RLPEncoderRef encoding, optional<Param> const& target) {
   if (target) {
     rlp(encoding, *target);
   } else {
-    encoding.target.append(unsigned(0));
+    encoding.append(unsigned(0));
   }
 }
 
 template <typename Param>
 void rlp(RLPEncoderRef encoding, RangeView<Param> const& target) {
-  encoding.target.appendList(target.size);
+  encoding.appendList(target.size);
   target.for_each([&](auto const& el) { rlp(encoding, el); });
 }
 
@@ -73,7 +68,7 @@ void rlp(RLPEncoderRef encoding, std::pair<T1, T2> const& target) {
 template <typename Sequence>
 auto rlp(RLPEncoderRef encoding, Sequence const& target)
     -> decltype(target.size(), target.begin(), target.end(), void()) {
-  encoding.target.appendList(target.size());
+  encoding.appendList(target.size());
   for (auto const& v : target) {
     rlp(encoding, v);
   }
@@ -91,7 +86,7 @@ template <typename... Params>
 void rlp_tuple(RLPEncoderRef encoding, Params const&... args) {
   constexpr auto num_elements = sizeof...(args);
   static_assert(0 < num_elements);
-  encoding.target.appendList(num_elements);
+  encoding.appendList(num_elements);
   __enc_rlp_tuple_body__(encoding, args...);
 }
 
@@ -178,6 +173,20 @@ void rlp_tuple(RLPDecoderRef encoding, Params&... args) {
   }
 }
 
+template <typename T>
+T rlp_dec(RLPDecoderRef encoding) {
+  T ret;
+  rlp(encoding, ret);
+  return ret;
+}
+
+template <typename T>
+auto rlp_enc(T const& obj) {
+  RLPStream s;
+  rlp(s, obj);
+  return move(s.invalidate());
+}
+
 }  // namespace taraxa::util::encoding_rlp
 
 #define HAS_RLP_FIELDS                                            \
@@ -203,6 +212,8 @@ void rlp_tuple(RLPDecoderRef encoding, Params&... args) {
 namespace taraxa::util {
 using encoding_rlp::InvalidEncodingSize;
 using encoding_rlp::rlp;
+using encoding_rlp::rlp_dec;
+using encoding_rlp::rlp_enc;
 using encoding_rlp::rlp_tuple;
 using encoding_rlp::RLPDecoderRef;
 using encoding_rlp::RLPEncoderRef;

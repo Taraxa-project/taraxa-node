@@ -84,12 +84,12 @@ struct FinalChainImpl final : FinalChain {
                                                         finalize_precommit_ext precommit_ext = {}) override {
     auto p = make_shared<promise<shared_ptr<FinalizationResult const>>>();
     executor_([this, new_blk = move(new_blk), precommit_ext = move(precommit_ext), p]() mutable {
-      p->set_value(finalize_(move(new_blk), move(precommit_ext)));
+      p->set_value(finalize_(move(new_blk), precommit_ext));
     });
     return p->get_future();
   }
 
-  shared_ptr<FinalizationResult> finalize_(NewBlock new_blk, finalize_precommit_ext precommit_ext) {
+  shared_ptr<FinalizationResult> finalize_(NewBlock new_blk, finalize_precommit_ext const& precommit_ext) {
     auto batch = db_->createWriteBatch();
     Transactions to_execute;
     {
@@ -124,9 +124,8 @@ struct FinalChainImpl final : FinalChain {
       }
     }
     transaction_count_hint_ = max(transaction_count_hint_, to_execute.size());
-    constexpr auto gas_limit = std::numeric_limits<uint64_t>::max();
     auto const& [exec_results, state_root] =
-        state_api.transition_state({new_blk.beneficiary, gas_limit, new_blk.timestamp, BlockHeader::difficulty()},
+        state_api.transition_state({new_blk.author, GAS_LIMIT, new_blk.timestamp, BlockHeader::difficulty()},
                                    to_state_api_transactions(to_execute));
     TransactionReceipts receipts;
     receipts.reserve(exec_results.size());
@@ -146,12 +145,12 @@ struct FinalChainImpl final : FinalChain {
       });
     }
     auto blk_header =
-        append_block(batch, new_blk.beneficiary, new_blk.timestamp, gas_limit, state_root, to_execute, receipts);
-    auto blk_num = block_header()->number + 1;
+        append_block(batch, new_blk.author, new_blk.timestamp, GAS_LIMIT, state_root, to_execute, receipts);
     // Update replay protection service, like nonce watermark. Nonce watermark has been disabled
-    replay_protection_service_->update(batch, blk_num, util::make_range_view(to_execute).map([](auto const& trx) {
-      return ReplayProtectionService::TransactionInfo{trx.getSender(), trx.getNonce()};
-    }));
+    replay_protection_service_->update(
+        batch, blk_header->number, util::make_range_view(to_execute).map([](auto const& trx) {
+          return ReplayProtectionService::TransactionInfo{trx.getSender(), trx.getNonce()};
+        }));
     // Update number of executed DAG blocks and transactions
     auto num_executed_dag_blk = num_executed_dag_blk_ + new_blk.dag_blk_hashes.size();
     auto num_executed_trx = num_executed_trx_ + to_execute.size();
@@ -172,10 +171,10 @@ struct FinalChainImpl final : FinalChain {
     }
     db_->commitWriteBatch(batch, db_opts_w_);
     state_api.transition_state_commit();
-    LOG(log_nf_) << " successful finalize block " << result->hash << " with number " << blk_num;
+    LOG(log_nf_) << " successful finalize block " << result->hash << " with number " << blk_header->number;
     // Creates snapshot if needed
-    if (db_->createSnapshot(blk_num)) {
-      state_api.create_snapshot(blk_num);
+    if (db_->createSnapshot(blk_header->number)) {
+      state_api.create_snapshot(blk_header->number);
     }
     {
       unique_lock l(last_block_mu_);
@@ -231,9 +230,9 @@ struct FinalChainImpl final : FinalChain {
     for (uint64_t level = 0, index = blk_header.number; level < c_bloomIndexLevels;
          ++level, index /= c_bloomIndexSize) {
       auto chunk_id = block_blooms_chunk_id(level, index / c_bloomIndexSize);
-      auto prev_value = block_blooms(chunk_id);
-      prev_value[index % c_bloomIndexSize] |= log_bloom_for_index;
-      rlp_strm.clear(), util::rlp(rlp_strm, prev_value);
+      auto chunk_to_alter = block_blooms(chunk_id);
+      chunk_to_alter[index % c_bloomIndexSize] |= log_bloom_for_index;
+      rlp_strm.clear(), util::rlp(rlp_strm, chunk_to_alter);
       db_->insert(batch, DB::Columns::final_chain_log_blooms_index, chunk_id, rlp_strm.out());
     }
     TransactionLocation tl{blk_header.number};
@@ -251,7 +250,7 @@ struct FinalChainImpl final : FinalChain {
     return blk_header_ptr;
   }
 
-  shared_ptr<BlockHeader> block_header(optional<EthBlockNumber> n = {}) const override {
+  shared_ptr<BlockHeader const> block_header(optional<EthBlockNumber> n = {}) const override {
     if (!n) {
       shared_lock l(last_block_mu_);
       return last_block_;

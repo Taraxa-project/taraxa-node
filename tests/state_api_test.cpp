@@ -210,10 +210,10 @@ TEST_F(StateAPITest, eth_mainnet_smoke) {
                });
 
   ASSERT_EQ(test_blocks[0].StateRoot, SUT.get_last_committed_state_descriptor().state_root);
-  auto progress_pct = numeric_limits<int>::min();
+  uint64_t progress_pct = 0;
   size_t num_blk_to_exec = 150000;  // test_blocks.size() will provide more coverage but will be slower
   for (size_t blk_num = 1; blk_num < num_blk_to_exec; ++blk_num) {
-    if (int n = 100 * blk_num / num_blk_to_exec; n >= progress_pct + 10) {
+    if (auto n = 100 * blk_num / num_blk_to_exec; !progress_pct || n >= progress_pct + 10) {
       // I'm aware about \r and flush(), but it doesn't always work
       cout << "progress: " << (progress_pct = n) << "%" << endl;
     }
