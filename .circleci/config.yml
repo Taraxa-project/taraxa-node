@@ -404,21 +404,7 @@ workflows:
           attach-workspace: true
           replace: true
           workspace-root: cmake-docker-build-debug
-          path: cmake-docker-build-debug/bin_install/taraxad-x86_64
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v\d+\.\d+\.\d+$/
-          requires:
-            - build-linux
-            - build-mac
-      - github-release/create:
-          context: taraxa-node
-          attach-workspace: true
-          replace: true
-          workspace-root: cmake-build
-          path: cmake-build/bin/taraxad-macos
+          path: cmake-docker-build-debug/bin_install/
           filters:
             branches:
               ignore: /.*/
