@@ -402,6 +402,7 @@ workflows:
       - github-release/create:
           context: taraxa-node
           attach-workspace: true
+          replace: true
           workspace-root: cmake-docker-build-debug
           path: cmake-docker-build-debug/bin_install/taraxad-x86_64
           filters:
@@ -415,6 +416,7 @@ workflows:
       - github-release/create:
           context: taraxa-node
           attach-workspace: true
+          replace: true
           workspace-root: cmake-build
           path: cmake-build/bin/taraxad-macos
           filters:
