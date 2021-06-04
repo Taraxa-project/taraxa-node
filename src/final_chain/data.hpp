@@ -13,7 +13,6 @@
 
 namespace taraxa::final_chain {
 
-/// The log bloom's size (2048-bit).
 using LogBloom = dev::h2048;
 using LogBlooms = std::vector<LogBloom>;
 using Nonce = dev::h64;

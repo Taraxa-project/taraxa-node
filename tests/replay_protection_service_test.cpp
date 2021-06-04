@@ -26,9 +26,9 @@ struct ReplayProtectionServiceTest : WithDataDir {
   void apply_history(optional<round_t> record_count = nullopt) {
     auto cnt = record_count ? *record_count : history.size() - curr_round;
     for (round_t i(0); i < cnt; ++i) {
-      DB::Batch batch(db);
+      auto batch = db->createWriteBatch();
       SUT->update(batch, curr_round, history[curr_round]);
-      batch.commit();
+      db->commitWriteBatch(batch);
       ++curr_round;
     }
   }

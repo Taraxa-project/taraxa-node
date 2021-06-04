@@ -12,7 +12,7 @@ struct ReplayProtectionService {
     uint64_t range = 0;
   };
 
-  virtual ~ReplayProtectionService() {}
+  virtual ~ReplayProtectionService() = default;
 
   virtual bool is_nonce_stale(addr_t const&, uint64_t) const = 0;
 

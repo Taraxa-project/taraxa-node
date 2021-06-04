@@ -140,7 +140,7 @@ struct EthImpl : Eth, EthParams {
 
   bool eth_uninstallFilter(string const& _filterId) override {
     auto watch_id = jsToInt(_filterId);
-    return watches.visit_by_id(watch_id, [=](auto watch) { return watch ? watch->uninstall_watch(watch_id) : false; });
+    return watches.visit_by_id(watch_id, [=](auto watch) { return watch && watch->uninstall_watch(watch_id); });
   }
 
   Json::Value eth_getFilterChanges(string const& _filterId) override {
@@ -230,8 +230,7 @@ struct EthImpl : Eth, EthParams {
     return LocalisedTransaction{
         move(*trx),
         TransactionLocationWithBlockHash{
-            blk_n,
-            trx_pos,
+            {blk_n, trx_pos},
             *final_chain->block_hash(blk_n),
         },
     };
@@ -357,7 +356,7 @@ struct EthImpl : Eth, EthParams {
     return ret ? *ret : final_chain->last_block_number();
   }
 
-  LogFilter parse_log_filter(Json::Value const& json) {
+  static LogFilter parse_log_filter(Json::Value const& json) {
     optional<EthBlockNumber> from_block, to_block;
     AddressSet addresses;
     LogFilter::Topics topics;
@@ -390,7 +389,7 @@ struct EthImpl : Eth, EthParams {
         }
       }
     }
-    return LogFilter(move(from_block), move(to_block), move(addresses), move(topics));
+    return LogFilter(from_block, to_block, move(addresses), move(topics));
   }
 
   static void add(Json::Value& obj, optional<TransactionLocationWithBlockHash> const& info) {
@@ -400,7 +399,7 @@ struct EthImpl : Eth, EthParams {
   }
 
   static void add(Json::Value& obj, ExtendedTransactionLocation const& info) {
-    add(obj, TransactionLocationWithBlockHash(info));
+    add(obj, static_cast<TransactionLocationWithBlockHash>(info));
     obj["transactionHash"] = toJson(info.trx_hash);
   }
 

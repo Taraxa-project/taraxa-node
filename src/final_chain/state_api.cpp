@@ -51,7 +51,7 @@ struct ErrorHandler {
         string type(err_str.substr(0, delim_pos));
         string msg(err_str.substr(delim_pos + delim_len));
 
-        if (type.compare("github.com/Taraxa-project/taraxa-evm/taraxa/state/state_db/ErrFutureBlock") == 0) {
+        if (type == "github.com/Taraxa-project/taraxa-evm/taraxa/state/state_db/ErrFutureBlock") {
           raise = [err = ErrFutureBlock(move(type), move(msg))] { BOOST_THROW_EXCEPTION(err); };
           return;
         }
@@ -238,7 +238,7 @@ addr_t const& StateAPI::dpos_contract_addr() {
 StateAPI::DPOSTransactionPrototype::DPOSTransactionPrototype(DPOSTransfers const& transfers) {
   RLPStream transfers_rlp;
   rlp(transfers_rlp, transfers);
-  input = transfers_rlp.invalidate();
+  input = move(transfers_rlp.invalidate());
 }
 
 }  // namespace taraxa::state_api

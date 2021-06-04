@@ -4,6 +4,7 @@
 
 #include "TrieCommon.h"
 #include "common/constants.hpp"
+#include "dag/dag_block_manager.hpp"
 #include "replay_protection_service.hpp"
 #include "transaction_manager/transaction_manager.hpp"
 #include "util/thread_pool.hpp"
@@ -16,6 +17,7 @@ enum DBMetaKeys { LAST_PERIOD = 1 };
 
 struct FinalChainImpl final : virtual FinalChain {
   shared_ptr<DB> db_;
+  std::shared_ptr<DagBlockManager> dag_blk_mgr_;
   StateAPI state_api;
   unique_ptr<ReplayProtectionService> replay_protection_service_{new ReplayProtectionServiceDummy};
 
@@ -28,6 +30,12 @@ struct FinalChainImpl final : virtual FinalChain {
 
   atomic<uint64_t> num_executed_dag_blk_ = 0;
   atomic<uint64_t> num_executed_trx_ = 0;
+
+  rocksdb::WriteOptions const db_opts_w_ = [] {
+    rocksdb::WriteOptions ret;
+    ret.sync = true;
+    return ret;
+  }();
 
   LOG_OBJECTS_DEFINE
 
@@ -66,10 +74,10 @@ struct FinalChainImpl final : virtual FinalChain {
       }
     } else {
       assert(state_db_descriptor.blk_num == 0);
-      DB::Batch batch(db);
+      auto batch = db_->createWriteBatch();
       last_block_ = append_block(batch, config.genesis_block_fields.author, config.genesis_block_fields.timestamp, 0,
                                  state_db_descriptor.state_root);
-      batch.commit();
+      db_->commitWriteBatch(batch, db_opts_w_);
     }
     num_executed_dag_blk_ = db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
     num_executed_trx_ = db_->getStatusField(taraxa::StatusDbField::ExecutedTrxCount);
@@ -82,14 +90,13 @@ struct FinalChainImpl final : virtual FinalChain {
     return p->get_future();
   }
 
-  shared_ptr<BlockFinalized> finalize_(shared_ptr<PbftBlock> pbft_blk_ptr) {
+  shared_ptr<BlockFinalized> finalize_(shared_ptr<PbftBlock> const& pbft_blk_ptr) {
     auto const& pbft_block = *pbft_blk_ptr;
     auto pbft_period = pbft_block.getPeriod();
     auto const& pbft_block_hash = pbft_block.getBlockHash();
     auto const& anchor_hash = pbft_block.getPivotDagBlockHash();
     auto finalized_dag_blk_hashes = db_->getFinalizedDagBlockHashesByAnchor(anchor_hash);
-    DB::Batch batch(db_);
-
+    auto batch = db_->createWriteBatch();
     Transactions to_execute;
     {
       // This artificial scope will make sure we clean up the big chunk of memory allocated for this batch-processing
@@ -100,7 +107,7 @@ struct FinalChainImpl final : virtual FinalChain {
       unique_trxs.reserve(transaction_count_hint_);
       for (auto const& dag_blk_raw : dag_blks_raw) {
         for (auto const& trx_h : DagBlock::extract_transactions_from_rlp(RLP(dag_blk_raw))) {
-          batch.remove(DB::Columns::pending_transactions, trx_h);
+          db_->remove(batch, DB::Columns::pending_transactions, trx_h);
           if (!unique_trxs.insert(trx_h).second) {
             continue;
           }
@@ -123,7 +130,6 @@ struct FinalChainImpl final : virtual FinalChain {
       }
     }
     transaction_count_hint_ = max(transaction_count_hint_, to_execute.size());
-
     constexpr auto gas_limit = std::numeric_limits<uint64_t>::max();
     auto const& [exec_results, state_root] = state_api.transition_state(
         {
@@ -150,35 +156,41 @@ struct FinalChainImpl final : virtual FinalChain {
           r.NewContractAddr ? optional(r.NewContractAddr) : nullopt,
       });
     }
-
     auto blk_header = append_block(batch, pbft_block.getBeneficiary(), pbft_block.getTimestamp(), gas_limit, state_root,
                                    to_execute, receipts);
-
     // Update replay protection service, like nonce watermark. Nonce watermark has been disabled
     replay_protection_service_->update(batch, pbft_period, util::make_range_view(to_execute).map([](auto const& trx) {
       return ReplayProtectionService::TransactionInfo{trx.getSender(), trx.getNonce()};
     }));
-
     // Update number of executed DAG blocks and transactions
     auto num_executed_dag_blk = num_executed_dag_blk_ + finalized_dag_blk_hashes.size();
     auto num_executed_trx = num_executed_trx_ + to_execute.size();
     if (!finalized_dag_blk_hashes.empty()) {
-      batch.put(DB::Columns::status, StatusDbField::ExecutedBlkCount, num_executed_dag_blk);
-      batch.put(DB::Columns::status, StatusDbField::ExecutedTrxCount, num_executed_trx);
+      db_->insert(batch, DB::Columns::status, StatusDbField::ExecutedBlkCount, num_executed_dag_blk);
+      db_->insert(batch, DB::Columns::status, StatusDbField::ExecutedTrxCount, num_executed_trx);
       LOG(log_nf_) << "Executed dag blocks #" << num_executed_dag_blk_ - finalized_dag_blk_hashes.size() << "-"
                    << num_executed_dag_blk_ - 1 << " , Transactions count: " << to_execute.size();
     }
-
-    batch.commit();
+    {
+      // Update proposal period DAG levels map
+      auto anchor = db_->getDagBlock(anchor_hash);
+      if (!anchor) {
+        LOG(log_er_) << "DB corrupted - Cannot find anchor block: " << anchor_hash << " in DB.";
+        assert(false);
+      }
+      auto new_proposal_period_levels_map = dag_blk_mgr_->newProposePeriodDagLevelsMap(anchor->getLevel());
+      db_->addProposalPeriodDagLevelsMapToBatch(*new_proposal_period_levels_map, batch);
+      auto dpos_current_max_proposal_period = dag_blk_mgr_->getCurrentMaxProposalPeriod();
+      db_->addDposProposalPeriodLevelsFieldToBatch(DposProposalPeriodLevelsStatus::max_proposal_period,
+                                                   dpos_current_max_proposal_period, batch);
+    }
+    db_->commitWriteBatch(batch, db_opts_w_);
     state_api.transition_state_commit();
-
     LOG(log_nf_) << "DB write batch committed at period " << pbft_period << " PBFT block hash " << pbft_block_hash;
-
     // Creates snapshot if needed
     if (db_->createSnapshot(pbft_period)) {
       state_api.create_snapshot(pbft_period);
     }
-
     // Only NOW we are fine to modify in-memory states as they have been backed by the db
     num_executed_dag_blk_ = num_executed_dag_blk;
     num_executed_trx_ = num_executed_trx;
@@ -186,7 +198,6 @@ struct FinalChainImpl final : virtual FinalChain {
       unique_lock l(last_block_mu_);
       last_block_ = blk_header;
     }
-
     auto result = s_ptr(new BlockFinalized{
         pbft_blk_ptr,
         move(finalized_dag_blk_hashes),
@@ -195,7 +206,6 @@ struct FinalChainImpl final : virtual FinalChain {
         move(receipts),
     });
     block_finalized_.emit(result);
-
     LOG(log_nf_) << " successful execute pbft block " << pbft_block_hash << " in period " << pbft_period;
     return result;
   }
@@ -225,7 +235,7 @@ struct FinalChainImpl final : virtual FinalChain {
       auto const& receipt = receipts[i];
       rlp_strm.clear(), util::rlp(rlp_strm, receipt);
       receipts_trie[i_rlp] = rlp_strm.out();
-      batch.put(DB::Columns::final_chain_receipt_by_trx_hash, trx.getHash(), rlp_strm.out());
+      db_->insert(batch, DB::Columns::final_chain_receipt_by_trx_hash, trx.getHash(), rlp_strm.out());
       auto bloom = receipt.bloom();
       blk_header.log_bloom |= bloom;
       blk_log_blooms.push_back(bloom);
@@ -236,9 +246,9 @@ struct FinalChainImpl final : virtual FinalChain {
     blk_header.ethereum_rlp_size = rlp_strm.out().size();
     blk_header.hash = sha3(rlp_strm.out());
     rlp_strm.clear(), blk_header.rlp(rlp_strm);
-    batch.put(DB::Columns::final_chain_block_by_period, blk_header.number, rlp_strm.out());
+    db_->insert(batch, DB::Columns::final_chain_block_by_period, blk_header.number, rlp_strm.out());
     rlp_strm.clear(), util::rlp(rlp_strm, blk_log_blooms);
-    batch.put(DB::Columns::final_chain_log_blooms, blk_header.number, rlp_strm.out());
+    db_->insert(batch, DB::Columns::final_chain_log_blooms, blk_header.number, rlp_strm.out());
     auto log_bloom_for_index = blk_header.log_bloom;
     log_bloom_for_index.shiftBloom<3>(sha3(blk_header.author.ref()));
     for (uint64_t level = 0, index = blk_header.number; level < c_bloomIndexLevels;
@@ -247,20 +257,20 @@ struct FinalChainImpl final : virtual FinalChain {
       auto prev_value = block_blooms(chunk_id);
       prev_value[index % c_bloomIndexSize] |= log_bloom_for_index;
       rlp_strm.clear(), util::rlp(rlp_strm, prev_value);
-      batch.put(DB::Columns::final_chain_log_blooms_index, chunk_id, rlp_strm.out());
+      db_->insert(batch, DB::Columns::final_chain_log_blooms_index, chunk_id, rlp_strm.out());
     }
     TransactionLocation tl{blk_header.number};
     for (auto const& trx : transactions) {
       rlp_strm.clear(), util::rlp(rlp_strm, tl);
-      batch.put(DB::Columns::executed_transactions, trx.getHash(), rlp_strm.out());
+      db_->insert(batch, DB::Columns::executed_transactions, trx.getHash(), rlp_strm.out());
       ++tl.index;
     }
-    batch.put(DB::Columns::executed_transactions_by_period, blk_header.number,
-              TransactionHashesImpl::serialize_from_transactions(transactions));
-    batch.put(DB::Columns::executed_transactions_count_by_period, blk_header.number, transactions.size());
-    batch.put(DB::Columns::final_chain_block_hash_by_period, blk_header.number, blk_header.hash);
-    batch.put(DB::Columns::period_by_final_chain_block_hash, blk_header.hash, blk_header.number);
-    batch.put(DB::Columns::final_chain_meta, LAST_PERIOD, blk_header.number);
+    db_->insert(batch, DB::Columns::executed_transactions_by_period, blk_header.number,
+                TransactionHashesImpl::serialize_from_transactions(transactions));
+    db_->insert(batch, DB::Columns::executed_transactions_count_by_period, blk_header.number, transactions.size());
+    db_->insert(batch, DB::Columns::final_chain_block_hash_by_period, blk_header.number, blk_header.hash);
+    db_->insert(batch, DB::Columns::period_by_final_chain_block_hash, blk_header.hash, blk_header.number);
+    db_->insert(batch, DB::Columns::final_chain_meta, LAST_PERIOD, blk_header.number);
     return blk_header_ptr;
   }
 
@@ -428,7 +438,7 @@ struct FinalChainImpl final : virtual FinalChain {
   struct TransactionHashesImpl : TransactionHashes {
     string serialized_;
 
-    TransactionHashesImpl(string serialized) : serialized_(move(serialized)) {}
+    explicit TransactionHashesImpl(string serialized) : serialized_(move(serialized)) {}
 
     static bytes serialize_from_transactions(Transactions const& transactions) {
       bytes serialized;

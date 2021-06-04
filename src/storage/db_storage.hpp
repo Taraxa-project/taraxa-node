@@ -63,7 +63,7 @@ using DB = DbStorage;
 
 struct DbStorage {
   using Slice = rocksdb::Slice;
-  using BatchPtr = shared_ptr<rocksdb::WriteBatch>;
+  using Batch = rocksdb::WriteBatch;
   using OnEntry = function<bool(Slice const&, Slice const&)>;
 
   class Column {
@@ -164,9 +164,9 @@ struct DbStorage {
   auto const& path() const { return path_; }
   auto dbStoragePath() const { return db_path_; }
   auto stateDbStoragePath() const { return state_db_path_; }
-  static BatchPtr createWriteBatch();
-  void commitWriteBatch(BatchPtr const& write_batch, rocksdb::WriteOptions const& opts);
-  void commitWriteBatch(BatchPtr const& write_batch) { commitWriteBatch(write_batch, write_options_); }
+  static Batch createWriteBatch();
+  void commitWriteBatch(Batch& write_batch, rocksdb::WriteOptions const& opts);
+  void commitWriteBatch(Batch& write_batch) { commitWriteBatch(write_batch, write_options_); }
 
   bool createSnapshot(uint64_t const& period);
   void deleteSnapshot(uint64_t const& period);
@@ -174,15 +174,15 @@ struct DbStorage {
   void loadSnapshots();
 
   // DAG
-  void saveDagBlock(DagBlock const& blk, BatchPtr write_batch = nullptr);
+  void saveDagBlock(DagBlock const& blk, Batch* write_batch_p = nullptr);
   dev::bytes getDagBlockRaw(blk_hash_t const& hash);
   shared_ptr<DagBlock> getDagBlock(blk_hash_t const& hash);
   string getBlocksByLevel(level_t level);
   std::vector<std::shared_ptr<DagBlock>> getDagBlocksAtLevel(level_t level, int number_of_levels);
 
   // DAG state
-  void addDagBlockStateToBatch(BatchPtr const& write_batch, blk_hash_t const& blk_hash, bool finalized);
-  void removeDagBlockStateToBatch(BatchPtr const& write_batch, blk_hash_t const& blk_hash);
+  void addDagBlockStateToBatch(Batch& write_batch, blk_hash_t const& blk_hash, bool finalized);
+  void removeDagBlockStateToBatch(Batch& write_batch, blk_hash_t const& blk_hash);
   std::map<blk_hash_t, bool> getAllDagBlockState();
 
   // Transaction
@@ -191,96 +191,91 @@ struct DbStorage {
   shared_ptr<Transaction> getTransaction(trx_hash_t const& hash);
   shared_ptr<pair<Transaction, taraxa::bytes>> getTransactionExt(trx_hash_t const& hash);
   bool transactionInDb(trx_hash_t const& hash);
-  void addTransactionToBatch(Transaction const& trx, BatchPtr const& write_batch);
+  void addTransactionToBatch(Transaction const& trx, Batch& write_batch);
 
   void saveTransactionStatus(trx_hash_t const& trx, TransactionStatus const& status);
-  void addTransactionStatusToBatch(BatchPtr const& write_batch, trx_hash_t const& trx, TransactionStatus const& status);
+  void addTransactionStatusToBatch(Batch& write_batch, trx_hash_t const& trx, TransactionStatus const& status);
   TransactionStatus getTransactionStatus(trx_hash_t const& hash);
   std::map<trx_hash_t, TransactionStatus> getAllTransactionStatus();
 
   // PBFT manager
   uint64_t getPbftMgrField(PbftMgrRoundStep const& field);
   void savePbftMgrField(PbftMgrRoundStep const& field, uint64_t const& value);
-  void addPbftMgrFieldToBatch(PbftMgrRoundStep const& field, uint64_t const& value, BatchPtr const& write_batch);
+  void addPbftMgrFieldToBatch(PbftMgrRoundStep const& field, uint64_t const& value, Batch& write_batch);
 
   size_t getPbft2TPlus1(uint64_t const& pbft_round);
   void savePbft2TPlus1(uint64_t const& pbft_round, size_t const& pbft_2t_plus_1);
-  void addPbft2TPlus1ToBatch(uint64_t const& pbft_round, size_t const& pbft_2t_plus_1, BatchPtr const& write_batch);
+  void addPbft2TPlus1ToBatch(uint64_t const& pbft_round, size_t const& pbft_2t_plus_1, Batch& write_batch);
 
   bool getPbftMgrStatus(PbftMgrStatus const& field);
   void savePbftMgrStatus(PbftMgrStatus const& field, bool const& value);
-  void addPbftMgrStatusToBatch(PbftMgrStatus const& field, bool const& value, BatchPtr const& write_batch);
+  void addPbftMgrStatusToBatch(PbftMgrStatus const& field, bool const& value, Batch& write_batch);
 
   shared_ptr<blk_hash_t> getPbftMgrVotedValue(PbftMgrVotedValue const& field);
   void savePbftMgrVotedValue(PbftMgrVotedValue const& field, blk_hash_t const& value);
-  void addPbftMgrVotedValueToBatch(PbftMgrVotedValue const& field, blk_hash_t const& value,
-                                   BatchPtr const& write_batch);
+  void addPbftMgrVotedValueToBatch(PbftMgrVotedValue const& field, blk_hash_t const& value, Batch& write_batch);
 
   shared_ptr<blk_hash_t> getPbftCertVotedBlockHash(uint64_t const& pbft_round);
   void savePbftCertVotedBlockHash(uint64_t const& pbft_round, blk_hash_t const& cert_voted_block_hash);
   void addPbftCertVotedBlockHashToBatch(uint64_t const& pbft_round, blk_hash_t const& cert_voted_block_hash,
-                                        BatchPtr const& write_batch);
+                                        Batch& write_batch);
 
   shared_ptr<PbftBlock> getPbftCertVotedBlock(blk_hash_t const& block_hash);
   void savePbftCertVotedBlock(PbftBlock const& pbft_block);
-  void addPbftCertVotedBlockToBatch(PbftBlock const& pbft_block, BatchPtr const& write_batch);
+  void addPbftCertVotedBlockToBatch(PbftBlock const& pbft_block, Batch& write_batch);
 
   // pbft_blocks
   shared_ptr<PbftBlock> getPbftBlock(blk_hash_t const& hash);
   bool pbftBlockInDb(blk_hash_t const& hash);
-  void addPbftBlockToBatch(PbftBlock const& pbft_block, BatchPtr const& write_batch);
+  void addPbftBlockToBatch(PbftBlock const& pbft_block, Batch& write_batch);
   // pbft_blocks (head)
   // TODO: I would recommend storing this differently and not in the same db as
   // regular blocks with real hashes. Need remove from DB
   string getPbftHead(blk_hash_t const& hash);
   void savePbftHead(blk_hash_t const& hash, string const& pbft_chain_head_str);
-  void addPbftHeadToBatch(taraxa::blk_hash_t const& head_hash, std::string const& head_str,
-                          BatchPtr const& write_batch);
+  void addPbftHeadToBatch(taraxa::blk_hash_t const& head_hash, std::string const& head_str, Batch& write_batch);
   // status
   uint64_t getStatusField(StatusDbField const& field);
   void saveStatusField(StatusDbField const& field, uint64_t const& value);
-  void addStatusFieldToBatch(StatusDbField const& field, uint64_t const& value, BatchPtr const& write_batch);
+  void addStatusFieldToBatch(StatusDbField const& field, uint64_t const& value, Batch& write_batch);
 
   // Unverified votes
   std::vector<Vote> getUnverifiedVotes();
   shared_ptr<Vote> getUnverifiedVote(vote_hash_t const& vote_hash);
   bool unverifiedVoteExist(vote_hash_t const& vote_hash);
   void saveUnverifiedVote(Vote const& vote);
-  void addUnverifiedVoteToBatch(Vote const& vote, BatchPtr const& write_batch);
-  void removeUnverifiedVoteToBatch(vote_hash_t const& vote_hash, BatchPtr const& write_batch);
+  void addUnverifiedVoteToBatch(Vote const& vote, Batch& write_batch);
+  void removeUnverifiedVoteToBatch(vote_hash_t const& vote_hash, Batch& write_batch);
 
   // Verified votes
   std::vector<Vote> getVerifiedVotes();
   shared_ptr<Vote> getVerifiedVote(vote_hash_t const& vote_hash);
   void saveVerifiedVote(Vote const& vote);
-  void addVerifiedVoteToBatch(Vote const& vote, BatchPtr const& write_batch);
-  void removeVerifiedVoteToBatch(vote_hash_t const& vote_hash, BatchPtr const& write_batch);
+  void addVerifiedVoteToBatch(Vote const& vote, Batch& write_batch);
+  void removeVerifiedVoteToBatch(vote_hash_t const& vote_hash, Batch& write_batch);
 
   // Soft votes
   std::vector<Vote> getSoftVotes(uint64_t const& pbft_round);
   void saveSoftVotes(uint64_t const& pbft_round, std::vector<Vote> const& soft_votes);
-  void addSoftVotesToBatch(uint64_t const& pbft_round, std::vector<Vote> const& soft_votes,
-                           BatchPtr const& write_batch);
-  void removeSoftVotesToBatch(uint64_t const& pbft_round, BatchPtr const& write_batch);
+  void addSoftVotesToBatch(uint64_t const& pbft_round, std::vector<Vote> const& soft_votes, Batch& write_batch);
+  void removeSoftVotesToBatch(uint64_t const& pbft_round, Batch& write_batch);
 
   // Certified votes
   std::vector<Vote> getCertVotes(blk_hash_t const& hash);
   void addCertVotesToBatch(taraxa::blk_hash_t const& pbft_block_hash, std::vector<Vote> const& cert_votes,
-                           BatchPtr const& write_batch);
+                           Batch& write_batch);
   // Next votes
   std::vector<Vote> getNextVotes(uint64_t const& pbft_round);
   void saveNextVotes(uint64_t const& pbft_round, std::vector<Vote> const& next_votes);
-  void addNextVotesToBatch(uint64_t const& pbft_round, std::vector<Vote> const& next_votes,
-                           BatchPtr const& write_batch);
-  void removeNextVotesToBatch(uint64_t const& pbft_round, BatchPtr const& write_batch);
+  void addNextVotesToBatch(uint64_t const& pbft_round, std::vector<Vote> const& next_votes, Batch& write_batch);
+  void removeNextVotesToBatch(uint64_t const& pbft_round, Batch& write_batch);
 
   // period_pbft_block
   shared_ptr<blk_hash_t> getPeriodPbftBlock(uint64_t const& period);
-  void addPbftBlockPeriodToBatch(uint64_t const& period, taraxa::blk_hash_t const& pbft_block_hash,
-                                 BatchPtr const& write_batch);
+  void addPbftBlockPeriodToBatch(uint64_t const& period, taraxa::blk_hash_t const& pbft_block_hash, Batch& write_batch);
   // dag_block_period
   shared_ptr<uint64_t> getDagBlockPeriod(blk_hash_t const& hash);
-  void addDagBlockPeriodToBatch(blk_hash_t const& hash, uint64_t const& period, BatchPtr const& write_batch);
+  void addDagBlockPeriodToBatch(blk_hash_t const& hash, uint64_t const& period, Batch& write_batch);
 
   uint64_t getDagBlocksCount() const { return dag_blocks_count_.load(); }
   uint64_t getDagEdgeCount() const { return dag_edge_count_.load(); }
@@ -297,17 +292,12 @@ struct DbStorage {
   uint64_t getDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus const& field);
   void saveDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus const& field, uint64_t const& value);
   void addDposProposalPeriodLevelsFieldToBatch(DposProposalPeriodLevelsStatus const& field, uint64_t const& value,
-                                               BatchPtr const& write_batch);
+                                               Batch& write_batch);
 
   // DPOS proposal period to DAG block levels map
   bytes getProposalPeriodDagLevelsMap(uint64_t proposal_period);
   void saveProposalPeriodDagLevelsMap(ProposalPeriodDagLevelsMap const& period_levels_map);
-  void addProposalPeriodDagLevelsMapToBatch(ProposalPeriodDagLevelsMap const& period_levels_map,
-                                            BatchPtr const& write_batch);
-
-  void insert(Column const& col, Slice const& k, Slice const& v);
-  void remove(Slice key, Column const& column);
-  void forEach(Column const& col, OnEntry const& f);
+  void addProposalPeriodDagLevelsMapToBatch(ProposalPeriodDagLevelsMap const& period_levels_map, Batch& write_batch);
 
   bool hasMinorVersionChanged() { return minor_version_changed_; }
 
@@ -364,7 +354,6 @@ struct DbStorage {
     return value;
   }
 
-  // consistent with toSlice(number)
   template <typename Int, typename K>
   auto lookup_int(K const& key, Column const& column) -> std::enable_if_t<std::is_integral_v<Int>, std::optional<Int>> {
     auto str = lookup(key, column);
@@ -374,22 +363,29 @@ struct DbStorage {
     return *reinterpret_cast<Int*>(str.data());
   }
 
+  static void checkStatus(rocksdb::Status const& status);
+
   template <typename K, typename V>
-  void batch_put(WriteBatch& batch, Column const& col, K const& k, V const& v) {
+  void insert(Column const& col, K const& k, V const& v) {
+    checkStatus(db_->Put(write_options_, handle(col), toSlice(k), toSlice(v)));
+  }
+
+  template <typename K, typename V>
+  void insert(Batch& batch, Column const& col, K const& k, V const& v) {
     checkStatus(batch.Put(handle(col), toSlice(k), toSlice(v)));
   }
 
-  // TODO remove
-  void batch_put(BatchPtr const& batch, Column const& col, Slice const& k, Slice const& v) {
-    batch_put(*batch, col, k, v);
+  template <typename K>
+  void remove(Column const& col, K const& k) {
+    checkStatus(db_->Delete(write_options_, handle(col), toSlice(k)));
   }
 
-  // TODO generalize like batch_put
-  void batch_delete(BatchPtr const& batch, Column const& col, Slice const& k) {
-    checkStatus(batch->Delete(handle(col), k));
+  template <typename K>
+  void remove(Batch& batch, Column const& col, K const& k) {
+    checkStatus(batch.Delete(handle(col), toSlice(k)));
   }
 
-  static void checkStatus(rocksdb::Status const& status);
+  void forEach(Column const& col, OnEntry const& f);
 
   class MultiGetQuery {
     shared_ptr<DbStorage> const db_;
@@ -425,36 +421,6 @@ struct DbStorage {
     vector<string> execute(bool and_reset = true);
     MultiGetQuery& reset();
   };
-
-  class Batch {
-    friend DB;
-
-    rocksdb::WriteBatch b_;
-    shared_ptr<DB> db_;
-
-   public:
-    Batch(decltype(db_) db) : db_(std::move(db)) {}
-    // not copyable. copying a write batch is almost always indicative of a programmer mistake
-    Batch(Batch const&) = delete;
-    Batch& operator=(Batch const&) = delete;
-    // movable
-    Batch(Batch&&) = default;
-    Batch& operator=(Batch&&) = default;
-
-    template <typename K, typename V>
-    Batch& put(Column const& col, K const& k, V const& v) {
-      checkStatus(b_.Put(db_->handle(col), toSlice(k), toSlice(v)));
-      return *this;
-    }
-
-    template <typename K>
-    Batch& remove(Column const& col, K const& k) {
-      checkStatus(b_.Delete(db_->handle(col), toSlice(k)));
-      return *this;
-    }
-
-    Batch& commit();
-    Batch& reset();
-  };
 };
+
 }  // namespace taraxa
