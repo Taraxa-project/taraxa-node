@@ -4,20 +4,17 @@
 
 #include "TrieCommon.h"
 #include "common/constants.hpp"
-#include "dag/dag_block_manager.hpp"
 #include "replay_protection_service.hpp"
-#include "transaction_manager/transaction_manager.hpp"
 #include "util/thread_pool.hpp"
 
 namespace taraxa::final_chain {
 using namespace std;
 using namespace dev;
 
-enum DBMetaKeys { LAST_PERIOD = 1 };
+enum DBMetaKeys { LAST_NUMBER = 1 };
 
-struct FinalChainImpl final : virtual FinalChain {
+struct FinalChainImpl final : FinalChain {
   shared_ptr<DB> db_;
-  std::shared_ptr<DagBlockManager> dag_blk_mgr_;
   StateAPI state_api;
   unique_ptr<ReplayProtectionService> replay_protection_service_{new ReplayProtectionServiceDummy};
 
@@ -56,9 +53,9 @@ struct FinalChainImpl final : virtual FinalChain {
         transaction_count_hint_(opts.state_api.ExpectedMaxTrxPerBlock) {
     LOG_OBJECTS_CREATE("EXECUTOR");
     auto state_db_descriptor = state_api.get_last_committed_state_descriptor();
-    if (auto last_period = db_->lookup_int<EthBlockNumber>(LAST_PERIOD, DB::Columns::final_chain_meta); last_period) {
+    if (auto last_blk_num = db_->lookup_int<EthBlockNumber>(LAST_NUMBER, DB::Columns::final_chain_meta); last_blk_num) {
       last_block_ = make_shared<BlockHeader>();
-      last_block_->rlp(RLP(db_->lookup(*last_period, DB::Columns::final_chain_block_by_period)));
+      last_block_->rlp(RLP(db_->lookup(*last_blk_num, DB::Columns::final_chain_blk_by_number)));
       if (last_block_->number != state_db_descriptor.blk_num) {
         assert(state_db_descriptor.blk_num == last_block_->number - 1);
         auto res = state_api.transition_state(
@@ -83,26 +80,23 @@ struct FinalChainImpl final : virtual FinalChain {
     num_executed_trx_ = db_->getStatusField(taraxa::StatusDbField::ExecutedTrxCount);
   }
 
-  future<shared_ptr<BlockFinalized>> finalize(shared_ptr<PbftBlock> pbft_blk) override {
-    assert(pbft_blk);
-    auto p = make_shared<promise<shared_ptr<BlockFinalized>>>();
-    executor_([this, pbft_blk, p] { p->set_value(finalize_(pbft_blk)); });
+  future<shared_ptr<FinalizationResult const>> finalize(NewBlock new_blk,
+                                                        finalize_precommit_ext precommit_ext = {}) override {
+    auto p = make_shared<promise<shared_ptr<FinalizationResult const>>>();
+    executor_([this, new_blk = move(new_blk), precommit_ext = move(precommit_ext), p]() mutable {
+      p->set_value(finalize_(move(new_blk), move(precommit_ext)));
+    });
     return p->get_future();
   }
 
-  shared_ptr<BlockFinalized> finalize_(shared_ptr<PbftBlock> const& pbft_blk_ptr) {
-    auto const& pbft_block = *pbft_blk_ptr;
-    auto pbft_period = pbft_block.getPeriod();
-    auto const& pbft_block_hash = pbft_block.getBlockHash();
-    auto const& anchor_hash = pbft_block.getPivotDagBlockHash();
-    auto finalized_dag_blk_hashes = db_->getFinalizedDagBlockHashesByAnchor(anchor_hash);
+  shared_ptr<FinalizationResult> finalize_(NewBlock new_blk, finalize_precommit_ext precommit_ext) {
     auto batch = db_->createWriteBatch();
     Transactions to_execute;
     {
       // This artificial scope will make sure we clean up the big chunk of memory allocated for this batch-processing
       // stuff as soon as possible
-      DB::MultiGetQuery db_query(db_, 2 * transaction_count_hint_ + finalized_dag_blk_hashes.size());
-      auto dag_blks_raw = db_query.append(DB::Columns::dag_blocks, finalized_dag_blk_hashes, false).execute();
+      DB::MultiGetQuery db_query(db_, 2 * transaction_count_hint_ + new_blk.dag_blk_hashes.size());
+      auto dag_blks_raw = db_query.append(DB::Columns::dag_blocks, new_blk.dag_blk_hashes, false).execute();
       unordered_set<h256> unique_trxs;
       unique_trxs.reserve(transaction_count_hint_);
       for (auto const& dag_blk_raw : dag_blks_raw) {
@@ -131,14 +125,9 @@ struct FinalChainImpl final : virtual FinalChain {
     }
     transaction_count_hint_ = max(transaction_count_hint_, to_execute.size());
     constexpr auto gas_limit = std::numeric_limits<uint64_t>::max();
-    auto const& [exec_results, state_root] = state_api.transition_state(
-        {
-            pbft_block.getBeneficiary(),
-            gas_limit,
-            pbft_block.getTimestamp(),
-            BlockHeader::difficulty(),
-        },
-        to_state_api_transactions(to_execute));
+    auto const& [exec_results, state_root] =
+        state_api.transition_state({new_blk.beneficiary, gas_limit, new_blk.timestamp, BlockHeader::difficulty()},
+                                   to_state_api_transactions(to_execute));
     TransactionReceipts receipts;
     receipts.reserve(exec_results.size());
     gas_t cumulative_gas_used = 0;
@@ -156,57 +145,45 @@ struct FinalChainImpl final : virtual FinalChain {
           r.NewContractAddr ? optional(r.NewContractAddr) : nullopt,
       });
     }
-    auto blk_header = append_block(batch, pbft_block.getBeneficiary(), pbft_block.getTimestamp(), gas_limit, state_root,
-                                   to_execute, receipts);
+    auto blk_header =
+        append_block(batch, new_blk.beneficiary, new_blk.timestamp, gas_limit, state_root, to_execute, receipts);
+    auto blk_num = block_header()->number + 1;
     // Update replay protection service, like nonce watermark. Nonce watermark has been disabled
-    replay_protection_service_->update(batch, pbft_period, util::make_range_view(to_execute).map([](auto const& trx) {
+    replay_protection_service_->update(batch, blk_num, util::make_range_view(to_execute).map([](auto const& trx) {
       return ReplayProtectionService::TransactionInfo{trx.getSender(), trx.getNonce()};
     }));
     // Update number of executed DAG blocks and transactions
-    auto num_executed_dag_blk = num_executed_dag_blk_ + finalized_dag_blk_hashes.size();
+    auto num_executed_dag_blk = num_executed_dag_blk_ + new_blk.dag_blk_hashes.size();
     auto num_executed_trx = num_executed_trx_ + to_execute.size();
-    if (!finalized_dag_blk_hashes.empty()) {
+    if (!new_blk.dag_blk_hashes.empty()) {
       db_->insert(batch, DB::Columns::status, StatusDbField::ExecutedBlkCount, num_executed_dag_blk);
       db_->insert(batch, DB::Columns::status, StatusDbField::ExecutedTrxCount, num_executed_trx);
-      LOG(log_nf_) << "Executed dag blocks #" << num_executed_dag_blk_ - finalized_dag_blk_hashes.size() << "-"
+      LOG(log_nf_) << "Executed dag blocks #" << num_executed_dag_blk_ - new_blk.dag_blk_hashes.size() << "-"
                    << num_executed_dag_blk_ - 1 << " , Transactions count: " << to_execute.size();
     }
-    {
-      // Update proposal period DAG levels map
-      auto anchor = db_->getDagBlock(anchor_hash);
-      if (!anchor) {
-        LOG(log_er_) << "DB corrupted - Cannot find anchor block: " << anchor_hash << " in DB.";
-        assert(false);
-      }
-      auto new_proposal_period_levels_map = dag_blk_mgr_->newProposePeriodDagLevelsMap(anchor->getLevel());
-      db_->addProposalPeriodDagLevelsMapToBatch(*new_proposal_period_levels_map, batch);
-      auto dpos_current_max_proposal_period = dag_blk_mgr_->getCurrentMaxProposalPeriod();
-      db_->addDposProposalPeriodLevelsFieldToBatch(DposProposalPeriodLevelsStatus::max_proposal_period,
-                                                   dpos_current_max_proposal_period, batch);
-    }
-    db_->commitWriteBatch(batch, db_opts_w_);
-    state_api.transition_state_commit();
-    LOG(log_nf_) << "DB write batch committed at period " << pbft_period << " PBFT block hash " << pbft_block_hash;
-    // Creates snapshot if needed
-    if (db_->createSnapshot(pbft_period)) {
-      state_api.create_snapshot(pbft_period);
-    }
-    // Only NOW we are fine to modify in-memory states as they have been backed by the db
-    num_executed_dag_blk_ = num_executed_dag_blk;
-    num_executed_trx_ = num_executed_trx;
-    {
-      unique_lock l(last_block_mu_);
-      last_block_ = blk_header;
-    }
-    auto result = s_ptr(new BlockFinalized{
-        pbft_blk_ptr,
-        move(finalized_dag_blk_hashes),
+    auto result = s_ptr(new FinalizationResult{
+        move(new_blk),
         blk_header,
         move(to_execute),
         move(receipts),
     });
+    if (precommit_ext) {
+      precommit_ext(*result, batch);
+    }
+    db_->commitWriteBatch(batch, db_opts_w_);
+    state_api.transition_state_commit();
+    LOG(log_nf_) << " successful finalize block " << result->hash << " with number " << blk_num;
+    // Creates snapshot if needed
+    if (db_->createSnapshot(blk_num)) {
+      state_api.create_snapshot(blk_num);
+    }
+    {
+      unique_lock l(last_block_mu_);
+      last_block_ = blk_header;
+    }
+    num_executed_dag_blk_ = num_executed_dag_blk;
+    num_executed_trx_ = num_executed_trx;
     block_finalized_.emit(result);
-    LOG(log_nf_) << " successful execute pbft block " << pbft_block_hash << " in period " << pbft_period;
     return result;
   }
 
@@ -246,7 +223,7 @@ struct FinalChainImpl final : virtual FinalChain {
     blk_header.ethereum_rlp_size = rlp_strm.out().size();
     blk_header.hash = sha3(rlp_strm.out());
     rlp_strm.clear(), blk_header.rlp(rlp_strm);
-    db_->insert(batch, DB::Columns::final_chain_block_by_period, blk_header.number, rlp_strm.out());
+    db_->insert(batch, DB::Columns::final_chain_blk_by_number, blk_header.number, rlp_strm.out());
     rlp_strm.clear(), util::rlp(rlp_strm, blk_log_blooms);
     db_->insert(batch, DB::Columns::final_chain_log_blooms, blk_header.number, rlp_strm.out());
     auto log_bloom_for_index = blk_header.log_bloom;
@@ -265,12 +242,12 @@ struct FinalChainImpl final : virtual FinalChain {
       db_->insert(batch, DB::Columns::executed_transactions, trx.getHash(), rlp_strm.out());
       ++tl.index;
     }
-    db_->insert(batch, DB::Columns::executed_transactions_by_period, blk_header.number,
+    db_->insert(batch, DB::Columns::executed_transactions_by_blk_number, blk_header.number,
                 TransactionHashesImpl::serialize_from_transactions(transactions));
-    db_->insert(batch, DB::Columns::executed_transactions_count_by_period, blk_header.number, transactions.size());
-    db_->insert(batch, DB::Columns::final_chain_block_hash_by_period, blk_header.number, blk_header.hash);
-    db_->insert(batch, DB::Columns::period_by_final_chain_block_hash, blk_header.hash, blk_header.number);
-    db_->insert(batch, DB::Columns::final_chain_meta, LAST_PERIOD, blk_header.number);
+    db_->insert(batch, DB::Columns::executed_transactions_count_by_blk_number, blk_header.number, transactions.size());
+    db_->insert(batch, DB::Columns::final_chain_blk_hash_by_number, blk_header.number, blk_header.hash);
+    db_->insert(batch, DB::Columns::final_chain_blk_number_by_hash, blk_header.hash, blk_header.number);
+    db_->insert(batch, DB::Columns::final_chain_meta, LAST_NUMBER, blk_header.number);
     return blk_header_ptr;
   }
 
@@ -280,21 +257,21 @@ struct FinalChainImpl final : virtual FinalChain {
       return last_block_;
     }
     auto ret = make_shared<BlockHeader>();
-    ret->rlp(RLP(db_->lookup(*n, DB::Columns::final_chain_block_by_period)));
+    ret->rlp(RLP(db_->lookup(*n, DB::Columns::final_chain_blk_by_number)));
     return ret;
   }
 
   EthBlockNumber last_block_number() const override { return block_header()->number; }
 
   optional<EthBlockNumber> block_number(h256 const& h) const override {
-    return db_->lookup_int<EthBlockNumber>(h, DB::Columns::period_by_final_chain_block_hash);
+    return db_->lookup_int<EthBlockNumber>(h, DB::Columns::final_chain_blk_number_by_hash);
   }
 
   optional<h256> block_hash(optional<EthBlockNumber> n = {}) const override {
     if (!n) {
       return block_header()->hash;
     }
-    auto raw = db_->lookup(*n, DB::Columns::final_chain_block_hash_by_period);
+    auto raw = db_->lookup(*n, DB::Columns::final_chain_blk_hash_by_number);
     if (raw.empty()) {
       return {};
     }
@@ -302,7 +279,7 @@ struct FinalChainImpl final : virtual FinalChain {
   };
 
   shared_ptr<TransactionHashes> transaction_hashes(optional<EthBlockNumber> n = {}) const override {
-    return make_shared<TransactionHashesImpl>(db_->lookup(last_if_absent(n), DB::Columns::final_chain_block_by_period));
+    return make_shared<TransactionHashesImpl>(db_->lookup(last_if_absent(n), DB::Columns::final_chain_blk_by_number));
   }
 
   optional<TransactionLocation> transaction_location(h256 const& trx_hash) const override {
@@ -326,7 +303,8 @@ struct FinalChainImpl final : virtual FinalChain {
   }
 
   uint64_t transactionCount(optional<EthBlockNumber> n = {}) const override {
-    return db_->lookup_int<uint64_t>(last_if_absent(n), DB::Columns::executed_transactions_count_by_period).value_or(0);
+    return db_->lookup_int<uint64_t>(last_if_absent(n), DB::Columns::executed_transactions_count_by_blk_number)
+        .value_or(0);
   }
 
   Transactions transactions(optional<EthBlockNumber> n = {}) const override {

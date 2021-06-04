@@ -31,7 +31,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   enum class VerifyMode : uint8_t { normal, skip_verify_sig };
 
   // TODO @oleg emit
-  util::Event<TransactionManager, h256> const transaction_accepted;
+  util::Event<TransactionManager, h256> const transaction_accepted{};
 
   TransactionManager(FullNodeConfig const &conf, addr_t node_addr, std::shared_ptr<DbStorage> db,
                      logger::Logger log_time);

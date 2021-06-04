@@ -30,23 +30,29 @@ struct FinalChain {
     state_api::Opts state_api;
   };
 
-  struct BlockFinalized {
-    shared_ptr<PbftBlock> pbft_blk;
-    vector<blk_hash_t> finalized_dag_blk_hashes;
+  struct NewBlock {
+    addr_t beneficiary;
+    uint64_t timestamp;
+    vector<h256> dag_blk_hashes;
+    h256 hash;
+  };
+
+  struct FinalizationResult : NewBlock {
     shared_ptr<BlockHeader const> final_chain_blk;
     Transactions trxs;
     TransactionReceipts trx_receipts;
   };
 
  protected:
-  util::EventEmitter<shared_ptr<BlockFinalized>> const block_finalized_;
+  util::EventEmitter<shared_ptr<FinalizationResult>> const block_finalized_{};
 
  public:
   decltype(block_finalized_)::Subscriber const& block_finalized = block_finalized_;
 
-  virtual ~FinalChain() {}
+  virtual ~FinalChain() = default;
 
-  virtual future<shared_ptr<BlockFinalized>> finalize(shared_ptr<PbftBlock> pbft_blk) = 0;
+  using finalize_precommit_ext = std::function<void(FinalizationResult const&, DB::Batch&)>;
+  virtual future<shared_ptr<FinalizationResult const>> finalize(NewBlock new_blk, finalize_precommit_ext = {}) = 0;
 
   virtual shared_ptr<BlockHeader> block_header(optional<EthBlockNumber> n = {}) const = 0;
   virtual EthBlockNumber last_block_number() const = 0;

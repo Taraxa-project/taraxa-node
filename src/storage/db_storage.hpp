@@ -116,12 +116,12 @@ struct DbStorage {
     COLUMN(proposal_period_levels_map);
     COLUMN(replay_protection);
     COLUMN(pending_transactions);
-    COLUMN(executed_transactions_by_period);
-    COLUMN(executed_transactions_count_by_period);
+    COLUMN(executed_transactions_by_blk_number);
+    COLUMN(executed_transactions_count_by_blk_number);
     COLUMN(final_chain_meta);
-    COLUMN(final_chain_block_by_period);
-    COLUMN(final_chain_block_hash_by_period);
-    COLUMN(period_by_final_chain_block_hash);
+    COLUMN(final_chain_blk_by_number);
+    COLUMN(final_chain_blk_hash_by_number);
+    COLUMN(final_chain_blk_number_by_hash);
     COLUMN(final_chain_log_blooms);
     COLUMN(final_chain_receipt_by_trx_hash);
     COLUMN(final_chain_log_blooms_index);

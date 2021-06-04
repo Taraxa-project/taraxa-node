@@ -151,14 +151,17 @@ void FullNode::start() {
       jsonrpc_ws_->run();
     }
     final_chain_->block_finalized.subscribe(
-        [eth_json_rpc = weak_ptr(eth_json_rpc), ws = weak_ptr(jsonrpc_ws_)](auto const &obj) {
-          if (auto p = eth_json_rpc.lock(); p) {
-            p->note_block_executed(*obj->final_chain_blk, obj->trxs, obj->trx_receipts);
+        [eth_json_rpc = weak_ptr(eth_json_rpc), ws = weak_ptr(jsonrpc_ws_), db = weak_ptr(db_)](auto const &res) {
+          if (auto _eth_json_rpc = eth_json_rpc.lock(); _eth_json_rpc) {
+            _eth_json_rpc->note_block_executed(*res->final_chain_blk, res->trxs, res->trx_receipts);
           }
-          if (auto p = ws.lock(); p) {
-            p->newDagBlockFinalized(obj->pbft_blk->getPivotDagBlockHash(), obj->pbft_blk->getPeriod());
-            p->newPbftBlockExecuted(*obj->pbft_blk, obj->finalized_dag_blk_hashes);
-            p->newEthBlock(*obj->final_chain_blk);
+          if (auto _ws = ws.lock(); _ws) {
+            _ws->newEthBlock(*res->final_chain_blk);
+            if (auto _db = db.lock(); _db) {
+              auto pbft_blk = _db->getPbftBlock(res->hash);
+              _ws->newDagBlockFinalized(pbft_blk->getPivotDagBlockHash(), pbft_blk->getPeriod());
+              _ws->newPbftBlockExecuted(*pbft_blk, res->dag_blk_hashes);
+            }
           }
         },
         *rpc_thread_pool_);

@@ -117,7 +117,6 @@ using trx_num_t = vec_trx_t::size_type;
 using byte = uint8_t;
 using bytes = std::vector<byte>;
 using node_id_t = uint512_hash_t;
-using round_t = uint64_t;
 using trx_nonce_t = val_t;
 
 // val_t type related helper functions

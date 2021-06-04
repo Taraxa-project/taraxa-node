@@ -1399,7 +1399,26 @@ bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes) {
   LOG(log_nf_) << node_addr_ << " successful push unexecuted PBFT block " << pbft_block_hash << " in period "
                << pbft_period << " into chain! In round " << getPbftRound();
 
-  final_chain_->finalize(pbft_block);
+  final_chain_->finalize(
+      {
+          pbft_block->getBeneficiary(),
+          pbft_block->getTimestamp(),
+          move(finalized_dag_blk_hashes),
+          pbft_block->getBlockHash(),
+      },
+      [=](auto const &, auto &batch) {
+        // Update proposal period DAG levels map
+        auto anchor = db_->getDagBlock(anchor_hash);
+        if (!anchor) {
+          LOG(log_er_) << "DB corrupted - Cannot find anchor block: " << anchor_hash << " in DB.";
+          assert(false);
+        }
+        auto new_proposal_period_levels_map = dag_blk_mgr_->newProposePeriodDagLevelsMap(anchor->getLevel());
+        db_->addProposalPeriodDagLevelsMapToBatch(*new_proposal_period_levels_map, batch);
+        auto dpos_current_max_proposal_period = dag_blk_mgr_->getCurrentMaxProposalPeriod();
+        db_->addDposProposalPeriodLevelsFieldToBatch(DposProposalPeriodLevelsStatus::max_proposal_period,
+                                                     dpos_current_max_proposal_period, batch);
+      });
 
   // Reset proposed PBFT block hash to False for next pbft block proposal
   proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
