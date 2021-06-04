@@ -183,14 +183,11 @@ TEST_F(NetworkTest, save_network) {
     nw2->start();
     nw3->start();
 
-    for (int i = 0; i < 45; i++) {
-      taraxa::thisThreadSleepForSeconds(1);
-      if (2 == nw1->getPeerCount() && 2 == nw2->getPeerCount() && 2 == nw3->getPeerCount()) break;
-    }
-
-    ASSERT_EQ(2, nw1->getPeerCount());
-    ASSERT_EQ(2, nw2->getPeerCount());
-    ASSERT_EQ(2, nw3->getPeerCount());
+    EXPECT_HAPPENS({120s, 500ms}, [&](auto& ctx) {
+      WAIT_EXPECT_EQ(ctx, nw1->getPeerCount(), 2)
+      WAIT_EXPECT_EQ(ctx, nw2->getPeerCount(), 2)
+      WAIT_EXPECT_EQ(ctx, nw3->getPeerCount(), 2)
+    });
   }
 
   std::shared_ptr<Network> nw2(new taraxa::Network(g_conf2->network, "/tmp/nw2", key2));
@@ -198,13 +195,10 @@ TEST_F(NetworkTest, save_network) {
   nw2->start();
   nw3->start();
 
-  for (int i = 0; i < 20; i++) {
-    taraxa::thisThreadSleepForSeconds(1);
-    if (1 == nw2->getPeerCount() && 1 == nw3->getPeerCount()) break;
-  }
-
-  ASSERT_EQ(1, nw2->getPeerCount());
-  ASSERT_EQ(1, nw3->getPeerCount());
+  EXPECT_HAPPENS({120s, 500ms}, [&](auto& ctx) {
+    WAIT_EXPECT_EQ(ctx, nw2->getPeerCount(), 1)
+    WAIT_EXPECT_EQ(ctx, nw3->getPeerCount(), 1)
+  });
 }
 
 // Test creates one node with testnet network ID and one node with main ID and verifies that connection fails
