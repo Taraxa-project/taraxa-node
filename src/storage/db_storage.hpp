@@ -115,7 +115,6 @@ struct DbStorage {
     COLUMN(dpos_proposal_period_levels_status);
     COLUMN(proposal_period_levels_map);
     COLUMN(replay_protection);
-    COLUMN(pending_transactions);
     COLUMN(executed_transactions_by_blk_number);
     COLUMN(executed_transactions_count_by_blk_number);
     COLUMN(final_chain_meta);

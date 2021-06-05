@@ -36,6 +36,8 @@ struct FinalChainTest : WithDataDir {
   }
 
   auto advance(Transactions const& trxs, advance_check_opts opts = {}) {
+    SUT = nullptr;
+    SUT = NewFinalChain(db, cfg);
     vector<h256> trx_hashes;
     for (auto const& trx : trxs) {
       db->saveTransaction(trx);

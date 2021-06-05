@@ -94,7 +94,6 @@ struct FinalChainImpl final : FinalChain {
       unique_trxs.reserve(transaction_count_hint_);
       for (auto const& dag_blk_raw : dag_blks_raw) {
         for (auto const& trx_h : DagBlock::extract_transactions_from_rlp(RLP(dag_blk_raw))) {
-          db_->remove(batch, DB::Columns::pending_transactions, trx_h);
           if (!unique_trxs.insert(trx_h).second) {
             continue;
           }

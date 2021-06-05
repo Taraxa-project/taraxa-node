@@ -177,7 +177,7 @@ struct LogFilter {
       }
     };
     auto from_blk_n = from_block_ ? *from_block_ : final_chain.last_block_number();
-    auto to_blk_n = to_block_ ? *to_block_ : (!from_block_ ? from_blk_n : final_chain.last_block_number());
+    auto to_blk_n = to_block_ ? *to_block_ : (from_block_ ? final_chain.last_block_number() : from_blk_n);
     if (is_range_only_) {
       for (auto blk_n = from_blk_n; blk_n <= to_blk_n; ++blk_n) {
         action(blk_n);

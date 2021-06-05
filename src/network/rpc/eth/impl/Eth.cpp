@@ -59,8 +59,7 @@ struct EthImpl : Eth, EthParams {
 
   string eth_estimateGas(Json::Value const& _json) override {
     auto t = toTransactionSkeleton(_json);
-    // TODO What is this?
-    auto blk_n = parse_blk_num("latest");
+    auto blk_n = final_chain->last_block_number();
     set_transaction_defaults(t, blk_n);
     return toJS(call(blk_n, t, true).GasUsed);
   }
@@ -344,7 +343,7 @@ struct EthImpl : Eth, EthParams {
     return ret;
   }
 
-  static optional<EthBlockNumber> parse_blk_num_opt(string const& blk_num_str) {
+  static optional<EthBlockNumber> parse_blk_num_specific(string const& blk_num_str) {
     if (blk_num_str == "latest" || blk_num_str == "pending") {
       return std::nullopt;
     }
@@ -352,7 +351,7 @@ struct EthImpl : Eth, EthParams {
   }
 
   EthBlockNumber parse_blk_num(string const& blk_num_str) {
-    auto ret = parse_blk_num_opt(blk_num_str);
+    auto ret = parse_blk_num_specific(blk_num_str);
     return ret ? *ret : final_chain->last_block_number();
   }
 
@@ -361,10 +360,10 @@ struct EthImpl : Eth, EthParams {
     AddressSet addresses;
     LogFilter::Topics topics;
     if (auto const& fromBlock = json["fromBlock"]; !fromBlock.empty()) {
-      from_block = parse_blk_num_opt(fromBlock.asString());
+      from_block = parse_blk_num_specific(fromBlock.asString());
     }
     if (auto const& toBlock = json["toBlock"]; !toBlock.empty()) {
-      to_block = parse_blk_num_opt(toBlock.asString());
+      to_block = parse_blk_num_specific(toBlock.asString());
     }
     if (auto const& address = json["address"]; !address.empty()) {
       if (address.isArray()) {
@@ -399,7 +398,7 @@ struct EthImpl : Eth, EthParams {
   }
 
   static void add(Json::Value& obj, ExtendedTransactionLocation const& info) {
-    add(obj, static_cast<TransactionLocationWithBlockHash>(info));
+    add(obj, static_cast<TransactionLocationWithBlockHash const&>(info));
     obj["transactionHash"] = toJson(info.trx_hash);
   }
 
