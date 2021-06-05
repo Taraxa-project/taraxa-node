@@ -78,14 +78,17 @@ struct FinalChainTest : WithDataDir {
     EXPECT_EQ(blk_h.difficulty(), 0);
     EXPECT_EQ(blk_h.mix_hash(), h256());
     EXPECT_EQ(blk_h.uncles_hash(), EmptyRLPListSHA3);
-    EXPECT_EQ(blk_h.gas_used, receipts.empty() ? 0 : receipts.back().cumulative_gas_used);
+    EXPECT_TRUE(!blk_h.state_root.isZero());
     LogBloom expected_block_log_bloom;
     unordered_map<addr_t, u256> expected_balance_changes;
     unordered_set<addr_t> all_addrs_w_changed_balance;
+    uint64_t cumulative_gas_used_actual = 0;
     for (size_t i = 0; i < trxs.size(); ++i) {
       auto const& trx = trxs[i];
       auto const& r = receipts[i];
+      EXPECT_TRUE(r.gas_used != 0);
       EXPECT_EQ(util::rlp_enc(r), util::rlp_enc(*SUT->transaction_receipt(trx.getHash())));
+      cumulative_gas_used_actual += r.gas_used;
       if (assume_only_toplevel_transfers && trx.getValue() != 0 && r.status_code == 1) {
         auto const& sender = trx.getSender();
         auto const& sender_bal = expected_balances[sender] -= trx.getValue();
@@ -111,13 +114,11 @@ struct FinalChainTest : WithDataDir {
       auto trx_loc = *SUT->transaction_location(trx.getHash());
       EXPECT_EQ(trx_loc.blk_n, blk_h.number);
       EXPECT_EQ(trx_loc.index, i);
-      //      EXPECT_EQ(r.new_contract_address, result.state_transition_result.ExecutionResults[i].NewContractAddr);
-      //      EXPECT_EQ(r.gas_used, result.state_transition_result.ExecutionResults[i].GasUsed);
-      //      EXPECT_EQ(r.gas_used,
-      //                i == 0 ? r.cumulativeGasUsed() : r.cumulativeGasUsed() - result.receipts[i -
-      //                1].cumulativeGasUsed());
     }
-    //    EXPECT_EQ(blk_h.state_root, result.state_transition_result.StateRoot);
+    EXPECT_EQ(blk_h.gas_used, cumulative_gas_used_actual);
+    if (!receipts.empty()) {
+      EXPECT_EQ(receipts.back().cumulative_gas_used, cumulative_gas_used_actual);
+    }
     EXPECT_EQ(blk_h.log_bloom, expected_block_log_bloom);
     if (assume_only_toplevel_transfers) {
       for (auto const& addr : all_addrs_w_changed_balance) {
@@ -212,6 +213,7 @@ TEST_F(FinalChainTest, contract) {
   Transaction trx(0, 100, 0, 0, dev::fromHex(contract_deploy_code), sk);
   auto result = advance({trx});
   auto contract_addr = result->trx_receipts[0].new_contract_address;
+  EXPECT_EQ(contract_addr, dev::right160(dev::sha3(dev::rlpList(addr, 0))));
   auto greet = [&] {
     auto ret = SUT->call({
         addr,
