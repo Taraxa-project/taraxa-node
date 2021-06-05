@@ -57,14 +57,9 @@ struct FinalChainImpl final : FinalChain {
         assert(state_db_descriptor.blk_num < last_block_->number);
         for (auto n = state_db_descriptor.blk_num + 1; n <= last_block_->number; ++n) {
           auto blk = n == last_block_->number ? last_block_ : FinalChainImpl::block_header(n);
-          auto res = state_api.transition_state(
-              {
-                  blk->author,
-                  blk->gas_limit,
-                  blk->timestamp,
-                  BlockHeader::difficulty(),
-              },
-              to_state_api_transactions(transactions(blk->number)));
+          auto res =
+              state_api.transition_state({blk->author, blk->gas_limit, blk->timestamp, BlockHeader::difficulty()},
+                                         to_state_api_transactions(transactions(blk->number)));
           assert(res.StateRoot == blk->state_root);
           state_api.transition_state_commit();
         }
