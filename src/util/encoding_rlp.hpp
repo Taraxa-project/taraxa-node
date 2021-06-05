@@ -181,7 +181,14 @@ T rlp_dec(RLPDecoderRef encoding) {
 }
 
 template <typename T>
-auto rlp_enc(T const& obj) {
+bytes const& rlp_enc(RLPEncoderRef encoder_to_reuse, T const& obj) {
+  encoder_to_reuse.clear();
+  rlp(encoder_to_reuse, obj);
+  return encoder_to_reuse.out();
+}
+
+template <typename T>
+bytes rlp_enc(T const& obj) {
   RLPStream s;
   rlp(s, obj);
   return move(s.invalidate());

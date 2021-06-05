@@ -15,7 +15,6 @@ using boost::filesystem::create_directories;
 using boost::filesystem::path;
 using boost::filesystem::remove_all;
 using boost::filesystem::temp_directory_path;
-using util::rlp;
 using namespace std;
 using namespace core_tests;
 

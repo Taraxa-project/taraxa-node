@@ -7,16 +7,16 @@ using namespace ::dev;
 using namespace ::taraxa::final_chain;
 
 struct TransactionLocationWithBlockHash : TransactionLocation {
-  h256 blk_h;
+  h256 blk_h{};
 };
 
 struct LocalisedTransaction {
-  Transaction trx;
-  optional<TransactionLocationWithBlockHash> trx_loc;
+  Transaction trx{};
+  optional<TransactionLocationWithBlockHash> trx_loc{};
 };
 
 struct ExtendedTransactionLocation : TransactionLocationWithBlockHash {
-  h256 trx_hash;
+  h256 trx_hash{};
 };
 
 struct LocalisedTransactionReceipt {

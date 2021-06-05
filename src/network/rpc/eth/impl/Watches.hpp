@@ -29,8 +29,8 @@ struct WatchGroup {
 
   struct Watch {
     Params params;
-    time_point last_touched;
-    vector<OutputType> updates;
+    time_point last_touched{};
+    vector<OutputType> updates{};
   };
 
  private:
@@ -56,7 +56,7 @@ struct WatchGroup {
       throw WatchLimitExceeded();
     }
     auto id = ((++watch_id_seq_) << watch_id_type_mask_bits) + type;
-    watches_.insert_or_assign(id, Watch{move(params), high_resolution_clock::now(), {}});
+    watches_.insert_or_assign(id, Watch{move(params), high_resolution_clock::now()});
     return id;
   }
 

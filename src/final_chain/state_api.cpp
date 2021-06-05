@@ -11,7 +11,6 @@
 static_assert(sizeof(char) == sizeof(uint8_t));
 
 namespace taraxa::state_api {
-using util::rlp;
 
 bytesConstRef map_bytes(taraxa_evm_Bytes const& b) { return {b.Data, b.Len}; }
 

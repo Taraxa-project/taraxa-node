@@ -171,7 +171,7 @@ struct EthImpl : Eth, EthParams {
   void note_block_executed(BlockHeader const& blk_header, Transactions const& trxs,
                            TransactionReceipts const& receipts) override {
     watches.new_blocks.process_update(blk_header.hash);
-    ExtendedTransactionLocation trx_loc{{{blk_header.number, 0}, blk_header.hash}, {}};
+    ExtendedTransactionLocation trx_loc{{{blk_header.number}, blk_header.hash}};
     for (; trx_loc.index < trxs.size(); ++trx_loc.index) {
       trx_loc.trx_hash = trxs[trx_loc.index].getHash();
       using LogsInput = typename decltype(watches.logs)::InputType;

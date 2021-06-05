@@ -197,12 +197,10 @@ struct FinalChainImpl final : FinalChain {
     RLPStream rlp_strm;
     for (size_t i(0); i < transactions.size(); ++i) {
       auto const& trx = transactions[i];
-      rlp_strm.clear(), util::rlp(rlp_strm, i);
-      auto i_rlp = rlp_strm.out();
+      auto i_rlp = util::rlp_enc(i);
       trxs_trie[i_rlp] = *trx.rlp();
       auto const& receipt = receipts[i];
-      rlp_strm.clear(), util::rlp(rlp_strm, receipt);
-      receipts_trie[i_rlp] = rlp_strm.out();
+      receipts_trie[i_rlp] = util::rlp_enc(receipt);
       db_->insert(batch, DB::Columns::final_chain_receipt_by_trx_hash, trx.getHash(), rlp_strm.out());
       auto bloom = receipt.bloom();
       blk_header.log_bloom |= bloom;
@@ -213,10 +211,8 @@ struct FinalChainImpl final : FinalChain {
     rlp_strm.clear(), blk_header.ethereum_rlp(rlp_strm);
     blk_header.ethereum_rlp_size = rlp_strm.out().size();
     blk_header.hash = sha3(rlp_strm.out());
-    rlp_strm.clear(), blk_header.rlp(rlp_strm);
-    db_->insert(batch, DB::Columns::final_chain_blk_by_number, blk_header.number, rlp_strm.out());
-    rlp_strm.clear(), util::rlp(rlp_strm, blk_log_blooms);
-    db_->insert(batch, DB::Columns::final_chain_log_blooms, blk_header.number, rlp_strm.out());
+    db_->insert(batch, DB::Columns::final_chain_blk_by_number, blk_header.number, util::rlp_enc(rlp_strm, blk_header));
+    db_->insert(batch, DB::Columns::final_chain_log_blooms, blk_header.number, util::rlp_enc(rlp_strm, blk_log_blooms));
     auto log_bloom_for_index = blk_header.log_bloom;
     log_bloom_for_index.shiftBloom<3>(sha3(blk_header.author.ref()));
     for (uint64_t level = 0, index = blk_header.number; level < c_bloomIndexLevels;
@@ -224,13 +220,11 @@ struct FinalChainImpl final : FinalChain {
       auto chunk_id = block_blooms_chunk_id(level, index / c_bloomIndexSize);
       auto chunk_to_alter = block_blooms(chunk_id);
       chunk_to_alter[index % c_bloomIndexSize] |= log_bloom_for_index;
-      rlp_strm.clear(), util::rlp(rlp_strm, chunk_to_alter);
-      db_->insert(batch, DB::Columns::final_chain_log_blooms_index, chunk_id, rlp_strm.out());
+      db_->insert(batch, DB::Columns::final_chain_log_blooms_index, chunk_id, util::rlp_enc(rlp_strm, chunk_to_alter));
     }
     TransactionLocation tl{blk_header.number};
     for (auto const& trx : transactions) {
-      rlp_strm.clear(), util::rlp(rlp_strm, tl);
-      db_->insert(batch, DB::Columns::executed_transactions, trx.getHash(), rlp_strm.out());
+      db_->insert(batch, DB::Columns::executed_transactions, trx.getHash(), util::rlp_enc(rlp_strm, tl));
       ++tl.index;
     }
     db_->insert(batch, DB::Columns::executed_transactions_by_blk_number, blk_header.number,
