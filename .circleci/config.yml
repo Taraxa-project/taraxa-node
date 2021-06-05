@@ -404,8 +404,8 @@ workflows:
           context: taraxa-node
           attach-workspace: true
           replace: true
-          workspace-root: cmake-docker-build-debug
-          path: cmake-docker-build-debug/bin/release
+#          workspace-root: cmake-docker-build-debug
+          path: release
           filters:
             branches:
               ignore: /.*/
