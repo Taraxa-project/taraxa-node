@@ -299,8 +299,8 @@ jobs:
         - store_artifacts:
            path: /Users/distiller/project/cmake-build/bin/release/
         - persist_to_workspace:
-           root: cmake-build
-           paths: [ bin ]
+           root: cmake-build/bin
+           paths: [ release ]
    build-linux:
      environment:
         BUILD_OUTPUT_DIR: "cmake-docker-build-debug"
@@ -365,8 +365,8 @@ jobs:
         - store_artifacts:
            path: /root/project/cmake-docker-build-debug/bin/release
         - persist_to_workspace:
-           root: cmake-docker-build-debug
-           paths: [ bin ]
+           root: cmake-docker-build-debug/bin/
+           paths: [ release ]
 
 
 workflows:
