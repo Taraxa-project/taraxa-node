@@ -289,18 +289,18 @@ jobs:
                export CPATH=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/include &&
                cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=gcc -DSYSTEM_HOME_OVERRIDE=/Users/root/project/cmake-build  ../ &&
                make -j 6  &&
-               mkdir bin/release/
-               cp bin/taraxad bin/release/taraxad-macos
+               mkdir /Users/distiller/project/release &&
+               cp bin/taraxad /Users/distiller/project/release/taraxad-macos
         - run:
            name: Execute ctest
            command: |
              ulimit -n 1024
              cd cmake-build/tests && ctest --output-on-failure
         - store_artifacts:
-           path: /Users/distiller/project/cmake-build/bin/release/
+           path: /Users/distiller/project/release/taraxad-macos
         - persist_to_workspace:
-           root: cmake-build/bin
-           paths: [ release ]
+           root: release
+           paths: [ taraxad-macos ]
    build-linux:
      environment:
         BUILD_OUTPUT_DIR: "cmake-docker-build-debug"
@@ -356,17 +356,17 @@ jobs:
            command: cd $BUILD_OUTPUT_DIR && make install
         - run:
            name: strip binary
-           command: cd $BUILD_OUTPUT_DIR && strip bin_install/taraxad && mkdir -p bin/release/ && cp bin_install/taraxad bin/release/taraxad-x86_64
+           command: cd $BUILD_OUTPUT_DIR && strip bin_install/taraxad && mkdir -p /root/project/release && cp bin_install/taraxad /root/project/release/taraxad-x86_64
         - run:
            name: Execute ctest
            command: |
             ulimit -n 1024
             cd $BUILD_OUTPUT_DIR/tests && ctest --output-on-failure
         - store_artifacts:
-           path: /root/project/cmake-docker-build-debug/bin/release
+           path: /root/project/release/taraxad-x86_64
         - persist_to_workspace:
-           root: cmake-docker-build-debug/bin/
-           paths: [ release ]
+           root: release
+           paths: [ taraxad-x86_64 ]
 
 
 workflows:
