@@ -198,10 +198,10 @@ struct EthImpl : Eth, EthParams {
         ++loc.index;
       }
     } else {
-      final_chain->transaction_hashes(blk_n)->for_each([&](auto const& trx_hash) {
-        trxs_json.append(toJson(trx_hash));
-        //
-      });
+      auto hashes = final_chain->transaction_hashes(blk_n);
+      for (size_t i = 0; i < hashes->count(); ++i) {
+        trxs_json.append(toJson(hashes->get(i)));
+      }
     }
     return ret;
   }

@@ -82,7 +82,7 @@ struct FullNodeConfig {
   optional<RpcConfig> rpc;
   TestParamsConfig test_params;
   ChainConfig chain = ChainConfig::predefined();
-  FinalChain::Opts opts_final_chain;
+  final_chain::Opts opts_final_chain;
   std::vector<logger::Config> log_configs;
 
   auto net_file_path() const { return db_path / "net"; }

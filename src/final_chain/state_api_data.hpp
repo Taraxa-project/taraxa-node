@@ -74,7 +74,7 @@ struct DPOSTransfer {
 
 using DPOSTransfers = unordered_map<addr_t, DPOSTransfer>;
 
-struct ChainConfig {
+struct Config {
   ETHChainConfig eth_chain_config;
   bool disable_block_rewards = 0;
   ExecutionOptions execution_options;
@@ -85,8 +85,8 @@ struct ChainConfig {
 
   u256 effective_genesis_balance(addr_t const& addr) const;
 };
-Json::Value enc_json(ChainConfig const& obj);
-void dec_json(Json::Value const& json, ChainConfig& obj);
+Json::Value enc_json(Config const& obj);
+void dec_json(Json::Value const& json, Config& obj);
 
 struct EVMBlock {
   addr_t Author;

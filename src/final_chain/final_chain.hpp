@@ -20,18 +20,6 @@ using namespace ::taraxa::util;
 struct FinalChain {
   static constexpr auto GAS_LIMIT = ((uint64_t)1 << 53) - 1;
 
-  struct Config {
-    state_api::ChainConfig state;
-    struct GenesisBlockFields {
-      addr_t author;
-      uint64_t timestamp = 0;
-    } genesis_block_fields;
-  };
-
-  struct Opts {
-    state_api::Opts state_api;
-  };
-
   struct NewBlock {
     addr_t author;
     uint64_t timestamp;
@@ -65,7 +53,6 @@ struct FinalChain {
 
     virtual size_t count() const = 0;
     virtual h256 get(size_t i) const = 0;
-    virtual void for_each(function<void(h256 const&)> const& cb) const = 0;
   };
   virtual shared_ptr<TransactionHashes> transaction_hashes(optional<EthBlockNumber> n = {}) const = 0;
   virtual Transactions transactions(optional<EthBlockNumber> n = {}) const = 0;
@@ -98,15 +85,8 @@ struct FinalChain {
   }
 };
 
-unique_ptr<FinalChain> NewFinalChain(shared_ptr<DB> const& db,           //
-                                     FinalChain::Config const& config,   //
-                                     FinalChain::Opts const& opts = {},  //
+unique_ptr<FinalChain> NewFinalChain(shared_ptr<DB> const& db, Config const& config, Opts const& opts = {},
                                      addr_t const& node_addr = {});
-
-Json::Value enc_json(FinalChain::Config const& obj);
-void dec_json(Json::Value const& json, FinalChain::Config& obj);
-Json::Value enc_json(FinalChain::Config::GenesisBlockFields const& obj);
-void dec_json(Json::Value const& json, FinalChain::Config::GenesisBlockFields& obj);
 
 }  // namespace taraxa::final_chain
 

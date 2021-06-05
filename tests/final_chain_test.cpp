@@ -18,7 +18,7 @@ struct advance_check_opts {
 
 struct FinalChainTest : WithDataDir {
   shared_ptr<DbStorage> db{new DbStorage(data_dir / "db")};
-  FinalChain::Config cfg = ChainConfig::predefined().final_chain;
+  Config cfg = ChainConfig::predefined().final_chain;
   unique_ptr<FinalChain> SUT;
   bool assume_only_toplevel_transfers = true;
   unordered_map<addr_t, u256> expected_balances;
@@ -52,10 +52,17 @@ struct FinalChainTest : WithDataDir {
     auto result = SUT->finalize(new_blk).get();
     ++expected_blk_num;
     auto const& blk_h = *result->final_chain_blk;
+    EXPECT_EQ(util::rlp_enc(blk_h), util::rlp_enc(*SUT->block_header(blk_h.number)));
+    EXPECT_EQ(util::rlp_enc(blk_h), util::rlp_enc(*SUT->block_header()));
     auto const& receipts = result->trx_receipts;
     EXPECT_EQ(blk_h.hash, SUT->block_header()->hash);
+    EXPECT_EQ(blk_h.hash, SUT->block_hash());
     EXPECT_EQ(blk_h.parent_hash, SUT->block_header(expected_blk_num - 1)->hash);
     EXPECT_EQ(blk_h.number, expected_blk_num);
+    EXPECT_EQ(blk_h.number, SUT->last_block_number());
+    EXPECT_EQ(SUT->transactionCount(blk_h.number), trxs.size());
+    EXPECT_EQ(SUT->transactions(blk_h.number), trxs);
+    EXPECT_EQ(*SUT->block_number(*SUT->block_hash(blk_h.number)), expected_blk_num);
     EXPECT_EQ(blk_h.author, new_blk.author);
     EXPECT_EQ(blk_h.timestamp, new_blk.timestamp);
     EXPECT_EQ(receipts.size(), trxs.size());
@@ -77,8 +84,8 @@ struct FinalChainTest : WithDataDir {
     unordered_set<addr_t> all_addrs_w_changed_balance;
     for (size_t i = 0; i < trxs.size(); ++i) {
       auto const& trx = trxs[i];
-      auto r = *SUT->transaction_receipt(trx.getHash());
-      EXPECT_EQ(*trx.rlp(), *result->trxs[i].rlp());
+      auto const& r = receipts[i];
+      EXPECT_EQ(util::rlp_enc(r), util::rlp_enc(*SUT->transaction_receipt(trx.getHash())));
       if (assume_only_toplevel_transfers && trx.getValue() != 0 && r.status_code == 1) {
         auto const& sender = trx.getSender();
         auto const& sender_bal = expected_balances[sender] -= trx.getValue();
@@ -101,15 +108,10 @@ struct FinalChainTest : WithDataDir {
         EXPECT_EQ(r.bloom(), LogBloom());
       }
       expected_block_log_bloom |= r.bloom();
+      auto trx_loc = *SUT->transaction_location(trx.getHash());
+      EXPECT_EQ(trx_loc.blk_n, blk_h.number);
+      EXPECT_EQ(trx_loc.index, i);
       //      EXPECT_EQ(r.new_contract_address, result.state_transition_result.ExecutionResults[i].NewContractAddr);
-      //      EXPECT_EQ(r.from(), trx.getSender());
-      //      EXPECT_EQ(r.blk_n(), blk_h.hash());
-      //      EXPECT_EQ(r.blockNumber(), blk_h.number());
-      //      EXPECT_EQ(r.transactionIndex(), i);
-      //      EXPECT_EQ(r.hash(), trx.getHash());
-      //      EXPECT_EQ(r.to(), trx.getReceiver().value_or(ZeroAddress));
-      //      EXPECT_EQ(r.bloom(), r.bloom());
-      //      EXPECT_EQ(r.status_code, r.statusCode());
       //      EXPECT_EQ(r.gas_used, result.state_transition_result.ExecutionResults[i].GasUsed);
       //      EXPECT_EQ(r.gas_used,
       //                i == 0 ? r.cumulativeGasUsed() : r.cumulativeGasUsed() - result.receipts[i -

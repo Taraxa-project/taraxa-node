@@ -23,7 +23,7 @@ struct ChainConfig {
   DagBlock dag_genesis_block;
   vdf_sortition::VdfConfig vdf;
   PbftConfig pbft;
-  FinalChain::Config final_chain;
+  final_chain::Config final_chain;
 
  private:
   static LazyVal<std::unordered_map<string, ChainConfig>> const predefined_;

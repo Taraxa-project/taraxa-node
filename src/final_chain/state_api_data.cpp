@@ -14,7 +14,7 @@ ErrFutureBlock::~ErrFutureBlock() throw() {}
 h256 const& Account::storage_root_eth() const { return StorageRootHash ? StorageRootHash : EmptyRLPListSHA3; }
 h256 const& Account::code_hash_eth() const { return CodeSize ? CodeHash : EmptySHA3; }
 
-u256 ChainConfig::effective_genesis_balance(addr_t const& addr) const {
+u256 Config::effective_genesis_balance(addr_t const& addr) const {
   if (!genesis_balances.count(addr)) {
     return 0;
   }
@@ -61,7 +61,7 @@ void dec_json(Json::Value const& json, ETHChainConfig& obj) {
   obj.petersburg_block = dev::jsToInt(json["petersburg_block"].asString());
 }
 
-Json::Value enc_json(ChainConfig const& obj) {
+Json::Value enc_json(Config const& obj) {
   Json::Value json(Json::objectValue);
   json["eth_chain_config"] = enc_json(obj.eth_chain_config);
   json["execution_options"] = enc_json(obj.execution_options);
@@ -73,7 +73,7 @@ Json::Value enc_json(ChainConfig const& obj) {
   return json;
 }
 
-void dec_json(Json::Value const& json, ChainConfig& obj) {
+void dec_json(Json::Value const& json, Config& obj) {
   dec_json(json["eth_chain_config"], obj.eth_chain_config);
   dec_json(json["execution_options"], obj.execution_options);
   obj.disable_block_rewards = json["disable_block_rewards"].asBool();
@@ -181,7 +181,7 @@ RLP_FIELDS_DEFINE(ETHChainConfig, homestead_block, dao_fork_block, eip_150_block
                   constantinople_block, petersburg_block)
 RLP_FIELDS_DEFINE(DPOSConfig, eligibility_balance_threshold, deposit_delay, withdrawal_delay, genesis_state)
 RLP_FIELDS_DEFINE(DPOSTransfer, value, negative)
-RLP_FIELDS_DEFINE(ChainConfig, eth_chain_config, disable_block_rewards, execution_options, genesis_balances, dpos)
+RLP_FIELDS_DEFINE(Config, eth_chain_config, disable_block_rewards, execution_options, genesis_balances, dpos)
 RLP_FIELDS_DEFINE(EVMBlock, Author, GasLimit, Time, Difficulty)
 RLP_FIELDS_DEFINE(EVMTransaction, From, GasPrice, To, Nonce, Value, Gas, Input)
 RLP_FIELDS_DEFINE(UncleBlock, Number, Author)

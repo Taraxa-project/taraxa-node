@@ -22,7 +22,7 @@ using namespace core_tests;
 struct StateAPITest : WithDataDir {};
 
 static auto const base_taraxa_chain_cfg = [] {
-  ChainConfig ret;
+  Config ret;
   ret.disable_block_rewards = true;
   ret.execution_options.disable_nonce_check = true;
   ret.execution_options.disable_gas_fee = true;
@@ -184,7 +184,7 @@ TEST_F(StateAPITest, eth_mainnet_smoke) {
       parse_rlp_file<vector<TestBlock>>(path(__FILE__).parent_path().parent_path() / "submodules" / "taraxa-evm" /
                                         "taraxa" / "data" / "eth_mainnet_blocks_0_300000.rlp");
 
-  ChainConfig chain_config;
+  Config chain_config;
   auto& eth_cfg = chain_config.eth_chain_config;
   eth_cfg.homestead_block = 1150000;
   eth_cfg.dao_fork_block = 1920000;
@@ -210,12 +210,13 @@ TEST_F(StateAPITest, eth_mainnet_smoke) {
                });
 
   ASSERT_EQ(test_blocks[0].StateRoot, SUT.get_last_committed_state_descriptor().state_root);
-  uint64_t progress_pct = 0;
   size_t num_blk_to_exec = 150000;  // test_blocks.size() will provide more coverage but will be slower
+  long double progress_pct = 0, progress_pct_log_threshold = 0;
+  auto one_blk_in_pct = (long double)100 / num_blk_to_exec;
   for (size_t blk_num = 1; blk_num < num_blk_to_exec; ++blk_num) {
-    if (auto n = 100 * blk_num / num_blk_to_exec; !progress_pct || n >= progress_pct + 10) {
-      // I'm aware about \r and flush(), but it doesn't always work
-      cout << "progress: " << (progress_pct = n) << "%" << endl;
+    if ((progress_pct += one_blk_in_pct) >= progress_pct_log_threshold) {
+      cout << "progress: " << uint(progress_pct) << "%" << endl;
+      progress_pct_log_threshold += 10;
     }
     auto const& test_block = test_blocks[blk_num];
     auto const& result = SUT.transition_state(test_block.evm_block, test_block.Transactions, test_block.UncleBlocks);

@@ -103,7 +103,7 @@ void c_method_args_rlp(taraxa_evm_state_API_ptr this_c, Params const&... args) {
   err_h.check();
 }
 
-StateAPI::StateAPI(decltype(get_blk_hash) get_blk_hash, ChainConfig const& chain_config, Opts const& opts,
+StateAPI::StateAPI(decltype(get_blk_hash) get_blk_hash, Config const& chain_config, Opts const& opts,
                    OptsDB const& opts_db)
     : get_blk_hash(move(get_blk_hash)),
       get_blk_hash_c{

@@ -47,8 +47,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   using vrf_sk_t = vrf_wrapper::vrf_sk_t;
   using vrf_proof_t = vrf_wrapper::vrf_proof_t;
 
-  // thread pools should be destroyed last, since components may depend on them
-  std::unique_ptr<util::ThreadPool> rpc_thread_pool_;
   struct PostDestructionContext {
     uint num_shared_pointers_to_check = 0;
     bool have_leaked_shared_pointers = false;
@@ -56,6 +54,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<PostDestructionContext> post_destruction_ctx_;
   // Has to be destroyed last, hence on top
   util::ExitStack post_destruction_;
+
+  // should be destroyed after all components, since they may depend on it through unsafe pointers
+  std::unique_ptr<util::ThreadPool> rpc_thread_pool_;
 
   std::atomic<bool> stopped_ = true;
   // configuration

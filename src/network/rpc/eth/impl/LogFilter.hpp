@@ -168,11 +168,13 @@ struct LogFilter {
     vector<LocalisedLogEntry> ret;
     auto action = [&, this](EthBlockNumber blk_n) {
       ExtendedTransactionLocation trx_loc{{{blk_n, 0}, *final_chain.block_hash(blk_n)}, {}};
-      final_chain.transaction_hashes(trx_loc.blk_n)->for_each([&, this](auto const& trx_h) {
-        trx_loc.trx_hash = trx_h;
-        match_one(trx_loc, *final_chain.transaction_receipt(trx_h), [&](auto const& lle) { ret.push_back(lle); });
+      auto hashes = final_chain.transaction_hashes(trx_loc.blk_n);
+      for (size_t i = 0; i < hashes->count(); ++i) {
+        trx_loc.trx_hash = hashes->get(i);
+        match_one(trx_loc, *final_chain.transaction_receipt(trx_loc.trx_hash),
+                  [&](auto const& lle) { ret.push_back(lle); });
         ++trx_loc.index;
-      });
+      }
     };
     auto from_blk_n = from_block_ ? *from_block_ : final_chain.last_block_number();
     auto to_blk_n = to_block_ ? *to_block_ : (!from_block_ ? from_blk_n : final_chain.last_block_number());

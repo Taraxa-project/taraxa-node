@@ -1,7 +1,5 @@
 #include "final_chain.hpp"
 
-#include <libdevcore/CommonJS.h>
-
 #include "TrieCommon.h"
 #include "common/constants.hpp"
 #include "replay_protection_service.hpp"
@@ -36,10 +34,7 @@ struct FinalChainImpl final : FinalChain {
 
   LOG_OBJECTS_DEFINE
 
-  FinalChainImpl(shared_ptr<DB> const& db,      //
-                 Config const& config,          //
-                 FinalChain::Opts const& opts,  //
-                 addr_t const& node_addr)
+  FinalChainImpl(shared_ptr<DB> const& db, Config const& config, Opts const& opts, addr_t const& node_addr)
       : db_(db),
         state_api([this](auto n) { return block_hash(n).value_or(ZeroHash); },  //
                   config.state,
@@ -52,22 +47,27 @@ struct FinalChainImpl final : FinalChain {
                   }),
         transaction_count_hint_(opts.state_api.ExpectedMaxTrxPerBlock) {
     LOG_OBJECTS_CREATE("EXECUTOR");
+    num_executed_dag_blk_ = db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
+    num_executed_trx_ = db_->getStatusField(taraxa::StatusDbField::ExecutedTrxCount);
     auto state_db_descriptor = state_api.get_last_committed_state_descriptor();
     if (auto last_blk_num = db_->lookup_int<EthBlockNumber>(LAST_NUMBER, DB::Columns::final_chain_meta); last_blk_num) {
       last_block_ = make_shared<BlockHeader>();
       last_block_->rlp(RLP(db_->lookup(*last_blk_num, DB::Columns::final_chain_blk_by_number)));
       if (last_block_->number != state_db_descriptor.blk_num) {
-        assert(state_db_descriptor.blk_num == last_block_->number - 1);
-        auto res = state_api.transition_state(
-            {
-                last_block_->author,
-                last_block_->gas_limit,
-                last_block_->timestamp,
-                BlockHeader::difficulty(),
-            },
-            to_state_api_transactions(transactions(last_block_->number)));
-        assert(res.StateRoot == last_block_->state_root);
-        state_api.transition_state_commit();
+        assert(state_db_descriptor.blk_num < last_block_->number);
+        for (auto n = state_db_descriptor.blk_num + 1; n <= last_block_->number; ++n) {
+          auto blk = n == last_block_->number ? last_block_ : FinalChainImpl::block_header(n);
+          auto res = state_api.transition_state(
+              {
+                  blk->author,
+                  blk->gas_limit,
+                  blk->timestamp,
+                  BlockHeader::difficulty(),
+              },
+              to_state_api_transactions(transactions(blk->number)));
+          assert(res.StateRoot == blk->state_root);
+          state_api.transition_state_commit();
+        }
       }
     } else {
       assert(state_db_descriptor.blk_num == 0);
@@ -76,8 +76,6 @@ struct FinalChainImpl final : FinalChain {
                                  state_db_descriptor.state_root);
       db_->commitWriteBatch(batch, db_opts_w_);
     }
-    num_executed_dag_blk_ = db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
-    num_executed_trx_ = db_->getStatusField(taraxa::StatusDbField::ExecutedTrxCount);
   }
 
   future<shared_ptr<FinalizationResult const>> finalize(NewBlock new_blk,
@@ -278,7 +276,8 @@ struct FinalChainImpl final : FinalChain {
   };
 
   shared_ptr<TransactionHashes> transaction_hashes(optional<EthBlockNumber> n = {}) const override {
-    return make_shared<TransactionHashesImpl>(db_->lookup(last_if_absent(n), DB::Columns::final_chain_blk_by_number));
+    return make_shared<TransactionHashesImpl>(
+        db_->lookup(last_if_absent(n), DB::Columns::executed_transactions_by_blk_number));
   }
 
   optional<TransactionLocation> transaction_location(h256 const& trx_hash) const override {
@@ -310,7 +309,11 @@ struct FinalChainImpl final : FinalChain {
     Transactions ret;
     auto hashes = transaction_hashes(n);
     ret.reserve(hashes->count());
-    hashes->for_each([&](auto const& hash) { ret.emplace_back(*db_->getTransaction(hash)); });
+    for (size_t i = 0; i < ret.capacity(); ++i) {
+      auto trx = db_->getTransaction(hashes->get(i));
+      assert(trx);
+      ret.emplace_back(*trx);
+    }
     return ret;
   }
 
@@ -414,8 +417,10 @@ struct FinalChainImpl final : FinalChain {
 
   struct TransactionHashesImpl : TransactionHashes {
     string serialized_;
+    size_t count_;
 
-    explicit TransactionHashesImpl(string serialized) : serialized_(move(serialized)) {}
+    explicit TransactionHashesImpl(string serialized)
+        : serialized_(move(serialized)), count_(serialized_.size() / h256::size) {}
 
     static bytes serialize_from_transactions(Transactions const& transactions) {
       bytes serialized;
@@ -432,49 +437,13 @@ struct FinalChainImpl final : FinalChain {
       return h256((uint8_t*)(serialized_.data() + i * h256::size), h256::ConstructFromPointer);
     }
 
-    size_t count() const override { return serialized_.size() / h256::size; }
-
-    void for_each(function<void(h256 const&)> const& cb) const override {
-      h256 hash;
-      size_t i = 0;
-      for (auto b : serialized_) {
-        hash[i] = b;
-        if (++i; i % h256::size == 0) {
-          cb(hash);
-        }
-      }
-    }
+    size_t count() const override { return count_; }
   };
 };
 
-unique_ptr<FinalChain> NewFinalChain(shared_ptr<DB> const& db,          //
-                                     FinalChain::Config const& config,  //
-                                     FinalChain::Opts const& opts, addr_t const& node_addr) {
+unique_ptr<FinalChain> NewFinalChain(shared_ptr<DB> const& db, Config const& config, Opts const& opts,
+                                     addr_t const& node_addr) {
   return u_ptr(new FinalChainImpl(db, config, opts, node_addr));
-}
-
-Json::Value enc_json(FinalChain::Config const& obj) {
-  Json::Value json(Json::objectValue);
-  json["state"] = enc_json(obj.state);
-  json["genesis_block_fields"] = enc_json(obj.genesis_block_fields);
-  return json;
-}
-
-void dec_json(Json::Value const& json, FinalChain::Config& obj) {
-  dec_json(json["state"], obj.state);
-  dec_json(json["genesis_block_fields"], obj.genesis_block_fields);
-}
-
-Json::Value enc_json(FinalChain::Config::GenesisBlockFields const& obj) {
-  Json::Value json(Json::objectValue);
-  json["timestamp"] = dev::toJS(obj.timestamp);
-  json["author"] = dev::toJS(obj.author);
-  return json;
-}
-
-void dec_json(Json::Value const& json, FinalChain::Config::GenesisBlockFields& obj) {
-  obj.timestamp = dev::jsToInt(json["timestamp"].asString());
-  obj.author = addr_t(json["author"].asString());
 }
 
 }  // namespace taraxa::final_chain

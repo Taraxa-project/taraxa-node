@@ -20,7 +20,7 @@ class StateAPI {
   string db_path;
 
  public:
-  StateAPI(function<h256(EthBlockNumber)> get_blk_hash, ChainConfig const& chain_config, Opts const& opts,
+  StateAPI(function<h256(EthBlockNumber)> get_blk_hash, Config const& chain_config, Opts const& opts,
            OptsDB const& opts_db);
   ~StateAPI();
 
