@@ -197,10 +197,10 @@ struct FinalChainImpl final : FinalChain {
     RLPStream rlp_strm;
     for (size_t i(0); i < transactions.size(); ++i) {
       auto const& trx = transactions[i];
-      auto i_rlp = util::rlp_enc(i);
+      auto i_rlp = util::rlp_enc(rlp_strm, i);
       trxs_trie[i_rlp] = *trx.rlp();
       auto const& receipt = receipts[i];
-      receipts_trie[i_rlp] = util::rlp_enc(receipt);
+      receipts_trie[i_rlp] = util::rlp_enc(rlp_strm, receipt);
       db_->insert(batch, DB::Columns::final_chain_receipt_by_trx_hash, trx.getHash(), rlp_strm.out());
       auto bloom = receipt.bloom();
       blk_header.log_bloom |= bloom;
