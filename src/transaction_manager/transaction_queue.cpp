@@ -94,8 +94,10 @@ void TransactionQueue::removeTransactionFromBuffer(trx_hash_t const &hash) {
 void TransactionQueue::addTransactionToVerifiedQueue(trx_hash_t const &hash, std::list<Transaction>::iterator iter) {
   uLock verify_lock(shared_mutex_for_verified_qu_);
   {
-    // this can happend when tx is verified in backround thread
-    // and in same time we verified block, so it was already removed
+    // This function is called from several background threads by verifyQueuedTrxs()
+    // and at the same time verifyBlockTransactions() can be called, that is removing
+    // all trxs that are already in DAG block from those queues. So we need to have lock here
+    // and check if the transaction was not removed by DAG block
     sharedLock lock(shared_mutex_for_queued_trxs_);
     if (queued_trxs_.find(hash) == queued_trxs_.end()) return;
   }
