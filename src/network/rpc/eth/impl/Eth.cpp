@@ -26,7 +26,7 @@ struct EthImpl : Eth, EthParams {
 
   string eth_gasPrice() override { return toJS(gas_pricer()); }
 
-  Json::Value eth_accounts() override { return toJson(vector{address}); }
+  Json::Value eth_accounts() override { return toJsonArray(vector{address}); }
 
   string eth_blockNumber() override { return toJS(final_chain->last_block_number()); }
 
@@ -145,20 +145,20 @@ struct EthImpl : Eth, EthParams {
   Json::Value eth_getFilterChanges(string const& _filterId) override {
     auto watch_id = jsToInt(_filterId);
     return watches.visit_by_id(watch_id, [=](auto watch) {
-      return watch ? toJson(watch->poll(watch_id)) : Json::Value(Json::arrayValue);
+      return watch ? toJsonArray(watch->poll(watch_id)) : Json::Value(Json::arrayValue);
       //
     });
   }
 
   Json::Value eth_getFilterLogs(string const& _filterId) override {
     if (auto filter = watches.logs.get_watch_params(jsToInt(_filterId))) {
-      return toJson(filter->match_all(*final_chain));
+      return toJsonArray(filter->match_all(*final_chain));
     }
     return Json::Value(Json::arrayValue);
   }
 
   Json::Value eth_getLogs(Json::Value const& _json) override {
-    return toJson(parse_log_filter(_json).match_all(*final_chain));
+    return toJsonArray(parse_log_filter(_json).match_all(*final_chain));
   }
 
   Json::Value eth_syncing() override {
@@ -483,7 +483,7 @@ struct EthImpl : Eth, EthParams {
   }
 
   template <typename T>
-  static Json::Value toJson(vector<T> const& _es) {
+  static Json::Value toJsonArray(vector<T> const& _es) {
     Json::Value res(Json::arrayValue);
     for (auto const& e : _es) {
       res.append(toJson(e));
