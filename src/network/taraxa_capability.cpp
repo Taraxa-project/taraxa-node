@@ -1619,7 +1619,8 @@ void TaraxaCapability::broadcastPreviousRoundNextVotesBundle() {
   {
     boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
     for (auto const &peer : peers_) {
-      if (peer.second->pbft_round_ < pbft_current_round) {
+      // Nodes may vote at different values at previous round, so need less or equal
+      if (peer.second->pbft_round_ <= pbft_current_round) {
         peers_to_send.emplace_back(peer.first);
       }
     }
