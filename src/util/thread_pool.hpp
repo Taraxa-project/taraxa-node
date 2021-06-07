@@ -27,6 +27,7 @@ class ThreadPool : std::enable_shared_from_this<ThreadPool> {
   auto capacity() const { return threads_.capacity(); }
   uint64_t num_pending_tasks() const { return debug_num_pending_tasks_; }
 
+  // TODO eliminate
   auto &unsafe_get_io_context() { return ioc_; }
 
   void start();
