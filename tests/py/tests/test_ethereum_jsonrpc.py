@@ -31,5 +31,5 @@ contract Greeter {
     set_greeting_trx_receipt = default_cluster[2].w3_http.eth.wait_for_transaction_receipt(set_greeting_trx_hash)
     assert set_greeting_trx_receipt.status == 1
     print(contract_deploy_receipt)
-    contract_3 = contract_factory(default_cluster[3].w3_http.eth, contract_deploy_receipt.contractAddress)
+    contract_3 = contract_factory(default_cluster[2].w3_http.eth, contract_deploy_receipt.contractAddress)
     assert contract_3.functions.greet().call() == greeting
