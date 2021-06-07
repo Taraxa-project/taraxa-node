@@ -67,8 +67,8 @@ struct FinalChainImpl final : FinalChain {
     } else {
       assert(state_db_descriptor.blk_num == 0);
       auto batch = db_->createWriteBatch();
-      last_block_ = append_block(batch, config.genesis_block_fields.author, config.genesis_block_fields.timestamp, 0,
-                                 state_db_descriptor.state_root);
+      last_block_ = append_block(batch, config.genesis_block_fields.author, config.genesis_block_fields.timestamp,
+                                 GAS_LIMIT, state_db_descriptor.state_root);
       db_->commitWriteBatch(batch, db_opts_w_);
     }
   }
