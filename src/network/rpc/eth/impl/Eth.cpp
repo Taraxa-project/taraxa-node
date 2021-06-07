@@ -98,13 +98,13 @@ struct EthImpl : Eth, EthParams {
 
   Json::Value eth_getBlockByHash(string const& _blockHash, bool _includeTransactions) override {
     if (auto blk_n = final_chain->block_number(jsToFixed<32>(_blockHash)); blk_n) {
-      return toJson(get_block_by_number(*blk_n, _includeTransactions));
+      return get_block_by_number(*blk_n, _includeTransactions);
     }
     return Json::Value();
   }
 
   Json::Value eth_getBlockByNumber(string const& _blockNumber, bool _includeTransactions) override {
-    return toJson(get_block_by_number(parse_blk_num(_blockNumber), _includeTransactions));
+    return get_block_by_number(parse_blk_num(_blockNumber), _includeTransactions);
   }
 
   Json::Value eth_getTransactionByHash(string const& _transactionHash) override {
