@@ -107,14 +107,12 @@ void TransactionQueue::addTransactionToVerifiedQueue(trx_hash_t const &hash, std
 
 // The caller is responsible for storing the transaction to db!
 void TransactionQueue::removeBlockTransactionsFromQueue(vec_trx_t const &all_block_trxs) {
-  {
-    sharedLock lock(shared_mutex_for_queued_trxs_);
-    if (queued_trxs_.empty()) return;
-  }
+  upgradableLock lock(shared_mutex_for_queued_trxs_);
+  if (queued_trxs_.empty()) return;
+
   std::unordered_map<trx_hash_t, bool> unverif_to_remove;
   std::vector<trx_hash_t> to_remove;
   {
-    sharedLock lock(shared_mutex_for_queued_trxs_);
     uLock verify_lock(shared_mutex_for_verified_qu_);
     upgradableLock unverify_lock(shared_mutex_for_unverified_qu_);
     for (auto const &trx : all_block_trxs) {
@@ -135,13 +133,13 @@ void TransactionQueue::removeBlockTransactionsFromQueue(vec_trx_t const &all_blo
                                                }),
                                 unverified_hash_qu_.end());
     }
-  }
-  // clear trx_buffer
-  {
-    uLock lock(shared_mutex_for_queued_trxs_);
-    for (auto const &t : to_remove) {
-      trx_buffer_.erase(queued_trxs_[t]);
-      queued_trxs_.erase(t);
+    // clear trx_buffer
+    {
+      upgradeLock locked(lock);
+      for (auto const &t : to_remove) {
+        trx_buffer_.erase(queued_trxs_[t]);
+        queued_trxs_.erase(t);
+      }
     }
   }
 }
