@@ -46,7 +46,7 @@ class Node:
         self._proc = Popen([self._executable_path, "--conf_taraxa", cfg_file_path])
         if self._cfg_path is None:
             os.remove(cfg_file_path)
-        time.sleep(1)
+        time.sleep(1)  # TODO eliminate
         cfg_rpc = self.cfg.get("rpc", {})
         rpc_http_port = cfg_rpc.get("http_port", None)
         if rpc_http_port is not None:

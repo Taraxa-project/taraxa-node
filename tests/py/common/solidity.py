@@ -1,11 +1,9 @@
 import json
-from typing import Callable
 
 import solcx
-from web3.contract import Contract
 
 
-def compile_single_src(src: str) -> Callable[[...], Contract]:
+def compile_single_src(src: str):
     solc_result = solcx.compile_standard({
         "language": "Solidity",
         "sources": {

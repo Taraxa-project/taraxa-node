@@ -98,6 +98,30 @@ void PbftManager::stop() {
 void PbftManager::run() {
   LOG(log_nf_) << "PBFT running ...";
 
+  for (auto period = final_chain_->last_block_number() + 1, curr_period = pbft_chain_->getPbftChainSize();
+       period <= curr_period;  //
+       ++period) {
+    auto pbft_block_hash = db_->getPeriodPbftBlock(period);
+    if (!pbft_block_hash) {
+      LOG(log_er_) << "DB corrupted - PBFT block period " << period
+                   << " does not exist in DB period_pbft_block. PBFT chain size " << pbft_chain_->getPbftChainSize();
+      assert(false);
+    }
+    // Get PBFT block in DB
+    auto pbft_block = db_->getPbftBlock(*pbft_block_hash);
+    if (!pbft_block) {
+      LOG(log_er_) << "DB corrupted - Cannot find PBFT block hash " << pbft_block_hash
+                   << " in PBFT chain DB pbft_blocks.";
+      assert(false);
+    }
+    if (pbft_block->getPeriod() != period) {
+      LOG(log_er_) << "DB corrupted - PBFT block hash " << pbft_block_hash << "has different period "
+                   << pbft_block->getPeriod() << " in block data than in block order db: " << period;
+      assert(false);
+    }
+    finalize_(*pbft_block, db_->getFinalizedDagBlockHashesByAnchor(pbft_block->getPivotDagBlockHash()));
+  }
+
   // Initialize PBFT status
   initialState_();
 
@@ -1358,6 +1382,29 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
   }
 }
 
+void PbftManager::finalize_(PbftBlock const &pbft_block, vector<h256> finalized_dag_blk_hashes) {
+  final_chain_->finalize(
+      {
+          pbft_block.getBeneficiary(),
+          pbft_block.getTimestamp(),
+          move(finalized_dag_blk_hashes),
+          pbft_block.getBlockHash(),
+      },
+      [this, anchor_hash = pbft_block.getPivotDagBlockHash()](auto const &, auto &batch) {
+        // Update proposal period DAG levels map
+        auto anchor = db_->getDagBlock(anchor_hash);
+        if (!anchor) {
+          LOG(log_er_) << "DB corrupted - Cannot find anchor block: " << anchor_hash << " in DB.";
+          assert(false);
+        }
+        auto new_proposal_period_levels_map = dag_blk_mgr_->newProposePeriodDagLevelsMap(anchor->getLevel());
+        db_->addProposalPeriodDagLevelsMapToBatch(*new_proposal_period_levels_map, batch);
+        auto dpos_current_max_proposal_period = dag_blk_mgr_->getCurrentMaxProposalPeriod();
+        db_->addDposProposalPeriodLevelsFieldToBatch(DposProposalPeriodLevelsStatus::max_proposal_period,
+                                                     dpos_current_max_proposal_period, batch);
+      });
+}
+
 bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes) {
   auto const &pbft_block_hash = pbft_block_cert_votes.pbft_blk->getBlockHash();
   if (db_->pbftBlockInDb(pbft_block_hash)) {
@@ -1399,26 +1446,7 @@ bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes) {
   LOG(log_nf_) << node_addr_ << " successful push unexecuted PBFT block " << pbft_block_hash << " in period "
                << pbft_period << " into chain! In round " << getPbftRound();
 
-  final_chain_->finalize(
-      {
-          pbft_block->getBeneficiary(),
-          pbft_block->getTimestamp(),
-          move(finalized_dag_blk_hashes),
-          pbft_block->getBlockHash(),
-      },
-      [=](auto const &, auto &batch) {
-        // Update proposal period DAG levels map
-        auto anchor = db_->getDagBlock(anchor_hash);
-        if (!anchor) {
-          LOG(log_er_) << "DB corrupted - Cannot find anchor block: " << anchor_hash << " in DB.";
-          assert(false);
-        }
-        auto new_proposal_period_levels_map = dag_blk_mgr_->newProposePeriodDagLevelsMap(anchor->getLevel());
-        db_->addProposalPeriodDagLevelsMapToBatch(*new_proposal_period_levels_map, batch);
-        auto dpos_current_max_proposal_period = dag_blk_mgr_->getCurrentMaxProposalPeriod();
-        db_->addDposProposalPeriodLevelsFieldToBatch(DposProposalPeriodLevelsStatus::max_proposal_period,
-                                                     dpos_current_max_proposal_period, batch);
-      });
+  finalize_(*pbft_block, move(finalized_dag_blk_hashes));
 
   // Reset proposed PBFT block hash to False for next pbft block proposal
   proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
