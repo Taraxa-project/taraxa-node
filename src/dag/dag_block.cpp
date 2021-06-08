@@ -55,7 +55,7 @@ DagBlock::DagBlock(Json::Value const &doc) {
 
   // Allow vdf not to be present for genesis
   if (level_ > 0) {
-    vdf_ = VdfSortition(addr_t(), doc["vdf"]);
+    vdf_ = VdfSortition(doc["vdf"]);
   }
 }
 
@@ -72,7 +72,7 @@ DagBlock::DagBlock(dev::RLP const &rlp) {
     } else if (field_n == 2) {
       timestamp_ = el.toInt<uint64_t>();
     } else if (field_n == 3) {
-      vdf_ = vdf_sortition::VdfSortition(addr_t(), el.toBytes());
+      vdf_ = vdf_sortition::VdfSortition(el.toBytes());
     } else if (field_n == 4) {
       tips_ = el.toVector<trx_hash_t>();
     } else if (field_n == 5) {
