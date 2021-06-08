@@ -119,7 +119,8 @@ void PbftManager::run() {
                    << pbft_block->getPeriod() << " in block data than in block order db: " << period;
       assert(false);
     }
-    finalize_(*pbft_block, db_->getFinalizedDagBlockHashesByAnchor(pbft_block->getPivotDagBlockHash()));
+    finalize_(*pbft_block, db_->getFinalizedDagBlockHashesByAnchor(pbft_block->getPivotDagBlockHash()),
+              period == curr_period);
   }
 
   // Initialize PBFT status
@@ -1382,8 +1383,8 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
   }
 }
 
-void PbftManager::finalize_(PbftBlock const &pbft_block, vector<h256> finalized_dag_blk_hashes) {
-  final_chain_->finalize(
+void PbftManager::finalize_(PbftBlock const &pbft_block, vector<h256> finalized_dag_blk_hashes, bool sync) {
+  auto result = final_chain_->finalize(
       {
           pbft_block.getBeneficiary(),
           pbft_block.getTimestamp(),
@@ -1403,6 +1404,9 @@ void PbftManager::finalize_(PbftBlock const &pbft_block, vector<h256> finalized_
         db_->addDposProposalPeriodLevelsFieldToBatch(DposProposalPeriodLevelsStatus::max_proposal_period,
                                                      dpos_current_max_proposal_period, batch);
       });
+  if (sync) {
+    result.wait();
+  }
 }
 
 bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes) {

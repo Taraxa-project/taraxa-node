@@ -124,7 +124,7 @@ class PbftManager {
 
   void pushSyncedPbftBlocksIntoChain_();
 
-  void finalize_(PbftBlock const &pbft_block, vector<h256> finalized_dag_blk_hashes);
+  void finalize_(PbftBlock const &pbft_block, vector<h256> finalized_dag_blk_hashes, bool sync = false);
   bool pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes);
 
   void updateTwoTPlusOneAndThreshold_();
