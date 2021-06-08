@@ -27,9 +27,7 @@ void dec_json(Json::Value const& json, VdfConfig& obj) {
   obj.lambda_bound = dev::jsToInt(json["lambda_bound"].asString());
 }
 
-VdfSortition::VdfSortition(VdfConfig const& config, addr_t node_addr, vrf_sk_t const& sk, bytes const& msg)
-    : VrfSortitionBase(sk, msg) {
-  LOG_OBJECTS_CREATE("VDF");
+VdfSortition::VdfSortition(VdfConfig const& config, vrf_sk_t const& sk, bytes const& msg) : VrfSortitionBase(sk, msg) {
   difficulty_ = calculateDifficulty(config);
 }
 
@@ -49,8 +47,7 @@ uint16_t VdfSortition::calculateDifficulty(VdfConfig const& config) const {
   return difficulty;
 }
 
-VdfSortition::VdfSortition(addr_t node_addr, bytes const& b) {
-  LOG_OBJECTS_CREATE("VDF");
+VdfSortition::VdfSortition(bytes const& b) {
   if (b.empty()) {
     return;
   }
@@ -67,9 +64,7 @@ VdfSortition::VdfSortition(addr_t node_addr, bytes const& b) {
   difficulty_ = (*it++).toInt<uint16_t>();
 }
 
-VdfSortition::VdfSortition(addr_t node_addr, Json::Value const& json) {
-  LOG_OBJECTS_CREATE("VDF");
-
+VdfSortition::VdfSortition(Json::Value const& json) {
   pk = vrf_pk_t(json["pk"].asString());
   proof = vrf_proof_t(json["proof"].asString());
   vdf_sol_.first = dev::fromHex(json["sol1"].asString());
@@ -110,31 +105,28 @@ void VdfSortition::computeVdfSolution(VdfConfig const& config, bytes const& msg)
   }
 }
 
-bool VdfSortition::verifyVdf(VdfConfig const& config, bytes const& vrf_input, bytes const& vdf_input) {
+void VdfSortition::verifyVdf(VdfConfig const& config, bytes const& vrf_input, bytes const& vdf_input) {
   // Verify VRF output
   if (!verifyVrf(vrf_input)) {
-    LOG(log_er_) << "VRF verify failed. VDF input " << vdf_input << ", lambda " << config.lambda_bound
-                 << ", difficulty " << getDifficulty();
-    return false;
+    throw InvalidVdfSortition("VRF verify failed. VDF input " + bytes2str(vdf_input) + ", lambda " +
+                              std::to_string(config.lambda_bound) + ", difficulty " + std::to_string(getDifficulty()));
   }
 
   if (!omitVdf(config)) {
     if (difficulty_ != calculateDifficulty(config)) {
-      LOG(log_er_) << "VDF solution verification failed. Incorrect difficulty. VDF input " << vdf_input << ", lambda "
-                   << config.lambda_bound << ", difficulty " << getDifficulty();
-      return false;
+      throw InvalidVdfSortition("VDF solution verification failed. Incorrect difficulty. VDF input " +
+                                bytes2str(vdf_input) + ", lambda " + std::to_string(config.lambda_bound) +
+                                ", difficulty " + std::to_string(getDifficulty()));
     }
 
     // Verify VDF solution
     VerifierWesolowski verifier(config.lambda_bound, getDifficulty(), vdf_input, N);
     if (!verifier(vdf_sol_)) {
-      LOG(log_er_) << "VDF solution verification failed. VDF input " << vdf_input << ", lambda " << config.lambda_bound
-                   << ", difficulty " << getDifficulty();
-      return false;
+      throw InvalidVdfSortition("VDF solution verification failed. VDF input " + bytes2str(vdf_input) + ", lambda " +
+                                std::to_string(config.lambda_bound) + ", difficulty " +
+                                std::to_string(getDifficulty()));
     }
   }
-
-  return true;
 }
 
 bool VdfSortition::verifyVrf(bytes const& vrf_input) { return VrfSortitionBase::verify(vrf_input); }
