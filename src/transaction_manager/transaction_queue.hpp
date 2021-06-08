@@ -36,7 +36,7 @@ class TransactionQueue {
   std::unordered_map<trx_hash_t, Transaction> getVerifiedTrxSnapShot() const;
   std::pair<size_t, size_t> getTransactionQueueSize() const;
   std::vector<Transaction> getNewVerifiedTrxSnapShot();
-  std::unordered_map<trx_hash_t, Transaction> removeBlockTransactionsFromQueue(vec_trx_t const &all_block_trxs);
+  void removeBlockTransactionsFromQueue(vec_trx_t const &all_block_trxs);
   unsigned long getVerifiedTrxCount() const;
   std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash) const;
 
