@@ -1049,7 +1049,7 @@ void TaraxaCapability::sendBlocks(NodeID const &_id, std::vector<std::shared_ptr
 
     // Split packet into multiple smaller ones if total size is > MAX_PACKET_SIZE
     if (packet_bytes.size() > MAX_PACKET_SIZE) {
-      LOG(log_dg_dag_sync_) << "Sending partial BlocksPacket due tu MAX_PACKET_SIZE limit. " << blocks_counter
+      LOG(log_dg_dag_sync_) << "Sending partial BlocksPacket due to MAX_PACKET_SIZE limit. " << blocks_counter
                             << " blocks out of " << blocks.size() << " PbftBlockPacketsent.";
 
       taraxa::bytes removed_bytes;
@@ -1069,7 +1069,7 @@ void TaraxaCapability::sendBlocks(NodeID const &_id, std::vector<std::shared_ptr
     blocks_counter++;
   }
 
-  LOG(log_dg_dag_sync_) << "Sending final BlocksPacket.";
+  LOG(log_dg_dag_sync_) << "Sending final BlocksPacket with " << blocks_counter << " blocks.";
 
   RLPStream s(packet_items_count);
   s.appendRaw(packet_bytes, packet_items_count);
