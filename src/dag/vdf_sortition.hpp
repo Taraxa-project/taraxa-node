@@ -60,13 +60,17 @@ void dec_json(Json::Value const& json, VdfConfig& obj);
 // It includes a vrf for difficulty adjustment
 class VdfSortition : public vrf_wrapper::VrfSortitionBase {
  public:
+  struct InvalidVdfSortition : std::runtime_error {
+    explicit InvalidVdfSortition(std::string const& msg) : runtime_error("Invalid VdfSortition: " + msg) {}
+  };
+
   VdfSortition() = default;
-  explicit VdfSortition(VdfConfig const& config, addr_t node_addr, vrf_sk_t const& sk, bytes const& msg);
-  explicit VdfSortition(addr_t node_addr, bytes const& b);
-  explicit VdfSortition(addr_t node_addr, Json::Value const& json);
+  explicit VdfSortition(VdfConfig const& config, vrf_sk_t const& sk, bytes const& msg);
+  explicit VdfSortition(bytes const& b);
+  explicit VdfSortition(Json::Value const& json);
 
   void computeVdfSolution(VdfConfig const& config, dev::bytes const& msg);
-  bool verifyVdf(VdfConfig const& config, bytes const& vrf_input, bytes const& vdf_input);
+  void verifyVdf(VdfConfig const& config, bytes const& vrf_input, bytes const& vdf_input);
 
   bytes rlp() const;
   bool operator==(VdfSortition const& other) const {
@@ -103,8 +107,6 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
   std::pair<bytes, bytes> vdf_sol_;
   unsigned long vdf_computation_time_ = 0;
   uint16_t difficulty_ = 0;
-
-  LOG_OBJECTS_DEFINE
 };
 
 }  // namespace taraxa::vdf_sortition
