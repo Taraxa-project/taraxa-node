@@ -17,7 +17,7 @@ jobs:
         env:
           GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
       - run: |
-            curl -u $CIRCLE_TOKEN: -X  POST \
+            curl -u ${{ secrets.CIRCLE_TOKEN }}: -X  POST \
                -H 'Content-Type: application/json' \
                -H 'Accept: application/json' \
                -d "{\"branch\":\"${{github.ref}}\", \"deploy\":\"true\" }" \
