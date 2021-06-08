@@ -1015,8 +1015,10 @@ void TaraxaCapability::sendBlocks(NodeID const &_id, std::vector<std::shared_ptr
   size_t packet_items_count = 0;
   size_t blocks_counter = 0;
 
+  auto peer = getPeer(_id);
+
   for (auto &block : blocks) {
-    if (dag_blk_mgr_->isBlockKnown(block->getHash())) {
+    if (peer->isBlockKnown(block->getHash())) {
       continue;
     }
 
