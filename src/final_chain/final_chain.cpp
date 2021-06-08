@@ -168,12 +168,12 @@ struct FinalChainImpl final : FinalChain {
     if (db_->createSnapshot(blk_header->number)) {
       state_api.create_snapshot(blk_header->number);
     }
+    num_executed_dag_blk_ = num_executed_dag_blk;
+    num_executed_trx_ = num_executed_trx;
     {
       unique_lock l(last_block_mu_);
       last_block_ = blk_header;
     }
-    num_executed_dag_blk_ = num_executed_dag_blk;
-    num_executed_trx_ = num_executed_trx;
     block_finalized_.emit(result);
     return result;
   }
