@@ -92,6 +92,12 @@ void TaraxaCapability::sealAndSend(NodeID const &nodeID, unsigned packet_type, R
     return;
   }
 
+  auto peer = getPeer(nodeID);
+
+  if (!peer->passed_initial_ && packet_type != StatusPacket) {
+    return;
+  }
+
   auto packet_size = rlp.out().size();
 
   // This situation should never happen - packets bigger than 16MB cannot be sent due to networking layer limitations.
