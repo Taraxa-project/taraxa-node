@@ -3,6 +3,7 @@ on: issue_comment
 
 jobs:
   deploy:
+    runs-on: ubuntu-latest
     steps:
       - uses: alexjurkiewicz/pr-comment-github-deployment@master
         env:
