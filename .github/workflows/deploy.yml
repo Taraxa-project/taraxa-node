@@ -1,4 +1,5 @@
-runs-on: issue_comment
+name: deploy
+on: issue_comment
 
 jobs:
   deploy:
