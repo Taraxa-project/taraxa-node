@@ -146,7 +146,6 @@ struct EthImpl : Eth, EthParams {
     auto watch_id = jsToInt(_filterId);
     return watches.visit_by_id(watch_id, [=](auto watch) {
       return watch ? toJsonArray(watch->poll(watch_id)) : Json::Value(Json::arrayValue);
-      //
     });
   }
 
@@ -161,10 +160,7 @@ struct EthImpl : Eth, EthParams {
     return toJsonArray(parse_log_filter(_json).match_all(*final_chain));
   }
 
-  Json::Value eth_syncing() override {
-    // TODO
-    return Json::Value(false);
-  }
+  Json::Value eth_syncing() override { return Json::Value(syncing_probe()); }
 
   Json::Value eth_chainId() override { return chain_id ? Json::Value(toJS(chain_id)) : Json::Value(); }
 
@@ -225,9 +221,8 @@ struct EthImpl : Eth, EthParams {
     if (hashes->count() <= trx_pos) {
       return {};
     }
-    auto trx = get_trx(hashes->get(trx_pos));
     return LocalisedTransaction{
-        move(*trx),
+        *get_trx(hashes->get(trx_pos)),
         TransactionLocationWithBlockHash{
             {blk_n, trx_pos},
             *final_chain->block_hash(blk_n),
@@ -237,10 +232,7 @@ struct EthImpl : Eth, EthParams {
 
   optional<LocalisedTransaction> get_transaction(h256 const& blk_h, uint64_t _i) const {
     auto blk_n = final_chain->block_number(blk_h);
-    if (!blk_n) {
-      return {};
-    }
-    return get_transaction(_i, *blk_n);
+    return blk_n ? get_transaction(_i, *blk_n) : nullopt;
   }
 
   optional<LocalisedTransactionReceipt> get_transaction_receipt(h256 const& trx_h) const {

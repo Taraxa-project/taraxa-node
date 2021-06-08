@@ -127,6 +127,7 @@ void FullNode::start() {
                               dev::toJS(*trx.rlp()), err_msg)));
       }
     };
+    eth_rpc_params.syncing_probe = [network = network_] { return network->pbft_syncing(); };
     auto eth_json_rpc = net::rpc::eth::NewEth(move(eth_rpc_params));
     emplace(jsonrpc_api_,
             make_shared<net::Test>(shared_from_this()),    // TODO Because this object refers to FullNode, the

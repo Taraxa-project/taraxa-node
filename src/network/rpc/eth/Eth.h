@@ -30,6 +30,7 @@ struct EthParams {
   function<shared_ptr<Transaction>(h256 const&)> get_trx;
   function<void(Transaction const& trx)> send_trx;
   function<u256()> gas_pricer = [] { return u256(0); };
+  function<bool()> syncing_probe = [] { return false; };
   WatchesConfig watches_cfg;
 };
 
