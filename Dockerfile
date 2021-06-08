@@ -13,7 +13,6 @@ ARG GCC_VERSION=4:9.3.0-1ubuntu2
 ARG GFLAGS_VERSION=2.2.2-1build1
 ARG CLANG_FORMAT_VERSION=clang+llvm-10.0.0-x86_64-linux-gnu-ubuntu-18.04
 
-RUN add-apt-repository -y ppa:ethereum/ethereum
 # Install standard packages
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends tzdata \
@@ -34,7 +33,6 @@ RUN apt-get update \
         \
         python3-pip \
         libncurses5 \
-        solc \
     && rm -rf /var/lib/apt/lists/*
 
 
