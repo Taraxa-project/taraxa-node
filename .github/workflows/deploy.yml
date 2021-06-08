@@ -16,5 +16,10 @@ jobs:
           reaction: rocket
         env:
           GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
-      - run: 'echo Found it!'
+      - run: |
+            curl -u $CIRCLE_TOKEN: -X  POST \
+               -H 'Content-Type: application/json' \
+               -H 'Accept: application/json' \
+               -d "{\"branch\":\"${CIRCLE_BRANCH}\", \"deploy\":\"true" }" \
+               https://circleci.com/api/v2/project/gh/agrebin/taraxa-node/pipeline
         if: steps.check.outputs.triggered == 'true'
