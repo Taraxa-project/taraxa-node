@@ -433,6 +433,7 @@ struct EthImpl : Eth, EthParams {
     res["uncles"] = Json::Value(Json::arrayValue);
     res["hash"] = toJson(obj.hash);
     res["size"] = toJson(obj.ethereum_rlp_size);
+    res["difficulty"] = "0x0";
     res["totalDifficulty"] = "0x0";
     return res;
   }
