@@ -1016,6 +1016,10 @@ void TaraxaCapability::sendBlocks(NodeID const &_id, std::vector<std::shared_ptr
   size_t blocks_counter = 0;
 
   for (auto &block : blocks) {
+    if (dag_blk_mgr_->isBlockKnown(block->getHash())) {
+      continue;
+    }
+
     size_t dag_block_items_count = 0;
     size_t previous_block_packet_size = packet_bytes.size();
 
