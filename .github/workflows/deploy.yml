@@ -1,0 +1,8 @@
+on: issue_comment
+
+jobs:
+  deploy:
+    steps:
+      - uses: alexjurkiewicz/pr-comment-github-deployment@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
