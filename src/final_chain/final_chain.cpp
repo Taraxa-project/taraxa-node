@@ -241,9 +241,12 @@ struct FinalChainImpl final : FinalChain {
       shared_lock l(last_block_mu_);
       return last_block_;
     }
-    auto ret = make_shared<BlockHeader>();
-    ret->rlp(RLP(db_->lookup(*n, DB::Columns::final_chain_blk_by_number)));
-    return ret;
+    if (auto raw = db_->lookup(*n, DB::Columns::final_chain_blk_by_number); !raw.empty()) {
+      auto ret = make_shared<BlockHeader>();
+      ret->rlp(RLP(raw));
+      return ret;
+    }
+    return {};
   }
 
   EthBlockNumber last_block_number() const override { return block_header()->number; }
