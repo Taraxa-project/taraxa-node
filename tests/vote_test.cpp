@@ -202,30 +202,20 @@ TEST_F(VoteTest, transfer_vote) {
   clearAllVotes(node1);
   clearAllVotes(node2);
 
-  // generate vote
-  blk_hash_t propose_blockhash(11);
-  PbftVoteTypes type = propose_vote_type;
-  uint64_t period = 1;
-  size_t step = 1;
-  auto weighted_index = 0;
-  Vote vote = pbft_mgr2->generateVote(propose_blockhash, type, period, step, weighted_index);
+  // generate a vote far ahead (never exist in PBFT manager)
+  blk_hash_t propose_block_hash(11);
+  PbftVoteTypes type = next_vote_type;
+  uint64_t period = 999;
+  size_t step = 1000;
+  auto weighted_index = 10;
+  Vote vote = pbft_mgr2->generateVote(propose_block_hash, type, period, step, weighted_index);
 
   nw2->sendPbftVote(nw1->getNodeId(), vote);
 
   auto vote_mgr1 = node1->getVoteManager();
   auto vote_mgr2 = node2->getVoteManager();
-  for (auto _(0); _ < 600; ++_) {
-    // test timeout is 60 seconds
-    if (1 == vote_mgr1->getUnverifiedVotesSize()) {
-      break;
-    }
-    taraxa::thisThreadSleepForMilliSeconds(100);
-  }
-
-  size_t vote_queue_size_in_node1 = vote_mgr1->getUnverifiedVotesSize();
-  EXPECT_EQ(vote_queue_size_in_node1, 1);
-  size_t vote_queue_size_in_node2 = vote_mgr2->getUnverifiedVotesSize();
-  EXPECT_EQ(vote_queue_size_in_node2, 0);
+  EXPECT_HAPPENS({60s, 100ms}, [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, vote_mgr1->getUnverifiedVotesSize(), 1) });
+  EXPECT_EQ(vote_mgr2->getUnverifiedVotesSize(), 0);
 }
 
 TEST_F(VoteTest, vote_broadcast) {
@@ -234,22 +224,6 @@ TEST_F(VoteTest, vote_broadcast) {
   auto &node1 = nodes[0];
   auto &node2 = nodes[1];
   auto &node3 = nodes[2];
-
-  std::shared_ptr<Network> nw1 = node1->getNetwork();
-  std::shared_ptr<Network> nw2 = node2->getNetwork();
-  std::shared_ptr<Network> nw3 = node3->getNetwork();
-
-  unsigned node_peers = 2;
-  for (int i = 0; i < 300; i++) {
-    // test timeout is 30 seconds
-    if (nw1->getPeerCount() == node_peers && nw2->getPeerCount() == node_peers && nw3->getPeerCount() == node_peers) {
-      break;
-    }
-    taraxa::thisThreadSleepForMilliSeconds(100);
-  }
-  ASSERT_GT(nw1->getPeerCount(), 0);
-  ASSERT_GT(nw2->getPeerCount(), 0);
-  ASSERT_GT(nw3->getPeerCount(), 0);
 
   // stop PBFT manager, that will place vote
   std::shared_ptr<PbftManager> pbft_mgr1 = node1->getPbftManager();
@@ -263,33 +237,24 @@ TEST_F(VoteTest, vote_broadcast) {
   clearAllVotes(node2);
   clearAllVotes(node3);
 
-  // generate vote
-  blk_hash_t propose_block_hash(1);
-  PbftVoteTypes type = propose_vote_type;
-  uint64_t period = 1;
-  size_t step = 1;
-  auto weighted_index = 0;
+  // generate a vote far ahead (never exist in PBFT manager)
+  blk_hash_t propose_block_hash(111);
+  PbftVoteTypes type = next_vote_type;
+  uint64_t period = 1000;
+  size_t step = 1002;
+  auto weighted_index = 100;
   Vote vote = pbft_mgr1->generateVote(propose_block_hash, type, period, step, weighted_index);
 
-  nw1->onNewPbftVotes(vector{vote});
+  node1->getNetwork()->onNewPbftVotes(vector{vote});
 
   auto vote_mgr1 = node1->getVoteManager();
   auto vote_mgr2 = node2->getVoteManager();
   auto vote_mgr3 = node3->getVoteManager();
-  for (auto _(0); _ < 600; ++_) {
-    // test timeout is 60 seconds
-    if (1 == vote_mgr2->getUnverifiedVotesSize() && 1 == vote_mgr3->getUnverifiedVotesSize()) {
-      break;
-    }
-    taraxa::thisThreadSleepForMilliSeconds(100);
-  }
-
-  size_t vote_queue_size1 = vote_mgr1->getUnverifiedVotesSize();
-  size_t vote_queue_size2 = vote_mgr2->getUnverifiedVotesSize();
-  size_t vote_queue_size3 = vote_mgr3->getUnverifiedVotesSize();
-  EXPECT_EQ(vote_queue_size1, 0);
-  EXPECT_EQ(vote_queue_size2, 1);
-  EXPECT_EQ(vote_queue_size3, 1);
+  EXPECT_HAPPENS({60s, 100ms}, [&](auto &ctx) {
+    WAIT_EXPECT_EQ(ctx, vote_mgr2->getUnverifiedVotesSize(), 1)
+    WAIT_EXPECT_EQ(ctx, vote_mgr3->getUnverifiedVotesSize(), 1)
+  });
+  EXPECT_EQ(vote_mgr1->getUnverifiedVotesSize(), 0);
 }
 
 TEST_F(VoteTest, previous_round_next_votes) {
