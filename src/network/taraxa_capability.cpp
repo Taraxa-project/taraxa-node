@@ -312,8 +312,8 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
                                    << ", peer PBFT previous round next votes size "
                                    << peer->pbft_previous_round_next_votes_size_;
 
-      // If we are still syncing - do not trigger new syncing
-      if (syncing_state_.is_pbft_syncing()) {
+      // If we are still syncing and actual syncing process is active - do not trigger new syncing
+      if (syncing_state_.is_pbft_syncing() && syncing_state_.is_actively_syncing()) {
         break;
       }
 
@@ -483,6 +483,9 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       } else {
         LOG(log_nf_dag_sync_) << "Received partial DagBlocksSyncPacket with blocks: " << received_dag_blocks_str;
       }
+
+      // Reset last sync packet received time
+      syncing_state_.set_last_sync_packet_time();
 
       break;
     }
@@ -667,7 +670,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
 
           // TODO: check block validation - if not valid:
           // TODO: ignore rest of the PbftBlocksSyncPacket packets from this peer, restart syncing and ask data from
-          // different peer,
+          // TODO: different peer,
           // TODO: do not set syncing flag to false
           syncing_state_.set_pbft_syncing(false);
           return;
@@ -709,7 +712,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
                                        << ", synced queue size: " << pbft_chain_->pbftSyncedQueueSize();
 
                 // TODO: ignore rest of the PbftBlocksSyncPacket packets from this peer, restart syncing and ask data
-                // from different peer,
+                // TODO: from different peer,
                 // TODO: do not set syncing flag to false
                 syncing_state_.set_pbft_syncing(false);
               }
@@ -733,6 +736,9 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
                                << pbft_blk_and_votes.cert_votes.size() << " cert votes";
         LOG(log_dg_pbft_sync_) << "Synced PBFT block " << pbft_blk_and_votes;
       }
+
+      // Reset last sync packet received time
+      syncing_state_.set_last_sync_packet_time();
 
       if (pbft_blk_count > 0) {
         if (syncing_state_.is_pbft_syncing()) {
