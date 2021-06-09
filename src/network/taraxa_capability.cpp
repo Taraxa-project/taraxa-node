@@ -412,9 +412,25 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       std::vector<std::shared_ptr<DagBlock>> dag_blocks;
       auto blocks = dag_mgr_->getNonFinalizedBlocks();
       for (auto &level_blocks : blocks) {
-        for (auto &block : level_blocks.second) {
-          dag_blocks.emplace_back(db_->getDagBlock(blk_hash_t(block)));
+        for (auto &block_hash_str : level_blocks.second) {
+          blk_hash_t block_hash(block_hash_str);
 
+          // Send only blocks that have not been sent before
+          if (peer->isBlockKnown(block_hash)) {
+            LOG(log_dg_dag_sync_) << block_hash.abridged() << " already sent. Skip re-sending during syncing.";
+            continue;
+          }
+
+          auto dag_block = db_->getDagBlock(block_hash);
+          // This should never happen
+          // TODO: how to handle this situation ???
+          if (dag_block == nullptr) {
+            LOG(log_er_dag_sync_) << "Non-finalized dag block " << block_hash.abridged()
+                                  << " not found in db. Skip sending during syncing.";
+            continue;
+          }
+
+          dag_blocks.emplace_back(std::move(dag_block));
         }
       }
 
