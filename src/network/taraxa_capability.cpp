@@ -533,8 +533,8 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       break;
     }
 
-    case GetPbftNextVotes: {
-      LOG(log_dg_next_votes_sync_) << "Received GetPbftNextVotes request";
+    case GetPbftNextVotesSyncPacket: {
+      LOG(log_dg_next_votes_sync_) << "Received GetPbftNextVotesSyncPacket request";
 
       uint64_t peer_pbft_round = _r[0].toPositiveInt64();
       size_t peer_pbft_previous_round_next_votes_size = _r[1].toInt<unsigned>();
@@ -555,7 +555,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       break;
     }
 
-    case PbftNextVotesPacket: {
+    case PbftNextVotesSyncPacket: {
       auto next_votes_count = _r.itemCount();
       if (next_votes_count == 0) {
         LOG(log_er_next_votes_sync_) << "Receive 0 next votes from peer " << _nodeID
@@ -1662,9 +1662,9 @@ void TaraxaCapability::syncPbftNextVotes(uint64_t const pbft_round, size_t const
 
 void TaraxaCapability::requestPbftNextVotes(NodeID const &peerID, uint64_t const pbft_round,
                                             size_t const pbft_previous_round_next_votes_size) {
-  LOG(log_dg_next_votes_sync_) << "Sending GetPbftNextVotes with round " << pbft_round
+  LOG(log_dg_next_votes_sync_) << "Sending GetPbftNextVotesSyncPacket with round " << pbft_round
                                << " previous round next votes size " << pbft_previous_round_next_votes_size;
-  sealAndSend(peerID, GetPbftNextVotes, RLPStream(2) << pbft_round << pbft_previous_round_next_votes_size);
+  sealAndSend(peerID, GetPbftNextVotesSyncPacket, RLPStream(2) << pbft_round << pbft_previous_round_next_votes_size);
 }
 
 void TaraxaCapability::sendPbftNextVotes(NodeID const &peerID) {
@@ -1680,7 +1680,7 @@ void TaraxaCapability::sendPbftNextVotes(NodeID const &peerID) {
     s.appendRaw(next_vote.rlp());
     LOG(log_nf_next_votes_sync_) << "Send out next vote " << next_vote.getHash() << " to peer " << peerID;
   }
-  sealAndSend(peerID, PbftNextVotesPacket, move(s));
+  sealAndSend(peerID, PbftNextVotesSyncPacket, move(s));
 }
 
 void TaraxaCapability::broadcastPreviousRoundNextVotesBundle() {
@@ -1781,10 +1781,10 @@ string TaraxaCapability::packetTypeToString(unsigned int packet) const {
       return "TestPacket";
     case PbftVotePacket:
       return "PbftVotePacket";
-    case GetPbftNextVotes:
-      return "GetPbftNextVotes";
-    case PbftNextVotesPacket:
-      return "PbftNextVotesPacket";
+    case GetPbftNextVotesSyncPacket:
+      return "GetPbftNextVotesSyncPacket";
+    case PbftNextVotesSyncPacket:
+      return "PbftNextVotesSyncPacket";
     case NewPbftBlockPacket:
       return "NewPbftBlockPacket";
     case GetPbftBlocksSyncPacket:
