@@ -414,22 +414,26 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       for (auto &level_blocks : blocks) {
         for (auto &block : level_blocks.second) {
           dag_blocks.emplace_back(db_->getDagBlock(blk_hash_t(block)));
+
         }
       }
+
       sendBlocks(_nodeID, dag_blocks);
       break;
     }
 
     case DagBlocksSyncPacket: {
       std::string received_dag_blocks_str;
-      auto itemCount = _r.itemCount();
+      size_t itemCount = _r.itemCount();
       size_t transactionCount = 0;
 
-      // TODO: this is logic bug as we are sending multiple DagBlocksSyncPacket, we should set this flag to false
-      // TODO: once we receive final DagBlocksSyncPacket packet
-      syncing_state_.set_dag_syncing(false);
+      bool is_final_sync_packet = _r[itemCount - 1].toInt<uint8_t>();
+      if (is_final_sync_packet) {
+        syncing_state_.set_dag_syncing(false);
+      }
 
-      for (size_t iBlock = 0; iBlock < itemCount; iBlock++) {
+      for (size_t iBlock = 0; iBlock < itemCount - 1 /* last item is final DagBlocksSyncPacket packet flag*/;
+           iBlock++) {
         DagBlock block(_r[iBlock + transactionCount].data().toBytes());
         peer->markBlockAsKnown(block.getHash());
 
@@ -445,12 +449,12 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
 
         auto status = checkDagBlockValidation(block);
         if (!status.first) {
-          LOG(log_nf_dag_sync_) << "DagBlockValidation failed " << status.second;
+          LOG(log_wr_dag_sync_) << "DagBlockValidation failed " << status.second;
           if (iBlock + transactionCount + 1 >= itemCount) break;
           continue;
         }
 
-        LOG(log_nf_dag_sync_) << "Storing block " << block.getHash().toString() << " with " << newTransactions.size()
+        LOG(log_dg_dag_sync_) << "Storing block " << block.getHash().toString() << " with " << newTransactions.size()
                               << " transactions";
         if (block.getLevel() > peer->dag_level_) peer->dag_level_ = block.getLevel();
         dag_blk_mgr_->insertBroadcastedBlockWithTransactions(block, newTransactions);
@@ -458,7 +462,12 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         if (iBlock + transactionCount + 1 >= itemCount) break;
       }
 
-      LOG(log_nf_dag_sync_) << "Received Dag Blocks: " << received_dag_blocks_str;
+      if (is_final_sync_packet) {
+        LOG(log_nf_dag_sync_) << "Received final DagBlocksSyncPacket with blocks: " << received_dag_blocks_str;
+      } else {
+        LOG(log_nf_dag_sync_) << "Received partial DagBlocksSyncPacket with blocks: " << received_dag_blocks_str;
+      }
+
       break;
     }
 
@@ -1085,8 +1094,11 @@ void TaraxaCapability::sendBlocks(NodeID const &_id, std::vector<std::shared_ptr
                 std::back_inserter(removed_bytes));
       packet_bytes.resize(previous_block_packet_size);
 
-      RLPStream s(packet_items_count);
+      RLPStream s(packet_items_count + 1 /* final packet flag */);
       s.appendRaw(packet_bytes, packet_items_count);
+      // As DagBlocksSyncPacket might be split into multiple packets, we
+      // need to differentiate if is the last one or not due to syncing
+      s.append(false);  // flag if it is the final DagBlocksSyncPacket or not
       sealAndSend(_id, DagBlocksSyncPacket, std::move(s));
 
       packet_bytes = std::move(removed_bytes);
@@ -1099,8 +1111,9 @@ void TaraxaCapability::sendBlocks(NodeID const &_id, std::vector<std::shared_ptr
 
   LOG(log_dg_dag_sync_) << "Sending final DagBlocksSyncPacket with " << blocks_counter << " blocks.";
 
-  RLPStream s(packet_items_count);
+  RLPStream s(packet_items_count + 1 /* final packet flag */);
   s.appendRaw(packet_bytes, packet_items_count);
+  s.append(true);  // flag if it is the final DagBlocksSyncPacket or not
   sealAndSend(_id, DagBlocksSyncPacket, std::move(s));
 }
 
