@@ -33,7 +33,7 @@ bool SortitionPropose::propose() {
   }
 
   // get sortition
-  vdf_sortition::VdfSortition vdf(vdf_config_, node_addr_, vrf_sk_, getRlpBytes(propose_level));
+  vdf_sortition::VdfSortition vdf(vdf_config_, vrf_sk_, getRlpBytes(propose_level));
   if (vdf.isStale(vdf_config_)) {
     if (propose_level == last_propose_level_ && num_tries_ < max_num_tries_) {
       LOG(log_dg_) << "Will not propose DAG block. Get difficulty at stale, last propose level " << last_propose_level_

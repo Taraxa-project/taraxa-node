@@ -245,19 +245,21 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
           LOG(log_er_) << "Incorrect node version: " << getFormattedVersion(node_major_version, node_minor_version)
                        << ", our node major version"
                        << getFormattedVersion(FullNode::c_node_major_version, FullNode::c_node_minor_version)
-                       << ", host " << _nodeID << " will be disconnected";
+                       << ", host " << _nodeID.abridged() << " will be disconnected";
           host->disconnect(_nodeID, p2p::UserReason);
           break;
         }
 
         if (network_id != conf_.network_id) {
-          LOG(log_er_) << "Incorrect network id " << network_id << ", host " << _nodeID << " will be disconnected";
+          LOG(log_er_) << "Incorrect network id " << network_id << ", host " << _nodeID.abridged()
+                       << " will be disconnected";
           host->disconnect(_nodeID, p2p::UserReason);
           break;
         }
 
         if (genesis_hash != dag_mgr_->get_genesis()) {
-          LOG(log_er_) << "Incorrect genesis hash " << genesis_hash << ", host " << _nodeID << " will be disconnected";
+          LOG(log_er_) << "Incorrect genesis hash " << genesis_hash << ", host " << _nodeID.abridged()
+                       << " will be disconnected";
           host->disconnect(_nodeID, p2p::UserReason);
           break;
         }
