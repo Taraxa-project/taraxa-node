@@ -1,9 +1,10 @@
 #pragma once
 
-#include <boost/noncopyable.hpp>
-#include <atomic>
-
 #include <libp2p/Common.h>
+
+#include <atomic>
+#include <boost/noncopyable.hpp>
+
 #include "util/util.hpp"
 
 namespace taraxa {

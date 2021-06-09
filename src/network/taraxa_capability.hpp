@@ -9,12 +9,12 @@
 #include <set>
 #include <thread>
 
-#include "taraxa_peer.hpp"
-#include "packets_stats.hpp"
-
 #include "config/config.hpp"
 #include "consensus/vote.hpp"
 #include "dag/dag_block_manager.hpp"
+#include "packets_stats.hpp"
+#include "syncing_state.hpp"
+#include "taraxa_peer.hpp"
 #include "transaction_manager/transaction.hpp"
 #include "util/thread_pool.hpp"
 #include "util/util.hpp"
@@ -71,7 +71,7 @@ struct TaraxaCapability : virtual CapabilityFace {
   void stop() { tp_.stop(); }
 
   void sealAndSend(NodeID const &nodeID, unsigned packet_type, RLPStream rlp);
-  bool pbft_syncing() const { return syncing_.load(); }
+  bool pbft_syncing() const { return syncing_state_.is_pbft_syncing(); }
 
   void syncPeerPbft(NodeID const &_nodeID, unsigned long height_to_sync);
   void restartSyncingPbft(bool force = false);
@@ -134,9 +134,7 @@ struct TaraxaCapability : virtual CapabilityFace {
   NodeID node_id_;
   util::ThreadPool tp_{1, false};
 
-  atomic<bool> syncing_ = false;
-  bool requesting_pending_dag_blocks_ = false;
-  NodeID requesting_pending_dag_blocks_node_id_;
+  SyncingState syncing_state_;
 
   std::unordered_map<NodeID, int> cnt_received_messages_;
   std::unordered_map<NodeID, int> test_sums_;
