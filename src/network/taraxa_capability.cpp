@@ -443,13 +443,12 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       size_t itemCount = _r.itemCount();
       size_t transactionCount = 0;
 
-      //bool is_final_sync_packet = _r[itemCount - 1].toInt<uint8_t>();
-      bool is_final_sync_packet = true;
+      bool is_final_sync_packet = _r[itemCount - 1].toInt<uint8_t>();
       if (is_final_sync_packet) {
         syncing_state_.set_dag_syncing(false);
       }
 
-      for (size_t iBlock = 0; iBlock < itemCount - 0 /* last item is final DagBlocksSyncPacket packet flag*/;
+      for (size_t iBlock = 0; iBlock < itemCount - 1 /* last item is final DagBlocksSyncPacket packet flag*/;
            iBlock++) {
         DagBlock block(_r[iBlock + transactionCount].data().toBytes());
         peer->markBlockAsKnown(block.getHash());
