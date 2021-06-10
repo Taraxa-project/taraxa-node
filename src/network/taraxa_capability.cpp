@@ -471,21 +471,24 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         }
 
         LOG(log_dg_dag_sync_) << "Storing block " << block.getHash().toString() << " with " << newTransactions.size()
-                              << " transactions";
+                              << " txs";
         if (block.getLevel() > peer->dag_level_) peer->dag_level_ = block.getLevel();
+
+        // USe standard insertBroadcastedBlockWithTransactions instead of processSyncedBlockWithTransactions as these are
+        // synced non-finalized dag blocks, which have not been added to the pbft block yet
         dag_blk_mgr_->insertBroadcastedBlockWithTransactions(block, newTransactions);
 
         if (iBlock + transactionCount + 1 >= itemCount) break;
       }
+
+      // Reset last valid sync packet received time
+      syncing_state_.set_last_sync_packet_time();
 
       if (is_final_sync_packet) {
         LOG(log_nf_dag_sync_) << "Received final DagBlocksSyncPacket with blocks: " << received_dag_blocks_str;
       } else {
         LOG(log_nf_dag_sync_) << "Received partial DagBlocksSyncPacket with blocks: " << received_dag_blocks_str;
       }
-
-      // Reset last sync packet received time
-      syncing_state_.set_last_sync_packet_time();
 
       break;
     }
@@ -723,7 +726,13 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
             if (block.second.first.getLevel() > peer->dag_level_) {
               peer->dag_level_ = block.second.first.getLevel();
             }
-            dag_blk_mgr_->insertBroadcastedBlockWithTransactions(block.second.first, block.second.second);
+
+            // USe standard processSyncedBlockWithTransactions instead of insertBroadcastedBlockWithTransactions as these are
+            // synced finalized dag blocks, which are part of the verified pbft block.
+            // Only pbft block is verified, no need to verify also dag blocks and txs that are in it
+            // TODO: Provide mechanism that would make sure that received pbft blocks are valid - have the same hashes
+            // TODO: and signatures as on multiple other nodes in network
+            dag_blk_mgr_->processSyncedBlockWithTransactions(block.second.first, block.second.second);
           }
         }
 
@@ -737,7 +746,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         LOG(log_dg_pbft_sync_) << "Synced PBFT block " << pbft_blk_and_votes;
       }
 
-      // Reset last sync packet received time
+      // Reset last valid sync packet received time
       syncing_state_.set_last_sync_packet_time();
 
       if (pbft_blk_count > 0) {

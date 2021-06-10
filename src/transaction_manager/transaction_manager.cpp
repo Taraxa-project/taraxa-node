@@ -203,6 +203,10 @@ uint32_t TransactionManager::insertBroadcastedTransactions(const std::vector<tar
   return unseen_trxs.size();
 }
 
+void TransactionManager::addTrxCount(unsigned long num) {
+  trx_count_.fetch_add(num);
+}
+
 void TransactionManager::verifyQueuedTrxs() {
   while (!stopped_) {
     // It will wait if no transaction in unverified queue

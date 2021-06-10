@@ -77,6 +77,13 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
    */
   uint32_t insertBroadcastedTransactions(const std::vector<taraxa::bytes> &raw_trxs);
 
+  /**
+   * @brief Adds num to the trx_count_ counter
+   *
+   * @param num
+   */
+  void addTrxCount(unsigned long num);
+
   std::pair<bool, std::string> verifyTransaction(Transaction const &trx) const;
 
   std::unordered_map<trx_hash_t, Transaction> getVerifiedTrxSnapShot() const;
