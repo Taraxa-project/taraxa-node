@@ -674,8 +674,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
           // TODO: check block validation - if not valid:
           // TODO: ignore rest of the PbftBlocksSyncPacket packets from this peer, restart syncing and ask data from
           // TODO: different peer,
-          // TODO: do not set syncing flag to false
-          syncing_state_.set_pbft_syncing(false);
+          restartSyncingPbft(true);
           return;
         }
 
@@ -716,8 +715,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
 
                 // TODO: ignore rest of the PbftBlocksSyncPacket packets from this peer, restart syncing and ask data
                 // TODO: from different peer,
-                // TODO: do not set syncing flag to false
-                syncing_state_.set_pbft_syncing(false);
+                restartSyncingPbft(true);
               }
               return;
             }
