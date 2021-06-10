@@ -92,6 +92,12 @@ void TaraxaCapability::sealAndSend(NodeID const &nodeID, unsigned packet_type, R
     return;
   }
 
+  auto peer = getPeer(nodeID);
+
+  if (dag_mgr_ && !peer->passed_initial_ && packet_type != StatusPacket) {
+    return;
+  }
+
   auto packet_size = rlp.out().size();
 
   // This situation should never happen - packets bigger than 16MB cannot be sent due to networking layer limitations.
@@ -1015,7 +1021,13 @@ void TaraxaCapability::sendBlocks(NodeID const &_id, std::vector<std::shared_ptr
   size_t packet_items_count = 0;
   size_t blocks_counter = 0;
 
+  auto peer = getPeer(_id);
+
   for (auto &block : blocks) {
+    if (peer->isBlockKnown(block->getHash())) {
+      continue;
+    }
+
     size_t dag_block_items_count = 0;
     size_t previous_block_packet_size = packet_bytes.size();
 
@@ -1043,7 +1055,7 @@ void TaraxaCapability::sendBlocks(NodeID const &_id, std::vector<std::shared_ptr
 
     // Split packet into multiple smaller ones if total size is > MAX_PACKET_SIZE
     if (packet_bytes.size() > MAX_PACKET_SIZE) {
-      LOG(log_dg_dag_sync_) << "Sending partial BlocksPacket due tu MAX_PACKET_SIZE limit. " << blocks_counter
+      LOG(log_dg_dag_sync_) << "Sending partial BlocksPacket due to MAX_PACKET_SIZE limit. " << blocks_counter
                             << " blocks out of " << blocks.size() << " PbftBlockPacketsent.";
 
       taraxa::bytes removed_bytes;
@@ -1063,7 +1075,7 @@ void TaraxaCapability::sendBlocks(NodeID const &_id, std::vector<std::shared_ptr
     blocks_counter++;
   }
 
-  LOG(log_dg_dag_sync_) << "Sending final BlocksPacket.";
+  LOG(log_dg_dag_sync_) << "Sending final BlocksPacket with " << blocks_counter << " blocks.";
 
   RLPStream s(packet_items_count);
   s.appendRaw(packet_bytes, packet_items_count);
