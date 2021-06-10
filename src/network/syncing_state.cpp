@@ -40,7 +40,8 @@ bool SyncingState::is_actively_syncing() const {
   auto now = std::chrono::steady_clock::now();
 
   std::shared_lock<std::shared_mutex> lock(time_mutex_);
-  return std::chrono::duration_cast<std::chrono::seconds>(now - last_received_sync_packet_time_) <= SYNCING_INACTIVITY_THRESHOLD;
+  return std::chrono::duration_cast<std::chrono::seconds>(now - last_received_sync_packet_time_) <=
+         SYNCING_INACTIVITY_THRESHOLD;
 }
 
 bool SyncingState::is_syncing() const { return is_pbft_syncing() || is_dag_syncing(); }

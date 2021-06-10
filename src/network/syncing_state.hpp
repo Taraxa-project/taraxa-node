@@ -52,10 +52,10 @@ class SyncingState {
   std::atomic<bool> dag_syncing_{false};
 
   // Number of seconds needed for ongoing syncing to be declared as inactive
-  std::chrono::seconds SYNCING_INACTIVITY_THRESHOLD{ 60 };
+  std::chrono::seconds SYNCING_INACTIVITY_THRESHOLD{60};
 
   // What time was received last syncing packet
-  std::chrono::steady_clock::time_point last_received_sync_packet_time_{ std::chrono::steady_clock::now() };
+  std::chrono::steady_clock::time_point last_received_sync_packet_time_{std::chrono::steady_clock::now()};
   mutable std::shared_mutex time_mutex_;
 
   // Peer id that the node is syncing with

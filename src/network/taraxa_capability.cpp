@@ -474,8 +474,8 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
                               << " txs";
         if (block.getLevel() > peer->dag_level_) peer->dag_level_ = block.getLevel();
 
-        // USe standard insertBroadcastedBlockWithTransactions instead of processSyncedBlockWithTransactions as these are
-        // synced non-finalized dag blocks, which have not been added to the pbft block yet
+        // USe standard insertBroadcastedBlockWithTransactions instead of processSyncedBlockWithTransactions as these
+        // are synced non-finalized dag blocks, which have not been added to the pbft block yet
         dag_blk_mgr_->insertBroadcastedBlockWithTransactions(block, newTransactions);
 
         if (iBlock + transactionCount + 1 >= itemCount) break;
@@ -725,9 +725,9 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
               peer->dag_level_ = block.second.first.getLevel();
             }
 
-            // USe standard processSyncedBlockWithTransactions instead of insertBroadcastedBlockWithTransactions as these are
-            // synced finalized dag blocks, which are part of the verified pbft block.
-            // Only pbft block is verified, no need to verify also dag blocks and txs that are in it
+            // USe standard processSyncedBlockWithTransactions instead of insertBroadcastedBlockWithTransactions as
+            // these are synced finalized dag blocks, which are part of the verified pbft block. Only pbft block is
+            // verified, no need to verify also dag blocks and txs that are in it
             // TODO: Provide mechanism that would make sure that received pbft blocks are valid - have the same hashes
             // TODO: and signatures as on multiple other nodes in network
             dag_blk_mgr_->processSyncedBlockWithTransactions(block.second.first, block.second.second);
