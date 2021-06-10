@@ -94,7 +94,7 @@ void TaraxaCapability::sealAndSend(NodeID const &nodeID, unsigned packet_type, R
 
   auto peer = getPeer(nodeID);
 
-  if (!peer->passed_initial_ && packet_type != StatusPacket) {
+  if (dag_mgr_ && !peer->passed_initial_ && packet_type != StatusPacket) {
     return;
   }
 
