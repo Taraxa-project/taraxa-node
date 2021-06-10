@@ -326,9 +326,9 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         LOG(log_nf_) << "Restart PBFT chain syncing. Own synced PBFT at period " << pbft_synced_period
                      << ", peer PBFT chain size " << peer->pbft_chain_size_;
         if (pbft_synced_period + 5 < peer->pbft_chain_size_) {
-          restartSyncingPbft(true);
-        } else {
           restartSyncingPbft(false);
+        } else {
+          restartSyncingPbft(true);
         }
       }
 
