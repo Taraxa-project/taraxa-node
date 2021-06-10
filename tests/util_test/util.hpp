@@ -157,19 +157,32 @@ inline auto make_node_cfgs(uint count) {
   return slice(ret, 0, count);
 }
 
-inline auto wait_connect(vector<FullNode::Handle> const& nodes, optional<uint> min_peers_to_connect = {}) {
-  auto min_peers = min_peers_to_connect.value_or(nodes.size() - 1);
+inline auto wait_connect(vector<FullNode::Handle> const& nodes) {
+  auto num_peers_connected = nodes.size() - 1;
   return wait({30s, 1s}, [&](auto& ctx) {
     for (auto const& node : nodes) {
-      if (ctx.fail_if(node->getNetwork()->getPeerCount() < min_peers)) {
+      if (ctx.fail_if(node->getNetwork()->getPeerCount() < num_peers_connected)) {
         return;
       }
     }
   });
 }
 
-inline auto launch_nodes(vector<FullNodeConfig> const& cfgs, optional<uint> min_peers_to_connect = {},
-                         optional<uint> retry_cnt = {}) {
+inline auto wait_inital_status_packet_passed(vector<FullNode::Handle> const& nodes) {
+  return wait({30s, 1s}, [&](auto& ctx) {
+    for (size_t i = 0; i < nodes.size(); i++) {
+      auto peers = nodes[i]->getNetwork()->getAllPeers();
+      for (size_t j = 0; j < peers.size(); j++) {
+        auto peer = nodes[i]->getNetwork()->getPeer(peers[j]);
+        if (ctx.fail_if(!peer->passed_initial_)) {
+          return;
+        }
+      }
+    }
+  });
+}
+
+inline auto launch_nodes(vector<FullNodeConfig> const& cfgs, optional<uint> retry_cnt = {}) {
   auto node_count = cfgs.size();
   for (auto i = retry_cnt.value_or(4);; --i) {
     vector<FullNode::Handle> nodes(node_count);
@@ -182,8 +195,8 @@ inline auto launch_nodes(vector<FullNodeConfig> const& cfgs, optional<uint> min_
     if (node_count == 1) {
       return nodes;
     }
-    if (wait_connect(nodes, min_peers_to_connect)) {
-      cout << "nodes connected" << endl;
+    if (wait_connect(nodes) && wait_inital_status_packet_passed(nodes)) {
+      cout << "Nodes connected and initial status packets passed" << endl;
       return nodes;
     }
     if (i == 0) {
