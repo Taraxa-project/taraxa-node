@@ -190,7 +190,7 @@ void DagBlockManager::pushVerifiedBlock(DagBlock const &blk) {
   verified_qu_[blk.getLevel()].emplace_back(blk);
 }
 
-void DagBlockManager::processSyncedBlockWithTransactions(const DagBlock& blk, const std::vector<Transaction>& txs) {
+void DagBlockManager::processSyncedBlockWithTransactions(const DagBlock &blk, const std::vector<Transaction> &txs) {
   blk_hash_t block_hash = blk.getHash();
 
   // This dag block was already processed, skip it
