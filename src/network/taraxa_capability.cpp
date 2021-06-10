@@ -1613,10 +1613,21 @@ void TaraxaCapability::sendPbftNextVotes(NodeID const &peerID) {
 }
 
 void TaraxaCapability::broadcastPreviousRoundNextVotesBundle() {
-  std::vector<NodeID> peers_to_send = getAllPeers();
+  std::vector<NodeID> peers_to_send;
+  auto pbft_current_round = pbft_mgr_->getPbftRound();
 
-  for (auto const &peer : peers_to_send) {
-    sendPbftNextVotes(peer);
+  {
+    boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
+    for (auto const &peer : peers_) {
+      // Nodes may vote at different values at previous round, so need less or equal
+      if (peer.second->pbft_round_ <= pbft_current_round) {
+        peers_to_send.emplace_back(peer.first);
+      }
+    }
+  }
+
+  for (auto const &peer_id : peers_to_send) {
+    sendPbftNextVotes(peer_id);
   }
 }
 
