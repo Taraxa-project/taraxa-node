@@ -847,11 +847,11 @@ void PbftManager::secondFinish_() {
     }
   }
 
-  if (step_ > MAX_STEPS && !is_syncing_() && !syncRequestedAlreadyThisStep_() && (step_ - MAX_STEPS - 2) % 100 == 0) {
+  if (step_ > MAX_STEPS && (step_ - MAX_STEPS - 2) % 100 == 0) {
     syncPbftChainFromPeers_(exceeded_max_steps, NULL_BLOCK_HASH);
   }
 
-  if (step_ > MAX_STEPS && !broadcastAlreadyThisStep_()) {
+  if (step_ > MAX_STEPS && (step_ - MAX_STEPS - 2) % 100 == 0 && !broadcastAlreadyThisStep_()) {
     LOG(log_dg_) << "Node " << node_addr_ << " broadcast next votes for previous round. In round " << round << " step "
                  << step_;
     if (auto net = network_.lock()) {

@@ -1,0 +1,6 @@
+{
+   <invalid_memmove_warning>
+   Memcheck:Overlap
+   fun:__memcpy_chk
+   fun:memmove
+}
