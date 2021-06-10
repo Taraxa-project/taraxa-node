@@ -84,16 +84,12 @@ Json::Value getJsonFromFileOrString(Json::Value const &value) {
   return value;
 }
 
-FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object,
-                               Json::Value const &chain_file_name_str_or_json_object) {
-  Json::Value chain_parsed_from_file = getJsonFromFileOrString(chain_file_name_str_or_json_object);
+FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value const &wallet) {
   Json::Value parsed_from_file = getJsonFromFileOrString(string_or_object);
   if (string_or_object.isString()) {
     json_file_name = string_or_object.asString();
   }
   auto const &root = string_or_object.isString() ? parsed_from_file : string_or_object;
-  node_secret = getConfigDataAsString(root, {"node_secret"});
-  vrf_secret = vrf_wrapper::vrf_sk_t(getConfigDataAsString(root, {"vrf_secret"}));
   db_path = getConfigDataAsString(root, {"db_path"});
   if (auto n = getConfigData(root, {"network_is_boot_node"}, true); !n.isNull()) {
     network.network_is_boot_node = n.asBool();
@@ -202,11 +198,7 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object,
       }
     }
   }
-  if (chain_parsed_from_file.isString() && !chain_parsed_from_file.asString().empty()) {
-    chain = ChainConfig::predefined(chain_parsed_from_file.asString());
-  } else if (chain_parsed_from_file.isObject()) {
-    dec_json(chain_parsed_from_file, chain);
-  } else if (auto const &v = root["chain_config"]; v.isString()) {
+  if (auto const &v = root["chain_config"]; v.isString()) {
     chain = ChainConfig::predefined(v.asString());
   } else if (v.isObject()) {
     dec_json(v, chain);
@@ -214,41 +206,39 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object,
     chain = ChainConfig::predefined();
   }
 
+  node_secret = wallet["node_secret"].asString();
+  vrf_secret = vrf_wrapper::vrf_sk_t(wallet["vrf_secret"].asString());
+
   network.network_id = chain.chain_id;
   // TODO configurable
   opts_final_chain.state_api.expected_max_trx_per_block = 1000;
   opts_final_chain.state_api.max_trie_full_node_levels_to_cache = 4;
 }
 
-bool FullNodeConfig::validate() {
+void FullNodeConfig::validate() {
   // Validates rpc config values
   if (rpc) {
     if (!rpc->http_port && !rpc->ws_port) {
-      cerr << "Either rpc::http_port or rpc::ws_port post must be specified for rpc";
-      return false;
+      throw ConfigException("Either rpc::http_port or rpc::ws_port post must be specified for rpc");
     }
 
     // Max enabled number of threads
     const uint16_t max_threads_num = 200;
 
     if (rpc->threads_num <= 0 || rpc->threads_num > max_threads_num) {
-      cerr << "rpc::threads_num must be in range (0, " << max_threads_num << ">";
-      return false;
+      throw ConfigException(string("rpc::threads_num must be in range (0, ") + to_string(max_threads_num) + ">");
     }
   }
   // TODO validate that the boot node list doesn't contain self (although it's not critical)
   for (auto const &node : network.network_boot_nodes) {
     if (node.ip.empty()) {
-      cerr << "Boot node ip is empty:" << node.ip << ":" << node.tcp_port;
-      return false;
+      throw ConfigException(string("Boot node ip is empty:") + node.ip + ":" + to_string(node.tcp_port));
     }
     if (node.tcp_port == 0) {
-      cerr << "Boot node port invalid: " << node.tcp_port;
-      return false;
+      throw ConfigException(string("Boot node port invalid: ") + to_string(node.tcp_port));
     }
   }
   // TODO: add validation of other config values
-  return true;
 }
 
 std::ostream &operator<<(std::ostream &strm, NodeConfig const &conf) {
