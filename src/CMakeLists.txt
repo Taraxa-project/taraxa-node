@@ -2,6 +2,8 @@
 
 set(SOURCES
         # headers
+        cli/config.hpp
+        cli/tools.hpp
         common/constants.hpp
         common/static_init.hpp
         common/types.hpp
@@ -53,7 +55,6 @@ set(SOURCES
         util/event.hpp
         util/util.hpp
         util/lazy.hpp
-        # generated headers
         network/rpc/Net.h
         network/rpc/Taraxa.h
         network/rpc/WSServer.h
@@ -69,6 +70,8 @@ set(SOURCES
         network/rpc/NetFace.h
         network/rpc/TestFace.h
         # sources
+        cli/config.cpp
+        cli/tools.cpp
         common/constants.cpp
         common/types.cpp
         config/chain_config.cpp

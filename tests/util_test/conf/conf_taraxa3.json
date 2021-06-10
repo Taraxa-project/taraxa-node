@@ -1,6 +1,4 @@
 {
-  "node_secret": "f1261c9f09b0b483486c3b298f7c1ee001ff37e10023596528af93e34ba13f5f",
-  "vrf_secret": "dfa4e556e1107f1333c4aa4a71eb7faf745b227d30cad99640971ea6680e348e97485c51e033260894132aa326bb1c984a70ac7f4202315b90e669fb701a8f64",
   "db_path": "/tmp/taraxa3",
   "network_address": "127.0.0.1",
   "network_tcp_port": 10004,
