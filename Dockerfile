@@ -94,6 +94,8 @@ RUN cd $BUILD_OUTPUT_DIR \
     && make -j$(nproc) all \
     && make install
 
+#Hack to downgrade image size - REMOVE
+RUN rm -rfv !("bin_install"|"bin"|"tests")
 ###############################################################################
 # Taraxa Cli #
 ###############################################################################
