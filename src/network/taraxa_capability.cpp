@@ -1229,10 +1229,14 @@ void TaraxaCapability::logNodeStats() {
   auto local_unverified_queue_size = trx_mgr_->getTransactionQueueSize().first;
   auto local_verified_queue_size = trx_mgr_->getTransactionQueueSize().second;
 
+  // Local block queue info...
+  auto local_blk_unverified_queue_size = dag_blk_mgr_->getDagBlockQueueSize().first;
+  auto local_blk_verified_queue_size = dag_blk_mgr_->getDagBlockQueueSize().second;
+  auto local_max_dag_level_in_queue = dag_blk_mgr_->getMaxDagLevelInQueue();
+
   // Local dag info...
   auto local_max_level_in_dag = dag_mgr_->getMaxLevel();
-  auto local_max_dag_level_in_queue = dag_blk_mgr_->getMaxDagLevelInQueue();
-  // auto local_dag_nonfinalized_blocks_size = dag_mgr_->getNonFinalizedBlocks().size();
+  auto local_dag_nonfinalized_blocks_size = dag_mgr_->getNonFinalizedBlocks().size();
 
   // Local pbft info...
   uint64_t local_pbft_round = pbft_mgr_->getPbftRound();
@@ -1282,29 +1286,32 @@ void TaraxaCapability::logNodeStats() {
   if (is_syncing) {
     // Syncing...
     auto percent_synced = (local_pbft_sync_period * 100) / peer_max_pbft_chain_size;
-    auto syncing_time_sec = summary_interval_ms_ * syncing_interval_count_ / 1000;
+    auto syncing_time_sec = syncTimeSeconds();
     LOG(log_nf_summary_) << "Syncing for " << syncing_time_sec << " seconds, " << percent_synced << "% synced";
     LOG(log_nf_summary_) << "Currently syncing from node " << peer_syncing_pbft_;
-    LOG(log_nf_summary_) << "Max peer PBFT chain size:      " << peer_max_pbft_chain_size << " (peer "
+    LOG(log_nf_summary_) << "Max peer PBFT chain size:       " << peer_max_pbft_chain_size << " (peer "
                          << max_pbft_chain_nodeID << ")";
-    LOG(log_nf_summary_) << "Max peer PBFT consensus round: " << peer_max_pbft_round << " (peer "
+    LOG(log_nf_summary_) << "Max peer PBFT consensus round:  " << peer_max_pbft_round << " (peer "
                          << max_pbft_round_nodeID << ")";
-    LOG(log_nf_summary_) << "Max peer DAG level:            " << peer_max_node_dag_level << " (peer "
+    LOG(log_nf_summary_) << "Max peer DAG level:             " << peer_max_node_dag_level << " (peer "
                          << max_node_dag_level_nodeID << ")";
   } else {
     auto sync_percentage =
         (100 * intervals_in_sync_since_launch) / (intervals_in_sync_since_launch + intervals_syncing_since_launch);
     LOG(log_nf_summary_) << "In sync since launch for " << sync_percentage << "% of the time";
-    LOG(log_nf_summary_) << "Queued unverified transaction: " << local_unverified_queue_size;
-    LOG(log_nf_summary_) << "Queued verified transaction:   " << local_verified_queue_size;
-    LOG(log_nf_summary_) << "Max DAG block level in DAG:    " << local_max_level_in_dag;
-    LOG(log_nf_summary_) << "Max DAG block level in queue:  " << local_max_dag_level_in_queue;
-    LOG(log_nf_summary_) << "PBFT chain size:               " << local_chain_size;
-    LOG(log_nf_summary_) << "Current PBFT round:            " << local_pbft_round;
-    LOG(log_nf_summary_) << "DPOS total votes count:        " << local_dpos_total_votes_count;
-    LOG(log_nf_summary_) << "PBFT consensus 2t+1 threshold: " << local_twotplusone;
-    LOG(log_nf_summary_) << "Node elligible vote count:     " << local_weighted_votes;
-    LOG(log_nf_summary_) << "Unverified votes size:         " << vote_mgr_->getUnverifiedVotesSize();
+    LOG(log_nf_summary_) << "Queued unverified transactions: " << local_unverified_queue_size;
+    LOG(log_nf_summary_) << "Queued verified transactions:   " << local_verified_queue_size;
+    LOG(log_nf_summary_) << "Queued unverified DAG blocks:   " << local_blk_unverified_queue_size;
+    LOG(log_nf_summary_) << "Queued verified DAG blocks:     " << local_blk_verified_queue_size;
+    LOG(log_nf_summary_) << "Max DAG block level in queue:   " << local_max_dag_level_in_queue;
+    LOG(log_nf_summary_) << "Max DAG block level in DAG:     " << local_max_level_in_dag;
+    LOG(log_nf_summary_) << "Unfinalized DAG block count:    " << local_dag_nonfinalized_blocks_size;
+    LOG(log_nf_summary_) << "PBFT chain size:                " << local_chain_size;
+    LOG(log_nf_summary_) << "Current PBFT round:             " << local_pbft_round;
+    LOG(log_nf_summary_) << "DPOS total votes count:         " << local_dpos_total_votes_count;
+    LOG(log_nf_summary_) << "PBFT consensus 2t+1 threshold:  " << local_twotplusone;
+    LOG(log_nf_summary_) << "Node elligible vote count:      " << local_weighted_votes;
+    LOG(log_nf_summary_) << "Unverified votes size:          " << vote_mgr_->getUnverifiedVotesSize();
   }
 
   LOG(log_nf_summary_) << "------------- tl;dr -------------";
@@ -1343,12 +1350,12 @@ void TaraxaCapability::logNodeStats() {
   LOG(log_nf_summary_) << "In the last " << std::setprecision(0) << summary_interval_ms_ / 1000 << " seconds...";
 
   if (is_syncing) {
-    LOG(log_nf_summary_) << "PBFT sync period progress:     " << pbft_sync_period_progress;
+    LOG(log_nf_summary_) << "PBFT sync period progress:      " << pbft_sync_period_progress;
   }
   {
-    LOG(log_nf_summary_) << "PBFT chain blocks added:       " << pbft_chain_size_growth;
-    LOG(log_nf_summary_) << "PBFT rounds advanced:          " << pbft_consensus_rounds_advanced;
-    LOG(log_nf_summary_) << "DAG level growth:              " << dag_level_growh;
+    LOG(log_nf_summary_) << "PBFT chain blocks added:        " << pbft_chain_size_growth;
+    LOG(log_nf_summary_) << "PBFT rounds advanced:           " << pbft_consensus_rounds_advanced;
+    LOG(log_nf_summary_) << "DAG level growth:               " << dag_level_growh;
   }
 
   LOG(log_nf_summary_) << "##################################";
@@ -1647,17 +1654,55 @@ void TaraxaCapability::broadcastPreviousRoundNextVotesBundle() {
 
 Json::Value TaraxaCapability::getStatus() const {
   Json::Value res;
-  res["synced"] = Json::UInt64(!this->syncing_);
+
+  NodeID max_pbft_round_nodeID;
+  NodeID max_pbft_chain_nodeID;
+  NodeID max_node_dag_level_nodeID;
+  uint64_t peer_max_pbft_round = 1;
+  uint64_t peer_max_pbft_chain_size = 1;
+  uint64_t peer_max_node_dag_level = 1;
+
   res["peers"] = Json::Value(Json::arrayValue);
-  boost::unique_lock<boost::shared_mutex> lock(peers_mutex_);
-  for (auto &peer : peers_) {
-    Json::Value peer_status;
-    peer_status["node_id"] = peer.first.toString();
-    peer_status["dag_level"] = Json::UInt64(peer.second->dag_level_);
-    peer_status["pbft_size"] = Json::UInt64(peer.second->pbft_chain_size_);
-    peer_status["dag_synced"] = !peer.second->syncing_;
-    res["peers"].append(peer_status);
+  {
+    boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
+    for (auto const &peer : peers_) {
+      Json::Value peer_status;
+      peer_status["node_id"] = peer.first.toString();
+      peer_status["dag_level"] = Json::UInt64(peer.second->dag_level_);
+      peer_status["pbft_size"] = Json::UInt64(peer.second->pbft_chain_size_);
+      peer_status["synced"] = !peer.second->syncing_;
+      res["peers"].append(peer_status);
+
+      // Find max pbft chain size
+      if (peer.second->pbft_chain_size_ > peer_max_pbft_chain_size) {
+        peer_max_pbft_chain_size = peer.second->pbft_chain_size_;
+        max_pbft_chain_nodeID = peer.first;
+      }
+
+      // Find max dag level
+      if (peer.second->dag_level_ > peer_max_node_dag_level) {
+        peer_max_node_dag_level = peer.second->dag_level_;
+        max_node_dag_level_nodeID = peer.first;
+      }
+
+      // Find max peer PBFT round
+      if (peer.second->pbft_round_ > peer_max_pbft_round) {
+        peer_max_pbft_round = peer.second->pbft_round_;
+        max_pbft_round_nodeID = peer.first;
+      }
+    }
   }
+
+  if (syncing_.load()) {
+    res["syncing_from_node_id"] = peer_syncing_pbft_.toString();
+  }
+
+  res["peer_max_pbft_round"] = Json::UInt64(peer_max_pbft_round);
+  res["peer_max_pbft_chain_size"] = Json::UInt64(peer_max_pbft_chain_size);
+  res["peer_max_node_dag_level"] = Json::UInt64(peer_max_node_dag_level);
+  res["peer_max_pbft_round_node_id"] = max_pbft_round_nodeID.toString();
+  res["peer_max_pbft_chain_size_node_id"] = max_pbft_chain_nodeID.toString();
+  res["peer_max_node_dag_level_node_id"] = max_node_dag_level_nodeID.toString();
 
   auto createPacketsStatsJson = [&](const PacketsStats &stats) -> Json::Value {
     Json::Value stats_json;

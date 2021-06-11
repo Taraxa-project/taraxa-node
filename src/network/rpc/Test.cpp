@@ -194,6 +194,8 @@ Json::Value Test::get_node_status() {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {
+      res["synced"] = !node->getNetwork()->pbft_syncing();
+      res["syncing_seconds"] = Json::UInt64(node->getNetwork()->syncTimeSeconds());
       res["peer_count"] = Json::UInt64(node->getNetwork()->getPeerCount());
       res["node_count"] = Json::UInt64(node->getNetwork()->getNodeCount());
       res["blk_executed"] = Json::UInt64(node->getDB()->getNumBlockExecuted());
@@ -202,6 +204,11 @@ Json::Value Test::get_node_status() {
       res["trx_count"] = Json::UInt64(node->getTransactionManager()->getTransactionCount());
       res["dag_level"] = Json::UInt64(node->getDagManager()->getMaxLevel());
       res["pbft_size"] = Json::UInt64(node->getPbftChain()->getPbftChainSize());
+      res["pbft_sync_period"] = Json::UInt64(node->getPbftChain()->pbftSyncingPeriod());
+      res["pbft_round"] = Json::UInt64(node->getPbftManager()->getPbftRound());
+      res["dpos_total_votes"] = Json::UInt64(node->getPbftManager()->getDposTotalVotesCount());
+      res["dpos_node_votes"] = Json::UInt64(node->getPbftManager()->getDposWeightedVotesCount());
+      res["dpos_quorum"] = Json::UInt64(node->getPbftManager()->getTwoTPlusOne());
       res["pbft_sync_queue_size"] = Json::UInt64(node->getPbftChain()->pbftSyncedQueueSize());
       res["trx_queue_unverified_size"] = Json::UInt64(node->getTransactionManager()->getTransactionQueueSize().first);
       res["trx_queue_verified_size"] = Json::UInt64(node->getTransactionManager()->getTransactionQueueSize().second);
