@@ -11,9 +11,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+    - name: Set env
+      run: echo "CIRCLE_BRANCH=$(git symbolic-ref -q --short HEAD)" >> $GITHUB_ENV
     - name: Trigger CircleCI build
       env:
-        CIRCLE_BRANCH: ${{ github.ref }}
         TOKEN: ${{ secrets.CIRCLE_TOKEN }}
       run: |
         curl -X POST \
