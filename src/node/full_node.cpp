@@ -241,7 +241,10 @@ void FullNode::close() {
   if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
-  jsonrpc_api_ = nullptr;  // TODO Because it indirectly refers to FullNode
+  jsonrpc_api_ = nullptr;  // TODO remove this line - we should not care about destroying objects explicitly, the
+                           // lifecycle of objects should be as declarative as possible (RAII).
+                           // This line is needed because jsonrpc_api_ indirectly refers to FullNode (produces
+                           // self-reference from FullNode to FullNode).
   blk_proposer_->stop();
   pbft_mgr_->stop();
   trx_mgr_->stop();
