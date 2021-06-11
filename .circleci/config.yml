@@ -140,6 +140,7 @@ jobs:
            fi
       - run:
          name: Install/configure helm and chart
+         no_output_timeout: 15m
          command: |
             if [[ ${PR} != "false" ]];then
               docker push ${GCP_IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
@@ -151,7 +152,7 @@ jobs:
               helm install  ${HELM_TEST_NAME:0:40} taraxa-node \
                 --wait \
                 --atomic \
-                --timeout 1200s \
+                --timeout 600s \
                 --create-namespace \
                 --namespace ${HELM_TEST_NAME} \
                 --set replicaCount=5 \
@@ -162,10 +163,11 @@ jobs:
             fi
       - run:
          name: Run helm test
+         no_output_timeout: 15m
          command: |
             if [[ ${PR} != "false" ]];then
               helm test ${HELM_TEST_NAME} \
-                --timeout 3600s \
+                --timeout 600s \
                 --namespace ${HELM_TEST_NAME}
               ./scripts/kibana-url.sh || true
             fi
