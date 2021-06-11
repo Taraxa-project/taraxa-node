@@ -476,7 +476,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         dag_blk_mgr_->insertBroadcastedBlockWithTransactions(block, newTransactions);
       }
 
-      bool is_final_sync_packet = bool((*item_rlp++)[0].toInt<uint8_t>());
+      bool is_final_sync_packet = bool((*item_rlp)[0].toInt<uint8_t>());
       if (is_final_sync_packet) {
         syncing_state_.set_dag_syncing(false);
         LOG(log_nf_dag_sync_) << "Received final DagBlocksSyncPacket with blocks: " << received_dag_blocks_str;
@@ -1073,10 +1073,6 @@ void TaraxaCapability::onNewBlockVerified(DagBlock const &block) {
 
 // TODO: whole creation of DagBlocksSyncPacket rlp might be refactored
 void TaraxaCapability::sendBlocks(NodeID const &_id, std::vector<std::shared_ptr<DagBlock>> blocks) {
-  if (blocks.empty()) {
-    return;
-  }
-
   // Create packet RLPStream
   auto create_packet_rlp = [](taraxa::bytes &packet_bytes, size_t items_count, bool final_packet_flag) -> RLPStream {
     // Create final flag rlp
@@ -1098,15 +1094,7 @@ void TaraxaCapability::sendBlocks(NodeID const &_id, std::vector<std::shared_ptr
   size_t packet_items_count = 0;
   size_t blocks_counter = 0;
 
-  auto peer = getPeer(_id);
-  if(!peer)
-    return;
-
   for (auto &block : blocks) {
-    if (peer->isBlockKnown(block->getHash())) {
-      continue;
-    }
-
     size_t dag_block_items_count = 0;
     size_t previous_block_packet_size = packet_bytes.size();
 
