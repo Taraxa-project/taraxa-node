@@ -94,7 +94,7 @@ void TaraxaCapability::sealAndSend(NodeID const &nodeID, unsigned packet_type, R
 
   auto peer = getPeer(nodeID);
 
-  if (dag_mgr_ && !peer->passed_initial_ && packet_type != StatusPacket) {
+  if ((!peer) || (dag_mgr_ && !peer->passed_initial_ && packet_type != StatusPacket)) {
     return;
   }
 
@@ -1022,6 +1022,8 @@ void TaraxaCapability::sendBlocks(NodeID const &_id, std::vector<std::shared_ptr
   size_t blocks_counter = 0;
 
   auto peer = getPeer(_id);
+  if(!peer)
+    return;
 
   for (auto &block : blocks) {
     if (peer->isBlockKnown(block->getHash())) {
