@@ -611,169 +611,126 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_behind_round) {
 
 // Test PBFT next votes sycning when node has same PBFT round with peer, but has less previous round next votes size
 TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_1) {
+  auto pbft_previous_round = 0;
   auto pbft_2t_plus_1 = 2;
 
   auto node_cfgs = make_node_cfgs<20>(2);
-  FullNode::Handle node1(node_cfgs[0], true);
+  vector<FullNode::Handle> nodes(2);
+  for (auto i(0); i < 2; i++) {
+    nodes[i] = FullNode::Handle(node_cfgs[i], true);
+    // Stop PBFT manager, that will place vote
+    nodes[i]->getPbftManager()->stop();
+  }
+  EXPECT_TRUE(wait_connect(nodes) && wait_inital_status_packet_passed(nodes));
 
-  // Stop PBFT manager, that will place vote
-  std::shared_ptr<PbftManager> pbft_mgr1 = node1->getPbftManager();
-  pbft_mgr1->stop();
+  auto& node1 = nodes[0];
+  auto& node2 = nodes[1];
 
   // Generate 4 next votes for noode1
   std::vector<Vote> next_votes1;
   uint64_t round = 0;
   size_t step = 5;
+  PbftVoteTypes type = next_vote_type;
   size_t weighted_index;
   for (auto i = 0; i < 4; i++) {
     blk_hash_t voted_pbft_block_hash1(i % 2);  // Next votes could vote on 2 values
-    PbftVoteTypes type = next_vote_type;
     weighted_index = i;
-    Vote vote = pbft_mgr1->generateVote(voted_pbft_block_hash1, type, round, step, weighted_index);
+    Vote vote = node1->getPbftManager()->generateVote(voted_pbft_block_hash1, type, round, step, weighted_index);
     next_votes1.emplace_back(vote);
   }
 
+  auto node1_next_votes_mgr = node1->getNextVotesManager();
   // Update next votes bundle
-  node1->getNextVotesManager()->update(next_votes1, pbft_2t_plus_1);
-
-  FullNode::Handle node2(node_cfgs[1], true);
-  // Stop PBFT manager, that will place vote
-  std::shared_ptr<PbftManager> pbft_mgr2 = node2->getPbftManager();
-  pbft_mgr2->stop();
-  // Make sure node2 has same PBFT round with node1, default PBFT round is 1
+  node1_next_votes_mgr->update(next_votes1, pbft_2t_plus_1);
+  EXPECT_EQ(node1_next_votes_mgr->getNextVotesSize(), next_votes1.size());
 
   // Generate 2 same next votes with node1, voted same value on NULL_BLOCK_HASH
   blk_hash_t voted_pbft_block_hash2(0);
   std::vector<Vote> next_votes2;
   for (auto i = 0; i < 2; i++) {
-    PbftVoteTypes type = next_vote_type;
     weighted_index = i * 2;  // NULL_BLOCK_HASH is weighted_index at 0 and 2
-    Vote vote = pbft_mgr1->generateVote(voted_pbft_block_hash2, type, round, step, weighted_index);
+    Vote vote = node1->getPbftManager()->generateVote(voted_pbft_block_hash2, type, round, step, weighted_index);
     next_votes2.emplace_back(vote);
   }
 
+  auto node2_next_votes_mgr = node2->getNextVotesManager();
   // Update next votes bundle
-  node2->getNextVotesManager()->update(next_votes2, pbft_2t_plus_1);
+  node2_next_votes_mgr->update(next_votes2, pbft_2t_plus_1);
+  EXPECT_EQ(node2_next_votes_mgr->getNextVotesSize(), next_votes2.size());
 
   // Set PBFT previous round 2t+1 for syncing
-  auto pbft_previous_round = 0;
   node2->getDB()->savePbft2TPlus1(pbft_previous_round, pbft_2t_plus_1);
 
-  std::shared_ptr<Network> nw1 = node1->getNetwork();
-  std::shared_ptr<Network> nw2 = node2->getNetwork();
-  // Wait node1 and node2 connect to each other
-  unsigned node_peers = 1;
-  for (int i = 0; i < 300; i++) {
-    // test timeout is 30 seconds
-    if (nw1->getPeerCount() == node_peers && nw2->getPeerCount() == node_peers) {
-      break;
-    }
-    taraxa::thisThreadSleepForMilliSeconds(100);
-  }
-  EXPECT_EQ(nw1->getPeerCount(), 1);
-  EXPECT_EQ(nw2->getPeerCount(), 1);
-
-  auto expect_size = next_votes2.size() + 2;
-  auto node2_next_votes_mgr = node2->getNextVotesManager();
-  auto node2_next_votes_size = node2_next_votes_mgr->getNextVotesSize();
-  // Wait 6 PBFT lambda time for sending network status
-  auto sleep_time = node_cfgs[1].chain.pbft.lambda_ms_min * 6;
-  for (auto i = 0; i < 10; i++) {
-    if (node2_next_votes_size == expect_size) {
-      break;
-    }
-
-    taraxa::thisThreadSleepForMilliSeconds(sleep_time);
-    node2_next_votes_size = node2_next_votes_mgr->getNextVotesSize();
-  }
-  EXPECT_EQ(node2_next_votes_size, expect_size);
+  auto expect_size = next_votes1.size();
+  EXPECT_HAPPENS({30s, 500ms},
+                 [&](auto& ctx) { WAIT_EXPECT_EQ(ctx, node2_next_votes_mgr->getNextVotesSize(), expect_size); });
 }
 
 // Test PBFT next votes sycning when node has same PBFT round with peer
 TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
+  auto pbft_previous_round = 0;
   auto pbft_2t_plus_1 = 3;
 
   auto node_cfgs = make_node_cfgs<20>(2);
-  FullNode::Handle node1(node_cfgs[0], true);
+  vector<FullNode::Handle> nodes(2);
+  for (auto i(0); i < 2; i++) {
+    nodes[i] = FullNode::Handle(node_cfgs[i], true);
+    // Stop PBFT manager, that will place vote
+    nodes[i]->getPbftManager()->stop();
+  }
+  EXPECT_TRUE(wait_connect(nodes) && wait_inital_status_packet_passed(nodes));
 
-  // Stop PBFT manager, that will place vote
-  std::shared_ptr<PbftManager> pbft_mgr1 = node1->getPbftManager();
-  pbft_mgr1->stop();
+  auto& node1 = nodes[0];
+  auto& node2 = nodes[1];
 
   // Generate 3 next votes for node1
   std::vector<Vote> next_votes1;
   blk_hash_t voted_pbft_block_hash1(blk_hash_t(0));
+  PbftVoteTypes type = next_vote_type;
   uint64_t round = 0;
   size_t step = 5;
   size_t weighted_index;
   for (auto i = 0; i < 3; i++) {
-    PbftVoteTypes type = next_vote_type;
     weighted_index = i;
-    Vote vote = pbft_mgr1->generateVote(voted_pbft_block_hash1, type, round, step, weighted_index);
+    Vote vote = node1->getPbftManager()->generateVote(voted_pbft_block_hash1, type, round, step, weighted_index);
     next_votes1.emplace_back(vote);
   }
 
   auto next_votes_mgr1 = node1->getNextVotesManager();
   // Update node1 next votes bundle
   next_votes_mgr1->update(next_votes1, pbft_2t_plus_1);
-
-  FullNode::Handle node2(node_cfgs[1], true);
-  // Stop PBFT manager, that will place vote
-  std::shared_ptr<PbftManager> pbft_mgr2 = node2->getPbftManager();
-  pbft_mgr2->stop();
-  // Make sure node2 has same PBFT round with node1, default PBFT round is 1
+  EXPECT_EQ(next_votes_mgr1->getNextVotesSize(), next_votes1.size());
 
   // Generate 3 different next votes with node1
   std::vector<Vote> next_votes2;
   step = 6;
   blk_hash_t voted_pbft_block_hash2(blk_hash_t(2));
   for (auto i = 0; i < 3; i++) {
-    PbftVoteTypes type = next_vote_type;
     weighted_index = i;
-    Vote vote = pbft_mgr1->generateVote(voted_pbft_block_hash2, type, round, step, weighted_index);
+    Vote vote = node2->getPbftManager()->generateVote(voted_pbft_block_hash2, type, round, step, weighted_index);
     next_votes2.emplace_back(vote);
   }
 
   auto next_votes_mgr2 = node2->getNextVotesManager();
   // Update node2 next votes bundle
   next_votes_mgr2->update(next_votes2, pbft_2t_plus_1);
+  EXPECT_EQ(next_votes_mgr2->getNextVotesSize(), next_votes2.size());
 
   // Set node2 PBFT previous round 2t+1 for networking
-  auto pbft_previous_round = 0;
   node2->getDB()->savePbft2TPlus1(pbft_previous_round, pbft_2t_plus_1);
 
   std::shared_ptr<Network> nw1 = node1->getNetwork();
   std::shared_ptr<Network> nw2 = node2->getNetwork();
-  // Wait node1 and node2 connect to each other
-  unsigned node_peers = 1;
-  for (int i = 0; i < 300; i++) {
-    // test timeout is 30 seconds
-    if (nw1->getPeerCount() == node_peers && nw2->getPeerCount() == node_peers) {
-      break;
-    }
-    taraxa::thisThreadSleepForMilliSeconds(100);
-  }
-  EXPECT_EQ(nw1->getPeerCount(), 1);
-  EXPECT_EQ(nw2->getPeerCount(), 1);
 
   // Node1 broadcast next votes1 to node2
   nw1->broadcastPreviousRoundNextVotesBundle();
 
   auto node2_expect_size = next_votes1.size() + next_votes2.size();
-  for (auto _(0); _ < 600; ++_) {
-    if (node2_expect_size == next_votes_mgr2->getNextVotesSize()) {
-      break;
-    }
-    taraxa::thisThreadSleepForMilliSeconds(100);
-  }
+  EXPECT_HAPPENS({5s, 100ms},
+                 [&](auto& ctx) { WAIT_EXPECT_EQ(ctx, next_votes_mgr2->getNextVotesSize(), node2_expect_size) });
 
   // Expect node1 print out "ERROR: Cannot get PBFT 2t+1 in PBFT round 0"
-  auto node1_next_votes_size = next_votes_mgr1->getNextVotesSize();
-  auto node1_expect_size = next_votes1.size();
-  EXPECT_EQ(node1_next_votes_size, node1_expect_size);
-
-  auto node2_next_votes_size = next_votes_mgr2->getNextVotesSize();
-  EXPECT_EQ(node2_next_votes_size, node2_expect_size);
+  EXPECT_EQ(next_votes_mgr1->getNextVotesSize(), next_votes1.size());
 
   // Set node1 PBFT previous round 2t+1 for networking
   node1->getDB()->savePbft2TPlus1(pbft_previous_round, pbft_2t_plus_1);
@@ -781,16 +738,9 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
   // Node2 broadcast updated next votes to node1
   nw2->broadcastPreviousRoundNextVotesBundle();
 
-  node1_expect_size = next_votes1.size() + next_votes2.size();
-  for (auto _(0); _ < 600; ++_) {
-    if (node1_expect_size == next_votes_mgr1->getNextVotesSize()) {
-      break;
-    }
-    taraxa::thisThreadSleepForMilliSeconds(100);
-  }
-
-  node1_next_votes_size = next_votes_mgr1->getNextVotesSize();
-  EXPECT_EQ(node1_next_votes_size, node1_expect_size);
+  auto node1_expect_size = next_votes1.size() + next_votes2.size();
+  EXPECT_HAPPENS({5s, 100ms},
+                 [&](auto& ctx) { WAIT_EXPECT_EQ(ctx, next_votes_mgr1->getNextVotesSize(), node1_expect_size) });
 }
 
 // Test creates a DAG on one node and verifies
