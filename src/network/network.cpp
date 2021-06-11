@@ -142,6 +142,8 @@ void Network::onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_block) {
 
 bool Network::pbft_syncing() { return taraxa_capability_->pbft_syncing(); }
 
+uint64_t Network::syncTimeSeconds() const { return taraxa_capability_->syncTimeSeconds(); }
+
 void Network::onNewPbftVotes(std::vector<Vote> votes) {
   tp_.post([=, votes = std::move(votes)] {
     for (auto const &vote : votes) {
