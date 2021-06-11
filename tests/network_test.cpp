@@ -756,14 +756,13 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
   EXPECT_EQ(nw1->getPeerCount(), 1);
   EXPECT_EQ(nw2->getPeerCount(), 1);
 
-  // Node1 broadcast next votes1 to node2
-  nw1->broadcastPreviousRoundNextVotesBundle();
-
   auto node2_expect_size = next_votes1.size() + next_votes2.size();
   for (auto _(0); _ < 600; ++_) {
     if (node2_expect_size == next_votes_mgr2->getNextVotesSize()) {
       break;
     }
+    // Node1 broadcast next votes1 to node2
+    nw1->broadcastPreviousRoundNextVotesBundle();
     taraxa::thisThreadSleepForMilliSeconds(100);
   }
 
@@ -777,15 +776,14 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
 
   // Set node1 PBFT previous round 2t+1 for networking
   node1->getDB()->savePbft2TPlus1(pbft_previous_round, pbft_2t_plus_1);
-
-  // Node2 broadcast updated next votes to node1
-  nw2->broadcastPreviousRoundNextVotesBundle();
-
+  
   node1_expect_size = next_votes1.size() + next_votes2.size();
   for (auto _(0); _ < 600; ++_) {
     if (node1_expect_size == next_votes_mgr1->getNextVotesSize()) {
       break;
     }
+    // Node2 broadcast updated next votes to node1
+    nw2->broadcastPreviousRoundNextVotesBundle();
     taraxa::thisThreadSleepForMilliSeconds(100);
   }
 
