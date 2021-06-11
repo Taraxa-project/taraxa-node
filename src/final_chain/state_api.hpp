@@ -12,12 +12,12 @@
 namespace taraxa::state_api {
 
 class StateAPI {
-  function<h256(EthBlockNumber)> get_blk_hash;
-  taraxa_evm_GetBlockHash get_blk_hash_c;
-  taraxa_evm_state_API_ptr this_c;
-  RLPStream rlp_enc_transition_state;
-  StateTransitionResult result_buf_transition_state;
-  string db_path;
+  function<h256(EthBlockNumber)> get_blk_hash_;
+  taraxa_evm_GetBlockHash get_blk_hash_c_;
+  taraxa_evm_state_API_ptr this_c_;
+  RLPStream rlp_enc_transition_state_;
+  StateTransitionResult result_buf_transition_state_;
+  string db_path_;
 
  public:
   StateAPI(function<h256(EthBlockNumber)> get_blk_hash, Config const& chain_config, Opts const& opts,

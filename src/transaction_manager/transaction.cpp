@@ -103,7 +103,7 @@ shared_ptr<bytes> Transaction::rlp(bool cache) const {
   }
   std::unique_ptr<std::unique_lock<std::mutex>> l;
   if (cache) {
-    l = make_unique<std::unique_lock<std::mutex>>(sender_mu_.val, std::try_to_lock);
+    l = make_unique<std::unique_lock<std::mutex>>(cached_rlp_mu_.val, std::try_to_lock);
     if (!l->owns_lock()) {
       l->lock();
       return cached_rlp_;

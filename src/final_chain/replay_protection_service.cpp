@@ -44,13 +44,16 @@ struct SenderState {
 
 DB::Slice db_slice(dev::bytes const& b) { return {(char*)b.data(), b.size()}; }
 
-struct ReplayProtectionServiceImpl : virtual ReplayProtectionService {
-  Config config;
-  shared_ptr<DB> db;
-  shared_mutex mutable mu;
+class ReplayProtectionServiceImpl : public virtual ReplayProtectionService {
+  Config config_;
+  shared_ptr<DB> db_;
+  shared_mutex mutable mu_;
+
+ public:
+  ReplayProtectionServiceImpl(Config const& config, shared_ptr<DB> db) : config_(config), db_(move(db)) {}
 
   bool is_nonce_stale(addr_t const& addr, uint64_t nonce) const override {
-    shared_lock l(mu);
+    shared_lock l(mu_);
     auto sender_state = loadSenderState(senderStateKey(addr.hex()));
     if (!sender_state) {
       return false;
@@ -60,7 +63,7 @@ struct ReplayProtectionServiceImpl : virtual ReplayProtectionService {
 
   // TODO use binary types instead of hex strings
   void update(DB::Batch& batch, uint64_t period, RangeView<TransactionInfo> const& trxs) override {
-    unique_lock l(mu);
+    unique_lock l(mu_);
     unordered_map<string, shared_ptr<SenderState>> sender_states;
     sender_states.reserve(trxs.size);
     unordered_map<string, shared_ptr<SenderState>> sender_states_dirty;
@@ -85,39 +88,39 @@ struct ReplayProtectionServiceImpl : virtual ReplayProtectionService {
     });
     stringstream period_data_keys;
     for (auto const& [sender, state] : sender_states_dirty) {
-      db->insert(batch, DB::Columns::replay_protection, maxNonceAtRoundKey(period, sender),
-                 to_string(state->nonce_max));
-      db->insert(batch, DB::Columns::replay_protection, senderStateKey(sender), db_slice(state->rlp()));
+      db_->insert(batch, DB::Columns::final_chain_replay_protection, maxNonceAtRoundKey(period, sender),
+                  to_string(state->nonce_max));
+      db_->insert(batch, DB::Columns::final_chain_replay_protection, senderStateKey(sender), db_slice(state->rlp()));
       period_data_keys << sender << "\n";
     }
     if (auto v = period_data_keys.str(); !v.empty()) {
-      db->insert(batch, DB::Columns::replay_protection, periodDataKeysKey(period), v);
+      db_->insert(batch, DB::Columns::final_chain_replay_protection, periodDataKeysKey(period), v);
     }
-    if (period < config.range) {
+    if (period < config_.range) {
       return;
     }
-    auto bottom_period = period - config.range;
+    auto bottom_period = period - config_.range;
     auto bottom_period_data_keys_key = periodDataKeysKey(bottom_period);
-    auto keys = db->lookup(bottom_period_data_keys_key, DB::Columns::replay_protection);
+    auto keys = db_->lookup(bottom_period_data_keys_key, DB::Columns::final_chain_replay_protection);
     if (keys.empty()) {
       return;
     }
     istringstream is(keys);
     for (string line; getline(is, line);) {
       auto nonce_max_key = maxNonceAtRoundKey(bottom_period, line);
-      if (auto v = db->lookup(nonce_max_key, DB::Columns::replay_protection); !v.empty()) {
+      if (auto v = db_->lookup(nonce_max_key, DB::Columns::final_chain_replay_protection); !v.empty()) {
         auto sender_state_key = senderStateKey(line);
         auto state = loadSenderState(sender_state_key);
         state->nonce_watermark = stoull(v);
-        db->insert(batch, DB::Columns::replay_protection, sender_state_key, db_slice(state->rlp()));
-        db->remove(batch, DB::Columns::replay_protection, nonce_max_key);
+        db_->insert(batch, DB::Columns::final_chain_replay_protection, sender_state_key, db_slice(state->rlp()));
+        db_->remove(batch, DB::Columns::final_chain_replay_protection, nonce_max_key);
       }
     }
-    db->remove(batch, DB::Columns::replay_protection, bottom_period_data_keys_key);
+    db_->remove(batch, DB::Columns::final_chain_replay_protection, bottom_period_data_keys_key);
   }
 
   shared_ptr<SenderState> loadSenderState(string const& key) const {
-    if (auto v = db->lookup(key, DB::Columns::replay_protection); !v.empty()) {
+    if (auto v = db_->lookup(key, DB::Columns::final_chain_replay_protection); !v.empty()) {
       return s_ptr(new SenderState(RLP(v)));
     }
     return nullptr;
@@ -126,10 +129,7 @@ struct ReplayProtectionServiceImpl : virtual ReplayProtectionService {
 
 std::unique_ptr<ReplayProtectionService> NewReplayProtectionService(ReplayProtectionService::Config config,
                                                                     std::shared_ptr<DB> db) {
-  auto ret = u_ptr(new ReplayProtectionServiceImpl);
-  ret->config = move(config);
-  ret->db = move(db);
-  return ret;
+  return make_unique<ReplayProtectionServiceImpl>(config, move(db));
 }
 
 Json::Value enc_json(ReplayProtectionService::Config const& obj) {

@@ -150,7 +150,7 @@ void FullNode::start() {
       jsonrpc_api_->addConnector(jsonrpc_ws_);
       jsonrpc_ws_->run();
     }
-    final_chain_->block_finalized.subscribe(
+    final_chain_->block_finalized_.subscribe(
         [eth_json_rpc = weak_ptr(eth_json_rpc), ws = weak_ptr(jsonrpc_ws_), db = weak_ptr(db_)](auto const &res) {
           if (auto _eth_json_rpc = eth_json_rpc.lock(); _eth_json_rpc) {
             _eth_json_rpc->note_block_executed(*res->final_chain_blk, res->trxs, res->trx_receipts);
@@ -165,7 +165,7 @@ void FullNode::start() {
           }
         },
         *rpc_thread_pool_);
-    trx_mgr_->transaction_accepted.subscribe(
+    trx_mgr_->transaction_accepted_.subscribe(
         [eth_json_rpc = weak_ptr(eth_json_rpc), ws = weak_ptr(jsonrpc_ws_)](auto const &trx_hash) {
           if (auto _eth_json_rpc = eth_json_rpc.lock(); _eth_json_rpc) {
             _eth_json_rpc->note_pending_transaction(trx_hash);

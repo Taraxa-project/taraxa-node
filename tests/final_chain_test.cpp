@@ -5,7 +5,7 @@
 
 #include "common/constants.hpp"
 #include "config/chain_config.hpp"
-#include "final_chain/TrieCommon.h"
+#include "final_chain/trie_common.hpp"
 #include "util_test/gtest.hpp"
 
 namespace taraxa::final_chain {
@@ -30,7 +30,7 @@ struct FinalChainTest : WithDataDir {
       auto acc_actual = SUT->get_account(addr);
       ASSERT_TRUE(acc_actual);
       auto expected_bal = cfg.state.effective_genesis_balance(addr);
-      ASSERT_EQ(acc_actual->Balance, expected_bal);
+      ASSERT_EQ(acc_actual->balance, expected_bal);
       expected_balances[addr] = expected_bal;
     }
   }
@@ -45,7 +45,7 @@ struct FinalChainTest : WithDataDir {
     }
     DagBlock dag_blk({}, {}, {}, trx_hashes, {}, secret_t::random());
     db->saveDagBlock(dag_blk);
-    FinalChain::NewBlock new_blk{
+    NewBlock new_blk{
         addr_t::random(),
         uint64_t(chrono::high_resolution_clock::now().time_since_epoch().count()),
         {dag_blk.getHash()},
@@ -79,7 +79,7 @@ struct FinalChainTest : WithDataDir {
     EXPECT_EQ(blk_h.nonce(), Nonce());
     EXPECT_EQ(blk_h.difficulty(), 0);
     EXPECT_EQ(blk_h.mix_hash(), h256());
-    EXPECT_EQ(blk_h.uncles_hash(), EmptyRLPListSHA3);
+    EXPECT_EQ(blk_h.uncles_hash(), EmptyRLPListSHA3());
     EXPECT_TRUE(!blk_h.state_root.isZero());
     LogBloom expected_block_log_bloom;
     unordered_map<addr_t, u256> expected_balance_changes;
@@ -98,10 +98,10 @@ struct FinalChainTest : WithDataDir {
         all_addrs_w_changed_balance.insert(sender);
         all_addrs_w_changed_balance.insert(receiver);
         auto const& receiver_bal = expected_balances[receiver] += trx.getValue();
-        if (SUT->get_account(sender)->CodeSize == 0) {
+        if (SUT->get_account(sender)->code_size == 0) {
           expected_balance_changes[sender] = sender_bal;
         }
-        if (SUT->get_account(receiver)->CodeSize == 0) {
+        if (SUT->get_account(receiver)->code_size == 0) {
           expected_balance_changes[receiver] = receiver_bal;
         }
       }
@@ -124,7 +124,7 @@ struct FinalChainTest : WithDataDir {
     EXPECT_EQ(blk_h.log_bloom, expected_block_log_bloom);
     if (assume_only_toplevel_transfers) {
       for (auto const& addr : all_addrs_w_changed_balance) {
-        EXPECT_EQ(SUT->get_account(addr)->Balance, expected_balances[addr]);
+        EXPECT_EQ(SUT->get_account(addr)->balance, expected_balances[addr]);
       }
     }
     return result;
@@ -227,7 +227,7 @@ TEST_F(FinalChainTest, contract) {
         // greet()
         dev::fromHex("0xcfae3217"),
     });
-    return dev::toHexPrefixed(ret.CodeRet);
+    return dev::toHexPrefixed(ret.code_retval);
   };
   ASSERT_EQ(greet(),
             // "Hello"

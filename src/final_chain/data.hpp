@@ -14,22 +14,6 @@
 
 namespace taraxa::final_chain {
 
-struct Config {
-  state_api::Config state;
-  struct GenesisBlockFields {
-    addr_t author;
-    uint64_t timestamp = 0;
-  } genesis_block_fields;
-};
-Json::Value enc_json(Config const& obj);
-void dec_json(Json::Value const& json, Config& obj);
-Json::Value enc_json(Config::GenesisBlockFields const& obj);
-void dec_json(Json::Value const& json, Config::GenesisBlockFields& obj);
-
-struct Opts {
-  state_api::Opts state_api;
-};
-
 using LogBloom = dev::h2048;
 using LogBlooms = std::vector<LogBloom>;
 using Nonce = dev::h64;
@@ -63,7 +47,6 @@ struct BlockHeader {
 static constexpr auto c_bloomIndexSize = 16;
 static constexpr auto c_bloomIndexLevels = 2;
 
-using BlockLogBlooms = LogBlooms;
 using BlocksBlooms = std::array<LogBloom, c_bloomIndexSize>;
 
 struct LogEntry {
@@ -97,6 +80,35 @@ struct TransactionLocation {
   uint64_t index = 0;
 
   HAS_RLP_FIELDS
+};
+
+struct Config {
+  state_api::Config state;
+  struct GenesisBlockFields {
+    addr_t author;
+    uint64_t timestamp = 0;
+  } genesis_block_fields;
+};
+Json::Value enc_json(Config const& obj);
+void dec_json(Json::Value const& json, Config& obj);
+Json::Value enc_json(Config::GenesisBlockFields const& obj);
+void dec_json(Json::Value const& json, Config::GenesisBlockFields& obj);
+
+struct Opts {
+  state_api::Opts state_api;
+};
+
+struct NewBlock {
+  addr_t author;
+  uint64_t timestamp;
+  std::vector<h256> dag_blk_hashes;
+  h256 hash;
+};
+
+struct FinalizationResult : NewBlock {
+  std::shared_ptr<BlockHeader const> final_chain_blk;
+  Transactions trxs;
+  TransactionReceipts trx_receipts;
 };
 
 }  // namespace taraxa::final_chain

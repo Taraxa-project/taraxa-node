@@ -1,11 +1,10 @@
-#include "../Eth.h"
+#include "Eth.h"
 
 #include <json/json.h>
 #include <libdevcore/CommonData.h>
 #include <libdevcore/CommonJS.h>
 
 #include "LogFilter.hpp"
-#include "Watches.hpp"
 
 namespace taraxa::net::rpc::eth {
 using namespace ::std;
@@ -13,10 +12,11 @@ using namespace ::dev;
 using namespace ::taraxa::final_chain;
 using namespace ::taraxa::state_api;
 
-struct EthImpl : Eth, EthParams {
-  Watches watches;
+class EthImpl : public Eth, EthParams {
+  Watches watches_;
 
-  EthImpl(EthParams&& prerequisites) : EthParams(move(prerequisites)), watches(watches_cfg) {}
+ public:
+  EthImpl(EthParams&& prerequisites) : EthParams(move(prerequisites)), watches_(watches_cfg) {}
 
   virtual RPCModules implementedModules() const override { return RPCModules{RPCModule{"eth", "1.0"}}; }
 
@@ -32,7 +32,7 @@ struct EthImpl : Eth, EthParams {
 
   string eth_getBalance(string const& _address, string const& _blockNumber) override {
     return toJS(
-        final_chain->get_account(toAddress(_address), parse_blk_num(_blockNumber)).value_or(ZeroAccount).Balance);
+        final_chain->get_account(toAddress(_address), parse_blk_num(_blockNumber)).value_or(ZeroAccount).balance);
   }
 
   string eth_getStorageAt(string const& _address, string const& _position, string const& _blockNumber) override {
@@ -54,14 +54,14 @@ struct EthImpl : Eth, EthParams {
     auto t = toTransactionSkeleton(_json);
     auto blk_n = parse_blk_num(_blockNumber);
     set_transaction_defaults(t, blk_n);
-    return toJS(call(blk_n, t, false).CodeRet);
+    return toJS(call(blk_n, t, false).code_retval);
   }
 
   string eth_estimateGas(Json::Value const& _json) override {
     auto t = toTransactionSkeleton(_json);
     auto blk_n = final_chain->last_block_number();
     set_transaction_defaults(t, blk_n);
-    return toJS(call(blk_n, t, true).GasUsed);
+    return toJS(call(blk_n, t, true).gas_used);
   }
 
   string eth_getTransactionCount(string const& _address, string const& _blockNumber) override {
@@ -130,27 +130,27 @@ struct EthImpl : Eth, EthParams {
   Json::Value eth_getUncleByBlockNumberAndIndex(string const&, string const&) override { return Json::Value(); }
 
   string eth_newFilter(Json::Value const& _json) override {
-    return toJS(watches.logs.install_watch(parse_log_filter(_json)));
+    return toJS(watches_.logs_.install_watch(parse_log_filter(_json)));
   }
 
-  string eth_newBlockFilter() override { return toJS(watches.new_blocks.install_watch()); }
+  string eth_newBlockFilter() override { return toJS(watches_.new_blocks_.install_watch()); }
 
-  string eth_newPendingTransactionFilter() override { return toJS(watches.new_transactions.install_watch()); }
+  string eth_newPendingTransactionFilter() override { return toJS(watches_.new_transactions_.install_watch()); }
 
   bool eth_uninstallFilter(string const& _filterId) override {
     auto watch_id = jsToInt(_filterId);
-    return watches.visit_by_id(watch_id, [=](auto watch) { return watch && watch->uninstall_watch(watch_id); });
+    return watches_.visit_by_id(watch_id, [=](auto watch) { return watch && watch->uninstall_watch(watch_id); });
   }
 
   Json::Value eth_getFilterChanges(string const& _filterId) override {
     auto watch_id = jsToInt(_filterId);
-    return watches.visit_by_id(watch_id, [=](auto watch) {
+    return watches_.visit_by_id(watch_id, [=](auto watch) {
       return watch ? toJsonArray(watch->poll(watch_id)) : Json::Value(Json::arrayValue);
     });
   }
 
   Json::Value eth_getFilterLogs(string const& _filterId) override {
-    if (auto filter = watches.logs.get_watch_params(jsToInt(_filterId))) {
+    if (auto filter = watches_.logs_.get_watch_params(jsToInt(_filterId))) {
       return toJsonArray(filter->match_all(*final_chain));
     }
     return Json::Value(Json::arrayValue);
@@ -166,16 +166,16 @@ struct EthImpl : Eth, EthParams {
 
   void note_block_executed(BlockHeader const& blk_header, Transactions const& trxs,
                            TransactionReceipts const& receipts) override {
-    watches.new_blocks.process_update(blk_header.hash);
+    watches_.new_blocks_.process_update(blk_header.hash);
     ExtendedTransactionLocation trx_loc{{{blk_header.number}, blk_header.hash}};
     for (; trx_loc.index < trxs.size(); ++trx_loc.index) {
       trx_loc.trx_hash = trxs[trx_loc.index].getHash();
-      using LogsInput = typename decltype(watches.logs)::InputType;
-      watches.logs.process_update(LogsInput(trx_loc, receipts[trx_loc.index]));
+      using LogsInput = typename decltype(watches_.logs_)::InputType;
+      watches_.logs_.process_update(LogsInput(trx_loc, receipts[trx_loc.index]));
     }
   }
 
-  void note_pending_transaction(h256 const& trx_hash) override { watches.new_transactions.process_update(trx_hash); }
+  void note_pending_transaction(h256 const& trx_hash) override { watches_.new_transactions_.process_update(trx_hash); }
 
   Json::Value get_block_by_number(EthBlockNumber blk_n, bool include_transactions) {
     auto blk_header = final_chain->block_header(blk_n);
@@ -256,7 +256,7 @@ struct EthImpl : Eth, EthParams {
   }
 
   uint64_t transaction_count(EthBlockNumber n, Address const& addr) {
-    return final_chain->get_account(addr, n).value_or(ZeroAccount).Nonce;
+    return final_chain->get_account(addr, n).value_or(ZeroAccount).nonce;
   }
 
   state_api::ExecutionResult call(EthBlockNumber blk_n, TransactionSkeleton const& trx, bool free_gas) {

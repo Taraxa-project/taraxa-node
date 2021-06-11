@@ -70,15 +70,14 @@ struct DbStorage {
     string const name_;
 
    public:
-    size_t const ordinal;
+    size_t const ordinal_;
 
-    Column(string name, size_t ordinal) : name_(std::move(name)), ordinal(ordinal) {}
+    Column(string name, size_t ordinal) : name_(std::move(name)), ordinal_(ordinal) {}
 
-    auto const& name() const { return ordinal ? name_ : rocksdb::kDefaultColumnFamilyName; }
+    auto const& name() const { return ordinal_ ? name_ : rocksdb::kDefaultColumnFamilyName; }
   };
 
   class Columns {
-   private:
     static inline vector<Column> all_;
 
    public:
@@ -93,8 +92,6 @@ struct DbStorage {
     // anchor_hash->[...dag_block_hashes_since_previous_anchor, anchor_hash]
     COLUMN(dag_finalized_blocks);
     COLUMN(transactions);
-    // hash->dummy_short_value
-    COLUMN(executed_transactions);
     COLUMN(trx_status);
     COLUMN(status);
     COLUMN(pbft_mgr_round_step);
@@ -114,14 +111,14 @@ struct DbStorage {
     COLUMN(dag_block_period);
     COLUMN(dpos_proposal_period_levels_status);
     COLUMN(proposal_period_levels_map);
-    COLUMN(replay_protection);
-    COLUMN(executed_transactions_by_blk_number);
-    COLUMN(executed_transactions_count_by_blk_number);
     COLUMN(final_chain_meta);
+    COLUMN(final_chain_transaction_location_by_hash);
+    COLUMN(final_chain_replay_protection);
+    COLUMN(final_chain_transaction_hashes_by_blk_number);
+    COLUMN(final_chain_transaction_count_by_blk_number);
     COLUMN(final_chain_blk_by_number);
     COLUMN(final_chain_blk_hash_by_number);
     COLUMN(final_chain_blk_number_by_hash);
-    COLUMN(final_chain_log_blooms);
     COLUMN(final_chain_receipt_by_trx_hash);
     COLUMN(final_chain_log_blooms_index);
 
@@ -147,7 +144,7 @@ struct DbStorage {
   addr_t node_addr_;
   bool minor_version_changed_ = false;
 
-  auto handle(Column const& col) const { return handles_[col.ordinal]; }
+  auto handle(Column const& col) const { return handles_[col.ordinal_]; }
 
   LOG_OBJECTS_DEFINE
 

@@ -89,65 +89,65 @@ Json::Value enc_json(Config const& obj);
 void dec_json(Json::Value const& json, Config& obj);
 
 struct EVMBlock {
-  addr_t Author;
-  gas_t GasLimit = 0;
-  uint64_t Time = 0;
-  u256 Difficulty;
+  addr_t author;
+  gas_t gas_limit = 0;
+  uint64_t time = 0;
+  u256 difficulty;
 
   HAS_RLP_FIELDS
 };
 
 struct EVMTransaction {
-  addr_t From;
-  u256 GasPrice;
-  optional<addr_t> To;
-  uint64_t Nonce = 0;
-  u256 Value;
-  gas_t Gas = 0;
-  bytes Input;
+  addr_t from;
+  u256 gas_price;
+  optional<addr_t> to;
+  uint64_t nonce = 0;
+  u256 value;
+  gas_t gas = 0;
+  bytes input;
 
   HAS_RLP_FIELDS
 };
 
 struct UncleBlock {
-  EthBlockNumber Number = 0;
-  addr_t Author;
+  EthBlockNumber number = 0;
+  addr_t author;
 
   HAS_RLP_FIELDS
 };
 
 struct LogRecord {
-  addr_t Address;
-  vector<h256> Topics;
-  bytes Data;
+  addr_t address;
+  vector<h256> topics;
+  bytes data;
 
   HAS_RLP_FIELDS
 };
 
 struct ExecutionResult {
-  bytes CodeRet;
-  addr_t NewContractAddr;
-  vector<LogRecord> Logs;
-  gas_t GasUsed = 0;
-  string CodeErr;
-  string ConsensusErr;
+  bytes code_retval;
+  addr_t new_contract_addr;
+  vector<LogRecord> logs;
+  gas_t gas_used = 0;
+  string code_err;
+  string consensus_err;
 
   HAS_RLP_FIELDS
 };
 
 struct StateTransitionResult {
-  vector<ExecutionResult> ExecutionResults;
-  h256 StateRoot;
+  vector<ExecutionResult> execution_results;
+  h256 state_root;
 
   HAS_RLP_FIELDS
 };
 
 struct Account {
-  uint64_t Nonce = 0;
-  u256 Balance;
-  h256 StorageRootHash;
-  h256 CodeHash;
-  uint64_t CodeSize = 0;
+  uint64_t nonce = 0;
+  u256 balance;
+  h256 storage_root_hash;
+  h256 code_hash;
+  uint64_t code_size = 0;
 
   HAS_RLP_FIELDS
 
@@ -156,22 +156,22 @@ struct Account {
 } const ZeroAccount;
 
 struct TrieProof {
-  bytes Value;
-  vector<bytes> Nodes;
+  bytes value;
+  vector<bytes> nodes;
 
   HAS_RLP_FIELDS
 };
 
 struct Proof {
-  TrieProof AccountProof;
-  vector<TrieProof> StorageProofs;
+  TrieProof account_proof;
+  vector<TrieProof> storage_proofs;
 
   HAS_RLP_FIELDS
 };
 
 struct Opts {
-  uint32_t ExpectedMaxTrxPerBlock = 0;
-  uint8_t MainTrieFullNodeLevelsToCache = 0;
+  uint32_t expected_max_trx_per_block = 0;
+  uint8_t max_trie_full_node_levels_to_cache = 0;
 
   HAS_RLP_FIELDS
 };

@@ -40,7 +40,7 @@ std::pair<bool, std::string> TransactionManager::verifyTransaction(Transaction c
   }
   // TODO maybe this is not the best place for it. The idea is to fire this event only for a verified (accepted)
   // transaction *exactly once*
-  transaction_accepted.emit(trx.getHash());
+  transaction_accepted_.emit(trx.getHash());
   return {true, ""};
 }
 

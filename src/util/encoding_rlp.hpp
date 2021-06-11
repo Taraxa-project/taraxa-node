@@ -15,12 +15,12 @@ using namespace dev;
 
 using RLPEncoderRef = RLPStream&;
 struct RLPDecoderRef {
-  RLP const& target;
+  RLP const& value;
   RLP::Strictness strictness;
 
-  RLPDecoderRef(RLP const& target, RLP::Strictness strictness) : target(target), strictness(strictness) {}
-  RLPDecoderRef(RLP const& target, bool strict = false)
-      : RLPDecoderRef(target, strict ? RLP::VeryStrict : RLP::LaissezFaire) {}
+  RLPDecoderRef(RLP const& value, RLP::Strictness strictness) : value(value), strictness(strictness) {}
+  RLPDecoderRef(RLP const& value, bool strict = false)
+      : RLPDecoderRef(value, strict ? RLP::VeryStrict : RLP::LaissezFaire) {}
 };
 
 template <typename... Params>
@@ -94,22 +94,22 @@ template <typename... Params>
 void rlp_tuple(RLPDecoderRef encoding, Params&... args);
 
 template <typename T>
-auto rlp(RLPDecoderRef encoding, T& target) -> decltype(encoding.target.toInt<T>(), void()) {
-  target = encoding.target.toInt<T>(encoding.strictness);
+auto rlp(RLPDecoderRef encoding, T& target) -> decltype(encoding.value.toInt<T>(), void()) {
+  target = encoding.value.toInt<T>(encoding.strictness);
 }
 
 template <unsigned N>
 void rlp(RLPDecoderRef encoding, FixedHash<N>& target) {
-  target = encoding.target.toHash<FixedHash<N>>(encoding.strictness);
+  target = encoding.value.toHash<FixedHash<N>>(encoding.strictness);
 }
 
-inline auto rlp(RLPDecoderRef encoding, string& target) { target = encoding.target.toString(encoding.strictness); }
+inline auto rlp(RLPDecoderRef encoding, string& target) { target = encoding.value.toString(encoding.strictness); }
 
-inline auto rlp(RLPDecoderRef encoding, bytes& target) { target = encoding.target.toBytes(encoding.strictness); }
+inline auto rlp(RLPDecoderRef encoding, bytes& target) { target = encoding.value.toBytes(encoding.strictness); }
 
 template <typename Param>
 void rlp(RLPDecoderRef encoding, optional<Param>& target) {
-  if (encoding.target.isNull() || encoding.target.isEmpty()) {
+  if (encoding.value.isNull() || encoding.value.isEmpty()) {
     target = nullopt;
   } else {
     rlp(encoding, target.emplace());
@@ -118,11 +118,11 @@ void rlp(RLPDecoderRef encoding, optional<Param>& target) {
 
 template <typename Sequence>
 auto rlp(RLPDecoderRef encoding, Sequence& target) -> decltype(target.emplace_back(), void()) {
-  for (auto const& i : encoding.target) {
+  for (auto i : encoding.value) {
     rlp(RLPDecoderRef(i, encoding.strictness), target.emplace_back());
   }
 }
-inline void rlp(RLPDecoderRef encoding, bool& target) { target = encoding.target.toInt<uint8_t>(encoding.strictness); }
+inline void rlp(RLPDecoderRef encoding, bool& target) { target = encoding.value.toInt<uint8_t>(encoding.strictness); }
 
 template <typename T>
 inline auto rlp(RLPDecoderRef encoding, T& target) -> decltype(target.rlp(encoding), void()) {
@@ -132,7 +132,7 @@ inline auto rlp(RLPDecoderRef encoding, T& target) -> decltype(target.rlp(encodi
 template <typename Map>
 auto rlp(RLPDecoderRef encoding, Map& target) -> decltype(target[target.begin()->first], void()) {
   using key_type = remove_cv_t<decltype(target.begin()->first)>;
-  for (auto const& i : encoding.target) {
+  for (auto i : encoding.value) {
     auto entry_i = i.begin();
     key_type key;
     rlp(RLPDecoderRef(*entry_i, encoding.strictness), key);
@@ -166,8 +166,8 @@ template <typename... Params>
 void rlp_tuple(RLPDecoderRef encoding, Params&... args) {
   constexpr auto num_elements = sizeof...(args);
   static_assert(0 < num_elements);
-  auto list_begin = encoding.target.begin();
-  auto num_elements_processed = __dec_rlp_tuple_body__(list_begin, encoding.target.end(), encoding.strictness, args...);
+  auto list_begin = encoding.value.begin();
+  auto num_elements_processed = __dec_rlp_tuple_body__(list_begin, encoding.value.end(), encoding.strictness, args...);
   if (num_elements != num_elements_processed) {
     throw InvalidEncodingSize(num_elements, num_elements_processed);
   }

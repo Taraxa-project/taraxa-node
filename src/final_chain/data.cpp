@@ -39,7 +39,7 @@ void BlockHeader::ethereum_rlp(dev::RLPStream& encoding) const {
                   extra_data, BlockHeader::mix_hash(), BlockHeader::nonce());
 }
 
-h256 const& BlockHeader::uncles_hash() { return EmptyRLPListSHA3; }
+h256 const& BlockHeader::uncles_hash() { return EmptyRLPListSHA3(); }
 
 Nonce const& BlockHeader::nonce() {
   static const Nonce ret;

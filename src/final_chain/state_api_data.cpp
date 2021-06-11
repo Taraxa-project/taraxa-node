@@ -11,8 +11,8 @@ TaraxaEVMError::~TaraxaEVMError() throw() {}
 
 ErrFutureBlock::~ErrFutureBlock() throw() {}
 
-h256 const& Account::storage_root_eth() const { return StorageRootHash ? StorageRootHash : EmptyRLPListSHA3; }
-h256 const& Account::code_hash_eth() const { return CodeSize ? CodeHash : EmptySHA3; }
+h256 const& Account::storage_root_eth() const { return storage_root_hash ? storage_root_hash : EmptyRLPListSHA3(); }
+h256 const& Account::code_hash_eth() const { return code_size ? code_hash : EmptySHA3(); }
 
 u256 Config::effective_genesis_balance(addr_t const& addr) const {
   if (!genesis_balances.count(addr)) {
@@ -182,16 +182,16 @@ RLP_FIELDS_DEFINE(ETHChainConfig, homestead_block, dao_fork_block, eip_150_block
 RLP_FIELDS_DEFINE(DPOSConfig, eligibility_balance_threshold, deposit_delay, withdrawal_delay, genesis_state)
 RLP_FIELDS_DEFINE(DPOSTransfer, value, negative)
 RLP_FIELDS_DEFINE(Config, eth_chain_config, disable_block_rewards, execution_options, genesis_balances, dpos)
-RLP_FIELDS_DEFINE(EVMBlock, Author, GasLimit, Time, Difficulty)
-RLP_FIELDS_DEFINE(EVMTransaction, From, GasPrice, To, Nonce, Value, Gas, Input)
-RLP_FIELDS_DEFINE(UncleBlock, Number, Author)
-RLP_FIELDS_DEFINE(LogRecord, Address, Topics, Data)
-RLP_FIELDS_DEFINE(ExecutionResult, CodeRet, NewContractAddr, Logs, GasUsed, CodeErr, ConsensusErr)
-RLP_FIELDS_DEFINE(StateTransitionResult, ExecutionResults, StateRoot)
-RLP_FIELDS_DEFINE(Account, Nonce, Balance, StorageRootHash, CodeHash, CodeSize)
-RLP_FIELDS_DEFINE(TrieProof, Value, Nodes)
-RLP_FIELDS_DEFINE(Proof, AccountProof, StorageProofs)
-RLP_FIELDS_DEFINE(Opts, ExpectedMaxTrxPerBlock, MainTrieFullNodeLevelsToCache)
+RLP_FIELDS_DEFINE(EVMBlock, author, gas_limit, time, difficulty)
+RLP_FIELDS_DEFINE(EVMTransaction, from, gas_price, to, nonce, value, gas, input)
+RLP_FIELDS_DEFINE(UncleBlock, number, author)
+RLP_FIELDS_DEFINE(LogRecord, address, topics, data)
+RLP_FIELDS_DEFINE(ExecutionResult, code_retval, new_contract_addr, logs, gas_used, code_err, consensus_err)
+RLP_FIELDS_DEFINE(StateTransitionResult, execution_results, state_root)
+RLP_FIELDS_DEFINE(Account, nonce, balance, storage_root_hash, code_hash, code_size)
+RLP_FIELDS_DEFINE(TrieProof, value, nodes)
+RLP_FIELDS_DEFINE(Proof, account_proof, storage_proofs)
+RLP_FIELDS_DEFINE(Opts, expected_max_trx_per_block, max_trie_full_node_levels_to_cache)
 RLP_FIELDS_DEFINE(OptsDB, db_path, disable_most_recent_trie_value_views)
 RLP_FIELDS_DEFINE(StateDescriptor, blk_num, state_root)
 RLP_FIELDS_DEFINE(DPOSQuery::AccountQuery, with_staking_balance, with_outbound_deposits, outbound_deposits_addrs_only,

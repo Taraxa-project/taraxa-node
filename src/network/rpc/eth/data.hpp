@@ -5,6 +5,7 @@
 namespace taraxa::net::rpc::eth {
 using namespace ::dev;
 using namespace ::taraxa::final_chain;
+using namespace ::std;
 
 struct TransactionLocationWithBlockHash : TransactionLocation {
   h256 blk_h{};

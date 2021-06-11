@@ -1,13 +1,13 @@
 # additional target to perform clang-format run, requires clang-format
 
 if (APPLE)
-    find_program(CLANG_FORMAT_EXE NAMES "clang-format" PATHS ${CMAKE_CURRENT_SOURCE_DIR} 
-            DOC "Path to clang-format executable" 
+    find_program(CLANG_FORMAT_EXE NAMES "clang-format" PATHS ${CMAKE_CURRENT_SOURCE_DIR}
+            DOC "Path to clang-format executable"
             REQUIRED NO_DEFAULT_PATH
             )
-elseif() 
-    find_program(CLANG_FORMAT_EXE NAMES "clang-format" 
-            DOC "Path to clang-format executable" 
+elseif()
+    find_program(CLANG_FORMAT_EXE NAMES "clang-format"
+            DOC "Path to clang-format executable"
             REQUIRED
             )
 endif()
@@ -20,6 +20,7 @@ else ()
     # get all project files
     file(GLOB_RECURSE ALL_SOURCE_FILES
             ${CMAKE_CURRENT_SOURCE_DIR}/src/*.[ch]pp
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/*.h # jsonrpc stubs are generated as .h
             ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.[ch]pp)
 
     # TODO: print error/line

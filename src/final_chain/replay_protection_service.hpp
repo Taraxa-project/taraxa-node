@@ -23,11 +23,6 @@ struct ReplayProtectionService {
   virtual void update(DB::Batch&, uint64_t, util::RangeView<TransactionInfo> const&) = 0;
 };
 
-struct ReplayProtectionServiceDummy : ReplayProtectionService {
-  bool is_nonce_stale(addr_t const&, uint64_t) const override { return false; }
-  void update(DB::Batch&, uint64_t, util::RangeView<TransactionInfo> const&) override {}
-};
-
 std::unique_ptr<ReplayProtectionService> NewReplayProtectionService(ReplayProtectionService::Config,
                                                                     std::shared_ptr<DB>);
 

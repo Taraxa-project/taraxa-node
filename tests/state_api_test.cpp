@@ -30,13 +30,13 @@ static auto const base_taraxa_chain_cfg = [] {
 }();
 
 struct TestBlock {
-  h256 Hash;
-  h256 StateRoot;
+  h256 hash;
+  h256 state_root;
   EVMBlock evm_block;
-  vector<EVMTransaction> Transactions;
-  vector<UncleBlock> UncleBlocks;
+  vector<EVMTransaction> transactions;
+  vector<UncleBlock> uncle_blocks;
 
-  RLP_FIELDS_DEFINE_INPLACE(Hash, StateRoot, evm_block, Transactions, UncleBlocks)
+  RLP_FIELDS_DEFINE_INPLACE(hash, state_root, evm_block, transactions, uncle_blocks)
 };
 
 template <typename T>
@@ -89,7 +89,7 @@ TEST_F(StateAPITest, dpos_integration) {
       exp_q_acc_res[addr].is_eligible = true;
     }
     string meta = "at block " + to_string(curr_blk);
-    EXPECT_EQ(addr_1_bal_expected, SUT.get_account(curr_blk, make_addr(1))->Balance) << meta;
+    EXPECT_EQ(addr_1_bal_expected, SUT.get_account(curr_blk, make_addr(1))->balance) << meta;
     for (auto const& addr : expected_eligible_set) {
       EXPECT_TRUE(SUT.dpos_is_eligible(curr_blk, addr)) << meta;
       EXPECT_EQ(SUT.dpos_eligible_vote_count(curr_blk, addr), 1) << meta;
@@ -120,9 +120,9 @@ TEST_F(StateAPITest, dpos_integration) {
   auto EXEC_AND_CHECK = [&](vector<EVMTransaction> const& trxs) {
     auto result = SUT.transition_state({}, trxs);
     SUT.transition_state_commit();
-    for (auto& r : result.ExecutionResults) {
-      EXPECT_TRUE(r.CodeRet.empty());
-      EXPECT_TRUE(r.CodeErr.empty());
+    for (auto& r : result.execution_results) {
+      EXPECT_TRUE(r.code_retval.empty());
+      EXPECT_TRUE(r.code_err.empty());
     }
     ++curr_blk;
     CHECK();
@@ -133,11 +133,11 @@ TEST_F(StateAPITest, dpos_integration) {
     StateAPI::DPOSTransactionPrototype trx_proto(transfers);
     transfers = {};
     EVMTransaction trx;
-    trx.From = make_addr(1);
-    trx.To = trx_proto.to;
-    trx.Value = trx_proto.value;
-    trx.Input = trx_proto.input;
-    trx.Gas = trx_proto.minimal_gas;
+    trx.from = make_addr(1);
+    trx.to = trx_proto.to;
+    trx.value = trx_proto.value;
+    trx.input = trx_proto.input;
+    trx.gas = trx_proto.minimal_gas;
     return trx;
   };
 
@@ -199,16 +199,16 @@ TEST_F(StateAPITest, eth_mainnet_smoke) {
   rlp(RLP(genesis_balances_rlp), chain_config.genesis_balances);
 
   Opts opts;
-  opts.ExpectedMaxTrxPerBlock = 300;
-  opts.MainTrieFullNodeLevelsToCache = 4;
+  opts.expected_max_trx_per_block = 300;
+  opts.max_trie_full_node_levels_to_cache = 4;
 
-  StateAPI SUT([&](auto n) { return test_blocks[n].Hash; },  //
+  StateAPI SUT([&](auto n) { return test_blocks[n].hash; },  //
                chain_config, opts,
                {
                    (data_dir / "state").string(),
                });
 
-  ASSERT_EQ(test_blocks[0].StateRoot, SUT.get_last_committed_state_descriptor().state_root);
+  ASSERT_EQ(test_blocks[0].state_root, SUT.get_last_committed_state_descriptor().state_root);
   size_t num_blk_to_exec = 150000;  // test_blocks.size() will provide more coverage but will be slower
   long double progress_pct = 0, progress_pct_log_threshold = 0;
   auto one_blk_in_pct = (long double)100 / num_blk_to_exec;
@@ -218,8 +218,8 @@ TEST_F(StateAPITest, eth_mainnet_smoke) {
       progress_pct_log_threshold += 10;
     }
     auto const& test_block = test_blocks[blk_num];
-    auto const& result = SUT.transition_state(test_block.evm_block, test_block.Transactions, test_block.UncleBlocks);
-    ASSERT_EQ(result.StateRoot, test_block.StateRoot);
+    auto const& result = SUT.transition_state(test_block.evm_block, test_block.transactions, test_block.uncle_blocks);
+    ASSERT_EQ(result.state_root, test_block.state_root);
     SUT.transition_state_commit();
   }
 }

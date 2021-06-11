@@ -2,25 +2,12 @@
 
 #include "final_chain/final_chain.hpp"
 #include "network/rpc/EthFace.h"
+#include "watches.hpp"
 
 namespace taraxa::net::rpc::eth {
 using namespace ::taraxa::final_chain;
 using namespace ::std;
 using namespace ::dev;
-
-enum WatchType {
-  new_blocks,
-  new_transactions,
-  logs,
-
-  // do not touch
-  COUNT,
-};
-struct WatchGroupConfig {
-  uint64_t max_watches = 0;
-  chrono::seconds idle_timeout{5 * 60};
-};
-using WatchesConfig = array<WatchGroupConfig, WatchType::COUNT>;
 
 struct EthParams {
   Address address;

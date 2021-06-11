@@ -17,27 +17,15 @@ using namespace ::dev;
 using namespace ::taraxa::final_chain;
 using namespace ::taraxa::util;
 
-struct FinalChain {
+class FinalChain {
+ public:
   static constexpr auto GAS_LIMIT = ((uint64_t)1 << 53) - 1;
 
-  struct NewBlock {
-    addr_t author;
-    uint64_t timestamp;
-    vector<h256> dag_blk_hashes;
-    h256 hash;
-  };
-
-  struct FinalizationResult : NewBlock {
-    shared_ptr<BlockHeader const> final_chain_blk;
-    Transactions trxs;
-    TransactionReceipts trx_receipts;
-  };
-
  protected:
-  util::EventEmitter<shared_ptr<FinalizationResult>> const block_finalized_{};
+  util::EventEmitter<shared_ptr<FinalizationResult>> const block_finalized_emitter_{};
 
  public:
-  decltype(block_finalized_)::Subscriber const& block_finalized = block_finalized_;
+  decltype(block_finalized_emitter_)::Subscriber const& block_finalized_ = block_finalized_emitter_;
 
   virtual ~FinalChain() = default;
 
@@ -79,7 +67,7 @@ struct FinalChain {
 
   pair<val_t, bool> getBalance(addr_t const& addr) const {
     if (auto acc = get_account(addr)) {
-      return {acc->Balance, true};
+      return {acc->balance, true};
     }
     return {0, false};
   }

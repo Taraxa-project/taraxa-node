@@ -1,6 +1,75 @@
 # TODO: Break this cmake(app_base target) into smaller libraries with their own cmakes, e.g. network, chain, dag, etc... could be separate libraries
 
 set(SOURCES
+        # headers
+        common/constants.hpp
+        common/static_init.hpp
+        common/types.hpp
+        config/config_exception.hpp
+        config/chain_config.hpp
+        config/config.hpp
+        consensus/pbft_manager.hpp
+        consensus/block_proposer.hpp
+        consensus/vote.hpp
+        consensus/pbft_chain.hpp
+        consensus/vrf_wrapper.hpp
+        consensus/pbft_config.hpp
+        dag/dag.hpp
+        dag/dag_block_manager.hpp
+        dag/dag_block.hpp
+        dag/vdf_sortition.hpp
+        dag/proposal_period_levels_map.hpp
+        final_chain/state_api_data.hpp
+        final_chain/state_api.hpp
+        final_chain/trie_common.hpp
+        final_chain/data.hpp
+        final_chain/replay_protection_service.hpp
+        final_chain/final_chain.hpp
+        logger/log.hpp
+        logger/logger_config.hpp
+        network/taraxa_capability.hpp
+        network/rpc/rpc_error_handler.hpp
+        network/rpc/eth/watches.hpp
+        network/rpc/eth/LogFilter.hpp
+        network/rpc/eth/data.hpp
+        network/network.hpp
+        network/packets_stats.hpp
+        node/full_node.hpp
+        storage/db_storage.hpp
+        taraxad/taraxad_version.hpp
+        transaction_manager/transaction_order_manager.hpp
+        transaction_manager/transaction.hpp
+        transaction_manager/transaction_queue.hpp
+        transaction_manager/transaction_manager.hpp
+        transaction_manager/transaction_status.hpp
+        util/jsoncpp.hpp
+        util/range_view.hpp
+        util/global_const.hpp
+        util/functional.hpp
+        util/encoding_rlp.hpp
+        util/default_construct_copyable_movable.hpp
+        util/thread_pool.hpp
+        util/exit_stack.hpp
+        util/event.hpp
+        util/util.hpp
+        util/lazy.hpp
+        # generated headers
+        network/rpc/Net.h
+        network/rpc/Taraxa.h
+        network/rpc/WSServer.h
+        network/rpc/Test.h
+        network/rpc/EthFace.h
+        network/rpc/TaraxaFace.h
+        network/rpc/EthClient.h
+        network/rpc/RpcServer.h
+        network/rpc/eth/Eth.h
+        network/rpc/NetClient.h
+        network/rpc/TestClient.h
+        network/rpc/TaraxaClient.h
+        network/rpc/NetFace.h
+        network/rpc/TestFace.h
+        # sources
+        common/constants.cpp
         common/types.cpp
         config/chain_config.cpp
         config/config.cpp
@@ -15,12 +84,12 @@ set(SOURCES
         dag/dag_block.cpp
         dag/proposal_period_levels_map.cpp
         dag/vdf_sortition.cpp
-        final_chain/TrieCommon.cpp
-        final_chain/data.cpp
+        final_chain/trie_common.cpp
         final_chain/final_chain.cpp
         final_chain/state_api.cpp
         final_chain/state_api_data.cpp
         final_chain/replay_protection_service.cpp
+        final_chain/data.cpp
         logger/log.cpp
         logger/logger_config.cpp
         network/rpc/Taraxa.cpp
@@ -29,7 +98,9 @@ set(SOURCES
         network/rpc/Test.cpp
         network/rpc/RpcServer.cpp
         network/rpc/rpc_error_handler.cpp
-        network/rpc/eth/impl/Eth.cpp
+        network/rpc/eth/watches.cpp
+        network/rpc/eth/LogFilter.cpp
+        network/rpc/eth/Eth.cpp
         network/network.cpp
         network/packets_stats.cpp
         network/taraxa_capability.cpp

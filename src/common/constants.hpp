@@ -1,12 +1,12 @@
 #pragma once
 
-#include <libdevcore/RLP.h>
-#include <libdevcore/SHA3.h>
+#include "types.hpp"
+#include "util/global_const.hpp"
 
 namespace taraxa {
 
-inline static h256 const ZeroHash;
-inline static auto const EmptySHA3 = dev::sha3(dev::bytesConstRef());
-inline static auto const EmptyRLPListSHA3 = dev::sha3(dev::RLPStream(0).out());
+GLOBAL_CONST(h256, ZeroHash);
+GLOBAL_CONST(h256, EmptySHA3);
+GLOBAL_CONST(h256, EmptyRLPListSHA3);
 
 }  // namespace taraxa

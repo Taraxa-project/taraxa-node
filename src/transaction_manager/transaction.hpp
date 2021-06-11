@@ -53,9 +53,11 @@ struct Transaction {
   explicit Transaction(dev::RLP const &_rlp, bool verify_strict = false, h256 const &hash = {});
   explicit Transaction(bytes const &_rlp, bool verify_strict = false, h256 const &hash = {})
       : Transaction(dev::RLP(_rlp), verify_strict, hash) {}
-  explicit Transaction(bytes &&_rlp, bool verify_strict = false, h256 const &hash = {})
+  explicit Transaction(bytes &&_rlp, bool verify_strict = false, h256 const &hash = {}, bool cache_rlp = false)
       : Transaction(dev::RLP(_rlp), verify_strict, hash) {
-    cached_rlp_.reset(new bytes(std::move(_rlp)));
+    if (cache_rlp) {
+      cached_rlp_ = std::make_shared<bytes>(std::move(_rlp));
+    }
   }
 
   auto isZero() const { return is_zero_; }

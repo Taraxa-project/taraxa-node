@@ -5,6 +5,7 @@
 
 #include "LogFilter.hpp"
 #include "data.hpp"
+#include "util/global_const.hpp"
 
 namespace taraxa::net::rpc::eth {
 using namespace chrono;
@@ -12,13 +13,30 @@ using namespace chrono;
 // TODO taraxa simple exception
 DEV_SIMPLE_EXCEPTION(WatchLimitExceeded);
 
+enum WatchType {
+  new_blocks,
+  new_transactions,
+  logs,
+
+  // do not touch
+  COUNT,
+};
+
+struct WatchGroupConfig {
+  uint64_t max_watches = 0;
+  chrono::seconds idle_timeout{5 * 60};
+};
+
+using WatchesConfig = array<WatchGroupConfig, WatchType::COUNT>;
+
 using WatchID = uint64_t;
 
-inline auto const watch_id_type_mask_bits = WatchType(ceil(log2(float(COUNT))));
+GLOBAL_CONST(WatchType, watch_id_type_mask_bits);
 
 struct placeholder_t {};
 template <WatchType type_, typename InputType_, typename OutputType_ = placeholder_t, typename Params = placeholder_t>
-struct WatchGroup {
+class WatchGroup {
+ public:
   static constexpr auto type = type_;
   using InputType = InputType_;
   using OutputType = conditional_t<is_same_v<OutputType_, placeholder_t>, InputType, OutputType_>;
@@ -41,7 +59,8 @@ struct WatchGroup {
   mutable WatchID watch_id_seq_ = 0;
 
  public:
-  WatchGroup(WatchesConfig const& cfg = {}, Updater&& updater = {}) : cfg_(cfg[type]), updater_(move(updater)) {
+  explicit WatchGroup(WatchesConfig const& cfg = {}, Updater&& updater = {})
+      : cfg_(cfg[type]), updater_(move(updater)) {
     assert(cfg_.idle_timeout.count() != 0);
     if constexpr (is_same_v<InputType, OutputType>) {
       if (!updater) {
@@ -55,7 +74,7 @@ struct WatchGroup {
     if (cfg_.max_watches && watches_.size() == cfg_.max_watches) {
       throw WatchLimitExceeded();
     }
-    auto id = ((++watch_id_seq_) << watch_id_type_mask_bits) + type;
+    auto id = ((++watch_id_seq_) << watch_id_type_mask_bits()) + type;
     watches_.insert_or_assign(id, Watch{move(params), high_resolution_clock::now()});
     return id;
   }
@@ -109,15 +128,16 @@ struct WatchGroup {
   }
 };
 
-struct Watches {
-  WatchesConfig const cfg;
+class Watches {
+ public:
+  WatchesConfig const cfg_;
 
-  WatchGroup<WatchType::new_blocks, h256> const new_blocks{cfg};
-  WatchGroup<WatchType::new_transactions, h256> const new_transactions{cfg};
+  WatchGroup<WatchType::new_blocks, h256> const new_blocks_{cfg_};
+  WatchGroup<WatchType::new_transactions, h256> const new_transactions_{cfg_};
   WatchGroup<WatchType::logs,  //
              pair<ExtendedTransactionLocation const&, TransactionReceipt const&>, LocalisedLogEntry, LogFilter> const
-      logs{
-          cfg,
+      logs_{
+          cfg_,
           [](auto const& log_filter, auto const& input, auto const& do_update) {
             auto const& [trx_loc, receipt] = input;
             log_filter.match_one(trx_loc, receipt, do_update);
@@ -128,65 +148,32 @@ struct Watches {
   auto visit(WatchType type, Visitor&& visitor) {
     switch (type) {
       case WatchType::new_blocks:
-        return visitor(&new_blocks);
+        return visitor(&new_blocks_);
       case WatchType::new_transactions:
-        return visitor(&new_transactions);
+        return visitor(&new_transactions_);
       case WatchType::logs:
-        return visitor(&logs);
+        return visitor(&logs_);
       default:
         assert(false);
     }
   }
 
  private:
+  condition_variable watch_cleaner_wait_cv_;
   thread watch_cleaner_;
   atomic<bool> destructor_called_ = false;
 
  public:
-  Watches(WatchesConfig const& _cfg)
-      : cfg(_cfg),  //
-        watch_cleaner_([this] {
-          struct WatchEntry {
-            WatchType type;
-            high_resolution_clock::time_point deadline;
+  Watches(WatchesConfig const& _cfg);
 
-            bool operator<(WatchEntry const& other) const { return deadline < other.deadline; }
-          };
-          priority_queue<WatchEntry> q;
-          for (uint type = 0; type < COUNT; ++type) {
-            q.push({WatchType(type), high_resolution_clock::now() + cfg[type].idle_timeout});
-          }
-          for (;;) {
-            auto soonest = q.top();
-            q.pop();
-            for (;;) {
-              if (destructor_called_) {
-                return;
-              }
-              auto t_0 = high_resolution_clock::now();
-              if (soonest.deadline <= t_0) {
-                break;
-              }
-              static nanoseconds const sleep_limit = 2s;
-              this_thread::sleep_for(min(sleep_limit, duration_cast<nanoseconds>(soonest.deadline - t_0)));
-            }
-            visit(soonest.type, [](auto watch) { watch->uninstall_stale_watches(); });
-            soonest.deadline = high_resolution_clock::now() + cfg[soonest.type].idle_timeout;
-            q.push(soonest);
-          }
-        }) {}
-
-  ~Watches() {
-    destructor_called_ = true;
-    watch_cleaner_.join();
-  }
+  ~Watches();
 
   template <typename Visitor>
   auto visit_by_id(WatchID watch_id, Visitor&& visitor) {
-    if (auto type = WatchType(watch_id & ((1 << watch_id_type_mask_bits) - 1)); type < COUNT) {
+    if (auto type = WatchType(watch_id & ((1 << watch_id_type_mask_bits()) - 1)); type < COUNT) {
       return visit(type, forward<Visitor>(visitor));
     }
-    return visitor(decltype (&new_blocks)(nullptr));
+    return visitor(decltype (&new_blocks_)(nullptr));
   }
 };
 
