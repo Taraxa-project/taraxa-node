@@ -172,10 +172,9 @@ void PbftManager::update_dpos_state_() {
       weighted_votes_count_ = final_chain_->dpos_eligible_vote_count(dpos_period_, node_addr_);
       break;
     } catch (state_api::ErrFutureBlock &c) {
-      LOG(log_er_) << c.what();
-      LOG(log_nf_) << "PBFT period " << dpos_period_ << " is too far ahead of DPOS, need wait! PBFT chain size "
+      LOG(log_wr_) << "PBFT period " << dpos_period_ << " is too far ahead of DPOS, need wait! PBFT chain size "
                    << pbft_chain_->getPbftChainSize() << ", have executed chain size "
-                   << final_chain_->last_block_number();
+                   << final_chain_->last_block_number() << ", DPOS err: " << c.what();
       // Sleep one PBFT lambda time
       thisThreadSleepForMilliSeconds(LAMBDA_ms);
     }
@@ -570,8 +569,7 @@ void PbftManager::proposeBlock_() {
       LOG(log_nf_) << "Proposing " << place_votes << " values of NULL_BLOCK_HASH " << NULL_BLOCK_HASH
                    << " for round 1 by protocol";
     }
-  } else if (giveUpVotedBlock_(voted_value) ||
-             (round >= 2 && previous_round_next_votes_->haveEnoughVotesForNullBlockHash())) {
+  } else if (round >= 2 && giveUpVotedBlock_(voted_value)) {
     // PBFT block only be proposed once in one period
     if (!proposed_block_hash_.second || proposed_block_hash_.first == NULL_BLOCK_HASH) {
       // Propose value...
@@ -621,8 +619,7 @@ void PbftManager::identifyBlock_() {
   auto voted_value = previous_round_next_votes_->getVotedValue();
   LOG(log_tr_) << "PBFT filtering state in round " << round;
 
-  if (round == 1 || giveUpVotedBlock_(voted_value) ||
-      (round >= 2 && previous_round_next_votes_->haveEnoughVotesForNullBlockHash())) {
+  if (round == 1 || (round >= 2 && giveUpVotedBlock_(voted_value))) {
     // Identity leader
     std::pair<blk_hash_t, bool> leader_block = identifyLeaderBlock_(votes_);
     if (leader_block.second) {
@@ -747,8 +744,7 @@ void PbftManager::firstFinish_() {
       LOG(log_nf_) << "Next votes " << place_votes << " voting cert voted value " << cert_voted_values_for_round_[round]
                    << " for round " << round << " , step " << step_;
     }
-  } else if ((round >= 2 && previous_round_next_votes_->haveEnoughVotesForNullBlockHash()) ||
-             giveUpVotedBlock_(voted_value)) {
+  } else if (round >= 2 && giveUpVotedBlock_(voted_value)) {
     auto place_votes = placeVote_(NULL_BLOCK_HASH, next_vote_type, round, step_);
     if (place_votes) {
       LOG(log_nf_) << "Next votes " << place_votes << " voting NULL BLOCK for round " << round << ", at step " << step_;
@@ -811,8 +807,7 @@ void PbftManager::secondFinish_() {
   }
 
   auto voted_value = previous_round_next_votes_->getVotedValue();
-  if (!next_voted_null_block_hash_ && round >= 2 &&
-      (previous_round_next_votes_->haveEnoughVotesForNullBlockHash() || giveUpVotedBlock_(voted_value)) &&
+  if (!next_voted_null_block_hash_ && round >= 2 && giveUpVotedBlock_(voted_value) &&
       (cert_voted_values_for_round_.find(round) == cert_voted_values_for_round_.end())) {
     auto place_votes = placeVote_(NULL_BLOCK_HASH, next_vote_type, round, step_);
     if (place_votes) {
@@ -1277,7 +1272,7 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cer
     return false;
   }
   PbftBlockCert pbft_block_cert_votes(*pbft_block, cert_votes_for_round);
-  if (!pushPbftBlock_(pbft_block_cert_votes)) {
+  if (!pushPbftBlock(pbft_block_cert_votes)) {
     LOG(log_er_) << "Failed push PBFT block " << pbft_block->getBlockHash() << " into chain";
     return false;
   }
@@ -1332,7 +1327,7 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
     if (!comparePbftBlockScheduleWithDAGblocks_(*pbft_block_and_votes.pbft_blk)) {
       break;
     }
-    if (pushPbftBlock_(pbft_block_and_votes)) {
+    if (pushPbftBlock(pbft_block_and_votes, true /* syncing flag */)) {
       LOG(log_nf_) << node_addr_ << " push synced PBFT block " << pbft_block_and_votes.pbft_blk->getBlockHash()
                    << " in round " << round;
     } else {
@@ -1359,7 +1354,7 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
   }
 }
 
-bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes) {
+bool PbftManager::pushPbftBlock(PbftBlockCert const &pbft_block_cert_votes, bool synced_block) {
   auto const &pbft_block_hash = pbft_block_cert_votes.pbft_blk->getBlockHash();
   if (db_->pbftBlockInDb(pbft_block_hash)) {
     LOG(log_er_) << "PBFT block: " << pbft_block_hash << " in DB already.";
@@ -1400,7 +1395,16 @@ bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes) {
   LOG(log_nf_) << node_addr_ << " successful push unexecuted PBFT block " << pbft_block_hash << " in period "
                << pbft_period << " into chain! In round " << getPbftRound();
 
-  executor_->execute(pbft_block);
+  if (synced_block) {
+    // Execute block synchronously when syncing as very often it would not finish processing before
+    // result is required in other function in some way. It would then always wait 1 sec and try to get result again,
+    // which was ultimately a penalization rather than improvement
+    executor_->executeSynced(pbft_block);
+  } else {
+    // Execute block asynchronously as the way of processing is different compared to syncing so we can gain some
+    // processing time thanks to this...
+    executor_->execute(pbft_block);
+  }
 
   // Reset proposed PBFT block hash to False for next pbft block proposal
   proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
@@ -1419,6 +1423,14 @@ void PbftManager::updateTwoTPlusOneAndThreshold_() {
 }
 
 bool PbftManager::giveUpVotedBlock_(blk_hash_t const &block_hash) {
+  if (block_hash == NULL_BLOCK_HASH) {
+    // Have received 2t+1 next votes for NULL_BLOCK_HASH for previous round
+    return true;
+  } else if (previous_round_next_votes_->haveEnoughVotesForNullBlockHash()) {
+    // There are 2 valued values in previous round, and have received 2t+1 next votes for NULL_BLOCK_HASH
+    return true;
+  }
+
   if (pbft_chain_->findPbftBlockInChain(block_hash)) {
     return true;
   }

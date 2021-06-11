@@ -22,7 +22,6 @@ set(SOURCES
         dag/vdf_sortition.hpp
         chain/final_chain.hpp
         consensus/pbft_config.hpp
-        network/taraxa_capability.hpp
         util/exit_stack.hpp
         util/encoding_rlp.hpp
         util/range_view.hpp
@@ -31,6 +30,9 @@ set(SOURCES
         node/replay_protection_service.hpp
         common/types.hpp
         dag/dag_block.hpp
+        network/taraxa_capability.hpp
+        network/taraxa_peer.hpp
+        network/syncing_state.hpp
         network/packets_stats.hpp
         network/rpc/Taraxa.h
         network/rpc/Test.h
@@ -64,7 +66,6 @@ set(SOURCES
         aleth/database.cpp
         aleth/state_api.cpp
         node/executor.cpp
-        network/taraxa_capability.cpp
         transaction_manager/transaction_manager.cpp
         dag/vdf_sortition.cpp
         chain/chain_config.cpp
@@ -79,6 +80,8 @@ set(SOURCES
         dag/dag_block.cpp
         node/full_node.cpp
         consensus/block_proposer.cpp
+        network/taraxa_capability.cpp
+        network/syncing_state.cpp
         network/packets_stats.cpp
         network/rpc/Taraxa.cpp
         network/rpc/Test.cpp

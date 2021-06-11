@@ -133,13 +133,13 @@ void TransactionQueue::removeBlockTransactionsFromQueue(vec_trx_t const &all_blo
                                                }),
                                 unverified_hash_qu_.end());
     }
-    // clear trx_buffer
-    {
-      upgradeLock locked(lock);
-      for (auto const &t : to_remove) {
-        trx_buffer_.erase(queued_trxs_[t]);
-        queued_trxs_.erase(t);
-      }
+  }
+  // clear trx_buffer
+  {
+    upgradeLock locked(lock);
+    for (auto const &t : to_remove) {
+      trx_buffer_.erase(queued_trxs_[t]);
+      queued_trxs_.erase(t);
     }
   }
 }
@@ -184,6 +184,7 @@ std::shared_ptr<Transaction> TransactionQueue::getTransaction(trx_hash_t const &
 
 std::unordered_map<trx_hash_t, Transaction> TransactionQueue::moveVerifiedTrxSnapShot(uint16_t max_trx_to_pack) {
   std::unordered_map<trx_hash_t, Transaction> res;
+  upgradableLock lock_all(shared_mutex_for_queued_trxs_);
   {
     upgradableLock lock(shared_mutex_for_verified_qu_);
     if (max_trx_to_pack == 0) {
@@ -204,7 +205,7 @@ std::unordered_map<trx_hash_t, Transaction> TransactionQueue::moveVerifiedTrxSna
     }
   }
   {
-    uLock lock(shared_mutex_for_queued_trxs_);
+    upgradeLock lock(lock_all);
     for (auto const &t : res) {
       trx_buffer_.erase(queued_trxs_[t.first]);
       queued_trxs_.erase(t.first);
