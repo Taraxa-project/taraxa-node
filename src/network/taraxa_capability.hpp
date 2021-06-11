@@ -135,6 +135,7 @@ struct TaraxaCapability : virtual CapabilityFace {
 
   bool sealAndSend(NodeID const &nodeID, unsigned packet_type, RLPStream rlp);
   bool pbft_syncing() const { return syncing_.load(); }
+  uint64_t syncTimeSeconds() const { return summary_interval_ms_ * syncing_interval_count_ / 1000; };
 
   void syncPeerPbft(NodeID const &_nodeID, unsigned long height_to_sync);
   void restartSyncingPbft(bool force = false);
