@@ -31,7 +31,7 @@ RUN curl -SL -o llvm.sh https://apt.llvm.org/llvm.sh && \
     ./llvm.sh 10 && \
     rm -f llvm.sh
 
-# To getSolidity compiler for python integration tests
+# To get Solidity compiler for python integration tests
 RUN add-apt-repository ppa:ethereum/ethereum
 
 # Install standard tools
