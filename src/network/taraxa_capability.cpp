@@ -441,22 +441,20 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
     case DagBlocksSyncPacket: {
       std::string received_dag_blocks_str;
       size_t itemCount = _r.itemCount();
-      size_t transactionCount = 0;
 
-      bool is_final_sync_packet = _r[itemCount - 1].toInt<uint8_t>();
-      if (is_final_sync_packet) {
-        syncing_state_.set_dag_syncing(false);
-      }
+      size_t item_idx = 0;
+      auto item_rlp = _r.begin();
+      while (item_rlp != _r.end() && item_idx < itemCount - 1) {
+        DagBlock block((*item_rlp++).data().toBytes());
+        item_idx++;
 
-      for (size_t iBlock = 0; iBlock < itemCount - 1 /* last item is final DagBlocksSyncPacket packet flag*/;
-           iBlock++) {
-        DagBlock block(_r[iBlock + transactionCount].data().toBytes());
         peer->markBlockAsKnown(block.getHash());
 
         std::vector<Transaction> newTransactions;
         for (size_t i = 0; i < block.getTrxs().size(); i++) {
-          transactionCount++;
-          Transaction transaction(_r[iBlock + transactionCount].data().toBytes());
+          Transaction transaction((*item_rlp++).data().toBytes());
+          item_idx++;
+
           newTransactions.push_back(transaction);
           peer->markTransactionAsKnown(transaction.getHash());
         }
@@ -466,7 +464,6 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         auto status = checkDagBlockValidation(block);
         if (!status.first) {
           LOG(log_wr_dag_sync_) << "DagBlockValidation failed " << status.second;
-          if (iBlock + transactionCount + 1 >= itemCount) break;
           continue;
         }
 
@@ -477,18 +474,18 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         // USe standard insertBroadcastedBlockWithTransactions instead of processSyncedBlockWithTransactions as these
         // are synced non-finalized dag blocks, which have not been added to the pbft block yet
         dag_blk_mgr_->insertBroadcastedBlockWithTransactions(block, newTransactions);
-
-        if (iBlock + transactionCount + 1 >= itemCount) break;
       }
 
-      // Reset last valid sync packet received time
-      syncing_state_.set_last_sync_packet_time();
-
+      bool is_final_sync_packet = bool((*item_rlp++)[0].toInt<uint8_t>());
       if (is_final_sync_packet) {
+        syncing_state_.set_dag_syncing(false);
         LOG(log_nf_dag_sync_) << "Received final DagBlocksSyncPacket with blocks: " << received_dag_blocks_str;
       } else {
         LOG(log_nf_dag_sync_) << "Received partial DagBlocksSyncPacket with blocks: " << received_dag_blocks_str;
       }
+
+      // Reset last valid sync packet received time
+      syncing_state_.set_last_sync_packet_time();
 
       break;
     }
@@ -1074,7 +1071,29 @@ void TaraxaCapability::onNewBlockVerified(DagBlock const &block) {
   if (!peersToAnnounce.empty()) LOG(log_dg_dag_prp_) << "Anounced block to " << peersToAnnounce.size() << " peers";
 }
 
+// TODO: whole creation of DagBlocksSyncPacket rlp might be refactored
 void TaraxaCapability::sendBlocks(NodeID const &_id, std::vector<std::shared_ptr<DagBlock>> blocks) {
+  if (blocks.empty()) {
+    return;
+  }
+
+  // Create packet RLPStream
+  auto create_packet_rlp = [](taraxa::bytes &packet_bytes, size_t items_count, bool final_packet_flag) -> RLPStream {
+    // Create final flag rlp
+    // As DagBlocksSyncPacket might be split into multiple packets, we
+    // need to differentiate if is the last one or not due to syncing
+    dev::RLPStream flag(1);
+    flag << final_packet_flag;
+    taraxa::bytes flag_bytes = flag.out();
+    packet_bytes.insert(packet_bytes.end(), std::begin(flag_bytes), std::end(flag_bytes));
+    items_count++;  // final flag
+
+    RLPStream s(items_count);
+    s.appendRaw(packet_bytes, items_count);
+
+    return s;
+  };
+
   taraxa::bytes packet_bytes;
   size_t packet_items_count = 0;
   size_t blocks_counter = 0;
@@ -1123,12 +1142,8 @@ void TaraxaCapability::sendBlocks(NodeID const &_id, std::vector<std::shared_ptr
                 std::back_inserter(removed_bytes));
       packet_bytes.resize(previous_block_packet_size);
 
-      RLPStream s(packet_items_count + 1 /* final packet flag */);
-      s.appendRaw(packet_bytes, packet_items_count);
-      // As DagBlocksSyncPacket might be split into multiple packets, we
-      // need to differentiate if is the last one or not due to syncing
-      s.append(false);  // flag if it is the final DagBlocksSyncPacket or not
-      sealAndSend(_id, DagBlocksSyncPacket, std::move(s));
+      RLPStream packet_to_send = create_packet_rlp(packet_bytes, packet_items_count, false);
+      sealAndSend(_id, DagBlocksSyncPacket, std::move(packet_to_send));
 
       packet_bytes = std::move(removed_bytes);
       packet_items_count = 0;
@@ -1140,10 +1155,8 @@ void TaraxaCapability::sendBlocks(NodeID const &_id, std::vector<std::shared_ptr
 
   LOG(log_dg_dag_sync_) << "Sending final DagBlocksSyncPacket with " << blocks_counter << " blocks.";
 
-  RLPStream s(packet_items_count + 1 /* final packet flag */);
-  s.appendRaw(packet_bytes, packet_items_count);
-  s.append(true);  // flag if it is the final DagBlocksSyncPacket or not
-  sealAndSend(_id, DagBlocksSyncPacket, std::move(s));
+  RLPStream packet_to_send = create_packet_rlp(packet_bytes, packet_items_count, true);
+  sealAndSend(_id, DagBlocksSyncPacket, std::move(packet_to_send));
 }
 
 void TaraxaCapability::sendTransactions(NodeID const &_id, std::vector<taraxa::bytes> const &transactions) {
