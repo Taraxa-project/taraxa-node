@@ -51,10 +51,8 @@ class TransactionQueue {
 
   std::list<Transaction> trx_buffer_;
   std::unordered_map<trx_hash_t, listIter> queued_trxs_;  // all trx
-  mutable boost::shared_mutex shared_mutex_for_queued_trxs_;
-
   std::unordered_map<trx_hash_t, listIter> verified_trxs_;
-  mutable boost::shared_mutex shared_mutex_for_verified_qu_;
+  mutable boost::shared_mutex main_shared_mutex_;
   std::deque<std::pair<trx_hash_t, listIter>> unverified_hash_qu_;
   mutable boost::shared_mutex shared_mutex_for_unverified_qu_;
   boost::condition_variable_any cond_for_unverified_qu_;

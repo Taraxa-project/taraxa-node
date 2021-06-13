@@ -1,11 +1,11 @@
 # additional target to perform clang-tidy run, requires clang-tidy
 
 if (APPLE)
-    find_program(CLANG_TIDY_EXE NAMES "clang-tidy" PATHS ${CMAKE_CURRENT_SOURCE_DIR} 
+    find_program(CLANG_TIDY_EXE NAMES "clang-tidy" PATHS ${CMAKE_CURRENT_SOURCE_DIR}
             DOC "Path to clang-tidy executable"
             REQUIRED NO_DEFAULT_PATH
             )
-elseif()
+else()
     find_program(CLANG_TIDY_EXE NAMES "clang-tidy"
             DOC "Path to clang-tidy executable"
             REQUIRED
