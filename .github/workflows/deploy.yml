@@ -24,7 +24,7 @@ jobs:
                -d "{\"branch\":\"${{github.ref}}\", \
                     \"parameters\": { \
                        \"deploy_testnet\": true , \
-                       \"pr_number\": \" ${{ github.event.issue.number }} \"
+                       \"pr_number\": \"${{ github.event.issue.number }}\"
                        } \
                    }" \
                https://circleci.com/api/v2/project/gh/agrebin/taraxa-node/pipeline
