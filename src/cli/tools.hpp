@@ -13,7 +13,7 @@ namespace taraxa::cli {
 class Tools {
  public:
   static constexpr const char* DEFAULT_TARAXA_DIR_NAME = ".taraxa";
-  static constexpr const char* DEFAULT_TARAXA_DB_DIR_NAME = ".taraxa/db";
+  static constexpr const char* DEFAULT_TARAXA_DB_DIR_NAME = ".taraxa/data";
   static constexpr const char* DEFAULT_WALLET_FILE_NAME = "wallet.json";
   static constexpr const char* DEFAULT_CONFIG_FILE_NAME = "config.json";
 
@@ -28,9 +28,14 @@ class Tools {
   static void generateVrfFromKey(const std::string& key);
 
   // Generate default config and wallet files
-  static void generateConfig(const std::string& config, const std::string& data_dir, bool boot_node,
-                             cli::Config::NetworkIdType network_id);
+  static void generateConfig(const std::string& config, cli::Config::NetworkIdType network_id);
   static void generateWallet(const std::string& wallet);
+
+  // Override existing config and wallet files
+  static Json::Value overrideConfig(Json::Value& config, const std::string& data_dir, bool boot_node,
+                                    const std::vector<std::string>& boot_nodes,
+                                    const std::vector<std::string>& log_channels, const std::string& override_config);
+  static Json::Value overrideWallet(Json::Value& wallet, const std::string& node_key, const std::string& vrf_key);
 
   static std::string getHomeDir();
   static std::string getTaraxaDefaultDir();
@@ -44,4 +49,4 @@ class Tools {
   static Json::Value readJsonFromFile(const std::string& file_name);
   static Json::Value readJsonFromString(const std::string& str);
 };
-}  // namespace taraxa
+}  // namespace taraxa::cli
