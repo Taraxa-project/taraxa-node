@@ -17,7 +17,6 @@ jobs:
         env:
           GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
       - run: |
-            PR_NUMBER=$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
             curl -u ${{ secrets.CIRCLE_TOKEN }}: -X  POST \
                -H 'Content-Type: application/json' \
                -H 'Accept: application/json' \
