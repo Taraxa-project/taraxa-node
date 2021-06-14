@@ -37,7 +37,7 @@ commands:
             type: enum
       steps:
          - run:
-            command: 
+            command: |
                curl \
                   -X POST \
                   -d "{\"body\": \"<< parameters.comment >>\" }" \
