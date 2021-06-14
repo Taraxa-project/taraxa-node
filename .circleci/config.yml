@@ -419,7 +419,7 @@ workflows:
     jobs:
      - deploy-testnet:
         context: taraxa-node
-        pr_number: << parameters.pr_number >>
+#        pr_number: << parameters.pr_number >>
 
   build-and-deploy-image:
     jobs:
