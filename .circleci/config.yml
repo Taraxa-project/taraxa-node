@@ -377,7 +377,7 @@ jobs:
 workflows:
   version: 2
   deploy-testnet:
-    when: << pipeline.parameters.deploy-testnet >>
+    when: << pipeline.parameters.deploy_testnet >>
     jobs:
      - deploy-testnet:
         context: taraxa-node
