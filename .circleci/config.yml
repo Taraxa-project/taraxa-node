@@ -37,14 +37,14 @@ commands:
             type: enum
       steps:
          - run:
-               command: 
-                  curl \
-                     -X POST \
-                     -d "{\"body\": \"<< parameters.comment >>\"}" \
-                     -H "Authorization: token $GITHUB_TOKEN" \
-                     "https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/issues/<</comments"
-                  name: Post comment to PR
-                  when: << parameters.when >>
+            command: 
+               curl \
+                  -X POST \
+                  -d "{\"body\": \"<< parameters.comment >>\"}" \
+                  -H "Authorization: token $GITHUB_TOKEN" \
+                  "https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/issues/<< paramters.pr_number >>/comments"
+            name: Post comment to PR
+            when: << parameters.when >>
 
 jobs:
    deploy-testnet:
