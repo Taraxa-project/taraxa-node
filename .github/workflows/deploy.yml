@@ -20,6 +20,8 @@ jobs:
             curl -u ${{ secrets.CIRCLE_TOKEN }}: -X  POST \
                -H 'Content-Type: application/json' \
                -H 'Accept: application/json' \
-               -d "{\"branch\":\"${{github.ref}}\", \"deploy_testnet\":\"true\" }" \
+               -d "{\"branch\":\"${{github.ref}}\", \
+                    "parameters"\: { \"deploy_testnet\": \"true\" } \
+                   }" \
                https://circleci.com/api/v2/project/gh/agrebin/taraxa-node/pipeline
         if: steps.check.outputs.triggered == 'true'
