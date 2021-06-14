@@ -17,11 +17,15 @@ jobs:
         env:
           GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
       - run: |
+            PR_NUMBER=$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
             curl -u ${{ secrets.CIRCLE_TOKEN }}: -X  POST \
                -H 'Content-Type: application/json' \
                -H 'Accept: application/json' \
                -d "{\"branch\":\"${{github.ref}}\", \
-                    \"parameters\": { \"deploy_testnet\": true } \
+                    \"parameters\": { \
+                       \"deploy_testnet\": true , \
+                       \"pr_number\": \"\$PR_NUMBER\"
+                       } \
                    }" \
                https://circleci.com/api/v2/project/gh/agrebin/taraxa-node/pipeline
         if: steps.check.outputs.triggered == 'true'

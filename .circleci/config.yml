@@ -15,6 +15,36 @@ orbs:
   gcp-gcr: circleci/gcp-gcr@0.13.0
   ghpr: narrativescience/ghpr@1.1.1
 
+commands:
+   pr_comment:
+      description: |
+       Post a comment on the pull request.
+       Requires `GITHUB_TOKEN` to be set as an environment variable.
+      parameters:
+         comment:
+            description: Content of the comment to post
+            type: string
+         pr_number:
+            description: github pr number
+            type: string
+         when:
+            default: on_success
+            description: Condition for when the comment should be created
+            enum:
+               - on_success
+               - on_fail
+               - always
+            type: enum
+      steps:
+         - run:
+               command: 
+                  curl \
+                     -X POST \
+                     -d "{\"body\": \"<< parameters.comment >>\"}" \
+                     -H "Authorization: token $GITHUB_TOKEN" \
+                     "https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/issues/<</comments"
+                  name: Post comment to PR
+                  when: << parameters.when >>
 
 jobs:
    deploy-testnet:
@@ -22,8 +52,9 @@ jobs:
        - image: circleci/buildpack-deps:stretch
      steps:
        - run: echo hola mundo
-       - ghpr/post-pr-comment:
+       - pr-comment:
           comment: hola mundo
+          pr_number: << paramters.pr_number >>
 
 
    build-and-push-docker-image:
