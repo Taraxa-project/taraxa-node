@@ -419,11 +419,10 @@ workflows:
     when: 
       and: 
         - equal: [ true, << pipeline.parameters.deploy_testnet >> ]
-        - equal: [ true, << pipeline.parameters.pr_number >> ]
+        - << pipeline.parameters.pr_number >>
     jobs:
      - deploy-testnet:
         context: taraxa-node
-#        pr_number: << parameters.pr_number >>
 
   build-and-deploy-image:
     jobs:
