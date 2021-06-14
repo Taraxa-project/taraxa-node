@@ -12,7 +12,7 @@ parameters:
   pr_number:
     default: ""
     type: string
-    
+
 orbs:
   git: opuscapita/git@0.0.3
   github-release: izumin5210/github-release@0.1.1
@@ -419,6 +419,7 @@ workflows:
     jobs:
      - deploy-testnet:
         context: taraxa-node
+        pr_number: << parameters.pr_number >>
 
   build-and-deploy-image:
     jobs:
