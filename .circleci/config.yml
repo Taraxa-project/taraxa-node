@@ -56,7 +56,7 @@ jobs:
        - image: circleci/buildpack-deps:stretch
      steps:
        - run: echo hola mundo
-       - pr-comment:
+       - pr_comment:
           comment: hola mundo
           pr_number: << pipeline.parameters.pr_number >>
 
