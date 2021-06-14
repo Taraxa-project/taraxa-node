@@ -54,6 +54,7 @@ jobs:
    deploy-testnet:
      docker:
        - image: circleci/buildpack-deps:stretch
+   
      steps:
        - run: echo hola mundo
        - pr_comment:
@@ -415,7 +416,10 @@ jobs:
 workflows:
   version: 2
   deploy-testnet:
-    when: << pipeline.parameters.deploy_testnet >>
+    when: 
+      and: 
+        - equal: [ true, << pipeline.parameters.deploy_testnet >> ]
+        - equal: [ true, << pipeline.parameters.pr_number >> ]
     jobs:
      - deploy-testnet:
         context: taraxa-node
