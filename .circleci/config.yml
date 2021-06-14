@@ -6,7 +6,7 @@ parameters:
     default: ""
 
   deploy_testnet:
-    default: true
+    default: false
     type: boolean
 
 orbs:
@@ -17,6 +17,12 @@ orbs:
 
 
 jobs:
+   deploy-testnet:
+     docker:
+       - image: circleci/buildpack-deps:stretch
+     steps:
+       - run: echo hola mundo
+
    build-and-push-docker-image:
     environment:
       - IMAGE: taraxa-node
@@ -370,6 +376,12 @@ jobs:
 
 workflows:
   version: 2
+  deploy-testnet:
+    when: << pipeline.parameters.deploy-testnet >>
+    jobs:
+     - deploy-testnet:
+        context: taraxa-node
+
   build-and-deploy-image:
     jobs:
       - build-and-push-docker-image:
