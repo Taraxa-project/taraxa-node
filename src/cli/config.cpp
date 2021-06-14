@@ -10,16 +10,21 @@ namespace bpo = boost::program_options;
 
 namespace taraxa::cli {
 
-Config::Config(int argc, const char* argv[], const std::string& taraxa_version) {
+Config::Config(int argc, const char* argv[], const string& taraxa_version) {
   boost::program_options::options_description main_options("OPTIONS");
   boost::program_options::options_description node_command_options("NODE COMMAND OPTIONS");
   boost::program_options::options_description allowed_options("Allowed options");
-
-  std::string config;
-  std::string wallet;
+  string config;
+  string wallet;
   int network_id = (int)DEFAULT_NETWORK_ID;
-  std::string data_dir;
-  std::vector<std::string> command;
+  string data_dir;
+  vector<string> command;
+  vector<string> boot_nodes;
+  vector<string> log_channels;
+  string node_secret;
+  string vrf_secret;
+  string override_config;
+
   bool boot_node = false;
   bool destroy_db = 0;
   bool rebuild_network = 0;
@@ -32,20 +37,17 @@ Config::Config(int argc, const char* argv[], const std::string& taraxa_version) 
 
   // Set config file and data directory to default values
   config = Tools::getTaraxaDefaultConfigFile();
-  data_dir = Tools::getTaraxaDataDefaultDir();
   wallet = Tools::getWalletDefaultFile();
   auto default_dir = Tools::getTaraxaDefaultDir();
 
   // Define all the command line options and descriptions
   main_options.add_options()(HELP, "Print this help message and exit");
   main_options.add_options()(VERSION, bpo::bool_switch(&version), "Print version of taraxad");
-  main_options.add_options()(COMMAND, bpo::value<vector<std::string>>(&command)->multitoken(),
+  main_options.add_options()(COMMAND, bpo::value<vector<string>>(&command)->multitoken(),
                              "Command arg:"
                              "\nnode                  Runs the actual node (default)"
-                             "\naccount               Generate new account private and public key"
-                             "\naccount-from-key      Restore account from private key"
-                             "\nvrf                   Generate new VRF private and public key"
-                             "\nvrf-from-key arg      Restore VRF from private key");
+                             "\naccount key           Generate new account or restore from a key (key is optional)"
+                             "\nvrf key               Generate new VRF or restore from a key (key is optional)");
   node_command_options.add_options()(WALLET, bpo::value<string>(&wallet),
                                      "JSON wallet file (default: \"~/.taraxa/wallet.json\")");
   node_command_options.add_options()(CONFIG, bpo::value<string>(&config),
@@ -73,10 +75,32 @@ Config::Config(int argc, const char* argv[], const std::string& taraxa_version) 
                                      "Network identifier (integer, 1=Mainnet, 2=Testnet, 3=Devnet) (default: 2)");
   node_command_options.add_options()(BOOT_NODE, bpo::bool_switch(&boot_node), "Run as bootnode (default: false)");
 
+  main_options.add_options()(BOOT_NODES, bpo::value<vector<string>>(&boot_nodes)->multitoken(),
+                             "Boot nodes to connect to: [ip_address:port_number/node_id, ....]");
+  main_options.add_options()(LOG_CHANNELS, bpo::value<vector<string>>(&log_channels)->multitoken(),
+                             "Log channels to log: [channel:level, ....]");
+  node_command_options.add_options()(NODE_SECRET, bpo::value<string>(&node_secret), "Nose secret key to use");
+
+  node_command_options.add_options()(VRF_SECRET, bpo::value<string>(&vrf_secret), "Vrf secret key to use");
+
+  node_command_options.add_options()(
+      OVERRIDE_CONFIG, bpo::value<string>(&override_config),
+      "Override config (arg:\n"
+      "      truncate - [Overwrite values including removing any previously set log channels or boot nodes]"
+      "\n"
+      "      append - [Append/modify values. Any already existing channel or boot node is only "
+      "modified or appended to the config file])\n\n"
+      "Options data-dir, boot-nodes, log-channels, node-secret and vrf-secret are always used in running a node but "
+      "only written to config file if override-config flag is set. \n"
+      "WARNING: Overide-config set can override/delete current secret keys in the wallet");
+
   allowed_options.add(main_options);
+
   allowed_options.add(node_command_options);
   bpo::variables_map option_vars;
+
   auto parsed_line = bpo::parse_command_line(argc, argv, allowed_options);
+
   bpo::store(parsed_line, option_vars);
   bpo::notify(option_vars);
   if (option_vars.count(HELP)) {
@@ -97,32 +121,49 @@ Config::Config(int argc, const char* argv[], const std::string& taraxa_version) 
     return;
   }
 
-  // Create dir if missing
-  auto config_dir = dirNameFromFile(config);
-  auto wallet_dir = dirNameFromFile(wallet);
-  if (!data_dir.empty() && !fs::exists(data_dir)) {
-    fs::create_directories(data_dir);
-  }
-  if (!config_dir.empty() && !fs::exists(config_dir)) {
-    fs::create_directories(config_dir);
-  }
-  if (!wallet_dir.empty() && !fs::exists(wallet_dir)) {
-    fs::create_directories(wallet_dir);
-  }
-
   if (command.size() > 0 && command[0] == NODE_COMMAND) {
+    // Create dir if missing
+    auto config_dir = dirNameFromFile(config);
+    auto wallet_dir = dirNameFromFile(wallet);
+    if (!data_dir.empty() && !fs::exists(data_dir)) {
+      fs::create_directories(data_dir);
+    }
+    if (!config_dir.empty() && !fs::exists(config_dir)) {
+      fs::create_directories(config_dir);
+    }
+    if (!wallet_dir.empty() && !fs::exists(wallet_dir)) {
+      fs::create_directories(wallet_dir);
+    }
+
     // If any of the config files are missing they are generated with default values
     if (!fs::exists(config)) {
       cout << "Configuration file does not exist at: " << config << ". New config file will be generated" << endl;
-      Tools::generateConfig(config, data_dir, boot_node, (Config::NetworkIdType)network_id);
+      Tools::generateConfig(config, (Config::NetworkIdType)network_id);
     }
     if (!fs::exists(wallet)) {
       cout << "Wallet file does not exist at: " << wallet << ". New wallet file will be generated" << endl;
       Tools::generateWallet(wallet);
     }
 
+    Json::Value config_json = Tools::readJsonFromFile(config);
+    Json::Value wallet_json = Tools::readJsonFromFile(wallet);
+
+    // Override config values with values from CLI
+    config_json = Tools::overrideConfig(config_json, data_dir, boot_node, boot_nodes, log_channels, override_config);
+    wallet_json = Tools::overrideWallet(wallet_json, node_secret, vrf_secret);
+
+    // Save changes permanently if override_config option is set
+    // This can overwrite secret keys in wallet
+    if (!override_config.empty()) {
+      if (override_config == OVERRIDE_CONFIG_APPEND || override_config == OVERRIDE_CONFIG_TRUNCATE) {
+        Tools::writeJsonToFile(config, config_json);
+        Tools::writeJsonToFile(wallet, wallet_json);
+      } else
+        throw invalid_argument(string("override-config argument invalid") + override_config);
+    }
+
     // Load config
-    node_config_ = FullNodeConfig(config, Tools::readJsonFromFile(wallet));
+    node_config_ = FullNodeConfig(config_json, wallet_json);
 
     // Validate config values
     node_config_.validate();
@@ -138,13 +179,15 @@ Config::Config(int argc, const char* argv[], const std::string& taraxa_version) 
     node_config_.test_params.rebuild_db_period = rebuild_db_period;
     node_configured_ = true;
   } else if (command.size() > 0 && command[0] == ACCOUNT_COMMAND) {
-    Tools::generateAccount();
-  } else if (command.size() > 1 && command[0] == ACCOUNT_FROM_KEY_COMMAND) {
-    Tools::generateAccountFromKey(command[1]);
+    if (command.size() == 1)
+      Tools::generateAccount();
+    else
+      Tools::generateAccountFromKey(command[1]);
   } else if (command.size() > 0 && command[0] == VRF_COMMAND) {
-    Tools::generateVrf();
-  } else if (command.size() > 1 && command[0] == VRF_FROM_KEY_COMMAND) {
-    Tools::generateVrfFromKey(command[1]);
+    if (command.size() == 1)
+      Tools::generateVrf();
+    else
+      Tools::generateVrfFromKey(command[1]);
   } else {
     throw bpo::invalid_option_value(command[0]);
   }
@@ -154,9 +197,9 @@ bool Config::nodeConfigured() { return node_configured_; }
 
 FullNodeConfig Config::getNodeConfiguration() { return node_config_; }
 
-std::string Config::dirNameFromFile(const std::string& file) {
+string Config::dirNameFromFile(const string& file) {
   size_t pos = file.find_last_of("\\/");
-  return (std::string::npos == pos) ? "" : file.substr(0, pos);
+  return (string::npos == pos) ? "" : file.substr(0, pos);
 }
 
 }  // namespace taraxa::cli

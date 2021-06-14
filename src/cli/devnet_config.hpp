@@ -1,7 +1,9 @@
+namespace taraxa::cli {
+  
 const char *devnet_json = R"foo({
   "node_secret": "",
   "vrf_secret": "",
-  "db_path": "/opt/taraxa",
+  "db_path": "",
   "network_is_boot_node": false,
   "network_address": "0.0.0.0",
   "network_tcp_port": 10002,
@@ -147,3 +149,4 @@ const char *devnet_json = R"foo({
   }
 }
 )foo";
+}

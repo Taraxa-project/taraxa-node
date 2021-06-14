@@ -2,9 +2,11 @@
 
 #include <pwd.h>
 
+#include <boost/algorithm/string.hpp>
 #include <filesystem>
 
 #include "cli/config.hpp"
+#include "default_config.hpp"
 #include "devnet_config.hpp"
 #include "testnet_config.hpp"
 
@@ -14,7 +16,7 @@ namespace fs = std::filesystem;
 
 namespace taraxa::cli {
 
-void Tools::generateConfig(const std::string& config, const std::string& data_dir, bool boot_node, Config::NetworkIdType network_id) {
+void Tools::generateConfig(const std::string& config, Config::NetworkIdType network_id) {
   Json::Value conf;
   switch (network_id) {
     case Config::NetworkIdType::Testnet:
@@ -24,22 +26,109 @@ void Tools::generateConfig(const std::string& config, const std::string& data_di
       conf = readJsonFromString(devnet_json);
       break;
     default:
-      throw invalid_argument("Unsupported network ID");
+      conf = readJsonFromString(default_json);
+      conf["chain_config"]["chain_id"] = to_string((int)network_id);
   }
-  conf["db_path"] = data_dir;
-  conf["network_is_boot_node"] = boot_node;
-
   writeJsonToFile(config, conf);
 }
 
-void Tools::generateWallet(const std::string& wallet) {
+Json::Value Tools::overrideConfig(Json::Value& conf, const std::string& data_dir, bool boot_node,
+                                  const vector<string>& boot_nodes, const vector<string>& log_channels,
+                                  const string& override_config) {
+  if (data_dir.empty()) {
+    conf["db_path"] = getTaraxaDataDefaultDir();
+  } else {
+    conf["db_path"] = data_dir;
+  }
+
+  conf["network_is_boot_node"] = boot_node;
+  
+  //Override boot nodes
+  if (boot_nodes.size() > 0) {
+    if (override_config == Config::OVERRIDE_CONFIG_TRUNCATE) {
+      conf["network_boot_nodes"] = Json::Value(Json::arrayValue);
+    }
+    for (auto const& b : boot_nodes) {
+      vector<string> result;
+      boost::split(result, b, boost::is_any_of(":/"));
+      if (result.size() != 3) throw invalid_argument("Boot node in boot_nodes not specified correctly");
+      bool found = false;
+      for (Json::Value& node : conf["network_boot_nodes"]) {
+        if (node["id"].asString() == result[2]) {
+          found = true;
+          node["ip"] = result[0];
+          node["tcp_port"] = stoi(result[1]);
+          node["udp_port"] = stoi(result[1]);
+        }
+      }
+      if (!found) {
+        Json::Value b_node;
+        b_node["id"] = result[2];
+        b_node["ip"] = result[0];
+        b_node["tcp_port"] = stoi(result[1]);
+        b_node["udp_port"] = stoi(result[1]);
+        conf["network_boot_nodes"].append(b_node);
+      }
+    }
+  }
+
+  //Override log channels
+  if (log_channels.size() > 0) {
+    if (override_config == Config::OVERRIDE_CONFIG_TRUNCATE) {
+      conf["logging"]["configurations"][0u]["channels"] = Json::Value(Json::arrayValue);
+    }
+    for (auto const& l : log_channels) {
+      vector<string> result;
+      boost::split(result, l, boost::is_any_of(":"));
+      if (result.size() != 2) throw invalid_argument("Log channel in log_channels not specified correctly");
+
+      bool found = false;
+      for (Json::Value& node : conf["logging"]["configurations"][0u]["channels"]) {
+        if (node["name"].asString() == result[0]) {
+          found = true;
+          node["verbosity"] = result[1];
+        }
+      }
+      if (!found) {
+        Json::Value channel_node;
+        channel_node["name"] = result[0];
+        channel_node["verbosity"] = result[1];
+        conf["logging"]["configurations"][0u]["channels"].append(channel_node);
+      }
+    }
+  }
+  return conf;
+}
+
+void Tools::generateWallet(const string& wallet) {
   // Wallet
-  auto account = dev::KeyPair::create();
+  dev::KeyPair account = dev::KeyPair::create();
+
   auto [pk, sk] = taraxa::vrf_wrapper::getVrfKeyPair();
+
   auto account_json = createWalletJson(account, sk, pk);
 
   // Create account file
   writeJsonToFile(wallet, account_json);
+}
+
+Json::Value Tools::overrideWallet(Json::Value& wallet, const string& node_key, const string& vrf_key) {
+  if (!node_key.empty()) {
+    auto sk = dev::Secret(node_key, dev::Secret::ConstructFromStringType::FromHex);
+    dev::KeyPair account = dev::KeyPair(sk);
+    wallet["node_secret"] = toHex(account.secret().ref());
+    wallet["node_public"] = account.pub().toString();
+    wallet["node_address"] = account.address().toString();
+  }
+
+  if (!vrf_key.empty()) {
+    auto sk = taraxa::vrf_wrapper::vrf_sk_t(vrf_key);
+    auto pk = taraxa::vrf_wrapper::getVrfPublicKey(sk);
+    wallet["vrf_secret"] = sk.toString();
+    wallet["vrf_public"] = pk.toString();
+  }
+
+  return wallet;
 }
 
 void Tools::generateAccount(const dev::KeyPair& account) {
@@ -73,7 +162,7 @@ void Tools::generateVrfFromKey(const string& key) {
 }
 
 Json::Value Tools::createWalletJson(const dev::KeyPair& account, const taraxa::vrf_wrapper::vrf_sk_t& sk,
-                                       const taraxa::vrf_wrapper::vrf_pk_t& pk) {
+                                    const taraxa::vrf_wrapper::vrf_pk_t& pk) {
   Json::Value json(Json::objectValue);
   json["node_secret"] = toHex(account.secret().ref());
   json["node_public"] = account.pub().toString();
@@ -133,4 +222,4 @@ Json::Value Tools::readJsonFromString(const string& str) {
   return json;
 }
 
-}  // namespace taraxa
+}  // namespace taraxa::cli

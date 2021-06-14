@@ -1,6 +1,6 @@
 namespace taraxa::cli {
   
-  const char *testnet_json = R"foo({
+const char *default_json = R"foo({
   "node_secret": "",
   "vrf_secret": "",
   "db_path": "",
@@ -16,24 +16,6 @@ namespace taraxa::cli {
   "network_max_peer_count": 50,
   "network_sync_level_size": 10,
   "network_boot_nodes": [
-    {
-      "id": "b4ab8c09f711866b067debd9ab075df1a965ade72bc7409d53799b9783543d89d2264e2650e364d9c84694c2fdaaeb69fe500d720a2f1ad17d4bb37a31ca31a6",
-      "ip": "boot-node-0.testnet.taraxa.io",
-      "tcp_port": 10002,
-      "udp_port": 10002
-    },
-    {
-      "id": "3c87eb8991fda4728c41752d4e374aab555ce76daac92657e9656aa33615e90a64d9582861bc00954332052c3ac3c969b3e23683533db5ae24f8126ce6de427e",
-      "ip": "boot-node-1.testnet.taraxa.io",
-      "tcp_port": 10002,
-      "udp_port": 10002
-    },
-    {
-      "id": "adbb7940b859e8fde19a93ce26910d51ddd8490b813f8bfc77381665439f11e42c58b626ae4d9da06a4a1730bf28a19bce146e4ba618760f8ee89ccee2bd64aa",
-      "ip": "boot-node-2.testnet.taraxa.io",
-      "tcp_port": 10002,
-      "udp_port": 10002
-    }
   ],
   "rpc": {
     "http_port": 7777,
@@ -81,19 +63,19 @@ namespace taraxa::cli {
     ]
   },
   "chain_config": {
-    "chain_id": "0x2",
+    "chain_id": "0x4",
     "dag_genesis_block": {
       "level": "0x0",
       "pivot": "0x0000000000000000000000000000000000000000000000000000000000000000",
       "sig": "0xb7e22d46c1ba94d5e8347b01d137b5c428fcbbeaf0a77fb024cbbf1517656ff00d04f7f25be608c321b0d7483c402c294ff46c49b265305d046a52236c0a363701",
-      "timestamp": "0x60b03281",
+      "timestamp": "0x60aee100",
       "tips": [],
       "transactions": []
     },
     "final_chain": {
       "genesis_block_fields": {
         "author": "0x0000000000000000000000000000000000000000",
-        "timestamp": "0x60b03281"
+        "timestamp": "0x60aee100"
       },
       "state": {
         "disable_block_rewards": true,
@@ -102,10 +84,10 @@ namespace taraxa::cli {
           "withdrawal_delay": "0x5",
           "eligibility_balance_threshold": "0xf4240",
           "genesis_state": {
-            "0x6c05d6e367a8c798308efbf4cefc1a18921a6f89": {
-              "0x18551e353aa65bc0ffbdf9d93b7ad4a8fe29cf95": "0xf4240",
-              "0xc578bb5fc3dac3e96a8c4cb126c71d2dc9082817": "0xf4240",
-              "0x5c9afb23fba3967ca6102fb60c9949f6a38cd9e8": "0xf4240"
+            "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": {
+              "0x780fe8b2226cf212c55635de399ee4c2a860810c": "0xf4240",
+              "0x56e0de6933d9d0453d0363caf42b136eb5854e4e": "0xf4240",
+              "0x71bdcbec7e3642782447b0fbf31eed068dfbdbb1": "0xf4240"
             }
           }
         },
@@ -123,8 +105,8 @@ namespace taraxa::cli {
           "disable_nonce_check": true
         },
         "genesis_balances": {
-          "6c05d6e367a8c798308efbf4cefc1a18921a6f89": "0x1027e72f1f12813088000000",
-          "f4a52b8f6dc8ab046fec6ad02e77023c044342e4": "0x1027e72f1f12813088000000"
+          "2cd4da7d3b345e022ca7e997c2bb3276a4d3d2e9": "0x1027e72f1f12813088000000",
+          "7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x1027e72f1f12813088000000"
         }
       }
     },
