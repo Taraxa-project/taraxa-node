@@ -9,6 +9,10 @@ parameters:
     default: false
     type: boolean
 
+  pr_number:
+    default: ""
+    type: string
+    
 orbs:
   git: opuscapita/git@0.0.3
   github-release: izumin5210/github-release@0.1.1
