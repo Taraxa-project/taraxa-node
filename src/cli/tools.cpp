@@ -34,11 +34,14 @@ void Tools::generateConfig(const std::string& config, Config::NetworkIdType netw
   writeJsonToFile(config, conf);
 }
 
-Json::Value Tools::overrideConfig(Json::Value& conf, const std::string& data_dir, bool boot_node,
+Json::Value Tools::overrideConfig(Json::Value& conf, std::string& data_dir, bool boot_node,
                                   vector<string> boot_nodes, vector<string> log_channels,
                                   const vector<string>& boot_nodes_append, const vector<string>& log_channels_append) {
   if (data_dir.empty()) {
-    conf["db_path"] = getTaraxaDataDefaultDir();
+    if (conf["db_path"].asString().empty()) {
+      conf["db_path"] = getTaraxaDataDefaultDir();
+    }
+    data_dir = conf["db_path"].asString();
   } else {
     conf["db_path"] = data_dir;
   }

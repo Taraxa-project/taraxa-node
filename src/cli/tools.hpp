@@ -32,7 +32,7 @@ class Tools {
   static void generateWallet(const std::string& wallet);
 
   // Override existing config and wallet files
-  static Json::Value overrideConfig(Json::Value& config, const std::string& data_dir, bool boot_node,
+  static Json::Value overrideConfig(Json::Value& config, std::string& data_dir, bool boot_node,
                                     std::vector<std::string> boot_nodes, std::vector<std::string> log_channels,
                                     const std::vector<std::string>& boot_nodes_append,
                                     const std::vector<std::string>& log_channels_append);
