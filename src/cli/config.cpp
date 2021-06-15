@@ -21,9 +21,11 @@ Config::Config(int argc, const char* argv[], const string& taraxa_version) {
   vector<string> command;
   vector<string> boot_nodes;
   vector<string> log_channels;
+  vector<string> boot_nodes_append;
+  vector<string> log_channels_append;
   string node_secret;
   string vrf_secret;
-  string override_config;
+  bool overwrite_config;
 
   bool boot_node = false;
   bool destroy_db = 0;
@@ -72,27 +74,28 @@ Config::Config(int argc, const char* argv[], const string& taraxa_version) {
                                      "Revert db/state to specified "
                                      "period (specify period)");
   node_command_options.add_options()(NETWORK_ID, bpo::value<int>(&network_id),
-                                     "Network identifier (integer, 1=Mainnet, 2=Testnet, 3=Devnet) (default: 2)");
+                                     "Network identifier (integer, 1=Mainnet, 2=Testnet, 3=Devnet) (default: 2)"
+                                     "Only used when creating new config file");
   node_command_options.add_options()(BOOT_NODE, bpo::bool_switch(&boot_node), "Run as bootnode (default: false)");
 
-  main_options.add_options()(BOOT_NODES, bpo::value<vector<string>>(&boot_nodes)->multitoken(),
+  node_command_options.add_options()(BOOT_NODES, bpo::value<vector<string>>(&boot_nodes)->multitoken(),
                              "Boot nodes to connect to: [ip_address:port_number/node_id, ....]");
-  main_options.add_options()(LOG_CHANNELS, bpo::value<vector<string>>(&log_channels)->multitoken(),
+  node_command_options.add_options()(BOOT_NODES_APPEND, bpo::value<vector<string>>(&boot_nodes_append)->multitoken(),
+                             "Boot nodes to connect to in addition to boot nodes defined in config: [ip_address:port_number/node_id, ....]");
+  node_command_options.add_options()(LOG_CHANNELS, bpo::value<vector<string>>(&log_channels)->multitoken(),
                              "Log channels to log: [channel:level, ....]");
+  node_command_options.add_options()(LOG_CHANNELS_APPEND, bpo::value<vector<string>>(&log_channels_append)->multitoken(),
+                             "Log channels to log in addition to log channels defined in config: [channel:level, ....]");
   node_command_options.add_options()(NODE_SECRET, bpo::value<string>(&node_secret), "Nose secret key to use");
 
   node_command_options.add_options()(VRF_SECRET, bpo::value<string>(&vrf_secret), "Vrf secret key to use");
 
   node_command_options.add_options()(
-      OVERRIDE_CONFIG, bpo::value<string>(&override_config),
-      "Override config (arg:\n"
-      "      truncate - [Overwrite values including removing any previously set log channels or boot nodes]"
-      "\n"
-      "      append - [Append/modify values. Any already existing channel or boot node is only "
-      "modified or appended to the config file])\n\n"
+      OVERWRITE_CONFIG, bpo::bool_switch(&overwrite_config),
+      "Overwrite config - "
       "Options data-dir, boot-nodes, log-channels, node-secret and vrf-secret are always used in running a node but "
-      "only written to config file if override-config flag is set. \n"
-      "WARNING: Overide-config set can override/delete current secret keys in the wallet");
+      "only written to config file if overwrite-config flag is set. \n"
+      "WARNING: Overwrite-config set can override/delete current secret keys in the wallet");
 
   allowed_options.add(main_options);
 
@@ -149,17 +152,15 @@ Config::Config(int argc, const char* argv[], const string& taraxa_version) {
     Json::Value wallet_json = Tools::readJsonFromFile(wallet);
 
     // Override config values with values from CLI
-    config_json = Tools::overrideConfig(config_json, data_dir, boot_node, boot_nodes, log_channels, override_config);
+    config_json = Tools::overrideConfig(config_json, data_dir, boot_node, boot_nodes, log_channels, boot_nodes_append,
+                                        log_channels_append);
     wallet_json = Tools::overrideWallet(wallet_json, node_secret, vrf_secret);
 
-    // Save changes permanently if override_config option is set
+    // Save changes permanently if overwrite_config option is set
     // This can overwrite secret keys in wallet
-    if (!override_config.empty()) {
-      if (override_config == OVERRIDE_CONFIG_APPEND || override_config == OVERRIDE_CONFIG_TRUNCATE) {
-        Tools::writeJsonToFile(config, config_json);
-        Tools::writeJsonToFile(wallet, wallet_json);
-      } else
-        throw invalid_argument(string("override-config argument invalid") + override_config);
+    if (overwrite_config) {
+      Tools::writeJsonToFile(config, config_json);
+      Tools::writeJsonToFile(wallet, wallet_json);
     }
 
     // Load config

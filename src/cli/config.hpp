@@ -21,10 +21,6 @@ class Config {
 
   enum class NetworkIdType { Mainnet = 1, Testnet, Devnet };
 
-  //Override config options
-  static constexpr const char* OVERRIDE_CONFIG_TRUNCATE = "truncate";
-  static constexpr const char* OVERRIDE_CONFIG_APPEND = "append";
-
  protected:
   static constexpr NetworkIdType DEFAULT_NETWORK_ID = NetworkIdType::Testnet;
 
@@ -52,9 +48,11 @@ class Config {
   static constexpr const char* VRF_FROM_KEY_COMMAND = "vrf-from-key";
   static constexpr const char* BOOT_NODES = "boot-nodes";
   static constexpr const char* LOG_CHANNELS = "log-channels";
+  static constexpr const char* BOOT_NODES_APPEND = "boot-nodes-append";
+  static constexpr const char* LOG_CHANNELS_APPEND = "log-channels-append";
   static constexpr const char* NODE_SECRET = "node-secret";
   static constexpr const char* VRF_SECRET = "vrf-secret";
-  static constexpr const char* OVERRIDE_CONFIG = "override-config";
+  static constexpr const char* OVERWRITE_CONFIG = "overwrite-config";
 
   std::string dirNameFromFile(const std::string& file);
 };
