@@ -1,101 +1,118 @@
 # TODO: Break this cmake(app_base target) into smaller libraries with their own cmakes, e.g. network, chain, dag, etc... could be separate libraries
 
 set(SOURCES
-        # ---- public headers -----
-        util/util.hpp
-        node/full_node.hpp
-        transaction_manager/transaction_manager.hpp
-        storage/db_storage.hpp
-        dag/dag.hpp
-        consensus/pbft_chain.hpp
-        aleth/node_api.hpp
-        aleth/database.hpp
-        aleth/state_api.hpp
-        aleth/dummy_eth_apis.hpp
-        consensus/block_proposer.hpp
-        transaction_manager/transaction_status.hpp
-        chain/chain_config.hpp
-        consensus/vrf_wrapper.hpp
-        node/executor.hpp
-        network/network.hpp
+        # headers
+        common/constants.hpp
         common/static_init.hpp
-        dag/vdf_sortition.hpp
-        chain/final_chain.hpp
-        consensus/pbft_config.hpp
-        network/taraxa_capability.hpp
-        util/exit_stack.hpp
-        util/encoding_rlp.hpp
-        util/range_view.hpp
-        util/lazy.hpp
-        config/config.hpp
-        node/replay_protection_service.hpp
         common/types.hpp
-        dag/dag_block.hpp
-        network/packets_stats.hpp
-        network/rpc/Taraxa.h
-        network/rpc/Test.h
-        network/rpc/TaraxaClient.h
-        network/rpc/NetClient.h
-        network/rpc/Net.h
-        network/rpc/NetFace.h
-        network/rpc/TaraxaFace.h
-        network/rpc/TestFace.h
-        network/rpc/RpcServer.h
-        network/rpc/WSServer.h
-        network/rpc/TestClient.h
-        transaction_manager/transaction_order_manager.hpp
+        config/config_exception.hpp
+        config/chain_config.hpp
+        config/config.hpp
+        consensus/pbft_manager.hpp
+        consensus/block_proposer.hpp
         consensus/vote.hpp
+        consensus/pbft_chain.hpp
+        consensus/vrf_wrapper.hpp
+        consensus/pbft_config.hpp
+        dag/dag.hpp
+        dag/dag_block_manager.hpp
+        dag/dag_block.hpp
+        dag/vdf_sortition.hpp
+        dag/proposal_period_levels_map.hpp
+        final_chain/state_api_data.hpp
+        final_chain/state_api.hpp
+        final_chain/trie_common.hpp
+        final_chain/data.hpp
+        final_chain/replay_protection_service.hpp
+        final_chain/final_chain.hpp
+        logger/log.hpp
+        logger/logger_config.hpp
+        network/taraxa_capability.hpp
+        network/rpc/rpc_error_handler.hpp
+        network/rpc/eth/watches.hpp
+        network/rpc/eth/LogFilter.hpp
+        network/rpc/eth/data.hpp
+        network/network.hpp
+        network/packets_stats.hpp
+        node/full_node.hpp
+        storage/db_storage.hpp
+        taraxad/taraxad_version.hpp
+        transaction_manager/transaction_order_manager.hpp
         transaction_manager/transaction.hpp
         transaction_manager/transaction_queue.hpp
-        logger/logger_config.hpp
-        logger/log.hpp
-        chain/state_api.hpp
-        dag/dag_block_manager.hpp
-        dag/proposal_period_levels_map.hpp
-        consensus/pbft_manager.hpp
-
-        # ---- private sources -----
-        util/thread_pool.cpp
-        transaction_manager/transaction.cpp
-        consensus/pbft_manager.cpp
-        storage/db_storage.cpp
-        consensus/vrf_wrapper.cpp
-        aleth/node_api.cpp
-        aleth/database.cpp
-        aleth/state_api.cpp
-        node/executor.cpp
-        network/taraxa_capability.cpp
-        transaction_manager/transaction_manager.cpp
-        dag/vdf_sortition.cpp
-        chain/chain_config.cpp
-        chain/final_chain.cpp
-        consensus/pbft_config.cpp
-        consensus/vote.cpp
-        network/network.cpp
-        util/util.cpp
-        consensus/pbft_chain.cpp
-        node/replay_protection_service.cpp
+        transaction_manager/transaction_manager.hpp
+        transaction_manager/transaction_status.hpp
+        util/jsoncpp.hpp
+        util/range_view.hpp
+        util/global_const.hpp
+        util/functional.hpp
+        util/encoding_rlp.hpp
+        util/default_construct_copyable_movable.hpp
+        util/thread_pool.hpp
+        util/exit_stack.hpp
+        util/event.hpp
+        util/util.hpp
+        util/lazy.hpp
+        # generated headers
+        network/rpc/Net.h
+        network/rpc/Taraxa.h
+        network/rpc/WSServer.h
+        network/rpc/Test.h
+        network/rpc/EthFace.h
+        network/rpc/TaraxaFace.h
+        network/rpc/EthClient.h
+        network/rpc/RpcServer.h
+        network/rpc/eth/Eth.h
+        network/rpc/NetClient.h
+        network/rpc/TestClient.h
+        network/rpc/TaraxaClient.h
+        network/rpc/NetFace.h
+        network/rpc/TestFace.h
+        # sources
+        common/constants.cpp
+        common/types.cpp
+        config/chain_config.cpp
         config/config.cpp
-        dag/dag_block.cpp
-        node/full_node.cpp
+        consensus/pbft_manager.cpp
+        consensus/vote.cpp
+        consensus/pbft_config.cpp
         consensus/block_proposer.cpp
-        network/packets_stats.cpp
+        consensus/vrf_wrapper.cpp
+        consensus/pbft_chain.cpp
+        dag/dag_block_manager.cpp
+        dag/dag.cpp
+        dag/dag_block.cpp
+        dag/proposal_period_levels_map.cpp
+        dag/vdf_sortition.cpp
+        final_chain/trie_common.cpp
+        final_chain/final_chain.cpp
+        final_chain/state_api.cpp
+        final_chain/state_api_data.cpp
+        final_chain/replay_protection_service.cpp
+        final_chain/data.cpp
+        logger/log.cpp
+        logger/logger_config.cpp
         network/rpc/Taraxa.cpp
-        network/rpc/Test.cpp
         network/rpc/WSServer.cpp
         network/rpc/Net.cpp
+        network/rpc/Test.cpp
         network/rpc/RpcServer.cpp
-        transaction_manager/transaction_order_manager.cpp
-        chain/state_api.cpp
-        transaction_manager/transaction_queue.cpp
-        dag/dag.cpp
-        logger/logger_config.cpp
-        logger/log.cpp
-        common/types.cpp
-        dag/dag_block_manager.cpp
-        dag/proposal_period_levels_map.cpp
-        util/jsoncpp.cpp
         network/rpc/rpc_error_handler.cpp
+        network/rpc/eth/watches.cpp
+        network/rpc/eth/LogFilter.cpp
+        network/rpc/eth/Eth.cpp
+        network/network.cpp
+        network/packets_stats.cpp
+        network/taraxa_capability.cpp
+        node/full_node.cpp
+        storage/db_storage.cpp
+        transaction_manager/transaction.cpp
+        transaction_manager/transaction_queue.cpp
+        transaction_manager/transaction_order_manager.cpp
+        transaction_manager/transaction_manager.cpp
+        util/jsoncpp.cpp
+        util/util.cpp
+        util/thread_pool.cpp
         )
 
 add_subdirectory(network/rpc)
