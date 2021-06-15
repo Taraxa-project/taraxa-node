@@ -23,7 +23,7 @@ jobs:
                -d "{\"branch\":\"${{github.ref}}\", \
                     \"parameters\": { \
                        \"deploy_prnet\": true , \
-		       \"redeploy_prnet\": true, \
+                       \"redeploy_prnet\": true , \
                        \"pr_number\": \"${{ github.event.issue.number }}\"
                        } \
                    }" \
