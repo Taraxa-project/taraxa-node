@@ -78,9 +78,6 @@ TEST_F(PbftChainTest, block_broadcast) {
   node1->getPbftManager()->stop();
   node2->getPbftManager()->stop();
   node3->getPbftManager()->stop();
-  node1->getExecutor()->stop();
-  node2->getExecutor()->stop();
-  node3->getExecutor()->stop();
 
   std::shared_ptr<PbftChain> pbft_chain1 = node1->getPbftChain();
   std::shared_ptr<PbftChain> pbft_chain2 = node2->getPbftChain();

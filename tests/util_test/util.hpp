@@ -254,8 +254,8 @@ struct TransactionClient {
     ctx.stage = TransactionStage::inserted;
     auto trx_hash = ctx.trx.getHash();
     if (wait_executed) {
-      auto success = wait(wait_opts_,
-                          [&, this](auto& ctx) { ctx.fail_if(!node_->getFinalChain()->isKnownTransaction(trx_hash)); });
+      auto success = wait(
+          wait_opts_, [&, this](auto& ctx) { ctx.fail_if(!node_->getFinalChain()->transaction_location(trx_hash)); });
       if (success) {
         ctx.stage = TransactionStage::executed;
       }

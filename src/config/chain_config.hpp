@@ -1,18 +1,17 @@
 #pragma once
 
 #include <json/json.h>
-#include <libethcore/BlockHeader.h>
 
 #include <functional>
 #include <unordered_map>
 
 #include "consensus/pbft_config.hpp"
 #include "dag/dag_block.hpp"
-#include "final_chain.hpp"
+#include "final_chain/data.hpp"
+#include "final_chain/final_chain.hpp"
 #include "util/lazy.hpp"
 
 namespace taraxa::chain_config {
-using dev::eth::BlockHeaderFields;
 using std::function;
 using std::string;
 using std::unordered_map;
@@ -24,7 +23,7 @@ struct ChainConfig {
   DagBlock dag_genesis_block;
   vdf_sortition::VdfConfig vdf;
   PbftConfig pbft;
-  FinalChain::Config final_chain;
+  final_chain::Config final_chain;
 
  private:
   static LazyVal<std::unordered_map<string, ChainConfig>> const predefined_;

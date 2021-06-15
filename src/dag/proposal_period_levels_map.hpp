@@ -1,6 +1,9 @@
 #pragma once
 
+#include <libdevcore/RLP.h>
+
 #include "common/types.hpp"
+
 namespace taraxa {
 
 class ProposalPeriodDagLevelsMap {

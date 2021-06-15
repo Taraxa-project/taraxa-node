@@ -13,129 +13,215 @@ namespace taraxa::util::encoding_rlp {
 using namespace std;
 using namespace dev;
 
-template <typename... Params>
-void enc_rlp_tuple(RLPStream& rlp, Params const&... args);
+using RLPEncoderRef = RLPStream&;
+struct RLPDecoderRef {
+  RLP const& value;
+  RLP::Strictness strictness;
 
-template <typename Param>
-auto enc_rlp(RLPStream& rlp, Param const& target) -> decltype(rlp.append(target), void()) {
-  rlp.append(target);
+  RLPDecoderRef(RLP const& value, RLP::Strictness strictness) : value(value), strictness(strictness) {}
+  RLPDecoderRef(RLP const& value, bool strict = false)
+      : RLPDecoderRef(value, strict ? RLP::VeryStrict : RLP::LaissezFaire) {}
+};
+
+template <typename... Params>
+void rlp_tuple(RLPEncoderRef encoding, Params const&... args);
+
+template <typename T>
+auto rlp(RLPEncoderRef encoding, T const& target) -> decltype(RLP().toInt<T>(), void()) {
+  encoding.append(target);
+}
+
+template <unsigned N>
+void rlp(RLPEncoderRef encoding, FixedHash<N> const& target) {
+  encoding.append(target);
 }
 
 template <typename T>
-struct RLPNull {};
-
-template <typename Param>
-void enc_rlp(RLPStream& rlp, RLPNull<Param>) {
-  rlp.append(unsigned(0));
+inline auto rlp(RLPEncoderRef encoding, T const& target) -> decltype(target.rlp(encoding), void()) {
+  target.rlp(encoding);
 }
 
+inline auto rlp(RLPEncoderRef encoding, string const& target) { encoding.append(target); }
+
+inline auto rlp(RLPEncoderRef encoding, bytes const& target) { encoding.append(target); }
+
 template <typename Param>
-void enc_rlp(RLPStream& rlp, optional<Param> const& target) {
+void rlp(RLPEncoderRef encoding, optional<Param> const& target) {
   if (target) {
-    enc_rlp(rlp, *target);
+    rlp(encoding, *target);
   } else {
-    static const RLPNull<Param> null;
-    enc_rlp(rlp, null);
+    encoding.append(unsigned(0));
   }
 }
 
 template <typename Param>
-void enc_rlp(RLPStream& rlp, Param* target) {
-  rlp.append(bigint(reinterpret_cast<uintptr_t>(target)));
+void rlp(RLPEncoderRef encoding, RangeView<Param> const& target) {
+  encoding.appendList(target.size);
+  target.for_each([&](auto const& el) { rlp(encoding, el); });
 }
 
-template <typename Param>
-void enc_rlp(RLPStream& rlp, RangeView<Param> const& target) {
-  rlp.appendList(target.size);
-  target.for_each([&](auto const& el) { enc_rlp(rlp, el); });
+template <typename T1, typename T2>
+void rlp(RLPEncoderRef encoding, std::pair<T1, T2> const& target) {
+  rlp_tuple(encoding, target.first, target.second);
 }
 
-template <typename Map>
-auto enc_rlp(RLPStream& rlp, Map const& target)
-    -> decltype(target.size(), target.begin()->first, target.end()->second, void()) {
-  rlp.appendList(target.size());
-  for (auto const& [k, v] : target) {
-    enc_rlp_tuple(rlp, k, v);
+template <typename Sequence>
+auto rlp(RLPEncoderRef encoding, Sequence const& target)
+    -> decltype(target.size(), target.begin(), target.end(), void()) {
+  encoding.appendList(target.size());
+  for (auto const& v : target) {
+    rlp(encoding, v);
   }
 }
 
 template <typename Param, typename... Params>
-void enc_rlp(RLPStream& rlp, Param const& target, Params const&... rest) {
-  enc_rlp(rlp, target);
-  enc_rlp(rlp, rest...);
+void __enc_rlp_tuple_body__(RLPEncoderRef encoding, Param const& target, Params const&... rest) {
+  rlp(encoding, target);
+  if constexpr (sizeof...(rest) != 0) {
+    __enc_rlp_tuple_body__(encoding, rest...);
+  }
 }
 
 template <typename... Params>
-void enc_rlp_tuple(RLPStream& rlp, Params const&... args) {
-  rlp.appendList(sizeof...(args));
-  enc_rlp(rlp, args...);
+void rlp_tuple(RLPEncoderRef encoding, Params const&... args) {
+  constexpr auto num_elements = sizeof...(args);
+  static_assert(0 < num_elements);
+  encoding.appendList(num_elements);
+  __enc_rlp_tuple_body__(encoding, args...);
 }
 
 template <typename... Params>
-void dec_rlp_tuple(RLP const& rlp, Params&... args);
+void rlp_tuple(RLPDecoderRef encoding, Params&... args);
 
-template <typename Param>
-auto dec_rlp(RLP const& rlp, Param& target) -> decltype(Param(rlp), void()) {
-  target = Param(rlp);
+template <typename T>
+auto rlp(RLPDecoderRef encoding, T& target) -> decltype(encoding.value.toInt<T>(), void()) {
+  target = encoding.value.toInt<T>(encoding.strictness);
 }
 
+template <unsigned N>
+void rlp(RLPDecoderRef encoding, FixedHash<N>& target) {
+  target = encoding.value.toHash<FixedHash<N>>(encoding.strictness);
+}
+
+inline auto rlp(RLPDecoderRef encoding, string& target) { target = encoding.value.toString(encoding.strictness); }
+
+inline auto rlp(RLPDecoderRef encoding, bytes& target) { target = encoding.value.toBytes(encoding.strictness); }
+
 template <typename Param>
-void dec_rlp(RLP const& rlp, optional<Param>& target) {
-  if (rlp.isNull() || rlp.isEmpty()) {
+void rlp(RLPDecoderRef encoding, optional<Param>& target) {
+  if (encoding.value.isNull() || encoding.value.isEmpty()) {
     target = nullopt;
   } else {
-    dec_rlp(rlp, target.emplace());
+    rlp(encoding, target.emplace());
   }
 }
 
 template <typename Sequence>
-void dec_rlp_sequence(RLP const& rlp, Sequence& target) {
-  for (auto const i : rlp) {
-    dec_rlp(i, target.emplace_back());
+auto rlp(RLPDecoderRef encoding, Sequence& target) -> decltype(target.emplace_back(), void()) {
+  for (auto i : encoding.value) {
+    rlp(RLPDecoderRef(i, encoding.strictness), target.emplace_back());
   }
 }
+inline void rlp(RLPDecoderRef encoding, bool& target) { target = encoding.value.toInt<uint8_t>(encoding.strictness); }
 
-inline void dec_rlp(RLP const& rlp, bool& target) { target = rlp.toInt<uint8_t>(); }
-
-inline void dec_rlp(RLP const& rlp, bytes& target) { target = bytes(rlp); }
-
-template <typename... Ts>
-void dec_rlp(RLP const& rlp, vector<Ts...>& target) {
-  dec_rlp_sequence(rlp, target);
+template <typename T>
+inline auto rlp(RLPDecoderRef encoding, T& target) -> decltype(target.rlp(encoding), void()) {
+  target.rlp(encoding);
 }
 
 template <typename Map>
-auto dec_rlp(RLP const& rlp, Map& target) -> decltype(target[target.begin()->first], void()) {
+auto rlp(RLPDecoderRef encoding, Map& target) -> decltype(target[target.begin()->first], void()) {
   using key_type = remove_cv_t<decltype(target.begin()->first)>;
-  for (auto const i : rlp) {
+  for (auto i : encoding.value) {
     auto entry_i = i.begin();
     key_type key;
-    dec_rlp(*entry_i, key);
-    dec_rlp(*(++entry_i), target[key]);
+    rlp(RLPDecoderRef(*entry_i, encoding.strictness), key);
+    rlp(RLPDecoderRef(*(++entry_i), encoding.strictness), target[key]);
   }
 }
 
 template <typename Param, typename... Params>
-void dec_rlp_tuple_body(RLP::iterator& rlp, Param& target, Params&... rest) {
-  dec_rlp(*rlp, target);
-  if constexpr (sizeof...(rest) > 0) {
-    dec_rlp_tuple_body(++rlp, rest...);
+uint __dec_rlp_tuple_body__(RLP::iterator& i, RLP::iterator const& end, RLP::Strictness strictness, Param& target,
+                            Params&... rest) {
+  if (i == end) {
+    return 0;
+  }
+  rlp(RLPDecoderRef(*i, strictness), target);
+  if constexpr (sizeof...(rest) != 0) {
+    return 1 + __dec_rlp_tuple_body__(++i, end, strictness, rest...);
+  }
+  return 1;
+}
+
+struct InvalidEncodingSize : std::invalid_argument {
+  uint expected, actual;
+
+  InvalidEncodingSize(uint expected, uint actual)
+      : invalid_argument(fmt("Invalid rlp list size; expected: %s, actual: %s", expected, actual)),
+        expected(expected),
+        actual(actual) {}
+};
+
+template <typename... Params>
+void rlp_tuple(RLPDecoderRef encoding, Params&... args) {
+  constexpr auto num_elements = sizeof...(args);
+  static_assert(0 < num_elements);
+  auto list_begin = encoding.value.begin();
+  auto num_elements_processed = __dec_rlp_tuple_body__(list_begin, encoding.value.end(), encoding.strictness, args...);
+  if (num_elements != num_elements_processed) {
+    throw InvalidEncodingSize(num_elements, num_elements_processed);
   }
 }
 
-template <typename... Params>
-void dec_rlp_tuple(RLP const& rlp, Params&... args) {
-  auto rlp_list = rlp.begin();
-  dec_rlp_tuple_body(rlp_list, args...);
+template <typename T>
+T rlp_dec(RLPDecoderRef encoding) {
+  T ret;
+  rlp(encoding, ret);
+  return ret;
+}
+
+template <typename T>
+bytes const& rlp_enc(RLPEncoderRef encoder_to_reuse, T const& obj) {
+  encoder_to_reuse.clear();
+  rlp(encoder_to_reuse, obj);
+  return encoder_to_reuse.out();
+}
+
+template <typename T>
+bytes rlp_enc(T const& obj) {
+  RLPStream s;
+  rlp(s, obj);
+  return move(s.invalidate());
 }
 
 }  // namespace taraxa::util::encoding_rlp
 
+#define HAS_RLP_FIELDS                                            \
+  void rlp(::taraxa::util::encoding_rlp::RLPDecoderRef encoding); \
+  void rlp(::taraxa::util::encoding_rlp::RLPEncoderRef encoding) const;
+
+#define RLP_FIELDS_DEFINE(_class_, ...)                                           \
+  void _class_::rlp(::taraxa::util::encoding_rlp::RLPDecoderRef encoding) {       \
+    ::taraxa::util::encoding_rlp::rlp_tuple(encoding, __VA_ARGS__);               \
+  }                                                                               \
+  void _class_::rlp(::taraxa::util::encoding_rlp::RLPEncoderRef encoding) const { \
+    ::taraxa::util::encoding_rlp::rlp_tuple(encoding, __VA_ARGS__);               \
+  }
+
+#define RLP_FIELDS_DEFINE_INPLACE(...)                                   \
+  void rlp(::taraxa::util::encoding_rlp::RLPDecoderRef encoding) {       \
+    ::taraxa::util::encoding_rlp::rlp_tuple(encoding, __VA_ARGS__);      \
+  }                                                                      \
+  void rlp(::taraxa::util::encoding_rlp::RLPEncoderRef encoding) const { \
+    ::taraxa::util::encoding_rlp::rlp_tuple(encoding, __VA_ARGS__);      \
+  }
+
 namespace taraxa::util {
-using encoding_rlp::dec_rlp;
-using encoding_rlp::dec_rlp_sequence;
-using encoding_rlp::dec_rlp_tuple;
-using encoding_rlp::enc_rlp;
-using encoding_rlp::enc_rlp_tuple;
-using encoding_rlp::RLPNull;
+using encoding_rlp::InvalidEncodingSize;
+using encoding_rlp::rlp;
+using encoding_rlp::rlp_dec;
+using encoding_rlp::rlp_enc;
+using encoding_rlp::rlp_tuple;
+using encoding_rlp::RLPDecoderRef;
+using encoding_rlp::RLPEncoderRef;
 }  // namespace taraxa::util
