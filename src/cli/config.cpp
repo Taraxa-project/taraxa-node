@@ -48,6 +48,8 @@ Config::Config(int argc, const char* argv[], const string& taraxa_version) {
   main_options.add_options()(COMMAND, bpo::value<vector<string>>(&command)->multitoken(),
                              "Command arg:"
                              "\nnode                  Runs the actual node (default)"
+                             "\nconfig       Only generate/overwrite config file with provided node command "
+                             "option without starting the node"
                              "\naccount key           Generate new account or restore from a key (key is optional)"
                              "\nvrf key               Generate new VRF or restore from a key (key is optional)");
   node_command_options.add_options()(WALLET, bpo::value<string>(&wallet),
@@ -79,13 +81,15 @@ Config::Config(int argc, const char* argv[], const string& taraxa_version) {
   node_command_options.add_options()(BOOT_NODE, bpo::bool_switch(&boot_node), "Run as bootnode (default: false)");
 
   node_command_options.add_options()(BOOT_NODES, bpo::value<vector<string>>(&boot_nodes)->multitoken(),
-                             "Boot nodes to connect to: [ip_address:port_number/node_id, ....]");
-  node_command_options.add_options()(BOOT_NODES_APPEND, bpo::value<vector<string>>(&boot_nodes_append)->multitoken(),
-                             "Boot nodes to connect to in addition to boot nodes defined in config: [ip_address:port_number/node_id, ....]");
+                                     "Boot nodes to connect to: [ip_address:port_number/node_id, ....]");
+  node_command_options.add_options()(
+      BOOT_NODES_APPEND, bpo::value<vector<string>>(&boot_nodes_append)->multitoken(),
+      "Boot nodes to connect to in addition to boot nodes defined in config: [ip_address:port_number/node_id, ....]");
   node_command_options.add_options()(LOG_CHANNELS, bpo::value<vector<string>>(&log_channels)->multitoken(),
-                             "Log channels to log: [channel:level, ....]");
-  node_command_options.add_options()(LOG_CHANNELS_APPEND, bpo::value<vector<string>>(&log_channels_append)->multitoken(),
-                             "Log channels to log in addition to log channels defined in config: [channel:level, ....]");
+                                     "Log channels to log: [channel:level, ....]");
+  node_command_options.add_options()(
+      LOG_CHANNELS_APPEND, bpo::value<vector<string>>(&log_channels_append)->multitoken(),
+      "Log channels to log in addition to log channels defined in config: [channel:level, ....]");
   node_command_options.add_options()(NODE_SECRET, bpo::value<string>(&node_secret), "Nose secret key to use");
 
   node_command_options.add_options()(VRF_SECRET, bpo::value<string>(&vrf_secret), "Vrf secret key to use");
@@ -124,7 +128,7 @@ Config::Config(int argc, const char* argv[], const string& taraxa_version) {
     return;
   }
 
-  if (command.size() > 0 && command[0] == NODE_COMMAND) {
+  if (command.size() > 0 && (command[0] == NODE_COMMAND || command[0] == CONFIG_COMMAND)) {
     // Create dir if missing
     auto config_dir = dirNameFromFile(config);
     auto wallet_dir = dirNameFromFile(wallet);
@@ -157,8 +161,9 @@ Config::Config(int argc, const char* argv[], const string& taraxa_version) {
     wallet_json = Tools::overrideWallet(wallet_json, node_secret, vrf_secret);
 
     // Save changes permanently if overwrite_config option is set
+    // or if running config command
     // This can overwrite secret keys in wallet
-    if (overwrite_config) {
+    if (overwrite_config || command[0] == CONFIG_COMMAND) {
       Tools::writeJsonToFile(config, config_json);
       Tools::writeJsonToFile(wallet, wallet_json);
     }
@@ -178,7 +183,7 @@ Config::Config(int argc, const char* argv[], const string& taraxa_version) {
     node_config_.test_params.db_revert_to_period = revert_to_period;
     node_config_.test_params.rebuild_db = rebuild_db;
     node_config_.test_params.rebuild_db_period = rebuild_db_period;
-    node_configured_ = true;
+    if (command[0] == NODE_COMMAND) node_configured_ = true;
   } else if (command.size() > 0 && command[0] == ACCOUNT_COMMAND) {
     if (command.size() == 1)
       Tools::generateAccount();
