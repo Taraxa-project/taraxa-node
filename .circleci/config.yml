@@ -17,7 +17,6 @@ orbs:
   git: opuscapita/git@0.0.3
   github-release: izumin5210/github-release@0.1.1
   gcp-gcr: circleci/gcp-gcr@0.13.0
-  #ghpr: narrativescience/ghpr@1.1.1
 
 commands:
    pr_comment:
@@ -425,6 +424,8 @@ workflows:
         context: taraxa-node
 
   build-and-deploy-image:
+    when: 
+      not: << pipeline.parameters.deploy_testnet >>
     jobs:
       - build-and-push-docker-image:
          context: taraxa-node
