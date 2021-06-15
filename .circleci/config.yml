@@ -5,17 +5,28 @@ parameters:
     type: string
     default: ""
 
-  deploy_testnet:
+  deploy_prnet:
     default: false
     type: boolean
+  
+  redeploy_prnet:
+     default: false
+     type: boolean
+   
+  cleanup_prnet:
+     default: false
+     type: boolean
 
   pr_number:
     default: ""
     type: string
+  
+
 
 orbs:
   git: opuscapita/git@0.0.3
   github-release: izumin5210/github-release@0.1.1
+
   gcp-gcr: circleci/gcp-gcr@0.13.0
 
 commands:
@@ -50,17 +61,49 @@ commands:
             when: << parameters.when >>
 
 jobs:
-   deploy-testnet:
+   deploy-prnet:
      docker:
        - image: circleci/buildpack-deps:stretch
-   
      steps:
-       - run: echo hola mundo
-       - pr_comment:
-          comment: hola mundo
-          pr_number: << pipeline.parameters.pr_number >>
+      - run: echo "Deploy prnet"
+      - pr_comment:
+         when: on_success
+         comment: "Deployed prnet successfully"
+         pr_number: << pipeline.parameters.pr_number >>
+      - pr_comment:
+         when: on_fail
+         comment: "Failed to deploy prnet"
+         pr_number: << pipeline.parameters.pr_number >>
+      
+   redeploy-prnet:
+     docker:
+       - image: circleci/buildpack-deps:stretch
+     steps:
+      - run: echo "ReDeploy prnet"
+      - pr_comment:
+         when: on_success
+         comment: "ReDeployed prnet successfully"
+         pr_number: << pipeline.parameters.pr_number >>
+      - pr_comment:
+         when: on_fail
+         comment: "Failed to ReDeploy prnet"
+         pr_number: << pipeline.parameters.pr_number >>
 
+   cleanup-prnet:
+     docker:
+       - image: circleci/buildpack-deps:stretch
+     steps:
+      - run: echo "Cleanup prnet"
+      - pr_comment:
+         when: on_success
+         comment: "prnet cleaned-up successfully"
+         pr_number: << pipeline.parameters.pr_number >>
+      - pr_comment:
+         when: on_fail
+         comment: "Failed to Clean up prnet"
+         pr_number: << pipeline.parameters.pr_number >>
 
+   
    build-and-push-docker-image:
     environment:
       - IMAGE: taraxa-node
@@ -184,6 +227,7 @@ jobs:
            fi
       - run:
          name: Install/configure helm and chart
+         no_output_timeout: 15m
          command: |
             if [[ ${PR} != "false" ]];then
               docker push ${GCP_IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
@@ -195,7 +239,7 @@ jobs:
               helm install  ${HELM_TEST_NAME:0:40} taraxa-node \
                 --wait \
                 --atomic \
-                --timeout 1200s \
+                --timeout 600s \
                 --create-namespace \
                 --namespace ${HELM_TEST_NAME} \
                 --set replicaCount=5 \
@@ -206,10 +250,11 @@ jobs:
             fi
       - run:
          name: Run helm test
+         no_output_timeout: 15m
          command: |
             if [[ ${PR} != "false" ]];then
               helm test ${HELM_TEST_NAME} \
-                --timeout 3600s \
+                --timeout 600s \
                 --namespace ${HELM_TEST_NAME}
               ./scripts/kibana-url.sh || true
             fi
@@ -233,24 +278,24 @@ jobs:
               docker push ${GCP_IMAGE}-develop:${CIRCLE_SHA1}
               docker push ${GCP_IMAGE}-develop:${START_TIME}-${CIRCLE_SHA1}
            fi
-
            if [[ ${PR} != "false" ]];then
               docker push ${GCP_IMAGE}:pr-${PR}-${CIRCLE_BUILD_NUM}
            fi
            if [[ ${CIRCLE_BRANCH} == "master" ]];then
-              echo ${DOCKERHUB_PASS} | docker login -u taraxa --password-stdin
-              docker push taraxa/${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
-              docker push taraxa/${IMAGE}:${START_TIME}
-              docker push taraxa/${IMAGE}:${CIRCLE_SHA1}
-              docker push taraxa/${IMAGE}:${START_TIME}-${CIRCLE_SHA1}
-              docker push taraxa/${IMAGE}:latest
               docker push ${GCP_IMAGE}:latest
               docker push ${GCP_IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
               docker push ${GCP_IMAGE}:${START_TIME}
               docker push ${GCP_IMAGE}:${CIRCLE_SHA1}
               docker push ${GCP_IMAGE}:${START_TIME}-${CIRCLE_SHA1}
            fi
-
+           if [[ ${CIRCLE_BRANCH} == "testnet" ]];then
+              echo ${DOCKERHUB_PASS} | docker login -u taraxa --password-stdin
+              docker push taraxa/${IMAGE}:${CIRCLE_SHA1}
+              docker push taraxa/${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+              docker push taraxa/${IMAGE}:${START_TIME}
+              docker push taraxa/${IMAGE}:${START_TIME}-${CIRCLE_SHA1}
+              docker push taraxa/${IMAGE}:latest
+           fi
       - run:
          name: Cleanup smoke tests
          when: always
@@ -333,17 +378,18 @@ jobs:
                export CPATH=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/include &&
                cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=gcc -DSYSTEM_HOME_OVERRIDE=/Users/root/project/cmake-build  ../ &&
                make -j 6  &&
-               cp bin/taraxad bin/taraxad-macos
+               mkdir /Users/distiller/project/release &&
+               cp bin/taraxad /Users/distiller/project/release/taraxad-macos
         - run:
            name: Execute ctest
            command: |
              ulimit -n 1024
              cd cmake-build/tests && ctest --output-on-failure
         - store_artifacts:
-           path: /Users/distiller/project/cmake-build/bin/taraxad-macos
+           path: /Users/distiller/project/release/taraxad-macos
         - persist_to_workspace:
-           root: cmake-build
-           paths: [ bin ]
+           root: release
+           paths: [ taraxad-macos ]
    build-linux:
      environment:
         BUILD_OUTPUT_DIR: "cmake-docker-build-debug"
@@ -399,33 +445,54 @@ jobs:
            command: cd $BUILD_OUTPUT_DIR && make install
         - run:
            name: strip binary
-           command: cd $BUILD_OUTPUT_DIR && strip bin_install/taraxad && cp bin_install/taraxad bin_install/taraxad-x86_64
+           command: cd $BUILD_OUTPUT_DIR && strip bin_install/taraxad && mkdir -p /root/project/release && cp bin_install/taraxad /root/project/release/taraxad-x86_64
         - run:
            name: Execute ctest
            command: |
             ulimit -n 1024
             cd $BUILD_OUTPUT_DIR/tests && ctest --output-on-failure
         - store_artifacts:
-           path: /root/project/cmake-docker-build-debug/bin_install/taraxad
+           path: /root/project/release/taraxad-x86_64
         - persist_to_workspace:
-           root: cmake-docker-build-debug
-           paths: [ bin_install ]
+           root: release
+           paths: [ taraxad-x86_64 ]
 
 
 workflows:
   version: 2
-  deploy-testnet:
+
+  deploy-prnet:
     when: 
       and: 
-        - equal: [ true, << pipeline.parameters.deploy_testnet >> ]
+        - equal: [ true, << pipeline.parameters.deploy_prnet >> ]
         - << pipeline.parameters.pr_number >>
     jobs:
-     - deploy-testnet:
-        context: taraxa-node
+     - deploy-prnet:
+        context: taraxa-node 
 
-  build-and-deploy-image:
+  redeploy-prnet:
     when: 
-      not: << pipeline.parameters.deploy_testnet >>
+      and: 
+        - equal: [ true, << pipeline.parameters.deploy_prnet >> ]
+        - equal: [ true, << pipeline.parameters.redeploy_prnet >> ]
+        - << pipeline.parameters.pr_number >>
+    jobs:
+     - redeploy-prnet:
+        context: taraxa-node  
+
+  cleanup-prnet:
+    when: 
+      and: 
+        - equal: [ true, << pipeline.parameters.deploy_prnet >> ]
+        - equal: [ true, << pipeline.parameters.cleanup_prnet >> ]
+        - << pipeline.parameters.pr_number >>
+    jobs:
+     - cleanup-prnet:
+        context: taraxa-node 
+  
+  build-and-deploy-image:
+    when:
+      not: << pipeline.parameters.deploy_prnet >>
     jobs:
       - build-and-push-docker-image:
          context: taraxa-node
@@ -457,21 +524,9 @@ workflows:
       - github-release/create:
           context: taraxa-node
           attach-workspace: true
-          workspace-root: cmake-docker-build-debug
-          path: cmake-docker-build-debug/bin_install/taraxad-x86_64
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v\d+\.\d+\.\d+$/
-          requires:
-            - build-linux
-            - build-mac
-      - github-release/create:
-          context: taraxa-node
-          attach-workspace: true
-          workspace-root: cmake-build
-          path: cmake-build/bin/taraxad-macos
+          replace: true
+          workspace-root: release
+          path: release
           filters:
             branches:
               ignore: /.*/
