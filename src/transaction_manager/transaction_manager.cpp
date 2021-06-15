@@ -297,68 +297,6 @@ std::shared_ptr<std::pair<Transaction, taraxa::bytes>> TransactionManager::getTr
   return tr;
 }
 
-// Received block means some trx might be packed by others
-bool TransactionManager::saveBlockTransactionAndDeduplicate(DagBlock const &blk,
-                                                            std::vector<Transaction> const &some_trxs) {
-  vec_trx_t const &all_block_trx_hashes = blk.getTrxs();
-  if (all_block_trx_hashes.empty()) {
-    return true;
-  }
-  std::set<trx_hash_t> known_trx_hashes(all_block_trx_hashes.begin(), all_block_trx_hashes.end());
-
-  if (!some_trxs.empty()) {
-    auto trx_batch = db_->createWriteBatch();
-    for (auto const &trx : some_trxs) {
-      db_->addTransactionToBatch(trx, trx_batch);
-      known_trx_hashes.erase(trx.getHash());
-    }
-    db_->commitWriteBatch(trx_batch);
-  }
-
-  bool all_transactions_saved = true;
-  trx_hash_t missing_trx;
-  for (auto const &trx : known_trx_hashes) {
-    auto status = db_->getTransactionStatus(trx);
-    if (status == TransactionStatus::not_seen) {
-      all_transactions_saved = false;
-      missing_trx = trx;
-      break;
-    }
-  }
-
-  if (all_transactions_saved) {
-    auto trx_batch = db_->createWriteBatch();
-
-    for (auto const &trx : all_block_trx_hashes) {
-      auto status = db_->getTransactionStatus(trx);
-      if (status != TransactionStatus::in_block) {
-        if (status == TransactionStatus::in_queue_unverified) {
-          auto valid = verifyTransaction(db_->getTransactionExt(trx)->first);
-          if (!valid.first) {
-            LOG(log_er_) << " Block contains invalid transaction " << trx << " " << valid.second;
-            return false;
-          }
-        }
-
-        trx_count_.fetch_add(1);
-        db_->addTransactionStatusToBatch(trx_batch, trx, TransactionStatus::in_block);
-      }
-    }
-
-    // Write prepared batch to db
-    auto trx_count = trx_count_.load();
-    db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_count, trx_batch);
-
-    db_->commitWriteBatch(trx_batch);
-  } else {
-    LOG(log_er_) << " Missing transaction - FAILED block verification " << missing_trx;
-  }
-
-  if (all_transactions_saved) trx_qu_.removeBlockTransactionsFromQueue(all_block_trx_hashes);
-
-  return all_transactions_saved;
-}
-
 /**
  * This is for block proposer
  * Few steps:
@@ -412,28 +350,71 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx, uint16_t max_trx_
                  [](Transaction const &t) { return t.getHash(); });
 }
 
+// Save the transaction that came with the block together with the
+// transactions that are in the queue. This will update the transaction
+// status as well and remove the transactions from the queue
 bool TransactionManager::verifyBlockTransactions(DagBlock const &blk, std::vector<Transaction> const &trxs) {
-  bool invalidTransaction = false;
-  for (auto const &trx : trxs) {
-    auto valid = verifyTransaction(trx);
-    if (!valid.first) {
-      invalidTransaction = true;
-      LOG(log_er_) << "Invalid transaction " << trx.getHash().toString() << " " << valid.second;
-    }
-  }
-  if (invalidTransaction) {
-    return false;
+  vec_trx_t const &all_block_trx_hashes = blk.getTrxs();
+  if (all_block_trx_hashes.empty()) {
+    return true;
   }
 
-  // Save the transaction that came with the block together with the
-  // transactions that are in the queue. This will update the transaction
-  // status as well and remove the transactions from the queue
-  bool transactionsSave = saveBlockTransactionAndDeduplicate(blk, trxs);
-  if (!transactionsSave) {
-    LOG(log_er_) << "Block " << blk.getHash() << " has missing transactions ";
-    return false;
+  std::set<trx_hash_t> known_trx_hashes(all_block_trx_hashes.begin(), all_block_trx_hashes.end());
+
+  auto trx_batch = db_->createWriteBatch();
+  for (auto const &trx : trxs) {
+    known_trx_hashes.erase(trx.getHash());
+    auto status = db_->getTransactionStatus(trx.getHash());
+    if (status == TransactionStatus::in_queue_unverified || status == TransactionStatus::not_seen) {
+      if (auto valid = verifyTransaction(trx); !valid.first) {
+        LOG(log_er_) << "Block " << blk.getHash() << " has invalid transaction " << trx.getHash().toString() << " "
+                     << valid.second;
+        return false;
+      }
+      if (status == TransactionStatus::not_seen) db_->addTransactionToBatch(trx, trx_batch);
+    }
   }
-  return true;
+
+  db_->commitWriteBatch(trx_batch);
+
+  bool all_transactions_saved = true;
+  trx_hash_t missing_trx;
+  for (auto const &trx : known_trx_hashes) {
+    auto status = db_->getTransactionStatus(trx);
+    if (status == TransactionStatus::not_seen) {
+      all_transactions_saved = false;
+      missing_trx = trx;
+      break;
+    } else if (status == TransactionStatus::in_queue_unverified) {
+      auto tx = db_->getTransaction(trx);
+      if (auto valid = verifyTransaction(*tx); !valid.first) {
+        LOG(log_er_) << "Block " << blk.getHash() << " has invalid transaction " << trx.toString() << " "
+                     << valid.second;
+        return false;
+      }
+    }
+  }
+
+  if (all_transactions_saved) {
+    auto trx_batch = db_->createWriteBatch();
+    for (auto const &trx : all_block_trx_hashes) {
+      auto status = db_->getTransactionStatus(trx);
+      if (status != TransactionStatus::in_block) {
+        trx_count_.fetch_add(1);
+        db_->addTransactionStatusToBatch(trx_batch, trx, TransactionStatus::in_block);
+      }
+    }
+    // Write prepared batch to db
+    auto trx_count = trx_count_.load();
+    db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_count, trx_batch);
+
+    db_->commitWriteBatch(trx_batch);
+    trx_qu_.removeBlockTransactionsFromQueue(all_block_trx_hashes);
+  } else {
+    LOG(log_er_) << "Block " << blk.getHash() << " has missing transaction " << missing_trx;
+  }
+
+  return all_transactions_saved;
 }
 
 }  // namespace taraxa

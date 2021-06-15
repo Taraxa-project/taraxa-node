@@ -570,8 +570,7 @@ void PbftManager::proposeBlock_() {
       LOG(log_nf_) << "Proposing " << place_votes << " values of NULL_BLOCK_HASH " << NULL_BLOCK_HASH
                    << " for round 1 by protocol";
     }
-  } else if (giveUpVotedBlock_(voted_value) ||
-             (round >= 2 && previous_round_next_votes_->haveEnoughVotesForNullBlockHash())) {
+  } else if (round >= 2 && giveUpVotedBlock_(voted_value)) {
     // PBFT block only be proposed once in one period
     if (!proposed_block_hash_.second || proposed_block_hash_.first == NULL_BLOCK_HASH) {
       // Propose value...
@@ -621,8 +620,7 @@ void PbftManager::identifyBlock_() {
   auto voted_value = previous_round_next_votes_->getVotedValue();
   LOG(log_tr_) << "PBFT filtering state in round " << round;
 
-  if (round == 1 || giveUpVotedBlock_(voted_value) ||
-      (round >= 2 && previous_round_next_votes_->haveEnoughVotesForNullBlockHash())) {
+  if (round == 1 || (round >= 2 && giveUpVotedBlock_(voted_value))) {
     // Identity leader
     std::pair<blk_hash_t, bool> leader_block = identifyLeaderBlock_(votes_);
     if (leader_block.second) {
@@ -747,8 +745,7 @@ void PbftManager::firstFinish_() {
       LOG(log_nf_) << "Next votes " << place_votes << " voting cert voted value " << cert_voted_values_for_round_[round]
                    << " for round " << round << " , step " << step_;
     }
-  } else if ((round >= 2 && previous_round_next_votes_->haveEnoughVotesForNullBlockHash()) ||
-             giveUpVotedBlock_(voted_value)) {
+  } else if (round >= 2 && giveUpVotedBlock_(voted_value)) {
     auto place_votes = placeVote_(NULL_BLOCK_HASH, next_vote_type, round, step_);
     if (place_votes) {
       LOG(log_nf_) << "Next votes " << place_votes << " voting NULL BLOCK for round " << round << ", at step " << step_;
@@ -811,8 +808,7 @@ void PbftManager::secondFinish_() {
   }
 
   auto voted_value = previous_round_next_votes_->getVotedValue();
-  if (!next_voted_null_block_hash_ && round >= 2 &&
-      (previous_round_next_votes_->haveEnoughVotesForNullBlockHash() || giveUpVotedBlock_(voted_value)) &&
+  if (!next_voted_null_block_hash_ && round >= 2 && giveUpVotedBlock_(voted_value) &&
       (cert_voted_values_for_round_.find(round) == cert_voted_values_for_round_.end())) {
     auto place_votes = placeVote_(NULL_BLOCK_HASH, next_vote_type, round, step_);
     if (place_votes) {
@@ -823,11 +819,11 @@ void PbftManager::secondFinish_() {
     }
   }
 
-  if (step_ > MAX_STEPS && !is_syncing_() && !syncRequestedAlreadyThisStep_() && (step_ - MAX_STEPS - 2) % 100 == 0) {
+  if (step_ > MAX_STEPS && (step_ - MAX_STEPS - 2) % 100 == 0) {
     syncPbftChainFromPeers_(exceeded_max_steps, NULL_BLOCK_HASH);
   }
 
-  if (step_ > MAX_STEPS && !broadcastAlreadyThisStep_()) {
+  if (step_ > MAX_STEPS && (step_ - MAX_STEPS - 2) % 100 == 0 && !broadcastAlreadyThisStep_()) {
     LOG(log_dg_) << "Node " << node_addr_ << " broadcast next votes for previous round. In round " << round << " step "
                  << step_;
     if (auto net = network_.lock()) {
@@ -1419,6 +1415,14 @@ void PbftManager::updateTwoTPlusOneAndThreshold_() {
 }
 
 bool PbftManager::giveUpVotedBlock_(blk_hash_t const &block_hash) {
+  if (block_hash == NULL_BLOCK_HASH) {
+    // Have received 2t+1 next votes for NULL_BLOCK_HASH for previous round
+    return true;
+  } else if (previous_round_next_votes_->haveEnoughVotesForNullBlockHash()) {
+    // There are 2 valued values in previous round, and have received 2t+1 next votes for NULL_BLOCK_HASH
+    return true;
+  }
+
   if (pbft_chain_->findPbftBlockInChain(block_hash)) {
     return true;
   }

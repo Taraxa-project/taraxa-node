@@ -90,8 +90,6 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   unsigned long getTransactionCount() const;
   // Received block means these trxs are packed by others
 
-  bool saveBlockTransactionAndDeduplicate(DagBlock const &blk, std::vector<Transaction> const &some_trxs);
-
   TransactionQueue &getTransactionQueue() { return trx_qu_; }
 
  private:

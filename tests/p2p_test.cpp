@@ -133,7 +133,7 @@ TEST_F(P2PTest, capability_send_test) {
   EXPECT_GT(host1->peer_count(), 0);
   EXPECT_GT(host2->peer_count(), 0);
 
-  int const target = 10;
+  int const target = 5;
   int checksum = 0;
   std::vector<char> dummy_data(10 * 1024 * 1024);  // 10MB memory buffer
   for (int i = 0; i < target; checksum += i++) thc2->sendTestMessage(host1->id(), i, dummy_data);

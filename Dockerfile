@@ -9,47 +9,48 @@ FROM ubuntu:20.04 as builder
 # deps versions
 ARG GO_VERSION=1.13.7
 ARG CMAKE_VERSION=3.16.3-1ubuntu1
-ARG GCC_VERSION=4:9.3.0-1ubuntu2
 ARG GFLAGS_VERSION=2.2.2-1build1
-ARG CLANG_FORMAT_VERSION=clang+llvm-10.0.0-x86_64-linux-gnu-ubuntu-18.04
 
 # Install standard packages
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends tzdata \
     && apt-get install -y \
-        tar \
-        git \
-        xz-utils \
-        curl \
-        libtool \
-        autoconf \
-        binutils \
-        \
-        ccache \
-        cmake=$CMAKE_VERSION \
-        gcc=$GCC_VERSION \
-        g++=$GCC_VERSION \
-        libgflags-dev=$GFLAGS_VERSION \
-        \
-        python3-pip \
-        libncurses5 \
+    tar \
+    git \
+    curl \
+    wget \
+    python3-pip \
+    lsb-release \
+    software-properties-common \
     && rm -rf /var/lib/apt/lists/*
 
 
-# install clang-format and clang-tidy
-RUN curl -SLs https://github.com/llvm/llvm-project/releases/download/llvmorg-10.0.0/$CLANG_FORMAT_VERSION.tar.xz \
-        | tar -xJ && \
-    mv $CLANG_FORMAT_VERSION/bin/clang-format /usr/bin/clang-format && \
-    mv $CLANG_FORMAT_VERSION/bin/clang-tidy /usr/bin/clang-tidy && \
-    rm -rf $CLANG_FORMAT_VERSION && \
-    rm -f $CLANG_FORMAT_VERSION.tar.xz
+# Install LLVM
+RUN curl -SL -o llvm.sh https://apt.llvm.org/llvm.sh && \
+    chmod +x llvm.sh && \
+    ./llvm.sh 10 && \
+    rm -f llvm.sh
+
+# Install standard tools
+RUN apt-get update \
+    && apt-get install -y \
+    libtool \
+    autoconf \
+    binutils \
+    cmake=$CMAKE_VERSION \
+    ccache \
+    libgflags-dev=$GFLAGS_VERSION \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV CXX="clang++-10"
+ENV CC="clang-10"
 
 # Install conan
 RUN pip3 install conan
 
 # Install go
 RUN curl -SL https://dl.google.com/go/go$GO_VERSION.linux-amd64.tar.gz \
-        | tar -xzC /usr/local
+    | tar -xzC /usr/local
 
 # Add go to PATH
 ENV GOROOT=/usr/local/go
@@ -62,9 +63,15 @@ ARG BUILD_OUTPUT_DIR
 # Install conan deps
 WORKDIR /opt/taraxa/
 COPY conanfile.py .
-RUN conan remote add -f bincrafters "https://api.bintray.com/conan/bincrafters/public-conan"
-RUN conan install -if $BUILD_OUTPUT_DIR --build missing -s build_type=Debug .
 
+RUN conan remote add -f bincrafters "https://api.bintray.com/conan/bincrafters/public-conan" && \
+    conan profile new clang --detect && \
+    conan profile update settings.compiler=clang clang && \
+    conan profile update settings.compiler.version=10 clang && \
+    conan profile update settings.compiler.libcxx=libstdc++11 clang && \
+    conan profile update env.CC=clang-10 clang && \
+    conan profile update env.CXX=clang++-10 clang && \
+    conan install -if $BUILD_OUTPUT_DIR --build missing -s build_type=Debug -pr=clang .
 
 ###################################################################
 # Build stage - use builder image for actual build of taraxa node #
@@ -79,13 +86,14 @@ WORKDIR /opt/taraxa/
 COPY . .
 RUN cd $BUILD_OUTPUT_DIR \
     && cmake -DCMAKE_BUILD_TYPE=Debug \
-             -DTARAXA_ENABLE_LTO=ON \
-             -DTARAXA_STATIC_BUILD=ON \
-             -DTARAXAD_INSTALL_DIR=./bin_install \
-             -DTARAXAD_CONF_INSTALL_DIR=./bin_install \
-             ../ \
+    -DTARAXA_ENABLE_LTO=ON \
+    -DTARAXA_STATIC_BUILD=ON \
+    -DTARAXAD_INSTALL_DIR=./bin_install \
+    -DTARAXAD_CONF_INSTALL_DIR=./bin_install \
+    ../ \
     && make -j$(nproc) all \
-    && make install
+    && make install \
+    && find . -maxdepth 1 ! -name "bin_install" ! -name "bin" ! -name "tests" -exec rm -rfv {} \;
 
 ###############################################################################
 # Taraxa Cli #
