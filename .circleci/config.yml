@@ -64,44 +64,44 @@ jobs:
    deploy-prnet:
      docker:
        - image: circleci/buildpack-deps:stretch
-        steps:
-         - run: echo "Deploy prnet"
-         - pr_comment:
-            when: on_success
-            comment: "Deployed prnet successfully"
-            pr_number: << pipeline.parameters.pr_number >>
-         - pr_comment:
-            when: on_fail
-            comment: "Failed to deploy prnet"
-            pr_number: << pipeline.parameters.pr_number >>
+     steps:
+      - run: echo "Deploy prnet"
+      - pr_comment:
+         when: on_success
+         comment: "Deployed prnet successfully"
+         pr_number: << pipeline.parameters.pr_number >>
+      - pr_comment:
+         when: on_fail
+         comment: "Failed to deploy prnet"
+         pr_number: << pipeline.parameters.pr_number >>
       
    redeploy-prnet:
      docker:
        - image: circleci/buildpack-deps:stretch
-        steps:
-         - run: echo "ReDeploy prnet"
-         - pr_comment:
-            when: on_success
-            comment: "ReDeployed prnet successfully"
-            pr_number: << pipeline.parameters.pr_number >>
-         - pr_comment:
-            when: on_fail
-            comment: "Failed to ReDeploy prnet"
-            pr_number: << pipeline.parameters.pr_number >>
+     steps:
+      - run: echo "ReDeploy prnet"
+      - pr_comment:
+         when: on_success
+         comment: "ReDeployed prnet successfully"
+         pr_number: << pipeline.parameters.pr_number >>
+      - pr_comment:
+         when: on_fail
+         comment: "Failed to ReDeploy prnet"
+         pr_number: << pipeline.parameters.pr_number >>
 
    cleanup-prnet:
      docker:
        - image: circleci/buildpack-deps:stretch
-        steps:
-         - run: echo "Cleanup prnet"
-         - pr_comment:
-            when: on_success
-            comment: "prnet cleaned-up successfully"
-            pr_number: << pipeline.parameters.pr_number >>
-         - pr_comment:
-            when: on_fail
-            comment: "Failed to Clean up prnet"
-            pr_number: << pipeline.parameters.pr_number >>
+     steps:
+      - run: echo "Cleanup prnet"
+      - pr_comment:
+         when: on_success
+         comment: "prnet cleaned-up successfully"
+         pr_number: << pipeline.parameters.pr_number >>
+      - pr_comment:
+         when: on_fail
+         comment: "Failed to Clean up prnet"
+         pr_number: << pipeline.parameters.pr_number >>
 
    
    build-and-push-docker-image:
