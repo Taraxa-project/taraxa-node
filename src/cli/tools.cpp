@@ -27,14 +27,16 @@ void Tools::generateConfig(const std::string& config, Config::NetworkIdType netw
       break;
     default:
       conf = readJsonFromString(default_json);
-      conf["chain_config"]["chain_id"] = to_string((int)network_id);
+      std::stringstream stream;
+      stream << "0x" << std::hex << (int)network_id;
+      conf["chain_config"]["chain_id"] = stream.str();
   }
   writeJsonToFile(config, conf);
 }
 
 Json::Value Tools::overrideConfig(Json::Value& conf, const std::string& data_dir, bool boot_node,
-                                  const vector<string>& boot_nodes, const vector<string>& log_channels,
-                                  const string& override_config) {
+                                  vector<string> boot_nodes, vector<string> log_channels,
+                                  const vector<string>& boot_nodes_append, const vector<string>& log_channels_append) {
   if (data_dir.empty()) {
     conf["db_path"] = getTaraxaDataDefaultDir();
   } else {
@@ -42,12 +44,22 @@ Json::Value Tools::overrideConfig(Json::Value& conf, const std::string& data_dir
   }
 
   conf["network_is_boot_node"] = boot_node;
-  
-  //Override boot nodes
+
+  if (log_channels.size() > 0 && log_channels_append.size() > 0) {
+    throw invalid_argument("log_channels and log_channels_append args are not allowed to be used together");
+  }
+  if (boot_nodes.size() > 0 && boot_nodes_append.size() > 0) {
+    throw invalid_argument("boot_nodes and boot_nodes_append args are not allowed to be used together");
+  }
+
+  // Override boot nodes
   if (boot_nodes.size() > 0) {
-    if (override_config == Config::OVERRIDE_CONFIG_TRUNCATE) {
-      conf["network_boot_nodes"] = Json::Value(Json::arrayValue);
-    }
+    conf["network_boot_nodes"] = Json::Value(Json::arrayValue);
+  }
+  if (boot_nodes_append.size() > 0) {
+    boot_nodes = boot_nodes_append;
+  }
+  if (boot_nodes.size() > 0) {
     for (auto const& b : boot_nodes) {
       vector<string> result;
       boost::split(result, b, boost::is_any_of(":/"));
@@ -72,11 +84,14 @@ Json::Value Tools::overrideConfig(Json::Value& conf, const std::string& data_dir
     }
   }
 
-  //Override log channels
+  // Override log channels
   if (log_channels.size() > 0) {
-    if (override_config == Config::OVERRIDE_CONFIG_TRUNCATE) {
-      conf["logging"]["configurations"][0u]["channels"] = Json::Value(Json::arrayValue);
-    }
+    conf["logging"]["configurations"][0u]["channels"] = Json::Value(Json::arrayValue);
+  }
+  if (log_channels_append.size() > 0) {
+    log_channels = log_channels_append;
+  }
+  if (log_channels.size() > 0) {
     for (auto const& l : log_channels) {
       vector<string> result;
       boost::split(result, l, boost::is_any_of(":"));
@@ -132,9 +147,9 @@ Json::Value Tools::overrideWallet(Json::Value& wallet, const string& node_key, c
 }
 
 void Tools::generateAccount(const dev::KeyPair& account) {
-  cout << "secret : " << toHex(account.secret().ref()) << endl;
-  cout << "public : " << account.pub().toString() << endl;
-  cout << "address : " << account.address().toString() << endl;
+  cout << "\"node_secret\" : \"" << toHex(account.secret().ref()) << "\"" << endl;
+  cout << "\"node_public\" : \"" << account.pub().toString() << "\"" << endl;
+  cout << "\"node_address\" : \"" << account.address().toString() << "\"" << endl;
 }
 
 void Tools::generateAccount() { generateAccount(dev::KeyPair::create()); }
@@ -146,8 +161,8 @@ void Tools::generateAccountFromKey(const string& key) {
 }
 
 void Tools::generateVrf(const taraxa::vrf_wrapper::vrf_sk_t& sk, const taraxa::vrf_wrapper::vrf_pk_t& pk) {
-  cout << "vrf_secret : " << sk.toString() << endl;
-  cout << "vrf_public : " << pk.toString() << endl;
+  cout << "\"vrf_secret\" : \"" << sk.toString() << "\"" << endl;
+  cout << "\"vrf_public\" : \"" << pk.toString() << "\"" << endl;
 }
 
 void Tools::generateVrf() {
