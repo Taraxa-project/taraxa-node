@@ -109,6 +109,7 @@ jobs:
           echo "::set-output name=repo_name::${{ fromJson(steps.request.outputs.data).base.repo.full_name }}"
           echo "::set-output name=repo_clone_url::${{ fromJson(steps.request.outputs.data).base.repo.clone_url }}"
           echo "::set-output name=repo_ssh_url::${{ fromJson(steps.request.outputs.data).base.repo.ssh_url }}"
+        if: steps.check.outputs.triggered == 'true'
       - run: |
             curl -u ${{ secrets.CIRCLE_TOKEN }}: -X  POST \
                -H 'Content-Type: application/json' \
