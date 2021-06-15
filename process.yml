@@ -1,0 +1,189 @@
+# Orb 'opuscapita/git@0.0.3' resolved to 'opuscapita/git@0.0.3'
+# Orb 'izumin5210/github-release@0.1.1' resolved to 'izumin5210/github-release@0.1.1'
+version: 2
+jobs:
+  build-linux:
+    environment:
+    - BUILD_OUTPUT_DIR: cmake-docker-build-debug
+    - CLANG_VERSION: 1:10.0-50~exp1
+    - GO_VERSION: 1.13.7
+    - CMAKE_VERSION: 3.16.3-1ubuntu1
+    - GCC_VERSION: 4:9.3.0-1ubuntu2
+    - GFLAGS_VERSION: 2.2.2-1build1
+    - JSONCPP_VERSION: 1.7.4-3.1ubuntu2
+    - JSONRPCCPP_VERSION: 0.7.0-1build3
+    - SCRYPT_VERSION: 1.21-3
+    - GOROOT: /usr/local/go
+    - GOPATH: /root/.go
+    docker:
+    - image: gcr.io/$GOOGLE_PROJECT_ID/taraxa-node/builder
+      auth:
+        username: _json_key
+        password: $GCLOUD_SERVICE_KEY
+    resource_class: xlarge
+    steps:
+    - checkout
+    - run:
+        name: Checkout Submodules
+        command: |
+          git submodule sync
+          git submodule update --init --recursive --jobs 8
+    - run:
+        command: mkdir $BUILD_OUTPUT_DIR
+    - run:
+        name: Copy /opt/taraxa/existing files to project
+        command: cp -rp /opt/taraxa/cmake-docker-build-debug/* /root/project/cmake-docker-build-debug/
+    - run:
+        name: Cmake
+        command: "cd $BUILD_OUTPUT_DIR &&\ncmake -DCMAKE_BUILD_TYPE=Debug \\\n-DTARAXA_STATIC_BUILD=ON \\\n-DTARAXAD_INSTALL_DIR=./bin_install \\\n-DTARAXAD_CONF_INSTALL_DIR=./bin_install \\\n../ \n"
+    - run:
+        name: make
+        command: cd $BUILD_OUTPUT_DIR && make -j10 all
+    - run:
+        name: make install
+        command: cd $BUILD_OUTPUT_DIR && make install
+    - run:
+        name: strip binary
+        command: cd $BUILD_OUTPUT_DIR && strip bin_install/taraxad
+    - store_artifacts:
+        path: /root/project/cmake-docker-build-debug/bin_install/taraxad
+    - persist_to_workspace:
+        root: cmake-docker-build-debug
+        paths:
+        - bin_install
+  github-release/create:
+    docker:
+    - image: circleci/buildpack-deps:latest
+    steps:
+    - attach_workspace:
+        at: cmake-docker-build-debug
+    - run:
+        command: |
+          archive=ghr_v0.12.1_linux_amd64
+          curl -L https://github.com/tcnksm/ghr/releases/download/v0.12.1/${archive}.tar.gz | tar xzf -
+          sudo cp ./${archive}/ghr /usr/local/bin/
+          rm -rf ./${archive}
+        name: '[ghr] Install tools'
+    - run:
+        command: |
+          ghr \
+            -username="$CIRCLE_PROJECT_USERNAME" \
+            -repository="$CIRCLE_PROJECT_REPONAME" \
+            -token="$GITHUB_TOKEN" \
+            -commitish="$CIRCLE_SHA1" \
+            -name="" \
+            -body="" \
+            \
+            \
+            \
+            \
+            \
+            $CIRCLE_TAG \
+            bin_install/taraxad
+        name: '[ghr] Create release'
+workflows:
+  build-and-release:
+    jobs:
+    - build-linux:
+        context: taraxa-node
+    - github-release/create:
+        filters:
+          tags:
+            only: /^v\d+\.\d+\.\d+$/
+        requires:
+        - build-linux
+  version: 2
+
+# Original config.yml file:
+# version: 2.1
+# orbs:
+#   git: opuscapita/git@0.0.3
+#   github-release: izumin5210/github-release@0.1.1
+# 
+# #  gcp-gcr: circleci/gcp-gcr@0.13.0
+# 
+# 
+# jobs: 
+#    build-linux:
+#      environment:
+#         BUILD_OUTPUT_DIR: \"cmake-docker-build-debug\"
+#         CLANG_VERSION: \"1:10.0-50~exp1\"
+#         GO_VERSION: \"1.13.7\"
+#         CMAKE_VERSION: \"3.16.3-1ubuntu1\"
+#         GCC_VERSION: \"4:9.3.0-1ubuntu2\"
+#         GFLAGS_VERSION: \"2.2.2-1build1\"
+#         JSONCPP_VERSION: \"1.7.4-3.1ubuntu2\"
+#         JSONRPCCPP_VERSION: \"0.7.0-1build3\"
+#         SCRYPT_VERSION: \"1.21-3\"
+#         GOROOT: \"/usr/local/go\"
+#         GOPATH: \"/root/.go\"
+#      docker:
+#       - image: gcr.io/$GOOGLE_PROJECT_ID/taraxa-node/builder
+#         auth:
+#           username: _json_key  # default username when using a JSON key file to authenticate
+#           password: $GCLOUD_SERVICE_KEY 
+#      resource_class: xlarge
+#      steps:
+#         - checkout
+#         - run:       
+#            name: Checkout Submodules
+#            command: |
+#               git submodule sync
+#               git submodule update --init --recursive --jobs 8
+#         - run: 
+#            command: mkdir $BUILD_OUTPUT_DIR
+#         - run: 
+#            name: Copy /opt/taraxa/existing files to project
+#            command: cp -rp /opt/taraxa/cmake-docker-build-debug/* /root/project/cmake-docker-build-debug/
+# #       - git/checkout-with-submodules
+# #       - setup_remote_docker:
+# #           docker_layer_caching: true
+#         - run: 
+#             name: Cmake
+#             command: | 
+#               cd $BUILD_OUTPUT_DIR &&
+#               cmake -DCMAKE_BUILD_TYPE=Debug \\
+#               -DTARAXA_STATIC_BUILD=ON \\
+#               -DTARAXAD_INSTALL_DIR=./bin_install \\
+#               -DTARAXAD_CONF_INSTALL_DIR=./bin_install \\
+#               ../ 
+#         - run: 
+#            name: make
+#            command: cd $BUILD_OUTPUT_DIR && make -j10 all 
+#         - run: 
+#            name: make install 
+#            command: cd $BUILD_OUTPUT_DIR && make install 
+#         - run: 
+#            name: strip binary
+#            command: cd $BUILD_OUTPUT_DIR && strip bin_install/taraxad
+# #       - run: cd $BUILD_OUTPUT_DIR/tests && ctest --output-on-failure
+#         - store_artifacts:
+#            path: /root/project/cmake-docker-build-debug/bin_install/taraxad
+#         - persist_to_workspace:
+#            root: cmake-docker-build-debug
+#            paths: [ bin_install ]
+# 
+# workflows:
+#   build-and-release:
+#     jobs:
+# #      - gcp-gcr/build-and-push-image:
+# #          executor: docker
+# #          image: taraxa-node/taraxa-builder
+# #          context: taraxa-node
+# #          path: builder
+# #          setup-remote-docker: true
+# #          use-docker-layer-caching: true
+#       - build-linux:
+#            context: taraxa-node
+# #           requires: [ gcp-gcr/build-and-push-image ]
+#       - github-release/create:
+#           attach-workspace: true
+#           workspace-root: cmake-docker-build-debug
+#           path: bin_install/taraxad
+#           filters:
+# #            branches: 
+# #              only: [ develop , circleci ]
+#             tags:  
+#               only: /^v\\d+\\.\\d+\\.\\d+$/
+#           requires: 
+#             - build-linux
