@@ -90,7 +90,7 @@ jobs:
       - uses: khan/pull-request-comment-trigger@master
         id: check
         with:
-          trigger: '/redeploy'
+          trigger: '/cleanup'
           reaction: rocket
         env:
           GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
