@@ -2,6 +2,7 @@
 
 #include <execinfo.h>
 #include <json/json.h>
+#include <libdevcore/RLP.h>
 #include <signal.h>
 
 #include <boost/asio.hpp>
@@ -23,18 +24,16 @@
 
 namespace taraxa {
 
-struct ProcessReturn {
-  enum class Result {
-    PROGRESS,
-    BAD_SIG,
-    SEEN,
-    NEG_SPEND,
-    UNRECEIVABLE,  // ?
-    MISS_PREV,
-    MISS_SOURCE
-  };
-  taraxa::addr_t user_account;
-};
+template <typename Int1, typename Int2>
+auto int_pow(Int1 x, Int2 y) {
+  if (!y) {
+    return 1;
+  }
+  while (--y > 0) {
+    x *= x;
+  }
+  return x;
+}
 
 template <typename T, typename U = T>
 std::vector<T> asVector(Json::Value const &json, std::string const &key) {
@@ -51,16 +50,6 @@ std::vector<T> asVector(Json::Value const &json) {
   std::transform(json.begin(), json.end(), std::back_inserter(v),
                  [](const Json::Value &item) { return T(item.asString()); });
   return v;
-}
-
-template <typename enumT>
-constexpr inline auto asInteger(enumT const value) {
-  return static_cast<typename std::underlying_type<enumT>::type>(value);
-}
-
-template <typename E, typename T>
-constexpr inline typename std::enable_if_t<std::is_enum_v<E> && std::is_integral_v<T>, E> toEnum(T value) noexcept {
-  return static_cast<E>(value);
 }
 
 template <typename T>
@@ -225,26 +214,6 @@ std::string fmt(const std::string &pattern, const TS &... args) {
   return (boost::format(pattern) % ... % args).str();
 }
 
-template <typename Container, typename What>
-auto std_find(Container &container, What const &what) {
-  auto itr = container.find(what);
-  if (itr != container.end()) {
-    return std::optional(std::move(itr));
-  }
-  return static_cast<std::optional<decltype(itr)>>(std::nullopt);
-}
-
-template <typename Container, typename What>
-auto std_find(Container const &container, What const &what) {
-  auto itr = container.find(what);
-  if (itr != container.end()) {
-    return std::optional(std::move(itr));
-  }
-  return static_cast<std::optional<decltype(itr)>>(std::nullopt);
-}
-
-inline auto noop() { return [](auto...) -> auto {}; }
-
 template <typename T>
 auto s_ptr(T *ptr) {
   return std::shared_ptr<T>(ptr);
@@ -254,20 +223,6 @@ template <typename T>
 auto u_ptr(T *ptr) {
   return std::unique_ptr<T>(ptr);
 }
-
-template <typename T>
-static constexpr auto __is_iterable__(int)
-    -> decltype((++std::declval<T>().begin() == std::declval<T>().end()++), bool()) {
-  return true;
-}
-
-template <typename T, typename Dummy>
-static constexpr auto __is_iterable__(Dummy) {
-  return false;
-}
-
-template <typename T>
-constexpr bool is_iterable = __is_iterable__<T>(0);
 
 }  // namespace taraxa
 

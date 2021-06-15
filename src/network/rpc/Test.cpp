@@ -14,7 +14,7 @@
 
 using namespace std;
 using namespace dev;
-using namespace dev::eth;
+using namespace ::taraxa::final_chain;
 using namespace jsonrpc;
 using namespace taraxa;
 

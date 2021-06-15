@@ -2,11 +2,8 @@
 
 #include <jsonrpccpp/common/exception.h>
 #include <libdevcore/CommonData.h>
-#include <libethcore/CommonJS.h>
-#include <libethereum/TransactionReceipt.h>
+#include <libdevcore/CommonJS.h>
 #include <libp2p/Common.h>
-
-#include <csignal>
 
 #include "consensus/pbft_manager.hpp"
 #include "dag/dag.hpp"
@@ -16,8 +13,8 @@
 using namespace std;
 using namespace jsonrpc;
 using namespace dev;
-using namespace eth;
 using namespace taraxa;
+using namespace ::taraxa::final_chain;
 
 namespace taraxa::net {
 
@@ -121,7 +118,7 @@ Json::Value Taraxa::taraxa_getDagBlockByLevel(string const& _blockLevel, bool _i
 Json::Value Taraxa::taraxa_getConfig() { return enc_json(tryGetNode()->getConfig().chain); }
 
 Json::Value Taraxa::taraxa_queryDPOS(Json::Value const& _q) {
-  std::optional<BlockNumber> blk_n;
+  std::optional<EthBlockNumber> blk_n;
   auto const& blk_n_json = _q["block_number"];
   if (!blk_n_json.isNull()) {
     blk_n = dev::jsToInt(blk_n_json.asString());
