@@ -49,16 +49,18 @@ void TransactionQueue::insertUnverifiedTrxs(const vector<Transaction> &trxs) {
   {
     listIter iter;
     uLock lock(main_shared_mutex_);
-    uLock unverified_lock(shared_mutex_for_unverified_qu_);
     for (const auto &trx : trxs) {
       iter = trx_buffer_.insert(trx_buffer_.end(), trx);
       assert(iter != trx_buffer_.end());
       queued_trxs_[trx.getHash()] = iter;
       iters.push_back(iter);
     }
-    for (size_t idx = 0; idx < trxs.size(); idx++) {
-      unverified_hash_qu_.emplace_back(std::make_pair(trxs[idx].getHash(), iters[idx]));
-      cond_for_unverified_qu_.notify_one();
+    {
+      uLock unverified_lock(shared_mutex_for_unverified_qu_);
+      for (size_t idx = 0; idx < trxs.size(); idx++) {
+        unverified_hash_qu_.emplace_back(std::make_pair(trxs[idx].getHash(), iters[idx]));
+        cond_for_unverified_qu_.notify_one();
+      }
     }
   }
 }
@@ -100,7 +102,6 @@ void TransactionQueue::addTransactionToVerifiedQueue(trx_hash_t const &hash, std
 // The caller is responsible for storing the transaction to db!
 void TransactionQueue::removeBlockTransactionsFromQueue(vec_trx_t const &all_block_trxs) {
   uLock lock(main_shared_mutex_);
-  upgradableLock unlock(shared_mutex_for_unverified_qu_);
   if (queued_trxs_.empty()) return;
 
   std::unordered_map<trx_hash_t, bool> unverif_to_remove;
@@ -116,7 +117,7 @@ void TransactionQueue::removeBlockTransactionsFromQueue(vec_trx_t const &all_blo
     }
   }
   if (unverif_to_remove.size()) {
-    upgradeLock locked(unlock);
+    uLock unveried_lock(shared_mutex_for_unverified_qu_);
     unverified_hash_qu_.erase(std::remove_if(unverified_hash_qu_.begin(), unverified_hash_qu_.end(),
                                              [&unverif_to_remove](const auto &el) {
                                                return unverif_to_remove.find(el.first) != unverif_to_remove.end();
@@ -203,12 +204,12 @@ unsigned long TransactionQueue::getVerifiedTrxCount() const {
 std::pair<size_t, size_t> TransactionQueue::getTransactionQueueSize() const {
   std::pair<size_t, size_t> res;
   {
-    sharedLock lock(shared_mutex_for_unverified_qu_);
-    res.first = unverified_hash_qu_.size();
-  }
-  {
     sharedLock lock(main_shared_mutex_);
     res.second = verified_trxs_.size();
+  }
+  {
+    sharedLock lock(shared_mutex_for_unverified_qu_);
+    res.first = unverified_hash_qu_.size();
   }
   return res;
 }
