@@ -138,7 +138,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   // receive pbft-povit-blk, update periods and finalized, return size of
   // ordered blocks
   uint setDagBlockOrder(blk_hash_t const &anchor, uint64_t period, vec_blk_t const &dag_order,
-                        const taraxa::DbStorage::BatchPtr &write_batch);
+                        DbStorage::Batch &write_batch);
 
   bool getLatestPivotAndTips(std::string &pivot, std::vector<std::string> &tips) const;
   void collectTotalLeaves(std::vector<std::string> &leaves) const;
@@ -174,7 +174,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
  private:
   void recoverDag();
   void addToDag(std::string const &hash, std::string const &pivot, std::vector<std::string> const &tips, uint64_t level,
-                const taraxa::DbStorage::BatchPtr &write_batch, bool finalized = false);
+                DbStorage::Batch &write_batch, bool finalized = false);
   std::pair<std::string, std::vector<std::string>> getFrontier() const;  // return pivot and tips
   std::atomic<level_t> max_level_ = 0;
   mutable boost::shared_mutex mutex_;

@@ -50,5 +50,3 @@ class Test : public TestFace {
 };
 
 }  // namespace taraxa::net
-
-

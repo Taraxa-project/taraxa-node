@@ -1,7 +1,6 @@
 #include "full_node.hpp"
 
-#include <libweb3jsonrpc/Eth.h>
-#include <libweb3jsonrpc/JsonHelper.h>
+#include <libdevcore/CommonJS.h>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -9,9 +8,6 @@
 #include <chrono>
 #include <stdexcept>
 
-#include "aleth/dummy_eth_apis.hpp"
-#include "aleth/node_api.hpp"
-#include "aleth/state_api.hpp"
 #include "consensus/block_proposer.hpp"
 #include "consensus/pbft_manager.hpp"
 #include "dag/dag.hpp"
@@ -19,6 +15,7 @@
 #include "network/rpc/Net.h"
 #include "network/rpc/Taraxa.h"
 #include "network/rpc/Test.h"
+#include "network/rpc/eth/Eth.h"
 #include "network/rpc/rpc_error_handler.hpp"
 #include "transaction_manager/transaction_manager.hpp"
 #include "transaction_manager/transaction_status.hpp"
@@ -81,8 +78,8 @@ void FullNode::init() {
   }
   LOG(log_nf_) << "DB initialized ...";
 
-  final_chain_ = NewFinalChain(db_, conf_.chain.final_chain, conf_.opts_final_chain);
-
+  final_chain_ = NewFinalChain(db_, conf_.chain.final_chain, conf_.opts_final_chain, node_addr);
+  register_s_ptr(final_chain_);
   emplace(trx_mgr_, conf_, node_addr, db_, log_time_);
 
   auto genesis_hash = conf_.chain.dag_genesis_block.getHash().toString();
@@ -100,55 +97,99 @@ void FullNode::init() {
           trx_mgr_, final_chain_, pbft_chain_, log_time_, conf_.test_params.max_block_queue_warn);
   emplace(vote_mgr_, node_addr, db_, final_chain_, pbft_chain_);
   emplace(trx_order_mgr_, node_addr, db_);
-  emplace(executor_, node_addr, db_, dag_mgr_, trx_mgr_, dag_blk_mgr_, final_chain_, pbft_chain_,
-          conf_.test_params.block_proposer.transaction_limit);
   emplace(pbft_mgr_, conf_.chain.pbft, genesis_hash, node_addr, db_, pbft_chain_, vote_mgr_, next_votes_mgr_, dag_mgr_,
-          dag_blk_mgr_, final_chain_, executor_, kp_.secret(), conf_.vrf_secret);
+          dag_blk_mgr_, final_chain_, kp_.secret(), conf_.vrf_secret);
   emplace(blk_proposer_, conf_.test_params.block_proposer, conf_.chain.vdf, dag_mgr_, trx_mgr_, dag_blk_mgr_,
           final_chain_, node_addr, getSecretKey(), getVrfSecretKey(), log_time_);
   emplace(network_, conf_.network, conf_.net_file_path().string(), kp_, db_, pbft_mgr_, pbft_chain_, vote_mgr_,
           next_votes_mgr_, dag_mgr_, dag_blk_mgr_, trx_mgr_);
-
-  // Inits rpc related members
-  if (conf_.rpc) {
-    jsonrpc_io_ctx_ = make_unique<boost::asio::io_context>();
-
-    emplace(jsonrpc_api_, new net::Test(getShared()), new net::Taraxa(getShared()), new net::Net(getShared()),
-            new dev::rpc::Eth(aleth::NewNodeAPI(conf_.chain.chain_id, kp_.secret(),
-                                                [this](auto const &trx) {
-                                                  auto [ok, err_msg] = trx_mgr_->insertTransaction(trx);
-                                                  if (!ok) {
-                                                    BOOST_THROW_EXCEPTION(
-                                                        runtime_error(fmt("Transaction is rejected.\n"
-                                                                          "RLP: %s\n"
-                                                                          "Reason: %s",
-                                                                          dev::toJS(*trx.rlp()), err_msg)));
-                                                  }
-                                                }),
-                              std::make_shared<aleth::DummyFilterAPI>(), aleth::NewStateAPI(final_chain_),
-                              std::make_shared<aleth::DummyPendingBlock>(), final_chain_, [] { return 0; }));
-
-    if (conf_.rpc->http_port) {
-      jsonrpc_http_ = make_shared<net::RpcServer>(
-          *jsonrpc_io_ctx_, boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->http_port}, node_addr,
-          net::handle_rpc_error);
-      jsonrpc_api_->addConnector(jsonrpc_http_);
-    }
-
-    if (conf_.rpc->ws_port) {
-      jsonrpc_ws_ = make_shared<net::WSServer>(
-          *jsonrpc_io_ctx_, boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->ws_port}, node_addr);
-      jsonrpc_api_->addConnector(jsonrpc_ws_);
-    }
-  }
-
-  LOG(log_time_) << "Start taraxa efficiency evaluation logging:" << std::endl;
 }
 
 void FullNode::start() {
   if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
+  // Inits rpc related members
+  if (conf_.rpc) {
+    emplace(rpc_thread_pool_, conf_.rpc->threads_num);
+    net::rpc::eth::EthParams eth_rpc_params;
+    eth_rpc_params.address = getAddress();
+    eth_rpc_params.secret = kp_.secret();
+    eth_rpc_params.chain_id = conf_.chain.chain_id;
+    eth_rpc_params.final_chain = final_chain_;
+    eth_rpc_params.get_trx = [db = db_](auto const &trx_hash) { return db->getTransaction(trx_hash); };
+    eth_rpc_params.send_trx = [trx_manager = trx_mgr_](auto const &trx) {
+      if (auto [ok, err_msg] = trx_manager->insertTransaction(trx); !ok) {
+        BOOST_THROW_EXCEPTION(
+            runtime_error(fmt("Transaction is rejected.\n"
+                              "RLP: %s\n"
+                              "Reason: %s",
+                              dev::toJS(*trx.rlp()), err_msg)));
+      }
+    };
+    eth_rpc_params.syncing_probe = [network = network_, pbft_chain = pbft_chain_] {
+      std::optional<net::rpc::eth::SyncStatus> ret;
+      if (!network->pbft_syncing()) {
+        return ret;
+      }
+      auto &status = ret.emplace();
+      // TODO clearly define Ethereum json-rpc "syncing" in Taraxa
+      status.current_block = pbft_chain->getPbftChainSize();
+      status.starting_block = status.current_block;
+      status.highest_block = pbft_chain->pbftSyncingPeriod();
+      return ret;
+    };
+    auto eth_json_rpc = net::rpc::eth::NewEth(move(eth_rpc_params));
+    emplace(jsonrpc_api_,
+            make_shared<net::Test>(shared_from_this()),    // TODO Because this object refers to FullNode, the
+                                                           // lifecycle/dependency management is more complicated
+            make_shared<net::Taraxa>(shared_from_this()),  // TODO Because this object refers to FullNode, the
+                                                           // lifecycle/dependency management is more complicated
+            make_shared<net::Net>(shared_from_this()),     // TODO Because this object refers to FullNode, the
+                                                           // lifecycle/dependency management is more complicated
+            eth_json_rpc);
+    if (conf_.rpc->http_port) {
+      emplace(jsonrpc_http_, rpc_thread_pool_->unsafe_get_io_context(),
+              boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->http_port}, getAddress(),
+              net::handle_rpc_error);
+      jsonrpc_api_->addConnector(jsonrpc_http_);
+      jsonrpc_http_->StartListening();
+    }
+    if (conf_.rpc->ws_port) {
+      emplace(jsonrpc_ws_, rpc_thread_pool_->unsafe_get_io_context(),
+              boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->ws_port}, getAddress());
+      jsonrpc_api_->addConnector(jsonrpc_ws_);
+      jsonrpc_ws_->run();
+    }
+    final_chain_->block_finalized_.subscribe(
+        [eth_json_rpc = weak_ptr(eth_json_rpc), ws = weak_ptr(jsonrpc_ws_), db = weak_ptr(db_)](auto const &res) {
+          if (auto _eth_json_rpc = eth_json_rpc.lock(); _eth_json_rpc) {
+            _eth_json_rpc->note_block_executed(*res->final_chain_blk, res->trxs, res->trx_receipts);
+          }
+          if (auto _ws = ws.lock(); _ws) {
+            _ws->newEthBlock(*res->final_chain_blk);
+            if (auto _db = db.lock(); _db) {
+              auto pbft_blk = _db->getPbftBlock(res->hash);
+              _ws->newDagBlockFinalized(pbft_blk->getPivotDagBlockHash(), pbft_blk->getPeriod());
+              _ws->newPbftBlockExecuted(*pbft_blk, res->dag_blk_hashes);
+            }
+          }
+        },
+        *rpc_thread_pool_);
+    trx_mgr_->transaction_accepted_.subscribe(
+        [eth_json_rpc = weak_ptr(eth_json_rpc), ws = weak_ptr(jsonrpc_ws_)](auto const &trx_hash) {
+          if (auto _eth_json_rpc = eth_json_rpc.lock(); _eth_json_rpc) {
+            _eth_json_rpc->note_pending_transaction(trx_hash);
+          }
+          if (auto _ws = ws.lock(); _ws) {
+            _ws->newPendingTransaction(trx_hash);
+          }
+        },
+        *rpc_thread_pool_);
+  }
+
+  LOG(log_time_) << "Start taraxa efficiency evaluation logging:" << std::endl;
+
   if (conf_.network.network_is_boot_node) {
     LOG(log_nf_) << "Starting a boot node ..." << std::endl;
   }
@@ -161,7 +202,6 @@ void FullNode::start() {
     blk_proposer_->setNetwork(network_);
     blk_proposer_->start();
   }
-  executor_->start();
   pbft_mgr_->setNetwork(network_);
   pbft_mgr_->start();
   dag_blk_mgr_->start();
@@ -204,53 +244,25 @@ void FullNode::start() {
     started_ = false;
     return;
   }
-  if (jsonrpc_io_ctx_) {
-    if (jsonrpc_http_) {
-      jsonrpc_http_->StartListening();
-    }
-    if (jsonrpc_ws_) {
-      jsonrpc_ws_->run();
-      trx_mgr_->setWsServer(jsonrpc_ws_);
-      executor_->setWSServer(jsonrpc_ws_);
-    }
-
-    for (size_t i = 0; i < conf_.rpc->threads_num; ++i) {
-      jsonrpc_threads_.emplace_back([this] { jsonrpc_io_ctx_->run(); });
-    }
-  }
   started_ = true;
   LOG(log_nf_) << "Node started ... ";
-}  // namespace taraxa
+}
 
 void FullNode::close() {
-  util::ExitStack finally;
-  // because `this` shared ptr is given to it
-  finally += [this] { jsonrpc_api_.reset(); };
   if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
+  jsonrpc_api_ = nullptr;  // TODO remove this line - we should not care about destroying objects explicitly, the
+                           // lifecycle of objects should be as declarative as possible (RAII).
+                           // This line is needed because jsonrpc_api_ indirectly refers to FullNode (produces
+                           // self-reference from FullNode to FullNode).
   blk_proposer_->stop();
   pbft_mgr_->stop();
-  executor_->stop();
   trx_mgr_->stop();
   dag_blk_mgr_->stop();
   for (auto &t : block_workers_) {
     t.join();
   }
-
-  if (jsonrpc_io_ctx_) {
-    if (jsonrpc_ws_) {
-      trx_mgr_->setWsServer(nullptr);
-      executor_->setWSServer(nullptr);
-    }
-
-    jsonrpc_io_ctx_->stop();
-
-    for (size_t i = 0; i < jsonrpc_threads_.size(); ++i) {
-      jsonrpc_threads_[i].join();
-    }
-  }
-
   LOG(log_nf_) << "Node stopped ... ";
 }
 

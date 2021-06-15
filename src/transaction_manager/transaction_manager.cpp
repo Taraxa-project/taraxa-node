@@ -1,7 +1,5 @@
 #include "transaction_manager.hpp"
 
-#include <libethcore/Exceptions.h>
-
 #include <string>
 #include <utility>
 
@@ -40,6 +38,9 @@ std::pair<bool, std::string> TransactionManager::verifyTransaction(Transaction c
   } catch (Transaction::InvalidSignature const &) {
     return {false, "invalid signature"};
   }
+  // TODO maybe this is not the best place for it. The idea is to fire this event only for a verified (accepted)
+  // transaction *exactly once*
+  transaction_accepted_.emit(trx.getHash());
   return {true, ""};
 }
 
