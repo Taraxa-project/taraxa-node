@@ -1,7 +1,6 @@
 #pragma once
 
 #include <jsonrpccpp/server/abstractserverconnector.h>
-#include <libethcore/BlockHeader.h>
 
 #include <algorithm>
 #include <atomic>
@@ -20,6 +19,7 @@
 #include "config/config.hpp"
 #include "consensus/pbft_chain.hpp"
 #include "dag/dag_block.hpp"
+#include "final_chain/data.hpp"
 
 namespace taraxa::net {
 
@@ -46,7 +46,7 @@ class WSSession : public std::enable_shared_from_this<WSSession> {
   void do_read();
   void on_read(beast::error_code ec, std::size_t bytes_transferred);
   void on_write_no_read(beast::error_code ec, std::size_t bytes_transferred);
-  void newEthBlock(dev::eth::BlockHeader const& payload);
+  void newEthBlock(::taraxa::final_chain::BlockHeader const& payload);
   void newDagBlock(DagBlock const& blk);
   void newDagBlockFinalized(blk_hash_t const& blk, uint64_t period);
   void newPbftBlockExecuted(Json::Value const& payload);
@@ -81,7 +81,7 @@ class WSServer : public std::enable_shared_from_this<WSServer>, public jsonrpc::
 
   // Start accepting incoming connections
   void run();
-  void newEthBlock(dev::eth::BlockHeader const& payload);
+  void newEthBlock(::taraxa::final_chain::BlockHeader const& payload);
   void newDagBlock(DagBlock const& blk);
   void newDagBlockFinalized(blk_hash_t const& blk, uint64_t period);
   void newPbftBlockExecuted(PbftBlock const& sche_blk, std::vector<blk_hash_t> const& finalized_dag_blk_hashes);
@@ -89,7 +89,7 @@ class WSServer : public std::enable_shared_from_this<WSServer>, public jsonrpc::
 
   virtual bool StartListening() { return true; };
   virtual bool StopListening() { return true; };
-  virtual bool SendResponse(const std::string & /*response*/, void * /*addInfo*/) { return true; };
+  virtual bool SendResponse(const std::string& /*response*/, void* /*addInfo*/) { return true; };
 
  private:
   void do_accept();

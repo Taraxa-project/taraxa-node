@@ -92,6 +92,12 @@ void TaraxaCapability::sealAndSend(NodeID const &nodeID, unsigned packet_type, R
     return;
   }
 
+  auto peer = getPeer(nodeID);
+
+  if ((!peer) || (dag_mgr_ && !peer->passed_initial_ && packet_type != StatusPacket)) {
+    return;
+  }
+
   auto packet_size = rlp.out().size();
 
   // This situation should never happen - packets bigger than 16MB cannot be sent due to networking layer limitations.
@@ -245,19 +251,21 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
           LOG(log_er_) << "Incorrect node version: " << getFormattedVersion(node_major_version, node_minor_version)
                        << ", our node major version"
                        << getFormattedVersion(FullNode::c_node_major_version, FullNode::c_node_minor_version)
-                       << ", host " << _nodeID << " will be disconnected";
+                       << ", host " << _nodeID.abridged() << " will be disconnected";
           host->disconnect(_nodeID, p2p::UserReason);
           break;
         }
 
         if (network_id != conf_.network_id) {
-          LOG(log_er_) << "Incorrect network id " << network_id << ", host " << _nodeID << " will be disconnected";
+          LOG(log_er_) << "Incorrect network id " << network_id << ", host " << _nodeID.abridged()
+                       << " will be disconnected";
           host->disconnect(_nodeID, p2p::UserReason);
           break;
         }
 
         if (genesis_hash != dag_mgr_->get_genesis()) {
-          LOG(log_er_) << "Incorrect genesis hash " << genesis_hash << ", host " << _nodeID << " will be disconnected";
+          LOG(log_er_) << "Incorrect genesis hash " << genesis_hash << ", host " << _nodeID.abridged()
+                       << " will be disconnected";
           host->disconnect(_nodeID, p2p::UserReason);
           break;
         }
@@ -1013,7 +1021,15 @@ void TaraxaCapability::sendBlocks(NodeID const &_id, std::vector<std::shared_ptr
   size_t packet_items_count = 0;
   size_t blocks_counter = 0;
 
+  auto peer = getPeer(_id);
+  if(!peer)
+    return;
+
   for (auto &block : blocks) {
+    if (peer->isBlockKnown(block->getHash())) {
+      continue;
+    }
+
     size_t dag_block_items_count = 0;
     size_t previous_block_packet_size = packet_bytes.size();
 
@@ -1041,7 +1057,7 @@ void TaraxaCapability::sendBlocks(NodeID const &_id, std::vector<std::shared_ptr
 
     // Split packet into multiple smaller ones if total size is > MAX_PACKET_SIZE
     if (packet_bytes.size() > MAX_PACKET_SIZE) {
-      LOG(log_dg_dag_sync_) << "Sending partial BlocksPacket due tu MAX_PACKET_SIZE limit. " << blocks_counter
+      LOG(log_dg_dag_sync_) << "Sending partial BlocksPacket due to MAX_PACKET_SIZE limit. " << blocks_counter
                             << " blocks out of " << blocks.size() << " PbftBlockPacketsent.";
 
       taraxa::bytes removed_bytes;
@@ -1061,7 +1077,7 @@ void TaraxaCapability::sendBlocks(NodeID const &_id, std::vector<std::shared_ptr
     blocks_counter++;
   }
 
-  LOG(log_dg_dag_sync_) << "Sending final BlocksPacket.";
+  LOG(log_dg_dag_sync_) << "Sending final BlocksPacket with " << blocks_counter << " blocks.";
 
   RLPStream s(packet_items_count);
   s.appendRaw(packet_bytes, packet_items_count);
@@ -1471,7 +1487,7 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync, 
   auto transactions = db_query.execute();
 
   // Creates final packet out of provided pbft blocks rlp representations
-  auto create_packet = [_id](std::vector<dev::bytes> &&pbft_blocks) -> RLPStream {
+  auto create_packet = [](std::vector<dev::bytes> &&pbft_blocks) -> RLPStream {
     RLPStream packet_rlp;
     packet_rlp.appendList(pbft_blocks.size());
     for (const dev::bytes &block_rlp : pbft_blocks) {
@@ -1611,10 +1627,21 @@ void TaraxaCapability::sendPbftNextVotes(NodeID const &peerID) {
 }
 
 void TaraxaCapability::broadcastPreviousRoundNextVotesBundle() {
-  std::vector<NodeID> peers_to_send = getAllPeers();
+  std::vector<NodeID> peers_to_send;
+  auto pbft_current_round = pbft_mgr_->getPbftRound();
 
-  for (auto const &peer : peers_to_send) {
-    sendPbftNextVotes(peer);
+  {
+    boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
+    for (auto const &peer : peers_) {
+      // Nodes may vote at different values at previous round, so need less or equal
+      if (peer.second->pbft_round_ <= pbft_current_round) {
+        peers_to_send.emplace_back(peer.first);
+      }
+    }
+  }
+
+  for (auto const &peer_id : peers_to_send) {
+    sendPbftNextVotes(peer_id);
   }
 }
 

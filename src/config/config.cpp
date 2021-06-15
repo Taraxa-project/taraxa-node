@@ -164,7 +164,7 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object,
   // Network logging in p2p library creates performance issues even with
   // channel/verbosity off Disable it completely in net channel is not present
   if (!root["logging"].isNull()) {
-    if(auto path = getConfigData(root["logging"], {"log_path"}, true); !path.isNull()) {
+    if (auto path = getConfigData(root["logging"], {"log_path"}, true); !path.isNull()) {
       log_path = path.asString();
     } else {
       log_path = db_path / "logs";
@@ -216,8 +216,8 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object,
 
   network.network_id = chain.chain_id;
   // TODO configurable
-  opts_final_chain.state_api.ExpectedMaxTrxPerBlock = 1000;
-  opts_final_chain.state_api.MainTrieFullNodeLevelsToCache = 4;
+  opts_final_chain.state_api.expected_max_trx_per_block = 1000;
+  opts_final_chain.state_api.max_trie_full_node_levels_to_cache = 4;
 }
 
 bool FullNodeConfig::validate() {

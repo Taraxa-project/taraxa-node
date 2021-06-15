@@ -1,15 +1,32 @@
 #pragma once
 
+#include <libdevcore/Address.h>
 #include <libdevcore/FixedHash.h>
-#include <libethereum/Transaction.h>
+#include <libdevcrypto/Common.h>
 
 #include <boost/asio.hpp>
 #include <boost/multiprecision/cpp_int.hpp>
 #include <chrono>
+#include <filesystem>
 #include <string>
 #include <type_traits>
 
 namespace taraxa {
+
+namespace fs = std::filesystem;
+
+using dev::Address;
+using dev::AddressSet;
+using dev::bytes;
+using dev::bytesConstRef;
+using dev::h256;
+using dev::h256Hash;
+using dev::h256s;
+using dev::h64;
+using dev::Secret;
+using dev::u256;
+
+using EthBlockNumber = uint64_t;
 
 // time related
 using time_point_t = std::chrono::system_clock::time_point;
@@ -100,7 +117,6 @@ using trx_num_t = vec_trx_t::size_type;
 using byte = uint8_t;
 using bytes = std::vector<byte>;
 using node_id_t = uint512_hash_t;
-using round_t = uint64_t;
 using trx_nonce_t = val_t;
 
 // val_t type related helper functions
@@ -119,15 +135,4 @@ unsigned long getTimePoint2Long(time_point_t tp);
 bytes str2bytes(std::string const &str);
 std::string bytes2str(bytes const &data);
 
-inline static const auto MOCK_BLOCK_GAS_LIMIT = std::numeric_limits<uint64_t>::max();
-
 }  // namespace taraxa
-
-namespace std {
-// Forward std::hash<taraxa::uint_hash_t> to taraxa::uint_hash_t::hash
-// template <>
-// struct hash<taraxa::blk_hash_t> : taraxa::blk_hash_t::hash {};
-// template <>
-// struct hash<taraxa::sig_t> : taraxa::sig_t::hash {};
-
-}  // namespace std

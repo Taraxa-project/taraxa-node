@@ -1,23 +1,21 @@
-#include "node/replay_protection_service.hpp"
+#include "final_chain/replay_protection_service.hpp"
 
 #include <filesystem>
 #include <optional>
 #include <vector>
 
 #include "common/types.hpp"
-#include "transaction_manager/transaction.hpp"
 #include "util_test/gtest.hpp"
-#include "util_test/util.hpp"
 
-namespace taraxa::replay_protection_service {
-using namespace taraxa;
+namespace taraxa::final_chain {
+using namespace std;
 
 struct ReplayProtectionServiceTest : WithDataDir {
-  round_t range = 0;
+  uint64_t range = 0;
   shared_ptr<DbStorage> db{new DbStorage(data_dir)};
   shared_ptr<ReplayProtectionService> SUT;
   vector<vector<ReplayProtectionService::TransactionInfo>> history;
-  round_t curr_round = 0;
+  uint64_t curr_round = 0;
 
   void init(decltype(range) range, decltype(history) const& history) {
     this->range = range;
@@ -25,9 +23,9 @@ struct ReplayProtectionServiceTest : WithDataDir {
     SUT = NewReplayProtectionService({range}, db);
   }
 
-  void apply_history(optional<round_t> record_count = nullopt) {
+  void apply_history(optional<uint64_t> record_count = nullopt) {
     auto cnt = record_count ? *record_count : history.size() - curr_round;
-    for (round_t i(0); i < cnt; ++i) {
+    for (uint64_t i(0); i < cnt; ++i) {
       auto batch = db->createWriteBatch();
       SUT->update(batch, curr_round, history[curr_round]);
       db->commitWriteBatch(batch);
@@ -128,6 +126,6 @@ TEST_F(ReplayProtectionServiceTest, multi_senders_2) {
   }
 }
 
-}  // namespace taraxa::replay_protection_service
+}  // namespace taraxa::final_chain
 
 TARAXA_TEST_MAIN({})

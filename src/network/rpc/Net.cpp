@@ -4,7 +4,6 @@
 #include <jsonrpccpp/server.h>
 #include <libdevcore/CommonData.h>
 #include <libdevcore/CommonJS.h>
-#include <libethcore/Common.h>
 
 #include "network/network.hpp"
 #include "node/full_node.hpp"
@@ -12,8 +11,6 @@
 using namespace dev;
 using namespace std;
 using namespace jsonrpc;
-using namespace dev;
-using namespace eth;
 
 namespace taraxa::net {
 

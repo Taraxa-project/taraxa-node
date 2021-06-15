@@ -9,7 +9,6 @@
 #include "logger/log.hpp"
 #include "network/network.hpp"
 #include "network/taraxa_capability.hpp"
-#include "node/executor.hpp"
 #include "pbft_chain.hpp"
 #include "vote.hpp"
 #include "vrf_wrapper.hpp"
@@ -38,8 +37,8 @@ class PbftManager {
   PbftManager(PbftConfig const &conf, std::string const &genesis, addr_t node_addr, std::shared_ptr<DbStorage> db,
               std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
               std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr, std::shared_ptr<DagManager> dag_mgr,
-              std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<FinalChain> final_chain,
-              std::shared_ptr<Executor> executor, secret_t node_sk, vrf_sk_t vrf_sk);
+              std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<FinalChain> final_chain, secret_t node_sk,
+              vrf_sk_t vrf_sk);
   ~PbftManager();
 
   void setNetwork(std::weak_ptr<Network> network);
@@ -125,10 +124,13 @@ class PbftManager {
 
   void pushSyncedPbftBlocksIntoChain_();
 
+  void finalize_(PbftBlock const &pbft_block, vector<h256> finalized_dag_blk_hashes, bool sync = false);
   bool pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes);
 
   void updateTwoTPlusOneAndThreshold_();
   bool is_syncing_();
+
+  bool giveUpVotedBlock_(blk_hash_t const &block_hash);
 
   std::atomic<bool> stopped_ = true;
   // Using to check if PBFT block has been proposed already in one period
@@ -143,7 +145,6 @@ class PbftManager {
   std::weak_ptr<Network> network_;
   std::shared_ptr<DagBlockManager> dag_blk_mgr_;
   std::shared_ptr<FinalChain> final_chain_;
-  std::shared_ptr<Executor> executor_;
 
   addr_t node_addr_;
   secret_t node_sk_;
@@ -181,9 +182,11 @@ class PbftManager {
   bool next_voted_null_block_hash_ = false;
   bool go_finish_state_ = false;
   bool loop_back_finish_state_ = false;
+  bool reset_own_value_to_null_block_hash_in_this_round_ = false;
 
   uint64_t round_began_wait_proposal_block_ = 0;
   size_t max_wait_rounds_for_proposal_block_ = 5;
+  uint64_t round_began_wait_voted_block_ = 0;
 
   uint64_t pbft_round_last_requested_sync_ = 0;
   size_t pbft_step_last_requested_sync_ = 0;

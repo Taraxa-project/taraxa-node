@@ -5,6 +5,7 @@
 #include "transaction.hpp"
 #include "transaction_queue.hpp"
 #include "transaction_status.hpp"
+#include "util/event.hpp"
 
 namespace taraxa {
 
@@ -28,6 +29,8 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
  public:
   using uLock = std::unique_lock<std::mutex>;
   enum class VerifyMode : uint8_t { normal, skip_verify_sig };
+
+  util::Event<TransactionManager, h256> const transaction_accepted_{};
 
   TransactionManager(FullNodeConfig const &conf, addr_t node_addr, std::shared_ptr<DbStorage> db,
                      logger::Logger log_time);
@@ -89,8 +92,6 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   std::shared_ptr<std::pair<Transaction, taraxa::bytes>> getTransaction(trx_hash_t const &hash) const;
   unsigned long getTransactionCount() const;
   // Received block means these trxs are packed by others
-
-  bool saveBlockTransactionAndDeduplicate(DagBlock const &blk, std::vector<Transaction> const &some_trxs);
 
   TransactionQueue &getTransactionQueue() { return trx_qu_; }
 

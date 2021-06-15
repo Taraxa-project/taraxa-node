@@ -221,9 +221,11 @@ void DagBlockManager::verifyBlock() {
 
       // Verify VDF solution
       vdf_sortition::VdfSortition vdf = blk.first.getVdf();
-      if (!vdf.verifyVdf(vdf_config_, getRlpBytes(blk.first.getLevel()), blk.first.getPivot().asBytes())) {
+      try {
+        vdf.verifyVdf(vdf_config_, getRlpBytes(blk.first.getLevel()), blk.first.getPivot().asBytes());
+      } catch (vdf_sortition::VdfSortition::InvalidVdfSortition const &e) {
         LOG(log_er_) << "DAG block " << blk.first.getHash() << " failed on VDF verification with pivot hash "
-                     << blk.first.getPivot();
+                     << blk.first.getPivot() << " reason " << e.what();
         blk_status_.update(blk.first.getHash(), BlockStatus::invalid);
         continue;
       }

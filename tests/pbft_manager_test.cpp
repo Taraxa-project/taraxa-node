@@ -37,7 +37,7 @@ pair<size_t, size_t> calculate_2tPuls1_threshold(size_t committee_size, size_t v
 }
 
 void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_size) {
-  auto node_cfgs = make_node_cfgs<20>(5);
+  auto node_cfgs = make_node_cfgs<5>(5);
   auto node_1_expected_bal = own_effective_genesis_bal(node_cfgs[0]);
   for (auto &cfg : node_cfgs) {
     cfg.chain.pbft.committee_size = committee_size;
@@ -56,14 +56,15 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
     auto min_stake_to_vote = node_cfgs[0].chain.final_chain.state.dpos->eligibility_balance_threshold;
     state_api::DPOSTransfers delegations;
     for (size_t i(1); i < nodes.size(); ++i) {
+      std::cout << "Delegating stake of " << min_stake_to_vote << " to node " << i << std::endl;
       node_1_expected_bal -= delegations[nodes[i]->getAddress()].value = min_stake_to_vote;
     }
     auto trx = make_dpos_trx(node_cfgs[0], delegations, nonce++);
     nodes[0]->getTransactionManager()->insertTransaction(trx, false, true);
     trxs_count++;
-    EXPECT_HAPPENS({60s, 1s}, [&](auto &ctx) {
+    EXPECT_HAPPENS({120s, 1s}, [&](auto &ctx) {
       for (auto &node : nodes) {
-        if (ctx.fail_if(!node->getFinalChain()->isKnownTransaction(trx.getHash()))) {
+        if (ctx.fail_if(!node->getFinalChain()->transaction_location(trx.getHash()))) {
           return;
         }
       }
@@ -225,7 +226,7 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
     trxs_count++;
     EXPECT_HAPPENS({120s, 1s}, [&](auto &ctx) {
       for (auto &node : nodes) {
-        if (ctx.fail_if(!node->getFinalChain()->isKnownTransaction(trx.getHash()))) {
+        if (ctx.fail_if(!node->getFinalChain()->transaction_location(trx.getHash()))) {
           return;
         }
       }
