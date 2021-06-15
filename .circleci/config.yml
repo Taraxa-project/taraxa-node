@@ -5,18 +5,103 @@ parameters:
     type: string
     default: ""
 
-  deploy_testnet:
-    default: true
+  deploy_prnet:
+    default: false
     type: boolean
+  
+  redeploy_prnet:
+     default: false
+     type: boolean
+   
+  cleanup_prnet:
+     default: false
+     type: boolean
 
+  pr_number:
+    default: ""
+    type: string
+  
 orbs:
   git: opuscapita/git@0.0.3
   github-release: izumin5210/github-release@0.1.1
 
   gcp-gcr: circleci/gcp-gcr@0.13.0
 
+commands:
+   pr_comment:
+      description: |
+       Post a comment on the pull request.
+       Requires `GITHUB_TOKEN` to be set as an environment variable.
+      parameters:
+         comment:
+            description: Content of the comment to post
+            type: string
+         pr_number:
+            description: github pr number
+            type: string
+         when:
+            default: on_success
+            description: Condition for when the comment should be created
+            enum:
+               - on_success
+               - on_fail
+               - always
+            type: enum
+      steps:
+         - run:
+            command: |
+               curl \
+                  -X POST \
+                  -d "{\"body\": \"<< parameters.comment >>\" }" \
+                  -H "Authorization: token $GITHUB_TOKEN" \
+                  "https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/issues/<< parameters.pr_number >>/comments"
+            name: Post comment to PR
+            when: << parameters.when >>
 
 jobs:
+   deploy-prnet:
+     docker:
+       - image: circleci/buildpack-deps:stretch
+     steps:
+      - run: echo "Deploy prnet"
+      - pr_comment:
+         when: on_success
+         comment: "Deployed prnet successfully"
+         pr_number: << pipeline.parameters.pr_number >>
+      - pr_comment:
+         when: on_fail
+         comment: "Failed to deploy prnet"
+         pr_number: << pipeline.parameters.pr_number >>
+      
+   redeploy-prnet:
+     docker:
+       - image: circleci/buildpack-deps:stretch
+     steps:
+      - run: echo "ReDeploy prnet"
+      - pr_comment:
+         when: on_success
+         comment: "ReDeployed prnet successfully"
+         pr_number: << pipeline.parameters.pr_number >>
+      - pr_comment:
+         when: on_fail
+         comment: "Failed to ReDeploy prnet"
+         pr_number: << pipeline.parameters.pr_number >>
+
+   cleanup-prnet:
+     docker:
+       - image: circleci/buildpack-deps:stretch
+     steps:
+      - run: echo "Cleanup prnet"
+      - pr_comment:
+         when: on_success
+         comment: "prnet cleaned-up successfully"
+         pr_number: << pipeline.parameters.pr_number >>
+      - pr_comment:
+         when: on_fail
+         comment: "Failed to Clean up prnet"
+         pr_number: << pipeline.parameters.pr_number >>
+
+   
    build-and-push-docker-image:
     environment:
       - IMAGE: taraxa-node
@@ -373,7 +458,37 @@ jobs:
 
 workflows:
   version: 2
+
+  deploy-prnet:
+    when: 
+      and: 
+        - << pipeline.parameters.deploy_prnet >> 
+        - << pipeline.parameters.pr_number >>
+    jobs:
+     - deploy-prnet:
+        context: taraxa-node 
+
+  redeploy-prnet:
+    when: 
+      and: 
+        - << pipeline.parameters.redeploy_prnet >> 
+        - << pipeline.parameters.pr_number >>
+    jobs:
+     - redeploy-prnet:
+        context: taraxa-node  
+
+  cleanup-prnet:
+    when: 
+      and: 
+        - << pipeline.parameters.cleanup_prnet >> 
+        - << pipeline.parameters.pr_number >>
+    jobs:
+     - cleanup-prnet:
+        context: taraxa-node 
+  
   build-and-deploy-image:
+    when:
+      not: << pipeline.parameters.deploy_prnet >>
     jobs:
       - build-and-push-docker-image:
          context: taraxa-node
