@@ -43,9 +43,8 @@ class Config {
 
   static constexpr const char* NODE_COMMAND = "node";
   static constexpr const char* ACCOUNT_COMMAND = "account";
-  static constexpr const char* ACCOUNT_FROM_KEY_COMMAND = "account-from-key";
   static constexpr const char* VRF_COMMAND = "vrf";
-  static constexpr const char* VRF_FROM_KEY_COMMAND = "vrf-from-key";
+  static constexpr const char* CONFIG_COMMAND = "config";
   static constexpr const char* BOOT_NODES = "boot-nodes";
   static constexpr const char* LOG_CHANNELS = "log-channels";
   static constexpr const char* BOOT_NODES_APPEND = "boot-nodes-append";
