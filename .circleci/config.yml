@@ -484,7 +484,7 @@ workflows:
     when: 
       and: 
         - equal: [ true, << pipeline.parameters.deploy_prnet >> ]
-        - equal: [ true, << pipeline.parameters.cleanup_testnet >> ]
+        - equal: [ true, << pipeline.parameters.cleanup_prnet >> ]
         - << pipeline.parameters.pr_number >>
     jobs:
      - cleanup-prnet:
