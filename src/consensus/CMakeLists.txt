@@ -16,4 +16,4 @@ set(SOURCES
 
 add_library(consensus ${SOURCES} ${HEADERS})
 target_include_directories(consensus PUBLIC "include")
-target_link_libraries(consensus PUBLIC app_base)
+target_link_libraries(consensus PUBLIC logger storage app_base)

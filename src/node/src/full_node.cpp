@@ -1,4 +1,4 @@
-#include "full_node.hpp"
+#include "node/full_node.hpp"
 
 #include <libdevcore/CommonJS.h>
 

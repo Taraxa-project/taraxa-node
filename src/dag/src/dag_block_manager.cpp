@@ -1,6 +1,6 @@
 #include "dag/dag_block_manager.hpp"
 
-#include "dag.hpp"
+#include "dag/dag.hpp"
 
 namespace taraxa {
 

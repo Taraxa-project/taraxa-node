@@ -34,8 +34,6 @@ set(HEADERS
         network/tarcap/packets_handlers/common/get_blocks_request_type.hpp
         network/tarcap/stats/packets_stats.hpp
         network/tarcap/stats/packets_avg_stats.hpp
-        node/full_node.hpp
-        storage/db_storage.hpp
         network/rpc/Net.h
         network/rpc/Taraxa.h
         network/rpc/WSServer.h
@@ -88,8 +86,6 @@ set(SOURCES
         network/tarcap/packets_handlers/common/syncing_handler.cpp
         network/tarcap/stats/packets_avg_stats.cpp
         network/tarcap/stats/packets_stats.cpp
-        node/full_node.cpp
-        storage/db_storage.cpp
         )
 
 add_library(app_base ${SOURCES} ${HEADERS})
@@ -102,6 +98,8 @@ add_subdirectory(consensus)
 add_subdirectory(dag)
 add_subdirectory(final_chain)
 add_subdirectory(logger)
+add_subdirectory(node)
+add_subdirectory(storage)
 add_subdirectory(transaction_manager)
 add_subdirectory(util)
 
@@ -131,7 +129,7 @@ target_link_libraries(app_base
         consensus
         dag
         final_chain
-        logger
+        node
         transaction_manager
         util
         taraxa-vrf

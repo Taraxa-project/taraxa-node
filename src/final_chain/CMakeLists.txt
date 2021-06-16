@@ -18,4 +18,4 @@ set(SOURCES
 
 add_library(final_chain ${SOURCES} ${HEADERS})
 target_include_directories(final_chain PUBLIC "include")
-target_link_libraries(final_chain PRIVATE transaction_manager common config logger util app_base)
+target_link_libraries(final_chain PRIVATE transaction_manager common config logger storage util app_base)

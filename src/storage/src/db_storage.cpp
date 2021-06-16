@@ -1,4 +1,4 @@
-#include "db_storage.hpp"
+#include "storage/db_storage.hpp"
 
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -7,7 +7,6 @@
 #include "rocksdb/utilities/checkpoint.h"
 
 namespace taraxa {
-using namespace std;
 using namespace dev;
 using namespace rocksdb;
 namespace fs = std::filesystem;
