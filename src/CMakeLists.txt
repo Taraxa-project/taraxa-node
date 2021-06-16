@@ -1,13 +1,6 @@
 # TODO: Break this cmake(app_base target) into smaller libraries with their own cmakes, e.g. network, chain, dag, etc... could be separate libraries
 
 set(HEADERS
-        final_chain/state_api_data.hpp
-        final_chain/state_api.hpp
-        final_chain/trie_common.hpp
-        final_chain/data.hpp
-        final_chain/replay_protection_service.hpp
-        final_chain/final_chain.hpp
-
         network/rpc/rpc_error_handler.hpp
         network/rpc/eth/watches.hpp
         network/rpc/eth/LogFilter.hpp
@@ -65,13 +58,6 @@ set(HEADERS
         )
 
 set(SOURCES
-        final_chain/trie_common.cpp
-        final_chain/final_chain.cpp
-        final_chain/state_api.cpp
-        final_chain/state_api_data.cpp
-        final_chain/replay_protection_service.cpp
-        final_chain/data.cpp
-
         network/rpc/Taraxa.cpp
         network/rpc/WSServer.cpp
         network/rpc/Net.cpp
@@ -123,6 +109,7 @@ add_subdirectory(common)
 add_subdirectory(config)
 add_subdirectory(consensus)
 add_subdirectory(dag)
+add_subdirectory(final_chain)
 add_subdirectory(logger)
 add_subdirectory(util)
 
@@ -151,6 +138,7 @@ target_link_libraries(app_base
         config
         consensus
         dag
+        final_chain
         logger
         util
         taraxa-vrf

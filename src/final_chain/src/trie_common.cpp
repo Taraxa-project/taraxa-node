@@ -1,4 +1,4 @@
-#include "trie_common.hpp"
+#include "final_chain/trie_common.hpp"
 
 #include <libdevcore/RLP.h>
 #include <libdevcore/SHA3.h>

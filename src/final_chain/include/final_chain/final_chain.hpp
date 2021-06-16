@@ -4,8 +4,8 @@
 
 #include "common/types.hpp"
 #include "consensus/pbft_chain.hpp"
-#include "data.hpp"
-#include "state_api.hpp"
+#include "final_chain/data.hpp"
+#include "final_chain/state_api.hpp"
 #include "storage/db_storage.hpp"
 #include "util/event.hpp"
 #include "util/range_view.hpp"
