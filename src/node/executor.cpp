@@ -69,12 +69,6 @@ void Executor::execute(std::shared_ptr<PbftBlock> blk) {
   cv_.notify_one();
 }
 
-void Executor::executeSynced(const std::shared_ptr<PbftBlock> &blk) {
-  assert(final_chain_->last_block_number() < blk->getPeriod());
-
-  execute_(*blk);
-}
-
 void Executor::tick() {
   std::shared_ptr<PbftBlock> pbft_block;
   {

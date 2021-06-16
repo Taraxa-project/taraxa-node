@@ -43,14 +43,6 @@ class DagBlockManager {
   std::pair<uint64_t, bool> getProposalPeriod(level_t level);
   std::shared_ptr<ProposalPeriodDagLevelsMap> newProposePeriodDagLevelsMap(level_t anchor_level);
 
-  /**
-   * @brief Synchronously process synced dag block with transactions and inserts it into db
-   *
-   * @param blk
-   * @param transactions
-   */
-  void processSyncedBlockWithTransactions(DagBlock const &blk, std::vector<Transaction> const &transactions);
-
  private:
   using uLock = boost::unique_lock<boost::shared_mutex>;
   using sharedLock = boost::shared_lock<boost::shared_mutex>;

@@ -116,7 +116,7 @@ void DagBlockManager::pushUnverifiedBlock(DagBlock const &blk, std::vector<Trans
   if (queue_limit_ > 0) {
     auto queue_size = getDagBlockQueueSize();
     if (queue_limit_ > queue_size.first + queue_size.second) {
-      LOG(log_wr_) << "Block queue large. Unverified queue: " << queue_size.first
+      LOG(log_wr_) << "Warning: block queue large. Unverified queue: " << queue_size.first
                    << "; Verified queue: " << queue_size.second << "; Limit: " << queue_limit_;
     }
   }
@@ -188,82 +188,6 @@ DagBlock DagBlockManager::popVerifiedBlock() {
 void DagBlockManager::pushVerifiedBlock(DagBlock const &blk) {
   uLock lock(shared_mutex_for_verified_qu_);
   verified_qu_[blk.getLevel()].emplace_back(blk);
-}
-
-void DagBlockManager::processSyncedBlockWithTransactions(const DagBlock &blk, const std::vector<Transaction> &txs) {
-  blk_hash_t block_hash = blk.getHash();
-
-  // This dag block was already processed, skip it
-  if (isBlockKnown(block_hash)) {
-    LOG(log_dg_) << "Skipping dag block " << block_hash << " -> already processed.";
-    return;
-  }
-
-  if (queue_limit_ > 0) {
-    auto queue_size = getDagBlockQueueSize();
-    if (queue_limit_ > queue_size.first + queue_size.second) {
-      LOG(log_wr_) << "Block queue large. Unverified queue: " << queue_size.first
-                   << "; Verified queue: " << queue_size.second << "; Limit: " << queue_limit_;
-    }
-  }
-  seen_blocks_.update(block_hash, blk);
-  blk_status_.insert(block_hash, BlockStatus::broadcasted);
-
-  // Check if there is at least 1 tx in dag block - should never happen that it is not
-  vec_trx_t const &all_block_trx_hashes = blk.getTrxs();
-  if (all_block_trx_hashes.empty()) {
-    LOG(log_er_) << "Ignore block " << block_hash << " since it has no transactions";
-    blk_status_.update(block_hash, BlockStatus::invalid);
-    return;
-  }
-
-  std::set<trx_hash_t> known_trx_hashes(all_block_trx_hashes.begin(), all_block_trx_hashes.end());
-
-  // Filter known txs + save unseen txs to the db
-  auto trx_batch = db_->createWriteBatch();
-  for (auto const &trx : txs) {
-    known_trx_hashes.erase(trx.getHash());
-
-    if (db_->getTransactionStatus(trx.getHash()) == TransactionStatus::not_seen) {
-      db_->addTransactionToBatch(trx, trx_batch);
-    }
-  }
-  db_->commitWriteBatch(trx_batch);
-
-  // Check if all known txs have really been already seen
-  for (auto const &trx : known_trx_hashes) {
-    if (db_->getTransactionStatus(trx) == TransactionStatus::not_seen) {
-      LOG(log_er_) << "Ignore block " << block_hash << " since it has missing transaction " << trx;
-      blk_status_.update(block_hash, BlockStatus::invalid);
-      return;
-    }
-  }
-
-  // Update txs status to TransactionStatus::in_block
-  size_t newly_added_txs_to_block_counter = 0;
-  trx_batch = db_->createWriteBatch();
-  for (auto const &trx : all_block_trx_hashes) {
-    if (db_->getTransactionStatus(trx) != TransactionStatus::in_block) {
-      db_->addTransactionStatusToBatch(trx_batch, trx, TransactionStatus::in_block);
-      newly_added_txs_to_block_counter++;
-    }
-  }
-  trx_mgr_->addTrxCount(newly_added_txs_to_block_counter);
-
-  // Write prepared batch to db
-  db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_mgr_->getTransactionCount(), trx_batch);
-  db_->commitWriteBatch(trx_batch);
-
-  trx_mgr_->getTransactionQueue().removeBlockTransactionsFromQueue(all_block_trx_hashes);
-
-  {
-    uLock lock(shared_mutex_for_verified_qu_);
-    verified_qu_[blk.getLevel()].emplace_back(blk);
-  }
-  blk_status_.update(block_hash, BlockStatus::verified);
-
-  LOG(log_dg_) << "Synced dag block: " << block_hash;
-  cond_for_verified_qu_.notify_one();
 }
 
 void DagBlockManager::verifyBlock() {

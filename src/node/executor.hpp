@@ -49,19 +49,7 @@ class Executor {
   void start();
   void stop();
 
-  /**
-   * @brief Executes new block in asynchronous way. Used during normal node operation
-   *
-   * @param blk
-   */
   void execute(std::shared_ptr<PbftBlock> blk);
-
-  /**
-   * @brief Executes synced block in synchronous way. Used during syncing
-   *
-   * @param blk
-   */
-  void executeSynced(const std::shared_ptr<PbftBlock>& blk);
 
  private:
   void tick();

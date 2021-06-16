@@ -92,8 +92,7 @@ RUN cd $BUILD_OUTPUT_DIR \
     -DTARAXAD_CONF_INSTALL_DIR=./bin_install \
     ../ \
     && make -j$(nproc) all \
-    && make install \
-    && find . -maxdepth 1 ! -name "bin_install" ! -name "bin" ! -name "tests" -exec rm -rfv {} \;
+    && make install
 
 ###############################################################################
 # Taraxa Cli #
