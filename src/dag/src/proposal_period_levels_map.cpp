@@ -1,4 +1,4 @@
-#include "proposal_period_levels_map.hpp"
+#include "dag/proposal_period_levels_map.hpp"
 
 namespace taraxa {
 

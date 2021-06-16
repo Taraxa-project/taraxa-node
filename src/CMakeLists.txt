@@ -4,11 +4,6 @@ set(HEADERS
         cli/config.hpp
         cli/tools.hpp
 
-        dag/dag.hpp
-        dag/dag_block_manager.hpp
-        dag/dag_block.hpp
-        dag/vdf_sortition.hpp
-        dag/proposal_period_levels_map.hpp
         final_chain/state_api_data.hpp
         final_chain/state_api.hpp
         final_chain/trie_common.hpp
@@ -75,12 +70,7 @@ set(HEADERS
 set(SOURCES
         cli/config.cpp
         cli/tools.cpp
-        
-        dag/dag_block_manager.cpp
-        dag/dag.cpp
-        dag/dag_block.cpp
-        dag/proposal_period_levels_map.cpp
-        dag/vdf_sortition.cpp
+
         final_chain/trie_common.cpp
         final_chain/final_chain.cpp
         final_chain/state_api.cpp
@@ -137,6 +127,7 @@ add_subdirectory(network/rpc)
 add_subdirectory(common)
 add_subdirectory(config)
 add_subdirectory(consensus)
+add_subdirectory(dag)
 add_subdirectory(logger)
 add_subdirectory(util)
 
@@ -163,6 +154,7 @@ target_link_libraries(app_base
         common
         config
         consensus
+        dag
         logger
         util
         taraxa-vrf

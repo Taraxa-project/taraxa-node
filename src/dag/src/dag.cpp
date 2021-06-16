@@ -1,5 +1,3 @@
-#include "dag.hpp"
-
 #include <algorithm>
 #include <fstream>
 #include <queue>
@@ -11,6 +9,7 @@
 
 #include "network/network.hpp"
 #include "network/rpc/WSServer.h"
+#include "dag/dag.hpp"
 #include "transaction_manager/transaction_manager.hpp"
 
 namespace taraxa {

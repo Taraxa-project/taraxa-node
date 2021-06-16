@@ -1,11 +1,11 @@
-#include "dag_block.hpp"
 
 #include <libdevcore/CommonData.h>
 #include <libdevcore/CommonJS.h>
 
 #include <utility>
 
-#include "dag.hpp"
+#include "dag/dag.hpp"
+#include "dag/dag_block.hpp"
 #include "logger/log.hpp"
 #include "transaction_manager/transaction_manager.hpp"
 
