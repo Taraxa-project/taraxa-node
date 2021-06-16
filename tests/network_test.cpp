@@ -136,34 +136,30 @@ TEST_F(NetworkTest, send_pbft_block) {
                  [&](auto& ctx) { WAIT_EXPECT_EQ(ctx, nw1->getPeer(node2_id)->pbft_chain_size_, chain_size) });
 }
 
-// Test creates two Network setup and verifies sending transaction
-// between is successfull
+// Test creates two Network setup and verifies sending transaction between is successfull
 TEST_F(NetworkTest, transfer_transaction) {
-  std::unique_ptr<Network> nw1(new taraxa::Network(g_conf1->network));
-  std::unique_ptr<Network> nw2(new taraxa::Network(g_conf2->network));
-
+  auto nw1 = u_ptr(new Network(g_conf1->network));
+  auto nw2 = u_ptr(new Network(g_conf2->network));
   nw1->start();
   nw2->start();
+
+  EXPECT_HAPPENS({10s, 200ms}, [&](auto& ctx) {
+    WAIT_EXPECT_EQ(ctx, nw1->getPeerCount(), 1)
+    WAIT_EXPECT_EQ(ctx, nw2->getPeerCount(), 1)
+  });
+  auto nw1_nodeid = nw1->getNodeId();
+  auto nw2_nodeid = nw2->getNodeId();
+  EXPECT_NE(nw1->getPeer(nw2_nodeid), nullptr);
+  EXPECT_NE(nw2->getPeer(nw1_nodeid), nullptr);
+
   std::vector<taraxa::bytes> transactions;
   transactions.push_back(*g_signed_trx_samples[0].rlp());
   transactions.push_back(*g_signed_trx_samples[1].rlp());
   transactions.push_back(*g_signed_trx_samples[2].rlp());
 
-  taraxa::thisThreadSleepForSeconds(1);
+  nw2->sendTransactions(nw1_nodeid, transactions);
 
-  nw2->sendTransactions(nw1->getNodeId(), transactions);
-
-  std::cout << "Waiting packages for 10 seconds ..." << std::endl;
-
-  for (int i = 0; i < 10; i++) {
-    if (nw1->getReceivedTransactionsCount()) break;
-    taraxa::thisThreadSleepForSeconds(1);
-  }
-
-  nw2 = nullptr;
-  unsigned long long num_received = nw1->getReceivedTransactionsCount();
-  nw1 = nullptr;
-  ASSERT_EQ(3, num_received);
+  EXPECT_HAPPENS({2s, 200ms}, [&](auto& ctx) { WAIT_EXPECT_EQ(ctx, nw1->getReceivedTransactionsCount(), 3) });
 }
 
 // Test verifies saving network to a file and restoring it from a file
