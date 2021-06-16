@@ -3,7 +3,7 @@
 #include <boost/asio.hpp>
 #include <shared_mutex>
 
-#include "functional.hpp"
+#include "util/functional.hpp"
 
 namespace taraxa::util {
 

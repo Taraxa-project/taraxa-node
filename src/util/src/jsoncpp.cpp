@@ -1,6 +1,6 @@
-#include "jsoncpp.hpp"
+#include "util/jsoncpp.hpp"
 
-#include "util.hpp"
+#include "util/util.hpp"
 
 namespace taraxa::util {
 

@@ -56,16 +56,6 @@ set(HEADERS
         transaction_manager/transaction_queue.hpp
         transaction_manager/transaction_manager.hpp
         transaction_manager/transaction_status.hpp
-        util/jsoncpp.hpp
-        util/range_view.hpp
-        util/global_const.hpp
-        util/functional.hpp
-        util/encoding_rlp.hpp
-        util/default_construct_copyable_movable.hpp
-        util/thread_pool.hpp
-        util/event.hpp
-        util/util.hpp
-        util/lazy.hpp
         network/rpc/Net.h
         network/rpc/Taraxa.h
         network/rpc/WSServer.h
@@ -139,9 +129,7 @@ set(SOURCES
         transaction_manager/transaction_queue.cpp
         transaction_manager/transaction_order_manager.cpp
         transaction_manager/transaction_manager.cpp
-        util/jsoncpp.cpp
-        util/util.cpp
-        util/thread_pool.cpp)
+        )
 
 add_library(app_base ${SOURCES} ${HEADERS})
 
@@ -150,6 +138,7 @@ add_subdirectory(common)
 add_subdirectory(config)
 add_subdirectory(consensus)
 add_subdirectory(logger)
+add_subdirectory(util)
 
 # TODO: have some problems with include dirs for imported targets
 get_target_property(TARAXA_VDF_INCUDE taraxa-vdf INTERFACE_INCLUDE_DIRECTORIES)
@@ -175,6 +164,7 @@ target_link_libraries(app_base
         config
         consensus
         logger
+        util
         taraxa-vrf
         taraxa-vdf
         taraxa-evm
