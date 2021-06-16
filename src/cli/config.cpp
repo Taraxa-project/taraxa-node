@@ -157,11 +157,10 @@ Config::Config(int argc, const char* argv[], const string& taraxa_version) {
                                         log_channels_append);
     wallet_json = Tools::overrideWallet(wallet_json, node_secret, vrf_secret);
 
-    //Create data directory
+    // Create data directory
     if (!data_dir.empty() && !fs::exists(data_dir)) {
       fs::create_directories(data_dir);
     }
-    
 
     // Save changes permanently if overwrite_config option is set
     // or if running config command
