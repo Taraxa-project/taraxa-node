@@ -15,7 +15,11 @@ jobs:
           trigger: '/deploy'
           reaction: rocket
         env:
-          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+          GITHUB_TOKEN: '{{ secrets.GITHUB_TOKEN }}' 
+      - uses: actions/checkout@v1
+        with: 
+         ref: develop
+        if: steps.check.outputs.triggered == 'true'
       - name: GitHub API Request
         id: request
         uses: octokit/request-action@v2.0.0
@@ -24,27 +28,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         if: steps.check.outputs.triggered == 'true'
-      - name: Get PR informations
-        id: pr_data
-        run: |
-          echo "::set-output name=branch::${{ fromJson(steps.request.outputs.data).head.ref }}"
-          echo "::set-output name=repo_name::${{ fromJson(steps.request.outputs.data).base.repo.full_name }}"
-          echo "::set-output name=repo_clone_url::${{ fromJson(steps.request.outputs.data).base.repo.clone_url }}"
-          echo "::set-output name=repo_ssh_url::${{ fromJson(steps.request.outputs.data).base.repo.ssh_url }}"
+      - uses: ./.github/actions/prnet
+        id: trigger
+        with:
+          action: 'deploy_prnet'
+          circleci_slug: 'gh/Taraxa/taraxa-node'
+          circle_token: '${{ secrets.CIRCLE_TOKEN }}'
+          pull_request: '${{ steps.request.outputs.data }}'
         if: steps.check.outputs.triggered == 'true'
-      - run: |
-            curl -u ${{ secrets.CIRCLE_TOKEN }}: -X  POST \
-               -H 'Content-Type: application/json' \
-               -H 'Accept: application/json' \
-               -d "{\"branch\":\"${{ steps.pr_data.outputs.branch }}\", \
-                    \"parameters\": { \
-                       \"deploy_prnet\": true , \
-                       \"pr_number\": \"${{ github.event.issue.number }}\"
-                       } \
-                   }" \
-               https://circleci.com/api/v2/project/gh/agrebin/taraxa-node/pipeline
-        if: steps.check.outputs.triggered == 'true'
-
   redeploy:
     runs-on: ubuntu-latest
     steps:
@@ -54,7 +45,11 @@ jobs:
           trigger: '/redeploy'
           reaction: rocket
         env:
-          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+          GITHUB_TOKEN: '{{ secrets.GITHUB_TOKEN }}' 
+      - uses: actions/checkout@v1
+        with: 
+         ref: develop
+        if: steps.check.outputs.triggered == 'true'
       - name: GitHub API Request
         id: request
         uses: octokit/request-action@v2.0.0
@@ -63,27 +58,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         if: steps.check.outputs.triggered == 'true'
-      - name: Get PR informations
-        id: pr_data
-        run: |
-          echo "::set-output name=branch::${{ fromJson(steps.request.outputs.data).head.ref }}"
-          echo "::set-output name=repo_name::${{ fromJson(steps.request.outputs.data).base.repo.full_name }}"
-          echo "::set-output name=repo_clone_url::${{ fromJson(steps.request.outputs.data).base.repo.clone_url }}"
-          echo "::set-output name=repo_ssh_url::${{ fromJson(steps.request.outputs.data).base.repo.ssh_url }}"
+      - uses: ./.github/actions/prnet
+        id: trigger
+        with:
+          action: 'redeploy_prnet'
+          circleci_slug: 'gh/Taraxa/taraxa-node'
+          circle_token: '${{ secrets.CIRCLE_TOKEN }}'
+          pull_request: '${{ steps.request.outputs.data }}'
         if: steps.check.outputs.triggered == 'true'
-      - run: |
-            curl -u ${{ secrets.CIRCLE_TOKEN }}: -X  POST \
-               -H 'Content-Type: application/json' \
-               -H 'Accept: application/json' \
-               -d "{\"branch\":\"${{steps.pr_data.outputs.branch}}\", \
-                    \"parameters\": { \
-                       \"redeploy_prnet\": true , \
-                       \"pr_number\": \"${{ github.event.issue.number }}\"
-                       } \
-                   }" \
-               https://circleci.com/api/v2/project/gh/agrebin/taraxa-node/pipeline
-        if: steps.check.outputs.triggered == 'true'
-
   cleanup:
     runs-on: ubuntu-latest
     steps:
@@ -93,7 +75,11 @@ jobs:
           trigger: '/cleanup'
           reaction: rocket
         env:
-          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+          GITHUB_TOKEN: '{{ secrets.GITHUB_TOKEN }}' 
+      - uses: actions/checkout@v1
+        with: 
+         ref: develop
+        if: steps.check.outputs.triggered == 'true'
       - name: GitHub API Request
         id: request
         uses: octokit/request-action@v2.0.0
@@ -102,23 +88,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         if: steps.check.outputs.triggered == 'true'
-      - name: Get PR informations
-        id: pr_data
-        run: |
-          echo "::set-output name=branch::${{ fromJson(steps.request.outputs.data).head.ref }}"
-          echo "::set-output name=repo_name::${{ fromJson(steps.request.outputs.data).base.repo.full_name }}"
-          echo "::set-output name=repo_clone_url::${{ fromJson(steps.request.outputs.data).base.repo.clone_url }}"
-          echo "::set-output name=repo_ssh_url::${{ fromJson(steps.request.outputs.data).base.repo.ssh_url }}"
-        if: steps.check.outputs.triggered == 'true'
-      - run: |
-            curl -u ${{ secrets.CIRCLE_TOKEN }}: -X  POST \
-               -H 'Content-Type: application/json' \
-               -H 'Accept: application/json' \
-               -d "{\"branch\":\"${{ steps.pr_data.outputs.branch }}\", \
-                    \"parameters\": { \
-                       \"cleanup_prnet\": true , \
-                       \"pr_number\": \"${{ github.event.issue.number }}\"
-                       } \
-                   }" \
-               https://circleci.com/api/v2/project/gh/agrebin/taraxa-node/pipeline
+      - uses: ./.github/actions/prnet
+        id: trigger
+        with:
+          action: 'cleanup_prnet'
+          circleci_slug: 'gh/Taraxa/taraxa-node'
+          circle_token: '${{ secrets.CIRCLE_TOKEN }}'
+          pull_request: '${{ steps.request.outputs.data }}'
         if: steps.check.outputs.triggered == 'true'
