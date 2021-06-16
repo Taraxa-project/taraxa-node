@@ -10,6 +10,7 @@ FROM ubuntu:20.04 as builder
 ARG GO_VERSION=1.13.7
 ARG CMAKE_VERSION=3.16.3-1ubuntu1
 ARG GFLAGS_VERSION=2.2.2-1build1
+ARG LLVM_VERSION=12
 
 # Install standard packages
 RUN apt-get update \
@@ -28,12 +29,14 @@ RUN apt-get update \
 # Install LLVM
 RUN curl -SL -o llvm.sh https://apt.llvm.org/llvm.sh && \
     chmod +x llvm.sh && \
-    ./llvm.sh 10 && \
+    ./llvm.sh $LLVM_VERSION && \
     rm -f llvm.sh
 
 # Install standard tools
 RUN apt-get update \
     && apt-get install -y \
+    clang-format-$LLVM_VERSION \
+    clang-tidy-$LLVM_VERSION \
     libtool \
     autoconf \
     binutils \
@@ -42,8 +45,8 @@ RUN apt-get update \
     libgflags-dev=$GFLAGS_VERSION \
     && rm -rf /var/lib/apt/lists/*
 
-ENV CXX="clang++-10"
-ENV CC="clang-10"
+ENV CXX="clang++-${LLVM_VERSION}"
+ENV CC="clang-${LLVM_VERSION}"
 
 # Install conan
 RUN pip3 install conan
@@ -67,11 +70,11 @@ COPY conanfile.py .
 RUN conan remote add -f bincrafters "https://api.bintray.com/conan/bincrafters/public-conan" && \
     conan profile new clang --detect && \
     conan profile update settings.compiler=clang clang && \
-    conan profile update settings.compiler.version=10 clang && \
+    conan profile update settings.compiler.version=12 clang && \
     conan profile update settings.compiler.libcxx=libstdc++11 clang && \
-    conan profile update env.CC=clang-10 clang && \
-    conan profile update env.CXX=clang++-10 clang && \
-    conan install -if $BUILD_OUTPUT_DIR --build missing -s build_type=Debug -pr=clang .
+    conan profile update env.CC=clang-12 clang && \
+    conan profile update env.CXX=clang++-12 clang && \
+    conan install --build missing -s build_type=Debug -pr=clang .
 
 ###################################################################
 # Build stage - use builder image for actual build of taraxa node #

@@ -1,16 +1,12 @@
 # additional target to perform clang-tidy run, requires clang-tidy
 
-if (APPLE)
-    find_program(CLANG_TIDY_EXE NAMES "clang-tidy" PATHS ${CMAKE_CURRENT_SOURCE_DIR}
-            DOC "Path to clang-tidy executable"
-            REQUIRED NO_DEFAULT_PATH
-            )
-else()
-    find_program(CLANG_TIDY_EXE NAMES "clang-tidy"
-            DOC "Path to clang-tidy executable"
-            REQUIRED
-            )
-endif()
+message(STATUS "clang-tidy LLVM_VERSION: ${LLVM_VERSION}")
+
+find_program(CLANG_TIDY_EXE
+        NAMES clang-tidy-${LLVM_VERSION} clang-tidy
+        DOC "Path to clang-tidy executable"
+        REQUIRED
+        )
 
 set(taraxa_LINT_LEVEL "OFF" CACHE STRING "Lint level during taraxa build (FULL, HIGH, LOW, OFF)")
 
