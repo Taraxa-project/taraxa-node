@@ -23,8 +23,7 @@ set(HEADERS
         final_chain/data.hpp
         final_chain/replay_protection_service.hpp
         final_chain/final_chain.hpp
-        logger/log.hpp
-        logger/logger_config.hpp
+
         network/rpc/rpc_error_handler.hpp
         network/rpc/eth/watches.hpp
         network/rpc/eth/LogFilter.hpp
@@ -109,8 +108,7 @@ set(SOURCES
         final_chain/state_api_data.cpp
         final_chain/replay_protection_service.cpp
         final_chain/data.cpp
-        logger/log.cpp
-        logger/logger_config.cpp
+
         network/rpc/Taraxa.cpp
         network/rpc/WSServer.cpp
         network/rpc/Net.cpp
@@ -160,6 +158,7 @@ add_library(app_base ${SOURCES} ${HEADERS})
 
 add_subdirectory(network/rpc)
 add_subdirectory(consensus)
+add_subdirectory(logger)
 
 # TODO: have some problems with include dirs for imported targets
 get_target_property(TARAXA_VDF_INCUDE taraxa-vdf INTERFACE_INCLUDE_DIRECTORIES)
@@ -182,6 +181,7 @@ target_include_directories(app_base SYSTEM PUBLIC
 
 target_link_libraries(app_base
         consensus
+        logger
         taraxa-vrf
         taraxa-vdf
         taraxa-evm
