@@ -83,11 +83,22 @@ And optional:
 ### Running taraxa-node
     cd cmake-build/src/taraxad
 
-    # run taraxa-node
-    ./taraxad --conf_taraxa /path/to/config/file
+Run taraxa node with default testnet config which on initial run will generate default 
+config and wallet file in ~/.taraxa/config.json and "~/.taraxa/wallet.json"
 
-    e.g.:
-    ./taraxad --conf_taraxa configs/taraxad.conf
+    # run taraxa-node
+    ./taraxad
+
+Run taraxa node with specified config and wallet files
+
+    # run taraxa-node
+    ./taraxad --config /path/to/config/file --wallet /path/to/wallet/file
+
+Run help message to display all command line options to run and configure node 
+in devnet, testnet or custom network 
+
+    # help
+    ./taraxad --help
 
 ## Building on MacOS
 
