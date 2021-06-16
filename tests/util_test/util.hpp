@@ -117,7 +117,10 @@ inline auto const node_cfgs_original = Lazy([] {
     if (!fs::exists(p)) {
       break;
     }
-    ret.emplace_back(p.string());
+    auto w = DIR_CONF / (string("wallet") + std::to_string(i) + ".json");
+    Json::Value test_node_wallet_json;
+    std::ifstream(w.string(), std::ifstream::binary) >> test_node_wallet_json;
+    ret.emplace_back(p.string(), test_node_wallet_json);
   }
   return ret;
 });

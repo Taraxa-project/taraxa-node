@@ -1,6 +1,4 @@
 {
-  "node_secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-  "vrf_secret": "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644",
   "db_path": "/tmp/taraxa",
   "network_is_boot_node": true,
   "network_address": "0.0.0.0",

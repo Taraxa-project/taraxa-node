@@ -7,35 +7,25 @@ export TARAXA_SLEEP_DIAGNOSE=${TARAXA_SLEEP_DIAGNOSE:=false}
 
 case $1 in
 
-  cli)
-    exec cli/taraxa "${@:2}"
-    ;;
-
   taraxad)
     echo "Starting taraxad..."
     taraxad "${@:2}"
     ;;
 
   join)
-	cli/taraxa config \
-        node \
-        --network $2 \
-        --file $TARAXA_CONF_PATH
-
     echo "Starting taraxad..."
     taraxad \
-            --conf_taraxa $TARAXA_CONF_PATH
+            --config $TARAXA_CONF_PATH
+            --network-id $2
+
     ;;
 
   single)
-	cli/taraxa config \
-        node \
-        --as-boot-node \
-        --file $TARAXA_CONF_PATH
-
-    echo "Starting taraxad..."
+	  echo "Starting taraxad..."
     taraxad \
-            --conf_taraxa $TARAXA_CONF_PATH
+            --config $TARAXA_CONF_PATH
+            --boot-node true
+
     ;;
   exec)
     exec "${@:2}"

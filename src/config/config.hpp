@@ -71,8 +71,7 @@ struct FullNodeConfig {
   // if you have std::string and Json::Value constructor. It was easier
   // to just treat Json::Value as a std::string or Json::Value depending on
   // the contents
-  explicit FullNodeConfig(Json::Value const &file_name_str_or_json_object,
-                          Json::Value const &chain_file_name_str_or_json_object = "");
+  explicit FullNodeConfig(Json::Value const &file_name_str_or_json_object, Json::Value const &wallet);
   std::string json_file_name;
   std::string node_secret;
   vrf_wrapper::vrf_sk_t vrf_secret;
@@ -88,10 +87,10 @@ struct FullNodeConfig {
   auto net_file_path() const { return db_path / "net"; }
 
   /**
-   * @brief Validates config values
-   * @return true in case config is valid, otherwise false
+   * @brief Validates config values, throws configexception if validation failes
+   * @return
    */
-  bool validate();
+  void validate();
 };
 
 std::ostream &operator<<(std::ostream &strm, NodeConfig const &conf);
