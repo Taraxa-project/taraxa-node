@@ -1,3 +1,5 @@
+#include "logger/log_config.hpp"
+
 #include <boost/algorithm/string.hpp>
 #include <boost/core/null_deleter.hpp>
 #include <boost/log/attributes/function.hpp>
@@ -5,7 +7,6 @@
 #include <boost/log/utility/setup/common_attributes.hpp>
 
 #include "config/config_exception.hpp"
-#include "logger/log_config.hpp"
 
 namespace taraxa::logger {
 

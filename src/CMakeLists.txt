@@ -4,10 +4,6 @@ set(HEADERS
         cli/config.hpp
         cli/tools.hpp
 
-        common/constants.hpp
-        common/static_init.hpp
-        common/types.hpp
-
         dag/dag.hpp
         dag/dag_block_manager.hpp
         dag/dag_block.hpp
@@ -89,8 +85,6 @@ set(HEADERS
 set(SOURCES
         cli/config.cpp
         cli/tools.cpp
-        common/constants.cpp
-        common/types.cpp
         
         dag/dag_block_manager.cpp
         dag/dag.cpp
@@ -152,6 +146,7 @@ set(SOURCES
 add_library(app_base ${SOURCES} ${HEADERS})
 
 add_subdirectory(network/rpc)
+add_subdirectory(common)
 add_subdirectory(config)
 add_subdirectory(consensus)
 add_subdirectory(logger)
@@ -176,6 +171,7 @@ target_include_directories(app_base SYSTEM PUBLIC
 )
 
 target_link_libraries(app_base
+        common
         config
         consensus
         logger

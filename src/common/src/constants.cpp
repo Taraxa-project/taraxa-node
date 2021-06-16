@@ -1,4 +1,4 @@
-#include "constants.hpp"
+#include "common/constants.hpp"
 
 #include <libdevcore/RLP.h>
 #include <libdevcore/SHA3.h>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "types.hpp"
+#include "common/types.hpp"
 #include "util/global_const.hpp"
 
 namespace taraxa {
