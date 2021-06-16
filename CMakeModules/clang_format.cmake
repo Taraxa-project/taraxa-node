@@ -5,7 +5,7 @@ if (APPLE)
             DOC "Path to clang-format executable"
             REQUIRED NO_DEFAULT_PATH
             )
-elseif()
+else()
     find_program(CLANG_FORMAT_EXE NAMES "clang-format"
             DOC "Path to clang-format executable"
             REQUIRED
