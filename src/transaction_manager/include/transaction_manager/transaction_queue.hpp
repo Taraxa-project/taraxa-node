@@ -1,7 +1,7 @@
 #pragma once
 
 #include "config/config.hpp"
-#include "transaction.hpp"
+#include "transaction_manager/transaction.hpp"
 
 namespace taraxa {
 

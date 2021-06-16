@@ -2,9 +2,9 @@
 
 #include "config/config.hpp"
 #include "logger/log.hpp"
-#include "transaction.hpp"
-#include "transaction_queue.hpp"
-#include "transaction_status.hpp"
+#include "transaction_manager/transaction.hpp"
+#include "transaction_manager/transaction_queue.hpp"
+#include "transaction_manager/transaction_status.hpp"
 #include "util/event.hpp"
 
 namespace taraxa {

@@ -1,9 +1,9 @@
-#include "transaction_queue.hpp"
+#include "transaction_manager/transaction_queue.hpp"
 
 #include <string>
 #include <utility>
 
-#include "transaction.hpp"
+#include "transaction_manager/transaction.hpp"
 
 namespace taraxa {
 

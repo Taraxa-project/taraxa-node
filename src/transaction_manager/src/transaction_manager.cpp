@@ -1,4 +1,4 @@
-#include "transaction_manager.hpp"
+#include "transaction_manager/transaction_manager.hpp"
 
 #include <string>
 #include <utility>
@@ -7,7 +7,7 @@
 #include "logger/log.hpp"
 #include "network/network.hpp"
 #include "network/rpc/WSServer.h"
-#include "transaction.hpp"
+#include "transaction_manager/transaction.hpp"
 
 using namespace taraxa::net;
 namespace taraxa {

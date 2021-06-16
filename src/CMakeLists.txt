@@ -36,11 +36,6 @@ set(HEADERS
         network/tarcap/stats/packets_avg_stats.hpp
         node/full_node.hpp
         storage/db_storage.hpp
-        transaction_manager/transaction_order_manager.hpp
-        transaction_manager/transaction.hpp
-        transaction_manager/transaction_queue.hpp
-        transaction_manager/transaction_manager.hpp
-        transaction_manager/transaction_status.hpp
         network/rpc/Net.h
         network/rpc/Taraxa.h
         network/rpc/WSServer.h
@@ -95,10 +90,6 @@ set(SOURCES
         network/tarcap/stats/packets_stats.cpp
         node/full_node.cpp
         storage/db_storage.cpp
-        transaction_manager/transaction.cpp
-        transaction_manager/transaction_queue.cpp
-        transaction_manager/transaction_order_manager.cpp
-        transaction_manager/transaction_manager.cpp
         )
 
 add_library(app_base ${SOURCES} ${HEADERS})
@@ -111,6 +102,7 @@ add_subdirectory(consensus)
 add_subdirectory(dag)
 add_subdirectory(final_chain)
 add_subdirectory(logger)
+add_subdirectory(transaction_manager)
 add_subdirectory(util)
 
 # TODO: have some problems with include dirs for imported targets
@@ -140,6 +132,7 @@ target_link_libraries(app_base
         dag
         final_chain
         logger
+        transaction_manager
         util
         taraxa-vrf
         taraxa-vdf
