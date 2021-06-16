@@ -20,7 +20,7 @@ class FinalChainImpl final : public FinalChain {
   mutable shared_mutex last_block_mu_;
   mutable shared_ptr<BlockHeader> last_block_;
 
-  uint64_t transaction_count_hint_;
+  uint32_t transaction_count_hint_;
   util::ThreadPool executor_thread_{1};
   util::task_executor_t executor_ = executor_thread_.strand();
 
@@ -117,7 +117,8 @@ class FinalChainImpl final : public FinalChain {
         }
       }
     }
-    transaction_count_hint_ = max(transaction_count_hint_, to_execute.size());
+    uint32_t to_execute_trxs_size = to_execute.size();
+    transaction_count_hint_ = max(transaction_count_hint_, to_execute_trxs_size);
     auto const& [exec_results, state_root] =
         state_api_.transition_state({new_blk.author, GAS_LIMIT, new_blk.timestamp, BlockHeader::difficulty()},
                                     to_state_api_transactions(to_execute));
