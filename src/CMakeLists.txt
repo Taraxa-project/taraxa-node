@@ -8,10 +8,6 @@ set(HEADERS
         common/static_init.hpp
         common/types.hpp
 
-        config/config_exception.hpp
-        config/chain_config.hpp
-        config/config.hpp
-        config/version.hpp
         dag/dag.hpp
         dag/dag_block_manager.hpp
         dag/dag_block.hpp
@@ -94,8 +90,7 @@ set(SOURCES
         cli/config.cpp
         cli/tools.cpp
         common/constants.cpp
-        config/chain_config.cpp
-        config/config.cpp
+        common/types.cpp
         
         dag/dag_block_manager.cpp
         dag/dag.cpp
@@ -157,6 +152,7 @@ set(SOURCES
 add_library(app_base ${SOURCES} ${HEADERS})
 
 add_subdirectory(network/rpc)
+add_subdirectory(config)
 add_subdirectory(consensus)
 add_subdirectory(logger)
 
@@ -180,6 +176,7 @@ target_include_directories(app_base SYSTEM PUBLIC
 )
 
 target_link_libraries(app_base
+        config
         consensus
         logger
         taraxa-vrf

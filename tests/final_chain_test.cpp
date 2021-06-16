@@ -4,8 +4,8 @@
 #include <vector>
 
 #include "common/constants.hpp"
-#include "config/chain_config.hpp"
 #include "consensus/vote.hpp"
+#include "config/chain.hpp"
 #include "final_chain/trie_common.hpp"
 #include "util_test/gtest.hpp"
 

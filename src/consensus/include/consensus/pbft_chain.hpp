@@ -12,7 +12,7 @@
 
 #include "common/types.hpp"
 #include "logger/log.hpp"
-#include "pbft_config.hpp"
+#include "config/pbft.hpp"
 
 /**
  * In pbft_chain, two kinds of blocks:

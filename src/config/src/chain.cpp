@@ -1,4 +1,4 @@
-#include "chain_config.hpp"
+#include "config/chain.hpp"
 
 #include <libdevcore/CommonJS.h>
 

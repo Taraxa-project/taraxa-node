@@ -1,6 +1,6 @@
 #include <libdevcore/CommonJS.h>
 
-#include <consensus/pbft_config.hpp>
+#include <config/pbft.hpp>
 
 namespace taraxa {
 

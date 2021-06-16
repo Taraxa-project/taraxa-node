@@ -5,7 +5,7 @@
 #include <functional>
 #include <unordered_map>
 
-#include "consensus/pbft_config.hpp"
+#include "config/pbft.hpp"
 #include "dag/dag_block.hpp"
 #include "final_chain/data.hpp"
 #include "final_chain/final_chain.hpp"

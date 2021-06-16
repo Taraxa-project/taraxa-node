@@ -3,7 +3,7 @@
 #include <string>
 
 #include "common/types.hpp"
-#include "config/chain_config.hpp"
+#include "config/chain.hpp"
 #include "config/config_exception.hpp"
 #include "dag/dag_block.hpp"
 #include "logger/log_config.hpp"
