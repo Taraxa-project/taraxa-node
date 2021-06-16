@@ -27,6 +27,7 @@ will build out of the box without further effort:
 
 
     # Install conan package manager
+    # >= 1.36.0 version is required to work properly with clang-12
     pip3 install conan
 
     # Go (required)
@@ -40,6 +41,23 @@ will build out of the box without further effort:
     export GOPATH=$HOME/.go
     export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
 
+    # Optional 
+    # We are using clang from llvm toolchain as default compiler as well as clang-format and clang-tidy
+    # It is possible to build taraxa-node also with other C++ compilers but to contribute to the official repo,
+    # changes must pass clang-format/clang-tidy checks for which we internally use llvm version=13
+    # To install llvm:
+    sudo su
+
+    curl -SL -o llvm.sh https://apt.llvm.org/llvm.sh && \
+    chmod +x llvm.sh && \
+    ./llvm.sh 12 && \
+    apt-get install -y clang-format-12 clang-tidy-12 && \
+    rm -f llvm.sh
+
+    # Setup clang as default compiler either in your IDE or by env. variables"
+    export C="clang-12"    
+    export CXX="clang++-12"
+
 ### Clone the Repository
 
     git clone https://github.com/Taraxa-project/taraxa-node.git
@@ -49,19 +67,24 @@ will build out of the box without further effort:
 
 ### Compile
 
-In general to build you need to:
+    # Optional - one time action
+    # Create clang profile (we are using clang in taraxa, but any C++ compiler can be used)
+    conan profile new clang --detect && \
+    conan profile update settings.compiler=clang clang && \
+    conan profile update settings.compiler.version=12 clang && \
+    conan profile update settings.compiler.libcxx=libstdc++11 clang && \
+    conan profile update env.CC=clang-12 clang && \
+    conan profile update env.CXX=clang++-12 clang 
 
-    conan remote add -f bincrafters "https://api.bintray.com/conan/bincrafters/public-conan" 
-    conan install -if cmake-build --build missing .
-    conan build -bf cmake-build -sf . .
+    # Fetch and compile libraries fetched from conan
+    conan remote add -f bincrafters "https://api.bintray.com/conan/bincrafters/public-conan" && \
+    conan install --build missing -s -pr=clang .
 
-But you can do it that way too:
-
-    cd cmake-build
+    # Compile project using cmake
+    mkdir cmake-build-release
+    cd cmake-build-release
     cmake -DCMAKE_BUILD_TYPE=Release ../
     make -j$(nproc) taraxad
-
-> Also, you can just install deps without building project with `conan install -if cmake-build --build missing .`.
 
 And optional:
 
@@ -72,22 +95,33 @@ And optional:
 
 > OSX: maybe you need to set a new limit for max open files per thread/process: `ulimit -n 200000`
 
-    conan remote add -f bincrafters "https://api.bintray.com/conan/bincrafters/public-conan" 
-    conan install -if cmake-build --build missing .
-    conan build -bf cmake-build -sf . .
-    cd tests
+    cd cmake-build-release
+    make all_tests 
 
-    # run tests
+    or 
+
+    cd cd cmake-build-release/tests
     ctest
 
 ### Running taraxa-node
-    cd cmake-build/src/taraxad
+    cd cmake-build-release/src/taraxad
+
+Run taraxa node with default testnet config which on initial run will generate default
+config and wallet file in ~/.taraxa/config.json and "~/.taraxa/wallet.json"
 
     # run taraxa-node
-    ./taraxad --conf_taraxa /path/to/config/file
+    ./taraxad
 
-    e.g.:
-    ./taraxad --conf_taraxa configs/taraxad.conf
+Run taraxa node with specified config and wallet files
+
+    # run taraxa-node
+    ./taraxad --config /path/to/config/file --wallet /path/to/wallet/file
+
+Run help message to display all command line options to run and configure node
+in devnet, testnet or custom network
+
+    # help
+    ./taraxad --help
 
 ## Building on MacOS
 
@@ -100,13 +134,14 @@ git, libtool, makepkg-config, cmake
 > Optional: `export CC=gcc`
 
     conan remote add -f bincrafters "https://api.bintray.com/conan/bincrafters/public-conan" 
-    conan install -if cmake-build --build missing .
-    conan build -bf cmake-build -sf . .
+    conan install -if cmake-build-release --build missing .
+    conan build -bf cmake-build-release -sf . .
 
 Or do
+
     conan remote add -f bincrafters "https://api.bintray.com/conan/bincrafters/public-conan" 
-    conan install -if cmake-build --build missing .
-    cd cmake-build
+    conan install -if cmake-build-release --build missing .
+    cd cmake-build-release
     cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=gcc ..
 
 ### Install taraxa-node dependencies:
