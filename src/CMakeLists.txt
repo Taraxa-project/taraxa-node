@@ -1,9 +1,6 @@
 # TODO: Break this cmake(app_base target) into smaller libraries with their own cmakes, e.g. network, chain, dag, etc... could be separate libraries
 
 set(HEADERS
-        cli/config.hpp
-        cli/tools.hpp
-
         final_chain/state_api_data.hpp
         final_chain/state_api.hpp
         final_chain/trie_common.hpp
@@ -68,9 +65,6 @@ set(HEADERS
         )
 
 set(SOURCES
-        cli/config.cpp
-        cli/tools.cpp
-
         final_chain/trie_common.cpp
         final_chain/final_chain.cpp
         final_chain/state_api.cpp
@@ -124,6 +118,7 @@ set(SOURCES
 add_library(app_base ${SOURCES} ${HEADERS})
 
 add_subdirectory(network/rpc)
+add_subdirectory(cli)
 add_subdirectory(common)
 add_subdirectory(config)
 add_subdirectory(consensus)
@@ -151,6 +146,7 @@ target_include_directories(app_base SYSTEM PUBLIC
 )
 
 target_link_libraries(app_base
+        cli
         common
         config
         consensus
@@ -163,7 +159,6 @@ target_link_libraries(app_base
         pthread
         CONAN_PKG::jsoncpp
         CONAN_PKG::libjson-rpc-cpp
-        CONAN_PKG::boost
         CONAN_PKG::openssl
         CONAN_PKG::gmp
         CONAN_PKG::lz4

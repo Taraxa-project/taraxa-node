@@ -1,4 +1,5 @@
-#include "tools.hpp"
+
+#include "cli/tools.hpp"
 
 #include <pwd.h>
 
@@ -6,9 +7,9 @@
 #include <filesystem>
 
 #include "cli/config.hpp"
-#include "default_config.hpp"
-#include "devnet_config.hpp"
-#include "testnet_config.hpp"
+#include "cli/default_config.hpp"
+#include "cli/devnet_config.hpp"
+#include "cli/testnet_config.hpp"
 
 using namespace std;
 using namespace dev;
