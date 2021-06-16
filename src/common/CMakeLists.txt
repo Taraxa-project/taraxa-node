@@ -11,4 +11,4 @@ set(SOURCES
 
 add_library(common ${SOURCES} ${HEADERS})
 target_include_directories(common PUBLIC "include")
-target_link_libraries(common PRIVATE app_base)
+target_link_libraries(common PRIVATE util aleth)

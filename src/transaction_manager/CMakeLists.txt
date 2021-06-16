@@ -15,4 +15,4 @@ set(SOURCES
 
 add_library(transaction_manager ${SOURCES} ${HEADERS})
 target_include_directories(transaction_manager PUBLIC "include")
-target_link_libraries(transaction_manager PRIVATE common config dag logger storage util app_base)
+target_link_libraries(transaction_manager PRIVATE common config dag logger storage network util app_base)

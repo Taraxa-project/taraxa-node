@@ -1,4 +1,4 @@
-#include "network/tarcap/packets_handlers/pbft_block_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/new_pbft_block_packet_handler.hpp"
 
 #include <libp2p/Common.h>
 

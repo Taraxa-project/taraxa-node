@@ -7,8 +7,6 @@
 #include "rocksdb/utilities/checkpoint.h"
 
 namespace taraxa {
-using namespace dev;
-using namespace rocksdb;
 namespace fs = std::filesystem;
 
 DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_block, uint32_t db_max_snapshots,

@@ -1,4 +1,4 @@
-#include "network/tarcap/packets_handlers/get_dag_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/get_dag_blocks_sync_packet_handler.hpp"
 
 #include "dag/dag.hpp"
 #include "network/tarcap/packets_handlers/common/get_blocks_request_type.hpp"

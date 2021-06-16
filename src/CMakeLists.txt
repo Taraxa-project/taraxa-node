@@ -1,96 +1,3 @@
-# TODO: Break this cmake(app_base target) into smaller libraries with their own cmakes, e.g. network, chain, dag, etc... could be separate libraries
-
-set(HEADERS
-        network/rpc/rpc_error_handler.hpp
-        network/rpc/eth/watches.hpp
-        network/rpc/eth/LogFilter.hpp
-        network/rpc/eth/data.hpp
-        network/network.hpp
-        network/tarcap/taraxa_capability.hpp
-        network/tarcap/stats/node_stats.hpp
-        network/tarcap/threadpool/tarcap_thread_pool.hpp
-        network/tarcap/threadpool/priority_queue.hpp
-        network/tarcap/threadpool/packets_queue.hpp
-        network/tarcap/threadpool/packet_data.hpp
-        network/tarcap/threadpool/packets_blocking_mask.hpp
-        network/tarcap/packet_types.hpp
-        network/tarcap/shared_states/syncing_state.hpp
-        network/tarcap/shared_states/test_state.hpp
-        network/tarcap/shared_states/peers_state.hpp
-        network/tarcap/packets_handler.hpp
-        network/tarcap/taraxa_peer.hpp
-        network/tarcap/packets_handlers/dag_sync_packet_handler.hpp
-        network/tarcap/packets_handlers/dag_block_packet_handler.hpp
-        network/tarcap/packets_handlers/get_dag_sync_packet_handler.hpp
-        network/tarcap/packets_handlers/get_pbft_sync_packet_handler.hpp
-        network/tarcap/packets_handlers/pbft_block_packet_handler.hpp
-        network/tarcap/packets_handlers/common/packet_handler.hpp
-        network/tarcap/packets_handlers/pbft_sync_packet_handler.hpp
-        network/tarcap/packets_handlers/status_packet_handler.hpp
-        network/tarcap/packets_handlers/test_packet_handler.hpp
-        network/tarcap/packets_handlers/transaction_packet_handler.hpp
-        network/tarcap/packets_handlers/vote_packets_handler.hpp
-        network/tarcap/packets_handlers/common/syncing_handler.hpp
-        network/tarcap/packets_handlers/common/get_blocks_request_type.hpp
-        network/tarcap/stats/packets_stats.hpp
-        network/tarcap/stats/packets_avg_stats.hpp
-        network/rpc/Net.h
-        network/rpc/Taraxa.h
-        network/rpc/WSServer.h
-        network/rpc/Test.h
-        network/rpc/EthFace.h
-        network/rpc/TaraxaFace.h
-        network/rpc/EthClient.h
-        network/rpc/RpcServer.h
-        network/rpc/eth/Eth.h
-        network/rpc/NetClient.h
-        network/rpc/TestClient.h
-        network/rpc/TaraxaClient.h
-        network/rpc/NetFace.h
-        network/rpc/TestFace.h
-        )
-
-set(SOURCES
-        network/rpc/Taraxa.cpp
-        network/rpc/WSServer.cpp
-        network/rpc/Net.cpp
-        network/rpc/Test.cpp
-        network/rpc/RpcServer.cpp
-        network/rpc/rpc_error_handler.cpp
-        network/rpc/eth/watches.cpp
-        network/rpc/eth/LogFilter.cpp
-        network/rpc/eth/Eth.cpp
-        network/network.cpp
-        network/tarcap/taraxa_capability.cpp
-        network/tarcap/stats/node_stats.cpp
-        network/tarcap/threadpool/tarcap_thread_pool.cpp
-        network/tarcap/threadpool/priority_queue.cpp
-        network/tarcap/threadpool/packets_queue.cpp
-        network/tarcap/threadpool/packet_data.cpp
-        network/tarcap/threadpool/packets_blocking_mask.cpp
-        network/tarcap/shared_states/test_state.cpp
-        network/tarcap/shared_states/peers_state.cpp
-        network/tarcap/packets_handler.cpp
-        network/tarcap/shared_states/syncing_state.cpp
-        network/tarcap/packets_handlers/dag_sync_packet_handler.cpp
-        network/tarcap/packets_handlers/dag_block_packet_handler.cpp
-        network/tarcap/packets_handlers/get_dag_sync_packet_handler.cpp
-        network/tarcap/packets_handlers/get_pbft_sync_packet_handler.cpp
-        network/tarcap/packets_handlers/pbft_block_packet_handler.cpp
-        network/tarcap/packets_handlers/common/packet_handler.cpp
-        network/tarcap/packets_handlers/pbft_sync_packet_handler.cpp
-        network/tarcap/packets_handlers/status_packet_handler.cpp
-        network/tarcap/packets_handlers/test_packet_handler.cpp
-        network/tarcap/packets_handlers/transaction_packet_handler.cpp
-        network/tarcap/packets_handlers/vote_packets_handler.cpp
-        network/tarcap/packets_handlers/common/syncing_handler.cpp
-        network/tarcap/stats/packets_avg_stats.cpp
-        network/tarcap/stats/packets_stats.cpp
-        )
-
-add_library(app_base ${SOURCES} ${HEADERS})
-
-add_subdirectory(network/rpc)
 add_subdirectory(cli)
 add_subdirectory(common)
 add_subdirectory(config)
@@ -98,18 +5,22 @@ add_subdirectory(consensus)
 add_subdirectory(dag)
 add_subdirectory(final_chain)
 add_subdirectory(logger)
+add_subdirectory(network)
 add_subdirectory(node)
 add_subdirectory(storage)
 add_subdirectory(transaction_manager)
 add_subdirectory(util)
 
+add_subdirectory(aleth)
+
+add_library(app_base INTERFACE)
+
 # TODO: have some problems with include dirs for imported targets
 get_target_property(TARAXA_VDF_INCUDE taraxa-vdf INTERFACE_INCLUDE_DIRECTORIES)
 get_target_property(TARAXA_VRF_INCUDE taraxa-vrf INTERFACE_INCLUDE_DIRECTORIES)
 
-add_subdirectory(aleth)
 
-target_include_directories(app_base PUBLIC
+target_include_directories(app_base INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${TARAXA_VDF_INCUDE}
         ${TARAXA_VRF_INCUDE}
@@ -117,12 +28,12 @@ target_include_directories(app_base PUBLIC
 
 # system libs should be included via -isystem so compiler knows how to
 # treat them. e.g. do not check for warnings
-target_include_directories(app_base SYSTEM PUBLIC
+target_include_directories(app_base SYSTEM INTERFACE
         ${CONAN_INCLUDE_DIRS}
         ${jsoncpp_INCLUDE_DIRS}
 )
 
-target_link_libraries(app_base
+target_link_libraries(app_base INTERFACE
         cli
         common
         config
@@ -150,14 +61,14 @@ target_link_libraries(app_base
 
 # needed for golang runtime that comes together with taraxa-evm
 if (APPLE)  # if "APPLE" not sufficient, use if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    target_link_libraries(app_base "-framework CoreFoundation")
-    target_link_libraries(app_base "-framework Security")
+    target_link_libraries(app_base INTERFACE "-framework CoreFoundation")
+    target_link_libraries(app_base INTERFACE "-framework Security")
 else ()
-    target_link_libraries(app_base stdc++fs)
+    target_link_libraries(app_base INTERFACE stdc++fs)
 endif ()
 
 if(TCMALLOC_LIB)
-    target_link_libraries(app_base ${TCMALLOC_LIB}) # MUST BE LINKED LAST!!!
+    target_link_libraries(app_base INTERFACE ${TCMALLOC_LIB}) # MUST BE LINKED LAST!!!
 endif()
 
 install(TARGETS app_base

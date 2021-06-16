@@ -1,4 +1,4 @@
-#include "network/tarcap/packets_handlers/pbft_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/pbft_blocks_sync_packet_handler.hpp"
 
 #include "consensus/pbft_chain.hpp"
 #include "consensus/pbft_manager.hpp"

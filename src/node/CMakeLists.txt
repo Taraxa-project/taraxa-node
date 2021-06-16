@@ -8,4 +8,4 @@ set(SOURCES
 
 add_library(node ${SOURCES} ${HEADERS})
 target_include_directories(node PUBLIC "include")
-target_link_libraries(node PRIVATE common config logger dag storage util app_base)
+target_link_libraries(node PRIVATE common config logger dag storage network util app_base)
