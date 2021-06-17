@@ -338,6 +338,8 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
     // Means a new block is proposed, full block body and all transaction
     // are received.
     case NewBlockPacket: {
+      // Ignore new block packets when syncing
+      if (syncing_) break;
       DagBlock block(_r[0].data().toBytes());
 
       if (dag_blk_mgr_) {
@@ -983,6 +985,10 @@ void TaraxaCapability::sendSyncedMessage() {
 }
 
 void TaraxaCapability::onNewBlockVerified(DagBlock const &block) {
+  // If node is syncing this is an old block that has been verified - no block goosip is needed
+  if (syncing_) {
+    return;
+  }
   LOG(log_dg_dag_prp_) << "Verified NewBlock " << block.getHash().toString();
   auto const peersWithoutBlock =
       selectPeers([&](TaraxaPeer const &_peer) { return !_peer.isBlockKnown(block.getHash()); });
