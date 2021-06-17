@@ -1,0 +1,28 @@
+name: prnet-actions
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+        with: 
+        if: github.event.pull_request.merged == false
+      - name: GitHub API Request
+        id: request
+        uses: octokit/request-action@v2.0.0
+        with:
+          route: ${{ github.event.issue.pull_request.url }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if: github.event.pull_request.merged == false
+      - uses: ./.github/actions/prnet
+        id: trigger
+        with:
+          action: 'cleanup_prnet'
+          circleci_slug: 'gh/Taraxa/taraxa-node'
+          circle_token: '${{ secrets.CIRCLE_TOKEN }}'
+          pull_request: '${{ steps.request.outputs.data }}'
+        if: github.event.pull_request.merged == false
