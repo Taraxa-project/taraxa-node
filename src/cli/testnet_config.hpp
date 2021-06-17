@@ -1,6 +1,6 @@
 namespace taraxa::cli {
-  
-  const char *testnet_json = R"foo({
+
+const char *testnet_json = R"foo({
   "node_secret": "",
   "vrf_secret": "",
   "db_path": "",
