@@ -1,7 +1,5 @@
 # additional target to perform clang-tidy run, requires clang-tidy
 
-message(STATUS "clang-tidy LLVM_VERSION: ${LLVM_VERSION}")
-
 find_program(CLANG_TIDY_EXE
         NAMES clang-tidy-${LLVM_VERSION} clang-tidy
         DOC "Path to clang-tidy executable"

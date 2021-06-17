@@ -18,7 +18,7 @@ else ()
             ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.[ch]pp)
 
     # TODO: print error/line
-    add_custom_target(clang-format-check
+    add_custom_target(clang-format-check ALL
             COMMAND ! ${CLANG_FORMAT_EXE} -style=file -fallback-style=none
             --output-replacements-xml
             ${ALL_SOURCE_FILES}
