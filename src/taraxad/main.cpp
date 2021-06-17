@@ -1,10 +1,10 @@
 #include <boost/program_options.hpp>
 #include <condition_variable>
 
+#include "cli/config.hpp"
 #include "common/static_init.hpp"
 #include "node/full_node.hpp"
 #include "taraxad_version.hpp"
-#include "cli/config.hpp"
 
 using namespace taraxa;
 using namespace std;
@@ -16,7 +16,7 @@ int main(int argc, const char* argv[]) {
   try {
     cli::Config cli_conf(argc, argv, TARAXAD_VERSION);
 
-    if(cli_conf.nodeConfigured()) {
+    if (cli_conf.nodeConfigured()) {
       FullNode::Handle node(cli_conf.getNodeConfiguration(), true);
       if (node->isStarted()) {
         cout << "Taraxa node started" << endl;

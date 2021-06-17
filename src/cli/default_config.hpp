@@ -1,5 +1,5 @@
 namespace taraxa::cli {
-  
+
 const char *default_json = R"foo({
   "node_secret": "",
   "vrf_secret": "",

@@ -20,7 +20,7 @@ class FinalChainImpl final : public FinalChain {
   mutable shared_mutex last_block_mu_;
   mutable shared_ptr<BlockHeader> last_block_;
 
-  uint64_t transaction_count_hint_;
+  size_t transaction_count_hint_;
   util::ThreadPool executor_thread_{1};
   util::task_executor_t executor_ = executor_thread_.strand();
 
