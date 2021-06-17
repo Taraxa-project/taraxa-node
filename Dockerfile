@@ -60,9 +60,6 @@ ENV GOROOT=/usr/local/go
 ENV GOPATH=$HOME/.go
 ENV PATH=$GOPATH/bin:$GOROOT/bin:$PATH
 
-# Default output dir containing build artifacts
-ARG BUILD_OUTPUT_DIR
-
 # Install conan deps
 WORKDIR /opt/taraxa/
 COPY conanfile.py .
@@ -70,10 +67,10 @@ COPY conanfile.py .
 RUN conan remote add -f bincrafters "https://api.bintray.com/conan/bincrafters/public-conan" && \
     conan profile new clang --detect && \
     conan profile update settings.compiler=clang clang && \
-    conan profile update settings.compiler.version=12 clang && \
+    conan profile update settings.compiler.version=$LLVM_VERSION clang && \
     conan profile update settings.compiler.libcxx=libstdc++11 clang && \
-    conan profile update env.CC=clang-12 clang && \
-    conan profile update env.CXX=clang++-12 clang && \
+    conan profile update env.CC=clang-$LLVM_VERSION clang && \
+    conan profile update env.CXX=clang++-$LLVM_VERSION clang && \
     conan install --build missing -s build_type=Debug -pr=clang .
 
 ###################################################################
@@ -86,8 +83,10 @@ ARG BUILD_OUTPUT_DIR
 
 # Build taraxa-node project
 WORKDIR /opt/taraxa/
+
 COPY . .
-RUN cd $BUILD_OUTPUT_DIR \
+
+RUN mkdir $BUILD_OUTPUT_DIR && cd $BUILD_OUTPUT_DIR \
     && cmake -DCMAKE_BUILD_TYPE=Debug \
     -DTARAXA_ENABLE_LTO=ON \
     -DTARAXA_STATIC_BUILD=ON \
