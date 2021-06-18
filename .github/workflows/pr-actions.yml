@@ -13,9 +13,6 @@ jobs:
         id: check
         with:
           trigger: '/deploy'
-          reaction: rocket
-        env:
-          GITHUB_TOKEN: '{{ secrets.GITHUB_TOKEN }}' 
       - uses: actions/checkout@v1
         if: steps.check.outputs.triggered == 'true'
       - name: GitHub API Request
@@ -41,9 +38,6 @@ jobs:
         id: check
         with:
           trigger: '/redeploy'
-          reaction: rocket
-        env:
-          GITHUB_TOKEN: '{{ secrets.GITHUB_TOKEN }}' 
       - uses: actions/checkout@v1
         if: steps.check.outputs.triggered == 'true'
       - name: GitHub API Request
@@ -69,9 +63,6 @@ jobs:
         id: check
         with:
           trigger: '/cleanup'
-          reaction: rocket
-        env:
-          GITHUB_TOKEN: '{{ secrets.GITHUB_TOKEN }}' 
       - uses: actions/checkout@v1
         if: steps.check.outputs.triggered == 'true'
       - name: GitHub API Request
