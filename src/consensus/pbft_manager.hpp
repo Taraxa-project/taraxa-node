@@ -29,6 +29,16 @@ enum PbftSyncRequestReason {
   exceeded_max_steps
 };
 
+struct votesBundle {
+  bool enough;
+  blk_hash_t voted_block_hash;
+  std::vector<Vote> votes;
+
+  votesBundle() : enough(false), voted_block_hash(NULL_BLOCK_HASH) {}
+  votesBundle(bool const enough_, blk_hash_t const &voted_block_hash_, std::vector<Vote> const &votes_)
+      : enough(enough_), voted_block_hash(voted_block_hash_), votes(votes_) {}
+};
+
 class PbftManager {
  public:
   using time_point = std::chrono::system_clock::time_point;
@@ -96,7 +106,7 @@ class PbftManager {
 
   uint64_t roundDeterminedFromVotes_();
 
-  std::pair<blk_hash_t, bool> blockWithEnoughVotes_(std::vector<Vote> const &votes) const;
+  votesBundle blockWithEnoughVotes_(std::vector<Vote> const &votes) const;
 
   std::vector<Vote> getVotesOfTypeFromVotesForRoundAndStep_(PbftVoteTypes vote_type, std::vector<Vote> &votes,
                                                             uint64_t round, size_t step,
