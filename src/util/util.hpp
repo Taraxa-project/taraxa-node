@@ -24,6 +24,11 @@
 
 namespace taraxa {
 
+template <typename T>
+std::weak_ptr<T> as_weak(std::shared_ptr<T> sp) {
+  return std::weak_ptr<T>(sp);
+}
+
 template <typename Int1, typename Int2>
 auto int_pow(Int1 x, Int2 y) {
   if (!y) {
@@ -210,7 +215,7 @@ class StatusTable {
 };  // namespace taraxa
 
 template <typename... TS>
-std::string fmt(const std::string &pattern, const TS &... args) {
+std::string fmt(const std::string &pattern, const TS &...args) {
   return (boost::format(pattern) % ... % args).str();
 }
 
