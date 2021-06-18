@@ -248,10 +248,11 @@ jobs:
      macos:
        xcode: 12.0.0
      environment:
-        GO_VERSION: "1.13.7"
-        CMAKE_VERSION: "3.16.3-1ubuntu1"
-        GCC_VERSION: "4:9.3.0-1ubuntu2"
-        GFLAGS_VERSION: "2.2.2-1build1"
+        LLVM_VERSION: "12"
+        CXX: clang++
+        CC: clang
+        LDFLAGS: -L/usr/local/opt/llvm/lib -Wl,-rpath,/usr/local/opt/llvm/lib
+        CPPFLAGS: -I/usr/local/opt/llvm/include
      steps:
         - checkout
         - run:
@@ -260,46 +261,65 @@ jobs:
               git submodule sync
               git submodule update --init --recursive --jobs 8
         - run:
+           name: Update Brew
            command: brew update
         - run:
-           command: brew install coreutils
-        - run:
+           name: Install Tools
            command: |
-              brew install go  ccache gflags &&
-              brew install libtool cmake conan
+              brew install coreutils llvm@$LLVM_VERSION go \
+                           ccache gflags libtool cmake conan clang-format
+        - run:
+           name: Setup Environment
+           command: |
+              echo 'export GOPATH="${HOME}/.go"' >> $HOME/.bash_profile
+              echo 'export GOROOT="$(brew --prefix golang)/libexec"' >> $HOME/.bash_profile
+              echo 'export PATH="$PATH:${GOPATH}/bin:${GOROOT}/bin"' >> $HOME/.bash_profile
+              test -d "${HOME}/.go" || mkdir "${HOME}/.go"
+              test -d "${HOME}/.go/src/github.com" || mkdir -p "${HOME}/.go/src/github.com"
+
+              echo 'export PATH="/usr/local/opt/llvm/bin:$PATH"' >> $HOME/.bash_profile
+              echo 'export PATH="/usr/local/opt/ccache/libexec:$PATH"' >> $HOME/.bash_profile
         - restore_cache:
            keys:
-            - conan-cache-v2-mac--{{ checksum "conanfile.py" }}
-            - conan-cache-v2-mac
+            - conan-cache-v3-mac-{{ checksum "conanfile.py" }}
+            - conan-cache-v3-mac
         - run:
            name: add conan bincrafters remote
            command: conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan"
         - run:
+           name: setup conan profile
+           command: |
+               conan profile new clang --detect || true && \
+               conan profile update settings.compiler=clang clang && \
+               conan profile update settings.compiler.version=$LLVM_VERSION clang && \
+               conan profile update settings.compiler.libcxx=libc++ clang && \
+               conan profile update env.CC=clang clang && \
+               conan profile update env.CXX=clang++ clang
+        - run:
            name: connan install
-           command: conan install -if cmake-build --build missing .
+           command: conan install -if cmake-build --build missing -pr=clang .
         - save_cache:
            paths:
              - ~/.conan
-           key: conan-cache-v2-mac--{{ checksum "conanfile.py" }}
+           key: conan-cache-v3-mac-{{ checksum "conanfile.py" }}
         - run:
            name: Cmake
            command: |
                cd cmake-build
-               export GOPATH=$HOME/golang &&
-               export GOROOT=/usr/local/opt/go/libexec &&
-               export CC=gcc &&
-               export CPATH=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/include &&
-               cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=gcc -DSYSTEM_HOME_OVERRIDE=/Users/root/project/cmake-build  ../ &&
-               make -j 6  &&
-               mkdir /Users/distiller/project/release &&
-               cp bin/taraxad /Users/distiller/project/release/taraxad-macos
+               cmake \
+                  -DCMAKE_BUILD_TYPE=Release \
+                  -DTARAXA_ENABLE_LTO=ON \
+                  -DTARAXA_STATIC_BUILD=ON ../ &&
+               make -j 6 &&
+               mkdir $HOME/project/release &&
+               cp bin/taraxad $HOME/project/release/taraxad-macos
         - run:
            name: Execute ctest
            command: |
              ulimit -n 1024
              cd cmake-build/tests && ctest --output-on-failure
         - store_artifacts:
-           path: /Users/distiller/project/release/taraxad-macos
+           path: $HOME/project/release/taraxad-macos
         - persist_to_workspace:
            root: release
            paths: [ taraxad-macos ]
@@ -362,7 +382,7 @@ jobs:
         - run:
            name: Execute ctest
            command: |
-            ulimit -n 1024
+            ulimit -n 2048
             cd $BUILD_OUTPUT_DIR/tests && ctest --output-on-failure
         - store_artifacts:
            path: /root/project/release/taraxad-x86_64
