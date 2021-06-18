@@ -10,12 +10,6 @@
 namespace taraxa {
 
 struct Transaction {
-  struct InvalidChainID : std::invalid_argument {
-    InvalidChainID() : invalid_argument("eip-155 chain id must be > 0") {}
-  };
-  struct InvalidEncodingSize : std::invalid_argument {
-    InvalidEncodingSize() : invalid_argument("transaction rlp must be a list of 9 elements") {}
-  };
   struct InvalidSignature : std::runtime_error {
     explicit InvalidSignature(std::string const &msg) : runtime_error("invalid signature:\n" + msg) {}
   };
