@@ -1537,14 +1537,37 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync, 
         // If this log is present in log, it means there was created such big pbft block, that we are not able to send
         // it through network
         // This situation should never ever happen !!!
-        LOG(log_er_) << "Unable to send pbft block: " << pbft_blocks[pbft_block_idx].pbft_blk->getBlockHash().abridged()
-                     << " due to MAX_PACKET_SIZE(" << MAX_PACKET_SIZE << ") limit. "
-                     << "Block size: " << pbft_block_rlp.out().size() << " [B]";
-        // Skip this block as it would not go through network anyway
+        LOG(log_er_) << "Encountered giant PBFT block: "
+                     << pbft_blocks[pbft_block_idx].pbft_blk->getBlockHash().abridged() << " exceeding MAX_PACKET_SIZE("
+                     << MAX_PACKET_SIZE << ") limit. "
+                     << "Block size: " << pbft_block_rlp.out().size()
+                     << " [B].  Will revert to sending PBFT block and DAG blocks separately.";
+
+        db_query.append(DbStorage::Columns::dag_blocks, RLP(pbft_blocks_extra[pbft_block_idx]).toVector<h256>());
+        auto dag_block_raws_for_pbft_block = db_query.execute();
+        std::vector<std::shared_ptr<DagBlock>> dag_blocks_for_pbft_block; //(dag_block_raws_for_pbft_block.size());
+        for (auto dag_block_raw : dag_block_raws_for_pbft_block) {
+          dag_blocks_for_pbft_block.emplace_back(std::make_shared<DagBlock>(DagBlock(RLP(dag_block_raw))));
+        }
+
+        sendBlocks(_id, dag_blocks_for_pbft_block);
+
+        RLPStream pbft_block_only_rlp;
+
+        pbft_block_only_rlp.appendList(
+            2);  // item #1 - pbft block rlp, item #2 - EMPTY list (of dag blocks, because we omit them)
+        pbft_block_only_rlp.appendRaw(pbft_blocks[pbft_block_idx].rlp());
+        pbft_block_only_rlp.appendRaw(RLPEmptyList);
+        
+        pbft_block_rlp.clear();
+
+        act_packet_size += pbft_block_only_rlp.out().size();
+        pbft_blocks_rlps.emplace_back(pbft_block_only_rlp.invalidate());
+
         continue;
       }
 
-      LOG(log_dg_dag_sync_) << "Sending partial PbftBlockPacket due tu MAX_PACKET_SIZE limit. " << pbft_block_idx + 1
+      LOG(log_dg_dag_sync_) << "Sending partial PbftBlockPacket due to MAX_PACKET_SIZE limit. " << pbft_block_idx + 1
                             << " blocks out of " << pbft_blocks.size() << " sent.";
 
       // Send partial packet
