@@ -15,6 +15,7 @@ ExternalProject_Add(libff
     URL_HASH SHA256=81b476089af43025c8f253cb1a9b5038a1c375baccffea402fa82042e608ab02
     CMAKE_ARGS
         -DCMAKE_BUILD_TYPE=Release
+        -DCMAKE_POSITION_INDEPENDENT_CODE=${CMAKE_POSITION_INDEPENDENT_CODE}
         -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
         -DGMP_INCLUDE_DIR=${CONAN_INCLUDE_DIRS_GMP}
         -DGMP_LIBRARY=${gmp_libs}
@@ -30,6 +31,7 @@ ExternalProject_Add(libff
 )
 
 # Create snark imported library
+# libff must be imported as static library because cmake from downloaded tar has hardcoded creation of static library
 add_library(libff::ff STATIC IMPORTED)
 file(MAKE_DIRECTORY ${libff_inlcude_dir})
 set_property(TARGET libff::ff PROPERTY IMPORTED_CONFIGURATIONS Release)
