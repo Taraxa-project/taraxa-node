@@ -375,7 +375,7 @@ void PbftManager::initialState_() {
                    << step;
       assert(false);
     }
-    previous_round_next_votes_->update(next_votes_in_previous_round, previous_round_2t_plus_1);
+    previous_round_next_votes_->updateNextVotes(next_votes_in_previous_round, previous_round_2t_plus_1);
   }
   LOG(log_nf_) << "Node initialize at round " << round << " step " << step
                << ". Previous round has enough next votes for NULL_BLOCK_HASH: " << std::boolalpha
@@ -898,7 +898,7 @@ uint64_t PbftManager::roundDeterminedFromVotes_() {
         LOG(log_dg_) << "Found sufficient next votes in round " << rs_votes.first.first << ", step "
                      << rs_votes.first.second << ", PBFT 2t+1 " << TWO_T_PLUS_ONE;
         // Update next votes
-        previous_round_next_votes_->update(voted_block_hash_with_next_votes.votes, TWO_T_PLUS_ONE);
+        previous_round_next_votes_->updateNextVotes(voted_block_hash_with_next_votes.votes, TWO_T_PLUS_ONE);
         auto next_votes = previous_round_next_votes_->getNextVotes();
 
         auto batch = db_->createWriteBatch();
@@ -1359,6 +1359,7 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
       break;
     }
     if (!comparePbftBlockScheduleWithDAGblocks_(*pbft_block_and_votes.pbft_blk)) {
+      // DAG blocks in unverified/verified queue, have not add to DAG yet
       break;
     }
     if (pushPbftBlock_(pbft_block_and_votes)) {

@@ -32,7 +32,7 @@ enum PbftSyncRequestReason {
 struct votesBundle {
   bool enough;
   blk_hash_t voted_block_hash;
-  std::vector<Vote> votes;
+  std::vector<Vote> votes;  // exactly 2t+1 votes
 
   votesBundle() : enough(false), voted_block_hash(NULL_BLOCK_HASH) {}
   votesBundle(bool const enough_, blk_hash_t const &voted_block_hash_, std::vector<Vote> const &votes_)
