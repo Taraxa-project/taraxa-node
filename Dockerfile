@@ -97,33 +97,16 @@ RUN mkdir $BUILD_OUTPUT_DIR && cd $BUILD_OUTPUT_DIR \
     && make install \
     && find . -maxdepth 1 ! -name "bin_install" ! -name "bin" ! -name "tests" -exec rm -rfv {} \;
 
-###############################################################################
-# Taraxa Cli #
-###############################################################################
-FROM ubuntu:20.04 as cli
-
-WORKDIR /opt/taraxa
-
-RUN apt-get update \
-    && apt-get install -y python3-pip
-
-COPY cli/requirements.txt cli/requirements.txt
-RUN pip3 install --no-cache-dir -r cli/requirements.txt
-
-COPY cli/taraxa cli/taraxa
-
-
-###############################################################################
-# Taraxa image containing taraxad binary with statically linked deps + config #
-###############################################################################
-FROM cli
+######################################################################
+# Taraxa image containing taraxad binary with statically linked deps #
+######################################################################
+FROM ubuntu:20.04
 
 ARG BUILD_OUTPUT_DIR
-WORKDIR /opt/taraxa
+WORKDIR /root/.taraxa
 
 # Keep the old struct for now
 COPY --from=build /opt/taraxa/$BUILD_OUTPUT_DIR/bin_install/taraxad /usr/local/bin/taraxad
-COPY config config
 COPY docker-entrypoint.sh /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]

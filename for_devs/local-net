@@ -29,7 +29,6 @@ if not os.path.isdir(f'./{data_dir}'):
     os.mkdir(f'./{data_dir}')
 
 local_net = os.path.realpath(f'./{data_dir}')
-taraxa_cli = os.path.dirname(os.path.realpath(__file__)) + '/taraxa'
 
 
 @click.group()
@@ -41,18 +40,17 @@ def cli():
 @cli.command()
 @click.option('--boot-nodes', default=3, help='Number of boot nodes')
 @click.option('--rpc-nodes', default=3, help='Number of RPC nodes')
-@click.option('--template', default='devnet', help='Name of config template to use as base')
 @click.option('--tps', default=0, help='Number of transactions per second (if zero the faucet will not start)')
 @click.argument('binary')
-def start(boot_nodes, rpc_nodes, template, tps, binary):
+def start(boot_nodes, rpc_nodes, tps, binary):
     """Start a local testnet"""
     binary = os.path.realpath(binary)
 
-    config(template, boot_nodes, rpc_nodes)
+    config(binary, boot_nodes, rpc_nodes)
     start_workers(binary, boot_nodes, rpc_nodes, tps)
 
 
-def config(network, boot_nodes, rpc_nodes):
+def config(binary, boot_nodes, rpc_nodes):
     global boot_nodes_public_addresses
 
     boot_nodes_flags = []
@@ -60,41 +58,17 @@ def config(network, boot_nodes, rpc_nodes):
     for i in range(boot_nodes):
         worker_name = f'boot-node-{i}'
 
-        (private_key, public_key, public_address) = generate_wallet()
+        (private_key, public_key, public_address) = generate_wallet(binary)
 
-        private_keys[worker_name] = private_key[2:]
+        private_keys[worker_name] = private_key
         boot_nodes_public_addresses[worker_name] = public_address
 
         boot_nodes_flags.append(
-            f'--boot-node 127.0.0.1:10{i+1}02/{public_key[2:]}')
+            f'127.0.0.1:10{i+1}02/{public_key}')
 
     boot_nodes_flags = " ".join(boot_nodes_flags)
 
-    base_path = os.path.realpath(os.path.dirname(
-        os.path.realpath(__file__)) + '/../')
-    template = json.loads('{}')
-    with open(f'{base_path}/config/networks/{network}.json') as json_file:
-        template_data = json.load(json_file)
-        template.update(template_data)
-
-    generate_faucet_wallet()
-
-    eligibility_balance_threshold = template['chain_config'][
-        'final_chain']['state']['dpos']['eligibility_balance_threshold']
-    genesis_state = template['chain_config']['final_chain']['state']['dpos']['genesis_state']
-    genesis_balances = template['chain_config']['final_chain']['state']['genesis_balances']
-
-    genesis_balances_keys = list(genesis_balances.keys())
-    genesis_balances_faucet_address = genesis_balances_keys[0]
-    genesis_balances_faucet_value = genesis_balances[genesis_balances_faucet_address]
-    del genesis_balances[genesis_balances_faucet_address]
-    genesis_balances[faucet_public_address[2:]] = genesis_balances_faucet_value
-
-    for i in genesis_state:
-        genesis_state[i] = {}
-        for a in boot_nodes_public_addresses:
-            genesis_state[i][boot_nodes_public_addresses[a]
-                             ] = eligibility_balance_threshold
+    generate_faucet_wallet(binary)
 
     timestamp = hex(int(time.time()))
 
@@ -116,11 +90,11 @@ def config(network, boot_nodes, rpc_nodes):
                 os.mkdir(f'{local_net}/db-{worker_name}')
 
             cmd = ''
-            cmd += f'{taraxa_cli} config node --network {network} '
-            cmd += f'{boot_nodes_flags} '
+            cmd += f'{binary} --command config --network-id {chain_id} '
+            cmd += f'--boot-nodes {boot_nodes_flags} '
 
             if type == "boot":
-                cmd += '--as-boot-node '
+                cmd += '--boot-node '
                 cmd += f'--node-secret {private_keys[worker_name]} '
 
             if type == "boot":
@@ -128,13 +102,9 @@ def config(network, boot_nodes, rpc_nodes):
             else:
                 port_prefix = '1'
 
-            cmd += f'--prop-override network_tcp_port:1{port_prefix}{i+1}02 --prop-override network_udp_port:1{port_prefix}{i+1}02 '
-            cmd += f'--prop-override rpc.http_port:7{port_prefix}{i+1}7 --prop-override rpc.ws_port:8{port_prefix}{i+1}7 '
-            cmd += f'--prop-override db_path:{local_net}/db-{worker_name} '
-            cmd += f'--prop-override chain_config.chain_id:{chain_id} '
-            cmd += f'--prop-override chain_config.dag_genesis_block.timestamp:{timestamp} '
-            cmd += f'--prop-override chain_config.final_chain.genesis_block_fields.timestamp:{timestamp} '
-            cmd += f'--file {config_name}'
+            cmd += f'--config {config_name} '
+            cmd += f'--wallet ./{data_dir}/wallet-{worker_name}.json '
+            cmd += f'--data-dir {local_net}/db-{worker_name} '
 
             os.system(cmd)
 
@@ -143,14 +113,37 @@ def config(network, boot_nodes, rpc_nodes):
                 config_data = json.load(json_file)
                 config.update(config_data)
 
+            eligibility_balance_threshold = config['chain_config'][
+                'final_chain']['state']['dpos']['eligibility_balance_threshold']
+            genesis_state = config['chain_config']['final_chain']['state']['dpos']['genesis_state']
+            genesis_balances = config['chain_config']['final_chain']['state']['genesis_balances']
+
+            genesis_balances_faucet_address = list(genesis_balances.keys())[0]
+            genesis_balances_faucet_value = genesis_balances[genesis_balances_faucet_address]
+            del genesis_balances[genesis_balances_faucet_address]
+            genesis_balances[faucet_public_address] = genesis_balances_faucet_value
+
+            for j in genesis_state:
+                genesis_state[j] = {}
+                for a in boot_nodes_public_addresses:
+                    genesis_state[j][boot_nodes_public_addresses[a]
+                                     ] = eligibility_balance_threshold
+
             config['chain_config']['final_chain']['state']['dpos']['genesis_state'] = genesis_state
             config['chain_config']['final_chain']['state']['genesis_balances'] = genesis_balances
+
+            config['network_tcp_port'] = int(f'1{port_prefix}{i+1}02')
+            config['network_udp_port'] = int(f'1{port_prefix}{i+1}02')
+            config['rpc']['http_port'] = int(f'7{port_prefix}{i+1}7')
+            config['rpc']['ws_port'] = int(f'8{port_prefix}{i+1}7')
+            config['chain_config']['dag_genesis_block']['timestamp'] = timestamp
+            config['chain_config']['final_chain']['genesis_block_fields']['timestamp'] = timestamp
 
             with open(config_name, 'w') as json_file:
                 json.dump(config, json_file, indent=2)
 
 
-def generate_faucet_wallet():
+def generate_faucet_wallet(binary):
     global chain_id
     global faucet_private_key
     global faucet_public_address
@@ -166,11 +159,9 @@ def generate_faucet_wallet():
         chain_id = wallet['chain_id']
         faucet_private_key = wallet['faucet_private_key']
         faucet_public_address = wallet['faucet_public_address']
-
-
     else:
-        (faucet_private_key, _, faucet_public_address) = generate_wallet()
-        chain_id = hex(randint(500, 1000))
+        (faucet_private_key, _, faucet_public_address) = generate_wallet(binary)
+        chain_id = randint(500, 1000)
 
         wallet = {
             "chain_id": chain_id,
@@ -181,13 +172,13 @@ def generate_faucet_wallet():
             json.dump(wallet, json_file, indent=2)
 
 
-def generate_wallet():
+def generate_wallet(binary):
     private_key = subprocess.check_output(
-        f'{taraxa_cli} account | grep private', shell=True).strip().decode('utf-8').split(' ')[2]
+        f'{binary} --command account | grep node_secret | cut -d\  -f3- | tr -d \\"', shell=True).strip().decode('utf-8')
     public_key = subprocess.check_output(
-        f'{taraxa_cli} account --secret {private_key} | grep public', shell=True).strip().decode('utf-8').split(' ')[2]
+        f'{binary} --command account {private_key} | grep node_public | cut -d\  -f3- | tr -d \\"', shell=True).strip().decode('utf-8')
     public_address = subprocess.check_output(
-        f'{taraxa_cli} account --secret {private_key} | grep address:', shell=True).strip().decode('utf-8').split(' ')[1]
+        f'{binary} --command account {private_key} | grep node_address| cut -d\  -f3- | tr -d \\"', shell=True).strip().decode('utf-8')
 
     return (private_key, public_key, public_address)
 
@@ -219,7 +210,7 @@ def start_workers(binary, boot_nodes, rpc_nodes, tps):
 
 
 def node_worker(binary, worker_name):
-    process = subprocess.Popen(f'{binary} --conf_taraxa ./{data_dir}/conf-{worker_name}.json',
+    process = subprocess.Popen(f'{binary} --config ./{data_dir}/conf-{worker_name}.json --wallet ./{data_dir}/wallet-{worker_name}.json',
                                shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     logs(worker_name, process)
 
@@ -243,7 +234,7 @@ def faucet_worker(tps):
             'value': web3.toWei(100000000, 'gwei'),
             'gas': 21000,
             'gasPrice': web3.toWei(1, 'gwei'),
-            'chainId': int(chain_id, 0)
+            'chainId': int(chain_id)
         }
         nonce = nonce + 1
         signed_tx = web3.eth.account.sign_transaction(tx, faucet_private_key)
