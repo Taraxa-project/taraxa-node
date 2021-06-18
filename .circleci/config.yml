@@ -63,7 +63,7 @@ jobs:
                        --name taraxa-node-ctest-${DOCKER_BRANCH_TAG} \
                        ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}\
                         sh -c \
-                       'cd cmake-docker-build-debug/tests \
+                       'cd cmake-docker-build-debug/bin \
                         && ctest --output-on-failure'
       - run:
           name: Chmod core dump if fail
