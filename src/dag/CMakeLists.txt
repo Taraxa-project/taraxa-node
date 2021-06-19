@@ -16,4 +16,4 @@ set(SOURCES
 
 add_library(dag ${SOURCES} ${HEADERS})
 target_include_directories(dag PUBLIC "include")
-target_link_libraries(dag PRIVATE common config logger storage util app_base)
+target_link_libraries(dag PRIVATE common config logger storage util aleth app_base)

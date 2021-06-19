@@ -8,4 +8,4 @@ set(SOURCES
 
 add_library(storage ${SOURCES} ${HEADERS})
 target_include_directories(storage PUBLIC "include")
-target_link_libraries(storage PRIVATE common consensus logger dag util node app_base)
+target_link_libraries(storage PRIVATE common consensus logger dag util node aleth app_base)

@@ -10,4 +10,4 @@ set(SOURCES
 
 add_library(logger ${SOURCES} ${HEADERS})
 target_include_directories(logger PUBLIC "include")
-target_link_libraries(logger PRIVATE app_base)
+target_link_libraries(logger PRIVATE config common aleth CONAN_PKG::boost)

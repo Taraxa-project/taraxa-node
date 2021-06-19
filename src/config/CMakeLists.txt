@@ -4,12 +4,16 @@ set(HEADERS
 
     include/config/pbft.hpp
     include/config/chain.hpp
+    include/config/final_chain.hpp
+    include/config/vdf.hpp
 )
 
 set(SOURCES
     src/config.cpp
     src/pbft.cpp
     src/chain.cpp
+    src/final_chain.cpp
+    src/vdf.cpp
 )
 
 add_library(config ${SOURCES} ${HEADERS})

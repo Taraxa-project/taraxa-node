@@ -15,10 +15,10 @@ using BlockStatusTable = ExpirationCacheMap<blk_hash_t, BlockStatus>;
 // Thread safe
 class DagBlockManager {
  public:
-  DagBlockManager(addr_t node_addr, vdf_sortition::VdfConfig const &vdf_config,
-                  optional<state_api::DPOSConfig> dpos_config, unsigned verify_threads, std::shared_ptr<DbStorage> db,
-                  std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<FinalChain> final_chain,
-                  std::shared_ptr<PbftChain> pbft_chain, logger::Logger log_time_, uint32_t queue_limit = 0);
+  DagBlockManager(addr_t node_addr, VdfConfig const &vdf_config, optional<state_api::DPOSConfig> dpos_config,
+                  unsigned verify_threads, std::shared_ptr<DbStorage> db, std::shared_ptr<TransactionManager> trx_mgr,
+                  std::shared_ptr<FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain,
+                  logger::Logger log_time_, uint32_t queue_limit = 0);
   ~DagBlockManager();
   void insertBlock(DagBlock const &blk);
   /**
@@ -94,7 +94,7 @@ class DagBlockManager {
   std::map<uint64_t, std::deque<std::pair<DagBlock, std::vector<Transaction>>>> unverified_qu_;
   std::map<uint64_t, std::deque<DagBlock>> verified_qu_;
 
-  vdf_sortition::VdfConfig vdf_config_;
+  VdfConfig vdf_config_;
   optional<state_api::DPOSConfig> dpos_config_;
 
   LOG_OBJECTS_DEFINE

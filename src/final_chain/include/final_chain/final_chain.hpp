@@ -3,6 +3,7 @@
 #include <future>
 
 #include "common/types.hpp"
+#include "config/final_chain.hpp"
 #include "consensus/pbft_chain.hpp"
 #include "final_chain/data.hpp"
 #include "final_chain/state_api.hpp"

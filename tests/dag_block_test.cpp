@@ -39,7 +39,7 @@ TEST_F(DagBlockTest, clear) {
 }
 
 TEST_F(DagBlockTest, serialize_deserialize) {
-  vdf_sortition::VdfConfig vdf_config(0xFFFF, 0xe665, 0, 5, 5, 1500);
+  VdfConfig vdf_config(0xFFFF, 0xe665, 0, 5, 5, 1500);
   vrf_sk_t sk(
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
       "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");

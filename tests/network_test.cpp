@@ -102,9 +102,9 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
   }
 
   // add one valid as last
-  auto dag_genesis = nodes[0]->getConfig().chain.dag_genesis_block.getHash();
-  vdf_sortition::VdfConfig vdf_config(node_cfgs[0].chain.vdf);
-  vdf_sortition::VdfSortition vdf(vdf_config, nodes[0]->getVrfSecretKey(), getRlpBytes(1));
+  auto dag_genesis = nodes[1]->getConfig().chain.dag_genesis_block.getHash();
+  VdfConfig vdf_config(node_cfgs[1].chain.vdf);
+  vdf_sortition::VdfSortition vdf(vdf_config, nodes[1]->getVrfSecretKey(), getRlpBytes(1));
   vdf.computeVdfSolution(vdf_config, dag_genesis.asBytes());
   DagBlock blk(dag_genesis, 1, {}, {samples::createSignedTrxSamples(0, 1, g_secret)[0].getHash()}, vdf,
                nodes[0]->getSecretKey());
@@ -297,7 +297,7 @@ TEST_F(NetworkTest, node_sync) {
   auto dag_genesis = node1->getConfig().chain.dag_genesis_block.getHash();
   auto sk = node1->getSecretKey();
   auto vrf_sk = node1->getVrfSecretKey();
-  vdf_sortition::VdfConfig vdf_config(node_cfgs[0].chain.vdf);
+  VdfConfig vdf_config(node_cfgs[0].chain.vdf);
 
   auto propose_level = 1;
   vdf_sortition::VdfSortition vdf1(vdf_config, vrf_sk, getRlpBytes(propose_level));
@@ -371,7 +371,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
   auto dag_genesis = node1->getConfig().chain.dag_genesis_block.getHash();
   auto sk = node1->getSecretKey();
   auto vrf_sk = node1->getVrfSecretKey();
-  vdf_sortition::VdfConfig vdf_config(node_cfgs[0].chain.vdf);
+  VdfConfig vdf_config(node_cfgs[0].chain.vdf);
   auto batch = db1->createWriteBatch();
 
   // generate first PBFT block sample
@@ -514,7 +514,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   auto dag_genesis = node1->getConfig().chain.dag_genesis_block.getHash();
   auto sk = node1->getSecretKey();
   auto vrf_sk = node1->getVrfSecretKey();
-  vdf_sortition::VdfConfig vdf_config(node_cfgs[0].chain.vdf);
+  VdfConfig vdf_config(node_cfgs[0].chain.vdf);
   auto batch = db1->createWriteBatch();
 
   // generate first PBFT block sample
@@ -867,7 +867,7 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
   auto dag_genesis = node1->getConfig().chain.dag_genesis_block.getHash();
   auto sk = node1->getSecretKey();
   auto vrf_sk = node1->getVrfSecretKey();
-  vdf_sortition::VdfConfig vdf_config(node_cfgs[0].chain.vdf);
+  VdfConfig vdf_config(node_cfgs[0].chain.vdf);
   auto propose_level = 1;
   vdf_sortition::VdfSortition vdf1(vdf_config, vrf_sk, getRlpBytes(propose_level));
   vdf1.computeVdfSolution(vdf_config, dag_genesis.asBytes());
@@ -949,7 +949,7 @@ TEST_F(NetworkTest, node_sync2) {
   auto dag_genesis = node1->getConfig().chain.dag_genesis_block.getHash();
   auto sk = node1->getSecretKey();
   auto vrf_sk = node1->getVrfSecretKey();
-  vdf_sortition::VdfConfig vdf_config(node_cfgs[0].chain.vdf);
+  VdfConfig vdf_config(node_cfgs[0].chain.vdf);
   auto transactions = samples::createSignedTrxSamples(0, NUM_TRX2, sk);
   // DAG block1
   auto propose_level = 1;

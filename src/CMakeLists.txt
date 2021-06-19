@@ -40,7 +40,10 @@ target_link_libraries(app_base INTERFACE
         consensus
         dag
         final_chain
+        logger
+        network
         node
+        storage
         transaction_manager
         util
         taraxa-vrf

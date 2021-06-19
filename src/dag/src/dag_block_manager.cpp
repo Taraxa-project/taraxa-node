@@ -4,7 +4,7 @@
 
 namespace taraxa {
 
-DagBlockManager::DagBlockManager(addr_t node_addr, vdf_sortition::VdfConfig const &vdf_config,
+DagBlockManager::DagBlockManager(addr_t node_addr, VdfConfig const &vdf_config,
                                  optional<state_api::DPOSConfig> dpos_config, unsigned num_verifiers,
                                  std::shared_ptr<DbStorage> db, std::shared_ptr<TransactionManager> trx_mgr,
                                  std::shared_ptr<FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain,

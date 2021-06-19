@@ -92,6 +92,6 @@ set(SOURCES
 add_library(network ${SOURCES} ${HEADERS})
 target_include_directories(network PUBLIC "include")
 target_include_directories(network PUBLIC "../")
-target_link_libraries(network PRIVATE common config logger dag storage util app_base)
+target_link_libraries(network PRIVATE common config logger dag storage util aleth app_base)
 
 add_subdirectory(rpc)
