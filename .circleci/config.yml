@@ -57,7 +57,7 @@ jobs:
 #         command: |
 #           docker build -t ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} .
 
-      - docker-cache/with-save-restore-image:
+      - docker-cache/with-save-restore-images:
          repository: gcr.io/${GOOGLE_PROJECT_ID}
          images: >-
            ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
