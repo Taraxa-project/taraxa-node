@@ -13,7 +13,7 @@ orbs:
   git: opuscapita/git@0.0.3
   github-release: izumin5210/github-release@0.1.1
   gcp-gcr: circleci/gcp-gcr@0.13.0
-  docker-registry-image-cache: cci-x/docker-registry-image-cache@0.2.12
+  docker-cache: cci-x/docker-registry-image-cache@0.2.12
 
 
 jobs:
@@ -393,6 +393,10 @@ workflows:
     jobs:
       - build-and-push-docker-image:
          context: taraxa-node
+         filters:
+           branches: 
+             only: 
+              - speedup-docker-build 
 
   create-builder-image:
     jobs:
