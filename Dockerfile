@@ -4,7 +4,7 @@ ARG BUILD_OUTPUT_DIR=cmake-docker-build-debug
 #############################################
 # builder image - contains all dependencies #
 #############################################
-FROM ubuntu:20.04 as builder
+FROM amd64/ubuntu:20.04 as builder
 
 # deps versions
 ARG GO_VERSION=1.13.7
@@ -59,12 +59,13 @@ RUN curl -SL https://dl.google.com/go/go$GO_VERSION.linux-amd64.tar.gz \
 ENV GOROOT=/usr/local/go
 ENV GOPATH=$HOME/.go
 ENV PATH=$GOPATH/bin:$GOROOT/bin:$PATH
+ENV CONAN_REVISIONS_ENABLED=1
 
 # Install conan deps
 WORKDIR /opt/taraxa/
 COPY conanfile.py .
 
-RUN conan remote add -f bincrafters "https://api.bintray.com/conan/bincrafters/public-conan" && \
+RUN conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan" && \
     conan profile new clang --detect && \
     conan profile update settings.compiler=clang clang && \
     conan profile update settings.compiler.version=$LLVM_VERSION clang && \
