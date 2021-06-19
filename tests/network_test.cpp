@@ -41,6 +41,120 @@ auto g_conf3 = Lazy([] { return three_default_configs[2]; });
 
 struct NetworkTest : BaseTest {};
 
+// Test creates a DAG on one node and verifies that the second node syncs with it and that the resulting DAG on the
+// other end is the same
+TEST_F(NetworkTest, send_giant_pbft_blocks) {
+  auto node_cfgs = make_node_cfgs<5>(2);
+  FullNode::Handle node1(node_cfgs[0], true);
+  // Stop PBFT manager
+  node1->getPbftManager()->stop();
+
+  // Allow node to start up
+  taraxa::thisThreadSleepForMilliSeconds(1000);
+
+  std::vector<DagBlock> blks;
+  // Generate DAG blocks
+  auto dag_genesis = node1->getConfig().chain.dag_genesis_block.getHash();
+  auto sk = node1->getSecretKey();
+  auto vrf_sk = node1->getVrfSecretKey();
+  vdf_sortition::VdfConfig vdf_config(node_cfgs[0].chain.vdf);
+
+  auto propose_level = 1;
+  vdf_sortition::VdfSortition vdf1(vdf_config, vrf_sk, getRlpBytes(propose_level));
+  vdf1.computeVdfSolution(vdf_config, dag_genesis.asBytes());
+  DagBlock blkn(dag_genesis, propose_level, {}, {}, vdf1, sk);
+
+  blks.push_back(blkn);
+
+  for (propose_level = 2; propose_level < 10; propose_level++) {
+    vdf_sortition::VdfSortition vdfn(vdf_config, vrf_sk, getRlpBytes(propose_level));
+    vdfn.computeVdfSolution(vdf_config, blkn.getHash().asBytes());
+    blkn = DagBlock(blkn.getHash(), propose_level, {}, {}, vdfn, sk);
+    std::cout << "Generating dag block " << blkn.getHash().abridged() << std::endl;
+    blks.push_back(blkn);
+  }
+
+  for (size_t i = 0; i < blks.size(); ++i) {
+    node1->getDagBlockManager()->insertBlock(blks[i]);
+  }
+
+  EXPECT_HAPPENS({30s, 500ms}, [&](auto& ctx) {
+    WAIT_EXPECT_EQ(ctx, node1->getNumReceivedBlocks(), blks.size())
+    WAIT_EXPECT_EQ(ctx, node1->getDagManager()->getNumVerticesInDag().first, blks.size() + 1)
+    WAIT_EXPECT_EQ(ctx, node1->getDagManager()->getNumEdgesInDag().first, blks.size())
+  });
+
+  // generate first PBFT block sample
+
+  blk_hash_t prev_block_hash(0);
+  uint64_t period = 1;
+  addr_t beneficiary(987);
+
+  auto db1 = node1->getDB();
+  auto pbft_chain1 = node1->getPbftChain();
+  auto batch = db1->createWriteBatch();
+  period = 1;
+  PbftBlock pbft_block(prev_block_hash, blks[blks.size() - 1].getHash(), period, beneficiary, node1->getSecretKey());
+  db1->putFinalizedDagBlockHashesByAnchor(batch, pbft_block.getPivotDagBlockHash(),
+                                          {pbft_block.getPivotDagBlockHash()});
+
+  std::cout << "Generate PBFT block " << pbft_block.getBlockHash().abridged() << " with anchor "
+            << blks[blks.size() - 1].getHash().abridged() << std::endl;
+
+  std::vector<Vote> votes_for_pbft_blk;
+  votes_for_pbft_blk.emplace_back(
+      node1->getPbftManager()->generateVote(pbft_block.getBlockHash(), cert_vote_type, 2, 3, 0));
+  std::cout << "Generate 1 vote for second PBFT block" << std::endl;
+  // node1 put block2 into pbft chain and store into DB
+  // Add cert votes in DB
+  db1->addCertVotesToBatch(pbft_block.getBlockHash(), votes_for_pbft_blk, batch);
+  // Add PBFT block in DB
+  db1->addPbftBlockToBatch(pbft_block, batch);
+  // Update period_pbft_block in DB
+  db1->addPbftBlockPeriodToBatch(period, pbft_block.getBlockHash(), batch);
+  // Update pbft chain
+  pbft_chain1->updatePbftChain(pbft_block.getBlockHash());
+  // Update PBFT chain head block
+  auto pbft_chain_head_hash = pbft_chain1->getHeadHash();
+  auto pbft_chain_head_str = pbft_chain1->getJsonStr();
+  db1->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
+  db1->commitWriteBatch(batch);
+  uint64_t expect_pbft_chain_size = 1;
+  EXPECT_EQ(node1->getPbftChain()->getPbftChainSize(), expect_pbft_chain_size);
+
+  FullNode::Handle node2(node_cfgs[1], true);
+  std::shared_ptr<Network> nw1 = node1->getNetwork();
+  std::shared_ptr<Network> nw2 = node2->getNetwork();
+  const int node_peers = 1;
+  bool checkpoint_passed = false;
+  const int timeout_val = 60;
+  for (auto i = 0; i < timeout_val; i++) {
+    // test timeout is 60 seconds
+    if (nw1->getPeerCount() == node_peers && nw2->getPeerCount() == node_peers) {
+      checkpoint_passed = true;
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(1000);
+  }
+  if (checkpoint_passed == false) {
+    std::cout << "Timeout reached after " << timeout_val << " seconds..." << std::endl;
+    ASSERT_EQ(node_peers, nw1->getPeerCount());
+    ASSERT_EQ(node_peers, nw2->getPeerCount());
+  }
+
+  std::cout << "Waiting Sync for max 2 minutes..." << std::endl;
+  for (int i = 0; i < 1200; i++) {
+    if (node2->getPbftChain()->getPbftChainSize() == expect_pbft_chain_size) {
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(100);
+  }
+  EXPECT_EQ(node2->getPbftChain()->getPbftChainSize(), expect_pbft_chain_size);
+  std::shared_ptr<PbftChain> pbft_chain2 = node2->getPbftChain();
+  blk_hash_t last_pbft_block_hash = pbft_chain2->getLastPbftBlockHash();
+  EXPECT_EQ(last_pbft_block_hash, pbft_block.getBlockHash());
+}
+
 // Test creates two Network setup and verifies sending block
 // between is successfull
 TEST_F(NetworkTest, transfer_block) {
