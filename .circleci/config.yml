@@ -350,6 +350,7 @@ jobs:
         - run:
            name: Add conan bincrafters remote
            command: conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan"
+        - run:
            name: Conan
            command: conan install -if $BUILD_OUTPUT_DIR --build missing -s build_type=Release .
         - save_cache:
