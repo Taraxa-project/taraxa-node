@@ -68,11 +68,21 @@ jobs:
               command: |
                 docker build -t ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} .
                  
-      - run:
-         name: Docker Build taraxa-node-ctest
-         command: |
-          docker build -t ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} \
-            --target build .
+#      - run:
+#         name: Docker Build taraxa-node-ctest\
+#         command: |
+#          docker build -t ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} \
+#            --target build .
+      - docker-cache/with-save-restore-images:
+         repository: gcr.io/${GOOGLE_PROJECT_ID}
+         images: >-
+           ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+         steps: 
+           - docker-cache/build:
+              command: |
+              docker build -t ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} \
+                --target build .
+                
       - run:
          name: Run Ctest
          command: |
