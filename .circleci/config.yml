@@ -20,6 +20,7 @@ jobs:
    build-and-push-docker-image:
     environment:
       - IMAGE: taraxa-node
+      - CONAN_REVISIONS_ENABLED: 1
     machine:
       image: ubuntu-2004:202010-01
       docker_layer_caching: false
