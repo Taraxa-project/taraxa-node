@@ -289,7 +289,7 @@ jobs:
             - conan-cache-v2-mac
         - run:
            name: add conan bincrafters remote
-           command: conan remote add -f bincrafters "https://api.bintray.com/conan/bincrafters/public-conan"
+           command: conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan"
         - run:
            name: connan install
            command: conan install -if cmake-build --build missing .
@@ -349,8 +349,7 @@ jobs:
             - conan-cache-v1-linux
         - run:
            name: Add conan bincrafters remote
-           command: conan remote add -f bincrafters "https://api.bintray.com/conan/bincrafters/public-conan"
-        - run:
+           command: conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan"
            name: Conan
            command: conan install -if $BUILD_OUTPUT_DIR --build missing -s build_type=Release .
         - save_cache:

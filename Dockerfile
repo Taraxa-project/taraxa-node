@@ -64,7 +64,7 @@ ENV PATH=$GOPATH/bin:$GOROOT/bin:$PATH
 WORKDIR /opt/taraxa/
 COPY conanfile.py .
 
-RUN conan remote add -f bincrafters "https://api.bintray.com/conan/bincrafters/public-conan" && \
+RUN conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan" && \
     conan profile new clang --detect && \
     conan profile update settings.compiler=clang clang && \
     conan profile update settings.compiler.version=$LLVM_VERSION clang && \
