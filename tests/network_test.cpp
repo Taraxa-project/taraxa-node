@@ -540,7 +540,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   EXPECT_EQ(last_pbft_block_hash, pbft_block1.getBlockHash());
 }
 
-// Test PBFT next votes sycning when node is behind of PBFT round with peer
+// Test PBFT next votes syncing when node is behind of PBFT round with peer
 TEST_F(NetworkTest, pbft_next_votes_sync_in_behind_round) {
   auto node_cfgs = make_node_cfgs<20>(2);
   FullNode::Handle node1(node_cfgs[0], true);
@@ -604,7 +604,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_behind_round) {
   EXPECT_EQ(node2_next_votes_size, expect_size);
 }
 
-// Test PBFT next votes sycning when node has same PBFT round with peer, but has less previous round next votes size
+// Test PBFT next votes syncing when node has same PBFT round with peer, but has less previous round next votes size
 TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_1) {
   auto pbft_previous_round = 0;
   auto pbft_2t_plus_1 = 2;
@@ -661,7 +661,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_1) {
                  [&](auto& ctx) { WAIT_EXPECT_EQ(ctx, node2_next_votes_mgr->getNextVotesSize(), expect_size); });
 }
 
-// Test PBFT next votes sycning when node has same PBFT round with peer
+// Test PBFT next votes syncing when node has same PBFT round with peer
 TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
   auto pbft_previous_round = 0;
   auto pbft_2t_plus_1 = 3;

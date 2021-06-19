@@ -304,7 +304,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       }
 
       LOG(log_dg_dag_sync_) << "Received status message from " << _nodeID << " peer DAG max level:" << peer->dag_level_;
-      LOG(log_dg_pbft_sync_) << "Received status message from " << _nodeID << ", peer sycning: " << std::boolalpha
+      LOG(log_dg_pbft_sync_) << "Received status message from " << _nodeID << ", peer syncing: " << std::boolalpha
                              << peer->syncing_ << ", peer PBFT chain size:" << peer->pbft_chain_size_;
       LOG(log_dg_next_votes_sync_) << "Received status message from " << _nodeID << ", PBFT round " << peer->pbft_round_
                                    << ", peer PBFT previous round next votes size "
@@ -799,7 +799,7 @@ void TaraxaCapability::restartSyncingPbft(bool force) {
     LOG(log_si_pbft_sync_) << "Restarting syncing PBFT from peer " << max_pbft_chain_nodeID << ", peer PBFT chain size "
                            << max_pbft_chain_size << ", own PBFT chain synced at period " << pbft_sync_period;
     requesting_pending_dag_blocks_ = false;
-    // TODO: When set sycning to false if never get peer response?
+    // TODO: When set syncing to false if never get peer response?
     syncing_ = true;
     peer_syncing_pbft_ = max_pbft_chain_nodeID;
     syncPeerPbft(peer_syncing_pbft_, pbft_sync_period + 1);
