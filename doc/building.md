@@ -76,8 +76,11 @@ will build out of the box without further effort:
     conan profile update env.CC=clang-12 clang && \
     conan profile update env.CXX=clang++-12 clang 
 
+    # Export needed var for conan 
+    export CONAN_REVISIONS_ENABLED=1
+    
     # Fetch and compile libraries fetched from conan
-    conan remote add -f bincrafters "https://api.bintray.com/conan/bincrafters/public-conan" && \
+    conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan" && \
     conan install --build missing -s -pr=clang .
 
     # Compile project using cmake
@@ -91,6 +94,46 @@ And optional:
     # optional
     make install  # defaults to /usr/local
 
+## Building on MacOS
+
+### Install taraxa-node dependencies:
+
+First you need to get (Brew)[https://brew.sh/] package manager. After that you need tot install dependencies with it:
+
+    brew update
+    brew install coreutils go autoconf automake gflags git libtool make pkg-config cmake conan
+
+### Clone the Repository
+
+    git clone https://github.com/Taraxa-project/taraxa-node.git
+    cd taraxa-node
+    git checkout master
+    git submodule update --init --recursive
+
+### Compile
+
+    # Export needed var for conan 
+    export CONAN_REVISIONS_ENABLED=1
+    # Add bincrafters remote
+    conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan" 
+
+    # Two build options 
+        1. Compile project using conan
+        conan install -if ../conan-build --build missing -s build_type=Debug .
+        conan build -bf ../conan-build -sf . .
+
+        2.Compile project using cmake
+        mkdir cmake-build-release
+        cd cmake-build-release
+        cmake -DCMAKE_BUILD_TYPE=Release ../
+        make -j$(nproc) taraxad
+
+And optional:
+
+    # optional
+    make install  # defaults to /usr/local
+
+## Run 
 ### Running tests
 
 > OSX: maybe you need to set a new limit for max open files per thread/process: `ulimit -n 200000`
@@ -107,7 +150,7 @@ And optional:
     cd cmake-build-release/src/taraxad
 
 Run taraxa node with default testnet config which on initial run will generate default
-config and wallet file in ~/.taraxa/config.json and "~/.taraxa/wallet.json"
+config and wallet file in `~/.taraxa/config.json` and `~/.taraxa/wallet.json`
 
     # run taraxa-node
     ./taraxad
@@ -122,32 +165,6 @@ in devnet, testnet or custom network
 
     # help
     ./taraxad --help
-
-## Building on MacOS
-
-Some known `brew` package dependencies (this list is not comprehensive):
-```
-coreutils, go, autoconf, automake, ccache, gflags,
-git, libtool, makepkg-config, cmake
-```
-
-> Optional: `export CC=gcc`
-
-    conan remote add -f bincrafters "https://api.bintray.com/conan/bincrafters/public-conan" 
-    conan install -if cmake-build-release --build missing .
-    conan build -bf cmake-build-release -sf . .
-
-Or do
-
-    conan remote add -f bincrafters "https://api.bintray.com/conan/bincrafters/public-conan" 
-    conan install -if cmake-build-release --build missing .
-    cd cmake-build-release
-    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=gcc ..
-
-### Install taraxa-node dependencies:
-
-    TODO: add
-
 
 ## Building using "taraxa-builder" docker image
 
