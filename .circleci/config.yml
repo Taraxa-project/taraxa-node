@@ -80,8 +80,8 @@ jobs:
          steps: 
            - docker-cache/build:
               command: |
-              docker build -t ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} \
-                --target build .
+               docker build -t ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} \
+                 --target build .
                 
       - run:
          name: Run Ctest
