@@ -59,6 +59,7 @@ RUN curl -SL https://dl.google.com/go/go$GO_VERSION.linux-amd64.tar.gz \
 ENV GOROOT=/usr/local/go
 ENV GOPATH=$HOME/.go
 ENV PATH=$GOPATH/bin:$GOROOT/bin:$PATH
+ENV CONAN_REVISIONS_ENABLED=1
 
 # Install conan deps
 WORKDIR /opt/taraxa/
