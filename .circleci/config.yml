@@ -12,8 +12,8 @@ parameters:
 orbs:
   git: opuscapita/git@0.0.3
   github-release: izumin5210/github-release@0.1.1
-
   gcp-gcr: circleci/gcp-gcr@0.13.0
+  docker-registry-image-cache: cci-x/docker-registry-image-cache@0.2.12
 
 
 jobs:
@@ -43,14 +43,30 @@ jobs:
            echo "export START_TIME=$(date +%Y%m%d-%Hh%Mm%Ss)" >>$BASH_ENV
            echo "export GCP_IMAGE=gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE}" >> $BASH_ENV
            echo "export PR=$( [[ -z ${CIRCLE_PULL_REQUEST+x} ]] && echo false || echo $(basename ${CIRCLE_PULL_REQUEST}) )" >>$BASH_ENV
-           #echo "export HELM_TEST_NAME=$(echo $CIRCLE_BRANCH | sed 's/[^A-Za-z0-9\\-]*//g' | tr '[:upper:]' '[:lower:]')" >>$BASH_ENV
            export PR=$( [[ -z ${CIRCLE_PULL_REQUEST+x} ]] && echo false || echo $(basename ${CIRCLE_PULL_REQUEST}) )           
            echo "export HELM_TEST_NAME=pr-${PR}" >> $BASH_ENV
            sudo service apport stop
+
       - run:
-         name: Docker Build taraxa-node
+         name: Login into gcr
          command: |
-           docker build -t ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} .
+            echo ${GCLOUD_SERVICE_KEY} | docker login -u _json_key --password-stdin https://gcr.io
+ 
+#      - run:
+#         name: Docker Build taraxa-node
+#         command: |
+#           docker build -t ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} .
+
+      - docker-cache/with-save-restore-image:
+         repository: gcr.io/${GOOGLE_PROJECT_ID}
+         images: >-
+           ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+           ${IMAGE}-develop:latest
+         steps:
+           - docker-cache/build:
+              command: |
+                docker build -t ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} .
+                 
       - run:
          name: Docker Build taraxa-node-ctest
          command: |
