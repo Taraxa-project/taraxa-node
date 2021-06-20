@@ -85,8 +85,9 @@ jobs:
               command: |
                docker build -t ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} \
                  --target build .
-           - docker-cache/tag: >-
-               ${IMAGE}-cache:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${IMAGE}-cache:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+           - docker-cache/tag: 
+               tags: >-
+                  ${IMAGE}-cache:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${IMAGE}-cache:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
               
                 
       - run:
