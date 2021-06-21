@@ -600,7 +600,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
 
       break;
     }
-      // need cert votes (syncing)
+    // need cert votes (syncing)
     case PbftBlockPacket: {
       auto pbft_blk_count = _r.itemCount();
       LOG(log_dg_pbft_sync_) << "In PbftBlockPacket received, num pbft blocks: " << pbft_blk_count;

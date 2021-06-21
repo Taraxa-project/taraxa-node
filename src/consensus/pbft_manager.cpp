@@ -1317,18 +1317,19 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cer
 
 void PbftManager::pushSyncedPbftBlocksIntoChain_() {
   size_t pbft_synced_queue_size;
+  auto round = getPbftRound();
   while (!pbft_chain_->pbftSyncedQueueEmpty()) {
     PbftBlockCert pbft_block_and_votes = pbft_chain_->pbftSyncedQueueFront();
-    auto round = getPbftRound();
-    LOG(log_dg_) << "Pick pbft block " << pbft_block_and_votes.pbft_blk->getBlockHash()
-                 << " from synced queue in round " << round;
-    if (pbft_chain_->findPbftBlockInChain(pbft_block_and_votes.pbft_blk->getBlockHash())) {
+    auto pbft_block_hash = pbft_block_and_votes.pbft_blk->getBlockHash();
+    LOG(log_nf_) << "Pick pbft block " << pbft_block_hash << " from synced queue in round " << round;
+
+    if (pbft_chain_->findPbftBlockInChain(pbft_block_hash)) {
       // pushed already from PBFT unverified queue, remove and skip it
       pbft_chain_->pbftSyncedQueuePopFront();
 
       pbft_synced_queue_size = pbft_chain_->pbftSyncedQueueSize();
       if (pbft_last_observed_synced_queue_size_ != pbft_synced_queue_size) {
-        LOG(log_dg_) << "PBFT block " << pbft_block_and_votes.pbft_blk->getBlockHash() << " already present in chain.";
+        LOG(log_dg_) << "PBFT block " << pbft_block_hash << " already present in chain.";
         LOG(log_dg_) << "PBFT synced queue still contains " << pbft_synced_queue_size
                      << " synced blocks that could not be pushed.";
       }
@@ -1341,32 +1342,22 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
                                                      sortition_threshold_, TWO_T_PLUS_ONE)) {
       // Failed cert votes validation, flush synced PBFT queue and set since
       // next block validation depends on the current one
-      LOG(log_er_) << "Synced PBFT block " << pbft_block_and_votes.pbft_blk->getBlockHash()
-                   << " doesn't have enough valid cert votes. Clear synced PBFT blocks!"
-                   << " DPOS total votes count: " << getDposTotalVotesCount();
+      LOG(log_er_) << "Synced PBFT block " << pbft_block_hash
+                   << " doesn't have enough valid cert votes. Clear synced PBFT blocks! DPOS total votes count: "
+                   << getDposTotalVotesCount();
       pbft_chain_->clearSyncedPbftBlocks();
       break;
     }
-    if (!pbft_chain_->checkPbftBlockValidation(*pbft_block_and_votes.pbft_blk)) {
-      // PBFT chain syncing faster than DAG syncing, wait!
-      pbft_synced_queue_size = pbft_chain_->pbftSyncedQueueSize();
-      if (pbft_last_observed_synced_queue_size_ != pbft_synced_queue_size) {
-        LOG(log_dg_) << "PBFT chain unable to push synced block " << pbft_block_and_votes.pbft_blk->getBlockHash();
-        LOG(log_dg_) << "PBFT synced queue still contains " << pbft_synced_queue_size
-                     << " synced blocks that could not be pushed.";
-      }
-      pbft_last_observed_synced_queue_size_ = pbft_synced_queue_size;
-      break;
-    }
+
     if (!comparePbftBlockScheduleWithDAGblocks_(*pbft_block_and_votes.pbft_blk)) {
-      // DAG blocks in unverified/verified queue, have not add to DAG yet
+      LOG(log_nf_) << "DAG has not build up for anchor " << pbft_block_and_votes.pbft_blk->getPivotDagBlockHash()
+                   << " in PBFT block " << pbft_block_hash;
       break;
     }
     if (pushPbftBlock_(pbft_block_and_votes)) {
-      LOG(log_nf_) << node_addr_ << " push synced PBFT block " << pbft_block_and_votes.pbft_blk->getBlockHash()
-                   << " in round " << round;
+      LOG(log_nf_) << node_addr_ << " push synced PBFT block " << pbft_block_hash << " in round " << round;
     } else {
-      LOG(log_er_) << "Failed push PBFT block " << pbft_block_and_votes.pbft_blk->getBlockHash() << " into chain";
+      LOG(log_er_) << "Failed push PBFT block " << pbft_block_hash << " into chain";
       break;
     }
 
