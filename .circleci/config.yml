@@ -61,7 +61,6 @@ jobs:
            ${IMAGE}-develop:latest
          steps:
            - docker-cache/build:
-              name: docker build
               command: |
                 docker build -t ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} .
 
@@ -72,12 +71,10 @@ jobs:
            ${IMAGE}-cache:${DOCKER_BRANCH_TAG}
          steps: 
            - docker-cache/build:
-              name: docker build
               command: |
                docker build -t ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} \
                  --target build .
            - docker-cache/tag: 
-               name: Tag cache image
                tags: >-
                   ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${IMAGE}-cache:${DOCKER_BRANCH_TAG}
               
