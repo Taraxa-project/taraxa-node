@@ -54,7 +54,6 @@ jobs:
             echo ${GCLOUD_SERVICE_KEY} | docker login -u _json_key --password-stdin https://gcr.io
 
       - docker-cache/with-save-restore-images:
-         name: Build main image with external cache
          repository: gcr.io/${GOOGLE_PROJECT_ID}
          images: >-
            ${IMAGE}-cache:${DOCKER_BRANCH_TAG}
@@ -67,7 +66,6 @@ jobs:
                 docker build -t ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} .
 
       - docker-cache/with-save-restore-images:
-         name: Build cache image with eternal caching
          repository: gcr.io/${GOOGLE_PROJECT_ID}
          images: >-
            ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
