@@ -61,9 +61,9 @@ jobs:
       - docker-cache/with-save-restore-images:
          repository: gcr.io/${GOOGLE_PROJECT_ID}
          images: >-
-           ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
-           ${IMAGE}-cache
-           ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+           ${IMAGE}:${DOCKER_BRANCH_TAG}
+           ${IMAGE}-cache:${DOCKER_BRANCH_TAG}
+           ${IMAGE}-cache:latest
            ${IMAGE}-develop:latest
          steps:
            - docker-cache/build:
@@ -79,7 +79,7 @@ jobs:
          repository: gcr.io/${GOOGLE_PROJECT_ID}
          images: >-
            ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
-           ${IMAGE}-cache
+           ${IMAGE}-cache:${DOCKER_BRANCH_TAG}
          steps: 
            - docker-cache/build:
               command: |
@@ -87,7 +87,7 @@ jobs:
                  --target build .
            - docker-cache/tag: 
                tags: >-
-                  ${IMAGE}-ctest:${DOCKER_BRANCH_TAG} ${IMAGE}-cache
+                  ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${IMAGE}-cache:${DOCKER_BRANCH_TAG}
               
                 
       - run:
@@ -164,6 +164,7 @@ jobs:
            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:${START_TIME}
            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:${START_TIME}-${CIRCLE_SHA1}
            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:latest
+           
            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} taraxa/${IMAGE}:${CIRCLE_SHA1}
            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} taraxa/${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} taraxa/${IMAGE}:${START_TIME}
@@ -172,6 +173,7 @@ jobs:
            if [[ ${PR} != "false" ]];then
               docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:pr-${PR}-${CIRCLE_BUILD_NUM}
            fi
+           docker tag ${GCP_IMAGE}-cache:${DOCKER_BRANCH_TAG} ${GCP_IMAGE}-cache:latest
       - run:
          name: Install/configure helm and chart
          no_output_timeout: 15m
@@ -219,6 +221,7 @@ jobs:
          name: Push Images
          command: |
            if [[ ${CIRCLE_BRANCH} == "develop"   ]];then
+              docker push ${GCP_IMAGE}-cache:latest
               docker push ${GCP_IMAGE}-develop:latest
               docker push ${GCP_IMAGE}-develop:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
               docker push ${GCP_IMAGE}-develop:${START_TIME}
@@ -229,6 +232,7 @@ jobs:
               docker push ${GCP_IMAGE}:pr-${PR}-${CIRCLE_BUILD_NUM}
            fi
            if [[ ${CIRCLE_BRANCH} == "master" ]];then
+              docker push ${GCP_IMAGE}-cache:latest
               docker push ${GCP_IMAGE}:latest
               docker push ${GCP_IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
               docker push ${GCP_IMAGE}:${START_TIME}
