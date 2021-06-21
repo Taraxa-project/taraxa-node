@@ -68,6 +68,7 @@ jobs:
          repository: gcr.io/${GOOGLE_PROJECT_ID}
          images: >-
            ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+           ${IMAGE}-cache:latest
            ${IMAGE}-cache:${DOCKER_BRANCH_TAG}
          steps: 
            - docker-cache/build:
