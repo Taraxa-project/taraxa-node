@@ -117,7 +117,7 @@ class PbftManager {
   bool broadcastAlreadyThisStep_() const;
 
   bool comparePbftBlockScheduleWithDAGblocks_(blk_hash_t const &pbft_block_hash);
-  bool comparePbftBlockScheduleWithDAGblocks_(PbftBlock const &pbft_block);
+  std::pair<vec_blk_t, bool> comparePbftBlockScheduleWithDAGblocks_(PbftBlock const &pbft_block);
 
   bool pushCertVotedPbftBlockIntoChain_(blk_hash_t const &cert_voted_block_hash,
                                         std::vector<Vote> const &cert_votes_for_round);
@@ -125,7 +125,7 @@ class PbftManager {
   void pushSyncedPbftBlocksIntoChain_();
 
   void finalize_(PbftBlock const &pbft_block, vector<h256> finalized_dag_blk_hashes, bool sync = false);
-  bool pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes);
+  bool pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes, vec_blk_t const &dag_blocks_order);
 
   void updateTwoTPlusOneAndThreshold_();
   bool is_syncing_();
