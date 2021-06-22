@@ -674,7 +674,7 @@ void NextVotesForPreviousRound::addNextVotes(std::vector<Vote> const& next_votes
 }
 
 // Assumption is that all votes are validated, in next voting phase, in the same round and step
-void NextVotesForPreviousRound::update(std::vector<Vote> const& next_votes, size_t const pbft_2t_plus_1) {
+void NextVotesForPreviousRound::updateNextVotes(std::vector<Vote> const& next_votes, size_t const pbft_2t_plus_1) {
   LOG(log_nf_) << "There are " << next_votes.size() << " next votes for updating.";
   if (next_votes.empty()) {
     return;

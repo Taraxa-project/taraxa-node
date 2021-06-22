@@ -162,13 +162,13 @@ void FullNode::start() {
       jsonrpc_ws_->run();
     }
     final_chain_->block_finalized_.subscribe(
-        [eth_json_rpc = weak_ptr(eth_json_rpc), ws = weak_ptr(jsonrpc_ws_), db = weak_ptr(db_)](auto const &res) {
-          if (auto _eth_json_rpc = eth_json_rpc.lock(); _eth_json_rpc) {
+        [eth_json_rpc = as_weak(eth_json_rpc), ws = as_weak(jsonrpc_ws_), db = as_weak(db_)](auto const &res) {
+          if (auto _eth_json_rpc = eth_json_rpc.lock()) {
             _eth_json_rpc->note_block_executed(*res->final_chain_blk, res->trxs, res->trx_receipts);
           }
-          if (auto _ws = ws.lock(); _ws) {
+          if (auto _ws = ws.lock()) {
             _ws->newEthBlock(*res->final_chain_blk);
-            if (auto _db = db.lock(); _db) {
+            if (auto _db = db.lock()) {
               auto pbft_blk = _db->getPbftBlock(res->hash);
               _ws->newDagBlockFinalized(pbft_blk->getPivotDagBlockHash(), pbft_blk->getPeriod());
               _ws->newPbftBlockExecuted(*pbft_blk, res->dag_blk_hashes);
@@ -177,11 +177,11 @@ void FullNode::start() {
         },
         *rpc_thread_pool_);
     trx_mgr_->transaction_accepted_.subscribe(
-        [eth_json_rpc = weak_ptr(eth_json_rpc), ws = weak_ptr(jsonrpc_ws_)](auto const &trx_hash) {
-          if (auto _eth_json_rpc = eth_json_rpc.lock(); _eth_json_rpc) {
+        [eth_json_rpc = as_weak(eth_json_rpc), ws = as_weak(jsonrpc_ws_)](auto const &trx_hash) {
+          if (auto _eth_json_rpc = eth_json_rpc.lock()) {
             _eth_json_rpc->note_pending_transaction(trx_hash);
           }
-          if (auto _ws = ws.lock(); _ws) {
+          if (auto _ws = ws.lock()) {
             _ws->newPendingTransaction(trx_hash);
           }
         },

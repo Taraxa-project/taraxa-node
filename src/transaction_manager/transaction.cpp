@@ -11,6 +11,13 @@ namespace taraxa {
 using namespace std;
 using namespace dev;
 
+uint64_t toChainID(u256 const &val) {
+  if (val == 0 || std::numeric_limits<uint64_t>::max() < val) {
+    BOOST_THROW_EXCEPTION(Transaction::InvalidSignature("eip-155 chain id must be in the open interval: (0, 2^64)"));
+  }
+  return static_cast<uint64_t>(val);
+}
+
 Transaction::Transaction(uint64_t nonce, val_t const &value, val_t const &gas_price, uint64_t gas, bytes data,
                          secret_t const &sk, optional<addr_t> const &receiver, uint64_t chain_id)
     : nonce_(nonce),
@@ -29,16 +36,24 @@ Transaction::Transaction(uint64_t nonce, val_t const &value, val_t const &gas_pr
 
 Transaction::Transaction(dev::RLP const &_rlp, bool verify_strict, h256 const &hash)
     : hash_(hash), hash_initialized_(!hash.isZero()) {
-  uint64_t v_ethereum_version = 0;
-  util::rlp_tuple(util::RLPDecoderRef(_rlp, verify_strict), nonce_, gas_price_, gas_, receiver_, value_, data_,
-                  v_ethereum_version, vrs_.r, vrs_.s);
-  vrs_.v = ~v_ethereum_version & uint8_t(1);
-  if (v_ethereum_version -= (27 + vrs_.v)) {
-    if (v_ethereum_version > 8) {
-      chain_id_ = (v_ethereum_version - 8) / 2;
-    } else {
-      BOOST_THROW_EXCEPTION(InvalidChainID());
+  u256 v, r, s;
+  util::rlp_tuple(util::RLPDecoderRef(_rlp, verify_strict), nonce_, gas_price_, gas_, receiver_, value_, data_, v, r,
+                  s);
+  // the following piece of code should be equivalent to
+  // https://github.com/ethereum/aleth/blob/644d420f8ac0f550a28e9ca65fe1ad1905d0f069/libethcore/TransactionBase.cpp#L58-L78
+  // Plus, we don't allow `0` for chain_id. In this code, `chain_id_ == 0` means there is no chain id at all.
+  if (!r && !s) {
+    chain_id_ = toChainID(v);
+  } else {
+    if (36 < v) {
+      chain_id_ = toChainID((v - 35) / 2);
+    } else if (v != 27 && v != 28) {
+      BOOST_THROW_EXCEPTION(InvalidSignature(
+          "only values 27 and 28 are allowed for non-replay protected transactions for the 'v' signature field"));
     }
+    vrs_.v = chain_id_ ? byte{v - (u256{chain_id_} * 2 + 35)} : byte{v - 27};
+    vrs_.r = r;
+    vrs_.s = s;
   }
 }
 
@@ -90,8 +105,7 @@ void Transaction::streamRLP(dev::RLPStream &s) const {
   }
   s << value_ << data_;
   if (!for_signature) {
-    s << vrs_.v + uint64_t(chain_id_ ? (chain_id_ * 2 + 35) : 27) << (u256 const &)vrs_.r  //
-      << (u256 const &)vrs_.s;
+    s << vrs_.v + uint64_t(chain_id_ ? (chain_id_ * 2 + 35) : 27) << (u256 const &)vrs_.r << (u256 const &)vrs_.s;
   } else if (chain_id_) {
     s << chain_id_ << 0 << 0;
   }
@@ -132,7 +146,7 @@ Json::Value Transaction::toJSON() const {
   res["sig"] = dev::toJS((sig_t const &)getVRS());
   res["receiver"] = dev::toJS(getReceiver().value_or(dev::ZeroAddress));
   res["data"] = dev::toJS(getData());
-  if (auto v = getChainID(); v) {
+  if (auto v = getChainID()) {
     res["chain_id"] = dev::toJS(v);
   }
   return res;

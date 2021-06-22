@@ -136,6 +136,55 @@ TEST_F(NetworkTest, send_pbft_block) {
                  [&](auto& ctx) { WAIT_EXPECT_EQ(ctx, nw1->getPeer(node2_id)->pbft_chain_size_, chain_size) });
 }
 
+TEST_F(NetworkTest, sync_large_pbft_block) {
+  const uint32_t MAX_PACKET_SIZE = 15 * 1024 * 1024;  // 15 MB -> 15 * 1024 * 1024 B
+  auto node_cfgs = make_node_cfgs<5>(2);
+  // Increase lambda to avoid pbft block created too soon
+  node_cfgs[0].chain.pbft.lambda_ms_min = 300;
+
+  // Create large transactions with 10k dummy data
+  bytes dummy_10k_data(100000, 0);
+  auto signed_trxs = samples::createSignedTrxSamples(0, 250, g_secret2, dummy_10k_data);
+  auto nodes = launch_nodes({node_cfgs[0]});
+  auto nw1 = nodes[0]->getNetwork();
+
+  size_t last_dag_level = 0;
+  for (size_t i = 0; i < signed_trxs.size(); i++) {
+    // Splits transactions into multiple dag blocks. Size of dag blocks should be about 5MB for 50 10k transactions
+    if ((i + 1) % 50 == 0) {
+      wait({10s, 10ms}, [&](auto& ctx) { ctx.fail_if(nodes[0]->getDagManager()->getMaxLevel() > last_dag_level); });
+      last_dag_level++;
+    }
+    nodes[0]->getTransactionManager()->insertTransaction(signed_trxs[i], true, false);
+  }
+  // Wait untill pbft block is created
+  wait({30s, 100ms}, [&](auto& ctx) { ctx.fail_if(nodes[0]->getPbftChain()->getPbftChainSize() == 0); });
+  EXPECT_GT(nodes[0]->getPbftChain()->getPbftChainSize(), 0);
+
+  // Verify that a block over MAX_PACKET_SIZE is created
+  auto pbft_blocks = nodes[0]->getPbftChain()->getPbftBlocks(1, 1);
+  size_t total_size = pbft_blocks[0].rlp().size();
+  auto blocks = nodes[0]->getDB()->getFinalizedDagBlockHashesByAnchor(pbft_blocks[0].pbft_blk->getPivotDagBlockHash());
+  for (auto b : blocks) {
+    auto block = nodes[0]->getDB()->getDagBlock(b);
+    total_size += block->rlp(true).size();
+    for (auto t : block->getTrxs()) {
+      auto trx = nodes[0]->getDB()->getTransaction(t);
+      total_size += trx->rlp(true)->size();
+    }
+  }
+  EXPECT_GT(total_size, MAX_PACKET_SIZE);
+
+  // Launch second node and verify that the large pbft block is synced
+  auto nodes2 = launch_nodes({node_cfgs[1]});
+  wait({30s, 100ms}, [&](auto& ctx) { ctx.fail_if(nodes2[0]->getPbftChain()->getPbftChainSize() == 0); });
+  EXPECT_GT(nodes2[0]->getPbftChain()->getPbftChainSize(), 0);
+
+  auto pbft_blocks1 = nodes[0]->getPbftChain()->getPbftBlocks(1, 1);
+  auto pbft_blocks2 = nodes2[0]->getPbftChain()->getPbftBlocks(1, 1);
+  EXPECT_EQ(pbft_blocks1[0].rlp(), pbft_blocks2[0].rlp());
+}
+
 // Test creates two Network setup and verifies sending transaction
 // between is successfull
 TEST_F(NetworkTest, transfer_transaction) {
@@ -564,7 +613,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_behind_round) {
 
   // Update next votes bundle and set PBFT round
   auto pbft_2t_plus_1 = 1;
-  node1->getNextVotesManager()->update(next_votes, pbft_2t_plus_1);
+  node1->getNextVotesManager()->updateNextVotes(next_votes, pbft_2t_plus_1);
   pbft_mgr1->setPbftRound(2);  // Make sure node2 PBFT round is less than node1
 
   FullNode::Handle node2(node_cfgs[1], true);
@@ -636,7 +685,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_1) {
 
   auto node1_next_votes_mgr = node1->getNextVotesManager();
   // Update next votes bundle
-  node1_next_votes_mgr->update(next_votes1, pbft_2t_plus_1);
+  node1_next_votes_mgr->updateNextVotes(next_votes1, pbft_2t_plus_1);
   EXPECT_EQ(node1_next_votes_mgr->getNextVotesSize(), next_votes1.size());
 
   // Generate 2 same next votes with node1, voted same value on NULL_BLOCK_HASH
@@ -650,7 +699,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_1) {
 
   auto node2_next_votes_mgr = node2->getNextVotesManager();
   // Update next votes bundle
-  node2_next_votes_mgr->update(next_votes2, pbft_2t_plus_1);
+  node2_next_votes_mgr->updateNextVotes(next_votes2, pbft_2t_plus_1);
   EXPECT_EQ(node2_next_votes_mgr->getNextVotesSize(), next_votes2.size());
 
   // Set PBFT previous round 2t+1 for syncing
@@ -693,7 +742,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
 
   auto next_votes_mgr1 = node1->getNextVotesManager();
   // Update node1 next votes bundle
-  next_votes_mgr1->update(next_votes1, pbft_2t_plus_1);
+  next_votes_mgr1->updateNextVotes(next_votes1, pbft_2t_plus_1);
   EXPECT_EQ(next_votes_mgr1->getNextVotesSize(), next_votes1.size());
 
   // Generate 3 different next votes with node1
@@ -708,7 +757,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
 
   auto next_votes_mgr2 = node2->getNextVotesManager();
   // Update node2 next votes bundle
-  next_votes_mgr2->update(next_votes2, pbft_2t_plus_1);
+  next_votes_mgr2->updateNextVotes(next_votes2, pbft_2t_plus_1);
   EXPECT_EQ(next_votes_mgr2->getNextVotesSize(), next_votes2.size());
 
   // Set node2 PBFT previous round 2t+1 for networking

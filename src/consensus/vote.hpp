@@ -222,7 +222,7 @@ class NextVotesForPreviousRound {
 
   void addNextVotes(std::vector<Vote> const& next_votes, size_t const pbft_2t_plus_1);
 
-  void update(std::vector<Vote> const& next_votes, size_t const pbft_2t_plus_1);
+  void updateNextVotes(std::vector<Vote> const& next_votes, size_t const pbft_2t_plus_1);
 
   void updateWithSyncedVotes(std::vector<Vote> const& votes, size_t const pbft_2t_plus_1);
 
