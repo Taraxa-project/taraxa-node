@@ -1269,17 +1269,18 @@ bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(blk_hash_t const &pbft_
   // Back to zero to signify no longer waiting...
   round_began_wait_proposal_block_ = 0;
 
-  return comparePbftBlockScheduleWithDAGblocks_(*pbft_block);
+  return comparePbftBlockScheduleWithDAGblocks_(*pbft_block).second;
 }
 
-bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(PbftBlock const &pbft_block) {
+std::pair<vec_blk_t, bool> PbftManager::comparePbftBlockScheduleWithDAGblocks_(PbftBlock const &pbft_block) {
   auto const &anchor_hash = pbft_block.getPivotDagBlockHash();
-  if (!dag_mgr_->getDagBlockOrder(anchor_hash).second->empty()) {
-    return true;
+  auto dag_blocks_order = dag_mgr_->getDagBlockOrder(anchor_hash).second;
+  if (!dag_blocks_order->empty()) {
+    return std::make_pair(*dag_blocks_order, true);
   }
 
   syncPbftChainFromPeers_(missing_dag_blk, anchor_hash);
-  return false;
+  return std::make_pair(*dag_blocks_order, false);
 }
 
 bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cert_voted_block_hash,
@@ -1293,11 +1294,13 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cer
     LOG(log_er_) << "Can not find the cert vote block hash " << cert_voted_block_hash << " in pbft queue";
     return false;
   }
-  if (!comparePbftBlockScheduleWithDAGblocks_(*pbft_block)) {
+  auto dag_blocks_order = comparePbftBlockScheduleWithDAGblocks_(*pbft_block);
+  if (!dag_blocks_order.second) {
+    LOG(log_nf_) << "DAG has not build up for PBFT block " << cert_voted_block_hash;
     return false;
   }
   PbftBlockCert pbft_block_cert_votes(*pbft_block, cert_votes_for_round);
-  if (!pushPbftBlock_(pbft_block_cert_votes)) {
+  if (!pushPbftBlock_(pbft_block_cert_votes, dag_blocks_order.first)) {
     LOG(log_er_) << "Failed push PBFT block " << pbft_block->getBlockHash() << " into chain";
     return false;
   }
@@ -1308,18 +1311,19 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cer
 
 void PbftManager::pushSyncedPbftBlocksIntoChain_() {
   size_t pbft_synced_queue_size;
+  auto round = getPbftRound();
   while (!pbft_chain_->pbftSyncedQueueEmpty()) {
     PbftBlockCert pbft_block_and_votes = pbft_chain_->pbftSyncedQueueFront();
-    auto round = getPbftRound();
-    LOG(log_dg_) << "Pick pbft block " << pbft_block_and_votes.pbft_blk->getBlockHash()
-                 << " from synced queue in round " << round;
-    if (pbft_chain_->findPbftBlockInChain(pbft_block_and_votes.pbft_blk->getBlockHash())) {
+    auto pbft_block_hash = pbft_block_and_votes.pbft_blk->getBlockHash();
+    LOG(log_nf_) << "Pick pbft block " << pbft_block_hash << " from synced queue in round " << round;
+
+    if (pbft_chain_->findPbftBlockInChain(pbft_block_hash)) {
       // pushed already from PBFT unverified queue, remove and skip it
       pbft_chain_->pbftSyncedQueuePopFront();
 
       pbft_synced_queue_size = pbft_chain_->pbftSyncedQueueSize();
       if (pbft_last_observed_synced_queue_size_ != pbft_synced_queue_size) {
-        LOG(log_dg_) << "PBFT block " << pbft_block_and_votes.pbft_blk->getBlockHash() << " already present in chain.";
+        LOG(log_dg_) << "PBFT block " << pbft_block_hash << " already present in chain.";
         LOG(log_dg_) << "PBFT synced queue still contains " << pbft_synced_queue_size
                      << " synced blocks that could not be pushed.";
       }
@@ -1332,31 +1336,23 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
                                                      sortition_threshold_, TWO_T_PLUS_ONE)) {
       // Failed cert votes validation, flush synced PBFT queue and set since
       // next block validation depends on the current one
-      LOG(log_er_) << "Synced PBFT block " << pbft_block_and_votes.pbft_blk->getBlockHash()
-                   << " doesn't have enough valid cert votes. Clear synced PBFT blocks!"
-                   << " DPOS total votes count: " << getDposTotalVotesCount();
+      LOG(log_er_) << "Synced PBFT block " << pbft_block_hash
+                   << " doesn't have enough valid cert votes. Clear synced PBFT blocks! DPOS total votes count: "
+                   << getDposTotalVotesCount();
       pbft_chain_->clearSyncedPbftBlocks();
       break;
     }
-    if (!pbft_chain_->checkPbftBlockValidation(*pbft_block_and_votes.pbft_blk)) {
-      // PBFT chain syncing faster than DAG syncing, wait!
-      pbft_synced_queue_size = pbft_chain_->pbftSyncedQueueSize();
-      if (pbft_last_observed_synced_queue_size_ != pbft_synced_queue_size) {
-        LOG(log_dg_) << "PBFT chain unable to push synced block " << pbft_block_and_votes.pbft_blk->getBlockHash();
-        LOG(log_dg_) << "PBFT synced queue still contains " << pbft_synced_queue_size
-                     << " synced blocks that could not be pushed.";
-      }
-      pbft_last_observed_synced_queue_size_ = pbft_synced_queue_size;
+
+    auto dag_blocks_order = comparePbftBlockScheduleWithDAGblocks_(*pbft_block_and_votes.pbft_blk);
+    if (!dag_blocks_order.second) {
+      LOG(log_nf_) << "DAG has not build up for anchor " << pbft_block_and_votes.pbft_blk->getPivotDagBlockHash()
+                   << " in PBFT block " << pbft_block_hash;
       break;
     }
-    if (!comparePbftBlockScheduleWithDAGblocks_(*pbft_block_and_votes.pbft_blk)) {
-      break;
-    }
-    if (pushPbftBlock_(pbft_block_and_votes)) {
-      LOG(log_nf_) << node_addr_ << " push synced PBFT block " << pbft_block_and_votes.pbft_blk->getBlockHash()
-                   << " in round " << round;
+    if (pushPbftBlock_(pbft_block_and_votes, dag_blocks_order.first)) {
+      LOG(log_nf_) << node_addr_ << " push synced PBFT block " << pbft_block_hash << " in round " << round;
     } else {
-      LOG(log_er_) << "Failed push PBFT block " << pbft_block_and_votes.pbft_blk->getBlockHash() << " into chain";
+      LOG(log_er_) << "Failed push PBFT block " << pbft_block_hash << " into chain";
       break;
     }
 
@@ -1405,7 +1401,7 @@ void PbftManager::finalize_(PbftBlock const &pbft_block, vector<h256> finalized_
   }
 }
 
-bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes) {
+bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes, vec_blk_t const &dag_blocks_order) {
   auto const &pbft_block_hash = pbft_block_cert_votes.pbft_blk->getBlockHash();
   if (db_->pbftBlockInDb(pbft_block_hash)) {
     LOG(log_er_) << "PBFT block: " << pbft_block_hash << " in DB already.";
@@ -1432,11 +1428,10 @@ bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes) {
 
   // Set DAG blocks period
   auto const &anchor_hash = pbft_block->getPivotDagBlockHash();
-  auto finalized_dag_blk_hashes = *dag_mgr_->getDagBlockOrder(anchor_hash).second;
-  dag_mgr_->setDagBlockOrder(anchor_hash, pbft_period, finalized_dag_blk_hashes, batch);
+  dag_mgr_->setDagBlockOrder(anchor_hash, pbft_period, dag_blocks_order, batch);
 
   // Add dag_block_period in DB
-  for (auto const &blk_hash : finalized_dag_blk_hashes) {
+  for (auto const &blk_hash : dag_blocks_order) {
     db_->addDagBlockPeriodToBatch(blk_hash, pbft_period, batch);
   }
 
@@ -1446,7 +1441,7 @@ bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes) {
   LOG(log_nf_) << node_addr_ << " successful push unexecuted PBFT block " << pbft_block_hash << " in period "
                << pbft_period << " into chain! In round " << getPbftRound();
 
-  finalize_(*pbft_block, move(finalized_dag_blk_hashes));
+  finalize_(*pbft_block, move(dag_blocks_order));
 
   // Reset proposed PBFT block hash to False for next pbft block proposal
   proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
