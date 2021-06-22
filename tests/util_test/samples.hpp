@@ -131,13 +131,13 @@ inline std::vector<Transaction> createMockTrxSamples(unsigned start, unsigned nu
   return trxs;
 }
 
-inline std::vector<Transaction> createSignedTrxSamples(unsigned start, unsigned num, secret_t const &sk) {
+inline std::vector<Transaction> createSignedTrxSamples(unsigned start, unsigned num, secret_t const &sk,
+                                                       bytes data = str2bytes("00FEDCBA9876543210000000")) {
   assert(start + num < std::numeric_limits<unsigned>::max());
   std::vector<Transaction> trxs;
   for (auto i = start; i < num; ++i) {
     blk_hash_t hash(i);
-    trxs.emplace_back(
-        Transaction(i, i * 100, 0, 1000000, str2bytes("00FEDCBA9876543210000000"), sk, addr_t((i + 1) * 100)));
+    trxs.emplace_back(Transaction(i, i * 100, 0, 1000000, data, sk, addr_t((i + 1) * 100)));
   }
   return trxs;
 }
