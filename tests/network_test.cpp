@@ -613,7 +613,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_behind_round) {
 
   // Update next votes bundle and set PBFT round
   auto pbft_2t_plus_1 = 1;
-  node1->getNextVotesManager()->update(next_votes, pbft_2t_plus_1);
+  node1->getNextVotesManager()->updateNextVotes(next_votes, pbft_2t_plus_1);
   pbft_mgr1->setPbftRound(2);  // Make sure node2 PBFT round is less than node1
 
   FullNode::Handle node2(node_cfgs[1], true);
@@ -685,7 +685,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_1) {
 
   auto node1_next_votes_mgr = node1->getNextVotesManager();
   // Update next votes bundle
-  node1_next_votes_mgr->update(next_votes1, pbft_2t_plus_1);
+  node1_next_votes_mgr->updateNextVotes(next_votes1, pbft_2t_plus_1);
   EXPECT_EQ(node1_next_votes_mgr->getNextVotesSize(), next_votes1.size());
 
   // Generate 2 same next votes with node1, voted same value on NULL_BLOCK_HASH
@@ -699,7 +699,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_1) {
 
   auto node2_next_votes_mgr = node2->getNextVotesManager();
   // Update next votes bundle
-  node2_next_votes_mgr->update(next_votes2, pbft_2t_plus_1);
+  node2_next_votes_mgr->updateNextVotes(next_votes2, pbft_2t_plus_1);
   EXPECT_EQ(node2_next_votes_mgr->getNextVotesSize(), next_votes2.size());
 
   // Set PBFT previous round 2t+1 for syncing
@@ -742,7 +742,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
 
   auto next_votes_mgr1 = node1->getNextVotesManager();
   // Update node1 next votes bundle
-  next_votes_mgr1->update(next_votes1, pbft_2t_plus_1);
+  next_votes_mgr1->updateNextVotes(next_votes1, pbft_2t_plus_1);
   EXPECT_EQ(next_votes_mgr1->getNextVotesSize(), next_votes1.size());
 
   // Generate 3 different next votes with node1
@@ -757,7 +757,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
 
   auto next_votes_mgr2 = node2->getNextVotesManager();
   // Update node2 next votes bundle
-  next_votes_mgr2->update(next_votes2, pbft_2t_plus_1);
+  next_votes_mgr2->updateNextVotes(next_votes2, pbft_2t_plus_1);
   EXPECT_EQ(next_votes_mgr2->getNextVotesSize(), next_votes2.size());
 
   // Set node2 PBFT previous round 2t+1 for networking

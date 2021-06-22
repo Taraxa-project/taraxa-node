@@ -375,7 +375,7 @@ void PbftManager::initialState_() {
                    << step;
       assert(false);
     }
-    previous_round_next_votes_->update(next_votes_in_previous_round, previous_round_2t_plus_1);
+    previous_round_next_votes_->updateNextVotes(next_votes_in_previous_round, previous_round_2t_plus_1);
   }
   LOG(log_nf_) << "Node initialize at round " << round << " step " << step
                << ". Previous round has enough next votes for NULL_BLOCK_HASH: " << std::boolalpha
@@ -550,14 +550,16 @@ bool PbftManager::stateOperations_() {
   if (state_ == certify_state && !have_executed_this_round_) {
     std::vector<Vote> cert_votes_for_round = getVotesOfTypeFromVotesForRoundAndStep_(
         cert_vote_type, votes_, round, 3, std::make_pair(NULL_BLOCK_HASH, false));
-    std::pair<blk_hash_t, bool> cert_voted_block_hash = blockWithEnoughVotes_(cert_votes_for_round);
-    if (cert_voted_block_hash.second) {
-      LOG(log_dg_) << "PBFT block " << cert_voted_block_hash.first << " has enough certed votes";
+    auto voted_block_hash_with_cert_votes = blockWithEnoughVotes_(cert_votes_for_round);
+    if (voted_block_hash_with_cert_votes.enough) {
+      LOG(log_dg_) << "PBFT block " << voted_block_hash_with_cert_votes.voted_block_hash << " has enough certed votes";
       // put pbft block into chain
-      if (pushCertVotedPbftBlockIntoChain_(cert_voted_block_hash.first, cert_votes_for_round)) {
+      if (pushCertVotedPbftBlockIntoChain_(voted_block_hash_with_cert_votes.voted_block_hash,
+                                           voted_block_hash_with_cert_votes.votes)) {
         db_->savePbftMgrStatus(PbftMgrStatus::executed_in_round, true);
         have_executed_this_round_ = true;
-        LOG(log_nf_) << "Write " << cert_votes_for_round.size() << " cert votes ... in round " << round;
+        LOG(log_nf_) << "Write " << voted_block_hash_with_cert_votes.votes.size() << " cert votes ... in round "
+                     << round;
 
         duration_ = std::chrono::system_clock::now() - now_;
         auto execute_trxs_in_ms = std::chrono::duration_cast<std::chrono::milliseconds>(duration_).count();
@@ -685,24 +687,27 @@ void PbftManager::certifyBlock_() {
     if (!soft_voted_block_for_this_round_.second) {
       auto soft_votes = getVotesOfTypeFromVotesForRoundAndStep_(soft_vote_type, votes_, round, 2,
                                                                 std::make_pair(NULL_BLOCK_HASH, false));
-      auto soft_voted_block_hash = blockWithEnoughVotes_(soft_votes);
+      auto voted_block_hash_with_soft_votes = blockWithEnoughVotes_(soft_votes);
 
       auto batch = db_->createWriteBatch();
-      db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::soft_voted_block_hash_in_round, soft_voted_block_hash.first,
-                                       batch);
-      db_->addPbftMgrStatusToBatch(PbftMgrStatus::soft_voted_block_in_round, soft_voted_block_hash.second, batch);
-      if (soft_voted_block_hash.second && soft_voted_block_hash.first != NULL_BLOCK_HASH) {
-        db_->addSoftVotesToBatch(round, soft_votes, batch);
+      db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::soft_voted_block_hash_in_round,
+                                       voted_block_hash_with_soft_votes.voted_block_hash, batch);
+      db_->addPbftMgrStatusToBatch(PbftMgrStatus::soft_voted_block_in_round, voted_block_hash_with_soft_votes.enough,
+                                   batch);
+      if (voted_block_hash_with_soft_votes.enough &&
+          voted_block_hash_with_soft_votes.voted_block_hash != NULL_BLOCK_HASH) {
+        db_->addSoftVotesToBatch(round, voted_block_hash_with_soft_votes.votes, batch);
       }
       db_->commitWriteBatch(batch);
 
-      soft_voted_block_for_this_round_ = soft_voted_block_hash;
+      soft_voted_block_for_this_round_ =
+          std::make_pair(voted_block_hash_with_soft_votes.voted_block_hash, voted_block_hash_with_soft_votes.enough);
 
-      if (soft_voted_block_hash.second && soft_voted_block_hash.first != NULL_BLOCK_HASH) {
+      if (soft_voted_block_for_this_round_.second && soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH) {
         LOG(log_dg_) << "Node has seen enough soft votes voted at " << soft_voted_block_for_this_round_.first
                      << ", regossip soft votes. In round " << round;
         if (auto net = network_.lock()) {
-          net->onNewPbftVotes(move(soft_votes));
+          net->onNewPbftVotes(move(voted_block_hash_with_soft_votes.votes));
         }
       }
     }
@@ -799,18 +804,21 @@ void PbftManager::secondFinish_() {
   if (!soft_voted_block_for_this_round_.second) {
     auto soft_votes = getVotesOfTypeFromVotesForRoundAndStep_(soft_vote_type, votes_, round, 2,
                                                               std::make_pair(NULL_BLOCK_HASH, false));
-    auto soft_voted_block_hash = blockWithEnoughVotes_(soft_votes);
+    auto voted_block_hash_with_soft_votes = blockWithEnoughVotes_(soft_votes);
 
     auto batch = db_->createWriteBatch();
-    db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::soft_voted_block_hash_in_round, soft_voted_block_hash.first,
-                                     batch);
-    db_->addPbftMgrStatusToBatch(PbftMgrStatus::soft_voted_block_in_round, soft_voted_block_hash.second, batch);
-    if (soft_voted_block_hash.second && soft_voted_block_hash.first != NULL_BLOCK_HASH) {
-      db_->addSoftVotesToBatch(round, soft_votes, batch);
+    db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::soft_voted_block_hash_in_round,
+                                     voted_block_hash_with_soft_votes.voted_block_hash, batch);
+    db_->addPbftMgrStatusToBatch(PbftMgrStatus::soft_voted_block_in_round, voted_block_hash_with_soft_votes.enough,
+                                 batch);
+    if (voted_block_hash_with_soft_votes.enough &&
+        voted_block_hash_with_soft_votes.voted_block_hash != NULL_BLOCK_HASH) {
+      db_->addSoftVotesToBatch(round, voted_block_hash_with_soft_votes.votes, batch);
     }
     db_->commitWriteBatch(batch);
 
-    soft_voted_block_for_this_round_ = soft_voted_block_hash;
+    soft_voted_block_for_this_round_ =
+        std::make_pair(voted_block_hash_with_soft_votes.voted_block_hash, voted_block_hash_with_soft_votes.enough);
   }
 
   if (!next_voted_soft_value_ && soft_voted_block_for_this_round_.second &&
@@ -885,11 +893,12 @@ uint64_t PbftManager::roundDeterminedFromVotes_() {
     if (rs_votes.second >= TWO_T_PLUS_ONE) {
       std::vector<Vote> next_votes_for_round_step = getVotesOfTypeFromVotesForRoundAndStep_(
           next_vote_type, votes_, rs_votes.first.first, rs_votes.first.second, std::make_pair(NULL_BLOCK_HASH, false));
-      if (blockWithEnoughVotes_(next_votes_for_round_step).second) {
+      auto voted_block_hash_with_next_votes = blockWithEnoughVotes_(next_votes_for_round_step);
+      if (voted_block_hash_with_next_votes.enough) {
         LOG(log_dg_) << "Found sufficient next votes in round " << rs_votes.first.first << ", step "
                      << rs_votes.first.second << ", PBFT 2t+1 " << TWO_T_PLUS_ONE;
         // Update next votes
-        previous_round_next_votes_->update(next_votes_for_round_step, TWO_T_PLUS_ONE);
+        previous_round_next_votes_->updateNextVotes(voted_block_hash_with_next_votes.votes, TWO_T_PLUS_ONE);
         auto next_votes = previous_round_next_votes_->getNextVotes();
 
         auto batch = db_->createWriteBatch();
@@ -908,14 +917,14 @@ uint64_t PbftManager::roundDeterminedFromVotes_() {
   return round;
 }
 
-// Assumption is that all votes are in the same round, step and of same type...
-std::pair<blk_hash_t, bool> PbftManager::blockWithEnoughVotes_(std::vector<Vote> const &votes) const {
+// Assumption is that all votes are in the same round, step and of same type
+votesBundle PbftManager::blockWithEnoughVotes_(std::vector<Vote> const &votes) const {
   if (votes.empty()) {
-    return std::make_pair(NULL_BLOCK_HASH, false);
+    return votesBundle();
   }
 
-  // <block_hash, count>, store in reverse order
-  std::map<blk_hash_t, size_t, std::greater<blk_hash_t>> tally_by_blockhash;
+  // <voted block hash, votes>
+  std::map<blk_hash_t, std::vector<Vote>> blockhash_votes_map;
   auto vote_type = votes[0].getType();
   auto vote_round = votes[0].getRound();
   auto vote_step = votes[0].getStep();
@@ -932,28 +941,28 @@ std::pair<blk_hash_t, bool> PbftManager::blockWithEnoughVotes_(std::vector<Vote>
       assert(false);
     }
 
-    auto blockhash = v.getBlockHash();
-    if (tally_by_blockhash.find(blockhash) != tally_by_blockhash.end()) {
-      tally_by_blockhash[blockhash] += 1;
+    auto voted_block_hash = v.getBlockHash();
+    if (blockhash_votes_map.count(voted_block_hash)) {
+      blockhash_votes_map[voted_block_hash].emplace_back(v);
     } else {
-      tally_by_blockhash[blockhash] = 1;
+      std::vector<Vote> voted_block_hash_votes{v};
+      blockhash_votes_map[voted_block_hash] = voted_block_hash_votes;
     }
 
-    for (auto const &blockhash_count : tally_by_blockhash) {
-      if (blockhash_count.second >= TWO_T_PLUS_ONE) {
-        LOG(log_dg_) << "Find block hash " << blockhash_count.first << " vote type " << vote_type << " in round "
-                     << vote_round << " step " << vote_step << " has " << blockhash_count.second << " votes";
-        return std::make_pair(blockhash_count.first, true);
+    for (auto const &blockhash_votes : blockhash_votes_map) {
+      if (blockhash_votes.second.size() == TWO_T_PLUS_ONE) {
+        LOG(log_dg_) << "Find voted block hash " << blockhash_votes.first << " vote type " << vote_type << " in round "
+                     << vote_round << " step " << vote_step << " has " << blockhash_votes.second.size() << " votes";
+        return votesBundle(true, blockhash_votes.first, blockhash_votes.second);
       } else {
-        LOG(log_tr_) << "Don't have enough votes. block hash " << blockhash_count.first << " vote type " << vote_type
-                     << " for round " << vote_round << " step " << vote_step << " has " << blockhash_count.second
-                     << " votes"
-                     << " (2TP1 = " << TWO_T_PLUS_ONE << ")";
+        LOG(log_tr_) << "Don't have enough votes. voted block hash " << blockhash_votes.first << " vote type "
+                     << vote_type << " for round " << vote_round << " step " << vote_step << " has "
+                     << blockhash_votes.second.size() << " votes (2TP1 = " << TWO_T_PLUS_ONE << ")";
       }
     }
   }
 
-  return std::make_pair(NULL_BLOCK_HASH, false);
+  return votesBundle();
 }
 
 std::vector<Vote> PbftManager::getVotesOfTypeFromVotesForRoundAndStep_(PbftVoteTypes vote_type,
@@ -1345,6 +1354,7 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
 
     auto dag_blocks_order = comparePbftBlockScheduleWithDAGblocks_(*pbft_block_and_votes.pbft_blk);
     if (!dag_blocks_order.second) {
+      // DAG blocks in unverified/verified queue, have not add to DAG yet
       LOG(log_nf_) << "DAG has not build up for anchor " << pbft_block_and_votes.pbft_blk->getPivotDagBlockHash()
                    << " in PBFT block " << pbft_block_hash;
       break;
