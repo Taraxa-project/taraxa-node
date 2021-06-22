@@ -10,7 +10,6 @@ set(prefix_ethash ethash/lib/ethash)
 ## and we can do it here more simplier
 add_library(
     ethash
-    STATIC
     ${prefix_ethash}/bit_manipulation.h
     ${prefix_ethash}/builtins.h
     ${prefix_ethash}/endianness.hpp
@@ -81,7 +80,7 @@ endfunction()
 # Add taraxa-vdf
 set(VDF_LIBRARY_COMMAND "\
  ${CMAKE_MAKE_PROGRAM}\
- CPPFLAGS=\"-I./include -I${CONAN_INCLUDE_DIRS_OPENSSL} -I${CONAN_INCLUDE_DIRS_GMP} -I${CONAN_INCLUDE_DIRS_MPFR} -std=c++17 -O3\"\
+ CPPFLAGS=\"-I./include -I${CONAN_INCLUDE_DIRS_OPENSSL} -I${CONAN_INCLUDE_DIRS_GMP} -I${CONAN_INCLUDE_DIRS_MPFR} -fPIC -std=c++17 -O3\"\
  lib/libvdf.a")
 add_make_target(vdf libvdf.a "${VDF_LIBRARY_COMMAND}")
 
@@ -90,7 +89,7 @@ add_make_target(vdf libvdf.a "${VDF_LIBRARY_COMMAND}")
 ## run autotools
 set(VRF_AUTOTOOLS_CMD "autoreconf && automake")
 ## run configure
-set(VRF_AUTOTOOLS_CMD "${VRF_AUTOTOOLS_CMD} && ./configure --enable-static=\"yes\" --enable-shared=\"no\" --prefix=${CMAKE_BINARY_DIR}/deps/taraxa-vrf")
+set(VRF_AUTOTOOLS_CMD "${VRF_AUTOTOOLS_CMD} && ./configure --enable-static=\"yes\" --enable-shared=\"no\" --with-pic=\"yes\" --prefix=${CMAKE_BINARY_DIR}/deps/taraxa-vrf")
 add_make_target(vrf libsodium.a "${VRF_AUTOTOOLS_CMD} && ${CMAKE_MAKE_PROGRAM} && ${CMAKE_MAKE_PROGRAM} install")
 
 

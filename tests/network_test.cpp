@@ -136,6 +136,55 @@ TEST_F(NetworkTest, send_pbft_block) {
                  [&](auto& ctx) { WAIT_EXPECT_EQ(ctx, nw1->getPeer(node2_id)->pbft_chain_size_, chain_size) });
 }
 
+TEST_F(NetworkTest, sync_large_pbft_block) {
+  const uint32_t MAX_PACKET_SIZE = 15 * 1024 * 1024;  // 15 MB -> 15 * 1024 * 1024 B
+  auto node_cfgs = make_node_cfgs<5>(2);
+  // Increase lambda to avoid pbft block created too soon
+  node_cfgs[0].chain.pbft.lambda_ms_min = 300;
+
+  // Create large transactions with 10k dummy data
+  bytes dummy_10k_data(100000, 0);
+  auto signed_trxs = samples::createSignedTrxSamples(0, 250, g_secret2, dummy_10k_data);
+  auto nodes = launch_nodes({node_cfgs[0]});
+  auto nw1 = nodes[0]->getNetwork();
+
+  size_t last_dag_level = 0;
+  for (size_t i = 0; i < signed_trxs.size(); i++) {
+    // Splits transactions into multiple dag blocks. Size of dag blocks should be about 5MB for 50 10k transactions
+    if ((i + 1) % 50 == 0) {
+      wait({10s, 10ms}, [&](auto& ctx) { ctx.fail_if(nodes[0]->getDagManager()->getMaxLevel() > last_dag_level); });
+      last_dag_level++;
+    }
+    nodes[0]->getTransactionManager()->insertTransaction(signed_trxs[i], true, false);
+  }
+  // Wait untill pbft block is created
+  wait({30s, 100ms}, [&](auto& ctx) { ctx.fail_if(nodes[0]->getPbftChain()->getPbftChainSize() == 0); });
+  EXPECT_GT(nodes[0]->getPbftChain()->getPbftChainSize(), 0);
+
+  // Verify that a block over MAX_PACKET_SIZE is created
+  auto pbft_blocks = nodes[0]->getPbftChain()->getPbftBlocks(1, 1);
+  size_t total_size = pbft_blocks[0].rlp().size();
+  auto blocks = nodes[0]->getDB()->getFinalizedDagBlockHashesByAnchor(pbft_blocks[0].pbft_blk->getPivotDagBlockHash());
+  for (auto b : blocks) {
+    auto block = nodes[0]->getDB()->getDagBlock(b);
+    total_size += block->rlp(true).size();
+    for (auto t : block->getTrxs()) {
+      auto trx = nodes[0]->getDB()->getTransaction(t);
+      total_size += trx->rlp(true)->size();
+    }
+  }
+  EXPECT_GT(total_size, MAX_PACKET_SIZE);
+
+  // Launch second node and verify that the large pbft block is synced
+  auto nodes2 = launch_nodes({node_cfgs[1]});
+  wait({30s, 100ms}, [&](auto& ctx) { ctx.fail_if(nodes2[0]->getPbftChain()->getPbftChainSize() == 0); });
+  EXPECT_GT(nodes2[0]->getPbftChain()->getPbftChainSize(), 0);
+
+  auto pbft_blocks1 = nodes[0]->getPbftChain()->getPbftBlocks(1, 1);
+  auto pbft_blocks2 = nodes2[0]->getPbftChain()->getPbftBlocks(1, 1);
+  EXPECT_EQ(pbft_blocks1[0].rlp(), pbft_blocks2[0].rlp());
+}
+
 // Test creates two Network setup and verifies sending transaction
 // between is successfull
 TEST_F(NetworkTest, transfer_transaction) {

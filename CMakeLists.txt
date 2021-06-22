@@ -17,7 +17,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_compile_options(-Wall -pedantic -Wextra -Werror -Wno-unknown-pragmas)
-# Set the position independent code property on all targets 
+# Set the position independent code property on all targets
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 if (APPLE)
@@ -59,8 +59,6 @@ if (TARAXA_ENABLE_SANITIZERS)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fsanitize=undefined")
 endif()
 message(STATUS "TARAXA_ENABLE_SANITIZERS: ${TARAXA_ENABLE_SANITIZERS}")
-
-set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 # Use ccache to speed-up recompilation
 find_program(CCACHE_PROGRAM ccache)
@@ -133,8 +131,14 @@ if (ENABLE_PACKAGE_INSTALLER)
 endif (ENABLE_PACKAGE_INSTALLER)
 
 if (TARAXA_STATIC_BUILD)
+    # all internal libs will be built as static if not explicitly specified as shared
+    set(BUILD_SHARED_LIBS OFF)
+
     set(CMAKE_FIND_LIBRARY_SUFFIXES ".a") # zlib does not support zlib_USE_STATIC_LIBS or similar approach
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++ -static-libgcc")
+else (TARAXA_STATIC_BUILD)
+    # all internal libs will be built as shared if not explicitly specified as static
+    set(BUILD_SHARED_LIBS ON)
 endif (TARAXA_STATIC_BUILD)
 
 # fix for boost thread library on MacOS
