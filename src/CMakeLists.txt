@@ -15,17 +15,6 @@ add_subdirectory(aleth)
 
 add_library(app_base INTERFACE)
 
-# TODO: have some problems with include dirs for imported targets
-get_target_property(TARAXA_VDF_INCUDE taraxa-vdf INTERFACE_INCLUDE_DIRECTORIES)
-get_target_property(TARAXA_VRF_INCUDE taraxa-vrf INTERFACE_INCLUDE_DIRECTORIES)
-
-
-target_include_directories(app_base INTERFACE
-        ${CMAKE_CURRENT_SOURCE_DIR}
-        ${TARAXA_VDF_INCUDE}
-        ${TARAXA_VRF_INCUDE}
-)
-
 # system libs should be included via -isystem so compiler knows how to
 # treat them. e.g. do not check for warnings
 target_include_directories(app_base SYSTEM INTERFACE
@@ -46,21 +35,7 @@ target_link_libraries(app_base INTERFACE
         storage
         transaction_manager
         util
-        taraxa-vrf
-        taraxa-vdf
-        taraxa-evm
-        pthread
-        CONAN_PKG::jsoncpp
-        CONAN_PKG::libjson-rpc-cpp
-        CONAN_PKG::openssl
-        CONAN_PKG::gmp
-        CONAN_PKG::lz4
-        CONAN_PKG::rocksdb
-        CONAN_PKG::mpfr
-        devcore
-        devcrypto
-        p2p
-        )
+)
 
 # needed for golang runtime that comes together with taraxa-evm
 if (APPLE)  # if "APPLE" not sufficient, use if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")

@@ -15,4 +15,18 @@ set(SOURCES
 
 add_library(transaction_manager ${SOURCES} ${HEADERS})
 target_include_directories(transaction_manager PUBLIC "include")
-target_link_libraries(transaction_manager PRIVATE common config dag logger storage network util aleth app_base)
+target_link_libraries(transaction_manager PUBLIC CONAN_PKG::rocksdb)
+target_link_libraries(transaction_manager PRIVATE 
+    common
+    config
+    consensus
+    final_chain 
+    dag
+    logger
+    storage
+    util
+    aleth 
+    taraxa-evm
+    CONAN_PKG::jsoncpp
+    CONAN_PKG::libjson-rpc-cpp
+)

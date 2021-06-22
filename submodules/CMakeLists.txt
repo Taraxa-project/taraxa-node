@@ -63,6 +63,9 @@ function(add_make_target libprefix libname buildcommand)
     set_property(TARGET taraxa-${libprefix} PROPERTY IMPORTED_LOCATION_RELEASE "${${libprefix}_LIBRARY}")
     set_property(TARGET taraxa-${libprefix} PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${${libprefix}_INCLUDE_DIR}")
     add_dependencies(taraxa-${libprefix} ${libprefix}_lib_submodule)
+
+    # add public includes
+    target_include_directories(taraxa-${libprefix} PUBLIC ${INTERFACE_INCLUDE_DIRECTORIES})
 endfunction()
 
 # Add taraxa-vdf

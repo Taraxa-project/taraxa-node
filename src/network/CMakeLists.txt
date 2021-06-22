@@ -92,6 +92,20 @@ set(SOURCES
 add_library(network ${SOURCES} ${HEADERS})
 target_include_directories(network PUBLIC "include")
 target_include_directories(network PUBLIC "../")
-target_link_libraries(network PRIVATE common config logger dag storage util aleth app_base)
+target_link_libraries(network PRIVATE 
+    common 
+    config 
+    consensus 
+    logger 
+    dag 
+    node 
+    storage 
+    util 
+    aleth
+    taraxa-evm
+    CONAN_PKG::boost 
+    CONAN_PKG::jsoncpp 
+    CONAN_PKG::libjson-rpc-cpp
+)
 
 add_subdirectory(rpc)

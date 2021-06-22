@@ -16,4 +16,23 @@ set(SOURCES
 
 add_library(dag ${SOURCES} ${HEADERS})
 target_include_directories(dag PUBLIC "include")
-target_link_libraries(dag PRIVATE common config logger storage util aleth app_base)
+target_link_libraries(dag PUBLIC
+    taraxa-vdf
+    CONAN_PKG::openssl
+    CONAN_PKG::mpfr
+)
+target_link_libraries(dag PRIVATE
+    common
+    config
+    consensus
+    final_chain
+    logger
+    storage
+    util
+    aleth
+    taraxa-evm
+    CONAN_PKG::openssl
+    CONAN_PKG::mpfr
+    CONAN_PKG::boost
+    CONAN_PKG::jsoncpp
+)

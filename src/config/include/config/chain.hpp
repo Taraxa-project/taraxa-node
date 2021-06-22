@@ -12,10 +12,8 @@
 #include "util/lazy.hpp"
 
 namespace taraxa::chain_config {
-using std::function;
 using std::string;
 using std::unordered_map;
-using ::taraxa::util::lazy::Lazy;
 using ::taraxa::util::lazy::LazyVal;
 
 struct ChainConfig {

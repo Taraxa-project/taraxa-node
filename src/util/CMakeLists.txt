@@ -18,4 +18,9 @@ set(SOURCES
 
 add_library(util ${SOURCES} ${HEADERS})
 target_include_directories(util PUBLIC "include")
-target_link_libraries(util PRIVATE app_base aleth)
+target_link_libraries(util PRIVATE 
+    common
+    aleth
+    CONAN_PKG::jsoncpp
+    CONAN_PKG::boost
+)

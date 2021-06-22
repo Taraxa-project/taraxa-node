@@ -18,4 +18,13 @@ set(SOURCES
 
 add_library(config ${SOURCES} ${HEADERS})
 target_include_directories(config PUBLIC "include")
-target_link_libraries(config PRIVATE app_base)
+target_link_libraries(config PRIVATE 
+    common 
+    consensus 
+    dag 
+    final_chain 
+    logger 
+    util 
+    aleth 
+    CONAN_PKG::jsoncpp
+)

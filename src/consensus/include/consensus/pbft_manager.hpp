@@ -5,12 +5,12 @@
 
 #include "common/types.hpp"
 #include "config/config.hpp"
+#include "consensus/pbft_chain.hpp"
+#include "consensus/vote.hpp"
+#include "consensus/vrf_wrapper.hpp"
 #include "logger/log.hpp"
 #include "network/network.hpp"
-#include "pbft_chain.hpp"
-#include "sync_queue.hpp"
-#include "vote.hpp"
-#include "vrf_wrapper.hpp"
+#include "network/taraxa_capability.hpp"
 
 #define NULL_BLOCK_HASH blk_hash_t(0)
 #define POLLING_INTERVAL_ms 100  // milliseconds...

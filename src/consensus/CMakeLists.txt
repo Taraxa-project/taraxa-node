@@ -16,4 +16,19 @@ set(SOURCES
 
 add_library(consensus ${SOURCES} ${HEADERS})
 target_include_directories(consensus PUBLIC "include")
-target_link_libraries(consensus PUBLIC logger network storage aleth app_base)
+target_link_libraries(consensus PUBLIC 
+    common
+    config
+    dag
+    final_chain
+    logger
+    network
+    storage
+    taraxa-vrf
+    transaction_manager
+    util
+    aleth
+    taraxa-evm
+    CONAN_PKG::boost
+    CONAN_PKG::jsoncpp
+)

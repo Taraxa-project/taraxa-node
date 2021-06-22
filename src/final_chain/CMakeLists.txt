@@ -18,4 +18,17 @@ set(SOURCES
 
 add_library(final_chain ${SOURCES} ${HEADERS})
 target_include_directories(final_chain PUBLIC "include")
-target_link_libraries(final_chain PRIVATE transaction_manager common config logger storage util aleth app_base)
+target_link_libraries(final_chain PUBLIC)
+target_link_libraries(final_chain PRIVATE 
+    common 
+    consensus 
+    config 
+    dag 
+    logger 
+    storage 
+    transaction_manager 
+    util 
+    aleth 
+    taraxa-evm
+    CONAN_PKG::jsoncpp
+)

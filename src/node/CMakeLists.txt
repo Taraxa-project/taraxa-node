@@ -8,4 +8,21 @@ set(SOURCES
 
 add_library(node ${SOURCES} ${HEADERS})
 target_include_directories(node PUBLIC "include")
-target_link_libraries(node PRIVATE common config logger dag storage network util aleth app_base)
+target_link_libraries(node PRIVATE
+    common
+    config
+    consensus
+    dag
+    final_chain
+    logger
+    network
+    storage
+    taraxa-vrf
+    transaction_manager
+    util
+    aleth
+    taraxa-evm
+    CONAN_PKG::boost
+    CONAN_PKG::jsoncpp
+    CONAN_PKG::libjson-rpc-cpp
+)

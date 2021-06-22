@@ -13,4 +13,9 @@ set(SOURCES
 
 add_library(cli ${SOURCES} ${HEADERS})
 target_include_directories(cli PUBLIC "include")
-target_link_libraries(cli PRIVATE consensus CONAN_PKG::jsoncpp CONAN_PKG::boost)
+target_link_libraries(cli PRIVATE 
+    config 
+    consensus 
+    CONAN_PKG::jsoncpp 
+    CONAN_PKG::boost
+)
