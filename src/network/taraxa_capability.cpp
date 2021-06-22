@@ -1528,9 +1528,15 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync, 
         dag_rlp.appendRaw(transactions[trx_idx]);
       }
 
+      // When checking if size limit exceeds MAX_PACKET_SIZE there are few bytes or rlp structure that is added
+      // for the pbft block and dag block. This should be just a couple of bytes but we enforece even stricter 128 limit
+      static const int RLP_OVERHEAD = 128;
+
       // Check if PBFT blocks need to be split and sent in multiple packets so we dont exceed
       // MAX_PACKET_SIZE (15 MB) limit
-      if (act_packet_size + dag_blocks_size + dag_rlp.out().size() > MAX_PACKET_SIZE) {
+      if (act_packet_size + dag_blocks_size + dag_rlp.out().size() + pbft_blocks[pbft_block_idx].rlp().size() +
+              RLP_OVERHEAD >
+          MAX_PACKET_SIZE) {
         LOG(log_dg_dag_sync_) << "Sending partial PbftBlockPacket due tu MAX_PACKET_SIZE limit. " << pbft_block_idx + 1
                               << " blocks out of " << pbft_blocks.size() << " sent.";
 
