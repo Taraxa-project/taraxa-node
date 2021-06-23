@@ -487,7 +487,7 @@ workflows:
   
   build-and-deploy-image:
     when:
-      or:
+      and:
          not:
            - << pipeline.parameters.deploy_prnet >>
            - << pipeline.parameters.redeploy_prnet >>
