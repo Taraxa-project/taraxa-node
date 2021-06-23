@@ -762,33 +762,31 @@ void PbftManager::firstFinish_() {
 
   auto voted_value = previous_round_next_votes_->getVotedValue();
 
-  if (have_cert_voted_in_this_round_)
-    auto place_votes = placeVote_(soft_voted_block_for_this_round_.first, next_vote_type, round, step_);
-  if (place_votes) {
-    LOG(log_nf_) << "Next votes " << place_votes << " voting cert voted value "
-                 << soft_voted_block_for_this_round_.first << " for round " << round << " , step " << step_;
-  }
-}
-else if (round >= 2 && giveUpVotedBlock_(voted_value)) {
-  auto place_votes = placeVote_(NULL_BLOCK_HASH, next_vote_type, round, step_);
-  if (place_votes) {
-    LOG(log_nf_) << "Next votes " << place_votes << " voting NULL BLOCK for round " << round << ", at step " << step_;
-  }
-}
-else {
-  if (own_starting_value_for_round_ == NULL_BLOCK_HASH) {
-    if (voted_value != NULL_BLOCK_HASH && !reset_own_value_to_null_block_hash_in_this_round_) {
-      db_->savePbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round, voted_value);
-      own_starting_value_for_round_ = voted_value;
-      LOG(log_dg_) << "Updating own starting to previous round next voted value of " << voted_value;
+  if (have_cert_voted_in_this_round_) {
+    size_t place_votes = placeVote_(soft_voted_block_for_this_round_.first, next_vote_type, round, step_);
+    if (place_votes) {
+      LOG(log_nf_) << "Next votes " << place_votes << " voting cert voted value "
+                   << soft_voted_block_for_this_round_.first << " for round " << round << " , step " << step_;
+    }
+  } else if (round >= 2 && giveUpVotedBlock_(voted_value)) {
+    auto place_votes = placeVote_(NULL_BLOCK_HASH, next_vote_type, round, step_);
+    if (place_votes) {
+      LOG(log_nf_) << "Next votes " << place_votes << " voting NULL BLOCK for round " << round << ", at step " << step_;
+    }
+  } else {
+    if (own_starting_value_for_round_ == NULL_BLOCK_HASH) {
+      if (voted_value != NULL_BLOCK_HASH && !reset_own_value_to_null_block_hash_in_this_round_) {
+        db_->savePbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round, voted_value);
+        own_starting_value_for_round_ = voted_value;
+        LOG(log_dg_) << "Updating own starting to previous round next voted value of " << voted_value;
+      }
+    }
+    auto place_votes = placeVote_(own_starting_value_for_round_, next_vote_type, round, step_);
+    if (place_votes) {
+      LOG(log_nf_) << "Next votes " << place_votes << " voting nodes own starting value "
+                   << own_starting_value_for_round_ << " for round " << round << ", at step " << step_;
     }
   }
-  auto place_votes = placeVote_(own_starting_value_for_round_, next_vote_type, round, step_);
-  if (place_votes) {
-    LOG(log_nf_) << "Next votes " << place_votes << " voting nodes own starting value " << own_starting_value_for_round_
-                 << " for round " << round << ", at step " << step_;
-  }
-}
 }
 
 void PbftManager::secondFinish_() {
@@ -1013,7 +1011,9 @@ size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteType
 }
 
 void PbftManager::placeVoteForNewLeaderBlock_() {
+  auto round = getPbftRound();
   auto leader_block = identifyLeaderBlock_(votes_);
+
   if (leader_block.second) {
     db_->savePbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round, leader_block.first);
     own_starting_value_for_round_ = leader_block.first;
@@ -1189,7 +1189,7 @@ std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_(std::vector<Vote> 
                         });
   if (leader.second != last_soft_voted_value_since_round_.first) {
     last_soft_voted_value_since_round_ = std::make_pair(leader.second, round);
-    log(log_nf_) << "Update last soft voted value " << leader.second << " since round " << round;
+    LOG(log_nf_) << "Update last soft voted value " << leader.second << " since round " << round;
   }
 
   return std::make_pair(leader.second, true);

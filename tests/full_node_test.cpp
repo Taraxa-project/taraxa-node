@@ -136,28 +136,33 @@ TEST_F(FullNodeTest, db_test) {
 
   // PBFT manager status
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::soft_voted_block_in_round));
+  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::cert_voted_block_in_round));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::executed_block));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::executed_in_round));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::next_voted_soft_value));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::next_voted_null_block_hash));
   db.savePbftMgrStatus(PbftMgrStatus::soft_voted_block_in_round, true);
+  db.savePbftMgrStatus(PbftMgrStatus::cert_voted_block_in_round, true);
   db.savePbftMgrStatus(PbftMgrStatus::executed_block, true);
   db.savePbftMgrStatus(PbftMgrStatus::executed_in_round, true);
   db.savePbftMgrStatus(PbftMgrStatus::next_voted_soft_value, true);
   db.savePbftMgrStatus(PbftMgrStatus::next_voted_null_block_hash, true);
   EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::soft_voted_block_in_round));
+  EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::cert_voted_block_in_round));
   EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::executed_block));
   EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::executed_in_round));
   EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::next_voted_soft_value));
   EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::next_voted_null_block_hash));
   batch = db.createWriteBatch();
   db.addPbftMgrStatusToBatch(PbftMgrStatus::soft_voted_block_in_round, false, batch);
+  db.addPbftMgrStatusToBatch(PbftMgrStatus::cert_voted_block_in_round, false, batch);
   db.addPbftMgrStatusToBatch(PbftMgrStatus::executed_block, false, batch);
   db.addPbftMgrStatusToBatch(PbftMgrStatus::executed_in_round, false, batch);
   db.addPbftMgrStatusToBatch(PbftMgrStatus::next_voted_soft_value, false, batch);
   db.addPbftMgrStatusToBatch(PbftMgrStatus::next_voted_null_block_hash, false, batch);
   db.commitWriteBatch(batch);
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::soft_voted_block_in_round));
+  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::cert_voted_block_in_round));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::executed_block));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::executed_in_round));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::next_voted_soft_value));
@@ -176,17 +181,6 @@ TEST_F(FullNodeTest, db_test) {
   db.commitWriteBatch(batch);
   EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round), blk_hash_t(4));
   EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::soft_voted_block_hash_in_round), blk_hash_t(5));
-
-  // PBFT cert voted block hash
-  EXPECT_EQ(db.getPbftCertVotedBlockHash(1), nullptr);
-  db.savePbftCertVotedBlockHash(1, blk_hash_t(1));
-  EXPECT_EQ(*db.getPbftCertVotedBlockHash(1), blk_hash_t(1));
-  batch = db.createWriteBatch();
-  db.addPbftCertVotedBlockHashToBatch(1, blk_hash_t(2), batch);
-  db.addPbftCertVotedBlockHashToBatch(2, blk_hash_t(3), batch);
-  db.commitWriteBatch(batch);
-  EXPECT_EQ(*db.getPbftCertVotedBlockHash(1), blk_hash_t(2));
-  EXPECT_EQ(*db.getPbftCertVotedBlockHash(2), blk_hash_t(3));
 
   // PBFT cert voted block
   auto pbft_block1 = make_simple_pbft_block(blk_hash_t(1), 1);
