@@ -344,7 +344,7 @@ jobs:
         - run:
            name: Execute ctest
            command: |
-             ulimit -n 1024
+             ulimit -n 2048
              cd cmake-build/tests && ctest --output-on-failure
         - store_artifacts:
            path: $HOME/project/release/taraxad-macos
