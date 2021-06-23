@@ -198,8 +198,8 @@ class PbftManager {
   bool loop_back_finish_state_ = false;
   bool reset_own_value_to_null_block_hash_in_this_round_ = false;
 
+  size_t const max_wait_rounds_for_proposal_block_ = 5;
   uint64_t round_began_wait_proposal_block_ = 0;
-  size_t max_wait_rounds_for_proposal_block_ = 5;
   uint64_t round_began_wait_voted_block_ = 0;
 
   uint64_t pbft_round_last_requested_sync_ = 0;
