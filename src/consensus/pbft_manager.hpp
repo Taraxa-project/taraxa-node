@@ -113,6 +113,7 @@ class PbftManager {
                                                             std::pair<blk_hash_t, bool> blockhash);
 
   size_t placeVote_(blk_hash_t const &blockhash, PbftVoteTypes vote_type, uint64_t round, size_t step);
+  void placeVoteForNewLeaderBlock_();
 
   std::pair<blk_hash_t, bool> proposeMyPbftBlock_();
 
@@ -176,9 +177,9 @@ class PbftManager {
   size_t step_ = 1;
 
   blk_hash_t own_starting_value_for_round_ = NULL_BLOCK_HASH;
-  // <round, cert_voted_block_hash>
-  std::unordered_map<size_t, blk_hash_t> cert_voted_values_for_round_;
+
   std::pair<blk_hash_t, bool> soft_voted_block_for_this_round_ = std::make_pair(NULL_BLOCK_HASH, false);
+  std::pair<blk_hash_t, uint64_t> last_soft_voted_value_since_round_ = std::make_pair(NULL_BLOCK_HASH, 0);
 
   std::vector<Vote> votes_;
 
@@ -190,7 +191,7 @@ class PbftManager {
 
   bool executed_pbft_block_ = false;
   bool have_executed_this_round_ = false;
-  bool should_have_cert_voted_in_this_round_ = false;
+  bool have_cert_voted_in_this_round_ = false;
   bool next_voted_soft_value_ = false;
   bool next_voted_null_block_hash_ = false;
   bool go_finish_state_ = false;
