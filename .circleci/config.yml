@@ -487,10 +487,10 @@ workflows:
   
   build-and-deploy-image:
     when:
-         not:
-           - << pipeline.parameters.deploy_prnet >>
-           - << pipeline.parameters.redeploy_prnet >>
-           - << pipeline.parameters.cleanup_prnet >>
+         and:
+           - not: << pipeline.parameters.deploy_prnet >>
+           - not: << pipeline.parameters.redeploy_prnet >>
+           - not: << pipeline.parameters.cleanup_prnet >>
     jobs:
       - build-and-push-docker-image:
          context: taraxa-node
