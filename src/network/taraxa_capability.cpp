@@ -567,7 +567,9 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
 
       LOG(log_dg_pbft_sync_) << "Will send " << blocks_to_transfer << " PBFT blocks to " << _nodeID;
       // If blocks_to_transfer is 0, send peer empty PBFT blocks for talking to peer syncing has completed
-      sendPbftBlocks(_nodeID, height_to_sync, blocks_to_transfer);
+      syncing_tp_.post([_nodeID, height_to_sync, blocks_to_transfer, this] {
+        sendPbftBlocks(_nodeID, height_to_sync, blocks_to_transfer);
+      });
       break;
     }
 

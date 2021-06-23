@@ -123,8 +123,14 @@ struct TaraxaCapability : virtual CapabilityFace {
   void onDisconnect(NodeID const &_nodeID) override;
 
   // TODO remove managing thread pool inside this class
-  void start() { tp_.start(); }
-  void stop() { tp_.stop(); }
+  void start() {
+    tp_.start();
+    syncing_tp_.start();
+  }
+  void stop() {
+    tp_.stop();
+    syncing_tp_.stop();
+  }
 
   void sealAndSend(NodeID const &nodeID, unsigned packet_type, RLPStream rlp);
   bool pbft_syncing() const { return syncing_.load(); }
@@ -189,6 +195,8 @@ struct TaraxaCapability : virtual CapabilityFace {
   weak_ptr<Host> host_;
   NodeID node_id_;
   util::ThreadPool tp_{1, false};
+
+  util::ThreadPool syncing_tp_{1, false};
 
   atomic<bool> syncing_ = false;
   bool requesting_pending_dag_blocks_ = false;
