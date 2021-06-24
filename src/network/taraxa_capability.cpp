@@ -574,21 +574,23 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
           host->disconnect(_nodeID, p2p::UserReason);
           break;
         }
-        uint32_t total_wait_time = 0;
-        while (tp_.num_pending_tasks() > MAX_NETWORK_QUEUE_TO_DROP_SYNCING) {
-          uint32_t delay_time = MAX_TIME_TO_WAIT_FOR_QUEUE_TO_CLEAR_MS / 10;
-          thisThreadSleepForMilliSeconds(delay_time);
-          total_wait_time += delay_time;
-          if (total_wait_time >= MAX_TIME_TO_WAIT_FOR_QUEUE_TO_CLEAR_MS) {
-            LOG(log_er_pbft_sync_) << "Node is busy with " << tp_.num_pending_tasks() << " network packets. Host "
-                                   << _nodeID.abridged() << " will be disconnected";
-            host->disconnect(_nodeID, p2p::UserReason);
-            break;
-          }
-        }
       }
       // If blocks_to_transfer is 0, send peer empty PBFT blocks for talking to peer syncing has completed
-      syncing_tp_.post([_nodeID, height_to_sync, blocks_to_transfer, this] {
+      syncing_tp_.post([host, _nodeID, height_to_sync, blocks_to_transfer, this] {
+        if (blocks_to_transfer > 0) {
+          uint32_t total_wait_time = 0;
+          while (tp_.num_pending_tasks() > MAX_NETWORK_QUEUE_TO_DROP_SYNCING) {
+            uint32_t delay_time = MAX_TIME_TO_WAIT_FOR_QUEUE_TO_CLEAR_MS / 10;
+            thisThreadSleepForMilliSeconds(delay_time);
+            total_wait_time += delay_time;
+            if (total_wait_time >= MAX_TIME_TO_WAIT_FOR_QUEUE_TO_CLEAR_MS) {
+              LOG(log_er_pbft_sync_) << "Node is busy with " << tp_.num_pending_tasks() << " network packets. Host "
+                                     << _nodeID.abridged() << " will be disconnected";
+              host->disconnect(_nodeID, p2p::UserReason);
+              break;
+            }
+          }
+        }
         sendPbftBlocks(_nodeID, height_to_sync, blocks_to_transfer);
       });
       break;

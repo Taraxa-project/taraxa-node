@@ -254,8 +254,8 @@ struct TaraxaCapability : virtual CapabilityFace {
   // Only allow up to 2 nodes syncing from our node
   const uint16_t MAX_SYNCING_NODES = 2;
 
-  // If there are more than 10 packets in queue to be processed syncing will be delayed or node disconnected in queue not
-  // cleared in defined time
+  // If there are more than 10 packets in queue to be processed syncing will be delayed or node disconnected in queue
+  // not cleared in defined time
   const uint16_t MAX_NETWORK_QUEUE_TO_DROP_SYNCING = 10;
   const uint16_t MAX_TIME_TO_WAIT_FOR_QUEUE_TO_CLEAR_MS = 2000;
 
