@@ -51,7 +51,6 @@ using secret_t = dev::SecureFixedHash<32>;
 using public_t = uint512_hash_t;
 using addr_t = uint160_hash_t;
 using sig_t = uint520_hash_t;
-using sig_hash_t = uint256_hash_t;
 using vote_hash_t = uint256_hash_t;
 using blk_hash_t = uint256_hash_t;
 using trx_hash_t = uint256_hash_t;

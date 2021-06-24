@@ -57,19 +57,6 @@ std::vector<T> asVector(Json::Value const &json) {
   return v;
 }
 
-template <typename T>
-std::ostream &operator<<(std::ostream &strm, std::vector<T> const &vec) {
-  for (auto const &i : vec) {
-    strm << i << " ";
-  }
-  return strm;
-}
-template <typename U, typename V>
-std::ostream &operator<<(std::ostream &strm, std::pair<U, V> const &pair) {
-  strm << "[ " << pair.first << " , " << pair.second << "]";
-  return strm;
-}
-
 using stream = std::basic_streambuf<uint8_t>;
 using bufferstream = boost::iostreams::stream_buffer<boost::iostreams::basic_array_source<uint8_t>>;
 using vectorstream = boost::iostreams::stream_buffer<boost::iostreams::back_insert_device<std::vector<uint8_t>>>;

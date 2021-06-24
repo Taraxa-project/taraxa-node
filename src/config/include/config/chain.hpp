@@ -5,10 +5,9 @@
 #include <functional>
 #include <unordered_map>
 
+#include "config/final_chain.hpp"
 #include "config/pbft.hpp"
 #include "dag/dag_block.hpp"
-#include "final_chain/data.hpp"
-#include "final_chain/final_chain.hpp"
 #include "util/lazy.hpp"
 
 namespace taraxa::chain_config {

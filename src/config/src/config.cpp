@@ -212,8 +212,8 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
 
   network.network_id = chain.chain_id;
   // TODO configurable
-  opts_final_chain.state_api.expected_max_trx_per_block = 1000;
-  opts_final_chain.state_api.max_trie_full_node_levels_to_cache = 4;
+  opts_final_chain.expected_max_trx_per_block = 1000;
+  opts_final_chain.max_trie_full_node_levels_to_cache = 4;
 }
 
 void FullNodeConfig::validate() {
@@ -241,10 +241,10 @@ void FullNodeConfig::validate() {
   // TODO validate that the boot node list doesn't contain self (although it's not critical)
   for (auto const &node : network.network_boot_nodes) {
     if (node.ip.empty()) {
-      throw ConfigException(string("Boot node ip is empty:") + node.ip + ":" + to_string(node.tcp_port));
+      throw ConfigException(std::string("Boot node ip is empty:") + node.ip + ":" + std::to_string(node.tcp_port));
     }
     if (node.tcp_port == 0) {
-      throw ConfigException(string("Boot node port invalid: ") + to_string(node.tcp_port));
+      throw ConfigException(std::string("Boot node port invalid: ") + std::to_string(node.tcp_port));
     }
   }
   // TODO: add validation of other config values

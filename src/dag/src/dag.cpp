@@ -1,5 +1,7 @@
 #include "dag/dag.hpp"
 
+#include <libdevcore/CommonIO.h>
+
 #include <algorithm>
 #include <fstream>
 #include <queue>

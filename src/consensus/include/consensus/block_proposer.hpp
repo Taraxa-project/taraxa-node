@@ -7,8 +7,6 @@
 
 #include "boost/thread.hpp"
 #include "config/config.hpp"
-#include "dag/dag_block_manager.hpp"
-#include "dag/vdf_sortition.hpp"
 #include "logger/log.hpp"
 #include "network/network.hpp"
 

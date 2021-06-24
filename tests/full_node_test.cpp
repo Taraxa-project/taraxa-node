@@ -1348,7 +1348,6 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   EXPECT_EQ(num_vertices1, num_vertices2);
   EXPECT_EQ(num_vertices2, num_vertices3);
   EXPECT_EQ(num_vertices3, num_vertices4);
-  std::cout << "DAG size " << num_vertices0 << std::endl;
 
   // Check duplicate transactions in single one DAG block
   auto ordered_dag_blocks = getOrderedDagBlocks(nodes[0]->getDB());

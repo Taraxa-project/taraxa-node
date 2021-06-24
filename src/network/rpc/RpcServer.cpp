@@ -31,7 +31,7 @@ bool RpcServer::StartListening() {
 }
 
 void RpcServer::accept() {
-  auto connection(make_shared<RpcConnection>(shared_from_this()));
+  auto connection(std::make_shared<RpcConnection>(shared_from_this()));
   acceptor_.async_accept(connection->getSocket(), [this, connection](auto const &ec) {
     if (ec) {
       LOG(log_er_) << "Error! Rpc async_accept error ... " << ec.message() << "\n";

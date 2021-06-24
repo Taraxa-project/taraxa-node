@@ -3,7 +3,7 @@
 #include <json/json.h>
 
 #include "common/types.hpp"
-#include "final_chain/state_api_data.hpp"
+#include "config/state_api.hpp"
 
 namespace taraxa::final_chain {
 

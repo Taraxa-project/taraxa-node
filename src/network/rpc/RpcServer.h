@@ -20,7 +20,7 @@ struct RpcServer final : std::enable_shared_from_this<RpcServer>, jsonrpc::Abstr
 
   struct Error {
     int code = jsonrpc::Errors::ERROR_RPC_INTERNAL_ERROR;
-    stringstream message;
+    std::stringstream message;
     Json::Value data{Json::objectValue};
   };
 

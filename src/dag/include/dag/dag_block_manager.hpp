@@ -1,10 +1,11 @@
 #pragma once
 
-#include "dag_block.hpp"
+#include "config/state_api.hpp"
+#include "dag/dag_block.hpp"
+#include "dag/vdf_sortition.hpp"
 #include "final_chain/final_chain.hpp"
 #include "transaction_manager/transaction.hpp"
 #include "transaction_manager/transaction_manager.hpp"
-#include "vdf_sortition.hpp"
 
 namespace taraxa {
 
@@ -15,7 +16,7 @@ using BlockStatusTable = ExpirationCacheMap<blk_hash_t, BlockStatus>;
 // Thread safe
 class DagBlockManager {
  public:
-  DagBlockManager(addr_t node_addr, VdfConfig const &vdf_config, optional<state_api::DPOSConfig> dpos_config,
+  DagBlockManager(addr_t node_addr, VdfConfig const &vdf_config, std::optional<state_api::DPOSConfig> dpos_config,
                   unsigned verify_threads, std::shared_ptr<DbStorage> db, std::shared_ptr<TransactionManager> trx_mgr,
                   std::shared_ptr<FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain,
                   logger::Logger log_time_, uint32_t queue_limit = 0);
@@ -95,7 +96,7 @@ class DagBlockManager {
   std::map<uint64_t, std::deque<DagBlock>> verified_qu_;
 
   VdfConfig vdf_config_;
-  optional<state_api::DPOSConfig> dpos_config_;
+  std::optional<state_api::DPOSConfig> dpos_config_;
 
   LOG_OBJECTS_DEFINE
 };

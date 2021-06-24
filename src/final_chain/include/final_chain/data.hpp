@@ -82,10 +82,6 @@ struct TransactionLocation {
   HAS_RLP_FIELDS
 };
 
-struct Opts {
-  state_api::Opts state_api;
-};
-
 struct NewBlock {
   addr_t author;
   uint64_t timestamp;
