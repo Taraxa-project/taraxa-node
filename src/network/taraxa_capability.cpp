@@ -577,6 +577,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       }
       // If blocks_to_transfer is 0, send peer empty PBFT blocks for talking to peer syncing has completed
       syncing_tp_.post([host, _nodeID, height_to_sync, blocks_to_transfer, this] {
+        bool send_blocks = true;
         if (blocks_to_transfer > 0) {
           uint32_t total_wait_time = 0;
           while (tp_.num_pending_tasks() > MAX_NETWORK_QUEUE_TO_DROP_SYNCING) {
@@ -587,11 +588,12 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
               LOG(log_er_pbft_sync_) << "Node is busy with " << tp_.num_pending_tasks() << " network packets. Host "
                                      << _nodeID.abridged() << " will be disconnected";
               host->disconnect(_nodeID, p2p::UserReason);
+              send_blocks = false;
               break;
             }
           }
         }
-        sendPbftBlocks(_nodeID, height_to_sync, blocks_to_transfer);
+        if (send_blocks) sendPbftBlocks(_nodeID, height_to_sync, blocks_to_transfer);
       });
       break;
     }
