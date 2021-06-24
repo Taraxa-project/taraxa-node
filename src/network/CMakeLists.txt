@@ -96,13 +96,16 @@ target_link_libraries(network PRIVATE
     common 
     config 
     consensus 
+    dag
+    final_chain
     logger 
-    dag 
     node 
     storage 
-    util 
+    util
+    transaction_manager
     aleth
     taraxa-evm
+    taraxa-vrf
     CONAN_PKG::boost 
     CONAN_PKG::jsoncpp 
     CONAN_PKG::libjson-rpc-cpp

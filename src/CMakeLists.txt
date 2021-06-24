@@ -36,6 +36,9 @@ target_link_libraries(app_base
         storage
         transaction_manager
         util
+        aleth
+        taraxa-evm
+        taraxa-vrf
 )
 
 # needed for golang runtime that comes together with taraxa-evm

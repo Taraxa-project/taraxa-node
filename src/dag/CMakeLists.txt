@@ -28,9 +28,11 @@ target_link_libraries(dag PRIVATE
     final_chain
     logger
     storage
+    transaction_manager
     util
     aleth
     taraxa-evm
+    taraxa-vrf
     CONAN_PKG::openssl
     CONAN_PKG::mpfr
     CONAN_PKG::boost

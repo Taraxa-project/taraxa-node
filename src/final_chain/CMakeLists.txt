@@ -30,5 +30,6 @@ target_link_libraries(final_chain PRIVATE
     util 
     aleth 
     taraxa-evm
+    taraxa-vrf
     CONAN_PKG::jsoncpp
 )

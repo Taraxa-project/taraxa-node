@@ -14,8 +14,14 @@ set(SOURCES
 add_library(cli STATIC ${SOURCES} ${HEADERS})
 target_include_directories(cli PUBLIC "include")
 target_link_libraries(cli PRIVATE 
-    config 
-    consensus 
+    config
+    common
+    consensus
+    dag
+    util
+    logger
+    aleth
+    taraxa-vrf
     CONAN_PKG::jsoncpp 
     CONAN_PKG::boost
 )

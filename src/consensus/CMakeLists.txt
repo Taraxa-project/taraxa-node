@@ -16,7 +16,7 @@ set(SOURCES
 
 add_library(consensus STATIC ${SOURCES} ${HEADERS})
 target_include_directories(consensus PUBLIC "include")
-target_link_libraries(consensus PUBLIC 
+target_link_libraries(consensus PRIVATE 
     common
     config
     dag

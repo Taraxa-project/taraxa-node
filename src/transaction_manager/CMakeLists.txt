@@ -23,10 +23,12 @@ target_link_libraries(transaction_manager PRIVATE
     final_chain 
     dag
     logger
+    network
     storage
     util
     aleth 
     taraxa-evm
+    taraxa-vrf
     CONAN_PKG::jsoncpp
     CONAN_PKG::libjson-rpc-cpp
 )

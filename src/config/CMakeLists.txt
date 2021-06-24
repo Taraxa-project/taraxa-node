@@ -26,5 +26,6 @@ target_link_libraries(config PRIVATE
     logger
     util
     aleth
+    taraxa-vrf
     CONAN_PKG::jsoncpp
 )
