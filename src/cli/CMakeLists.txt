@@ -11,7 +11,7 @@ set(SOURCES
     src/tools.cpp
 )
 
-add_library(cli ${SOURCES} ${HEADERS})
+add_library(cli STATIC ${SOURCES} ${HEADERS})
 target_include_directories(cli PUBLIC "include")
 target_link_libraries(cli PRIVATE 
     config 

@@ -89,7 +89,7 @@ set(SOURCES
     src/tarcap/stats/node_stats.cpp
 )
 
-add_library(network ${SOURCES} ${HEADERS})
+add_library(network STATIC ${SOURCES} ${HEADERS})
 target_include_directories(network PUBLIC "include")
 target_include_directories(network PUBLIC "../")
 target_link_libraries(network PRIVATE 

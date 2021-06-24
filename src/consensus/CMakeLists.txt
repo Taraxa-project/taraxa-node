@@ -14,7 +14,7 @@ set(SOURCES
     src/block_proposer.cpp
 )
 
-add_library(consensus ${SOURCES} ${HEADERS})
+add_library(consensus STATIC ${SOURCES} ${HEADERS})
 target_include_directories(consensus PUBLIC "include")
 target_link_libraries(consensus PUBLIC 
     common

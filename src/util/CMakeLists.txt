@@ -16,7 +16,7 @@ set(SOURCES
     src/util.cpp
 )
 
-add_library(util ${SOURCES} ${HEADERS})
+add_library(util STATIC ${SOURCES} ${HEADERS})
 target_include_directories(util PUBLIC "include")
 target_link_libraries(util PRIVATE 
     common

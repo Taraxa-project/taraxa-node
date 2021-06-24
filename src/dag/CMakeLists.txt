@@ -14,7 +14,7 @@ set(SOURCES
     src/vdf_sortition.cpp
 )
 
-add_library(dag ${SOURCES} ${HEADERS})
+add_library(dag STATIC ${SOURCES} ${HEADERS})
 target_include_directories(dag PUBLIC "include")
 target_link_libraries(dag PUBLIC
     taraxa-vdf

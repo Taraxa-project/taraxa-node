@@ -9,6 +9,6 @@ set(SOURCES
     src/types.cpp
 )
 
-add_library(common ${SOURCES} ${HEADERS})
+add_library(common STATIC ${SOURCES} ${HEADERS})
 target_include_directories(common PUBLIC "include")
 target_link_libraries(common PRIVATE util aleth)

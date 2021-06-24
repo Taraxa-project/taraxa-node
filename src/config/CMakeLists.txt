@@ -17,7 +17,7 @@ set(SOURCES
     src/vdf.cpp
 )
 
-add_library(config ${SOURCES} ${HEADERS})
+add_library(config STATIC ${SOURCES} ${HEADERS})
 target_include_directories(config PUBLIC "include")
 target_link_libraries(config PRIVATE 
     common
