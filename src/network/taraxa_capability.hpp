@@ -251,6 +251,14 @@ struct TaraxaCapability : virtual CapabilityFace {
   const uint32_t MAX_PACKET_SIZE = 15 * 1024 * 1024;  // 15 MB -> 15 * 1024 * 1024 B
   const uint16_t MAX_CHECK_ALIVE_COUNT = 5;
 
+  // Only allow up to 2 nodes syncing from our node
+  const uint16_t MAX_SYNCING_NODES = 2;
+
+  // If there are more than 10 packets in queue to be processed syncing will be delayed or node disconnected in queue not
+  // cleared in defined time
+  const uint16_t MAX_NETWORK_QUEUE_TO_DROP_SYNCING = 10;
+  const uint16_t MAX_TIME_TO_WAIT_FOR_QUEUE_TO_CLEAR_MS = 2000;
+
   LOG_OBJECTS_DEFINE
   LOG_OBJECTS_DEFINE_SUB(pbft_sync)
   LOG_OBJECTS_DEFINE_SUB(dag_sync)
