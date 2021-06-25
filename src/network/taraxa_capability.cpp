@@ -406,7 +406,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         known_non_finalized_blocks.insert(blk_hash_t(hash));
       }
       std::vector<std::shared_ptr<DagBlock>> dag_blocks;
-      auto blocks = dag_mgr_->getNonFinalizedBlocks();
+      const auto& blocks = dag_mgr_->getNonFinalizedBlocks();
       for (auto &level_blocks : blocks) {
         for (auto &block : level_blocks.second) {
           auto hash = blk_hash_t(block);
@@ -1350,7 +1350,27 @@ void TaraxaCapability::logNodeStats() {
     LOG(log_nf_summary_) << "DPOS total votes count:        " << local_dpos_total_votes_count;
     LOG(log_nf_summary_) << "PBFT consensus 2t+1 threshold: " << local_twotplusone;
     LOG(log_nf_summary_) << "Node elligible vote count:     " << local_weighted_votes;
-    LOG(log_nf_summary_) << "Unverified votes size:         " << vote_mgr_->getUnverifiedVotesSize();
+
+    LOG(log_dg_summary_) << "****** Memory structures sizes ******";
+    LOG(log_dg_summary_) << "Unverified votes size:           " << vote_mgr_->getUnverifiedVotesSize();
+    LOG(log_dg_summary_) << "Verified votes size:             " << vote_mgr_->getVerifiedVotesSize();
+
+    auto [unverified_txs_size, verified_txs_size] = trx_mgr_->getTransactionQueueSize();
+    auto [buffer_size, all_txs_queu_size] = trx_mgr_->getTransactionBufferSize();
+    LOG(log_dg_summary_) << "Unverified txs size:             " << unverified_txs_size;
+    LOG(log_dg_summary_) << "Verified txs size:               " << verified_txs_size;
+    LOG(log_dg_summary_) << "Txs buffer size:                 " << buffer_size;
+    LOG(log_dg_summary_) << "All txs queue size:              " << all_txs_queu_size;
+
+    auto [unverified_blocks_size, verified_blocks_size] = dag_blk_mgr_->getDagBlockQueueSize();
+    auto [non_finalized_blocks_levels, non_finalized_blocks_size] = dag_mgr_->getNonFinalizedBlocksSize();
+    auto [finalized_blocks_levels, finalized_blocks_size] = dag_mgr_->getFinalizedBlocksSize();
+    LOG(log_dg_summary_) << "Unverified dag blocks size:      " << unverified_blocks_size;
+    LOG(log_dg_summary_) << "Verified dag blocks size:        " << verified_blocks_size;
+    LOG(log_dg_summary_) << "Non finalized dag blocks levels: " << non_finalized_blocks_levels;
+    LOG(log_dg_summary_) << "Non finalized dag blocks size:   " << non_finalized_blocks_size;
+    LOG(log_dg_summary_) << "Finalized dag blocks levels:     " << finalized_blocks_levels;
+    LOG(log_dg_summary_) << "Finalized dag blocks size:       " << finalized_blocks_size;
   }
 
   LOG(log_nf_summary_) << "------------- tl;dr -------------";

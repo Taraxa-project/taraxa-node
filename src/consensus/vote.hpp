@@ -157,6 +157,7 @@ class VoteManager {
   std::vector<Vote> getUnverifiedVotes();
   void clearUnverifiedVotesTable();
   uint64_t getUnverifiedVotesSize() const;
+  uint64_t getVerifiedVotesSize() const;
 
   // Verified votes
   void addVerifiedVote(Vote const& vote);
