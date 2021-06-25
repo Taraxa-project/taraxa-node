@@ -664,6 +664,7 @@ jobs:
      macos:
        xcode: 12.0.0
      environment:
+        CONAN_REVISIONS_ENABLED: 1
         LLVM_VERSION: "12"
         CXX: clang++
         CC: clang
@@ -892,7 +893,8 @@ workflows:
       - build-mac:
           filters:
             branches:
-              ignore: /.*/
+              only:
+               - sync_thread
             tags:
               only: /^v\d+\.\d+\.\d+$/
           context:
