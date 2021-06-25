@@ -144,24 +144,26 @@ TEST_F(NetworkTest, send_pbft_block) {
 TEST_F(NetworkTest, DISABLED_sync_large_pbft_block) {
   const uint32_t MAX_PACKET_SIZE = 15 * 1024 * 1024;  // 15 MB -> 15 * 1024 * 1024 B
   auto node_cfgs = make_node_cfgs<5>(2);
-  // Increase lambda to avoid pbft block created too soon
-  node_cfgs[0].chain.pbft.lambda_ms_min = 300;
 
   // Create large transactions with 10k dummy data
-  bytes dummy_10k_data(100000, 0);
-  auto signed_trxs = samples::createSignedTrxSamples(0, 250, g_secret2, dummy_10k_data);
+  bytes dummy_100k_data(100000, 0);
+  auto signed_trxs = samples::createSignedTrxSamples(0, 250, g_secret2, dummy_100k_data);
   auto nodes = launch_nodes({node_cfgs[0]});
+  nodes[0]->getPbftManager()->stop();
+
   auto nw1 = nodes[0]->getNetwork();
 
-  size_t last_dag_level = 0;
   for (size_t i = 0; i < signed_trxs.size(); i++) {
     // Splits transactions into multiple dag blocks. Size of dag blocks should be about 5MB for 50 10k transactions
     if ((i + 1) % 50 == 0) {
-      wait({10s, 10ms}, [&](auto& ctx) { ctx.fail_if(nodes[0]->getDagManager()->getMaxLevel() > last_dag_level); });
-      last_dag_level++;
+      wait({20s, 10ms}, [&](auto& ctx) {
+        auto trx_queue_size = nodes[0]->getTransactionManager()->getTransactionQueueSize();
+        ctx.fail_if(trx_queue_size.first > 0 || trx_queue_size.second > 0);
+      });
     }
     nodes[0]->getTransactionManager()->insertTransaction(signed_trxs[i], true, false);
   }
+  nodes[0]->getPbftManager()->start();
   // Wait untill pbft block is created
   wait({30s, 100ms}, [&](auto& ctx) { ctx.fail_if(nodes[0]->getPbftChain()->getPbftChainSize() == 0); });
   EXPECT_GT(nodes[0]->getPbftChain()->getPbftChainSize(), 0);
