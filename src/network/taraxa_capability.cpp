@@ -564,10 +564,37 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         blocks_to_transfer =
             std::min((uint64_t)conf_.network_sync_level_size, (uint64_t)(my_chain_size - (height_to_sync - 1)));
       }
-
       LOG(log_dg_pbft_sync_) << "Will send " << blocks_to_transfer << " PBFT blocks to " << _nodeID;
+
+      // Stop syncing if too many sync requests or if the rest of the node is busy
+      if (blocks_to_transfer > 0) {
+        if (syncing_tp_.num_pending_tasks() >= MAX_SYNCING_NODES) {
+          LOG(log_er_pbft_sync_) << "Node is already serving max syncing nodes, host " << _nodeID.abridged()
+                                 << " will be disconnected";
+          host->disconnect(_nodeID, p2p::UserReason);
+          break;
+        }
+      }
       // If blocks_to_transfer is 0, send peer empty PBFT blocks for talking to peer syncing has completed
-      sendPbftBlocks(_nodeID, height_to_sync, blocks_to_transfer);
+      syncing_tp_.post([host, _nodeID, height_to_sync, blocks_to_transfer, this] {
+        bool send_blocks = true;
+        if (blocks_to_transfer > 0) {
+          uint32_t total_wait_time = 0;
+          while (tp_.num_pending_tasks() > MAX_NETWORK_QUEUE_TO_DROP_SYNCING) {
+            uint32_t delay_time = MAX_TIME_TO_WAIT_FOR_QUEUE_TO_CLEAR_MS / 10;
+            thisThreadSleepForMilliSeconds(delay_time);
+            total_wait_time += delay_time;
+            if (total_wait_time >= MAX_TIME_TO_WAIT_FOR_QUEUE_TO_CLEAR_MS) {
+              LOG(log_er_pbft_sync_) << "Node is busy with " << tp_.num_pending_tasks() << " network packets. Host "
+                                     << _nodeID.abridged() << " will be disconnected";
+              host->disconnect(_nodeID, p2p::UserReason);
+              send_blocks = false;
+              break;
+            }
+          }
+        }
+        if (send_blocks) sendPbftBlocks(_nodeID, height_to_sync, blocks_to_transfer);
+      });
       break;
     }
 
@@ -1529,7 +1556,8 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync, 
       }
 
       // When checking if size limit exceeds MAX_PACKET_SIZE there are few bytes or rlp structure that is added
-      // for the pbft block and dag block. This should be just a couple of bytes but we enforece even stricter 128 limit
+      // for the pbft block and dag block. This should be just a couple of bytes but we enforece even stricter 128
+      // limit
       static const int RLP_OVERHEAD = 128;
 
       // Check if PBFT blocks need to be split and sent in multiple packets so we dont exceed

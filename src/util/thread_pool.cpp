@@ -37,11 +37,11 @@ void ThreadPool::stop() {
 }
 
 void ThreadPool::post(uint64_t do_in_ms, asio_callback action) {
-  ++debug_num_pending_tasks_;
+  ++num_pending_tasks_;
   if (!do_in_ms) {
     boost::asio::post(ioc_, [this, action = std::move(action)] {
       action({});
-      --debug_num_pending_tasks_;
+      --num_pending_tasks_;
     });
     return;
   }
@@ -49,7 +49,7 @@ void ThreadPool::post(uint64_t do_in_ms, asio_callback action) {
   timer->expires_from_now(boost::posix_time::milliseconds(do_in_ms));
   timer->async_wait([this, action = std::move(action), timer](auto const &err_code) {
     action(err_code);
-    --debug_num_pending_tasks_;
+    --num_pending_tasks_;
   });
 }
 

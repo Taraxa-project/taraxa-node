@@ -15,7 +15,7 @@ class ThreadPool : std::enable_shared_from_this<ThreadPool> {
   std::vector<std::thread> threads_;
   mutable std::shared_mutex threads_mu_;
 
-  std::atomic<uint64_t> debug_num_pending_tasks_ = 0;
+  std::atomic<uint64_t> num_pending_tasks_ = 0;
 
  public:
   explicit ThreadPool(size_t num_threads = std::thread::hardware_concurrency(), bool _start = true);
@@ -25,7 +25,7 @@ class ThreadPool : std::enable_shared_from_this<ThreadPool> {
   ThreadPool &operator=(ThreadPool const &) = delete;
 
   auto capacity() const { return threads_.capacity(); }
-  uint64_t num_pending_tasks() const { return debug_num_pending_tasks_; }
+  uint64_t num_pending_tasks() const { return num_pending_tasks_; }
 
   // TODO eliminate
   auto &unsafe_get_io_context() { return ioc_; }
