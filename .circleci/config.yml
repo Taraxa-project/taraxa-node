@@ -309,8 +309,8 @@ jobs:
               echo 'export PATH="/usr/local/opt/ccache/libexec:$PATH"' >> $HOME/.bash_profile
         - restore_cache:
            keys:
-            - conan-cache-v3-mac-{{ checksum "conanfile.py" }}
-            - conan-cache-v3-mac
+            - conan-cache-v4-mac-{{ checksum "conanfile.py" }}
+            - conan-cache-v4-mac
         - run:
            name: add conan bincrafters remote
            command: conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan"
@@ -329,7 +329,7 @@ jobs:
         - save_cache:
            paths:
              - ~/.conan
-           key: conan-cache-v3-mac-{{ checksum "conanfile.py" }}
+           key: conan-cache-v4-mac-{{ checksum "conanfile.py" }}
         - run:
            name: Cmake
            command: |
@@ -377,8 +377,8 @@ jobs:
            command: mkdir $BUILD_OUTPUT_DIR
         - restore_cache:
            keys:
-            - conan-cache-v1-linux--{{ checksum "conanfile.py" }}
-            - conan-cache-v1-linux
+            - conan-cache-v2-linux--{{ checksum "conanfile.py" }}
+            - conan-cache-v2-linux
         - run:
            name: Add conan bincrafters remote
            command: conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan"
@@ -388,7 +388,7 @@ jobs:
         - save_cache:
            paths:
              - ~/.conan
-           key: conan-cache-v1-linux--{{ checksum "conanfile.py" }}
+           key: conan-cache-v2-linux--{{ checksum "conanfile.py" }}
         - run:
             name: Cmake
             command: |
