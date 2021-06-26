@@ -45,11 +45,7 @@ if(TARAXA_ENABLE_LTO AND NOT TARAXA_STATIC_BUILD)
 endif()
 
 # taraxad full static build option
-option(TARAXA_STATIC_BUILD "Build taraxad as a static library (ON or OFF)" ON)
-if (APPLE)
-    message(STATUS "Disabling the static build because it's not supported on this OS")
-    set(TARAXA_STATIC_BUILD OFF)
-endif ()
+option(TARAXA_STATIC_BUILD "Build taraxad statically (ON or OFF)" ON)
 message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 message(STATUS "TARAXA_STATIC_BUILD: ${TARAXA_STATIC_BUILD}")
 
@@ -133,9 +129,10 @@ endif (ENABLE_PACKAGE_INSTALLER)
 if (TARAXA_STATIC_BUILD)
     # all internal libs will be built as static if not explicitly specified as shared
     set(BUILD_SHARED_LIBS OFF)
-
-    set(CMAKE_FIND_LIBRARY_SUFFIXES ".a") # zlib does not support zlib_USE_STATIC_LIBS or similar approach
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++ -static-libgcc")
+    if (NOT APPLE)
+        set(CMAKE_FIND_LIBRARY_SUFFIXES ".a") # zlib does not support zlib_USE_STATIC_LIBS or similar approach
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++ -static-libgcc")
+    endif()
 else (TARAXA_STATIC_BUILD)
     # all internal libs will be built as shared if not explicitly specified as static
     set(BUILD_SHARED_LIBS ON)

@@ -102,7 +102,9 @@ set(EVM_BUILD_CGO_CFLAGS -O3 ${EVM_BUILD_INCLUDE})
 set(EVM_BUILD_LD -L${CONAN_LIB_DIRS_BZIP2} -lbz2 -L${CONAN_LIB_DIRS_ZLIB} -lz -L${CONAN_LIB_DIRS_ROCKSDB} -lrocksdb -L${CONAN_LIB_DIRS_SNAPPY} -lsnappy -L${CONAN_LIB_DIRS_LZ4} -llz4 -L${CONAN_LIB_DIRS_ZSTD} -lzstd)
 ## if we need full static build use flag
 if(TARAXA_STATIC_BUILD)
-    set(EVM_BUILD_LD ${EVM_BUILD_LD} -static)
+    if (NOT APPLE)
+        set(EVM_BUILD_LD ${EVM_BUILD_LD} -static)
+    endif()
     ## name of the static library
     set(EVM_LIBRARY_NAME ${CMAKE_STATIC_LIBRARY_PREFIX}taraxaevm${CMAKE_STATIC_LIBRARY_SUFFIX})
 else()
