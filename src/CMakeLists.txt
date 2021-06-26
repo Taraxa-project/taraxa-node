@@ -14,16 +14,16 @@ add_subdirectory(util)
 add_subdirectory(aleth)
 
 # empty.cpp file needed to make this a normal lib(shared or static), but not the interface
-add_library(app_base SHARED util/src/empty.cpp)
+add_library(app_base INTERFACE)
 
 # system libs should be included via -isystem so compiler knows how to
 # treat them. e.g. do not check for warnings
-target_include_directories(app_base SYSTEM PUBLIC
+target_include_directories(app_base SYSTEM INTERFACE
         ${CONAN_INCLUDE_DIRS}
         ${jsoncpp_INCLUDE_DIRS}
 )
 
-target_link_libraries(app_base
+target_link_libraries(app_base INTERFACE
         cli
         common
         config
@@ -39,18 +39,33 @@ target_link_libraries(app_base
         aleth
         taraxa-evm
         taraxa-vrf
+        taraxa-vdf
+        pthread
+        scrypt
+        CONAN_PKG::jsoncpp
+        CONAN_PKG::libjson-rpc-cpp
+        CONAN_PKG::boost
+        CONAN_PKG::openssl
+        CONAN_PKG::gmp
+        CONAN_PKG::snappy
+        CONAN_PKG::zstd
+        CONAN_PKG::lz4
+        CONAN_PKG::rocksdb
+        CONAN_PKG::bzip2
+        CONAN_PKG::zlib
+        CONAN_PKG::mpfr
 )
 
 # needed for golang runtime that comes together with taraxa-evm
 if (APPLE)  # if "APPLE" not sufficient, use if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    target_link_libraries(app_base "-framework CoreFoundation")
-    target_link_libraries(app_base "-framework Security")
+    target_link_libraries(app_base INTERFACE "-framework CoreFoundation")
+    target_link_libraries(app_base INTERFACE "-framework Security")
 else ()
-    target_link_libraries(app_base stdc++fs)
+    target_link_libraries(app_base INTERFACE stdc++fs)
 endif ()
 
 if(TCMALLOC_LIB)
-    target_link_libraries(app_base ${TCMALLOC_LIB}) # MUST BE LINKED LAST!!!
+    target_link_libraries(app_base INTERFACE ${TCMALLOC_LIB}) # MUST BE LINKED LAST!!!
 endif()
 
 install(TARGETS app_base
