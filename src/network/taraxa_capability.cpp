@@ -400,12 +400,19 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       break;
     }
     case GetBlocksPacket: {
-      LOG(log_dg_dag_sync_) << "Received GetBlocksPacket";
+      LOG(log_dg_dag_sync_) << "Received GetBlocksPacket with " << _r.itemCount() << " known blocks";
+      std::unordered_set<blk_hash_t> known_non_finalized_blocks;
+      for (auto hash : _r) {
+        known_non_finalized_blocks.insert(blk_hash_t(hash));
+      }
       std::vector<std::shared_ptr<DagBlock>> dag_blocks;
       auto blocks = dag_mgr_->getNonFinalizedBlocks();
       for (auto &level_blocks : blocks) {
         for (auto &block : level_blocks.second) {
-          dag_blocks.emplace_back(db_->getDagBlock(blk_hash_t(block)));
+          auto hash = blk_hash_t(block);
+          if (known_non_finalized_blocks.count(hash) == 0) {
+            dag_blocks.emplace_back(db_->getDagBlock(hash));
+          }
         }
       }
       sendBlocks(_nodeID, dag_blocks);
@@ -1057,10 +1064,6 @@ void TaraxaCapability::sendBlocks(NodeID const &_id, std::vector<std::shared_ptr
   if (!peer) return;
 
   for (auto &block : blocks) {
-    if (peer->isBlockKnown(block->getHash())) {
-      continue;
-    }
-
     size_t dag_block_items_count = 0;
     size_t previous_block_packet_size = packet_bytes.size();
 
@@ -1171,7 +1174,19 @@ void TaraxaCapability::requestPbftBlocks(NodeID const &_id, size_t height_to_syn
 
 void TaraxaCapability::requestPendingDagBlocks(NodeID const &_id) {
   LOG(log_nf_dag_sync_) << "Sending GetBlocksPacket";
-  sealAndSend(_id, GetBlocksPacket, RLPStream(0));
+  vector<blk_hash_t> known_non_finalized_blocks;
+  auto blocks = dag_mgr_->getNonFinalizedBlocks();
+  for (auto &level_blocks : blocks) {
+    for (auto &block : level_blocks.second) {
+      known_non_finalized_blocks.emplace_back(blk_hash_t(block));
+    }
+  }
+  RLPStream s(known_non_finalized_blocks.size());
+
+  for (auto blk : known_non_finalized_blocks) {
+    s << blk;
+  }
+  sealAndSend(_id, GetBlocksPacket, s);
 }
 
 std::pair<int, int> TaraxaCapability::retrieveTestData(NodeID const &_id) {
