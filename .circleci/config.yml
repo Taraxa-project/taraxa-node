@@ -142,8 +142,8 @@ commands:
           type: string                    
       steps:
         - run:
-          name: Cleanup PRNet IPs
-          command: |
+           name: Cleanup PRNet IPs
+           command: |
              echo ${PRNET_IPS}
              for IP in $PRNET_IPS
              do 
