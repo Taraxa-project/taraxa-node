@@ -119,7 +119,7 @@ commands:
                     --format="flattened(address)" |cut -d" " -f2) )
               done
               echo "export PRNET_IPS=(${IPS[@]})" >> ${BASH_ENV}    
- cleanup_prnet_ips:
+   cleanup_prnet_ips:
       description: | 
         Deletes previously created gcloud ip address for prnet
       parameters:
