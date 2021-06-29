@@ -136,7 +136,15 @@ commands:
           type: string
         gcloud-key:
           description: Json key for gcloud service account
-          type: string                    
+          type: string                  
+        when:
+          default: on_success
+          description: Condition for when the comment should be created
+          enum:
+            - on_success
+            - on_fail
+            - always
+          type: enum  
       steps:
         - run:
            name: Cleanup PRNet IPs
