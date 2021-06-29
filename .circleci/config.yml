@@ -50,7 +50,7 @@ commands:
       steps:
          - run:
             command: |
-               echo " << parameteres.comment >>"
+               echo "<< parameters.comment >>"
                curl \
                   -X POST \
                   -d "{\"body\": \"<< parameters.comment >>\" }" \
