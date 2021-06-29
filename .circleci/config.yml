@@ -50,6 +50,7 @@ commands:
       steps:
          - run:
             command: |
+               echo " << parameteres.comment >>"
                curl \
                   -X POST \
                   -d "{\"body\": \"<< parameters.comment >>\" }" \
@@ -134,7 +135,7 @@ jobs:
           gcloud-key: ${GCLOUD_KEY}       
       - pr_comment:
          when: on_success
-         comment: "Deployed prnet successfully ${PRNET_IPS[@]}"
+         comment: "Deployed prnet successfully ${PRNET_IPS[@]} "
          pr_number: << pipeline.parameters.pr_number >>
       - pr_comment:
          when: on_fail
