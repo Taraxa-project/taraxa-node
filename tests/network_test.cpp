@@ -167,9 +167,11 @@ TEST_F(NetworkTest, sync_large_pbft_block) {
   auto blocks = nodes[0]->getDB()->getFinalizedDagBlockHashesByAnchor(pbft_blocks[0].pbft_blk->getPivotDagBlockHash());
   for (auto b : blocks) {
     auto block = nodes[0]->getDB()->getDagBlock(b);
+    EXPECT_NE(block, nullptr);
     total_size += block->rlp(true).size();
     for (auto t : block->getTrxs()) {
       auto trx = nodes[0]->getDB()->getTransaction(t);
+      EXPECT_NE(trx, nullptr);
       total_size += trx->rlp(true)->size();
     }
   }
