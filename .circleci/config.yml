@@ -56,16 +56,83 @@ commands:
                   "https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/issues/<< parameters.pr_number >>/comments"
             name: Post comment to PR
             when: << parameters.when >>
+  create_prnet_ips:
+    description: | 
+      Creates a gcloud ip address
+    parameters:
+       region:
+         description: gcloud region
+         type: string
+         default: "us-central1"
+       project:
+         description: gcloud project
+         type: string
+         default:  "jovial-meridian-249123"
+       pr-name:
+         description: Prefix to name ip addresses after
+         type: string
+       gcloud-username:
+         description: Gcloud username
+         type: string
+       gcloud-key:
+         description: Json key for gcloud service account
+         type: string
+    steps:
+      - run:
+          command: |
+            echo << parameters.gcloud-key >> | gcloud auth activate-service-account << parameters.gcloud-username >> --key-file=-
+            gcloud compute addresses create << parameters.pr-name >>-1 --region << parameters.region >> --project << paramters.project >>
+            gcloud compute addresses create << parameters.pr-name >>-2 --region << parameters.region >> --project << paramters.project >>
+            gcloud compute addresses create << parameters.pr-name >>-3 --region << parameters.region >> --project << paramters.project >>
+
+  get_prnet_ips:
+    description: | 
+      Gets previously created gcloud ip address for prnet
+    parameters:
+       region:
+         description: gcloud region
+         type: string
+         default: "us-central1"
+       project:
+         description: gcloud project
+         type: string
+         default:  "jovial-meridian-249123"
+       pr-name:
+         description: Prefix to name ip addresses after
+         type: string
+       gcloud-username:
+         description: Gcloud username
+         type: string
+       gcloud-key:
+         description: Json key for gcloud service account
+         type: string
+    steps:
+      - run:
+          command: |
+            echo << parameters.gcloud-key >> | gcloud auth activate-service-account << parameters.gcloud-username >> --key-file=-
+            for i in {1..3}
+            do
+             IPS=(${IPS[@] $(gcloud compute addresses describe << parameters.pr-name >>-1 --region << paramters.region >> --project << parameters.project >> \
+                   --format="flattened(address)" |cut -d" " -f2) )
+            done
+            echo "export PRNET_IPS=${IPS[@]}" >> ${BASH_ENV}          
 
 jobs:
    deploy-prnet:
      docker:
        - image: circleci/buildpack-deps:stretch
      steps:
-      - run: echo "Deploy prnet"
+      - create_prnet_ips:
+          pr-name: << pipeline.parameters.pr_number >>
+          gcloud-username: ${GCLOUD_USERNAME}
+          gcloud-key: ${GCLOUD_KEY}
+      - get_prnet_ips:
+          pr-name: << pipeline.parameters.pr_number >>
+          gcloud-username: ${GCLOUD_USERNAME}
+          gcloud-key: ${GCLOUD_KEY}       
       - pr_comment:
          when: on_success
-         comment: "Deployed prnet successfully"
+         comment: "Deployed prnet successfully ${PRNET_IPS[@]}"
          pr_number: << pipeline.parameters.pr_number >>
       - pr_comment:
          when: on_fail
@@ -76,10 +143,13 @@ jobs:
      docker:
        - image: circleci/buildpack-deps:stretch
      steps:
-      - run: echo "ReDeploy prnet"
+      - get_prnet_ips:
+          pr-name: << pipeline.parameters.pr_number >>
+          gcloud-username: ${GCLOUD_USERNAME}
+          gcloud-key: ${GCLOUD_KEY}  
       - pr_comment:
          when: on_success
-         comment: "ReDeployed prnet successfully"
+         comment: "ReDeployed prnet successfully ${PRNET_IPS[@]}"
          pr_number: << pipeline.parameters.pr_number >>
       - pr_comment:
          when: on_fail
