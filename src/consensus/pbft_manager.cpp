@@ -201,7 +201,7 @@ void PbftManager::update_dpos_state_() {
                    << pbft_chain_->getPbftChainSize() << ", have executed chain size "
                    << final_chain_->last_block_number();
       // Sleep one PBFT lambda time
-      thisThreadSleepForMilliSeconds(LAMBDA_ms);
+      thisThreadSleepForMilliSeconds(POLLING_INTERVAL_ms);
     }
   } while (!stopped_);
 
@@ -239,16 +239,19 @@ void PbftManager::setPbftStep(size_t const pbft_step) {
   db_->savePbftMgrField(PbftMgrRoundStep::PbftStep, pbft_step);
   step_ = pbft_step;
 
-  // if (step_ > MAX_STEPS) {
-  //   // Note: We calculate the lambda for a step independently of prior steps
-  //   //       in case missed earlier steps.
-  //   // LAMBDA_ms = 100 * LAMBDA_ms_MIN;
-  //   // LOG(log_nf_) << "Surpassed max steps, relaxing lambda to " << LAMBDA_ms
-  //   //             << " ms in round " << getPbftRound() << ", step " << step_;
-  //   LAMBDA_ms = LAMBDA_ms_MIN;
-  // } else {
-  //   LAMBDA_ms = LAMBDA_ms_MIN;
-  // }
+  if (step_ > MAX_STEPS && LAMBDA_backoff_multiple < 8) {
+    // Note: We calculate the lambda for a step independently of prior steps
+    //       in case missed earlier steps.
+    std::uniform_int_distribution<u_long> distribution(0, step_ - MAX_STEPS);
+    auto lambda_random_count = distribution(random_engine_);
+    LAMBDA_backoff_multiple = 2 * LAMBDA_backoff_multiple;
+    LAMBDA_ms = LAMBDA_ms_MIN * (LAMBDA_backoff_multiple + lambda_random_count);
+    LOG(log_si_) << "Surpassed max steps, exponentially backing off lambda to " << LAMBDA_ms << " ms in round "
+                 << getPbftRound() << ", step " << step_;
+  } else {
+    LAMBDA_ms = LAMBDA_ms_MIN;
+    LAMBDA_backoff_multiple = 1;
+  }
 }
 
 void PbftManager::resetStep_() { setPbftStep(1); }
@@ -337,7 +340,6 @@ void PbftManager::sleep_() {
 void PbftManager::initialState_() {
   // Initial PBFT state
   LAMBDA_ms = LAMBDA_ms_MIN;
-  STEP_4_DELAY = 2 * LAMBDA_ms;
 
   auto round = db_->getPbftMgrField(PbftMgrRoundStep::PbftRound);
   auto step = db_->getPbftMgrField(PbftMgrRoundStep::PbftStep);
@@ -478,7 +480,7 @@ void PbftManager::setFinishState_() {
   LOG(log_dg_) << "Will go to first finish State";
   state_ = finish_state;
   setPbftStep(step_ + 1);
-  next_step_time_ms_ = 4 * LAMBDA_ms + STEP_4_DELAY;
+  next_step_time_ms_ = 4 * LAMBDA_ms;
   last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
   current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
 }
@@ -522,7 +524,7 @@ void PbftManager::loopBackFinishState_() {
   db_->commitWriteBatch(batch);
   next_voted_soft_value_ = false;
   next_voted_null_block_hash_ = false;
-  next_step_time_ms_ = step_ * LAMBDA_ms + STEP_4_DELAY;
+  next_step_time_ms_ = step_ * LAMBDA_ms;
   last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
   current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
 }
@@ -673,7 +675,7 @@ void PbftManager::certifyBlock_() {
   auto round = getPbftRound();
   LOG(log_tr_) << "PBFT certifying state in round " << round;
 
-  go_finish_state_ = elapsed_time_in_round_ms_ > 4 * LAMBDA_ms + STEP_4_DELAY - POLLING_INTERVAL_ms;
+  go_finish_state_ = elapsed_time_in_round_ms_ > 4 * LAMBDA_ms - POLLING_INTERVAL_ms;
 
   if (elapsed_time_in_round_ms_ < 2 * LAMBDA_ms) {
     // Should not happen, add log here for safety checking
@@ -799,7 +801,7 @@ void PbftManager::secondFinish_() {
   // Odd number steps from 5 are in second finish
   auto round = getPbftRound();
   LOG(log_tr_) << "PBFT second finishing state at step " << step_ << " in round " << round;
-  auto end_time_for_step = (step_ + 1) * LAMBDA_ms + STEP_4_DELAY - POLLING_INTERVAL_ms;
+  auto end_time_for_step = (step_ + 1) * LAMBDA_ms - POLLING_INTERVAL_ms;
 
   if (!soft_voted_block_for_this_round_.second) {
     auto soft_votes = getVotesOfTypeFromVotesForRoundAndStep_(soft_vote_type, votes_, round, 2,
