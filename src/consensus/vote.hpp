@@ -151,7 +151,7 @@ class VoteManager {
 
   // Unverified votes
   void addUnverifiedVote(Vote const& vote);
-  void addUnverifiedVotes(std::vector<Vote> const& votes);
+  void addUnverifiedVotes(std::vector<std::reference_wrapper<Vote>> const& votes);
   void removeUnverifiedVote(uint64_t const& pbft_round, vote_hash_t const& vote_hash);
   bool voteInUnverifiedMap(uint64_t const& pbft_round, vote_hash_t const& vote_hash);
   std::vector<Vote> getUnverifiedVotes();
@@ -163,9 +163,9 @@ class VoteManager {
   void removeVerifiedVotes();
   bool voteInVerifiedMap(uint64_t const& pbft_round, vote_hash_t const& vote_hash);
   void clearVerifiedVotesTable();
-  std::vector<Vote> getVerifiedVotes();
+  std::vector<std::reference_wrapper<Vote>> getVerifiedVotes();
 
-  std::vector<Vote> getVerifiedVotes(uint64_t const pbft_round, size_t const sortition_threshold,
+  std::vector<std::reference_wrapper<Vote>> getVerifiedVotes(uint64_t const pbft_round, size_t const sortition_threshold,
                                      uint64_t dpos_total_votes_count,
                                      std::function<size_t(addr_t const&)> const& dpos_eligible_vote_count);
 

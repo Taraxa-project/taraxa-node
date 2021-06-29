@@ -144,13 +144,13 @@ void VoteManager::addUnverifiedVote(taraxa::Vote const& vote) {
   LOG(log_dg_) << "Add unverified vote " << vote;
 }
 
-void VoteManager::addUnverifiedVotes(std::vector<Vote> const& votes) {
+void VoteManager::addUnverifiedVotes(std::vector<std::reference_wrapper<Vote>> const& votes) {
   for (auto const& v : votes) {
-    if (voteInUnverifiedMap(v.getRound(), v.getHash())) {
+    if (voteInUnverifiedMap(v.get().getRound(), v.get().getHash())) {
       LOG(log_dg_) << "The vote is in unverified queue already " << v;
       continue;
     }
-    if (db_->unverifiedVoteExist(v.getHash())) {
+    if (db_->unverifiedVoteExist(v.get().getHash())) {
       // Vote in unverified DB but not in unverified queue
       LOG(log_dg_) << "The vote is in unverified DB already " << v;
       continue;
@@ -181,9 +181,15 @@ std::vector<Vote> VoteManager::getUnverifiedVotes() {
 
   sharedLock_ lock(unverified_votes_access_);
   for (auto const& round_votes : unverified_votes_) {
-    std::transform(round_votes.second.begin(), round_votes.second.end(), std::back_inserter(votes),
-                   [](std::pair<const taraxa::vote_hash_t, taraxa::Vote> const& v) { return v.second; });
+    for (auto const& v : round_votes.second) {
+      votes.emplace_back(v.second);
+    }
   }
+
+  // for (auto const& round_votes : unverified_votes_) {
+  //   std::transform(round_votes.second.begin(), round_votes.second.end(), std::back_inserter(votes),
+  //                  [](std::pair<const taraxa::vote_hash_t, taraxa::Vote> const& v) { return v.second; });
+  // }
 
   return votes;
 }
@@ -238,17 +244,17 @@ void VoteManager::removeVerifiedVotes() {
     return;
   }
 
-  clearVerifiedVotesTable();
-  LOG(log_nf_) << "Remove " << votes.size() << " verified votes.";
-
   addUnverifiedVotes(votes);
 
   auto batch = db_->createWriteBatch();
   for (auto const& v : votes) {
-    db_->removeVerifiedVoteToBatch(v.getHash(), batch);
+    db_->removeVerifiedVoteToBatch(v.get().getHash(), batch);
     db_->addUnverifiedVoteToBatch(v, batch);
   }
   db_->commitWriteBatch(batch);
+
+  clearVerifiedVotesTable();
+  LOG(log_nf_) << "Remove " << votes.size() << " verified votes.";
 }
 
 bool VoteManager::voteInVerifiedMap(uint64_t const& pbft_round, vote_hash_t const& vote_hash) {
@@ -265,20 +271,26 @@ void VoteManager::clearVerifiedVotesTable() {
   verified_votes_.clear();
 }
 
-std::vector<Vote> VoteManager::getVerifiedVotes() {
-  std::vector<Vote> votes;
+std::vector<std::reference_wrapper<Vote>> VoteManager::getVerifiedVotes() {
+  std::vector<std::reference_wrapper<Vote>> votes;
 
   sharedLock_ lock(verified_votes_access_);
   for (auto const& round_votes : verified_votes_) {
-    std::transform(round_votes.second.begin(), round_votes.second.end(), std::back_inserter(votes),
-                   [](std::pair<const taraxa::vote_hash_t, taraxa::Vote> const& v) { return v.second; });
+    for (auto const& v : round_votes.second) {
+      votes.emplace_back(v.second);
+    }
   }
+
+  // for (auto const& round_votes : verified_votes_) {
+  //   std::transform(round_votes.second.begin(), round_votes.second.end(), std::back_inserter(votes),
+  //                  [](std::pair<const taraxa::vote_hash_t, taraxa::Vote> const& v) { return v.second; });
+  // }
 
   return votes;
 }
 
 // Return all verified votes >= pbft_round
-std::vector<Vote> VoteManager::getVerifiedVotes(uint64_t const pbft_round, size_t const sortition_threshold,
+std::vector<std::reference_wrapper<Vote>> VoteManager::getVerifiedVotes(uint64_t const pbft_round, size_t const sortition_threshold,
                                                 uint64_t dpos_total_votes_count,
                                                 std::function<size_t(addr_t const&)> const& dpos_eligible_vote_count) {
   // Cleanup votes for previous rounds

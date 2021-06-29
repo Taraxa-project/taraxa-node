@@ -108,7 +108,7 @@ class PbftManager {
 
   votesBundle blockWithEnoughVotes_(std::vector<Vote> const &votes) const;
 
-  std::vector<Vote> getVotesOfTypeFromVotesForRoundAndStep_(PbftVoteTypes vote_type, std::vector<Vote> &votes,
+  std::vector<Vote> getVotesOfTypeFromVotesForRoundAndStep_(PbftVoteTypes vote_type, std::vector<std::reference_wrapper<Vote>> &votes,
                                                             uint64_t round, size_t step,
                                                             std::pair<blk_hash_t, bool> blockhash);
 
@@ -116,7 +116,7 @@ class PbftManager {
 
   std::pair<blk_hash_t, bool> proposeMyPbftBlock_();
 
-  std::pair<blk_hash_t, bool> identifyLeaderBlock_(std::vector<Vote> const &votes);
+  std::pair<blk_hash_t, bool> identifyLeaderBlock_(std::vector<std::reference_wrapper<Vote>> const &votes);
 
   bool checkPbftBlockValid_(blk_hash_t const &block_hash) const;
 
@@ -177,7 +177,7 @@ class PbftManager {
   std::unordered_map<size_t, blk_hash_t> cert_voted_values_for_round_;
   std::pair<blk_hash_t, bool> soft_voted_block_for_this_round_ = std::make_pair(NULL_BLOCK_HASH, false);
 
-  std::vector<Vote> votes_;
+  std::vector<std::reference_wrapper<Vote>> votes_;
 
   time_point round_clock_initial_datetime_;
   time_point now_;

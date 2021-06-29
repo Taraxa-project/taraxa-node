@@ -876,10 +876,10 @@ uint64_t PbftManager::roundDeterminedFromVotes_() {
   auto round = getPbftRound();
 
   for (auto const &v : votes_) {
-    if (v.getType() != next_vote_type) {
+    if (v.get().getType() != next_vote_type) {
       continue;
     }
-    std::pair<uint64_t, size_t> round_step = std::make_pair(v.getRound(), v.getStep());
+    std::pair<uint64_t, size_t> round_step = std::make_pair(v.get().getRound(), v.get().getStep());
     if (round_step.first >= round) {
       if (next_votes_tally_by_round_step.find(round_step) != next_votes_tally_by_round_step.end()) {
         next_votes_tally_by_round_step[round_step] += 1;
@@ -966,10 +966,17 @@ votesBundle PbftManager::blockWithEnoughVotes_(std::vector<Vote> const &votes) c
 }
 
 std::vector<Vote> PbftManager::getVotesOfTypeFromVotesForRoundAndStep_(PbftVoteTypes vote_type,
-                                                                       std::vector<Vote> &votes, uint64_t round,
+                                                                       std::vector<std::reference_wrapper<Vote>> &votes, uint64_t round,
                                                                        size_t step,
                                                                        std::pair<blk_hash_t, bool> blockhash) {
   std::vector<Vote> votes_of_requested_type;
+  // for (auto const& v : votes) {
+  //   if (v.getType() == vote_type && v.getRound() == round && v.getStep() == step &&
+  //       (blockhash.second == false || blockhash.first == v.getBlockHash())) {
+  //     votes_of_requested_type.emplace_back(v);
+  //   }
+  // }
+
   std::copy_if(votes.begin(), votes.end(), std::back_inserter(votes_of_requested_type),
                [vote_type, round, step, blockhash](Vote const &v) {
                  return (v.getType() == vote_type && v.getRound() == round && v.getStep() == step &&
@@ -1132,27 +1139,27 @@ std::vector<std::vector<uint>> PbftManager::createMockTrxSchedule(
   return blocks_trx_modes;
 }
 
-std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_(std::vector<Vote> const &votes) {
+std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_(std::vector<std::reference_wrapper<Vote>> const &votes) {
   auto round = getPbftRound();
   LOG(log_dg_) << "Into identify leader block, in round " << round;
   // each leader candidate with <vote_signature_hash, pbft_block_hash>
   std::vector<std::pair<vrf_output_t, blk_hash_t>> leader_candidates;
   for (auto const &v : votes) {
-    if (v.getRound() == round && v.getType() == propose_vote_type) {
+    if (v.get().getRound() == round && v.get().getType() == propose_vote_type) {
       // We should not pick any null block as leader (proposed when
       // no new blocks found, or maliciously) if others have blocks.
-      auto proposed_block_hash = v.getBlockHash();
+      auto proposed_block_hash = v.get().getBlockHash();
       if (round == 1 ||
           (proposed_block_hash != NULL_BLOCK_HASH && !pbft_chain_->findPbftBlockInChain(proposed_block_hash))) {
         auto block = pbft_chain_->getUnverifiedPbftBlock(proposed_block_hash);
         if (block) {
           // Received the proposed block already
           if (pbft_chain_->checkPbftBlockValidation(*block)) {
-            leader_candidates.emplace_back(std::make_pair(v.getCredential(), proposed_block_hash));
+            leader_candidates.emplace_back(std::make_pair(v.get().getCredential(), proposed_block_hash));
           }
         } else {
           // Have not received the proposed block yet. Identify a leader without even needing to have the block yet.
-          leader_candidates.emplace_back(std::make_pair(v.getCredential(), proposed_block_hash));
+          leader_candidates.emplace_back(std::make_pair(v.get().getCredential(), proposed_block_hash));
         }
       }
     }
