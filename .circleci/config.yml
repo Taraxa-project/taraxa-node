@@ -81,9 +81,9 @@ commands:
         - run:
             command: |
               echo << parameters.gcloud-key >> | gcloud auth activate-service-account << parameters.gcloud-username >> --key-file=-
-              gcloud compute addresses create << parameters.pr-name >>-1 --region << parameters.region >> --project << paramters.project >>
-              gcloud compute addresses create << parameters.pr-name >>-2 --region << parameters.region >> --project << paramters.project >>
-              gcloud compute addresses create << parameters.pr-name >>-3 --region << parameters.region >> --project << paramters.project >>
+              gcloud compute addresses create << parameters.pr-name >>-1 --region << parameters.region >> --project << parameters.project >>
+              gcloud compute addresses create << parameters.pr-name >>-2 --region << parameters.region >> --project << parameters.project >>
+              gcloud compute addresses create << parameters.pr-name >>-3 --region << parameters.region >> --project << parameters.project >>
 
    get_prnet_ips:
       description: | 
@@ -112,7 +112,7 @@ commands:
               echo << parameters.gcloud-key >> | gcloud auth activate-service-account << parameters.gcloud-username >> --key-file=-
               for i in {1..3}
               do
-              IPS=(${IPS[@] $(gcloud compute addresses describe << parameters.pr-name >>-1 --region << paramters.region >> --project << parameters.project >> \
+              IPS=(${IPS[@] $(gcloud compute addresses describe << parameters.pr-name >>-1 --region << parameters.region >> --project << parameters.project >> \
                     --format="flattened(address)" |cut -d" " -f2) )
               done
               echo "export PRNET_IPS=${IPS[@]}" >> ${BASH_ENV}          
@@ -123,15 +123,11 @@ jobs:
        - image: circleci/buildpack-deps:stretch
      steps:
       - create_prnet_ips:
-          pr-name: << pipeline.parameters.pr_number >>
-          region: "us-central1"
-          project: "jovial-meridian-249123"          
+          pr-name: << pipeline.parameters.pr_number >>     
           gcloud-username: ${GCLOUD_USERNAME}
           gcloud-key: ${GCLOUD_KEY}
       - get_prnet_ips:
           pr-name: << pipeline.parameters.pr_number >>
-          region: "us-central1"
-          project: "jovial-meridian-249123"          
           gcloud-username: ${GCLOUD_USERNAME}
           gcloud-key: ${GCLOUD_KEY}       
       - pr_comment:
@@ -149,8 +145,6 @@ jobs:
      steps:
       - get_prnet_ips:
           pr-name: << pipeline.parameters.pr_number >>
-          region: "us-central1"
-          project: "jovial-meridian-249123"          
           gcloud-username: ${GCLOUD_USERNAME}
           gcloud-key: ${GCLOUD_KEY}  
       - pr_comment:
