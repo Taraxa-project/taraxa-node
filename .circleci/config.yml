@@ -25,6 +25,7 @@ orbs:
   git: opuscapita/git@0.0.3
   github-release: izumin5210/github-release@0.1.1
   gcp-gcr: circleci/gcp-gcr@0.13.0
+  gcp-cli: circleci/gcp-cli@1.0.0
 
 commands:
    pr_comment:
@@ -81,9 +82,9 @@ commands:
         - run:
             command: |
               echo << parameters.gcloud-key >> | gcloud auth activate-service-account << parameters.gcloud-username >> --key-file=-
-              gcloud compute addresses create << parameters.pr-name >>-1 --region << parameters.region >> --project << parameters.project >>
-              gcloud compute addresses create << parameters.pr-name >>-2 --region << parameters.region >> --project << parameters.project >>
-              gcloud compute addresses create << parameters.pr-name >>-3 --region << parameters.region >> --project << parameters.project >>
+              gcloud compute addresses create prnet-<< parameters.pr-name >>-1 --region << parameters.region >> --project << parameters.project >>
+              gcloud compute addresses create prnet-<< parameters.pr-name >>-2 --region << parameters.region >> --project << parameters.project >>
+              gcloud compute addresses create prnet-<< parameters.pr-name >>-3 --region << parameters.region >> --project << parameters.project >>
 
    get_prnet_ips:
       description: | 
@@ -112,7 +113,7 @@ commands:
               echo << parameters.gcloud-key >> | gcloud auth activate-service-account << parameters.gcloud-username >> --key-file=-
               for i in {1..3}
               do
-              IPS=(${IPS[@] $(gcloud compute addresses describe << parameters.pr-name >>-1 --region << parameters.region >> --project << parameters.project >> \
+              IPS=(${IPS[@] $(gcloud compute addresses describe prnet-<< parameters.pr-name >>-${i} --region << parameters.region >> --project << parameters.project >> \
                     --format="flattened(address)" |cut -d" " -f2) )
               done
               echo "export PRNET_IPS=${IPS[@]}" >> ${BASH_ENV}          
@@ -122,6 +123,7 @@ jobs:
      docker:
        - image: circleci/buildpack-deps:stretch
      steps:
+      - gcp-cli/install
       - create_prnet_ips:
           pr-name: << pipeline.parameters.pr_number >>     
           gcloud-username: ${GCLOUD_USERNAME}
@@ -143,6 +145,7 @@ jobs:
      docker:
        - image: circleci/buildpack-deps:stretch
      steps:
+      - gcp-cli/install
       - get_prnet_ips:
           pr-name: << pipeline.parameters.pr_number >>
           gcloud-username: ${GCLOUD_USERNAME}
