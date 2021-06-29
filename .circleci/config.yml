@@ -111,8 +111,11 @@ commands:
             name: Get PRNET IPs
             command: |
               echo << parameters.gcloud-key >> | gcloud auth activate-service-account << parameters.gcloud-username >> --key-file=-
-              IPS=(${IPS[@]} $(gcloud compute addresses describe prnet-<< parameters.pr-name >>-{1..3} --region << parameters.region >> --project << parameters.project >> \
+              for i in {1..3}
+              do
+               IPS=(${IPS[@]} $(gcloud compute addresses describe prnet-<< parameters.pr-name >>-${i} --region << parameters.region >> --project << parameters.project >> \
                     --format="flattened(address)" |cut -d" " -f2) )
+              done
               echo "export PRNET_IPS=(${IPS[@]})" >> ${BASH_ENV}          
 
 jobs:
