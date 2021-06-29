@@ -401,7 +401,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
     }
     case GetBlocksPacket: {
       LOG(log_dg_dag_sync_) << "Received GetBlocksPacket with " << _r.itemCount() << " known blocks";
-      set<blk_hash_t> known_non_finalized_blocks;
+      std::unordered_set<blk_hash_t> known_non_finalized_blocks;
       for (auto hash : _r) {
         known_non_finalized_blocks.insert(blk_hash_t(hash));
       }
