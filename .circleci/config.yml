@@ -56,7 +56,7 @@ commands:
                   "https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/issues/<< parameters.pr_number >>/comments"
             name: Post comment to PR
             when: << parameters.when >>
-    create_prnet_ips:
+   create_prnet_ips:
       description: | 
         Creates a gcloud ip address
       parameters:
@@ -85,7 +85,7 @@ commands:
               gcloud compute addresses create << parameters.pr-name >>-2 --region << parameters.region >> --project << paramters.project >>
               gcloud compute addresses create << parameters.pr-name >>-3 --region << parameters.region >> --project << paramters.project >>
 
-    get_prnet_ips:
+   get_prnet_ips:
       description: | 
         Gets previously created gcloud ip address for prnet
       parameters:
