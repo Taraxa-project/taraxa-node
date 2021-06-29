@@ -124,10 +124,14 @@ jobs:
      steps:
       - create_prnet_ips:
           pr-name: << pipeline.parameters.pr_number >>
+          region: "us-central1"
+          project: "jovial-meridian-249123"          
           gcloud-username: ${GCLOUD_USERNAME}
           gcloud-key: ${GCLOUD_KEY}
       - get_prnet_ips:
           pr-name: << pipeline.parameters.pr_number >>
+          region: "us-central1"
+          project: "jovial-meridian-249123"          
           gcloud-username: ${GCLOUD_USERNAME}
           gcloud-key: ${GCLOUD_KEY}       
       - pr_comment:
@@ -145,6 +149,8 @@ jobs:
      steps:
       - get_prnet_ips:
           pr-name: << pipeline.parameters.pr_number >>
+          region: "us-central1"
+          project: "jovial-meridian-249123"          
           gcloud-username: ${GCLOUD_USERNAME}
           gcloud-key: ${GCLOUD_KEY}  
       - pr_comment:
