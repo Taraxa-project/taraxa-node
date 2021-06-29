@@ -141,7 +141,7 @@ commands:
           description: Json key for gcloud service account
           type: string                    
       steps:
-        run:
+        - run:
           name: Cleanup PRNet IPs
           command: |
              echo ${PRNET_IPS}
