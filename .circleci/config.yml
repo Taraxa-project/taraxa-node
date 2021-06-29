@@ -131,9 +131,6 @@ commands:
           description: gcloud project
           type: string
           default:  "jovial-meridian-249123"
-        pr-name:
-          description: Prefix to name ip addresses after
-          type: string
         gcloud-username:
           description: Gcloud username
           type: string
