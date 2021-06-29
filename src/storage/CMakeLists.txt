@@ -15,7 +15,6 @@ target_link_libraries(storage PRIVATE
     dag
     final_chain
     logger
-    util
     node
     network
     transaction_manager

@@ -5,7 +5,7 @@
 #include <atomic>
 #include <boost/noncopyable.hpp>
 
-#include "util/util.hpp"
+#include "common/util.hpp"
 
 namespace taraxa::network::tarcap {
 

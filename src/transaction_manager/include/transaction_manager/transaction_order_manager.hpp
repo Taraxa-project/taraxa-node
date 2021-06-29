@@ -8,11 +8,11 @@
 #include <thread>
 
 #include "common/types.hpp"
+#include "common/util.hpp"
 #include "config/config.hpp"
 #include "consensus/pbft_chain.hpp"
 #include "dag/dag_block.hpp"
 #include "storage/db_storage.hpp"
-#include "util/util.hpp"
 
 namespace taraxa {
 

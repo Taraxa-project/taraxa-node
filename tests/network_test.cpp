@@ -6,12 +6,12 @@
 #include <iostream>
 #include <vector>
 
+#include "common/lazy.hpp"
 #include "common/static_init.hpp"
 #include "consensus/block_proposer.hpp"
 #include "consensus/pbft_manager.hpp"
 #include "dag/dag.hpp"
 #include "logger/log.hpp"
-#include "util/lazy.hpp"
 #include "util_test/samples.hpp"
 #include "util_test/util.hpp"
 

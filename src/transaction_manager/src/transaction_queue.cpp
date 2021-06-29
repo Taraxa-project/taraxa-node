@@ -3,7 +3,9 @@
 #include <string>
 #include <utility>
 
+#include "storage/db_storage.hpp"
 #include "transaction_manager/transaction.hpp"
+#include "transaction_manager/transaction_status.hpp"
 
 namespace taraxa {
 
@@ -23,7 +25,7 @@ void TransactionQueue::stop() {
 bool TransactionQueue::insert(Transaction const &trx, bool queue_verified, bool tx_verified,
                               const std::shared_ptr<DbStorage> &db) {
   const auto hash = trx.getHash();
-  auto trx_ptr = make_shared<Transaction>(trx);
+  auto trx_ptr = std::make_shared<Transaction>(trx);
 
   {
     uLock lock(main_shared_mutex_);

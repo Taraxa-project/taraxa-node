@@ -3,7 +3,7 @@
 #include <consensus/pbft_chain.hpp>
 #include <consensus/pbft_manager.hpp>
 
-#include "util/jsoncpp.hpp"
+#include "common/jsoncpp.hpp"
 
 using namespace std;
 

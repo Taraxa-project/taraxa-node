@@ -3,7 +3,7 @@ file(GLOB sources "*.cpp" "*.h")
 add_library(p2p ${sources})
 target_link_libraries(p2p PUBLIC devcrypto devcore CONAN_PKG::lz4)
 
-target_include_directories(p2p SYSTEM PUBLIC)
+target_include_directories(p2p SYSTEM PUBLIC ../)
 
 if(MINIUPNPC)
     target_link_libraries(p2p PUBLIC "${MINIUPNPC_LIBRARY}")

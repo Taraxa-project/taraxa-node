@@ -14,7 +14,8 @@ target_link_libraries(network_test app_base CONAN_PKG::gtest)
 add_test(network_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/network_test)
 
 add_executable(transaction_test transaction_test.cpp)
-target_link_libraries(transaction_test app_base CONAN_PKG::gtest)
+# libs linking second time because of link issues 
+target_link_libraries(transaction_test dag consensus app_base CONAN_PKG::gtest)
 add_test(transaction_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/transaction_test)
 
 add_executable(dag_block_test dag_block_test.cpp)
@@ -30,7 +31,8 @@ target_link_libraries(dag_test app_base CONAN_PKG::gtest)
 add_test(dag_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/dag_test)
 
 add_executable(p2p_test p2p_test.cpp)
-target_link_libraries(p2p_test app_base CONAN_PKG::gtest)
+# libs linking second time because of link issues 
+target_link_libraries(p2p_test network final_chain app_base CONAN_PKG::gtest)
 add_test(p2p_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/p2p_test)
 
 add_executable(vote_test vote_test.cpp)

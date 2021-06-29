@@ -4,8 +4,8 @@
 #include <queue>
 
 #include "LogFilter.hpp"
+#include "common/global_const.hpp"
 #include "data.hpp"
-#include "util/global_const.hpp"
 
 namespace taraxa::net::rpc::eth {
 using namespace chrono;

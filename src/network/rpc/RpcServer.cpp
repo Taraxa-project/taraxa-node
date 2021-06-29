@@ -1,7 +1,7 @@
 #include "RpcServer.h"
 
-#include "util/jsoncpp.hpp"
-#include "util/util.hpp"
+#include "common/jsoncpp.hpp"
+#include "common/util.hpp"
 
 namespace taraxa::net {
 

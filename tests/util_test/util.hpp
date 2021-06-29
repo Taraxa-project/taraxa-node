@@ -12,12 +12,12 @@
 #include <type_traits>
 #include <vector>
 
+#include "common/lazy.hpp"
 #include "config/config.hpp"
 #include "gtest.hpp"
 #include "network/network.hpp"
 #include "node/full_node.hpp"
 #include "transaction_manager/transaction_manager.hpp"
-#include "util/lazy.hpp"
 
 // TODO rename this namespace to `util_test`
 namespace taraxa::core_tests {

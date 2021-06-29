@@ -5,9 +5,9 @@
 
 #include <functional>
 
+#include "common/range_view.hpp"
 #include "final_chain/state_api_data.hpp"
 #include "storage/db_storage.hpp"
-#include "util/range_view.hpp"
 
 namespace taraxa::state_api {
 

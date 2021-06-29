@@ -7,10 +7,10 @@
 
 #include "common/static_init.hpp"
 #include "common/types.hpp"
+#include "common/util.hpp"
 #include "dag/vdf_sortition.hpp"
 #include "logger/log.hpp"
 #include "node/full_node.hpp"
-#include "util/util.hpp"
 #include "util_test/samples.hpp"
 #include "util_test/util.hpp"
 

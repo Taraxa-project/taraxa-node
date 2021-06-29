@@ -9,7 +9,6 @@ add_subdirectory(network)
 add_subdirectory(node)
 add_subdirectory(storage)
 add_subdirectory(transaction_manager)
-add_subdirectory(util)
 
 add_subdirectory(aleth)
 
@@ -35,20 +34,16 @@ target_link_libraries(app_base INTERFACE
         node
         storage
         transaction_manager
-        util
         aleth
         taraxa-evm
         taraxa-vrf
         taraxa-vdf
         pthread
-        scrypt
         CONAN_PKG::jsoncpp
         CONAN_PKG::libjson-rpc-cpp
         CONAN_PKG::boost
         CONAN_PKG::openssl
         CONAN_PKG::gmp
-        CONAN_PKG::snappy
-        CONAN_PKG::zstd
         CONAN_PKG::lz4
         CONAN_PKG::rocksdb
         CONAN_PKG::bzip2

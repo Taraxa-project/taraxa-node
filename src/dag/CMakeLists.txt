@@ -29,12 +29,10 @@ target_link_libraries(dag PRIVATE
     logger
     storage
     transaction_manager
-    util
+    network
     aleth
     taraxa-evm
     taraxa-vrf
-    CONAN_PKG::openssl
-    CONAN_PKG::mpfr
     CONAN_PKG::boost
     CONAN_PKG::jsoncpp
 )

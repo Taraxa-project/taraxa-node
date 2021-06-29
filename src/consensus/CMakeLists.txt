@@ -4,6 +4,7 @@ set(HEADERS
     include/consensus/vrf_wrapper.hpp
     include/consensus/vote.hpp
     include/consensus/pbft_manager.hpp
+    include/consensus/sync_block.hpp
 )
 
 set(SOURCES
@@ -12,6 +13,7 @@ set(SOURCES
     src/vote.cpp
     src/pbft_chain.cpp
     src/block_proposer.cpp
+    src/sync_block.cpp
 )
 
 add_library(consensus STATIC ${SOURCES} ${HEADERS})
@@ -26,7 +28,6 @@ target_link_libraries(consensus PRIVATE
     storage
     taraxa-vrf
     transaction_manager
-    util
     aleth
     taraxa-evm
     CONAN_PKG::boost

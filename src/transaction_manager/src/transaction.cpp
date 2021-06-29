@@ -5,7 +5,7 @@
 #include <string>
 #include <utility>
 
-#include "util/encoding_rlp.hpp"
+#include "common/encoding_rlp.hpp"
 
 namespace taraxa {
 using namespace std;

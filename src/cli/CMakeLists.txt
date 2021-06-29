@@ -18,7 +18,6 @@ target_link_libraries(cli PRIVATE
     common
     consensus
     dag
-    util
     logger
     aleth
     taraxa-vrf

@@ -1,10 +1,10 @@
 #include <cmath>
 #include <consensus/block_proposer.hpp>
 
+#include "common/util.hpp"
 #include "dag/dag.hpp"
 #include "transaction_manager/transaction.hpp"
 #include "transaction_manager/transaction_manager.hpp"
-#include "util/util.hpp"
 
 namespace taraxa {
 

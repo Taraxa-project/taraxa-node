@@ -7,10 +7,11 @@
 
 #include <algorithm>
 
+#include "common/constants.hpp"
+#include "common/encoding_rlp.hpp"
 #include "common/types.hpp"
 #include "final_chain/state_api_data.hpp"
 #include "transaction_manager/transaction.hpp"
-#include "util/encoding_rlp.hpp"
 
 namespace taraxa::final_chain {
 
@@ -36,10 +37,22 @@ struct BlockHeader {
 
   HAS_RLP_FIELDS
 
-  static h256 const& uncles_hash();
-  static Nonce const& nonce();
-  static u256 const& difficulty();
-  static h256 const& mix_hash();
+  static h256 const& uncles_hash() { return EmptyRLPListSHA3(); }
+
+  static Nonce const& nonce() {
+    static const Nonce ret;
+    return ret;
+  }
+
+  static u256 const& difficulty() {
+    static const u256 ret = 0;
+    return ret;
+  }
+
+  static h256 const& mix_hash() {
+    static const h256 ret;
+    return ret;
+  }
 
   void ethereum_rlp(dev::RLPStream& encoding) const;
 };

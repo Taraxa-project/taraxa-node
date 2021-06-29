@@ -1,4 +1,5 @@
 set(HEADERS
+    include/config/version.hpp
     include/config/config.hpp
     include/config/config_exception.hpp
     include/config/pbft.hpp
@@ -17,6 +18,9 @@ set(SOURCES
     src/vdf.cpp
 )
 
+# Configure file with version
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/version/version.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/include/config/version.hpp)
+
 add_library(config STATIC ${SOURCES} ${HEADERS})
 target_include_directories(config PUBLIC "include")
 target_link_libraries(config PRIVATE 
@@ -24,7 +28,6 @@ target_link_libraries(config PRIVATE
     consensus
     dag
     logger
-    util
     aleth
     taraxa-vrf
     CONAN_PKG::jsoncpp

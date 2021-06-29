@@ -2,8 +2,8 @@
 
 #include <atomic>
 
+#include "common/util.hpp"
 #include "libp2p/Common.h"
-#include "util/util.hpp"
 
 namespace taraxa::network::tarcap {
 

@@ -4,8 +4,8 @@
 #include <libdevcore/RLP.h>
 #include <libdevcore/SHA3.h>
 
+#include "common/default_construct_copyable_movable.hpp"
 #include "common/types.hpp"
-#include "util/default_construct_copyable_movable.hpp"
 
 namespace taraxa {
 

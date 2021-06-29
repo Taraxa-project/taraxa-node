@@ -18,9 +18,6 @@ set(TARAXA_DB_MINOR_VERSION 2)
 # Defines Taraxa library target.
 project(taraxa-node VERSION ${TARAXA_VERSION})
 
-# Configure file with version
-configure_file(${CMAKE_SOURCE_DIR}/config/version/version.hpp.in ${CMAKE_SOURCE_DIR}/src/config/version.hpp)
-
 # Set project properties like C++ standard, etc...
 set(CMAKE_CXX_STANDARD 20)
 

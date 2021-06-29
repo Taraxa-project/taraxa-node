@@ -1,10 +1,10 @@
 #include "final_chain/final_chain.hpp"
 
 #include "common/constants.hpp"
+#include "common/thread_pool.hpp"
 #include "consensus/vote.hpp"
 #include "final_chain/replay_protection_service.hpp"
 #include "final_chain/trie_common.hpp"
-#include "util/thread_pool.hpp"
 
 namespace taraxa::final_chain {
 using namespace std;

@@ -25,7 +25,6 @@ target_link_libraries(transaction_manager PRIVATE
     logger
     network
     storage
-    util
     aleth 
     taraxa-evm
     taraxa-vrf

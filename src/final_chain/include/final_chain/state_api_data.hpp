@@ -6,9 +6,9 @@
 #include <unordered_map>
 #include <vector>
 
+#include "common/encoding_rlp.hpp"
 #include "common/types.hpp"
 #include "config/state_api.hpp"
-#include "util/encoding_rlp.hpp"
 
 namespace taraxa::state_api {
 using namespace ::dev;

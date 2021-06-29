@@ -2,8 +2,8 @@
 
 #include <memory>
 
+#include "common/range_view.hpp"
 #include "storage/db_storage.hpp"
-#include "util/range_view.hpp"
 
 namespace taraxa::final_chain {
 

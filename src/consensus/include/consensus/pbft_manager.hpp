@@ -10,7 +10,7 @@
 #include "consensus/vrf_wrapper.hpp"
 #include "logger/log.hpp"
 #include "network/network.hpp"
-#include "network/taraxa_capability.hpp"
+#include "network/tarcap/taraxa_capability.hpp"
 
 #define NULL_BLOCK_HASH blk_hash_t(0)
 #define POLLING_INTERVAL_ms 100  // milliseconds...

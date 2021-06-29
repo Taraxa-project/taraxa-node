@@ -12,6 +12,8 @@
 #include <type_traits>
 #include <vector>
 
+#include "common/thread_pool.hpp"
+#include "common/util.hpp"
 #include "config/config.hpp"
 #include "config/version.hpp"
 #include "consensus/pbft_chain.hpp"
@@ -27,8 +29,6 @@
 #include "storage/db_storage.hpp"
 #include "transaction_manager/transaction.hpp"
 #include "transaction_manager/transaction_order_manager.hpp"
-#include "util/thread_pool.hpp"
-#include "util/util.hpp"
 
 namespace taraxa {
 

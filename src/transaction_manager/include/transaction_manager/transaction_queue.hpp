@@ -8,6 +8,7 @@ namespace taraxa {
 using std::string;
 class DagBlock;
 class FullNode;
+class DbStorage;
 
 class TransactionQueue {
  public:
@@ -36,7 +37,7 @@ class TransactionQueue {
    * @param verify
    * @param db
    */
-  void insertUnverifiedTrxs(const vector<Transaction> &trxs, const std::shared_ptr<DbStorage> &db);
+  void insertUnverifiedTrxs(const std::vector<Transaction> &trxs, const std::shared_ptr<DbStorage> &db);
 
   Transaction top();
   void pop();

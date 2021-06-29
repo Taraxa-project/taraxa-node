@@ -4,10 +4,10 @@
 #include <json/writer.h>
 #include <libdevcore/CommonJS.h>
 
+#include "common/jsoncpp.hpp"
+#include "common/util.hpp"
 #include "config/config.hpp"
 #include "eth/Eth.h"
-#include "util/jsoncpp.hpp"
-#include "util/util.hpp"
 
 namespace taraxa::net {
 

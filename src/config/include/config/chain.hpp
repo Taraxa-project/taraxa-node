@@ -5,10 +5,10 @@
 #include <functional>
 #include <unordered_map>
 
+#include "common/lazy.hpp"
 #include "config/final_chain.hpp"
 #include "config/pbft.hpp"
 #include "dag/dag_block.hpp"
-#include "util/lazy.hpp"
 
 namespace taraxa::chain_config {
 using std::string;

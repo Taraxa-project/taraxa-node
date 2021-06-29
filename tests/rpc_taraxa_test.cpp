@@ -1,5 +1,5 @@
+#include "common/jsoncpp.hpp"
 #include "network/rpc/Taraxa.h"
-#include "util/jsoncpp.hpp"
 #include "util_test/util.hpp"
 
 namespace taraxa::net {

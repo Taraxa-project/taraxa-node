@@ -3,19 +3,22 @@ set(HEADERS
     rpc/eth/watches.hpp
     rpc/eth/LogFilter.hpp
     rpc/eth/data.hpp
-    rpc/Net.h
-    rpc/Taraxa.h
-    rpc/WSServer.h
-    rpc/Test.h
-    rpc/EthFace.h
-    rpc/TaraxaFace.h
-    rpc/EthClient.h
-    rpc/RpcServer.h
     rpc/eth/Eth.h
+    rpc/eth/LogFilter.hpp
+    rpc/eth/watches.hpp
+
+    rpc/EthClient.h
+    rpc/EthFace.h
+    rpc/Net.h
     rpc/NetClient.h
-    rpc/TestClient.h
-    rpc/TaraxaClient.h
     rpc/NetFace.h
+    rpc/rpc_error_handler.hpp
+    rpc/RpcServer.h
+    rpc/Taraxa.h
+    rpc/TaraxaClient.h
+    rpc/TaraxaFace.h
+    rpc/Test.h
+    rpc/TestClient.h
     rpc/TestFace.h
 
     include/network/network.hpp
@@ -51,15 +54,17 @@ set(HEADERS
 )
 
 set(SOURCES
-    rpc/Taraxa.cpp
-    rpc/WSServer.cpp
-    rpc/Net.cpp
-    rpc/Test.cpp
-    rpc/RpcServer.cpp
-    rpc/rpc_error_handler.cpp
-    rpc/eth/watches.cpp
-    rpc/eth/LogFilter.cpp
     rpc/eth/Eth.cpp
+    rpc/eth/LogFilter.cpp
+    rpc/eth/watches.cpp
+
+    rpc/Net.cpp
+    rpc/rpc_error_handler.cpp
+    rpc/RpcServer.cpp
+    rpc/Taraxa.cpp
+    rpc/Test.cpp
+    rpc/WSServer.cpp
+    
     src/network.cpp
 
     src/tarcap/taraxa_capability.cpp
@@ -92,22 +97,21 @@ set(SOURCES
 add_library(network STATIC ${SOURCES} ${HEADERS})
 target_include_directories(network PUBLIC "include")
 target_include_directories(network PUBLIC "../")
-target_link_libraries(network PRIVATE 
-    common 
-    config 
-    consensus 
+target_link_libraries(network PRIVATE
+    common
+    config
+    consensus
     dag
     final_chain
-    logger 
-    node 
-    storage 
-    util
+    logger
+    node
+    storage
     transaction_manager
     aleth
     taraxa-evm
     taraxa-vrf
-    CONAN_PKG::boost 
-    CONAN_PKG::jsoncpp 
+    CONAN_PKG::boost
+    CONAN_PKG::jsoncpp
     CONAN_PKG::libjson-rpc-cpp
 )
 

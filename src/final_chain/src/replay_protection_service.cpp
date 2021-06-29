@@ -10,7 +10,7 @@
 #include <string>
 #include <unordered_map>
 
-#include "util/util.hpp"
+#include "common/util.hpp"
 
 namespace taraxa::final_chain {
 using namespace dev;

@@ -4,7 +4,7 @@
 #include <map>
 #include <shared_mutex>
 
-#include "util/functional.hpp"
+#include "common/functional.hpp"
 
 namespace taraxa::util::event {
 using namespace std;

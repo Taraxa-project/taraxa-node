@@ -7,14 +7,16 @@
 
 #include <memory>
 
+#include "common/thread_pool.hpp"
 #include "config/config.hpp"
+#include "consensus/pbft_chain.hpp"
 #include "network/tarcap/shared_states/peers_state.hpp"
 #include "network/tarcap/shared_states/test_state.hpp"
 #include "network/tarcap/stats/node_stats.hpp"
 #include "threadpool/tarcap_thread_pool.hpp"
-#include "util/thread_pool.hpp"
 
 namespace taraxa {
+class DbStorage;
 class PbftManager;
 class PbftChain;
 class VoteManager;
@@ -48,7 +50,7 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   unsigned messageCount() const override;
   void onConnect(std::weak_ptr<dev::p2p::Session> session, u256 const &) override;
   void onDisconnect(dev::p2p::NodeID const &_nodeID) override;
-  void interpretCapabilityPacket(std::weak_ptr<dev::p2p::Session> session, unsigned _id, RLP const &_r) override;
+  void interpretCapabilityPacket(std::weak_ptr<dev::p2p::Session> session, unsigned _id, dev::RLP const &_r) override;
   std::string packetTypeToString(unsigned _packetType) const override;
 
   /**
@@ -122,7 +124,7 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   std::shared_ptr<SyncingHandler> syncing_handler_;
 
   // List of boot nodes (from config)
-  std::map<Public, dev::p2p::NodeIPEndpoint> boot_nodes_;
+  std::map<dev::Public, dev::p2p::NodeIPEndpoint> boot_nodes_;
 
   // Node stats
   std::shared_ptr<NodeStats> node_stats_;

@@ -6,8 +6,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include "util/range_view.hpp"
-#include "util/util.hpp"
+#include "common/range_view.hpp"
+#include "common/util.hpp"
 
 namespace taraxa::util::encoding_rlp {
 using namespace std;

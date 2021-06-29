@@ -1,12 +1,12 @@
 #pragma once
 
+#include "common/event.hpp"
 #include "config/config.hpp"
 #include "logger/log.hpp"
 #include "storage/db_storage.hpp"
 #include "transaction_manager/transaction.hpp"
 #include "transaction_manager/transaction_queue.hpp"
 #include "transaction_manager/transaction_status.hpp"
-#include "util/event.hpp"
 
 namespace taraxa {
 

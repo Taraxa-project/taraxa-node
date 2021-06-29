@@ -3,8 +3,8 @@
 #include <string>
 #include <unordered_map>
 
+#include "common/encoding_rlp.hpp"
 #include "common/types.hpp"
-#include "util/encoding_rlp.hpp"
 
 namespace taraxa::state_api {
 

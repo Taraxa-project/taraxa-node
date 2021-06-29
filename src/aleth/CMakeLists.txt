@@ -6,4 +6,6 @@ add_subdirectory(libdevcore)
 add_subdirectory(libdevcrypto)
 add_subdirectory(libp2p)
 
-target_include_directories(devcore PUBLIC "./")
+add_library(aleth INTERFACE)
+
+target_link_libraries(aleth INTERFACE devcore devcrypto p2p)

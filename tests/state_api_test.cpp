@@ -7,7 +7,7 @@
 #include <optional>
 #include <vector>
 
-#include "util/encoding_rlp.hpp"
+#include "common/encoding_rlp.hpp"
 #include "util_test/util.hpp"
 
 namespace taraxa::state_api {

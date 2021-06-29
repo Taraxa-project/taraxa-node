@@ -27,7 +27,6 @@ target_link_libraries(final_chain PRIVATE
     logger 
     storage 
     transaction_manager 
-    util 
     aleth 
     taraxa-evm
     taraxa-vrf

@@ -1,7 +1,7 @@
 #pragma once
 
+#include "common/thread_pool.hpp"
 #include "network/tarcap/packets_handlers/common/packet_handler.hpp"
-#include "util/thread_pool.hpp"
 
 namespace taraxa {
 class PbftChain;

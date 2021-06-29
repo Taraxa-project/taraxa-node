@@ -19,7 +19,6 @@ target_link_libraries(node PRIVATE
     storage
     taraxa-vrf
     transaction_manager
-    util
     aleth
     taraxa-evm
     CONAN_PKG::boost

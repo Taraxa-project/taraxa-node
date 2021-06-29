@@ -1,4 +1,4 @@
-#include "sync_block.hpp"
+#include "consensus/sync_block.hpp"
 
 #include <libdevcore/CommonJS.h>
 
