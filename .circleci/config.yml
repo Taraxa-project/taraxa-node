@@ -51,6 +51,7 @@ commands:
          - run:
             command: |
                echo "<< parameters.comment >>"
+               body=
                curl \
                   -X POST \
                   -d "{\"body\": \"<< parameters.comment >>\" }" \
@@ -117,8 +118,37 @@ commands:
                IPS=(${IPS[@]} $(gcloud compute addresses describe prnet-<< parameters.pr-name >>-${i} --region << parameters.region >> --project << parameters.project >> \
                     --format="flattened(address)" |cut -d" " -f2) )
               done
-              echo "export PRNET_IPS=(${IPS[@]})" >> ${BASH_ENV}          
-
+              echo "export PRNET_IPS=(${IPS[@]})" >> ${BASH_ENV}    
+ cleanup_prnet_ips:
+      description: | 
+        Deletes previously created gcloud ip address for prnet
+      parameters:
+        region:
+          description: gcloud region
+          type: string
+          default: "us-central1"
+        project:
+          description: gcloud project
+          type: string
+          default:  "jovial-meridian-249123"
+        pr-name:
+          description: Prefix to name ip addresses after
+          type: string
+        gcloud-username:
+          description: Gcloud username
+          type: string
+        gcloud-key:
+          description: Json key for gcloud service account
+          type: string                    
+      steps:
+        run:
+          name: Cleanup PRNet IPs
+          command: |
+             echo ${PRNET_IPS}
+             for IP in $PRNET_IPS
+             do 
+              gcloud compute addresses delete ${IP} --region ${REGION}  --project ${PROJECT} --quiet
+             done
 jobs:
    deploy-prnet:
      docker:
@@ -137,6 +167,10 @@ jobs:
          when: on_success
          comment: "Deployed prnet successfully ${PRNET_IPS[@]} "
          pr_number: << pipeline.parameters.pr_number >>
+      - cleanup_prnet_ips:
+         when: on_fail
+         gcloud-username: ${GCLOUD_USERNAME}
+         gcloud-key: ${GCLOUD_KEY}
       - pr_comment:
          when: on_fail
          comment: "Failed to deploy prnet"
@@ -151,9 +185,11 @@ jobs:
           pr-name: << pipeline.parameters.pr_number >>
           gcloud-username: ${GCLOUD_USERNAME}
           gcloud-key: ${GCLOUD_KEY}  
+      - run:
+         command: echo ${PRNET_IPS[@]}
       - pr_comment:
          when: on_success
-         comment: "ReDeployed prnet successfully ${PRNET_IPS[@]}"
+         comment: "ReDeployed prnet successfully"
          pr_number: << pipeline.parameters.pr_number >>
       - pr_comment:
          when: on_fail
@@ -164,11 +200,19 @@ jobs:
      docker:
        - image: circleci/buildpack-deps:stretch
      steps:
+      - gcp-cli/install
       - run: echo "Cleanup prnet"
       - pr_comment:
          when: on_success
          comment: "prnet cleaned-up successfully"
          pr_number: << pipeline.parameters.pr_number >>
+      - get_prnet_ips:
+          pr-name: << pipeline.parameters.pr_number >>
+          gcloud-username: ${GCLOUD_USERNAME}
+          gcloud-key: ${GCLOUD_KEY}  
+      - cleanup_prnet_ips:
+         gcloud-username: ${GCLOUD_USERNAME}
+         gcloud-key: ${GCLOUD_KEY}
       - pr_comment:
          when: on_fail
          comment: "Failed to Clean up prnet"
