@@ -51,8 +51,7 @@ commands:
          - run:
             command: |
                echo "<< parameters.comment >>"
-               http_code=$(docker run --rm  \
-                byrnedo/alpine-curl \
+               http_code=$(curl \
                 -sS --fail -w '%{http_code}' -o /data/http.out \
                 -X POST \
                 -H "Authorization: token $GITHUB_TOKEN" \
