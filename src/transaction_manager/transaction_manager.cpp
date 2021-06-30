@@ -108,7 +108,7 @@ std::pair<bool, std::string> TransactionManager::insertTransaction(const Transac
   }
 
   status = verify ? TransactionStatus::in_queue_verified : TransactionStatus::in_queue_unverified;
-  db_->saveTransaction(trx);
+  db_->saveTransaction(trx, verify && mode_ != VerifyMode::skip_verify_sig);
   db_->saveTransactionStatus(hash, status);
   trx_qu_.insert(trx, verify);
 
@@ -230,7 +230,7 @@ void TransactionManager::verifyQueuedTrxs() {
       auto status = db_->getTransactionStatus(hash);
       if (status == TransactionStatus::in_queue_unverified) {
         db_->saveTransactionStatus(hash, TransactionStatus::in_queue_verified);
-
+        db_->saveTransaction(*item.second, mode_ != VerifyMode::skip_verify_sig);
         trx_qu_.addTransactionToVerifiedQueue(hash, item.second);
       }
     }
@@ -372,11 +372,9 @@ bool TransactionManager::verifyBlockTransactions(DagBlock const &blk, std::vecto
                      << valid.second;
         return false;
       }
-      if (status == TransactionStatus::not_seen) db_->addTransactionToBatch(trx, trx_batch);
+      db_->addTransactionToBatch(trx, trx_batch, true);
     }
   }
-
-  db_->commitWriteBatch(trx_batch);
 
   bool all_transactions_saved = true;
   trx_hash_t missing_trx;
@@ -393,8 +391,11 @@ bool TransactionManager::verifyBlockTransactions(DagBlock const &blk, std::vecto
                      << valid.second;
         return false;
       }
+      db_->addTransactionToBatch(*tx, trx_batch, true);
     }
   }
+
+  db_->commitWriteBatch(trx_batch);
 
   if (all_transactions_saved) {
     auto trx_batch = db_->createWriteBatch();

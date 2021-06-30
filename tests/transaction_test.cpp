@@ -28,6 +28,24 @@ auto g_blk_samples = Lazy([] { return samples::createMockDagBlkSamples(0, NUM_BL
 
 struct TransactionTest : BaseTest {};
 
+TEST_F(TransactionTest, double_verification) {
+  DbStorage db(data_dir);
+
+  auto trx_data_ptr = g_signed_trx_samples[0].rlp(false, true);
+  RLP trx_rlp = RLP(*trx_data_ptr);
+  EXPECT_EQ(trx_rlp.itemCount(), 10);  // check if there is sender field
+
+  db.saveTransaction(g_signed_trx_samples[0]);  // save it unverified
+  auto trx_data = db.getTransactionRaw(g_signed_trx_samples[0].getHash());
+  trx_rlp = RLP(trx_data);
+  EXPECT_EQ(trx_rlp.itemCount(), 9);
+
+  db.saveTransaction(g_signed_trx_samples[0], true);  // save it verified
+  trx_data = db.getTransactionRaw(g_signed_trx_samples[0].getHash());
+  trx_rlp = RLP(trx_data);
+  EXPECT_EQ(trx_rlp.itemCount(), 10);
+}
+
 TEST_F(TransactionTest, status_table_lru) {
   using TestStatus = StatusTable<int, int>;
   TestStatus status_table(100);
