@@ -520,6 +520,68 @@ TEST_F(PbftManagerTest, check_committeeSize_greater_than_activePlayers) {
   check_2tPlus1_validVotingPlayers_activePlayers_threshold(6);
 }
 
+TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
+  auto node_cfgs = make_node_cfgs<20>(1);
+  auto nodes = launch_nodes(node_cfgs);
+
+  auto pbft_mgr = nodes[0]->getPbftManager();
+  pbft_mgr->stop();
+  cout << "Initial PBFT manager at round 1 step 4" << endl;
+  pbft_mgr->setPbftRound(1);
+  pbft_mgr->setPbftStep(4);
+
+  auto pbft_chain = nodes[0]->getPbftChain();
+  auto vote_mgr = nodes[0]->getVoteManager();
+
+  // Generate bogus DAG anchor for PBFT block
+  auto dag_anchor = blk_hash_t("1234567890000000000000000000000000000000000000000000000000000000");
+  auto last_pbft_block_hash = pbft_chain->getLastPbftBlockHash();
+  auto propose_pbft_period = pbft_chain->getPbftChainSize() + 1;
+  auto beneficiary = nodes[0]->getAddress();
+  auto node_sk = nodes[0]->getSecretKey();
+  auto propose_pbft_block =
+      std::make_shared<PbftBlock>(last_pbft_block_hash, dag_anchor, propose_pbft_period, beneficiary, node_sk);
+  auto pbft_block_hash = propose_pbft_block->getBlockHash();
+  pbft_chain->pushUnverifiedPbftBlock(propose_pbft_block);
+
+  // Generate bogus vote
+  auto round = 1;
+  auto step = 4;
+  auto weighted_index = 0;
+  auto propose_vote = pbft_mgr->generateVote(pbft_block_hash, next_vote_type, round, step, weighted_index);
+  vote_mgr->addVerifiedVote(propose_vote);
+
+  pbft_mgr->setLastSoftVotedValueSinceRound(pbft_block_hash, round);
+  pbft_mgr->start();
+
+  // Vote at the bogus PBFT block hash
+  EXPECT_HAPPENS({60s, 50ms}, [&](auto &ctx) {
+    auto soft_vote_value = blk_hash_t(0);
+    auto votes = vote_mgr->getVerifiedVotes();
+    for (auto const &v : votes) {
+      if (soft_vote_type == v.getType() && v.getBlockHash() == pbft_block_hash) {
+        soft_vote_value = v.getBlockHash();
+        break;
+      }
+    }
+    WAIT_EXPECT_EQ(ctx, soft_vote_value, pbft_block_hash)
+  });
+
+  cout << "After some rounds, terminate voting on the bogus value " << pbft_block_hash << endl;
+  // After some rounds, terminate the bogus value and vote on NULL_BLOCK_HASH since no new DAG blocks generated
+  EXPECT_HAPPENS({60s, 50ms}, [&](auto &ctx) {
+    auto soft_vote_value = pbft_block_hash;
+    auto votes = vote_mgr->getVerifiedVotes();
+    for (auto const &v : votes) {
+      if (soft_vote_type == v.getType() && v.getBlockHash() == blk_hash_t(0)) {
+        soft_vote_value = v.getBlockHash();
+        break;
+      }
+    }
+    WAIT_EXPECT_EQ(ctx, soft_vote_value, blk_hash_t(0))
+  });
+}
+
 }  // namespace taraxa::core_tests
 
 using namespace taraxa;
