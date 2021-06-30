@@ -167,7 +167,7 @@ commands:
              echo ${PRNET_IPS}
              for IP in $PRNET_IPS
              do 
-              gcloud compute addresses delete ${IP} --region ${REGION}  --project ${PROJECT} --quiet
+              gcloud compute addresses delete ${IP} --region << parameters.region >>  --project << parameters.region >> --quiet
              done
            when: << parameters.when >>
 jobs:
