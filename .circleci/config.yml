@@ -204,7 +204,7 @@ commands:
          type: string
      steps:
        - run:
-         name: Get latest image for current PR
+         name: Get latest image for current PR and deploy chart
          command: |
             PR_TAG=$(gcloud container images list-tags gcr.io/jovial-meridian-249123/taraxa-node \ 
               --filter="tags:<< parameters.pr-name >>-*" \ 
@@ -216,19 +216,15 @@ commands:
               exit 1
             else
               echo "export PR_TAG=${PR_TAG}" >> ${BASH_ENV}
-              exit 0
             fi
-       - run: 
-         name: Deploy Chart
-         command: | 
-           cd taraxa-testnet/tests           
-           helm upgrade -i << parameters.pr-name >> taraxa-node/ --namespace blockchain-prnet -f taraxa-node/values.yaml -f taraxa-node/prnet.values.yaml \
-            --set image.repository=gcr.io/jovial-meridian-249123/taraxa-node:${PR_TAG} \
-            --set explorer.configEnvs.rpcHttpProvider="http://<< parameters.pr-name >>-taraxa-node:7777" \
-            --set explorer.configEnvs.rpcWsProvider="http://<< parameters.pr-name >>-taraxa-node:8777" \
-            --set bootnode.loadBalancer.addresses\[0\]="${PRNET_IPS[0]}" \
-            --set bootnode.loadBalancer.addresses\[1\]="${PRNET_IPS[1]} \
-            --set bootnode.loadBalancer.addresses\[2\]="${PRNET_IPS[2]"
+            cd taraxa-testnet/tests           
+            helm upgrade -i << parameters.pr-name >> taraxa-node/ --namespace blockchain-prnet -f taraxa-node/values.yaml -f taraxa-node/prnet.values.yaml \
+             --set image.repository=gcr.io/jovial-meridian-249123/taraxa-node:${PR_TAG} \
+             --set explorer.configEnvs.rpcHttpProvider="http://<< parameters.pr-name >>-taraxa-node:7777" \
+             --set explorer.configEnvs.rpcWsProvider="http://<< parameters.pr-name >>-taraxa-node:8777" \
+             --set bootnode.loadBalancer.addresses\[0\]="${PRNET_IPS[0]}" \
+             --set bootnode.loadBalancer.addresses\[1\]="${PRNET_IPS[1]} \
+             --set bootnode.loadBalancer.addresses\[2\]="${PRNET_IPS[2]"
 
    cleanup_testnet_chart:
      description: Deploys taraxa-node chart 
