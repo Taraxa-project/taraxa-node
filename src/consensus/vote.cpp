@@ -205,6 +205,18 @@ uint64_t VoteManager::getUnverifiedVotesSize() const {
   return size;
 }
 
+uint64_t VoteManager::getVerifiedVotesSize() const {
+  uint64_t size = 0;
+
+  sharedLock_ lock(verified_votes_access_);
+  std::map<uint64_t, std::unordered_map<vote_hash_t, Vote>>::const_iterator it;
+  for (it = verified_votes_.begin(); it != verified_votes_.end(); ++it) {
+    size += it->second.size();
+  }
+
+  return size;
+}
+
 void VoteManager::addVerifiedVote(Vote const& vote) {
   auto pbft_round = vote.getRound();
   auto hash = vote.getHash();

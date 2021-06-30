@@ -272,6 +272,10 @@ std::pair<size_t, size_t> TransactionManager::getTransactionQueueSize() const {
   return trx_qu_.getTransactionQueueSize();
 }
 
+std::pair<size_t, size_t> TransactionManager::getTransactionBufferSize() const {
+  return trx_qu_.getTransactionBufferSize();
+}
+
 std::vector<taraxa::bytes> TransactionManager::getNewVerifiedTrxSnapShotSerialized() {
   auto verified_trxs = trx_qu_.getNewVerifiedTrxSnapShot();
   std::vector<Transaction> vec_trxs;
