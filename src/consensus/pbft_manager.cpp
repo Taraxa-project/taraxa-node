@@ -295,7 +295,7 @@ bool PbftManager::resetRound_() {
     next_voted_null_block_hash_ = false;
     next_voted_soft_value_ = false;
 
-    reset_own_value_to_null_block_hash_in_this_round_ = false;
+    reset_own_starting_value_in_this_round_ = false;
 
     // Key thing is to set .second to false to mark that we have not
     // identified a soft voted block in the new upcoming round...
@@ -653,6 +653,7 @@ void PbftManager::identifyBlock_() {
       LOG(log_nf_) << "Soft voting block hash " << voted_value << " has been voted " << has_soft_voted_rounds
                    << " rounds. Terminate the voted value and idenitfy new leader block";
       placeVoteForNewLeaderBlock_();
+      reset_own_starting_value_in_this_round_ = true;
     } else {
       auto place_votes = placeVote_(voted_value, soft_vote_type, round, step_);
       if (place_votes) {
@@ -748,6 +749,12 @@ void PbftManager::certifyBlock_() {
           db_->commitWriteBatch(batch);
 
           have_cert_voted_in_this_round_ = true;
+
+          if (soft_voted_block_for_this_round_.first == last_soft_voted_value_since_round_.first) {
+            last_soft_voted_value_since_round_ = std::make_pair(last_soft_voted_value_since_round_.first, round);
+            LOG(log_nf_) << "Cert voted value " << soft_voted_block_for_this_round_.first
+                         << ", update last soft voted value since round " << round;
+          }
         }
       }
     }
@@ -775,7 +782,7 @@ void PbftManager::firstFinish_() {
     }
   } else {
     if (own_starting_value_for_round_ == NULL_BLOCK_HASH) {
-      if (voted_value != NULL_BLOCK_HASH && !reset_own_value_to_null_block_hash_in_this_round_) {
+      if (voted_value != NULL_BLOCK_HASH && !reset_own_starting_value_in_this_round_) {
         db_->savePbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round, voted_value);
         own_starting_value_for_round_ = voted_value;
         LOG(log_dg_) << "Updating own starting to previous round next voted value of " << voted_value;
@@ -1014,15 +1021,13 @@ void PbftManager::placeVoteForNewLeaderBlock_() {
   auto round = getPbftRound();
   auto leader_block = identifyLeaderBlock_(votes_);
 
-  if (leader_block.second) {
-    db_->savePbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round, leader_block.first);
-    own_starting_value_for_round_ = leader_block.first;
-    LOG(log_dg_) << "Identify leader block " << leader_block.first << " at round " << round;
+  db_->savePbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round, leader_block);
+  own_starting_value_for_round_ = leader_block;
+  LOG(log_dg_) << "Identify leader block " << leader_block << " at round " << round;
 
-    auto place_votes = placeVote_(leader_block.first, soft_vote_type, round, step_);
-    if (place_votes) {
-      LOG(log_nf_) << "Soft votes " << place_votes << " voting block " << leader_block.first << " at round " << round;
-    }
+  auto place_votes = placeVote_(leader_block, soft_vote_type, round, step_);
+  if (place_votes) {
+    LOG(log_nf_) << "Soft votes " << place_votes << " voting block " << leader_block << " at round " << round;
   }
 }
 
@@ -1141,7 +1146,7 @@ std::vector<std::vector<uint>> PbftManager::createMockTrxSchedule(
   return blocks_trx_modes;
 }
 
-std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_(std::vector<Vote> const &votes) {
+blk_hash_t PbftManager::identifyLeaderBlock_(std::vector<Vote> const &votes) {
   auto round = getPbftRound();
   LOG(log_dg_) << "Into identify leader block, in round " << round;
 
@@ -1179,7 +1184,7 @@ std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_(std::vector<Vote> 
   if (leader_candidates.empty()) {
     // no eligible leader
     LOG(log_nf_) << "Cannot find an eligible leader block in round " << round;
-    return std::make_pair(NULL_BLOCK_HASH, false);
+    return NULL_BLOCK_HASH;
   }
 
   std::pair<vrf_output_t, blk_hash_t> leader =
@@ -1192,7 +1197,7 @@ std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_(std::vector<Vote> 
     LOG(log_nf_) << "Update last soft voted value " << leader.second << " since round " << round;
   }
 
-  return std::make_pair(leader.second, true);
+  return leader.second;
 }
 
 bool PbftManager::checkPbftBlockValid_(blk_hash_t const &block_hash) const {
@@ -1292,7 +1297,7 @@ bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(blk_hash_t const &pbft_
                        << pbft_block_hash << ", reset own starting value to NULL_BLOCK_HASH";
           db_->savePbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round, NULL_BLOCK_HASH);
           own_starting_value_for_round_ = NULL_BLOCK_HASH;
-          reset_own_value_to_null_block_hash_in_this_round_ = true;
+          reset_own_starting_value_in_this_round_ = true;
         }
       }
       return false;

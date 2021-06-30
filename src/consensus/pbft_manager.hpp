@@ -78,6 +78,9 @@ class PbftManager {
       std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>> trx_overlap_table);
   size_t getPbftCommitteeSize() const { return COMMITTEE_SIZE; }
   u_long getPbftInitialLambda() const { return LAMBDA_ms_MIN; }
+  void setLastSoftVotedValueSinceRound(blk_hash_t const voted_value, uint64_t const round) {
+    last_soft_voted_value_since_round_ = std::make_pair(voted_value, round);
+  }
 
  private:
   // DPOS
@@ -117,7 +120,7 @@ class PbftManager {
 
   std::pair<blk_hash_t, bool> proposeMyPbftBlock_();
 
-  std::pair<blk_hash_t, bool> identifyLeaderBlock_(std::vector<Vote> const &votes);
+  blk_hash_t identifyLeaderBlock_(std::vector<Vote> const &votes);
 
   bool checkPbftBlockValid_(blk_hash_t const &block_hash) const;
 
@@ -196,7 +199,7 @@ class PbftManager {
   bool next_voted_null_block_hash_ = false;
   bool go_finish_state_ = false;
   bool loop_back_finish_state_ = false;
-  bool reset_own_value_to_null_block_hash_in_this_round_ = false;
+  bool reset_own_starting_value_in_this_round_ = false;
 
   size_t const max_wait_rounds_for_proposal_block_ = 5;
   uint64_t round_began_wait_proposal_block_ = 0;
