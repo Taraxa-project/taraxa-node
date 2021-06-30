@@ -207,6 +207,7 @@ jobs:
          pr_number: << pipeline.parameters.pr_number >>
       - cleanup_prnet_ips:
          when: on_fail
+         pr-name: << pipeline.parameters.pr_number >>
          gcloud-username: ${GCLOUD_USERNAME}
          gcloud-key: ${GCLOUD_KEY}
       - pr_comment:
@@ -249,6 +250,7 @@ jobs:
           gcloud-username: ${GCLOUD_USERNAME}
           gcloud-key: ${GCLOUD_KEY}  
       - cleanup_prnet_ips:
+         pr-name: << pipeline.parameters.pr_number >>
          gcloud-username: ${GCLOUD_USERNAME}
          gcloud-key: ${GCLOUD_KEY}
       - pr_comment:
