@@ -66,6 +66,7 @@ commands:
                fi
             name: Post comment to PR
             when: << parameters.when >>
+
    create_prnet_ips:
       description: | 
         Creates a gcloud ip address
@@ -144,6 +145,7 @@ commands:
               done
               echo "export PRNET_IPS=(${IPS[@]})" >> ${BASH_ENV}    
             when: << parameters.when >>
+
    cleanup_prnet_ips:
       description: | 
         Deletes previously created gcloud ip address for prnet
@@ -202,8 +204,8 @@ commands:
        type: string
      steps:
        - run:
-          name: Get latest image for current PR
-          command: |
+         name: Get latest image for current PR
+         command: |
             PR_TAG=$(gcloud container images list-tags gcr.io/jovial-meridian-249123/taraxa-node \ 
               --filter="tags:<< parameters.pr-name >>-*" \ 
               --sort-by="~timestamp" \ 
@@ -236,8 +238,8 @@ commands:
        type: string
      steps:
        - run:
-          command: |
-             helm delete << parameters.pr-name >>
+         command: |
+            helm delete << parameters.pr-name >>
 
 jobs:
    deploy-prnet:
