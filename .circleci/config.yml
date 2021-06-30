@@ -51,12 +51,27 @@ commands:
          - run:
             command: |
                echo "<< parameters.comment >>"
-               body=
-               curl \
-                  -X POST \
-                  -d "{\"body\": \"<< parameters.comment >>\" }" \
-                  -H "Authorization: token $GITHUB_TOKEN" \
-                  "https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/issues/<< parameters.pr_number >>/comments"
+               http_code=$(docker run --rm  \
+                byrnedo/alpine-curl \
+                -sS --fail -w '%{http_code}' -o /data/http.out \
+                -X POST \
+                -H "Authorization: token $GITHUB_TOKEN" \
+                --url "https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/issues/<< parameters.pr_number >>/comments" \
+                -d '{
+                        "body": "<< parameters.comment >>",
+                    }')
+            cat $PWD/test_build-d/http.out || true
+            if [[ $http_code -eq 200 ]] ; then
+                exit 0
+            else
+                exit $http_code
+            fi
+
+#               curl \
+#                  -X POST \
+#                  -d "{\"body\": \"<< parameters.comment >>\" }" \
+#                  -H "Authorization: token $GITHUB_TOKEN" \
+#                  "https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/issues/<< parameters.pr_number >>/comments"
             name: Post comment to PR
             when: << parameters.when >>
    create_prnet_ips:
@@ -154,6 +169,7 @@ commands:
              do 
               gcloud compute addresses delete ${IP} --region ${REGION}  --project ${PROJECT} --quiet
              done
+           when: << parameters.when >>
 jobs:
    deploy-prnet:
      docker:
@@ -170,7 +186,7 @@ jobs:
           gcloud-key: ${GCLOUD_KEY}       
       - pr_comment:
          when: on_success
-         comment: "Deployed prnet successfully ${PRNET_IPS[@]} "
+         comment: "Deployed prnet successfully"
          pr_number: << pipeline.parameters.pr_number >>
       - cleanup_prnet_ips:
          when: on_fail
