@@ -184,7 +184,7 @@ commands:
         - run:
            name: Cleanup PRNet IPs
            command: |
-              gcloud compute addresses delete prnet-<< parameters.pr-name >>-${1..3} --region << parameters.region >>  --project << parameters.project >> --quiet
+              gcloud compute addresses delete prnet-<< parameters.pr-name >>-{1..3} --region << parameters.region >>  --project << parameters.project >> --quiet
            when: << parameters.when >>
 jobs:
    deploy-prnet:
