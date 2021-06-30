@@ -635,9 +635,31 @@ void DagManager::recoverDag() {
   }
 }
 
-std::map<uint64_t, std::vector<std::string>> DagManager::getNonFinalizedBlocks() const {
+const std::map<uint64_t, std::vector<std::string>>& DagManager::getNonFinalizedBlocks() const {
   sharedLock lock(mutex_);
   return non_finalized_blks_;
+}
+
+std::pair<size_t, size_t> DagManager::getNonFinalizedBlocksSize() const {
+  sharedLock lock(mutex_);
+
+  size_t blocks_counter = 0;
+  for (auto it = non_finalized_blks_.begin(); it != non_finalized_blks_.end(); ++it) {
+    blocks_counter += it->second.size();
+  }
+
+  return {non_finalized_blks_.size(), blocks_counter};
+}
+
+std::pair<size_t, size_t> DagManager::getFinalizedBlocksSize() const {
+  sharedLock lock(mutex_);
+
+  size_t blocks_counter = 0;
+  for (auto it = finalized_blks_.begin(); it != finalized_blks_.end(); ++it) {
+    blocks_counter += it->second.size();
+  }
+
+  return {finalized_blks_.size(), blocks_counter};
 }
 
 }  // namespace taraxa

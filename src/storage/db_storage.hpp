@@ -182,12 +182,12 @@ struct DbStorage {
   std::map<blk_hash_t, bool> getAllDagBlockState();
 
   // Transaction
-  void saveTransaction(Transaction const& trx);
+  void saveTransaction(Transaction const& trx, bool verified = false);
   dev::bytes getTransactionRaw(trx_hash_t const& hash);
   shared_ptr<Transaction> getTransaction(trx_hash_t const& hash);
   shared_ptr<pair<Transaction, taraxa::bytes>> getTransactionExt(trx_hash_t const& hash);
   bool transactionInDb(trx_hash_t const& hash);
-  void addTransactionToBatch(Transaction const& trx, Batch& write_batch);
+  void addTransactionToBatch(Transaction const& trx, Batch& write_batch, bool verified = false);
 
   void saveTransactionStatus(trx_hash_t const& trx, TransactionStatus const& status);
   void addTransactionStatusToBatch(Batch& write_batch, trx_hash_t const& trx, TransactionStatus const& status);

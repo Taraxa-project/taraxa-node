@@ -111,7 +111,7 @@ class FinalChainImpl final : public FinalChain {
         }
         // Non-executed trxs
         auto const& trx = to_execute.emplace_back(vector_ref<string::value_type>(trx_db_results[1 + i * 2]).toBytes(),
-                                                  false, h256(db_query.get_key(1 + i * 2)), true);
+                                                  false, h256(db_query.get_key(1 + i * 2)), true, true);
         if (replay_protection_service_ && replay_protection_service_->is_nonce_stale(trx.getSender(), trx.getNonce())) {
           to_execute.pop_back();
         }
