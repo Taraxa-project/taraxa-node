@@ -181,6 +181,7 @@ jobs:
           gcloud-username: ${GCLOUD_USERNAME}
           gcloud-key: ${GCLOUD_KEY}
       - get_prnet_ips:
+          when: always
           pr-name: << pipeline.parameters.pr_number >>
           gcloud-username: ${GCLOUD_USERNAME}
           gcloud-key: ${GCLOUD_KEY}       
