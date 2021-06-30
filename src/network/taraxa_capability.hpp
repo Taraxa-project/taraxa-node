@@ -190,7 +190,7 @@ struct TaraxaCapability : virtual CapabilityFace {
   void insertPeer(NodeID const &node_id);
 
  private:
-  void handle_read_exception(weak_ptr<Session> session, unsigned _id, RLP const &_r);
+  void handle_read_exception(weak_ptr<Session> session, unsigned _id);
 
   weak_ptr<Host> host_;
   NodeID node_id_;
