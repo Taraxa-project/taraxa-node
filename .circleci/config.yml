@@ -163,6 +163,9 @@ commands:
           description: gcloud project
           type: string
           default:  "jovial-meridian-249123"
+        pr-name:
+          description: PR name
+          type: string
         gcloud-username:
           description: Gcloud username
           type: string
@@ -181,11 +184,7 @@ commands:
         - run:
            name: Cleanup PRNet IPs
            command: |
-             echo ${PRNET_IPS}
-             for IP in $PRNET_IPS
-             do 
-              gcloud compute addresses delete ${IP} --region << parameters.region >>  --project << parameters.project >> --quiet
-             done
+              gcloud compute addresses delete prnet-<< parameters.pr-name >>-${1..3} --region << parameters.region >>  --project << parameters.project >> --quiet
            when: << parameters.when >>
 jobs:
    deploy-prnet:
