@@ -132,6 +132,14 @@ commands:
         gcloud-key:
           description: Json key for gcloud service account
           type: string
+        when:
+          default: on_success
+          description: Condition for when the comment should be created
+          enum:
+            - on_success
+            - on_fail
+            - always
+          type: enum          
       steps:
         - run:
             name: Get PRNET IPs
@@ -143,6 +151,7 @@ commands:
                     --format="flattened(address)" |cut -d" " -f2) )
               done
               echo "export PRNET_IPS=(${IPS[@]})" >> ${BASH_ENV}    
+            when: << parameters.when >>
    cleanup_prnet_ips:
       description: | 
         Deletes previously created gcloud ip address for prnet
