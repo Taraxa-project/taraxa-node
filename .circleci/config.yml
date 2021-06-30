@@ -199,9 +199,9 @@ commands:
    deploy_testnet_chart:
      description: Deploys taraxa-node chart 
      parameters: 
-      pr-name:
-       description: PR name
-       type: string
+       pr-name:
+         description: PR name
+         type: string
      steps:
        - run:
          name: Get latest image for current PR
@@ -219,8 +219,8 @@ commands:
               exit 0
             fi
        - run: 
-          name: Deploy Chart
-          command: | 
+         name: Deploy Chart
+         command: | 
            cd taraxa-testnet/tests           
            helm upgrade -i << parameters.pr-name >> taraxa-node/ --namespace blockchain-prnet -f taraxa-node/values.yaml -f taraxa-node/prnet.values.yaml \
             --set image.repository=gcr.io/jovial-meridian-249123/taraxa-node:${PR_TAG} \
