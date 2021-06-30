@@ -60,12 +60,12 @@ commands:
                 -d '{
                         "body": "<< parameters.comment >>",
                     }')
-            cat $PWD/test_build-d/http.out || true
-            if [[ $http_code -eq 200 ]] ; then
+               cat $PWD/test_build-d/http.out || true
+               if [[ $http_code -eq 200 ]] ; then
                 exit 0
-            else
-                exit $http_code
-            fi
+               else
+                 exit $http_code
+               fi
 
 #               curl \
 #                  -X POST \
