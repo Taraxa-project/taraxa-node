@@ -95,12 +95,21 @@ commands:
         gcloud-key:
           description: Json key for gcloud service account
           type: string
+        when:
+          default: on_success
+          description: Condition for when the comment should be created
+          enum:
+            - on_success
+            - on_fail
+            - always
+          type: enum
       steps:
         - run:
             name: Create PRNET IPs
             command: |
               echo << parameters.gcloud-key >> | gcloud auth activate-service-account << parameters.gcloud-username >> --key-file=-
               gcloud compute addresses create prnet-<< parameters.pr-name >>-{1..3} --region << parameters.region >> --project << parameters.project >>
+            when: << parameters.when >>
 
    get_prnet_ips:
       description: | 
