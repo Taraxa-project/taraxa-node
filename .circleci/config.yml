@@ -60,7 +60,7 @@ commands:
                         "body": "<< parameters.comment >>"
                     }')
                cat ./http.out || true
-               if [[ $http_code -eq 200 ]] ; then
+               if [[ $http_code -ge 200  -a $http_code -lt 300 ]] ; then
                 exit 0
                else
                  exit $http_code
