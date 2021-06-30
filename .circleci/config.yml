@@ -265,7 +265,7 @@ jobs:
          pr-name: << pipeline.parameters.pr_number >>
          gcloud-username: ${GCLOUD_USERNAME}
          gcloud-key: ${GCLOUD_KEY}
-      - cleanup_testnet_chart
+      - cleanup_testnet_chart:
          pr-name: << pipeline.parameters.pr_number >>
       - pr_comment:
          when: on_fail
