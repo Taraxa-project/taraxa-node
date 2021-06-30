@@ -52,8 +52,7 @@ commands:
             command: |
                echo "<< parameters.comment >>"
                http_code=$(curl \
-                -sS --fail -w '%{http_code}' -o ./http.out \
-                -X POST \
+                -sS --fail -w '%{http_code}' -o ./http.out -X POST  \
                 -H "Authorization: token $GITHUB_TOKEN" \
                 --url "https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/issues/<< parameters.pr_number >>/comments" \
                 -d '{
@@ -65,12 +64,6 @@ commands:
                else
                  exit $http_code
                fi
-
-#               curl \
-#                  -X POST \
-#                  -d "{\"body\": \"<< parameters.comment >>\" }" \
-#                  -H "Authorization: token $GITHUB_TOKEN" \
-#                  "https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/issues/<< parameters.pr_number >>/comments"
             name: Post comment to PR
             when: << parameters.when >>
    create_prnet_ips:
@@ -186,6 +179,66 @@ commands:
            command: |
               gcloud compute addresses delete prnet-<< parameters.pr-name >>-{1..3} --region << parameters.region >>  --project << parameters.project >> --quiet
            when: << parameters.when >>
+
+   get_testnet_chart:
+     description: Gets Testnet chart downloads helm, kubectl and configures it
+     parameters:
+       kubeconfig:
+         description: kubeconfig file
+         type: string
+     steps:
+        - run:
+          command: |
+              git clone --branch development  https://github.com/Taraxa-project/taraxa-testnet.git
+              mkdir -p $HOME/.kube
+              echo -n "<< parameters.kubeconfig >>" | base64 --decode > $HOME/.kube/config
+              curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+
+   deploy_testnet_chart:
+     description: Deploys taraxa-node chart 
+     parameters: 
+      pr-name:
+       description: PR name
+       type: string
+     steps:
+       - run:
+          name: Get latest image for current PR
+          command: |
+            PR_TAG=$(gcloud container images list-tags gcr.io/jovial-meridian-249123/taraxa-node \ 
+              --filter="tags:<< parameters.pr-name >>-*" \ 
+              --sort-by="~timestamp" \ 
+              --limit 1 \
+              --format="value(tags[0])" )
+            if [ -z ${PR_TAG} ]; then
+              echo "No images for PR << parameters.pr-name >>"
+              exit 1
+            else
+              echo "export PR_TAG=${PR_TAG}" >> ${BASH_ENV}
+              exit 0
+            fi
+       - run: 
+          name: Deploy Chart
+          command: | 
+           cd taraxa-testnet/tests           
+           helm upgrade -i << parameters.pr-name >> taraxa-node/ --namespace blockchain-prnet -f taraxa-node/values.yaml -f taraxa-node/prnet.values.yaml \
+            --set image.repository=gcr.io/jovial-meridian-249123/taraxa-node:${PR_TAG} \
+            --set explorer.configEnvs.rpcHttpProvider="http://<< parameters.pr-name >>-taraxa-node:7777" \
+            --set explorer.configEnvs.rpcWsProvider="http://<< parameters.pr-name >>-taraxa-node:8777" \
+            --set bootnode.loadBalancer.addresses\[0\]="${PRNET_IPS[0]}" \
+            --set bootnode.loadBalancer.addresses\[1\]="${PRNET_IPS[1]} \
+            --set bootnode.loadBalancer.addresses\[2\]="${PRNET_IPS[2]"
+
+   cleanup_testnet_chart:
+     description: Deploys taraxa-node chart 
+     parameters: 
+      pr-name:
+       description: PR name
+       type: string
+     steps:
+       - run:
+          command: |
+             helm delete << parameters.pr-name >>
+
 jobs:
    deploy-prnet:
      docker:
@@ -200,7 +253,9 @@ jobs:
           when: always
           pr-name: << pipeline.parameters.pr_number >>
           gcloud-username: ${GCLOUD_USERNAME}
-          gcloud-key: ${GCLOUD_KEY}       
+          gcloud-key: ${GCLOUD_KEY}      
+      - get_testnet_chart:
+         kubeconfig: ${KUBE_CONFIG} 
       - pr_comment:
          when: on_success
          comment: "Deployed prnet successfully"
@@ -210,6 +265,8 @@ jobs:
          pr-name: << pipeline.parameters.pr_number >>
          gcloud-username: ${GCLOUD_USERNAME}
          gcloud-key: ${GCLOUD_KEY}
+      - cleanup_testnet_chart
+         pr-name: << pipeline.parameters.pr_number >>
       - pr_comment:
          when: on_fail
          comment: "Failed to deploy prnet"
@@ -226,6 +283,8 @@ jobs:
           gcloud-key: ${GCLOUD_KEY}  
       - run:
          command: echo ${PRNET_IPS[@]}
+      - get_testnet_chart:
+         kubeconfig: ${KUBE_CONFIG}
       - pr_comment:
          when: on_success
          comment: "ReDeployed prnet successfully"
