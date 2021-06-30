@@ -57,7 +57,7 @@ commands:
                 -H "Authorization: token $GITHUB_TOKEN" \
                 --url "https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/issues/<< parameters.pr_number >>/comments" \
                 -d '{
-                        "body": "<< parameters.comment >>",
+                        "body": "<< parameters.comment >>"
                     }')
                cat $PWD/test_build-d/http.out || true
                if [[ $http_code -eq 200 ]] ; then
