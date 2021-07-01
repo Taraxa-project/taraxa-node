@@ -12,8 +12,8 @@ const char *testnet_json = R"foo({
   "network_transaction_interval": 100,
   "network_encrypted": 1,
   "network_bandwidth": 40,
-  "network_ideal_peer_count": 10,
-  "network_max_peer_count": 50,
+  "network_ideal_peer_count": 5,
+  "network_max_peer_count": 15,
   "network_sync_level_size": 10,
   "network_boot_nodes": [
     {
