@@ -231,10 +231,11 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       break;
     }
     case StatusPacket: {
-      bool initial_status = _r.itemCount() == 9;
+      bool initial_status = _r.itemCount() == 10;
 
       if (initial_status) {
         auto it = _r.begin();
+        auto const protocol_version = (*it++).toInt();
         auto const network_id = (*it++).toInt<uint64_t>();
         auto peer_dag_level = (*it++).toPositiveInt64();
         auto const genesis_hash = (*it++).toString();
@@ -244,6 +245,14 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         auto peer_pbft_previous_round_next_votes_size = (*it++).toInt<unsigned>();
         auto node_major_version = (*it++).toInt();
         auto node_minor_version = (*it++).toInt();
+
+        if (protocol_version != FullNode::c_network_protocol_version) {
+          LOG(log_er_) << "Incorrect network protocol version " << protocol_version
+                       << ", our node network protocol version " << FullNode::c_network_protocol_version << ". Host "
+                       << _nodeID.abridged() << " will be disconnected";
+          host->disconnect(_nodeID, p2p::UserReason);
+          break;
+        }
 
         // We need logic when some different node versions might still be compatible
         if (node_major_version != FullNode::c_node_major_version ||
@@ -876,10 +885,10 @@ void TaraxaCapability::sendTestMessage(NodeID const &_id, int _x, std::vector<ch
 void TaraxaCapability::sendStatus(NodeID const &_id, bool _initial) {
   if (dag_mgr_) {
     if (_initial) {
-      LOG(log_dg_) << "Sending initial status message to " << _id << ", protocol version " << version()
-                   << ", network id " << conf_.network_id << ", genesis " << dag_mgr_->get_genesis()
-                   << ", node major version " << FullNode::c_node_major_version << ", node minor version "
-                   << FullNode::c_node_minor_version;
+      LOG(log_dg_) << "Sending initial status message to " << _id << ", protocol version "
+                   << FullNode::c_network_protocol_version << ", network id " << conf_.network_id << ", genesis "
+                   << dag_mgr_->get_genesis() << ", node major version " << FullNode::c_node_major_version
+                   << ", node minor version " << FullNode::c_node_minor_version;
     }
 
     auto dag_max_level = dag_mgr_->getMaxLevel();
@@ -894,9 +903,10 @@ void TaraxaCapability::sendStatus(NodeID const &_id, bool _initial) {
 
     if (_initial) {
       sealAndSend(_id, StatusPacket,
-                  RLPStream(9) << conf_.network_id << dag_max_level << dag_mgr_->get_genesis() << pbft_chain_size
-                               << syncing_.load() << pbft_round << pbft_previous_round_next_votes_size
-                               << FullNode::c_node_major_version << FullNode::c_node_minor_version);
+                  RLPStream(10) << FullNode::c_network_protocol_version << conf_.network_id << dag_max_level
+                                << dag_mgr_->get_genesis() << pbft_chain_size << syncing_.load() << pbft_round
+                                << pbft_previous_round_next_votes_size << FullNode::c_node_major_version
+                                << FullNode::c_node_minor_version);
     } else {
       sealAndSend(_id, StatusPacket,
                   RLPStream(5) << dag_max_level << pbft_chain_size << syncing_.load() << pbft_round
