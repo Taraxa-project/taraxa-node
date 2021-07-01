@@ -162,6 +162,10 @@ class PbftManager {
 
   u_long const LAMBDA_ms_MIN;
   u_long LAMBDA_ms = 0;
+  u_long LAMBDA_backoff_multiple = 1;
+
+  std::default_random_engine random_engine_{std::random_device{}()};
+
   size_t const COMMITTEE_SIZE;
   size_t DAG_BLOCKS_SIZE;
   size_t GHOST_PATH_MOVE_BACK;
@@ -170,7 +174,6 @@ class PbftManager {
   PbftStates state_ = value_proposal_state;
   std::atomic<uint64_t> round_ = 1;
   size_t step_ = 1;
-  u_long STEP_4_DELAY = 0;  // constant
 
   blk_hash_t own_starting_value_for_round_ = NULL_BLOCK_HASH;
   // <round, cert_voted_block_hash>

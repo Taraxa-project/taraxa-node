@@ -192,7 +192,7 @@ void TaraxaCapability::interpretCapabilityPacket(weak_ptr<Session> session, unsi
     try {
       interpretCapabilityPacketImpl(_nodeID, _id, r, packet_stats);
     } catch (...) {
-      handle_read_exception(session, _id, r);
+      handle_read_exception(session, _id);
     }
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - begin);
     packet_stats.total_duration_ = duration;
@@ -406,7 +406,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         known_non_finalized_blocks.insert(blk_hash_t(hash));
       }
       std::vector<std::shared_ptr<DagBlock>> dag_blocks;
-      const auto& blocks = dag_mgr_->getNonFinalizedBlocks();
+      const auto &blocks = dag_mgr_->getNonFinalizedBlocks();
       for (auto &level_blocks : blocks) {
         for (auto &block : level_blocks.second) {
           auto hash = blk_hash_t(block);
@@ -770,13 +770,13 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
   };
 }
 
-void TaraxaCapability::handle_read_exception(weak_ptr<Session> session, unsigned _packetType, RLP const &_r) {
+void TaraxaCapability::handle_read_exception(weak_ptr<Session> session, unsigned _packetType) {
   try {
     throw;
   } catch (std::exception const &_e) {
     // TODO be more precise about the error handling
     LOG(log_er_) << "Read exception: " << _e.what() << ". PacketType: " << packetTypeToString(_packetType) << " ("
-                 << _packetType << "). RLP: " << _r;
+                 << _packetType << ")";
     if (auto session_p = session.lock()) {
       session_p->disconnect(BadProtocol);
     }

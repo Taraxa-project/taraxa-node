@@ -635,7 +635,7 @@ void DagManager::recoverDag() {
   }
 }
 
-const std::map<uint64_t, std::vector<std::string>>& DagManager::getNonFinalizedBlocks() const {
+const std::map<uint64_t, std::vector<std::string>> &DagManager::getNonFinalizedBlocks() const {
   sharedLock lock(mutex_);
   return non_finalized_blks_;
 }
