@@ -206,9 +206,12 @@ void FullNode::start() {
   pbft_mgr_->start();
   dag_blk_mgr_->start();
   block_workers_.emplace_back([this]() {
+    bool level_limit = false;
+    uint64_t level = 0;
     while (!stopped_) {
       // will block if no verified block available
-      auto blk_ptr = std::make_shared<DagBlock>(dag_blk_mgr_->popVerifiedBlock());
+      auto blk_ptr = std::make_shared<DagBlock>(dag_blk_mgr_->popVerifiedBlock(level_limit, level));
+      level_limit = false;
       auto const &blk = *blk_ptr;
 
       if (!stopped_) {
@@ -232,6 +235,8 @@ void FullNode::start() {
             LOG(log_dg_) << "Block could not be added to DAG " << blk.getHash().toString();
             received_blocks_--;
             dag_blk_mgr_->pushVerifiedBlock(blk);
+            level_limit = true;
+            level = blk.getLevel();
           }
         }
       }

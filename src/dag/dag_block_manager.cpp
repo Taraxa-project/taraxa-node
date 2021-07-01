@@ -172,10 +172,16 @@ std::pair<size_t, size_t> DagBlockManager::getDagBlockQueueSize() const {
   return res;
 }
 
-DagBlock DagBlockManager::popVerifiedBlock() {
+DagBlock DagBlockManager::popVerifiedBlock(bool level_limit, uint64_t level) {
   uLock lock(shared_mutex_for_verified_qu_);
-  while (verified_qu_.empty() && !stopped_) {
-    cond_for_verified_qu_.wait(lock);
+  if (level_limit) {
+    while ((verified_qu_.empty() || verified_qu_.begin()->first >= level) && !stopped_) {
+      cond_for_verified_qu_.wait(lock);
+    }
+  } else {
+    while (verified_qu_.empty() && !stopped_) {
+      cond_for_verified_qu_.wait(lock);
+    }
   }
   if (stopped_) return DagBlock();
 

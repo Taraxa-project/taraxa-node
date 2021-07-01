@@ -26,8 +26,8 @@ class DagBlockManager {
   void pushUnverifiedBlock(DagBlock const &block,
                            bool critical);  // add to unverified queue
   void pushUnverifiedBlock(DagBlock const &block, std::vector<Transaction> const &transactions,
-                           bool critical);  // add to unverified queue
-  DagBlock popVerifiedBlock();              // get one verified block and pop
+                           bool critical);                                  // add to unverified queue
+  DagBlock popVerifiedBlock(bool level_limit = false, uint64_t level = 0);  // get one verified block and pop
   void pushVerifiedBlock(DagBlock const &blk);
   std::pair<size_t, size_t> getDagBlockQueueSize() const;
   level_t getMaxDagLevelInQueue() const;
