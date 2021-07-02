@@ -143,7 +143,7 @@ commands:
               for i in {1..3}
               do
                IPS=(${IPS[@]} $(gcloud compute addresses describe prnet-<< parameters.pr-name >>-${i} --region << parameters.region >> --project << parameters.project >> \
-                    --format="flattened(address)" |cut -d" " -f2) )
+                    --format="flattened(address)" |cut -d" " -f2) ) || true
               done
               echo "export PRNET_IPS=(${IPS[@]})" >> ${BASH_ENV}    
             when: << parameters.when >>
@@ -207,25 +207,27 @@ commands:
         - run:
            name: Get Latest image for PR and deploy chart
            command: |
-            PR_TAG=$(gcloud container images list-tags gcr.io/jovial-meridian-249123/taraxa-node      --filter="tags:pr-<< parameters.pr-name >>-*" \
-              --sort-by="~timestamp" \
-              --limit 1 \
-              --format="value(tags[0])" )
-            if [ -z ${PR_TAG} ]; then
-              echo "No images for PR pr-<< parameters.pr-name >>"
-              exit 1
-            else
-              echo "export PR_TAG=${PR_TAG}" >> ${BASH_ENV}
+            if [ ${PRNET_IPS} ];then
+              PR_TAG=$(gcloud container images list-tags gcr.io/jovial-meridian-249123/taraxa-node      --filter="tags:pr-<< parameters.pr-name >>-*" \
+                --sort-by="~timestamp" \
+                --limit 1 \
+                --format="value(tags[0])" )
+              if [ -z ${PR_TAG} ]; then
+                echo "No images for PR pr-<< parameters.pr-name >>"
+                exit 1
+              else
+                echo "export PR_TAG=${PR_TAG}" >> ${BASH_ENV}
+              fi
+              cd taraxa-testnet/tests           
+              helm upgrade -i pr-<< parameters.pr-name >> taraxa-node/ --namespace blockchain-prnet -f taraxa-node/values.yaml -f taraxa-node/prnet.values.yaml \
+                --set image.repository=gcr.io/jovial-meridian-249123/taraxa-node \
+                --set image.tag=${PR_TAG} \
+                --set explorer.configEnvs.rpcHttpProvider="http://pr-<< parameters.pr-name >>-taraxa-node:7777" \
+                --set explorer.configEnvs.rpcWsProvider="http://pr-<< parameters.pr-name >>-taraxa-node:8777" \
+                --set bootnode.loadBalancer.addresses\[0\]="${PRNET_IPS[0]}" \
+                --set bootnode.loadBalancer.addresses\[1\]="${PRNET_IPS[1]}" \
+                --set bootnode.loadBalancer.addresses\[2\]="${PRNET_IPS[2]}"
             fi
-            cd taraxa-testnet/tests           
-            helm upgrade -i pr-<< parameters.pr-name >> taraxa-node/ --namespace blockchain-prnet -f taraxa-node/values.yaml -f taraxa-node/prnet.values.yaml \
-              --set image.repository=gcr.io/jovial-meridian-249123/taraxa-node \
-              --set image.tag=${PR_TAG} \
-              --set explorer.configEnvs.rpcHttpProvider="http://pr-<< parameters.pr-name >>-taraxa-node:7777" \
-              --set explorer.configEnvs.rpcWsProvider="http://pr-<< parameters.pr-name >>-taraxa-node:8777" \
-              --set bootnode.loadBalancer.addresses\[0\]="${PRNET_IPS[0]}" \
-              --set bootnode.loadBalancer.addresses\[1\]="${PRNET_IPS[1]}" \
-              --set bootnode.loadBalancer.addresses\[2\]="${PRNET_IPS[2]}"
 
    cleanup_testnet_chart:
      description: Deploys taraxa-node chart 
