@@ -224,7 +224,7 @@ commands:
               --set explorer.configEnvs.rpcWsProvider="http://pr-<< parameters.pr-name >>-taraxa-node:8777" \
               --set bootnode.loadBalancer.addresses\[0\]="${PRNET_IPS[0]}" \
               --set bootnode.loadBalancer.addresses\[1\]="${PRNET_IPS[1]}" \
-              --set bootnode.loadBalancer.addresses\[2\]="${PRNET_IPS[2]"
+              --set bootnode.loadBalancer.addresses\[2\]="${PRNET_IPS[2]}"
 
    cleanup_testnet_chart:
      description: Deploys taraxa-node chart 
