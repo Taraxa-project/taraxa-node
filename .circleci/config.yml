@@ -271,7 +271,7 @@ jobs:
           gcloud-key: ${GCLOUD_KEY}
       - get_prnet_ips:
           when: always
-          pr-name: << pipeline.parameters.pr_number >
+          pr-name: << pipeline.parameters.pr_number >>
       - create_prnet_ips:
           pr-name: << pipeline.parameters.pr_number >>     
       - get_prnet_ips:
