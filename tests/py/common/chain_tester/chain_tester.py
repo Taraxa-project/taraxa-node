@@ -47,7 +47,7 @@ class ChainTester:
                  assume_no_implicit_transfers=True,
                  auto_test_tx_and_blk_filters=False,
                  default_tx_signer=NO_SIGNER,
-                 sync_timeout_per_blk_per_node=Timeout(num_attempts=200, backoff_seconds=1),
+                 sync_timeout_per_blk_per_node=Timeout(num_attempts=230, backoff_seconds=1),
                  nonce_strategy=DefaultNonceStrategy()):
         self.default_tx_signer = default_tx_signer
         self.sync_timeout_per_blk_per_node = sync_timeout_per_blk_per_node

@@ -7,8 +7,8 @@ from common.util.predicates import IS_TRUE_ISH, NO
 
 @dataclass
 class Timeout:
-    num_attempts: int = 30
-    backoff_seconds: int = 3
+    num_attempts: int = 120
+    backoff_seconds: int = 1
 
 
 def wait(get_value: Callable[[], Any],
