@@ -245,7 +245,7 @@ commands:
        - run:
           name: Delete chart
           command: |
-            helm delete pr-<< parameters.pr-name >>
+            helm delete pr-<< parameters.pr-name >> --namespace blockchain-prnet
           when: << parameters.when >>
 
 
