@@ -256,7 +256,7 @@ commands:
             for i in {1..50}
             do
                GETALL=$(kubectl get all -n blockchain-prnet | grep pr-"<< parameters.pr-name >>") || true
-               if [ -z ${GETALL} ] ; then
+               if [ -z "${GETALL}" ] ; then
                  exit 0
                else
                 echo "waiting.. for all resources to be deleted"
