@@ -197,7 +197,8 @@ commands:
               echo -n "<< parameters.kubeconfig >>" | base64 --decode > $HOME/.kube/config
               curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
               curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-              chmod +x ./kubectl
+              cp kubectl /usr/local/bin 
+              chmod +x /usr/local/bin/kubectl
 
    deploy_testnet_chart:
       description: Deploys taraxa-node chart 
