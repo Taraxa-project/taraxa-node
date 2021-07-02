@@ -209,21 +209,21 @@ commands:
            command: |
             echo ${PRNET_IPS[@]}
             PR_TAG=$(gcloud container images list-tags gcr.io/jovial-meridian-249123/taraxa-node \ 
-              --filter="tags:<< parameters.pr-name >>-*" \ 
+              --filter="tags:pr-<< parameters.pr-name >>-*" \ 
               --sort-by="~timestamp" \ 
               --limit 1 \
               --format="value(tags[0])" )
             if [ -z ${PR_TAG} ]; then
-              echo "No images for PR << parameters.pr-name >>"
+              echo "No images for PR pr-<< parameters.pr-name >>"
               exit 1
             else
               echo "export PR_TAG=${PR_TAG}" >> ${BASH_ENV}
             fi
             cd taraxa-testnet/tests           
-            helm upgrade -i << parameters.pr-name >> taraxa-node/ --namespace blockchain-prnet -f taraxa-node/values.yaml -f taraxa-node/prnet.values.yaml \
+            helm upgrade -i pr-<< parameters.pr-name >> taraxa-node/ --namespace blockchain-prnet -f taraxa-node/values.yaml -f taraxa-node/prnet.values.yaml \
               --set image.repository=gcr.io/jovial-meridian-249123/taraxa-node:${PR_TAG} \
-              --set explorer.configEnvs.rpcHttpProvider="http://<< parameters.pr-name >>-taraxa-node:7777" \
-              --set explorer.configEnvs.rpcWsProvider="http://<< parameters.pr-name >>-taraxa-node:8777" \
+              --set explorer.configEnvs.rpcHttpProvider="http://pr-<< parameters.pr-name >>-taraxa-node:7777" \
+              --set explorer.configEnvs.rpcWsProvider="http://pr-<< parameters.pr-name >>-taraxa-node:8777" \
               --set bootnode.loadBalancer.addresses\[0\]="${PRNET_IPS[0]}" \
               --set bootnode.loadBalancer.addresses\[1\]="${PRNET_IPS[1]} \
               --set bootnode.loadBalancer.addresses\[2\]="${PRNET_IPS[2]"
@@ -246,7 +246,7 @@ commands:
        - run:
           name: Delete chart
           command: |
-            helm delete << parameters.pr-name >>
+            helm delete pr-<< parameters.pr-name >>
           when: << parameters.when >>
 
 
