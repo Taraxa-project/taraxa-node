@@ -254,7 +254,7 @@ commands:
             kubectl -n blockchain-prnet delete pvc taraxa-data-pr-<<parameters.pr-name>-node{0..2}
             for i in {1..10}
             do
-               kubectl get all -n blockchain-prnet | grep pr-$<< parameters..pr-name >>
+               kubectl get all -n blockchain-prnet | grep pr-<< parameters.pr-name >>
                sleep 10
             done
           when: << parameters.when >>
