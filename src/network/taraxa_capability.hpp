@@ -86,7 +86,8 @@ class TaraxaPeer : public boost::noncopyable {
 
   void setAlive() { alive_check_count_ = 0; }
 
-  bool passed_initial_ = false;
+  bool received_initial_status_ = false;
+  bool sent_initial_status_ = false;
   bool syncing_ = false;
   uint64_t dag_level_ = 0;
   uint64_t pbft_chain_size_ = 0;
@@ -187,7 +188,7 @@ struct TaraxaCapability : virtual CapabilityFace {
   std::shared_ptr<TaraxaPeer> getPeer(NodeID const &node_id);
   unsigned int getPeersCount();
   void erasePeer(NodeID const &node_id);
-  void insertPeer(NodeID const &node_id);
+  std::shared_ptr<TaraxaPeer> insertPeer(NodeID const &node_id);
 
  private:
   void handle_read_exception(weak_ptr<Session> session, unsigned _id);
