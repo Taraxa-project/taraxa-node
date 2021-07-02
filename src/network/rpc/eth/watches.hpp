@@ -64,7 +64,7 @@ class WatchGroup {
       : cfg_(cfg[type]), updater_(move(updater)) {
     assert(cfg_.idle_timeout.count() != 0);
     if constexpr (is_same_v<InputType, OutputType>) {
-      if (!updater) {
+      if (!updater_) {
         updater_ = [](auto const&, auto const& input, auto const& do_update) { do_update(input); };
       }
     } else {
