@@ -186,6 +186,7 @@ commands:
           description: kubeconfig file
           type: string
       steps:
+        - checkout
         - run:
            name: Get repo and install helm/kubectl
            command: |
