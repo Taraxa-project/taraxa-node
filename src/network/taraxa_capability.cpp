@@ -1286,10 +1286,6 @@ void TaraxaCapability::logNodeStats() {
     }
   }
 
-  // Local transaction queue info...
-  auto local_unverified_queue_size = trx_mgr_->getTransactionQueueSize().first;
-  auto local_verified_queue_size = trx_mgr_->getTransactionQueueSize().second;
-
   // Local dag info...
   auto local_max_level_in_dag = dag_mgr_->getMaxLevel();
   auto local_max_dag_level_in_queue = dag_blk_mgr_->getMaxDagLevelInQueue();
@@ -1356,8 +1352,6 @@ void TaraxaCapability::logNodeStats() {
     auto sync_percentage =
         (100 * intervals_in_sync_since_launch) / (intervals_in_sync_since_launch + intervals_syncing_since_launch);
     LOG(log_nf_summary_) << "In sync since launch for " << sync_percentage << "% of the time";
-    LOG(log_nf_summary_) << "Queued unverified transaction: " << local_unverified_queue_size;
-    LOG(log_nf_summary_) << "Queued verified transaction:   " << local_verified_queue_size;
     LOG(log_nf_summary_) << "Max DAG block level in DAG:    " << local_max_level_in_dag;
     LOG(log_nf_summary_) << "Max DAG block level in queue:  " << local_max_dag_level_in_queue;
     LOG(log_nf_summary_) << "PBFT chain size:               " << local_chain_size;
