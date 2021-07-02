@@ -321,15 +321,13 @@ jobs:
       - gcloud_login:
           gcloud-username: ${GLCOUD_USERNAME}
           gcloud-key: ${GCLOUD_KEY}
-
-      - get_prnet_ips:
-          pr-name: << pipeline.parameters.pr_number >>
       - get_testnet_chart:
          kubeconfig: ${KUBE_CONFIG} 
       - cleanup_testnet_chart:
           pr-name: << pipeline.parameters.pr_number >>
       - cleanup_prnet_ips:
          pr-name: << pipeline.parameters.pr_number >>
+         when: on_success
       - pr_comment:
          when: on_success
          comment: "prnet cleaned-up successfully"
