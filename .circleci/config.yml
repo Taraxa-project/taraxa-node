@@ -208,6 +208,7 @@ commands:
            name: Get Latest image for PR and deploy chart
            command: |
             echo ${PRNET_IPS[@]}
+            echo ${GCLOUD_SERVICE_KEY} | docker login -u _json_key --password-stdin https://gcr.io
             PR_TAG=$(gcloud container images list-tags gcr.io/jovial-meridian-249123/taraxa-node      --filter="tags:pr-<< parameters.pr-name >>-*" \
               --sort-by="~timestamp" \
               --limit 1 \
