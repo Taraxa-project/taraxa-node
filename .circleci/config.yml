@@ -252,7 +252,7 @@ commands:
           command: |
             helm delete pr-<< parameters.pr-name >> --namespace blockchain-prnet
             kubectl -n blockchain-prnet delete pvc "taraxa-data-pr-<<parameters.pr-name>>-boot-node"-{0..2}
-            kubectl -n blockchain-prnet delete pvc "taraxa-data-pr-<<parameters.pr-name>>-node"-{0..2}
+            kubectl -n blockchain-prnet delete pvc "taraxa-data-pr-<<parameters.pr-name>>-taraxa-node"-{0..2}
             for i in {1..10}
             do
                kubectl get all -n blockchain-prnet | grep pr-"<< parameters.pr-name >>"
