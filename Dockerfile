@@ -32,6 +32,9 @@ RUN curl -SL -o llvm.sh https://apt.llvm.org/llvm.sh && \
     ./llvm.sh $LLVM_VERSION && \
     rm -f llvm.sh
 
+# To get Solidity compiler for python integration tests
+RUN add-apt-repository ppa:ethereum/ethereum
+
 # Install standard tools
 RUN apt-get update \
     && apt-get install -y \
@@ -43,6 +46,7 @@ RUN apt-get update \
     cmake=$CMAKE_VERSION \
     ccache \
     libgflags-dev=$GFLAGS_VERSION \
+    solc \
     && rm -rf /var/lib/apt/lists/*
 
 ENV CXX="clang++-${LLVM_VERSION}"

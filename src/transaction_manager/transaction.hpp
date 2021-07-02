@@ -26,13 +26,13 @@ struct Transaction {
   mutable trx_hash_t hash_;
   mutable bool hash_initialized_ = false;
   bool is_zero_ = false;
-  mutable DefaultConstructCopyableMovable<std::mutex> hash_mu_;
+  mutable util::DefaultConstructCopyableMovable<std::mutex> hash_mu_;
   mutable bool sender_initialized_ = false;
   mutable bool sender_valid_ = false;
   mutable addr_t sender_;
-  mutable DefaultConstructCopyableMovable<std::mutex> sender_mu_;
+  mutable util::DefaultConstructCopyableMovable<std::mutex> sender_mu_;
   mutable std::shared_ptr<bytes> cached_rlp_;
-  mutable DefaultConstructCopyableMovable<std::mutex> cached_rlp_mu_;
+  mutable util::DefaultConstructCopyableMovable<std::mutex> cached_rlp_mu_;
 
   template <bool for_signature, bool w_sender>
   void streamRLP(dev::RLPStream &s) const;

@@ -1,6 +1,11 @@
 # Enable testing for current directory and below.
 enable_testing(true)
 
+add_executable(py_test py_test.cpp)
+add_dependencies(py_test taraxad)
+target_compile_definitions(py_test PRIVATE NODE_EXECUTABLE_PATH=\"${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/taraxad\")
+add_test(py_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/py_test)
+
 add_executable(pbft_manager_test pbft_manager_test.cpp)
 target_link_libraries(pbft_manager_test app_base CONAN_PKG::gtest)
 add_test(pbft_manager_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/pbft_manager_test)

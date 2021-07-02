@@ -49,6 +49,7 @@ class WatchGroup {
     Params params;
     time_point last_touched{};
     vector<OutputType> updates{};
+    mutable util::DefaultConstructCopyableMovable<std::shared_mutex> mu{};
   };
 
  private:
@@ -64,8 +65,10 @@ class WatchGroup {
     assert(cfg_.idle_timeout.count() != 0);
     if constexpr (is_same_v<InputType, OutputType>) {
       if (!updater) {
-        updater = [](auto const&, auto const& input, auto const& do_update) { do_update(input); };
+        updater_ = [](auto const&, auto const& input, auto const& do_update) { do_update(input); };
       }
+    } else {
+      assert(updater_);
     }
   }
 
@@ -112,7 +115,10 @@ class WatchGroup {
     shared_lock l(watches_mu_);
     for (auto& entry : watches_) {
       auto& watch = entry.second;
-      updater_(watch.params, obj_in, [&](auto const& obj_out) { watch.updates.push_back(obj_out); });
+      updater_(watch.params, obj_in, [&](auto const& obj_out) {
+        std::unique_lock l(watch.mu.val);
+        watch.updates.push_back(obj_out);
+      });
     }
   }
 
@@ -121,6 +127,7 @@ class WatchGroup {
     shared_lock l(watches_mu_);
     if (auto entry = watches_.find(watch_id); entry != watches_.end()) {
       auto& watch = entry->second;
+      std::unique_lock l(watch.mu.val);
       swap(ret, watch.updates);
       watch.last_touched = high_resolution_clock::now();
     }

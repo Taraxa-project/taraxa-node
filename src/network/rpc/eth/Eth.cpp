@@ -350,12 +350,15 @@ class EthImpl : public Eth, EthParams {
     return ret ? *ret : final_chain->last_block_number();
   }
 
-  static LogFilter parse_log_filter(Json::Value const& json) {
-    optional<EthBlockNumber> from_block, to_block;
+  LogFilter parse_log_filter(Json::Value const& json) {
+    EthBlockNumber from_block;
+    optional<EthBlockNumber> to_block;
     AddressSet addresses;
     LogFilter::Topics topics;
     if (auto const& fromBlock = json["fromBlock"]; !fromBlock.empty()) {
-      from_block = parse_blk_num_specific(fromBlock.asString());
+      from_block = parse_blk_num(fromBlock.asString());
+    } else {
+      from_block = final_chain->last_block_number();
     }
     if (auto const& toBlock = json["toBlock"]; !toBlock.empty()) {
       to_block = parse_blk_num_specific(toBlock.asString());
