@@ -38,12 +38,12 @@ Json::Value Tools::overrideConfig(Json::Value& conf, std::string& data_dir, bool
                                   vector<string> log_channels, const vector<string>& boot_nodes_append,
                                   const vector<string>& log_channels_append) {
   if (data_dir.empty()) {
-    if (conf["db_path"].asString().empty()) {
-      conf["db_path"] = getTaraxaDataDefaultDir();
+    if (conf["data_path"].asString().empty()) {
+      conf["data_path"] = getTaraxaDataDefaultDir();
     }
-    data_dir = conf["db_path"].asString();
+    data_dir = conf["data_path"].asString();
   } else {
-    conf["db_path"] = data_dir;
+    conf["data_path"] = data_dir;
   }
 
   conf["network_is_boot_node"] = boot_node;
@@ -194,7 +194,7 @@ string Tools::getHomeDir() { return string(getpwuid(getuid())->pw_dir); }
 
 string Tools::getTaraxaDefaultDir() { return getHomeDir() + "/" + DEFAULT_TARAXA_DIR_NAME; }
 
-string Tools::getTaraxaDataDefaultDir() { return getHomeDir() + "/" + DEFAULT_TARAXA_DB_DIR_NAME; }
+string Tools::getTaraxaDataDefaultDir() { return getHomeDir() + "/" + DEFAULT_TARAXA_DATA_DIR_NAME; }
 
 string Tools::getWalletDefaultFile() { return getTaraxaDefaultDir() + "/" + DEFAULT_WALLET_FILE_NAME; }
 

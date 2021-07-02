@@ -212,8 +212,8 @@ inline auto launch_nodes(vector<FullNodeConfig> const& cfgs, optional<uint> retr
 struct BaseTest : virtual WithDataDir {
   BaseTest() : WithDataDir() {
     for (auto& cfg : *node_cfgs_original) {
-      remove_all(cfg.db_path);
-      create_directories(cfg.db_path);
+      remove_all(cfg.data_path);
+      create_directories(cfg.data_path);
     }
   }
   virtual ~BaseTest(){};

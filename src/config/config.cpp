@@ -90,7 +90,8 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
     json_file_name = string_or_object.asString();
   }
   auto const &root = string_or_object.isString() ? parsed_from_file : string_or_object;
-  db_path = getConfigDataAsString(root, {"db_path"});
+  data_path = getConfigDataAsString(root, {"data_path"});
+  db_path = data_path / "db";
   if (auto n = getConfigData(root, {"network_is_boot_node"}, true); !n.isNull()) {
     network.network_is_boot_node = n.asBool();
   }
@@ -163,7 +164,7 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
     if (auto path = getConfigData(root["logging"], {"log_path"}, true); !path.isNull()) {
       log_path = path.asString();
     } else {
-      log_path = db_path / "logs";
+      log_path = data_path / "logs";
     }
     for (auto &item : root["logging"]["configurations"]) {
       auto on = getConfigDataAsBoolean(item, {"on"});

@@ -3,7 +3,7 @@ namespace taraxa::cli {
 const char *testnet_json = R"foo({
   "node_secret": "",
   "vrf_secret": "",
-  "db_path": "",
+  "data_path": "",
   "network_is_boot_node": false,
   "network_address": "0.0.0.0",
   "network_tcp_port": 10002,
