@@ -1,7 +1,5 @@
-decorator==5.0.9
 flaky==3.7.0
 web3==5.20.1
 pytest==6.2.4
-pytest-rerunfailures==10.0
 py-solc-x==1.1.0
 py-evm==0.4.0a4
