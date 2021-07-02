@@ -219,7 +219,8 @@ commands:
             fi
             cd taraxa-testnet/tests           
             helm upgrade -i pr-<< parameters.pr-name >> taraxa-node/ --namespace blockchain-prnet -f taraxa-node/values.yaml -f taraxa-node/prnet.values.yaml \
-              --set image.repository=gcr.io/jovial-meridian-249123/taraxa-node:${PR_TAG} \
+              --set image.repository=gcr.io/jovial-meridian-249123/taraxa-node \
+              --set image.tag:${PR_TAG} \
               --set explorer.configEnvs.rpcHttpProvider="http://pr-<< parameters.pr-name >>-taraxa-node:7777" \
               --set explorer.configEnvs.rpcWsProvider="http://pr-<< parameters.pr-name >>-taraxa-node:8777" \
               --set bootnode.loadBalancer.addresses\[0\]="${PRNET_IPS[0]}" \
