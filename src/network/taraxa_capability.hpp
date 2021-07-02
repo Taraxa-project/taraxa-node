@@ -88,13 +88,13 @@ class TaraxaPeer : public boost::noncopyable {
 
   void setAlive() { alive_check_count_ = 0; }
 
-  bool received_initial_status_ = false;
-  bool sent_initial_status_ = false;
-  bool syncing_ = false;
-  uint64_t dag_level_ = 0;
-  uint64_t pbft_chain_size_ = 0;
-  uint64_t pbft_round_ = 1;
-  size_t pbft_previous_round_next_votes_size_ = 0;
+  std::atomic<bool> received_initial_status_ = false;
+  std::atomic<bool> sent_initial_status_ = false;
+  std::atomic<bool> syncing_ = false;
+  std::atomic<uint64_t> dag_level_ = 0;
+  std::atomic<uint64_t> pbft_chain_size_ = 0;
+  std::atomic<uint64_t> pbft_round_ = 1;
+  std::atomic<size_t> pbft_previous_round_next_votes_size_ = 0;
 
  private:
   NodeID m_id;
