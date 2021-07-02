@@ -75,6 +75,7 @@ struct FullNodeConfig {
   std::string json_file_name;
   std::string node_secret;
   vrf_wrapper::vrf_sk_t vrf_secret;
+  fs::path data_path;
   fs::path db_path;
   fs::path log_path;
   NetworkConfig network;
@@ -84,7 +85,7 @@ struct FullNodeConfig {
   final_chain::Opts opts_final_chain;
   std::vector<logger::Config> log_configs;
 
-  auto net_file_path() const { return db_path / "net"; }
+  auto net_file_path() const { return data_path / "net"; }
 
   /**
    * @brief Validates config values, throws configexception if validation failes

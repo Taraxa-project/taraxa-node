@@ -13,7 +13,7 @@ namespace taraxa::cli {
 class Tools {
  public:
   static constexpr const char* DEFAULT_TARAXA_DIR_NAME = ".taraxa";
-  static constexpr const char* DEFAULT_TARAXA_DB_DIR_NAME = ".taraxa/data";
+  static constexpr const char* DEFAULT_TARAXA_DATA_DIR_NAME = ".taraxa/data";
   static constexpr const char* DEFAULT_WALLET_FILE_NAME = "wallet.json";
   static constexpr const char* DEFAULT_CONFIG_FILE_NAME = "config.json";
 

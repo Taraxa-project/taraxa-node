@@ -57,7 +57,7 @@ Config::Config(int argc, const char* argv[], const string& taraxa_version) {
   node_command_options.add_options()(CONFIG, bpo::value<string>(&config),
                                      "JSON configuration file (default: \"~/.taraxa/config.json\")");
   node_command_options.add_options()(DATA_DIR, bpo::value<string>(&data_dir),
-                                     "Data directory for the databases (default: \"~/.taraxa/db\")");
+                                     "Data directory for the databases, logs ... (default: \"~/.taraxa/data\")");
   node_command_options.add_options()(DESTROY_DB, bpo::bool_switch(&destroy_db),
                                      "Destroys all the existing data in the database");
   node_command_options.add_options()(REBUILD_DB, bpo::bool_switch(&rebuild_db),

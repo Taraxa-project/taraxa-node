@@ -369,7 +369,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
 
     case NewBlockHashPacket: {
       blk_hash_t hash(_r[0]);
-      LOG(log_dg_dag_prp_) << "Received NewBlockHashPacket" << hash.toString();
+      LOG(log_dg_dag_prp_) << "Received NewBlockHashPacket " << hash.toString();
       peer->markBlockAsKnown(hash);
       if (dag_blk_mgr_) {
         if (!dag_blk_mgr_->isBlockKnown(hash) && block_requestes_set_.count(hash) == 0) {
@@ -1042,7 +1042,7 @@ void TaraxaCapability::onNewBlockVerified(DagBlock const &block) {
       peer->markBlockAsKnown(block.getHash());
     }
   }
-  if (!peersToSend.empty()) LOG(log_dg_dag_prp_) << "Sent block to" << peersToSend.size() << " peers";
+  if (!peersToSend.empty()) LOG(log_dg_dag_prp_) << "Sent block to " << peersToSend.size() << " peers";
 
   for (NodeID const &peerID : peersToAnnounce) {
     RLPStream ts;
