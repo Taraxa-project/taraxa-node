@@ -110,7 +110,9 @@ commands:
         - run:
             name: Create PRNET IPs
             command: |
-              gcloud compute addresses create prnet-<< parameters.pr-name >>-{1..3} --region << parameters.region >> --project << parameters.project >>
+              if [ ! ${PRNET_IPS} ];then
+                gcloud compute addresses create prnet-<< parameters.pr-name >>-{1..3} --region << parameters.region >> --project << parameters.project >>
+              fi
             when: << parameters.when >>
 
    get_prnet_ips:
