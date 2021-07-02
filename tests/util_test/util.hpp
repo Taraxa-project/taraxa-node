@@ -177,7 +177,7 @@ inline auto wait_inital_status_packet_passed(vector<FullNode::Handle> const& nod
       auto peers = nodes[i]->getNetwork()->getAllPeers();
       for (size_t j = 0; j < peers.size(); j++) {
         auto peer = nodes[i]->getNetwork()->getPeer(peers[j]);
-        if (ctx.fail_if(!peer->passed_initial_)) {
+        if (ctx.fail_if(!peer->received_initial_status_)) {
           return;
         }
       }
