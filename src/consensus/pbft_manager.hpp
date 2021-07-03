@@ -16,6 +16,7 @@
 #define NULL_BLOCK_HASH blk_hash_t(0)
 #define POLLING_INTERVAL_ms 100  // milliseconds...
 #define MAX_STEPS 13
+#define MAX_WAIT_FOR_NEXT_VOTED_BLOCK_MS 30000
 
 namespace taraxa {
 class FullNode;
@@ -140,7 +141,8 @@ class PbftManager {
   void updateTwoTPlusOneAndThreshold_();
   bool is_syncing_();
 
-  bool giveUpVotedBlock_(blk_hash_t const &block_hash);
+  bool giveUpNextVotedBlock_();
+  void updateNextVotedValue_();
 
   std::atomic<bool> stopped_ = true;
   // Using to check if PBFT block has been proposed already in one period
@@ -184,6 +186,10 @@ class PbftManager {
 
   time_point round_clock_initial_datetime_;
   time_point now_;
+
+  time_point time_began_waiting_next_voted_block_;
+  blk_hash_t next_voted_value_;
+
   std::chrono::duration<double> duration_;
   u_long next_step_time_ms_ = 0;
   u_long elapsed_time_in_round_ms_ = 0;
@@ -198,8 +204,7 @@ class PbftManager {
   bool reset_own_value_to_null_block_hash_in_this_round_ = false;
 
   uint64_t round_began_wait_proposal_block_ = 0;
-  size_t max_wait_rounds_for_proposal_block_ = 5;
-  uint64_t round_began_wait_voted_block_ = 0;
+  size_t max_wait_rounds_for_proposal_block_ = 2;
 
   uint64_t pbft_round_last_requested_sync_ = 0;
   size_t pbft_step_last_requested_sync_ = 0;
