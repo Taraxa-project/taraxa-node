@@ -76,9 +76,11 @@ void TaraxaCapability::erasePeer(NodeID const &node_id) {
   peers_.erase(node_id);
 }
 
-void TaraxaCapability::insertPeer(NodeID const &node_id) {
+std::shared_ptr<TaraxaPeer> TaraxaCapability::insertPeer(NodeID const &node_id) {
   boost::unique_lock<boost::shared_mutex> lock(peers_mutex_);
-  peers_.emplace(std::make_pair(node_id, std::make_shared<TaraxaPeer>(node_id)));
+  auto ret = peers_.emplace(std::make_pair(node_id, std::make_shared<TaraxaPeer>(node_id)));
+  assert(ret.second);
+  return ret.first->second;
 }
 
 void TaraxaCapability::syncPeerPbft(NodeID const &_nodeID, unsigned long height_to_sync) {
@@ -94,7 +96,7 @@ void TaraxaCapability::sealAndSend(NodeID const &nodeID, unsigned packet_type, R
 
   auto peer = getPeer(nodeID);
 
-  if ((!peer) || (dag_mgr_ && !peer->passed_initial_ && packet_type != StatusPacket)) {
+  if ((!peer) || (dag_mgr_ && !peer->received_initial_status_ && packet_type != StatusPacket)) {
     return;
   }
 
@@ -159,8 +161,9 @@ void TaraxaCapability::onConnect(weak_ptr<Session> session, u256 const &) {
     cnt_received_messages_[_nodeID] = 0;
     test_sums_[_nodeID] = 0;
 
-    insertPeer(_nodeID);
+    auto peer = insertPeer(_nodeID);
     sendStatus(_nodeID, true);
+    peer->sent_initial_status_ = true;
   });
 }
 
@@ -216,7 +219,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
     return;
   }
 
-  if (dag_mgr_ && !peer->passed_initial_ && _id != StatusPacket) {
+  if (dag_mgr_ && !peer->received_initial_status_ && _id != StatusPacket) {
     return;
   }
   // Any packet means that we are comunicating so let's not disconnect
@@ -270,7 +273,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
           break;
         }
 
-        peer->passed_initial_ = true;
+        peer->received_initial_status_ = true;
 
         peer->dag_level_ = peer_dag_level;
         peer->pbft_chain_size_ = peer_pbft_chain_size;
@@ -286,7 +289,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
                      << ", node major version" << node_major_version << ", node minor version" << node_minor_version;
 
       } else {
-        if (!peer->passed_initial_) {
+        if (!peer->received_initial_status_) {
           break;
         }
 
@@ -966,7 +969,9 @@ void TaraxaCapability::onNewTransactions(std::vector<taraxa::bytes> const &trans
     {
       boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
       for (auto &peer : peers_) {
-        if (!peer.second->syncing_) {
+        // Confirm that status messages were exchanged otherwise message might be ignored and node would
+        // incorrectly markTransactionAsKnown
+        if (!peer.second->syncing_ && peer.second->received_initial_status_ && peer.second->sent_initial_status_) {
           for (auto const &transaction : transactions) {
             Transaction trx(transaction);
             auto trx_hash = trx.getHash();
