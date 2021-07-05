@@ -205,10 +205,10 @@ TEST_F(VoteTest, transfer_vote) {
   // generate a vote far ahead (never exist in PBFT manager)
   blk_hash_t propose_block_hash(11);
   PbftVoteTypes type = next_vote_type;
-  uint64_t period = 999;
+  uint64_t round = pbft_mgr2->getPbftRound() + 1;
   size_t step = 1000;
   auto weighted_index = 10;
-  Vote vote = pbft_mgr2->generateVote(propose_block_hash, type, period, step, weighted_index);
+  Vote vote = pbft_mgr2->generateVote(propose_block_hash, type, round, step, weighted_index);
 
   nw2->sendPbftVote(nw1->getNodeId(), vote);
 
@@ -240,10 +240,10 @@ TEST_F(VoteTest, vote_broadcast) {
   // generate a vote far ahead (never exist in PBFT manager)
   blk_hash_t propose_block_hash(111);
   PbftVoteTypes type = next_vote_type;
-  uint64_t period = 1000;
+  uint64_t round = pbft_mgr1->getPbftRound() + 1;
   size_t step = 1002;
   auto weighted_index = 100;
-  Vote vote = pbft_mgr1->generateVote(propose_block_hash, type, period, step, weighted_index);
+  Vote vote = pbft_mgr1->generateVote(propose_block_hash, type, round, step, weighted_index);
 
   node1->getNetwork()->onNewPbftVotes(vector{vote});
 
