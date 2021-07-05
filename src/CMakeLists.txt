@@ -120,7 +120,7 @@ set(SOURCES
 
 add_subdirectory(network/rpc)
 
-add_library(app_base STATIC ${SOURCES})
+add_library(app_base ${SOURCES})
 
 # TODO: have some problems with include dirs for imported targets
 get_target_property(TARAXA_VDF_INCUDE taraxa-vdf INTERFACE_INCLUDE_DIRECTORIES)
@@ -171,6 +171,11 @@ endif ()
 if(TCMALLOC_LIB)
     target_link_libraries(app_base ${TCMALLOC_LIB}) # MUST BE LINKED LAST!!!
 endif()
+
+install(TARGETS app_base
+        ARCHIVE  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        LIBRARY  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME  DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 # Main taraxad binary
 add_subdirectory(taraxad)

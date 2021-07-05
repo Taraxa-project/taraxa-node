@@ -280,8 +280,8 @@ std::map<blk_hash_t, bool> DbStorage::getAllDagBlockState() {
   return res;
 }
 
-void DbStorage::saveTransaction(Transaction const& trx) {
-  insert(Columns::transactions, toSlice(trx.getHash().asBytes()), toSlice(*trx.rlp()));
+void DbStorage::saveTransaction(Transaction const& trx, bool verified) {
+  insert(Columns::transactions, toSlice(trx.getHash().asBytes()), toSlice(*trx.rlp(false, verified)));
 }
 
 void DbStorage::saveTransactionStatus(trx_hash_t const& trx_hash, TransactionStatus const& status) {
@@ -330,8 +330,9 @@ std::shared_ptr<std::pair<Transaction, taraxa::bytes>> DbStorage::getTransaction
   return nullptr;
 }
 
-void DbStorage::addTransactionToBatch(Transaction const& trx, Batch& write_batch) {
-  insert(write_batch, DbStorage::Columns::transactions, toSlice(trx.getHash().asBytes()), toSlice(*trx.rlp()));
+void DbStorage::addTransactionToBatch(Transaction const& trx, Batch& write_batch, bool verified) {
+  insert(write_batch, DbStorage::Columns::transactions, toSlice(trx.getHash().asBytes()),
+         toSlice(*trx.rlp(false, verified)));
 }
 
 bool DbStorage::transactionInDb(trx_hash_t const& hash) {

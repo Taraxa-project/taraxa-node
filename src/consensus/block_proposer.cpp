@@ -49,6 +49,12 @@ bool SortitionPropose::propose() {
       return false;
     }
   }
+
+  // Do not propose DAG with same level twice
+  if (propose_level == last_successful_proposed_level_) {
+    return false;
+  }
+
   vdf.computeVdfSolution(vdf_config_, frontier.pivot.asBytes());
   if (vdf.isStale(vdf_config_)) {
     DagFrontier latestFrontier = dag_mgr_->getDagFrontier();
@@ -65,6 +71,7 @@ bool SortitionPropose::propose() {
   LOG(log_nf_) << "VDF computation time " << vdf.getComputationTime() << " difficulty " << vdf.getDifficulty();
   proposer->proposeBlock(frontier.pivot, propose_level, frontier.tips, move(sharded_trxs), vdf);
   last_propose_level_ = propose_level;
+  last_successful_proposed_level_ = propose_level;
   num_tries_ = 0;
   return true;
 }

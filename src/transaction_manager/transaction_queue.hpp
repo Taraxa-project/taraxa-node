@@ -40,6 +40,8 @@ class TransactionQueue {
   unsigned long getVerifiedTrxCount() const;
   std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash) const;
 
+  std::pair<size_t, size_t> getTransactionBufferSize() const;
+
  private:
   using uLock = boost::unique_lock<boost::shared_mutex>;
   using sharedLock = boost::shared_lock<boost::shared_mutex>;

@@ -29,6 +29,16 @@ enum PbftSyncRequestReason {
   exceeded_max_steps
 };
 
+struct votesBundle {
+  bool enough;
+  blk_hash_t voted_block_hash;
+  std::vector<Vote> votes;  // exactly 2t+1 votes
+
+  votesBundle() : enough(false), voted_block_hash(NULL_BLOCK_HASH) {}
+  votesBundle(bool const enough_, blk_hash_t const &voted_block_hash_, std::vector<Vote> const &votes_)
+      : enough(enough_), voted_block_hash(voted_block_hash_), votes(votes_) {}
+};
+
 class PbftManager {
  public:
   using time_point = std::chrono::system_clock::time_point;
@@ -96,7 +106,7 @@ class PbftManager {
 
   uint64_t roundDeterminedFromVotes_();
 
-  std::pair<blk_hash_t, bool> blockWithEnoughVotes_(std::vector<Vote> const &votes) const;
+  votesBundle blockWithEnoughVotes_(std::vector<Vote> const &votes) const;
 
   std::vector<Vote> getVotesOfTypeFromVotesForRoundAndStep_(PbftVoteTypes vote_type, std::vector<Vote> &votes,
                                                             uint64_t round, size_t step,
@@ -117,7 +127,7 @@ class PbftManager {
   bool broadcastAlreadyThisStep_() const;
 
   bool comparePbftBlockScheduleWithDAGblocks_(blk_hash_t const &pbft_block_hash);
-  bool comparePbftBlockScheduleWithDAGblocks_(PbftBlock const &pbft_block);
+  std::pair<vec_blk_t, bool> comparePbftBlockScheduleWithDAGblocks_(PbftBlock const &pbft_block);
 
   bool pushCertVotedPbftBlockIntoChain_(blk_hash_t const &cert_voted_block_hash,
                                         std::vector<Vote> const &cert_votes_for_round);
@@ -125,7 +135,7 @@ class PbftManager {
   void pushSyncedPbftBlocksIntoChain_();
 
   void finalize_(PbftBlock const &pbft_block, vector<h256> finalized_dag_blk_hashes, bool sync = false);
-  bool pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes);
+  bool pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes, vec_blk_t const &dag_blocks_order);
 
   void updateTwoTPlusOneAndThreshold_();
   bool is_syncing_();
@@ -152,6 +162,10 @@ class PbftManager {
 
   u_long const LAMBDA_ms_MIN;
   u_long LAMBDA_ms = 0;
+  u_long LAMBDA_backoff_multiple = 1;
+
+  std::default_random_engine random_engine_{std::random_device{}()};
+
   size_t const COMMITTEE_SIZE;
   size_t DAG_BLOCKS_SIZE;
   size_t GHOST_PATH_MOVE_BACK;
@@ -160,7 +174,6 @@ class PbftManager {
   PbftStates state_ = value_proposal_state;
   std::atomic<uint64_t> round_ = 1;
   size_t step_ = 1;
-  u_long STEP_4_DELAY = 0;  // constant
 
   blk_hash_t own_starting_value_for_round_ = NULL_BLOCK_HASH;
   // <round, cert_voted_block_hash>

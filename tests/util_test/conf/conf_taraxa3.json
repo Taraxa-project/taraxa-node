@@ -1,5 +1,5 @@
 {
-  "db_path": "/tmp/taraxa3",
+  "data_path": "/tmp/taraxa3",
   "network_address": "127.0.0.1",
   "network_tcp_port": 10004,
   "network_udp_port": 10004,

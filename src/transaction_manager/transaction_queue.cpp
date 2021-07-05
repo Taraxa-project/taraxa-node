@@ -214,4 +214,14 @@ std::pair<size_t, size_t> TransactionQueue::getTransactionQueueSize() const {
   return res;
 }
 
+std::pair<size_t, size_t> TransactionQueue::getTransactionBufferSize() const {
+  std::pair<size_t, size_t> res;
+
+  sharedLock lock(main_shared_mutex_);
+  res.first = trx_buffer_.size();
+  res.second = queued_trxs_.size();
+
+  return res;
+}
+
 }  // namespace taraxa

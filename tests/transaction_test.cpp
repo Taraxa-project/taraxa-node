@@ -28,6 +28,24 @@ auto g_blk_samples = Lazy([] { return samples::createMockDagBlkSamples(0, NUM_BL
 
 struct TransactionTest : BaseTest {};
 
+TEST_F(TransactionTest, double_verification) {
+  DbStorage db(data_dir);
+
+  auto trx_data_ptr = g_signed_trx_samples[0].rlp(false, true);
+  RLP trx_rlp = RLP(*trx_data_ptr);
+  EXPECT_EQ(trx_rlp.itemCount(), 10);  // check if there is sender field
+
+  db.saveTransaction(g_signed_trx_samples[0]);  // save it unverified
+  auto trx_data = db.getTransactionRaw(g_signed_trx_samples[0].getHash());
+  trx_rlp = RLP(trx_data);
+  EXPECT_EQ(trx_rlp.itemCount(), 9);
+
+  db.saveTransaction(g_signed_trx_samples[0], true);  // save it verified
+  trx_data = db.getTransactionRaw(g_signed_trx_samples[0].getHash());
+  trx_rlp = RLP(trx_data);
+  EXPECT_EQ(trx_rlp.itemCount(), 10);
+}
+
 TEST_F(TransactionTest, status_table_lru) {
   using TestStatus = StatusTable<int, int>;
   TestStatus status_table(100);
@@ -73,7 +91,7 @@ TEST_F(TransactionTest, sig) {
   ASSERT_THROW(Transaction(dev::jsToBytes("0xf84980808080808024a01404adc97c8b58fef303b2862d0e72378"
                                           "4fb635e7237e0e8d3ea33bbea19c36ca0229e80d57ba91a0f347686"
                                           "30fd21ad86e4c403b307de9ac4550d0ccc81c90fe3")),
-               Transaction::InvalidChainID);
+               Transaction::InvalidSignature);
   vector<pair<uint64_t, string>> valid_cases{
       {0, "0xf647d1d47ce927ce2fb9f57e4e2a3c32b037c5e544b44611077f5cc6980b0bc2"},
       {1, "0x49c1cb845df5d3ed238ca37ad25ca96f417e4f22d7911224cf3c2a725985e7ff"},

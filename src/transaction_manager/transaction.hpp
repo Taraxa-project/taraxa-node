@@ -10,12 +10,6 @@
 namespace taraxa {
 
 struct Transaction {
-  struct InvalidChainID : std::invalid_argument {
-    InvalidChainID() : invalid_argument("eip-155 chain id must be > 0") {}
-  };
-  struct InvalidEncodingSize : std::invalid_argument {
-    InvalidEncodingSize() : invalid_argument("transaction rlp must be a list of 9 elements") {}
-  };
   struct InvalidSignature : std::runtime_error {
     explicit InvalidSignature(std::string const &msg) : runtime_error("invalid signature:\n" + msg) {}
   };
@@ -40,7 +34,7 @@ struct Transaction {
   mutable std::shared_ptr<bytes> cached_rlp_;
   mutable DefaultConstructCopyableMovable<std::mutex> cached_rlp_mu_;
 
-  template <bool for_signature>
+  template <bool for_signature, bool w_sender>
   void streamRLP(dev::RLPStream &s) const;
   trx_hash_t hash_for_signature() const;
   addr_t const &get_sender_() const;
@@ -50,11 +44,13 @@ struct Transaction {
   Transaction() : is_zero_(true){};
   Transaction(uint64_t nonce, val_t const &value, val_t const &gas_price, uint64_t gas, bytes data, secret_t const &sk,
               std::optional<addr_t> const &receiver = std::nullopt, uint64_t chain_id = 0);
-  explicit Transaction(dev::RLP const &_rlp, bool verify_strict = false, h256 const &hash = {});
+  explicit Transaction(dev::RLP const &_rlp, bool verify_strict = false, h256 const &hash = {},
+                       bool rlp_w_sender = false);
   explicit Transaction(bytes const &_rlp, bool verify_strict = false, h256 const &hash = {})
       : Transaction(dev::RLP(_rlp), verify_strict, hash) {}
-  explicit Transaction(bytes &&_rlp, bool verify_strict = false, h256 const &hash = {}, bool cache_rlp = false)
-      : Transaction(dev::RLP(_rlp), verify_strict, hash) {
+  explicit Transaction(bytes &&_rlp, bool verify_strict = false, h256 const &hash = {}, bool cache_rlp = false,
+                       bool rlp_w_sender = false)
+      : Transaction(dev::RLP(_rlp), verify_strict, hash, rlp_w_sender) {
     if (cache_rlp) {
       cached_rlp_ = std::make_shared<bytes>(std::move(_rlp));
     }
@@ -74,7 +70,7 @@ struct Transaction {
 
   bool operator==(Transaction const &other) const { return getHash() == other.getHash(); }
 
-  std::shared_ptr<bytes> rlp(bool cache = false) const;
+  std::shared_ptr<bytes> rlp(bool cache = false, bool w_sender = false) const;
 
   Json::Value toJSON() const;
 };

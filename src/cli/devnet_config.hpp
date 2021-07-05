@@ -3,7 +3,7 @@ namespace taraxa::cli {
 const char *devnet_json = R"foo({
   "node_secret": "",
   "vrf_secret": "",
-  "db_path": "",
+  "data_path": "",
   "network_is_boot_node": false,
   "network_address": "0.0.0.0",
   "network_tcp_port": 10002,
@@ -12,8 +12,8 @@ const char *devnet_json = R"foo({
   "network_transaction_interval": 100,
   "network_encrypted": 1,
   "network_bandwidth": 40,
-  "network_ideal_peer_count": 10,
-  "network_max_peer_count": 50,
+  "network_ideal_peer_count": 5,
+  "network_max_peer_count": 15,
   "network_sync_level_size": 10,
   "network_boot_nodes": [
     {

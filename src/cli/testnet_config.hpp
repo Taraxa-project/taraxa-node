@@ -3,7 +3,7 @@ namespace taraxa::cli {
 const char *testnet_json = R"foo({
   "node_secret": "",
   "vrf_secret": "",
-  "db_path": "",
+  "data_path": "",
   "network_is_boot_node": false,
   "network_address": "0.0.0.0",
   "network_tcp_port": 10002,
@@ -12,8 +12,8 @@ const char *testnet_json = R"foo({
   "network_transaction_interval": 100,
   "network_encrypted": 1,
   "network_bandwidth": 40,
-  "network_ideal_peer_count": 10,
-  "network_max_peer_count": 50,
+  "network_ideal_peer_count": 5,
+  "network_max_peer_count": 15,
   "network_sync_level_size": 10,
   "network_boot_nodes": [
     {
@@ -86,14 +86,14 @@ const char *testnet_json = R"foo({
       "level": "0x0",
       "pivot": "0x0000000000000000000000000000000000000000000000000000000000000000",
       "sig": "0xb7e22d46c1ba94d5e8347b01d137b5c428fcbbeaf0a77fb024cbbf1517656ff00d04f7f25be608c321b0d7483c402c294ff46c49b265305d046a52236c0a363701",
-      "timestamp": "0x60b03283",
+      "timestamp": "0x60b03286",
       "tips": [],
       "transactions": []
     },
     "final_chain": {
       "genesis_block_fields": {
         "author": "0x0000000000000000000000000000000000000000",
-        "timestamp": "0x60b03283"
+        "timestamp": "0x60b03286"
       },
       "state": {
         "disable_block_rewards": true,

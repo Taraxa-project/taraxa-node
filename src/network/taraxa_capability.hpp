@@ -123,8 +123,14 @@ struct TaraxaCapability : virtual CapabilityFace {
   void onDisconnect(NodeID const &_nodeID) override;
 
   // TODO remove managing thread pool inside this class
-  void start() { tp_.start(); }
-  void stop() { tp_.stop(); }
+  void start() {
+    tp_.start();
+    syncing_tp_.start();
+  }
+  void stop() {
+    tp_.stop();
+    syncing_tp_.stop();
+  }
 
   void sealAndSend(NodeID const &nodeID, unsigned packet_type, RLPStream rlp);
   bool pbft_syncing() const { return syncing_.load(); }
@@ -184,11 +190,13 @@ struct TaraxaCapability : virtual CapabilityFace {
   void insertPeer(NodeID const &node_id);
 
  private:
-  void handle_read_exception(weak_ptr<Session> session, unsigned _id, RLP const &_r);
+  void handle_read_exception(weak_ptr<Session> session, unsigned _id);
 
   weak_ptr<Host> host_;
   NodeID node_id_;
   util::ThreadPool tp_{1, false};
+
+  util::ThreadPool syncing_tp_{1, false};
 
   atomic<bool> syncing_ = false;
   bool requesting_pending_dag_blocks_ = false;
@@ -242,6 +250,14 @@ struct TaraxaCapability : virtual CapabilityFace {
 
   const uint32_t MAX_PACKET_SIZE = 15 * 1024 * 1024;  // 15 MB -> 15 * 1024 * 1024 B
   const uint16_t MAX_CHECK_ALIVE_COUNT = 5;
+
+  // Only allow up to 2 nodes syncing from our node
+  const uint16_t MAX_SYNCING_NODES = 2;
+
+  // If there are more than 10 packets in queue to be processed syncing will be delayed or node disconnected in queue
+  // not cleared in defined time
+  const uint16_t MAX_NETWORK_QUEUE_TO_DROP_SYNCING = 10;
+  const uint16_t MAX_TIME_TO_WAIT_FOR_QUEUE_TO_CLEAR_MS = 2000;
 
   LOG_OBJECTS_DEFINE
   LOG_OBJECTS_DEFINE_SUB(pbft_sync)

@@ -10,7 +10,6 @@ set(prefix_ethash ethash/lib/ethash)
 ## and we can do it here more simplier
 add_library(
     ethash
-    STATIC
     ${prefix_ethash}/bit_manipulation.h
     ${prefix_ethash}/builtins.h
     ${prefix_ethash}/endianness.hpp
@@ -81,7 +80,7 @@ endfunction()
 # Add taraxa-vdf
 set(VDF_LIBRARY_COMMAND "\
  ${CMAKE_MAKE_PROGRAM}\
- CPPFLAGS=\"-I./include -I${CONAN_INCLUDE_DIRS_OPENSSL} -I${CONAN_INCLUDE_DIRS_GMP} -I${CONAN_INCLUDE_DIRS_MPFR} -std=c++17 -O3\"\
+ CPPFLAGS=\"-I./include -I${CONAN_INCLUDE_DIRS_OPENSSL} -I${CONAN_INCLUDE_DIRS_GMP} -I${CONAN_INCLUDE_DIRS_MPFR} -fPIC -std=c++17 -O3\"\
  lib/libvdf.a")
 add_make_target(vdf libvdf.a "${VDF_LIBRARY_COMMAND}")
 
@@ -90,7 +89,7 @@ add_make_target(vdf libvdf.a "${VDF_LIBRARY_COMMAND}")
 ## run autotools
 set(VRF_AUTOTOOLS_CMD "autoreconf && automake")
 ## run configure
-set(VRF_AUTOTOOLS_CMD "${VRF_AUTOTOOLS_CMD} && ./configure --enable-static=\"yes\" --enable-shared=\"no\" --prefix=${CMAKE_BINARY_DIR}/deps/taraxa-vrf")
+set(VRF_AUTOTOOLS_CMD "${VRF_AUTOTOOLS_CMD} && ./configure --enable-static=\"yes\" --enable-shared=\"no\" --with-pic=\"yes\" --prefix=${CMAKE_BINARY_DIR}/deps/taraxa-vrf")
 add_make_target(vrf libsodium.a "${VRF_AUTOTOOLS_CMD} && ${CMAKE_MAKE_PROGRAM} && ${CMAKE_MAKE_PROGRAM} install")
 
 
@@ -103,7 +102,9 @@ set(EVM_BUILD_CGO_CFLAGS -O3 ${EVM_BUILD_INCLUDE})
 set(EVM_BUILD_LD -L${CONAN_LIB_DIRS_BZIP2} -lbz2 -L${CONAN_LIB_DIRS_ZLIB} -lz -L${CONAN_LIB_DIRS_ROCKSDB} -lrocksdb -L${CONAN_LIB_DIRS_SNAPPY} -lsnappy -L${CONAN_LIB_DIRS_LZ4} -llz4 -L${CONAN_LIB_DIRS_ZSTD} -lzstd)
 ## if we need full static build use flag
 if(TARAXA_STATIC_BUILD)
-    set(EVM_BUILD_LD ${EVM_BUILD_LD} -static)
+    if (NOT APPLE)
+        set(EVM_BUILD_LD ${EVM_BUILD_LD} -static)
+    endif()
     ## name of the static library
     set(EVM_LIBRARY_NAME ${CMAKE_STATIC_LIBRARY_PREFIX}taraxaevm${CMAKE_STATIC_LIBRARY_SUFFIX})
 else()
