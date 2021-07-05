@@ -53,13 +53,13 @@ class TaraxaPeer : public boost::noncopyable {
       : known_blocks_(10000, 1000),
         known_transactions_(100000, 10000),
         known_pbft_blocks_(10000, 1000),
-        known_votes_(10000, 1000) {}
+        known_votes_(100000, 10000) {}
   explicit TaraxaPeer(NodeID id)
       : m_id(id),
         known_blocks_(10000, 1000),
         known_transactions_(100000, 10000),
         known_pbft_blocks_(10000, 1000),
-        known_votes_(10000, 1000) {}
+        known_votes_(100000, 10000) {}
 
   bool isBlockKnown(blk_hash_t const &_hash) const { return known_blocks_.count(_hash); }
   void markBlockAsKnown(blk_hash_t const &_hash) { known_blocks_.insert(_hash); }
