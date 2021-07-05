@@ -486,15 +486,19 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       auto pbft_round = pbft_mgr_->getPbftRound();
       auto vote_round = vote.getRound();
 
-      if (vote_round >= pbft_round && !vote_mgr_->voteInUnverifiedMap(vote_round, vote_hash) &&
-          !vote_mgr_->voteInVerifiedMap(vote_round, vote_hash)) {
-        // vote round >= PBFT round
-        db_->saveUnverifiedVote(vote);
-        vote_mgr_->addUnverifiedVote(vote);
-        packet_stats.is_unique_ = true;
-        onNewPbftVote(vote);
+      if (vote_round == pbft_round + 1 ||
+          (vote_round == pbft_round && vote.getStep() >= pbft_mgr_->getPbftStep() - 1)) {
+        // vote round = PBFT round + 1
+        // OR
+        // vote round = PBFT round and vote step >= pbft step - 1
+        if (!vote_mgr_->voteInUnverifiedMap(vote_round, vote_hash) &&
+            !vote_mgr_->voteInVerifiedMap(vote_round, vote_hash)) {
+          db_->saveUnverifiedVote(vote);
+          vote_mgr_->addUnverifiedVote(vote);
+          packet_stats.is_unique_ = true;
+          onNewPbftVote(vote);
+        }
       }
-
       break;
     }
 

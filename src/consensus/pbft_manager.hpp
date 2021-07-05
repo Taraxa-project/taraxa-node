@@ -60,6 +60,7 @@ class PbftManager {
 
   std::pair<bool, uint64_t> getDagBlockPeriod(blk_hash_t const &hash);
   uint64_t getPbftRound() const;
+  size_t getPbftStep() const { return step_; }
   void setPbftRound(uint64_t const round);
   size_t getSortitionThreshold() const;
   size_t getTwoTPlusOne() const;
