@@ -7,6 +7,8 @@
 // This basically captures a common work-around pattern for classes that contain fields of this kind of types
 // - a famous example would be a mutex type
 
+namespace taraxa::util {
+
 template <typename T>
 struct DefaultConstructCopyableMovable {
   T val;
@@ -20,3 +22,5 @@ struct DefaultConstructCopyableMovable {
   auto& operator=(DefaultConstructCopyableMovable const&) { return *this; }
   auto& operator=(DefaultConstructCopyableMovable&&) { return *this; }
 };
+
+}  // namespace taraxa::util

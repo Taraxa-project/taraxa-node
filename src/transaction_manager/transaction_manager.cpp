@@ -38,9 +38,6 @@ std::pair<bool, std::string> TransactionManager::verifyTransaction(Transaction c
   } catch (Transaction::InvalidSignature const &) {
     return {false, "invalid signature"};
   }
-  // TODO maybe this is not the best place for it. The idea is to fire this event only for a verified (accepted)
-  // transaction *exactly once*
-  transaction_accepted_.emit(trx.getHash());
   return {true, ""};
 }
 
@@ -319,8 +316,9 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx, uint16_t max_trx_
 
   auto verified_trx = trx_qu_.moveVerifiedTrxSnapShot(max_trx_to_pack);
 
-  bool changed = false;
   auto trx_batch = db_->createWriteBatch();
+  vector<h256> accepted_trx_hashes;
+  accepted_trx_hashes.reserve(verified_trx.size());
   {
     for (auto const &i : verified_trx) {
       trx_hash_t const &hash = i.first;
@@ -330,17 +328,20 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx, uint16_t max_trx_
         // Skip if transaction is already in existing block
         db_->addTransactionStatusToBatch(trx_batch, hash, TransactionStatus::in_block);
         trx_count_.fetch_add(1);
-        changed = true;
+        accepted_trx_hashes.emplace_back(hash);
         LOG(log_dg_) << "Trx: " << hash << " ready to pack" << std::endl;
         // update transaction_status
         list_trxs.push_back(trx);
       }
     }
 
-    if (changed) {
+    if (!accepted_trx_hashes.empty()) {
       auto trx_count = trx_count_.load();
       db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_count, trx_batch);
       db_->commitWriteBatch(trx_batch);
+      for (auto const &h : accepted_trx_hashes) {
+        transaction_accepted_.emit(h);
+      }
     }
   }
 
@@ -403,10 +404,13 @@ bool TransactionManager::verifyBlockTransactions(DagBlock const &blk, std::vecto
 
   if (all_transactions_saved) {
     auto trx_batch = db_->createWriteBatch();
+    vector<h256> accepted_trx_hashes;
+    accepted_trx_hashes.reserve(all_block_trx_hashes.size());
     for (auto const &trx : all_block_trx_hashes) {
       auto status = db_->getTransactionStatus(trx);
       if (status != TransactionStatus::in_block) {
         trx_count_.fetch_add(1);
+        accepted_trx_hashes.emplace_back(trx);
         db_->addTransactionStatusToBatch(trx_batch, trx, TransactionStatus::in_block);
       }
     }
@@ -415,6 +419,9 @@ bool TransactionManager::verifyBlockTransactions(DagBlock const &blk, std::vecto
     db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_count, trx_batch);
 
     db_->commitWriteBatch(trx_batch);
+    for (auto const &h : accepted_trx_hashes) {
+      transaction_accepted_.emit(h);
+    }
     trx_qu_.removeBlockTransactionsFromQueue(all_block_trx_hashes);
   } else {
     LOG(log_er_) << "Block " << blk.getHash() << " has missing transaction " << missing_trx;

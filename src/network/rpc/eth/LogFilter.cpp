@@ -2,7 +2,7 @@
 
 namespace taraxa::net::rpc::eth {
 
-LogFilter::LogFilter(optional<EthBlockNumber> from_block, optional<EthBlockNumber> to_block, AddressSet addresses,
+LogFilter::LogFilter(EthBlockNumber from_block, optional<EthBlockNumber> to_block, AddressSet addresses,
                      LogFilter::Topics topics)
     : from_block_(from_block), to_block_(to_block), addresses_(move(addresses)), topics_(move(topics)) {
   if (!addresses_.empty()) {
@@ -131,7 +131,7 @@ void LogFilter::match_one(TransactionReceipt const& r, function<void(size_t)> co
 }
 
 bool LogFilter::blk_number_matches(EthBlockNumber blk_n) const {
-  return from_block_ && *from_block_ <= blk_n && to_block_ && blk_n <= *to_block_;
+  return from_block_ <= blk_n && (!to_block_ || blk_n <= *to_block_);
 }
 
 void LogFilter::match_one(ExtendedTransactionLocation const& trx_loc, TransactionReceipt const& r,
@@ -161,17 +161,16 @@ vector<LocalisedLogEntry> LogFilter::match_all(FinalChain const& final_chain) co
       ++trx_loc.index;
     }
   };
-  auto from_blk_n = from_block_ ? *from_block_ : final_chain.last_block_number();
-  auto to_blk_n = to_block_ ? *to_block_ : (from_block_ ? final_chain.last_block_number() : from_blk_n);
+  auto to_blk_n = to_block_ ? *to_block_ : final_chain.last_block_number();
   if (is_range_only_) {
-    for (auto blk_n = from_blk_n; blk_n <= to_blk_n; ++blk_n) {
+    for (auto blk_n = from_block_; blk_n <= to_blk_n; ++blk_n) {
       action(blk_n);
     }
     return ret;
   }
   set<EthBlockNumber> matchingBlocks;
   for (auto const& bloom : bloomPossibilities()) {
-    for (auto blk_n : final_chain.withBlockBloom(bloom, from_blk_n, to_blk_n)) {
+    for (auto blk_n : final_chain.withBlockBloom(bloom, from_block_, to_blk_n)) {
       matchingBlocks.insert(blk_n);
     }
   }
