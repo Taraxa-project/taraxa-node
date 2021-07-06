@@ -5,18 +5,376 @@ parameters:
     type: string
     default: ""
 
-  deploy_testnet:
-    default: true
+  deploy_prnet:
+    default: false
     type: boolean
+  
+  redeploy_prnet:
+     default: false
+     type: boolean
+   
+  cleanup_prnet:
+     default: false
+     type: boolean
 
+  pr_number:
+    default: ""
+    type: string
+  
 orbs:
   git: opuscapita/git@0.0.3
   github-release: izumin5210/github-release@0.1.1
   gcp-gcr: circleci/gcp-gcr@0.13.0
+  gcp-cli: circleci/gcp-cli@1.0.0
   docker-cache: cci-x/docker-registry-image-cache@0.2.12
+
+commands:
+   pr_comment:
+      description: |
+       Post a comment on the pull request.
+       Requires `GITHUB_TOKEN` to be set as an environment variable.
+      parameters:
+         comment:
+            description: Content of the comment to post
+            type: string
+         pr_number:
+            description: github pr number
+            type: string
+         when:
+            default: on_success
+            description: Condition for when the comment should be created
+            enum:
+               - on_success
+               - on_fail
+               - always
+            type: enum
+      steps:
+         - run:
+            command: |
+               echo "<< parameters.comment >>"
+               http_code=$(curl \
+                -sS --fail -w '%{http_code}' -o ./http.out \
+                -X POST \
+                -H "Authorization: token $GITHUB_TOKEN" \
+                --url "https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/issues/<< parameters.pr_number >>/comments" \
+                -d '{
+                        "body": "<< parameters.comment >>"
+                    }')
+               cat ./http.out || true
+               if [ $http_code -ge 200 ] && [ $http_code -lt 300 ] ; then
+                exit 0
+               else
+                 exit $http_code
+               fi
+            name: Post comment to PR
+            when: << parameters.when >>
+   
+   gcloud_login:
+      description: Logs in in gcloud
+      parameters:
+        gcloud-username:
+          description: gcloud username
+          type: string
+        gcloud-key:
+          description: Json key for gcloud service account
+          type: string
+      steps:
+        - run:
+           name: Login to gcloud
+           command: |
+              echo << parameters.gcloud-key >> | gcloud auth activate-service-account << parameters.gcloud-username >> --key-file=-     
+        
+   create_prnet_ips:
+      description: | 
+        Creates a gcloud ip address
+      parameters:
+        region:
+          description: gcloud region
+          type: string
+          default: "us-central1"
+        project:
+          description: gcloud project
+          type: string
+          default:  "jovial-meridian-249123"
+        pr-name:
+          description: Prefix to name ip addresses after
+          type: string
+        when:
+          default: on_success
+          description: Condition for when the comment should be created
+          enum:
+            - on_success
+            - on_fail
+            - always
+          type: enum
+      steps:
+        - run:
+            name: Create PRNET IPs
+            command: |
+              if [ ! ${PRNET_IPS} ];then
+                gcloud compute addresses create prnet-<< parameters.pr-name >>-{1..3} --region << parameters.region >> --project << parameters.project >>
+              fi
+            when: << parameters.when >>
+
+   get_prnet_ips:
+      description: | 
+        Gets previously created gcloud ip address for prnet
+      parameters:
+        region:
+          description: gcloud region
+          type: string
+          default: "us-central1"
+        project:
+          description: gcloud project
+          type: string
+          default:  "jovial-meridian-249123"
+        pr-name:
+          description: Prefix to name ip addresses after
+          type: string
+        when:
+          default: on_success
+          description: Condition for when the comment should be created
+          enum:
+            - on_success
+            - on_fail
+            - always
+          type: enum          
+      steps:
+        - run:
+            name: Get PRNET IPs
+            command: |
+              for i in {1..3}
+              do
+               IPS=(${IPS[@]} $(gcloud compute addresses describe prnet-<< parameters.pr-name >>-${i} --region << parameters.region >> --project << parameters.project >> \
+                    --format="flattened(address)" |cut -d" " -f2) ) || true
+              done
+              echo "export PRNET_IPS=(${IPS[@]})" >> ${BASH_ENV}    
+            when: << parameters.when >>
+
+   cleanup_prnet_ips:
+      description: | 
+        Deletes previously created gcloud ip address for prnet
+      parameters:
+        region:
+          description: gcloud region
+          type: string
+          default: "us-central1"
+        project:
+          description: gcloud project
+          type: string
+          default:  "jovial-meridian-249123"
+        pr-name:
+          description: PR name
+          type: string
+        when:
+          default: on_success
+          description: Condition for when the comment should be created
+          enum:
+            - on_success
+            - on_fail
+            - always
+          type: enum  
+      steps:
+        - run:
+           name: Cleanup PRNet IPs
+           command: |
+              gcloud compute addresses delete prnet-<< parameters.pr-name >>-{1..3} --region << parameters.region >>  --project << parameters.project >> --quiet
+           when: << parameters.when >>
+
+   get_testnet_chart:
+      description: |
+          Gets Testnet chart downloads helm, kubectl and configures it
+      parameters:
+        kubeconfig:
+          description: kubeconfig file
+          type: string
+        when:
+          default: always
+          description: Condition for when the comment should be created
+          enum:
+            - on_success
+            - on_fail
+            - always
+          type: enum
+      steps:
+        - checkout
+        - run:
+           name: Get repo and install helm/kubectl
+           command: |
+              git clone --branch development  https://github.com/Taraxa-project/taraxa-testnet.git
+              mkdir -p $HOME/.kube
+              echo -n "<< parameters.kubeconfig >>" | base64 --decode > $HOME/.kube/config
+              curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+              curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+              sudo cp kubectl /usr/local/bin 
+              sudo chmod +x /usr/local/bin/kubectl
+           when: << parameters.when >>
+
+   deploy_testnet_chart:
+      description: Deploys taraxa-node chart 
+      parameters: 
+        pr-name:
+          description: PR name
+          type: string
+      steps:
+        - run:
+           name: Get Latest image for PR and deploy chart
+           command: |
+            if [ ${PRNET_IPS} ];then
+              PR_TAG=$(gcloud container images list-tags gcr.io/jovial-meridian-249123/taraxa-node      --filter="tags:pr-<< parameters.pr-name >>-*" \
+                --sort-by="~timestamp" \
+                --limit 1 \
+                --format="value(tags[0])" )
+              if [ -z ${PR_TAG} ]; then
+                echo "No images for PR pr-<< parameters.pr-name >>"
+                exit 1
+              else
+                echo "export PR_TAG=${PR_TAG}" >> ${BASH_ENV}
+              fi
+              cd taraxa-testnet/tests           
+              helm upgrade -i pr-<< parameters.pr-name >> taraxa-node/ --namespace blockchain-prnet -f taraxa-node/values.yaml -f taraxa-node/prnet.values.yaml \
+                --set image.repository=gcr.io/jovial-meridian-249123/taraxa-node \
+                --set image.tag=${PR_TAG} \
+                --set explorer.configEnvs.rpcHttpProvider="http://pr-<< parameters.pr-name >>-taraxa-node:7777" \
+                --set explorer.configEnvs.rpcWsProvider="http://pr-<< parameters.pr-name >>-taraxa-node:8777" \
+                --set bootnode.loadBalancer.addresses\[0\]="${PRNET_IPS[0]}" \
+                --set bootnode.loadBalancer.addresses\[1\]="${PRNET_IPS[1]}" \
+                --set bootnode.loadBalancer.addresses\[2\]="${PRNET_IPS[2]}"
+            fi
+
+   cleanup_testnet_chart:
+     description: Deploys taraxa-node chart 
+     parameters: 
+      pr-name:
+       description: PR name
+       type: string
+      when:
+       default: on_success
+       description: Condition for when the comment should be created
+       enum:
+         - on_success
+         - on_fail
+         - always
+       type: enum  
+     steps:
+       - run:
+          name: Delete chart
+          command: |
+            helm delete pr-<< parameters.pr-name >> --namespace blockchain-prnet
+            kubectl -n blockchain-prnet delete pvc "taraxa-data-pr-<<parameters.pr-name>>-boot-node"-{0..2}
+            kubectl -n blockchain-prnet delete pvc "taraxa-data-pr-<<parameters.pr-name>>-taraxa-node"-{0..2}
+            for i in {1..50}
+            do
+               GETALL=$(kubectl get all -n blockchain-prnet | grep pr-"<< parameters.pr-name >>") || true
+               if [ -z "${GETALL}" ] ; then
+                 exit 0
+               else
+                echo "waiting.. for all resources to be deleted"
+                echo ${GETALL}
+                sleep 10
+              fi             
+            done
+            if [ $i -eq 50 ];then
+              echo "Exiting after 500 seconds not all resources may have cleaned up"
+              echo ${GETALL}
+            fi
+          when: << parameters.when >>
+
+
 
 
 jobs:
+   deploy-prnet:
+     docker:
+       - image: circleci/buildpack-deps:stretch
+     steps:
+      - gcp-cli/install
+      - gcloud_login:
+          gcloud-username: ${GCLOUD_USERNAME}
+          gcloud-key: ${GCLOUD_KEY}
+      - get_prnet_ips:
+          when: always
+          pr-name: << pipeline.parameters.pr_number >>
+      - create_prnet_ips:
+          pr-name: << pipeline.parameters.pr_number >>     
+      - get_prnet_ips:
+          when: always
+          pr-name: << pipeline.parameters.pr_number >>
+      - get_testnet_chart:
+         kubeconfig: ${KUBE_CONFIG} 
+      - deploy_testnet_chart:
+         pr-name: << pipeline.parameters.pr_number >>
+      - pr_comment:
+         when: on_success
+         comment: "Deployed prnet successfully"
+         pr_number: << pipeline.parameters.pr_number >>
+      - cleanup_testnet_chart:
+         when: on_fail
+         pr-name: << pipeline.parameters.pr_number >>
+      - cleanup_prnet_ips:
+         when: on_fail
+         pr-name: << pipeline.parameters.pr_number >>
+      - pr_comment:
+         when: on_fail
+         comment: "Failed to deploy prnet"
+         pr_number: << pipeline.parameters.pr_number >>
+      
+   redeploy-prnet:
+     docker:
+       - image: circleci/buildpack-deps:stretch
+     steps:
+      - gcp-cli/install
+      - gcloud_login:
+          gcloud-username: ${GCLOUD_USERNAME}
+          gcloud-key: ${GCLOUD_KEY}
+      - get_prnet_ips:
+          pr-name: << pipeline.parameters.pr_number >>
+      - get_testnet_chart:
+         kubeconfig: ${KUBE_CONFIG} 
+      - cleanup_testnet_chart:
+          pr-name: << pipeline.parameters.pr_number >>
+      - deploy_testnet_chart:
+          pr-name: << pipeline.parameters.pr_number >>
+      - pr_comment:
+         when: on_success
+         comment: "ReDeployed prnet successfully"
+         pr_number: << pipeline.parameters.pr_number >>
+      - cleanup_testnet_chart:
+          pr-name: << pipeline.parameters.pr_number >>
+          when: on_fail
+      - cleanup_prnet_ips:
+          pr-name: << pipeline.parameters.pr_number >>
+          when: on_fail
+      - pr_comment:
+         when: on_fail
+         comment: "Failed to ReDeploy prnet"
+         pr_number: << pipeline.parameters.pr_number >>
+
+   cleanup-prnet:
+     docker:
+       - image: circleci/buildpack-deps:stretch
+     steps:
+      - gcp-cli/install
+      - gcloud_login:
+          gcloud-username: ${GLCOUD_USERNAME}
+          gcloud-key: ${GCLOUD_KEY}
+      - get_testnet_chart:
+         kubeconfig: ${KUBE_CONFIG} 
+      - cleanup_testnet_chart:
+          pr-name: << pipeline.parameters.pr_number >>
+      - cleanup_prnet_ips:
+         pr-name: << pipeline.parameters.pr_number >>
+         when: on_success
+      - pr_comment:
+         when: on_success
+         comment: "prnet cleaned-up successfully"
+         pr_number: << pipeline.parameters.pr_number >>
+      - pr_comment:
+         when: on_fail
+         comment: "Failed to Clean up prnet"
+         pr_number: << pipeline.parameters.pr_number >>
+
+   
    build-and-push-docker-image:
     environment:
       - IMAGE: taraxa-node
@@ -421,7 +779,40 @@ jobs:
 
 workflows:
   version: 2
+
+  deploy-prnet:
+    when: 
+      and: 
+        - << pipeline.parameters.deploy_prnet >> 
+        - << pipeline.parameters.pr_number >>
+    jobs:
+     - deploy-prnet:
+        context: taraxa-node 
+
+  redeploy-prnet:
+    when: 
+      and: 
+        - << pipeline.parameters.redeploy_prnet >> 
+        - << pipeline.parameters.pr_number >>
+    jobs:
+     - redeploy-prnet:
+        context: taraxa-node  
+
+  cleanup-prnet:
+    when: 
+      and: 
+        - << pipeline.parameters.cleanup_prnet >> 
+        - << pipeline.parameters.pr_number >>
+    jobs:
+     - cleanup-prnet:
+        context: taraxa-node 
+  
   build-and-deploy-image:
+    when:
+         and:
+           - not: << pipeline.parameters.deploy_prnet >>
+           - not: << pipeline.parameters.redeploy_prnet >>
+           - not: << pipeline.parameters.cleanup_prnet >>
     jobs:
       - build-and-push-docker-image:
          context: taraxa-node
