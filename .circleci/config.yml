@@ -188,6 +188,14 @@ commands:
         kubeconfig:
           description: kubeconfig file
           type: string
+        when:
+          default: always
+          description: Condition for when the comment should be created
+          enum:
+            - on_success
+            - on_fail
+            - always
+          type: enum
       steps:
         - checkout
         - run:
@@ -200,6 +208,7 @@ commands:
               curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
               sudo cp kubectl /usr/local/bin 
               sudo chmod +x /usr/local/bin/kubectl
+           when: << parameters.when >>
 
    deploy_testnet_chart:
       description: Deploys taraxa-node chart 
@@ -265,6 +274,10 @@ commands:
                 sleep 10
               fi             
             done
+            if [ $i -eq 50 ];then
+              echo "Exiting after 500 seconds not all resources may have cleaned up"
+              echo ${GETALL}
+            fi
           when: << parameters.when >>
 
 
