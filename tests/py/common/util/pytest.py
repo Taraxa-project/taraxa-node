@@ -7,7 +7,7 @@ def may_timeout(**kwargs):
     return expect_exception(TimeoutError, **kwargs)
 
 
-def expect_exception(exception_type, treat_as_warning=False, retries=1):
+def expect_exception(exception_type, treat_as_warning=False, retries=0):
     assert 0 <= retries
     assert 0 < retries or treat_as_warning, "the given parameters make this decorator give no effect"
 
