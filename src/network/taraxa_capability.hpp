@@ -59,7 +59,7 @@ class TaraxaPeer : public boost::noncopyable {
         known_blocks_(10000, 1000),
         known_transactions_(100000, 10000),
         known_pbft_blocks_(10000, 1000),
-        known_votes_(10000, 1000) {}
+        known_votes_(100000, 1000) {}
 
   bool isBlockKnown(blk_hash_t const &_hash) const { return known_blocks_.count(_hash); }
   void markBlockAsKnown(blk_hash_t const &_hash) { known_blocks_.insert(_hash); }
@@ -180,7 +180,8 @@ struct TaraxaCapability : virtual CapabilityFace {
   void syncPbftNextVotes(uint64_t const pbft_round, size_t const pbft_previous_round_next_votes_size);
   void requestPbftNextVotes(NodeID const &peerID, uint64_t const pbft_round,
                             size_t const pbft_previous_round_next_votes_size);
-  void sendPbftNextVotes(NodeID const &peerID);
+  // void sendPbftNextVotes(NodeID const &peerID);
+  void sendPbftNextVotes(NodeID const &peerID, std::vector<Vote> const &send_next_votes_bundle);
   void broadcastPreviousRoundNextVotesBundle();
 
   // Peers
