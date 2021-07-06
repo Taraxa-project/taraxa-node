@@ -12,15 +12,14 @@ VrfPbftSortition::VrfPbftSortition(bytes const& b) {
   if (!rlp.isList()) {
     throw std::invalid_argument("VrfPbftSortition RLP must be a list");
   }
+  auto it = rlp.begin();
 
-  pk = rlp[0].toHash<vrf_pk_t>();
-  pbft_msg.type = PbftVoteTypes(rlp[1].toInt<uint>());
-  pbft_msg.round = rlp[2].toInt<uint64_t>();
-  pbft_msg.step = rlp[3].toInt<size_t>();
-  pbft_msg.weighted_index = rlp[4].toInt<size_t>();
-  proof = rlp[5].toHash<vrf_proof_t>();
-
-  verify();
+  pk = (*it++).toHash<vrf_pk_t>();
+  pbft_msg.type = PbftVoteTypes((*it++).toInt<uint>());
+  pbft_msg.round = (*it++).toInt<uint64_t>();
+  pbft_msg.step = (*it++).toInt<size_t>();
+  pbft_msg.weighted_index = (*it++).toInt<size_t>();
+  proof = (*it++).toHash<vrf_proof_t>();
 }
 
 bytes VrfPbftSortition::getRlpBytes() const {
@@ -51,9 +50,11 @@ bool VrfPbftSortition::canSpeak(size_t threshold, size_t dpos_total_votes_count)
 
 Vote::Vote(dev::RLP const& rlp) {
   if (!rlp.isList()) throw std::invalid_argument("vote RLP must be a list");
-  blockhash_ = rlp[0].toHash<blk_hash_t>();
-  vrf_sortition_ = VrfPbftSortition(rlp[1].toBytes());
-  vote_signature_ = rlp[2].toHash<sig_t>();
+  auto it = rlp.begin();
+
+  blockhash_ = (*it++).toHash<blk_hash_t>();
+  vrf_sortition_ = VrfPbftSortition((*it++).toBytes());
+  vote_signature_ = (*it++).toHash<sig_t>();
   vote_hash_ = sha3(true);
 }
 
