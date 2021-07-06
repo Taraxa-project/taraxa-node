@@ -177,11 +177,11 @@ struct TaraxaCapability : virtual CapabilityFace {
 
   // PBFT
   void onNewPbftVote(taraxa::Vote const &vote);
-  void sendPbftVote(NodeID const &_id, taraxa::Vote const &vote);
+  void sendPbftVote(NodeID const &peerID, taraxa::Vote const &vote);
   void onNewPbftBlock(taraxa::PbftBlock const &pbft_block);
-  void sendPbftBlock(NodeID const &_id, taraxa::PbftBlock const &pbft_block, uint64_t const &pbft_chain_size);
-  void requestPbftBlocks(NodeID const &_id, size_t height_to_sync);
-  void sendPbftBlocks(NodeID const &_id, size_t height_to_sync, size_t blocks_to_transfer);
+  void sendPbftBlock(NodeID const &peerID, taraxa::PbftBlock const &pbft_block, uint64_t const &pbft_chain_size);
+  void requestPbftBlocks(NodeID const &peerID, size_t height_to_sync);
+  void sendPbftBlocks(NodeID const &peerID, size_t height_to_sync, size_t blocks_to_transfer);
   void syncPbftNextVotes(uint64_t const pbft_round, size_t const pbft_previous_round_next_votes_size);
   void requestPbftNextVotes(NodeID const &peerID, uint64_t const pbft_round,
                             size_t const pbft_previous_round_next_votes_size);
