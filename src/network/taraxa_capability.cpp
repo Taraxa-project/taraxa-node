@@ -1763,7 +1763,7 @@ void TaraxaCapability::sendPbftNextVotes(NodeID const &peerID, std::vector<Vote>
   RLPStream s(send_next_votes_bundle.size());
   for (auto const &next_vote : send_next_votes_bundle) {
     s.appendRaw(next_vote.rlp());
-    LOG(log_nf_next_votes_sync_) << "Send out next vote " << next_vote.getHash() << " to peer " << peerID;
+    LOG(log_dg_next_votes_sync_) << "Send out next vote " << next_vote.getHash() << " to peer " << peerID;
   }
   sealAndSend(peerID, PbftNextVotesPacket, move(s));
 }
