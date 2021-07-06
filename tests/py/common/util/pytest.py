@@ -28,6 +28,8 @@ def expect_exception(exception_type, treat_as_warning=False, retries=1):
                            f"Stack trace: {''.join(traceback.format_exc(limit=-1))}")
                     if not last_attempt:
                         msg += "\nRERUNNING...\n"
+                    else:
+                        msg += "\nTEST FAILED!!!\n"
                     msg += "========= WARNING MESSAGE END =========\n"
                     warn(msg)
 
