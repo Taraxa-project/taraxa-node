@@ -411,7 +411,12 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         for (auto &block : level_blocks.second) {
           auto hash = blk_hash_t(block);
           if (known_non_finalized_blocks.count(hash) == 0) {
-            dag_blocks.emplace_back(db_->getDagBlock(hash));
+            if (auto blk = db_->getDagBlock(hash); blk) {
+              dag_blocks.emplace_back(blk);
+            } else {
+              assert(false);
+              LOG(log_er_dag_sync_) << "NonFinalizedBlock " << hash << " not in DB";
+            }
           }
         }
       }
