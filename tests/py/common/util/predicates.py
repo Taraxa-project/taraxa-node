@@ -3,7 +3,6 @@ from typing import Iterable
 YES = lambda *args, **kwargs: True
 NO = lambda *args, **kwargs: False
 IS_TRUE_ISH = bool
-FN_ID = lambda x: x
 
 
 class SetHasBeenMatched:

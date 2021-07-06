@@ -74,6 +74,10 @@ class Node:
         wait(lambda: self.net.listening,
              is_exception_ok=YES, fail_immediately=lambda _: self._proc and self._proc.poll() is None)
 
+    @property
+    def crashed(self):
+        return self._proc and self._proc.poll() is not None
+
     # assumption: after this method is called the object is never used again
     def destructor(self):
         if self._proc:

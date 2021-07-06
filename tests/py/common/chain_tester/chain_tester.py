@@ -174,7 +174,7 @@ class ChainTester:
         blocks = [wait(lambda: node.eth.get_block(blk_identifier, full_transactions=full_transactions),
                        is_value_ok=lambda v: not expect_absent,
                        is_exception_ok=lambda v: expect_absent and isinstance(v, BlockNotFound),
-                       fail_immediately=lambda v: expect_absent and not isinstance(v, Exception),
+                       fail_immediately=lambda v: node.crashed or expect_absent and not isinstance(v, Exception),
                        **wait_kwargs)
                   for node in self._cluster]
         if not expect_absent:
