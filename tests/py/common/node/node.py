@@ -49,7 +49,7 @@ class Node:
         net_host = _localhost
         if isinstance(mode, Node.ManagedProcessInitMode):
             if mode.clean_data:
-                shutil.rmtree(Path(cfg["db_path"]), ignore_errors=True)
+                shutil.rmtree(Path(cfg["data_path"]), ignore_errors=True)
             self._proc = Popen([mode.executable_path, "--config", cfg_file_path, "--wallet", wallet_file_path])
         elif isinstance(mode, Node.RemoteInitMode):
             net_host = mode.host
