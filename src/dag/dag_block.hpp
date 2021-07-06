@@ -16,11 +16,11 @@ class DagBlock {
   vec_trx_t trxs_;  // transactions
   sig_t sig_;
   mutable blk_hash_t hash_;
-  mutable DefaultConstructCopyableMovable<std::mutex> hash_mu_;
+  mutable util::DefaultConstructCopyableMovable<std::mutex> hash_mu_;
   uint64_t timestamp_ = 0;
   vdf_sortition::VdfSortition vdf_;
   mutable addr_t cached_sender_;  // block creater
-  mutable DefaultConstructCopyableMovable<std::mutex> cached_sender_mu_;
+  mutable util::DefaultConstructCopyableMovable<std::mutex> cached_sender_mu_;
 
  public:
   DagBlock() = default;
