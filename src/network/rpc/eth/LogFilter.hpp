@@ -9,14 +9,14 @@ struct LogFilter {
   using Topics = array<unordered_set<h256>, 4>;
 
  private:
-  optional<EthBlockNumber> from_block_;
+  EthBlockNumber from_block_;
   optional<EthBlockNumber> to_block_;
   AddressSet addresses_;
   Topics topics_;
   bool is_range_only_ = false;
 
  public:
-  LogFilter(optional<EthBlockNumber> from_block, optional<EthBlockNumber> to_block, AddressSet addresses,
+  LogFilter(EthBlockNumber from_block, optional<EthBlockNumber> to_block, AddressSet addresses,
             LogFilter::Topics topics);
 
   vector<LogBloom> bloomPossibilities() const;
