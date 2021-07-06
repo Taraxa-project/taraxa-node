@@ -4,7 +4,11 @@ from common.eth.solidity import compile_single
 from common.util.pytest import may_timeout
 
 
-@may_timeout()
+@may_timeout(
+    # Uncomment to make a timeout error in this test a non-fatal test failure:
+    # treat_as_warning=True,
+    retries=1,
+)
 def test_1(default_cluster):
     cluster = default_cluster
     chain = ChainTester(cluster, auto_test_tx_and_blk_filters=True, default_tx_signer=cluster.node(0).account)
@@ -36,10 +40,13 @@ contract Greeter {
 '''), greeting)
 
     def check_greeting():
+        nonlocal greeting
         assert greeting == greeter.call('greet')
         assert cluster.node().eth.get_storage_at(greeter.address, 0).decode().startswith(greeting)
 
-    def set_greeting():
+    def set_greeting(val):
+        nonlocal greeting
+        greeting = val
         return greeter.execute('setGreeting', greeting)
 
     def send_some_tx():
@@ -49,8 +56,7 @@ contract Greeter {
     send_some_tx()
     chain.sync()
     check_greeting()
-    greeting = "foo"
-    set_greeting()
+    set_greeting("foo")
     chain.default_tx_signer, cluster.default_node_index = ChainTester.NO_SIGNER, 0
     send_some_tx()
     chain.sync()
