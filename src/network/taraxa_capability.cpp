@@ -574,7 +574,15 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
                                      << peer_pbft_round << " previous round next votes size "
                                      << peer_pbft_previous_round_next_votes_size
                                      << ". Will send out bundle of next votes";
-        sendPbftNextVotes(_nodeID);
+
+        auto next_votes_bundle = next_votes_mgr_->getNextVotes();
+        std::vector<Vote> send_next_votes_bundle;
+        for (auto const &v : next_votes_bundle) {
+          if (!peer->isVoteKnown(v.getHash())) {
+            send_next_votes_bundle.emplace_back(v);
+          }
+        }
+        sendPbftNextVotes(_nodeID, send_next_votes_bundle);
       }
 
       break;
@@ -599,7 +607,9 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       std::vector<Vote> next_votes;
       for (size_t i = 0; i < next_votes_count; i++) {
         Vote next_vote(_r[i].data().toBytes());
-        LOG(log_nf_next_votes_sync_) << "Received PBFT next vote " << next_vote.getHash();
+        auto next_vote_hash = next_vote.getHash();
+        LOG(log_nf_next_votes_sync_) << "Received PBFT next vote " << next_vote_hash;
+        peer->markVoteAsKnown(next_vote_hash);
 
         next_votes.emplace_back(next_vote);
       }
@@ -1742,16 +1752,16 @@ void TaraxaCapability::requestPbftNextVotes(NodeID const &peerID, uint64_t const
   sealAndSend(peerID, GetPbftNextVotes, RLPStream(2) << pbft_round << pbft_previous_round_next_votes_size);
 }
 
-void TaraxaCapability::sendPbftNextVotes(NodeID const &peerID) {
-  std::vector<Vote> next_votes_bundle = next_votes_mgr_->getNextVotes();
-  if (next_votes_bundle.empty()) {
-    LOG(log_er_next_votes_sync_) << "There are 0 next votes for previous PBFT round";
+void TaraxaCapability::sendPbftNextVotes(NodeID const &peerID, std::vector<Vote> const &send_next_votes_bundle) {
+  if (send_next_votes_bundle.empty()) {
     return;
   }
-  LOG(log_nf_next_votes_sync_) << "Send out size of " << next_votes_bundle.size() << " PBFT next votes to " << peerID;
 
-  RLPStream s(next_votes_bundle.size());
-  for (auto const &next_vote : next_votes_bundle) {
+  LOG(log_nf_next_votes_sync_) << "Send out size of " << send_next_votes_bundle.size() << " PBFT next votes to "
+                               << peerID;
+
+  RLPStream s(send_next_votes_bundle.size());
+  for (auto const &next_vote : send_next_votes_bundle) {
     s.appendRaw(next_vote.rlp());
     LOG(log_nf_next_votes_sync_) << "Send out next vote " << next_vote.getHash() << " to peer " << peerID;
   }
@@ -1759,21 +1769,26 @@ void TaraxaCapability::sendPbftNextVotes(NodeID const &peerID) {
 }
 
 void TaraxaCapability::broadcastPreviousRoundNextVotesBundle() {
-  std::vector<NodeID> peers_to_send;
-  auto pbft_current_round = pbft_mgr_->getPbftRound();
-
-  {
-    boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
-    for (auto const &peer : peers_) {
-      // Nodes may vote at different values at previous round, so need less or equal
-      if (peer.second->pbft_round_ <= pbft_current_round) {
-        peers_to_send.emplace_back(peer.first);
-      }
-    }
+  auto next_votes_bundle = next_votes_mgr_->getNextVotes();
+  if (next_votes_bundle.empty()) {
+    LOG(log_er_next_votes_sync_) << "There are empty next votes for previous PBFT round";
+    return;
   }
 
-  for (auto const &peer_id : peers_to_send) {
-    sendPbftNextVotes(peer_id);
+  auto pbft_current_round = pbft_mgr_->getPbftRound();
+
+  boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
+  for (auto const &peer : peers_) {
+    // Nodes may vote at different values at previous round, so need less or equal
+    if (peer.second->pbft_round_ <= pbft_current_round) {
+      std::vector<Vote> send_next_votes_bundle;
+      for (auto const &v : next_votes_bundle) {
+        if (!peer.second->isVoteKnown(v.getHash())) {
+          send_next_votes_bundle.emplace_back(v);
+        }
+      }
+      sendPbftNextVotes(peer.first, send_next_votes_bundle);
+    }
   }
 }
 
