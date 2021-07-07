@@ -362,6 +362,13 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       }
 
       peer->markBlockAsKnown(block.getHash());
+
+      auto status = checkDagBlockValidation(block);
+      if (!status.first) {
+        LOG(log_nf_dag_prp_) << "DagBlockValidation failed " << status.second;
+        break;
+      }
+
       if (block.getLevel() > peer->dag_level_) peer->dag_level_ = block.getLevel();
       onNewBlockReceived(block, newTransactions);
       break;
