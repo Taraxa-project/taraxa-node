@@ -1,14 +1,10 @@
 from common.chain_tester.chain_tester import ChainTester
 from common.chain_tester.misc import TransactionExpectation
 from common.eth.solidity import compile_single
-from common.util.pytest import may_timeout
+from common.util.pytest import treat_as_warning
 
 
-@may_timeout(
-    # Uncomment to make a timeout error in this test a non-fatal test failure:
-    # treat_as_warning=True,
-    retries=1,
-)
+@treat_as_warning(TimeoutError)
 def test_1(default_cluster):
     cluster = default_cluster
     chain = ChainTester(cluster, auto_test_tx_and_blk_filters=True, default_tx_signer=cluster.node(0).account)
