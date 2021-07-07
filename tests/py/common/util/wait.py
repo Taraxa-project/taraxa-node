@@ -7,7 +7,7 @@ from common.util.predicates import IS_TRUE_ISH, NO
 
 @dataclass
 class Timeout:
-    num_attempts: int = 120
+    num_attempts: int = 150
     backoff_seconds: int = 1
 
 
