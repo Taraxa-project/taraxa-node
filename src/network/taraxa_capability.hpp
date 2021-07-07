@@ -43,8 +43,10 @@ enum SubprotocolPacketType : ::byte {
   PacketCount
 };
 
-struct InvalidDataException : public std::runtime_error {
-  using std::runtime_error::runtime_error;
+enum GetBlocksPacketRequestType : ::byte {
+
+  MissingHashes = 0x0,
+  KnownHashes
 };
 
 class TaraxaPeer : public boost::noncopyable {
@@ -139,7 +141,9 @@ struct TaraxaCapability : virtual CapabilityFace {
   void syncPeerPbft(NodeID const &_nodeID, unsigned long height_to_sync);
   void restartSyncingPbft(bool force = false);
   void delayedPbftSync(NodeID _nodeID, int counter);
-  std::pair<bool, blk_hash_t> checkDagBlockValidation(DagBlock const &block);
+  std::pair<bool, std::vector<blk_hash_t>> checkDagBlockValidation(DagBlock const &block);
+  void requestBlocks(const NodeID &_nodeID, std::vector<blk_hash_t> const &blocks,
+                     GetBlocksPacketRequestType mode = MissingHashes);
   void interpretCapabilityPacketImpl(NodeID const &_nodeID, unsigned _id, RLP const &_r, PacketStats &packet_stats);
   void sendTestMessage(NodeID const &_id, int _x, std::vector<char> const &data);
   void sendStatus(NodeID const &_id, bool _initial);
