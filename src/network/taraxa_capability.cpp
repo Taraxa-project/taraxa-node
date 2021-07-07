@@ -541,18 +541,21 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       Vote vote(_r[0].toBytes(), false);
       auto vote_hash = vote.getHash();
       LOG(log_dg_vote_prp_) << "Received PBFT vote " << vote_hash;
-      peer->markVoteAsKnown(vote_hash);
 
       auto pbft_round = pbft_mgr_->getPbftRound();
       auto vote_round = vote.getRound();
 
-      if (vote_round >= pbft_round && !vote_mgr_->voteInUnverifiedMap(vote_round, vote_hash) &&
-          !vote_mgr_->voteInVerifiedMap(vote_round, vote_hash)) {
-        // vote round >= PBFT round
-        db_->saveUnverifiedVote(vote);
-        vote_mgr_->addUnverifiedVote(vote);
-        packet_stats.is_unique_ = true;
-        onNewPbftVote(vote);
+      if (vote_round >= pbft_round) {
+        if (!vote_mgr_->voteInUnverifiedMap(vote_round, vote_hash) &&
+            !vote_mgr_->voteInVerifiedMap(vote_round, vote_hash)) {
+          db_->saveUnverifiedVote(vote);
+          vote_mgr_->addUnverifiedVote(vote);
+          packet_stats.is_unique_ = true;
+
+          peer->markVoteAsKnown(vote_hash);
+
+          onNewPbftVote(vote);
+        }
       }
 
       break;
@@ -605,14 +608,13 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         Vote next_vote(_r[i].data().toBytes());
         if (next_vote.getRound() != peer_pbft_round - 1) {
           LOG(log_er_next_votes_sync_) << "Received next votes bundle with unmatched rounds from " << _nodeID
-                                     << ". The peer may be a malicous player, will be disconnected";
+                                       << ". The peer may be a malicous player, will be disconnected";
           host->disconnect(_nodeID, p2p::UserReason);
 
           break;
         }
         auto next_vote_hash = next_vote.getHash();
         LOG(log_nf_next_votes_sync_) << "Received PBFT next vote " << next_vote_hash;
-        peer->markVoteAsKnown(next_vote_hash);
 
         next_votes.emplace_back(next_vote);
       }
@@ -620,10 +622,9 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
                                    << " node current round " << pbft_current_round << ", peer pbft round "
                                    << peer_pbft_round;
 
-
       if (pbft_current_round < peer_pbft_round) {
         // Add into votes unverified queue
-        for (auto const& vote : next_votes) {
+        for (auto const &vote : next_votes) {
           auto vote_hash = vote.getHash();
           auto vote_round = vote.getRound();
           if (!vote_mgr_->voteInUnverifiedMap(vote_round, vote_hash) &&
@@ -640,13 +641,14 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         auto pbft_2t_plus_1 = db_->getPbft2TPlus1(pbft_current_round - 1);
         if (pbft_2t_plus_1) {
           next_votes_mgr_->updateWithSyncedVotes(next_votes, pbft_2t_plus_1);
-          //Pass them on to our peers...
+          // Pass them on to our peers...
           boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
           for (auto const &peer : peers_) {
             // Do not send votes right back to same peer...
             if (peer.first == _nodeID) continue;
             // Nodes may vote at different values at previous round, so need less or equal
-            if (!peer.second->syncing_ && peer.second->received_initial_status_ && peer.second->sent_initial_status_ && peer.second->pbft_round_ <= pbft_current_round) {
+            if (!peer.second->syncing_ && peer.second->received_initial_status_ && peer.second->sent_initial_status_ &&
+                peer.second->pbft_round_ <= pbft_current_round) {
               std::vector<Vote> send_next_votes_bundle;
               for (auto const &v : next_votes) {
                 if (!peer.second->isVoteKnown(v.getHash())) {
@@ -1550,9 +1552,10 @@ void TaraxaCapability::onNewPbftVote(taraxa::Vote const &vote) {
       }
     }
   }
-
-  for (auto const &peer : peers_to_send) {
-    sendPbftVote(peer, vote);
+  for (auto const &peerID : peers_to_send) {
+    sendPbftVote(peerID, vote);
+    auto peer = getPeer(peerID);
+    peer->markVoteAsKnown(vote.getHash());
   }
 }
 
@@ -1820,7 +1823,8 @@ void TaraxaCapability::broadcastPreviousRoundNextVotesBundle() {
   boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
   for (auto const &peer : peers_) {
     // Nodes may vote at different values at previous round, so need less or equal
-    if (!peer.second->syncing_ && peer.second->received_initial_status_ && peer.second->sent_initial_status_ && peer.second->pbft_round_ <= pbft_current_round) {
+    if (!peer.second->syncing_ && peer.second->received_initial_status_ && peer.second->sent_initial_status_ &&
+        peer.second->pbft_round_ <= pbft_current_round) {
       std::vector<Vote> send_next_votes_bundle;
       for (auto const &v : next_votes_bundle) {
         if (!peer.second->isVoteKnown(v.getHash())) {
