@@ -79,7 +79,7 @@ TEST_F(NetworkTest, transfer_block) {
 // Test creates two Network setup and verifies sending blocks
 // between is successfull
 TEST_F(NetworkTest, transfer_lot_of_blocks) {
-  auto node_cfgs = make_node_cfgs<20, true>(2);
+  auto node_cfgs = make_node_cfgs<20>(2);
   auto nodes = launch_nodes(node_cfgs);
 
   std::vector<std::shared_ptr<DagBlock>> dag_blocks;
@@ -998,26 +998,19 @@ TEST_F(NetworkTest, node_sync2) {
     node1->getDagBlockManager()->insertBroadcastedBlockWithTransactions(blks[i], trxs[i]);
   }
 
-  taraxa::thisThreadSleepForMilliSeconds(200);
-
   FullNode::Handle node2(node_cfgs[1], true);
-  std::cout << "Waiting Sync for up to 40000 milliseconds ..." << std::endl;
-  for (int i = 0; i < 400; i++) {
-    taraxa::thisThreadSleepForMilliSeconds(100);
-    if (node2->getDagManager()->getNumVerticesInDag().first == 13 &&
-        node2->getDagManager()->getNumEdgesInDag().first == 13) {
-      break;
-    }
-  }
 
-  // node1->drawGraph("dot.txt");
-  EXPECT_EQ(node1->getNumReceivedBlocks(), blks.size());
-  EXPECT_EQ(node1->getDagManager()->getNumVerticesInDag().first, 13);
-  EXPECT_EQ(node1->getDagManager()->getNumEdgesInDag().first, 13);
+  EXPECT_HAPPENS({10s, 100ms}, [&](auto& ctx) {
+    WAIT_EXPECT_EQ(ctx, node1->getNumReceivedBlocks(), blks.size())
+    WAIT_EXPECT_EQ(ctx, node1->getDagManager()->getNumVerticesInDag().first, 13)
+    WAIT_EXPECT_EQ(ctx, node1->getDagManager()->getNumEdgesInDag().first, 13)
+  });
 
-  EXPECT_EQ(node2->getNumReceivedBlocks(), blks.size());
-  EXPECT_EQ(node2->getDagManager()->getNumVerticesInDag().first, 13);
-  EXPECT_EQ(node2->getDagManager()->getNumEdgesInDag().first, 13);
+  EXPECT_HAPPENS({50s, 300ms}, [&](auto& ctx) {
+    WAIT_EXPECT_EQ(ctx, node2->getNumReceivedBlocks(), blks.size())
+    WAIT_EXPECT_EQ(ctx, node2->getDagManager()->getNumVerticesInDag().first, 13)
+    WAIT_EXPECT_EQ(ctx, node2->getDagManager()->getNumEdgesInDag().first, 13)
+  });
 }
 
 // Test creates new transactions on one node and verifies

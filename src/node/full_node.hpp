@@ -112,14 +112,14 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   }
 
   template <typename T, typename... ConstructorParams>
-  auto &emplace(std::shared_ptr<T> &ptr, ConstructorParams &&... ctor_params) {
+  auto &emplace(std::shared_ptr<T> &ptr, ConstructorParams &&...ctor_params) {
     ptr = std::make_shared<T>(std::forward<ConstructorParams>(ctor_params)...);
     register_s_ptr(ptr);
     return ptr;
   }
 
   template <typename T, typename... ConstructorParams>
-  static auto &emplace(std::unique_ptr<T> &ptr, ConstructorParams &&... ctor_params) {
+  static auto &emplace(std::unique_ptr<T> &ptr, ConstructorParams &&...ctor_params) {
     return ptr = std::make_unique<T>(std::forward<ConstructorParams>(ctor_params)...);
   }
 
@@ -169,7 +169,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   static constexpr uint16_t c_node_minor_version = 8;
 
   // Any time a change in the network protocol is introduced this version should be increased
-  static constexpr uint16_t c_network_protocol_version = 9;
+  static constexpr uint16_t c_network_protocol_version = 10;
 
   // Major version is modified when DAG blocks, pbft blocks and any basic building blocks of our blockchan is modified
   // in the db
