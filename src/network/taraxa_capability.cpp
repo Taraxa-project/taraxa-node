@@ -88,16 +88,20 @@ void TaraxaCapability::syncPeerPbft(NodeID const &_nodeID, unsigned long height_
   requestPbftBlocks(_nodeID, height_to_sync);
 }
 
-void TaraxaCapability::sealAndSend(NodeID const &nodeID, unsigned packet_type, RLPStream rlp) {
+bool TaraxaCapability::sealAndSend(NodeID const &nodeID, unsigned packet_type, RLPStream rlp) {
   auto host = host_.lock();
   if (!host) {
-    return;
+    LOG(log_er_) << "sealAndSend failed to obtain host";
+    return false;
   }
-
   auto peer = getPeer(nodeID);
-
-  if ((!peer) || (dag_mgr_ && !peer->received_initial_status_ && packet_type != StatusPacket)) {
-    return;
+  if (!peer) {
+    LOG(log_er_) << "sealAndSend failed to find peer";
+    return false;
+  }
+  if (dag_mgr_ && !peer->received_initial_status_ && packet_type != StatusPacket) {
+    LOG(log_er_) << "sealAndSend failed peer received initial status check";
+    return false;
   }
 
   auto packet_size = rlp.out().size();
@@ -109,7 +113,7 @@ void TaraxaCapability::sealAndSend(NodeID const &nodeID, unsigned packet_type, R
     LOG(log_er_) << "Trying to send packet bigger than PACKET_MAX_SIZE(" << MAX_PACKET_SIZE << ") - rejected !"
                  << " Packet type: " << packetTypeToString(packet_type) << ", size: " << packet_size
                  << ", receiver: " << nodeID.abridged();
-    return;
+    return false;
   }
 
   auto begin = std::chrono::steady_clock::now();
@@ -122,6 +126,8 @@ void TaraxaCapability::sealAndSend(NodeID const &nodeID, unsigned packet_type, R
                            << nodeID << "\"). Stats: " << packet_stats;
     });
   });
+
+  return true;
 }
 
 std::pair<bool, std::vector<blk_hash_t>> TaraxaCapability::checkDagBlockValidation(DagBlock const &block) {
@@ -179,10 +185,8 @@ void TaraxaCapability::onConnect(weak_ptr<Session> session, u256 const &) {
     LOG(log_nf_) << "Node " << _nodeID << " connected";
     cnt_received_messages_[_nodeID] = 0;
     test_sums_[_nodeID] = 0;
-
     auto peer = insertPeer(_nodeID);
-    sendStatus(_nodeID, true);
-    peer->sent_initial_status_ = true;
+    peer->sent_initial_status_ = sendStatus(_nodeID, true);
   });
 }
 
@@ -640,32 +644,35 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         // Update previous round next votes
         auto pbft_2t_plus_1 = db_->getPbft2TPlus1(pbft_current_round - 1);
         if (pbft_2t_plus_1) {
+          // Update our previous round next vote bundles...
           next_votes_mgr_->updateWithSyncedVotes(next_votes, pbft_2t_plus_1);
+          for (auto const &v : next_votes) {
+            peer->markVoteAsKnown(v.getHash());
+          }
           // Pass them on to our peers...
           boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
-          for (auto const &peer : peers_) {
+          auto updated_next_votes_size = next_votes_mgr_->getNextVotesSize();
+          for (auto const &peerToShareTo : peers_) {
             // Do not send votes right back to same peer...
-            if (peer.first == _nodeID) continue;
+            if (peerToShareTo.first == _nodeID) continue;
+            // Do not send votes to nodes that already have as many bundles as we do...
+            if (peerToShareTo.second->pbft_previous_round_next_votes_size_ >= updated_next_votes_size) continue;
             // Nodes may vote at different values at previous round, so need less or equal
-            if (!peer.second->syncing_ && peer.second->received_initial_status_ && peer.second->sent_initial_status_ &&
-                peer.second->pbft_round_ <= pbft_current_round) {
+            if (!peerToShareTo.second->syncing_ && peerToShareTo.second->readyToReceivePackets() &&
+                peerToShareTo.second->pbft_round_ <= pbft_current_round) {
               std::vector<Vote> send_next_votes_bundle;
               for (auto const &v : next_votes) {
-                if (!peer.second->isVoteKnown(v.getHash())) {
+                if (!peerToShareTo.second->isVoteKnown(v.getHash())) {
                   send_next_votes_bundle.emplace_back(v);
                 }
               }
-              sendPbftNextVotes(peer.first, send_next_votes_bundle);
-              for (auto const &v : next_votes) {
-                peer.second->markVoteAsKnown(v.getHash());
-              }
+              sendPbftNextVotes(peerToShareTo.first, send_next_votes_bundle);
             }
           }
         } else {
           LOG(log_er_) << "Cannot get PBFT 2t+1 in PBFT round " << pbft_current_round - 1;
         }
       }
-
       break;
     }
 
@@ -982,7 +989,9 @@ void TaraxaCapability::sendTestMessage(NodeID const &_id, int _x, std::vector<ch
   sealAndSend(_id, TestPacket, RLPStream(2) << _x << data);
 }
 
-void TaraxaCapability::sendStatus(NodeID const &_id, bool _initial) {
+bool TaraxaCapability::sendStatus(NodeID const &_id, bool _initial) {
+  bool success = false;
+
   if (dag_mgr_) {
     if (_initial) {
       LOG(log_dg_) << "Sending initial status message to " << _id << ", protocol version " << version()
@@ -1002,16 +1011,19 @@ void TaraxaCapability::sendStatus(NodeID const &_id, bool _initial) {
                                  << ", previous round next votes size " << pbft_previous_round_next_votes_size;
 
     if (_initial) {
-      sealAndSend(_id, StatusPacket,
-                  RLPStream(9) << conf_.network_id << dag_max_level << dag_mgr_->get_genesis() << pbft_chain_size
-                               << syncing_.load() << pbft_round << pbft_previous_round_next_votes_size
-                               << FullNode::c_node_major_version << FullNode::c_node_minor_version);
+      success =
+          sealAndSend(_id, StatusPacket,
+                      RLPStream(9) << conf_.network_id << dag_max_level << dag_mgr_->get_genesis() << pbft_chain_size
+                                   << syncing_.load() << pbft_round << pbft_previous_round_next_votes_size
+                                   << FullNode::c_node_major_version << FullNode::c_node_minor_version);
     } else {
-      sealAndSend(_id, StatusPacket,
-                  RLPStream(5) << dag_max_level << pbft_chain_size << syncing_.load() << pbft_round
-                               << pbft_previous_round_next_votes_size);
+      success = sealAndSend(_id, StatusPacket,
+                            RLPStream(5) << dag_max_level << pbft_chain_size << syncing_.load() << pbft_round
+                                         << pbft_previous_round_next_votes_size);
     }
   }
+
+  return success;
 }
 
 vector<NodeID> TaraxaCapability::selectPeers(std::function<bool(TaraxaPeer const &)> const &_predicate) {
@@ -1077,7 +1089,7 @@ void TaraxaCapability::onNewTransactions(std::vector<taraxa::bytes> const &trans
       for (auto &peer : peers_) {
         // Confirm that status messages were exchanged otherwise message might be ignored and node would
         // incorrectly markTransactionAsKnown
-        if (!peer.second->syncing_ && peer.second->received_initial_status_ && peer.second->sent_initial_status_) {
+        if (!peer.second->syncing_ && peer.second->readyToReceivePackets()) {
           for (auto const &transaction : transactions) {
             Transaction trx(transaction);
             auto trx_hash = trx.getHash();
@@ -1104,6 +1116,11 @@ void TaraxaCapability::onNewTransactions(std::vector<taraxa::bytes> const &trans
 void TaraxaCapability::onNewBlockReceived(DagBlock block, std::vector<Transaction> transactions) {
   LOG(log_nf_dag_prp_) << "Receive DagBlock " << block.getHash() << " #Trx" << transactions.size() << std::endl;
   if (dag_blk_mgr_) {
+    auto status = checkDagBlockValidation(block);
+    if (!status.first) {
+      LOG(log_er_dag_prp_) << "DagBlock validation failed for " << block.getHash().toString();
+      return;
+    }
     LOG(log_nf_dag_prp_) << "Storing block " << block.getHash().toString() << " with " << transactions.size()
                          << " transactions";
     dag_blk_mgr_->insertBroadcastedBlockWithTransactions(block, transactions);
@@ -1554,16 +1571,17 @@ void TaraxaCapability::onNewPbftVote(taraxa::Vote const &vote) {
   }
   for (auto const &peerID : peers_to_send) {
     sendPbftVote(peerID, vote);
-    auto peer = getPeer(peerID);
-    peer->markVoteAsKnown(vote.getHash());
   }
 }
 
 void TaraxaCapability::sendPbftVote(NodeID const &peerID, taraxa::Vote const &vote) {
   LOG(log_dg_vote_prp_) << "sendPbftVote " << vote.getHash() << " to " << peerID;
   auto peer = getPeer(peerID);
-  if (!peer->syncing_ && peer->received_initial_status_ && peer->sent_initial_status_) {
-    sealAndSend(peerID, PbftVotePacket, RLPStream(1) << vote.rlp(true));
+  if (!peer->syncing_ && peer->readyToReceivePackets()) {
+    if (sealAndSend(peerID, PbftVotePacket, RLPStream(1) << vote.rlp(true))) {
+      auto peer = getPeer(peerID);
+      peer->markVoteAsKnown(vote.getHash());
+    }
   }
 }
 
@@ -1808,7 +1826,13 @@ void TaraxaCapability::sendPbftNextVotes(NodeID const &peerID, std::vector<Vote>
     s.appendRaw(next_vote.rlp());
     LOG(log_dg_next_votes_sync_) << "Send out next vote " << next_vote.getHash() << " to peer " << peerID;
   }
-  sealAndSend(peerID, PbftNextVotesPacket, move(s));
+
+  if (sealAndSend(peerID, PbftNextVotesPacket, move(s))) {
+    auto peer = getPeer(peerID);
+    for (auto const &v : send_next_votes_bundle) {
+      peer->markVoteAsKnown(v.getHash());
+    }
+  }
 }
 
 void TaraxaCapability::broadcastPreviousRoundNextVotesBundle() {
@@ -1823,7 +1847,7 @@ void TaraxaCapability::broadcastPreviousRoundNextVotesBundle() {
   boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
   for (auto const &peer : peers_) {
     // Nodes may vote at different values at previous round, so need less or equal
-    if (!peer.second->syncing_ && peer.second->received_initial_status_ && peer.second->sent_initial_status_ &&
+    if (!peer.second->syncing_ && peer.second->readyToReceivePackets() &&
         peer.second->pbft_round_ <= pbft_current_round) {
       std::vector<Vote> send_next_votes_bundle;
       for (auto const &v : next_votes_bundle) {
@@ -1832,9 +1856,6 @@ void TaraxaCapability::broadcastPreviousRoundNextVotesBundle() {
         }
       }
       sendPbftNextVotes(peer.first, send_next_votes_bundle);
-      for (auto const &v : next_votes_bundle) {
-        peer.second->markVoteAsKnown(v.getHash());
-      }
     }
   }
 }

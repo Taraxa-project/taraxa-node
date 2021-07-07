@@ -88,6 +88,8 @@ class TaraxaPeer : public boost::noncopyable {
 
   void setAlive() { alive_check_count_ = 0; }
 
+  bool readyToReceivePackets() { return received_initial_status_ && sent_initial_status_; }
+
   std::atomic<bool> received_initial_status_ = false;
   std::atomic<bool> sent_initial_status_ = false;
   std::atomic<bool> syncing_ = false;
@@ -135,7 +137,7 @@ struct TaraxaCapability : virtual CapabilityFace {
     syncing_tp_.stop();
   }
 
-  void sealAndSend(NodeID const &nodeID, unsigned packet_type, RLPStream rlp);
+  bool sealAndSend(NodeID const &nodeID, unsigned packet_type, RLPStream rlp);
   bool pbft_syncing() const { return syncing_.load(); }
 
   void syncPeerPbft(NodeID const &_nodeID, unsigned long height_to_sync);
@@ -146,7 +148,7 @@ struct TaraxaCapability : virtual CapabilityFace {
                      GetBlocksPacketRequestType mode = MissingHashes);
   void interpretCapabilityPacketImpl(NodeID const &_nodeID, unsigned _id, RLP const &_r, PacketStats &packet_stats);
   void sendTestMessage(NodeID const &_id, int _x, std::vector<char> const &data);
-  void sendStatus(NodeID const &_id, bool _initial);
+  bool sendStatus(NodeID const &_id, bool _initial);
   void onNewBlockReceived(DagBlock block, std::vector<Transaction> transactions);
   void onNewBlockVerified(DagBlock const &block);
   void onNewTransactions(std::vector<taraxa::bytes> const &transactions, bool fromNetwork);
