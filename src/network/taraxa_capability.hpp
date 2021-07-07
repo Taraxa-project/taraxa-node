@@ -185,7 +185,6 @@ struct TaraxaCapability : virtual CapabilityFace {
   void syncPbftNextVotes(uint64_t const pbft_round, size_t const pbft_previous_round_next_votes_size);
   void requestPbftNextVotes(NodeID const &peerID, uint64_t const pbft_round,
                             size_t const pbft_previous_round_next_votes_size);
-  // void sendPbftNextVotes(NodeID const &peerID);
   void sendPbftNextVotes(NodeID const &peerID, std::vector<Vote> const &send_next_votes_bundle);
   void broadcastPreviousRoundNextVotesBundle();
 
