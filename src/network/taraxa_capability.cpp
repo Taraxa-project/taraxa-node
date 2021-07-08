@@ -1575,10 +1575,11 @@ void TaraxaCapability::onNewPbftVote(taraxa::Vote const &vote) {
 }
 
 void TaraxaCapability::sendPbftVote(NodeID const &peerID, taraxa::Vote const &vote) {
-  LOG(log_dg_vote_prp_) << "sendPbftVote " << vote.getHash() << " to " << peerID;
   auto peer = getPeer(peerID);
-  if (peer && !peer->syncing_ && peer->readyToReceivePackets()) {
+  // TODO: We should disable PBFT votes when a node is bootstrapping but not when trying to resync
+  if (peer && peer->readyToReceivePackets()) {
     if (sealAndSend(peerID, PbftVotePacket, RLPStream(1) << vote.rlp(true))) {
+      LOG(log_dg_vote_prp_) << "sendPbftVote " << vote.getHash() << " to " << peerID;
       peer->markVoteAsKnown(vote.getHash());
     }
   }
@@ -1817,9 +1818,6 @@ void TaraxaCapability::sendPbftNextVotes(NodeID const &peerID, std::vector<Vote>
     return;
   }
 
-  LOG(log_nf_next_votes_sync_) << "Send out size of " << send_next_votes_bundle.size() << " PBFT next votes to "
-                               << peerID;
-
   RLPStream s(send_next_votes_bundle.size());
   for (auto const &next_vote : send_next_votes_bundle) {
     s.appendRaw(next_vote.rlp());
@@ -1827,6 +1825,8 @@ void TaraxaCapability::sendPbftNextVotes(NodeID const &peerID, std::vector<Vote>
   }
 
   if (sealAndSend(peerID, PbftNextVotesPacket, move(s))) {
+    LOG(log_nf_next_votes_sync_) << "Send out size of " << send_next_votes_bundle.size() << " PBFT next votes to "
+                                 << peerID;
     auto peer = getPeer(peerID);
     for (auto const &v : send_next_votes_bundle) {
       peer->markVoteAsKnown(v.getHash());
