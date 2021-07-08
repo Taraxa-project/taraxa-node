@@ -43,8 +43,10 @@ enum SubprotocolPacketType : ::byte {
   PacketCount
 };
 
-struct InvalidDataException : public std::runtime_error {
-  using std::runtime_error::runtime_error;
+enum GetBlocksPacketRequestType : ::byte {
+
+  MissingHashes = 0x0,
+  KnownHashes
 };
 
 class TaraxaPeer : public boost::noncopyable {
@@ -86,12 +88,13 @@ class TaraxaPeer : public boost::noncopyable {
 
   void setAlive() { alive_check_count_ = 0; }
 
-  bool passed_initial_ = false;
-  bool syncing_ = false;
-  uint64_t dag_level_ = 0;
-  uint64_t pbft_chain_size_ = 0;
-  uint64_t pbft_round_ = 1;
-  size_t pbft_previous_round_next_votes_size_ = 0;
+  std::atomic<bool> received_initial_status_ = false;
+  std::atomic<bool> sent_initial_status_ = false;
+  std::atomic<bool> syncing_ = false;
+  std::atomic<uint64_t> dag_level_ = 0;
+  std::atomic<uint64_t> pbft_chain_size_ = 0;
+  std::atomic<uint64_t> pbft_round_ = 1;
+  std::atomic<size_t> pbft_previous_round_next_votes_size_ = 0;
 
  private:
   NodeID m_id;
@@ -138,7 +141,9 @@ struct TaraxaCapability : virtual CapabilityFace {
   void syncPeerPbft(NodeID const &_nodeID, unsigned long height_to_sync);
   void restartSyncingPbft(bool force = false);
   void delayedPbftSync(NodeID _nodeID, int counter);
-  std::pair<bool, blk_hash_t> checkDagBlockValidation(DagBlock const &block);
+  std::pair<bool, std::vector<blk_hash_t>> checkDagBlockValidation(DagBlock const &block);
+  void requestBlocks(const NodeID &_nodeID, std::vector<blk_hash_t> const &blocks,
+                     GetBlocksPacketRequestType mode = MissingHashes);
   void interpretCapabilityPacketImpl(NodeID const &_nodeID, unsigned _id, RLP const &_r, PacketStats &packet_stats);
   void sendTestMessage(NodeID const &_id, int _x, std::vector<char> const &data);
   void sendStatus(NodeID const &_id, bool _initial);
@@ -187,7 +192,7 @@ struct TaraxaCapability : virtual CapabilityFace {
   std::shared_ptr<TaraxaPeer> getPeer(NodeID const &node_id);
   unsigned int getPeersCount();
   void erasePeer(NodeID const &node_id);
-  void insertPeer(NodeID const &node_id);
+  std::shared_ptr<TaraxaPeer> insertPeer(NodeID const &node_id);
 
  private:
   void handle_read_exception(weak_ptr<Session> session, unsigned _id);

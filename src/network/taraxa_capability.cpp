@@ -76,9 +76,11 @@ void TaraxaCapability::erasePeer(NodeID const &node_id) {
   peers_.erase(node_id);
 }
 
-void TaraxaCapability::insertPeer(NodeID const &node_id) {
+std::shared_ptr<TaraxaPeer> TaraxaCapability::insertPeer(NodeID const &node_id) {
   boost::unique_lock<boost::shared_mutex> lock(peers_mutex_);
-  peers_.emplace(std::make_pair(node_id, std::make_shared<TaraxaPeer>(node_id)));
+  auto ret = peers_.emplace(std::make_pair(node_id, std::make_shared<TaraxaPeer>(node_id)));
+  assert(ret.second);
+  return ret.first->second;
 }
 
 void TaraxaCapability::syncPeerPbft(NodeID const &_nodeID, unsigned long height_to_sync) {
@@ -94,7 +96,7 @@ void TaraxaCapability::sealAndSend(NodeID const &nodeID, unsigned packet_type, R
 
   auto peer = getPeer(nodeID);
 
-  if ((!peer) || (dag_mgr_ && !peer->passed_initial_ && packet_type != StatusPacket)) {
+  if ((!peer) || (dag_mgr_ && !peer->received_initial_status_ && packet_type != StatusPacket)) {
     return;
   }
 
@@ -122,35 +124,54 @@ void TaraxaCapability::sealAndSend(NodeID const &nodeID, unsigned packet_type, R
   });
 }
 
-std::pair<bool, blk_hash_t> TaraxaCapability::checkDagBlockValidation(DagBlock const &block) {
+std::pair<bool, std::vector<blk_hash_t>> TaraxaCapability::checkDagBlockValidation(DagBlock const &block) {
+  std::vector<blk_hash_t> missing_blks;
+
   if (dag_blk_mgr_->getDagBlock(block.getHash())) {
     // The DAG block exist
-    return std::make_pair(true, blk_hash_t());
+    return std::make_pair(true, missing_blks);
   }
 
   level_t expected_level = 0;
   for (auto const &tip : block.getTips()) {
     auto tip_block = dag_blk_mgr_->getDagBlock(tip);
     if (!tip_block) {
-      LOG(log_nf_dag_sync_) << "Block " << block.getHash().toString() << " has a missing tip " << tip.toString();
-      return std::make_pair(false, tip);
+      LOG(log_er_dag_sync_) << "Block " << block.getHash().toString() << " has a missing tip " << tip.toString();
+      missing_blks.push_back(tip);
+    } else {
+      expected_level = std::max(tip_block->getLevel(), expected_level);
     }
-    expected_level = std::max(tip_block->getLevel(), expected_level);
   }
+
   auto pivot = block.getPivot();
   auto pivot_block = dag_blk_mgr_->getDagBlock(pivot);
   if (!pivot_block) {
-    LOG(log_nf_) << "Block " << block.getHash().toString() << " has a missing pivot " << pivot.toString();
-    return std::make_pair(false, pivot);
+    LOG(log_er_dag_sync_) << "Block " << block.getHash().toString() << " has a missing pivot " << pivot.toString();
+    missing_blks.push_back(pivot);
   }
+
+  if (missing_blks.size()) return std::make_pair(false, missing_blks);
+
   expected_level = std::max(pivot_block->getLevel(), expected_level);
   expected_level++;
   if (expected_level != block.getLevel()) {
-    throw InvalidDataException(std::string("Invalid block level ") + std::to_string(block.getLevel()) + " for block " +
-                               block.getHash().toString() + ". Expected level " + std::to_string(expected_level));
+    LOG(log_er_dag_sync_) << "Invalid block level " << block.getLevel() << " for block " << block.getHash()
+                          << " . Expected level " << expected_level;
+    return std::make_pair(false, missing_blks);
   }
 
-  return std::make_pair(true, blk_hash_t());
+  return std::make_pair(true, missing_blks);
+}
+
+void TaraxaCapability::requestBlocks(const NodeID &_nodeID, std::vector<blk_hash_t> const &blocks,
+                                     GetBlocksPacketRequestType mode) {
+  LOG(log_nf_dag_sync_) << "Sending GetBlocksPacket";
+  RLPStream s(blocks.size() + 1);  // Mode + block itself
+  s << mode;                       // Send mode first
+  for (auto blk : blocks) {
+    s << blk;
+  }
+  sealAndSend(_nodeID, GetBlocksPacket, s);
 }
 
 void TaraxaCapability::onConnect(weak_ptr<Session> session, u256 const &) {
@@ -159,8 +180,9 @@ void TaraxaCapability::onConnect(weak_ptr<Session> session, u256 const &) {
     cnt_received_messages_[_nodeID] = 0;
     test_sums_[_nodeID] = 0;
 
-    insertPeer(_nodeID);
+    auto peer = insertPeer(_nodeID);
     sendStatus(_nodeID, true);
+    peer->sent_initial_status_ = true;
   });
 }
 
@@ -216,7 +238,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
     return;
   }
 
-  if (dag_mgr_ && !peer->passed_initial_ && _id != StatusPacket) {
+  if (dag_mgr_ && !peer->received_initial_status_ && _id != StatusPacket) {
     return;
   }
   // Any packet means that we are comunicating so let's not disconnect
@@ -270,7 +292,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
           break;
         }
 
-        peer->passed_initial_ = true;
+        peer->received_initial_status_ = true;
 
         peer->dag_level_ = peer_dag_level;
         peer->pbft_chain_size_ = peer_pbft_chain_size;
@@ -286,7 +308,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
                      << ", node major version" << node_major_version << ", node minor version" << node_minor_version;
 
       } else {
-        if (!peer->passed_initial_) {
+        if (!peer->received_initial_status_) {
           break;
         }
 
@@ -347,6 +369,12 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
           LOG(log_dg_dag_prp_) << "Received NewBlock " << block.getHash().toString() << "that is already known";
           break;
         }
+        if (auto status = checkDagBlockValidation(block); !status.first) {
+          LOG(log_wr_dag_prp_) << "Received NewBlock " << block.getHash().toString() << " missing pivot or/and tips";
+          status.second.push_back(block.getHash());
+          requestBlocks(_nodeID, status.second);
+          break;
+        }
       }
 
       packet_stats.is_unique_ = true;
@@ -400,20 +428,50 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       break;
     }
     case GetBlocksPacket: {
-      LOG(log_dg_dag_sync_) << "Received GetBlocksPacket with " << _r.itemCount() << " known blocks";
-      std::unordered_set<blk_hash_t> known_non_finalized_blocks;
-      for (auto hash : _r) {
-        known_non_finalized_blocks.insert(blk_hash_t(hash));
-      }
+      std::unordered_set<blk_hash_t> blocks_hashes;
       std::vector<std::shared_ptr<DagBlock>> dag_blocks;
+      auto it = _r.begin();
+      auto mode = static_cast<GetBlocksPacketRequestType>((*it++).toInt<unsigned>());
+
+      if (mode == MissingHashes)
+        LOG(log_dg_dag_sync_) << "Received GetBlocksPacket with " << _r.itemCount() - 1 << " missing blocks";
+      else if (mode == KnownHashes)
+        LOG(log_dg_dag_sync_) << "Received GetBlocksPacket with " << _r.itemCount() - 1 << " known blocks";
+
+      for (; it != _r.end(); ++it) {
+        blocks_hashes.emplace(*it);
+      }
+
       const auto &blocks = dag_mgr_->getNonFinalizedBlocks();
       for (auto &level_blocks : blocks) {
         for (auto &block : level_blocks.second) {
           auto hash = blk_hash_t(block);
-          if (known_non_finalized_blocks.count(hash) == 0) {
-            dag_blocks.emplace_back(db_->getDagBlock(hash));
+          if (mode == MissingHashes) {
+            if (blocks_hashes.count(hash) == 1) {
+              if (auto blk = db_->getDagBlock(hash); blk) {
+                dag_blocks.emplace_back(blk);
+              } else {
+                LOG(log_er_dag_sync_) << "NonFinalizedBlock " << hash << " not in DB";
+                assert(false);
+              }
+            }
+          } else if (mode == KnownHashes) {
+            if (blocks_hashes.count(hash) == 0) {
+              if (auto blk = db_->getDagBlock(hash); blk) {
+                dag_blocks.emplace_back(blk);
+              } else {
+                LOG(log_er_dag_sync_) << "NonFinalizedBlock " << hash << " not in DB";
+                assert(false);
+              }
+            }
           }
         }
+      }
+
+      // This means that someone requested more hashes that we actually have -> do not send anything
+      if (mode == MissingHashes && dag_blocks.size() != blocks_hashes.size()) {
+        LOG(log_nf_dag_sync_) << "Node " << _nodeID << " requested unknown DAG block";
+        break;
       }
       sendBlocks(_nodeID, dag_blocks);
       break;
@@ -439,7 +497,9 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
 
         auto status = checkDagBlockValidation(block);
         if (!status.first) {
-          LOG(log_nf_dag_sync_) << "DagBlockValidation failed " << status.second;
+          LOG(log_wr_dag_sync_) << "DagBlockValidation failed " << status.second;
+          status.second.push_back(block.getHash());
+          requestBlocks(_nodeID, status.second);
           if (iBlock + transactionCount + 1 >= itemCount) break;
           continue;
         }
@@ -478,7 +538,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
     case PbftVotePacket: {
       LOG(log_dg_vote_prp_) << "In PbftVotePacket";
 
-      Vote vote(_r[0].toBytes());
+      Vote vote(_r[0].toBytes(), false);
       auto vote_hash = vote.getHash();
       LOG(log_dg_vote_prp_) << "Received PBFT vote " << vote_hash;
       peer->markVoteAsKnown(vote_hash);
@@ -961,12 +1021,14 @@ void TaraxaCapability::onNewTransactions(std::vector<taraxa::bytes> const &trans
     }
   }
   if (!fromNetwork || conf_.network_transaction_interval == 0) {
-    std::map<NodeID, std::vector<taraxa::bytes>> transactionsToSend;
-    std::map<NodeID, std::vector<trx_hash_t>> transactionsHashToSend;
+    std::unordered_map<NodeID, std::vector<taraxa::bytes>> transactionsToSend;
+    std::unordered_map<NodeID, std::vector<trx_hash_t>> transactionsHashToSend;
     {
       boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
       for (auto &peer : peers_) {
-        if (!peer.second->syncing_) {
+        // Confirm that status messages were exchanged otherwise message might be ignored and node would
+        // incorrectly markTransactionAsKnown
+        if (!peer.second->syncing_ && peer.second->received_initial_status_ && peer.second->sent_initial_status_) {
           for (auto const &transaction : transactions) {
             Transaction trx(transaction);
             auto trx_hash = trx.getHash();
@@ -981,10 +1043,10 @@ void TaraxaCapability::onNewTransactions(std::vector<taraxa::bytes> const &trans
     for (auto &it : transactionsToSend) {
       sendTransactions(it.first, it.second);
     }
-    boost::unique_lock<boost::shared_mutex> lock(peers_mutex_);
+    boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
     for (auto &it : transactionsHashToSend) {
       for (auto &it2 : it.second) {
-        peers_[it.first]->markTransactionAsKnown(it2);
+        if (peers_.count(it.first)) peers_[it.first]->markTransactionAsKnown(it2);
       }
     }
   }
@@ -1131,10 +1193,12 @@ void TaraxaCapability::sendTransactions(NodeID const &_id, std::vector<taraxa::b
 
 void TaraxaCapability::sendBlock(NodeID const &_id, taraxa::DagBlock block) {
   vec_trx_t transactionsToSend;
-  for (auto trx : block.getTrxs()) {
-    auto peer = getPeer(_id);
-    if (peer && !peer->isTransactionKnown(trx)) transactionsToSend.push_back(trx);
+
+  if (auto peer = getPeer(_id); peer) {
+    for (auto trx : block.getTrxs())
+      if (!peer->isTransactionKnown(trx)) transactionsToSend.push_back(trx);
   }
+
   RLPStream s(1 + transactionsToSend.size());
   s.appendRaw(block.rlp(true));
 
@@ -1173,7 +1237,6 @@ void TaraxaCapability::requestPbftBlocks(NodeID const &_id, size_t height_to_syn
 }
 
 void TaraxaCapability::requestPendingDagBlocks(NodeID const &_id) {
-  LOG(log_nf_dag_sync_) << "Sending GetBlocksPacket";
   vector<blk_hash_t> known_non_finalized_blocks;
   auto blocks = dag_mgr_->getNonFinalizedBlocks();
   for (auto &level_blocks : blocks) {
@@ -1181,12 +1244,7 @@ void TaraxaCapability::requestPendingDagBlocks(NodeID const &_id) {
       known_non_finalized_blocks.emplace_back(blk_hash_t(block));
     }
   }
-  RLPStream s(known_non_finalized_blocks.size());
-
-  for (auto blk : known_non_finalized_blocks) {
-    s << blk;
-  }
-  sealAndSend(_id, GetBlocksPacket, s);
+  requestBlocks(_id, known_non_finalized_blocks, KnownHashes);
 }
 
 std::pair<int, int> TaraxaCapability::retrieveTestData(NodeID const &_id) {
@@ -1271,10 +1329,6 @@ void TaraxaCapability::logNodeStats() {
     }
   }
 
-  // Local transaction queue info...
-  auto local_unverified_queue_size = trx_mgr_->getTransactionQueueSize().first;
-  auto local_verified_queue_size = trx_mgr_->getTransactionQueueSize().second;
-
   // Local dag info...
   auto local_max_level_in_dag = dag_mgr_->getMaxLevel();
   auto local_max_dag_level_in_queue = dag_blk_mgr_->getMaxDagLevelInQueue();
@@ -1341,8 +1395,6 @@ void TaraxaCapability::logNodeStats() {
     auto sync_percentage =
         (100 * intervals_in_sync_since_launch) / (intervals_in_sync_since_launch + intervals_syncing_since_launch);
     LOG(log_nf_summary_) << "In sync since launch for " << sync_percentage << "% of the time";
-    LOG(log_nf_summary_) << "Queued unverified transaction: " << local_unverified_queue_size;
-    LOG(log_nf_summary_) << "Queued verified transaction:   " << local_verified_queue_size;
     LOG(log_nf_summary_) << "Max DAG block level in DAG:    " << local_max_level_in_dag;
     LOG(log_nf_summary_) << "Max DAG block level in queue:  " << local_max_dag_level_in_queue;
     LOG(log_nf_summary_) << "PBFT chain size:               " << local_chain_size;
@@ -1729,7 +1781,7 @@ Json::Value TaraxaCapability::getStatus() const {
   Json::Value res;
   res["synced"] = Json::UInt64(!this->syncing_);
   res["peers"] = Json::Value(Json::arrayValue);
-  boost::unique_lock<boost::shared_mutex> lock(peers_mutex_);
+  boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
   for (auto &peer : peers_) {
     Json::Value peer_status;
     peer_status["node_id"] = peer.first.toString();

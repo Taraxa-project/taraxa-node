@@ -215,7 +215,7 @@ class StatusTable {
 };  // namespace taraxa
 
 template <typename... TS>
-std::string fmt(const std::string &pattern, const TS &... args) {
+std::string fmt(const std::string &pattern, const TS &...args) {
   return (boost::format(pattern) % ... % args).str();
 }
 
@@ -268,8 +268,8 @@ class ExpirationCache {
  private:
   std::unordered_set<Key> cache_;
   std::deque<Key> expiration_;
-  uint32_t max_size_;
-  uint32_t delete_step_;
+  const uint32_t max_size_;
+  const uint32_t delete_step_;
   mutable boost::shared_mutex mtx_;
 };
 
@@ -293,8 +293,8 @@ class ExpirationCacheMap {
 
   bool insert(Key const &key, Value const &value) {
     boost::unique_lock lck(mtx_);
-    auto it = cache_.find(key);
-    if (it != cache_.end()) return false;
+    if (cache_.find(key) != cache_.end()) return false;
+
     cache_[key] = value;
     expiration_.push_back(key);
     if (cache_.size() > max_size_) {
@@ -328,14 +328,26 @@ class ExpirationCacheMap {
 
   void update(Key const &key, Value value) {
     boost::unique_lock lck(mtx_);
+
+    if (cache_.find(key) != cache_.end()) {
+      expiration_.erase(std::remove(expiration_.begin(), expiration_.end(), key), expiration_.end());
+    }
+
     cache_[key] = value;
     expiration_.push_back(key);
+
     if (cache_.size() > max_size_) {
       for (uint32_t i = 0; i < delete_step_; i++) {
         cache_.erase(expiration_.front());
         expiration_.pop_front();
       }
     }
+  }
+
+  void erase(const Key &key) {
+    boost::unique_lock lck(mtx_);
+    cache_.erase(key);
+    expiration_.erase(std::remove(expiration_.begin(), expiration_.end(), key), expiration_.end());
   }
 
   std::pair<Value, bool> updateWithGet(Key const &key, Value value) {
@@ -387,9 +399,10 @@ class ExpirationCacheMap {
       expiration_.pop_front();
     }
   }
+
   std::unordered_map<Key, Value> cache_;
   std::deque<Key> expiration_;
-  uint32_t max_size_;
-  uint32_t delete_step_;
+  const uint32_t max_size_;
+  const uint32_t delete_step_;
   mutable boost::shared_mutex mtx_;
 };

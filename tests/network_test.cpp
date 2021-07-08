@@ -79,7 +79,7 @@ TEST_F(NetworkTest, transfer_block) {
 // Test creates two Network setup and verifies sending blocks
 // between is successfull
 TEST_F(NetworkTest, transfer_lot_of_blocks) {
-  auto node_cfgs = make_node_cfgs<20, true>(2);
+  auto node_cfgs = make_node_cfgs<20>(2);
   auto nodes = launch_nodes(node_cfgs);
 
   std::vector<std::shared_ptr<DagBlock>> dag_blocks;
@@ -101,12 +101,12 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
   }
 
   // add one valid as last
-  auto dag_genesis = nodes[1]->getConfig().chain.dag_genesis_block.getHash();
-  vdf_sortition::VdfConfig vdf_config(node_cfgs[1].chain.vdf);
-  vdf_sortition::VdfSortition vdf(vdf_config, nodes[1]->getVrfSecretKey(), getRlpBytes(1));
+  auto dag_genesis = nodes[0]->getConfig().chain.dag_genesis_block.getHash();
+  vdf_sortition::VdfConfig vdf_config(node_cfgs[0].chain.vdf);
+  vdf_sortition::VdfSortition vdf(vdf_config, nodes[0]->getVrfSecretKey(), getRlpBytes(1));
   vdf.computeVdfSolution(vdf_config, dag_genesis.asBytes());
   DagBlock blk(dag_genesis, 1, {}, {samples::createSignedTrxSamples(0, 1, g_secret)[0].getHash()}, vdf,
-               nodes[1]->getSecretKey());
+               nodes[0]->getSecretKey());
 
   auto block_hash = blk.getHash();
   dag_blocks.emplace_back(std::make_shared<DagBlock>(blk));
@@ -998,26 +998,19 @@ TEST_F(NetworkTest, node_sync2) {
     node1->getDagBlockManager()->insertBroadcastedBlockWithTransactions(blks[i], trxs[i]);
   }
 
-  taraxa::thisThreadSleepForMilliSeconds(200);
-
   FullNode::Handle node2(node_cfgs[1], true);
-  std::cout << "Waiting Sync for up to 40000 milliseconds ..." << std::endl;
-  for (int i = 0; i < 400; i++) {
-    taraxa::thisThreadSleepForMilliSeconds(100);
-    if (node2->getDagManager()->getNumVerticesInDag().first == 13 &&
-        node2->getDagManager()->getNumEdgesInDag().first == 13) {
-      break;
-    }
-  }
 
-  // node1->drawGraph("dot.txt");
-  EXPECT_EQ(node1->getNumReceivedBlocks(), blks.size());
-  EXPECT_EQ(node1->getDagManager()->getNumVerticesInDag().first, 13);
-  EXPECT_EQ(node1->getDagManager()->getNumEdgesInDag().first, 13);
+  EXPECT_HAPPENS({10s, 100ms}, [&](auto& ctx) {
+    WAIT_EXPECT_EQ(ctx, node1->getNumReceivedBlocks(), blks.size())
+    WAIT_EXPECT_EQ(ctx, node1->getDagManager()->getNumVerticesInDag().first, 13)
+    WAIT_EXPECT_EQ(ctx, node1->getDagManager()->getNumEdgesInDag().first, 13)
+  });
 
-  EXPECT_EQ(node2->getNumReceivedBlocks(), blks.size());
-  EXPECT_EQ(node2->getDagManager()->getNumVerticesInDag().first, 13);
-  EXPECT_EQ(node2->getDagManager()->getNumEdgesInDag().first, 13);
+  EXPECT_HAPPENS({50s, 300ms}, [&](auto& ctx) {
+    WAIT_EXPECT_EQ(ctx, node2->getNumReceivedBlocks(), blks.size())
+    WAIT_EXPECT_EQ(ctx, node2->getDagManager()->getNumVerticesInDag().first, 13)
+    WAIT_EXPECT_EQ(ctx, node2->getDagManager()->getNumEdgesInDag().first, 13)
+  });
 }
 
 // Test creates new transactions on one node and verifies

@@ -57,4 +57,9 @@ add_executable(rpc_taraxa_test rpc_taraxa_test.cpp)
 target_link_libraries(rpc_taraxa_test app_base CONAN_PKG::gtest)
 add_test(rpc_taraxa_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/rpc_taraxa_test)
 
+add_executable(py_test py_test.cpp)
+add_dependencies(py_test taraxad)
+target_compile_definitions(py_test PRIVATE NODE_EXECUTABLE_PATH=\"${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/taraxad\")
+add_test(py_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/py_test)
+
 add_custom_target(all_tests COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure)

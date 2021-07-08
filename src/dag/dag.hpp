@@ -167,7 +167,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
     return std::make_pair(old_anchor_, anchor_);
   }
 
-  const std::map<uint64_t, std::vector<std::string>> &getNonFinalizedBlocks() const;
+  const std::map<uint64_t, std::vector<std::string>> getNonFinalizedBlocks() const;
 
   DagFrontier getDagFrontier();
 
