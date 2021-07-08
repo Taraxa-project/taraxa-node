@@ -1819,9 +1819,10 @@ void TaraxaCapability::sendPbftNextVotes(NodeID const &peerID, std::vector<Vote>
   if (sealAndSend(peerID, PbftNextVotesPacket, move(s))) {
     LOG(log_nf_next_votes_sync_) << "Send out size of " << send_next_votes_bundle.size() << " PBFT next votes to "
                                  << peerID;
-    auto peer = getPeer(peerID);
-    for (auto const &v : send_next_votes_bundle) {
-      peer->markVoteAsKnown(v.getHash());
+    if (auto peer = getPeer(peerID)) {
+      for (auto const &v : send_next_votes_bundle) {
+        peer->markVoteAsKnown(v.getHash());
+      }
     }
   }
 }
