@@ -412,11 +412,12 @@ jobs:
             echo ${GCLOUD_SERVICE_KEY} | docker login -u _json_key --password-stdin https://gcr.io
 
       - docker-cache/with-save-restore-images:
+         parallelism: 8
          repository: gcr.io/${GOOGLE_PROJECT_ID}
          images: >-
            ${IMAGE}-cache:${DOCKER_BRANCH_TAG}
            ${IMAGE}-cache:latest
-           ${IMAGE}-develop:latest
+           #${IMAGE}-develop:latest
            ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
          steps:
            - docker-cache/build:
