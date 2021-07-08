@@ -486,7 +486,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
     case PbftVotePacket: {
       LOG(log_dg_vote_prp_) << "In PbftVotePacket";
 
-      Vote vote(_r[0].toBytes());
+      Vote vote(_r[0].toBytes(), false);
       auto vote_hash = vote.getHash();
       LOG(log_dg_vote_prp_) << "Received PBFT vote " << vote_hash;
       peer->markVoteAsKnown(vote_hash);
