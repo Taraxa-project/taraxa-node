@@ -188,7 +188,8 @@ class PbftManager {
   time_point now_;
 
   time_point time_began_waiting_next_voted_block_;
-  blk_hash_t next_voted_value_;
+  blk_hash_t previous_round_next_voted_value_ = NULL_BLOCK_HASH;
+  bool previous_round_next_voted_null_block_hash_ = false;
 
   std::chrono::duration<double> duration_;
   u_long next_step_time_ms_ = 0;
