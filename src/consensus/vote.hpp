@@ -64,7 +64,7 @@ struct VrfPbftSortition : public vrf_wrapper::VrfSortitionBase {
   VrfPbftSortition() = default;
   VrfPbftSortition(vrf_sk_t const& sk, VrfPbftMsg const& pbft_msg)
       : VrfSortitionBase(sk, pbft_msg.getRlpBytes()), pbft_msg(pbft_msg) {}
-  explicit VrfPbftSortition(bytes const& rlp);
+  explicit VrfPbftSortition(bytes const& rlp, bool verify_vrf = true);
   bytes getRlpBytes() const;
   bool verify() { return VrfSortitionBase::verify(pbft_msg.getRlpBytes()); }
   bool operator==(VrfPbftSortition const& other) const {
@@ -89,8 +89,8 @@ class Vote {
   Vote() = default;
   Vote(secret_t const& node_sk, VrfPbftSortition const& vrf_sortition, blk_hash_t const& blockhash);
 
-  explicit Vote(dev::RLP const& rlp);
-  explicit Vote(bytes const& rlp);
+  explicit Vote(dev::RLP const& rlp, bool verify_vrf = true);
+  explicit Vote(bytes const& rlp, bool verify_vrf = true);
   bool operator==(Vote const& other) const { return rlp() == other.rlp(); }
   ~Vote() {}
 
@@ -104,6 +104,7 @@ class Vote {
     return cached_voter_addr_;
   }
 
+  bool verifyVrfSortition() { return vrf_sortition_.verify(); }
   auto getVrfSortition() const { return vrf_sortition_; }
   auto getSortitionProof() const { return vrf_sortition_.proof; }
   auto getCredential() const { return vrf_sortition_.output; }
@@ -172,9 +173,9 @@ class VoteManager {
 
   void cleanupVotes(uint64_t pbft_round);
 
-  bool voteValidation(Vote const& vote, size_t const valid_sortition_players, size_t const sortition_threshold) const;
+  bool voteValidation(Vote& vote, size_t const valid_sortition_players, size_t const sortition_threshold) const;
 
-  bool pbftBlockHasEnoughValidCertVotes(PbftBlockCert const& pbft_block_and_votes, size_t valid_sortition_players,
+  bool pbftBlockHasEnoughValidCertVotes(PbftBlockCert& pbft_block_and_votes, size_t valid_sortition_players,
                                         size_t sortition_threshold, size_t pbft_2t_plus_1) const;
 
   std::string getJsonStr(std::vector<Vote> const& votes);
