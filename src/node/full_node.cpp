@@ -232,7 +232,7 @@ void FullNode::start() {
         // new block but should resolve quickly, return block to queue
         if (!stopped_) {
           if (dag_blk_mgr_->pivotAndTipsValid(blk)) {
-            LOG(log_dg_) << "Block could not be added to DAG " << blk.getHash().toString();
+            LOG(log_wr_) << "Block could not be added to DAG " << blk.getHash().toString();
             received_blocks_--;
             dag_blk_mgr_->pushVerifiedBlock(blk);
             level_limit = true;
