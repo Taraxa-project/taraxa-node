@@ -228,7 +228,7 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(db.getPbftBlock(pbft_block4.getBlockHash())->rlp(false), pbft_block4.rlp(false));
 
   // pbft_blocks (head)
-  PbftChain pbft_chain(blk_hash_t(0).toString(), addr_t(), db_ptr);
+  PbftChain pbft_chain(blk_hash_t(0), addr_t(), db_ptr);
   db.savePbftHead(pbft_chain.getHeadHash(), pbft_chain.getJsonStr());
   EXPECT_EQ(db.getPbftHead(pbft_chain.getHeadHash()), pbft_chain.getJsonStr());
   batch = db.createWriteBatch();
@@ -793,15 +793,15 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
     node->getDagBlockManager()->insertBlock(g_mock_dag0[i]);
   }
   taraxa::thisThreadSleepForMilliSeconds(200);
-  std::string pivot;
-  std::vector<std::string> tips;
+  blk_hash_t pivot;
+  std::vector<blk_hash_t> tips;
 
   // -------- first period ----------
 
   node->getDagManager()->getLatestPivotAndTips(pivot, tips);
   uint64_t period;
   std::shared_ptr<vec_blk_t> order;
-  std::tie(period, order) = node->getDagManager()->getDagBlockOrder(blk_hash_t(pivot));
+  std::tie(period, order) = node->getDagManager()->getDagBlockOrder(pivot);
   EXPECT_EQ(period, 1);
   EXPECT_EQ(order->size(), 6);
 
@@ -814,7 +814,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
     EXPECT_EQ((*order)[5], blk_hash_t(7));
   }
   auto write_batch = node->getDB()->createWriteBatch();
-  auto num_blks_set = node->getDagManager()->setDagBlockOrder(blk_hash_t(pivot), period, *order, write_batch);
+  auto num_blks_set = node->getDagManager()->setDagBlockOrder(pivot, period, *order, write_batch);
   node->getDB()->commitWriteBatch(write_batch);
   EXPECT_EQ(num_blks_set, 6);
   // -------- second period ----------
@@ -825,7 +825,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   taraxa::thisThreadSleepForMilliSeconds(200);
 
   node->getDagManager()->getLatestPivotAndTips(pivot, tips);
-  std::tie(period, order) = node->getDagManager()->getDagBlockOrder(blk_hash_t(pivot));
+  std::tie(period, order) = node->getDagManager()->getDagBlockOrder(pivot);
   EXPECT_EQ(period, 2);
   if (order->size() == 7) {
     EXPECT_EQ((*order)[0], blk_hash_t(11));
@@ -837,7 +837,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
     EXPECT_EQ((*order)[6], blk_hash_t(15));
   }
   write_batch = node->getDB()->createWriteBatch();
-  num_blks_set = node->getDagManager()->setDagBlockOrder(blk_hash_t(pivot), period, *order, write_batch);
+  num_blks_set = node->getDagManager()->setDagBlockOrder(pivot, period, *order, write_batch);
   node->getDB()->commitWriteBatch(write_batch);
   EXPECT_EQ(num_blks_set, 7);
 
@@ -849,7 +849,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   taraxa::thisThreadSleepForMilliSeconds(200);
 
   node->getDagManager()->getLatestPivotAndTips(pivot, tips);
-  std::tie(period, order) = node->getDagManager()->getDagBlockOrder(blk_hash_t(pivot));
+  std::tie(period, order) = node->getDagManager()->getDagBlockOrder(pivot);
   EXPECT_EQ(period, 3);
   if (order->size() == 5) {
     EXPECT_EQ((*order)[0], blk_hash_t(17));
@@ -859,7 +859,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
     EXPECT_EQ((*order)[4], blk_hash_t(19));
   }
   write_batch = node->getDB()->createWriteBatch();
-  num_blks_set = node->getDagManager()->setDagBlockOrder(blk_hash_t(pivot), period, *order, write_batch);
+  num_blks_set = node->getDagManager()->setDagBlockOrder(pivot, period, *order, write_batch);
   node->getDB()->commitWriteBatch(write_batch);
   EXPECT_EQ(num_blks_set, 5);
 }
@@ -883,7 +883,7 @@ TEST_F(FullNodeTest, destroy_db) {
 
 TEST_F(FullNodeTest, reconstruct_anchors) {
   auto node_cfgs = make_node_cfgs<5>(1);
-  std::pair<std::string, std::string> anchors;
+  std::pair<blk_hash_t, blk_hash_t> anchors;
   {
     FullNode::Handle node(node_cfgs[0], true);
 

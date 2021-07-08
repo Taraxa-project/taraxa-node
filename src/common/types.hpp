@@ -42,53 +42,6 @@ using end_point_udp_t = boost::asio::ip::udp::endpoint;
 using socket_udp_t = boost::asio::ip::udp::socket;
 using resolver_udp_t = boost::asio::ip::udp::resolver;
 
-/**
- * for example, use uint256_t as intermediate type,
- * uint_hash_t <------> uint256_t <------> stringstream  <------> string
- *                      number         encode/decode            operator>>
- */
-
-template <std::size_t Bytes>
-struct uint_hash_t {
-  static_assert((Bytes == 16 || Bytes == 32 || Bytes == 64), "Bytes must be 16, 32 or 64\n");
-
-  using Number = typename std::conditional<Bytes == 16, uint128_t,
-                                           typename std::conditional<Bytes == 32, uint256_t, uint512_t>::type>::type;
-  uint_hash_t() = default;  // Must be a trivial type for std::is_pod_v<>=true
-  explicit uint_hash_t(Number const &number);
-  explicit uint_hash_t(std::string const &str);
-  explicit uint_hash_t(const char *cstr);
-  void encodeHex(std::string &str) const;
-  bool decodeHex(std::string const &str);
-
-  Number number() const;
-  bool isZero() const;
-  void clear();
-  void operator=(std::string const &str);
-  void operator=(const char *str);
-  bool operator==(uint_hash_t const &other) const;
-  bool operator<(uint_hash_t const &other) const;
-  bool operator>(uint_hash_t const &other) const;
-
-  std::string toString() const;
-
-  struct hash {
-    size_t operator()(uint_hash_t<Bytes> const &value) const {
-      return boost::hash_range(value.bytes.cbegin(), value.bytes.cend());
-    }
-  };
-
-  // debugging
-  void rawPrint() const;
-  std::array<uint8_t, Bytes> bytes;
-};
-
-template <std::size_t Byte>
-std::ostream &operator<<(std::ostream &strm, uint_hash_t<Byte> const &num);
-
-using uint256_t = boost::multiprecision::uint256_t;
-using uint512_t = boost::multiprecision::uint512_t;
-
 using uint256_hash_t = dev::FixedHash<32>;
 using uint512_hash_t = dev::FixedHash<64>;
 using uint520_hash_t = dev::FixedHash<65>;
@@ -127,12 +80,27 @@ inline std::string toString(val_t const &val) {
   return strm.str();
 }
 
-std::ostream &operator<<(std::ostream &strm, bytes const &bytes);
+inline bytes str2bytes(std::string const &str) {
+  assert(str.size() % 2 == 0);
+  bytes data;
+  // convert it to byte stream
+  for (size_t i = 0; i < str.size(); i += 2) {
+    std::string s = str.substr(i, 2);
+    auto t = std::stoul(s, nullptr, 16);
+    assert(t < 256);
+    data.push_back(static_cast<uint8_t>(t));
+  }
+  return data;
+}
 
-time_point_t getLong2TimePoint(unsigned long l);
-unsigned long getTimePoint2Long(time_point_t tp);
-
-bytes str2bytes(std::string const &str);
-std::string bytes2str(bytes const &data);
+inline std::string bytes2str(bytes const &data) {
+  // convert it to str
+  std::stringstream ss;
+  ss << std::hex << std::noshowbase << std::setfill('0');
+  for (auto const &d : data) {
+    ss << std::setfill('0') << std::setw(2) << unsigned(d);
+  }
+  return ss.str();
+}
 
 }  // namespace taraxa

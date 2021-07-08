@@ -263,7 +263,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         auto it = _r.begin();
         auto const network_id = (*it++).toInt<uint64_t>();
         auto peer_dag_level = (*it++).toPositiveInt64();
-        auto const genesis_hash = (*it++).toString();
+        auto const genesis_hash = blk_hash_t(*it++);
         auto peer_pbft_chain_size = (*it++).toPositiveInt64();
         auto peer_syncing = (*it++).toInt();
         auto peer_pbft_round = (*it++).toPositiveInt64();
@@ -449,7 +449,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       const auto &blocks = dag_mgr_->getNonFinalizedBlocks();
       for (auto &level_blocks : blocks) {
         for (auto &block : level_blocks.second) {
-          auto hash = blk_hash_t(block);
+          auto hash = block;
           if (mode == MissingHashes) {
             if (blocks_hashes.count(hash) == 1) {
               if (auto blk = db_->getDagBlock(hash); blk) {
@@ -1299,7 +1299,7 @@ void TaraxaCapability::requestPendingDagBlocks(NodeID const &_id) {
   auto blocks = dag_mgr_->getNonFinalizedBlocks();
   for (auto &level_blocks : blocks) {
     for (auto &block : level_blocks.second) {
-      known_non_finalized_blocks.emplace_back(blk_hash_t(block));
+      known_non_finalized_blocks.push_back(block);
     }
   }
   requestBlocks(_id, known_non_finalized_blocks, KnownHashes);
