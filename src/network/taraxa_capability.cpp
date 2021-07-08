@@ -1021,8 +1021,8 @@ void TaraxaCapability::onNewTransactions(std::vector<taraxa::bytes> const &trans
     }
   }
   if (!fromNetwork || conf_.network_transaction_interval == 0) {
-    std::map<NodeID, std::vector<taraxa::bytes>> transactionsToSend;
-    std::map<NodeID, std::vector<trx_hash_t>> transactionsHashToSend;
+    std::unordered_map<NodeID, std::vector<taraxa::bytes>> transactionsToSend;
+    std::unordered_map<NodeID, std::vector<trx_hash_t>> transactionsHashToSend;
     {
       boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
       for (auto &peer : peers_) {
@@ -1043,10 +1043,10 @@ void TaraxaCapability::onNewTransactions(std::vector<taraxa::bytes> const &trans
     for (auto &it : transactionsToSend) {
       sendTransactions(it.first, it.second);
     }
-    boost::unique_lock<boost::shared_mutex> lock(peers_mutex_);
+    boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
     for (auto &it : transactionsHashToSend) {
       for (auto &it2 : it.second) {
-        peers_[it.first]->markTransactionAsKnown(it2);
+        if (peers_.count(it.first)) peers_[it.first]->markTransactionAsKnown(it2);
       }
     }
   }
@@ -1193,10 +1193,12 @@ void TaraxaCapability::sendTransactions(NodeID const &_id, std::vector<taraxa::b
 
 void TaraxaCapability::sendBlock(NodeID const &_id, taraxa::DagBlock block) {
   vec_trx_t transactionsToSend;
-  for (auto trx : block.getTrxs()) {
-    auto peer = getPeer(_id);
-    if (peer && !peer->isTransactionKnown(trx)) transactionsToSend.push_back(trx);
+
+  if (auto peer = getPeer(_id); peer) {
+    for (auto trx : block.getTrxs())
+      if (!peer->isTransactionKnown(trx)) transactionsToSend.push_back(trx);
   }
+
   RLPStream s(1 + transactionsToSend.size());
   s.appendRaw(block.rlp(true));
 
@@ -1779,7 +1781,7 @@ Json::Value TaraxaCapability::getStatus() const {
   Json::Value res;
   res["synced"] = Json::UInt64(!this->syncing_);
   res["peers"] = Json::Value(Json::arrayValue);
-  boost::unique_lock<boost::shared_mutex> lock(peers_mutex_);
+  boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
   for (auto &peer : peers_) {
     Json::Value peer_status;
     peer_status["node_id"] = peer.first.toString();
