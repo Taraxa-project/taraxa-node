@@ -7,7 +7,7 @@
 
 namespace taraxa {
 
-VrfPbftSortition::VrfPbftSortition(bytes const& b) {
+VrfPbftSortition::VrfPbftSortition(bytes const& b, bool verify_vrf) {
   dev::RLP const rlp(b);
   if (!rlp.isList()) {
     throw std::invalid_argument("VrfPbftSortition RLP must be a list");
@@ -20,6 +20,8 @@ VrfPbftSortition::VrfPbftSortition(bytes const& b) {
   pbft_msg.step = (*it++).toInt<size_t>();
   pbft_msg.weighted_index = (*it++).toInt<size_t>();
   proof = (*it++).toHash<vrf_proof_t>();
+
+  if (verify_vrf) verify();
 }
 
 bytes VrfPbftSortition::getRlpBytes() const {
@@ -48,17 +50,17 @@ bool VrfPbftSortition::canSpeak(size_t threshold, size_t dpos_total_votes_count)
   return left <= right;
 }
 
-Vote::Vote(dev::RLP const& rlp) {
+Vote::Vote(dev::RLP const& rlp, bool verify_vrf) {
   if (!rlp.isList()) throw std::invalid_argument("vote RLP must be a list");
   auto it = rlp.begin();
 
   blockhash_ = (*it++).toHash<blk_hash_t>();
-  vrf_sortition_ = VrfPbftSortition((*it++).toBytes());
+  vrf_sortition_ = VrfPbftSortition((*it++).toBytes(), verify_vrf);
   vote_signature_ = (*it++).toHash<sig_t>();
   vote_hash_ = sha3(true);
 }
 
-Vote::Vote(bytes const& b) : Vote(dev::RLP(b)) {}
+Vote::Vote(bytes const& b, bool verify_vrf) : Vote(dev::RLP(b), verify_vrf) {}
 
 Vote::Vote(secret_t const& node_sk, VrfPbftSortition const& vrf_sortition, blk_hash_t const& blockhash)
     : blockhash_(blockhash), vrf_sortition_(vrf_sortition) {
@@ -312,7 +314,7 @@ std::vector<Vote> VoteManager::getVerifiedVotes(uint64_t const pbft_round, size_
     }
   }
 
-  for (auto const& v : votes_to_verify) {
+  for (auto& v : votes_to_verify) {
     if (votes_invalid_in_current_final_chain_period_.count(v.getHash())) {
       continue;
     }
@@ -453,9 +455,9 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
   db_->commitWriteBatch(batch);
 }
 
-bool VoteManager::voteValidation(taraxa::Vote const& vote, size_t const dpos_total_votes_count,
+bool VoteManager::voteValidation(taraxa::Vote& vote, size_t const dpos_total_votes_count,
                                  size_t const sortition_threshold) const {
-  if (!vote.getVrfSortition().verify()) {
+  if (!vote.verifyVrfSortition()) {
     LOG(log_er_) << "Invalid vrf proof. " << vote;
     return false;
   }
@@ -474,9 +476,8 @@ bool VoteManager::voteValidation(taraxa::Vote const& vote, size_t const dpos_tot
   return true;
 }
 
-bool VoteManager::pbftBlockHasEnoughValidCertVotes(PbftBlockCert const& pbft_block_and_votes,
-                                                   size_t dpos_total_votes_count, size_t sortition_threshold,
-                                                   size_t pbft_2t_plus_1) const {
+bool VoteManager::pbftBlockHasEnoughValidCertVotes(PbftBlockCert& pbft_block_and_votes, size_t dpos_total_votes_count,
+                                                   size_t sortition_threshold, size_t pbft_2t_plus_1) const {
   if (pbft_block_and_votes.cert_votes.empty()) {
     LOG(log_er_) << "No any cert votes! The synced PBFT block comes from a "
                     "malicious player.";
@@ -486,7 +487,7 @@ bool VoteManager::pbftBlockHasEnoughValidCertVotes(PbftBlockCert const& pbft_blo
   std::vector<Vote> valid_votes;
   auto first_cert_vote_round = pbft_block_and_votes.cert_votes[0].getRound();
 
-  for (auto const& v : pbft_block_and_votes.cert_votes) {
+  for (auto& v : pbft_block_and_votes.cert_votes) {
     // Any info is wrong that can determine the synced PBFT block comes from a malicious player
     if (v.getType() != cert_vote_type) {
       LOG(log_er_) << "For PBFT block " << pbft_block_and_votes.pbft_blk->getBlockHash() << ", cert vote "
