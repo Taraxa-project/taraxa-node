@@ -619,7 +619,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         }
         auto next_vote_hash = next_vote.getHash();
         LOG(log_nf_next_votes_sync_) << "Received PBFT next vote " << next_vote_hash;
-
+        peer->markVoteAsKnown(next_vote_hash);
         next_votes.emplace_back(next_vote);
       }
       LOG(log_nf_next_votes_sync_) << "Received " << next_votes_count << " next votes from peer " << _nodeID
@@ -646,9 +646,6 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         if (pbft_2t_plus_1) {
           // Update our previous round next vote bundles...
           next_votes_mgr_->updateWithSyncedVotes(next_votes, pbft_2t_plus_1);
-          for (auto const &v : next_votes) {
-            peer->markVoteAsKnown(v.getHash());
-          }
           // Pass them on to our peers...
           boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
           auto updated_next_votes_size = next_votes_mgr_->getNextVotesSize();
@@ -1822,9 +1819,10 @@ void TaraxaCapability::sendPbftNextVotes(NodeID const &peerID, std::vector<Vote>
   if (sealAndSend(peerID, PbftNextVotesPacket, move(s))) {
     LOG(log_nf_next_votes_sync_) << "Send out size of " << send_next_votes_bundle.size() << " PBFT next votes to "
                                  << peerID;
-    auto peer = getPeer(peerID);
-    for (auto const &v : send_next_votes_bundle) {
-      peer->markVoteAsKnown(v.getHash());
+    if (auto peer = getPeer(peerID)) {
+      for (auto const &v : send_next_votes_bundle) {
+        peer->markVoteAsKnown(v.getHash());
+      }
     }
   }
 }
