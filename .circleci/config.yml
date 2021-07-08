@@ -454,7 +454,7 @@ jobs:
          command: |
            docker run  --rm -v $PWD/tmp_docker:/tmp \
                        --name taraxa-node-ctest-${DOCKER_BRANCH_TAG} \
-                       ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}\
+                       ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}\
                         sh -c \
                        'cd cmake-docker-build-debug/bin \
                         && ctest --output-on-failure'
