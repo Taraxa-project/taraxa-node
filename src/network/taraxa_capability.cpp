@@ -1577,7 +1577,7 @@ void TaraxaCapability::onNewPbftVote(taraxa::Vote const &vote) {
 void TaraxaCapability::sendPbftVote(NodeID const &peerID, taraxa::Vote const &vote) {
   LOG(log_dg_vote_prp_) << "sendPbftVote " << vote.getHash() << " to " << peerID;
   auto peer = getPeer(peerID);
-  if (!peer->syncing_ && peer->readyToReceivePackets()) {
+  if (peer && !peer->syncing_ && peer->readyToReceivePackets()) {
     if (sealAndSend(peerID, PbftVotePacket, RLPStream(1) << vote.rlp(true))) {
       peer->markVoteAsKnown(vote.getHash());
     }
