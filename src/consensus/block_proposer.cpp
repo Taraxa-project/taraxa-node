@@ -100,10 +100,9 @@ void BlockProposer::start() {
       if (auto net = network_.lock()) {
         syncing = net->pbft_syncing();
       }
-      if (syncing) {
-        continue;
+      if (!syncing) {
+        propose_model_->propose();
       }
-      propose_model_->propose();
       thisThreadSleepForMilliSeconds(min_proposal_delay);
     }
   });
