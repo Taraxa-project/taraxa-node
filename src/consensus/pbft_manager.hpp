@@ -16,7 +16,8 @@
 #define NULL_BLOCK_HASH blk_hash_t(0)
 #define POLLING_INTERVAL_ms 100  // milliseconds...
 #define MAX_STEPS 13
-#define MAX_WAIT_FOR_NEXT_VOTED_BLOCK_MS 30000
+#define MAX_WAIT_FOR_SOFT_VOTED_BLOCK_STEPS 30
+#define MAX_WAIT_FOR_NEXT_VOTED_BLOCK_STEPS 30
 
 namespace taraxa {
 class FullNode;
@@ -142,7 +143,11 @@ class PbftManager {
   bool is_syncing_();
 
   bool giveUpNextVotedBlock_();
-  void updateNextVotedValue_();
+  bool giveUpSoftVotedBlock_();
+  void initializeVotedValueTimeouts_();
+  void checkSoftVotedValueChange_(blk_hash_t const new_soft_voted_value);
+  void checkPreviousRoundNextVotedValueChange_();
+  bool updateSoftVotedBlockForThisRound_();
 
   std::atomic<bool> stopped_ = true;
   // Using to check if PBFT block has been proposed already in one period
@@ -188,8 +193,11 @@ class PbftManager {
   time_point now_;
 
   time_point time_began_waiting_next_voted_block_;
+  time_point time_began_waiting_soft_voted_block_;
   blk_hash_t previous_round_next_voted_value_ = NULL_BLOCK_HASH;
   bool previous_round_next_voted_null_block_hash_ = false;
+
+  blk_hash_t last_soft_voted_value_ = NULL_BLOCK_HASH;
 
   std::chrono::duration<double> duration_;
   u_long next_step_time_ms_ = 0;
