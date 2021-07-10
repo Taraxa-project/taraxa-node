@@ -126,6 +126,87 @@ void PbftManager::run() {
   // Initialize PBFT status
   initialState_();
 
+  continuousOperation_();
+}
+
+// Only to be used for tests...
+void PbftManager::resume() {
+  if (!stopped_.load()) daemon_->join();
+  stopped_ = false;
+
+  // Will only appear in testing...
+  LOG(log_si_) << "Resuming PBFT daemon...";
+
+  if (step_ == 1) {
+    state_ = value_proposal_state;
+  } else if (step_ == 2) {
+    state_ = filter_state;
+  } else if (step_ == 3) {
+    state_ = certify_state;
+  } else if (step_ % 2 == 0) {
+    state_ = finish_state;
+  } else {
+    state_ = finish_polling_state;
+  }
+
+  daemon_ = std::make_unique<std::thread>([this]() { continuousOperation_(); });
+}
+
+void PbftManager::resumeSingleState() {
+  if (!stopped_.load()) daemon_->join();
+  stopped_ = false;
+
+  if (step_ == 1) {
+    state_ = value_proposal_state;
+  } else if (step_ == 2) {
+    state_ = filter_state;
+  } else if (step_ == 3) {
+    state_ = certify_state;
+  } else if (step_ % 2 == 0) {
+    state_ = finish_state;
+  } else {
+    state_ = finish_polling_state;
+  }
+
+  daemon_ = std::make_unique<std::thread>([this]() { doNextState_(); });
+}
+
+void PbftManager::doNextState_() {
+  auto initial_state = state_;
+
+  while (!stopped_ && state_ == initial_state) {
+    if (stateOperations_()) {
+      continue;
+    }
+
+    // PBFT states
+    switch (state_) {
+      case value_proposal_state:
+        proposeBlock_();
+        break;
+      case filter_state:
+        identifyBlock_();
+        break;
+      case certify_state:
+        certifyBlock_();
+        break;
+      case finish_state:
+        firstFinish_();
+        break;
+      case finish_polling_state:
+        secondFinish_();
+        break;
+      default:
+        LOG(log_er_) << "Unknown PBFT state " << state_;
+        assert(false);
+    }
+
+    setNextState_();
+    if (state_ == initial_state) sleep_();
+  }
+}
+
+void PbftManager::continuousOperation_() {
   while (!stopped_) {
     if (stateOperations_()) {
       continue;
@@ -171,6 +252,8 @@ std::pair<bool, uint64_t> PbftManager::getDagBlockPeriod(blk_hash_t const &hash)
 }
 
 uint64_t PbftManager::getPbftRound() const { return round_; }
+
+uint64_t PbftManager::getPbftStep() const { return step_; }
 
 void PbftManager::setPbftRound(uint64_t const round) {
   db_->savePbftMgrField(PbftMgrRoundStep::PbftRound, round);
@@ -631,6 +714,8 @@ void PbftManager::initializeVotedValueTimeouts_() {
     last_soft_voted_value_ = soft_voted_block_for_this_round_.first;
   }
 }
+
+void PbftManager::setLastSoftVotedValue(blk_hash_t soft_voted_value) { checkSoftVotedValueChange_(soft_voted_value); }
 
 void PbftManager::checkSoftVotedValueChange_(blk_hash_t const new_soft_voted_value) {
   if (new_soft_voted_value != last_soft_voted_value_) {
@@ -1510,6 +1595,10 @@ bool PbftManager::giveUpSoftVotedBlock_() {
     LOG(log_dg_) << "Have been waiting " << elapsed_wait_soft_voted_block_in_ms << "ms for soft voted block "
                  << last_soft_voted_value_ << ", giving up on this value.";
     return true;
+  } else {
+    LOG(log_tr_) << "Have only been waiting " << elapsed_wait_soft_voted_block_in_ms << "ms for soft voted block "
+                 << last_soft_voted_value_ << "(after " << MAX_WAIT_FOR_SOFT_VOTED_BLOCK_STEPS * 2 * LAMBDA_ms
+                 << "ms will give up on this value)";
   }
 
   return false;
@@ -1526,7 +1615,7 @@ bool PbftManager::giveUpNextVotedBlock_() {
   }
 
   if (previous_round_next_voted_value_ == last_soft_voted_value_ && giveUpSoftVotedBlock_()) {
-    LOG(log_tr_) << "Givign up next voted value " << previous_round_next_voted_value_
+    LOG(log_tr_) << "Giving up next voted value " << previous_round_next_voted_value_
                  << " because giving up soft voted value.";
     return true;
   }
@@ -1557,7 +1646,9 @@ bool PbftManager::giveUpNextVotedBlock_() {
     }
     // Read from DB pushing into unverified queue
     pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
-  } else {
+  }
+
+  if (pbft_block) {
     // Have a block, but is it valid?
     if (!checkPbftBlockValid_(block_hash)) {
       // Received the block, but not valid

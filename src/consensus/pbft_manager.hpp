@@ -16,8 +16,8 @@
 #define NULL_BLOCK_HASH blk_hash_t(0)
 #define POLLING_INTERVAL_ms 100  // milliseconds...
 #define MAX_STEPS 13
-#define MAX_WAIT_FOR_SOFT_VOTED_BLOCK_STEPS 30
-#define MAX_WAIT_FOR_NEXT_VOTED_BLOCK_STEPS 30
+#define MAX_WAIT_FOR_SOFT_VOTED_BLOCK_STEPS 20
+#define MAX_WAIT_FOR_NEXT_VOTED_BLOCK_STEPS 20
 
 namespace taraxa {
 class FullNode;
@@ -62,6 +62,7 @@ class PbftManager {
 
   std::pair<bool, uint64_t> getDagBlockPeriod(blk_hash_t const &hash);
   uint64_t getPbftRound() const;
+  uint64_t getPbftStep() const;
   void setPbftRound(uint64_t const round);
   size_t getSortitionThreshold() const;
   size_t getTwoTPlusOne() const;
@@ -80,6 +81,9 @@ class PbftManager {
       std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>> trx_overlap_table);
   size_t getPbftCommitteeSize() const { return COMMITTEE_SIZE; }
   u_long getPbftInitialLambda() const { return LAMBDA_ms_MIN; }
+  void setLastSoftVotedValue(blk_hash_t soft_voted_value);
+  void resume();
+  void resumeSingleState();
 
  private:
   // DPOS
@@ -91,6 +95,10 @@ class PbftManager {
   void sleep_();
 
   void initialState_();
+  void continuousOperation_();
+  // This one is for tests only...
+  void doNextState_();
+
   void setNextState_();
   void setFilterState_();
   void setCertifyState_();
