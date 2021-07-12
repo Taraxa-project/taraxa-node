@@ -11,6 +11,7 @@
 #include "config/config.hpp"
 #include "consensus/vote.hpp"
 #include "dag/dag_block_manager.hpp"
+#include "network/packet_types.hpp"
 #include "packets_stats.hpp"
 #include "peers_state.hpp"
 #include "syncing_state.hpp"
@@ -58,7 +59,7 @@ struct TaraxaCapability : virtual CapabilityFace {
 
   std::string name() const override { return "taraxa"; }
   unsigned version() const override;
-  unsigned messageCount() const override { return PacketCount; }
+  unsigned messageCount() const override { return SubprotocolPacketType::PacketCount; }
   void onConnect(weak_ptr<Session> session, u256 const &) override;
   void interpretCapabilityPacket(weak_ptr<Session> session, unsigned _id, RLP const &_r) override;
   void onDisconnect(NodeID const &_nodeID) override;
