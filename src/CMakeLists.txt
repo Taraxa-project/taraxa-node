@@ -39,6 +39,11 @@ set(SOURCES
         network/rpc/eth/data.hpp
         network/network.hpp
         network/packets_stats.hpp
+        network/packets_processor/thread_pool.hpp
+        network/packets_processor/priority_queue.hpp
+        network/packets_processor/packets_queue.hpp
+        network/packets_processor/packet_data.hpp
+        network/packet_types.hpp
         node/full_node.hpp
         storage/db_storage.hpp
         transaction_manager/transaction_order_manager.hpp
@@ -118,7 +123,8 @@ set(SOURCES
         util/jsoncpp.cpp
         util/util.cpp
         util/thread_pool.cpp
-        )
+        network/packets_processor/priority_queue.cpp
+        network/packets_processor/packets_queue.cpp)
 
 add_subdirectory(network/rpc)
 

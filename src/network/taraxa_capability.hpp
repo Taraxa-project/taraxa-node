@@ -11,6 +11,7 @@
 #include "config/config.hpp"
 #include "consensus/vote.hpp"
 #include "dag/dag_block_manager.hpp"
+#include "network/packet_types.hpp"
 #include "packets_stats.hpp"
 #include "syncing_state.hpp"
 #include "taraxa_peer.hpp"
@@ -22,27 +23,6 @@ namespace taraxa {
 using namespace std;
 using namespace dev;
 using namespace dev::p2p;
-
-enum SubprotocolPacketType : ::byte {
-
-  StatusPacket = 0x0,
-  NewBlockPacket,
-  NewBlockHashPacket,
-  GetNewBlockPacket,
-  GetBlocksPacket,
-  BlocksPacket,
-  TransactionPacket,
-  TestPacket,
-  PbftVotePacket,
-  GetPbftNextVotes,
-  PbftNextVotesPacket,
-  NewPbftBlockPacket,
-  GetPbftBlockPacket,
-  PbftBlockPacket,
-  SyncedPacket,
-  SyncedResponsePacket,
-  PacketCount
-};
 
 enum GetBlocksPacketRequestType : ::byte {
 
@@ -61,7 +41,7 @@ struct TaraxaCapability : virtual CapabilityFace {
 
   std::string name() const override { return "taraxa"; }
   unsigned version() const override;
-  unsigned messageCount() const override { return PacketCount; }
+  unsigned messageCount() const override { return SubprotocolPacketType::PacketCount; }
   void onConnect(weak_ptr<Session> session, u256 const &) override;
   void interpretCapabilityPacket(weak_ptr<Session> session, unsigned _id, RLP const &_r) override;
   void onDisconnect(NodeID const &_nodeID) override;
