@@ -425,6 +425,7 @@ jobs:
            - docker-cache/build:
               command: |
                docker build -t ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} \
+                 --cache-from=${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} \
                  --target build .
            - docker-cache/tag: 
                tags: >-
