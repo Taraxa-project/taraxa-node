@@ -60,6 +60,9 @@ TEST_F(NetworkTest, transfer_block) {
 
   taraxa::thisThreadSleepForSeconds(1);
 
+  nw1->setPendingPeersToReady();
+  nw2->setPendingPeersToReady();
+
   for (auto i = 0; i < 1; ++i) {
     nw2->sendBlock(nw1->getNodeId(), blk);
   }
@@ -196,9 +199,12 @@ TEST_F(NetworkTest, transfer_transaction) {
   nw2->start();
 
   EXPECT_HAPPENS({10s, 200ms}, [&](auto& ctx) {
+    nw1->setPendingPeersToReady();
+    nw2->setPendingPeersToReady();
     WAIT_EXPECT_EQ(ctx, nw1->getPeerCount(), 1)
     WAIT_EXPECT_EQ(ctx, nw2->getPeerCount(), 1)
   });
+
   auto nw1_nodeid = nw1->getNodeId();
   auto nw2_nodeid = nw2->getNodeId();
   EXPECT_NE(nw1->getPeer(nw2_nodeid), nullptr);
@@ -232,6 +238,9 @@ TEST_F(NetworkTest, save_network) {
     nw3->start();
 
     EXPECT_HAPPENS({120s, 500ms}, [&](auto& ctx) {
+      nw1->setPendingPeersToReady();
+      nw2->setPendingPeersToReady();
+      nw3->setPendingPeersToReady();
       WAIT_EXPECT_EQ(ctx, nw1->getPeerCount(), 2)
       WAIT_EXPECT_EQ(ctx, nw2->getPeerCount(), 2)
       WAIT_EXPECT_EQ(ctx, nw3->getPeerCount(), 2)
@@ -667,7 +676,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_1) {
     // Stop PBFT manager, that will place vote
     nodes[i]->getPbftManager()->stop();
   }
-  EXPECT_TRUE(wait_connect(nodes) && wait_inital_status_packet_passed(nodes));
+  EXPECT_TRUE(wait_connect(nodes));
 
   auto& node1 = nodes[0];
   auto& node2 = nodes[1];
@@ -724,7 +733,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
     // Stop PBFT manager, that will place vote
     nodes[i]->getPbftManager()->stop();
   }
-  EXPECT_TRUE(wait_connect(nodes) && wait_inital_status_packet_passed(nodes));
+  EXPECT_TRUE(wait_connect(nodes));
 
   auto& node1 = nodes[0];
   auto& node2 = nodes[1];
