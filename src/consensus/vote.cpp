@@ -144,7 +144,8 @@ void VoteManager::addUnverifiedVote(taraxa::Vote const& vote) {
       unverified_votes_[pbft_round] = votes;
     }
   }
-  LOG(log_dg_) << "Add unverified vote " << vote;
+  LOG(log_nf_) << "Add unverified vote " << vote.getHash();
+  LOG(log_dg_) << "Added unverified vote: " << vote;
 }
 
 void VoteManager::addUnverifiedVotes(std::vector<Vote> const& votes) {
@@ -242,7 +243,8 @@ void VoteManager::addVerifiedVote(Vote const& vote) {
       verified_votes_[pbft_round] = votes;
     }
   }
-  LOG(log_dg_) << "Add verified vote " << vote;
+  LOG(log_nf_) << "Add verified vote: " << vote.getHash();
+  LOG(log_dg_) << "Added verified vote: " << vote;
 }
 
 // Move all verified votes back to unverified queue/DB. Since PBFT chain pushed new blocks, that will affect DPOS

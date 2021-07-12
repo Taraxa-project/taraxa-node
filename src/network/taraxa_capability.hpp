@@ -61,7 +61,7 @@ class TaraxaPeer : public boost::noncopyable {
         known_blocks_(10000, 1000),
         known_transactions_(100000, 10000),
         known_pbft_blocks_(10000, 1000),
-        known_votes_(10000, 1000) {}
+        known_votes_(100000, 1000) {}
 
   bool isBlockKnown(blk_hash_t const &_hash) const { return known_blocks_.count(_hash); }
   void markBlockAsKnown(blk_hash_t const &_hash) { known_blocks_.insert(_hash); }
@@ -87,6 +87,8 @@ class TaraxaPeer : public boost::noncopyable {
   }
 
   void setAlive() { alive_check_count_ = 0; }
+
+  bool readyToReceivePackets() { return received_initial_status_ && sent_initial_status_; }
 
   std::atomic<bool> received_initial_status_ = false;
   std::atomic<bool> sent_initial_status_ = false;
@@ -135,7 +137,7 @@ struct TaraxaCapability : virtual CapabilityFace {
     syncing_tp_.stop();
   }
 
-  void sealAndSend(NodeID const &nodeID, unsigned packet_type, RLPStream rlp);
+  bool sealAndSend(NodeID const &nodeID, unsigned packet_type, RLPStream rlp);
   bool pbft_syncing() const { return syncing_.load(); }
 
   void syncPeerPbft(NodeID const &_nodeID, unsigned long height_to_sync);
@@ -146,7 +148,7 @@ struct TaraxaCapability : virtual CapabilityFace {
                      GetBlocksPacketRequestType mode = MissingHashes);
   void interpretCapabilityPacketImpl(NodeID const &_nodeID, unsigned _id, RLP const &_r, PacketStats &packet_stats);
   void sendTestMessage(NodeID const &_id, int _x, std::vector<char> const &data);
-  void sendStatus(NodeID const &_id, bool _initial);
+  bool sendStatus(NodeID const &_id, bool _initial);
   void onNewBlockReceived(DagBlock block, std::vector<Transaction> transactions);
   void onNewBlockVerified(DagBlock const &block);
   void onNewTransactions(std::vector<taraxa::bytes> const &transactions, bool fromNetwork);
@@ -177,15 +179,15 @@ struct TaraxaCapability : virtual CapabilityFace {
 
   // PBFT
   void onNewPbftVote(taraxa::Vote const &vote);
-  void sendPbftVote(NodeID const &_id, taraxa::Vote const &vote);
+  void sendPbftVote(NodeID const &peerID, taraxa::Vote const &vote);
   void onNewPbftBlock(taraxa::PbftBlock const &pbft_block);
-  void sendPbftBlock(NodeID const &_id, taraxa::PbftBlock const &pbft_block, uint64_t const &pbft_chain_size);
-  void requestPbftBlocks(NodeID const &_id, size_t height_to_sync);
-  void sendPbftBlocks(NodeID const &_id, size_t height_to_sync, size_t blocks_to_transfer);
+  void sendPbftBlock(NodeID const &peerID, taraxa::PbftBlock const &pbft_block, uint64_t const &pbft_chain_size);
+  void requestPbftBlocks(NodeID const &peerID, size_t height_to_sync);
+  void sendPbftBlocks(NodeID const &peerID, size_t height_to_sync, size_t blocks_to_transfer);
   void syncPbftNextVotes(uint64_t const pbft_round, size_t const pbft_previous_round_next_votes_size);
   void requestPbftNextVotes(NodeID const &peerID, uint64_t const pbft_round,
                             size_t const pbft_previous_round_next_votes_size);
-  void sendPbftNextVotes(NodeID const &peerID);
+  void sendPbftNextVotes(NodeID const &peerID, std::vector<Vote> const &send_next_votes_bundle);
   void broadcastPreviousRoundNextVotesBundle();
 
   // Peers
