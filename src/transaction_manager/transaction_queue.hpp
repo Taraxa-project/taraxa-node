@@ -12,7 +12,6 @@ class FullNode;
 class TransactionQueue {
  public:
   enum class VerifyMode : uint8_t { normal, skip_verify_sig };
-  using listIter = std::list<Transaction>::iterator;
   TransactionQueue(addr_t node_addr) { LOG_OBJECTS_CREATE("TRXQU"); }
   ~TransactionQueue() { stop(); }
 
@@ -29,18 +28,17 @@ class TransactionQueue {
 
   Transaction top();
   void pop();
-  std::pair<trx_hash_t, listIter> getUnverifiedTransaction();
+  std::pair<trx_hash_t, std::shared_ptr<Transaction>> getUnverifiedTransaction();
   void removeTransactionFromBuffer(trx_hash_t const &hash);
-  void addTransactionToVerifiedQueue(trx_hash_t const &hash, std::list<Transaction>::iterator);
+  void addTransactionToVerifiedQueue(trx_hash_t const &hash, std::shared_ptr<Transaction> trx);
   std::unordered_map<trx_hash_t, Transaction> moveVerifiedTrxSnapShot(uint16_t max_trx_to_pack = 0);
   std::unordered_map<trx_hash_t, Transaction> getVerifiedTrxSnapShot() const;
   std::pair<size_t, size_t> getTransactionQueueSize() const;
+  size_t getTransactionBufferSize() const;
   std::vector<Transaction> getNewVerifiedTrxSnapShot();
   void removeBlockTransactionsFromQueue(vec_trx_t const &all_block_trxs);
   unsigned long getVerifiedTrxCount() const;
   std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash) const;
-
-  std::pair<size_t, size_t> getTransactionBufferSize() const;
 
  private:
   using uLock = boost::unique_lock<boost::shared_mutex>;
@@ -51,11 +49,10 @@ class TransactionQueue {
   std::atomic<bool> stopped_ = true;
   bool new_verified_transactions_ = true;
 
-  std::list<Transaction> trx_buffer_;
-  std::unordered_map<trx_hash_t, listIter> queued_trxs_;  // all trx
-  std::unordered_map<trx_hash_t, listIter> verified_trxs_;
+  std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> queued_trxs_;  // all trx
+  std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> verified_trxs_;
   mutable boost::shared_mutex main_shared_mutex_;
-  std::deque<std::pair<trx_hash_t, listIter>> unverified_hash_qu_;
+  std::deque<std::pair<trx_hash_t, std::shared_ptr<Transaction>>> unverified_hash_qu_;
   mutable boost::shared_mutex shared_mutex_for_unverified_qu_;
   boost::condition_variable_any cond_for_unverified_qu_;
 
