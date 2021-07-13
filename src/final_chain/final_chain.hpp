@@ -30,7 +30,7 @@ class FinalChain {
   virtual ~FinalChain() = default;
 
   using finalize_precommit_ext = std::function<void(FinalizationResult const&, DB::Batch&)>;
-  virtual future<shared_ptr<FinalizationResult const>> finalize(NewBlock new_blk, finalize_precommit_ext = {}) = 0;
+  virtual future<shared_ptr<FinalizationResult>> finalize(NewBlock new_blk, finalize_precommit_ext = {}) = 0;
 
   virtual shared_ptr<BlockHeader const> block_header(optional<EthBlockNumber> n = {}) const = 0;
   virtual EthBlockNumber last_block_number() const = 0;
@@ -73,7 +73,7 @@ class FinalChain {
   }
 };
 
-unique_ptr<FinalChain> NewFinalChain(shared_ptr<DB> const& db, Config const& config, Opts const& opts = {},
+shared_ptr<FinalChain> NewFinalChain(shared_ptr<DB> const& db, Config const& config, Opts const& opts = {},
                                      addr_t const& node_addr = {});
 
 }  // namespace taraxa::final_chain

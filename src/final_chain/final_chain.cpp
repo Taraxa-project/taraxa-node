@@ -75,9 +75,9 @@ class FinalChainImpl final : public FinalChain {
     }
   }
 
-  future<shared_ptr<FinalizationResult const>> finalize(NewBlock new_blk,
-                                                        finalize_precommit_ext precommit_ext = {}) override {
-    auto p = make_shared<promise<shared_ptr<FinalizationResult const>>>();
+  future<shared_ptr<FinalizationResult>> finalize(NewBlock new_blk,
+                                                  finalize_precommit_ext precommit_ext = {}) override {
+    auto p = make_shared<promise<shared_ptr<FinalizationResult>>>();
     executor_([this, new_blk = move(new_blk), precommit_ext = move(precommit_ext), p]() mutable {
       p->set_value(finalize_(move(new_blk), precommit_ext));
     });
@@ -436,9 +436,9 @@ class FinalChainImpl final : public FinalChain {
   };
 };
 
-unique_ptr<FinalChain> NewFinalChain(shared_ptr<DB> const& db, Config const& config, Opts const& opts,
+shared_ptr<FinalChain> NewFinalChain(shared_ptr<DB> const& db, Config const& config, Opts const& opts,
                                      addr_t const& node_addr) {
-  return make_unique<FinalChainImpl>(db, config, opts, node_addr);
+  return make_shared<FinalChainImpl>(db, config, opts, node_addr);
 }
 
 }  // namespace taraxa::final_chain

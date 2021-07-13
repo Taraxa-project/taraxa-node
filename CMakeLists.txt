@@ -78,7 +78,7 @@ else ()
 endif ()
 
 # Mac OS
-set(CMAKE_MACOSX_RPATH ON)
+set(CMAKE_MACOSX_RPATH OFF)
 
 # Get the latest abbreviated commit hash of the working branch
 execute_process(
