@@ -423,7 +423,12 @@ jobs:
               command: |
                 docker build -t ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} .
            - run: cd .. && mv project project-old
-           - checkout            
+           - checkout          
+           - run:
+              name: Checkout Submodules
+              command: |
+               git submodule sync
+               git submodule update --init --recursive --jobs 8             
            - docker-cache/build:
               command: |
                docker build -t ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} \
