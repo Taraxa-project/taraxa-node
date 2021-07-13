@@ -253,6 +253,8 @@ TEST_F(NetworkTest, save_network) {
   nw3->start();
 
   EXPECT_HAPPENS({120s, 500ms}, [&](auto& ctx) {
+    nw2->setPendingPeersToReady();
+    nw3->setPendingPeersToReady();
     WAIT_EXPECT_EQ(ctx, nw2->getPeerCount(), 1)
     WAIT_EXPECT_EQ(ctx, nw3->getPeerCount(), 1)
   });
@@ -601,7 +603,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
 }
 
 // Test PBFT next votes sycning when node is behind of PBFT round with peer
-TEST_F(NetworkTest, pbft_next_votes_sync_in_behind_round) {
+TEST_F(NetworkTest, DISABLED_pbft_next_votes_sync_in_behind_round) {
   auto node_cfgs = make_node_cfgs<20>(2);
   FullNode::Handle node1(node_cfgs[0], true);
 
