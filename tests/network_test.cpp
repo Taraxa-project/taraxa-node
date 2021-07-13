@@ -141,7 +141,7 @@ TEST_F(NetworkTest, send_pbft_block) {
                  [&](auto& ctx) { WAIT_EXPECT_EQ(ctx, nw1->getPeer(node2_id)->pbft_chain_size_, chain_size) });
 }
 
-TEST_F(NetworkTest, DISABLED_sync_large_pbft_block) {
+TEST_F(NetworkTest, sync_large_pbft_block) {
   const uint32_t MAX_PACKET_SIZE = 15 * 1024 * 1024;  // 15 MB -> 15 * 1024 * 1024 B
   auto node_cfgs = make_node_cfgs<5>(2);
 

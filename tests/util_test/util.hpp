@@ -199,7 +199,11 @@ struct BaseTest : virtual WithDataDir {
   BaseTest() : WithDataDir() {
     for (auto& cfg : *node_cfgs_original) {
       remove_all(cfg.data_path);
-      create_directories(cfg.data_path);
+    }
+  }
+  void TearDown() override {
+    for (auto& cfg : *node_cfgs_original) {
+      remove_all(cfg.data_path);
     }
   }
   virtual ~BaseTest(){};
