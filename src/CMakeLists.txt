@@ -10,6 +10,7 @@ set(SOURCES
         config/config_exception.hpp
         config/chain_config.hpp
         config/config.hpp
+        config/version.hpp
         consensus/pbft_manager.hpp
         consensus/block_proposer.hpp
         consensus/vote.hpp
@@ -38,7 +39,6 @@ set(SOURCES
         network/packets_stats.hpp
         node/full_node.hpp
         storage/db_storage.hpp
-        taraxad/taraxad_version.hpp
         transaction_manager/transaction_order_manager.hpp
         transaction_manager/transaction.hpp
         transaction_manager/transaction_queue.hpp

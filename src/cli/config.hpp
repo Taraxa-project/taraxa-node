@@ -9,7 +9,7 @@ namespace taraxa::cli {
 
 class Config {
  public:
-  Config(int argc, const char* argv[], const std::string& version);
+  Config(int argc, const char* argv[]);
 
   ~Config() {}
 

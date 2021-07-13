@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "cli/tools.hpp"
+#include "config/version.hpp"
 
 using namespace std;
 
@@ -10,7 +11,7 @@ namespace bpo = boost::program_options;
 
 namespace taraxa::cli {
 
-Config::Config(int argc, const char* argv[], const string& taraxa_version) {
+Config::Config(int argc, const char* argv[]) {
   boost::program_options::options_description main_options("OPTIONS");
   boost::program_options::options_description node_command_options("NODE COMMAND OPTIONS");
   boost::program_options::options_description allowed_options("Allowed options");
@@ -114,7 +115,7 @@ Config::Config(int argc, const char* argv[], const string& taraxa_version) {
     cout << "NAME:\n  "
             "taraxad - Taraxa blockchain full node implementation\n"
             "VERSION:\n  "
-         << taraxa_version << "\nUSAGE:\n  taraxad [options]\n";
+         << TARAXA_VERSION << "\nUSAGE:\n  taraxad [options]\n";
     cout << main_options << endl;
     cout << node_command_options << endl;
     // If help message requested, ignore any additional commands
@@ -122,7 +123,7 @@ Config::Config(int argc, const char* argv[], const string& taraxa_version) {
     return;
   }
   if (version) {
-    cout << taraxa_version << endl;
+    cout << TARAXA_VERSION << endl;
     // If version requested, ignore any additional commands
     command.clear();
     return;

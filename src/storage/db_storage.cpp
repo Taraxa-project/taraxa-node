@@ -56,17 +56,17 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
   dag_blocks_count_.store(getStatusField(StatusDbField::DagBlkCount));
   dag_edge_count_.store(getStatusField(StatusDbField::DagEdgeCount));
 
-  auto major_version = getStatusField(StatusDbField::DbMajorVersion);
-  auto minor_version = getStatusField(StatusDbField::DbMinorVersion);
+  uint32_t major_version = getStatusField(StatusDbField::DbMajorVersion);
+  uint32_t minor_version = getStatusField(StatusDbField::DbMinorVersion);
   if (major_version == 0 && minor_version == 0) {
-    saveStatusField(StatusDbField::DbMajorVersion, FullNode::c_database_major_version);
-    saveStatusField(StatusDbField::DbMinorVersion, FullNode::c_database_minor_version);
+    saveStatusField(StatusDbField::DbMajorVersion, TARAXA_DB_MAJOR_VERSION);
+    saveStatusField(StatusDbField::DbMinorVersion, TARAXA_DB_MINOR_VERSION);
   } else {
-    if (major_version != FullNode::c_database_major_version) {
+    if (major_version != TARAXA_DB_MAJOR_VERSION) {
       throw DbException(string("Database version mismatch. Version on disk ") +
-                        getFormattedVersion(major_version, minor_version) + " Node version:" +
-                        getFormattedVersion(FullNode::c_database_major_version, FullNode::c_database_minor_version));
-    } else if (minor_version != FullNode::c_database_minor_version) {
+                        getFormattedVersion({major_version, minor_version}) +
+                        " Node version:" + getFormattedVersion({TARAXA_DB_MAJOR_VERSION, TARAXA_DB_MINOR_VERSION}));
+    } else if (minor_version != TARAXA_DB_MINOR_VERSION) {
       minor_version_changed_ = true;
     }
   }
