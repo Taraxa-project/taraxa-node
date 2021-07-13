@@ -45,7 +45,7 @@ class PbftManager {
   using time_point = std::chrono::system_clock::time_point;
   using vrf_sk_t = vrf_wrapper::vrf_sk_t;
 
-  PbftManager(PbftConfig const &conf, std::string const &genesis, addr_t node_addr, std::shared_ptr<DbStorage> db,
+  PbftManager(PbftConfig const &conf, blk_hash_t const &genesis, addr_t node_addr, std::shared_ptr<DbStorage> db,
               std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
               std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr, std::shared_ptr<DagManager> dag_mgr,
               std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<FinalChain> final_chain, secret_t node_sk,
@@ -222,7 +222,7 @@ class PbftManager {
   // 2t+1 minimum number of votes for consensus
   size_t TWO_T_PLUS_ONE = 0;
 
-  std::string dag_genesis_;
+  blk_hash_t dag_genesis_;
 
   std::condition_variable stop_cv_;
   std::mutex stop_mtx_;

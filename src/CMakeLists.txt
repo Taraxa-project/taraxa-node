@@ -73,7 +73,6 @@ set(SOURCES
         cli/config.cpp
         cli/tools.cpp
         common/constants.cpp
-        common/types.cpp
         config/chain_config.cpp
         config/config.cpp
         consensus/pbft_manager.cpp

@@ -82,8 +82,8 @@ void FullNode::init() {
   register_s_ptr(final_chain_);
   emplace(trx_mgr_, conf_, node_addr, db_, log_time_);
 
-  auto genesis_hash = conf_.chain.dag_genesis_block.getHash().toString();
-  auto dag_genesis_hash_from_db = db_->getBlocksByLevel(0);
+  auto genesis_hash = conf_.chain.dag_genesis_block.getHash();
+  auto dag_genesis_hash_from_db = blk_hash_t(db_->getBlocksByLevel(0));
   if (genesis_hash != dag_genesis_hash_from_db) {
     LOG(log_er_) << "The DAG genesis block hash " << genesis_hash << " in config is different with "
                  << dag_genesis_hash_from_db << " in DB";

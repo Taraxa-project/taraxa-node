@@ -19,7 +19,7 @@
 namespace taraxa {
 using vrf_output_t = vrf_wrapper::vrf_output_t;
 
-PbftManager::PbftManager(PbftConfig const &conf, std::string const &genesis, addr_t node_addr,
+PbftManager::PbftManager(PbftConfig const &conf, blk_hash_t const &genesis, addr_t node_addr,
                          std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
                          std::shared_ptr<VoteManager> vote_mgr,
                          std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr, std::shared_ptr<DagManager> dag_mgr,
@@ -53,7 +53,7 @@ void PbftManager::start() {
   if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
-  std::vector<std::string> ghost;
+  std::vector<blk_hash_t> ghost;
   dag_mgr_->getGhostPath(dag_genesis_, ghost);
   while (ghost.empty()) {
     LOG(log_dg_) << "GHOST is empty. DAG initialization has not done. Sleep 100ms";
@@ -1050,17 +1050,16 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
   }
 
   LOG(log_dg_) << "Into propose PBFT block";
-  std::string last_period_dag_anchor_block_hash;
+  blk_hash_t last_period_dag_anchor_block_hash;
   auto last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
   if (last_pbft_block_hash) {
-    last_period_dag_anchor_block_hash =
-        pbft_chain_->getPbftBlockInChain(last_pbft_block_hash).getPivotDagBlockHash().toString();
+    last_period_dag_anchor_block_hash = pbft_chain_->getPbftBlockInChain(last_pbft_block_hash).getPivotDagBlockHash();
   } else {
     // First PBFT pivot block
     last_period_dag_anchor_block_hash = dag_genesis_;
   }
 
-  std::vector<std::string> ghost;
+  std::vector<blk_hash_t> ghost;
   dag_mgr_->getGhostPath(last_period_dag_anchor_block_hash, ghost);
   LOG(log_dg_) << "GHOST size " << ghost.size();
   // Looks like ghost never empty, at lease include the last period dag anchor block
@@ -1079,11 +1078,11 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
       }
       ghost_index += 1;
     }
-    dag_block_hash = blk_hash_t(ghost[ghost_index]);
+    dag_block_hash = ghost[ghost_index];
   } else {
-    dag_block_hash = blk_hash_t(ghost[DAG_BLOCKS_SIZE - 1]);
+    dag_block_hash = ghost[DAG_BLOCKS_SIZE - 1];
   }
-  if (dag_block_hash.toString() == dag_genesis_) {
+  if (dag_block_hash == dag_genesis_) {
     LOG(log_dg_) << "No new DAG blocks generated. DAG only has genesis " << dag_block_hash
                  << " PBFT propose NULL_BLOCK_HASH";
     return std::make_pair(NULL_BLOCK_HASH, true);
@@ -1092,7 +1091,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
   // dag blocks generated since last round. In that case PBFT proposer should
   // propose NULL BLOCK HASH as their value and not produce a new block. In
   // practice this should never happen
-  if (dag_block_hash.toString() == last_period_dag_anchor_block_hash) {
+  if (dag_block_hash == last_period_dag_anchor_block_hash) {
     LOG(log_dg_) << "Last period DAG anchor block hash " << dag_block_hash
                  << " No new DAG blocks generated, PBFT propose NULL_BLOCK_HASH";
     LOG(log_dg_) << "Ghost: " << ghost;
@@ -1103,7 +1102,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
   addr_t beneficiary = node_addr_;
   // generate generate pbft block
   auto pbft_block =
-      s_ptr(new PbftBlock(last_pbft_block_hash, dag_block_hash, propose_pbft_period, beneficiary, node_sk_));
+      std::make_shared<PbftBlock>(last_pbft_block_hash, dag_block_hash, propose_pbft_period, beneficiary, node_sk_);
   // push pbft block
   pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
   // broadcast pbft block
