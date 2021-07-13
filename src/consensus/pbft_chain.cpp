@@ -137,9 +137,9 @@ std::ostream& operator<<(std::ostream& strm, PbftBlockCert const& b) {
   return strm;
 }
 
-PbftChain::PbftChain(std::string const& dag_genesis_hash, addr_t node_addr, std::shared_ptr<DbStorage> db)
+PbftChain::PbftChain(blk_hash_t const& dag_genesis_hash, addr_t node_addr, std::shared_ptr<DbStorage> db)
     : head_hash_(blk_hash_t(0)),
-      dag_genesis_hash_(blk_hash_t(dag_genesis_hash)),
+      dag_genesis_hash_(dag_genesis_hash),
       size_(0),
       last_pbft_block_hash_(blk_hash_t(0)),
       db_(move(db)) {

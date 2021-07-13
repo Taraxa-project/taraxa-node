@@ -116,9 +116,7 @@ void BlockProposer::stop() {
 }
 
 bool BlockProposer::getLatestPivotAndTips(blk_hash_t& pivot, vec_blk_t& tips) {
-  std::string pivot_string;
-  std::vector<std::string> tips_string;
-  bool ok = dag_mgr_->getLatestPivotAndTips(pivot_string, tips_string);
+  bool ok = dag_mgr_->getLatestPivotAndTips(pivot, tips);
   if (ok) {
     LOG(log_nf_) << "BlockProposer: pivot: " << pivot.toString() << ", tip size = " << tips.size() << std::endl;
     LOG(log_tr_) << "Tips: " << tips;
@@ -128,10 +126,6 @@ bool BlockProposer::getLatestPivotAndTips(blk_hash_t& pivot, vec_blk_t& tips) {
   }
 
   LOG(log_time_) << "Pivot and Tips retrieved at: " << getCurrentTimeMilliSeconds();
-  pivot = blk_hash_t(pivot_string);
-  tips.clear();
-  std::transform(tips_string.begin(), tips_string.end(), std::back_inserter(tips),
-                 [](const std::string& item) { return blk_hash_t(item); });
   return ok;
 }
 
@@ -159,12 +153,12 @@ bool BlockProposer::getShardedTrxs(vec_trx_t& sharded_trxs) {
 
 blk_hash_t BlockProposer::getProposeAnchor() const {
   auto anchors = dag_mgr_->getAnchors();
-  if (anchors.first == "") {
+  if (anchors.first.isZero()) {
     // Only includes DAG genesis
-    return blk_hash_t(anchors.second);
+    return anchors.second;
   } else {
     // return second to last anchor
-    return blk_hash_t(anchors.first);
+    return anchors.first;
   }
 }
 
@@ -181,7 +175,7 @@ level_t BlockProposer::getProposeLevel(blk_hash_t const& pivot, vec_blk_t const&
   for (auto const& t : tips) {
     auto tip_blk = dag_blk_mgr_->getDagBlock(t);
     if (!tip_blk) {
-      LOG(log_er_) << "Cannot find tip dag block " << blk_hash_t(t);
+      LOG(log_er_) << "Cannot find tip dag block " << t;
       return 0;
     }
     max_level = std::max(tip_blk->getLevel(), max_level);

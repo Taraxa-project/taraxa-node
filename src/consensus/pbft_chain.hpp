@@ -77,7 +77,7 @@ std::ostream& operator<<(std::ostream& strm, PbftBlockCert const& b);
 
 class PbftChain {
  public:
-  explicit PbftChain(std::string const& dag_genesis_hash, addr_t node_addr, std::shared_ptr<DbStorage> db);
+  explicit PbftChain(blk_hash_t const& dag_genesis_hash, addr_t node_addr, std::shared_ptr<DbStorage> db);
 
   blk_hash_t getHeadHash() const;
   uint64_t getPbftChainSize() const;
