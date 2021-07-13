@@ -422,6 +422,8 @@ jobs:
            - docker-cache/build:
               command: |
                 docker build -t ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} .
+           - run: cd .. && mv project project-old
+           - checkout            
            - docker-cache/build:
               command: |
                docker build -t ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} \
