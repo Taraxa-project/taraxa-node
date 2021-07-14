@@ -266,6 +266,8 @@ struct TaraxaCapability : virtual CapabilityFace {
   const uint16_t MAX_NETWORK_QUEUE_TO_DROP_SYNCING = 10;
   const uint16_t MAX_TIME_TO_WAIT_FOR_QUEUE_TO_CLEAR_MS = 2000;
 
+  static constexpr uint16_t INITIAL_STATUS_PACKET_ITEM_COUNT = 10;
+
   LOG_OBJECTS_DEFINE
   LOG_OBJECTS_DEFINE_SUB(pbft_sync)
   LOG_OBJECTS_DEFINE_SUB(dag_sync)

@@ -1,13 +1,25 @@
 cmake_minimum_required(VERSION 3.16)
 
-# Get current version of the project
-execute_process(COMMAND ${CMAKE_SOURCE_DIR}/config/version/get_version.sh OUTPUT_VARIABLE TARAXA_VESION OUTPUT_STRIP_TRAILING_WHITESPACE)
+# Set current version of the project
+set(TARAXA_MAJOR_VERSION 1)
+set(TARAXA_MINOR_VERSION 9)
+set(TARAXA_PATCH_VERSION 1)
+set(TARAXA_VERSION ${TARAXA_MAJOR_VERSION}.${TARAXA_MINOR_VERSION}.${TARAXA_PATCH_VERSION})
+
+# Any time a change in the network protocol is introduced this version should be increased
+set(TARAXA_NET_VERSION 11)
+# Major version is modified when DAG blocks, pbft blocks and any basic building blocks of our blockchan is modified
+# in the db
+set(TARAXA_DB_MAJOR_VERSION 1)
+# Minor version should be modified when changes to the database are made in the tables that can be rebuilt from the
+# basic tables
+set(TARAXA_DB_MINOR_VERSION 2)
 
 # Defines Taraxa library target.
-project(taraxa-node VERSION ${TARAXA_VESION})
+project(taraxa-node VERSION ${TARAXA_VERSION})
 
 # Configure file with version
-configure_file(${CMAKE_SOURCE_DIR}/config/version/taraxad_version.hpp.in ${CMAKE_SOURCE_DIR}/src/taraxad/taraxad_version.hpp)
+configure_file(${CMAKE_SOURCE_DIR}/config/version/version.hpp.in ${CMAKE_SOURCE_DIR}/src/config/version.hpp)
 
 # Set project properties like C++ standard, etc...
 set(CMAKE_CXX_COMPILER g++)

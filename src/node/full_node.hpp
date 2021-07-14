@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "config/config.hpp"
+#include "config/version.hpp"
 #include "consensus/pbft_chain.hpp"
 #include "consensus/vote.hpp"
 #include "consensus/vrf_wrapper.hpp"
@@ -164,19 +165,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   };
 
   void rebuildDb();
-
-  static constexpr uint16_t c_node_major_version = 1;
-  static constexpr uint16_t c_node_minor_version = 9;
-
-  // Any time a change in the network protocol is introduced this version should be increased
-  static constexpr uint16_t c_network_protocol_version = 11;
-
-  // Major version is modified when DAG blocks, pbft blocks and any basic building blocks of our blockchan is modified
-  // in the db
-  static constexpr uint16_t c_database_major_version = 1;
-  // Minor version should be modified when changes to the database are made in the tables that can be rebuilt from the
-  // basic tables
-  static constexpr uint16_t c_database_minor_version = 2;
 };
 
 }  // namespace taraxa

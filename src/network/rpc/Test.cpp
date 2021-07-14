@@ -219,9 +219,9 @@ Json::Value Test::get_node_version() {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {
-      res["node_version"] = getFormattedVersion(FullNode::c_node_major_version, FullNode::c_node_minor_version);
-      res["db_version"] = getFormattedVersion(FullNode::c_database_major_version, FullNode::c_database_minor_version);
-      res["network_version"] = std::to_string(FullNode::c_network_protocol_version);
+      res["node_version"] = TARAXA_VERSION;
+      res["db_version"] = getFormattedVersion({TARAXA_DB_MAJOR_VERSION, TARAXA_DB_MINOR_VERSION});
+      res["network_version"] = std::to_string(TARAXA_NET_VERSION);
       ;
       res["build_hash"] = GIT_HASH;
       res["build_time"] = COMPILE_TIME;

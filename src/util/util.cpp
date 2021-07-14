@@ -20,12 +20,12 @@ unsigned long getCurrentTimeMilliSeconds() {
       .count();
 }
 
-// Get version with minor version with two digits
-std::string getFormattedVersion(uint32_t major, uint32_t minor) {
-  auto ret = std::to_string(major) + ".";
-  if (minor < 10) ret += "0";
-  ret += std::to_string(minor);
-  return ret;
+std::string getFormattedVersion(std::initializer_list<uint32_t> list) {
+  std::string ret;
+  for (auto elem : list) {
+    ret = std::to_string(elem) + ".";
+  }
+  return ret.substr(0, ret.size() - 1);
 }
 
 }  // namespace taraxa

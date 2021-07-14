@@ -255,7 +255,7 @@ void TaraxaCapability::interpretCapabilityPacket(weak_ptr<Session> session, unsi
   });
 }
 
-unsigned TaraxaCapability::version() const { return FullNode::c_network_protocol_version; }
+unsigned TaraxaCapability::version() const { return TARAXA_NET_VERSION; }
 
 void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsigned _id, RLP const &_r,
                                                      PacketStats &packet_stats) {
@@ -292,27 +292,27 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       break;
     }
     case StatusPacket: {
-      bool initial_status = _r.itemCount() == 9;
+      bool initial_status = _r.itemCount() == INITIAL_STATUS_PACKET_ITEM_COUNT;
 
       if (initial_status) {
         auto it = _r.begin();
         auto const network_id = (*it++).toInt<uint64_t>();
-        auto peer_dag_level = (*it++).toPositiveInt64();
+        auto const peer_dag_level = (*it++).toPositiveInt64();
         auto const genesis_hash = blk_hash_t(*it++);
-        auto peer_pbft_chain_size = (*it++).toPositiveInt64();
-        auto peer_syncing = (*it++).toInt();
-        auto peer_pbft_round = (*it++).toPositiveInt64();
-        auto peer_pbft_previous_round_next_votes_size = (*it++).toInt<unsigned>();
-        auto node_major_version = (*it++).toInt();
-        auto node_minor_version = (*it++).toInt();
+        auto const peer_pbft_chain_size = (*it++).toPositiveInt64();
+        auto const peer_syncing = (*it++).toInt();
+        auto const peer_pbft_round = (*it++).toPositiveInt64();
+        auto const peer_pbft_previous_round_next_votes_size = (*it++).toInt<unsigned>();
+        auto const node_major_version = (*it++).toInt<unsigned>();
+        auto const node_minor_version = (*it++).toInt<unsigned>();
+        auto const node_patch_version = (*it++).toInt<unsigned>();
 
         // We need logic when some different node versions might still be compatible
-        if (node_major_version != FullNode::c_node_major_version ||
-            node_minor_version != FullNode::c_node_minor_version) {
-          LOG(log_er_) << "Incorrect node version: " << getFormattedVersion(node_major_version, node_minor_version)
-                       << ", our node major version"
-                       << getFormattedVersion(FullNode::c_node_major_version, FullNode::c_node_minor_version)
-                       << ", host " << _nodeID.abridged() << " will be disconnected";
+        if (node_major_version != TARAXA_MAJOR_VERSION || node_minor_version != TARAXA_MINOR_VERSION) {
+          LOG(log_er_) << "Incorrect node version: "
+                       << getFormattedVersion({node_major_version, node_minor_version, node_patch_version})
+                       << ", our node version" << TARAXA_VERSION << ", host " << _nodeID.abridged()
+                       << " will be disconnected";
           host->disconnect(_nodeID, p2p::UserReason);
           break;
         }
@@ -1023,8 +1023,7 @@ bool TaraxaCapability::sendStatus(NodeID const &_id, bool _initial) {
     if (_initial) {
       LOG(log_dg_) << "Sending initial status message to " << _id << ", protocol version " << version()
                    << ", network id " << conf_.network_id << ", genesis " << dag_mgr_->get_genesis()
-                   << ", node major version " << FullNode::c_node_major_version << ", node minor version "
-                   << FullNode::c_node_minor_version;
+                   << ", node version " << TARAXA_VERSION;
     }
 
     auto dag_max_level = dag_mgr_->getMaxLevel();
@@ -1038,11 +1037,11 @@ bool TaraxaCapability::sendStatus(NodeID const &_id, bool _initial) {
                                  << ", previous round next votes size " << pbft_previous_round_next_votes_size;
 
     if (_initial) {
-      success =
-          sealAndSend(_id, StatusPacket,
-                      RLPStream(9) << conf_.network_id << dag_max_level << dag_mgr_->get_genesis() << pbft_chain_size
-                                   << syncing_.load() << pbft_round << pbft_previous_round_next_votes_size
-                                   << FullNode::c_node_major_version << FullNode::c_node_minor_version);
+      success = sealAndSend(_id, StatusPacket,
+                            RLPStream(INITIAL_STATUS_PACKET_ITEM_COUNT)
+                                << conf_.network_id << dag_max_level << dag_mgr_->get_genesis() << pbft_chain_size
+                                << syncing_.load() << pbft_round << pbft_previous_round_next_votes_size
+                                << TARAXA_MAJOR_VERSION << TARAXA_MINOR_VERSION << TARAXA_PATCH_VERSION);
     } else {
       success = sealAndSend(_id, StatusPacket,
                             RLPStream(5) << dag_max_level << pbft_chain_size << syncing_.load() << pbft_round
