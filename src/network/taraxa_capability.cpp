@@ -86,15 +86,15 @@ void TaraxaCapability::erasePeer(NodeID const &node_id) {
   peers_.erase(node_id);
 }
 
-std::shared_ptr<TaraxaPeer> TaraxaCapability::insertPeer(NodeID const &node_id) {
+std::shared_ptr<TaraxaPeer> TaraxaCapability::addPendingPeer(NodeID const &node_id) {
   boost::unique_lock<boost::shared_mutex> lock(peers_mutex_);
   auto ret = pending_peers_.emplace(std::make_pair(node_id, std::make_shared<TaraxaPeer>(node_id)));
   assert(ret.second);
   return ret.first->second;
 }
 
-std::shared_ptr<TaraxaPeer> TaraxaCapability::insertPendingPeer(NodeID const &node_id,
-                                                                std::shared_ptr<TaraxaPeer> peer) {
+std::shared_ptr<TaraxaPeer> TaraxaCapability::setPeerAsReadyToSendMessages(NodeID const &node_id,
+                                                                           std::shared_ptr<TaraxaPeer> peer) {
   boost::unique_lock<boost::shared_mutex> lock(peers_mutex_);
   pending_peers_.erase(node_id);
   auto ret = peers_.emplace(std::make_pair(node_id, peer));
@@ -211,7 +211,7 @@ void TaraxaCapability::onConnect(weak_ptr<Session> session, u256 const &) {
     LOG(log_nf_) << "Node " << _nodeID << " connected";
     cnt_received_messages_[_nodeID] = 0;
     test_sums_[_nodeID] = 0;
-    auto peer = insertPeer(_nodeID);
+    auto peer = addPendingPeer(_nodeID);
     sendStatus(_nodeID, true);
   });
 }
@@ -337,7 +337,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         peer->pbft_round_ = peer_pbft_round;
         peer->pbft_previous_round_next_votes_size_ = peer_pbft_previous_round_next_votes_size;
 
-        insertPendingPeer(_nodeID, peer);
+        setPeerAsReadyToSendMessages(_nodeID, peer);
 
         LOG(log_dg_) << "Received initial status message from " << _nodeID << ", network id " << network_id
                      << ", peer DAG max level " << peer->dag_level_ << ", genesis " << genesis_hash

@@ -192,8 +192,8 @@ struct TaraxaCapability : virtual CapabilityFace {
   std::shared_ptr<TaraxaPeer> getPendingPeer(NodeID const &node_id);
   unsigned int getPeersCount();
   void erasePeer(NodeID const &node_id);
-  std::shared_ptr<TaraxaPeer> insertPeer(NodeID const &node_id);
-  std::shared_ptr<TaraxaPeer> insertPendingPeer(NodeID const &node_id, std::shared_ptr<TaraxaPeer> peer);
+  std::shared_ptr<TaraxaPeer> addPendingPeer(NodeID const &node_id);
+  std::shared_ptr<TaraxaPeer> setPeerAsReadyToSendMessages(NodeID const &node_id, std::shared_ptr<TaraxaPeer> peer);
 
  private:
   void handle_read_exception(weak_ptr<Session> session, unsigned _id);

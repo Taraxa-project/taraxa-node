@@ -178,7 +178,9 @@ void Network::setPendingPeersToReady() {
   auto peerIds = taraxa_capability_->getAllPendingPeers();
   for (const auto &peerId : peerIds) {
     auto peer = taraxa_capability_->getPendingPeer(peerId);
-    taraxa_capability_->insertPendingPeer(peerId, peer);
+    if (peer) {
+      taraxa_capability_->setPeerAsReadyToSendMessages(peerId, peer);
+    }
   }
 }
 

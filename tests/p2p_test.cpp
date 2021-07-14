@@ -36,7 +36,7 @@ void setPendingPeersToReady(shared_ptr<TaraxaCapability> taraxa_capability) {
   auto peerIds = taraxa_capability->getAllPendingPeers();
   for (const auto &peerId : peerIds) {
     auto peer = taraxa_capability->getPendingPeer(peerId);
-    taraxa_capability->insertPendingPeer(peerId, peer);
+    taraxa_capability->setPeerAsReadyToSendMessages(peerId, peer);
   }
 }
 
