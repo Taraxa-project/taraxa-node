@@ -171,20 +171,6 @@ inline auto wait_connect(vector<FullNode::Handle> const& nodes) {
   });
 }
 
-inline auto wait_inital_status_packet_passed(vector<FullNode::Handle> const& nodes) {
-  return wait({30s, 1s}, [&](auto& ctx) {
-    for (size_t i = 0; i < nodes.size(); i++) {
-      auto peers = nodes[i]->getNetwork()->getAllPeers();
-      for (size_t j = 0; j < peers.size(); j++) {
-        auto peer = nodes[i]->getNetwork()->getPeer(peers[j]);
-        if (ctx.fail_if(!peer->received_initial_status_)) {
-          return;
-        }
-      }
-    }
-  });
-}
-
 inline auto launch_nodes(vector<FullNodeConfig> const& cfgs, optional<uint> retry_cnt = {}) {
   auto node_count = cfgs.size();
   for (auto i = retry_cnt.value_or(4);; --i) {
@@ -198,7 +184,7 @@ inline auto launch_nodes(vector<FullNodeConfig> const& cfgs, optional<uint> retr
     if (node_count == 1) {
       return nodes;
     }
-    if (wait_connect(nodes) && wait_inital_status_packet_passed(nodes)) {
+    if (wait_connect(nodes)) {
       cout << "Nodes connected and initial status packets passed" << endl;
       return nodes;
     }

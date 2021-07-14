@@ -32,6 +32,14 @@ auto g_signed_trx_samples = Lazy([] { return samples::createSignedTrxSamples(0, 
 
 struct P2PTest : BaseTest {};
 
+void setPendingPeersToReady(shared_ptr<TaraxaCapability> taraxa_capability) {
+  auto peerIds = taraxa_capability->getAllPendingPeers();
+  for (const auto &peerId : peerIds) {
+    auto peer = taraxa_capability->getPendingPeer(peerId);
+    taraxa_capability->setPeerAsReadyToSendMessages(peerId, peer);
+  }
+}
+
 /*
 Test creates one boot node and 10 nodes that uses that boot node
 to find each other. Test confirm that after a delay each node had found
@@ -126,6 +134,8 @@ TEST_F(P2PTest, capability_send_test) {
   // other.
   for (unsigned i = 0; i < 12000; i += step) {
     this_thread::sleep_for(chrono::milliseconds(step));
+    setPendingPeersToReady(thc1);
+    setPendingPeersToReady(thc2);
 
     if ((host1->peer_count() > 0) && (host2->peer_count() > 0)) break;
   }
@@ -194,6 +204,8 @@ TEST_F(P2PTest, capability_send_block) {
   // other.
   for (unsigned i = 0; i < 12000; i += step) {
     this_thread::sleep_for(chrono::milliseconds(step));
+    setPendingPeersToReady(thc1);
+    setPendingPeersToReady(thc2);
 
     if ((host1->peer_count() > 0) && (host2->peer_count() > 0)) break;
   }
@@ -297,11 +309,15 @@ TEST_F(P2PTest, block_propagate) {
     this_thread::sleep_for(chrono::milliseconds(100));
     connected = true;
     int counterConnected = 0;
-    for (int j = 0; j < nodeCount; j++)
+    setPendingPeersToReady(thc1);
+    for (int j = 0; j < nodeCount; j++) {
+      setPendingPeersToReady(vCapabilities[j]);
+
       if (vHosts[j]->peer_count() < 1)
         connected = false;
       else
         counterConnected++;
+    }
     // printf("Addnode %d connected\n", counterConnected);
 
     if ((host1->peer_count() > 0) && connected) break;

@@ -174,6 +174,16 @@ void Network::sendTransactions(NodeID const &_id, std::vector<taraxa::bytes> con
   LOG(log_dg_) << "Sent transactions:" << transactions.size();
 }
 
+void Network::setPendingPeersToReady() {
+  auto peerIds = taraxa_capability_->getAllPendingPeers();
+  for (const auto &peerId : peerIds) {
+    auto peer = taraxa_capability_->getPendingPeer(peerId);
+    if (peer) {
+      taraxa_capability_->setPeerAsReadyToSendMessages(peerId, peer);
+    }
+  }
+}
+
 dev::p2p::NodeID Network::getNodeId() { return host_->id(); }
 
 int Network::getReceivedBlocksCount() { return taraxa_capability_->getBlocks().size(); }

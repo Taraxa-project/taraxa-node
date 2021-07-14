@@ -88,10 +88,6 @@ class TaraxaPeer : public boost::noncopyable {
 
   void setAlive() { alive_check_count_ = 0; }
 
-  bool readyToReceivePackets() { return received_initial_status_ && sent_initial_status_; }
-
-  std::atomic<bool> received_initial_status_ = false;
-  std::atomic<bool> sent_initial_status_ = false;
   std::atomic<bool> syncing_ = false;
   std::atomic<uint64_t> dag_level_ = 0;
   std::atomic<uint64_t> pbft_chain_size_ = 0;
@@ -154,6 +150,7 @@ struct TaraxaCapability : virtual CapabilityFace {
   void onNewTransactions(std::vector<taraxa::bytes> const &transactions, bool fromNetwork);
   vector<NodeID> selectPeers(std::function<bool(TaraxaPeer const &)> const &_predicate);
   vector<NodeID> getAllPeers() const;
+  vector<NodeID> getAllPendingPeers() const;
   Json::Value getStatus() const;
   std::pair<std::vector<NodeID>, std::vector<NodeID>> randomPartitionPeers(std::vector<NodeID> const &_peers,
                                                                            std::size_t _number);
@@ -192,9 +189,11 @@ struct TaraxaCapability : virtual CapabilityFace {
 
   // Peers
   std::shared_ptr<TaraxaPeer> getPeer(NodeID const &node_id);
+  std::shared_ptr<TaraxaPeer> getPendingPeer(NodeID const &node_id);
   unsigned int getPeersCount();
   void erasePeer(NodeID const &node_id);
-  std::shared_ptr<TaraxaPeer> insertPeer(NodeID const &node_id);
+  std::shared_ptr<TaraxaPeer> addPendingPeer(NodeID const &node_id);
+  std::shared_ptr<TaraxaPeer> setPeerAsReadyToSendMessages(NodeID const &node_id, std::shared_ptr<TaraxaPeer> peer);
 
  private:
   void handle_read_exception(weak_ptr<Session> session, unsigned _id);
@@ -229,6 +228,7 @@ struct TaraxaCapability : virtual CapabilityFace {
   uint32_t lambda_ms_min_;
 
   std::unordered_map<NodeID, std::shared_ptr<TaraxaPeer>> peers_;
+  std::unordered_map<NodeID, std::shared_ptr<TaraxaPeer>> pending_peers_;
   mutable boost::shared_mutex peers_mutex_;
   NetworkConfig conf_;
   NodeID peer_syncing_pbft_;
