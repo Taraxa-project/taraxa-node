@@ -1276,6 +1276,9 @@ void TaraxaCapability::sendBlocks(NodeID const &_id, std::vector<std::shared_ptr
   RLPStream s(packet_items_count);
   s.appendRaw(packet_bytes, packet_items_count);
   sealAndSend(_id, BlocksPacket, std::move(s));
+  for (auto &block : blocks) {
+    peer->markBlockAsKnown(block->getHash());
+  }
 }
 
 void TaraxaCapability::sendTransactions(NodeID const &_id, std::vector<taraxa::bytes> const &transactions) {
@@ -1290,33 +1293,73 @@ void TaraxaCapability::sendTransactions(NodeID const &_id, std::vector<taraxa::b
 }
 
 void TaraxaCapability::sendBlock(NodeID const &_id, taraxa::DagBlock block) {
-  vec_trx_t transactionsToSend;
+  auto peer = getPeer(_id);
+  if (peer) {
+    bool missingTipOrPivot;
+    if (!peer->isBlockKnown(block.getPivot())) {
+      missingTipOrPivot = true;
+    } else
+      for (auto &tip : block.getTips()) {
+        if (!peer->isBlockKnown(tip)) {
+          missingTipOrPivot = true;
+        }
+      }
 
-  if (auto peer = getPeer(_id); peer) {
-    for (auto trx : block.getTrxs())
-      if (!peer->isTransactionKnown(trx)) transactionsToSend.push_back(trx);
-  }
-
-  RLPStream s(1 + transactionsToSend.size());
-  s.appendRaw(block.rlp(true));
-
-  taraxa::bytes trx_bytes;
-  for (auto trx : transactionsToSend) {
-    std::shared_ptr<std::pair<Transaction, taraxa::bytes>> transaction;
-    if (dag_blk_mgr_) {
-      transaction = trx_mgr_->getTransaction(trx);
+    // Peer does not seem to have a tip or pivot, send any unknown dag blocks from non finalized blocks
+    if (missingTipOrPivot) {
+      LOG(log_dg_dag_prp_) << "For DagBlock " << block.getHash() << " peer " << _id
+                           << "missing tip or pivot, send all non finalized blocks unknown to peer";
+      if (dag_mgr_) {
+        std::vector<std::shared_ptr<DagBlock>> dag_blocks;
+        const auto &blocks = dag_mgr_->getNonFinalizedBlocks();
+        for (auto &level_blocks : blocks) {
+          for (auto &hash : level_blocks.second) {
+            if (!peer->isBlockKnown(hash)) {
+              if (auto blk = db_->getDagBlock(hash); blk) {
+                dag_blocks.emplace_back(blk);
+              } else {
+                LOG(log_er_dag_sync_) << "NonFinalizedBlock " << hash << " not in DB";
+                assert(false);
+              }
+            }
+          }
+        }
+        if (dag_blocks.size() > 0) {
+          sendBlocks(_id, dag_blocks);
+        }
+      }
     } else {
-      assert(test_transactions_.find(trx) != test_transactions_.end());
-      transaction = std::make_shared<std::pair<Transaction, taraxa::bytes>>(test_transactions_[trx],
-                                                                            *test_transactions_[trx].rlp());
+      vec_trx_t transactionsToSend;
+
+      if (auto peer = getPeer(_id); peer) {
+        for (auto trx : block.getTrxs())
+          if (!peer->isTransactionKnown(trx)) transactionsToSend.push_back(trx);
+      }
+
+      RLPStream s(1 + transactionsToSend.size());
+      s.appendRaw(block.rlp(true));
+
+      taraxa::bytes trx_bytes;
+      for (auto trx : transactionsToSend) {
+        std::shared_ptr<std::pair<Transaction, taraxa::bytes>> transaction;
+        if (dag_blk_mgr_) {
+          transaction = trx_mgr_->getTransaction(trx);
+        } else {
+          assert(test_transactions_.find(trx) != test_transactions_.end());
+          transaction = std::make_shared<std::pair<Transaction, taraxa::bytes>>(test_transactions_[trx],
+                                                                                *test_transactions_[trx].rlp());
+        }
+        assert(transaction != nullptr);  // We should never try to send a block for
+                                         // which  we do not have all transactions
+        trx_bytes.insert(trx_bytes.end(), std::begin(transaction->second), std::end(transaction->second));
+      }
+      s.appendRaw(trx_bytes, transactionsToSend.size());
+      sealAndSend(_id, NewBlockPacket, move(s));
+      peer->markBlockAsKnown(block.getHash());
+      LOG(log_dg_dag_prp_) << "Send DagBlock " << block.getHash() << " #Trx: " << transactionsToSend.size()
+                           << std::endl;
     }
-    assert(transaction != nullptr);  // We should never try to send a block for
-                                     // which  we do not have all transactions
-    trx_bytes.insert(trx_bytes.end(), std::begin(transaction->second), std::end(transaction->second));
   }
-  s.appendRaw(trx_bytes, transactionsToSend.size());
-  sealAndSend(_id, NewBlockPacket, move(s));
-  LOG(log_dg_dag_prp_) << "Send DagBlock " << block.getHash() << " #Trx: " << transactionsToSend.size() << std::endl;
 }
 
 void TaraxaCapability::sendBlockHash(NodeID const &_id, taraxa::DagBlock block) {
