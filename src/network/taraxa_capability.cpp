@@ -1506,11 +1506,9 @@ void TaraxaCapability::logNodeStats() {
     LOG(log_dg_summary_) << "Verified votes size:             " << vote_mgr_->getVerifiedVotesSize();
 
     auto [unverified_txs_size, verified_txs_size] = trx_mgr_->getTransactionQueueSize();
-    auto [buffer_size, all_txs_queu_size] = trx_mgr_->getTransactionBufferSize();
     LOG(log_dg_summary_) << "Unverified txs size:             " << unverified_txs_size;
     LOG(log_dg_summary_) << "Verified txs size:               " << verified_txs_size;
-    LOG(log_dg_summary_) << "Txs buffer size:                 " << buffer_size;
-    LOG(log_dg_summary_) << "All txs queue size:              " << all_txs_queu_size;
+    LOG(log_dg_summary_) << "Txs buffer size:                 " << trx_mgr_->getTransactionBufferSize();
 
     auto [unverified_blocks_size, verified_blocks_size] = dag_blk_mgr_->getDagBlockQueueSize();
     auto [non_finalized_blocks_levels, non_finalized_blocks_size] = dag_mgr_->getNonFinalizedBlocksSize();

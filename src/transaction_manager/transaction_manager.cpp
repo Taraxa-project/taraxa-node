@@ -269,9 +269,7 @@ std::pair<size_t, size_t> TransactionManager::getTransactionQueueSize() const {
   return trx_qu_.getTransactionQueueSize();
 }
 
-std::pair<size_t, size_t> TransactionManager::getTransactionBufferSize() const {
-  return trx_qu_.getTransactionBufferSize();
-}
+size_t TransactionManager::getTransactionBufferSize() const { return trx_qu_.getTransactionBufferSize(); }
 
 std::vector<taraxa::bytes> TransactionManager::getNewVerifiedTrxSnapShotSerialized() {
   auto verified_trxs = trx_qu_.getNewVerifiedTrxSnapShot();
@@ -369,11 +367,12 @@ bool TransactionManager::verifyBlockTransactions(DagBlock const &blk, std::vecto
 
   auto trx_batch = db_->createWriteBatch();
   for (auto const &trx : trxs) {
-    known_trx_hashes.erase(trx.getHash());
-    auto status = db_->getTransactionStatus(trx.getHash());
+    const auto hash = trx.getHash();
+    known_trx_hashes.erase(hash);
+    auto status = db_->getTransactionStatus(hash);
     if (status == TransactionStatus::in_queue_unverified || status == TransactionStatus::not_seen) {
       if (auto valid = verifyTransaction(trx); !valid.first) {
-        LOG(log_er_) << "Block " << blk.getHash() << " has invalid transaction " << trx.getHash().toString() << " "
+        LOG(log_er_) << "Block " << blk.getHash() << " has invalid transaction " << hash.toString() << " "
                      << valid.second;
         return false;
       }

@@ -85,7 +85,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   std::unordered_map<trx_hash_t, Transaction> getVerifiedTrxSnapShot() const;
   std::vector<taraxa::bytes> getNewVerifiedTrxSnapShotSerialized();
   std::pair<size_t, size_t> getTransactionQueueSize() const;
-  std::pair<size_t, size_t> getTransactionBufferSize() const;
+  size_t getTransactionBufferSize() const;
 
   // Verify transactions in broadcasted blocks
   bool verifyBlockTransactions(DagBlock const &blk, std::vector<Transaction> const &trxs);
