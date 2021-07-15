@@ -31,6 +31,7 @@ set(SOURCES
         logger/log.hpp
         logger/logger_config.hpp
         network/taraxa_capability.hpp
+        network/taraxa_peer.hpp
         network/rpc/rpc_error_handler.hpp
         network/rpc/eth/watches.hpp
         network/rpc/eth/LogFilter.hpp
