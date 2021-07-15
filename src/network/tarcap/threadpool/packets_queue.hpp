@@ -3,9 +3,9 @@
 #include <list>
 #include <optional>
 
-#include "network/packets_processor/packet_data.hpp"
+#include "packet_data.hpp"
 
-namespace taraxa::network {
+namespace taraxa::network::tarcap {
 
 class PacketsQueue {
  public:
@@ -36,6 +36,13 @@ class PacketsQueue {
   bool isProcessingEligible() const;
 
   /**
+   * @brief Set new max workers count
+   *
+   * @param max_workers_count
+   */
+  void setMaxWorkersCount(size_t max_workers_count);
+
+  /**
    * @brief Increment act_workers_count_ by 1
    */
   void incrementActWorkersCount();
@@ -59,10 +66,10 @@ class PacketsQueue {
   std::list<PacketData> packets_;
 
   // How many workers can process packets from this queue at the same time
-  const size_t MAX_WORKERS_COUNT;
+  size_t MAX_WORKERS_COUNT;
 
   // How many workers are currently processing packets from this queue at the same time
   std::atomic<size_t> act_workers_count_;
 };
 
-}  // namespace taraxa::network
+}  // namespace taraxa::network::tarcap
