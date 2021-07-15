@@ -211,9 +211,8 @@ TEST_F(PbftManagerTest, terminate_soft_voting_pbft_block) {
   pbft_mgr->resumeSingleState();
 
   // Vote at the bogus PBFT block hash
-  EXPECT_HAPPENS({2s, 50ms}, [&](auto &ctx) {
+  EXPECT_HAPPENS({60s, 50ms}, [&](auto &ctx) {
     bool skipped_soft_voting = false;
-    cout << "CHECKING...." << endl;
     if (pbft_mgr->getPbftStep() > 2 && pbft_mgr->getPbftRound() == 2) {
       skipped_soft_voting = true;
       auto votes = vote_mgr->getVerifiedVotes();
@@ -268,7 +267,6 @@ TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
   auto propose_vote = pbft_mgr->generateVote(pbft_block_hash, next_vote_type, round, step, weighted_index);
   vote_mgr->addVerifiedVote(propose_vote);
 
-  // pbft_mgr->updateSoftVotedBlockForThisRound_(std::make_pair(pbft_block_hash, true));
   pbft_mgr->start();
 
   // Vote at the bogus PBFT block hash
