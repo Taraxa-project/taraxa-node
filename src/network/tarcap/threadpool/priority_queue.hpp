@@ -2,16 +2,17 @@
 
 #include <libdevcore/RLP.h>
 
+#include <array>
 #include <utility>
 
-#include "network/packet_types.hpp"
-#include "network/packets_processor/packets_queue.hpp"
+#include "network/tarcap/packet_types.hpp"
+#include "packets_queue.hpp"
 
-namespace taraxa::network {
+namespace taraxa::network::tarcap {
 
 class PriorityQueue {
  public:
-  PriorityQueue();
+  PriorityQueue(size_t tp_workers_count);
 
   void pushBack(PacketData&& packet);
 
@@ -27,13 +28,14 @@ class PriorityQueue {
   void updateDependenciesFinish(const PacketData& packet);
 
  private:
-  void markPacketAsBlocked(PacketType packet_type);
-  void markPacketAsUnblocked(PacketType packet_type);
+  void markPacketAsBlocked(SubprotocolPacketType packet_type);
+  void markPacketAsUnblocked(SubprotocolPacketType packet_type);
 
  private:
   // Queues that group packets by it's priority.
   // All packets with PacketPriority::High go to packets_queues_[PacketPriority::High], etc...
-  std::vector<PacketsQueue> packets_queues_;
+  std::array<PacketsQueue, PacketData::PacketPriority::Count> packets_queues_{PacketsQueue(), PacketsQueue(),
+                                                                              PacketsQueue()};
 
   // Mask with all packets types that are currently blocked for processing in another threads due to dependencies, e.g.
   // syncing packets must be processed synchronously one by one, etc...
@@ -43,4 +45,4 @@ class PriorityQueue {
   std::atomic<uint32_t> blocked_packets_types_mask_;
 };
 
-}  // namespace taraxa::network
+}  // namespace taraxa::network::tarcap

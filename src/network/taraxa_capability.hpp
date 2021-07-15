@@ -11,7 +11,6 @@
 #include "config/config.hpp"
 #include "consensus/vote.hpp"
 #include "dag/dag_block_manager.hpp"
-#include "network/packet_types.hpp"
 #include "packets_stats.hpp"
 #include "peers_state.hpp"
 #include "syncing_state.hpp"
@@ -64,6 +63,7 @@ struct TaraxaCapability : virtual CapabilityFace {
   void interpretCapabilityPacket(weak_ptr<Session> session, unsigned _id, RLP const &_r) override;
   void onDisconnect(NodeID const &_nodeID) override;
 
+  // TODO remove managing thread pool inside this class
   // TODO remove managing thread pool inside this class
   void start() {
     tp_.start();

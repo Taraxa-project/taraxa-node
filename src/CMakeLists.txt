@@ -40,11 +40,17 @@ set(SOURCES
         network/rpc/eth/data.hpp
         network/network.hpp
         network/packets_stats.hpp
-        network/packets_processor/thread_pool.hpp
-        network/packets_processor/priority_queue.hpp
-        network/packets_processor/packets_queue.hpp
-        network/packets_processor/packet_data.hpp
-        network/packet_types.hpp
+        network/tarcap/new_taraxa_capability.hpp
+        network/tarcap/threadpool/tarcap_thread_pool.hpp
+        network/tarcap/threadpool/priority_queue.hpp
+        network/tarcap/threadpool/packets_queue.hpp
+        network/tarcap/threadpool/packet_data.hpp
+        network/tarcap/packet_types.hpp
+        network/tarcap/packets_handler/peers_state.hpp
+        network/tarcap/packets_handler/packets_handler.hpp
+        network/tarcap/packets_handler/taraxa_peer.hpp
+        network/tarcap/packets_handler/handlers/packet_handler.hpp
+        network/tarcap/packets_handler/handlers/test_packet_handler.hpp
         node/full_node.hpp
         storage/db_storage.hpp
         transaction_manager/transaction_order_manager.hpp
@@ -76,6 +82,7 @@ set(SOURCES
         network/rpc/TaraxaClient.h
         network/rpc/NetFace.h
         network/rpc/TestFace.h
+
         # sources
         cli/config.cpp
         cli/tools.cpp
@@ -115,6 +122,15 @@ set(SOURCES
         network/peers_state.cpp
         network/taraxa_capability.cpp
         network/syncing_state.cpp
+        network/tarcap/new_taraxa_capability.cpp
+        network/tarcap/threadpool/tarcap_thread_pool.cpp
+        network/tarcap/threadpool/priority_queue.cpp
+        network/tarcap/threadpool/packets_queue.cpp
+        network/tarcap/packets_handler/peers_state.cpp
+        network/tarcap/packets_handler/packets_handler.cpp
+        network/tarcap/packets_handler/packets_stats.cpp
+        network/tarcap/packets_handler/handlers/packet_handler.cpp
+        network/tarcap/packets_handler/handlers/test_packet_handler.cpp
         node/full_node.cpp
         storage/db_storage.cpp
         transaction_manager/transaction.cpp
@@ -123,9 +139,7 @@ set(SOURCES
         transaction_manager/transaction_manager.cpp
         util/jsoncpp.cpp
         util/util.cpp
-        util/thread_pool.cpp
-        network/packets_processor/priority_queue.cpp
-        network/packets_processor/packets_queue.cpp)
+        util/thread_pool.cpp network/tarcap/threadpool/packet_data.cpp network/tarcap/packets_handler/syncing_state.cpp network/tarcap/packets_handler/syncing_state.hpp network/tarcap/packets_handler/handlers/status_packet_handler.cpp network/tarcap/packets_handler/handlers/status_packet_handler.hpp)
 
 add_subdirectory(network/rpc)
 
