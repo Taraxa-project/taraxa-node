@@ -958,6 +958,10 @@ void TaraxaCapability::restartSyncingPbft(bool force) {
   uint64_t max_node_dag_level = 0;
   {
     boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
+    if (peers_.empty()) {
+      LOG(log_nf_pbft_sync_) << "Restarting syncing PBFT not possible since no connected peers";
+      return;
+    }
     for (auto const &peer : peers_) {
       if (peer.second->pbft_chain_size_ > max_pbft_chain_size) {
         max_pbft_chain_size = peer.second->pbft_chain_size_;
