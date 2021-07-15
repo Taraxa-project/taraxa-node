@@ -196,38 +196,50 @@ TEST_F(PbftManagerTest, terminate_soft_voting_pbft_block) {
 
   // Generate bogus votes
   auto weighted_index = 0;
-  auto pbft_block_hash = blk_hash_t("0000000100000000000000000000000000000000000000000000000000000000");
-  auto prev_round_next_vote = pbft_mgr->generateVote(pbft_block_hash, next_vote_type, 1, 4, weighted_index);
+  auto stale_block_hash = blk_hash_t("0000000100000000000000000000000000000000000000000000000000000000");
+  auto alternate_propose_block_hash = blk_hash_t("0000000200000000000000000000000000000000000000000000000000000000");
+  auto prev_round_next_vote = pbft_mgr->generateVote(stale_block_hash, next_vote_type, 1, 4, weighted_index);
   vote_mgr->addVerifiedVote(prev_round_next_vote);
-  auto propose_vote = pbft_mgr->generateVote(pbft_block_hash, propose_vote_type, 2, 1, weighted_index);
+  auto propose_vote = pbft_mgr->generateVote(stale_block_hash, propose_vote_type, 2, 1, weighted_index);
+  vote_mgr->addVerifiedVote(propose_vote);
+  propose_vote = pbft_mgr->generateVote(alternate_propose_block_hash, propose_vote_type, 2, 1, weighted_index);
   vote_mgr->addVerifiedVote(propose_vote);
 
-  pbft_mgr->setLastSoftVotedValue(pbft_block_hash);
+  pbft_mgr->setLastSoftVotedValue(stale_block_hash);
 
-  taraxa::thisThreadSleepForMilliSeconds(4000);
+  uint64_t time_till_stale_ms = 1000;
+  cout << "Set max wait for soft voted value to " << time_till_stale_ms << "ms...";
+  pbft_mgr->setMaxWaitForSoftVotedBlock_ms(time_till_stale_ms);
+  pbft_mgr->setMaxWaitForNextVotedBlock_ms(std::numeric_limits<uint64_t>::max());
+
+  cout << "Sleep " << time_till_stale_ms << "ms so that last soft voted value of " << stale_block_hash.abridged()
+       << " becomes stale..." << endl;
+  taraxa::thisThreadSleepForMilliSeconds(time_till_stale_ms);
 
   pbft_mgr->setPbftRound(2);
   pbft_mgr->setPbftStep(2);
   pbft_mgr->resumeSingleState();
 
-  // Vote at the bogus PBFT block hash
-  EXPECT_HAPPENS({60s, 50ms}, [&](auto &ctx) {
-    bool skipped_soft_voting = false;
-    if (pbft_mgr->getPbftStep() > 2 && pbft_mgr->getPbftRound() == 2) {
-      skipped_soft_voting = true;
-      auto votes = vote_mgr->getVerifiedVotes();
-      for (auto const &v : votes) {
-        if (soft_vote_type == v.getType() && v.getBlockHash() == pbft_block_hash) {
-          skipped_soft_voting = false;
-          break;
-        }
-      }
-    }
-    WAIT_EXPECT_EQ(ctx, skipped_soft_voting, true)
+  cout << "Wait to get to cert voted state in round 2..." << endl;
+  EXPECT_HAPPENS({2s, 50ms}, [&](auto &ctx) {
+    auto reached_step_three_in_round_two = (pbft_mgr->getPbftRound() == 2 && pbft_mgr->getPbftStep() == 3);
+    WAIT_EXPECT_EQ(ctx, reached_step_three_in_round_two, true)
   });
 
-  auto start_round = pbft_mgr->getPbftRound();
+  cout << "Check did not soft vote for stale soft voted value of " << stale_block_hash.abridged() << "..." << endl;
+  bool skipped_soft_voting = true;
+  auto votes = vote_mgr->getVerifiedVotes();
+  for (auto const &v : votes) {
+    if (soft_vote_type == v.getType()) {
+      if (v.getBlockHash() == stale_block_hash) {
+        skipped_soft_voting = false;
+      }
+      cout << "Found soft voted value of " << v.getBlockHash().abridged() << " in round 2" << endl;
+    }
+  }
+  EXPECT_EQ(skipped_soft_voting, true);
 
+  auto start_round = pbft_mgr->getPbftRound();
   pbft_mgr->resume();
 
   cout << "Wait ensure node is still advancing in rounds... " << endl;

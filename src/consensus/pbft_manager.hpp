@@ -76,6 +76,7 @@ class PbftManager {
   size_t getDposWeightedVotesCount() const;
 
   // Notice: Test purpose
+  // TODO: Add a check for some kind of guards to ensure these are only called from within a test
   void setSortitionThreshold(size_t const sortition_threshold);
   std::vector<std::vector<uint>> createMockTrxSchedule(
       std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>> trx_overlap_table);
@@ -84,6 +85,8 @@ class PbftManager {
   void setLastSoftVotedValue(blk_hash_t soft_voted_value);
   void resume();
   void resumeSingleState();
+  void setMaxWaitForSoftVotedBlock_ms(uint64_t wait_ms);
+  void setMaxWaitForNextVotedBlock_ms(uint64_t wait_ms);
 
  private:
   // DPOS
@@ -153,7 +156,7 @@ class PbftManager {
   bool giveUpNextVotedBlock_();
   bool giveUpSoftVotedBlock_();
   void initializeVotedValueTimeouts_();
-  void checkSoftVotedValueChange_(blk_hash_t const new_soft_voted_value);
+  void updateLastSoftVotedValue_(blk_hash_t const new_soft_voted_value);
   void checkPreviousRoundNextVotedValueChange_();
   bool updateSoftVotedBlockForThisRound_();
 
@@ -219,6 +222,9 @@ class PbftManager {
   bool go_finish_state_ = false;
   bool loop_back_finish_state_ = false;
   bool reset_own_value_to_null_block_hash_in_this_round_ = false;
+
+  uint64_t max_wait_for_soft_voted_block_steps_ms_ = 30;
+  uint64_t max_wait_for_next_voted_block_steps_ms_ = 30;
 
   uint64_t round_began_wait_proposal_block_ = 0;
   size_t max_wait_rounds_for_proposal_block_ = 2;

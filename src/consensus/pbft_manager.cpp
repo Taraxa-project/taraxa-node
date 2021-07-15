@@ -152,6 +152,17 @@ void PbftManager::resume() {
   daemon_ = std::make_unique<std::thread>([this]() { continuousOperation_(); });
 }
 
+// Only to be used for tests...
+void PbftManager::setMaxWaitForSoftVotedBlock_ms(uint64_t wait_ms) {
+  max_wait_for_soft_voted_block_steps_ms_ = wait_ms;
+}
+
+// Only to be used for tests...
+void PbftManager::setMaxWaitForNextVotedBlock_ms(uint64_t wait_ms) {
+  max_wait_for_next_voted_block_steps_ms_ = wait_ms;
+}
+
+// Only to be used for tests...
 void PbftManager::resumeSingleState() {
   if (!stopped_.load()) daemon_->join();
   stopped_ = false;
@@ -171,6 +182,7 @@ void PbftManager::resumeSingleState() {
   daemon_ = std::make_unique<std::thread>([this]() { doNextState_(); });
 }
 
+// Only to be used for tests...
 void PbftManager::doNextState_() {
   auto initial_state = state_;
 
@@ -202,7 +214,10 @@ void PbftManager::doNextState_() {
     }
 
     setNextState_();
-    if (state_ == initial_state) sleep_();
+    if (state_ != initial_state) {
+      return;
+    }
+    sleep_();
   }
 }
 
@@ -422,7 +437,11 @@ void PbftManager::sleep_() {
 
 void PbftManager::initialState_() {
   // Initial PBFT state
+
+  // Time constants...
   LAMBDA_ms = LAMBDA_ms_MIN;
+  max_wait_for_soft_voted_block_steps_ms_ = MAX_WAIT_FOR_SOFT_VOTED_BLOCK_STEPS * 2 * LAMBDA_ms;
+  max_wait_for_next_voted_block_steps_ms_ = MAX_WAIT_FOR_NEXT_VOTED_BLOCK_STEPS * 2 * LAMBDA_ms;
 
   auto round = db_->getPbftMgrField(PbftMgrRoundStep::PbftRound);
   auto step = db_->getPbftMgrField(PbftMgrRoundStep::PbftStep);
@@ -497,6 +516,7 @@ void PbftManager::initialState_() {
 
   // Used for detecting timeout due to malicious node
   // failing to gossip PBFT block or DAG blocks
+  // Requires that soft_voted_block_for_this_round_ already be initialized from db
   initializeVotedValueTimeouts_();
 
   executed_pbft_block_ = db_->getPbftMgrStatus(PbftMgrStatus::executed_block);
@@ -710,14 +730,19 @@ bool PbftManager::updateSoftVotedBlockForThisRound_() {
 void PbftManager::initializeVotedValueTimeouts_() {
   time_began_waiting_next_voted_block_ = std::chrono::system_clock::now();
   time_began_waiting_soft_voted_block_ = std::chrono::system_clock::now();
+
+  // Concern: Requires that soft_voted_block_for_this_round_ already be initialized from db
   if (soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH && soft_voted_block_for_this_round_.second) {
     last_soft_voted_value_ = soft_voted_block_for_this_round_.first;
   }
 }
 
-void PbftManager::setLastSoftVotedValue(blk_hash_t soft_voted_value) { checkSoftVotedValueChange_(soft_voted_value); }
+void PbftManager::setLastSoftVotedValue(blk_hash_t soft_voted_value) {
+  // TODO: Add a check for some kind of guard to ensure this is only called from within a test
+  updateLastSoftVotedValue_(soft_voted_value);
+}
 
-void PbftManager::checkSoftVotedValueChange_(blk_hash_t const new_soft_voted_value) {
+void PbftManager::updateLastSoftVotedValue_(blk_hash_t const new_soft_voted_value) {
   if (new_soft_voted_value != last_soft_voted_value_) {
     time_began_waiting_soft_voted_block_ = std::chrono::system_clock::now();
   }
@@ -818,7 +843,7 @@ void PbftManager::identifyBlock_() {
 
       auto place_votes = placeVote_(leader_block.first, soft_vote_type, round, step_);
 
-      checkSoftVotedValueChange_(leader_block.first);
+      updateLastSoftVotedValue_(leader_block.first);
 
       if (place_votes) {
         LOG(log_nf_) << "Soft votes " << place_votes << " voting block " << leader_block.first << " at round " << round;
@@ -827,7 +852,10 @@ void PbftManager::identifyBlock_() {
   } else if (round >= 2 && previous_round_next_voted_value_ != NULL_BLOCK_HASH) {
     auto place_votes = placeVote_(previous_round_next_voted_value_, soft_vote_type, round, step_);
 
-    checkSoftVotedValueChange_(previous_round_next_voted_value_);
+    // Generally this value will either be the same as last soft voted value from previous round
+    // but a node could have observed a previous round next voted value that differs from what they
+    // soft voted.
+    updateLastSoftVotedValue_(previous_round_next_voted_value_);
 
     if (place_votes) {
       LOG(log_nf_) << "Soft votes " << place_votes << " voting block " << previous_round_next_voted_value_
@@ -1591,13 +1619,13 @@ bool PbftManager::giveUpSoftVotedBlock_() {
   unsigned long elapsed_wait_soft_voted_block_in_ms =
       std::chrono::duration_cast<std::chrono::milliseconds>(soft_voted_block_wait_duration).count();
 
-  if (elapsed_wait_soft_voted_block_in_ms > MAX_WAIT_FOR_SOFT_VOTED_BLOCK_STEPS * 2 * LAMBDA_ms) {
+  if (elapsed_wait_soft_voted_block_in_ms > max_wait_for_soft_voted_block_steps_ms_) {
     LOG(log_dg_) << "Have been waiting " << elapsed_wait_soft_voted_block_in_ms << "ms for soft voted block "
                  << last_soft_voted_value_ << ", giving up on this value.";
     return true;
   } else {
     LOG(log_tr_) << "Have only been waiting " << elapsed_wait_soft_voted_block_in_ms << "ms for soft voted block "
-                 << last_soft_voted_value_ << "(after " << MAX_WAIT_FOR_SOFT_VOTED_BLOCK_STEPS * 2 * LAMBDA_ms
+                 << last_soft_voted_value_ << "(after " << max_wait_for_soft_voted_block_steps_ms_
                  << "ms will give up on this value)";
   }
 
@@ -1634,7 +1662,7 @@ bool PbftManager::giveUpNextVotedBlock_() {
       auto next_voted_block_wait_duration = now - time_began_waiting_next_voted_block_;
       unsigned long elapsed_wait_next_voted_block_in_ms =
           std::chrono::duration_cast<std::chrono::milliseconds>(next_voted_block_wait_duration).count();
-      if (elapsed_wait_next_voted_block_in_ms > MAX_WAIT_FOR_NEXT_VOTED_BLOCK_STEPS * 2 * LAMBDA_ms) {
+      if (elapsed_wait_next_voted_block_in_ms > max_wait_for_next_voted_block_steps_ms_) {
         LOG(log_dg_) << "Have been waiting " << elapsed_wait_next_voted_block_in_ms << "ms for next voted block "
                      << block_hash << ", giving up now on this value.";
         return true;
