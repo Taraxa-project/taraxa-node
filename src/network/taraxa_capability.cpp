@@ -1295,7 +1295,7 @@ void TaraxaCapability::sendTransactions(NodeID const &_id, std::vector<taraxa::b
 void TaraxaCapability::sendBlock(NodeID const &_id, taraxa::DagBlock block) {
   auto peer = getPeer(_id);
   if (peer) {
-    bool missingTipOrPivot;
+    bool missingTipOrPivot = false;
     if (!peer->isBlockKnown(block.getPivot())) {
       missingTipOrPivot = true;
     } else
