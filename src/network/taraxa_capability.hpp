@@ -12,6 +12,7 @@
 #include "consensus/vote.hpp"
 #include "dag/dag_block_manager.hpp"
 #include "packets_stats.hpp"
+#include "syncing_state.hpp"
 #include "taraxa_peer.hpp"
 #include "transaction_manager/transaction.hpp"
 #include "util/thread_pool.hpp"
@@ -76,9 +77,8 @@ struct TaraxaCapability : virtual CapabilityFace {
   }
 
   bool sealAndSend(NodeID const &nodeID, unsigned packet_type, RLPStream rlp);
-  bool pbft_syncing() const { return syncing_.load(); }
+  bool pbft_syncing() const { return syncing_state_.is_pbft_syncing(); }
   uint64_t syncTimeSeconds() const { return summary_interval_ms_ * syncing_interval_count_ / 1000; };
-
   void syncPeerPbft(NodeID const &_nodeID, unsigned long height_to_sync);
   void restartSyncingPbft(bool force = false);
   void delayedPbftSync(NodeID _nodeID, int counter);
@@ -146,10 +146,7 @@ struct TaraxaCapability : virtual CapabilityFace {
   util::ThreadPool tp_{1, false};
 
   util::ThreadPool syncing_tp_{1, false};
-
-  atomic<bool> syncing_ = false;
-  bool requesting_pending_dag_blocks_ = false;
-  NodeID requesting_pending_dag_blocks_node_id_;
+  SyncingState syncing_state_;
 
   std::unordered_map<NodeID, int> cnt_received_messages_;
   std::unordered_map<NodeID, int> test_sums_;
@@ -174,7 +171,6 @@ struct TaraxaCapability : virtual CapabilityFace {
   std::unordered_map<NodeID, std::shared_ptr<TaraxaPeer>> pending_peers_;
   mutable boost::shared_mutex peers_mutex_;
   NetworkConfig conf_;
-  NodeID peer_syncing_pbft_;
   std::string genesis_;
   mutable std::mt19937_64 urng_;  // Mersenne Twister psuedo-random number generator
   std::mt19937 delay_rng_;
