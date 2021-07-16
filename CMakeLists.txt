@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.16)
 # Set current version of the project
 set(TARAXA_MAJOR_VERSION 1)
 set(TARAXA_MINOR_VERSION 9)
-set(TARAXA_PATCH_VERSION 1)
+set(TARAXA_PATCH_VERSION 2)
 set(TARAXA_VERSION ${TARAXA_MAJOR_VERSION}.${TARAXA_MINOR_VERSION}.${TARAXA_PATCH_VERSION})
 
 # Any time a change in the network protocol is introduced this version should be increased

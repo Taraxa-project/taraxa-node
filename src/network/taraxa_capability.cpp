@@ -221,7 +221,7 @@ void TaraxaCapability::onConnect(weak_ptr<Session> session, u256 const &) {
     if (auto session_p = session.lock()) {
       session_p->disconnect(UserReason);
     }
-    LOG(log_nf_) << "Node " << _nodeID << " dropped as is marked malicious";
+    LOG(log_wr_) << "Node " << _nodeID << " dropped as is marked malicious";
     return;
   }
 
@@ -561,7 +561,6 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
           LOG(log_wr_dag_sync_) << "DagBlockValidation failed " << status.second;
           status.second.push_back(block.getHash());
           requestBlocks(_nodeID, status.second);
-          if (it == _r.end()) break;
           continue;
         }
 
@@ -569,18 +568,15 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
                               << " transactions";
         if (block.getLevel() > peer->dag_level_) peer->dag_level_ = block.getLevel();
         dag_blk_mgr_->insertBroadcastedBlockWithTransactions(block, newTransactions);
-
-        if (it == _r.end()) break;
       }
 
       if (is_final_sync_packet) {
+        syncing_state_.set_dag_syncing(false);
         LOG(log_nf_dag_sync_) << "Received final DagBlocksSyncPacket with blocks: " << received_dag_blocks_str;
       } else {
+        syncing_state_.set_last_sync_packet_time();
         LOG(log_nf_dag_sync_) << "Received partial DagBlocksSyncPacket with blocks: " << received_dag_blocks_str;
       }
-
-      // Reset last sync packet received time
-      if (syncing_state_.is_dag_syncing()) syncing_state_.set_last_sync_packet_time();
 
       break;
     }
@@ -855,7 +851,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
             if (block.second.first.getLevel() > peer->dag_level_) {
               peer->dag_level_ = block.second.first.getLevel();
             }
-            dag_blk_mgr_->insertBroadcastedBlockWithTransactions(block.second.first, block.second.second);
+            dag_blk_mgr_->processSyncedBlockWithTransactions(block.second.first, block.second.second);
           }
         }
 
@@ -1248,12 +1244,14 @@ void TaraxaCapability::onNewBlockVerified(DagBlock const &block) {
 }
 
 void TaraxaCapability::sendBlocks(NodeID const &_id, std::vector<std::shared_ptr<DagBlock>> blocks) {
-  taraxa::bytes packet_bytes;
-  size_t packet_items_count = 0;
-  size_t blocks_counter = 0;
+  if (blocks.empty()) return;
 
   auto peer = getPeer(_id);
   if (!peer) return;
+
+  taraxa::bytes packet_bytes;
+  size_t packet_items_count = 0;
+  size_t blocks_counter = 0;
 
   for (auto &block : blocks) {
     size_t dag_block_items_count = 0;

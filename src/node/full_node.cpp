@@ -338,7 +338,7 @@ void FullNode::rebuildDb() {
       for (auto const &block : block_level.second) {
         LOG(log_nf_) << "Storing block " << block.second.first.getHash().toString() << " with "
                      << block.second.second.size() << " transactions";
-        dag_blk_mgr_->insertBroadcastedBlockWithTransactions(block.second.first, block.second.second);
+        dag_blk_mgr_->processSyncedBlockWithTransactions(block.second.first, block.second.second);
       }
     }
 
