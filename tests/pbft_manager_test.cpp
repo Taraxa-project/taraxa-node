@@ -181,6 +181,197 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
   }
 }
 
+// Test that after some amount of elapsed time will not continue soft voting for same value
+TEST_F(PbftManagerTest, terminate_soft_voting_pbft_block) {
+  auto node_cfgs = make_node_cfgs<20>(1);
+  auto nodes = launch_nodes(node_cfgs);
+
+  auto pbft_mgr = nodes[0]->getPbftManager();
+
+  pbft_mgr->stop();
+
+  cout << "Initialize PBFT manager at round 2 step 2" << endl;
+
+  auto vote_mgr = nodes[0]->getVoteManager();
+
+  // Generate bogus votes
+  auto weighted_index = 0;
+  auto stale_block_hash = blk_hash_t("0000000100000000000000000000000000000000000000000000000000000000");
+  auto alternate_propose_block_hash = blk_hash_t("0000000200000000000000000000000000000000000000000000000000000000");
+  auto prev_round_next_vote = pbft_mgr->generateVote(stale_block_hash, next_vote_type, 1, 4, weighted_index);
+  vote_mgr->addVerifiedVote(prev_round_next_vote);
+  auto propose_vote = pbft_mgr->generateVote(stale_block_hash, propose_vote_type, 2, 1, weighted_index);
+  vote_mgr->addVerifiedVote(propose_vote);
+  propose_vote = pbft_mgr->generateVote(alternate_propose_block_hash, propose_vote_type, 2, 1, weighted_index);
+  vote_mgr->addVerifiedVote(propose_vote);
+
+  pbft_mgr->setLastSoftVotedValue(stale_block_hash);
+
+  uint64_t time_till_stale_ms = 1000;
+  cout << "Set max wait for soft voted value to " << time_till_stale_ms << "ms...";
+  pbft_mgr->setMaxWaitForSoftVotedBlock_ms(time_till_stale_ms);
+  pbft_mgr->setMaxWaitForNextVotedBlock_ms(std::numeric_limits<uint64_t>::max());
+
+  cout << "Sleep " << time_till_stale_ms << "ms so that last soft voted value of " << stale_block_hash.abridged()
+       << " becomes stale..." << endl;
+  taraxa::thisThreadSleepForMilliSeconds(time_till_stale_ms);
+
+  pbft_mgr->setPbftRound(2);
+  pbft_mgr->setPbftStep(2);
+  pbft_mgr->resumeSingleState();
+
+  cout << "Wait to get to cert voted state in round 2..." << endl;
+  EXPECT_HAPPENS({2s, 50ms}, [&](auto &ctx) {
+    auto reached_step_three_in_round_two = (pbft_mgr->getPbftRound() == 2 && pbft_mgr->getPbftStep() == 3);
+    WAIT_EXPECT_EQ(ctx, reached_step_three_in_round_two, true)
+  });
+
+  cout << "Check did not soft vote for stale soft voted value of " << stale_block_hash.abridged() << "..." << endl;
+  bool skipped_soft_voting = true;
+  auto votes = vote_mgr->getVerifiedVotes();
+  for (auto const &v : votes) {
+    if (soft_vote_type == v.getType()) {
+      if (v.getBlockHash() == stale_block_hash) {
+        skipped_soft_voting = false;
+      }
+      cout << "Found soft voted value of " << v.getBlockHash().abridged() << " in round 2" << endl;
+    }
+  }
+  EXPECT_EQ(skipped_soft_voting, true);
+
+  auto start_round = pbft_mgr->getPbftRound();
+  pbft_mgr->resume();
+
+  cout << "Wait ensure node is still advancing in rounds... " << endl;
+  EXPECT_HAPPENS({60s, 50ms}, [&](auto &ctx) { WAIT_EXPECT_NE(ctx, start_round, pbft_mgr->getPbftRound()) });
+}
+
+// Test that after some amount of elapsed time will give up next voting for some value if corresponding DAG blocks can't
+// be found
+TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
+  auto node_cfgs = make_node_cfgs<20>(1);
+  auto nodes = launch_nodes(node_cfgs);
+
+  auto pbft_mgr = nodes[0]->getPbftManager();
+  pbft_mgr->stop();
+  cout << "Initialize PBFT manager at round 1 step 4" << endl;
+  pbft_mgr->setPbftRound(1);
+  pbft_mgr->setPbftStep(4);
+
+  auto pbft_chain = nodes[0]->getPbftChain();
+  auto vote_mgr = nodes[0]->getVoteManager();
+
+  // Generate bogus DAG anchor for PBFT block
+  auto dag_anchor = blk_hash_t("1234567890000000000000000000000000000000000000000000000000000000");
+  auto last_pbft_block_hash = pbft_chain->getLastPbftBlockHash();
+  auto propose_pbft_period = pbft_chain->getPbftChainSize() + 1;
+  auto beneficiary = nodes[0]->getAddress();
+  auto node_sk = nodes[0]->getSecretKey();
+  auto propose_pbft_block =
+      std::make_shared<PbftBlock>(last_pbft_block_hash, dag_anchor, propose_pbft_period, beneficiary, node_sk);
+  auto pbft_block_hash = propose_pbft_block->getBlockHash();
+  pbft_chain->pushUnverifiedPbftBlock(propose_pbft_block);
+
+  // Generate bogus vote
+  auto round = 1;
+  auto step = 4;
+  auto weighted_index = 0;
+  auto propose_vote = pbft_mgr->generateVote(pbft_block_hash, next_vote_type, round, step, weighted_index);
+  vote_mgr->addVerifiedVote(propose_vote);
+
+  pbft_mgr->start();
+
+  // Vote at the bogus PBFT block hash
+  EXPECT_HAPPENS({60s, 50ms}, [&](auto &ctx) {
+    auto soft_vote_value = blk_hash_t(0);
+    auto votes = vote_mgr->getVerifiedVotes();
+    for (auto const &v : votes) {
+      if (soft_vote_type == v.getType() && v.getBlockHash() == pbft_block_hash) {
+        soft_vote_value = v.getBlockHash();
+        break;
+      }
+    }
+    WAIT_EXPECT_EQ(ctx, soft_vote_value, pbft_block_hash)
+  });
+
+  auto start_round = pbft_mgr->getPbftRound();
+
+  cout << "After some time, terminate voting on the bogus value " << pbft_block_hash << endl;
+  EXPECT_HAPPENS({120s, 50ms}, [&](auto &ctx) {
+    auto soft_vote_value = pbft_block_hash;
+    auto votes = vote_mgr->getVerifiedVotes();
+    for (auto const &v : votes) {
+      if (next_vote_type == v.getType() && v.getBlockHash() == blk_hash_t(0)) {
+        soft_vote_value = v.getBlockHash();
+        break;
+      }
+    }
+    WAIT_EXPECT_EQ(ctx, soft_vote_value, blk_hash_t(0))
+  });
+
+  cout << "Wait ensure node is still advancing in rounds... " << endl;
+  EXPECT_HAPPENS({60s, 50ms}, [&](auto &ctx) { WAIT_EXPECT_NE(ctx, start_round, pbft_mgr->getPbftRound()) });
+}
+
+// Test that after some number of rounds will give up proposing a value if proposed block is not available
+TEST_F(PbftManagerTest, terminate_missing_proposed_pbft_block) {
+  auto node_cfgs = make_node_cfgs<20>(1);
+  auto nodes = launch_nodes(node_cfgs);
+
+  auto pbft_mgr = nodes[0]->getPbftManager();
+  pbft_mgr->stop();
+  cout << "Initialize PBFT manager at round 1 step 4" << endl;
+  pbft_mgr->setPbftRound(1);
+  pbft_mgr->setPbftStep(4);
+
+  auto pbft_chain = nodes[0]->getPbftChain();
+  auto vote_mgr = nodes[0]->getVoteManager();
+
+  auto node_sk = nodes[0]->getSecretKey();
+
+  // Generate bogus vote
+  auto round = 1;
+  auto step = 4;
+  auto weighted_index = 0;
+  auto pbft_block_hash = blk_hash_t("0000000100000000000000000000000000000000000000000000000000000000");
+  auto propose_vote = pbft_mgr->generateVote(pbft_block_hash, next_vote_type, round, step, weighted_index);
+  vote_mgr->addVerifiedVote(propose_vote);
+
+  pbft_mgr->start();
+
+  // Vote at the bogus PBFT block hash
+  EXPECT_HAPPENS({60s, 50ms}, [&](auto &ctx) {
+    auto soft_vote_value = blk_hash_t(0);
+    auto votes = vote_mgr->getVerifiedVotes();
+    for (auto const &v : votes) {
+      if (soft_vote_type == v.getType() && v.getBlockHash() == pbft_block_hash) {
+        soft_vote_value = v.getBlockHash();
+        break;
+      }
+    }
+    WAIT_EXPECT_EQ(ctx, soft_vote_value, pbft_block_hash)
+  });
+
+  auto start_round = pbft_mgr->getPbftRound();
+
+  cout << "After some time, terminate voting on the missing proposed block " << pbft_block_hash << endl;
+  // After some rounds, terminate the bogus value and vote on NULL_BLOCK_HASH since no new DAG blocks generated
+  EXPECT_HAPPENS({60s, 50ms}, [&](auto &ctx) {
+    auto soft_vote_value = pbft_block_hash;
+    auto votes = vote_mgr->getVerifiedVotes();
+    for (auto const &v : votes) {
+      if (next_vote_type == v.getType() && v.getBlockHash() == blk_hash_t(0)) {
+        soft_vote_value = v.getBlockHash();
+        break;
+      }
+    }
+    WAIT_EXPECT_EQ(ctx, soft_vote_value, blk_hash_t(0))
+  });
+
+  cout << "Wait ensure node is still advancing in rounds... " << endl;
+  EXPECT_HAPPENS({60s, 50ms}, [&](auto &ctx) { WAIT_EXPECT_NE(ctx, start_round, pbft_mgr->getPbftRound()) });
+}
+
 TEST_F(PbftManagerTest, full_node_lambda_input_test) {
   auto node_cfgs = make_node_cfgs(1);
   FullNode::Handle node(node_cfgs[0]);

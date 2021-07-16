@@ -126,6 +126,102 @@ void PbftManager::run() {
   // Initialize PBFT status
   initialState_();
 
+  continuousOperation_();
+}
+
+// Only to be used for tests...
+void PbftManager::resume() {
+  if (!stopped_.load()) daemon_->join();
+  stopped_ = false;
+
+  // Will only appear in testing...
+  LOG(log_si_) << "Resuming PBFT daemon...";
+
+  if (step_ == 1) {
+    state_ = value_proposal_state;
+  } else if (step_ == 2) {
+    state_ = filter_state;
+  } else if (step_ == 3) {
+    state_ = certify_state;
+  } else if (step_ % 2 == 0) {
+    state_ = finish_state;
+  } else {
+    state_ = finish_polling_state;
+  }
+
+  daemon_ = std::make_unique<std::thread>([this]() { continuousOperation_(); });
+}
+
+// Only to be used for tests...
+void PbftManager::setMaxWaitForSoftVotedBlock_ms(uint64_t wait_ms) {
+  max_wait_for_soft_voted_block_steps_ms_ = wait_ms;
+}
+
+// Only to be used for tests...
+void PbftManager::setMaxWaitForNextVotedBlock_ms(uint64_t wait_ms) {
+  max_wait_for_next_voted_block_steps_ms_ = wait_ms;
+}
+
+// Only to be used for tests...
+void PbftManager::resumeSingleState() {
+  if (!stopped_.load()) daemon_->join();
+  stopped_ = false;
+
+  if (step_ == 1) {
+    state_ = value_proposal_state;
+  } else if (step_ == 2) {
+    state_ = filter_state;
+  } else if (step_ == 3) {
+    state_ = certify_state;
+  } else if (step_ % 2 == 0) {
+    state_ = finish_state;
+  } else {
+    state_ = finish_polling_state;
+  }
+
+  daemon_ = std::make_unique<std::thread>([this]() { doNextState_(); });
+}
+
+// Only to be used for tests...
+void PbftManager::doNextState_() {
+  auto initial_state = state_;
+
+  while (!stopped_ && state_ == initial_state) {
+    if (stateOperations_()) {
+      continue;
+    }
+
+    // PBFT states
+    switch (state_) {
+      case value_proposal_state:
+        proposeBlock_();
+        break;
+      case filter_state:
+        identifyBlock_();
+        break;
+      case certify_state:
+        certifyBlock_();
+        break;
+      case finish_state:
+        firstFinish_();
+        break;
+      case finish_polling_state:
+        secondFinish_();
+        break;
+      default:
+        LOG(log_er_) << "Unknown PBFT state " << state_;
+        assert(false);
+    }
+
+    setNextState_();
+    if (state_ != initial_state) {
+      return;
+    }
+    sleep_();
+  }
+}
+
+void PbftManager::continuousOperation_() {
   while (!stopped_) {
     if (stateOperations_()) {
       continue;
@@ -171,6 +267,8 @@ std::pair<bool, uint64_t> PbftManager::getDagBlockPeriod(blk_hash_t const &hash)
 }
 
 uint64_t PbftManager::getPbftRound() const { return round_; }
+
+uint64_t PbftManager::getPbftStep() const { return step_; }
 
 void PbftManager::setPbftRound(uint64_t const round) {
   db_->savePbftMgrField(PbftMgrRoundStep::PbftRound, round);
@@ -339,7 +437,11 @@ void PbftManager::sleep_() {
 
 void PbftManager::initialState_() {
   // Initial PBFT state
+
+  // Time constants...
   LAMBDA_ms = LAMBDA_ms_MIN;
+  max_wait_for_soft_voted_block_steps_ms_ = MAX_WAIT_FOR_SOFT_VOTED_BLOCK_STEPS * 2 * LAMBDA_ms;
+  max_wait_for_next_voted_block_steps_ms_ = MAX_WAIT_FOR_NEXT_VOTED_BLOCK_STEPS * 2 * LAMBDA_ms;
 
   auto round = db_->getPbftMgrField(PbftMgrRoundStep::PbftRound);
   auto step = db_->getPbftMgrField(PbftMgrRoundStep::PbftStep);
@@ -382,7 +484,6 @@ void PbftManager::initialState_() {
 
   previous_round_next_voted_value_ = previous_round_next_votes_->getVotedValue();
   previous_round_next_voted_null_block_hash_ = previous_round_next_votes_->haveEnoughVotesForNullBlockHash();
-  time_began_waiting_next_voted_block_ = std::chrono::system_clock::now();
 
   LOG(log_nf_) << "Node initialize at round " << round << " step " << step
                << ". Previous round has enough next votes for NULL_BLOCK_HASH: " << std::boolalpha
@@ -412,6 +513,11 @@ void PbftManager::initialState_() {
     // Default value
     soft_voted_block_for_this_round_ = std::make_pair(NULL_BLOCK_HASH, soft_voted_block);
   }
+
+  // Used for detecting timeout due to malicious node
+  // failing to gossip PBFT block or DAG blocks
+  // Requires that soft_voted_block_for_this_round_ already be initialized from db
+  initializeVotedValueTimeouts_();
 
   executed_pbft_block_ = db_->getPbftMgrStatus(PbftMgrStatus::executed_block);
   have_executed_this_round_ = db_->getPbftMgrStatus(PbftMgrStatus::executed_in_round);
@@ -537,7 +643,7 @@ void PbftManager::loopBackFinishState_() {
 bool PbftManager::stateOperations_() {
   pushSyncedPbftBlocksIntoChain_();
 
-  updateNextVotedValue_();
+  checkPreviousRoundNextVotedValueChange_();
 
   now_ = std::chrono::system_clock::now();
   duration_ = now_ - round_clock_initial_datetime_;
@@ -582,7 +688,68 @@ bool PbftManager::stateOperations_() {
   return resetRound_();
 }
 
-void PbftManager::updateNextVotedValue_() {
+bool PbftManager::updateSoftVotedBlockForThisRound_() {
+  if (!soft_voted_block_for_this_round_.second) {
+    auto round = getPbftRound();
+
+    auto soft_votes = getVotesOfTypeFromVotesForRoundAndStep_(soft_vote_type, votes_, round, 2,
+                                                              std::make_pair(NULL_BLOCK_HASH, false));
+    auto voted_block_hash_with_soft_votes = blockWithEnoughVotes_(soft_votes);
+
+    auto batch = db_->createWriteBatch();
+    db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::soft_voted_block_hash_in_round,
+                                     voted_block_hash_with_soft_votes.voted_block_hash, batch);
+    db_->addPbftMgrStatusToBatch(PbftMgrStatus::soft_voted_block_in_round, voted_block_hash_with_soft_votes.enough,
+                                 batch);
+    if (voted_block_hash_with_soft_votes.enough &&
+        voted_block_hash_with_soft_votes.voted_block_hash != NULL_BLOCK_HASH) {
+      db_->addSoftVotesToBatch(round, voted_block_hash_with_soft_votes.votes, batch);
+    }
+    db_->commitWriteBatch(batch);
+
+    soft_voted_block_for_this_round_ =
+        std::make_pair(voted_block_hash_with_soft_votes.voted_block_hash, voted_block_hash_with_soft_votes.enough);
+
+    if (soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH && soft_voted_block_for_this_round_.second) {
+      // Have enough soft votes for a value other other than NULL BLOCK HASH...
+
+      if (state_ == finish_polling_state) {
+        LOG(log_dg_) << "Node has seen enough soft votes voted at " << soft_voted_block_for_this_round_.first
+                     << ", regossip soft votes. In round " << round;
+        if (auto net = network_.lock()) {
+          net->onNewPbftVotes(move(voted_block_hash_with_soft_votes.votes));
+        }
+      }
+
+      return true;
+    }
+  }
+  return false;
+}
+
+void PbftManager::initializeVotedValueTimeouts_() {
+  time_began_waiting_next_voted_block_ = std::chrono::system_clock::now();
+  time_began_waiting_soft_voted_block_ = std::chrono::system_clock::now();
+
+  // Concern: Requires that soft_voted_block_for_this_round_ already be initialized from db
+  if (soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH && soft_voted_block_for_this_round_.second) {
+    last_soft_voted_value_ = soft_voted_block_for_this_round_.first;
+  }
+}
+
+void PbftManager::setLastSoftVotedValue(blk_hash_t soft_voted_value) {
+  // TODO: Add a check for some kind of guard to ensure this is only called from within a test
+  updateLastSoftVotedValue_(soft_voted_value);
+}
+
+void PbftManager::updateLastSoftVotedValue_(blk_hash_t const new_soft_voted_value) {
+  if (new_soft_voted_value != last_soft_voted_value_) {
+    time_began_waiting_soft_voted_block_ = std::chrono::system_clock::now();
+  }
+  last_soft_voted_value_ = new_soft_voted_value;
+}
+
+void PbftManager::checkPreviousRoundNextVotedValueChange_() {
   auto previous_round_next_voted_value = previous_round_next_votes_->getVotedValue();
   auto previous_round_next_voted_null_block_hash = previous_round_next_votes_->haveEnoughVotesForNullBlockHash();
 
@@ -675,12 +842,21 @@ void PbftManager::identifyBlock_() {
       LOG(log_dg_) << "Identify leader block " << leader_block.first << " at round " << round;
 
       auto place_votes = placeVote_(leader_block.first, soft_vote_type, round, step_);
+
+      updateLastSoftVotedValue_(leader_block.first);
+
       if (place_votes) {
         LOG(log_nf_) << "Soft votes " << place_votes << " voting block " << leader_block.first << " at round " << round;
       }
     }
   } else if (round >= 2 && previous_round_next_voted_value_ != NULL_BLOCK_HASH) {
     auto place_votes = placeVote_(previous_round_next_voted_value_, soft_vote_type, round, step_);
+
+    // Generally this value will either be the same as last soft voted value from previous round
+    // but a node could have observed a previous round next voted value that differs from what they
+    // soft voted.
+    updateLastSoftVotedValue_(previous_round_next_voted_value_);
+
     if (place_votes) {
       LOG(log_nf_) << "Soft votes " << place_votes << " voting block " << previous_round_next_voted_value_
                    << " from previous round. In round " << round;
@@ -704,35 +880,7 @@ void PbftManager::certifyBlock_() {
   } else if (!should_have_cert_voted_in_this_round_) {
     LOG(log_tr_) << "In step 3";
 
-    if (!soft_voted_block_for_this_round_.second) {
-      auto soft_votes = getVotesOfTypeFromVotesForRoundAndStep_(soft_vote_type, votes_, round, 2,
-                                                                std::make_pair(NULL_BLOCK_HASH, false));
-      auto voted_block_hash_with_soft_votes = blockWithEnoughVotes_(soft_votes);
-
-      auto batch = db_->createWriteBatch();
-      db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::soft_voted_block_hash_in_round,
-                                       voted_block_hash_with_soft_votes.voted_block_hash, batch);
-      db_->addPbftMgrStatusToBatch(PbftMgrStatus::soft_voted_block_in_round, voted_block_hash_with_soft_votes.enough,
-                                   batch);
-      if (voted_block_hash_with_soft_votes.enough &&
-          voted_block_hash_with_soft_votes.voted_block_hash != NULL_BLOCK_HASH) {
-        db_->addSoftVotesToBatch(round, voted_block_hash_with_soft_votes.votes, batch);
-      }
-      db_->commitWriteBatch(batch);
-
-      soft_voted_block_for_this_round_ =
-          std::make_pair(voted_block_hash_with_soft_votes.voted_block_hash, voted_block_hash_with_soft_votes.enough);
-
-      if (soft_voted_block_for_this_round_.second && soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH) {
-        LOG(log_dg_) << "Node has seen enough soft votes voted at " << soft_voted_block_for_this_round_.first
-                     << ", regossip soft votes. In round " << round;
-        if (auto net = network_.lock()) {
-          net->onNewPbftVotes(move(voted_block_hash_with_soft_votes.votes));
-        }
-      }
-    }
-
-    if (soft_voted_block_for_this_round_.second && soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH &&
+    if (updateSoftVotedBlockForThisRound_() &&
         comparePbftBlockScheduleWithDAGblocks_(soft_voted_block_for_this_round_.first)) {
       LOG(log_tr_) << "Finished comparePbftBlockScheduleWithDAGblocks_";
 
@@ -821,28 +969,7 @@ void PbftManager::secondFinish_() {
   LOG(log_tr_) << "PBFT second finishing state at step " << step_ << " in round " << round;
   auto end_time_for_step = (step_ + 1) * LAMBDA_ms - POLLING_INTERVAL_ms;
 
-  if (!soft_voted_block_for_this_round_.second) {
-    auto soft_votes = getVotesOfTypeFromVotesForRoundAndStep_(soft_vote_type, votes_, round, 2,
-                                                              std::make_pair(NULL_BLOCK_HASH, false));
-    auto voted_block_hash_with_soft_votes = blockWithEnoughVotes_(soft_votes);
-
-    auto batch = db_->createWriteBatch();
-    db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::soft_voted_block_hash_in_round,
-                                     voted_block_hash_with_soft_votes.voted_block_hash, batch);
-    db_->addPbftMgrStatusToBatch(PbftMgrStatus::soft_voted_block_in_round, voted_block_hash_with_soft_votes.enough,
-                                 batch);
-    if (voted_block_hash_with_soft_votes.enough &&
-        voted_block_hash_with_soft_votes.voted_block_hash != NULL_BLOCK_HASH) {
-      db_->addSoftVotesToBatch(round, voted_block_hash_with_soft_votes.votes, batch);
-    }
-    db_->commitWriteBatch(batch);
-
-    soft_voted_block_for_this_round_ =
-        std::make_pair(voted_block_hash_with_soft_votes.voted_block_hash, voted_block_hash_with_soft_votes.enough);
-  }
-
-  if (!next_voted_soft_value_ && soft_voted_block_for_this_round_.second &&
-      soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH) {
+  if (!next_voted_soft_value_ && updateSoftVotedBlockForThisRound_() && !giveUpSoftVotedBlock_()) {
     auto place_votes = placeVote_(soft_voted_block_for_this_round_.first, next_vote_type, round, step_);
     if (place_votes) {
       LOG(log_nf_) << "Next votes " << place_votes << " voting " << soft_voted_block_for_this_round_.first
@@ -1160,18 +1287,15 @@ std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_(std::vector<Vote> 
       // We should not pick any null block as leader (proposed when
       // no new blocks found, or maliciously) if others have blocks.
       auto proposed_block_hash = v.getBlockHash();
+
+      // Make sure we don't keep soft voting for soft value we want to give up...
+      if (proposed_block_hash == last_soft_voted_value_ && giveUpSoftVotedBlock_()) {
+        continue;
+      }
+
       if (round == 1 ||
           (proposed_block_hash != NULL_BLOCK_HASH && !pbft_chain_->findPbftBlockInChain(proposed_block_hash))) {
-        auto block = pbft_chain_->getUnverifiedPbftBlock(proposed_block_hash);
-        if (block) {
-          // Received the proposed block already
-          if (pbft_chain_->checkPbftBlockValidation(*block)) {
-            leader_candidates.emplace_back(std::make_pair(v.getCredential(), proposed_block_hash));
-          }
-        } else {
-          // Have not received the proposed block yet. Identify a leader without even needing to have the block yet.
-          leader_candidates.emplace_back(std::make_pair(v.getCredential(), proposed_block_hash));
-        }
+        leader_candidates.emplace_back(std::make_pair(v.getCredential(), proposed_block_hash));
       }
     }
   }
@@ -1487,6 +1611,27 @@ void PbftManager::updateTwoTPlusOneAndThreshold_() {
                << ". Update 2t+1 " << TWO_T_PLUS_ONE << ", Threshold " << sortition_threshold_;
 }
 
+bool PbftManager::giveUpSoftVotedBlock_() {
+  if (last_soft_voted_value_ == NULL_BLOCK_HASH) return false;
+
+  auto now = std::chrono::system_clock::now();
+  auto soft_voted_block_wait_duration = now - time_began_waiting_soft_voted_block_;
+  unsigned long elapsed_wait_soft_voted_block_in_ms =
+      std::chrono::duration_cast<std::chrono::milliseconds>(soft_voted_block_wait_duration).count();
+
+  if (elapsed_wait_soft_voted_block_in_ms > max_wait_for_soft_voted_block_steps_ms_) {
+    LOG(log_dg_) << "Have been waiting " << elapsed_wait_soft_voted_block_in_ms << "ms for soft voted block "
+                 << last_soft_voted_value_ << ", giving up on this value.";
+    return true;
+  } else {
+    LOG(log_tr_) << "Have only been waiting " << elapsed_wait_soft_voted_block_in_ms << "ms for soft voted block "
+                 << last_soft_voted_value_ << "(after " << max_wait_for_soft_voted_block_steps_ms_
+                 << "ms will give up on this value)";
+  }
+
+  return false;
+}
+
 bool PbftManager::giveUpNextVotedBlock_() {
   blk_hash_t const &block_hash = previous_round_next_voted_value_;
   if (block_hash == NULL_BLOCK_HASH) {
@@ -1494,6 +1639,12 @@ bool PbftManager::giveUpNextVotedBlock_() {
     return true;
   } else if (previous_round_next_votes_->haveEnoughVotesForNullBlockHash()) {
     // There are 2 valued values in previous round, and have received 2t+1 next votes for NULL_BLOCK_HASH
+    return true;
+  }
+
+  if (previous_round_next_voted_value_ == last_soft_voted_value_ && giveUpSoftVotedBlock_()) {
+    LOG(log_tr_) << "Giving up next voted value " << previous_round_next_voted_value_
+                 << " because giving up soft voted value.";
     return true;
   }
 
@@ -1509,9 +1660,9 @@ bool PbftManager::giveUpNextVotedBlock_() {
 
       auto now = std::chrono::system_clock::now();
       auto next_voted_block_wait_duration = now - time_began_waiting_next_voted_block_;
-      auto elapsed_wait_next_voted_block_in_ms =
+      unsigned long elapsed_wait_next_voted_block_in_ms =
           std::chrono::duration_cast<std::chrono::milliseconds>(next_voted_block_wait_duration).count();
-      if (elapsed_wait_next_voted_block_in_ms > MAX_WAIT_FOR_NEXT_VOTED_BLOCK_MS) {
+      if (elapsed_wait_next_voted_block_in_ms > max_wait_for_next_voted_block_steps_ms_) {
         LOG(log_dg_) << "Have been waiting " << elapsed_wait_next_voted_block_in_ms << "ms for next voted block "
                      << block_hash << ", giving up now on this value.";
         return true;
@@ -1526,6 +1677,7 @@ bool PbftManager::giveUpNextVotedBlock_() {
   }
 
   if (pbft_block) {
+    // Have a block, but is it valid?
     if (!checkPbftBlockValid_(block_hash)) {
       // Received the block, but not valid
       return true;
