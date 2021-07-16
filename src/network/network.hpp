@@ -51,6 +51,8 @@ class Network {
   void restartSyncingPbft(bool force = false);
   void onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_block);
   bool pbft_syncing();
+  uint64_t syncTimeSeconds() const;
+
   void onNewPbftVotes(std::vector<Vote> votes);
   void broadcastPreviousRoundNextVotesBundle();
 
