@@ -28,7 +28,7 @@ will build out of the box without further effort:
 
     # Install conan package manager
     # >= 1.36.0 version is required to work properly with clang-12
-    pip3 install conan
+    sudo python3 -m pip install conan
 
     # Go (required)
     wget https://dl.google.com/go/go1.13.7.linux-amd64.tar.gz
