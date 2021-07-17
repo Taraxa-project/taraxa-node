@@ -145,75 +145,6 @@ class Vote {
   mutable addr_t cached_voter_addr_;
 };
 
-class VoteManager {
- public:
-  VoteManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<FinalChain> final_chain,
-              std::shared_ptr<PbftChain> pbft_chain);
-  ~VoteManager();
-
-  void setNetwork(std::weak_ptr<Network> network);
-
-  // Unverified votes
-  bool addUnverifiedVote(Vote const& vote);
-  void addUnverifiedVotes(std::vector<Vote> const& votes);
-  void removeUnverifiedVote(uint64_t const& pbft_round, vote_hash_t const& vote_hash);
-  bool voteInUnverifiedMap(uint64_t const& pbft_round, vote_hash_t const& vote_hash);
-  std::vector<Vote> getUnverifiedVotes();
-  void clearUnverifiedVotesTable();
-  uint64_t getUnverifiedVotesSize() const;
-  uint64_t getVerifiedVotesSize() const;
-
-  // Verified votes
-  void addVerifiedVote(Vote const& vote);
-  void removeVerifiedVotes();
-  bool voteInVerifiedMap(uint64_t const& pbft_round, vote_hash_t const& vote_hash);
-  void clearVerifiedVotesTable();
-  std::vector<Vote> getVerifiedVotes();
-
-  std::vector<Vote> getVerifiedVotes(uint64_t const pbft_round, size_t const sortition_threshold,
-                                     uint64_t dpos_total_votes_count,
-                                     std::function<size_t(addr_t const&)> const& dpos_eligible_vote_count);
-
-  void cleanupVotes(uint64_t pbft_round);
-
-  bool voteValidation(Vote& vote, size_t const valid_sortition_players, size_t const sortition_threshold) const;
-
-  bool pbftBlockHasEnoughValidCertVotes(SyncBlock& pbft_block_and_votes, size_t valid_sortition_players,
-                                        size_t sortition_threshold, size_t pbft_2t_plus_1) const;
-
-  std::string getJsonStr(std::vector<Vote> const& votes);
-
- private:
-  void retreieveVotes_();
-
-  using uniqueLock_ = boost::unique_lock<boost::shared_mutex>;
-  using sharedLock_ = boost::shared_lock<boost::shared_mutex>;
-  using upgradableLock_ = boost::upgrade_lock<boost::shared_mutex>;
-  using upgradeLock_ = boost::upgrade_to_unique_lock<boost::shared_mutex>;
-
-  // <pbft_round, <vote_hash, vote>>
-  std::map<uint64_t, std::unordered_map<vote_hash_t, Vote>> unverified_votes_;
-  std::map<uint64_t, std::unordered_map<vote_hash_t, Vote>> verified_votes_;
-
-  std::unordered_set<vote_hash_t> votes_invalid_in_current_final_chain_period_;
-  h256 current_period_final_chain_block_hash_;
-  std::map<addr_t, uint64_t> max_received_round_for_address_;
-
-  std::unique_ptr<std::thread> daemon_;
-
-  mutable boost::shared_mutex unverified_votes_access_;
-  mutable boost::shared_mutex verified_votes_access_;
-
-  addr_t node_addr_;
-
-  std::shared_ptr<DbStorage> db_;
-  std::shared_ptr<PbftChain> pbft_chain_;
-  std::shared_ptr<FinalChain> final_chain_;
-  std::weak_ptr<Network> network_;
-
-  LOG_OBJECTS_DEFINE
-};
-
 class NextVotesForPreviousRound {
  public:
   NextVotesForPreviousRound(addr_t node_addr, std::shared_ptr<DbStorage> db);
@@ -257,6 +188,93 @@ class NextVotesForPreviousRound {
   // only save votes >= 2t+1 voted at same value in map and set
   std::unordered_map<blk_hash_t, std::vector<Vote>> next_votes_;
   std::unordered_set<vote_hash_t> next_votes_set_;
+
+  LOG_OBJECTS_DEFINE
+};
+
+struct votesBundle {
+  bool enough;
+  blk_hash_t voted_block_hash;
+  std::vector<Vote> votes;  // exactly 2t+1 votes
+
+  votesBundle() : enough(false), voted_block_hash(blk_hash_t(0)) {}
+  votesBundle(bool const enough_, blk_hash_t const& voted_block_hash_, std::vector<Vote> const& votes_)
+      : enough(enough_), voted_block_hash(voted_block_hash_), votes(votes_) {}
+};
+
+class VoteManager {
+ public:
+  VoteManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<FinalChain> final_chain,
+              std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr);
+  ~VoteManager() {}
+
+  void setNetwork(std::weak_ptr<Network> network);
+
+  // Unverified votes
+  bool addUnverifiedVote(Vote const& vote);
+  void addUnverifiedVotes(std::vector<Vote> const& votes);
+  void removeUnverifiedVote(uint64_t const& pbft_round, vote_hash_t const& vote_hash);
+  bool voteInUnverifiedMap(uint64_t const& pbft_round, vote_hash_t const& vote_hash);
+  std::vector<Vote> getUnverifiedVotes();
+  void clearUnverifiedVotesTable();
+  uint64_t getUnverifiedVotesSize() const;
+  uint64_t getVerifiedVotesSize() const;
+
+  // Verified votes
+  void addVerifiedVote(Vote const& vote);
+  void removeVerifiedVotes();
+  bool voteInVerifiedMap(Vote const& vote);
+  void clearVerifiedVotesTable();
+
+  void verifyVotes(uint64_t const& pbft_round, size_t const& sortition_threshold,
+                   uint64_t const& dpos_total_votes_count,
+                   std::function<size_t(addr_t const&)> const& dpos_eligible_vote_count);
+
+  void cleanupVotes(uint64_t const& pbft_round);
+
+  bool voteValidation(Vote const& vote, size_t const& valid_sortition_players, size_t const& sortition_threshold) const;
+
+  bool pbftBlockHasEnoughValidCertVotes(SyncBlock& pbft_block_and_votes, size_t valid_sortition_players,
+                                        size_t sortition_threshold, size_t pbft_2t_plus_1) const;
+
+  std::string getJsonStr(std::vector<Vote> const& votes);
+
+  std::vector<Vote> getProposalVotes(uint64_t const& pbft_round);
+
+  votesBundle getVotesBundleByRoundAndStep(uint64_t const& round, size_t const& step, size_t const& two_t_plus_one);
+
+  uint64_t roundDeterminedFromVotes(size_t const& two_t_plus_one);
+
+ private:
+  void retreieveVotes_();
+
+  using uniqueLock_ = boost::unique_lock<boost::shared_mutex>;
+  using sharedLock_ = boost::shared_lock<boost::shared_mutex>;
+  using upgradableLock_ = boost::upgrade_lock<boost::shared_mutex>;
+  using upgradeLock_ = boost::upgrade_to_unique_lock<boost::shared_mutex>;
+
+  // <pbft_round, <vote_hash, vote>>
+  std::map<uint64_t, std::unordered_map<vote_hash_t, Vote>> unverified_votes_;
+
+  // <PBFT round, <PBFT step, <voted value, <vote hash list>>>>
+  std::map<uint64_t, std::map<size_t, std::unordered_map<blk_hash_t, std::unordered_set<vote_hash_t>>>> verified_votes_;
+
+  std::unordered_set<vote_hash_t> votes_invalid_in_current_final_chain_period_;
+  h256 current_period_final_chain_block_hash_;
+  std::map<addr_t, uint64_t> max_received_round_for_address_;
+
+  std::unique_ptr<std::thread> daemon_;
+
+  mutable boost::shared_mutex unverified_votes_access_;
+  mutable boost::shared_mutex verified_votes_access_;
+
+  addr_t node_addr_;
+
+  std::shared_ptr<DbStorage> db_;
+  std::shared_ptr<PbftChain> pbft_chain_;
+  std::shared_ptr<FinalChain> final_chain_;
+  std::shared_ptr<NextVotesForPreviousRound> previous_round_next_votes_;
+  std::weak_ptr<Network> network_;
 
   LOG_OBJECTS_DEFINE
 };
