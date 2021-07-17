@@ -105,21 +105,22 @@ TEST_F(VoteTest, verified_votes) {
 
   auto vote_mgr = node->getVoteManager();
   vote_mgr->addVerifiedVote(vote);
-  EXPECT_TRUE(vote_mgr->voteInVerifiedMap(vote.getRound(), vote.getHash()));
+  EXPECT_TRUE(vote_mgr->voteInVerifiedMap(vote));
   // Test same vote cannot add twice
   vote_mgr->addVerifiedVote(vote);
-  EXPECT_EQ(vote_mgr->getVerifiedVotes().size(), 1);
+  EXPECT_EQ(vote_mgr->getVerifiedVotesSize(), 1);
 
   vote_mgr->clearVerifiedVotesTable();
-  EXPECT_FALSE(vote_mgr->voteInVerifiedMap(vote.getRound(), vote.getHash()));
-  EXPECT_EQ(vote_mgr->getVerifiedVotes().size(), 0);
+  EXPECT_FALSE(vote_mgr->voteInVerifiedMap(vote));
+  EXPECT_EQ(vote_mgr->getVerifiedVotesSize(), 0);
 }
 
 // Add votes round 1, 2 and 3 into unverified vote table
-// Get votes round 2, will remove round 1 in the table, and return round 2 & 3 votes
+// Verify votes by round 2, will remove round 1 in the table, and keep round 2 & 3 votes
 TEST_F(VoteTest, add_cleanup_get_votes) {
   auto node = create_nodes(1, true /*start*/).front();
 
+  auto db = node->getDB();
   // stop PBFT manager, that will place vote
   auto pbft_mgr = node->getPbftManager();
   pbft_mgr->stop();
@@ -128,14 +129,14 @@ TEST_F(VoteTest, add_cleanup_get_votes) {
 
   // generate 6 votes, each round has 2 votes
   auto vote_mgr = node->getVoteManager();
-  blk_hash_t blockhash(1);
-  PbftVoteTypes type = propose_vote_type;
+  blk_hash_t voted_block_hash(1);
+  PbftVoteTypes type = next_vote_type;
   auto weighted_index = 0;
   for (int i = 1; i <= 3; i++) {
     for (int j = 1; j <= 2; j++) {
       uint64_t round = i;
-      size_t step = j;
-      Vote vote = pbft_mgr->generateVote(blockhash, type, round, step, weighted_index);
+      size_t step = 3 + j;
+      Vote vote = pbft_mgr->generateVote(voted_block_hash, type, round, step, weighted_index);
       vote_mgr->addUnverifiedVote(vote);
     }
   }
@@ -144,24 +145,26 @@ TEST_F(VoteTest, add_cleanup_get_votes) {
   size_t votes_size = vote_mgr->getUnverifiedVotesSize();
   EXPECT_EQ(votes_size, 6);
 
-  // Test get votes
+  // Test Verify votes
   // CREDENTIAL / SIGNATURE_HASH_MAX <= SORTITION THRESHOLD / VALID PLAYERS
   size_t valid_sortition_players = 1;
   pbft_mgr->setSortitionThreshold(valid_sortition_players);
   uint64_t pbft_round = 2;
-  std::vector<Vote> votes = vote_mgr->getVerifiedVotes(pbft_round, pbft_mgr->getSortitionThreshold(),
-                                                       valid_sortition_players, [](...) { return true; });
-  EXPECT_EQ(votes.size(), 4);
+  vote_mgr->verifyVotes(pbft_round, pbft_mgr->getSortitionThreshold(), valid_sortition_players,
+                        [](...) { return true; });
+  auto verified_votes_size = vote_mgr->getVerifiedVotesSize();
+  EXPECT_EQ(verified_votes_size, 4);
+  auto votes = db->getVerifiedVotes();
   for (Vote const &v : votes) {
     EXPECT_GT(v.getRound(), 1);
   }
 
   // Test cleanup votes
-  auto verified_votes = vote_mgr->getVerifiedVotes();
-  EXPECT_EQ(verified_votes.size(), 4);
   vote_mgr->cleanupVotes(4);  // cleanup round 2 & 3
-  verified_votes = vote_mgr->getVerifiedVotes();
-  EXPECT_TRUE(verified_votes.empty());
+  verified_votes_size = vote_mgr->getVerifiedVotesSize();
+  EXPECT_EQ(verified_votes_size, 0);
+  votes = db->getVerifiedVotes();
+  EXPECT_TRUE(votes.empty());
 }
 
 TEST_F(VoteTest, reconstruct_votes) {
