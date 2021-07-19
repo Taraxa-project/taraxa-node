@@ -126,7 +126,7 @@ void Config::InitLogging(addr_t const &node) {
           boost::log::keywords::rotation_size = output.rotation_size,
           boost::log::keywords::time_based_rotation =
               boost::log::sinks::file::rotation_at_time_point(stoi(v[0]), stoi(v[1]), stoi(v[2])),
-          boost::log::keywords::max_size = output.max_size);
+          boost::log::keywords::max_size = output.max_size, boost::log::keywords::target = output.target);
       sink->set_filter(filter);
 
       sink->set_formatter(boost::log::aux::acquire_formatter(output.format));
