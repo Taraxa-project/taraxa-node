@@ -969,7 +969,10 @@ void PbftManager::secondFinish_() {
   LOG(log_tr_) << "PBFT second finishing state at step " << step_ << " in round " << round;
   auto end_time_for_step = (step_ + 1) * LAMBDA_ms - POLLING_INTERVAL_ms;
 
-  if (!next_voted_soft_value_ && updateSoftVotedBlockForThisRound_() && !giveUpSoftVotedBlock_()) {
+  updateSoftVotedBlockForThisRound_();
+
+  if (!next_voted_soft_value_ && soft_voted_block_for_this_round_.second &&
+      soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH) {
     auto place_votes = placeVote_(soft_voted_block_for_this_round_.first, next_vote_type, round, step_);
     if (place_votes) {
       LOG(log_nf_) << "Next votes " << place_votes << " voting " << soft_voted_block_for_this_round_.first
@@ -977,12 +980,6 @@ void PbftManager::secondFinish_() {
 
       db_->savePbftMgrStatus(PbftMgrStatus::next_voted_soft_value, true);
       next_voted_soft_value_ = true;
-
-      LOG(log_dg_) << "Node has seen enough soft votes voted at " << soft_voted_block_for_this_round_.first
-                   << ", regossip soft votes. In round " << round << " step " << step_;
-      if (auto net = network_.lock()) {
-        net->onNewPbftVotes(db_->getSoftVotes(round));
-      }
     }
   }
 
@@ -1642,7 +1639,7 @@ bool PbftManager::giveUpNextVotedBlock_() {
     return true;
   }
 
-  if (previous_round_next_voted_value_ == last_soft_voted_value_ && giveUpSoftVotedBlock_()) {
+  if (previous_round_next_voted_value_ == last_soft_voted_value_ && giveUpSoftVotedBlock_() && cert_voted_values_for_round_.find(getPbftRound()) == cert_voted_values_for_round_.end()) {
     LOG(log_tr_) << "Giving up next voted value " << previous_round_next_voted_value_
                  << " because giving up soft voted value.";
     return true;
