@@ -187,6 +187,7 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
           output.type = getConfigDataAsString(o, {"type"});
           output.format = getConfigDataAsString(o, {"format"});
           if (output.type == "file") {
+            output.target = log_path;
             output.file_name = (log_path / getConfigDataAsString(o, {"file_name"})).string();
             output.format = getConfigDataAsString(o, {"format"});
             output.max_size = getConfigDataAsUInt64(o, {"max_size"});
