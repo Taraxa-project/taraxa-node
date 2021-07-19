@@ -200,10 +200,13 @@ TEST_F(PbftManagerTest, terminate_soft_voting_pbft_block) {
   auto alternate_propose_block_hash = blk_hash_t("0000000200000000000000000000000000000000000000000000000000000000");
   auto prev_round_next_vote = pbft_mgr->generateVote(stale_block_hash, next_vote_type, 1, 4, weighted_index);
   vote_mgr->addVerifiedVote(prev_round_next_vote);
+  db->saveVerifiedVote(prev_round_next_vote);
   auto propose_vote = pbft_mgr->generateVote(stale_block_hash, propose_vote_type, 2, 1, weighted_index);
   vote_mgr->addVerifiedVote(propose_vote);
+  db->saveVerifiedVote(propose_vote);
   propose_vote = pbft_mgr->generateVote(alternate_propose_block_hash, propose_vote_type, 2, 1, weighted_index);
   vote_mgr->addVerifiedVote(propose_vote);
+  db->saveVerifiedVote(propose_vote);
 
   pbft_mgr->setLastSoftVotedValue(stale_block_hash);
 
@@ -280,6 +283,7 @@ TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
   auto weighted_index = 0;
   auto propose_vote = pbft_mgr->generateVote(pbft_block_hash, next_vote_type, round, step, weighted_index);
   vote_mgr->addVerifiedVote(propose_vote);
+  db->saveVerifiedVote(propose_vote);
 
   pbft_mgr->start();
 
@@ -344,6 +348,7 @@ TEST_F(PbftManagerTest, terminate_missing_proposed_pbft_block) {
   auto pbft_block_hash = blk_hash_t("0000000100000000000000000000000000000000000000000000000000000000");
   auto propose_vote = pbft_mgr->generateVote(pbft_block_hash, next_vote_type, round, step, weighted_index);
   vote_mgr->addVerifiedVote(propose_vote);
+  db->saveVerifiedVote(propose_vote);
 
   pbft_mgr->start();
 
