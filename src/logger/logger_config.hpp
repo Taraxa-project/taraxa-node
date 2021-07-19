@@ -39,6 +39,7 @@ class Config {
     OutputConfig() = default;
 
     std::string type = "console";
+    std::string target;
     std::string file_name;
     uint64_t rotation_size = 0;
     std::string time_based_rotation;
