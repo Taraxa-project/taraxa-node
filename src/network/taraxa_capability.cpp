@@ -97,8 +97,8 @@ std::shared_ptr<TaraxaPeer> TaraxaCapability::setPeerAsReadyToSendMessages(NodeI
                                                                            std::shared_ptr<TaraxaPeer> peer) {
   boost::unique_lock<boost::shared_mutex> lock(peers_mutex_);
   pending_peers_.erase(node_id);
-  auto ret = peers_.emplace(std::make_pair(node_id, peer));
-  assert(ret.second);
+  auto ret = peers_.emplace(node_id, peer);
+  if (!ret.second) LOG(log_wr_) << "Peer " << node_id.abridged() << " is already in the map";
   return ret.first->second;
 }
 
@@ -1001,11 +1001,11 @@ void TaraxaCapability::restartSyncingPbft(bool force) {
 }
 
 void TaraxaCapability::onDisconnect(NodeID const &_nodeID) {
+  LOG(log_nf_) << "Node " << _nodeID << " disconnected";
+  cnt_received_messages_.erase(_nodeID);
+  test_sums_.erase(_nodeID);
+  erasePeer(_nodeID);
   tp_.post([=] {
-    LOG(log_nf_) << "Node " << _nodeID << " disconnected";
-    cnt_received_messages_.erase(_nodeID);
-    test_sums_.erase(_nodeID);
-    erasePeer(_nodeID);
     if (syncing_ && peer_syncing_pbft_ == _nodeID && getPeersCount() > 0) {
       LOG(log_dg_pbft_sync_) << "Syncing PBFT is stopping";
       restartSyncingPbft(true);
