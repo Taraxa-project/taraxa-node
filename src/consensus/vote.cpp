@@ -644,7 +644,8 @@ votesBundle VoteManager::getVotesBundleByRoundAndStep(uint64_t const& round, siz
     LOG(log_nf_) << "Found enough " << votes_hash.size() << " votes at voted value " << voted_block_hash
                  << " for round " << round << " step " << step;
 
-    std::vector<Vote> votes(two_t_plus_one);
+    std::vector<Vote> votes;
+    votes.reserve(two_t_plus_one);
     for (auto const& v_hash : votes_hash) {
       auto vote = db_->getVerifiedVote(v_hash);
       assert(vote);

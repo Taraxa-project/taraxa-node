@@ -115,6 +115,44 @@ TEST_F(VoteTest, verified_votes) {
   EXPECT_EQ(vote_mgr->getVerifiedVotesSize(), 0);
 }
 
+// Test moving all verified votes to unverified table/DB
+TEST_F(VoteTest, remove_verified_votes) {
+  auto node_cfgs = make_node_cfgs(1);
+  FullNode::Handle node(node_cfgs[0]);
+
+  // stop PBFT manager, that will place vote
+  auto pbft_mgr = node->getPbftManager();
+  pbft_mgr->stop();
+
+  clearAllVotes(node);
+
+  auto db = node->getDB();
+  auto vote_mgr = node->getVoteManager();
+
+  // Generate 3 votes and add into verified table
+  std::vector<Vote> votes;
+  blk_hash_t blockhash(1);
+  PbftVoteTypes type = next_vote_type;
+  auto weighted_index = 0;
+  for (auto i = 1; i <= 3; i++) {
+    auto round = i;
+    auto step = i;
+    Vote vote = pbft_mgr->generateVote(blockhash, type, round, step, weighted_index);
+    votes.emplace_back(vote);
+    db->saveVerifiedVote(vote);
+    vote_mgr->addVerifiedVote(vote);
+    EXPECT_TRUE(vote_mgr->voteInVerifiedMap(vote));
+  }
+  EXPECT_EQ(vote_mgr->getVerifiedVotesSize(), votes.size());
+
+  vote_mgr->removeVerifiedVotes();
+
+  EXPECT_EQ(vote_mgr->getVerifiedVotesSize(), 0);
+  EXPECT_TRUE(db->getVerifiedVotes().empty());
+  EXPECT_EQ(vote_mgr->getUnverifiedVotesSize(), votes.size());
+  EXPECT_EQ(db->getUnverifiedVotes().size(), votes.size());
+}
+
 // Add votes round 1, 2 and 3 into unverified vote table
 // Verify votes by round 2, will remove round 1 in the table, and keep round 2 & 3 votes
 TEST_F(VoteTest, add_cleanup_get_votes) {
@@ -165,6 +203,40 @@ TEST_F(VoteTest, add_cleanup_get_votes) {
   EXPECT_EQ(verified_votes_size, 0);
   votes = db->getVerifiedVotes();
   EXPECT_TRUE(votes.empty());
+}
+
+TEST_F(VoteTest, round_determine_from_next_votes) {
+  auto node_cfgs = make_node_cfgs(1);
+  FullNode::Handle node(node_cfgs[0]);
+
+  // stop PBFT manager, that will place vote
+  auto pbft_mgr = node->getPbftManager();
+  pbft_mgr->stop();
+
+  clearAllVotes(node);
+
+  auto db = node->getDB();
+  auto vote_mgr = node->getVoteManager();
+  size_t two_t_plus_one = 2;
+
+  // Generate votes in 3 rounds, 2 steps, each step have 3 votes
+  blk_hash_t voted_block_hash(1);
+  PbftVoteTypes type = next_vote_type;
+  for (int i = 10; i <= 12; i++) {
+    for (int j = 4; j <= 5; j++) {
+      uint64_t round = i;
+      size_t step = j;
+      for (int n = 0; n <= 2; n++) {
+        auto weighted_index = n;
+        Vote vote = pbft_mgr->generateVote(voted_block_hash, type, round, step, weighted_index);
+        db->saveVerifiedVote(vote);
+        vote_mgr->addVerifiedVote(vote);
+      }
+    }
+  }
+
+  auto new_round = vote_mgr->roundDeterminedFromVotes(two_t_plus_one);
+  EXPECT_EQ(new_round, 13);
 }
 
 TEST_F(VoteTest, reconstruct_votes) {
@@ -355,9 +427,6 @@ int main(int argc, char **argv) {
   taraxa::static_init();
   auto logging = logger::createDefaultLoggingConfig();
   logging.verbosity = logger::Verbosity::Error;
-  logging.channels["NETWORK"] = logger::Verbosity::Error;
-  logging.channels["TARCAP"] = logger::Verbosity::Error;
-  logging.channels["VOTE_MGR"] = logger::Verbosity::Error;
 
   addr_t node_addr;
   logger::InitLogging(logging, node_addr);

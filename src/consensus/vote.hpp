@@ -218,13 +218,14 @@ class VoteManager {
   std::vector<Vote> getUnverifiedVotes();
   void clearUnverifiedVotesTable();
   uint64_t getUnverifiedVotesSize() const;
-  uint64_t getVerifiedVotesSize() const;
 
   // Verified votes
   void addVerifiedVote(Vote const& vote);
-  void removeVerifiedVotes();
   bool voteInVerifiedMap(Vote const& vote);
   void clearVerifiedVotesTable();
+  uint64_t getVerifiedVotesSize() const;
+
+  void removeVerifiedVotes();
 
   void verifyVotes(uint64_t const& pbft_round, size_t const& sortition_threshold,
                    uint64_t const& dpos_total_votes_count,
