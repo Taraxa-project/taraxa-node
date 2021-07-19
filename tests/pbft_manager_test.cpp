@@ -187,11 +187,11 @@ TEST_F(PbftManagerTest, terminate_soft_voting_pbft_block) {
   auto nodes = launch_nodes(node_cfgs);
 
   auto pbft_mgr = nodes[0]->getPbftManager();
-
   pbft_mgr->stop();
 
   cout << "Initialize PBFT manager at round 2 step 2" << endl;
 
+  auto db = nodes[0]->getDB();
   auto vote_mgr = nodes[0]->getVoteManager();
 
   // Generate bogus votes
@@ -228,7 +228,7 @@ TEST_F(PbftManagerTest, terminate_soft_voting_pbft_block) {
 
   cout << "Check did not soft vote for stale soft voted value of " << stale_block_hash.abridged() << "..." << endl;
   bool skipped_soft_voting = true;
-  auto votes = vote_mgr->getVerifiedVotes();
+  auto votes = db->getVerifiedVotes();
   for (auto const &v : votes) {
     if (soft_vote_type == v.getType()) {
       if (v.getBlockHash() == stale_block_hash) {
@@ -259,6 +259,7 @@ TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
   pbft_mgr->setPbftRound(1);
   pbft_mgr->setPbftStep(4);
 
+  auto db = nodes[0]->getDB();
   auto pbft_chain = nodes[0]->getPbftChain();
   auto vote_mgr = nodes[0]->getVoteManager();
 
@@ -285,7 +286,7 @@ TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
   // Vote at the bogus PBFT block hash
   EXPECT_HAPPENS({10s, 50ms}, [&](auto &ctx) {
     auto soft_vote_value = blk_hash_t(0);
-    auto votes = vote_mgr->getVerifiedVotes();
+    auto votes = db->getVerifiedVotes();
     for (auto const &v : votes) {
       if (soft_vote_type == v.getType() && v.getBlockHash() == pbft_block_hash) {
         soft_vote_value = v.getBlockHash();
@@ -303,10 +304,10 @@ TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
     auto votes = vote_mgr->getVerifiedVotes();
 
     for (auto const &v : votes) {
-      if (propose_vote_type == v.getType() && v.getBlockHash() == NULL_BLOCK_HASH) {
+      if (propose_vote_type == v->getType() && v->getBlockHash() == NULL_BLOCK_HASH) {
         auto soft_voted_from_db = *db->getPbftMgrVotedValue(PbftMgrVotedValue::soft_voted_block_hash_in_round);
         if (soft_voted_from_db == NULL_BLOCK_HASH) {
-          next_vote_value = v.getBlockHash();
+          next_vote_value = v->getBlockHash();
           break;
         }
       }
@@ -330,6 +331,7 @@ TEST_F(PbftManagerTest, terminate_missing_proposed_pbft_block) {
   pbft_mgr->setPbftRound(1);
   pbft_mgr->setPbftStep(4);
 
+  auto db = nodes[0]->getDB();
   auto pbft_chain = nodes[0]->getPbftChain();
   auto vote_mgr = nodes[0]->getVoteManager();
 
@@ -350,8 +352,8 @@ TEST_F(PbftManagerTest, terminate_missing_proposed_pbft_block) {
     auto soft_vote_value = NULL_BLOCK_HASH;
     auto votes = vote_mgr->getVerifiedVotes();
     for (auto const &v : votes) {
-      if (soft_vote_type == v.getType() && v.getBlockHash() == pbft_block_hash) {
-        soft_vote_value = v.getBlockHash();
+      if (soft_vote_type == v->getType() && v->getBlockHash() == pbft_block_hash) {
+        soft_vote_value = v->getBlockHash();
         break;
       }
     }

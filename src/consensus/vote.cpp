@@ -497,9 +497,9 @@ void VoteManager::cleanupVotes(uint64_t const& pbft_round) {
   db_->commitWriteBatch(batch);
 }
 
-bool VoteManager::voteValidation(taraxa::Vote const& vote, size_t const& dpos_total_votes_count,
+bool VoteManager::voteValidation(taraxa::Vote& vote, size_t const& dpos_total_votes_count,
                                  size_t const& sortition_threshold) const {
-  if (!vote.getVrfSortition()) {
+  if (!vote.verifyVrfSortition()) {
     LOG(log_er_) << "Invalid vrf proof. " << vote;
     return false;
   }

@@ -232,7 +232,7 @@ class VoteManager {
 
   void cleanupVotes(uint64_t const& pbft_round);
 
-  bool voteValidation(Vote const& vote, size_t const& valid_sortition_players, size_t const& sortition_threshold) const;
+  bool voteValidation(Vote& vote, size_t const& valid_sortition_players, size_t const& sortition_threshold) const;
 
   bool pbftBlockHasEnoughValidCertVotes(SyncBlock& pbft_block_and_votes, size_t valid_sortition_players,
                                         size_t sortition_threshold, size_t pbft_2t_plus_1) const;

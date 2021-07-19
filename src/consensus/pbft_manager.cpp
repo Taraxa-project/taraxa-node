@@ -690,9 +690,7 @@ bool PbftManager::updateSoftVotedBlockForThisRound_() {
   if (!soft_voted_block_for_this_round_.second) {
     auto round = getPbftRound();
 
-    auto soft_votes = getVotesOfTypeFromVotesForRoundAndStep_(soft_vote_type, votes_, round, 2,
-                                                              std::make_pair(NULL_BLOCK_HASH, false));
-    auto voted_block_hash_with_soft_votes = blockWithEnoughVotes_(soft_votes);
+    auto voted_block_hash_with_soft_votes = vote_mgr_->getVotesBundleByRoundAndStep(round, 2, TWO_T_PLUS_ONE);
 
     auto batch = db_->createWriteBatch();
     db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::soft_voted_block_hash_in_round,
