@@ -186,13 +186,15 @@ void Network::setPendingPeersToReady() {
   }
 }
 
-dev::p2p::NodeID Network::getNodeId() { return host_->id(); }
+dev::p2p::NodeID Network::getNodeId() const { return host_->id(); }
 
-int Network::getReceivedBlocksCount() { return taraxa_capability_->getBlocks().size(); }
+int Network::getReceivedBlocksCount() const { return taraxa_capability_->getBlocks().size(); }
 
-int Network::getReceivedTransactionsCount() { return taraxa_capability_->getTransactions().size(); }
+int Network::getReceivedTransactionsCount() const { return taraxa_capability_->getTransactions().size(); }
 
-std::shared_ptr<TaraxaPeer> Network::getPeer(NodeID const &id) { return taraxa_capability_->getPeer(id); }
+std::shared_ptr<TaraxaPeer> Network::getPeer(NodeID const &id) const { return taraxa_capability_->getPeer(id); }
+
+uint64_t Network::pendingTasksNum() const { return tp_.num_pending_tasks(); }
 
 void Network::sendPbftBlock(NodeID const &id, PbftBlock const &pbft_block, uint64_t const &pbft_chain_size) {
   LOG(log_dg_) << "Network send PBFT block: " << pbft_block.getBlockHash() << " to: " << id;
