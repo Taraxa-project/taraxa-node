@@ -16,7 +16,7 @@ namespace taraxa::net {
 
 class Test : public TestFace {
  public:
-  explicit Test(std::shared_ptr<taraxa::FullNode> const& _full_node);
+  explicit Test(std::shared_ptr<taraxa::FullNode> const& _full_node) : full_node_(_full_node) {}
   virtual RPCModules implementedModules() const override { return RPCModules{RPCModule{"test", "1.0"}}; }
 
   virtual Json::Value insert_dag_block(const Json::Value& param1) override;
@@ -46,7 +46,6 @@ class Test : public TestFace {
 
  private:
   std::weak_ptr<taraxa::FullNode> full_node_;
-  std::future<void> trx_creater_;
 };
 
 }  // namespace taraxa::net
