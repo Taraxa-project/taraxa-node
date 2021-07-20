@@ -1176,7 +1176,7 @@ TEST_F(FullNodeTest, two_nodes_run_two_transactions) {
 
 TEST_F(FullNodeTest, save_network_to_file) {
   auto node_cfgs = make_node_cfgs(3);
-  auto nodes = launch_nodes(node_cfgs);
+  { auto nodes = launch_nodes(node_cfgs); }
   {
     FullNode::Handle node2(node_cfgs[1], true);
     FullNode::Handle node3(node_cfgs[2], true);
