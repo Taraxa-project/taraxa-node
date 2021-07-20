@@ -6,7 +6,7 @@ namespace taraxa::net {
 using namespace core_tests;
 
 struct TaraxaTest : BaseTest {
-  vector<FullNode::Handle> nodes = launch_nodes(make_node_cfgs<20, true>(1));
+  vector<shared_ptr<FullNode>> nodes = launch_nodes(make_node_cfgs<20, true>(1));
   TransactionClient trx_client{nodes[0]};
   FullNode& node = *nodes[0];
   FullNodeConfig const& cfg = node.getConfig();

@@ -373,8 +373,7 @@ TEST_F(PbftManagerTest, terminate_missing_proposed_pbft_block) {
 }
 
 TEST_F(PbftManagerTest, full_node_lambda_input_test) {
-  auto node_cfgs = make_node_cfgs(1);
-  FullNode::Handle node(node_cfgs[0]);
+  auto node = create_nodes(1, true /*start*/).front();
 
   node->start();
   auto pbft_mgr = node->getPbftManager();
@@ -524,7 +523,7 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
 
 TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
   auto node_cfgs = make_node_cfgs<20>(1);
-  FullNode::Handle node(node_cfgs[0], true);
+  auto node = create_nodes(node_cfgs, true /*start*/).front();
 
   // create a transaction
   auto coins_value = val_t(100);
