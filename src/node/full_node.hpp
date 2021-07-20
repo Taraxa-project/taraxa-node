@@ -47,14 +47,12 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   using vrf_pk_t = vrf_wrapper::vrf_pk_t;
   using vrf_sk_t = vrf_wrapper::vrf_sk_t;
   using vrf_proof_t = vrf_wrapper::vrf_proof_t;
+  using jsonrpc_server_t = ModularServer<net::TestFace, net::TaraxaFace, net::NetFace, net::EthFace>;
 
   struct PostDestructionContext {
     uint num_shared_pointers_to_check = 0;
     bool have_leaked_shared_pointers = false;
   };
-  std::shared_ptr<PostDestructionContext> post_destruction_ctx_;
-  // Has to be destroyed last, hence on top
-  util::ExitStack post_destruction_;
 
   // should be destroyed after all components, since they may depend on it through unsafe pointers
   std::unique_ptr<util::ThreadPool> rpc_thread_pool_;
@@ -73,7 +71,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<Network> network_;
   std::shared_ptr<TransactionOrderManager> trx_order_mgr_;
   std::shared_ptr<BlockProposer> blk_proposer_;
-  std::vector<std::thread> block_workers_;
   std::shared_ptr<VoteManager> vote_mgr_;
   std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr_;
   std::shared_ptr<PbftManager> pbft_mgr_;
@@ -81,7 +78,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<FinalChain> final_chain_;
   std::shared_ptr<net::RpcServer> jsonrpc_http_;
   std::shared_ptr<net::WSServer> jsonrpc_ws_;
-  std::unique_ptr<ModularServer<net::TestFace, net::TaraxaFace, net::NetFace, net::EthFace>> jsonrpc_api_;
+  std::unique_ptr<jsonrpc_server_t> jsonrpc_api_;
+
+  std::vector<std::thread> block_workers_;
   // debug
   std::atomic_uint64_t received_blocks_ = 0;
   // logging
@@ -90,41 +89,13 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
 
   std::atomic_bool started_ = 0;
 
-  explicit FullNode(FullNodeConfig const &conf);
-
   void init();
   void close();
 
-  template <typename T>
-  auto const &register_s_ptr(std::shared_ptr<T> const &ptr) {
-    ++post_destruction_ctx_->num_shared_pointers_to_check;
-    post_destruction_ += [w_ptr = std::weak_ptr<T>(ptr), ctx = post_destruction_ctx_] {
-      if (w_ptr.use_count() != 0) {
-        cerr << "in taraxa::FullNode a shared pointer to type " << typeid(T).name() << " has not been released "
-             << endl;
-        ctx->have_leaked_shared_pointers = true;
-      }
-      if (--ctx->num_shared_pointers_to_check == 0 && ctx->have_leaked_shared_pointers) {
-        assert(false);
-        exit(1);
-      }
-    };
-    return ptr;
-  }
-
-  template <typename T, typename... ConstructorParams>
-  auto &emplace(std::shared_ptr<T> &ptr, ConstructorParams &&...ctor_params) {
-    ptr = std::make_shared<T>(std::forward<ConstructorParams>(ctor_params)...);
-    register_s_ptr(ptr);
-    return ptr;
-  }
-
-  template <typename T, typename... ConstructorParams>
-  static auto &emplace(std::unique_ptr<T> &ptr, ConstructorParams &&...ctor_params) {
-    return ptr = std::make_unique<T>(std::forward<ConstructorParams>(ctor_params)...);
-  }
-
  public:
+  explicit FullNode(FullNodeConfig const &conf);
+  ~FullNode();
+
   void start();
   bool isStarted() const { return started_; }
   shared_ptr_t getShared() { return shared_from_this(); }
@@ -153,16 +124,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
 
   // PBFT
   dev::Signature signMessage(std::string const &message);
-
-  struct Handle : shared_ptr_t {
-    Handle(Handle const &) = delete;
-    Handle &operator=(Handle const &) = delete;
-    Handle(Handle &&) = default;
-    Handle &operator=(Handle &&) = default;
-    Handle() = default;
-    explicit Handle(FullNodeConfig const &conf, bool start = false);
-    ~Handle();
-  };
 
   void rebuildDb();
 };

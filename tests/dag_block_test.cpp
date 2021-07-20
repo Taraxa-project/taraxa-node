@@ -173,7 +173,7 @@ TEST_F(DagBlockTest, sign_verify) {
 
 TEST_F(DagBlockTest, push_and_pop) {
   auto node_cfgs = make_node_cfgs(1);
-  FullNode::Handle node(node_cfgs[0]);
+  auto node = create_nodes(1).front();
   DagBlockManager blk_qu(addr_t(), node_cfgs[0].chain.vdf, node_cfgs[0].chain.final_chain.state.dpos, 1024,
                          node->getDB(), nullptr, nullptr, nullptr, node->getTimeLogger());
   blk_qu.start();
@@ -218,8 +218,7 @@ TEST_F(DagBlockTest, overlap) {
 }
 
 TEST_F(DagBlockMgrTest, proposal_period) {
-  auto node_cfgs = make_node_cfgs(1);
-  FullNode::Handle node(node_cfgs[0]);
+  auto node = create_nodes(1).front();
   auto db = node->getDB();
   auto dag_blk_mgr = node->getDagBlockManager();
 

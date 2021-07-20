@@ -867,14 +867,14 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
 TEST_F(FullNodeTest, destroy_db) {
   auto node_cfgs = make_node_cfgs(1);
   {
-    FullNode::Handle node(node_cfgs[0]);
+    auto node = create_nodes(node_cfgs).front();
     auto db = node->getDB();
     db->saveTransaction(g_trx_signed_samples[0]);
     // Verify trx saved in db
     EXPECT_TRUE(db->getTransaction(g_trx_signed_samples[0].getHash()));
   }
   {
-    FullNode::Handle node(node_cfgs[0]);
+    auto node = create_nodes(node_cfgs).front();
     auto db = node->getDB();
     // Verify trx saved in db after restart with destroy_db false
     EXPECT_TRUE(db->getTransaction(g_trx_signed_samples[0].getHash()));
@@ -885,7 +885,7 @@ TEST_F(FullNodeTest, reconstruct_anchors) {
   auto node_cfgs = make_node_cfgs<5>(1);
   std::pair<blk_hash_t, blk_hash_t> anchors;
   {
-    FullNode::Handle node(node_cfgs[0], true);
+    auto node = create_nodes(node_cfgs, true /*start*/).front();
 
     taraxa::thisThreadSleepForMilliSeconds(500);
 
@@ -899,7 +899,7 @@ TEST_F(FullNodeTest, reconstruct_anchors) {
     anchors = node->getDagManager()->getAnchors();
   }
   {
-    FullNode::Handle node(node_cfgs[0], true);
+    auto node = create_nodes(node_cfgs, true /*start*/).front();
 
     taraxa::thisThreadSleepForMilliSeconds(500);
 
@@ -917,7 +917,7 @@ TEST_F(FullNodeTest, reconstruct_dag) {
 
   auto num_blks = g_mock_dag0->size();
   {
-    FullNode::Handle node(node_cfgs[0], true);
+    auto node = create_nodes(node_cfgs, true /*start*/).front();
     g_mock_dag0 = samples::createMockDag0(node->getConfig().chain.dag_genesis_block.getHash().toString());
 
     taraxa::thisThreadSleepForMilliSeconds(100);
@@ -931,7 +931,7 @@ TEST_F(FullNodeTest, reconstruct_dag) {
     EXPECT_EQ(vertices1, num_blks);
   }
   {
-    FullNode::Handle node(node_cfgs[0], true);
+    auto node = create_nodes(node_cfgs, true /*start*/).front();
     taraxa::thisThreadSleepForMilliSeconds(100);
 
     vertices2 = node->getDagManager()->getNumVerticesInDag().first;
@@ -939,7 +939,7 @@ TEST_F(FullNodeTest, reconstruct_dag) {
   }
   {
     fs::remove_all(node_cfgs[0].db_path);
-    FullNode::Handle node(node_cfgs[0], true);
+    auto node = create_nodes(node_cfgs, true /*start*/).front();
     // TODO: pbft does not support node stop yet, to be fixed ...
     node->getPbftManager()->stop();
     for (size_t i = 1; i < num_blks; i++) {
@@ -949,7 +949,7 @@ TEST_F(FullNodeTest, reconstruct_dag) {
     vertices3 = node->getDagManager()->getNumVerticesInDag().first;
   }
   {
-    FullNode::Handle node(node_cfgs[0], true);
+    auto node = create_nodes(node_cfgs, true /*start*/).front();
     taraxa::thisThreadSleepForMilliSeconds(100);
     vertices4 = node->getDagManager()->getNumVerticesInDag().first;
   }
@@ -1093,7 +1093,7 @@ TEST_F(FullNodeTest, sync_two_nodes2) {
 
 TEST_F(FullNodeTest, single_node_run_two_transactions) {
   auto node_cfgs = make_node_cfgs<5, true>(1);
-  FullNode::Handle node(node_cfgs[0], true);
+  auto node = create_nodes(node_cfgs, true /*start*/).front();
 
   std::string send_raw_trx1 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method":
@@ -1176,24 +1176,23 @@ TEST_F(FullNodeTest, two_nodes_run_two_transactions) {
 
 TEST_F(FullNodeTest, save_network_to_file) {
   auto node_cfgs = make_node_cfgs(3);
-  auto nodes = launch_nodes(node_cfgs);
+  { auto nodes = launch_nodes(node_cfgs); }
   {
-    FullNode::Handle node2(node_cfgs[1], true);
-    FullNode::Handle node3(node_cfgs[2], true);
+    auto nodes = create_nodes({node_cfgs[1], node_cfgs[2]}, true /*start*/);
 
     for (unsigned i = 0; i < SYNC_TIMEOUT; i++) {
       taraxa::thisThreadSleepForSeconds(1);
-      if (1 == node2->getNetwork()->getPeerCount() && 1 == node3->getNetwork()->getPeerCount()) break;
+      if (1 == nodes[0]->getNetwork()->getPeerCount() && 1 == nodes[1]->getNetwork()->getPeerCount()) break;
     }
 
-    ASSERT_EQ(1, node2->getNetwork()->getPeerCount());
-    ASSERT_EQ(1, node3->getNetwork()->getPeerCount());
+    ASSERT_EQ(1, nodes[0]->getNetwork()->getPeerCount());
+    ASSERT_EQ(1, nodes[1]->getNetwork()->getPeerCount());
   }
 }
 
 TEST_F(FullNodeTest, receive_send_transaction) {
   auto node_cfgs = make_node_cfgs<20, true>(1);
-  FullNode::Handle node(node_cfgs[0], true);
+  auto node = create_nodes(node_cfgs, true /*start*/).front();
 
   try {
     sendTrx(1000, 7777);
