@@ -787,7 +787,13 @@ workflows:
         - << pipeline.parameters.pr_number >>
     jobs:
      - deploy-prnet:
-        context: taraxa-node 
+         context: 
+          - TARAXA
+          - GCP
+          - K8S   
+          - GCR
+          - GITHUB
+
 
   redeploy-prnet:
     when: 
@@ -796,7 +802,12 @@ workflows:
         - << pipeline.parameters.pr_number >>
     jobs:
      - redeploy-prnet:
-        context: taraxa-node  
+        context: 
+          - TARAXA
+          - GCP
+          - K8S   
+          - GCR
+          - GITHUB
 
   cleanup-prnet:
     when: 
@@ -805,7 +816,12 @@ workflows:
         - << pipeline.parameters.pr_number >>
     jobs:
      - cleanup-prnet:
-        context: taraxa-node 
+        context: 
+          - TARAXA
+          - GCP
+          - K8S   
+          - GCR
+          - GITHUB
   
   build-and-deploy-image:
     when:
@@ -815,12 +831,19 @@ workflows:
            - not: << pipeline.parameters.cleanup_prnet >>
     jobs:
       - build-and-push-docker-image:
-         context: taraxa-node
+         context: 
+          - TARAXA
+          - GCP
+          - K8S   
+          - GCR
+          - DOCKERHUB
 
   create-builder-image:
     jobs:
       - create-and-push-builder:
-          context: taraxa-node
+          context:
+           - TARAXA
+           - GCR
           filters:
             branches:
               only:
@@ -833,16 +856,23 @@ workflows:
               ignore: /.*/
             tags:
               only: /^v\d+\.\d+\.\d+$/
-          context: taraxa-node
+          context: 
+           - TARAXA
+           - GCR
       - build-mac:
           filters:
             branches:
               ignore: /.*/
             tags:
               only: /^v\d+\.\d+\.\d+$/
-          context: taraxa-node
+          context:
+           - TARAXA
+           - GCR
       - github-release/create:
-          context: taraxa-node
+          context: 
+           - TARAXA
+           - GCR
+           - GITHUB
           attach-workspace: true
           replace: true
           workspace-root: release
