@@ -192,6 +192,11 @@ TEST_F(NetworkTest, sync_large_pbft_block) {
   auto pbft_blocks1 = nodes[0]->getDB()->getPbftBlock(1);
   auto pbft_blocks2 = nodes2[0]->getDB()->getPbftBlock(1);
   EXPECT_EQ(pbft_blocks1, pbft_blocks2);
+
+  // this sleep is needed to process all remaining packets and destruct all network stuff
+  // on removal will cause next tests in the suite to fail because p2p port left binded
+  // see https://github.com/Taraxa-project/taraxa-node/issues/977 for more info
+  this_thread::sleep_for(1s);
 }
 
 // Test creates two Network setup and verifies sending transaction
