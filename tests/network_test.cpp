@@ -272,17 +272,14 @@ TEST_F(NetworkTest, node_network_id) {
     auto nodes = launch_nodes(node_cfgs_);
   }
   {
-    auto conf1 = node_cfgs[0];
-    conf1.network.network_id = 1;
-    FullNode::Handle node1(conf1, true);
+    node_cfgs[0].network.network_id = 1;
+    node_cfgs[1].network.network_id = 2;
 
-    auto conf2 = node_cfgs[1];
-    conf2.network.network_id = 2;
-    FullNode::Handle node2(conf2, true);
+    auto nodes = create_nodes(node_cfgs, true /*start*/);
 
     taraxa::thisThreadSleepForMilliSeconds(1000);
-    EXPECT_EQ(node1->getNetwork()->getPeerCount(), 0);
-    EXPECT_EQ(node2->getNetwork()->getPeerCount(), 0);
+    EXPECT_EQ(nodes[0]->getNetwork()->getPeerCount(), 0);
+    EXPECT_EQ(nodes[1]->getNetwork()->getPeerCount(), 0);
   }
 }
 
@@ -290,7 +287,7 @@ TEST_F(NetworkTest, node_network_id) {
 // other end is the same
 TEST_F(NetworkTest, node_sync) {
   auto node_cfgs = make_node_cfgs<5>(2);
-  FullNode::Handle node1(node_cfgs[0], true);
+  auto node1 = create_nodes({node_cfgs[0]}, true /*start*/).front();
   // Stop PBFT manager
   node1->getPbftManager()->stop();
 
@@ -352,7 +349,7 @@ TEST_F(NetworkTest, node_sync) {
     WAIT_EXPECT_EQ(ctx, node1->getDagManager()->getNumEdgesInDag().first, 8)
   });
 
-  FullNode::Handle node2(node_cfgs[1], true);
+  auto node2 = create_nodes({node_cfgs[1]}, true /*start*/).front();
 
   std::cout << "Waiting Sync..." << std::endl;
   EXPECT_HAPPENS({45s, 1500ms}, [&](auto& ctx) {
@@ -367,7 +364,7 @@ TEST_F(NetworkTest, node_sync) {
 // chain on the other end is the same
 TEST_F(NetworkTest, node_pbft_sync) {
   auto node_cfgs = make_node_cfgs<20>(2);
-  FullNode::Handle node1(node_cfgs[0], true);
+  auto node1 = create_nodes({node_cfgs[0]}, true /*start*/).front();
 
   // Stop PBFT manager and executor for syncing test
   node1->getPbftManager()->stop();
@@ -457,7 +454,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
   expect_pbft_chain_size = 2;
   EXPECT_EQ(node1->getPbftChain()->getPbftChainSize(), expect_pbft_chain_size);
 
-  FullNode::Handle node2(node_cfgs[1], true);
+  auto node2 = create_nodes({node_cfgs[1]}, true /*start*/).front();
   std::shared_ptr<Network> nw1 = node1->getNetwork();
   std::shared_ptr<Network> nw2 = node2->getNetwork();
   const int node_peers = 1;
@@ -494,7 +491,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
 
 TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   auto node_cfgs = make_node_cfgs<20>(2);
-  FullNode::Handle node1(node_cfgs[0], true);
+  auto node1 = create_nodes({node_cfgs[0]}, true /*start*/).front();
 
   // Stop PBFT manager and executor for syncing test
   node1->getPbftManager()->stop();
@@ -579,7 +576,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   expect_pbft_chain_size = 2;
   EXPECT_EQ(node1->getPbftChain()->getPbftChainSize(), expect_pbft_chain_size);
 
-  FullNode::Handle node2(node_cfgs[1], true);
+  auto node2 = create_nodes({node_cfgs[1]}, true /*start*/).front();
   std::shared_ptr<Network> nw1 = node1->getNetwork();
   std::shared_ptr<Network> nw2 = node2->getNetwork();
   const int node_peers = 1;
@@ -616,7 +613,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
 // Test PBFT next votes sycning when node is behind of PBFT round with peer
 TEST_F(NetworkTest, pbft_next_votes_sync_in_behind_round) {
   auto node_cfgs = make_node_cfgs<20>(2);
-  FullNode::Handle node1(node_cfgs[0], true);
+  auto node1 = create_nodes({node_cfgs[0]}, true /*start*/).front();
 
   // Stop PBFT manager, that will place vote
   std::shared_ptr<PbftManager> pbft_mgr1 = node1->getPbftManager();
@@ -640,7 +637,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_behind_round) {
   node1->getNextVotesManager()->updateNextVotes(next_votes, pbft_2t_plus_1);
   pbft_mgr1->setPbftRound(2);  // Make sure node2 PBFT round is less than node1
 
-  FullNode::Handle node2(node_cfgs[1], true);
+  auto node2 = create_nodes({node_cfgs[1]}, true /*start*/).front();
   // Stop PBFT manager, that will place vote
   std::shared_ptr<PbftManager> pbft_mgr2 = node2->getPbftManager();
   pbft_mgr2->stop();
@@ -665,11 +662,12 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_1) {
   auto pbft_2t_plus_1 = 2;
 
   auto node_cfgs = make_node_cfgs<20>(2);
-  vector<FullNode::Handle> nodes(2);
+  vector<shared_ptr<FullNode>> nodes;
   for (auto i(0); i < 2; i++) {
-    nodes[i] = FullNode::Handle(node_cfgs[i], true);
+    nodes.emplace_back(make_shared<FullNode>(node_cfgs[i]));
+    nodes.back()->start();
     // Stop PBFT manager, that will place vote
-    nodes[i]->getPbftManager()->stop();
+    nodes.back()->getPbftManager()->stop();
   }
   EXPECT_TRUE(wait_connect(nodes));
 
@@ -722,11 +720,12 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
   auto pbft_2t_plus_1 = 3;
 
   auto node_cfgs = make_node_cfgs<20>(2);
-  vector<FullNode::Handle> nodes(2);
+  vector<shared_ptr<FullNode>> nodes;
   for (auto i(0); i < 2; i++) {
-    nodes[i] = FullNode::Handle(node_cfgs[i], true);
+    nodes.emplace_back(make_shared<FullNode>(node_cfgs[i]));
+    nodes.back()->start();
     // Stop PBFT manager, that will place vote
-    nodes[i]->getPbftManager()->stop();
+    nodes.back()->getPbftManager()->stop();
   }
   EXPECT_TRUE(wait_connect(nodes));
 
@@ -800,7 +799,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
 // and verifies that the sync containing transactions is successful
 TEST_F(NetworkTest, node_sync_with_transactions) {
   auto node_cfgs = make_node_cfgs<5>(2);
-  FullNode::Handle node1(node_cfgs[0], true);
+  auto node1 = create_nodes({node_cfgs[0]}, true /*start*/).front();
 
   std::vector<DagBlock> blks;
   // Generate DAG blocks
@@ -860,7 +859,7 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
   // To make sure blocks are stored before starting node 2
   taraxa::thisThreadSleepForMilliSeconds(1000);
 
-  FullNode::Handle node2(node_cfgs[1], true);
+  auto node2 = create_nodes({node_cfgs[1]}, true /*start*/).front();
   std::cout << "Waiting Sync for up to 20000 milliseconds ..." << std::endl;
   for (int i = 0; i < 40; i++) {
     taraxa::thisThreadSleepForMilliSeconds(1000);
@@ -884,7 +883,7 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
 // DAG on the other end is the same
 TEST_F(NetworkTest, node_sync2) {
   auto node_cfgs = make_node_cfgs<5>(2);
-  FullNode::Handle node1(node_cfgs[0], true);
+  auto node1 = create_nodes({node_cfgs[0]}, true /*start*/).front();
 
   std::vector<DagBlock> blks;
   // Generate DAG blocks
@@ -1001,7 +1000,7 @@ TEST_F(NetworkTest, node_sync2) {
     node1->getDagBlockManager()->insertBroadcastedBlockWithTransactions(blks[i], trxs[i]);
   }
 
-  FullNode::Handle node2(node_cfgs[1], true);
+  auto node2 = create_nodes({node_cfgs[1]}, true /*start*/).front();
 
   EXPECT_HAPPENS({10s, 100ms}, [&](auto& ctx) {
     WAIT_EXPECT_EQ(ctx, node1->getNumReceivedBlocks(), blks.size())
@@ -1123,7 +1122,8 @@ TEST_F(NetworkTest, node_full_sync) {
   }
 
   // Bootstrapping node5 join the network
-  nodes.emplace_back(FullNode::Handle(node_cfgs[numberOfNodes - 1], true));
+  nodes.emplace_back(make_shared<FullNode>(node_cfgs[numberOfNodes - 1]));
+  nodes.back()->start();
   EXPECT_TRUE(wait_connect(nodes));
 
   std::cout << "Waiting Sync for node5..." << std::endl;
