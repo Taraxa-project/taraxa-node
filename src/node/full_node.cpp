@@ -46,8 +46,9 @@ void FullNode::init() {
   log_time_ = logger::createLogger(logger::Verbosity::Info, "TMSTM", node_addr);
 
   LOG(log_si_) << "Node public key: " << EthGreen << kp_.pub().toString() << std::endl
-               << "Node address: " << EthRed << node_addr.toString() << std::endl
-               << "Node VRF public key: " << EthGreen << vrf_wrapper::getVrfPublicKey(conf_.vrf_secret).toString();
+               << EthReset << "Node address: " << EthRed << node_addr.toString() << std::endl
+               << EthReset << "Node VRF public key: " << EthGreen
+               << vrf_wrapper::getVrfPublicKey(conf_.vrf_secret).toString() << EthReset;
 
   if (!conf_.chain.dag_genesis_block.verifySig()) {
     LOG(log_er_) << "Genesis block is invalid";

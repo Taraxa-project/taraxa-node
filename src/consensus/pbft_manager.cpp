@@ -662,7 +662,7 @@ bool PbftManager::stateOperations_() {
   // CHECK IF WE HAVE RECEIVED 2t+1 CERT VOTES FOR A BLOCK IN OUR CURRENT
   // ROUND.  IF WE HAVE THEN WE EXECUTE THE BLOCK
   // ONLY CHECK IF HAVE *NOT* YET EXECUTED THIS ROUND...
-  if (state_ == certify_state && !have_executed_this_round_) {
+  if (!is_syncing_() && state_ == certify_state && !have_executed_this_round_) {
     std::vector<Vote> cert_votes_for_round = getVotesOfTypeFromVotesForRoundAndStep_(
         cert_vote_type, votes_, round, 3, std::make_pair(NULL_BLOCK_HASH, false));
     auto voted_block_hash_with_cert_votes = blockWithEnoughVotes_(cert_votes_for_round);

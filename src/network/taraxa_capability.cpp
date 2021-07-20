@@ -783,7 +783,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
     case NewPbftBlockPacket: {
       LOG(log_dg_pbft_prp_) << "In NewPbftBlockPacket";
 
-      auto pbft_block = s_ptr(new PbftBlock(_r[0]));
+      auto pbft_block = std::make_shared<PbftBlock>(_r[0]);
       uint64_t peer_pbft_chain_size = _r[1].toInt();
       LOG(log_dg_pbft_prp_) << "Receive proposed PBFT Block " << pbft_block
                             << ", Peer PBFT Chain size: " << peer_pbft_chain_size;
@@ -822,14 +822,14 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
           DagBlock dag_blk(dag_blk_struct[0]);
           auto const &dag_blk_h = dag_blk.getHash();
           peer->markBlockAsKnown(dag_blk_h);
-          vector<Transaction> newTransactions;
+          std::vector<Transaction> new_transactions;
           for (auto const trx_raw : dag_blk_struct[1]) {
-            auto &trx = newTransactions.emplace_back(trx_raw);
+            auto &trx = new_transactions.emplace_back(trx_raw);
             peer->markTransactionAsKnown(trx.getHash());
           }
           received_dag_blocks_str += dag_blk_h.toString() + " ";
           auto level = dag_blk.getLevel();
-          dag_blocks_per_level[level][dag_blk_h] = {move(dag_blk), move(newTransactions)};
+          dag_blocks_per_level[level][dag_blk_h] = {move(dag_blk), move(new_transactions)};
         }
         LOG(log_dg_dag_sync_) << "Received Dag Blocks: " << received_dag_blocks_str;
         for (auto const &block_level : dag_blocks_per_level) {
@@ -1313,7 +1313,7 @@ void TaraxaCapability::sendBlocks(NodeID const &_id, std::vector<std::shared_ptr
 }
 
 void TaraxaCapability::sendTransactions(NodeID const &_id, std::vector<taraxa::bytes> const &transactions) {
-  LOG(log_nf_trx_prp_) << "sendTransactions" << transactions.size() << " to " << _id;
+  LOG(log_nf_trx_prp_) << "sendTransactions " << transactions.size() << " to " << _id;
   RLPStream s(transactions.size());
   taraxa::bytes trx_bytes;
   for (auto transaction : transactions) {
