@@ -235,8 +235,9 @@ commands:
               helm upgrade -i pr-<< parameters.pr-name >> taraxa-node/ --namespace blockchain-prnet -f taraxa-node/values.yaml -f taraxa-node/prnet.values.yaml \
                 --set image.repository=gcr.io/jovial-meridian-249123/taraxa-node \
                 --set image.tag=${PR_TAG} \
-                --set explorer.configEnvs.rpcHttpProvider="http://pr-<< parameters.pr-name >>-taraxa-node:7777" \
-                --set explorer.configEnvs.rpcWsProvider="http://pr-<< parameters.pr-name >>-taraxa-node:8777" \
+                --set explorer.configEnvs.rpcHttpProvider="http://pr-<< parameters.pr-name >>-taraxa-node-1.pr-<< parameters.pr-name >>-taraxa-node:7777" \
+                --set explorer.configEnvs.rpcWsProvider="http://pr-<< parameters.pr-name >>-taraxa-node-1.pr-<< parameters.pr-name >>-taraxa-node:8777" \
+                --set explorer.configEnvs.wsProvider="wss://explorer-ws-pr-<< parameters.pr-name >>.prnet.taraxa.io" \
                 --set bootnode.loadBalancer.addresses\[0\]="${PRNET_IPS[0]}" \
                 --set bootnode.loadBalancer.addresses\[1\]="${PRNET_IPS[1]}" \
                 --set bootnode.loadBalancer.addresses\[2\]="${PRNET_IPS[2]}"
@@ -787,7 +788,13 @@ workflows:
         - << pipeline.parameters.pr_number >>
     jobs:
      - deploy-prnet:
-        context: taraxa-node 
+         context: 
+          - TARAXA
+          - GCP
+          - K8S   
+          - GCR
+          - GITHUB
+
 
   redeploy-prnet:
     when: 
@@ -796,7 +803,12 @@ workflows:
         - << pipeline.parameters.pr_number >>
     jobs:
      - redeploy-prnet:
-        context: taraxa-node  
+        context: 
+          - TARAXA
+          - GCP
+          - K8S   
+          - GCR
+          - GITHUB
 
   cleanup-prnet:
     when: 
@@ -805,7 +817,12 @@ workflows:
         - << pipeline.parameters.pr_number >>
     jobs:
      - cleanup-prnet:
-        context: taraxa-node 
+        context: 
+          - TARAXA
+          - GCP
+          - K8S   
+          - GCR
+          - GITHUB
   
   build-and-deploy-image:
     when:
@@ -815,12 +832,19 @@ workflows:
            - not: << pipeline.parameters.cleanup_prnet >>
     jobs:
       - build-and-push-docker-image:
-         context: taraxa-node
+         context: 
+          - TARAXA
+          - GCP
+          - K8S   
+          - GCR
+          - DOCKERHUB
 
   create-builder-image:
     jobs:
       - create-and-push-builder:
-          context: taraxa-node
+          context:
+           - TARAXA
+           - GCR
           filters:
             branches:
               only:
@@ -833,16 +857,23 @@ workflows:
               ignore: /.*/
             tags:
               only: /^v\d+\.\d+\.\d+$/
-          context: taraxa-node
+          context: 
+           - TARAXA
+           - GCR
       - build-mac:
           filters:
             branches:
               ignore: /.*/
             tags:
               only: /^v\d+\.\d+\.\d+$/
-          context: taraxa-node
+          context:
+           - TARAXA
+           - GCR
       - github-release/create:
-          context: taraxa-node
+          context: 
+           - TARAXA
+           - GCR
+           - GITHUB
           attach-workspace: true
           replace: true
           workspace-root: release

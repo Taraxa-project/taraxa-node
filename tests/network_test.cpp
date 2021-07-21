@@ -44,8 +44,8 @@ struct NetworkTest : BaseTest {};
 // Test creates two Network setup and verifies sending block
 // between is successfull
 TEST_F(NetworkTest, transfer_block) {
-  std::unique_ptr<Network> nw1(new taraxa::Network(g_conf1->network));
-  std::unique_ptr<Network> nw2(new taraxa::Network(g_conf2->network));
+  std::unique_ptr<Network> nw1 = std::make_unique<taraxa::Network>(g_conf1->network);
+  std::unique_ptr<Network> nw2 = std::make_unique<taraxa::Network>(g_conf2->network);
 
   nw1->start();
   nw2->start();
@@ -193,8 +193,8 @@ TEST_F(NetworkTest, DISABLED_sync_large_pbft_block) {
 // Test creates two Network setup and verifies sending transaction
 // between is successfull
 TEST_F(NetworkTest, transfer_transaction) {
-  auto nw1 = make_unique<Network>(g_conf1->network);
-  auto nw2 = make_unique<Network>(g_conf2->network);
+  auto nw1 = std::make_unique<Network>(g_conf1->network);
+  auto nw2 = std::make_unique<Network>(g_conf2->network);
   nw1->start();
   nw2->start();
 
@@ -229,9 +229,9 @@ TEST_F(NetworkTest, save_network) {
   auto key2 = dev::KeyPair::create();
   auto key3 = dev::KeyPair::create();
   {
-    std::shared_ptr<Network> nw1(new taraxa::Network(g_conf1->network));
-    std::shared_ptr<Network> nw2(new taraxa::Network(g_conf2->network, "/tmp/nw2", key2));
-    std::shared_ptr<Network> nw3(new taraxa::Network(g_conf3->network, "/tmp/nw3", key3));
+    std::shared_ptr<Network> nw1 = std::make_shared<taraxa::Network>(g_conf1->network);
+    std::shared_ptr<Network> nw2 = std::make_shared<taraxa::Network>(g_conf2->network, "/tmp/nw2", key2);
+    std::shared_ptr<Network> nw3 = std::make_shared<taraxa::Network>(g_conf3->network, "/tmp/nw3", key3);
 
     nw1->start();
     nw2->start();
@@ -247,8 +247,8 @@ TEST_F(NetworkTest, save_network) {
     });
   }
 
-  std::shared_ptr<Network> nw2(new taraxa::Network(g_conf2->network, "/tmp/nw2", key2));
-  std::shared_ptr<Network> nw3(new taraxa::Network(g_conf3->network, "/tmp/nw3", key3));
+  std::shared_ptr<Network> nw2 = std::make_shared<taraxa::Network>(g_conf2->network, "/tmp/nw2", key2);
+  std::shared_ptr<Network> nw3 = std::make_shared<taraxa::Network>(g_conf3->network, "/tmp/nw3", key3);
   nw2->start();
   nw3->start();
 
@@ -295,7 +295,7 @@ TEST_F(NetworkTest, node_sync) {
   // Allow node to start up
   taraxa::thisThreadSleepForMilliSeconds(1000);
 
-  std::vector<DagBlock> blks;
+  std::vector<pair<DagBlock, Transaction>> blks;
   // Generate DAG blocks
   auto dag_genesis = node1->getConfig().chain.dag_genesis_block.getHash();
   auto sk = node1->getSecretKey();
@@ -305,42 +305,43 @@ TEST_F(NetworkTest, node_sync) {
   auto propose_level = 1;
   vdf_sortition::VdfSortition vdf1(vdf_config, vrf_sk, getRlpBytes(propose_level));
   vdf1.computeVdfSolution(vdf_config, dag_genesis.asBytes());
-  DagBlock blk1(dag_genesis, propose_level, {}, {}, vdf1, sk);
+  DagBlock blk1(dag_genesis, propose_level, {}, {g_signed_trx_samples[1].getHash()}, vdf1, sk);
 
   propose_level = 2;
   vdf_sortition::VdfSortition vdf2(vdf_config, vrf_sk, getRlpBytes(propose_level));
   vdf2.computeVdfSolution(vdf_config, blk1.getHash().asBytes());
-  DagBlock blk2(blk1.getHash(), propose_level, {}, {}, vdf2, sk);
+  DagBlock blk2(blk1.getHash(), propose_level, {}, {g_signed_trx_samples[2].getHash()}, vdf2, sk);
 
   propose_level = 3;
   vdf_sortition::VdfSortition vdf3(vdf_config, vrf_sk, getRlpBytes(propose_level));
   vdf3.computeVdfSolution(vdf_config, blk2.getHash().asBytes());
-  DagBlock blk3(blk2.getHash(), propose_level, {}, {}, vdf3, sk);
+  DagBlock blk3(blk2.getHash(), propose_level, {}, {g_signed_trx_samples[3].getHash()}, vdf3, sk);
 
   propose_level = 4;
   vdf_sortition::VdfSortition vdf4(vdf_config, vrf_sk, getRlpBytes(propose_level));
   vdf4.computeVdfSolution(vdf_config, blk3.getHash().asBytes());
-  DagBlock blk4(blk3.getHash(), propose_level, {}, {}, vdf4, sk);
+  DagBlock blk4(blk3.getHash(), propose_level, {}, {g_signed_trx_samples[4].getHash()}, vdf4, sk);
 
   propose_level = 5;
   vdf_sortition::VdfSortition vdf5(vdf_config, vrf_sk, getRlpBytes(propose_level));
   vdf5.computeVdfSolution(vdf_config, blk4.getHash().asBytes());
-  DagBlock blk5(blk4.getHash(), propose_level, {}, {}, vdf5, sk);
+  DagBlock blk5(blk4.getHash(), propose_level, {}, {g_signed_trx_samples[5].getHash()}, vdf5, sk);
 
   propose_level = 6;
   vdf_sortition::VdfSortition vdf6(vdf_config, vrf_sk, getRlpBytes(propose_level));
   vdf6.computeVdfSolution(vdf_config, blk5.getHash().asBytes());
-  DagBlock blk6(blk5.getHash(), propose_level, {blk4.getHash(), blk3.getHash()}, {}, vdf6, sk);
+  DagBlock blk6(blk5.getHash(), propose_level, {blk4.getHash(), blk3.getHash()}, {g_signed_trx_samples[6].getHash()},
+                vdf6, sk);
 
-  blks.push_back(blk6);
-  blks.push_back(blk5);
-  blks.push_back(blk4);
-  blks.push_back(blk3);
-  blks.push_back(blk2);
-  blks.push_back(blk1);
+  blks.push_back(std::make_pair(blk6, g_signed_trx_samples[6]));
+  blks.push_back(std::make_pair(blk5, g_signed_trx_samples[5]));
+  blks.push_back(std::make_pair(blk4, g_signed_trx_samples[4]));
+  blks.push_back(std::make_pair(blk3, g_signed_trx_samples[3]));
+  blks.push_back(std::make_pair(blk2, g_signed_trx_samples[2]));
+  blks.push_back(std::make_pair(blk1, g_signed_trx_samples[1]));
 
   for (size_t i = 0; i < blks.size(); ++i) {
-    node1->getDagBlockManager()->insertBlock(blks[i]);
+    node1->getDagBlockManager()->insertBroadcastedBlockWithTransactions(blks[i].first, {blks[i].second});
   }
 
   EXPECT_HAPPENS({30s, 500ms}, [&](auto& ctx) {
@@ -386,8 +387,10 @@ TEST_F(NetworkTest, node_pbft_sync) {
   level_t level = 1;
   vdf_sortition::VdfSortition vdf1(vdf_config, vrf_sk, getRlpBytes(level));
   vdf1.computeVdfSolution(vdf_config, dag_genesis.asBytes());
-  DagBlock blk1(dag_genesis, 1, {}, {}, vdf1, sk);
-  node1->getDagBlockManager()->insertBlock(blk1);
+  DagBlock blk1(dag_genesis, 1, {}, {g_signed_trx_samples[0].getHash(), g_signed_trx_samples[1].getHash()}, vdf1, sk);
+  std::vector<Transaction> txs1({g_signed_trx_samples[0], g_signed_trx_samples[1]});
+
+  node1->getDagBlockManager()->insertBroadcastedBlockWithTransactions(blk1, txs1);
 
   PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), period, beneficiary, node1->getSecretKey());
   db1->putFinalizedDagBlockHashesByAnchor(batch, pbft_block1.getPivotDagBlockHash(),
@@ -418,8 +421,11 @@ TEST_F(NetworkTest, node_pbft_sync) {
   level = 2;
   vdf_sortition::VdfSortition vdf2(vdf_config, vrf_sk, getRlpBytes(level));
   vdf2.computeVdfSolution(vdf_config, blk1.getHash().asBytes());
-  DagBlock blk2(blk1.getHash(), 2, {}, {}, vdf2, sk);
-  node1->getDagBlockManager()->insertBlock(blk2);
+  DagBlock blk2(blk1.getHash(), 2, {}, {g_signed_trx_samples[2].getHash(), g_signed_trx_samples[3].getHash()}, vdf2,
+                sk);
+  std::vector<Transaction> txs2({g_signed_trx_samples[2], g_signed_trx_samples[3]});
+
+  node1->getDagBlockManager()->insertBroadcastedBlockWithTransactions(blk2, txs2);
 
   batch = db1->createWriteBatch();
   period = 2;
@@ -507,8 +513,9 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   level_t level = 1;
   vdf_sortition::VdfSortition vdf1(vdf_config, vrf_sk, getRlpBytes(level));
   vdf1.computeVdfSolution(vdf_config, dag_genesis.asBytes());
-  DagBlock blk1(dag_genesis, 1, {}, {}, vdf1, sk);
-  node1->getDagBlockManager()->insertBlock(blk1);
+  DagBlock blk1(dag_genesis, 1, {}, {g_signed_trx_samples[0].getHash(), g_signed_trx_samples[1].getHash()}, vdf1, sk);
+  std::vector<Transaction> tr1({g_signed_trx_samples[0], g_signed_trx_samples[1]});
+  node1->getDagBlockManager()->insertBroadcastedBlockWithTransactions(blk1, tr1);
 
   PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), period, beneficiary, node1->getSecretKey());
   db1->putFinalizedDagBlockHashesByAnchor(batch, pbft_block1.getPivotDagBlockHash(),
@@ -540,8 +547,10 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   level = 2;
   vdf_sortition::VdfSortition vdf2(vdf_config, vrf_sk, getRlpBytes(level));
   vdf2.computeVdfSolution(vdf_config, blk1.getHash().asBytes());
-  DagBlock blk2(blk1.getHash(), 2, {}, {}, vdf2, sk);
-  node1->getDagBlockManager()->insertBlock(blk2);
+  DagBlock blk2(blk1.getHash(), 2, {}, {g_signed_trx_samples[2].getHash(), g_signed_trx_samples[3].getHash()}, vdf2,
+                sk);
+  std::vector<Transaction> tr2({g_signed_trx_samples[2], g_signed_trx_samples[3]});
+  node1->getDagBlockManager()->insertBroadcastedBlockWithTransactions(blk2, tr2);
 
   batch = db1->createWriteBatch();
   period = 2;
@@ -813,14 +822,13 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
   propose_level = 3;
   vdf_sortition::VdfSortition vdf3(vdf_config, vrf_sk, getRlpBytes(propose_level));
   vdf3.computeVdfSolution(vdf_config, blk2.getHash().asBytes());
-  DagBlock blk3(blk2.getHash(), propose_level, {}, {}, vdf3, sk);
-  std::vector<Transaction> tr3;
+  DagBlock blk3(blk2.getHash(), propose_level, {}, {g_signed_trx_samples[3].getHash()}, vdf3, sk);
+  std::vector<Transaction> tr3{g_signed_trx_samples[3]};
 
   propose_level = 4;
   vdf_sortition::VdfSortition vdf4(vdf_config, vrf_sk, getRlpBytes(propose_level));
   vdf4.computeVdfSolution(vdf_config, blk3.getHash().asBytes());
-  DagBlock blk4(blk3.getHash(), propose_level, {},
-                {g_signed_trx_samples[3].getHash(), g_signed_trx_samples[4].getHash()}, vdf4, sk);
+  DagBlock blk4(blk3.getHash(), propose_level, {}, {g_signed_trx_samples[4].getHash()}, vdf4, sk);
   std::vector<Transaction> tr4({g_signed_trx_samples[3], g_signed_trx_samples[4]});
 
   propose_level = 5;

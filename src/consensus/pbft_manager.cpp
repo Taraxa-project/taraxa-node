@@ -653,6 +653,8 @@ bool PbftManager::stateOperations_() {
   LOG(log_tr_) << "PBFT current round is " << round;
   LOG(log_tr_) << "PBFT current step is " << step_;
 
+  if (is_syncing_()) return true;
+
   // Get votes
   votes_ = vote_mgr_->getVerifiedVotes(round, sortition_threshold_, getDposTotalVotesCount(),
                                        [this](auto const &addr) { return dpos_eligible_vote_count_(addr); });
@@ -1498,7 +1500,7 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
                    << " in PBFT block " << pbft_block_hash;
       break;
     }
-    if (pushPbftBlock_(pbft_block_and_votes, dag_blocks_order.first)) {
+    if (pushPbftBlock_(pbft_block_and_votes, dag_blocks_order.first, true /* syncing flag */)) {
       LOG(log_nf_) << node_addr_ << " push synced PBFT block " << pbft_block_hash << " in round " << round;
     } else {
       LOG(log_er_) << "Failed push PBFT block " << pbft_block_hash << " into chain";
@@ -1550,7 +1552,8 @@ void PbftManager::finalize_(PbftBlock const &pbft_block, vector<h256> finalized_
   }
 }
 
-bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes, vec_blk_t const &dag_blocks_order) {
+bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes, vec_blk_t const &dag_blocks_order,
+                                 bool sync) {
   auto const &pbft_block_hash = pbft_block_cert_votes.pbft_blk->getBlockHash();
   if (db_->pbftBlockInDb(pbft_block_hash)) {
     LOG(log_er_) << "PBFT block: " << pbft_block_hash << " in DB already.";
@@ -1590,7 +1593,7 @@ bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes, vec
   LOG(log_nf_) << node_addr_ << " successful push unexecuted PBFT block " << pbft_block_hash << " in period "
                << pbft_period << " into chain! In round " << getPbftRound();
 
-  finalize_(*pbft_block, move(dag_blocks_order));
+  finalize_(*pbft_block, move(dag_blocks_order), sync);
 
   // Reset proposed PBFT block hash to False for next pbft block proposal
   proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
@@ -1639,7 +1642,8 @@ bool PbftManager::giveUpNextVotedBlock_() {
     return true;
   }
 
-  if (previous_round_next_voted_value_ == last_soft_voted_value_ && giveUpSoftVotedBlock_() && cert_voted_values_for_round_.find(getPbftRound()) == cert_voted_values_for_round_.end()) {
+  if (previous_round_next_voted_value_ == last_soft_voted_value_ && giveUpSoftVotedBlock_() &&
+      cert_voted_values_for_round_.find(getPbftRound()) == cert_voted_values_for_round_.end()) {
     LOG(log_tr_) << "Giving up next voted value " << previous_round_next_voted_value_
                  << " because giving up soft voted value.";
     return true;

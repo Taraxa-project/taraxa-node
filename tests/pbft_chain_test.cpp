@@ -104,7 +104,7 @@ TEST_F(PbftChainTest, block_broadcast) {
   blk_hash_t dag_blk(123);
   uint64_t period = 1;
   addr_t beneficiary(987);
-  auto pbft_block = s_ptr(new PbftBlock(prev_block_hash, dag_blk, period, beneficiary, node1->getSecretKey()));
+  auto pbft_block = std::make_shared<PbftBlock>(prev_block_hash, dag_blk, period, beneficiary, node1->getSecretKey());
 
   node1->getPbftChain()->pushUnverifiedPbftBlock(pbft_block);
   auto block1_from_node1 = pbft_chain1->getUnverifiedPbftBlock(pbft_block->getBlockHash());

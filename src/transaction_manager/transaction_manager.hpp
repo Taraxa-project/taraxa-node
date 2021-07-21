@@ -92,6 +92,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
 
   std::shared_ptr<std::pair<Transaction, taraxa::bytes>> getTransaction(trx_hash_t const &hash) const;
   unsigned long getTransactionCount() const;
+  void addTrxCount(unsigned long num);
   // Received block means these trxs are packed by others
 
   TransactionQueue &getTransactionQueue() { return trx_qu_; }
