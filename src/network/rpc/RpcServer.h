@@ -51,6 +51,7 @@ struct RpcServer final : std::enable_shared_from_this<RpcServer>, jsonrpc::Abstr
   boost::asio::ip::tcp::acceptor acceptor_;
   boost::asio::ip::tcp::endpoint ep_;
   ApiExceptionHandler api_ex_handler_;
+
   LOG_OBJECTS_DEFINE
 };
 

@@ -119,7 +119,7 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
   nodes[0]->getNetwork()->sendBlocks(nodes[1]->getNetwork()->getNodeId(), std::move(dag_blocks));
 
   std::cout << "Waiting Sync ..." << std::endl;
-  wait({5s, 300ms},
+  wait({10s, 200ms},
        [&](auto& ctx) { WAIT_EXPECT_NE(ctx, nodes[1]->getDagBlockManager()->getDagBlock(block_hash), nullptr) });
 }
 
@@ -143,7 +143,7 @@ TEST_F(NetworkTest, sync_large_pbft_block) {
   const uint32_t MAX_PACKET_SIZE = 15 * 1024 * 1024;  // 15 MB -> 15 * 1024 * 1024 B
   auto node_cfgs = make_node_cfgs<5>(2);
 
-  // Create large transactions with 10k dummy data
+  // Create large transactions with 100k dummy data
   bytes dummy_100k_data(100000, 0);
   auto signed_trxs = samples::createSignedTrxSamples(0, 250, g_secret2, dummy_100k_data);
   auto nodes = launch_nodes({node_cfgs[0]});
@@ -152,7 +152,7 @@ TEST_F(NetworkTest, sync_large_pbft_block) {
   auto nw1 = nodes[0]->getNetwork();
 
   for (size_t i = 0; i < signed_trxs.size(); i++) {
-    // Splits transactions into multiple dag blocks. Size of dag blocks should be about 5MB for 50 10k transactions
+    // Splits transactions into multiple dag blocks. Size of dag blocks should be about 5MB for 50 100k transactions
     if ((i + 1) % 50 == 0) {
       wait({20s, 10ms}, [&](auto& ctx) {
         auto trx_queue_size = nodes[0]->getTransactionManager()->getTransactionQueueSize();

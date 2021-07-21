@@ -739,7 +739,7 @@ jobs:
         - run:
            name: Execute ctest
            command: |
-             ulimit -n 2048
+             ulimit -n 4096
              cd cmake-build/tests && ctest --output-on-failure
         - store_artifacts:
            path: $HOME/project/release/taraxad-macos
@@ -805,7 +805,7 @@ jobs:
         - run:
            name: Execute ctest
            command: |
-            ulimit -n 2048
+            ulimit -n 4096
             cd $BUILD_OUTPUT_DIR/tests && ctest --output-on-failure
         - store_artifacts:
            path: /root/project/release/taraxad-x86_64
