@@ -408,36 +408,37 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
     case NewBlockPacket: {
       // Ignore new block packets when syncing
       if (syncing_) break;
-      DagBlock block(_r[0].data().toBytes());
+
+      auto it = _r.begin();
+      DagBlock block(*it++);
+      const auto &blk_hash = block.getHash();
 
       if (dag_blk_mgr_) {
-        if (dag_blk_mgr_->isBlockKnown(block.getHash())) {
-          LOG(log_dg_dag_prp_) << "Received NewBlock " << block.getHash().toString() << "that is already known";
+        if (dag_blk_mgr_->isBlockKnown(blk_hash)) {
+          LOG(log_dg_dag_prp_) << "Received NewBlock " << blk_hash.toString() << "that is already known";
           break;
         }
         if (auto status = checkDagBlockValidation(block); !status.first) {
-          LOG(log_wr_dag_prp_) << "Received NewBlock " << block.getHash().toString() << " missing pivot or/and tips";
-          status.second.push_back(block.getHash());
+          LOG(log_wr_dag_prp_) << "Received NewBlock " << blk_hash.toString() << " missing pivot or/and tips";
+          status.second.push_back(blk_hash);
           requestBlocks(_nodeID, status.second);
           break;
         }
       }
 
       packet_stats.is_unique_ = true;
-
-      auto transactionsCount = _r.itemCount() - 1;
-      LOG(log_dg_dag_prp_) << "Received NewBlockPacket " << transactionsCount;
-
-      std::vector<Transaction> newTransactions;
-      for (size_t iTransaction = 1; iTransaction < transactionsCount + 1; iTransaction++) {
-        Transaction transaction(_r[iTransaction].data().toBytes());
-        newTransactions.push_back(transaction);
-        peer->markTransactionAsKnown(transaction.getHash());
+      std::vector<Transaction> new_transactions;
+      new_transactions.reserve(_r.itemCount() - 1);
+      for (; it != _r.end(); ++it) {
+        const auto &trx = new_transactions.emplace_back(*it);
+        peer->markTransactionAsKnown(trx.getHash());
       }
 
-      peer->markBlockAsKnown(block.getHash());
+      LOG(log_dg_dag_prp_) << "Received NewBlockPacket " << new_transactions.size();
+
+      peer->markBlockAsKnown(blk_hash);
       if (block.getLevel() > peer->dag_level_) peer->dag_level_ = block.getLevel();
-      onNewBlockReceived(block, newTransactions);
+      onNewBlockReceived(block, new_transactions);
       break;
     }
 
@@ -484,6 +485,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       else if (mode == KnownHashes)
         LOG(log_dg_dag_sync_) << "Received GetBlocksPacket with " << _r.itemCount() - 1 << " known blocks";
 
+      blocks_hashes.reserve(_r.itemCount() - 1);
       for (; it != _r.end(); ++it) {
         blocks_hashes.emplace(*it);
       }
@@ -562,19 +564,19 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       break;
     }
     case TransactionPacket: {
-      std::string receivedTransactions;
+      std::string received_transactions;
       std::vector<taraxa::bytes> transactions;
-      auto transactionCount = _r.itemCount();
-      for (size_t iTransaction = 0; iTransaction < transactionCount; iTransaction++) {
-        Transaction transaction(_r[iTransaction].data().toBytes());
-        receivedTransactions += transaction.getHash().toString() + " ";
+      transactions.reserve(_r.itemCount());
+      for (auto it = _r.begin(); it != _r.end(); ++it) {
+        Transaction transaction(*it);
+        received_transactions += transaction.getHash().toString() + " ";
         peer->markTransactionAsKnown(transaction.getHash());
-        transactions.emplace_back(_r[iTransaction].data().toBytes());
+        transactions.emplace_back(*it);
       }
-      if (transactionCount > 0) {
+      if (!transactions.empty()) {
         LOG(log_dg_trx_prp_) << "Received TransactionPacket with " << _r.itemCount() << " transactions";
         LOG(log_tr_trx_prp_) << "Received TransactionPacket with " << _r.itemCount()
-                             << " transactions:" << receivedTransactions.c_str();
+                             << " transactions:" << received_transactions.c_str();
 
         onNewTransactions(transactions, true);
       }
@@ -637,7 +639,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       break;
     }
     case PbftNextVotesPacket: {
-      auto next_votes_count = _r.itemCount();
+      const auto next_votes_count = _r.itemCount();
       if (next_votes_count == 0) {
         LOG(log_er_next_votes_sync_) << "Receive 0 next votes from peer " << _nodeID
                                      << ". The peer may be a malicous player, will be disconnected";
@@ -646,12 +648,14 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         break;
       }
 
-      auto pbft_current_round = pbft_mgr_->getPbftRound();
-      Vote vote(_r[0].data().toBytes());
-      auto peer_pbft_round = vote.getRound() + 1;
+      const auto pbft_current_round = pbft_mgr_->getPbftRound();
+      auto it = _r.begin();
+      Vote vote(*it);
+      const auto peer_pbft_round = vote.getRound() + 1;
       std::vector<Vote> next_votes;
-      for (size_t i = 0; i < next_votes_count; i++) {
-        Vote next_vote(_r[i].data().toBytes());
+      next_votes.reserve(next_votes_count);
+      for (; it != _r.end(); ++it) {
+        const auto &next_vote = next_votes.emplace_back(*it);
         if (next_vote.getRound() != peer_pbft_round - 1) {
           LOG(log_er_next_votes_sync_) << "Received next votes bundle with unmatched rounds from " << _nodeID
                                        << ". The peer may be a malicous player, will be disconnected";
@@ -662,7 +666,6 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         auto next_vote_hash = next_vote.getHash();
         LOG(log_nf_next_votes_sync_) << "Received PBFT next vote " << next_vote_hash;
         peer->markVoteAsKnown(next_vote_hash);
-        next_votes.emplace_back(next_vote);
       }
       LOG(log_nf_next_votes_sync_) << "Received " << next_votes_count << " next votes from peer " << _nodeID
                                    << " node current round " << pbft_current_round << ", peer pbft round "
