@@ -88,8 +88,12 @@ void TaraxaCapability::erasePeer(NodeID const &node_id) {
 
 std::shared_ptr<TaraxaPeer> TaraxaCapability::addPendingPeer(NodeID const &node_id) {
   boost::unique_lock<boost::shared_mutex> lock(peers_mutex_);
-  auto ret = pending_peers_.emplace(std::make_pair(node_id, std::make_shared<TaraxaPeer>(node_id)));
-  assert(ret.second);
+  auto ret = pending_peers_.emplace(node_id, std::make_shared<TaraxaPeer>(node_id));
+  if (!ret.second) {
+    // TODO: keep error level until we know exactly when and why is this happening
+    LOG(log_er_) << "Peer " << node_id.abridged() << " is already in pending peers list";
+  }
+
   return ret.first->second;
 }
 
@@ -98,7 +102,11 @@ std::shared_ptr<TaraxaPeer> TaraxaCapability::setPeerAsReadyToSendMessages(NodeI
   boost::unique_lock<boost::shared_mutex> lock(peers_mutex_);
   pending_peers_.erase(node_id);
   auto ret = peers_.emplace(node_id, peer);
-  if (!ret.second) LOG(log_wr_) << "Peer " << node_id.abridged() << " is already in the map";
+  if (!ret.second) {
+    // TODO: keep error level until we know exactly when and why is this happening
+    LOG(log_er_) << "Peer " << node_id.abridged() << " is already in peers list";
+  }
+
   return ret.first->second;
 }
 
