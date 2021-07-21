@@ -215,11 +215,14 @@ void TaraxaCapability::requestBlocks(const NodeID &_nodeID, std::vector<blk_hash
 }
 
 void TaraxaCapability::onConnect(weak_ptr<Session> session, u256 const &) {
-  tp_.post([=, _nodeID = session.lock()->id()] {
-    LOG(log_nf_) << "Node " << _nodeID << " connected";
+  auto _nodeID = session.lock()->id();
+
+  LOG(log_nf_) << "Node " << _nodeID << " connected";
+  auto peer = addPendingPeer(_nodeID);
+
+  tp_.post([=] {
     cnt_received_messages_[_nodeID] = 0;
     test_sums_[_nodeID] = 0;
-    auto peer = addPendingPeer(_nodeID);
     sendStatus(_nodeID, true);
   });
 }
@@ -1010,10 +1013,12 @@ void TaraxaCapability::restartSyncingPbft(bool force) {
 
 void TaraxaCapability::onDisconnect(NodeID const &_nodeID) {
   LOG(log_nf_) << "Node " << _nodeID << " disconnected";
-  cnt_received_messages_.erase(_nodeID);
-  test_sums_.erase(_nodeID);
   erasePeer(_nodeID);
+
   tp_.post([=] {
+    cnt_received_messages_.erase(_nodeID);
+    test_sums_.erase(_nodeID);
+
     if (syncing_ && peer_syncing_pbft_ == _nodeID && getPeersCount() > 0) {
       LOG(log_dg_pbft_sync_) << "Syncing PBFT is stopping";
       restartSyncingPbft(true);
