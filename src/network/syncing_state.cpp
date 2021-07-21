@@ -46,6 +46,7 @@ bool SyncingState::is_actively_syncing() const {
 }
 
 void SyncingState::set_peer_malicious() {
+  //this lock is for peer_id_ not the malicious_peers_
   std::shared_lock lock(peer_mutex_);
   malicious_peers_.insert(peer_id_);
 }
