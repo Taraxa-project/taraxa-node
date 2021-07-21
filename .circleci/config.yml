@@ -697,6 +697,11 @@ jobs:
 
               echo 'export PATH="/usr/local/opt/llvm/bin:$PATH"' >> $HOME/.bash_profile
               echo 'export PATH="/usr/local/opt/ccache/libexec:$PATH"' >> $HOME/.bash_profile
+        - run:
+           name: Install solc
+           command: |
+              brew tap ethereum/ethereum
+              brew install solidity
         - restore_cache:
            keys:
             - conan-cache-v4-mac-{{ checksum "conanfile.py" }}
