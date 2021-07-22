@@ -46,11 +46,15 @@ set(SOURCES
         network/tarcap/threadpool/packets_queue.hpp
         network/tarcap/threadpool/packet_data.hpp
         network/tarcap/packet_types.hpp
+        network/tarcap/packets_handler/syncing_state.hpp
         network/tarcap/packets_handler/peers_state.hpp
         network/tarcap/packets_handler/packets_handler.hpp
         network/tarcap/packets_handler/taraxa_peer.hpp
         network/tarcap/packets_handler/handlers/packet_handler.hpp
         network/tarcap/packets_handler/handlers/test_packet_handler.hpp
+        network/tarcap/packets_handler/handlers/status_packet_handler.hpp
+        network/tarcap/packets_handler/packets_stats/packets_stats.hpp
+        network/tarcap/packets_handler/packets_stats/packets_avg_stats.hpp
         node/full_node.hpp
         storage/db_storage.hpp
         transaction_manager/transaction_order_manager.hpp
@@ -126,11 +130,15 @@ set(SOURCES
         network/tarcap/threadpool/tarcap_thread_pool.cpp
         network/tarcap/threadpool/priority_queue.cpp
         network/tarcap/threadpool/packets_queue.cpp
+        network/tarcap/threadpool/packet_data.cpp
         network/tarcap/packets_handler/peers_state.cpp
         network/tarcap/packets_handler/packets_handler.cpp
-        network/tarcap/packets_handler/packets_stats.cpp
+        network/tarcap/packets_handler/syncing_state.cpp
+        network/tarcap/packets_handler/handlers/status_packet_handler.cpp
         network/tarcap/packets_handler/handlers/packet_handler.cpp
         network/tarcap/packets_handler/handlers/test_packet_handler.cpp
+        network/tarcap/packets_handler/packets_stats/packets_avg_stats.cpp
+        network/tarcap/packets_handler/packets_stats/packets_stats.cpp
         node/full_node.cpp
         storage/db_storage.cpp
         transaction_manager/transaction.cpp
@@ -139,7 +147,7 @@ set(SOURCES
         transaction_manager/transaction_manager.cpp
         util/jsoncpp.cpp
         util/util.cpp
-        util/thread_pool.cpp network/tarcap/threadpool/packet_data.cpp network/tarcap/packets_handler/syncing_state.cpp network/tarcap/packets_handler/syncing_state.hpp network/tarcap/packets_handler/handlers/status_packet_handler.cpp network/tarcap/packets_handler/handlers/status_packet_handler.hpp)
+        util/thread_pool.cpp)
 
 add_subdirectory(network/rpc)
 

@@ -114,7 +114,7 @@ void StatusPacketHandler::process(const PacketData& packet_data, const dev::RLP&
     }
   }
 
-  // TODO: process votes syncing
+  // TODO: process votes syncing -> move this to the syncing_state
   //  auto pbft_current_round = pbft_mgr_->getPbftRound();
   //  auto pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesSize();
   //  if (pbft_current_round < peer_->pbft_round_ ||
