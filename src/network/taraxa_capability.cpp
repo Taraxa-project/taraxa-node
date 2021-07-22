@@ -110,9 +110,10 @@ std::shared_ptr<TaraxaPeer> TaraxaCapability::setPeerAsReadyToSendMessages(NodeI
   return ret.first->second;
 }
 
-void TaraxaCapability::syncPeerPbft(NodeID const &_nodeID, unsigned long height_to_sync) {
-  LOG(log_nf_pbft_sync_) << "Sync peer node " << _nodeID << " from pbft chain height " << height_to_sync;
-  requestPbftBlocks(_nodeID, height_to_sync);
+void TaraxaCapability::syncPeerPbft(unsigned long height_to_sync) {
+  const auto node_id = syncing_state_.syncing_peer();
+  LOG(log_nf_pbft_sync_) << "Sync peer node " << node_id << " from pbft chain height " << height_to_sync;
+  requestPbftBlocks(node_id, height_to_sync);
 }
 
 bool TaraxaCapability::sealAndSend(NodeID const &nodeID, unsigned packet_type, RLPStream rlp) {
@@ -539,10 +540,6 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       auto it = _r.begin();
       bool is_final_sync_packet = (*it++).toInt<unsigned>();
 
-      if (is_final_sync_packet) {
-        syncing_state_.set_dag_syncing(false);
-      }
-
       for (; it != _r.end();) {
         DagBlock block(*it++);
         peer->markBlockAsKnown(block.getHash());
@@ -810,6 +807,12 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
     }
     // need cert votes (syncing)
     case PbftBlockPacket: {
+      if (syncing_state_.syncing_peer() != _nodeID) {
+        LOG(log_wr_pbft_sync_) << "PbftBlockPacket received from unexpected peer " << _nodeID.abridged()
+                               << " current syncing peer " << syncing_state_.syncing_peer().abridged();
+        break;
+      }
+
       auto pbft_blk_count = _r.itemCount();
       LOG(log_dg_pbft_sync_) << "PbftBlockPacket received, num of pbft blocks to be processed: " << pbft_blk_count;
 
@@ -836,14 +839,12 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
           for (auto const &block : block_level.second) {
             auto status = checkDagBlockValidation(block.second.first);
             if (!status.first) {
-              if (syncing_state_.syncing_peer() == _nodeID) {
-                LOG(log_si_pbft_sync_) << "PBFT SYNC ERROR, DAG missing a tip/pivot"
-                                       << ", PBFT chain size: " << pbft_chain_->getPbftChainSize()
-                                       << ", synced queue size: " << pbft_chain_->pbftSyncedQueueSize();
-                syncing_state_.set_peer_malicious();
-                host->disconnect(_nodeID, p2p::UserReason);
-                restartSyncingPbft(true);
-              }
+              LOG(log_si_pbft_sync_) << "PBFT SYNC ERROR, DAG missing a tip/pivot"
+                                     << ", PBFT chain size: " << pbft_chain_->getPbftChainSize()
+                                     << ", synced queue size: " << pbft_chain_->pbftSyncedQueueSize();
+              syncing_state_.set_peer_malicious();
+              host->disconnect(_nodeID, p2p::UserReason);
+              restartSyncingPbft(true);
               return;
             }
             LOG(log_nf_dag_sync_) << "Storing DAG block " << block.second.first.getHash().toString() << " with "
@@ -899,9 +900,9 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
           if (pbft_sync_period > pbft_chain_->getPbftChainSize() + (10 * conf_.network_sync_level_size)) {
             LOG(log_dg_pbft_sync_) << "Syncing pbft blocks too fast than processing. Has synced period "
                                    << pbft_sync_period << ", PBFT chain size " << pbft_chain_->getPbftChainSize();
-            tp_.post(1000, [this, _nodeID] { delayedPbftSync(_nodeID, 1); });
+            tp_.post(1000, [this] { delayedPbftSync(1); });
           } else {
-            syncPeerPbft(_nodeID, pbft_sync_period + 1);
+            syncPeerPbft(pbft_sync_period + 1);
           }
         }
       } else {
@@ -944,7 +945,7 @@ void TaraxaCapability::handle_read_exception(weak_ptr<Session> session, unsigned
   }
 }
 
-void TaraxaCapability::delayedPbftSync(NodeID _nodeID, int counter) {
+void TaraxaCapability::delayedPbftSync(int counter) {
   auto pbft_sync_period = pbft_chain_->pbftSyncingPeriod();
   if (counter > 60) {
     LOG(log_er_pbft_sync_) << "Pbft blocks stuck in queue, no new block processed in 60 seconds " << pbft_sync_period
@@ -958,9 +959,9 @@ void TaraxaCapability::delayedPbftSync(NodeID _nodeID, int counter) {
     if (pbft_sync_period > pbft_chain_->getPbftChainSize() + (10 * conf_.network_sync_level_size)) {
       LOG(log_dg_pbft_sync_) << "Syncing pbft blocks faster than processing " << pbft_sync_period << " "
                              << pbft_chain_->getPbftChainSize();
-      tp_.post(1000, [this, _nodeID, counter] { delayedPbftSync(_nodeID, counter + 1); });
+      tp_.post(1000, [this, counter] { delayedPbftSync(counter + 1); });
     } else {
-      syncPeerPbft(_nodeID, pbft_sync_period + 1);
+      syncPeerPbft(pbft_sync_period + 1);
     }
   }
 }
@@ -998,7 +999,7 @@ void TaraxaCapability::restartSyncingPbft(bool force) {
                            << max_pbft_chain_size << ", own PBFT chain synced at period " << pbft_sync_period;
     syncing_state_.set_dag_syncing(false);
     syncing_state_.set_pbft_syncing(true, max_pbft_chain_nodeID);
-    syncPeerPbft(max_pbft_chain_nodeID, pbft_sync_period + 1);
+    syncPeerPbft(pbft_sync_period + 1);
   } else {
     LOG(log_nf_pbft_sync_) << "Restarting syncing PBFT not needed since our pbft chain size: " << pbft_sync_period
                            << "(" << pbft_chain_->getPbftChainSize() << ")"
@@ -1012,7 +1013,7 @@ void TaraxaCapability::restartSyncingPbft(bool force) {
                             << dag_mgr_->getMaxLevel() << ")";
 
       syncing_state_.set_dag_syncing(true, max_pbft_chain_nodeID);
-      requestPendingDagBlocks(max_pbft_chain_nodeID);
+      requestPendingDagBlocks();
     } else {
       syncing_state_.set_dag_syncing(false);
     }
@@ -1368,7 +1369,7 @@ void TaraxaCapability::requestPbftBlocks(NodeID const &_id, size_t height_to_syn
   sealAndSend(_id, GetPbftBlockPacket, RLPStream(1) << height_to_sync);
 }
 
-void TaraxaCapability::requestPendingDagBlocks(NodeID const &_id) {
+void TaraxaCapability::requestPendingDagBlocks() {
   vector<blk_hash_t> known_non_finalized_blocks;
   auto blocks = dag_mgr_->getNonFinalizedBlocks();
   for (auto &level_blocks : blocks) {
@@ -1376,7 +1377,7 @@ void TaraxaCapability::requestPendingDagBlocks(NodeID const &_id) {
       known_non_finalized_blocks.push_back(block);
     }
   }
-  requestBlocks(_id, known_non_finalized_blocks, KnownHashes);
+  requestBlocks(syncing_state_.syncing_peer(), known_non_finalized_blocks, KnownHashes);
 }
 
 std::pair<int, int> TaraxaCapability::retrieveTestData(NodeID const &_id) {

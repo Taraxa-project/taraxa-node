@@ -79,9 +79,9 @@ struct TaraxaCapability : virtual CapabilityFace {
   bool sealAndSend(NodeID const &nodeID, unsigned packet_type, RLPStream rlp);
   bool pbft_syncing() const { return syncing_state_.is_pbft_syncing(); }
   uint64_t syncTimeSeconds() const { return summary_interval_ms_ * syncing_interval_count_ / 1000; };
-  void syncPeerPbft(NodeID const &_nodeID, unsigned long height_to_sync);
+  void syncPeerPbft(unsigned long height_to_sync);
   void restartSyncingPbft(bool force = false);
-  void delayedPbftSync(NodeID _nodeID, int counter);
+  void delayedPbftSync(int counter);
   std::pair<bool, std::vector<blk_hash_t>> checkDagBlockValidation(DagBlock const &block);
   void requestBlocks(const NodeID &_nodeID, std::vector<blk_hash_t> const &blocks,
                      GetBlocksPacketRequestType mode = MissingHashes);
@@ -103,7 +103,7 @@ struct TaraxaCapability : virtual CapabilityFace {
   void sendBlocks(NodeID const &_id, std::vector<std::shared_ptr<DagBlock>> blocks);
   void sendBlockHash(NodeID const &_id, taraxa::DagBlock block);
   void requestBlock(NodeID const &_id, blk_hash_t hash);
-  void requestPendingDagBlocks(NodeID const &_id);
+  void requestPendingDagBlocks();
   void sendTransactions(NodeID const &_id, std::vector<taraxa::bytes> const &transactions);
 
   std::map<blk_hash_t, taraxa::DagBlock> getBlocks();
