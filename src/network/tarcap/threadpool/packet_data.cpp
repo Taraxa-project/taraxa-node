@@ -3,7 +3,8 @@
 namespace taraxa::network::tarcap {
 
 PacketData::PacketData(SubprotocolPacketType type, dev::p2p::NodeID&& from_node_id_, std::vector<unsigned char>&& bytes)
-    : type_(type),
+    : receive_time_(std::chrono::steady_clock::now()),
+      type_(type),
       priority_(getPacketPriority(type)),
       from_node_id_(std::move(from_node_id_)),
       rlp_bytes_(std::move(bytes)) {}

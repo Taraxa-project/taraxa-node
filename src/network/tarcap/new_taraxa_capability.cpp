@@ -155,6 +155,7 @@ void TaraxaCapability::interpretCapabilityPacket(weak_ptr<Session> session, unsi
   // and received initial status packet
   auto host = peers_state_->host_.lock();
   if (!host) {
+    LOG(log_er_) << "Unable to process packet, host == nullptr";
     return;
   }
 

@@ -35,8 +35,6 @@ class PacketHandler {
 
  protected:
   std::shared_ptr<PeersState> peers_state_{nullptr};
-  std::shared_ptr<PacketsStats> sent_packets_stats_{nullptr};
-  std::shared_ptr<PacketsStats> received_packets_stats_{nullptr};
 
   // tmp variables that are initialized in every processPacket() call and should be valid also for process() call
   std::shared_ptr<TaraxaPeer> peer_{nullptr};

@@ -66,7 +66,7 @@ bool PeersState::sealAndSend(const dev::p2p::NodeID& nodeID, SubprotocolPacketTy
   // TODO: is weak_ptr->lock() threadsafe ???
   auto host = host_.lock();
   if (!host) {
-    // TODO: process somehow logs
+    // TODO: process somehow logs - maybe create global generic logger ???
     // LOG(log_er_) << "sealAndSend failed to obtain host";
     return false;
   }
@@ -101,18 +101,12 @@ bool PeersState::sealAndSend(const dev::p2p::NodeID& nodeID, SubprotocolPacketTy
   }
 
   // TODO: replace hardcoded "taraxa" by some common function that is also used in overridden tarcap class name()
-  // function
+  //       function
   host->send(nodeID, "taraxa", packet_type, move(rlp.invalidate()));
 
-  // TODO: where to process this ??? Maybe in PacketHandler that would have a sealAndSend wrappet that would call
-  //       this sealAndSend + process packet stats
-  //  PacketStats packet_stats{nodeID, packet_size, false, std::chrono::microseconds{0}};
-  //  sent_packets_stats_.addPacket(convertPacketTypeToString(packet_type), packet_stats);
-
-  // TODO: every handler creates his own logger so this net_per logs must be handled somehow differently
-  //  LOG(log_dg_net_per_) << "(\"" << shared_state_->node_id_ << "\") sent " << packetTypeToString(packet_type) << "
-  //  packet to (\""
-  //                       << nodeID << "\"). Stats: " << packet_stats;
+  SinglePacketStats packet_stats{nodeID, packet_size, false, std::chrono::microseconds{0},
+                                 std::chrono::microseconds{0}};
+  packets_stats_.addSentPacket(node_id_, convertPacketTypeToString(packet_type), packet_stats);
 
   return true;
 }

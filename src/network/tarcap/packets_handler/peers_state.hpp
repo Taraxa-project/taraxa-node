@@ -3,7 +3,7 @@
 #include "libp2p/Common.h"
 #include "libp2p/Host.h"
 #include "network/tarcap/packet_types.hpp"
-#include "packets_stats.hpp"
+#include "network/tarcap/packets_handler/packets_stats/packets_stats.hpp"
 #include "taraxa_peer.hpp"
 
 namespace taraxa::network::tarcap {
@@ -38,6 +38,9 @@ class PeersState {
   mutable boost::shared_mutex peers_mutex_;
   std::unordered_map<dev::p2p::NodeID, std::shared_ptr<TaraxaPeer>> peers_;
   std::unordered_map<dev::p2p::NodeID, std::shared_ptr<TaraxaPeer>> pending_peers_;
+
+  // Shared packet stats
+  PacketsStats packets_stats_;
 };
 
 }  // namespace taraxa::network::tarcap

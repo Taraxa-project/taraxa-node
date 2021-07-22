@@ -2,6 +2,8 @@
 
 #include <libp2p/Common.h>
 
+#include <chrono>
+
 #include "network/tarcap/packet_types.hpp"
 
 namespace taraxa::network::tarcap {
@@ -19,6 +21,7 @@ class PacketData {
   PacketData(SubprotocolPacketType type, dev::p2p::NodeID&& from_node_id_, std::vector<unsigned char>&& bytes);
 
  public:
+  std::chrono::steady_clock::time_point receive_time_;
   SubprotocolPacketType type_;
   PacketPriority priority_;
   dev::p2p::NodeID from_node_id_;
