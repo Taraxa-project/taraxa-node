@@ -4,6 +4,7 @@
 
 #include "libp2p/Common.h"
 #include "logger/log.hpp"
+#include "util/util.hpp"
 
 namespace taraxa {
 
@@ -29,6 +30,43 @@ class SyncingState {
                const addr_t &node_addr);
 
   /**
+   * @brief Set pbft syncing
+   *
+   * @param syncing
+   * @param peer_id used in case syncing flag == true to set which peer is the node syncing with
+   */
+  void set_pbft_syncing(bool syncing, const std::optional<dev::p2p::NodeID> &peer_id = {});
+
+  /**
+   * @brief Set dag syncing
+   *
+   * @param syncing
+   * @param peer_id used in case syncing flag == true to set which peer is the node syncing with
+   */
+  void set_dag_syncing(bool syncing, const std::optional<dev::p2p::NodeID> &peer_id = {});
+
+  /**
+   * @brief Set current time as last received sync packet  time
+   */
+  void set_last_sync_packet_time();
+
+  /**
+   * @brief Check if syncing is active
+   *
+   * @return true if last syncing packet was received within SYNCING_INACTIVITY_THRESHOLD
+   */
+  bool is_actively_syncing() const;
+
+  bool is_syncing() const;
+  bool is_pbft_syncing() const;
+  bool is_dag_syncing() const;
+
+  const dev::p2p::NodeID &syncing_peer() const;
+
+  void set_peer_malicious();
+  bool is_peer_malicious(const dev::p2p::NodeID &peer_id) const;
+
+  /**
    * @brief Restart syncing
    *
    * @param shared_state
@@ -43,27 +81,40 @@ class SyncingState {
    */
   void processDisconnect(const dev::p2p::NodeID &node_id);
 
- public:
-  // TODO: all of this must be thread safe - will be fixed and copy pasted here by Matus's syncing PR
-  std::atomic<bool> syncing_{false};
-  dev::p2p::NodeID peer_syncing_pbft_{};
-  bool requesting_pending_dag_blocks_ = {false};
-  dev::p2p::NodeID requesting_pending_dag_blocks_node_id_{};
+ private:
+  void set_peer(const dev::p2p::NodeID &peer_id);
 
-  // Declare logger instances
-  LOG_OBJECTS_DEFINE
+  void syncPeerPbft(unsigned long height_to_sync);
+  void requestPbftBlocks(dev::p2p::NodeID const &_id, size_t height_to_sync);
+  void requestPendingDagBlocks();
+  void requestBlocks(const dev::p2p::NodeID &_nodeID, std::vector<blk_hash_t> const &blocks,
+                     GetBlocksPacketRequestType mode);
 
  private:
   std::shared_ptr<PeersState> peers_state_{nullptr};
+
   std::shared_ptr<PbftChain> pbft_chain_{nullptr};
   std::shared_ptr<DagManager> dag_mgr_{nullptr};
   std::shared_ptr<DagBlockManager> dag_blk_mgr_{nullptr};
 
-  void syncPeerPbft(dev::p2p::NodeID const &_nodeID, unsigned long height_to_sync);
-  void requestPbftBlocks(dev::p2p::NodeID const &_id, size_t height_to_sync);
-  void requestPendingDagBlocks(dev::p2p::NodeID const &_id);
-  void requestBlocks(const dev::p2p::NodeID &_nodeID, std::vector<blk_hash_t> const &blocks,
-                     GetBlocksPacketRequestType mode);
+  std::atomic<bool> pbft_syncing_{false};
+  std::atomic<bool> dag_syncing_{false};
+
+  ExpirationCache<dev::p2p::NodeID> malicious_peers_;
+
+  // Number of seconds needed for ongoing syncing to be declared as inactive
+  static constexpr std::chrono::seconds SYNCING_INACTIVITY_THRESHOLD{60};
+
+  // What time was received last syncing packet
+  std::chrono::steady_clock::time_point last_received_sync_packet_time_{std::chrono::steady_clock::now()};
+  mutable std::shared_mutex time_mutex_;
+
+  // Peer id that the node is syncing with
+  dev::p2p::NodeID peer_id_;
+  mutable std::shared_mutex peer_mutex_;
+
+  // Declare logger instances
+  LOG_OBJECTS_DEFINE
 };
 
 }  // namespace taraxa::network::tarcap

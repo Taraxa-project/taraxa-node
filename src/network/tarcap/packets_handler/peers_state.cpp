@@ -35,7 +35,9 @@ std::shared_ptr<TaraxaPeer> PeersState::getPendingPeer(const dev::p2p::NodeID& n
 std::shared_ptr<TaraxaPeer> PeersState::addPendingPeer(const dev::p2p::NodeID& node_id) {
   boost::unique_lock<boost::shared_mutex> lock(peers_mutex_);
   auto ret = pending_peers_.emplace(node_id, std::make_shared<TaraxaPeer>(node_id));
-  assert(ret.second);
+  if (!ret.second) {
+    // LOG(log_er_) << "Peer " << node_id.abridged() << " is already in pending peers list";
+  }
 
   return ret.first->second;
 }
@@ -57,7 +59,9 @@ std::shared_ptr<TaraxaPeer> PeersState::setPeerAsReadyToSendMessages(dev::p2p::N
   boost::unique_lock<boost::shared_mutex> lock(peers_mutex_);
   pending_peers_.erase(node_id);
   auto ret = peers_.emplace(node_id, std::move(peer));
-  assert(ret.second);
+  if (!ret.second) {
+    // LOG(log_er_) << "Peer " << node_id.abridged() << " is already in peers list";
+  }
 
   return ret.first->second;
 }
