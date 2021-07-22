@@ -93,6 +93,16 @@ unsigned TaraxaCapability::messageCount() const { return packets_types_count(); 
 
 void TaraxaCapability::onConnect(weak_ptr<Session> session, u256 const &) {
   const auto node_id = session.lock()->id();
+
+  if (syncing_state_->is_peer_malicious(node_id)) {
+    if (auto session_p = session.lock()) {
+      session_p->disconnect(UserReason);
+    }
+
+    LOG(log_wr_) << "Node " << node_id << " dropped as is marked malicious";
+    return;
+  }
+
   auto peer = peers_state_->addPendingPeer(node_id);
 
   // TODO: check if this cast creates a copy of shared ptr ?
@@ -181,9 +191,7 @@ void TaraxaCapability::interpretCapabilityPacket(weak_ptr<Session> session, unsi
   thread_pool_.push(PacketData(static_cast<SubprotocolPacketType>(_id), std::move(node_id), _r.data().toBytes()));
 }
 
-void TaraxaCapability::startProcessingPackets() {
-  thread_pool_.startProcessing();
-}
+void TaraxaCapability::startProcessingPackets() { thread_pool_.startProcessing(); }
 
 // TODO: delete me
 void TaraxaCapability::pushData(unsigned _id, RLP const &_r) {
