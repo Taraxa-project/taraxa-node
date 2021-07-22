@@ -452,7 +452,7 @@ void DbStorage::addPbftCertVotedBlockHashToBatch(uint64_t const& pbft_round, blk
 shared_ptr<PbftBlock> DbStorage::getPbftCertVotedBlock(blk_hash_t const& block_hash) {
   auto block = lookup(toSlice(block_hash.asBytes()), Columns::pbft_cert_voted_block);
   if (!block.empty()) {
-    return s_ptr(new PbftBlock(dev::RLP(block)));
+    return std::make_shared<PbftBlock>(dev::RLP(block));
   }
   return nullptr;
 }
@@ -469,7 +469,7 @@ void DbStorage::addPbftCertVotedBlockToBatch(PbftBlock const& pbft_block, Batch&
 std::shared_ptr<PbftBlock> DbStorage::getPbftBlock(blk_hash_t const& hash) {
   auto block = lookup(hash, Columns::pbft_blocks);
   if (!block.empty()) {
-    return s_ptr(new PbftBlock(dev::RLP(block)));
+    return std::make_shared<PbftBlock>(dev::RLP(block));
   }
   return nullptr;
 }
@@ -505,7 +505,7 @@ std::vector<Vote> DbStorage::getUnverifiedVotes() {
 shared_ptr<Vote> DbStorage::getUnverifiedVote(vote_hash_t const& vote_hash) {
   auto vote = asBytes(lookup(toSlice(vote_hash.asBytes()), Columns::unverified_votes));
   if (!vote.empty()) {
-    return s_ptr(new Vote(RLP(vote)));
+    return std::make_shared<Vote>(RLP(vote));
   }
   return nullptr;
 }
@@ -545,7 +545,7 @@ std::vector<Vote> DbStorage::getVerifiedVotes() {
 shared_ptr<Vote> DbStorage::getVerifiedVote(vote_hash_t const& vote_hash) {
   auto vote = asBytes(lookup(toSlice(vote_hash.asBytes()), Columns::verified_votes));
   if (!vote.empty()) {
-    return s_ptr(new Vote(RLP(vote)));
+    return std::make_shared<Vote>(RLP(vote));
   }
   return nullptr;
 }
