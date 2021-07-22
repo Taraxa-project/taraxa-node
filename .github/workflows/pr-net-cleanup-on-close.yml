@@ -13,8 +13,6 @@ jobs:
         uses: octokit/request-action@v2.0.0
         with:
           route: ${{ github.event.issue.pull_request.url }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - uses: ./.github/actions/prnet
         id: trigger
         with:
