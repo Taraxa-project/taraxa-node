@@ -19,8 +19,11 @@ void SyncingState::set_pbft_syncing(bool syncing, const std::optional<dev::p2p::
   if (peer_id) {
     set_peer(peer_id.value());
   }
-  // Reset last sync packet time when syncing is restarted/fresh syncing flag is set
-  set_last_sync_packet_time();
+
+  if (syncing) {
+    // Reset last sync packet time when syncing is restarted/fresh syncing flag is set
+    set_last_sync_packet_time();
+  }
 }
 
 void SyncingState::set_dag_syncing(bool syncing, const std::optional<dev::p2p::NodeID>& peer_id) {
@@ -46,7 +49,7 @@ bool SyncingState::is_actively_syncing() const {
 }
 
 void SyncingState::set_peer_malicious() {
-  //this lock is for peer_id_ not the malicious_peers_
+  // this lock is for peer_id_ not the malicious_peers_
   std::shared_lock lock(peer_mutex_);
   malicious_peers_.insert(peer_id_);
 }

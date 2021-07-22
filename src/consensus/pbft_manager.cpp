@@ -653,6 +653,8 @@ bool PbftManager::stateOperations_() {
   LOG(log_tr_) << "PBFT current round is " << round;
   LOG(log_tr_) << "PBFT current step is " << step_;
 
+  if (is_syncing_()) return true;
+
   // Get votes
   votes_ = vote_mgr_->getVerifiedVotes(round, sortition_threshold_, getDposTotalVotesCount(),
                                        [this](auto const &addr) { return dpos_eligible_vote_count_(addr); });
@@ -662,7 +664,7 @@ bool PbftManager::stateOperations_() {
   // CHECK IF WE HAVE RECEIVED 2t+1 CERT VOTES FOR A BLOCK IN OUR CURRENT
   // ROUND.  IF WE HAVE THEN WE EXECUTE THE BLOCK
   // ONLY CHECK IF HAVE *NOT* YET EXECUTED THIS ROUND...
-  if (!is_syncing_() && state_ == certify_state && !have_executed_this_round_) {
+  if (state_ == certify_state && !have_executed_this_round_) {
     std::vector<Vote> cert_votes_for_round = getVotesOfTypeFromVotesForRoundAndStep_(
         cert_vote_type, votes_, round, 3, std::make_pair(NULL_BLOCK_HASH, false));
     auto voted_block_hash_with_cert_votes = blockWithEnoughVotes_(cert_votes_for_round);
