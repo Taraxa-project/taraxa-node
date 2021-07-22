@@ -303,6 +303,7 @@ void WSServer::run() { do_accept(); }
 
 WSServer::~WSServer() {
   stopped_ = true;
+  ioc_.stop();
   acceptor_.close();
   boost::unique_lock<boost::shared_mutex> lock(sessions_mtx_);
   for (auto const &session : sessions) {
