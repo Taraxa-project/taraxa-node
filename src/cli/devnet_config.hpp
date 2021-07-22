@@ -18,19 +18,19 @@ const char *devnet_json = R"foo({
   "network_boot_nodes": [
     {
       "id": "d8c2b2082a640796e15c36d7480d948513f8aee28dc967434ec06f94a354004c877e025eb4d83afa69e7c5860f65135e334792a7963197af87f0dcf455b6e321",
-      "ip": "boot-node-1.devnet.taraxa.io",
+      "ip": "boot-node-0.devnet.taraxa.io",
       "tcp_port": 10002,
       "udp_port": 10002
     },
     {
       "id": "58d0c9161a57e2715683bec8e1f4b382cf552b8db44b85370b21c18c4212e1f82fcef1a31dca40ead9d9145759f9f220bee9593123cd8f47682de8958c6f4f48",
-      "ip": "boot-node-2.devnet.taraxa.io",
+      "ip": "boot-node-1.devnet.taraxa.io",
       "tcp_port": 10002,
       "udp_port": 10002
     },
     {
       "id": "009f72d5d68b849aeadf24001de184fff475a6499079f1ab21a7e5b47ae8dc52582f47b3b829c02eb4f9a161197571da54e9e24579653943558394b2f9e80075",
-      "ip": "boot-node-3.devnet.taraxa.io",
+      "ip": "boot-node-2.devnet.taraxa.io",
       "tcp_port": 10002,
       "udp_port": 10002
     }
