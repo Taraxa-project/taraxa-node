@@ -21,7 +21,13 @@ class DagBlockManager {
                   std::shared_ptr<PbftChain> pbft_chain, logger::Logger log_time_, uint32_t queue_limit = 0);
   ~DagBlockManager();
   void insertBlock(DagBlock const &blk);
-  // Only used in initial syncs when blocks are received with full list of transactions
+  /**
+   * @brief Synchronously process synced dag block with transactions and inserts it into db
+   *
+   * @param blk
+   * @param transactions
+   */
+  void processSyncedBlockWithTransactions(DagBlock const &blk, std::vector<Transaction> const &transactions);
   void insertBroadcastedBlockWithTransactions(DagBlock const &blk, std::vector<Transaction> const &transactions);
   void pushUnverifiedBlock(DagBlock const &block,
                            bool critical);  // add to unverified queue

@@ -283,7 +283,9 @@ std::vector<taraxa::bytes> TransactionManager::getNewVerifiedTrxSnapShotSerializ
   return ret;
 }
 
-unsigned long TransactionManager::getTransactionCount() const { return trx_count_.load(); }
+unsigned long TransactionManager::getTransactionCount() const { return trx_count_; }
+
+void TransactionManager::addTrxCount(unsigned long num) { trx_count_ += num; }
 
 std::shared_ptr<std::pair<Transaction, taraxa::bytes>> TransactionManager::getTransaction(
     trx_hash_t const &hash) const {
@@ -360,10 +362,11 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx, uint16_t max_trx_
 bool TransactionManager::verifyBlockTransactions(DagBlock const &blk, std::vector<Transaction> const &trxs) {
   vec_trx_t const &all_block_trx_hashes = blk.getTrxs();
   if (all_block_trx_hashes.empty()) {
-    return true;
+    LOG(log_er_) << "Ignore block " << blk.getHash() << " since it has no transactions";
+    return false;
   }
 
-  std::set<trx_hash_t> known_trx_hashes(all_block_trx_hashes.begin(), all_block_trx_hashes.end());
+  std::unordered_set<trx_hash_t> known_trx_hashes(all_block_trx_hashes.begin(), all_block_trx_hashes.end());
 
   auto trx_batch = db_->createWriteBatch();
   for (auto const &trx : trxs) {
@@ -402,20 +405,21 @@ bool TransactionManager::verifyBlockTransactions(DagBlock const &blk, std::vecto
   db_->commitWriteBatch(trx_batch);
 
   if (all_transactions_saved) {
+    size_t newly_added_txs_to_block_counter = 0;
     auto trx_batch = db_->createWriteBatch();
-    vector<h256> accepted_trx_hashes;
+    vector<trx_hash_t> accepted_trx_hashes;
     accepted_trx_hashes.reserve(all_block_trx_hashes.size());
     for (auto const &trx : all_block_trx_hashes) {
       auto status = db_->getTransactionStatus(trx);
       if (status != TransactionStatus::in_block) {
-        trx_count_.fetch_add(1);
+        newly_added_txs_to_block_counter++;
         accepted_trx_hashes.emplace_back(trx);
         db_->addTransactionStatusToBatch(trx_batch, trx, TransactionStatus::in_block);
       }
     }
     // Write prepared batch to db
-    auto trx_count = trx_count_.load();
-    db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_count, trx_batch);
+    trx_count_ += newly_added_txs_to_block_counter;
+    db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_count_, trx_batch);
 
     db_->commitWriteBatch(trx_batch);
     for (auto const &h : accepted_trx_hashes) {

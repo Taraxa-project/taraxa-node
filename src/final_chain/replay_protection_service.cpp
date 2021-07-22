@@ -76,7 +76,7 @@ class ReplayProtectionServiceImpl : public virtual ReplayProtectionService {
       } else {
         sender_state = loadSenderState(senderStateKey(sender_addr));
         if (!sender_state) {
-          sender_states[sender_addr] = sender_states_dirty[sender_addr] = s_ptr(new SenderState(trx.nonce));
+          sender_states[sender_addr] = sender_states_dirty[sender_addr] = std::make_shared<SenderState>(trx.nonce);
           return;
         }
         sender_states[sender_addr] = sender_state;
@@ -121,7 +121,7 @@ class ReplayProtectionServiceImpl : public virtual ReplayProtectionService {
 
   shared_ptr<SenderState> loadSenderState(string const& key) const {
     if (auto v = db_->lookup(key, DB::Columns::final_chain_replay_protection); !v.empty()) {
-      return s_ptr(new SenderState(RLP(v)));
+      return std::make_shared<SenderState>(RLP(v));
     }
     return nullptr;
   }
