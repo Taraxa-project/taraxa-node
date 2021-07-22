@@ -57,6 +57,11 @@ class TaraxaCapability : virtual dev::p2p::CapabilityFace {
   void interpretCapabilityPacket(std::weak_ptr<dev::p2p::Session> session, unsigned _id, RLP const &_r) override;
   std::string packetTypeToString(unsigned _packetType) const override;
 
+  /**
+   * @brief Start processing packets - creates workers inside threadpool
+   */
+  void startProcessingPackets();
+
   // TODO: delete me
   void pushData(unsigned _id, RLP const &_r);
 

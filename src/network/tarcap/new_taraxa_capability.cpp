@@ -181,6 +181,10 @@ void TaraxaCapability::interpretCapabilityPacket(weak_ptr<Session> session, unsi
   thread_pool_.push(PacketData(static_cast<SubprotocolPacketType>(_id), std::move(node_id), _r.data().toBytes()));
 }
 
+void TaraxaCapability::startProcessingPackets() {
+  thread_pool_.startProcessing();
+}
+
 // TODO: delete me
 void TaraxaCapability::pushData(unsigned _id, RLP const &_r) {
   thread_pool_.push(PacketData(static_cast<SubprotocolPacketType>(_id), dev::p2p::NodeID(), _r.data().toBytes()));

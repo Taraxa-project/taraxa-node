@@ -64,7 +64,6 @@ struct TaraxaCapability : virtual CapabilityFace {
   void onDisconnect(NodeID const &_nodeID) override;
 
   // TODO remove managing thread pool inside this class
-  // TODO remove managing thread pool inside this class
   void start() {
     tp_.start();
     syncing_tp_.start();
