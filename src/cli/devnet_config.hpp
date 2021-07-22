@@ -14,7 +14,7 @@ const char *devnet_json = R"foo({
   "network_bandwidth": 40,
   "network_ideal_peer_count": 5,
   "network_max_peer_count": 15,
-  "network_sync_level_size": 10,
+  "network_sync_level_size": 25,
   "network_boot_nodes": [
     {
       "id": "d8c2b2082a640796e15c36d7480d948513f8aee28dc967434ec06f94a354004c877e025eb4d83afa69e7c5860f65135e334792a7963197af87f0dcf455b6e321",
