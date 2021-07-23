@@ -121,16 +121,13 @@ void StatusPacketHandler::process(const PacketData& packet_data, const dev::RLP&
     }
   }
 
-  // TODO: process votes syncing -> move this to the syncing_state
-  /*
-    auto pbft_current_round = pbft_mgr_->getPbftRound();
-    auto pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesSize();
-    if (pbft_current_round < peer_->pbft_round_ ||
-        (pbft_current_round == peer_->pbft_round_ &&
-         pbft_previous_round_next_votes_size < peer_->pbft_previous_round_next_votes_size_)) {
-      syncPbftNextVotes(pbft_current_round, pbft_previous_round_next_votes_size);
-    }
-    */
+  auto pbft_current_round = pbft_mgr_->getPbftRound();
+  auto pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesSize();
+  if (pbft_current_round < peer_->pbft_round_ ||
+      (pbft_current_round == peer_->pbft_round_ &&
+       pbft_previous_round_next_votes_size < peer_->pbft_previous_round_next_votes_size_)) {
+    syncing_state_->syncPbftNextVotes(pbft_current_round, pbft_previous_round_next_votes_size);
+  }
 }
 
 bool StatusPacketHandler::sendStatus(const dev::p2p::NodeID& node_id, bool initial) {
