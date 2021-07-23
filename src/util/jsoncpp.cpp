@@ -9,7 +9,8 @@ Json::Value parse_json(std::string_view const& str) {
   Json::CharReaderBuilder reader_builder;
   Json::Value ret;
   std::string parse_err;
-  if (u_ptr(reader_builder.newCharReader())->parse(str.data(), str.data() + str.size(), &ret, &parse_err)) {
+  if (std::unique_ptr<Json::CharReader>(reader_builder.newCharReader())
+          ->parse(str.data(), str.data() + str.size(), &ret, &parse_err)) {
     return ret;
   }
   throw Json::Exception(parse_err);

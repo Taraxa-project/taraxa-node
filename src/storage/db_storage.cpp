@@ -273,7 +273,7 @@ void DbStorage::removeDagBlockStateToBatch(Batch& write_batch, blk_hash_t const&
 
 std::map<blk_hash_t, bool> DbStorage::getAllDagBlockState() {
   std::map<blk_hash_t, bool> res;
-  auto i = u_ptr(db_->NewIterator(read_options_, handle(Columns::dag_blocks_state)));
+  auto i = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::dag_blocks_state)));
   for (i->SeekToFirst(); i->Valid(); i->Next()) {
     res[blk_hash_t(asBytes(i->key().ToString()))] = (bool)*(uint8_t*)(i->value().data());
   }
@@ -303,7 +303,7 @@ TransactionStatus DbStorage::getTransactionStatus(trx_hash_t const& hash) {
 
 std::map<trx_hash_t, TransactionStatus> DbStorage::getAllTransactionStatus() {
   std::map<trx_hash_t, TransactionStatus> res;
-  auto i = u_ptr(db_->NewIterator(read_options_, handle(Columns::trx_status)));
+  auto i = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::trx_status)));
   for (i->SeekToFirst(); i->Valid(); i->Next()) {
     res[trx_hash_t(asBytes(i->key().ToString()))] = (TransactionStatus) * (uint16_t*)(i->value().data());
   }
@@ -494,7 +494,7 @@ void DbStorage::addPbftHeadToBatch(taraxa::blk_hash_t const& head_hash, std::str
 std::vector<Vote> DbStorage::getUnverifiedVotes() {
   vector<Vote> votes;
 
-  auto it = u_ptr(db_->NewIterator(read_options_, handle(Columns::unverified_votes)));
+  auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::unverified_votes)));
   for (it->SeekToFirst(); it->Valid(); it->Next()) {
     votes.emplace_back(asBytes(it->value().ToString()));
   }
@@ -534,7 +534,7 @@ void DbStorage::removeUnverifiedVoteToBatch(vote_hash_t const& vote_hash, Batch&
 std::vector<Vote> DbStorage::getVerifiedVotes() {
   vector<Vote> votes;
 
-  auto it = u_ptr(db_->NewIterator(read_options_, handle(Columns::verified_votes)));
+  auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::verified_votes)));
   for (it->SeekToFirst(); it->Valid(); it->Next()) {
     votes.emplace_back(asBytes(it->value().ToString()));
   }
@@ -720,7 +720,7 @@ void DbStorage::addProposalPeriodDagLevelsMapToBatch(ProposalPeriodDagLevelsMap 
 }
 
 void DbStorage::forEach(Column const& col, OnEntry const& f) {
-  auto i = u_ptr(db_->NewIterator(read_options_, handle(col)));
+  auto i = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(col)));
   for (i->SeekToFirst(); i->Valid(); i->Next()) {
     if (!f(i->key(), i->value())) {
       break;
