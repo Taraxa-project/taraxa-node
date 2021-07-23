@@ -28,7 +28,7 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkC
 
     : peers_state_(std::make_shared<PeersState>(std::move(_host))),
       syncing_state_(std::make_shared<SyncingState>(peers_state_, pbft_chain, dag_mgr, dag_blk_mgr, node_addr)),
-      packets_handlers_(),
+      packets_handlers_(std::make_shared<PacketsHandler>()),
       thread_pool_(10, node_addr)  // TODO: num of threads from config
 //    : host_(move(_host)),
 //      db_(db),

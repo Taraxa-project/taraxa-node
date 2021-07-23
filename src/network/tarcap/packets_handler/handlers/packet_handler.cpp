@@ -22,6 +22,7 @@ void PacketHandler::processPacket(const PacketData& packet_data) {
     host_ = peers_state_->host_.lock();
 
     if (!peer_ || !host_) {
+      LOG(log_er_) << "Invalid peer or host during packet processing";
       return;
     }
 

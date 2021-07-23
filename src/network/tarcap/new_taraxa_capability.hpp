@@ -84,11 +84,11 @@ class TaraxaCapability : virtual dev::p2p::CapabilityFace {
   //  bool pbft_syncing();
   //  void onNewPbftVotes(std::vector<Vote> votes);
   //  void broadcastPreviousRoundNextVotesBundle();
+  //  void sendTransactions(dev::p2p::NodeID const &_id, std::vector<taraxa::bytes> const &transactions);
   //
   //  // METHODS USED IN TESTS ONLY
   //  void sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk);
   //  void sendBlocks(dev::p2p::NodeID const &id, std::vector<std::shared_ptr<DagBlock>> blocks);
-  //  void sendTransactions(dev::p2p::NodeID const &_id, std::vector<taraxa::bytes> const &transactions);
   //  void setPendingPeersToReady();
   //  dev::p2p::NodeID getNodeId();
   //  int getReceivedBlocksCount();
