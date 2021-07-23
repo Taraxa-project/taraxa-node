@@ -270,9 +270,9 @@ TEST_F(VoteTest, previous_round_next_votes) {
     nodes_kp.emplace_back(dev::KeyPair(sk));
   }
 
-  auto db = s_ptr(new DbStorage(data_dir));
+  auto db = std::make_shared<DbStorage>(data_dir);
   auto const &node_addr = nodes_kp[0].address();
-  auto next_votes_mgr = s_ptr(new NextVotesForPreviousRound(node_addr, db));
+  auto next_votes_mgr = std::make_shared<NextVotesForPreviousRound>(node_addr, db);
   auto pbft_2t_plus_1 = 3;
 
   // Generate 3 votes voted at NULL_BLOCK_HASH

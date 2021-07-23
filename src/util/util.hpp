@@ -218,16 +218,6 @@ std::string fmt(const std::string &pattern, const TS &...args) {
   return (boost::format(pattern) % ... % args).str();
 }
 
-template <typename T>
-auto s_ptr(T *ptr) {
-  return std::shared_ptr<T>(ptr);
-}
-
-template <typename T>
-auto u_ptr(T *ptr) {
-  return std::unique_ptr<T>(ptr);
-}
-
 }  // namespace taraxa
 
 /**
