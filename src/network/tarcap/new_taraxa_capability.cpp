@@ -8,6 +8,7 @@
 #include "dag/dag.hpp"
 #include "network/tarcap/packets_handler/handlers/status_packet_handler.hpp"
 #include "network/tarcap/packets_handler/handlers/test_packet_handler.hpp"
+#include "network/tarcap/packets_handler/handlers/vote_packets_handler.hpp"
 #include "network/tarcap/packets_handler/packets_handler.hpp"
 #include "network/tarcap/packets_handler/peers_state.hpp"
 #include "network/tarcap/packets_handler/syncing_state.hpp"
@@ -17,11 +18,9 @@
 namespace taraxa::network::tarcap {
 
 TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkConfig const &_conf,
-                                   std::shared_ptr<DbStorage> db __attribute__((unused)),
-                                   std::shared_ptr<PbftManager> pbft_mgr __attribute__((unused)),
-                                   std::shared_ptr<PbftChain> pbft_chain,
-                                   std::shared_ptr<VoteManager> vote_mgr __attribute__((unused)),
-                                   std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr __attribute__((unused)),
+                                   std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
+                                   std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
+                                   std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr,
                                    std::shared_ptr<DagManager> dag_mgr,
                                    std::shared_ptr<DagBlockManager> dag_blk_mgr __attribute__((unused)),
                                    std::shared_ptr<TransactionManager> trx_mgr __attribute__((unused)),
@@ -57,6 +56,12 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkC
 //  LOG_OBJECTS_CREATE_SUB("SUMMARY", summary);
 {
   // Register all packet handlers
+  auto votes_handler =
+      std::make_shared<VotePacketsHandler>(peers_state_, pbft_mgr, vote_mgr, next_votes_mgr, db, node_addr);
+  packets_handlers_->registerHandler(SubprotocolPacketType::PbftVotePacket, votes_handler);
+  packets_handlers_->registerHandler(SubprotocolPacketType::GetPbftNextVotes, votes_handler);
+  packets_handlers_->registerHandler(SubprotocolPacketType::PbftNextVotesPacket, votes_handler);
+
   packets_handlers_->registerHandler(SubprotocolPacketType::TestPacket,
                                      std::make_shared<TestPacketHandler>(peers_state_, node_addr));
   packets_handlers_->registerHandler(SubprotocolPacketType::StatusPacket,
