@@ -20,11 +20,13 @@ class StatusPacketHandler : public PacketHandler {
                       uint64_t conf_network_id, const addr_t& node_addr = {});
 
   bool sendStatus(const dev::p2p::NodeID& node_id, bool initial);
+  void checkLiveness();
 
  private:
   void process(const PacketData& packet_data, const dev::RLP& packet_rlp) override;
 
-  static constexpr uint16_t INITIAL_STATUS_PACKET_ITEM_COUNT = 10;
+  const uint16_t MAX_CHECK_ALIVE_COUNT = 5;
+  const uint16_t INITIAL_STATUS_PACKET_ITEM_COUNT = 10;
 
   std::shared_ptr<SyncingState> syncing_state_;
   std::shared_ptr<PbftChain> pbft_chain_;

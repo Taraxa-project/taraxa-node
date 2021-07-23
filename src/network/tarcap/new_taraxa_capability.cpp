@@ -17,7 +17,7 @@
 
 namespace taraxa::network::tarcap {
 
-TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkConfig const &_conf,
+TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkConfig const &conf,
                                    std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
                                    std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
                                    std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr,
@@ -29,7 +29,8 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkC
     : peers_state_(std::make_shared<PeersState>(std::move(_host))),
       syncing_state_(std::make_shared<SyncingState>(peers_state_, pbft_chain, dag_mgr, dag_blk_mgr, node_addr)),
       packets_handlers_(std::make_shared<PacketsHandler>()),
-      thread_pool_(10, node_addr)  // TODO: num of threads from config
+      thread_pool_(10, node_addr),  // TODO: num of threads from config
+      periodic_events_tp_(1, false)
 //    : host_(move(_host)),
 //      db_(db),
 //      pbft_mgr_(pbft_mgr),
@@ -66,25 +67,37 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkC
                                      std::make_shared<TestPacketHandler>(peers_state_, node_addr));
   packets_handlers_->registerHandler(SubprotocolPacketType::StatusPacket,
                                      std::make_shared<StatusPacketHandler>(peers_state_, syncing_state_, pbft_chain,
-                                                                           dag_mgr, _conf.network_id, node_addr));
+                                                                           dag_mgr, conf.network_id, node_addr));
 
   thread_pool_.setPacketsHandlers(packets_handlers_);
 
   LOG_OBJECTS_CREATE("TARCAP");
 
-  // TODO use this
-  //
-  //  if (conf_.network_transaction_interval > 0) {
-  //    tp_.post(conf_.network_transaction_interval, [this] { sendTransactions(); });
-  //  }
-  //  check_alive_interval_ = 6 * lambda_ms_min_;
-  //  tp_.post(check_alive_interval_, [this] { checkLiveness(); });
-  //  if (conf_.network_performance_log_interval > 0) {
-  //    tp_.post(conf_.network_performance_log_interval, [this] { logPacketsStats(); });
-  //  }
-  //
-  //  summary_interval_ms_ = 5 * 6 * lambda_ms_min_;
-  //  tp_.post(summary_interval_ms_, [this] { logNodeStats(); });
+  // TODO: refactor this:
+  //       1. Most of time is this single threaded thread pool doing nothing...
+  //       2. These periodic events are sending packets - that should be processed by main thread_pool
+  // Creates periodic events
+  const auto lambda_ms_min = pbft_mgr ? pbft_mgr->getPbftInitialLambda() : 2000;
+
+  // TODO: use sendTransactions() from TransactionPacketHandler when ready
+//  if (conf.network_transaction_interval > 0) {
+//    periodic_events_tp_.post_loop( { conf.network_transaction_interval }, [this] { sendTransactions(); });
+//  }
+
+
+  const auto &handler = packets_handlers_->getSpecificHandler(SubprotocolPacketType::StatusPacket);
+  auto status_packet_handler = std::static_pointer_cast<StatusPacketHandler>(handler);
+
+  const auto check_alive_interval = 6 * lambda_ms_min;
+  periodic_events_tp_.post_loop( { check_alive_interval }, [this, status_packet_handler] { status_packet_handler->checkLiveness(); });
+
+  if (conf.network_performance_log_interval > 0) {
+    periodic_events_tp_.post_loop( { conf.network_performance_log_interval }, [this] { peers_state_->packets_stats_.logStats(); });
+  }
+
+  // TODO: implement logNodeStats()
+//  const auto summary_interval_ms = 5 * 6 * lambda_ms_min;
+//  periodic_events_tp_.post_loop( { summary_interval_ms }, [this] { logNodeStats(); });
 }
 
 std::string TaraxaCapability::name() const {
@@ -196,7 +209,15 @@ void TaraxaCapability::interpretCapabilityPacket(weak_ptr<Session> session, unsi
   thread_pool_.push(PacketData(static_cast<SubprotocolPacketType>(_id), std::move(node_id), _r.data().toBytes()));
 }
 
-void TaraxaCapability::startProcessingPackets() { thread_pool_.startProcessing(); }
+void TaraxaCapability::start() {
+  thread_pool_.startProcessing();
+  periodic_events_tp_.start();
+}
+
+void TaraxaCapability::stop() {
+  thread_pool_.stopProcessing();
+  periodic_events_tp_.stop();
+}
 
 // TODO: delete me
 void TaraxaCapability::pushData(unsigned _id, RLP const &_r) {
