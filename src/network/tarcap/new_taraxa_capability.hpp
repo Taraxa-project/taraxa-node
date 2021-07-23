@@ -18,6 +18,7 @@
 //#include "transaction_manager/transaction.hpp"
 //#include "util/thread_pool.hpp"
 //#include "util/util.hpp"
+#include "util/thread_pool.hpp"
 
 namespace taraxa {
 
@@ -39,7 +40,7 @@ class PacketsHandler;
 // TODO: why virtual inheritance ?
 class TaraxaCapability : virtual dev::p2p::CapabilityFace {
  public:
-  TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkConfig const &_conf, std::shared_ptr<DbStorage> db = {},
+  TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkConfig const &conf, std::shared_ptr<DbStorage> db = {},
                    std::shared_ptr<PbftManager> pbft_mgr = {}, std::shared_ptr<PbftChain> pbft_chain = {},
                    std::shared_ptr<VoteManager> vote_mgr = {},
                    std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr = {},
@@ -58,9 +59,14 @@ class TaraxaCapability : virtual dev::p2p::CapabilityFace {
   std::string packetTypeToString(unsigned _packetType) const override;
 
   /**
-   * @brief Start processing packets - creates workers inside threadpool
+   * @brief Start processing packets
    */
-  void startProcessingPackets();
+  void start();
+
+  /**
+   * @brief Stop processing packets
+   */
+  void stop();
 
   // TODO: delete me
   void pushData(unsigned _id, RLP const &_r);
@@ -112,6 +118,10 @@ class TaraxaCapability : virtual dev::p2p::CapabilityFace {
 
   // Threadpool for processing packets
   TarcapThreadPool thread_pool_;
+
+  // TODO: refactor this
+  // Fake threadpool (1 thread) for periodic events like printing Summary logs, packets stats, etc...
+  util::ThreadPool periodic_events_tp_;
 
   LOG_OBJECTS_DEFINE
 };

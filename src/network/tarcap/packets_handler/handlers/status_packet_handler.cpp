@@ -173,4 +173,27 @@ bool StatusPacketHandler::sendStatus(const dev::p2p::NodeID& node_id, bool initi
   return success;
 }
 
+void StatusPacketHandler::checkLiveness() {
+  auto host = peers_state_->host_.lock();
+  if (!host) {
+    LOG(log_er_) << "Unavailable host during checkLiveness";
+    return;
+  }
+
+  boost::shared_lock<boost::shared_mutex> lock(peers_state_->peers_mutex_);
+  for (auto const &peer : peers_state_->peers_) {
+    // Disconnect any node that did not send any message for 3 status intervals
+    if (!peer.second->isAlive(MAX_CHECK_ALIVE_COUNT)) {
+      host->disconnect(peer.first, p2p::PingTimeout);
+      LOG(log_nf_) << "Host " << peer.first << " disconnected, no status message received in " << MAX_CHECK_ALIVE_COUNT
+                   << " check alive intervals";
+    }
+
+    // Send status message
+    else {
+      sendStatus(peer.first, false);
+    }
+  }
+}
+
 }  // namespace taraxa::network::tarcap
