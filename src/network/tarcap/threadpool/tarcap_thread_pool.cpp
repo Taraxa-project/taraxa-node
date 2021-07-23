@@ -64,8 +64,10 @@ void TarcapThreadPool::stopProcessing() {
  * @brief Threadpool sycnchronized processing function, which calls user-defined custom processing function
  **/
 void TarcapThreadPool::processPacket(size_t worker_id) {
+  // TODO: just for testing purposes to see if priority queue starts to serve packets based on their priorities
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
-  LOG(log_dg_) << "Worker num " << worker_id << " started" << std::endl;
+
+  LOG(log_dg_) << "Worker num " << worker_id << " started";
   std::unique_lock<std::mutex> lock(mutex_, std::defer_lock);
 
   while (stopProcessing_ == false) {
@@ -73,7 +75,7 @@ void TarcapThreadPool::processPacket(size_t worker_id) {
 
     while (queue_.empty()) {
       if (stopProcessing_) {
-        LOG(log_dg_) << "Worker num " << worker_id << ": finished" << std::endl;
+        LOG(log_dg_) << "Worker num " << worker_id << ": finished";
         return;
       }
 
@@ -88,7 +90,7 @@ void TarcapThreadPool::processPacket(size_t worker_id) {
     // is not empty but it would return empty optional as the second syncing packet is blocked by the first one
     if (!packet.has_value()) {
       lock.unlock();
-      LOG(log_dg_) << "Worker num " << worker_id << " sleep" << std::endl;
+      LOG(log_dg_) << "Worker num " << worker_id << " sleep";
 
       // Sleep for some time and try to get the packet later again to see if it is still blocked
       std::this_thread::sleep_for(std::chrono::milliseconds(20));
@@ -98,7 +100,7 @@ void TarcapThreadPool::processPacket(size_t worker_id) {
     queue_.updateDependenciesStart(packet.value());
     lock.unlock();
 
-    LOG(log_tr_) << "Worker num " << worker_id << " process packet: " << packet->type_ << std::endl;
+    LOG(log_tr_) << "Worker num " << worker_id << " process packet: " << packet->type_;
 
     try {
       // Get specific packet handler according to packet type
