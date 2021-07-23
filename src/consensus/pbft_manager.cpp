@@ -445,6 +445,7 @@ void PbftManager::initialState_() {
 
   auto round = db_->getPbftMgrField(PbftMgrRoundStep::PbftRound);
   auto step = db_->getPbftMgrField(PbftMgrRoundStep::PbftStep);
+  lambda_index_ = step;
   if (round == 1 && step == 1) {
     // Node start from scratch
     state_ = value_proposal_state;
@@ -574,7 +575,8 @@ void PbftManager::setNextState_() {
 void PbftManager::setFilterState_() {
   state_ = filter_state;
   setPbftStep(step_ + 1);
-  next_step_time_ms_ = 2 * LAMBDA_ms;
+  lambda_index_ = 2;
+  next_step_time_ms_ = lambda_index_ * LAMBDA_ms;
   last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
   current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
 }
@@ -582,7 +584,7 @@ void PbftManager::setFilterState_() {
 void PbftManager::setCertifyState_() {
   state_ = certify_state;
   setPbftStep(step_ + 1);
-  next_step_time_ms_ = 2 * LAMBDA_ms;
+  next_step_time_ms_ = lambda_index_ * LAMBDA_ms;
   last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
   current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
 }
@@ -591,7 +593,8 @@ void PbftManager::setFinishState_() {
   LOG(log_dg_) << "Will go to first finish State";
   state_ = finish_state;
   setPbftStep(step_ + 1);
-  next_step_time_ms_ = 4 * LAMBDA_ms;
+  lambda_index_ = 4;
+  next_step_time_ms_ = lambda_index_ * LAMBDA_ms;
   last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
   current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
 }
@@ -628,14 +631,20 @@ void PbftManager::loopBackFinishState_() {
                << " next_voted_null_block_hash_ = " << next_voted_null_block_hash_
                << " cert voted = " << (cert_voted_values_for_round_.find(round) != cert_voted_values_for_round_.end());
   state_ = finish_state;
-  setPbftStep(step_ + 1);
+  const size_t max_steps = 500;
+  if (step_ >= max_steps) {
+    setPbftStep(4);
+  } else {
+    setPbftStep(step_ + 1);
+  }
   auto batch = db_->createWriteBatch();
   db_->addPbftMgrStatusToBatch(PbftMgrStatus::next_voted_soft_value, false, batch);
   db_->addPbftMgrStatusToBatch(PbftMgrStatus::next_voted_null_block_hash, false, batch);
   db_->commitWriteBatch(batch);
   next_voted_soft_value_ = false;
   next_voted_null_block_hash_ = false;
-  next_step_time_ms_ = step_ * LAMBDA_ms;
+  lambda_index_ += 2;
+  next_step_time_ms_ = lambda_index_ * LAMBDA_ms;
   last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
   current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
 }
