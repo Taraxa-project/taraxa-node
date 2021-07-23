@@ -74,6 +74,16 @@ class SyncingState {
    */
   void restartSyncingPbft(bool force);
 
+  void syncPeerPbft(unsigned long height_to_sync);
+  void requestPbftBlocks(dev::p2p::NodeID const &_id, size_t height_to_sync);
+  void requestPendingDagBlocks();
+  void requestBlocks(const dev::p2p::NodeID &_nodeID, std::vector<blk_hash_t> const &blocks,
+                     GetBlocksPacketRequestType mode);
+
+  void syncPbftNextVotes(uint64_t const pbft_round, size_t const pbft_previous_round_next_votes_size);
+  void requestPbftNextVotes(dev::p2p::NodeID const &peerID, uint64_t const pbft_round,
+                            size_t const pbft_previous_round_next_votes_size);
+
   /**
    * @brief Restart syncing in case there is ongoing syncing with the peer that just got disconnected
    *
@@ -83,12 +93,6 @@ class SyncingState {
 
  private:
   void set_peer(const dev::p2p::NodeID &peer_id);
-
-  void syncPeerPbft(unsigned long height_to_sync);
-  void requestPbftBlocks(dev::p2p::NodeID const &_id, size_t height_to_sync);
-  void requestPendingDagBlocks();
-  void requestBlocks(const dev::p2p::NodeID &_nodeID, std::vector<blk_hash_t> const &blocks,
-                     GetBlocksPacketRequestType mode);
 
  private:
   std::shared_ptr<PeersState> peers_state_{nullptr};

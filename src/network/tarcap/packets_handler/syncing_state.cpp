@@ -107,6 +107,52 @@ void SyncingState::requestBlocks(const dev::p2p::NodeID &_nodeID, std::vector<bl
   peers_state_->sealAndSend(_nodeID, SubprotocolPacketType::GetBlocksPacket, s);
 }
 
+void SyncingState::syncPbftNextVotes(uint64_t const pbft_round, size_t const pbft_previous_round_next_votes_size) {
+  dev::p2p::NodeID peer_node_ID;
+  uint64_t peer_max_pbft_round = 1;
+  size_t peer_max_previous_round_next_votes_size = 0;
+  {
+    boost::shared_lock<boost::shared_mutex> lock(peers_state_->peers_mutex_);
+    // Find max peer PBFT round
+    for (auto const &peer : peers_state_->peers_) {
+      if (peer.second->pbft_round_ > peer_max_pbft_round) {
+        peer_max_pbft_round = peer.second->pbft_round_;
+        peer_node_ID = peer.first;
+      }
+    }
+
+    if (pbft_round == peer_max_pbft_round) {
+      // No peers ahead, find peer PBFT previous round max next votes size
+      for (auto const &peer : peers_state_->peers_) {
+        if (peer.second->pbft_previous_round_next_votes_size_ > peer_max_previous_round_next_votes_size) {
+          peer_max_previous_round_next_votes_size = peer.second->pbft_previous_round_next_votes_size_;
+          peer_node_ID = peer.first;
+        }
+      }
+    }
+  }
+
+  if (pbft_round < peer_max_pbft_round ||
+      (pbft_round == peer_max_pbft_round &&
+       pbft_previous_round_next_votes_size < peer_max_previous_round_next_votes_size)) {
+    // TODO: was log_dg_next_votes_sync_
+    LOG(log_dg_) << "Syncing PBFT next votes. Current PBFT round " << pbft_round << ", previous round next votes size "
+                 << pbft_previous_round_next_votes_size << ". Peer " << peer_node_ID << " is in PBFT round "
+                 << peer_max_pbft_round << ", previous round next votes size "
+                 << peer_max_previous_round_next_votes_size;
+    requestPbftNextVotes(peer_node_ID, pbft_round, pbft_previous_round_next_votes_size);
+  }
+}
+
+void SyncingState::requestPbftNextVotes(dev::p2p::NodeID const &peerID, uint64_t const pbft_round,
+                                        size_t const pbft_previous_round_next_votes_size) {
+  // TODO: was log_dg_next_votes_sync_
+  LOG(log_dg_) << "Sending GetPbftNextVotes with round " << pbft_round << " previous round next votes size "
+               << pbft_previous_round_next_votes_size;
+  peers_state_->sealAndSend(peerID, GetPbftNextVotes,
+                            RLPStream(2) << pbft_round << pbft_previous_round_next_votes_size);
+}
+
 void SyncingState::processDisconnect(const dev::p2p::NodeID &node_id) {
   if (is_pbft_syncing() && syncing_peer() == node_id) {
     if (peers_state_->getPeersCount() > 0) {
