@@ -472,7 +472,8 @@ jobs:
       - run:
          name: Run Ctest
          command: |
-           docker run  --rm -v $PWD/tmp_docker:/tmp \
+           docker run  --ulimit nofile=4096:4096 \
+                       --rm -v $PWD/tmp_docker:/tmp \
                        --name taraxa-node-ctest-${DOCKER_BRANCH_TAG} \
                        ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}\
                         sh -c \
@@ -738,7 +739,7 @@ jobs:
         - run:
            name: Execute ctest
            command: |
-             ulimit -n 2048
+             ulimit -n 4096
              cd cmake-build/tests && ctest --output-on-failure
         - store_artifacts:
            path: $HOME/project/release/taraxad-macos
@@ -804,7 +805,7 @@ jobs:
         - run:
            name: Execute ctest
            command: |
-            ulimit -n 2048
+            ulimit -n 4096
             cd $BUILD_OUTPUT_DIR/tests && ctest --output-on-failure
         - store_artifacts:
            path: /root/project/release/taraxad-x86_64
