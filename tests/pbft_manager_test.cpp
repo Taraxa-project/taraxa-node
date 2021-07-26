@@ -253,6 +253,7 @@ TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
   auto nodes = launch_nodes(node_cfgs);
 
   auto pbft_mgr = nodes[0]->getPbftManager();
+  auto db = nodes[0]->getDB();
   pbft_mgr->stop();
   cout << "Initialize PBFT manager at round 1 step 4" << endl;
   pbft_mgr->setPbftRound(1);
@@ -282,7 +283,7 @@ TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
   pbft_mgr->start();
 
   // Vote at the bogus PBFT block hash
-  EXPECT_HAPPENS({60s, 50ms}, [&](auto &ctx) {
+  EXPECT_HAPPENS({10s, 50ms}, [&](auto &ctx) {
     auto soft_vote_value = blk_hash_t(0);
     auto votes = vote_mgr->getVerifiedVotes();
     for (auto const &v : votes) {
@@ -297,16 +298,20 @@ TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
   auto start_round = pbft_mgr->getPbftRound();
 
   cout << "After some time, terminate voting on the bogus value " << pbft_block_hash << endl;
-  EXPECT_HAPPENS({120s, 50ms}, [&](auto &ctx) {
+  EXPECT_HAPPENS({10s, 50ms}, [&](auto &ctx) {
     auto soft_vote_value = pbft_block_hash;
     auto votes = vote_mgr->getVerifiedVotes();
+
     for (auto const &v : votes) {
-      if (next_vote_type == v.getType() && v.getBlockHash() == blk_hash_t(0)) {
-        soft_vote_value = v.getBlockHash();
-        break;
+      if (propose_vote_type == v.getType() && v.getBlockHash() == NULL_BLOCK_HASH) {
+        auto soft_voted_from_db = *db->getPbftMgrVotedValue(PbftMgrVotedValue::soft_voted_block_hash_in_round);
+        if (soft_voted_from_db == NULL_BLOCK_HASH) {
+          soft_vote_value = v.getBlockHash();
+          break;
+        }
       }
     }
-    WAIT_EXPECT_EQ(ctx, soft_vote_value, blk_hash_t(0))
+    WAIT_EXPECT_EQ(ctx, soft_vote_value, NULL_BLOCK_HASH)
   });
 
   cout << "Wait ensure node is still advancing in rounds... " << endl;
@@ -319,6 +324,7 @@ TEST_F(PbftManagerTest, terminate_missing_proposed_pbft_block) {
   auto nodes = launch_nodes(node_cfgs);
 
   auto pbft_mgr = nodes[0]->getPbftManager();
+  auto db = nodes[0]->getDB();
   pbft_mgr->stop();
   cout << "Initialize PBFT manager at round 1 step 4" << endl;
   pbft_mgr->setPbftRound(1);
@@ -340,8 +346,8 @@ TEST_F(PbftManagerTest, terminate_missing_proposed_pbft_block) {
   pbft_mgr->start();
 
   // Vote at the bogus PBFT block hash
-  EXPECT_HAPPENS({60s, 50ms}, [&](auto &ctx) {
-    auto soft_vote_value = blk_hash_t(0);
+  EXPECT_HAPPENS({10s, 50ms}, [&](auto &ctx) {
+    auto soft_vote_value = NULL_BLOCK_HASH;
     auto votes = vote_mgr->getVerifiedVotes();
     for (auto const &v : votes) {
       if (soft_vote_type == v.getType() && v.getBlockHash() == pbft_block_hash) {
@@ -356,16 +362,20 @@ TEST_F(PbftManagerTest, terminate_missing_proposed_pbft_block) {
 
   cout << "After some time, terminate voting on the missing proposed block " << pbft_block_hash << endl;
   // After some rounds, terminate the bogus value and vote on NULL_BLOCK_HASH since no new DAG blocks generated
-  EXPECT_HAPPENS({60s, 50ms}, [&](auto &ctx) {
+  EXPECT_HAPPENS({10s, 50ms}, [&](auto &ctx) {
     auto soft_vote_value = pbft_block_hash;
     auto votes = vote_mgr->getVerifiedVotes();
+
     for (auto const &v : votes) {
-      if (next_vote_type == v.getType() && v.getBlockHash() == blk_hash_t(0)) {
-        soft_vote_value = v.getBlockHash();
-        break;
+      if (propose_vote_type == v.getType() && v.getBlockHash() == NULL_BLOCK_HASH) {
+        auto soft_voted_from_db = *db->getPbftMgrVotedValue(PbftMgrVotedValue::soft_voted_block_hash_in_round);
+        if (soft_voted_from_db == NULL_BLOCK_HASH) {
+          soft_vote_value = v.getBlockHash();
+          break;
+        }
       }
     }
-    WAIT_EXPECT_EQ(ctx, soft_vote_value, blk_hash_t(0))
+    WAIT_EXPECT_EQ(ctx, soft_vote_value, NULL_BLOCK_HASH)
   });
 
   cout << "Wait ensure node is still advancing in rounds... " << endl;
