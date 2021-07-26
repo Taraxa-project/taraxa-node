@@ -1,0 +1,36 @@
+#pragma once
+
+#include "dag/dag_block.hpp"
+#include "packet_handler.hpp"
+#include "transaction_manager/transaction.hpp"
+
+namespace taraxa {
+class DagBlockManager;
+class TransactionManager;
+}  // namespace taraxa
+
+namespace taraxa::network::tarcap {
+
+class TransactionPacketHandler : public PacketHandler {
+ public:
+  TransactionPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<TransactionManager> trx_mgr,
+                           std::shared_ptr<DagBlockManager> dag_blk_mgr, uint16_t network_transaction_interval,
+                           const addr_t &node_addr = {});
+
+  void onNewTransactions(std::vector<taraxa::bytes> const &transactions, bool fromNetwork);
+  void sendTransactions(dev::p2p::NodeID const &peer_id, std::vector<taraxa::bytes> const &transactions);
+
+ private:
+  void process(const PacketData &packet_data, const dev::RLP &packet_rlp) override;
+
+  std::shared_ptr<TransactionManager> trx_mgr_;
+
+  // FOR TESTING ONLY
+  std::shared_ptr<DagBlockManager> dag_blk_mgr_;
+
+  uint16_t network_transaction_interval_ = 0;
+  uint64_t received_trx_count_ = 0;
+  uint64_t unique_received_trx_count_ = 0;
+};
+
+}  // namespace taraxa::network::tarcap

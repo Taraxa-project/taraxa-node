@@ -129,7 +129,7 @@ inline void VotePacketsHandler::processPbftNextVotesPacket(const PacketData &pac
       // Update our previous round next vote bundles...
       next_votes_mgr_->updateWithSyncedVotes(next_votes, pbft_2t_plus_1);
       // Pass them on to our peers...
-      boost::shared_lock<boost::shared_mutex> lock(peers_state_->peers_mutex_);
+      std::shared_lock lock(peers_state_->peers_mutex_);
       const auto updated_next_votes_size = next_votes_mgr_->getNextVotesSize();
       for (auto const &peer_to_share_to : peers_state_->peers_) {
         // Do not send votes right back to same peer...
@@ -167,7 +167,7 @@ void VotePacketsHandler::sendPbftVote(NodeID const &peer_id, Vote const &vote) {
 void VotePacketsHandler::onNewPbftVote(Vote const &vote) {
   std::vector<NodeID> peers_to_send;
   {
-    boost::shared_lock<boost::shared_mutex> lock(peers_state_->peers_mutex_);
+    std::shared_lock lock(peers_state_->peers_mutex_);
     for (auto const &peer : peers_state_->peers_) {
       if (!peer.second->isVoteKnown(vote.getHash())) {
         peers_to_send.push_back(peer.first);

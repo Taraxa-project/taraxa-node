@@ -10,7 +10,7 @@ PeersState::PeersState(std::weak_ptr<dev::p2p::Host>&& host) : host_(std::move(h
 }
 
 std::shared_ptr<TaraxaPeer> PeersState::getPeer(const dev::p2p::NodeID& node_id) {
-  boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
+  std::shared_lock lock(peers_mutex_);
 
   auto itPeer = peers_.find(node_id);
   if (itPeer != peers_.end()) {
@@ -22,7 +22,7 @@ std::shared_ptr<TaraxaPeer> PeersState::getPeer(const dev::p2p::NodeID& node_id)
 
 std::shared_ptr<TaraxaPeer> PeersState::getPendingPeer(const dev::p2p::NodeID& node_id) {
   // TODO: pending_peers_ might have different mutex than peers ?
-  boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
+  std::shared_lock lock(peers_mutex_);
 
   auto itPeer = pending_peers_.find(node_id);
   if (itPeer != pending_peers_.end()) {
@@ -33,7 +33,7 @@ std::shared_ptr<TaraxaPeer> PeersState::getPendingPeer(const dev::p2p::NodeID& n
 }
 
 std::shared_ptr<TaraxaPeer> PeersState::addPendingPeer(const dev::p2p::NodeID& node_id) {
-  boost::unique_lock<boost::shared_mutex> lock(peers_mutex_);
+  std::unique_lock lock(peers_mutex_);
   auto ret = pending_peers_.emplace(node_id, std::make_shared<TaraxaPeer>(node_id));
   if (!ret.second) {
     // LOG(log_er_) << "Peer " << node_id.abridged() << " is already in pending peers list";
@@ -43,20 +43,20 @@ std::shared_ptr<TaraxaPeer> PeersState::addPendingPeer(const dev::p2p::NodeID& n
 }
 
 size_t PeersState::getPeersCount() {
-  boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
+  std::shared_lock lock(peers_mutex_);
 
   return peers_.size();
 }
 
 void PeersState::erasePeer(dev::p2p::NodeID const& node_id) {
-  boost::unique_lock<boost::shared_mutex> lock(peers_mutex_);
+  std::unique_lock lock(peers_mutex_);
   pending_peers_.erase(node_id);
   peers_.erase(node_id);
 }
 
 std::shared_ptr<TaraxaPeer> PeersState::setPeerAsReadyToSendMessages(dev::p2p::NodeID const& node_id,
                                                                      std::shared_ptr<TaraxaPeer> peer) {
-  boost::unique_lock<boost::shared_mutex> lock(peers_mutex_);
+  std::unique_lock lock(peers_mutex_);
   pending_peers_.erase(node_id);
   auto ret = peers_.emplace(node_id, std::move(peer));
   if (!ret.second) {

@@ -30,7 +30,7 @@ void SyncingState::restartSyncingPbft(bool force) {
   uint64_t max_pbft_chain_size = 0;
   uint64_t max_node_dag_level = 0;
   {
-    boost::shared_lock<boost::shared_mutex> lock(peers_state_->peers_mutex_);
+    std::shared_lock lock(peers_state_->peers_mutex_);
     if (peers_state_->peers_.empty()) {
       LOG(log_nf_) << "Restarting syncing PBFT not possible since no connected peers";
       return;
@@ -113,7 +113,7 @@ void SyncingState::syncPbftNextVotes(uint64_t pbft_round, size_t pbft_previous_r
   uint64_t peer_max_pbft_round = 1;
   size_t peer_max_previous_round_next_votes_size = 0;
   {
-    boost::shared_lock<boost::shared_mutex> lock(peers_state_->peers_mutex_);
+    std::shared_lock lock(peers_state_->peers_mutex_);
     // Find max peer PBFT round
     for (auto const &peer : peers_state_->peers_) {
       if (peer.second->pbft_round_ > peer_max_pbft_round) {

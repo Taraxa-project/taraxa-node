@@ -1,10 +1,12 @@
 #pragma once
 
+#include "dag/dag_block.hpp"
 #include "libp2p/Common.h"
 #include "libp2p/Host.h"
 #include "network/tarcap/packet_types.hpp"
 #include "network/tarcap/packets_handler/packets_stats/packets_stats.hpp"
 #include "taraxa_peer.hpp"
+#include "transaction_manager/transaction.hpp"
 
 namespace taraxa::network::tarcap {
 
@@ -34,13 +36,16 @@ class PeersState {
   std::weak_ptr<dev::p2p::Host> host_;
   dev::p2p::NodeID node_id_;
 
-  // TODO: use std mutex
-  mutable boost::shared_mutex peers_mutex_;
+  mutable std::shared_mutex peers_mutex_;
   std::unordered_map<dev::p2p::NodeID, std::shared_ptr<TaraxaPeer>> peers_;
   std::unordered_map<dev::p2p::NodeID, std::shared_ptr<TaraxaPeer>> pending_peers_;
 
   // Shared packet stats
   PacketsStats packets_stats_;
+
+  // FOR TESTING ONLY
+  std::unordered_map<blk_hash_t, DagBlock> test_blocks_;
+  std::unordered_map<trx_hash_t, Transaction> test_transactions_;
 };
 
 }  // namespace taraxa::network::tarcap
