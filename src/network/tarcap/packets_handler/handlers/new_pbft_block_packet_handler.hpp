@@ -15,7 +15,7 @@ class NewPbftBlockPacketHandler : public PacketHandler {
                             const addr_t &node_addr = {});
 
   void onNewPbftBlock(PbftBlock const &pbft_block);
-  void sendPbftBlock(dev::p2p::NodeID const &peerID, PbftBlock const &pbft_block, uint64_t pbft_chain_size);
+  void sendPbftBlock(dev::p2p::NodeID const &peer_id, PbftBlock const &pbft_block, uint64_t pbft_chain_size);
 
  private:
   void process(const PacketData &packet_data, const dev::RLP &packet_rlp) override;
