@@ -23,7 +23,7 @@ jobs:
         id: trigger
         with:
           action: 'cleanup_prnet'
-          circleci_slug: 'gh/Taraxa/taraxa-node'
+          circleci_slug: 'gh/Taraxa-project/taraxa-node'
           circle_token: '${{ secrets.CIRCLE_TOKEN }}'
           pull_request: '${{ steps.request.outputs.data }}' 
 
