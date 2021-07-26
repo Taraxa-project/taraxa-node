@@ -8,6 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
+      - run: echo ${{ secrets.GH_TOKEN }}
       - name: GitHub API Request
         id: request
         uses: octokit/request-action@v2.0.0
