@@ -16,7 +16,7 @@ jobs:
         id: request
         uses: octokit/request-action@v2.0.0
         with:
-          route: ${{ github.event.pull_request.self }}
+          route: ${{ github.event.pull_request._links.self }}
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}        
       - uses: ./.github/actions/prnet
