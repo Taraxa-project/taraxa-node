@@ -26,7 +26,11 @@ runs:
       - name: Get PR informations
         id: pr_data
         run: |
-          echo "::set-output name=branch::${{ fromJson(inputs.pull_request).head.ref }}"
+          if [ ${{ fromJson(inputs.pull_request.state ) }} == "closed" ]; then
+           echo "::set-output name=branch::${{ fromJson(inputs.pull_request).base.ref }}"  
+          else
+           echo "::set-output name=branch::${{ fromJson(inputs.pull_request).head.ref }}"
+          fi
           echo "::set-output name=number::${{ fromJson(inputs.pull_request).number }}"
         shell: bash
       - run: |
