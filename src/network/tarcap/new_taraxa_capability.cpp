@@ -80,24 +80,25 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkC
   const auto lambda_ms_min = pbft_mgr ? pbft_mgr->getPbftInitialLambda() : 2000;
 
   // TODO: use sendTransactions() from TransactionPacketHandler when ready
-//  if (conf.network_transaction_interval > 0) {
-//    periodic_events_tp_.post_loop( { conf.network_transaction_interval }, [this] { sendTransactions(); });
-//  }
-
+  //  if (conf.network_transaction_interval > 0) {
+  //    periodic_events_tp_.post_loop( { conf.network_transaction_interval }, [this] { sendTransactions(); });
+  //  }
 
   const auto &handler = packets_handlers_->getSpecificHandler(SubprotocolPacketType::StatusPacket);
   auto status_packet_handler = std::static_pointer_cast<StatusPacketHandler>(handler);
 
   const auto check_alive_interval = 6 * lambda_ms_min;
-  periodic_events_tp_.post_loop( { check_alive_interval }, [this, status_packet_handler] { status_packet_handler->checkLiveness(); });
+  periodic_events_tp_.post_loop({check_alive_interval},
+                                [this, status_packet_handler] { status_packet_handler->checkLiveness(); });
 
   if (conf.network_performance_log_interval > 0) {
-    periodic_events_tp_.post_loop( { conf.network_performance_log_interval }, [this] { peers_state_->packets_stats_.logStats(); });
+    periodic_events_tp_.post_loop({conf.network_performance_log_interval},
+                                  [this] { peers_state_->packets_stats_.logStats(); });
   }
 
   // TODO: implement logNodeStats()
-//  const auto summary_interval_ms = 5 * 6 * lambda_ms_min;
-//  periodic_events_tp_.post_loop( { summary_interval_ms }, [this] { logNodeStats(); });
+  //  const auto summary_interval_ms = 5 * 6 * lambda_ms_min;
+  //  periodic_events_tp_.post_loop( { summary_interval_ms }, [this] { logNodeStats(); });
 }
 
 std::string TaraxaCapability::name() const {
