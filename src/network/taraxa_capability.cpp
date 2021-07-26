@@ -1008,10 +1008,11 @@ void TaraxaCapability::restartSyncingPbft(bool force) {
 }
 
 void TaraxaCapability::onDisconnect(NodeID const &_nodeID) {
-  LOG(log_nf_) << "Node " << _nodeID << " disconnected";
-  erasePeer(_nodeID);
-
   tp_.post([=] {
+    LOG(log_nf_) << "Node " << _nodeID << " disconnected";
+    // DO NOT MOVE THIS OUTSIDE THE TP, IT CAN CAUSE DEADLOCK
+    // CHECK checkLiveness() -> erasePeer()
+    erasePeer(_nodeID);
     cnt_received_messages_.erase(_nodeID);
     test_sums_.erase(_nodeID);
 
