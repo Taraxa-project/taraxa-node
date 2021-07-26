@@ -6,10 +6,11 @@
 #include "consensus/pbft_manager.hpp"
 #include "consensus/vote.hpp"
 #include "dag/dag.hpp"
-#include "network/tarcap/packets_handler/handlers/dag_and_transactoion_packets_handler.hpp"
+#include "network/tarcap/packets_handler/handlers/dag_packets_handler.hpp"
 #include "network/tarcap/packets_handler/handlers/new_pbft_block_packet_handler.hpp"
 #include "network/tarcap/packets_handler/handlers/status_packet_handler.hpp"
 #include "network/tarcap/packets_handler/handlers/test_packet_handler.hpp"
+#include "network/tarcap/packets_handler/handlers/transaction_packet_handler.hpp"
 #include "network/tarcap/packets_handler/handlers/vote_packets_handler.hpp"
 #include "network/tarcap/packets_handler/packets_handler.hpp"
 #include "network/tarcap/packets_handler/peers_state.hpp"
@@ -66,13 +67,17 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkC
   packets_handlers_->registerHandler(SubprotocolPacketType::NewPbftBlockPacket,
                                      std::make_shared<NewPbftBlockPacketHandler>(peers_state_, pbft_chain, node_addr));
 
-  auto dag_and_trx_handler = std::make_shared<DagAndTransactionPacketsHandler>(
-      peers_state_, syncing_state_, trx_mgr, dag_blk_mgr, db, conf.network_min_dag_block_broadcast,
-      conf.network_max_dag_block_broadcast, conf.network_transaction_interval, node_addr);
-  packets_handlers_->registerHandler(SubprotocolPacketType::NewBlockPacket, dag_and_trx_handler);
-  packets_handlers_->registerHandler(SubprotocolPacketType::NewBlockHashPacket, dag_and_trx_handler);
-  packets_handlers_->registerHandler(SubprotocolPacketType::GetNewBlockPacket, dag_and_trx_handler);
-  packets_handlers_->registerHandler(SubprotocolPacketType::TransactionPacket, dag_and_trx_handler);
+  auto dag_handler = std::make_shared<DagPacketsHandler>(peers_state_, syncing_state_, trx_mgr, dag_blk_mgr, db,
+                                                         conf.network_min_dag_block_broadcast,
+                                                         conf.network_max_dag_block_broadcast, node_addr);
+  packets_handlers_->registerHandler(SubprotocolPacketType::NewBlockPacket, dag_handler);
+  packets_handlers_->registerHandler(SubprotocolPacketType::NewBlockHashPacket, dag_handler);
+  packets_handlers_->registerHandler(SubprotocolPacketType::GetNewBlockPacket, dag_handler);
+
+  packets_handlers_->registerHandler(
+      SubprotocolPacketType::TransactionPacket,
+      std::make_shared<TransactionPacketHandler>(peers_state_, trx_mgr, dag_blk_mgr, conf.network_transaction_interval,
+                                                 node_addr));
 
   packets_handlers_->registerHandler(SubprotocolPacketType::TestPacket,
                                      std::make_shared<TestPacketHandler>(peers_state_, node_addr));
