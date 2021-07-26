@@ -11,20 +11,20 @@ namespace taraxa {
 class PbftChain;
 class DagManager;
 class DagBlockManager;
-
+class DagBlock;
 }  // namespace taraxa
 
 namespace taraxa::network::tarcap {
 
 class PeersState;
 
+enum GetBlocksPacketRequestType : ::byte { MissingHashes = 0x0, KnownHashes };
+
 /**
  * @brief SyncingState contains common members and functions related to syncing that are shared among multiple classes
  */
 class SyncingState {
  public:
-  enum GetBlocksPacketRequestType : ::byte { MissingHashes = 0x0, KnownHashes };
-
   SyncingState(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PbftChain> pbft_chain,
                std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
                const addr_t &node_addr);
@@ -80,9 +80,11 @@ class SyncingState {
   void requestBlocks(const dev::p2p::NodeID &_nodeID, std::vector<blk_hash_t> const &blocks,
                      GetBlocksPacketRequestType mode);
 
-  void syncPbftNextVotes(uint64_t const pbft_round, size_t const pbft_previous_round_next_votes_size);
-  void requestPbftNextVotes(dev::p2p::NodeID const &peerID, uint64_t const pbft_round,
-                            size_t const pbft_previous_round_next_votes_size);
+  void syncPbftNextVotes(uint64_t pbft_round, size_t pbft_previous_round_next_votes_size);
+  void requestPbftNextVotes(dev::p2p::NodeID const &peerID, uint64_t pbft_round,
+                            size_t pbft_previous_round_next_votes_size);
+
+  std::pair<bool, std::vector<blk_hash_t>> checkDagBlockValidation(DagBlock const &block) const;
 
   /**
    * @brief Restart syncing in case there is ongoing syncing with the peer that just got disconnected

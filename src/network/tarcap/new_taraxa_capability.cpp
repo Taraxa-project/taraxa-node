@@ -6,6 +6,8 @@
 #include "consensus/pbft_manager.hpp"
 #include "consensus/vote.hpp"
 #include "dag/dag.hpp"
+#include "network/tarcap/packets_handler/handlers/dag_and_transactoion_packets_handler.hpp"
+#include "network/tarcap/packets_handler/handlers/new_pbft_block_packet_handler.hpp"
 #include "network/tarcap/packets_handler/handlers/status_packet_handler.hpp"
 #include "network/tarcap/packets_handler/handlers/test_packet_handler.hpp"
 #include "network/tarcap/packets_handler/handlers/vote_packets_handler.hpp"
@@ -21,10 +23,8 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkC
                                    std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
                                    std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
                                    std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr,
-                                   std::shared_ptr<DagManager> dag_mgr,
-                                   std::shared_ptr<DagBlockManager> dag_blk_mgr __attribute__((unused)),
-                                   std::shared_ptr<TransactionManager> trx_mgr __attribute__((unused)),
-                                   addr_t const &node_addr)
+                                   std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
+                                   std::shared_ptr<TransactionManager> trx_mgr, addr_t const &node_addr)
 
     : peers_state_(std::make_shared<PeersState>(std::move(_host))),
       syncing_state_(std::make_shared<SyncingState>(peers_state_, pbft_chain, dag_mgr, dag_blk_mgr, node_addr)),
@@ -62,6 +62,17 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkC
   packets_handlers_->registerHandler(SubprotocolPacketType::PbftVotePacket, votes_handler);
   packets_handlers_->registerHandler(SubprotocolPacketType::GetPbftNextVotes, votes_handler);
   packets_handlers_->registerHandler(SubprotocolPacketType::PbftNextVotesPacket, votes_handler);
+
+  packets_handlers_->registerHandler(SubprotocolPacketType::NewPbftBlockPacket,
+                                     std::make_shared<NewPbftBlockPacketHandler>(peers_state_, pbft_chain, node_addr));
+
+  auto dag_and_trx_handler = std::make_shared<DagAndTransactionPacketsHandler>(
+      peers_state_, syncing_state_, trx_mgr, dag_blk_mgr, db, conf.network_min_dag_block_broadcast,
+      conf.network_max_dag_block_broadcast, conf.network_transaction_interval, node_addr);
+  packets_handlers_->registerHandler(SubprotocolPacketType::NewBlockPacket, dag_and_trx_handler);
+  packets_handlers_->registerHandler(SubprotocolPacketType::NewBlockHashPacket, dag_and_trx_handler);
+  packets_handlers_->registerHandler(SubprotocolPacketType::GetNewBlockPacket, dag_and_trx_handler);
+  packets_handlers_->registerHandler(SubprotocolPacketType::TransactionPacket, dag_and_trx_handler);
 
   packets_handlers_->registerHandler(SubprotocolPacketType::TestPacket,
                                      std::make_shared<TestPacketHandler>(peers_state_, node_addr));

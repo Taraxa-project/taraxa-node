@@ -50,6 +50,7 @@ set(SOURCES
         network/tarcap/packets_handler/peers_state.hpp
         network/tarcap/packets_handler/packets_handler.hpp
         network/tarcap/packets_handler/taraxa_peer.hpp
+        network/tarcap/packets_handler/handlers/dag_and_transactoion_packets_handler.hpp
         network/tarcap/packets_handler/handlers/new_pbft_block_packet_handler.hpp
         network/tarcap/packets_handler/handlers/packet_handler.hpp
         network/tarcap/packets_handler/handlers/status_packet_handler.hpp
@@ -136,6 +137,7 @@ set(SOURCES
         network/tarcap/packets_handler/peers_state.cpp
         network/tarcap/packets_handler/packets_handler.cpp
         network/tarcap/packets_handler/syncing_state.cpp
+        network/tarcap/packets_handler/handlers/dag_and_transactoion_packets_handler.cpp
         network/tarcap/packets_handler/handlers/new_pbft_block_packet_handler.cpp
         network/tarcap/packets_handler/handlers/packet_handler.cpp
         network/tarcap/packets_handler/handlers/status_packet_handler.cpp
