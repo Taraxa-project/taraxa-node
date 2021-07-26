@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-      - run: echo ${{ github.event.issue.pull_request.url }}
+      - run: echo ${{ github.event }}  
       - name: GitHub API Request
         id: request
         uses: octokit/request-action@v2.0.0
