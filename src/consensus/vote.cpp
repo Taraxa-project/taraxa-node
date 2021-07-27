@@ -94,55 +94,52 @@ VoteManager::VoteManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::s
 VoteManager::~VoteManager() { daemon_->join(); }
 
 void VoteManager::retreieveVotes_() {
-  {
-    auto unverified_votes = db_->getUnverifiedVotes();
-
-    auto cntr = 0;
-
-    uniqueLock_ lock(unverified_votes_access_);
-    for (auto const& v : unverified_votes) {
-      if (!lock.owns_lock()) {
-        lock.lock();
-      } else if (cntr++ % 1000 == 0) {
-        lock.unlock();
-        thisThreadSleepForMilliSeconds(1000);
-        lock.lock();
+  auto unverified_votes = db_->getUnverifiedVotes();
+  auto unverified_votes_itr = unverified_votes.begin();
+  while (unverified_votes_itr != unverified_votes.end()) {
+    {
+      uniqueLock_ lock(unverified_votes_access_);
+      auto cntr = 0;
+      while (cntr++ < 100 && unverified_votes_itr != unverified_votes.end()) {
+        auto v = *(unverified_votes_itr);
+        auto pbft_round = v.getRound();
+        auto hash = v.getHash();
+        if (unverified_votes_.count(pbft_round)) {
+          unverified_votes_[pbft_round][hash] = v;
+        } else {
+          std::unordered_map<vote_hash_t, Vote> votes{std::make_pair(hash, v)};
+          unverified_votes_[pbft_round] = votes;
+        }
+        unverified_votes_itr++;
+        LOG(log_dg_) << "Retrieved unverified vote " << v;
       }
-      auto pbft_round = v.getRound();
-      auto hash = v.getHash();
-      if (unverified_votes_.count(pbft_round)) {
-        unverified_votes_[pbft_round][hash] = v;
-      } else {
-        std::unordered_map<vote_hash_t, Vote> votes{std::make_pair(hash, v)};
-        unverified_votes_[pbft_round] = votes;
-      }
-      LOG(log_dg_) << "Retrieve unverified vote " << v;
     }
+    LOG(log_dg_) << "Pausing unverified vote retrieval for 1 second...";
+    thisThreadSleepForMilliSeconds(1000);
   }
-  {
-    auto verified_votes = db_->getVerifiedVotes();
 
-    auto cntr = 0;
-
-    uniqueLock_ lock(verified_votes_access_);
-    for (auto const& v : verified_votes) {
-      if (!lock.owns_lock()) {
-        lock.lock();
-      } else if (cntr++ % 1000 == 0) {
-        lock.unlock();
-        thisThreadSleepForMilliSeconds(1000);
-        lock.lock();
+  auto verified_votes = db_->getVerifiedVotes();
+  auto verified_votes_itr = verified_votes.begin();
+  while (verified_votes_itr != verified_votes.end()) {
+    {
+      uniqueLock_ lock(verified_votes_access_);
+      auto cntr = 0;
+      while (cntr++ < 100 && verified_votes_itr != verified_votes.end()) {
+        auto v = *(verified_votes_itr);
+        auto pbft_round = v.getRound();
+        auto hash = v.getHash();
+        if (verified_votes_.count(pbft_round)) {
+          verified_votes_[pbft_round][hash] = v;
+        } else {
+          std::unordered_map<vote_hash_t, Vote> votes{std::make_pair(hash, v)};
+          verified_votes_[pbft_round] = votes;
+        }
+        verified_votes_itr++;
+        LOG(log_dg_) << "Retrieved verified vote " << v;
       }
-      auto pbft_round = v.getRound();
-      auto hash = v.getHash();
-      if (verified_votes_.count(pbft_round)) {
-        verified_votes_[pbft_round][hash] = v;
-      } else {
-        std::unordered_map<vote_hash_t, Vote> votes{std::make_pair(hash, v)};
-        verified_votes_[pbft_round] = votes;
-      }
-      LOG(log_dg_) << "Retrieve verified vote " << v;
     }
+    LOG(log_dg_) << "Pausing verified vote retrieval for 1 second...";
+    thisThreadSleepForMilliSeconds(1000);
   }
 }
 
