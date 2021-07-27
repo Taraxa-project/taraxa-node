@@ -19,7 +19,7 @@ void GetBlocksPacketsHandler::process(const PacketData &packet_data, const dev::
   std::unordered_set<blk_hash_t> blocks_hashes;
   std::vector<std::shared_ptr<DagBlock>> dag_blocks;
   auto it = packet_rlp.begin();
-  auto mode = static_cast<GetBlocksPacketRequestType>((*it++).toInt<unsigned>());
+  const auto mode = static_cast<GetBlocksPacketRequestType>((*it++).toInt<unsigned>());
 
   if (mode == MissingHashes)
     LOG(log_dg_) << "Received GetBlocksPacket with " << packet_rlp.itemCount() - 1 << " missing blocks";
@@ -33,7 +33,7 @@ void GetBlocksPacketsHandler::process(const PacketData &packet_data, const dev::
   const auto &blocks = dag_mgr_->getNonFinalizedBlocks();
   for (auto &level_blocks : blocks) {
     for (auto &block : level_blocks.second) {
-      auto hash = block;
+      const auto hash = block;
       if (mode == MissingHashes) {
         if (blocks_hashes.count(hash) == 1) {
           if (auto blk = db_->getDagBlock(hash); blk) {
@@ -77,7 +77,7 @@ void GetBlocksPacketsHandler::sendBlocks(dev::p2p::NodeID const &peer_id,
 
   for (auto &block : blocks) {
     size_t dag_block_items_count = 0;
-    size_t previous_block_packet_size = packet_bytes.size();
+    const size_t previous_block_packet_size = packet_bytes.size();
 
     // Add dag block rlp to the sent bytes array
     taraxa::bytes block_bytes = block->rlp(true);
