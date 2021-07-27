@@ -86,11 +86,28 @@ VoteManager::VoteManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::s
     : db_(db), pbft_chain_(pbft_chain), final_chain_(final_chain) {
   LOG_OBJECTS_CREATE("VOTE_MGR");
   // Retrieve votes from DB
+  daemon_ = std::make_unique<std::thread>([this]() { retreieveVotes_(); });
+
+  current_period_final_chain_block_hash_ = final_chain_->block_header()->hash;
+}
+
+VoteManager::~VoteManager() { daemon_->join(); }
+
+void VoteManager::retreieveVotes_() {
   {
     auto unverified_votes = db_->getUnverifiedVotes();
 
+    auto cntr = 0;
+
     uniqueLock_ lock(unverified_votes_access_);
     for (auto const& v : unverified_votes) {
+      if (!lock.owns_lock()) {
+        lock.lock();
+      } else if (cntr++ % 1000 == 0) {
+        lock.unlock();
+        thisThreadSleepForMilliSeconds(1000);
+        lock.lock();
+      }
       auto pbft_round = v.getRound();
       auto hash = v.getHash();
       if (unverified_votes_.count(pbft_round)) {
@@ -105,8 +122,17 @@ VoteManager::VoteManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::s
   {
     auto verified_votes = db_->getVerifiedVotes();
 
+    auto cntr = 0;
+
     uniqueLock_ lock(verified_votes_access_);
     for (auto const& v : verified_votes) {
+      if (!lock.owns_lock()) {
+        lock.lock();
+      } else if (cntr++ % 1000 == 0) {
+        lock.unlock();
+        thisThreadSleepForMilliSeconds(1000);
+        lock.lock();
+      }
       auto pbft_round = v.getRound();
       auto hash = v.getHash();
       if (verified_votes_.count(pbft_round)) {
@@ -118,8 +144,6 @@ VoteManager::VoteManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::s
       LOG(log_dg_) << "Retrieve verified vote " << v;
     }
   }
-
-  current_period_final_chain_block_hash_ = final_chain_->block_header()->hash;
 }
 
 void VoteManager::addUnverifiedVote(taraxa::Vote const& vote) {
