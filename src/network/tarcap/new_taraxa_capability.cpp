@@ -6,6 +6,7 @@
 #include "consensus/pbft_manager.hpp"
 #include "consensus/vote.hpp"
 #include "dag/dag.hpp"
+#include "network/tarcap/packets_handler/handlers/blocks_packet_handler.hpp"
 #include "network/tarcap/packets_handler/handlers/dag_packets_handler.hpp"
 #include "network/tarcap/packets_handler/handlers/get_blocks_packet_handler.hpp"
 #include "network/tarcap/packets_handler/handlers/new_pbft_block_packet_handler.hpp"
@@ -92,6 +93,10 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkC
   packets_handlers_->registerHandler(
       SubprotocolPacketType::GetBlocksPacket,
       std::make_shared<GetBlocksPacketsHandler>(peers_state_, trx_mgr, dag_mgr, db, node_addr));
+
+  packets_handlers_->registerHandler(
+      SubprotocolPacketType::BlocksPacket,
+      std::make_shared<BlocksPacketHandler>(peers_state_, syncing_state_, dag_blk_mgr, node_addr));
 
   thread_pool_.setPacketsHandlers(packets_handlers_);
 
