@@ -30,7 +30,7 @@ class PeersState {
   bool sealAndSend(const dev::p2p::NodeID& nodeID, SubprotocolPacketType packet_type, dev::RLPStream rlp);
 
  public:
-  const uint32_t MAX_PACKET_SIZE = 15 * 1024 * 1024;  // 15 MB -> 15 * 1024 * 1024 B
+  static constexpr uint32_t MAX_PACKET_SIZE = 15 * 1024 * 1024;  // 15 MB -> 15 * 1024 * 1024 B
 
   // TODO: why weak_ptr ?
   std::weak_ptr<dev::p2p::Host> host_;
