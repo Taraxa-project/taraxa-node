@@ -13,7 +13,6 @@ class ThreadPool : std::enable_shared_from_this<ThreadPool> {
   boost::asio::io_context ioc_;
   boost::asio::executor_work_guard<decltype(ioc_)::executor_type> ioc_work_;
   std::vector<std::thread> threads_;
-  mutable std::shared_mutex threads_mu_;
 
   std::atomic<uint64_t> num_pending_tasks_ = 0;
 

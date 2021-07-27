@@ -145,7 +145,7 @@ TEST_F(NetworkTest, sync_large_pbft_block) {
 
   // Create large transactions with 100k dummy data
   bytes dummy_100k_data(100000, 0);
-  auto signed_trxs = samples::createSignedTrxSamples(0, 250, g_secret2, dummy_100k_data);
+  auto signed_trxs = samples::createSignedTrxSamples(0, 300, g_secret2, dummy_100k_data);
   auto nodes = launch_nodes({node_cfgs[0]});
   nodes[0]->getPbftManager()->stop();
 
