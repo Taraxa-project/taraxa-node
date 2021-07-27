@@ -7,6 +7,7 @@
 #include "consensus/vote.hpp"
 #include "dag/dag.hpp"
 #include "network/tarcap/packets_handler/handlers/dag_packets_handler.hpp"
+#include "network/tarcap/packets_handler/handlers/get_blocks_packet_handler.hpp"
 #include "network/tarcap/packets_handler/handlers/new_pbft_block_packet_handler.hpp"
 #include "network/tarcap/packets_handler/handlers/status_packet_handler.hpp"
 #include "network/tarcap/packets_handler/handlers/test_packet_handler.hpp"
@@ -58,12 +59,15 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkC
 //  LOG_OBJECTS_CREATE_SUB("SUMMARY", summary);
 {
   // Register all packet handlers
+
+  // Consensus packets with high processing priority
   auto votes_handler =
       std::make_shared<VotePacketsHandler>(peers_state_, pbft_mgr, vote_mgr, next_votes_mgr, db, node_addr);
   packets_handlers_->registerHandler(SubprotocolPacketType::PbftVotePacket, votes_handler);
   packets_handlers_->registerHandler(SubprotocolPacketType::GetPbftNextVotes, votes_handler);
   packets_handlers_->registerHandler(SubprotocolPacketType::PbftNextVotesPacket, votes_handler);
 
+  // Standard packets with mid processing priority
   packets_handlers_->registerHandler(SubprotocolPacketType::NewPbftBlockPacket,
                                      std::make_shared<NewPbftBlockPacketHandler>(peers_state_, pbft_chain, node_addr));
 
@@ -79,11 +83,15 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkC
       std::make_shared<TransactionPacketHandler>(peers_state_, trx_mgr, dag_blk_mgr, conf.network_transaction_interval,
                                                  node_addr));
 
+  // Non critical packets with low processing priority
   packets_handlers_->registerHandler(SubprotocolPacketType::TestPacket,
                                      std::make_shared<TestPacketHandler>(peers_state_, node_addr));
   packets_handlers_->registerHandler(SubprotocolPacketType::StatusPacket,
                                      std::make_shared<StatusPacketHandler>(peers_state_, syncing_state_, pbft_chain,
                                                                            dag_mgr, conf.network_id, node_addr));
+  packets_handlers_->registerHandler(
+      SubprotocolPacketType::GetBlocksPacket,
+      std::make_shared<GetBlocksPacketsHandler>(peers_state_, trx_mgr, dag_mgr, db, node_addr));
 
   thread_pool_.setPacketsHandlers(packets_handlers_);
 
