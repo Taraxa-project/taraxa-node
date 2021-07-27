@@ -9,6 +9,7 @@
 #include "network/tarcap/packets_handler/handlers/blocks_packet_handler.hpp"
 #include "network/tarcap/packets_handler/handlers/dag_packets_handler.hpp"
 #include "network/tarcap/packets_handler/handlers/get_blocks_packet_handler.hpp"
+#include "network/tarcap/packets_handler/handlers/get_pbft_block_packet_handler.hpp"
 #include "network/tarcap/packets_handler/handlers/new_pbft_block_packet_handler.hpp"
 #include "network/tarcap/packets_handler/handlers/status_packet_handler.hpp"
 #include "network/tarcap/packets_handler/handlers/test_packet_handler.hpp"
@@ -97,6 +98,12 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkC
   packets_handlers_->registerHandler(
       SubprotocolPacketType::BlocksPacket,
       std::make_shared<BlocksPacketHandler>(peers_state_, syncing_state_, dag_blk_mgr, node_addr));
+
+  // TODO there is additional logic, that should be moved outside process function
+  packets_handlers_->registerHandler(
+      SubprotocolPacketType::GetPbftBlockPacket,
+      std::make_shared<GetPbftBlockPacketHandler>(peers_state_, syncing_state_, pbft_chain, db,
+                                                  conf.network_sync_level_size, node_addr));
 
   thread_pool_.setPacketsHandlers(packets_handlers_);
 

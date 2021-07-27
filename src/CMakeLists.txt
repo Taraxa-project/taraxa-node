@@ -53,6 +53,7 @@ set(SOURCES
         network/tarcap/packets_handler/handlers/blocks_packet_handler.hpp
         network/tarcap/packets_handler/handlers/dag_packets_handler.hpp
         network/tarcap/packets_handler/handlers/get_blocks_packet_handler.hpp
+        network/tarcap/packets_handler/handlers/get_pbft_block_packet_handler.hpp
         network/tarcap/packets_handler/handlers/new_pbft_block_packet_handler.hpp
         network/tarcap/packets_handler/handlers/packet_handler.hpp
         network/tarcap/packets_handler/handlers/status_packet_handler.hpp
@@ -143,6 +144,7 @@ set(SOURCES
         network/tarcap/packets_handler/handlers/blocks_packet_handler.cpp
         network/tarcap/packets_handler/handlers/dag_packets_handler.cpp
         network/tarcap/packets_handler/handlers/get_blocks_packet_handler.cpp
+        network/tarcap/packets_handler/handlers/get_pbft_block_packet_handler.cpp
         network/tarcap/packets_handler/handlers/new_pbft_block_packet_handler.cpp
         network/tarcap/packets_handler/handlers/packet_handler.cpp
         network/tarcap/packets_handler/handlers/status_packet_handler.cpp
