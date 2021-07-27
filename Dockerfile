@@ -107,6 +107,11 @@ RUN mkdir $BUILD_OUTPUT_DIR && cd $BUILD_OUTPUT_DIR \
 ###############################################################################
 FROM ubuntu:20.04
 
+# Install curl and jq
+RUN apt-get update \
+    && apt-get install -y curl jq \
+    && rm -rf /var/lib/apt/lists/*
+
 ARG BUILD_OUTPUT_DIR
 WORKDIR /root/.taraxa
 
