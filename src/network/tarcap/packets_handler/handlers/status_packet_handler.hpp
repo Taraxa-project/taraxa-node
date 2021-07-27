@@ -25,8 +25,8 @@ class StatusPacketHandler : public PacketHandler {
  private:
   void process(const PacketData& packet_data, const dev::RLP& packet_rlp) override;
 
-  const uint16_t MAX_CHECK_ALIVE_COUNT = 5;
-  const uint16_t INITIAL_STATUS_PACKET_ITEM_COUNT = 10;
+  static constexpr uint16_t MAX_CHECK_ALIVE_COUNT = 5;
+  static constexpr uint16_t INITIAL_STATUS_PACKET_ITEM_COUNT = 10;
 
   std::shared_ptr<SyncingState> syncing_state_;
   std::shared_ptr<PbftChain> pbft_chain_;
