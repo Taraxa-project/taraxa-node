@@ -33,7 +33,6 @@ enum SubprotocolPacketType : unsigned /* aleth uses unsigned for packet id */ {
   GetPbftBlockPacket = 1 << 14,
   PbftBlockPacket = 1 << 15,
   SyncedPacket = 1 << 16,
-  SyncedResponsePacket = 1 << 17,
 };
 
 /**
@@ -77,8 +76,6 @@ inline std::string convertPacketTypeToString(SubprotocolPacketType packet_type) 
       return "PbftBlockPacket";
     case SyncedPacket:
       return "SyncedPacket";
-    case SyncedResponsePacket:
-      return "SyncedResponsePacket";
     default:
       break;
   }

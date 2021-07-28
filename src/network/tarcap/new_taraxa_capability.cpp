@@ -11,6 +11,7 @@
 #include "network/tarcap/packets_handler/handlers/get_blocks_packet_handler.hpp"
 #include "network/tarcap/packets_handler/handlers/get_pbft_block_packet_handler.hpp"
 #include "network/tarcap/packets_handler/handlers/new_pbft_block_packet_handler.hpp"
+#include "network/tarcap/packets_handler/handlers/pbft_block_packet_handler.hpp"
 #include "network/tarcap/packets_handler/handlers/status_packet_handler.hpp"
 #include "network/tarcap/packets_handler/handlers/test_packet_handler.hpp"
 #include "network/tarcap/packets_handler/handlers/transaction_packet_handler.hpp"
@@ -63,7 +64,7 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkC
   // Register all packet handlers
 
   // Consensus packets with high processing priority
-  auto votes_handler =
+  const auto votes_handler =
       std::make_shared<VotePacketsHandler>(peers_state_, pbft_mgr, vote_mgr, next_votes_mgr, db, node_addr);
   packets_handlers_->registerHandler(SubprotocolPacketType::PbftVotePacket, votes_handler);
   packets_handlers_->registerHandler(SubprotocolPacketType::GetPbftNextVotes, votes_handler);
@@ -73,9 +74,9 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkC
   packets_handlers_->registerHandler(SubprotocolPacketType::NewPbftBlockPacket,
                                      std::make_shared<NewPbftBlockPacketHandler>(peers_state_, pbft_chain, node_addr));
 
-  auto dag_handler = std::make_shared<DagPacketsHandler>(peers_state_, syncing_state_, trx_mgr, dag_blk_mgr, db,
-                                                         conf.network_min_dag_block_broadcast,
-                                                         conf.network_max_dag_block_broadcast, node_addr);
+  const auto dag_handler = std::make_shared<DagPacketsHandler>(peers_state_, syncing_state_, trx_mgr, dag_blk_mgr, db,
+                                                               conf.network_min_dag_block_broadcast,
+                                                               conf.network_max_dag_block_broadcast, node_addr);
   packets_handlers_->registerHandler(SubprotocolPacketType::NewBlockPacket, dag_handler);
   packets_handlers_->registerHandler(SubprotocolPacketType::NewBlockHashPacket, dag_handler);
   packets_handlers_->registerHandler(SubprotocolPacketType::GetNewBlockPacket, dag_handler);
@@ -104,6 +105,11 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkC
       SubprotocolPacketType::GetPbftBlockPacket,
       std::make_shared<GetPbftBlockPacketHandler>(peers_state_, syncing_state_, pbft_chain, db,
                                                   conf.network_sync_level_size, node_addr));
+
+  const auto pbft_handler =
+      std::make_shared<PbftBlockPacketHandler>(peers_state_, syncing_state_, pbft_chain, dag_blk_mgr, node_addr);
+  packets_handlers_->registerHandler(SubprotocolPacketType::PbftBlockPacket, pbft_handler);
+  packets_handlers_->registerHandler(SubprotocolPacketType::SyncedPacket, pbft_handler);
 
   thread_pool_.setPacketsHandlers(packets_handlers_);
 
@@ -207,8 +213,6 @@ std::string TaraxaCapability::packetTypeToString(unsigned _packetType) const {
       return "PbftBlockPacket";
     case SyncedPacket:
       return "SyncedPacket";
-    case SyncedResponsePacket:
-      return "SyncedResponsePacket";
   }
   return "unknown packet type: " + std::to_string(_packetType);
 }
