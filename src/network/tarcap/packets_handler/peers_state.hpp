@@ -20,6 +20,7 @@ class PeersState {
 
   std::shared_ptr<TaraxaPeer> getPeer(const dev::p2p::NodeID& node_id);
   std::shared_ptr<TaraxaPeer> getPendingPeer(const dev::p2p::NodeID& node_id);
+  std::vector<dev::p2p::NodeID> getAllPeers() const;
   size_t getPeersCount();
   std::shared_ptr<TaraxaPeer> addPendingPeer(const dev::p2p::NodeID& node_id);
   void erasePeer(const dev::p2p::NodeID& node_id);

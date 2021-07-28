@@ -12,9 +12,9 @@ PeersState::PeersState(std::weak_ptr<dev::p2p::Host>&& host) : host_(std::move(h
 std::shared_ptr<TaraxaPeer> PeersState::getPeer(const dev::p2p::NodeID& node_id) {
   std::shared_lock lock(peers_mutex_);
 
-  auto itPeer = peers_.find(node_id);
-  if (itPeer != peers_.end()) {
-    return itPeer->second;
+  auto it_peer = peers_.find(node_id);
+  if (it_peer != peers_.end()) {
+    return it_peer->second;
   }
 
   return nullptr;
@@ -24,12 +24,22 @@ std::shared_ptr<TaraxaPeer> PeersState::getPendingPeer(const dev::p2p::NodeID& n
   // TODO: pending_peers_ might have different mutex than peers ?
   std::shared_lock lock(peers_mutex_);
 
-  auto itPeer = pending_peers_.find(node_id);
-  if (itPeer != pending_peers_.end()) {
-    return itPeer->second;
+  auto it_peer = pending_peers_.find(node_id);
+  if (it_peer != pending_peers_.end()) {
+    return it_peer->second;
   }
 
   return nullptr;
+}
+
+std::vector<dev::p2p::NodeID> PeersState::getAllPeers() const {
+  std::vector<dev::p2p::NodeID> peers;
+
+  std::shared_lock lock(peers_mutex_);
+  std::transform(peers_.begin(), peers_.end(), std::back_inserter(peers),
+                 [](std::pair<const dev::p2p::NodeID, std::shared_ptr<TaraxaPeer>> const& peer) { return peer.first; });
+
+  return peers;
 }
 
 std::shared_ptr<TaraxaPeer> PeersState::addPendingPeer(const dev::p2p::NodeID& node_id) {
