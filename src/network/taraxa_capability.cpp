@@ -215,12 +215,9 @@ void TaraxaCapability::requestBlocks(const NodeID &_nodeID, std::vector<blk_hash
 }
 
 void TaraxaCapability::onConnect(weak_ptr<Session> session, u256 const &) {
-  auto _nodeID = session.lock()->id();
-
-  LOG(log_nf_) << "Node " << _nodeID << " connected";
-  auto peer = addPendingPeer(_nodeID);
-
-  tp_.post([=] {
+  tp_.post([=, _nodeID = session.lock()->id()] {
+    LOG(log_nf_) << "Node " << _nodeID << " connected";
+    auto peer = addPendingPeer(_nodeID);
     cnt_received_messages_[_nodeID] = 0;
     test_sums_[_nodeID] = 0;
     sendStatus(_nodeID, true);
