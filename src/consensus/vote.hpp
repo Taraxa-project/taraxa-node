@@ -148,7 +148,7 @@ class VoteManager {
  public:
   VoteManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<FinalChain> final_chain,
               std::shared_ptr<PbftChain> pbft_chain);
-  ~VoteManager() {}
+  ~VoteManager();
 
   // Unverified votes
   void addUnverifiedVote(Vote const& vote);
@@ -181,6 +181,8 @@ class VoteManager {
   std::string getJsonStr(std::vector<Vote> const& votes);
 
  private:
+  void retreieveVotes_();
+
   using uniqueLock_ = boost::unique_lock<boost::shared_mutex>;
   using sharedLock_ = boost::shared_lock<boost::shared_mutex>;
   using upgradableLock_ = boost::upgrade_lock<boost::shared_mutex>;
@@ -193,6 +195,8 @@ class VoteManager {
   std::unordered_set<vote_hash_t> votes_invalid_in_current_final_chain_period_;
   h256 current_period_final_chain_block_hash_;
   std::map<addr_t, uint64_t> max_received_round_for_address_;
+
+  std::unique_ptr<std::thread> daemon_;
 
   mutable boost::shared_mutex unverified_votes_access_;
   mutable boost::shared_mutex verified_votes_access_;

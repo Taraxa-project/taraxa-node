@@ -86,40 +86,45 @@ VoteManager::VoteManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::s
     : db_(db), pbft_chain_(pbft_chain), final_chain_(final_chain) {
   LOG_OBJECTS_CREATE("VOTE_MGR");
   // Retrieve votes from DB
-  {
-    auto unverified_votes = db_->getUnverifiedVotes();
+  daemon_ = std::make_unique<std::thread>([this]() { retreieveVotes_(); });
 
-    uniqueLock_ lock(unverified_votes_access_);
-    for (auto const& v : unverified_votes) {
-      auto pbft_round = v.getRound();
-      auto hash = v.getHash();
+  current_period_final_chain_block_hash_ = final_chain_->block_header()->hash;
+}
+
+VoteManager::~VoteManager() { daemon_->join(); }
+
+void VoteManager::retreieveVotes_() {
+  auto unverified_votes = db_->getUnverifiedVotes();
+  for (auto const& v : unverified_votes) {
+    auto pbft_round = v.getRound();
+    auto hash = v.getHash();
+    {
+      uniqueLock_ lock(unverified_votes_access_);
       if (unverified_votes_.count(pbft_round)) {
         unverified_votes_[pbft_round][hash] = v;
       } else {
         std::unordered_map<vote_hash_t, Vote> votes{std::make_pair(hash, v)};
         unverified_votes_[pbft_round] = votes;
       }
-      LOG(log_dg_) << "Retrieve unverified vote " << v;
     }
+    LOG(log_dg_) << "Retrieved unverified vote " << v;
   }
-  {
-    auto verified_votes = db_->getVerifiedVotes();
 
-    uniqueLock_ lock(verified_votes_access_);
-    for (auto const& v : verified_votes) {
-      auto pbft_round = v.getRound();
-      auto hash = v.getHash();
+  auto verified_votes = db_->getVerifiedVotes();
+  for (auto const& v : verified_votes) {
+    auto pbft_round = v.getRound();
+    auto hash = v.getHash();
+    {
+      uniqueLock_ lock(verified_votes_access_);
       if (verified_votes_.count(pbft_round)) {
         verified_votes_[pbft_round][hash] = v;
       } else {
         std::unordered_map<vote_hash_t, Vote> votes{std::make_pair(hash, v)};
         verified_votes_[pbft_round] = votes;
       }
-      LOG(log_dg_) << "Retrieve verified vote " << v;
     }
+    LOG(log_dg_) << "Retrieved verified vote " << v;
   }
-
-  current_period_final_chain_block_hash_ = final_chain_->block_header()->hash;
 }
 
 void VoteManager::addUnverifiedVote(taraxa::Vote const& vote) {
