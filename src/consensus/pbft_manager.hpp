@@ -176,6 +176,7 @@ class PbftManager {
   PbftStates state_ = value_proposal_state;
   std::atomic<uint64_t> round_ = 1;
   size_t step_ = 1;
+  size_t startingStepInRound_ = 1;
 
   blk_hash_t own_starting_value_for_round_ = NULL_BLOCK_HASH;
   // <round, cert_voted_block_hash>
