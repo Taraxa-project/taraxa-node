@@ -212,7 +212,6 @@ bool PbftChain::checkPbftBlockValidation(taraxa::PbftBlock const& pbft_block) co
                  << pbft_block.getPrevBlockHash() << " in block " << pbft_block.getBlockHash();
     return false;
   }
-  // TODO: Need to verify block signature
   return true;
 }
 
