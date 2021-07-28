@@ -352,7 +352,10 @@ void PbftManager::setPbftStep(size_t const pbft_step) {
   }
 }
 
-void PbftManager::resetStep_() { setPbftStep(1); }
+void PbftManager::resetStep_() {
+  startingStepInRound_ = 1;
+  setPbftStep(1);
+}
 
 bool PbftManager::resetRound_() {
   bool restart = false;
@@ -462,6 +465,8 @@ void PbftManager::initialState_() {
     LOG(log_er_) << "Unexpected condition at round " << round << " step " << step;
     assert(false);
   }
+  // This is used to offset endtime for second finishing step...
+  startingStepInRound_ = step;
   setPbftStep(step);
   setPbftRound(round);
 
@@ -635,7 +640,8 @@ void PbftManager::loopBackFinishState_() {
   db_->commitWriteBatch(batch);
   next_voted_soft_value_ = false;
   next_voted_null_block_hash_ = false;
-  next_step_time_ms_ = step_ * LAMBDA_ms;
+  assert(step_ >= startingStepInRound_);
+  next_step_time_ms_ = (1 + step_ - startingStepInRound_) * LAMBDA_ms;
   last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
   current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
 }
@@ -969,7 +975,8 @@ void PbftManager::secondFinish_() {
   // Odd number steps from 5 are in second finish
   auto round = getPbftRound();
   LOG(log_tr_) << "PBFT second finishing state at step " << step_ << " in round " << round;
-  auto end_time_for_step = (step_ + 1) * LAMBDA_ms - POLLING_INTERVAL_ms;
+  assert(step_ >= startingStepInRound_);
+  auto end_time_for_step = (2 + step_ - startingStepInRound_) * LAMBDA_ms - POLLING_INTERVAL_ms;
 
   updateSoftVotedBlockForThisRound_();
 
