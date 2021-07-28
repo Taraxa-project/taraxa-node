@@ -34,6 +34,12 @@ enum StatusDbField : uint8_t {
   DbMinorVersion
 };
 
+enum PbftMgrPreviousRoundStatus {
+  previousRoundSortitionThreshold = 0,
+  previousRoundDposPeriod,
+  previousRoundDposTotalVotesCount
+};
+
 enum PbftMgrRoundStep : uint8_t { PbftRound = 0, PbftStep };
 enum PbftMgrStatus {
   soft_voted_block_in_round = 0,
@@ -95,6 +101,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN(transactions);
     COLUMN(trx_status);
     COLUMN(status);
+    COLUMN(pbft_mgr_previous_round_status);
     COLUMN(pbft_mgr_round_step);
     COLUMN(pbft_round_2t_plus_1);
     COLUMN(pbft_mgr_status);
@@ -205,6 +212,11 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::unordered_map<trx_hash_t, TransactionStatus> getAllTransactionStatus();
 
   // PBFT manager
+  uint64_t getPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus const& field);
+  void savePbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus const& field, uint64_t const& value);
+  void addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus const& field, uint64_t const& value,
+                                     Batch& write_batch);
+
   uint64_t getPbftMgrField(PbftMgrRoundStep const& field);
   void savePbftMgrField(PbftMgrRoundStep const& field, uint64_t value);
   void addPbftMgrFieldToBatch(PbftMgrRoundStep const& field, uint64_t value, Batch& write_batch);

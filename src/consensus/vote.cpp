@@ -690,8 +690,13 @@ uint64_t VoteManager::roundDeterminedFromVotes(size_t two_t_plus_one) {
   return 0;
 }
 
-NextVotesForPreviousRound::NextVotesForPreviousRound(addr_t node_addr, std::shared_ptr<DbStorage> db)
-    : db_(std::move(db)), enough_votes_for_null_block_hash_(false), voted_value_(NULL_BLOCK_HASH), next_votes_size_(0) {
+NextVotesForPreviousRound::NextVotesForPreviousRound(addr_t node_addr, std::shared_ptr<DbStorage> db,
+                                                     std::shared_ptr<FinalChain> final_chain)
+    : db_(std::move(db)), 
+      final_chain_(std::move(final_chain)),
+      enough_votes_for_null_block_hash_(false),
+      voted_value_(NULL_BLOCK_HASH),
+      next_votes_size_(0) {
   LOG_OBJECTS_CREATE("NEXT_VOTES");
 }
 
@@ -916,9 +921,8 @@ void NextVotesForPreviousRound::updateNextVotes(std::vector<std::shared_ptr<Vote
 
 // Assumption is that all synced votes are in next voting phase, in the same round.
 // Valid voted values have maximum 2 block hash, NULL_BLOCK_HASH and a non NULL_BLOCK_HASH
-void NextVotesForPreviousRound::updateWithSyncedVotes(std::vector<std::shared_ptr<Vote>> const& next_votes,
+void NextVotesForPreviousRound::updateWithSyncedVotes(std::vector<std::shared_ptr<Vote>>& next_votes,
                                                       size_t pbft_2t_plus_1) {
-  // TODO: need do vote verificaton
   if (next_votes.empty()) {
     LOG(log_er_) << "Synced next votes is empty.";
     return;
@@ -941,23 +945,28 @@ void NextVotesForPreviousRound::updateWithSyncedVotes(std::vector<std::shared_pt
     return;
   }
 
+  size_t previous_round_sortition_threshold =
+      db_->getPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::previousRoundSortitionThreshold);
+  uint64_t previous_round_dpos_period =
+      db_->getPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::previousRoundDposPeriod);
+  size_t previous_round_dpos_total_votes_count =
+      db_->getPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::previousRoundDposTotalVotesCount);
+  LOG(log_nf_) << "Previoud round sorition threshold " << previous_round_sortition_threshold
+               << ", previoud round DPOS period " << previous_round_dpos_period
+               << ", previous round DPOS total votes count " << previous_round_dpos_total_votes_count;
+
   std::unordered_map<blk_hash_t, std::vector<std::shared_ptr<Vote>>> synced_next_votes;
-  // All next votes should be in the next voting phase and in the same voted round
-  for (size_t i = 0; i < next_votes.size(); i++) {
-    if (next_votes[i]->getType() != next_vote_type) {
-      LOG(log_er_) << "Synced next vote is not at next voting phase. Vote " << *next_votes[i];
-      return;
-    } else if (next_votes[i]->getRound() != next_votes[0]->getRound()) {
-      LOG(log_er_) << "Synced next votes have a different voted PBFT round. Vote1 " << *next_votes[0] << ", Vote2 "
-                   << *next_votes[i];
+  for (auto& vote : next_votes) {
+    if (!voteVerification(vote, previous_round_dpos_period, previous_round_dpos_total_votes_count,
+                          previous_round_sortition_threshold)) {
       return;
     }
 
-    auto voted_block_hash = next_votes[i]->getBlockHash();
+    auto voted_block_hash = vote->getBlockHash();
     if (synced_next_votes.count(voted_block_hash)) {
-      synced_next_votes[voted_block_hash].emplace_back(next_votes[i]);
+      synced_next_votes[voted_block_hash].emplace_back(vote);
     } else {
-      std::vector<std::shared_ptr<Vote>> votes{next_votes[i]};
+      std::vector<std::shared_ptr<Vote>> votes{vote};
       synced_next_votes[voted_block_hash] = std::move(votes);
     }
   }
@@ -999,13 +1008,56 @@ void NextVotesForPreviousRound::updateWithSyncedVotes(std::vector<std::shared_pt
     } else {
       LOG(log_dg_) << "Voted value " << voted_value_and_votes.first
                    << " doesn't have enough next votes. Size of syncing next votes "
-                   << voted_value_and_votes.second.size() << ", PBFT 2t+1 is " << pbft_2t_plus_1 << " for round "
-                   << voted_value_and_votes.second[0]->getRound();
+                   << voted_value_and_votes.second.size() << ", PBFT previous round 2t+1 is " << pbft_2t_plus_1 << " for round "
+                   << voted_value_and_votes.second[0].getRound();
     }
   }
 
   // Adds new next votes in internal structures + DB for the PBFT round
   addNextVotes(update_votes, pbft_2t_plus_1);
+}
+
+bool NextVotesForPreviousRound::voteVerification(Vote& vote, uint64_t const dpos_period,
+                                                 size_t const dpos_total_votes_count,
+                                                 size_t const pbft_sortition_threshold) {
+  // Voted round has checked in tarcap already
+  if (vote.getType() != next_vote_type) {
+    LOG(log_er_) << "The vote is not at next voting phase." << vote;
+    return false;
+  }
+
+  auto vote_account_addr = vote.getVoterAddr();
+  uint64_t dpos_votes_count;
+  try {
+    dpos_votes_count = final_chain_->dpos_eligible_vote_count(dpos_period, vote_account_addr);
+  } catch (state_api::ErrFutureBlock& c) {
+    LOG(log_er_) << c.what() << ", period " << dpos_period << " is too far ahead of DPOS";
+    return false;
+  }
+  auto vote_weighted_index = vote.getWeightedIndex();
+  if (vote_weighted_index >= dpos_votes_count) {
+    LOG(log_er_) << "Vote weighted index " << vote_weighted_index << " is not less than DPOS votes count "
+                 << dpos_votes_count << vote;
+    return false;
+  }
+
+  if (!vote.verifyVrfSortition()) {
+    LOG(log_er_) << "Invalid vrf proof. " << vote;
+    return false;
+  }
+
+  if (!vote.verifyVote()) {
+    LOG(log_er_) << "Invalid vote signature. " << vote;
+    return false;
+  }
+
+  if (!vote.verifyCanSpeak(pbft_sortition_threshold, dpos_total_votes_count)) {
+    LOG(log_er_) << "Vote sortition failed. PBFT sortition threshold " << pbft_sortition_threshold
+                 << ", DPOS total votes count " << dpos_total_votes_count << vote;
+    return false;
+  }
+
+  return true;
 }
 
 void NextVotesForPreviousRound::assertError_(std::vector<std::shared_ptr<Vote>> next_votes_1,

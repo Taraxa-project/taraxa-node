@@ -329,36 +329,32 @@ TEST_F(VoteTest, vote_broadcast) {
 }
 
 TEST_F(VoteTest, previous_round_next_votes) {
-  auto node0_sk_str = "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd";
-  auto node1_sk_str = "e6af8ca3b4074243f9214e16ac94831f17be38810d09a3edeb56ab55be848a1e";
-  auto node2_sk_str = "f1261c9f09b0b483486c3b298f7c1ee001ff37e10023596528af93e34ba13f5f";
-  std::vector<dev::Secret> nodes_sk;
-  nodes_sk.emplace_back(dev::Secret(node0_sk_str, dev::Secret::ConstructFromStringType::FromHex));
-  nodes_sk.emplace_back(dev::Secret(node1_sk_str, dev::Secret::ConstructFromStringType::FromHex));
-  nodes_sk.emplace_back(dev::Secret(node2_sk_str, dev::Secret::ConstructFromStringType::FromHex));
-  std::vector<dev::KeyPair> nodes_kp;
-  for (auto const &sk : nodes_sk) {
-    nodes_kp.emplace_back(dev::KeyPair(sk));
-  }
+  auto node_cfgs = make_node_cfgs(1);
+  auto nodes = launch_nodes(node_cfgs);
+  auto &node = nodes[0];
 
-  auto db = std::make_shared<DbStorage>(data_dir);
-  auto const &node_addr = nodes_kp[0].address();
-  auto next_votes_mgr = std::make_shared<NextVotesForPreviousRound>(node_addr, db);
-  auto pbft_2t_plus_1 = 3;
+  // stop PBFT manager, that will place vote
+  auto pbft_mgr = node->getPbftManager();
+  pbft_mgr->stop();
 
-  // Generate 3 votes voted at NULL_BLOCK_HASH
-  std::vector<std::shared_ptr<Vote>> next_votes_1;
+  // Clear unverfied/verified table/DB
+  clearAllVotes(node);
+
+  // Clear next votes structure
+  auto next_votes_mgr = node->getNextVotesManager();
+  next_votes_mgr->clear();
+
+  auto pbft_2t_plus_1 = pbft_mgr->getTwoTPlusOne();
+  EXPECT_EQ(pbft_2t_plus_1, 1);
+
+  // Generate a vote voted at NULL_BLOCK_HASH
+  PbftVoteTypes type = next_vote_type;
   auto round = 1;
   auto step = 4;
   auto weighted_index = 0;
-  VrfPbftMsg msg(next_vote_type, round, step, weighted_index);
-  VrfPbftSortition vrf_sortition(g_vrf_sk, msg);
   blk_hash_t voted_pbft_block_hash(0);
-  for (auto i = 0; i < 3; i++) {
-    Vote vote(nodes_sk[i], vrf_sortition, voted_pbft_block_hash);
-    next_votes_1.emplace_back(std::make_shared<Vote>(vote));
-  }
-  EXPECT_EQ(next_votes_1.size(), 3);
+  auto vote1 = pbft_mgr->generateVote(voted_pbft_block_hash, type, round, step, weighted_index);
+  std::vector<std::shared_ptr<Vote>> next_votes_1{vote1};
 
   // Enough votes for NULL_BLOCK_HASH
   next_votes_mgr->addNextVotes(next_votes_1, pbft_2t_plus_1);
@@ -366,22 +362,18 @@ TEST_F(VoteTest, previous_round_next_votes) {
   EXPECT_EQ(next_votes_mgr->getNextVotes().size(), next_votes_1.size());
   EXPECT_EQ(next_votes_mgr->getNextVotesSize(), next_votes_1.size());
 
-  // Generate 3 votes voted at value blk_hash_t(1)
+  // Generate a vote voted at value blk_hash_t(1)
   voted_pbft_block_hash = blk_hash_t(1);
   step = 5;
-  std::vector<std::shared_ptr<Vote>> next_votes_2;
-  for (auto i = 0; i < 3; i++) {
-    Vote vote(nodes_sk[i], vrf_sortition, voted_pbft_block_hash);
-    next_votes_2.emplace_back(std::make_shared<Vote>(vote));
-  }
-  EXPECT_EQ(next_votes_2.size(), 3);
+  auto vote2 = pbft_mgr->generateVote(voted_pbft_block_hash, type, round, step, weighted_index);
+  std::vector<std::shared_ptr<Vote>> next_votes_2{vote2};
 
   // Enough votes for blk_hash_t(1)
   next_votes_mgr->updateWithSyncedVotes(next_votes_2, pbft_2t_plus_1);
   EXPECT_EQ(next_votes_mgr->getVotedValue(), voted_pbft_block_hash);
   EXPECT_TRUE(next_votes_mgr->enoughNextVotes());
   auto expect_size = next_votes_1.size() + next_votes_2.size();
-  EXPECT_EQ(expect_size, 6);
+  EXPECT_EQ(expect_size, 2);
   EXPECT_EQ(next_votes_mgr->getNextVotes().size(), expect_size);
   EXPECT_EQ(next_votes_mgr->getNextVotesSize(), expect_size);
 
@@ -390,7 +382,7 @@ TEST_F(VoteTest, previous_round_next_votes) {
   next_votes_3.reserve(expect_size);
   next_votes_3.insert(next_votes_3.end(), next_votes_1.begin(), next_votes_1.end());
   next_votes_3.insert(next_votes_3.end(), next_votes_2.begin(), next_votes_2.end());
-  EXPECT_EQ(next_votes_3.size(), 6);
+  EXPECT_EQ(next_votes_3.size(), 2);
 
   // Should not update anything
   next_votes_mgr->addNextVotes(next_votes_3, pbft_2t_plus_1);
@@ -402,14 +394,11 @@ TEST_F(VoteTest, previous_round_next_votes) {
   EXPECT_EQ(next_votes_mgr->getNextVotes().size(), next_votes_3.size());
   EXPECT_EQ(next_votes_mgr->getNextVotesSize(), next_votes_3.size());
 
-  // Generate 3 votes voted at value blk_hash_t(2)
+  // Generate a vote voted at value blk_hash_t(2)
   voted_pbft_block_hash = blk_hash_t(2);
   round = 2;
-  std::vector<std::shared_ptr<Vote>> next_votes_4;
-  for (auto i = 0; i < 3; i++) {
-    Vote vote(nodes_sk[i], vrf_sortition, voted_pbft_block_hash);
-    next_votes_4.emplace_back(std::make_shared<Vote>(vote));
-  }
+  auto vote3 = pbft_mgr->generateVote(voted_pbft_block_hash, type, round, step, weighted_index);
+  std::vector<std::shared_ptr<Vote>> next_votes_4{vote3};
 
   next_votes_mgr->updateNextVotes(next_votes_4, pbft_2t_plus_1);
   EXPECT_FALSE(next_votes_mgr->haveEnoughVotesForNullBlockHash());

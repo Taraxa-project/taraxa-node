@@ -366,6 +366,12 @@ bool PbftManager::resetRound_() {
 
     // Update in DB first
     auto batch = db_->createWriteBatch();
+    db_->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundSortitionThreshold,
+                                       sortition_threshold_, batch);
+    db_->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposPeriod, dpos_period_.load(),
+                                       batch);
+    db_->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposTotalVotesCount,
+                                       getDposTotalVotesCount(), batch);
     db_->addPbftMgrStatusToBatch(PbftMgrStatus::executed_in_round, false, batch);
     db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::own_starting_value_in_round, NULL_BLOCK_HASH, batch);
     db_->addPbftMgrStatusToBatch(PbftMgrStatus::next_voted_null_block_hash, false, batch);

@@ -118,6 +118,42 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(g_trx_signed_samples[2], *db.getTransaction(g_trx_signed_samples[2].getHash()));
   EXPECT_EQ(g_trx_signed_samples[3], *db.getTransaction(g_trx_signed_samples[3].getHash()));
 
+  // PBFT manager previous round status
+  EXPECT_EQ(db.getPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::previousRoundSortitionThreshold), 0);
+  EXPECT_EQ(db.getPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::previousRoundDposPeriod), 0);
+  EXPECT_EQ(db.getPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::previousRoundDposTotalVotesCount), 0);
+  size_t previous_round_sortition_threshold = 2;
+  db.savePbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::previousRoundSortitionThreshold,
+                                    previous_round_sortition_threshold);
+  EXPECT_EQ(db.getPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::previousRoundSortitionThreshold),
+            previous_round_sortition_threshold);
+  uint64_t previous_round_dpos_period = 3;
+  db.savePbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::previousRoundDposPeriod, previous_round_dpos_period);
+  EXPECT_EQ(db.getPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::previousRoundDposPeriod),
+            previous_round_dpos_period);
+  size_t previous_round_dpos_total_votes_count = 4;
+  db.savePbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::previousRoundDposTotalVotesCount,
+                                    previous_round_dpos_total_votes_count);
+  EXPECT_EQ(db.getPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::previousRoundDposTotalVotesCount),
+            previous_round_dpos_total_votes_count);
+  previous_round_sortition_threshold = 6;
+  previous_round_dpos_period = 7;
+  previous_round_dpos_total_votes_count = 8;
+  batch = db.createWriteBatch();
+  db.addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::previousRoundSortitionThreshold,
+                                   previous_round_sortition_threshold, batch);
+  db.addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::previousRoundDposPeriod, previous_round_dpos_period,
+                                   batch);
+  db.addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::previousRoundDposTotalVotesCount,
+                                   previous_round_dpos_total_votes_count, batch);
+  db.commitWriteBatch(batch);
+  EXPECT_EQ(db.getPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::previousRoundSortitionThreshold),
+            previous_round_sortition_threshold);
+  EXPECT_EQ(db.getPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::previousRoundDposPeriod),
+            previous_round_dpos_period);
+  EXPECT_EQ(db.getPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::previousRoundDposTotalVotesCount),
+            previous_round_dpos_total_votes_count);
+
   // PBFT manager round and step
   EXPECT_EQ(db.getPbftMgrField(PbftMgrRoundStep::PbftRound), 1);
   EXPECT_EQ(db.getPbftMgrField(PbftMgrRoundStep::PbftStep), 1);
