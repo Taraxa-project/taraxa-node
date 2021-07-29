@@ -355,7 +355,7 @@ jobs:
       - pr_comment:
          when: on_success
          comment: "\
-           <h3><p>PR NET pr-<< pipeline.parameters.pr_number >> Successfully deployed!</p></h3>\ 
+           <h3><p>PR NET pr-<< pipeline.parameters.pr_number >> Successfully Re deployed!</p></h3>\ 
            <table>\
            <tr><td>explorer</td><td><a href=https://explorer-pr-<<pipeline.parameters.pr_number>>.prnet.taraxa.io >\ 
                                https://explorer-pr-<<pipeline.parameters.pr_number>>.prnet.taraxa.io </a></td></tr> \
