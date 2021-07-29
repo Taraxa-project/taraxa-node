@@ -202,6 +202,7 @@ void FullNode::start() {
     blk_proposer_->setNetwork(network_);
     blk_proposer_->start();
   }
+  vote_mgr_->setNetwork(network_);
   pbft_mgr_->setNetwork(network_);
   pbft_mgr_->start();
   dag_blk_mgr_->start();
