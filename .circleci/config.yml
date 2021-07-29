@@ -433,7 +433,7 @@ jobs:
            echo "export GCP_IMAGE=gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE}" >> $BASH_ENV
            echo "export PR=$( [[ -z ${CIRCLE_PULL_REQUEST+x} ]] && echo false || echo $(basename ${CIRCLE_PULL_REQUEST}) )" >>$BASH_ENV
            export PR=$( [[ -z ${CIRCLE_PULL_REQUEST+x} ]] && echo false || echo $(basename ${CIRCLE_PULL_REQUEST}) )           
-           echo "export HELM_TEST_NAME=pr-${PR}" >> $BASH_ENV
+           echo "export HELM_TEST_NAME=pr-tst-${PR}" >> $BASH_ENV
            sudo service apport stop
 
       - run:
