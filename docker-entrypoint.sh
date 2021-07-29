@@ -1,7 +1,7 @@
 #!/bin/bash
 
-export TARAXA_CONF_PATH=${TARAXA_CONF_PATH:=/opt/taraxa/config.json}
-export TARAXA_PERSISTENT_PATH=${TARAXA_PERSISTENT_PATH:=/opt/taraxa/data}
+export TARAXA_CONF_PATH=${TARAXA_CONF_PATH:=/root/.taraxa/conf_taraxa.json}
+export TARAXA_PERSISTENT_PATH=${TARAXA_PERSISTENT_PATH:=/root/.taraxa}
 export TARAXA_COPY_COREDUMPS=${TARAXA_COPY_COREDUMPS:=true}
 export TARAXA_SLEEP_DIAGNOSE=${TARAXA_SLEEP_DIAGNOSE:=false}
 
