@@ -311,13 +311,15 @@ jobs:
       - pr_comment:
          when: on_success
          comment: "\
-           <p>PR NET pr-<< pipeline.parameters.pr_number >> Successfully deployed!</p>\ 
-           <p>explorer=https://explorer-pr-<< pipeline.parameters.pr_number >> </p> \
-           <p>RPC=rpc-pr-<< pipeline.parameters.pr_number >>.prnet.taraxa.io </p>\
-           <p>Boot Nodes</p>\
-           <p>Boot Node 1=${PRNET_IPS[0]}</p>\ 
-           <p>Boot Node2=${PRNET_IPS[1]}</p>\
-           <p>Boot Node 3=${PRNET_IPS[2]}</p>"
+           <h3><p>PR NET pr-<< pipeline.parameters.pr_number >> Successfully deployed!</p></h3>\ 
+           <p>explorer=<a href=https://explorer-pr-<<pipeline.parameters.pr_number>> > https://explorer-pr-<<pipeline.parameters.pr_number>> </a></p> \
+           <p>RPC=<a href=https://rpc-pr-<<pipeline.parameters.pr_number>> https://rpc-pr-<<pipeline.parameters.pr_number.prnet.taraxa.io>> </a></p>\
+           <h4><p>Boot Nodes</p></h4>\
+           <ol>
+            <li><p>Boot Node 1=${PRNET_IPS[0]}</p></li>\ 
+            <li><p>Boot Node2=${PRNET_IPS[1]}</p></li>\
+            <li><p>Boot Node 3=${PRNET_IPS[2]}</p></li>\
+           </ol>"
          pr_number: << pipeline.parameters.pr_number >>
       - cleanup_testnet_chart:
          when: on_fail
