@@ -15,6 +15,7 @@
 namespace taraxa {
 class FullNode;
 class PbftManager;
+class Network;
 
 struct VrfPbftMsg {
   VrfPbftMsg() = default;
@@ -150,6 +151,8 @@ class VoteManager {
               std::shared_ptr<PbftChain> pbft_chain);
   ~VoteManager();
 
+  void setNetwork(std::weak_ptr<Network> network);
+
   // Unverified votes
   void addUnverifiedVote(Vote const& vote);
   void addUnverifiedVotes(std::vector<Vote> const& votes);
@@ -201,9 +204,12 @@ class VoteManager {
   mutable boost::shared_mutex unverified_votes_access_;
   mutable boost::shared_mutex verified_votes_access_;
 
+  addr_t node_addr_;
+
   std::shared_ptr<DbStorage> db_;
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<FinalChain> final_chain_;
+  std::weak_ptr<Network> network_;
 
   LOG_OBJECTS_DEFINE
 };

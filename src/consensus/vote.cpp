@@ -4,6 +4,10 @@
 #include <libdevcrypto/Common.h>
 
 #include "consensus/pbft_manager.hpp"
+#include "network/network.hpp"
+
+constexpr size_t EXTENDED_PARTITION_STEPS = 1000;
+constexpr size_t FIRST_FINISH_STEP = 4;
 
 namespace taraxa {
 
@@ -83,7 +87,7 @@ bytes Vote::rlp(bool inc_sig) const {
 
 VoteManager::VoteManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<FinalChain> final_chain,
                          std::shared_ptr<PbftChain> pbft_chain)
-    : db_(db), pbft_chain_(pbft_chain), final_chain_(final_chain) {
+    : node_addr_(node_addr), db_(db), pbft_chain_(pbft_chain), final_chain_(final_chain) {
   LOG_OBJECTS_CREATE("VOTE_MGR");
   // Retrieve votes from DB
   daemon_ = std::make_unique<std::thread>([this]() { retreieveVotes_(); });
@@ -93,7 +97,10 @@ VoteManager::VoteManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::s
 
 VoteManager::~VoteManager() { daemon_->join(); }
 
+void VoteManager::setNetwork(std::weak_ptr<Network> network) { network_ = move(network); }
+
 void VoteManager::retreieveVotes_() {
+  
   auto unverified_votes = db_->getUnverifiedVotes();
   for (auto const& v : unverified_votes) {
     auto pbft_round = v.getRound();
@@ -114,6 +121,15 @@ void VoteManager::retreieveVotes_() {
   for (auto const& v : verified_votes) {
     auto pbft_round = v.getRound();
     auto hash = v.getHash();
+    
+    //Rebroadcast our own next votes in case we were partitioned...
+    if (v.getVoterAddr() == node_addr_ && v.getStep() > FIRST_FINISH_STEP && db_->getPbftMgrField(PbftMgrRoundStep::PbftStep) > EXTENDED_PARTITION_STEPS) {
+      vector<Vote> votes = {v};
+      if (auto net = network_.lock()) {
+        net->onNewPbftVotes(move(votes));
+      }
+    } 
+
     {
       uniqueLock_ lock(verified_votes_access_);
       if (verified_votes_.count(pbft_round)) {
