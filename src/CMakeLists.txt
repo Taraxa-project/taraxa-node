@@ -30,6 +30,7 @@ set(SOURCES
         final_chain/final_chain.hpp
         logger/log.hpp
         logger/logger_config.hpp
+        network/peers_state.hpp
         network/taraxa_capability.hpp
         network/taraxa_peer.hpp
         network/syncing_state.hpp
@@ -107,6 +108,7 @@ set(SOURCES
         network/rpc/eth/Eth.cpp
         network/network.cpp
         network/packets_stats.cpp
+        network/peers_state.cpp
         network/taraxa_capability.cpp
         network/syncing_state.cpp
         node/full_node.cpp

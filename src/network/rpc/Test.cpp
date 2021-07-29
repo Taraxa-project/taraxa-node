@@ -256,7 +256,7 @@ Json::Value Test::get_all_peers() {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {
-      auto peers = node->getNetwork()->getAllPeers();
+      auto peers = node->getNetwork()->getAllPeersIDs();
       for (auto const &peer : peers) {
         res = res.asString() + peer.toString() + "\n";
       }

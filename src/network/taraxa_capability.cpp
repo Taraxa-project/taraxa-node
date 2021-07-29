@@ -18,6 +18,7 @@ TaraxaCapability::TaraxaCapability(weak_ptr<Host> _host, NetworkConfig const &_c
                                    std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
                                    std::shared_ptr<TransactionManager> trx_mgr, addr_t const &node_addr)
     : host_(move(_host)),
+      peers_state_(node_addr),
       db_(db),
       pbft_mgr_(pbft_mgr),
       pbft_chain_(pbft_chain),
@@ -28,7 +29,6 @@ TaraxaCapability::TaraxaCapability(weak_ptr<Host> _host, NetworkConfig const &_c
       trx_mgr_(trx_mgr),
       lambda_ms_min_(pbft_mgr_ ? pbft_mgr_->getPbftInitialLambda() : 2000),
       conf_(_conf),
-      urng_(std::mt19937_64(std::random_device()())),
       delay_rng_(std::mt19937(std::random_device()())),
       random_dist_(std::uniform_int_distribution<std::mt19937::result_type>(90, 110)) {
   LOG_OBJECTS_CREATE("TARCAP");
@@ -57,59 +57,6 @@ TaraxaCapability::TaraxaCapability(weak_ptr<Host> _host, NetworkConfig const &_c
   tp_.post(summary_interval_ms_, [this] { logNodeStats(); });
 }
 
-std::shared_ptr<TaraxaPeer> TaraxaCapability::getPeer(NodeID const &node_id) {
-  boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
-  auto itPeer = peers_.find(node_id);
-  if (itPeer != peers_.end()) {
-    return itPeer->second;
-  }
-  return nullptr;
-}
-
-std::shared_ptr<TaraxaPeer> TaraxaCapability::getPendingPeer(NodeID const &node_id) {
-  boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
-  auto itPeer = pending_peers_.find(node_id);
-  if (itPeer != pending_peers_.end()) {
-    return itPeer->second;
-  }
-  return nullptr;
-}
-
-unsigned int TaraxaCapability::getPeersCount() {
-  boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
-  return peers_.size();
-}
-
-void TaraxaCapability::erasePeer(NodeID const &node_id) {
-  boost::unique_lock<boost::shared_mutex> lock(peers_mutex_);
-  pending_peers_.erase(node_id);
-  peers_.erase(node_id);
-}
-
-std::shared_ptr<TaraxaPeer> TaraxaCapability::addPendingPeer(NodeID const &node_id) {
-  boost::unique_lock<boost::shared_mutex> lock(peers_mutex_);
-  auto ret = pending_peers_.emplace(node_id, std::make_shared<TaraxaPeer>(node_id));
-  if (!ret.second) {
-    // TODO: keep error level until we know exactly when and why is this happening
-    LOG(log_er_) << "Peer " << node_id.abridged() << " is already in pending peers list";
-  }
-
-  return ret.first->second;
-}
-
-std::shared_ptr<TaraxaPeer> TaraxaCapability::setPeerAsReadyToSendMessages(NodeID const &node_id,
-                                                                           std::shared_ptr<TaraxaPeer> peer) {
-  boost::unique_lock<boost::shared_mutex> lock(peers_mutex_);
-  pending_peers_.erase(node_id);
-  auto ret = peers_.emplace(node_id, peer);
-  if (!ret.second) {
-    // TODO: keep error level until we know exactly when and why is this happening
-    LOG(log_er_) << "Peer " << node_id.abridged() << " is already in peers list";
-  }
-
-  return ret.first->second;
-}
-
 void TaraxaCapability::syncPeerPbft(unsigned long height_to_sync) {
   const auto node_id = syncing_state_.syncing_peer();
   LOG(log_nf_pbft_sync_) << "Sync peer node " << node_id << " from pbft chain height " << height_to_sync;
@@ -123,9 +70,9 @@ bool TaraxaCapability::sealAndSend(NodeID const &nodeID, unsigned packet_type, R
     return false;
   }
 
-  auto peer = getPeer(nodeID);
+  auto peer = peers_state_.getPeer(nodeID);
   if (!peer) {
-    peer = getPendingPeer(nodeID);
+    peer = peers_state_.getPendingPeer(nodeID);
     if (peer) {
       if (packet_type != StatusPacket) {
         LOG(log_er_) << "sealAndSend failed initial status check, peer " << nodeID.abridged()
@@ -134,7 +81,7 @@ bool TaraxaCapability::sealAndSend(NodeID const &nodeID, unsigned packet_type, R
         return false;
       }
     } else {
-      LOG(log_er_) << "sealAndSend failed to find peer";
+      LOG(log_wr_) << "sealAndSend failed to find peer";
       return false;
     }
   }
@@ -227,7 +174,7 @@ void TaraxaCapability::onConnect(weak_ptr<Session> session, u256 const &) {
   }
 
   LOG(log_nf_) << "Node " << _nodeID << " connected";
-  auto peer = addPendingPeer(_nodeID);
+  auto peer = peers_state_.addPendingPeer(_nodeID);
   tp_.post([=] {
     cnt_received_messages_[_nodeID] = 0;
     test_sums_[_nodeID] = 0;
@@ -282,9 +229,9 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
   if (!host) {
     return;
   }
-  auto peer = getPeer(_nodeID);
+  auto peer = peers_state_.getPeer(_nodeID);
   if (!peer) {
-    peer = getPendingPeer(_nodeID);
+    peer = peers_state_.getPendingPeer(_nodeID);
     if (!peer) {
       // It should not be possible to get here but log it just in case
       LOG(log_er_) << "Peer missing in peers map, peer " << _nodeID.abridged() << " will be disconnected";
@@ -706,9 +653,8 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
           // Update our previous round next vote bundles...
           next_votes_mgr_->updateWithSyncedVotes(next_votes, pbft_2t_plus_1);
           // Pass them on to our peers...
-          boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
           auto updated_next_votes_size = next_votes_mgr_->getNextVotesSize();
-          for (auto const &peerToShareTo : peers_) {
+          for (auto const &peerToShareTo : peers_state_.getAllPeers()) {
             // Do not send votes right back to same peer...
             if (peerToShareTo.first == _nodeID) continue;
             // Do not send votes to nodes that already have as many bundles as we do...
@@ -975,21 +921,19 @@ void TaraxaCapability::restartSyncingPbft(bool force) {
   NodeID max_pbft_chain_nodeID;
   uint64_t max_pbft_chain_size = 0;
   uint64_t max_node_dag_level = 0;
-  {
-    boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
-    if (peers_.empty()) {
-      LOG(log_nf_pbft_sync_) << "Restarting syncing PBFT not possible since no connected peers";
-      return;
-    }
-    for (auto const &peer : peers_) {
-      if (peer.second->pbft_chain_size_ > max_pbft_chain_size) {
-        max_pbft_chain_size = peer.second->pbft_chain_size_;
-        max_pbft_chain_nodeID = peer.first;
-        max_node_dag_level = peer.second->dag_level_;
-      } else if (peer.second->pbft_chain_size_ == max_pbft_chain_size && peer.second->dag_level_ > max_node_dag_level) {
-        max_pbft_chain_nodeID = peer.first;
-        max_node_dag_level = peer.second->dag_level_;
-      }
+
+  if (!peers_state_.getPeersCount()) {
+    LOG(log_nf_pbft_sync_) << "Restarting syncing PBFT not possible since no connected peers";
+    return;
+  }
+  for (auto const &peer : peers_state_.getAllPeers()) {
+    if (peer.second->pbft_chain_size_ > max_pbft_chain_size) {
+      max_pbft_chain_size = peer.second->pbft_chain_size_;
+      max_pbft_chain_nodeID = peer.first;
+      max_node_dag_level = peer.second->dag_level_;
+    } else if (peer.second->pbft_chain_size_ == max_pbft_chain_size && peer.second->dag_level_ > max_node_dag_level) {
+      max_pbft_chain_nodeID = peer.first;
+      max_node_dag_level = peer.second->dag_level_;
     }
   }
 
@@ -1021,11 +965,9 @@ void TaraxaCapability::restartSyncingPbft(bool force) {
 }
 
 void TaraxaCapability::onDisconnect(NodeID const &_nodeID) {
+  LOG(log_nf_) << "Node " << _nodeID << " disconnected";
+  peers_state_.erasePeer(_nodeID);
   tp_.post([=] {
-    LOG(log_nf_) << "Node " << _nodeID << " disconnected";
-    // DO NOT MOVE THIS OUTSIDE THE TP, IT CAN CAUSE DEADLOCK
-    // CHECK checkLiveness() -> erasePeer()
-    erasePeer(_nodeID);
     cnt_received_messages_.erase(_nodeID);
     test_sums_.erase(_nodeID);
 
@@ -1082,53 +1024,6 @@ bool TaraxaCapability::sendStatus(NodeID const &_id, bool _initial) {
   return success;
 }
 
-vector<NodeID> TaraxaCapability::selectPeers(std::function<bool(TaraxaPeer const &)> const &_predicate) {
-  vector<NodeID> allowed;
-  boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
-  for (auto const &peer : peers_) {
-    if (_predicate(*peer.second)) allowed.push_back(peer.first);
-  }
-  return allowed;
-}
-
-vector<NodeID> TaraxaCapability::getAllPeers() const {
-  vector<NodeID> peers;
-
-  boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
-  std::transform(
-      peers_.begin(), peers_.end(), std::back_inserter(peers),
-      [](std::pair<const dev::p2p::NodeID, std::shared_ptr<taraxa::TaraxaPeer>> const &peer) { return peer.first; });
-
-  return peers;
-}
-
-vector<NodeID> TaraxaCapability::getAllPendingPeers() const {
-  vector<NodeID> peers;
-
-  boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
-  std::transform(
-      pending_peers_.begin(), pending_peers_.end(), std::back_inserter(peers),
-      [](std::pair<const dev::p2p::NodeID, std::shared_ptr<taraxa::TaraxaPeer>> const &peer) { return peer.first; });
-
-  return peers;
-}
-
-std::pair<std::vector<NodeID>, std::vector<NodeID>> TaraxaCapability::randomPartitionPeers(
-    std::vector<NodeID> const &_peers, std::size_t _number) {
-  vector<NodeID> part1(_peers);
-  vector<NodeID> part2;
-
-  if (_number >= _peers.size()) return std::make_pair(part1, part2);
-
-  std::shuffle(part1.begin(), part1.end(), urng_);
-
-  // Remove elements from the end of the shuffled part1 vector and move
-  // them to part2.
-  std::move(part1.begin() + _number, part1.end(), std::back_inserter(part2));
-  part1.erase(part1.begin() + _number, part1.end());
-  return std::make_pair(move(part1), move(part2));
-}
-
 void TaraxaCapability::onNewTransactions(std::vector<taraxa::bytes> const &transactions, bool fromNetwork) {
   if (fromNetwork) {
     if (dag_blk_mgr_) {
@@ -1151,30 +1046,29 @@ void TaraxaCapability::onNewTransactions(std::vector<taraxa::bytes> const &trans
   if (!fromNetwork || conf_.network_transaction_interval == 0) {
     std::unordered_map<NodeID, std::vector<taraxa::bytes>> transactionsToSend;
     std::unordered_map<NodeID, std::vector<trx_hash_t>> transactionsHashToSend;
-    {
-      boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
-      for (auto &peer : peers_) {
-        // Confirm that status messages were exchanged otherwise message might be ignored and node would
-        // incorrectly markTransactionAsKnown
-        if (!peer.second->syncing_) {
-          for (auto const &transaction : transactions) {
-            Transaction trx(transaction);
-            auto trx_hash = trx.getHash();
-            if (!peer.second->isTransactionKnown(trx_hash)) {
-              transactionsToSend[peer.first].push_back(transaction);
-              transactionsHashToSend[peer.first].push_back(trx_hash);
-            }
+    auto peers = peers_state_.getAllPeers();
+
+    for (auto &peer : peers) {
+      // Confirm that status messages were exchanged otherwise message might be ignored and node would
+      // incorrectly markTransactionAsKnown
+      if (!peer.second->syncing_) {
+        for (auto const &transaction : transactions) {
+          Transaction trx(transaction);
+          auto trx_hash = trx.getHash();
+          if (!peer.second->isTransactionKnown(trx_hash)) {
+            transactionsToSend[peer.first].push_back(transaction);
+            transactionsHashToSend[peer.first].push_back(trx_hash);
           }
         }
       }
     }
+
     for (auto &it : transactionsToSend) {
       sendTransactions(it.first, it.second);
     }
-    boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
     for (auto &it : transactionsHashToSend) {
       for (auto &it2 : it.second) {
-        if (peers_.count(it.first)) peers_[it.first]->markTransactionAsKnown(it2);
+        peers[it.first]->markTransactionAsKnown(it2);
       }
     }
   }
@@ -1202,7 +1096,7 @@ void TaraxaCapability::onNewBlockReceived(DagBlock block, std::vector<Transactio
 
 void TaraxaCapability::sendSyncedMessage() {
   LOG(log_dg_dag_sync_) << "sendSyncedMessage ";
-  for (auto &peer : getAllPeers()) {
+  for (auto &peer : getAllPeersIDs()) {
     sealAndSend(peer, SyncedPacket, RLPStream(0));
   }
 }
@@ -1214,7 +1108,7 @@ void TaraxaCapability::onNewBlockVerified(DagBlock const &block) {
   }
   LOG(log_dg_dag_prp_) << "Verified NewBlock " << block.getHash().toString();
   auto const peersWithoutBlock =
-      selectPeers([&](TaraxaPeer const &_peer) { return !_peer.isBlockKnown(block.getHash()); });
+      peers_state_.selectPeers([&](TaraxaPeer const &_peer) { return !_peer.isBlockKnown(block.getHash()); });
 
   auto const peersToSendNumber =
       std::min<std::size_t>(std::max<std::size_t>(conf_.network_min_dag_block_broadcast, std::sqrt(getPeersCount())),
@@ -1222,11 +1116,11 @@ void TaraxaCapability::onNewBlockVerified(DagBlock const &block) {
 
   std::vector<NodeID> peersToSend;
   std::vector<NodeID> peersToAnnounce;
-  std::tie(peersToSend, peersToAnnounce) = randomPartitionPeers(peersWithoutBlock, peersToSendNumber);
+  std::tie(peersToSend, peersToAnnounce) = PeersState::randomPartitionPeers(peersWithoutBlock, peersToSendNumber);
 
   for (NodeID const &peerID : peersToSend) {
     RLPStream ts;
-    auto peer = getPeer(peerID);
+    auto peer = peers_state_.getPeer(peerID);
     if (peer && !peer->syncing_) {
       sendBlock(peerID, block);
       peer->markBlockAsKnown(block.getHash());
@@ -1236,7 +1130,7 @@ void TaraxaCapability::onNewBlockVerified(DagBlock const &block) {
 
   for (NodeID const &peerID : peersToAnnounce) {
     RLPStream ts;
-    auto peer = getPeer(peerID);
+    auto peer = peers_state_.getPeer(peerID);
     if (peer && !peer->syncing_) {
       sendBlockHash(peerID, block);
       peer->markBlockAsKnown(block.getHash());
@@ -1248,7 +1142,7 @@ void TaraxaCapability::onNewBlockVerified(DagBlock const &block) {
 void TaraxaCapability::sendBlocks(NodeID const &_id, std::vector<std::shared_ptr<DagBlock>> blocks) {
   if (blocks.empty()) return;
 
-  auto peer = getPeer(_id);
+  auto peer = peers_state_.getPeer(_id);
   if (!peer) return;
 
   taraxa::bytes packet_bytes;
@@ -1328,7 +1222,7 @@ void TaraxaCapability::sendTransactions(NodeID const &_id, std::vector<taraxa::b
 void TaraxaCapability::sendBlock(NodeID const &_id, taraxa::DagBlock block) {
   vec_trx_t transactionsToSend;
 
-  if (auto peer = getPeer(_id); peer) {
+  if (auto peer = peers_state_.getPeer(_id); peer) {
     for (auto trx : block.getTrxs())
       if (!peer->isTransactionKnown(trx)) transactionsToSend.push_back(trx);
   }
@@ -1409,19 +1303,16 @@ void TaraxaCapability::checkLiveness() {
   if (!host) {
     return;
   }
-  {
-    boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
-    for (auto const &peer : peers_) {
-      // Disconnect any node that did not send any message for 3 status intervals
-      if (!peer.second->isAlive(MAX_CHECK_ALIVE_COUNT)) {
-        LOG(log_nf_) << "Host disconnected, no status message in " << MAX_CHECK_ALIVE_COUNT * check_alive_interval_
-                     << " ms" << peer.first;
-        host->disconnect(peer.first, p2p::PingTimeout);
-      }
-      // Send status message
-      else {
-        sendStatus(peer.first, false);
-      }
+  for (auto const &peer : peers_state_.getAllPeers()) {
+    // Disconnect any node that did not send any message for 3 status intervals
+    if (!peer.second->isAlive(MAX_CHECK_ALIVE_COUNT)) {
+      LOG(log_nf_) << "Host disconnected, no status message in " << MAX_CHECK_ALIVE_COUNT * check_alive_interval_
+                   << " ms" << peer.first;
+      host->disconnect(peer.first, p2p::PingTimeout);
+    }
+    // Send status message
+    else {
+      sendStatus(peer.first, false);
     }
   }
   tp_.post(check_alive_interval_, [this] { checkLiveness(); });
@@ -1438,28 +1329,24 @@ void TaraxaCapability::logNodeStats() {
   uint64_t peer_max_pbft_round = 1;
   uint64_t peer_max_pbft_chain_size = 1;
   uint64_t peer_max_node_dag_level = 1;
-  size_t peers_size;
-  {
-    boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
-    peers_size = peers_.size();
-    for (auto const &peer : peers_) {
-      // Find max pbft chain size
-      if (peer.second->pbft_chain_size_ > peer_max_pbft_chain_size) {
-        peer_max_pbft_chain_size = peer.second->pbft_chain_size_;
-        max_pbft_chain_nodeID = peer.first;
-      }
+  const size_t peers_size = peers_state_.getPeersCount();
+  for (auto const &peer : peers_state_.getAllPeers()) {
+    // Find max pbft chain size
+    if (peer.second->pbft_chain_size_ > peer_max_pbft_chain_size) {
+      peer_max_pbft_chain_size = peer.second->pbft_chain_size_;
+      max_pbft_chain_nodeID = peer.first;
+    }
 
-      // Find max dag level
-      if (peer.second->dag_level_ > peer_max_node_dag_level) {
-        peer_max_node_dag_level = peer.second->dag_level_;
-        max_node_dag_level_nodeID = peer.first;
-      }
+    // Find max dag level
+    if (peer.second->dag_level_ > peer_max_node_dag_level) {
+      peer_max_node_dag_level = peer.second->dag_level_;
+      max_node_dag_level_nodeID = peer.first;
+    }
 
-      // Find max peer PBFT round
-      if (peer.second->pbft_round_ > peer_max_pbft_round) {
-        peer_max_pbft_round = peer.second->pbft_round_;
-        max_pbft_round_nodeID = peer.first;
-      }
+    // Find max peer PBFT round
+    if (peer.second->pbft_round_ > peer_max_pbft_round) {
+      peer_max_pbft_round = peer.second->pbft_round_;
+      max_pbft_round_nodeID = peer.first;
     }
   }
 
@@ -1627,12 +1514,10 @@ void TaraxaCapability::logPacketsStats() {
 
 void TaraxaCapability::onNewPbftVote(taraxa::Vote const &vote) {
   std::vector<NodeID> peers_to_send;
-  {
-    boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
-    for (auto const &peer : peers_) {
-      if (!peer.second->isVoteKnown(vote.getHash())) {
-        peers_to_send.push_back(peer.first);
-      }
+
+  for (auto const &peer : peers_state_.getAllPeers()) {
+    if (!peer.second->isVoteKnown(vote.getHash())) {
+      peers_to_send.push_back(peer.first);
     }
   }
   for (auto const &peerID : peers_to_send) {
@@ -1641,7 +1526,7 @@ void TaraxaCapability::onNewPbftVote(taraxa::Vote const &vote) {
 }
 
 void TaraxaCapability::sendPbftVote(NodeID const &peerID, taraxa::Vote const &vote) {
-  auto peer = getPeer(peerID);
+  auto peer = peers_state_.getPeer(peerID);
   // TODO: We should disable PBFT votes when a node is bootstrapping but not when trying to resync
   if (peer) {
     if (sealAndSend(peerID, PbftVotePacket, RLPStream(1) << vote.rlp(true))) {
@@ -1654,12 +1539,10 @@ void TaraxaCapability::sendPbftVote(NodeID const &peerID, taraxa::Vote const &vo
 void TaraxaCapability::onNewPbftBlock(taraxa::PbftBlock const &pbft_block) {
   std::vector<NodeID> peers_to_send;
   auto my_chain_size = pbft_chain_->getPbftChainSize();
-  {
-    boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
-    for (auto const &peer : peers_) {
-      if (!peer.second->isPbftBlockKnown(pbft_block.getBlockHash())) {
-        peers_to_send.push_back(peer.first);
-      }
+
+  for (auto const &peer : peers_state_.getAllPeers()) {
+    if (!peer.second->isPbftBlockKnown(pbft_block.getBlockHash())) {
+      peers_to_send.push_back(peer.first);
     }
   }
 
@@ -1840,23 +1723,22 @@ void TaraxaCapability::syncPbftNextVotes(uint64_t const pbft_round, size_t const
   NodeID peer_node_ID;
   uint64_t peer_max_pbft_round = 1;
   size_t peer_max_previous_round_next_votes_size = 0;
-  {
-    boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
-    // Find max peer PBFT round
-    for (auto const &peer : peers_) {
-      if (peer.second->pbft_round_ > peer_max_pbft_round) {
-        peer_max_pbft_round = peer.second->pbft_round_;
-        peer_node_ID = peer.first;
-      }
-    }
+  const auto peers = peers_state_.getAllPeers();
 
-    if (pbft_round == peer_max_pbft_round) {
-      // No peers ahead, find peer PBFT previous round max next votes size
-      for (auto const &peer : peers_) {
-        if (peer.second->pbft_previous_round_next_votes_size_ > peer_max_previous_round_next_votes_size) {
-          peer_max_previous_round_next_votes_size = peer.second->pbft_previous_round_next_votes_size_;
-          peer_node_ID = peer.first;
-        }
+  // Find max peer PBFT round
+  for (auto const &peer : peers) {
+    if (peer.second->pbft_round_ > peer_max_pbft_round) {
+      peer_max_pbft_round = peer.second->pbft_round_;
+      peer_node_ID = peer.first;
+    }
+  }
+
+  if (pbft_round == peer_max_pbft_round) {
+    // No peers ahead, find peer PBFT previous round max next votes size
+    for (auto const &peer : peers) {
+      if (peer.second->pbft_previous_round_next_votes_size_ > peer_max_previous_round_next_votes_size) {
+        peer_max_previous_round_next_votes_size = peer.second->pbft_previous_round_next_votes_size_;
+        peer_node_ID = peer.first;
       }
     }
   }
@@ -1893,7 +1775,7 @@ void TaraxaCapability::sendPbftNextVotes(NodeID const &peerID, std::vector<Vote>
   if (sealAndSend(peerID, PbftNextVotesPacket, move(s))) {
     LOG(log_nf_next_votes_sync_) << "Send out size of " << send_next_votes_bundle.size() << " PBFT next votes to "
                                  << peerID;
-    if (auto peer = getPeer(peerID)) {
+    if (auto peer = peers_state_.getPeer(peerID)) {
       for (auto const &v : send_next_votes_bundle) {
         peer->markVoteAsKnown(v.getHash());
       }
@@ -1910,8 +1792,7 @@ void TaraxaCapability::broadcastPreviousRoundNextVotesBundle() {
 
   auto pbft_current_round = pbft_mgr_->getPbftRound();
 
-  boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
-  for (auto const &peer : peers_) {
+  for (auto const &peer : peers_state_.getAllPeers()) {
     // Nodes may vote at different values at previous round, so need less or equal
     if (!peer.second->syncing_ && peer.second->pbft_round_ <= pbft_current_round) {
       std::vector<Vote> send_next_votes_bundle;
@@ -1935,8 +1816,7 @@ Json::Value TaraxaCapability::getStatus() const {
   uint64_t peer_max_node_dag_level = 1;
 
   res["peers"] = Json::Value(Json::arrayValue);
-  boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
-  for (auto &peer : peers_) {
+  for (auto &peer : peers_state_.getAllPeers()) {
     Json::Value peer_status;
     peer_status["node_id"] = peer.first.toString();
     peer_status["dag_level"] = Json::UInt64(peer.second->dag_level_);

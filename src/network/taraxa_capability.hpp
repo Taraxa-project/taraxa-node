@@ -12,8 +12,8 @@
 #include "consensus/vote.hpp"
 #include "dag/dag_block_manager.hpp"
 #include "packets_stats.hpp"
+#include "peers_state.hpp"
 #include "syncing_state.hpp"
-#include "taraxa_peer.hpp"
 #include "transaction_manager/transaction.hpp"
 #include "util/thread_pool.hpp"
 #include "util/util.hpp"
@@ -91,12 +91,7 @@ struct TaraxaCapability : virtual CapabilityFace {
   void onNewBlockReceived(DagBlock block, std::vector<Transaction> transactions);
   void onNewBlockVerified(DagBlock const &block);
   void onNewTransactions(std::vector<taraxa::bytes> const &transactions, bool fromNetwork);
-  vector<NodeID> selectPeers(std::function<bool(TaraxaPeer const &)> const &_predicate);
-  vector<NodeID> getAllPeers() const;
-  vector<NodeID> getAllPendingPeers() const;
   Json::Value getStatus() const;
-  std::pair<std::vector<NodeID>, std::vector<NodeID>> randomPartitionPeers(std::vector<NodeID> const &_peers,
-                                                                           std::size_t _number);
   std::pair<int, int> retrieveTestData(NodeID const &_id);
   void sendBlock(NodeID const &_id, taraxa::DagBlock block);
   void sendSyncedMessage();
@@ -131,12 +126,17 @@ struct TaraxaCapability : virtual CapabilityFace {
   void broadcastPreviousRoundNextVotesBundle();
 
   // Peers
-  std::shared_ptr<TaraxaPeer> getPeer(NodeID const &node_id);
-  std::shared_ptr<TaraxaPeer> getPendingPeer(NodeID const &node_id);
-  unsigned int getPeersCount();
-  void erasePeer(NodeID const &node_id);
-  std::shared_ptr<TaraxaPeer> addPendingPeer(NodeID const &node_id);
-  std::shared_ptr<TaraxaPeer> setPeerAsReadyToSendMessages(NodeID const &node_id, std::shared_ptr<TaraxaPeer> peer);
+  std::shared_ptr<TaraxaPeer> getPeer(dev::p2p::NodeID const &node_id) const { return peers_state_.getPeer(node_id); }
+  std::shared_ptr<TaraxaPeer> getPendingPeer(dev::p2p::NodeID const &node_id) const {
+    return peers_state_.getPendingPeer(node_id);
+  }
+  size_t getPeersCount() const { return peers_state_.getPeersCount(); }
+  std::vector<dev::p2p::NodeID> getAllPeersIDs() const { return peers_state_.getAllPeersIDs(); }
+  std::vector<dev::p2p::NodeID> getAllPendingPeers() const { return peers_state_.getAllPendingPeers(); }
+  std::shared_ptr<TaraxaPeer> setPeerAsReadyToSendMessages(dev::p2p::NodeID const &node_id,
+                                                           std::shared_ptr<TaraxaPeer> peer) {
+    return peers_state_.setPeerAsReadyToSendMessages(node_id, peer);
+  }
 
  private:
   void handle_read_exception(weak_ptr<Session> session, unsigned _id);
@@ -147,6 +147,7 @@ struct TaraxaCapability : virtual CapabilityFace {
 
   util::ThreadPool syncing_tp_{1, false};
   SyncingState syncing_state_;
+  PeersState peers_state_;
 
   std::unordered_map<NodeID, int> cnt_received_messages_;
   std::unordered_map<NodeID, int> test_sums_;
@@ -167,12 +168,8 @@ struct TaraxaCapability : virtual CapabilityFace {
   std::shared_ptr<TransactionManager> trx_mgr_;
   uint32_t lambda_ms_min_;
 
-  std::unordered_map<NodeID, std::shared_ptr<TaraxaPeer>> peers_;
-  std::unordered_map<NodeID, std::shared_ptr<TaraxaPeer>> pending_peers_;
-  mutable boost::shared_mutex peers_mutex_;
   NetworkConfig conf_;
   std::string genesis_;
-  mutable std::mt19937_64 urng_;  // Mersenne Twister psuedo-random number generator
   std::mt19937 delay_rng_;
   std::uniform_int_distribution<std::mt19937::result_type> random_dist_;
   uint16_t check_alive_interval_ = 0;
