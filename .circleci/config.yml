@@ -312,14 +312,18 @@ jobs:
          when: on_success
          comment: "\
            <h3><p>PR NET pr-<< pipeline.parameters.pr_number >> Successfully deployed!</p></h3>\ 
-           <p>explorer=<a href=https://explorer-pr-<< pipeline.parameters.pr_number >> > https://explorer-pr-<<pipeline.parameters.pr_number >> </a></p> \
-           <p>RPC=<a href=https://rpc-pr-<< pipeline.parameters.pr_number >> https://rpc-pr-<< pipeline.parameters.pr_number.prnet.taraxa.io >> </a></p>\
+           <table>\
+           <tr><td>explorer</td><td><a href=https://explorer-pr-<<pipeline.parameters.pr_number>>.prnet.taraxa.io >\ 
+                               https://explorer-pr-<<pipeline.parameters.pr_number>>.prnet.taraxa.io </a></td></tr> \
+           <tr><td>RPC</td><td><a href=https://rpc-pr-<<pipeline.parameters.pr_number>>.prnet.taraxa.io >\ 
+                          https://rpc-pr-<<pipeline.parameters.pr_number>>.prnet.taraxa.io </a></td></tr>\
+           </table>\
            <h4><p>Boot Nodes</p></h4>\
-           <ol>
-            <li><p>Boot Node 1=${PRNET_IPS[0]}</p></li>\ 
-            <li><p>Boot Node2=${PRNET_IPS[1]}</p></li>\
-            <li><p>Boot Node 3=${PRNET_IPS[2]}</p></li>\
-           </ol>"
+           <table>\
+            <tr><td>Boot Node 1</td><td>${PRNET_IPS[0]}</td></tr>\
+            <tr><td>Boot Node 2</td><td>${PRNET_IPS[1]}</td></tr>\
+            <tr><td>Boot Node 3</td><td>${PRNET_IPS[2]}</td></tr>\
+           </table>"
          pr_number: << pipeline.parameters.pr_number >>
       - cleanup_testnet_chart:
          when: on_fail
@@ -350,7 +354,20 @@ jobs:
           pr-name: << pipeline.parameters.pr_number >>
       - pr_comment:
          when: on_success
-         comment: "ReDeployed prnet successfully"
+         comment: "\
+           <h3><p>PR NET pr-<< pipeline.parameters.pr_number >> Successfully deployed!</p></h3>\ 
+           <table>\
+           <tr><td>explorer</td><td><a href=https://explorer-pr-<<pipeline.parameters.pr_number>>.prnet.taraxa.io >\ 
+                               https://explorer-pr-<<pipeline.parameters.pr_number>>.prnet.taraxa.io </a></td></tr> \
+           <tr><td>RPC</td><td><a href=https://rpc-pr-<<pipeline.parameters.pr_number>>.prnet.taraxa.io >\ 
+                          https://rpc-pr-<<pipeline.parameters.pr_number>>.prnet.taraxa.io </a></td></tr>\
+           </table>\
+           <h4><p>Boot Nodes</p></h4>\
+           <table>\
+            <tr><td>Boot Node 1</td><td>${PRNET_IPS[0]}</td></tr>\
+            <tr><td>Boot Node 2</td><td>${PRNET_IPS[1]}</td></tr>\
+            <tr><td>Boot Node 3</td><td>${PRNET_IPS[2]}</td></tr>\
+           </table>"
          pr_number: << pipeline.parameters.pr_number >>
       - cleanup_testnet_chart:
           pr-name: << pipeline.parameters.pr_number >>
