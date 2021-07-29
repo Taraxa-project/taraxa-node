@@ -213,8 +213,8 @@ class VoteManager {
   // Unverified votes
   bool addUnverifiedVote(Vote const& vote);
   void addUnverifiedVotes(std::vector<Vote> const& votes);
-  void removeUnverifiedVote(uint64_t const& pbft_round, vote_hash_t const& vote_hash);
-  bool voteInUnverifiedMap(uint64_t const& pbft_round, vote_hash_t const& vote_hash);
+  void removeUnverifiedVote(uint64_t const pbft_round, vote_hash_t const& vote_hash);
+  bool voteInUnverifiedMap(uint64_t const pbft_round, vote_hash_t const& vote_hash);
   std::vector<Vote> getUnverifiedVotes();
   void clearUnverifiedVotesTable();
   uint64_t getUnverifiedVotesSize() const;
@@ -227,24 +227,23 @@ class VoteManager {
 
   void removeVerifiedVotes();
 
-  void verifyVotes(uint64_t const& pbft_round, size_t const& sortition_threshold,
-                   uint64_t const& dpos_total_votes_count,
+  void verifyVotes(uint64_t const pbft_round, size_t const sortition_threshold, uint64_t const dpos_total_votes_count,
                    std::function<size_t(addr_t const&)> const& dpos_eligible_vote_count);
 
-  void cleanupVotes(uint64_t const& pbft_round);
+  void cleanupVotes(uint64_t const pbft_round);
 
-  bool voteValidation(Vote& vote, size_t const& valid_sortition_players, size_t const& sortition_threshold) const;
+  bool voteValidation(Vote& vote, size_t const valid_sortition_players, size_t const sortition_threshold) const;
 
   bool pbftBlockHasEnoughValidCertVotes(SyncBlock& pbft_block_and_votes, size_t valid_sortition_players,
                                         size_t sortition_threshold, size_t pbft_2t_plus_1) const;
 
   std::string getJsonStr(std::vector<Vote> const& votes);
 
-  std::vector<Vote> getProposalVotes(uint64_t const& pbft_round);
+  std::vector<Vote> getProposalVotes(uint64_t const pbft_round);
 
-  votesBundle getVotesBundleByRoundAndStep(uint64_t const& round, size_t const& step, size_t const& two_t_plus_one);
+  votesBundle getVotesBundleByRoundAndStep(uint64_t const round, size_t const step, size_t const two_t_plus_one);
 
-  uint64_t roundDeterminedFromVotes(size_t const& two_t_plus_one);
+  uint64_t roundDeterminedFromVotes(size_t const two_t_plus_one);
 
  private:
   void retreieveVotes_();
