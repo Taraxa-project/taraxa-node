@@ -22,7 +22,6 @@ class FinalChainImpl final : public FinalChain {
 
   size_t transaction_count_hint_;
   util::ThreadPool executor_thread_{1};
-  util::task_executor_t executor_ = executor_thread_.strand();
 
   atomic<uint64_t> num_executed_dag_blk_ = 0;
   atomic<uint64_t> num_executed_trx_ = 0;
@@ -78,8 +77,8 @@ class FinalChainImpl final : public FinalChain {
   future<shared_ptr<FinalizationResult>> finalize(NewBlock new_blk,
                                                   finalize_precommit_ext precommit_ext = {}) override {
     auto p = make_shared<promise<shared_ptr<FinalizationResult>>>();
-    executor_([this, s = shared_from_this(), new_blk = move(new_blk), precommit_ext = move(precommit_ext),
-               p]() mutable { p->set_value(finalize_(move(new_blk), precommit_ext)); });
+    executor_thread_.post([this, s = shared_from_this(), new_blk = move(new_blk), precommit_ext = move(precommit_ext),
+                           p]() mutable { p->set_value(finalize_(move(new_blk), precommit_ext)); });
     return p->get_future();
   }
 
