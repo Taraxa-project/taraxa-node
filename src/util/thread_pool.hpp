@@ -49,10 +49,6 @@ class ThreadPool : std::enable_shared_from_this<ThreadPool> {
   operator task_executor_t() {
     return [this](auto &&task) { post(std::forward<task_t>(task)); };
   }
-
-  task_executor_t strand() {
-    return [s = boost::asio::make_strand(ioc_)](auto &&task) { boost::asio::post(s, std::forward<task_t>(task)); };
-  }
 };
 
 }  // namespace taraxa::util
