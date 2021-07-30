@@ -659,8 +659,6 @@ bool PbftManager::stateOperations_() {
   LOG(log_tr_) << "PBFT current round is " << round;
   LOG(log_tr_) << "PBFT current step is " << step_;
 
-  if (is_syncing_()) return true;
-
   // Get votes
   votes_ = vote_mgr_->getVerifiedVotes(round, sortition_threshold_, getDposTotalVotesCount(),
                                        [this](auto const &addr) { return dpos_eligible_vote_count_(addr); });
