@@ -234,12 +234,12 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
     peer = peers_state_.getPendingPeer(_nodeID);
     if (!peer) {
       // It should not be possible to get here but log it just in case
-      LOG(log_er_) << "Peer missing in peers map, peer " << _nodeID.abridged() << " will be disconnected";
+      LOG(log_wr_) << "Peer missing in peers map, peer " << _nodeID.abridged() << " will be disconnected";
       host->disconnect(_nodeID, p2p::UserReason);
       return;
     }
     if (_id != StatusPacket) {
-      LOG(log_er_) << "Connected peer did not send status message, peer " << _nodeID.abridged()
+      LOG(log_wr_) << "Connected peer did not send status message, peer " << _nodeID.abridged()
                    << " will be disconnected";
       host->disconnect(_nodeID, p2p::UserReason);
       return;
@@ -693,7 +693,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       // Stop syncing if too many sync requests or if the rest of the node is busy
       if (blocks_to_transfer > 0) {
         if (syncing_tp_.num_pending_tasks() >= MAX_SYNCING_NODES) {
-          LOG(log_er_pbft_sync_) << "Node is already serving max syncing nodes, host " << _nodeID.abridged()
+          LOG(log_wr_pbft_sync_) << "Node is already serving max syncing nodes, host " << _nodeID.abridged()
                                  << " will be disconnected";
           host->disconnect(_nodeID, p2p::UserReason);
           break;

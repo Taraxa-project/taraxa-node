@@ -158,40 +158,39 @@ void DagBlockManager::processSyncedBlockWithTransactions(const DagBlock &blk,
     return;
   }
 
-  std::unordered_set<trx_hash_t> known_trx_hashes(all_block_trx_hashes.begin(), all_block_trx_hashes.end());
+  DbStorage::MultiGetQuery db_query(db_);
+  db_query.append(DbStorage::Columns::trx_status, all_block_trx_hashes);
+  auto db_trxs_statuses = db_query.execute();
+
+  std::unordered_map<trx_hash_t, Transaction> known_trx(transactions.size());
+
+  std::transform(transactions.begin(), transactions.end(), std::inserter(known_trx, known_trx.end()),
+                 [](Transaction const &t) { return std::make_pair(t.getHash(), t); });
 
   // Filter known txs + save unseen txs to the db
   auto trx_batch = db_->createWriteBatch();
-  for (auto const &trx : transactions) {
-    known_trx_hashes.erase(trx.getHash());
-
-    if (db_->getTransactionStatus(trx.getHash()) == TransactionStatus::not_seen) {
-      db_->addTransactionToBatch(trx, trx_batch);
+  size_t newly_added_txs_to_block_counter = all_block_trx_hashes.size();
+  for (size_t idx = 0; idx < db_trxs_statuses.size(); ++idx) {
+    const TransactionStatus &status = db_trxs_statuses[idx].empty()
+                                          ? TransactionStatus::not_seen
+                                          : (TransactionStatus) * (uint16_t *)&db_trxs_statuses[idx][0];
+    const trx_hash_t &trx_hash = all_block_trx_hashes[idx];
+    if (status == TransactionStatus::not_seen) {
+      if (known_trx.count(trx_hash)) {
+        db_->addTransactionToBatch(known_trx[trx_hash], trx_batch);
+      } else {
+        LOG(log_er_) << "Ignore block " << block_hash << " since it has missing transaction " << trx_hash;
+        blk_status_.update(block_hash, BlockStatus::invalid);
+        return;
+      }
+    } else if (status == TransactionStatus::in_block) {
+      newly_added_txs_to_block_counter--;
+      continue;
     }
-  }
-  db_->commitWriteBatch(trx_batch);
-
-  // Check if all known txs have really been already seen
-  for (auto const &trx : known_trx_hashes) {
-    if (db_->getTransactionStatus(trx) == TransactionStatus::not_seen) {
-      LOG(log_er_) << "Ignore block " << block_hash << " since it has missing transaction " << trx;
-      blk_status_.update(block_hash, BlockStatus::invalid);
-      return;
-    }
+    db_->addTransactionStatusToBatch(trx_batch, trx_hash, TransactionStatus::in_block);
   }
 
-  // Update txs status to TransactionStatus::in_block
-  size_t newly_added_txs_to_block_counter = 0;
-  trx_batch = db_->createWriteBatch();
-  for (auto const &trx : all_block_trx_hashes) {
-    if (db_->getTransactionStatus(trx) != TransactionStatus::in_block) {
-      db_->addTransactionStatusToBatch(trx_batch, trx, TransactionStatus::in_block);
-      newly_added_txs_to_block_counter++;
-    }
-  }
   trx_mgr_->addTrxCount(newly_added_txs_to_block_counter);
-
-  // Write prepared batch to db
   db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_mgr_->getTransactionCount(), trx_batch);
   db_->commitWriteBatch(trx_batch);
 
