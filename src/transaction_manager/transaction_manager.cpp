@@ -366,39 +366,47 @@ bool TransactionManager::verifyBlockTransactions(DagBlock const &blk, std::vecto
     return false;
   }
 
-  std::unordered_set<trx_hash_t> known_trx_hashes(all_block_trx_hashes.begin(), all_block_trx_hashes.end());
+  DbStorage::MultiGetQuery db_query(db_);
+  db_query.append(DbStorage::Columns::trx_status, all_block_trx_hashes);
+  auto db_trxs_statuses = db_query.execute(false);
 
-  auto trx_batch = db_->createWriteBatch();
-  for (auto const &trx : trxs) {
-    const auto hash = trx.getHash();
-    known_trx_hashes.erase(hash);
-    auto status = db_->getTransactionStatus(hash);
-    if (status == TransactionStatus::in_queue_unverified || status == TransactionStatus::not_seen) {
-      if (auto valid = verifyTransaction(trx); !valid.first) {
-        LOG(log_er_) << "Block " << blk.getHash() << " has invalid transaction " << hash.toString() << " "
-                     << valid.second;
-        return false;
-      }
-      db_->addTransactionToBatch(trx, trx_batch, true);
-    }
-  }
+  std::unordered_map<trx_hash_t, Transaction> known_trx(trxs.size());
+
+  std::transform(trxs.begin(), trxs.end(), std::inserter(known_trx, known_trx.end()),
+                 [](Transaction const &t) { return std::make_pair(t.getHash(), t); });
 
   bool all_transactions_saved = true;
   trx_hash_t missing_trx;
-  for (auto const &trx : known_trx_hashes) {
-    auto status = db_->getTransactionStatus(trx);
-    if (status == TransactionStatus::not_seen) {
-      all_transactions_saved = false;
-      missing_trx = trx;
-      break;
-    } else if (status == TransactionStatus::in_queue_unverified) {
-      auto tx = db_->getTransaction(trx);
-      if (auto valid = verifyTransaction(*tx); !valid.first) {
-        LOG(log_er_) << "Block " << blk.getHash() << " has invalid transaction " << trx.toString() << " "
-                     << valid.second;
-        return false;
+  auto trx_batch = db_->createWriteBatch();
+  for (size_t idx = 0; idx < db_trxs_statuses.size(); ++idx) {
+    const TransactionStatus &status = db_trxs_statuses[idx].empty()
+                                          ? TransactionStatus::not_seen
+                                          : (TransactionStatus) * (uint16_t *)&db_trxs_statuses[idx][0];
+
+    if (status == TransactionStatus::in_queue_unverified || status == TransactionStatus::not_seen) {
+      const trx_hash_t &trx_hash = all_block_trx_hashes[idx];
+      if (known_trx.count(trx_hash)) {
+        if (const auto valid = verifyTransaction(known_trx[trx_hash]); !valid.first) {
+          LOG(log_er_) << "Block " << blk.getHash() << " has invalid transaction " << trx_hash.toString() << " "
+                       << valid.second;
+          return false;
+        }
+        db_->addTransactionToBatch(known_trx[trx_hash], trx_batch, true);
+
+      } else if (status == TransactionStatus::in_queue_unverified) {
+        auto tx = db_->getTransaction(trx_hash);
+        if (const auto valid = verifyTransaction(*tx); !valid.first) {
+          LOG(log_er_) << "Block " << blk.getHash() << " has invalid transaction " << trx_hash.toString() << " "
+                       << valid.second;
+          return false;
+        }
+        db_->addTransactionToBatch(*tx, trx_batch, true);
+
+      } else {
+        all_transactions_saved = false;
+        missing_trx = trx_hash;
+        break;
       }
-      db_->addTransactionToBatch(*tx, trx_batch, true);
     }
   }
 
@@ -406,15 +414,19 @@ bool TransactionManager::verifyBlockTransactions(DagBlock const &blk, std::vecto
 
   if (all_transactions_saved) {
     size_t newly_added_txs_to_block_counter = 0;
-    auto trx_batch = db_->createWriteBatch();
-    vector<trx_hash_t> accepted_trx_hashes;
+    trx_batch = db_->createWriteBatch();
+    std::vector<trx_hash_t> accepted_trx_hashes;
     accepted_trx_hashes.reserve(all_block_trx_hashes.size());
-    for (auto const &trx : all_block_trx_hashes) {
-      auto status = db_->getTransactionStatus(trx);
+    db_trxs_statuses = db_query.execute();
+    for (size_t idx = 0; idx < db_trxs_statuses.size(); ++idx) {
+      const TransactionStatus &status = db_trxs_statuses[idx].empty()
+                                            ? TransactionStatus::not_seen
+                                            : (TransactionStatus) * (uint16_t *)&db_trxs_statuses[idx][0];
       if (status != TransactionStatus::in_block) {
+        const trx_hash_t &trx_hash = all_block_trx_hashes[idx];
         newly_added_txs_to_block_counter++;
-        accepted_trx_hashes.emplace_back(trx);
-        db_->addTransactionStatusToBatch(trx_batch, trx, TransactionStatus::in_block);
+        accepted_trx_hashes.push_back(trx_hash);
+        db_->addTransactionStatusToBatch(trx_batch, trx_hash, TransactionStatus::in_block);
       }
     }
     // Write prepared batch to db
