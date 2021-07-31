@@ -631,7 +631,9 @@ void PbftManager::loopBackFinishState_() {
                << " | next_voted_soft_value_ = " << next_voted_soft_value_
                << " soft block = " << soft_voted_block_for_this_round_.first
                << " next_voted_null_block_hash_ = " << next_voted_null_block_hash_
-               << " cert voted = " << (cert_voted_values_for_round_.find(round) != cert_voted_values_for_round_.end());
+               << " cert voted = " << (cert_voted_values_for_round_.find(round) != cert_voted_values_for_round_.end())
+               << " last_soft_voted_value_ = " << last_soft_voted_value_
+               << " previous_round_next_voted_value_ = " << previous_round_next_voted_value_;
   state_ = finish_state;
   setPbftStep(step_ + 1);
   auto batch = db_->createWriteBatch();
