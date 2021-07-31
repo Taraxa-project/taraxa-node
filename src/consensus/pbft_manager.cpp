@@ -992,7 +992,8 @@ void PbftManager::secondFinish_() {
     }
   }
 
-  if (!next_voted_null_block_hash_ && round >= 2 && giveUpNextVotedBlock_() &&
+  if (!next_voted_null_block_hash_ && round >= 2 &&
+      (giveUpNextVotedBlock_() || step_ > MAX_WAIT_FOR_NEXT_VOTED_BLOCK_STEPS) &&
       (cert_voted_values_for_round_.find(round) == cert_voted_values_for_round_.end())) {
     auto place_votes = placeVote_(NULL_BLOCK_HASH, next_vote_type, round, step_);
     if (place_votes) {
@@ -1649,17 +1650,9 @@ bool PbftManager::giveUpNextVotedBlock_() {
     return true;
   }
 
-  if (step_ < 4 && previous_round_next_voted_value_ == last_soft_voted_value_ && giveUpSoftVotedBlock_() &&
+  if (previous_round_next_voted_value_ == last_soft_voted_value_ && giveUpSoftVotedBlock_() &&
       cert_voted_values_for_round_.find(getPbftRound()) == cert_voted_values_for_round_.end()) {
     LOG(log_tr_) << "Giving up next voted value " << previous_round_next_voted_value_
-                 << " because giving up soft voted value.";
-
-    return true;
-  }
-
-  if (step_ >= 4 && own_starting_value_for_round_ == last_soft_voted_value_ && giveUpSoftVotedBlock_() &&
-      cert_voted_values_for_round_.find(getPbftRound()) == cert_voted_values_for_round_.end()) {
-    LOG(log_tr_) << "Giving up own starting value " << own_starting_value_for_round_
                  << " because giving up soft voted value.";
 
     return true;
