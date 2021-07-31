@@ -1647,10 +1647,19 @@ bool PbftManager::giveUpNextVotedBlock_() {
     return true;
   }
 
-  if (previous_round_next_voted_value_ == last_soft_voted_value_ && giveUpSoftVotedBlock_() &&
+  if (step_ < 4 && previous_round_next_voted_value_ == last_soft_voted_value_ && giveUpSoftVotedBlock_() &&
       cert_voted_values_for_round_.find(getPbftRound()) == cert_voted_values_for_round_.end()) {
     LOG(log_tr_) << "Giving up next voted value " << previous_round_next_voted_value_
                  << " because giving up soft voted value.";
+
+    return true;
+  }
+
+  if (step_ >= 4 && own_starting_value_for_round_ == last_soft_voted_value_ && giveUpSoftVotedBlock_() &&
+      cert_voted_values_for_round_.find(getPbftRound()) == cert_voted_values_for_round_.end()) {
+    LOG(log_tr_) << "Giving up own starting value " << own_starting_value_for_round_
+                 << " because giving up soft voted value.";
+
     return true;
   }
 

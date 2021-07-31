@@ -100,7 +100,6 @@ VoteManager::~VoteManager() { daemon_->join(); }
 void VoteManager::setNetwork(std::weak_ptr<Network> network) { network_ = move(network); }
 
 void VoteManager::retreieveVotes_() {
-  
   auto unverified_votes = db_->getUnverifiedVotes();
   for (auto const& v : unverified_votes) {
     auto pbft_round = v.getRound();
