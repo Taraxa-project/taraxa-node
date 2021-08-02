@@ -12,8 +12,6 @@ class DbStorage;
 
 namespace taraxa::network::tarcap {
 
-class SyncingState;
-
 class VotePacketsHandler : public PacketHandler {
  public:
   VotePacketsHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PbftManager> pbft_mgr,

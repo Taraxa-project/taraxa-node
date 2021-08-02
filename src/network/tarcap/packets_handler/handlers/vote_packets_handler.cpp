@@ -10,10 +10,10 @@ VotePacketsHandler::VotePacketsHandler(std::shared_ptr<PeersState> peers_state, 
                                        std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr,
                                        std::shared_ptr<DbStorage> db, const addr_t &node_addr)
     : PacketHandler(std::move(peers_state), node_addr, "VOTE_PH"),
-      pbft_mgr_(pbft_mgr),
-      vote_mgr_(vote_mgr),
-      next_votes_mgr_(next_votes_mgr),
-      db_(db) {}
+      pbft_mgr_(std::move(pbft_mgr)),
+      vote_mgr_(std::move(vote_mgr)),
+      next_votes_mgr_(std::move(next_votes_mgr)),
+      db_(std::move(db)) {}
 
 void VotePacketsHandler::process(const PacketData &packet_data, const dev::RLP &packet_rlp) {
   if (packet_data.type_ == PbftVotePacket) {
@@ -129,7 +129,7 @@ inline void VotePacketsHandler::processPbftNextVotesPacket(const PacketData &pac
       // Update our previous round next vote bundles...
       next_votes_mgr_->updateWithSyncedVotes(next_votes, pbft_2t_plus_1);
       // Pass them on to our peers...
-      boost::shared_lock<boost::shared_mutex> lock(peers_state_->peers_mutex_);
+      std::shared_lock lock(peers_state_->peers_mutex_);
       const auto updated_next_votes_size = next_votes_mgr_->getNextVotesSize();
       for (auto const &peer_to_share_to : peers_state_->peers_) {
         // Do not send votes right back to same peer...
@@ -167,7 +167,7 @@ void VotePacketsHandler::sendPbftVote(NodeID const &peer_id, Vote const &vote) {
 void VotePacketsHandler::onNewPbftVote(Vote const &vote) {
   std::vector<NodeID> peers_to_send;
   {
-    boost::shared_lock<boost::shared_mutex> lock(peers_state_->peers_mutex_);
+    std::shared_lock lock(peers_state_->peers_mutex_);
     for (auto const &peer : peers_state_->peers_) {
       if (!peer.second->isVoteKnown(vote.getHash())) {
         peers_to_send.push_back(peer.first);

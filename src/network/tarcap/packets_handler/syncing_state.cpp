@@ -2,6 +2,7 @@
 
 #include "consensus/pbft_chain.hpp"
 #include "dag/dag.hpp"
+#include "dag/dag_block.hpp"
 #include "dag/dag_block_manager.hpp"
 #include "network/tarcap/packet_types.hpp"
 #include "peers_state.hpp"
@@ -29,7 +30,7 @@ void SyncingState::restartSyncingPbft(bool force) {
   uint64_t max_pbft_chain_size = 0;
   uint64_t max_node_dag_level = 0;
   {
-    boost::shared_lock<boost::shared_mutex> lock(peers_state_->peers_mutex_);
+    std::shared_lock lock(peers_state_->peers_mutex_);
     if (peers_state_->peers_.empty()) {
       LOG(log_nf_) << "Restarting syncing PBFT not possible since no connected peers";
       return;
@@ -107,12 +108,12 @@ void SyncingState::requestBlocks(const dev::p2p::NodeID &_nodeID, std::vector<bl
   peers_state_->sealAndSend(_nodeID, SubprotocolPacketType::GetBlocksPacket, s);
 }
 
-void SyncingState::syncPbftNextVotes(uint64_t const pbft_round, size_t const pbft_previous_round_next_votes_size) {
+void SyncingState::syncPbftNextVotes(uint64_t pbft_round, size_t pbft_previous_round_next_votes_size) {
   dev::p2p::NodeID peer_node_ID;
   uint64_t peer_max_pbft_round = 1;
   size_t peer_max_previous_round_next_votes_size = 0;
   {
-    boost::shared_lock<boost::shared_mutex> lock(peers_state_->peers_mutex_);
+    std::shared_lock lock(peers_state_->peers_mutex_);
     // Find max peer PBFT round
     for (auto const &peer : peers_state_->peers_) {
       if (peer.second->pbft_round_ > peer_max_pbft_round) {
@@ -144,8 +145,8 @@ void SyncingState::syncPbftNextVotes(uint64_t const pbft_round, size_t const pbf
   }
 }
 
-void SyncingState::requestPbftNextVotes(dev::p2p::NodeID const &peerID, uint64_t const pbft_round,
-                                        size_t const pbft_previous_round_next_votes_size) {
+void SyncingState::requestPbftNextVotes(dev::p2p::NodeID const &peerID, uint64_t pbft_round,
+                                        size_t pbft_previous_round_next_votes_size) {
   // TODO: was log_dg_next_votes_sync_
   LOG(log_dg_) << "Sending GetPbftNextVotes with round " << pbft_round << " previous round next votes size "
                << pbft_previous_round_next_votes_size;
@@ -164,6 +165,45 @@ void SyncingState::processDisconnect(const dev::p2p::NodeID &node_id) {
       set_dag_syncing(false);
     }
   }
+}
+
+std::pair<bool, std::vector<blk_hash_t>> SyncingState::checkDagBlockValidation(DagBlock const &block) const {
+  std::vector<blk_hash_t> missing_blks;
+
+  if (dag_blk_mgr_->getDagBlock(block.getHash())) {
+    // The DAG block exist
+    return std::make_pair(true, missing_blks);
+  }
+
+  level_t expected_level = 0;
+  for (auto const &tip : block.getTips()) {
+    auto tip_block = dag_blk_mgr_->getDagBlock(tip);
+    if (!tip_block) {
+      LOG(log_er_) << "Block " << block.getHash().toString() << " has a missing tip " << tip.toString();
+      missing_blks.push_back(tip);
+    } else {
+      expected_level = std::max(tip_block->getLevel(), expected_level);
+    }
+  }
+
+  const auto pivot = block.getPivot();
+  const auto pivot_block = dag_blk_mgr_->getDagBlock(pivot);
+  if (!pivot_block) {
+    LOG(log_er_) << "Block " << block.getHash().toString() << " has a missing pivot " << pivot.toString();
+    missing_blks.push_back(pivot);
+  }
+
+  if (missing_blks.size()) return std::make_pair(false, missing_blks);
+
+  expected_level = std::max(pivot_block->getLevel(), expected_level);
+  expected_level++;
+  if (expected_level != block.getLevel()) {
+    LOG(log_er_) << "Invalid block level " << block.getLevel() << " for block " << block.getHash()
+                 << " . Expected level " << expected_level;
+    return std::make_pair(false, missing_blks);
+  }
+
+  return std::make_pair(true, missing_blks);
 }
 
 void SyncingState::set_peer(const dev::p2p::NodeID &peer_id) {

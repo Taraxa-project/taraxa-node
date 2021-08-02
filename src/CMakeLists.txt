@@ -49,9 +49,16 @@ set(SOURCES
         network/tarcap/packets_handler/peers_state.hpp
         network/tarcap/packets_handler/packets_handler.hpp
         network/tarcap/packets_handler/taraxa_peer.hpp
+        network/tarcap/packets_handler/handlers/blocks_packet_handler.hpp
+        network/tarcap/packets_handler/handlers/dag_packets_handler.hpp
+        network/tarcap/packets_handler/handlers/get_blocks_packet_handler.hpp
+        network/tarcap/packets_handler/handlers/get_pbft_block_packet_handler.hpp
+        network/tarcap/packets_handler/handlers/new_pbft_block_packet_handler.hpp
         network/tarcap/packets_handler/handlers/packet_handler.hpp
+        network/tarcap/packets_handler/handlers/pbft_block_packet_handler.hpp
         network/tarcap/packets_handler/handlers/status_packet_handler.hpp
         network/tarcap/packets_handler/handlers/test_packet_handler.hpp
+        network/tarcap/packets_handler/handlers/transaction_packet_handler.hpp
         network/tarcap/packets_handler/handlers/vote_packets_handler.hpp
         network/tarcap/packets_handler/packets_stats/packets_stats.hpp
         network/tarcap/packets_handler/packets_stats/packets_avg_stats.hpp
@@ -134,9 +141,16 @@ set(SOURCES
         network/tarcap/packets_handler/peers_state.cpp
         network/tarcap/packets_handler/packets_handler.cpp
         network/tarcap/packets_handler/syncing_state.cpp
+        network/tarcap/packets_handler/handlers/blocks_packet_handler.cpp
+        network/tarcap/packets_handler/handlers/dag_packets_handler.cpp
+        network/tarcap/packets_handler/handlers/get_blocks_packet_handler.cpp
+        network/tarcap/packets_handler/handlers/get_pbft_block_packet_handler.cpp
+        network/tarcap/packets_handler/handlers/new_pbft_block_packet_handler.cpp
         network/tarcap/packets_handler/handlers/packet_handler.cpp
+        network/tarcap/packets_handler/handlers/pbft_block_packet_handler.cpp
         network/tarcap/packets_handler/handlers/status_packet_handler.cpp
         network/tarcap/packets_handler/handlers/test_packet_handler.cpp
+        network/tarcap/packets_handler/handlers/transaction_packet_handler.cpp
         network/tarcap/packets_handler/handlers/vote_packets_handler.cpp
         network/tarcap/packets_handler/packets_stats/packets_avg_stats.cpp
         network/tarcap/packets_handler/packets_stats/packets_stats.cpp

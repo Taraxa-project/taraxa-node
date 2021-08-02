@@ -14,9 +14,9 @@ StatusPacketHandler::StatusPacketHandler(std::shared_ptr<PeersState> peers_state
                                          std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DagManager> dag_mgr,
                                          uint64_t conf_network_id, const addr_t& node_addr)
     : PacketHandler(std::move(peers_state), node_addr, "Status_PH"),
-      syncing_state_(syncing_state),
-      pbft_chain_(pbft_chain),
-      dag_mgr_(dag_mgr),
+      syncing_state_(std::move(syncing_state)),
+      pbft_chain_(std::move(pbft_chain)),
+      dag_mgr_(std::move(dag_mgr)),
       conf_network_id_(conf_network_id) {}
 
 void StatusPacketHandler::process(const PacketData& packet_data, const dev::RLP& packet_rlp) {
@@ -180,8 +180,8 @@ void StatusPacketHandler::checkLiveness() {
     return;
   }
 
-  boost::shared_lock<boost::shared_mutex> lock(peers_state_->peers_mutex_);
-  for (auto const &peer : peers_state_->peers_) {
+  std::shared_lock lock(peers_state_->peers_mutex_);
+  for (auto const& peer : peers_state_->peers_) {
     // Disconnect any node that did not send any message for 3 status intervals
     if (!peer.second->isAlive(MAX_CHECK_ALIVE_COUNT)) {
       host->disconnect(peer.first, p2p::PingTimeout);
