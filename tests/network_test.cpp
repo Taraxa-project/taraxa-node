@@ -205,7 +205,7 @@ TEST_F(NetworkTest, transfer_transaction) {
   nw1->start();
   nw2->start();
 
-  EXPECT_HAPPENS({10s, 200ms}, [&](auto& ctx) {
+  EXPECT_HAPPENS({15s,500ms}, [&](auto& ctx) {
     nw1->setPendingPeersToReady();
     nw2->setPendingPeersToReady();
     WAIT_EXPECT_EQ(ctx, nw1->getPeerCount(), 1)
