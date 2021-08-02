@@ -704,8 +704,8 @@ jobs:
               brew install solidity
         - restore_cache:
            keys:
-            - conan-cache-v4-mac-{{ checksum "conanfile.py" }}
-            - conan-cache-v4-mac
+            - conan-cache-v5-mac-{{ checksum "conanfile.py" }}
+            - conan-cache-v5-mac
         - run:
            name: add conan bincrafters remote
            command: conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan"
@@ -721,7 +721,7 @@ jobs:
         - save_cache:
            paths:
              - ~/.conan
-           key: conan-cache-v4-mac-{{ checksum "conanfile.py" }}
+           key: conan-cache-v5-mac-{{ checksum "conanfile.py" }}
         - run:
            name: Cmake
            command: |
@@ -777,7 +777,7 @@ jobs:
            command: conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan"
         - run:
            name: Conan
-           command: conan install -if $BUILD_OUTPUT_DIR --build missing -s build_type=Release .
+           command: conan install -if $BUILD_OUTPUT_DIR --build missing -s build_type=Debug .
         - save_cache:
            paths:
              - ~/.conan
@@ -786,7 +786,7 @@ jobs:
             name: Cmake
             command: |
               cd $BUILD_OUTPUT_DIR &&
-              cmake -DCMAKE_BUILD_TYPE=Release \
+              cmake -DCMAKE_BUILD_TYPE=Debug \
               -DTARAXA_STATIC_BUILD=ON \
               -DTARAXAD_INSTALL_DIR=./bin_install \
               -DTARAXAD_CONF_INSTALL_DIR=./bin_install \
