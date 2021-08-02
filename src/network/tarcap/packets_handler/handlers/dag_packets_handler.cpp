@@ -13,10 +13,10 @@ DagPacketsHandler::DagPacketsHandler(std::shared_ptr<PeersState> peers_state,
                                      uint16_t network_min_dag_block_broadcast, uint16_t network_max_dag_block_broadcast,
                                      const addr_t &node_addr)
     : PacketHandler(std::move(peers_state), node_addr, "DAG_BLOCK_PH"),
-      syncing_state_(syncing_state),
-      trx_mgr_(trx_mgr),
-      dag_blk_mgr_(dag_blk_mgr),
-      db_(db),
+      syncing_state_(std::move(syncing_state)),
+      trx_mgr_(std::move(trx_mgr)),
+      dag_blk_mgr_(std::move(dag_blk_mgr)),
+      db_(std::move(db)),
       urng_(std::mt19937_64(std::random_device()())),
       network_min_dag_block_broadcast_(network_min_dag_block_broadcast),
       network_max_dag_block_broadcast_(network_max_dag_block_broadcast) {}
@@ -60,8 +60,8 @@ inline void DagPacketsHandler::processNewBlockPacket(const PacketData &packet_da
   std::vector<Transaction> new_transactions;
   for (size_t i_transaction = 1; i_transaction < transactions_count + 1; i_transaction++) {
     Transaction transaction(packet_rlp[i_transaction].data().toBytes());
-    new_transactions.push_back(transaction);
     peer_->markTransactionAsKnown(transaction.getHash());
+    new_transactions.push_back(std::move(transaction));
   }
 
   peer_->markBlockAsKnown(hash);
@@ -72,7 +72,6 @@ inline void DagPacketsHandler::processNewBlockPacket(const PacketData &packet_da
 inline void DagPacketsHandler::processNewBlockHashPacket(const PacketData &packet_data, const dev::RLP &packet_rlp) {
   blk_hash_t const hash(packet_rlp[0]);
   LOG(log_dg_) << "Received NewBlockHashPacket " << hash.toString();
-  peer_->markBlockAsKnown(hash);
 
   if (dag_blk_mgr_) {
     if (!dag_blk_mgr_->isBlockKnown(hash) && block_requestes_set_.count(hash) == 0) {
@@ -84,11 +83,11 @@ inline void DagPacketsHandler::processNewBlockHashPacket(const PacketData &packe
     block_requestes_set_.insert(hash);
     requestBlock(packet_data.from_node_id_, hash);
   }
+  peer_->markBlockAsKnown(hash);
 }
 
 inline void DagPacketsHandler::processGetNewBlockPacket(const PacketData &packet_data, const dev::RLP &packet_rlp) {
   blk_hash_t const hash(packet_rlp[0]);
-  peer_->markBlockAsKnown(hash);
   LOG(log_dg_) << "Received GetNewBlockPacket" << hash.toString();
 
   if (dag_blk_mgr_) {
@@ -96,10 +95,11 @@ inline void DagPacketsHandler::processGetNewBlockPacket(const PacketData &packet
     if (block) {
       sendBlock(packet_data.from_node_id_, *block);
     } else
-      LOG(log_nf_) << "NO NEW PACKET: " << hash.toString();
+      LOG(log_nf_) << "Requested block: " << hash.toString() << " not in DB";
   } else if (peers_state_->test_blocks_.find(hash) != peers_state_->test_blocks_.end()) {
     sendBlock(packet_data.from_node_id_, peers_state_->test_blocks_[hash]);
   }
+  peer_->markBlockAsKnown(hash);
 }
 
 void DagPacketsHandler::requestBlock(dev::p2p::NodeID const &peer_id, blk_hash_t hash) {

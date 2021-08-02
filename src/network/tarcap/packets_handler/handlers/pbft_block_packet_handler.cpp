@@ -13,9 +13,9 @@ PbftBlockPacketHandler::PbftBlockPacketHandler(std::shared_ptr<PeersState> peers
                                                std::shared_ptr<PbftChain> pbft_chain,
                                                std::shared_ptr<DagBlockManager> dag_blk_mgr, const addr_t &node_addr)
     : PacketHandler(std::move(peers_state), node_addr, "PBFT_BLOCK_PH"),
-      syncing_state_(syncing_state),
-      pbft_chain_(pbft_chain),
-      dag_blk_mgr_(dag_blk_mgr) {}
+      syncing_state_(std::move(syncing_state)),
+      pbft_chain_(std::move(pbft_chain)),
+      dag_blk_mgr_(std::move(dag_blk_mgr)) {}
 
 void PbftBlockPacketHandler::process(const PacketData &packet_data, const dev::RLP &packet_rlp) {
   // Also handle SyncedPacket here
