@@ -24,7 +24,7 @@ DagBlockManager::DagBlockManager(addr_t node_addr, vdf_sortition::VdfConfig cons
 
   // Set DAG level proposal period map
   current_max_proposal_period_ =
-      db_->getDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus::max_proposal_period);
+      db_->getDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus::MaxProposalPeriod);
   last_proposal_period_ = current_max_proposal_period_;
   if (current_max_proposal_period_ == 0) {
     // Node start from scratch

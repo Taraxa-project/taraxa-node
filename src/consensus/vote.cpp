@@ -946,13 +946,13 @@ void NextVotesForPreviousRound::updateWithSyncedVotes(std::vector<std::shared_pt
   }
 
   size_t previous_round_sortition_threshold =
-      db_->getPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::previousRoundSortitionThreshold);
+      db_->getPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundSortitionThreshold);
   uint64_t previous_round_dpos_period =
-      db_->getPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::previousRoundDposPeriod);
+      db_->getPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposPeriod);
   size_t previous_round_dpos_total_votes_count =
-      db_->getPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::previousRoundDposTotalVotesCount);
-  LOG(log_nf_) << "Previoud round sorition threshold " << previous_round_sortition_threshold
-               << ", previoud round DPOS period " << previous_round_dpos_period
+      db_->getPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposTotalVotesCount);
+  LOG(log_nf_) << "Previous round sortition threshold " << previous_round_sortition_threshold
+               << ", previous round DPOS period " << previous_round_dpos_period
                << ", previous round DPOS total votes count " << previous_round_dpos_total_votes_count;
 
   std::unordered_map<blk_hash_t, std::vector<std::shared_ptr<Vote>>> synced_next_votes;

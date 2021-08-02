@@ -460,8 +460,8 @@ void DbStorage::addStatusFieldToBatch(StatusDbField const& field, uint64_t value
 }
 
 // PBFT
-uint64_t DbStorage::getPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus const& field) {
-  auto status = lookup(toSlice((uint8_t)field), Columns::pbft_mgr_previous_round_status);
+uint64_t DbStorage::getPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus field) {
+  auto status = lookup(toSlice(field), Columns::pbft_mgr_previous_round_status);
   if (!status.empty()) {
     size_t value;
     memcpy(&value, status.data(), sizeof(uint64_t));
@@ -471,17 +471,17 @@ uint64_t DbStorage::getPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus con
   return 0;
 }
 
-void DbStorage::savePbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus const& field, uint64_t const& value) {
-  insert(Columns::pbft_mgr_previous_round_status, toSlice((uint8_t)field), toSlice(value));
+void DbStorage::savePbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus field, uint64_t const& value) {
+  insert(Columns::pbft_mgr_previous_round_status, toSlice(field), toSlice(value));
 }
 
-void DbStorage::addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus const& field, uint64_t const& value,
+void DbStorage::addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus field, uint64_t const& value,
                                               Batch& write_batch) {
-  insert(write_batch, Columns::pbft_mgr_previous_round_status, toSlice((uint8_t)field), toSlice(value));
+  insert(write_batch, Columns::pbft_mgr_previous_round_status, toSlice(field), toSlice(value));
 }
 
-uint64_t DbStorage::getPbftMgrField(PbftMgrRoundStep const& field) {
-  auto status = lookup(toSlice((uint8_t)field), Columns::pbft_mgr_round_step);
+uint64_t DbStorage::getPbftMgrField(PbftMgrRoundStep field) {
+  auto status = lookup(toSlice(field), Columns::pbft_mgr_round_step);
   if (!status.empty()) {
     uint64_t value;
     memcpy(&value, status.data(), sizeof(uint64_t));
@@ -491,12 +491,12 @@ uint64_t DbStorage::getPbftMgrField(PbftMgrRoundStep const& field) {
   return 1;
 }
 
-void DbStorage::savePbftMgrField(PbftMgrRoundStep const& field, uint64_t value) {
-  insert(Columns::pbft_mgr_round_step, toSlice((uint8_t)field), toSlice(value));
+void DbStorage::savePbftMgrField(PbftMgrRoundStep field, uint64_t value) {
+  insert(Columns::pbft_mgr_round_step, toSlice(field), toSlice(value));
 }
 
-void DbStorage::addPbftMgrFieldToBatch(PbftMgrRoundStep const& field, uint64_t value, Batch& write_batch) {
-  insert(write_batch, DbStorage::Columns::pbft_mgr_round_step, toSlice((uint8_t)field), toSlice(value));
+void DbStorage::addPbftMgrFieldToBatch(PbftMgrRoundStep field, uint64_t value, Batch& write_batch) {
+  insert(write_batch, DbStorage::Columns::pbft_mgr_round_step, toSlice(field), toSlice(value));
 }
 
 size_t DbStorage::getPbft2TPlus1(uint64_t round) {
@@ -519,37 +519,36 @@ void DbStorage::addPbft2TPlus1ToBatch(uint64_t pbft_round, size_t pbft_2t_plus_1
   insert(write_batch, DbStorage::Columns::pbft_round_2t_plus_1, toSlice(pbft_round), toSlice(pbft_2t_plus_1));
 }
 
-bool DbStorage::getPbftMgrStatus(PbftMgrStatus const& field) {
-  auto status = lookup(toSlice((uint8_t)field), Columns::pbft_mgr_status);
+bool DbStorage::getPbftMgrStatus(PbftMgrStatus field) {
+  auto status = lookup(toSlice(field), Columns::pbft_mgr_status);
   if (!status.empty()) {
     return *(bool*)&status[0];
   }
   return false;
 }
 
-void DbStorage::savePbftMgrStatus(PbftMgrStatus const& field, bool const& value) {
-  insert(Columns::pbft_mgr_status, toSlice((uint8_t)field), toSlice(value));
+void DbStorage::savePbftMgrStatus(PbftMgrStatus field, bool const& value) {
+  insert(Columns::pbft_mgr_status, toSlice(field), toSlice(value));
 }
 
-void DbStorage::addPbftMgrStatusToBatch(PbftMgrStatus const& field, bool const& value, Batch& write_batch) {
-  insert(write_batch, DbStorage::Columns::pbft_mgr_status, toSlice((uint8_t)field), toSlice(value));
+void DbStorage::addPbftMgrStatusToBatch(PbftMgrStatus field, bool const& value, Batch& write_batch) {
+  insert(write_batch, DbStorage::Columns::pbft_mgr_status, toSlice(field), toSlice(value));
 }
 
-shared_ptr<blk_hash_t> DbStorage::getPbftMgrVotedValue(PbftMgrVotedValue const& field) {
-  auto hash = asBytes(lookup(toSlice((uint8_t)field), Columns::pbft_mgr_voted_value));
+shared_ptr<blk_hash_t> DbStorage::getPbftMgrVotedValue(PbftMgrVotedValue field) {
+  auto hash = asBytes(lookup(toSlice(field), Columns::pbft_mgr_voted_value));
   if (hash.size() > 0) {
     return make_shared<blk_hash_t>(hash);
   }
   return nullptr;
 }
 
-void DbStorage::savePbftMgrVotedValue(PbftMgrVotedValue const& field, blk_hash_t const& value) {
-  insert(Columns::pbft_mgr_voted_value, toSlice((uint8_t)field), toSlice(value.asBytes()));
+void DbStorage::savePbftMgrVotedValue(PbftMgrVotedValue field, blk_hash_t const& value) {
+  insert(Columns::pbft_mgr_voted_value, toSlice(field), toSlice(value.asBytes()));
 }
 
-void DbStorage::addPbftMgrVotedValueToBatch(PbftMgrVotedValue const& field, blk_hash_t const& value,
-                                            Batch& write_batch) {
-  insert(write_batch, Columns::pbft_mgr_voted_value, toSlice((uint8_t)field), toSlice(value.asBytes()));
+void DbStorage::addPbftMgrVotedValueToBatch(PbftMgrVotedValue field, blk_hash_t const& value, Batch& write_batch) {
+  insert(write_batch, Columns::pbft_mgr_voted_value, toSlice(field), toSlice(value.asBytes()));
 }
 
 shared_ptr<PbftBlock> DbStorage::getPbftCertVotedBlock(blk_hash_t const& block_hash) {
@@ -798,8 +797,8 @@ void DbStorage::putFinalizedDagBlockHashesByAnchor(WriteBatch& b, blk_hash_t con
   insert(b, DbStorage::Columns::dag_finalized_blocks, anchor, RLPStream().appendVector(hs).out());
 }
 
-uint64_t DbStorage::getDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus const& field) {
-  auto status = lookup(toSlice((uint8_t)field), Columns::dpos_proposal_period_levels_status);
+uint64_t DbStorage::getDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus field) {
+  auto status = lookup(toSlice(field), Columns::dpos_proposal_period_levels_status);
   if (!status.empty()) {
     uint64_t value;
     memcpy(&value, status.data(), sizeof(uint64_t));
@@ -809,13 +808,13 @@ uint64_t DbStorage::getDposProposalPeriodLevelsField(DposProposalPeriodLevelsSta
   return 0;
 }
 
-void DbStorage::saveDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus const& field, uint64_t value) {
-  insert(Columns::dpos_proposal_period_levels_status, toSlice((uint8_t)field), toSlice(value));
+void DbStorage::saveDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus field, uint64_t value) {
+  insert(Columns::dpos_proposal_period_levels_status, toSlice(field), toSlice(value));
 }
 
-void DbStorage::addDposProposalPeriodLevelsFieldToBatch(DposProposalPeriodLevelsStatus const& field, uint64_t value,
+void DbStorage::addDposProposalPeriodLevelsFieldToBatch(DposProposalPeriodLevelsStatus field, uint64_t value,
                                                         Batch& write_batch) {
-  insert(write_batch, Columns::dpos_proposal_period_levels_status, toSlice((uint8_t)field), toSlice(value));
+  insert(write_batch, Columns::dpos_proposal_period_levels_status, toSlice(field), toSlice(value));
 }
 
 bytes DbStorage::getProposalPeriodDagLevelsMap(uint64_t proposal_period) {

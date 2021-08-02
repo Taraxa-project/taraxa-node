@@ -761,9 +761,9 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_1) {
   auto db = node2->getDB();
   auto batch = db->createWriteBatch();
   db->addPbft2TPlus1ToBatch(pbft_previous_round, node2_pbft_2t_plus_1, batch);
-  db->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::previousRoundSortitionThreshold, 1, batch);
-  db->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::previousRoundDposPeriod, 0, batch);
-  db->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::previousRoundDposTotalVotesCount, 1, batch);
+  db->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundSortitionThreshold, 1, batch);
+  db->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposPeriod, 0, batch);
+  db->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposTotalVotesCount, 1, batch);
   db->commitWriteBatch(batch);
 
   auto expect_size = next_votes1.size();
@@ -832,9 +832,9 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
   auto node2_db = node2->getDB();
   auto batch = node2_db->createWriteBatch();
   node2_db->addPbft2TPlus1ToBatch(pbft_previous_round, node2_pbft_2t_plus_1, batch);
-  node2_db->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::previousRoundSortitionThreshold, 1, batch);
-  node2_db->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::previousRoundDposPeriod, 0, batch);
-  node2_db->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::previousRoundDposTotalVotesCount, 1, batch);
+  node2_db->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundSortitionThreshold, 1, batch);
+  node2_db->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposPeriod, 0, batch);
+  node2_db->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposTotalVotesCount, 1, batch);
   node2_db->commitWriteBatch(batch);
 
   std::shared_ptr<Network> nw1 = node1->getNetwork();
@@ -854,9 +854,9 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
   auto node1_db = node1->getDB();
   batch = node1_db->createWriteBatch();
   node1_db->addPbft2TPlus1ToBatch(pbft_previous_round, node1_pbft_2t_plus_1, batch);
-  node1_db->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::previousRoundSortitionThreshold, 1, batch);
-  node1_db->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::previousRoundDposPeriod, 0, batch);
-  node1_db->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::previousRoundDposTotalVotesCount, 1, batch);
+  node1_db->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundSortitionThreshold, 1, batch);
+  node1_db->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposPeriod, 0, batch);
+  node1_db->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposTotalVotesCount, 1, batch);
   node1_db->commitWriteBatch(batch);
 
   // Node2 broadcast updated next votes to node1
