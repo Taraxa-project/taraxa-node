@@ -8,7 +8,7 @@ namespace taraxa::network::tarcap {
 
 NewPbftBlockPacketHandler::NewPbftBlockPacketHandler(std::shared_ptr<PeersState> peers_state,
                                                      std::shared_ptr<PbftChain> pbft_chain, const addr_t &node_addr)
-    : PacketHandler(std::move(peers_state), node_addr, "NEW_PBFT_BLOCK_PH"), pbft_chain_(pbft_chain) {}
+    : PacketHandler(std::move(peers_state), node_addr, "NEW_PBFT_BLOCK_PH"), pbft_chain_(std::move(pbft_chain)) {}
 
 void NewPbftBlockPacketHandler::process(const PacketData & /*packet_data*/, const dev::RLP &packet_rlp) {
   LOG(log_dg_) << "In NewPbftBlockPacket";

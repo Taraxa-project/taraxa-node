@@ -11,9 +11,9 @@ GetBlocksPacketsHandler::GetBlocksPacketsHandler(std::shared_ptr<PeersState> pee
                                                  std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DbStorage> db,
                                                  const addr_t &node_addr)
     : PacketHandler(std::move(peers_state), node_addr, "GET_BLOCKS_PH"),
-      trx_mgr_(trx_mgr),
-      dag_mgr_(dag_mgr),
-      db_(db) {}
+      trx_mgr_(std::move(trx_mgr)),
+      dag_mgr_(std::move(dag_mgr)),
+      db_(std::move(db)) {}
 
 void GetBlocksPacketsHandler::process(const PacketData &packet_data, const dev::RLP &packet_rlp) {
   std::unordered_set<blk_hash_t> blocks_hashes;

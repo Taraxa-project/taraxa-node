@@ -9,8 +9,8 @@ BlocksPacketHandler::BlocksPacketHandler(std::shared_ptr<PeersState> peers_state
                                          std::shared_ptr<SyncingState> syncing_state,
                                          std::shared_ptr<DagBlockManager> dag_blk_mgr, const addr_t &node_addr)
     : PacketHandler(std::move(peers_state), node_addr, "BLOCKS_PH"),
-      syncing_state_(syncing_state),
-      dag_blk_mgr_(dag_blk_mgr) {}
+      syncing_state_(std::move(syncing_state)),
+      dag_blk_mgr_(std::move(dag_blk_mgr)) {}
 
 void BlocksPacketHandler::process(const PacketData &packet_data, const dev::RLP &packet_rlp) {
   std::string received_dag_blocks_str;
@@ -24,8 +24,8 @@ void BlocksPacketHandler::process(const PacketData &packet_data, const dev::RLP 
     std::vector<Transaction> new_transactions;
     for (size_t i = 0; i < block.getTrxs().size(); i++) {
       Transaction transaction(*it++);
-      new_transactions.push_back(transaction);
       peer_->markTransactionAsKnown(transaction.getHash());
+      new_transactions.push_back(std::move(transaction));
     }
 
     received_dag_blocks_str += block.getHash().toString() + " ";

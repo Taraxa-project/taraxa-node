@@ -10,8 +10,8 @@ TransactionPacketHandler::TransactionPacketHandler(std::shared_ptr<PeersState> p
                                                    std::shared_ptr<DagBlockManager> dag_blk_mgr,
                                                    uint16_t network_transaction_interval, const addr_t &node_addr)
     : PacketHandler(std::move(peers_state), node_addr, "TRANSACTION_PH"),
-      trx_mgr_(trx_mgr),
-      dag_blk_mgr_(dag_blk_mgr),
+      trx_mgr_(std::move(trx_mgr)),
+      dag_blk_mgr_(std::move(dag_blk_mgr)),
       network_transaction_interval_(network_transaction_interval) {}
 
 inline void TransactionPacketHandler::process(const PacketData & /*packet_data*/, const dev::RLP &packet_rlp) {
