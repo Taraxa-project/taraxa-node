@@ -37,8 +37,8 @@ class PacketHandler {
   std::shared_ptr<PeersState> peers_state_{nullptr};
 
   // tmp variables that are initialized in every processPacket() call and should be valid also for process() call
-  std::shared_ptr<TaraxaPeer> peer_{nullptr};
-  std::shared_ptr<dev::p2p::Host> host_{nullptr};
+  std::shared_ptr<TaraxaPeer> tmp_peer_{nullptr};
+  std::shared_ptr<dev::p2p::Host> tmp_host_{nullptr};
 
   // Declare logger instances
   LOG_OBJECTS_DEFINE

@@ -19,12 +19,12 @@ void BlocksPacketHandler::process(const PacketData &packet_data, const dev::RLP 
 
   for (; it != packet_rlp.end();) {
     DagBlock block(*it++);
-    peer_->markBlockAsKnown(block.getHash());
+    tmp_peer_->markBlockAsKnown(block.getHash());
 
     std::vector<Transaction> new_transactions;
     for (size_t i = 0; i < block.getTrxs().size(); i++) {
       Transaction transaction(*it++);
-      peer_->markTransactionAsKnown(transaction.getHash());
+      tmp_peer_->markTransactionAsKnown(transaction.getHash());
       new_transactions.push_back(std::move(transaction));
     }
 
@@ -41,7 +41,7 @@ void BlocksPacketHandler::process(const PacketData &packet_data, const dev::RLP 
 
     LOG(log_dg_) << "Storing block " << block.getHash().toString() << " with " << new_transactions.size()
                  << " transactions";
-    if (block.getLevel() > peer_->dag_level_) peer_->dag_level_ = block.getLevel();
+    if (block.getLevel() > tmp_peer_->dag_level_) tmp_peer_->dag_level_ = block.getLevel();
     dag_blk_mgr_->insertBroadcastedBlockWithTransactions(block, new_transactions);
   }
 

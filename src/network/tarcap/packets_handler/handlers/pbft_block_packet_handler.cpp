@@ -21,7 +21,7 @@ void PbftBlockPacketHandler::process(const PacketData &packet_data, const dev::R
   // Also handle SyncedPacket here
   if (packet_data.type_ == SyncedPacket) {
     LOG(log_dg_) << "Received synced message from " << packet_data.from_node_id_;
-    peer_->syncing_ = false;
+    tmp_peer_->syncing_ = false;
     return;
   }
 
@@ -36,11 +36,11 @@ void PbftBlockPacketHandler::process(const PacketData &packet_data, const dev::R
     for (auto const dag_blk_struct : dag_blocks_rlp) {
       DagBlock dag_blk(dag_blk_struct[0]);
       auto const &dag_blk_h = dag_blk.getHash();
-      peer_->markBlockAsKnown(dag_blk_h);
+      tmp_peer_->markBlockAsKnown(dag_blk_h);
       std::vector<Transaction> new_transactions;
       for (auto const trx_raw : dag_blk_struct[1]) {
         auto &trx = new_transactions.emplace_back(trx_raw);
-        peer_->markTransactionAsKnown(trx.getHash());
+        tmp_peer_->markTransactionAsKnown(trx.getHash());
       }
       received_dag_blocks_str += dag_blk_h.toString() + " ";
       auto level = dag_blk.getLevel();
@@ -56,15 +56,15 @@ void PbftBlockPacketHandler::process(const PacketData &packet_data, const dev::R
                          << ", PBFT chain size: " << pbft_chain_->getPbftChainSize()
                          << ", synced queue size: " << pbft_chain_->pbftSyncedQueueSize();
             syncing_state_->set_peer_malicious();
-            host_->disconnect(packet_data.from_node_id_, p2p::UserReason);
+            tmp_host_->disconnect(packet_data.from_node_id_, p2p::UserReason);
             syncing_state_->restartSyncingPbft(true);
           }
           return;
         }
         LOG(log_nf_) << "Storing DAG block " << block.second.first.getHash().toString() << " with "
                      << block.second.second.size() << " transactions";
-        if (block.second.first.getLevel() > peer_->dag_level_) {
-          peer_->dag_level_ = block.second.first.getLevel();
+        if (block.second.first.getLevel() > tmp_peer_->dag_level_) {
+          tmp_peer_->dag_level_ = block.second.first.getLevel();
         }
         dag_blk_mgr_->processSyncedBlockWithTransactions(block.second.first, block.second.second);
       }
@@ -73,7 +73,7 @@ void PbftBlockPacketHandler::process(const PacketData &packet_data, const dev::R
     if (pbft_blk_tuple.itemCount() == 2) {
       PbftBlockCert pbft_blk_and_votes(pbft_blk_tuple[1]);
       auto pbft_blk_hash = pbft_blk_and_votes.pbft_blk->getBlockHash();
-      peer_->markPbftBlockAsKnown(pbft_blk_hash);
+      tmp_peer_->markPbftBlockAsKnown(pbft_blk_hash);
       LOG(log_dg_) << "Processing pbft block: " << pbft_blk_and_votes.pbft_blk->getBlockHash();
 
       if (pbft_chain_->isKnownPbftBlockForSyncing(pbft_blk_hash)) {
@@ -86,14 +86,14 @@ void PbftBlockPacketHandler::process(const PacketData &packet_data, const dev::R
         LOG(log_er_) << "Invalid PBFT block " << pbft_blk_hash << " from peer " << packet_data.from_node_id_.abridged()
                      << " received, stop syncing.";
         syncing_state_->set_peer_malicious();
-        host_->disconnect(packet_data.from_node_id_, p2p::UserReason);
+        tmp_host_->disconnect(packet_data.from_node_id_, p2p::UserReason);
         syncing_state_->restartSyncingPbft(true);
         return;
       }
 
       // Update peer's pbft period if outdated
-      if (peer_->pbft_chain_size_ < pbft_blk_and_votes.pbft_blk->getPeriod()) {
-        peer_->pbft_chain_size_ = pbft_blk_and_votes.pbft_blk->getPeriod();
+      if (tmp_peer_->pbft_chain_size_ < pbft_blk_and_votes.pbft_blk->getPeriod()) {
+        tmp_peer_->pbft_chain_size_ = pbft_blk_and_votes.pbft_blk->getPeriod();
       }
 
       // Notice: cannot verify 2t+1 cert votes here. Since don't

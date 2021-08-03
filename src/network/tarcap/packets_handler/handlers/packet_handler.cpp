@@ -18,10 +18,10 @@ void PacketHandler::processPacket(const PacketData& packet_data) {
     //  // Delay is used only when we want to simulate some network delay
     //  uint64_t delay = conf_.network_simulated_delay ? getSimulatedNetworkDelay(_r, _nodeID) : 0;
 
-    peer_ = peers_state_->getPeer(packet_data.from_node_id_);
-    host_ = peers_state_->host_.lock();
+    tmp_peer_ = peers_state_->getPeer(packet_data.from_node_id_);
+    tmp_host_ = peers_state_->host_.lock();
 
-    if (!peer_ || !host_) {
+    if (!tmp_peer_ || !tmp_host_) {
       LOG(log_er_) << "Invalid peer or host during packet processing";
       return;
     }
@@ -32,7 +32,7 @@ void PacketHandler::processPacket(const PacketData& packet_data) {
     // TODO: maybe this should be set only when status packet received as now it should not be stuck in synchronous
     //       queue like before...
     // Any packet means that we are communicating so let's not disconnect
-    peer_->setAlive();
+    tmp_peer_->setAlive();
 
     auto processing_duration =
         std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - begin);

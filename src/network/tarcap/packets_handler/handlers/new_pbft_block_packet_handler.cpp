@@ -17,9 +17,9 @@ void NewPbftBlockPacketHandler::process(const PacketData & /*packet_data*/, cons
   const uint64_t peer_pbft_chain_size = packet_rlp[1].toInt();
   LOG(log_dg_) << "Receive proposed PBFT Block " << pbft_block << ", Peer PBFT Chain size: " << peer_pbft_chain_size;
 
-  peer_->markPbftBlockAsKnown(pbft_block->getBlockHash());
-  if (peer_pbft_chain_size > peer_->pbft_chain_size_) {
-    peer_->pbft_chain_size_ = peer_pbft_chain_size;
+  tmp_peer_->markPbftBlockAsKnown(pbft_block->getBlockHash());
+  if (peer_pbft_chain_size > tmp_peer_->pbft_chain_size_) {
+    tmp_peer_->pbft_chain_size_ = peer_pbft_chain_size;
   }
 
   const auto pbft_synced_period = pbft_chain_->pbftSyncingPeriod();
