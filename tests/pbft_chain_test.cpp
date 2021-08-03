@@ -33,7 +33,8 @@ TEST_F(PbftChainTest, serialize_desiriablize_pbft_block) {
 
 TEST_F(PbftChainTest, pbft_db_test) {
   auto node_cfgs = make_node_cfgs(1);
-  auto node = create_nodes(node_cfgs, true /*start*/).front();
+  // There is no need to start a node for only db tests
+  auto node = create_nodes(node_cfgs).front();
   auto db = node->getDB();
   std::shared_ptr<PbftChain> pbft_chain = node->getPbftChain();
   blk_hash_t pbft_chain_head_hash = pbft_chain->getHeadHash();
