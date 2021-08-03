@@ -125,15 +125,17 @@ bool PeersState::sealAndSend(const dev::p2p::NodeID& nodeID, SubprotocolPacketTy
     return false;
   }
 
-  // TODO: replace hardcoded "taraxa" by some common function that is also used in overridden tarcap class name()
-  //       function
-  host->send(nodeID, "taraxa", packet_type, move(rlp.invalidate()));
+  host->send(nodeID, getCapabilityName(), packet_type, move(rlp.invalidate()));
 
   SinglePacketStats packet_stats{nodeID, packet_size, false, std::chrono::microseconds{0},
                                  std::chrono::microseconds{0}};
   packets_stats_.addSentPacket(node_id_, convertPacketTypeToString(packet_type), packet_stats);
 
   return true;
+}
+
+std::string PeersState::getCapabilityName() const {
+  return "taraxa";
 }
 
 }  // namespace taraxa::network::tarcap

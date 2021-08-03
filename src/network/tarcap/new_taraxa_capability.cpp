@@ -129,8 +129,7 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkC
 }
 
 std::string TaraxaCapability::name() const {
-  // TODO: replace hardcoded "taraxa" by some common function that is also used in sealAndSend function
-  return "taraxa";
+  return peers_state_->getCapabilityName();
 }
 
 unsigned TaraxaCapability::version() const { return TARAXA_NET_VERSION; }
@@ -145,7 +144,7 @@ void TaraxaCapability::onConnect(weak_ptr<Session> session, u256 const &) {
       session_p->disconnect(UserReason);
     }
 
-    LOG(log_wr_) << "Node " << node_id << " dropped as is marked malicious";
+    LOG(log_wr_) << "Node " << node_id << " connection dropped - malicious node";
     return;
   }
 
