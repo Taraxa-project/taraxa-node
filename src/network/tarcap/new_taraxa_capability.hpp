@@ -75,8 +75,7 @@ class TaraxaCapability : virtual dev::p2p::CapabilityFace {
   //       such case we would not need to broadcast packets from outside of packet handlers (except very few cases)
   //       and most of these methods could be deleted
   // Interface required in network class to access packets handlers functionality
-  //  // METHODS USED IN REAL CODE
-  //  void start();
+  // METHODS USED IN REAL CODE
   //  bool isStarted();
   //  Json::Value getStatus();
   std::vector<dev::p2p::NodeID> getAllPeersIDs() const;
@@ -112,7 +111,7 @@ class TaraxaCapability : virtual dev::p2p::CapabilityFace {
   // Packets handlers
   std::shared_ptr<PacketsHandler> packets_handlers_;
 
-  // REMOVE IN FUTURE
+  // TODO: Remove in future when tests are refactored
   std::shared_ptr<TestState> test_state_;
 
   // Main Threadpool for processing packets

@@ -33,9 +33,6 @@ void PacketsStats::logStats() {
 
   previous_received_packets_stats = received_packets_stats_;
   previous_sent_packets_stats = sent_packets_stats_;
-
-  // TODO: print stats periodically somehow
-  // tp_.post(conf_.network_performance_log_interval, [this] { logPacketsStats(); });
 }
 
 }  // namespace taraxa::network::tarcap
