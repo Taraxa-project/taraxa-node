@@ -40,6 +40,7 @@ set(SOURCES
         network/network.hpp
         network/packets_stats.hpp
         network/tarcap/new_taraxa_capability.hpp
+        network/tarcap/node_stats.hpp
         network/tarcap/threadpool/tarcap_thread_pool.hpp
         network/tarcap/threadpool/priority_queue.hpp
         network/tarcap/threadpool/packets_queue.hpp
@@ -134,6 +135,7 @@ set(SOURCES
         network/taraxa_capability.cpp
         network/syncing_state.cpp
         network/tarcap/new_taraxa_capability.cpp
+        network/tarcap/node_stats.cpp
         network/tarcap/threadpool/tarcap_thread_pool.cpp
         network/tarcap/threadpool/priority_queue.cpp
         network/tarcap/threadpool/packets_queue.cpp
