@@ -11,11 +11,13 @@ class TransactionManager;
 
 namespace taraxa::network::tarcap {
 
+class TestState;
+
 class TransactionPacketHandler : public PacketHandler {
  public:
   TransactionPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<TransactionManager> trx_mgr,
-                           std::shared_ptr<DagBlockManager> dag_blk_mgr, uint16_t network_transaction_interval,
-                           const addr_t &node_addr = {});
+                           std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<TestState> test_state,
+                           uint16_t network_transaction_interval, const addr_t &node_addr = {});
 
   void onNewTransactions(std::vector<taraxa::bytes> const &transactions, bool fromNetwork);
   void sendTransactions(dev::p2p::NodeID const &peer_id, std::vector<taraxa::bytes> const &transactions);
@@ -27,6 +29,7 @@ class TransactionPacketHandler : public PacketHandler {
 
   // FOR TESTING ONLY
   std::shared_ptr<DagBlockManager> dag_blk_mgr_;
+  std::shared_ptr<TestState> test_state_;
 
   uint16_t network_transaction_interval_ = 0;
   uint64_t received_trx_count_ = 0;

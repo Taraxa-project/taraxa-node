@@ -48,6 +48,7 @@ set(SOURCES
         network/tarcap/threadpool/packet_data.hpp
         network/tarcap/packet_types.hpp
         network/tarcap/packets_handler/syncing_state.hpp
+        network/tarcap/packets_handler/test_state.hpp
         network/tarcap/packets_handler/peers_state.hpp
         network/tarcap/packets_handler/packets_handler.hpp
         network/tarcap/packets_handler/taraxa_peer.hpp

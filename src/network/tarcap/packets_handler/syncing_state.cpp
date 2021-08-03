@@ -30,12 +30,11 @@ void SyncingState::restartSyncingPbft(bool force) {
   uint64_t max_pbft_chain_size = 0;
   uint64_t max_node_dag_level = 0;
   {
-    std::shared_lock lock(peers_state_->peers_mutex_);
-    if (peers_state_->peers_.empty()) {
+    if (!peers_state_->getPeersCount()) {
       LOG(log_nf_) << "Restarting syncing PBFT not possible since no connected peers";
       return;
     }
-    for (auto const &peer : peers_state_->peers_) {
+    for (auto const &peer : peers_state_->getAllPeers()) {
       if (peer.second->pbft_chain_size_ > max_pbft_chain_size) {
         max_pbft_chain_size = peer.second->pbft_chain_size_;
         max_pbft_chain_nodeID = peer.first;
@@ -112,23 +111,21 @@ void SyncingState::syncPbftNextVotes(uint64_t pbft_round, size_t pbft_previous_r
   dev::p2p::NodeID peer_node_ID;
   uint64_t peer_max_pbft_round = 1;
   size_t peer_max_previous_round_next_votes_size = 0;
-  {
-    std::shared_lock lock(peers_state_->peers_mutex_);
-    // Find max peer PBFT round
-    for (auto const &peer : peers_state_->peers_) {
-      if (peer.second->pbft_round_ > peer_max_pbft_round) {
-        peer_max_pbft_round = peer.second->pbft_round_;
-        peer_node_ID = peer.first;
-      }
+  auto peers = peers_state_->getAllPeers();
+  // Find max peer PBFT round
+  for (auto const &peer : peers) {
+    if (peer.second->pbft_round_ > peer_max_pbft_round) {
+      peer_max_pbft_round = peer.second->pbft_round_;
+      peer_node_ID = peer.first;
     }
+  }
 
-    if (pbft_round == peer_max_pbft_round) {
-      // No peers ahead, find peer PBFT previous round max next votes size
-      for (auto const &peer : peers_state_->peers_) {
-        if (peer.second->pbft_previous_round_next_votes_size_ > peer_max_previous_round_next_votes_size) {
-          peer_max_previous_round_next_votes_size = peer.second->pbft_previous_round_next_votes_size_;
-          peer_node_ID = peer.first;
-        }
+  if (pbft_round == peer_max_pbft_round) {
+    // No peers ahead, find peer PBFT previous round max next votes size
+    for (auto const &peer : peers) {
+      if (peer.second->pbft_previous_round_next_votes_size_ > peer_max_previous_round_next_votes_size) {
+        peer_max_previous_round_next_votes_size = peer.second->pbft_previous_round_next_votes_size_;
+        peer_node_ID = peer.first;
       }
     }
   }

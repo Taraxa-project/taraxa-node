@@ -11,13 +11,15 @@ class TransactionManager;
 namespace taraxa::network::tarcap {
 
 class SyncingState;
+class TestState;
 
 class DagPacketsHandler : public PacketHandler {
  public:
   DagPacketsHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<SyncingState> syncing_state,
                     std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
-                    std::shared_ptr<DbStorage> db, uint16_t network_min_dag_block_broadcast,
-                    uint16_t network_max_dag_block_broadcast, const addr_t &node_addr = {});
+                    std::shared_ptr<DbStorage> db, std::shared_ptr<TestState> test_state,
+                    uint16_t network_min_dag_block_broadcast, uint16_t network_max_dag_block_broadcast,
+                    const addr_t &node_addr = {});
 
   void requestBlock(dev::p2p::NodeID const &peer_id, blk_hash_t hash);
   void sendBlock(dev::p2p::NodeID const &peer_id, DagBlock block);
@@ -41,6 +43,7 @@ class DagPacketsHandler : public PacketHandler {
   std::shared_ptr<TransactionManager> trx_mgr_;
   std::shared_ptr<DagBlockManager> dag_blk_mgr_;
   std::shared_ptr<DbStorage> db_;
+  std::shared_ptr<TestState> test_state_;
 
   mutable std::mt19937_64 urng_;
   uint16_t network_min_dag_block_broadcast_ = 0;

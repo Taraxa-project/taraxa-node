@@ -18,8 +18,6 @@
 #include "network/tarcap/packets_handler/handlers/transaction_packet_handler.hpp"
 #include "network/tarcap/packets_handler/handlers/vote_packets_handler.hpp"
 #include "network/tarcap/packets_handler/packets_handler.hpp"
-#include "network/tarcap/packets_handler/peers_state.hpp"
-#include "network/tarcap/packets_handler/syncing_state.hpp"
 #include "node/full_node.hpp"
 #include "transaction_manager/transaction_manager.hpp"
 
@@ -35,6 +33,7 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkC
     : peers_state_(std::make_shared<PeersState>(std::move(_host))),
       syncing_state_(std::make_shared<SyncingState>(peers_state_, pbft_chain, dag_mgr, dag_blk_mgr, node_addr)),
       packets_handlers_(std::make_shared<PacketsHandler>()),
+      test_state_(std::make_shared<TestState>()),
       thread_pool_(10, node_addr),  // TODO: num of threads from config
       periodic_events_tp_(1, false) {
   // Register all packet handlers
@@ -51,7 +50,7 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkC
                                      std::make_shared<NewPbftBlockPacketHandler>(peers_state_, pbft_chain, node_addr));
 
   const auto dag_handler = std::make_shared<DagPacketsHandler>(peers_state_, syncing_state_, trx_mgr, dag_blk_mgr, db,
-                                                               conf.network_min_dag_block_broadcast,
+                                                               test_state_, conf.network_min_dag_block_broadcast,
                                                                conf.network_max_dag_block_broadcast, node_addr);
   packets_handlers_->registerHandler(SubprotocolPacketType::NewBlockPacket, dag_handler);
   packets_handlers_->registerHandler(SubprotocolPacketType::NewBlockHashPacket, dag_handler);
@@ -59,8 +58,8 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkC
 
   packets_handlers_->registerHandler(
       SubprotocolPacketType::TransactionPacket,
-      std::make_shared<TransactionPacketHandler>(peers_state_, trx_mgr, dag_blk_mgr, conf.network_transaction_interval,
-                                                 node_addr));
+      std::make_shared<TransactionPacketHandler>(peers_state_, trx_mgr, dag_blk_mgr, test_state_,
+                                                 conf.network_transaction_interval, node_addr));
 
   // Non critical packets with low processing priority
   packets_handlers_->registerHandler(SubprotocolPacketType::TestPacket,
@@ -250,5 +249,81 @@ void TaraxaCapability::stop() {
 void TaraxaCapability::pushData(unsigned _id, RLP const &_r) {
   thread_pool_.push(PacketData(static_cast<SubprotocolPacketType>(_id), dev::p2p::NodeID(), _r.data().toBytes()));
 }
+
+std::vector<dev::p2p::NodeID> TaraxaCapability::getAllPeersIDs() const { return peers_state_->getAllPeersIDs(); }
+
+size_t TaraxaCapability::getPeerCount() const { return peers_state_->getPeersCount(); }
+
+void TaraxaCapability::restartSyncingPbft(bool force) { syncing_state_->restartSyncingPbft(force); }
+
+bool TaraxaCapability::pbft_syncing() const { return syncing_state_->is_pbft_syncing(); }
+
+void TaraxaCapability::onNewBlockVerified(std::shared_ptr<DagBlock> const &blk) {
+  std::static_pointer_cast<DagPacketsHandler>(
+      packets_handlers_->getSpecificHandler(SubprotocolPacketType::NewBlockPacket))
+      ->onNewBlockVerified(*blk);
+}
+
+void TaraxaCapability::onNewTransactions(std::vector<taraxa::bytes> transactions) {
+  std::static_pointer_cast<TransactionPacketHandler>(
+      packets_handlers_->getSpecificHandler(SubprotocolPacketType::TransactionPacket))
+      ->onNewTransactions(transactions, true);
+}
+
+void TaraxaCapability::onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_block) {
+  std::static_pointer_cast<NewPbftBlockPacketHandler>(
+      packets_handlers_->getSpecificHandler(SubprotocolPacketType::NewPbftBlockPacket))
+      ->onNewPbftBlock(*pbft_block);
+}
+
+void TaraxaCapability::broadcastPreviousRoundNextVotesBundle() {
+  std::static_pointer_cast<VotePacketsHandler>(
+      packets_handlers_->getSpecificHandler(SubprotocolPacketType::PbftVotePacket))
+      ->broadcastPreviousRoundNextVotesBundle();
+}
+
+void TaraxaCapability::sendTransactions(dev::p2p::NodeID const &id, std::vector<taraxa::bytes> const &transactions) {
+  std::static_pointer_cast<TransactionPacketHandler>(
+      packets_handlers_->getSpecificHandler(SubprotocolPacketType::TransactionPacket))
+      ->sendTransactions(id, transactions);
+}
+
+// METHODS USED IN TESTS ONLY
+void TaraxaCapability::sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk) {
+  std::static_pointer_cast<DagPacketsHandler>(
+      packets_handlers_->getSpecificHandler(SubprotocolPacketType::NewBlockPacket))
+      ->sendBlock(id, blk);
+}
+
+void TaraxaCapability::sendBlocks(dev::p2p::NodeID const &id, std::vector<std::shared_ptr<DagBlock>> blocks) {
+  std::static_pointer_cast<GetBlocksPacketsHandler>(
+      packets_handlers_->getSpecificHandler(SubprotocolPacketType::GetBlocksPacket))
+      ->sendBlocks(id, std::move(blocks));
+}
+
+void TaraxaCapability::setPendingPeersToReady() { peers_state_->setPendingPeersToReady(); }
+
+size_t TaraxaCapability::getReceivedBlocksCount() const { return test_state_->test_blocks_.size(); }
+
+size_t TaraxaCapability::getReceivedTransactionsCount() const { return test_state_->test_transactions_.size(); }
+
+std::shared_ptr<TaraxaPeer> TaraxaCapability::getPeer(dev::p2p::NodeID const &id) const {
+  return peers_state_->getPeer(id);
+}
+
+// PBFT
+void TaraxaCapability::sendPbftBlock(dev::p2p::NodeID const &id, PbftBlock const &pbft_block,
+                                     uint64_t pbft_chain_size) {
+  std::static_pointer_cast<NewPbftBlockPacketHandler>(
+      packets_handlers_->getSpecificHandler(SubprotocolPacketType::NewPbftBlockPacket))
+      ->sendPbftBlock(id, pbft_block, pbft_chain_size);
+}
+
+void TaraxaCapability::sendPbftVote(dev::p2p::NodeID const &id, Vote const &vote) {
+  std::static_pointer_cast<VotePacketsHandler>(
+      packets_handlers_->getSpecificHandler(SubprotocolPacketType::PbftVotePacket))
+      ->sendPbftVote(id, vote);
+}
+// END METHODS USED IN TESTS ONLY
 
 }  // namespace taraxa::network::tarcap

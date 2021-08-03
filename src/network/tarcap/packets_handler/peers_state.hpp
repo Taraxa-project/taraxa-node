@@ -20,7 +20,9 @@ class PeersState {
 
   std::shared_ptr<TaraxaPeer> getPeer(const dev::p2p::NodeID& node_id);
   std::shared_ptr<TaraxaPeer> getPendingPeer(const dev::p2p::NodeID& node_id);
-  std::vector<dev::p2p::NodeID> getAllPeers() const;
+  std::unordered_map<dev::p2p::NodeID, std::shared_ptr<TaraxaPeer>> getAllPeers() const;
+  std::vector<dev::p2p::NodeID> getAllPeersIDs() const;
+  void setPendingPeersToReady();
   size_t getPeersCount();
   std::shared_ptr<TaraxaPeer> addPendingPeer(const dev::p2p::NodeID& node_id);
   void erasePeer(const dev::p2p::NodeID& node_id);
@@ -37,16 +39,13 @@ class PeersState {
   std::weak_ptr<dev::p2p::Host> host_;
   dev::p2p::NodeID node_id_;
 
-  mutable std::shared_mutex peers_mutex_;
-  std::unordered_map<dev::p2p::NodeID, std::shared_ptr<TaraxaPeer>> peers_;
-  std::unordered_map<dev::p2p::NodeID, std::shared_ptr<TaraxaPeer>> pending_peers_;
-
   // Shared packet stats
   PacketsStats packets_stats_;
 
-  // FOR TESTING ONLY
-  std::unordered_map<blk_hash_t, DagBlock> test_blocks_;
-  std::unordered_map<trx_hash_t, Transaction> test_transactions_;
+ private:
+  mutable std::shared_mutex peers_mutex_;
+  std::unordered_map<dev::p2p::NodeID, std::shared_ptr<TaraxaPeer>> peers_;
+  std::unordered_map<dev::p2p::NodeID, std::shared_ptr<TaraxaPeer>> pending_peers_;
 };
 
 }  // namespace taraxa::network::tarcap

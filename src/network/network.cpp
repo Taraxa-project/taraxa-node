@@ -176,6 +176,7 @@ void Network::sendTransactions(NodeID const &_id, std::vector<taraxa::bytes> con
   LOG(log_dg_) << "Sent transactions:" << transactions.size();
 }
 
+// TODO remove
 void Network::setPendingPeersToReady() {
   auto peerIds = taraxa_capability_->getAllPendingPeers();
   for (const auto &peerId : peerIds) {
