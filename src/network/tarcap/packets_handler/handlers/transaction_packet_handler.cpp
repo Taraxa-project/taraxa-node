@@ -24,7 +24,7 @@ inline void TransactionPacketHandler::process(const PacketData & /*packet_data*/
   for (size_t i_transaction = 0; i_transaction < transaction_count; i_transaction++) {
     Transaction transaction(packet_rlp[i_transaction].data().toBytes());
     received_transactions += transaction.getHash().toString() + " ";
-    peer_->markTransactionAsKnown(transaction.getHash());
+    tmp_peer_->markTransactionAsKnown(transaction.getHash());
     transactions.emplace_back(packet_rlp[i_transaction].data().toBytes());
   }
   if (transaction_count > 0) {

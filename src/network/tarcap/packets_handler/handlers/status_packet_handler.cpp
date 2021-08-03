@@ -42,51 +42,51 @@ void StatusPacketHandler::process(const PacketData& packet_data, const dev::RLP&
                    << ", our node version" << TARAXA_VERSION << ", host " << packet_data.from_node_id_.abridged()
                    << " will be disconnected";
       // TODO: get rid of host_ weak_ptr if possible ???
-      host_->disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
+      tmp_host_->disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
       return;
     }
 
     if (peer_network_id != conf_network_id_) {
       LOG(log_er_) << "Incorrect network id " << peer_network_id << ", host " << packet_data.from_node_id_.abridged()
                    << " will be disconnected";
-      host_->disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
+      tmp_host_->disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
       return;
     }
 
     if (genesis_hash != dag_mgr_->get_genesis()) {
       LOG(log_er_) << "Incorrect genesis hash " << genesis_hash << ", host " << packet_data.from_node_id_.abridged()
                    << " will be disconnected";
-      host_->disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
+      tmp_host_->disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
       return;
     }
 
-    peer_->dag_level_ = peer_dag_level;
-    peer_->pbft_chain_size_ = peer_pbft_chain_size;
-    peer_->syncing_ = peer_syncing;
-    peer_->pbft_round_ = peer_pbft_round;
-    peer_->pbft_previous_round_next_votes_size_ = peer_pbft_previous_round_next_votes_size;
+    tmp_peer_->dag_level_ = peer_dag_level;
+    tmp_peer_->pbft_chain_size_ = peer_pbft_chain_size;
+    tmp_peer_->syncing_ = peer_syncing;
+    tmp_peer_->pbft_round_ = peer_pbft_round;
+    tmp_peer_->pbft_previous_round_next_votes_size_ = peer_pbft_previous_round_next_votes_size;
 
-    peers_state_->setPeerAsReadyToSendMessages(packet_data.from_node_id_, peer_);
+    peers_state_->setPeerAsReadyToSendMessages(packet_data.from_node_id_, tmp_peer_);
 
     LOG(log_dg_) << "Received initial status message from " << packet_data.from_node_id_ << ", network id "
-                 << peer_network_id << ", peer DAG max level " << peer_->dag_level_ << ", genesis " << genesis_hash
-                 << ", peer pbft chain size " << peer_->pbft_chain_size_ << ", peer syncing " << std::boolalpha
-                 << peer_->syncing_ << ", peer pbft round " << peer_->pbft_round_
-                 << ", peer pbft previous round next votes size " << peer_->pbft_previous_round_next_votes_size_
+                 << peer_network_id << ", peer DAG max level " << tmp_peer_->dag_level_ << ", genesis " << genesis_hash
+                 << ", peer pbft chain size " << tmp_peer_->pbft_chain_size_ << ", peer syncing " << std::boolalpha
+                 << tmp_peer_->syncing_ << ", peer pbft round " << tmp_peer_->pbft_round_
+                 << ", peer pbft previous round next votes size " << tmp_peer_->pbft_previous_round_next_votes_size_
                  << ", node major version" << node_major_version << ", node minor version" << node_minor_version;
 
   } else {
     auto it = packet_rlp.begin();
-    peer_->dag_level_ = (*it++).toPositiveInt64();
-    peer_->pbft_chain_size_ = (*it++).toPositiveInt64();
-    peer_->syncing_ = (*it++).toInt();
-    peer_->pbft_round_ = (*it++).toPositiveInt64();
-    peer_->pbft_previous_round_next_votes_size_ = (*it++).toInt<unsigned>();
+    tmp_peer_->dag_level_ = (*it++).toPositiveInt64();
+    tmp_peer_->pbft_chain_size_ = (*it++).toPositiveInt64();
+    tmp_peer_->syncing_ = (*it++).toInt();
+    tmp_peer_->pbft_round_ = (*it++).toPositiveInt64();
+    tmp_peer_->pbft_previous_round_next_votes_size_ = (*it++).toInt<unsigned>();
 
     LOG(log_dg_) << "Received status message from " << packet_data.from_node_id_ << ", peer DAG max level "
-                 << peer_->dag_level_ << ", peer pbft chain size " << peer_->pbft_chain_size_ << ", peer syncing "
-                 << std::boolalpha << peer_->syncing_ << ", peer pbft round " << peer_->pbft_round_
-                 << ", peer pbft previous round next votes size " << peer_->pbft_previous_round_next_votes_size_;
+                 << tmp_peer_->dag_level_ << ", peer pbft chain size " << tmp_peer_->pbft_chain_size_ << ", peer syncing "
+                 << std::boolalpha << tmp_peer_->syncing_ << ", peer pbft round " << tmp_peer_->pbft_round_
+                 << ", peer pbft previous round next votes size " << tmp_peer_->pbft_previous_round_next_votes_size_;
   }
 
   // TODO: do we keep syncing specific channels ?
@@ -111,10 +111,10 @@ void StatusPacketHandler::process(const PacketData& packet_data, const dev::RLP&
   // status.  We also have nothing to punish a node failing to send
   // sync info.
   auto pbft_synced_period = pbft_chain_->pbftSyncingPeriod();
-  if (pbft_synced_period + 1 < peer_->pbft_chain_size_) {
+  if (pbft_synced_period + 1 < tmp_peer_->pbft_chain_size_) {
     LOG(log_nf_) << "Restart PBFT chain syncing. Own synced PBFT at period " << pbft_synced_period
-                 << ", peer PBFT chain size " << peer_->pbft_chain_size_;
-    if (pbft_synced_period + 5 < peer_->pbft_chain_size_) {
+                 << ", peer PBFT chain size " << tmp_peer_->pbft_chain_size_;
+    if (pbft_synced_period + 5 < tmp_peer_->pbft_chain_size_) {
       syncing_state_->restartSyncingPbft(true);
     } else {
       syncing_state_->restartSyncingPbft(false);
@@ -123,9 +123,9 @@ void StatusPacketHandler::process(const PacketData& packet_data, const dev::RLP&
 
   auto pbft_current_round = pbft_mgr_->getPbftRound();
   auto pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesSize();
-  if (pbft_current_round < peer_->pbft_round_ ||
-      (pbft_current_round == peer_->pbft_round_ &&
-       pbft_previous_round_next_votes_size < peer_->pbft_previous_round_next_votes_size_)) {
+  if (pbft_current_round < tmp_peer_->pbft_round_ ||
+      (pbft_current_round == tmp_peer_->pbft_round_ &&
+       pbft_previous_round_next_votes_size < tmp_peer_->pbft_previous_round_next_votes_size_)) {
     syncing_state_->syncPbftNextVotes(pbft_current_round, pbft_previous_round_next_votes_size);
   }
 }

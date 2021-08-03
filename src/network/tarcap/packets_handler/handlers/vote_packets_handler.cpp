@@ -43,7 +43,7 @@ inline void VotePacketsHandler::processPbftVotePacket(const PacketData & /*packe
       db_->saveUnverifiedVote(vote);
       vote_mgr_->addUnverifiedVote(vote);
 
-      peer_->markVoteAsKnown(vote_hash);
+      tmp_peer_->markVoteAsKnown(vote_hash);
 
       onNewPbftVote(vote);
     }
@@ -69,7 +69,7 @@ inline void VotePacketsHandler::processGetPbftNextVotePacket(const PacketData &p
     auto next_votes_bundle = next_votes_mgr_->getNextVotes();
     std::vector<Vote> send_next_votes_bundle;
     for (auto const &v : next_votes_bundle) {
-      if (!peer_->isVoteKnown(v.getHash())) {
+      if (!tmp_peer_->isVoteKnown(v.getHash())) {
         send_next_votes_bundle.emplace_back(v);
       }
     }
@@ -82,7 +82,7 @@ inline void VotePacketsHandler::processPbftNextVotesPacket(const PacketData &pac
   if (next_votes_count == 0) {
     LOG(log_er_) << "Receive 0 next votes from peer " << packet_data.from_node_id_
                  << ". The peer may be a malicous player, will be disconnected";
-    host_->disconnect(packet_data.from_node_id_, p2p::UserReason);
+    tmp_host_->disconnect(packet_data.from_node_id_, p2p::UserReason);
 
     return;
   }
@@ -96,13 +96,13 @@ inline void VotePacketsHandler::processPbftNextVotesPacket(const PacketData &pac
     if (next_vote.getRound() != peer_pbftpacket_rlpound - 1) {
       LOG(log_er_) << "Received next votes bundle with unmatched rounds from " << packet_data.from_node_id_
                    << ". The peer may be a malicous player, will be disconnected";
-      host_->disconnect(packet_data.from_node_id_, p2p::UserReason);
+      tmp_host_->disconnect(packet_data.from_node_id_, p2p::UserReason);
 
       return;
     }
     const auto next_vote_hash = next_vote.getHash();
     LOG(log_nf_) << "Received PBFT next vote " << next_vote_hash;
-    peer_->markVoteAsKnown(next_vote_hash);
+    tmp_peer_->markVoteAsKnown(next_vote_hash);
     next_votes.emplace_back(next_vote);
   }
   LOG(log_nf_) << "Received " << next_votes_count << " next votes from peer " << packet_data.from_node_id_

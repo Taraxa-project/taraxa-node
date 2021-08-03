@@ -62,12 +62,12 @@ inline void DagPacketsHandler::processNewBlockPacket(const PacketData &packet_da
   std::vector<Transaction> new_transactions;
   for (size_t i_transaction = 1; i_transaction < transactions_count + 1; i_transaction++) {
     Transaction transaction(packet_rlp[i_transaction].data().toBytes());
-    peer_->markTransactionAsKnown(transaction.getHash());
+    tmp_peer_->markTransactionAsKnown(transaction.getHash());
     new_transactions.push_back(std::move(transaction));
   }
 
-  peer_->markBlockAsKnown(hash);
-  if (block.getLevel() > peer_->dag_level_) peer_->dag_level_ = block.getLevel();
+  tmp_peer_->markBlockAsKnown(hash);
+  if (block.getLevel() > tmp_peer_->dag_level_) tmp_peer_->dag_level_ = block.getLevel();
   onNewBlockReceived(block, new_transactions);
 }
 
@@ -85,7 +85,7 @@ inline void DagPacketsHandler::processNewBlockHashPacket(const PacketData &packe
     block_requestes_set_.insert(hash);
     requestBlock(packet_data.from_node_id_, hash);
   }
-  peer_->markBlockAsKnown(hash);
+  tmp_peer_->markBlockAsKnown(hash);
 }
 
 inline void DagPacketsHandler::processGetNewBlockPacket(const PacketData &packet_data, const dev::RLP &packet_rlp) {
@@ -101,7 +101,7 @@ inline void DagPacketsHandler::processGetNewBlockPacket(const PacketData &packet
   } else if (test_state_->test_blocks_.find(hash) != test_state_->test_blocks_.end()) {
     sendBlock(packet_data.from_node_id_, test_state_->test_blocks_[hash]);
   }
-  peer_->markBlockAsKnown(hash);
+  tmp_peer_->markBlockAsKnown(hash);
 }
 
 void DagPacketsHandler::requestBlock(dev::p2p::NodeID const &peer_id, blk_hash_t hash) {
