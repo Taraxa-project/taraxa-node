@@ -180,8 +180,7 @@ void StatusPacketHandler::checkLiveness() {
     return;
   }
 
-  std::shared_lock lock(peers_state_->peers_mutex_);
-  for (auto const& peer : peers_state_->peers_) {
+  for (auto const& peer : peers_state_->getAllPeers()) {
     // Disconnect any node that did not send any message for 3 status intervals
     if (!peer.second->isAlive(MAX_CHECK_ALIVE_COUNT)) {
       host->disconnect(peer.first, p2p::PingTimeout);

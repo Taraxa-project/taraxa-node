@@ -2,6 +2,7 @@
 
 #include "dag/dag_block_manager.hpp"
 #include "network/tarcap/packets_handler/syncing_state.hpp"
+#include "network/tarcap/packets_handler/test_state.hpp"
 #include "transaction_manager/transaction_manager.hpp"
 
 namespace taraxa::network::tarcap {
@@ -10,13 +11,14 @@ DagPacketsHandler::DagPacketsHandler(std::shared_ptr<PeersState> peers_state,
                                      std::shared_ptr<SyncingState> syncing_state,
                                      std::shared_ptr<TransactionManager> trx_mgr,
                                      std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<DbStorage> db,
-                                     uint16_t network_min_dag_block_broadcast, uint16_t network_max_dag_block_broadcast,
-                                     const addr_t &node_addr)
+                                     std::shared_ptr<TestState> test_state, uint16_t network_min_dag_block_broadcast,
+                                     uint16_t network_max_dag_block_broadcast, const addr_t &node_addr)
     : PacketHandler(std::move(peers_state), node_addr, "DAG_BLOCK_PH"),
       syncing_state_(std::move(syncing_state)),
       trx_mgr_(std::move(trx_mgr)),
       dag_blk_mgr_(std::move(dag_blk_mgr)),
       db_(std::move(db)),
+      test_state_(std::move(test_state)),
       urng_(std::mt19937_64(std::random_device()())),
       network_min_dag_block_broadcast_(network_min_dag_block_broadcast),
       network_max_dag_block_broadcast_(network_max_dag_block_broadcast) {}
@@ -78,7 +80,7 @@ inline void DagPacketsHandler::processNewBlockHashPacket(const PacketData &packe
       block_requestes_set_.insert(hash);
       requestBlock(packet_data.from_node_id_, hash);
     }
-  } else if (peers_state_->test_blocks_.find(hash) == peers_state_->test_blocks_.end() &&
+  } else if (test_state_->test_blocks_.find(hash) == test_state_->test_blocks_.end() &&
              block_requestes_set_.count(hash) == 0) {
     block_requestes_set_.insert(hash);
     requestBlock(packet_data.from_node_id_, hash);
@@ -96,8 +98,8 @@ inline void DagPacketsHandler::processGetNewBlockPacket(const PacketData &packet
       sendBlock(packet_data.from_node_id_, *block);
     } else
       LOG(log_nf_) << "Requested block: " << hash.toString() << " not in DB";
-  } else if (peers_state_->test_blocks_.find(hash) != peers_state_->test_blocks_.end()) {
-    sendBlock(packet_data.from_node_id_, peers_state_->test_blocks_[hash]);
+  } else if (test_state_->test_blocks_.find(hash) != test_state_->test_blocks_.end()) {
+    sendBlock(packet_data.from_node_id_, test_state_->test_blocks_[hash]);
   }
   peer_->markBlockAsKnown(hash);
 }
@@ -124,9 +126,9 @@ void DagPacketsHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::DagBl
     if (dag_blk_mgr_) {
       transaction = trx_mgr_->getTransaction(trx);
     } else {
-      assert(peers_state_->test_transactions_.find(trx) != peers_state_->test_transactions_.end());
+      assert(test_state_->test_transactions_.find(trx) != test_state_->test_transactions_.end());
       transaction = std::make_shared<std::pair<Transaction, taraxa::bytes>>(
-          peers_state_->test_transactions_[trx], *peers_state_->test_transactions_[trx].rlp());
+          test_state_->test_transactions_[trx], *test_state_->test_transactions_[trx].rlp());
     }
     assert(transaction != nullptr);  // We should never try to send a block for
                                      // which  we do not have all transactions
@@ -145,10 +147,10 @@ void DagPacketsHandler::onNewBlockReceived(DagBlock block, std::vector<Transacti
                  << " transactions";
     dag_blk_mgr_->insertBroadcastedBlockWithTransactions(block, transactions);
 
-  } else if (peers_state_->test_blocks_.find(block.getHash()) == peers_state_->test_blocks_.end()) {
-    peers_state_->test_blocks_[block.getHash()] = block;
+  } else if (test_state_->test_blocks_.find(block.getHash()) == test_state_->test_blocks_.end()) {
+    test_state_->test_blocks_[block.getHash()] = block;
     for (auto tr : transactions) {
-      peers_state_->test_transactions_[tr.getHash()] = tr;
+      test_state_->test_transactions_[tr.getHash()] = tr;
     }
     onNewBlockVerified(block);
 
@@ -220,8 +222,7 @@ std::pair<std::vector<dev::p2p::NodeID>, std::vector<dev::p2p::NodeID>> DagPacke
 std::vector<dev::p2p::NodeID> DagPacketsHandler::selectPeers(
     std::function<bool(TaraxaPeer const &)> const &_predicate) {
   std::vector<dev::p2p::NodeID> allowed;
-  std::shared_lock lock(peers_state_->peers_mutex_);
-  for (auto const &peer : peers_state_->peers_) {
+  for (auto const &peer : peers_state_->getAllPeers()) {
     if (_predicate(*peer.second)) allowed.push_back(peer.first);
   }
   return allowed;
