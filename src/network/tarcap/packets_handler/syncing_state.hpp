@@ -7,7 +7,6 @@
 #include "util/util.hpp"
 
 namespace taraxa {
-
 class PbftChain;
 class DagManager;
 class DagBlockManager;
