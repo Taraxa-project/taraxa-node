@@ -631,7 +631,9 @@ void PbftManager::loopBackFinishState_() {
                << " | next_voted_soft_value_ = " << next_voted_soft_value_
                << " soft block = " << soft_voted_block_for_this_round_.first
                << " next_voted_null_block_hash_ = " << next_voted_null_block_hash_
-               << " cert voted = " << (cert_voted_values_for_round_.find(round) != cert_voted_values_for_round_.end());
+               << " cert voted = " << (cert_voted_values_for_round_.find(round) != cert_voted_values_for_round_.end())
+               << " last_soft_voted_value_ = " << last_soft_voted_value_
+               << " previous_round_next_voted_value_ = " << previous_round_next_voted_value_;
   state_ = finish_state;
   setPbftStep(step_ + 1);
   auto batch = db_->createWriteBatch();
@@ -658,8 +660,6 @@ bool PbftManager::stateOperations_() {
   auto round = getPbftRound();
   LOG(log_tr_) << "PBFT current round is " << round;
   LOG(log_tr_) << "PBFT current step is " << step_;
-
-  if (is_syncing_()) return true;
 
   // Get votes
   votes_ = vote_mgr_->getVerifiedVotes(round, sortition_threshold_, getDposTotalVotesCount(),
@@ -992,7 +992,8 @@ void PbftManager::secondFinish_() {
     }
   }
 
-  if (!next_voted_null_block_hash_ && round >= 2 && giveUpNextVotedBlock_() &&
+  if (!next_voted_null_block_hash_ && round >= 2 &&
+      (giveUpNextVotedBlock_() || step_ > MAX_WAIT_FOR_NEXT_VOTED_BLOCK_STEPS) &&
       (cert_voted_values_for_round_.find(round) == cert_voted_values_for_round_.end())) {
     auto place_votes = placeVote_(NULL_BLOCK_HASH, next_vote_type, round, step_);
     if (place_votes) {
@@ -1653,6 +1654,7 @@ bool PbftManager::giveUpNextVotedBlock_() {
       cert_voted_values_for_round_.find(getPbftRound()) == cert_voted_values_for_round_.end()) {
     LOG(log_tr_) << "Giving up next voted value " << previous_round_next_voted_value_
                  << " because giving up soft voted value.";
+
     return true;
   }
 
