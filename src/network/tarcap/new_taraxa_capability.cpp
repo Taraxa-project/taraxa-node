@@ -6,6 +6,7 @@
 #include "consensus/pbft_manager.hpp"
 #include "consensus/vote.hpp"
 #include "dag/dag.hpp"
+#include "network/tarcap/node_stats.hpp"
 #include "network/tarcap/packets_handler/handlers/blocks_packet_handler.hpp"
 #include "network/tarcap/packets_handler/handlers/dag_packets_handler.hpp"
 #include "network/tarcap/packets_handler/handlers/get_blocks_packet_handler.hpp"
@@ -35,32 +36,7 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkC
       syncing_state_(std::make_shared<SyncingState>(peers_state_, pbft_chain, dag_mgr, dag_blk_mgr, node_addr)),
       packets_handlers_(std::make_shared<PacketsHandler>()),
       thread_pool_(10, node_addr),  // TODO: num of threads from config
-      periodic_events_tp_(1, false)
-//    : host_(move(_host)),
-//      db_(db),
-//      pbft_mgr_(pbft_mgr),
-//      pbft_chain_(pbft_chain),
-//      vote_mgr_(vote_mgr),
-//      next_votes_mgr_(next_votes_mgr),
-//      dag_mgr_(dag_mgr),
-//      dag_blk_mgr_(dag_blk_mgr),
-//      trx_mgr_(trx_mgr),
-//      lambda_ms_min_(pbft_mgr_ ? pbft_mgr_->getPbftInitialLambda() : 2000),
-//      conf_(_conf),
-//      urng_(std::mt19937_64(std::random_device()())),
-//      delay_rng_(std::mt19937(std::random_device()())),
-//      random_dist_(std::uniform_int_distribution<std::mt19937::result_type>(90, 110)) {
-//  LOG_OBJECTS_CREATE("TARCAP");
-//  LOG_OBJECTS_CREATE_SUB("PBFTSYNC", pbft_sync);
-//  LOG_OBJECTS_CREATE_SUB("DAGSYNC", dag_sync);
-//  LOG_OBJECTS_CREATE_SUB("NEXTVOTESSYNC", next_votes_sync);
-//  LOG_OBJECTS_CREATE_SUB("DAGPRP", dag_prp);
-//  LOG_OBJECTS_CREATE_SUB("TRXPRP", trx_prp);
-//  LOG_OBJECTS_CREATE_SUB("PBFTPRP", pbft_prp);
-//  LOG_OBJECTS_CREATE_SUB("VOTEPRP", vote_prp);
-//  LOG_OBJECTS_CREATE_SUB("NETPER", net_per);
-//  LOG_OBJECTS_CREATE_SUB("SUMMARY", summary);
-{
+      periodic_events_tp_(1, false) {
   // Register all packet handlers
 
   // Consensus packets with high processing priority
@@ -121,26 +97,36 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkC
   // Creates periodic events
   const auto lambda_ms_min = pbft_mgr ? pbft_mgr->getPbftInitialLambda() : 2000;
 
-  // TODO: use sendTransactions() from TransactionPacketHandler when ready
-  //  if (conf.network_transaction_interval > 0) {
-  //    periodic_events_tp_.post_loop( { conf.network_transaction_interval }, [this] { sendTransactions(); });
-  //  }
-
-  const auto &handler = packets_handlers_->getSpecificHandler(SubprotocolPacketType::StatusPacket);
-  auto status_packet_handler = std::static_pointer_cast<StatusPacketHandler>(handler);
-
-  const auto check_alive_interval = 6 * lambda_ms_min;
-  periodic_events_tp_.post_loop({check_alive_interval},
-                                [this, status_packet_handler] { status_packet_handler->checkLiveness(); });
-
-  if (conf.network_performance_log_interval > 0) {
-    periodic_events_tp_.post_loop({conf.network_performance_log_interval},
-                                  [this] { peers_state_->packets_stats_.logStats(); });
+  // Send new txs periodic event
+  const auto &tx_handler = packets_handlers_->getSpecificHandler(SubprotocolPacketType::TransactionPacket);
+  auto tx_packet_handler = std::static_pointer_cast<TransactionPacketHandler>(tx_handler);
+  if (conf.network_transaction_interval > 0) {
+    periodic_events_tp_.post_loop(
+        {conf.network_transaction_interval}, [tx_packet_handler = std::move(tx_packet_handler), trx_mgr] {
+          tx_packet_handler->onNewTransactions(trx_mgr->getNewVerifiedTrxSnapShotSerialized(), false);
+        });
   }
 
-  // TODO: implement logNodeStats()
-  //  const auto summary_interval_ms = 5 * 6 * lambda_ms_min;
-  //  periodic_events_tp_.post_loop( { summary_interval_ms }, [this] { logNodeStats(); });
+  // Check liveness periodic event
+  const auto &status_handler = packets_handlers_->getSpecificHandler(SubprotocolPacketType::StatusPacket);
+  auto status_packet_handler = std::static_pointer_cast<StatusPacketHandler>(status_handler);
+  const auto check_liveness_interval = 6 * lambda_ms_min;
+  periodic_events_tp_.post_loop({check_liveness_interval}, [status_packet_handler = std::move(status_packet_handler)] {
+    status_packet_handler->checkLiveness();
+  });
+
+  // Logs packets stats periodic event
+  if (conf.network_performance_log_interval > 0) {
+    periodic_events_tp_.post_loop({conf.network_performance_log_interval},
+                                  [peers_state = peers_state_] { peers_state->packets_stats_.logStats(); });
+  }
+
+  // Logs node stats periodic event
+  const auto node_stats_log_interval = 5 * 6 * lambda_ms_min;
+  NodeStats node_stats(peers_state_, syncing_state_, pbft_chain, pbft_mgr, dag_mgr, dag_blk_mgr, vote_mgr, trx_mgr,
+                       node_stats_log_interval);
+  periodic_events_tp_.post_loop({node_stats.getNodeStatsLogInterval()},
+                                [node_stats = std::move(node_stats)]() mutable { node_stats.logNodeStats(); });
 }
 
 std::string TaraxaCapability::name() const {

@@ -21,7 +21,6 @@
 #include "util/thread_pool.hpp"
 
 namespace taraxa {
-
 class PbftManager;
 class PbftChain;
 class VoteManager;
@@ -116,11 +115,11 @@ class TaraxaCapability : virtual dev::p2p::CapabilityFace {
   // Packets handlers
   std::shared_ptr<PacketsHandler> packets_handlers_;
 
-  // Threadpool for processing packets
+  // Main Threadpool for processing packets
   TarcapThreadPool thread_pool_;
 
-  // TODO: refactor this
-  // Fake threadpool (1 thread) for periodic events like printing Summary logs, packets stats, etc...
+  // TODO: refactor this: we could have some shared global threadpool for periodic events ?
+  // Fake threadpool (1 thread) for periodic events like printing summary logs, packets stats, etc...
   util::ThreadPool periodic_events_tp_;
 
   LOG_OBJECTS_DEFINE
