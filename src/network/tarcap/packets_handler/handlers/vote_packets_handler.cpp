@@ -129,9 +129,8 @@ inline void VotePacketsHandler::processPbftNextVotesPacket(const PacketData &pac
       // Update our previous round next vote bundles...
       next_votes_mgr_->updateWithSyncedVotes(next_votes, pbft_2t_plus_1);
       // Pass them on to our peers...
-      std::shared_lock lock(peers_state_->peers_mutex_);
       const auto updated_next_votes_size = next_votes_mgr_->getNextVotesSize();
-      for (auto const &peer_to_share_to : peers_state_->peers_) {
+      for (auto const &peer_to_share_to : peers_state_->getAllPeers()) {
         // Do not send votes right back to same peer...
         if (peer_to_share_to.first == packet_data.from_node_id_) continue;
         // Do not send votes to nodes that already have as many bundles as we do...
@@ -166,12 +165,9 @@ void VotePacketsHandler::sendPbftVote(NodeID const &peer_id, Vote const &vote) {
 
 void VotePacketsHandler::onNewPbftVote(Vote const &vote) {
   std::vector<NodeID> peers_to_send;
-  {
-    std::shared_lock lock(peers_state_->peers_mutex_);
-    for (auto const &peer : peers_state_->peers_) {
-      if (!peer.second->isVoteKnown(vote.getHash())) {
-        peers_to_send.push_back(peer.first);
-      }
+  for (auto const &peer : peers_state_->getAllPeers()) {
+    if (!peer.second->isVoteKnown(vote.getHash())) {
+      peers_to_send.push_back(peer.first);
     }
   }
   for (auto const &peer_id : peers_to_send) {
@@ -196,6 +192,29 @@ void VotePacketsHandler::sendPbftNextVotes(NodeID const &peer_id, std::vector<Vo
       for (auto const &v : send_next_votes_bundle) {
         peer->markVoteAsKnown(v.getHash());
       }
+    }
+  }
+}
+
+void VotePacketsHandler::broadcastPreviousRoundNextVotesBundle() {
+  const auto next_votes_bundle = next_votes_mgr_->getNextVotes();
+  if (next_votes_bundle.empty()) {
+    LOG(log_er_) << "There are empty next votes for previous PBFT round";
+    return;
+  }
+
+  const auto pbft_current_round = pbft_mgr_->getPbftRound();
+
+  for (auto const &peer : peers_state_->getAllPeers()) {
+    // Nodes may vote at different values at previous round, so need less or equal
+    if (!peer.second->syncing_ && peer.second->pbft_round_ <= pbft_current_round) {
+      std::vector<Vote> send_next_votes_bundle;
+      for (auto const &v : next_votes_bundle) {
+        if (!peer.second->isVoteKnown(v.getHash())) {
+          send_next_votes_bundle.emplace_back(v);
+        }
+      }
+      sendPbftNextVotes(peer.first, send_next_votes_bundle);
     }
   }
 }

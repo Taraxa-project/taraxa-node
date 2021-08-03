@@ -139,7 +139,7 @@ void PbftBlockPacketHandler::process(const PacketData &packet_data, const dev::R
 
 void PbftBlockPacketHandler::sendSyncedMessage() {
   LOG(log_dg_) << "sendSyncedMessage ";
-  for (const auto &peer : peers_state_->getAllPeers()) {
+  for (const auto &peer : peers_state_->getAllPeersIDs()) {
     peers_state_->sealAndSend(peer, SyncedPacket, RLPStream(0));
   }
 }

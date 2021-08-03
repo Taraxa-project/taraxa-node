@@ -81,7 +81,7 @@ Network::Network(NetworkConfig const &config, std::filesystem::path const &netwo
   diagnostic_thread_.post_loop({30000},
                                [this] { LOG(log_nf_) << "NET_TP_NUM_PENDING_TASKS=" << tp_.num_pending_tasks(); });
   diagnostic_thread_.post_loop({30000}, [this] {
-    auto peers = getAllPeers();
+    auto peers = getAllPeersIDs();
     LOG(log_nf_) << "There are " << peers.size() << " peers connected";
     for (auto const &peer : peers) {
       LOG(log_nf_) << "Connected with peer " << peer;
@@ -113,7 +113,7 @@ unsigned Network::getNodeCount() { return host_->getNodeCount(); }
 
 Json::Value Network::getStatus() { return taraxa_capability_->getStatus(); }
 
-std::vector<NodeID> Network::getAllPeers() const { return taraxa_capability_->getAllPeers(); }
+std::vector<NodeID> Network::getAllPeersIDs() const { return taraxa_capability_->getAllPeersIDs(); }
 
 void Network::onNewBlockVerified(shared_ptr<DagBlock> const &blk) {
   tp_.post([=] {
@@ -176,6 +176,7 @@ void Network::sendTransactions(NodeID const &_id, std::vector<taraxa::bytes> con
   LOG(log_dg_) << "Sent transactions:" << transactions.size();
 }
 
+// TODO remove
 void Network::setPendingPeersToReady() {
   auto peerIds = taraxa_capability_->getAllPendingPeers();
   for (const auto &peerId : peerIds) {

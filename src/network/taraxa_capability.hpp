@@ -92,7 +92,7 @@ struct TaraxaCapability : virtual CapabilityFace {
   void onNewBlockVerified(DagBlock const &block);
   void onNewTransactions(std::vector<taraxa::bytes> const &transactions, bool fromNetwork);
   vector<NodeID> selectPeers(std::function<bool(TaraxaPeer const &)> const &_predicate);
-  vector<NodeID> getAllPeers() const;
+  vector<NodeID> getAllPeersIDs() const;
   vector<NodeID> getAllPendingPeers() const;
   Json::Value getStatus() const;
   std::pair<std::vector<NodeID>, std::vector<NodeID>> randomPartitionPeers(std::vector<NodeID> const &_peers,

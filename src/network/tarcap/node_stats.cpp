@@ -42,29 +42,25 @@ void NodeStats::logNodeStats() {
   uint64_t peer_max_pbft_round = 1;
   uint64_t peer_max_pbft_chain_size = 1;
   uint64_t peer_max_node_dag_level = 1;
-  size_t peers_size;
+  const size_t peers_size = peers_state_->getPeersCount();
 
-  {
-    std::shared_lock lock(peers_state_->peers_mutex_);
-    peers_size = peers_state_->peers_.size();
-    for (auto const &peer : peers_state_->peers_) {
-      // Find max pbft chain size
-      if (peer.second->pbft_chain_size_ > peer_max_pbft_chain_size) {
-        peer_max_pbft_chain_size = peer.second->pbft_chain_size_;
-        max_pbft_chain_node_id = peer.first;
-      }
+  for (auto const &peer : peers_state_->getAllPeers()) {
+    // Find max pbft chain size
+    if (peer.second->pbft_chain_size_ > peer_max_pbft_chain_size) {
+      peer_max_pbft_chain_size = peer.second->pbft_chain_size_;
+      max_pbft_chain_node_id = peer.first;
+    }
 
-      // Find max dag level
-      if (peer.second->dag_level_ > peer_max_node_dag_level) {
-        peer_max_node_dag_level = peer.second->dag_level_;
-        max_node_dag_level_node_id = peer.first;
-      }
+    // Find max dag level
+    if (peer.second->dag_level_ > peer_max_node_dag_level) {
+      peer_max_node_dag_level = peer.second->dag_level_;
+      max_node_dag_level_node_id = peer.first;
+    }
 
-      // Find max peer PBFT round
-      if (peer.second->pbft_round_ > peer_max_pbft_round) {
-        peer_max_pbft_round = peer.second->pbft_round_;
-        max_pbft_round_node_id = peer.first;
-      }
+    // Find max peer PBFT round
+    if (peer.second->pbft_round_ > peer_max_pbft_round) {
+      peer_max_pbft_round = peer.second->pbft_round_;
+      max_pbft_round_node_id = peer.first;
     }
   }
 

@@ -32,6 +32,7 @@ auto g_signed_trx_samples = Lazy([] { return samples::createSignedTrxSamples(0, 
 
 struct P2PTest : BaseTest {};
 
+// TODO this needs to be removed and called from tracap->setPendingPeersToReady() directly
 void setPendingPeersToReady(shared_ptr<TaraxaCapability> taraxa_capability) {
   auto peerIds = taraxa_capability->getAllPendingPeers();
   for (const auto &peerId : peerIds) {

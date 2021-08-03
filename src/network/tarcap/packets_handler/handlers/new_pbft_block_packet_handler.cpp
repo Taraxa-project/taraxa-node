@@ -38,12 +38,10 @@ void NewPbftBlockPacketHandler::process(const PacketData & /*packet_data*/, cons
 void NewPbftBlockPacketHandler::onNewPbftBlock(PbftBlock const &pbft_block) {
   std::vector<dev::p2p::NodeID> peers_to_send;
   const auto my_chain_size = pbft_chain_->getPbftChainSize();
-  {
-    std::shared_lock lock(peers_state_->peers_mutex_);
-    for (auto const &peer : peers_state_->peers_) {
-      if (!peer.second->isPbftBlockKnown(pbft_block.getBlockHash())) {
-        peers_to_send.push_back(peer.first);
-      }
+
+  for (auto const &peer : peers_state_->getAllPeers()) {
+    if (!peer.second->isPbftBlockKnown(pbft_block.getBlockHash())) {
+      peers_to_send.push_back(peer.first);
     }
   }
 

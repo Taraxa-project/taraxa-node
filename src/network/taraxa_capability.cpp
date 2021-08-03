@@ -1089,7 +1089,7 @@ vector<NodeID> TaraxaCapability::selectPeers(std::function<bool(TaraxaPeer const
   return allowed;
 }
 
-vector<NodeID> TaraxaCapability::getAllPeers() const {
+vector<NodeID> TaraxaCapability::getAllPeersIDs() const {
   vector<NodeID> peers;
 
   boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
@@ -1200,7 +1200,7 @@ void TaraxaCapability::onNewBlockReceived(DagBlock block, std::vector<Transactio
 
 void TaraxaCapability::sendSyncedMessage() {
   LOG(log_dg_dag_sync_) << "sendSyncedMessage ";
-  for (auto &peer : getAllPeers()) {
+  for (auto &peer : getAllPeersIDs()) {
     sealAndSend(peer, SyncedPacket, RLPStream(0));
   }
 }

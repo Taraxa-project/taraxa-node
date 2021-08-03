@@ -18,6 +18,9 @@
 //#include "transaction_manager/transaction.hpp"
 //#include "util/thread_pool.hpp"
 //#include "util/util.hpp"
+#include "packets_handler/peers_state.hpp"
+#include "packets_handler/syncing_state.hpp"
+#include "packets_handler/test_state.hpp"
 #include "util/thread_pool.hpp"
 
 namespace taraxa {
@@ -32,8 +35,6 @@ class TransactionManager;
 
 namespace taraxa::network::tarcap {
 
-class PeersState;
-class SyncingState;
 class PacketsHandler;
 
 // TODO: why virtual inheritance ?
@@ -77,33 +78,29 @@ class TaraxaCapability : virtual dev::p2p::CapabilityFace {
   //  // METHODS USED IN REAL CODE
   //  void start();
   //  bool isStarted();
-  //  std::list<dev::p2p::NodeEntry> getAllNodes() const;
-  //  unsigned getPeerCount();
-  //  unsigned getNodeCount();
   //  Json::Value getStatus();
-  //  std::vector<dev::p2p::NodeID> getAllPeers() const;
-  //  void onNewBlockVerified(std::shared_ptr<DagBlock> const &blk);
-  //  void onNewTransactions(std::vector<taraxa::bytes> transactions);
-  //  void restartSyncingPbft(bool force = false);
-  //  void onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_block);
-  //  bool pbft_syncing();
-  //  void onNewPbftVotes(std::vector<Vote> votes);
-  //  void broadcastPreviousRoundNextVotesBundle();
-  //  void sendTransactions(dev::p2p::NodeID const &_id, std::vector<taraxa::bytes> const &transactions);
-  //
-  //  // METHODS USED IN TESTS ONLY
-  //  void sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk);
-  //  void sendBlocks(dev::p2p::NodeID const &id, std::vector<std::shared_ptr<DagBlock>> blocks);
-  //  void setPendingPeersToReady();
-  //  dev::p2p::NodeID getNodeId();
-  //  int getReceivedBlocksCount();
-  //  int getReceivedTransactionsCount();
-  //  std::shared_ptr<TaraxaPeer> getPeer(dev::p2p::NodeID const &id);
-  //
-  //  // PBFT
-  //  void sendPbftBlock(dev::p2p::NodeID const &id, PbftBlock const &pbft_block, uint64_t const &pbft_chain_size);
-  //  void sendPbftVote(dev::p2p::NodeID const &id, Vote const &vote);
-  //  // END METHODS USED IN TESTS ONLY
+  std::vector<dev::p2p::NodeID> getAllPeersIDs() const;
+  size_t getPeerCount() const;
+  void restartSyncingPbft(bool force = false);
+  bool pbft_syncing() const;
+  void onNewBlockVerified(std::shared_ptr<DagBlock> const &blk);
+  void onNewTransactions(std::vector<taraxa::bytes> transactions);
+  void onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_block);
+  void broadcastPreviousRoundNextVotesBundle();
+  void sendTransactions(dev::p2p::NodeID const &id, std::vector<taraxa::bytes> const &transactions);
+
+  // METHODS USED IN TESTS ONLY
+  void sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk);
+  void sendBlocks(dev::p2p::NodeID const &id, std::vector<std::shared_ptr<DagBlock>> blocks);
+  void setPendingPeersToReady();
+  size_t getReceivedBlocksCount() const;
+  size_t getReceivedTransactionsCount() const;
+  std::shared_ptr<TaraxaPeer> getPeer(dev::p2p::NodeID const &id) const;
+
+  // PBFT
+  void sendPbftBlock(dev::p2p::NodeID const &id, PbftBlock const &pbft_block, uint64_t pbft_chain_size);
+  void sendPbftVote(dev::p2p::NodeID const &id, Vote const &vote);
+  // END METHODS USED IN TESTS ONLY
 
  private:
   // Peers state
@@ -114,6 +111,9 @@ class TaraxaCapability : virtual dev::p2p::CapabilityFace {
 
   // Packets handlers
   std::shared_ptr<PacketsHandler> packets_handlers_;
+
+  // REMOVE IN FUTURE
+  std::shared_ptr<TestState> test_state_;
 
   // Main Threadpool for processing packets
   TarcapThreadPool thread_pool_;
