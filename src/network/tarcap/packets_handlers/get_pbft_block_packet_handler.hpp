@@ -1,6 +1,6 @@
 #pragma once
 
-#include "network/tarcap/packets_handler/handlers/common/packet_handler.hpp"
+#include "network/tarcap/packets_handlers/common/packet_handler.hpp"
 
 namespace taraxa {
 class PbftChain;

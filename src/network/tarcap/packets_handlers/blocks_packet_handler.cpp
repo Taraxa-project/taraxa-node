@@ -1,8 +1,8 @@
 #include "blocks_packet_handler.hpp"
 
 #include "dag/dag_block_manager.hpp"
-#include "network/tarcap/packets_handler/handlers/common/syncing_handler.hpp"
-#include "network/tarcap/packets_handler/syncing_state.hpp"
+#include "network/tarcap/packets_handlers/common/syncing_handler.hpp"
+#include "network/tarcap/shared_states/syncing_state.hpp"
 
 namespace taraxa::network::tarcap {
 

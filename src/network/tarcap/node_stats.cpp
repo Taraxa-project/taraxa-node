@@ -6,8 +6,8 @@
 #include "dag/dag.hpp"
 #include "dag/dag_block_manager.hpp"
 #include "libp2p/Common.h"
-#include "network/tarcap/packets_handler/peers_state.hpp"
-#include "network/tarcap/packets_handler/syncing_state.hpp"
+#include "network/tarcap/shared_states/peers_state.hpp"
+#include "network/tarcap/shared_states/syncing_state.hpp"
 #include "transaction_manager/transaction_manager.hpp"
 
 namespace taraxa::network::tarcap {

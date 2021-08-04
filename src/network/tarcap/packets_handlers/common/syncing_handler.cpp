@@ -3,8 +3,8 @@
 #include "consensus/pbft_chain.hpp"
 #include "dag/dag.hpp"
 #include "dag/dag_block_manager.hpp"
-#include "network/tarcap/packets_handler/handlers/common/get_blocks_request_type.hpp"
-#include "network/tarcap/packets_handler/syncing_state.hpp"
+#include "network/tarcap/packets_handlers/common/get_blocks_request_type.hpp"
+#include "network/tarcap/shared_states/syncing_state.hpp"
 
 namespace taraxa::network::tarcap {
 

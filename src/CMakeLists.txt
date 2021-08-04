@@ -47,26 +47,26 @@ set(SOURCES
         network/tarcap/threadpool/packets_queue.hpp
         network/tarcap/threadpool/packet_data.hpp
         network/tarcap/packet_types.hpp
-        network/tarcap/packets_handler/syncing_state.hpp
-        network/tarcap/packets_handler/test_state.hpp
-        network/tarcap/packets_handler/peers_state.hpp
-        network/tarcap/packets_handler/packets_handler.hpp
-        network/tarcap/packets_handler/taraxa_peer.hpp
-        network/tarcap/packets_handler/handlers/blocks_packet_handler.hpp
-        network/tarcap/packets_handler/handlers/dag_packets_handler.hpp
-        network/tarcap/packets_handler/handlers/get_blocks_packet_handler.hpp
-        network/tarcap/packets_handler/handlers/get_pbft_block_packet_handler.hpp
-        network/tarcap/packets_handler/handlers/new_pbft_block_packet_handler.hpp
-        network/tarcap/packets_handler/handlers/common/packet_handler.hpp
-        network/tarcap/packets_handler/handlers/pbft_block_packet_handler.hpp
-        network/tarcap/packets_handler/handlers/status_packet_handler.hpp
-        network/tarcap/packets_handler/handlers/test_packet_handler.hpp
-        network/tarcap/packets_handler/handlers/transaction_packet_handler.hpp
-        network/tarcap/packets_handler/handlers/vote_packets_handler.hpp
-        network/tarcap/packets_handler/handlers/common/syncing_handler.hpp
-        network/tarcap/packets_handler/handlers/common/get_blocks_request_type.hpp
-        network/tarcap/packets_handler/packets_stats/packets_stats.hpp
-        network/tarcap/packets_handler/packets_stats/packets_avg_stats.hpp
+        network/tarcap/shared_states/syncing_state.hpp
+        network/tarcap/shared_states/test_state.hpp
+        network/tarcap/shared_states/peers_state.hpp
+        network/tarcap/packets_handler.hpp
+        network/tarcap/taraxa_peer.hpp
+        network/tarcap/packets_handlers/blocks_packet_handler.hpp
+        network/tarcap/packets_handlers/dag_packets_handler.hpp
+        network/tarcap/packets_handlers/get_blocks_packet_handler.hpp
+        network/tarcap/packets_handlers/get_pbft_block_packet_handler.hpp
+        network/tarcap/packets_handlers/new_pbft_block_packet_handler.hpp
+        network/tarcap/packets_handlers/common/packet_handler.hpp
+        network/tarcap/packets_handlers/pbft_block_packet_handler.hpp
+        network/tarcap/packets_handlers/status_packet_handler.hpp
+        network/tarcap/packets_handlers/test_packet_handler.hpp
+        network/tarcap/packets_handlers/transaction_packet_handler.hpp
+        network/tarcap/packets_handlers/vote_packets_handler.hpp
+        network/tarcap/packets_handlers/common/syncing_handler.hpp
+        network/tarcap/packets_handlers/common/get_blocks_request_type.hpp
+        network/tarcap/packets_handlers/common/packets_stats/packets_stats.hpp
+        network/tarcap/packets_handlers/common/packets_stats/packets_avg_stats.hpp
         node/full_node.hpp
         storage/db_storage.hpp
         transaction_manager/transaction_order_manager.hpp
@@ -144,23 +144,23 @@ set(SOURCES
         network/tarcap/threadpool/priority_queue.cpp
         network/tarcap/threadpool/packets_queue.cpp
         network/tarcap/threadpool/packet_data.cpp
-        network/tarcap/packets_handler/peers_state.cpp
-        network/tarcap/packets_handler/packets_handler.cpp
-        network/tarcap/packets_handler/syncing_state.cpp
-        network/tarcap/packets_handler/handlers/blocks_packet_handler.cpp
-        network/tarcap/packets_handler/handlers/dag_packets_handler.cpp
-        network/tarcap/packets_handler/handlers/get_blocks_packet_handler.cpp
-        network/tarcap/packets_handler/handlers/get_pbft_block_packet_handler.cpp
-        network/tarcap/packets_handler/handlers/new_pbft_block_packet_handler.cpp
-        network/tarcap/packets_handler/handlers/common/packet_handler.cpp
-        network/tarcap/packets_handler/handlers/pbft_block_packet_handler.cpp
-        network/tarcap/packets_handler/handlers/status_packet_handler.cpp
-        network/tarcap/packets_handler/handlers/test_packet_handler.cpp
-        network/tarcap/packets_handler/handlers/transaction_packet_handler.cpp
-        network/tarcap/packets_handler/handlers/vote_packets_handler.cpp
-        network/tarcap/packets_handler/handlers/common/syncing_handler.cpp
-        network/tarcap/packets_handler/packets_stats/packets_avg_stats.cpp
-        network/tarcap/packets_handler/packets_stats/packets_stats.cpp
+        network/tarcap/shared_states/peers_state.cpp
+        network/tarcap/packets_handler.cpp
+        network/tarcap/shared_states/syncing_state.cpp
+        network/tarcap/packets_handlers/blocks_packet_handler.cpp
+        network/tarcap/packets_handlers/dag_packets_handler.cpp
+        network/tarcap/packets_handlers/get_blocks_packet_handler.cpp
+        network/tarcap/packets_handlers/get_pbft_block_packet_handler.cpp
+        network/tarcap/packets_handlers/new_pbft_block_packet_handler.cpp
+        network/tarcap/packets_handlers/common/packet_handler.cpp
+        network/tarcap/packets_handlers/pbft_block_packet_handler.cpp
+        network/tarcap/packets_handlers/status_packet_handler.cpp
+        network/tarcap/packets_handlers/test_packet_handler.cpp
+        network/tarcap/packets_handlers/transaction_packet_handler.cpp
+        network/tarcap/packets_handlers/vote_packets_handler.cpp
+        network/tarcap/packets_handlers/common/syncing_handler.cpp
+        network/tarcap/packets_handlers/common/packets_stats/packets_avg_stats.cpp
+        network/tarcap/packets_handlers/common/packets_stats/packets_stats.cpp
         node/full_node.cpp
         storage/db_storage.cpp
         transaction_manager/transaction.cpp
