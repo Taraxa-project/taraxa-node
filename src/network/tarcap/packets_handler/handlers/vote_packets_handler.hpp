@@ -1,6 +1,6 @@
 #pragma once
 
-#include "packet_handler.hpp"
+#include "network/tarcap/packets_handler/handlers/common/packet_handler.hpp"
 
 namespace taraxa {
 class PbftManager;
@@ -14,9 +14,10 @@ namespace taraxa::network::tarcap {
 
 class VotePacketsHandler : public PacketHandler {
  public:
-  VotePacketsHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PbftManager> pbft_mgr,
-                     std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr,
-                     std::shared_ptr<DbStorage> db, const addr_t& node_addr = {});
+  VotePacketsHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
+                     std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<VoteManager> vote_mgr,
+                     std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr, std::shared_ptr<DbStorage> db,
+                     const addr_t& node_addr = {});
 
   void sendPbftVote(dev::p2p::NodeID const& peer_id, Vote const& vote);
   void onNewPbftVote(Vote const& vote);

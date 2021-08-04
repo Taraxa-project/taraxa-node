@@ -5,22 +5,10 @@
 #include <libp2p/Host.h>
 #include <libp2p/Session.h>
 
-//#include <chrono>
 #include <memory>
-//#include <set>
-//#include <thread>
 
 #include "config/config.hpp"
-//#include "consensus/vote.hpp"
-//#include "dag/dag_block_manager.hpp"
-//#include "packet_types.hpp"
 #include "threadpool/tarcap_thread_pool.hpp"
-//#include "transaction_manager/transaction.hpp"
-//#include "util/thread_pool.hpp"
-//#include "util/util.hpp"
-#include "packets_handler/peers_state.hpp"
-#include "packets_handler/syncing_state.hpp"
-#include "packets_handler/test_state.hpp"
 #include "util/thread_pool.hpp"
 
 namespace taraxa {
@@ -36,6 +24,11 @@ class TransactionManager;
 namespace taraxa::network::tarcap {
 
 class PacketsHandler;
+class SyncingState;
+class SyncingHandler;
+class TestState;
+class PeersState;
+class TaraxaPeer;
 
 // TODO: why virtual inheritance ?
 class TaraxaCapability : virtual dev::p2p::CapabilityFace {
@@ -105,8 +98,9 @@ class TaraxaCapability : virtual dev::p2p::CapabilityFace {
   // Peers state
   std::shared_ptr<PeersState> peers_state_;
 
-  // Syncing state
+  // Syncing state + syncing handler
   std::shared_ptr<SyncingState> syncing_state_;
+  std::shared_ptr<SyncingHandler> syncing_handler_;
 
   // Packets handlers
   std::shared_ptr<PacketsHandler> packets_handlers_;

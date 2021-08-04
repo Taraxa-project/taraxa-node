@@ -5,16 +5,20 @@
 #include "consensus/pbft_manager.hpp"
 #include "consensus/vote.hpp"
 #include "dag/dag.hpp"
+#include "network/tarcap/packets_handler/handlers/common/syncing_handler.hpp"
 #include "network/tarcap/packets_handler/syncing_state.hpp"
 
 namespace taraxa::network::tarcap {
 
 StatusPacketHandler::StatusPacketHandler(std::shared_ptr<PeersState> peers_state,
+                                         std::shared_ptr<PacketsStats> packets_stats,
                                          std::shared_ptr<SyncingState> syncing_state,
+                                         std::shared_ptr<SyncingHandler> syncing_handler,
                                          std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DagManager> dag_mgr,
                                          uint64_t conf_network_id, const addr_t& node_addr)
-    : PacketHandler(std::move(peers_state), node_addr, "Status_PH"),
+    : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "Status_PH"),
       syncing_state_(std::move(syncing_state)),
+      syncing_handler_(std::move(syncing_handler)),
       pbft_chain_(std::move(pbft_chain)),
       dag_mgr_(std::move(dag_mgr)),
       conf_network_id_(conf_network_id) {}
@@ -84,9 +88,10 @@ void StatusPacketHandler::process(const PacketData& packet_data, const dev::RLP&
     tmp_peer_->pbft_previous_round_next_votes_size_ = (*it++).toInt<unsigned>();
 
     LOG(log_dg_) << "Received status message from " << packet_data.from_node_id_ << ", peer DAG max level "
-                 << tmp_peer_->dag_level_ << ", peer pbft chain size " << tmp_peer_->pbft_chain_size_ << ", peer syncing "
-                 << std::boolalpha << tmp_peer_->syncing_ << ", peer pbft round " << tmp_peer_->pbft_round_
-                 << ", peer pbft previous round next votes size " << tmp_peer_->pbft_previous_round_next_votes_size_;
+                 << tmp_peer_->dag_level_ << ", peer pbft chain size " << tmp_peer_->pbft_chain_size_
+                 << ", peer syncing " << std::boolalpha << tmp_peer_->syncing_ << ", peer pbft round "
+                 << tmp_peer_->pbft_round_ << ", peer pbft previous round next votes size "
+                 << tmp_peer_->pbft_previous_round_next_votes_size_;
   }
 
   // TODO: do we keep syncing specific channels ?
@@ -115,9 +120,9 @@ void StatusPacketHandler::process(const PacketData& packet_data, const dev::RLP&
     LOG(log_nf_) << "Restart PBFT chain syncing. Own synced PBFT at period " << pbft_synced_period
                  << ", peer PBFT chain size " << tmp_peer_->pbft_chain_size_;
     if (pbft_synced_period + 5 < tmp_peer_->pbft_chain_size_) {
-      syncing_state_->restartSyncingPbft(true);
+      syncing_handler_->restartSyncingPbft(true);
     } else {
-      syncing_state_->restartSyncingPbft(false);
+      syncing_handler_->restartSyncingPbft(false);
     }
   }
 
@@ -126,7 +131,7 @@ void StatusPacketHandler::process(const PacketData& packet_data, const dev::RLP&
   if (pbft_current_round < tmp_peer_->pbft_round_ ||
       (pbft_current_round == tmp_peer_->pbft_round_ &&
        pbft_previous_round_next_votes_size < tmp_peer_->pbft_previous_round_next_votes_size_)) {
-    syncing_state_->syncPbftNextVotes(pbft_current_round, pbft_previous_round_next_votes_size);
+    syncing_handler_->syncPbftNextVotes(pbft_current_round, pbft_previous_round_next_votes_size);
   }
 }
 
@@ -156,16 +161,15 @@ bool StatusPacketHandler::sendStatus(const dev::p2p::NodeID& node_id, bool initi
     */
 
     if (initial) {
-      success = peers_state_->sealAndSend(node_id, StatusPacket,
-                                          dev::RLPStream(INITIAL_STATUS_PACKET_ITEM_COUNT)
-                                              << conf_network_id_ << dag_max_level << dag_mgr_->get_genesis()
-                                              << pbft_chain_size << syncing_state_->is_pbft_syncing() << pbft_round
-                                              << pbft_previous_round_next_votes_size << TARAXA_MAJOR_VERSION
-                                              << TARAXA_MINOR_VERSION << TARAXA_PATCH_VERSION);
+      success =
+          sealAndSend(node_id, StatusPacket,
+                      dev::RLPStream(INITIAL_STATUS_PACKET_ITEM_COUNT)
+                          << conf_network_id_ << dag_max_level << dag_mgr_->get_genesis() << pbft_chain_size
+                          << syncing_state_->is_pbft_syncing() << pbft_round << pbft_previous_round_next_votes_size
+                          << TARAXA_MAJOR_VERSION << TARAXA_MINOR_VERSION << TARAXA_PATCH_VERSION);
     } else {
-      success = peers_state_->sealAndSend(node_id, StatusPacket,
-                                          dev::RLPStream(5)
-                                              << dag_max_level << pbft_chain_size << syncing_state_->is_pbft_syncing()
+      success = sealAndSend(node_id, StatusPacket,
+                            dev::RLPStream(5) << dag_max_level << pbft_chain_size << syncing_state_->is_pbft_syncing()
                                               << pbft_round << pbft_previous_round_next_votes_size);
     }
   }

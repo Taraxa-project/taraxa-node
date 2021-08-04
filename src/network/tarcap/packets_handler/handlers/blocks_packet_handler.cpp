@@ -1,15 +1,19 @@
 #include "blocks_packet_handler.hpp"
 
 #include "dag/dag_block_manager.hpp"
+#include "network/tarcap/packets_handler/handlers/common/syncing_handler.hpp"
 #include "network/tarcap/packets_handler/syncing_state.hpp"
 
 namespace taraxa::network::tarcap {
 
 BlocksPacketHandler::BlocksPacketHandler(std::shared_ptr<PeersState> peers_state,
+                                         std::shared_ptr<PacketsStats> packets_stats,
                                          std::shared_ptr<SyncingState> syncing_state,
+                                         std::shared_ptr<SyncingHandler> syncing_handler,
                                          std::shared_ptr<DagBlockManager> dag_blk_mgr, const addr_t &node_addr)
-    : PacketHandler(std::move(peers_state), node_addr, "BLOCKS_PH"),
+    : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "BLOCKS_PH"),
       syncing_state_(std::move(syncing_state)),
+      syncing_handler_(std::move(syncing_handler)),
       dag_blk_mgr_(std::move(dag_blk_mgr)) {}
 
 void BlocksPacketHandler::process(const PacketData &packet_data, const dev::RLP &packet_rlp) {
@@ -30,12 +34,12 @@ void BlocksPacketHandler::process(const PacketData &packet_data, const dev::RLP 
 
     received_dag_blocks_str += block.getHash().toString() + " ";
 
-    auto status = syncing_state_->checkDagBlockValidation(block);
+    auto status = syncing_handler_->checkDagBlockValidation(block);
     if (!status.first) {
       LOG(log_wr_) << "DagBlockValidation failed " << status.second;
       status.second.push_back(block.getHash());
-      syncing_state_->requestBlocks(packet_data.from_node_id_, status.second,
-                                    GetBlocksPacketRequestType::MissingHashes);
+      syncing_handler_->requestBlocks(packet_data.from_node_id_, status.second,
+                                      GetBlocksPacketRequestType::MissingHashes);
       continue;
     }
 

@@ -4,13 +4,14 @@
 
 #include <mutex>
 
-#include "packet_handler.hpp"
+#include "network/tarcap/packets_handler/handlers/common/packet_handler.hpp"
 
 namespace taraxa::network::tarcap {
 
 class TestPacketHandler : public PacketHandler {
  public:
-  TestPacketHandler(std::shared_ptr<PeersState> peers_state, const addr_t& node_addr);
+  TestPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
+                    const addr_t& node_addr);
 
   void sendTestMessage(const dev::p2p::NodeID& id, int x, const std::vector<char>& data);
   std::pair<size_t, uint64_t> retrieveTestData(const dev::p2p::NodeID& node_id);

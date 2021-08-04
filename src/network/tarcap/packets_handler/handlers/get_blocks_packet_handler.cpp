@@ -1,16 +1,18 @@
 #include "get_blocks_packet_handler.hpp"
 
 #include "dag/dag.hpp"
+#include "network/tarcap/packets_handler/handlers/common/get_blocks_request_type.hpp"
 #include "network/tarcap/packets_handler/syncing_state.hpp"
 #include "transaction_manager/transaction_manager.hpp"
 
 namespace taraxa::network::tarcap {
 
 GetBlocksPacketsHandler::GetBlocksPacketsHandler(std::shared_ptr<PeersState> peers_state,
+                                                 std::shared_ptr<PacketsStats> packets_stats,
                                                  std::shared_ptr<TransactionManager> trx_mgr,
                                                  std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DbStorage> db,
                                                  const addr_t &node_addr)
-    : PacketHandler(std::move(peers_state), node_addr, "GET_BLOCKS_PH"),
+    : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "GET_BLOCKS_PH"),
       trx_mgr_(std::move(trx_mgr)),
       dag_mgr_(std::move(dag_mgr)),
       db_(std::move(db)) {}
@@ -21,9 +23,9 @@ void GetBlocksPacketsHandler::process(const PacketData &packet_data, const dev::
   auto it = packet_rlp.begin();
   const auto mode = static_cast<GetBlocksPacketRequestType>((*it++).toInt<unsigned>());
 
-  if (mode == MissingHashes)
+  if (mode == GetBlocksPacketRequestType::MissingHashes)
     LOG(log_dg_) << "Received GetBlocksPacket with " << packet_rlp.itemCount() - 1 << " missing blocks";
-  else if (mode == KnownHashes)
+  else if (mode == GetBlocksPacketRequestType::KnownHashes)
     LOG(log_dg_) << "Received GetBlocksPacket with " << packet_rlp.itemCount() - 1 << " known blocks";
 
   for (; it != packet_rlp.end(); ++it) {
@@ -34,7 +36,7 @@ void GetBlocksPacketsHandler::process(const PacketData &packet_data, const dev::
   for (auto &level_blocks : blocks) {
     for (auto &block : level_blocks.second) {
       const auto hash = block;
-      if (mode == MissingHashes) {
+      if (mode == GetBlocksPacketRequestType::MissingHashes) {
         if (blocks_hashes.count(hash) == 1) {
           if (auto blk = db_->getDagBlock(hash); blk) {
             dag_blocks.emplace_back(blk);
@@ -43,7 +45,7 @@ void GetBlocksPacketsHandler::process(const PacketData &packet_data, const dev::
             assert(false);
           }
         }
-      } else if (mode == KnownHashes) {
+      } else if (mode == GetBlocksPacketRequestType::KnownHashes) {
         if (blocks_hashes.count(hash) == 0) {
           if (auto blk = db_->getDagBlock(hash); blk) {
             dag_blocks.emplace_back(blk);
@@ -57,7 +59,7 @@ void GetBlocksPacketsHandler::process(const PacketData &packet_data, const dev::
   }
 
   // This means that someone requested more hashes that we actually have -> do not send anything
-  if (mode == MissingHashes && dag_blocks.size() != blocks_hashes.size()) {
+  if (mode == GetBlocksPacketRequestType::MissingHashes && dag_blocks.size() != blocks_hashes.size()) {
     LOG(log_nf_) << "Node " << packet_data.from_node_id_ << " requested unknown DAG block";
     return;
   }
@@ -102,7 +104,7 @@ void GetBlocksPacketsHandler::sendBlocks(dev::p2p::NodeID const &peer_id,
     LOG(log_tr_) << "Send DagBlock " << block->getHash() << "Trxs count: " << block->getTrxs().size();
 
     // Split packet into multiple smaller ones if total size is > MAX_PACKET_SIZE
-    if (packet_bytes.size() > PeersState::MAX_PACKET_SIZE) {
+    if (packet_bytes.size() > MAX_PACKET_SIZE) {
       LOG(log_dg_) << "Sending partial BlocksPacket due to MAX_PACKET_SIZE limit. " << blocks_counter
                    << " blocks out of " << blocks.size() << " PbftBlockPacketsent.";
 
@@ -116,7 +118,7 @@ void GetBlocksPacketsHandler::sendBlocks(dev::p2p::NodeID const &peer_id,
       // need to differentiate if is the last one or not due to syncing
       s.append(false);  // flag if it is the final DagBlocksSyncPacket or not
       s.appendRaw(packet_bytes, packet_items_count);
-      peers_state_->sealAndSend(peer_id, BlocksPacket, std::move(s));
+      sealAndSend(peer_id, BlocksPacket, std::move(s));
 
       packet_bytes = std::move(removed_bytes);
       packet_items_count = 0;
@@ -131,7 +133,7 @@ void GetBlocksPacketsHandler::sendBlocks(dev::p2p::NodeID const &peer_id,
   RLPStream s(packet_items_count + 1 /* final packet flag */);
   s.append(true);  // flag if it is the final DagBlocksPacket or not
   s.appendRaw(packet_bytes, packet_items_count);
-  peers_state_->sealAndSend(peer_id, BlocksPacket, std::move(s));
+  sealAndSend(peer_id, BlocksPacket, std::move(s));
 }
 
 }  // namespace taraxa::network::tarcap
