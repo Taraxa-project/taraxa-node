@@ -8,6 +8,7 @@
 #include "libp2p/Common.h"
 #include "network/tarcap/shared_states/peers_state.hpp"
 #include "network/tarcap/shared_states/syncing_state.hpp"
+#include "network/tarcap/packets_handlers/common/packets_stats/packets_stats.hpp"
 #include "transaction_manager/transaction_manager.hpp"
 
 namespace taraxa::network::tarcap {
@@ -16,7 +17,7 @@ NodeStats::NodeStats(std::shared_ptr<PeersState> peers_state, std::shared_ptr<Sy
                      std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<PbftManager> pbft_mgr,
                      std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
                      std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<TransactionManager> trx_mgr,
-                     uint64_t stats_log_interval, const addr_t &node_addr)
+                     std::shared_ptr<PacketsStats> packets_stats, uint64_t stats_log_interval, const addr_t &node_addr)
     : peers_state_(std::move(peers_state)),
       syncing_state_(std::move(syncing_state)),
       pbft_chain_(std::move(pbft_chain)),
@@ -25,6 +26,7 @@ NodeStats::NodeStats(std::shared_ptr<PeersState> peers_state, std::shared_ptr<Sy
       dag_blk_mgr_(std::move(dag_blk_mgr)),
       vote_mgr_(std::move(vote_mgr)),
       trx_mgr_(std::move(trx_mgr)),
+      packets_stats_(std::move(packets_stats)),
       stats_log_interval_(stats_log_interval) {
   LOG_OBJECTS_CREATE("SUMMARY");
 }
@@ -207,6 +209,100 @@ void NodeStats::logNodeStats() {
   local_pbft_round_prev_interval_ = local_pbft_round;
   local_chain_size_prev_interval_ = local_chain_size;
   local_pbft_sync_period_prev_interval_ = local_pbft_sync_period;
+}
+
+Json::Value NodeStats::getStatus() const {
+  Json::Value res;
+  NodeID max_pbft_round_nodeID;
+  NodeID max_pbft_chain_nodeID;
+  NodeID max_node_dag_level_nodeID;
+  uint64_t peer_max_pbft_round = 1;
+  uint64_t peer_max_pbft_chain_size = 1;
+  uint64_t peer_max_node_dag_level = 1;
+
+  res["peers"] = Json::Value(Json::arrayValue);
+
+  for (auto const &peer : peers_state_->getAllPeers()) {
+    Json::Value peer_status;
+    peer_status["node_id"] = peer.first.toString();
+    peer_status["dag_level"] = Json::UInt64(peer.second->dag_level_);
+    peer_status["pbft_size"] = Json::UInt64(peer.second->pbft_chain_size_);
+    peer_status["dag_synced"] = !peer.second->syncing_;
+    res["peers"].append(peer_status);
+    // Find max pbft chain size
+    if (peer.second->pbft_chain_size_ > peer_max_pbft_chain_size) {
+      peer_max_pbft_chain_size = peer.second->pbft_chain_size_;
+      max_pbft_chain_nodeID = peer.first;
+    }
+
+    // Find max dag level
+    if (peer.second->dag_level_ > peer_max_node_dag_level) {
+      peer_max_node_dag_level = peer.second->dag_level_;
+      max_node_dag_level_nodeID = peer.first;
+    }
+
+    // Find max peer PBFT round
+    if (peer.second->pbft_round_ > peer_max_pbft_round) {
+      peer_max_pbft_round = peer.second->pbft_round_;
+      max_pbft_round_nodeID = peer.first;
+    }
+  }
+
+  if (syncing_state_->is_syncing()) {
+    res["syncing_from_node_id"] = syncing_state_->syncing_peer().toString();
+  }
+
+  res["peer_max_pbft_round"] = Json::UInt64(peer_max_pbft_round);
+  res["peer_max_pbft_chain_size"] = Json::UInt64(peer_max_pbft_chain_size);
+  res["peer_max_node_dag_level"] = Json::UInt64(peer_max_node_dag_level);
+  res["peer_max_pbft_round_node_id"] = max_pbft_round_nodeID.toString();
+  res["peer_max_pbft_chain_size_node_id"] = max_pbft_chain_nodeID.toString();
+  res["peer_max_node_dag_level_node_id"] = max_node_dag_level_nodeID.toString();
+
+  // TODO: generate proper node stats
+//  auto createPacketsStatsJson = [&](const PacketsStats &stats) -> Json::Value {
+//    Json::Value stats_json;
+//    for (uint8_t it = 0; it != PacketCount; it++) {
+//      Json::Value packet_stats_json;
+//      const auto packet_stats = stats.getPacketStats(packetTypeToString(it));
+//      if (packet_stats == std::nullopt) {
+//        continue;
+//      }
+//
+//      auto total = packet_stats->total_count_;
+//      packet_stats_json["total"] = Json::UInt64(total);
+//      if (total > 0) {
+//        packet_stats_json["avg packet size"] = Json::UInt64(packet_stats->total_size_ / total);
+//        packet_stats_json["avg packet processing duration"] =
+//            Json::UInt64(packet_stats->total_duration_.count() / total);
+//        auto unique = packet_stats->total_unique_count_;
+//        if (unique > 0) {
+//          packet_stats_json["unique"] = Json::UInt64(unique);
+//          packet_stats_json["unique %"] = Json::UInt64(unique * 100 / total);
+//          packet_stats_json["unique avg packet size"] = Json::UInt64(packet_stats->total_unique_size_ / unique);
+//          packet_stats_json["unique avg packet processing duration"] =
+//              Json::UInt64(packet_stats->total_unique_duration_.count() / unique);
+//        }
+//        stats_json[packetTypeToString(it)] = packet_stats_json;
+//      }
+//    }
+//
+//    return stats_json;
+//  };
+//
+//  Json::Value received_packet_stats_json = createPacketsStatsJson(received_packets_stats_);
+//
+//  received_packet_stats_json["transaction count"] = Json::UInt64(received_trx_count);
+//  received_packet_stats_json["unique transaction count"] = Json::UInt64(unique_received_trx_count);
+//  if (received_trx_count)
+//    received_packet_stats_json["unique transaction %"] =
+//        Json::UInt64(unique_received_trx_count * 100 / received_trx_count);
+//  res["received packets stats"] = received_packet_stats_json;
+//
+//  Json::Value sent_packet_stats_json = createPacketsStatsJson(sent_packets_stats_);
+//  res["sent packets stats"] = sent_packet_stats_json;
+
+  return res;
 }
 
 }  // namespace taraxa::network::tarcap
