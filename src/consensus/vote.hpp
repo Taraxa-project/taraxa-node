@@ -163,11 +163,11 @@ class NextVotesForPreviousRound {
 
   size_t getNextVotesSize() const;
 
-  void addNextVotes(std::vector<Vote> const& next_votes, size_t const pbft_2t_plus_1);
+  void addNextVotes(std::vector<Vote> const& next_votes, size_t pbft_2t_plus_1);
 
-  void updateNextVotes(std::vector<Vote> const& next_votes, size_t const pbft_2t_plus_1);
+  void updateNextVotes(std::vector<Vote> const& next_votes, size_t pbft_2t_plus_1);
 
-  void updateWithSyncedVotes(std::vector<Vote> const& votes, size_t const pbft_2t_plus_1);
+  void updateWithSyncedVotes(std::vector<Vote> const& votes, size_t pbft_2t_plus_1);
 
  private:
   using uniqueLock_ = boost::unique_lock<boost::shared_mutex>;
@@ -192,14 +192,14 @@ class NextVotesForPreviousRound {
   LOG_OBJECTS_DEFINE
 };
 
-struct votesBundle {
+struct VotesBundle {
   bool enough;
   blk_hash_t voted_block_hash;
   std::vector<Vote> votes;  // exactly 2t+1 votes
 
-  votesBundle() : enough(false), voted_block_hash(blk_hash_t(0)) {}
-  votesBundle(bool const enough_, blk_hash_t const& voted_block_hash_, std::vector<Vote> const& votes_)
-      : enough(enough_), voted_block_hash(voted_block_hash_), votes(votes_) {}
+  VotesBundle() : enough(false), voted_block_hash(blk_hash_t(0)) {}
+  VotesBundle(bool enough, blk_hash_t const& voted_block_hash, std::vector<Vote> const& votes)
+      : enough(enough), voted_block_hash(voted_block_hash), votes(votes) {}
 };
 
 class VoteManager {
@@ -213,8 +213,8 @@ class VoteManager {
   // Unverified votes
   bool addUnverifiedVote(Vote const& vote);
   void addUnverifiedVotes(std::vector<Vote> const& votes);
-  void removeUnverifiedVote(uint64_t const pbft_round, vote_hash_t const& vote_hash);
-  bool voteInUnverifiedMap(uint64_t const pbft_round, vote_hash_t const& vote_hash);
+  void removeUnverifiedVote(uint64_t pbft_round, vote_hash_t const& vote_hash);
+  bool voteInUnverifiedMap(uint64_t pbft_round, vote_hash_t const& vote_hash);
   std::vector<Vote> getUnverifiedVotes();
   void clearUnverifiedVotesTable();
   uint64_t getUnverifiedVotesSize() const;
@@ -227,23 +227,23 @@ class VoteManager {
 
   void removeVerifiedVotes();
 
-  void verifyVotes(uint64_t const pbft_round, size_t const sortition_threshold, uint64_t const dpos_total_votes_count,
+  void verifyVotes(uint64_t pbft_round, size_t sortition_threshold, uint64_t dpos_total_votes_count,
                    std::function<size_t(addr_t const&)> const& dpos_eligible_vote_count);
 
-  void cleanupVotes(uint64_t const pbft_round);
+  void cleanupVotes(uint64_t pbft_round);
 
-  bool voteValidation(Vote& vote, size_t const valid_sortition_players, size_t const sortition_threshold) const;
+  bool voteValidation(Vote& vote, size_t valid_sortition_players, size_t sortition_threshold) const;
 
   bool pbftBlockHasEnoughValidCertVotes(SyncBlock& pbft_block_and_votes, size_t valid_sortition_players,
                                         size_t sortition_threshold, size_t pbft_2t_plus_1) const;
 
   std::string getJsonStr(std::vector<Vote> const& votes);
 
-  std::vector<Vote> getProposalVotes(uint64_t const pbft_round);
+  std::vector<Vote> getProposalVotes(uint64_t pbft_round);
 
-  votesBundle getVotesBundleByRoundAndStep(uint64_t const round, size_t const step, size_t const two_t_plus_one);
+  VotesBundle getVotesBundleByRoundAndStep(uint64_t round, size_t step, size_t two_t_plus_one);
 
-  uint64_t roundDeterminedFromVotes(size_t const two_t_plus_one);
+  uint64_t roundDeterminedFromVotes(size_t two_t_plus_one);
 
  private:
   void retreieveVotes_();
