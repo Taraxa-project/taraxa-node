@@ -900,7 +900,7 @@ workflows:
           filters:
             branches:
               only:
-               - sync_thread
+               - feature/rework_tests
             tags:
               only: /^v\d+\.\d+\.\d+$/
           context:
