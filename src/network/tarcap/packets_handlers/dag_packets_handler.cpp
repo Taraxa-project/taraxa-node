@@ -1,10 +1,10 @@
 #include "dag_packets_handler.hpp"
 
 #include "dag/dag_block_manager.hpp"
-#include "network/tarcap/packets_handler/handlers/common/get_blocks_request_type.hpp"
-#include "network/tarcap/packets_handler/handlers/common/syncing_handler.hpp"
-#include "network/tarcap/packets_handler/syncing_state.hpp"
-#include "network/tarcap/packets_handler/test_state.hpp"
+#include "network/tarcap/packets_handlers/common/get_blocks_request_type.hpp"
+#include "network/tarcap/packets_handlers/common/syncing_handler.hpp"
+#include "network/tarcap/shared_states/syncing_state.hpp"
+#include "network/tarcap/shared_states/test_state.hpp"
 #include "transaction_manager/transaction_manager.hpp"
 
 namespace taraxa::network::tarcap {

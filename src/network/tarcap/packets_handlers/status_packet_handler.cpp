@@ -5,8 +5,8 @@
 #include "consensus/pbft_manager.hpp"
 #include "consensus/vote.hpp"
 #include "dag/dag.hpp"
-#include "network/tarcap/packets_handler/handlers/common/syncing_handler.hpp"
-#include "network/tarcap/packets_handler/syncing_state.hpp"
+#include "network/tarcap/packets_handlers/common/syncing_handler.hpp"
+#include "network/tarcap/shared_states/syncing_state.hpp"
 
 namespace taraxa::network::tarcap {
 

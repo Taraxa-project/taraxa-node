@@ -1,6 +1,6 @@
 #include "packet_handler.hpp"
 
-#include "network/tarcap/packets_handler/packets_stats/packets_stats.hpp"
+#include "network/tarcap/packets_handlers/common/packets_stats/packets_stats.hpp"
 
 namespace taraxa::network::tarcap {
 

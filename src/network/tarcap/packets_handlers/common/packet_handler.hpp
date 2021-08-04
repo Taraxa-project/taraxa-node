@@ -5,8 +5,8 @@
 #include "libdevcore/RLP.h"
 #include "logger/log.hpp"
 #include "network/tarcap/packet_types.hpp"
-#include "network/tarcap/packets_handler/peers_state.hpp"
-#include "network/tarcap/packets_handler/taraxa_peer.hpp"
+#include "network/tarcap/shared_states/peers_state.hpp"
+#include "network/tarcap/taraxa_peer.hpp"
 #include "network/tarcap/threadpool/packet_data.hpp"
 
 namespace taraxa::network::tarcap {

@@ -1,6 +1,6 @@
 #include "tarcap_thread_pool.hpp"
 
-#include "network/tarcap/packets_handler/packets_handler.hpp"
+#include "network/tarcap/packets_handler.hpp"
 
 namespace taraxa::network::tarcap {
 

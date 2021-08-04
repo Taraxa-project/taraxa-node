@@ -2,7 +2,7 @@
 
 #include "consensus/pbft_chain.hpp"
 #include "consensus/vote.hpp"
-#include "network/tarcap/packets_handler/syncing_state.hpp"
+#include "network/tarcap/shared_states/syncing_state.hpp"
 #include "storage/db_storage.hpp"
 
 namespace taraxa::network::tarcap {
