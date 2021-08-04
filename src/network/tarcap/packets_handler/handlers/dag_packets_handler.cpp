@@ -1,6 +1,8 @@
 #include "dag_packets_handler.hpp"
 
 #include "dag/dag_block_manager.hpp"
+#include "network/tarcap/packets_handler/handlers/common/get_blocks_request_type.hpp"
+#include "network/tarcap/packets_handler/handlers/common/syncing_handler.hpp"
 #include "network/tarcap/packets_handler/syncing_state.hpp"
 #include "network/tarcap/packets_handler/test_state.hpp"
 #include "transaction_manager/transaction_manager.hpp"
@@ -8,13 +10,16 @@
 namespace taraxa::network::tarcap {
 
 DagPacketsHandler::DagPacketsHandler(std::shared_ptr<PeersState> peers_state,
+                                     std::shared_ptr<PacketsStats> packets_stats,
                                      std::shared_ptr<SyncingState> syncing_state,
+                                     std::shared_ptr<SyncingHandler> syncing_handler,
                                      std::shared_ptr<TransactionManager> trx_mgr,
                                      std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<DbStorage> db,
                                      std::shared_ptr<TestState> test_state, uint16_t network_min_dag_block_broadcast,
                                      uint16_t network_max_dag_block_broadcast, const addr_t &node_addr)
-    : PacketHandler(std::move(peers_state), node_addr, "DAG_BLOCK_PH"),
+    : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "DAG_BLOCK_PH"),
       syncing_state_(std::move(syncing_state)),
+      syncing_handler_(std::move(syncing_handler)),
       trx_mgr_(std::move(trx_mgr)),
       dag_blk_mgr_(std::move(dag_blk_mgr)),
       db_(std::move(db)),
@@ -47,11 +52,11 @@ inline void DagPacketsHandler::processNewBlockPacket(const PacketData &packet_da
       LOG(log_dg_) << "Received NewBlock " << hash.toString() << "that is already known";
       return;
     }
-    if (auto status = syncing_state_->checkDagBlockValidation(block); !status.first) {
+    if (auto status = syncing_handler_->checkDagBlockValidation(block); !status.first) {
       LOG(log_wr_) << "Received NewBlock " << hash.toString() << " missing pivot or/and tips";
       status.second.push_back(hash);
-      syncing_state_->requestBlocks(packet_data.from_node_id_, status.second,
-                                    GetBlocksPacketRequestType::MissingHashes);
+      syncing_handler_->requestBlocks(packet_data.from_node_id_, status.second,
+                                      GetBlocksPacketRequestType::MissingHashes);
       return;
     }
   }
@@ -106,7 +111,7 @@ inline void DagPacketsHandler::processGetNewBlockPacket(const PacketData &packet
 
 void DagPacketsHandler::requestBlock(dev::p2p::NodeID const &peer_id, blk_hash_t hash) {
   LOG(log_dg_) << "requestBlock " << hash.toString();
-  peers_state_->sealAndSend(peer_id, GetNewBlockPacket, RLPStream(1) << hash);
+  sealAndSend(peer_id, GetNewBlockPacket, RLPStream(1) << hash);
 }
 
 void DagPacketsHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::DagBlock block) {
@@ -136,7 +141,7 @@ void DagPacketsHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::DagBl
     transaction.reset();
   }
   s.appendRaw(trx_bytes, transactions_to_send.size());
-  peers_state_->sealAndSend(peer_id, NewBlockPacket, move(s));
+  sealAndSend(peer_id, NewBlockPacket, move(s));
   LOG(log_dg_) << "Send DagBlock " << block.getHash() << " #Trx: " << transactions_to_send.size();
 }
 
@@ -200,7 +205,7 @@ void DagPacketsHandler::onNewBlockVerified(DagBlock const &block) {
 
 void DagPacketsHandler::sendBlockHash(dev::p2p::NodeID const &peer_id, taraxa::DagBlock block) {
   LOG(log_dg_) << "sendBlockHash " << block.getHash().toString();
-  peers_state_->sealAndSend(peer_id, NewBlockHashPacket, RLPStream(1) << block.getHash());
+  sealAndSend(peer_id, NewBlockHashPacket, RLPStream(1) << block.getHash());
 }
 
 std::pair<std::vector<dev::p2p::NodeID>, std::vector<dev::p2p::NodeID>> DagPacketsHandler::randomPartitionPeers(

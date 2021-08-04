@@ -29,19 +29,10 @@ class PeersState {
   std::shared_ptr<TaraxaPeer> setPeerAsReadyToSendMessages(dev::p2p::NodeID const& node_id,
                                                            std::shared_ptr<TaraxaPeer> peer);
 
-  // TODO: why dev::RLPStream and not const & or && ???
-  bool sealAndSend(const dev::p2p::NodeID& nodeID, SubprotocolPacketType packet_type, dev::RLPStream rlp);
-  std::string getCapabilityName() const;
-
  public:
-  static constexpr uint32_t MAX_PACKET_SIZE = 15 * 1024 * 1024;  // 15 MB -> 15 * 1024 * 1024 B
-
   // TODO: why weak_ptr ?
   std::weak_ptr<dev::p2p::Host> host_;
   dev::p2p::NodeID node_id_;
-
-  // Shared packet stats
-  PacketsStats packets_stats_;
 
  private:
   mutable std::shared_mutex peers_mutex_;

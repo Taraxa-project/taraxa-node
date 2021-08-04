@@ -5,11 +5,12 @@
 
 namespace taraxa::network::tarcap {
 
-VotePacketsHandler::VotePacketsHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PbftManager> pbft_mgr,
-                                       std::shared_ptr<VoteManager> vote_mgr,
+VotePacketsHandler::VotePacketsHandler(std::shared_ptr<PeersState> peers_state,
+                                       std::shared_ptr<PacketsStats> packets_stats,
+                                       std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<VoteManager> vote_mgr,
                                        std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr,
                                        std::shared_ptr<DbStorage> db, const addr_t &node_addr)
-    : PacketHandler(std::move(peers_state), node_addr, "VOTE_PH"),
+    : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "VOTE_PH"),
       pbft_mgr_(std::move(pbft_mgr)),
       vote_mgr_(std::move(vote_mgr)),
       next_votes_mgr_(std::move(next_votes_mgr)),
@@ -156,7 +157,7 @@ void VotePacketsHandler::sendPbftVote(NodeID const &peer_id, Vote const &vote) {
   const auto peer = peers_state_->getPeer(peer_id);
   // TODO: We should disable PBFT votes when a node is bootstrapping but not when trying to resync
   if (peer) {
-    if (peers_state_->sealAndSend(peer_id, PbftVotePacket, RLPStream(1) << vote.rlp(true))) {
+    if (sealAndSend(peer_id, PbftVotePacket, RLPStream(1) << vote.rlp(true))) {
       LOG(log_dg_) << "sendPbftVote " << vote.getHash() << " to " << peer_id;
       peer->markVoteAsKnown(vote.getHash());
     }
@@ -186,7 +187,7 @@ void VotePacketsHandler::sendPbftNextVotes(NodeID const &peer_id, std::vector<Vo
     LOG(log_dg_) << "Send out next vote " << next_vote.getHash() << " to peer " << peer_id;
   }
 
-  if (peers_state_->sealAndSend(peer_id, PbftNextVotesPacket, move(s))) {
+  if (sealAndSend(peer_id, PbftNextVotesPacket, move(s))) {
     LOG(log_nf_) << "Send out size of " << send_next_votes_bundle.size() << " PBFT next votes to " << peer_id;
     if (auto peer = peers_state_->getPeer(peer_id)) {
       for (auto const &v : send_next_votes_bundle) {

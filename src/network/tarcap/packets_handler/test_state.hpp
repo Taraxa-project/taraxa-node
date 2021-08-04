@@ -5,7 +5,7 @@
 
 namespace taraxa::network::tarcap {
 
-// THIS NEEDS TO BE REMOVED !!!!!!!
+// TODO: THIS NEEDS TO BE REMOVED !!!!!!!
 class TestState {
  public:
   std::unordered_map<blk_hash_t, DagBlock> test_blocks_;

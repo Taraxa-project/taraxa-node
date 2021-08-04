@@ -8,6 +8,7 @@
 #include "dag/dag.hpp"
 #include "network/tarcap/node_stats.hpp"
 #include "network/tarcap/packets_handler/handlers/blocks_packet_handler.hpp"
+#include "network/tarcap/packets_handler/handlers/common/syncing_handler.hpp"
 #include "network/tarcap/packets_handler/handlers/dag_packets_handler.hpp"
 #include "network/tarcap/packets_handler/handlers/get_blocks_packet_handler.hpp"
 #include "network/tarcap/packets_handler/handlers/get_pbft_block_packet_handler.hpp"
@@ -18,6 +19,10 @@
 #include "network/tarcap/packets_handler/handlers/transaction_packet_handler.hpp"
 #include "network/tarcap/packets_handler/handlers/vote_packets_handler.hpp"
 #include "network/tarcap/packets_handler/packets_handler.hpp"
+#include "network/tarcap/packets_handler/peers_state.hpp"
+#include "network/tarcap/packets_handler/syncing_state.hpp"
+#include "network/tarcap/packets_handler/test_state.hpp"
+#include "network/tarcap/packets_handler/taraxa_peer.hpp"
 #include "node/full_node.hpp"
 #include "transaction_manager/transaction_manager.hpp"
 
@@ -29,60 +34,64 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkC
                                    std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr,
                                    std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
                                    std::shared_ptr<TransactionManager> trx_mgr, addr_t const &node_addr)
-
     : peers_state_(std::make_shared<PeersState>(std::move(_host))),
-      syncing_state_(std::make_shared<SyncingState>(peers_state_, pbft_chain, dag_mgr, dag_blk_mgr, node_addr)),
+      syncing_state_(std::make_shared<SyncingState>(peers_state_)),
+      syncing_handler_(nullptr),
       packets_handlers_(std::make_shared<PacketsHandler>()),
       test_state_(std::make_shared<TestState>()),
       thread_pool_(10, node_addr),  // TODO: num of threads from config
       periodic_events_tp_(1, false) {
-  // Register all packet handlers
+  auto packets_stats = std::make_shared<PacketsStats>(node_addr);
+  syncing_handler_ = std::make_shared<SyncingHandler>(peers_state_, packets_stats, pbft_chain, dag_mgr, dag_blk_mgr, node_addr);
 
+  // Register all packet handlers
   // Consensus packets with high processing priority
-  const auto votes_handler =
-      std::make_shared<VotePacketsHandler>(peers_state_, pbft_mgr, vote_mgr, next_votes_mgr, db, node_addr);
+  const auto votes_handler = std::make_shared<VotePacketsHandler>(peers_state_, packets_stats, pbft_mgr, vote_mgr,
+                                                                  next_votes_mgr, db, node_addr);
   packets_handlers_->registerHandler(SubprotocolPacketType::PbftVotePacket, votes_handler);
   packets_handlers_->registerHandler(SubprotocolPacketType::GetPbftNextVotes, votes_handler);
   packets_handlers_->registerHandler(SubprotocolPacketType::PbftNextVotesPacket, votes_handler);
 
   // Standard packets with mid processing priority
-  packets_handlers_->registerHandler(SubprotocolPacketType::NewPbftBlockPacket,
-                                     std::make_shared<NewPbftBlockPacketHandler>(peers_state_, pbft_chain, node_addr));
+  packets_handlers_->registerHandler(
+      SubprotocolPacketType::NewPbftBlockPacket,
+      std::make_shared<NewPbftBlockPacketHandler>(peers_state_, packets_stats, pbft_chain, node_addr));
 
-  const auto dag_handler = std::make_shared<DagPacketsHandler>(peers_state_, syncing_state_, trx_mgr, dag_blk_mgr, db,
-                                                               test_state_, conf.network_min_dag_block_broadcast,
-                                                               conf.network_max_dag_block_broadcast, node_addr);
+  const auto dag_handler = std::make_shared<DagPacketsHandler>(
+      peers_state_, packets_stats, syncing_state_, syncing_handler_, trx_mgr, dag_blk_mgr, db, test_state_,
+      conf.network_min_dag_block_broadcast, conf.network_max_dag_block_broadcast, node_addr);
   packets_handlers_->registerHandler(SubprotocolPacketType::NewBlockPacket, dag_handler);
   packets_handlers_->registerHandler(SubprotocolPacketType::NewBlockHashPacket, dag_handler);
   packets_handlers_->registerHandler(SubprotocolPacketType::GetNewBlockPacket, dag_handler);
 
   packets_handlers_->registerHandler(
       SubprotocolPacketType::TransactionPacket,
-      std::make_shared<TransactionPacketHandler>(peers_state_, trx_mgr, dag_blk_mgr, test_state_,
+      std::make_shared<TransactionPacketHandler>(peers_state_, packets_stats, trx_mgr, dag_blk_mgr, test_state_,
                                                  conf.network_transaction_interval, node_addr));
 
   // Non critical packets with low processing priority
   packets_handlers_->registerHandler(SubprotocolPacketType::TestPacket,
-                                     std::make_shared<TestPacketHandler>(peers_state_, node_addr));
-  packets_handlers_->registerHandler(SubprotocolPacketType::StatusPacket,
-                                     std::make_shared<StatusPacketHandler>(peers_state_, syncing_state_, pbft_chain,
-                                                                           dag_mgr, conf.network_id, node_addr));
+                                     std::make_shared<TestPacketHandler>(peers_state_, packets_stats, node_addr));
+  packets_handlers_->registerHandler(
+      SubprotocolPacketType::StatusPacket,
+      std::make_shared<StatusPacketHandler>(peers_state_, packets_stats, syncing_state_, syncing_handler_, pbft_chain,
+                                            dag_mgr, conf.network_id, node_addr));
   packets_handlers_->registerHandler(
       SubprotocolPacketType::GetBlocksPacket,
-      std::make_shared<GetBlocksPacketsHandler>(peers_state_, trx_mgr, dag_mgr, db, node_addr));
+      std::make_shared<GetBlocksPacketsHandler>(peers_state_, packets_stats, trx_mgr, dag_mgr, db, node_addr));
 
-  packets_handlers_->registerHandler(
-      SubprotocolPacketType::BlocksPacket,
-      std::make_shared<BlocksPacketHandler>(peers_state_, syncing_state_, dag_blk_mgr, node_addr));
+  packets_handlers_->registerHandler(SubprotocolPacketType::BlocksPacket,
+                                     std::make_shared<BlocksPacketHandler>(peers_state_, packets_stats, syncing_state_,
+                                                                           syncing_handler_, dag_blk_mgr, node_addr));
 
   // TODO there is additional logic, that should be moved outside process function
   packets_handlers_->registerHandler(
       SubprotocolPacketType::GetPbftBlockPacket,
-      std::make_shared<GetPbftBlockPacketHandler>(peers_state_, syncing_state_, pbft_chain, db,
+      std::make_shared<GetPbftBlockPacketHandler>(peers_state_, packets_stats, syncing_state_, pbft_chain, db,
                                                   conf.network_sync_level_size, node_addr));
 
-  const auto pbft_handler =
-      std::make_shared<PbftBlockPacketHandler>(peers_state_, syncing_state_, pbft_chain, dag_blk_mgr, node_addr);
+  const auto pbft_handler = std::make_shared<PbftBlockPacketHandler>(
+      peers_state_, packets_stats, syncing_state_, syncing_handler_, pbft_chain, dag_blk_mgr, node_addr);
   packets_handlers_->registerHandler(SubprotocolPacketType::PbftBlockPacket, pbft_handler);
   packets_handlers_->registerHandler(SubprotocolPacketType::SyncedPacket, pbft_handler);
 
@@ -117,7 +126,7 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkC
   // Logs packets stats periodic event
   if (conf.network_performance_log_interval > 0) {
     periodic_events_tp_.post_loop({conf.network_performance_log_interval},
-                                  [peers_state = peers_state_] { peers_state->packets_stats_.logStats(); });
+                                  [packets_stats] { packets_stats->logStats(); });
   }
 
   // Logs node stats periodic event
@@ -128,9 +137,7 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkC
                                 [node_stats = std::move(node_stats)]() mutable { node_stats.logNodeStats(); });
 }
 
-std::string TaraxaCapability::name() const {
-  return peers_state_->getCapabilityName();
-}
+std::string TaraxaCapability::name() const { return TARAXA_CAPABILITY_NAME; }
 
 unsigned TaraxaCapability::version() const { return TARAXA_NET_VERSION; }
 
@@ -160,9 +167,18 @@ void TaraxaCapability::onConnect(weak_ptr<Session> session, u256 const &) {
 
 void TaraxaCapability::onDisconnect(NodeID const &_nodeID) {
   LOG(log_nf_) << "Node " << _nodeID << " disconnected";
-
   peers_state_->erasePeer(_nodeID);
-  syncing_state_->processDisconnect(_nodeID);
+
+  if (syncing_state_->is_pbft_syncing() && syncing_state_->syncing_peer() == _nodeID) {
+    if (peers_state_->getPeersCount() > 0) {
+      LOG(log_dg_) << "Restart PBFT/DAG syncing due to syncing peer disconnect.";
+      restartSyncingPbft(true);
+    } else {
+      LOG(log_dg_) << "Stop PBFT/DAG syncing due to syncing peer disconnect and no other peers available.";
+      syncing_state_->set_pbft_syncing(false);
+      syncing_state_->set_dag_syncing(false);
+    }
+  }
 }
 
 std::string TaraxaCapability::packetTypeToString(unsigned _packetType) const {
@@ -253,7 +269,7 @@ std::vector<dev::p2p::NodeID> TaraxaCapability::getAllPeersIDs() const { return 
 
 size_t TaraxaCapability::getPeerCount() const { return peers_state_->getPeersCount(); }
 
-void TaraxaCapability::restartSyncingPbft(bool force) { syncing_state_->restartSyncingPbft(force); }
+void TaraxaCapability::restartSyncingPbft(bool force) { syncing_handler_->restartSyncingPbft(force); }
 
 bool TaraxaCapability::pbft_syncing() const { return syncing_state_->is_pbft_syncing(); }
 

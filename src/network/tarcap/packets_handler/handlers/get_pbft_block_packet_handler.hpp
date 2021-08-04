@@ -1,6 +1,6 @@
 #pragma once
 
-#include "packet_handler.hpp"
+#include "network/tarcap/packets_handler/handlers/common/packet_handler.hpp"
 
 namespace taraxa {
 class PbftChain;
@@ -13,9 +13,10 @@ class SyncingState;
 
 class GetPbftBlockPacketHandler : public PacketHandler {
  public:
-  GetPbftBlockPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<SyncingState> syncing_state,
-                            std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DbStorage> db,
-                            size_t network_sync_level_size, const addr_t &node_addr = {});
+  GetPbftBlockPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
+                            std::shared_ptr<SyncingState> syncing_state, std::shared_ptr<PbftChain> pbft_chain,
+                            std::shared_ptr<DbStorage> db, size_t network_sync_level_size,
+                            const addr_t &node_addr = {});
 
   void sendPbftBlocks(dev::p2p::NodeID const &peer_id, size_t height_to_sync, size_t blocks_to_transfer);
 

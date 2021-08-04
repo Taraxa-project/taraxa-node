@@ -1,6 +1,6 @@
 #pragma once
 
-#include "packet_handler.hpp"
+#include "network/tarcap/packets_handler/handlers/common/packet_handler.hpp"
 
 namespace taraxa {
 class DagBlockManager;
@@ -11,11 +11,13 @@ class TransactionManager;
 namespace taraxa::network::tarcap {
 
 class SyncingState;
+class SyncingHandler;
 class TestState;
 
 class DagPacketsHandler : public PacketHandler {
  public:
-  DagPacketsHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<SyncingState> syncing_state,
+  DagPacketsHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
+                    std::shared_ptr<SyncingState> syncing_state, std::shared_ptr<SyncingHandler> syncing_handler,
                     std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
                     std::shared_ptr<DbStorage> db, std::shared_ptr<TestState> test_state,
                     uint16_t network_min_dag_block_broadcast, uint16_t network_max_dag_block_broadcast,
@@ -40,6 +42,7 @@ class DagPacketsHandler : public PacketHandler {
   std::vector<dev::p2p::NodeID> selectPeers(std::function<bool(TaraxaPeer const &)> const &_predicate);
 
   std::shared_ptr<SyncingState> syncing_state_;
+  std::shared_ptr<SyncingHandler> syncing_handler_;
   std::shared_ptr<TransactionManager> trx_mgr_;
   std::shared_ptr<DagBlockManager> dag_blk_mgr_;
   std::shared_ptr<DbStorage> db_;

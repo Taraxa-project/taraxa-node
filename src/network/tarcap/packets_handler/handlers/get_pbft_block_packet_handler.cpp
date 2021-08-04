@@ -8,11 +8,12 @@
 namespace taraxa::network::tarcap {
 
 GetPbftBlockPacketHandler::GetPbftBlockPacketHandler(std::shared_ptr<PeersState> peers_state,
+                                                     std::shared_ptr<PacketsStats> packets_stats,
                                                      std::shared_ptr<SyncingState> syncing_state,
                                                      std::shared_ptr<PbftChain> pbft_chain,
                                                      std::shared_ptr<DbStorage> db, size_t network_sync_level_size,
                                                      const addr_t &node_addr)
-    : PacketHandler(std::move(peers_state), node_addr, "DAG_BLOCK_PH"),
+    : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "DAG_BLOCK_PH"),
       syncing_state_(std::move(syncing_state)),
       pbft_chain_(std::move(pbft_chain)),
       db_(std::move(db)),
@@ -71,7 +72,7 @@ void GetPbftBlockPacketHandler::sendPbftBlocks(dev::p2p::NodeID const &peer_id, 
   // If blocks_to_transfer is 0, will return empty PBFT blocks
   auto pbft_cert_blks = pbft_chain_->getPbftBlocks(height_to_sync, blocks_to_transfer);
   if (pbft_cert_blks.empty()) {
-    peers_state_->sealAndSend(peer_id, PbftBlockPacket, RLPStream(0));
+    sealAndSend(peer_id, PbftBlockPacket, RLPStream(0));
     LOG(log_dg_) << "In sendPbftBlocks, send no pbft blocks to " << peer_id;
     return;
   }
@@ -179,7 +180,7 @@ void GetPbftBlockPacketHandler::sendPbftBlocks(dev::p2p::NodeID const &peer_id, 
       // MAX_PACKET_SIZE (15 MB) limit
       if (act_packet_size + dag_blocks_size + dag_rlp.out().size() + pbft_blocks[pbft_block_idx].rlp().size() +
               RLP_OVERHEAD >
-          PeersState::MAX_PACKET_SIZE) {
+          MAX_PACKET_SIZE) {
         LOG(log_dg_) << "Sending partial PbftBlockPacket due tu MAX_PACKET_SIZE limit. " << pbft_block_idx + 1
                      << " blocks out of " << pbft_blocks.size() << " sent.";
 
@@ -191,7 +192,7 @@ void GetPbftBlockPacketHandler::sendPbftBlocks(dev::p2p::NodeID const &peer_id, 
         pbft_blocks_rlps.emplace_back(pbft_block_rlp.invalidate());
 
         // Send partial packet
-        peers_state_->sealAndSend(peer_id, PbftBlockPacket, create_packet(std::move(pbft_blocks_rlps)));
+        sealAndSend(peer_id, PbftBlockPacket, create_packet(std::move(pbft_blocks_rlps)));
 
         act_packet_size = 0;
         pbft_blocks_rlps.clear();
@@ -214,7 +215,7 @@ void GetPbftBlockPacketHandler::sendPbftBlocks(dev::p2p::NodeID const &peer_id, 
   }
 
   // Send final packet
-  peers_state_->sealAndSend(peer_id, PbftBlockPacket, create_packet(std::move(pbft_blocks_rlps)));
+  sealAndSend(peer_id, PbftBlockPacket, create_packet(std::move(pbft_blocks_rlps)));
   LOG(log_dg_) << "Sending final PbftBlockPacket to " << peer_id;
 }
 

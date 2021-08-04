@@ -1,7 +1,7 @@
 #pragma once
 
 #include "dag/dag_block.hpp"
-#include "packet_handler.hpp"
+#include "network/tarcap/packets_handler/handlers/common/packet_handler.hpp"
 #include "transaction_manager/transaction.hpp"
 
 namespace taraxa {
@@ -15,9 +15,10 @@ class TestState;
 
 class TransactionPacketHandler : public PacketHandler {
  public:
-  TransactionPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<TransactionManager> trx_mgr,
-                           std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<TestState> test_state,
-                           uint16_t network_transaction_interval, const addr_t &node_addr = {});
+  TransactionPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
+                           std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
+                           std::shared_ptr<TestState> test_state, uint16_t network_transaction_interval,
+                           const addr_t &node_addr = {});
 
   void onNewTransactions(std::vector<taraxa::bytes> const &transactions, bool fromNetwork);
   void sendTransactions(dev::p2p::NodeID const &peer_id, std::vector<taraxa::bytes> const &transactions);

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "packet_handler.hpp"
+#include "network/tarcap/packets_handler/handlers/common/packet_handler.hpp"
 
 namespace taraxa {
 class PbftBlock;
@@ -11,8 +11,8 @@ namespace taraxa::network::tarcap {
 
 class NewPbftBlockPacketHandler : public PacketHandler {
  public:
-  NewPbftBlockPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PbftChain> pbft_chain,
-                            const addr_t &node_addr = {});
+  NewPbftBlockPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
+                            std::shared_ptr<PbftChain> pbft_chain, const addr_t &node_addr = {});
 
   void onNewPbftBlock(PbftBlock const &pbft_block);
   void sendPbftBlock(dev::p2p::NodeID const &peer_id, PbftBlock const &pbft_block, uint64_t pbft_chain_size);

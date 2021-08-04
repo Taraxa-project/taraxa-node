@@ -1,6 +1,6 @@
 #pragma once
 
-#include "packet_handler.hpp"
+#include "network/tarcap/packets_handler/handlers/common/packet_handler.hpp"
 
 namespace taraxa {
 class PbftChain;
@@ -12,10 +12,12 @@ class PbftManager;
 namespace taraxa::network::tarcap {
 
 class SyncingState;
+class SyncingHandler;
 
 class StatusPacketHandler : public PacketHandler {
  public:
-  StatusPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<SyncingState> syncing_state,
+  StatusPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
+                      std::shared_ptr<SyncingState> syncing_state, std::shared_ptr<SyncingHandler> syncing_handler,
                       std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DagManager> dag_mgr,
                       uint64_t conf_network_id, const addr_t& node_addr = {});
 
@@ -29,6 +31,7 @@ class StatusPacketHandler : public PacketHandler {
   static constexpr uint16_t INITIAL_STATUS_PACKET_ITEM_COUNT = 10;
 
   std::shared_ptr<SyncingState> syncing_state_;
+  std::shared_ptr<SyncingHandler> syncing_handler_;
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<DagManager> dag_mgr_;
   std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr_;

@@ -7,11 +7,12 @@
 namespace taraxa::network::tarcap {
 
 TransactionPacketHandler::TransactionPacketHandler(std::shared_ptr<PeersState> peers_state,
+                                                   std::shared_ptr<PacketsStats> packets_stats,
                                                    std::shared_ptr<TransactionManager> trx_mgr,
                                                    std::shared_ptr<DagBlockManager> dag_blk_mgr,
                                                    std::shared_ptr<TestState> test_state,
                                                    uint16_t network_transaction_interval, const addr_t &node_addr)
-    : PacketHandler(std::move(peers_state), node_addr, "TRANSACTION_PH"),
+    : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "TRANSACTION_PH"),
       trx_mgr_(std::move(trx_mgr)),
       dag_blk_mgr_(std::move(dag_blk_mgr)),
       test_state_(std::move(test_state)),
@@ -94,7 +95,7 @@ void TransactionPacketHandler::sendTransactions(dev::p2p::NodeID const &peer_id,
     trx_bytes.insert(trx_bytes.end(), std::begin(transaction), std::end(transaction));
   }
   s.appendRaw(trx_bytes, transactions.size());
-  peers_state_->sealAndSend(peer_id, TransactionPacket, move(s));
+  sealAndSend(peer_id, TransactionPacket, move(s));
 }
 
 }  // namespace taraxa::network::tarcap

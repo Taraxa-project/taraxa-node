@@ -3,17 +3,21 @@
 #include "consensus/pbft_chain.hpp"
 #include "consensus/vote.hpp"
 #include "dag/dag_block_manager.hpp"
+#include "network/tarcap/packets_handler/handlers/common/syncing_handler.hpp"
 #include "network/tarcap/packets_handler/syncing_state.hpp"
 #include "transaction_manager/transaction_manager.hpp"
 
 namespace taraxa::network::tarcap {
 
 PbftBlockPacketHandler::PbftBlockPacketHandler(std::shared_ptr<PeersState> peers_state,
+                                               std::shared_ptr<PacketsStats> packets_stats,
                                                std::shared_ptr<SyncingState> syncing_state,
+                                               std::shared_ptr<SyncingHandler> syncing_handler,
                                                std::shared_ptr<PbftChain> pbft_chain,
                                                std::shared_ptr<DagBlockManager> dag_blk_mgr, const addr_t &node_addr)
-    : PacketHandler(std::move(peers_state), node_addr, "PBFT_BLOCK_PH"),
+    : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "PBFT_BLOCK_PH"),
       syncing_state_(std::move(syncing_state)),
+      syncing_handler_(std::move(syncing_handler)),
       pbft_chain_(std::move(pbft_chain)),
       dag_blk_mgr_(std::move(dag_blk_mgr)) {}
 
@@ -49,7 +53,7 @@ void PbftBlockPacketHandler::process(const PacketData &packet_data, const dev::R
     LOG(log_dg_) << "Received Dag Blocks: " << received_dag_blocks_str;
     for (auto const &block_level : dag_blocks_per_level) {
       for (auto const &block : block_level.second) {
-        const auto status = syncing_state_->checkDagBlockValidation(block.second.first);
+        const auto status = syncing_handler_->checkDagBlockValidation(block.second.first);
         if (!status.first) {
           if (syncing_state_->syncing_peer() == packet_data.from_node_id_) {
             LOG(log_si_) << "PBFT SYNC ERROR, DAG missing a tip/pivot"
@@ -57,7 +61,7 @@ void PbftBlockPacketHandler::process(const PacketData &packet_data, const dev::R
                          << ", synced queue size: " << pbft_chain_->pbftSyncedQueueSize();
             syncing_state_->set_peer_malicious();
             tmp_host_->disconnect(packet_data.from_node_id_, p2p::UserReason);
-            syncing_state_->restartSyncingPbft(true);
+            syncing_handler_->restartSyncingPbft(true);
           }
           return;
         }
@@ -87,7 +91,7 @@ void PbftBlockPacketHandler::process(const PacketData &packet_data, const dev::R
                      << " received, stop syncing.";
         syncing_state_->set_peer_malicious();
         tmp_host_->disconnect(packet_data.from_node_id_, p2p::UserReason);
-        syncing_state_->restartSyncingPbft(true);
+        syncing_handler_->restartSyncingPbft(true);
         return;
       }
 
@@ -117,7 +121,7 @@ void PbftBlockPacketHandler::process(const PacketData &packet_data, const dev::R
       //                            << period << ", PBFT chain size " << pbft_chain_->getPbftChainSize();
       //     tp_.post(1000, [this, packet_data.from_node_id_] { delayedPbftSync(packet_data.from_node_id_, 1); });
       //   } else {
-      syncing_state_->syncPeerPbft(period + 1);
+      syncing_handler_->syncPeerPbft(period + 1);
       //   }
     }
   } else {
@@ -126,7 +130,7 @@ void PbftBlockPacketHandler::process(const PacketData &packet_data, const dev::R
     // calling restartSyncingPbft will check if some nodes have
     // greater pbft chain size and we should continue syncing with
     // them, Or sync pending DAG blocks
-    syncing_state_->restartSyncingPbft(true);
+    syncing_handler_->restartSyncingPbft(true);
     // We are pbft synced, send message to other node to start
     // gossiping new blocks
     if (!syncing_state_->is_pbft_syncing()) {
@@ -140,8 +144,12 @@ void PbftBlockPacketHandler::process(const PacketData &packet_data, const dev::R
 void PbftBlockPacketHandler::sendSyncedMessage() {
   LOG(log_dg_) << "sendSyncedMessage ";
   for (const auto &peer : peers_state_->getAllPeersIDs()) {
-    peers_state_->sealAndSend(peer, SyncedPacket, RLPStream(0));
+    sealAndSend(peer, SyncedPacket, RLPStream(0));
   }
 }
+
+// void PbftBlockPacketHandler::restartSyncingPbft(bool force) {
+//  syncing_handler_->restartSyncingPbft(force);
+//}
 
 }  // namespace taraxa::network::tarcap
