@@ -472,7 +472,8 @@ jobs:
       - run:
          name: Run Ctest
          command: |
-           docker run  --rm -v $PWD/tmp_docker:/tmp \
+           docker run  --ulimit nofile=4096:4096 \
+                       --rm -v $PWD/tmp_docker:/tmp \
                        --name taraxa-node-ctest-${DOCKER_BRANCH_TAG} \
                        ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}\
                         sh -c \
@@ -696,10 +697,15 @@ jobs:
 
               echo 'export PATH="/usr/local/opt/llvm/bin:$PATH"' >> $HOME/.bash_profile
               echo 'export PATH="/usr/local/opt/ccache/libexec:$PATH"' >> $HOME/.bash_profile
+        - run:
+           name: Install solc
+           command: |
+              brew tap ethereum/ethereum
+              brew install solidity
         - restore_cache:
            keys:
-            - conan-cache-v4-mac-{{ checksum "conanfile.py" }}
-            - conan-cache-v4-mac
+            - conan-cache-v5-mac-{{ checksum "conanfile.py" }}
+            - conan-cache-v5-mac
         - run:
            name: add conan bincrafters remote
            command: conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan"
@@ -714,17 +720,17 @@ jobs:
                conan profile update env.CXX=clang++ clang
         - run:
            name: connan install
-           command: conan install -if cmake-build --build missing -pr=clang .
+           command: conan install -if cmake-build --build missing -s build_type=Debug -pr=clang .
         - save_cache:
            paths:
              - ~/.conan
-           key: conan-cache-v4-mac-{{ checksum "conanfile.py" }}
+           key: conan-cache-v5-mac-{{ checksum "conanfile.py" }}
         - run:
            name: Cmake
            command: |
                cd cmake-build
                cmake \
-                  -DCMAKE_BUILD_TYPE=Release \
+                  -DCMAKE_BUILD_TYPE=Debug \
                   -DTARAXA_ENABLE_LTO=ON \
                   -DTARAXA_STATIC_BUILD=ON ../ &&
                make -j 6 &&
@@ -733,7 +739,7 @@ jobs:
         - run:
            name: Execute ctest
            command: |
-             ulimit -n 2048
+             ulimit -n 4096
              cd cmake-build/tests && ctest --output-on-failure
         - store_artifacts:
            path: $HOME/project/release/taraxad-macos
@@ -773,7 +779,7 @@ jobs:
            command: conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan"
         - run:
            name: Conan
-           command: conan install -if $BUILD_OUTPUT_DIR --build missing -s build_type=Release .
+           command: conan install -if $BUILD_OUTPUT_DIR --build missing -s build_type=Debug .
         - save_cache:
            paths:
              - ~/.conan
@@ -782,7 +788,7 @@ jobs:
             name: Cmake
             command: |
               cd $BUILD_OUTPUT_DIR &&
-              cmake -DCMAKE_BUILD_TYPE=Release \
+              cmake -DCMAKE_BUILD_TYPE=Debug \
               -DTARAXA_STATIC_BUILD=ON \
               -DTARAXAD_INSTALL_DIR=./bin_install \
               -DTARAXAD_CONF_INSTALL_DIR=./bin_install \
@@ -799,7 +805,7 @@ jobs:
         - run:
            name: Execute ctest
            command: |
-            ulimit -n 2048
+            ulimit -n 4096
             cd $BUILD_OUTPUT_DIR/tests && ctest --output-on-failure
         - store_artifacts:
            path: /root/project/release/taraxad-x86_64
@@ -894,7 +900,7 @@ workflows:
           filters:
             branches:
               only:
-               - sync_thread
+               - feature/rework_tests
             tags:
               only: /^v\d+\.\d+\.\d+$/
           context:
