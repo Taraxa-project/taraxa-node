@@ -22,6 +22,7 @@ class PeersState {
   std::shared_ptr<TaraxaPeer> getPendingPeer(const dev::p2p::NodeID& node_id);
   std::unordered_map<dev::p2p::NodeID, std::shared_ptr<TaraxaPeer>> getAllPeers() const;
   std::vector<dev::p2p::NodeID> getAllPeersIDs() const;
+  std::vector<dev::p2p::NodeID> getAllPendingPeersIDs() const;
   void setPendingPeersToReady();
   size_t getPeersCount();
   std::shared_ptr<TaraxaPeer> addPendingPeer(const dev::p2p::NodeID& node_id);

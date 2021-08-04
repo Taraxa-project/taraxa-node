@@ -42,6 +42,17 @@ std::vector<dev::p2p::NodeID> PeersState::getAllPeersIDs() const {
   return peers;
 }
 
+std::vector<dev::p2p::NodeID> PeersState::getAllPendingPeersIDs() const {
+  std::vector<dev::p2p::NodeID> peers;
+
+  std::shared_lock lock(peers_mutex_);
+  std::transform(
+      pending_peers_.begin(), pending_peers_.end(), std::back_inserter(peers),
+      [](std::pair<const dev::p2p::NodeID, std::shared_ptr<TaraxaPeer>> const &peer) { return peer.first; });
+
+  return peers;
+}
+
 std::unordered_map<dev::p2p::NodeID, std::shared_ptr<TaraxaPeer>> PeersState::getAllPeers() const {
   std::shared_lock lock(peers_mutex_);
   return std::unordered_map<dev::p2p::NodeID, std::shared_ptr<TaraxaPeer>>(peers_.begin(), peers_.end());
