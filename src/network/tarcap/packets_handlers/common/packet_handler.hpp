@@ -35,7 +35,7 @@ class PacketHandler {
   std::string getCapabilityName() const;
 
  private:
-  void handle_read_exception(const dev::p2p::NodeID& node_id, SubprotocolPacketType packet_type);
+  void handle_read_exception(const dev::p2p::NodeID& node_id, const PacketData& packet_data);
 
   /**
    * @brief Main packet processing function

@@ -48,13 +48,13 @@ void PacketHandler::processPacket(const PacketData& packet_data) {
     packet_stats.processing_duration_ = processing_duration;
     packet_stats.tp_wait_duration_ = tp_wait_duration;
 
-    packets_stats_->addReceivedPacket(peers_state_->node_id_, convertPacketTypeToString(packet_data.type_),
+    packets_stats_->addReceivedPacket(peers_state_->node_id_, packet_data.type_str_,
                                       packet_stats);
 
     // Resets tmp_peer_ and tmp_host_
     resetTmpVariables();
   } catch (...) {
-    handle_read_exception(packet_data.from_node_id_, packet_data.type_);
+    handle_read_exception(packet_data.from_node_id_, packet_data);
 
     // Resets tmp_peer_ and tmp_host_
     resetTmpVariables();
@@ -71,12 +71,12 @@ void PacketHandler::resetTmpVariables() {
   tmp_host_ = nullptr;
 }
 
-void PacketHandler::handle_read_exception(const dev::p2p::NodeID& node_id, SubprotocolPacketType packet_type) {
+void PacketHandler::handle_read_exception(const dev::p2p::NodeID& node_id, const PacketData& packet_data) {
   try {
     throw;
   } catch (std::exception const& _e) {
-    LOG(log_er_) << "Read exception: " << _e.what() << ". PacketType: " << convertPacketTypeToString(packet_type)
-                 << " (" << packet_type << ")";
+    LOG(log_er_) << "Read exception: " << _e.what() << ". PacketType: " << packet_data.type_str_
+                 << " (" << packet_data.type_ << ")";
 
     assert(tmp_host_ != nullptr);
     tmp_host_->disconnect(node_id, dev::p2p::DisconnectReason::BadProtocol);

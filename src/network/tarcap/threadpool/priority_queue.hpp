@@ -28,8 +28,8 @@ class PriorityQueue {
   void updateDependenciesFinish(const PacketData& packet);
 
  private:
-  void markPacketAsBlocked(SubprotocolPacketType packet_type);
-  void markPacketAsUnblocked(SubprotocolPacketType packet_type);
+  void markPacketAsBlocked(PriorityQueuePacketType packet_type);
+  void markPacketAsUnblocked(PriorityQueuePacketType packet_type);
 
  private:
   // Queues that group packets by it's priority.

@@ -17,11 +17,11 @@ VotePacketsHandler::VotePacketsHandler(std::shared_ptr<PeersState> peers_state,
       db_(std::move(db)) {}
 
 void VotePacketsHandler::process(const PacketData &packet_data, const dev::RLP &packet_rlp) {
-  if (packet_data.type_ == PbftVotePacket) {
+  if (packet_data.type_ == PriorityQueuePacketType::PQ_PbftVotePacket) {
     processPbftVotePacket(packet_data, packet_rlp);
-  } else if (packet_data.type_ == GetPbftNextVotes) {
+  } else if (packet_data.type_ == PriorityQueuePacketType::PQ_GetPbftNextVotes) {
     processGetPbftNextVotePacket(packet_data, packet_rlp);
-  } else if (packet_data.type_ == PbftNextVotesPacket) {
+  } else if (packet_data.type_ == PriorityQueuePacketType::PQ_PbftNextVotesPacket) {
     processPbftNextVotesPacket(packet_data, packet_rlp);
   } else {
     assert(false);

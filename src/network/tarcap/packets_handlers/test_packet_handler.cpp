@@ -7,7 +7,7 @@ TestPacketHandler::TestPacketHandler(std::shared_ptr<PeersState> peers_state,
     : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "Test_PH") {}
 
 void TestPacketHandler::process(const PacketData& packet_data, const dev::RLP& packet_rlp) {
-  assert(packet_data.type_ == SubprotocolPacketType::TestPacket);
+  assert(packet_data.type_ == PriorityQueuePacketType::PQ_TestPacket);
 
   std::scoped_lock lock(mutex_);
 
