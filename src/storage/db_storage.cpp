@@ -98,7 +98,7 @@ void DbStorage::loadSnapshots() {
   }
 }
 
-bool DbStorage::createSnapshot(uint64_t const& period) {
+bool DbStorage::createSnapshot(uint64_t period) {
   // Only creates snapshot each db_snapshot_each_n_pbft_block_ periods
   if (db_snapshot_each_n_pbft_block_ > 0 && period % db_snapshot_each_n_pbft_block_ == 0 &&
       snapshots_.find(period) == snapshots_.end()) {
@@ -131,7 +131,7 @@ bool DbStorage::createSnapshot(uint64_t const& period) {
   return false;
 }
 
-void DbStorage::recoverToPeriod(uint64_t const& period) {
+void DbStorage::recoverToPeriod(uint64_t period) {
   LOG(log_nf_) << "Revet to snapshot from period: " << period;
 
   // Construct the snapshot folder names
@@ -163,7 +163,7 @@ void DbStorage::recoverToPeriod(uint64_t const& period) {
   }
 }
 
-void DbStorage::deleteSnapshot(uint64_t const& period) {
+void DbStorage::deleteSnapshot(uint64_t period) {
   LOG(log_nf_) << "Deleting " << period << "snapshot";
 
   // Construct the snapshot folder names
@@ -350,11 +350,11 @@ uint64_t DbStorage::getStatusField(StatusDbField const& field) {
   return 0;
 }
 
-void DbStorage::saveStatusField(StatusDbField const& field, uint64_t const& value) {
+void DbStorage::saveStatusField(StatusDbField const& field, uint64_t value) {
   insert(Columns::status, toSlice((uint8_t)field), toSlice(value));
 }
 
-void DbStorage::addStatusFieldToBatch(StatusDbField const& field, uint64_t const& value, Batch& write_batch) {
+void DbStorage::addStatusFieldToBatch(StatusDbField const& field, uint64_t value, Batch& write_batch) {
   insert(write_batch, DbStorage::Columns::status, toSlice((uint8_t)field), toSlice(value));
 }
 
@@ -370,15 +370,15 @@ uint64_t DbStorage::getPbftMgrField(PbftMgrRoundStep const& field) {
   return 1;
 }
 
-void DbStorage::savePbftMgrField(PbftMgrRoundStep const& field, uint64_t const& value) {
+void DbStorage::savePbftMgrField(PbftMgrRoundStep const& field, uint64_t value) {
   insert(Columns::pbft_mgr_round_step, toSlice((uint8_t)field), toSlice(value));
 }
 
-void DbStorage::addPbftMgrFieldToBatch(PbftMgrRoundStep const& field, uint64_t const& value, Batch& write_batch) {
+void DbStorage::addPbftMgrFieldToBatch(PbftMgrRoundStep const& field, uint64_t value, Batch& write_batch) {
   insert(write_batch, DbStorage::Columns::pbft_mgr_round_step, toSlice((uint8_t)field), toSlice(value));
 }
 
-size_t DbStorage::getPbft2TPlus1(uint64_t const& round) {
+size_t DbStorage::getPbft2TPlus1(uint64_t round) {
   auto status = lookup(toSlice(round), Columns::pbft_round_2t_plus_1);
 
   if (!status.empty()) {
@@ -390,11 +390,11 @@ size_t DbStorage::getPbft2TPlus1(uint64_t const& round) {
   return 0;
 }
 
-void DbStorage::savePbft2TPlus1(uint64_t const& pbft_round, size_t const& pbft_2t_plus_1) {
+void DbStorage::savePbft2TPlus1(uint64_t pbft_round, size_t pbft_2t_plus_1) {
   insert(Columns::pbft_round_2t_plus_1, toSlice(pbft_round), toSlice(pbft_2t_plus_1));
 }
 
-void DbStorage::addPbft2TPlus1ToBatch(uint64_t const& pbft_round, size_t const& pbft_2t_plus_1, Batch& write_batch) {
+void DbStorage::addPbft2TPlus1ToBatch(uint64_t pbft_round, size_t pbft_2t_plus_1, Batch& write_batch) {
   insert(write_batch, DbStorage::Columns::pbft_round_2t_plus_1, toSlice(pbft_round), toSlice(pbft_2t_plus_1));
 }
 
@@ -431,7 +431,7 @@ void DbStorage::addPbftMgrVotedValueToBatch(PbftMgrVotedValue const& field, blk_
   insert(write_batch, Columns::pbft_mgr_voted_value, toSlice((uint8_t)field), toSlice(value.asBytes()));
 }
 
-shared_ptr<blk_hash_t> DbStorage::getPbftCertVotedBlockHash(uint64_t const& pbft_round) {
+shared_ptr<blk_hash_t> DbStorage::getPbftCertVotedBlockHash(uint64_t pbft_round) {
   auto hash = asBytes(lookup(toSlice(pbft_round), Columns::pbft_cert_voted_block_hash));
   if (hash.size() > 0) {
     return make_shared<blk_hash_t>(hash);
@@ -439,11 +439,11 @@ shared_ptr<blk_hash_t> DbStorage::getPbftCertVotedBlockHash(uint64_t const& pbft
   return nullptr;
 }
 
-void DbStorage::savePbftCertVotedBlockHash(uint64_t const& pbft_round, blk_hash_t const& cert_voted_block_hash) {
+void DbStorage::savePbftCertVotedBlockHash(uint64_t pbft_round, blk_hash_t const& cert_voted_block_hash) {
   insert(Columns::pbft_cert_voted_block_hash, toSlice(pbft_round), toSlice(cert_voted_block_hash.asBytes()));
 }
 
-void DbStorage::addPbftCertVotedBlockHashToBatch(uint64_t const& pbft_round, blk_hash_t const& cert_voted_block_hash,
+void DbStorage::addPbftCertVotedBlockHashToBatch(uint64_t pbft_round, blk_hash_t const& cert_voted_block_hash,
                                                  Batch& write_batch) {
   insert(write_batch, Columns::pbft_cert_voted_block_hash, toSlice(pbft_round),
          toSlice(cert_voted_block_hash.asBytes()));
@@ -562,7 +562,7 @@ void DbStorage::removeVerifiedVoteToBatch(vote_hash_t const& vote_hash, Batch& w
   remove(write_batch, Columns::verified_votes, toSlice(vote_hash.asBytes()));
 }
 
-std::vector<Vote> DbStorage::getSoftVotes(uint64_t const& pbft_round) {
+std::vector<Vote> DbStorage::getSoftVotes(uint64_t pbft_round) {
   std::vector<Vote> soft_votes;
   auto soft_votes_raw = asBytes(lookup(toSlice(pbft_round), Columns::soft_votes));
 
@@ -573,7 +573,7 @@ std::vector<Vote> DbStorage::getSoftVotes(uint64_t const& pbft_round) {
   return soft_votes;
 }
 
-void DbStorage::saveSoftVotes(uint64_t const& pbft_round, std::vector<Vote> const& soft_votes) {
+void DbStorage::saveSoftVotes(uint64_t pbft_round, std::vector<Vote> const& soft_votes) {
   RLPStream s(soft_votes.size());
   for (auto const& v : soft_votes) {
     s.appendRaw(v.rlp(true));
@@ -581,8 +581,7 @@ void DbStorage::saveSoftVotes(uint64_t const& pbft_round, std::vector<Vote> cons
   insert(Columns::soft_votes, toSlice(pbft_round), toSlice(s.out()));
 }
 
-void DbStorage::addSoftVotesToBatch(uint64_t const& pbft_round, std::vector<Vote> const& soft_votes,
-                                    Batch& write_batch) {
+void DbStorage::addSoftVotesToBatch(uint64_t pbft_round, std::vector<Vote> const& soft_votes, Batch& write_batch) {
   RLPStream s(soft_votes.size());
   for (auto const& v : soft_votes) {
     s.appendRaw(v.rlp(true));
@@ -590,7 +589,7 @@ void DbStorage::addSoftVotesToBatch(uint64_t const& pbft_round, std::vector<Vote
   insert(write_batch, Columns::soft_votes, toSlice(pbft_round), toSlice(s.out()));
 }
 
-void DbStorage::removeSoftVotesToBatch(uint64_t const& pbft_round, Batch& write_batch) {
+void DbStorage::removeSoftVotesToBatch(uint64_t pbft_round, Batch& write_batch) {
   remove(write_batch, Columns::soft_votes, toSlice(pbft_round));
 }
 
@@ -614,7 +613,7 @@ void DbStorage::addCertVotesToBatch(const taraxa::blk_hash_t& pbft_block_hash, c
   insert(write_batch, Columns::cert_votes, toSlice(pbft_block_hash.asBytes()), toSlice(s.out()));
 }
 
-std::vector<Vote> DbStorage::getNextVotes(uint64_t const& pbft_round) {
+std::vector<Vote> DbStorage::getNextVotes(uint64_t pbft_round) {
   std::vector<Vote> next_votes;
   auto next_votes_raw = asBytes(lookup(toSlice(pbft_round), Columns::next_votes));
 
@@ -625,7 +624,7 @@ std::vector<Vote> DbStorage::getNextVotes(uint64_t const& pbft_round) {
   return next_votes;
 }
 
-void DbStorage::saveNextVotes(uint64_t const& pbft_round, std::vector<Vote> const& next_votes) {
+void DbStorage::saveNextVotes(uint64_t pbft_round, std::vector<Vote> const& next_votes) {
   RLPStream s(next_votes.size());
   for (auto const& v : next_votes) {
     s.appendRaw(v.rlp(true));
@@ -633,8 +632,7 @@ void DbStorage::saveNextVotes(uint64_t const& pbft_round, std::vector<Vote> cons
   insert(Columns::next_votes, toSlice(pbft_round), toSlice(s.out()));
 }
 
-void DbStorage::addNextVotesToBatch(uint64_t const& pbft_round, std::vector<Vote> const& next_votes,
-                                    Batch& write_batch) {
+void DbStorage::addNextVotesToBatch(uint64_t pbft_round, std::vector<Vote> const& next_votes, Batch& write_batch) {
   RLPStream s(next_votes.size());
   for (auto const& v : next_votes) {
     s.appendRaw(v.rlp(true));
@@ -642,11 +640,11 @@ void DbStorage::addNextVotesToBatch(uint64_t const& pbft_round, std::vector<Vote
   insert(write_batch, Columns::next_votes, toSlice(pbft_round), toSlice(s.out()));
 }
 
-void DbStorage::removeNextVotesToBatch(uint64_t const& pbft_round, Batch& write_batch) {
+void DbStorage::removeNextVotesToBatch(uint64_t pbft_round, Batch& write_batch) {
   remove(write_batch, Columns::next_votes, toSlice(pbft_round));
 }
 
-shared_ptr<blk_hash_t> DbStorage::getPeriodPbftBlock(uint64_t const& period) {
+shared_ptr<blk_hash_t> DbStorage::getPeriodPbftBlock(uint64_t period) {
   auto hash = asBytes(lookup(toSlice(period), Columns::period_pbft_block));
   if (hash.size() > 0) {
     return make_shared<blk_hash_t>(hash);
@@ -654,7 +652,7 @@ shared_ptr<blk_hash_t> DbStorage::getPeriodPbftBlock(uint64_t const& period) {
   return nullptr;
 }
 
-void DbStorage::addPbftBlockPeriodToBatch(uint64_t const& period, taraxa::blk_hash_t const& pbft_block_hash,
+void DbStorage::addPbftBlockPeriodToBatch(uint64_t period, taraxa::blk_hash_t const& pbft_block_hash,
                                           Batch& write_batch) {
   insert(write_batch, Columns::period_pbft_block, toSlice(period), toSlice(pbft_block_hash.asBytes()));
 }
@@ -667,7 +665,7 @@ std::shared_ptr<uint64_t> DbStorage::getDagBlockPeriod(blk_hash_t const& hash) {
   return nullptr;
 }
 
-void DbStorage::addDagBlockPeriodToBatch(blk_hash_t const& hash, uint64_t const& period, Batch& write_batch) {
+void DbStorage::addDagBlockPeriodToBatch(blk_hash_t const& hash, uint64_t period, Batch& write_batch) {
   insert(write_batch, Columns::dag_block_period, toSlice(hash.asBytes()), toSlice(period));
 }
 
@@ -695,12 +693,12 @@ uint64_t DbStorage::getDposProposalPeriodLevelsField(DposProposalPeriodLevelsSta
   return 0;
 }
 
-void DbStorage::saveDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus const& field, uint64_t const& value) {
+void DbStorage::saveDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus const& field, uint64_t value) {
   insert(Columns::dpos_proposal_period_levels_status, toSlice((uint8_t)field), toSlice(value));
 }
 
-void DbStorage::addDposProposalPeriodLevelsFieldToBatch(DposProposalPeriodLevelsStatus const& field,
-                                                        uint64_t const& value, Batch& write_batch) {
+void DbStorage::addDposProposalPeriodLevelsFieldToBatch(DposProposalPeriodLevelsStatus const& field, uint64_t value,
+                                                        Batch& write_batch) {
   insert(write_batch, Columns::dpos_proposal_period_levels_status, toSlice((uint8_t)field), toSlice(value));
 }
 

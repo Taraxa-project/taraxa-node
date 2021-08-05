@@ -166,8 +166,8 @@ TEST_F(NetworkTest, DISABLED_sync_large_pbft_block) {
 
   // Verify that a block over MAX_PACKET_SIZE is created
   auto pbft_blocks = nodes[0]->getPbftChain()->getPbftBlocks(1, 1);
-  size_t total_size = pbft_blocks[0].rlp().size();
-  auto blocks = nodes[0]->getDB()->getFinalizedDagBlockHashesByAnchor(pbft_blocks[0].pbft_blk->getPivotDagBlockHash());
+  size_t total_size = pbft_blocks[0].second.size();
+  auto blocks = nodes[0]->getDB()->getFinalizedDagBlockHashesByAnchor(pbft_blocks[0].first.getPivotDagBlockHash());
   for (auto b : blocks) {
     auto block = nodes[0]->getDB()->getDagBlock(b);
     EXPECT_NE(block, nullptr);
@@ -187,7 +187,7 @@ TEST_F(NetworkTest, DISABLED_sync_large_pbft_block) {
 
   auto pbft_blocks1 = nodes[0]->getPbftChain()->getPbftBlocks(1, 1);
   auto pbft_blocks2 = nodes2[0]->getPbftChain()->getPbftBlocks(1, 1);
-  EXPECT_EQ(pbft_blocks1[0].rlp(), pbft_blocks2[0].rlp());
+  EXPECT_EQ(pbft_blocks1[0].second, pbft_blocks2[0].second);
 }
 
 // Test creates two Network setup and verifies sending transaction

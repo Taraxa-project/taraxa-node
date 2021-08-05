@@ -164,9 +164,9 @@ struct DbStorage {
   void commitWriteBatch(Batch& write_batch, rocksdb::WriteOptions const& opts);
   void commitWriteBatch(Batch& write_batch) { commitWriteBatch(write_batch, write_options_); }
 
-  bool createSnapshot(uint64_t const& period);
-  void deleteSnapshot(uint64_t const& period);
-  void recoverToPeriod(uint64_t const& period);
+  bool createSnapshot(uint64_t period);
+  void deleteSnapshot(uint64_t period);
+  void recoverToPeriod(uint64_t period);
   void loadSnapshots();
 
   // DAG
@@ -196,12 +196,12 @@ struct DbStorage {
 
   // PBFT manager
   uint64_t getPbftMgrField(PbftMgrRoundStep const& field);
-  void savePbftMgrField(PbftMgrRoundStep const& field, uint64_t const& value);
-  void addPbftMgrFieldToBatch(PbftMgrRoundStep const& field, uint64_t const& value, Batch& write_batch);
+  void savePbftMgrField(PbftMgrRoundStep const& field, uint64_t value);
+  void addPbftMgrFieldToBatch(PbftMgrRoundStep const& field, uint64_t value, Batch& write_batch);
 
-  size_t getPbft2TPlus1(uint64_t const& pbft_round);
-  void savePbft2TPlus1(uint64_t const& pbft_round, size_t const& pbft_2t_plus_1);
-  void addPbft2TPlus1ToBatch(uint64_t const& pbft_round, size_t const& pbft_2t_plus_1, Batch& write_batch);
+  size_t getPbft2TPlus1(uint64_t pbft_round);
+  void savePbft2TPlus1(uint64_t pbft_round, size_t pbft_2t_plus_1);
+  void addPbft2TPlus1ToBatch(uint64_t pbft_round, size_t pbft_2t_plus_1, Batch& write_batch);
 
   bool getPbftMgrStatus(PbftMgrStatus const& field);
   void savePbftMgrStatus(PbftMgrStatus const& field, bool const& value);
@@ -211,9 +211,9 @@ struct DbStorage {
   void savePbftMgrVotedValue(PbftMgrVotedValue const& field, blk_hash_t const& value);
   void addPbftMgrVotedValueToBatch(PbftMgrVotedValue const& field, blk_hash_t const& value, Batch& write_batch);
 
-  shared_ptr<blk_hash_t> getPbftCertVotedBlockHash(uint64_t const& pbft_round);
-  void savePbftCertVotedBlockHash(uint64_t const& pbft_round, blk_hash_t const& cert_voted_block_hash);
-  void addPbftCertVotedBlockHashToBatch(uint64_t const& pbft_round, blk_hash_t const& cert_voted_block_hash,
+  shared_ptr<blk_hash_t> getPbftCertVotedBlockHash(uint64_t pbft_round);
+  void savePbftCertVotedBlockHash(uint64_t pbft_round, blk_hash_t const& cert_voted_block_hash);
+  void addPbftCertVotedBlockHashToBatch(uint64_t pbft_round, blk_hash_t const& cert_voted_block_hash,
                                         Batch& write_batch);
 
   shared_ptr<PbftBlock> getPbftCertVotedBlock(blk_hash_t const& block_hash);
@@ -232,8 +232,8 @@ struct DbStorage {
   void addPbftHeadToBatch(taraxa::blk_hash_t const& head_hash, std::string const& head_str, Batch& write_batch);
   // status
   uint64_t getStatusField(StatusDbField const& field);
-  void saveStatusField(StatusDbField const& field, uint64_t const& value);
-  void addStatusFieldToBatch(StatusDbField const& field, uint64_t const& value, Batch& write_batch);
+  void saveStatusField(StatusDbField const& field, uint64_t value);
+  void addStatusFieldToBatch(StatusDbField const& field, uint64_t value, Batch& write_batch);
 
   // Unverified votes
   std::vector<Vote> getUnverifiedVotes();
@@ -251,27 +251,27 @@ struct DbStorage {
   void removeVerifiedVoteToBatch(vote_hash_t const& vote_hash, Batch& write_batch);
 
   // Soft votes
-  std::vector<Vote> getSoftVotes(uint64_t const& pbft_round);
-  void saveSoftVotes(uint64_t const& pbft_round, std::vector<Vote> const& soft_votes);
-  void addSoftVotesToBatch(uint64_t const& pbft_round, std::vector<Vote> const& soft_votes, Batch& write_batch);
-  void removeSoftVotesToBatch(uint64_t const& pbft_round, Batch& write_batch);
+  std::vector<Vote> getSoftVotes(uint64_t pbft_round);
+  void saveSoftVotes(uint64_t pbft_round, std::vector<Vote> const& soft_votes);
+  void addSoftVotesToBatch(uint64_t pbft_round, std::vector<Vote> const& soft_votes, Batch& write_batch);
+  void removeSoftVotesToBatch(uint64_t pbft_round, Batch& write_batch);
 
   // Certified votes
   std::vector<Vote> getCertVotes(blk_hash_t const& hash);
   void addCertVotesToBatch(taraxa::blk_hash_t const& pbft_block_hash, std::vector<Vote> const& cert_votes,
                            Batch& write_batch);
   // Next votes
-  std::vector<Vote> getNextVotes(uint64_t const& pbft_round);
-  void saveNextVotes(uint64_t const& pbft_round, std::vector<Vote> const& next_votes);
-  void addNextVotesToBatch(uint64_t const& pbft_round, std::vector<Vote> const& next_votes, Batch& write_batch);
-  void removeNextVotesToBatch(uint64_t const& pbft_round, Batch& write_batch);
+  std::vector<Vote> getNextVotes(uint64_t pbft_round);
+  void saveNextVotes(uint64_t pbft_round, std::vector<Vote> const& next_votes);
+  void addNextVotesToBatch(uint64_t pbft_round, std::vector<Vote> const& next_votes, Batch& write_batch);
+  void removeNextVotesToBatch(uint64_t pbft_round, Batch& write_batch);
 
   // period_pbft_block
-  shared_ptr<blk_hash_t> getPeriodPbftBlock(uint64_t const& period);
-  void addPbftBlockPeriodToBatch(uint64_t const& period, taraxa::blk_hash_t const& pbft_block_hash, Batch& write_batch);
+  shared_ptr<blk_hash_t> getPeriodPbftBlock(uint64_t period);
+  void addPbftBlockPeriodToBatch(uint64_t period, taraxa::blk_hash_t const& pbft_block_hash, Batch& write_batch);
   // dag_block_period
   shared_ptr<uint64_t> getDagBlockPeriod(blk_hash_t const& hash);
-  void addDagBlockPeriodToBatch(blk_hash_t const& hash, uint64_t const& period, Batch& write_batch);
+  void addDagBlockPeriodToBatch(blk_hash_t const& hash, uint64_t period, Batch& write_batch);
 
   uint64_t getDagBlocksCount() const { return dag_blocks_count_.load(); }
   uint64_t getDagEdgeCount() const { return dag_edge_count_.load(); }
@@ -286,8 +286,8 @@ struct DbStorage {
 
   // DPOS proposal period levels status
   uint64_t getDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus const& field);
-  void saveDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus const& field, uint64_t const& value);
-  void addDposProposalPeriodLevelsFieldToBatch(DposProposalPeriodLevelsStatus const& field, uint64_t const& value,
+  void saveDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus const& field, uint64_t value);
+  void addDposProposalPeriodLevelsFieldToBatch(DposProposalPeriodLevelsStatus const& field, uint64_t value,
                                                Batch& write_batch);
 
   // DPOS proposal period to DAG block levels map

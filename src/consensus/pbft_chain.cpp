@@ -208,36 +208,54 @@ std::shared_ptr<PbftBlock> PbftChain::getUnverifiedPbftBlock(const taraxa::blk_h
   return nullptr;
 }
 
-std::vector<PbftBlockCert> PbftChain::getPbftBlocks(size_t period, size_t count) {
-  std::vector<PbftBlockCert> result;
-  for (auto i = period; i < period + count; i++) {
-    // Get PBFT block hash by period
-    auto pbft_block_hash = db_->getPeriodPbftBlock(i);
-    if (!pbft_block_hash) {
-      LOG(log_er_) << "PBFT block period " << i << " is not exist in DB period_pbft_block.";
-      break;
+std::vector<std::pair<PbftBlock, bytes>> PbftChain::getPbftBlocks(size_t period, size_t count) {
+  std::vector<std::pair<PbftBlock, bytes>> result;
+  DbStorage::MultiGetQuery db_query(db_, count * 2);
+
+  for (auto i = period; i < period + count; ++i) {
+    db_query.append(DbStorage::Columns::period_pbft_block, i);
+  }
+  auto pbft_blocks = db_query.execute();
+
+  for (size_t i = 0; i < pbft_blocks.size(); ++i) {
+    if (pbft_blocks[i].empty()) {
+      LOG(log_er_) << "PBFT block period " << period + i << " does not exist in DB period_pbft_block.";
+      return result;
     }
-    // Get PBFT block in DB
-    auto pbft_block = db_->getPbftBlock(*pbft_block_hash);
-    if (!pbft_block) {
-      LOG(log_er_) << "DB corrupted - Cannot find PBFT block hash " << pbft_block_hash
+  }
+
+  db_query.append(DbStorage::Columns::pbft_blocks, pbft_blocks, false);
+  db_query.append(DbStorage::Columns::cert_votes, pbft_blocks, false);
+
+  auto pbft_block_cert_votes = db_query.execute();
+  const auto half_size = pbft_block_cert_votes.size() / 2;
+  for (size_t i = 0; i < half_size; ++i) {
+    if (pbft_block_cert_votes[i].empty()) {
+      LOG(log_er_) << "DB corrupted - Cannot find PBFT block hash " << pbft_blocks[i]
                    << " in PBFT chain DB pbft_blocks.";
       assert(false);
+      break;
     }
-    if (pbft_block->getPeriod() != i) {
-      LOG(log_er_) << "DB corrupted - PBFT block hash " << pbft_block_hash << "has different period "
-                   << pbft_block->getPeriod() << "in block data then in block order db: " << i;
+
+    if (pbft_block_cert_votes[i + half_size].empty()) {
+      LOG(log_er_) << "Cannot find any cert votes for PBFT block " << pbft_blocks[i];
       assert(false);
+      break;
     }
-    // Get PBFT cert votes in DB
-    auto cert_votes = db_->getCertVotes(*pbft_block_hash);
-    if (cert_votes.empty()) {
-      LOG(log_er_) << "Cannot find any cert votes for PBFT block " << pbft_block;
+
+    PbftBlock block(dev::RLP(pbft_block_cert_votes[i]));
+
+    if (block.getPeriod() != (i + period)) {
+      LOG(log_er_) << "DB corrupted - PBFT block hash " << pbft_blocks[i] << "has different period "
+                   << block.getPeriod() << "in block data then in block order db: " << (i + period);
       assert(false);
+      break;
     }
-    PbftBlockCert pbft_block_cert_votes(*pbft_block, cert_votes);
-    result.push_back(pbft_block_cert_votes);
+    RLPStream s;
+    PbftBlockCert::encode_raw(s, block, pbft_block_cert_votes[i + half_size]);
+    result.emplace_back(block, s.out());
   }
+
   return result;
 }
 

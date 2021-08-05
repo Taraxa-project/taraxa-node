@@ -145,7 +145,7 @@ uint32_t TransactionManager::insertBroadcastedTransactions(const std::vector<tar
   }
 
   // Get transactions statuses from db
-  DbStorage::MultiGetQuery db_query(db_);
+  DbStorage::MultiGetQuery db_query(db_, trxs_hashes.size());
   db_query.append(DbStorage::Columns::trx_status, trxs_hashes);
   auto db_trxs_statuses = db_query.execute();
 
@@ -366,7 +366,7 @@ bool TransactionManager::verifyBlockTransactions(DagBlock const &blk, std::vecto
     return false;
   }
 
-  DbStorage::MultiGetQuery db_query(db_);
+  DbStorage::MultiGetQuery db_query(db_, all_block_trx_hashes.size());
   db_query.append(DbStorage::Columns::trx_status, all_block_trx_hashes);
   auto db_trxs_statuses = db_query.execute(false);
 
