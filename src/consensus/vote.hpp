@@ -245,7 +245,7 @@ class VoteManager {
 
   std::string getJsonStr(std::vector<Vote> const& votes);
 
-  std::vector<Vote> getProposalVotes(uint64_t pbft_round);
+  std::vector<std::shared_ptr<Vote>> getProposalVotes(uint64_t pbft_round);
 
   VotesBundle getVotesBundleByRoundAndStep(uint64_t round, size_t step, size_t two_t_plus_one);
 

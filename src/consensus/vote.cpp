@@ -610,17 +610,13 @@ std::string VoteManager::getJsonStr(std::vector<Vote> const& votes) {
   return ptroot.toStyledString();
 }
 
-std::vector<Vote> VoteManager::getProposalVotes(uint64_t pbft_round) {
-  std::unordered_map<blk_hash_t, std::unordered_map<vote_hash_t, Vote>> proposal_voted_value_map;
-  {
-    sharedLock_ lock(verified_votes_access_);
-    proposal_voted_value_map = verified_votes_[pbft_round][1];
-  }
+std::vector<std::shared_ptr<Vote>> VoteManager::getProposalVotes(uint64_t pbft_round) {
+  std::vector<std::shared_ptr<Vote>> proposal_votes;
 
-  std::vector<Vote> proposal_votes;
-  for (auto const& voted_value : proposal_voted_value_map) {
+  sharedLock_ lock(verified_votes_access_);
+  for (auto const& voted_value : verified_votes_[pbft_round][1]) {
     for (auto const& v : voted_value.second) {
-      proposal_votes.emplace_back(v.second);
+      proposal_votes.emplace_back(std::make_shared<Vote>(v.second));
     }
   }
 

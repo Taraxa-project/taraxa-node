@@ -1267,7 +1267,7 @@ std::vector<std::vector<uint>> PbftManager::createMockTrxSchedule(
   return blocks_trx_modes;
 }
 
-std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_(std::vector<Vote> const &votes) {
+std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_(std::vector<std::shared_ptr<Vote>> votes) {
   auto round = getPbftRound();
   LOG(log_dg_) << "Into identify leader block, in round " << round;
 
@@ -1275,10 +1275,10 @@ std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_(std::vector<Vote> 
   std::vector<std::pair<vrf_output_t, blk_hash_t>> leader_candidates;
 
   for (auto const &v : votes) {
-    if (v.getRound() == round && v.getType() == propose_vote_type) {
+    if (v->getRound() == round && v->getType() == propose_vote_type) {
       // We should not pick any null block as leader (proposed when
       // no new blocks found, or maliciously) if others have blocks.
-      auto proposed_block_hash = v.getBlockHash();
+      auto proposed_block_hash = v->getBlockHash();
 
       // Make sure we don't keep soft voting for soft value we want to give up...
       if (proposed_block_hash == last_soft_voted_value_ && giveUpSoftVotedBlock_()) {
@@ -1287,7 +1287,7 @@ std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_(std::vector<Vote> 
 
       if (round == 1 ||
           (proposed_block_hash != NULL_BLOCK_HASH && !pbft_chain_->findPbftBlockInChain(proposed_block_hash))) {
-        leader_candidates.emplace_back(std::make_pair(v.getCredential(), proposed_block_hash));
+        leader_candidates.emplace_back(std::make_pair(v->getCredential(), proposed_block_hash));
       }
     }
   }
