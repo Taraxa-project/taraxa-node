@@ -8,7 +8,7 @@
 #include "libp2p/Common.h"
 #include "network/tarcap/shared_states/peers_state.hpp"
 #include "network/tarcap/shared_states/syncing_state.hpp"
-#include "network/tarcap/packets_handlers/common/packets_stats/packets_stats.hpp"
+#include "network/tarcap/stats/packets_stats.hpp"
 #include "transaction_manager/transaction_manager.hpp"
 
 namespace taraxa::network::tarcap {
