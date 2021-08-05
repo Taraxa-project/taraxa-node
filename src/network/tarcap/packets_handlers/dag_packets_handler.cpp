@@ -29,11 +29,11 @@ DagPacketsHandler::DagPacketsHandler(std::shared_ptr<PeersState> peers_state,
       network_max_dag_block_broadcast_(network_max_dag_block_broadcast) {}
 
 void DagPacketsHandler::process(const PacketData &packet_data, const dev::RLP &packet_rlp) {
-  if (packet_data.type_ == NewBlockPacket) {
+  if (packet_data.type_ == PriorityQueuePacketType::PQ_NewBlockPacket) {
     processNewBlockPacket(packet_data, packet_rlp);
-  } else if (packet_data.type_ == NewBlockHashPacket) {
+  } else if (packet_data.type_ == PriorityQueuePacketType::PQ_NewBlockHashPacket) {
     processNewBlockHashPacket(packet_data, packet_rlp);
-  } else if (packet_data.type_ == GetNewBlockPacket) {
+  } else if (packet_data.type_ == PriorityQueuePacketType::PQ_GetNewBlockPacket) {
     processGetNewBlockPacket(packet_data, packet_rlp);
   } else {
     assert(false);

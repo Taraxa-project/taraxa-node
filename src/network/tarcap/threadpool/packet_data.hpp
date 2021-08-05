@@ -16,13 +16,14 @@ class PacketData {
    * @param packet_type
    * @return PacketPriority <high/mid/low> based om packet_type
    */
-  static inline PacketPriority getPacketPriority(SubprotocolPacketType packet_type);
+  static inline PacketPriority getPacketPriority(PriorityQueuePacketType packet_type);
 
-  PacketData(SubprotocolPacketType type, dev::p2p::NodeID&& from_node_id_, std::vector<unsigned char>&& bytes);
+  PacketData(PriorityQueuePacketType type, std::string&& type_str, dev::p2p::NodeID&& from_node_id_, std::vector<unsigned char>&& bytes);
 
  public:
   std::chrono::steady_clock::time_point receive_time_;
-  SubprotocolPacketType type_;
+  PriorityQueuePacketType type_;
+  std::string type_str_;
   PacketPriority priority_;
   dev::p2p::NodeID from_node_id_;
   std::vector<unsigned char> rlp_bytes_;

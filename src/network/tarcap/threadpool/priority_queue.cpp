@@ -48,12 +48,12 @@ bool PriorityQueue::empty() const {
   return true;
 }
 
-void PriorityQueue::markPacketAsBlocked(SubprotocolPacketType packet_type) {
+void PriorityQueue::markPacketAsBlocked(PriorityQueuePacketType packet_type) {
   assert(!(blocked_packets_types_mask_ & packet_type));
   blocked_packets_types_mask_ |= packet_type;
 }
 
-void PriorityQueue::markPacketAsUnblocked(SubprotocolPacketType packet_type) {
+void PriorityQueue::markPacketAsUnblocked(PriorityQueuePacketType packet_type) {
   assert(blocked_packets_types_mask_ & packet_type);
   blocked_packets_types_mask_ ^= packet_type;
 }
@@ -69,8 +69,8 @@ void PriorityQueue::updateDependenciesStart(const PacketData& packet) {
   //  _GetBlocksPacket -> serve syncing data to only 1 node at the time
   //  _BlocksPacket -> process sync dag blocks synchronously
   //  _PbftBlockPacket -> process sync pbft blocks synchronously
-  if (packet.type_ == SubprotocolPacketType::GetBlocksPacket || packet.type_ == SubprotocolPacketType::BlocksPacket ||
-      packet.type_ == SubprotocolPacketType::PbftBlockPacket) {
+  if (packet.type_ == PriorityQueuePacketType::PQ_GetBlocksPacket || packet.type_ == PriorityQueuePacketType::PQ_BlocksPacket ||
+      packet.type_ == PriorityQueuePacketType::PQ_PbftBlockPacket) {
     markPacketAsBlocked(packet.type_);
   }
 
@@ -85,8 +85,8 @@ void PriorityQueue::updateDependenciesFinish(const PacketData& packet) {
 
   // Process all dependencies here - it is called when packet processing is finished
 
-  if (packet.type_ == SubprotocolPacketType::GetBlocksPacket || packet.type_ == SubprotocolPacketType::BlocksPacket ||
-      packet.type_ == SubprotocolPacketType::PbftBlockPacket) {
+  if (packet.type_ == PriorityQueuePacketType::PQ_GetBlocksPacket || packet.type_ == PriorityQueuePacketType::PQ_BlocksPacket ||
+      packet.type_ == PriorityQueuePacketType::PQ_PbftBlockPacket) {
     markPacketAsUnblocked(packet.type_);
   }
 }

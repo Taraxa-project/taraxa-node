@@ -64,9 +64,6 @@ void TarcapThreadPool::stopProcessing() {
  * @brief Threadpool sycnchronized processing function, which calls user-defined custom processing function
  **/
 void TarcapThreadPool::processPacket(size_t worker_id) {
-  // TODO: just for testing purposes to see if priority queue starts to serve packets based on their priorities
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
-
   LOG(log_dg_) << "Worker num " << worker_id << " started";
   std::unique_lock<std::mutex> lock(mutex_, std::defer_lock);
 

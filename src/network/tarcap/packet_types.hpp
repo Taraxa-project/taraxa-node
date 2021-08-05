@@ -6,39 +6,102 @@
 
 namespace taraxa::network::tarcap {
 
-// TODO: seems like packet types must be implemented as 1,2,3,4... to actually work with aleth - check it !!!
-//       In such case new enum with mask value must be implemented
-// !!! Important: do not forget to adjust packet_types_count() in case new packet type is added
-enum SubprotocolPacketType : unsigned /* aleth uses unsigned for packet id */ {
-  // Consensus packets with high processing priority
-  HighPriorityPackets = 0,
-  PbftVotePacket = 1,
-  GetPbftNextVotes = 1 << 1,
-  PbftNextVotesPacket = 1 << 2,
-
-  // Standard packets with mid processing priority
-  MidPriorityPackets = 1 << 3,
-  NewPbftBlockPacket = 1 << 4,
-  NewBlockPacket = 1 << 5,
-  NewBlockHashPacket = 1 << 6,
-  GetNewBlockPacket = 1 << 7,
-  TransactionPacket = 1 << 8,
-
-  // Non critical packets with low processing priority
-  LowPriorityPackets = 1 << 9,
-  TestPacket = 1 << 10,
-  StatusPacket = 1 << 11,
-  GetBlocksPacket = 1 << 12,
-  BlocksPacket = 1 << 13,
-  GetPbftBlockPacket = 1 << 14,
-  PbftBlockPacket = 1 << 15,
-  SyncedPacket = 1 << 16,
+/**
+ * @brief SubprotocolPacketType is used in networking layer to differentiate packet types
+ */
+enum SubprotocolPacketType : uint32_t {
+  StatusPacket = 0,
+  NewBlockPacket,
+  NewBlockHashPacket,
+  GetNewBlockPacket,
+  GetBlocksPacket,
+  BlocksPacket,
+  TransactionPacket,
+  TestPacket,
+  PbftVotePacket,
+  GetPbftNextVotes,
+  PbftNextVotesPacket,
+  NewPbftBlockPacket,
+  GetPbftBlockPacket,
+  PbftBlockPacket,
+  SyncedPacket,
+  PacketCount
 };
 
 /**
- * @return number of real packet types defined in SubprotocolPacketType
+ * @brief PriorityQueuePacketType is mapped 1:1 to SubprotocolPacketType. It is used inside tarcap priority queue for
+ *        more efficient processing of different packets types dependencies thanks to it's bit mask representation
  */
-inline size_t packets_types_count() { return 16; }
+enum PriorityQueuePacketType : uint32_t {
+  // Consensus packets with high processing priority
+  PQ_HighPriorityPackets = 0,
+  PQ_PbftVotePacket = 1,
+  PQ_GetPbftNextVotes = 1 << 1,
+  PQ_PbftNextVotesPacket = 1 << 2,
+
+  // Standard packets with mid processing priority
+  PQ_MidPriorityPackets = 1 << 3,
+  PQ_NewPbftBlockPacket = 1 << 4,
+  PQ_NewBlockPacket = 1 << 5,
+  PQ_NewBlockHashPacket = 1 << 6,
+  PQ_GetNewBlockPacket = 1 << 7,
+  PQ_TransactionPacket = 1 << 8,
+
+  // Non critical packets with low processing priority
+  PQ_LowPriorityPackets = 1 << 9,
+  PQ_TestPacket = 1 << 10,
+  PQ_StatusPacket = 1 << 11,
+  PQ_GetBlocksPacket = 1 << 12,
+  PQ_BlocksPacket = 1 << 13,
+  PQ_GetPbftBlockPacket = 1 << 14,
+  PQ_PbftBlockPacket = 1 << 15,
+  PQ_SyncedPacket = 1 << 16,
+};
+
+/**
+ * @param packet_type
+ * @return PriorityQueuePacketType corresponding to packet_type (SubprotocolPacketType)
+ */
+inline PriorityQueuePacketType mapSubProtocolToPriorityPacketType(SubprotocolPacketType packet_type) {
+  switch (packet_type) {
+    case SubprotocolPacketType::StatusPacket:
+      return PriorityQueuePacketType::PQ_StatusPacket;
+    case SubprotocolPacketType::NewBlockPacket:
+      return PriorityQueuePacketType::PQ_NewBlockPacket;
+    case SubprotocolPacketType::NewBlockHashPacket:
+      return PriorityQueuePacketType::PQ_NewBlockHashPacket;
+    case SubprotocolPacketType::GetNewBlockPacket:
+      return PriorityQueuePacketType::PQ_GetNewBlockPacket;
+    case SubprotocolPacketType::GetBlocksPacket:
+      return PriorityQueuePacketType::PQ_GetBlocksPacket;
+    case SubprotocolPacketType::BlocksPacket:
+      return PriorityQueuePacketType::PQ_BlocksPacket;
+    case SubprotocolPacketType::TransactionPacket:
+      return PriorityQueuePacketType::PQ_TransactionPacket;
+    case SubprotocolPacketType::TestPacket:
+      return PriorityQueuePacketType::PQ_TestPacket;
+    case SubprotocolPacketType::PbftVotePacket:
+      return PriorityQueuePacketType::PQ_PbftVotePacket;
+    case SubprotocolPacketType::GetPbftNextVotes:
+      return PriorityQueuePacketType::PQ_GetPbftNextVotes;
+    case SubprotocolPacketType::PbftNextVotesPacket:
+      return PriorityQueuePacketType::PQ_PbftNextVotesPacket;
+    case SubprotocolPacketType::NewPbftBlockPacket:
+      return PriorityQueuePacketType::PQ_NewPbftBlockPacket;
+    case SubprotocolPacketType::GetPbftBlockPacket:
+      return PriorityQueuePacketType::PQ_GetPbftBlockPacket;
+    case SubprotocolPacketType::PbftBlockPacket:
+      return PriorityQueuePacketType::PQ_PbftBlockPacket;
+    case SubprotocolPacketType::SyncedPacket:
+      return PriorityQueuePacketType::PQ_SyncedPacket;
+    default:
+      break;
+  }
+
+  assert(false);
+  throw std::runtime_error("Unknown packet type: " + std::to_string(packet_type));
+}
+
 
 /**
  * @param packet_type
