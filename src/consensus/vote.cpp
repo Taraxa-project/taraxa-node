@@ -245,13 +245,11 @@ uint64_t VoteManager::getVerifiedVotesSize() const {
 void VoteManager::addVerifiedVote(Vote const& vote) {
   auto pbft_round = vote.getRound();
   auto hash = vote.getHash();
-
   {
     upgradableLock_ lock(verified_votes_access_);
-    std::map<uint64_t, std::unordered_map<vote_hash_t, Vote>>::const_iterator found_round =
-        verified_votes_.find(pbft_round);
+    auto found_round = verified_votes_.find(pbft_round);
     if (found_round != verified_votes_.end()) {
-      std::unordered_map<vote_hash_t, Vote>::const_iterator found_vote = found_round->second.find(hash);
+      auto found_vote = found_round->second.find(hash);
       if (found_vote != found_round->second.end()) {
         LOG(log_dg_) << "Vote " << hash << " is in verified map already";
         return;
