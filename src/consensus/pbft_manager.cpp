@@ -1703,8 +1703,8 @@ std::shared_ptr<PbftBlock> PbftManager::getUnfinalizedBlock_(blk_hash_t const &b
 void PbftManager::countVotes_() {
   auto round = getPbftRound();
   while (!monitor_stop_) {
-    auto verified_votes = db_->getVerifiedVotes();
-    auto unverified_votes = db_->getUnverifiedVotes();
+    auto verified_votes = vote_mgr_->getVerifiedVotes();
+    auto unverified_votes = vote_mgr_->getUnverifiedVotes();
     std::vector<Vote> votes;
     votes.reserve(verified_votes.size() + unverified_votes.size());
     votes.insert(votes.end(), std::make_move_iterator(verified_votes.begin()),

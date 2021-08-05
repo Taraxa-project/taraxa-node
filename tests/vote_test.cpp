@@ -109,10 +109,12 @@ TEST_F(VoteTest, verified_votes) {
   // Test same vote cannot add twice
   vote_mgr->addVerifiedVote(vote);
   EXPECT_EQ(vote_mgr->getVerifiedVotesSize(), 1);
+  EXPECT_EQ(vote_mgr->getVerifiedVotes().size(), 1);
 
   vote_mgr->clearVerifiedVotesTable();
   EXPECT_FALSE(vote_mgr->voteInVerifiedMap(vote));
   EXPECT_EQ(vote_mgr->getVerifiedVotesSize(), 0);
+  EXPECT_EQ(vote_mgr->getVerifiedVotes().size(), 0);
 }
 
 // Test moving all verified votes to unverified table/DB
@@ -148,6 +150,7 @@ TEST_F(VoteTest, remove_verified_votes) {
   vote_mgr->removeVerifiedVotes();
 
   EXPECT_EQ(vote_mgr->getVerifiedVotesSize(), 0);
+  EXPECT_EQ(vote_mgr->getVerifiedVotes().size(), 0);
   EXPECT_TRUE(db->getVerifiedVotes().empty());
   EXPECT_EQ(vote_mgr->getUnverifiedVotesSize(), votes.size());
   EXPECT_EQ(db->getUnverifiedVotes().size(), votes.size());
@@ -158,7 +161,6 @@ TEST_F(VoteTest, remove_verified_votes) {
 TEST_F(VoteTest, add_cleanup_get_votes) {
   auto node = create_nodes(1, true /*start*/).front();
 
-  auto db = node->getDB();
   // stop PBFT manager, that will place vote
   auto pbft_mgr = node->getPbftManager();
   pbft_mgr->stop();
@@ -192,7 +194,8 @@ TEST_F(VoteTest, add_cleanup_get_votes) {
                         [](...) { return true; });
   auto verified_votes_size = vote_mgr->getVerifiedVotesSize();
   EXPECT_EQ(verified_votes_size, 4);
-  auto votes = db->getVerifiedVotes();
+  auto votes = vote_mgr->getVerifiedVotes();
+  EXPECT_EQ(votes.size(), 4);
   for (Vote const &v : votes) {
     EXPECT_GT(v.getRound(), 1);
   }
@@ -201,7 +204,7 @@ TEST_F(VoteTest, add_cleanup_get_votes) {
   vote_mgr->cleanupVotes(4);  // cleanup round 2 & 3
   verified_votes_size = vote_mgr->getVerifiedVotesSize();
   EXPECT_EQ(verified_votes_size, 0);
-  votes = db->getVerifiedVotes();
+  votes = vote_mgr->getVerifiedVotes();
   EXPECT_TRUE(votes.empty());
 }
 
@@ -215,7 +218,6 @@ TEST_F(VoteTest, round_determine_from_next_votes) {
 
   clearAllVotes(node);
 
-  auto db = node->getDB();
   auto vote_mgr = node->getVoteManager();
   size_t two_t_plus_one = 2;
 
@@ -229,7 +231,6 @@ TEST_F(VoteTest, round_determine_from_next_votes) {
       for (int n = 0; n <= 2; n++) {
         auto weighted_index = n;
         Vote vote = pbft_mgr->generateVote(voted_block_hash, type, round, step, weighted_index);
-        db->saveVerifiedVote(vote);
         vote_mgr->addVerifiedVote(vote);
       }
     }

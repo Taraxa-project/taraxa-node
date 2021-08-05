@@ -191,7 +191,6 @@ TEST_F(PbftManagerTest, terminate_soft_voting_pbft_block) {
 
   cout << "Initialize PBFT manager at round 2 step 2" << endl;
 
-  auto db = nodes[0]->getDB();
   auto vote_mgr = nodes[0]->getVoteManager();
 
   // Generate bogus votes
@@ -200,13 +199,10 @@ TEST_F(PbftManagerTest, terminate_soft_voting_pbft_block) {
   auto alternate_propose_block_hash = blk_hash_t("0000000200000000000000000000000000000000000000000000000000000000");
   auto prev_round_next_vote = pbft_mgr->generateVote(stale_block_hash, next_vote_type, 1, 4, weighted_index);
   vote_mgr->addVerifiedVote(prev_round_next_vote);
-  db->saveVerifiedVote(prev_round_next_vote);
   auto propose_vote = pbft_mgr->generateVote(stale_block_hash, propose_vote_type, 2, 1, weighted_index);
   vote_mgr->addVerifiedVote(propose_vote);
-  db->saveVerifiedVote(propose_vote);
   propose_vote = pbft_mgr->generateVote(alternate_propose_block_hash, propose_vote_type, 2, 1, weighted_index);
   vote_mgr->addVerifiedVote(propose_vote);
-  db->saveVerifiedVote(propose_vote);
 
   pbft_mgr->setLastSoftVotedValue(stale_block_hash);
 
@@ -231,7 +227,7 @@ TEST_F(PbftManagerTest, terminate_soft_voting_pbft_block) {
 
   cout << "Check did not soft vote for stale soft voted value of " << stale_block_hash.abridged() << "..." << endl;
   bool skipped_soft_voting = true;
-  auto votes = db->getVerifiedVotes();
+  auto votes = vote_mgr->getVerifiedVotes();
   for (auto const &v : votes) {
     if (soft_vote_type == v.getType()) {
       if (v.getBlockHash() == stale_block_hash) {
@@ -262,7 +258,6 @@ TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
   pbft_mgr->setPbftRound(1);
   pbft_mgr->setPbftStep(4);
 
-  auto db = nodes[0]->getDB();
   auto pbft_chain = nodes[0]->getPbftChain();
   auto vote_mgr = nodes[0]->getVoteManager();
 
@@ -283,14 +278,13 @@ TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
   auto weighted_index = 0;
   auto propose_vote = pbft_mgr->generateVote(pbft_block_hash, next_vote_type, round, step, weighted_index);
   vote_mgr->addVerifiedVote(propose_vote);
-  db->saveVerifiedVote(propose_vote);
 
   pbft_mgr->start();
 
   // Vote at the bogus PBFT block hash
   EXPECT_HAPPENS({10s, 50ms}, [&](auto &ctx) {
     auto soft_vote_value = blk_hash_t(0);
-    auto votes = db->getVerifiedVotes();
+    auto votes = vote_mgr->getVerifiedVotes();
     for (auto const &v : votes) {
       if (soft_vote_type == v.getType() && v.getBlockHash() == pbft_block_hash) {
         soft_vote_value = v.getBlockHash();
@@ -335,7 +329,6 @@ TEST_F(PbftManagerTest, terminate_missing_proposed_pbft_block) {
   pbft_mgr->setPbftRound(1);
   pbft_mgr->setPbftStep(4);
 
-  auto db = nodes[0]->getDB();
   auto pbft_chain = nodes[0]->getPbftChain();
   auto vote_mgr = nodes[0]->getVoteManager();
 
@@ -348,7 +341,6 @@ TEST_F(PbftManagerTest, terminate_missing_proposed_pbft_block) {
   auto pbft_block_hash = blk_hash_t("0000000100000000000000000000000000000000000000000000000000000000");
   auto propose_vote = pbft_mgr->generateVote(pbft_block_hash, next_vote_type, round, step, weighted_index);
   vote_mgr->addVerifiedVote(propose_vote);
-  db->saveVerifiedVote(propose_vote);
 
   pbft_mgr->start();
 

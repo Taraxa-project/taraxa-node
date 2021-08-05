@@ -223,6 +223,23 @@ uint64_t VoteManager::getUnverifiedVotesSize() const {
   return size;
 }
 
+std::vector<Vote> VoteManager::getVerifiedVotes() {
+  std::vector<Vote> votes;
+
+  sharedLock_ lock(verified_votes_access_);
+  for (auto const& round : verified_votes_) {
+    for (auto const& step : round.second) {
+      for (auto const& voted_value : step.second) {
+        for (auto const& v : voted_value.second) {
+          votes.emplace_back(v.second);
+        }
+      }
+    }
+  }
+
+  return votes;
+}
+
 uint64_t VoteManager::getVerifiedVotesSize() const {
   uint64_t size = 0;
 
@@ -298,7 +315,7 @@ void VoteManager::addVerifiedVote(Vote const& vote) {
 // Move all verified votes back to unverified queue/DB. Since PBFT chain pushed new blocks, that will affect DPOS
 // eligible vote count and players' eligibility
 void VoteManager::removeVerifiedVotes() {
-  auto votes = db_->getVerifiedVotes();
+  auto votes = getVerifiedVotes();
   if (votes.empty()) {
     return;
   }
@@ -486,8 +503,8 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
     while (it != verified_votes_.end() && it->first < pbft_round) {
       for (auto const& step : it->second) {
         for (auto const& voted_value : step.second) {
-          for (auto const& v_hash : voted_value.second) {
-            remove_verified_votes_hash.emplace_back(v_hash);
+          for (auto const& v : voted_value.second) {
+            remove_verified_votes_hash.emplace_back(v.first);
           }
         }
       }
@@ -594,7 +611,7 @@ std::string VoteManager::getJsonStr(std::vector<Vote> const& votes) {
 }
 
 std::vector<Vote> VoteManager::getProposalVotes(uint64_t pbft_round) {
-  std::unordered_map<blk_hash_t, std::unordered_set<vote_hash_t>> proposal_voted_value_map;
+  std::unordered_map<blk_hash_t, std::unordered_map<vote_hash_t, Vote>> proposal_voted_value_map;
   {
     sharedLock_ lock(verified_votes_access_);
     proposal_voted_value_map = verified_votes_[pbft_round][1];
@@ -602,13 +619,8 @@ std::vector<Vote> VoteManager::getProposalVotes(uint64_t pbft_round) {
 
   std::vector<Vote> proposal_votes;
   for (auto const& voted_value : proposal_voted_value_map) {
-    for (auto const& v_hash : voted_value.second) {
-      auto vote = db_->getVerifiedVote(v_hash);
-      if (vote) {
-        proposal_votes.emplace_back(*vote);
-      } else {
-        LOG(log_er_) << "Cannot get vote " << v_hash << " from DB";
-      }
+    for (auto const& v : voted_value.second) {
+      proposal_votes.emplace_back(v.second);
     }
   }
 
@@ -616,48 +628,32 @@ std::vector<Vote> VoteManager::getProposalVotes(uint64_t pbft_round) {
 }
 
 VotesBundle VoteManager::getVotesBundleByRoundAndStep(uint64_t round, size_t step, size_t two_t_plus_one) {
-  blk_hash_t voted_block_hash;
-  std::vector<vote_hash_t> votes_hash;
+  std::vector<Vote> votes;
 
-  {
-    sharedLock_ lock(verified_votes_access_);
-    auto found_round_it = verified_votes_.find(round);
-    if (found_round_it != verified_votes_.end()) {
-      auto found_step_it = found_round_it->second.find(step);
-      if (found_step_it != found_round_it->second.end()) {
-        for (auto const& voted_value : found_step_it->second) {
-          if (voted_value.second.size() >= two_t_plus_one) {
-            voted_block_hash = voted_value.first;
-            votes_hash.reserve(two_t_plus_one);
+  sharedLock_ lock(verified_votes_access_);
+  auto found_round_it = verified_votes_.find(round);
+  if (found_round_it != verified_votes_.end()) {
+    auto found_step_it = found_round_it->second.find(step);
+    if (found_step_it != found_round_it->second.end()) {
+      for (auto const& voted_value : found_step_it->second) {
+        if (voted_value.second.size() >= two_t_plus_one) {
+          auto voted_block_hash = voted_value.first;
+          votes.reserve(two_t_plus_one);
 
-            auto it = voted_value.second.begin();
-            size_t count = 0;
-            // Only copy 2t+1 votes
-            while (count != two_t_plus_one) {
-              votes_hash.emplace_back(*it);
-              it++;
-              count++;
-            }
-            break;
+          auto it = voted_value.second.begin();
+          size_t count = 0;
+          // Only copy 2t+1 votes
+          while (count != two_t_plus_one) {
+            votes.emplace_back(it->second);
+            it++;
+            count++;
           }
+          LOG(log_nf_) << "Found enough " << votes.size() << " votes at voted value " << voted_block_hash
+                       << " for round " << round << " step " << step;
+          return VotesBundle(true, voted_block_hash, votes);
         }
       }
     }
-  }
-
-  if (!votes_hash.empty()) {
-    LOG(log_nf_) << "Found enough " << votes_hash.size() << " votes at voted value " << voted_block_hash
-                 << " for round " << round << " step " << step;
-
-    std::vector<Vote> votes;
-    votes.reserve(two_t_plus_one);
-    for (auto const& v_hash : votes_hash) {
-      auto vote = db_->getVerifiedVote(v_hash);
-      assert(vote);
-      votes.emplace_back(*vote);
-    }
-    assert(votes.size() == two_t_plus_one);
-    return VotesBundle(true, voted_block_hash, votes);
   }
 
   return VotesBundle();

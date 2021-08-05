@@ -192,6 +192,11 @@ class NextVotesForPreviousRound {
   LOG_OBJECTS_DEFINE
 };
 
+class VoteHash {
+ public:
+  vote_hash_t operator()(const Vote& vote) const { return vote.getHash(); }
+};
+
 struct VotesBundle {
   bool enough;
   blk_hash_t voted_block_hash;
@@ -223,6 +228,7 @@ class VoteManager {
   void addVerifiedVote(Vote const& vote);
   bool voteInVerifiedMap(Vote const& vote);
   void clearVerifiedVotesTable();
+  std::vector<Vote> getVerifiedVotes();
   uint64_t getVerifiedVotesSize() const;
 
   void removeVerifiedVotes();
@@ -253,11 +259,12 @@ class VoteManager {
   using upgradableLock_ = boost::upgrade_lock<boost::shared_mutex>;
   using upgradeLock_ = boost::upgrade_to_unique_lock<boost::shared_mutex>;
 
-  // <pbft_round, <vote_hash, vote>>
+  // <pbft round, <vote hash, vote>>
   std::map<uint64_t, std::unordered_map<vote_hash_t, Vote>> unverified_votes_;
 
-  // <PBFT round, <PBFT step, <voted value, <vote hash list>>>>
-  std::map<uint64_t, std::map<size_t, std::unordered_map<blk_hash_t, std::unordered_set<vote_hash_t>>>> verified_votes_;
+  // <PBFT round, <PBFT step, <voted value, <vote hash, vote>>>>
+  std::map<uint64_t, std::map<size_t, std::unordered_map<blk_hash_t, std::unordered_map<vote_hash_t, Vote>>>>
+      verified_votes_;
 
   std::unordered_set<vote_hash_t> votes_invalid_in_current_final_chain_period_;
   h256 current_period_final_chain_block_hash_;
