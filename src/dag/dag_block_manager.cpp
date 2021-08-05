@@ -158,7 +158,7 @@ void DagBlockManager::processSyncedBlockWithTransactions(const DagBlock &blk,
     return;
   }
 
-  DbStorage::MultiGetQuery db_query(db_);
+  DbStorage::MultiGetQuery db_query(db_, all_block_trx_hashes.size());
   db_query.append(DbStorage::Columns::trx_status, all_block_trx_hashes);
   auto db_trxs_statuses = db_query.execute();
 

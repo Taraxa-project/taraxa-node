@@ -22,6 +22,8 @@ Taraxa::Taraxa(std::shared_ptr<FullNode> const& _full_node) : full_node_(_full_n
 
 string Taraxa::taraxa_protocolVersion() { return toJS(TARAXA_NET_VERSION); }
 
+string Taraxa::taraxa_getVersion() { return TARAXA_VERSION; }
+
 string Taraxa::taraxa_dagBlockLevel() {
   try {
     auto node = tryGetNode();

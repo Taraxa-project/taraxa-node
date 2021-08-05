@@ -6,6 +6,12 @@
     "returns": ""
   },
   {
+    "name": "taraxa_getVersion",
+    "params": [],
+    "order": [],
+    "returns": ""
+  },
+  {
     "name": "taraxa_getDagBlockByHash",
     "params": [
       "",
