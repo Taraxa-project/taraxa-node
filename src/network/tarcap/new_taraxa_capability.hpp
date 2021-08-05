@@ -8,10 +8,10 @@
 #include <memory>
 
 #include "config/config.hpp"
+#include "network/tarcap/shared_states/peers_state.hpp"
+#include "network/tarcap/stats/node_stats.hpp"
 #include "threadpool/tarcap_thread_pool.hpp"
 #include "util/thread_pool.hpp"
-#include "network/tarcap/shared_states/peers_state.hpp"
-#include "node_stats.hpp"
 
 namespace taraxa {
 class PbftManager;
@@ -72,19 +72,19 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   // METHODS USED IN REAL CODE
   //  bool isStarted();
   //  Json::Value getStatus();
-  const std::shared_ptr<PeersState>& getPeersState();
-  const std::shared_ptr<NodeStats>& getNodeStats();
+  const std::shared_ptr<PeersState> &getPeersState();
+  const std::shared_ptr<NodeStats> &getNodeStats();
 
   // TODO: delete
-  //std::vector<dev::p2p::NodeID> getAllPeersIDs() const;
-  //size_t getPeersCount() const;
+  // std::vector<dev::p2p::NodeID> getAllPeersIDs() const;
+  // size_t getPeersCount() const;
 
   void restartSyncingPbft(bool force = false);
   bool pbft_syncing() const;
   void onNewBlockVerified(std::shared_ptr<DagBlock> const &blk);
   void onNewTransactions(std::vector<taraxa::bytes> transactions);
   void onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_block);
-  void onNewPbftVote(const Vote& vote);
+  void onNewPbftVote(const Vote &vote);
   void broadcastPreviousRoundNextVotesBundle();
   void sendTransactions(dev::p2p::NodeID const &id, std::vector<taraxa::bytes> const &transactions);
 
@@ -95,8 +95,8 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   size_t getReceivedTransactionsCount() const;
 
   // TODO: delete
-  //void setPendingPeersToReady();
-  //std::shared_ptr<TaraxaPeer> getPeer(dev::p2p::NodeID const &id) const;
+  // void setPendingPeersToReady();
+  // std::shared_ptr<TaraxaPeer> getPeer(dev::p2p::NodeID const &id) const;
 
   // PBFT
   void sendPbftBlock(dev::p2p::NodeID const &id, PbftBlock const &pbft_block, uint64_t pbft_chain_size);

@@ -6,7 +6,6 @@
 #include "consensus/pbft_manager.hpp"
 #include "consensus/vote.hpp"
 #include "dag/dag.hpp"
-#include "network/tarcap/node_stats.hpp"
 #include "network/tarcap/packets_handlers/blocks_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/common/syncing_handler.hpp"
 #include "network/tarcap/packets_handlers/dag_packets_handler.hpp"
@@ -20,6 +19,7 @@
 #include "network/tarcap/packets_handlers/vote_packets_handler.hpp"
 #include "network/tarcap/shared_states/syncing_state.hpp"
 #include "network/tarcap/shared_states/test_state.hpp"
+#include "network/tarcap/stats/node_stats.hpp"
 #include "node/full_node.hpp"
 #include "packets_handler.hpp"
 #include "taraxa_peer.hpp"
@@ -42,13 +42,14 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkC
       thread_pool_(10, node_addr),  // TODO: num of threads from config
       periodic_events_tp_(1, false) {
   auto packets_stats = std::make_shared<PacketsStats>(node_addr);
-  syncing_handler_ = std::make_shared<SyncingHandler>(peers_state_, packets_stats, pbft_chain, dag_mgr, dag_blk_mgr, node_addr);
+  syncing_handler_ =
+      std::make_shared<SyncingHandler>(peers_state_, packets_stats, pbft_chain, dag_mgr, dag_blk_mgr, node_addr);
 
   const auto lambda_ms_min = pbft_mgr ? pbft_mgr->getPbftInitialLambda() : 2000;
 
   const auto node_stats_log_interval = 5 * 6 * lambda_ms_min;
-  node_stats_ = std::make_shared<NodeStats>(peers_state_, syncing_state_,  pbft_chain, pbft_mgr, dag_mgr, dag_blk_mgr, vote_mgr, trx_mgr, packets_stats,
-                       node_stats_log_interval);
+  node_stats_ = std::make_shared<NodeStats>(peers_state_, syncing_state_, pbft_chain, pbft_mgr, dag_mgr, dag_blk_mgr,
+                                            vote_mgr, trx_mgr, packets_stats, node_stats_log_interval);
 
   // Register all packet handlers
   // Consensus packets with high processing priority
@@ -133,7 +134,6 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkC
     periodic_events_tp_.post_loop({conf.network_performance_log_interval},
                                   [packets_stats] { packets_stats->logStats(); });
   }
-
 
   periodic_events_tp_.post_loop({node_stats_->getNodeStatsLogInterval()},
                                 [node_stats = node_stats_]() mutable { node_stats->logNodeStats(); });
@@ -267,13 +267,9 @@ void TaraxaCapability::pushData(unsigned _id, RLP const &_r) {
   thread_pool_.push(PacketData(static_cast<SubprotocolPacketType>(_id), dev::p2p::NodeID(), _r.data().toBytes()));
 }
 
-const std::shared_ptr<PeersState>& TaraxaCapability::getPeersState() {
-  return peers_state_;
-}
+const std::shared_ptr<PeersState> &TaraxaCapability::getPeersState() { return peers_state_; }
 
-const std::shared_ptr<NodeStats>& TaraxaCapability::getNodeStats() {
-  return node_stats_;
-}
+const std::shared_ptr<NodeStats> &TaraxaCapability::getNodeStats() { return node_stats_; }
 
 void TaraxaCapability::restartSyncingPbft(bool force) { syncing_handler_->restartSyncingPbft(force); }
 
@@ -298,7 +294,7 @@ void TaraxaCapability::onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_blo
       ->onNewPbftBlock(*pbft_block);
 }
 
-void TaraxaCapability::onNewPbftVote(const Vote& vote) {
+void TaraxaCapability::onNewPbftVote(const Vote &vote) {
   std::static_pointer_cast<VotePacketsHandler>(
       packets_handlers_->getSpecificHandler(SubprotocolPacketType::PbftVotePacket))
       ->onNewPbftVote(vote);
@@ -332,7 +328,6 @@ void TaraxaCapability::sendBlocks(dev::p2p::NodeID const &id, std::vector<std::s
 size_t TaraxaCapability::getReceivedBlocksCount() const { return test_state_->test_blocks_.size(); }
 
 size_t TaraxaCapability::getReceivedTransactionsCount() const { return test_state_->test_transactions_.size(); }
-
 
 // PBFT
 void TaraxaCapability::sendPbftBlock(dev::p2p::NodeID const &id, PbftBlock const &pbft_block,
