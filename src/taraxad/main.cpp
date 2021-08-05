@@ -16,7 +16,9 @@ int main(int argc, const char* argv[]) {
     cli::Config cli_conf(argc, argv);
 
     if (cli_conf.nodeConfigured()) {
-      FullNode::Handle node(cli_conf.getNodeConfiguration(), true);
+      auto node = make_shared<FullNode>(cli_conf.getNodeConfiguration());
+      node->start();
+
       if (node->isStarted()) {
         cout << "Taraxa node started" << endl;
         // TODO graceful shutdown

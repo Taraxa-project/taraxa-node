@@ -120,14 +120,15 @@ void VoteManager::retreieveVotes_() {
   for (auto const& v : verified_votes) {
     auto pbft_round = v.getRound();
     auto hash = v.getHash();
-    
-    //Rebroadcast our own next votes in case we were partitioned...
-    if (v.getVoterAddr() == node_addr_ && v.getStep() >= FIRST_FINISH_STEP && db_->getPbftMgrField(PbftMgrRoundStep::PbftStep) > EXTENDED_PARTITION_STEPS) {
+
+    // Rebroadcast our own next votes in case we were partitioned...
+    if (v.getVoterAddr() == node_addr_ && v.getStep() >= FIRST_FINISH_STEP &&
+        db_->getPbftMgrField(PbftMgrRoundStep::PbftStep) > EXTENDED_PARTITION_STEPS) {
       vector<Vote> votes = {v};
       if (auto net = network_.lock()) {
         net->onNewPbftVotes(move(votes));
       }
-    } 
+    }
 
     {
       uniqueLock_ lock(verified_votes_access_);

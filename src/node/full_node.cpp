@@ -22,15 +22,15 @@
 
 namespace taraxa {
 
-using std::string;
-using std::to_string;
-
 FullNode::FullNode(FullNodeConfig const &conf)
-    : post_destruction_ctx_(make_shared<PostDestructionContext>()),
-      conf_(conf),
+    : conf_(conf),
       kp_(conf_.node_secret.empty()
               ? dev::KeyPair::create()
-              : dev::KeyPair(dev::Secret(conf_.node_secret, dev::Secret::ConstructFromStringType::FromHex))) {}
+              : dev::KeyPair(dev::Secret(conf_.node_secret, dev::Secret::ConstructFromStringType::FromHex))) {
+  init();
+}
+
+FullNode::~FullNode() { close(); }
 
 void FullNode::init() {
   fs::create_directories(conf_.db_path);
@@ -56,21 +56,25 @@ void FullNode::init() {
   }
   {
     if (conf_.test_params.rebuild_db) {
-      emplace(old_db_, conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
-              conf_.test_params.db_max_snapshots, conf_.test_params.db_revert_to_period, node_addr, true);
+      old_db_ = std::make_shared<DbStorage>(conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
+                                            conf_.test_params.db_max_snapshots, conf_.test_params.db_revert_to_period,
+                                            node_addr, true);
     }
 
-    emplace(db_, conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block, conf_.test_params.db_max_snapshots,
-            conf_.test_params.db_revert_to_period, node_addr);
+    db_ = std::make_shared<DbStorage>(conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
+                                      conf_.test_params.db_max_snapshots, conf_.test_params.db_revert_to_period,
+                                      node_addr);
 
     if (db_->hasMinorVersionChanged()) {
       LOG(log_si_) << "Minor DB version has changed. Rebuilding Db";
       conf_.test_params.rebuild_db = true;
       db_ = nullptr;
-      emplace(old_db_, conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
-              conf_.test_params.db_max_snapshots, conf_.test_params.db_revert_to_period, node_addr, true);
-      emplace(db_, conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block, conf_.test_params.db_max_snapshots,
-              conf_.test_params.db_revert_to_period, node_addr);
+      old_db_ = std::make_shared<DbStorage>(conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
+                                            conf_.test_params.db_max_snapshots, conf_.test_params.db_revert_to_period,
+                                            node_addr, true);
+      db_ = std::make_shared<DbStorage>(conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
+                                        conf_.test_params.db_max_snapshots, conf_.test_params.db_revert_to_period,
+                                        node_addr);
     }
 
     if (db_->getNumDagBlocks() == 0) {
@@ -80,8 +84,7 @@ void FullNode::init() {
   LOG(log_nf_) << "DB initialized ...";
 
   final_chain_ = NewFinalChain(db_, conf_.chain.final_chain, conf_.opts_final_chain, node_addr);
-  register_s_ptr(final_chain_);
-  emplace(trx_mgr_, conf_, node_addr, db_, log_time_);
+  trx_mgr_ = std::make_shared<TransactionManager>(conf_, node_addr, db_, log_time_);
 
   auto genesis_hash = conf_.chain.dag_genesis_block.getHash();
   auto dag_genesis_hash_from_db = blk_hash_t(db_->getBlocksByLevel(0));
@@ -91,19 +94,22 @@ void FullNode::init() {
     assert(false);
   }
 
-  emplace(pbft_chain_, genesis_hash, node_addr, db_);
-  emplace(next_votes_mgr_, node_addr, db_);
-  emplace(dag_mgr_, genesis_hash, node_addr, trx_mgr_, pbft_chain_, db_);
-  emplace(dag_blk_mgr_, node_addr, conf_.chain.vdf, conf_.chain.final_chain.state.dpos, 4 /* verifer thread*/, db_,
-          trx_mgr_, final_chain_, pbft_chain_, log_time_, conf_.test_params.max_block_queue_warn);
-  emplace(vote_mgr_, node_addr, db_, final_chain_, pbft_chain_);
-  emplace(trx_order_mgr_, node_addr, db_);
-  emplace(pbft_mgr_, conf_.chain.pbft, genesis_hash, node_addr, db_, pbft_chain_, vote_mgr_, next_votes_mgr_, dag_mgr_,
-          dag_blk_mgr_, final_chain_, kp_.secret(), conf_.vrf_secret);
-  emplace(blk_proposer_, conf_.test_params.block_proposer, conf_.chain.vdf, dag_mgr_, trx_mgr_, dag_blk_mgr_,
-          final_chain_, node_addr, getSecretKey(), getVrfSecretKey(), log_time_);
-  emplace(network_, conf_.network, conf_.net_file_path().string(), kp_, db_, pbft_mgr_, pbft_chain_, vote_mgr_,
-          next_votes_mgr_, dag_mgr_, dag_blk_mgr_, trx_mgr_);
+  pbft_chain_ = std::make_shared<PbftChain>(genesis_hash, node_addr, db_);
+  next_votes_mgr_ = std::make_shared<NextVotesForPreviousRound>(node_addr, db_);
+  dag_mgr_ = std::make_shared<DagManager>(genesis_hash, node_addr, trx_mgr_, pbft_chain_, db_);
+  dag_blk_mgr_ = std::make_shared<DagBlockManager>(node_addr, conf_.chain.vdf, conf_.chain.final_chain.state.dpos,
+                                                   4 /* verifer thread*/, db_, trx_mgr_, final_chain_, pbft_chain_,
+                                                   log_time_, conf_.test_params.max_block_queue_warn);
+  vote_mgr_ = std::make_shared<VoteManager>(node_addr, db_, final_chain_, pbft_chain_);
+  trx_order_mgr_ = std::make_shared<TransactionOrderManager>(node_addr, db_);
+  pbft_mgr_ = std::make_shared<PbftManager>(conf_.chain.pbft, genesis_hash, node_addr, db_, pbft_chain_, vote_mgr_,
+                                            next_votes_mgr_, dag_mgr_, dag_blk_mgr_, final_chain_, kp_.secret(),
+                                            conf_.vrf_secret);
+  blk_proposer_ = std::make_shared<BlockProposer>(conf_.test_params.block_proposer, conf_.chain.vdf, dag_mgr_, trx_mgr_,
+                                                  dag_blk_mgr_, final_chain_, node_addr, getSecretKey(),
+                                                  getVrfSecretKey(), log_time_);
+  network_ = std::make_shared<Network>(conf_.network, conf_.net_file_path().string(), kp_, db_, pbft_mgr_, pbft_chain_,
+                                       vote_mgr_, next_votes_mgr_, dag_mgr_, dag_blk_mgr_, trx_mgr_);
 }
 
 void FullNode::start() {
@@ -112,7 +118,7 @@ void FullNode::start() {
   }
   // Inits rpc related members
   if (conf_.rpc) {
-    emplace(rpc_thread_pool_, conf_.rpc->threads_num);
+    rpc_thread_pool_ = std::make_unique<util::ThreadPool>(conf_.rpc->threads_num);
     net::rpc::eth::EthParams eth_rpc_params;
     eth_rpc_params.address = getAddress();
     eth_rpc_params.secret = kp_.secret();
@@ -141,24 +147,26 @@ void FullNode::start() {
       return ret;
     };
     auto eth_json_rpc = net::rpc::eth::NewEth(move(eth_rpc_params));
-    emplace(jsonrpc_api_,
-            make_shared<net::Test>(shared_from_this()),    // TODO Because this object refers to FullNode, the
-                                                           // lifecycle/dependency management is more complicated
-            make_shared<net::Taraxa>(shared_from_this()),  // TODO Because this object refers to FullNode, the
-                                                           // lifecycle/dependency management is more complicated
-            make_shared<net::Net>(shared_from_this()),     // TODO Because this object refers to FullNode, the
-                                                           // lifecycle/dependency management is more complicated
-            eth_json_rpc);
+    jsonrpc_api_ = std::make_unique<jsonrpc_server_t>(
+        make_shared<net::Test>(shared_from_this()),    // TODO Because this object refers to FullNode, the
+                                                       // lifecycle/dependency management is more complicated
+        make_shared<net::Taraxa>(shared_from_this()),  // TODO Because this object refers to FullNode, the
+                                                       // lifecycle/dependency management is more complicated
+        make_shared<net::Net>(shared_from_this()),     // TODO Because this object refers to FullNode, the
+                                                       // lifecycle/dependency management is more complicated
+        eth_json_rpc);
     if (conf_.rpc->http_port) {
-      emplace(jsonrpc_http_, rpc_thread_pool_->unsafe_get_io_context(),
-              boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->http_port}, getAddress(),
-              net::handle_rpc_error);
+      jsonrpc_http_ =
+          std::make_shared<net::RpcServer>(rpc_thread_pool_->unsafe_get_io_context(),
+                                           boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->http_port},
+                                           getAddress(), net::handle_rpc_error);
       jsonrpc_api_->addConnector(jsonrpc_http_);
       jsonrpc_http_->StartListening();
     }
     if (conf_.rpc->ws_port) {
-      emplace(jsonrpc_ws_, rpc_thread_pool_->unsafe_get_io_context(),
-              boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->ws_port}, getAddress());
+      jsonrpc_ws_ = std::make_shared<net::WSServer>(
+          rpc_thread_pool_->unsafe_get_io_context(),
+          boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->ws_port}, getAddress());
       jsonrpc_api_->addConnector(jsonrpc_ws_);
       jsonrpc_ws_->run();
     }
@@ -364,23 +372,5 @@ void FullNode::rebuildDb() {
 dev::Signature FullNode::signMessage(std::string const &message) { return dev::sign(kp_.secret(), dev::sha3(message)); }
 
 uint64_t FullNode::getNumProposedBlocks() const { return BlockProposer::getNumProposedBlocks(); }
-
-FullNode::Handle::Handle(FullNodeConfig const &conf, bool start) : shared_ptr_t(new FullNode(conf)) {
-  get()->init();
-  if (start) {
-    get()->start();
-  }
-}
-
-FullNode::Handle::~Handle() {
-  auto node = get();
-  if (!node) {
-    return;
-  }
-  node->close();
-  shared_ptr_t::weak_type node_weak = *this;
-  reset();
-  assert(node_weak.use_count() == 0);
-}
 
 }  // namespace taraxa
