@@ -82,7 +82,7 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkC
   packets_handlers_->registerHandler(
       SubprotocolPacketType::StatusPacket,
       std::make_shared<StatusPacketHandler>(peers_state_, packets_stats, syncing_state_, syncing_handler_, pbft_chain,
-                                            dag_mgr, conf.network_id, node_addr));
+                                            dag_mgr, next_votes_mgr, pbft_mgr, conf.network_id, node_addr));
   packets_handlers_->registerHandler(
       SubprotocolPacketType::GetBlocksPacket,
       std::make_shared<GetBlocksPacketsHandler>(peers_state_, packets_stats, trx_mgr, dag_mgr, db, node_addr));

@@ -19,6 +19,7 @@ class StatusPacketHandler : public PacketHandler {
   StatusPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
                       std::shared_ptr<SyncingState> syncing_state, std::shared_ptr<SyncingHandler> syncing_handler,
                       std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DagManager> dag_mgr,
+                      std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr, std::shared_ptr<PbftManager> pbft_mgr,
                       uint64_t conf_network_id, const addr_t& node_addr = {});
 
   bool sendStatus(const dev::p2p::NodeID& node_id, bool initial);
