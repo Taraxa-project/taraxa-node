@@ -41,7 +41,7 @@ set(SOURCES
         network/network.hpp
         network/packets_stats.hpp
         network/tarcap/new_taraxa_capability.hpp
-        network/tarcap/node_stats.hpp
+        network/tarcap/stats/node_stats.hpp
         network/tarcap/threadpool/tarcap_thread_pool.hpp
         network/tarcap/threadpool/priority_queue.hpp
         network/tarcap/threadpool/packets_queue.hpp
@@ -65,8 +65,8 @@ set(SOURCES
         network/tarcap/packets_handlers/vote_packets_handler.hpp
         network/tarcap/packets_handlers/common/syncing_handler.hpp
         network/tarcap/packets_handlers/common/get_blocks_request_type.hpp
-        network/tarcap/packets_handlers/common/packets_stats/packets_stats.hpp
-        network/tarcap/packets_handlers/common/packets_stats/packets_avg_stats.hpp
+        network/tarcap/stats/packets_stats.hpp
+        network/tarcap/stats/packets_avg_stats.hpp
         node/full_node.hpp
         storage/db_storage.hpp
         transaction_manager/transaction_order_manager.hpp
@@ -139,7 +139,7 @@ set(SOURCES
         network/taraxa_capability.cpp
         network/syncing_state.cpp
         network/tarcap/new_taraxa_capability.cpp
-        network/tarcap/node_stats.cpp
+        network/tarcap/stats/node_stats.cpp
         network/tarcap/threadpool/tarcap_thread_pool.cpp
         network/tarcap/threadpool/priority_queue.cpp
         network/tarcap/threadpool/packets_queue.cpp
@@ -159,8 +159,8 @@ set(SOURCES
         network/tarcap/packets_handlers/transaction_packet_handler.cpp
         network/tarcap/packets_handlers/vote_packets_handler.cpp
         network/tarcap/packets_handlers/common/syncing_handler.cpp
-        network/tarcap/packets_handlers/common/packets_stats/packets_avg_stats.cpp
-        network/tarcap/packets_handlers/common/packets_stats/packets_stats.cpp
+        network/tarcap/stats/packets_avg_stats.cpp
+        network/tarcap/stats/packets_stats.cpp
         node/full_node.cpp
         storage/db_storage.cpp
         transaction_manager/transaction.cpp
