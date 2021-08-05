@@ -15,12 +15,15 @@ StatusPacketHandler::StatusPacketHandler(std::shared_ptr<PeersState> peers_state
                                          std::shared_ptr<SyncingState> syncing_state,
                                          std::shared_ptr<SyncingHandler> syncing_handler,
                                          std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DagManager> dag_mgr,
+                                         std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr, std::shared_ptr<PbftManager> pbft_mgr,
                                          uint64_t conf_network_id, const addr_t& node_addr)
     : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "Status_PH"),
       syncing_state_(std::move(syncing_state)),
       syncing_handler_(std::move(syncing_handler)),
       pbft_chain_(std::move(pbft_chain)),
       dag_mgr_(std::move(dag_mgr)),
+      next_votes_mgr_(std::move(next_votes_mgr)),
+      pbft_mgr_(std::move(pbft_mgr)),
       conf_network_id_(conf_network_id) {}
 
 void StatusPacketHandler::process(const PacketData& packet_data, const dev::RLP& packet_rlp) {
