@@ -1170,6 +1170,7 @@ TEST_F(FullNodeTest, two_nodes_run_two_transactions) {
 
 TEST_F(FullNodeTest, save_network_to_file) {
   auto node_cfgs = make_node_cfgs(3);
+  // Create and destroy to create network. So next time will be loaded from file
   { auto nodes = launch_nodes(node_cfgs); }
   {
     FullNode::Handle node2(node_cfgs[1], true);
