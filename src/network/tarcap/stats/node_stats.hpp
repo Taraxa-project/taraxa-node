@@ -1,8 +1,8 @@
 #pragma once
 
 #include "common/types.hpp"
-#include "logger/log.hpp"
 #include "json/value.h"
+#include "logger/log.hpp"
 
 namespace taraxa {
 class PbftChain;
@@ -26,14 +26,16 @@ class NodeStats {
             std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
             std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<TransactionManager> trx_mgr,
             std::shared_ptr<PacketsStats> packets_stats, uint64_t stats_log_interval, const addr_t &node_addr = {});
-  NodeStats(const NodeStats&) = default;
-  NodeStats(NodeStats&&) = default;
+  NodeStats(const NodeStats &) = default;
+  NodeStats(NodeStats &&) = default;
 
   void logNodeStats();
 
   uint64_t getNodeStatsLogInterval() const;
-  Json::Value getStatus() const;
   uint64_t syncTimeSeconds() const;
+
+  Json::Value getStatus() const;
+  Json::Value getPacketsStats() const;
 
  private:
   std::shared_ptr<PeersState> peers_state_;

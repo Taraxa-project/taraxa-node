@@ -259,50 +259,21 @@ Json::Value NodeStats::getStatus() const {
   res["peer_max_pbft_chain_size_node_id"] = max_pbft_chain_nodeID.toString();
   res["peer_max_node_dag_level_node_id"] = max_node_dag_level_nodeID.toString();
 
-  // TODO: generate proper node stats
-//  auto createPacketsStatsJson = [&](const PacketsStats &stats) -> Json::Value {
-//    Json::Value stats_json;
-//    for (uint8_t it = 0; it != PacketCount; it++) {
-//      Json::Value packet_stats_json;
-//      const auto packet_stats = stats.getPacketStats(packetTypeToString(it));
-//      if (packet_stats == std::nullopt) {
-//        continue;
-//      }
-//
-//      auto total = packet_stats->total_count_;
-//      packet_stats_json["total"] = Json::UInt64(total);
-//      if (total > 0) {
-//        packet_stats_json["avg packet size"] = Json::UInt64(packet_stats->total_size_ / total);
-//        packet_stats_json["avg packet processing duration"] =
-//            Json::UInt64(packet_stats->total_duration_.count() / total);
-//        auto unique = packet_stats->total_unique_count_;
-//        if (unique > 0) {
-//          packet_stats_json["unique"] = Json::UInt64(unique);
-//          packet_stats_json["unique %"] = Json::UInt64(unique * 100 / total);
-//          packet_stats_json["unique avg packet size"] = Json::UInt64(packet_stats->total_unique_size_ / unique);
-//          packet_stats_json["unique avg packet processing duration"] =
-//              Json::UInt64(packet_stats->total_unique_duration_.count() / unique);
-//        }
-//        stats_json[packetTypeToString(it)] = packet_stats_json;
-//      }
-//    }
-//
-//    return stats_json;
-//  };
-//
-//  Json::Value received_packet_stats_json = createPacketsStatsJson(received_packets_stats_);
-//
-//  received_packet_stats_json["transaction count"] = Json::UInt64(received_trx_count);
-//  received_packet_stats_json["unique transaction count"] = Json::UInt64(unique_received_trx_count);
-//  if (received_trx_count)
-//    received_packet_stats_json["unique transaction %"] =
-//        Json::UInt64(unique_received_trx_count * 100 / received_trx_count);
-//  res["received packets stats"] = received_packet_stats_json;
-//
-//  Json::Value sent_packet_stats_json = createPacketsStatsJson(sent_packets_stats_);
-//  res["sent packets stats"] = sent_packet_stats_json;
-
   return res;
+}
+
+Json::Value NodeStats::getPacketsStats() const {
+  Json::Value ret;
+
+  std::ostringstream stream;
+  stream << packets_stats_->getReceivedPacketsStats();
+  ret["received_packets_stats"] = stream.str();
+
+  stream.clear();
+  stream << packets_stats_->getSentPacketsStats();
+  ret["sent_packets_stats"] = stream.str();
+
+  return ret;
 }
 
 }  // namespace taraxa::network::tarcap
