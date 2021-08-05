@@ -17,7 +17,6 @@
 #include "config/config.hpp"
 #include "consensus/vote.hpp"
 #include "dag/dag_block_manager.hpp"
-#include "taraxa_capability.hpp"
 #include "tarcap/new_taraxa_capability.hpp"
 #include "transaction_manager/transaction.hpp"
 #include "util/thread_pool.hpp"
@@ -42,11 +41,11 @@ class Network {
   // METHODS USED IN REAL CODE
   void start();
   bool isStarted();
-  std::list<NodeEntry> getAllNodes() const;
+  std::list<dev::p2p::NodeEntry> getAllNodes() const;
   unsigned getPeerCount();
   unsigned getNodeCount();
   Json::Value getStatus();
-  std::vector<NodeID> getAllPeersIDs() const;
+  std::vector<dev::p2p::NodeID> getAllPeersIDs() const;
   void onNewBlockVerified(shared_ptr<DagBlock> const &blk);
   void onNewTransactions(std::vector<taraxa::bytes> transactions);
   void restartSyncingPbft(bool force = false);
@@ -60,25 +59,24 @@ class Network {
   // METHODS USED IN TESTS ONLY
   void sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk);
   void sendBlocks(dev::p2p::NodeID const &id, std::vector<std::shared_ptr<DagBlock>> blocks);
-  void sendTransactions(NodeID const &_id, std::vector<taraxa::bytes> const &transactions);
+  void sendTransactions(dev::p2p::NodeID const &_id, std::vector<taraxa::bytes> const &transactions);
   void setPendingPeersToReady();
   dev::p2p::NodeID getNodeId();
   int getReceivedBlocksCount();
   int getReceivedTransactionsCount();
-  std::shared_ptr<network::tarcap::TaraxaPeer> getPeer(NodeID const &id);
+  std::shared_ptr<network::tarcap::TaraxaPeer> getPeer(dev::p2p::NodeID const &id);
 
   // PBFT
-  void sendPbftBlock(NodeID const &id, PbftBlock const &pbft_block, uint64_t const &pbft_chain_size);
-  void sendPbftVote(NodeID const &id, Vote const &vote);
+  void sendPbftBlock(dev::p2p::NodeID const &id, PbftBlock const &pbft_block, uint64_t const &pbft_chain_size);
+  void sendPbftVote(dev::p2p::NodeID const &id, Vote const &vote);
   // END METHODS USED IN TESTS ONLY
 
  private:
   NetworkConfig conf_;
   util::ThreadPool tp_;
   std::shared_ptr<dev::p2p::Host> host_;
-  //std::shared_ptr<TaraxaCapability> taraxa_capability_;
   std::shared_ptr<network::tarcap::TaraxaCapability> taraxa_capability_;
-  std::map<Public, NodeIPEndpoint> boot_nodes_;
+  std::map<Public, dev::p2p::NodeIPEndpoint> boot_nodes_;
   util::ThreadPool diagnostic_thread_{1, false};
 
   LOG_OBJECTS_DEFINE

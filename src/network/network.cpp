@@ -3,6 +3,7 @@
 #include <libdevcrypto/Common.h>
 #include <libp2p/Host.h>
 #include <libp2p/Network.h>
+
 #include <boost/tokenizer.hpp>
 
 namespace taraxa {
@@ -25,7 +26,7 @@ Network::Network(NetworkConfig const &config, std::filesystem::path const &netwo
   net_conf.traverseNAT = false;
   net_conf.publicIPAddress = {};
   net_conf.pin = false;
-  TaraxaNetworkConfig taraxa_net_conf;
+  dev::p2p::TaraxaNetworkConfig taraxa_net_conf;
   taraxa_net_conf.ideal_peer_count = conf_.network_ideal_peer_count;
   // TODO conf_.network_max_peer_count -> conf_.peer_count_stretch
   taraxa_net_conf.peer_stretch = conf_.network_max_peer_count / conf_.network_ideal_peer_count;
@@ -46,7 +47,7 @@ Network::Network(NetworkConfig const &config, std::filesystem::path const &netwo
   auto construct_capabilities = [&, this](auto host) {
     taraxa_capability_ = std::make_shared<network::tarcap::TaraxaCapability>(
         host, conf_, db, pbft_mgr, pbft_chain, vote_mgr, next_votes_mgr, dag_mgr, dag_blk_mgr, trx_mgr, key.address());
-    return Host::CapabilityList{taraxa_capability_};
+    return dev::p2p::Host::CapabilityList{taraxa_capability_};
   };
   host_ = dev::p2p::Host::make(net_version, construct_capabilities, key, net_conf, move(taraxa_net_conf),
                                network_file_path);
@@ -58,14 +59,14 @@ Network::Network(NetworkConfig const &config, std::filesystem::path const &netwo
   }
   if (!boot_nodes_.empty()) {
     for (auto const &[k, v] : boot_nodes_) {
-      host_->addNode(Node(k, v, PeerType::Required));
+      host_->addNode(dev::p2p::Node(k, v, dev::p2p::PeerType::Required));
     }
     // Every 30 seconds check if connected to another node and refresh boot nodes
     tp_.post_loop({30000}, [this] {
       // If node count drops to zero add boot nodes again and retry
       if (getNodeCount() == 0) {
         for (auto const &[k, v] : boot_nodes_) {
-          host_->addNode(Node(k, v, PeerType::Required));
+          host_->addNode(dev::p2p::Node(k, v, dev::p2p::PeerType::Required));
         }
       }
       if (host_->peer_count() == 0) {
@@ -102,7 +103,7 @@ void Network::start() {
 
 bool Network::isStarted() { return tp_.is_running(); }
 
-std::list<NodeEntry> Network::getAllNodes() const { return host_->getNodes(); }
+std::list<dev::p2p::NodeEntry> Network::getAllNodes() const { return host_->getNodes(); }
 
 unsigned Network::getPeerCount() { return taraxa_capability_->getPeersState()->getPeersCount(); }
 
@@ -110,7 +111,9 @@ unsigned Network::getNodeCount() { return host_->getNodeCount(); }
 
 Json::Value Network::getStatus() { return taraxa_capability_->getNodeStats()->getStatus(); }
 
-std::vector<NodeID> Network::getAllPeersIDs() const { return taraxa_capability_->getPeersState()->getAllPeersIDs(); }
+std::vector<dev::p2p::NodeID> Network::getAllPeersIDs() const {
+  return taraxa_capability_->getPeersState()->getAllPeersIDs();
+}
 
 // TODO: do not use tp here
 void Network::onNewBlockVerified(shared_ptr<DagBlock> const &blk) {
@@ -174,14 +177,14 @@ void Network::sendBlocks(dev::p2p::NodeID const &id, std::vector<std::shared_ptr
   taraxa_capability_->sendBlocks(id, std::move(blocks));
 }
 
-void Network::sendTransactions(NodeID const &_id, std::vector<taraxa::bytes> const &transactions) {
+void Network::sendTransactions(dev::p2p::NodeID const &_id, std::vector<taraxa::bytes> const &transactions) {
   taraxa_capability_->sendTransactions(_id, transactions);
   LOG(log_dg_) << "Sent transactions:" << transactions.size();
 }
 
 // TODO remove
 void Network::setPendingPeersToReady() {
-  const auto& peers_state = taraxa_capability_->getPeersState();
+  const auto &peers_state = taraxa_capability_->getPeersState();
 
   auto peerIds = peers_state->getAllPendingPeersIDs();
   for (const auto &peerId : peerIds) {
@@ -198,14 +201,16 @@ int Network::getReceivedBlocksCount() { return taraxa_capability_->getReceivedBl
 
 int Network::getReceivedTransactionsCount() { return taraxa_capability_->getReceivedTransactionsCount(); }
 
-std::shared_ptr<network::tarcap::TaraxaPeer> Network::getPeer(NodeID const &id) { return taraxa_capability_->getPeersState()->getPeer(id); }
+std::shared_ptr<network::tarcap::TaraxaPeer> Network::getPeer(dev::p2p::NodeID const &id) {
+  return taraxa_capability_->getPeersState()->getPeer(id);
+}
 
-void Network::sendPbftBlock(NodeID const &id, PbftBlock const &pbft_block, uint64_t const &pbft_chain_size) {
+void Network::sendPbftBlock(dev::p2p::NodeID const &id, PbftBlock const &pbft_block, uint64_t const &pbft_chain_size) {
   LOG(log_dg_) << "Network send PBFT block: " << pbft_block.getBlockHash() << " to: " << id;
   taraxa_capability_->sendPbftBlock(id, pbft_block, pbft_chain_size);
 }
 
-void Network::sendPbftVote(NodeID const &id, Vote const &vote) {
+void Network::sendPbftVote(dev::p2p::NodeID const &id, Vote const &vote) {
   LOG(log_dg_) << "Network sent PBFT vote: " << vote.getHash() << " to: " << id;
   taraxa_capability_->sendPbftVote(id, vote);
 }
