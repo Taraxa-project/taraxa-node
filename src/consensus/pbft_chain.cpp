@@ -208,8 +208,8 @@ std::shared_ptr<PbftBlock> PbftChain::getUnverifiedPbftBlock(const taraxa::blk_h
   return nullptr;
 }
 
-std::vector<PbftBlockCert> PbftChain::getPbftBlocks(size_t period, size_t count) {
-  std::vector<PbftBlockCert> result;
+std::vector<std::pair<PbftBlock, bytes>> PbftChain::getPbftBlocks(size_t period, size_t count) {
+  std::vector<std::pair<PbftBlock, bytes>> result;
   DbStorage::MultiGetQuery db_query(db_, count * 2);
 
   for (auto i = period; i < period + count; ++i) {
@@ -251,12 +251,9 @@ std::vector<PbftBlockCert> PbftChain::getPbftBlocks(size_t period, size_t count)
       assert(false);
       break;
     }
-
-    std::vector<Vote> cert_votes;
-    for (auto const cert_vote : RLP(pbft_block_cert_votes[i + half_size])) {
-      cert_votes.emplace_back(cert_vote);
-    }
-    result.emplace_back(block, cert_votes);
+    RLPStream s;
+    PbftBlockCert::encode_raw(s, block, pbft_block_cert_votes[i + half_size]);
+    result.emplace_back(block, s.out());
   }
 
   return result;

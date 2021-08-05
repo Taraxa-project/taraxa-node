@@ -1582,9 +1582,8 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &peerID, size_t height_to_syn
   // (exclusive) edges_`k`_to_`k+1`[i+1]
 
   DbStorage::MultiGetQuery db_query(db_);
-  auto const &pbft_blocks = pbft_cert_blks;
-  for (auto const &b : pbft_blocks) {
-    db_query.append(DbStorage::Columns::dag_finalized_blocks, b.pbft_blk->getPivotDagBlockHash(), false);
+  for (auto const &b : pbft_cert_blks) {
+    db_query.append(DbStorage::Columns::dag_finalized_blocks, b.first.getPivotDagBlockHash(), false);
   }
   auto pbft_blocks_extra = db_query.execute();
 
@@ -1598,9 +1597,9 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &peerID, size_t height_to_syn
   // pbft block 1 dag blocks indexes -> <dag_blocks_indexes[N], dag_blocks_indexes[N+1]> -> <start_idx, end_idx>
   // pbft block 1 dag blocks -> [dag_blocks[start_idx], dag_blocks[start_idx + 1], dag_blocks[end_idx]]
   vector<uint> dag_blocks_indexes;
-  dag_blocks_indexes.reserve(1 + pbft_blocks.size());
+  dag_blocks_indexes.reserve(1 + pbft_blocks_extra.size());
   dag_blocks_indexes.push_back(0);
-  for (uint i_0 = 0; i_0 < pbft_blocks.size(); ++i_0) {
+  for (uint i_0 = 0; i_0 < pbft_blocks_extra.size(); ++i_0) {
     db_query.append(DbStorage::Columns::dag_blocks, RLP(pbft_blocks_extra[i_0]).toVector<h256>());
     dag_blocks_indexes.push_back(db_query.size());
   }
@@ -1639,7 +1638,7 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &peerID, size_t height_to_syn
   uint64_t act_packet_size = 0;
 
   // Iterate through pbft blocks
-  for (uint pbft_block_idx = 0; pbft_block_idx < pbft_blocks.size(); ++pbft_block_idx) {
+  for (uint pbft_block_idx = 0; pbft_block_idx < pbft_cert_blks.size(); ++pbft_block_idx) {
     RLPStream pbft_block_rlp;
     auto start_1 = dag_blocks_indexes[pbft_block_idx];
     auto end_1 = dag_blocks_indexes[pbft_block_idx + 1];
@@ -1669,11 +1668,11 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &peerID, size_t height_to_syn
 
       // Check if PBFT blocks need to be split and sent in multiple packets so we dont exceed
       // MAX_PACKET_SIZE (15 MB) limit
-      if (act_packet_size + dag_blocks_size + dag_rlp.out().size() + pbft_blocks[pbft_block_idx].rlp().size() +
+      if (act_packet_size + dag_blocks_size + dag_rlp.out().size() + pbft_cert_blks[pbft_block_idx].second.size() +
               RLP_OVERHEAD >
           MAX_PACKET_SIZE) {
         LOG(log_dg_dag_sync_) << "Sending partial PbftBlockPacket due tu MAX_PACKET_SIZE limit. " << pbft_block_idx + 1
-                              << " blocks out of " << pbft_blocks.size() << " sent.";
+                              << " blocks out of " << pbft_cert_blks.size() << " sent.";
 
         pbft_block_rlp.appendList(1);  // Only list of dag blocks and no pbft block rlp for incomplete packet
         pbft_block_rlp.appendList(dag_blocks_rlps.size());
@@ -1699,7 +1698,7 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &peerID, size_t height_to_syn
 
     for (auto &dag_block : dag_blocks_rlps) pbft_block_rlp.appendRaw(dag_block);
 
-    pbft_block_rlp.appendRaw(pbft_blocks[pbft_block_idx].rlp());
+    pbft_block_rlp.appendRaw(pbft_cert_blks[pbft_block_idx].second);
 
     act_packet_size += pbft_block_rlp.out().size();
     pbft_blocks_rlps.emplace_back(pbft_block_rlp.invalidate());
