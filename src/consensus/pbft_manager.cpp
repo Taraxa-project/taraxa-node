@@ -1650,8 +1650,11 @@ bool PbftManager::giveUpNextVotedBlock_() {
     return true;
   }
 
+  // Check previous round cert voted value to make sure we don't give up
+  // on a previously cert voted (but unpushed) block...
   if (previous_round_next_voted_value_ == last_soft_voted_value_ && giveUpSoftVotedBlock_() &&
-      cert_voted_values_for_round_.find(getPbftRound()) == cert_voted_values_for_round_.end()) {
+      cert_voted_values_for_round_.find(getPbftRound()) == cert_voted_values_for_round_.end() &&
+      cert_voted_values_for_round_.find(getPbftRound() - 1) == cert_voted_values_for_round_.end()) {
     LOG(log_tr_) << "Giving up next voted value " << previous_round_next_voted_value_
                  << " because giving up soft voted value.";
 
