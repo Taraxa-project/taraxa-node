@@ -915,18 +915,22 @@ void PbftManager::certifyBlock_() {
 
       if (executed_soft_voted_block_for_this_round || unverified_soft_vote_block_for_this_round_is_valid) {
         // generate cert vote
-        // comparePbftBlockScheduleWithDAGblocks_ has checked the cert voted block exist
-        auto cert_voted_block = pbft_chain_->getUnverifiedPbftBlock(soft_voted_block_for_this_round_.first);
-        auto batch = db_->createWriteBatch();
-        db_->addPbftCertVotedBlockHashToBatch(round, soft_voted_block_for_this_round_.first, batch);
-        db_->addPbftCertVotedBlockToBatch(*cert_voted_block, batch);
-        db_->commitWriteBatch(batch);
-        cert_voted_values_for_round_[round] = soft_voted_block_for_this_round_.first;
-        should_have_cert_voted_in_this_round_ = true;
         auto place_votes = placeVote_(soft_voted_block_for_this_round_.first, cert_vote_type, round, step_);
         if (place_votes) {
           LOG(log_nf_) << "Cert votes " << place_votes << " voting " << soft_voted_block_for_this_round_.first
                        << " in round " << round;
+
+          // comparePbftBlockScheduleWithDAGblocks_ has checked the cert voted block exist
+          auto cert_voted_block = pbft_chain_->getUnverifiedPbftBlock(soft_voted_block_for_this_round_.first);
+
+          auto batch = db_->createWriteBatch();
+          db_->addPbftCertVotedBlockHashToBatch(round, soft_voted_block_for_this_round_.first, batch);
+          db_->addPbftCertVotedBlockToBatch(*cert_voted_block, batch);
+          db_->commitWriteBatch(batch);
+
+          cert_voted_values_for_round_[round] = soft_voted_block_for_this_round_.first;
+
+          should_have_cert_voted_in_this_round_ = true;
         }
       }
     }
@@ -978,23 +982,25 @@ void PbftManager::secondFinish_() {
 
   if (!next_voted_soft_value_ && soft_voted_block_for_this_round_.second &&
       soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH) {
-    db_->savePbftMgrStatus(PbftMgrStatus::next_voted_soft_value, true);
-    next_voted_soft_value_ = true;
     auto place_votes = placeVote_(soft_voted_block_for_this_round_.first, next_vote_type, round, step_);
     if (place_votes) {
       LOG(log_nf_) << "Next votes " << place_votes << " voting " << soft_voted_block_for_this_round_.first
                    << " for round " << round << ", at step " << step_;
+
+      db_->savePbftMgrStatus(PbftMgrStatus::next_voted_soft_value, true);
+      next_voted_soft_value_ = true;
     }
   }
 
   if (!next_voted_null_block_hash_ && round >= 2 &&
       (giveUpNextVotedBlock_() || step_ > MAX_WAIT_FOR_NEXT_VOTED_BLOCK_STEPS) &&
       (cert_voted_values_for_round_.find(round) == cert_voted_values_for_round_.end())) {
-    db_->savePbftMgrStatus(PbftMgrStatus::next_voted_null_block_hash, true);
-    next_voted_null_block_hash_ = true;
     auto place_votes = placeVote_(NULL_BLOCK_HASH, next_vote_type, round, step_);
     if (place_votes) {
       LOG(log_nf_) << "Next votes " << place_votes << " voting NULL BLOCK for round " << round << ", at step " << step_;
+
+      db_->savePbftMgrStatus(PbftMgrStatus::next_voted_null_block_hash, true);
+      next_voted_null_block_hash_ = true;
     }
   }
 
