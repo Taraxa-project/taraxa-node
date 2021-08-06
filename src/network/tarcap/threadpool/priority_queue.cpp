@@ -2,24 +2,39 @@
 
 namespace taraxa::network::tarcap {
 
-PriorityQueue::PriorityQueue(size_t tp_workers_count) {
+PriorityQueue::PriorityQueue(size_t tp_workers_count, const addr_t& node_addr) :
+    MAX_TOTAL_WORKERS_COUNT(tp_workers_count), act_total_workers_count_(0) {
   assert(packets_queues_.size() == PacketData::PacketPriority::Count);
+  assert(tp_workers_count >= 1);
+
+  LOG_OBJECTS_CREATE("PRIORITY_QUEUE");
 
   // high priority packets(consensus - votes) max concurrent workers - 40% of tp_workers_count
   // mid priority packets(dag/pbft blocks, txs) max concurrent workers - 50% of tp_workers_count
   // low priority packets(syncing, status, ...) max concurrent workers - 30% of tp_workers_count
-  size_t high_priority_queue_workers = tp_workers_count * 4 / 10;
-  size_t mid_priority_queue_workers = tp_workers_count * 5 / 10;
-  size_t low_priority_queue_workers = tp_workers_count - (high_priority_queue_workers + mid_priority_queue_workers);
+  size_t high_priority_queue_workers = std::max(1, static_cast<int>(MAX_TOTAL_WORKERS_COUNT * 4 / 10));
+  size_t mid_priority_queue_workers = std::max(1, static_cast<int>(MAX_TOTAL_WORKERS_COUNT * 5 / 10));
+  size_t low_priority_queue_workers = std::max(1, static_cast<int>(MAX_TOTAL_WORKERS_COUNT - (high_priority_queue_workers + mid_priority_queue_workers)));
 
   packets_queues_[PacketData::PacketPriority::High].setMaxWorkersCount(high_priority_queue_workers);
   packets_queues_[PacketData::PacketPriority::Mid].setMaxWorkersCount(mid_priority_queue_workers);
   packets_queues_[PacketData::PacketPriority::Low].setMaxWorkersCount(low_priority_queue_workers);
+
+  LOG(log_nf_) << "Priority queue initialized accordingly: "
+               << "total num of workers = " << MAX_TOTAL_WORKERS_COUNT
+               << ", High priority packets queue = " << high_priority_queue_workers
+               << ", Mid priority packets queue = " << mid_priority_queue_workers
+               << ", Low priority packets queue = " << low_priority_queue_workers;
 }
 
 void PriorityQueue::pushBack(PacketData&& packet) { packets_queues_[packet.priority_].pushBack(std::move(packet)); }
 
 std::optional<PacketData> PriorityQueue::pop() {
+  if (act_total_workers_count_ >= MAX_TOTAL_WORKERS_COUNT) {
+    LOG(log_tr_) << "MAX_TOTAL_WORKERS_COUNT(" << MAX_TOTAL_WORKERS_COUNT << ") reached, unable to pop data.";
+    return {};
+  }
+
   // Get first packet to be processed. Queues are ordered by priority
   // starting with highest priority and ending with lowest priority
   for (auto& queue : packets_queues_) {
@@ -35,6 +50,7 @@ std::optional<PacketData> PriorityQueue::pop() {
   }
 
   // There was no unblocked packet to be processed in all queues
+  LOG(log_tr_) << "No non-blocked packets to be processed.";
   return {};
 }
 
@@ -59,6 +75,9 @@ void PriorityQueue::markPacketAsUnblocked(PriorityQueuePacketType packet_type) {
 }
 
 void PriorityQueue::updateDependenciesStart(const PacketData& packet) {
+  assert(act_total_workers_count_ < MAX_TOTAL_WORKERS_COUNT);
+  act_total_workers_count_++;
+
   packets_queues_[packet.priority_].incrementActWorkersCount();
 
   // Process all dependencies here - it is called when packet processing has started
@@ -81,6 +100,9 @@ void PriorityQueue::updateDependenciesStart(const PacketData& packet) {
 }
 
 void PriorityQueue::updateDependenciesFinish(const PacketData& packet) {
+  assert(act_total_workers_count_ > 0);
+  act_total_workers_count_--;
+
   packets_queues_[packet.priority_].decrementActWorkersCount();
 
   // Process all dependencies here - it is called when packet processing is finished
