@@ -7,12 +7,13 @@
 
 #include "network/tarcap/packet_types.hpp"
 #include "packets_queue.hpp"
+#include "logger/log.hpp"
 
 namespace taraxa::network::tarcap {
 
 class PriorityQueue {
  public:
-  PriorityQueue(size_t tp_workers_count);
+  PriorityQueue(size_t tp_workers_count, const addr_t& node_addr = {});
 
   void pushBack(PacketData&& packet);
 
@@ -43,6 +44,15 @@ class PriorityQueue {
   // blocked_packets_types_mask_ XOR QueuePacketType -> sets QueuePacketType as unblocked packet (note: packet must be
   // marked as blocked - 1 for XOR to work correctly)
   std::atomic<uint32_t> blocked_packets_types_mask_;
+
+  // How many workers can process packets from all the queues at the same time
+  size_t MAX_TOTAL_WORKERS_COUNT;
+
+  // How many workers are currently processing packets from all the queues at the same time
+  std::atomic<size_t> act_total_workers_count_;
+
+  // Declare logger instances
+  LOG_OBJECTS_DEFINE
 };
 
 }  // namespace taraxa::network::tarcap
