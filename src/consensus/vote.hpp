@@ -211,7 +211,7 @@ class VoteManager {
  public:
   VoteManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<FinalChain> final_chain,
               std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr);
-  ~VoteManager() {}
+  ~VoteManager();
 
   void setNetwork(std::weak_ptr<Network> network);
 

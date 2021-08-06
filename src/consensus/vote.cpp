@@ -131,7 +131,7 @@ void VoteManager::retreieveVotes_() {
         net->onNewPbftVotes(move(votes));
       }
     }
-    
+
     addVerifiedVote(v);
     LOG(log_dg_) << "Retrieved verified vote " << v;
   }
