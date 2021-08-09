@@ -82,8 +82,8 @@ struct TaraxaCapability : virtual CapabilityFace {
   void syncPeerPbft(unsigned long height_to_sync);
   void restartSyncingPbft(bool force = false);
   void delayedPbftSync(int counter);
-  std::pair<bool, std::vector<blk_hash_t>> checkDagBlockValidation(DagBlock const &block);
-  void requestBlocks(const NodeID &_nodeID, std::vector<blk_hash_t> const &blocks,
+  std::pair<bool, std::unordered_set<blk_hash_t>> checkDagBlockValidation(DagBlock const &block);
+  void requestBlocks(const NodeID &_nodeID, std::unordered_set<blk_hash_t> const &blocks,
                      GetBlocksPacketRequestType mode = MissingHashes);
   void interpretCapabilityPacketImpl(NodeID const &_nodeID, unsigned _id, RLP const &_r, PacketStats &packet_stats);
   void sendTestMessage(NodeID const &_id, int _x, std::vector<char> const &data);

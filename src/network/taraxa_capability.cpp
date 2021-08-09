@@ -112,8 +112,8 @@ bool TaraxaCapability::sealAndSend(NodeID const &nodeID, unsigned packet_type, R
   return true;
 }
 
-std::pair<bool, std::vector<blk_hash_t>> TaraxaCapability::checkDagBlockValidation(DagBlock const &block) {
-  std::vector<blk_hash_t> missing_blks;
+std::pair<bool, std::unordered_set<blk_hash_t>> TaraxaCapability::checkDagBlockValidation(DagBlock const &block) {
+  std::unordered_set<blk_hash_t> missing_blks;
 
   if (dag_blk_mgr_->getDagBlock(block.getHash())) {
     // The DAG block exist
@@ -125,7 +125,7 @@ std::pair<bool, std::vector<blk_hash_t>> TaraxaCapability::checkDagBlockValidati
     auto tip_block = dag_blk_mgr_->getDagBlock(tip);
     if (!tip_block) {
       LOG(log_er_dag_sync_) << "Block " << block.getHash().toString() << " has a missing tip " << tip.toString();
-      missing_blks.push_back(tip);
+      missing_blks.insert(tip);
     } else {
       expected_level = std::max(tip_block->getLevel(), expected_level);
     }
@@ -135,7 +135,7 @@ std::pair<bool, std::vector<blk_hash_t>> TaraxaCapability::checkDagBlockValidati
   auto pivot_block = dag_blk_mgr_->getDagBlock(pivot);
   if (!pivot_block) {
     LOG(log_er_dag_sync_) << "Block " << block.getHash().toString() << " has a missing pivot " << pivot.toString();
-    missing_blks.push_back(pivot);
+    missing_blks.insert(pivot);
   }
 
   if (missing_blks.size()) return std::make_pair(false, missing_blks);
@@ -151,7 +151,7 @@ std::pair<bool, std::vector<blk_hash_t>> TaraxaCapability::checkDagBlockValidati
   return std::make_pair(true, missing_blks);
 }
 
-void TaraxaCapability::requestBlocks(const NodeID &_nodeID, std::vector<blk_hash_t> const &blocks,
+void TaraxaCapability::requestBlocks(const NodeID &_nodeID, std::unordered_set<blk_hash_t> const &blocks,
                                      GetBlocksPacketRequestType mode) {
   LOG(log_nf_dag_sync_) << "Sending GetBlocksPacket";
   RLPStream s(blocks.size() + 1);  // Mode + block itself
@@ -377,7 +377,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         }
         if (auto status = checkDagBlockValidation(block); !status.first) {
           LOG(log_wr_dag_prp_) << "Received NewBlock " << block.getHash().toString() << " missing pivot or/and tips";
-          status.second.push_back(block.getHash());
+          status.second.insert(block.getHash());
           requestBlocks(_nodeID, status.second);
           break;
         }
@@ -484,6 +484,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
     }
     case BlocksPacket: {
       std::string received_dag_blocks_str;
+      std::unordered_set<blk_hash_t> missing_blks;
       auto it = _r.begin();
       bool is_final_sync_packet = (*it++).toInt<unsigned>();
 
@@ -503,8 +504,8 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         auto status = checkDagBlockValidation(block);
         if (!status.first) {
           LOG(log_wr_dag_sync_) << "DagBlockValidation failed " << status.second;
-          status.second.push_back(block.getHash());
-          requestBlocks(_nodeID, status.second);
+          status.second.insert(block.getHash());
+          missing_blks.merge(status.second);
           continue;
         }
 
@@ -513,6 +514,8 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         if (block.getLevel() > peer->dag_level_) peer->dag_level_ = block.getLevel();
         dag_blk_mgr_->insertBroadcastedBlockWithTransactions(block, newTransactions);
       }
+
+      requestBlocks(_nodeID, missing_blks);
 
       if (is_final_sync_packet) {
         syncing_state_.set_dag_syncing(false);
@@ -1265,11 +1268,11 @@ void TaraxaCapability::requestPbftBlocks(NodeID const &_id, size_t height_to_syn
 }
 
 void TaraxaCapability::requestPendingDagBlocks() {
-  vector<blk_hash_t> known_non_finalized_blocks;
+  std::unordered_set<blk_hash_t> known_non_finalized_blocks;
   auto blocks = dag_mgr_->getNonFinalizedBlocks();
   for (auto &level_blocks : blocks) {
     for (auto &block : level_blocks.second) {
-      known_non_finalized_blocks.push_back(block);
+      known_non_finalized_blocks.insert(block);
     }
   }
   requestBlocks(syncing_state_.syncing_peer(), known_non_finalized_blocks, KnownHashes);
