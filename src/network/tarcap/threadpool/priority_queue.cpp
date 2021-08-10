@@ -3,7 +3,9 @@
 namespace taraxa::network::tarcap {
 
 PriorityQueue::PriorityQueue(size_t tp_workers_count, const addr_t& node_addr) :
-    MAX_TOTAL_WORKERS_COUNT(tp_workers_count), act_total_workers_count_(0) {
+    blocked_packets_types_mask_(0),
+    MAX_TOTAL_WORKERS_COUNT(tp_workers_count),
+    act_total_workers_count_(0) {
   assert(packets_queues_.size() == PacketData::PacketPriority::Count);
   assert(tp_workers_count >= 1);
 
