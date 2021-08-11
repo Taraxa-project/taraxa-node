@@ -104,6 +104,7 @@ TEST_F(CryptoTest, vrf_sortition) {
   EXPECT_TRUE(sortition.canSpeak(1, 0));
   auto b = sortition.getRlpBytes();
   VrfPbftSortition sortition3(b);
+  sortition3.verify();
   EXPECT_EQ(sortition, sortition2);
   EXPECT_EQ(sortition, sortition3);
 }
