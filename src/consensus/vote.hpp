@@ -65,7 +65,7 @@ struct VrfPbftSortition : public vrf_wrapper::VrfSortitionBase {
   VrfPbftSortition() = default;
   VrfPbftSortition(vrf_sk_t const& sk, VrfPbftMsg const& pbft_msg)
       : VrfSortitionBase(sk, pbft_msg.getRlpBytes()), pbft_msg(pbft_msg) {}
-  explicit VrfPbftSortition(bytes const& rlp, bool verify_vrf = true);
+  explicit VrfPbftSortition(bytes const& rlp);
   bytes getRlpBytes() const;
   bool verify() { return VrfSortitionBase::verify(pbft_msg.getRlpBytes()); }
   bool operator==(VrfPbftSortition const& other) const {
@@ -90,8 +90,8 @@ class Vote {
   Vote() = default;
   Vote(secret_t const& node_sk, VrfPbftSortition const& vrf_sortition, blk_hash_t const& blockhash);
 
-  explicit Vote(dev::RLP const& rlp, bool verify_vrf = true);
-  explicit Vote(bytes const& rlp, bool verify_vrf = true);
+  explicit Vote(dev::RLP const& rlp);
+  explicit Vote(bytes const& rlp);
   bool operator==(Vote const& other) const { return rlp() == other.rlp(); }
   ~Vote() {}
 

@@ -11,7 +11,7 @@ constexpr size_t FIRST_FINISH_STEP = 4;
 
 namespace taraxa {
 
-VrfPbftSortition::VrfPbftSortition(bytes const& b, bool verify_vrf) {
+VrfPbftSortition::VrfPbftSortition(bytes const& b) {
   dev::RLP const rlp(b);
   if (!rlp.isList()) {
     throw std::invalid_argument("VrfPbftSortition RLP must be a list");
@@ -24,8 +24,6 @@ VrfPbftSortition::VrfPbftSortition(bytes const& b, bool verify_vrf) {
   pbft_msg.step = (*it++).toInt<size_t>();
   pbft_msg.weighted_index = (*it++).toInt<size_t>();
   proof = (*it++).toHash<vrf_proof_t>();
-
-  if (verify_vrf) verify();
 }
 
 bytes VrfPbftSortition::getRlpBytes() const {
@@ -54,17 +52,17 @@ bool VrfPbftSortition::canSpeak(size_t threshold, size_t dpos_total_votes_count)
   return left <= right;
 }
 
-Vote::Vote(dev::RLP const& rlp, bool verify_vrf) {
+Vote::Vote(dev::RLP const& rlp) {
   if (!rlp.isList()) throw std::invalid_argument("vote RLP must be a list");
   auto it = rlp.begin();
 
   blockhash_ = (*it++).toHash<blk_hash_t>();
-  vrf_sortition_ = VrfPbftSortition((*it++).toBytes(), verify_vrf);
+  vrf_sortition_ = VrfPbftSortition((*it++).toBytes());
   vote_signature_ = (*it++).toHash<sig_t>();
   vote_hash_ = sha3(true);
 }
 
-Vote::Vote(bytes const& b, bool verify_vrf) : Vote(dev::RLP(b), verify_vrf) {}
+Vote::Vote(bytes const& b) : Vote(dev::RLP(b)) {}
 
 Vote::Vote(secret_t const& node_sk, VrfPbftSortition const& vrf_sortition, blk_hash_t const& blockhash)
     : blockhash_(blockhash), vrf_sortition_(vrf_sortition) {
