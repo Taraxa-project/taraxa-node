@@ -195,8 +195,7 @@ class PbftManager {
   size_t startingStepInRound_ = 1;
 
   blk_hash_t own_starting_value_for_round_ = NULL_BLOCK_HASH;
-  // <round, cert_voted_block_hash>
-  std::unordered_map<size_t, blk_hash_t> cert_voted_values_for_round_;
+
   std::pair<blk_hash_t, bool> soft_voted_block_for_this_round_ = std::make_pair(NULL_BLOCK_HASH, false);
 
   std::vector<Vote> votes_;
@@ -210,6 +209,7 @@ class PbftManager {
   bool previous_round_next_voted_null_block_hash_ = false;
 
   blk_hash_t last_soft_voted_value_ = NULL_BLOCK_HASH;
+  blk_hash_t last_cert_voted_value_ = NULL_BLOCK_HASH;
 
   std::chrono::duration<double> duration_;
   u_long next_step_time_ms_ = 0;
