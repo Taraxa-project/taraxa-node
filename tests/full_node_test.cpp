@@ -166,27 +166,21 @@ TEST_F(FullNodeTest, db_test) {
   // PBFT manager voted value
   EXPECT_EQ(db.getPbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round), nullptr);
   EXPECT_EQ(db.getPbftMgrVotedValue(PbftMgrVotedValue::soft_voted_block_hash_in_round), nullptr);
+  EXPECT_EQ(db.getPbftMgrVotedValue(PbftMgrVotedValue::last_cert_voted_value), nullptr);
   db.savePbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round, blk_hash_t(1));
   db.savePbftMgrVotedValue(PbftMgrVotedValue::soft_voted_block_hash_in_round, blk_hash_t(2));
+  db.savePbftMgrVotedValue(PbftMgrVotedValue::last_cert_voted_value, blk_hash_t(3));
   EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round), blk_hash_t(1));
   EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::soft_voted_block_hash_in_round), blk_hash_t(2));
+  EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::last_cert_voted_value), blk_hash_t(3));
   batch = db.createWriteBatch();
   db.addPbftMgrVotedValueToBatch(PbftMgrVotedValue::own_starting_value_in_round, blk_hash_t(4), batch);
   db.addPbftMgrVotedValueToBatch(PbftMgrVotedValue::soft_voted_block_hash_in_round, blk_hash_t(5), batch);
+  db.addPbftMgrVotedValueToBatch(PbftMgrVotedValue::last_cert_voted_value, blk_hash_t(6), batch);
   db.commitWriteBatch(batch);
   EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round), blk_hash_t(4));
   EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::soft_voted_block_hash_in_round), blk_hash_t(5));
-
-  // PBFT cert voted block hash
-  EXPECT_EQ(db.getPbftCertVotedBlockHash(1), nullptr);
-  db.savePbftCertVotedBlockHash(1, blk_hash_t(1));
-  EXPECT_EQ(*db.getPbftCertVotedBlockHash(1), blk_hash_t(1));
-  batch = db.createWriteBatch();
-  db.addPbftCertVotedBlockHashToBatch(1, blk_hash_t(2), batch);
-  db.addPbftCertVotedBlockHashToBatch(2, blk_hash_t(3), batch);
-  db.commitWriteBatch(batch);
-  EXPECT_EQ(*db.getPbftCertVotedBlockHash(1), blk_hash_t(2));
-  EXPECT_EQ(*db.getPbftCertVotedBlockHash(2), blk_hash_t(3));
+  EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::last_cert_voted_value), blk_hash_t(6));
 
   // PBFT cert voted block
   auto pbft_block1 = make_simple_pbft_block(blk_hash_t(1), 1);
