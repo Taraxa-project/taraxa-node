@@ -1561,9 +1561,10 @@ bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes, vec
                                  bool sync) {
   auto const &pbft_block_hash = pbft_block_cert_votes.pbft_blk->getBlockHash();
   if (db_->pbftBlockInDb(pbft_block_hash)) {
-    LOG(log_er_) << "PBFT block: " << pbft_block_hash << " in DB already.";
+    LOG(log_nf_) << "PBFT block: " << pbft_block_hash << " in DB already.";
     if (last_cert_voted_value_ == pbft_block_hash) {
-      LOG(log_er_) << "Last cert voted value " << last_cert_voted_value_ << " has been pushed into chain already";
+      LOG(log_er_) << "Last cert voted value should be NULL_BLOCK_HASH. Block hash " << last_cert_voted_value_
+                   << " has been pushed into chain already";
       assert(false);
     }
     return false;
@@ -1655,8 +1656,8 @@ bool PbftManager::giveUpNextVotedBlock_() {
 
   if (last_cert_voted_value_ != NULL_BLOCK_HASH) {
     // Last cert voted value should equal to voted value
-    LOG(log_nf_) << "In round " << round << " step " << step_ << "Last cert voted value is " << last_cert_voted_value_;
-    assert(last_cert_voted_value_ == previous_round_next_voted_value_);
+    LOG(log_nf_) << "In round " << round << " step " << step_ << ", last cert voted value is "
+                 << last_cert_voted_value_;
     return false;
   }
 
