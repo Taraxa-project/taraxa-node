@@ -41,10 +41,7 @@ enum PbftMgrStatus {
   next_voted_soft_value,
   next_voted_null_block_hash,
 };
-enum PbftMgrVotedValue {
-  own_starting_value_in_round = 0,
-  soft_voted_block_hash_in_round,
-};
+enum PbftMgrVotedValue { own_starting_value_in_round = 0, soft_voted_block_hash_in_round, last_cert_voted_value };
 
 enum DposProposalPeriodLevelsStatus : uint8_t { max_proposal_period = 0 };
 
@@ -98,7 +95,6 @@ struct DbStorage {
     COLUMN(pbft_round_2t_plus_1);
     COLUMN(pbft_mgr_status);
     COLUMN(pbft_mgr_voted_value);
-    COLUMN(pbft_cert_voted_block_hash);
     COLUMN(pbft_cert_voted_block);
     COLUMN(pbft_head);
     COLUMN(pbft_blocks);
@@ -210,11 +206,6 @@ struct DbStorage {
   shared_ptr<blk_hash_t> getPbftMgrVotedValue(PbftMgrVotedValue const& field);
   void savePbftMgrVotedValue(PbftMgrVotedValue const& field, blk_hash_t const& value);
   void addPbftMgrVotedValueToBatch(PbftMgrVotedValue const& field, blk_hash_t const& value, Batch& write_batch);
-
-  shared_ptr<blk_hash_t> getPbftCertVotedBlockHash(uint64_t pbft_round);
-  void savePbftCertVotedBlockHash(uint64_t pbft_round, blk_hash_t const& cert_voted_block_hash);
-  void addPbftCertVotedBlockHashToBatch(uint64_t pbft_round, blk_hash_t const& cert_voted_block_hash,
-                                        Batch& write_batch);
 
   shared_ptr<PbftBlock> getPbftCertVotedBlock(blk_hash_t const& block_hash);
   void savePbftCertVotedBlock(PbftBlock const& pbft_block);

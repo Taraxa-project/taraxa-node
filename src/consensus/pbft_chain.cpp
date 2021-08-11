@@ -243,7 +243,8 @@ std::vector<std::pair<PbftBlock, bytes>> PbftChain::getPbftBlocks(size_t period,
       break;
     }
 
-    PbftBlock block(dev::RLP(pbft_block_cert_votes[i]));
+    auto pbft_block_rlp = dev::RLP(pbft_block_cert_votes[i]);
+    PbftBlock block(pbft_block_rlp);
 
     if (block.getPeriod() != (i + period)) {
       LOG(log_er_) << "DB corrupted - PBFT block hash " << pbft_blocks[i] << "has different period "
