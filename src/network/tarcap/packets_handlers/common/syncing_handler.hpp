@@ -21,9 +21,9 @@ class SyncingState;
 class SyncingHandler : public PacketHandler {
  public:
   SyncingHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
-                 std::shared_ptr<SyncingState> syncing_state,
-                 std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DagManager> dag_mgr,
-                 std::shared_ptr<DagBlockManager> dag_blk_mgr, const addr_t &node_addr = {});
+                 std::shared_ptr<SyncingState> syncing_state, std::shared_ptr<PbftChain> pbft_chain,
+                 std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
+                 const addr_t &node_addr = {});
 
   /**
    * @note This method is not intended to be used for SyncingHandler

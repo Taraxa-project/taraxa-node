@@ -15,8 +15,9 @@ StatusPacketHandler::StatusPacketHandler(std::shared_ptr<PeersState> peers_state
                                          std::shared_ptr<SyncingState> syncing_state,
                                          std::shared_ptr<SyncingHandler> syncing_handler,
                                          std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DagManager> dag_mgr,
-                                         std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr, std::shared_ptr<PbftManager> pbft_mgr,
-                                         uint64_t conf_network_id, const addr_t& node_addr)
+                                         std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr,
+                                         std::shared_ptr<PbftManager> pbft_mgr, uint64_t conf_network_id,
+                                         const addr_t& node_addr)
     : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "STATUS_PH"),
       syncing_state_(std::move(syncing_state)),
       syncing_handler_(std::move(syncing_handler)),
@@ -33,14 +34,14 @@ void StatusPacketHandler::process(const PacketData& packet_data, const dev::RLP&
     if (!tmp_peer_) {
       auto pending_peer = peers_state_->getPendingPeer(packet_data.from_node_id_);
       if (!pending_peer) {
-        LOG(log_er_) << "Peer " << packet_data.from_node_id_.abridged() << " missing in both peers and pending peers map - will be disconnected.";
+        LOG(log_er_) << "Peer " << packet_data.from_node_id_.abridged()
+                     << " missing in both peers and pending peers map - will be disconnected.";
         tmp_host_->disconnect(packet_data.from_node_id_, p2p::UserReason);
         return;
       }
 
       tmp_peer_ = pending_peer;
     }
-
 
     auto it = packet_rlp.begin();
     auto const peer_network_id = (*it++).toInt<uint64_t>();

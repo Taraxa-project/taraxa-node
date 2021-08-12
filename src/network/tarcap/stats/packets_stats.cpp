@@ -8,7 +8,7 @@ void PacketsStats::addReceivedPacket(const dev::p2p::NodeID& node, const std::st
                                      const SinglePacketStats& packet) {
   received_packets_stats_.addPacket(packet_type, packet);
 
-  LOG(log_dg_) << "(\"" << node << "\") received " << packet_type << "packet from (\"" << packet.node_
+  LOG(log_dg_) << "(\"" << node << "\") received " << packet_type << " packet from (\"" << packet.node_
                << "\"). Stats: " << packet;
 }
 
@@ -16,7 +16,7 @@ void PacketsStats::addSentPacket(const dev::p2p::NodeID& node, const std::string
                                  const SinglePacketStats& packet) {
   sent_packets_stats_.addPacket(packet_type, packet);
 
-  LOG(log_dg_) << "(\"" << node << "\") sent " << packet_type << "packet to (\"" << packet.node_
+  LOG(log_dg_) << "(\"" << node << "\") sent " << packet_type << " packet to (\"" << packet.node_
                << "\"). Stats: " << packet;
 }
 

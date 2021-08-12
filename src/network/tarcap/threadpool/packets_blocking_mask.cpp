@@ -18,13 +18,14 @@ void PacketsBlockingMask::markPacketAsHardUnblocked(PriorityQueuePacketType pack
 
 static std::chrono::steady_clock::time_point lol = std::chrono::steady_clock::now();
 
-void PacketsBlockingMask::markPacketAsPeerTimeBlocked(const PacketData& blocking_packet, PriorityQueuePacketType packet_to_be_blocked) {
+void PacketsBlockingMask::markPacketAsPeerTimeBlocked(const PacketData& blocking_packet,
+                                                      PriorityQueuePacketType packet_to_be_blocked) {
   // blocked_packets_types_mask_ contains hard blocks that are not compatible with peers_time blocks, we should
   // not try to create peers time block when there is ongoing hard block
   assert(!(blocked_packets_types_mask_ & packet_to_be_blocked));
 
   // There is no existing peer time block for specific packet_type & peer_id, create new one
-  auto & peer_time_blocks = blocked_packets_peers_time_[packet_to_be_blocked];
+  auto& peer_time_blocks = blocked_packets_peers_time_[packet_to_be_blocked];
   if (!peer_time_blocks.count(blocking_packet.from_node_id_)) {
     peer_time_blocks[blocking_packet.from_node_id_] = blocking_packet.receive_time_;
     return;
@@ -37,24 +38,27 @@ void PacketsBlockingMask::markPacketAsPeerTimeBlocked(const PacketData& blocking
   }
 }
 
-void PacketsBlockingMask::markPacketAsPeerTimeUnblocked(const PacketData& blocking_packet, PriorityQueuePacketType packet_to_be_unblocked) {
+void PacketsBlockingMask::markPacketAsPeerTimeUnblocked(const PacketData& blocking_packet,
+                                                        PriorityQueuePacketType packet_to_be_unblocked) {
   auto blocked_packet_peers_time = blocked_packets_peers_time_.find(packet_to_be_unblocked);
   assert(blocked_packet_peers_time != blocked_packets_peers_time_.end());
 
   auto peers_time_block = blocked_packet_peers_time->second.find(blocking_packet.from_node_id_);
   // Might be already deleted by a packet with higher time, whose process function finished before this one
-  if(peers_time_block == blocked_packet_peers_time->second.end()) {
+  if (peers_time_block == blocked_packet_peers_time->second.end()) {
     return;
   }
 
-  // There might be a new peers_time block with higher time applied and in such case he is responsible for deleting such block
+  // There might be a new peers_time block with higher time applied and in such case he is responsible for deleting such
+  // block
   if (blocking_packet.receive_time_ != peers_time_block->second) {
     return;
   }
 
   blocked_packet_peers_time->second.erase(peers_time_block);
 
-  // TODO: in case blocked_packet_peers_time.empty() == true, we might even erase blocked_packets_peers_time_.erase(packet_data.type_)
+  // TODO: in case blocked_packet_peers_time.empty() == true, we might even erase
+  // blocked_packets_peers_time_.erase(packet_data.type_)
   //       but it might be less efficient than keeping it there all the time. On the other isPacketBlocked might need to
   //       evaluate 1 less condition if it is erased...
 }

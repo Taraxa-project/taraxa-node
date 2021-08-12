@@ -5,10 +5,10 @@
 #include <array>
 #include <utility>
 
+#include "logger/log.hpp"
 #include "network/tarcap/packet_types.hpp"
 #include "network/tarcap/threadpool/packets_blocking_mask.hpp"
 #include "packets_queue.hpp"
-#include "logger/log.hpp"
 
 namespace taraxa::network::tarcap {
 

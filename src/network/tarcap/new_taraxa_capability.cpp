@@ -42,8 +42,8 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkC
       thread_pool_(10, node_addr),  // TODO: num of threads from config
       periodic_events_tp_(1, false) {
   auto packets_stats = std::make_shared<PacketsStats>(node_addr);
-  syncing_handler_ =
-      std::make_shared<SyncingHandler>(peers_state_, packets_stats, syncing_state_, pbft_chain, dag_mgr, dag_blk_mgr, node_addr);
+  syncing_handler_ = std::make_shared<SyncingHandler>(peers_state_, packets_stats, syncing_state_, pbft_chain, dag_mgr,
+                                                      dag_blk_mgr, node_addr);
 
   const auto lambda_ms_min = pbft_mgr ? pbft_mgr->getPbftInitialLambda() : 2000;
 

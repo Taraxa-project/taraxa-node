@@ -102,7 +102,6 @@ inline PriorityQueuePacketType mapSubProtocolToPriorityPacketType(SubprotocolPac
   throw std::runtime_error("Unknown packet type: " + std::to_string(packet_type));
 }
 
-
 /**
  * @param packet_type
  * @return string representation of packet_type

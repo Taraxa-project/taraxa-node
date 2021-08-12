@@ -18,7 +18,12 @@ class PacketData {
    */
   static inline PacketPriority getPacketPriority(PriorityQueuePacketType packet_type);
 
-  PacketData(PriorityQueuePacketType type, std::string&& type_str, dev::p2p::NodeID&& from_node_id_, std::vector<unsigned char>&& bytes);
+  PacketData(PriorityQueuePacketType type, std::string&& type_str, dev::p2p::NodeID&& from_node_id_,
+             std::vector<unsigned char>&& bytes);
+  PacketData(const PacketData&) = default;
+  PacketData(PacketData&&) = default;
+  PacketData& operator=(const PacketData&) = default;
+  PacketData& operator=(PacketData&&) = default;
 
  public:
   std::chrono::steady_clock::time_point receive_time_;
