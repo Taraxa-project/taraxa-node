@@ -4,7 +4,7 @@ namespace taraxa::network::tarcap {
 
 TestPacketHandler::TestPacketHandler(std::shared_ptr<PeersState> peers_state,
                                      std::shared_ptr<PacketsStats> packets_stats, const addr_t& node_addr)
-    : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "Test_PH") {}
+    : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "TEST_PH") {}
 
 void TestPacketHandler::process(const PacketData& packet_data, const dev::RLP& packet_rlp) {
   assert(packet_data.type_ == PriorityQueuePacketType::PQ_TestPacket);

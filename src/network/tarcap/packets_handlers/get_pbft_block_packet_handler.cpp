@@ -13,7 +13,7 @@ GetPbftBlockPacketHandler::GetPbftBlockPacketHandler(std::shared_ptr<PeersState>
                                                      std::shared_ptr<PbftChain> pbft_chain,
                                                      std::shared_ptr<DbStorage> db, size_t network_sync_level_size,
                                                      const addr_t &node_addr)
-    : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "DAG_BLOCK_PH"),
+    : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "GET_PBFT_BLOCK_PH"),
       syncing_state_(std::move(syncing_state)),
       pbft_chain_(std::move(pbft_chain)),
       db_(std::move(db)),

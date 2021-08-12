@@ -17,7 +17,7 @@ DagPacketsHandler::DagPacketsHandler(std::shared_ptr<PeersState> peers_state,
                                      std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<DbStorage> db,
                                      std::shared_ptr<TestState> test_state, uint16_t network_min_dag_block_broadcast,
                                      uint16_t network_max_dag_block_broadcast, const addr_t &node_addr)
-    : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "DAG_BLOCK_PH"),
+    : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "DAG_BLOCKS_PH"),
       syncing_state_(std::move(syncing_state)),
       syncing_handler_(std::move(syncing_handler)),
       trx_mgr_(std::move(trx_mgr)),
