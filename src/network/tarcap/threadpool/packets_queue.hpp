@@ -2,7 +2,7 @@
 
 #include <list>
 #include <optional>
-
+#include "network/tarcap/threadpool/packets_blocking_mask.hpp"
 #include "packet_data.hpp"
 
 namespace taraxa::network::tarcap {
@@ -27,7 +27,7 @@ class PacketsQueue {
    *
    * @return std::optional<Task>
    */
-  std::optional<PacketData> pop(uint32_t blocked_packets_types_mask);
+  std::optional<PacketData> pop(const PacketsBlockingMask& packets_blocking_mask);
 
   /**
    * @return false in case queue is empty or there is already MAX_WORKERS_COUNT workers processing packets from

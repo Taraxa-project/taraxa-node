@@ -2,10 +2,10 @@
 
 namespace taraxa::network::tarcap {
 
-PacketsQueue::PacketsQueue(size_t max_workers_count) : MAX_WORKERS_COUNT(max_workers_count), act_workers_count_(0) {}
+PacketsQueue::PacketsQueue(size_t max_workers_count) : packets_(), MAX_WORKERS_COUNT(max_workers_count), act_workers_count_(0) {}
 
 bool PacketsQueue::isProcessingEligible() const {
-  if (packets_.empty() || act_workers_count_.load() >= MAX_WORKERS_COUNT) {
+  if (packets_.empty() || act_workers_count_ >= MAX_WORKERS_COUNT) {
     return false;
   }
 
@@ -14,17 +14,17 @@ bool PacketsQueue::isProcessingEligible() const {
 
 void PacketsQueue::pushBack(PacketData&& packet) { packets_.push_back(std::move(packet)); }
 
-std::optional<PacketData> PacketsQueue::pop(uint32_t blocked_packets_types_mask) {
+std::optional<PacketData> PacketsQueue::pop(const PacketsBlockingMask& packets_blocking_mask) {
   for (auto packet_it = packets_.begin(); packet_it != packets_.end(); ++packet_it) {
     // Packet type is currently blocked for processing
-    if (packet_it->type_ & blocked_packets_types_mask) {
+    if (packets_blocking_mask.isPacketBlocked(*packet_it)) {
       continue;
     }
 
-    auto packet = std::move(*packet_it);
+    std::optional<PacketData> ret = std::move(*packet_it);
     packets_.erase(packet_it);
 
-    return {packet};
+    return ret;
   }
 
   return {};
@@ -33,13 +33,13 @@ std::optional<PacketData> PacketsQueue::pop(uint32_t blocked_packets_types_mask)
 void PacketsQueue::setMaxWorkersCount(size_t max_workers_count) { MAX_WORKERS_COUNT = max_workers_count; }
 
 void PacketsQueue::incrementActWorkersCount() {
-  assert(act_workers_count_.load() < MAX_WORKERS_COUNT);
+  assert(act_workers_count_ < MAX_WORKERS_COUNT);
 
   act_workers_count_++;
 }
 
 void PacketsQueue::decrementActWorkersCount() {
-  assert(act_workers_count_.load() > 0);
+  assert(act_workers_count_ > 0);
 
   act_workers_count_--;
 }

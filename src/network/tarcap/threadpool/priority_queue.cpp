@@ -3,7 +3,7 @@
 namespace taraxa::network::tarcap {
 
 PriorityQueue::PriorityQueue(size_t tp_workers_count, const addr_t& node_addr) :
-    blocked_packets_types_mask_(0),
+    blocked_packets_mask_(),
     MAX_TOTAL_WORKERS_COUNT(tp_workers_count),
     act_total_workers_count_(0) {
   assert(packets_queues_.size() == PacketData::PacketPriority::Count);
@@ -42,7 +42,7 @@ std::optional<PacketData> PriorityQueue::pop() {
   for (auto& queue : packets_queues_) {
     // Queue is not empty and max concurrent workers limit for queue not reached
     if (queue.isProcessingEligible()) {
-      if (auto packet = queue.pop(blocked_packets_types_mask_.load()); packet.has_value()) {
+      if (auto packet = queue.pop(blocked_packets_mask_); packet.has_value()) {
         return packet;
       }
 
@@ -66,16 +66,6 @@ bool PriorityQueue::empty() const {
   return true;
 }
 
-void PriorityQueue::markPacketAsBlocked(PriorityQueuePacketType packet_type) {
-  assert(!(blocked_packets_types_mask_ & packet_type));
-  blocked_packets_types_mask_ |= packet_type;
-}
-
-void PriorityQueue::markPacketAsUnblocked(PriorityQueuePacketType packet_type) {
-  assert(blocked_packets_types_mask_ & packet_type);
-  blocked_packets_types_mask_ ^= packet_type;
-}
-
 void PriorityQueue::updateDependenciesStart(const PacketData& packet) {
   assert(act_total_workers_count_ < MAX_TOTAL_WORKERS_COUNT);
   act_total_workers_count_++;
@@ -92,16 +82,20 @@ void PriorityQueue::updateDependenciesStart(const PacketData& packet) {
   //  _PbftBlockPacket -> process sync pbft blocks synchronously
   if (packet.type_ == PriorityQueuePacketType::PQ_GetBlocksPacket || packet.type_ == PriorityQueuePacketType::PQ_BlocksPacket ||
       packet.type_ == PriorityQueuePacketType::PQ_PbftBlockPacket) {
-    markPacketAsBlocked(packet.type_);
+    blocked_packets_mask_.markPacketAsHardBlocked(packet.type_);
   }
 
-  // TODO: when processing transactionPacket, mark the index (or time it was received) and block processing of all
-  //       dag block packets that were received after that. No need to block processing of dag blocks packets received
-  //       before as it should not be possible to send dag block before sending txs it contains... This way it should be
-  //       fairly efficient
+  // When processing TransactionPacket, processing of all dag block packets that were received after that (from the same peer).
+  // No need to block processing of dag blocks packets received before as it should not be possible to
+  // send dag block before sending txs it contains...
+  // TODO: this could be optimized to block dag blocks processing based on TransactionPacket only if received from the same peer
+  if (packet.type_ == PriorityQueuePacketType::PQ_TransactionPacket) {
+    blocked_packets_mask_.markPacketAsPeerTimeBlocked(packet, PriorityQueuePacketType::PQ_NewBlockPacket);
+    blocked_packets_mask_.markPacketAsPeerTimeBlocked(packet, PriorityQueuePacketType::PQ_NewBlockHashPacket);
+  }
 }
 
-void PriorityQueue::updateDependenciesFinish(const PacketData& packet) {
+void PriorityQueue::updateDependenciesFinish(const PacketData& packet, std::mutex& queue_mutex) {
   assert(act_total_workers_count_ > 0);
   act_total_workers_count_--;
 
@@ -111,7 +105,15 @@ void PriorityQueue::updateDependenciesFinish(const PacketData& packet) {
 
   if (packet.type_ == PriorityQueuePacketType::PQ_GetBlocksPacket || packet.type_ == PriorityQueuePacketType::PQ_BlocksPacket ||
       packet.type_ == PriorityQueuePacketType::PQ_PbftBlockPacket) {
-    markPacketAsUnblocked(packet.type_);
+    blocked_packets_mask_.markPacketAsHardUnblocked(packet.type_);
+  }
+
+  if (packet.type_ == PriorityQueuePacketType::PQ_TransactionPacket) {
+    // Lock queue mutex
+    std::unique_lock<std::mutex> lock(queue_mutex);
+
+    blocked_packets_mask_.markPacketAsPeerTimeUnblocked(packet, PriorityQueuePacketType::PQ_NewBlockPacket);
+    blocked_packets_mask_.markPacketAsPeerTimeUnblocked(packet, PriorityQueuePacketType::PQ_NewBlockHashPacket);
   }
 }
 
