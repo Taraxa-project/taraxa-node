@@ -30,11 +30,11 @@ class DagPacketsHandler : public PacketHandler {
   void onNewBlockVerified(DagBlock const &block);
 
  private:
-  void process(const PacketData &packet_data, const dev::RLP &packet_rlp) override;
+  void process(const dev::RLP& packet_rlp, const PacketData& packet_data, const std::shared_ptr<dev::p2p::Host>& host, const std::shared_ptr<TaraxaPeer>& peer) override;
 
-  inline void processNewBlockPacket(const PacketData &packet_data, const dev::RLP &packet_rlp);
-  inline void processNewBlockHashPacket(const PacketData &packet_data, const dev::RLP &packet_rlp);
-  inline void processGetNewBlockPacket(const PacketData &packet_data, const dev::RLP &packet_rlp);
+  inline void processNewBlockPacket(const dev::RLP &packet_rlp, const PacketData &packet_data, const std::shared_ptr<TaraxaPeer>& peer);
+  inline void processNewBlockHashPacket(const dev::RLP &packet_rlp, const PacketData &packet_data, const std::shared_ptr<TaraxaPeer>& peer);
+  inline void processGetNewBlockPacket(const dev::RLP &packet_rlp, const PacketData &packet_data, const std::shared_ptr<TaraxaPeer>& peer);
 
   std::pair<std::vector<dev::p2p::NodeID>, std::vector<dev::p2p::NodeID>> randomPartitionPeers(
       std::vector<dev::p2p::NodeID> const &_peers, std::size_t _number) const;

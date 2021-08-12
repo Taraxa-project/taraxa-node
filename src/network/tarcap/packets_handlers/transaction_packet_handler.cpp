@@ -18,14 +18,14 @@ TransactionPacketHandler::TransactionPacketHandler(std::shared_ptr<PeersState> p
       test_state_(std::move(test_state)),
       network_transaction_interval_(network_transaction_interval) {}
 
-inline void TransactionPacketHandler::process(const PacketData & /*packet_data*/, const dev::RLP &packet_rlp) {
+inline void TransactionPacketHandler::process(const dev::RLP& packet_rlp, const PacketData& packet_data __attribute__((unused)), const std::shared_ptr<dev::p2p::Host>& host __attribute__((unused)), const std::shared_ptr<TaraxaPeer>& peer) {
   std::string received_transactions;
   std::vector<taraxa::bytes> transactions;
   auto transaction_count = packet_rlp.itemCount();
   for (size_t i_transaction = 0; i_transaction < transaction_count; i_transaction++) {
     Transaction transaction(packet_rlp[i_transaction].data().toBytes());
     received_transactions += transaction.getHash().toString() + " ";
-    tmp_peer_->markTransactionAsKnown(transaction.getHash());
+    peer->markTransactionAsKnown(transaction.getHash());
     transactions.emplace_back(packet_rlp[i_transaction].data().toBytes());
   }
   if (transaction_count > 0) {
@@ -91,7 +91,7 @@ void TransactionPacketHandler::sendTransactions(dev::p2p::NodeID const &peer_id,
   LOG(log_nf_) << "sendTransactions " << transactions.size() << " to " << peer_id;
   RLPStream s(transactions.size());
   taraxa::bytes trx_bytes;
-  for (const auto transaction : transactions) {
+  for (const auto& transaction : transactions) {
     trx_bytes.insert(trx_bytes.end(), std::begin(transaction), std::end(transaction));
   }
   s.appendRaw(trx_bytes, transactions.size());

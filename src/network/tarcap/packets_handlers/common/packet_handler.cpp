@@ -11,44 +11,29 @@ PacketHandler::PacketHandler(std::shared_ptr<PeersState> peers_state, std::share
 }
 
 void PacketHandler::processPacket(const PacketData& packet_data) {
+  std::shared_ptr<dev::p2p::Host> tmp_host{nullptr};
+
   try {
     SinglePacketStats packet_stats{packet_data.from_node_id_, packet_data.rlp_bytes_.size(), false,
                                    std::chrono::microseconds(0), std::chrono::microseconds(0)};
     auto begin = std::chrono::steady_clock::now();
 
-    // TODO: do we even use this ???
-    //  // Delay is used only when we want to simulate some network delay
-    //  uint64_t delay = conf_.network_simulated_delay ? getSimulatedNetworkDelay(_r, _nodeID) : 0;
-
-    // Inits tmp_peer_ and tmp_host_
-    initTmpVariables(packet_data.from_node_id_);
-
-    if (!tmp_host_) {
+    tmp_host = peers_state_->host_.lock();
+    if (!tmp_host) {
       LOG(log_er_) << "Invalid host during packet processing";
       return;
     }
 
-    if (!tmp_peer_ && packet_data.type_ != PriorityQueuePacketType::PQ_StatusPacket) {
-      assert(peers_state_->getPendingPeer(packet_data.from_node_id_) != nullptr);
-
-      LOG(log_er_) << "Peer " << packet_data.from_node_id_.abridged() << " not in peers map. He probably did not send initial status message - will be disconnected.";
-      //tmp_host_->disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
-
-      // Resets tmp_peer_ and tmp_host_
-//      resetTmpVariables();
+    auto tmp_peer = peers_state_->getPeer(packet_data.from_node_id_);
+    if (!tmp_peer && packet_data.type_ != PriorityQueuePacketType::PQ_StatusPacket) {
+      LOG(log_er_) << "Peer " << packet_data.from_node_id_.abridged()
+                   << " not in peers map. He probably did not send initial status message - will be disconnected.";
+      tmp_host->disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
       return;
     }
 
     // Main processing function
-    process(packet_data, dev::RLP(packet_data.rlp_bytes_));
-
-    // TODO: maybe this should be set only when status packet received as now it should not be stuck in synchronous
-    //       queue like before...
-    // Any packet means that we are communicating so let's not disconnect
-    tmp_peer_->setAlive();
-
-    // Resets tmp_peer_ and tmp_host_
-    resetTmpVariables();
+    process(dev::RLP(packet_data.rlp_bytes_), packet_data, tmp_host, tmp_peer);
 
     auto processing_duration =
         std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - begin);
@@ -57,40 +42,21 @@ void PacketHandler::processPacket(const PacketData& packet_data) {
     packet_stats.processing_duration_ = processing_duration;
     packet_stats.tp_wait_duration_ = tp_wait_duration;
 
-    packets_stats_->addReceivedPacket(peers_state_->node_id_, packet_data.type_str_,
-                                      packet_stats);
+    packets_stats_->addReceivedPacket(peers_state_->node_id_, packet_data.type_str_, packet_stats);
 
   } catch (...) {
-    handle_read_exception(packet_data.from_node_id_, packet_data);
-
-    // Resets tmp_peer_ and tmp_host_
-    resetTmpVariables();
+    handle_read_exception(tmp_host, packet_data);
   }
 }
 
-void PacketHandler::initTmpVariables(const dev::p2p::NodeID& from_node_id) {
-  tmp_host_ = peers_state_->host_.lock();
-  if (!tmp_host_) {
-    return;
-  }
-
-  tmp_peer_ = peers_state_->getPeer(from_node_id);
-}
-
-void PacketHandler::resetTmpVariables() {
-  tmp_peer_ = nullptr;
-  tmp_host_ = nullptr;
-}
-
-void PacketHandler::handle_read_exception(const dev::p2p::NodeID& node_id, const PacketData& packet_data) {
+void PacketHandler::handle_read_exception(const std::shared_ptr<dev::p2p::Host>& host, const PacketData& packet_data) {
   try {
     throw;
   } catch (std::exception const& _e) {
-    LOG(log_er_) << "Read exception: " << _e.what() << ". PacketType: " << packet_data.type_str_
-                 << " (" << packet_data.type_ << ")";
+    LOG(log_er_) << "Read exception: " << _e.what() << ". PacketType: " << packet_data.type_str_ << " ("
+                 << packet_data.type_ << ")";
 
-    assert(tmp_host_ != nullptr);
-    tmp_host_->disconnect(node_id, dev::p2p::DisconnectReason::BadProtocol);
+    host->disconnect(packet_data.from_node_id_, dev::p2p::DisconnectReason::BadProtocol);
   }
 }
 

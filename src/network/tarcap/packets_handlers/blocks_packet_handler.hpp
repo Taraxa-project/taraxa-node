@@ -18,7 +18,7 @@ class BlocksPacketHandler : public PacketHandler {
                       std::shared_ptr<DagBlockManager> dag_blk_mgr, const addr_t &node_addr = {});
 
  private:
-  void process(const PacketData &packet_data, const dev::RLP &packet_rlp) override;
+  void process(const dev::RLP& packet_rlp, const PacketData& packet_data, const std::shared_ptr<dev::p2p::Host>& host, const std::shared_ptr<TaraxaPeer>& peer) override;
 
   std::shared_ptr<SyncingState> syncing_state_;
   std::shared_ptr<SyncingHandler> syncing_handler_;

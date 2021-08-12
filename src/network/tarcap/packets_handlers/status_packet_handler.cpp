@@ -27,20 +27,23 @@ StatusPacketHandler::StatusPacketHandler(std::shared_ptr<PeersState> peers_state
       pbft_mgr_(std::move(pbft_mgr)),
       conf_network_id_(conf_network_id) {}
 
-void StatusPacketHandler::process(const PacketData& packet_data, const dev::RLP& packet_rlp) {
+void StatusPacketHandler::process(const dev::RLP& packet_rlp, const PacketData& packet_data, const std::shared_ptr<dev::p2p::Host>& host, const std::shared_ptr<TaraxaPeer>& peer) {
   bool initial_status = packet_rlp.itemCount() == INITIAL_STATUS_PACKET_ITEM_COUNT;
 
+  // Important !!! Use only "selected_peer" and not "peer" in this function as "peer" might be nullptr
+  auto selected_peer = peer;
+
   if (initial_status) {
-    if (!tmp_peer_) {
+    if (!selected_peer) {
       auto pending_peer = peers_state_->getPendingPeer(packet_data.from_node_id_);
       if (!pending_peer) {
         LOG(log_er_) << "Peer " << packet_data.from_node_id_.abridged()
                      << " missing in both peers and pending peers map - will be disconnected.";
-        tmp_host_->disconnect(packet_data.from_node_id_, p2p::UserReason);
+        host->disconnect(packet_data.from_node_id_, p2p::UserReason);
         return;
       }
 
-      tmp_peer_ = pending_peer;
+      selected_peer = std::move(pending_peer);
     }
 
     auto it = packet_rlp.begin();
@@ -62,53 +65,55 @@ void StatusPacketHandler::process(const PacketData& packet_data, const dev::RLP&
                    << ", our node version" << TARAXA_VERSION << ", host " << packet_data.from_node_id_.abridged()
                    << " will be disconnected";
       // TODO: get rid of host_ weak_ptr if possible ???
-      tmp_host_->disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
+      host->disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
       return;
     }
 
     if (peer_network_id != conf_network_id_) {
       LOG(log_er_) << "Incorrect network id " << peer_network_id << ", host " << packet_data.from_node_id_.abridged()
                    << " will be disconnected";
-      tmp_host_->disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
+      host->disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
       return;
     }
 
     if (genesis_hash != dag_mgr_->get_genesis()) {
       LOG(log_er_) << "Incorrect genesis hash " << genesis_hash << ", host " << packet_data.from_node_id_.abridged()
                    << " will be disconnected";
-      tmp_host_->disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
+      host->disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
       return;
     }
 
-    tmp_peer_->dag_level_ = peer_dag_level;
-    tmp_peer_->pbft_chain_size_ = peer_pbft_chain_size;
-    tmp_peer_->syncing_ = peer_syncing;
-    tmp_peer_->pbft_round_ = peer_pbft_round;
-    tmp_peer_->pbft_previous_round_next_votes_size_ = peer_pbft_previous_round_next_votes_size;
+    selected_peer->dag_level_ = peer_dag_level;
+    selected_peer->pbft_chain_size_ = peer_pbft_chain_size;
+    selected_peer->syncing_ = peer_syncing;
+    selected_peer->pbft_round_ = peer_pbft_round;
+    selected_peer->pbft_previous_round_next_votes_size_ = peer_pbft_previous_round_next_votes_size;
 
-    peers_state_->setPeerAsReadyToSendMessages(packet_data.from_node_id_, tmp_peer_);
+    peers_state_->setPeerAsReadyToSendMessages(packet_data.from_node_id_, selected_peer);
 
     LOG(log_dg_) << "Received initial status message from " << packet_data.from_node_id_ << ", network id "
-                 << peer_network_id << ", peer DAG max level " << tmp_peer_->dag_level_ << ", genesis " << genesis_hash
-                 << ", peer pbft chain size " << tmp_peer_->pbft_chain_size_ << ", peer syncing " << std::boolalpha
-                 << tmp_peer_->syncing_ << ", peer pbft round " << tmp_peer_->pbft_round_
-                 << ", peer pbft previous round next votes size " << tmp_peer_->pbft_previous_round_next_votes_size_
+                 << peer_network_id << ", peer DAG max level " << selected_peer->dag_level_ << ", genesis " << genesis_hash
+                 << ", peer pbft chain size " << selected_peer->pbft_chain_size_ << ", peer syncing " << std::boolalpha
+                 << selected_peer->syncing_ << ", peer pbft round " << selected_peer->pbft_round_
+                 << ", peer pbft previous round next votes size " << selected_peer->pbft_previous_round_next_votes_size_
                  << ", node major version" << node_major_version << ", node minor version" << node_minor_version;
 
   } else {
     auto it = packet_rlp.begin();
-    tmp_peer_->dag_level_ = (*it++).toPositiveInt64();
-    tmp_peer_->pbft_chain_size_ = (*it++).toPositiveInt64();
-    tmp_peer_->syncing_ = (*it++).toInt();
-    tmp_peer_->pbft_round_ = (*it++).toPositiveInt64();
-    tmp_peer_->pbft_previous_round_next_votes_size_ = (*it++).toInt<unsigned>();
+    selected_peer->dag_level_ = (*it++).toPositiveInt64();
+    selected_peer->pbft_chain_size_ = (*it++).toPositiveInt64();
+    selected_peer->syncing_ = (*it++).toInt();
+    selected_peer->pbft_round_ = (*it++).toPositiveInt64();
+    selected_peer->pbft_previous_round_next_votes_size_ = (*it++).toInt<unsigned>();
 
     LOG(log_dg_) << "Received status message from " << packet_data.from_node_id_ << ", peer DAG max level "
-                 << tmp_peer_->dag_level_ << ", peer pbft chain size " << tmp_peer_->pbft_chain_size_
-                 << ", peer syncing " << std::boolalpha << tmp_peer_->syncing_ << ", peer pbft round "
-                 << tmp_peer_->pbft_round_ << ", peer pbft previous round next votes size "
-                 << tmp_peer_->pbft_previous_round_next_votes_size_;
+                 << selected_peer->dag_level_ << ", peer pbft chain size " << selected_peer->pbft_chain_size_
+                 << ", peer syncing " << std::boolalpha << selected_peer->syncing_ << ", peer pbft round "
+                 << selected_peer->pbft_round_ << ", peer pbft previous round next votes size "
+                 << selected_peer->pbft_previous_round_next_votes_size_;
   }
+
+  selected_peer->setAlive();
 
   // TODO: do we keep syncing specific channels ?
   /*
@@ -132,10 +137,10 @@ void StatusPacketHandler::process(const PacketData& packet_data, const dev::RLP&
   // status.  We also have nothing to punish a node failing to send
   // sync info.
   auto pbft_synced_period = pbft_chain_->pbftSyncingPeriod();
-  if (pbft_synced_period + 1 < tmp_peer_->pbft_chain_size_) {
+  if (pbft_synced_period + 1 < selected_peer->pbft_chain_size_) {
     LOG(log_nf_) << "Restart PBFT chain syncing. Own synced PBFT at period " << pbft_synced_period
-                 << ", peer PBFT chain size " << tmp_peer_->pbft_chain_size_;
-    if (pbft_synced_period + 5 < tmp_peer_->pbft_chain_size_) {
+                 << ", peer PBFT chain size " << selected_peer->pbft_chain_size_;
+    if (pbft_synced_period + 5 < selected_peer->pbft_chain_size_) {
       syncing_handler_->restartSyncingPbft(true);
     } else {
       syncing_handler_->restartSyncingPbft(false);
@@ -144,9 +149,9 @@ void StatusPacketHandler::process(const PacketData& packet_data, const dev::RLP&
 
   auto pbft_current_round = pbft_mgr_->getPbftRound();
   auto pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesSize();
-  if (pbft_current_round < tmp_peer_->pbft_round_ ||
-      (pbft_current_round == tmp_peer_->pbft_round_ &&
-       pbft_previous_round_next_votes_size < tmp_peer_->pbft_previous_round_next_votes_size_)) {
+  if (pbft_current_round < selected_peer->pbft_round_ ||
+      (pbft_current_round == selected_peer->pbft_round_ &&
+       pbft_previous_round_next_votes_size < selected_peer->pbft_previous_round_next_votes_size_)) {
     syncing_handler_->syncPbftNextVotes(pbft_current_round, pbft_previous_round_next_votes_size);
   }
 }

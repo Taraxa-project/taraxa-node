@@ -16,19 +16,19 @@ BlocksPacketHandler::BlocksPacketHandler(std::shared_ptr<PeersState> peers_state
       syncing_handler_(std::move(syncing_handler)),
       dag_blk_mgr_(std::move(dag_blk_mgr)) {}
 
-void BlocksPacketHandler::process(const PacketData &packet_data, const dev::RLP &packet_rlp) {
+void BlocksPacketHandler::process(const dev::RLP& packet_rlp, const PacketData& packet_data, const std::shared_ptr<dev::p2p::Host>& host __attribute__((unused)), const std::shared_ptr<TaraxaPeer>& peer) {
   std::string received_dag_blocks_str;
   auto it = packet_rlp.begin();
   const bool is_final_sync_packet = (*it++).toInt<unsigned>();
 
   for (; it != packet_rlp.end();) {
     DagBlock block(*it++);
-    tmp_peer_->markBlockAsKnown(block.getHash());
+    peer->markBlockAsKnown(block.getHash());
 
     std::vector<Transaction> new_transactions;
     for (size_t i = 0; i < block.getTrxs().size(); i++) {
       Transaction transaction(*it++);
-      tmp_peer_->markTransactionAsKnown(transaction.getHash());
+      peer->markTransactionAsKnown(transaction.getHash());
       new_transactions.push_back(std::move(transaction));
     }
 
@@ -45,7 +45,7 @@ void BlocksPacketHandler::process(const PacketData &packet_data, const dev::RLP 
 
     LOG(log_dg_) << "Storing block " << block.getHash().toString() << " with " << new_transactions.size()
                  << " transactions";
-    if (block.getLevel() > tmp_peer_->dag_level_) tmp_peer_->dag_level_ = block.getLevel();
+    if (block.getLevel() > peer->dag_level_) peer->dag_level_ = block.getLevel();
     dag_blk_mgr_->insertBroadcastedBlockWithTransactions(block, new_transactions);
   }
 
