@@ -23,6 +23,7 @@
 
 #include "common/types.hpp"
 #include "consensus/pbft_chain.hpp"
+#include "dag/dag_block_manager.hpp"
 #include "dag_block.hpp"
 #include "storage/db_storage.hpp"
 #include "transaction_manager/transaction_manager.hpp"
@@ -120,14 +121,14 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   using sharedLock = boost::shared_lock<boost::shared_mutex>;
 
   explicit DagManager(blk_hash_t const &genesis, addr_t node_addr, std::shared_ptr<TransactionManager> trx_mgr,
-                      std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DbStorage> db);
+                      std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DagBlockManager> dag_blk_mgr,
+                      std::shared_ptr<DbStorage> db);
   virtual ~DagManager() = default;
   std::shared_ptr<DagManager> getShared();
   void stop();
 
   blk_hash_t const &get_genesis() { return genesis_; }
 
-  bool pivotAndTipsAvailable(DagBlock const &blk);
   void addDagBlock(DagBlock const &blk, bool finalized = false,
                    bool save = true);  // insert to buffer if fail
 
@@ -191,6 +192,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::shared_ptr<Dag> total_dag_;         // contains both pivot and tips
   std::shared_ptr<TransactionManager> trx_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
+  std::shared_ptr<DagBlockManager> dag_blk_mgr_;
   std::shared_ptr<DbStorage> db_;
   blk_hash_t anchor_;      // anchor of the last period
   blk_hash_t old_anchor_;  // anchor of the second to last period

@@ -423,7 +423,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       LOG(log_dg_dag_prp_) << "Received GetNewBlockPacket" << hash.toString();
 
       if (dag_blk_mgr_) {
-        auto block = db_->getDagBlock(hash);
+        auto block = dag_blk_mgr_->getDagBlock(hash);
         if (block) {
           sendBlock(_nodeID, *block);
         } else
@@ -454,7 +454,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
           auto hash = block;
           if (mode == MissingHashes) {
             if (blocks_hashes.count(hash) == 1) {
-              if (auto blk = db_->getDagBlock(hash); blk) {
+              if (auto blk = dag_blk_mgr_->getDagBlock(hash); blk) {
                 dag_blocks.emplace_back(blk);
               } else {
                 LOG(log_er_dag_sync_) << "NonFinalizedBlock " << hash << " not in DB";
@@ -463,7 +463,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
             }
           } else if (mode == KnownHashes) {
             if (blocks_hashes.count(hash) == 0) {
-              if (auto blk = db_->getDagBlock(hash); blk) {
+              if (auto blk = dag_blk_mgr_->getDagBlock(hash); blk) {
                 dag_blocks.emplace_back(blk);
               } else {
                 LOG(log_er_dag_sync_) << "NonFinalizedBlock " << hash << " not in DB";

@@ -1541,7 +1541,7 @@ void PbftManager::finalize_(PbftBlock const &pbft_block, vector<h256> finalized_
       },
       [this, anchor_hash = pbft_block.getPivotDagBlockHash()](auto const &, auto &batch) {
         // Update proposal period DAG levels map
-        auto anchor = db_->getDagBlock(anchor_hash);
+        auto anchor = dag_blk_mgr_->getDagBlock(anchor_hash);
         if (!anchor) {
           LOG(log_er_) << "DB corrupted - Cannot find anchor block: " << anchor_hash << " in DB.";
           assert(false);

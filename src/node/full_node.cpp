@@ -93,9 +93,9 @@ void FullNode::init() {
 
   emplace(pbft_chain_, genesis_hash, node_addr, db_);
   emplace(next_votes_mgr_, node_addr, db_);
-  emplace(dag_mgr_, genesis_hash, node_addr, trx_mgr_, pbft_chain_, db_);
   emplace(dag_blk_mgr_, node_addr, conf_.chain.vdf, conf_.chain.final_chain.state.dpos, 4 /* verifer thread*/, db_,
           trx_mgr_, final_chain_, pbft_chain_, log_time_, conf_.test_params.max_block_queue_warn);
+  emplace(dag_mgr_, genesis_hash, node_addr, trx_mgr_, pbft_chain_, dag_blk_mgr_, db_);
   emplace(vote_mgr_, node_addr, db_, final_chain_, pbft_chain_);
   emplace(trx_order_mgr_, node_addr, db_);
   emplace(pbft_mgr_, conf_.chain.pbft, genesis_hash, node_addr, db_, pbft_chain_, vote_mgr_, next_votes_mgr_, dag_mgr_,
@@ -220,7 +220,7 @@ void FullNode::start() {
         received_blocks_++;
       }
 
-      if (dag_mgr_->pivotAndTipsAvailable(blk)) {
+      if (dag_blk_mgr_->pivotAndTipsAvailable(blk)) {
         dag_mgr_->addDagBlock(blk);
         if (jsonrpc_ws_) {
           jsonrpc_ws_->newDagBlock(blk);
