@@ -21,17 +21,8 @@ class PbftBlockPacketHandler : public PacketHandler {
 
   void sendSyncedMessage();
 
-  //  /**
-  //   * @brief This method only calls syncing_handler_->restartSyncingPbft(). It is exposed through
-  //   PbftBlockPacketHandler
-  //   *        for classes that do not have access to SyncingHandler, e.g. TaraxaCapability
-  //   *
-  //   * @param force
-  //   */
-  //  void restartSyncingPbft(bool force);
-
  private:
-  void process(const PacketData &packet_data, const dev::RLP &packet_rlp) override;
+  void process(const dev::RLP& packet_rlp, const PacketData& packet_data, const std::shared_ptr<dev::p2p::Host>& host, const std::shared_ptr<TaraxaPeer>& peer) override;
 
   std::shared_ptr<SyncingState> syncing_state_;
   std::shared_ptr<SyncingHandler> syncing_handler_;

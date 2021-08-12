@@ -12,16 +12,16 @@ NewPbftBlockPacketHandler::NewPbftBlockPacketHandler(std::shared_ptr<PeersState>
     : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "NEW_PBFT_BLOCK_PH"),
       pbft_chain_(std::move(pbft_chain)) {}
 
-void NewPbftBlockPacketHandler::process(const PacketData & /*packet_data*/, const dev::RLP &packet_rlp) {
+void NewPbftBlockPacketHandler::process(const dev::RLP &packet_rlp, const PacketData & packet_data __attribute__((unused)), const std::shared_ptr<dev::p2p::Host>& host __attribute__((unused)), const std::shared_ptr<TaraxaPeer>& peer) {
   LOG(log_dg_) << "In NewPbftBlockPacket";
 
   auto pbft_block = std::make_shared<PbftBlock>(packet_rlp[0]);
   const uint64_t peer_pbft_chain_size = packet_rlp[1].toInt();
   LOG(log_dg_) << "Receive proposed PBFT Block " << pbft_block << ", Peer PBFT Chain size: " << peer_pbft_chain_size;
 
-  tmp_peer_->markPbftBlockAsKnown(pbft_block->getBlockHash());
-  if (peer_pbft_chain_size > tmp_peer_->pbft_chain_size_) {
-    tmp_peer_->pbft_chain_size_ = peer_pbft_chain_size;
+  peer->markPbftBlockAsKnown(pbft_block->getBlockHash());
+  if (peer_pbft_chain_size > peer->pbft_chain_size_) {
+    peer->pbft_chain_size_ = peer_pbft_chain_size;
   }
 
   const auto pbft_synced_period = pbft_chain_->pbftSyncingPeriod();

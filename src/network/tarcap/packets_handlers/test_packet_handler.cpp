@@ -6,7 +6,7 @@ TestPacketHandler::TestPacketHandler(std::shared_ptr<PeersState> peers_state,
                                      std::shared_ptr<PacketsStats> packets_stats, const addr_t& node_addr)
     : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "TEST_PH") {}
 
-void TestPacketHandler::process(const PacketData& packet_data, const dev::RLP& packet_rlp) {
+void TestPacketHandler::process(const dev::RLP& packet_rlp, const PacketData& packet_data, const std::shared_ptr<dev::p2p::Host>& host __attribute__((unused)), const std::shared_ptr<TaraxaPeer>& peer __attribute__((unused))) {
   assert(packet_data.type_ == PriorityQueuePacketType::PQ_TestPacket);
 
   std::scoped_lock lock(mutex_);

@@ -17,7 +17,7 @@ class TestPacketHandler : public PacketHandler {
   std::pair<size_t, uint64_t> retrieveTestData(const dev::p2p::NodeID& node_id);
 
  private:
-  void process(const PacketData& packet_data, const dev::RLP& packet_rlp) override;
+  void process(const dev::RLP& packet_rlp, const PacketData& packet_data, const std::shared_ptr<dev::p2p::Host>& host, const std::shared_ptr<TaraxaPeer>& peer) override;
 
   std::shared_mutex mutex_;
   std::unordered_map<dev::p2p::NodeID, int> cnt_received_messages_;

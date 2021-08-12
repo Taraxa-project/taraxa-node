@@ -28,19 +28,19 @@ DagPacketsHandler::DagPacketsHandler(std::shared_ptr<PeersState> peers_state,
       network_min_dag_block_broadcast_(network_min_dag_block_broadcast),
       network_max_dag_block_broadcast_(network_max_dag_block_broadcast) {}
 
-void DagPacketsHandler::process(const PacketData &packet_data, const dev::RLP &packet_rlp) {
+void DagPacketsHandler::process(const dev::RLP& packet_rlp, const PacketData& packet_data, const std::shared_ptr<dev::p2p::Host>& host __attribute__((unused)), const std::shared_ptr<TaraxaPeer>& peer) {
   if (packet_data.type_ == PriorityQueuePacketType::PQ_NewBlockPacket) {
-    processNewBlockPacket(packet_data, packet_rlp);
+    processNewBlockPacket(packet_rlp, packet_data, peer);
   } else if (packet_data.type_ == PriorityQueuePacketType::PQ_NewBlockHashPacket) {
-    processNewBlockHashPacket(packet_data, packet_rlp);
+    processNewBlockHashPacket(packet_rlp, packet_data,peer);
   } else if (packet_data.type_ == PriorityQueuePacketType::PQ_GetNewBlockPacket) {
-    processGetNewBlockPacket(packet_data, packet_rlp);
+    processGetNewBlockPacket(packet_rlp, packet_data, peer);
   } else {
     assert(false);
   }
 }
 
-inline void DagPacketsHandler::processNewBlockPacket(const PacketData &packet_data, const dev::RLP &packet_rlp) {
+inline void DagPacketsHandler::processNewBlockPacket(const dev::RLP &packet_rlp, const PacketData &packet_data, const std::shared_ptr<TaraxaPeer>& peer) {
   // Ignore new block packets when syncing
   if (syncing_state_->is_syncing()) return;
 
@@ -67,16 +67,16 @@ inline void DagPacketsHandler::processNewBlockPacket(const PacketData &packet_da
   std::vector<Transaction> new_transactions;
   for (size_t i_transaction = 1; i_transaction < transactions_count + 1; i_transaction++) {
     Transaction transaction(packet_rlp[i_transaction].data().toBytes());
-    tmp_peer_->markTransactionAsKnown(transaction.getHash());
+    peer->markTransactionAsKnown(transaction.getHash());
     new_transactions.push_back(std::move(transaction));
   }
 
-  tmp_peer_->markBlockAsKnown(hash);
-  if (block.getLevel() > tmp_peer_->dag_level_) tmp_peer_->dag_level_ = block.getLevel();
+  peer->markBlockAsKnown(hash);
+  if (block.getLevel() > peer->dag_level_) peer->dag_level_ = block.getLevel();
   onNewBlockReceived(block, new_transactions);
 }
 
-inline void DagPacketsHandler::processNewBlockHashPacket(const PacketData &packet_data, const dev::RLP &packet_rlp) {
+inline void DagPacketsHandler::processNewBlockHashPacket(const dev::RLP &packet_rlp, const PacketData &packet_data, const std::shared_ptr<TaraxaPeer>& peer) {
   blk_hash_t const hash(packet_rlp[0]);
   LOG(log_dg_) << "Received NewBlockHashPacket " << hash.toString();
 
@@ -90,10 +90,10 @@ inline void DagPacketsHandler::processNewBlockHashPacket(const PacketData &packe
     block_requestes_set_.insert(hash);
     requestBlock(packet_data.from_node_id_, hash);
   }
-  tmp_peer_->markBlockAsKnown(hash);
+  peer->markBlockAsKnown(hash);
 }
 
-inline void DagPacketsHandler::processGetNewBlockPacket(const PacketData &packet_data, const dev::RLP &packet_rlp) {
+inline void DagPacketsHandler::processGetNewBlockPacket(const dev::RLP &packet_rlp, const PacketData &packet_data, const std::shared_ptr<TaraxaPeer>& peer) {
   blk_hash_t const hash(packet_rlp[0]);
   LOG(log_dg_) << "Received GetNewBlockPacket" << hash.toString();
 
@@ -106,7 +106,7 @@ inline void DagPacketsHandler::processGetNewBlockPacket(const PacketData &packet
   } else if (test_state_->test_blocks_.find(hash) != test_state_->test_blocks_.end()) {
     sendBlock(packet_data.from_node_id_, test_state_->test_blocks_[hash]);
   }
-  tmp_peer_->markBlockAsKnown(hash);
+  peer->markBlockAsKnown(hash);
 }
 
 void DagPacketsHandler::requestBlock(dev::p2p::NodeID const &peer_id, blk_hash_t hash) {

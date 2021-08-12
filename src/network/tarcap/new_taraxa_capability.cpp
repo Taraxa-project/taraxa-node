@@ -192,6 +192,7 @@ void TaraxaCapability::interpretCapabilityPacket(weak_ptr<Session> session, unsi
 
   // Drop any packet (except StatusPacket) that comes before the connection between nodes is initialized by sending
   // and received initial status packet
+  // TODO: this logic is duplicated in PacketHandler::processPacket function...
   auto host = peers_state_->host_.lock();
   if (!host) {
     LOG(log_er_) << "Unable to process packet, host == nullptr";
