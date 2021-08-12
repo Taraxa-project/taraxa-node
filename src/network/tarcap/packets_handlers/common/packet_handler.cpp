@@ -23,13 +23,19 @@ void PacketHandler::processPacket(const PacketData& packet_data) {
     // Inits tmp_peer_ and tmp_host_
     initTmpVariables(packet_data.from_node_id_);
 
-    if (!tmp_peer_) {
-      LOG(log_er_) << "Invalid peer during packet processing";
+    if (!tmp_host_) {
+      LOG(log_er_) << "Invalid host during packet processing";
       return;
     }
 
-    if (!tmp_host_) {
-      LOG(log_er_) << "Invalid host during packet processing";
+    if (!tmp_peer_ && packet_data.type_ != PriorityQueuePacketType::PQ_StatusPacket) {
+      assert(peers_state_->getPendingPeer(packet_data.from_node_id_) != nullptr);
+
+      LOG(log_er_) << "Peer " << packet_data.from_node_id_.abridged() << " not in peers map. He probably did not send initial status message - will be disconnected.";
+      //tmp_host_->disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
+
+      // Resets tmp_peer_ and tmp_host_
+//      resetTmpVariables();
       return;
     }
 
@@ -41,6 +47,9 @@ void PacketHandler::processPacket(const PacketData& packet_data) {
     // Any packet means that we are communicating so let's not disconnect
     tmp_peer_->setAlive();
 
+    // Resets tmp_peer_ and tmp_host_
+    resetTmpVariables();
+
     auto processing_duration =
         std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - begin);
     auto tp_wait_duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() -
@@ -51,8 +60,6 @@ void PacketHandler::processPacket(const PacketData& packet_data) {
     packets_stats_->addReceivedPacket(peers_state_->node_id_, packet_data.type_str_,
                                       packet_stats);
 
-    // Resets tmp_peer_ and tmp_host_
-    resetTmpVariables();
   } catch (...) {
     handle_read_exception(packet_data.from_node_id_, packet_data);
 
@@ -62,8 +69,12 @@ void PacketHandler::processPacket(const PacketData& packet_data) {
 }
 
 void PacketHandler::initTmpVariables(const dev::p2p::NodeID& from_node_id) {
-  tmp_peer_ = peers_state_->getPeer(from_node_id);
   tmp_host_ = peers_state_->host_.lock();
+  if (!tmp_host_) {
+    return;
+  }
+
+  tmp_peer_ = peers_state_->getPeer(from_node_id);
 }
 
 void PacketHandler::resetTmpVariables() {

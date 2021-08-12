@@ -10,7 +10,7 @@ VotePacketsHandler::VotePacketsHandler(std::shared_ptr<PeersState> peers_state,
                                        std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<VoteManager> vote_mgr,
                                        std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr,
                                        std::shared_ptr<DbStorage> db, const addr_t &node_addr)
-    : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "VOTE_PH"),
+    : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "VOTES_PH"),
       pbft_mgr_(std::move(pbft_mgr)),
       vote_mgr_(std::move(vote_mgr)),
       next_votes_mgr_(std::move(next_votes_mgr)),
