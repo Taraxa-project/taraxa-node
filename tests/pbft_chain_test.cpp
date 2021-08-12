@@ -50,7 +50,10 @@ TEST_F(PbftChainTest, pbft_db_test) {
   // put into pbft chain and store into DB
   auto batch = db->createWriteBatch();
   // Add PBFT block in DB
-  db->addPbftBlockToBatch(pbft_block, batch);
+  std::vector<Vote> vVotes;
+  std::vector<DagBlock> vDagBlocks;
+  std::vector<Transaction> vTrxs;
+  db->savePeriodData(pbft_block.getPeriod(), pbft_block, vVotes, vDagBlocks, vTrxs, batch);
   // Update PBFT chain
   pbft_chain->updatePbftChain(pbft_block.getBlockHash());
   // Update PBFT chain head block
@@ -114,7 +117,11 @@ TEST_F(PbftChainTest, block_broadcast) {
   auto db1 = node1->getDB();
   auto batch = db1->createWriteBatch();
   // Add PBFT block in DB
-  db1->addPbftBlockToBatch(*pbft_block, batch);
+  std::vector<Vote> vVotes;
+  std::vector<DagBlock> vDagBlocks;
+  std::vector<Transaction> vTrxs;
+  db1->savePeriodData(pbft_block->getPeriod(), *pbft_block, vVotes, vDagBlocks, vTrxs, batch);
+
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block->getBlockHash());
   // Update PBFT chain head block
@@ -152,7 +159,8 @@ TEST_F(PbftChainTest, block_broadcast) {
   auto db2 = node2->getDB();
   batch = db2->createWriteBatch();
   // Add PBFT block in DB
-  db2->addPbftBlockToBatch(*pbft_block, batch);
+  db2->savePeriodData(pbft_block->getPeriod(), *pbft_block, vVotes, vDagBlocks, vTrxs, batch);
+
   // Update PBFT chain
   pbft_chain2->updatePbftChain(pbft_block->getBlockHash());
   // Update PBFT chain head block
@@ -171,7 +179,8 @@ TEST_F(PbftChainTest, block_broadcast) {
   auto db3 = node3->getDB();
   batch = db3->createWriteBatch();
   // Add PBFT block in DB
-  db3->addPbftBlockToBatch(*pbft_block, batch);
+  db3->savePeriodData(pbft_block->getPeriod(), *pbft_block, vVotes, vDagBlocks, vTrxs, batch);
+
   // Update PBFT chain
   pbft_chain3->updatePbftChain(pbft_block->getBlockHash());
   // Update PBFT chain head block

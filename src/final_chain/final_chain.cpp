@@ -1,6 +1,7 @@
 #include "final_chain.hpp"
 
 #include "common/constants.hpp"
+#include "consensus/vote.hpp"
 #include "replay_protection_service.hpp"
 #include "trie_common.hpp"
 #include "util/thread_pool.hpp"
@@ -75,43 +76,40 @@ class FinalChainImpl final : public FinalChain {
     }
   }
 
-  future<shared_ptr<FinalizationResult const>> finalize(NewBlock new_blk,
+  future<shared_ptr<FinalizationResult const>> finalize(NewBlock new_blk, uint64_t period,
                                                         finalize_precommit_ext precommit_ext = {}) override {
     auto p = make_shared<promise<shared_ptr<FinalizationResult const>>>();
-    executor_([this, new_blk = move(new_blk), precommit_ext = move(precommit_ext), p]() mutable {
-      p->set_value(finalize_(move(new_blk), precommit_ext));
+    executor_([this, new_blk = move(new_blk), period, precommit_ext = move(precommit_ext), p]() mutable {
+      p->set_value(finalize_(move(new_blk), period, precommit_ext));
     });
     return p->get_future();
   }
 
-  shared_ptr<FinalizationResult> finalize_(NewBlock new_blk, finalize_precommit_ext const& precommit_ext) {
+  shared_ptr<FinalizationResult> finalize_(NewBlock new_blk, uint64_t period,
+                                           finalize_precommit_ext const& precommit_ext) {
     auto batch = db_->createWriteBatch();
     Transactions to_execute;
     {
       // This artificial scope will make sure we clean up the big chunk of memory allocated for this batch-processing
       // stuff as soon as possible
-      DB::MultiGetQuery db_query(db_, 2 * transaction_count_hint_ + new_blk.dag_blk_hashes.size());
-      auto dag_blks_raw = db_query.append(DB::Columns::dag_blocks, new_blk.dag_blk_hashes, false).execute();
-      unordered_set<h256> unique_trxs;
-      unique_trxs.reserve(transaction_count_hint_);
-      for (auto const& dag_blk_raw : dag_blks_raw) {
-        for (auto const& trx_h : DagBlock::extract_transactions_from_rlp(RLP(dag_blk_raw))) {
-          if (!unique_trxs.insert(trx_h).second) {
-            continue;
-          }
-          db_query.append(DB::Columns::final_chain_transaction_location_by_hash, trx_h);
-          db_query.append(DB::Columns::transactions, trx_h);
-        }
+      auto period_raw = db_->getPeriodDataRaw(period);
+      RLP period_rlp(period_raw);
+      std::vector<Vote> vVotes;
+      std::vector<DagBlock> vDagBlocks;
+      std::vector<Transaction> vTrxs;
+      db_->parsePeriodData(period_rlp, vVotes, vDagBlocks, vTrxs);
+      DB::MultiGetQuery db_query(db_, transaction_count_hint_);
+      for (auto const& trx : vTrxs) {
+        db_query.append(DB::Columns::final_chain_transaction_location_by_hash, trx.getHash());
       }
       auto trx_db_results = db_query.execute(false);
-      to_execute.reserve(unique_trxs.size());
-      for (uint i = 0; i < unique_trxs.size(); ++i) {
-        if (auto has_been_executed = !trx_db_results[0 + i * 2].empty(); has_been_executed) {
+      to_execute.reserve(vTrxs.size());
+      for (uint i = 0; i < vTrxs.size(); ++i) {
+        if (auto has_been_executed = !trx_db_results[i].empty(); has_been_executed) {
           continue;
         }
         // Non-executed trxs
-        auto const& trx = to_execute.emplace_back(vector_ref<string::value_type>(trx_db_results[1 + i * 2]).toBytes(),
-                                                  false, h256(db_query.get_key(1 + i * 2)), true, true);
+        auto const& trx = to_execute.emplace_back(vTrxs[i]);
         if (replay_protection_service_ && replay_protection_service_->is_nonce_stale(trx.getSender(), trx.getNonce())) {
           to_execute.pop_back();
         }

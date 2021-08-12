@@ -30,7 +30,8 @@ class FinalChain {
   virtual ~FinalChain() = default;
 
   using finalize_precommit_ext = std::function<void(FinalizationResult const&, DB::Batch&)>;
-  virtual future<shared_ptr<FinalizationResult const>> finalize(NewBlock new_blk, finalize_precommit_ext = {}) = 0;
+  virtual future<shared_ptr<FinalizationResult const>> finalize(NewBlock new_blk, uint64_t period,
+                                                                finalize_precommit_ext = {}) = 0;
 
   virtual shared_ptr<BlockHeader const> block_header(optional<EthBlockNumber> n = {}) const = 0;
   virtual EthBlockNumber last_block_number() const = 0;

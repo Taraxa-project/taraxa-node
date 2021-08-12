@@ -5,6 +5,7 @@
 
 #include "common/constants.hpp"
 #include "config/chain_config.hpp"
+#include "consensus/vote.hpp"
 #include "final_chain/trie_common.hpp"
 #include "util_test/gtest.hpp"
 
@@ -39,19 +40,29 @@ struct FinalChainTest : WithDataDir {
     SUT = nullptr;
     SUT = NewFinalChain(db, cfg);
     vector<h256> trx_hashes;
+    int pos = 0;
     for (auto const& trx : trxs) {
-      db->saveTransaction(trx);
+      db->saveTransactionStatus(trx.getHash(), TransactionStatus(TransactionStatusEnum::executed, 1, pos++));
       trx_hashes.emplace_back(trx.getHash());
     }
     DagBlock dag_blk({}, {}, {}, trx_hashes, {}, secret_t::random());
     db->saveDagBlock(dag_blk);
+    PbftBlock pbft_block(blk_hash_t(), blk_hash_t(), 1, addr_t(1), KeyPair::create().secret());
+    std::vector<Vote> vVotes;
+    std::vector<DagBlock> vDagBlocks;
+    vDagBlocks.push_back(dag_blk);
+
+    auto batch = db->createWriteBatch();
+    db->savePeriodData(1, pbft_block, vVotes, vDagBlocks, trxs, batch);
+
+    db->commitWriteBatch(batch);
     NewBlock new_blk{
         addr_t::random(),
         uint64_t(chrono::high_resolution_clock::now().time_since_epoch().count()),
         {dag_blk.getHash()},
         h256::random(),
     };
-    auto result = SUT->finalize(new_blk).get();
+    auto result = SUT->finalize(new_blk, 1).get();
     ++expected_blk_num;
     auto const& blk_h = *result->final_chain_blk;
     EXPECT_EQ(util::rlp_enc(blk_h), util::rlp_enc(*SUT->block_header(blk_h.number)));

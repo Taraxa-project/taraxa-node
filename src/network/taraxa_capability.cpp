@@ -745,51 +745,70 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         break;
       }
 
-      auto pbft_blk_count = _r.itemCount();
-      LOG(log_dg_pbft_sync_) << "PbftBlockPacket received, num of pbft blocks to be processed: " << pbft_blk_count;
+      auto itemCount = _r.itemCount();
+      LOG(log_dg_pbft_sync_) << "PbftBlockPacket received";
 
-      auto pbft_sync_period = pbft_chain_->pbftSyncingPeriod();
-      for (auto const pbft_blk_tuple : _r) {
-        dev::RLP dag_blocks_rlp = pbft_blk_tuple[0];
-        string received_dag_blocks_str;
-        map<uint64_t, map<blk_hash_t, pair<DagBlock, vector<Transaction>>>> dag_blocks_per_level;
-        for (auto const dag_blk_struct : dag_blocks_rlp) {
-          DagBlock dag_blk(dag_blk_struct[0]);
-          auto const &dag_blk_h = dag_blk.getHash();
-          peer->markBlockAsKnown(dag_blk_h);
-          std::vector<Transaction> new_transactions;
-          for (auto const trx_raw : dag_blk_struct[1]) {
-            auto &trx = new_transactions.emplace_back(trx_raw);
+      if (itemCount > 0) {
+        auto pbft_sync_period = pbft_chain_->pbftSyncingPeriod();
+
+        auto it = _r.begin();
+        bool last_block = (*it++).toInt<bool>();
+        it = (*it).begin();
+        if ((*it).isNull()) {
+          // Partial packet containing only transactions
+          it++;  // Skip pbft
+          it++;  // Skip cert votes
+          it++;  // Skip dag blocks
+          for (auto const &trx_rlp : *it) {
+            peer->sync_transactions_.emplace_back(Transaction(trx_rlp));
+          }
+        } else {
+          string received_dag_blocks_str;
+          PbftBlock pbft_block(*it++);
+          std::vector<Vote> votes;
+          for (auto const &vote_rlp : *it++) {
+            votes.emplace_back(Vote(vote_rlp));
+          }
+          map<uint64_t, vector<DagBlock>> dag_blocks_per_level;
+          for (auto const &dag_block_rlp : *it++) {
+            auto block = DagBlock(dag_block_rlp);
+            auto const &dag_blk_h = block.getHash();
+            peer->markBlockAsKnown(dag_blk_h);
+            dag_blocks_per_level[block.getLevel()].emplace_back(block);
+            received_dag_blocks_str += dag_blk_h.toString() + " ";
+          }
+
+          for (auto const &trx_rlp : *it) {
+            auto trx = Transaction(trx_rlp);
             peer->markTransactionAsKnown(trx.getHash());
+            peer->sync_transactions_.emplace_back(trx);
           }
-          received_dag_blocks_str += dag_blk_h.toString() + " ";
-          auto level = dag_blk.getLevel();
-          dag_blocks_per_level[level][dag_blk_h] = {move(dag_blk), move(new_transactions)};
-        }
-        LOG(log_dg_dag_sync_) << "Received Dag Blocks: " << received_dag_blocks_str;
-        for (auto const &block_level : dag_blocks_per_level) {
-          for (auto const &block : block_level.second) {
-            auto status = checkDagBlockValidation(block.second.first);
-            if (!status.first) {
-              LOG(log_si_pbft_sync_) << "PBFT SYNC ERROR, DAG missing a tip/pivot"
-                                     << ", PBFT chain size: " << pbft_chain_->getPbftChainSize()
-                                     << ", synced queue size: " << pbft_chain_->pbftSyncedQueueSize();
-              syncing_state_.set_peer_malicious();
-              host->disconnect(_nodeID, p2p::UserReason);
-              restartSyncingPbft(true);
-              return;
-            }
-            LOG(log_nf_dag_sync_) << "Storing DAG block " << block.second.first.getHash().toString() << " with "
-                                  << block.second.second.size() << " transactions";
-            if (block.second.first.getLevel() > peer->dag_level_) {
-              peer->dag_level_ = block.second.first.getLevel();
-            }
-            dag_blk_mgr_->processSyncedBlockWithTransactions(block.second.first, block.second.second);
-          }
-        }
+          LOG(log_er_dag_sync_) << "Received Dag Blocks: " << received_dag_blocks_str;
 
-        if (pbft_blk_tuple.itemCount() == 2) {
-          PbftBlockCert pbft_blk_and_votes(pbft_blk_tuple[1]);
+          dag_blk_mgr_->processSyncedTransactions(peer->sync_transactions_);
+          peer->sync_transactions_.clear();
+          for (auto const &block_level : dag_blocks_per_level) {
+            for (auto const &block : block_level.second) {
+              auto status = checkDagBlockValidation(block);
+              if (!status.first) {
+                LOG(log_si_pbft_sync_) << "PBFT SYNC ERROR, DAG missing a tip/pivot"
+                                       << ", PBFT chain size: " << pbft_chain_->getPbftChainSize()
+                                       << ", synced queue size: " << pbft_chain_->pbftSyncedQueueSize();
+                syncing_state_.set_peer_malicious();
+                host->disconnect(_nodeID, p2p::UserReason);
+                restartSyncingPbft(true);
+                return;
+              }
+              LOG(log_nf_dag_sync_) << "Storing DAG block " << block.getHash().toString() << " with "
+                                    << peer->sync_transactions_.size() << " transactions";
+              if (block.getLevel() > peer->dag_level_) {
+                peer->dag_level_ = block.getLevel();
+              }
+              dag_blk_mgr_->processSyncedBlock(block);
+            }
+          }
+
+          PbftBlockCert pbft_blk_and_votes(pbft_block, votes);
           auto pbft_blk_hash = pbft_blk_and_votes.pbft_blk->getBlockHash();
           peer->markPbftBlockAsKnown(pbft_blk_hash);
           LOG(log_dg_pbft_sync_) << "Processing pbft block: " << pbft_blk_and_votes.pbft_blk->getBlockHash();
@@ -797,7 +816,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
           if (pbft_chain_->isKnownPbftBlockForSyncing(pbft_blk_hash)) {
             LOG(log_dg_pbft_sync_) << "Block " << pbft_blk_and_votes.pbft_blk->getBlockHash()
                                    << " already processed or scheduled to be processed";
-            continue;
+            return;
           }
 
           if (!pbft_chain_->checkPbftBlockValidationFromSyncing(*pbft_blk_and_votes.pbft_blk)) {
@@ -825,16 +844,17 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
 
           // Reset last sync packet received time
           syncing_state_.set_last_sync_packet_time();
-        }
-      }
-      if (pbft_blk_count > 0) {
-        if (syncing_state_.is_pbft_syncing()) {
-          if (pbft_sync_period > pbft_chain_->getPbftChainSize() + (10 * conf_.network_sync_level_size)) {
-            LOG(log_dg_pbft_sync_) << "Syncing pbft blocks too fast than processing. Has synced period "
-                                   << pbft_sync_period << ", PBFT chain size " << pbft_chain_->getPbftChainSize();
-            tp_.post(1000, [this] { delayedPbftSync(1); });
-          } else {
-            syncPeerPbft(pbft_sync_period + 1);
+
+          if (last_block) {
+            if (syncing_state_.is_pbft_syncing()) {
+              if (pbft_sync_period > pbft_chain_->getPbftChainSize() + (10 * conf_.network_sync_level_size)) {
+                LOG(log_dg_pbft_sync_) << "Syncing pbft blocks too fast than processing. Has synced period "
+                                       << pbft_sync_period << ", PBFT chain size " << pbft_chain_->getPbftChainSize();
+                tp_.post(1000, [this] { delayedPbftSync(1); });
+              } else {
+                syncPeerPbft(pbft_sync_period + 1);
+              }
+            }
           }
         }
       } else {
@@ -1510,6 +1530,7 @@ void TaraxaCapability::onNewPbftBlock(taraxa::PbftBlock const &pbft_block) {
 void TaraxaCapability::sendPbftBlocks(NodeID const &peerID, size_t height_to_sync, size_t blocks_to_transfer) {
   LOG(log_dg_pbft_sync_) << "In sendPbftBlocks, peer want to sync from pbft chain height " << height_to_sync
                          << ", will send at most " << blocks_to_transfer << " pbft blocks to " << peerID;
+<<<<<<< HEAD
   // If blocks_to_transfer is 0, will return empty PBFT blocks
   auto pbft_cert_blks = pbft_chain_->getPbftBlocks(height_to_sync, blocks_to_transfer);
   if (pbft_cert_blks.empty()) {
@@ -1618,21 +1639,69 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &peerID, size_t height_to_syn
 
       dag_blocks_rlps.push_back(dag_rlp.out());
       dag_blocks_size += dag_rlp.out().size();
+=======
+
+  uint64_t current_period = height_to_sync;
+  while (current_period < height_to_sync + blocks_to_transfer) {
+    bool last_block = current_period == height_to_sync + blocks_to_transfer - 1;
+    auto data = db_->getPeriodDataRaw(current_period);
+    current_period++;
+    if (data.size() == 0) {
+      sealAndSend(peerID, PbftBlockPacket, RLPStream(0));
+      LOG(log_dg_pbft_sync_) << "In sendPbftBlocks, send no pbft blocks to " << peerID;
+      return;
     }
-    pbft_block_rlp.appendList(2);  // item #1 - list of dag blocks, item #2 pbft block rlp
-    pbft_block_rlp.appendList(dag_blocks_rlps.size());
-
-    for (auto &dag_block : dag_blocks_rlps) pbft_block_rlp.appendRaw(dag_block);
-
-    pbft_block_rlp.appendRaw(pbft_cert_blks[pbft_block_idx].second);
-
-    act_packet_size += pbft_block_rlp.out().size();
-    pbft_blocks_rlps.emplace_back(pbft_block_rlp.invalidate());
+    if (data.size() > 0.95 * MAX_PACKET_SIZE) {
+      // Single PBFT block is larger than MAX_PACKET_SIZE
+      RLP rlp_data(data);
+      auto transactions_data = rlp_data[db_->transactions_pos_in_period_data];
+      uint64_t trx_it = 0;
+      uint64_t trx_to_send = 0;
+      uint64_t trx_total_size = 0;
+      while (trx_it < transactions_data.itemCount()) {
+        trx_total_size += transactions_data[trx_it].actualSize();
+        // If exceeds size or last transaction
+        if (trx_total_size > 0.95 * MAX_PACKET_SIZE || trx_it == transactions_data.itemCount() - 1) {
+          RLPStream s;
+          s.appendList(2);
+          s << false;
+          s.appendList(4);
+          s.append(RLP());
+          s.appendList(0);
+          s.appendList(0);
+          s.appendList(trx_it - trx_to_send);
+          // Include transaction up to 15MB
+          for (uint64_t i = trx_to_send; i < trx_it; i++) {
+            s.append(transactions_data[i]);
+          }
+          trx_to_send = trx_it;
+          trx_total_size = 0;
+          LOG(log_dg_dag_sync_) << "Sending partial PbftBlockPacket due tu MAX_PACKET_SIZE limit with trx_it: "
+                                << trx_it;
+          sealAndSend(peerID, PbftBlockPacket, s);
+        }
+        trx_it++;
+      }
+      RLPStream s;
+      s.appendList(2);
+      s << last_block;
+      s.appendList(4);
+      s.append(rlp_data[db_->pbft_block_pos_in_period_data]);
+      s.append(rlp_data[db_->cert_votes_pos_in_period_data]);
+      s.append(rlp_data[db_->dag_blocks_pos_in_period_data]);
+      s.appendList(0);
+      LOG(log_dg_dag_sync_) << "Sending partial PbftBlockPacket due tu MAX_PACKET_SIZE limit with no trx";
+      sealAndSend(peerID, PbftBlockPacket, s);
+    } else {
+      RLPStream s;
+      s.appendList(2);
+      s << last_block;
+      s.appendRaw(data);
+      LOG(log_dg_pbft_sync_) << "Sending final PbftBlockPacket to " << peerID;
+      sealAndSend(peerID, PbftBlockPacket, s);
+>>>>>>> 1e0f0f47 (chore: db refactor)
+    }
   }
-
-  // Send final packet
-  sealAndSend(peerID, PbftBlockPacket, create_packet(std::move(pbft_blocks_rlps)));
-  LOG(log_dg_pbft_sync_) << "Sending final PbftBlockPacket to " << peerID;
 }
 
 void TaraxaCapability::sendPbftBlock(NodeID const &peerID, taraxa::PbftBlock const &pbft_block,

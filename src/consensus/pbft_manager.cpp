@@ -101,21 +101,14 @@ void PbftManager::run() {
   for (auto period = final_chain_->last_block_number() + 1, curr_period = pbft_chain_->getPbftChainSize();
        period <= curr_period;  //
        ++period) {
-    auto pbft_block_hash = db_->getPeriodPbftBlock(period);
-    if (!pbft_block_hash) {
-      LOG(log_er_) << "DB corrupted - PBFT block period " << period
-                   << " does not exist in DB period_pbft_block. PBFT chain size " << pbft_chain_->getPbftChainSize();
-      assert(false);
-    }
-    // Get PBFT block in DB
-    auto pbft_block = db_->getPbftBlock(*pbft_block_hash);
+    auto pbft_block = db_->getPbftBlock(period);
     if (!pbft_block) {
-      LOG(log_er_) << "DB corrupted - Cannot find PBFT block hash " << pbft_block_hash
+      LOG(log_er_) << "DB corrupted - Cannot find PBFT block hash " << pbft_block->getBlockHash()
                    << " in PBFT chain DB pbft_blocks.";
       assert(false);
     }
     if (pbft_block->getPeriod() != period) {
-      LOG(log_er_) << "DB corrupted - PBFT block hash " << pbft_block_hash << "has different period "
+      LOG(log_er_) << "DB corrupted - PBFT block hash " << pbft_block->getBlockHash() << "has different period "
                    << pbft_block->getPeriod() << " in block data than in block order db: " << period;
       assert(false);
     }
@@ -261,7 +254,7 @@ std::pair<bool, uint64_t> PbftManager::getDagBlockPeriod(blk_hash_t const &hash)
     res.first = false;
   } else {
     res.first = true;
-    res.second = *value;
+    res.second = value->first;
   }
   return res;
 }
@@ -1545,7 +1538,7 @@ void PbftManager::finalize_(PbftBlock const &pbft_block, vector<h256> finalized_
           move(finalized_dag_blk_hashes),
           pbft_block.getBlockHash(),
       },
-      [this, anchor_hash = pbft_block.getPivotDagBlockHash()](auto const &, auto &batch) {
+      pbft_block.getPeriod(), [this, anchor_hash = pbft_block.getPivotDagBlockHash()](auto const &, auto &batch) {
         // Update proposal period DAG levels map
         auto anchor = dag_blk_mgr_->getDagBlock(anchor_hash);
         if (!anchor) {
@@ -1581,14 +1574,10 @@ bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes, vec
   auto pbft_period = pbft_block->getPeriod();
 
   auto batch = db_->createWriteBatch();
-  // Add cert votes in DB
-  db_->addCertVotesToBatch(pbft_block_hash, cert_votes, batch);
   LOG(log_nf_) << "Storing cert votes of pbft blk " << pbft_block_hash;
   LOG(log_dg_) << "Stored following cert votes:\n" << cert_votes;
   // Add period_pbft_block in DB
   db_->addPbftBlockPeriodToBatch(pbft_period, pbft_block_hash, batch);
-  // Add PBFT block in DB
-  db_->addPbftBlockToBatch(*pbft_block, batch);
   // update PBFT chain size
   pbft_chain_->updatePbftChain(pbft_block_hash);
   // Update PBFT chain head block
@@ -1599,9 +1588,41 @@ bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes, vec
   dag_mgr_->setDagBlockOrder(anchor_hash, pbft_period, dag_blocks_order, batch);
 
   // Add dag_block_period in DB
+  uint64_t block_pos = 0;
   for (auto const &blk_hash : dag_blocks_order) {
-    db_->addDagBlockPeriodToBatch(blk_hash, pbft_period, batch);
+    db_->addDagBlockPeriodToBatch(blk_hash, pbft_period, block_pos, batch);
+    block_pos++;
   }
+
+  DbStorage::MultiGetQuery db_query(db_);
+  db_query.append(DbStorage::Columns::dag_blocks, dag_blocks_order);
+  auto dag_blocks_res = db_query.execute();
+
+  std::vector<DagBlock> dag_blocks;
+
+  for (auto const &dag_blk_raw : dag_blocks_res) {
+    dag_blocks.emplace_back(asBytes(dag_blk_raw));
+  }
+
+  std::unordered_set<trx_hash_t> trx_set;
+  std::vector<trx_hash_t> transactionsToQuery;
+  for (auto const &dag_blk : dag_blocks) {
+    for (auto const trx_hash : dag_blk.getTrxs()) {
+      if (trx_set.insert(trx_hash).second) {
+        transactionsToQuery.emplace_back(trx_hash);
+      }
+    }
+  }
+  db_query.append(DbStorage::Columns::transactions, transactionsToQuery);
+
+  auto transactions_res = db_query.execute();
+
+  std::vector<Transaction> transactions;
+  for (auto const &trx_raw : transactions_res) {
+    if (trx_raw.size() > 0) transactions.emplace_back(asBytes(trx_raw));
+  }
+
+  db_->savePeriodData(pbft_period, *pbft_block, cert_votes, dag_blocks, transactions, batch);
 
   // Reset last cert voted value to NULL_BLOCK_HASH
   db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::last_cert_voted_value, NULL_BLOCK_HASH, batch);
