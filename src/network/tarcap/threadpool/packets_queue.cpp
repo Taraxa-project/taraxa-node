@@ -2,7 +2,8 @@
 
 namespace taraxa::network::tarcap {
 
-PacketsQueue::PacketsQueue(size_t max_workers_count) : packets_(), MAX_WORKERS_COUNT(max_workers_count), act_workers_count_(0) {}
+PacketsQueue::PacketsQueue(size_t max_workers_count)
+    : packets_(), MAX_WORKERS_COUNT(max_workers_count), act_workers_count_(0) {}
 
 bool PacketsQueue::isProcessingEligible() const {
   if (packets_.empty() || act_workers_count_ >= MAX_WORKERS_COUNT) {

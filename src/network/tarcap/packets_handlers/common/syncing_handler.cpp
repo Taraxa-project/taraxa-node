@@ -9,9 +9,9 @@
 namespace taraxa::network::tarcap {
 
 SyncingHandler::SyncingHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
-                               std::shared_ptr<SyncingState> syncing_state,
-                               std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DagManager> dag_mgr,
-                               std::shared_ptr<DagBlockManager> dag_blk_mgr, const addr_t &node_addr)
+                               std::shared_ptr<SyncingState> syncing_state, std::shared_ptr<PbftChain> pbft_chain,
+                               std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
+                               const addr_t &node_addr)
     : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "SYNCING"),
       syncing_state_(std::move(syncing_state)),
       pbft_chain_(std::move(pbft_chain)),

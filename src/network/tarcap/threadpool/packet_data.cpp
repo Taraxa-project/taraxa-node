@@ -2,7 +2,8 @@
 
 namespace taraxa::network::tarcap {
 
-PacketData::PacketData(PriorityQueuePacketType type, std::string&& type_str, dev::p2p::NodeID&& from_node_id_, std::vector<unsigned char>&& bytes)
+PacketData::PacketData(PriorityQueuePacketType type, std::string&& type_str, dev::p2p::NodeID&& from_node_id_,
+                       std::vector<unsigned char>&& bytes)
     : receive_time_(std::chrono::steady_clock::now()),
       type_(type),
       type_str_(std::move(type_str)),
