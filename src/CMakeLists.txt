@@ -45,6 +45,7 @@ set(SOURCES
         network/tarcap/threadpool/priority_queue.hpp
         network/tarcap/threadpool/packets_queue.hpp
         network/tarcap/threadpool/packet_data.hpp
+        network/tarcap/threadpool/packets_blocking_mask.hpp
         network/tarcap/packet_types.hpp
         network/tarcap/shared_states/syncing_state.hpp
         network/tarcap/shared_states/test_state.hpp
@@ -143,6 +144,7 @@ set(SOURCES
         network/tarcap/threadpool/priority_queue.cpp
         network/tarcap/threadpool/packets_queue.cpp
         network/tarcap/threadpool/packet_data.cpp
+        network/tarcap/threadpool/packets_blocking_mask.cpp
         network/tarcap/shared_states/peers_state.cpp
         network/tarcap/packets_handler.cpp
         network/tarcap/shared_states/syncing_state.cpp

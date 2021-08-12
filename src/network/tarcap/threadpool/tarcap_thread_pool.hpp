@@ -75,7 +75,7 @@ class TarcapThreadPool {
   PriorityQueue queue_;
 
   // Queue mutex
-  std::mutex mutex_;
+  std::mutex queue_mutex_;
 
   // Queue condition variable
   std::condition_variable cond_var_;

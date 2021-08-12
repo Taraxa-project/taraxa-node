@@ -9,7 +9,7 @@ TarcapThreadPool::TarcapThreadPool(size_t workers_num, const addr_t& node_addr)
       packets_handlers_(nullptr),
       stopProcessing_(false),
       queue_(workers_num),
-      mutex_(),
+      queue_mutex_(),
       cond_var_(),
       workers_() {
   LOG_OBJECTS_CREATE("TARCAP_TP");
@@ -33,12 +33,12 @@ void TarcapThreadPool::push(PacketData&& packet_data) {
     return;
   }
 
+  LOG(log_tr_) << "ThreadPool new packet pushed: " << packet_data.type_str_ << std::endl;
+
   // Put packet into the priority queue
-  std::scoped_lock lock(mutex_);
+  std::scoped_lock lock(queue_mutex_);
   queue_.pushBack(std::move(packet_data));
   cond_var_.notify_one();
-
-  LOG(log_tr_) << "ThreadPool new packet pushed: " << packet_data.type_ << std::endl;
 }
 
 void TarcapThreadPool::startProcessing() {
@@ -64,18 +64,19 @@ void TarcapThreadPool::stopProcessing() {
  * @brief Threadpool sycnchronized processing function, which calls user-defined custom processing function
  **/
 void TarcapThreadPool::processPacket(size_t worker_id) {
-  LOG(log_dg_) << "Worker num " << worker_id << " started";
-  std::unique_lock<std::mutex> lock(mutex_, std::defer_lock);
+  LOG(log_dg_) << "Worker (" << worker_id << ") started";
+  std::unique_lock<std::mutex> lock(queue_mutex_, std::defer_lock);
 
   while (stopProcessing_ == false) {
     lock.lock();
 
     while (queue_.empty()) {
       if (stopProcessing_) {
-        LOG(log_dg_) << "Worker num " << worker_id << ": finished";
+        LOG(log_dg_) << "Worker (" << worker_id << "): finished";
         return;
       }
 
+      LOG(log_dg_) << "Worker (" << worker_id << ") waiting for new packets (queue empty).";
       cond_var_.wait(lock);
     }
 
@@ -87,17 +88,17 @@ void TarcapThreadPool::processPacket(size_t worker_id) {
     // is not empty but it would return empty optional as the second syncing packet is blocked by the first one
     if (!packet.has_value()) {
       lock.unlock();
-      LOG(log_dg_) << "Worker num " << worker_id << " sleep";
+      LOG(log_tr_) << "Worker (" << worker_id << ") sleep";
 
       // Sleep for some time and try to get the packet later again to see if it is still blocked
       std::this_thread::sleep_for(std::chrono::milliseconds(20));
       continue;
     }
 
+    LOG(log_tr_) << "Worker (" << worker_id << ") process packet: " << packet->type_str_;
+
     queue_.updateDependenciesStart(packet.value());
     lock.unlock();
-
-    LOG(log_tr_) << "Worker num " << worker_id << " process packet: " << packet->type_;
 
     try {
       // Get specific packet handler according to packet type
@@ -106,13 +107,15 @@ void TarcapThreadPool::processPacket(size_t worker_id) {
       // Process packet by specific packet type handler
       handler->processPacket(packet.value());
     } catch (const std::exception& e) {
-      LOG(log_er_) << "Packet processing exception caught: " << e.what();
+      LOG(log_er_) << "Worker (" << worker_id << ") packet processing exception caught: " << e.what();
     } catch (...) {
-      LOG(log_er_) << "Packet processing unknown exception caught";
+      LOG(log_er_) << "Worker (" << worker_id << ") packet processing unknown exception caught";
     }
 
-    // Once packet handler finish, update priority queue dependencies - no need to lock queue as deps are atomic
-    queue_.updateDependenciesFinish(packet.value());
+    // Once packet handler is finish, update priority queue dependencies
+    // In specific cases when we need to process peers_time dependencies -> queue_mutex_ is locked, otherwise
+    // no locking is done as standard blocking dependencies are processed through atomic bitmask
+    queue_.updateDependenciesFinish(packet.value(), queue_mutex_);
   }
 }
 
