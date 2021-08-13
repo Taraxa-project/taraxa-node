@@ -2,11 +2,12 @@
 
 namespace taraxa::network::tarcap {
 
-PeersState::PeersState(std::weak_ptr<dev::p2p::Host>&& host) : host_(std::move(host)) {
+// TODO: this will throw in case host == nullptr
+PeersState::PeersState(std::weak_ptr<dev::p2p::Host>&& host) : host_(std::move(host)), node_id_(host_.lock()->id()) {
   auto tmp_host = host_.lock();
   assert(tmp_host);
 
-  node_id_ = tmp_host->id();
+  //node_id_ = tmp_host->id();
 }
 
 std::shared_ptr<TaraxaPeer> PeersState::getPeer(const dev::p2p::NodeID& node_id) {
@@ -83,6 +84,10 @@ void PeersState::erasePeer(dev::p2p::NodeID const& node_id) {
   std::unique_lock lock(peers_mutex_);
   pending_peers_.erase(node_id);
   peers_.erase(node_id);
+
+  std::cout << std::endl
+            << "*** " << node_id_.abridged() << " ***: Peer " << node_id.abridged() << " erased from peers list"
+            << std::endl;
 }
 
 std::shared_ptr<TaraxaPeer> PeersState::setPeerAsReadyToSendMessages(dev::p2p::NodeID const& node_id,
@@ -93,6 +98,10 @@ std::shared_ptr<TaraxaPeer> PeersState::setPeerAsReadyToSendMessages(dev::p2p::N
   if (!ret.second) {
     // LOG(log_er_) << "Peer " << node_id.abridged() << " is already in peers list";
   }
+
+  std::cout << std::endl
+            << "*** " << node_id_.abridged() << " ***: Peer " << node_id.abridged() << " added to peers list"
+            << std::endl;
 
   return ret.first->second;
 }

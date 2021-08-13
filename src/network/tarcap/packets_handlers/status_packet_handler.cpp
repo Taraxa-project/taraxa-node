@@ -162,7 +162,7 @@ bool StatusPacketHandler::sendStatus(const dev::p2p::NodeID& node_id, bool initi
   if (dag_mgr_) {
     std::string status_packet_type = initial ? "initial" : "standard";
 
-    LOG(log_dg_) << "Sending initial " << status_packet_type << " status message to " << node_id
+    LOG(log_dg_) << "Sending " << status_packet_type << " status message to " << node_id
                  << ", protocol version " << TARAXA_NET_VERSION << ", network id " << conf_network_id_ << ", genesis "
                  << dag_mgr_->get_genesis() << ", node version " << TARAXA_VERSION;
 

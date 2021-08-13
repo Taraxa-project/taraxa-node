@@ -32,9 +32,9 @@ class TransactionPacketHandler : public PacketHandler {
   std::shared_ptr<DagBlockManager> dag_blk_mgr_;
   std::shared_ptr<TestState> test_state_;
 
-  uint16_t network_transaction_interval_ = 0;
-  uint64_t received_trx_count_ = 0;
-  uint64_t unique_received_trx_count_ = 0;
+  const uint16_t network_transaction_interval_;
+  std::atomic<uint64_t> received_trx_count_ { 0 };
+  std::atomic<uint64_t> unique_received_trx_count_ { 0 };
 };
 
 }  // namespace taraxa::network::tarcap

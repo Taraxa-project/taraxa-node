@@ -47,8 +47,8 @@ void TransactionPacketHandler::onNewTransactions(std::vector<taraxa::bytes> cons
       for (auto const &transaction : transactions) {
         Transaction trx(transaction);
         auto trx_hash = trx.getHash();
-        if (test_state_->test_transactions_.find(trx_hash) == test_state_->test_transactions_.end()) {
-          test_state_->test_transactions_[trx_hash] = trx;
+        if (!test_state_->hasTransaction(trx_hash)) {
+          test_state_->insertTransaction(trx);
           LOG(log_dg_) << "Received New Transaction " << trx_hash;
         } else {
           LOG(log_dg_) << "Received New Transaction" << trx_hash << "that is already known";
@@ -56,6 +56,7 @@ void TransactionPacketHandler::onNewTransactions(std::vector<taraxa::bytes> cons
       }
     }
   }
+
   if (!fromNetwork || network_transaction_interval_ == 0) {
     std::unordered_map<dev::p2p::NodeID, std::vector<taraxa::bytes>> transactions_to_send;
     std::unordered_map<dev::p2p::NodeID, std::vector<trx_hash_t>> transactions_hash_to_send;

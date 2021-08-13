@@ -24,9 +24,10 @@ DagPacketsHandler::DagPacketsHandler(std::shared_ptr<PeersState> peers_state,
       dag_blk_mgr_(std::move(dag_blk_mgr)),
       db_(std::move(db)),
       test_state_(std::move(test_state)),
-      urng_(std::mt19937_64(std::random_device()())),
       network_min_dag_block_broadcast_(network_min_dag_block_broadcast),
       network_max_dag_block_broadcast_(network_max_dag_block_broadcast) {}
+
+thread_local mt19937_64 DagPacketsHandler::urng_{std::mt19937_64(std::random_device()())};
 
 void DagPacketsHandler::process(const dev::RLP& packet_rlp, const PacketData& packet_data, const std::shared_ptr<dev::p2p::Host>& host __attribute__((unused)), const std::shared_ptr<TaraxaPeer>& peer) {
   if (packet_data.type_ == PriorityQueuePacketType::PQ_NewBlockPacket) {
@@ -81,15 +82,15 @@ inline void DagPacketsHandler::processNewBlockHashPacket(const dev::RLP &packet_
   LOG(log_dg_) << "Received NewBlockHashPacket " << hash.toString();
 
   if (dag_blk_mgr_) {
-    if (!dag_blk_mgr_->isBlockKnown(hash) && block_requestes_set_.count(hash) == 0) {
-      block_requestes_set_.insert(hash);
+    if (!dag_blk_mgr_->isBlockKnown(hash) && !hasBlockRequest(hash)) {
+      insertBlockRequest(hash);
       requestBlock(packet_data.from_node_id_, hash);
     }
-  } else if (test_state_->test_blocks_.find(hash) == test_state_->test_blocks_.end() &&
-             block_requestes_set_.count(hash) == 0) {
-    block_requestes_set_.insert(hash);
+  } else if (!test_state_->hasBlock(hash) && !hasBlockRequest(hash)) {
+    insertBlockRequest(hash);
     requestBlock(packet_data.from_node_id_, hash);
   }
+
   peer->markBlockAsKnown(hash);
 }
 
@@ -103,8 +104,8 @@ inline void DagPacketsHandler::processGetNewBlockPacket(const dev::RLP &packet_r
       sendBlock(packet_data.from_node_id_, *block);
     } else
       LOG(log_nf_) << "Requested block: " << hash.toString() << " not in DB";
-  } else if (test_state_->test_blocks_.find(hash) != test_state_->test_blocks_.end()) {
-    sendBlock(packet_data.from_node_id_, test_state_->test_blocks_[hash]);
+  } else if (test_state_->hasBlock(hash)) {
+    sendBlock(packet_data.from_node_id_, test_state_->getBlock(hash));
   }
   peer->markBlockAsKnown(hash);
 }
@@ -118,8 +119,8 @@ void DagPacketsHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::DagBl
   vec_trx_t transactions_to_send;
 
   if (auto peer = peers_state_->getPeer(peer_id); peer) {
-    for (auto trx : block.getTrxs())
-      if (!peer->isTransactionKnown(trx)) transactions_to_send.push_back(trx);
+    for (auto trx_hash : block.getTrxs())
+      if (!peer->isTransactionKnown(trx_hash)) transactions_to_send.push_back(trx_hash);
   }
 
   dev::RLPStream s(1 + transactions_to_send.size());
@@ -127,13 +128,13 @@ void DagPacketsHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::DagBl
 
   taraxa::bytes trx_bytes;
   std::shared_ptr<std::pair<Transaction, taraxa::bytes>> transaction;
-  for (auto trx : transactions_to_send) {
+  for (auto trx_hash : transactions_to_send) {
     if (dag_blk_mgr_) {
-      transaction = trx_mgr_->getTransaction(trx);
+      transaction = trx_mgr_->getTransaction(trx_hash);
     } else {
-      assert(test_state_->test_transactions_.find(trx) != test_state_->test_transactions_.end());
+      assert(test_state_->hasTransaction(trx_hash));
       transaction = std::make_shared<std::pair<Transaction, taraxa::bytes>>(
-          test_state_->test_transactions_[trx], *test_state_->test_transactions_[trx].rlp());
+          test_state_->getTransaction(trx_hash), *test_state_->getTransaction(trx_hash).rlp());
     }
     assert(transaction != nullptr);  // We should never try to send a block for
                                      // which  we do not have all transactions
@@ -152,10 +153,10 @@ void DagPacketsHandler::onNewBlockReceived(DagBlock block, std::vector<Transacti
                  << " transactions";
     dag_blk_mgr_->insertBroadcastedBlockWithTransactions(block, transactions);
 
-  } else if (test_state_->test_blocks_.find(block.getHash()) == test_state_->test_blocks_.end()) {
-    test_state_->test_blocks_[block.getHash()] = block;
+  } else if (!test_state_->hasBlock(block.getHash())) {
+    test_state_->insertBlock(block);
     for (auto tr : transactions) {
-      test_state_->test_transactions_[tr.getHash()] = tr;
+      test_state_->insertTransaction(tr);
     }
     onNewBlockVerified(block);
 
@@ -163,6 +164,18 @@ void DagPacketsHandler::onNewBlockReceived(DagBlock block, std::vector<Transacti
     LOG(log_dg_) << "Received NewBlock " << block.getHash().toString() << "that is already known";
     return;
   }
+}
+
+bool DagPacketsHandler::hasBlockRequest(const blk_hash_t& block_hash) const {
+  std::shared_lock lock(block_requestes_mutex_);
+
+  return block_requestes_set_.count(block_hash);
+}
+
+void DagPacketsHandler::insertBlockRequest(const blk_hash_t& block_hash) {
+  std::unique_lock lock(block_requestes_mutex_);
+
+  block_requestes_set_.insert(block_hash);
 }
 
 void DagPacketsHandler::onNewBlockVerified(DagBlock const &block) {
@@ -209,7 +222,7 @@ void DagPacketsHandler::sendBlockHash(dev::p2p::NodeID const &peer_id, taraxa::D
 }
 
 std::pair<std::vector<dev::p2p::NodeID>, std::vector<dev::p2p::NodeID>> DagPacketsHandler::randomPartitionPeers(
-    std::vector<dev::p2p::NodeID> const &_peers, std::size_t _number) const {
+    std::vector<dev::p2p::NodeID> const &_peers, std::size_t _number) {
   vector<dev::p2p::NodeID> part1(_peers);
   vector<dev::p2p::NodeID> part2;
 

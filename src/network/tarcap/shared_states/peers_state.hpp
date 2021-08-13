@@ -31,9 +31,8 @@ class PeersState {
                                                            std::shared_ptr<TaraxaPeer> peer);
 
  public:
-  // TODO: why weak_ptr ?
-  std::weak_ptr<dev::p2p::Host> host_;
-  dev::p2p::NodeID node_id_;
+  const std::weak_ptr<dev::p2p::Host> host_;
+  const dev::p2p::NodeID node_id_;
 
  private:
   mutable std::shared_mutex peers_mutex_;

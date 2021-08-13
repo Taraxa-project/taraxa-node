@@ -38,7 +38,7 @@ class StatusPacketHandler : public PacketHandler {
   std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr_;
   std::shared_ptr<PbftManager> pbft_mgr_;
 
-  uint64_t conf_network_id_;
+  const uint64_t conf_network_id_;
 };
 
 }  // namespace taraxa::network::tarcap
