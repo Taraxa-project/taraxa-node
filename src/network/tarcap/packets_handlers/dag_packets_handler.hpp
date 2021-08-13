@@ -36,8 +36,11 @@ class DagPacketsHandler : public PacketHandler {
   inline void processNewBlockHashPacket(const dev::RLP &packet_rlp, const PacketData &packet_data, const std::shared_ptr<TaraxaPeer>& peer);
   inline void processGetNewBlockPacket(const dev::RLP &packet_rlp, const PacketData &packet_data, const std::shared_ptr<TaraxaPeer>& peer);
 
+  bool hasBlockRequest(const blk_hash_t& block_hash) const;
+  void insertBlockRequest(const blk_hash_t& block_hash);
+
   std::pair<std::vector<dev::p2p::NodeID>, std::vector<dev::p2p::NodeID>> randomPartitionPeers(
-      std::vector<dev::p2p::NodeID> const &_peers, std::size_t _number) const;
+      std::vector<dev::p2p::NodeID> const &_peers, std::size_t _number);
 
   std::vector<dev::p2p::NodeID> selectPeers(std::function<bool(TaraxaPeer const &)> const &_predicate);
 
@@ -48,10 +51,13 @@ class DagPacketsHandler : public PacketHandler {
   std::shared_ptr<DbStorage> db_;
   std::shared_ptr<TestState> test_state_;
 
-  mutable std::mt19937_64 urng_;
-  uint16_t network_min_dag_block_broadcast_ = 0;
-  uint16_t network_max_dag_block_broadcast_ = 0;
+  const uint16_t network_min_dag_block_broadcast_;
+  const uint16_t network_max_dag_block_broadcast_;
+
+  mutable std::shared_mutex block_requestes_mutex_;
   std::unordered_set<blk_hash_t> block_requestes_set_;
+
+  thread_local static std::mt19937_64 urng_;
 };
 
 }  // namespace taraxa::network::tarcap

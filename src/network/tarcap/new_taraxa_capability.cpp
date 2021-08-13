@@ -290,9 +290,9 @@ void TaraxaCapability::sendBlocks(dev::p2p::NodeID const &id, std::vector<std::s
       ->sendBlocks(id, std::move(blocks));
 }
 
-size_t TaraxaCapability::getReceivedBlocksCount() const { return test_state_->test_blocks_.size(); }
+size_t TaraxaCapability::getReceivedBlocksCount() const { return test_state_->getBlocksSize(); }
 
-size_t TaraxaCapability::getReceivedTransactionsCount() const { return test_state_->test_transactions_.size(); }
+size_t TaraxaCapability::getReceivedTransactionsCount() const { return test_state_->getTransactionsSize(); }
 
 // PBFT
 void TaraxaCapability::sendPbftBlock(dev::p2p::NodeID const &id, PbftBlock const &pbft_block,
