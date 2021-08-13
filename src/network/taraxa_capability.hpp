@@ -191,7 +191,6 @@ struct TaraxaCapability : virtual CapabilityFace {
   PacketsStats sent_packets_stats_;
   PacketsStats received_packets_stats_;
 
-  const uint32_t MAX_PACKET_SIZE = 15 * 1024 * 1024;  // 15 MB -> 15 * 1024 * 1024 B
   const uint16_t MAX_CHECK_ALIVE_COUNT = 5;
 
   // Only allow up to 2 nodes syncing from our node
