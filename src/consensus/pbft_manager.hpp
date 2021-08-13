@@ -116,7 +116,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   std::pair<blk_hash_t, bool> proposeMyPbftBlock_();
 
-  std::pair<blk_hash_t, bool> identifyLeaderBlock_(std::vector<std::shared_ptr<Vote>> votes);
+  std::pair<blk_hash_t, bool> identifyLeaderBlock_();
 
   bool syncRequestedAlreadyThisStep_() const;
 

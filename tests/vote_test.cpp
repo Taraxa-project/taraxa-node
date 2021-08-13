@@ -64,20 +64,20 @@ TEST_F(VoteTest, unverified_votes) {
   EXPECT_TRUE(vote_mgr->voteInUnverifiedMap(vote.getRound(), vote.getHash()));
 
   // Generate 3 votes, (round = 1, step = 1) is duplicate
-  std::vector<Vote> unverified_votes;
+  std::vector<std::shared_ptr<Vote>> unverified_votes;
   for (auto i = 1; i <= 3; i++) {
     round = i;
     step = i;
     Vote vote = pbft_mgr->generateVote(blockhash, type, round, step, weighted_index);
-    unverified_votes.emplace_back(vote);
+    unverified_votes.emplace_back(std::make_shared<Vote>(vote));
   }
 
   vote_mgr->addUnverifiedVotes(unverified_votes);
   EXPECT_EQ(vote_mgr->getUnverifiedVotes().size(), unverified_votes.size());
   EXPECT_EQ(vote_mgr->getUnverifiedVotesSize(), unverified_votes.size());
 
-  vote_mgr->removeUnverifiedVote(unverified_votes[0].getRound(), unverified_votes[0].getHash());
-  EXPECT_FALSE(vote_mgr->voteInUnverifiedMap(unverified_votes[0].getRound(), unverified_votes[0].getHash()));
+  vote_mgr->removeUnverifiedVote(unverified_votes[0]->getRound(), unverified_votes[0]->getHash());
+  EXPECT_FALSE(vote_mgr->voteInUnverifiedMap(unverified_votes[0]->getRound(), unverified_votes[0]->getHash()));
   EXPECT_EQ(vote_mgr->getUnverifiedVotes().size(), unverified_votes.size() - 1);
   EXPECT_EQ(vote_mgr->getUnverifiedVotesSize(), unverified_votes.size() - 1);
 
@@ -196,8 +196,8 @@ TEST_F(VoteTest, add_cleanup_get_votes) {
   EXPECT_EQ(verified_votes_size, 4);
   auto votes = vote_mgr->getVerifiedVotes();
   EXPECT_EQ(votes.size(), 4);
-  for (Vote const &v : votes) {
-    EXPECT_GT(v.getRound(), 1);
+  for (auto const &v : votes) {
+    EXPECT_GT(v->getRound(), 1);
   }
 
   // Test cleanup votes

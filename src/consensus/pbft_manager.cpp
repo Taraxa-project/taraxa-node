@@ -831,8 +831,7 @@ void PbftManager::identifyBlock_() {
 
   if (round == 1 || (round >= 2 && giveUpNextVotedBlock_())) {
     // Identity leader
-    auto proposal_votes = vote_mgr_->getProposalVotes(round);
-    std::pair<blk_hash_t, bool> leader_block = identifyLeaderBlock_(proposal_votes);
+    std::pair<blk_hash_t, bool> leader_block = identifyLeaderBlock_();
     if (leader_block.second) {
       db_->savePbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round, leader_block.first);
       own_starting_value_for_round_ = leader_block.first;
@@ -1267,9 +1266,12 @@ std::vector<std::vector<uint>> PbftManager::createMockTrxSchedule(
   return blocks_trx_modes;
 }
 
-std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_(std::vector<std::shared_ptr<Vote>> votes) {
+std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_() {
   auto round = getPbftRound();
   LOG(log_dg_) << "Into identify leader block, in round " << round;
+
+  // Get all proposal votes in the round
+  auto votes = vote_mgr_->getProposalVotes(round);
 
   // each leader candidate with <vote_signature_hash, pbft_block_hash>
   std::vector<std::pair<vrf_output_t, blk_hash_t>> leader_candidates;
@@ -1705,7 +1707,7 @@ void PbftManager::countVotes_() {
   while (!monitor_stop_) {
     auto verified_votes = vote_mgr_->getVerifiedVotes();
     auto unverified_votes = vote_mgr_->getUnverifiedVotes();
-    std::vector<Vote> votes;
+    std::vector<std::shared_ptr<Vote>> votes;
     votes.reserve(verified_votes.size() + unverified_votes.size());
     votes.insert(votes.end(), std::make_move_iterator(verified_votes.begin()),
                  std::make_move_iterator(verified_votes.end()));
@@ -1716,16 +1718,16 @@ void PbftManager::countVotes_() {
     size_t current_step_votes = 0;
     for (auto const &v : votes) {
       if (step_ == 1) {
-        if (v.getRound() == round - 1 && v.getStep() == last_step_) {
+        if (v->getRound() == round - 1 && v->getStep() == last_step_) {
           last_step_votes++;
-        } else if (v.getRound() == round && v.getStep() == step_) {
+        } else if (v->getRound() == round && v->getStep() == step_) {
           current_step_votes++;
         }
       } else {
-        if (v.getRound() == round) {
-          if (v.getStep() == step_ - 1) {
+        if (v->getRound() == round) {
+          if (v->getStep() == step_ - 1) {
             last_step_votes++;
-          } else if (v.getStep() == step_) {
+          } else if (v->getStep() == step_) {
             current_step_votes++;
           }
         }

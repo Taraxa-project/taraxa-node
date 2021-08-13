@@ -216,11 +216,11 @@ class VoteManager {
   void setNetwork(std::weak_ptr<Network> network);
 
   // Unverified votes
-  bool addUnverifiedVote(Vote const& vote);
-  void addUnverifiedVotes(std::vector<Vote> const& votes);
+  bool addUnverifiedVote(std::shared_ptr<Vote> const& vote);
+  void addUnverifiedVotes(std::vector<std::shared_ptr<Vote>> const& votes);
   void removeUnverifiedVote(uint64_t pbft_round, vote_hash_t const& vote_hash);
   bool voteInUnverifiedMap(uint64_t pbft_round, vote_hash_t const& vote_hash);
-  std::vector<Vote> getUnverifiedVotes();
+  std::vector<std::shared_ptr<Vote>> getUnverifiedVotes();
   void clearUnverifiedVotesTable();
   uint64_t getUnverifiedVotesSize() const;
 
@@ -228,7 +228,7 @@ class VoteManager {
   void addVerifiedVote(Vote const& vote);
   bool voteInVerifiedMap(Vote const& vote);
   void clearVerifiedVotesTable();
-  std::vector<Vote> getVerifiedVotes();
+  std::vector<std::shared_ptr<Vote>> getVerifiedVotes();
   uint64_t getVerifiedVotesSize() const;
 
   void removeVerifiedVotes();
@@ -243,7 +243,7 @@ class VoteManager {
   bool pbftBlockHasEnoughValidCertVotes(SyncBlock& pbft_block_and_votes, size_t valid_sortition_players,
                                         size_t sortition_threshold, size_t pbft_2t_plus_1) const;
 
-  std::string getJsonStr(std::vector<Vote> const& votes);
+  std::string getJsonStr(std::vector<std::shared_ptr<Vote>> const& votes);
 
   std::vector<std::shared_ptr<Vote>> getProposalVotes(uint64_t pbft_round);
 

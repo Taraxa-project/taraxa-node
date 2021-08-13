@@ -162,18 +162,18 @@ bool VoteManager::addUnverifiedVote(taraxa::Vote const& vote) {
   return true;
 }
 
-void VoteManager::addUnverifiedVotes(std::vector<Vote> const& votes) {
+void VoteManager::addUnverifiedVotes(std::vector<std::shared_ptr<Vote>> const& votes) {
   for (auto const& v : votes) {
-    if (voteInUnverifiedMap(v.getRound(), v.getHash())) {
+    if (voteInUnverifiedMap(v->getRound(), v->getHash())) {
       LOG(log_dg_) << "The vote is in unverified queue already " << v;
       continue;
     }
-    if (db_->unverifiedVoteExist(v.getHash())) {
+    if (db_->unverifiedVoteExist(v->getHash())) {
       // Vote in unverified DB but not in unverified queue
       LOG(log_dg_) << "The vote is in unverified DB already " << v;
       continue;
     }
-    addUnverifiedVote(v);
+    addUnverifiedVote(*v);
   }
 }
 
@@ -194,13 +194,14 @@ bool VoteManager::voteInUnverifiedMap(uint64_t pbft_round, vote_hash_t const& vo
   return false;
 }
 
-std::vector<Vote> VoteManager::getUnverifiedVotes() {
-  std::vector<Vote> votes;
+std::vector<std::shared_ptr<Vote>> VoteManager::getUnverifiedVotes() {
+  std::vector<std::shared_ptr<Vote>> votes;
 
   sharedLock_ lock(unverified_votes_access_);
   for (auto const& round_votes : unverified_votes_) {
-    std::transform(round_votes.second.begin(), round_votes.second.end(), std::back_inserter(votes),
-                   [](std::pair<const taraxa::vote_hash_t, taraxa::Vote> const& v) { return v.second; });
+    std::transform(
+        round_votes.second.begin(), round_votes.second.end(), std::back_inserter(votes),
+        [](std::pair<const taraxa::vote_hash_t, taraxa::Vote> const& v) { return std::make_shared<Vote>(v.second); });
   }
 
   return votes;
@@ -223,15 +224,15 @@ uint64_t VoteManager::getUnverifiedVotesSize() const {
   return size;
 }
 
-std::vector<Vote> VoteManager::getVerifiedVotes() {
-  std::vector<Vote> votes;
+std::vector<std::shared_ptr<Vote>> VoteManager::getVerifiedVotes() {
+  std::vector<std::shared_ptr<Vote>> votes;
 
   sharedLock_ lock(verified_votes_access_);
   for (auto const& round : verified_votes_) {
     for (auto const& step : round.second) {
       for (auto const& voted_value : step.second) {
         for (auto const& v : voted_value.second) {
-          votes.emplace_back(v.second);
+          votes.emplace_back(std::make_shared<Vote>(v.second));
         }
       }
     }
@@ -327,7 +328,7 @@ void VoteManager::removeVerifiedVotes() {
 
   auto batch = db_->createWriteBatch();
   for (auto const& v : votes) {
-    db_->removeVerifiedVoteToBatch(v.getHash(), batch);
+    db_->removeVerifiedVoteToBatch(v->getHash(), batch);
   }
   db_->commitWriteBatch(batch);
 }
@@ -364,8 +365,8 @@ void VoteManager::verifyVotes(uint64_t pbft_round, size_t sortition_threshold, u
   // Cleanup votes for previous rounds
   cleanupVotes(pbft_round);
 
-  std::vector<Vote> future_unverifiable_votes;
-  std::vector<Vote> verified_votes;
+  std::vector<std::shared_ptr<Vote>> future_unverifiable_votes;
+  std::vector<std::shared_ptr<Vote>> verified_votes;
   auto votes_to_verify = getUnverifiedVotes();
 
   h256 latest_final_chain_block_hash = final_chain_->block_header()->hash;
@@ -380,17 +381,17 @@ void VoteManager::verifyVotes(uint64_t pbft_round, size_t sortition_threshold, u
   }
 
   for (auto& v : votes_to_verify) {
-    if (votes_invalid_in_current_final_chain_period_.count(v.getHash())) {
+    if (votes_invalid_in_current_final_chain_period_.count(v->getHash())) {
       continue;
     }
 
     bool vote_is_valid = true;
 
-    addr_t voter_account_address = v.getVoterAddr();
+    addr_t voter_account_address = v->getVoterAddr();
     // Check if the voter account is valid, malicious vote
-    auto vote_weighted_index = v.getWeightedIndex();
+    auto vote_weighted_index = v->getWeightedIndex();
     auto dpos_votes_count = dpos_eligible_vote_count(voter_account_address);
-    if (vote_weighted_index > 0 && v.getStep() == 1) {
+    if (vote_weighted_index > 0 && v->getStep() == 1) {
       LOG(log_dg_) << "Account " << voter_account_address
                    << " attempted to vote with weighted index > 0 in propose step. Vote: " << v;
       vote_is_valid = false;
@@ -398,14 +399,14 @@ void VoteManager::verifyVotes(uint64_t pbft_round, size_t sortition_threshold, u
       LOG(log_dg_) << "Account " << voter_account_address << " is not eligible to vote. Vote: " << v;
       vote_is_valid = false;
     } else {
-      vote_is_valid = voteValidation(v, dpos_total_votes_count, sortition_threshold);
+      vote_is_valid = voteValidation(*v, dpos_total_votes_count, sortition_threshold);
     }
 
     if (vote_is_valid) {
       verified_votes.emplace_back(v);
     } else {
-      votes_invalid_in_current_final_chain_period_.emplace(v.getHash());
-      if (v.getRound() > pbft_round + 1) {
+      votes_invalid_in_current_final_chain_period_.emplace(v->getHash());
+      if (v->getRound() > pbft_round + 1) {
         future_unverifiable_votes.emplace_back(v);
       }
     }
@@ -413,23 +414,23 @@ void VoteManager::verifyVotes(uint64_t pbft_round, size_t sortition_threshold, u
 
   auto batch = db_->createWriteBatch();
   for (auto const& v : verified_votes) {
-    db_->addVerifiedVoteToBatch(v, batch);
-    db_->removeUnverifiedVoteToBatch(v.getHash(), batch);
+    db_->addVerifiedVoteToBatch(*v, batch);
+    db_->removeUnverifiedVoteToBatch(v->getHash(), batch);
   }
 
   for (auto const& v : future_unverifiable_votes) {
-    db_->removeUnverifiedVoteToBatch(v.getHash(), batch);
+    db_->removeUnverifiedVoteToBatch(v->getHash(), batch);
   }
 
   db_->commitWriteBatch(batch);
 
   for (auto const& v : verified_votes) {
-    addVerifiedVote(v);
-    removeUnverifiedVote(v.getRound(), v.getHash());
+    addVerifiedVote(*v);
+    removeUnverifiedVote(v->getRound(), v->getHash());
   }
 
   for (auto const& v : future_unverifiable_votes) {
-    removeUnverifiedVote(v.getRound(), v.getHash());
+    removeUnverifiedVote(v->getRound(), v->getHash());
   }
 }
 
@@ -589,20 +590,20 @@ bool VoteManager::pbftBlockHasEnoughValidCertVotes(SyncBlock& pbft_block_and_vot
   return valid_votes.size() >= pbft_2t_plus_1;
 }
 
-std::string VoteManager::getJsonStr(std::vector<Vote> const& votes) {
+std::string VoteManager::getJsonStr(std::vector<std::shared_ptr<Vote>> const& votes) {
   Json::Value ptroot;
   Json::Value ptvotes(Json::arrayValue);
 
-  for (Vote const& v : votes) {
+  for (auto const& v : votes) {
     Json::Value ptvote;
-    ptvote["vote_hash"] = v.getHash().toString();
-    ptvote["accounthash"] = v.getVoter().toString();
-    ptvote["sortition_proof"] = v.getSortitionProof().toString();
-    ptvote["vote_signature"] = v.getVoteSignature().toString();
-    ptvote["blockhash"] = v.getBlockHash().toString();
-    ptvote["type"] = v.getType();
-    ptvote["round"] = Json::Value::UInt64(v.getRound());
-    ptvote["step"] = Json::Value::UInt64(v.getStep());
+    ptvote["vote_hash"] = v->getHash().toString();
+    ptvote["accounthash"] = v->getVoter().toString();
+    ptvote["sortition_proof"] = v->getSortitionProof().toString();
+    ptvote["vote_signature"] = v->getVoteSignature().toString();
+    ptvote["blockhash"] = v->getBlockHash().toString();
+    ptvote["type"] = v->getType();
+    ptvote["round"] = Json::Value::UInt64(v->getRound());
+    ptvote["step"] = Json::Value::UInt64(v->getStep());
     ptvotes.append(ptvote);
   }
   ptroot["votes"] = ptvotes;

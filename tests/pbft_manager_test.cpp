@@ -229,11 +229,11 @@ TEST_F(PbftManagerTest, terminate_soft_voting_pbft_block) {
   bool skipped_soft_voting = true;
   auto votes = vote_mgr->getVerifiedVotes();
   for (auto const &v : votes) {
-    if (soft_vote_type == v.getType()) {
-      if (v.getBlockHash() == stale_block_hash) {
+    if (soft_vote_type == v->getType()) {
+      if (v->getBlockHash() == stale_block_hash) {
         skipped_soft_voting = false;
       }
-      cout << "Found soft voted value of " << v.getBlockHash().abridged() << " in round 2" << endl;
+      cout << "Found soft voted value of " << v->getBlockHash().abridged() << " in round 2" << endl;
     }
   }
   EXPECT_EQ(skipped_soft_voting, true);
@@ -286,8 +286,8 @@ TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
     auto soft_vote_value = blk_hash_t(0);
     auto votes = vote_mgr->getVerifiedVotes();
     for (auto const &v : votes) {
-      if (soft_vote_type == v.getType() && v.getBlockHash() == pbft_block_hash) {
-        soft_vote_value = v.getBlockHash();
+      if (soft_vote_type == v->getType() && v->getBlockHash() == pbft_block_hash) {
+        soft_vote_value = v->getBlockHash();
         break;
       }
     }
