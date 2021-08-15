@@ -339,4 +339,27 @@ inline auto make_addr(uint8_t i) {
   return ret;
 }
 
+using expected_balances_map_t = std::map<addr_t, u256>;
+inline void wait_for_balances(const vector<std::shared_ptr<FullNode>>& nodes, const expected_balances_map_t& balances,
+                              wait_opts to_wait = {10s, 500ms}) {
+  TransactionClient trx_client(nodes[0]);
+  auto sendDummyTransaction = [&]() {
+    trx_client.coinTransfer(KeyPair::create().address(), 0, KeyPair::create(), false);
+  };
+  wait(to_wait, [&](auto& ctx) {
+    for (const auto& node : nodes) {
+      for (const auto& b : balances) {
+        if (node->getFinalChain()->getBalance(b.first).first != b.second) {
+          sendDummyTransaction();
+          ctx.fail();
+        }
+      }
+      // wait for the same chain size on all nodes
+      for (const auto& n : nodes) {
+        ctx.fail_if(node->getPbftChain()->getPbftChainSize() != n->getPbftChain()->getPbftChainSize());
+      }
+    }
+  });
+}
+
 }  // namespace taraxa::core_tests
