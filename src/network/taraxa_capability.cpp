@@ -86,23 +86,11 @@ bool TaraxaCapability::sealAndSend(NodeID const &nodeID, unsigned packet_type, R
     }
   }
 
-  auto packet_size = rlp.out().size();
-
-  // This situation should never happen - packets bigger than 16MB cannot be sent due to networking layer limitations.
-  // If we are trying to send packets bigger than that, it should be split to multiple packets
-  // or handled in some other way in high level code - e.g. function that creates such packet and calls sealAndSend
-  if (packet_size > MAX_PACKET_SIZE) {
-    LOG(log_er_) << "Trying to send packet bigger than PACKET_MAX_SIZE(" << MAX_PACKET_SIZE << ") - rejected !"
-                 << " Packet type: " << packetTypeToString(packet_type) << ", size: " << packet_size
-                 << ", receiver: " << nodeID.abridged();
-    return false;
-  }
-
   auto begin = std::chrono::steady_clock::now();
   host->send(nodeID, name(), packet_type, move(rlp.invalidate()), [=] {
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - begin);
     tp_.post([=] {  // schedule it out of the socket session thread. although maybe it's an overkill
-      PacketStats packet_stats{nodeID, packet_size, false, duration};
+      PacketStats packet_stats{nodeID, rlp.out().size(), false, duration};
       sent_packets_stats_.addPacket(packetTypeToString(packet_type), packet_stats);
       LOG(log_dg_net_per_) << "(\"" << node_id_ << "\") sent " << packetTypeToString(packet_type) << " packet to (\""
                            << nodeID << "\"). Stats: " << packet_stats;
@@ -486,7 +474,6 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       std::string received_dag_blocks_str;
       std::unordered_set<blk_hash_t> missing_blks;
       auto it = _r.begin();
-      bool is_final_sync_packet = (*it++).toInt<unsigned>();
 
       for (; it != _r.end();) {
         DagBlock block(*it++);
@@ -517,13 +504,8 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
 
       requestBlocks(_nodeID, missing_blks);
 
-      if (is_final_sync_packet) {
-        syncing_state_.set_dag_syncing(false);
-        LOG(log_nf_dag_sync_) << "Received final DagBlocksSyncPacket with blocks: " << received_dag_blocks_str;
-      } else {
-        syncing_state_.set_last_sync_packet_time();
-        LOG(log_nf_dag_sync_) << "Received partial DagBlocksSyncPacket with blocks: " << received_dag_blocks_str;
-      }
+      syncing_state_.set_dag_syncing(false);
+      LOG(log_nf_dag_sync_) << "Received DagBlocksPacket with blocks: " << received_dag_blocks_str;
 
       break;
     }
@@ -1148,19 +1130,10 @@ void TaraxaCapability::sendBlocks(NodeID const &_id, std::vector<std::shared_ptr
   auto peer = peers_state_.getPeer(_id);
   if (!peer) return;
 
-  taraxa::bytes packet_bytes;
-  size_t packet_items_count = 0;
-  size_t blocks_counter = 0;
-
-  for (auto &block : blocks) {
-    size_t dag_block_items_count = 0;
-    size_t previous_block_packet_size = packet_bytes.size();
-
-    // Add dag block rlp to the sent bytes array
-    taraxa::bytes block_bytes = block->rlp(true);
-    packet_bytes.insert(packet_bytes.end(), std::begin(block_bytes), std::end(block_bytes));
-    dag_block_items_count++;  // + 1 new dag blog
-
+  std::unordered_map<blk_hash_t, std::vector<taraxa::bytes>> block_transactions;
+  size_t total_transactions_count = 0;
+  for (const auto &block : blocks) {
+    std::vector<taraxa::bytes> transactions;
     for (auto trx : block->getTrxs()) {
       auto t = trx_mgr_->getTransaction(trx);
       if (!t) {
@@ -1170,44 +1143,22 @@ void TaraxaCapability::sendBlocks(NodeID const &_id, std::vector<std::shared_ptr
         // better solution needed
         return;
       }
-
-      // Add dag block transaction rlp to the sent bytes array
-      packet_bytes.insert(packet_bytes.end(), std::begin(t->second), std::end(t->second));
-      dag_block_items_count++;  // + 1 new tx from dag blog
+      transactions.emplace_back(std::move(t->second));
+      total_transactions_count++;
     }
-
-    LOG(log_tr_dag_sync_) << "Send DagBlock " << block->getHash() << "Trxs count: " << block->getTrxs().size();
-
-    // Split packet into multiple smaller ones if total size is > MAX_PACKET_SIZE
-    if (packet_bytes.size() > MAX_PACKET_SIZE) {
-      LOG(log_dg_dag_sync_) << "Sending partial BlocksPacket due to MAX_PACKET_SIZE limit. " << blocks_counter
-                            << " blocks out of " << blocks.size() << " PbftBlockPacketsent.";
-
-      taraxa::bytes removed_bytes;
-      std::copy(packet_bytes.begin() + previous_block_packet_size, packet_bytes.end(),
-                std::back_inserter(removed_bytes));
-      packet_bytes.resize(previous_block_packet_size);
-
-      RLPStream s(packet_items_count + 1 /* final packet flag */);
-      // As DagBlocksPacket might be split into multiple packets, we
-      // need to differentiate if is the last one or not due to syncing
-      s.append(false);  // flag if it is the final DagBlocksSyncPacket or not
-      s.appendRaw(packet_bytes, packet_items_count);
-      sealAndSend(_id, BlocksPacket, std::move(s));
-
-      packet_bytes = std::move(removed_bytes);
-      packet_items_count = 0;
-    }
-
-    packet_items_count += dag_block_items_count;
-    blocks_counter++;
+    block_transactions[block->getHash()] = std::move(transactions);
+    LOG(log_nf_dag_sync_) << "Send DagBlock " << block->getHash() << "# Trx: " << transactions.size() << std::endl;
   }
 
-  LOG(log_dg_dag_sync_) << "Sending final BlocksPacket with " << blocks_counter << " blocks.";
-
-  RLPStream s(packet_items_count + 1 /* final packet flag */);
-  s.append(true);  // flag if it is the final DagBlocksPacket or not
-  s.appendRaw(packet_bytes, packet_items_count);
+  RLPStream s(blocks.size() + total_transactions_count);
+  for (auto &block : blocks) {
+    s.appendRaw(block->rlp(true));
+    taraxa::bytes trx_bytes;
+    for (auto &trx : block_transactions[block->getHash()]) {
+      trx_bytes.insert(trx_bytes.end(), std::make_move_iterator(trx.begin()), std::make_move_iterator(trx.end()));
+    }
+    s.appendRaw(trx_bytes, block_transactions[block->getHash()].size());
+  }
   sealAndSend(_id, BlocksPacket, std::move(s));
 }
 
@@ -1662,35 +1613,6 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &peerID, size_t height_to_syn
       // Iterate through txs / per dag block
       for (uint trx_idx = start_2; trx_idx < end_2; ++trx_idx) {
         dag_rlp.appendRaw(transactions[trx_idx]);
-      }
-
-      // When checking if size limit exceeds MAX_PACKET_SIZE there are few bytes or rlp structure that is added
-      // for the pbft block and dag block. This should be just a couple of bytes but we enforece even stricter 128
-      // limit
-      static const int RLP_OVERHEAD = 128;
-
-      // Check if PBFT blocks need to be split and sent in multiple packets so we dont exceed
-      // MAX_PACKET_SIZE (15 MB) limit
-      if (act_packet_size + dag_blocks_size + dag_rlp.out().size() + pbft_cert_blks[pbft_block_idx].second.size() +
-              RLP_OVERHEAD >
-          MAX_PACKET_SIZE) {
-        LOG(log_dg_dag_sync_) << "Sending partial PbftBlockPacket due tu MAX_PACKET_SIZE limit. " << pbft_block_idx + 1
-                              << " blocks out of " << pbft_cert_blks.size() << " sent.";
-
-        pbft_block_rlp.appendList(1);  // Only list of dag blocks and no pbft block rlp for incomplete packet
-        pbft_block_rlp.appendList(dag_blocks_rlps.size());
-
-        for (auto &dag_block : dag_blocks_rlps) pbft_block_rlp.appendRaw(dag_block);
-
-        pbft_blocks_rlps.emplace_back(pbft_block_rlp.invalidate());
-
-        // Send partial packet
-        sealAndSend(peerID, PbftBlockPacket, create_packet(std::move(pbft_blocks_rlps)));
-
-        act_packet_size = 0;
-        pbft_blocks_rlps.clear();
-        dag_blocks_size = 0;
-        dag_blocks_rlps.clear();
       }
 
       dag_blocks_rlps.push_back(dag_rlp.out());
