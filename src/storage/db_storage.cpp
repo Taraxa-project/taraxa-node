@@ -738,20 +738,20 @@ pair<bool, uint64_t> DbStorage::getPeriodFromPbftHash(taraxa::blk_hash_t const& 
   return {false, 0};
 }
 
-shared_ptr<pair<uint64_t, uint64_t>> DbStorage::getDagBlockPeriod(blk_hash_t const& hash) {
+shared_ptr<pair<uint32_t, uint32_t>> DbStorage::getDagBlockPeriod(blk_hash_t const& hash) {
   auto data = asBytes(lookup(toSlice(hash.asBytes()), Columns::dag_block_period));
   if (data.size() > 0) {
     RLP rlp(data);
     auto it = rlp.begin();
-    auto period = (*it++).toInt<uint64_t>();
-    auto position = (*it++).toInt<uint64_t>();
+    auto period = (*it++).toInt<uint32_t>();
+    auto position = (*it++).toInt<uint32_t>();
 
-    return make_shared<pair<uint64_t, uint64_t>>(period, position);
+    return make_shared<pair<uint32_t, uint32_t>>(period, position);
   }
   return nullptr;
 }
 
-void DbStorage::addDagBlockPeriodToBatch(blk_hash_t const& hash, uint64_t period, uint64_t position,
+void DbStorage::addDagBlockPeriodToBatch(blk_hash_t const& hash, uint32_t period, uint32_t position,
                                          Batch& write_batch) {
   RLPStream s;
   s.appendList(2);

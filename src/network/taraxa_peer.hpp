@@ -56,8 +56,6 @@ class TaraxaPeer : public boost::noncopyable {
   std::atomic<uint64_t> pbft_round_ = 1;
   std::atomic<size_t> pbft_previous_round_next_votes_size_ = 0;
 
-  std::vector<Transaction> sync_transactions_;
-
  private:
   dev::p2p::NodeID m_id;
 

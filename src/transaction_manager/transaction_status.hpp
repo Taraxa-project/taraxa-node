@@ -14,12 +14,12 @@ enum class TransactionStatusEnum {
 class TransactionStatus {
  public:
   TransactionStatusEnum status = TransactionStatusEnum::not_seen;
-  uint64_t period = 0;
-  uint64_t position = 0;
+  uint32_t period = 0;
+  uint32_t position = 0;
 
   TransactionStatus() = default;
 
-  TransactionStatus(TransactionStatusEnum transactionStatus, uint64_t tPeriod = 0, uint64_t tPosition = 0) {
+  TransactionStatus(TransactionStatusEnum transactionStatus, uint32_t tPeriod = 0, uint32_t tPosition = 0) {
     status = transactionStatus;
     period = tPeriod;
     position = tPosition;
@@ -31,8 +31,8 @@ class TransactionStatus {
     }
     auto it = rlp.begin();
     status = (TransactionStatusEnum)(*it++).toInt<uint16_t>();
-    period = (*it++).toInt<uint64_t>();
-    position = (*it++).toInt<uint64_t>();
+    period = (*it++).toInt<uint32_t>();
+    position = (*it++).toInt<uint32_t>();
   }
 
   dev::bytes rlp() const {

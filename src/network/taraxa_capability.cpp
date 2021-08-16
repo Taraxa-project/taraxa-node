@@ -766,15 +766,16 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
           received_dag_blocks_str += dag_blk_h.toString() + " ";
         }
 
+        Transactions transactions;
+
         for (auto const &trx_rlp : *it) {
           auto trx = Transaction(trx_rlp);
           peer->markTransactionAsKnown(trx.getHash());
-          peer->sync_transactions_.emplace_back(trx);
+          transactions.emplace_back(trx);
         }
         LOG(log_nf_dag_sync_) << "PbftBlockPacket: Received Dag Blocks: " << received_dag_blocks_str;
 
-        dag_blk_mgr_->processSyncedTransactions(peer->sync_transactions_);
-        peer->sync_transactions_.clear();
+        dag_blk_mgr_->processSyncedTransactions(transactions);
         for (auto const &block_level : dag_blocks_per_level) {
           for (auto const &block : block_level.second) {
             auto status = checkDagBlockValidation(block);
@@ -788,7 +789,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
               return;
             }
             LOG(log_nf_dag_sync_) << "Storing DAG block " << block.getHash().toString() << " with "
-                                  << peer->sync_transactions_.size() << " transactions";
+                                  << transactions.size() << " transactions";
             if (block.getLevel() > peer->dag_level_) {
               peer->dag_level_ = block.getLevel();
             }

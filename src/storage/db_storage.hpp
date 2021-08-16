@@ -271,8 +271,8 @@ struct DbStorage {
   void addPbftBlockPeriodToBatch(uint64_t period, taraxa::blk_hash_t const& pbft_block_hash, Batch& write_batch);
   pair<bool, uint64_t> getPeriodFromPbftHash(taraxa::blk_hash_t const& pbft_block_hash);
   // dag_block_period
-  shared_ptr<std::pair<uint64_t, uint64_t>> getDagBlockPeriod(blk_hash_t const& hash);
-  void addDagBlockPeriodToBatch(blk_hash_t const& hash, uint64_t period, uint64_t position, Batch& write_batch);
+  shared_ptr<std::pair<uint32_t, uint32_t>> getDagBlockPeriod(blk_hash_t const& hash);
+  void addDagBlockPeriodToBatch(blk_hash_t const& hash, uint32_t period, uint32_t position, Batch& write_batch);
 
   uint64_t getDagBlocksCount() const { return dag_blocks_count_.load(); }
   uint64_t getDagEdgeCount() const { return dag_edge_count_.load(); }
