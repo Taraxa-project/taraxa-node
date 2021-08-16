@@ -406,14 +406,6 @@ std::shared_ptr<PbftBlock> DbStorage::getPbftBlock(uint64_t period) {
   return nullptr;
 }
 
-dev::bytes DbStorage::getTransactionRaw(trx_hash_t const& hash) {
-  auto trx = getTransaction(hash);
-  if (trx) {
-    return *trx->rlp(true);
-  }
-  return dev::bytes();
-}
-
 std::shared_ptr<Transaction> DbStorage::getTransaction(trx_hash_t const& hash) {
   auto status = getTransactionStatus(hash);
   switch (status.status) {
