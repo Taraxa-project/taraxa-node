@@ -43,7 +43,7 @@ struct VrfPbftMsg {
   bytes getRlpBytes() const {
     dev::RLPStream s;
     s.appendList(4);
-    s << type;
+    s << static_cast<uint8_t>(type);
     s << round;
     s << step;
     s << weighted_index;

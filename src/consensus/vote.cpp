@@ -31,7 +31,7 @@ bytes VrfPbftSortition::getRlpBytes() const {
 
   s.appendList(6);
   s << pk;
-  s << pbft_msg.type;
+  s << static_cast<uint8_t>(pbft_msg.type);
   s << pbft_msg.round;
   s << pbft_msg.step;
   s << pbft_msg.weighted_index;

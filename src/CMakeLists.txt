@@ -154,12 +154,8 @@ target_link_libraries(app_base
         CONAN_PKG::boost
         CONAN_PKG::openssl
         CONAN_PKG::gmp
-        CONAN_PKG::snappy
-        CONAN_PKG::zstd
         CONAN_PKG::lz4
         CONAN_PKG::rocksdb
-        CONAN_PKG::bzip2
-        CONAN_PKG::zlib
         CONAN_PKG::mpfr
         aleth #  FIXME: THIS LIB CAUSES LINKING ORDER SENSITIVITY
         )

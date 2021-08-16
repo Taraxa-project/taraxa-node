@@ -31,9 +31,9 @@ will build out of the box without further effort:
     sudo python3 -m pip install conan
 
     # Go (required)
-    wget https://dl.google.com/go/go1.13.7.linux-amd64.tar.gz
-    tar -xf go1.13.7.linux-amd64.tar.gz -C /usr/local
-    rm -rf go1.13.7.linux-amd64.tar.gz
+    wget https://dl.google.com/go/go1.16.3.linux-amd64.tar.gz
+    tar -xf go1.16.3.linux-amd64.tar.gz -C /usr/local
+    rm -rf go1.16.3.linux-amd64.tar.gz
 
     # Add go to PATH
     # Add these env. variables to the ~/.profile to persist go settings even after restart
@@ -41,7 +41,7 @@ will build out of the box without further effort:
     export GOPATH=$HOME/.go
     export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
 
-    # Optional 
+    # Optional
     # We are using clang from llvm toolchain as default compiler as well as clang-format and clang-tidy
     # It is possible to build taraxa-node also with other C++ compilers but to contribute to the official repo,
     # changes must pass clang-format/clang-tidy checks for which we internally use llvm version=13
@@ -55,7 +55,7 @@ will build out of the box without further effort:
     rm -f llvm.sh
 
     # Setup clang as default compiler either in your IDE or by env. variables"
-    export C="clang-12"    
+    export C="clang-12"
     export CXX="clang++-12"
 
 ### Clone the Repository
@@ -74,11 +74,11 @@ will build out of the box without further effort:
     conan profile update settings.compiler.version=12 clang && \
     conan profile update settings.compiler.libcxx=libstdc++11 clang && \
     conan profile update env.CC=clang-12 clang && \
-    conan profile update env.CXX=clang++-12 clang 
+    conan profile update env.CXX=clang++-12 clang
 
-    # Export needed var for conan 
+    # Export needed var for conan
     export CONAN_REVISIONS_ENABLED=1
-    
+
     # Fetch and compile libraries fetched from conan
     conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan" && \
     conan install --build missing -s -pr=clang .
@@ -112,12 +112,12 @@ First you need to get (Brew)[https://brew.sh/] package manager. After that you n
 
 ### Compile
 
-    # Export needed var for conan 
+    # Export needed var for conan
     export CONAN_REVISIONS_ENABLED=1
     # Add bincrafters remote
-    conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan" 
+    conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan"
 
-    # Two build options 
+    # Two build options
         1. Compile project using conan
         conan install -if ../conan-build --build missing -s build_type=Debug .
         conan build -bf ../conan-build -sf . .
@@ -133,15 +133,15 @@ And optional:
     # optional
     make install  # defaults to /usr/local
 
-## Run 
+## Run
 ### Running tests
 
 > OSX: maybe you need to set a new limit for max open files per thread/process: `ulimit -n 200000`
 
     cd cmake-build-release
-    make all_tests 
+    make all_tests
 
-    or 
+    or
 
     cd cd cmake-build-release/tests
     ctest

@@ -28,7 +28,7 @@ else ()
             "--quiet"
 
             # Optional: Specified C++ version
-            "--std=c++17"
+            "--std=c++20"
 
             # folder with source files to be checked
             ${PROJECT_SOURCE_DIR}/src

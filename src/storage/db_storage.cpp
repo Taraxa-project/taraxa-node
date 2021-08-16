@@ -39,6 +39,7 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
   rocksdb::Options options;
   options.create_missing_column_families = true;
   options.create_if_missing = true;
+  options.compression = rocksdb::CompressionType::kLZ4Compression;
   vector<ColumnFamilyDescriptor> descriptors;
   std::transform(Columns::all.begin(), Columns::all.end(), std::back_inserter(descriptors),
                  [](const Column& col) { return ColumnFamilyDescriptor(col.name(), ColumnFamilyOptions()); });

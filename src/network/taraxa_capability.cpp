@@ -87,9 +87,9 @@ bool TaraxaCapability::sealAndSend(NodeID const &nodeID, unsigned packet_type, R
   }
 
   auto begin = std::chrono::steady_clock::now();
-  host->send(nodeID, name(), packet_type, move(rlp.invalidate()), [=] {
+  host->send(nodeID, name(), packet_type, move(rlp.invalidate()), [=, this] {
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - begin);
-    tp_.post([=] {  // schedule it out of the socket session thread. although maybe it's an overkill
+    tp_.post([=, this] {  // schedule it out of the socket session thread. although maybe it's an overkill
       PacketStats packet_stats{nodeID, rlp.out().size(), false, duration};
       sent_packets_stats_.addPacket(packetTypeToString(packet_type), packet_stats);
       LOG(log_dg_net_per_) << "(\"" << node_id_ << "\") sent " << packetTypeToString(packet_type) << " packet to (\""
@@ -142,8 +142,8 @@ std::pair<bool, std::unordered_set<blk_hash_t>> TaraxaCapability::checkDagBlockV
 void TaraxaCapability::requestBlocks(const NodeID &_nodeID, std::unordered_set<blk_hash_t> const &blocks,
                                      GetBlocksPacketRequestType mode) {
   LOG(log_nf_dag_sync_) << "Sending GetBlocksPacket";
-  RLPStream s(blocks.size() + 1);  // Mode + block itself
-  s << mode;                       // Send mode first
+  RLPStream s(blocks.size() + 1);   // Mode + block itself
+  s << static_cast<uint8_t>(mode);  // Send mode first
   for (auto blk : blocks) {
     s << blk;
   }
@@ -163,7 +163,7 @@ void TaraxaCapability::onConnect(weak_ptr<Session> session, u256 const &) {
 
   LOG(log_nf_) << "Node " << _nodeID << " connected";
   auto peer = peers_state_.addPendingPeer(_nodeID);
-  tp_.post([=] {
+  tp_.post([=, this] {
     cnt_received_messages_[_nodeID] = 0;
     test_sums_[_nodeID] = 0;
     sendStatus(_nodeID, true);
@@ -191,7 +191,7 @@ void TaraxaCapability::interpretCapabilityPacket(weak_ptr<Session> session, unsi
   // Delay is used only when we want to simulate some network delay
   uint64_t delay = conf_.network_simulated_delay ? getSimulatedNetworkDelay(_r, _nodeID) : 0;
 
-  tp_.post(delay, [=, _r_copy = _r.data().toBytes()] {
+  tp_.post(delay, [=, this, _r_copy = _r.data().toBytes()] {
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     RLP r(_r_copy);
     PacketStats packet_stats{_nodeID, r.actualSize(), false, std::chrono::microseconds(0)};
@@ -952,7 +952,7 @@ void TaraxaCapability::restartSyncingPbft(bool force) {
 void TaraxaCapability::onDisconnect(NodeID const &_nodeID) {
   LOG(log_nf_) << "Node " << _nodeID << " disconnected";
   peers_state_.erasePeer(_nodeID);
-  tp_.post([=] {
+  tp_.post([=, this] {
     cnt_received_messages_.erase(_nodeID);
     test_sums_.erase(_nodeID);
 
