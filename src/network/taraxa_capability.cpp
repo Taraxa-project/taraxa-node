@@ -746,14 +746,13 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       }
 
       auto itemCount = _r.itemCount();
-      LOG(log_dg_pbft_sync_) << "PbftBlockPacket received" << itemCount;
-
       if (itemCount > 0) {
         auto it = _r.begin();
         bool last_block = (*it++).toInt<bool>();
         it = (*it).begin();
         string received_dag_blocks_str;
         PbftBlock pbft_block(*it++);
+        LOG(log_nf_pbft_sync_) << "PbftBlockPacket received. Period: " << pbft_block.getPeriod();
         std::vector<Vote> votes;
         for (auto const &vote_rlp : *it++) {
           votes.emplace_back(Vote(vote_rlp));
@@ -772,7 +771,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
           peer->markTransactionAsKnown(trx.getHash());
           peer->sync_transactions_.emplace_back(trx);
         }
-        LOG(log_nf_dag_sync_) << "Received Dag Blocks: " << received_dag_blocks_str;
+        LOG(log_nf_dag_sync_) << "PbftBlockPacket: Received Dag Blocks: " << received_dag_blocks_str;
 
         dag_blk_mgr_->processSyncedTransactions(peer->sync_transactions_);
         peer->sync_transactions_.clear();
@@ -1516,72 +1515,29 @@ void TaraxaCapability::onNewPbftBlock(taraxa::PbftBlock const &pbft_block) {
 
 // api for pbft syncing
 void TaraxaCapability::sendPbftBlocks(NodeID const &peerID, size_t height_to_sync, size_t blocks_to_transfer) {
-  LOG(log_dg_pbft_sync_) << "In sendPbftBlocks, peer want to sync from pbft chain height " << height_to_sync
+  LOG(log_dg_pbft_sync_) << "sendPbftBlocks: peer want to sync from pbft chain height " << height_to_sync
                          << ", will send at most " << blocks_to_transfer << " pbft blocks to " << peerID;
   uint64_t current_period = height_to_sync;
   if (blocks_to_transfer == 0) {
     sealAndSend(peerID, PbftBlockPacket, RLPStream(0));
-    LOG(log_dg_pbft_sync_) << "In sendPbftBlocks, send no pbft blocks to " << peerID;
     return;
   }
   while (current_period < height_to_sync + blocks_to_transfer) {
-    bool last_block = current_period == height_to_sync + blocks_to_transfer - 1;
+    bool last_block = (current_period == height_to_sync + blocks_to_transfer - 1);
     auto data = db_->getPeriodDataRaw(current_period);
-    current_period++;
     if (data.size() == 0) {
       sealAndSend(peerID, PbftBlockPacket, RLPStream(0));
-      LOG(log_wr_pbft_sync_) << "No expected pbftblock, send no pbft blocks to " << peerID;
+      LOG(log_er_pbft_sync_) << "Missing pbft block in db, send no pbft blocks to " << peerID;
       return;
     }
-    if (data.size() > 0.95 * MAX_PACKET_SIZE) {
-      // Single PBFT block is larger than MAX_PACKET_SIZE
-      RLP rlp_data(data);
-      auto transactions_data = rlp_data[db_->transactions_pos_in_period_data];
-      uint64_t trx_it = 0;
-      uint64_t trx_to_send = 0;
-      uint64_t trx_total_size = 0;
-      while (trx_it < transactions_data.itemCount()) {
-        trx_total_size += transactions_data[trx_it].actualSize();
-        // If exceeds size or last transaction
-        if (trx_total_size > 0.95 * MAX_PACKET_SIZE || trx_it == transactions_data.itemCount() - 1) {
-          RLPStream s;
-          s.appendList(2);
-          s << false;
-          s.appendList(4);
-          s.append(RLP());
-          s.appendList(0);
-          s.appendList(0);
-          s.appendList(trx_it - trx_to_send);
-          // Include transaction up to 15MB
-          for (uint64_t i = trx_to_send; i < trx_it; i++) {
-            s.append(transactions_data[i]);
-          }
-          trx_to_send = trx_it;
-          trx_total_size = 0;
-          LOG(log_dg_dag_sync_) << "Sending partial PbftBlockPacket due tu MAX_PACKET_SIZE limit with trx_it: "
-                                << trx_it;
-          sealAndSend(peerID, PbftBlockPacket, s);
-        }
-        trx_it++;
-      }
-      RLPStream s;
-      s.appendList(2);
-      s << last_block;
-      s.appendList(4);
-      s.append(rlp_data[db_->pbft_block_pos_in_period_data]);
-      s.append(rlp_data[db_->cert_votes_pos_in_period_data]);
-      s.append(rlp_data[db_->dag_blocks_pos_in_period_data]);
-      s.appendList(0);
-      LOG(log_dg_dag_sync_) << "Sending partial PbftBlockPacket due tu MAX_PACKET_SIZE limit with no trx";
-      sealAndSend(peerID, PbftBlockPacket, s);
-    } else {
-      RLPStream s;
-      s.appendList(2);
-      s << last_block;
-      s.appendRaw(data);
-      LOG(log_dg_pbft_sync_) << "Sending final PbftBlockPacket to " << peerID;
-      sealAndSend(peerID, PbftBlockPacket, s);
-    }
+
+    RLPStream s;
+    s.appendList(2);
+    s << last_block;
+    s.appendRaw(data);
+    LOG(log_dg_pbft_sync_) << "Sending PbftBlockPacket period " << current_period << " to " << peerID;
+    sealAndSend(peerID, PbftBlockPacket, s);
+    current_period++;
   }
 }
 
