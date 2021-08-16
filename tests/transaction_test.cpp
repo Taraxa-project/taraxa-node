@@ -36,6 +36,7 @@ TEST_F(TransactionTest, double_verification) {
   EXPECT_EQ(trx_rlp.itemCount(), 10);  // check if there is sender field
 
   db.saveTransaction(g_signed_trx_samples[0]);  // save it unverified
+  db.saveTransactionStatus(g_signed_trx_samples[0].getHash(), TransactionStatus(TransactionStatusEnum::in_block));
   auto trx_data = db.getTransactionRaw(g_signed_trx_samples[0].getHash());
   trx_rlp = RLP(trx_data);
   EXPECT_EQ(trx_rlp.itemCount(), 9);

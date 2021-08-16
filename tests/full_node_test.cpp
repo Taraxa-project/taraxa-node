@@ -96,6 +96,14 @@ TEST_F(FullNodeTest, db_test) {
   auto batch = db.createWriteBatch();
   db.addTransactionToBatch(g_trx_signed_samples[2], batch);
   db.addTransactionToBatch(g_trx_signed_samples[3], batch);
+  db.addTransactionStatusToBatch(batch, g_trx_signed_samples[0].getHash(),
+                                 TransactionStatus(TransactionStatusEnum::in_block));
+  db.addTransactionStatusToBatch(batch, g_trx_signed_samples[1].getHash(),
+                                 TransactionStatus(TransactionStatusEnum::in_block));
+  db.addTransactionStatusToBatch(batch, g_trx_signed_samples[2].getHash(),
+                                 TransactionStatus(TransactionStatusEnum::in_block));
+  db.addTransactionStatusToBatch(batch, g_trx_signed_samples[3].getHash(),
+                                 TransactionStatus(TransactionStatusEnum::in_block));
   db.commitWriteBatch(batch);
   EXPECT_TRUE(db.transactionInDb(g_trx_signed_samples[0].getHash()));
   EXPECT_TRUE(db.transactionInDb(g_trx_signed_samples[1].getHash()));
@@ -224,10 +232,11 @@ TEST_F(FullNodeTest, db_test) {
   std::vector<DagBlock> vDagBlocks;
   std::vector<Transaction> vTrxs;
 
-  db.savePeriodData(1, pbft_block1, cert_votes, vDagBlocks, vTrxs, batch);
-  db.savePeriodData(2, pbft_block2, vVotes, vDagBlocks, vTrxs, batch);
-  db.savePeriodData(3, pbft_block3, vVotes, vDagBlocks, vTrxs, batch);
-  db.savePeriodData(4, pbft_block4, vVotes, vDagBlocks, vTrxs, batch);
+  db.savePeriodData(pbft_block1, cert_votes, vDagBlocks, vTrxs, batch);
+  db.savePeriodData(pbft_block2, vVotes, vDagBlocks, vTrxs, batch);
+  db.savePeriodData(pbft_block3, vVotes, vDagBlocks, vTrxs, batch);
+  db.savePeriodData(pbft_block4, vVotes, vDagBlocks, vTrxs, batch);
+
   db.commitWriteBatch(batch);
   EXPECT_TRUE(db.pbftBlockInDb(pbft_block1.getBlockHash()));
   EXPECT_TRUE(db.pbftBlockInDb(pbft_block2.getBlockHash()));
@@ -419,11 +428,11 @@ TEST_F(FullNodeTest, db_test) {
 
   // period_pbft_block
   batch = db.createWriteBatch();
-  db.addPbftBlockPeriodToBatch(1, blk_hash_t(1), batch);
-  db.addPbftBlockPeriodToBatch(2, blk_hash_t(2), batch);
+  db.addPbftBlockPeriodToBatch(3, blk_hash_t(1), batch);
+  db.addPbftBlockPeriodToBatch(4, blk_hash_t(2), batch);
   db.commitWriteBatch(batch);
-  EXPECT_EQ(db.getPbftBlock(1)->getBlockHash(), blk_hash_t(1));
-  EXPECT_EQ(db.getPbftBlock(2)->getBlockHash(), blk_hash_t(2));
+  EXPECT_EQ(db.getPeriodFromPbftHash(blk_hash_t(1)).second, 3);
+  EXPECT_EQ(db.getPeriodFromPbftHash(blk_hash_t(2)).second, 4);
 
   // dag_block_period
   batch = db.createWriteBatch();
@@ -865,6 +874,7 @@ TEST_F(FullNodeTest, destroy_db) {
     FullNode::Handle node(node_cfgs[0]);
     auto db = node->getDB();
     db->saveTransaction(g_trx_signed_samples[0]);
+    db->saveTransactionStatus(g_trx_signed_samples[0].getHash(), TransactionStatus(TransactionStatusEnum::in_block));
     // Verify trx saved in db
     EXPECT_TRUE(db->getTransaction(g_trx_signed_samples[0].getHash()));
   }

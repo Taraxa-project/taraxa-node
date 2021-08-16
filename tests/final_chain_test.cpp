@@ -53,7 +53,7 @@ struct FinalChainTest : WithDataDir {
     vDagBlocks.push_back(dag_blk);
 
     auto batch = db->createWriteBatch();
-    db->savePeriodData(1, pbft_block, vVotes, vDagBlocks, trxs, batch);
+    db->savePeriodData(pbft_block, vVotes, vDagBlocks, trxs, batch);
 
     db->commitWriteBatch(batch);
     NewBlock new_blk{

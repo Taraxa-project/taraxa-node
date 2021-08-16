@@ -1576,8 +1576,6 @@ bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes, vec
   auto batch = db_->createWriteBatch();
   LOG(log_nf_) << "Storing cert votes of pbft blk " << pbft_block_hash;
   LOG(log_dg_) << "Stored following cert votes:\n" << cert_votes;
-  // Add period_pbft_block in DB
-  db_->addPbftBlockPeriodToBatch(pbft_period, pbft_block_hash, batch);
   // update PBFT chain size
   pbft_chain_->updatePbftChain(pbft_block_hash);
   // Update PBFT chain head block
@@ -1586,13 +1584,6 @@ bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes, vec
   // Set DAG blocks period
   auto const &anchor_hash = pbft_block->getPivotDagBlockHash();
   dag_mgr_->setDagBlockOrder(anchor_hash, pbft_period, dag_blocks_order, batch);
-
-  // Add dag_block_period in DB
-  uint64_t block_pos = 0;
-  for (auto const &blk_hash : dag_blocks_order) {
-    db_->addDagBlockPeriodToBatch(blk_hash, pbft_period, block_pos, batch);
-    block_pos++;
-  }
 
   DbStorage::MultiGetQuery db_query(db_);
   db_query.append(DbStorage::Columns::dag_blocks, dag_blocks_order);
@@ -1622,7 +1613,7 @@ bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes, vec
     if (trx_raw.size() > 0) transactions.emplace_back(asBytes(trx_raw));
   }
 
-  db_->savePeriodData(pbft_period, *pbft_block, cert_votes, dag_blocks, transactions, batch);
+  db_->savePeriodData(*pbft_block, cert_votes, dag_blocks, transactions, batch);
 
   // Reset last cert voted value to NULL_BLOCK_HASH
   db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::last_cert_voted_value, NULL_BLOCK_HASH, batch);

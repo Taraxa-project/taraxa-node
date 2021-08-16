@@ -293,6 +293,10 @@ void FullNode::rebuildDb() {
     LOG(log_nf_) << "Adding pbft block into queue " << pbft_block.getBlockHash().toString();
     pbft_chain_->setSyncedPbftBlockIntoQueue(pbft_blk_and_votes);
 
+    for (auto const &dag_block : dag_blocks) {
+      dag_blocks_per_level[dag_block.getLevel()].push_back(dag_block);
+    }
+
     // Add dag blocks and transactions from above to the queue
     dag_blk_mgr_->processSyncedTransactions(transactions);
     for (auto const &level : dag_blocks_per_level) {

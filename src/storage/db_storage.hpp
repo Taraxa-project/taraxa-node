@@ -166,7 +166,7 @@ struct DbStorage {
   void loadSnapshots();
 
   // Period data
-  void savePeriodData(uint64_t period, const PbftBlock& pbft_block, const std::vector<Vote>& cert_votes,
+  void savePeriodData(const PbftBlock& pbft_block, const std::vector<Vote>& cert_votes,
                       const std::vector<DagBlock>& dag_blocks, const std::vector<Transaction>& transactions,
                       Batch& write_batch);
   dev::bytes getPeriodDataRaw(uint64_t period);
@@ -174,10 +174,10 @@ struct DbStorage {
                             std::vector<Transaction>& transactions);
   shared_ptr<PbftBlock> getPbftBlock(uint64_t period);
 
-  const int pbft_block_pos_in_period_data = 0;
-  const int cert_votes_pos_in_period_data = 1;
-  const int dag_blocks_pos_in_period_data = 2;
-  const int transactions_pos_in_period_data = 3;
+  static constexpr uint16_t pbft_block_pos_in_period_data = 0;
+  static constexpr uint16_t cert_votes_pos_in_period_data = 1;
+  static constexpr uint16_t dag_blocks_pos_in_period_data = 2;
+  static constexpr uint16_t transactions_pos_in_period_data = 3;
 
   // DAG
   void saveDagBlock(DagBlock const& blk, Batch* write_batch_p = nullptr);

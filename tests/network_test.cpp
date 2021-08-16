@@ -408,9 +408,8 @@ TEST_F(NetworkTest, node_pbft_sync) {
   std::vector<Transaction> vTrxs;
   vTrxs.push_back(g_signed_trx_samples[0]);
   vTrxs.push_back(g_signed_trx_samples[1]);
-  db1->savePeriodData(pbft_block1.getPeriod(), pbft_block1, votes_for_pbft_blk1, vDagBlocks, vTrxs, batch);
+  db1->savePeriodData(pbft_block1, votes_for_pbft_blk1, vDagBlocks, vTrxs, batch);
   // Update period_pbft_block in DB
-  db1->addPbftBlockPeriodToBatch(period, pbft_block1.getBlockHash(), batch);
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block1.getBlockHash());
   // Update PBFT chain head block
@@ -452,10 +451,8 @@ TEST_F(NetworkTest, node_pbft_sync) {
   vDagBlocks.push_back(blk2);
   vTrxs.push_back(g_signed_trx_samples[2]);
   vTrxs.push_back(g_signed_trx_samples[3]);
-  db1->savePeriodData(pbft_block2.getPeriod(), pbft_block2, votes_for_pbft_blk2, vDagBlocks, vTrxs, batch);
+  db1->savePeriodData(pbft_block2, votes_for_pbft_blk2, vDagBlocks, vTrxs, batch);
 
-  // Update period_pbft_block in DB
-  db1->addPbftBlockPeriodToBatch(period, pbft_block2.getBlockHash(), batch);
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block2.getBlockHash());
   // Update PBFT chain head block
@@ -542,9 +539,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   std::vector<Transaction> vTrxs;
   vTrxs.push_back(g_signed_trx_samples[0]);
   vTrxs.push_back(g_signed_trx_samples[1]);
-  db1->savePeriodData(pbft_block1.getPeriod(), pbft_block1, votes_for_pbft_blk1, vDagBlocks, vTrxs, batch);
-  // Update period_pbft_block in DB
-  db1->addPbftBlockPeriodToBatch(period, pbft_block1.getBlockHash(), batch);
+  db1->savePeriodData(pbft_block1, votes_for_pbft_blk1, vDagBlocks, vTrxs, batch);
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block1.getBlockHash());
   // Update PBFT chain head block
@@ -583,9 +578,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   vDagBlocks.push_back(blk2);
   vTrxs.push_back(g_signed_trx_samples[2]);
   vTrxs.push_back(g_signed_trx_samples[3]);
-  db1->savePeriodData(pbft_block2.getPeriod(), pbft_block2, votes_for_pbft_blk1, vDagBlocks, vTrxs, batch);
-  // Update period_pbft_block in DB
-  db1->addPbftBlockPeriodToBatch(period, pbft_block2.getBlockHash(), batch);
+  db1->savePeriodData(pbft_block2, votes_for_pbft_blk1, vDagBlocks, vTrxs, batch);
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block2.getBlockHash());
   // Update PBFT chain head block
