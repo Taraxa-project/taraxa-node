@@ -1569,10 +1569,6 @@ bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes, vec
     }
     return false;
   }
-  if (last_cert_voted_value_ != NULL_BLOCK_HASH && last_cert_voted_value_ != pbft_block_hash) {
-    LOG(log_er_) << "Push block hash " << pbft_block_hash << ", but last cert voted value " << last_cert_voted_value_;
-    assert(false);
-  }
 
   auto pbft_block = pbft_block_cert_votes.pbft_blk;
   auto const &cert_votes = pbft_block_cert_votes.cert_votes;
