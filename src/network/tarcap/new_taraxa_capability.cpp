@@ -114,7 +114,7 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkC
   // Send new txs periodic event
   const auto &tx_handler = packets_handlers_->getSpecificHandler(PriorityQueuePacketType::PQ_TransactionPacket);
   auto tx_packet_handler = std::static_pointer_cast<TransactionPacketHandler>(tx_handler);
-  if (conf.network_transaction_interval > 0) {
+  if (trx_mgr /* just because of tests */ && conf.network_transaction_interval > 0) {
     periodic_events_tp_.post_loop(
         {conf.network_transaction_interval}, [tx_packet_handler = std::move(tx_packet_handler), trx_mgr] {
           tx_packet_handler->onNewTransactions(trx_mgr->getNewVerifiedTrxSnapShotSerialized(), false);
