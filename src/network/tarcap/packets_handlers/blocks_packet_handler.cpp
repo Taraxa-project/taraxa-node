@@ -10,13 +10,15 @@ BlocksPacketHandler::BlocksPacketHandler(std::shared_ptr<PeersState> peers_state
                                          std::shared_ptr<PacketsStats> packets_stats,
                                          std::shared_ptr<SyncingState> syncing_state,
                                          std::shared_ptr<SyncingHandler> syncing_handler,
-                                         std::shared_ptr<DagBlockManager> dag_blk_mgr, const addr_t &node_addr)
+                                         std::shared_ptr<DagBlockManager> dag_blk_mgr, const addr_t& node_addr)
     : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "BLOCKS_PH"),
       syncing_state_(std::move(syncing_state)),
       syncing_handler_(std::move(syncing_handler)),
       dag_blk_mgr_(std::move(dag_blk_mgr)) {}
 
-void BlocksPacketHandler::process(const dev::RLP& packet_rlp, const PacketData& packet_data, const std::shared_ptr<dev::p2p::Host>& host __attribute__((unused)), const std::shared_ptr<TaraxaPeer>& peer) {
+void BlocksPacketHandler::process(const dev::RLP& packet_rlp, const PacketData& packet_data,
+                                  const std::shared_ptr<dev::p2p::Host>& host __attribute__((unused)),
+                                  const std::shared_ptr<TaraxaPeer>& peer) {
   std::string received_dag_blocks_str;
   auto it = packet_rlp.begin();
   const bool is_final_sync_packet = (*it++).toInt<unsigned>();

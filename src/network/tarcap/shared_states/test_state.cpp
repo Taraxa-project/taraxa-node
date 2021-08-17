@@ -52,6 +52,4 @@ size_t TestState::getBlocksSize() const {
   return test_blocks_.size();
 }
 
-
-
 }  // namespace taraxa::network::tarcap

@@ -29,11 +29,13 @@ DagPacketsHandler::DagPacketsHandler(std::shared_ptr<PeersState> peers_state,
 
 thread_local mt19937_64 DagPacketsHandler::urng_{std::mt19937_64(std::random_device()())};
 
-void DagPacketsHandler::process(const dev::RLP& packet_rlp, const PacketData& packet_data, const std::shared_ptr<dev::p2p::Host>& host __attribute__((unused)), const std::shared_ptr<TaraxaPeer>& peer) {
+void DagPacketsHandler::process(const dev::RLP &packet_rlp, const PacketData &packet_data,
+                                const std::shared_ptr<dev::p2p::Host> &host __attribute__((unused)),
+                                const std::shared_ptr<TaraxaPeer> &peer) {
   if (packet_data.type_ == PriorityQueuePacketType::PQ_NewBlockPacket) {
     processNewBlockPacket(packet_rlp, packet_data, peer);
   } else if (packet_data.type_ == PriorityQueuePacketType::PQ_NewBlockHashPacket) {
-    processNewBlockHashPacket(packet_rlp, packet_data,peer);
+    processNewBlockHashPacket(packet_rlp, packet_data, peer);
   } else if (packet_data.type_ == PriorityQueuePacketType::PQ_GetNewBlockPacket) {
     processGetNewBlockPacket(packet_rlp, packet_data, peer);
   } else {
@@ -41,7 +43,8 @@ void DagPacketsHandler::process(const dev::RLP& packet_rlp, const PacketData& pa
   }
 }
 
-inline void DagPacketsHandler::processNewBlockPacket(const dev::RLP &packet_rlp, const PacketData &packet_data, const std::shared_ptr<TaraxaPeer>& peer) {
+inline void DagPacketsHandler::processNewBlockPacket(const dev::RLP &packet_rlp, const PacketData &packet_data,
+                                                     const std::shared_ptr<TaraxaPeer> &peer) {
   // Ignore new block packets when syncing
   if (syncing_state_->is_syncing()) return;
 
@@ -77,7 +80,8 @@ inline void DagPacketsHandler::processNewBlockPacket(const dev::RLP &packet_rlp,
   onNewBlockReceived(block, new_transactions);
 }
 
-inline void DagPacketsHandler::processNewBlockHashPacket(const dev::RLP &packet_rlp, const PacketData &packet_data, const std::shared_ptr<TaraxaPeer>& peer) {
+inline void DagPacketsHandler::processNewBlockHashPacket(const dev::RLP &packet_rlp, const PacketData &packet_data,
+                                                         const std::shared_ptr<TaraxaPeer> &peer) {
   blk_hash_t const hash(packet_rlp[0]);
   LOG(log_dg_) << "Received NewBlockHashPacket " << hash.toString();
 
@@ -94,7 +98,8 @@ inline void DagPacketsHandler::processNewBlockHashPacket(const dev::RLP &packet_
   peer->markBlockAsKnown(hash);
 }
 
-inline void DagPacketsHandler::processGetNewBlockPacket(const dev::RLP &packet_rlp, const PacketData &packet_data, const std::shared_ptr<TaraxaPeer>& peer) {
+inline void DagPacketsHandler::processGetNewBlockPacket(const dev::RLP &packet_rlp, const PacketData &packet_data,
+                                                        const std::shared_ptr<TaraxaPeer> &peer) {
   blk_hash_t const hash(packet_rlp[0]);
   LOG(log_dg_) << "Received GetNewBlockPacket" << hash.toString();
 
@@ -166,13 +171,13 @@ void DagPacketsHandler::onNewBlockReceived(DagBlock block, std::vector<Transacti
   }
 }
 
-bool DagPacketsHandler::hasBlockRequest(const blk_hash_t& block_hash) const {
+bool DagPacketsHandler::hasBlockRequest(const blk_hash_t &block_hash) const {
   std::shared_lock lock(block_requestes_mutex_);
 
   return block_requestes_set_.count(block_hash);
 }
 
-void DagPacketsHandler::insertBlockRequest(const blk_hash_t& block_hash) {
+void DagPacketsHandler::insertBlockRequest(const blk_hash_t &block_hash) {
   std::unique_lock lock(block_requestes_mutex_);
 
   block_requestes_set_.insert(block_hash);

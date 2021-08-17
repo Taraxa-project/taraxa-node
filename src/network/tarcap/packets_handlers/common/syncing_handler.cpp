@@ -20,8 +20,8 @@ SyncingHandler::SyncingHandler(std::shared_ptr<PeersState> peers_state, std::sha
 
 void SyncingHandler::process(const dev::RLP &packet_rlp __attribute__((unused)),
                              const PacketData &packet_data __attribute__((unused)),
-                             const std::shared_ptr<dev::p2p::Host>& host __attribute__((unused)),
-                             const std::shared_ptr<TaraxaPeer>& peer __attribute__((unused))) {}
+                             const std::shared_ptr<dev::p2p::Host> &host __attribute__((unused)),
+                             const std::shared_ptr<TaraxaPeer> &peer __attribute__((unused))) {}
 
 void SyncingHandler::restartSyncingPbft(bool force) {
   if (syncing_state_->is_pbft_syncing() && !force) {

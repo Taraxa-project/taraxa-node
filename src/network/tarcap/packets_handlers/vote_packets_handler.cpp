@@ -16,7 +16,8 @@ VotePacketsHandler::VotePacketsHandler(std::shared_ptr<PeersState> peers_state,
       next_votes_mgr_(std::move(next_votes_mgr)),
       db_(std::move(db)) {}
 
-void VotePacketsHandler::process(const dev::RLP& packet_rlp, const PacketData& packet_data, const std::shared_ptr<dev::p2p::Host>& host, const std::shared_ptr<TaraxaPeer>& peer) {
+void VotePacketsHandler::process(const dev::RLP &packet_rlp, const PacketData &packet_data,
+                                 const std::shared_ptr<dev::p2p::Host> &host, const std::shared_ptr<TaraxaPeer> &peer) {
   if (packet_data.type_ == PriorityQueuePacketType::PQ_PbftVotePacket) {
     processPbftVotePacket(packet_rlp, packet_data, peer);
   } else if (packet_data.type_ == PriorityQueuePacketType::PQ_GetPbftNextVotes) {
@@ -28,7 +29,9 @@ void VotePacketsHandler::process(const dev::RLP& packet_rlp, const PacketData& p
   }
 }
 
-inline void VotePacketsHandler::processPbftVotePacket(const dev::RLP& packet_rlp, const PacketData& packet_data __attribute__((unused)), const std::shared_ptr<TaraxaPeer>& peer) {
+inline void VotePacketsHandler::processPbftVotePacket(const dev::RLP &packet_rlp,
+                                                      const PacketData &packet_data __attribute__((unused)),
+                                                      const std::shared_ptr<TaraxaPeer> &peer) {
   LOG(log_dg_) << "In PbftVotePacket";
 
   Vote vote(packet_rlp[0].toBytes(), false);
@@ -52,7 +55,7 @@ inline void VotePacketsHandler::processPbftVotePacket(const dev::RLP& packet_rlp
 }
 
 inline void VotePacketsHandler::processGetPbftNextVotePacket(const dev::RLP &packet_rlp, const PacketData &packet_data,
-                                                             const std::shared_ptr<TaraxaPeer>& peer) {
+                                                             const std::shared_ptr<TaraxaPeer> &peer) {
   LOG(log_dg_) << "Received GetPbftNextVotes request";
 
   const uint64_t peer_pbft_round = packet_rlp[0].toPositiveInt64();
@@ -78,7 +81,9 @@ inline void VotePacketsHandler::processGetPbftNextVotePacket(const dev::RLP &pac
   }
 }
 
-inline void VotePacketsHandler::processPbftNextVotesPacket(const dev::RLP &packet_rlp, const PacketData &packet_data, const std::shared_ptr<dev::p2p::Host>& host, const std::shared_ptr<TaraxaPeer>& peer) {
+inline void VotePacketsHandler::processPbftNextVotesPacket(const dev::RLP &packet_rlp, const PacketData &packet_data,
+                                                           const std::shared_ptr<dev::p2p::Host> &host,
+                                                           const std::shared_ptr<TaraxaPeer> &peer) {
   const auto next_votes_count = packet_rlp.itemCount();
   if (next_votes_count == 0) {
     LOG(log_er_) << "Receive 0 next votes from peer " << packet_data.from_node_id_

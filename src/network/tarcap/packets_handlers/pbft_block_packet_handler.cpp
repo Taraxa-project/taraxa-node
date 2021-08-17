@@ -21,7 +21,9 @@ PbftBlockPacketHandler::PbftBlockPacketHandler(std::shared_ptr<PeersState> peers
       pbft_chain_(std::move(pbft_chain)),
       dag_blk_mgr_(std::move(dag_blk_mgr)) {}
 
-void PbftBlockPacketHandler::process(const dev::RLP& packet_rlp, const PacketData& packet_data, const std::shared_ptr<dev::p2p::Host>& host, const std::shared_ptr<TaraxaPeer>& peer) {
+void PbftBlockPacketHandler::process(const dev::RLP &packet_rlp, const PacketData &packet_data,
+                                     const std::shared_ptr<dev::p2p::Host> &host,
+                                     const std::shared_ptr<TaraxaPeer> &peer) {
   // Also handle SyncedPacket here
   if (packet_data.type_ == PriorityQueuePacketType::PQ_SyncedPacket) {
     LOG(log_dg_) << "Received synced message from " << packet_data.from_node_id_;

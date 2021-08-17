@@ -19,7 +19,9 @@ GetPbftBlockPacketHandler::GetPbftBlockPacketHandler(std::shared_ptr<PeersState>
       db_(std::move(db)),
       network_sync_level_size_(network_sync_level_size) {}
 
-void GetPbftBlockPacketHandler::process(const dev::RLP& packet_rlp, const PacketData& packet_data, const std::shared_ptr<dev::p2p::Host>& host __attribute__((unused)), const std::shared_ptr<TaraxaPeer>& peer __attribute__((unused))) {
+void GetPbftBlockPacketHandler::process(const dev::RLP &packet_rlp, const PacketData &packet_data,
+                                        const std::shared_ptr<dev::p2p::Host> &host __attribute__((unused)),
+                                        const std::shared_ptr<TaraxaPeer> &peer __attribute__((unused))) {
   LOG(log_dg_) << "Received GetPbftBlockPacket Block";
 
   const size_t height_to_sync = packet_rlp[0].toInt();
