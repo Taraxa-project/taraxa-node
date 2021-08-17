@@ -12,6 +12,17 @@
 namespace taraxa::network::tarcap {
 
 class PacketsBlockingMask {
+ private:
+  struct TimeBlock {
+    // How many packets (of the same type & received from the same peer) are currently being processed concurrently.
+    // It is used to decide when to delete TimeBlock -> delete time block when concurrent_processing_count_ == 0
+    // Note: concurrent_processing_count_ != times_.size() as in some edge case packets could have the same receive
+    // times and concurrent_processing_count_ would be > times_.size() in such case
+    size_t concurrent_processing_count_;
+    // Packet is blocked if its "receive time" >= times_.begin()
+    std::set<std::chrono::steady_clock::time_point> times_;
+  };
+
  public:
   // Note: calling markPacketAsHardBlocked and markPacketAsPeerTimeBlocked on the same packet_type would not work
   void markPacketAsHardBlocked(PriorityQueuePacketType packet_type);
@@ -32,8 +43,7 @@ class PacketsBlockingMask {
   // time, e.g.: new dag block packet processing is blocked until all transactions packets that were received before it
   // are processed. This blocking dependency is applied only for the same peer so transaction packet from one peer does
   // not block new dag block packet from another peer
-  std::unordered_map<PriorityQueuePacketType,
-                     std::unordered_map<dev::p2p::NodeID, std::chrono::steady_clock::time_point>>
+  std::unordered_map<PriorityQueuePacketType, std::unordered_map<dev::p2p::NodeID, TimeBlock>>
       blocked_packets_peers_time_;
 };
 
