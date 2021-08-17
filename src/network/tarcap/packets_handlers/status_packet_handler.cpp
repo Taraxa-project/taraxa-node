@@ -27,7 +27,9 @@ StatusPacketHandler::StatusPacketHandler(std::shared_ptr<PeersState> peers_state
       pbft_mgr_(std::move(pbft_mgr)),
       conf_network_id_(conf_network_id) {}
 
-void StatusPacketHandler::process(const dev::RLP& packet_rlp, const PacketData& packet_data, const std::shared_ptr<dev::p2p::Host>& host, const std::shared_ptr<TaraxaPeer>& peer) {
+void StatusPacketHandler::process(const dev::RLP& packet_rlp, const PacketData& packet_data,
+                                  const std::shared_ptr<dev::p2p::Host>& host,
+                                  const std::shared_ptr<TaraxaPeer>& peer) {
   bool initial_status = packet_rlp.itemCount() == INITIAL_STATUS_PACKET_ITEM_COUNT;
 
   // Important !!! Use only "selected_peer" and not "peer" in this function as "peer" might be nullptr
@@ -92,13 +94,21 @@ void StatusPacketHandler::process(const dev::RLP& packet_rlp, const PacketData& 
     peers_state_->setPeerAsReadyToSendMessages(packet_data.from_node_id_, selected_peer);
 
     LOG(log_dg_) << "Received initial status message from " << packet_data.from_node_id_ << ", network id "
-                 << peer_network_id << ", peer DAG max level " << selected_peer->dag_level_ << ", genesis " << genesis_hash
-                 << ", peer pbft chain size " << selected_peer->pbft_chain_size_ << ", peer syncing " << std::boolalpha
-                 << selected_peer->syncing_ << ", peer pbft round " << selected_peer->pbft_round_
+                 << peer_network_id << ", peer DAG max level " << selected_peer->dag_level_ << ", genesis "
+                 << genesis_hash << ", peer pbft chain size " << selected_peer->pbft_chain_size_ << ", peer syncing "
+                 << std::boolalpha << selected_peer->syncing_ << ", peer pbft round " << selected_peer->pbft_round_
                  << ", peer pbft previous round next votes size " << selected_peer->pbft_previous_round_next_votes_size_
                  << ", node major version" << node_major_version << ", node minor version" << node_minor_version;
 
   } else {
+    // TODO: initial and standard status packet could be separated...
+    if (!selected_peer) {
+      LOG(log_er_) << "Received standard status packet from " << packet_data.from_node_id_.abridged()
+                   << ", without previously received initial status packet. Will be disconnected";
+      host->disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
+      return;
+    }
+
     auto it = packet_rlp.begin();
     selected_peer->dag_level_ = (*it++).toPositiveInt64();
     selected_peer->pbft_chain_size_ = (*it++).toPositiveInt64();
@@ -162,9 +172,9 @@ bool StatusPacketHandler::sendStatus(const dev::p2p::NodeID& node_id, bool initi
   if (dag_mgr_) {
     std::string status_packet_type = initial ? "initial" : "standard";
 
-    LOG(log_dg_) << "Sending " << status_packet_type << " status message to " << node_id
-                 << ", protocol version " << TARAXA_NET_VERSION << ", network id " << conf_network_id_ << ", genesis "
-                 << dag_mgr_->get_genesis() << ", node version " << TARAXA_VERSION;
+    LOG(log_dg_) << "Sending " << status_packet_type << " status message to " << node_id << ", protocol version "
+                 << TARAXA_NET_VERSION << ", network id " << conf_network_id_ << ", genesis " << dag_mgr_->get_genesis()
+                 << ", node version " << TARAXA_VERSION;
 
     auto dag_max_level = dag_mgr_->getMaxLevel();
     auto pbft_chain_size = pbft_chain_->getPbftChainSize();
