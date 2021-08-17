@@ -77,7 +77,6 @@ class Network {
   std::shared_ptr<dev::p2p::Host> host_;
   std::shared_ptr<network::tarcap::TaraxaCapability> taraxa_capability_;
   std::map<Public, dev::p2p::NodeIPEndpoint> boot_nodes_;
-  util::ThreadPool diagnostic_thread_{1, false};
 
   LOG_OBJECTS_DEFINE
 };

@@ -32,6 +32,7 @@ Network::Network(NetworkConfig const &config, std::filesystem::path const &netwo
   taraxa_net_conf.peer_stretch = conf_.network_max_peer_count / conf_.network_ideal_peer_count;
   taraxa_net_conf.is_boot_node = conf_.network_is_boot_node;
   taraxa_net_conf.expected_parallelism = tp_.capacity();
+
   for (auto const &node : conf_.network_boot_nodes) {
     Public pub(node.id);
     if (pub == key.pub()) {
@@ -43,6 +44,7 @@ Network::Network(NetworkConfig const &config, std::filesystem::path const &netwo
     boot_nodes_[pub] = dev::p2p::NodeIPEndpoint(ip.second.address(), node.tcp_port, node.tcp_port);
   }
   LOG(log_nf_) << " Number of boot node added: " << boot_nodes_.size() << std::endl;
+
   string net_version = "TaraxaNode";  // TODO maybe give a proper name?
   auto construct_capabilities = [&, this](auto host) {
     taraxa_capability_ = std::make_shared<network::tarcap::TaraxaCapability>(
@@ -51,12 +53,14 @@ Network::Network(NetworkConfig const &config, std::filesystem::path const &netwo
   };
   host_ = dev::p2p::Host::make(net_version, construct_capabilities, key, net_conf, move(taraxa_net_conf),
                                network_file_path);
+
   for (uint i = 0; i < tp_.capacity(); ++i) {
     tp_.post_loop({100 + i * 20}, [this] {
       while (0 < host_->do_work())
         ;
     });
   }
+
   if (!boot_nodes_.empty()) {
     for (auto const &[k, v] : boot_nodes_) {
       host_->addNode(dev::p2p::Node(k, v, dev::p2p::PeerType::Required));
@@ -76,20 +80,18 @@ Network::Network(NetworkConfig const &config, std::filesystem::path const &netwo
       }
     });
   }
-  diagnostic_thread_.post_loop({30000},
-                               [this] { LOG(log_nf_) << "NET_TP_NUM_PENDING_TASKS=" << tp_.num_pending_tasks(); });
+
+  tp_.post_loop({30000},[this] { LOG(log_nf_) << "NET_TP_NUM_PENDING_TASKS=" << tp_.num_pending_tasks(); });
 }
 
 Network::~Network() {
   tp_.stop();
   taraxa_capability_->stop();
-  diagnostic_thread_.stop();
 }
 
 void Network::start() {
   tp_.start();
   taraxa_capability_->start();
-  diagnostic_thread_.start();
   LOG(log_nf_) << "Started Network address: " << conf_.network_address << ":" << conf_.network_tcp_port << std::endl;
   LOG(log_nf_) << "Started Node id: " << host_->id();
 }
