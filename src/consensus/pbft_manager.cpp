@@ -394,6 +394,7 @@ bool PbftManager::resetRound_() {
     // reset next voted value since start a new round
     next_voted_null_block_hash_ = false;
     next_voted_soft_value_ = false;
+    polling_state_print_log_ = true;
 
     reset_own_value_to_null_block_hash_in_this_round_ = false;
 
@@ -582,6 +583,7 @@ void PbftManager::setFilterState_() {
   next_step_time_ms_ = 2 * LAMBDA_ms;
   last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
   current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
+  polling_state_print_log_ = true;
 }
 
 void PbftManager::setCertifyState_() {
@@ -590,6 +592,7 @@ void PbftManager::setCertifyState_() {
   next_step_time_ms_ = 2 * LAMBDA_ms;
   last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
   current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
+  polling_state_print_log_ = true;
 }
 
 void PbftManager::setFinishState_() {
@@ -599,6 +602,7 @@ void PbftManager::setFinishState_() {
   next_step_time_ms_ = 4 * LAMBDA_ms;
   last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
   current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
+  polling_state_print_log_ = true;
 }
 
 void PbftManager::setFinishPollingState_() {
@@ -610,6 +614,7 @@ void PbftManager::setFinishPollingState_() {
   db_->commitWriteBatch(batch);
   next_voted_soft_value_ = false;
   next_voted_null_block_hash_ = false;
+  polling_state_print_log_ = true;
   last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
   current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
 }
@@ -642,6 +647,7 @@ void PbftManager::loopBackFinishState_() {
   db_->commitWriteBatch(batch);
   next_voted_soft_value_ = false;
   next_voted_null_block_hash_ = false;
+  polling_state_print_log_ = true;
   assert(step_ >= startingStepInRound_);
   next_step_time_ms_ = (1 + step_ - startingStepInRound_) * LAMBDA_ms;
   last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
@@ -1652,8 +1658,11 @@ bool PbftManager::giveUpNextVotedBlock_() {
 
   if (last_cert_voted_value_ != NULL_BLOCK_HASH) {
     // Last cert voted value should equal to voted value
-    LOG(log_nf_) << "In round " << round << " step " << step_ << ", last cert voted value is "
-                 << last_cert_voted_value_;
+    if (polling_state_print_log_) {
+      LOG(log_nf_) << "In round " << round << " step " << step_ << ", last cert voted value is "
+                   << last_cert_voted_value_;
+      polling_state_print_log_ = false;
+    }
     return false;
   }
 
