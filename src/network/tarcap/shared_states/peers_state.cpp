@@ -84,10 +84,6 @@ void PeersState::erasePeer(dev::p2p::NodeID const& node_id) {
   std::unique_lock lock(peers_mutex_);
   pending_peers_.erase(node_id);
   peers_.erase(node_id);
-
-  std::cout << std::endl
-            << "*** " << node_id_.abridged() << " ***: Peer " << node_id.abridged() << " erased from peers list"
-            << std::endl;
 }
 
 std::shared_ptr<TaraxaPeer> PeersState::setPeerAsReadyToSendMessages(dev::p2p::NodeID const& node_id,
@@ -98,10 +94,6 @@ std::shared_ptr<TaraxaPeer> PeersState::setPeerAsReadyToSendMessages(dev::p2p::N
   if (!ret.second) {
     // LOG(log_er_) << "Peer " << node_id.abridged() << " is already in peers list";
   }
-
-  std::cout << std::endl
-            << "*** " << node_id_.abridged() << " ***: Peer " << node_id.abridged() << " added to peers list"
-            << std::endl;
 
   return ret.first->second;
 }
