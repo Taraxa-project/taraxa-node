@@ -18,13 +18,14 @@ class TransactionPacketHandler : public PacketHandler {
   TransactionPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
                            std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
                            std::shared_ptr<TestState> test_state, uint16_t network_transaction_interval,
-                           const addr_t &node_addr = {});
+                           const addr_t& node_addr = {});
 
-  void onNewTransactions(std::vector<taraxa::bytes> const &transactions, bool fromNetwork);
-  void sendTransactions(dev::p2p::NodeID const &peer_id, std::vector<taraxa::bytes> const &transactions);
+  void onNewTransactions(std::vector<taraxa::bytes> const& transactions, bool fromNetwork);
+  void sendTransactions(dev::p2p::NodeID const& peer_id, std::vector<taraxa::bytes> const& transactions);
 
  private:
-  void process(const dev::RLP& packet_rlp, const PacketData& packet_data, const std::shared_ptr<dev::p2p::Host>& host, const std::shared_ptr<TaraxaPeer>& peer) override;
+  void process(const dev::RLP& packet_rlp, const PacketData& packet_data, const std::shared_ptr<dev::p2p::Host>& host,
+               const std::shared_ptr<TaraxaPeer>& peer) override;
 
   std::shared_ptr<TransactionManager> trx_mgr_;
 
@@ -33,8 +34,8 @@ class TransactionPacketHandler : public PacketHandler {
   std::shared_ptr<TestState> test_state_;
 
   const uint16_t network_transaction_interval_;
-  std::atomic<uint64_t> received_trx_count_ { 0 };
-  std::atomic<uint64_t> unique_received_trx_count_ { 0 };
+  std::atomic<uint64_t> received_trx_count_{0};
+  std::atomic<uint64_t> unique_received_trx_count_{0};
 };
 
 }  // namespace taraxa::network::tarcap

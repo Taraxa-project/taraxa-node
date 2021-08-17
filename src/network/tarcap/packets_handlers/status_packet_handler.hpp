@@ -26,7 +26,8 @@ class StatusPacketHandler : public PacketHandler {
   void checkLiveness();
 
  private:
-  void process(const dev::RLP& packet_rlp, const PacketData& packet_data, const std::shared_ptr<dev::p2p::Host>& host, const std::shared_ptr<TaraxaPeer>& peer) override;
+  void process(const dev::RLP& packet_rlp, const PacketData& packet_data, const std::shared_ptr<dev::p2p::Host>& host,
+               const std::shared_ptr<TaraxaPeer>& peer) override;
 
   static constexpr uint16_t MAX_CHECK_ALIVE_COUNT = 5;
   static constexpr uint16_t INITIAL_STATUS_PACKET_ITEM_COUNT = 10;

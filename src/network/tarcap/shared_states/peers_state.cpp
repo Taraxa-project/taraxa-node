@@ -7,7 +7,7 @@ PeersState::PeersState(std::weak_ptr<dev::p2p::Host>&& host) : host_(std::move(h
   auto tmp_host = host_.lock();
   assert(tmp_host);
 
-  //node_id_ = tmp_host->id();
+  // node_id_ = tmp_host->id();
 }
 
 std::shared_ptr<TaraxaPeer> PeersState::getPeer(const dev::p2p::NodeID& node_id) {

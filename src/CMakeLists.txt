@@ -146,6 +146,7 @@ set(SOURCES
         network/tarcap/threadpool/packets_queue.cpp
         network/tarcap/threadpool/packet_data.cpp
         network/tarcap/threadpool/packets_blocking_mask.cpp
+        network/tarcap/shared_states/test_state.cpp
         network/tarcap/shared_states/peers_state.cpp
         network/tarcap/packets_handler.cpp
         network/tarcap/shared_states/syncing_state.cpp

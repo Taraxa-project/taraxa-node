@@ -17,7 +17,9 @@ GetBlocksPacketsHandler::GetBlocksPacketsHandler(std::shared_ptr<PeersState> pee
       dag_mgr_(std::move(dag_mgr)),
       db_(std::move(db)) {}
 
-void GetBlocksPacketsHandler::process(const dev::RLP& packet_rlp, const PacketData& packet_data, const std::shared_ptr<dev::p2p::Host>& host __attribute__((unused)), const std::shared_ptr<TaraxaPeer>& peer __attribute__((unused))) {
+void GetBlocksPacketsHandler::process(const dev::RLP &packet_rlp, const PacketData &packet_data,
+                                      const std::shared_ptr<dev::p2p::Host> &host __attribute__((unused)),
+                                      const std::shared_ptr<TaraxaPeer> &peer __attribute__((unused))) {
   std::unordered_set<blk_hash_t> blocks_hashes;
   std::vector<std::shared_ptr<DagBlock>> dag_blocks;
   auto it = packet_rlp.begin();

@@ -41,7 +41,8 @@ class PacketHandler {
    * @brief Main packet processing function
    * @note packet_rlp is RLP object created from packet_data.rlp_bytes
    */
-  virtual void process(const dev::RLP& packet_rlp, const PacketData& packet_data, const std::shared_ptr<dev::p2p::Host>& host, const std::shared_ptr<TaraxaPeer>& peer) = 0;
+  virtual void process(const dev::RLP& packet_rlp, const PacketData& packet_data,
+                       const std::shared_ptr<dev::p2p::Host>& host, const std::shared_ptr<TaraxaPeer>& peer) = 0;
 
  protected:
   static constexpr uint32_t MAX_PACKET_SIZE = 15 * 1024 * 1024;  // 15 MB -> 15 * 1024 * 1024 B
