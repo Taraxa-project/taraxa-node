@@ -95,11 +95,11 @@ add_make_target(vrf libsodium.a "${VRF_AUTOTOOLS_CMD} && ${CMAKE_MAKE_PROGRAM} &
 
 # Add taraxa-evm
 ## add include of libs
-set(EVM_BUILD_INCLUDE -I${CONAN_INCLUDE_DIRS_LZ4} -I${CONAN_INCLUDE_DIRS_ROCKSDB})
+set(EVM_BUILD_INCLUDE -I${CONAN_INCLUDE_DIRS_ROCKSDB})
 ## set C flags
 set(EVM_BUILD_CGO_CFLAGS -O3 ${EVM_BUILD_INCLUDE})
 ## add link of libs
-set(EVM_BUILD_LD -L${CONAN_LIB_DIRS_LZ4} -llz4 -L${CONAN_LIB_DIRS_ROCKSDB} -lrocksdb)
+set(EVM_BUILD_LD -L${CONAN_LIB_DIRS_ROCKSDB} -lrocksdb -L${CONAN_LIB_DIRS_LZ4} -llz4)
 ## if we need full static build use flag
 if(TARAXA_STATIC_BUILD)
     if (NOT APPLE)

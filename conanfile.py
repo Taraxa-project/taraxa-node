@@ -18,10 +18,10 @@ class TaraxaConan(ConanFile):
         self.requires("openssl/1.1.1k")
         self.requires("cryptopp/8.5.0")
         self.requires("gtest/1.11.0")
+        self.requires("lz4/1.9.3")
         self.requires("rocksdb/6.10.2") # we currently can go higher as golang rocskdb wrapper is limiting us
         self.requires("gmp/6.2.1")
         self.requires("mpfr/4.1.0")
-        self.requires("lz4/1.9.3")
         self.requires("libjson-rpc-cpp/1.3.0@bincrafters/stable")
 
     def _configure_boost_libs(self):
@@ -61,6 +61,7 @@ class TaraxaConan(ConanFile):
         # Configure gtest
         self.options["gtest"].build_gmock = False
         self.options["rocksdb"].use_rtti = True
+        self.options["rocksdb"].with_lz4= True
         self.options["libjson-rpc-cpp"].shared = False
 
     def _configure_cmake(self):
