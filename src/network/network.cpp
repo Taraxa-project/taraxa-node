@@ -47,6 +47,8 @@ Network::Network(NetworkConfig const &config, std::filesystem::path const &netwo
 
   string net_version = "TaraxaNode";  // TODO maybe give a proper name?
   auto construct_capabilities = [&, this](auto host) {
+    assert(!host.expired());
+
     taraxa_capability_ = std::make_shared<network::tarcap::TaraxaCapability>(
         host, conf_, db, pbft_mgr, pbft_chain, vote_mgr, next_votes_mgr, dag_mgr, dag_blk_mgr, trx_mgr, key.address());
     return dev::p2p::Host::CapabilityList{taraxa_capability_};

@@ -2,13 +2,7 @@
 
 namespace taraxa::network::tarcap {
 
-// TODO: this will throw in case host == nullptr
-PeersState::PeersState(std::weak_ptr<dev::p2p::Host>&& host) : host_(std::move(host)), node_id_(host_.lock()->id()) {
-  auto tmp_host = host_.lock();
-  assert(tmp_host);
-
-  // node_id_ = tmp_host->id();
-}
+PeersState::PeersState(std::weak_ptr<dev::p2p::Host>&& host) : host_(std::move(host)), node_id_(host_.lock()->id()) {}
 
 std::shared_ptr<TaraxaPeer> PeersState::getPeer(const dev::p2p::NodeID& node_id) {
   std::shared_lock lock(peers_mutex_);
