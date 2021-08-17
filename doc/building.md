@@ -20,7 +20,6 @@ will build out of the box without further effort:
         autoconf \
         ccache cmake gcc g++ clang-format clang-tidy cppcheck \
         libgflags-dev\
-        libscrypt-dev \
         libjsoncpp-dev \
         libjsonrpccpp-dev \
         python3-pip

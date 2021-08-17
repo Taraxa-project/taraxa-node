@@ -32,10 +32,6 @@ add_library(
 )
 target_include_directories(ethash PUBLIC ${include_dir})
 
-# Add scrypt
-add_subdirectory(libscrypt)
-include_directories(libscrypt)
-
 # Add aleth
 add_subdirectory(taraxa-aleth)
 

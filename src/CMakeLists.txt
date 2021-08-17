@@ -148,7 +148,6 @@ target_link_libraries(app_base
         taraxa-vdf
         taraxa-evm
         pthread
-        scrypt
         CONAN_PKG::jsoncpp
         CONAN_PKG::libjson-rpc-cpp
         CONAN_PKG::boost
