@@ -27,15 +27,14 @@ void PacketsBlockingMask::markPacketAsPeerTimeBlocked(const PacketData& blocking
   // There is no existing peer time block for specific packet_type & peer_id, create new one
   auto& peer_time_blocks = blocked_packets_peers_time_[packet_to_be_blocked];
   if (!peer_time_blocks.count(blocking_packet.from_node_id_)) {
-    peer_time_blocks[blocking_packet.from_node_id_] = blocking_packet.receive_time_;
+    peer_time_blocks[blocking_packet.from_node_id_] = {1, {blocking_packet.receive_time_}};
     return;
   }
 
-  // There is existing peer time block for specific packet_type & peer_id, update it if new time > existing time
-  auto& block_time = peer_time_blocks[blocking_packet.from_node_id_];
-  if (blocking_packet.receive_time_ > block_time) {
-    block_time = blocking_packet.receive_time_;
-  }
+  // There is existing peer time block for specific packet_type & peer_id, update it
+  auto& time_block = peer_time_blocks[blocking_packet.from_node_id_];
+  time_block.concurrent_processing_count_++;
+  time_block.times_.insert(blocking_packet.receive_time_);
 }
 
 void PacketsBlockingMask::markPacketAsPeerTimeUnblocked(const PacketData& blocking_packet,
@@ -44,17 +43,21 @@ void PacketsBlockingMask::markPacketAsPeerTimeUnblocked(const PacketData& blocki
   assert(blocked_packet_peers_time != blocked_packets_peers_time_.end());
 
   auto peers_time_block = blocked_packet_peers_time->second.find(blocking_packet.from_node_id_);
-  // Might be already deleted by a packet with higher time, whose process function finished before this one
-  if (peers_time_block == blocked_packet_peers_time->second.end()) {
+  assert(peers_time_block != blocked_packet_peers_time->second.end());
+
+  assert(peers_time_block->second.concurrent_processing_count_);
+
+  // Do not delete time_block if there is currently multiple packets (of the same type & same peer) being processed
+  if (peers_time_block->second.concurrent_processing_count_ > 1) {
+    peers_time_block->second.concurrent_processing_count_--;
+
+    assert(peers_time_block->second.times_.find(blocking_packet.receive_time_) !=
+           peers_time_block->second.times_.end());
+    peers_time_block->second.times_.erase(blocking_packet.receive_time_);
     return;
   }
 
-  // There might be a new peers_time block with higher time applied and in such case he is responsible for deleting such
-  // block
-  if (blocking_packet.receive_time_ != peers_time_block->second) {
-    return;
-  }
-
+  // Delete time_block once the last packet (of the same type & same peer) is processed
   blocked_packet_peers_time->second.erase(peers_time_block);
 
   // TODO: in case blocked_packet_peers_time.empty() == true, we might even erase
@@ -83,7 +86,7 @@ bool PacketsBlockingMask::isPacketBlocked(const PacketData& packet_data) const {
 
   // There is peers_time block for packet_data.from_node_id_ packet type and packet_data.from_node_id_ peer
   // Block all packets that were received after peers_time block timestamp
-  if (packet_data.receive_time_ >= peers_time_block->second) {
+  if (packet_data.receive_time_ >= *peers_time_block->second.times_.begin()) {
     return true;
   }
 
