@@ -116,7 +116,7 @@ Json::Value Network::getStatus() { return taraxa_capability_->getStatus(); }
 std::vector<NodeID> Network::getAllPeersIDs() const { return taraxa_capability_->getAllPeersIDs(); }
 
 void Network::onNewBlockVerified(shared_ptr<DagBlock> const &blk) {
-  tp_.post([=, this] {
+  tp_.post([this, blk] {
     taraxa_capability_->onNewBlockVerified(*blk);
     LOG(log_dg_) << "On new block verified:" << blk->getHash().toString();
   });
@@ -134,7 +134,7 @@ void Network::restartSyncingPbft(bool force) {
 }
 
 void Network::onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_block) {
-  tp_.post([=, this] {
+  tp_.post([this, pbft_block] {
     LOG(log_dg_) << "Network broadcast PBFT block: " << pbft_block->getBlockHash();
     taraxa_capability_->onNewPbftBlock(*pbft_block);
   });
