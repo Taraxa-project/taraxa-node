@@ -44,7 +44,9 @@ void NodeStats::logNodeStats() {
   uint64_t peer_max_pbft_round = 1;
   uint64_t peer_max_pbft_chain_size = 1;
   uint64_t peer_max_node_dag_level = 1;
+
   const size_t peers_size = peers_state_->getPeersCount();
+  std::string connected_peers_str{""};
 
   for (auto const &peer : peers_state_->getAllPeers()) {
     // Find max pbft chain size
@@ -64,6 +66,8 @@ void NodeStats::logNodeStats() {
       peer_max_pbft_round = peer.second->pbft_round_;
       max_pbft_round_node_id = peer.first;
     }
+
+    connected_peers_str += peer.first.abridged() + " ";
   }
 
   // Local dag info...
@@ -114,7 +118,7 @@ void NodeStats::logNodeStats() {
     intervals_in_sync_since_launch_++;
   }
 
-  LOG(log_nf_) << "Connected to " << peers_size << " peers";
+  LOG(log_nf_) << "Connected to " << peers_size << " peers: [ " << connected_peers_str << "]";
 
   if (is_syncing) {
     // Syncing...
