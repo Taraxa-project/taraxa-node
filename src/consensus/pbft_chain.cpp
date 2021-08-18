@@ -110,9 +110,20 @@ PbftBlockCert::PbftBlockCert(PbftBlock const& pbft_blk, std::vector<Vote> const&
     : pbft_blk(new PbftBlock(pbft_blk)), cert_votes(cert_votes) {}
 
 PbftBlockCert::PbftBlockCert(dev::RLP const& rlp) {
-  pbft_blk.reset(new PbftBlock(rlp[0]));
-  for (auto const el : rlp[1]) {
-    cert_votes.emplace_back(el);
+  auto it = rlp.begin();
+  pbft_blk = make_shared<PbftBlock>(*it++);
+  for (auto const vote_rlp : *it++) {
+    cert_votes.emplace_back(vote_rlp);
+  }
+
+  for (auto const& dag_block_rlp : *it++) {
+    DagBlock block(dag_block_rlp);
+    dag_blocks_per_level[block.getLevel()].emplace_back(block);
+  }
+
+  for (auto const& trx_rlp : *it) {
+    auto trx = Transaction(trx_rlp);
+    transactions.emplace_back(trx);
   }
 }
 
@@ -126,10 +137,6 @@ bytes PbftBlockCert::rlp() const {
     s.appendRaw(v.rlp(true));
   }
   return s.out();
-}
-
-void PbftBlockCert::encode_raw(RLPStream& rlp, PbftBlock const& pbft_blk, dev::bytesConstRef votes_raw) {
-  rlp.appendList(2).appendRaw(pbft_blk.rlp(true)).appendRaw(votes_raw);
 }
 
 std::ostream& operator<<(std::ostream& strm, PbftBlockCert const& b) {
@@ -208,74 +215,17 @@ std::shared_ptr<PbftBlock> PbftChain::getUnverifiedPbftBlock(const taraxa::blk_h
   return nullptr;
 }
 
-std::vector<std::pair<PbftBlock, bytes>> PbftChain::getPbftBlocks(size_t period, size_t count) {
-  std::vector<std::pair<PbftBlock, bytes>> result;
-  DbStorage::MultiGetQuery db_query(db_, count * 2);
-
-  for (auto i = period; i < period + count; ++i) {
-    db_query.append(DbStorage::Columns::period_pbft_block, i);
-  }
-  auto pbft_blocks = db_query.execute();
-
-  for (size_t i = 0; i < pbft_blocks.size(); ++i) {
-    if (pbft_blocks[i].empty()) {
-      LOG(log_er_) << "PBFT block period " << period + i << " does not exist in DB period_pbft_block.";
-      return result;
-    }
-  }
-
-  db_query.append(DbStorage::Columns::pbft_blocks, pbft_blocks, false);
-  db_query.append(DbStorage::Columns::cert_votes, pbft_blocks, false);
-
-  auto pbft_block_cert_votes = db_query.execute();
-  const auto half_size = pbft_block_cert_votes.size() / 2;
-  for (size_t i = 0; i < half_size; ++i) {
-    if (pbft_block_cert_votes[i].empty()) {
-      LOG(log_er_) << "DB corrupted - Cannot find PBFT block hash " << pbft_blocks[i]
-                   << " in PBFT chain DB pbft_blocks.";
-      assert(false);
-      break;
-    }
-
-    if (pbft_block_cert_votes[i + half_size].empty()) {
-      LOG(log_er_) << "Cannot find any cert votes for PBFT block " << pbft_blocks[i];
-      assert(false);
-      break;
-    }
-
-    auto pbft_block_rlp = dev::RLP(pbft_block_cert_votes[i]);
-    PbftBlock block(pbft_block_rlp);
-
-    if (block.getPeriod() != (i + period)) {
-      LOG(log_er_) << "DB corrupted - PBFT block hash " << pbft_blocks[i] << "has different period "
-                   << block.getPeriod() << "in block data then in block order db: " << (i + period);
-      assert(false);
-      break;
-    }
-    RLPStream s;
-    PbftBlockCert::encode_raw(s, block, pbft_block_cert_votes[i + half_size]);
-    result.emplace_back(block, s.out());
-  }
-
-  return result;
-}
-
 // TODO: should remove, need check
 std::vector<std::string> PbftChain::getPbftBlocksStr(size_t period, size_t count, bool hash) const {
   std::vector<std::string> result;
   for (auto i = period; i < period + count; i++) {
-    auto pbft_block_hash = db_->getPeriodPbftBlock(i);
-    if (pbft_block_hash == nullptr) {
-      LOG(log_er_) << "PBFT block period " << i << " is not exist in blocks order DB.";
-      break;
-    }
-    auto pbft_block = db_->getPbftBlock(*pbft_block_hash);
+    auto pbft_block = db_->getPbftBlock(i);
     if (pbft_block == nullptr) {
-      LOG(log_er_) << "Cannot find PBFT block hash " << pbft_block_hash->toString() << " in PBFT chain DB.";
+      LOG(log_er_) << "PBFT block period " << i << " does not exist in blocks order DB.";
       break;
     }
     if (hash)
-      result.push_back(pbft_block_hash->toString());
+      result.push_back(pbft_block->getBlockHash().toString());
     else
       result.push_back(pbft_block->getJsonStr());
   }

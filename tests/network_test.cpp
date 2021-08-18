@@ -84,6 +84,8 @@ TEST_F(NetworkTest, transfer_block) {
 TEST_F(NetworkTest, transfer_lot_of_blocks) {
   auto node_cfgs = make_node_cfgs<20>(2);
   auto nodes = launch_nodes(node_cfgs);
+  nodes[0]->getPbftManager()->stop();
+  nodes[1]->getPbftManager()->stop();
 
   std::vector<std::shared_ptr<DagBlock>> dag_blocks;
   std::vector<trx_hash_t> trx_hashes;
@@ -119,7 +121,7 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
   nodes[0]->getNetwork()->sendBlocks(nodes[1]->getNetwork()->getNodeId(), std::move(dag_blocks));
 
   std::cout << "Waiting Sync ..." << std::endl;
-  wait({5s, 300ms},
+  wait({10s, 300ms},
        [&](auto& ctx) { WAIT_EXPECT_NE(ctx, nodes[1]->getDagBlockManager()->getDagBlock(block_hash), nullptr) });
 }
 
@@ -165,9 +167,9 @@ TEST_F(NetworkTest, DISABLED_sync_large_pbft_block) {
   EXPECT_GT(nodes[0]->getPbftChain()->getPbftChainSize(), 0);
 
   // Verify that a block over MAX_PACKET_SIZE is created
-  auto pbft_blocks = nodes[0]->getPbftChain()->getPbftBlocks(1, 1);
-  size_t total_size = pbft_blocks[0].second.size();
-  auto blocks = nodes[0]->getDB()->getFinalizedDagBlockHashesByAnchor(pbft_blocks[0].first.getPivotDagBlockHash());
+  auto pbft_blocks = nodes[0]->getDB()->getPbftBlock(1);
+  size_t total_size = pbft_blocks->rlp(true).size();
+  auto blocks = nodes[0]->getDB()->getFinalizedDagBlockHashesByAnchor(pbft_blocks->getPivotDagBlockHash());
   for (auto b : blocks) {
     auto block = nodes[0]->getDB()->getDagBlock(b);
     EXPECT_NE(block, nullptr);
@@ -185,9 +187,9 @@ TEST_F(NetworkTest, DISABLED_sync_large_pbft_block) {
   wait({30s, 100ms}, [&](auto& ctx) { ctx.fail_if(nodes2[0]->getPbftChain()->getPbftChainSize() == 0); });
   EXPECT_GT(nodes2[0]->getPbftChain()->getPbftChainSize(), 0);
 
-  auto pbft_blocks1 = nodes[0]->getPbftChain()->getPbftBlocks(1, 1);
-  auto pbft_blocks2 = nodes2[0]->getPbftChain()->getPbftBlocks(1, 1);
-  EXPECT_EQ(pbft_blocks1[0].second, pbft_blocks2[0].second);
+  auto pbft_blocks1 = nodes[0]->getDB()->getPbftBlock(1);
+  auto pbft_blocks2 = nodes2[0]->getDB()->getPbftBlock(1);
+  EXPECT_EQ(pbft_blocks1, pbft_blocks2);
 }
 
 // Test creates two Network setup and verifies sending transaction
@@ -400,11 +402,14 @@ TEST_F(NetworkTest, node_pbft_sync) {
       node1->getPbftManager()->generateVote(pbft_block1.getBlockHash(), cert_vote_type, 1, 3, 0));
   std::cout << "Generate 1 vote for first PBFT block" << std::endl;
   // Add cert votes in DB
-  db1->addCertVotesToBatch(pbft_block1.getBlockHash(), votes_for_pbft_blk1, batch);
   // Add PBFT block in DB
-  db1->addPbftBlockToBatch(pbft_block1, batch);
+  std::vector<DagBlock> dag_blocks;
+  dag_blocks.push_back(blk1);
+  std::vector<Transaction> trxs;
+  trxs.push_back(g_signed_trx_samples[0]);
+  trxs.push_back(g_signed_trx_samples[1]);
+  db1->savePeriodData(pbft_block1, votes_for_pbft_blk1, dag_blocks, trxs, batch);
   // Update period_pbft_block in DB
-  db1->addPbftBlockPeriodToBatch(period, pbft_block1.getBlockHash(), batch);
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block1.getBlockHash());
   // Update PBFT chain head block
@@ -440,11 +445,14 @@ TEST_F(NetworkTest, node_pbft_sync) {
   std::cout << "Generate 1 vote for second PBFT block" << std::endl;
   // node1 put block2 into pbft chain and store into DB
   // Add cert votes in DB
-  db1->addCertVotesToBatch(pbft_block2.getBlockHash(), votes_for_pbft_blk2, batch);
   // Add PBFT block in DB
-  db1->addPbftBlockToBatch(pbft_block2, batch);
-  // Update period_pbft_block in DB
-  db1->addPbftBlockPeriodToBatch(period, pbft_block2.getBlockHash(), batch);
+  dag_blocks.clear();
+  trxs.clear();
+  dag_blocks.push_back(blk2);
+  trxs.push_back(g_signed_trx_samples[2]);
+  trxs.push_back(g_signed_trx_samples[3]);
+  db1->savePeriodData(pbft_block2, votes_for_pbft_blk2, dag_blocks, trxs, batch);
+
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block2.getBlockHash());
   // Update PBFT chain head block
@@ -525,11 +533,13 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
       node1->getPbftManager()->generateVote(pbft_block1.getBlockHash(), cert_vote_type, 1, 3, 0));
   std::cout << "Generate 1 vote for first PBFT block" << std::endl;
   // Add cert votes in DB
-  db1->addCertVotesToBatch(pbft_block1.getBlockHash(), votes_for_pbft_blk1, batch);
   // Add PBFT block in DB
-  db1->addPbftBlockToBatch(pbft_block1, batch);
-  // Update period_pbft_block in DB
-  db1->addPbftBlockPeriodToBatch(period, pbft_block1.getBlockHash(), batch);
+  std::vector<DagBlock> dag_blocks;
+  dag_blocks.push_back(blk1);
+  std::vector<Transaction> trxs;
+  trxs.push_back(g_signed_trx_samples[0]);
+  trxs.push_back(g_signed_trx_samples[1]);
+  db1->savePeriodData(pbft_block1, votes_for_pbft_blk1, dag_blocks, trxs, batch);
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block1.getBlockHash());
   // Update PBFT chain head block
@@ -562,11 +572,13 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   std::cout << "Use fake votes for the second PBFT block" << std::endl;
   // node1 put block2 into pbft chain and use fake votes storing into DB (malicious player)
   // Add fake votes in DB
-  db1->addCertVotesToBatch(pbft_block2.getBlockHash(), votes_for_pbft_blk1, batch);
   // Add PBFT block in DB
-  db1->addPbftBlockToBatch(pbft_block2, batch);
-  // Update period_pbft_block in DB
-  db1->addPbftBlockPeriodToBatch(period, pbft_block2.getBlockHash(), batch);
+  dag_blocks.clear();
+  trxs.clear();
+  dag_blocks.push_back(blk2);
+  trxs.push_back(g_signed_trx_samples[2]);
+  trxs.push_back(g_signed_trx_samples[3]);
+  db1->savePeriodData(pbft_block2, votes_for_pbft_blk1, dag_blocks, trxs, batch);
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block2.getBlockHash());
   // Update PBFT chain head block

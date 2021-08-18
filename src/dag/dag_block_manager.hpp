@@ -27,7 +27,8 @@ class DagBlockManager {
    * @param blk
    * @param transactions
    */
-  void processSyncedBlockWithTransactions(DagBlock const &blk, std::vector<Transaction> const &transactions);
+  void processSyncedBlock(DagBlock const &dag_block);
+  void processSyncedTransactions(std::vector<Transaction> const &transactions);
   void insertBroadcastedBlockWithTransactions(DagBlock const &blk, std::vector<Transaction> const &transactions);
   void pushUnverifiedBlock(DagBlock const &block,
                            bool critical);  // add to unverified queue
@@ -43,6 +44,7 @@ class DagBlockManager {
   std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash) const;
   void clearBlockStatausTable() { blk_status_.clear(); }
   bool pivotAndTipsValid(DagBlock const &blk);
+  bool pivotAndTipsAvailable(DagBlock const &blk);
   uint64_t getCurrentMaxProposalPeriod() const;
   uint64_t getLastProposalPeriod() const;
   void setLastProposalPeriod(uint64_t const period);
@@ -80,8 +82,8 @@ class DagBlockManager {
   boost::condition_variable_any cond_for_verified_qu_;
   uint32_t queue_limit_;
 
-  std::map<uint64_t, std::deque<std::pair<DagBlock, std::vector<Transaction> > > > unverified_qu_;
-  std::map<uint64_t, std::deque<DagBlock> > verified_qu_;
+  std::map<uint64_t, std::deque<std::pair<DagBlock, std::vector<Transaction>>>> unverified_qu_;
+  std::map<uint64_t, std::deque<DagBlock>> verified_qu_;
 
   vdf_sortition::VdfConfig vdf_config_;
   optional<state_api::DPOSConfig> dpos_config_;

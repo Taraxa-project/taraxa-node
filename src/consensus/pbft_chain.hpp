@@ -24,8 +24,10 @@ namespace taraxa {
 struct DbStorage;
 class FullNode;
 class Vote;
+class DagBlock;
+struct Transaction;
 
-enum PbftVoteTypes { propose_vote_type = 0, soft_vote_type, cert_vote_type, next_vote_type };
+enum PbftVoteTypes : uint8_t { propose_vote_type = 0, soft_vote_type, cert_vote_type, next_vote_type };
 
 class PbftBlock {
   blk_hash_t block_hash_;
@@ -70,8 +72,9 @@ struct PbftBlockCert {
 
   std::shared_ptr<PbftBlock> pbft_blk;
   std::vector<Vote> cert_votes;
+  std::map<uint64_t, std::vector<DagBlock>> dag_blocks_per_level;
+  std::vector<Transaction> transactions;
   bytes rlp() const;
-  static void encode_raw(dev::RLPStream& rlp, PbftBlock const& pbft_blk, dev::bytesConstRef votes_raw);
 };
 std::ostream& operator<<(std::ostream& strm, PbftBlockCert const& b);
 
@@ -85,7 +88,6 @@ class PbftChain {
 
   PbftBlock getPbftBlockInChain(blk_hash_t const& pbft_block_hash);
   std::shared_ptr<PbftBlock> getUnverifiedPbftBlock(blk_hash_t const& pbft_block_hash);
-  std::vector<std::pair<PbftBlock, bytes>> getPbftBlocks(size_t period, size_t count);
   std::vector<std::string> getPbftBlocksStr(size_t period, size_t count, bool hash) const;  // Remove
   std::string getJsonStr() const;
 

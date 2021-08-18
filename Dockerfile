@@ -7,7 +7,7 @@ ARG BUILD_OUTPUT_DIR=cmake-docker-build-debug
 FROM amd64/ubuntu:20.04 as builder
 
 # deps versions
-ARG GO_VERSION=1.13.7
+ARG GO_VERSION=1.16.3
 ARG CMAKE_VERSION=3.16.3-1ubuntu1
 ARG GFLAGS_VERSION=2.2.2-1build1
 ARG LLVM_VERSION=12

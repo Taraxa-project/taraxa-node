@@ -88,6 +88,25 @@ bool DagBlockManager::pivotAndTipsValid(DagBlock const &blk) {
   return true;
 }
 
+bool DagBlockManager::pivotAndTipsAvailable(DagBlock const &blk) {
+  auto dag_blk_hash = blk.getHash();
+  auto dag_blk_pivot = blk.getPivot();
+
+  if (getDagBlock(dag_blk_pivot) == nullptr) {
+    LOG(log_dg_) << "DAG Block " << dag_blk_hash << " pivot " << dag_blk_pivot << " unavailable";
+    return false;
+  }
+
+  for (auto const &t : blk.getTips()) {
+    if (getDagBlock(t) == nullptr) {
+      LOG(log_dg_) << "DAG Block " << dag_blk_hash << " tip " << t << " unavailable";
+      return false;
+    }
+  }
+
+  return true;
+}
+
 level_t DagBlockManager::getMaxDagLevelInQueue() const {
   level_t max_level = 0;
   {
@@ -137,8 +156,7 @@ void DagBlockManager::pushUnverifiedBlock(DagBlock const &blk, std::vector<Trans
   cond_for_unverified_qu_.notify_one();
 }
 
-void DagBlockManager::processSyncedBlockWithTransactions(const DagBlock &blk,
-                                                         const std::vector<Transaction> &transactions) {
+void DagBlockManager::processSyncedBlock(DagBlock const &blk) {
   blk_hash_t block_hash = blk.getHash();
 
   // This dag block was already processed, skip it
@@ -157,45 +175,6 @@ void DagBlockManager::processSyncedBlockWithTransactions(const DagBlock &blk,
     blk_status_.update(block_hash, BlockStatus::invalid);
     return;
   }
-
-  DbStorage::MultiGetQuery db_query(db_, all_block_trx_hashes.size());
-  db_query.append(DbStorage::Columns::trx_status, all_block_trx_hashes);
-  auto db_trxs_statuses = db_query.execute();
-
-  std::unordered_map<trx_hash_t, Transaction> known_trx(transactions.size());
-
-  std::transform(transactions.begin(), transactions.end(), std::inserter(known_trx, known_trx.end()),
-                 [](Transaction const &t) { return std::make_pair(t.getHash(), t); });
-
-  // Filter known txs + save unseen txs to the db
-  auto trx_batch = db_->createWriteBatch();
-  size_t newly_added_txs_to_block_counter = all_block_trx_hashes.size();
-  for (size_t idx = 0; idx < db_trxs_statuses.size(); ++idx) {
-    const TransactionStatus &status = db_trxs_statuses[idx].empty()
-                                          ? TransactionStatus::not_seen
-                                          : (TransactionStatus) * (uint16_t *)&db_trxs_statuses[idx][0];
-    const trx_hash_t &trx_hash = all_block_trx_hashes[idx];
-    if (status == TransactionStatus::not_seen) {
-      if (known_trx.count(trx_hash)) {
-        db_->addTransactionToBatch(known_trx[trx_hash], trx_batch);
-      } else {
-        LOG(log_er_) << "Ignore block " << block_hash << " since it has missing transaction " << trx_hash;
-        blk_status_.update(block_hash, BlockStatus::invalid);
-        return;
-      }
-    } else if (status == TransactionStatus::in_block) {
-      newly_added_txs_to_block_counter--;
-      continue;
-    }
-    db_->addTransactionStatusToBatch(trx_batch, trx_hash, TransactionStatus::in_block);
-  }
-
-  trx_mgr_->addTrxCount(newly_added_txs_to_block_counter);
-  db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_mgr_->getTransactionCount(), trx_batch);
-  db_->commitWriteBatch(trx_batch);
-
-  trx_mgr_->getTransactionQueue().removeBlockTransactionsFromQueue(all_block_trx_hashes);
-
   {
     uLock lock(shared_mutex_for_verified_qu_);
     verified_qu_[blk.getLevel()].emplace_back(blk);
@@ -204,6 +183,39 @@ void DagBlockManager::processSyncedBlockWithTransactions(const DagBlock &blk,
 
   LOG(log_dg_) << "Synced dag block: " << block_hash;
   cond_for_verified_qu_.notify_one();
+}
+
+void DagBlockManager::processSyncedTransactions(std::vector<Transaction> const &transactions) {
+  DbStorage::MultiGetQuery db_query(db_, transactions.size());
+  std::vector<trx_hash_t> trx_hashes;
+  trx_hashes.reserve(transactions.size());
+  for (auto const &trx : transactions) trx_hashes.emplace_back(trx.getHash());
+  db_query.append(DbStorage::Columns::trx_status, trx_hashes);
+  auto db_trxs_statuses = db_query.execute();
+  // Filter known txs + save unseen txs to the db
+  auto trx_batch = db_->createWriteBatch();
+  size_t newly_added_txs_to_block_counter = trx_hashes.size();
+  for (size_t idx = 0; idx < db_trxs_statuses.size(); ++idx) {
+    TransactionStatus status;
+    if (!db_trxs_statuses[idx].empty()) {
+      auto data = asBytes(db_trxs_statuses[idx]);
+      status = TransactionStatus(RLP(data));
+    }
+    const trx_hash_t &trx_hash = trx_hashes[idx];
+    if (status.state == TransactionStatusEnum::not_seen) {
+      db_->addTransactionToBatch(transactions[idx], trx_batch);
+    } else if (status.state == TransactionStatusEnum::in_block || status.state == TransactionStatusEnum::executed) {
+      newly_added_txs_to_block_counter--;
+      continue;
+    }
+    db_->addTransactionStatusToBatch(trx_batch, trx_hash, TransactionStatus(TransactionStatusEnum::in_block));
+  }
+
+  trx_mgr_->addTrxCount(newly_added_txs_to_block_counter);
+  db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_mgr_->getTransactionCount(), trx_batch);
+  db_->commitWriteBatch(trx_batch);
+
+  trx_mgr_->getTransactionQueue().removeBlockTransactionsFromQueue(trx_hashes);
 }
 
 void DagBlockManager::insertBroadcastedBlockWithTransactions(DagBlock const &blk,

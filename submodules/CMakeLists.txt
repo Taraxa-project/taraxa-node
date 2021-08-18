@@ -32,10 +32,6 @@ add_library(
 )
 target_include_directories(ethash PUBLIC ${include_dir})
 
-# Add scrypt 
-add_subdirectory(libscrypt)
-include_directories(libscrypt)
-
 # Add aleth
 add_subdirectory(taraxa-aleth)
 
@@ -80,7 +76,7 @@ endfunction()
 # Add taraxa-vdf
 set(VDF_LIBRARY_COMMAND "\
  ${CMAKE_MAKE_PROGRAM}\
- CPPFLAGS=\"-I./include -I${CONAN_INCLUDE_DIRS_OPENSSL} -I${CONAN_INCLUDE_DIRS_GMP} -I${CONAN_INCLUDE_DIRS_MPFR} -fPIC -std=c++17 -O3\"\
+ CPPFLAGS=\"-I./include -I${CONAN_INCLUDE_DIRS_OPENSSL} -I${CONAN_INCLUDE_DIRS_GMP} -I${CONAN_INCLUDE_DIRS_MPFR} -fPIC -std=c++20 -O3\"\
  lib/libvdf.a")
 add_make_target(vdf libvdf.a "${VDF_LIBRARY_COMMAND}")
 
@@ -95,11 +91,11 @@ add_make_target(vrf libsodium.a "${VRF_AUTOTOOLS_CMD} && ${CMAKE_MAKE_PROGRAM} &
 
 # Add taraxa-evm
 ## add include of libs
-set(EVM_BUILD_INCLUDE -I${CONAN_INCLUDE_DIRS_BZIP2} -I${CONAN_INCLUDE_DIRS_ZLIB} -I${CONAN_INCLUDE_DIRS_ROCKSDB} -I${CONAN_INCLUDE_DIRS_SNAPPY} -I${CONAN_INCLUDE_DIRS_LZ4} -I${CONAN_INCLUDE_DIRS_ZSTD})
+set(EVM_BUILD_INCLUDE -I${CONAN_INCLUDE_DIRS_ROCKSDB})
 ## set C flags
 set(EVM_BUILD_CGO_CFLAGS -O3 ${EVM_BUILD_INCLUDE})
 ## add link of libs
-set(EVM_BUILD_LD -L${CONAN_LIB_DIRS_BZIP2} -lbz2 -L${CONAN_LIB_DIRS_ZLIB} -lz -L${CONAN_LIB_DIRS_ROCKSDB} -lrocksdb -L${CONAN_LIB_DIRS_SNAPPY} -lsnappy -L${CONAN_LIB_DIRS_LZ4} -llz4 -L${CONAN_LIB_DIRS_ZSTD} -lzstd)
+set(EVM_BUILD_LD -L${CONAN_LIB_DIRS_ROCKSDB} -lrocksdb -L${CONAN_LIB_DIRS_LZ4} -llz4)
 ## if we need full static build use flag
 if(TARAXA_STATIC_BUILD)
     if (NOT APPLE)

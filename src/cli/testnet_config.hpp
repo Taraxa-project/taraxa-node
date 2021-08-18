@@ -86,14 +86,14 @@ const char *testnet_json = R"foo({
       "level": "0x0",
       "pivot": "0x0000000000000000000000000000000000000000000000000000000000000000",
       "sig": "0xb7e22d46c1ba94d5e8347b01d137b5c428fcbbeaf0a77fb024cbbf1517656ff00d04f7f25be608c321b0d7483c402c294ff46c49b265305d046a52236c0a363701",
-      "timestamp": "0x60b03296",
+      "timestamp": "0x60b03297",
       "tips": [],
       "transactions": []
     },
     "final_chain": {
       "genesis_block_fields": {
         "author": "0x0000000000000000000000000000000000000000",
-        "timestamp": "0x60b03296"
+        "timestamp": "0x60b03297"
       },
       "state": {
         "disable_block_rewards": true,
@@ -130,7 +130,7 @@ const char *testnet_json = R"foo({
     },
     "pbft": {
       "committee_size": "0x3e8",
-      "dag_blocks_size": "0xa",
+      "dag_blocks_size": "0x32",
       "ghost_path_move_back": "0x0",
       "lambda_ms_min": "0x3e8",
       "run_count_votes": false

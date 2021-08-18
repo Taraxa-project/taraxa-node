@@ -101,21 +101,13 @@ void PbftManager::run() {
   for (auto period = final_chain_->last_block_number() + 1, curr_period = pbft_chain_->getPbftChainSize();
        period <= curr_period;  //
        ++period) {
-    auto pbft_block_hash = db_->getPeriodPbftBlock(period);
-    if (!pbft_block_hash) {
-      LOG(log_er_) << "DB corrupted - PBFT block period " << period
-                   << " does not exist in DB period_pbft_block. PBFT chain size " << pbft_chain_->getPbftChainSize();
-      assert(false);
-    }
-    // Get PBFT block in DB
-    auto pbft_block = db_->getPbftBlock(*pbft_block_hash);
+    auto pbft_block = db_->getPbftBlock(period);
     if (!pbft_block) {
-      LOG(log_er_) << "DB corrupted - Cannot find PBFT block hash " << pbft_block_hash
-                   << " in PBFT chain DB pbft_blocks.";
+      LOG(log_er_) << "DB corrupted - Cannot find PBFT block in period " << period << " in PBFT chain DB pbft_blocks.";
       assert(false);
     }
     if (pbft_block->getPeriod() != period) {
-      LOG(log_er_) << "DB corrupted - PBFT block hash " << pbft_block_hash << "has different period "
+      LOG(log_er_) << "DB corrupted - PBFT block hash " << pbft_block->getBlockHash() << " has different period "
                    << pbft_block->getPeriod() << " in block data than in block order db: " << period;
       assert(false);
     }
@@ -261,7 +253,7 @@ std::pair<bool, uint64_t> PbftManager::getDagBlockPeriod(blk_hash_t const &hash)
     res.first = false;
   } else {
     res.first = true;
-    res.second = *value;
+    res.second = value->first;
   }
   return res;
 }
@@ -394,6 +386,7 @@ bool PbftManager::resetRound_() {
     // reset next voted value since start a new round
     next_voted_null_block_hash_ = false;
     next_voted_soft_value_ = false;
+    polling_state_print_log_ = true;
 
     reset_own_value_to_null_block_hash_in_this_round_ = false;
 
@@ -582,6 +575,7 @@ void PbftManager::setFilterState_() {
   next_step_time_ms_ = 2 * LAMBDA_ms;
   last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
   current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
+  polling_state_print_log_ = true;
 }
 
 void PbftManager::setCertifyState_() {
@@ -590,6 +584,7 @@ void PbftManager::setCertifyState_() {
   next_step_time_ms_ = 2 * LAMBDA_ms;
   last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
   current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
+  polling_state_print_log_ = true;
 }
 
 void PbftManager::setFinishState_() {
@@ -599,6 +594,7 @@ void PbftManager::setFinishState_() {
   next_step_time_ms_ = 4 * LAMBDA_ms;
   last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
   current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
+  polling_state_print_log_ = true;
 }
 
 void PbftManager::setFinishPollingState_() {
@@ -610,6 +606,7 @@ void PbftManager::setFinishPollingState_() {
   db_->commitWriteBatch(batch);
   next_voted_soft_value_ = false;
   next_voted_null_block_hash_ = false;
+  polling_state_print_log_ = true;
   last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
   current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
 }
@@ -642,6 +639,7 @@ void PbftManager::loopBackFinishState_() {
   db_->commitWriteBatch(batch);
   next_voted_soft_value_ = false;
   next_voted_null_block_hash_ = false;
+  polling_state_print_log_ = true;
   assert(step_ >= startingStepInRound_);
   next_step_time_ms_ = (1 + step_ - startingStepInRound_) * LAMBDA_ms;
   last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
@@ -948,24 +946,44 @@ void PbftManager::firstFinish_() {
       LOG(log_nf_) << "Next votes " << place_votes << " voting cert voted value " << last_cert_voted_value_
                    << " for round " << round << " , step " << step_;
     }
-  } else if (round >= 2 && giveUpNextVotedBlock_()) {
-    auto place_votes = placeVote_(NULL_BLOCK_HASH, next_vote_type, round, step_);
-    if (place_votes) {
-      LOG(log_nf_) << "Next votes " << place_votes << " voting NULL BLOCK for round " << round << ", at step " << step_;
-    }
-  } else {
-    if (own_starting_value_for_round_ == NULL_BLOCK_HASH) {
-      if (previous_round_next_voted_value_ != NULL_BLOCK_HASH && !reset_own_value_to_null_block_hash_in_this_round_) {
-        db_->savePbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round, previous_round_next_voted_value_);
-        own_starting_value_for_round_ = previous_round_next_voted_value_;
-        LOG(log_dg_) << "Updating own starting to previous round next voted value of "
-                     << previous_round_next_voted_value_;
+    // Re-broadcast pbft block in case some nodes do not have it
+    if (step_ % 20 == 0) {
+      auto pbft_block = db_->getPbftCertVotedBlock(last_cert_voted_value_);
+      assert(pbft_block);
+      if (auto net = network_.lock()) {
+        net->onNewPbftBlock(pbft_block);
       }
     }
-    auto place_votes = placeVote_(own_starting_value_for_round_, next_vote_type, round, step_);
-    if (place_votes) {
-      LOG(log_nf_) << "Next votes " << place_votes << " voting nodes own starting value "
-                   << own_starting_value_for_round_ << " for round " << round << ", at step " << step_;
+  } else {
+    // We only want to give up soft voted value IF:
+    // 1) haven't cert voted it
+    // 2) we are looking at value that was next voted in previous round
+    // 3) we don't have the block or if have block it can't be cert voted (yet)
+    bool giveUpSoftVotedBlockInFirstFinish = last_cert_voted_value_ == NULL_BLOCK_HASH &&
+                                             own_starting_value_for_round_ == previous_round_next_voted_value_ &&
+                                             giveUpSoftVotedBlock_() &&
+                                             !comparePbftBlockScheduleWithDAGblocks_(own_starting_value_for_round_);
+
+    if (round >= 2 && (giveUpNextVotedBlock_() || giveUpSoftVotedBlockInFirstFinish)) {
+      auto place_votes = placeVote_(NULL_BLOCK_HASH, next_vote_type, round, step_);
+      if (place_votes) {
+        LOG(log_nf_) << "Next votes " << place_votes << " voting NULL BLOCK for round " << round << ", at step "
+                     << step_;
+      }
+    } else {
+      if (own_starting_value_for_round_ == NULL_BLOCK_HASH) {
+        if (previous_round_next_voted_value_ != NULL_BLOCK_HASH && !reset_own_value_to_null_block_hash_in_this_round_) {
+          db_->savePbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round, previous_round_next_voted_value_);
+          own_starting_value_for_round_ = previous_round_next_voted_value_;
+          LOG(log_dg_) << "Updating own starting to previous round next voted value of "
+                       << previous_round_next_voted_value_;
+        }
+      }
+      auto place_votes = placeVote_(own_starting_value_for_round_, next_vote_type, round, step_);
+      if (place_votes) {
+        LOG(log_nf_) << "Next votes " << place_votes << " voting nodes own starting value "
+                     << own_starting_value_for_round_ << " for round " << round << ", at step " << step_;
+      }
     }
   }
 }
@@ -991,7 +1009,15 @@ void PbftManager::secondFinish_() {
     }
   }
 
-  if (!next_voted_null_block_hash_ && round >= 2 && giveUpNextVotedBlock_()) {
+  // We only want to give up soft voted value IF:
+  // 1) haven't cert voted it
+  // 2) we are looking at value that was next voted in previous round
+  // 3) we don't have the block or if have block it can't be cert voted (yet)
+  bool giveUpSoftVotedBlockInSecondFinish =
+      last_cert_voted_value_ == NULL_BLOCK_HASH && last_soft_voted_value_ == previous_round_next_voted_value_ &&
+      giveUpSoftVotedBlock_() && !comparePbftBlockScheduleWithDAGblocks_(soft_voted_block_for_this_round_.first);
+
+  if (!next_voted_null_block_hash_ && round >= 2 && (giveUpSoftVotedBlockInSecondFinish || giveUpNextVotedBlock_())) {
     auto place_votes = placeVote_(NULL_BLOCK_HASH, next_vote_type, round, step_);
     if (place_votes) {
       LOG(log_nf_) << "Next votes " << place_votes << " voting NULL BLOCK for round " << round << ", at step " << step_;
@@ -1433,7 +1459,6 @@ std::pair<vec_blk_t, bool> PbftManager::comparePbftBlockScheduleWithDAGblocks_(P
   if (!dag_blocks_order->empty()) {
     return std::make_pair(*dag_blocks_order, true);
   }
-
   syncPbftChainFromPeers_(missing_dag_blk, anchor_hash);
   return std::make_pair(*dag_blocks_order, false);
 }
@@ -1471,6 +1496,15 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
     PbftBlockCert pbft_block_and_votes = pbft_chain_->pbftSyncedQueueFront();
     auto pbft_block_hash = pbft_block_and_votes.pbft_blk->getBlockHash();
     LOG(log_nf_) << "Pick pbft block " << pbft_block_hash << " from synced queue in round " << round;
+
+    // TODO: tips/pivot/level validation. Disconnecting a malicious peers. Queueing and sync functionality should be
+    // moved from pbft manager to networking
+    dag_blk_mgr_->processSyncedTransactions(pbft_block_and_votes.transactions);
+    for (auto const &block_level : pbft_block_and_votes.dag_blocks_per_level) {
+      for (auto const &block : block_level.second) {
+        dag_blk_mgr_->processSyncedBlock(block);
+      }
+    }
 
     if (pbft_chain_->findPbftBlockInChain(pbft_block_hash)) {
       // pushed already from PBFT unverified queue, remove and skip it
@@ -1539,9 +1573,9 @@ void PbftManager::finalize_(PbftBlock const &pbft_block, vector<h256> finalized_
           move(finalized_dag_blk_hashes),
           pbft_block.getBlockHash(),
       },
-      [this, anchor_hash = pbft_block.getPivotDagBlockHash()](auto const &, auto &batch) {
+      pbft_block.getPeriod(), [this, anchor_hash = pbft_block.getPivotDagBlockHash()](auto const &, auto &batch) {
         // Update proposal period DAG levels map
-        auto anchor = db_->getDagBlock(anchor_hash);
+        auto anchor = dag_blk_mgr_->getDagBlock(anchor_hash);
         if (!anchor) {
           LOG(log_er_) << "DB corrupted - Cannot find anchor block: " << anchor_hash << " in DB.";
           assert(false);
@@ -1569,24 +1603,14 @@ bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes, vec
     }
     return false;
   }
-  if (last_cert_voted_value_ != NULL_BLOCK_HASH && last_cert_voted_value_ != pbft_block_hash) {
-    LOG(log_er_) << "Push block hash " << pbft_block_hash << ", but last cert voted value " << last_cert_voted_value_;
-    assert(false);
-  }
 
   auto pbft_block = pbft_block_cert_votes.pbft_blk;
   auto const &cert_votes = pbft_block_cert_votes.cert_votes;
   auto pbft_period = pbft_block->getPeriod();
 
   auto batch = db_->createWriteBatch();
-  // Add cert votes in DB
-  db_->addCertVotesToBatch(pbft_block_hash, cert_votes, batch);
   LOG(log_nf_) << "Storing cert votes of pbft blk " << pbft_block_hash;
   LOG(log_dg_) << "Stored following cert votes:\n" << cert_votes;
-  // Add period_pbft_block in DB
-  db_->addPbftBlockPeriodToBatch(pbft_period, pbft_block_hash, batch);
-  // Add PBFT block in DB
-  db_->addPbftBlockToBatch(*pbft_block, batch);
   // update PBFT chain size
   pbft_chain_->updatePbftChain(pbft_block_hash);
   // Update PBFT chain head block
@@ -1596,10 +1620,37 @@ bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes, vec
   auto const &anchor_hash = pbft_block->getPivotDagBlockHash();
   dag_mgr_->setDagBlockOrder(anchor_hash, pbft_period, dag_blocks_order, batch);
 
-  // Add dag_block_period in DB
-  for (auto const &blk_hash : dag_blocks_order) {
-    db_->addDagBlockPeriodToBatch(blk_hash, pbft_period, batch);
+  DbStorage::MultiGetQuery db_query(db_);
+  db_query.append(DbStorage::Columns::dag_blocks, dag_blocks_order);
+  auto dag_blocks_res = db_query.execute();
+
+  std::vector<DagBlock> dag_blocks;
+  dag_blocks.reserve(dag_blocks_res.size());
+
+  for (auto const &dag_blk_raw : dag_blocks_res) {
+    dag_blocks.emplace_back(asBytes(dag_blk_raw));
   }
+
+  std::unordered_set<trx_hash_t> trx_set;
+  std::vector<trx_hash_t> transactionsToQuery;
+  for (auto const &dag_blk : dag_blocks) {
+    for (auto const trx_hash : dag_blk.getTrxs()) {
+      if (trx_set.insert(trx_hash).second) {
+        transactionsToQuery.emplace_back(trx_hash);
+      }
+    }
+  }
+  db_query.append(DbStorage::Columns::transactions, transactionsToQuery);
+
+  auto transactions_res = db_query.execute();
+
+  std::vector<Transaction> transactions;
+  transactions.reserve(transactions_res.size());
+  for (auto const &trx_raw : transactions_res) {
+    if (trx_raw.size() > 0) transactions.emplace_back(asBytes(trx_raw));
+  }
+
+  db_->savePeriodData(*pbft_block, cert_votes, dag_blocks, transactions, batch);
 
   // Reset last cert voted value to NULL_BLOCK_HASH
   db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::last_cert_voted_value, NULL_BLOCK_HASH, batch);
@@ -1618,6 +1669,7 @@ bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes, vec
   proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
   db_->savePbftMgrStatus(PbftMgrStatus::executed_block, true);
   executed_pbft_block_ = true;
+
   return true;
 }
 
@@ -1638,6 +1690,19 @@ bool PbftManager::giveUpSoftVotedBlock_() {
   unsigned long elapsed_wait_soft_voted_block_in_ms =
       std::chrono::duration_cast<std::chrono::milliseconds>(soft_voted_block_wait_duration).count();
 
+  auto pbft_block = pbft_chain_->getUnverifiedPbftBlock(previous_round_next_voted_value_);
+  if (!pbft_block) {
+    pbft_block = db_->getPbftCertVotedBlock(previous_round_next_voted_value_);
+  }
+
+  if (pbft_block) {
+    // Have a block, but is it valid?
+    if (!checkPbftBlockValid_(previous_round_next_voted_value_)) {
+      // Received the block, but not valid
+      return true;
+    }
+  }
+
   if (elapsed_wait_soft_voted_block_in_ms > max_wait_for_soft_voted_block_steps_ms_) {
     LOG(log_dg_) << "Have been waiting " << elapsed_wait_soft_voted_block_in_ms << "ms for soft voted block "
                  << last_soft_voted_value_ << ", giving up on this value.";
@@ -1656,8 +1721,11 @@ bool PbftManager::giveUpNextVotedBlock_() {
 
   if (last_cert_voted_value_ != NULL_BLOCK_HASH) {
     // Last cert voted value should equal to voted value
-    LOG(log_nf_) << "In round " << round << " step " << step_ << ", last cert voted value is "
-                 << last_cert_voted_value_;
+    if (polling_state_print_log_) {
+      LOG(log_nf_) << "In round " << round << " step " << step_ << ", last cert voted value is "
+                   << last_cert_voted_value_;
+      polling_state_print_log_ = false;
+    }
     return false;
   }
 
@@ -1676,18 +1744,6 @@ bool PbftManager::giveUpNextVotedBlock_() {
     LOG(log_nf_) << "In round " << round << " step " << step_
                  << ", find voted value in PBFT chain already. Give up voted value "
                  << previous_round_next_voted_value_;
-    return true;
-  }
-
-  if (last_soft_voted_value_ == previous_round_next_voted_value_ && giveUpSoftVotedBlock_()) {
-    LOG(log_nf_) << "In round " << round << " step " << step_ << ". Give up next voted value "
-                 << previous_round_next_voted_value_ << " because giving up soft voted value.";
-    return true;
-  }
-
-  if (step_ > MAX_WAIT_FOR_NEXT_VOTED_BLOCK_STEPS) {
-    LOG(log_nf_) << "In round " << round << " step " << step_ << ", have exceeded max waiting step "
-                 << MAX_WAIT_FOR_NEXT_VOTED_BLOCK_STEPS << ". Give up voted value " << previous_round_next_voted_value_;
     return true;
   }
 
