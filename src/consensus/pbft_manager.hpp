@@ -223,6 +223,7 @@ class PbftManager {
   bool go_finish_state_ = false;
   bool loop_back_finish_state_ = false;
   bool reset_own_value_to_null_block_hash_in_this_round_ = false;
+  bool polling_state_print_log_ = true;
 
   uint64_t max_wait_for_soft_voted_block_steps_ms_ = 30;
   uint64_t max_wait_for_next_voted_block_steps_ms_ = 30;
