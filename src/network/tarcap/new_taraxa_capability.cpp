@@ -39,7 +39,7 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkC
       test_state_(std::make_shared<TestState>()),
       node_stats_(nullptr),
       packets_handlers_(std::make_shared<PacketsHandler>()),
-      thread_pool_(10, node_addr),  // TODO: num of threads from config
+      thread_pool_(conf.network_packets_processing_threads, node_addr),
       periodic_events_tp_(1, false) {
   auto packets_stats = std::make_shared<PacketsStats>(node_addr);
   syncing_handler_ = std::make_shared<SyncingHandler>(peers_state_, packets_stats, syncing_state_, pbft_chain, dag_mgr,

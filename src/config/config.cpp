@@ -107,6 +107,7 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
   network.network_ideal_peer_count = getConfigDataAsUInt(root, {"network_ideal_peer_count"});
   network.network_max_peer_count = getConfigDataAsUInt(root, {"network_max_peer_count"});
   network.network_sync_level_size = getConfigDataAsUInt(root, {"network_sync_level_size"});
+  network.network_packets_processing_threads = getConfigDataAsUInt(root, {"network_packets_processing_threads"});
   for (auto &item : root["network_boot_nodes"]) {
     NodeConfig node;
     node.id = getConfigDataAsString(item, {"id"});
@@ -218,19 +219,25 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
 }
 
 void FullNodeConfig::validate() {
+  // Max enabled number of threads for processing rpc requests
+  constexpr uint16_t max_packets_processing_threads_num = 30;
+  if (network.network_packets_processing_threads <= 0 || network.network_packets_processing_threads > max_packets_processing_threads_num) {
+    throw ConfigException(string("network_packets_processing_threads must be in range (0, ") + to_string(max_packets_processing_threads_num) + ">");
+  }
+
   // Validates rpc config values
   if (rpc) {
     if (!rpc->http_port && !rpc->ws_port) {
       throw ConfigException("Either rpc::http_port or rpc::ws_port post must be specified for rpc");
     }
 
-    // Max enabled number of threads
-    const uint16_t max_threads_num = 200;
-
-    if (rpc->threads_num <= 0 || rpc->threads_num > max_threads_num) {
-      throw ConfigException(string("rpc::threads_num must be in range (0, ") + to_string(max_threads_num) + ">");
+    // Max enabled number of threads for processing rpc requests
+    constexpr uint16_t max_rpc_threads_num = 10;
+    if (rpc->threads_num <= 0 || rpc->threads_num > max_rpc_threads_num) {
+      throw ConfigException(string("rpc::threads_num must be in range (0, ") + to_string(max_rpc_threads_num) + ">");
     }
   }
+
   // TODO validate that the boot node list doesn't contain self (although it's not critical)
   for (auto const &node : network.network_boot_nodes) {
     if (node.ip.empty()) {
