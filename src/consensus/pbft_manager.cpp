@@ -1739,12 +1739,6 @@ bool PbftManager::giveUpNextVotedBlock_() {
     return true;
   }
 
-  if (step_ > MAX_WAIT_FOR_NEXT_VOTED_BLOCK_STEPS) {
-    LOG(log_nf_) << "In round " << round << " step " << step_ << ", have exceeded max waiting step "
-                 << MAX_WAIT_FOR_NEXT_VOTED_BLOCK_STEPS << ". Give up voted value " << previous_round_next_voted_value_;
-    return true;
-  }
-
   auto pbft_block = pbft_chain_->getUnverifiedPbftBlock(previous_round_next_voted_value_);
   if (!pbft_block) {
     pbft_block = db_->getPbftCertVotedBlock(previous_round_next_voted_value_);
