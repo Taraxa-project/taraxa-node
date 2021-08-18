@@ -74,8 +74,7 @@ class FinalChain {
   }
 };
 
-unique_ptr<FinalChain> NewFinalChain(shared_ptr<DB> const& db, Config const& config, Opts const& opts = {},
-                                     addr_t const& node_addr = {});
+unique_ptr<FinalChain> NewFinalChain(shared_ptr<DB> const& db, Config const& config, addr_t const& node_addr = {});
 
 }  // namespace taraxa::final_chain
 

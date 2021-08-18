@@ -348,18 +348,21 @@ PbftBlock DbStorage::parsePeriodData(RLP& rlp, std::vector<Vote>& cert_votes, st
 
   auto pbft_block = PbftBlock(*it++);
   auto votes_rlp = (*it++);
+  cert_votes.reserve(votes_rlp.size());
   for (auto const& vote : votes_rlp) {
     cert_votes.emplace_back(Vote(vote));
   }
 
   auto blks_rlp = (*it++);
+  dag_blocks.reserve(blks_rlp.size());
   for (auto const& blk : blks_rlp) {
-    dag_blocks.push_back(DagBlock(blk));
+    dag_blocks.emplace_back(DagBlock(blk));
   }
 
   auto trx_rlp = (*it++);
+  transactions.reserve(trx_rlp.size());
   for (auto const& trx : trx_rlp) {
-    transactions.push_back(Transaction(trx));
+    transactions.emplace_back(Transaction(trx));
   }
 
   return pbft_block;

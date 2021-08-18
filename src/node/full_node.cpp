@@ -79,7 +79,7 @@ void FullNode::init() {
   }
   LOG(log_nf_) << "DB initialized ...";
 
-  final_chain_ = NewFinalChain(db_, conf_.chain.final_chain, conf_.opts_final_chain, node_addr);
+  final_chain_ = NewFinalChain(db_, conf_.chain.final_chain, node_addr);
   register_s_ptr(final_chain_);
   emplace(trx_mgr_, conf_, node_addr, db_, log_time_);
 

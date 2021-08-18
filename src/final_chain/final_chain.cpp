@@ -21,7 +21,6 @@ class FinalChainImpl final : public FinalChain {
   mutable shared_mutex last_block_mu_;
   mutable shared_ptr<BlockHeader> last_block_;
 
-  size_t transaction_count_hint_;
   util::ThreadPool executor_thread_{1};
   util::task_executor_t executor_ = executor_thread_.strand();
 
@@ -37,7 +36,7 @@ class FinalChainImpl final : public FinalChain {
   LOG_OBJECTS_DEFINE
 
  public:
-  FinalChainImpl(shared_ptr<DB> const& db, Config const& config, Opts const& opts, addr_t const& node_addr)
+  FinalChainImpl(shared_ptr<DB> const& db, Config const& config, addr_t const& node_addr)
       : db_(db),
         state_api_([this](auto n) { return block_hash(n).value_or(ZeroHash()); },  //
                    config.state,
@@ -47,8 +46,7 @@ class FinalChainImpl final : public FinalChain {
                    },
                    {
                        db->stateDbStoragePath().string(),
-                   }),
-        transaction_count_hint_(opts.state_api.expected_max_trx_per_block) {
+                   }) {
     LOG_OBJECTS_CREATE("EXECUTOR");
     num_executed_dag_blk_ = db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
     num_executed_trx_ = db_->getStatusField(taraxa::StatusDbField::ExecutedTrxCount);
@@ -115,7 +113,6 @@ class FinalChainImpl final : public FinalChain {
         }
       }
     }
-    transaction_count_hint_ = max(transaction_count_hint_, to_execute.size());
     auto const& [exec_results, state_root] =
         state_api_.transition_state({new_blk.author, GAS_LIMIT, new_blk.timestamp, BlockHeader::difficulty()},
                                     to_state_api_transactions(to_execute));
@@ -434,9 +431,8 @@ class FinalChainImpl final : public FinalChain {
   };
 };
 
-unique_ptr<FinalChain> NewFinalChain(shared_ptr<DB> const& db, Config const& config, Opts const& opts,
-                                     addr_t const& node_addr) {
-  return make_unique<FinalChainImpl>(db, config, opts, node_addr);
+unique_ptr<FinalChain> NewFinalChain(shared_ptr<DB> const& db, Config const& config, addr_t const& node_addr) {
+  return make_unique<FinalChainImpl>(db, config, node_addr);
 }
 
 }  // namespace taraxa::final_chain

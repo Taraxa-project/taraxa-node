@@ -25,7 +25,7 @@ struct DbStorage;
 class FullNode;
 class Vote;
 class DagBlock;
-class Transaction;
+struct Transaction;
 
 enum PbftVoteTypes : uint8_t { propose_vote_type = 0, soft_vote_type, cert_vote_type, next_vote_type };
 
