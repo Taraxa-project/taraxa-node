@@ -714,7 +714,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
 
       auto pbft_block = std::make_shared<PbftBlock>(_r[0]);
       uint64_t peer_pbft_chain_size = _r[1].toInt();
-      LOG(log_dg_pbft_prp_) << "Receive proposed PBFT Block " << pbft_block
+      LOG(log_dg_pbft_prp_) << "Receive proposed PBFT Block " << pbft_block->getBlockHash()
                             << ", Peer PBFT Chain size: " << peer_pbft_chain_size;
 
       peer->markPbftBlockAsKnown(pbft_block->getBlockHash());

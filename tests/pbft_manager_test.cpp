@@ -298,15 +298,15 @@ TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
 
   cout << "After some time, terminate voting on the bogus value " << pbft_block_hash << endl;
   EXPECT_HAPPENS({120s, 50ms}, [&](auto &ctx) {
-    auto soft_vote_value = pbft_block_hash;
+    auto next_vote_value = pbft_block_hash;
     auto votes = vote_mgr->getVerifiedVotes();
     for (auto const &v : votes) {
       if (next_vote_type == v.getType() && v.getBlockHash() == blk_hash_t(0)) {
-        soft_vote_value = v.getBlockHash();
+        next_vote_value = v.getBlockHash();
         break;
       }
     }
-    WAIT_EXPECT_EQ(ctx, soft_vote_value, blk_hash_t(0))
+    WAIT_EXPECT_EQ(ctx, next_vote_value, blk_hash_t(0))
   });
 
   cout << "Wait ensure node is still advancing in rounds... " << endl;

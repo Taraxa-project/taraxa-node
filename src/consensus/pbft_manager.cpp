@@ -946,24 +946,44 @@ void PbftManager::firstFinish_() {
       LOG(log_nf_) << "Next votes " << place_votes << " voting cert voted value " << last_cert_voted_value_
                    << " for round " << round << " , step " << step_;
     }
-  } else if (round >= 2 && giveUpNextVotedBlock_()) {
-    auto place_votes = placeVote_(NULL_BLOCK_HASH, next_vote_type, round, step_);
-    if (place_votes) {
-      LOG(log_nf_) << "Next votes " << place_votes << " voting NULL BLOCK for round " << round << ", at step " << step_;
-    }
-  } else {
-    if (own_starting_value_for_round_ == NULL_BLOCK_HASH) {
-      if (previous_round_next_voted_value_ != NULL_BLOCK_HASH && !reset_own_value_to_null_block_hash_in_this_round_) {
-        db_->savePbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round, previous_round_next_voted_value_);
-        own_starting_value_for_round_ = previous_round_next_voted_value_;
-        LOG(log_dg_) << "Updating own starting to previous round next voted value of "
-                     << previous_round_next_voted_value_;
+    // Re-broadcast pbft block in case some nodes do not have it
+    if (step_ % 20 == 0) {
+      auto pbft_block = db_->getPbftCertVotedBlock(last_cert_voted_value_);
+      assert(pbft_block);
+      if (auto net = network_.lock()) {
+        net->onNewPbftBlock(pbft_block);
       }
     }
-    auto place_votes = placeVote_(own_starting_value_for_round_, next_vote_type, round, step_);
-    if (place_votes) {
-      LOG(log_nf_) << "Next votes " << place_votes << " voting nodes own starting value "
-                   << own_starting_value_for_round_ << " for round " << round << ", at step " << step_;
+  } else {
+    // We only want to give up soft voted value IF:
+    // 1) haven't cert voted it
+    // 2) we are looking at value that was next voted in previous round
+    // 3) we don't have the block or if have block it can't be cert voted (yet)
+    bool giveUpSoftVotedBlockInFirstFinish = last_cert_voted_value_ == NULL_BLOCK_HASH &&
+                                             own_starting_value_for_round_ == previous_round_next_voted_value_ &&
+                                             giveUpSoftVotedBlock_() &&
+                                             !comparePbftBlockScheduleWithDAGblocks_(own_starting_value_for_round_);
+
+    if (round >= 2 && (giveUpNextVotedBlock_() || giveUpSoftVotedBlockInFirstFinish)) {
+      auto place_votes = placeVote_(NULL_BLOCK_HASH, next_vote_type, round, step_);
+      if (place_votes) {
+        LOG(log_nf_) << "Next votes " << place_votes << " voting NULL BLOCK for round " << round << ", at step "
+                     << step_;
+      }
+    } else {
+      if (own_starting_value_for_round_ == NULL_BLOCK_HASH) {
+        if (previous_round_next_voted_value_ != NULL_BLOCK_HASH && !reset_own_value_to_null_block_hash_in_this_round_) {
+          db_->savePbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round, previous_round_next_voted_value_);
+          own_starting_value_for_round_ = previous_round_next_voted_value_;
+          LOG(log_dg_) << "Updating own starting to previous round next voted value of "
+                       << previous_round_next_voted_value_;
+        }
+      }
+      auto place_votes = placeVote_(own_starting_value_for_round_, next_vote_type, round, step_);
+      if (place_votes) {
+        LOG(log_nf_) << "Next votes " << place_votes << " voting nodes own starting value "
+                     << own_starting_value_for_round_ << " for round " << round << ", at step " << step_;
+      }
     }
   }
 }
@@ -989,7 +1009,15 @@ void PbftManager::secondFinish_() {
     }
   }
 
-  if (!next_voted_null_block_hash_ && round >= 2 && giveUpNextVotedBlock_()) {
+  // We only want to give up soft voted value IF:
+  // 1) haven't cert voted it
+  // 2) we are looking at value that was next voted in previous round
+  // 3) we don't have the block or if have block it can't be cert voted (yet)
+  bool giveUpSoftVotedBlockInSecondFinish =
+      last_cert_voted_value_ == NULL_BLOCK_HASH && last_soft_voted_value_ == previous_round_next_voted_value_ &&
+      giveUpSoftVotedBlock_() && !comparePbftBlockScheduleWithDAGblocks_(soft_voted_block_for_this_round_.first);
+
+  if (!next_voted_null_block_hash_ && round >= 2 && (giveUpSoftVotedBlockInSecondFinish || giveUpNextVotedBlock_())) {
     auto place_votes = placeVote_(NULL_BLOCK_HASH, next_vote_type, round, step_);
     if (place_votes) {
       LOG(log_nf_) << "Next votes " << place_votes << " voting NULL BLOCK for round " << round << ", at step " << step_;
@@ -1662,6 +1690,19 @@ bool PbftManager::giveUpSoftVotedBlock_() {
   unsigned long elapsed_wait_soft_voted_block_in_ms =
       std::chrono::duration_cast<std::chrono::milliseconds>(soft_voted_block_wait_duration).count();
 
+  auto pbft_block = pbft_chain_->getUnverifiedPbftBlock(previous_round_next_voted_value_);
+  if (!pbft_block) {
+    pbft_block = db_->getPbftCertVotedBlock(previous_round_next_voted_value_);
+  }
+
+  if (pbft_block) {
+    // Have a block, but is it valid?
+    if (!checkPbftBlockValid_(previous_round_next_voted_value_)) {
+      // Received the block, but not valid
+      return true;
+    }
+  }
+
   if (elapsed_wait_soft_voted_block_in_ms > max_wait_for_soft_voted_block_steps_ms_) {
     LOG(log_dg_) << "Have been waiting " << elapsed_wait_soft_voted_block_in_ms << "ms for soft voted block "
                  << last_soft_voted_value_ << ", giving up on this value.";
@@ -1703,18 +1744,6 @@ bool PbftManager::giveUpNextVotedBlock_() {
     LOG(log_nf_) << "In round " << round << " step " << step_
                  << ", find voted value in PBFT chain already. Give up voted value "
                  << previous_round_next_voted_value_;
-    return true;
-  }
-
-  if (last_soft_voted_value_ == previous_round_next_voted_value_ && giveUpSoftVotedBlock_()) {
-    LOG(log_nf_) << "In round " << round << " step " << step_ << ". Give up next voted value "
-                 << previous_round_next_voted_value_ << " because giving up soft voted value.";
-    return true;
-  }
-
-  if (step_ > MAX_WAIT_FOR_NEXT_VOTED_BLOCK_STEPS) {
-    LOG(log_nf_) << "In round " << round << " step " << step_ << ", have exceeded max waiting step "
-                 << MAX_WAIT_FOR_NEXT_VOTED_BLOCK_STEPS << ". Give up voted value " << previous_round_next_voted_value_;
     return true;
   }
 
