@@ -18,7 +18,7 @@ void TestPacketHandler::process(const dev::RLP& packet_rlp, const PacketData& pa
 }
 
 void TestPacketHandler::sendTestMessage(dev::p2p::NodeID const& _id, int _x, std::vector<char> const& data) {
-  sealAndSend(_id, TestPacket, dev::RLPStream(2) << _x << data);
+  sealAndSend(_id, TestPacket, (dev::RLPStream(2) << _x << data).invalidate());
 }
 
 std::pair<size_t, uint64_t> TestPacketHandler::retrieveTestData(const dev::p2p::NodeID& node_id) {
