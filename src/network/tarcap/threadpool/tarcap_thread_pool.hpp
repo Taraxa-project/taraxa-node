@@ -63,9 +63,6 @@ class TarcapThreadPool {
   const size_t workers_num_;
 
   // Common packets handler
-  // TODO: might or might noy be a shared_ptr - depends on what object is going to be in network class for exposing
-  // functions like
-  //       onNew...
   std::shared_ptr<PacketsHandler> packets_handlers_;
 
   // If true, stop processing packets and join all workers threads

@@ -66,7 +66,6 @@ void StatusPacketHandler::process(const dev::RLP& packet_rlp, const PacketData& 
                    << getFormattedVersion({node_major_version, node_minor_version, node_patch_version})
                    << ", our node version" << TARAXA_VERSION << ", host " << packet_data.from_node_id_.abridged()
                    << " will be disconnected";
-      // TODO: get rid of host_ weak_ptr if possible ???
       host->disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
       return;
     }

@@ -31,7 +31,6 @@ class SyncingHandler;
 class TestState;
 class TaraxaPeer;
 
-// TODO: why was here virtual inheritance ?
 class TaraxaCapability : public dev::p2p::CapabilityFace {
  public:
   TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkConfig const &conf, std::shared_ptr<DbStorage> db = {},
@@ -67,14 +66,8 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   //       and most of these methods could be deleted
   // Interface required in network class to access packets handlers functionality
   // METHODS USED IN REAL CODE
-  //  bool isStarted();
-  //  Json::Value getStatus();
   const std::shared_ptr<PeersState> &getPeersState();
   const std::shared_ptr<NodeStats> &getNodeStats();
-
-  // TODO: delete
-  // std::vector<dev::p2p::NodeID> getAllPeersIDs() const;
-  // size_t getPeersCount() const;
 
   void restartSyncingPbft(bool force = false);
   bool pbft_syncing() const;
@@ -90,10 +83,6 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   void sendBlocks(dev::p2p::NodeID const &id, std::vector<std::shared_ptr<DagBlock>> blocks);
   size_t getReceivedBlocksCount() const;
   size_t getReceivedTransactionsCount() const;
-
-  // TODO: delete
-  // void setPendingPeersToReady();
-  // std::shared_ptr<TaraxaPeer> getPeer(dev::p2p::NodeID const &id) const;
 
   // PBFT
   void sendPbftBlock(dev::p2p::NodeID const &id, PbftBlock const &pbft_block, uint64_t pbft_chain_size);

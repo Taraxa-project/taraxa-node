@@ -117,7 +117,7 @@ inline void DagPacketsHandler::processGetNewBlockPacket(const dev::RLP &packet_r
 
 void DagPacketsHandler::requestBlock(dev::p2p::NodeID const &peer_id, blk_hash_t hash) {
   LOG(log_dg_) << "requestBlock " << hash.toString();
-  sealAndSend(peer_id, GetNewBlockPacket, RLPStream(1) << hash);
+  sealAndSend(peer_id, GetNewBlockPacket, dev::RLPStream(1) << hash);
 }
 
 void DagPacketsHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::DagBlock block) {

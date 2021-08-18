@@ -88,8 +88,6 @@ void PriorityQueue::updateDependenciesStart(const PacketData& packet) {
   // When processing TransactionPacket, processing of all dag block packets that were received after that (from the same
   // peer). No need to block processing of dag blocks packets received before as it should not be possible to send dag
   // block before sending txs it contains...
-  // TODO: this could be optimized to block dag blocks processing based on TransactionPacket only if received from the
-  // same peer
   if (packet.type_ == PriorityQueuePacketType::PQ_TransactionPacket) {
     blocked_packets_mask_.markPacketAsPeerTimeBlocked(packet, PriorityQueuePacketType::PQ_NewBlockPacket);
     blocked_packets_mask_.markPacketAsPeerTimeBlocked(packet, PriorityQueuePacketType::PQ_NewBlockHashPacket);
