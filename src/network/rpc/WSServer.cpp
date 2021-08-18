@@ -104,7 +104,7 @@ void WSSession::on_read(beast::error_code ec, std::size_t bytes_transferred) {
     closed_ = true;
     return;
   }
-  executor.post(boost::bind(&WSSession::writeImpl, this, response), std::allocator<void>());
+  boost::asio::post(executor, boost::bind(&WSSession::writeImpl, this, response));
   // Clear the buffer
   buffer_.consume(buffer_.size());
 
@@ -157,7 +157,7 @@ void WSSession::newEthBlock(::taraxa::final_chain::BlockHeader const &payload) {
       closed_ = true;
       return;
     }
-    executor.post(boost::bind(&WSSession::writeImpl, this, response), std::allocator<void>());
+    boost::asio::post(executor, boost::bind(&WSSession::writeImpl, this, response));
   }
 }
 
@@ -194,7 +194,7 @@ void WSSession::newDagBlock(DagBlock const &blk) {
       closed_ = true;
       return;
     }
-    executor.post(boost::bind(&WSSession::writeImpl, this, response), std::allocator<void>());
+    boost::asio::post(executor, boost::bind(&WSSession::writeImpl, this, response));
   }
 }
 
@@ -215,7 +215,7 @@ void WSSession::newDagBlockFinalized(blk_hash_t const &blk, uint64_t period) {
       closed_ = true;
       return;
     }
-    executor.post(boost::bind(&WSSession::writeImpl, this, response), std::allocator<void>());
+    boost::asio::post(executor, boost::bind(&WSSession::writeImpl, this, response));
   }
 }
 
@@ -235,7 +235,7 @@ void WSSession::newPbftBlockExecuted(Json::Value const &payload) {
       closed_ = true;
       return;
     }
-    executor.post(boost::bind(&WSSession::writeImpl, this, response), std::allocator<void>());
+    boost::asio::post(executor, boost::bind(&WSSession::writeImpl, this, response));
   }
 }
 
@@ -254,7 +254,7 @@ void WSSession::newPendingTransaction(trx_hash_t const &trx_hash) {
       closed_ = true;
       return;
     }
-    executor.post(boost::bind(&WSSession::writeImpl, this, response), std::allocator<void>());
+    boost::asio::post(executor, boost::bind(&WSSession::writeImpl, this, response));
   }
 }
 

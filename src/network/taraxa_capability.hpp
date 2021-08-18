@@ -44,11 +44,8 @@ enum SubprotocolPacketType : ::byte {
   PacketCount
 };
 
-enum GetBlocksPacketRequestType : ::byte {
+enum GetBlocksPacketRequestType : uint8_t { MissingHashes = 0x0, KnownHashes };
 
-  MissingHashes = 0x0,
-  KnownHashes
-};
 struct TaraxaCapability : virtual CapabilityFace {
   TaraxaCapability(weak_ptr<Host> _host, NetworkConfig const &_conf, std::shared_ptr<DbStorage> db = {},
                    std::shared_ptr<PbftManager> pbft_mgr = {}, std::shared_ptr<PbftChain> pbft_chain = {},

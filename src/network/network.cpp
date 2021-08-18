@@ -116,25 +116,25 @@ Json::Value Network::getStatus() { return taraxa_capability_->getStatus(); }
 std::vector<NodeID> Network::getAllPeersIDs() const { return taraxa_capability_->getAllPeersIDs(); }
 
 void Network::onNewBlockVerified(shared_ptr<DagBlock> const &blk) {
-  tp_.post([=] {
+  tp_.post([this, blk] {
     taraxa_capability_->onNewBlockVerified(*blk);
     LOG(log_dg_) << "On new block verified:" << blk->getHash().toString();
   });
 }
 
 void Network::onNewTransactions(std::vector<taraxa::bytes> transactions) {
-  tp_.post([=, transactions = std::move(transactions)] {
+  tp_.post([this, transactions = std::move(transactions)] {
     taraxa_capability_->onNewTransactions(transactions, true);
     LOG(log_dg_) << "On new transactions" << transactions.size();
   });
 }
 
 void Network::restartSyncingPbft(bool force) {
-  tp_.post([=] { taraxa_capability_->restartSyncingPbft(force); });
+  tp_.post([this, force] { taraxa_capability_->restartSyncingPbft(force); });
 }
 
 void Network::onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_block) {
-  tp_.post([=] {
+  tp_.post([this, pbft_block] {
     LOG(log_dg_) << "Network broadcast PBFT block: " << pbft_block->getBlockHash();
     taraxa_capability_->onNewPbftBlock(*pbft_block);
   });
@@ -145,7 +145,7 @@ bool Network::pbft_syncing() { return taraxa_capability_->pbft_syncing(); }
 uint64_t Network::syncTimeSeconds() const { return taraxa_capability_->syncTimeSeconds(); }
 
 void Network::onNewPbftVotes(std::vector<Vote> votes) {
-  tp_.post([=, votes = std::move(votes)] {
+  tp_.post([this, votes = std::move(votes)] {
     for (auto const &vote : votes) {
       LOG(log_dg_) << "Network broadcast PBFT vote: " << vote.getHash();
       taraxa_capability_->onNewPbftVote(vote);
@@ -154,7 +154,7 @@ void Network::onNewPbftVotes(std::vector<Vote> votes) {
 }
 
 void Network::broadcastPreviousRoundNextVotesBundle() {
-  tp_.post([=] {
+  tp_.post([this] {
     LOG(log_dg_) << "Network broadcast previous round next votes bundle";
     taraxa_capability_->broadcastPreviousRoundNextVotesBundle();
   });

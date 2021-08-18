@@ -743,7 +743,7 @@ jobs:
    build-linux:
      environment:
         BUILD_OUTPUT_DIR: "cmake-docker-build-debug"
-        GO_VERSION: "1.13.7"
+        GO_VERSION: "1.16.3"
         CMAKE_VERSION: "3.16.3-1ubuntu1"
         GCC_VERSION: "4:9.3.0-1ubuntu2"
         GFLAGS_VERSION: "2.2.2-1build1"
