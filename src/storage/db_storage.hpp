@@ -83,6 +83,8 @@ struct DbStorage {
 #define COLUMN(__name__) static inline auto const __name__ = all_.emplace_back(#__name__, all_.size())
 
     COLUMN(default_column);
+    // Contains full data for an executed PBFT block including PBFT block, cert votes, dag blocks and transactions
+    COLUMN(period_data);
     COLUMN(dag_blocks);
     COLUMN(dag_blocks_index);
     COLUMN(dag_blocks_state);
@@ -97,13 +99,11 @@ struct DbStorage {
     COLUMN(pbft_mgr_voted_value);
     COLUMN(pbft_cert_voted_block);
     COLUMN(pbft_head);
-    COLUMN(pbft_blocks);
     COLUMN(unverified_votes);
     COLUMN(verified_votes);
     COLUMN(soft_votes);  // only for current PBFT round
-    COLUMN(cert_votes);  // for each PBFT block
     COLUMN(next_votes);  // only for previous PBFT round
-    COLUMN(period_pbft_block);
+    COLUMN(pbft_block_period);
     COLUMN(dag_block_period);
     COLUMN(dpos_proposal_period_levels_status);
     COLUMN(proposal_period_levels_map);
@@ -165,9 +165,22 @@ struct DbStorage {
   void recoverToPeriod(uint64_t period);
   void loadSnapshots();
 
+  // Period data
+  void savePeriodData(const PbftBlock& pbft_block, const std::vector<Vote>& cert_votes,
+                      const std::vector<DagBlock>& dag_blocks, const std::vector<Transaction>& transactions,
+                      Batch& write_batch);
+  dev::bytes getPeriodDataRaw(uint64_t period);
+  PbftBlock parsePeriodData(RLP& rlp, std::vector<Vote>& cert_votes, std::vector<DagBlock>& dag_blocks,
+                            std::vector<Transaction>& transactions);
+  shared_ptr<PbftBlock> getPbftBlock(uint64_t period);
+
+  static constexpr uint16_t PBFT_BLOCK_POS_IN_PERIOD_DATA = 0;
+  static constexpr uint16_t CERT_VOTES_POS_IN_PERIOD_DATA = 1;
+  static constexpr uint16_t DAG_BLOCKS_POS_IN_PERIOD_DATA = 2;
+  static constexpr uint16_t TRANSACTIONS_POS_IN_PERIOD_DATA = 3;
+
   // DAG
   void saveDagBlock(DagBlock const& blk, Batch* write_batch_p = nullptr);
-  dev::bytes getDagBlockRaw(blk_hash_t const& hash);
   shared_ptr<DagBlock> getDagBlock(blk_hash_t const& hash);
   string getBlocksByLevel(level_t level);
   std::vector<std::shared_ptr<DagBlock>> getDagBlocksAtLevel(level_t level, int number_of_levels);
@@ -179,7 +192,6 @@ struct DbStorage {
 
   // Transaction
   void saveTransaction(Transaction const& trx, bool verified = false);
-  dev::bytes getTransactionRaw(trx_hash_t const& hash);
   shared_ptr<Transaction> getTransaction(trx_hash_t const& hash);
   shared_ptr<pair<Transaction, taraxa::bytes>> getTransactionExt(trx_hash_t const& hash);
   bool transactionInDb(trx_hash_t const& hash);
@@ -188,7 +200,7 @@ struct DbStorage {
   void saveTransactionStatus(trx_hash_t const& trx, TransactionStatus const& status);
   void addTransactionStatusToBatch(Batch& write_batch, trx_hash_t const& trx, TransactionStatus const& status);
   TransactionStatus getTransactionStatus(trx_hash_t const& hash);
-  std::map<trx_hash_t, TransactionStatus> getAllTransactionStatus();
+  std::unordered_map<trx_hash_t, TransactionStatus> getAllTransactionStatus();
 
   // PBFT manager
   uint64_t getPbftMgrField(PbftMgrRoundStep const& field);
@@ -214,7 +226,6 @@ struct DbStorage {
   // pbft_blocks
   shared_ptr<PbftBlock> getPbftBlock(blk_hash_t const& hash);
   bool pbftBlockInDb(blk_hash_t const& hash);
-  void addPbftBlockToBatch(PbftBlock const& pbft_block, Batch& write_batch);
   // pbft_blocks (head)
   // TODO: I would recommend storing this differently and not in the same db as
   // regular blocks with real hashes. Need remove from DB
@@ -248,9 +259,8 @@ struct DbStorage {
   void removeSoftVotesToBatch(uint64_t pbft_round, Batch& write_batch);
 
   // Certified votes
-  std::vector<Vote> getCertVotes(blk_hash_t const& hash);
-  void addCertVotesToBatch(taraxa::blk_hash_t const& pbft_block_hash, std::vector<Vote> const& cert_votes,
-                           Batch& write_batch);
+  std::vector<Vote> getCertVotes(uint64_t period);
+
   // Next votes
   std::vector<Vote> getNextVotes(uint64_t pbft_round);
   void saveNextVotes(uint64_t pbft_round, std::vector<Vote> const& next_votes);
@@ -258,11 +268,11 @@ struct DbStorage {
   void removeNextVotesToBatch(uint64_t pbft_round, Batch& write_batch);
 
   // period_pbft_block
-  shared_ptr<blk_hash_t> getPeriodPbftBlock(uint64_t period);
   void addPbftBlockPeriodToBatch(uint64_t period, taraxa::blk_hash_t const& pbft_block_hash, Batch& write_batch);
+  pair<bool, uint64_t> getPeriodFromPbftHash(taraxa::blk_hash_t const& pbft_block_hash);
   // dag_block_period
-  shared_ptr<uint64_t> getDagBlockPeriod(blk_hash_t const& hash);
-  void addDagBlockPeriodToBatch(blk_hash_t const& hash, uint64_t period, Batch& write_batch);
+  shared_ptr<std::pair<uint32_t, uint32_t>> getDagBlockPeriod(blk_hash_t const& hash);
+  void addDagBlockPeriodToBatch(blk_hash_t const& hash, uint32_t period, uint32_t position, Batch& write_batch);
 
   uint64_t getDagBlocksCount() const { return dag_blocks_count_.load(); }
   uint64_t getDagEdgeCount() const { return dag_edge_count_.load(); }

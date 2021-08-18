@@ -79,6 +79,7 @@ struct TaraxaCapability : virtual CapabilityFace {
   void syncPeerPbft(unsigned long height_to_sync);
   void restartSyncingPbft(bool force = false);
   void delayedPbftSync(int counter);
+  void pbftSyncComplete();
   std::pair<bool, std::unordered_set<blk_hash_t>> checkDagBlockValidation(DagBlock const &block);
   void requestBlocks(const NodeID &_nodeID, std::unordered_set<blk_hash_t> const &blocks,
                      GetBlocksPacketRequestType mode = MissingHashes);
@@ -190,12 +191,12 @@ struct TaraxaCapability : virtual CapabilityFace {
 
   const uint16_t MAX_CHECK_ALIVE_COUNT = 5;
 
-  // Only allow up to 2 nodes syncing from our node
-  const uint16_t MAX_SYNCING_NODES = 2;
+  // Only allow up to 10 nodes syncing from our node
+  const uint16_t MAX_SYNCING_NODES = 10;
 
   // If there are more than 10 packets in queue to be processed syncing will be delayed or node disconnected in queue
   // not cleared in defined time
-  const uint16_t MAX_NETWORK_QUEUE_TO_DROP_SYNCING = 10;
+  const uint16_t MAX_NETWORK_QUEUE_TO_DROP_SYNCING = 1000;
   const uint16_t MAX_TIME_TO_WAIT_FOR_QUEUE_TO_CLEAR_MS = 2000;
 
   static constexpr uint16_t INITIAL_STATUS_PACKET_ITEM_COUNT = 10;

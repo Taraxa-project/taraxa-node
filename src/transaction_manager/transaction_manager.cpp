@@ -85,18 +85,21 @@ std::pair<bool, std::string> TransactionManager::insertTransaction(const Transac
   auto hash = trx.getHash();
 
   TransactionStatus status = db_->getTransactionStatus(hash);
-  if (status != TransactionStatus::not_seen) {
-    switch (status) {
-      case TransactionStatus::in_queue_verified:
+  if (status.state != TransactionStatusEnum::not_seen) {
+    switch (status.state) {
+      case TransactionStatusEnum::in_queue_verified:
         LOG(log_dg_) << "Trx: " << hash << "skip, seen in verified queue. " << std::endl;
         return std::make_pair(false, "in verified queue");
-      case TransactionStatus::in_queue_unverified:
+      case TransactionStatusEnum::in_queue_unverified:
         LOG(log_dg_) << "Trx: " << hash << "skip, seen in unverified queue. " << std::endl;
         return std::make_pair(false, "in unverified queue");
-      case TransactionStatus::in_block:
+      case TransactionStatusEnum::in_block:
         LOG(log_dg_) << "Trx: " << hash << "skip, seen in block. " << std::endl;
         return std::make_pair(false, "in block");
-      case TransactionStatus::invalid:
+      case TransactionStatusEnum::executed:
+        LOG(log_dg_) << "Trx: " << hash << "skip, executed " << std::endl;
+        return std::make_pair(false, "executed");
+      case TransactionStatusEnum::invalid:
         LOG(log_dg_) << "Trx: " << hash << "skip, seen but invalid. " << std::endl;
         return std::make_pair(false, "already invalid");
       default:
@@ -104,7 +107,7 @@ std::pair<bool, std::string> TransactionManager::insertTransaction(const Transac
     }
   }
 
-  status = verify ? TransactionStatus::in_queue_verified : TransactionStatus::in_queue_unverified;
+  status = verify ? TransactionStatusEnum::in_queue_verified : TransactionStatusEnum::in_queue_unverified;
   db_->saveTransaction(trx, verify && mode_ != VerifyMode::skip_verify_sig);
   db_->saveTransactionStatus(hash, status);
   trx_qu_.insert(trx, verify);
@@ -154,27 +157,31 @@ uint32_t TransactionManager::insertBroadcastedTransactions(const std::vector<tar
     auto &trx_raw_status = db_trxs_statuses[idx];
     const trx_hash_t &trx_hash = trxs_hashes[idx];
 
-    TransactionStatus trx_status =
-        trx_raw_status.empty() ? TransactionStatus::not_seen : (TransactionStatus) * (uint16_t *)&trx_raw_status[0];
-    // TransactionStatus trx_status = trx_raw_status.empty() ? TransactionStatus::not_seen :
-    // static_cast<TransactionStatus>(*reinterpret_cast<uint16_t*>(&trx_raw_status[0]));
+    TransactionStatus trx_status;
+    if (!trx_raw_status.empty()) {
+      auto data = asBytes(trx_raw_status);
+      trx_status = TransactionStatus(RLP(data));
+    }
 
     LOG(log_dg_) << "Broadcasted transaction " << trx_hash << " received at: " << getCurrentTimeMilliSeconds();
 
     // Trx status was already saved in db -> it means we already processed this trx
     // Do not process it again
-    if (trx_status != TransactionStatus::not_seen) {
-      switch (trx_status) {
-        case TransactionStatus::in_queue_verified:
+    if (trx_status.state != TransactionStatusEnum::not_seen) {
+      switch (trx_status.state) {
+        case TransactionStatusEnum::in_queue_verified:
           LOG(log_dg_) << "Trx: " << trx_hash << " skipped, seen in verified queue.";
           break;
-        case TransactionStatus::in_queue_unverified:
+        case TransactionStatusEnum::in_queue_unverified:
           LOG(log_dg_) << "Trx: " << trx_hash << " skipped, seen in unverified queue.";
           break;
-        case TransactionStatus::in_block:
+        case TransactionStatusEnum::in_block:
           LOG(log_dg_) << "Trx: " << trx_hash << " skipped, seen in block.";
           break;
-        case TransactionStatus::invalid:
+        case TransactionStatusEnum::executed:
+          LOG(log_dg_) << "Trx: " << trx_hash << " skipped, executed.";
+          break;
+        case TransactionStatusEnum::invalid:
           LOG(log_dg_) << "Trx: " << trx_hash << " skipped, seen but invalid.";
           break;
         default:
@@ -187,7 +194,7 @@ uint32_t TransactionManager::insertBroadcastedTransactions(const std::vector<tar
     const Transaction &trx = trxs[idx];
 
     db_->addTransactionToBatch(trx, write_batch);
-    db_->addTransactionStatusToBatch(write_batch, trx_hash, TransactionStatus::in_queue_unverified);
+    db_->addTransactionStatusToBatch(write_batch, trx_hash, TransactionStatusEnum::in_queue_unverified);
 
     unseen_trxs.push_back(std::move(trx));
     if (ws_server_) ws_server_->newPendingTransaction(trx_hash);
@@ -217,7 +224,7 @@ void TransactionManager::verifyQueuedTrxs() {
     }
     // mark invalid
     if (!valid.first) {
-      db_->saveTransactionStatus(hash, TransactionStatus::invalid);
+      db_->saveTransactionStatus(hash, TransactionStatusEnum::invalid);
       trx_qu_.removeTransactionFromBuffer(hash);
 
       LOG(log_wr_) << " Trx: " << hash << "invalid: " << valid.second << std::endl;
@@ -225,8 +232,9 @@ void TransactionManager::verifyQueuedTrxs() {
     }
     {
       auto status = db_->getTransactionStatus(hash);
-      if (status == TransactionStatus::in_queue_unverified) {
-        db_->saveTransactionStatus(hash, TransactionStatus::in_queue_verified);
+      if (status.state == TransactionStatusEnum::in_queue_unverified) {
+        status.state = TransactionStatusEnum::in_queue_verified;
+        db_->saveTransactionStatus(hash, status);
         db_->saveTransaction(*item.second, mode_ != VerifyMode::skip_verify_sig);
         trx_qu_.addTransactionToVerifiedQueue(hash, item.second);
       }
@@ -324,9 +332,10 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx, uint16_t max_trx_
       trx_hash_t const &hash = i.first;
       Transaction const &trx = i.second;
       auto status = db_->getTransactionStatus(hash);
-      if (status == TransactionStatus::in_queue_verified) {
+      if (status.state == TransactionStatusEnum::in_queue_verified) {
         // Skip if transaction is already in existing block
-        db_->addTransactionStatusToBatch(trx_batch, hash, TransactionStatus::in_block);
+        status.state = TransactionStatusEnum::in_block;
+        db_->addTransactionStatusToBatch(trx_batch, hash, status);
         trx_count_.fetch_add(1);
         accepted_trx_hashes.emplace_back(hash);
         LOG(log_dg_) << "Trx: " << hash << " ready to pack" << std::endl;
@@ -379,11 +388,13 @@ bool TransactionManager::verifyBlockTransactions(DagBlock const &blk, std::vecto
   trx_hash_t missing_trx;
   auto trx_batch = db_->createWriteBatch();
   for (size_t idx = 0; idx < db_trxs_statuses.size(); ++idx) {
-    const TransactionStatus &status = db_trxs_statuses[idx].empty()
-                                          ? TransactionStatus::not_seen
-                                          : (TransactionStatus) * (uint16_t *)&db_trxs_statuses[idx][0];
+    TransactionStatus status;
+    if (!db_trxs_statuses[idx].empty()) {
+      auto data = asBytes(db_trxs_statuses[idx]);
+      status = TransactionStatus(RLP(data));
+    }
 
-    if (status == TransactionStatus::in_queue_unverified || status == TransactionStatus::not_seen) {
+    if (status.state == TransactionStatusEnum::in_queue_unverified || status.state == TransactionStatusEnum::not_seen) {
       const trx_hash_t &trx_hash = all_block_trx_hashes[idx];
       if (known_trx.count(trx_hash)) {
         if (const auto valid = verifyTransaction(known_trx[trx_hash]); !valid.first) {
@@ -393,7 +404,7 @@ bool TransactionManager::verifyBlockTransactions(DagBlock const &blk, std::vecto
         }
         db_->addTransactionToBatch(known_trx[trx_hash], trx_batch, true);
 
-      } else if (status == TransactionStatus::in_queue_unverified) {
+      } else if (status.state == TransactionStatusEnum::in_queue_unverified) {
         auto tx = db_->getTransaction(trx_hash);
         if (const auto valid = verifyTransaction(*tx); !valid.first) {
           LOG(log_er_) << "Block " << blk.getHash() << " has invalid transaction " << trx_hash.toString() << " "
@@ -419,14 +430,17 @@ bool TransactionManager::verifyBlockTransactions(DagBlock const &blk, std::vecto
     accepted_trx_hashes.reserve(all_block_trx_hashes.size());
     db_trxs_statuses = db_query.execute();
     for (size_t idx = 0; idx < db_trxs_statuses.size(); ++idx) {
-      const TransactionStatus &status = db_trxs_statuses[idx].empty()
-                                            ? TransactionStatus::not_seen
-                                            : (TransactionStatus) * (uint16_t *)&db_trxs_statuses[idx][0];
-      if (status != TransactionStatus::in_block) {
+      TransactionStatus status;
+      if (!db_trxs_statuses[idx].empty()) {
+        auto data = asBytes(db_trxs_statuses[idx]);
+        status = TransactionStatus(RLP(data));
+      }
+
+      if (status.state != TransactionStatusEnum::in_block && status.state != TransactionStatusEnum::executed) {
         const trx_hash_t &trx_hash = all_block_trx_hashes[idx];
         newly_added_txs_to_block_counter++;
         accepted_trx_hashes.push_back(trx_hash);
-        db_->addTransactionStatusToBatch(trx_batch, trx_hash, TransactionStatus::in_block);
+        db_->addTransactionStatusToBatch(trx_batch, trx_hash, TransactionStatusEnum::in_block);
       }
     }
     // Write prepared batch to db

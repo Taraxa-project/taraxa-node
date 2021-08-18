@@ -291,13 +291,10 @@ inline vector<blk_hash_t> getOrderedDagBlocks(shared_ptr<DbStorage> const& db) {
   uint64_t period = 1;
   vector<blk_hash_t> res;
   while (true) {
-    auto pbft_block_hash = db->getPeriodPbftBlock(period);
-    if (pbft_block_hash) {
-      auto pbft_block = db->getPbftBlock(*pbft_block_hash);
-      if (pbft_block) {
-        for (auto const& dag_block_hash : db->getFinalizedDagBlockHashesByAnchor(pbft_block->getPivotDagBlockHash())) {
-          res.push_back(dag_block_hash);
-        }
+    auto pbft_block = db->getPbftBlock(period);
+    if (pbft_block) {
+      for (auto const& dag_block_hash : db->getFinalizedDagBlockHashesByAnchor(pbft_block->getPivotDagBlockHash())) {
+        res.push_back(dag_block_hash);
       }
       period++;
       continue;

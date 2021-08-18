@@ -79,12 +79,11 @@ Json::Value Taraxa::taraxa_getScheduleBlockByPeriod(std::string const& _period) 
   try {
     auto node = tryGetNode();
     auto db = node->getDB();
-    auto blk_h = db->getPeriodPbftBlock(std::stoull(_period, 0, 16));
-    if (!blk_h) {
+    auto blk = db->getPbftBlock(std::stoull(_period, 0, 16));
+    if (!blk) {
       return Json::Value();
     }
-    auto blk = node->getPbftChain()->getPbftBlockInChain(*blk_h);
-    return PbftBlock::toJson(blk, db->getFinalizedDagBlockHashesByAnchor(blk.getPivotDagBlockHash()));
+    return PbftBlock::toJson(*blk, db->getFinalizedDagBlockHashesByAnchor(blk->getPivotDagBlockHash()));
   } catch (...) {
     BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
   }

@@ -79,7 +79,7 @@ void FullNode::init() {
   }
   LOG(log_nf_) << "DB initialized ...";
 
-  final_chain_ = NewFinalChain(db_, conf_.chain.final_chain, conf_.opts_final_chain, node_addr);
+  final_chain_ = NewFinalChain(db_, conf_.chain.final_chain, node_addr);
   register_s_ptr(final_chain_);
   emplace(trx_mgr_, conf_, node_addr, db_, log_time_);
 
@@ -110,6 +110,7 @@ void FullNode::start() {
   if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
+
   // Inits rpc related members
   if (conf_.rpc) {
     emplace(rpc_thread_pool_, conf_.rpc->threads_num);
@@ -251,6 +252,7 @@ void FullNode::start() {
     started_ = false;
     return;
   }
+
   started_ = true;
   LOG(log_nf_) << "Node started ... ";
 }
@@ -278,69 +280,30 @@ void FullNode::rebuildDb() {
   uint64_t period = 1;
 
   while (true) {
-    std::map<uint64_t, std::map<blk_hash_t, std::pair<DagBlock, std::vector<Transaction>>>> dag_blocks_per_level;
-    auto pbft_blk_hash = old_db_->getPeriodPbftBlock(period);
-    if (pbft_blk_hash == nullptr) {
+    map<uint64_t, vector<DagBlock>> dag_blocks_per_level;
+    auto data = old_db_->getPeriodDataRaw(period);
+    if (data.size() == 0) {
       break;
     }
-    auto pbft_block = old_db_->getPbftBlock(*pbft_blk_hash);
-    auto pivot_dag_hash = pbft_block->getPivotDagBlockHash();
-    std::set<blk_hash_t> pbft_dag_blocks;
-    std::vector<blk_hash_t> dag_blocks;
-    pbft_dag_blocks.emplace(pivot_dag_hash);
-    dag_blocks.push_back(pivot_dag_hash);
+    RLP rlp_data(data);
+    std::vector<Vote> cert_votes;
+    std::vector<DagBlock> dag_blocks;
+    std::vector<Transaction> transactions;
+    PbftBlock pbft_block = old_db_->parsePeriodData(rlp_data, cert_votes, dag_blocks, transactions);
 
-    // Read all the dag blocks from the pbft period
-    while (!dag_blocks.empty()) {
-      std::vector<blk_hash_t> new_dag_blocks;
-      for (auto &dag_block_hash : dag_blocks) {
-        auto dag_block = old_db_->getDagBlock(dag_block_hash);
-        auto pivot_hash = dag_block->getPivot();
-        auto tips = dag_block->getTips();
-        if (pbft_dag_blocks.count(pivot_hash) == 0 && !(dag_blk_mgr_->isBlockKnown(pivot_hash))) {
-          pbft_dag_blocks.emplace(pivot_hash);
-          new_dag_blocks.push_back(pivot_hash);
-        }
-        for (auto &tip : tips) {
-          if (pbft_dag_blocks.count(tip) == 0 && !(dag_blk_mgr_->isBlockKnown(tip))) {
-            pbft_dag_blocks.emplace(tip);
-            new_dag_blocks.push_back(tip);
-          }
-        }
-      }
-      dag_blocks = new_dag_blocks;
-    }
-
-    // Read the transactions for dag blocks
-    for (auto &dag_block_hash : pbft_dag_blocks) {
-      std::vector<Transaction> transactions;
-      auto dag_block = old_db_->getDagBlock(dag_block_hash);
-
-      DbStorage::MultiGetQuery db_query(old_db_);
-      db_query.append(DbStorage::Columns::transactions, dag_block->getTrxs());
-      auto db_response = db_query.execute();
-      for (auto &db_trx : db_response) {
-        transactions.push_back(Transaction(asBytes(db_trx)));
-      }
-      dag_blocks_per_level[dag_block->getLevel()][dag_block_hash] = std::make_pair(*dag_block, transactions);
-    }
-
-    // Add pbft blocks with certified votes in queue
-    auto cert_votes = old_db_->getCertVotes(*pbft_blk_hash);
-    if (cert_votes.empty()) {
-      LOG(log_er_) << "Cannot find any cert votes for PBFT block " << pbft_block;
-      assert(false);
-    }
-    PbftBlockCert pbft_blk_and_votes(*pbft_block, cert_votes);
-    LOG(log_nf_) << "Adding pbft block into queue " << pbft_block->getBlockHash().toString();
+    PbftBlockCert pbft_blk_and_votes(pbft_block, cert_votes);
+    LOG(log_nf_) << "Adding pbft block into queue " << pbft_block.getBlockHash().toString();
     pbft_chain_->setSyncedPbftBlockIntoQueue(pbft_blk_and_votes);
 
+    for (auto const &dag_block : dag_blocks) {
+      dag_blocks_per_level[dag_block.getLevel()].push_back(dag_block);
+    }
+
     // Add dag blocks and transactions from above to the queue
-    for (auto const &block_level : dag_blocks_per_level) {
-      for (auto const &block : block_level.second) {
-        LOG(log_nf_) << "Storing block " << block.second.first.getHash().toString() << " with "
-                     << block.second.second.size() << " transactions";
-        dag_blk_mgr_->processSyncedBlockWithTransactions(block.second.first, block.second.second);
+    dag_blk_mgr_->processSyncedTransactions(transactions);
+    for (auto const &level : dag_blocks_per_level) {
+      for (auto const &blk : level.second) {
+        dag_blk_mgr_->processSyncedBlock(blk);
       }
     }
 

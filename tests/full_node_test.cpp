@@ -96,6 +96,14 @@ TEST_F(FullNodeTest, db_test) {
   auto batch = db.createWriteBatch();
   db.addTransactionToBatch(g_trx_signed_samples[2], batch);
   db.addTransactionToBatch(g_trx_signed_samples[3], batch);
+  db.addTransactionStatusToBatch(batch, g_trx_signed_samples[0].getHash(),
+                                 TransactionStatus(TransactionStatusEnum::in_block));
+  db.addTransactionStatusToBatch(batch, g_trx_signed_samples[1].getHash(),
+                                 TransactionStatus(TransactionStatusEnum::in_block));
+  db.addTransactionStatusToBatch(batch, g_trx_signed_samples[2].getHash(),
+                                 TransactionStatus(TransactionStatusEnum::in_block));
+  db.addTransactionStatusToBatch(batch, g_trx_signed_samples[3].getHash(),
+                                 TransactionStatus(TransactionStatusEnum::in_block));
   db.commitWriteBatch(batch);
   EXPECT_TRUE(db.transactionInDb(g_trx_signed_samples[0].getHash()));
   EXPECT_TRUE(db.transactionInDb(g_trx_signed_samples[1].getHash()));
@@ -199,18 +207,36 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(db.getPbftCertVotedBlock(pbft_block3.getBlockHash())->rlp(false), pbft_block3.rlp(false));
   EXPECT_EQ(db.getPbftCertVotedBlock(pbft_block4.getBlockHash())->rlp(false), pbft_block4.rlp(false));
 
-  // pbft_blocks
+  // pbft_blocks and cert votes
   EXPECT_FALSE(db.pbftBlockInDb(blk_hash_t(0)));
   EXPECT_FALSE(db.pbftBlockInDb(blk_hash_t(1)));
   pbft_block1 = make_simple_pbft_block(blk_hash_t(1), 2);
   pbft_block2 = make_simple_pbft_block(blk_hash_t(2), 3);
   pbft_block3 = make_simple_pbft_block(blk_hash_t(3), 4);
   pbft_block4 = make_simple_pbft_block(blk_hash_t(4), 5);
+
+  // Certified votes
+  std::vector<Vote> cert_votes;
+  for (auto i = 0; i < 3; i++) {
+    VrfPbftMsg msg(cert_vote_type, 2, 3, 0);
+    vrf_wrapper::vrf_sk_t vrf_sk(
+        "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
+        "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
+    VrfPbftSortition vrf_sortition(vrf_sk, msg);
+    Vote vote(g_secret, vrf_sortition, blk_hash_t(10));
+    cert_votes.emplace_back(vote);
+  }
+
   batch = db.createWriteBatch();
-  db.addPbftBlockToBatch(pbft_block1, batch);
-  db.addPbftBlockToBatch(pbft_block2, batch);
-  db.addPbftBlockToBatch(pbft_block3, batch);
-  db.addPbftBlockToBatch(pbft_block4, batch);
+  std::vector<Vote> votes;
+  std::vector<DagBlock> dag_blocks;
+  std::vector<Transaction> vTrxs;
+
+  db.savePeriodData(pbft_block1, cert_votes, dag_blocks, vTrxs, batch);
+  db.savePeriodData(pbft_block2, votes, dag_blocks, vTrxs, batch);
+  db.savePeriodData(pbft_block3, votes, dag_blocks, vTrxs, batch);
+  db.savePeriodData(pbft_block4, votes, dag_blocks, vTrxs, batch);
+
   db.commitWriteBatch(batch);
   EXPECT_TRUE(db.pbftBlockInDb(pbft_block1.getBlockHash()));
   EXPECT_TRUE(db.pbftBlockInDb(pbft_block2.getBlockHash()));
@@ -220,6 +246,11 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(db.getPbftBlock(pbft_block2.getBlockHash())->rlp(false), pbft_block2.rlp(false));
   EXPECT_EQ(db.getPbftBlock(pbft_block3.getBlockHash())->rlp(false), pbft_block3.rlp(false));
   EXPECT_EQ(db.getPbftBlock(pbft_block4.getBlockHash())->rlp(false), pbft_block4.rlp(false));
+
+  PbftBlockCert pbft_block_cert_votes(pbft_block1, cert_votes);
+  auto cert_votes_from_db = db.getCertVotes(pbft_block1.getPeriod());
+  PbftBlockCert pbft_block_cert_votes_from_db(pbft_block1, cert_votes_from_db);
+  EXPECT_EQ(pbft_block_cert_votes.rlp(), pbft_block_cert_votes_from_db.rlp());
 
   // pbft_blocks (head)
   PbftChain pbft_chain(blk_hash_t(0), addr_t(), db_ptr);
@@ -353,29 +384,6 @@ TEST_F(FullNodeTest, db_test) {
   soft_votes_from_db = db.getSoftVotes(round);
   EXPECT_TRUE(soft_votes_from_db.empty());
 
-  // Certified votes
-  std::vector<Vote> cert_votes;
-  voted_pbft_block_hash = blk_hash_t(10);
-  weighted_index = 0;
-  for (auto i = 0; i < 3; i++) {
-    weighted_index = i;
-    VrfPbftMsg msg(cert_vote_type, 2, 3, weighted_index);
-    vrf_wrapper::vrf_sk_t vrf_sk(
-        "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
-        "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
-    VrfPbftSortition vrf_sortition(vrf_sk, msg);
-    Vote vote(g_secret, vrf_sortition, voted_pbft_block_hash);
-    cert_votes.emplace_back(vote);
-  }
-  batch = db.createWriteBatch();
-  db.addCertVotesToBatch(voted_pbft_block_hash, cert_votes, batch);
-  db.commitWriteBatch(batch);
-  auto pbft_block = make_simple_pbft_block(voted_pbft_block_hash, 1);
-  PbftBlockCert pbft_block_cert_votes(pbft_block, cert_votes);
-  auto cert_votes_from_db = db.getCertVotes(voted_pbft_block_hash);
-  PbftBlockCert pbft_block_cert_votes_from_db(pbft_block, cert_votes_from_db);
-  EXPECT_EQ(pbft_block_cert_votes.rlp(), pbft_block_cert_votes_from_db.rlp());
-
   // Next votes
   round = 3, step = 5;
   weighted_index = 0;
@@ -420,19 +428,21 @@ TEST_F(FullNodeTest, db_test) {
 
   // period_pbft_block
   batch = db.createWriteBatch();
-  db.addPbftBlockPeriodToBatch(1, blk_hash_t(1), batch);
-  db.addPbftBlockPeriodToBatch(2, blk_hash_t(2), batch);
+  db.addPbftBlockPeriodToBatch(3, blk_hash_t(1), batch);
+  db.addPbftBlockPeriodToBatch(4, blk_hash_t(2), batch);
   db.commitWriteBatch(batch);
-  EXPECT_EQ(*db.getPeriodPbftBlock(1), blk_hash_t(1));
-  EXPECT_EQ(*db.getPeriodPbftBlock(2), blk_hash_t(2));
+  EXPECT_EQ(db.getPeriodFromPbftHash(blk_hash_t(1)).second, 3);
+  EXPECT_EQ(db.getPeriodFromPbftHash(blk_hash_t(2)).second, 4);
 
   // dag_block_period
   batch = db.createWriteBatch();
-  db.addDagBlockPeriodToBatch(blk_hash_t(1), 1, batch);
-  db.addDagBlockPeriodToBatch(blk_hash_t(2), 2, batch);
+  db.addDagBlockPeriodToBatch(blk_hash_t(1), 1, 2, batch);
+  db.addDagBlockPeriodToBatch(blk_hash_t(2), 3, 4, batch);
   db.commitWriteBatch(batch);
-  EXPECT_EQ(1, *db.getDagBlockPeriod(blk_hash_t(1)));
-  EXPECT_EQ(2, *db.getDagBlockPeriod(blk_hash_t(2)));
+  EXPECT_EQ(1, db.getDagBlockPeriod(blk_hash_t(1))->first);
+  EXPECT_EQ(2, db.getDagBlockPeriod(blk_hash_t(1))->second);
+  EXPECT_EQ(3, db.getDagBlockPeriod(blk_hash_t(2))->first);
+  EXPECT_EQ(4, db.getDagBlockPeriod(blk_hash_t(2))->second);
 
   // DPOS proposal period DAG levels status
   EXPECT_EQ(0, db.getDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus::max_proposal_period));
@@ -864,6 +874,7 @@ TEST_F(FullNodeTest, destroy_db) {
     FullNode::Handle node(node_cfgs[0]);
     auto db = node->getDB();
     db->saveTransaction(g_trx_signed_samples[0]);
+    db->saveTransactionStatus(g_trx_signed_samples[0].getHash(), TransactionStatus(TransactionStatusEnum::in_block));
     // Verify trx saved in db
     EXPECT_TRUE(db->getTransaction(g_trx_signed_samples[0].getHash()));
   }
