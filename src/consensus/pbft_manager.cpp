@@ -946,6 +946,14 @@ void PbftManager::firstFinish_() {
       LOG(log_nf_) << "Next votes " << place_votes << " voting cert voted value " << last_cert_voted_value_
                    << " for round " << round << " , step " << step_;
     }
+    // Re-broadcast pbft block in case some nodes do not have it
+    if (step_ % 20 == 0) {
+      auto pbft_block = db_->getPbftCertVotedBlock(last_cert_voted_value_);
+      assert(pbft_block);
+      if (auto net = network_.lock()) {
+        net->onNewPbftBlock(pbft_block);
+      }
+    }
   } else {
     // We only want to give up soft voted value IF:
     // 1) haven't cert voted it
