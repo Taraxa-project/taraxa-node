@@ -48,12 +48,12 @@ struct FinalChainTest : WithDataDir {
     DagBlock dag_blk({}, {}, {}, trx_hashes, {}, secret_t::random());
     db->saveDagBlock(dag_blk);
     PbftBlock pbft_block(blk_hash_t(), blk_hash_t(), 1, addr_t(1), KeyPair::create().secret());
-    std::vector<Vote> vVotes;
-    std::vector<DagBlock> vDagBlocks;
-    vDagBlocks.push_back(dag_blk);
+    std::vector<Vote> votes;
+    std::vector<DagBlock> dag_blocks;
+    dag_blocks.push_back(dag_blk);
 
     auto batch = db->createWriteBatch();
-    db->savePeriodData(pbft_block, vVotes, vDagBlocks, trxs, batch);
+    db->savePeriodData(pbft_block, votes, dag_blocks, trxs, batch);
 
     db->commitWriteBatch(batch);
     NewBlock new_blk{

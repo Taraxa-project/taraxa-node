@@ -228,14 +228,14 @@ TEST_F(FullNodeTest, db_test) {
   }
 
   batch = db.createWriteBatch();
-  std::vector<Vote> vVotes;
-  std::vector<DagBlock> vDagBlocks;
+  std::vector<Vote> votes;
+  std::vector<DagBlock> dag_blocks;
   std::vector<Transaction> vTrxs;
 
-  db.savePeriodData(pbft_block1, cert_votes, vDagBlocks, vTrxs, batch);
-  db.savePeriodData(pbft_block2, vVotes, vDagBlocks, vTrxs, batch);
-  db.savePeriodData(pbft_block3, vVotes, vDagBlocks, vTrxs, batch);
-  db.savePeriodData(pbft_block4, vVotes, vDagBlocks, vTrxs, batch);
+  db.savePeriodData(pbft_block1, cert_votes, dag_blocks, vTrxs, batch);
+  db.savePeriodData(pbft_block2, votes, dag_blocks, vTrxs, batch);
+  db.savePeriodData(pbft_block3, votes, dag_blocks, vTrxs, batch);
+  db.savePeriodData(pbft_block4, votes, dag_blocks, vTrxs, batch);
 
   db.commitWriteBatch(batch);
   EXPECT_TRUE(db.pbftBlockInDb(pbft_block1.getBlockHash()));

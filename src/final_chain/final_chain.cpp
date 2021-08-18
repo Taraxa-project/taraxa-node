@@ -94,22 +94,22 @@ class FinalChainImpl final : public FinalChain {
       // stuff as soon as possible
       auto period_raw = db_->getPeriodDataRaw(period);
       RLP period_rlp(period_raw);
-      std::vector<Vote> vVotes;
-      std::vector<DagBlock> vDagBlocks;
-      std::vector<Transaction> vTrxs;
-      db_->parsePeriodData(period_rlp, vVotes, vDagBlocks, vTrxs);
-      DB::MultiGetQuery db_query(db_, transaction_count_hint_);
-      for (auto const& trx : vTrxs) {
+      std::vector<Vote> votes;
+      std::vector<DagBlock> dag_blocks;
+      std::vector<Transaction> period_transactions;
+      db_->parsePeriodData(period_rlp, votes, dag_blocks, period_transactions);
+      DB::MultiGetQuery db_query(db_, period_transactions.size());
+      for (auto const& trx : period_transactions) {
         db_query.append(DB::Columns::final_chain_transaction_location_by_hash, trx.getHash());
       }
       auto trx_db_results = db_query.execute(false);
-      to_execute.reserve(vTrxs.size());
-      for (uint i = 0; i < vTrxs.size(); ++i) {
+      to_execute.reserve(period_transactions.size());
+      for (uint i = 0; i < period_transactions.size(); ++i) {
         if (auto has_been_executed = !trx_db_results[i].empty(); has_been_executed) {
           continue;
         }
         // Non-executed trxs
-        auto const& trx = to_execute.emplace_back(vTrxs[i]);
+        auto const& trx = to_execute.emplace_back(period_transactions[i]);
         if (replay_protection_service_ && replay_protection_service_->is_nonce_stale(trx.getSender(), trx.getNonce())) {
           to_execute.pop_back();
         }

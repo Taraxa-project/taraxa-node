@@ -13,24 +13,21 @@ enum class TransactionStatusEnum {
 
 class TransactionStatus {
  public:
-  TransactionStatusEnum status = TransactionStatusEnum::not_seen;
+  TransactionStatusEnum state = TransactionStatusEnum::not_seen;
   uint32_t period = 0;
   uint32_t position = 0;
 
   TransactionStatus() = default;
 
-  TransactionStatus(TransactionStatusEnum transactionStatus, uint32_t tPeriod = 0, uint32_t tPosition = 0) {
-    status = transactionStatus;
-    period = tPeriod;
-    position = tPosition;
-  }
+  TransactionStatus(TransactionStatusEnum state, uint32_t period = 0, uint32_t position = 0)
+      : state(state), period(period), position(position) {}
 
   TransactionStatus(dev::RLP const &rlp) {
     if (!rlp.isList()) {
       throw std::invalid_argument("TransactionStatus RLP must be a list");
     }
     auto it = rlp.begin();
-    status = (TransactionStatusEnum)(*it++).toInt<uint16_t>();
+    state = (TransactionStatusEnum)(*it++).toInt<uint8_t>();
     period = (*it++).toInt<uint32_t>();
     position = (*it++).toInt<uint32_t>();
   }
@@ -38,7 +35,7 @@ class TransactionStatus {
   dev::bytes rlp() const {
     dev::RLPStream s;
     s.appendList(3);
-    s << (uint16_t)status << period << position;
+    s << (uint8_t)state << period << position;
     return s.invalidate();
   }
 };

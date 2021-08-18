@@ -188,6 +188,7 @@ void DagBlockManager::processSyncedBlock(DagBlock const &blk) {
 void DagBlockManager::processSyncedTransactions(std::vector<Transaction> const &transactions) {
   DbStorage::MultiGetQuery db_query(db_, transactions.size());
   std::vector<trx_hash_t> trx_hashes;
+  trx_hashes.reserve(transactions.size());
   for (auto const &trx : transactions) trx_hashes.emplace_back(trx.getHash());
   db_query.append(DbStorage::Columns::trx_status, trx_hashes);
   auto db_trxs_statuses = db_query.execute();
@@ -201,9 +202,9 @@ void DagBlockManager::processSyncedTransactions(std::vector<Transaction> const &
       status = TransactionStatus(RLP(data));
     }
     const trx_hash_t &trx_hash = trx_hashes[idx];
-    if (status.status == TransactionStatusEnum::not_seen) {
+    if (status.state == TransactionStatusEnum::not_seen) {
       db_->addTransactionToBatch(transactions[idx], trx_batch);
-    } else if (status.status == TransactionStatusEnum::in_block || status.status == TransactionStatusEnum::executed) {
+    } else if (status.state == TransactionStatusEnum::in_block || status.state == TransactionStatusEnum::executed) {
       newly_added_txs_to_block_counter--;
       continue;
     }

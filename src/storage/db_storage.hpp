@@ -174,10 +174,10 @@ struct DbStorage {
                             std::vector<Transaction>& transactions);
   shared_ptr<PbftBlock> getPbftBlock(uint64_t period);
 
-  static constexpr uint16_t pbft_block_pos_in_period_data = 0;
-  static constexpr uint16_t cert_votes_pos_in_period_data = 1;
-  static constexpr uint16_t dag_blocks_pos_in_period_data = 2;
-  static constexpr uint16_t transactions_pos_in_period_data = 3;
+  static constexpr uint16_t PBFT_BLOCK_POS_IN_PERIOD_DATA = 0;
+  static constexpr uint16_t CERT_VOTES_POS_IN_PERIOD_DATA = 1;
+  static constexpr uint16_t DAG_BLOCKS_POS_IN_PERIOD_DATA = 2;
+  static constexpr uint16_t TRANSACTIONS_POS_IN_PERIOD_DATA = 3;
 
   // DAG
   void saveDagBlock(DagBlock const& blk, Batch* write_batch_p = nullptr);
@@ -200,7 +200,7 @@ struct DbStorage {
   void saveTransactionStatus(trx_hash_t const& trx, TransactionStatus const& status);
   void addTransactionStatusToBatch(Batch& write_batch, trx_hash_t const& trx, TransactionStatus const& status);
   TransactionStatus getTransactionStatus(trx_hash_t const& hash);
-  std::map<trx_hash_t, TransactionStatus> getAllTransactionStatus();
+  std::unordered_map<trx_hash_t, TransactionStatus> getAllTransactionStatus();
 
   // PBFT manager
   uint64_t getPbftMgrField(PbftMgrRoundStep const& field);

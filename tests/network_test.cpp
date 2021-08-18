@@ -403,12 +403,12 @@ TEST_F(NetworkTest, node_pbft_sync) {
   std::cout << "Generate 1 vote for first PBFT block" << std::endl;
   // Add cert votes in DB
   // Add PBFT block in DB
-  std::vector<DagBlock> vDagBlocks;
-  vDagBlocks.push_back(blk1);
-  std::vector<Transaction> vTrxs;
-  vTrxs.push_back(g_signed_trx_samples[0]);
-  vTrxs.push_back(g_signed_trx_samples[1]);
-  db1->savePeriodData(pbft_block1, votes_for_pbft_blk1, vDagBlocks, vTrxs, batch);
+  std::vector<DagBlock> dag_blocks;
+  dag_blocks.push_back(blk1);
+  std::vector<Transaction> trxs;
+  trxs.push_back(g_signed_trx_samples[0]);
+  trxs.push_back(g_signed_trx_samples[1]);
+  db1->savePeriodData(pbft_block1, votes_for_pbft_blk1, dag_blocks, trxs, batch);
   // Update period_pbft_block in DB
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block1.getBlockHash());
@@ -446,12 +446,12 @@ TEST_F(NetworkTest, node_pbft_sync) {
   // node1 put block2 into pbft chain and store into DB
   // Add cert votes in DB
   // Add PBFT block in DB
-  vDagBlocks.clear();
-  vTrxs.clear();
-  vDagBlocks.push_back(blk2);
-  vTrxs.push_back(g_signed_trx_samples[2]);
-  vTrxs.push_back(g_signed_trx_samples[3]);
-  db1->savePeriodData(pbft_block2, votes_for_pbft_blk2, vDagBlocks, vTrxs, batch);
+  dag_blocks.clear();
+  trxs.clear();
+  dag_blocks.push_back(blk2);
+  trxs.push_back(g_signed_trx_samples[2]);
+  trxs.push_back(g_signed_trx_samples[3]);
+  db1->savePeriodData(pbft_block2, votes_for_pbft_blk2, dag_blocks, trxs, batch);
 
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block2.getBlockHash());
@@ -534,12 +534,12 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   std::cout << "Generate 1 vote for first PBFT block" << std::endl;
   // Add cert votes in DB
   // Add PBFT block in DB
-  std::vector<DagBlock> vDagBlocks;
-  vDagBlocks.push_back(blk1);
-  std::vector<Transaction> vTrxs;
-  vTrxs.push_back(g_signed_trx_samples[0]);
-  vTrxs.push_back(g_signed_trx_samples[1]);
-  db1->savePeriodData(pbft_block1, votes_for_pbft_blk1, vDagBlocks, vTrxs, batch);
+  std::vector<DagBlock> dag_blocks;
+  dag_blocks.push_back(blk1);
+  std::vector<Transaction> trxs;
+  trxs.push_back(g_signed_trx_samples[0]);
+  trxs.push_back(g_signed_trx_samples[1]);
+  db1->savePeriodData(pbft_block1, votes_for_pbft_blk1, dag_blocks, trxs, batch);
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block1.getBlockHash());
   // Update PBFT chain head block
@@ -573,12 +573,12 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   // node1 put block2 into pbft chain and use fake votes storing into DB (malicious player)
   // Add fake votes in DB
   // Add PBFT block in DB
-  vDagBlocks.clear();
-  vTrxs.clear();
-  vDagBlocks.push_back(blk2);
-  vTrxs.push_back(g_signed_trx_samples[2]);
-  vTrxs.push_back(g_signed_trx_samples[3]);
-  db1->savePeriodData(pbft_block2, votes_for_pbft_blk1, vDagBlocks, vTrxs, batch);
+  dag_blocks.clear();
+  trxs.clear();
+  dag_blocks.push_back(blk2);
+  trxs.push_back(g_signed_trx_samples[2]);
+  trxs.push_back(g_signed_trx_samples[3]);
+  db1->savePeriodData(pbft_block2, votes_for_pbft_blk1, dag_blocks, trxs, batch);
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block2.getBlockHash());
   // Update PBFT chain head block

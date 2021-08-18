@@ -5,7 +5,6 @@
 #include <atomic>
 #include <boost/noncopyable.hpp>
 
-#include "transaction_manager/transaction.hpp"
 #include "util/util.hpp"
 
 namespace taraxa {

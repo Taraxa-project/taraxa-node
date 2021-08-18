@@ -85,8 +85,8 @@ std::pair<bool, std::string> TransactionManager::insertTransaction(const Transac
   auto hash = trx.getHash();
 
   TransactionStatus status = db_->getTransactionStatus(hash);
-  if (status.status != TransactionStatusEnum::not_seen) {
-    switch (status.status) {
+  if (status.state != TransactionStatusEnum::not_seen) {
+    switch (status.state) {
       case TransactionStatusEnum::in_queue_verified:
         LOG(log_dg_) << "Trx: " << hash << "skip, seen in verified queue. " << std::endl;
         return std::make_pair(false, "in verified queue");
@@ -167,8 +167,8 @@ uint32_t TransactionManager::insertBroadcastedTransactions(const std::vector<tar
 
     // Trx status was already saved in db -> it means we already processed this trx
     // Do not process it again
-    if (trx_status.status != TransactionStatusEnum::not_seen) {
-      switch (trx_status.status) {
+    if (trx_status.state != TransactionStatusEnum::not_seen) {
+      switch (trx_status.state) {
         case TransactionStatusEnum::in_queue_verified:
           LOG(log_dg_) << "Trx: " << trx_hash << " skipped, seen in verified queue.";
           break;
@@ -232,8 +232,8 @@ void TransactionManager::verifyQueuedTrxs() {
     }
     {
       auto status = db_->getTransactionStatus(hash);
-      if (status.status == TransactionStatusEnum::in_queue_unverified) {
-        status.status = TransactionStatusEnum::in_queue_verified;
+      if (status.state == TransactionStatusEnum::in_queue_unverified) {
+        status.state = TransactionStatusEnum::in_queue_verified;
         db_->saveTransactionStatus(hash, status);
         db_->saveTransaction(*item.second, mode_ != VerifyMode::skip_verify_sig);
         trx_qu_.addTransactionToVerifiedQueue(hash, item.second);
@@ -332,9 +332,9 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx, uint16_t max_trx_
       trx_hash_t const &hash = i.first;
       Transaction const &trx = i.second;
       auto status = db_->getTransactionStatus(hash);
-      if (status.status == TransactionStatusEnum::in_queue_verified) {
+      if (status.state == TransactionStatusEnum::in_queue_verified) {
         // Skip if transaction is already in existing block
-        status.status = TransactionStatusEnum::in_block;
+        status.state = TransactionStatusEnum::in_block;
         db_->addTransactionStatusToBatch(trx_batch, hash, status);
         trx_count_.fetch_add(1);
         accepted_trx_hashes.emplace_back(hash);
@@ -394,8 +394,7 @@ bool TransactionManager::verifyBlockTransactions(DagBlock const &blk, std::vecto
       status = TransactionStatus(RLP(data));
     }
 
-    if (status.status == TransactionStatusEnum::in_queue_unverified ||
-        status.status == TransactionStatusEnum::not_seen) {
+    if (status.state == TransactionStatusEnum::in_queue_unverified || status.state == TransactionStatusEnum::not_seen) {
       const trx_hash_t &trx_hash = all_block_trx_hashes[idx];
       if (known_trx.count(trx_hash)) {
         if (const auto valid = verifyTransaction(known_trx[trx_hash]); !valid.first) {
@@ -405,7 +404,7 @@ bool TransactionManager::verifyBlockTransactions(DagBlock const &blk, std::vecto
         }
         db_->addTransactionToBatch(known_trx[trx_hash], trx_batch, true);
 
-      } else if (status.status == TransactionStatusEnum::in_queue_unverified) {
+      } else if (status.state == TransactionStatusEnum::in_queue_unverified) {
         auto tx = db_->getTransaction(trx_hash);
         if (const auto valid = verifyTransaction(*tx); !valid.first) {
           LOG(log_er_) << "Block " << blk.getHash() << " has invalid transaction " << trx_hash.toString() << " "
@@ -437,7 +436,7 @@ bool TransactionManager::verifyBlockTransactions(DagBlock const &blk, std::vecto
         status = TransactionStatus(RLP(data));
       }
 
-      if (status.status != TransactionStatusEnum::in_block && status.status != TransactionStatusEnum::executed) {
+      if (status.state != TransactionStatusEnum::in_block && status.state != TransactionStatusEnum::executed) {
         const trx_hash_t &trx_hash = all_block_trx_hashes[idx];
         newly_added_txs_to_block_counter++;
         accepted_trx_hashes.push_back(trx_hash);

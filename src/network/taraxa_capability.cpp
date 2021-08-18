@@ -745,8 +745,8 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         break;
       }
 
-      auto itemCount = _r.itemCount();
-      if (itemCount > 0) {
+      auto item_count = _r.itemCount();
+      if (item_count > 0) {
         auto it = _r.begin();
         bool last_block = (*it++).toInt<bool>();
         PbftBlockCert pbft_blk_cert(*it);
@@ -756,9 +756,13 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         for (auto const &block_level : pbft_blk_cert.dag_blocks_per_level) {
           for (auto const &block : block_level.second) {
             received_dag_blocks_str += block.getHash().toString() + " ";
-            if (block.getLevel() > peer->dag_level_) {
-              peer->dag_level_ = block.getLevel();
-            }
+          }
+        }
+
+        if (!pbft_blk_cert.dag_blocks_per_level.empty()) {
+          auto max_level = pbft_blk_cert.dag_blocks_per_level.rbegin()->first;
+          if (max_level > peer->dag_level_) {
+            peer->dag_level_ = max_level;
           }
         }
 
@@ -766,11 +770,10 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
 
         auto pbft_blk_hash = pbft_blk_cert.pbft_blk->getBlockHash();
         peer->markPbftBlockAsKnown(pbft_blk_hash);
-        LOG(log_dg_pbft_sync_) << "Processing pbft block: " << pbft_blk_cert.pbft_blk->getBlockHash();
+        LOG(log_dg_pbft_sync_) << "Processing pbft block: " << pbft_blk_hash;
 
         if (pbft_chain_->isKnownPbftBlockForSyncing(pbft_blk_hash)) {
-          LOG(log_dg_pbft_sync_) << "Block " << pbft_blk_cert.pbft_blk->getBlockHash()
-                                 << " already processed or scheduled to be processed";
+          LOG(log_dg_pbft_sync_) << "Block " << pbft_blk_hash << " already processed or scheduled to be processed";
           return;
         }
 

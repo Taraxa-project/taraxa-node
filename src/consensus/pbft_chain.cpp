@@ -111,7 +111,7 @@ PbftBlockCert::PbftBlockCert(PbftBlock const& pbft_blk, std::vector<Vote> const&
 
 PbftBlockCert::PbftBlockCert(dev::RLP const& rlp) {
   auto it = rlp.begin();
-  pbft_blk.reset(new PbftBlock(*it++));
+  pbft_blk = make_shared<PbftBlock>(*it++);
   for (auto const vote_rlp : *it++) {
     cert_votes.emplace_back(vote_rlp);
   }
@@ -221,7 +221,7 @@ std::vector<std::string> PbftChain::getPbftBlocksStr(size_t period, size_t count
   for (auto i = period; i < period + count; i++) {
     auto pbft_block = db_->getPbftBlock(i);
     if (pbft_block == nullptr) {
-      LOG(log_er_) << "PBFT block period " << i << " is not exist in blocks order DB.";
+      LOG(log_er_) << "PBFT block period " << i << " does not exist in blocks order DB.";
       break;
     }
     if (hash)

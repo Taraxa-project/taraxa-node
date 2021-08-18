@@ -212,7 +212,7 @@ std::shared_ptr<DagBlock> DbStorage::getDagBlock(blk_hash_t const& hash) {
     auto period_data = getPeriodDataRaw(data->first);
     if (period_data.size() > 0) {
       auto period_data_rlp = RLP(period_data);
-      auto dag_blocks_data = period_data_rlp[dag_blocks_pos_in_period_data];
+      auto dag_blocks_data = period_data_rlp[DAG_BLOCKS_POS_IN_PERIOD_DATA];
       return std::make_shared<DagBlock>(dag_blocks_data[data->second]);
     }
   }
@@ -310,12 +310,14 @@ void DbStorage::savePeriodData(const PbftBlock& pbft_block, const std::vector<Vo
   s.appendList(dag_blocks.size());
   std::vector<Slice> dag_blks_to_remove;
   std::vector<Slice> trxs_to_remove;
+  dag_blks_to_remove.reserve(dag_blocks.size());
   for (auto const& block : dag_blocks) {
     dag_blks_to_remove.emplace_back(toSlice(block.getHash()));
     s.appendRaw(block.rlp(true));
   }
   s.appendList(transactions.size());
   uint64_t position = 0;
+  trxs_to_remove.reserve(transactions.size());
   for (auto const& trx : transactions) {
     trxs_to_remove.emplace_back(toSlice(trx.getHash()));
     addTransactionStatusToBatch(write_batch, trx.getHash(),
@@ -347,7 +349,7 @@ PbftBlock DbStorage::parsePeriodData(RLP& rlp, std::vector<Vote>& cert_votes, st
   auto pbft_block = PbftBlock(*it++);
   auto votes_rlp = (*it++);
   for (auto const& vote : votes_rlp) {
-    cert_votes.push_back(Vote(vote));
+    cert_votes.emplace_back(Vote(vote));
   }
 
   auto blks_rlp = (*it++);
@@ -385,8 +387,8 @@ TransactionStatus DbStorage::getTransactionStatus(trx_hash_t const& hash) {
   return TransactionStatus();
 }
 
-std::map<trx_hash_t, TransactionStatus> DbStorage::getAllTransactionStatus() {
-  std::map<trx_hash_t, TransactionStatus> res;
+std::unordered_map<trx_hash_t, TransactionStatus> DbStorage::getAllTransactionStatus() {
+  std::unordered_map<trx_hash_t, TransactionStatus> res;
   auto i = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::trx_status)));
   for (i->SeekToFirst(); i->Valid(); i->Next()) {
     auto data = asBytes(i->value().ToString());
@@ -401,14 +403,14 @@ std::shared_ptr<PbftBlock> DbStorage::getPbftBlock(uint64_t period) {
   // DB is corrupted if status point to missing or incorrect transaction
   if (period_data.size() > 0) {
     auto period_data_rlp = RLP(period_data);
-    return make_shared<PbftBlock>(period_data_rlp[pbft_block_pos_in_period_data]);
+    return make_shared<PbftBlock>(period_data_rlp[PBFT_BLOCK_POS_IN_PERIOD_DATA]);
   }
   return nullptr;
 }
 
 std::shared_ptr<Transaction> DbStorage::getTransaction(trx_hash_t const& hash) {
   auto status = getTransactionStatus(hash);
-  switch (status.status) {
+  switch (status.state) {
     case TransactionStatusEnum::not_seen: {
       return nullptr;
     }
@@ -417,7 +419,7 @@ std::shared_ptr<Transaction> DbStorage::getTransaction(trx_hash_t const& hash) {
       // DB is corrupted if status point to missing or incorrect transaction
       assert(period_data.size() > 0);
       auto period_data_rlp = RLP(period_data);
-      auto transaction_data = period_data_rlp[transactions_pos_in_period_data];
+      auto transaction_data = period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA];
       return std::make_shared<Transaction>(transaction_data[status.position]);
     }
     default: {
@@ -684,7 +686,8 @@ std::vector<Vote> DbStorage::getCertVotes(uint64_t period) {
   auto period_data = getPeriodDataRaw(period);
   if (period_data.size() > 0) {
     auto period_data_rlp = RLP(period_data);
-    auto cert_votes_data = period_data_rlp[cert_votes_pos_in_period_data];
+    auto cert_votes_data = period_data_rlp[CERT_VOTES_POS_IN_PERIOD_DATA];
+    cert_votes.reserve(cert_votes_data.size());
     for (auto const& vote : cert_votes_data) cert_votes.emplace_back(vote);
   }
   return cert_votes;

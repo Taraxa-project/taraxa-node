@@ -103,12 +103,11 @@ void PbftManager::run() {
        ++period) {
     auto pbft_block = db_->getPbftBlock(period);
     if (!pbft_block) {
-      LOG(log_er_) << "DB corrupted - Cannot find PBFT block hash " << pbft_block->getBlockHash()
-                   << " in PBFT chain DB pbft_blocks.";
+      LOG(log_er_) << "DB corrupted - Cannot find PBFT block in period " << period << " in PBFT chain DB pbft_blocks.";
       assert(false);
     }
     if (pbft_block->getPeriod() != period) {
-      LOG(log_er_) << "DB corrupted - PBFT block hash " << pbft_block->getBlockHash() << "has different period "
+      LOG(log_er_) << "DB corrupted - PBFT block hash " << pbft_block->getBlockHash() << " has different period "
                    << pbft_block->getPeriod() << " in block data than in block order db: " << period;
       assert(false);
     }
@@ -1598,6 +1597,7 @@ bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes, vec
   auto dag_blocks_res = db_query.execute();
 
   std::vector<DagBlock> dag_blocks;
+  dag_blocks.reserve(dag_blocks_res.size());
 
   for (auto const &dag_blk_raw : dag_blocks_res) {
     dag_blocks.emplace_back(asBytes(dag_blk_raw));
@@ -1617,6 +1617,7 @@ bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes, vec
   auto transactions_res = db_query.execute();
 
   std::vector<Transaction> transactions;
+  transactions.reserve(transactions_res.size());
   for (auto const &trx_raw : transactions_res) {
     if (trx_raw.size() > 0) transactions.emplace_back(asBytes(trx_raw));
   }
