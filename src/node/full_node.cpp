@@ -110,6 +110,7 @@ void FullNode::start() {
   if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
+
   // Inits rpc related members
   if (conf_.rpc) {
     emplace(rpc_thread_pool_, conf_.rpc->threads_num);
@@ -251,6 +252,7 @@ void FullNode::start() {
     started_ = false;
     return;
   }
+
   started_ = true;
   LOG(log_nf_) << "Node started ... ";
 }

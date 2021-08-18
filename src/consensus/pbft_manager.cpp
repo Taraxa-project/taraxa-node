@@ -1432,7 +1432,6 @@ std::pair<vec_blk_t, bool> PbftManager::comparePbftBlockScheduleWithDAGblocks_(P
   if (!dag_blocks_order->empty()) {
     return std::make_pair(*dag_blocks_order, true);
   }
-
   syncPbftChainFromPeers_(missing_dag_blk, anchor_hash);
   return std::make_pair(*dag_blocks_order, false);
 }
@@ -1470,6 +1469,15 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
     PbftBlockCert pbft_block_and_votes = pbft_chain_->pbftSyncedQueueFront();
     auto pbft_block_hash = pbft_block_and_votes.pbft_blk->getBlockHash();
     LOG(log_nf_) << "Pick pbft block " << pbft_block_hash << " from synced queue in round " << round;
+
+    // TODO: tips/pivot/level validation. Disconnecting a malicious peers. Queueing and sync functionality should be
+    // moved from pbft manager to networking
+    dag_blk_mgr_->processSyncedTransactions(pbft_block_and_votes.transactions);
+    for (auto const &block_level : pbft_block_and_votes.dag_blocks_per_level) {
+      for (auto const &block : block_level.second) {
+        dag_blk_mgr_->processSyncedBlock(block);
+      }
+    }
 
     if (pbft_chain_->findPbftBlockInChain(pbft_block_hash)) {
       // pushed already from PBFT unverified queue, remove and skip it
@@ -1632,6 +1640,7 @@ bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes, vec
   proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
   db_->savePbftMgrStatus(PbftMgrStatus::executed_block, true);
   executed_pbft_block_ = true;
+
   return true;
 }
 

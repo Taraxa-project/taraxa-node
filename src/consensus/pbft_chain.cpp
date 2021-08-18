@@ -110,9 +110,20 @@ PbftBlockCert::PbftBlockCert(PbftBlock const& pbft_blk, std::vector<Vote> const&
     : pbft_blk(new PbftBlock(pbft_blk)), cert_votes(cert_votes) {}
 
 PbftBlockCert::PbftBlockCert(dev::RLP const& rlp) {
-  pbft_blk.reset(new PbftBlock(rlp[0]));
-  for (auto const el : rlp[1]) {
-    cert_votes.emplace_back(el);
+  auto it = rlp.begin();
+  pbft_blk.reset(new PbftBlock(*it++));
+  for (auto const vote_rlp : *it++) {
+    cert_votes.emplace_back(vote_rlp);
+  }
+
+  for (auto const& dag_block_rlp : *it++) {
+    DagBlock block(dag_block_rlp);
+    dag_blocks_per_level[block.getLevel()].emplace_back(block);
+  }
+
+  for (auto const& trx_rlp : *it) {
+    auto trx = Transaction(trx_rlp);
+    transactions.emplace_back(trx);
   }
 }
 
@@ -126,10 +137,6 @@ bytes PbftBlockCert::rlp() const {
     s.appendRaw(v.rlp(true));
   }
   return s.out();
-}
-
-void PbftBlockCert::encode_raw(RLPStream& rlp, PbftBlock const& pbft_blk, dev::bytesConstRef votes_raw) {
-  rlp.appendList(2).appendRaw(pbft_blk.rlp(true)).appendRaw(votes_raw);
 }
 
 std::ostream& operator<<(std::ostream& strm, PbftBlockCert const& b) {

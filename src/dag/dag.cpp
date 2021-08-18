@@ -444,6 +444,7 @@ void DagManager::getGhostPath(std::vector<blk_hash_t> &ghost) const {
 // return {period, block order}, for pbft-pivot-blk proposing
 std::pair<uint64_t, std::shared_ptr<vec_blk_t>> DagManager::getDagBlockOrder(blk_hash_t const &anchor) {
   sharedLock lock(mutex_);
+
   // TODO: need to check if the anchor already processed
   // if the period already processed
   vec_blk_t orders;

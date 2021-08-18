@@ -24,6 +24,8 @@ namespace taraxa {
 struct DbStorage;
 class FullNode;
 class Vote;
+class DagBlock;
+class Transaction;
 
 enum PbftVoteTypes : uint8_t { propose_vote_type = 0, soft_vote_type, cert_vote_type, next_vote_type };
 
@@ -70,8 +72,9 @@ struct PbftBlockCert {
 
   std::shared_ptr<PbftBlock> pbft_blk;
   std::vector<Vote> cert_votes;
+  std::map<uint64_t, std::vector<DagBlock>> dag_blocks_per_level;
+  std::vector<Transaction> transactions;
   bytes rlp() const;
-  static void encode_raw(dev::RLPStream& rlp, PbftBlock const& pbft_blk, dev::bytesConstRef votes_raw);
 };
 std::ostream& operator<<(std::ostream& strm, PbftBlockCert const& b);
 
