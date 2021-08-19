@@ -219,6 +219,18 @@ std::shared_ptr<DagBlock> DbStorage::getDagBlock(blk_hash_t const& hash) {
   return nullptr;
 }
 
+bool DbStorage::checkDagBlock(blk_hash_t const& hash) {
+  auto data = lookup(toSlice(hash.asBytes()), Columns::dag_block_period);
+  if (!data.empty()) {
+    return true;
+  }
+  data = lookup(toSlice(hash.asBytes()), Columns::dag_blocks);
+  if (!data.empty()) {
+    return true;
+  }
+  return false;
+}
+
 std::string DbStorage::getBlocksByLevel(level_t level) { return lookup(toSlice(level), Columns::dag_blocks_index); }
 
 std::vector<std::shared_ptr<DagBlock>> DbStorage::getDagBlocksAtLevel(level_t level, int number_of_levels) {

@@ -88,25 +88,6 @@ bool DagBlockManager::pivotAndTipsValid(DagBlock const &blk) {
   return true;
 }
 
-bool DagBlockManager::pivotAndTipsAvailable(DagBlock const &blk) {
-  auto dag_blk_hash = blk.getHash();
-  auto dag_blk_pivot = blk.getPivot();
-
-  if (getDagBlock(dag_blk_pivot) == nullptr) {
-    LOG(log_dg_) << "DAG Block " << dag_blk_hash << " pivot " << dag_blk_pivot << " unavailable";
-    return false;
-  }
-
-  for (auto const &t : blk.getTips()) {
-    if (getDagBlock(t) == nullptr) {
-      LOG(log_dg_) << "DAG Block " << dag_blk_hash << " tip " << t << " unavailable";
-      return false;
-    }
-  }
-
-  return true;
-}
-
 level_t DagBlockManager::getMaxDagLevelInQueue() const {
   level_t max_level = 0;
   {
