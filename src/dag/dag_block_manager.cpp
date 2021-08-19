@@ -88,22 +88,34 @@ bool DagBlockManager::pivotAndTipsValid(DagBlock const &blk) {
   return true;
 }
 
-bool DagBlockManager::pivotAndTipsAvailable(DagBlock const &blk) {
-  auto dag_blk_hash = blk.getHash();
-  auto dag_blk_pivot = blk.getPivot();
-
-  if (getDagBlock(dag_blk_pivot) == nullptr) {
-    LOG(log_dg_) << "DAG Block " << dag_blk_hash << " pivot " << dag_blk_pivot << " unavailable";
-    return false;
-  }
-
-  for (auto const &t : blk.getTips()) {
-    if (getDagBlock(t) == nullptr) {
-      LOG(log_dg_) << "DAG Block " << dag_blk_hash << " tip " << t << " unavailable";
+bool DagBlockManager::pivotAndTipsInDB(DagBlock const &blk, bool mark_as_saved) {
+  auto status = blk_status_.get(blk.getPivot());
+  if (status.second) {
+    if (status.first != BlockStatus::saved) {
+      LOG(log_dg_) << "DAG Block " << blk.getHash() << " pivot " << blk.getPivot() << " unavailable";
+      return false;
+    }
+  } else {
+    if (auto block = db_->getDagBlock(blk.getHash()); !block) {
+      LOG(log_dg_) << "DAG Block " << blk.getHash() << " pivot " << blk.getPivot() << " is not even in DB";
       return false;
     }
   }
-
+  for (auto const &t : blk.getTips()) {
+    auto status = blk_status_.get(t);
+    if (status.second) {
+      if (status.first != BlockStatus::saved) {
+        LOG(log_dg_) << "DAG Block " << blk.getHash() << " tip " << t << " is unavailable";
+        return false;
+      }
+    } else {
+      if (auto block = db_->getDagBlock(blk.getHash()); !block) {
+        LOG(log_dg_) << "DAG Block " << blk.getHash() << " tip " << t << " is not even in DB";
+        return false;
+      }
+    }
+  }
+  if (mark_as_saved) blk_status_.update(blk.getHash(), BlockStatus::saved);
   return true;
 }
 

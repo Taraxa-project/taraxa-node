@@ -8,7 +8,7 @@
 
 namespace taraxa {
 
-enum class BlockStatus { invalid, proposed, broadcasted, verified, unseen };
+enum class BlockStatus { invalid, proposed, broadcasted, verified, saved, unseen };
 
 using BlockStatusTable = ExpirationCacheMap<blk_hash_t, BlockStatus>;
 
@@ -44,7 +44,7 @@ class DagBlockManager {
   std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash) const;
   void clearBlockStatausTable() { blk_status_.clear(); }
   bool pivotAndTipsValid(DagBlock const &blk);
-  bool pivotAndTipsAvailable(DagBlock const &blk);
+  bool pivotAndTipsInDB(DagBlock const &blk, bool mark_as_saved = false);
   uint64_t getCurrentMaxProposalPeriod() const;
   uint64_t getLastProposalPeriod() const;
   void setLastProposalPeriod(uint64_t const period);
