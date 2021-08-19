@@ -10,22 +10,24 @@ PriorityQueue::PriorityQueue(size_t tp_workers_count, const addr_t& node_addr)
   LOG_OBJECTS_CREATE("PRIORITY_QUEUE");
 
   // high priority packets(consensus - votes) max concurrent workers - 40% of tp_workers_count
-  // mid priority packets(dag/pbft blocks, txs) max concurrent workers - 50% of tp_workers_count
+  // mid priority packets(dag/pbft blocks, txs) max concurrent workers - 40% of tp_workers_count
   // low priority packets(syncing, status, ...) max concurrent workers - 30% of tp_workers_count
   size_t high_priority_queue_workers = std::max(1, static_cast<int>(MAX_TOTAL_WORKERS_COUNT * 4 / 10));
-  size_t mid_priority_queue_workers = std::max(1, static_cast<int>(MAX_TOTAL_WORKERS_COUNT * 5 / 10));
-  size_t low_priority_queue_workers = std::max(
-      1, static_cast<int>(MAX_TOTAL_WORKERS_COUNT - (high_priority_queue_workers + mid_priority_queue_workers)));
+  size_t mid_priority_queue_workers = std::max(1, static_cast<int>(MAX_TOTAL_WORKERS_COUNT * 4 / 10));
+  size_t low_priority_queue_workers = std::max(1, static_cast<int>(MAX_TOTAL_WORKERS_COUNT * 3 / 10));
+
+  // It should not be possible to get into a situation when there is not at least 1 free thread for low priority queue
+  assert(high_priority_queue_workers + mid_priority_queue_workers < MAX_TOTAL_WORKERS_COUNT);
 
   packets_queues_[PacketData::PacketPriority::High].setMaxWorkersCount(high_priority_queue_workers);
   packets_queues_[PacketData::PacketPriority::Mid].setMaxWorkersCount(mid_priority_queue_workers);
   packets_queues_[PacketData::PacketPriority::Low].setMaxWorkersCount(low_priority_queue_workers);
 
-  LOG(log_nf_) << "Priority queue initialized accordingly: "
+  LOG(log_nf_) << "Priority queues initialized accordingly: "
                << "total num of workers = " << MAX_TOTAL_WORKERS_COUNT
-               << ", High priority packets queue = " << high_priority_queue_workers
-               << ", Mid priority packets queue = " << mid_priority_queue_workers
-               << ", Low priority packets queue = " << low_priority_queue_workers;
+               << ", High priority packets max num of workers = " << high_priority_queue_workers
+               << ", Mid priority packets max num of workers = " << mid_priority_queue_workers
+               << ", Low priority packets max num of workers = " << low_priority_queue_workers;
 }
 
 void PriorityQueue::pushBack(PacketData&& packet) { packets_queues_[packet.priority_].pushBack(std::move(packet)); }
@@ -36,18 +38,52 @@ std::optional<PacketData> PriorityQueue::pop() {
     return {};
   }
 
+  // Flag if second iteration over queues should be done.
+  // It can happen that no packet for processing was returned during the first iteration over priority queues as there
+  // are limits for max total workers per each priority queue. These limits can and should be ignored in some
+  // scenarios... For example:
+  //
+  // High priority queue reached it's max workers limit, other queues have inside many blocked packets that cannot be
+  // currently processed concurrently and MAX_TOTAL_WORKERS_COUNT is not reached yet. In such case some threads might
+  // be unused. In such cases priority queues max workers limits can and should be ignored.
+  bool do_second_iteration = false;
+
   // Get first packet to be processed. Queues are ordered by priority
   // starting with highest priority and ending with lowest priority
   for (auto& queue : packets_queues_) {
-    // Queue is not empty and max concurrent workers limit for queue not reached
-    if (queue.isProcessingEligible()) {
-      if (auto packet = queue.pop(blocked_packets_mask_); packet.has_value()) {
-        return packet;
-      }
-
-      // There was no unblocked packet to be processed in this specific queue
+    if (queue.empty()) {
       continue;
     }
+
+    if (queue.maxWorkersCountReached()) {
+      do_second_iteration = true;
+      continue;
+    }
+
+    if (auto packet = queue.pop(blocked_packets_mask_); packet.has_value()) {
+      return packet;
+    }
+
+    // All packets in this queue are currently blocked
+  }
+
+  if (!do_second_iteration) {
+    LOG(log_tr_) << "No non-blocked packets to be processed.";
+    return {};
+  }
+
+
+  // Second iteration over priority queues ignoring the max workers limits
+  for (auto& queue : packets_queues_) {
+    if (queue.empty()) {
+      continue;
+    }
+
+    if (auto packet = queue.pop(blocked_packets_mask_); packet.has_value()) {
+      return packet;
+    }
+
+    // All packets in this queue are currently blocked
   }
 
   // There was no unblocked packet to be processed in all queues

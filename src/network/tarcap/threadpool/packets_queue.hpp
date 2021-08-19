@@ -31,10 +31,10 @@ class PacketsQueue {
   std::optional<PacketData> pop(const PacketsBlockingMask& packets_blocking_mask);
 
   /**
-   * @return false in case queue is empty or there is already MAX_WORKERS_COUNT workers processing packets from
+   * @return false in case there is already MAX_WORKERS_COUNT workers processing packets from
    *         this queue at the same time, otherwise true
    */
-  bool isProcessingEligible() const;
+  bool maxWorkersCountReached() const;
 
   /**
    * @brief Set new max workers count

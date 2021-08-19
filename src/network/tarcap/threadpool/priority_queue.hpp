@@ -16,15 +16,35 @@ class PriorityQueue {
  public:
   PriorityQueue(size_t tp_workers_count, const addr_t& node_addr = {});
 
+  /**
+   * @brief Pushes new packet into the priority queue
+   * @param packet
+   */
   void pushBack(PacketData&& packet);
 
   /**
    * @return std::optional<PacketData> packet with the highest priority & oldest "receive" time
    */
   std::optional<PacketData> pop();
+
+  /**
+   * @return true of all priority packets_queues_ are empty, otheriwse false
+   */
   bool empty() const;
 
+  /**
+   * @brief Updates blocking dependencies at the start of packet processing
+   *
+   * @param packet
+   */
   void updateDependenciesStart(const PacketData& packet);
+
+  /**
+   * @brief Updates blocking dependencies after packet processing is done
+   *
+   * @param packet
+   * @param queue_mutex in specific cases when peers_time dependencies are processed -> queue_mutex_ is locked
+   */
   void updateDependenciesFinish(const PacketData& packet, std::mutex& queue_mutex);
 
  private:
@@ -42,7 +62,7 @@ class PriorityQueue {
   PacketsBlockingMask blocked_packets_mask_;
 
   // How many workers can process packets from all the queues at the same time
-  size_t MAX_TOTAL_WORKERS_COUNT;
+  const size_t MAX_TOTAL_WORKERS_COUNT;
 
   // How many workers are currently processing packets from all the queues at the same time
   std::atomic<size_t> act_total_workers_count_;

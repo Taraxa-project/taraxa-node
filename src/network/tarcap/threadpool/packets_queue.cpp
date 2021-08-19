@@ -5,8 +5,8 @@ namespace taraxa::network::tarcap {
 PacketsQueue::PacketsQueue(size_t max_workers_count)
     : packets_(), MAX_WORKERS_COUNT(max_workers_count), act_workers_count_(0) {}
 
-bool PacketsQueue::isProcessingEligible() const {
-  if (packets_.empty() || act_workers_count_ >= MAX_WORKERS_COUNT) {
+bool PacketsQueue::maxWorkersCountReached() const {
+  if (act_workers_count_ >= MAX_WORKERS_COUNT) {
     return false;
   }
 
@@ -34,8 +34,6 @@ std::optional<PacketData> PacketsQueue::pop(const PacketsBlockingMask& packets_b
 void PacketsQueue::setMaxWorkersCount(size_t max_workers_count) { MAX_WORKERS_COUNT = max_workers_count; }
 
 void PacketsQueue::incrementActWorkersCount() {
-  assert(act_workers_count_ < MAX_WORKERS_COUNT);
-
   act_workers_count_++;
 }
 
