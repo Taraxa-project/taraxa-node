@@ -44,7 +44,6 @@ class DagBlockManager {
   std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash) const;
   void clearBlockStatausTable() { blk_status_.clear(); }
   bool pivotAndTipsValid(DagBlock const &blk);
-  bool pivotAndTipsAvailable(DagBlock const &blk);
   uint64_t getCurrentMaxProposalPeriod() const;
   uint64_t getLastProposalPeriod() const;
   void setLastProposalPeriod(uint64_t const period);

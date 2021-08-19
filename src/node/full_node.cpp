@@ -221,7 +221,7 @@ void FullNode::start() {
         received_blocks_++;
       }
 
-      if (dag_blk_mgr_->pivotAndTipsAvailable(blk)) {
+      if (dag_mgr_->pivotAndTipsAvailable(blk)) {
         dag_mgr_->addDagBlock(blk);
         if (jsonrpc_ws_) {
           jsonrpc_ws_->newDagBlock(blk);
