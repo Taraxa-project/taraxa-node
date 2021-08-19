@@ -969,14 +969,25 @@ void PbftManager::firstFinish_() {
                      << step_;
       }
     } else {
-      if (own_starting_value_for_round_ == NULL_BLOCK_HASH) {
-        if (previous_round_next_voted_value_ != NULL_BLOCK_HASH && !reset_own_value_to_null_block_hash_in_this_round_) {
+      
+      if (own_starting_value_for_round_ != previous_round_next_voted_value_ && previous_round_next_voted_value_ != NULL_BLOCK_HASH && !pbft_chain_->findPbftBlockInChain(previous_round_next_voted_value_)) {
+
+        if (own_starting_value_for_round_ == NULL_BLOCK_HASH) {
           db_->savePbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round, previous_round_next_voted_value_);
           own_starting_value_for_round_ = previous_round_next_voted_value_;
-          LOG(log_dg_) << "Updating own starting to previous round next voted value of "
+          LOG(log_dg_) << "Updating own starting value of NULL BLOCK HASH to previous round next voted value of "
                        << previous_round_next_voted_value_;
+        } else if (comparePbftBlockScheduleWithDAGblocks_(previous_round_next_voted_value_)) {
+          // Check if we have received the previous round next voted value and its a viable value...
+          // IF it is viable then reset own starting value to it...
+          db_->savePbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round, previous_round_next_voted_value_);
+          LOG(log_dg_) << "Updating own starting value of " << own_starting_value_for_round_ << " to previous round next voted value of "
+                       << previous_round_next_voted_value_;
+          own_starting_value_for_round_ = previous_round_next_voted_value_;
+          
         }
       }
+      
       auto place_votes = placeVote_(own_starting_value_for_round_, next_vote_type, round, step_);
       if (place_votes) {
         LOG(log_nf_) << "Next votes " << place_votes << " voting nodes own starting value "
