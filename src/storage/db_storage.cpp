@@ -361,19 +361,19 @@ PbftBlock DbStorage::parsePeriodData(RLP& rlp, std::vector<Vote>& cert_votes, st
   auto pbft_block = PbftBlock(*it++);
   auto votes_rlp = (*it++);
   cert_votes.reserve(votes_rlp.size());
-  for (auto const& vote : votes_rlp) {
+  for (auto const vote : votes_rlp) {
     cert_votes.emplace_back(Vote(vote));
   }
 
   auto blks_rlp = (*it++);
   dag_blocks.reserve(blks_rlp.size());
-  for (auto const& blk : blks_rlp) {
+  for (auto const blk : blks_rlp) {
     dag_blocks.emplace_back(DagBlock(blk));
   }
 
   auto trx_rlp = (*it++);
   transactions.reserve(trx_rlp.size());
-  for (auto const& trx : trx_rlp) {
+  for (auto const trx : trx_rlp) {
     transactions.emplace_back(Transaction(trx));
   }
 
@@ -703,7 +703,7 @@ std::vector<Vote> DbStorage::getCertVotes(uint64_t period) {
     auto period_data_rlp = RLP(period_data);
     auto cert_votes_data = period_data_rlp[CERT_VOTES_POS_IN_PERIOD_DATA];
     cert_votes.reserve(cert_votes_data.size());
-    for (auto const& vote : cert_votes_data) cert_votes.emplace_back(vote);
+    for (auto const vote : cert_votes_data) cert_votes.emplace_back(vote);
   }
   return cert_votes;
 }

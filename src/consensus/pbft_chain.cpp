@@ -116,12 +116,12 @@ PbftBlockCert::PbftBlockCert(dev::RLP const& rlp) {
     cert_votes.emplace_back(vote_rlp);
   }
 
-  for (auto const& dag_block_rlp : *it++) {
+  for (auto const dag_block_rlp : *it++) {
     DagBlock block(dag_block_rlp);
     dag_blocks_per_level[block.getLevel()].emplace_back(block);
   }
 
-  for (auto const& trx_rlp : *it) {
+  for (auto const trx_rlp : *it) {
     auto trx = Transaction(trx_rlp);
     transactions.emplace_back(trx);
   }
