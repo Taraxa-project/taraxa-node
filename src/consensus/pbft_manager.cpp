@@ -1742,19 +1742,6 @@ bool PbftManager::giveUpNextVotedBlock_() {
     if (!pbft_block) {
       LOG(log_dg_) << "Cannot find PBFT block " << previous_round_next_voted_value_
                    << " in both queue and DB, have not got yet";
-
-      auto now = std::chrono::system_clock::now();
-      auto next_voted_block_wait_duration = now - time_began_waiting_next_voted_block_;
-      unsigned long elapsed_wait_next_voted_block_in_ms =
-          std::chrono::duration_cast<std::chrono::milliseconds>(next_voted_block_wait_duration).count();
-      if (elapsed_wait_next_voted_block_in_ms > max_wait_for_next_voted_block_steps_ms_) {
-        LOG(log_dg_) << "Have been waiting " << elapsed_wait_next_voted_block_in_ms << "ms for next voted block "
-                     << previous_round_next_voted_value_ << ", giving up now on this value.";
-        return true;
-      } else {
-        LOG(log_tr_) << "Have been waiting " << elapsed_wait_next_voted_block_in_ms << "ms for next voted block "
-                     << previous_round_next_voted_value_;
-      }
       return false;
     }
     // Read from DB pushing into unverified queue
