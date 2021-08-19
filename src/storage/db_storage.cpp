@@ -219,7 +219,7 @@ std::shared_ptr<DagBlock> DbStorage::getDagBlock(blk_hash_t const& hash) {
   return nullptr;
 }
 
-bool DbStorage::checkDagBlock(blk_hash_t const& hash) {
+bool DbStorage::dagBlockInDb(blk_hash_t const& hash) {
   auto data = lookup(toSlice(hash.asBytes()), Columns::dag_block_period);
   if (!data.empty()) {
     return true;
