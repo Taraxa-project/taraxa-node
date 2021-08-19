@@ -388,8 +388,6 @@ bool PbftManager::resetRound_() {
     next_voted_soft_value_ = false;
     polling_state_print_log_ = true;
 
-    reset_own_value_to_null_block_hash_in_this_round_ = false;
-
     // Key thing is to set .second to false to mark that we have not
     // identified a soft voted block in the new upcoming round...
     soft_voted_block_for_this_round_ = std::make_pair(NULL_BLOCK_HASH, false);
@@ -1424,32 +1422,12 @@ bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(blk_hash_t const &pbft_
   if (!pbft_block) {
     pbft_block = db_->getPbftCertVotedBlock(pbft_block_hash);
     if (!pbft_block) {
-      auto round = getPbftRound();
-      if (!round_began_wait_proposal_block_) {
-        LOG(log_dg_) << "Can't get proposal block " << pbft_block_hash << " in DB. Have not got the PBFT block "
-                     << pbft_block_hash << " yet.";
-        round_began_wait_proposal_block_ = round;
-      } else if (round > round_began_wait_proposal_block_) {
-        auto wait_proposal_block_rounds = round - round_began_wait_proposal_block_;
-        if (wait_proposal_block_rounds < max_wait_rounds_for_proposal_block_) {
-          LOG(log_dg_) << "Have been waiting " << wait_proposal_block_rounds << " rounds for proposal block "
-                       << pbft_block_hash;
-        } else {
-          LOG(log_dg_) << "Have been waiting " << wait_proposal_block_rounds << " rounds for proposal block "
-                       << pbft_block_hash << ", reset own starting value to NULL_BLOCK_HASH";
-          db_->savePbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round, NULL_BLOCK_HASH);
-          own_starting_value_for_round_ = NULL_BLOCK_HASH;
-          reset_own_value_to_null_block_hash_in_this_round_ = true;
-        }
-      }
       return false;
     }
     // Read from DB pushing into unverified queue
     pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
   }
-  // Back to zero to signify no longer waiting...
-  round_began_wait_proposal_block_ = 0;
-
+  
   return comparePbftBlockScheduleWithDAGblocks_(*pbft_block).second;
 }
 
