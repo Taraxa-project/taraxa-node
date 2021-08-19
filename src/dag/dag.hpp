@@ -129,6 +129,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
 
   blk_hash_t const &get_genesis() { return genesis_; }
 
+  bool pivotAndTipsAvailable(DagBlock const &blk);
   void addDagBlock(DagBlock const &blk, bool finalized = false,
                    bool save = true);  // insert to buffer if fail
 

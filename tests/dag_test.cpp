@@ -9,10 +9,10 @@
 
 namespace taraxa::core_tests {
 
+struct DagTest : BaseTest {};
+
 const auto node_cfgs = make_node_cfgs(1);
 const auto time_log = logger::createLogger(logger::Verbosity::Info, "TMSTM", addr_t());
-
-struct DagTest : BaseTest {};
 
 TEST_F(DagTest, build_dag) {
   const blk_hash_t GENESIS("0000000000000000000000000000000000000000000000000000000000000001");

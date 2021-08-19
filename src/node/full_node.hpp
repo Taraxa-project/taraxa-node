@@ -67,9 +67,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   // components
   std::shared_ptr<DbStorage> db_;
   std::shared_ptr<DbStorage> old_db_;
-  std::shared_ptr<TransactionManager> trx_mgr_;
-  std::shared_ptr<DagBlockManager> dag_blk_mgr_;
   std::shared_ptr<DagManager> dag_mgr_;
+  std::shared_ptr<DagBlockManager> dag_blk_mgr_;
+  std::shared_ptr<TransactionManager> trx_mgr_;
   std::shared_ptr<Network> network_;
   std::shared_ptr<TransactionOrderManager> trx_order_mgr_;
   std::shared_ptr<BlockProposer> blk_proposer_;
