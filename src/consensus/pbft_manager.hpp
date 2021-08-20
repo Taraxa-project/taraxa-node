@@ -222,14 +222,10 @@ class PbftManager {
   bool next_voted_null_block_hash_ = false;
   bool go_finish_state_ = false;
   bool loop_back_finish_state_ = false;
-  bool reset_own_value_to_null_block_hash_in_this_round_ = false;
   bool polling_state_print_log_ = true;
 
   uint64_t max_wait_for_soft_voted_block_steps_ms_ = 30;
   uint64_t max_wait_for_next_voted_block_steps_ms_ = 30;
-
-  uint64_t round_began_wait_proposal_block_ = 0;
-  size_t max_wait_rounds_for_proposal_block_ = 2;
 
   uint64_t pbft_round_last_requested_sync_ = 0;
   size_t pbft_step_last_requested_sync_ = 0;
