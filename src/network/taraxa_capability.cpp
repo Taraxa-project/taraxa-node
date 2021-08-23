@@ -355,8 +355,8 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
     // Means a new block is proposed, full block body and all transaction
     // are received.
     case NewBlockPacket: {
-      // Ignore new block packets when syncing
-      if (syncing_state_.is_syncing()) break;
+      // Ignore new block packets when pbft syncing
+      if (syncing_state_.is_pbft_syncing()) break;
       DagBlock block(_r[0].data().toBytes());
 
       if (dag_blk_mgr_) {
@@ -1059,7 +1059,7 @@ void TaraxaCapability::onNewBlockReceived(DagBlock block, std::vector<Transactio
     for (auto tr : transactions) {
       test_transactions_[tr.getHash()] = tr;
     }
-    onNewBlockVerified(block);
+    onNewBlockVerified(block, false);
 
   } else {
     LOG(log_dg_dag_prp_) << "Received NewBlock " << block.getHash().toString() << "that is already known";
@@ -1074,9 +1074,10 @@ void TaraxaCapability::sendSyncedMessage() {
   }
 }
 
-void TaraxaCapability::onNewBlockVerified(DagBlock const &block) {
-  // If node is syncing this is an old block that has been verified - no block goosip is needed
-  if (syncing_state_.is_syncing()) {
+void TaraxaCapability::onNewBlockVerified(DagBlock const &block, bool proposed) {
+  // If node is pbft syncing and block is not proposed by us, this is an old block that has been verified - no block
+  // goosip is needed
+  if (!proposed && syncing_state_.is_pbft_syncing()) {
     return;
   }
   LOG(log_dg_dag_prp_) << "Verified NewBlock " << block.getHash().toString();
@@ -1113,8 +1114,6 @@ void TaraxaCapability::onNewBlockVerified(DagBlock const &block) {
 }
 
 void TaraxaCapability::sendBlocks(NodeID const &_id, std::vector<std::shared_ptr<DagBlock>> blocks) {
-  if (blocks.empty()) return;
-
   auto peer = peers_state_.getPeer(_id);
   if (!peer) return;
 
@@ -1483,8 +1482,13 @@ void TaraxaCapability::onNewPbftBlock(taraxa::PbftBlock const &pbft_block) {
   auto my_chain_size = pbft_chain_->getPbftChainSize();
 
   for (auto const &peer : peers_state_.getAllPeers()) {
-    if (!peer.second->isPbftBlockKnown(pbft_block.getBlockHash())) {
-      peers_to_send.push_back(peer.first);
+    if (!peer.second->isPbftBlockKnown(pbft_block.getBlockHash()) && !peer.second->syncing_) {
+      if (peer.second->isBlockKnown(pbft_block.getPivotDagBlockHash())) {
+        peers_to_send.push_back(peer.first);
+      } else {
+        LOG(log_er_pbft_prp_) << "trying to send PbftBlock " << pbft_block.getBlockHash() << " with missing dag anchor"
+                              << pbft_block.getPivotDagBlockHash() << " to " << peer.first;
+      }
     }
   }
 

@@ -115,9 +115,9 @@ Json::Value Network::getStatus() { return taraxa_capability_->getStatus(); }
 
 std::vector<NodeID> Network::getAllPeersIDs() const { return taraxa_capability_->getAllPeersIDs(); }
 
-void Network::onNewBlockVerified(shared_ptr<DagBlock> const &blk) {
-  tp_.post([this, blk] {
-    taraxa_capability_->onNewBlockVerified(*blk);
+void Network::onNewBlockVerified(shared_ptr<DagBlock> const &blk, bool proposed) {
+  tp_.post([this, blk, proposed] {
+    taraxa_capability_->onNewBlockVerified(*blk, proposed);
     LOG(log_dg_) << "On new block verified:" << blk->getHash().toString();
   });
 }

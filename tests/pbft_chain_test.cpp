@@ -10,11 +10,19 @@
 #include "consensus/pbft_manager.hpp"
 #include "logger/log.hpp"
 #include "network/network.hpp"
+#include "util_test/samples.hpp"
 #include "util_test/util.hpp"
 
 namespace taraxa::core_tests {
 
 struct PbftChainTest : BaseTest {};
+
+const unsigned NUM_TRX = 10;
+auto g_secret = Lazy([] {
+  return dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+                     dev::Secret::ConstructFromStringType::FromHex);
+});
+auto g_signed_trx_samples = Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX, g_secret); });
 
 TEST_F(PbftChainTest, serialize_desiriablize_pbft_block) {
   auto node_cfgs = make_node_cfgs(1);
@@ -88,6 +96,20 @@ TEST_F(PbftChainTest, block_broadcast) {
   auto &node2 = nodes[1];
   auto &node3 = nodes[2];
 
+  auto dag_genesis = node1->getConfig().chain.dag_genesis_block.getHash();
+  auto sk = node1->getSecretKey();
+  auto vrf_sk = node1->getVrfSecretKey();
+  vdf_sortition::VdfConfig vdf_config(node_cfgs[0].chain.vdf);
+
+  // generate first PBFT block sample
+  blk_hash_t prev_block_hash(0);
+  uint64_t period = 1;
+  addr_t beneficiary(987);
+
+  level_t level = 1;
+  vdf_sortition::VdfSortition vdf1(vdf_config, vrf_sk, getRlpBytes(level));
+  vdf1.computeVdfSolution(vdf_config, dag_genesis.asBytes());
+
   // Stop PBFT manager and executor to test networking
   node1->getPbftManager()->stop();
   node2->getPbftManager()->stop();
@@ -114,12 +136,15 @@ TEST_F(PbftChainTest, block_broadcast) {
   ASSERT_EQ(node_peers, nw3->getPeerCount());
 
   // generate first PBFT block sample
-  blk_hash_t prev_block_hash(0);
-  blk_hash_t dag_blk(123);
-  uint64_t period = 1;
-  addr_t beneficiary(987);
-  auto pbft_block = std::make_shared<PbftBlock>(prev_block_hash, dag_blk, period, beneficiary, node1->getSecretKey());
 
+  DagBlock blk1(dag_genesis, 1, {}, {g_signed_trx_samples[0].getHash(), g_signed_trx_samples[1].getHash()}, vdf1, sk);
+  std::vector<Transaction> txs1({g_signed_trx_samples[0], g_signed_trx_samples[1]});
+
+  auto pbft_block =
+      std::make_shared<PbftBlock>(prev_block_hash, blk1.getHash(), period, beneficiary, node1->getSecretKey());
+
+  node1->getDagBlockManager()->insertBroadcastedBlockWithTransactions(blk1, txs1);
+  taraxa::thisThreadSleepForMilliSeconds(1000);
   node1->getPbftChain()->pushUnverifiedPbftBlock(pbft_block);
   auto block1_from_node1 = pbft_chain1->getUnverifiedPbftBlock(pbft_block->getBlockHash());
   ASSERT_TRUE(block1_from_node1);
