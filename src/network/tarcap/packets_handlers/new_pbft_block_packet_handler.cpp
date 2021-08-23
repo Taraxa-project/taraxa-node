@@ -61,7 +61,7 @@ void NewPbftBlockPacketHandler::sendPbftBlock(dev::p2p::NodeID const &peer_id, P
   dev::RLPStream s(2);
   pbft_block.streamRLP(s, true);
   s << pbft_chain_size;
-  sealAndSend(peer_id, NewPbftBlockPacket, s.invalidate());
+  sealAndSend(peer_id, NewPbftBlockPacket, std::move(s));
 }
 
 }  // namespace taraxa::network::tarcap

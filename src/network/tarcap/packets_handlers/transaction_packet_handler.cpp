@@ -100,7 +100,7 @@ void TransactionPacketHandler::sendTransactions(dev::p2p::NodeID const &peer_id,
     trx_bytes.insert(trx_bytes.end(), std::begin(transaction), std::end(transaction));
   }
   s.appendRaw(trx_bytes, transactions.size());
-  sealAndSend(peer_id, TransactionPacket, s.invalidate());
+  sealAndSend(peer_id, TransactionPacket, move(s));
 }
 
 }  // namespace taraxa::network::tarcap

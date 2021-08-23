@@ -83,7 +83,7 @@ void SyncingHandler::syncPeerPbft(unsigned long height_to_sync) {
 
 void SyncingHandler::requestPbftBlocks(dev::p2p::NodeID const &_id, size_t height_to_sync) {
   LOG(log_dg_) << "Sending GetPbftBlockPacket with height: " << height_to_sync;
-  sealAndSend(_id, SubprotocolPacketType::GetPbftBlockPacket, (dev::RLPStream(1) << height_to_sync).invalidate());
+  sealAndSend(_id, SubprotocolPacketType::GetPbftBlockPacket, std::move(dev::RLPStream(1) << height_to_sync));
 }
 
 void SyncingHandler::requestPendingDagBlocks() {
@@ -106,7 +106,7 @@ void SyncingHandler::requestBlocks(const dev::p2p::NodeID &_nodeID, std::vector<
   for (auto blk : blocks) {
     s << blk;
   }
-  sealAndSend(_nodeID, SubprotocolPacketType::GetBlocksPacket, s.invalidate());
+  sealAndSend(_nodeID, SubprotocolPacketType::GetBlocksPacket, std::move(s));
 }
 
 void SyncingHandler::syncPbftNextVotes(uint64_t pbft_round, size_t pbft_previous_round_next_votes_size) {
@@ -149,7 +149,7 @@ void SyncingHandler::requestPbftNextVotes(dev::p2p::NodeID const &peerID, uint64
   // TODO: was log_dg_next_votes_sync_
   LOG(log_dg_) << "Sending GetPbftNextVotes with round " << pbft_round << " previous round next votes size "
                << pbft_previous_round_next_votes_size;
-  sealAndSend(peerID, GetPbftNextVotes, (dev::RLPStream(2) << pbft_round << pbft_previous_round_next_votes_size).invalidate());
+  sealAndSend(peerID, GetPbftNextVotes, std::move(dev::RLPStream(2) << pbft_round << pbft_previous_round_next_votes_size));
 }
 
 std::pair<bool, std::vector<blk_hash_t>> SyncingHandler::checkDagBlockValidation(DagBlock const &block) const {

@@ -117,7 +117,7 @@ inline void DagPacketsHandler::processGetNewBlockPacket(const dev::RLP &packet_r
 
 void DagPacketsHandler::requestBlock(dev::p2p::NodeID const &peer_id, blk_hash_t hash) {
   LOG(log_dg_) << "requestBlock " << hash.toString();
-  sealAndSend(peer_id, GetNewBlockPacket, (dev::RLPStream(1) << hash).invalidate());
+  sealAndSend(peer_id, GetNewBlockPacket, std::move(dev::RLPStream(1) << hash));
 }
 
 void DagPacketsHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::DagBlock block) {
@@ -147,7 +147,7 @@ void DagPacketsHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::DagBl
     transaction.reset();
   }
   s.appendRaw(trx_bytes, transactions_to_send.size());
-  sealAndSend(peer_id, NewBlockPacket, s.invalidate());
+  sealAndSend(peer_id, NewBlockPacket, move(s));
   LOG(log_dg_) << "Send DagBlock " << block.getHash() << " #Trx: " << transactions_to_send.size();
 }
 
@@ -223,7 +223,7 @@ void DagPacketsHandler::onNewBlockVerified(DagBlock const &block) {
 
 void DagPacketsHandler::sendBlockHash(dev::p2p::NodeID const &peer_id, taraxa::DagBlock block) {
   LOG(log_dg_) << "sendBlockHash " << block.getHash().toString();
-  sealAndSend(peer_id, NewBlockHashPacket, (RLPStream(1) << block.getHash()).invalidate());
+  sealAndSend(peer_id, NewBlockHashPacket, std::move(RLPStream(1) << block.getHash()));
 }
 
 std::pair<std::vector<dev::p2p::NodeID>, std::vector<dev::p2p::NodeID>> DagPacketsHandler::randomPartitionPeers(

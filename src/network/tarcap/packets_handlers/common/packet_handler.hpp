@@ -47,7 +47,7 @@ class PacketHandler {
  protected:
   static constexpr uint32_t MAX_PACKET_SIZE = 15 * 1024 * 1024;  // 15 MB -> 15 * 1024 * 1024 B
 
-  bool sealAndSend(const dev::p2p::NodeID& nodeID, SubprotocolPacketType packet_type, dev::bytes&& bytes);
+  bool sealAndSend(const dev::p2p::NodeID& nodeID, SubprotocolPacketType packet_type, dev::RLPStream&& rlp);
 
  protected:
   std::shared_ptr<PeersState> peers_state_{nullptr};

@@ -60,7 +60,7 @@ void PacketHandler::handle_read_exception(const std::shared_ptr<dev::p2p::Host>&
   }
 }
 
-bool PacketHandler::sealAndSend(const dev::p2p::NodeID& nodeID, SubprotocolPacketType packet_type, dev::bytes&& bytes) {
+bool PacketHandler::sealAndSend(const dev::p2p::NodeID& nodeID, SubprotocolPacketType packet_type, dev::RLPStream&& rlp) {
   auto host = peers_state_->host_.lock();
   if (!host) {
     LOG(log_er_) << "sealAndSend failed to obtain host";
@@ -83,7 +83,7 @@ bool PacketHandler::sealAndSend(const dev::p2p::NodeID& nodeID, SubprotocolPacke
     }
   }
 
-  auto packet_size = bytes.size();
+  auto packet_size = rlp.out().size();
 
   // This situation should never happen - packets bigger than 16MB cannot be sent due to networking layer limitations.
   // If we are trying to send packets bigger than that, it should be split to multiple packets
@@ -95,7 +95,7 @@ bool PacketHandler::sealAndSend(const dev::p2p::NodeID& nodeID, SubprotocolPacke
     return false;
   }
 
-  host->send(nodeID, TARAXA_CAPABILITY_NAME, packet_type, std::move(bytes));
+  host->send(nodeID, TARAXA_CAPABILITY_NAME, packet_type, move(rlp.invalidate()));
 
   SinglePacketStats packet_stats{nodeID, packet_size, false, std::chrono::microseconds{0},
                                  std::chrono::microseconds{0}};

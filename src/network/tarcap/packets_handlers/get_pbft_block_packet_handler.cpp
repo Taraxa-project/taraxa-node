@@ -74,7 +74,7 @@ void GetPbftBlockPacketHandler::sendPbftBlocks(dev::p2p::NodeID const &peer_id, 
   // If blocks_to_transfer is 0, will return empty PBFT blocks
   auto pbft_cert_blks = pbft_chain_->getPbftBlocks(height_to_sync, blocks_to_transfer);
   if (pbft_cert_blks.empty()) {
-    sealAndSend(peer_id, PbftBlockPacket, RLPStream(0).invalidate());
+    sealAndSend(peer_id, PbftBlockPacket, RLPStream(0));
     LOG(log_dg_) << "In sendPbftBlocks, send no pbft blocks to " << peer_id;
     return;
   }
@@ -141,14 +141,14 @@ void GetPbftBlockPacketHandler::sendPbftBlocks(dev::p2p::NodeID const &peer_id, 
   auto transactions = db_query.execute();
 
   // Creates final packet out of provided pbft blocks rlp representations
-  auto create_packet = [](std::vector<dev::bytes> &&pbft_blocks) -> bytes&& {
-    RLPStream packet_rlp;
+  auto create_packet = [](std::vector<dev::bytes> &&pbft_blocks) -> dev::RLPStream {
+    dev::RLPStream packet_rlp;
     packet_rlp.appendList(pbft_blocks.size());
     for (const dev::bytes &block_rlp : pbft_blocks) {
       packet_rlp.appendRaw(std::move(block_rlp));
     }
 
-    return packet_rlp.invalidate();
+    return packet_rlp;
   };
 
   std::vector<dev::bytes> pbft_blocks_rlps;

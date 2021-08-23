@@ -120,7 +120,7 @@ void GetBlocksPacketsHandler::sendBlocks(dev::p2p::NodeID const &peer_id,
       // need to differentiate if is the last one or not due to syncing
       s.append(false);  // flag if it is the final DagBlocksSyncPacket or not
       s.appendRaw(packet_bytes, packet_items_count);
-      sealAndSend(peer_id, BlocksPacket, s.invalidate());
+      sealAndSend(peer_id, BlocksPacket, std::move(s));
 
       packet_bytes = std::move(removed_bytes);
       packet_items_count = 0;
@@ -135,7 +135,7 @@ void GetBlocksPacketsHandler::sendBlocks(dev::p2p::NodeID const &peer_id,
   RLPStream s(packet_items_count + 1 /* final packet flag */);
   s.append(true);  // flag if it is the final DagBlocksPacket or not
   s.appendRaw(packet_bytes, packet_items_count);
-  sealAndSend(peer_id, BlocksPacket, s.invalidate());
+  sealAndSend(peer_id, BlocksPacket, std::move(s));
 }
 
 }  // namespace taraxa::network::tarcap

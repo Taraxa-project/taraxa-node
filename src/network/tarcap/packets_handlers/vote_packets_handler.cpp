@@ -162,7 +162,7 @@ void VotePacketsHandler::sendPbftVote(NodeID const &peer_id, Vote const &vote) {
   const auto peer = peers_state_->getPeer(peer_id);
   // TODO: We should disable PBFT votes when a node is bootstrapping but not when trying to resync
   if (peer) {
-    if (sealAndSend(peer_id, PbftVotePacket, (RLPStream(1) << vote.rlp(true)).invalidate())) {
+    if (sealAndSend(peer_id, PbftVotePacket, std::move(RLPStream(1) << vote.rlp(true)))) {
       LOG(log_dg_) << "sendPbftVote " << vote.getHash() << " to " << peer_id;
       peer->markVoteAsKnown(vote.getHash());
     }
@@ -192,7 +192,7 @@ void VotePacketsHandler::sendPbftNextVotes(NodeID const &peer_id, std::vector<Vo
     LOG(log_dg_) << "Send out next vote " << next_vote.getHash() << " to peer " << peer_id;
   }
 
-  if (sealAndSend(peer_id, PbftNextVotesPacket, s.invalidate())) {
+  if (sealAndSend(peer_id, PbftNextVotesPacket, move(s))) {
     LOG(log_nf_) << "Send out size of " << send_next_votes_bundle.size() << " PBFT next votes to " << peer_id;
     if (auto peer = peers_state_->getPeer(peer_id)) {
       for (auto const &v : send_next_votes_bundle) {
