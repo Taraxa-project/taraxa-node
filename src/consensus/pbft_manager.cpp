@@ -1007,8 +1007,16 @@ void PbftManager::secondFinish_() {
 
   updateSoftVotedBlockForThisRound_();
 
+  // We only want to give up soft voted value IF:
+  // 1) haven't cert voted it
+  // 2) we are looking at value that was next voted in previous round
+  // 3) we don't have the block or if have block it can't be cert voted (yet)
+  bool giveUpSoftVotedBlockInSecondFinish =
+      last_cert_voted_value_ == NULL_BLOCK_HASH && last_soft_voted_value_ == previous_round_next_voted_value_ &&
+      giveUpSoftVotedBlock_() && !comparePbftBlockScheduleWithDAGblocks_(soft_voted_block_for_this_round_.first);
+
   if (!next_voted_soft_value_ && soft_voted_block_for_this_round_.second &&
-      soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH) {
+      soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH && !giveUpSoftVotedBlockInSecondFinish) {
     auto place_votes = placeVote_(soft_voted_block_for_this_round_.first, next_vote_type, round, step_);
     if (place_votes) {
       LOG(log_nf_) << "Next votes " << place_votes << " voting " << soft_voted_block_for_this_round_.first
@@ -1018,14 +1026,6 @@ void PbftManager::secondFinish_() {
       next_voted_soft_value_ = true;
     }
   }
-
-  // We only want to give up soft voted value IF:
-  // 1) haven't cert voted it
-  // 2) we are looking at value that was next voted in previous round
-  // 3) we don't have the block or if have block it can't be cert voted (yet)
-  bool giveUpSoftVotedBlockInSecondFinish =
-      last_cert_voted_value_ == NULL_BLOCK_HASH && last_soft_voted_value_ == previous_round_next_voted_value_ &&
-      giveUpSoftVotedBlock_() && !comparePbftBlockScheduleWithDAGblocks_(soft_voted_block_for_this_round_.first);
 
   if (!next_voted_null_block_hash_ && round >= 2 && (giveUpSoftVotedBlockInSecondFinish || giveUpNextVotedBlock_())) {
     auto place_votes = placeVote_(NULL_BLOCK_HASH, next_vote_type, round, step_);
