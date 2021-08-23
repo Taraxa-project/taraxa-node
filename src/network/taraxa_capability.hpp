@@ -87,7 +87,7 @@ struct TaraxaCapability : virtual CapabilityFace {
   void sendTestMessage(NodeID const &_id, int _x, std::vector<char> const &data);
   bool sendStatus(NodeID const &_id, bool _initial);
   void onNewBlockReceived(DagBlock block, std::vector<Transaction> transactions);
-  void onNewBlockVerified(DagBlock const &block);
+  void onNewBlockVerified(DagBlock const &block, bool proposed);
   void onNewTransactions(std::vector<taraxa::bytes> const &transactions, bool fromNetwork);
   Json::Value getStatus() const;
   std::pair<int, int> retrieveTestData(NodeID const &_id);

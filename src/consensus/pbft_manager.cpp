@@ -911,7 +911,7 @@ void PbftManager::certifyBlock_() {
 
       if (executed_soft_voted_block_for_this_round || unverified_soft_vote_block_for_this_round_is_valid) {
         // generate cert vote
-        
+
         // comparePbftBlockScheduleWithDAGblocks_ has checked the cert voted block exist
 
         last_cert_voted_value_ = soft_voted_block_for_this_round_.first;
@@ -923,7 +923,7 @@ void PbftManager::certifyBlock_() {
         db_->commitWriteBatch(batch);
 
         should_have_cert_voted_in_this_round_ = true;
-        
+
         auto place_votes = placeVote_(soft_voted_block_for_this_round_.first, cert_vote_type, round, step_);
         if (place_votes) {
           LOG(log_nf_) << "Cert votes " << place_votes << " voting " << soft_voted_block_for_this_round_.first
@@ -971,9 +971,9 @@ void PbftManager::firstFinish_() {
                      << step_;
       }
     } else {
-      
-      if (own_starting_value_for_round_ != previous_round_next_voted_value_ && previous_round_next_voted_value_ != NULL_BLOCK_HASH && !pbft_chain_->findPbftBlockInChain(previous_round_next_voted_value_)) {
-
+      if (own_starting_value_for_round_ != previous_round_next_voted_value_ &&
+          previous_round_next_voted_value_ != NULL_BLOCK_HASH &&
+          !pbft_chain_->findPbftBlockInChain(previous_round_next_voted_value_)) {
         if (own_starting_value_for_round_ == NULL_BLOCK_HASH) {
           db_->savePbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round, previous_round_next_voted_value_);
           own_starting_value_for_round_ = previous_round_next_voted_value_;
@@ -983,10 +983,9 @@ void PbftManager::firstFinish_() {
           // Check if we have received the previous round next voted value and its a viable value...
           // IF it is viable then reset own starting value to it...
           db_->savePbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round, previous_round_next_voted_value_);
-          LOG(log_dg_) << "Updating own starting value of " << own_starting_value_for_round_ << " to previous round next voted value of "
-                       << previous_round_next_voted_value_;
+          LOG(log_dg_) << "Updating own starting value of " << own_starting_value_for_round_
+                       << " to previous round next voted value of " << previous_round_next_voted_value_;
           own_starting_value_for_round_ = previous_round_next_voted_value_;
-          
         }
       }
 
@@ -1440,7 +1439,7 @@ bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(blk_hash_t const &pbft_
     // Read from DB pushing into unverified queue
     pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
   }
-  
+
   return comparePbftBlockScheduleWithDAGblocks_(*pbft_block).second;
 }
 

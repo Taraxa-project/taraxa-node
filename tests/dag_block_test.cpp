@@ -186,8 +186,8 @@ TEST_F(DagBlockTest, push_and_pop) {
   blk_qu.pushUnverifiedBlock(blk1, true);
   blk_qu.pushUnverifiedBlock(blk2, true);
 
-  auto blk3 = blk_qu.popVerifiedBlock();
-  auto blk4 = blk_qu.popVerifiedBlock();
+  auto blk3 = *blk_qu.popVerifiedBlock().first;
+  auto blk4 = *blk_qu.popVerifiedBlock().first;
   // The order is non-deterministic
   bool res = (blk1 == blk3) ? blk2 == blk4 : blk2 == blk3;
   EXPECT_TRUE(res);
