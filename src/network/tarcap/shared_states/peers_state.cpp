@@ -4,7 +4,7 @@ namespace taraxa::network::tarcap {
 
 PeersState::PeersState(std::weak_ptr<dev::p2p::Host>&& host) : host_(std::move(host)), node_id_(host_.lock()->id()) {}
 
-std::shared_ptr<TaraxaPeer> PeersState::getPeer(const dev::p2p::NodeID& node_id) {
+std::shared_ptr<TaraxaPeer> PeersState::getPeer(const dev::p2p::NodeID& node_id) const {
   std::shared_lock lock(peers_mutex_);
 
   auto it_peer = peers_.find(node_id);
@@ -15,7 +15,7 @@ std::shared_ptr<TaraxaPeer> PeersState::getPeer(const dev::p2p::NodeID& node_id)
   return nullptr;
 }
 
-std::shared_ptr<TaraxaPeer> PeersState::getPendingPeer(const dev::p2p::NodeID& node_id) {
+std::shared_ptr<TaraxaPeer> PeersState::getPendingPeer(const dev::p2p::NodeID& node_id) const {
   // TODO: pending_peers_ might have different mutex than peers ?
   std::shared_lock lock(peers_mutex_);
 
@@ -31,6 +31,7 @@ std::vector<dev::p2p::NodeID> PeersState::getAllPeersIDs() const {
   std::vector<dev::p2p::NodeID> peers;
 
   std::shared_lock lock(peers_mutex_);
+  peers.reserve(peers_.size());
   std::transform(peers_.begin(), peers_.end(), std::back_inserter(peers),
                  [](std::pair<const dev::p2p::NodeID, std::shared_ptr<TaraxaPeer>> const& peer) { return peer.first; });
 
@@ -41,6 +42,7 @@ std::vector<dev::p2p::NodeID> PeersState::getAllPendingPeersIDs() const {
   std::vector<dev::p2p::NodeID> peers;
 
   std::shared_lock lock(peers_mutex_);
+  peers.reserve(pending_peers_.size());
   std::transform(pending_peers_.begin(), pending_peers_.end(), std::back_inserter(peers),
                  [](std::pair<const dev::p2p::NodeID, std::shared_ptr<TaraxaPeer>> const& peer) { return peer.first; });
 
@@ -68,7 +70,7 @@ std::shared_ptr<TaraxaPeer> PeersState::addPendingPeer(const dev::p2p::NodeID& n
   return ret.first->second;
 }
 
-size_t PeersState::getPeersCount() {
+size_t PeersState::getPeersCount() const {
   std::shared_lock lock(peers_mutex_);
 
   return peers_.size();

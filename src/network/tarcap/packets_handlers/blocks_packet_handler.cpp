@@ -20,8 +20,9 @@ void BlocksPacketHandler::process(const dev::RLP& packet_rlp, const PacketData& 
                                   const std::shared_ptr<dev::p2p::Host>& host __attribute__((unused)),
                                   const std::shared_ptr<TaraxaPeer>& peer) {
   std::string received_dag_blocks_str;
+  std::unordered_set<blk_hash_t> missing_blks;
+
   auto it = packet_rlp.begin();
-  const bool is_final_sync_packet = (*it++).toInt<unsigned>();
 
   for (; it != packet_rlp.end();) {
     DagBlock block(*it++);
@@ -39,9 +40,8 @@ void BlocksPacketHandler::process(const dev::RLP& packet_rlp, const PacketData& 
     auto status = syncing_handler_->checkDagBlockValidation(block);
     if (!status.first) {
       LOG(log_wr_) << "DagBlockValidation failed " << status.second;
-      status.second.push_back(block.getHash());
-      syncing_handler_->requestBlocks(packet_data.from_node_id_, status.second,
-                                      GetBlocksPacketRequestType::MissingHashes);
+      status.second.insert(block.getHash());
+      missing_blks.merge(status.second);
       continue;
     }
 
@@ -51,13 +51,12 @@ void BlocksPacketHandler::process(const dev::RLP& packet_rlp, const PacketData& 
     dag_blk_mgr_->insertBroadcastedBlockWithTransactions(block, new_transactions);
   }
 
-  if (is_final_sync_packet) {
-    syncing_state_->set_dag_syncing(false);
-    LOG(log_nf_) << "Received final DagBlocksSyncPacket with blocks: " << received_dag_blocks_str;
-  } else {
-    syncing_state_->set_last_sync_packet_time();
-    LOG(log_nf_) << "Received partial DagBlocksSyncPacket with blocks: " << received_dag_blocks_str;
+  if (missing_blks.size() > 0) {
+    syncing_handler_->requestBlocks(packet_data.from_node_id_, missing_blks, GetBlocksPacketRequestType::MissingHashes);
   }
+  syncing_state_->set_dag_syncing(false);
+
+  LOG(log_nf_) << "Received DagBlocksPacket with blocks: " << received_dag_blocks_str;
 }
 
 }  // namespace taraxa::network::tarcap

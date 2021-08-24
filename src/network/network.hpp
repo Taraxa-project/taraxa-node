@@ -41,11 +41,11 @@ class Network {
   // METHODS USED IN REAL CODE
   void start();
   bool isStarted();
-  std::list<NodeEntry> getAllNodes() const;
+  std::list<dev::p2p::NodeEntry> getAllNodes() const;
   size_t getPeerCount();
   unsigned getNodeCount();
   Json::Value getStatus();
-  std::vector<NodeID> getAllPeersIDs() const;
+  std::vector<dev::p2p::NodeID> getAllPeersIDs() const;
   void onNewBlockVerified(shared_ptr<DagBlock> const &blk, bool proposed);
   void onNewTransactions(std::vector<taraxa::bytes> transactions);
   void restartSyncingPbft(bool force = false);

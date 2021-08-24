@@ -71,7 +71,7 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
 
   void restartSyncingPbft(bool force = false);
   bool pbft_syncing() const;
-  void onNewBlockVerified(std::shared_ptr<DagBlock> const &blk);
+  void onNewBlockVerified(std::shared_ptr<DagBlock> const &blk, bool proposed);
   void onNewTransactions(std::vector<taraxa::bytes> transactions);
   void onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_block);
   void onNewPbftVote(const Vote &vote);

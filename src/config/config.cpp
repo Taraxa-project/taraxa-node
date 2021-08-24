@@ -221,8 +221,10 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
 void FullNodeConfig::validate() {
   // Max enabled number of threads for processing rpc requests
   constexpr uint16_t max_packets_processing_threads_num = 30;
-  if (network.network_packets_processing_threads <= 0 || network.network_packets_processing_threads > max_packets_processing_threads_num) {
-    throw ConfigException(string("network_packets_processing_threads must be in range (0, ") + to_string(max_packets_processing_threads_num) + ">");
+  if (network.network_packets_processing_threads == 0 ||
+      network.network_packets_processing_threads > max_packets_processing_threads_num) {
+    throw ConfigException(string("network_packets_processing_threads must be in range (0, ") +
+                          to_string(max_packets_processing_threads_num) + ">");
   }
 
   // Validates rpc config values
@@ -271,6 +273,9 @@ std::ostream &operator<<(std::ostream &strm, NetworkConfig const &conf) {
   strm << "  network_max_peer_count: " << conf.network_max_peer_count << std::endl;
   strm << "  network_sync_level_size: " << conf.network_sync_level_size << std::endl;
   strm << "  network_id: " << conf.network_id << std::endl;
+  strm << "  network_performance_log_interval: " << conf.network_performance_log_interval << std::endl;
+  strm << "  network_num_threads: " << conf.network_num_threads << std::endl;
+  strm << "  network_packets_processing_threads: " << conf.network_packets_processing_threads << std::endl;
 
   strm << "  --> boot nodes  ... " << std::endl;
   for (auto const &c : conf.network_boot_nodes) {

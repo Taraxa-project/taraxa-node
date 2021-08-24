@@ -83,9 +83,9 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkC
       PriorityQueuePacketType::PQ_StatusPacket,
       std::make_shared<StatusPacketHandler>(peers_state_, packets_stats, syncing_state_, syncing_handler_, pbft_chain,
                                             dag_mgr, next_votes_mgr, pbft_mgr, conf.network_id, node_addr));
-  packets_handlers_->registerHandler(
-      PriorityQueuePacketType::PQ_GetBlocksPacket,
-      std::make_shared<GetBlocksPacketsHandler>(peers_state_, packets_stats, trx_mgr, dag_mgr, db, node_addr));
+  packets_handlers_->registerHandler(PriorityQueuePacketType::PQ_GetBlocksPacket,
+                                     std::make_shared<GetBlocksPacketsHandler>(peers_state_, packets_stats, trx_mgr,
+                                                                               dag_mgr, dag_blk_mgr, db, node_addr));
 
   packets_handlers_->registerHandler(PriorityQueuePacketType::PQ_BlocksPacket,
                                      std::make_shared<BlocksPacketHandler>(peers_state_, packets_stats, syncing_state_,
@@ -97,8 +97,9 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkC
       std::make_shared<GetPbftBlockPacketHandler>(peers_state_, packets_stats, syncing_state_, pbft_chain, db,
                                                   conf.network_sync_level_size, node_addr));
 
-  const auto pbft_handler = std::make_shared<PbftBlockPacketHandler>(
-      peers_state_, packets_stats, syncing_state_, syncing_handler_, pbft_chain, dag_blk_mgr, node_addr);
+  const auto pbft_handler =
+      std::make_shared<PbftBlockPacketHandler>(peers_state_, packets_stats, syncing_state_, syncing_handler_,
+                                               pbft_chain, dag_blk_mgr, conf.network_sync_level_size, node_addr);
   packets_handlers_->registerHandler(PriorityQueuePacketType::PQ_PbftBlockPacket, pbft_handler);
   packets_handlers_->registerHandler(PriorityQueuePacketType::PQ_SyncedPacket, pbft_handler);
 
@@ -158,13 +159,13 @@ void TaraxaCapability::onConnect(weak_ptr<Session> session, u256 const &) {
   }
 
   auto peer = peers_state_->addPendingPeer(node_id);
+  LOG(log_nf_) << "Node " << node_id << " connected";
 
   // TODO: check if this cast creates a copy of shared ptr ?
   const auto &handler = packets_handlers_->getSpecificHandler(PriorityQueuePacketType::PQ_StatusPacket);
   auto status_packet_handler = std::static_pointer_cast<StatusPacketHandler>(handler);
 
   status_packet_handler->sendStatus(node_id, true);
-  LOG(log_nf_) << "Node " << node_id << " connected";
 }
 
 void TaraxaCapability::onDisconnect(NodeID const &_nodeID) {
@@ -204,12 +205,12 @@ void TaraxaCapability::interpretCapabilityPacket(weak_ptr<Session> session, unsi
     peer = peers_state_->getPendingPeer(node_id);
     if (!peer) {
       // It should not be possible to get here but log it just in case
-      LOG(log_er_) << "Peer missing in peers map, peer " << node_id.abridged() << " will be disconnected";
+      LOG(log_wr_) << "Peer missing in peers map, peer " << node_id.abridged() << " will be disconnected";
       host->disconnect(node_id, dev::p2p::UserReason);
       return;
     }
     if (_id != SubprotocolPacketType::StatusPacket) {
-      LOG(log_er_) << "Connected peer did not send status message, peer " << node_id.abridged()
+      LOG(log_wr_) << "Connected peer did not send status message, peer " << node_id.abridged()
                    << " will be disconnected";
       host->disconnect(node_id, dev::p2p::UserReason);
       return;
@@ -240,10 +241,10 @@ void TaraxaCapability::restartSyncingPbft(bool force) { syncing_handler_->restar
 
 bool TaraxaCapability::pbft_syncing() const { return syncing_state_->is_pbft_syncing(); }
 
-void TaraxaCapability::onNewBlockVerified(std::shared_ptr<DagBlock> const &blk) {
+void TaraxaCapability::onNewBlockVerified(std::shared_ptr<DagBlock> const &blk, bool proposed) {
   std::static_pointer_cast<DagPacketsHandler>(
       packets_handlers_->getSpecificHandler(PriorityQueuePacketType::PQ_NewBlockPacket))
-      ->onNewBlockVerified(*blk);
+      ->onNewBlockVerified(*blk, proposed);
 }
 
 // TODO: why not const ref ???

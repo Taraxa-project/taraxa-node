@@ -45,8 +45,8 @@ void DagPacketsHandler::process(const dev::RLP &packet_rlp, const PacketData &pa
 
 inline void DagPacketsHandler::processNewBlockPacket(const dev::RLP &packet_rlp, const PacketData &packet_data,
                                                      const std::shared_ptr<TaraxaPeer> &peer) {
-  // Ignore new block packets when syncing
-  if (syncing_state_->is_syncing()) return;
+  // Ignore new block packets when pbft syncing
+  if (syncing_state_->is_pbft_syncing()) return;
 
   DagBlock block(packet_rlp[0].data().toBytes());
   blk_hash_t const hash = block.getHash();
@@ -58,7 +58,7 @@ inline void DagPacketsHandler::processNewBlockPacket(const dev::RLP &packet_rlp,
     }
     if (auto status = syncing_handler_->checkDagBlockValidation(block); !status.first) {
       LOG(log_wr_) << "Received NewBlock " << hash.toString() << " missing pivot or/and tips";
-      status.second.push_back(hash);
+      status.second.insert(hash);
       syncing_handler_->requestBlocks(packet_data.from_node_id_, status.second,
                                       GetBlocksPacketRequestType::MissingHashes);
       return;
@@ -104,7 +104,7 @@ inline void DagPacketsHandler::processGetNewBlockPacket(const dev::RLP &packet_r
   LOG(log_dg_) << "Received GetNewBlockPacket" << hash.toString();
 
   if (dag_blk_mgr_) {
-    auto block = db_->getDagBlock(hash);
+    auto block = dag_blk_mgr_->getDagBlock(hash);
     if (block) {
       sendBlock(packet_data.from_node_id_, *block);
     } else
@@ -163,7 +163,7 @@ void DagPacketsHandler::onNewBlockReceived(DagBlock block, std::vector<Transacti
     for (auto tr : transactions) {
       test_state_->insertTransaction(tr);
     }
-    onNewBlockVerified(block);
+    onNewBlockVerified(block, false);
 
   } else {
     LOG(log_dg_) << "Received NewBlock " << block.getHash().toString() << "that is already known";
@@ -183,11 +183,13 @@ void DagPacketsHandler::insertBlockRequest(const blk_hash_t &block_hash) {
   block_requestes_set_.insert(block_hash);
 }
 
-void DagPacketsHandler::onNewBlockVerified(DagBlock const &block) {
-  // If node is syncing this is an old block that has been verified - no block goosip is needed
-  if (syncing_state_->is_syncing()) {
+void DagPacketsHandler::onNewBlockVerified(DagBlock const &block, bool proposed) {
+  // If node is pbft syncing and block is not proposed by us, this is an old block that has been verified - no block
+  // goosip is needed
+  if (!proposed && syncing_state_->is_pbft_syncing()) {
     return;
   }
+
   LOG(log_dg_) << "Verified NewBlock " << block.getHash().toString();
   auto const peers_without_block =
       selectPeers([&](TaraxaPeer const &_peer) { return !_peer.isBlockKnown(block.getHash()); });

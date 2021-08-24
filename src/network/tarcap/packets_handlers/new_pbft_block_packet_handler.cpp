@@ -20,7 +20,8 @@ void NewPbftBlockPacketHandler::process(const dev::RLP &packet_rlp,
 
   auto pbft_block = std::make_shared<PbftBlock>(packet_rlp[0]);
   const uint64_t peer_pbft_chain_size = packet_rlp[1].toInt();
-  LOG(log_dg_) << "Receive proposed PBFT Block " << pbft_block << ", Peer PBFT Chain size: " << peer_pbft_chain_size;
+  LOG(log_dg_) << "Receive proposed PBFT Block " << pbft_block->getBlockHash().abridged()
+               << ", Peer PBFT Chain size: " << peer_pbft_chain_size;
 
   peer->markPbftBlockAsKnown(pbft_block->getBlockHash());
   if (peer_pbft_chain_size > peer->pbft_chain_size_) {
@@ -45,7 +46,11 @@ void NewPbftBlockPacketHandler::onNewPbftBlock(PbftBlock const &pbft_block) {
   const auto my_chain_size = pbft_chain_->getPbftChainSize();
 
   for (auto const &peer : peers_state_->getAllPeers()) {
-    if (!peer.second->isPbftBlockKnown(pbft_block.getBlockHash())) {
+    if (!peer.second->isPbftBlockKnown(pbft_block.getBlockHash()) && !peer.second->syncing_) {
+      if (!peer.second->isBlockKnown(pbft_block.getPivotDagBlockHash())) {
+        LOG(log_wr_) << "sending PbftBlock " << pbft_block.getBlockHash() << " with missing dag anchor"
+                     << pbft_block.getPivotDagBlockHash() << " to " << peer.first;
+      }
       peers_to_send.push_back(peer.first);
     }
   }

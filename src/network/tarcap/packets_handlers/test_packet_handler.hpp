@@ -13,6 +13,8 @@ class TestPacketHandler : public PacketHandler {
   TestPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
                     const addr_t& node_addr);
 
+  virtual ~TestPacketHandler() = default;
+
   void sendTestMessage(const dev::p2p::NodeID& id, int x, const std::vector<char>& data);
   std::pair<size_t, uint64_t> retrieveTestData(const dev::p2p::NodeID& node_id);
 

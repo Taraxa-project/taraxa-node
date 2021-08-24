@@ -55,10 +55,11 @@ class DbException : public exception {
   string desc_;
 };
 
-struct DbStorage;
+class DbStorage;
 using DB = DbStorage;
 
-struct DbStorage {
+class DbStorage {
+ public:
   using Slice = rocksdb::Slice;
   using Batch = rocksdb::WriteBatch;
   using OnEntry = function<bool(Slice const&, Slice const&)>;

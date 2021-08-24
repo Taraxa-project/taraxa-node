@@ -20,6 +20,8 @@ class TransactionPacketHandler : public PacketHandler {
                            std::shared_ptr<TestState> test_state, uint16_t network_transaction_interval,
                            const addr_t& node_addr = {});
 
+  virtual ~TransactionPacketHandler() = default;
+
   void onNewTransactions(std::vector<taraxa::bytes> const& transactions, bool fromNetwork);
   void sendTransactions(dev::p2p::NodeID const& peer_id, std::vector<taraxa::bytes> const& transactions);
 

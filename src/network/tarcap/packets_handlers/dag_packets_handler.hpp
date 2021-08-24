@@ -23,11 +23,13 @@ class DagPacketsHandler : public PacketHandler {
                     uint16_t network_min_dag_block_broadcast, uint16_t network_max_dag_block_broadcast,
                     const addr_t &node_addr = {});
 
+  virtual ~DagPacketsHandler() = default;
+
   void requestBlock(dev::p2p::NodeID const &peer_id, blk_hash_t hash);
   void sendBlock(dev::p2p::NodeID const &peer_id, DagBlock block);
   void sendBlockHash(dev::p2p::NodeID const &peer_id, taraxa::DagBlock block);
   void onNewBlockReceived(DagBlock block, std::vector<Transaction> transactions);
-  void onNewBlockVerified(DagBlock const &block);
+  void onNewBlockVerified(DagBlock const &block, bool proposed);
 
  private:
   void process(const dev::RLP &packet_rlp, const PacketData &packet_data, const std::shared_ptr<dev::p2p::Host> &host,

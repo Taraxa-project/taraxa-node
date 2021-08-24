@@ -34,7 +34,7 @@ inline void VotePacketsHandler::processPbftVotePacket(const dev::RLP &packet_rlp
                                                       const std::shared_ptr<TaraxaPeer> &peer) {
   LOG(log_dg_) << "In PbftVotePacket";
 
-  Vote vote(packet_rlp[0].toBytes(), false);
+  Vote vote(packet_rlp[0].toBytes());
   const auto vote_hash = vote.getHash();
   LOG(log_dg_) << "Received PBFT vote " << vote_hash;
 

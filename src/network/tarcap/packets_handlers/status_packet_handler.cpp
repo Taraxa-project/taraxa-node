@@ -191,16 +191,17 @@ bool StatusPacketHandler::sendStatus(const dev::p2p::NodeID& node_id, bool initi
     */
 
     if (initial) {
-      success =
-          sealAndSend(node_id, StatusPacket,
-                      std::move(dev::RLPStream(INITIAL_STATUS_PACKET_ITEM_COUNT)
-                          << conf_network_id_ << dag_max_level << dag_mgr_->get_genesis() << pbft_chain_size
-                          << syncing_state_->is_pbft_syncing() << pbft_round << pbft_previous_round_next_votes_size
-                          << TARAXA_MAJOR_VERSION << TARAXA_MINOR_VERSION << TARAXA_PATCH_VERSION));
+      success = sealAndSend(
+          node_id, StatusPacket,
+          std::move(dev::RLPStream(INITIAL_STATUS_PACKET_ITEM_COUNT)
+                    << conf_network_id_ << dag_max_level << dag_mgr_->get_genesis() << pbft_chain_size
+                    << syncing_state_->is_pbft_syncing() << pbft_round << pbft_previous_round_next_votes_size
+                    << TARAXA_MAJOR_VERSION << TARAXA_MINOR_VERSION << TARAXA_PATCH_VERSION));
     } else {
-      success = sealAndSend(node_id, StatusPacket,
-                            std::move(dev::RLPStream(5) << dag_max_level << pbft_chain_size << syncing_state_->is_pbft_syncing()
-                                              << pbft_round << pbft_previous_round_next_votes_size));
+      success = sealAndSend(
+          node_id, StatusPacket,
+          std::move(dev::RLPStream(5) << dag_max_level << pbft_chain_size << syncing_state_->is_pbft_syncing()
+                                      << pbft_round << pbft_previous_round_next_votes_size));
     }
   }
 
@@ -220,10 +221,7 @@ void StatusPacketHandler::checkLiveness() {
       host->disconnect(peer.first, p2p::PingTimeout);
       LOG(log_nf_) << "Host " << peer.first << " disconnected, no status message received in " << MAX_CHECK_ALIVE_COUNT
                    << " check alive intervals";
-    }
-
-    // Send status message
-    else {
+    } else {  // Send status message
       sendStatus(peer.first, false);
     }
   }

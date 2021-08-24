@@ -76,7 +76,7 @@ void SyncingHandler::restartSyncingPbft(bool force) {
 }
 
 void SyncingHandler::syncPeerPbft(unsigned long height_to_sync) {
-  const auto &node_id = syncing_state_->syncing_peer();
+  const auto node_id = syncing_state_->syncing_peer();
   LOG(log_nf_) << "Sync peer node " << node_id << " from pbft chain height " << height_to_sync;
   requestPbftBlocks(node_id, height_to_sync);
 }
@@ -87,23 +87,23 @@ void SyncingHandler::requestPbftBlocks(dev::p2p::NodeID const &_id, size_t heigh
 }
 
 void SyncingHandler::requestPendingDagBlocks() {
-  std::vector<blk_hash_t> known_non_finalized_blocks;
+  std::unordered_set<blk_hash_t> known_non_finalized_blocks;
   auto blocks = dag_mgr_->getNonFinalizedBlocks();
   for (auto &level_blocks : blocks) {
     for (auto &block : level_blocks.second) {
-      known_non_finalized_blocks.push_back(block);
+      known_non_finalized_blocks.insert(block);
     }
   }
 
   requestBlocks(syncing_state_->syncing_peer(), known_non_finalized_blocks, GetBlocksPacketRequestType::KnownHashes);
 }
 
-void SyncingHandler::requestBlocks(const dev::p2p::NodeID &_nodeID, std::vector<blk_hash_t> const &blocks,
+void SyncingHandler::requestBlocks(const dev::p2p::NodeID &_nodeID, const std::unordered_set<blk_hash_t> &blocks,
                                    GetBlocksPacketRequestType mode) {
   LOG(log_nf_) << "Sending GetBlocksPacket";
   dev::RLPStream s(blocks.size() + 1);  // Mode + block itself
-  s << mode;                            // Send mode first
-  for (auto blk : blocks) {
+  s << static_cast<uint8_t>(mode);      // Send mode first
+  for (const auto &blk : blocks) {
     s << blk;
   }
   sealAndSend(_nodeID, SubprotocolPacketType::GetBlocksPacket, std::move(s));
@@ -113,6 +113,7 @@ void SyncingHandler::syncPbftNextVotes(uint64_t pbft_round, size_t pbft_previous
   dev::p2p::NodeID peer_node_ID;
   uint64_t peer_max_pbft_round = 1;
   size_t peer_max_previous_round_next_votes_size = 0;
+
   auto peers = peers_state_->getAllPeers();
   // Find max peer PBFT round
   for (auto const &peer : peers) {
@@ -149,11 +150,12 @@ void SyncingHandler::requestPbftNextVotes(dev::p2p::NodeID const &peerID, uint64
   // TODO: was log_dg_next_votes_sync_
   LOG(log_dg_) << "Sending GetPbftNextVotes with round " << pbft_round << " previous round next votes size "
                << pbft_previous_round_next_votes_size;
-  sealAndSend(peerID, GetPbftNextVotes, std::move(dev::RLPStream(2) << pbft_round << pbft_previous_round_next_votes_size));
+  sealAndSend(peerID, GetPbftNextVotes,
+              std::move(dev::RLPStream(2) << pbft_round << pbft_previous_round_next_votes_size));
 }
 
-std::pair<bool, std::vector<blk_hash_t>> SyncingHandler::checkDagBlockValidation(DagBlock const &block) const {
-  std::vector<blk_hash_t> missing_blks;
+std::pair<bool, std::unordered_set<blk_hash_t>> SyncingHandler::checkDagBlockValidation(const DagBlock &block) const {
+  std::unordered_set<blk_hash_t> missing_blks;
 
   if (dag_blk_mgr_->getDagBlock(block.getHash())) {
     // The DAG block exist
@@ -165,7 +167,7 @@ std::pair<bool, std::vector<blk_hash_t>> SyncingHandler::checkDagBlockValidation
     auto tip_block = dag_blk_mgr_->getDagBlock(tip);
     if (!tip_block) {
       LOG(log_er_) << "Block " << block.getHash().toString() << " has a missing tip " << tip.toString();
-      missing_blks.push_back(tip);
+      missing_blks.insert(tip);
     } else {
       expected_level = std::max(tip_block->getLevel(), expected_level);
     }
@@ -175,7 +177,7 @@ std::pair<bool, std::vector<blk_hash_t>> SyncingHandler::checkDagBlockValidation
   const auto pivot_block = dag_blk_mgr_->getDagBlock(pivot);
   if (!pivot_block) {
     LOG(log_er_) << "Block " << block.getHash().toString() << " has a missing pivot " << pivot.toString();
-    missing_blks.push_back(pivot);
+    missing_blks.insert(pivot);
   }
 
   if (missing_blks.size()) return std::make_pair(false, missing_blks);

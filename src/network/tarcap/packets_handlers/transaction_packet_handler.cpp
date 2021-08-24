@@ -63,8 +63,9 @@ void TransactionPacketHandler::onNewTransactions(std::vector<taraxa::bytes> cons
   if (!fromNetwork || network_transaction_interval_ == 0) {
     std::unordered_map<dev::p2p::NodeID, std::vector<taraxa::bytes>> transactions_to_send;
     std::unordered_map<dev::p2p::NodeID, std::vector<trx_hash_t>> transactions_hash_to_send;
+
     auto peers = peers_state_->getAllPeers();
-    for (auto &peer : peers) {
+    for (const auto &peer : peers) {
       // Confirm that status messages were exchanged otherwise message might be ignored and node would
       // incorrectly markTransactionAsKnown
       if (!peer.second->syncing_) {

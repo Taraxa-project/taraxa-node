@@ -10,11 +10,13 @@ namespace taraxa::network::tarcap {
 GetBlocksPacketsHandler::GetBlocksPacketsHandler(std::shared_ptr<PeersState> peers_state,
                                                  std::shared_ptr<PacketsStats> packets_stats,
                                                  std::shared_ptr<TransactionManager> trx_mgr,
-                                                 std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DbStorage> db,
-                                                 const addr_t &node_addr)
+                                                 std::shared_ptr<DagManager> dag_mgr,
+                                                 std::shared_ptr<DagBlockManager> dag_blk_mgr,
+                                                 std::shared_ptr<DbStorage> db, const addr_t &node_addr)
     : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "GET_BLOCKS_PH"),
       trx_mgr_(std::move(trx_mgr)),
       dag_mgr_(std::move(dag_mgr)),
+      dag_blk_mgr_(std::move(dag_blk_mgr)),
       db_(std::move(db)) {}
 
 void GetBlocksPacketsHandler::process(const dev::RLP &packet_rlp, const PacketData &packet_data,
@@ -40,7 +42,7 @@ void GetBlocksPacketsHandler::process(const dev::RLP &packet_rlp, const PacketDa
       const auto hash = block;
       if (mode == GetBlocksPacketRequestType::MissingHashes) {
         if (blocks_hashes.count(hash) == 1) {
-          if (auto blk = db_->getDagBlock(hash); blk) {
+          if (auto blk = dag_blk_mgr_->getDagBlock(hash); blk) {
             dag_blocks.emplace_back(blk);
           } else {
             LOG(log_er_) << "NonFinalizedBlock " << hash << " not in DB";
@@ -49,7 +51,7 @@ void GetBlocksPacketsHandler::process(const dev::RLP &packet_rlp, const PacketDa
         }
       } else if (mode == GetBlocksPacketRequestType::KnownHashes) {
         if (blocks_hashes.count(hash) == 0) {
-          if (auto blk = db_->getDagBlock(hash); blk) {
+          if (auto blk = dag_blk_mgr_->getDagBlock(hash); blk) {
             dag_blocks.emplace_back(blk);
           } else {
             LOG(log_er_) << "NonFinalizedBlock " << hash << " not in DB";
@@ -70,24 +72,13 @@ void GetBlocksPacketsHandler::process(const dev::RLP &packet_rlp, const PacketDa
 
 void GetBlocksPacketsHandler::sendBlocks(dev::p2p::NodeID const &peer_id,
                                          std::vector<std::shared_ptr<DagBlock>> blocks) {
-  if (blocks.empty()) return;
-
   auto peer = peers_state_->getPeer(peer_id);
   if (!peer) return;
 
-  taraxa::bytes packet_bytes;
-  size_t packet_items_count = 0;
-  size_t blocks_counter = 0;
-
-  for (auto &block : blocks) {
-    size_t dag_block_items_count = 0;
-    const size_t previous_block_packet_size = packet_bytes.size();
-
-    // Add dag block rlp to the sent bytes array
-    taraxa::bytes block_bytes = block->rlp(true);
-    packet_bytes.insert(packet_bytes.end(), std::begin(block_bytes), std::end(block_bytes));
-    dag_block_items_count++;  // + 1 new dag blog
-
+  std::unordered_map<blk_hash_t, std::vector<taraxa::bytes>> block_transactions;
+  size_t total_transactions_count = 0;
+  for (const auto &block : blocks) {
+    std::vector<taraxa::bytes> transactions;
     for (auto trx : block->getTrxs()) {
       auto t = trx_mgr_->getTransaction(trx);
       if (!t) {
@@ -97,44 +88,22 @@ void GetBlocksPacketsHandler::sendBlocks(dev::p2p::NodeID const &peer_id,
         // better solution needed
         return;
       }
-
-      // Add dag block transaction rlp to the sent bytes array
-      packet_bytes.insert(packet_bytes.end(), std::begin(t->second), std::end(t->second));
-      dag_block_items_count++;  // + 1 new tx from dag blog
+      transactions.emplace_back(std::move(t->second));
+      total_transactions_count++;
     }
-
-    LOG(log_tr_) << "Send DagBlock " << block->getHash() << "Trxs count: " << block->getTrxs().size();
-
-    // Split packet into multiple smaller ones if total size is > MAX_PACKET_SIZE
-    if (packet_bytes.size() > MAX_PACKET_SIZE) {
-      LOG(log_dg_) << "Sending partial BlocksPacket due to MAX_PACKET_SIZE limit. " << blocks_counter
-                   << " blocks out of " << blocks.size() << " PbftBlockPacketsent.";
-
-      taraxa::bytes removed_bytes;
-      std::copy(packet_bytes.begin() + previous_block_packet_size, packet_bytes.end(),
-                std::back_inserter(removed_bytes));
-      packet_bytes.resize(previous_block_packet_size);
-
-      RLPStream s(packet_items_count + 1 /* final packet flag */);
-      // As DagBlocksPacket might be split into multiple packets, we
-      // need to differentiate if is the last one or not due to syncing
-      s.append(false);  // flag if it is the final DagBlocksSyncPacket or not
-      s.appendRaw(packet_bytes, packet_items_count);
-      sealAndSend(peer_id, BlocksPacket, std::move(s));
-
-      packet_bytes = std::move(removed_bytes);
-      packet_items_count = 0;
-    }
-
-    packet_items_count += dag_block_items_count;
-    blocks_counter++;
+    block_transactions[block->getHash()] = std::move(transactions);
+    LOG(log_nf_) << "Send DagBlock " << block->getHash() << "# Trx: " << transactions.size() << std::endl;
   }
 
-  LOG(log_dg_) << "Sending final BlocksPacket with " << blocks_counter << " blocks.";
-
-  RLPStream s(packet_items_count + 1 /* final packet flag */);
-  s.append(true);  // flag if it is the final DagBlocksPacket or not
-  s.appendRaw(packet_bytes, packet_items_count);
+  RLPStream s(blocks.size() + total_transactions_count);
+  for (auto &block : blocks) {
+    s.appendRaw(block->rlp(true));
+    taraxa::bytes trx_bytes;
+    for (auto &trx : block_transactions[block->getHash()]) {
+      trx_bytes.insert(trx_bytes.end(), std::make_move_iterator(trx.begin()), std::make_move_iterator(trx.end()));
+    }
+    s.appendRaw(trx_bytes, block_transactions[block->getHash()].size());
+  }
   sealAndSend(peer_id, BlocksPacket, std::move(s));
 }
 

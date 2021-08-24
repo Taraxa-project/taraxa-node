@@ -33,9 +33,7 @@ std::optional<PacketData> PacketsQueue::pop(const PacketsBlockingMask& packets_b
 
 void PacketsQueue::setMaxWorkersCount(size_t max_workers_count) { MAX_WORKERS_COUNT = max_workers_count; }
 
-void PacketsQueue::incrementActWorkersCount() {
-  act_workers_count_++;
-}
+void PacketsQueue::incrementActWorkersCount() { act_workers_count_++; }
 
 void PacketsQueue::decrementActWorkersCount() {
   assert(act_workers_count_ > 0);

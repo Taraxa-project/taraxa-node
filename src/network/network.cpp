@@ -83,7 +83,7 @@ Network::Network(NetworkConfig const &config, std::filesystem::path const &netwo
     });
   }
 
-  tp_.post_loop({30000},[this] { LOG(log_nf_) << "NET_TP_NUM_PENDING_TASKS=" << tp_.num_pending_tasks(); });
+  tp_.post_loop({30000}, [this] { LOG(log_nf_) << "NET_TP_NUM_PENDING_TASKS=" << tp_.num_pending_tasks(); });
 }
 
 Network::~Network() {
@@ -102,7 +102,7 @@ bool Network::isStarted() { return tp_.is_running(); }
 
 std::list<dev::p2p::NodeEntry> Network::getAllNodes() const { return host_->getNodes(); }
 
-size_t Network::getPeerCount() { return taraxa_capability_->getPeersCount(); }
+size_t Network::getPeerCount() { return taraxa_capability_->getPeersState()->getPeersCount(); }
 
 unsigned Network::getNodeCount() { return host_->getNodeCount(); }
 
@@ -114,7 +114,7 @@ std::vector<dev::p2p::NodeID> Network::getAllPeersIDs() const {
 
 void Network::onNewBlockVerified(shared_ptr<DagBlock> const &blk, bool proposed) {
   tp_.post([this, blk, proposed] {
-    taraxa_capability_->onNewBlockVerified(*blk, proposed);
+    taraxa_capability_->onNewBlockVerified(blk, proposed);
     LOG(log_dg_) << "On new block verified:" << blk->getHash().toString();
   });
 }
@@ -122,7 +122,7 @@ void Network::onNewBlockVerified(shared_ptr<DagBlock> const &blk, bool proposed)
 // TODO: do not use tp here
 void Network::onNewTransactions(std::vector<taraxa::bytes> transactions) {
   tp_.post([this, transactions = std::move(transactions)] {
-    taraxa_capability_->onNewTransactions(transactions, true);
+    taraxa_capability_->onNewTransactions(transactions);
     LOG(log_dg_) << "On new transactions" << transactions.size();
   });
 }

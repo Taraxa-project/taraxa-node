@@ -374,7 +374,7 @@ void PbftChain::pbftSyncedQueuePopFront() {
 void PbftChain::setSyncedPbftBlockIntoQueue(PbftBlockCert const& pbft_block_and_votes) {
   LOG(log_nf_) << "Receive pbft block " << pbft_block_and_votes.pbft_blk->getBlockHash()
                << " from peer and push into synced queue";
-  // NOTE: We have already checked that block is being added in order, in taraxa capability
+  // NOTE: We have already checked that block is being added in order
   uniqueLock_ lock(sync_access_);
   pbft_synced_queue_.emplace_back(pbft_block_and_votes);
   pbft_synced_set_.insert(pbft_block_and_votes.pbft_blk->getBlockHash());

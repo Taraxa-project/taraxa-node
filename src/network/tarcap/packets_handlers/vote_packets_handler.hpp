@@ -19,6 +19,8 @@ class VotePacketsHandler : public PacketHandler {
                      std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr, std::shared_ptr<DbStorage> db,
                      const addr_t& node_addr = {});
 
+  virtual ~VotePacketsHandler() = default;
+
   void sendPbftVote(dev::p2p::NodeID const& peer_id, Vote const& vote);
   void onNewPbftVote(Vote const& vote);
   void sendPbftNextVotes(dev::p2p::NodeID const& peer_id, std::vector<Vote> const& send_next_votes_bundle);

@@ -22,6 +22,8 @@ class StatusPacketHandler : public PacketHandler {
                       std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr, std::shared_ptr<PbftManager> pbft_mgr,
                       uint64_t conf_network_id, const addr_t& node_addr = {});
 
+  virtual ~StatusPacketHandler() = default;
+
   bool sendStatus(const dev::p2p::NodeID& node_id, bool initial);
   void checkLiveness();
 

@@ -25,6 +25,8 @@ class SyncingHandler : public PacketHandler {
                  std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
                  const addr_t &node_addr = {});
 
+  virtual ~SyncingHandler() = default;
+
   /**
    * @note This method is not intended to be used for SyncingHandler
    */
@@ -40,11 +42,11 @@ class SyncingHandler : public PacketHandler {
   void restartSyncingPbft(bool force);
 
   void syncPeerPbft(unsigned long height_to_sync);
-  void requestBlocks(const dev::p2p::NodeID &_nodeID, std::vector<blk_hash_t> const &blocks,
-                     GetBlocksPacketRequestType mode);
+  void requestBlocks(const dev::p2p::NodeID &_nodeID, const std::unordered_set<blk_hash_t> &blocks,
+                     GetBlocksPacketRequestType mode = MissingHashes);
   void syncPbftNextVotes(uint64_t pbft_round, size_t pbft_previous_round_next_votes_size);
 
-  std::pair<bool, std::vector<blk_hash_t>> checkDagBlockValidation(DagBlock const &block) const;
+  std::pair<bool, std::unordered_set<blk_hash_t>> checkDagBlockValidation(const DagBlock &block) const;
 
  private:
   void requestPbftBlocks(dev::p2p::NodeID const &_id, size_t height_to_sync);

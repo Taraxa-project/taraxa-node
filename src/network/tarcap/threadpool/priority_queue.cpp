@@ -72,7 +72,6 @@ std::optional<PacketData> PriorityQueue::pop() {
     return {};
   }
 
-
   // Second iteration over priority queues ignoring the max workers limits
   for (auto& queue : packets_queues_) {
     if (queue.empty()) {
