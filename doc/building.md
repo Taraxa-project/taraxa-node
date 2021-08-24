@@ -2,7 +2,7 @@
 
 ### Compile-Time Options (cmake)
 
-#### CMAKE_BUILD_TYPE=[Release/Debug]
+#### CMAKE_BUILD_TYPE=[Release/Debug/RelWithDebInfo]
 
 Specifies whether to build with or without optimization and without or with
 the symbol table for debugging. Unless you are specifically debugging or

@@ -41,7 +41,8 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
+set(CMAKE_CXX_FLAGS_DEBUG "-g")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g -O2")
 
 # Enable LTO
 option(TARAXA_ENABLE_LTO "Build taraxad with LTO (ON or OFF)" OFF)

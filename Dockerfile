@@ -91,7 +91,7 @@ WORKDIR /opt/taraxa/
 COPY . .
 
 RUN mkdir $BUILD_OUTPUT_DIR && cd $BUILD_OUTPUT_DIR \
-    && cmake -DCMAKE_BUILD_TYPE=Debug \
+    && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo \
     -DTARAXA_ENABLE_LTO=OFF \
     -DTARAXA_STATIC_BUILD=OFF \
     ../ \
