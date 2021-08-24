@@ -503,7 +503,9 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         dag_blk_mgr_->insertBroadcastedBlockWithTransactions(block, newTransactions);
       }
 
-      requestBlocks(_nodeID, missing_blks);
+      if (missing_blks.size() > 0) {
+        requestBlocks(_nodeID, missing_blks);
+      }
 
       syncing_state_.set_dag_syncing(false);
       LOG(log_nf_dag_sync_) << "Received DagBlocksPacket with blocks: " << received_dag_blocks_str;
