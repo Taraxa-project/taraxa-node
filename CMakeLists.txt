@@ -57,9 +57,14 @@ if(TARAXA_ENABLE_LTO AND NOT TARAXA_STATIC_BUILD)
     endif()
 endif()
 
+if (NOT CONAN_PROFILE)
+    set(CONAN_PROFILE "clang")
+endif()
+
 # taraxad full static build option
 option(TARAXA_STATIC_BUILD "Build taraxad statically (ON or OFF)" ON)
 message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
+message(STATUS "CONAN_PROFILE: ${CONAN_PROFILE}")
 message(STATUS "TARAXA_STATIC_BUILD: ${TARAXA_STATIC_BUILD}")
 
 # enable sanitizers
@@ -176,7 +181,7 @@ else()
     include(${CMAKE_BINARY_DIR}/conan.cmake)
 
     conan_cmake_run(CONANFILE conanfile.py BUILD_TYPE ${CMAKE_BUILD_TYPE} BUILD missing
-                    BASIC_SETUP CMAKE_TARGETS KEEP_RPATHS)
+                    BASIC_SETUP CMAKE_TARGETS KEEP_RPATHS PROFILE ${CONAN_PROFILE})
 endif()
 
 # Custom CMakeModules for finding libraries
