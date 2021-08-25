@@ -40,6 +40,7 @@ class PbftBlockPacketHandler : public PacketHandler {
   const size_t network_sync_level_size_;
 
   // TODO: refactor this: we could have some shared global threadpool for periodic events ?
+  // TODO: or std::async with sleep inside could be used instead ?
   // Fake threadpool (1 thread) for delayed syncing events
   util::ThreadPool delayed_sync_events_tp_;
 };
