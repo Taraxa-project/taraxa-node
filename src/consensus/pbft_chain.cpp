@@ -315,6 +315,16 @@ std::string PbftChain::getJsonStr() const {
   return json.toStyledString();
 }
 
+std::string PbftChain::getJsonStrForBlock(blk_hash_t const& block_hash) const {
+  Json::Value json;
+  sharedLock_ lock(chain_head_access_);
+  json["head_hash"] = head_hash_.toString();
+  json["dag_genesis_hash"] = dag_genesis_hash_.toString();
+  json["size"] = (Json::Value::UInt64)size_ + 1;
+  json["last_pbft_block_hash"] = block_hash.toString();
+  return json.toStyledString();
+}
+
 std::ostream& operator<<(std::ostream& strm, PbftChain const& pbft_chain) {
   strm << pbft_chain.getJsonStr();
   return strm;

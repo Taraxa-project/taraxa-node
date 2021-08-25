@@ -90,6 +90,7 @@ class PbftChain {
   std::shared_ptr<PbftBlock> getUnverifiedPbftBlock(blk_hash_t const& pbft_block_hash);
   std::vector<std::string> getPbftBlocksStr(size_t period, size_t count, bool hash) const;  // Remove
   std::string getJsonStr() const;
+  std::string getJsonStrForBlock(blk_hash_t const& block_hash) const;
 
   bool findPbftBlockInChain(blk_hash_t const& pbft_block_hash);
   bool findUnverifiedPbftBlock(blk_hash_t const& pbft_block_hash) const;
