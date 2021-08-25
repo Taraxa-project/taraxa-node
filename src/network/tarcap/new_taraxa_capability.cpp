@@ -27,13 +27,13 @@
 
 namespace taraxa::network::tarcap {
 
-TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkConfig const &conf,
+TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev::KeyPair &key, NetworkConfig const &conf,
                                    std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
                                    std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
                                    std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr,
                                    std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
                                    std::shared_ptr<TransactionManager> trx_mgr, addr_t const &node_addr)
-    : peers_state_(std::make_shared<PeersState>(std::move(_host))),
+    : peers_state_(std::make_shared<PeersState>(std::move(host))),
       syncing_state_(std::make_shared<SyncingState>(peers_state_)),
       syncing_handler_(nullptr),
       test_state_(std::make_shared<TestState>()),
@@ -41,6 +41,10 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkC
       packets_handlers_(std::make_shared<PacketsHandler>()),
       thread_pool_(conf.network_packets_processing_threads, node_addr),
       periodic_events_tp_(1, false) {
+  LOG_OBJECTS_CREATE("TARCAP");
+
+  initBootNodes(conf.network_boot_nodes, key);
+
   auto packets_stats = std::make_shared<PacketsStats>(node_addr);
   syncing_handler_ = std::make_shared<SyncingHandler>(peers_state_, packets_stats, syncing_state_, pbft_chain, dag_mgr,
                                                       dag_blk_mgr, node_addr);
@@ -105,11 +109,11 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkC
 
   thread_pool_.setPacketsHandlers(packets_handlers_);
 
-  LOG_OBJECTS_CREATE("TARCAP");
+
 
   // TODO: refactor this:
   //       1. Most of time is this single threaded thread pool doing nothing...
-  //       2. These periodic events are sending packets - that should be processed by main thread_pool
+  //       2. These periodic events are sending packets - that might be processed by main thread_pool ???
   // Creates periodic events
 
   // Send new txs periodic event
@@ -138,6 +142,67 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkC
 
   periodic_events_tp_.post_loop({node_stats_->getNodeStatsLogInterval()},
                                 [node_stats = node_stats_]() mutable { node_stats->logNodeStats(); });
+
+  if (!boot_nodes_.empty()) {
+    auto tmp_host = peers_state_->host_.lock();
+    for (auto const &[k, v] : boot_nodes_) {
+      tmp_host->addNode(dev::p2p::Node(k, v, dev::p2p::PeerType::Required));
+    }
+
+    // Every 30 seconds check if connected to another node and refresh boot nodes
+    periodic_events_tp_.post_loop({30000}, [this] {
+      auto host = peers_state_->host_.lock();
+
+      // If node count drops to zero add boot nodes again and retry
+      if (host->getNodeCount() == 0) {
+        for (auto const &[k, v] : boot_nodes_) {
+          host->addNode(dev::p2p::Node(k, v, dev::p2p::PeerType::Required));
+        }
+      }
+      if (host->peer_count() == 0) {
+        for (auto const &[k, _] : boot_nodes_) {
+          host->invalidateNode(k);
+        }
+      }
+    });
+  }
+}
+
+void TaraxaCapability::initBootNodes(const std::vector<NodeConfig>& network_boot_nodes, const dev::KeyPair &key) {
+  auto resolveHost = [](string const &addr, uint16_t port) {
+    static boost::asio::io_service s_resolverIoService;
+    boost::system::error_code ec;
+    bi::address address = bi::address::from_string(addr, ec);
+    bi::tcp::endpoint ep(bi::address(), port);
+    if (!ec) {
+      ep.address(address);
+    } else {
+      boost::system::error_code ec;
+      // resolve returns an iterator (host can resolve to multiple addresses)
+      bi::tcp::resolver r(s_resolverIoService);
+      auto it = r.resolve({bi::tcp::v4(), addr, toString(port)}, ec);
+      if (ec) {
+        return std::make_pair(false, bi::tcp::endpoint());
+      } else {
+        ep = *it;
+      }
+    }
+    return std::make_pair(true, ep);
+  };
+
+  for (auto const &node : network_boot_nodes) {
+    Public pub(node.id);
+    if (pub == key.pub()) {
+      LOG(log_wr_) << "not adding self to the boot node list";
+      continue;
+    }
+
+    LOG(log_nf_) << "Adding boot node:" << node.ip << ":" << node.tcp_port;
+    auto ip = resolveHost(node.ip, node.tcp_port);
+    boot_nodes_[pub] = dev::p2p::NodeIPEndpoint(ip.second.address(), node.tcp_port, node.tcp_port);
+  }
+
+  LOG(log_nf_) << " Number of boot node added: " << boot_nodes_.size() << std::endl;
 }
 
 std::string TaraxaCapability::name() const { return TARAXA_CAPABILITY_NAME; }

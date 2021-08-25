@@ -33,7 +33,7 @@ class TaraxaPeer;
 
 class TaraxaCapability : public dev::p2p::CapabilityFace {
  public:
-  TaraxaCapability(std::weak_ptr<dev::p2p::Host> _host, NetworkConfig const &conf, std::shared_ptr<DbStorage> db = {},
+  TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev::KeyPair &key, NetworkConfig const &conf, std::shared_ptr<DbStorage> db = {},
                    std::shared_ptr<PbftManager> pbft_mgr = {}, std::shared_ptr<PbftChain> pbft_chain = {},
                    std::shared_ptr<VoteManager> vote_mgr = {},
                    std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr = {},
@@ -90,6 +90,9 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   // END METHODS USED IN TESTS ONLY
 
  private:
+  void initBootNodes(const std::vector<NodeConfig>& network_boot_nodes, const dev::KeyPair &key);
+
+ private:
   // Peers state
   std::shared_ptr<PeersState> peers_state_;
 
@@ -100,6 +103,9 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   // TODO: Remove in future when tests are refactored
   // Test state
   std::shared_ptr<TestState> test_state_;
+
+  // List of boot nodes (from config)
+  std::map<Public, dev::p2p::NodeIPEndpoint> boot_nodes_;
 
   // Node stats
   std::shared_ptr<NodeStats> node_stats_;

@@ -35,25 +35,12 @@ Network::Network(NetworkConfig const &config, std::filesystem::path const &netwo
   taraxa_net_conf.is_boot_node = conf_.network_is_boot_node;
   taraxa_net_conf.expected_parallelism = tp_.capacity();
 
-  for (auto const &node : conf_.network_boot_nodes) {
-    Public pub(node.id);
-    if (pub == key.pub()) {
-      LOG(log_wr_) << "not adding self to the boot node list";
-      continue;
-    }
-
-    LOG(log_nf_) << "Adding boot node:" << node.ip << ":" << node.tcp_port;
-    auto ip = resolveHost(node.ip, node.tcp_port);
-    boot_nodes_[pub] = dev::p2p::NodeIPEndpoint(ip.second.address(), node.tcp_port, node.tcp_port);
-  }
-  LOG(log_nf_) << " Number of boot node added: " << boot_nodes_.size() << std::endl;
-
   string net_version = "TaraxaNode";  // TODO maybe give a proper name?
   auto construct_capabilities = [&, this](auto host) {
     assert(!host.expired());
 
     taraxa_capability_ = std::make_shared<network::tarcap::TaraxaCapability>(
-        host, conf_, db, pbft_mgr, pbft_chain, vote_mgr, next_votes_mgr, dag_mgr, dag_blk_mgr, trx_mgr, key.address());
+        host, key, conf_, db, pbft_mgr, pbft_chain, vote_mgr, next_votes_mgr, dag_mgr, dag_blk_mgr, trx_mgr, key.address());
     return dev::p2p::Host::CapabilityList{taraxa_capability_};
   };
   host_ = dev::p2p::Host::make(net_version, construct_capabilities, key, net_conf, move(taraxa_net_conf),
@@ -63,26 +50,6 @@ Network::Network(NetworkConfig const &config, std::filesystem::path const &netwo
     tp_.post_loop({100 + i * 20}, [this] {
       while (0 < host_->do_work())
         ;
-    });
-  }
-
-  if (!boot_nodes_.empty()) {
-    for (auto const &[k, v] : boot_nodes_) {
-      host_->addNode(dev::p2p::Node(k, v, dev::p2p::PeerType::Required));
-    }
-    // Every 30 seconds check if connected to another node and refresh boot nodes
-    tp_.post_loop({30000}, [this] {
-      // If node count drops to zero add boot nodes again and retry
-      if (getNodeCount() == 0) {
-        for (auto const &[k, v] : boot_nodes_) {
-          host_->addNode(dev::p2p::Node(k, v, dev::p2p::PeerType::Required));
-        }
-      }
-      if (host_->peer_count() == 0) {
-        for (auto const &[k, _] : boot_nodes_) {
-          host_->invalidateNode(k);
-        }
-      }
     });
   }
 }
@@ -195,27 +162,6 @@ void Network::sendPbftBlock(dev::p2p::NodeID const &id, PbftBlock const &pbft_bl
 void Network::sendPbftVote(dev::p2p::NodeID const &id, Vote const &vote) {
   LOG(log_dg_) << "Network sent PBFT vote: " << vote.getHash() << " to: " << id;
   taraxa_capability_->sendPbftVote(id, vote);
-}
-
-std::pair<bool, bi::tcp::endpoint> Network::resolveHost(string const &addr, uint16_t port) {
-  static boost::asio::io_context s_resolverIoService;
-  boost::system::error_code ec;
-  bi::address address = bi::address::from_string(addr, ec);
-  bi::tcp::endpoint ep(bi::address(), port);
-  if (!ec) {
-    ep.address(address);
-  } else {
-    boost::system::error_code ec;
-    // resolve returns an iterator (host can resolve to multiple addresses)
-    bi::tcp::resolver r(s_resolverIoService);
-    auto it = r.resolve({bi::tcp::v4(), addr, toString(port)}, ec);
-    if (ec) {
-      return std::make_pair(false, bi::tcp::endpoint());
-    } else {
-      ep = *it;
-    }
-  }
-  return std::make_pair(true, ep);
 }
 
 }  // namespace taraxa
