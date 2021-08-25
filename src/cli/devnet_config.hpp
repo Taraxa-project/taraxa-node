@@ -17,19 +17,19 @@ const char *devnet_json = R"foo({
   "network_sync_level_size": 25,
   "network_boot_nodes": [
     {
-      "id": "d8c2b2082a640796e15c36d7480d948513f8aee28dc967434ec06f94a354004c877e025eb4d83afa69e7c5860f65135e334792a7963197af87f0dcf455b6e321",
+      "id": "fdcf4c860d9bb1f17608cbf2dd10ac3ae8d0ba41aa20b3e43fb85a72617a356f8609475d68b44e25dd508a0e5b36da75e7ae9aaf93360f4f002464d1d75fd353",
       "ip": "boot-node-0.devnet.taraxa.io",
       "tcp_port": 10002,
       "udp_port": 10002
     },
     {
-      "id": "58d0c9161a57e2715683bec8e1f4b382cf552b8db44b85370b21c18c4212e1f82fcef1a31dca40ead9d9145759f9f220bee9593123cd8f47682de8958c6f4f48",
+      "id": "5dad63f090ab5b5960dfd33b2deed974fd2e058b2af47b3d1a4682a192a47880f7b1de9aa6c80758aaabb40972a196634774373be27e0bdc52572194ad57acc2",
       "ip": "boot-node-1.devnet.taraxa.io",
       "tcp_port": 10002,
       "udp_port": 10002
     },
     {
-      "id": "009f72d5d68b849aeadf24001de184fff475a6499079f1ab21a7e5b47ae8dc52582f47b3b829c02eb4f9a161197571da54e9e24579653943558394b2f9e80075",
+      "id": "8a919928e2ee8908d3ef7cf49f245b79d228a86fd2c1c0b8c687007e62b5777aff11e748d0b29fcebd321780ce9e0544717a4c221271252a66bd50b3db6eb532",
       "ip": "boot-node-2.devnet.taraxa.io",
       "tcp_port": 10002,
       "udp_port": 10002
