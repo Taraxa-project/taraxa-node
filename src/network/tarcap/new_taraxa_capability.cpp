@@ -27,9 +27,10 @@
 
 namespace taraxa::network::tarcap {
 
-TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev::KeyPair &key, NetworkConfig const &conf,
-                                   std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
-                                   std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
+TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev::KeyPair &key,
+                                   const NetworkConfig &conf, std::shared_ptr<DbStorage> db,
+                                   std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
+                                   std::shared_ptr<VoteManager> vote_mgr,
                                    std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr,
                                    std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
                                    std::shared_ptr<TransactionManager> trx_mgr, addr_t const &node_addr)
@@ -43,13 +44,128 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev
       periodic_events_tp_(1, false) {
   LOG_OBJECTS_CREATE("TARCAP");
 
+  // Inits boot nodes (based on config)
   initBootNodes(conf.network_boot_nodes, key);
 
+  const auto lambda_ms_min = pbft_mgr ? pbft_mgr->getPbftInitialLambda() : 2000;
   auto packets_stats = std::make_shared<PacketsStats>(node_addr);
+
+  // Creates and registers all packets handlers
+  registerPacketHandlers(conf, lambda_ms_min, packets_stats, db, pbft_mgr, pbft_chain, vote_mgr, next_votes_mgr,
+                         dag_mgr, dag_blk_mgr, trx_mgr, node_addr);
+
+  // Must be called after registerHandlers
+  initPeriodicEvents(conf, trx_mgr, packets_stats, lambda_ms_min);
+}
+
+void TaraxaCapability::initBootNodes(const std::vector<NodeConfig> &network_boot_nodes, const dev::KeyPair &key) {
+  auto resolveHost = [](string const &addr, uint16_t port) {
+    static boost::asio::io_service s_resolverIoService;
+    boost::system::error_code ec;
+    bi::address address = bi::address::from_string(addr, ec);
+    bi::tcp::endpoint ep(bi::address(), port);
+    if (!ec) {
+      ep.address(address);
+    } else {
+      boost::system::error_code ec;
+      // resolve returns an iterator (host can resolve to multiple addresses)
+      bi::tcp::resolver r(s_resolverIoService);
+      auto it = r.resolve({bi::tcp::v4(), addr, toString(port)}, ec);
+      if (ec) {
+        return std::make_pair(false, bi::tcp::endpoint());
+      } else {
+        ep = *it;
+      }
+    }
+    return std::make_pair(true, ep);
+  };
+
+  for (auto const &node : network_boot_nodes) {
+    Public pub(node.id);
+    if (pub == key.pub()) {
+      LOG(log_wr_) << "not adding self to the boot node list";
+      continue;
+    }
+
+    LOG(log_nf_) << "Adding boot node:" << node.ip << ":" << node.tcp_port;
+    auto ip = resolveHost(node.ip, node.tcp_port);
+    boot_nodes_[pub] = dev::p2p::NodeIPEndpoint(ip.second.address(), node.tcp_port, node.tcp_port);
+  }
+
+  LOG(log_nf_) << " Number of boot node added: " << boot_nodes_.size() << std::endl;
+}
+
+void TaraxaCapability::initPeriodicEvents(const NetworkConfig &conf, std::shared_ptr<TransactionManager> trx_mgr,
+                                          std::shared_ptr<PacketsStats> packets_stats, uint64_t lambda_ms_min) {
+  // TODO: refactor this:
+  //       1. Most of time is this single threaded thread pool doing nothing...
+  //       2. These periodic events are sending packets - that might be processed by main thread_pool ???
+  // Creates periodic events
+
+  // Send new txs periodic event
+  const auto &tx_handler = packets_handlers_->getSpecificHandler(PriorityQueuePacketType::PQ_TransactionPacket);
+  auto tx_packet_handler = std::static_pointer_cast<TransactionPacketHandler>(tx_handler);
+  if (trx_mgr /* just because of tests */ && conf.network_transaction_interval > 0) {
+    periodic_events_tp_.post_loop({conf.network_transaction_interval},
+                                  [tx_packet_handler = std::move(tx_packet_handler), trx_mgr = std::move(trx_mgr)] {
+                                    tx_packet_handler->onNewTransactions(trx_mgr->getNewVerifiedTrxSnapShotSerialized(),
+                                                                         false);
+                                  });
+  }
+
+  // Check liveness periodic event
+  const auto &status_handler = packets_handlers_->getSpecificHandler(PriorityQueuePacketType::PQ_StatusPacket);
+  auto status_packet_handler = std::static_pointer_cast<StatusPacketHandler>(status_handler);
+  const auto check_liveness_interval = 6 * lambda_ms_min;
+  periodic_events_tp_.post_loop({check_liveness_interval}, [status_packet_handler = std::move(status_packet_handler)] {
+    status_packet_handler->checkLiveness();
+  });
+
+  // Logs packets stats periodic event
+  if (conf.network_performance_log_interval > 0) {
+    periodic_events_tp_.post_loop({conf.network_performance_log_interval},
+                                  [packets_stats = std::move(packets_stats)] { packets_stats->logStats(); });
+  }
+
+  // SUMMARY log periodic event
+  periodic_events_tp_.post_loop({node_stats_->getNodeStatsLogInterval()},
+                                [node_stats = node_stats_]() mutable { node_stats->logNodeStats(); });
+
+  // Boot nodes checkup periodic event
+  if (!boot_nodes_.empty()) {
+    auto tmp_host = peers_state_->host_.lock();
+    for (auto const &[k, v] : boot_nodes_) {
+      tmp_host->addNode(dev::p2p::Node(k, v, dev::p2p::PeerType::Required));
+    }
+
+    // Every 30 seconds check if connected to another node and refresh boot nodes
+    periodic_events_tp_.post_loop({30000}, [this] {
+      auto host = peers_state_->host_.lock();
+
+      // If node count drops to zero add boot nodes again and retry
+      if (host->getNodeCount() == 0) {
+        for (auto const &[k, v] : boot_nodes_) {
+          host->addNode(dev::p2p::Node(k, v, dev::p2p::PeerType::Required));
+        }
+      }
+      if (host->peer_count() == 0) {
+        for (auto const &[k, _] : boot_nodes_) {
+          host->invalidateNode(k);
+        }
+      }
+    });
+  }
+}
+
+void TaraxaCapability::registerPacketHandlers(
+    const NetworkConfig &conf, uint64_t lambda_ms_min, const std::shared_ptr<PacketsStats> &packets_stats,
+    const std::shared_ptr<DbStorage> &db, const std::shared_ptr<PbftManager> &pbft_mgr,
+    const std::shared_ptr<PbftChain> &pbft_chain, const std::shared_ptr<VoteManager> &vote_mgr,
+    const std::shared_ptr<NextVotesForPreviousRound> &next_votes_mgr, const std::shared_ptr<DagManager> &dag_mgr,
+    const std::shared_ptr<DagBlockManager> &dag_blk_mgr, const std::shared_ptr<TransactionManager> &trx_mgr,
+    addr_t const &node_addr) {
   syncing_handler_ = std::make_shared<SyncingHandler>(peers_state_, packets_stats, syncing_state_, pbft_chain, dag_mgr,
                                                       dag_blk_mgr, node_addr);
-
-  const auto lambda_ms_min = pbft_mgr ? pbft_mgr->getPbftInitialLambda() : 2000;
 
   const auto node_stats_log_interval = 5 * 6 * lambda_ms_min;
   node_stats_ = std::make_shared<NodeStats>(peers_state_, syncing_state_, pbft_chain, pbft_mgr, dag_mgr, dag_blk_mgr,
@@ -108,101 +224,6 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev
   packets_handlers_->registerHandler(PriorityQueuePacketType::PQ_SyncedPacket, pbft_handler);
 
   thread_pool_.setPacketsHandlers(packets_handlers_);
-
-
-
-  // TODO: refactor this:
-  //       1. Most of time is this single threaded thread pool doing nothing...
-  //       2. These periodic events are sending packets - that might be processed by main thread_pool ???
-  // Creates periodic events
-
-  // Send new txs periodic event
-  const auto &tx_handler = packets_handlers_->getSpecificHandler(PriorityQueuePacketType::PQ_TransactionPacket);
-  auto tx_packet_handler = std::static_pointer_cast<TransactionPacketHandler>(tx_handler);
-  if (trx_mgr /* just because of tests */ && conf.network_transaction_interval > 0) {
-    periodic_events_tp_.post_loop(
-        {conf.network_transaction_interval}, [tx_packet_handler = std::move(tx_packet_handler), trx_mgr] {
-          tx_packet_handler->onNewTransactions(trx_mgr->getNewVerifiedTrxSnapShotSerialized(), false);
-        });
-  }
-
-  // Check liveness periodic event
-  const auto &status_handler = packets_handlers_->getSpecificHandler(PriorityQueuePacketType::PQ_StatusPacket);
-  auto status_packet_handler = std::static_pointer_cast<StatusPacketHandler>(status_handler);
-  const auto check_liveness_interval = 6 * lambda_ms_min;
-  periodic_events_tp_.post_loop({check_liveness_interval}, [status_packet_handler = std::move(status_packet_handler)] {
-    status_packet_handler->checkLiveness();
-  });
-
-  // Logs packets stats periodic event
-  if (conf.network_performance_log_interval > 0) {
-    periodic_events_tp_.post_loop({conf.network_performance_log_interval},
-                                  [packets_stats] { packets_stats->logStats(); });
-  }
-
-  periodic_events_tp_.post_loop({node_stats_->getNodeStatsLogInterval()},
-                                [node_stats = node_stats_]() mutable { node_stats->logNodeStats(); });
-
-  if (!boot_nodes_.empty()) {
-    auto tmp_host = peers_state_->host_.lock();
-    for (auto const &[k, v] : boot_nodes_) {
-      tmp_host->addNode(dev::p2p::Node(k, v, dev::p2p::PeerType::Required));
-    }
-
-    // Every 30 seconds check if connected to another node and refresh boot nodes
-    periodic_events_tp_.post_loop({30000}, [this] {
-      auto host = peers_state_->host_.lock();
-
-      // If node count drops to zero add boot nodes again and retry
-      if (host->getNodeCount() == 0) {
-        for (auto const &[k, v] : boot_nodes_) {
-          host->addNode(dev::p2p::Node(k, v, dev::p2p::PeerType::Required));
-        }
-      }
-      if (host->peer_count() == 0) {
-        for (auto const &[k, _] : boot_nodes_) {
-          host->invalidateNode(k);
-        }
-      }
-    });
-  }
-}
-
-void TaraxaCapability::initBootNodes(const std::vector<NodeConfig>& network_boot_nodes, const dev::KeyPair &key) {
-  auto resolveHost = [](string const &addr, uint16_t port) {
-    static boost::asio::io_service s_resolverIoService;
-    boost::system::error_code ec;
-    bi::address address = bi::address::from_string(addr, ec);
-    bi::tcp::endpoint ep(bi::address(), port);
-    if (!ec) {
-      ep.address(address);
-    } else {
-      boost::system::error_code ec;
-      // resolve returns an iterator (host can resolve to multiple addresses)
-      bi::tcp::resolver r(s_resolverIoService);
-      auto it = r.resolve({bi::tcp::v4(), addr, toString(port)}, ec);
-      if (ec) {
-        return std::make_pair(false, bi::tcp::endpoint());
-      } else {
-        ep = *it;
-      }
-    }
-    return std::make_pair(true, ep);
-  };
-
-  for (auto const &node : network_boot_nodes) {
-    Public pub(node.id);
-    if (pub == key.pub()) {
-      LOG(log_wr_) << "not adding self to the boot node list";
-      continue;
-    }
-
-    LOG(log_nf_) << "Adding boot node:" << node.ip << ":" << node.tcp_port;
-    auto ip = resolveHost(node.ip, node.tcp_port);
-    boot_nodes_[pub] = dev::p2p::NodeIPEndpoint(ip.second.address(), node.tcp_port, node.tcp_port);
-  }
-
-  LOG(log_nf_) << " Number of boot node added: " << boot_nodes_.size() << std::endl;
 }
 
 std::string TaraxaCapability::name() const { return TARAXA_CAPABILITY_NAME; }
