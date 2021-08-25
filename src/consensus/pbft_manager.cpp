@@ -1586,7 +1586,8 @@ void PbftManager::finalize_(PbftBlock const &pbft_block, vector<h256> finalized_
 
 bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes, vec_blk_t const &dag_blocks_order,
                                  bool sync) {
-  auto const &pbft_block_hash = pbft_block_cert_votes.pbft_blk->getBlockHash();
+  auto pbft_block = pbft_block_cert_votes.pbft_blk;
+  auto const &pbft_block_hash = pbft_block->getBlockHash();
   if (db_->pbftBlockInDb(pbft_block_hash)) {
     LOG(log_nf_) << "PBFT block: " << pbft_block_hash << " in DB already.";
     if (last_cert_voted_value_ == pbft_block_hash) {
@@ -1597,17 +1598,14 @@ bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes, vec
     return false;
   }
 
-  auto pbft_block = pbft_block_cert_votes.pbft_blk;
   auto const &cert_votes = pbft_block_cert_votes.cert_votes;
   auto pbft_period = pbft_block->getPeriod();
 
   auto batch = db_->createWriteBatch();
   LOG(log_nf_) << "Storing cert votes of pbft blk " << pbft_block_hash;
   LOG(log_dg_) << "Stored following cert votes:\n" << cert_votes;
-  // update PBFT chain size
-  pbft_chain_->updatePbftChain(pbft_block_hash);
   // Update PBFT chain head block
-  db_->addPbftHeadToBatch(pbft_chain_->getHeadHash(), pbft_chain_->getJsonStr(), batch);
+  db_->addPbftHeadToBatch(pbft_block_hash, pbft_chain_->getJsonStrForBlock(pbft_block_hash), batch);
 
   // Set DAG blocks period
   auto const &anchor_hash = pbft_block->getPivotDagBlockHash();
@@ -1650,6 +1648,9 @@ bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes, vec
 
   // Commit DB
   db_->commitWriteBatch(batch);
+
+  // update PBFT chain size
+  pbft_chain_->updatePbftChain(pbft_block_hash);
 
   last_cert_voted_value_ = NULL_BLOCK_HASH;
 
