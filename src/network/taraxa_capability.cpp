@@ -1031,8 +1031,11 @@ void TaraxaCapability::onNewTransactions(std::vector<taraxa::bytes> const &trans
           Transaction trx(transaction);
           auto trx_hash = trx.getHash();
           if (!peer.second->isTransactionKnown(trx_hash)) {
-            transactionsToSend[peer.first].push_back(transaction);
-            transactionsHashToSend[peer.first].push_back(trx_hash);
+            if (transactionsToSend[peer.first].size() <= MAX_TRANSACTIONS_IN_PACKET) {
+              transactionsToSend[peer.first].push_back(transaction);
+              transactionsHashToSend[peer.first].push_back(trx_hash);
+            } else
+              break;
           }
         }
       }

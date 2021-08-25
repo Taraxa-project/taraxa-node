@@ -41,7 +41,7 @@ struct votesBundle {
       : enough(enough_), voted_block_hash(voted_block_hash_), votes(votes_) {}
 };
 
-class PbftManager {
+class PbftManager : public std::enable_shared_from_this<PbftManager> {
  public:
   using time_point = std::chrono::system_clock::time_point;
   using vrf_sk_t = vrf_wrapper::vrf_sk_t;

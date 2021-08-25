@@ -116,12 +116,12 @@ PbftBlockCert::PbftBlockCert(dev::RLP const& rlp) {
     cert_votes.emplace_back(vote_rlp);
   }
 
-  for (auto const& dag_block_rlp : *it++) {
+  for (auto const dag_block_rlp : *it++) {
     DagBlock block(dag_block_rlp);
     dag_blocks_per_level[block.getLevel()].emplace_back(block);
   }
 
-  for (auto const& trx_rlp : *it) {
+  for (auto const trx_rlp : *it) {
     auto trx = Transaction(trx_rlp);
     transactions.emplace_back(trx);
   }
@@ -312,6 +312,16 @@ std::string PbftChain::getJsonStr() const {
   json["dag_genesis_hash"] = dag_genesis_hash_.toString();
   json["size"] = (Json::Value::UInt64)size_;
   json["last_pbft_block_hash"] = last_pbft_block_hash_.toString();
+  return json.toStyledString();
+}
+
+std::string PbftChain::getJsonStrForBlock(blk_hash_t const& block_hash) const {
+  Json::Value json;
+  sharedLock_ lock(chain_head_access_);
+  json["head_hash"] = head_hash_.toString();
+  json["dag_genesis_hash"] = dag_genesis_hash_.toString();
+  json["size"] = (Json::Value::UInt64)size_ + 1;
+  json["last_pbft_block_hash"] = block_hash.toString();
   return json.toStyledString();
 }
 
