@@ -189,7 +189,9 @@ struct TaraxaCapability : virtual CapabilityFace {
   PacketsStats sent_packets_stats_;
   PacketsStats received_packets_stats_;
 
-  const uint16_t MAX_CHECK_ALIVE_COUNT = 5;
+  const uint16_t MAX_CHECK_ALIVE_COUNT = 20;
+
+  const uint32_t MAX_TRANSACTIONS_IN_PACKET = 1000;
 
   // Only allow up to 10 nodes syncing from our node
   const uint16_t MAX_SYNCING_NODES = 10;
