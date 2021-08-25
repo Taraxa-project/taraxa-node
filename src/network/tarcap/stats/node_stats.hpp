@@ -25,13 +25,11 @@ class NodeStats {
             std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<PbftManager> pbft_mgr,
             std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
             std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<TransactionManager> trx_mgr,
-            std::shared_ptr<PacketsStats> packets_stats, uint64_t stats_log_interval, const addr_t &node_addr = {});
+            std::shared_ptr<PacketsStats> packets_stats, const addr_t &node_addr = {});
   NodeStats(const NodeStats &) = default;
   NodeStats(NodeStats &&) = default;
 
   void logNodeStats();
-
-  uint64_t getNodeStatsLogInterval() const;
   uint64_t syncTimeSeconds() const;
 
   Json::Value getStatus() const;
@@ -52,13 +50,10 @@ class NodeStats {
   uint64_t local_pbft_round_prev_interval_{0};
   uint64_t local_chain_size_prev_interval_{0};
   uint64_t local_pbft_sync_period_prev_interval_{0};
-  uint64_t syncing_interval_count_{0};
   uint64_t intervals_in_sync_since_launch_{0};
   uint64_t intervals_syncing_since_launch_{0};
-  uint64_t syncing_stalled_interval_count_{0};
-
-  // How often should be node stats logged - called "logNodeStats"
-  const uint64_t stats_log_interval_;
+  uint64_t syncing_duration_seconds{0};
+  uint64_t stalled_syncing_duration_seconds{0};
 
   LOG_OBJECTS_DEFINE
 };

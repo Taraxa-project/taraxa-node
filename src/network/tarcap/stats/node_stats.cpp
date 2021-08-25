@@ -17,7 +17,7 @@ NodeStats::NodeStats(std::shared_ptr<PeersState> peers_state, std::shared_ptr<Sy
                      std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<PbftManager> pbft_mgr,
                      std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
                      std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<TransactionManager> trx_mgr,
-                     std::shared_ptr<PacketsStats> packets_stats, uint64_t stats_log_interval, const addr_t &node_addr)
+                     std::shared_ptr<PacketsStats> packets_stats, const addr_t &node_addr)
     : peers_state_(std::move(peers_state)),
       syncing_state_(std::move(syncing_state)),
       pbft_chain_(std::move(pbft_chain)),
@@ -26,14 +26,11 @@ NodeStats::NodeStats(std::shared_ptr<PeersState> peers_state, std::shared_ptr<Sy
       dag_blk_mgr_(std::move(dag_blk_mgr)),
       vote_mgr_(std::move(vote_mgr)),
       trx_mgr_(std::move(trx_mgr)),
-      packets_stats_(std::move(packets_stats)),
-      stats_log_interval_(stats_log_interval) {
+      packets_stats_(std::move(packets_stats)) {
   LOG_OBJECTS_CREATE("SUMMARY");
 }
 
-uint64_t NodeStats::getNodeStatsLogInterval() const { return stats_log_interval_; }
-
-uint64_t NodeStats::syncTimeSeconds() const { return stats_log_interval_ * syncing_interval_count_ / 1000; }
+uint64_t NodeStats::syncTimeSeconds() const { return syncing_duration_seconds; }
 
 void NodeStats::logNodeStats() {
   bool is_syncing = syncing_state_->is_syncing();
@@ -96,6 +93,25 @@ void NodeStats::logNodeStats() {
   const bool making_pbft_sync_period_progress = (pbft_sync_period_progress > 0);
   const bool making_dag_progress = (dag_level_growh > 0);
 
+  // Update syncing interval counts
+  static auto previous_call_time = std::chrono::steady_clock::now();
+  auto current_call_time = std::chrono::steady_clock::now();
+  uint64_t delta = std::chrono::duration_cast<std::chrono::seconds>(current_call_time - previous_call_time).count();
+
+  if (is_syncing) {
+    intervals_syncing_since_launch_++;
+
+    syncing_duration_seconds += delta;
+    stalled_syncing_duration_seconds =
+        (!making_pbft_chain_progress && !making_dag_progress) ? stalled_syncing_duration_seconds + delta : 0;
+  } else {
+    intervals_in_sync_since_launch_++;
+
+    syncing_duration_seconds = 0;
+    stalled_syncing_duration_seconds = 0;
+  }
+  previous_call_time = current_call_time;
+
   LOG(log_dg_) << "Making PBFT chain progress: " << std::boolalpha << making_pbft_chain_progress << " (advanced "
                << pbft_chain_size_growth << " blocks)";
   if (is_syncing) {
@@ -106,17 +122,6 @@ void NodeStats::logNodeStats() {
                << " (advanced " << pbft_consensus_rounds_advanced << " rounds)";
   LOG(log_dg_) << "Making DAG progress: " << std::boolalpha << making_dag_progress << " (grew " << dag_level_growh
                << " dag levels)";
-
-  // Update syncing interval counts
-  syncing_interval_count_ = syncing_state_->is_syncing() ? (syncing_interval_count_ + 1) : 0;
-  syncing_stalled_interval_count_ = syncing_state_->is_syncing() && !making_pbft_chain_progress && !making_dag_progress
-                                        ? (syncing_stalled_interval_count_ + 1)
-                                        : 0;
-  if (is_syncing) {
-    intervals_syncing_since_launch_++;
-  } else {
-    intervals_in_sync_since_launch_++;
-  }
 
   LOG(log_nf_) << "Connected to " << peers_size << " peers: [ " << connected_peers_str << "]";
 
@@ -186,8 +191,8 @@ void NodeStats::logNodeStats() {
     LOG(log_nf_) << "STATUS: PBFT STALLED, POSSIBLY PARTITIONED. NODE HAS NOT RESTARTED SYNCING";
   } else if (peers_size) {
     if (is_syncing) {
-      auto syncing_stalled_time_sec = stats_log_interval_ * syncing_stalled_interval_count_ / 1000;
-      LOG(log_nf_) << "STATUS: SYNCING STALLED. NO PROGRESS MADE IN LAST " << syncing_stalled_time_sec << " SECONDS";
+      LOG(log_nf_) << "STATUS: SYNCING STALLED. NO PROGRESS MADE IN LAST " << stalled_syncing_duration_seconds
+                   << " SECONDS";
     } else {
       LOG(log_nf_) << "STATUS: STUCK. NODE HAS NOT RESTARTED SYNCING";
     }
@@ -196,7 +201,7 @@ void NodeStats::logNodeStats() {
     LOG(log_nf_) << "STATUS: NOT CONNECTED TO ANY PEERS. POSSIBLE CONFIG ISSUE OR NETWORK CONNECTIVITY";
   }
 
-  LOG(log_nf_) << "In the last " << std::setprecision(0) << stats_log_interval_ / 1000 << " seconds...";
+  LOG(log_nf_) << "In the last " << delta << " seconds...";
 
   if (is_syncing) {
     LOG(log_nf_) << "PBFT sync period progress:      " << pbft_sync_period_progress;

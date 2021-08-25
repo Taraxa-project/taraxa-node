@@ -44,18 +44,17 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev
       periodic_events_tp_(1, false) {
   LOG_OBJECTS_CREATE("TARCAP");
 
+  auto packets_stats = std::make_shared<PacketsStats>(node_addr);
+
   // Inits boot nodes (based on config)
   initBootNodes(conf.network_boot_nodes, key);
 
-  const auto lambda_ms_min = pbft_mgr ? pbft_mgr->getPbftInitialLambda() : 2000;
-  auto packets_stats = std::make_shared<PacketsStats>(node_addr);
-
   // Creates and registers all packets handlers
-  registerPacketHandlers(conf, lambda_ms_min, packets_stats, db, pbft_mgr, pbft_chain, vote_mgr, next_votes_mgr,
-                         dag_mgr, dag_blk_mgr, trx_mgr, node_addr);
+  registerPacketHandlers(conf, packets_stats, db, pbft_mgr, pbft_chain, vote_mgr, next_votes_mgr, dag_mgr, dag_blk_mgr,
+                         trx_mgr, node_addr);
 
-  // Must be called after registerHandlers
-  initPeriodicEvents(conf, trx_mgr, packets_stats, lambda_ms_min);
+  // Inits periodic events. Must be called after registerHandlers !!!
+  initPeriodicEvents(conf, pbft_mgr, trx_mgr, packets_stats);
 }
 
 void TaraxaCapability::initBootNodes(const std::vector<NodeConfig> &network_boot_nodes, const dev::KeyPair &key) {
@@ -95,12 +94,14 @@ void TaraxaCapability::initBootNodes(const std::vector<NodeConfig> &network_boot
   LOG(log_nf_) << " Number of boot node added: " << boot_nodes_.size() << std::endl;
 }
 
-void TaraxaCapability::initPeriodicEvents(const NetworkConfig &conf, std::shared_ptr<TransactionManager> trx_mgr,
-                                          std::shared_ptr<PacketsStats> packets_stats, uint64_t lambda_ms_min) {
+void TaraxaCapability::initPeriodicEvents(const NetworkConfig &conf, const std::shared_ptr<PbftManager> &pbft_mgr,
+                                          std::shared_ptr<TransactionManager> trx_mgr,
+                                          std::shared_ptr<PacketsStats> packets_stats) {
   // TODO: refactor this:
   //       1. Most of time is this single threaded thread pool doing nothing...
   //       2. These periodic events are sending packets - that might be processed by main thread_pool ???
   // Creates periodic events
+  const auto lambda_ms_min = pbft_mgr ? pbft_mgr->getPbftInitialLambda() : 2000;
 
   // Send new txs periodic event
   const auto &tx_handler = packets_handlers_->getSpecificHandler(PriorityQueuePacketType::PQ_TransactionPacket);
@@ -128,7 +129,8 @@ void TaraxaCapability::initPeriodicEvents(const NetworkConfig &conf, std::shared
   }
 
   // SUMMARY log periodic event
-  periodic_events_tp_.post_loop({node_stats_->getNodeStatsLogInterval()},
+  const auto node_stats_log_interval = 5 * 6 * lambda_ms_min;
+  periodic_events_tp_.post_loop({node_stats_log_interval},
                                 [node_stats = node_stats_]() mutable { node_stats->logNodeStats(); });
 
   // Boot nodes checkup periodic event
@@ -158,18 +160,16 @@ void TaraxaCapability::initPeriodicEvents(const NetworkConfig &conf, std::shared
 }
 
 void TaraxaCapability::registerPacketHandlers(
-    const NetworkConfig &conf, uint64_t lambda_ms_min, const std::shared_ptr<PacketsStats> &packets_stats,
-    const std::shared_ptr<DbStorage> &db, const std::shared_ptr<PbftManager> &pbft_mgr,
-    const std::shared_ptr<PbftChain> &pbft_chain, const std::shared_ptr<VoteManager> &vote_mgr,
-    const std::shared_ptr<NextVotesForPreviousRound> &next_votes_mgr, const std::shared_ptr<DagManager> &dag_mgr,
-    const std::shared_ptr<DagBlockManager> &dag_blk_mgr, const std::shared_ptr<TransactionManager> &trx_mgr,
-    addr_t const &node_addr) {
+    const NetworkConfig &conf, const std::shared_ptr<PacketsStats> &packets_stats, const std::shared_ptr<DbStorage> &db,
+    const std::shared_ptr<PbftManager> &pbft_mgr, const std::shared_ptr<PbftChain> &pbft_chain,
+    const std::shared_ptr<VoteManager> &vote_mgr, const std::shared_ptr<NextVotesForPreviousRound> &next_votes_mgr,
+    const std::shared_ptr<DagManager> &dag_mgr, const std::shared_ptr<DagBlockManager> &dag_blk_mgr,
+    const std::shared_ptr<TransactionManager> &trx_mgr, addr_t const &node_addr) {
   syncing_handler_ = std::make_shared<SyncingHandler>(peers_state_, packets_stats, syncing_state_, pbft_chain, dag_mgr,
                                                       dag_blk_mgr, node_addr);
 
-  const auto node_stats_log_interval = 5 * 6 * lambda_ms_min;
   node_stats_ = std::make_shared<NodeStats>(peers_state_, syncing_state_, pbft_chain, pbft_mgr, dag_mgr, dag_blk_mgr,
-                                            vote_mgr, trx_mgr, packets_stats, node_stats_log_interval);
+                                            vote_mgr, trx_mgr, packets_stats);
 
   // Register all packet handlers
   // Consensus packets with high processing priority
