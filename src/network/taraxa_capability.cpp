@@ -47,8 +47,8 @@ TaraxaCapability::TaraxaCapability(weak_ptr<Host> _host, NetworkConfig const &_c
   if (conf_.network_transaction_interval > 0) {
     tp_.post(conf_.network_transaction_interval, [this] { sendTransactions(); });
   }
-  check_alive_interval_ = 6 * lambda_ms_min_;
-  tp_.post(check_alive_interval_, [this] { checkLiveness(); });
+  send_status_interval_ = 6 * lambda_ms_min_;
+  tp_.post(send_status_interval_, [this] { sendStatusMsg(); });
   if (conf_.network_performance_log_interval > 0) {
     tp_.post(conf_.network_performance_log_interval, [this] { logPacketsStats(); });
   }
@@ -234,10 +234,6 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       return;
     }
   }
-
-  // Any packet means that we are comunicating so let's not disconnect
-  // e.g. we could send a lot of data and status packet can be in send queue
-  peer->setAlive();
 
   switch (_id) {
     case SyncedPacket: {
@@ -1244,24 +1240,15 @@ void TaraxaCapability::sendTransactions() {
   }
 }
 
-void TaraxaCapability::checkLiveness() {
+void TaraxaCapability::sendStatusMsg() {
   auto host = host_.lock();
   if (!host) {
     return;
   }
   for (auto const &peer : peers_state_.getAllPeers()) {
-    // Disconnect any node that did not send any message for 3 status intervals
-    if (!peer.second->isAlive(MAX_CHECK_ALIVE_COUNT)) {
-      LOG(log_nf_) << "Host disconnected, no status message in " << MAX_CHECK_ALIVE_COUNT * check_alive_interval_
-                   << " ms" << peer.first;
-      host->disconnect(peer.first, p2p::PingTimeout);
-    }
-    // Send status message
-    else {
-      sendStatus(peer.first, false);
-    }
+    sendStatus(peer.first, false);
   }
-  tp_.post(check_alive_interval_, [this] { checkLiveness(); });
+  tp_.post(send_status_interval_, [this] { sendStatusMsg(); });
 }
 
 void TaraxaCapability::logNodeStats() {
