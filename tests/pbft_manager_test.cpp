@@ -366,10 +366,10 @@ TEST_F(PbftManagerTest, terminate_missing_proposed_pbft_block) {
     auto votes = vote_mgr->getVerifiedVotes();
 
     for (auto const &v : votes) {
-      if (propose_vote_type == v.getType() && v.getBlockHash() == NULL_BLOCK_HASH) {
+      if (propose_vote_type == v->getType() && v->getBlockHash() == NULL_BLOCK_HASH) {
         auto soft_voted_from_db = *db->getPbftMgrVotedValue(PbftMgrVotedValue::soft_voted_block_hash_in_round);
         if (soft_voted_from_db == NULL_BLOCK_HASH) {
-          soft_vote_value = v.getBlockHash();
+          soft_vote_value = v->getBlockHash();
           break;
         }
       }
