@@ -21,43 +21,51 @@ void TransactionQueue::stop() {
 }
 
 void TransactionQueue::insert(Transaction const &trx, bool verify) {
-  trx_hash_t hash = trx.getHash();
+  const auto &hash = trx.getHash();
   auto trx_ptr = make_shared<Transaction>(trx);
+
   {
     uLock lock(main_shared_mutex_);
-    queued_trxs_[hash] = trx_ptr;
+
+    // Transaction is already in queued_trxs_, do not insert it again.
+    if (!queued_trxs_.emplace(hash, trx_ptr).second) {
+      LOG(log_nf_) << "Tx: " << hash << " already inserted, skip it";
+      return;
+    }
+
     if (verify) {
-      verified_trxs_[hash] = trx_ptr;
+      verified_trxs_[hash] = std::move(trx_ptr);
       new_verified_transactions_ = true;
     } else {
       uLock unlock(shared_mutex_for_unverified_qu_);
-      unverified_hash_qu_.emplace_back(std::make_pair(hash, trx_ptr));
+      unverified_hash_qu_.emplace_back(std::make_pair(hash, std::move(trx_ptr)));
       cond_for_unverified_qu_.notify_one();
     }
   }
-  LOG(log_nf_) << " Trx: " << hash << " inserted. " << verify << std::endl;
+
+  LOG(log_nf_) << " Tx: " << hash << " inserted. Verification processed: " << verify;
 }
 
 void TransactionQueue::insertUnverifiedTrxs(const vector<Transaction> &trxs) {
   if (trxs.empty()) {
     return;
   }
-  std::vector<std::shared_ptr<Transaction>> trx_ptrs;
-  trx_ptrs.reserve(trxs.size());
-  {
-    uLock lock(main_shared_mutex_);
-    for (const auto &trx : trxs) {
-      auto trx_ptr = make_shared<Transaction>(trx);
-      trx_ptrs.push_back(trx_ptr);
-      queued_trxs_.emplace(trx.getHash(), trx_ptr);
+
+  uLock lock(main_shared_mutex_);
+  uLock unverified_lock(shared_mutex_for_unverified_qu_);
+  for (const auto &trx : trxs) {
+    const auto &tx_hash = trx.getHash();
+    auto trx_ptr = make_shared<Transaction>(trx);
+
+    // Transaction is already in queued_trxs_, do not add it again to unverified_hash_qu_.
+    if (!queued_trxs_.emplace(tx_hash, trx_ptr).second) {
+      LOG(log_nf_) << "Tx: " << tx_hash << " already inserted, skip it";
+      continue;
     }
-    {
-      uLock unverified_lock(shared_mutex_for_unverified_qu_);
-      for (size_t idx = 0; idx < trxs.size(); idx++) {
-        unverified_hash_qu_.emplace_back(std::make_pair(trxs[idx].getHash(), trx_ptrs[idx]));
-        cond_for_unverified_qu_.notify_one();
-      }
-    }
+
+    unverified_hash_qu_.emplace_back(std::make_pair(trx.getHash(), std::move(trx_ptr)));
+    cond_for_unverified_qu_.notify_one();
+    LOG(log_nf_) << "Tx: " << tx_hash << " inserted";
   }
 }
 
