@@ -2,7 +2,7 @@
 
 ### Compile-Time Options (cmake)
 
-#### CMAKE_BUILD_TYPE=[Release/Debug]
+#### CMAKE_BUILD_TYPE=[Release/Debug/RelWithDebInfo]
 
 Specifies whether to build with or without optimization and without or with
 the symbol table for debugging. Unless you are specifically debugging or
@@ -118,7 +118,7 @@ First you need to get (Brew)[https://brew.sh/] package manager. After that you n
 
     # Two build options
         1. Compile project using conan
-        conan install -if ../conan-build --build missing -s build_type=Debug .
+        conan install -if ../conan-build --build missing -s build_type=Release .
         conan build -bf ../conan-build -sf . .
 
         2.Compile project using cmake

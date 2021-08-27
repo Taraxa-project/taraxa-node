@@ -41,9 +41,8 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-# Optimization flag apparently needed to get rid of "File too big" assembler errors when compiling in Debug mode
-# See: https://stackoverflow.com/questions/14125007/gcc-string-table-overflow-error-during-compilation/14601779#29479701
-set(CMAKE_CXX_FLAGS_DEBUG "-g -O2") # TODO: originally -g -O0
+set(CMAKE_CXX_FLAGS_DEBUG "-g")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g -O2")
 
 # Enable LTO
 option(TARAXA_ENABLE_LTO "Build taraxad with LTO (ON or OFF)" OFF)
