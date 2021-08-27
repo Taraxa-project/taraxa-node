@@ -208,11 +208,13 @@ PbftBlock PbftChain::getPbftBlockInChain(const taraxa::blk_hash_t& pbft_block_ha
 }
 
 std::shared_ptr<PbftBlock> PbftChain::getUnverifiedPbftBlock(const taraxa::blk_hash_t& pbft_block_hash) {
-  if (findUnverifiedPbftBlock(pbft_block_hash)) {
-    sharedLock_ lock(unverified_access_);
-    return unverified_blocks_[pbft_block_hash];
+  sharedLock_ lock(unverified_access_);
+  auto found_block = unverified_blocks_.find(pbft_block_hash);
+  if (found_block == unverified_blocks_.end()) {
+    return nullptr;
   }
-  return nullptr;
+
+  return found_block->second;
 }
 
 // TODO: should remove, need check
