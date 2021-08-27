@@ -205,7 +205,7 @@ void Network::sendPbftVote(NodeID const &id, Vote const &vote) {
 }
 
 std::pair<bool, bi::tcp::endpoint> Network::resolveHost(string const &addr, uint16_t port) {
-  static boost::asio::io_service s_resolverIoService;
+  static boost::asio::io_context s_resolverIoService;
   boost::system::error_code ec;
   bi::address address = bi::address::from_string(addr, ec);
   bi::tcp::endpoint ep(bi::address(), port);

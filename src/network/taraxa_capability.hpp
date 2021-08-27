@@ -104,7 +104,7 @@ struct TaraxaCapability : virtual CapabilityFace {
 
   uint64_t getSimulatedNetworkDelay(const RLP &packet_rlp, const NodeID &nodeID);
 
-  void checkLiveness();
+  void sendStatusMsg();
   void logNodeStats();
   void logPacketsStats();
   void sendTransactions();
@@ -170,7 +170,7 @@ struct TaraxaCapability : virtual CapabilityFace {
   std::string genesis_;
   std::mt19937 delay_rng_;
   std::uniform_int_distribution<std::mt19937::result_type> random_dist_;
-  uint16_t check_alive_interval_ = 0;
+  uint16_t send_status_interval_ = 0;
 
   uint64_t received_trx_count = 0;
   uint64_t unique_received_trx_count = 0;
@@ -189,17 +189,15 @@ struct TaraxaCapability : virtual CapabilityFace {
   PacketsStats sent_packets_stats_;
   PacketsStats received_packets_stats_;
 
-  const uint16_t MAX_CHECK_ALIVE_COUNT = 20;
-
-  const uint32_t MAX_TRANSACTIONS_IN_PACKET = 1000;
+  static constexpr uint32_t MAX_TRANSACTIONS_IN_PACKET = 1000;
 
   // Only allow up to 10 nodes syncing from our node
-  const uint16_t MAX_SYNCING_NODES = 10;
+  static constexpr uint16_t MAX_SYNCING_NODES = 10;
 
   // If there are more than 10 packets in queue to be processed syncing will be delayed or node disconnected in queue
   // not cleared in defined time
-  const uint16_t MAX_NETWORK_QUEUE_TO_DROP_SYNCING = 1000;
-  const uint16_t MAX_TIME_TO_WAIT_FOR_QUEUE_TO_CLEAR_MS = 2000;
+  static constexpr uint16_t MAX_NETWORK_QUEUE_TO_DROP_SYNCING = 1000;
+  static constexpr uint16_t MAX_TIME_TO_WAIT_FOR_QUEUE_TO_CLEAR_MS = 2000;
 
   static constexpr uint16_t INITIAL_STATUS_PACKET_ITEM_COUNT = 10;
 
