@@ -1457,9 +1457,10 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cer
                                                    std::vector<Vote> const &cert_votes_for_round) {
   auto pbft_block = pbft_chain_->getUnverifiedPbftBlock(cert_voted_block_hash);
   if (!pbft_block) {
-    pbft_block = db_->getPbftCertVotedBlock(pbft_block_hash);
+    pbft_block = db_->getPbftCertVotedBlock(cert_voted_block_hash);
     if (!pbft_block) {
-      LOG(log_nf_) << "Can not find the cert voted block hash " << cert_voted_block_hash << " in both pbft queue and DB";
+      LOG(log_nf_) << "Can not find the cert voted block hash " << cert_voted_block_hash
+                   << " in both pbft queue and DB";
       return false;
     }
     // Read from DB pushing into unverified queue
