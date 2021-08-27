@@ -72,10 +72,16 @@ void TransactionPacketHandler::onNewTransactions(std::vector<taraxa::bytes> cons
         for (auto const &transaction : transactions) {
           Transaction trx(transaction);
           auto trx_hash = trx.getHash();
-          if (!peer.second->isTransactionKnown(trx_hash)) {
-            transactions_to_send[peer.first].push_back(transaction);
-            transactions_hash_to_send[peer.first].push_back(trx_hash);
+          if (peer.second->isTransactionKnown(trx_hash)) {
+            continue;
           }
+
+          if (transactions_to_send[peer.first].size() > MAX_TRANSACTIONS_IN_PACKET) {
+            break;
+          }
+
+          transactions_to_send[peer.first].push_back(transaction);
+          transactions_hash_to_send[peer.first].push_back(trx_hash);
         }
       }
     }
