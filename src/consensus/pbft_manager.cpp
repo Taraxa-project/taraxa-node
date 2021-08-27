@@ -1455,20 +1455,28 @@ std::pair<vec_blk_t, bool> PbftManager::comparePbftBlockScheduleWithDAGblocks_(P
 
 bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cert_voted_block_hash,
                                                    std::vector<Vote> const &cert_votes_for_round) {
+  auto pbft_block = pbft_chain_->getUnverifiedPbftBlock(cert_voted_block_hash);
+  if (!pbft_block) {
+    pbft_block = db_->getPbftCertVotedBlock(pbft_block_hash);
+    if (!pbft_block) {
+      LOG(log_nf_) << "Can not find the cert voted block hash " << cert_voted_block_hash << " in both pbft queue and DB";
+      return false;
+    }
+    // Read from DB pushing into unverified queue
+    pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
+  }
+
   if (!checkPbftBlockValid_(cert_voted_block_hash)) {
     syncPbftChainFromPeers_(invalid_cert_voted_block, cert_voted_block_hash);
     return false;
   }
-  auto pbft_block = pbft_chain_->getUnverifiedPbftBlock(cert_voted_block_hash);
-  if (!pbft_block) {
-    LOG(log_er_) << "Can not find the cert vote block hash " << cert_voted_block_hash << " in pbft queue";
-    return false;
-  }
+
   auto dag_blocks_order = comparePbftBlockScheduleWithDAGblocks_(*pbft_block);
   if (!dag_blocks_order.second) {
     LOG(log_nf_) << "DAG has not build up for PBFT block " << cert_voted_block_hash;
     return false;
   }
+
   PbftBlockCert pbft_block_cert_votes(*pbft_block, cert_votes_for_round);
   if (!pushPbftBlock_(pbft_block_cert_votes, dag_blocks_order.first)) {
     LOG(log_er_) << "Failed push PBFT block " << pbft_block->getBlockHash() << " into chain";
@@ -1687,6 +1695,10 @@ bool PbftManager::giveUpSoftVotedBlock_() {
   auto pbft_block = pbft_chain_->getUnverifiedPbftBlock(previous_round_next_voted_value_);
   if (!pbft_block) {
     pbft_block = db_->getPbftCertVotedBlock(previous_round_next_voted_value_);
+    if (pbft_block) {
+      // Read from DB pushing into unverified queue
+      pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
+    }
   }
 
   if (pbft_block) {
