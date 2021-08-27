@@ -45,28 +45,12 @@ void DagPacketsHandler::process(const dev::RLP &packet_rlp, const PacketData &pa
 
 inline void DagPacketsHandler::processNewBlockPacket(const dev::RLP &packet_rlp, const PacketData &packet_data,
                                                      const std::shared_ptr<TaraxaPeer> &peer) {
-  // Ignore new block packets when pbft syncing
-  if (syncing_state_->is_pbft_syncing()) return;
-
   DagBlock block(packet_rlp[0].data().toBytes());
   blk_hash_t const hash = block.getHash();
-
-  if (dag_blk_mgr_) {
-    if (dag_blk_mgr_->isBlockKnown(hash)) {
-      LOG(log_dg_) << "Received NewBlock " << hash.toString() << "that is already known";
-      return;
-    }
-    if (auto status = syncing_handler_->checkDagBlockValidation(block); !status.first) {
-      LOG(log_wr_) << "Received NewBlock " << hash.toString() << " missing pivot or/and tips";
-      status.second.insert(hash);
-      syncing_handler_->requestBlocks(packet_data.from_node_id_, status.second,
-                                      GetBlocksPacketRequestType::MissingHashes);
-      return;
-    }
-  }
+  peer->markBlockAsKnown(hash);
 
   const auto transactions_count = packet_rlp.itemCount() - 1;
-  LOG(log_dg_) << "Received NewBlockPacket " << transactions_count;
+  LOG(log_dg_) << "Received NewBlockPacket " << hash.abridged() << " with " << transactions_count << " txs";
 
   std::vector<Transaction> new_transactions;
   for (size_t i_transaction = 1; i_transaction < transactions_count + 1; i_transaction++) {
@@ -75,27 +59,54 @@ inline void DagPacketsHandler::processNewBlockPacket(const dev::RLP &packet_rlp,
     new_transactions.push_back(std::move(transaction));
   }
 
-  peer->markBlockAsKnown(hash);
-  if (block.getLevel() > peer->dag_level_) peer->dag_level_ = block.getLevel();
+  // Ignore new block packets when pbft syncing
+  if (syncing_state_->is_pbft_syncing()) return;
+
+  if (dag_blk_mgr_) {
+    //    // Synchronization point in case multiple threads are processing the same block at the same time
+    //    if (dag_blk_mgr_->markBlockAsKnown(block)) {
+    //      LOG(log_dg_) << "Received NewBlock " << hash.abridged() << " is already known";
+    //      return;
+    //    }
+
+    if (auto status = syncing_handler_->checkDagBlockValidation(block); !status.first) {
+      LOG(log_wr_) << "Received NewBlock " << hash.toString() << " has missing pivot or/and tips";
+      status.second.insert(hash);
+      // Let the block being received again
+      //      dag_blk_mgr_->eraseBlockFromKnown(hash);
+      syncing_handler_->requestBlocks(packet_data.from_node_id_, status.second,
+                                      GetBlocksPacketRequestType::MissingHashes);
+      return;
+    }
+  }
+
+  if (block.getLevel() > peer->dag_level_) {
+    peer->dag_level_ = block.getLevel();
+  }
+
   onNewBlockReceived(block, new_transactions);
 }
 
 inline void DagPacketsHandler::processNewBlockHashPacket(const dev::RLP &packet_rlp, const PacketData &packet_data,
                                                          const std::shared_ptr<TaraxaPeer> &peer) {
   blk_hash_t const hash(packet_rlp[0]);
+  peer->markBlockAsKnown(hash);
+
   LOG(log_dg_) << "Received NewBlockHashPacket " << hash.toString();
 
   if (dag_blk_mgr_) {
-    if (!dag_blk_mgr_->isBlockKnown(hash) && !hasBlockRequest(hash)) {
-      insertBlockRequest(hash);
+    if (!dag_blk_mgr_->isBlockKnown(hash) && insertBlockRequest(hash)) {
       requestBlock(packet_data.from_node_id_, hash);
     }
-  } else if (!test_state_->hasBlock(hash) && !hasBlockRequest(hash)) {
-    insertBlockRequest(hash);
-    requestBlock(packet_data.from_node_id_, hash);
+
+    return;
   }
 
-  peer->markBlockAsKnown(hash);
+  // Functionality needed only in tests...
+  // TODO: refactor tests so this is not used anymore
+  if (!test_state_->hasBlock(hash) && insertBlockRequest(hash)) {
+    requestBlock(packet_data.from_node_id_, hash);
+  }
 }
 
 inline void DagPacketsHandler::processGetNewBlockPacket(const dev::RLP &packet_rlp, const PacketData &packet_data,
@@ -152,7 +163,7 @@ void DagPacketsHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::DagBl
 }
 
 void DagPacketsHandler::onNewBlockReceived(DagBlock block, std::vector<Transaction> transactions) {
-  LOG(log_nf_) << "Receive DagBlock " << block.getHash() << " #Trx" << transactions.size();
+  LOG(log_nf_) << "Receive DagBlock " << block.getHash() << " #Trx " << transactions.size();
   if (dag_blk_mgr_) {
     LOG(log_nf_) << "Storing block " << block.getHash().toString() << " with " << transactions.size()
                  << " transactions";
@@ -171,16 +182,10 @@ void DagPacketsHandler::onNewBlockReceived(DagBlock block, std::vector<Transacti
   }
 }
 
-bool DagPacketsHandler::hasBlockRequest(const blk_hash_t &block_hash) const {
-  std::shared_lock lock(block_requestes_mutex_);
-
-  return block_requestes_set_.count(block_hash);
-}
-
-void DagPacketsHandler::insertBlockRequest(const blk_hash_t &block_hash) {
+bool DagPacketsHandler::insertBlockRequest(const blk_hash_t &block_hash) {
   std::unique_lock lock(block_requestes_mutex_);
 
-  block_requestes_set_.insert(block_hash);
+  return block_requestes_set_.insert(block_hash).second;
 }
 
 void DagPacketsHandler::onNewBlockVerified(DagBlock const &block, bool proposed) {

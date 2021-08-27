@@ -42,8 +42,13 @@ class DagPacketsHandler : public PacketHandler {
   inline void processGetNewBlockPacket(const dev::RLP &packet_rlp, const PacketData &packet_data,
                                        const std::shared_ptr<TaraxaPeer> &peer);
 
-  bool hasBlockRequest(const blk_hash_t &block_hash) const;
-  void insertBlockRequest(const blk_hash_t &block_hash);
+  /**
+   * @brief Inserts block request
+   *
+   * @param block_hash
+   * @return true in case actual insertion took place, otherwise false
+   */
+  bool insertBlockRequest(const blk_hash_t &block_hash);
 
   std::pair<std::vector<dev::p2p::NodeID>, std::vector<dev::p2p::NodeID>> randomPartitionPeers(
       std::vector<dev::p2p::NodeID> const &_peers, std::size_t _number);

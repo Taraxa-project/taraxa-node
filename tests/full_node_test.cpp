@@ -614,7 +614,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
                 << " Node 2: Dag size = " << num_vertices2.first << " Trx count = " << num_trx2 << std::endl
                 << " Node 3: Dag size = " << num_vertices3.first << " Trx count = " << num_trx3 << std::endl
                 << " Node 4: Dag size = " << num_vertices4.first << " Trx count = " << num_trx4 << std::endl
-                << " Node 5: Dag size = " << num_vertices5.first << " Trx count = " << num_trx5
+                << " Node 5: Dag size = " << num_vertices5.first << " Trx count = " << num_trx5 << std::endl
                 << " Issued transaction count = " << issued_trx_count << std::endl;
       std::cout << "Send a dummy transaction to coverge DAG" << std::endl;
       context.dummy_transaction();

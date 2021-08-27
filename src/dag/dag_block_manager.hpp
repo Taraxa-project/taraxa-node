@@ -30,10 +30,7 @@ class DagBlockManager {
   void processSyncedBlock(DagBlock const &dag_block);
   void processSyncedTransactions(std::vector<Transaction> const &transactions);
   void insertBroadcastedBlockWithTransactions(DagBlock const &blk, std::vector<Transaction> const &transactions);
-  void pushUnverifiedBlock(DagBlock const &block,
-                           bool critical);  // add to unverified queue
-  void pushUnverifiedBlock(DagBlock const &block, std::vector<Transaction> const &transactions,
-                           bool critical);  // add to unverified queue
+  void pushUnverifiedBlock(DagBlock const &block, bool critical, std::vector<Transaction> const &transactions = {});
   std::pair<std::shared_ptr<DagBlock>, bool> popVerifiedBlock(bool level_limit = false,
                                                               uint64_t level = 0);  // get one verified block and pop
   void pushVerifiedBlock(DagBlock const &blk);
@@ -41,7 +38,21 @@ class DagBlockManager {
   level_t getMaxDagLevelInQueue() const;
   void start();
   void stop();
+
+  /**
+   * @param hash
+   * @return true in case block was already seen or is part of dag structure
+   */
   bool isBlockKnown(blk_hash_t const &hash);
+
+  /**
+   * @brief Mask block as seen
+   *
+   * @param dag_block
+   * @return true in case block was already seen, otherwise false
+   */
+  bool markBlockAsSeen(const DagBlock &dag_block);
+
   std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash) const;
   void clearBlockStatausTable() { blk_status_.clear(); }
   bool pivotAndTipsValid(DagBlock const &blk);
