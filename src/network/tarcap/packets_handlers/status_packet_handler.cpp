@@ -122,8 +122,6 @@ void StatusPacketHandler::process(const dev::RLP& packet_rlp, const PacketData& 
                  << selected_peer->pbft_previous_round_next_votes_size_;
   }
 
-  selected_peer->setAlive();
-
   // TODO: do we keep syncing specific channels ?
   /*
       LOG(log_dg_dag_sync_) << "Received status message from " << packet_data.from_node_id_ << " peer DAG max level:" <<
@@ -208,7 +206,7 @@ bool StatusPacketHandler::sendStatus(const dev::p2p::NodeID& node_id, bool initi
   return success;
 }
 
-void StatusPacketHandler::checkLiveness() {
+void StatusPacketHandler::sendStatusToPeers() {
   auto host = peers_state_->host_.lock();
   if (!host) {
     LOG(log_er_) << "Unavailable host during checkLiveness";
@@ -216,14 +214,7 @@ void StatusPacketHandler::checkLiveness() {
   }
 
   for (auto const& peer : peers_state_->getAllPeers()) {
-    // Disconnect any node that did not send any message for 3 status intervals
-    if (!peer.second->isAlive(MAX_CHECK_ALIVE_COUNT)) {
-      host->disconnect(peer.first, p2p::PingTimeout);
-      LOG(log_nf_) << "Host " << peer.first << " disconnected, no status message received in " << MAX_CHECK_ALIVE_COUNT
-                   << " check alive intervals";
-    } else {  // Send status message
-      sendStatus(peer.first, false);
-    }
+    sendStatus(peer.first, false);
   }
 }
 

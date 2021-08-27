@@ -41,13 +41,6 @@ class TaraxaPeer : public boost::noncopyable {
   bool isPbftBlockKnown(blk_hash_t const &_hash) const { return known_pbft_blocks_.count(_hash); }
   void markPbftBlockAsKnown(blk_hash_t const &_hash) { known_pbft_blocks_.insert(_hash); }
 
-  bool isAlive(uint16_t max_check_count) {
-    alive_check_count_++;
-    return alive_check_count_ <= max_check_count;
-  }
-
-  void setAlive() { alive_check_count_ = 0; }
-
   std::atomic<bool> syncing_ = false;
   std::atomic<uint64_t> dag_level_ = 0;
   std::atomic<uint64_t> pbft_chain_size_ = 0;
@@ -62,8 +55,6 @@ class TaraxaPeer : public boost::noncopyable {
   // PBFT
   ExpirationCache<blk_hash_t> known_pbft_blocks_;
   ExpirationCache<vote_hash_t> known_votes_;  // for peers
-
-  std::atomic<uint16_t> alive_check_count_ = 0;
 };
 
 }  // namespace taraxa::network::tarcap

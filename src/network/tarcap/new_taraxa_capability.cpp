@@ -59,7 +59,7 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev
 
 void TaraxaCapability::initBootNodes(const std::vector<NodeConfig> &network_boot_nodes, const dev::KeyPair &key) {
   auto resolveHost = [](string const &addr, uint16_t port) {
-    static boost::asio::io_service s_resolverIoService;
+    static boost::asio::io_context s_resolverIoService;
     boost::system::error_code ec;
     bi::address address = bi::address::from_string(addr, ec);
     bi::tcp::endpoint ep(bi::address(), port);
@@ -114,12 +114,12 @@ void TaraxaCapability::initPeriodicEvents(const NetworkConfig &conf, const std::
                                   });
   }
 
-  // Check liveness periodic event
+  // Send status periodic event
   const auto &status_handler = packets_handlers_->getSpecificHandler(PriorityQueuePacketType::PQ_StatusPacket);
   auto status_packet_handler = std::static_pointer_cast<StatusPacketHandler>(status_handler);
-  const auto check_liveness_interval = 6 * lambda_ms_min;
-  periodic_events_tp_.post_loop({check_liveness_interval}, [status_packet_handler = std::move(status_packet_handler)] {
-    status_packet_handler->checkLiveness();
+  const auto send_status_interval = 6 * lambda_ms_min;
+  periodic_events_tp_.post_loop({send_status_interval}, [status_packet_handler = std::move(status_packet_handler)] {
+    status_packet_handler->sendStatusToPeers();
   });
 
   // Logs packets stats periodic event

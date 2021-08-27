@@ -25,13 +25,12 @@ class StatusPacketHandler : public PacketHandler {
   virtual ~StatusPacketHandler() = default;
 
   bool sendStatus(const dev::p2p::NodeID& node_id, bool initial);
-  void checkLiveness();
+  void sendStatusToPeers();
 
  private:
   void process(const dev::RLP& packet_rlp, const PacketData& packet_data, const std::shared_ptr<dev::p2p::Host>& host,
                const std::shared_ptr<TaraxaPeer>& peer) override;
 
-  static constexpr uint16_t MAX_CHECK_ALIVE_COUNT = 5;
   static constexpr uint16_t INITIAL_STATUS_PACKET_ITEM_COUNT = 10;
 
   std::shared_ptr<SyncingState> syncing_state_;
