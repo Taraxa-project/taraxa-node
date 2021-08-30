@@ -1704,7 +1704,7 @@ bool PbftManager::giveUpSoftVotedBlock_() {
 
   if (pbft_block) {
     // Have a block, but is it valid?
-    if (!pbft_chain_->checkPbftBlockValidation(*pbft_block);) {
+    if (!pbft_chain_->checkPbftBlockValidation(*pbft_block)) {
       // Received the block, but not valid
       return true;
     }
