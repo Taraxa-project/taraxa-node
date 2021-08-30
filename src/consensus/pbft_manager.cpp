@@ -1463,11 +1463,11 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cer
                    << " in both pbft queue and DB";
       return false;
     }
-    // Read from DB pushing into unverified queue
+    // PBFT unverified queue empty after node reboot, read from DB pushing back in unverified queue
     pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
   }
 
-  if (!checkPbftBlockValid_(cert_voted_block_hash)) {
+  if (!pbft_chain_->checkPbftBlockValidation(*pbft_block)) {
     syncPbftChainFromPeers_(invalid_cert_voted_block, cert_voted_block_hash);
     return false;
   }
@@ -1697,14 +1697,14 @@ bool PbftManager::giveUpSoftVotedBlock_() {
   if (!pbft_block) {
     pbft_block = db_->getPbftCertVotedBlock(previous_round_next_voted_value_);
     if (pbft_block) {
-      // Read from DB pushing into unverified queue
+      // PBFT unverified queue empty after node reboot, read from DB pushing back in unverified queue
       pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
     }
   }
 
   if (pbft_block) {
     // Have a block, but is it valid?
-    if (!checkPbftBlockValid_(previous_round_next_voted_value_)) {
+    if (!pbft_chain_->checkPbftBlockValidation(*pbft_block);) {
       // Received the block, but not valid
       return true;
     }
@@ -1762,13 +1762,13 @@ bool PbftManager::giveUpNextVotedBlock_() {
                    << " in both queue and DB, have not got yet";
       return false;
     }
-    // Read from DB pushing into unverified queue
+    // PBFT unverified queue empty after node reboot, read from DB pushing back in unverified queue
     pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
   }
 
   if (pbft_block) {
     // Have a block, but is it valid?
-    if (!checkPbftBlockValid_(previous_round_next_voted_value_)) {
+    if (!pbft_chain_->checkPbftBlockValidation(*pbft_block)) {
       // Received the block, but not valid
       return true;
     }
