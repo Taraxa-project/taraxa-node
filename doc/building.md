@@ -59,7 +59,7 @@ will build out of the box without further effort:
 
 ### Clone the Repository
 
-    git clone https://github.com/Taraxa-project/taraxa-node.git
+    git clone https://github.com/Taraxa-project/taraxa-node.git --branch testnet
     cd taraxa-node
     git checkout master
     git submodule update --init --recursive
@@ -80,13 +80,12 @@ will build out of the box without further effort:
 
     # Fetch and compile libraries fetched from conan
     conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan" && \
-    conan install --build missing -s -pr=clang .
 
     # Compile project using cmake
-    mkdir cmake-build-release
-    cd cmake-build-release
-    cmake -DCMAKE_BUILD_TYPE=Release ../
-    make -j$(nproc) taraxad
+    mkdir cmake-build
+    cd cmake-build
+    cmake -DCONAN_PROFILE=clang -DCMAKE_BUILD_TYPE=RelWithDebInfo ../
+    make -j$(nproc)
 
 And optional:
 
@@ -100,37 +99,80 @@ And optional:
 First you need to get (Brew)[https://brew.sh/] package manager. After that you need tot install dependencies with it:
 
     brew update
-    brew install coreutils go autoconf automake gflags git libtool make pkg-config cmake conan
+    brew install coreutils go autoconf automake gflags git libtool llvm@12 make pkg-config cmake conan
 
 ### Clone the Repository
 
-    git clone https://github.com/Taraxa-project/taraxa-node.git
+    git clone https://github.com/Taraxa-project/taraxa-node.git --branch testnet
     cd taraxa-node
     git checkout master
     git submodule update --init --recursive
 
 ### Compile
 
+    # Optional - one time action
+    # Create clang profile (we are using clang in taraxa, but any C++ compiler can be used)
+    conan profile new clang --detect && \
+    conan profile update settings.compiler=clang clang && \
+    conan profile update settings.compiler.version=12 clang && \
+    conan profile update settings.compiler.libcxx=libc++ clang && \
+    conan profile update env.CC=clang clang && \
+    conan profile update env.CXX=clang++ clang
+
     # Export needed var for conan
     export CONAN_REVISIONS_ENABLED=1
     # Add bincrafters remote
     conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan"
 
-    # Two build options
-        1. Compile project using conan
-        conan install -if ../conan-build --build missing -s build_type=Release .
-        conan build -bf ../conan-build -sf . .
-
-        2.Compile project using cmake
-        mkdir cmake-build-release
-        cd cmake-build-release
-        cmake -DCMAKE_BUILD_TYPE=Release ../
-        make -j$(nproc) taraxad
+    # Build project
+    mkdir cmake-build
+    cd cmake-build
+    cmake -DCONAN_PROFILE=clang -DCMAKE_BUILD_TYPE=RelWithDebInfo ../
+    make -j$(nproc)
 
 And optional:
 
     # optional
     make install  # defaults to /usr/local
+
+### Known issues
+
+#### Issues with conan cache
+
+Sometimes conan cache goes wrong, so you should clean it up. You could face error like:
+```
+ERROR: boost/1.76.0: Error in package_info() method, line 1492
+    raise ConanException("These libraries were expected to be built, but were not built: {}".format(non_built))
+    ConanException: These libraries were expected to be built, but were not built: {'boost_math_c99l', 'boost_json', 'boost_math_c99', 'boost_nowide', 'boost_math_tr1l', 'boost_math_tr1f', 'boost_math_tr1', 'boost_math_c99f'}
+``` 
+
+It could be cleaned up with:
+
+```
+rm -rf ~/.conan/data
+```
+
+#### Project building issue
+
+If you are facing strange errors with project compilation it could be a problem that after install of llvm clang if pointing to a default apple clang. You could check that with `clang --version`. It should not point to `/Library/Developer/CommandLineTools/usr/bin`, but something like `/usr/local/opt/llvm/bin`. So you should specify full paths to a compiler:
+1. Check full path with `brew info llvm`. Search for command that looks like 
+```
+    echo 'export PATH="/usr/local/opt/llvm/bin:$PATH"' >> ~/.zshrc
+```
+2. Take bin path from it. In our case this is `/usr/local/opt/llvm/bin` It shouldn't differ for most cases.
+3. Append compiler to it and specify it in conan profile:
+```
+    conan profile update env.CC=/usr/local/opt/llvm/bin/clang clang && \
+    conan profile update env.CXX=/usr/local/opt/llvm/bin/clang++ clang
+```
+4. Specify compiler with full path to cmake:
+```
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang -DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++ ../
+```
+5. After successfull finish of that command prociessing compile project with:
+```
+make -j$(nproc)
+```
 
 ## Run
 ### Running tests

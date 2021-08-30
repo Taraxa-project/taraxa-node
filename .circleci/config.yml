@@ -712,9 +712,6 @@ jobs:
                conan profile update settings.compiler.libcxx=libc++ clang && \
                conan profile update env.CC=clang clang && \
                conan profile update env.CXX=clang++ clang
-        - run:
-           name: connan install
-           command: conan install -if cmake-build --build missing -pr=clang .
         - save_cache:
            paths:
              - ~/.conan
@@ -724,7 +721,8 @@ jobs:
            command: |
                cd cmake-build
                cmake \
-                  -DCMAKE_BUILD_TYPE=Release \
+                  -DCONAN_PROFILE=clang \
+                  -DCMAKE_BUILD_TYPE=RelWithDebInfo \
                   -DTARAXA_ENABLE_LTO=ON \
                   -DTARAXA_STATIC_BUILD=ON ../ &&
                make -j 6 &&
