@@ -488,6 +488,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
     uint64_t issued_trx_count = 0;
     unordered_map<addr_t, val_t> expected_balances;
     shared_mutex m;
+    std::set<trx_hash_t> transactions;
 
    public:
     context(decltype(nodes_) nodes) : nodes_(nodes) {
@@ -508,6 +509,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
         ++issued_trx_count;
       }
       auto result = trx_clients[0].coinTransfer(KeyPair::create().address(), 0, KeyPair::create(), false);
+      transactions.emplace(result.trx.getHash());
     }
 
     void coin_transfer(int sender_node_i, addr_t const &to, val_t const &amount, bool verify_executed = true) {
@@ -518,6 +520,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
         expected_balances[nodes_[sender_node_i]->getAddress()] -= amount;
       }
       auto result = trx_clients[sender_node_i].coinTransfer(to, amount, {}, verify_executed);
+      transactions.emplace(result.trx.getHash());
       if (verify_executed)
         EXPECT_EQ(result.stage, TransactionClient::TransactionStage::executed);
       else
@@ -533,67 +536,53 @@ TEST_F(FullNodeTest, sync_five_nodes) {
       }
     }
 
+    void assert_all_transactions_known() {
+      for (auto &n : nodes_) {
+        for (auto &t : transactions) {
+          auto location = n->getFinalChain()->transaction_location(t);
+          ASSERT_EQ(location.has_value(), true);
+        }
+      }
+    }
+
+    void wait_all_transactions_known(wait_opts const &wait_for = {30s, 500ms}) {
+      wait(wait_for, [this](auto &ctx) {
+        for (auto &n : nodes_) {
+          for (auto &t : transactions) {
+            if (!n->getFinalChain()->transaction_location(t)) {
+              ctx.fail();
+            }
+          }
+        }
+        dummy_transaction();
+      });
+    }
+
   } context(nodes);
 
+  std::vector<trx_hash_t> all_transactions;
   // transfer some coins to your friends ...
   auto init_bal = own_effective_genesis_bal(nodes[0]->getConfig()) / nodes.size();
 
   {
-    vector<thread> threads;
-    uint16_t thread_completed = 0;
-    std::mutex m;
-    std::condition_variable cv;
     for (size_t i(1); i < nodes.size(); ++i) {
-      threads.emplace_back([i, &context, &nodes, &thread_completed, &init_bal, &m, &cv] {
-        context.coin_transfer(0, nodes[i]->getAddress(), init_bal, true);
-        {
-          std::unique_lock<std::mutex> lk(m);
-          thread_completed++;
-          if (thread_completed == nodes.size() - 1) {
-            cv.notify_one();
-          }
-        }
-      });
+      // we shouldn't wait for transaction execution because it could be in alternative dag
+      context.coin_transfer(0, nodes[i]->getAddress(), init_bal, false);
     }
-
-    std::unique_lock<std::mutex> lk(m);
-    auto node_size = nodes.size();
-    while (!cv.wait_for(lk, 100ms, [&thread_completed, &context, &node_size] {
-      if (thread_completed < node_size - 1) {
-        context.dummy_transaction();
-        return false;
-      }
-      return true;
-    }))
-      ;
-    for (auto &t : threads) t.join();
+    context.wait_all_transactions_known();
   }
 
   std::cout << "Initial coin transfers from node 0 issued ... " << std::endl;
 
   {
-    vector<thread> threads;
-    vector<bool> thread_completed;
-    for (size_t i(0); i < nodes.size(); ++i) thread_completed.push_back(false);
     for (size_t i(0); i < nodes.size(); ++i) {
       auto to = i < nodes.size() - 1 ? nodes[i + 1]->getAddress() : addr_t("d79b2575d932235d87ea2a08387ae489c31aa2c9");
-      threads.emplace_back([i, to, &context, &thread_completed] {
-        for (auto _(0); _ < 10; ++_) {
-          context.coin_transfer(i, to, 100);
-        }
-        thread_completed[i] = true;
-      });
-    }
-    wait({60s, 500ms}, [&](auto &ctx) {
-      for (auto t : thread_completed) {
-        if (!t) {
-          context.dummy_transaction();
-          ctx.fail();
-          return;
-        }
+      for (auto _(0); _ < 10; ++_) {
+        // we shouldn't wait for transaction execution because it could be in alternative dag
+        context.coin_transfer(i, to, 100, false);
       }
-    });
-    for (auto &t : threads) t.join();
+    }
+    context.wait_all_transactions_known();
   }
   std::cout << "Issued transatnion count " << context.getIssuedTrxCount() << std::endl;
 
@@ -634,11 +623,15 @@ TEST_F(FullNodeTest, sync_five_nodes) {
     taraxa::thisThreadSleepForMilliSeconds(500);
   }
 
-  EXPECT_GT(nodes[0]->getNumProposedBlocks(), 2);
-  EXPECT_GT(nodes[1]->getNumProposedBlocks(), 2);
-  EXPECT_GT(nodes[2]->getNumProposedBlocks(), 2);
-  EXPECT_GT(nodes[3]->getNumProposedBlocks(), 2);
-  EXPECT_GT(nodes[4]->getNumProposedBlocks(), 2);
+  auto num_proposed_blocks = nodes[0]->getNumProposedBlocks();
+  // wait for next block
+  wait({20s, 500ms}, [&](auto &ctx) {
+    if (nodes[0]->getNumProposedBlocks() == num_proposed_blocks + 1) ctx.fail();
+    if (nodes[1]->getNumProposedBlocks() == num_proposed_blocks + 1) ctx.fail();
+    if (nodes[2]->getNumProposedBlocks() == num_proposed_blocks + 1) ctx.fail();
+    if (nodes[3]->getNumProposedBlocks() == num_proposed_blocks + 1) ctx.fail();
+    if (nodes[4]->getNumProposedBlocks() == num_proposed_blocks + 1) ctx.fail();
+  });
 
   ASSERT_EQ(nodes[0]->getTransactionManager()->getTransactionCount(), context.getIssuedTrxCount());
   ASSERT_EQ(nodes[1]->getTransactionManager()->getTransactionCount(), context.getIssuedTrxCount());
@@ -659,16 +652,17 @@ TEST_F(FullNodeTest, sync_five_nodes) {
   EXPECT_EQ(num_vertices3, num_vertices4);
   EXPECT_EQ(num_vertices4, num_vertices5);
 
-  ASSERT_EQ(nodes[0]->getTransactionManager()->getTransactionCount(), issued_trx_count);
-  ASSERT_EQ(nodes[1]->getTransactionManager()->getTransactionCount(), issued_trx_count);
-  ASSERT_EQ(nodes[2]->getTransactionManager()->getTransactionCount(), issued_trx_count);
-  ASSERT_EQ(nodes[3]->getTransactionManager()->getTransactionCount(), issued_trx_count);
-  ASSERT_EQ(nodes[4]->getTransactionManager()->getTransactionCount(), issued_trx_count);
+  ASSERT_EQ(nodes[0]->getTransactionManager()->getTransactionCount(), context.getIssuedTrxCount());
+  ASSERT_EQ(nodes[1]->getTransactionManager()->getTransactionCount(), context.getIssuedTrxCount());
+  ASSERT_EQ(nodes[2]->getTransactionManager()->getTransactionCount(), context.getIssuedTrxCount());
+  ASSERT_EQ(nodes[3]->getTransactionManager()->getTransactionCount(), context.getIssuedTrxCount());
+  ASSERT_EQ(nodes[4]->getTransactionManager()->getTransactionCount(), context.getIssuedTrxCount());
 
   std::cout << "All transactions received ..." << std::endl;
 
   TIMEOUT = SYNC_TIMEOUT * 10;
   for (unsigned i = 0; i < TIMEOUT; i++) {
+    issued_trx_count = context.getIssuedTrxCount();
     auto trx_executed1 = nodes[0]->getDB()->getNumTransactionExecuted();
     auto trx_executed2 = nodes[1]->getDB()->getNumTransactionExecuted();
     auto trx_executed3 = nodes[2]->getDB()->getNumTransactionExecuted();
@@ -734,6 +728,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
 
   auto k = 0;
   for (auto const &node : nodes) {
+    issued_trx_count = context.getIssuedTrxCount();
     k++;
     auto vertices_diff = node->getDagManager()->getNumVerticesInDag().first - 1 - node->getDB()->getNumBlockExecuted();
     if (vertices_diff >= nodes.size()                                      //
@@ -761,7 +756,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
   k = 0;
   for (auto const &node : nodes) {
     k++;
-
+    issued_trx_count = context.getIssuedTrxCount();
     EXPECT_EQ(node->getDB()->getNumTransactionExecuted(), issued_trx_count)
         << " \nNum executed in node " << k << " node " << node << " is : " << node->getDB()->getNumTransactionExecuted()
         << " \nNum linearized blks: " << getOrderedDagBlocks(node->getDB()).size()
@@ -783,6 +778,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
     EXPECT_EQ(node->getDB()->getNumTransactionInDag(), issued_trx_count);
   }
 
+  context.assert_all_transactions_known();
   context.assert_balances_synced();
 }
 

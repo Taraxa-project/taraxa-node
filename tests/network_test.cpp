@@ -121,7 +121,7 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
   nodes[0]->getNetwork()->sendBlocks(nodes[1]->getNetwork()->getNodeId(), std::move(dag_blocks));
 
   std::cout << "Waiting Sync ..." << std::endl;
-  wait({20s, 200ms},
+  wait({30s, 200ms},
        [&](auto& ctx) { WAIT_EXPECT_NE(ctx, nodes[1]->getDagBlockManager()->getDagBlock(block_hash), nullptr) });
 }
 
