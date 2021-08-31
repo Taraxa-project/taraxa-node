@@ -49,7 +49,7 @@ TEST_F(P2PTest, p2p_discovery) {
   auto secret = dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
                             dev::Secret::ConstructFromStringType::FromHex);
   auto key = dev::KeyPair(secret);
-  const int NUMBER_OF_NODES = 10;
+  const int NUMBER_OF_NODES = 40;
   dev::p2p::NetworkConfig net_conf("127.0.0.1", 20001, false, true);
   TaraxaNetworkConfig taraxa_net_conf;
   taraxa_net_conf.is_boot_node = true;
@@ -57,31 +57,21 @@ TEST_F(P2PTest, p2p_discovery) {
   util::ThreadPool tp;
   auto bootHost = Host::make("TaraxaNode", dummy_capability_constructor, key, net_conf, taraxa_net_conf);
   tp.post_loop({}, [=] { bootHost->do_work(); });
-  printf("Started Node id: %s\n", bootHost->id().hex().c_str());
+  const auto &boot_node_key = bootHost->id();
+  printf("Started Node id: %s\n", boot_node_key.hex().c_str());
 
   std::vector<std::shared_ptr<dev::p2p::Host>> nodes;
   for (int i = 0; i < NUMBER_OF_NODES; i++) {
     auto node = nodes.emplace_back(Host::make("TaraxaNode", dummy_capability_constructor, dev::KeyPair::create(),
                                               dev::p2p::NetworkConfig("127.0.0.1", 20002 + i, false, true)));
     tp.post_loop({}, [=] { node->do_work(); });
-    nodes[i]->addNode(Node(dev::Public("7b1fcf0ec1078320117b96e9e9ad9032c06d030cf4024a598347a4"
-                                       "623a14a421d4"
-                                       "f030cf25ef368ab394a45e920e14b57a259a09c41767dd50d1da27"
-                                       "b627412a"),
-                           dev::p2p::NodeIPEndpoint(bi::address::from_string("127.0.0.1"), 20001, 20001)));
-    taraxa::thisThreadSleepForMilliSeconds(100);
+    nodes[i]->addNode(
+        Node(boot_node_key, dev::p2p::NodeIPEndpoint(bi::address::from_string("127.0.0.1"), 20001, 20001)));
   }
-  // allow more time for p2p discovery
-  for (int i = 0; i < 60; i++) {
-    bool allNodesFound = true;
-    for (int j = 0; j < NUMBER_OF_NODES; j++)
-      if (NUMBER_OF_NODES / 2 >= nodes[j]->getNodeCount()) allNodesFound = false;
-    if (allNodesFound) break;
-    taraxa::thisThreadSleepForSeconds(1);
-  }
-  for (int i = 0; i < NUMBER_OF_NODES; i++) {
-    ASSERT_LT(NUMBER_OF_NODES / 3, nodes[i]->getNodeCount());
-  }
+
+  wait({60s, 500ms}, [&](auto &ctx) {
+    for (int j = 0; j < NUMBER_OF_NODES; ++j) WAIT_EXPECT_LT(ctx, nodes[j]->getNodeCount(), NUMBER_OF_NODES / 3);
+  });
 }
 
 /*
