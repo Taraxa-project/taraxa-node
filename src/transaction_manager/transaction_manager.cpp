@@ -22,12 +22,14 @@ auto trxComp = [](Transaction const &t1, Transaction const &t2) -> bool {
 };
 
 TransactionManager::TransactionManager(FullNodeConfig const &conf, addr_t node_addr, std::shared_ptr<DbStorage> db,
-                                       logger::Logger log_time)
-    : db_(db), conf_(conf), trx_qu_(node_addr), node_addr_(node_addr), log_time_(log_time) {
+                                       VerifyMode mode)
+    : mode_(mode), conf_(conf), trx_qu_(node_addr), seen_txs_(200000 /*capacity*/, 2000 /*delete step*/), db_(db) {
   LOG_OBJECTS_CREATE("TRXMGR");
   auto trx_count = db_->getStatusField(taraxa::StatusDbField::TrxCount);
   trx_count_.store(trx_count);
 }
+
+TransactionManager::~TransactionManager() { stop(); }
 
 std::pair<bool, std::string> TransactionManager::verifyTransaction(Transaction const &trx) const {
   if (trx.getChainID() != conf_.chain.chain_id) {
@@ -68,8 +70,18 @@ bool TransactionManager::checkQueueOverflow() {
   return false;
 }
 
+bool TransactionManager::markTxAsSeen(const Transaction &tx) { return seen_txs_.insert(tx.getHash()); }
+
 std::pair<bool, std::string> TransactionManager::insertTransaction(const Transaction &trx, bool verify,
                                                                    bool broadcast) {
+  const auto &tx_hash = trx.getHash();
+
+  // Mark tx as seen - synchronization point in case multiple threads are processing the same tx at the same time
+  if (!markTxAsSeen(trx)) {
+    LOG(log_dg_) << "Trying to insert transaction " << tx_hash.abridged() << " that is already marked as seen, skip it";
+    return std::make_pair(false, "skip, seen in cache");
+  }
+
   if (checkQueueOverflow() == true) {
     LOG(log_er_) << "Queue overlfow";
     return std::make_pair(false, "Queue overlfow");
@@ -77,30 +89,28 @@ std::pair<bool, std::string> TransactionManager::insertTransaction(const Transac
 
   if (verify && mode_ != VerifyMode::skip_verify_sig) {
     if (const auto verified = verifyTransaction(trx); verified.first == false) {
-      LOG(log_er_) << "Trying to insert invalid trx, hash: " << trx.getHash() << ", err msg: " << verified.second;
+      LOG(log_er_) << "Trying to insert invalid trx, hash: " << tx_hash << ", err msg: " << verified.second;
       return verified;
     }
   }
 
-  auto hash = trx.getHash();
-
-  TransactionStatus status = db_->getTransactionStatus(hash);
+  TransactionStatus status = db_->getTransactionStatus(tx_hash);
   if (status.state != TransactionStatusEnum::not_seen) {
     switch (status.state) {
       case TransactionStatusEnum::in_queue_verified:
-        LOG(log_dg_) << "Trx: " << hash << "skip, seen in verified queue. " << std::endl;
+        LOG(log_dg_) << "Trx: " << tx_hash << "skip, seen in verified queue. " << std::endl;
         return std::make_pair(false, "in verified queue");
       case TransactionStatusEnum::in_queue_unverified:
-        LOG(log_dg_) << "Trx: " << hash << "skip, seen in unverified queue. " << std::endl;
+        LOG(log_dg_) << "Trx: " << tx_hash << "skip, seen in unverified queue. " << std::endl;
         return std::make_pair(false, "in unverified queue");
       case TransactionStatusEnum::in_block:
-        LOG(log_dg_) << "Trx: " << hash << "skip, seen in block. " << std::endl;
+        LOG(log_dg_) << "Trx: " << tx_hash << "skip, seen in block. " << std::endl;
         return std::make_pair(false, "in block");
       case TransactionStatusEnum::executed:
-        LOG(log_dg_) << "Trx: " << hash << "skip, executed " << std::endl;
+        LOG(log_dg_) << "Trx: " << tx_hash << "skip, executed " << std::endl;
         return std::make_pair(false, "executed");
       case TransactionStatusEnum::invalid:
-        LOG(log_dg_) << "Trx: " << hash << "skip, seen but invalid. " << std::endl;
+        LOG(log_dg_) << "Trx: " << tx_hash << "skip, seen but invalid. " << std::endl;
         return std::make_pair(false, "already invalid");
       default:
         return std::make_pair(false, "unknown");
@@ -109,13 +119,15 @@ std::pair<bool, std::string> TransactionManager::insertTransaction(const Transac
 
   status = verify ? TransactionStatusEnum::in_queue_verified : TransactionStatusEnum::in_queue_unverified;
   db_->saveTransaction(trx, verify && mode_ != VerifyMode::skip_verify_sig);
-  db_->saveTransactionStatus(hash, status);
+  db_->saveTransactionStatus(tx_hash, status);
 
   if (!trx_qu_.insert(trx, verify)) {
     return std::make_pair(false, "skip, already inserted by different thread(race condition)");
   }
 
-  if (ws_server_) ws_server_->newPendingTransaction(trx.getHash());
+  // TODO: new pending tx could be omitted here ? Currently we ommit new pending tx only if it is included in dag block
+  // TODO: either create different events, e.g. new pending vs new accepted or remove this whole TODO
+  //  transaction_accepted_.emit(trx.getHash());
 
   if (broadcast == true) {
     if (auto net = network_.lock(); net && conf_.network.network_transaction_interval == 0) {
@@ -146,8 +158,20 @@ uint32_t TransactionManager::insertBroadcastedTransactions(const std::vector<tar
   for (const auto &raw_trx : raw_trxs) {
     Transaction trx = Transaction(raw_trx);
 
+    // Mark tx as seen - synchronization point in case multiple threads are processing the same tx at the same time
+    if (!markTxAsSeen(trx)) {
+      LOG(log_dg_) << "Trying to insert transaction " << trx.getHash().abridged()
+                   << " that is already marked as seen, skip it";
+      continue;
+    }
+
     trxs_hashes.push_back(trx.getHash());
     trxs.push_back(std::move(trx));
+  }
+
+  if (trxs.empty()) {
+    LOG(log_dg_) << "No txs to be processed after filter";
+    return 0;
   }
 
   // Get transactions statuses from db
@@ -200,7 +224,11 @@ uint32_t TransactionManager::insertBroadcastedTransactions(const std::vector<tar
     db_->addTransactionStatusToBatch(write_batch, trx_hash, TransactionStatusEnum::in_queue_unverified);
 
     unseen_trxs.push_back(std::move(trx));
-    if (ws_server_) ws_server_->newPendingTransaction(trx_hash);
+
+    // TODO: new pending tx could be omitted here ? Currently we ommit new pending tx only if it is included in dag
+    // block
+    // TODO: either create different events, e.g. new pending vs new accepted or remove this whole TODO
+    //  transaction_accepted_.emit(trx.getHash());
   }
 
   db_->commitWriteBatch(write_batch);
@@ -229,18 +257,19 @@ void TransactionManager::verifyQueuedTrxs() {
     if (!valid.first) {
       db_->saveTransactionStatus(hash, TransactionStatusEnum::invalid);
       trx_qu_.removeTransactionFromBuffer(hash);
-
       LOG(log_wr_) << " Trx: " << hash << "invalid: " << valid.second << std::endl;
       continue;
     }
-    {
-      auto status = db_->getTransactionStatus(hash);
-      if (status.state == TransactionStatusEnum::in_queue_unverified) {
-        status.state = TransactionStatusEnum::in_queue_verified;
-        db_->saveTransactionStatus(hash, status);
-        db_->saveTransaction(*item.second, mode_ != VerifyMode::skip_verify_sig);
-        trx_qu_.addTransactionToVerifiedQueue(hash, item.second);
-      }
+
+    auto status = db_->getTransactionStatus(hash);
+    if (status.state == TransactionStatusEnum::in_queue_unverified) {
+      status.state = TransactionStatusEnum::in_queue_verified;
+      db_->saveTransactionStatus(hash, status);
+      db_->saveTransaction(*item.second, mode_ != VerifyMode::skip_verify_sig);
+      trx_qu_.addTransactionToVerifiedQueue(hash, item.second);
+    } else {
+      LOG(log_er_) << "Tx " << item.second->getHash().abridged() << " status was changed from in_queue_unverified to "
+                   << static_cast<int>(status.state) << " while it was in unverified queue";
     }
   }
 }
@@ -293,6 +322,8 @@ std::vector<taraxa::bytes> TransactionManager::getNewVerifiedTrxSnapShotSerializ
 }
 
 unsigned long TransactionManager::getTransactionCount() const { return trx_count_; }
+
+TransactionQueue &TransactionManager::getTransactionQueue() { return trx_qu_; }
 
 void TransactionManager::addTrxCount(unsigned long num) { trx_count_ += num; }
 

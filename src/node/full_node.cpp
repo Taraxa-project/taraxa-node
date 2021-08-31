@@ -84,7 +84,7 @@ void FullNode::init() {
   LOG(log_nf_) << "DB initialized ...";
 
   final_chain_ = NewFinalChain(db_, conf_.chain.final_chain, node_addr);
-  trx_mgr_ = std::make_shared<TransactionManager>(conf_, node_addr, db_, log_time_);
+  trx_mgr_ = std::make_shared<TransactionManager>(conf_, node_addr, db_);
 
   auto genesis_hash = conf_.chain.dag_genesis_block.getHash();
   auto dag_genesis_hash_from_db = blk_hash_t(db_->getBlocksByLevel(0));

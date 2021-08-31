@@ -84,6 +84,7 @@ std::pair<trx_hash_t, std::shared_ptr<Transaction>> TransactionQueue::getUnverif
       unverified_hash_qu_.pop_front();
     }
   }
+
   return item;
 }
 
@@ -98,7 +99,10 @@ void TransactionQueue::addTransactionToVerifiedQueue(trx_hash_t const &hash, std
   // and at the same time verifyBlockTransactions() can be called, that is removing
   // all trxs that are already in DAG block from those queues. So we need to have lock here
   // and check if the transaction was not removed by DAG block
-  if (queued_trxs_.find(hash) == queued_trxs_.end()) return;
+  if (queued_trxs_.find(hash) == queued_trxs_.end()) {
+    return;
+  }
+
   verified_trxs_[hash] = trx;
   new_verified_transactions_ = true;
 }
