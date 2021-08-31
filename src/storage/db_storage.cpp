@@ -298,76 +298,35 @@ std::map<blk_hash_t, bool> DbStorage::getAllDagBlockState() {
   return res;
 }
 
-void DbStorage::savePeriodData(const PbftBlock& pbft_block, const std::vector<Vote>& cert_votes,
-                               const std::vector<DagBlock>& dag_blocks, const std::vector<Transaction>& transactions,
-                               Batch& write_batch) {
-  uint64_t period = pbft_block.getPeriod();
-  addPbftBlockPeriodToBatch(period, pbft_block.getBlockHash(), write_batch);
+void DbStorage::savePeriodData(const SyncBlock& sync_block, Batch& write_batch) {
+  uint64_t period = sync_block.pbft_blk->getPeriod();
+  addPbftBlockPeriodToBatch(period, sync_block.pbft_blk->getBlockHash(), write_batch);
 
   // Add dag_block_period in DB
   uint64_t block_pos = 0;
-  for (auto const& blk : dag_blocks) {
-    addDagBlockPeriodToBatch(blk.getHash(), period, block_pos, write_batch);
+  for (auto const& block : sync_block.dag_blocks) {
+    addDagBlockPeriodToBatch(block.getHash(), period, block_pos, write_batch);
     block_pos++;
   }
 
-  RLPStream s;
-  s.appendList(4);
-  s.appendRaw(pbft_block.rlp(true));
-  s.appendList(cert_votes.size());
-  for (auto const& vote : cert_votes) {
-    s.appendRaw(vote.rlp());
-  }
-  s.appendList(dag_blocks.size());
-  for (auto const& block : dag_blocks) {
+  for (auto const& block : sync_block.dag_blocks) {
     // Remove dag blocks
     remove(write_batch, Columns::dag_blocks, toSlice(block.getHash()));
-    s.appendRaw(block.rlp(true));
   }
-  s.appendList(transactions.size());
   uint64_t position = 0;
-
-  for (auto const& trx : transactions) {
+  for (auto const& trx : sync_block.transactions) {
     // Remove transactions
     remove(write_batch, Columns::transactions, toSlice(trx.getHash()));
     addTransactionStatusToBatch(write_batch, trx.getHash(),
                                 TransactionStatus(TransactionStatusEnum::executed, period, position));
-    s.appendRaw(*trx.rlp());
     position++;
   }
 
-  insert(write_batch, Columns::period_data, toSlice(period), toSlice(s.invalidate()));
+  insert(write_batch, Columns::period_data, toSlice(period), toSlice(sync_block.rlp()));
 }
 
 dev::bytes DbStorage::getPeriodDataRaw(uint64_t period) {
   return asBytes(lookup(toSlice(period), Columns::period_data));
-}
-
-PbftBlock DbStorage::parsePeriodData(RLP& rlp, std::vector<Vote>& cert_votes, std::vector<DagBlock>& dag_blocks,
-                                     std::vector<Transaction>& transactions) {
-  if (!rlp.isList()) throw std::invalid_argument("period data RLP must be a list");
-  auto it = rlp.begin();
-
-  auto pbft_block = PbftBlock(*it++);
-  auto votes_rlp = (*it++);
-  cert_votes.reserve(votes_rlp.size());
-  for (auto const vote : votes_rlp) {
-    cert_votes.emplace_back(Vote(vote));
-  }
-
-  auto blks_rlp = (*it++);
-  dag_blocks.reserve(blks_rlp.size());
-  for (auto const blk : blks_rlp) {
-    dag_blocks.emplace_back(DagBlock(blk));
-  }
-
-  auto trx_rlp = (*it++);
-  transactions.reserve(trx_rlp.size());
-  for (auto const trx : trx_rlp) {
-    transactions.emplace_back(Transaction(trx));
-  }
-
-  return pbft_block;
 }
 
 void DbStorage::saveTransaction(Transaction const& trx, bool verified) {

@@ -122,10 +122,12 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
 
   explicit DagManager(blk_hash_t const &genesis, addr_t node_addr, std::shared_ptr<TransactionManager> trx_mgr,
                       std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DagBlockManager> dag_blk_mgr,
-                      std::shared_ptr<DbStorage> db);
+                      std::shared_ptr<DbStorage> db, logger::Logger log_time);
   virtual ~DagManager() = default;
   std::shared_ptr<DagManager> getShared();
+  void start();
   void stop();
+  void setNetwork(std::weak_ptr<Network> network) { network_ = move(network); }
 
   blk_hash_t const &get_genesis() { return genesis_; }
 
@@ -182,10 +184,15 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
    */
   std::pair<size_t, size_t> getFinalizedBlocksSize() const;
 
+  auto getNumReceivedBlocks() const { return received_blocks_.load(); }
+
+  util::Event<DagManager, DagBlock> const block_verified_{};
+
  private:
   void recoverDag();
   void addToDag(blk_hash_t const &hash, blk_hash_t const &pivot, std::vector<blk_hash_t> const &tips, uint64_t level,
                 DbStorage::Batch &write_batch, bool finalized = false);
+  void worker();
   std::pair<blk_hash_t, std::vector<blk_hash_t>> getFrontier() const;  // return pivot and tips
   std::atomic<level_t> max_level_ = 0;
   mutable boost::shared_mutex mutex_;
@@ -194,6 +201,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::shared_ptr<TransactionManager> trx_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<DagBlockManager> dag_blk_mgr_;
+  std::weak_ptr<Network> network_;
   std::shared_ptr<DbStorage> db_;
   blk_hash_t anchor_;      // anchor of the last period
   blk_hash_t old_anchor_;  // anchor of the second to last period
@@ -202,6 +210,12 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::map<uint64_t, std::vector<blk_hash_t>> non_finalized_blks_;
   std::map<uint64_t, std::vector<blk_hash_t>> finalized_blks_;
   DagFrontier frontier_;
+  std::atomic<bool> stopped_ = true;
+  std::thread block_worker_;
+  // debug
+  std::atomic_uint64_t received_blocks_ = 0;
+
+  logger::Logger log_time_;
   LOG_OBJECTS_DEFINE
 };
 

@@ -53,6 +53,14 @@ class Network {
   bool pbft_syncing();
   uint64_t syncTimeSeconds() const;
 
+  uint64_t pbftSyncingPeriod() const;
+  void syncBlockQueuePop();
+  std::shared_ptr<SyncBlock> processSyncBlock();
+  void syncBlockQueuePush(SyncBlock const &block);
+  void clearSyncBlockQueue();
+  size_t syncBlockQueueSize() const;
+  blk_hash_t getLastSyncBlockHash() const;
+
   void onNewPbftVotes(std::vector<Vote> votes);
   void broadcastPreviousRoundNextVotesBundle();
 

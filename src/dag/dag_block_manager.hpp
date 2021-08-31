@@ -27,7 +27,7 @@ class DagBlockManager {
    * @param blk
    * @param transactions
    */
-  void processSyncedBlock(DagBlock const &dag_block);
+  bool processSyncedBlock(DagBlock const &dag_block, DagManager &dag_mgr);
   void processSyncedTransactions(std::vector<Transaction> const &transactions);
   void insertBroadcastedBlockWithTransactions(DagBlock const &blk, std::vector<Transaction> const &transactions);
   void pushUnverifiedBlock(DagBlock const &block,

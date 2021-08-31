@@ -14,6 +14,7 @@
 #include "dag/dag_block.hpp"
 #include "dag/proposal_period_levels_map.hpp"
 #include "logger/log.hpp"
+#include "network/sync_block.hpp"
 #include "transaction_manager/transaction.hpp"
 #include "transaction_manager/transaction_status.hpp"
 
@@ -166,12 +167,8 @@ struct DbStorage {
   void loadSnapshots();
 
   // Period data
-  void savePeriodData(const PbftBlock& pbft_block, const std::vector<Vote>& cert_votes,
-                      const std::vector<DagBlock>& dag_blocks, const std::vector<Transaction>& transactions,
-                      Batch& write_batch);
+  void savePeriodData(const SyncBlock& sync_block, Batch& write_batch);
   dev::bytes getPeriodDataRaw(uint64_t period);
-  PbftBlock parsePeriodData(RLP& rlp, std::vector<Vote>& cert_votes, std::vector<DagBlock>& dag_blocks,
-                            std::vector<Transaction>& transactions);
   shared_ptr<PbftBlock> getPbftBlock(uint64_t period);
 
   static constexpr uint16_t PBFT_BLOCK_POS_IN_PERIOD_DATA = 0;

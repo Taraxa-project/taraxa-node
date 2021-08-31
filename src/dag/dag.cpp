@@ -9,6 +9,8 @@
 #include <utility>
 #include <vector>
 
+#include "network/network.hpp"
+#include "network/rpc/WSServer.h"
 #include "transaction_manager/transaction_manager.hpp"
 
 namespace taraxa {
@@ -284,7 +286,7 @@ void PivotTree::getGhostPath(blk_hash_t const &vertex, std::vector<blk_hash_t> &
 
 DagManager::DagManager(blk_hash_t const &genesis, addr_t node_addr, std::shared_ptr<TransactionManager> trx_mgr,
                        std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DagBlockManager> dag_blk_mgr,
-                       std::shared_ptr<DbStorage> db) try
+                       std::shared_ptr<DbStorage> db, logger::Logger log_time) try
     : pivot_tree_(std::make_shared<PivotTree>(genesis, node_addr)),
       total_dag_(std::make_shared<Dag>(genesis, node_addr)),
       trx_mgr_(trx_mgr),
@@ -293,7 +295,8 @@ DagManager::DagManager(blk_hash_t const &genesis, addr_t node_addr, std::shared_
       db_(db),
       anchor_(genesis),
       period_(0),
-      genesis_(genesis) {
+      genesis_(genesis),
+      log_time_(log_time) {
   LOG_OBJECTS_CREATE("DAGMGR");
   DagBlock blk;
   blk_hash_t pivot;
@@ -320,6 +323,8 @@ std::shared_ptr<DagManager> DagManager::getShared() {
 void DagManager::stop() {
   unique_lock lock(mutex_);
   trx_mgr_ = nullptr;
+  stopped_ = true;
+  block_worker_.join();
 }
 
 std::pair<uint64_t, uint64_t> DagManager::getNumVerticesInDag() const {
@@ -366,10 +371,51 @@ DagFrontier DagManager::getDagFrontier() {
   return frontier_;
 }
 
+void DagManager::start() {
+  if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
+    return;
+  }
+  block_worker_ = std::thread([this]() { worker(); });
+}
+
+void DagManager::worker() {
+  bool level_limit = false;
+  uint64_t level = 0;
+  while (!stopped_) {
+    // will block if no verified block available
+    auto verified_block = dag_blk_mgr_->popVerifiedBlock(level_limit, level);
+    level_limit = false;
+    auto const &blk = *(verified_block.first);
+
+    if (pivotAndTipsAvailable(blk)) {
+      addDagBlock(blk);
+      block_verified_.emit(blk);
+      if (auto net = network_.lock()) {
+        net->onNewBlockVerified(verified_block.first, verified_block.second);
+      }
+      LOG(log_time_) << "Broadcast block " << blk.getHash() << " at: " << getCurrentTimeMilliSeconds();
+    } else {
+      // Networking makes sure that dag block that reaches queue already had
+      // its pivot and tips processed This should happen in a very rare case
+      // where in some race condition older block is verfified faster then
+      // new block but should resolve quickly, return block to queue
+      if (!stopped_) {
+        if (dag_blk_mgr_->pivotAndTipsValid(blk)) {
+          LOG(log_wr_) << "Block could not be added to DAG " << blk.getHash().toString();
+          dag_blk_mgr_->pushVerifiedBlock(blk);
+          level_limit = true;
+          level = blk.getLevel();
+        }
+      }
+    }
+  }
+}
+
 void DagManager::addDagBlock(DagBlock const &blk, bool finalized, bool save) {
   auto write_batch = db_->createWriteBatch();
   {
     uLock lock(mutex_);
+    received_blocks_++;
     if (save) {
       db_->saveDagBlock(blk, &write_batch);
     }

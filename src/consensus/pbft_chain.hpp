@@ -65,19 +65,6 @@ class PbftBlock {
 };
 std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk);
 
-struct PbftBlockCert {
-  PbftBlockCert(PbftBlock const& pbft_blk, std::vector<Vote> const& cert_votes);
-  explicit PbftBlockCert(dev::RLP const& all_rlp);
-  explicit PbftBlockCert(bytes const& all_rlp);
-
-  std::shared_ptr<PbftBlock> pbft_blk;
-  std::vector<Vote> cert_votes;
-  std::map<uint64_t, std::vector<DagBlock>> dag_blocks_per_level;
-  std::vector<Transaction> transactions;
-  bytes rlp() const;
-};
-std::ostream& operator<<(std::ostream& strm, PbftBlockCert const& b);
-
 class PbftChain {
  public:
   explicit PbftChain(blk_hash_t const& dag_genesis_hash, addr_t node_addr, std::shared_ptr<DbStorage> db);
@@ -101,23 +88,9 @@ class PbftChain {
 
   void updatePbftChain(blk_hash_t const& pbft_block_hash);
 
-  bool checkPbftBlockValidationFromSyncing(taraxa::PbftBlock const& pbft_block) const;
   bool checkPbftBlockValidation(taraxa::PbftBlock const& pbft_block) const;
 
-  // Syncing
-  uint64_t pbftSyncingPeriod() const;
-  bool pbftSyncedQueueEmpty() const;
-  PbftBlockCert pbftSyncedQueueFront() const;
-  PbftBlockCert pbftSyncedQueueBack() const;
-  void pbftSyncedQueuePopFront();
-  void setSyncedPbftBlockIntoQueue(PbftBlockCert const& pbft_block_and_votes);
-  void clearSyncedPbftBlocks();
-  size_t pbftSyncedQueueSize() const;
-  bool isKnownPbftBlockForSyncing(blk_hash_t const& pbft_block_hash);
-
  private:
-  void pbftSyncedSetInsert_(blk_hash_t const& pbft_block_hash);
-  void pbftSyncedSetErase_();
   void insertUnverifiedPbftBlockIntoParentMap_(blk_hash_t const& prev_block_hash, blk_hash_t const& block_hash);
 
   using uniqueLock_ = boost::unique_lock<boost::shared_mutex>;
@@ -125,7 +98,6 @@ class PbftChain {
   using upgradableLock_ = boost::upgrade_lock<boost::shared_mutex>;
   using upgradeLock_ = boost::upgrade_to_unique_lock<boost::shared_mutex>;
 
-  mutable boost::shared_mutex sync_access_;
   mutable boost::shared_mutex unverified_access_;
   mutable boost::shared_mutex chain_head_access_;
 
@@ -139,10 +111,6 @@ class PbftChain {
   // <prev block hash, vector<PBFT proposed blocks waiting for vote>>
   std::unordered_map<blk_hash_t, std::vector<blk_hash_t>> unverified_blocks_map_;
   std::unordered_map<blk_hash_t, std::shared_ptr<PbftBlock>> unverified_blocks_;
-
-  // syncing pbft blocks from peers
-  std::deque<PbftBlockCert> pbft_synced_queue_;
-  std::unordered_set<blk_hash_t> pbft_synced_set_;
 
   LOG_OBJECTS_DEFINE
 };
