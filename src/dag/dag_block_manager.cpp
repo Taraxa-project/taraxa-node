@@ -1,5 +1,7 @@
 #include "dag_block_manager.hpp"
 
+#include "dag.hpp"
+
 namespace taraxa {
 
 DagBlockManager::DagBlockManager(addr_t node_addr, vdf_sortition::VdfConfig const &vdf_config,
@@ -137,13 +139,13 @@ void DagBlockManager::pushUnverifiedBlock(DagBlock const &blk, std::vector<Trans
   cond_for_unverified_qu_.notify_one();
 }
 
-void DagBlockManager::processSyncedBlock(DagBlock const &blk) {
+bool DagBlockManager::processSyncedBlock(DagBlock const &blk, DagManager &dag_mgr) {
   blk_hash_t block_hash = blk.getHash();
 
   // This dag block was already processed, skip it
   if (isBlockKnown(block_hash)) {
     LOG(log_dg_) << "Skipping dag block " << block_hash << " -> already processed.";
-    return;
+    return true;
   }
 
   seen_blocks_.update(block_hash, blk);
@@ -153,17 +155,22 @@ void DagBlockManager::processSyncedBlock(DagBlock const &blk) {
   vec_trx_t const &all_block_trx_hashes = blk.getTrxs();
   if (all_block_trx_hashes.empty()) {
     LOG(log_er_) << "Ignore block " << block_hash << " since it has no transactions";
-    blk_status_.update(block_hash, BlockStatus::invalid);
-    return;
+    return false;
   }
   {
     uLock lock(shared_mutex_for_verified_qu_);
-    verified_qu_[blk.getLevel()].emplace_back(blk);
+
+    if (dag_mgr.pivotAndTipsAvailable(blk)) {
+      dag_mgr.addDagBlock(blk);
+    } else {
+      LOG(log_er_) << "Ignore block " << block_hash << " since missing tip/pivots";
+      return false;
+    }
   }
   blk_status_.update(block_hash, BlockStatus::verified);
 
   LOG(log_dg_) << "Synced dag block: " << block_hash;
-  cond_for_verified_qu_.notify_one();
+  return true;
 }
 
 void DagBlockManager::processSyncedTransactions(std::vector<Transaction> const &transactions) {

@@ -5,6 +5,7 @@
 #include <libp2p/Session.h>
 
 #include <chrono>
+#include <queue>
 #include <set>
 #include <thread>
 
@@ -13,6 +14,7 @@
 #include "dag/dag_block_manager.hpp"
 #include "packets_stats.hpp"
 #include "peers_state.hpp"
+#include "sync_block.hpp"
 #include "syncing_state.hpp"
 #include "transaction_manager/transaction.hpp"
 #include "util/thread_pool.hpp"
@@ -110,6 +112,14 @@ struct TaraxaCapability : virtual CapabilityFace {
   void sendTransactions();
   std::string packetTypeToString(unsigned int _packetType) const override;
 
+  uint64_t pbftSyncingPeriod() const;
+  void syncBlockQueuePop();
+  std::shared_ptr<SyncBlock> processSyncBlock();
+  void syncBlockQueuePush(SyncBlock const &block, NodeID const &node_id);
+  void clearSyncBlockQueue();
+  size_t syncBlockQueueSize() const;
+  blk_hash_t getLastSyncBlockHash() const;
+
   // PBFT
   void onNewPbftVote(taraxa::Vote const &vote);
   void sendPbftVote(NodeID const &peerID, taraxa::Vote const &vote);
@@ -146,6 +156,7 @@ struct TaraxaCapability : virtual CapabilityFace {
   util::ThreadPool syncing_tp_{1, false};
   SyncingState syncing_state_;
   PeersState peers_state_;
+  mutable std::shared_mutex sync_access_;
 
   std::unordered_map<NodeID, int> cnt_received_messages_;
   std::unordered_map<NodeID, int> test_sums_;
@@ -174,6 +185,8 @@ struct TaraxaCapability : virtual CapabilityFace {
 
   uint64_t received_trx_count = 0;
   uint64_t unique_received_trx_count = 0;
+
+  std::queue<std::pair<SyncBlock, dev::p2p::NodeID>> sync_queue_;
 
   // Node stats info history
   uint64_t summary_interval_ms_ = 30000;

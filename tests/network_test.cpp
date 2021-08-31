@@ -351,7 +351,7 @@ TEST_F(NetworkTest, node_sync) {
   }
 
   EXPECT_HAPPENS({30s, 500ms}, [&](auto& ctx) {
-    WAIT_EXPECT_EQ(ctx, node1->getNumReceivedBlocks(), blks.size())
+    WAIT_EXPECT_EQ(ctx, node1->getDagManager()->getNumReceivedBlocks(), blks.size())
     WAIT_EXPECT_EQ(ctx, node1->getDagManager()->getNumVerticesInDag().first, 7)
     WAIT_EXPECT_EQ(ctx, node1->getDagManager()->getNumEdgesInDag().first, 8)
   });
@@ -360,7 +360,7 @@ TEST_F(NetworkTest, node_sync) {
 
   std::cout << "Waiting Sync..." << std::endl;
   EXPECT_HAPPENS({45s, 1500ms}, [&](auto& ctx) {
-    WAIT_EXPECT_EQ(ctx, node2->getNumReceivedBlocks(), blks.size())
+    WAIT_EXPECT_EQ(ctx, node2->getDagManager()->getNumReceivedBlocks(), blks.size())
     WAIT_EXPECT_EQ(ctx, node2->getDagManager()->getNumVerticesInDag().first, 7)
     WAIT_EXPECT_EQ(ctx, node2->getDagManager()->getNumEdgesInDag().first, 8)
   });
@@ -407,12 +407,13 @@ TEST_F(NetworkTest, node_pbft_sync) {
   std::cout << "Generate 1 vote for first PBFT block" << std::endl;
   // Add cert votes in DB
   // Add PBFT block in DB
-  std::vector<DagBlock> dag_blocks;
-  dag_blocks.push_back(blk1);
-  std::vector<Transaction> trxs;
-  trxs.push_back(g_signed_trx_samples[0]);
-  trxs.push_back(g_signed_trx_samples[1]);
-  db1->savePeriodData(pbft_block1, votes_for_pbft_blk1, dag_blocks, trxs, batch);
+
+  SyncBlock sync_block1(pbft_block1, votes_for_pbft_blk1);
+  sync_block1.dag_blocks.push_back(blk1);
+  sync_block1.transactions.push_back(g_signed_trx_samples[0]);
+  sync_block1.transactions.push_back(g_signed_trx_samples[1]);
+
+  db1->savePeriodData(sync_block1, batch);
   // Update period_pbft_block in DB
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block1.getBlockHash());
@@ -450,12 +451,13 @@ TEST_F(NetworkTest, node_pbft_sync) {
   // node1 put block2 into pbft chain and store into DB
   // Add cert votes in DB
   // Add PBFT block in DB
-  dag_blocks.clear();
-  trxs.clear();
-  dag_blocks.push_back(blk2);
-  trxs.push_back(g_signed_trx_samples[2]);
-  trxs.push_back(g_signed_trx_samples[3]);
-  db1->savePeriodData(pbft_block2, votes_for_pbft_blk2, dag_blocks, trxs, batch);
+
+  SyncBlock sync_block2(pbft_block2, votes_for_pbft_blk2);
+  sync_block2.dag_blocks.push_back(blk2);
+  sync_block2.transactions.push_back(g_signed_trx_samples[2]);
+  sync_block2.transactions.push_back(g_signed_trx_samples[3]);
+
+  db1->savePeriodData(sync_block2, batch);
 
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block2.getBlockHash());
@@ -538,12 +540,13 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   std::cout << "Generate 1 vote for first PBFT block" << std::endl;
   // Add cert votes in DB
   // Add PBFT block in DB
-  std::vector<DagBlock> dag_blocks;
-  dag_blocks.push_back(blk1);
-  std::vector<Transaction> trxs;
-  trxs.push_back(g_signed_trx_samples[0]);
-  trxs.push_back(g_signed_trx_samples[1]);
-  db1->savePeriodData(pbft_block1, votes_for_pbft_blk1, dag_blocks, trxs, batch);
+
+  SyncBlock sync_block1(pbft_block1, votes_for_pbft_blk1);
+  sync_block1.dag_blocks.push_back(blk1);
+  sync_block1.transactions.push_back(g_signed_trx_samples[0]);
+  sync_block1.transactions.push_back(g_signed_trx_samples[1]);
+
+  db1->savePeriodData(sync_block1, batch);
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block1.getBlockHash());
   // Update PBFT chain head block
@@ -577,12 +580,13 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   // node1 put block2 into pbft chain and use fake votes storing into DB (malicious player)
   // Add fake votes in DB
   // Add PBFT block in DB
-  dag_blocks.clear();
-  trxs.clear();
-  dag_blocks.push_back(blk2);
-  trxs.push_back(g_signed_trx_samples[2]);
-  trxs.push_back(g_signed_trx_samples[3]);
-  db1->savePeriodData(pbft_block2, votes_for_pbft_blk1, dag_blocks, trxs, batch);
+
+  SyncBlock sync_block2(pbft_block2, votes_for_pbft_blk1);
+  sync_block2.dag_blocks.push_back(blk1);
+  sync_block2.transactions.push_back(g_signed_trx_samples[2]);
+  sync_block2.transactions.push_back(g_signed_trx_samples[3]);
+
+  db1->savePeriodData(sync_block2, batch);
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block2.getBlockHash());
   // Update PBFT chain head block
@@ -886,11 +890,11 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
   }
 
   // node1->drawGraph("dot.txt");
-  EXPECT_EQ(node1->getNumReceivedBlocks(), 6);
+  EXPECT_EQ(node1->getDagManager()->getNumReceivedBlocks(), 6);
   EXPECT_EQ(node1->getDagManager()->getNumVerticesInDag().first, 7);
   EXPECT_EQ(node1->getDagManager()->getNumEdgesInDag().first, 8);
 
-  EXPECT_EQ(node2->getNumReceivedBlocks(), 6);
+  EXPECT_EQ(node2->getDagManager()->getNumReceivedBlocks(), 6);
   EXPECT_EQ(node2->getDagManager()->getNumVerticesInDag().first, 7);
   EXPECT_EQ(node2->getDagManager()->getNumEdgesInDag().first, 8);
 }
@@ -1020,13 +1024,13 @@ TEST_F(NetworkTest, node_sync2) {
   auto node2 = create_nodes({node_cfgs[1]}, true /*start*/).front();
 
   EXPECT_HAPPENS({10s, 100ms}, [&](auto& ctx) {
-    WAIT_EXPECT_EQ(ctx, node1->getNumReceivedBlocks(), blks.size())
+    WAIT_EXPECT_EQ(ctx, node1->getDagManager()->getNumReceivedBlocks(), blks.size())
     WAIT_EXPECT_EQ(ctx, node1->getDagManager()->getNumVerticesInDag().first, 13)
     WAIT_EXPECT_EQ(ctx, node1->getDagManager()->getNumEdgesInDag().first, 13)
   });
 
   EXPECT_HAPPENS({50s, 300ms}, [&](auto& ctx) {
-    WAIT_EXPECT_EQ(ctx, node2->getNumReceivedBlocks(), blks.size())
+    WAIT_EXPECT_EQ(ctx, node2->getDagManager()->getNumReceivedBlocks(), blks.size())
     WAIT_EXPECT_EQ(ctx, node2->getDagManager()->getNumVerticesInDag().first, 13)
     WAIT_EXPECT_EQ(ctx, node2->getDagManager()->getNumEdgesInDag().first, 13)
   });

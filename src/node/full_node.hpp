@@ -80,9 +80,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<net::WSServer> jsonrpc_ws_;
   std::unique_ptr<jsonrpc_server_t> jsonrpc_api_;
 
-  std::vector<std::thread> block_workers_;
-  // debug
-  std::atomic_uint64_t received_blocks_ = 0;
   // logging
   LOG_OBJECTS_DEFINE
   mutable logger::Logger log_time_;
@@ -119,7 +116,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
 
   // For Debug
   auto &getTimeLogger() { return log_time_; }
-  auto getNumReceivedBlocks() const { return received_blocks_.load(); }
   uint64_t getNumProposedBlocks() const;
 
   // PBFT

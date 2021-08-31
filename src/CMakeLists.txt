@@ -34,6 +34,7 @@ set(SOURCES
         network/taraxa_capability.hpp
         network/taraxa_peer.hpp
         network/syncing_state.hpp
+        network/sync_block.hpp
         network/rpc/rpc_error_handler.hpp
         network/rpc/eth/watches.hpp
         network/rpc/eth/LogFilter.hpp
@@ -110,6 +111,7 @@ set(SOURCES
         network/peers_state.cpp
         network/taraxa_capability.cpp
         network/syncing_state.cpp
+        network/sync_block.cpp
         node/full_node.cpp
         storage/db_storage.cpp
         transaction_manager/transaction.cpp
