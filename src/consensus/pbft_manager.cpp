@@ -901,10 +901,14 @@ void PbftManager::certifyBlock_() {
 
       bool unverified_soft_vote_block_for_this_round_is_valid = false;
       if (!executed_soft_voted_block_for_this_round) {
-        if (checkPbftBlockValid_(soft_voted_block_for_this_round_.first)) {
-          LOG(log_tr_) << "checkPbftBlockValid_ returned true";
+        auto block = pbft_chain_->getUnverifiedPbftBlock(soft_voted_block_for_this_round_.first);
+        if (block && pbft_chain_->checkPbftBlockValidation(*block)) {
           unverified_soft_vote_block_for_this_round_is_valid = true;
         } else {
+          if (!block) {
+            LOG(log_er_) << "Cannot find the unverified pbft block " << soft_voted_block_for_this_round_.first
+                         << " in round " << round << " step 3";
+          }
           syncPbftChainFromPeers_(invalid_soft_voted_block, soft_voted_block_for_this_round_.first);
         }
       }
@@ -1352,15 +1356,6 @@ std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_(std::vector<Vote> 
   return std::make_pair(leader.second, true);
 }
 
-bool PbftManager::checkPbftBlockValid_(blk_hash_t const &block_hash) const {
-  auto block = pbft_chain_->getUnverifiedPbftBlock(block_hash);
-  if (!block) {
-    LOG(log_er_) << "Cannot find the unverified pbft block, block hash " << block_hash;
-    return false;
-  }
-  return pbft_chain_->checkPbftBlockValidation(*block);
-}
-
 bool PbftManager::syncRequestedAlreadyThisStep_() const {
   return getPbftRound() == pbft_round_last_requested_sync_ && step_ == pbft_step_last_requested_sync_;
 }
@@ -1428,16 +1423,10 @@ bool PbftManager::broadcastAlreadyThisStep_() const {
   return getPbftRound() == pbft_round_last_broadcast_ && step_ == pbft_step_last_broadcast_;
 }
 
-// Must be in certifying step, and has seen enough soft-votes for some value != NULL_BLOCK_HASH
 bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(blk_hash_t const &pbft_block_hash) {
-  auto pbft_block = pbft_chain_->getUnverifiedPbftBlock(pbft_block_hash);
+  auto pbft_block = getUnfinalizedBlock_(pbft_block_hash);
   if (!pbft_block) {
-    pbft_block = db_->getPbftCertVotedBlock(pbft_block_hash);
-    if (!pbft_block) {
-      return false;
-    }
-    // Read from DB pushing into unverified queue
-    pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
+    return false;
   }
 
   return comparePbftBlockScheduleWithDAGblocks_(*pbft_block).second;
@@ -1455,16 +1444,10 @@ std::pair<vec_blk_t, bool> PbftManager::comparePbftBlockScheduleWithDAGblocks_(P
 
 bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cert_voted_block_hash,
                                                    std::vector<Vote> const &cert_votes_for_round) {
-  auto pbft_block = pbft_chain_->getUnverifiedPbftBlock(cert_voted_block_hash);
+  auto pbft_block = getUnfinalizedBlock_(cert_voted_block_hash);
   if (!pbft_block) {
-    pbft_block = db_->getPbftCertVotedBlock(cert_voted_block_hash);
-    if (!pbft_block) {
-      LOG(log_nf_) << "Can not find the cert voted block hash " << cert_voted_block_hash
-                   << " in both pbft queue and DB";
-      return false;
-    }
-    // PBFT unverified queue empty after node reboot, read from DB pushing back in unverified queue
-    pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
+    LOG(log_nf_) << "Can not find the cert voted block hash " << cert_voted_block_hash << " in both pbft queue and DB";
+    return false;
   }
 
   if (!pbft_chain_->checkPbftBlockValidation(*pbft_block)) {
@@ -1693,15 +1676,7 @@ bool PbftManager::giveUpSoftVotedBlock_() {
   unsigned long elapsed_wait_soft_voted_block_in_ms =
       std::chrono::duration_cast<std::chrono::milliseconds>(soft_voted_block_wait_duration).count();
 
-  auto pbft_block = pbft_chain_->getUnverifiedPbftBlock(previous_round_next_voted_value_);
-  if (!pbft_block) {
-    pbft_block = db_->getPbftCertVotedBlock(previous_round_next_voted_value_);
-    if (pbft_block) {
-      // PBFT unverified queue empty after node reboot, read from DB pushing back in unverified queue
-      pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
-    }
-  }
-
+  auto pbft_block = getUnfinalizedBlock_(previous_round_next_voted_value_);
   if (pbft_block) {
     // Have a block, but is it valid?
     if (!pbft_chain_->checkPbftBlockValidation(*pbft_block)) {
@@ -1754,27 +1729,32 @@ bool PbftManager::giveUpNextVotedBlock_() {
     return true;
   }
 
-  auto pbft_block = pbft_chain_->getUnverifiedPbftBlock(previous_round_next_voted_value_);
-  if (!pbft_block) {
-    pbft_block = db_->getPbftCertVotedBlock(previous_round_next_voted_value_);
-    if (!pbft_block) {
-      LOG(log_dg_) << "Cannot find PBFT block " << previous_round_next_voted_value_
-                   << " in both queue and DB, have not got yet";
-      return false;
-    }
-    // PBFT unverified queue empty after node reboot, read from DB pushing back in unverified queue
-    pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
-  }
-
+  auto pbft_block = getUnfinalizedBlock_(previous_round_next_voted_value_);
   if (pbft_block) {
     // Have a block, but is it valid?
     if (!pbft_chain_->checkPbftBlockValidation(*pbft_block)) {
       // Received the block, but not valid
       return true;
     }
+  } else {
+    LOG(log_dg_) << "Cannot find PBFT block " << previous_round_next_voted_value_
+                 << " in both queue and DB, have not got yet";
   }
 
   return false;
+}
+
+std::shared_ptr<PbftBlock> PbftManager::getUnfinalizedBlock_(blk_hash_t const &block_hash) {
+  auto block = pbft_chain_->getUnverifiedPbftBlock(block_hash);
+  if (!block) {
+    block = db_->getPbftCertVotedBlock(block_hash);
+    if (block) {
+      // PBFT unverified queue empty after node reboot, read from DB pushing back in unverified queue
+      pbft_chain_->pushUnverifiedPbftBlock(block);
+    }
+  }
+
+  return block;
 }
 
 void PbftManager::countVotes_() {
