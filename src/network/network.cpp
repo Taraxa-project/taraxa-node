@@ -194,8 +194,6 @@ int Network::getReceivedTransactionsCount() const { return taraxa_capability_->g
 
 std::shared_ptr<TaraxaPeer> Network::getPeer(NodeID const &id) const { return taraxa_capability_->getPeer(id); }
 
-uint64_t Network::pendingTasksNum() const { return tp_.num_pending_tasks(); }
-
 void Network::sendPbftBlock(NodeID const &id, PbftBlock const &pbft_block, uint64_t const &pbft_chain_size) {
   LOG(log_dg_) << "Network send PBFT block: " << pbft_block.getBlockHash() << " to: " << id;
   taraxa_capability_->sendPbftBlock(id, pbft_block, pbft_chain_size);

@@ -488,7 +488,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
     uint64_t issued_trx_count = 0;
     unordered_map<addr_t, val_t> expected_balances;
     shared_mutex m;
-    std::set<trx_hash_t> transactions;
+    std::unordered_set<trx_hash_t> transactions;
 
    public:
     context(decltype(nodes_) nodes) : nodes_(nodes) {
@@ -652,11 +652,11 @@ TEST_F(FullNodeTest, sync_five_nodes) {
   EXPECT_EQ(num_vertices3, num_vertices4);
   EXPECT_EQ(num_vertices4, num_vertices5);
 
-  ASSERT_EQ(nodes[0]->getTransactionManager()->getTransactionCount(), context.getIssuedTrxCount());
-  ASSERT_EQ(nodes[1]->getTransactionManager()->getTransactionCount(), context.getIssuedTrxCount());
-  ASSERT_EQ(nodes[2]->getTransactionManager()->getTransactionCount(), context.getIssuedTrxCount());
-  ASSERT_EQ(nodes[3]->getTransactionManager()->getTransactionCount(), context.getIssuedTrxCount());
-  ASSERT_EQ(nodes[4]->getTransactionManager()->getTransactionCount(), context.getIssuedTrxCount());
+  ASSERT_EQ(nodes[0]->getTransactionManager()->getTransactionCount(), issued_trx_count);
+  ASSERT_EQ(nodes[1]->getTransactionManager()->getTransactionCount(), issued_trx_count);
+  ASSERT_EQ(nodes[2]->getTransactionManager()->getTransactionCount(), issued_trx_count);
+  ASSERT_EQ(nodes[3]->getTransactionManager()->getTransactionCount(), issued_trx_count);
+  ASSERT_EQ(nodes[4]->getTransactionManager()->getTransactionCount(), issued_trx_count);
 
   std::cout << "All transactions received ..." << std::endl;
 

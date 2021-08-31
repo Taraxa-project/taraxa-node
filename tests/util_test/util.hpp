@@ -348,12 +348,12 @@ inline void wait_for_balances(const vector<std::shared_ptr<FullNode>>& nodes, co
       for (const auto& b : balances) {
         if (node->getFinalChain()->getBalance(b.first).first != b.second) {
           sendDummyTransaction();
-          ctx.fail();
+          WAIT_EXPECT_EQ(ctx, node->getFinalChain()->getBalance(b.first).first, b.second);
         }
       }
       // wait for the same chain size on all nodes
       for (const auto& n : nodes) {
-        ctx.fail_if(node->getPbftChain()->getPbftChainSize() != n->getPbftChain()->getPbftChainSize());
+        WAIT_EXPECT_EQ(ctx, node->getPbftChain()->getPbftChainSize(), n->getPbftChain()->getPbftChainSize());
       }
     }
   });

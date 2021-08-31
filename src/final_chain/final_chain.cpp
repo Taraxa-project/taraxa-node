@@ -21,6 +21,7 @@ class FinalChainImpl final : public FinalChain {
   mutable shared_mutex last_block_mu_;
   mutable shared_ptr<BlockHeader> last_block_;
 
+  // It is not prepared to use more then 1 thread. Examine it if you want to change threads count
   util::ThreadPool executor_thread_{1};
 
   atomic<uint64_t> num_executed_dag_blk_ = 0;
@@ -73,9 +74,9 @@ class FinalChainImpl final : public FinalChain {
     }
   }
 
-  future<shared_ptr<FinalizationResult>> finalize(NewBlock new_blk, uint64_t period,
-                                                  finalize_precommit_ext precommit_ext = {}) override {
-    auto p = make_shared<promise<shared_ptr<FinalizationResult>>>();
+  future<shared_ptr<FinalizationResult const>> finalize(NewBlock new_blk, uint64_t period,
+                                                        finalize_precommit_ext precommit_ext = {}) override {
+    auto p = make_shared<promise<shared_ptr<FinalizationResult const>>>();
     executor_thread_.post([this, s = shared_from_this(), new_blk = move(new_blk), period,
                            precommit_ext = move(precommit_ext),
                            p]() mutable { p->set_value(finalize_(move(new_blk), period, precommit_ext)); });

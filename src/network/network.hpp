@@ -65,7 +65,6 @@ class Network {
   int getReceivedBlocksCount() const;
   int getReceivedTransactionsCount() const;
   std::shared_ptr<TaraxaPeer> getPeer(NodeID const &id) const;
-  uint64_t pendingTasksNum() const;
 
   // PBFT
   void sendPbftBlock(NodeID const &id, PbftBlock const &pbft_block, uint64_t const &pbft_chain_size);
