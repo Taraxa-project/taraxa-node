@@ -20,7 +20,7 @@ void TransactionQueue::stop() {
   cond_for_unverified_qu_.notify_all();
 }
 
-void TransactionQueue::insert(Transaction const &trx, bool verify) {
+bool TransactionQueue::insert(Transaction const &trx, bool verify) {
   const auto &hash = trx.getHash();
   auto trx_ptr = make_shared<Transaction>(trx);
 
@@ -29,8 +29,8 @@ void TransactionQueue::insert(Transaction const &trx, bool verify) {
 
     // Transaction is already in queued_trxs_, do not insert it again.
     if (!queued_trxs_.emplace(hash, trx_ptr).second) {
-      LOG(log_nf_) << "Tx: " << hash << " already inserted, skip it";
-      return;
+      LOG(log_nf_) << "Tx " << hash.abridged() << " already inserted, skip it";
+      return false;
     }
 
     if (verify) {
@@ -43,7 +43,8 @@ void TransactionQueue::insert(Transaction const &trx, bool verify) {
     }
   }
 
-  LOG(log_nf_) << " Tx: " << hash << " inserted. Verification processed: " << verify;
+  LOG(log_nf_) << " Tx " << hash.abridged() << " inserted. Verification processed: " << verify;
+  return true;
 }
 
 void TransactionQueue::insertUnverifiedTrxs(const vector<Transaction> &trxs) {
@@ -59,7 +60,7 @@ void TransactionQueue::insertUnverifiedTrxs(const vector<Transaction> &trxs) {
 
     // Transaction is already in queued_trxs_, do not add it again to unverified_hash_qu_.
     if (!queued_trxs_.emplace(tx_hash, trx_ptr).second) {
-      LOG(log_nf_) << "Tx: " << tx_hash << " already inserted, skip it";
+      LOG(log_wr_) << "insertUnverifiedTrxs: Tx " << tx_hash << " already inserted, skip it";
       continue;
     }
 

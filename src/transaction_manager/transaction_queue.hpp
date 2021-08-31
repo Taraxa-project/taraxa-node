@@ -17,10 +17,20 @@ class TransactionQueue {
 
   void start();
   void stop();
-  void insert(Transaction const &trx, bool verify);
 
   /**
-   * @brief Insert batch of unverified transactions at once
+   * @brief Inserts transaction into tx queue
+   *
+   * @param trx
+   * @param verify
+   * @return true if trx was inserted, otherwise false(might be already added by different thread)
+   */
+  bool insert(Transaction const &trx, bool verify);
+
+  /**
+   * @brief Inserts batch of unverified transactions at once
+   * @note Some of the provided txs might not be inserted as they were already inserted by different thread
+   *
    * @param trxs
    * @param verify
    */

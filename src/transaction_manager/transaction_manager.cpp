@@ -110,7 +110,10 @@ std::pair<bool, std::string> TransactionManager::insertTransaction(const Transac
   status = verify ? TransactionStatusEnum::in_queue_verified : TransactionStatusEnum::in_queue_unverified;
   db_->saveTransaction(trx, verify && mode_ != VerifyMode::skip_verify_sig);
   db_->saveTransactionStatus(hash, status);
-  trx_qu_.insert(trx, verify);
+
+  if (!trx_qu_.insert(trx, verify)) {
+    return std::make_pair(false, "skip, already inserted by different thread(race condition)");
+  }
 
   if (ws_server_) ws_server_->newPendingTransaction(trx.getHash());
 
@@ -243,8 +246,6 @@ void TransactionManager::verifyQueuedTrxs() {
 }
 
 void TransactionManager::setNetwork(std::weak_ptr<Network> network) { network_ = move(network); }
-
-void TransactionManager::setWsServer(std::shared_ptr<WSServer> ws_server) { ws_server_ = ws_server; }
 
 void TransactionManager::start() {
   if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {

@@ -52,7 +52,6 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   void start();
   void stop();
   void setNetwork(std::weak_ptr<Network> network);
-  void setWsServer(std::shared_ptr<net::WSServer> ws_server);
 
   /**
    * The following function will require a lock for verified qu
