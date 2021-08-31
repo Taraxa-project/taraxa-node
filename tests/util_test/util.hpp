@@ -110,6 +110,14 @@ inline bool wait(wait_opts const& opts, function<void(wait_ctx&)> const& poller)
     EXPECT_NE(o1, o2);                      \
   }
 
+#define WAIT_EXPECT_LT(ctx, o1, o2)         \
+  if (o1 < o2) {                            \
+    if (ctx.fail(); !ctx.is_last_attempt) { \
+      return;                               \
+    }                                       \
+    EXPECT_LT(o1, o2);                      \
+  }
+
 inline auto const node_cfgs_original = Lazy([] {
   vector<FullNodeConfig> ret;
   for (int i = 1;; ++i) {
