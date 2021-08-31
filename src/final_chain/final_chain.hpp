@@ -8,7 +8,6 @@
 #include "state_api.hpp"
 #include "storage/db_storage.hpp"
 #include "util/event.hpp"
-#include "util/exit_stack.hpp"
 #include "util/range_view.hpp"
 
 namespace taraxa::final_chain {
@@ -17,7 +16,7 @@ using namespace ::dev;
 using namespace ::taraxa::final_chain;
 using namespace ::taraxa::util;
 
-class FinalChain {
+class FinalChain : public std::enable_shared_from_this<FinalChain> {
  public:
   static constexpr auto GAS_LIMIT = ((uint64_t)1 << 53) - 1;
 
@@ -74,7 +73,7 @@ class FinalChain {
   }
 };
 
-unique_ptr<FinalChain> NewFinalChain(shared_ptr<DB> const& db, Config const& config, addr_t const& node_addr = {});
+shared_ptr<FinalChain> NewFinalChain(shared_ptr<DB> const& db, Config const& config, addr_t const& node_addr = {});
 
 }  // namespace taraxa::final_chain
 

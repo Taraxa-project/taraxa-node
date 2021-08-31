@@ -6,7 +6,6 @@
 #include <string_view>
 
 #include "util/encoding_rlp.hpp"
-#include "util/exit_stack.hpp"
 
 static_assert(sizeof(char) == sizeof(uint8_t));
 

@@ -61,10 +61,10 @@ class Network {
   void sendBlocks(dev::p2p::NodeID const &id, std::vector<std::shared_ptr<DagBlock>> blocks);
   void sendTransactions(NodeID const &_id, std::vector<taraxa::bytes> const &transactions);
   void setPendingPeersToReady();
-  dev::p2p::NodeID getNodeId();
-  int getReceivedBlocksCount();
-  int getReceivedTransactionsCount();
-  std::shared_ptr<TaraxaPeer> getPeer(NodeID const &id);
+  dev::p2p::NodeID getNodeId() const;
+  int getReceivedBlocksCount() const;
+  int getReceivedTransactionsCount() const;
+  std::shared_ptr<TaraxaPeer> getPeer(NodeID const &id) const;
 
   // PBFT
   void sendPbftBlock(NodeID const &id, PbftBlock const &pbft_block, uint64_t const &pbft_chain_size);

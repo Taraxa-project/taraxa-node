@@ -383,8 +383,7 @@ TEST_F(PbftManagerTest, terminate_missing_proposed_pbft_block) {
 }
 
 TEST_F(PbftManagerTest, full_node_lambda_input_test) {
-  auto node_cfgs = make_node_cfgs(1);
-  FullNode::Handle node(node_cfgs[0]);
+  auto node = create_nodes(1, true /*start*/).front();
 
   node->start();
   auto pbft_mgr = node->getPbftManager();
@@ -534,7 +533,7 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
 
 TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
   auto node_cfgs = make_node_cfgs<20>(1);
-  FullNode::Handle node(node_cfgs[0], true);
+  auto node = create_nodes(node_cfgs, true /*start*/).front();
 
   // create a transaction
   auto coins_value = val_t(100);
@@ -601,36 +600,9 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
 
   std::cout << "Checking all nodes see transaction from node 1 to node 2..." << std::endl;
 
-  bool checkpoint_passed = false;
-  for (auto _(0); _ < 120; ++_) {
-    checkpoint_passed = true;
-    // test timeout is 60 seconds
-    for (size_t i(0); i < nodes.size(); ++i) {
-      if (nodes[i]->getDB()->getNumTransactionExecuted() == 0) {
-        checkpoint_passed = false;
-      }
-    }
-    if (checkpoint_passed) break;
-    taraxa::thisThreadSleepForMilliSeconds(500);
-  }
-
-  if (checkpoint_passed == false) {
-    for (size_t i(0); i < nodes.size(); ++i) {
-      ASSERT_EQ(nodes[i]->getDB()->getNumTransactionExecuted(), 1);
-    }
-  }
-
-  uint64_t pbft_chain_size = 1;
-  for (size_t i(0); i < nodes.size(); ++i) {
-    EXPECT_EQ(nodes[i]->getFinalChain()->last_block_number(), pbft_chain_size);
-  }
-
-  for (size_t i(0); i < nodes.size(); ++i) {
-    std::cout << "Checking account balances on node " << i << " ..." << std::endl;
-    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node1_addr).first, node1_genesis_bal - 100);
-    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node2_addr).first, 100);
-    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node3_addr).first, 0);
-  }
+  const expected_balances_map_t expected_balances1 = {
+      {node1_addr, node1_genesis_bal - 100}, {node2_addr, 100}, {node3_addr, 0}};
+  wait_for_balances(nodes, expected_balances1);
 
   // create a transaction transfer coins from node1 to node3
   auto coins_value3 = val_t(1000);
@@ -641,45 +613,12 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
 
   std::cout << "Checking all nodes see transaction from node 1 to node 3..." << std::endl;
 
-  checkpoint_passed = false;
-  for (auto _(0); _ < 120; ++_) {
-    checkpoint_passed = true;
-    // test timeout is 60 seconds
-    for (size_t i(0); i < nodes.size(); ++i) {
-      if (nodes[i]->getDB()->getNumTransactionExecuted() != 2) {
-        checkpoint_passed = false;
-      }
-    }
-    if (checkpoint_passed) break;
-    taraxa::thisThreadSleepForMilliSeconds(500);
-  }
+  const expected_balances_map_t expected_balances2 = {
+      {node1_addr, node1_genesis_bal - 1100}, {node2_addr, 100}, {node3_addr, 1000}};
+  wait_for_balances(nodes, expected_balances2);
 
-  if (checkpoint_passed == false) {
-    for (size_t i(0); i < nodes.size(); ++i) {
-      ASSERT_EQ(nodes[i]->getDB()->getNumTransactionExecuted(), 1);
-    }
-  }
-
-  pbft_chain_size = 2;
-  // Vote DAG block
-  for (auto _(0); _ < 120; ++_) {
-    // test timeout is 60 seconds
-    if (nodes[0]->getFinalChain()->last_block_number() == pbft_chain_size &&
-        nodes[1]->getFinalChain()->last_block_number() == pbft_chain_size &&
-        nodes[2]->getFinalChain()->last_block_number() == pbft_chain_size) {
-      break;
-    }
-    taraxa::thisThreadSleepForMilliSeconds(500);
-  }
-  for (size_t i(0); i < nodes.size(); ++i) {
-    EXPECT_EQ(nodes[i]->getFinalChain()->last_block_number(), pbft_chain_size);
-  }
-
-  for (size_t i(0); i < nodes.size(); ++i) {
-    std::cout << "Checking account balances on node " << i << " ..." << std::endl;
-    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node1_addr).first, node1_genesis_bal - 1100);
-    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node2_addr).first, 100);
-    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node3_addr).first, 1000);
+  for (auto &node : nodes) {
+    node->getPbftManager()->stop();
   }
   // PBFT second block
   blk_hash_t pbft_second_block_hash = nodes[0]->getPbftChain()->getLastPbftBlockHash();

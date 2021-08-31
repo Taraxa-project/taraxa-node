@@ -54,7 +54,6 @@ set(SOURCES
         util/encoding_rlp.hpp
         util/default_construct_copyable_movable.hpp
         util/thread_pool.hpp
-        util/exit_stack.hpp
         util/event.hpp
         util/util.hpp
         util/lazy.hpp
