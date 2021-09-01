@@ -12,7 +12,7 @@ namespace taraxa {
 
 class Vote;
 class PbftBlock;
-class Transaction;
+struct Transaction;
 class DagBlock;
 
 class SyncBlock {
