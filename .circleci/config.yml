@@ -419,7 +419,7 @@ jobs:
       - run: 
          name: Clean old Images if disk used is larger than 80%
          command: |
-           if [ $(df  / --output=pcent|grep -v Use|cut -d'%' -f1) -ge 80 ]; then 
+           if [ $(df  /var/lib/docker --output=pcent|grep -v Use|cut -d'%' -f1) -ge 80 ]; then 
              docker prune -a --force --filter "until=120h"
            fi
       - run:
