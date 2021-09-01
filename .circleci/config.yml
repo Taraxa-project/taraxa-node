@@ -412,10 +412,16 @@ jobs:
       - CONAN_REVISIONS_ENABLED: 1
     machine:
       image: ubuntu-2004:202010-01
-      docker_layer_caching: false
+      docker_layer_caching: true
     resource_class: xlarge
     steps:
       - checkout
+      - run: 
+         name: Clean old Images if disk used is larger than 80%
+         command: |
+           if [ $(df  / --output=pcent|grep -v Use|cut -d'%' -f1) -ge 80 ]; then 
+             docker prune -a --force --filter "until=120h"
+           fi
       - run:
          name: Checkout Submodules
          command: |
@@ -442,33 +448,16 @@ jobs:
          command: |
             echo ${GCLOUD_SERVICE_KEY} | docker login -u _json_key --password-stdin https://gcr.io
 
-      - docker-cache/with-save-restore-images:
-         repository: gcr.io/${GOOGLE_PROJECT_ID}
-         images: >-
-           ${IMAGE}-cache:${DOCKER_BRANCH_TAG}
-           ${IMAGE}-cache:latest
-           ${IMAGE}-develop:latest
-         steps:
-           - docker-cache/build:
-              command: |
+      - run:
+         name: Build docker image
+         command: |
                 docker build -t ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} .
 
-      - docker-cache/with-save-restore-images:
-         repository: gcr.io/${GOOGLE_PROJECT_ID}
-         images: >-
-           ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} 
-           ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
-           ${IMAGE}-cache:latest
-           ${IMAGE}-cache:${DOCKER_BRANCH_TAG}
-         steps: 
-           - docker-cache/build:
-              command: |
+      - run:
+         name: Build ctest image
+         command: |
                docker build -t ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} \
-                 --target build .
-           - docker-cache/tag: 
-               tags: >-
-                  ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${IMAGE}-cache:${DOCKER_BRANCH_TAG}
-              
+                 --target build .              
                 
       - run:
          name: Run Ctest
