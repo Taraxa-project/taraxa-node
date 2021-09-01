@@ -62,7 +62,7 @@ bool DagBlockManager::isBlockKnown(blk_hash_t const &hash) {
 }
 
 bool DagBlockManager::markBlockAsSeen(const DagBlock &dag_block) {
-  return !seen_blocks_.insert(dag_block.getHash(), dag_block);
+  return seen_blocks_.insert(dag_block.getHash(), dag_block);
 }
 
 std::shared_ptr<DagBlock> DagBlockManager::getDagBlock(blk_hash_t const &hash) const {
@@ -121,8 +121,8 @@ void DagBlockManager::pushUnverifiedBlock(DagBlock const &blk, bool critical,
   }
 
   // Mark block as seen - synchronization point in case multiple threads are processing the same block at the same time
-  if (markBlockAsSeen(blk)) {
-    LOG(log_dg_) << "Got into the race condition while trying to push new unverified block " << blk.getHash().abridged()
+  if (!markBlockAsSeen(blk)) {
+    LOG(log_dg_) << "Trying to push new unverified block " << blk.getHash().abridged()
                  << " that is already marked as known, skip it";
     return;
   }
@@ -162,8 +162,8 @@ void DagBlockManager::processSyncedBlock(DagBlock const &blk) {
   }
 
   // Mark block as seen - synchronization point in case multiple threads are processing the same block at the same time
-  if (markBlockAsSeen(blk)) {
-    LOG(log_dg_) << "Got into the race condition while trying to push new unverified block " << blk.getHash().abridged()
+  if (!markBlockAsSeen(blk)) {
+    LOG(log_dg_) << "Trying to push new unverified block " << blk.getHash().abridged()
                  << " that is already marked as known, skip it";
     return;
   }
@@ -215,6 +215,7 @@ void DagBlockManager::processSyncedTransactions(std::vector<Transaction> const &
   db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_mgr_->getTransactionCount(), trx_batch);
   db_->commitWriteBatch(trx_batch);
 
+  // TODO: not a good idea to return reference to the private tx_queue
   trx_mgr_->getTransactionQueue().removeBlockTransactionsFromQueue(trx_hashes);
 }
 

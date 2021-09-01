@@ -46,10 +46,10 @@ class DagBlockManager {
   bool isBlockKnown(blk_hash_t const &hash);
 
   /**
-   * @brief Mask block as seen
+   * @brief Mark block as seen
    *
    * @param dag_block
-   * @return true in case block was already seen, otherwise false
+   * @return true in case block was actually marked as seen(was not seen before), otherwise false (was already seen)
    */
   bool markBlockAsSeen(const DagBlock &dag_block);
 

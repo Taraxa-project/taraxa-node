@@ -232,7 +232,7 @@ class ExpirationCache {
   ExpirationCache(uint32_t max_size, uint32_t delete_step) : max_size_(max_size), delete_step_(delete_step) {}
 
   bool insert(Key const &key) {
-     boost::unique_lock lck(mtx_);
+    boost::unique_lock lck(mtx_);
 
     if (cache_.find(key) != cache_.end()) {
       return false;
