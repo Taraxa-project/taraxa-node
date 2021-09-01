@@ -131,8 +131,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   std::pair<blk_hash_t, bool> identifyLeaderBlock_(std::vector<Vote> const &votes);
 
-  bool checkPbftBlockValid_(blk_hash_t const &block_hash) const;
-
   bool syncRequestedAlreadyThisStep_() const;
 
   void syncPbftChainFromPeers_(PbftSyncRequestReason reason, taraxa::blk_hash_t const &relevant_blk_hash);
@@ -159,6 +157,8 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   void updateLastSoftVotedValue_(blk_hash_t const new_soft_voted_value);
   void checkPreviousRoundNextVotedValueChange_();
   bool updateSoftVotedBlockForThisRound_();
+
+  std::shared_ptr<PbftBlock> getUnfinalizedBlock_(blk_hash_t const &block_hash);
 
   std::atomic<bool> stopped_ = true;
   // Using to check if PBFT block has been proposed already in one period
