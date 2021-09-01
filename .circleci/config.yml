@@ -417,7 +417,7 @@ jobs:
     steps:
       - checkout
       - run: 
-         name: Clean old Images if disk used is larger than 80%
+         name: Clean old Images if disk available is lower than 10G
          command: |
            for time in "120 96 72 48 24 12 6 3 1 0"
            do
