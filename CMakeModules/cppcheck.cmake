@@ -26,7 +26,8 @@ else ()
             "--std=c++20"
 
             # folder with source files to be checked
-            ${PROJECT_SOURCE_DIR}/src
+            ${PROJECT_SOURCE_DIR}/libraries
+            ${PROJECT_SOURCE_DIR}/programs
 
             COMMENT "Analysing files in src/ by cppcheck"
             )

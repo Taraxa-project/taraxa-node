@@ -1,5 +1,6 @@
 **/*
-!src
+!libraries
+!programs
 !submodules
 !scripts
 !CMakeModules

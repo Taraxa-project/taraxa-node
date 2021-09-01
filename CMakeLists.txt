@@ -194,7 +194,8 @@ add_custom_target(check-static DEPENDS cpp-check clang-format clang-format-check
 
 # Add sub-directories cmakes
 add_subdirectory(submodules)
-add_subdirectory(src)
+add_subdirectory(libraries)
+add_subdirectory(programs)
 add_subdirectory(tests)
 
 # An extension of this file that you can play with locally
