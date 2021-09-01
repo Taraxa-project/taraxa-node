@@ -412,10 +412,21 @@ jobs:
       - CONAN_REVISIONS_ENABLED: 1
     machine:
       image: ubuntu-2004:202010-01
-      docker_layer_caching: false
+      docker_layer_caching: true
     resource_class: xlarge
     steps:
       - checkout
+      - run: 
+         name: Clean old Images if disk available is lower than 15G
+         command: |
+           for time in "120 96 72 48 24 12 6 3 1 0"
+           do
+             if [ $(df  /var/lib/docker --block-size=1073741824 --output=avail|grep -v Avail) -lt 15 ]; then 
+                df  /var/lib/docker --block-size=1073741824 --output=avail
+                echo "Pruning images older than ${time}h"
+                docker prune image -a --force --filter "until=${time}h"
+              fi
+           done
       - run:
          name: Checkout Submodules
          command: |
@@ -442,33 +453,16 @@ jobs:
          command: |
             echo ${GCLOUD_SERVICE_KEY} | docker login -u _json_key --password-stdin https://gcr.io
 
-      - docker-cache/with-save-restore-images:
-         repository: gcr.io/${GOOGLE_PROJECT_ID}
-         images: >-
-           ${IMAGE}-cache:${DOCKER_BRANCH_TAG}
-           ${IMAGE}-cache:latest
-           ${IMAGE}-develop:latest
-         steps:
-           - docker-cache/build:
-              command: |
+      - run:
+         name: Build docker image
+         command: |
                 docker build -t ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} .
 
-      - docker-cache/with-save-restore-images:
-         repository: gcr.io/${GOOGLE_PROJECT_ID}
-         images: >-
-           ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} 
-           ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
-           ${IMAGE}-cache:latest
-           ${IMAGE}-cache:${DOCKER_BRANCH_TAG}
-         steps: 
-           - docker-cache/build:
-              command: |
+      - run:
+         name: Build ctest image
+         command: |
                docker build -t ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} \
-                 --target build .
-           - docker-cache/tag: 
-               tags: >-
-                  ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${IMAGE}-cache:${DOCKER_BRANCH_TAG}
-              
+                 --target build .              
                 
       - run:
          name: Run Ctest
@@ -553,7 +547,7 @@ jobs:
            if [[ ${PR} != "false" ]];then
               docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:pr-${PR}-${CIRCLE_BUILD_NUM}
            fi
-           docker tag ${GCP_IMAGE}-cache:${DOCKER_BRANCH_TAG} ${GCP_IMAGE}-cache:latest
+           
       - run:
          name: Install/configure helm and chart
          no_output_timeout: 15m
@@ -612,7 +606,6 @@ jobs:
               docker push ${GCP_IMAGE}:pr-${PR}-${CIRCLE_BUILD_NUM}
            fi
            if [[ ${CIRCLE_BRANCH} == "master" ]];then
-              docker push ${GCP_IMAGE}-cache:latest
               docker push ${GCP_IMAGE}:latest
               docker push ${GCP_IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
               docker push ${GCP_IMAGE}:${START_TIME}
