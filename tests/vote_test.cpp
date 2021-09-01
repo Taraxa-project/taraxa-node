@@ -119,8 +119,7 @@ TEST_F(VoteTest, verified_votes) {
 
 // Test moving all verified votes to unverified table/DB
 TEST_F(VoteTest, remove_verified_votes) {
-  auto node_cfgs = make_node_cfgs(1);
-  FullNode::Handle node(node_cfgs[0]);
+  auto node = create_nodes(1, true /*start*/).front();
 
   // stop PBFT manager, that will place vote
   auto pbft_mgr = node->getPbftManager();
@@ -209,8 +208,7 @@ TEST_F(VoteTest, add_cleanup_get_votes) {
 }
 
 TEST_F(VoteTest, round_determine_from_next_votes) {
-  auto node_cfgs = make_node_cfgs(1);
-  FullNode::Handle node(node_cfgs[0]);
+  auto node = create_nodes(1, true /*start*/).front();
 
   // stop PBFT manager, that will place vote
   auto pbft_mgr = node->getPbftManager();
