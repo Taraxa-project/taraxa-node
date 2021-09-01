@@ -419,9 +419,14 @@ jobs:
       - run: 
          name: Clean old Images if disk used is larger than 80%
          command: |
-           if [ $(df  /var/lib/docker --output=pcent|grep -v Use|cut -d'%' -f1) -ge 80 ]; then 
-             docker prune -a --force --filter "until=120h"
-           fi
+           for time in "120 96 72 48 24 12 6 3 1 0"
+           do
+             if [ $(df  /var/lib/docker --block-size=1073741824 --output=avail|grep -v Avail) -lt 10 ]; then 
+                df  /var/lib/docker --block-size=1073741824 --output=avail
+                echo "Pruning images older than ${time}h"
+                docker prune -a --force --filter "until=${time}h"
+              fi
+           done
       - run:
          name: Checkout Submodules
          command: |
