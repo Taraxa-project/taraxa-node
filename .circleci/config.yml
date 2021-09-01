@@ -542,7 +542,7 @@ jobs:
            if [[ ${PR} != "false" ]];then
               docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:pr-${PR}-${CIRCLE_BUILD_NUM}
            fi
-           docker tag ${GCP_IMAGE}-cache:${DOCKER_BRANCH_TAG} ${GCP_IMAGE}-cache:latest
+           
       - run:
          name: Install/configure helm and chart
          no_output_timeout: 15m
@@ -601,7 +601,6 @@ jobs:
               docker push ${GCP_IMAGE}:pr-${PR}-${CIRCLE_BUILD_NUM}
            fi
            if [[ ${CIRCLE_BRANCH} == "master" ]];then
-              docker push ${GCP_IMAGE}-cache:latest
               docker push ${GCP_IMAGE}:latest
               docker push ${GCP_IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
               docker push ${GCP_IMAGE}:${START_TIME}
