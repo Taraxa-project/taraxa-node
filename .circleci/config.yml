@@ -595,7 +595,6 @@ jobs:
          name: Push Images
          command: |
            if [[ ${CIRCLE_BRANCH} == "develop"   ]];then
-              docker push ${GCP_IMAGE}-cache:latest
               docker push ${GCP_IMAGE}-develop:latest
               docker push ${GCP_IMAGE}-develop:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
               docker push ${GCP_IMAGE}-develop:${START_TIME}
