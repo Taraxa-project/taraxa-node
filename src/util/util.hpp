@@ -231,8 +231,13 @@ class ExpirationCache {
  public:
   ExpirationCache(uint32_t max_size, uint32_t delete_step) : max_size_(max_size), delete_step_(delete_step) {}
 
-  void insert(Key const &key) {
-    boost::unique_lock lck(mtx_);
+  bool insert(Key const &key) {
+     boost::unique_lock lck(mtx_);
+
+    if (cache_.find(key) != cache_.end()) {
+      return false;
+    }
+
     cache_.insert(key);
     expiration_.push_back(key);
     if (cache_.size() > max_size_) {
@@ -241,6 +246,8 @@ class ExpirationCache {
         expiration_.pop_front();
       }
     }
+
+    return true;
   }
 
   std::size_t count(Key const &key) const {
