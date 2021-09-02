@@ -424,7 +424,7 @@ jobs:
              if [ $(df  /var/lib/docker --block-size=1073741824 --output=avail|grep -v Avail) -lt 15 ]; then 
                 df  /var/lib/docker --block-size=1073741824 --output=avail
                 echo "Pruning images older than ${time}h"
-                docker prune image -a --force --filter "until=${time}h"
+                docker image prune -a --force --filter "until=${time}h"
               fi
            done
       - run:
