@@ -120,12 +120,12 @@ void PriorityQueue::updateDependenciesStart(const PacketData& packet) {
     blocked_packets_mask_.markPacketAsHardBlocked(packet.type_);
   }
 
-  // When processing TransactionPacket, processing of all dag block packets that were received after that (from the same
-  // peer). No need to block processing of dag blocks packets received before as it should not be possible to send dag
+  // When processing TransactionPacket, block processing of all dag block packets that were received after that.
+  // No need to block processing of dag blocks packets received before as it should not be possible to send dag
   // block before sending txs it contains...
   if (packet.type_ == PriorityQueuePacketType::PQ_TransactionPacket) {
-    blocked_packets_mask_.markPacketAsPeerTimeBlocked(packet, PriorityQueuePacketType::PQ_NewBlockPacket);
-    blocked_packets_mask_.markPacketAsPeerTimeBlocked(packet, PriorityQueuePacketType::PQ_NewBlockHashPacket);
+    blocked_packets_mask_.markPacketAsTimeBlocked(packet, PriorityQueuePacketType::PQ_NewBlockPacket);
+    blocked_packets_mask_.markPacketAsTimeBlocked(packet, PriorityQueuePacketType::PQ_NewBlockHashPacket);
   }
 }
 
@@ -144,8 +144,8 @@ void PriorityQueue::updateDependenciesFinish(const PacketData& packet, std::mute
     // Lock queue mutex as it writes to the non-atomic blocked_packets_mask_ data
     std::unique_lock<std::mutex> lock(queue_mutex);
 
-    blocked_packets_mask_.markPacketAsPeerTimeUnblocked(packet, PriorityQueuePacketType::PQ_NewBlockPacket);
-    blocked_packets_mask_.markPacketAsPeerTimeUnblocked(packet, PriorityQueuePacketType::PQ_NewBlockHashPacket);
+    blocked_packets_mask_.markPacketAsTimeUnblocked(packet, PriorityQueuePacketType::PQ_NewBlockPacket);
+    blocked_packets_mask_.markPacketAsTimeUnblocked(packet, PriorityQueuePacketType::PQ_NewBlockHashPacket);
   }
 
   act_total_workers_count_--;
