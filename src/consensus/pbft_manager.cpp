@@ -1121,7 +1121,7 @@ votesBundle PbftManager::blockWithEnoughVotes_(std::vector<Vote> const &votes) c
 
   for (Vote const &v : votes) {
     if (v.getType() != vote_type) {
-      LOG(log_er_) << "Vote has a different type with " << vote_type << ". VOTE: " << v;
+      LOG(log_er_) << "Vote has a different type with " << unsigned(vote_type) << ". VOTE: " << v;
       assert(false);
     } else if (v.getRound() != vote_round) {
       LOG(log_er_) << "Vote has a different round with " << vote_round << ". VOTE: " << v;
@@ -1141,12 +1141,13 @@ votesBundle PbftManager::blockWithEnoughVotes_(std::vector<Vote> const &votes) c
 
     for (auto const &blockhash_votes : blockhash_votes_map) {
       if (blockhash_votes.second.size() == TWO_T_PLUS_ONE) {
-        LOG(log_dg_) << "Find voted block hash " << blockhash_votes.first << " vote type " << vote_type << " in round "
-                     << vote_round << " step " << vote_step << " has " << blockhash_votes.second.size() << " votes";
+        LOG(log_dg_) << "Find voted block hash " << blockhash_votes.first << " vote type " << unsigned(vote_type)
+                     << " in round " << vote_round << " step " << vote_step << " has " << blockhash_votes.second.size()
+                     << " votes";
         return votesBundle(true, blockhash_votes.first, blockhash_votes.second);
       } else {
         LOG(log_tr_) << "Don't have enough votes. voted block hash " << blockhash_votes.first << " vote type "
-                     << vote_type << " for round " << vote_round << " step " << vote_step << " has "
+                     << unsigned(vote_type) << " for round " << vote_round << " step " << vote_step << " has "
                      << blockhash_votes.second.size() << " votes (2TP1 = " << TWO_T_PLUS_ONE << ")";
       }
     }
