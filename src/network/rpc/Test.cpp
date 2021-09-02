@@ -218,8 +218,6 @@ Json::Value Test::get_node_version() {
       res["db_version"] = getFormattedVersion({TARAXA_DB_MAJOR_VERSION, TARAXA_DB_MINOR_VERSION});
       res["network_version"] = std::to_string(TARAXA_NET_VERSION);
       ;
-      res["build_hash"] = GIT_HASH;
-      res["build_time"] = COMPILE_TIME;
     }
   } catch (std::exception &e) {
     res["status"] = e.what();
