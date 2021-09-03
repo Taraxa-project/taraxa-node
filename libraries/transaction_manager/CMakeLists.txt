@@ -21,7 +21,6 @@ target_link_libraries(transaction_manager PRIVATE
     config
     consensus
     final_chain 
-    dag
     logger
     network
     storage

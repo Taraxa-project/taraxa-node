@@ -2,7 +2,6 @@ add_subdirectory(cli)
 add_subdirectory(common)
 add_subdirectory(config)
 add_subdirectory(consensus)
-add_subdirectory(dag)
 add_subdirectory(final_chain)
 add_subdirectory(logger)
 add_subdirectory(network)
@@ -12,7 +11,6 @@ add_subdirectory(transaction_manager)
 
 add_subdirectory(aleth)
 
-# empty.cpp file needed to make this a normal lib(shared or static), but not the interface
 add_library(app_base INTERFACE)
 
 # system libs should be included via -isystem so compiler knows how to
@@ -27,7 +25,6 @@ target_link_libraries(app_base INTERFACE
         common
         config
         consensus
-        dag
         final_chain
         logger
         network

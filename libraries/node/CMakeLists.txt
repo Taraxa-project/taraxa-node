@@ -12,7 +12,6 @@ target_link_libraries(node PRIVATE
     common
     config
     consensus
-    dag
     final_chain
     logger
     network

@@ -23,7 +23,6 @@ target_link_libraries(final_chain PRIVATE
     common 
     consensus 
     config 
-    dag 
     logger 
     storage 
     transaction_manager 

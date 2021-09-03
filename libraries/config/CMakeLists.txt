@@ -26,7 +26,6 @@ target_include_directories(config PUBLIC "include")
 target_link_libraries(config PRIVATE 
     common
     consensus
-    dag
     logger
     aleth
     taraxa-vrf

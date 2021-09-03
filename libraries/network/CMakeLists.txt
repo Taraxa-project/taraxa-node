@@ -101,7 +101,6 @@ target_link_libraries(network PRIVATE
     common
     config
     consensus
-    dag
     final_chain
     logger
     node

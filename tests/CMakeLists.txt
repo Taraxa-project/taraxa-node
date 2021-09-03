@@ -15,7 +15,7 @@ add_test(network_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/network_test)
 
 add_executable(transaction_test transaction_test.cpp)
 # libs linking second time because of link issues 
-target_link_libraries(transaction_test dag consensus app_base CONAN_PKG::gtest)
+target_link_libraries(transaction_test consensus app_base CONAN_PKG::gtest)
 add_test(transaction_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/transaction_test)
 
 add_executable(dag_block_test dag_block_test.cpp)
