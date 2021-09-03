@@ -86,26 +86,6 @@ endif ()
 # Mac OS
 set(CMAKE_MACOSX_RPATH OFF)
 
-# Get the latest abbreviated commit hash of the working branch
-execute_process(
-        COMMAND git log -1 --format=%h
-        WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
-        OUTPUT_VARIABLE GIT_HASH
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-)
-
-# Get compile time
-execute_process(
-        COMMAND date -u +%Y-%m-%d-%H:%M:%S
-        OUTPUT_VARIABLE COMPILE_TIME
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-)
-
-add_compile_definitions(
-        GIT_HASH=\"${GIT_HASH}\"
-        COMPILE_TIME=\"${COMPILE_TIME}\"
-)
-
 # Enable creation of taraxa package containing taraxad binary
 set(ENABLE_PACKAGE_INSTALLER TRUE CACHE BOOL "Build Taraxa package")
 
@@ -173,7 +153,7 @@ if(CONAN_EXPORTED)
 else()
     if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
         message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
-        file(DOWNLOAD "https://github.com/conan-io/cmake-conan/raw/v0.16/conan.cmake"
+        file(DOWNLOAD "https://github.com/conan-io/cmake-conan/raw/v0.16.1/conan.cmake"
             "${CMAKE_BINARY_DIR}/conan.cmake"
             TLS_VERIFY ON)
     endif()
@@ -182,6 +162,7 @@ else()
 
     conan_cmake_run(CONANFILE conanfile.py BUILD_TYPE ${CMAKE_BUILD_TYPE} BUILD missing
                     BASIC_SETUP CMAKE_TARGETS KEEP_RPATHS PROFILE ${CONAN_PROFILE})
+    set(CONAN_EXPORTED true CACHE BOOL "Is conan already run on the project")
 endif()
 
 # Custom CMakeModules for finding libraries
