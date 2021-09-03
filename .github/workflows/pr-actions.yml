@@ -32,7 +32,7 @@ jobs:
           pull_request: '${{ steps.request.outputs.data }}'
         if: steps.check.outputs.triggered == 'true'
   redeploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-16.04
     steps:
       - uses: khan/pull-request-comment-trigger@master
         id: check
@@ -57,7 +57,7 @@ jobs:
           pull_request: '${{ steps.request.outputs.data }}'
         if: steps.check.outputs.triggered == 'true'
   cleanup:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-16.04
     steps:
       - uses: khan/pull-request-comment-trigger@master
         id: check
