@@ -1,4 +1,4 @@
-name: prnet-actions
+name: prnet-actions 
 on:
   pull_request:
     types: [opened,reopened]
@@ -7,7 +7,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-16.04
     steps:
       - uses: khan/pull-request-comment-trigger@master
         id: check
