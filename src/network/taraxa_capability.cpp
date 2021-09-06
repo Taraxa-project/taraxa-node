@@ -770,16 +770,6 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
                                  << ". Expected period: " << pbftSyncingPeriod() + 1;
           return;
         }
-
-        if (sync_block.pbft_blk->getPrevBlockHash() != getLastSyncBlockHash()) {
-          LOG(log_er_pbft_sync_) << "Invalid PBFT block " << pbft_blk_hash << " from peer " << _nodeID.abridged()
-                                 << " received, stop syncing.";
-          syncing_state_.set_peer_malicious();
-          host->disconnect(_nodeID, p2p::UserReason);
-          restartSyncingPbft(true);
-          return;
-        }
-
         // Update peer's pbft period if outdated
         if (peer->pbft_chain_size_ < sync_block.pbft_blk->getPeriod()) {
           peer->pbft_chain_size_ = sync_block.pbft_blk->getPeriod();
@@ -1362,13 +1352,10 @@ void TaraxaCapability::logNodeStats() {
 
     auto [unverified_blocks_size, verified_blocks_size] = dag_blk_mgr_->getDagBlockQueueSize();
     auto [non_finalized_blocks_levels, non_finalized_blocks_size] = dag_mgr_->getNonFinalizedBlocksSize();
-    auto [finalized_blocks_levels, finalized_blocks_size] = dag_mgr_->getFinalizedBlocksSize();
     LOG(log_dg_summary_) << "Unverified dag blocks size:      " << unverified_blocks_size;
     LOG(log_dg_summary_) << "Verified dag blocks size:        " << verified_blocks_size;
     LOG(log_dg_summary_) << "Non finalized dag blocks levels: " << non_finalized_blocks_levels;
     LOG(log_dg_summary_) << "Non finalized dag blocks size:   " << non_finalized_blocks_size;
-    LOG(log_dg_summary_) << "Finalized dag blocks levels:     " << finalized_blocks_levels;
-    LOG(log_dg_summary_) << "Finalized dag blocks size:       " << finalized_blocks_size;
   }
 
   LOG(log_nf_summary_) << "------------- tl;dr -------------";
@@ -1620,40 +1607,61 @@ void TaraxaCapability::syncBlockQueuePop() {
   sync_queue_.pop();
 }
 
-std::shared_ptr<SyncBlock> TaraxaCapability::processSyncBlock() {
-  shared_lock lock(sync_access_);
-  auto sync_block = sync_queue_.front().first;
-  lock.unlock();
-  auto pbft_block_hash = sync_block.pbft_blk->getBlockHash();
-  LOG(log_nf_) << "Pop pbft block " << pbft_block_hash << " from synced queue";
-
-  dag_blk_mgr_->processSyncedTransactions(sync_block.transactions);
-  map<uint64_t, vector<DagBlock>> dag_blocks_per_level;
-  for (auto const &block : sync_block.dag_blocks) {
-    dag_blocks_per_level[block.getLevel()].emplace_back(block);
-  }
-  for (auto const &block_level : dag_blocks_per_level) {
-    for (auto const &block : block_level.second) {
-      if (!dag_blk_mgr_->processSyncedBlock(block, *dag_mgr_)) {
-        syncing_state_.set_peer_malicious(sync_queue_.front().second);
-        auto host = host_.lock();
-        if (host) host->disconnect(sync_queue_.front().second, p2p::UserReason);
-        clearSyncBlockQueue();
-        restartSyncingPbft(true);
-        return nullptr;
-      }
-    }
-  }
-  return make_shared<SyncBlock>(std::move(sync_block));
+void TaraxaCapability::handleMaliciousSyncBlock(NodeID const &id) {
+  syncing_state_.set_peer_malicious(id);
+  auto host = host_.lock();
+  if (host) host->disconnect(sync_queue_.front().second, p2p::UserReason);
+  clearSyncBlockQueue();
+  restartSyncingPbft(true);
 }
 
-blk_hash_t TaraxaCapability::getLastSyncBlockHash() const {
-  unique_lock lock(sync_access_);
-  if (sync_queue_.size()) {
-    return sync_queue_.back().first.pbft_blk->getBlockHash();
-  } else {
-    return pbft_chain_->getLastPbftBlockHash();
+std::shared_ptr<std::pair<SyncBlock, dev::p2p::NodeID>> TaraxaCapability::processSyncBlock() {
+  shared_lock lock(sync_access_);
+  auto sync_block = sync_queue_.front();
+  lock.unlock();
+  auto pbft_block_hash = sync_block.first.pbft_blk->getBlockHash();
+  LOG(log_nf_) << "Pop pbft block " << pbft_block_hash << " from synced queue";
+
+  // Check previous hash matches
+  if (sync_block.first.pbft_blk->getPrevBlockHash() != pbft_chain_->getLastPbftBlockHash()) {
+    LOG(log_er_pbft_sync_) << "Invalid PBFT block " << pbft_block_hash
+                           << "; prevHash: " << sync_block.first.pbft_blk->getPrevBlockHash() << " from peer "
+                           << sync_block.second.abridged() << " received, stop syncing.";
+    handleMaliciousSyncBlock(sync_queue_.front().second);
+    return nullptr;
   }
+
+  // Check cert vote matches
+  for (auto const &vote : sync_block.first.cert_votes) {
+    if (vote.getBlockHash() != pbft_block_hash) {
+      LOG(log_er_pbft_sync_) << "Invalid cert votes block hash " << vote.getBlockHash() << " instead of "
+                             << pbft_block_hash << " from peer " << sync_block.second.abridged()
+                             << " received, stop syncing.";
+      handleMaliciousSyncBlock(sync_queue_.front().second);
+      return nullptr;
+    }
+  }
+
+  dev::RLPStream order_stream(2);
+  order_stream.appendList(sync_block.first.dag_blocks.size());
+
+  for (auto const &dag_block : sync_block.first.dag_blocks) {
+    order_stream << dag_block.getHash();
+  }
+  order_stream.appendList(sync_block.first.transactions.size());
+  for (auto const &trx : sync_block.first.transactions) {
+    order_stream << trx.getHash();
+  }
+  auto order_hash = dev::sha3(order_stream.out());
+  if (order_hash != sync_block.first.pbft_blk->getOrderHash()) {
+    LOG(log_er_pbft_sync_) << "Order hash incorrect in sync block " << pbft_block_hash << " expected: " << order_hash
+                           << " received " << sync_block.first.pbft_blk->getOrderHash() << " from "
+                           << sync_block.second.abridged() << ", stop syncing.";
+    handleMaliciousSyncBlock(sync_block.second);
+    return nullptr;
+  }
+
+  return make_shared<std::pair<SyncBlock, dev::p2p::NodeID>>(std::move(sync_block));
 }
 
 void TaraxaCapability::syncBlockQueuePush(SyncBlock const &block, NodeID const &node_id) {

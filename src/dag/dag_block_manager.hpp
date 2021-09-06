@@ -27,8 +27,7 @@ class DagBlockManager {
    * @param blk
    * @param transactions
    */
-  bool processSyncedBlock(DagBlock const &dag_block, DagManager &dag_mgr);
-  void processSyncedTransactions(std::vector<Transaction> const &transactions);
+  void processSyncedBlock(DbStorage::Batch &batch, SyncBlock const &sync_block);
   void insertBroadcastedBlockWithTransactions(DagBlock const &blk, std::vector<Transaction> const &transactions);
   void pushUnverifiedBlock(DagBlock const &block,
                            bool critical);  // add to unverified queue

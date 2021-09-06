@@ -55,11 +55,11 @@ class Network {
 
   uint64_t pbftSyncingPeriod() const;
   void syncBlockQueuePop();
-  std::shared_ptr<SyncBlock> processSyncBlock();
+  std::shared_ptr<std::pair<SyncBlock, dev::p2p::NodeID>> processSyncBlock();
   void syncBlockQueuePush(SyncBlock const &block);
   void clearSyncBlockQueue();
   size_t syncBlockQueueSize() const;
-  blk_hash_t getLastSyncBlockHash() const;
+  void handleMaliciousSyncBlock(NodeID const &id);
 
   void onNewPbftVotes(std::vector<Vote> votes);
   void broadcastPreviousRoundNextVotesBundle();

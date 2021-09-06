@@ -415,7 +415,6 @@ void DagManager::addDagBlock(DagBlock const &blk, bool finalized, bool save) {
   auto write_batch = db_->createWriteBatch();
   {
     uLock lock(mutex_);
-    received_blocks_++;
     if (save) {
       db_->saveDagBlock(blk, &write_batch);
     }
@@ -455,9 +454,7 @@ void DagManager::addToDag(blk_hash_t const &hash, blk_hash_t const &pivot, std::
   total_dag_->addVEEs(hash, pivot, tips);
   pivot_tree_->addVEEs(hash, pivot, {});
   db_->addDagBlockStateToBatch(write_batch, hash, finalized);
-  if (finalized) {
-    finalized_blks_[level].push_back(hash);
-  } else {
+  if (!finalized) {
     non_finalized_blks_[level].push_back(hash);
   }
   LOG(log_dg_) << " Insert block to DAG : " << hash;
@@ -534,9 +531,6 @@ std::pair<uint64_t, std::vector<blk_hash_t>> DagManager::getDagBlockOrder(blk_ha
 
 uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period, vec_blk_t const &dag_order,
                                   DbStorage::Batch &write_batch) {
-  // TODO this function smells. It tries to manage in-memory and persistent state at the same time, which it
-  // clearly lacks scope for. Generally, it's very sensitive to how it's called.
-  // Also, it's clearly used only in conjunction with getDagBlockOrder - makes sense to merge these two.
   uLock lock(mutex_);
   LOG(log_dg_) << "setDagBlockOrder called with anchor " << new_anchor << " and period " << period;
   db_->putFinalizedDagBlockHashesByAnchor(write_batch, new_anchor, dag_order);
@@ -546,60 +540,23 @@ uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period,
     return 0;
   }
 
-  std::vector<blk_hash_t> leaves;
-  total_dag_->getLeaves(leaves);
-  std::unordered_set<blk_hash_t> leavesSet(leaves.begin(), leaves.end());
-
   total_dag_->clear();
   pivot_tree_->clear();
-  auto finalized_blocks = finalized_blks_;
   auto non_finalized_blocks = non_finalized_blks_;
-  finalized_blks_.clear();
   non_finalized_blks_.clear();
 
-  // Total DAG will only include leaves from the last period and non-finalized
-  // blocks
-  // Pivot tree will only include anchor from the last period and non-finalized
-  // blocks
-  for (auto &v : finalized_blocks) {
-    for (auto &blk : v.second) {
-      auto block = dag_blk_mgr_->getDagBlock(blk);
-      auto pivot_hash = block->getPivot();
-      std::vector<blk_hash_t> tips;
-      for (auto const &tip : block->getTips()) {
-        tips.push_back(tip);
-      }
-
-      // Do not remove from total dag if a block is a leaf -- THERE IS A CHANCE
-      // THAT THIS MIGHT NOT BE POSSIBLE SO MAYBE AN ASSERT WOULD BE BETTER
-      if (leavesSet.count(blk) > 0) {
-        addToDag(blk, pivot_hash, tips, block->getLevel(), write_batch, true);
-      } else {
-        db_->removeDagBlockStateToBatch(write_batch, blk);
-      }
-    }
-  }
+  // Remove old anchor state
+  db_->removeDagBlockStateToBatch(write_batch, anchor_);
 
   bool new_anchor_found = false;
   for (auto &block : dag_order) {
-    // Remove all just finalized except the leaves
-    auto blk = block;
-    auto dag_block = dag_blk_mgr_->getDagBlock(block);
-    auto pivot_hash = dag_block->getPivot();
-    std::vector<blk_hash_t> tips;
-    for (auto const &tip : dag_block->getTips()) {
-      tips.push_back(tip);
-    }
-    // Verify anchor is included
-    if (blk == new_anchor) {
+    // Remove all just finalized except the new_anchor
+    if (block == new_anchor) {
       new_anchor_found = true;
-    }
-
-    if (leavesSet.count(blk) > 0 || blk == new_anchor) {
-      addToDag(blk, pivot_hash, tips, dag_block->getLevel(), write_batch, true);
-      db_->addDagBlockStateToBatch(write_batch, blk, true);
+      addToDag(block, blk_hash_t(), vec_blk_t(), 0, write_batch, true);
+      db_->addDagBlockStateToBatch(write_batch, block, true);
     } else {
-      db_->removeDagBlockStateToBatch(write_batch, blk);
+      db_->removeDagBlockStateToBatch(write_batch, block);
     }
   }
   assert(new_anchor_found);
@@ -685,17 +642,6 @@ std::pair<size_t, size_t> DagManager::getNonFinalizedBlocksSize() const {
   }
 
   return {non_finalized_blks_.size(), blocks_counter};
-}
-
-std::pair<size_t, size_t> DagManager::getFinalizedBlocksSize() const {
-  sharedLock lock(mutex_);
-
-  size_t blocks_counter = 0;
-  for (auto it = finalized_blks_.begin(); it != finalized_blks_.end(); ++it) {
-    blocks_counter += it->second.size();
-  }
-
-  return {finalized_blks_.size(), blocks_counter};
 }
 
 }  // namespace taraxa
