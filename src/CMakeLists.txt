@@ -125,6 +125,17 @@ add_subdirectory(network/rpc)
 
 add_library(app_base ${SOURCES})
 
+### Aleth part
+include(ProjectSecp256k1)
+include(ProjectLibFF)
+
+add_subdirectory(libdevcore)
+add_subdirectory(libdevcrypto)
+add_subdirectory(libp2p)
+
+target_include_directories(devcore PUBLIC "./")
+###
+
 # TODO: have some problems with include dirs for imported targets
 get_target_property(TARAXA_VDF_INCUDE taraxa-vdf INTERFACE_INCLUDE_DIRECTORIES)
 get_target_property(TARAXA_VRF_INCUDE taraxa-vrf INTERFACE_INCLUDE_DIRECTORIES)
@@ -155,7 +166,9 @@ target_link_libraries(app_base
         CONAN_PKG::lz4
         CONAN_PKG::rocksdb
         CONAN_PKG::mpfr
-        aleth #  FIXME: THIS LIB CAUSES LINKING ORDER SENSITIVITY
+        devcore
+        devcrypto
+        p2p
         )
 
 # needed for golang runtime that comes together with taraxa-evm
