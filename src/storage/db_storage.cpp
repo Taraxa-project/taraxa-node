@@ -202,13 +202,12 @@ void DbStorage::commitWriteBatch(Batch& write_batch, rocksdb::WriteOptions const
 }
 
 std::shared_ptr<DagBlock> DbStorage::getDagBlock(blk_hash_t const& hash) {
+  auto block_data = asBytes(lookup(toSlice(hash.asBytes()), Columns::dag_blocks));
+  if (block_data.size() > 0) {
+    return std::make_shared<DagBlock>(block_data);
+  }
   auto data = getDagBlockPeriod(hash);
-  if (data == nullptr) {
-    auto block_data = asBytes(lookup(toSlice(hash.asBytes()), Columns::dag_blocks));
-    if (block_data.size() > 0) {
-      return std::make_shared<DagBlock>(block_data);
-    }
-  } else {
+  if (data) {
     auto period_data = getPeriodDataRaw(data->first);
     if (period_data.size() > 0) {
       auto period_data_rlp = RLP(period_data);
@@ -220,11 +219,11 @@ std::shared_ptr<DagBlock> DbStorage::getDagBlock(blk_hash_t const& hash) {
 }
 
 bool DbStorage::dagBlockInDb(blk_hash_t const& hash) {
-  auto data = lookup(toSlice(hash.asBytes()), Columns::dag_block_period);
+  auto data = lookup(toSlice(hash.asBytes()), Columns::dag_blocks);
   if (!data.empty()) {
     return true;
   }
-  data = lookup(toSlice(hash.asBytes()), Columns::dag_blocks);
+  data = lookup(toSlice(hash.asBytes()), Columns::dag_block_period);
   if (!data.empty()) {
     return true;
   }
