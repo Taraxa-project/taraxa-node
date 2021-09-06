@@ -34,6 +34,7 @@ namespace taraxa {
  * Thread safe. Labelled graph.
  */
 class DagManager;
+class Network;
 class Dag {
  public:
   // properties

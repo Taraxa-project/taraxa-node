@@ -60,7 +60,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
       node_1_expected_bal -= delegations[nodes[i]->getAddress()].value = min_stake_to_vote;
     }
     auto trx = make_dpos_trx(node_cfgs[0], delegations, nonce++);
-    nodes[0]->getTransactionManager()->insertTransaction(trx, false, true);
+    nodes[0]->getTransactionManager()->insertTransaction(trx, false);
     trxs_count++;
     EXPECT_HAPPENS({120s, 1s}, [&](auto &ctx) {
       for (auto &node : nodes) {
@@ -77,7 +77,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
                                             nodes[0]->getSecretKey(), nodes[i]->getAddress());
     node_1_expected_bal -= init_bal;
     // broadcast trx and insert
-    nodes[0]->getTransactionManager()->insertTransaction(master_boot_node_send_coins, false, true);
+    nodes[0]->getTransactionManager()->insertTransaction(master_boot_node_send_coins, false);
     trxs_count++;
   }
 
@@ -90,7 +90,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
         Transaction dummy_trx(nonce++, 0, 2, TEST_TX_GAS_LIMIT, bytes(), nodes[0]->getSecretKey(),
                               nodes[0]->getAddress());
         // broadcast dummy transaction
-        nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false, true);
+        nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false);
         trxs_count++;
         ctx.fail();
         return;
@@ -133,7 +133,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
     Transaction send_coins_in_robin_cycle(nonce++, send_coins, gas_price, TEST_TX_GAS_LIMIT, data,
                                           nodes[i]->getSecretKey(), nodes[receiver_index]->getAddress());
     // broadcast trx and insert
-    nodes[i]->getTransactionManager()->insertTransaction(send_coins_in_robin_cycle, false, true);
+    nodes[i]->getTransactionManager()->insertTransaction(send_coins_in_robin_cycle, false);
     trxs_count++;
   }
 
@@ -146,7 +146,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
         Transaction dummy_trx(nonce++, 0, 2, TEST_TX_GAS_LIMIT, bytes(), nodes[0]->getSecretKey(),
                               nodes[0]->getAddress());
         // broadcast dummy transaction
-        nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false, true);
+        nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false);
         trxs_count++;
         ctx.fail();
         return;
@@ -420,7 +420,7 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
       node_1_expected_bal -= delegations[nodes[i]->getAddress()].value = stake_to_vote;
     }
     auto trx = make_dpos_trx(node_cfgs[0], delegations, nonce++);
-    nodes[0]->getTransactionManager()->insertTransaction(trx, false, true);
+    nodes[0]->getTransactionManager()->insertTransaction(trx, false);
 
     trxs_count++;
     EXPECT_HAPPENS({120s, 1s}, [&](auto &ctx) {
@@ -438,7 +438,7 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
                                             nodes[0]->getSecretKey(), nodes[i]->getAddress());
     node_1_expected_bal -= init_bal;
     // broadcast trx and insert
-    nodes[0]->getTransactionManager()->insertTransaction(master_boot_node_send_coins, false, true);
+    nodes[0]->getTransactionManager()->insertTransaction(master_boot_node_send_coins, false);
     trxs_count++;
   }
 
@@ -451,7 +451,7 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
         Transaction dummy_trx(nonce++, 0, 2, TEST_TX_GAS_LIMIT, bytes(), nodes[0]->getSecretKey(),
                               nodes[0]->getAddress());
         // broadcast dummy transaction
-        nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false, true);
+        nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false);
         trxs_count++;
         ctx.fail();
         return;
@@ -479,7 +479,7 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
     Transaction send_coins_in_robin_cycle(nonce++, send_coins, gas_price, TEST_TX_GAS_LIMIT, data,
                                           nodes[i]->getSecretKey(), nodes[receiver_index]->getAddress());
     // broadcast trx and insert
-    nodes[i]->getTransactionManager()->insertTransaction(send_coins_in_robin_cycle, false, true);
+    nodes[i]->getTransactionManager()->insertTransaction(send_coins_in_robin_cycle, false);
     trxs_count++;
   }
 
@@ -541,7 +541,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
   auto data = bytes();
   Transaction trx_master_boot_node_to_receiver(0, coins_value, gas_price, TEST_TX_GAS_LIMIT, data, node->getSecretKey(),
                                                receiver);
-  node->getTransactionManager()->insertTransaction(trx_master_boot_node_to_receiver, false, true);
+  node->getTransactionManager()->insertTransaction(trx_master_boot_node_to_receiver, false);
 
   for (auto _(0); _ < 120; ++_) {
     // test timeout is 60 seconds
@@ -595,7 +595,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   Transaction trx_master_boot_node_to_node2(0, coins_value2, gas_price, TEST_TX_GAS_LIMIT, data,
                                             nodes[0]->getSecretKey(), node2_addr);
   // broadcast trx and insert
-  nodes[0]->getTransactionManager()->insertTransaction(trx_master_boot_node_to_node2, false, true);
+  nodes[0]->getTransactionManager()->insertTransaction(trx_master_boot_node_to_node2, false);
 
   std::cout << "Checking all nodes see transaction from node 1 to node 2..." << std::endl;
 
@@ -608,7 +608,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   Transaction trx_master_boot_node_to_node3(1, coins_value3, gas_price, TEST_TX_GAS_LIMIT, data,
                                             nodes[0]->getSecretKey(), node3_addr);
   // broadcast trx and insert
-  nodes[0]->getTransactionManager()->insertTransaction(trx_master_boot_node_to_node3, false, true);
+  nodes[0]->getTransactionManager()->insertTransaction(trx_master_boot_node_to_node3, false);
 
   std::cout << "Checking all nodes see transaction from node 1 to node 3..." << std::endl;
 

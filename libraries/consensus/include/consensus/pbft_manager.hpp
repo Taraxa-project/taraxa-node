@@ -7,9 +7,8 @@
 #include "config/config.hpp"
 #include "consensus/pbft_chain.hpp"
 #include "consensus/vote.hpp"
-#include "consensus/vrf_wrapper.hpp"
+#include "common/vrf_wrapper.hpp"
 #include "consensus/sync_queue.hpp"
-#include "logger/log.hpp"
 #include "network/network.hpp"
 #include "network/tarcap/taraxa_capability.hpp"
 

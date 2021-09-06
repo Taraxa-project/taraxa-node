@@ -11,7 +11,7 @@
 #include "config/config.hpp"
 #include "consensus/pbft_chain.hpp"
 #include "final_chain/final_chain.hpp"
-#include "vrf_wrapper.hpp"
+#include "common/vrf_wrapper.hpp"
 
 namespace taraxa {
 class FullNode;

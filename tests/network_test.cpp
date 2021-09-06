@@ -157,7 +157,7 @@ TEST_F(NetworkTest, sync_large_pbft_block) {
         ctx.fail_if(trx_queue_size.first > 0 || trx_queue_size.second > 0);
       });
     }
-    nodes[0]->getTransactionManager()->insertTransaction(signed_trxs[i], true, false);
+    nodes[0]->getTransactionManager()->insertTransaction(signed_trxs[i], true);
   }
   nodes[0]->getPbftManager()->start();
   // Wait untill pbft block is created

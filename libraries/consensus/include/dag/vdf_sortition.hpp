@@ -5,7 +5,7 @@
 #include "ProverWesolowski.h"
 #include "common/types.hpp"
 #include "config/vdf.hpp"
-#include "consensus/vrf_wrapper.hpp"
+#include "common/vrf_wrapper.hpp"
 #include "libdevcore/CommonData.h"
 #include "logger/log.hpp"
 #include "openssl/bn.h"

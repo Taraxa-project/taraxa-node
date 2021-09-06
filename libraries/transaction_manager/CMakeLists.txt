@@ -13,7 +13,7 @@ set(SOURCES
     src/transaction.cpp
 )
 
-add_library(transaction_manager STATIC ${SOURCES} ${HEADERS})
+add_library(transaction_manager ${SOURCES} ${HEADERS})
 target_include_directories(transaction_manager PUBLIC "include")
 target_link_libraries(transaction_manager PUBLIC CONAN_PKG::rocksdb)
 target_link_libraries(transaction_manager PRIVATE 
@@ -22,7 +22,6 @@ target_link_libraries(transaction_manager PRIVATE
     consensus
     final_chain 
     logger
-    network
     storage
     aleth 
     taraxa-evm

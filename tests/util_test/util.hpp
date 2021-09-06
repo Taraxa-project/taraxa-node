@@ -271,7 +271,7 @@ struct TransactionClient {
         TransactionStage::created,
         trx,
     };
-    if (!node_->getTransactionManager()->insertTransaction(ctx.trx, false, true).first) {
+    if (!node_->getTransactionManager()->insertTransaction(ctx.trx, false).first) {
       return ctx;
     }
     ctx.stage = TransactionStage::inserted;

@@ -4,9 +4,9 @@
 
 #include "common/types.hpp"
 #include "common/util.hpp"
+#include "common/vrf_wrapper.hpp"
 #include "config/chain.hpp"
-#include "config/config_exception.hpp"
-#include "dag/dag_block.hpp"
+#include "common/config_exception.hpp"
 #include "logger/log_config.hpp"
 
 namespace taraxa {

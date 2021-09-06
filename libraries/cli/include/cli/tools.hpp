@@ -3,7 +3,7 @@
 #include <json/json.h>
 #include <libdevcrypto/Common.h>
 
-#include <consensus/vrf_wrapper.hpp>
+#include "common/vrf_wrapper.hpp"
 #include <string>
 
 #include "cli/config.hpp"

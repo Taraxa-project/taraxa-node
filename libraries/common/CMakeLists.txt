@@ -2,6 +2,8 @@ set(HEADERS
     include/common/constants.hpp
     include/common/static_init.hpp
     include/common/types.hpp
+    include/common/config_exception.hpp
+    include/common/vrf_wrapper.hpp
 
     include/common/default_construct_copyable_movable.hpp
     include/common/encoding_rlp.hpp
@@ -16,13 +18,17 @@ set(HEADERS
 
 set(SOURCES
     src/constants.cpp
-    src/types.cpp
-
     src/jsoncpp.cpp
     src/thread_pool.cpp
+    src/types.cpp
     src/util.cpp
+    src/vrf_wrapper.cpp
 )
 
-add_library(common STATIC ${SOURCES} ${HEADERS})
+add_library(common ${SOURCES} ${HEADERS})
 target_include_directories(common PUBLIC "include")
+target_link_libraries(common PUBLIC
+    taraxa-vrf
+    CONAN_PKG::openssl
+)
 target_link_libraries(common PRIVATE aleth CONAN_PKG::jsoncpp)

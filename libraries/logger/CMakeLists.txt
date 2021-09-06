@@ -8,6 +8,6 @@ set(SOURCES
     src/log_config.cpp
 )
 
-add_library(logger STATIC ${SOURCES} ${HEADERS})
+add_library(logger ${SOURCES} ${HEADERS})
 target_include_directories(logger PUBLIC "include")
-target_link_libraries(logger PRIVATE config common aleth CONAN_PKG::boost)
+target_link_libraries(logger PRIVATE common aleth CONAN_PKG::boost)

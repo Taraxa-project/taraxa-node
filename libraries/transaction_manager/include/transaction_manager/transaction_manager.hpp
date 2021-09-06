@@ -13,11 +13,6 @@ namespace taraxa {
 class DagBlock;
 class DagManager;
 class FullNode;
-class Network;
-
-namespace net {
-class WSServer;
-}
 
 /**
  * Manage transactions within an epoch
@@ -37,14 +32,6 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   void stop();
 
   /**
-   * @brief Sets network
-   * @note: Not thread-safe !
-   *
-   * @param network
-   */
-  void setNetwork(std::weak_ptr<Network> network);
-
-  /**
    * The following function will require a lock for verified qu
    */
   void packTrxs(vec_trx_t &to_be_packed_trx, uint16_t max_trx_to_pack = 0);
@@ -58,7 +45,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
    * @param broadcast - if set to true, tx is broadcasted to the network
    * @return std::pair<bool, std::string> -> pair<OK status, ERR message>
    */
-  std::pair<bool, std::string> insertTransaction(Transaction const &trx, bool verify = true, bool broadcast = true);
+  std::pair<bool, std::string> insertTransaction(Transaction const &trx, bool verify = true);
 
   /**
    * @brief Inserts batch of unverified broadcasted transactions to unverified queue and db
@@ -116,7 +103,6 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   ExpirationCache<trx_hash_t> seen_txs_;
 
   std::shared_ptr<DbStorage> db_{nullptr};
-  std::weak_ptr<Network> network_;
   std::shared_ptr<DagManager> dag_mgr_{nullptr};
 
   // Guards updating transaction status based on retrieved status

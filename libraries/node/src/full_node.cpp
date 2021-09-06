@@ -213,7 +213,6 @@ void FullNode::start() {
   if (!conf_.test_params.rebuild_db) {
     network_->start();
   }
-  trx_mgr_->setNetwork(network_);
   trx_mgr_->start();
   if (!conf_.test_params.rebuild_db) {
     blk_proposer_->setNetwork(network_);

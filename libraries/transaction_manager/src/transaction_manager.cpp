@@ -5,11 +5,8 @@
 
 #include "dag/dag.hpp"
 #include "logger/log.hpp"
-#include "network/network.hpp"
-#include "network/rpc/WSServer.h"
 #include "transaction_manager/transaction.hpp"
 
-using namespace taraxa::net;
 namespace taraxa {
 auto trxComp = [](Transaction const &t1, Transaction const &t2) -> bool {
   if (t1.getSender() < t2.getSender())
@@ -70,10 +67,8 @@ bool TransactionManager::checkQueueOverflow() {
   return false;
 }
 
-std::pair<bool, std::string> TransactionManager::insertTransaction(const Transaction &trx, bool verify,
-                                                                   bool broadcast) {
+std::pair<bool, std::string> TransactionManager::insertTransaction(const Transaction &trx, bool verify) {
   const auto &tx_hash = trx.getHash();
-
   if (checkQueueOverflow() == true) {
     LOG(log_er_) << "Queue overlfow";
     return std::make_pair(false, "Queue overlfow");
@@ -118,16 +113,6 @@ std::pair<bool, std::string> TransactionManager::insertTransaction(const Transac
     bool tx_verified = verify && mode_ != VerifyMode::skip_verify_sig;
     if (!trx_qu_.insert(trx, verify, tx_verified, db_)) {
       return std::make_pair(false, "skip, already inserted by different thread(race condition)");
-    }
-  }
-
-  // TODO: new pending tx could be omitted here ? Currently we ommit new pending tx only if it is included in dag block
-  // TODO: either create different events, e.g. new pending vs new accepted or remove this whole TODO
-  //  transaction_accepted_.emit(trx.getHash());
-
-  if (broadcast == true) {
-    if (auto net = network_.lock(); net && conf_.network.network_transaction_interval == 0) {
-      net->onNewTransactions({trx});
     }
   }
 
@@ -255,8 +240,6 @@ void TransactionManager::verifyQueuedTrxs() {
     }
   }
 }
-
-void TransactionManager::setNetwork(std::weak_ptr<Network> network) { network_ = move(network); }
 
 void TransactionManager::start() {
   if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {

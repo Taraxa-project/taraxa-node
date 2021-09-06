@@ -1,7 +1,6 @@
 set(HEADERS
     include/config/version.hpp
     include/config/config.hpp
-    include/config/config_exception.hpp
     include/config/pbft.hpp
     include/config/chain.hpp
     include/config/final_chain.hpp
@@ -21,7 +20,7 @@ set(SOURCES
 # Configure file with version
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/version/version.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/include/config/version.hpp)
 
-add_library(config STATIC ${SOURCES} ${HEADERS})
+add_library(config ${SOURCES} ${HEADERS})
 target_include_directories(config PUBLIC "include")
 target_link_libraries(config PRIVATE 
     common

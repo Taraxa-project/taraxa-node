@@ -9,9 +9,9 @@
 #include <string>
 
 #include "common/static_init.hpp"
+#include "common/vrf_wrapper.hpp"
 #include "config/config.hpp"
 #include "consensus/pbft_manager.hpp"
-#include "consensus/vrf_wrapper.hpp"
 #include "dag/vdf_sortition.hpp"
 #include "logger/log.hpp"
 #include "node/full_node.hpp"

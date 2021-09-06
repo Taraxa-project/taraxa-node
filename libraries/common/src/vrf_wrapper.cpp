@@ -1,4 +1,4 @@
-#include <consensus/vrf_wrapper.hpp>
+#include "common/vrf_wrapper.hpp"
 
 namespace taraxa::vrf_wrapper {
 

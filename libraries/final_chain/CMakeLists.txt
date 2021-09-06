@@ -16,7 +16,7 @@ set(SOURCES
     src/trie_common.cpp
 )
 
-add_library(final_chain STATIC ${SOURCES} ${HEADERS})
+add_library(final_chain ${SOURCES} ${HEADERS})
 target_include_directories(final_chain PUBLIC "include")
 target_link_libraries(final_chain PUBLIC)
 target_link_libraries(final_chain PRIVATE 

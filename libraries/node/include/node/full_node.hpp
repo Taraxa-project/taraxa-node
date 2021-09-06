@@ -18,7 +18,7 @@
 #include "config/version.hpp"
 #include "consensus/pbft_chain.hpp"
 #include "consensus/vote.hpp"
-#include "consensus/vrf_wrapper.hpp"
+#include "common/vrf_wrapper.hpp"
 #include "dag/dag_block_manager.hpp"
 #include "network/rpc/EthFace.h"
 #include "network/rpc/NetFace.h"
