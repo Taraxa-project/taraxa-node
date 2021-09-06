@@ -461,18 +461,15 @@ void DagManager::getGhostPath(std::vector<blk_hash_t> &ghost) const {
 }
 
 // return {period, block order}, for pbft-pivot-blk proposing
-std::pair<uint64_t, std::shared_ptr<vec_blk_t>> DagManager::getDagBlockOrder(blk_hash_t const &anchor) {
+std::pair<uint64_t, std::vector<blk_hash_t>> DagManager::getDagBlockOrder(blk_hash_t const &anchor) {
   sharedLock lock(mutex_);
-
   // TODO: need to check if the anchor already processed
   // if the period already processed
-  vec_blk_t orders;
-
   std::vector<blk_hash_t> blk_orders;
 
   if (anchor_ == anchor) {
     LOG(log_wr_) << "Query period from " << anchor_ << " to " << anchor << " not ok " << std::endl;
-    return {0, std::make_shared<vec_blk_t>(orders)};
+    return {0, {}};
   }
 
   auto new_period = period_ + 1;
@@ -480,15 +477,13 @@ std::pair<uint64_t, std::shared_ptr<vec_blk_t>> DagManager::getDagBlockOrder(blk
   auto ok = total_dag_->computeOrder(anchor, blk_orders, non_finalized_blks_);
   if (!ok) {
     LOG(log_er_) << " Create period " << new_period << " anchor: " << anchor << " failed " << std::endl;
-    return {0, std::make_shared<vec_blk_t>(orders)};
+    return {0, {}};
   }
 
-  std::transform(blk_orders.begin(), blk_orders.end(), std::back_inserter(orders),
-                 [](const blk_hash_t &i) { return i; });
   LOG(log_dg_) << "Get period " << new_period << " from " << anchor_ << " to " << anchor << " with "
                << blk_orders.size() << " blks" << std::endl;
 
-  return {new_period, std::make_shared<vec_blk_t>(orders)};
+  return {new_period, std::move(blk_orders)};
 }
 
 uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period, vec_blk_t const &dag_order,

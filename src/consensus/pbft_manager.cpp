@@ -1435,11 +1435,11 @@ bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(blk_hash_t const &pbft_
 std::pair<vec_blk_t, bool> PbftManager::comparePbftBlockScheduleWithDAGblocks_(PbftBlock const &pbft_block) {
   auto const &anchor_hash = pbft_block.getPivotDagBlockHash();
   auto dag_blocks_order = dag_mgr_->getDagBlockOrder(anchor_hash).second;
-  if (!dag_blocks_order->empty()) {
-    return std::make_pair(*dag_blocks_order, true);
+  if (!dag_blocks_order.empty()) {
+    return std::make_pair(std::move(dag_blocks_order), true);
   }
   syncPbftChainFromPeers_(missing_dag_blk, anchor_hash);
-  return std::make_pair(*dag_blocks_order, false);
+  return std::make_pair(std::move(dag_blocks_order), false);
 }
 
 bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cert_voted_block_hash,
