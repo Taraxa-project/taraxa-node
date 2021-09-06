@@ -250,6 +250,30 @@ std::vector<std::shared_ptr<DagBlock>> DbStorage::getDagBlocksAtLevel(level_t le
   return res;
 }
 
+void DbStorage::updateDagBlockCounters(Batch& write_batch, vector<DagBlock> blks) {
+  // Lock is needed since we are editing some fields
+  lock_guard<mutex> u_lock(dag_blocks_mutex_);
+  for (auto const& blk : blks) {
+    auto level = blk.getLevel();
+    std::string blocks = getBlocksByLevel(level);
+    if (blocks == "") {
+      blocks = blk.getHash().toString();
+    } else {
+      blocks = blocks + "," + blk.getHash().toString();
+    }
+    insert(write_batch, Columns::dag_blocks_index, toSlice(level), toSlice(blocks));
+    dag_blocks_count_.fetch_add(1);
+    // Do not count genesis pivot field
+    if (blk.getPivot() == blk_hash_t(0)) {
+      dag_edge_count_.fetch_add(blk.getTips().size());
+    } else {
+      dag_edge_count_.fetch_add(blk.getTips().size() + 1);
+    }
+  }
+  insert(write_batch, Columns::status, toSlice((uint8_t)StatusDbField::DagBlkCount), toSlice(dag_blocks_count_.load()));
+  insert(write_batch, Columns::status, toSlice((uint8_t)StatusDbField::DagEdgeCount), toSlice(dag_edge_count_.load()));
+}
+
 void DbStorage::saveDagBlock(DagBlock const& blk, Batch* write_batch_p) {
   // Lock is needed since we are editing some fields
   lock_guard<mutex> u_lock(dag_blocks_mutex_);
@@ -349,6 +373,23 @@ TransactionStatus DbStorage::getTransactionStatus(trx_hash_t const& hash) {
     return TransactionStatus(rlp);
   }
   return TransactionStatus();
+}
+
+std::vector<TransactionStatus> DbStorage::getTransactionStatus(std::vector<trx_hash_t> const& trx_hashes) {
+  std::vector<TransactionStatus> result;
+  result.reserve(trx_hashes.size());
+  DbStorage::MultiGetQuery db_query(shared_from_this(), trx_hashes.size());
+  db_query.append(DbStorage::Columns::trx_status, trx_hashes);
+  auto db_trxs_statuses = db_query.execute();
+  for (size_t idx = 0; idx < db_trxs_statuses.size(); idx++) {
+    auto& trx_raw_status = db_trxs_statuses[idx];
+    if (!trx_raw_status.empty()) {
+      auto data = asBytes(trx_raw_status);
+      result.emplace_back(RLP(data));
+    }
+  }
+
+  return result;
 }
 
 std::unordered_map<trx_hash_t, TransactionStatus> DbStorage::getAllTransactionStatus() {

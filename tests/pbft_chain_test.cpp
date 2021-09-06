@@ -32,7 +32,7 @@ TEST_F(PbftChainTest, serialize_desiriablize_pbft_block) {
   blk_hash_t dag_block_hash_as_pivot(45678);
   uint64_t period = 1;
   addr_t beneficiary(98765);
-  PbftBlock pbft_block1(prev_block_hash, dag_block_hash_as_pivot, period, beneficiary, sk);
+  PbftBlock pbft_block1(prev_block_hash, dag_block_hash_as_pivot, blk_hash_t(), period, beneficiary, sk);
 
   auto rlp = pbft_block1.rlp(true);
   PbftBlock pbft_block2(rlp);
@@ -63,7 +63,7 @@ TEST_F(PbftChainTest, pbft_db_test) {
 
   uint64_t period = 1;
   addr_t beneficiary(987);
-  PbftBlock pbft_block(prev_block_hash, blk1.getHash(), period, beneficiary, node->getSecretKey());
+  PbftBlock pbft_block(prev_block_hash, blk1.getHash(), blk_hash_t(), period, beneficiary, node->getSecretKey());
 
   // put into pbft chain and store into DB
   auto batch = db->createWriteBatch();
@@ -141,8 +141,8 @@ TEST_F(PbftChainTest, block_broadcast) {
   DagBlock blk1(dag_genesis, 1, {}, {g_signed_trx_samples[0].getHash(), g_signed_trx_samples[1].getHash()}, vdf1, sk);
   std::vector<Transaction> txs1({g_signed_trx_samples[0], g_signed_trx_samples[1]});
 
-  auto pbft_block =
-      std::make_shared<PbftBlock>(prev_block_hash, blk1.getHash(), period, beneficiary, node1->getSecretKey());
+  auto pbft_block = std::make_shared<PbftBlock>(prev_block_hash, blk1.getHash(), blk_hash_t(), period, beneficiary,
+                                                node1->getSecretKey());
 
   node1->getDagBlockManager()->insertBroadcastedBlockWithTransactions(blk1, txs1);
   taraxa::thisThreadSleepForMilliSeconds(1000);

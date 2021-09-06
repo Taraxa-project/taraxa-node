@@ -318,7 +318,7 @@ inline auto own_effective_genesis_bal(FullNodeConfig const& cfg) {
 }
 
 inline auto make_simple_pbft_block(h256 const& hash, uint64_t period) {
-  return PbftBlock(hash, blk_hash_t(0), period, addr_t(0), secret_t::random());
+  return PbftBlock(hash, blk_hash_t(0), blk_hash_t(), period, addr_t(0), secret_t::random());
 }
 
 inline vector<blk_hash_t> getOrderedDagBlocks(shared_ptr<DbStorage> const& db) {

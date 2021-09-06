@@ -1272,9 +1272,51 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
 
   uint64_t propose_pbft_period = pbft_chain_->getPbftChainSize() + 1;
   addr_t beneficiary = node_addr_;
+
+  // get DAG block and transaction order
+  auto dag_block_order = dag_mgr_->getDagBlockOrder(dag_block_hash);
+  if (dag_block_order.second->empty()) {
+    LOG(log_er_) << "DAG anchor block hash " << dag_block_hash << " getDagBlockOrder failed in propose";
+    assert(false);
+    return std::make_pair(NULL_BLOCK_HASH, true);
+  }
+  dev::RLPStream order_stream(2);
+  order_stream.appendList(dag_block_order.second->size());
+  std::vector<trx_hash_t> non_executed_transactions;
+  for (auto const &blk_hash : *dag_block_order.second) {
+    auto dag_blk = dag_blk_mgr_->getDagBlock(blk_hash);
+    if (!dag_blk) {
+      LOG(log_er_) << "DAG anchor block hash " << dag_block_hash << " getDagBlock failed in propose for block "
+                   << blk_hash;
+      assert(false);
+      return std::make_pair(NULL_BLOCK_HASH, true);
+    }
+    order_stream << dag_blk->getHash();
+    std::vector<trx_hash_t> trx_hashes;
+    for (auto const &trx_hash : dag_blk->getTrxs()) {
+      trx_hashes.emplace_back(trx_hash);
+    }
+    auto trx_statuses = db_->getTransactionStatus(trx_hashes);
+    for (uint32_t i = 0; i < trx_statuses.size(); i++) {
+      if (trx_statuses[i].state == TransactionStatusEnum::in_block) {
+        non_executed_transactions.emplace_back(trx_hashes[i]);
+      } else if (trx_statuses[i].state != TransactionStatusEnum::executed) {
+        LOG(log_er_) << "DAG anchor block hash " << dag_block_hash << " try incorrect state for block " << blk_hash
+                     << " trx: " << trx_hashes[i] << " state : " << (uint16_t)trx_statuses[i].state;
+        assert(false);
+      }
+    }
+  }
+  order_stream.appendList(non_executed_transactions.size());
+  for (auto const &trx_hash : non_executed_transactions) {
+    order_stream << trx_hash;
+  }
+
+  auto order_hash = dev::sha3(order_stream.out());
+
   // generate generate pbft block
-  auto pbft_block =
-      std::make_shared<PbftBlock>(last_pbft_block_hash, dag_block_hash, propose_pbft_period, beneficiary, node_sk_);
+  auto pbft_block = std::make_shared<PbftBlock>(last_pbft_block_hash, dag_block_hash, order_hash, propose_pbft_period,
+                                                beneficiary, node_sk_);
   // push pbft block
   pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
   // broadcast pbft block
@@ -1477,8 +1519,10 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
     size_t pbft_synced_queue_size;
     auto round = getPbftRound();
     while (net->syncBlockQueueSize() > 0) {
-      auto sync_block = net->processSyncBlock();
-      auto pbft_block_hash = sync_block->pbft_blk->getBlockHash();
+      auto sync_block_pair = net->processSyncBlock();
+      if (!sync_block_pair) continue;
+      auto &sync_block = sync_block_pair->first;
+      auto pbft_block_hash = sync_block.pbft_blk->getBlockHash();
       LOG(log_nf_) << "Pick pbft block " << pbft_block_hash << " from synced queue in round " << round;
 
       if (pbft_chain_->findPbftBlockInChain(pbft_block_hash)) {
@@ -1493,24 +1537,19 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
       }
 
       // Check cert votes validation
-      if (!vote_mgr_->pbftBlockHasEnoughValidCertVotes(*sync_block, getDposTotalVotesCount(), sortition_threshold_,
+      if (!vote_mgr_->pbftBlockHasEnoughValidCertVotes(sync_block, getDposTotalVotesCount(), sortition_threshold_,
                                                        TWO_T_PLUS_ONE)) {
         // Failed cert votes validation, flush synced PBFT queue and set since
         // next block validation depends on the current one
         LOG(log_er_) << "Synced PBFT block " << pbft_block_hash
                      << " doesn't have enough valid cert votes. Clear synced PBFT blocks! DPOS total votes count: "
                      << getDposTotalVotesCount();
-        net->clearSyncBlockQueue();
+        net->handleMaliciousSyncBlock(sync_block_pair->second);
         break;
       }
 
-      // Maybe remove once confirming that this assert never happens, there is no need to calculate order since order is
-      // within the Sync block
-      auto dag_blocks_order = dag_mgr_->getDagBlockOrder(sync_block->pbft_blk->getPivotDagBlockHash());
-      // We have already added anchor to DAG successfully, assert that it must be in DAG
-      assert(!dag_blocks_order.second->empty());
-
-      if (pushPbftBlock_(*sync_block, *dag_blocks_order.second, true /* syncing flag */)) {
+      vec_blk_t dag_blocks_order;
+      if (pushPbftBlock_(sync_block, dag_blocks_order, true /* syncing flag */)) {
         LOG(log_nf_) << node_addr_ << " push synced PBFT block " << pbft_block_hash << " in round " << round;
       } else {
         LOG(log_er_) << "Failed push PBFT block " << pbft_block_hash << " into chain";
@@ -1564,7 +1603,7 @@ void PbftManager::finalize_(PbftBlock const &pbft_block, vector<h256> finalized_
   }
 }
 
-bool PbftManager::pushPbftBlock_(SyncBlock &sync_block, vec_blk_t const &dag_blocks_order, bool sync) {
+bool PbftManager::pushPbftBlock_(SyncBlock &sync_block, vec_blk_t &dag_blocks_order, bool sync) {
   auto const &pbft_block_hash = sync_block.pbft_blk->getBlockHash();
   if (db_->pbftBlockInDb(pbft_block_hash)) {
     LOG(log_nf_) << "PBFT block: " << pbft_block_hash << " in DB already.";
@@ -1580,10 +1619,36 @@ bool PbftManager::pushPbftBlock_(SyncBlock &sync_block, vec_blk_t const &dag_blo
   auto pbft_period = sync_block.pbft_blk->getPeriod();
 
   auto batch = db_->createWriteBatch();
+  dag_blk_mgr_->processSyncedBlock(batch, sync_block);
+
   LOG(log_nf_) << "Storing cert votes of pbft blk " << pbft_block_hash;
   LOG(log_dg_) << "Stored following cert votes:\n" << cert_votes;
   // Update PBFT chain head block
   db_->addPbftHeadToBatch(pbft_chain_->getHeadHash(), pbft_chain_->getJsonStrForBlock(pbft_block_hash), batch);
+
+  if (sync) {
+    dag_blocks_order.reserve(sync_block.dag_blocks.size());
+    std::transform(sync_block.dag_blocks.begin(), sync_block.dag_blocks.end(), std::back_inserter(dag_blocks_order),
+                   [](const DagBlock &dag_block) { return dag_block.getHash(); });
+    // Update counts correctly
+
+    // Non-finalized block should be empty when syncing, maybe we should clear it if we are deep out of sync to improve
+    // performance
+    auto non_finalized_blocks = dag_mgr_->getNonFinalizedBlocks();
+    unordered_set<blk_hash_t> non_finalized_blocks_set;
+    for (auto const &level : non_finalized_blocks) {
+      for (auto const &blk : level.second) {
+        non_finalized_blocks_set.insert(blk);
+      }
+    }
+    vector<DagBlock> dag_blocks_to_update_counters;
+    for (auto const &blk : sync_block.dag_blocks) {
+      if (non_finalized_blocks_set.count(blk.getHash()) == 0) {
+        dag_blocks_to_update_counters.push_back(blk);
+      }
+    }
+    db_->updateDagBlockCounters(batch, dag_blocks_to_update_counters);
+  }
 
   // Set DAG blocks period
   auto const &anchor_hash = sync_block.pbft_blk->getPivotDagBlockHash();
@@ -1640,7 +1705,6 @@ bool PbftManager::pushPbftBlock_(SyncBlock &sync_block, vec_blk_t const &dag_blo
   proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
   db_->savePbftMgrStatus(PbftMgrStatus::executed_block, true);
   executed_pbft_block_ = true;
-
   return true;
 }
 

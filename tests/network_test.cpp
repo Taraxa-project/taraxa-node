@@ -351,7 +351,6 @@ TEST_F(NetworkTest, node_sync) {
   }
 
   EXPECT_HAPPENS({30s, 500ms}, [&](auto& ctx) {
-    WAIT_EXPECT_EQ(ctx, node1->getDagManager()->getNumReceivedBlocks(), blks.size())
     WAIT_EXPECT_EQ(ctx, node1->getDagManager()->getNumVerticesInDag().first, 7)
     WAIT_EXPECT_EQ(ctx, node1->getDagManager()->getNumEdgesInDag().first, 8)
   });
@@ -360,7 +359,6 @@ TEST_F(NetworkTest, node_sync) {
 
   std::cout << "Waiting Sync..." << std::endl;
   EXPECT_HAPPENS({45s, 1500ms}, [&](auto& ctx) {
-    WAIT_EXPECT_EQ(ctx, node2->getDagManager()->getNumReceivedBlocks(), blks.size())
     WAIT_EXPECT_EQ(ctx, node2->getDagManager()->getNumVerticesInDag().first, 7)
     WAIT_EXPECT_EQ(ctx, node2->getDagManager()->getNumEdgesInDag().first, 8)
   });
@@ -398,7 +396,14 @@ TEST_F(NetworkTest, node_pbft_sync) {
 
   node1->getDagBlockManager()->insertBroadcastedBlockWithTransactions(blk1, txs1);
 
-  PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), period, beneficiary, node1->getSecretKey());
+  dev::RLPStream order_stream(2);
+  order_stream.appendList(1);
+  order_stream << blk1.getHash();
+  order_stream.appendList(2);
+  order_stream << g_signed_trx_samples[0].getHash() << g_signed_trx_samples[1].getHash();
+
+  PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), dev::sha3(order_stream.out()), period, beneficiary,
+                        node1->getSecretKey());
   db1->putFinalizedDagBlockHashesByAnchor(batch, pbft_block1.getPivotDagBlockHash(),
                                           {pbft_block1.getPivotDagBlockHash()});
   std::vector<Vote> votes_for_pbft_blk1;
@@ -440,7 +445,13 @@ TEST_F(NetworkTest, node_pbft_sync) {
   batch = db1->createWriteBatch();
   period = 2;
   beneficiary = addr_t(654);
-  PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), 2, beneficiary, node1->getSecretKey());
+  dev::RLPStream order_stream2(2);
+  order_stream2.appendList(1);
+  order_stream2 << blk2.getHash();
+  order_stream2.appendList(2);
+  order_stream2 << g_signed_trx_samples[2].getHash() << g_signed_trx_samples[3].getHash();
+  PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), dev::sha3(order_stream2.out()), 2, beneficiary,
+                        node1->getSecretKey());
   db1->putFinalizedDagBlockHashesByAnchor(batch, pbft_block2.getPivotDagBlockHash(),
                                           {pbft_block2.getPivotDagBlockHash()});
 
@@ -531,7 +542,14 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   std::vector<Transaction> tr1({g_signed_trx_samples[0], g_signed_trx_samples[1]});
   node1->getDagBlockManager()->insertBroadcastedBlockWithTransactions(blk1, tr1);
 
-  PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), period, beneficiary, node1->getSecretKey());
+  dev::RLPStream order_stream(2);
+  order_stream.appendList(1);
+  order_stream << blk1.getHash();
+  order_stream.appendList(2);
+  order_stream << g_signed_trx_samples[0].getHash() << g_signed_trx_samples[1].getHash();
+
+  PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), dev::sha3(order_stream.out()), period, beneficiary,
+                        node1->getSecretKey());
   db1->putFinalizedDagBlockHashesByAnchor(batch, pbft_block1.getPivotDagBlockHash(),
                                           {pbft_block1.getPivotDagBlockHash()});
   std::vector<Vote> votes_for_pbft_blk1;
@@ -573,7 +591,14 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   period = 2;
   beneficiary = addr_t(654);
 
-  PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), period, beneficiary, node1->getSecretKey());
+  dev::RLPStream order_stream2(2);
+  order_stream2.appendList(1);
+  order_stream2 << blk2.getHash();
+  order_stream2.appendList(2);
+  order_stream2 << g_signed_trx_samples[2].getHash() << g_signed_trx_samples[3].getHash();
+
+  PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), dev::sha3(order_stream2.out()), period, beneficiary,
+                        node1->getSecretKey());
   db1->putFinalizedDagBlockHashesByAnchor(batch, pbft_block2.getPivotDagBlockHash(),
                                           {pbft_block2.getPivotDagBlockHash()});
   std::cout << "Use fake votes for the second PBFT block" << std::endl;
@@ -600,10 +625,10 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   auto node2 = create_nodes({node_cfgs[1]}, true /*start*/).front();
   std::shared_ptr<Network> nw1 = node1->getNetwork();
   std::shared_ptr<Network> nw2 = node2->getNetwork();
-  const int node_peers = 1;
-  bool checkpoint_passed = false;
-  const int timeout_val = 60;
-  for (auto i = 0; i < timeout_val; i++) {
+  // const int node_peers = 1;
+  // bool checkpoint_passed = false;
+  // const int timeout_val = 60;
+  /*for (auto i = 0; i < timeout_val; i++) {
     // test timeout is 60 seconds
     if (nw1->getPeerCount() == node_peers && nw2->getPeerCount() == node_peers) {
       checkpoint_passed = true;
@@ -615,7 +640,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
     std::cout << "Timeout reached after " << timeout_val << " seconds..." << std::endl;
     ASSERT_EQ(node_peers, nw1->getPeerCount());
     ASSERT_EQ(node_peers, nw2->getPeerCount());
-  }
+  }*/
 
   std::cout << "Waiting Sync for max 1 minutes..." << std::endl;
   uint64_t sync_pbft_chain_size = 1;
@@ -890,11 +915,9 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
   }
 
   // node1->drawGraph("dot.txt");
-  EXPECT_EQ(node1->getDagManager()->getNumReceivedBlocks(), 6);
   EXPECT_EQ(node1->getDagManager()->getNumVerticesInDag().first, 7);
   EXPECT_EQ(node1->getDagManager()->getNumEdgesInDag().first, 8);
 
-  EXPECT_EQ(node2->getDagManager()->getNumReceivedBlocks(), 6);
   EXPECT_EQ(node2->getDagManager()->getNumVerticesInDag().first, 7);
   EXPECT_EQ(node2->getDagManager()->getNumEdgesInDag().first, 8);
 }
@@ -1024,13 +1047,11 @@ TEST_F(NetworkTest, node_sync2) {
   auto node2 = create_nodes({node_cfgs[1]}, true /*start*/).front();
 
   EXPECT_HAPPENS({10s, 100ms}, [&](auto& ctx) {
-    WAIT_EXPECT_EQ(ctx, node1->getDagManager()->getNumReceivedBlocks(), blks.size())
     WAIT_EXPECT_EQ(ctx, node1->getDagManager()->getNumVerticesInDag().first, 13)
     WAIT_EXPECT_EQ(ctx, node1->getDagManager()->getNumEdgesInDag().first, 13)
   });
 
   EXPECT_HAPPENS({50s, 300ms}, [&](auto& ctx) {
-    WAIT_EXPECT_EQ(ctx, node2->getDagManager()->getNumReceivedBlocks(), blks.size())
     WAIT_EXPECT_EQ(ctx, node2->getDagManager()->getNumVerticesInDag().first, 13)
     WAIT_EXPECT_EQ(ctx, node2->getDagManager()->getNumEdgesInDag().first, 13)
   });

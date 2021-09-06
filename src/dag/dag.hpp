@@ -179,13 +179,6 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
    */
   std::pair<size_t, size_t> getNonFinalizedBlocksSize() const;
 
-  /**
-   * @return std::pair<size_t, size_t> -> first = number of levels, second = number of blocks
-   */
-  std::pair<size_t, size_t> getFinalizedBlocksSize() const;
-
-  auto getNumReceivedBlocks() const { return received_blocks_.load(); }
-
   util::Event<DagManager, DagBlock> const block_verified_{};
 
  private:
@@ -208,12 +201,9 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   uint64_t period_;        // last period
   blk_hash_t genesis_;
   std::map<uint64_t, std::vector<blk_hash_t>> non_finalized_blks_;
-  std::map<uint64_t, std::vector<blk_hash_t>> finalized_blks_;
   DagFrontier frontier_;
   std::atomic<bool> stopped_ = true;
   std::thread block_worker_;
-  // debug
-  std::atomic_uint64_t received_blocks_ = 0;
 
   logger::Logger log_time_;
   LOG_OBJECTS_DEFINE

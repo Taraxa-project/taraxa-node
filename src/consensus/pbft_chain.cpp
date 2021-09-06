@@ -14,18 +14,22 @@ PbftBlock::PbftBlock(bytes const& b) : PbftBlock(dev::RLP(b)) {}
 PbftBlock::PbftBlock(dev::RLP const& r) {
   dev::RLP const rlp(r);
   if (!rlp.isList()) throw std::invalid_argument("PBFT RLP must be a list");
-  prev_block_hash_ = rlp[0].toHash<blk_hash_t>();
-  dag_block_hash_as_pivot_ = rlp[1].toHash<blk_hash_t>();
-  period_ = rlp[2].toInt<uint64_t>();
-  timestamp_ = rlp[3].toInt<uint64_t>();
-  signature_ = rlp[4].toHash<sig_t>();
+  auto it = rlp.begin();
+
+  prev_block_hash_ = (*it++).toHash<blk_hash_t>();
+  dag_block_hash_as_pivot_ = (*it++).toHash<blk_hash_t>();
+  order_hash_ = (*it++).toHash<blk_hash_t>();
+  period_ = (*it++).toInt<uint64_t>();
+  timestamp_ = (*it++).toInt<uint64_t>();
+  signature_ = (*it++).toHash<sig_t>();
   calculateHash_();
 }
 
-PbftBlock::PbftBlock(blk_hash_t const& prev_blk_hash, blk_hash_t const& dag_blk_hash_as_pivot, uint64_t period,
-                     addr_t const& beneficiary, secret_t const& sk)
+PbftBlock::PbftBlock(blk_hash_t const& prev_blk_hash, blk_hash_t const& dag_blk_hash_as_pivot,
+                     blk_hash_t const& order_hash, uint64_t period, addr_t const& beneficiary, secret_t const& sk)
     : prev_block_hash_(prev_blk_hash),
       dag_block_hash_as_pivot_(dag_blk_hash_as_pivot),
+      order_hash_(order_hash),
       period_(period),
       beneficiary_(beneficiary) {
   timestamp_ = dev::utcTime();
@@ -38,6 +42,7 @@ PbftBlock::PbftBlock(std::string const& str) {
   block_hash_ = blk_hash_t(doc["block_hash"].asString());
   prev_block_hash_ = blk_hash_t(doc["prev_block_hash"].asString());
   dag_block_hash_as_pivot_ = blk_hash_t(doc["dag_block_hash_as_pivot"].asString());
+  order_hash_ = blk_hash_t(doc["order_hash"].asString());
   period_ = doc["period"].asUInt64();
   timestamp_ = doc["timestamp"].asUInt64();
   signature_ = sig_t(doc["signature"].asString());
@@ -75,6 +80,7 @@ Json::Value PbftBlock::getJson() const {
   Json::Value json;
   json["prev_block_hash"] = prev_block_hash_.toString();
   json["dag_block_hash_as_pivot"] = dag_block_hash_as_pivot_.toString();
+  json["order_hash"] = order_hash_.toString();
   json["period"] = (Json::Value::UInt64)period_;
   json["timestamp"] = (Json::Value::UInt64)timestamp_;
   json["block_hash"] = block_hash_.toString();
@@ -85,9 +91,10 @@ Json::Value PbftBlock::getJson() const {
 
 // Using to setup PBFT block hash
 void PbftBlock::streamRLP(dev::RLPStream& strm, bool include_sig) const {
-  strm.appendList(include_sig ? 5 : 4);
+  strm.appendList(include_sig ? 6 : 5);
   strm << prev_block_hash_;
   strm << dag_block_hash_as_pivot_;
+  strm << order_hash_;
   strm << period_;
   strm << timestamp_;
   if (include_sig) {

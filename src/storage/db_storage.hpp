@@ -59,7 +59,7 @@ class DbException : public exception {
 struct DbStorage;
 using DB = DbStorage;
 
-struct DbStorage {
+struct DbStorage : std::enable_shared_from_this<DbStorage> {
   using Slice = rocksdb::Slice;
   using Batch = rocksdb::WriteBatch;
   using OnEntry = function<bool(Slice const&, Slice const&)>;
@@ -182,6 +182,7 @@ struct DbStorage {
   bool dagBlockInDb(blk_hash_t const& hash);
   string getBlocksByLevel(level_t level);
   std::vector<std::shared_ptr<DagBlock>> getDagBlocksAtLevel(level_t level, int number_of_levels);
+  void updateDagBlockCounters(Batch& write_batch, std::vector<DagBlock> blks);
 
   // DAG state
   void addDagBlockStateToBatch(Batch& write_batch, blk_hash_t const& blk_hash, bool finalized);
@@ -198,6 +199,7 @@ struct DbStorage {
   void saveTransactionStatus(trx_hash_t const& trx, TransactionStatus const& status);
   void addTransactionStatusToBatch(Batch& write_batch, trx_hash_t const& trx, TransactionStatus const& status);
   TransactionStatus getTransactionStatus(trx_hash_t const& hash);
+  std::vector<TransactionStatus> getTransactionStatus(std::vector<trx_hash_t> const& trx_hashes);
   std::unordered_map<trx_hash_t, TransactionStatus> getAllTransactionStatus();
 
   // PBFT manager

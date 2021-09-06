@@ -114,11 +114,11 @@ struct TaraxaCapability : virtual CapabilityFace {
 
   uint64_t pbftSyncingPeriod() const;
   void syncBlockQueuePop();
-  std::shared_ptr<SyncBlock> processSyncBlock();
+  std::shared_ptr<std::pair<SyncBlock, dev::p2p::NodeID>> processSyncBlock();
   void syncBlockQueuePush(SyncBlock const &block, NodeID const &node_id);
   void clearSyncBlockQueue();
   size_t syncBlockQueueSize() const;
-  blk_hash_t getLastSyncBlockHash() const;
+  void handleMaliciousSyncBlock(NodeID const &id);
 
   // PBFT
   void onNewPbftVote(taraxa::Vote const &vote);
