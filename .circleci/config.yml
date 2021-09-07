@@ -263,7 +263,7 @@ commands:
        - run:
           name: Delete chart
           command: |
-            if [[ $(helm list -f "pr-<< parameters.pr-name >>" -o json) != '[]' ]] ; then
+            if [[ $(helm list --namespace blockchain-prnet -f "pr-<< parameters.pr-name >>" -o json) != '[]' ]] ; then
               helm delete pr-<< parameters.pr-name >> --namespace blockchain-prnet
               kubectl -n blockchain-prnet delete pvc $(kubectl -n blockchain-prnet get pvc | grep taraxa-data-pr-<<parameters.pr-name>>-boot-node | awk '{print $1}')
               kubectl -n blockchain-prnet delete pvc $(kubectl -n blockchain-prnet get pvc | grep taraxa-data-pr-<<parameters.pr-name>>-consensus-node | awk '{print $1}')

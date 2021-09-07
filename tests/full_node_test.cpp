@@ -800,21 +800,21 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
 
   node->getDagManager()->getLatestPivotAndTips(pivot, tips);
   uint64_t period;
-  std::shared_ptr<vec_blk_t> order;
+  vec_blk_t order;
   std::tie(period, order) = node->getDagManager()->getDagBlockOrder(pivot);
   EXPECT_EQ(period, 1);
-  EXPECT_EQ(order->size(), 6);
+  EXPECT_EQ(order.size(), 6);
 
-  if (order->size() == 6) {
-    EXPECT_EQ((*order)[0], blk_hash_t(3));
-    EXPECT_EQ((*order)[1], blk_hash_t(6));
-    EXPECT_EQ((*order)[2], blk_hash_t(2));
-    EXPECT_EQ((*order)[3], blk_hash_t(1));
-    EXPECT_EQ((*order)[4], blk_hash_t(5));
-    EXPECT_EQ((*order)[5], blk_hash_t(7));
+  if (order.size() == 6) {
+    EXPECT_EQ(order[0], blk_hash_t(3));
+    EXPECT_EQ(order[1], blk_hash_t(6));
+    EXPECT_EQ(order[2], blk_hash_t(2));
+    EXPECT_EQ(order[3], blk_hash_t(1));
+    EXPECT_EQ(order[4], blk_hash_t(5));
+    EXPECT_EQ(order[5], blk_hash_t(7));
   }
   auto write_batch = node->getDB()->createWriteBatch();
-  auto num_blks_set = node->getDagManager()->setDagBlockOrder(pivot, period, *order, write_batch);
+  auto num_blks_set = node->getDagManager()->setDagBlockOrder(pivot, period, order, write_batch);
   node->getDB()->commitWriteBatch(write_batch);
   EXPECT_EQ(num_blks_set, 6);
   // -------- second period ----------
@@ -827,17 +827,17 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   node->getDagManager()->getLatestPivotAndTips(pivot, tips);
   std::tie(period, order) = node->getDagManager()->getDagBlockOrder(pivot);
   EXPECT_EQ(period, 2);
-  if (order->size() == 7) {
-    EXPECT_EQ((*order)[0], blk_hash_t(11));
-    EXPECT_EQ((*order)[1], blk_hash_t(10));
-    EXPECT_EQ((*order)[2], blk_hash_t(13));
-    EXPECT_EQ((*order)[3], blk_hash_t(9));
-    EXPECT_EQ((*order)[4], blk_hash_t(12));
-    EXPECT_EQ((*order)[5], blk_hash_t(14));
-    EXPECT_EQ((*order)[6], blk_hash_t(15));
+  if (order.size() == 7) {
+    EXPECT_EQ(order[0], blk_hash_t(11));
+    EXPECT_EQ(order[1], blk_hash_t(10));
+    EXPECT_EQ(order[2], blk_hash_t(13));
+    EXPECT_EQ(order[3], blk_hash_t(9));
+    EXPECT_EQ(order[4], blk_hash_t(12));
+    EXPECT_EQ(order[5], blk_hash_t(14));
+    EXPECT_EQ(order[6], blk_hash_t(15));
   }
   write_batch = node->getDB()->createWriteBatch();
-  num_blks_set = node->getDagManager()->setDagBlockOrder(pivot, period, *order, write_batch);
+  num_blks_set = node->getDagManager()->setDagBlockOrder(pivot, period, order, write_batch);
   node->getDB()->commitWriteBatch(write_batch);
   EXPECT_EQ(num_blks_set, 7);
 
@@ -851,15 +851,15 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   node->getDagManager()->getLatestPivotAndTips(pivot, tips);
   std::tie(period, order) = node->getDagManager()->getDagBlockOrder(pivot);
   EXPECT_EQ(period, 3);
-  if (order->size() == 5) {
-    EXPECT_EQ((*order)[0], blk_hash_t(17));
-    EXPECT_EQ((*order)[1], blk_hash_t(16));
-    EXPECT_EQ((*order)[2], blk_hash_t(8));
-    EXPECT_EQ((*order)[3], blk_hash_t(18));
-    EXPECT_EQ((*order)[4], blk_hash_t(19));
+  if (order.size() == 5) {
+    EXPECT_EQ(order[0], blk_hash_t(17));
+    EXPECT_EQ(order[1], blk_hash_t(16));
+    EXPECT_EQ(order[2], blk_hash_t(8));
+    EXPECT_EQ(order[3], blk_hash_t(18));
+    EXPECT_EQ(order[4], blk_hash_t(19));
   }
   write_batch = node->getDB()->createWriteBatch();
-  num_blks_set = node->getDagManager()->setDagBlockOrder(pivot, period, *order, write_batch);
+  num_blks_set = node->getDagManager()->setDagBlockOrder(pivot, period, order, write_batch);
   node->getDB()->commitWriteBatch(write_batch);
   EXPECT_EQ(num_blks_set, 5);
 }
