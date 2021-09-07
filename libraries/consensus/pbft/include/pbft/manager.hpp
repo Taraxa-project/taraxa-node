@@ -5,10 +5,10 @@
 
 #include "common/types.hpp"
 #include "config/config.hpp"
-#include "consensus/pbft_chain.hpp"
-#include "consensus/vote.hpp"
+#include "pbft/chain.hpp"
+#include "vote/vote.hpp"
 #include "common/vrf_wrapper.hpp"
-#include "consensus/sync_queue.hpp"
+#include "pbft/sync_queue.hpp"
 #include "network/network.hpp"
 #include "network/tarcap/taraxa_capability.hpp"
 

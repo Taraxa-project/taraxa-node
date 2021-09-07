@@ -1,6 +1,6 @@
 #include <libdevcore/CommonJS.h>
 
-#include <config/vdf.hpp>
+#include <vdf/config.hpp>
 
 namespace taraxa {
 

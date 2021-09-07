@@ -1,7 +1,9 @@
+#include "vote/vote.hpp"
+
 #include <libdevcore/SHA3.h>
 #include <libdevcrypto/Common.h>
 
-#include "consensus/pbft_manager.hpp"
+#include "pbft/manager.hpp"
 #include "network/network.hpp"
 
 constexpr size_t EXTENDED_PARTITION_STEPS = 1000;

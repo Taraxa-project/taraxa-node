@@ -19,6 +19,7 @@ target_link_libraries(cli PRIVATE
     consensus
     logger
     aleth
+    vdf
     taraxa-vrf
     CONAN_PKG::jsoncpp 
     CONAN_PKG::boost

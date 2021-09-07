@@ -26,18 +26,6 @@ u256 Config::effective_genesis_balance(addr_t const& addr) const {
   return ret;
 }
 
-Json::Value enc_json(ExecutionOptions const& obj) {
-  Json::Value json(Json::objectValue);
-  json["disable_nonce_check"] = obj.disable_nonce_check;
-  json["disable_gas_fee"] = obj.disable_gas_fee;
-  return json;
-}
-
-void dec_json(Json::Value const& json, ExecutionOptions& obj) {
-  obj.disable_nonce_check = json["disable_nonce_check"].asBool();
-  obj.disable_gas_fee = json["disable_gas_fee"].asBool();
-}
-
 void dec_json(Json::Value const& json, DPOSQuery::AccountQuery& obj) {
   static auto const dec_field = [](Json::Value const& json, char const* name, bool& field) {
     if (auto const& e = json[name]; !e.isNull()) {

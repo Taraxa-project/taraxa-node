@@ -1,5 +1,5 @@
 #include <cmath>
-#include <consensus/block_proposer.hpp>
+#include "pbft/block_proposer.hpp"
 
 #include "common/util.hpp"
 #include "dag/dag.hpp"

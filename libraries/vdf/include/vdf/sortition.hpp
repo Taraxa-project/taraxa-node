@@ -4,7 +4,7 @@
 
 #include "ProverWesolowski.h"
 #include "common/types.hpp"
-#include "config/vdf.hpp"
+#include "vdf/config.hpp"
 #include "common/vrf_wrapper.hpp"
 #include "libdevcore/CommonData.h"
 #include "logger/log.hpp"

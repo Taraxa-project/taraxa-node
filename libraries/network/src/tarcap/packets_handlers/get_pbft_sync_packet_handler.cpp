@@ -1,7 +1,7 @@
 #include "network/tarcap/packets_handlers/get_pbft_sync_packet_handler.hpp"
 
-#include "consensus/pbft_chain.hpp"
-#include "consensus/vote.hpp"
+#include "pbft/chain.hpp"
+#include "vote/vote.hpp"
 #include "network/tarcap/shared_states/syncing_state.hpp"
 #include "storage/db_storage.hpp"
 

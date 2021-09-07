@@ -1,9 +1,9 @@
-#include "consensus/sync_block.hpp"
+#include "pbft/sync_block.hpp"
 
 #include <libdevcore/CommonJS.h>
 
-#include "consensus/pbft_chain.hpp"
-#include "consensus/vote.hpp"
+#include "pbft/chain.hpp"
+#include "vote/vote.hpp"
 #include "dag/dag_block.hpp"
 #include "transaction_manager/transaction.hpp"
 

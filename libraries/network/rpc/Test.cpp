@@ -5,7 +5,7 @@
 #include <libdevcore/CommonJS.h>
 
 #include "common/types.hpp"
-#include "consensus/pbft_manager.hpp"
+#include "pbft/manager.hpp"
 #include "dag/dag.hpp"
 #include "dag/dag_block_manager.hpp"
 #include "network/network.hpp"

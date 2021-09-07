@@ -1,5 +1,3 @@
-#include "consensus/pbft_chain.hpp"
-
 #include <gtest/gtest.h>
 
 #include <atomic>
@@ -7,9 +5,10 @@
 #include <vector>
 
 #include "common/static_init.hpp"
-#include "consensus/pbft_manager.hpp"
 #include "logger/log.hpp"
 #include "network/network.hpp"
+#include "pbft/chain.hpp"
+#include "pbft/manager.hpp"
 #include "util_test/samples.hpp"
 #include "util_test/util.hpp"
 

@@ -6,7 +6,7 @@ set(SOURCES
     src/db_storage.cpp
 )
 
-add_library(storage ${SOURCES} ${HEADERS})
+add_library(storage STATIC ${SOURCES} ${HEADERS})
 target_include_directories(storage PUBLIC "include")
 target_link_libraries(storage PRIVATE 
     common
@@ -14,10 +14,10 @@ target_link_libraries(storage PRIVATE
     consensus
     final_chain
     logger
-    node
     network
     transaction_manager
     aleth
+    vdf
     taraxa-evm
     taraxa-vrf
     CONAN_PKG::jsoncpp

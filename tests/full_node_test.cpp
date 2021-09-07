@@ -10,11 +10,11 @@
 #include <vector>
 
 #include "common/static_init.hpp"
-#include "consensus/pbft_manager.hpp"
 #include "dag/dag.hpp"
 #include "logger/log.hpp"
 #include "network/network.hpp"
 #include "network/rpc/Taraxa.h"
+#include "pbft/manager.hpp"
 #include "string"
 #include "transaction_manager/transaction_manager.hpp"
 #include "util_test/samples.hpp"

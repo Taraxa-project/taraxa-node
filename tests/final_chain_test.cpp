@@ -5,9 +5,9 @@
 
 #include "common/constants.hpp"
 #include "config/chain.hpp"
-#include "consensus/vote.hpp"
 #include "final_chain/trie_common.hpp"
 #include "util_test/gtest.hpp"
+#include "vote/vote.hpp"
 
 namespace taraxa::final_chain {
 using namespace std;

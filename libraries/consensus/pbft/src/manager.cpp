@@ -9,7 +9,7 @@
 #include <libdevcore/SHA3.h>
 
 #include <chrono>
-#include <consensus/pbft_manager.hpp>
+#include "pbft/manager.hpp"
 #include <string>
 
 #include "dag/dag.hpp"

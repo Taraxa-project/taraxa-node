@@ -8,6 +8,7 @@ add_subdirectory(network)
 add_subdirectory(node)
 add_subdirectory(storage)
 add_subdirectory(transaction_manager)
+add_subdirectory(vdf)
 
 add_subdirectory(aleth)
 
@@ -32,9 +33,9 @@ target_link_libraries(app_base INTERFACE
         storage
         transaction_manager
         aleth
+        vdf
         taraxa-evm
         taraxa-vrf
-        taraxa-vdf
         pthread
         CONAN_PKG::jsoncpp
         CONAN_PKG::libjson-rpc-cpp

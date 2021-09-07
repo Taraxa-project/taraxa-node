@@ -2,7 +2,7 @@
 
 #include "common/constants.hpp"
 #include "common/thread_pool.hpp"
-#include "consensus/vote.hpp"
+#include "vote/vote.hpp"
 #include "final_chain/replay_protection_service.hpp"
 #include "final_chain/trie_common.hpp"
 

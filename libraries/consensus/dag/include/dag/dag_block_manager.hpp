@@ -2,7 +2,7 @@
 
 #include "config/state_api.hpp"
 #include "dag/dag_block.hpp"
-#include "dag/vdf_sortition.hpp"
+#include "vdf/sortition.hpp"
 #include "final_chain/final_chain.hpp"
 #include "transaction_manager/transaction.hpp"
 #include "transaction_manager/transaction_manager.hpp"

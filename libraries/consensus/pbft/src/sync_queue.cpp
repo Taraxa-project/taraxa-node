@@ -1,6 +1,6 @@
-#include "consensus/sync_queue.hpp"
+#include "pbft/sync_queue.hpp"
 
-#include "consensus/pbft_chain.hpp"
+#include "pbft/chain.hpp"
 #include "dag/dag_block.hpp"
 #include "transaction_manager/transaction.hpp"
 

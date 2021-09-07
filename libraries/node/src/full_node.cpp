@@ -8,8 +8,8 @@
 #include <chrono>
 #include <stdexcept>
 
-#include "consensus/block_proposer.hpp"
-#include "consensus/pbft_manager.hpp"
+#include "pbft/block_proposer.hpp"
+#include "pbft/manager.hpp"
 #include "dag/dag.hpp"
 #include "dag/dag_block.hpp"
 #include "network/rpc/Net.h"

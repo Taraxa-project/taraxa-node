@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common/default_construct_copyable_movable.hpp"
-#include "dag/vdf_sortition.hpp"
+#include "vdf/sortition.hpp"
 
 namespace taraxa {
 

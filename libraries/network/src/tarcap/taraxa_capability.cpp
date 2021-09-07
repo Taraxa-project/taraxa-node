@@ -2,9 +2,9 @@
 
 #include <algorithm>
 
-#include "consensus/pbft_chain.hpp"
-#include "consensus/pbft_manager.hpp"
-#include "consensus/vote.hpp"
+#include "pbft/chain.hpp"
+#include "pbft/manager.hpp"
+#include "vote/vote.hpp"
 #include "dag/dag.hpp"
 #include "network/tarcap/packets_handler.hpp"
 #include "network/tarcap/packets_handlers/common/syncing_handler.hpp"

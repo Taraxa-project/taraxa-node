@@ -11,11 +11,11 @@
 #include "common/static_init.hpp"
 #include "common/vrf_wrapper.hpp"
 #include "config/config.hpp"
-#include "consensus/pbft_manager.hpp"
-#include "dag/vdf_sortition.hpp"
 #include "logger/log.hpp"
 #include "node/full_node.hpp"
+#include "pbft/manager.hpp"
 #include "util_test/util.hpp"
+#include "vdf/sortition.hpp"
 
 namespace taraxa::core_tests {
 using namespace vdf;

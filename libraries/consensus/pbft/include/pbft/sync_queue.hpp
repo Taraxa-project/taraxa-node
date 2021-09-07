@@ -1,7 +1,7 @@
 #pragma once
 
 #include <libp2p/Host.h>
-#include "consensus/sync_block.hpp"
+#include "pbft/sync_block.hpp"
 
 #include <deque>
 

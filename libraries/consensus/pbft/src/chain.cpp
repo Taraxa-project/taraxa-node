@@ -1,7 +1,7 @@
 #include <libdevcore/CommonJS.h>
 
-#include <consensus/pbft_chain.hpp>
-#include <consensus/pbft_manager.hpp>
+#include "pbft/chain.hpp"
+#include "pbft/manager.hpp"
 
 #include "common/jsoncpp.hpp"
 

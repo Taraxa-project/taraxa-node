@@ -3,8 +3,9 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 
-#include "node/full_node.hpp"
 #include "rocksdb/utilities/checkpoint.h"
+#include "config/version.hpp"
+#include "vote/vote.hpp"
 
 namespace taraxa {
 namespace fs = std::filesystem;

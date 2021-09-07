@@ -6,17 +6,17 @@ set(SOURCES
     src/full_node.cpp
 )
 
-add_library(node ${SOURCES} ${HEADERS})
+add_library(node STATIC ${SOURCES} ${HEADERS})
 target_include_directories(node PUBLIC "include")
 target_link_libraries(node PRIVATE
     common
     config
     consensus
+    vdf
     final_chain
     logger
     network
     storage
-    taraxa-vrf
     transaction_manager
     aleth
     taraxa-evm

@@ -1,14 +1,13 @@
-
 #include "dag/dag_block.hpp"
 
 #include <libdevcore/CommonData.h>
 #include <libdevcore/CommonJS.h>
+#include <libdevcore/SHA3.h>
+#include <libdevcore/RLP.h>
 
 #include <utility>
 
-#include "dag/dag.hpp"
 #include "logger/log.hpp"
-#include "transaction_manager/transaction_manager.hpp"
 
 namespace taraxa {
 
@@ -30,7 +29,7 @@ DagBlock::DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_t
 DagBlock::DagBlock(string const &json)
     : DagBlock([&] {
         Json::Value doc;
-        stringstream(json) >> doc;
+        std::stringstream(json) >> doc;
         return doc;
       }()) {}
 

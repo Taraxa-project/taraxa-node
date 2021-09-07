@@ -5,7 +5,7 @@
 #include <libdevcore/CommonJS.h>
 #include <libp2p/Common.h>
 
-#include "consensus/pbft_manager.hpp"
+#include "pbft/manager.hpp"
 #include "dag/dag.hpp"
 #include "dag/dag_block_manager.hpp"
 #include "transaction_manager/transaction_manager.hpp"

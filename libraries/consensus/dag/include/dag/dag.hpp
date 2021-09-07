@@ -23,9 +23,9 @@
 
 #include "common/types.hpp"
 #include "common/util.hpp"
-#include "consensus/pbft_chain.hpp"
+#include "pbft/chain.hpp"
 #include "dag/dag_block_manager.hpp"
-#include "dag_block.hpp"
+#include "dag/dag_block.hpp"
 #include "storage/db_storage.hpp"
 #include "transaction_manager/transaction_manager.hpp"
 namespace taraxa {

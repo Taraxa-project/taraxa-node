@@ -1,7 +1,7 @@
 #include "network/tarcap/packets_handlers/common/syncing_handler.hpp"
 
-#include "consensus/pbft_chain.hpp"
-#include "consensus/pbft_manager.hpp"
+#include "pbft/chain.hpp"
+#include "pbft/manager.hpp"
 #include "dag/dag.hpp"
 #include "dag/dag_block_manager.hpp"
 #include "network/tarcap/packets_handlers/common/get_blocks_request_type.hpp"
