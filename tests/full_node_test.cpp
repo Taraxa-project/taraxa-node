@@ -1094,7 +1094,7 @@ TEST_F(FullNodeTest, sync_two_nodes2) {
   // this sleep is needed to process all remaining packets and destruct all network stuff
   // on removal will cause next tests in the suite to fail because p2p port left binded
   // see https://github.com/Taraxa-project/taraxa-node/issues/977 for more info
-  this_thread::sleep_for(1s);
+  this_thread::sleep_for(2s);
 }
 
 TEST_F(FullNodeTest, single_node_run_two_transactions) {
