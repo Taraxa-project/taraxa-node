@@ -125,20 +125,11 @@ add_subdirectory(network/rpc)
 
 add_library(app_base ${SOURCES})
 
-### Aleth part
-include(ProjectSecp256k1)
-include(ProjectLibFF)
-
-add_subdirectory(libdevcore)
-add_subdirectory(libdevcrypto)
-add_subdirectory(libp2p)
-
-target_include_directories(devcore PUBLIC "./")
-###
-
 # TODO: have some problems with include dirs for imported targets
 get_target_property(TARAXA_VDF_INCUDE taraxa-vdf INTERFACE_INCLUDE_DIRECTORIES)
 get_target_property(TARAXA_VRF_INCUDE taraxa-vrf INTERFACE_INCLUDE_DIRECTORIES)
+
+add_subdirectory(aleth)
 
 target_include_directories(app_base PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
