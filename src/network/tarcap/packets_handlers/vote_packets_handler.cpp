@@ -32,26 +32,35 @@ void VotePacketsHandler::process(const dev::RLP &packet_rlp, const PacketData &p
 inline void VotePacketsHandler::processPbftVotePacket(const dev::RLP &packet_rlp,
                                                       const PacketData &packet_data __attribute__((unused)),
                                                       const std::shared_ptr<TaraxaPeer> &peer) {
-  LOG(log_dg_) << "In PbftVotePacket";
-
   Vote vote(packet_rlp[0].toBytes());
   const auto vote_hash = vote.getHash();
   LOG(log_dg_) << "Received PBFT vote " << vote_hash;
 
-  const auto pbft_round = pbft_mgr_->getPbftRound();
   const auto vote_round = vote.getRound();
 
-  if (vote_round >= pbft_round) {
-    if (!vote_mgr_->voteInUnverifiedMap(vote_round, vote_hash) &&
-        !vote_mgr_->voteInVerifiedMap(vote_round, vote_hash)) {
-      db_->saveUnverifiedVote(vote);
-      vote_mgr_->addUnverifiedVote(vote);
-
-      peer->markVoteAsKnown(vote_hash);
-
-      onNewPbftVote(vote);
-    }
+  if (vote_round < pbft_mgr_->getPbftRound()) {
+    LOG(log_dg_) << "Received old PBFT vote " << vote_hash << " from " << packet_data.from_node_id_.abridged()
+                 << ". Vote round: " << vote_round << ", current pbft round: " << pbft_mgr_->getPbftRound();
+    return;
   }
+
+  peer->markVoteAsKnown(vote_hash);
+
+  if (vote_mgr_->voteInUnverifiedMap(vote_round, vote_hash) || vote_mgr_->voteInVerifiedMap(vote_round, vote_hash)) {
+    LOG(log_dg_) << "Received PBFT vote " << vote_hash << " from " << packet_data.from_node_id_.abridged()
+                 << " already saved in queue.";
+    return;
+  }
+
+  // Synchronization point in case multiple threads are processing the same vote at the same time
+  if (!vote_mgr_->addUnverifiedVote(vote)) {
+    LOG(log_dg_) << "Received PBFT vote " << vote_hash << " from " << packet_data.from_node_id_.abridged()
+                 << " already saved in unverified queue by a different thread(race condition).";
+    return;
+  }
+
+  db_->saveUnverifiedVote(vote);
+  onNewPbftVote(vote);
 }
 
 inline void VotePacketsHandler::processGetPbftNextVotePacket(const dev::RLP &packet_rlp, const PacketData &packet_data,
@@ -93,9 +102,11 @@ inline void VotePacketsHandler::processPbftNextVotesPacket(const dev::RLP &packe
     return;
   }
 
-  const auto pbft_currentpacket_rlpound = pbft_mgr_->getPbftRound();
   Vote vote(packet_rlp[0].data().toBytes());
+
+  const auto pbft_currentpacket_rlpound = pbft_mgr_->getPbftRound();
   const auto peer_pbftpacket_rlpound = vote.getRound() + 1;
+
   std::vector<Vote> next_votes;
   for (size_t i = 0; i < next_votes_count; i++) {
     Vote next_vote(packet_rlp[i].data().toBytes());
@@ -106,11 +117,13 @@ inline void VotePacketsHandler::processPbftNextVotesPacket(const dev::RLP &packe
 
       return;
     }
+
     const auto next_vote_hash = next_vote.getHash();
     LOG(log_nf_) << "Received PBFT next vote " << next_vote_hash;
     peer->markVoteAsKnown(next_vote_hash);
     next_votes.emplace_back(next_vote);
   }
+
   LOG(log_nf_) << "Received " << next_votes_count << " next votes from peer " << packet_data.from_node_id_
                << " node current round " << pbft_currentpacket_rlpound << ", peer pbft round "
                << peer_pbftpacket_rlpound;

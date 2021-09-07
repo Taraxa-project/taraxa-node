@@ -141,30 +141,26 @@ void VoteManager::retreieveVotes_() {
   }
 }
 
-void VoteManager::addUnverifiedVote(taraxa::Vote const& vote) {
+bool VoteManager::addUnverifiedVote(taraxa::Vote const& vote) {
   uint64_t pbft_round = vote.getRound();
-  auto hash = vote.getHash();
+  const auto& hash = vote.getHash();
   vote.getVoterAddr();  // this will cache object variables - speed up
+
   {
-    upgradableLock_ lock(unverified_votes_access_);
-    std::map<uint64_t, std::unordered_map<vote_hash_t, Vote>>::const_iterator found_round =
-        unverified_votes_.find(pbft_round);
-    if (found_round != unverified_votes_.end()) {
-      std::unordered_map<vote_hash_t, Vote>::const_iterator found_vote = found_round->second.find(hash);
-      if (found_vote != found_round->second.end()) {
+    uniqueLock_ lock(unverified_votes_access_);
+    if (auto found_round = unverified_votes_.find(pbft_round); found_round != unverified_votes_.end()) {
+      if (!found_round->second.insert({hash, vote}).second) {
         LOG(log_dg_) << "Vote " << hash << " is in unverified map already";
-        return;
+        return false;
       }
-      upgradeLock_ locked(lock);
-      unverified_votes_[pbft_round][hash] = vote;
     } else {
       std::unordered_map<vote_hash_t, Vote> votes{std::make_pair(hash, vote)};
-      upgradeLock_ locked(lock);
-      unverified_votes_[pbft_round] = votes;
+      unverified_votes_[pbft_round] = std::move(votes);
     }
   }
-  LOG(log_nf_) << "Add unverified vote " << vote.getHash();
-  LOG(log_dg_) << "Added unverified vote: " << vote;
+
+  LOG(log_nf_) << "Add unverified vote " << vote.getHash().abridged();
+  return true;
 }
 
 void VoteManager::addUnverifiedVotes(std::vector<Vote> const& votes) {
