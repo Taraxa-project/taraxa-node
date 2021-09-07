@@ -135,7 +135,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
 
   // return {period, block order}, for pbft-pivot-blk proposing (does not
   // finalize)
-  std::pair<uint64_t, std::shared_ptr<vec_blk_t>> getDagBlockOrder(blk_hash_t const &anchor);
+  std::pair<uint64_t, vec_blk_t> getDagBlockOrder(blk_hash_t const &anchor);
   // receive pbft-povit-blk, update periods and finalized, return size of
   // ordered blocks
   uint setDagBlockOrder(blk_hash_t const &anchor, uint64_t period, vec_blk_t const &dag_order,
