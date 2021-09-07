@@ -195,9 +195,10 @@ void DagPacketsHandler::onNewBlockVerified(DagBlock const &block, bool proposed)
     return;
   }
 
-  LOG(log_dg_) << "Verified NewBlock " << block.getHash().toString();
-  auto const peers_without_block =
-      selectPeers([&](TaraxaPeer const &_peer) { return !_peer.isBlockKnown(block.getHash()); });
+  const auto &block_hash = block.getHash();
+  LOG(log_dg_) << "Verified NewBlock " << block_hash.toString();
+
+  auto const peers_without_block = selectPeers(block_hash);
 
   auto const peers_to_send_number = std::min<std::size_t>(
       std::max<std::size_t>(network_min_dag_block_broadcast_, std::sqrt(peers_state_->getPeersCount())),
@@ -212,7 +213,7 @@ void DagPacketsHandler::onNewBlockVerified(DagBlock const &block, bool proposed)
     auto peer = peers_state_->getPeer(peer_id);
     if (peer && !peer->syncing_) {
       sendBlock(peer_id, block);
-      peer->markBlockAsKnown(block.getHash());
+      peer->markBlockAsKnown(block_hash);
     }
   }
   if (!peers_to_send.empty()) LOG(log_dg_) << "Sent block to " << peers_to_send.size() << " peers";
@@ -222,7 +223,7 @@ void DagPacketsHandler::onNewBlockVerified(DagBlock const &block, bool proposed)
     auto peer = peers_state_->getPeer(peer_id);
     if (peer && !peer->syncing_) {
       sendBlockHash(peer_id, block);
-      peer->markBlockAsKnown(block.getHash());
+      peer->markBlockAsKnown(block_hash);
     }
   }
   if (!peers_to_announce.empty()) LOG(log_dg_) << "Anounced block to " << peers_to_announce.size() << " peers";
@@ -249,12 +250,16 @@ std::pair<std::vector<dev::p2p::NodeID>, std::vector<dev::p2p::NodeID>> DagPacke
   return std::make_pair(move(part1), move(part2));
 }
 
-std::vector<dev::p2p::NodeID> DagPacketsHandler::selectPeers(
-    std::function<bool(TaraxaPeer const &)> const &_predicate) {
+std::vector<dev::p2p::NodeID> DagPacketsHandler::selectPeers(const blk_hash_t &block_hash) {
   std::vector<dev::p2p::NodeID> allowed;
   for (auto const &peer : peers_state_->getAllPeers()) {
-    if (_predicate(*peer.second)) allowed.push_back(peer.first);
+    if (peer.second->isBlockKnown(block_hash)) {
+      continue;
+    }
+
+    allowed.push_back(peer.first);
   }
+
   return allowed;
 }
 

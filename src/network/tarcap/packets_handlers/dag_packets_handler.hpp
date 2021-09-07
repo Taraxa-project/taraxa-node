@@ -53,7 +53,7 @@ class DagPacketsHandler : public PacketHandler {
   std::pair<std::vector<dev::p2p::NodeID>, std::vector<dev::p2p::NodeID>> randomPartitionPeers(
       std::vector<dev::p2p::NodeID> const &_peers, std::size_t _number);
 
-  std::vector<dev::p2p::NodeID> selectPeers(std::function<bool(TaraxaPeer const &)> const &_predicate);
+  std::vector<dev::p2p::NodeID> selectPeers(const blk_hash_t &block_hash);
 
   std::shared_ptr<SyncingState> syncing_state_;
   std::shared_ptr<SyncingHandler> syncing_handler_;
