@@ -790,6 +790,7 @@ void NextVotesForPreviousRound::updateWithSyncedVotes(std::vector<Vote> const& n
   }
   if (enoughNextVotes()) {
     LOG(log_dg_) << "Don't need update. Have enough next votes for previous PBFT round already.";
+    return;
   }
 
   std::unordered_map<blk_hash_t, std::vector<Vote>> own_votes_map;
