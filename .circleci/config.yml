@@ -419,7 +419,7 @@ jobs:
       - run: 
          name: Clean old Images if disk available is lower than 15G
          command: |
-           for time in "120 96 72 48 24 12 6 3 1 0"
+           for time in 120 96 72 48 24 12 6 3 1 0
            do
              if [ $(df  /var/lib/docker --block-size=1073741824 --output=avail|grep -v Avail) -lt 15 ]; then 
                 df  /var/lib/docker --block-size=1073741824 --output=avail
