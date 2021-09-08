@@ -227,18 +227,10 @@ std::pair<bool, bi::tcp::endpoint> Network::resolveHost(string const &addr, uint
 
 uint64_t Network::pbftSyncingPeriod() const { return taraxa_capability_->pbftSyncingPeriod(); }
 
-void Network::syncBlockQueuePop() { taraxa_capability_->syncBlockQueuePop(); }
-
-std::shared_ptr<std::pair<SyncBlock, dev::p2p::NodeID>> Network::processSyncBlock() {
-  return taraxa_capability_->processSyncBlock();
-}
+std::optional<SyncBlock> Network::processSyncBlock() { return taraxa_capability_->processSyncBlock(); }
 
 void Network::syncBlockQueuePush(SyncBlock const &block) { taraxa_capability_->syncBlockQueuePush(block, NodeID()); }
 
-void Network::clearSyncBlockQueue() { taraxa_capability_->clearSyncBlockQueue(); }
-
 size_t Network::syncBlockQueueSize() const { return taraxa_capability_->syncBlockQueueSize(); }
-
-void Network::handleMaliciousSyncBlock(NodeID const &id) { return taraxa_capability_->handleMaliciousSyncBlock(id); }
 
 }  // namespace taraxa

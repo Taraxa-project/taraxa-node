@@ -123,11 +123,11 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   explicit DagManager(blk_hash_t const &genesis, addr_t node_addr, std::shared_ptr<TransactionManager> trx_mgr,
                       std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DagBlockManager> dag_blk_mgr,
                       std::shared_ptr<DbStorage> db, logger::Logger log_time);
-  virtual ~DagManager() = default;
+  virtual ~DagManager() { stop(); }
   std::shared_ptr<DagManager> getShared();
   void start();
   void stop();
-  void setNetwork(std::weak_ptr<Network> network) { network_ = move(network); }
+  void setNetwork(std::weak_ptr<Network> network) { network_ = std::move(network); }
 
   blk_hash_t const &get_genesis() { return genesis_; }
 

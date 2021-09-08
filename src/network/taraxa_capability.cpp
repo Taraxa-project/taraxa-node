@@ -1594,7 +1594,7 @@ void TaraxaCapability::broadcastPreviousRoundNextVotesBundle() {
 }
 
 uint64_t TaraxaCapability::pbftSyncingPeriod() const {
-  shared_lock lock(sync_access_);
+  shared_lock lock(sync_queue_access_);
   if (sync_queue_.size()) {
     return sync_queue_.back().first.pbft_blk->getPeriod();
   } else {
@@ -1603,20 +1603,20 @@ uint64_t TaraxaCapability::pbftSyncingPeriod() const {
 }
 
 void TaraxaCapability::syncBlockQueuePop() {
-  unique_lock lock(sync_access_);
+  unique_lock lock(sync_queue_access_);
   sync_queue_.pop();
 }
 
 void TaraxaCapability::handleMaliciousSyncBlock(NodeID const &id) {
   syncing_state_.set_peer_malicious(id);
   auto host = host_.lock();
-  if (host) host->disconnect(sync_queue_.front().second, p2p::UserReason);
+  if (host) host->disconnect(id, p2p::UserReason);
   clearSyncBlockQueue();
   restartSyncingPbft(true);
 }
 
-std::shared_ptr<std::pair<SyncBlock, dev::p2p::NodeID>> TaraxaCapability::processSyncBlock() {
-  shared_lock lock(sync_access_);
+std::optional<SyncBlock> TaraxaCapability::processSyncBlock() {
+  shared_lock lock(sync_queue_access_);
   auto sync_block = sync_queue_.front();
   lock.unlock();
   auto pbft_block_hash = sync_block.first.pbft_blk->getBlockHash();
@@ -1628,7 +1628,7 @@ std::shared_ptr<std::pair<SyncBlock, dev::p2p::NodeID>> TaraxaCapability::proces
                            << "; prevHash: " << sync_block.first.pbft_blk->getPrevBlockHash() << " from peer "
                            << sync_block.second.abridged() << " received, stop syncing.";
     handleMaliciousSyncBlock(sync_queue_.front().second);
-    return nullptr;
+    return nullopt;
   }
 
   // Check cert vote matches
@@ -1638,45 +1638,53 @@ std::shared_ptr<std::pair<SyncBlock, dev::p2p::NodeID>> TaraxaCapability::proces
                              << pbft_block_hash << " from peer " << sync_block.second.abridged()
                              << " received, stop syncing.";
       handleMaliciousSyncBlock(sync_queue_.front().second);
-      return nullptr;
+      return nullopt;
     }
   }
 
-  dev::RLPStream order_stream(2);
-  order_stream.appendList(sync_block.first.dag_blocks.size());
-
-  for (auto const &dag_block : sync_block.first.dag_blocks) {
-    order_stream << dag_block.getHash();
-  }
-  order_stream.appendList(sync_block.first.transactions.size());
-  for (auto const &trx : sync_block.first.transactions) {
-    order_stream << trx.getHash();
-  }
-  auto order_hash = dev::sha3(order_stream.out());
+  auto order_hash = pbft_mgr_->calculateOrderHash(sync_block.first.dag_blocks, sync_block.first.transactions);
   if (order_hash != sync_block.first.pbft_blk->getOrderHash()) {
     LOG(log_er_pbft_sync_) << "Order hash incorrect in sync block " << pbft_block_hash << " expected: " << order_hash
                            << " received " << sync_block.first.pbft_blk->getOrderHash() << " from "
                            << sync_block.second.abridged() << ", stop syncing.";
     handleMaliciousSyncBlock(sync_block.second);
-    return nullptr;
+    return nullopt;
   }
 
-  return make_shared<std::pair<SyncBlock, dev::p2p::NodeID>>(std::move(sync_block));
+  if (pbft_chain_->findPbftBlockInChain(pbft_block_hash)) {
+    LOG(log_dg_) << "PBFT block " << pbft_block_hash << " already present in chain.";
+    syncBlockQueuePop();
+    return nullopt;
+  }
+
+  // Check cert votes validation
+  if (!vote_mgr_->pbftBlockHasEnoughValidCertVotes(sync_block.first, pbft_mgr_->getDposTotalVotesCount(),
+                                                   pbft_mgr_->getSortitionThreshold(), pbft_mgr_->getTwoTPlusOne())) {
+    // Failed cert votes validation, flush synced PBFT queue and set since
+    // next block validation depends on the current one
+    LOG(log_er_) << "Synced PBFT block " << pbft_block_hash
+                 << " doesn't have enough valid cert votes. Clear synced PBFT blocks! DPOS total votes count: "
+                 << pbft_mgr_->getDposTotalVotesCount();
+    handleMaliciousSyncBlock(sync_block.second);
+    return nullopt;
+  }
+  syncBlockQueuePop();
+  return std::optional<SyncBlock>(std::move(sync_block.first));
 }
 
 void TaraxaCapability::syncBlockQueuePush(SyncBlock const &block, NodeID const &node_id) {
-  unique_lock lock(sync_access_);
+  unique_lock lock(sync_queue_access_);
   sync_queue_.push({block, node_id});
 }
 
 void TaraxaCapability::clearSyncBlockQueue() {
-  unique_lock lock(sync_access_);
+  unique_lock lock(sync_queue_access_);
   std::queue<std::pair<SyncBlock, NodeID>> empty;
   std::swap(sync_queue_, empty);
 }
 
 size_t TaraxaCapability::syncBlockQueueSize() const {
-  shared_lock lock(sync_access_);
+  shared_lock lock(sync_queue_access_);
   return sync_queue_.size();
 }
 
