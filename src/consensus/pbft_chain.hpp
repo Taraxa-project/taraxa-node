@@ -97,7 +97,7 @@ class PbftChain {
   bool findPbftBlockInSyncedSet(blk_hash_t const& pbft_block_hash) const;
 
   void cleanupUnverifiedPbftBlocks(taraxa::PbftBlock const& pbft_block);
-  void pushUnverifiedPbftBlock(std::shared_ptr<PbftBlock> const& pbft_block);
+  bool pushUnverifiedPbftBlock(std::shared_ptr<PbftBlock> const& pbft_block);
 
   void updatePbftChain(blk_hash_t const& pbft_block_hash);
 
@@ -118,7 +118,6 @@ class PbftChain {
  private:
   void pbftSyncedSetInsert_(blk_hash_t const& pbft_block_hash);
   void pbftSyncedSetErase_();
-  void insertUnverifiedPbftBlockIntoParentMap_(blk_hash_t const& prev_block_hash, blk_hash_t const& block_hash);
 
   using uniqueLock_ = boost::unique_lock<boost::shared_mutex>;
   using sharedLock_ = boost::shared_lock<boost::shared_mutex>;

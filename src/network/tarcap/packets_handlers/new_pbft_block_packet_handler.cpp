@@ -30,15 +30,19 @@ void NewPbftBlockPacketHandler::process(const dev::RLP &packet_rlp,
 
   const auto pbft_synced_period = pbft_chain_->pbftSyncingPeriod();
   if (pbft_synced_period >= pbft_block->getPeriod()) {
-    LOG(log_dg_) << "Drop it! Synced PBFT block at period " << pbft_block->getPeriod()
-                 << ", own PBFT chain has synced at period " << pbft_synced_period;
+    LOG(log_dg_) << "Drop new PBFT block " << pbft_block->getBlockHash().abridged() << " at period "
+                 << pbft_block->getPeriod() << ", own PBFT chain has synced at period " << pbft_synced_period;
     return;
   }
 
-  if (!pbft_chain_->findUnverifiedPbftBlock(pbft_block->getBlockHash())) {
-    pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
-    onNewPbftBlock(*pbft_block);
+  // Synchronization point in case multiple threads are processing the same block at the same time
+  if (!pbft_chain_->pushUnverifiedPbftBlock(pbft_block)) {
+    LOG(log_dg_) << "Drop new PBFT block " << pbft_block->getBlockHash().abridged() << " at period "
+                 << pbft_block->getPeriod() << " -> already inserted in unverified queue ";
+    return;
   }
+
+  onNewPbftBlock(*pbft_block);
 }
 
 void NewPbftBlockPacketHandler::onNewPbftBlock(PbftBlock const &pbft_block) {
