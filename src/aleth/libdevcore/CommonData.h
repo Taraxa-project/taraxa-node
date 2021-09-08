@@ -273,32 +273,34 @@ std::vector<T> operator+(std::vector<T> _a, U const& _b) {
 
 template <class T, class U>
 std::vector<T> keysOf(std::map<T, U> const& _m) {
-  std::vector<T> ret;
-  for (auto const& i : _m) ret.push_back(i.first);
-  return ret;
+  return std::accumulate(_m.begin(), _m.end(), std::vector<T>(_m.size()), [](auto& vector, const auto& map_entry) {
+    vector.push_back(map_entry.first);
+    return vector;
+  });
 }
 
 template <class T, class U>
 std::vector<T> keysOf(std::unordered_map<T, U> const& _m) {
-  std::vector<T> ret;
-  for (auto const& i : _m) ret.push_back(i.first);
-  return ret;
+  return std::accumulate(_m.begin(), _m.end(), std::vector<T>(_m.size()), [](auto& vector, const auto& map_entry) {
+    vector.push_back(map_entry.first);
+    return vector;
+  });
 }
 
 template <class T, class U>
 std::vector<U> valuesOf(std::map<T, U> const& _m) {
-  std::vector<U> ret;
-  ret.reserve(_m.size());
-  for (auto const& i : _m) ret.push_back(i.second);
-  return ret;
+  return std::accumulate(_m.begin(), _m.end(), std::vector<U>(_m.size()), [](auto& vector, const auto& map_entry) {
+    vector.push_back(map_entry.second);
+    return vector;
+  });
 }
 
 template <class T, class U>
 std::vector<U> valuesOf(std::unordered_map<T, U> const& _m) {
-  std::vector<U> ret;
-  ret.reserve(_m.size());
-  for (auto const& i : _m) ret.push_back(i.second);
-  return ret;
+  return std::accumulate(_m.begin(), _m.end(), std::vector<U>(_m.size()), [](auto& vector, const auto& map_entry) {
+    vector.push_back(map_entry.second);
+    return vector;
+  });
 }
 
 template <class T, class V>

@@ -110,7 +110,6 @@ bool DbStorage::createSnapshot(uint64_t period) {
     auto status = rocksdb::Checkpoint::Create(db_, &checkpoint);
     // Scope is to delete checkpoint object as soon as we don't need it anymore
     {
-      unique_ptr<rocksdb::Checkpoint> realPtr = unique_ptr<rocksdb::Checkpoint>(checkpoint);
       checkStatus(status);
       auto snapshot_path = db_path_;
       snapshot_path += std::to_string(period);

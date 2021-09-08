@@ -281,9 +281,7 @@ void TransactionManager::stop() {
   }
 }
 
-std::unordered_map<trx_hash_t, Transaction> TransactionManager::getVerifiedTrxSnapShot() const {
-  return trx_qu_.getVerifiedTrxSnapShot();
-}
+size_t TransactionManager::getVerifiedTrxCount() const { return trx_qu_.getVerifiedTrxCount(); }
 
 std::pair<size_t, size_t> TransactionManager::getTransactionQueueSize() const {
   return trx_qu_.getTransactionQueueSize();
@@ -292,7 +290,6 @@ std::pair<size_t, size_t> TransactionManager::getTransactionQueueSize() const {
 size_t TransactionManager::getTransactionBufferSize() const { return trx_qu_.getTransactionBufferSize(); }
 
 std::vector<Transaction> TransactionManager::getNewVerifiedTrxSnapShot() {
-  // TODO: get rid of copying the whole vector of txs here...
   return trx_qu_.getNewVerifiedTrxSnapShot();
 }
 

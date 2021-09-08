@@ -133,8 +133,7 @@ TEST_F(TransactionTest, verifiers) {
   }
   t.join();
   thisThreadSleepForMilliSeconds(100);
-  auto verified_trxs = trx_mgr.getVerifiedTrxSnapShot();
-  EXPECT_EQ(verified_trxs.size(), g_trx_samples->size());
+  EXPECT_EQ(trx_mgr.getVerifiedTrxCount(), g_trx_samples->size());
 }
 
 TEST_F(TransactionTest, transaction_limit) {

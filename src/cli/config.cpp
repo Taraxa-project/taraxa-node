@@ -41,7 +41,6 @@ Config::Config(int argc, const char* argv[]) {
   // Set config file and data directory to default values
   config = Tools::getTaraxaDefaultConfigFile();
   wallet = Tools::getWalletDefaultFile();
-  auto default_dir = Tools::getTaraxaDefaultDir();
 
   // Define all the command line options and descriptions
   main_options.add_options()(HELP, "Print this help message and exit");

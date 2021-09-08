@@ -100,9 +100,6 @@ struct LoggingOptions {
   std::string logfilename;
 };
 
-// Should be called in every executable
-void setupLogging(LoggingOptions const& _options);
-
 // Simple non-thread-safe logger with fixed severity and channel for each
 // message For better formatting it is recommended to limit channel name to max
 // 6 characters.
