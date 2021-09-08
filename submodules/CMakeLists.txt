@@ -1,8 +1,3 @@
-# Add secp256k1 & libff
-## like aleth do it
-include(ProjectSecp256k1)
-include(ProjectLibFF)
-
 # Add ethash
 set(include_dir ethash/include)
 set(prefix_ethash ethash/lib/ethash)
@@ -31,9 +26,6 @@ add_library(
     ${prefix_ethash}/progpow.cpp
 )
 target_include_directories(ethash PUBLIC ${include_dir})
-
-# Add aleth
-add_subdirectory(taraxa-aleth)
 
 include(ExternalProject)
 
