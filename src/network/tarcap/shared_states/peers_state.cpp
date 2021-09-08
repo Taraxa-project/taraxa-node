@@ -54,12 +54,6 @@ std::unordered_map<dev::p2p::NodeID, std::shared_ptr<TaraxaPeer>> PeersState::ge
   return std::unordered_map<dev::p2p::NodeID, std::shared_ptr<TaraxaPeer>>(peers_.begin(), peers_.end());
 }
 
-void PeersState::setPendingPeersToReady() {
-  std::unique_lock lock(peers_mutex_);
-  peers_.merge(pending_peers_);
-  pending_peers_.clear();
-}
-
 std::shared_ptr<TaraxaPeer> PeersState::addPendingPeer(const dev::p2p::NodeID& node_id) {
   std::unique_lock lock(peers_mutex_);
   auto ret = pending_peers_.emplace(node_id, std::make_shared<TaraxaPeer>(node_id));

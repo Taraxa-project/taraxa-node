@@ -63,13 +63,13 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
    * @brief Inserts batch of unverified broadcasted transactions to unverified queue and db
    *
    * @note Some of the transactions might be already processed -> they are not processed and inserted again
-   * @param raw_trxs transactions to be processed
+   * @param txs transactions to be processed
    * @return number of successfully inserted unseen transactions
    */
-  uint32_t insertBroadcastedTransactions(const std::vector<taraxa::bytes> &raw_trxs);
+  uint32_t insertBroadcastedTransactions(const std::vector<Transaction> &txs);
 
   std::unordered_map<trx_hash_t, Transaction> getVerifiedTrxSnapShot() const;
-  std::vector<taraxa::bytes> getNewVerifiedTrxSnapShotSerialized();
+  std::vector<Transaction> getNewVerifiedTrxSnapShotSerialized();
   std::pair<size_t, size_t> getTransactionQueueSize() const;
   size_t getTransactionBufferSize() const;
 
@@ -91,14 +91,6 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
    * @return true if transaction queue is overflowed, otherwise false
    */
   bool checkQueueOverflow();
-
-  /**
-   * @brief Mark tx as seen
-   *
-   * @param tx
-   * @return true in case tx was actually marked as seen(was not seen before), otherwise false (was already seen)
-   */
-  bool markTxAsSeen(const Transaction &tx);
 
   addr_t getFullNodeAddress() const;
   void verifyQueuedTrxs();

@@ -70,17 +70,9 @@ bool TransactionManager::checkQueueOverflow() {
   return false;
 }
 
-bool TransactionManager::markTxAsSeen(const Transaction &tx) { return seen_txs_.insert(tx.getHash()); }
-
 std::pair<bool, std::string> TransactionManager::insertTransaction(const Transaction &trx, bool verify,
                                                                    bool broadcast) {
   const auto &tx_hash = trx.getHash();
-
-  // Mark tx as seen - synchronization point in case multiple threads are processing the same tx at the same time
-  if (!markTxAsSeen(trx)) {
-    LOG(log_dg_) << "Trying to insert transaction " << tx_hash.abridged() << " that is already marked as seen, skip it";
-    return std::make_pair(false, "skip, seen in cache");
-  }
 
   if (checkQueueOverflow() == true) {
     LOG(log_er_) << "Queue overlfow";
@@ -117,11 +109,10 @@ std::pair<bool, std::string> TransactionManager::insertTransaction(const Transac
     }
   }
 
-  status = verify ? TransactionStatusEnum::in_queue_verified : TransactionStatusEnum::in_queue_unverified;
-  db_->saveTransaction(trx, verify && mode_ != VerifyMode::skip_verify_sig);
-  db_->saveTransactionStatus(tx_hash, status);
-
-  if (!trx_qu_.insert(trx, verify)) {
+  // Insert unseen tx into the queue + database
+  // Synchronization point in case multiple threads are processing the same tx at the same time
+  bool tx_verified = verify && mode_ != VerifyMode::skip_verify_sig;
+  if (!trx_qu_.insert(trx, verify, tx_verified, db_)) {
     return std::make_pair(false, "skip, already inserted by different thread(race condition)");
   }
 
@@ -131,14 +122,14 @@ std::pair<bool, std::string> TransactionManager::insertTransaction(const Transac
 
   if (broadcast == true) {
     if (auto net = network_.lock(); net && conf_.network.network_transaction_interval == 0) {
-      net->onNewTransactions({*trx.rlp()});
+      net->onNewTransactions({trx});
     }
   }
 
   return std::make_pair(true, "");
 }
 
-uint32_t TransactionManager::insertBroadcastedTransactions(const std::vector<taraxa::bytes> &raw_trxs) {
+uint32_t TransactionManager::insertBroadcastedTransactions(const std::vector<Transaction> &txs) {
   if (stopped_) {
     return 0;
   }
@@ -147,42 +138,22 @@ uint32_t TransactionManager::insertBroadcastedTransactions(const std::vector<tar
     return 0;
   }
 
-  std::vector<trx_hash_t> trxs_hashes;
-  std::vector<Transaction> trxs;
-  std::vector<Transaction> unseen_trxs;
+  std::vector<Transaction> unseen_txs;
+  unseen_txs.reserve(txs.size());
 
-  trxs_hashes.reserve(raw_trxs.size());
-  trxs.reserve(raw_trxs.size());
-  unseen_trxs.reserve(raw_trxs.size());
-
-  for (const auto &raw_trx : raw_trxs) {
-    Transaction trx = Transaction(raw_trx);
-
-    // Mark tx as seen - synchronization point in case multiple threads are processing the same tx at the same time
-    if (!markTxAsSeen(trx)) {
-      LOG(log_dg_) << "Trying to insert transaction " << trx.getHash().abridged()
-                   << " that is already marked as seen, skip it";
-      continue;
-    }
-
-    trxs_hashes.push_back(trx.getHash());
-    trxs.push_back(std::move(trx));
-  }
-
-  if (trxs.empty()) {
-    LOG(log_dg_) << "No txs to be processed after filter";
-    return 0;
-  }
+  std::vector<trx_hash_t> txs_hashes;
+  txs_hashes.reserve(txs.size());
+  std::transform(txs.begin(), txs.end(), std::back_inserter(txs_hashes),
+                 [](const Transaction &tx) -> trx_hash_t { return tx.getHash(); });
 
   // Get transactions statuses from db
-  DbStorage::MultiGetQuery db_query(db_, trxs_hashes.size());
-  db_query.append(DbStorage::Columns::trx_status, trxs_hashes);
+  DbStorage::MultiGetQuery db_query(db_, txs_hashes.size());
+  db_query.append(DbStorage::Columns::trx_status, txs_hashes);
   auto db_trxs_statuses = db_query.execute();
 
-  auto write_batch = db_->createWriteBatch();
   for (size_t idx = 0; idx < db_trxs_statuses.size(); idx++) {
     auto &trx_raw_status = db_trxs_statuses[idx];
-    const trx_hash_t &trx_hash = trxs_hashes[idx];
+    const trx_hash_t &trx_hash = txs_hashes[idx];
 
     TransactionStatus trx_status;
     if (!trx_raw_status.empty()) {
@@ -218,12 +189,7 @@ uint32_t TransactionManager::insertBroadcastedTransactions(const std::vector<tar
       continue;
     }
 
-    const Transaction &trx = trxs[idx];
-
-    db_->addTransactionToBatch(trx, write_batch);
-    db_->addTransactionStatusToBatch(write_batch, trx_hash, TransactionStatusEnum::in_queue_unverified);
-
-    unseen_trxs.push_back(std::move(trx));
+    unseen_txs.emplace_back(std::move(txs[idx]));
 
     // TODO: new pending tx could be omitted here ? Currently we ommit new pending tx only if it is included in dag
     // block
@@ -231,12 +197,12 @@ uint32_t TransactionManager::insertBroadcastedTransactions(const std::vector<tar
     //  transaction_accepted_.emit(trx.getHash());
   }
 
-  db_->commitWriteBatch(write_batch);
-  trx_qu_.insertUnverifiedTrxs(unseen_trxs);
+  // Insert unseen txs into the queue + database
+  // Synchronization point in case multiple threads are processing the same tx at the same time
+  trx_qu_.insertUnverifiedTrxs(unseen_txs, db_);
 
-  LOG(log_nf_) << raw_trxs.size() << " received txs processed (" << unseen_trxs.size()
-               << " unseen -> inserted into db).";
-  return unseen_trxs.size();
+  LOG(log_nf_) << txs.size() << " received txs processed (" << unseen_txs.size() << " unseen -> inserted into db).";
+  return unseen_txs.size();
 }
 
 void TransactionManager::verifyQueuedTrxs() {
@@ -309,16 +275,12 @@ std::pair<size_t, size_t> TransactionManager::getTransactionQueueSize() const {
 
 size_t TransactionManager::getTransactionBufferSize() const { return trx_qu_.getTransactionBufferSize(); }
 
-std::vector<taraxa::bytes> TransactionManager::getNewVerifiedTrxSnapShotSerialized() {
-  auto verified_trxs = trx_qu_.getNewVerifiedTrxSnapShot();
-  std::vector<Transaction> vec_trxs;
-  std::copy(verified_trxs.begin(), verified_trxs.end(), std::back_inserter(vec_trxs));
-  sort(vec_trxs.begin(), vec_trxs.end(), trxComp);
-  std::vector<taraxa::bytes> ret;
-  for (auto const &t : vec_trxs) {
-    ret.emplace_back(*t.rlp());
-  }
-  return ret;
+std::vector<Transaction> TransactionManager::getNewVerifiedTrxSnapShotSerialized() {
+  // TODO: get rid of copying the whole vector of txs here...
+  auto txs = trx_qu_.getNewVerifiedTrxSnapShot();
+
+  sort(txs.begin(), txs.end(), trxComp);
+  return txs;
 }
 
 unsigned long TransactionManager::getTransactionCount() const { return trx_count_; }

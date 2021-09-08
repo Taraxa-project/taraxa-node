@@ -8,7 +8,6 @@
 #include "config/config.hpp"
 #include "logger/log.hpp"
 #include "network/network.hpp"
-#include "network/taraxa_capability.hpp"
 #include "pbft_chain.hpp"
 #include "vote.hpp"
 #include "vrf_wrapper.hpp"

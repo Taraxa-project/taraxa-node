@@ -23,14 +23,18 @@ inline void TransactionPacketHandler::process(const dev::RLP &packet_rlp,
                                               const std::shared_ptr<dev::p2p::Host> &host __attribute__((unused)),
                                               const std::shared_ptr<TaraxaPeer> &peer) {
   std::string received_transactions;
-  std::vector<taraxa::bytes> transactions;
-  auto transaction_count = packet_rlp.itemCount();
-  for (size_t i_transaction = 0; i_transaction < transaction_count; i_transaction++) {
-    Transaction transaction(packet_rlp[i_transaction].data().toBytes());
+  const auto transaction_count = packet_rlp.itemCount();
+
+  std::vector<Transaction> transactions;
+  transactions.reserve(transaction_count);
+
+  for (size_t tx_idx = 0; tx_idx < transaction_count; tx_idx++) {
+    const auto &transaction = transactions.emplace_back(packet_rlp[tx_idx].data().toBytes());
+
     received_transactions += transaction.getHash().abridged() + " ";
     peer->markTransactionAsKnown(transaction.getHash());
-    transactions.emplace_back(packet_rlp[i_transaction].data().toBytes());
   }
+
   if (transaction_count > 0) {
     LOG(log_dg_) << "Received TransactionPacket with " << packet_rlp.itemCount() << " transactions";
     LOG(log_tr_) << "Received TransactionPacket with " << packet_rlp.itemCount()
@@ -40,15 +44,14 @@ inline void TransactionPacketHandler::process(const dev::RLP &packet_rlp,
   }
 }
 
-void TransactionPacketHandler::onNewTransactions(std::vector<taraxa::bytes> const &transactions, bool fromNetwork) {
+void TransactionPacketHandler::onNewTransactions(std::vector<Transaction> const &transactions, bool fromNetwork) {
   if (fromNetwork) {
     if (dag_blk_mgr_) {
       LOG(log_nf_) << "Storing " << transactions.size() << " transactions";
       received_trx_count_ += transactions.size();
       unique_received_trx_count_ += trx_mgr_->insertBroadcastedTransactions(transactions);
     } else {
-      for (auto const &transaction : transactions) {
-        Transaction trx(transaction);
+      for (auto const &trx : transactions) {
         auto trx_hash = trx.getHash();
         if (!test_state_->hasTransaction(trx_hash)) {
           test_state_->insertTransaction(trx);
@@ -69,8 +72,7 @@ void TransactionPacketHandler::onNewTransactions(std::vector<taraxa::bytes> cons
       // Confirm that status messages were exchanged otherwise message might be ignored and node would
       // incorrectly markTransactionAsKnown
       if (!peer.second->syncing_) {
-        for (auto const &transaction : transactions) {
-          Transaction trx(transaction);
+        for (auto const &trx : transactions) {
           auto trx_hash = trx.getHash();
           if (peer.second->isTransactionKnown(trx_hash)) {
             continue;
@@ -80,7 +82,7 @@ void TransactionPacketHandler::onNewTransactions(std::vector<taraxa::bytes> cons
             break;
           }
 
-          transactions_to_send[peer.first].push_back(transaction);
+          transactions_to_send[peer.first].push_back(*trx.rlp());
           transactions_hash_to_send[peer.first].push_back(trx_hash);
         }
       }

@@ -30,16 +30,12 @@ set(SOURCES
         final_chain/final_chain.hpp
         logger/log.hpp
         logger/logger_config.hpp
-        network/peers_state.hpp
-        network/taraxa_capability.hpp
-        network/taraxa_peer.hpp
         network/syncing_state.hpp
         network/rpc/rpc_error_handler.hpp
         network/rpc/eth/watches.hpp
         network/rpc/eth/LogFilter.hpp
         network/rpc/eth/data.hpp
         network/network.hpp
-        network/packets_stats.hpp
         network/tarcap/new_taraxa_capability.hpp
         network/tarcap/stats/node_stats.hpp
         network/tarcap/threadpool/tarcap_thread_pool.hpp
@@ -135,10 +131,6 @@ set(SOURCES
         network/rpc/eth/LogFilter.cpp
         network/rpc/eth/Eth.cpp
         network/network.cpp
-        network/packets_stats.cpp
-        network/peers_state.cpp
-        network/taraxa_capability.cpp
-        network/syncing_state.cpp
         network/tarcap/new_taraxa_capability.cpp
         network/tarcap/stats/node_stats.cpp
         network/tarcap/threadpool/tarcap_thread_pool.cpp

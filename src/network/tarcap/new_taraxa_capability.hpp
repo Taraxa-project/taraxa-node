@@ -9,6 +9,7 @@
 
 #include "config/config.hpp"
 #include "network/tarcap/shared_states/peers_state.hpp"
+#include "network/tarcap/shared_states/test_state.hpp"
 #include "network/tarcap/stats/node_stats.hpp"
 #include "threadpool/tarcap_thread_pool.hpp"
 #include "util/thread_pool.hpp"
@@ -28,7 +29,6 @@ namespace taraxa::network::tarcap {
 class PacketsHandler;
 class SyncingState;
 class SyncingHandler;
-class TestState;
 class TaraxaPeer;
 
 class TaraxaCapability : public dev::p2p::CapabilityFace {
@@ -72,7 +72,7 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   void restartSyncingPbft(bool force = false);
   bool pbft_syncing() const;
   void onNewBlockVerified(std::shared_ptr<DagBlock> const &blk, bool proposed);
-  void onNewTransactions(std::vector<taraxa::bytes> transactions);
+  void onNewTransactions(const std::vector<Transaction> &transactions);
   void onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_block);
   void onNewPbftVote(const Vote &vote);
   void broadcastPreviousRoundNextVotesBundle();
@@ -83,6 +83,11 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   void sendBlocks(dev::p2p::NodeID const &id, std::vector<std::shared_ptr<DagBlock>> blocks);
   size_t getReceivedBlocksCount() const;
   size_t getReceivedTransactionsCount() const;
+
+  void onNewBlockReceived(const DagBlock &block, const std::vector<Transaction> &transactions);
+
+  void sendTestMessage(dev::p2p::NodeID const &id, int x, std::vector<char> const &data);
+  std::pair<size_t, uint64_t> retrieveTestData(const dev::p2p::NodeID &node_id);
 
   // PBFT
   void sendPbftBlock(dev::p2p::NodeID const &id, PbftBlock const &pbft_block, uint64_t pbft_chain_size);
@@ -102,6 +107,11 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
                               const std::shared_ptr<DagBlockManager> &dag_blk_mgr,
                               const std::shared_ptr<TransactionManager> &trx_mgr, addr_t const &node_addr);
 
+ public:
+  // TODO: Remove in future when tests are refactored
+  // Test state
+  std::shared_ptr<TestState> test_state_;
+
  private:
   // Peers state
   std::shared_ptr<PeersState> peers_state_;
@@ -109,10 +119,6 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   // Syncing state + syncing handler
   std::shared_ptr<SyncingState> syncing_state_;
   std::shared_ptr<SyncingHandler> syncing_handler_;
-
-  // TODO: Remove in future when tests are refactored
-  // Test state
-  std::shared_ptr<TestState> test_state_;
 
   // List of boot nodes (from config)
   std::map<Public, dev::p2p::NodeIPEndpoint> boot_nodes_;

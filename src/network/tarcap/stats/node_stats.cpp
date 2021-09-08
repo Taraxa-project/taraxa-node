@@ -222,9 +222,9 @@ void NodeStats::logNodeStats() {
 
 Json::Value NodeStats::getStatus() const {
   Json::Value res;
-  NodeID max_pbft_round_nodeID;
-  NodeID max_pbft_chain_nodeID;
-  NodeID max_node_dag_level_nodeID;
+  dev::p2p::NodeID max_pbft_round_nodeID;
+  dev::p2p::NodeID max_pbft_chain_nodeID;
+  dev::p2p::NodeID max_node_dag_level_nodeID;
   uint64_t peer_max_pbft_round = 1;
   uint64_t peer_max_pbft_chain_size = 1;
   uint64_t peer_max_node_dag_level = 1;

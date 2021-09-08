@@ -34,10 +34,10 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev
                                    std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr,
                                    std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
                                    std::shared_ptr<TransactionManager> trx_mgr, addr_t const &node_addr)
-    : peers_state_(std::make_shared<PeersState>(std::move(host))),
+    : test_state_(std::make_shared<TestState>()),
+      peers_state_(std::make_shared<PeersState>(std::move(host))),
       syncing_state_(std::make_shared<SyncingState>(peers_state_)),
       syncing_handler_(nullptr),
-      test_state_(std::make_shared<TestState>()),
       node_stats_(nullptr),
       packets_handlers_(std::make_shared<PacketsHandler>()),
       thread_pool_(conf.network_packets_processing_threads, node_addr),
@@ -232,12 +232,12 @@ unsigned TaraxaCapability::version() const { return TARAXA_NET_VERSION; }
 
 unsigned TaraxaCapability::messageCount() const { return SubprotocolPacketType::PacketCount; }
 
-void TaraxaCapability::onConnect(weak_ptr<Session> session, u256 const &) {
+void TaraxaCapability::onConnect(weak_ptr<dev::p2p::Session> session, u256 const &) {
   const auto node_id = session.lock()->id();
 
   if (syncing_state_->is_peer_malicious(node_id)) {
     if (auto session_p = session.lock()) {
-      session_p->disconnect(UserReason);
+      session_p->disconnect(dev::p2p::UserReason);
     }
 
     LOG(log_wr_) << "Node " << node_id << " connection dropped - malicious node";
@@ -254,7 +254,7 @@ void TaraxaCapability::onConnect(weak_ptr<Session> session, u256 const &) {
   status_packet_handler->sendStatus(node_id, true);
 }
 
-void TaraxaCapability::onDisconnect(NodeID const &_nodeID) {
+void TaraxaCapability::onDisconnect(p2p::NodeID const &_nodeID) {
   LOG(log_nf_) << "Node " << _nodeID << " disconnected";
   peers_state_->erasePeer(_nodeID);
 
@@ -274,7 +274,7 @@ std::string TaraxaCapability::packetTypeToString(unsigned _packetType) const {
   return convertPacketTypeToString(static_cast<SubprotocolPacketType>(_packetType));
 }
 
-void TaraxaCapability::interpretCapabilityPacket(weak_ptr<Session> session, unsigned _id, RLP const &_r) {
+void TaraxaCapability::interpretCapabilityPacket(weak_ptr<dev::p2p::Session> session, unsigned _id, RLP const &_r) {
   auto node_id = session.lock()->id();
 
   // Drop any packet (except StatusPacket) that comes before the connection between nodes is initialized by sending
@@ -333,11 +333,16 @@ void TaraxaCapability::onNewBlockVerified(std::shared_ptr<DagBlock> const &blk, 
       ->onNewBlockVerified(*blk, proposed);
 }
 
-// TODO: why not const ref ???
-void TaraxaCapability::onNewTransactions(std::vector<taraxa::bytes> transactions) {
+void TaraxaCapability::onNewTransactions(const std::vector<Transaction> &transactions) {
   std::static_pointer_cast<TransactionPacketHandler>(
       packets_handlers_->getSpecificHandler(PriorityQueuePacketType::PQ_TransactionPacket))
       ->onNewTransactions(transactions, true);
+}
+
+void TaraxaCapability::onNewBlockReceived(const DagBlock &block, const std::vector<Transaction> &transactions) {
+  std::static_pointer_cast<DagPacketsHandler>(
+      packets_handlers_->getSpecificHandler(PriorityQueuePacketType::PQ_NewBlockPacket))
+      ->onNewBlockReceived(block, transactions);
 }
 
 void TaraxaCapability::onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_block) {
@@ -380,6 +385,18 @@ void TaraxaCapability::sendBlocks(dev::p2p::NodeID const &id, std::vector<std::s
 size_t TaraxaCapability::getReceivedBlocksCount() const { return test_state_->getBlocksSize(); }
 
 size_t TaraxaCapability::getReceivedTransactionsCount() const { return test_state_->getTransactionsSize(); }
+
+void TaraxaCapability::sendTestMessage(dev::p2p::NodeID const &id, int x, std::vector<char> const &data) {
+  std::static_pointer_cast<TestPacketHandler>(
+      packets_handlers_->getSpecificHandler(PriorityQueuePacketType::PQ_TestPacket))
+      ->sendTestMessage(id, x, data);
+}
+
+std::pair<size_t, uint64_t> TaraxaCapability::retrieveTestData(const dev::p2p::NodeID &node_id) {
+  return std::static_pointer_cast<TestPacketHandler>(
+             packets_handlers_->getSpecificHandler(PriorityQueuePacketType::PQ_TestPacket))
+      ->retrieveTestData(node_id);
+}
 
 // PBFT
 void TaraxaCapability::sendPbftBlock(dev::p2p::NodeID const &id, PbftBlock const &pbft_block,

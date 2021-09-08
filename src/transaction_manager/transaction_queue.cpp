@@ -20,8 +20,9 @@ void TransactionQueue::stop() {
   cond_for_unverified_qu_.notify_all();
 }
 
-bool TransactionQueue::insert(Transaction const &trx, bool verify) {
-  const auto &hash = trx.getHash();
+bool TransactionQueue::insert(Transaction const &trx, bool queue_verified, bool tx_verified,
+                              const std::shared_ptr<DbStorage> &db) {
+  const auto hash = trx.getHash();
   auto trx_ptr = make_shared<Transaction>(trx);
 
   {
@@ -33,41 +34,66 @@ bool TransactionQueue::insert(Transaction const &trx, bool verify) {
       return false;
     }
 
-    if (verify) {
+    TransactionStatusEnum tx_status = TransactionStatusEnum::in_queue_unverified;
+
+    // shared_mutex_for_unverified_qu_ moved out of "if (queue_verified)" else branch so the lock is released
+    // after db operations are performed. Otherwise there is race condition
+    uLock unlock(shared_mutex_for_unverified_qu_);
+    if (queue_verified) {
       verified_trxs_[hash] = std::move(trx_ptr);
       new_verified_transactions_ = true;
+      tx_status = TransactionStatusEnum::in_queue_verified;
     } else {
-      uLock unlock(shared_mutex_for_unverified_qu_);
       unverified_hash_qu_.emplace_back(std::make_pair(hash, std::move(trx_ptr)));
       cond_for_unverified_qu_.notify_one();
     }
+
+    db->saveTransaction(trx, tx_verified);
+    db->saveTransactionStatus(hash, tx_status);
   }
 
-  LOG(log_nf_) << " Tx " << hash.abridged() << " inserted. Verification processed: " << verify;
+  LOG(log_nf_) << " Tx " << hash.abridged() << " inserted. Verification processed: " << tx_verified;
   return true;
 }
 
-void TransactionQueue::insertUnverifiedTrxs(const vector<Transaction> &trxs) {
+void TransactionQueue::insertUnverifiedTrxs(const vector<Transaction> &trxs, const std::shared_ptr<DbStorage> &db) {
   if (trxs.empty()) {
     return;
   }
 
+  auto write_batch = db->createWriteBatch();
+
   uLock lock(main_shared_mutex_);
   uLock unverified_lock(shared_mutex_for_unverified_qu_);
   for (const auto &trx : trxs) {
-    const auto &tx_hash = trx.getHash();
+    const auto tx_hash = trx.getHash();
+    // TODO: get rid of this useless Transaction copy
     auto trx_ptr = make_shared<Transaction>(trx);
 
-    // Transaction is already in queued_trxs_, do not add it again to unverified_hash_qu_.
+    // There might be race condition here but it is not because of the way we process txs in queued_trxs_
+    // Important: in case txs processing in this queue is somehow changed, this race condition must be handled !!!
+
+    // Lets say there 2 packets with the same tx in priority queue. First thread locks main_shared_mutex_ and
+    // push tx into unverified queue + db.
+    // Second thread then polls this tx from unverified queue(locks main_shared_mutex_) to verify it.
+    // Third thread starts then process the same tx as first thread already processed and because it is not in
+    // unverified queue anymore it might push it there again + modiffies db
+    // But because we check queued_trxs_ and not unverified_hash_qu_ + queued_trxs_ is cleared only after
+    // new block is applied, such situation should not happen
     if (!queued_trxs_.emplace(tx_hash, trx_ptr).second) {
       LOG(log_wr_) << "insertUnverifiedTrxs: Tx " << tx_hash << " already inserted, skip it";
       continue;
     }
 
-    unverified_hash_qu_.emplace_back(std::make_pair(trx.getHash(), std::move(trx_ptr)));
+    db->addTransactionToBatch(trx, write_batch);
+    db->addTransactionStatusToBatch(write_batch, tx_hash, TransactionStatusEnum::in_queue_unverified);
+
+    unverified_hash_qu_.emplace_back(std::make_pair(tx_hash, std::move(trx_ptr)));
     cond_for_unverified_qu_.notify_one();
     LOG(log_nf_) << "Tx: " << tx_hash << " inserted";
   }
+
+  db->commitWriteBatch(write_batch);
 }
 
 std::pair<trx_hash_t, std::shared_ptr<Transaction>> TransactionQueue::getUnverifiedTransaction() {

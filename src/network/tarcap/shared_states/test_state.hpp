@@ -18,6 +18,9 @@ class TestState {
   const DagBlock& getBlock(const blk_hash_t& block_hash) const;
   size_t getBlocksSize() const;
 
+  std::unordered_map<trx_hash_t, Transaction> getTransactions();
+  std::unordered_map<blk_hash_t, DagBlock> getBlocks();
+
  private:
   std::unordered_map<trx_hash_t, Transaction> test_transactions_;
   mutable std::shared_mutex transactions_mutex_;

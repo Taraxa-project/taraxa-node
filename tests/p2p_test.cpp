@@ -14,7 +14,6 @@
 #include "common/static_init.hpp"
 #include "logger/log.hpp"
 #include "network/network.hpp"
-#include "network/taraxa_capability.hpp"
 #include "util/lazy.hpp"
 #include "util_test/samples.hpp"
 #include "util_test/util.hpp"
@@ -33,11 +32,15 @@ auto g_signed_trx_samples = Lazy([] { return samples::createSignedTrxSamples(0, 
 struct P2PTest : BaseTest {};
 
 // TODO this needs to be removed and called from tracap->setPendingPeersToReady() directly
-void setPendingPeersToReady(shared_ptr<TaraxaCapability> taraxa_capability) {
-  auto peerIds = taraxa_capability->getAllPendingPeers();
+void setPendingPeersToReady(shared_ptr<taraxa::network::tarcap::TaraxaCapability> taraxa_capability) {
+  const auto &peers_state = taraxa_capability->getPeersState();
+
+  auto peerIds = peers_state->getAllPendingPeersIDs();
   for (const auto &peerId : peerIds) {
-    auto peer = taraxa_capability->getPendingPeer(peerId);
-    taraxa_capability->setPeerAsReadyToSendMessages(peerId, peer);
+    auto peer = peers_state->getPendingPeer(peerId);
+    if (peer) {
+      peers_state->setPeerAsReadyToSendMessages(peerId, peer);
+    }
   }
 }
 
@@ -91,18 +94,18 @@ TEST_F(P2PTest, capability_send_test) {
   network_conf.network_simulated_delay = 0;
   network_conf.network_bandwidth = 40;
   network_conf.network_transaction_interval = 1000;
-  shared_ptr<TaraxaCapability> thc1, thc2;
+  shared_ptr<taraxa::network::tarcap::TaraxaCapability> thc1, thc2;
   auto host1 = Host::make(
       "Test",
       [&](auto host) {
-        thc1 = make_shared<TaraxaCapability>(host, network_conf);
+        thc1 = std::make_shared<taraxa::network::tarcap::TaraxaCapability>(host, KeyPair::create(), network_conf);
         return Host::CapabilityList{thc1};
       },
       KeyPair::create(), prefs1);
   auto host2 = Host::make(
       "Test",
       [&](auto host) {
-        thc2 = make_shared<TaraxaCapability>(host, network_conf);
+        thc2 = std::make_shared<taraxa::network::tarcap::TaraxaCapability>(host, KeyPair::create(), network_conf);
         return Host::CapabilityList{thc2};
       },
       KeyPair::create(), prefs2);
@@ -162,18 +165,18 @@ TEST_F(P2PTest, capability_send_block) {
   network_conf.network_simulated_delay = 0;
   network_conf.network_bandwidth = 40;
   network_conf.network_transaction_interval = 1000;
-  shared_ptr<TaraxaCapability> thc1, thc2;
+  shared_ptr<taraxa::network::tarcap::TaraxaCapability> thc1, thc2;
   auto host1 = Host::make(
       "Test",
       [&](auto host) {
-        thc1 = make_shared<TaraxaCapability>(host, network_conf);
+        thc1 = std::make_shared<taraxa::network::tarcap::TaraxaCapability>(host, KeyPair::create(), network_conf);
         return Host::CapabilityList{thc1};
       },
       KeyPair::create(), prefs1);
   auto host2 = Host::make(
       "Test",
       [&](auto host) {
-        thc2 = make_shared<TaraxaCapability>(host, network_conf);
+        thc2 = std::make_shared<taraxa::network::tarcap::TaraxaCapability>(host, KeyPair::create(), network_conf);
         return Host::CapabilityList{thc2};
       },
       KeyPair::create(), prefs2);
@@ -208,15 +211,13 @@ TEST_F(P2PTest, capability_send_block) {
                {g_signed_trx_samples[0].getHash(), g_signed_trx_samples[1].getHash()}, sig_t(7777), blk_hash_t(888),
                addr_t(999));
 
-  std::vector<taraxa::bytes> transactions;
-  transactions.emplace_back(*g_signed_trx_samples[0].rlp());
-  transactions.emplace_back(*g_signed_trx_samples[1].rlp());
-  thc2->onNewTransactions(transactions, true);
+  std::vector<Transaction> transactions{g_signed_trx_samples[0], g_signed_trx_samples[1]};
+  thc2->onNewTransactions(transactions);
   thc2->sendBlock(host1->id(), blk);
 
   this_thread::sleep_for(chrono::seconds(1));
-  auto blocks = thc1->getBlocks();
-  auto rtransactions = thc1->getTransactions();
+  auto blocks = thc1->test_state_->getBlocks();
+  auto rtransactions = thc1->test_state_->getTransactions();
   EXPECT_EQ(blocks.size(), 1);
   if (blocks.size()) {
     EXPECT_EQ(blk, blocks.begin()->second);
@@ -248,11 +249,11 @@ TEST_F(P2PTest, block_propagate) {
   network_conf.network_simulated_delay = 0;
   network_conf.network_bandwidth = 40;
   network_conf.network_transaction_interval = 1000;
-  shared_ptr<TaraxaCapability> thc1;
+  shared_ptr<taraxa::network::tarcap::TaraxaCapability> thc1;
   auto host1 = Host::make(
       "Test",
       [&](auto host) {
-        thc1 = make_shared<TaraxaCapability>(host, network_conf);
+        thc1 = std::make_shared<taraxa::network::tarcap::TaraxaCapability>(host, KeyPair::create(), network_conf);
         thc1->start();
         return Host::CapabilityList{thc1};
       },
@@ -260,12 +261,13 @@ TEST_F(P2PTest, block_propagate) {
   util::ThreadPool tp;
   tp.post_loop({}, [=] { host1->do_work(); });
   std::vector<shared_ptr<Host>> vHosts;
-  std::vector<std::shared_ptr<TaraxaCapability>> vCapabilities;
+  std::vector<std::shared_ptr<taraxa::network::tarcap::TaraxaCapability>> vCapabilities;
   for (int i = 0; i < nodeCount; i++) {
     auto host = vHosts.emplace_back(Host::make(
         "Test",
         [&](auto host) {
-          auto cap = vCapabilities.emplace_back(make_shared<TaraxaCapability>(host, network_conf));
+          auto cap = vCapabilities.emplace_back(
+              std::make_shared<taraxa::network::tarcap::TaraxaCapability>(host, KeyPair::create(), network_conf));
           cap->start();
           return Host::CapabilityList{cap};
         },
@@ -320,10 +322,8 @@ TEST_F(P2PTest, block_propagate) {
                {g_signed_trx_samples[0].getHash(), g_signed_trx_samples[1].getHash()}, sig_t(7777), blk_hash_t(0),
                addr_t(999));
 
-  std::vector<taraxa::bytes> transactions;
-  transactions.emplace_back(*g_signed_trx_samples[0].rlp());
-  transactions.emplace_back(*g_signed_trx_samples[1].rlp());
-  thc1->onNewTransactions(transactions, true);
+  std::vector<Transaction> transactions{g_signed_trx_samples[0], g_signed_trx_samples[1]};
+  thc1->onNewTransactions(transactions);
   std::vector<Transaction> transactions2;
   thc1->onNewBlockReceived(blk, transactions2);
 
@@ -331,19 +331,19 @@ TEST_F(P2PTest, block_propagate) {
     this_thread::sleep_for(chrono::seconds(1));
     bool synced = true;
     for (int j = 0; j < nodeCount; j++)
-      if (vCapabilities[j]->getBlocks().size() == 0) {
+      if (vCapabilities[j]->test_state_->getBlocks().size() == 0) {
         synced = false;
       }
     if (synced) break;
   }
-  auto blocks1 = thc1->getBlocks();
+  auto blocks1 = thc1->test_state_->getBlocks();
   for (int i = 0; i < nodeCount; i++) {
-    EXPECT_EQ(vCapabilities[i]->getBlocks().size(), 1);
-    if (vCapabilities[i]->getBlocks().size() == 1) {
-      EXPECT_EQ(vCapabilities[i]->getBlocks().begin()->second, blk);
-      EXPECT_EQ(vCapabilities[i]->getBlocks().begin()->second.getHash(), blk.getHash());
+    EXPECT_EQ(vCapabilities[i]->test_state_->getBlocks().size(), 1);
+    if (vCapabilities[i]->test_state_->getBlocks().size() == 1) {
+      EXPECT_EQ(vCapabilities[i]->test_state_->getBlocks().begin()->second, blk);
+      EXPECT_EQ(vCapabilities[i]->test_state_->getBlocks().begin()->second.getHash(), blk.getHash());
     }
-    auto rtransactions = vCapabilities[i]->getTransactions();
+    auto rtransactions = vCapabilities[i]->test_state_->getTransactions();
     EXPECT_EQ(rtransactions.size(), 2);
     if (rtransactions.size() == 2) {
       EXPECT_EQ(Transaction(transactions[0]), rtransactions[g_signed_trx_samples[0].getHash()]);

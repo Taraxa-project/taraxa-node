@@ -47,7 +47,7 @@ class Network {
   Json::Value getStatus();
   std::vector<dev::p2p::NodeID> getAllPeersIDs() const;
   void onNewBlockVerified(shared_ptr<DagBlock> const &blk, bool proposed);
-  void onNewTransactions(std::vector<taraxa::bytes> transactions);
+  void onNewTransactions(const std::vector<Transaction> &transactions);
   void restartSyncingPbft(bool force = false);
   void onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_block);
   bool pbft_syncing();
