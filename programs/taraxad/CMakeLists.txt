@@ -13,7 +13,7 @@ target_link_libraries(taraxad PRIVATE
     aleth
     taraxa-evm
     taraxa-vrf
-    taraxa-vdf
+    vdf
     CONAN_PKG::jsoncpp
     CONAN_PKG::libjson-rpc-cpp
     CONAN_PKG::boost

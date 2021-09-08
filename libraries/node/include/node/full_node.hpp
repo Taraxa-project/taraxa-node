@@ -28,7 +28,6 @@
 #include "network/rpc/WSServer.h"
 #include "storage/db_storage.hpp"
 #include "transaction_manager/transaction.hpp"
-#include "transaction_manager/transaction_order_manager.hpp"
 
 namespace taraxa {
 
@@ -69,7 +68,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<DagBlockManager> dag_blk_mgr_;
   std::shared_ptr<TransactionManager> trx_mgr_;
   std::shared_ptr<Network> network_;
-  std::shared_ptr<TransactionOrderManager> trx_order_mgr_;
   std::shared_ptr<BlockProposer> blk_proposer_;
   std::shared_ptr<VoteManager> vote_mgr_;
   std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr_;
@@ -107,7 +105,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   auto const &getNextVotesManager() const { return next_votes_mgr_; }
   auto const &getPbftChain() const { return pbft_chain_; }
   auto const &getFinalChain() const { return final_chain_; }
-  auto const &getTrxOrderMgr() const { return trx_order_mgr_; }
 
   auto const &getAddress() const { return kp_.address(); }
   auto const &getPublicKey() const { return kp_.pub(); }

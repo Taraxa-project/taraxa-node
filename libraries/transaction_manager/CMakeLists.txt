@@ -1,6 +1,5 @@
 set(HEADERS
     include/transaction_manager/transaction_manager.hpp
-    include/transaction_manager/transaction_order_manager.hpp
     include/transaction_manager/transaction_queue.hpp
     include/transaction_manager/transaction_status.hpp
     include/transaction_manager/transaction.hpp
@@ -8,7 +7,6 @@ set(HEADERS
 
 set(SOURCES
     src/transaction_manager.cpp
-    src/transaction_order_manager.cpp
     src/transaction_queue.cpp
     src/transaction.cpp
 )

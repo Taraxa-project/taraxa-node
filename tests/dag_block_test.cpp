@@ -194,29 +194,6 @@ TEST_F(DagBlockTest, push_and_pop) {
   blk_qu.stop();
 }
 
-TEST_F(DagBlockTest, overlap) {
-  DagBlock blk1(blk_hash_t(1111), level_t(1), {}, {trx_hash_t(1000), trx_hash_t(2000), trx_hash_t(3000)}, sig_t(7777),
-                blk_hash_t(888), addr_t(999));
-
-  DagBlock blk2(blk_hash_t(1112), level_t(1), {},
-                {trx_hash_t(100), trx_hash_t(2000), trx_hash_t(3000), trx_hash_t(1000)}, sig_t(7777), blk_hash_t(888),
-                addr_t(999));
-
-  addr_t addr;
-  TransactionOrderManager detector(addr, nullptr);
-  TransactionExecStatusTable table;
-  auto overlap1 = detector.computeOrderInBlock(blk1, table);
-  auto overlap2 = detector.computeOrderInBlock(blk2, table);
-  EXPECT_TRUE(overlap1[0]);
-  EXPECT_TRUE(overlap1[1]);
-  EXPECT_TRUE(overlap1[2]);
-
-  EXPECT_TRUE(overlap2[0]);
-  EXPECT_FALSE(overlap2[1]);
-  EXPECT_FALSE(overlap2[2]);
-  EXPECT_FALSE(overlap2[3]);
-}
-
 TEST_F(DagBlockMgrTest, proposal_period) {
   auto node = create_nodes(1).front();
   auto db = node->getDB();
