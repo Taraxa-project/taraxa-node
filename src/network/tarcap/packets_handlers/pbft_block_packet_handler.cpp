@@ -27,6 +27,9 @@ PbftBlockPacketHandler::PbftBlockPacketHandler(std::shared_ptr<PeersState> peers
 void PbftBlockPacketHandler::process(const dev::RLP &packet_rlp, const PacketData &packet_data,
                                      const std::shared_ptr<dev::p2p::Host> &host,
                                      const std::shared_ptr<TaraxaPeer> &peer) {
+  // Note: no need to consider possible race conditions due to concurrent processing as it is
+  // disabled on priority_queue blocking dependencies level
+
   // Also handle SyncedPacket here
   // TODO: create separate handler
   if (packet_data.type_ == PriorityQueuePacketType::PQ_SyncedPacket) {

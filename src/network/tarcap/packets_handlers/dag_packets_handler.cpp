@@ -63,17 +63,9 @@ inline void DagPacketsHandler::processNewBlockPacket(const dev::RLP &packet_rlp,
   if (syncing_state_->is_pbft_syncing()) return;
 
   if (dag_blk_mgr_) {
-    //    // Synchronization point in case multiple threads are processing the same block at the same time
-    //    if (dag_blk_mgr_->markBlockAsKnown(block)) {
-    //      LOG(log_dg_) << "Received NewBlock " << hash.abridged() << " is already known";
-    //      return;
-    //    }
-
     if (auto status = syncing_handler_->checkDagBlockValidation(block); !status.first) {
       LOG(log_wr_) << "Received NewBlock " << hash.toString() << " has missing pivot or/and tips";
       status.second.insert(hash);
-      // Let the block being received again
-      //      dag_blk_mgr_->eraseBlockFromKnown(hash);
       syncing_handler_->requestBlocks(packet_data.from_node_id_, status.second,
                                       GetBlocksPacketRequestType::MissingHashes);
       return;
