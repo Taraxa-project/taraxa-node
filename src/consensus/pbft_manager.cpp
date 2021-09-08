@@ -1303,12 +1303,12 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
 
   // get DAG block and transaction order
   auto dag_block_order = dag_mgr_->getDagBlockOrder(dag_block_hash);
-  if (dag_block_order.second->empty()) {
+  if (dag_block_order.second.empty()) {
     LOG(log_er_) << "DAG anchor block hash " << dag_block_hash << " getDagBlockOrder failed in propose";
     assert(false);
   }
   std::vector<trx_hash_t> non_executed_transactions;
-  for (auto const &blk_hash : *dag_block_order.second) {
+  for (auto const &blk_hash : dag_block_order.second) {
     auto dag_blk = dag_blk_mgr_->getDagBlock(blk_hash);
     if (!dag_blk) {
       LOG(log_er_) << "DAG anchor block hash " << dag_block_hash << " getDagBlock failed in propose for block "
@@ -1328,7 +1328,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     }
   }
 
-  auto order_hash = calculateOrderHash(*(dag_block_order.second), non_executed_transactions);
+  auto order_hash = calculateOrderHash(dag_block_order.second, non_executed_transactions);
 
   // generate generate pbft block
   auto pbft_block = std::make_shared<PbftBlock>(last_pbft_block_hash, dag_block_hash, order_hash, propose_pbft_period,
