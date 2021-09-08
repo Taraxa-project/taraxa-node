@@ -95,7 +95,7 @@ set(SOURCES
 )
 
 add_library(network STATIC ${SOURCES} ${HEADERS})
-target_include_directories(network PUBLIC "include")
+target_include_directories(network PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_include_directories(network PUBLIC "../")
 target_link_libraries(network PRIVATE
     common

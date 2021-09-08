@@ -11,7 +11,7 @@ set(SOURCES
 )
 
 add_library(dag STATIC ${SOURCES} ${HEADERS})
-target_include_directories(dag PUBLIC "include")
+target_include_directories(dag PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(dag PUBLIC dag_block) 
 target_link_libraries(dag PRIVATE 
     common

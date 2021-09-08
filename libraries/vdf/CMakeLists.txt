@@ -3,7 +3,7 @@ set(HEADERS include/vdf/sortition.hpp include/vdf/config.hpp)
 set(SOURCES src/sortition.cpp src/config.cpp)
 
 add_library(vdf ${SOURCES} ${HEADERS})
-target_include_directories(vdf PUBLIC "include")
+target_include_directories(vdf PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(vdf PUBLIC 
     common
     aleth
@@ -11,4 +11,9 @@ target_link_libraries(vdf PUBLIC
     taraxa-vdf
     CONAN_PKG::mpfr
     CONAN_PKG::jsoncpp
+)
+
+install(TARGETS vdf
+        ARCHIVE  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        LIBRARY  DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )

@@ -7,7 +7,7 @@ set(SOURCES
 )
 
 add_library(vote STATIC ${SOURCES} ${HEADERS})
-target_include_directories(vote PUBLIC "include")
+target_include_directories(vote PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(vote PRIVATE 
     common
     config

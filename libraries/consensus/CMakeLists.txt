@@ -11,3 +11,8 @@ target_link_libraries(consensus INTERFACE
     dag_block
     pbft
 )
+
+install(TARGETS dag_block vote
+        ARCHIVE  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        LIBRARY  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)

@@ -12,7 +12,7 @@ set(SOURCES
 )
 
 add_library(transaction_manager STATIC ${SOURCES} ${HEADERS})
-target_include_directories(transaction_manager PUBLIC "include")
+target_include_directories(transaction_manager PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(transaction_manager PUBLIC CONAN_PKG::rocksdb)
 target_link_libraries(transaction_manager PRIVATE 
     common

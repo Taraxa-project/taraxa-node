@@ -17,7 +17,7 @@ set(SOURCES
 )
 
 add_library(final_chain STATIC ${SOURCES} ${HEADERS})
-target_include_directories(final_chain PUBLIC "include")
+target_include_directories(final_chain PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(final_chain PUBLIC)
 target_link_libraries(final_chain PRIVATE 
     common

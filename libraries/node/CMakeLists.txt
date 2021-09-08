@@ -7,7 +7,7 @@ set(SOURCES
 )
 
 add_library(node STATIC ${SOURCES} ${HEADERS})
-target_include_directories(node PUBLIC "include")
+target_include_directories(node PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(node PRIVATE
     common
     config

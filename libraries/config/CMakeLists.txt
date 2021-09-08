@@ -19,7 +19,7 @@ set(SOURCES
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/version/version.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/include/config/version.hpp)
 
 add_library(config ${SOURCES} ${HEADERS})
-target_include_directories(config PUBLIC "include")
+target_include_directories(config PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(config PRIVATE 
     common
     dag_block
@@ -28,4 +28,9 @@ target_link_libraries(config PRIVATE
     vdf
     taraxa-vrf
     CONAN_PKG::jsoncpp
+)
+
+install(TARGETS common
+        ARCHIVE  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        LIBRARY  DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )

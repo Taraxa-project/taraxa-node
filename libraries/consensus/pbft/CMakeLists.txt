@@ -15,7 +15,7 @@ set(SOURCES
 )
 
 add_library(pbft STATIC ${SOURCES} ${HEADERS})
-target_include_directories(pbft PUBLIC "include")
+target_include_directories(pbft PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(pbft PRIVATE 
     common
     config
