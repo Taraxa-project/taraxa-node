@@ -157,6 +157,9 @@ bool VoteManager::addUnverifiedVote(taraxa::Vote const& vote) {
       std::unordered_map<vote_hash_t, Vote> votes{std::make_pair(hash, vote)};
       unverified_votes_[pbft_round] = std::move(votes);
     }
+
+    // Save vote also in db
+    db_->saveUnverifiedVote(vote);
   }
 
   LOG(log_nf_) << "Add unverified vote " << vote.getHash().abridged();
@@ -622,17 +625,19 @@ void NextVotesForPreviousRound::addNextVotes(std::vector<Vote> const& next_votes
   if (next_votes.empty()) {
     return;
   }
+
   if (enoughNextVotes()) {
     LOG(log_dg_) << "Have enough next votes for prevous PBFT round.";
     return;
   }
+
   auto own_votes = getNextVotes();
+  const auto sync_voted_round = next_votes[0].getRound();
   if (!own_votes.empty()) {
     auto own_previous_round = own_votes[0].getRound();
-    auto sync_votes_previous_round = next_votes[0].getRound();
-    if (own_previous_round != sync_votes_previous_round) {
+    if (own_previous_round != sync_voted_round) {
       LOG(log_dg_) << "Drop it. The previous PBFT round has been at " << own_previous_round
-                   << ", syncing next votes voted at round " << sync_votes_previous_round;
+                   << ", syncing next votes voted at round " << sync_voted_round;
       return;
     }
   }
@@ -640,25 +645,39 @@ void NextVotesForPreviousRound::addNextVotes(std::vector<Vote> const& next_votes
 
   uniqueLock_ lock(access_);
 
+  auto next_votes_in_db = db_->getNextVotes(sync_voted_round);
+
   // Add all next votes
   std::unordered_set<blk_hash_t> voted_values;
   for (auto const& v : next_votes) {
     LOG(log_dg_) << "Add next vote: " << v;
 
     auto vote_hash = v.getHash();
-    if (!next_votes_set_.count(vote_hash)) {
-      next_votes_set_.insert(vote_hash);
-      auto voted_block_hash = v.getBlockHash();
-      if (next_votes_.count(voted_block_hash)) {
-        next_votes_[voted_block_hash].emplace_back(v);
-      } else {
-        std::vector<Vote> votes{v};
-        next_votes_[voted_block_hash] = votes;
-      }
-      next_votes_size_++;
-      voted_values.insert(voted_block_hash);
+    if (next_votes_set_.count(vote_hash)) {
+      continue;
     }
+
+    next_votes_set_.insert(vote_hash);
+    auto voted_block_hash = v.getBlockHash();
+    if (next_votes_.count(voted_block_hash)) {
+      next_votes_[voted_block_hash].emplace_back(v);
+    } else {
+      std::vector<Vote> votes{v};
+      next_votes_[voted_block_hash] = votes;
+    }
+
+    next_votes_size_++;
+    voted_values.insert(voted_block_hash);
+    next_votes_in_db.emplace_back(v);
   }
+
+  if (voted_values.empty()) {
+    LOG(log_dg_) << "No new unique votes received";
+    return;
+  }
+
+  // Update list of next votes in database by new unique votes
+  db_->saveNextVotes(sync_voted_round, next_votes_in_db);
 
   LOG(log_dg_) << "PBFT 2t+1 is " << pbft_2t_plus_1 << " in round " << next_votes[0].getRound();
   for (auto const& voted_value : voted_values) {
@@ -784,6 +803,7 @@ void NextVotesForPreviousRound::updateWithSyncedVotes(std::vector<Vote> const& n
     LOG(log_er_) << "Synced next votes is empty.";
     return;
   }
+
   if (enoughNextVotes()) {
     LOG(log_dg_) << "Don't need update. Have enough next votes for previous PBFT round already.";
   }
@@ -793,6 +813,7 @@ void NextVotesForPreviousRound::updateWithSyncedVotes(std::vector<Vote> const& n
     sharedLock_ lock(access_);
     own_votes_map = next_votes_;
   }
+
   if (own_votes_map.empty()) {
     LOG(log_nf_) << "Own next votes for previous round is empty. Node just start, reject for protecting overwrite own "
                     "next votes.";
@@ -816,7 +837,7 @@ void NextVotesForPreviousRound::updateWithSyncedVotes(std::vector<Vote> const& n
       synced_next_votes[voted_block_hash].emplace_back(next_votes[i]);
     } else {
       std::vector<Vote> votes{next_votes[i]};
-      synced_next_votes[voted_block_hash] = votes;
+      synced_next_votes[voted_block_hash] = std::move(votes);
     }
   }
 
@@ -844,34 +865,26 @@ void NextVotesForPreviousRound::updateWithSyncedVotes(std::vector<Vote> const& n
   std::vector<Vote> update_votes;
   // Don't update votes for same valid voted value that >= 2t+1
   for (auto const& voted_value_and_votes : synced_next_votes) {
-    if (!own_votes_map.count(voted_value_and_votes.first)) {
-      if (voted_value_and_votes.second.size() >= pbft_2t_plus_1) {
-        LOG(log_nf_) << "Don't have the voted value " << voted_value_and_votes.first
-                     << " for previous round. Add votes";
-        for (auto const& v : voted_value_and_votes.second) {
-          LOG(log_dg_) << "Add next vote " << v;
-          update_votes.emplace_back(v);
-        }
-      } else {
-        LOG(log_dg_) << "Voted value " << voted_value_and_votes.first
-                     << " doesn't have enough next votes. Size of syncing next votes "
-                     << voted_value_and_votes.second.size() << ", PBFT 2t+1 is " << pbft_2t_plus_1 << " for round "
-                     << voted_value_and_votes.second[0].getRound();
+    if (own_votes_map.count(voted_value_and_votes.first)) {
+      continue;
+    }
+
+    if (voted_value_and_votes.second.size() >= pbft_2t_plus_1) {
+      LOG(log_nf_) << "Don't have the voted value " << voted_value_and_votes.first << " for previous round. Add votes";
+      for (auto const& v : voted_value_and_votes.second) {
+        LOG(log_dg_) << "Add next vote " << v;
+        update_votes.emplace_back(v);
       }
+    } else {
+      LOG(log_dg_) << "Voted value " << voted_value_and_votes.first
+                   << " doesn't have enough next votes. Size of syncing next votes "
+                   << voted_value_and_votes.second.size() << ", PBFT 2t+1 is " << pbft_2t_plus_1 << " for round "
+                   << voted_value_and_votes.second[0].getRound();
     }
   }
 
-  if (!update_votes.empty()) {
-    // Add new next votes in DB for the PBFT round
-    auto voted_round = update_votes[0].getRound();
-    auto next_votes_in_db = db_->getNextVotes(voted_round);
-    for (auto const& v : update_votes) {
-      next_votes_in_db.emplace_back(v);
-    }
-    db_->saveNextVotes(voted_round, next_votes_in_db);
-
-    addNextVotes(update_votes, pbft_2t_plus_1);
-  }
+  // Adds new next votes in internal structures + DB for the PBFT round
+  addNextVotes(update_votes, pbft_2t_plus_1);
 }
 
 void NextVotesForPreviousRound::assertError_(std::vector<Vote> next_votes_1, std::vector<Vote> next_votes_2) const {

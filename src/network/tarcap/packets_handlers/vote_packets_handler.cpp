@@ -47,19 +47,19 @@ inline void VotePacketsHandler::processPbftVotePacket(const dev::RLP &packet_rlp
   peer->markVoteAsKnown(vote_hash);
 
   if (vote_mgr_->voteInUnverifiedMap(vote_round, vote_hash) || vote_mgr_->voteInVerifiedMap(vote_round, vote_hash)) {
-    LOG(log_dg_) << "Received PBFT vote " << vote_hash << " from " << packet_data.from_node_id_.abridged()
-                 << " already saved in queue.";
+    LOG(log_dg_) << "Received PBFT vote " << vote_hash << " (from " << packet_data.from_node_id_.abridged()
+                 << ") already saved in queue.";
     return;
   }
 
   // Synchronization point in case multiple threads are processing the same vote at the same time
+  // Adds unverified vote into local structure + database
   if (!vote_mgr_->addUnverifiedVote(vote)) {
-    LOG(log_dg_) << "Received PBFT vote " << vote_hash << " from " << packet_data.from_node_id_.abridged()
-                 << " already saved in unverified queue by a different thread(race condition).";
+    LOG(log_dg_) << "Received PBFT vote " << vote_hash << " (from " << packet_data.from_node_id_.abridged()
+                 << ") already saved in unverified queue by a different thread(race condition).";
     return;
   }
 
-  db_->saveUnverifiedVote(vote);
   onNewPbftVote(vote);
 }
 
@@ -132,41 +132,60 @@ inline void VotePacketsHandler::processPbftNextVotesPacket(const dev::RLP &packe
     // Add into votes unverified queue
     for (auto const &vote : next_votes) {
       auto vote_hash = vote.getHash();
-      auto votepacket_rlpound = vote.getRound();
-      if (!vote_mgr_->voteInUnverifiedMap(votepacket_rlpound, vote_hash) &&
-          !vote_mgr_->voteInVerifiedMap(votepacket_rlpound, vote_hash)) {
-        // vote round >= PBFT round
-        db_->saveUnverifiedVote(vote);
-        vote_mgr_->addUnverifiedVote(vote);
-        onNewPbftVote(vote);
+      auto vote_round = vote.getRound();
+
+      if (vote_mgr_->voteInUnverifiedMap(vote_round, vote_hash) ||
+          vote_mgr_->voteInVerifiedMap(vote_round, vote_hash)) {
+        LOG(log_dg_) << "Received PBFT next vote " << vote_hash << " (from " << packet_data.from_node_id_.abridged()
+                     << ") already saved in queue.";
+        continue;
       }
+
+      // Synchronization point in case multiple threads are processing the same vote at the same time
+      // Adds unverified vote into local structure + database
+      if (!vote_mgr_->addUnverifiedVote(vote)) {
+        LOG(log_dg_) << "Received PBFT next vote " << vote_hash << " (from " << packet_data.from_node_id_.abridged()
+                     << ") already saved in unverified queue by a different thread(race condition).";
+        continue;
+      }
+
+      onNewPbftVote(vote);
     }
   } else if (pbft_currentpacket_rlpound == peer_pbftpacket_rlpound) {
     // Update previous round next votes
     const auto pbft_2t_plus_1 = db_->getPbft2TPlus1(pbft_currentpacket_rlpound - 1);
-    if (pbft_2t_plus_1) {
-      // Update our previous round next vote bundles...
-      next_votes_mgr_->updateWithSyncedVotes(next_votes, pbft_2t_plus_1);
-      // Pass them on to our peers...
-      const auto updated_next_votes_size = next_votes_mgr_->getNextVotesSize();
-      for (auto const &peer_to_share_to : peers_state_->getAllPeers()) {
-        // Do not send votes right back to same peer...
-        if (peer_to_share_to.first == packet_data.from_node_id_) continue;
-        // Do not send votes to nodes that already have as many bundles as we do...
-        if (peer_to_share_to.second->pbft_previous_round_next_votes_size_ >= updated_next_votes_size) continue;
-        // Nodes may vote at different values at previous round, so need less or equal
-        if (!peer_to_share_to.second->syncing_ && peer_to_share_to.second->pbft_round_ <= pbft_currentpacket_rlpound) {
-          std::vector<Vote> send_next_votes_bundle;
-          for (auto const &v : next_votes) {
-            if (!peer_to_share_to.second->isVoteKnown(v.getHash())) {
-              send_next_votes_bundle.emplace_back(v);
-            }
-          }
-          sendPbftNextVotes(peer_to_share_to.first, send_next_votes_bundle);
+    if (!pbft_2t_plus_1) {
+      LOG(log_er_) << "Cannot get PBFT 2t+1 in PBFT round " << pbft_currentpacket_rlpound - 1;
+      return;
+    }
+
+    // Update our previous round next vote bundles...
+    next_votes_mgr_->updateWithSyncedVotes(next_votes, pbft_2t_plus_1);
+    // Pass them on to our peers...
+    const auto updated_next_votes_size = next_votes_mgr_->getNextVotesSize();
+    for (auto const &peer_to_share_to : peers_state_->getAllPeers()) {
+      // Do not send votes right back to same peer...
+      if (peer_to_share_to.first == packet_data.from_node_id_) {
+        continue;
+      }
+
+      // Do not send votes to nodes that already have as many bundles as we do...
+      if (peer_to_share_to.second->pbft_previous_round_next_votes_size_ >= updated_next_votes_size) {
+        continue;
+      }
+
+      // Nodes may vote at different values at previous round, so need less or equal
+      if (!peer_to_share_to.second->syncing_ && peer_to_share_to.second->pbft_round_ > pbft_currentpacket_rlpound) {
+        continue;
+      }
+
+      std::vector<Vote> send_next_votes_bundle;
+      for (auto const &v : next_votes) {
+        if (!peer_to_share_to.second->isVoteKnown(v.getHash())) {
+          send_next_votes_bundle.emplace_back(v);
         }
       }
-    } else {
-      LOG(log_er_) << "Cannot get PBFT 2t+1 in PBFT round " << pbft_currentpacket_rlpound - 1;
+      sendPbftNextVotes(peer_to_share_to.first, send_next_votes_bundle);
     }
   }
 }
