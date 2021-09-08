@@ -321,9 +321,11 @@ std::shared_ptr<DagManager> DagManager::getShared() {
 }
 
 void DagManager::stop() {
+  if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
+    return;
+  }
   unique_lock lock(mutex_);
   trx_mgr_ = nullptr;
-  stopped_ = true;
   block_worker_.join();
 }
 

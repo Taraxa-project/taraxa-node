@@ -114,7 +114,7 @@ struct TaraxaCapability : virtual CapabilityFace {
 
   uint64_t pbftSyncingPeriod() const;
   void syncBlockQueuePop();
-  std::shared_ptr<std::pair<SyncBlock, dev::p2p::NodeID>> processSyncBlock();
+  std::optional<SyncBlock> processSyncBlock();
   void syncBlockQueuePush(SyncBlock const &block, NodeID const &node_id);
   void clearSyncBlockQueue();
   size_t syncBlockQueueSize() const;
@@ -156,7 +156,6 @@ struct TaraxaCapability : virtual CapabilityFace {
   util::ThreadPool syncing_tp_{1, false};
   SyncingState syncing_state_;
   PeersState peers_state_;
-  mutable std::shared_mutex sync_access_;
 
   std::unordered_map<NodeID, int> cnt_received_messages_;
   std::unordered_map<NodeID, int> test_sums_;
@@ -187,6 +186,7 @@ struct TaraxaCapability : virtual CapabilityFace {
   uint64_t unique_received_trx_count = 0;
 
   std::queue<std::pair<SyncBlock, dev::p2p::NodeID>> sync_queue_;
+  mutable std::shared_mutex sync_queue_access_;
 
   // Node stats info history
   uint64_t summary_interval_ms_ = 30000;
