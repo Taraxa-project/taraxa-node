@@ -129,6 +129,8 @@ add_library(app_base ${SOURCES})
 get_target_property(TARAXA_VDF_INCUDE taraxa-vdf INTERFACE_INCLUDE_DIRECTORIES)
 get_target_property(TARAXA_VRF_INCUDE taraxa-vrf INTERFACE_INCLUDE_DIRECTORIES)
 
+add_subdirectory(aleth)
+
 target_include_directories(app_base PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${TARAXA_VDF_INCUDE}
@@ -155,7 +157,9 @@ target_link_libraries(app_base
         CONAN_PKG::lz4
         CONAN_PKG::rocksdb
         CONAN_PKG::mpfr
-        aleth #  FIXME: THIS LIB CAUSES LINKING ORDER SENSITIVITY
+        devcore
+        devcrypto
+        p2p
         )
 
 # needed for golang runtime that comes together with taraxa-evm
