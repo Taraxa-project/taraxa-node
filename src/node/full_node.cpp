@@ -135,7 +135,7 @@ void FullNode::start() {
                               dev::toJS(*trx.rlp()), err_msg)));
       }
     };
-    eth_rpc_params.syncing_probe = [network = network_, pbft_chain = pbft_chain_] {
+    eth_rpc_params.syncing_probe = [network = network_, pbft_chain = pbft_chain_, pbft_mgr = pbft_mgr_] {
       std::optional<net::rpc::eth::SyncStatus> ret;
       if (!network->pbft_syncing()) {
         return ret;
@@ -144,7 +144,7 @@ void FullNode::start() {
       // TODO clearly define Ethereum json-rpc "syncing" in Taraxa
       status.current_block = pbft_chain->getPbftChainSize();
       status.starting_block = status.current_block;
-      status.highest_block = network->pbftSyncingPeriod();
+      status.highest_block = pbft_mgr->pbftSyncingPeriod();
       return ret;
     };
     auto eth_json_rpc = net::rpc::eth::NewEth(move(eth_rpc_params));
@@ -265,10 +265,10 @@ void FullNode::rebuildDb() {
     SyncBlock sync_block(data);
 
     LOG(log_nf_) << "Adding sync block into queue " << sync_block.pbft_blk->getBlockHash().toString();
-    network_->syncBlockQueuePush(sync_block);
+    pbft_mgr_->syncBlockQueuePush(sync_block, NodeID());
 
     // Wait if more than 10 pbft blocks in queue to be processed
-    while (network_->syncBlockQueueSize() > 10) {
+    while (pbft_mgr_->syncBlockQueueSize() > 10) {
       thisThreadSleepForMilliSeconds(10);
     }
     period++;
@@ -277,9 +277,9 @@ void FullNode::rebuildDb() {
       break;
     }
   }
-  while (network_->syncBlockQueueSize() > 0 || final_chain_->last_block_number() != period - 1) {
+  while (pbft_mgr_->syncBlockQueueSize() > 0 || final_chain_->last_block_number() != period - 1) {
     thisThreadSleepForMilliSeconds(1000);
-    LOG(log_nf_) << "Waiting on PBFT blocks to be processed. Queue size: " << network_->syncBlockQueueSize()
+    LOG(log_nf_) << "Waiting on PBFT blocks to be processed. Queue size: " << pbft_mgr_->syncBlockQueueSize()
                  << " Chain size: " << final_chain_->last_block_number();
   }
 }

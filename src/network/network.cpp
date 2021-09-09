@@ -144,6 +144,8 @@ bool Network::pbft_syncing() { return taraxa_capability_->pbft_syncing(); }
 
 uint64_t Network::syncTimeSeconds() const { return taraxa_capability_->syncTimeSeconds(); }
 
+void Network::handleMaliciousSyncPeer(NodeID const &id) { taraxa_capability_->handleMaliciousSyncPeer({id}); }
+
 void Network::onNewPbftVotes(std::vector<Vote> votes) {
   tp_.post([this, votes = std::move(votes)] {
     for (auto const &vote : votes) {
@@ -224,13 +226,5 @@ std::pair<bool, bi::tcp::endpoint> Network::resolveHost(string const &addr, uint
   }
   return std::make_pair(true, ep);
 }
-
-uint64_t Network::pbftSyncingPeriod() const { return taraxa_capability_->pbftSyncingPeriod(); }
-
-std::optional<SyncBlock> Network::processSyncBlock() { return taraxa_capability_->processSyncBlock(); }
-
-void Network::syncBlockQueuePush(SyncBlock const &block) { taraxa_capability_->syncBlockQueuePush(block, NodeID()); }
-
-size_t Network::syncBlockQueueSize() const { return taraxa_capability_->syncBlockQueueSize(); }
 
 }  // namespace taraxa
