@@ -5,6 +5,7 @@
 
 #include "common/constants.hpp"
 #include "config/chain_config.hpp"
+#include "consensus/vote.hpp"
 #include "final_chain/trie_common.hpp"
 #include "util_test/gtest.hpp"
 
@@ -19,7 +20,7 @@ struct advance_check_opts {
 struct FinalChainTest : WithDataDir {
   shared_ptr<DbStorage> db{new DbStorage(data_dir / "db")};
   Config cfg = ChainConfig::predefined().final_chain;
-  unique_ptr<FinalChain> SUT;
+  shared_ptr<FinalChain> SUT;
   bool assume_only_toplevel_transfers = true;
   unordered_map<addr_t, u256> expected_balances;
   uint64_t expected_blk_num = 0;
@@ -39,19 +40,30 @@ struct FinalChainTest : WithDataDir {
     SUT = nullptr;
     SUT = NewFinalChain(db, cfg);
     vector<h256> trx_hashes;
+    int pos = 0;
     for (auto const& trx : trxs) {
-      db->saveTransaction(trx);
+      db->saveTransactionStatus(trx.getHash(), TransactionStatus(TransactionStatusEnum::finalized, 1, pos++));
       trx_hashes.emplace_back(trx.getHash());
     }
     DagBlock dag_blk({}, {}, {}, trx_hashes, {}, secret_t::random());
     db->saveDagBlock(dag_blk);
+    PbftBlock pbft_block(blk_hash_t(), blk_hash_t(), blk_hash_t(), 1, addr_t(1), KeyPair::create().secret());
+    std::vector<Vote> votes;
+    SyncBlock sync_block(pbft_block, votes);
+    sync_block.dag_blocks.push_back(dag_blk);
+    sync_block.transactions = trxs;
+
+    auto batch = db->createWriteBatch();
+    db->savePeriodData(sync_block, batch);
+
+    db->commitWriteBatch(batch);
     NewBlock new_blk{
         addr_t::random(),
         uint64_t(chrono::high_resolution_clock::now().time_since_epoch().count()),
         {dag_blk.getHash()},
         h256::random(),
     };
-    auto result = SUT->finalize(new_blk).get();
+    auto result = SUT->finalize(new_blk, 1).get();
     ++expected_blk_num;
     auto const& blk_h = *result->final_chain_blk;
     EXPECT_EQ(util::rlp_enc(blk_h), util::rlp_enc(*SUT->block_header(blk_h.number)));

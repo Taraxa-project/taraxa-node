@@ -46,6 +46,7 @@ bool RpcServer::StopListening() {
   if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
     return true;
   }
+  io_context_.stop();
   acceptor_.close();
   LOG(log_tr_) << "StopListening: ";
   return true;

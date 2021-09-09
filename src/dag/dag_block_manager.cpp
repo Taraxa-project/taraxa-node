@@ -1,5 +1,7 @@
 #include "dag_block_manager.hpp"
 
+#include "dag.hpp"
+
 namespace taraxa {
 
 DagBlockManager::DagBlockManager(addr_t node_addr, vdf_sortition::VdfConfig const &vdf_config,
@@ -137,73 +139,17 @@ void DagBlockManager::pushUnverifiedBlock(DagBlock const &blk, std::vector<Trans
   cond_for_unverified_qu_.notify_one();
 }
 
-void DagBlockManager::processSyncedBlockWithTransactions(const DagBlock &blk,
-                                                         const std::vector<Transaction> &transactions) {
-  blk_hash_t block_hash = blk.getHash();
-
-  // This dag block was already processed, skip it
-  if (isBlockKnown(block_hash)) {
-    LOG(log_dg_) << "Skipping dag block " << block_hash << " -> already processed.";
-    return;
+void DagBlockManager::processSyncedBlock(DbStorage::Batch &batch, SyncBlock const &sync_block) {
+  trx_mgr_->addTrxCount(sync_block.transactions.size());
+  db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_mgr_->getTransactionCount(), batch);
+  vector<trx_hash_t> transactions;
+  transactions.reserve(sync_block.transactions.size());
+  std::transform(sync_block.transactions.begin(), sync_block.transactions.end(), std::back_inserter(transactions),
+                 [](const Transaction &transaction) { return transaction.getHash(); });
+  trx_mgr_->getTransactionQueue().removeBlockTransactionsFromQueue(transactions);
+  for (auto const &blk : sync_block.dag_blocks) {
+    blk_status_.update(blk.getHash(), BlockStatus::verified);
   }
-
-  seen_blocks_.update(block_hash, blk);
-  blk_status_.insert(block_hash, BlockStatus::broadcasted);
-
-  // Check if there is at least 1 tx in dag block - should never happen that it is not
-  vec_trx_t const &all_block_trx_hashes = blk.getTrxs();
-  if (all_block_trx_hashes.empty()) {
-    LOG(log_er_) << "Ignore block " << block_hash << " since it has no transactions";
-    blk_status_.update(block_hash, BlockStatus::invalid);
-    return;
-  }
-
-  DbStorage::MultiGetQuery db_query(db_);
-  db_query.append(DbStorage::Columns::trx_status, all_block_trx_hashes);
-  auto db_trxs_statuses = db_query.execute();
-
-  std::unordered_map<trx_hash_t, Transaction> known_trx(transactions.size());
-
-  std::transform(transactions.begin(), transactions.end(), std::inserter(known_trx, known_trx.end()),
-                 [](Transaction const &t) { return std::make_pair(t.getHash(), t); });
-
-  // Filter known txs + save unseen txs to the db
-  auto trx_batch = db_->createWriteBatch();
-  size_t newly_added_txs_to_block_counter = all_block_trx_hashes.size();
-  for (size_t idx = 0; idx < db_trxs_statuses.size(); ++idx) {
-    const TransactionStatus &status = db_trxs_statuses[idx].empty()
-                                          ? TransactionStatus::not_seen
-                                          : (TransactionStatus) * (uint16_t *)&db_trxs_statuses[idx][0];
-    const trx_hash_t &trx_hash = all_block_trx_hashes[idx];
-    if (status == TransactionStatus::not_seen) {
-      if (known_trx.count(trx_hash)) {
-        db_->addTransactionToBatch(known_trx[trx_hash], trx_batch);
-      } else {
-        LOG(log_er_) << "Ignore block " << block_hash << " since it has missing transaction " << trx_hash;
-        blk_status_.update(block_hash, BlockStatus::invalid);
-        return;
-      }
-    } else if (status == TransactionStatus::in_block) {
-      newly_added_txs_to_block_counter--;
-      continue;
-    }
-    db_->addTransactionStatusToBatch(trx_batch, trx_hash, TransactionStatus::in_block);
-  }
-
-  trx_mgr_->addTrxCount(newly_added_txs_to_block_counter);
-  db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_mgr_->getTransactionCount(), trx_batch);
-  db_->commitWriteBatch(trx_batch);
-
-  trx_mgr_->getTransactionQueue().removeBlockTransactionsFromQueue(all_block_trx_hashes);
-
-  {
-    uLock lock(shared_mutex_for_verified_qu_);
-    verified_qu_[blk.getLevel()].emplace_back(blk);
-  }
-  blk_status_.update(block_hash, BlockStatus::verified);
-
-  LOG(log_dg_) << "Synced dag block: " << block_hash;
-  cond_for_verified_qu_.notify_one();
 }
 
 void DagBlockManager::insertBroadcastedBlockWithTransactions(DagBlock const &blk,
@@ -241,7 +187,7 @@ std::pair<size_t, size_t> DagBlockManager::getDagBlockQueueSize() const {
   return res;
 }
 
-DagBlock DagBlockManager::popVerifiedBlock(bool level_limit, uint64_t level) {
+std::pair<std::shared_ptr<DagBlock>, bool> DagBlockManager::popVerifiedBlock(bool level_limit, uint64_t level) {
   uLock lock(shared_mutex_for_verified_qu_);
   if (level_limit) {
     while ((verified_qu_.empty() || verified_qu_.begin()->first >= level) && !stopped_) {
@@ -252,12 +198,14 @@ DagBlock DagBlockManager::popVerifiedBlock(bool level_limit, uint64_t level) {
       cond_for_verified_qu_.wait(lock);
     }
   }
-  if (stopped_) return DagBlock();
+  if (stopped_) return {std::make_shared<DagBlock>(), false};
 
-  auto blk = verified_qu_.begin()->second.front();
+  auto blk = std::make_shared<DagBlock>(verified_qu_.begin()->second.front());
   verified_qu_.begin()->second.pop_front();
   if (verified_qu_.begin()->second.empty()) verified_qu_.erase(verified_qu_.begin());
-  return blk;
+  auto status = blk_status_.get(blk->getHash());
+
+  return {blk, status.second && status.first == BlockStatus::proposed};
 }
 
 void DagBlockManager::pushVerifiedBlock(DagBlock const &blk) {

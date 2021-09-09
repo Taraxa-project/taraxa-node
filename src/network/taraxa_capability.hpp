@@ -5,6 +5,7 @@
 #include <libp2p/Session.h>
 
 #include <chrono>
+#include <queue>
 #include <set>
 #include <thread>
 
@@ -13,6 +14,7 @@
 #include "dag/dag_block_manager.hpp"
 #include "packets_stats.hpp"
 #include "peers_state.hpp"
+#include "sync_block.hpp"
 #include "syncing_state.hpp"
 #include "transaction_manager/transaction.hpp"
 #include "util/thread_pool.hpp"
@@ -44,11 +46,8 @@ enum SubprotocolPacketType : ::byte {
   PacketCount
 };
 
-enum GetBlocksPacketRequestType : ::byte {
+enum GetBlocksPacketRequestType : uint8_t { MissingHashes = 0x0, KnownHashes };
 
-  MissingHashes = 0x0,
-  KnownHashes
-};
 struct TaraxaCapability : virtual CapabilityFace {
   TaraxaCapability(weak_ptr<Host> _host, NetworkConfig const &_conf, std::shared_ptr<DbStorage> db = {},
                    std::shared_ptr<PbftManager> pbft_mgr = {}, std::shared_ptr<PbftChain> pbft_chain = {},
@@ -82,14 +81,15 @@ struct TaraxaCapability : virtual CapabilityFace {
   void syncPeerPbft(unsigned long height_to_sync);
   void restartSyncingPbft(bool force = false);
   void delayedPbftSync(int counter);
-  std::pair<bool, std::vector<blk_hash_t>> checkDagBlockValidation(DagBlock const &block);
-  void requestBlocks(const NodeID &_nodeID, std::vector<blk_hash_t> const &blocks,
+  void pbftSyncComplete();
+  std::pair<bool, std::unordered_set<blk_hash_t>> checkDagBlockValidation(DagBlock const &block);
+  void requestBlocks(const NodeID &_nodeID, std::unordered_set<blk_hash_t> const &blocks,
                      GetBlocksPacketRequestType mode = MissingHashes);
   void interpretCapabilityPacketImpl(NodeID const &_nodeID, unsigned _id, RLP const &_r, PacketStats &packet_stats);
   void sendTestMessage(NodeID const &_id, int _x, std::vector<char> const &data);
   bool sendStatus(NodeID const &_id, bool _initial);
   void onNewBlockReceived(DagBlock block, std::vector<Transaction> transactions);
-  void onNewBlockVerified(DagBlock const &block);
+  void onNewBlockVerified(DagBlock const &block, bool proposed);
   void onNewTransactions(std::vector<taraxa::bytes> const &transactions, bool fromNetwork);
   Json::Value getStatus() const;
   std::pair<int, int> retrieveTestData(NodeID const &_id);
@@ -106,11 +106,19 @@ struct TaraxaCapability : virtual CapabilityFace {
 
   uint64_t getSimulatedNetworkDelay(const RLP &packet_rlp, const NodeID &nodeID);
 
-  void checkLiveness();
+  void sendStatusMsg();
   void logNodeStats();
   void logPacketsStats();
   void sendTransactions();
   std::string packetTypeToString(unsigned int _packetType) const override;
+
+  uint64_t pbftSyncingPeriod() const;
+  void syncBlockQueuePop();
+  std::optional<SyncBlock> processSyncBlock();
+  void syncBlockQueuePush(SyncBlock const &block, NodeID const &node_id);
+  void clearSyncBlockQueue();
+  size_t syncBlockQueueSize() const;
+  void handleMaliciousSyncBlock(NodeID const &id);
 
   // PBFT
   void onNewPbftVote(taraxa::Vote const &vote);
@@ -172,10 +180,13 @@ struct TaraxaCapability : virtual CapabilityFace {
   std::string genesis_;
   std::mt19937 delay_rng_;
   std::uniform_int_distribution<std::mt19937::result_type> random_dist_;
-  uint16_t check_alive_interval_ = 0;
+  uint16_t send_status_interval_ = 0;
 
   uint64_t received_trx_count = 0;
   uint64_t unique_received_trx_count = 0;
+
+  std::queue<std::pair<SyncBlock, dev::p2p::NodeID>> sync_queue_;
+  mutable std::shared_mutex sync_queue_access_;
 
   // Node stats info history
   uint64_t summary_interval_ms_ = 30000;
@@ -191,16 +202,15 @@ struct TaraxaCapability : virtual CapabilityFace {
   PacketsStats sent_packets_stats_;
   PacketsStats received_packets_stats_;
 
-  const uint32_t MAX_PACKET_SIZE = 15 * 1024 * 1024;  // 15 MB -> 15 * 1024 * 1024 B
-  const uint16_t MAX_CHECK_ALIVE_COUNT = 5;
+  static constexpr uint32_t MAX_TRANSACTIONS_IN_PACKET = 1000;
 
-  // Only allow up to 2 nodes syncing from our node
-  const uint16_t MAX_SYNCING_NODES = 2;
+  // Only allow up to 10 nodes syncing from our node
+  static constexpr uint16_t MAX_SYNCING_NODES = 10;
 
   // If there are more than 10 packets in queue to be processed syncing will be delayed or node disconnected in queue
   // not cleared in defined time
-  const uint16_t MAX_NETWORK_QUEUE_TO_DROP_SYNCING = 10;
-  const uint16_t MAX_TIME_TO_WAIT_FOR_QUEUE_TO_CLEAR_MS = 2000;
+  static constexpr uint16_t MAX_NETWORK_QUEUE_TO_DROP_SYNCING = 1000;
+  static constexpr uint16_t MAX_TIME_TO_WAIT_FOR_QUEUE_TO_CLEAR_MS = 2000;
 
   static constexpr uint16_t INITIAL_STATUS_PACKET_ITEM_COUNT = 10;
 

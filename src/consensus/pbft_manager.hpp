@@ -41,7 +41,7 @@ struct votesBundle {
       : enough(enough_), voted_block_hash(voted_block_hash_), votes(votes_) {}
 };
 
-class PbftManager {
+class PbftManager : public std::enable_shared_from_this<PbftManager> {
  public:
   using time_point = std::chrono::system_clock::time_point;
   using vrf_sk_t = vrf_wrapper::vrf_sk_t;
@@ -74,6 +74,10 @@ class PbftManager {
 
   size_t getDposTotalVotesCount() const;
   size_t getDposWeightedVotesCount() const;
+
+  blk_hash_t calculateOrderHash(std::vector<blk_hash_t> const &dag_block_hashes,
+                                std::vector<trx_hash_t> const &trx_hashes);
+  blk_hash_t calculateOrderHash(std::vector<DagBlock> const &dag_blocks, std::vector<Transaction> const &transactions);
 
   // Notice: Test purpose
   // TODO: Add a check for some kind of guards to ensure these are only called from within a test
@@ -131,8 +135,6 @@ class PbftManager {
 
   std::pair<blk_hash_t, bool> identifyLeaderBlock_(std::vector<Vote> const &votes);
 
-  bool checkPbftBlockValid_(blk_hash_t const &block_hash) const;
-
   bool syncRequestedAlreadyThisStep_() const;
 
   void syncPbftChainFromPeers_(PbftSyncRequestReason reason, taraxa::blk_hash_t const &relevant_blk_hash);
@@ -148,7 +150,7 @@ class PbftManager {
   void pushSyncedPbftBlocksIntoChain_();
 
   void finalize_(PbftBlock const &pbft_block, vector<h256> finalized_dag_blk_hashes, bool sync = false);
-  bool pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes, vec_blk_t const &dag_blocks_order, bool sync = false);
+  bool pushPbftBlock_(SyncBlock &sync_block, vec_blk_t &dag_blocks_order, bool sync = false);
 
   void updateTwoTPlusOneAndThreshold_();
   bool is_syncing_();
@@ -159,6 +161,8 @@ class PbftManager {
   void updateLastSoftVotedValue_(blk_hash_t const new_soft_voted_value);
   void checkPreviousRoundNextVotedValueChange_();
   bool updateSoftVotedBlockForThisRound_();
+
+  std::shared_ptr<PbftBlock> getUnfinalizedBlock_(blk_hash_t const &block_hash);
 
   std::atomic<bool> stopped_ = true;
   // Using to check if PBFT block has been proposed already in one period
@@ -195,8 +199,7 @@ class PbftManager {
   size_t startingStepInRound_ = 1;
 
   blk_hash_t own_starting_value_for_round_ = NULL_BLOCK_HASH;
-  // <round, cert_voted_block_hash>
-  std::unordered_map<size_t, blk_hash_t> cert_voted_values_for_round_;
+
   std::pair<blk_hash_t, bool> soft_voted_block_for_this_round_ = std::make_pair(NULL_BLOCK_HASH, false);
 
   std::vector<Vote> votes_;
@@ -210,6 +213,7 @@ class PbftManager {
   bool previous_round_next_voted_null_block_hash_ = false;
 
   blk_hash_t last_soft_voted_value_ = NULL_BLOCK_HASH;
+  blk_hash_t last_cert_voted_value_ = NULL_BLOCK_HASH;
 
   std::chrono::duration<double> duration_;
   u_long next_step_time_ms_ = 0;
@@ -222,20 +226,15 @@ class PbftManager {
   bool next_voted_null_block_hash_ = false;
   bool go_finish_state_ = false;
   bool loop_back_finish_state_ = false;
-  bool reset_own_value_to_null_block_hash_in_this_round_ = false;
+  bool polling_state_print_log_ = true;
 
   uint64_t max_wait_for_soft_voted_block_steps_ms_ = 30;
   uint64_t max_wait_for_next_voted_block_steps_ms_ = 30;
-
-  uint64_t round_began_wait_proposal_block_ = 0;
-  size_t max_wait_rounds_for_proposal_block_ = 2;
 
   uint64_t pbft_round_last_requested_sync_ = 0;
   size_t pbft_step_last_requested_sync_ = 0;
   uint64_t pbft_round_last_broadcast_ = 0;
   size_t pbft_step_last_broadcast_ = 0;
-
-  size_t pbft_last_observed_synced_queue_size_ = 0;
 
   std::atomic<uint64_t> dpos_period_;
   std::atomic<size_t> dpos_votes_count_;

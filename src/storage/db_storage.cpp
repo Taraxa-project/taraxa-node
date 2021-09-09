@@ -39,6 +39,7 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
   rocksdb::Options options;
   options.create_missing_column_families = true;
   options.create_if_missing = true;
+  options.compression = rocksdb::CompressionType::kLZ4Compression;
   vector<ColumnFamilyDescriptor> descriptors;
   std::transform(Columns::all.begin(), Columns::all.end(), std::back_inserter(descriptors),
                  [](const Column& col) { return ColumnFamilyDescriptor(col.name(), ColumnFamilyOptions()); });
@@ -98,7 +99,7 @@ void DbStorage::loadSnapshots() {
   }
 }
 
-bool DbStorage::createSnapshot(uint64_t const& period) {
+bool DbStorage::createSnapshot(uint64_t period) {
   // Only creates snapshot each db_snapshot_each_n_pbft_block_ periods
   if (db_snapshot_each_n_pbft_block_ > 0 && period % db_snapshot_each_n_pbft_block_ == 0 &&
       snapshots_.find(period) == snapshots_.end()) {
@@ -131,7 +132,7 @@ bool DbStorage::createSnapshot(uint64_t const& period) {
   return false;
 }
 
-void DbStorage::recoverToPeriod(uint64_t const& period) {
+void DbStorage::recoverToPeriod(uint64_t period) {
   LOG(log_nf_) << "Revet to snapshot from period: " << period;
 
   // Construct the snapshot folder names
@@ -163,7 +164,7 @@ void DbStorage::recoverToPeriod(uint64_t const& period) {
   }
 }
 
-void DbStorage::deleteSnapshot(uint64_t const& period) {
+void DbStorage::deleteSnapshot(uint64_t period) {
   LOG(log_nf_) << "Deleting " << period << "snapshot";
 
   // Construct the snapshot folder names
@@ -200,36 +201,78 @@ void DbStorage::commitWriteBatch(Batch& write_batch, rocksdb::WriteOptions const
   checkStatus(status);
 }
 
-dev::bytes DbStorage::getDagBlockRaw(blk_hash_t const& hash) {
-  return asBytes(lookup(toSlice(hash.asBytes()), Columns::dag_blocks));
-}
-
 std::shared_ptr<DagBlock> DbStorage::getDagBlock(blk_hash_t const& hash) {
-  auto blk_bytes = getDagBlockRaw(hash);
-  if (blk_bytes.size() > 0) {
-    return std::make_shared<DagBlock>(blk_bytes);
+  auto block_data = asBytes(lookup(toSlice(hash.asBytes()), Columns::dag_blocks));
+  if (block_data.size() > 0) {
+    return std::make_shared<DagBlock>(block_data);
+  }
+  auto data = getDagBlockPeriod(hash);
+  if (data) {
+    auto period_data = getPeriodDataRaw(data->first);
+    if (period_data.size() > 0) {
+      auto period_data_rlp = RLP(period_data);
+      auto dag_blocks_data = period_data_rlp[DAG_BLOCKS_POS_IN_PERIOD_DATA];
+      return std::make_shared<DagBlock>(dag_blocks_data[data->second]);
+    }
   }
   return nullptr;
 }
 
-std::string DbStorage::getBlocksByLevel(level_t level) { return lookup(toSlice(level), Columns::dag_blocks_index); }
+bool DbStorage::dagBlockInDb(blk_hash_t const& hash) {
+  auto data = lookup(toSlice(hash.asBytes()), Columns::dag_blocks);
+  if (!data.empty()) {
+    return true;
+  }
+  data = lookup(toSlice(hash.asBytes()), Columns::dag_block_period);
+  if (!data.empty()) {
+    return true;
+  }
+  return false;
+}
+
+std::set<blk_hash_t> DbStorage::getBlocksByLevel(level_t level) {
+  auto data = asBytes(lookup(toSlice(level), Columns::dag_blocks_index));
+  dev::RLP rlp(data);
+  return rlp.toSet<blk_hash_t>();
+}
 
 std::vector<std::shared_ptr<DagBlock>> DbStorage::getDagBlocksAtLevel(level_t level, int number_of_levels) {
   std::vector<std::shared_ptr<DagBlock>> res;
   for (int i = 0; i < number_of_levels; i++) {
     if (level + i == 0) continue;  // Skip genesis
-    string entry = getBlocksByLevel(level + i);
-    if (entry.empty()) break;
-    vector<string> blocks;
-    boost::split(blocks, entry, boost::is_any_of(","));
-    for (auto const& block : blocks) {
-      auto blk = getDagBlock(blk_hash_t(block));
+    auto block_hashes = getBlocksByLevel(level + i);
+    for (auto const& hash : block_hashes) {
+      auto blk = getDagBlock(hash);
       if (blk) {
         res.push_back(blk);
       }
     }
   }
   return res;
+}
+
+void DbStorage::updateDagBlockCounters(Batch& write_batch, vector<DagBlock> blks) {
+  // Lock is needed since we are editing some fields
+  lock_guard<mutex> u_lock(dag_blocks_mutex_);
+  for (auto const& blk : blks) {
+    auto level = blk.getLevel();
+    auto block_hashes = getBlocksByLevel(level);
+    block_hashes.emplace(blk.getHash());
+    RLPStream blocks_stream(block_hashes.size());
+    for (auto const& hash : block_hashes) {
+      blocks_stream << hash;
+    }
+    insert(write_batch, Columns::dag_blocks_index, toSlice(level), toSlice(blocks_stream.out()));
+    dag_blocks_count_.fetch_add(1);
+    // Do not count genesis pivot field
+    if (blk.getPivot() == blk_hash_t(0)) {
+      dag_edge_count_.fetch_add(blk.getTips().size());
+    } else {
+      dag_edge_count_.fetch_add(blk.getTips().size() + 1);
+    }
+  }
+  insert(write_batch, Columns::status, toSlice((uint8_t)StatusDbField::DagBlkCount), toSlice(dag_blocks_count_.load()));
+  insert(write_batch, Columns::status, toSlice((uint8_t)StatusDbField::DagEdgeCount), toSlice(dag_edge_count_.load()));
 }
 
 void DbStorage::saveDagBlock(DagBlock const& blk, Batch* write_batch_p) {
@@ -242,13 +285,13 @@ void DbStorage::saveDagBlock(DagBlock const& blk, Batch* write_batch_p) {
   auto block_hash = blk.getHash();
   insert(write_batch, Columns::dag_blocks, toSlice(block_hash.asBytes()), toSlice(block_bytes));
   auto level = blk.getLevel();
-  std::string blocks = getBlocksByLevel(level);
-  if (blocks == "") {
-    blocks = blk.getHash().toString();
-  } else {
-    blocks = blocks + "," + blk.getHash().toString();
+  auto block_hashes = getBlocksByLevel(level);
+  block_hashes.emplace(blk.getHash());
+  RLPStream blocks_stream(block_hashes.size());
+  for (auto const& hash : block_hashes) {
+    blocks_stream << hash;
   }
-  insert(write_batch, Columns::dag_blocks_index, toSlice(level), toSlice(blocks));
+  insert(write_batch, Columns::dag_blocks_index, toSlice(level), toSlice(blocks_stream.out()));
   dag_blocks_count_.fetch_add(1);
   insert(write_batch, Columns::status, toSlice((uint8_t)StatusDbField::DagBlkCount), toSlice(dag_blocks_count_.load()));
   // Do not count genesis pivot field
@@ -280,52 +323,125 @@ std::map<blk_hash_t, bool> DbStorage::getAllDagBlockState() {
   return res;
 }
 
+void DbStorage::savePeriodData(const SyncBlock& sync_block, Batch& write_batch) {
+  uint64_t period = sync_block.pbft_blk->getPeriod();
+  addPbftBlockPeriodToBatch(period, sync_block.pbft_blk->getBlockHash(), write_batch);
+
+  // Add dag_block_period in DB
+  uint64_t block_pos = 0;
+  for (auto const& block : sync_block.dag_blocks) {
+    addDagBlockPeriodToBatch(block.getHash(), period, block_pos, write_batch);
+    block_pos++;
+  }
+
+  for (auto const& block : sync_block.dag_blocks) {
+    // Remove dag blocks
+    remove(write_batch, Columns::dag_blocks, toSlice(block.getHash()));
+  }
+  uint64_t position = 0;
+  for (auto const& trx : sync_block.transactions) {
+    // Remove transactions
+    remove(write_batch, Columns::transactions, toSlice(trx.getHash()));
+    addTransactionStatusToBatch(write_batch, trx.getHash(),
+                                TransactionStatus(TransactionStatusEnum::finalized, period, position));
+    position++;
+  }
+
+  insert(write_batch, Columns::period_data, toSlice(period), toSlice(sync_block.rlp()));
+}
+
+dev::bytes DbStorage::getPeriodDataRaw(uint64_t period) {
+  return asBytes(lookup(toSlice(period), Columns::period_data));
+}
+
 void DbStorage::saveTransaction(Transaction const& trx, bool verified) {
   insert(Columns::transactions, toSlice(trx.getHash().asBytes()), toSlice(*trx.rlp(false, verified)));
 }
 
 void DbStorage::saveTransactionStatus(trx_hash_t const& trx_hash, TransactionStatus const& status) {
-  insert(Columns::trx_status, toSlice(trx_hash.asBytes()), toSlice((uint16_t)status));
+  insert(Columns::trx_status, toSlice(trx_hash.asBytes()), toSlice(status.rlp()));
 }
 
 void DbStorage::addTransactionStatusToBatch(Batch& write_batch, trx_hash_t const& trx,
                                             TransactionStatus const& status) {
-  insert(write_batch, Columns::trx_status, toSlice(trx.asBytes()), toSlice((uint16_t)status));
+  insert(write_batch, Columns::trx_status, toSlice(trx.asBytes()), toSlice(status.rlp()));
 }
 
 TransactionStatus DbStorage::getTransactionStatus(trx_hash_t const& hash) {
   auto data = lookup(toSlice(hash.asBytes()), Columns::trx_status);
   if (!data.empty()) {
-    return (TransactionStatus) * (uint16_t*)&data[0];
+    dev::RLP const rlp(data);
+    return TransactionStatus(rlp);
   }
-  return TransactionStatus::not_seen;
+  return TransactionStatus();
 }
 
-std::map<trx_hash_t, TransactionStatus> DbStorage::getAllTransactionStatus() {
-  std::map<trx_hash_t, TransactionStatus> res;
+std::vector<TransactionStatus> DbStorage::getTransactionStatus(std::vector<trx_hash_t> const& trx_hashes) {
+  std::vector<TransactionStatus> result;
+  result.reserve(trx_hashes.size());
+  DbStorage::MultiGetQuery db_query(shared_from_this(), trx_hashes.size());
+  db_query.append(DbStorage::Columns::trx_status, trx_hashes);
+  auto db_trxs_statuses = db_query.execute();
+  for (size_t idx = 0; idx < db_trxs_statuses.size(); idx++) {
+    auto& trx_raw_status = db_trxs_statuses[idx];
+    if (!trx_raw_status.empty()) {
+      auto data = asBytes(trx_raw_status);
+      result.emplace_back(RLP(data));
+    }
+  }
+
+  return result;
+}
+
+std::unordered_map<trx_hash_t, TransactionStatus> DbStorage::getAllTransactionStatus() {
+  std::unordered_map<trx_hash_t, TransactionStatus> res;
   auto i = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::trx_status)));
   for (i->SeekToFirst(); i->Valid(); i->Next()) {
-    res[trx_hash_t(asBytes(i->key().ToString()))] = (TransactionStatus) * (uint16_t*)(i->value().data());
+    auto data = asBytes(i->value().ToString());
+    dev::RLP const rlp(data);
+    res[trx_hash_t(asBytes(i->key().ToString()))] = TransactionStatus(rlp);
   }
   return res;
 }
 
-dev::bytes DbStorage::getTransactionRaw(trx_hash_t const& hash) {
-  return asBytes(lookup(toSlice(hash.asBytes()), Columns::transactions));
-}
-
-std::shared_ptr<Transaction> DbStorage::getTransaction(trx_hash_t const& hash) {
-  auto trx_bytes = getTransactionRaw(hash);
-  if (trx_bytes.size() > 0) {
-    return std::make_shared<Transaction>(trx_bytes);
+std::shared_ptr<PbftBlock> DbStorage::getPbftBlock(uint64_t period) {
+  auto period_data = getPeriodDataRaw(period);
+  // DB is corrupted if status point to missing or incorrect transaction
+  if (period_data.size() > 0) {
+    auto period_data_rlp = RLP(period_data);
+    return make_shared<PbftBlock>(period_data_rlp[PBFT_BLOCK_POS_IN_PERIOD_DATA]);
   }
   return nullptr;
 }
 
+std::shared_ptr<Transaction> DbStorage::getTransaction(trx_hash_t const& hash) {
+  auto status = getTransactionStatus(hash);
+  switch (status.state) {
+    case TransactionStatusEnum::not_seen: {
+      return nullptr;
+    }
+    case TransactionStatusEnum::finalized: {
+      auto period_data = getPeriodDataRaw(status.period);
+      // DB is corrupted if status point to missing or incorrect transaction
+      assert(period_data.size() > 0);
+      auto period_data_rlp = RLP(period_data);
+      auto transaction_data = period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA];
+      return std::make_shared<Transaction>(transaction_data[status.position]);
+    }
+    default: {
+      auto data = asBytes(lookup(toSlice(hash.asBytes()), Columns::transactions));
+      if (data.size() > 0) {
+        return std::make_shared<Transaction>(data);
+      }
+      return nullptr;
+    }
+  }
+}
+
 std::shared_ptr<std::pair<Transaction, taraxa::bytes>> DbStorage::getTransactionExt(trx_hash_t const& hash) {
-  auto trx_bytes = asBytes(lookup(toSlice(hash.asBytes()), Columns::transactions));
-  if (trx_bytes.size() > 0) {
-    return std::make_shared<std::pair<Transaction, taraxa::bytes>>(trx_bytes, trx_bytes);
+  auto trx = getTransaction(hash);
+  if (trx) {
+    return std::make_shared<std::pair<Transaction, taraxa::bytes>>(*trx, *trx->rlp(true));
   }
   return nullptr;
 }
@@ -350,11 +466,11 @@ uint64_t DbStorage::getStatusField(StatusDbField const& field) {
   return 0;
 }
 
-void DbStorage::saveStatusField(StatusDbField const& field, uint64_t const& value) {
+void DbStorage::saveStatusField(StatusDbField const& field, uint64_t value) {
   insert(Columns::status, toSlice((uint8_t)field), toSlice(value));
 }
 
-void DbStorage::addStatusFieldToBatch(StatusDbField const& field, uint64_t const& value, Batch& write_batch) {
+void DbStorage::addStatusFieldToBatch(StatusDbField const& field, uint64_t value, Batch& write_batch) {
   insert(write_batch, DbStorage::Columns::status, toSlice((uint8_t)field), toSlice(value));
 }
 
@@ -370,15 +486,15 @@ uint64_t DbStorage::getPbftMgrField(PbftMgrRoundStep const& field) {
   return 1;
 }
 
-void DbStorage::savePbftMgrField(PbftMgrRoundStep const& field, uint64_t const& value) {
+void DbStorage::savePbftMgrField(PbftMgrRoundStep const& field, uint64_t value) {
   insert(Columns::pbft_mgr_round_step, toSlice((uint8_t)field), toSlice(value));
 }
 
-void DbStorage::addPbftMgrFieldToBatch(PbftMgrRoundStep const& field, uint64_t const& value, Batch& write_batch) {
+void DbStorage::addPbftMgrFieldToBatch(PbftMgrRoundStep const& field, uint64_t value, Batch& write_batch) {
   insert(write_batch, DbStorage::Columns::pbft_mgr_round_step, toSlice((uint8_t)field), toSlice(value));
 }
 
-size_t DbStorage::getPbft2TPlus1(uint64_t const& round) {
+size_t DbStorage::getPbft2TPlus1(uint64_t round) {
   auto status = lookup(toSlice(round), Columns::pbft_round_2t_plus_1);
 
   if (!status.empty()) {
@@ -390,11 +506,11 @@ size_t DbStorage::getPbft2TPlus1(uint64_t const& round) {
   return 0;
 }
 
-void DbStorage::savePbft2TPlus1(uint64_t const& pbft_round, size_t const& pbft_2t_plus_1) {
+void DbStorage::savePbft2TPlus1(uint64_t pbft_round, size_t pbft_2t_plus_1) {
   insert(Columns::pbft_round_2t_plus_1, toSlice(pbft_round), toSlice(pbft_2t_plus_1));
 }
 
-void DbStorage::addPbft2TPlus1ToBatch(uint64_t const& pbft_round, size_t const& pbft_2t_plus_1, Batch& write_batch) {
+void DbStorage::addPbft2TPlus1ToBatch(uint64_t pbft_round, size_t pbft_2t_plus_1, Batch& write_batch) {
   insert(write_batch, DbStorage::Columns::pbft_round_2t_plus_1, toSlice(pbft_round), toSlice(pbft_2t_plus_1));
 }
 
@@ -431,24 +547,6 @@ void DbStorage::addPbftMgrVotedValueToBatch(PbftMgrVotedValue const& field, blk_
   insert(write_batch, Columns::pbft_mgr_voted_value, toSlice((uint8_t)field), toSlice(value.asBytes()));
 }
 
-shared_ptr<blk_hash_t> DbStorage::getPbftCertVotedBlockHash(uint64_t const& pbft_round) {
-  auto hash = asBytes(lookup(toSlice(pbft_round), Columns::pbft_cert_voted_block_hash));
-  if (hash.size() > 0) {
-    return make_shared<blk_hash_t>(hash);
-  }
-  return nullptr;
-}
-
-void DbStorage::savePbftCertVotedBlockHash(uint64_t const& pbft_round, blk_hash_t const& cert_voted_block_hash) {
-  insert(Columns::pbft_cert_voted_block_hash, toSlice(pbft_round), toSlice(cert_voted_block_hash.asBytes()));
-}
-
-void DbStorage::addPbftCertVotedBlockHashToBatch(uint64_t const& pbft_round, blk_hash_t const& cert_voted_block_hash,
-                                                 Batch& write_batch) {
-  insert(write_batch, Columns::pbft_cert_voted_block_hash, toSlice(pbft_round),
-         toSlice(cert_voted_block_hash.asBytes()));
-}
-
 shared_ptr<PbftBlock> DbStorage::getPbftCertVotedBlock(blk_hash_t const& block_hash) {
   auto block = lookup(toSlice(block_hash.asBytes()), Columns::pbft_cert_voted_block);
   if (!block.empty()) {
@@ -467,18 +565,14 @@ void DbStorage::addPbftCertVotedBlockToBatch(PbftBlock const& pbft_block, Batch&
 }
 
 std::shared_ptr<PbftBlock> DbStorage::getPbftBlock(blk_hash_t const& hash) {
-  auto block = lookup(hash, Columns::pbft_blocks);
-  if (!block.empty()) {
-    return std::make_shared<PbftBlock>(dev::RLP(block));
+  auto res = getPeriodFromPbftHash(hash);
+  if (res.first) {
+    return getPbftBlock(res.second);
   }
   return nullptr;
 }
 
-bool DbStorage::pbftBlockInDb(blk_hash_t const& hash) { return !lookup(hash, Columns::pbft_blocks).empty(); }
-
-void DbStorage::addPbftBlockToBatch(const taraxa::PbftBlock& pbft_block, Batch& write_batch) {
-  insert(write_batch, Columns::pbft_blocks, pbft_block.getBlockHash(), pbft_block.rlp(true));
-}
+bool DbStorage::pbftBlockInDb(blk_hash_t const& hash) { return getPeriodFromPbftHash(hash).first; }
 
 string DbStorage::getPbftHead(blk_hash_t const& hash) { return lookup(toSlice(hash.asBytes()), Columns::pbft_head); }
 
@@ -562,7 +656,7 @@ void DbStorage::removeVerifiedVoteToBatch(vote_hash_t const& vote_hash, Batch& w
   remove(write_batch, Columns::verified_votes, toSlice(vote_hash.asBytes()));
 }
 
-std::vector<Vote> DbStorage::getSoftVotes(uint64_t const& pbft_round) {
+std::vector<Vote> DbStorage::getSoftVotes(uint64_t pbft_round) {
   std::vector<Vote> soft_votes;
   auto soft_votes_raw = asBytes(lookup(toSlice(pbft_round), Columns::soft_votes));
 
@@ -573,7 +667,7 @@ std::vector<Vote> DbStorage::getSoftVotes(uint64_t const& pbft_round) {
   return soft_votes;
 }
 
-void DbStorage::saveSoftVotes(uint64_t const& pbft_round, std::vector<Vote> const& soft_votes) {
+void DbStorage::saveSoftVotes(uint64_t pbft_round, std::vector<Vote> const& soft_votes) {
   RLPStream s(soft_votes.size());
   for (auto const& v : soft_votes) {
     s.appendRaw(v.rlp(true));
@@ -581,8 +675,7 @@ void DbStorage::saveSoftVotes(uint64_t const& pbft_round, std::vector<Vote> cons
   insert(Columns::soft_votes, toSlice(pbft_round), toSlice(s.out()));
 }
 
-void DbStorage::addSoftVotesToBatch(uint64_t const& pbft_round, std::vector<Vote> const& soft_votes,
-                                    Batch& write_batch) {
+void DbStorage::addSoftVotesToBatch(uint64_t pbft_round, std::vector<Vote> const& soft_votes, Batch& write_batch) {
   RLPStream s(soft_votes.size());
   for (auto const& v : soft_votes) {
     s.appendRaw(v.rlp(true));
@@ -590,31 +683,23 @@ void DbStorage::addSoftVotesToBatch(uint64_t const& pbft_round, std::vector<Vote
   insert(write_batch, Columns::soft_votes, toSlice(pbft_round), toSlice(s.out()));
 }
 
-void DbStorage::removeSoftVotesToBatch(uint64_t const& pbft_round, Batch& write_batch) {
+void DbStorage::removeSoftVotesToBatch(uint64_t pbft_round, Batch& write_batch) {
   remove(write_batch, Columns::soft_votes, toSlice(pbft_round));
 }
 
-std::vector<Vote> DbStorage::getCertVotes(blk_hash_t const& hash) {
+std::vector<Vote> DbStorage::getCertVotes(uint64_t period) {
   std::vector<Vote> cert_votes;
-  auto cert_votes_raw = asBytes(lookup(toSlice(hash.asBytes()), Columns::cert_votes));
-
-  for (auto const cert_vote : RLP(cert_votes_raw)) {
-    cert_votes.emplace_back(cert_vote);
+  auto period_data = getPeriodDataRaw(period);
+  if (period_data.size() > 0) {
+    auto period_data_rlp = RLP(period_data);
+    auto cert_votes_data = period_data_rlp[CERT_VOTES_POS_IN_PERIOD_DATA];
+    cert_votes.reserve(cert_votes_data.size());
+    for (auto const vote : cert_votes_data) cert_votes.emplace_back(vote);
   }
-
   return cert_votes;
 }
 
-void DbStorage::addCertVotesToBatch(const taraxa::blk_hash_t& pbft_block_hash, const std::vector<Vote>& cert_votes,
-                                    Batch& write_batch) {
-  RLPStream s(cert_votes.size());
-  for (auto const& v : cert_votes) {
-    s.appendRaw(v.rlp(true));
-  }
-  insert(write_batch, Columns::cert_votes, toSlice(pbft_block_hash.asBytes()), toSlice(s.out()));
-}
-
-std::vector<Vote> DbStorage::getNextVotes(uint64_t const& pbft_round) {
+std::vector<Vote> DbStorage::getNextVotes(uint64_t pbft_round) {
   std::vector<Vote> next_votes;
   auto next_votes_raw = asBytes(lookup(toSlice(pbft_round), Columns::next_votes));
 
@@ -625,7 +710,7 @@ std::vector<Vote> DbStorage::getNextVotes(uint64_t const& pbft_round) {
   return next_votes;
 }
 
-void DbStorage::saveNextVotes(uint64_t const& pbft_round, std::vector<Vote> const& next_votes) {
+void DbStorage::saveNextVotes(uint64_t pbft_round, std::vector<Vote> const& next_votes) {
   RLPStream s(next_votes.size());
   for (auto const& v : next_votes) {
     s.appendRaw(v.rlp(true));
@@ -633,8 +718,7 @@ void DbStorage::saveNextVotes(uint64_t const& pbft_round, std::vector<Vote> cons
   insert(Columns::next_votes, toSlice(pbft_round), toSlice(s.out()));
 }
 
-void DbStorage::addNextVotesToBatch(uint64_t const& pbft_round, std::vector<Vote> const& next_votes,
-                                    Batch& write_batch) {
+void DbStorage::addNextVotesToBatch(uint64_t pbft_round, std::vector<Vote> const& next_votes, Batch& write_batch) {
   RLPStream s(next_votes.size());
   for (auto const& v : next_votes) {
     s.appendRaw(v.rlp(true));
@@ -642,33 +726,47 @@ void DbStorage::addNextVotesToBatch(uint64_t const& pbft_round, std::vector<Vote
   insert(write_batch, Columns::next_votes, toSlice(pbft_round), toSlice(s.out()));
 }
 
-void DbStorage::removeNextVotesToBatch(uint64_t const& pbft_round, Batch& write_batch) {
+void DbStorage::removeNextVotesToBatch(uint64_t pbft_round, Batch& write_batch) {
   remove(write_batch, Columns::next_votes, toSlice(pbft_round));
 }
 
-shared_ptr<blk_hash_t> DbStorage::getPeriodPbftBlock(uint64_t const& period) {
-  auto hash = asBytes(lookup(toSlice(period), Columns::period_pbft_block));
-  if (hash.size() > 0) {
-    return make_shared<blk_hash_t>(hash);
-  }
-  return nullptr;
-}
-
-void DbStorage::addPbftBlockPeriodToBatch(uint64_t const& period, taraxa::blk_hash_t const& pbft_block_hash,
+void DbStorage::addPbftBlockPeriodToBatch(uint64_t period, taraxa::blk_hash_t const& pbft_block_hash,
                                           Batch& write_batch) {
-  insert(write_batch, Columns::period_pbft_block, toSlice(period), toSlice(pbft_block_hash.asBytes()));
+  insert(write_batch, Columns::pbft_block_period, toSlice(pbft_block_hash.asBytes()), toSlice(period));
 }
 
-std::shared_ptr<uint64_t> DbStorage::getDagBlockPeriod(blk_hash_t const& hash) {
-  auto period = asBytes(lookup(toSlice(hash.asBytes()), Columns::dag_block_period));
-  if (period.size() > 0) {
-    return make_shared<uint64_t>(*(uint64_t*)&period[0]);
+pair<bool, uint64_t> DbStorage::getPeriodFromPbftHash(taraxa::blk_hash_t const& pbft_block_hash) {
+  auto data = lookup(toSlice(pbft_block_hash.asBytes()), Columns::pbft_block_period);
+
+  if (!data.empty()) {
+    uint64_t value;
+    memcpy(&value, data.data(), sizeof(uint64_t));
+    return {true, value};
+  }
+
+  return {false, 0};
+}
+
+shared_ptr<pair<uint32_t, uint32_t>> DbStorage::getDagBlockPeriod(blk_hash_t const& hash) {
+  auto data = asBytes(lookup(toSlice(hash.asBytes()), Columns::dag_block_period));
+  if (data.size() > 0) {
+    RLP rlp(data);
+    auto it = rlp.begin();
+    auto period = (*it++).toInt<uint32_t>();
+    auto position = (*it++).toInt<uint32_t>();
+
+    return make_shared<pair<uint32_t, uint32_t>>(period, position);
   }
   return nullptr;
 }
 
-void DbStorage::addDagBlockPeriodToBatch(blk_hash_t const& hash, uint64_t const& period, Batch& write_batch) {
-  insert(write_batch, Columns::dag_block_period, toSlice(hash.asBytes()), toSlice(period));
+void DbStorage::addDagBlockPeriodToBatch(blk_hash_t const& hash, uint32_t period, uint32_t position,
+                                         Batch& write_batch) {
+  RLPStream s;
+  s.appendList(2);
+  s << period;
+  s << position;
+  insert(write_batch, Columns::dag_block_period, toSlice(hash.asBytes()), toSlice(s.invalidate()));
 }
 
 vector<blk_hash_t> DbStorage::getFinalizedDagBlockHashesByAnchor(blk_hash_t const& anchor) {
@@ -695,12 +793,12 @@ uint64_t DbStorage::getDposProposalPeriodLevelsField(DposProposalPeriodLevelsSta
   return 0;
 }
 
-void DbStorage::saveDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus const& field, uint64_t const& value) {
+void DbStorage::saveDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus const& field, uint64_t value) {
   insert(Columns::dpos_proposal_period_levels_status, toSlice((uint8_t)field), toSlice(value));
 }
 
-void DbStorage::addDposProposalPeriodLevelsFieldToBatch(DposProposalPeriodLevelsStatus const& field,
-                                                        uint64_t const& value, Batch& write_batch) {
+void DbStorage::addDposProposalPeriodLevelsFieldToBatch(DposProposalPeriodLevelsStatus const& field, uint64_t value,
+                                                        Batch& write_batch) {
   insert(write_batch, Columns::dpos_proposal_period_levels_status, toSlice((uint8_t)field), toSlice(value));
 }
 

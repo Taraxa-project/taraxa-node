@@ -8,7 +8,6 @@
 #include "state_api.hpp"
 #include "storage/db_storage.hpp"
 #include "util/event.hpp"
-#include "util/exit_stack.hpp"
 #include "util/range_view.hpp"
 
 namespace taraxa::final_chain {
@@ -17,7 +16,7 @@ using namespace ::dev;
 using namespace ::taraxa::final_chain;
 using namespace ::taraxa::util;
 
-class FinalChain {
+class FinalChain : public std::enable_shared_from_this<FinalChain> {
  public:
   static constexpr auto GAS_LIMIT = ((uint64_t)1 << 53) - 1;
 
@@ -30,7 +29,8 @@ class FinalChain {
   virtual ~FinalChain() = default;
 
   using finalize_precommit_ext = std::function<void(FinalizationResult const&, DB::Batch&)>;
-  virtual future<shared_ptr<FinalizationResult const>> finalize(NewBlock new_blk, finalize_precommit_ext = {}) = 0;
+  virtual future<shared_ptr<FinalizationResult const>> finalize(NewBlock new_blk, uint64_t period,
+                                                                finalize_precommit_ext = {}) = 0;
 
   virtual shared_ptr<BlockHeader const> block_header(optional<EthBlockNumber> n = {}) const = 0;
   virtual EthBlockNumber last_block_number() const = 0;
@@ -73,8 +73,7 @@ class FinalChain {
   }
 };
 
-unique_ptr<FinalChain> NewFinalChain(shared_ptr<DB> const& db, Config const& config, Opts const& opts = {},
-                                     addr_t const& node_addr = {});
+shared_ptr<FinalChain> NewFinalChain(shared_ptr<DB> const& db, Config const& config, addr_t const& node_addr = {});
 
 }  // namespace taraxa::final_chain
 

@@ -253,6 +253,7 @@ TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
   auto nodes = launch_nodes(node_cfgs);
 
   auto pbft_mgr = nodes[0]->getPbftManager();
+  auto db = nodes[0]->getDB();
   pbft_mgr->stop();
   cout << "Initialize PBFT manager at round 1 step 4" << endl;
   pbft_mgr->setPbftRound(1);
@@ -267,8 +268,8 @@ TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
   auto propose_pbft_period = pbft_chain->getPbftChainSize() + 1;
   auto beneficiary = nodes[0]->getAddress();
   auto node_sk = nodes[0]->getSecretKey();
-  auto propose_pbft_block =
-      std::make_shared<PbftBlock>(last_pbft_block_hash, dag_anchor, propose_pbft_period, beneficiary, node_sk);
+  auto propose_pbft_block = std::make_shared<PbftBlock>(last_pbft_block_hash, dag_anchor, blk_hash_t(),
+                                                        propose_pbft_period, beneficiary, node_sk);
   auto pbft_block_hash = propose_pbft_block->getBlockHash();
   pbft_chain->pushUnverifiedPbftBlock(propose_pbft_block);
 
@@ -282,7 +283,7 @@ TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
   pbft_mgr->start();
 
   // Vote at the bogus PBFT block hash
-  EXPECT_HAPPENS({60s, 50ms}, [&](auto &ctx) {
+  EXPECT_HAPPENS({10s, 50ms}, [&](auto &ctx) {
     auto soft_vote_value = blk_hash_t(0);
     auto votes = vote_mgr->getVerifiedVotes();
     for (auto const &v : votes) {
@@ -297,16 +298,20 @@ TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
   auto start_round = pbft_mgr->getPbftRound();
 
   cout << "After some time, terminate voting on the bogus value " << pbft_block_hash << endl;
-  EXPECT_HAPPENS({120s, 50ms}, [&](auto &ctx) {
-    auto soft_vote_value = pbft_block_hash;
+  EXPECT_HAPPENS({10s, 50ms}, [&](auto &ctx) {
+    auto next_vote_value = pbft_block_hash;
     auto votes = vote_mgr->getVerifiedVotes();
+
     for (auto const &v : votes) {
-      if (next_vote_type == v.getType() && v.getBlockHash() == blk_hash_t(0)) {
-        soft_vote_value = v.getBlockHash();
-        break;
+      if (propose_vote_type == v.getType() && v.getBlockHash() == NULL_BLOCK_HASH) {
+        auto soft_voted_from_db = *db->getPbftMgrVotedValue(PbftMgrVotedValue::soft_voted_block_hash_in_round);
+        if (soft_voted_from_db == NULL_BLOCK_HASH) {
+          next_vote_value = v.getBlockHash();
+          break;
+        }
       }
     }
-    WAIT_EXPECT_EQ(ctx, soft_vote_value, blk_hash_t(0))
+    WAIT_EXPECT_EQ(ctx, next_vote_value, NULL_BLOCK_HASH)
   });
 
   cout << "Wait ensure node is still advancing in rounds... " << endl;
@@ -319,6 +324,7 @@ TEST_F(PbftManagerTest, terminate_missing_proposed_pbft_block) {
   auto nodes = launch_nodes(node_cfgs);
 
   auto pbft_mgr = nodes[0]->getPbftManager();
+  auto db = nodes[0]->getDB();
   pbft_mgr->stop();
   cout << "Initialize PBFT manager at round 1 step 4" << endl;
   pbft_mgr->setPbftRound(1);
@@ -340,8 +346,8 @@ TEST_F(PbftManagerTest, terminate_missing_proposed_pbft_block) {
   pbft_mgr->start();
 
   // Vote at the bogus PBFT block hash
-  EXPECT_HAPPENS({60s, 50ms}, [&](auto &ctx) {
-    auto soft_vote_value = blk_hash_t(0);
+  EXPECT_HAPPENS({10s, 50ms}, [&](auto &ctx) {
+    auto soft_vote_value = NULL_BLOCK_HASH;
     auto votes = vote_mgr->getVerifiedVotes();
     for (auto const &v : votes) {
       if (soft_vote_type == v.getType() && v.getBlockHash() == pbft_block_hash) {
@@ -356,16 +362,20 @@ TEST_F(PbftManagerTest, terminate_missing_proposed_pbft_block) {
 
   cout << "After some time, terminate voting on the missing proposed block " << pbft_block_hash << endl;
   // After some rounds, terminate the bogus value and vote on NULL_BLOCK_HASH since no new DAG blocks generated
-  EXPECT_HAPPENS({60s, 50ms}, [&](auto &ctx) {
+  EXPECT_HAPPENS({10s, 50ms}, [&](auto &ctx) {
     auto soft_vote_value = pbft_block_hash;
     auto votes = vote_mgr->getVerifiedVotes();
+
     for (auto const &v : votes) {
-      if (next_vote_type == v.getType() && v.getBlockHash() == blk_hash_t(0)) {
-        soft_vote_value = v.getBlockHash();
-        break;
+      if (propose_vote_type == v.getType() && v.getBlockHash() == NULL_BLOCK_HASH) {
+        auto soft_voted_from_db = *db->getPbftMgrVotedValue(PbftMgrVotedValue::soft_voted_block_hash_in_round);
+        if (soft_voted_from_db == NULL_BLOCK_HASH) {
+          soft_vote_value = v.getBlockHash();
+          break;
+        }
       }
     }
-    WAIT_EXPECT_EQ(ctx, soft_vote_value, blk_hash_t(0))
+    WAIT_EXPECT_EQ(ctx, soft_vote_value, NULL_BLOCK_HASH)
   });
 
   cout << "Wait ensure node is still advancing in rounds... " << endl;
@@ -373,8 +383,7 @@ TEST_F(PbftManagerTest, terminate_missing_proposed_pbft_block) {
 }
 
 TEST_F(PbftManagerTest, full_node_lambda_input_test) {
-  auto node_cfgs = make_node_cfgs(1);
-  FullNode::Handle node(node_cfgs[0]);
+  auto node = create_nodes(1, true /*start*/).front();
 
   node->start();
   auto pbft_mgr = node->getPbftManager();
@@ -524,7 +533,7 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
 
 TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
   auto node_cfgs = make_node_cfgs<20>(1);
-  FullNode::Handle node(node_cfgs[0], true);
+  auto node = create_nodes(node_cfgs, true /*start*/).front();
 
   // create a transaction
   auto coins_value = val_t(100);
@@ -591,36 +600,9 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
 
   std::cout << "Checking all nodes see transaction from node 1 to node 2..." << std::endl;
 
-  bool checkpoint_passed = false;
-  for (auto _(0); _ < 120; ++_) {
-    checkpoint_passed = true;
-    // test timeout is 60 seconds
-    for (size_t i(0); i < nodes.size(); ++i) {
-      if (nodes[i]->getDB()->getNumTransactionExecuted() == 0) {
-        checkpoint_passed = false;
-      }
-    }
-    if (checkpoint_passed) break;
-    taraxa::thisThreadSleepForMilliSeconds(500);
-  }
-
-  if (checkpoint_passed == false) {
-    for (size_t i(0); i < nodes.size(); ++i) {
-      ASSERT_EQ(nodes[i]->getDB()->getNumTransactionExecuted(), 1);
-    }
-  }
-
-  uint64_t pbft_chain_size = 1;
-  for (size_t i(0); i < nodes.size(); ++i) {
-    EXPECT_EQ(nodes[i]->getFinalChain()->last_block_number(), pbft_chain_size);
-  }
-
-  for (size_t i(0); i < nodes.size(); ++i) {
-    std::cout << "Checking account balances on node " << i << " ..." << std::endl;
-    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node1_addr).first, node1_genesis_bal - 100);
-    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node2_addr).first, 100);
-    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node3_addr).first, 0);
-  }
+  const expected_balances_map_t expected_balances1 = {
+      {node1_addr, node1_genesis_bal - 100}, {node2_addr, 100}, {node3_addr, 0}};
+  wait_for_balances(nodes, expected_balances1);
 
   // create a transaction transfer coins from node1 to node3
   auto coins_value3 = val_t(1000);
@@ -631,45 +613,12 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
 
   std::cout << "Checking all nodes see transaction from node 1 to node 3..." << std::endl;
 
-  checkpoint_passed = false;
-  for (auto _(0); _ < 120; ++_) {
-    checkpoint_passed = true;
-    // test timeout is 60 seconds
-    for (size_t i(0); i < nodes.size(); ++i) {
-      if (nodes[i]->getDB()->getNumTransactionExecuted() != 2) {
-        checkpoint_passed = false;
-      }
-    }
-    if (checkpoint_passed) break;
-    taraxa::thisThreadSleepForMilliSeconds(500);
-  }
+  const expected_balances_map_t expected_balances2 = {
+      {node1_addr, node1_genesis_bal - 1100}, {node2_addr, 100}, {node3_addr, 1000}};
+  wait_for_balances(nodes, expected_balances2);
 
-  if (checkpoint_passed == false) {
-    for (size_t i(0); i < nodes.size(); ++i) {
-      ASSERT_EQ(nodes[i]->getDB()->getNumTransactionExecuted(), 1);
-    }
-  }
-
-  pbft_chain_size = 2;
-  // Vote DAG block
-  for (auto _(0); _ < 120; ++_) {
-    // test timeout is 60 seconds
-    if (nodes[0]->getFinalChain()->last_block_number() == pbft_chain_size &&
-        nodes[1]->getFinalChain()->last_block_number() == pbft_chain_size &&
-        nodes[2]->getFinalChain()->last_block_number() == pbft_chain_size) {
-      break;
-    }
-    taraxa::thisThreadSleepForMilliSeconds(500);
-  }
-  for (size_t i(0); i < nodes.size(); ++i) {
-    EXPECT_EQ(nodes[i]->getFinalChain()->last_block_number(), pbft_chain_size);
-  }
-
-  for (size_t i(0); i < nodes.size(); ++i) {
-    std::cout << "Checking account balances on node " << i << " ..." << std::endl;
-    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node1_addr).first, node1_genesis_bal - 1100);
-    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node2_addr).first, 100);
-    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node3_addr).first, 1000);
+  for (auto &node : nodes) {
+    node->getPbftManager()->stop();
   }
   // PBFT second block
   blk_hash_t pbft_second_block_hash = nodes[0]->getPbftChain()->getLastPbftBlockHash();

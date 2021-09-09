@@ -78,8 +78,8 @@ trx_hash_t const &Transaction::getHash() const {
       l.lock();
       return hash_;
     }
-    hash_initialized_ = true;
     hash_ = dev::sha3(*rlp());
+    hash_initialized_ = true;
   }
   return hash_;
 }

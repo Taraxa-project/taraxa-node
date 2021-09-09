@@ -34,6 +34,7 @@ set(SOURCES
         network/taraxa_capability.hpp
         network/taraxa_peer.hpp
         network/syncing_state.hpp
+        network/sync_block.hpp
         network/rpc/rpc_error_handler.hpp
         network/rpc/eth/watches.hpp
         network/rpc/eth/LogFilter.hpp
@@ -54,7 +55,6 @@ set(SOURCES
         util/encoding_rlp.hpp
         util/default_construct_copyable_movable.hpp
         util/thread_pool.hpp
-        util/exit_stack.hpp
         util/event.hpp
         util/util.hpp
         util/lazy.hpp
@@ -111,6 +111,7 @@ set(SOURCES
         network/peers_state.cpp
         network/taraxa_capability.cpp
         network/syncing_state.cpp
+        network/sync_block.cpp
         node/full_node.cpp
         storage/db_storage.cpp
         transaction_manager/transaction.cpp
@@ -130,6 +131,8 @@ add_library(app_base ${SOURCES})
 get_target_property(TARAXA_VDF_INCUDE taraxa-vdf INTERFACE_INCLUDE_DIRECTORIES)
 get_target_property(TARAXA_VRF_INCUDE taraxa-vrf INTERFACE_INCLUDE_DIRECTORIES)
 
+add_subdirectory(aleth)
+
 target_include_directories(app_base PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${TARAXA_VDF_INCUDE}
@@ -148,20 +151,17 @@ target_link_libraries(app_base
         taraxa-vdf
         taraxa-evm
         pthread
-        scrypt
         CONAN_PKG::jsoncpp
         CONAN_PKG::libjson-rpc-cpp
         CONAN_PKG::boost
         CONAN_PKG::openssl
         CONAN_PKG::gmp
-        CONAN_PKG::snappy
-        CONAN_PKG::zstd
         CONAN_PKG::lz4
         CONAN_PKG::rocksdb
-        CONAN_PKG::bzip2
-        CONAN_PKG::zlib
         CONAN_PKG::mpfr
-        aleth #  FIXME: THIS LIB CAUSES LINKING ORDER SENSITIVITY
+        devcore
+        devcrypto
+        p2p
         )
 
 # needed for golang runtime that comes together with taraxa-evm

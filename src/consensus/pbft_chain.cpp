@@ -14,18 +14,22 @@ PbftBlock::PbftBlock(bytes const& b) : PbftBlock(dev::RLP(b)) {}
 PbftBlock::PbftBlock(dev::RLP const& r) {
   dev::RLP const rlp(r);
   if (!rlp.isList()) throw std::invalid_argument("PBFT RLP must be a list");
-  prev_block_hash_ = rlp[0].toHash<blk_hash_t>();
-  dag_block_hash_as_pivot_ = rlp[1].toHash<blk_hash_t>();
-  period_ = rlp[2].toInt<uint64_t>();
-  timestamp_ = rlp[3].toInt<uint64_t>();
-  signature_ = rlp[4].toHash<sig_t>();
+  auto it = rlp.begin();
+
+  prev_block_hash_ = (*it++).toHash<blk_hash_t>();
+  dag_block_hash_as_pivot_ = (*it++).toHash<blk_hash_t>();
+  order_hash_ = (*it++).toHash<blk_hash_t>();
+  period_ = (*it++).toInt<uint64_t>();
+  timestamp_ = (*it++).toInt<uint64_t>();
+  signature_ = (*it++).toHash<sig_t>();
   calculateHash_();
 }
 
-PbftBlock::PbftBlock(blk_hash_t const& prev_blk_hash, blk_hash_t const& dag_blk_hash_as_pivot, uint64_t period,
-                     addr_t const& beneficiary, secret_t const& sk)
+PbftBlock::PbftBlock(blk_hash_t const& prev_blk_hash, blk_hash_t const& dag_blk_hash_as_pivot,
+                     blk_hash_t const& order_hash, uint64_t period, addr_t const& beneficiary, secret_t const& sk)
     : prev_block_hash_(prev_blk_hash),
       dag_block_hash_as_pivot_(dag_blk_hash_as_pivot),
+      order_hash_(order_hash),
       period_(period),
       beneficiary_(beneficiary) {
   timestamp_ = dev::utcTime();
@@ -38,6 +42,7 @@ PbftBlock::PbftBlock(std::string const& str) {
   block_hash_ = blk_hash_t(doc["block_hash"].asString());
   prev_block_hash_ = blk_hash_t(doc["prev_block_hash"].asString());
   dag_block_hash_as_pivot_ = blk_hash_t(doc["dag_block_hash_as_pivot"].asString());
+  order_hash_ = blk_hash_t(doc["order_hash"].asString());
   period_ = doc["period"].asUInt64();
   timestamp_ = doc["timestamp"].asUInt64();
   signature_ = sig_t(doc["signature"].asString());
@@ -75,6 +80,7 @@ Json::Value PbftBlock::getJson() const {
   Json::Value json;
   json["prev_block_hash"] = prev_block_hash_.toString();
   json["dag_block_hash_as_pivot"] = dag_block_hash_as_pivot_.toString();
+  json["order_hash"] = order_hash_.toString();
   json["period"] = (Json::Value::UInt64)period_;
   json["timestamp"] = (Json::Value::UInt64)timestamp_;
   json["block_hash"] = block_hash_.toString();
@@ -85,9 +91,10 @@ Json::Value PbftBlock::getJson() const {
 
 // Using to setup PBFT block hash
 void PbftBlock::streamRLP(dev::RLPStream& strm, bool include_sig) const {
-  strm.appendList(include_sig ? 5 : 4);
+  strm.appendList(include_sig ? 6 : 5);
   strm << prev_block_hash_;
   strm << dag_block_hash_as_pivot_;
+  strm << order_hash_;
   strm << period_;
   strm << timestamp_;
   if (include_sig) {
@@ -103,37 +110,6 @@ bytes PbftBlock::rlp(bool include_sig) const {
 
 std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk) {
   strm << pbft_blk.getJsonStr();
-  return strm;
-}
-
-PbftBlockCert::PbftBlockCert(PbftBlock const& pbft_blk, std::vector<Vote> const& cert_votes)
-    : pbft_blk(new PbftBlock(pbft_blk)), cert_votes(cert_votes) {}
-
-PbftBlockCert::PbftBlockCert(dev::RLP const& rlp) {
-  pbft_blk.reset(new PbftBlock(rlp[0]));
-  for (auto const el : rlp[1]) {
-    cert_votes.emplace_back(el);
-  }
-}
-
-PbftBlockCert::PbftBlockCert(bytes const& all_rlp) : PbftBlockCert(dev::RLP(all_rlp)) {}
-
-bytes PbftBlockCert::rlp() const {
-  RLPStream s(2);
-  s.appendRaw(pbft_blk->rlp(true));
-  s.appendList(cert_votes.size());
-  for (auto const& v : cert_votes) {
-    s.appendRaw(v.rlp(true));
-  }
-  return s.out();
-}
-
-void PbftBlockCert::encode_raw(RLPStream& rlp, PbftBlock const& pbft_blk, dev::bytesConstRef votes_raw) {
-  rlp.appendList(2).appendRaw(pbft_blk.rlp(true)).appendRaw(votes_raw);
-}
-
-std::ostream& operator<<(std::ostream& strm, PbftBlockCert const& b) {
-  strm << "[PbftBlockCert] : " << b.pbft_blk << " , num of votes " << b.cert_votes.size() << std::endl;
   return strm;
 }
 
@@ -187,10 +163,6 @@ bool PbftChain::findUnverifiedPbftBlock(taraxa::blk_hash_t const& pbft_block_has
   return unverified_blocks_.find(pbft_block_hash) != unverified_blocks_.end();
 }
 
-bool PbftChain::findPbftBlockInSyncedSet(taraxa::blk_hash_t const& pbft_block_hash) const {
-  return pbft_synced_set_.find(pbft_block_hash) != pbft_synced_set_.end();
-}
-
 PbftBlock PbftChain::getPbftBlockInChain(const taraxa::blk_hash_t& pbft_block_hash) {
   auto pbft_block = db_->getPbftBlock(pbft_block_hash);
   if (pbft_block == nullptr) {
@@ -201,62 +173,26 @@ PbftBlock PbftChain::getPbftBlockInChain(const taraxa::blk_hash_t& pbft_block_ha
 }
 
 std::shared_ptr<PbftBlock> PbftChain::getUnverifiedPbftBlock(const taraxa::blk_hash_t& pbft_block_hash) {
-  if (findUnverifiedPbftBlock(pbft_block_hash)) {
-    sharedLock_ lock(unverified_access_);
-    return unverified_blocks_[pbft_block_hash];
+  sharedLock_ lock(unverified_access_);
+  auto found_block = unverified_blocks_.find(pbft_block_hash);
+  if (found_block == unverified_blocks_.end()) {
+    return nullptr;
   }
-  return nullptr;
-}
 
-std::vector<PbftBlockCert> PbftChain::getPbftBlocks(size_t period, size_t count) {
-  std::vector<PbftBlockCert> result;
-  for (auto i = period; i < period + count; i++) {
-    // Get PBFT block hash by period
-    auto pbft_block_hash = db_->getPeriodPbftBlock(i);
-    if (!pbft_block_hash) {
-      LOG(log_er_) << "PBFT block period " << i << " is not exist in DB period_pbft_block.";
-      break;
-    }
-    // Get PBFT block in DB
-    auto pbft_block = db_->getPbftBlock(*pbft_block_hash);
-    if (!pbft_block) {
-      LOG(log_er_) << "DB corrupted - Cannot find PBFT block hash " << pbft_block_hash
-                   << " in PBFT chain DB pbft_blocks.";
-      assert(false);
-    }
-    if (pbft_block->getPeriod() != i) {
-      LOG(log_er_) << "DB corrupted - PBFT block hash " << pbft_block_hash << "has different period "
-                   << pbft_block->getPeriod() << "in block data then in block order db: " << i;
-      assert(false);
-    }
-    // Get PBFT cert votes in DB
-    auto cert_votes = db_->getCertVotes(*pbft_block_hash);
-    if (cert_votes.empty()) {
-      LOG(log_er_) << "Cannot find any cert votes for PBFT block " << pbft_block;
-      assert(false);
-    }
-    PbftBlockCert pbft_block_cert_votes(*pbft_block, cert_votes);
-    result.push_back(pbft_block_cert_votes);
-  }
-  return result;
+  return found_block->second;
 }
 
 // TODO: should remove, need check
 std::vector<std::string> PbftChain::getPbftBlocksStr(size_t period, size_t count, bool hash) const {
   std::vector<std::string> result;
   for (auto i = period; i < period + count; i++) {
-    auto pbft_block_hash = db_->getPeriodPbftBlock(i);
-    if (pbft_block_hash == nullptr) {
-      LOG(log_er_) << "PBFT block period " << i << " is not exist in blocks order DB.";
-      break;
-    }
-    auto pbft_block = db_->getPbftBlock(*pbft_block_hash);
+    auto pbft_block = db_->getPbftBlock(i);
     if (pbft_block == nullptr) {
-      LOG(log_er_) << "Cannot find PBFT block hash " << pbft_block_hash->toString() << " in PBFT chain DB.";
+      LOG(log_er_) << "PBFT block period " << i << " does not exist in blocks order DB.";
       break;
     }
     if (hash)
-      result.push_back(pbft_block_hash->toString());
+      result.push_back(pbft_block->getBlockHash().toString());
     else
       result.push_back(pbft_block->getJsonStr());
   }
@@ -264,28 +200,9 @@ std::vector<std::string> PbftChain::getPbftBlocksStr(size_t period, size_t count
 }
 
 void PbftChain::updatePbftChain(blk_hash_t const& pbft_block_hash) {
-  pbftSyncedSetInsert_(pbft_block_hash);
   uniqueLock_ lock(chain_head_access_);
   size_++;
   last_pbft_block_hash_ = pbft_block_hash;
-}
-
-bool PbftChain::checkPbftBlockValidationFromSyncing(taraxa::PbftBlock const& pbft_block) const {
-  if (pbftSyncedQueueEmpty()) {
-    // The last PBFT block in the chain
-    return checkPbftBlockValidation(pbft_block);
-  } else {
-    // The last PBFT block in the synced queue
-    auto last_pbft_block = pbftSyncedQueueBack().pbft_blk;
-    if (pbft_block.getPrevBlockHash() != last_pbft_block->getBlockHash()) {
-      LOG(log_er_) << "Last PBFT block hash in synced queue " << last_pbft_block->getBlockHash()
-                   << " Invalid PBFT prev block hash " << pbft_block.getPrevBlockHash() << " in block "
-                   << pbft_block.getBlockHash();
-      return false;
-    }
-    // TODO: Need to verify block signature
-    return true;
-  }
 }
 
 bool PbftChain::checkPbftBlockValidation(taraxa::PbftBlock const& pbft_block) const {
@@ -346,74 +263,19 @@ std::string PbftChain::getJsonStr() const {
   return json.toStyledString();
 }
 
+std::string PbftChain::getJsonStrForBlock(blk_hash_t const& block_hash) const {
+  Json::Value json;
+  sharedLock_ lock(chain_head_access_);
+  json["head_hash"] = head_hash_.toString();
+  json["dag_genesis_hash"] = dag_genesis_hash_.toString();
+  json["size"] = (Json::Value::UInt64)size_ + 1;
+  json["last_pbft_block_hash"] = block_hash.toString();
+  return json.toStyledString();
+}
+
 std::ostream& operator<<(std::ostream& strm, PbftChain const& pbft_chain) {
   strm << pbft_chain.getJsonStr();
   return strm;
-}
-
-bool PbftChain::isKnownPbftBlockForSyncing(taraxa::blk_hash_t const& pbft_block_hash) {
-  return findPbftBlockInSyncedSet(pbft_block_hash) || findPbftBlockInChain(pbft_block_hash);
-}
-
-uint64_t PbftChain::pbftSyncingPeriod() const {
-  if (pbftSyncedQueueEmpty()) {
-    return getPbftChainSize();
-  } else {
-    auto last_synced_votes_block = pbftSyncedQueueBack();
-    return last_synced_votes_block.pbft_blk->getPeriod();
-  }
-}
-
-size_t PbftChain::pbftSyncedQueueSize() const {
-  sharedLock_ lock(sync_access_);
-  return pbft_synced_queue_.size();
-}
-
-bool PbftChain::pbftSyncedQueueEmpty() const {
-  sharedLock_ lock(sync_access_);
-  return pbft_synced_queue_.empty();
-}
-
-PbftBlockCert PbftChain::pbftSyncedQueueFront() const {
-  sharedLock_ lock(sync_access_);
-  return pbft_synced_queue_.front();
-}
-
-PbftBlockCert PbftChain::pbftSyncedQueueBack() const {
-  sharedLock_ lock(sync_access_);
-  return pbft_synced_queue_.back();
-}
-
-void PbftChain::pbftSyncedQueuePopFront() {
-  pbftSyncedSetErase_();
-  uniqueLock_ lock(sync_access_);
-  pbft_synced_queue_.pop_front();
-}
-
-void PbftChain::setSyncedPbftBlockIntoQueue(PbftBlockCert const& pbft_block_and_votes) {
-  LOG(log_nf_) << "Receive pbft block " << pbft_block_and_votes.pbft_blk->getBlockHash()
-               << " from peer and push into synced queue";
-  // NOTE: We have already checked that block is being added in order, in taraxa capability
-  uniqueLock_ lock(sync_access_);
-  pbft_synced_queue_.emplace_back(pbft_block_and_votes);
-  pbft_synced_set_.insert(pbft_block_and_votes.pbft_blk->getBlockHash());
-}
-
-void PbftChain::clearSyncedPbftBlocks() {
-  uniqueLock_ lock(sync_access_);
-  pbft_synced_queue_.clear();
-  pbft_synced_set_.clear();
-}
-
-void PbftChain::pbftSyncedSetInsert_(blk_hash_t const& pbft_block_hash) {
-  uniqueLock_ lock(sync_access_);
-  pbft_synced_set_.insert(pbft_block_hash);
-}
-
-void PbftChain::pbftSyncedSetErase_() {
-  auto pbft_block = pbftSyncedQueueFront().pbft_blk;
-  uniqueLock_ lock(sync_access_);
-  pbft_synced_set_.erase(pbft_block->getBlockHash());
 }
 
 void PbftChain::insertUnverifiedPbftBlockIntoParentMap_(blk_hash_t const& prev_block_hash,

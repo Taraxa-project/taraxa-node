@@ -115,26 +115,26 @@ Json::Value Network::getStatus() { return taraxa_capability_->getStatus(); }
 
 std::vector<NodeID> Network::getAllPeersIDs() const { return taraxa_capability_->getAllPeersIDs(); }
 
-void Network::onNewBlockVerified(shared_ptr<DagBlock> const &blk) {
-  tp_.post([=] {
-    taraxa_capability_->onNewBlockVerified(*blk);
+void Network::onNewBlockVerified(shared_ptr<DagBlock> const &blk, bool proposed) {
+  tp_.post([this, blk, proposed] {
+    taraxa_capability_->onNewBlockVerified(*blk, proposed);
     LOG(log_dg_) << "On new block verified:" << blk->getHash().toString();
   });
 }
 
 void Network::onNewTransactions(std::vector<taraxa::bytes> transactions) {
-  tp_.post([=, transactions = std::move(transactions)] {
+  tp_.post([this, transactions = std::move(transactions)] {
     taraxa_capability_->onNewTransactions(transactions, true);
     LOG(log_dg_) << "On new transactions" << transactions.size();
   });
 }
 
 void Network::restartSyncingPbft(bool force) {
-  tp_.post([=] { taraxa_capability_->restartSyncingPbft(force); });
+  tp_.post([this, force] { taraxa_capability_->restartSyncingPbft(force); });
 }
 
 void Network::onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_block) {
-  tp_.post([=] {
+  tp_.post([this, pbft_block] {
     LOG(log_dg_) << "Network broadcast PBFT block: " << pbft_block->getBlockHash();
     taraxa_capability_->onNewPbftBlock(*pbft_block);
   });
@@ -145,7 +145,7 @@ bool Network::pbft_syncing() { return taraxa_capability_->pbft_syncing(); }
 uint64_t Network::syncTimeSeconds() const { return taraxa_capability_->syncTimeSeconds(); }
 
 void Network::onNewPbftVotes(std::vector<Vote> votes) {
-  tp_.post([=, votes = std::move(votes)] {
+  tp_.post([this, votes = std::move(votes)] {
     for (auto const &vote : votes) {
       LOG(log_dg_) << "Network broadcast PBFT vote: " << vote.getHash();
       taraxa_capability_->onNewPbftVote(vote);
@@ -154,7 +154,7 @@ void Network::onNewPbftVotes(std::vector<Vote> votes) {
 }
 
 void Network::broadcastPreviousRoundNextVotesBundle() {
-  tp_.post([=] {
+  tp_.post([this] {
     LOG(log_dg_) << "Network broadcast previous round next votes bundle";
     taraxa_capability_->broadcastPreviousRoundNextVotesBundle();
   });
@@ -186,13 +186,13 @@ void Network::setPendingPeersToReady() {
   }
 }
 
-dev::p2p::NodeID Network::getNodeId() { return host_->id(); }
+dev::p2p::NodeID Network::getNodeId() const { return host_->id(); }
 
-int Network::getReceivedBlocksCount() { return taraxa_capability_->getBlocks().size(); }
+int Network::getReceivedBlocksCount() const { return taraxa_capability_->getBlocks().size(); }
 
-int Network::getReceivedTransactionsCount() { return taraxa_capability_->getTransactions().size(); }
+int Network::getReceivedTransactionsCount() const { return taraxa_capability_->getTransactions().size(); }
 
-std::shared_ptr<TaraxaPeer> Network::getPeer(NodeID const &id) { return taraxa_capability_->getPeer(id); }
+std::shared_ptr<TaraxaPeer> Network::getPeer(NodeID const &id) const { return taraxa_capability_->getPeer(id); }
 
 void Network::sendPbftBlock(NodeID const &id, PbftBlock const &pbft_block, uint64_t const &pbft_chain_size) {
   LOG(log_dg_) << "Network send PBFT block: " << pbft_block.getBlockHash() << " to: " << id;
@@ -205,7 +205,7 @@ void Network::sendPbftVote(NodeID const &id, Vote const &vote) {
 }
 
 std::pair<bool, bi::tcp::endpoint> Network::resolveHost(string const &addr, uint16_t port) {
-  static boost::asio::io_service s_resolverIoService;
+  static boost::asio::io_context s_resolverIoService;
   boost::system::error_code ec;
   bi::address address = bi::address::from_string(addr, ec);
   bi::tcp::endpoint ep(bi::address(), port);
@@ -224,5 +224,13 @@ std::pair<bool, bi::tcp::endpoint> Network::resolveHost(string const &addr, uint
   }
   return std::make_pair(true, ep);
 }
+
+uint64_t Network::pbftSyncingPeriod() const { return taraxa_capability_->pbftSyncingPeriod(); }
+
+std::optional<SyncBlock> Network::processSyncBlock() { return taraxa_capability_->processSyncBlock(); }
+
+void Network::syncBlockQueuePush(SyncBlock const &block) { taraxa_capability_->syncBlockQueuePush(block, NodeID()); }
+
+size_t Network::syncBlockQueueSize() const { return taraxa_capability_->syncBlockQueueSize(); }
 
 }  // namespace taraxa

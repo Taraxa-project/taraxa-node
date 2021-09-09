@@ -1,6 +1,7 @@
 #include "final_chain.hpp"
 
 #include "common/constants.hpp"
+#include "consensus/vote.hpp"
 #include "replay_protection_service.hpp"
 #include "trie_common.hpp"
 #include "util/thread_pool.hpp"
@@ -20,9 +21,8 @@ class FinalChainImpl final : public FinalChain {
   mutable shared_mutex last_block_mu_;
   mutable shared_ptr<BlockHeader> last_block_;
 
-  size_t transaction_count_hint_;
+  // It is not prepared to use more then 1 thread. Examine it if you want to change threads count
   util::ThreadPool executor_thread_{1};
-  util::task_executor_t executor_ = executor_thread_.strand();
 
   atomic<uint64_t> num_executed_dag_blk_ = 0;
   atomic<uint64_t> num_executed_trx_ = 0;
@@ -36,7 +36,7 @@ class FinalChainImpl final : public FinalChain {
   LOG_OBJECTS_DEFINE
 
  public:
-  FinalChainImpl(shared_ptr<DB> const& db, Config const& config, Opts const& opts, addr_t const& node_addr)
+  FinalChainImpl(shared_ptr<DB> const& db, Config const& config, addr_t const& node_addr)
       : db_(db),
         state_api_([this](auto n) { return block_hash(n).value_or(ZeroHash()); },  //
                    config.state,
@@ -46,8 +46,7 @@ class FinalChainImpl final : public FinalChain {
                    },
                    {
                        db->stateDbStoragePath().string(),
-                   }),
-        transaction_count_hint_(opts.state_api.expected_max_trx_per_block) {
+                   }) {
     LOG_OBJECTS_CREATE("EXECUTOR");
     num_executed_dag_blk_ = db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
     num_executed_trx_ = db_->getStatusField(taraxa::StatusDbField::ExecutedTrxCount);
@@ -75,49 +74,42 @@ class FinalChainImpl final : public FinalChain {
     }
   }
 
-  future<shared_ptr<FinalizationResult const>> finalize(NewBlock new_blk,
+  future<shared_ptr<FinalizationResult const>> finalize(NewBlock new_blk, uint64_t period,
                                                         finalize_precommit_ext precommit_ext = {}) override {
     auto p = make_shared<promise<shared_ptr<FinalizationResult const>>>();
-    executor_([this, new_blk = move(new_blk), precommit_ext = move(precommit_ext), p]() mutable {
-      p->set_value(finalize_(move(new_blk), precommit_ext));
-    });
+    executor_thread_.post([this, s = shared_from_this(), new_blk = move(new_blk), period,
+                           precommit_ext = move(precommit_ext),
+                           p]() mutable { p->set_value(finalize_(move(new_blk), period, precommit_ext)); });
     return p->get_future();
   }
 
-  shared_ptr<FinalizationResult> finalize_(NewBlock new_blk, finalize_precommit_ext const& precommit_ext) {
+  shared_ptr<FinalizationResult> finalize_(NewBlock new_blk, uint64_t period,
+                                           finalize_precommit_ext const& precommit_ext) {
     auto batch = db_->createWriteBatch();
     Transactions to_execute;
     {
       // This artificial scope will make sure we clean up the big chunk of memory allocated for this batch-processing
       // stuff as soon as possible
-      DB::MultiGetQuery db_query(db_, 2 * transaction_count_hint_ + new_blk.dag_blk_hashes.size());
-      auto dag_blks_raw = db_query.append(DB::Columns::dag_blocks, new_blk.dag_blk_hashes, false).execute();
-      unordered_set<h256> unique_trxs;
-      unique_trxs.reserve(transaction_count_hint_);
-      for (auto const& dag_blk_raw : dag_blks_raw) {
-        for (auto const& trx_h : DagBlock::extract_transactions_from_rlp(RLP(dag_blk_raw))) {
-          if (!unique_trxs.insert(trx_h).second) {
-            continue;
-          }
-          db_query.append(DB::Columns::final_chain_transaction_location_by_hash, trx_h);
-          db_query.append(DB::Columns::transactions, trx_h);
-        }
+      auto period_raw = db_->getPeriodDataRaw(period);
+      SyncBlock sync_block(period_raw);
+      std::vector<Transaction>& period_transactions = sync_block.transactions;
+      DB::MultiGetQuery db_query(db_, period_transactions.size());
+      for (auto const& trx : period_transactions) {
+        db_query.append(DB::Columns::final_chain_transaction_location_by_hash, trx.getHash());
       }
       auto trx_db_results = db_query.execute(false);
-      to_execute.reserve(unique_trxs.size());
-      for (uint i = 0; i < unique_trxs.size(); ++i) {
-        if (auto has_been_executed = !trx_db_results[0 + i * 2].empty(); has_been_executed) {
+      to_execute.reserve(period_transactions.size());
+      for (uint i = 0; i < period_transactions.size(); ++i) {
+        if (auto has_been_executed = !trx_db_results[i].empty(); has_been_executed) {
           continue;
         }
         // Non-executed trxs
-        auto const& trx = to_execute.emplace_back(vector_ref<string::value_type>(trx_db_results[1 + i * 2]).toBytes(),
-                                                  false, h256(db_query.get_key(1 + i * 2)), true, true);
+        auto const& trx = to_execute.emplace_back(period_transactions[i]);
         if (replay_protection_service_ && replay_protection_service_->is_nonce_stale(trx.getSender(), trx.getNonce())) {
           to_execute.pop_back();
         }
       }
     }
-    transaction_count_hint_ = max(transaction_count_hint_, to_execute.size());
     auto const& [exec_results, state_root] =
         state_api_.transition_state({new_blk.author, GAS_LIMIT, new_blk.timestamp, BlockHeader::difficulty()},
                                     to_state_api_transactions(to_execute));
@@ -436,9 +428,8 @@ class FinalChainImpl final : public FinalChain {
   };
 };
 
-unique_ptr<FinalChain> NewFinalChain(shared_ptr<DB> const& db, Config const& config, Opts const& opts,
-                                     addr_t const& node_addr) {
-  return make_unique<FinalChainImpl>(db, config, opts, node_addr);
+shared_ptr<FinalChain> NewFinalChain(shared_ptr<DB> const& db, Config const& config, addr_t const& node_addr) {
+  return make_shared<FinalChainImpl>(db, config, node_addr);
 }
 
 }  // namespace taraxa::final_chain

@@ -87,8 +87,12 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(blk1, *db.getDagBlock(blk1.getHash()));
   EXPECT_EQ(blk2, *db.getDagBlock(blk2.getHash()));
   EXPECT_EQ(blk3, *db.getDagBlock(blk3.getHash()));
-  EXPECT_EQ(db.getBlocksByLevel(1), blk1.getHash().toString() + "," + blk2.getHash().toString());
-  EXPECT_EQ(db.getBlocksByLevel(2), blk3.getHash().toString());
+  std::set<blk_hash_t> s1, s2;
+  s1.emplace(blk1.getHash());
+  s1.emplace(blk2.getHash());
+  s2.emplace(blk3.getHash());
+  EXPECT_EQ(db.getBlocksByLevel(1), s1);
+  EXPECT_EQ(db.getBlocksByLevel(2), s2);
 
   // Transaction
   db.saveTransaction(g_trx_signed_samples[0]);
@@ -96,6 +100,14 @@ TEST_F(FullNodeTest, db_test) {
   auto batch = db.createWriteBatch();
   db.addTransactionToBatch(g_trx_signed_samples[2], batch);
   db.addTransactionToBatch(g_trx_signed_samples[3], batch);
+  db.addTransactionStatusToBatch(batch, g_trx_signed_samples[0].getHash(),
+                                 TransactionStatus(TransactionStatusEnum::in_block));
+  db.addTransactionStatusToBatch(batch, g_trx_signed_samples[1].getHash(),
+                                 TransactionStatus(TransactionStatusEnum::in_block));
+  db.addTransactionStatusToBatch(batch, g_trx_signed_samples[2].getHash(),
+                                 TransactionStatus(TransactionStatusEnum::in_block));
+  db.addTransactionStatusToBatch(batch, g_trx_signed_samples[3].getHash(),
+                                 TransactionStatus(TransactionStatusEnum::in_block));
   db.commitWriteBatch(batch);
   EXPECT_TRUE(db.transactionInDb(g_trx_signed_samples[0].getHash()));
   EXPECT_TRUE(db.transactionInDb(g_trx_signed_samples[1].getHash()));
@@ -166,27 +178,21 @@ TEST_F(FullNodeTest, db_test) {
   // PBFT manager voted value
   EXPECT_EQ(db.getPbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round), nullptr);
   EXPECT_EQ(db.getPbftMgrVotedValue(PbftMgrVotedValue::soft_voted_block_hash_in_round), nullptr);
+  EXPECT_EQ(db.getPbftMgrVotedValue(PbftMgrVotedValue::last_cert_voted_value), nullptr);
   db.savePbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round, blk_hash_t(1));
   db.savePbftMgrVotedValue(PbftMgrVotedValue::soft_voted_block_hash_in_round, blk_hash_t(2));
+  db.savePbftMgrVotedValue(PbftMgrVotedValue::last_cert_voted_value, blk_hash_t(3));
   EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round), blk_hash_t(1));
   EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::soft_voted_block_hash_in_round), blk_hash_t(2));
+  EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::last_cert_voted_value), blk_hash_t(3));
   batch = db.createWriteBatch();
   db.addPbftMgrVotedValueToBatch(PbftMgrVotedValue::own_starting_value_in_round, blk_hash_t(4), batch);
   db.addPbftMgrVotedValueToBatch(PbftMgrVotedValue::soft_voted_block_hash_in_round, blk_hash_t(5), batch);
+  db.addPbftMgrVotedValueToBatch(PbftMgrVotedValue::last_cert_voted_value, blk_hash_t(6), batch);
   db.commitWriteBatch(batch);
   EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round), blk_hash_t(4));
   EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::soft_voted_block_hash_in_round), blk_hash_t(5));
-
-  // PBFT cert voted block hash
-  EXPECT_EQ(db.getPbftCertVotedBlockHash(1), nullptr);
-  db.savePbftCertVotedBlockHash(1, blk_hash_t(1));
-  EXPECT_EQ(*db.getPbftCertVotedBlockHash(1), blk_hash_t(1));
-  batch = db.createWriteBatch();
-  db.addPbftCertVotedBlockHashToBatch(1, blk_hash_t(2), batch);
-  db.addPbftCertVotedBlockHashToBatch(2, blk_hash_t(3), batch);
-  db.commitWriteBatch(batch);
-  EXPECT_EQ(*db.getPbftCertVotedBlockHash(1), blk_hash_t(2));
-  EXPECT_EQ(*db.getPbftCertVotedBlockHash(2), blk_hash_t(3));
+  EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::last_cert_voted_value), blk_hash_t(6));
 
   // PBFT cert voted block
   auto pbft_block1 = make_simple_pbft_block(blk_hash_t(1), 1);
@@ -205,18 +211,39 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(db.getPbftCertVotedBlock(pbft_block3.getBlockHash())->rlp(false), pbft_block3.rlp(false));
   EXPECT_EQ(db.getPbftCertVotedBlock(pbft_block4.getBlockHash())->rlp(false), pbft_block4.rlp(false));
 
-  // pbft_blocks
+  // pbft_blocks and cert votes
   EXPECT_FALSE(db.pbftBlockInDb(blk_hash_t(0)));
   EXPECT_FALSE(db.pbftBlockInDb(blk_hash_t(1)));
   pbft_block1 = make_simple_pbft_block(blk_hash_t(1), 2);
   pbft_block2 = make_simple_pbft_block(blk_hash_t(2), 3);
   pbft_block3 = make_simple_pbft_block(blk_hash_t(3), 4);
   pbft_block4 = make_simple_pbft_block(blk_hash_t(4), 5);
+
+  // Certified votes
+  std::vector<Vote> cert_votes;
+  for (auto i = 0; i < 3; i++) {
+    VrfPbftMsg msg(cert_vote_type, 2, 3, 0);
+    vrf_wrapper::vrf_sk_t vrf_sk(
+        "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
+        "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
+    VrfPbftSortition vrf_sortition(vrf_sk, msg);
+    Vote vote(g_secret, vrf_sortition, blk_hash_t(10));
+    cert_votes.emplace_back(vote);
+  }
+
   batch = db.createWriteBatch();
-  db.addPbftBlockToBatch(pbft_block1, batch);
-  db.addPbftBlockToBatch(pbft_block2, batch);
-  db.addPbftBlockToBatch(pbft_block3, batch);
-  db.addPbftBlockToBatch(pbft_block4, batch);
+  std::vector<Vote> votes;
+
+  SyncBlock sync_block1(pbft_block1, cert_votes);
+  SyncBlock sync_block2(pbft_block2, votes);
+  SyncBlock sync_block3(pbft_block3, votes);
+  SyncBlock sync_block4(pbft_block4, votes);
+
+  db.savePeriodData(sync_block1, batch);
+  db.savePeriodData(sync_block2, batch);
+  db.savePeriodData(sync_block3, batch);
+  db.savePeriodData(sync_block4, batch);
+
   db.commitWriteBatch(batch);
   EXPECT_TRUE(db.pbftBlockInDb(pbft_block1.getBlockHash()));
   EXPECT_TRUE(db.pbftBlockInDb(pbft_block2.getBlockHash()));
@@ -226,6 +253,11 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(db.getPbftBlock(pbft_block2.getBlockHash())->rlp(false), pbft_block2.rlp(false));
   EXPECT_EQ(db.getPbftBlock(pbft_block3.getBlockHash())->rlp(false), pbft_block3.rlp(false));
   EXPECT_EQ(db.getPbftBlock(pbft_block4.getBlockHash())->rlp(false), pbft_block4.rlp(false));
+
+  SyncBlock pbft_block_cert_votes(pbft_block1, cert_votes);
+  auto cert_votes_from_db = db.getCertVotes(pbft_block1.getPeriod());
+  SyncBlock pbft_block_cert_votes_from_db(pbft_block1, cert_votes_from_db);
+  EXPECT_EQ(pbft_block_cert_votes.rlp(), pbft_block_cert_votes_from_db.rlp());
 
   // pbft_blocks (head)
   PbftChain pbft_chain(blk_hash_t(0), addr_t(), db_ptr);
@@ -359,29 +391,6 @@ TEST_F(FullNodeTest, db_test) {
   soft_votes_from_db = db.getSoftVotes(round);
   EXPECT_TRUE(soft_votes_from_db.empty());
 
-  // Certified votes
-  std::vector<Vote> cert_votes;
-  voted_pbft_block_hash = blk_hash_t(10);
-  weighted_index = 0;
-  for (auto i = 0; i < 3; i++) {
-    weighted_index = i;
-    VrfPbftMsg msg(cert_vote_type, 2, 3, weighted_index);
-    vrf_wrapper::vrf_sk_t vrf_sk(
-        "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
-        "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
-    VrfPbftSortition vrf_sortition(vrf_sk, msg);
-    Vote vote(g_secret, vrf_sortition, voted_pbft_block_hash);
-    cert_votes.emplace_back(vote);
-  }
-  batch = db.createWriteBatch();
-  db.addCertVotesToBatch(voted_pbft_block_hash, cert_votes, batch);
-  db.commitWriteBatch(batch);
-  auto pbft_block = make_simple_pbft_block(voted_pbft_block_hash, 1);
-  PbftBlockCert pbft_block_cert_votes(pbft_block, cert_votes);
-  auto cert_votes_from_db = db.getCertVotes(voted_pbft_block_hash);
-  PbftBlockCert pbft_block_cert_votes_from_db(pbft_block, cert_votes_from_db);
-  EXPECT_EQ(pbft_block_cert_votes.rlp(), pbft_block_cert_votes_from_db.rlp());
-
   // Next votes
   round = 3, step = 5;
   weighted_index = 0;
@@ -426,19 +435,21 @@ TEST_F(FullNodeTest, db_test) {
 
   // period_pbft_block
   batch = db.createWriteBatch();
-  db.addPbftBlockPeriodToBatch(1, blk_hash_t(1), batch);
-  db.addPbftBlockPeriodToBatch(2, blk_hash_t(2), batch);
+  db.addPbftBlockPeriodToBatch(3, blk_hash_t(1), batch);
+  db.addPbftBlockPeriodToBatch(4, blk_hash_t(2), batch);
   db.commitWriteBatch(batch);
-  EXPECT_EQ(*db.getPeriodPbftBlock(1), blk_hash_t(1));
-  EXPECT_EQ(*db.getPeriodPbftBlock(2), blk_hash_t(2));
+  EXPECT_EQ(db.getPeriodFromPbftHash(blk_hash_t(1)).second, 3);
+  EXPECT_EQ(db.getPeriodFromPbftHash(blk_hash_t(2)).second, 4);
 
   // dag_block_period
   batch = db.createWriteBatch();
-  db.addDagBlockPeriodToBatch(blk_hash_t(1), 1, batch);
-  db.addDagBlockPeriodToBatch(blk_hash_t(2), 2, batch);
+  db.addDagBlockPeriodToBatch(blk_hash_t(1), 1, 2, batch);
+  db.addDagBlockPeriodToBatch(blk_hash_t(2), 3, 4, batch);
   db.commitWriteBatch(batch);
-  EXPECT_EQ(1, *db.getDagBlockPeriod(blk_hash_t(1)));
-  EXPECT_EQ(2, *db.getDagBlockPeriod(blk_hash_t(2)));
+  EXPECT_EQ(1, db.getDagBlockPeriod(blk_hash_t(1))->first);
+  EXPECT_EQ(2, db.getDagBlockPeriod(blk_hash_t(1))->second);
+  EXPECT_EQ(3, db.getDagBlockPeriod(blk_hash_t(2))->first);
+  EXPECT_EQ(4, db.getDagBlockPeriod(blk_hash_t(2))->second);
 
   // DPOS proposal period DAG levels status
   EXPECT_EQ(0, db.getDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus::max_proposal_period));
@@ -484,6 +495,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
     uint64_t issued_trx_count = 0;
     unordered_map<addr_t, val_t> expected_balances;
     shared_mutex m;
+    std::unordered_set<trx_hash_t> transactions;
 
    public:
     context(decltype(nodes_) nodes) : nodes_(nodes) {
@@ -504,6 +516,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
         ++issued_trx_count;
       }
       auto result = trx_clients[0].coinTransfer(KeyPair::create().address(), 0, KeyPair::create(), false);
+      transactions.emplace(result.trx.getHash());
     }
 
     void coin_transfer(int sender_node_i, addr_t const &to, val_t const &amount, bool verify_executed = true) {
@@ -514,6 +527,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
         expected_balances[nodes_[sender_node_i]->getAddress()] -= amount;
       }
       auto result = trx_clients[sender_node_i].coinTransfer(to, amount, {}, verify_executed);
+      transactions.emplace(result.trx.getHash());
       if (verify_executed)
         EXPECT_EQ(result.stage, TransactionClient::TransactionStage::executed);
       else
@@ -529,67 +543,53 @@ TEST_F(FullNodeTest, sync_five_nodes) {
       }
     }
 
+    void assert_all_transactions_known() {
+      for (auto &n : nodes_) {
+        for (auto &t : transactions) {
+          auto location = n->getFinalChain()->transaction_location(t);
+          ASSERT_EQ(location.has_value(), true);
+        }
+      }
+    }
+
+    void wait_all_transactions_known(wait_opts const &wait_for = {30s, 500ms}) {
+      wait(wait_for, [this](auto &ctx) {
+        for (auto &n : nodes_) {
+          for (auto &t : transactions) {
+            if (!n->getFinalChain()->transaction_location(t)) {
+              ctx.fail();
+            }
+          }
+        }
+        dummy_transaction();
+      });
+    }
+
   } context(nodes);
 
+  std::vector<trx_hash_t> all_transactions;
   // transfer some coins to your friends ...
   auto init_bal = own_effective_genesis_bal(nodes[0]->getConfig()) / nodes.size();
 
   {
-    vector<thread> threads;
-    uint16_t thread_completed = 0;
-    std::mutex m;
-    std::condition_variable cv;
     for (size_t i(1); i < nodes.size(); ++i) {
-      threads.emplace_back([i, &context, &nodes, &thread_completed, &init_bal, &m, &cv] {
-        context.coin_transfer(0, nodes[i]->getAddress(), init_bal, true);
-        {
-          std::unique_lock<std::mutex> lk(m);
-          thread_completed++;
-          if (thread_completed == nodes.size() - 1) {
-            cv.notify_one();
-          }
-        }
-      });
+      // we shouldn't wait for transaction execution because it could be in alternative dag
+      context.coin_transfer(0, nodes[i]->getAddress(), init_bal, false);
     }
-
-    std::unique_lock<std::mutex> lk(m);
-    auto node_size = nodes.size();
-    while (!cv.wait_for(lk, 100ms, [&thread_completed, &context, &node_size] {
-      if (thread_completed < node_size - 1) {
-        context.dummy_transaction();
-        return false;
-      }
-      return true;
-    }))
-      ;
-    for (auto &t : threads) t.join();
+    context.wait_all_transactions_known();
   }
 
   std::cout << "Initial coin transfers from node 0 issued ... " << std::endl;
 
   {
-    vector<thread> threads;
-    vector<bool> thread_completed;
-    for (size_t i(0); i < nodes.size(); ++i) thread_completed.push_back(false);
     for (size_t i(0); i < nodes.size(); ++i) {
       auto to = i < nodes.size() - 1 ? nodes[i + 1]->getAddress() : addr_t("d79b2575d932235d87ea2a08387ae489c31aa2c9");
-      threads.emplace_back([i, to, &context, &thread_completed] {
-        for (auto _(0); _ < 10; ++_) {
-          context.coin_transfer(i, to, 100);
-        }
-        thread_completed[i] = true;
-      });
-    }
-    wait({60s, 500ms}, [&](auto &ctx) {
-      for (auto t : thread_completed) {
-        if (!t) {
-          context.dummy_transaction();
-          ctx.fail();
-          return;
-        }
+      for (auto _(0); _ < 10; ++_) {
+        // we shouldn't wait for transaction execution because it could be in alternative dag
+        context.coin_transfer(i, to, 100, false);
       }
-    });
-    for (auto &t : threads) t.join();
+    }
+    context.wait_all_transactions_known();
   }
   std::cout << "Issued transatnion count " << context.getIssuedTrxCount() << std::endl;
 
@@ -630,11 +630,15 @@ TEST_F(FullNodeTest, sync_five_nodes) {
     taraxa::thisThreadSleepForMilliSeconds(500);
   }
 
-  EXPECT_GT(nodes[0]->getNumProposedBlocks(), 2);
-  EXPECT_GT(nodes[1]->getNumProposedBlocks(), 2);
-  EXPECT_GT(nodes[2]->getNumProposedBlocks(), 2);
-  EXPECT_GT(nodes[3]->getNumProposedBlocks(), 2);
-  EXPECT_GT(nodes[4]->getNumProposedBlocks(), 2);
+  auto num_proposed_blocks = nodes[0]->getNumProposedBlocks();
+  // wait for next block
+  wait({20s, 500ms}, [&](auto &ctx) {
+    if (nodes[0]->getNumProposedBlocks() == num_proposed_blocks + 1) ctx.fail();
+    if (nodes[1]->getNumProposedBlocks() == num_proposed_blocks + 1) ctx.fail();
+    if (nodes[2]->getNumProposedBlocks() == num_proposed_blocks + 1) ctx.fail();
+    if (nodes[3]->getNumProposedBlocks() == num_proposed_blocks + 1) ctx.fail();
+    if (nodes[4]->getNumProposedBlocks() == num_proposed_blocks + 1) ctx.fail();
+  });
 
   ASSERT_EQ(nodes[0]->getTransactionManager()->getTransactionCount(), context.getIssuedTrxCount());
   ASSERT_EQ(nodes[1]->getTransactionManager()->getTransactionCount(), context.getIssuedTrxCount());
@@ -665,6 +669,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
 
   TIMEOUT = SYNC_TIMEOUT * 10;
   for (unsigned i = 0; i < TIMEOUT; i++) {
+    issued_trx_count = context.getIssuedTrxCount();
     auto trx_executed1 = nodes[0]->getDB()->getNumTransactionExecuted();
     auto trx_executed2 = nodes[1]->getDB()->getNumTransactionExecuted();
     auto trx_executed3 = nodes[2]->getDB()->getNumTransactionExecuted();
@@ -730,6 +735,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
 
   auto k = 0;
   for (auto const &node : nodes) {
+    issued_trx_count = context.getIssuedTrxCount();
     k++;
     auto vertices_diff = node->getDagManager()->getNumVerticesInDag().first - 1 - node->getDB()->getNumBlockExecuted();
     if (vertices_diff >= nodes.size()                                      //
@@ -757,7 +763,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
   k = 0;
   for (auto const &node : nodes) {
     k++;
-
+    issued_trx_count = context.getIssuedTrxCount();
     EXPECT_EQ(node->getDB()->getNumTransactionExecuted(), issued_trx_count)
         << " \nNum executed in node " << k << " node " << node << " is : " << node->getDB()->getNumTransactionExecuted()
         << " \nNum linearized blks: " << getOrderedDagBlocks(node->getDB()).size()
@@ -779,6 +785,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
     EXPECT_EQ(node->getDB()->getNumTransactionInDag(), issued_trx_count);
   }
 
+  context.assert_all_transactions_known();
   context.assert_balances_synced();
 }
 
@@ -800,21 +807,21 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
 
   node->getDagManager()->getLatestPivotAndTips(pivot, tips);
   uint64_t period;
-  std::shared_ptr<vec_blk_t> order;
+  vec_blk_t order;
   std::tie(period, order) = node->getDagManager()->getDagBlockOrder(pivot);
   EXPECT_EQ(period, 1);
-  EXPECT_EQ(order->size(), 6);
+  EXPECT_EQ(order.size(), 6);
 
-  if (order->size() == 6) {
-    EXPECT_EQ((*order)[0], blk_hash_t(3));
-    EXPECT_EQ((*order)[1], blk_hash_t(6));
-    EXPECT_EQ((*order)[2], blk_hash_t(2));
-    EXPECT_EQ((*order)[3], blk_hash_t(1));
-    EXPECT_EQ((*order)[4], blk_hash_t(5));
-    EXPECT_EQ((*order)[5], blk_hash_t(7));
+  if (order.size() == 6) {
+    EXPECT_EQ(order[0], blk_hash_t(3));
+    EXPECT_EQ(order[1], blk_hash_t(6));
+    EXPECT_EQ(order[2], blk_hash_t(2));
+    EXPECT_EQ(order[3], blk_hash_t(1));
+    EXPECT_EQ(order[4], blk_hash_t(5));
+    EXPECT_EQ(order[5], blk_hash_t(7));
   }
   auto write_batch = node->getDB()->createWriteBatch();
-  auto num_blks_set = node->getDagManager()->setDagBlockOrder(pivot, period, *order, write_batch);
+  auto num_blks_set = node->getDagManager()->setDagBlockOrder(pivot, period, order, write_batch);
   node->getDB()->commitWriteBatch(write_batch);
   EXPECT_EQ(num_blks_set, 6);
   // -------- second period ----------
@@ -827,17 +834,17 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   node->getDagManager()->getLatestPivotAndTips(pivot, tips);
   std::tie(period, order) = node->getDagManager()->getDagBlockOrder(pivot);
   EXPECT_EQ(period, 2);
-  if (order->size() == 7) {
-    EXPECT_EQ((*order)[0], blk_hash_t(11));
-    EXPECT_EQ((*order)[1], blk_hash_t(10));
-    EXPECT_EQ((*order)[2], blk_hash_t(13));
-    EXPECT_EQ((*order)[3], blk_hash_t(9));
-    EXPECT_EQ((*order)[4], blk_hash_t(12));
-    EXPECT_EQ((*order)[5], blk_hash_t(14));
-    EXPECT_EQ((*order)[6], blk_hash_t(15));
+  if (order.size() == 7) {
+    EXPECT_EQ(order[0], blk_hash_t(11));
+    EXPECT_EQ(order[1], blk_hash_t(10));
+    EXPECT_EQ(order[2], blk_hash_t(13));
+    EXPECT_EQ(order[3], blk_hash_t(9));
+    EXPECT_EQ(order[4], blk_hash_t(12));
+    EXPECT_EQ(order[5], blk_hash_t(14));
+    EXPECT_EQ(order[6], blk_hash_t(15));
   }
   write_batch = node->getDB()->createWriteBatch();
-  num_blks_set = node->getDagManager()->setDagBlockOrder(pivot, period, *order, write_batch);
+  num_blks_set = node->getDagManager()->setDagBlockOrder(pivot, period, order, write_batch);
   node->getDB()->commitWriteBatch(write_batch);
   EXPECT_EQ(num_blks_set, 7);
 
@@ -851,15 +858,15 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   node->getDagManager()->getLatestPivotAndTips(pivot, tips);
   std::tie(period, order) = node->getDagManager()->getDagBlockOrder(pivot);
   EXPECT_EQ(period, 3);
-  if (order->size() == 5) {
-    EXPECT_EQ((*order)[0], blk_hash_t(17));
-    EXPECT_EQ((*order)[1], blk_hash_t(16));
-    EXPECT_EQ((*order)[2], blk_hash_t(8));
-    EXPECT_EQ((*order)[3], blk_hash_t(18));
-    EXPECT_EQ((*order)[4], blk_hash_t(19));
+  if (order.size() == 5) {
+    EXPECT_EQ(order[0], blk_hash_t(17));
+    EXPECT_EQ(order[1], blk_hash_t(16));
+    EXPECT_EQ(order[2], blk_hash_t(8));
+    EXPECT_EQ(order[3], blk_hash_t(18));
+    EXPECT_EQ(order[4], blk_hash_t(19));
   }
   write_batch = node->getDB()->createWriteBatch();
-  num_blks_set = node->getDagManager()->setDagBlockOrder(pivot, period, *order, write_batch);
+  num_blks_set = node->getDagManager()->setDagBlockOrder(pivot, period, order, write_batch);
   node->getDB()->commitWriteBatch(write_batch);
   EXPECT_EQ(num_blks_set, 5);
 }
@@ -867,14 +874,15 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
 TEST_F(FullNodeTest, destroy_db) {
   auto node_cfgs = make_node_cfgs(1);
   {
-    FullNode::Handle node(node_cfgs[0]);
+    auto node = create_nodes(node_cfgs).front();
     auto db = node->getDB();
     db->saveTransaction(g_trx_signed_samples[0]);
+    db->saveTransactionStatus(g_trx_signed_samples[0].getHash(), TransactionStatus(TransactionStatusEnum::in_block));
     // Verify trx saved in db
     EXPECT_TRUE(db->getTransaction(g_trx_signed_samples[0].getHash()));
   }
   {
-    FullNode::Handle node(node_cfgs[0]);
+    auto node = create_nodes(node_cfgs).front();
     auto db = node->getDB();
     // Verify trx saved in db after restart with destroy_db false
     EXPECT_TRUE(db->getTransaction(g_trx_signed_samples[0].getHash()));
@@ -885,7 +893,7 @@ TEST_F(FullNodeTest, reconstruct_anchors) {
   auto node_cfgs = make_node_cfgs<5>(1);
   std::pair<blk_hash_t, blk_hash_t> anchors;
   {
-    FullNode::Handle node(node_cfgs[0], true);
+    auto node = create_nodes(node_cfgs, true /*start*/).front();
 
     taraxa::thisThreadSleepForMilliSeconds(500);
 
@@ -899,7 +907,7 @@ TEST_F(FullNodeTest, reconstruct_anchors) {
     anchors = node->getDagManager()->getAnchors();
   }
   {
-    FullNode::Handle node(node_cfgs[0], true);
+    auto node = create_nodes(node_cfgs, true /*start*/).front();
 
     taraxa::thisThreadSleepForMilliSeconds(500);
 
@@ -917,7 +925,7 @@ TEST_F(FullNodeTest, reconstruct_dag) {
 
   auto num_blks = g_mock_dag0->size();
   {
-    FullNode::Handle node(node_cfgs[0], true);
+    auto node = create_nodes(node_cfgs, true /*start*/).front();
     g_mock_dag0 = samples::createMockDag0(node->getConfig().chain.dag_genesis_block.getHash().toString());
 
     taraxa::thisThreadSleepForMilliSeconds(100);
@@ -931,7 +939,7 @@ TEST_F(FullNodeTest, reconstruct_dag) {
     EXPECT_EQ(vertices1, num_blks);
   }
   {
-    FullNode::Handle node(node_cfgs[0], true);
+    auto node = create_nodes(node_cfgs, true /*start*/).front();
     taraxa::thisThreadSleepForMilliSeconds(100);
 
     vertices2 = node->getDagManager()->getNumVerticesInDag().first;
@@ -939,7 +947,7 @@ TEST_F(FullNodeTest, reconstruct_dag) {
   }
   {
     fs::remove_all(node_cfgs[0].db_path);
-    FullNode::Handle node(node_cfgs[0], true);
+    auto node = create_nodes(node_cfgs, true /*start*/).front();
     // TODO: pbft does not support node stop yet, to be fixed ...
     node->getPbftManager()->stop();
     for (size_t i = 1; i < num_blks; i++) {
@@ -949,7 +957,7 @@ TEST_F(FullNodeTest, reconstruct_dag) {
     vertices3 = node->getDagManager()->getNumVerticesInDag().first;
   }
   {
-    FullNode::Handle node(node_cfgs[0], true);
+    auto node = create_nodes(node_cfgs, true /*start*/).front();
     taraxa::thisThreadSleepForMilliSeconds(100);
     vertices4 = node->getDagManager()->getNumVerticesInDag().first;
   }
@@ -1093,7 +1101,7 @@ TEST_F(FullNodeTest, sync_two_nodes2) {
 
 TEST_F(FullNodeTest, single_node_run_two_transactions) {
   auto node_cfgs = make_node_cfgs<5, true>(1);
-  FullNode::Handle node(node_cfgs[0], true);
+  auto node = create_nodes(node_cfgs, true /*start*/).front();
 
   std::string send_raw_trx1 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method":
@@ -1176,24 +1184,24 @@ TEST_F(FullNodeTest, two_nodes_run_two_transactions) {
 
 TEST_F(FullNodeTest, save_network_to_file) {
   auto node_cfgs = make_node_cfgs(3);
+  // Create and destroy to create network. So next time will be loaded from file
   { auto nodes = launch_nodes(node_cfgs); }
   {
-    FullNode::Handle node2(node_cfgs[1], true);
-    FullNode::Handle node3(node_cfgs[2], true);
+    auto nodes = create_nodes({node_cfgs[1], node_cfgs[2]}, true /*start*/);
 
     for (unsigned i = 0; i < SYNC_TIMEOUT; i++) {
       taraxa::thisThreadSleepForSeconds(1);
-      if (1 == node2->getNetwork()->getPeerCount() && 1 == node3->getNetwork()->getPeerCount()) break;
+      if (1 == nodes[0]->getNetwork()->getPeerCount() && 1 == nodes[1]->getNetwork()->getPeerCount()) break;
     }
 
-    ASSERT_EQ(1, node2->getNetwork()->getPeerCount());
-    ASSERT_EQ(1, node3->getNetwork()->getPeerCount());
+    ASSERT_EQ(1, nodes[0]->getNetwork()->getPeerCount());
+    ASSERT_EQ(1, nodes[1]->getNetwork()->getPeerCount());
   }
 }
 
 TEST_F(FullNodeTest, receive_send_transaction) {
   auto node_cfgs = make_node_cfgs<20, true>(1);
-  FullNode::Handle node(node_cfgs[0], true);
+  auto node = create_nodes(node_cfgs, true /*start*/).front();
 
   try {
     sendTrx(1000, 7777);

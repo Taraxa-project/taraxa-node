@@ -22,7 +22,7 @@ auto g_sk = Lazy([] {
 });
 struct VoteTest : BaseTest {};
 
-void clearAllVotes(FullNode::Handle &node) {
+void clearAllVotes(shared_ptr<FullNode> &node) {
   // Clear unverified votes and verified votes table
   auto db = node->getDB();
   auto vote_mgr = node->getVoteManager();
@@ -43,8 +43,7 @@ void clearAllVotes(FullNode::Handle &node) {
 }
 
 TEST_F(VoteTest, unverified_votes) {
-  auto node_cfgs = make_node_cfgs(1);
-  FullNode::Handle node(node_cfgs[0]);
+  auto node = create_nodes(1, true /*start*/).front();
 
   // stop PBFT manager, that will place vote
   auto pbft_mgr = node->getPbftManager();
@@ -88,8 +87,7 @@ TEST_F(VoteTest, unverified_votes) {
 }
 
 TEST_F(VoteTest, verified_votes) {
-  auto node_cfgs = make_node_cfgs(1);
-  FullNode::Handle node(node_cfgs[0]);
+  auto node = create_nodes(1, true /*start*/).front();
 
   // stop PBFT manager, that will place vote
   auto pbft_mgr = node->getPbftManager();
@@ -120,8 +118,7 @@ TEST_F(VoteTest, verified_votes) {
 // Add votes round 1, 2 and 3 into unverified vote table
 // Get votes round 2, will remove round 1 in the table, and return round 2 & 3 votes
 TEST_F(VoteTest, add_cleanup_get_votes) {
-  auto node_cfgs = make_node_cfgs(1);
-  FullNode::Handle node(node_cfgs[0]);
+  auto node = create_nodes(1, true /*start*/).front();
 
   // stop PBFT manager, that will place vote
   auto pbft_mgr = node->getPbftManager();

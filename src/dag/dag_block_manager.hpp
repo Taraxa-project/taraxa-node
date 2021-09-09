@@ -27,13 +27,14 @@ class DagBlockManager {
    * @param blk
    * @param transactions
    */
-  void processSyncedBlockWithTransactions(DagBlock const &blk, std::vector<Transaction> const &transactions);
+  void processSyncedBlock(DbStorage::Batch &batch, SyncBlock const &sync_block);
   void insertBroadcastedBlockWithTransactions(DagBlock const &blk, std::vector<Transaction> const &transactions);
   void pushUnverifiedBlock(DagBlock const &block,
                            bool critical);  // add to unverified queue
   void pushUnverifiedBlock(DagBlock const &block, std::vector<Transaction> const &transactions,
-                           bool critical);                                  // add to unverified queue
-  DagBlock popVerifiedBlock(bool level_limit = false, uint64_t level = 0);  // get one verified block and pop
+                           bool critical);  // add to unverified queue
+  std::pair<std::shared_ptr<DagBlock>, bool> popVerifiedBlock(bool level_limit = false,
+                                                              uint64_t level = 0);  // get one verified block and pop
   void pushVerifiedBlock(DagBlock const &blk);
   std::pair<size_t, size_t> getDagBlockQueueSize() const;
   level_t getMaxDagLevelInQueue() const;
@@ -80,8 +81,8 @@ class DagBlockManager {
   boost::condition_variable_any cond_for_verified_qu_;
   uint32_t queue_limit_;
 
-  std::map<uint64_t, std::deque<std::pair<DagBlock, std::vector<Transaction> > > > unverified_qu_;
-  std::map<uint64_t, std::deque<DagBlock> > verified_qu_;
+  std::map<uint64_t, std::deque<std::pair<DagBlock, std::vector<Transaction>>>> unverified_qu_;
+  std::map<uint64_t, std::deque<DagBlock>> verified_qu_;
 
   vdf_sortition::VdfConfig vdf_config_;
   optional<state_api::DPOSConfig> dpos_config_;

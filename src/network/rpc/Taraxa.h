@@ -20,6 +20,7 @@ class Taraxa : public TaraxaFace {
   virtual RPCModules implementedModules() const override { return RPCModules{RPCModule{"taraxa", "1.0"}}; }
 
   virtual std::string taraxa_protocolVersion() override;
+  virtual std::string taraxa_getVersion() override;
   virtual Json::Value taraxa_getDagBlockByHash(std::string const& _blockHash, bool _includeTransactions) override;
   virtual Json::Value taraxa_getDagBlockByLevel(std::string const& _blockLevel, bool _includeTransactions) override;
   virtual std::string taraxa_dagBlockLevel() override;

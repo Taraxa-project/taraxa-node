@@ -20,10 +20,6 @@ using namespace taraxa;
 
 namespace taraxa::net {
 
-Test::Test(std::shared_ptr<taraxa::FullNode> const &_full_node) : full_node_(_full_node) {
-  trx_creater_ = std::async(std::launch::async, [] {});
-}
-
 Json::Value Test::insert_dag_block(const Json::Value &param1) {
   Json::Value res;
   try {
@@ -102,26 +98,18 @@ Json::Value Test::create_test_coin_transactions(const Json::Value &param1) {
       if (!param1["secret"].empty() && !param1["secret"].asString().empty()) {
         sk = secret_t(param1["secret"].asString());
       }
-      if (trx_creater_.wait_for(std::chrono::seconds(0)) != std::future_status::ready) {
-        res = "Busy in creating transactions ... please try later ...";
-      } else {
-        trx_creater_ = std::async(std::launch::async, [node, &log_time, delay, number, nonce, receiver, sk]() {
-          // get trx receiving time stamp
-          bytes data;
-          uint i = 0;
-          while (i < number) {
-            auto now = getCurrentTimeMilliSeconds();
-            val_t value = val_t(100);
-            auto trx = taraxa::Transaction(i + nonce, value, 1000, 0, data, sk, receiver);
-            LOG(log_time) << "Transaction " << trx.getHash() << " received at: " << now;
-            node->getTransactionManager()->insertTransaction(trx, false, true);
-            thisThreadSleepForMicroSeconds(delay);
-            i++;
-          }
-        });
-
-        res = "Creating " + std::to_string(number) + " transactions ...";
+      // get trx receiving time stamp
+      uint i = 0;
+      while (i < number) {
+        auto now = getCurrentTimeMilliSeconds();
+        val_t value = val_t(100);
+        auto trx = taraxa::Transaction(i + nonce, value, 1000, 0, bytes(), sk, receiver);
+        LOG(log_time) << "Transaction " << trx.getHash() << " received at: " << now;
+        node->getTransactionManager()->insertTransaction(trx, false, true);
+        thisThreadSleepForMicroSeconds(delay);
+        i++;
       }
+      res = "Creating " + std::to_string(number) + " transactions ...";
     }
   } catch (std::exception &e) {
     res["status"] = e.what();
@@ -204,12 +192,12 @@ Json::Value Test::get_node_status() {
       res["trx_count"] = Json::UInt64(node->getTransactionManager()->getTransactionCount());
       res["dag_level"] = Json::UInt64(node->getDagManager()->getMaxLevel());
       res["pbft_size"] = Json::UInt64(node->getPbftChain()->getPbftChainSize());
-      res["pbft_sync_period"] = Json::UInt64(node->getPbftChain()->pbftSyncingPeriod());
+      res["pbft_sync_period"] = Json::UInt64(node->getNetwork()->pbftSyncingPeriod());
       res["pbft_round"] = Json::UInt64(node->getPbftManager()->getPbftRound());
       res["dpos_total_votes"] = Json::UInt64(node->getPbftManager()->getDposTotalVotesCount());
       res["dpos_node_votes"] = Json::UInt64(node->getPbftManager()->getDposWeightedVotesCount());
       res["dpos_quorum"] = Json::UInt64(node->getPbftManager()->getTwoTPlusOne());
-      res["pbft_sync_queue_size"] = Json::UInt64(node->getPbftChain()->pbftSyncedQueueSize());
+      res["pbft_sync_queue_size"] = Json::UInt64(node->getNetwork()->syncBlockQueueSize());
       res["trx_queue_unverified_size"] = Json::UInt64(node->getTransactionManager()->getTransactionQueueSize().first);
       res["trx_queue_verified_size"] = Json::UInt64(node->getTransactionManager()->getTransactionQueueSize().second);
       res["blk_queue_unverified_size"] = Json::UInt64(node->getDagBlockManager()->getDagBlockQueueSize().first);
@@ -230,8 +218,6 @@ Json::Value Test::get_node_version() {
       res["db_version"] = getFormattedVersion({TARAXA_DB_MAJOR_VERSION, TARAXA_DB_MINOR_VERSION});
       res["network_version"] = std::to_string(TARAXA_NET_VERSION);
       ;
-      res["build_hash"] = GIT_HASH;
-      res["build_time"] = COMPILE_TIME;
     }
   } catch (std::exception &e) {
     res["status"] = e.what();

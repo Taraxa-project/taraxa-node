@@ -11,7 +11,7 @@ constexpr size_t FIRST_FINISH_STEP = 4;
 
 namespace taraxa {
 
-VrfPbftSortition::VrfPbftSortition(bytes const& b, bool verify_vrf) {
+VrfPbftSortition::VrfPbftSortition(bytes const& b) {
   dev::RLP const rlp(b);
   if (!rlp.isList()) {
     throw std::invalid_argument("VrfPbftSortition RLP must be a list");
@@ -24,8 +24,6 @@ VrfPbftSortition::VrfPbftSortition(bytes const& b, bool verify_vrf) {
   pbft_msg.step = (*it++).toInt<size_t>();
   pbft_msg.weighted_index = (*it++).toInt<size_t>();
   proof = (*it++).toHash<vrf_proof_t>();
-
-  if (verify_vrf) verify();
 }
 
 bytes VrfPbftSortition::getRlpBytes() const {
@@ -33,7 +31,7 @@ bytes VrfPbftSortition::getRlpBytes() const {
 
   s.appendList(6);
   s << pk;
-  s << pbft_msg.type;
+  s << static_cast<uint8_t>(pbft_msg.type);
   s << pbft_msg.round;
   s << pbft_msg.step;
   s << pbft_msg.weighted_index;
@@ -54,17 +52,17 @@ bool VrfPbftSortition::canSpeak(size_t threshold, size_t dpos_total_votes_count)
   return left <= right;
 }
 
-Vote::Vote(dev::RLP const& rlp, bool verify_vrf) {
+Vote::Vote(dev::RLP const& rlp) {
   if (!rlp.isList()) throw std::invalid_argument("vote RLP must be a list");
   auto it = rlp.begin();
 
   blockhash_ = (*it++).toHash<blk_hash_t>();
-  vrf_sortition_ = VrfPbftSortition((*it++).toBytes(), verify_vrf);
+  vrf_sortition_ = VrfPbftSortition((*it++).toBytes());
   vote_signature_ = (*it++).toHash<sig_t>();
   vote_hash_ = sha3(true);
 }
 
-Vote::Vote(bytes const& b, bool verify_vrf) : Vote(dev::RLP(b), verify_vrf) {}
+Vote::Vote(bytes const& b) : Vote(dev::RLP(b)) {}
 
 Vote::Vote(secret_t const& node_sk, VrfPbftSortition const& vrf_sortition, blk_hash_t const& blockhash)
     : blockhash_(blockhash), vrf_sortition_(vrf_sortition) {
@@ -100,7 +98,6 @@ VoteManager::~VoteManager() { daemon_->join(); }
 void VoteManager::setNetwork(std::weak_ptr<Network> network) { network_ = move(network); }
 
 void VoteManager::retreieveVotes_() {
-  
   auto unverified_votes = db_->getUnverifiedVotes();
   for (auto const& v : unverified_votes) {
     auto pbft_round = v.getRound();
@@ -121,14 +118,15 @@ void VoteManager::retreieveVotes_() {
   for (auto const& v : verified_votes) {
     auto pbft_round = v.getRound();
     auto hash = v.getHash();
-    
-    //Rebroadcast our own next votes in case we were partitioned...
-    if (v.getVoterAddr() == node_addr_ && v.getStep() >= FIRST_FINISH_STEP && db_->getPbftMgrField(PbftMgrRoundStep::PbftStep) > EXTENDED_PARTITION_STEPS) {
+
+    // Rebroadcast our own next votes in case we were partitioned...
+    if (v.getVoterAddr() == node_addr_ && v.getStep() >= FIRST_FINISH_STEP &&
+        db_->getPbftMgrField(PbftMgrRoundStep::PbftStep) > EXTENDED_PARTITION_STEPS) {
       vector<Vote> votes = {v};
       if (auto net = network_.lock()) {
         net->onNewPbftVotes(move(votes));
       }
-    } 
+    }
 
     {
       uniqueLock_ lock(verified_votes_access_);
@@ -245,13 +243,11 @@ uint64_t VoteManager::getVerifiedVotesSize() const {
 void VoteManager::addVerifiedVote(Vote const& vote) {
   auto pbft_round = vote.getRound();
   auto hash = vote.getHash();
-
   {
     upgradableLock_ lock(verified_votes_access_);
-    std::map<uint64_t, std::unordered_map<vote_hash_t, Vote>>::const_iterator found_round =
-        verified_votes_.find(pbft_round);
+    auto found_round = verified_votes_.find(pbft_round);
     if (found_round != verified_votes_.end()) {
-      std::unordered_map<vote_hash_t, Vote>::const_iterator found_vote = found_round->second.find(hash);
+      auto found_vote = found_round->second.find(hash);
       if (found_vote != found_round->second.end()) {
         LOG(log_dg_) << "Vote " << hash << " is in verified map already";
         return;
@@ -499,7 +495,7 @@ bool VoteManager::voteValidation(taraxa::Vote& vote, size_t const dpos_total_vot
   return true;
 }
 
-bool VoteManager::pbftBlockHasEnoughValidCertVotes(PbftBlockCert& pbft_block_and_votes, size_t dpos_total_votes_count,
+bool VoteManager::pbftBlockHasEnoughValidCertVotes(SyncBlock& pbft_block_and_votes, size_t dpos_total_votes_count,
                                                    size_t sortition_threshold, size_t pbft_2t_plus_1) const {
   if (pbft_block_and_votes.cert_votes.empty()) {
     LOG(log_er_) << "No any cert votes! The synced PBFT block comes from a "
@@ -794,6 +790,7 @@ void NextVotesForPreviousRound::updateWithSyncedVotes(std::vector<Vote> const& n
   }
   if (enoughNextVotes()) {
     LOG(log_dg_) << "Don't need update. Have enough next votes for previous PBFT round already.";
+    return;
   }
 
   std::unordered_map<blk_hash_t, std::vector<Vote>> own_votes_map;

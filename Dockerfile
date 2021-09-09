@@ -7,7 +7,7 @@ ARG BUILD_OUTPUT_DIR=cmake-docker-build-debug
 FROM amd64/ubuntu:20.04 as builder
 
 # deps versions
-ARG GO_VERSION=1.13.7
+ARG GO_VERSION=1.16.3
 ARG CMAKE_VERSION=3.16.3-1ubuntu1
 ARG GFLAGS_VERSION=2.2.2-1build1
 ARG LLVM_VERSION=12
@@ -76,7 +76,7 @@ RUN conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/ap
     conan profile update settings.compiler.libcxx=libstdc++11 clang && \
     conan profile update env.CC=clang-$LLVM_VERSION clang && \
     conan profile update env.CXX=clang++-$LLVM_VERSION clang && \
-    conan install --build missing -s build_type=Debug -pr=clang .
+    conan install --build missing -s build_type=RelWithDebInfo -pr=clang .
 
 ###################################################################
 # Build stage - use builder image for actual build of taraxa node #
@@ -91,7 +91,7 @@ WORKDIR /opt/taraxa/
 COPY . .
 
 RUN mkdir $BUILD_OUTPUT_DIR && cd $BUILD_OUTPUT_DIR \
-    && cmake -DCMAKE_BUILD_TYPE=Debug \
+    && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo \
     -DTARAXA_ENABLE_LTO=OFF \
     -DTARAXA_STATIC_BUILD=OFF \
     ../ \

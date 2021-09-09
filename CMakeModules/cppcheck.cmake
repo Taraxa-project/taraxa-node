@@ -13,22 +13,16 @@ else ()
             --suppress=missingInclude
             --suppress=useStlAlgorithm
             --suppress=shadowVariable
-            #--suppress=unusedStructMember
-            # --suppress=stlIfFind
-            #--suppress=identicalConditionAfterEarlyExit
-            #--suppress=noCopyConstructor
             --suppress=noExplicitConstructor
             --suppress=unreadVariable
             --suppress=unknownMacro
-            #--suppress=useInitializationList
-            #--suppress=syntaxError
-            # --suppress=internalAstError # because of https://trac.cppcheck.net/ticket/9537 -> state_api.cpp, line 53, TODO: remove this
-
+            --suppress=templateRecursion
+            --suppress=uninitMemberVar src/libp2p/UPnP.cpp
             # Only show found errors
             "--quiet"
 
             # Optional: Specified C++ version
-            "--std=c++17"
+            "--std=c++20"
 
             # folder with source files to be checked
             ${PROJECT_SOURCE_DIR}/src

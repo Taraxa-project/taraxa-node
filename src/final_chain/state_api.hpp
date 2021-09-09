@@ -35,7 +35,7 @@ class StateAPI {
                                                 RangeView<EVMTransaction> const& transactions,  //
                                                 RangeView<UncleBlock> const& uncles = {});
   void transition_state_commit();
-  void create_snapshot(uint64_t const& period);
+  void create_snapshot(uint64_t period);
   // DPOS
   uint64_t dpos_eligible_count(EthBlockNumber blk_num) const;
   uint64_t dpos_eligible_total_vote_count(EthBlockNumber blk_num) const;

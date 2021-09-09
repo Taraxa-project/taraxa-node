@@ -17,19 +17,19 @@ const char *testnet_json = R"foo({
   "network_sync_level_size": 25,
   "network_boot_nodes": [
     {
-      "id": "b4ab8c09f711866b067debd9ab075df1a965ade72bc7409d53799b9783543d89d2264e2650e364d9c84694c2fdaaeb69fe500d720a2f1ad17d4bb37a31ca31a6",
+      "id": "f36f467529fe91a750dfdc8086fd0d2f30bad9f55a5800b6b4aa603c7787501db78dc4ac1bf3cf16e42af7c2ebb53648653013c3da1987494960d751871d598a",
       "ip": "boot-node-0.testnet.taraxa.io",
       "tcp_port": 10002,
       "udp_port": 10002
     },
     {
-      "id": "3c87eb8991fda4728c41752d4e374aab555ce76daac92657e9656aa33615e90a64d9582861bc00954332052c3ac3c969b3e23683533db5ae24f8126ce6de427e",
+      "id": "d2d445fc3276bdbf2a07628a484baabf45ccb91d6aa078a0dc3aefc11f1941899a923312ec0e664b8e57b63b774c47a006d9d1d16befd2135dcf76067736c688",
       "ip": "boot-node-1.testnet.taraxa.io",
       "tcp_port": 10002,
       "udp_port": 10002
     },
     {
-      "id": "adbb7940b859e8fde19a93ce26910d51ddd8490b813f8bfc77381665439f11e42c58b626ae4d9da06a4a1730bf28a19bce146e4ba618760f8ee89ccee2bd64aa",
+      "id": "c6e7263f44d88c0d6cc3b0d5ebdc31cf891908e8fa7e545e137d3ed0bfec1810fa24c1379228afbb53df0d59e716e17138115fd096782a84261718ab77665171",
       "ip": "boot-node-2.testnet.taraxa.io",
       "tcp_port": 10002,
       "udp_port": 10002
@@ -86,14 +86,14 @@ const char *testnet_json = R"foo({
       "level": "0x0",
       "pivot": "0x0000000000000000000000000000000000000000000000000000000000000000",
       "sig": "0xb7e22d46c1ba94d5e8347b01d137b5c428fcbbeaf0a77fb024cbbf1517656ff00d04f7f25be608c321b0d7483c402c294ff46c49b265305d046a52236c0a363701",
-      "timestamp": "0x60b03293",
+      "timestamp": "0x60b0329b",
       "tips": [],
       "transactions": []
     },
     "final_chain": {
       "genesis_block_fields": {
         "author": "0x0000000000000000000000000000000000000000",
-        "timestamp": "0x60b03293"
+        "timestamp": "0x60b0329b"
       },
       "state": {
         "disable_block_rewards": true,
@@ -130,7 +130,7 @@ const char *testnet_json = R"foo({
     },
     "pbft": {
       "committee_size": "0x3e8",
-      "dag_blocks_size": "0xa",
+      "dag_blocks_size": "0x32",
       "ghost_path_move_back": "0x0",
       "lambda_ms_min": "0x3e8",
       "run_count_votes": false

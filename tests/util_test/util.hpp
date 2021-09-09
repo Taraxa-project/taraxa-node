@@ -110,6 +110,14 @@ inline bool wait(wait_opts const& opts, function<void(wait_ctx&)> const& poller)
     EXPECT_NE(o1, o2);                      \
   }
 
+#define WAIT_EXPECT_LT(ctx, o1, o2)         \
+  if (o1 < o2) {                            \
+    if (ctx.fail(); !ctx.is_last_attempt) { \
+      return;                               \
+    }                                       \
+    EXPECT_LT(o1, o2);                      \
+  }
+
 inline auto const node_cfgs_original = Lazy([] {
   vector<FullNodeConfig> ret;
   for (int i = 1;; ++i) {
@@ -160,7 +168,7 @@ inline auto make_node_cfgs(uint count) {
   return slice(ret, 0, count);
 }
 
-inline auto wait_connect(vector<FullNode::Handle> const& nodes) {
+inline auto wait_connect(vector<shared_ptr<FullNode>> const& nodes) {
   auto num_peers_connected = nodes.size() - 1;
   return wait({30s, 1s}, [&](auto& ctx) {
     for (auto const& node : nodes) {
@@ -171,16 +179,38 @@ inline auto wait_connect(vector<FullNode::Handle> const& nodes) {
   });
 }
 
-inline auto launch_nodes(vector<FullNodeConfig> const& cfgs, optional<uint> retry_cnt = {}) {
+inline auto create_nodes(uint count, bool start = false) {
+  auto cfgs = make_node_cfgs(count);
   auto node_count = cfgs.size();
-  for (auto i = retry_cnt.value_or(4);; --i) {
-    vector<FullNode::Handle> nodes(node_count);
-    for (uint j = 0; j < node_count; ++j) {
-      if (j > 0) {
-        this_thread::sleep_for(500ms);
-      }
-      nodes[j] = FullNode::Handle(cfgs[j], true);
+  vector<std::shared_ptr<FullNode>> nodes;
+  for (uint j = 0; j < node_count; ++j) {
+    if (j > 0) {
+      this_thread::sleep_for(500ms);
     }
+    nodes.emplace_back(std::make_shared<FullNode>(cfgs[j]));
+    if (start) nodes.back()->start();
+  }
+  return nodes;
+}
+
+inline auto create_nodes(vector<FullNodeConfig> const& cfgs, bool start = false) {
+  auto node_count = cfgs.size();
+  vector<std::shared_ptr<FullNode>> nodes;
+  for (uint j = 0; j < node_count; ++j) {
+    if (j > 0) {
+      this_thread::sleep_for(500ms);
+    }
+    nodes.emplace_back(std::make_shared<FullNode>(cfgs[j]));
+    if (start) nodes.back()->start();
+  }
+  return nodes;
+}
+
+inline auto launch_nodes(vector<FullNodeConfig> const& cfgs) {
+  constexpr auto RETRY_COUNT = 4;
+  auto node_count = cfgs.size();
+  for (auto i = RETRY_COUNT;; --i) {
+    auto nodes = create_nodes(cfgs, true);
     if (node_count == 1) {
       return nodes;
     }
@@ -199,7 +229,11 @@ struct BaseTest : virtual WithDataDir {
   BaseTest() : WithDataDir() {
     for (auto& cfg : *node_cfgs_original) {
       remove_all(cfg.data_path);
-      create_directories(cfg.data_path);
+    }
+  }
+  void TearDown() override {
+    for (auto& cfg : *node_cfgs_original) {
+      remove_all(cfg.data_path);
     }
   }
   virtual ~BaseTest(){};
@@ -284,20 +318,17 @@ inline auto own_effective_genesis_bal(FullNodeConfig const& cfg) {
 }
 
 inline auto make_simple_pbft_block(h256 const& hash, uint64_t period) {
-  return PbftBlock(hash, blk_hash_t(0), period, addr_t(0), secret_t::random());
+  return PbftBlock(hash, blk_hash_t(0), blk_hash_t(), period, addr_t(0), secret_t::random());
 }
 
 inline vector<blk_hash_t> getOrderedDagBlocks(shared_ptr<DbStorage> const& db) {
   uint64_t period = 1;
   vector<blk_hash_t> res;
   while (true) {
-    auto pbft_block_hash = db->getPeriodPbftBlock(period);
-    if (pbft_block_hash) {
-      auto pbft_block = db->getPbftBlock(*pbft_block_hash);
-      if (pbft_block) {
-        for (auto const& dag_block_hash : db->getFinalizedDagBlockHashesByAnchor(pbft_block->getPivotDagBlockHash())) {
-          res.push_back(dag_block_hash);
-        }
+    auto pbft_block = db->getPbftBlock(period);
+    if (pbft_block) {
+      for (auto const& dag_block_hash : db->getFinalizedDagBlockHashesByAnchor(pbft_block->getPivotDagBlockHash())) {
+        res.push_back(dag_block_hash);
       }
       period++;
       continue;
@@ -311,6 +342,29 @@ inline auto make_addr(uint8_t i) {
   addr_t ret;
   ret[10] = i;
   return ret;
+}
+
+using expected_balances_map_t = std::map<addr_t, u256>;
+inline void wait_for_balances(const vector<std::shared_ptr<FullNode>>& nodes, const expected_balances_map_t& balances,
+                              wait_opts to_wait = {10s, 500ms}) {
+  TransactionClient trx_client(nodes[0]);
+  auto sendDummyTransaction = [&]() {
+    trx_client.coinTransfer(KeyPair::create().address(), 0, KeyPair::create(), false);
+  };
+  wait(to_wait, [&](auto& ctx) {
+    for (const auto& node : nodes) {
+      for (const auto& b : balances) {
+        if (node->getFinalChain()->getBalance(b.first).first != b.second) {
+          sendDummyTransaction();
+          WAIT_EXPECT_EQ(ctx, node->getFinalChain()->getBalance(b.first).first, b.second);
+        }
+      }
+      // wait for the same chain size on all nodes
+      for (const auto& n : nodes) {
+        WAIT_EXPECT_EQ(ctx, node->getPbftChain()->getPbftChainSize(), n->getPbftChain()->getPbftChainSize());
+      }
+    }
+  });
 }
 
 }  // namespace taraxa::core_tests

@@ -46,12 +46,17 @@ class Network {
   unsigned getNodeCount();
   Json::Value getStatus();
   std::vector<NodeID> getAllPeersIDs() const;
-  void onNewBlockVerified(shared_ptr<DagBlock> const &blk);
+  void onNewBlockVerified(shared_ptr<DagBlock> const &blk, bool proposed);
   void onNewTransactions(std::vector<taraxa::bytes> transactions);
   void restartSyncingPbft(bool force = false);
   void onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_block);
   bool pbft_syncing();
   uint64_t syncTimeSeconds() const;
+
+  uint64_t pbftSyncingPeriod() const;
+  std::optional<SyncBlock> processSyncBlock();
+  void syncBlockQueuePush(SyncBlock const &block);
+  size_t syncBlockQueueSize() const;
 
   void onNewPbftVotes(std::vector<Vote> votes);
   void broadcastPreviousRoundNextVotesBundle();
@@ -61,10 +66,10 @@ class Network {
   void sendBlocks(dev::p2p::NodeID const &id, std::vector<std::shared_ptr<DagBlock>> blocks);
   void sendTransactions(NodeID const &_id, std::vector<taraxa::bytes> const &transactions);
   void setPendingPeersToReady();
-  dev::p2p::NodeID getNodeId();
-  int getReceivedBlocksCount();
-  int getReceivedTransactionsCount();
-  std::shared_ptr<TaraxaPeer> getPeer(NodeID const &id);
+  dev::p2p::NodeID getNodeId() const;
+  int getReceivedBlocksCount() const;
+  int getReceivedTransactionsCount() const;
+  std::shared_ptr<TaraxaPeer> getPeer(NodeID const &id) const;
 
   // PBFT
   void sendPbftBlock(NodeID const &id, PbftBlock const &pbft_block, uint64_t const &pbft_chain_size);

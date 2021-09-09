@@ -16,6 +16,7 @@ namespace taraxa {
 class FullNode;
 class PbftManager;
 class Network;
+class SyncBlock;
 
 struct VrfPbftMsg {
   VrfPbftMsg() = default;
@@ -43,7 +44,7 @@ struct VrfPbftMsg {
   bytes getRlpBytes() const {
     dev::RLPStream s;
     s.appendList(4);
-    s << type;
+    s << static_cast<uint8_t>(type);
     s << round;
     s << step;
     s << weighted_index;
@@ -65,7 +66,7 @@ struct VrfPbftSortition : public vrf_wrapper::VrfSortitionBase {
   VrfPbftSortition() = default;
   VrfPbftSortition(vrf_sk_t const& sk, VrfPbftMsg const& pbft_msg)
       : VrfSortitionBase(sk, pbft_msg.getRlpBytes()), pbft_msg(pbft_msg) {}
-  explicit VrfPbftSortition(bytes const& rlp, bool verify_vrf = true);
+  explicit VrfPbftSortition(bytes const& rlp);
   bytes getRlpBytes() const;
   bool verify() { return VrfSortitionBase::verify(pbft_msg.getRlpBytes()); }
   bool operator==(VrfPbftSortition const& other) const {
@@ -90,8 +91,8 @@ class Vote {
   Vote() = default;
   Vote(secret_t const& node_sk, VrfPbftSortition const& vrf_sortition, blk_hash_t const& blockhash);
 
-  explicit Vote(dev::RLP const& rlp, bool verify_vrf = true);
-  explicit Vote(bytes const& rlp, bool verify_vrf = true);
+  explicit Vote(dev::RLP const& rlp);
+  explicit Vote(bytes const& rlp);
   bool operator==(Vote const& other) const { return rlp() == other.rlp(); }
   ~Vote() {}
 
@@ -178,7 +179,7 @@ class VoteManager {
 
   bool voteValidation(Vote& vote, size_t const valid_sortition_players, size_t const sortition_threshold) const;
 
-  bool pbftBlockHasEnoughValidCertVotes(PbftBlockCert& pbft_block_and_votes, size_t valid_sortition_players,
+  bool pbftBlockHasEnoughValidCertVotes(SyncBlock& pbft_block_and_votes, size_t valid_sortition_players,
                                         size_t sortition_threshold, size_t pbft_2t_plus_1) const;
 
   std::string getJsonStr(std::vector<Vote> const& votes);

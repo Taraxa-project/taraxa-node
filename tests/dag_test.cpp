@@ -9,7 +9,10 @@
 
 namespace taraxa::core_tests {
 
-struct DagTest : BaseTest {};
+struct DagTest : BaseTest {
+  vector<FullNodeConfig> node_cfgs = make_node_cfgs(1);
+  logger::Logger time_log = logger::createLogger(logger::Verbosity::Info, "TMSTM", addr_t());
+};
 
 TEST_F(DagTest, build_dag) {
   const blk_hash_t GENESIS("0000000000000000000000000000000000000000000000000000000000000001");
@@ -134,7 +137,11 @@ TEST_F(DagTest, genesis_get_pivot) {
 TEST_F(DagTest, compute_epoch) {
   const blk_hash_t GENESIS("0000000000000000000000000000000000000000000000000000000000000001");
   auto db_ptr = std::make_shared<DbStorage>(data_dir / "db");
-  auto mgr = std::make_shared<DagManager>(GENESIS, addr_t(), nullptr, nullptr, db_ptr);
+  auto mgr = std::make_shared<DagManager>(
+      GENESIS, addr_t(), nullptr, nullptr,
+      std::make_shared<DagBlockManager>(addr_t(), node_cfgs[0].chain.vdf, node_cfgs[0].chain.final_chain.state.dpos, 1,
+                                        db_ptr, nullptr, nullptr, nullptr, time_log),
+      db_ptr, logger::Logger());
   DagBlock blkA(blk_hash_t(1), 0, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(2), addr_t(1));
   DagBlock blkB(blk_hash_t(1), 0, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1), blk_hash_t(3), addr_t(1));
   DagBlock blkC(blk_hash_t(2), 0, {blk_hash_t(3)}, {}, sig_t(1), blk_hash_t(4), addr_t(1));
@@ -160,64 +167,68 @@ TEST_F(DagTest, compute_epoch) {
   mgr->addDagBlock(blkK);
   taraxa::thisThreadSleepForMilliSeconds(100);
 
-  auto orders = std::make_shared<vec_blk_t>();
+  vec_blk_t orders;
   uint64_t period;
   std::tie(period, orders) = mgr->getDagBlockOrder(blkA.getHash());
-  EXPECT_EQ(orders->size(), 1);
+  EXPECT_EQ(orders.size(), 1);
   EXPECT_EQ(period, 1);
   // repeat, should not change
   std::tie(period, orders) = mgr->getDagBlockOrder(blkA.getHash());
-  EXPECT_EQ(orders->size(), 1);
+  EXPECT_EQ(orders.size(), 1);
   EXPECT_EQ(period, 1);
 
   auto write_batch = db_ptr->createWriteBatch();
-  mgr->setDagBlockOrder(blkA.getHash(), period, *orders, write_batch);
+  mgr->setDagBlockOrder(blkA.getHash(), period, orders, write_batch);
   db_ptr->commitWriteBatch(write_batch);
 
   std::tie(period, orders) = mgr->getDagBlockOrder(blkC.getHash());
-  EXPECT_EQ(orders->size(), 2);
+  EXPECT_EQ(orders.size(), 2);
   EXPECT_EQ(period, 2);
   // repeat, should not change
   std::tie(period, orders) = mgr->getDagBlockOrder(blkC.getHash());
-  EXPECT_EQ(orders->size(), 2);
+  EXPECT_EQ(orders.size(), 2);
   EXPECT_EQ(period, 2);
 
   write_batch = db_ptr->createWriteBatch();
-  mgr->setDagBlockOrder(blkC.getHash(), period, *orders, write_batch);
+  mgr->setDagBlockOrder(blkC.getHash(), period, orders, write_batch);
   db_ptr->commitWriteBatch(write_batch);
 
   std::tie(period, orders) = mgr->getDagBlockOrder(blkE.getHash());
-  EXPECT_EQ(orders->size(), 3);
+  EXPECT_EQ(orders.size(), 3);
   EXPECT_EQ(period, 3);
   write_batch = db_ptr->createWriteBatch();
-  mgr->setDagBlockOrder(blkE.getHash(), period, *orders, write_batch);
+  mgr->setDagBlockOrder(blkE.getHash(), period, orders, write_batch);
   db_ptr->commitWriteBatch(write_batch);
 
   std::tie(period, orders) = mgr->getDagBlockOrder(blkH.getHash());
-  EXPECT_EQ(orders->size(), 4);
+  EXPECT_EQ(orders.size(), 4);
   EXPECT_EQ(period, 4);
   write_batch = db_ptr->createWriteBatch();
-  mgr->setDagBlockOrder(blkH.getHash(), period, *orders, write_batch);
+  mgr->setDagBlockOrder(blkH.getHash(), period, orders, write_batch);
   db_ptr->commitWriteBatch(write_batch);
 
-  if (orders->size() == 4) {
-    EXPECT_EQ((*orders)[0], blk_hash_t(11));
-    EXPECT_EQ((*orders)[1], blk_hash_t(10));
-    EXPECT_EQ((*orders)[2], blk_hash_t(8));
-    EXPECT_EQ((*orders)[3], blk_hash_t(9));
+  if (orders.size() == 4) {
+    EXPECT_EQ(orders[0], blk_hash_t(11));
+    EXPECT_EQ(orders[1], blk_hash_t(10));
+    EXPECT_EQ(orders[2], blk_hash_t(8));
+    EXPECT_EQ(orders[3], blk_hash_t(9));
   }
   std::tie(period, orders) = mgr->getDagBlockOrder(blkK.getHash());
-  EXPECT_EQ(orders->size(), 1);
+  EXPECT_EQ(orders.size(), 1);
   EXPECT_EQ(period, 5);
   write_batch = db_ptr->createWriteBatch();
-  mgr->setDagBlockOrder(blkK.getHash(), period, *orders, write_batch);
+  mgr->setDagBlockOrder(blkK.getHash(), period, orders, write_batch);
   db_ptr->commitWriteBatch(write_batch);
 }
 
 TEST_F(DagTest, receive_block_in_order) {
   const blk_hash_t GENESIS("000000000000000000000000000000000000000000000000000000000000000a");
-  auto mgr =
-      std::make_shared<DagManager>(GENESIS, addr_t(), nullptr, nullptr, std::make_shared<DbStorage>(data_dir / "db"));
+  auto db_ptr = std::make_shared<DbStorage>(data_dir / "db");
+  auto mgr = std::make_shared<DagManager>(
+      GENESIS, addr_t(), nullptr, nullptr,
+      std::make_shared<DagBlockManager>(addr_t(), node_cfgs[0].chain.vdf, node_cfgs[0].chain.final_chain.state.dpos, 1,
+                                        db_ptr, nullptr, nullptr, nullptr, time_log),
+      db_ptr, logger::Logger());
   // mgr.setVerbose(true);
   DagBlock genesis_block(blk_hash_t(0), 0, {}, {}, sig_t(777), blk_hash_t(10), addr_t(15));
   DagBlock blk1(blk_hash_t(10), 0, {}, {}, sig_t(777), blk_hash_t(1), addr_t(15));
@@ -250,7 +261,11 @@ TEST_F(DagTest, receive_block_in_order) {
 TEST_F(DagTest, compute_epoch_2) {
   const blk_hash_t GENESIS("0000000000000000000000000000000000000000000000000000000000000001");
   auto db_ptr = std::make_shared<DbStorage>(data_dir / "db");
-  auto mgr = std::make_shared<DagManager>(GENESIS, addr_t(), nullptr, nullptr, db_ptr);
+  auto mgr = std::make_shared<DagManager>(
+      GENESIS, addr_t(), nullptr, nullptr,
+      std::make_shared<DagBlockManager>(addr_t(), node_cfgs[0].chain.vdf, node_cfgs[0].chain.final_chain.state.dpos, 1,
+                                        db_ptr, nullptr, nullptr, nullptr, time_log),
+      db_ptr, logger::Logger());
   DagBlock blkA(blk_hash_t(1), 0, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(2), addr_t(1));
   DagBlock blkB(blk_hash_t(1), 0, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1), blk_hash_t(3), addr_t(1));
   DagBlock blkC(blk_hash_t(2), 0, {blk_hash_t(3)}, {}, sig_t(1), blk_hash_t(4), addr_t(1));
@@ -277,64 +292,68 @@ TEST_F(DagTest, compute_epoch_2) {
   mgr->addDagBlock(blkK);
   taraxa::thisThreadSleepForMilliSeconds(100);
 
-  auto orders = std::make_shared<vec_blk_t>();
+  vec_blk_t orders;
   uint64_t period;
   std::tie(period, orders) = mgr->getDagBlockOrder(blkA.getHash());
-  EXPECT_EQ(orders->size(), 1);
+  EXPECT_EQ(orders.size(), 1);
   EXPECT_EQ(period, 1);
   // repeat, should not change
   std::tie(period, orders) = mgr->getDagBlockOrder(blkA.getHash());
-  EXPECT_EQ(orders->size(), 1);
+  EXPECT_EQ(orders.size(), 1);
   EXPECT_EQ(period, 1);
 
   auto write_batch = db_ptr->createWriteBatch();
-  mgr->setDagBlockOrder(blkA.getHash(), period, *orders, write_batch);
+  mgr->setDagBlockOrder(blkA.getHash(), period, orders, write_batch);
   db_ptr->commitWriteBatch(write_batch);
 
   std::tie(period, orders) = mgr->getDagBlockOrder(blkC.getHash());
-  EXPECT_EQ(orders->size(), 2);
+  EXPECT_EQ(orders.size(), 2);
   EXPECT_EQ(period, 2);
   // repeat, should not change
   std::tie(period, orders) = mgr->getDagBlockOrder(blkC.getHash());
-  EXPECT_EQ(orders->size(), 2);
+  EXPECT_EQ(orders.size(), 2);
   EXPECT_EQ(period, 2);
 
   write_batch = db_ptr->createWriteBatch();
-  mgr->setDagBlockOrder(blkC.getHash(), period, *orders, write_batch);
+  mgr->setDagBlockOrder(blkC.getHash(), period, orders, write_batch);
   db_ptr->commitWriteBatch(write_batch);
 
   std::tie(period, orders) = mgr->getDagBlockOrder(blkE.getHash());
-  EXPECT_EQ(orders->size(), 3);
+  EXPECT_EQ(orders.size(), 3);
   EXPECT_EQ(period, 3);
   write_batch = db_ptr->createWriteBatch();
-  mgr->setDagBlockOrder(blkE.getHash(), period, *orders, write_batch);
+  mgr->setDagBlockOrder(blkE.getHash(), period, orders, write_batch);
   db_ptr->commitWriteBatch(write_batch);
 
   std::tie(period, orders) = mgr->getDagBlockOrder(blkH.getHash());
-  EXPECT_EQ(orders->size(), 4);
+  EXPECT_EQ(orders.size(), 4);
   EXPECT_EQ(period, 4);
   write_batch = db_ptr->createWriteBatch();
-  mgr->setDagBlockOrder(blkH.getHash(), period, *orders, write_batch);
+  mgr->setDagBlockOrder(blkH.getHash(), period, orders, write_batch);
   db_ptr->commitWriteBatch(write_batch);
 
-  if (orders->size() == 4) {
-    EXPECT_EQ((*orders)[0], blk_hash_t(11));
-    EXPECT_EQ((*orders)[1], blk_hash_t(10));
-    EXPECT_EQ((*orders)[2], blk_hash_t(8));
-    EXPECT_EQ((*orders)[3], blk_hash_t(9));
+  if (orders.size() == 4) {
+    EXPECT_EQ(orders[0], blk_hash_t(11));
+    EXPECT_EQ(orders[1], blk_hash_t(10));
+    EXPECT_EQ(orders[2], blk_hash_t(8));
+    EXPECT_EQ(orders[3], blk_hash_t(9));
   }
   std::tie(period, orders) = mgr->getDagBlockOrder(blkK.getHash());
-  EXPECT_EQ(orders->size(), 1);
+  EXPECT_EQ(orders.size(), 1);
   EXPECT_EQ(period, 5);
   write_batch = db_ptr->createWriteBatch();
-  mgr->setDagBlockOrder(blkK.getHash(), period, *orders, write_batch);
+  mgr->setDagBlockOrder(blkK.getHash(), period, orders, write_batch);
   db_ptr->commitWriteBatch(write_batch);
 }
 
 TEST_F(DagTest, get_latest_pivot_tips) {
   const blk_hash_t GENESIS("0000000000000000000000000000000000000000000000000000000000000001");
-  auto mgr =
-      std::make_shared<DagManager>(GENESIS, addr_t(), nullptr, nullptr, std::make_shared<DbStorage>(data_dir / "db"));
+  auto db_ptr = std::make_shared<DbStorage>(data_dir / "db");
+  auto mgr = std::make_shared<DagManager>(
+      GENESIS, addr_t(), nullptr, nullptr,
+      std::make_shared<DagBlockManager>(addr_t(), node_cfgs[0].chain.vdf, node_cfgs[0].chain.final_chain.state.dpos, 1,
+                                        db_ptr, nullptr, nullptr, nullptr, time_log),
+      db_ptr, logger::Logger());
 
   // mgr.setVerbose(true);
   DagBlock blk1(blk_hash_t(0), 0, {}, {}, sig_t(0), blk_hash_t(1), addr_t(15));
