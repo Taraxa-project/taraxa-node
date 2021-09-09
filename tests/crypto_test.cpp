@@ -12,8 +12,8 @@
 #include "common/vrf_wrapper.hpp"
 #include "config/config.hpp"
 #include "logger/log.hpp"
-#include "node/full_node.hpp"
-#include "pbft/manager.hpp"
+#include "node/node.hpp"
+#include "pbft/pbft_manager.hpp"
 #include "util_test/util.hpp"
 #include "vdf/sortition.hpp"
 

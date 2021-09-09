@@ -1,5 +1,3 @@
-#include "dag/dag_block.hpp"
-
 #include <gtest/gtest.h>
 
 #include <iostream>
@@ -8,8 +6,9 @@
 #include "common/static_init.hpp"
 #include "common/types.hpp"
 #include "common/util.hpp"
+#include "dag/block.hpp"
 #include "logger/log.hpp"
-#include "node/full_node.hpp"
+#include "node/node.hpp"
 #include "util_test/samples.hpp"
 #include "util_test/util.hpp"
 #include "vdf/sortition.hpp"

@@ -17,10 +17,9 @@
 #include "common/thread_pool.hpp"
 #include "common/util.hpp"
 #include "config/config.hpp"
-#include "vote/vote.hpp"
 #include "dag/dag_block_manager.hpp"
 #include "tarcap/taraxa_capability.hpp"
-#include "transaction_manager/transaction.hpp"
+#include "transaction/transaction.hpp"
 
 namespace taraxa {
 

@@ -1,18 +1,15 @@
+add_subdirectory(final_chain)
 add_subdirectory(dag)
-add_subdirectory(dag_block)
 add_subdirectory(pbft)
-add_subdirectory(vote)
+add_subdirectory(vote_manager)
+add_subdirectory(transaction_manager)
 
 add_library(consensus INTERFACE)
 
 target_link_libraries(consensus INTERFACE
-    vote
     dag
-    dag_block
+    final_chain
     pbft
-)
-
-install(TARGETS dag_block vote
-        ARCHIVE  DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        LIBRARY  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    transaction_manager
+    vote_manager
 )

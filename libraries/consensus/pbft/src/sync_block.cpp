@@ -4,7 +4,7 @@
 
 #include "pbft/chain.hpp"
 #include "vote/vote.hpp"
-#include "dag/dag_block.hpp"
+#include "dag/block.hpp"
 #include "transaction_manager/transaction.hpp"
 
 namespace taraxa {

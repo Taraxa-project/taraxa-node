@@ -32,11 +32,11 @@ struct VrfSortitionBase {
     output = vrf_wrapper::getVrfOutput(pk, proof, msg).value();
     thresholdFromOutput();
   }
-  bool verify(bytes const &msg);
+  bool verify(bytes const &msg) const;
   bool operator==(VrfSortitionBase const &other) const {
     return pk == other.pk && proof == other.proof && output == other.output;
   }
-  void thresholdFromOutput() { threshold = (((uint16_t)output[1] << 8) | output[0]); }
+  void thresholdFromOutput() const { threshold = (((uint16_t)output[1] << 8) | output[0]); }
   virtual std::ostream &print(std::ostream &strm) const {
     strm << "\n[VRF SortitionBase] " << std::endl;
     strm << "  pk: " << pk << std::endl;
@@ -49,8 +49,8 @@ struct VrfSortitionBase {
   }
   vrf_pk_t pk;
   vrf_proof_t proof;
-  vrf_output_t output;
-  uint16_t threshold;
+  mutable vrf_output_t output;
+  mutable uint16_t threshold;
 };
 
 }  // namespace taraxa::vrf_wrapper

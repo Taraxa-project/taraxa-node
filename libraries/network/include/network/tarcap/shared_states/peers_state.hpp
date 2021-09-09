@@ -1,12 +1,12 @@
 #pragma once
 
-#include "dag/dag_block.hpp"
+#include "dag/block.hpp"
 #include "libp2p/Common.h"
 #include "libp2p/Host.h"
 #include "network/tarcap/packet_types.hpp"
 #include "network/tarcap/stats/packets_stats.hpp"
 #include "network/tarcap/taraxa_peer.hpp"
-#include "transaction_manager/transaction.hpp"
+#include "transaction/transaction.hpp"
 
 namespace taraxa::network::tarcap {
 

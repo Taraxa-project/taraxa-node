@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "common/constants.hpp"
-#include "config/chain.hpp"
+#include "config/chain_config.hpp"
 #include "final_chain/trie_common.hpp"
 #include "util_test/gtest.hpp"
 #include "vote/vote.hpp"

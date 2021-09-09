@@ -106,13 +106,7 @@ target_link_libraries(network PRIVATE
     node
     storage
     transaction_manager
-    aleth
-    vdf
-    taraxa-evm
-    taraxa-vrf
-    CONAN_PKG::boost
-    CONAN_PKG::jsoncpp
-    CONAN_PKG::libjson-rpc-cpp
+    vote
 )
 
 add_subdirectory(rpc)

@@ -9,7 +9,7 @@
 #include <optional>
 
 #include "TaraxaFace.h"
-#include "node/full_node.hpp"
+#include "node/node.hpp"
 
 namespace taraxa::net {
 

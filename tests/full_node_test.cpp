@@ -1,6 +1,4 @@
 
-#include "node/full_node.hpp"
-
 #include <gtest/gtest.h>
 
 #include <atomic>
@@ -14,7 +12,8 @@
 #include "logger/log.hpp"
 #include "network/network.hpp"
 #include "network/rpc/Taraxa.h"
-#include "pbft/manager.hpp"
+#include "node/node.hpp"
+#include "pbft/pbft_manager.hpp"
 #include "string"
 #include "transaction_manager/transaction_manager.hpp"
 #include "util_test/samples.hpp"

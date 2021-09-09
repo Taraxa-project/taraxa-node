@@ -2,8 +2,8 @@
 
 #include <shared_mutex>
 
-#include "dag/dag_block.hpp"
-#include "transaction_manager/transaction.hpp"
+#include "dag/block.hpp"
+#include "transaction/transaction.hpp"
 
 namespace taraxa::network::tarcap {
 

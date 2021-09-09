@@ -5,8 +5,8 @@
 #include <string>
 
 #include "common/lazy.hpp"
-#include "dag/dag_block.hpp"
-#include "transaction_manager/transaction.hpp"
+#include "dag/block.hpp"
+#include "transaction/transaction.hpp"
 #include "util.hpp"
 
 namespace taraxa::core_tests::samples {

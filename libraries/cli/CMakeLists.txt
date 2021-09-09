@@ -16,13 +16,6 @@ target_include_directories(cli PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(cli PRIVATE 
     config
     common
-    consensus
-    logger
-    aleth
-    vdf
-    taraxa-vrf
-    CONAN_PKG::jsoncpp 
-    CONAN_PKG::boost
 )
 
 install(TARGETS cli

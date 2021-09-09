@@ -1,15 +1,15 @@
 #include "network/tarcap/stats/node_stats.hpp"
 
-#include "pbft/chain.hpp"
-#include "pbft/manager.hpp"
-#include "vote/vote.hpp"
 #include "dag/dag.hpp"
 #include "dag/dag_block_manager.hpp"
 #include "libp2p/Common.h"
 #include "network/tarcap/shared_states/peers_state.hpp"
 #include "network/tarcap/shared_states/syncing_state.hpp"
 #include "network/tarcap/stats/packets_stats.hpp"
+#include "pbft/pbft_chain.hpp"
+#include "pbft/pbft_manager.hpp"
 #include "transaction_manager/transaction_manager.hpp"
+#include "vote/vote_manager.hpp"
 
 namespace taraxa::network::tarcap {
 

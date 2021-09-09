@@ -1,8 +1,8 @@
 #pragma once
 
-#include "dag/dag_block.hpp"
+#include "dag/block.hpp"
 #include "network/tarcap/packets_handlers/common/packet_handler.hpp"
-#include "transaction_manager/transaction.hpp"
+#include "transaction/transaction.hpp"
 
 namespace taraxa {
 class DagBlockManager;

@@ -2,11 +2,11 @@
 
 #include <string>
 
+#include "common/config_exception.hpp"
 #include "common/types.hpp"
 #include "common/util.hpp"
 #include "common/vrf_wrapper.hpp"
-#include "config/chain.hpp"
-#include "common/config_exception.hpp"
+#include "config/chain_config.hpp"
 #include "logger/log_config.hpp"
 
 namespace taraxa {

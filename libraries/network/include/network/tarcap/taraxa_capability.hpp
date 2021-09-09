@@ -9,10 +9,10 @@
 
 #include "common/thread_pool.hpp"
 #include "config/config.hpp"
-#include "pbft/chain.hpp"
 #include "network/tarcap/shared_states/peers_state.hpp"
 #include "network/tarcap/shared_states/test_state.hpp"
 #include "network/tarcap/stats/node_stats.hpp"
+#include "pbft/pbft_chain.hpp"
 #include "threadpool/tarcap_thread_pool.hpp"
 
 namespace taraxa {

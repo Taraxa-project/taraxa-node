@@ -1,11 +1,11 @@
 #pragma once
 
-#include "config/state_api.hpp"
-#include "dag/dag_block.hpp"
-#include "vdf/sortition.hpp"
+#include "config/state_api_config.hpp"
+#include "dag/block.hpp"
 #include "final_chain/final_chain.hpp"
-#include "transaction_manager/transaction.hpp"
+#include "pbft/pbft_chain.hpp"
 #include "transaction_manager/transaction_manager.hpp"
+#include "vdf/sortition.hpp"
 
 namespace taraxa {
 

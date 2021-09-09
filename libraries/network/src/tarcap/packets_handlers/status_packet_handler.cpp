@@ -1,12 +1,12 @@
 #include "network/tarcap/packets_handlers/status_packet_handler.hpp"
 
 #include "config/version.hpp"
-#include "pbft/chain.hpp"
-#include "pbft/manager.hpp"
-#include "vote/vote.hpp"
 #include "dag/dag.hpp"
 #include "network/tarcap/packets_handlers/common/syncing_handler.hpp"
 #include "network/tarcap/shared_states/syncing_state.hpp"
+#include "pbft/pbft_chain.hpp"
+#include "pbft/pbft_manager.hpp"
+#include "vote/vote_manager.hpp"
 
 namespace taraxa::network::tarcap {
 

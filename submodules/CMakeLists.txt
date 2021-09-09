@@ -133,3 +133,11 @@ add_library(taraxa-evm INTERFACE)
 add_dependencies(taraxa-evm taraxa_evm_build)
 target_link_libraries(taraxa-evm INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/taraxa-evm/lib/${EVM_LIBRARY_NAME})
 target_include_directories(taraxa-evm INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/taraxa-evm/include)
+
+# needed for golang runtime that comes together with taraxa-evm
+if (APPLE)  # if "APPLE" not sufficient, use if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    target_link_libraries(taraxa-evm INTERFACE "-framework CoreFoundation")
+    target_link_libraries(taraxa-evm INTERFACE "-framework Security")
+else ()
+    target_link_libraries(taraxa-evm INTERFACE stdc++fs)
+endif ()

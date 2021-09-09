@@ -11,7 +11,7 @@
 #include "dag/dag.hpp"
 #include "logger/log.hpp"
 #include "pbft/block_proposer.hpp"
-#include "pbft/manager.hpp"
+#include "pbft/pbft_manager.hpp"
 #include "util_test/samples.hpp"
 #include "util_test/util.hpp"
 

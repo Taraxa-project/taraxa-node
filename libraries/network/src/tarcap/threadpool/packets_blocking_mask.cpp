@@ -1,6 +1,6 @@
 #include "network/tarcap/threadpool/packets_blocking_mask.hpp"
 
-#include "dag/dag_block.hpp"
+#include "dag/block.hpp"
 
 namespace taraxa::network::tarcap {
 

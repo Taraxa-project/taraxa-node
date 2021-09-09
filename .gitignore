@@ -1,4 +1,5 @@
 .vscode
+compile_commands.json
 
 # clangd indexer cache
 .cache

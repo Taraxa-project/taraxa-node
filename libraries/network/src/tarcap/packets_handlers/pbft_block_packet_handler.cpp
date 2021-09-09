@@ -2,8 +2,8 @@
 
 #include <libp2p/Common.h>
 
-#include "pbft/chain.hpp"
-#include "pbft/manager.hpp"
+#include "pbft/pbft_chain.hpp"
+#include "pbft/pbft_manager.hpp"
 
 namespace taraxa::network::tarcap {
 

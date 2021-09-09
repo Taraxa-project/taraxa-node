@@ -2,9 +2,6 @@
 
 #include <algorithm>
 
-#include "pbft/chain.hpp"
-#include "pbft/manager.hpp"
-#include "vote/vote.hpp"
 #include "dag/dag.hpp"
 #include "network/tarcap/packets_handler.hpp"
 #include "network/tarcap/packets_handlers/common/syncing_handler.hpp"
@@ -22,8 +19,11 @@
 #include "network/tarcap/shared_states/test_state.hpp"
 #include "network/tarcap/stats/node_stats.hpp"
 #include "network/tarcap/taraxa_peer.hpp"
-#include "node/full_node.hpp"
+#include "node/node.hpp"
+#include "pbft/pbft_chain.hpp"
+#include "pbft/pbft_manager.hpp"
 #include "transaction_manager/transaction_manager.hpp"
+#include "vote/vote.hpp"
 
 namespace taraxa::network::tarcap {
 

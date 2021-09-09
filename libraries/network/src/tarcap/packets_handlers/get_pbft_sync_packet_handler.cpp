@@ -1,9 +1,9 @@
 #include "network/tarcap/packets_handlers/get_pbft_sync_packet_handler.hpp"
 
-#include "pbft/chain.hpp"
-#include "vote/vote.hpp"
 #include "network/tarcap/shared_states/syncing_state.hpp"
-#include "storage/db_storage.hpp"
+#include "pbft/pbft_chain.hpp"
+#include "storage/storage.hpp"
+#include "vote/vote.hpp"
 
 namespace taraxa::network::tarcap {
 

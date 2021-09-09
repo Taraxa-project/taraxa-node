@@ -4,8 +4,8 @@
 #include "common/static_init.hpp"
 #include "logger/log.hpp"
 #include "network/network.hpp"
-#include "node/full_node.hpp"
-#include "pbft/manager.hpp"
+#include "node/node.hpp"
+#include "pbft/pbft_manager.hpp"
 #include "util_test/util.hpp"
 
 namespace taraxa::core_tests {

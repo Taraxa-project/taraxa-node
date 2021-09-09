@@ -1,8 +1,8 @@
 #include "pbft/sync_queue.hpp"
 
-#include "pbft/chain.hpp"
-#include "dag/dag_block.hpp"
-#include "transaction_manager/transaction.hpp"
+#include "dag/block.hpp"
+#include "pbft/pbft_chain.hpp"
+#include "transaction/transaction.hpp"
 
 namespace taraxa {
 

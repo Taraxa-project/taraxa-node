@@ -1,4 +1,4 @@
-#include "transaction_manager/transaction.hpp"
+#include "transaction/transaction.hpp"
 
 #include <gtest/gtest.h>
 #include <libdevcore/CommonJS.h>

@@ -1,9 +1,10 @@
 #pragma once
 
 #include <libp2p/Host.h>
-#include "pbft/sync_block.hpp"
 
 #include <deque>
+
+#include "pbft/sync_block.hpp"
 
 namespace taraxa {
 

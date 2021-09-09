@@ -3,7 +3,7 @@
 
 #include "cli/config.hpp"
 #include "common/static_init.hpp"
-#include "node/full_node.hpp"
+#include "node/node.hpp"
 
 using namespace taraxa;
 using namespace std;

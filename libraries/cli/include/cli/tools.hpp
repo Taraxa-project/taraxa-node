@@ -3,10 +3,10 @@
 #include <json/json.h>
 #include <libdevcrypto/Common.h>
 
-#include "common/vrf_wrapper.hpp"
 #include <string>
 
 #include "cli/config.hpp"
+#include "common/vrf_wrapper.hpp"
 
 namespace taraxa::cli {
 

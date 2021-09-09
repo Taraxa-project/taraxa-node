@@ -1,6 +1,6 @@
 #pragma once
 
-#include "dag/dag_block.hpp"
+#include "dag/block.hpp"
 #include "get_blocks_request_type.hpp"
 #include "packet_handler.hpp"
 

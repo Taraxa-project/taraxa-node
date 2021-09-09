@@ -37,7 +37,7 @@ std::optional<vrf_output_t> getVrfOutput(vrf_pk_t const &pk, vrf_proof_t const &
   return {};
 }
 
-bool VrfSortitionBase::verify(bytes const &msg) {
+bool VrfSortitionBase::verify(bytes const &msg) const {
   if (!isValidVrfPublicKey(pk)) {
     return false;
   }
