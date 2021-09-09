@@ -180,7 +180,7 @@ struct DbStorage : std::enable_shared_from_this<DbStorage> {
   void saveDagBlock(DagBlock const& blk, Batch* write_batch_p = nullptr);
   shared_ptr<DagBlock> getDagBlock(blk_hash_t const& hash);
   bool dagBlockInDb(blk_hash_t const& hash);
-  string getBlocksByLevel(level_t level);
+  std::set<blk_hash_t> getBlocksByLevel(level_t level);
   std::vector<std::shared_ptr<DagBlock>> getDagBlocksAtLevel(level_t level, int number_of_levels);
   void updateDagBlockCounters(Batch& write_batch, std::vector<DagBlock> blks);
 

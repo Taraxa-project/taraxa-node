@@ -42,7 +42,7 @@ struct FinalChainTest : WithDataDir {
     vector<h256> trx_hashes;
     int pos = 0;
     for (auto const& trx : trxs) {
-      db->saveTransactionStatus(trx.getHash(), TransactionStatus(TransactionStatusEnum::executed, 1, pos++));
+      db->saveTransactionStatus(trx.getHash(), TransactionStatus(TransactionStatusEnum::finalized, 1, pos++));
       trx_hashes.emplace_back(trx.getHash());
     }
     DagBlock dag_blk({}, {}, {}, trx_hashes, {}, secret_t::random());

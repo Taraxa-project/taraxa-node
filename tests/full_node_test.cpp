@@ -87,8 +87,12 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(blk1, *db.getDagBlock(blk1.getHash()));
   EXPECT_EQ(blk2, *db.getDagBlock(blk2.getHash()));
   EXPECT_EQ(blk3, *db.getDagBlock(blk3.getHash()));
-  EXPECT_EQ(db.getBlocksByLevel(1), blk1.getHash().toString() + "," + blk2.getHash().toString());
-  EXPECT_EQ(db.getBlocksByLevel(2), blk3.getHash().toString());
+  std::set<blk_hash_t> s1, s2;
+  s1.emplace(blk1.getHash());
+  s1.emplace(blk2.getHash());
+  s2.emplace(blk3.getHash());
+  EXPECT_EQ(db.getBlocksByLevel(1), s1);
+  EXPECT_EQ(db.getBlocksByLevel(2), s2);
 
   // Transaction
   db.saveTransaction(g_trx_signed_samples[0]);

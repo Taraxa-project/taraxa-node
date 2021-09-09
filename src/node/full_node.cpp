@@ -87,7 +87,7 @@ void FullNode::init() {
   trx_mgr_ = std::make_shared<TransactionManager>(conf_, node_addr, db_, log_time_);
 
   auto genesis_hash = conf_.chain.dag_genesis_block.getHash();
-  auto dag_genesis_hash_from_db = blk_hash_t(db_->getBlocksByLevel(0));
+  auto dag_genesis_hash_from_db = *db_->getBlocksByLevel(0).begin();
   if (genesis_hash != dag_genesis_hash_from_db) {
     LOG(log_er_) << "The DAG genesis block hash " << genesis_hash << " in config is different with "
                  << dag_genesis_hash_from_db << " in DB";

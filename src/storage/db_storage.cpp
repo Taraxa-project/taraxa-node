@@ -230,18 +230,19 @@ bool DbStorage::dagBlockInDb(blk_hash_t const& hash) {
   return false;
 }
 
-std::string DbStorage::getBlocksByLevel(level_t level) { return lookup(toSlice(level), Columns::dag_blocks_index); }
+std::set<blk_hash_t> DbStorage::getBlocksByLevel(level_t level) {
+  auto data = asBytes(lookup(toSlice(level), Columns::dag_blocks_index));
+  dev::RLP rlp(data);
+  return rlp.toSet<blk_hash_t>();
+}
 
 std::vector<std::shared_ptr<DagBlock>> DbStorage::getDagBlocksAtLevel(level_t level, int number_of_levels) {
   std::vector<std::shared_ptr<DagBlock>> res;
   for (int i = 0; i < number_of_levels; i++) {
     if (level + i == 0) continue;  // Skip genesis
-    string entry = getBlocksByLevel(level + i);
-    if (entry.empty()) break;
-    vector<string> blocks;
-    boost::split(blocks, entry, boost::is_any_of(","));
-    for (auto const& block : blocks) {
-      auto blk = getDagBlock(blk_hash_t(block));
+    auto block_hashes = getBlocksByLevel(level + i);
+    for (auto const& hash : block_hashes) {
+      auto blk = getDagBlock(hash);
       if (blk) {
         res.push_back(blk);
       }
@@ -255,13 +256,13 @@ void DbStorage::updateDagBlockCounters(Batch& write_batch, vector<DagBlock> blks
   lock_guard<mutex> u_lock(dag_blocks_mutex_);
   for (auto const& blk : blks) {
     auto level = blk.getLevel();
-    std::string blocks = getBlocksByLevel(level);
-    if (blocks == "") {
-      blocks = blk.getHash().toString();
-    } else {
-      blocks = blocks + "," + blk.getHash().toString();
+    auto block_hashes = getBlocksByLevel(level);
+    block_hashes.emplace(blk.getHash());
+    RLPStream blocks_stream(block_hashes.size());
+    for (auto const& hash : block_hashes) {
+      blocks_stream << hash;
     }
-    insert(write_batch, Columns::dag_blocks_index, toSlice(level), toSlice(blocks));
+    insert(write_batch, Columns::dag_blocks_index, toSlice(level), toSlice(blocks_stream.out()));
     dag_blocks_count_.fetch_add(1);
     // Do not count genesis pivot field
     if (blk.getPivot() == blk_hash_t(0)) {
@@ -284,13 +285,13 @@ void DbStorage::saveDagBlock(DagBlock const& blk, Batch* write_batch_p) {
   auto block_hash = blk.getHash();
   insert(write_batch, Columns::dag_blocks, toSlice(block_hash.asBytes()), toSlice(block_bytes));
   auto level = blk.getLevel();
-  std::string blocks = getBlocksByLevel(level);
-  if (blocks == "") {
-    blocks = blk.getHash().toString();
-  } else {
-    blocks = blocks + "," + blk.getHash().toString();
+  auto block_hashes = getBlocksByLevel(level);
+  block_hashes.emplace(blk.getHash());
+  RLPStream blocks_stream(block_hashes.size());
+  for (auto const& hash : block_hashes) {
+    blocks_stream << hash;
   }
-  insert(write_batch, Columns::dag_blocks_index, toSlice(level), toSlice(blocks));
+  insert(write_batch, Columns::dag_blocks_index, toSlice(level), toSlice(blocks_stream.out()));
   dag_blocks_count_.fetch_add(1);
   insert(write_batch, Columns::status, toSlice((uint8_t)StatusDbField::DagBlkCount), toSlice(dag_blocks_count_.load()));
   // Do not count genesis pivot field
@@ -342,7 +343,7 @@ void DbStorage::savePeriodData(const SyncBlock& sync_block, Batch& write_batch) 
     // Remove transactions
     remove(write_batch, Columns::transactions, toSlice(trx.getHash()));
     addTransactionStatusToBatch(write_batch, trx.getHash(),
-                                TransactionStatus(TransactionStatusEnum::executed, period, position));
+                                TransactionStatus(TransactionStatusEnum::finalized, period, position));
     position++;
   }
 
@@ -419,7 +420,7 @@ std::shared_ptr<Transaction> DbStorage::getTransaction(trx_hash_t const& hash) {
     case TransactionStatusEnum::not_seen: {
       return nullptr;
     }
-    case TransactionStatusEnum::executed: {
+    case TransactionStatusEnum::finalized: {
       auto period_data = getPeriodDataRaw(status.period);
       // DB is corrupted if status point to missing or incorrect transaction
       assert(period_data.size() > 0);

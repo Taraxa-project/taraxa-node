@@ -96,9 +96,9 @@ std::pair<bool, std::string> TransactionManager::insertTransaction(const Transac
       case TransactionStatusEnum::in_block:
         LOG(log_dg_) << "Trx: " << hash << "skip, seen in block. " << std::endl;
         return std::make_pair(false, "in block");
-      case TransactionStatusEnum::executed:
-        LOG(log_dg_) << "Trx: " << hash << "skip, executed " << std::endl;
-        return std::make_pair(false, "executed");
+      case TransactionStatusEnum::finalized:
+        LOG(log_dg_) << "Trx: " << hash << "skip, finalized " << std::endl;
+        return std::make_pair(false, "finalized");
       case TransactionStatusEnum::invalid:
         LOG(log_dg_) << "Trx: " << hash << "skip, seen but invalid. " << std::endl;
         return std::make_pair(false, "already invalid");
@@ -178,7 +178,7 @@ uint32_t TransactionManager::insertBroadcastedTransactions(const std::vector<tar
         case TransactionStatusEnum::in_block:
           LOG(log_dg_) << "Trx: " << trx_hash << " skipped, seen in block.";
           break;
-        case TransactionStatusEnum::executed:
+        case TransactionStatusEnum::finalized:
           LOG(log_dg_) << "Trx: " << trx_hash << " skipped, executed.";
           break;
         case TransactionStatusEnum::invalid:
@@ -436,7 +436,7 @@ bool TransactionManager::verifyBlockTransactions(DagBlock const &blk, std::vecto
         status = TransactionStatus(RLP(data));
       }
 
-      if (status.state != TransactionStatusEnum::in_block && status.state != TransactionStatusEnum::executed) {
+      if (status.state != TransactionStatusEnum::in_block && status.state != TransactionStatusEnum::finalized) {
         const trx_hash_t &trx_hash = all_block_trx_hashes[idx];
         newly_added_txs_to_block_counter++;
         accepted_trx_hashes.push_back(trx_hash);

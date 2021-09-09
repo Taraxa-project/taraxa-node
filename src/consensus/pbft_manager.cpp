@@ -1320,7 +1320,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     for (uint32_t i = 0; i < trx_statuses.size(); i++) {
       if (trx_statuses[i].state == TransactionStatusEnum::in_block) {
         non_executed_transactions.emplace_back(trx_hashes[i]);
-      } else if (trx_statuses[i].state != TransactionStatusEnum::executed) {
+      } else if (trx_statuses[i].state != TransactionStatusEnum::finalized) {
         LOG(log_er_) << "DAG anchor block hash " << dag_block_hash << " try incorrect state for block " << blk_hash
                      << " trx: " << trx_hashes[i] << " state : " << (uint16_t)trx_statuses[i].state;
         assert(false);
