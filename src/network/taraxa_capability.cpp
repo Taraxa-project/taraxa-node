@@ -327,7 +327,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
       // and by syncing here we open node up to attack of sending bogus
       // status.  We also have nothing to punish a node failing to send
       // sync info.
-      auto pbft_synced_period = pbftSyncingPeriod();
+      auto pbft_synced_period = pbft_mgr_->pbftSyncingPeriod();
       if (pbft_synced_period + 1 < peer->pbft_chain_size_) {
         LOG(log_nf_) << "Restart PBFT chain syncing. Own synced PBFT at period " << pbft_synced_period
                      << ", peer PBFT chain size " << peer->pbft_chain_size_;
@@ -720,7 +720,7 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         peer->pbft_chain_size_ = peer_pbft_chain_size;
       }
 
-      auto pbft_synced_period = pbftSyncingPeriod();
+      auto pbft_synced_period = pbft_mgr_->pbftSyncingPeriod();
       if (pbft_synced_period >= pbft_block->getPeriod()) {
         LOG(log_dg_pbft_prp_) << "Drop it! Synced PBFT block at period " << pbft_block->getPeriod()
                               << ", own PBFT chain has synced at period " << pbft_synced_period;
@@ -764,10 +764,10 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
         peer->markPbftBlockAsKnown(pbft_blk_hash);
         LOG(log_dg_pbft_sync_) << "Processing pbft block: " << pbft_blk_hash;
 
-        if (sync_block.pbft_blk->getPeriod() != pbftSyncingPeriod() + 1) {
+        if (sync_block.pbft_blk->getPeriod() != pbft_mgr_->pbftSyncingPeriod() + 1) {
           LOG(log_dg_pbft_sync_) << "Block " << pbft_blk_hash
                                  << " period unexpected: " << sync_block.pbft_blk->getPeriod()
-                                 << ". Expected period: " << pbftSyncingPeriod() + 1;
+                                 << ". Expected period: " << pbft_mgr_->pbftSyncingPeriod() + 1;
           return;
         }
         // Update peer's pbft period if outdated
@@ -775,9 +775,9 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
           peer->pbft_chain_size_ = sync_block.pbft_blk->getPeriod();
         }
 
-        syncBlockQueuePush(sync_block, _nodeID);
+        pbft_mgr_->syncBlockQueuePush(sync_block, _nodeID);
 
-        auto pbft_sync_period = pbftSyncingPeriod();
+        auto pbft_sync_period = pbft_mgr_->pbftSyncingPeriod();
         LOG(log_nf_pbft_sync_) << "Synced PBFT block hash " << pbft_blk_hash << " with " << sync_block.cert_votes.size()
                                << " cert votes";
         LOG(log_dg_pbft_sync_) << "Synced PBFT block " << sync_block;
@@ -812,9 +812,9 @@ void TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID, unsi
 }
 
 void TaraxaCapability::pbftSyncComplete() {
-  if (syncBlockQueueSize()) {
+  if (pbft_mgr_->syncBlockQueueSize()) {
     LOG(log_dg_pbft_sync_) << "Syncing pbft blocks faster than processing. Remaining sync size "
-                           << syncBlockQueueSize();
+                           << pbft_mgr_->syncBlockQueueSize();
     tp_.post(1000, [this] { pbftSyncComplete(); });
   } else {
     LOG(log_dg_pbft_sync_) << "Syncing PBFT is completed";
@@ -847,7 +847,7 @@ void TaraxaCapability::handle_read_exception(weak_ptr<Session> session, unsigned
 }
 
 void TaraxaCapability::delayedPbftSync(int counter) {
-  auto pbft_sync_period = pbftSyncingPeriod();
+  auto pbft_sync_period = pbft_mgr_->pbftSyncingPeriod();
   if (counter > 60) {
     LOG(log_er_pbft_sync_) << "Pbft blocks stuck in queue, no new block processed in 60 seconds " << pbft_sync_period
                            << " " << pbft_chain_->getPbftChainSize();
@@ -892,7 +892,7 @@ void TaraxaCapability::restartSyncingPbft(bool force) {
     }
   }
 
-  auto pbft_sync_period = pbftSyncingPeriod();
+  auto pbft_sync_period = pbft_mgr_->pbftSyncingPeriod();
   if (max_pbft_chain_size > pbft_sync_period) {
     LOG(log_si_pbft_sync_) << "Restarting syncing PBFT from peer " << max_pbft_chain_nodeID << ", peer PBFT chain size "
                            << max_pbft_chain_size << ", own PBFT chain synced at period " << pbft_sync_period;
@@ -1280,7 +1280,7 @@ void TaraxaCapability::logNodeStats() {
   auto local_twotplusone = pbft_mgr_->getTwoTPlusOne();
 
   // Syncing period...
-  auto local_pbft_sync_period = pbftSyncingPeriod();
+  auto local_pbft_sync_period = pbft_mgr_->pbftSyncingPeriod();
 
   // Decide if making progress...
   auto pbft_consensus_rounds_advanced = local_pbft_round - local_pbft_round_prev_interval_;
@@ -1593,99 +1593,12 @@ void TaraxaCapability::broadcastPreviousRoundNextVotesBundle() {
   }
 }
 
-uint64_t TaraxaCapability::pbftSyncingPeriod() const {
-  shared_lock lock(sync_queue_access_);
-  if (sync_queue_.size()) {
-    return sync_queue_.back().first.pbft_blk->getPeriod();
-  } else {
-    return pbft_chain_->getPbftChainSize();
-  }
-}
-
-void TaraxaCapability::syncBlockQueuePop() {
-  unique_lock lock(sync_queue_access_);
-  sync_queue_.pop();
-}
-
-void TaraxaCapability::handleMaliciousSyncBlock(NodeID const &id) {
+void TaraxaCapability::handleMaliciousSyncPeer(NodeID const &id) {
   syncing_state_.set_peer_malicious(id);
   auto host = host_.lock();
   if (host) host->disconnect(id, p2p::UserReason);
-  clearSyncBlockQueue();
+  pbft_mgr_->clearSyncBlockQueue();
   restartSyncingPbft(true);
-}
-
-std::optional<SyncBlock> TaraxaCapability::processSyncBlock() {
-  shared_lock lock(sync_queue_access_);
-  auto sync_block = sync_queue_.front();
-  lock.unlock();
-  auto pbft_block_hash = sync_block.first.pbft_blk->getBlockHash();
-  LOG(log_nf_) << "Pop pbft block " << pbft_block_hash << " from synced queue";
-
-  // Check previous hash matches
-  if (sync_block.first.pbft_blk->getPrevBlockHash() != pbft_chain_->getLastPbftBlockHash()) {
-    LOG(log_er_pbft_sync_) << "Invalid PBFT block " << pbft_block_hash
-                           << "; prevHash: " << sync_block.first.pbft_blk->getPrevBlockHash() << " from peer "
-                           << sync_block.second.abridged() << " received, stop syncing.";
-    handleMaliciousSyncBlock(sync_queue_.front().second);
-    return nullopt;
-  }
-
-  // Check cert vote matches
-  for (auto const &vote : sync_block.first.cert_votes) {
-    if (vote.getBlockHash() != pbft_block_hash) {
-      LOG(log_er_pbft_sync_) << "Invalid cert votes block hash " << vote.getBlockHash() << " instead of "
-                             << pbft_block_hash << " from peer " << sync_block.second.abridged()
-                             << " received, stop syncing.";
-      handleMaliciousSyncBlock(sync_queue_.front().second);
-      return nullopt;
-    }
-  }
-
-  auto order_hash = pbft_mgr_->calculateOrderHash(sync_block.first.dag_blocks, sync_block.first.transactions);
-  if (order_hash != sync_block.first.pbft_blk->getOrderHash()) {
-    LOG(log_er_pbft_sync_) << "Order hash incorrect in sync block " << pbft_block_hash << " expected: " << order_hash
-                           << " received " << sync_block.first.pbft_blk->getOrderHash() << " from "
-                           << sync_block.second.abridged() << ", stop syncing.";
-    handleMaliciousSyncBlock(sync_block.second);
-    return nullopt;
-  }
-
-  if (pbft_chain_->findPbftBlockInChain(pbft_block_hash)) {
-    LOG(log_dg_) << "PBFT block " << pbft_block_hash << " already present in chain.";
-    syncBlockQueuePop();
-    return nullopt;
-  }
-
-  // Check cert votes validation
-  if (!vote_mgr_->pbftBlockHasEnoughValidCertVotes(sync_block.first, pbft_mgr_->getDposTotalVotesCount(),
-                                                   pbft_mgr_->getSortitionThreshold(), pbft_mgr_->getTwoTPlusOne())) {
-    // Failed cert votes validation, flush synced PBFT queue and set since
-    // next block validation depends on the current one
-    LOG(log_er_) << "Synced PBFT block " << pbft_block_hash
-                 << " doesn't have enough valid cert votes. Clear synced PBFT blocks! DPOS total votes count: "
-                 << pbft_mgr_->getDposTotalVotesCount();
-    handleMaliciousSyncBlock(sync_block.second);
-    return nullopt;
-  }
-  syncBlockQueuePop();
-  return std::optional<SyncBlock>(std::move(sync_block.first));
-}
-
-void TaraxaCapability::syncBlockQueuePush(SyncBlock const &block, NodeID const &node_id) {
-  unique_lock lock(sync_queue_access_);
-  sync_queue_.push({block, node_id});
-}
-
-void TaraxaCapability::clearSyncBlockQueue() {
-  unique_lock lock(sync_queue_access_);
-  std::queue<std::pair<SyncBlock, NodeID>> empty;
-  std::swap(sync_queue_, empty);
-}
-
-size_t TaraxaCapability::syncBlockQueueSize() const {
-  shared_lock lock(sync_queue_access_);
-  return sync_queue_.size();
 }
 
 Json::Value TaraxaCapability::getStatus() const {

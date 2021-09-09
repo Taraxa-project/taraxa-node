@@ -47,8 +47,11 @@ class SyncingState {
 
   dev::p2p::NodeID syncing_peer() const;
 
-  void set_peer_malicious();
-  void set_peer_malicious(const dev::p2p::NodeID& peer_id);
+  /**
+   * @brief Marks peer as malicious, in case none is provided, peer_id_ (node that we currently syncing with) is marked
+   * @param peer_id
+   */
+  void set_peer_malicious(const std::optional<dev::p2p::NodeID>& peer_id = {});
   bool is_peer_malicious(const dev::p2p::NodeID& peer_id) const;
 
  private:

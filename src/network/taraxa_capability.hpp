@@ -112,13 +112,7 @@ struct TaraxaCapability : virtual CapabilityFace {
   void sendTransactions();
   std::string packetTypeToString(unsigned int _packetType) const override;
 
-  uint64_t pbftSyncingPeriod() const;
-  void syncBlockQueuePop();
-  std::optional<SyncBlock> processSyncBlock();
-  void syncBlockQueuePush(SyncBlock const &block, NodeID const &node_id);
-  void clearSyncBlockQueue();
-  size_t syncBlockQueueSize() const;
-  void handleMaliciousSyncBlock(NodeID const &id);
+  void handleMaliciousSyncPeer(NodeID const &id);
 
   // PBFT
   void onNewPbftVote(taraxa::Vote const &vote);
