@@ -459,4 +459,18 @@ Json::Value Test::get_pbft_chain_blocks(const Json::Value &param1) {
   return res;
 }
 
+Json::Value Test::get_db_stats() {
+  Json::Value res;
+  try {
+    if (auto node = full_node_.lock()) {
+      for (auto const &col : taraxa::DB::Columns::all) {
+        res[col.name()] = node->getDB()->getColumnSize(col);
+      }
+    }
+  } catch (std::exception &e) {
+    res["status"] = e.what();
+  }
+  return res;
+}
+
 }  // namespace taraxa::net

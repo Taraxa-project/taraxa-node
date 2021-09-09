@@ -298,6 +298,8 @@ struct DbStorage : std::enable_shared_from_this<DbStorage> {
 
   bool hasMinorVersionChanged() { return minor_version_changed_; }
 
+  uint64_t getColumnSize(Column const& col) const;
+
   inline static bytes asBytes(string const& b) {
     return bytes((byte const*)b.data(), (byte const*)(b.data() + b.size()));
   }

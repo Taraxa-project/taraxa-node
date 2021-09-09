@@ -817,6 +817,12 @@ void DbStorage::addProposalPeriodDagLevelsMapToBatch(ProposalPeriodDagLevelsMap 
          toSlice(period_levels_map.rlp()));
 }
 
+uint64_t DbStorage::getColumnSize(Column const& col) const {
+  rocksdb::ColumnFamilyMetaData data;
+  db_->GetColumnFamilyMetaData(handle(col), &data);
+  return data.size;
+}
+
 void DbStorage::forEach(Column const& col, OnEntry const& f) {
   auto i = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(col)));
   for (i->SeekToFirst(); i->Valid(); i->Next()) {
