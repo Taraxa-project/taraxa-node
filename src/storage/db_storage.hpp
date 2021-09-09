@@ -14,6 +14,7 @@
 #include "dag/dag_block.hpp"
 #include "dag/proposal_period_levels_map.hpp"
 #include "logger/log.hpp"
+#include "network/sync_block.hpp"
 #include "transaction_manager/transaction.hpp"
 #include "transaction_manager/transaction_status.hpp"
 
@@ -58,7 +59,7 @@ class DbException : public exception {
 struct DbStorage;
 using DB = DbStorage;
 
-struct DbStorage {
+struct DbStorage : std::enable_shared_from_this<DbStorage> {
   using Slice = rocksdb::Slice;
   using Batch = rocksdb::WriteBatch;
   using OnEntry = function<bool(Slice const&, Slice const&)>;
@@ -166,12 +167,8 @@ struct DbStorage {
   void loadSnapshots();
 
   // Period data
-  void savePeriodData(const PbftBlock& pbft_block, const std::vector<Vote>& cert_votes,
-                      const std::vector<DagBlock>& dag_blocks, const std::vector<Transaction>& transactions,
-                      Batch& write_batch);
+  void savePeriodData(const SyncBlock& sync_block, Batch& write_batch);
   dev::bytes getPeriodDataRaw(uint64_t period);
-  PbftBlock parsePeriodData(RLP& rlp, std::vector<Vote>& cert_votes, std::vector<DagBlock>& dag_blocks,
-                            std::vector<Transaction>& transactions);
   shared_ptr<PbftBlock> getPbftBlock(uint64_t period);
 
   static constexpr uint16_t PBFT_BLOCK_POS_IN_PERIOD_DATA = 0;
@@ -183,8 +180,9 @@ struct DbStorage {
   void saveDagBlock(DagBlock const& blk, Batch* write_batch_p = nullptr);
   shared_ptr<DagBlock> getDagBlock(blk_hash_t const& hash);
   bool dagBlockInDb(blk_hash_t const& hash);
-  string getBlocksByLevel(level_t level);
+  std::set<blk_hash_t> getBlocksByLevel(level_t level);
   std::vector<std::shared_ptr<DagBlock>> getDagBlocksAtLevel(level_t level, int number_of_levels);
+  void updateDagBlockCounters(Batch& write_batch, std::vector<DagBlock> blks);
 
   // DAG state
   void addDagBlockStateToBatch(Batch& write_batch, blk_hash_t const& blk_hash, bool finalized);
@@ -201,6 +199,7 @@ struct DbStorage {
   void saveTransactionStatus(trx_hash_t const& trx, TransactionStatus const& status);
   void addTransactionStatusToBatch(Batch& write_batch, trx_hash_t const& trx, TransactionStatus const& status);
   TransactionStatus getTransactionStatus(trx_hash_t const& hash);
+  std::vector<TransactionStatus> getTransactionStatus(std::vector<trx_hash_t> const& trx_hashes);
   std::unordered_map<trx_hash_t, TransactionStatus> getAllTransactionStatus();
 
   // PBFT manager

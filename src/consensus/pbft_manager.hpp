@@ -75,6 +75,10 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   size_t getDposTotalVotesCount() const;
   size_t getDposWeightedVotesCount() const;
 
+  blk_hash_t calculateOrderHash(std::vector<blk_hash_t> const &dag_block_hashes,
+                                std::vector<trx_hash_t> const &trx_hashes);
+  blk_hash_t calculateOrderHash(std::vector<DagBlock> const &dag_blocks, std::vector<Transaction> const &transactions);
+
   // Notice: Test purpose
   // TODO: Add a check for some kind of guards to ensure these are only called from within a test
   void setSortitionThreshold(size_t const sortition_threshold);
@@ -146,7 +150,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   void pushSyncedPbftBlocksIntoChain_();
 
   void finalize_(PbftBlock const &pbft_block, vector<h256> finalized_dag_blk_hashes, bool sync = false);
-  bool pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes, vec_blk_t const &dag_blocks_order, bool sync = false);
+  bool pushPbftBlock_(SyncBlock &sync_block, vec_blk_t &dag_blocks_order, bool sync = false);
 
   void updateTwoTPlusOneAndThreshold_();
   bool is_syncing_();
@@ -231,8 +235,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   size_t pbft_step_last_requested_sync_ = 0;
   uint64_t pbft_round_last_broadcast_ = 0;
   size_t pbft_step_last_broadcast_ = 0;
-
-  size_t pbft_last_observed_synced_queue_size_ = 0;
 
   std::atomic<uint64_t> dpos_period_;
   std::atomic<size_t> dpos_votes_count_;

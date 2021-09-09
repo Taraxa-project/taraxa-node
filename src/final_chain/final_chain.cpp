@@ -91,11 +91,8 @@ class FinalChainImpl final : public FinalChain {
       // This artificial scope will make sure we clean up the big chunk of memory allocated for this batch-processing
       // stuff as soon as possible
       auto period_raw = db_->getPeriodDataRaw(period);
-      RLP period_rlp(period_raw);
-      std::vector<Vote> votes;
-      std::vector<DagBlock> dag_blocks;
-      std::vector<Transaction> period_transactions;
-      db_->parsePeriodData(period_rlp, votes, dag_blocks, period_transactions);
+      SyncBlock sync_block(period_raw);
+      std::vector<Transaction>& period_transactions = sync_block.transactions;
       DB::MultiGetQuery db_query(db_, period_transactions.size());
       for (auto const& trx : period_transactions) {
         db_query.append(DB::Columns::final_chain_transaction_location_by_hash, trx.getHash());

@@ -495,7 +495,7 @@ bool VoteManager::voteValidation(taraxa::Vote& vote, size_t const dpos_total_vot
   return true;
 }
 
-bool VoteManager::pbftBlockHasEnoughValidCertVotes(PbftBlockCert& pbft_block_and_votes, size_t dpos_total_votes_count,
+bool VoteManager::pbftBlockHasEnoughValidCertVotes(SyncBlock& pbft_block_and_votes, size_t dpos_total_votes_count,
                                                    size_t sortition_threshold, size_t pbft_2t_plus_1) const {
   if (pbft_block_and_votes.cert_votes.empty()) {
     LOG(log_er_) << "No any cert votes! The synced PBFT block comes from a "
