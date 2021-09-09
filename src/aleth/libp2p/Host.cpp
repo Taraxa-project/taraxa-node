@@ -138,8 +138,12 @@ Host::~Host() {
 ba::io_context::count_type Host::do_work() {
   ba::io_context::count_type ret = 0;
   if (fully_initialized_) {
-    ret += ioc_.poll();
-    ret += session_ioc_.poll();
+    try {
+      ret += ioc_.poll();
+      ret += session_ioc_.poll();
+    } catch (std::exception const& e) {
+      cerror << "Host::do_work exception: " << e.what();
+    }
   }
   return ret;
 }
