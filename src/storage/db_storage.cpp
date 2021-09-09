@@ -319,18 +319,17 @@ void DbStorage::savePeriodData(const PbftBlock& pbft_block, const std::vector<Vo
     s.appendRaw(vote.rlp());
   }
   s.appendList(dag_blocks.size());
-  std::vector<Slice> dag_blks_to_remove;
-  std::vector<Slice> trxs_to_remove;
-  dag_blks_to_remove.reserve(dag_blocks.size());
   for (auto const& block : dag_blocks) {
-    dag_blks_to_remove.emplace_back(toSlice(block.getHash()));
+    // Remove dag blocks
+    remove(write_batch, Columns::dag_blocks, toSlice(block.getHash()));
     s.appendRaw(block.rlp(true));
   }
   s.appendList(transactions.size());
   uint64_t position = 0;
-  trxs_to_remove.reserve(transactions.size());
+
   for (auto const& trx : transactions) {
-    trxs_to_remove.emplace_back(toSlice(trx.getHash()));
+    // Remove transactions
+    remove(write_batch, Columns::transactions, toSlice(trx.getHash()));
     addTransactionStatusToBatch(write_batch, trx.getHash(),
                                 TransactionStatus(TransactionStatusEnum::executed, period, position));
     s.appendRaw(*trx.rlp());
@@ -338,14 +337,6 @@ void DbStorage::savePeriodData(const PbftBlock& pbft_block, const std::vector<Vo
   }
 
   insert(write_batch, Columns::period_data, toSlice(period), toSlice(s.invalidate()));
-
-  // Remove dag blocks
-  SliceParts blkSliceParts(&dag_blks_to_remove[0], dag_blks_to_remove.size());
-  checkStatus(write_batch.Delete(handle(Columns::dag_blocks), blkSliceParts));
-
-  // Remove transactions
-  SliceParts trxSliceParts(&trxs_to_remove[0], trxs_to_remove.size());
-  checkStatus(write_batch.Delete(handle(Columns::transactions), trxSliceParts));
 }
 
 dev::bytes DbStorage::getPeriodDataRaw(uint64_t period) {
