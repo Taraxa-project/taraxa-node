@@ -272,8 +272,6 @@ size_t PbftManager::getSortitionThreshold() const { return sortition_threshold_;
 
 size_t PbftManager::getTwoTPlusOne() const { return TWO_T_PLUS_ONE; }
 
-void PbftManager::setTwoTPlusOne(size_t const two_t_plus_one) { TWO_T_PLUS_ONE = two_t_plus_one; }
-
 // Notice: Test purpose
 void PbftManager::setSortitionThreshold(size_t const sortition_threshold) {
   sortition_threshold_ = sortition_threshold;
@@ -612,17 +610,6 @@ void PbftManager::setFinishPollingState_() {
   current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
 }
 
-void PbftManager::continueFinishPollingState_(size_t step) {
-  state_ = finish_polling_state;
-  setPbftStep(step);
-  auto batch = db_->createWriteBatch();
-  db_->addPbftMgrStatusToBatch(PbftMgrStatus::NextVotedSoftValue, false, batch);
-  db_->addPbftMgrStatusToBatch(PbftMgrStatus::NextVotedNullBlockHash, false, batch);
-  db_->commitWriteBatch(batch);
-  next_voted_soft_value_ = false;
-  next_voted_null_block_hash_ = false;
-}
-
 void PbftManager::loopBackFinishState_() {
   auto round = getPbftRound();
   LOG(log_dg_) << "CONSENSUS debug round " << round << " , step " << step_
@@ -737,10 +724,8 @@ void PbftManager::initializeVotedValueTimeouts_() {
   }
 }
 
-void PbftManager::setLastSoftVotedValue(blk_hash_t soft_voted_value) {
-  // TODO: Add a check for some kind of guard to ensure this is only called from within a test
-  updateLastSoftVotedValue_(soft_voted_value);
-}
+// Only for test
+void PbftManager::setLastSoftVotedValue(blk_hash_t soft_voted_value) { updateLastSoftVotedValue_(soft_voted_value); }
 
 void PbftManager::updateLastSoftVotedValue_(blk_hash_t const new_soft_voted_value) {
   if (new_soft_voted_value != last_soft_voted_value_) {

@@ -51,26 +51,4 @@ auto const g_timestampFormatter =
                                      << boost::log::expressions::format_date_time(timestamp, "%m-%d %H:%M:%S")
                                      << EthReset " ");
 }  // namespace
-
-std::string getThreadName() {
-#if defined(__GLIBC__) || defined(__APPLE__)
-  char buffer[128];
-  pthread_getname_np(pthread_self(), buffer, 127);
-  buffer[127] = 0;
-  return buffer;
-#else
-  return g_logThreadName.m_name.get() ? *g_logThreadName.m_name.get() : "<unknown>";
-#endif
-}
-
-void setThreadName(std::string const& _n) {
-#if defined(__GLIBC__)
-  pthread_setname_np(pthread_self(), _n.c_str());
-#elif defined(__APPLE__)
-  pthread_setname_np(_n.c_str());
-#else
-  g_logThreadName.m_name.reset(new std::string(_n));
-#endif
-}
-
 }  // namespace dev

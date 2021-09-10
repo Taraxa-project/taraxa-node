@@ -85,23 +85,6 @@ void Dag::drawGraph(std::string const &filename) const {
 
 void Dag::clear() { graph_ = graph_t(); }
 
-Dag::edge_t Dag::addEdge(Dag::vertex_t v1, Dag::vertex_t v2) {
-  auto ret = add_edge(v1, v2, graph_);
-  assert(ret.second);
-  return ret.first;
-}
-
-Dag::edge_t Dag::addEdge(blk_hash_t const &v1, blk_hash_t const &v2) {
-  assert(graph_.vertex(v1) != graph_.null_vertex());
-  assert(graph_.vertex(v2) != graph_.null_vertex());
-  // lock should be behind assert
-  edge_t edge;
-  bool res;
-  std::tie(edge, res) = add_edge_by_label(v1, v2, graph_);
-  assert(res);
-  return edge;
-}
-
 void Dag::collectLeafVertices(std::vector<vertex_t> &leaves) const {
   leaves.clear();
   vertex_iter_t s, e;
@@ -485,10 +468,6 @@ std::pair<blk_hash_t, std::vector<blk_hash_t>> DagManager::getFrontier() const {
   return {pivot, tips};
 }
 
-void DagManager::collectTotalLeaves(std::vector<blk_hash_t> &leaves) const {
-  sharedLock lock(mutex_);
-  total_dag_->getLeaves(leaves);
-}
 void DagManager::getGhostPath(blk_hash_t const &source, std::vector<blk_hash_t> &ghost) const {
   sharedLock lock(mutex_);
   pivot_tree_->getGhostPath(source, ghost);

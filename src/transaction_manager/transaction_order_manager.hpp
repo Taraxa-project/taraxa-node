@@ -31,8 +31,6 @@ class TransactionOrderManager {
   void clear() { status_.clear(); }
 
   std::vector<bool> computeOrderInBlock(DagBlock const& blk, TransactionExecStatusTable& status_for_proposing_blocks);
-  std::shared_ptr<std::vector<TrxOverlapInBlock>> computeOrderInBlocks(
-      std::vector<std::shared_ptr<DagBlock>> const& blks);
 
  private:
   TransactionExecStatusTable status_;

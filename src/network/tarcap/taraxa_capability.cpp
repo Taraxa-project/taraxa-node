@@ -66,7 +66,6 @@ void TaraxaCapability::initBootNodes(const std::vector<NodeConfig> &network_boot
     if (!ec) {
       ep.address(address);
     } else {
-      boost::system::error_code ec;
       // resolve returns an iterator (host can resolve to multiple addresses)
       bi::tcp::resolver r(s_resolverIoService);
       auto it = r.resolve({bi::tcp::v4(), addr, toString(port)}, ec);
@@ -253,8 +252,7 @@ void TaraxaCapability::onConnect(weak_ptr<dev::p2p::Session> session, u256 const
     LOG(log_wr_) << "Node " << node_id << " connection dropped - malicious node";
     return;
   }
-
-  auto peer = peers_state_->addPendingPeer(node_id);
+  peers_state_->addPendingPeer(node_id);
   LOG(log_nf_) << "Node " << node_id << " connected";
 
   // TODO: check if this cast creates a copy of shared ptr ?

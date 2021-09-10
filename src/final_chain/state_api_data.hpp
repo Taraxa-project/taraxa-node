@@ -152,7 +152,6 @@ struct Account {
   HAS_RLP_FIELDS
 
   h256 const& storage_root_eth() const;
-  h256 const& code_hash_eth() const;
 } const ZeroAccount;
 
 struct TrieProof {

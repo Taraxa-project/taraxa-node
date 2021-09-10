@@ -509,6 +509,7 @@ size_t DbStorage::getPbft2TPlus1(uint64_t round) {
   return 0;
 }
 
+// Only for test
 void DbStorage::savePbft2TPlus1(uint64_t pbft_round, size_t pbft_2t_plus_1) {
   insert(Columns::pbft_round_2t_plus_1, toSlice(pbft_round), toSlice(pbft_2t_plus_1));
 }
@@ -557,6 +558,7 @@ shared_ptr<PbftBlock> DbStorage::getPbftCertVotedBlock(blk_hash_t const& block_h
   return nullptr;
 }
 
+// Only for test
 void DbStorage::savePbftCertVotedBlock(PbftBlock const& pbft_block) {
   insert(Columns::pbft_cert_voted_block, toSlice(pbft_block.getBlockHash().asBytes()), toSlice(pbft_block.rlp(true)));
 }
@@ -600,6 +602,7 @@ std::vector<std::shared_ptr<Vote>> DbStorage::getUnverifiedVotes() {
   return votes;
 }
 
+// Only for test
 std::shared_ptr<Vote> DbStorage::getUnverifiedVote(vote_hash_t const& vote_hash) {
   auto vote = asBytes(lookup(toSlice(vote_hash.asBytes()), Columns::unverified_votes));
   if (!vote.empty()) {
@@ -640,6 +643,7 @@ std::vector<std::shared_ptr<Vote>> DbStorage::getVerifiedVotes() {
   return votes;
 }
 
+// Only for test
 std::shared_ptr<Vote> DbStorage::getVerifiedVote(vote_hash_t const& vote_hash) {
   auto vote = asBytes(lookup(toSlice(vote_hash.asBytes()), Columns::verified_votes));
   if (!vote.empty()) {
@@ -673,6 +677,7 @@ std::vector<std::shared_ptr<Vote>> DbStorage::getSoftVotes(uint64_t pbft_round) 
   return soft_votes;
 }
 
+// Only for test
 void DbStorage::saveSoftVotes(uint64_t pbft_round, std::vector<std::shared_ptr<Vote>> const& soft_votes) {
   RLPStream s(soft_votes.size());
   for (auto const& v : soft_votes) {
@@ -806,6 +811,7 @@ uint64_t DbStorage::getDposProposalPeriodLevelsField(DposProposalPeriodLevelsSta
   return 0;
 }
 
+// Only for test
 void DbStorage::saveDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus field, uint64_t value) {
   insert(Columns::dpos_proposal_period_levels_status, toSlice(field), toSlice(value));
 }
@@ -851,11 +857,6 @@ DbStorage::MultiGetQuery::MultiGetQuery(shared_ptr<DbStorage> const& db, uint ca
     keys_.reserve(capacity);
     str_pool_.reserve(capacity);
   }
-}
-
-dev::bytesConstRef DbStorage::MultiGetQuery::get_key(uint pos) {
-  auto const& slice = keys_[pos];
-  return dev::bytesConstRef((uint8_t*)slice.data(), slice.size());
 }
 
 uint DbStorage::MultiGetQuery::size() { return keys_.size(); }

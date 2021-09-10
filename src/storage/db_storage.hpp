@@ -446,7 +446,6 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
       return append(col, vector{toSlice(key)}, copy_key);
     }
 
-    dev::bytesConstRef get_key(uint pos);
     uint size();
     vector<string> execute(bool and_reset = true);
     MultiGetQuery& reset();

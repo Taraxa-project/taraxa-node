@@ -284,8 +284,6 @@ void FullNode::rebuildDb() {
   }
 }
 
-dev::Signature FullNode::signMessage(std::string const &message) { return dev::sign(kp_.secret(), dev::sha3(message)); }
-
 uint64_t FullNode::getNumProposedBlocks() const { return BlockProposer::getNumProposedBlocks(); }
 
 }  // namespace taraxa

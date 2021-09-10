@@ -118,9 +118,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   auto &getTimeLogger() { return log_time_; }
   uint64_t getNumProposedBlocks() const;
 
-  // PBFT
-  dev::Signature signMessage(std::string const &message);
-
   void rebuildDb();
 };
 

@@ -22,40 +22,6 @@
 #include "CommonData.h"
 
 namespace dev {
-
-/// Requests the user to enter a password on the console.
-std::string getPassword(std::string const& _prompt);
-
-/// Retrieve and returns the contents of the given file.
-/// If the file doesn't exist or isn't readable, returns an empty container /
-/// bytes.
-bytes contents(boost::filesystem::path const& _file);
-/// Secure variation.
-bytesSec contentsSec(boost::filesystem::path const& _file);
-/// Retrieve and returns the contents of the given file as a std::string.
-/// If the file doesn't exist or isn't readable, returns an empty container /
-/// bytes.
-std::string contentsString(boost::filesystem::path const& _file);
-
-/// Write the given binary data into the given file, replacing the file if it
-/// pre-exists. Throws exception on error.
-/// @param _writeDeleteRename useful not to lose any data: If set, first writes
-/// to another file in the same directory and then moves that file.
-void writeFile(boost::filesystem::path const& _file, bytesConstRef _data, bool _writeDeleteRename = false);
-/// Write the given binary data into the given file, replacing the file if it
-/// pre-exists.
-inline void writeFile(boost::filesystem::path const& _file, bytes const& _data, bool _writeDeleteRename = false) {
-  writeFile(_file, bytesConstRef(&_data), _writeDeleteRename);
-}
-
-/// Non-recursively copies directory contents.
-/// Throws boost::filesystem_error on error.
-void copyDirectory(boost::filesystem::path const& _srcDir, boost::filesystem::path const& _dstDir);
-
-/// Nicely renders the given bytes to a string, optionally as HTML.
-/// @a _bytes: bytes array to be rendered as string. @a _width of a bytes line.
-std::string memDump(bytes const& _bytes, unsigned _width = 8, bool _html = false);
-
 // Stream I/O functions.
 // Provides templated stream I/O for all STL collections so they can be shifted
 // on to any iostream-like interface.

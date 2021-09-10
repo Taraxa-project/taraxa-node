@@ -84,7 +84,7 @@ bool DagBlockManager::pivotAndTipsValid(DagBlock const &blk) {
     return false;
   }
   for (auto const &t : blk.getTips()) {
-    auto status = blk_status_.get(t);
+    status = blk_status_.get(t);
     if (status.second && status.first == BlockStatus::invalid) {
       blk_status_.update(blk.getHash(), BlockStatus::invalid);
       LOG(log_dg_) << "DAG Block " << blk.getHash() << " tip " << t << " unavailable";

@@ -40,13 +40,6 @@ namespace dev {
 /// information that musl doesn't currently implement 'pthread_setname_np'
 /// https://marc.info/?l=musl&m=146171729013062&w=1
 ///
-/// For better formatting it is recommended to limit thread name to max 4
-/// characters.
-void setThreadName(std::string const& _n);
-
-/// Set the current thread's log name.
-std::string getThreadName();
-
 #define LOG BOOST_LOG
 
 enum Verbosity {

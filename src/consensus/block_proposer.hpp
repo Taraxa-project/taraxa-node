@@ -101,7 +101,6 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   bool getShardedTrxs(vec_trx_t& sharded_trx);
   bool getLatestPivotAndTips(blk_hash_t& pivot, vec_blk_t& tips);
   level_t getProposeLevel(blk_hash_t const& pivot, vec_blk_t const& tips);
-  blk_hash_t getProposeAnchor() const;
   bool validDposProposer(level_t const propose_level);
   // debug
   static uint64_t getNumProposedBlocks() { return BlockProposer::num_proposed_blocks; }

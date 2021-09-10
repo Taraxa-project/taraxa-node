@@ -127,7 +127,7 @@ class WatchGroup {
     shared_lock l(watches_mu_);
     if (auto entry = watches_.find(watch_id); entry != watches_.end()) {
       auto& watch = entry->second;
-      std::unique_lock l(watch.mu.val);
+      std::unique_lock l1(watch.mu.val);
       swap(ret, watch.updates);
       watch.last_touched = high_resolution_clock::now();
     }

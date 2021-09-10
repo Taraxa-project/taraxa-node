@@ -130,11 +130,11 @@ inline void VotePacketsHandler::processPbftNextVotesPacket(const dev::RLP &packe
 
   if (pbft_currentpacket_rlpound < peer_pbftpacket_rlpound) {
     // Add into votes unverified queue
-    for (auto const &vote : next_votes) {
-      auto vote_hash = vote->getHash();
-      auto vote_round = vote->getRound();
+    for (auto const &vote_n : next_votes) {
+      auto vote_hash = vote_n->getHash();
+      auto vote_round = vote_n->getRound();
 
-      if (vote_mgr_->voteInUnverifiedMap(vote_round, vote_hash) || vote_mgr_->voteInVerifiedMap(vote)) {
+      if (vote_mgr_->voteInUnverifiedMap(vote_round, vote_hash) || vote_mgr_->voteInVerifiedMap(vote_n)) {
         LOG(log_dg_) << "Received PBFT next vote " << vote_hash << " (from " << packet_data.from_node_id_.abridged()
                      << ") already saved in queue.";
         continue;
@@ -142,13 +142,13 @@ inline void VotePacketsHandler::processPbftNextVotesPacket(const dev::RLP &packe
 
       // Synchronization point in case multiple threads are processing the same vote at the same time
       // Adds unverified vote into local structure + database
-      if (!vote_mgr_->addUnverifiedVote(vote)) {
+      if (!vote_mgr_->addUnverifiedVote(vote_n)) {
         LOG(log_dg_) << "Received PBFT next vote " << vote_hash << " (from " << packet_data.from_node_id_.abridged()
                      << ") already saved in unverified queue by a different thread(race condition).";
         continue;
       }
 
-      onNewPbftVote(vote);
+      onNewPbftVote(vote_n);
     }
   } else if (pbft_currentpacket_rlpound == peer_pbftpacket_rlpound) {
     // Update previous round next votes

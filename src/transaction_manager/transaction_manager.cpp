@@ -289,9 +289,7 @@ std::pair<size_t, size_t> TransactionManager::getTransactionQueueSize() const {
 
 size_t TransactionManager::getTransactionBufferSize() const { return trx_qu_.getTransactionBufferSize(); }
 
-std::vector<Transaction> TransactionManager::getNewVerifiedTrxSnapShot() {
-  return trx_qu_.getNewVerifiedTrxSnapShot();
-}
+std::vector<Transaction> TransactionManager::getNewVerifiedTrxSnapShot() { return trx_qu_.getNewVerifiedTrxSnapShot(); }
 
 unsigned long TransactionManager::getTransactionCount() const { return trx_count_; }
 

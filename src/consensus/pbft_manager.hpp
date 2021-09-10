@@ -56,7 +56,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   void setPbftRound(uint64_t const round);
   size_t getSortitionThreshold() const;
   size_t getTwoTPlusOne() const;
-  void setTwoTPlusOne(size_t const two_t_plus_one);
   void setPbftStep(size_t const pbft_step);
 
   std::shared_ptr<Vote> generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, uint64_t round, size_t step,
@@ -102,7 +101,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   void setCertifyState_();
   void setFinishState_();
   void setFinishPollingState_();
-  void continueFinishPollingState_(size_t step);
   void loopBackFinishState_();
 
   bool stateOperations_();

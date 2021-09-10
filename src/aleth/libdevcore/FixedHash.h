@@ -26,7 +26,7 @@ struct StaticLog2<1> {
   enum { result = 0 };
 };
 
-extern std::random_device s_fixedHashEngine;
+static std::random_device s_fixedHashEngine;
 
 /// Fixed-size raw-byte array container type, with an API optimised for storing
 /// hashes. Transparently converts to/from the corresponding arithmetic type;

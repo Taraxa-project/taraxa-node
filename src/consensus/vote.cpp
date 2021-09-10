@@ -206,6 +206,7 @@ std::vector<std::shared_ptr<Vote>> VoteManager::getUnverifiedVotes() {
   return votes;
 }
 
+// Only for tests
 void VoteManager::clearUnverifiedVotesTable() {
   uniqueLock_ lock(unverified_votes_access_);
   unverified_votes_.clear();
