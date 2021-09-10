@@ -8,7 +8,7 @@ TarcapThreadPool::TarcapThreadPool(size_t workers_num, const addr_t& node_addr)
     : workers_num_(workers_num),
       packets_handlers_(nullptr),
       stopProcessing_(false),
-      queue_(workers_num),
+      queue_(workers_num, node_addr),
       queue_mutex_(),
       cond_var_(),
       workers_() {

@@ -169,7 +169,7 @@ void TaraxaCapability::registerPacketHandlers(
                                                       dag_blk_mgr, node_addr);
 
   node_stats_ = std::make_shared<NodeStats>(peers_state_, syncing_state_, pbft_chain, pbft_mgr, dag_mgr, dag_blk_mgr,
-                                            vote_mgr, trx_mgr, packets_stats);
+                                            vote_mgr, trx_mgr, packets_stats, node_addr);
 
   // Register all packet handlers
   // Consensus packets with high processing priority

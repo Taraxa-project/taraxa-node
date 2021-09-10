@@ -48,7 +48,6 @@ class PriorityQueue {
   void updateDependenciesFinish(const PacketData& packet, std::mutex& queue_mutex);
 
  private:
-  // TODO: logs in PriorityQueue dont work for some reason ???
   // Declare logger instances
   LOG_OBJECTS_DEFINE
 
