@@ -402,7 +402,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
                         node1->getSecretKey());
   db1->putFinalizedDagBlockHashesByAnchor(batch, pbft_block1.getPivotDagBlockHash(),
                                           {pbft_block1.getPivotDagBlockHash()});
-  std::vector<Vote> votes_for_pbft_blk1;
+  std::vector<std::shared_ptr<Vote>> votes_for_pbft_blk1;
   votes_for_pbft_blk1.emplace_back(
       node1->getPbftManager()->generateVote(pbft_block1.getBlockHash(), cert_vote_type, 1, 3, 0));
   std::cout << "Generate 1 vote for first PBFT block" << std::endl;
@@ -451,7 +451,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
   db1->putFinalizedDagBlockHashesByAnchor(batch, pbft_block2.getPivotDagBlockHash(),
                                           {pbft_block2.getPivotDagBlockHash()});
 
-  std::vector<Vote> votes_for_pbft_blk2;
+  std::vector<std::shared_ptr<Vote>> votes_for_pbft_blk2;
   votes_for_pbft_blk2.emplace_back(
       node1->getPbftManager()->generateVote(pbft_block2.getBlockHash(), cert_vote_type, 2, 3, 0));
   std::cout << "Generate 1 vote for second PBFT block" << std::endl;
@@ -548,7 +548,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
                         node1->getSecretKey());
   db1->putFinalizedDagBlockHashesByAnchor(batch, pbft_block1.getPivotDagBlockHash(),
                                           {pbft_block1.getPivotDagBlockHash()});
-  std::vector<Vote> votes_for_pbft_blk1;
+  std::vector<std::shared_ptr<Vote>> votes_for_pbft_blk1;
   votes_for_pbft_blk1.emplace_back(
       node1->getPbftManager()->generateVote(pbft_block1.getBlockHash(), cert_vote_type, 1, 3, 0));
   std::cout << "Generate 1 vote for first PBFT block" << std::endl;
@@ -662,7 +662,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_behind_round) {
   pbft_mgr1->stop();
 
   // Generate 3 next votes
-  std::vector<Vote> next_votes;
+  std::vector<std::shared_ptr<Vote>> next_votes;
   PbftVoteTypes type = next_vote_type;
   uint64_t round = 1;
   size_t step = 5;
@@ -670,7 +670,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_behind_round) {
   for (auto i = 0; i < 3; i++) {
     blk_hash_t voted_pbft_block_hash(i % 2);  // Next votes could vote on 2 values
     weighted_index = i;
-    Vote vote = pbft_mgr1->generateVote(voted_pbft_block_hash, type, round, step, weighted_index);
+    auto vote = pbft_mgr1->generateVote(voted_pbft_block_hash, type, round, step, weighted_index);
     next_votes.emplace_back(vote);
   }
 
@@ -717,7 +717,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_1) {
   auto& node2 = nodes[1];
 
   // Generate 4 next votes for noode1
-  std::vector<Vote> next_votes1;
+  std::vector<std::shared_ptr<Vote>> next_votes1;
   uint64_t round = 0;
   size_t step = 5;
   PbftVoteTypes type = next_vote_type;
@@ -725,7 +725,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_1) {
   for (auto i = 0; i < 4; i++) {
     blk_hash_t voted_pbft_block_hash1(i % 2);  // Next votes could vote on 2 values
     weighted_index = i;
-    Vote vote = node1->getPbftManager()->generateVote(voted_pbft_block_hash1, type, round, step, weighted_index);
+    auto vote = node1->getPbftManager()->generateVote(voted_pbft_block_hash1, type, round, step, weighted_index);
     next_votes1.emplace_back(vote);
   }
 
@@ -736,10 +736,10 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_1) {
 
   // Generate 2 same next votes with node1, voted same value on NULL_BLOCK_HASH
   blk_hash_t voted_pbft_block_hash2(0);
-  std::vector<Vote> next_votes2;
+  std::vector<std::shared_ptr<Vote>> next_votes2;
   for (auto i = 0; i < 2; i++) {
     weighted_index = i * 2;  // NULL_BLOCK_HASH is weighted_index at 0 and 2
-    Vote vote = node1->getPbftManager()->generateVote(voted_pbft_block_hash2, type, round, step, weighted_index);
+    auto vote = node1->getPbftManager()->generateVote(voted_pbft_block_hash2, type, round, step, weighted_index);
     next_votes2.emplace_back(vote);
   }
 
@@ -775,7 +775,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
   auto& node2 = nodes[1];
 
   // Generate 3 next votes for node1
-  std::vector<Vote> next_votes1;
+  std::vector<std::shared_ptr<Vote>> next_votes1;
   blk_hash_t voted_pbft_block_hash1(blk_hash_t(0));
   PbftVoteTypes type = next_vote_type;
   uint64_t round = 0;
@@ -783,7 +783,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
   size_t weighted_index;
   for (auto i = 0; i < 3; i++) {
     weighted_index = i;
-    Vote vote = node1->getPbftManager()->generateVote(voted_pbft_block_hash1, type, round, step, weighted_index);
+    auto vote = node1->getPbftManager()->generateVote(voted_pbft_block_hash1, type, round, step, weighted_index);
     next_votes1.emplace_back(vote);
   }
 
@@ -793,12 +793,12 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
   EXPECT_EQ(next_votes_mgr1->getNextVotesSize(), next_votes1.size());
 
   // Generate 3 different next votes with node1
-  std::vector<Vote> next_votes2;
+  std::vector<std::shared_ptr<Vote>> next_votes2;
   step = 6;
   blk_hash_t voted_pbft_block_hash2(blk_hash_t(2));
   for (auto i = 0; i < 3; i++) {
     weighted_index = i;
-    Vote vote = node2->getPbftManager()->generateVote(voted_pbft_block_hash2, type, round, step, weighted_index);
+    auto vote = node2->getPbftManager()->generateVote(voted_pbft_block_hash2, type, round, step, weighted_index);
     next_votes2.emplace_back(vote);
   }
 

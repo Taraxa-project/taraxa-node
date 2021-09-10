@@ -31,10 +31,10 @@ void clearAllVotes(shared_ptr<FullNode> &node) {
 
   auto batch = db->createWriteBatch();
   for (auto const &v : unverified_votes) {
-    db->removeUnverifiedVoteToBatch(v.getHash(), batch);
+    db->removeUnverifiedVoteToBatch(v->getHash(), batch);
   }
   for (auto const &v : verified_votes) {
-    db->removeVerifiedVoteToBatch(v.getHash(), batch);
+    db->removeVerifiedVoteToBatch(v->getHash(), batch);
   }
   db->commitWriteBatch(batch);
 
@@ -57,19 +57,19 @@ TEST_F(VoteTest, unverified_votes) {
   auto round = 1;
   auto step = 1;
   auto weighted_index = 0;
-  Vote vote = pbft_mgr->generateVote(blockhash, type, round, step, weighted_index);
+  auto vote = pbft_mgr->generateVote(blockhash, type, round, step, weighted_index);
 
   auto vote_mgr = node->getVoteManager();
   vote_mgr->addUnverifiedVote(vote);
-  EXPECT_TRUE(vote_mgr->voteInUnverifiedMap(vote.getRound(), vote.getHash()));
+  EXPECT_TRUE(vote_mgr->voteInUnverifiedMap(vote->getRound(), vote->getHash()));
 
   // Generate 3 votes, (round = 1, step = 1) is duplicate
   std::vector<std::shared_ptr<Vote>> unverified_votes;
   for (auto i = 1; i <= 3; i++) {
     round = i;
     step = i;
-    Vote vote = pbft_mgr->generateVote(blockhash, type, round, step, weighted_index);
-    unverified_votes.emplace_back(std::make_shared<Vote>(vote));
+    auto vote = pbft_mgr->generateVote(blockhash, type, round, step, weighted_index);
+    unverified_votes.emplace_back(vote);
   }
 
   vote_mgr->addUnverifiedVotes(unverified_votes);
@@ -101,7 +101,7 @@ TEST_F(VoteTest, verified_votes) {
   auto round = 1;
   auto step = 2;
   auto weighted_index = 0;
-  Vote vote = pbft_mgr->generateVote(blockhash, type, round, step, weighted_index);
+  auto vote = pbft_mgr->generateVote(blockhash, type, round, step, weighted_index);
 
   auto vote_mgr = node->getVoteManager();
   vote_mgr->addVerifiedVote(vote);
@@ -131,14 +131,14 @@ TEST_F(VoteTest, remove_verified_votes) {
   auto vote_mgr = node->getVoteManager();
 
   // Generate 3 votes and add into verified table
-  std::vector<Vote> votes;
+  std::vector<std::shared_ptr<Vote>> votes;
   blk_hash_t blockhash(1);
   PbftVoteTypes type = next_vote_type;
   auto weighted_index = 0;
   for (auto i = 1; i <= 3; i++) {
     auto round = i;
     auto step = i;
-    Vote vote = pbft_mgr->generateVote(blockhash, type, round, step, weighted_index);
+    auto vote = pbft_mgr->generateVote(blockhash, type, round, step, weighted_index);
     votes.emplace_back(vote);
     db->saveVerifiedVote(vote);
     vote_mgr->addVerifiedVote(vote);
@@ -175,7 +175,7 @@ TEST_F(VoteTest, add_cleanup_get_votes) {
     for (int j = 1; j <= 2; j++) {
       uint64_t round = i;
       size_t step = 3 + j;
-      Vote vote = pbft_mgr->generateVote(voted_block_hash, type, round, step, weighted_index);
+      auto vote = pbft_mgr->generateVote(voted_block_hash, type, round, step, weighted_index);
       vote_mgr->addUnverifiedVote(vote);
     }
   }
@@ -228,7 +228,7 @@ TEST_F(VoteTest, round_determine_from_next_votes) {
       size_t step = j;
       for (int n = 0; n <= 2; n++) {
         auto weighted_index = n;
-        Vote vote = pbft_mgr->generateVote(voted_block_hash, type, round, step, weighted_index);
+        auto vote = pbft_mgr->generateVote(voted_block_hash, type, round, step, weighted_index);
         vote_mgr->addVerifiedVote(vote);
       }
     }
@@ -279,7 +279,7 @@ TEST_F(VoteTest, transfer_vote) {
   uint64_t period = 999;
   size_t step = 1000;
   auto weighted_index = 10;
-  Vote vote = pbft_mgr2->generateVote(propose_block_hash, type, period, step, weighted_index);
+  auto vote = pbft_mgr2->generateVote(propose_block_hash, type, period, step, weighted_index);
 
   nw2->sendPbftVote(nw1->getNodeId(), vote);
 
@@ -314,9 +314,9 @@ TEST_F(VoteTest, vote_broadcast) {
   uint64_t period = 1000;
   size_t step = 1002;
   auto weighted_index = 100;
-  Vote vote = pbft_mgr1->generateVote(propose_block_hash, type, period, step, weighted_index);
+  auto vote = pbft_mgr1->generateVote(propose_block_hash, type, period, step, weighted_index);
 
-  node1->getNetwork()->onNewPbftVotes(vector{vote});
+  node1->getNetwork()->onNewPbftVotes(std::vector{vote});
 
   auto vote_mgr1 = node1->getVoteManager();
   auto vote_mgr2 = node2->getVoteManager();
@@ -347,7 +347,7 @@ TEST_F(VoteTest, previous_round_next_votes) {
   auto pbft_2t_plus_1 = 3;
 
   // Generate 3 votes voted at NULL_BLOCK_HASH
-  std::vector<Vote> next_votes_1;
+  std::vector<std::shared_ptr<Vote>> next_votes_1;
   auto round = 1;
   auto step = 4;
   auto weighted_index = 0;
@@ -356,7 +356,7 @@ TEST_F(VoteTest, previous_round_next_votes) {
   blk_hash_t voted_pbft_block_hash(0);
   for (auto i = 0; i < 3; i++) {
     Vote vote(nodes_sk[i], vrf_sortition, voted_pbft_block_hash);
-    next_votes_1.emplace_back(vote);
+    next_votes_1.emplace_back(std::make_shared<Vote>(vote));
   }
   EXPECT_EQ(next_votes_1.size(), 3);
 
@@ -369,10 +369,10 @@ TEST_F(VoteTest, previous_round_next_votes) {
   // Generate 3 votes voted at value blk_hash_t(1)
   voted_pbft_block_hash = blk_hash_t(1);
   step = 5;
-  std::vector<Vote> next_votes_2;
+  std::vector<std::shared_ptr<Vote>> next_votes_2;
   for (auto i = 0; i < 3; i++) {
     Vote vote(nodes_sk[i], vrf_sortition, voted_pbft_block_hash);
-    next_votes_2.emplace_back(vote);
+    next_votes_2.emplace_back(std::make_shared<Vote>(vote));
   }
   EXPECT_EQ(next_votes_2.size(), 3);
 
@@ -386,7 +386,7 @@ TEST_F(VoteTest, previous_round_next_votes) {
   EXPECT_EQ(next_votes_mgr->getNextVotesSize(), expect_size);
 
   // Copy next_votes_1 and next_votes_2 into next_votes_3
-  std::vector<Vote> next_votes_3;
+  std::vector<std::shared_ptr<Vote>> next_votes_3;
   next_votes_3.reserve(expect_size);
   next_votes_3.insert(next_votes_3.end(), next_votes_1.begin(), next_votes_1.end());
   next_votes_3.insert(next_votes_3.end(), next_votes_2.begin(), next_votes_2.end());
@@ -405,10 +405,10 @@ TEST_F(VoteTest, previous_round_next_votes) {
   // Generate 3 votes voted at value blk_hash_t(2)
   voted_pbft_block_hash = blk_hash_t(2);
   round = 2;
-  std::vector<Vote> next_votes_4;
+  std::vector<std::shared_ptr<Vote>> next_votes_4;
   for (auto i = 0; i < 3; i++) {
     Vote vote(nodes_sk[i], vrf_sortition, voted_pbft_block_hash);
-    next_votes_4.emplace_back(vote);
+    next_votes_4.emplace_back(std::make_shared<Vote>(vote));
   }
 
   next_votes_mgr->updateNextVotes(next_votes_4, pbft_2t_plus_1);
