@@ -1050,19 +1050,19 @@ void PbftManager::secondFinish_() {
   loop_back_finish_state_ = elapsed_time_in_round_ms_ > end_time_for_step;
 }
 
-std::shared_ptr<Vote> PbftManager::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, uint64_t round, size_t step,
-                               size_t weighted_index) {
+std::shared_ptr<Vote> PbftManager::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, uint64_t round,
+                                                size_t step, size_t weighted_index) {
   // sortition proof
   VrfPbftMsg msg(type, round, step, weighted_index);
   VrfPbftSortition vrf_sortition(vrf_sk_, msg);
   Vote vote(node_sk_, vrf_sortition, blockhash);
 
-  return std::shared_ptr<Vote>(vote);
+  return std::make_shared<Vote>(vote);
 }
 
 size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteTypes vote_type, uint64_t round,
                                size_t step) {
-  vector<Vote> votes;
+  std::vector<std::shared_ptr<Vote>> votes;
 
   for (size_t weighted_index(0); weighted_index < weighted_votes_count_; weighted_index++) {
     if (step == 1 && weighted_index > 0) {
@@ -1394,7 +1394,7 @@ std::pair<vec_blk_t, bool> PbftManager::comparePbftBlockScheduleWithDAGblocks_(P
 }
 
 bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cert_voted_block_hash,
-                                                   std::vector<Vote> const &cert_votes_for_round) {
+                                                   std::vector<std::shared_ptr<Vote>> const &cert_votes_for_round) {
   auto pbft_block = getUnfinalizedBlock_(cert_voted_block_hash);
   if (!pbft_block) {
     LOG(log_nf_) << "Can not find the cert voted block hash " << cert_voted_block_hash << " in both pbft queue and DB";

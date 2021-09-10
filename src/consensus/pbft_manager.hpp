@@ -59,8 +59,8 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   void setTwoTPlusOne(size_t const two_t_plus_one);
   void setPbftStep(size_t const pbft_step);
 
-  Vote generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, uint64_t round, size_t step,
-                    size_t weighted_index);
+  std::shared_ptr<Vote> generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, uint64_t round, size_t step,
+                                     size_t weighted_index);
 
   size_t getDposTotalVotesCount() const;
   size_t getDposWeightedVotesCount() const;
@@ -128,7 +128,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   std::pair<vec_blk_t, bool> comparePbftBlockScheduleWithDAGblocks_(PbftBlock const &pbft_block);
 
   bool pushCertVotedPbftBlockIntoChain_(blk_hash_t const &cert_voted_block_hash,
-                                        std::vector<Vote> const &cert_votes_for_round);
+                                        std::vector<std::shared_ptr<Vote>> const &cert_votes_for_round);
 
   void pushSyncedPbftBlocksIntoChain_();
 

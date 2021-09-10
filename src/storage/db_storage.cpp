@@ -579,18 +579,18 @@ void DbStorage::addPbftHeadToBatch(taraxa::blk_hash_t const& head_hash, std::str
   insert(write_batch, Columns::pbft_head, toSlice(head_hash.asBytes()), head_str);
 }
 
-std::vector<Vote> DbStorage::getUnverifiedVotes() {
-  vector<Vote> votes;
+std::vector<std::shared_ptr<Vote>> DbStorage::getUnverifiedVotes() {
+  std::vector<std::shared_ptr<Vote>> votes;
 
   auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::unverified_votes)));
   for (it->SeekToFirst(); it->Valid(); it->Next()) {
-    votes.emplace_back(asBytes(it->value().ToString()));
+    votes.emplace_back(std::make_shared<Vote>(asBytes(it->value().ToString())));
   }
 
   return votes;
 }
 
-shared_ptr<Vote> DbStorage::getUnverifiedVote(vote_hash_t const& vote_hash) {
+std::shared_ptr<Vote> DbStorage::getUnverifiedVote(vote_hash_t const& vote_hash) {
   auto vote = asBytes(lookup(toSlice(vote_hash.asBytes()), Columns::unverified_votes));
   if (!vote.empty()) {
     return std::make_shared<Vote>(RLP(vote));
@@ -607,30 +607,30 @@ bool DbStorage::unverifiedVoteExist(vote_hash_t const& vote_hash) {
   return true;
 }
 
-void DbStorage::saveUnverifiedVote(Vote const& vote) {
-  insert(Columns::unverified_votes, toSlice(vote.getHash().asBytes()), toSlice(vote.rlp(true)));
+void DbStorage::saveUnverifiedVote(std::shared_ptr<Vote> const& vote) {
+  insert(Columns::unverified_votes, toSlice(vote->getHash().asBytes()), toSlice(vote->rlp(true)));
 }
 
-void DbStorage::addUnverifiedVoteToBatch(Vote const& vote, Batch& write_batch) {
-  insert(write_batch, Columns::unverified_votes, toSlice(vote.getHash().asBytes()), toSlice(vote.rlp(true)));
+void DbStorage::addUnverifiedVoteToBatch(std::shared_ptr<Vote> const& vote, Batch& write_batch) {
+  insert(write_batch, Columns::unverified_votes, toSlice(vote->getHash().asBytes()), toSlice(vote->rlp(true)));
 }
 
 void DbStorage::removeUnverifiedVoteToBatch(vote_hash_t const& vote_hash, Batch& write_batch) {
   remove(write_batch, Columns::unverified_votes, toSlice(vote_hash.asBytes()));
 }
 
-std::vector<Vote> DbStorage::getVerifiedVotes() {
-  vector<Vote> votes;
+std::vector<std::shared_ptr<Vote>> DbStorage::getVerifiedVotes() {
+  std::vector<std::shared_ptr<Vote>> votes;
 
   auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::verified_votes)));
   for (it->SeekToFirst(); it->Valid(); it->Next()) {
-    votes.emplace_back(asBytes(it->value().ToString()));
+    votes.emplace_back(std::make_shared<Vote>(asBytes(it->value().ToString())));
   }
 
   return votes;
 }
 
-shared_ptr<Vote> DbStorage::getVerifiedVote(vote_hash_t const& vote_hash) {
+std::shared_ptr<Vote> DbStorage::getVerifiedVote(vote_hash_t const& vote_hash) {
   auto vote = asBytes(lookup(toSlice(vote_hash.asBytes()), Columns::verified_votes));
   if (!vote.empty()) {
     return std::make_shared<Vote>(RLP(vote));
@@ -638,43 +638,44 @@ shared_ptr<Vote> DbStorage::getVerifiedVote(vote_hash_t const& vote_hash) {
   return nullptr;
 }
 
-void DbStorage::saveVerifiedVote(Vote const& vote) {
-  insert(Columns::verified_votes, toSlice(vote.getHash().asBytes()), toSlice(vote.rlp(true)));
+void DbStorage::saveVerifiedVote(std::shared_ptr<Vote> const& vote) {
+  insert(Columns::verified_votes, toSlice(vote->getHash().asBytes()), toSlice(vote->rlp(true)));
 }
 
-void DbStorage::addVerifiedVoteToBatch(Vote const& vote, Batch& write_batch) {
-  insert(write_batch, Columns::verified_votes, toSlice(vote.getHash().asBytes()), toSlice(vote.rlp(true)));
+void DbStorage::addVerifiedVoteToBatch(std::shared_ptr<Vote> const& vote, Batch& write_batch) {
+  insert(write_batch, Columns::verified_votes, toSlice(vote->getHash().asBytes()), toSlice(vote->rlp(true)));
 }
 
 void DbStorage::removeVerifiedVoteToBatch(vote_hash_t const& vote_hash, Batch& write_batch) {
   remove(write_batch, Columns::verified_votes, toSlice(vote_hash.asBytes()));
 }
 
-std::vector<Vote> DbStorage::getSoftVotes(uint64_t pbft_round) {
-  std::vector<Vote> soft_votes;
+std::vector<std::shared_ptr<Vote>> DbStorage::getSoftVotes(uint64_t pbft_round) {
+  std::vector<std::shared_ptr<Vote>> soft_votes;
   auto soft_votes_raw = asBytes(lookup(toSlice(pbft_round), Columns::soft_votes));
   auto soft_votes_rlp = RLP(soft_votes_raw);
   soft_votes.reserve(soft_votes_rlp.size());
 
   for (auto const soft_vote : soft_votes_rlp) {
-    soft_votes.emplace_back(soft_vote);
+    soft_votes.emplace_back(std::make_shared<Vote>(soft_vote));
   }
 
   return soft_votes;
 }
 
-void DbStorage::saveSoftVotes(uint64_t pbft_round, std::vector<Vote> const& soft_votes) {
+void DbStorage::saveSoftVotes(uint64_t pbft_round, std::vector<std::shared_ptr<Vote>> const& soft_votes) {
   RLPStream s(soft_votes.size());
   for (auto const& v : soft_votes) {
-    s.appendRaw(v.rlp(true));
+    s.appendRaw(v->rlp(true));
   }
   insert(Columns::soft_votes, toSlice(pbft_round), toSlice(s.out()));
 }
 
-void DbStorage::addSoftVotesToBatch(uint64_t pbft_round, std::vector<Vote> const& soft_votes, Batch& write_batch) {
+void DbStorage::addSoftVotesToBatch(uint64_t pbft_round, std::vector<std::shared_ptr<Vote>> const& soft_votes,
+                                    Batch& write_batch) {
   RLPStream s(soft_votes.size());
   for (auto const& v : soft_votes) {
-    s.appendRaw(v.rlp(true));
+    s.appendRaw(v->rlp(true));
   }
   insert(write_batch, Columns::soft_votes, toSlice(pbft_round), toSlice(s.out()));
 }
@@ -683,43 +684,47 @@ void DbStorage::removeSoftVotesToBatch(uint64_t pbft_round, Batch& write_batch) 
   remove(write_batch, Columns::soft_votes, toSlice(pbft_round));
 }
 
-std::vector<Vote> DbStorage::getCertVotes(uint64_t period) {
-  std::vector<Vote> cert_votes;
+std::vector<std::shared_ptr<Vote>> DbStorage::getCertVotes(uint64_t period) {
+  std::vector<std::shared_ptr<Vote>> cert_votes;
   auto period_data = getPeriodDataRaw(period);
   if (period_data.size() > 0) {
     auto period_data_rlp = RLP(period_data);
     auto cert_votes_data = period_data_rlp[CERT_VOTES_POS_IN_PERIOD_DATA];
     cert_votes.reserve(cert_votes_data.size());
-    for (auto const vote : cert_votes_data) cert_votes.emplace_back(vote);
+    for (auto const vote : cert_votes_data) {
+      cert_votes.emplace_back(std::make_shared<Vote>(vote));
+    }
   }
+
   return cert_votes;
 }
 
-std::vector<Vote> DbStorage::getNextVotes(uint64_t pbft_round) {
-  std::vector<Vote> next_votes;
+std::vector<std::shared_ptr<Vote>> DbStorage::getNextVotes(uint64_t pbft_round) {
+  std::vector<std::shared_ptr<Vote>> next_votes;
   auto next_votes_raw = asBytes(lookup(toSlice(pbft_round), Columns::next_votes));
   auto next_votes_rlp = RLP(next_votes_raw);
   next_votes.reserve(next_votes_rlp.size());
 
   for (auto const next_vote : next_votes_rlp) {
-    next_votes.emplace_back(next_vote);
+    next_votes.emplace_back(std::make_shared<Vote>(next_vote));
   }
 
   return next_votes;
 }
 
-void DbStorage::saveNextVotes(uint64_t pbft_round, std::vector<Vote> const& next_votes) {
+void DbStorage::saveNextVotes(uint64_t pbft_round, std::vector<std::shared_ptr<Vote>> const& next_votes) {
   RLPStream s(next_votes.size());
   for (auto const& v : next_votes) {
-    s.appendRaw(v.rlp(true));
+    s.appendRaw(v->rlp(true));
   }
   insert(Columns::next_votes, toSlice(pbft_round), toSlice(s.out()));
 }
 
-void DbStorage::addNextVotesToBatch(uint64_t pbft_round, std::vector<Vote> const& next_votes, Batch& write_batch) {
+void DbStorage::addNextVotesToBatch(uint64_t pbft_round, std::vector<std::shared_ptr<Vote>> const& next_votes,
+                                    Batch& write_batch) {
   RLPStream s(next_votes.size());
   for (auto const& v : next_votes) {
-    s.appendRaw(v.rlp(true));
+    s.appendRaw(v->rlp(true));
   }
   insert(write_batch, Columns::next_votes, toSlice(pbft_round), toSlice(s.out()));
 }

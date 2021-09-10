@@ -240,33 +240,35 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void addStatusFieldToBatch(StatusDbField const& field, uint64_t value, Batch& write_batch);
 
   // Unverified votes
-  std::vector<Vote> getUnverifiedVotes();
-  shared_ptr<Vote> getUnverifiedVote(vote_hash_t const& vote_hash);
+  std::vector<std::shared_ptr<Vote>> getUnverifiedVotes();
+  std::shared_ptr<Vote> getUnverifiedVote(vote_hash_t const& vote_hash);
   bool unverifiedVoteExist(vote_hash_t const& vote_hash);
-  void saveUnverifiedVote(Vote const& vote);
-  void addUnverifiedVoteToBatch(Vote const& vote, Batch& write_batch);
+  void saveUnverifiedVote(std::shared_ptr<Vote> const& vote);
+  void addUnverifiedVoteToBatch(std::shared_ptr<Vote> const& vote, Batch& write_batch);
   void removeUnverifiedVoteToBatch(vote_hash_t const& vote_hash, Batch& write_batch);
 
   // Verified votes
-  std::vector<Vote> getVerifiedVotes();
-  shared_ptr<Vote> getVerifiedVote(vote_hash_t const& vote_hash);
-  void saveVerifiedVote(Vote const& vote);
-  void addVerifiedVoteToBatch(Vote const& vote, Batch& write_batch);
+  std::vector<std::shared_ptr<Vote>> getVerifiedVotes();
+  std::shared_ptr<Vote> getVerifiedVote(vote_hash_t const& vote_hash);
+  void saveVerifiedVote(std::shared_ptr<Vote> const& vote);
+  void addVerifiedVoteToBatch(std::shared_ptr<Vote> const& vote, Batch& write_batch);
   void removeVerifiedVoteToBatch(vote_hash_t const& vote_hash, Batch& write_batch);
 
   // Soft votes
-  std::vector<Vote> getSoftVotes(uint64_t pbft_round);
-  void saveSoftVotes(uint64_t pbft_round, std::vector<Vote> const& soft_votes);
-  void addSoftVotesToBatch(uint64_t pbft_round, std::vector<Vote> const& soft_votes, Batch& write_batch);
+  std::vector<std::shared_ptr<Vote>> getSoftVotes(uint64_t pbft_round);
+  void saveSoftVotes(uint64_t pbft_round, std::vector<std::shared_ptr<Vote>> const& soft_votes);
+  void addSoftVotesToBatch(uint64_t pbft_round, std::vector<std::shared_ptr<Vote>> const& soft_votes,
+                           Batch& write_batch);
   void removeSoftVotesToBatch(uint64_t pbft_round, Batch& write_batch);
 
   // Certified votes
-  std::vector<Vote> getCertVotes(uint64_t period);
+  std::vector<std::shared_ptr<Vote>> getCertVotes(uint64_t period);
 
   // Next votes
-  std::vector<Vote> getNextVotes(uint64_t pbft_round);
-  void saveNextVotes(uint64_t pbft_round, std::vector<Vote> const& next_votes);
-  void addNextVotesToBatch(uint64_t pbft_round, std::vector<Vote> const& next_votes, Batch& write_batch);
+  std::vector<std::shared_ptr<Vote>> getNextVotes(uint64_t pbft_round);
+  void saveNextVotes(uint64_t pbft_round, std::vector<std::shared_ptr<Vote>> const& next_votes);
+  void addNextVotesToBatch(uint64_t pbft_round, std::vector<std::shared_ptr<Vote>> const& next_votes,
+                           Batch& write_batch);
   void removeNextVotesToBatch(uint64_t pbft_round, Batch& write_batch);
 
   // period_pbft_block

@@ -159,15 +159,15 @@ class NextVotesForPreviousRound {
 
   blk_hash_t getVotedValue() const;
 
-  std::vector<Vote> getNextVotes();
+  std::vector<std::shared_ptr<Vote>> getNextVotes();
 
   size_t getNextVotesSize() const;
 
-  void addNextVotes(std::vector<Vote> const& next_votes, size_t pbft_2t_plus_1);
+  void addNextVotes(std::vector<std::shared_ptr<Vote>> const& next_votes, size_t pbft_2t_plus_1);
 
-  void updateNextVotes(std::vector<Vote> const& next_votes, size_t pbft_2t_plus_1);
+  void updateNextVotes(std::vector<std::shared_ptr<Vote>> const& next_votes, size_t pbft_2t_plus_1);
 
-  void updateWithSyncedVotes(std::vector<Vote> const& votes, size_t pbft_2t_plus_1);
+  void updateWithSyncedVotes(std::vector<std::shared_ptr<Vote>> const& votes, size_t pbft_2t_plus_1);
 
  private:
   using uniqueLock_ = boost::unique_lock<boost::shared_mutex>;
@@ -175,7 +175,8 @@ class NextVotesForPreviousRound {
   using upgradableLock_ = boost::upgrade_lock<boost::shared_mutex>;
   using upgradeLock_ = boost::upgrade_to_unique_lock<boost::shared_mutex>;
 
-  void assertError_(std::vector<Vote> next_votes_1, std::vector<Vote> next_votes_2) const;
+  void assertError_(std::vector<std::shared_ptr<Vote>> next_votes_1,
+                    std::vector<std::shared_ptr<Vote>> next_votes_2) const;
 
   mutable boost::shared_mutex access_;
 
@@ -184,26 +185,21 @@ class NextVotesForPreviousRound {
   bool enough_votes_for_null_block_hash_;
   blk_hash_t voted_value_;  // For value is not null block hash
   size_t next_votes_size_;
-  // <voted PBFT block hash, next votes list that have greater or equal to 2t+1 votes voted at the PBFT block hash>
-  // only save votes >= 2t+1 voted at same value in map and set
-  std::unordered_map<blk_hash_t, std::vector<Vote>> next_votes_;
+  // <voted PBFT block hash, next votes list that have exactly 2t+1 votes voted at the PBFT block hash>
+  // only save votes == 2t+1 voted at same value in map and set
+  std::unordered_map<blk_hash_t, std::vector<std::shared_ptr<Vote>>> next_votes_;
   std::unordered_set<vote_hash_t> next_votes_set_;
 
   LOG_OBJECTS_DEFINE
 };
 
-class VoteHash {
- public:
-  vote_hash_t operator()(const Vote& vote) const { return vote.getHash(); }
-};
-
 struct VotesBundle {
   bool enough;
   blk_hash_t voted_block_hash;
-  std::vector<Vote> votes;  // exactly 2t+1 votes
+  std::vector<std::shared_ptr<Vote>> votes;  // exactly 2t+1 votes
 
   VotesBundle() : enough(false), voted_block_hash(blk_hash_t(0)) {}
-  VotesBundle(bool enough, blk_hash_t const& voted_block_hash, std::vector<Vote> const& votes)
+  VotesBundle(bool enough, blk_hash_t const& voted_block_hash, std::vector<std::shared_ptr<Vote>> const& votes)
       : enough(enough), voted_block_hash(voted_block_hash), votes(votes) {}
 };
 
@@ -225,8 +221,8 @@ class VoteManager {
   uint64_t getUnverifiedVotesSize() const;
 
   // Verified votes
-  void addVerifiedVote(Vote const& vote);
-  bool voteInVerifiedMap(Vote const& vote);
+  void addVerifiedVote(std::shared_ptr<Vote> const& vote);
+  bool voteInVerifiedMap(std::shared_ptr<Vote> const& vote);
   void clearVerifiedVotesTable();
   std::vector<std::shared_ptr<Vote>> getVerifiedVotes();
   uint64_t getVerifiedVotesSize() const;
@@ -238,7 +234,7 @@ class VoteManager {
 
   void cleanupVotes(uint64_t pbft_round);
 
-  bool voteValidation(Vote& vote, size_t valid_sortition_players, size_t sortition_threshold) const;
+  bool voteValidation(std::shared_ptr<Vote>& vote, size_t valid_sortition_players, size_t sortition_threshold) const;
 
   bool pbftBlockHasEnoughValidCertVotes(SyncBlock& pbft_block_and_votes, size_t valid_sortition_players,
                                         size_t sortition_threshold, size_t pbft_2t_plus_1) const;
@@ -260,10 +256,11 @@ class VoteManager {
   using upgradeLock_ = boost::upgrade_to_unique_lock<boost::shared_mutex>;
 
   // <pbft round, <vote hash, vote>>
-  std::map<uint64_t, std::unordered_map<vote_hash_t, Vote>> unverified_votes_;
+  std::map<uint64_t, std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>> unverified_votes_;
 
   // <PBFT round, <PBFT step, <voted value, <vote hash, vote>>>>
-  std::map<uint64_t, std::map<size_t, std::unordered_map<blk_hash_t, std::unordered_map<vote_hash_t, Vote>>>>
+  std::map<uint64_t,
+           std::map<size_t, std::unordered_map<blk_hash_t, std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>>>>
       verified_votes_;
 
   std::unordered_set<vote_hash_t> votes_invalid_in_current_final_chain_period_;
