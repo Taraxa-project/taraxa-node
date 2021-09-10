@@ -195,6 +195,7 @@ struct DbStorage : std::enable_shared_from_this<DbStorage> {
   shared_ptr<pair<Transaction, taraxa::bytes>> getTransactionExt(trx_hash_t const& hash);
   bool transactionInDb(trx_hash_t const& hash);
   void addTransactionToBatch(Transaction const& trx, Batch& write_batch, bool verified = false);
+  void removeTransactionToBatch(trx_hash_t const& trx, Batch& write_batch);
 
   void saveTransactionStatus(trx_hash_t const& trx, TransactionStatus const& status);
   void addTransactionStatusToBatch(Batch& write_batch, trx_hash_t const& trx, TransactionStatus const& status);
@@ -298,6 +299,8 @@ struct DbStorage : std::enable_shared_from_this<DbStorage> {
 
   bool hasMinorVersionChanged() { return minor_version_changed_; }
 
+  uint64_t getColumnSize(Column const& col) const;
+
   inline static bytes asBytes(string const& b) {
     return bytes((byte const*)b.data(), (byte const*)(b.data() + b.size()));
   }
@@ -358,6 +361,21 @@ struct DbStorage : std::enable_shared_from_this<DbStorage> {
       return std::nullopt;
     }
     return *reinterpret_cast<Int*>(str.data());
+  }
+
+  template <typename K>
+  bool exist(K const& key, Column const& column) {
+    std::string value;
+    // KeyMayExist can lead to a few false positives, but not false negatives.
+    if (db_->KeyMayExist(read_options_, handle(column), toSlice(key), &value)) {
+      auto status = db_->Get(read_options_, handle(column), toSlice(key), &value);
+      if (status.IsNotFound()) {
+        return false;
+      }
+      checkStatus(status);
+      return !value.empty();
+    }
+    return false;
   }
 
   static void checkStatus(rocksdb::Status const& status);

@@ -219,12 +219,8 @@ std::shared_ptr<DagBlock> DbStorage::getDagBlock(blk_hash_t const& hash) {
 }
 
 bool DbStorage::dagBlockInDb(blk_hash_t const& hash) {
-  auto data = lookup(toSlice(hash.asBytes()), Columns::dag_blocks);
-  if (!data.empty()) {
-    return true;
-  }
-  data = lookup(toSlice(hash.asBytes()), Columns::dag_block_period);
-  if (!data.empty()) {
+  if (exist(toSlice(hash.asBytes()), Columns::dag_blocks) ||
+      exist(toSlice(hash.asBytes()), Columns::dag_block_period)) {
     return true;
   }
   return false;
@@ -338,14 +334,6 @@ void DbStorage::savePeriodData(const SyncBlock& sync_block, Batch& write_batch) 
     // Remove dag blocks
     remove(write_batch, Columns::dag_blocks, toSlice(block.getHash()));
   }
-  uint64_t position = 0;
-  for (auto const& trx : sync_block.transactions) {
-    // Remove transactions
-    remove(write_batch, Columns::transactions, toSlice(trx.getHash()));
-    addTransactionStatusToBatch(write_batch, trx.getHash(),
-                                TransactionStatus(TransactionStatusEnum::finalized, period, position));
-    position++;
-  }
 
   insert(write_batch, Columns::period_data, toSlice(period), toSlice(sync_block.rlp()));
 }
@@ -451,8 +439,12 @@ void DbStorage::addTransactionToBatch(Transaction const& trx, Batch& write_batch
          toSlice(*trx.rlp(false, verified)));
 }
 
+void DbStorage::removeTransactionToBatch(trx_hash_t const& trx, Batch& write_batch) {
+  remove(write_batch, Columns::transactions, toSlice(trx));
+}
+
 bool DbStorage::transactionInDb(trx_hash_t const& hash) {
-  return !lookup(toSlice(hash.asBytes()), Columns::transactions).empty();
+  return exist(toSlice(hash.asBytes()), Columns::transactions);
 }
 
 uint64_t DbStorage::getStatusField(StatusDbField const& field) {
@@ -572,7 +564,9 @@ std::shared_ptr<PbftBlock> DbStorage::getPbftBlock(blk_hash_t const& hash) {
   return nullptr;
 }
 
-bool DbStorage::pbftBlockInDb(blk_hash_t const& hash) { return getPeriodFromPbftHash(hash).first; }
+bool DbStorage::pbftBlockInDb(blk_hash_t const& hash) {
+  return exist(toSlice(hash.asBytes()), Columns::pbft_block_period);
+}
 
 string DbStorage::getPbftHead(blk_hash_t const& hash) { return lookup(toSlice(hash.asBytes()), Columns::pbft_head); }
 
@@ -815,6 +809,12 @@ void DbStorage::addProposalPeriodDagLevelsMapToBatch(ProposalPeriodDagLevelsMap 
                                                      Batch& write_batch) {
   insert(write_batch, Columns::proposal_period_levels_map, toSlice(period_levels_map.proposal_period),
          toSlice(period_levels_map.rlp()));
+}
+
+uint64_t DbStorage::getColumnSize(Column const& col) const {
+  rocksdb::ColumnFamilyMetaData data;
+  db_->GetColumnFamilyMetaData(handle(col), &data);
+  return data.size;
 }
 
 void DbStorage::forEach(Column const& col, OnEntry const& f) {

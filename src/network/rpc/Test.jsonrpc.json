@@ -148,5 +148,10 @@
       {}
     ],
     "returns": {}
+  },
+  {
+    "name": "get_db_stats",
+    "params": [],
+    "returns": {}
   }
 ]

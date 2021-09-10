@@ -48,12 +48,15 @@ bool SyncingState::is_actively_syncing() const {
          SYNCING_INACTIVITY_THRESHOLD;
 }
 
-void SyncingState::set_peer_malicious() {
+void SyncingState::set_peer_malicious(const std::optional<dev::p2p::NodeID>& peer_id) {
+  if (peer_id.has_value()) {
+    malicious_peers_.insert(peer_id.value());
+  }
+
   // this lock is for peer_id_ not the malicious_peers_
   std::shared_lock lock(peer_mutex_);
-  set_peer_malicious(peer_id_);
+  malicious_peers_.insert(peer_id_);
 }
-void SyncingState::set_peer_malicious(const dev::p2p::NodeID& peer_id) { malicious_peers_.insert(peer_id); }
 
 bool SyncingState::is_peer_malicious(const dev::p2p::NodeID& peer_id) const { return malicious_peers_.count(peer_id); }
 

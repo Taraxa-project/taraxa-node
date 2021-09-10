@@ -23,14 +23,15 @@ PbftManager::PbftManager(PbftConfig const &conf, blk_hash_t const &genesis, addr
                          std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
                          std::shared_ptr<VoteManager> vote_mgr,
                          std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr, std::shared_ptr<DagManager> dag_mgr,
-                         std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<FinalChain> final_chain,
-                         secret_t node_sk, vrf_sk_t vrf_sk)
+                         std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<TransactionManager> trx_mgr,
+                         std::shared_ptr<FinalChain> final_chain, secret_t node_sk, vrf_sk_t vrf_sk)
     : db_(db),
       previous_round_next_votes_(next_votes_mgr),
       pbft_chain_(pbft_chain),
       vote_mgr_(vote_mgr),
       dag_mgr_(dag_mgr),
       dag_blk_mgr_(dag_blk_mgr),
+      trx_mgr_(trx_mgr),
       final_chain_(final_chain),
       node_addr_(node_addr),
       node_sk_(node_sk),
@@ -1424,9 +1425,9 @@ void PbftManager::syncPbftChainFromPeers_(PbftSyncRequestReason reason, taraxa::
     return;
   }
   if (auto net = network_.lock()) {
-    if (net->syncBlockQueueSize()) {
+    if (syncBlockQueueSize()) {
       LOG(log_tr_) << "PBFT synced queue is still processing so skip syncing. Synced queue size "
-                   << net->syncBlockQueueSize();
+                   << syncBlockQueueSize();
 
       return;
     }
@@ -1533,8 +1534,8 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cer
 void PbftManager::pushSyncedPbftBlocksIntoChain_() {
   if (auto net = network_.lock()) {
     auto round = getPbftRound();
-    while (net->syncBlockQueueSize() > 0) {
-      auto sync_block_opt = net->processSyncBlock();
+    while (syncBlockQueueSize() > 0) {
+      auto sync_block_opt = processSyncBlock();
       if (!sync_block_opt) continue;
       auto &sync_block = *sync_block_opt;
       auto pbft_block_hash = sync_block.pbft_blk->getBlockHash();
@@ -1671,6 +1672,8 @@ bool PbftManager::pushPbftBlock_(SyncBlock &sync_block, vec_blk_t &dag_blocks_or
 
   // Commit DB
   db_->commitWriteBatch(batch);
+
+  trx_mgr_->updateFinalizedTransactionsStatus(sync_block);
 
   // update PBFT chain size
   pbft_chain_->updatePbftChain(pbft_block_hash);
@@ -1839,6 +1842,97 @@ bool PbftManager::is_syncing_() {
     return net->pbft_syncing();
   }
   return false;
+}
+
+uint64_t PbftManager::pbftSyncingPeriod() const {
+  std::shared_lock lock(sync_queue_access_);
+  if (sync_queue_.size()) {
+    return sync_queue_.back().first.pbft_blk->getPeriod();
+  } else {
+    return pbft_chain_->getPbftChainSize();
+  }
+}
+
+void PbftManager::syncBlockQueuePop() {
+  std::unique_lock lock(sync_queue_access_);
+  sync_queue_.pop();
+}
+
+std::optional<SyncBlock> PbftManager::processSyncBlock() {
+  std::shared_lock lock(sync_queue_access_);
+  auto sync_block = sync_queue_.front();
+  lock.unlock();
+  auto pbft_block_hash = sync_block.first.pbft_blk->getBlockHash();
+  LOG(log_nf_) << "Pop pbft block " << pbft_block_hash << " from synced queue";
+
+  auto net = network_.lock();
+  assert(net);  // Should never happen
+
+  // Check previous hash matches
+  if (sync_block.first.pbft_blk->getPrevBlockHash() != pbft_chain_->getLastPbftBlockHash()) {
+    // TODO: should be clear it is related to syncing, was log_er_pbft_sync_
+    LOG(log_er_) << "Invalid PBFT block " << pbft_block_hash
+                 << "; prevHash: " << sync_block.first.pbft_blk->getPrevBlockHash() << " from peer "
+                 << sync_block.second.abridged() << " received, stop syncing.";
+    // Handle malicious peer on network level
+    net->handleMaliciousSyncPeer(sync_queue_.front().second);
+    return nullopt;
+  }
+
+  // Check cert vote matches
+  for (auto const &vote : sync_block.first.cert_votes) {
+    if (vote.getBlockHash() != pbft_block_hash) {
+      LOG(log_er_) << "Invalid cert votes block hash " << vote.getBlockHash() << " instead of " << pbft_block_hash
+                   << " from peer " << sync_block.second.abridged() << " received, stop syncing.";
+      net->handleMaliciousSyncPeer(sync_queue_.front().second);
+      return nullopt;
+    }
+  }
+
+  auto order_hash = calculateOrderHash(sync_block.first.dag_blocks, sync_block.first.transactions);
+  if (order_hash != sync_block.first.pbft_blk->getOrderHash()) {
+    LOG(log_er_) << "Order hash incorrect in sync block " << pbft_block_hash << " expected: " << order_hash
+                 << " received " << sync_block.first.pbft_blk->getOrderHash() << " from "
+                 << sync_block.second.abridged() << ", stop syncing.";
+    net->handleMaliciousSyncPeer(sync_block.second);
+    return nullopt;
+  }
+
+  if (pbft_chain_->findPbftBlockInChain(pbft_block_hash)) {
+    LOG(log_dg_) << "PBFT block " << pbft_block_hash << " already present in chain.";
+    syncBlockQueuePop();
+    return nullopt;
+  }
+
+  // Check cert votes validation
+  if (!vote_mgr_->pbftBlockHasEnoughValidCertVotes(sync_block.first, getDposTotalVotesCount(), getSortitionThreshold(),
+                                                   getTwoTPlusOne())) {
+    // Failed cert votes validation, flush synced PBFT queue and set since
+    // next block validation depends on the current one
+    LOG(log_er_) << "Synced PBFT block " << pbft_block_hash
+                 << " doesn't have enough valid cert votes. Clear synced PBFT blocks! DPOS total votes count: "
+                 << getDposTotalVotesCount();
+    net->handleMaliciousSyncPeer(sync_block.second);
+    return nullopt;
+  }
+  syncBlockQueuePop();
+  return std::optional<SyncBlock>(std::move(sync_block.first));
+}
+
+void PbftManager::syncBlockQueuePush(SyncBlock const &block, NodeID const &node_id) {
+  std::unique_lock lock(sync_queue_access_);
+  sync_queue_.push({block, node_id});
+}
+
+void PbftManager::clearSyncBlockQueue() {
+  std::unique_lock lock(sync_queue_access_);
+  std::queue<std::pair<SyncBlock, NodeID>> empty;
+  std::swap(sync_queue_, empty);
+}
+
+size_t PbftManager::syncBlockQueueSize() const {
+  std::shared_lock lock(sync_queue_access_);
+  return sync_queue_.size();
 }
 
 }  // namespace taraxa
