@@ -103,8 +103,8 @@ void FullNode::init() {
   vote_mgr_ = std::make_shared<VoteManager>(node_addr, db_, final_chain_, pbft_chain_);
   trx_order_mgr_ = std::make_shared<TransactionOrderManager>(node_addr, db_);
   pbft_mgr_ = std::make_shared<PbftManager>(conf_.chain.pbft, genesis_hash, node_addr, db_, pbft_chain_, vote_mgr_,
-                                            next_votes_mgr_, dag_mgr_, dag_blk_mgr_, final_chain_, kp_.secret(),
-                                            conf_.vrf_secret);
+                                            next_votes_mgr_, dag_mgr_, dag_blk_mgr_, trx_mgr_, final_chain_,
+                                            kp_.secret(), conf_.vrf_secret);
   blk_proposer_ = std::make_shared<BlockProposer>(conf_.test_params.block_proposer, conf_.chain.vdf, dag_mgr_, trx_mgr_,
                                                   dag_blk_mgr_, final_chain_, node_addr, getSecretKey(),
                                                   getVrfSecretKey(), log_time_);

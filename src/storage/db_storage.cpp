@@ -338,14 +338,6 @@ void DbStorage::savePeriodData(const SyncBlock& sync_block, Batch& write_batch) 
     // Remove dag blocks
     remove(write_batch, Columns::dag_blocks, toSlice(block.getHash()));
   }
-  uint64_t position = 0;
-  for (auto const& trx : sync_block.transactions) {
-    // Remove transactions
-    remove(write_batch, Columns::transactions, toSlice(trx.getHash()));
-    addTransactionStatusToBatch(write_batch, trx.getHash(),
-                                TransactionStatus(TransactionStatusEnum::finalized, period, position));
-    position++;
-  }
 
   insert(write_batch, Columns::period_data, toSlice(period), toSlice(sync_block.rlp()));
 }
@@ -449,6 +441,10 @@ std::shared_ptr<std::pair<Transaction, taraxa::bytes>> DbStorage::getTransaction
 void DbStorage::addTransactionToBatch(Transaction const& trx, Batch& write_batch, bool verified) {
   insert(write_batch, DbStorage::Columns::transactions, toSlice(trx.getHash().asBytes()),
          toSlice(*trx.rlp(false, verified)));
+}
+
+void DbStorage::removeTransactionToBatch(trx_hash_t const& trx, Batch& write_batch) {
+  remove(write_batch, Columns::transactions, toSlice(trx));
 }
 
 bool DbStorage::transactionInDb(trx_hash_t const& hash) {
