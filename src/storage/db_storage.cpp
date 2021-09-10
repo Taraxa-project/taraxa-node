@@ -219,12 +219,8 @@ std::shared_ptr<DagBlock> DbStorage::getDagBlock(blk_hash_t const& hash) {
 }
 
 bool DbStorage::dagBlockInDb(blk_hash_t const& hash) {
-  auto data = lookup(toSlice(hash.asBytes()), Columns::dag_blocks);
-  if (!data.empty()) {
-    return true;
-  }
-  data = lookup(toSlice(hash.asBytes()), Columns::dag_block_period);
-  if (!data.empty()) {
+  if (exist(toSlice(hash.asBytes()), Columns::dag_blocks) ||
+      exist(toSlice(hash.asBytes()), Columns::dag_block_period)) {
     return true;
   }
   return false;
@@ -448,7 +444,7 @@ void DbStorage::removeTransactionToBatch(trx_hash_t const& trx, Batch& write_bat
 }
 
 bool DbStorage::transactionInDb(trx_hash_t const& hash) {
-  return !lookup(toSlice(hash.asBytes()), Columns::transactions).empty();
+  return exist(toSlice(hash.asBytes()), Columns::transactions);
 }
 
 uint64_t DbStorage::getStatusField(StatusDbField const& field) {
@@ -568,7 +564,9 @@ std::shared_ptr<PbftBlock> DbStorage::getPbftBlock(blk_hash_t const& hash) {
   return nullptr;
 }
 
-bool DbStorage::pbftBlockInDb(blk_hash_t const& hash) { return getPeriodFromPbftHash(hash).first; }
+bool DbStorage::pbftBlockInDb(blk_hash_t const& hash) {
+  return exist(toSlice(hash.asBytes()), Columns::pbft_block_period);
+}
 
 string DbStorage::getPbftHead(blk_hash_t const& hash) { return lookup(toSlice(hash.asBytes()), Columns::pbft_head); }
 
