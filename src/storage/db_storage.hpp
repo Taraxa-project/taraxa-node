@@ -195,6 +195,7 @@ struct DbStorage : std::enable_shared_from_this<DbStorage> {
   shared_ptr<pair<Transaction, taraxa::bytes>> getTransactionExt(trx_hash_t const& hash);
   bool transactionInDb(trx_hash_t const& hash);
   void addTransactionToBatch(Transaction const& trx, Batch& write_batch, bool verified = false);
+  void removeTransactionToBatch(trx_hash_t const& trx, Batch& write_batch);
 
   void saveTransactionStatus(trx_hash_t const& trx, TransactionStatus const& status);
   void addTransactionStatusToBatch(Batch& write_batch, trx_hash_t const& trx, TransactionStatus const& status);

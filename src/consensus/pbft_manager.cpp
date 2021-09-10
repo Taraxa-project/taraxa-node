@@ -23,14 +23,15 @@ PbftManager::PbftManager(PbftConfig const &conf, blk_hash_t const &genesis, addr
                          std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
                          std::shared_ptr<VoteManager> vote_mgr,
                          std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr, std::shared_ptr<DagManager> dag_mgr,
-                         std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<FinalChain> final_chain,
-                         secret_t node_sk, vrf_sk_t vrf_sk)
+                         std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<TransactionManager> trx_mgr,
+                         std::shared_ptr<FinalChain> final_chain, secret_t node_sk, vrf_sk_t vrf_sk)
     : db_(db),
       previous_round_next_votes_(next_votes_mgr),
       pbft_chain_(pbft_chain),
       vote_mgr_(vote_mgr),
       dag_mgr_(dag_mgr),
       dag_blk_mgr_(dag_blk_mgr),
+      trx_mgr_(trx_mgr),
       final_chain_(final_chain),
       node_addr_(node_addr),
       node_sk_(node_sk),
@@ -1671,6 +1672,8 @@ bool PbftManager::pushPbftBlock_(SyncBlock &sync_block, vec_blk_t &dag_blocks_or
 
   // Commit DB
   db_->commitWriteBatch(batch);
+
+  trx_mgr_->updateFinalizedTransactionsStatus(sync_block);
 
   // update PBFT chain size
   pbft_chain_->updatePbftChain(pbft_block_hash);
