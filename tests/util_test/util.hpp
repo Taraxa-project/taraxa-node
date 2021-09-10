@@ -12,7 +12,6 @@
 #include <type_traits>
 #include <vector>
 
-#include "common/lazy.hpp"
 #include "config/config.hpp"
 #include "gtest.hpp"
 #include "network/network.hpp"
@@ -29,10 +28,6 @@ using filesystem::is_regular_file;
 using filesystem::path;
 using filesystem::recursive_directory_iterator;
 using filesystem::remove_all;
-using ::taraxa::util::lazy::Lazy;
-
-inline auto const DIR = path(__FILE__).parent_path();
-inline auto const DIR_CONF = DIR / "conf";
 
 inline const uint64_t TEST_TX_GAS_LIMIT = 0;
 
@@ -117,21 +112,6 @@ inline bool wait(wait_opts const& opts, function<void(wait_ctx&)> const& poller)
     }                                       \
     EXPECT_LT(o1, o2);                      \
   }
-
-inline auto const node_cfgs_original = Lazy([] {
-  vector<FullNodeConfig> ret;
-  for (int i = 1;; ++i) {
-    auto p = DIR_CONF / (string("conf_taraxa") + std::to_string(i) + ".json");
-    if (!fs::exists(p)) {
-      break;
-    }
-    auto w = DIR_CONF / (string("wallet") + std::to_string(i) + ".json");
-    Json::Value test_node_wallet_json;
-    std::ifstream(w.string(), std::ifstream::binary) >> test_node_wallet_json;
-    ret.emplace_back(p.string(), test_node_wallet_json);
-  }
-  return ret;
-});
 
 template <uint tests_speed = 1, bool enable_rpc_http = false, bool enable_rpc_ws = false>
 inline auto make_node_cfgs(uint count) {
@@ -224,20 +204,6 @@ inline auto launch_nodes(vector<FullNodeConfig> const& cfgs) {
     }
   }
 }
-
-struct BaseTest : virtual WithDataDir {
-  BaseTest() : WithDataDir() {
-    for (auto& cfg : *node_cfgs_original) {
-      remove_all(cfg.data_path);
-    }
-  }
-  void TearDown() override {
-    for (auto& cfg : *node_cfgs_original) {
-      remove_all(cfg.data_path);
-    }
-  }
-  virtual ~BaseTest(){};
-};
 
 inline auto addr(Secret const& secret = Secret::random()) { return KeyPair(secret).address(); }
 

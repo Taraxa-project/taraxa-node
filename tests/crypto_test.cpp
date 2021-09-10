@@ -12,10 +12,9 @@
 #include "common/vrf_wrapper.hpp"
 #include "config/config.hpp"
 #include "logger/log.hpp"
-#include "node/node.hpp"
-#include "pbft/pbft_manager.hpp"
-#include "util_test/util.hpp"
+#include "util_test/gtest.hpp"
 #include "vdf/sortition.hpp"
+#include "vote/vote.hpp"
 
 namespace taraxa::core_tests {
 using namespace vdf;
@@ -79,7 +78,7 @@ TEST_F(CryptoTest, vrf_proof_verify) {
     std::cout << "VRF proof bytes: (" << crypto_vrf_proofbytes() << ") " << proof.value() << std::endl;
   }
   if (output) {
-    std::cout << "VRF output bytes: (" << crypto_vrf_outputbytes() << ") " << output.value() << endl;
+    std::cout << "VRF output bytes: (" << crypto_vrf_outputbytes() << ") " << output.value() << std::endl;
   }
 }
 

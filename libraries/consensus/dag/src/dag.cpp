@@ -13,7 +13,6 @@
 
 #include "dag/dag.hpp"
 #include "network/network.hpp"
-#include "network/rpc/WSServer.h"
 #include "transaction_manager/transaction_manager.hpp"
 
 namespace taraxa {

@@ -9,7 +9,6 @@ target_link_libraries(vdf PUBLIC
     logger
     taraxa-vdf
     CONAN_PKG::mpfr
-    CONAN_PKG::jsoncpp
 )
 
 install(TARGETS vdf

@@ -21,6 +21,4 @@ target_link_libraries(dag PRIVATE
     pbft
     transaction_manager
     vote
-    CONAN_PKG::jsoncpp
-    CONAN_PKG::libjson-rpc-cpp
 )

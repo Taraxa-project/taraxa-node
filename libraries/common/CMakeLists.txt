@@ -7,7 +7,6 @@ set(HEADERS
 
     include/common/default_construct_copyable_movable.hpp
     include/common/encoding_rlp.hpp
-    include/common/exit_stack.hpp
     include/common/functional.hpp
     include/common/jsoncpp.hpp
     include/common/lazy.hpp
@@ -20,7 +19,6 @@ set(SOURCES
     src/constants.cpp
     src/jsoncpp.cpp
     src/thread_pool.cpp
-    src/types.cpp
     src/util.cpp
     src/vrf_wrapper.cpp
 )

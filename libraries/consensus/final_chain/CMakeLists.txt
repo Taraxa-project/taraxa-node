@@ -21,8 +21,11 @@ target_include_directories(final_chain PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/includ
 target_link_libraries(final_chain PUBLIC taraxa-evm)
 target_link_libraries(final_chain PRIVATE 
     common
-    consensus
     config
+    dag
     logger
+    pbft_block
     storage
+    transaction
+    vote
 )
