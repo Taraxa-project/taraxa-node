@@ -363,6 +363,21 @@ struct DbStorage : std::enable_shared_from_this<DbStorage> {
     return *reinterpret_cast<Int*>(str.data());
   }
 
+  template <typename K>
+  bool exist(K const& key, Column const& column) {
+    std::string value;
+    // KeyMayExist can lead to a few false positives, but not false negatives.
+    if (db_->KeyMayExist(read_options_, handle(column), toSlice(key), &value)) {
+      auto status = db_->Get(read_options_, handle(column), toSlice(key), &value);
+      if (status.IsNotFound()) {
+        return false;
+      }
+      checkStatus(status);
+      return !value.empty();
+    }
+    return false;
+  }
+
   static void checkStatus(rocksdb::Status const& status);
 
   template <typename K, typename V>
