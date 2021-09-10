@@ -279,7 +279,6 @@ void VoteManager::removeVerifiedVotes() {
   auto batch = db_->createWriteBatch();
   for (auto const& v : votes) {
     db_->removeVerifiedVoteToBatch(v.getHash(), batch);
-    db_->addUnverifiedVoteToBatch(v, batch);
   }
   db_->commitWriteBatch(batch);
 }
