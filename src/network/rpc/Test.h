@@ -43,6 +43,7 @@ class Test : public TestFace {
   virtual Json::Value get_dag_blk_count(const Json::Value& param1) override;
   virtual Json::Value get_pbft_chain_size() override;
   virtual Json::Value get_pbft_chain_blocks(const Json::Value& param1) override;
+  virtual Json::Value get_db_stats() override;
 
  private:
   std::weak_ptr<taraxa::FullNode> full_node_;
