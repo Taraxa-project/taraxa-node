@@ -1796,8 +1796,8 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
 
   // Check cert vote matches
   for (auto const &vote : sync_block.first.cert_votes) {
-    if (vote.getBlockHash() != pbft_block_hash) {
-      LOG(log_er_) << "Invalid cert votes block hash " << vote.getBlockHash() << " instead of " << pbft_block_hash
+    if (vote->getBlockHash() != pbft_block_hash) {
+      LOG(log_er_) << "Invalid cert votes block hash " << vote->getBlockHash() << " instead of " << pbft_block_hash
                    << " from peer " << sync_block.second.abridged() << " received, stop syncing.";
       clearSyncBlockQueue();
       net->handleMaliciousSyncPeer(sync_queue_.front().second);
