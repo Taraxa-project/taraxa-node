@@ -536,7 +536,7 @@ void Host::main_loop_body() {
   peer_count_snapshot_ = peer_count_();
 
   m_runTimer.expires_after(taraxa_conf_.main_loop_interval);
-  m_runTimer.async_wait([this](...) { main_loop_body(); });
+  m_runTimer.async_wait(ba::bind_executor(strand_, [this](...) { main_loop_body(); }));
 }
 
 void Host::keepAlivePeers() {
