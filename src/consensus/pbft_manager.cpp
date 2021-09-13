@@ -1668,7 +1668,7 @@ bool PbftManager::pushPbftBlock_(SyncBlock &sync_block, vec_blk_t &dag_blocks_or
         TransactionStatus transaction_status(rlp);
         if (transaction_status.state == TransactionStatusEnum::in_block) {
           non_executed_transactions.emplace_back(transactions_to_query[trx_index]);
-        } else if (transaction_status.state == TransactionStatusEnum::finalized) {
+        } else if (transaction_status.state != TransactionStatusEnum::finalized) {
           LOG(log_er_) << transactions_to_query[trx_index] << " in incorrect state"
                        << (uint16_t)transaction_status.state;
           assert(false);
