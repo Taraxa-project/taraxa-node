@@ -1657,7 +1657,27 @@ bool PbftManager::pushPbftBlock_(SyncBlock &sync_block, vec_blk_t &dag_blocks_or
       }
       sync_block.dag_blocks.emplace_back(std::move(dag_block));
     }
-    db_query.append(DbStorage::Columns::transactions, transactions_to_query);
+    std::vector<trx_hash_t> non_executed_transactions;
+    db_query.append(DbStorage::Columns::trx_status, transactions_to_query);
+    auto transactions_status_res = db_query.execute();
+    uint32_t trx_index = 0;
+    for (auto const &trx_status_raw : transactions_status_res) {
+      if (!trx_status_raw.empty()) {
+        auto data = asBytes(trx_status_raw);
+        dev::RLP rlp(data);
+        TransactionStatus transaction_status(rlp);
+        if (transaction_status.state == TransactionStatusEnum::in_block) {
+          non_executed_transactions.emplace_back(transactions_to_query[trx_index]);
+        } else if (transaction_status.state == TransactionStatusEnum::finalized) {
+          LOG(log_er_) << transactions_to_query[trx_index] << " in incorrect state"
+                       << (uint16_t)transaction_status.state;
+          assert(false);
+        }
+      }
+      trx_index++;
+    }
+
+    db_query.append(DbStorage::Columns::transactions, non_executed_transactions);
     auto transactions_res = db_query.execute();
     sync_block.transactions.reserve(transactions_res.size());
     for (auto const &trx_raw : transactions_res) {
