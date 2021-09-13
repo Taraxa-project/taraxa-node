@@ -1055,9 +1055,8 @@ std::shared_ptr<Vote> PbftManager::generateVote(blk_hash_t const &blockhash, Pbf
   // sortition proof
   VrfPbftMsg msg(type, round, step, weighted_index);
   VrfPbftSortition vrf_sortition(vrf_sk_, msg);
-  Vote vote(node_sk_, vrf_sortition, blockhash);
 
-  return std::make_shared<Vote>(vote);
+  return std::make_shared<Vote>(node_sk_, vrf_sortition, blockhash);
 }
 
 size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteTypes vote_type, uint64_t round,
