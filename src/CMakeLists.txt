@@ -31,6 +31,7 @@ set(SOURCES
         logger/log.hpp
         logger/logger_config.hpp
         network/syncing_state.hpp
+        network/sync_block.hpp
         network/rpc/rpc_error_handler.hpp
         network/rpc/eth/watches.hpp
         network/rpc/eth/LogFilter.hpp
@@ -131,6 +132,7 @@ set(SOURCES
         network/rpc/eth/LogFilter.cpp
         network/rpc/eth/Eth.cpp
         network/network.cpp
+        network/sync_block.cpp
         network/tarcap/new_taraxa_capability.cpp
         network/tarcap/stats/node_stats.cpp
         network/tarcap/threadpool/tarcap_thread_pool.cpp
@@ -174,6 +176,8 @@ add_library(app_base ${SOURCES})
 get_target_property(TARAXA_VDF_INCUDE taraxa-vdf INTERFACE_INCLUDE_DIRECTORIES)
 get_target_property(TARAXA_VRF_INCUDE taraxa-vrf INTERFACE_INCLUDE_DIRECTORIES)
 
+add_subdirectory(aleth)
+
 target_include_directories(app_base PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${TARAXA_VDF_INCUDE}
@@ -200,7 +204,9 @@ target_link_libraries(app_base
         CONAN_PKG::lz4
         CONAN_PKG::rocksdb
         CONAN_PKG::mpfr
-        aleth #  FIXME: THIS LIB CAUSES LINKING ORDER SENSITIVITY
+        devcore
+        devcrypto
+        p2p
         )
 
 # needed for golang runtime that comes together with taraxa-evm

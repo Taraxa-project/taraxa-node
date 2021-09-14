@@ -2,18 +2,18 @@ cmake_minimum_required(VERSION 3.16)
 
 # Set current version of the project
 set(TARAXA_MAJOR_VERSION 1)
-set(TARAXA_MINOR_VERSION 11)
+set(TARAXA_MINOR_VERSION 12)
 set(TARAXA_PATCH_VERSION 0)
 set(TARAXA_VERSION ${TARAXA_MAJOR_VERSION}.${TARAXA_MINOR_VERSION}.${TARAXA_PATCH_VERSION})
 
 # Any time a change in the network protocol is introduced this version should be increased
-set(TARAXA_NET_VERSION 15)
+set(TARAXA_NET_VERSION 16)
 # Major version is modified when DAG blocks, pbft blocks and any basic building blocks of our blockchan is modified
 # in the db
 set(TARAXA_DB_MAJOR_VERSION 2)
 # Minor version should be modified when changes to the database are made in the tables that can be rebuilt from the
 # basic tables
-set(TARAXA_DB_MINOR_VERSION 1)
+set(TARAXA_DB_MINOR_VERSION 2)
 
 # Defines Taraxa library target.
 project(taraxa-node VERSION ${TARAXA_VERSION})
@@ -86,26 +86,6 @@ endif ()
 # Mac OS
 set(CMAKE_MACOSX_RPATH OFF)
 
-# Get the latest abbreviated commit hash of the working branch
-execute_process(
-        COMMAND git log -1 --format=%h
-        WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
-        OUTPUT_VARIABLE GIT_HASH
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-)
-
-# Get compile time
-execute_process(
-        COMMAND date -u +%Y-%m-%d-%H:%M:%S
-        OUTPUT_VARIABLE COMPILE_TIME
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-)
-
-add_compile_definitions(
-        GIT_HASH=\"${GIT_HASH}\"
-        COMPILE_TIME=\"${COMPILE_TIME}\"
-)
-
 # Enable creation of taraxa package containing taraxad binary
 set(ENABLE_PACKAGE_INSTALLER TRUE CACHE BOOL "Build Taraxa package")
 
@@ -173,7 +153,7 @@ if(CONAN_EXPORTED)
 else()
     if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
         message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
-        file(DOWNLOAD "https://github.com/conan-io/cmake-conan/raw/v0.16/conan.cmake"
+        file(DOWNLOAD "https://github.com/conan-io/cmake-conan/raw/v0.16.1/conan.cmake"
             "${CMAKE_BINARY_DIR}/conan.cmake"
             TLS_VERIFY ON)
     endif()
@@ -182,6 +162,7 @@ else()
 
     conan_cmake_run(CONANFILE conanfile.py BUILD_TYPE ${CMAKE_BUILD_TYPE} BUILD missing
                     BASIC_SETUP CMAKE_TARGETS KEEP_RPATHS PROFILE ${CONAN_PROFILE})
+    set(CONAN_EXPORTED true CACHE BOOL "Is conan already run on the project")
 endif()
 
 # Custom CMakeModules for finding libraries

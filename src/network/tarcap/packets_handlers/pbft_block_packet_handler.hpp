@@ -6,6 +6,7 @@
 namespace taraxa {
 class PbftChain;
 class DagBlockManager;
+class PbftManager;
 }  // namespace taraxa
 
 namespace taraxa::network::tarcap {
@@ -17,8 +18,9 @@ class PbftBlockPacketHandler : public PacketHandler {
  public:
   PbftBlockPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
                          std::shared_ptr<SyncingState> syncing_state, std::shared_ptr<SyncingHandler> syncing_handler,
-                         std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DagBlockManager> dag_blk_mgr,
-                         size_t network_sync_level_size, const addr_t& node_addr = {});
+                         std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<PbftManager> pbft_mgr,
+                         std::shared_ptr<DagBlockManager> dag_blk_mgr, size_t network_sync_level_size,
+                         const addr_t& node_addr = {});
 
   virtual ~PbftBlockPacketHandler() = default;
 
@@ -34,6 +36,7 @@ class PbftBlockPacketHandler : public PacketHandler {
   std::shared_ptr<SyncingState> syncing_state_;
   std::shared_ptr<SyncingHandler> syncing_handler_;
   std::shared_ptr<PbftChain> pbft_chain_;
+  std::shared_ptr<PbftManager> pbft_mgr_;
   std::shared_ptr<DagBlockManager> dag_blk_mgr_;
 
   // Initialized from network config

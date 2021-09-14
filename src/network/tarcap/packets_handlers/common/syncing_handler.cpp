@@ -1,6 +1,7 @@
 #include "syncing_handler.hpp"
 
 #include "consensus/pbft_chain.hpp"
+#include "consensus/pbft_manager.hpp"
 #include "dag/dag.hpp"
 #include "dag/dag_block_manager.hpp"
 #include "network/tarcap/packets_handlers/common/get_blocks_request_type.hpp"
@@ -10,11 +11,12 @@ namespace taraxa::network::tarcap {
 
 SyncingHandler::SyncingHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
                                std::shared_ptr<SyncingState> syncing_state, std::shared_ptr<PbftChain> pbft_chain,
-                               std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
-                               const addr_t &node_addr)
+                               std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
+                               std::shared_ptr<DagBlockManager> dag_blk_mgr, const addr_t &node_addr)
     : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "SYNCING"),
       syncing_state_(std::move(syncing_state)),
       pbft_chain_(std::move(pbft_chain)),
+      pbft_mgr_(std::move(pbft_mgr)),
       dag_mgr_(std::move(dag_mgr)),
       dag_blk_mgr_(std::move(dag_blk_mgr)) {}
 
@@ -48,7 +50,7 @@ void SyncingHandler::restartSyncingPbft(bool force) {
     }
   }
 
-  auto pbft_sync_period = pbft_chain_->pbftSyncingPeriod();
+  auto pbft_sync_period = pbft_mgr_->pbftSyncingPeriod();
   if (max_pbft_chain_size > pbft_sync_period) {
     LOG(log_si_) << "Restarting syncing PBFT from peer " << max_pbft_chain_nodeID << ", peer PBFT chain size "
                  << max_pbft_chain_size << ", own PBFT chain synced at period " << pbft_sync_period;

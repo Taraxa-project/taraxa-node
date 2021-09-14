@@ -87,8 +87,12 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(blk1, *db.getDagBlock(blk1.getHash()));
   EXPECT_EQ(blk2, *db.getDagBlock(blk2.getHash()));
   EXPECT_EQ(blk3, *db.getDagBlock(blk3.getHash()));
-  EXPECT_EQ(db.getBlocksByLevel(1), blk1.getHash().toString() + "," + blk2.getHash().toString());
-  EXPECT_EQ(db.getBlocksByLevel(2), blk3.getHash().toString());
+  std::set<blk_hash_t> s1, s2;
+  s1.emplace(blk1.getHash());
+  s1.emplace(blk2.getHash());
+  s2.emplace(blk3.getHash());
+  EXPECT_EQ(db.getBlocksByLevel(1), s1);
+  EXPECT_EQ(db.getBlocksByLevel(2), s2);
 
   // Transaction
   db.saveTransaction(g_trx_signed_samples[0]);
@@ -229,13 +233,16 @@ TEST_F(FullNodeTest, db_test) {
 
   batch = db.createWriteBatch();
   std::vector<Vote> votes;
-  std::vector<DagBlock> dag_blocks;
-  std::vector<Transaction> vTrxs;
 
-  db.savePeriodData(pbft_block1, cert_votes, dag_blocks, vTrxs, batch);
-  db.savePeriodData(pbft_block2, votes, dag_blocks, vTrxs, batch);
-  db.savePeriodData(pbft_block3, votes, dag_blocks, vTrxs, batch);
-  db.savePeriodData(pbft_block4, votes, dag_blocks, vTrxs, batch);
+  SyncBlock sync_block1(pbft_block1, cert_votes);
+  SyncBlock sync_block2(pbft_block2, votes);
+  SyncBlock sync_block3(pbft_block3, votes);
+  SyncBlock sync_block4(pbft_block4, votes);
+
+  db.savePeriodData(sync_block1, batch);
+  db.savePeriodData(sync_block2, batch);
+  db.savePeriodData(sync_block3, batch);
+  db.savePeriodData(sync_block4, batch);
 
   db.commitWriteBatch(batch);
   EXPECT_TRUE(db.pbftBlockInDb(pbft_block1.getBlockHash()));
@@ -247,9 +254,9 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(db.getPbftBlock(pbft_block3.getBlockHash())->rlp(false), pbft_block3.rlp(false));
   EXPECT_EQ(db.getPbftBlock(pbft_block4.getBlockHash())->rlp(false), pbft_block4.rlp(false));
 
-  PbftBlockCert pbft_block_cert_votes(pbft_block1, cert_votes);
+  SyncBlock pbft_block_cert_votes(pbft_block1, cert_votes);
   auto cert_votes_from_db = db.getCertVotes(pbft_block1.getPeriod());
-  PbftBlockCert pbft_block_cert_votes_from_db(pbft_block1, cert_votes_from_db);
+  SyncBlock pbft_block_cert_votes_from_db(pbft_block1, cert_votes_from_db);
   EXPECT_EQ(pbft_block_cert_votes.rlp(), pbft_block_cert_votes_from_db.rlp());
 
   // pbft_blocks (head)
@@ -800,21 +807,21 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
 
   node->getDagManager()->getLatestPivotAndTips(pivot, tips);
   uint64_t period;
-  std::shared_ptr<vec_blk_t> order;
+  vec_blk_t order;
   std::tie(period, order) = node->getDagManager()->getDagBlockOrder(pivot);
   EXPECT_EQ(period, 1);
-  EXPECT_EQ(order->size(), 6);
+  EXPECT_EQ(order.size(), 6);
 
-  if (order->size() == 6) {
-    EXPECT_EQ((*order)[0], blk_hash_t(3));
-    EXPECT_EQ((*order)[1], blk_hash_t(6));
-    EXPECT_EQ((*order)[2], blk_hash_t(2));
-    EXPECT_EQ((*order)[3], blk_hash_t(1));
-    EXPECT_EQ((*order)[4], blk_hash_t(5));
-    EXPECT_EQ((*order)[5], blk_hash_t(7));
+  if (order.size() == 6) {
+    EXPECT_EQ(order[0], blk_hash_t(3));
+    EXPECT_EQ(order[1], blk_hash_t(6));
+    EXPECT_EQ(order[2], blk_hash_t(2));
+    EXPECT_EQ(order[3], blk_hash_t(1));
+    EXPECT_EQ(order[4], blk_hash_t(5));
+    EXPECT_EQ(order[5], blk_hash_t(7));
   }
   auto write_batch = node->getDB()->createWriteBatch();
-  auto num_blks_set = node->getDagManager()->setDagBlockOrder(pivot, period, *order, write_batch);
+  auto num_blks_set = node->getDagManager()->setDagBlockOrder(pivot, period, order, write_batch);
   node->getDB()->commitWriteBatch(write_batch);
   EXPECT_EQ(num_blks_set, 6);
   // -------- second period ----------
@@ -827,17 +834,17 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   node->getDagManager()->getLatestPivotAndTips(pivot, tips);
   std::tie(period, order) = node->getDagManager()->getDagBlockOrder(pivot);
   EXPECT_EQ(period, 2);
-  if (order->size() == 7) {
-    EXPECT_EQ((*order)[0], blk_hash_t(11));
-    EXPECT_EQ((*order)[1], blk_hash_t(10));
-    EXPECT_EQ((*order)[2], blk_hash_t(13));
-    EXPECT_EQ((*order)[3], blk_hash_t(9));
-    EXPECT_EQ((*order)[4], blk_hash_t(12));
-    EXPECT_EQ((*order)[5], blk_hash_t(14));
-    EXPECT_EQ((*order)[6], blk_hash_t(15));
+  if (order.size() == 7) {
+    EXPECT_EQ(order[0], blk_hash_t(11));
+    EXPECT_EQ(order[1], blk_hash_t(10));
+    EXPECT_EQ(order[2], blk_hash_t(13));
+    EXPECT_EQ(order[3], blk_hash_t(9));
+    EXPECT_EQ(order[4], blk_hash_t(12));
+    EXPECT_EQ(order[5], blk_hash_t(14));
+    EXPECT_EQ(order[6], blk_hash_t(15));
   }
   write_batch = node->getDB()->createWriteBatch();
-  num_blks_set = node->getDagManager()->setDagBlockOrder(pivot, period, *order, write_batch);
+  num_blks_set = node->getDagManager()->setDagBlockOrder(pivot, period, order, write_batch);
   node->getDB()->commitWriteBatch(write_batch);
   EXPECT_EQ(num_blks_set, 7);
 
@@ -851,15 +858,15 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   node->getDagManager()->getLatestPivotAndTips(pivot, tips);
   std::tie(period, order) = node->getDagManager()->getDagBlockOrder(pivot);
   EXPECT_EQ(period, 3);
-  if (order->size() == 5) {
-    EXPECT_EQ((*order)[0], blk_hash_t(17));
-    EXPECT_EQ((*order)[1], blk_hash_t(16));
-    EXPECT_EQ((*order)[2], blk_hash_t(8));
-    EXPECT_EQ((*order)[3], blk_hash_t(18));
-    EXPECT_EQ((*order)[4], blk_hash_t(19));
+  if (order.size() == 5) {
+    EXPECT_EQ(order[0], blk_hash_t(17));
+    EXPECT_EQ(order[1], blk_hash_t(16));
+    EXPECT_EQ(order[2], blk_hash_t(8));
+    EXPECT_EQ(order[3], blk_hash_t(18));
+    EXPECT_EQ(order[4], blk_hash_t(19));
   }
   write_batch = node->getDB()->createWriteBatch();
-  num_blks_set = node->getDagManager()->setDagBlockOrder(pivot, period, *order, write_batch);
+  num_blks_set = node->getDagManager()->setDagBlockOrder(pivot, period, order, write_batch);
   node->getDB()->commitWriteBatch(write_batch);
   EXPECT_EQ(num_blks_set, 5);
 }

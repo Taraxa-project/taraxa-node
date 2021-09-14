@@ -82,6 +82,8 @@ class TestFace : public ServerInterface<TestFace> {
     this->bindAndAddMethod(jsonrpc::Procedure("get_pbft_chain_blocks", jsonrpc::PARAMS_BY_POSITION,
                                               jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT, NULL),
                            &taraxa::net::TestFace::get_pbft_chain_blocksI);
+    this->bindAndAddMethod(jsonrpc::Procedure("get_db_stats", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, NULL),
+                           &taraxa::net::TestFace::get_db_statsI);
   }
 
   inline virtual void insert_dag_blockI(const Json::Value &request, Json::Value &response) {
@@ -165,6 +167,10 @@ class TestFace : public ServerInterface<TestFace> {
   inline virtual void get_pbft_chain_blocksI(const Json::Value &request, Json::Value &response) {
     response = this->get_pbft_chain_blocks(request[0u]);
   }
+  inline virtual void get_db_statsI(const Json::Value &request, Json::Value &response) {
+    (void)request;
+    response = this->get_db_stats();
+  }
   virtual Json::Value insert_dag_block(const Json::Value &param1) = 0;
   virtual Json::Value get_dag_block(const Json::Value &param1) = 0;
   virtual Json::Value send_coin_transaction(const Json::Value &param1) = 0;
@@ -189,6 +195,7 @@ class TestFace : public ServerInterface<TestFace> {
   virtual Json::Value get_dag_blk_count(const Json::Value &param1) = 0;
   virtual Json::Value get_pbft_chain_size() = 0;
   virtual Json::Value get_pbft_chain_blocks(const Json::Value &param1) = 0;
+  virtual Json::Value get_db_stats() = 0;
 };
 
 }  // namespace net

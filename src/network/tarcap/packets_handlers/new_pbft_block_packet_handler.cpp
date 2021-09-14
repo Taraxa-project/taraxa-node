@@ -3,14 +3,17 @@
 #include <libp2p/Common.h>
 
 #include "consensus/pbft_chain.hpp"
+#include "consensus/pbft_manager.hpp"
 
 namespace taraxa::network::tarcap {
 
 NewPbftBlockPacketHandler::NewPbftBlockPacketHandler(std::shared_ptr<PeersState> peers_state,
                                                      std::shared_ptr<PacketsStats> packets_stats,
-                                                     std::shared_ptr<PbftChain> pbft_chain, const addr_t &node_addr)
+                                                     std::shared_ptr<PbftChain> pbft_chain,
+                                                     std::shared_ptr<PbftManager> pbft_mgr, const addr_t &node_addr)
     : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "NEW_PBFT_BLOCK_PH"),
-      pbft_chain_(std::move(pbft_chain)) {}
+      pbft_chain_(std::move(pbft_chain)),
+      pbft_mgr_(std::move(pbft_mgr)) {}
 
 void NewPbftBlockPacketHandler::process(const dev::RLP &packet_rlp,
                                         const PacketData &packet_data __attribute__((unused)),
@@ -28,7 +31,7 @@ void NewPbftBlockPacketHandler::process(const dev::RLP &packet_rlp,
     peer->pbft_chain_size_ = peer_pbft_chain_size;
   }
 
-  const auto pbft_synced_period = pbft_chain_->pbftSyncingPeriod();
+  const auto pbft_synced_period = pbft_mgr_->pbftSyncingPeriod();
   if (pbft_synced_period >= pbft_block->getPeriod()) {
     LOG(log_dg_) << "Drop new PBFT block " << pbft_block->getBlockHash().abridged() << " at period "
                  << pbft_block->getPeriod() << ", own PBFT chain has synced at period " << pbft_synced_period;

@@ -23,14 +23,15 @@ PbftManager::PbftManager(PbftConfig const &conf, blk_hash_t const &genesis, addr
                          std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
                          std::shared_ptr<VoteManager> vote_mgr,
                          std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr, std::shared_ptr<DagManager> dag_mgr,
-                         std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<FinalChain> final_chain,
-                         secret_t node_sk, vrf_sk_t vrf_sk)
+                         std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<TransactionManager> trx_mgr,
+                         std::shared_ptr<FinalChain> final_chain, secret_t node_sk, vrf_sk_t vrf_sk)
     : db_(db),
       previous_round_next_votes_(next_votes_mgr),
       pbft_chain_(pbft_chain),
       vote_mgr_(vote_mgr),
       dag_mgr_(dag_mgr),
       dag_blk_mgr_(dag_blk_mgr),
+      trx_mgr_(trx_mgr),
       final_chain_(final_chain),
       node_addr_(node_addr),
       node_sk_(node_sk),
@@ -901,10 +902,14 @@ void PbftManager::certifyBlock_() {
 
       bool unverified_soft_vote_block_for_this_round_is_valid = false;
       if (!executed_soft_voted_block_for_this_round) {
-        if (checkPbftBlockValid_(soft_voted_block_for_this_round_.first)) {
-          LOG(log_tr_) << "checkPbftBlockValid_ returned true";
+        auto block = pbft_chain_->getUnverifiedPbftBlock(soft_voted_block_for_this_round_.first);
+        if (block && pbft_chain_->checkPbftBlockValidation(*block)) {
           unverified_soft_vote_block_for_this_round_is_valid = true;
         } else {
+          if (!block) {
+            LOG(log_er_) << "Cannot find the unverified pbft block " << soft_voted_block_for_this_round_.first
+                         << " in round " << round << " step 3";
+          }
           syncPbftChainFromPeers_(invalid_soft_voted_block, soft_voted_block_for_this_round_.first);
         }
       }
@@ -1117,7 +1122,7 @@ votesBundle PbftManager::blockWithEnoughVotes_(std::vector<Vote> const &votes) c
 
   for (Vote const &v : votes) {
     if (v.getType() != vote_type) {
-      LOG(log_er_) << "Vote has a different type with " << vote_type << ". VOTE: " << v;
+      LOG(log_er_) << "Vote has a different type with " << unsigned(vote_type) << ". VOTE: " << v;
       assert(false);
     } else if (v.getRound() != vote_round) {
       LOG(log_er_) << "Vote has a different round with " << vote_round << ". VOTE: " << v;
@@ -1137,12 +1142,13 @@ votesBundle PbftManager::blockWithEnoughVotes_(std::vector<Vote> const &votes) c
 
     for (auto const &blockhash_votes : blockhash_votes_map) {
       if (blockhash_votes.second.size() == TWO_T_PLUS_ONE) {
-        LOG(log_dg_) << "Find voted block hash " << blockhash_votes.first << " vote type " << vote_type << " in round "
-                     << vote_round << " step " << vote_step << " has " << blockhash_votes.second.size() << " votes";
+        LOG(log_dg_) << "Find voted block hash " << blockhash_votes.first << " vote type " << unsigned(vote_type)
+                     << " in round " << vote_round << " step " << vote_step << " has " << blockhash_votes.second.size()
+                     << " votes";
         return votesBundle(true, blockhash_votes.first, blockhash_votes.second);
       } else {
         LOG(log_tr_) << "Don't have enough votes. voted block hash " << blockhash_votes.first << " vote type "
-                     << vote_type << " for round " << vote_round << " step " << vote_step << " has "
+                     << unsigned(vote_type) << " for round " << vote_round << " step " << vote_step << " has "
                      << blockhash_votes.second.size() << " votes (2TP1 = " << TWO_T_PLUS_ONE << ")";
       }
     }
@@ -1201,6 +1207,34 @@ size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteType
   }
 
   return size;
+}
+
+blk_hash_t PbftManager::calculateOrderHash(std::vector<blk_hash_t> const &dag_block_hashes,
+                                           std::vector<trx_hash_t> const &trx_hashes) {
+  dev::RLPStream order_stream(2);
+  order_stream.appendList(dag_block_hashes.size());
+  for (auto const &blk_hash : dag_block_hashes) {
+    order_stream << blk_hash;
+  }
+  order_stream.appendList(trx_hashes.size());
+  for (auto const &trx_hash : trx_hashes) {
+    order_stream << trx_hash;
+  }
+  return dev::sha3(order_stream.out());
+}
+
+blk_hash_t PbftManager::calculateOrderHash(std::vector<DagBlock> const &dag_blocks,
+                                           std::vector<Transaction> const &trxs) {
+  dev::RLPStream order_stream(2);
+  order_stream.appendList(dag_blocks.size());
+  for (auto const &blk : dag_blocks) {
+    order_stream << blk.getHash();
+  }
+  order_stream.appendList(trxs.size());
+  for (auto const &trx : trxs) {
+    order_stream << trx.getHash();
+  }
+  return dev::sha3(order_stream.out());
 }
 
 std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
@@ -1267,9 +1301,39 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
 
   uint64_t propose_pbft_period = pbft_chain_->getPbftChainSize() + 1;
   addr_t beneficiary = node_addr_;
+
+  // get DAG block and transaction order
+  auto dag_block_order = dag_mgr_->getDagBlockOrder(dag_block_hash);
+  if (dag_block_order.second.empty()) {
+    LOG(log_er_) << "DAG anchor block hash " << dag_block_hash << " getDagBlockOrder failed in propose";
+    assert(false);
+  }
+  std::vector<trx_hash_t> non_executed_transactions;
+  for (auto const &blk_hash : dag_block_order.second) {
+    auto dag_blk = dag_blk_mgr_->getDagBlock(blk_hash);
+    if (!dag_blk) {
+      LOG(log_er_) << "DAG anchor block hash " << dag_block_hash << " getDagBlock failed in propose for block "
+                   << blk_hash;
+      assert(false);
+    }
+    auto &trx_hashes = dag_blk->getTrxs();
+    auto trx_statuses = db_->getTransactionStatus(trx_hashes);
+    for (uint32_t i = 0; i < trx_statuses.size(); i++) {
+      if (trx_statuses[i].state == TransactionStatusEnum::in_block) {
+        non_executed_transactions.emplace_back(trx_hashes[i]);
+      } else if (trx_statuses[i].state != TransactionStatusEnum::finalized) {
+        LOG(log_er_) << "DAG anchor block hash " << dag_block_hash << " try incorrect state for block " << blk_hash
+                     << " trx: " << trx_hashes[i] << " state : " << (uint16_t)trx_statuses[i].state;
+        assert(false);
+      }
+    }
+  }
+
+  auto order_hash = calculateOrderHash(dag_block_order.second, non_executed_transactions);
+
   // generate generate pbft block
-  auto pbft_block =
-      std::make_shared<PbftBlock>(last_pbft_block_hash, dag_block_hash, propose_pbft_period, beneficiary, node_sk_);
+  auto pbft_block = std::make_shared<PbftBlock>(last_pbft_block_hash, dag_block_hash, order_hash, propose_pbft_period,
+                                                beneficiary, node_sk_);
   // push pbft block
   pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
   // broadcast pbft block
@@ -1352,15 +1416,6 @@ std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_(std::vector<Vote> 
   return std::make_pair(leader.second, true);
 }
 
-bool PbftManager::checkPbftBlockValid_(blk_hash_t const &block_hash) const {
-  auto block = pbft_chain_->getUnverifiedPbftBlock(block_hash);
-  if (!block) {
-    LOG(log_er_) << "Cannot find the unverified pbft block, block hash " << block_hash;
-    return false;
-  }
-  return pbft_chain_->checkPbftBlockValidation(*block);
-}
-
 bool PbftManager::syncRequestedAlreadyThisStep_() const {
   return getPbftRound() == pbft_round_last_requested_sync_ && step_ == pbft_step_last_requested_sync_;
 }
@@ -1369,58 +1424,59 @@ void PbftManager::syncPbftChainFromPeers_(PbftSyncRequestReason reason, taraxa::
   if (stopped_) {
     return;
   }
+  if (auto net = network_.lock()) {
+    if (syncBlockQueueSize()) {
+      LOG(log_tr_) << "PBFT synced queue is still processing so skip syncing. Synced queue size "
+                   << syncBlockQueueSize();
 
-  if (!pbft_chain_->pbftSyncedQueueEmpty()) {
-    LOG(log_tr_) << "PBFT synced queue is still processing so skip syncing. Synced queue size "
-                 << pbft_chain_->pbftSyncedQueueSize();
-
-    return;
-  }
-
-  if (!is_syncing_() && !syncRequestedAlreadyThisStep_()) {
-    auto round = getPbftRound();
-
-    bool force = false;
-
-    switch (reason) {
-      case missing_dag_blk:
-        LOG(log_nf_) << "DAG blocks have not synced yet, anchor block " << relevant_blk_hash << " not present in DAG.";
-        // We want to force syncing the DAG...
-        force = true;
-
-        break;
-      case invalid_cert_voted_block:
-        // Get partition, need send request to get missing pbft blocks from peers
-        LOG(log_nf_) << "Cert voted block " << relevant_blk_hash
-                     << " is invalid, we must be out of sync with pbft chain.";
-        break;
-      case invalid_soft_voted_block:
-        // TODO: Address CONCERN of should we sync here?  Any malicious player can propose an invalid soft voted
-        // block... Honest nodes will soft vote for any malicious block before receiving it and verifying it.
-        LOG(log_nf_) << "Soft voted block for this round appears to be invalid, perhaps node out of sync";
-        break;
-      case exceeded_max_steps:
-        LOG(log_nf_) << "Suspect consensus is partitioned, reached step " << step_ << " in round " << round
-                     << " without advancing.";
-        // We want to force sycning the DAG...
-        force = true;
-        break;
-      default:
-        LOG(log_er_) << "Unknown PBFT sync request reason " << reason;
-        assert(false);
-
-        if (force) {
-          LOG(log_nf_) << "Restarting sync in round " << round << ", step " << step_ << ", and forcing DAG sync";
-        } else {
-          LOG(log_nf_) << "Restarting sync in round " << round << ", step " << step_;
-        }
+      return;
     }
 
-    if (auto net = network_.lock()) {
+    if (!is_syncing_() && !syncRequestedAlreadyThisStep_()) {
+      auto round = getPbftRound();
+
+      bool force = false;
+
+      switch (reason) {
+        case missing_dag_blk:
+          LOG(log_nf_) << "DAG blocks have not synced yet, anchor block " << relevant_blk_hash
+                       << " not present in DAG.";
+          // We want to force syncing the DAG...
+          force = true;
+
+          break;
+        case invalid_cert_voted_block:
+          // Get partition, need send request to get missing pbft blocks from peers
+          LOG(log_nf_) << "Cert voted block " << relevant_blk_hash
+                       << " is invalid, we must be out of sync with pbft chain.";
+          break;
+        case invalid_soft_voted_block:
+          // TODO: Address CONCERN of should we sync here?  Any malicious player can propose an invalid soft voted
+          // block... Honest nodes will soft vote for any malicious block before receiving it and verifying it.
+          LOG(log_nf_) << "Soft voted block for this round appears to be invalid, perhaps node out of sync";
+          break;
+        case exceeded_max_steps:
+          LOG(log_nf_) << "Suspect consensus is partitioned, reached step " << step_ << " in round " << round
+                       << " without advancing.";
+          // We want to force sycning the DAG...
+          force = true;
+          break;
+        default:
+          LOG(log_er_) << "Unknown PBFT sync request reason " << reason;
+          assert(false);
+
+          if (force) {
+            LOG(log_nf_) << "Restarting sync in round " << round << ", step " << step_ << ", and forcing DAG sync";
+          } else {
+            LOG(log_nf_) << "Restarting sync in round " << round << ", step " << step_;
+          }
+      }
+
       net->restartSyncingPbft(force);
+
+      pbft_round_last_requested_sync_ = round;
+      pbft_step_last_requested_sync_ = step_;
     }
-    pbft_round_last_requested_sync_ = round;
-    pbft_step_last_requested_sync_ = step_;
   }
 }
 
@@ -1428,16 +1484,10 @@ bool PbftManager::broadcastAlreadyThisStep_() const {
   return getPbftRound() == pbft_round_last_broadcast_ && step_ == pbft_step_last_broadcast_;
 }
 
-// Must be in certifying step, and has seen enough soft-votes for some value != NULL_BLOCK_HASH
 bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(blk_hash_t const &pbft_block_hash) {
-  auto pbft_block = pbft_chain_->getUnverifiedPbftBlock(pbft_block_hash);
+  auto pbft_block = getUnfinalizedBlock_(pbft_block_hash);
   if (!pbft_block) {
-    pbft_block = db_->getPbftCertVotedBlock(pbft_block_hash);
-    if (!pbft_block) {
-      return false;
-    }
-    // Read from DB pushing into unverified queue
-    pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
+    return false;
   }
 
   return comparePbftBlockScheduleWithDAGblocks_(*pbft_block).second;
@@ -1446,31 +1496,33 @@ bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(blk_hash_t const &pbft_
 std::pair<vec_blk_t, bool> PbftManager::comparePbftBlockScheduleWithDAGblocks_(PbftBlock const &pbft_block) {
   auto const &anchor_hash = pbft_block.getPivotDagBlockHash();
   auto dag_blocks_order = dag_mgr_->getDagBlockOrder(anchor_hash).second;
-  if (!dag_blocks_order->empty()) {
-    return std::make_pair(*dag_blocks_order, true);
+  if (!dag_blocks_order.empty()) {
+    return std::make_pair(std::move(dag_blocks_order), true);
   }
   syncPbftChainFromPeers_(missing_dag_blk, anchor_hash);
-  return std::make_pair(*dag_blocks_order, false);
+  return std::make_pair(std::move(dag_blocks_order), false);
 }
 
 bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cert_voted_block_hash,
                                                    std::vector<Vote> const &cert_votes_for_round) {
-  if (!checkPbftBlockValid_(cert_voted_block_hash)) {
+  auto pbft_block = getUnfinalizedBlock_(cert_voted_block_hash);
+  if (!pbft_block) {
+    LOG(log_nf_) << "Can not find the cert voted block hash " << cert_voted_block_hash << " in both pbft queue and DB";
+    return false;
+  }
+
+  if (!pbft_chain_->checkPbftBlockValidation(*pbft_block)) {
     syncPbftChainFromPeers_(invalid_cert_voted_block, cert_voted_block_hash);
     return false;
   }
-  auto pbft_block = pbft_chain_->getUnverifiedPbftBlock(cert_voted_block_hash);
-  if (!pbft_block) {
-    LOG(log_er_) << "Can not find the cert vote block hash " << cert_voted_block_hash << " in pbft queue";
-    return false;
-  }
+
   auto dag_blocks_order = comparePbftBlockScheduleWithDAGblocks_(*pbft_block);
   if (!dag_blocks_order.second) {
     LOG(log_nf_) << "DAG has not build up for PBFT block " << cert_voted_block_hash;
     return false;
   }
-  PbftBlockCert pbft_block_cert_votes(*pbft_block, cert_votes_for_round);
-  if (!pushPbftBlock_(pbft_block_cert_votes, dag_blocks_order.first)) {
+  SyncBlock sync_block(*pbft_block, cert_votes_for_round);
+  if (!pushPbftBlock_(sync_block, dag_blocks_order.first)) {
     LOG(log_er_) << "Failed push PBFT block " << pbft_block->getBlockHash() << " into chain";
     return false;
   }
@@ -1480,78 +1532,32 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cer
 }
 
 void PbftManager::pushSyncedPbftBlocksIntoChain_() {
-  size_t pbft_synced_queue_size;
-  auto round = getPbftRound();
-  while (!pbft_chain_->pbftSyncedQueueEmpty()) {
-    PbftBlockCert pbft_block_and_votes = pbft_chain_->pbftSyncedQueueFront();
-    auto pbft_block_hash = pbft_block_and_votes.pbft_blk->getBlockHash();
-    LOG(log_nf_) << "Pick pbft block " << pbft_block_hash << " from synced queue in round " << round;
+  if (auto net = network_.lock()) {
+    auto round = getPbftRound();
+    while (syncBlockQueueSize() > 0) {
+      auto sync_block_opt = processSyncBlock();
+      if (!sync_block_opt) continue;
+      auto &sync_block = *sync_block_opt;
+      auto pbft_block_hash = sync_block.pbft_blk->getBlockHash();
+      LOG(log_nf_) << "Pick pbft block " << pbft_block_hash << " from synced queue in round " << round;
 
-    // TODO: tips/pivot/level validation. Disconnecting a malicious peers. Queueing and sync functionality should be
-    // moved from pbft manager to networking
-    dag_blk_mgr_->processSyncedTransactions(pbft_block_and_votes.transactions);
-    for (auto const &block_level : pbft_block_and_votes.dag_blocks_per_level) {
-      for (auto const &block : block_level.second) {
-        dag_blk_mgr_->processSyncedBlock(block);
+      vec_blk_t dag_blocks_order;
+      if (pushPbftBlock_(sync_block, dag_blocks_order, true /* syncing flag */)) {
+        LOG(log_nf_) << node_addr_ << " push synced PBFT block " << pbft_block_hash << " in round " << round;
+      } else {
+        LOG(log_er_) << "Failed push PBFT block " << pbft_block_hash << " into chain";
+        break;
+      }
+
+      if (executed_pbft_block_) {
+        vote_mgr_->removeVerifiedVotes();
+        update_dpos_state_();
+        // update sortition_threshold and TWO_T_PLUS_ONE
+        updateTwoTPlusOneAndThreshold_();
+        db_->savePbftMgrStatus(PbftMgrStatus::executed_block, false);
+        executed_pbft_block_ = false;
       }
     }
-
-    if (pbft_chain_->findPbftBlockInChain(pbft_block_hash)) {
-      // pushed already from PBFT unverified queue, remove and skip it
-      pbft_chain_->pbftSyncedQueuePopFront();
-
-      pbft_synced_queue_size = pbft_chain_->pbftSyncedQueueSize();
-      if (pbft_last_observed_synced_queue_size_ != pbft_synced_queue_size) {
-        LOG(log_dg_) << "PBFT block " << pbft_block_hash << " already present in chain.";
-        LOG(log_dg_) << "PBFT synced queue still contains " << pbft_synced_queue_size
-                     << " synced blocks that could not be pushed.";
-      }
-      pbft_last_observed_synced_queue_size_ = pbft_synced_queue_size;
-      continue;
-    }
-
-    // Check cert votes validation
-    if (!vote_mgr_->pbftBlockHasEnoughValidCertVotes(pbft_block_and_votes, getDposTotalVotesCount(),
-                                                     sortition_threshold_, TWO_T_PLUS_ONE)) {
-      // Failed cert votes validation, flush synced PBFT queue and set since
-      // next block validation depends on the current one
-      LOG(log_er_) << "Synced PBFT block " << pbft_block_hash
-                   << " doesn't have enough valid cert votes. Clear synced PBFT blocks! DPOS total votes count: "
-                   << getDposTotalVotesCount();
-      pbft_chain_->clearSyncedPbftBlocks();
-      break;
-    }
-
-    auto dag_blocks_order = comparePbftBlockScheduleWithDAGblocks_(*pbft_block_and_votes.pbft_blk);
-    if (!dag_blocks_order.second) {
-      // DAG blocks in unverified/verified queue, have not add to DAG yet
-      LOG(log_nf_) << "DAG has not build up for anchor " << pbft_block_and_votes.pbft_blk->getPivotDagBlockHash()
-                   << " in PBFT block " << pbft_block_hash;
-      break;
-    }
-    if (pushPbftBlock_(pbft_block_and_votes, dag_blocks_order.first, true /* syncing flag */)) {
-      LOG(log_nf_) << node_addr_ << " push synced PBFT block " << pbft_block_hash << " in round " << round;
-    } else {
-      LOG(log_er_) << "Failed push PBFT block " << pbft_block_hash << " into chain";
-      break;
-    }
-
-    // Remove from PBFT synced queue
-    pbft_chain_->pbftSyncedQueuePopFront();
-    if (executed_pbft_block_) {
-      vote_mgr_->removeVerifiedVotes();
-      update_dpos_state_();
-      // update sortition_threshold and TWO_T_PLUS_ONE
-      updateTwoTPlusOneAndThreshold_();
-      db_->savePbftMgrStatus(PbftMgrStatus::executed_block, false);
-      executed_pbft_block_ = false;
-    }
-    pbft_synced_queue_size = pbft_chain_->pbftSyncedQueueSize();
-    if (pbft_last_observed_synced_queue_size_ != pbft_synced_queue_size) {
-      LOG(log_dg_) << "PBFT synced queue still contains " << pbft_synced_queue_size
-                   << " synced blocks that could not be pushed.";
-    }
-    pbft_last_observed_synced_queue_size_ = pbft_synced_queue_size;
   }
 }
 
@@ -1584,10 +1590,8 @@ void PbftManager::finalize_(PbftBlock const &pbft_block, vector<h256> finalized_
   }
 }
 
-bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes, vec_blk_t const &dag_blocks_order,
-                                 bool sync) {
-  auto pbft_block = pbft_block_cert_votes.pbft_blk;
-  auto const &pbft_block_hash = pbft_block->getBlockHash();
+bool PbftManager::pushPbftBlock_(SyncBlock &sync_block, vec_blk_t &dag_blocks_order, bool sync) {
+  auto const &pbft_block_hash = sync_block.pbft_blk->getBlockHash();
   if (db_->pbftBlockInDb(pbft_block_hash)) {
     LOG(log_nf_) << "PBFT block: " << pbft_block_hash << " in DB already.";
     if (last_cert_voted_value_ == pbft_block_hash) {
@@ -1598,56 +1602,98 @@ bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes, vec
     return false;
   }
 
-  auto const &cert_votes = pbft_block_cert_votes.cert_votes;
-  auto pbft_period = pbft_block->getPeriod();
+  auto const &cert_votes = sync_block.cert_votes;
+  auto pbft_period = sync_block.pbft_blk->getPeriod();
 
   auto batch = db_->createWriteBatch();
+  dag_blk_mgr_->processSyncedBlock(batch, sync_block);
+
   LOG(log_nf_) << "Storing cert votes of pbft blk " << pbft_block_hash;
   LOG(log_dg_) << "Stored following cert votes:\n" << cert_votes;
   // Update PBFT chain head block
   db_->addPbftHeadToBatch(pbft_chain_->getHeadHash(), pbft_chain_->getJsonStrForBlock(pbft_block_hash), batch);
 
-  // Set DAG blocks period
-  auto const &anchor_hash = pbft_block->getPivotDagBlockHash();
-  dag_mgr_->setDagBlockOrder(anchor_hash, pbft_period, dag_blocks_order, batch);
+  if (sync) {
+    dag_blocks_order.reserve(sync_block.dag_blocks.size());
+    std::transform(sync_block.dag_blocks.begin(), sync_block.dag_blocks.end(), std::back_inserter(dag_blocks_order),
+                   [](const DagBlock &dag_block) { return dag_block.getHash(); });
+    // Update counts correctly
 
-  DbStorage::MultiGetQuery db_query(db_);
-  db_query.append(DbStorage::Columns::dag_blocks, dag_blocks_order);
-  auto dag_blocks_res = db_query.execute();
-
-  std::vector<DagBlock> dag_blocks;
-  dag_blocks.reserve(dag_blocks_res.size());
-
-  for (auto const &dag_blk_raw : dag_blocks_res) {
-    dag_blocks.emplace_back(asBytes(dag_blk_raw));
-  }
-
-  std::unordered_set<trx_hash_t> trx_set;
-  std::vector<trx_hash_t> transactionsToQuery;
-  for (auto const &dag_blk : dag_blocks) {
-    for (auto const trx_hash : dag_blk.getTrxs()) {
-      if (trx_set.insert(trx_hash).second) {
-        transactionsToQuery.emplace_back(trx_hash);
+    // Non-finalized block should be empty when syncing, maybe we should clear it if we are deep out of sync to improve
+    // performance
+    auto non_finalized_blocks = dag_mgr_->getNonFinalizedBlocks();
+    unordered_set<blk_hash_t> non_finalized_blocks_set;
+    for (auto const &level : non_finalized_blocks) {
+      for (auto const &blk : level.second) {
+        non_finalized_blocks_set.insert(blk);
       }
     }
-  }
-  db_query.append(DbStorage::Columns::transactions, transactionsToQuery);
-
-  auto transactions_res = db_query.execute();
-
-  std::vector<Transaction> transactions;
-  transactions.reserve(transactions_res.size());
-  for (auto const &trx_raw : transactions_res) {
-    if (trx_raw.size() > 0) transactions.emplace_back(asBytes(trx_raw));
+    vector<DagBlock> dag_blocks_to_update_counters;
+    for (auto const &blk : sync_block.dag_blocks) {
+      if (non_finalized_blocks_set.count(blk.getHash()) == 0) {
+        dag_blocks_to_update_counters.push_back(blk);
+      }
+    }
+    db_->updateDagBlockCounters(batch, dag_blocks_to_update_counters);
   }
 
-  db_->savePeriodData(*pbft_block, cert_votes, dag_blocks, transactions, batch);
+  // Set DAG blocks period
+  auto const &anchor_hash = sync_block.pbft_blk->getPivotDagBlockHash();
+  dag_mgr_->setDagBlockOrder(anchor_hash, pbft_period, dag_blocks_order, batch);
+
+  if (!sync) {
+    std::unordered_set<trx_hash_t> trx_set;
+    std::vector<trx_hash_t> transactions_to_query;
+    DbStorage::MultiGetQuery db_query(db_);
+    db_query.append(DbStorage::Columns::dag_blocks, dag_blocks_order);
+    auto dag_blocks_res = db_query.execute();
+
+    for (auto const &dag_blk_raw : dag_blocks_res) {
+      DagBlock dag_block(asBytes(dag_blk_raw));
+      for (auto const &trx_hash : dag_block.getTrxs()) {
+        if (trx_set.insert(trx_hash).second) {
+          transactions_to_query.emplace_back(trx_hash);
+        }
+      }
+      sync_block.dag_blocks.emplace_back(std::move(dag_block));
+    }
+    std::vector<trx_hash_t> non_executed_transactions;
+    db_query.append(DbStorage::Columns::trx_status, transactions_to_query);
+    auto transactions_status_res = db_query.execute();
+    uint32_t trx_index = 0;
+    for (auto const &trx_status_raw : transactions_status_res) {
+      if (!trx_status_raw.empty()) {
+        auto data = asBytes(trx_status_raw);
+        dev::RLP rlp(data);
+        TransactionStatus transaction_status(rlp);
+        if (transaction_status.state == TransactionStatusEnum::in_block) {
+          non_executed_transactions.emplace_back(transactions_to_query[trx_index]);
+        } else if (transaction_status.state != TransactionStatusEnum::finalized) {
+          LOG(log_er_) << transactions_to_query[trx_index] << " in incorrect state"
+                       << (uint16_t)transaction_status.state;
+          assert(false);
+        }
+      }
+      trx_index++;
+    }
+
+    db_query.append(DbStorage::Columns::transactions, non_executed_transactions);
+    auto transactions_res = db_query.execute();
+    sync_block.transactions.reserve(transactions_res.size());
+    for (auto const &trx_raw : transactions_res) {
+      if (trx_raw.size() > 0) sync_block.transactions.emplace_back(asBytes(trx_raw));
+    }
+  }
+
+  db_->savePeriodData(sync_block, batch);
 
   // Reset last cert voted value to NULL_BLOCK_HASH
   db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::last_cert_voted_value, NULL_BLOCK_HASH, batch);
 
   // Commit DB
   db_->commitWriteBatch(batch);
+
+  trx_mgr_->updateFinalizedTransactionsStatus(sync_block);
 
   // update PBFT chain size
   pbft_chain_->updatePbftChain(pbft_block_hash);
@@ -1657,13 +1703,12 @@ bool PbftManager::pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes, vec
   LOG(log_nf_) << node_addr_ << " successful push unexecuted PBFT block " << pbft_block_hash << " in period "
                << pbft_period << " into chain! In round " << getPbftRound();
 
-  finalize_(*pbft_block, move(dag_blocks_order), sync);
+  finalize_(*sync_block.pbft_blk, move(dag_blocks_order), sync);
 
   // Reset proposed PBFT block hash to False for next pbft block proposal
   proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
   db_->savePbftMgrStatus(PbftMgrStatus::executed_block, true);
   executed_pbft_block_ = true;
-
   return true;
 }
 
@@ -1684,14 +1729,10 @@ bool PbftManager::giveUpSoftVotedBlock_() {
   unsigned long elapsed_wait_soft_voted_block_in_ms =
       std::chrono::duration_cast<std::chrono::milliseconds>(soft_voted_block_wait_duration).count();
 
-  auto pbft_block = pbft_chain_->getUnverifiedPbftBlock(previous_round_next_voted_value_);
-  if (!pbft_block) {
-    pbft_block = db_->getPbftCertVotedBlock(previous_round_next_voted_value_);
-  }
-
+  auto pbft_block = getUnfinalizedBlock_(previous_round_next_voted_value_);
   if (pbft_block) {
     // Have a block, but is it valid?
-    if (!checkPbftBlockValid_(previous_round_next_voted_value_)) {
+    if (!pbft_chain_->checkPbftBlockValidation(*pbft_block)) {
       // Received the block, but not valid
       return true;
     }
@@ -1741,27 +1782,32 @@ bool PbftManager::giveUpNextVotedBlock_() {
     return true;
   }
 
-  auto pbft_block = pbft_chain_->getUnverifiedPbftBlock(previous_round_next_voted_value_);
-  if (!pbft_block) {
-    pbft_block = db_->getPbftCertVotedBlock(previous_round_next_voted_value_);
-    if (!pbft_block) {
-      LOG(log_dg_) << "Cannot find PBFT block " << previous_round_next_voted_value_
-                   << " in both queue and DB, have not got yet";
-      return false;
-    }
-    // Read from DB pushing into unverified queue
-    pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
-  }
-
+  auto pbft_block = getUnfinalizedBlock_(previous_round_next_voted_value_);
   if (pbft_block) {
     // Have a block, but is it valid?
-    if (!checkPbftBlockValid_(previous_round_next_voted_value_)) {
+    if (!pbft_chain_->checkPbftBlockValidation(*pbft_block)) {
       // Received the block, but not valid
       return true;
     }
+  } else {
+    LOG(log_dg_) << "Cannot find PBFT block " << previous_round_next_voted_value_
+                 << " in both queue and DB, have not got yet";
   }
 
   return false;
+}
+
+std::shared_ptr<PbftBlock> PbftManager::getUnfinalizedBlock_(blk_hash_t const &block_hash) {
+  auto block = pbft_chain_->getUnverifiedPbftBlock(block_hash);
+  if (!block) {
+    block = db_->getPbftCertVotedBlock(block_hash);
+    if (block) {
+      // PBFT unverified queue empty after node reboot, read from DB pushing back in unverified queue
+      pbft_chain_->pushUnverifiedPbftBlock(block);
+    }
+  }
+
+  return block;
 }
 
 void PbftManager::countVotes_() {
@@ -1816,6 +1862,102 @@ bool PbftManager::is_syncing_() {
     return net->pbft_syncing();
   }
   return false;
+}
+
+uint64_t PbftManager::pbftSyncingPeriod() const {
+  std::shared_lock lock(sync_queue_access_);
+  if (sync_queue_.size()) {
+    return sync_queue_.back().first.pbft_blk->getPeriod();
+  } else {
+    return pbft_chain_->getPbftChainSize();
+  }
+}
+
+void PbftManager::syncBlockQueuePop() {
+  std::unique_lock lock(sync_queue_access_);
+  sync_queue_.pop();
+}
+
+std::optional<SyncBlock> PbftManager::processSyncBlock() {
+  std::shared_lock lock(sync_queue_access_);
+  auto sync_block = sync_queue_.front();
+  lock.unlock();
+  auto pbft_block_hash = sync_block.first.pbft_blk->getBlockHash();
+  LOG(log_nf_) << "Pop pbft block " << pbft_block_hash << " from synced queue";
+
+  auto net = network_.lock();
+  assert(net);  // Should never happen
+
+  // Check previous hash matches
+  if (sync_block.first.pbft_blk->getPrevBlockHash() != pbft_chain_->getLastPbftBlockHash()) {
+    // TODO: should be clear it is related to syncing, was log_er_pbft_sync_
+    LOG(log_er_) << "Invalid PBFT block " << pbft_block_hash
+                 << "; prevHash: " << sync_block.first.pbft_blk->getPrevBlockHash() << " from peer "
+                 << sync_block.second.abridged() << " received, stop syncing.";
+    clearSyncBlockQueue();
+    // Handle malicious peer on network level
+    net->handleMaliciousSyncPeer(sync_queue_.front().second);
+    return nullopt;
+  }
+
+  // Check cert vote matches
+  for (auto const &vote : sync_block.first.cert_votes) {
+    if (vote.getBlockHash() != pbft_block_hash) {
+      LOG(log_er_) << "Invalid cert votes block hash " << vote.getBlockHash() << " instead of " << pbft_block_hash
+                   << " from peer " << sync_block.second.abridged() << " received, stop syncing.";
+      clearSyncBlockQueue();
+      net->handleMaliciousSyncPeer(sync_queue_.front().second);
+      return nullopt;
+    }
+  }
+
+  auto order_hash = calculateOrderHash(sync_block.first.dag_blocks, sync_block.first.transactions);
+  if (order_hash != sync_block.first.pbft_blk->getOrderHash()) {
+    LOG(log_er_) << "Order hash incorrect in sync block " << pbft_block_hash << " expected: " << order_hash
+                 << " received " << sync_block.first.pbft_blk->getOrderHash() << " from "
+                 << sync_block.second.abridged() << ", stop syncing.";
+    clearSyncBlockQueue();
+    net->handleMaliciousSyncPeer(sync_block.second);
+    return nullopt;
+  }
+
+  if (pbft_chain_->findPbftBlockInChain(pbft_block_hash)) {
+    LOG(log_dg_) << "PBFT block " << pbft_block_hash << " already present in chain.";
+    syncBlockQueuePop();
+    return nullopt;
+  }
+
+  // Check cert votes validation
+  if (!vote_mgr_->pbftBlockHasEnoughValidCertVotes(sync_block.first, getDposTotalVotesCount(), getSortitionThreshold(),
+                                                   getTwoTPlusOne())) {
+    // Failed cert votes validation, flush synced PBFT queue and set since
+    // next block validation depends on the current one
+    LOG(log_er_) << "Synced PBFT block " << pbft_block_hash
+                 << " doesn't have enough valid cert votes. Clear synced PBFT blocks! DPOS total votes count: "
+                 << getDposTotalVotesCount();
+    clearSyncBlockQueue();
+    net->handleMaliciousSyncPeer(sync_block.second);
+    return nullopt;
+  }
+
+  syncBlockQueuePop();
+  return std::optional<SyncBlock>(std::move(sync_block.first));
+}
+
+void PbftManager::syncBlockQueuePush(SyncBlock const &block, dev::p2p::NodeID const &node_id) {
+  std::unique_lock lock(sync_queue_access_);
+  sync_queue_.push({block, node_id});
+}
+
+void PbftManager::clearSyncBlockQueue() {
+  std::unique_lock lock(sync_queue_access_);
+  std::queue<std::pair<SyncBlock, dev::p2p::NodeID>> empty;
+  std::swap(sync_queue_, empty);
+}
+
+size_t PbftManager::syncBlockQueueSize() const {
+  std::shared_lock lock(sync_queue_access_);
+  return sync_queue_.size();
 }
 
 }  // namespace taraxa

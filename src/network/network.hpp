@@ -53,6 +53,8 @@ class Network {
   bool pbft_syncing();
   uint64_t syncTimeSeconds() const;
 
+  void handleMaliciousSyncPeer(dev::p2p::NodeID const &id);
+
   void onNewPbftVotes(std::vector<Vote> votes);
   void broadcastPreviousRoundNextVotesBundle();
 

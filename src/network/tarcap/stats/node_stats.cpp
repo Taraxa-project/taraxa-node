@@ -80,7 +80,7 @@ void NodeStats::logNodeStats() {
   const auto local_twotplusone = pbft_mgr_->getTwoTPlusOne();
 
   // Syncing period...
-  const auto local_pbft_sync_period = pbft_chain_->pbftSyncingPeriod();
+  const auto local_pbft_sync_period = pbft_mgr_->pbftSyncingPeriod();
 
   // Decide if making progress...
   const auto pbft_consensus_rounds_advanced = local_pbft_round - local_pbft_round_prev_interval_;
@@ -160,13 +160,10 @@ void NodeStats::logNodeStats() {
 
     const auto [unverified_blocks_size, verified_blocks_size] = dag_blk_mgr_->getDagBlockQueueSize();
     const auto [non_finalized_blocks_levels, non_finalized_blocks_size] = dag_mgr_->getNonFinalizedBlocksSize();
-    const auto [finalized_blocks_levels, finalized_blocks_size] = dag_mgr_->getFinalizedBlocksSize();
     LOG(log_dg_) << "Unverified dag blocks size:      " << unverified_blocks_size;
     LOG(log_dg_) << "Verified dag blocks size:        " << verified_blocks_size;
     LOG(log_dg_) << "Non finalized dag blocks levels: " << non_finalized_blocks_levels;
     LOG(log_dg_) << "Non finalized dag blocks size:   " << non_finalized_blocks_size;
-    LOG(log_dg_) << "Finalized dag blocks levels:     " << finalized_blocks_levels;
-    LOG(log_dg_) << "Finalized dag blocks size:       " << finalized_blocks_size;
   }
 
   LOG(log_nf_) << "------------- tl;dr -------------";

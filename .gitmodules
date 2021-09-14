@@ -14,7 +14,3 @@
 	path = submodules/taraxa-vrf
 	url = ../taraxa-vrf.git
 	ignore = dirty
-[submodule "submodules/taraxa-aleth"]
-	path = submodules/taraxa-aleth
-	url = ../taraxa-aleth.git
-	ignore = dirty

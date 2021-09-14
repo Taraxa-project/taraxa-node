@@ -9,6 +9,8 @@
 #include <utility>
 #include <vector>
 
+#include "network/network.hpp"
+#include "network/rpc/WSServer.h"
 #include "transaction_manager/transaction_manager.hpp"
 
 namespace taraxa {
@@ -284,7 +286,7 @@ void PivotTree::getGhostPath(blk_hash_t const &vertex, std::vector<blk_hash_t> &
 
 DagManager::DagManager(blk_hash_t const &genesis, addr_t node_addr, std::shared_ptr<TransactionManager> trx_mgr,
                        std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DagBlockManager> dag_blk_mgr,
-                       std::shared_ptr<DbStorage> db) try
+                       std::shared_ptr<DbStorage> db, logger::Logger log_time) try
     : pivot_tree_(std::make_shared<PivotTree>(genesis, node_addr)),
       total_dag_(std::make_shared<Dag>(genesis, node_addr)),
       trx_mgr_(trx_mgr),
@@ -293,7 +295,8 @@ DagManager::DagManager(blk_hash_t const &genesis, addr_t node_addr, std::shared_
       db_(db),
       anchor_(genesis),
       period_(0),
-      genesis_(genesis) {
+      genesis_(genesis),
+      log_time_(log_time) {
   LOG_OBJECTS_CREATE("DAGMGR");
   DagBlock blk;
   blk_hash_t pivot;
@@ -318,8 +321,12 @@ std::shared_ptr<DagManager> DagManager::getShared() {
 }
 
 void DagManager::stop() {
+  if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
+    return;
+  }
   unique_lock lock(mutex_);
   trx_mgr_ = nullptr;
+  block_worker_.join();
 }
 
 std::pair<uint64_t, uint64_t> DagManager::getNumVerticesInDag() const {
@@ -366,6 +373,46 @@ DagFrontier DagManager::getDagFrontier() {
   return frontier_;
 }
 
+void DagManager::start() {
+  if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
+    return;
+  }
+  block_worker_ = std::thread([this]() { worker(); });
+}
+
+void DagManager::worker() {
+  bool level_limit = false;
+  uint64_t level = 0;
+  while (!stopped_) {
+    // will block if no verified block available
+    auto verified_block = dag_blk_mgr_->popVerifiedBlock(level_limit, level);
+    level_limit = false;
+    auto const &blk = *(verified_block.first);
+
+    if (pivotAndTipsAvailable(blk)) {
+      addDagBlock(blk);
+      block_verified_.emit(blk);
+      if (auto net = network_.lock()) {
+        net->onNewBlockVerified(verified_block.first, verified_block.second);
+      }
+      LOG(log_time_) << "Broadcast block " << blk.getHash() << " at: " << getCurrentTimeMilliSeconds();
+    } else {
+      // Networking makes sure that dag block that reaches queue already had
+      // its pivot and tips processed This should happen in a very rare case
+      // where in some race condition older block is verfified faster then
+      // new block but should resolve quickly, return block to queue
+      if (!stopped_) {
+        if (dag_blk_mgr_->pivotAndTipsValid(blk)) {
+          LOG(log_wr_) << "Block could not be added to DAG " << blk.getHash().toString();
+          dag_blk_mgr_->pushVerifiedBlock(blk);
+          level_limit = true;
+          level = blk.getLevel();
+        }
+      }
+    }
+  }
+}
+
 void DagManager::addDagBlock(DagBlock const &blk, bool finalized, bool save) {
   auto write_batch = db_->createWriteBatch();
   {
@@ -409,9 +456,7 @@ void DagManager::addToDag(blk_hash_t const &hash, blk_hash_t const &pivot, std::
   total_dag_->addVEEs(hash, pivot, tips);
   pivot_tree_->addVEEs(hash, pivot, {});
   db_->addDagBlockStateToBatch(write_batch, hash, finalized);
-  if (finalized) {
-    finalized_blks_[level].push_back(hash);
-  } else {
+  if (!finalized) {
     non_finalized_blks_[level].push_back(hash);
   }
   LOG(log_dg_) << " Insert block to DAG : " << hash;
@@ -461,18 +506,15 @@ void DagManager::getGhostPath(std::vector<blk_hash_t> &ghost) const {
 }
 
 // return {period, block order}, for pbft-pivot-blk proposing
-std::pair<uint64_t, std::shared_ptr<vec_blk_t>> DagManager::getDagBlockOrder(blk_hash_t const &anchor) {
+std::pair<uint64_t, std::vector<blk_hash_t>> DagManager::getDagBlockOrder(blk_hash_t const &anchor) {
   sharedLock lock(mutex_);
-
   // TODO: need to check if the anchor already processed
   // if the period already processed
-  vec_blk_t orders;
-
   std::vector<blk_hash_t> blk_orders;
 
   if (anchor_ == anchor) {
     LOG(log_wr_) << "Query period from " << anchor_ << " to " << anchor << " not ok " << std::endl;
-    return {0, std::make_shared<vec_blk_t>(orders)};
+    return {0, {}};
   }
 
   auto new_period = period_ + 1;
@@ -480,22 +522,17 @@ std::pair<uint64_t, std::shared_ptr<vec_blk_t>> DagManager::getDagBlockOrder(blk
   auto ok = total_dag_->computeOrder(anchor, blk_orders, non_finalized_blks_);
   if (!ok) {
     LOG(log_er_) << " Create period " << new_period << " anchor: " << anchor << " failed " << std::endl;
-    return {0, std::make_shared<vec_blk_t>(orders)};
+    return {0, {}};
   }
 
-  std::transform(blk_orders.begin(), blk_orders.end(), std::back_inserter(orders),
-                 [](const blk_hash_t &i) { return i; });
   LOG(log_dg_) << "Get period " << new_period << " from " << anchor_ << " to " << anchor << " with "
                << blk_orders.size() << " blks" << std::endl;
 
-  return {new_period, std::make_shared<vec_blk_t>(orders)};
+  return {new_period, std::move(blk_orders)};
 }
 
 uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period, vec_blk_t const &dag_order,
                                   DbStorage::Batch &write_batch) {
-  // TODO this function smells. It tries to manage in-memory and persistent state at the same time, which it
-  // clearly lacks scope for. Generally, it's very sensitive to how it's called.
-  // Also, it's clearly used only in conjunction with getDagBlockOrder - makes sense to merge these two.
   uLock lock(mutex_);
   LOG(log_dg_) << "setDagBlockOrder called with anchor " << new_anchor << " and period " << period;
   db_->putFinalizedDagBlockHashesByAnchor(write_batch, new_anchor, dag_order);
@@ -505,60 +542,23 @@ uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period,
     return 0;
   }
 
-  std::vector<blk_hash_t> leaves;
-  total_dag_->getLeaves(leaves);
-  std::unordered_set<blk_hash_t> leavesSet(leaves.begin(), leaves.end());
-
   total_dag_->clear();
   pivot_tree_->clear();
-  auto finalized_blocks = finalized_blks_;
   auto non_finalized_blocks = non_finalized_blks_;
-  finalized_blks_.clear();
   non_finalized_blks_.clear();
 
-  // Total DAG will only include leaves from the last period and non-finalized
-  // blocks
-  // Pivot tree will only include anchor from the last period and non-finalized
-  // blocks
-  for (auto &v : finalized_blocks) {
-    for (auto &blk : v.second) {
-      auto block = dag_blk_mgr_->getDagBlock(blk);
-      auto pivot_hash = block->getPivot();
-      std::vector<blk_hash_t> tips;
-      for (auto const &tip : block->getTips()) {
-        tips.push_back(tip);
-      }
-
-      // Do not remove from total dag if a block is a leaf -- THERE IS A CHANCE
-      // THAT THIS MIGHT NOT BE POSSIBLE SO MAYBE AN ASSERT WOULD BE BETTER
-      if (leavesSet.count(blk) > 0) {
-        addToDag(blk, pivot_hash, tips, block->getLevel(), write_batch, true);
-      } else {
-        db_->removeDagBlockStateToBatch(write_batch, blk);
-      }
-    }
-  }
+  // Remove old anchor state
+  db_->removeDagBlockStateToBatch(write_batch, anchor_);
 
   bool new_anchor_found = false;
   for (auto &block : dag_order) {
-    // Remove all just finalized except the leaves
-    auto blk = block;
-    auto dag_block = dag_blk_mgr_->getDagBlock(block);
-    auto pivot_hash = dag_block->getPivot();
-    std::vector<blk_hash_t> tips;
-    for (auto const &tip : dag_block->getTips()) {
-      tips.push_back(tip);
-    }
-    // Verify anchor is included
-    if (blk == new_anchor) {
+    // Remove all just finalized except the new_anchor
+    if (block == new_anchor) {
       new_anchor_found = true;
-    }
-
-    if (leavesSet.count(blk) > 0 || blk == new_anchor) {
-      addToDag(blk, pivot_hash, tips, dag_block->getLevel(), write_batch, true);
-      db_->addDagBlockStateToBatch(write_batch, blk, true);
+      addToDag(block, blk_hash_t(), vec_blk_t(), 0, write_batch, true);
+      db_->addDagBlockStateToBatch(write_batch, block, true);
     } else {
-      db_->removeDagBlockStateToBatch(write_batch, blk);
+      db_->removeDagBlockStateToBatch(write_batch, block);
     }
   }
   assert(new_anchor_found);
@@ -644,17 +644,6 @@ std::pair<size_t, size_t> DagManager::getNonFinalizedBlocksSize() const {
   }
 
   return {non_finalized_blks_.size(), blocks_counter};
-}
-
-std::pair<size_t, size_t> DagManager::getFinalizedBlocksSize() const {
-  sharedLock lock(mutex_);
-
-  size_t blocks_counter = 0;
-  for (auto it = finalized_blks_.begin(); it != finalized_blks_.end(); ++it) {
-    blocks_counter += it->second.size();
-  }
-
-  return {finalized_blks_.size(), blocks_counter};
 }
 
 }  // namespace taraxa

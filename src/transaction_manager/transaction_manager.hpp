@@ -76,6 +76,9 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   // Verify transactions in broadcasted blocks
   bool verifyBlockTransactions(DagBlock const &blk, std::vector<Transaction> const &trxs);
 
+  // Update the status of transactions to finalized and remove from transactions column
+  void updateFinalizedTransactionsStatus(SyncBlock const &sync_block);
+
   std::shared_ptr<std::pair<Transaction, taraxa::bytes>> getTransaction(trx_hash_t const &hash) const;
   unsigned long getTransactionCount() const;
   void addTrxCount(unsigned long num);
@@ -114,6 +117,9 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   std::shared_ptr<DbStorage> db_{nullptr};
   std::weak_ptr<Network> network_;
   std::shared_ptr<DagManager> dag_mgr_{nullptr};
+
+  // Guards updating transaction status based on retrieved status
+  std::shared_mutex transaction_status_mutex_;
 
   LOG_OBJECTS_DEFINE
 };

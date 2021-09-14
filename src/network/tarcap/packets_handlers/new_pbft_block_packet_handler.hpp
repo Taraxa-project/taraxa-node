@@ -5,6 +5,7 @@
 namespace taraxa {
 class PbftBlock;
 class PbftChain;
+class PbftManager;
 }  // namespace taraxa
 
 namespace taraxa::network::tarcap {
@@ -12,7 +13,8 @@ namespace taraxa::network::tarcap {
 class NewPbftBlockPacketHandler : public PacketHandler {
  public:
   NewPbftBlockPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
-                            std::shared_ptr<PbftChain> pbft_chain, const addr_t& node_addr = {});
+                            std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<PbftManager> pbft_mgr,
+                            const addr_t& node_addr = {});
 
   virtual ~NewPbftBlockPacketHandler() = default;
 
@@ -24,6 +26,7 @@ class NewPbftBlockPacketHandler : public PacketHandler {
                const std::shared_ptr<TaraxaPeer>& peer) override;
 
   std::shared_ptr<PbftChain> pbft_chain_;
+  std::shared_ptr<PbftManager> pbft_mgr_;
 };
 
 }  // namespace taraxa::network::tarcap

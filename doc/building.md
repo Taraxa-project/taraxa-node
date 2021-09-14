@@ -61,13 +61,13 @@ will build out of the box without further effort:
 
     git clone https://github.com/Taraxa-project/taraxa-node.git --branch testnet
     cd taraxa-node
-    git checkout master
     git submodule update --init --recursive
 
 ### Compile
 
     # Optional - one time action
-    # Create clang profile (we are using clang in taraxa, but any C++ compiler can be used)
+    # Create clang profile 
+    # It is recommended to use clang because on other compilers you could face some errors 
     conan profile new clang --detect && \
     conan profile update settings.compiler=clang clang && \
     conan profile update settings.compiler.version=12 clang && \
@@ -105,13 +105,12 @@ First you need to get (Brew)[https://brew.sh/] package manager. After that you n
 
     git clone https://github.com/Taraxa-project/taraxa-node.git --branch testnet
     cd taraxa-node
-    git checkout master
     git submodule update --init --recursive
 
 ### Compile
 
     # Optional - one time action
-    # Create clang profile (we are using clang in taraxa, but any C++ compiler can be used)
+    # It is recommended to use clang because on other compilers you could face some errors 
     conan profile new clang --detect && \
     conan profile update settings.compiler=clang clang && \
     conan profile update settings.compiler.version=12 clang && \
@@ -169,10 +168,58 @@ If you are facing strange errors with project compilation it could be a problem 
 ```
 cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang -DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++ ../
 ```
-5. After successfull finish of that command prociessing compile project with:
+5. After successfull finish of that command processing compile project with:
 ```
 make -j$(nproc)
 ```
+
+## Building on M1 macs
+
+### Install Rosetta2
+
+    softwareupdate --install-rosetta
+
+### Run an x86_64 session
+
+    arch -x86_64 zsh
+
+### Install Homebrew 
+
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+### Install dependencies 
+
+    /usr/local/bin/brew install coreutils go autoconf automake gflags git libtool llvm@12 make pkg-config cmake conan
+
+### Clone the Repository
+
+    git clone https://github.com/Taraxa-project/taraxa-node.git --branch testnet
+    cd taraxa-node
+    git submodule update --init --recursive
+
+### Compile
+
+    # Optional - one time action
+    # It is recommended to use clang because on other compilers you could face some errors
+    # Make sure that you executing this from x86_64 CLI. Could be verified with `arch` command
+    # It output should be equal to `i386`
+    conan profile new clang --detect && \
+    conan profile update settings.compiler=clang clang && \
+    conan profile update settings.compiler.version=12 clang && \
+    conan profile update settings.compiler.libcxx=libc++ clang && \
+    conan profile update env.CC=/usr/local/opt/llvm/bin/clang clang && \
+    conan profile update env.CXX=/usr/local/opt/llvm/bin/clang++ clang
+    # Export needed var for conan
+    export CONAN_REVISIONS_ENABLED=1
+    # Add bincrafters remote
+    conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan"
+
+    # Build project
+    mkdir cmake-build
+    cd cmake-build
+    # Make sure that you are specifying the full path to C and CXX compilers
+    cmake -DCONAN_PROFILE=clang -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang -DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++ ../
+    make -j$(nproc)
 
 ## Run
 ### Running tests

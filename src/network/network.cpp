@@ -104,6 +104,8 @@ bool Network::pbft_syncing() { return taraxa_capability_->pbft_syncing(); }
 
 uint64_t Network::syncTimeSeconds() const { return taraxa_capability_->getNodeStats()->syncTimeSeconds(); }
 
+void Network::handleMaliciousSyncPeer(dev::p2p::NodeID const &id) { taraxa_capability_->handleMaliciousSyncPeer({id}); }
+
 void Network::onNewPbftVotes(std::vector<Vote> votes) {
   for (auto const &vote : votes) {
     LOG(log_dg_) << "Network broadcast PBFT vote: " << vote.getHash();

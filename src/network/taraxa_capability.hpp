@@ -5,6 +5,7 @@
 #include <libp2p/Session.h>
 
 #include <chrono>
+#include <queue>
 #include <set>
 #include <thread>
 
@@ -13,6 +14,7 @@
 #include "dag/dag_block_manager.hpp"
 #include "packets_stats.hpp"
 #include "peers_state.hpp"
+#include "sync_block.hpp"
 #include "syncing_state.hpp"
 #include "transaction_manager/transaction.hpp"
 #include "util/thread_pool.hpp"
@@ -110,6 +112,8 @@ struct TaraxaCapability : virtual CapabilityFace {
   void sendTransactions();
   std::string packetTypeToString(unsigned int _packetType) const override;
 
+  void handleMaliciousSyncPeer(NodeID const &id);
+
   // PBFT
   void onNewPbftVote(taraxa::Vote const &vote);
   void sendPbftVote(NodeID const &peerID, taraxa::Vote const &vote);
@@ -174,6 +178,9 @@ struct TaraxaCapability : virtual CapabilityFace {
 
   uint64_t received_trx_count = 0;
   uint64_t unique_received_trx_count = 0;
+
+  std::queue<std::pair<SyncBlock, dev::p2p::NodeID>> sync_queue_;
+  mutable std::shared_mutex sync_queue_access_;
 
   // Node stats info history
   uint64_t summary_interval_ms_ = 30000;

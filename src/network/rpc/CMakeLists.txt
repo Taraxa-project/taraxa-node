@@ -1,7 +1,7 @@
 # Note: run make gen_rpc_stubs to re-generate rpc classes
 
-include(${CMAKE_SOURCE_DIR}/submodules/taraxa-aleth/cmake/EthDependencies.cmake)
-include(${CMAKE_SOURCE_DIR}/submodules/taraxa-aleth/cmake/EthExecutableHelper.cmake)
+include(EthDependencies)
+include(EthExecutableHelper)
 
 find_program(ETH_JSON_RPC_STUB jsonrpcstub)
 

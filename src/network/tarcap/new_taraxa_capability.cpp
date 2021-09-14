@@ -165,8 +165,8 @@ void TaraxaCapability::registerPacketHandlers(
     const std::shared_ptr<VoteManager> &vote_mgr, const std::shared_ptr<NextVotesForPreviousRound> &next_votes_mgr,
     const std::shared_ptr<DagManager> &dag_mgr, const std::shared_ptr<DagBlockManager> &dag_blk_mgr,
     const std::shared_ptr<TransactionManager> &trx_mgr, addr_t const &node_addr) {
-  syncing_handler_ = std::make_shared<SyncingHandler>(peers_state_, packets_stats, syncing_state_, pbft_chain, dag_mgr,
-                                                      dag_blk_mgr, node_addr);
+  syncing_handler_ = std::make_shared<SyncingHandler>(peers_state_, packets_stats, syncing_state_, pbft_chain, pbft_mgr,
+                                                      dag_mgr, dag_blk_mgr, node_addr);
 
   node_stats_ = std::make_shared<NodeStats>(peers_state_, syncing_state_, pbft_chain, pbft_mgr, dag_mgr, dag_blk_mgr,
                                             vote_mgr, trx_mgr, packets_stats, node_addr);
@@ -182,7 +182,7 @@ void TaraxaCapability::registerPacketHandlers(
   // Standard packets with mid processing priority
   packets_handlers_->registerHandler(
       PriorityQueuePacketType::PQ_NewPbftBlockPacket,
-      std::make_shared<NewPbftBlockPacketHandler>(peers_state_, packets_stats, pbft_chain, node_addr));
+      std::make_shared<NewPbftBlockPacketHandler>(peers_state_, packets_stats, pbft_chain, pbft_mgr, node_addr));
 
   const auto dag_handler = std::make_shared<DagPacketsHandler>(
       peers_state_, packets_stats, syncing_state_, syncing_handler_, trx_mgr, dag_blk_mgr, db, test_state_,
@@ -217,9 +217,9 @@ void TaraxaCapability::registerPacketHandlers(
       std::make_shared<GetPbftBlockPacketHandler>(peers_state_, packets_stats, syncing_state_, pbft_chain, db,
                                                   conf.network_sync_level_size, node_addr));
 
-  const auto pbft_handler =
-      std::make_shared<PbftBlockPacketHandler>(peers_state_, packets_stats, syncing_state_, syncing_handler_,
-                                               pbft_chain, dag_blk_mgr, conf.network_sync_level_size, node_addr);
+  const auto pbft_handler = std::make_shared<PbftBlockPacketHandler>(
+      peers_state_, packets_stats, syncing_state_, syncing_handler_, pbft_chain, pbft_mgr, dag_blk_mgr,
+      conf.network_sync_level_size, node_addr);
   packets_handlers_->registerHandler(PriorityQueuePacketType::PQ_PbftBlockPacket, pbft_handler);
   packets_handlers_->registerHandler(PriorityQueuePacketType::PQ_SyncedPacket, pbft_handler);
 
@@ -326,6 +326,17 @@ const std::shared_ptr<NodeStats> &TaraxaCapability::getNodeStats() { return node
 void TaraxaCapability::restartSyncingPbft(bool force) { syncing_handler_->restartSyncingPbft(force); }
 
 bool TaraxaCapability::pbft_syncing() const { return syncing_state_->is_pbft_syncing(); }
+
+void TaraxaCapability::handleMaliciousSyncPeer(dev::p2p::NodeID const &id) {
+  syncing_state_->set_peer_malicious(id);
+
+  if (auto host = peers_state_->host_.lock(); host) {
+    host->disconnect(id, p2p::UserReason);
+  } else {
+    LOG(log_er_) << "Unable to handleMaliciousSyncPeer, host == nullptr";
+  }
+  restartSyncingPbft(true);
+}
 
 void TaraxaCapability::onNewBlockVerified(std::shared_ptr<DagBlock> const &blk, bool proposed) {
   std::static_pointer_cast<DagPacketsHandler>(

@@ -19,7 +19,7 @@ class TaraxaConan(ConanFile):
         self.requires("cryptopp/8.5.0")
         self.requires("gtest/1.11.0")
         self.requires("lz4/1.9.3")
-        self.requires("rocksdb/6.10.2") # we currently can not go higher as golang rocskdb wrapper is limiting us
+        self.requires("rocksdb/6.10.2") # we currently can not go higher as golang rocksdb wrapper is limiting us
         self.requires("gmp/6.2.1")
         self.requires("mpfr/4.1.0")
         self.requires("libjson-rpc-cpp/1.3.0@bincrafters/stable")

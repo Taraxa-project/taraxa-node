@@ -6,6 +6,7 @@
 
 namespace taraxa {
 class PbftChain;
+class PbftManager;
 class DagManager;
 class DagBlockManager;
 }  // namespace taraxa
@@ -22,8 +23,8 @@ class SyncingHandler : public PacketHandler {
  public:
   SyncingHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
                  std::shared_ptr<SyncingState> syncing_state, std::shared_ptr<PbftChain> pbft_chain,
-                 std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
-                 const addr_t &node_addr = {});
+                 std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
+                 std::shared_ptr<DagBlockManager> dag_blk_mgr, const addr_t &node_addr = {});
 
   virtual ~SyncingHandler() = default;
 
@@ -58,6 +59,7 @@ class SyncingHandler : public PacketHandler {
   std::shared_ptr<SyncingState> syncing_state_{nullptr};
 
   std::shared_ptr<PbftChain> pbft_chain_{nullptr};
+  std::shared_ptr<PbftManager> pbft_mgr_{nullptr};
   std::shared_ptr<DagManager> dag_mgr_{nullptr};
   std::shared_ptr<DagBlockManager> dag_blk_mgr_{nullptr};
 };

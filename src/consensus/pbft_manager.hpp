@@ -1,6 +1,7 @@
 #pragma once
 
 #include <atomic>
+#include <queue>
 #include <string>
 #include <thread>
 
@@ -48,8 +49,8 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   PbftManager(PbftConfig const &conf, blk_hash_t const &genesis, addr_t node_addr, std::shared_ptr<DbStorage> db,
               std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
               std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr, std::shared_ptr<DagManager> dag_mgr,
-              std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<FinalChain> final_chain, secret_t node_sk,
-              vrf_sk_t vrf_sk);
+              std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<TransactionManager> trx_mgr,
+              std::shared_ptr<FinalChain> final_chain, secret_t node_sk, vrf_sk_t vrf_sk);
   ~PbftManager();
 
   void setNetwork(std::weak_ptr<Network> network);
@@ -73,6 +74,11 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   size_t getDposTotalVotesCount() const;
   size_t getDposWeightedVotesCount() const;
+
+  uint64_t pbftSyncingPeriod() const;
+  void clearSyncBlockQueue();
+  size_t syncBlockQueueSize() const;
+  void syncBlockQueuePush(SyncBlock const &block, dev::p2p::NodeID const &node_id);
 
   // Notice: Test purpose
   // TODO: Add a check for some kind of guards to ensure these are only called from within a test
@@ -130,8 +136,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   std::pair<blk_hash_t, bool> identifyLeaderBlock_(std::vector<Vote> const &votes);
 
-  bool checkPbftBlockValid_(blk_hash_t const &block_hash) const;
-
   bool syncRequestedAlreadyThisStep_() const;
 
   void syncPbftChainFromPeers_(PbftSyncRequestReason reason, taraxa::blk_hash_t const &relevant_blk_hash);
@@ -147,7 +151,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   void pushSyncedPbftBlocksIntoChain_();
 
   void finalize_(PbftBlock const &pbft_block, vector<h256> finalized_dag_blk_hashes, bool sync = false);
-  bool pushPbftBlock_(PbftBlockCert const &pbft_block_cert_votes, vec_blk_t const &dag_blocks_order, bool sync = false);
+  bool pushPbftBlock_(SyncBlock &sync_block, vec_blk_t &dag_blocks_order, bool sync = false);
 
   void updateTwoTPlusOneAndThreshold_();
   bool is_syncing_();
@@ -158,6 +162,14 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   void updateLastSoftVotedValue_(blk_hash_t const new_soft_voted_value);
   void checkPreviousRoundNextVotedValueChange_();
   bool updateSoftVotedBlockForThisRound_();
+
+  blk_hash_t calculateOrderHash(std::vector<blk_hash_t> const &dag_block_hashes,
+                                std::vector<trx_hash_t> const &trx_hashes);
+  blk_hash_t calculateOrderHash(std::vector<DagBlock> const &dag_blocks, std::vector<Transaction> const &transactions);
+  void syncBlockQueuePop();
+  std::optional<SyncBlock> processSyncBlock();
+
+  std::shared_ptr<PbftBlock> getUnfinalizedBlock_(blk_hash_t const &block_hash);
 
   std::atomic<bool> stopped_ = true;
   // Using to check if PBFT block has been proposed already in one period
@@ -171,6 +183,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   std::shared_ptr<DagManager> dag_mgr_;
   std::weak_ptr<Network> network_;
   std::shared_ptr<DagBlockManager> dag_blk_mgr_;
+  std::shared_ptr<TransactionManager> trx_mgr_;
   std::shared_ptr<FinalChain> final_chain_;
 
   addr_t node_addr_;
@@ -231,8 +244,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   uint64_t pbft_round_last_broadcast_ = 0;
   size_t pbft_step_last_broadcast_ = 0;
 
-  size_t pbft_last_observed_synced_queue_size_ = 0;
-
   std::atomic<uint64_t> dpos_period_;
   std::atomic<size_t> dpos_votes_count_;
   std::atomic<size_t> weighted_votes_count_;
@@ -245,6 +256,9 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   std::condition_variable stop_cv_;
   std::mutex stop_mtx_;
+
+  std::queue<std::pair<SyncBlock, dev::p2p::NodeID>> sync_queue_;
+  mutable std::shared_mutex sync_queue_access_;
 
   // TODO: will remove later, TEST CODE
   void countVotes_();

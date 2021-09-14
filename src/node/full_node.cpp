@@ -87,7 +87,7 @@ void FullNode::init() {
   trx_mgr_ = std::make_shared<TransactionManager>(conf_, node_addr, db_);
 
   auto genesis_hash = conf_.chain.dag_genesis_block.getHash();
-  auto dag_genesis_hash_from_db = blk_hash_t(db_->getBlocksByLevel(0));
+  auto dag_genesis_hash_from_db = *db_->getBlocksByLevel(0).begin();
   if (genesis_hash != dag_genesis_hash_from_db) {
     LOG(log_er_) << "The DAG genesis block hash " << genesis_hash << " in config is different with "
                  << dag_genesis_hash_from_db << " in DB";
@@ -99,12 +99,12 @@ void FullNode::init() {
   dag_blk_mgr_ = std::make_shared<DagBlockManager>(node_addr, conf_.chain.vdf, conf_.chain.final_chain.state.dpos,
                                                    4 /* verifer thread*/, db_, trx_mgr_, final_chain_, pbft_chain_,
                                                    log_time_, conf_.test_params.max_block_queue_warn);
-  dag_mgr_ = std::make_shared<DagManager>(genesis_hash, node_addr, trx_mgr_, pbft_chain_, dag_blk_mgr_, db_);
+  dag_mgr_ = std::make_shared<DagManager>(genesis_hash, node_addr, trx_mgr_, pbft_chain_, dag_blk_mgr_, db_, log_time_);
   vote_mgr_ = std::make_shared<VoteManager>(node_addr, db_, final_chain_, pbft_chain_);
   trx_order_mgr_ = std::make_shared<TransactionOrderManager>(node_addr, db_);
   pbft_mgr_ = std::make_shared<PbftManager>(conf_.chain.pbft, genesis_hash, node_addr, db_, pbft_chain_, vote_mgr_,
-                                            next_votes_mgr_, dag_mgr_, dag_blk_mgr_, final_chain_, kp_.secret(),
-                                            conf_.vrf_secret);
+                                            next_votes_mgr_, dag_mgr_, dag_blk_mgr_, trx_mgr_, final_chain_,
+                                            kp_.secret(), conf_.vrf_secret);
   blk_proposer_ = std::make_shared<BlockProposer>(conf_.test_params.block_proposer, conf_.chain.vdf, dag_mgr_, trx_mgr_,
                                                   dag_blk_mgr_, final_chain_, node_addr, getSecretKey(),
                                                   getVrfSecretKey(), log_time_);
@@ -135,7 +135,7 @@ void FullNode::start() {
                               dev::toJS(*trx.rlp()), err_msg)));
       }
     };
-    eth_rpc_params.syncing_probe = [network = network_, pbft_chain = pbft_chain_] {
+    eth_rpc_params.syncing_probe = [network = network_, pbft_chain = pbft_chain_, pbft_mgr = pbft_mgr_] {
       std::optional<net::rpc::eth::SyncStatus> ret;
       if (!network->pbft_syncing()) {
         return ret;
@@ -144,7 +144,7 @@ void FullNode::start() {
       // TODO clearly define Ethereum json-rpc "syncing" in Taraxa
       status.current_block = pbft_chain->getPbftChainSize();
       status.starting_block = status.current_block;
-      status.highest_block = pbft_chain->pbftSyncingPeriod();
+      status.highest_block = pbft_mgr->pbftSyncingPeriod();
       return ret;
     };
     auto eth_json_rpc = net::rpc::eth::NewEth(move(eth_rpc_params));
@@ -196,6 +196,13 @@ void FullNode::start() {
           }
         },
         *rpc_thread_pool_);
+    dag_mgr_->block_verified_.subscribe(
+        [eth_json_rpc = as_weak(eth_json_rpc), ws = as_weak(jsonrpc_ws_)](auto const &dag_block) {
+          if (auto _ws = ws.lock()) {
+            _ws->newDagBlock(dag_block);
+          }
+        },
+        *rpc_thread_pool_);
   }
 
   LOG(log_time_) << "Start taraxa efficiency evaluation logging:" << std::endl;
@@ -214,45 +221,10 @@ void FullNode::start() {
   }
   vote_mgr_->setNetwork(network_);
   pbft_mgr_->setNetwork(network_);
+  dag_mgr_->setNetwork(network_);
   pbft_mgr_->start();
   dag_blk_mgr_->start();
-  block_workers_.emplace_back([this]() {
-    bool level_limit = false;
-    uint64_t level = 0;
-    while (!stopped_) {
-      // will block if no verified block available
-      auto verified_block = dag_blk_mgr_->popVerifiedBlock(level_limit, level);
-      level_limit = false;
-      auto const &blk = *(verified_block.first);
-
-      if (!stopped_) {
-        received_blocks_++;
-      }
-
-      if (dag_mgr_->pivotAndTipsAvailable(blk)) {
-        dag_mgr_->addDagBlock(blk);
-        if (jsonrpc_ws_) {
-          jsonrpc_ws_->newDagBlock(blk);
-        }
-        network_->onNewBlockVerified(verified_block.first, verified_block.second);
-        LOG(log_time_) << "Broadcast block " << blk.getHash() << " at: " << getCurrentTimeMilliSeconds();
-      } else {
-        // Networking makes sure that dag block that reaches queue already had
-        // its pivot and tips processed This should happen in a very rare case
-        // where in some race condition older block is verfified faster then
-        // new block but should resolve quickly, return block to queue
-        if (!stopped_) {
-          if (dag_blk_mgr_->pivotAndTipsValid(blk)) {
-            LOG(log_wr_) << "Block could not be added to DAG " << blk.getHash().toString();
-            received_blocks_--;
-            dag_blk_mgr_->pushVerifiedBlock(blk);
-            level_limit = true;
-            level = blk.getLevel();
-          }
-        }
-      }
-    }
-  });
+  dag_mgr_->start();
 
   if (conf_.test_params.rebuild_db) {
     rebuildDb();
@@ -277,9 +249,7 @@ void FullNode::close() {
   pbft_mgr_->stop();
   trx_mgr_->stop();
   dag_blk_mgr_->stop();
-  for (auto &t : block_workers_) {
-    t.join();
-  }
+  dag_mgr_->stop();
   LOG(log_nf_) << "Node stopped ... ";
 }
 
@@ -288,35 +258,17 @@ void FullNode::rebuildDb() {
   uint64_t period = 1;
 
   while (true) {
-    map<uint64_t, vector<DagBlock>> dag_blocks_per_level;
     auto data = old_db_->getPeriodDataRaw(period);
     if (data.size() == 0) {
       break;
     }
-    RLP rlp_data(data);
-    std::vector<Vote> cert_votes;
-    std::vector<DagBlock> dag_blocks;
-    std::vector<Transaction> transactions;
-    PbftBlock pbft_block = old_db_->parsePeriodData(rlp_data, cert_votes, dag_blocks, transactions);
+    SyncBlock sync_block(data);
 
-    PbftBlockCert pbft_blk_and_votes(pbft_block, cert_votes);
-    LOG(log_nf_) << "Adding pbft block into queue " << pbft_block.getBlockHash().toString();
-    pbft_chain_->setSyncedPbftBlockIntoQueue(pbft_blk_and_votes);
-
-    for (auto const &dag_block : dag_blocks) {
-      dag_blocks_per_level[dag_block.getLevel()].push_back(dag_block);
-    }
-
-    // Add dag blocks and transactions from above to the queue
-    dag_blk_mgr_->processSyncedTransactions(transactions);
-    for (auto const &level : dag_blocks_per_level) {
-      for (auto const &blk : level.second) {
-        dag_blk_mgr_->processSyncedBlock(blk);
-      }
-    }
+    LOG(log_nf_) << "Adding sync block into queue " << sync_block.pbft_blk->getBlockHash().toString();
+    pbft_mgr_->syncBlockQueuePush(sync_block, dev::p2p::NodeID());
 
     // Wait if more than 10 pbft blocks in queue to be processed
-    while (pbft_chain_->pbftSyncedQueueSize() > 10) {
+    while (pbft_mgr_->syncBlockQueueSize() > 10) {
       thisThreadSleepForMilliSeconds(10);
     }
     period++;
@@ -325,9 +277,9 @@ void FullNode::rebuildDb() {
       break;
     }
   }
-  while (pbft_chain_->pbftSyncedQueueSize() > 0 || final_chain_->last_block_number() != period - 1) {
+  while (pbft_mgr_->syncBlockQueueSize() > 0 || final_chain_->last_block_number() != period - 1) {
     thisThreadSleepForMilliSeconds(1000);
-    LOG(log_nf_) << "Waiting on PBFT blocks to be processed. Queue size: " << pbft_chain_->pbftSyncedQueueSize()
+    LOG(log_nf_) << "Waiting on PBFT blocks to be processed. Queue size: " << pbft_mgr_->syncBlockQueueSize()
                  << " Chain size: " << final_chain_->last_block_number();
   }
 }

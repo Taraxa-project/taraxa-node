@@ -143,7 +143,7 @@ void StatusPacketHandler::process(const dev::RLP& packet_rlp, const PacketData& 
   // and by syncing here we open node up to attack of sending bogus
   // status.  We also have nothing to punish a node failing to send
   // sync info.
-  auto pbft_synced_period = pbft_chain_->pbftSyncingPeriod();
+  auto pbft_synced_period = pbft_mgr_->pbftSyncingPeriod();
   if (pbft_synced_period + 1 < selected_peer->pbft_chain_size_) {
     LOG(log_nf_) << "Restart PBFT chain syncing. Own synced PBFT at period " << pbft_synced_period
                  << ", peer PBFT chain size " << selected_peer->pbft_chain_size_;
