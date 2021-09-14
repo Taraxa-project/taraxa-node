@@ -1309,6 +1309,8 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     assert(false);
   }
   std::vector<trx_hash_t> non_executed_transactions;
+  std::unordered_set<trx_hash_t> trx_hashes_set;
+  std::vector<trx_hash_t> trx_hashes;
   for (auto const &blk_hash : dag_block_order.second) {
     auto dag_blk = dag_blk_mgr_->getDagBlock(blk_hash);
     if (!dag_blk) {
@@ -1316,16 +1318,20 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
                    << blk_hash;
       assert(false);
     }
-    auto &trx_hashes = dag_blk->getTrxs();
-    auto trx_statuses = db_->getTransactionStatus(trx_hashes);
-    for (uint32_t i = 0; i < trx_statuses.size(); i++) {
-      if (trx_statuses[i].state == TransactionStatusEnum::in_block) {
-        non_executed_transactions.emplace_back(trx_hashes[i]);
-      } else if (trx_statuses[i].state != TransactionStatusEnum::finalized) {
-        LOG(log_er_) << "DAG anchor block hash " << dag_block_hash << " try incorrect state for block " << blk_hash
-                     << " trx: " << trx_hashes[i] << " state : " << (uint16_t)trx_statuses[i].state;
-        assert(false);
+    for (auto const &trx_hash : dag_blk->getTrxs()) {
+      if (trx_hashes_set.emplace(trx_hash).second) {
+        trx_hashes.emplace_back(trx_hash);
       }
+    }
+  }
+  auto trx_statuses = db_->getTransactionStatus(trx_hashes);
+  for (uint32_t i = 0; i < trx_statuses.size(); i++) {
+    if (trx_statuses[i].state == TransactionStatusEnum::in_block) {
+      non_executed_transactions.emplace_back(trx_hashes[i]);
+    } else if (trx_statuses[i].state != TransactionStatusEnum::finalized) {
+      LOG(log_er_) << "Incorrect transaction state for trx: " << trx_hashes[i]
+                   << " state : " << (uint16_t)trx_statuses[i].state;
+      assert(false);
     }
   }
 
