@@ -614,10 +614,10 @@ std::string VoteManager::getJsonStr(std::vector<std::shared_ptr<Vote>> const& vo
 
 std::vector<std::shared_ptr<Vote>> VoteManager::getProposalVotes(uint64_t pbft_round) {
   std::vector<std::shared_ptr<Vote>> proposal_votes;
-  // For each proposed value should only have one vote(except NULL_BLOCK_HASH)
-  proposal_votes.reserve(verified_votes_[pbft_round][1].size());
 
   sharedLock_ lock(verified_votes_access_);
+  // For each proposed value should only have one vote(except NULL_BLOCK_HASH)
+  proposal_votes.reserve(verified_votes_[pbft_round][1].size());
   for (auto const& voted_value : verified_votes_[pbft_round][1]) {
     for (auto const& v : voted_value.second) {
       proposal_votes.emplace_back(v.second);
