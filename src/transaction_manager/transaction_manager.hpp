@@ -69,7 +69,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   uint32_t insertBroadcastedTransactions(const std::vector<Transaction> &txs);
 
   std::unordered_map<trx_hash_t, Transaction> getVerifiedTrxSnapShot() const;
-  std::vector<Transaction> getNewVerifiedTrxSnapShotSerialized();
+  std::vector<Transaction> getNewVerifiedTrxSnapShot();
   std::pair<size_t, size_t> getTransactionQueueSize() const;
   size_t getTransactionBufferSize() const;
 

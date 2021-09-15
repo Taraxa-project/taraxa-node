@@ -15,9 +15,8 @@ NewPbftBlockPacketHandler::NewPbftBlockPacketHandler(std::shared_ptr<PeersState>
       pbft_chain_(std::move(pbft_chain)),
       pbft_mgr_(std::move(pbft_mgr)) {}
 
-void NewPbftBlockPacketHandler::process(const dev::RLP &packet_rlp,
-                                        const PacketData &packet_data __attribute__((unused)),
-                                        const std::shared_ptr<dev::p2p::Host> &host __attribute__((unused)),
+void NewPbftBlockPacketHandler::process(const dev::RLP &packet_rlp, [[maybe_unused]] const PacketData &packet_data,
+                                        [[maybe_unused]] const std::shared_ptr<dev::p2p::Host> &host,
                                         const std::shared_ptr<TaraxaPeer> &peer) {
   LOG(log_dg_) << "In NewPbftBlockPacket";
 

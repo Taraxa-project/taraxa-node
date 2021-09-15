@@ -32,11 +32,6 @@ class GetPbftBlockPacketHandler : public PacketHandler {
 
   // Initialized from network config
   const size_t network_sync_level_size_;
-
-  // When checking if size limit exceeds MAX_PACKET_SIZE there are few bytes or rlp structure that is added
-  // for the pbft block and dag block. This should be just a couple of bytes but we enforece even stricter 128
-  // limit
-  static constexpr int RLP_OVERHEAD = 128;
 };
 
 }  // namespace taraxa::network::tarcap

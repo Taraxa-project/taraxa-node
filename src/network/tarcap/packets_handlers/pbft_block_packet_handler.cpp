@@ -25,7 +25,7 @@ PbftBlockPacketHandler::PbftBlockPacketHandler(
       delayed_sync_events_tp_(1, true) {}
 
 void PbftBlockPacketHandler::process(const dev::RLP &packet_rlp, const PacketData &packet_data,
-                                     const std::shared_ptr<dev::p2p::Host> &host __attribute__((unused)),
+                                     [[maybe_unused]] const std::shared_ptr<dev::p2p::Host> &host,
                                      const std::shared_ptr<TaraxaPeer> &peer) {
   // Note: no need to consider possible race conditions due to concurrent processing as it is
   // disabled on priority_queue blocking dependencies level

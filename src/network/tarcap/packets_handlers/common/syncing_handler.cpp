@@ -20,10 +20,10 @@ SyncingHandler::SyncingHandler(std::shared_ptr<PeersState> peers_state, std::sha
       dag_mgr_(std::move(dag_mgr)),
       dag_blk_mgr_(std::move(dag_blk_mgr)) {}
 
-void SyncingHandler::process(const dev::RLP &packet_rlp __attribute__((unused)),
-                             const PacketData &packet_data __attribute__((unused)),
-                             const std::shared_ptr<dev::p2p::Host> &host __attribute__((unused)),
-                             const std::shared_ptr<TaraxaPeer> &peer __attribute__((unused))) {}
+void SyncingHandler::process([[maybe_unused]] const dev::RLP &packet_rlp,
+                             [[maybe_unused]] const PacketData &packet_data,
+                             [[maybe_unused]] const std::shared_ptr<dev::p2p::Host> &host,
+                             [[maybe_unused]] const std::shared_ptr<TaraxaPeer> &peer) {}
 
 void SyncingHandler::restartSyncingPbft(bool force) {
   if (syncing_state_->is_pbft_syncing() && !force) {

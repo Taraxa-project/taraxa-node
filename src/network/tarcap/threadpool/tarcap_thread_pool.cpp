@@ -49,7 +49,7 @@ void TarcapThreadPool::startProcessing() {
       workers_.emplace_back(&TarcapThreadPool::processPacket, this, idx);
     }
   } catch (...) {
-    stopProcessing_ = true;
+    stopProcessing();
 
     throw;
   }

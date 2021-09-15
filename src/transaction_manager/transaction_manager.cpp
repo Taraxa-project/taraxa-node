@@ -291,12 +291,9 @@ std::pair<size_t, size_t> TransactionManager::getTransactionQueueSize() const {
 
 size_t TransactionManager::getTransactionBufferSize() const { return trx_qu_.getTransactionBufferSize(); }
 
-std::vector<Transaction> TransactionManager::getNewVerifiedTrxSnapShotSerialized() {
+std::vector<Transaction> TransactionManager::getNewVerifiedTrxSnapShot() {
   // TODO: get rid of copying the whole vector of txs here...
-  auto txs = trx_qu_.getNewVerifiedTrxSnapShot();
-
-  sort(txs.begin(), txs.end(), trxComp);
-  return txs;
+  return trx_qu_.getNewVerifiedTrxSnapShot();
 }
 
 unsigned long TransactionManager::getTransactionCount() const { return trx_count_; }

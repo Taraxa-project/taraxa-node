@@ -16,8 +16,6 @@ void PacketsBlockingMask::markPacketAsHardUnblocked(PriorityQueuePacketType pack
   blocked_packets_types_mask_ ^= packet_type;
 }
 
-static std::chrono::steady_clock::time_point lol = std::chrono::steady_clock::now();
-
 void PacketsBlockingMask::markPacketAsPeerTimeBlocked(const PacketData& blocking_packet,
                                                       PriorityQueuePacketType packet_to_be_blocked) {
   // blocked_packets_types_mask_ contains hard blocks that are not compatible with peers_time blocks, we should

@@ -19,8 +19,8 @@ TransactionPacketHandler::TransactionPacketHandler(std::shared_ptr<PeersState> p
       network_transaction_interval_(network_transaction_interval) {}
 
 inline void TransactionPacketHandler::process(const dev::RLP &packet_rlp,
-                                              const PacketData &packet_data __attribute__((unused)),
-                                              const std::shared_ptr<dev::p2p::Host> &host __attribute__((unused)),
+                                              [[maybe_unused]] const PacketData &packet_data,
+                                              [[maybe_unused]] const std::shared_ptr<dev::p2p::Host> &host,
                                               const std::shared_ptr<TaraxaPeer> &peer) {
   std::string received_transactions;
   const auto transaction_count = packet_rlp.itemCount();

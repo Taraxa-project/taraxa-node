@@ -109,8 +109,7 @@ void TaraxaCapability::initPeriodicEvents(const NetworkConfig &conf, const std::
   if (trx_mgr /* just because of tests */ && conf.network_transaction_interval > 0) {
     periodic_events_tp_.post_loop({conf.network_transaction_interval},
                                   [tx_packet_handler = std::move(tx_packet_handler), trx_mgr = std::move(trx_mgr)] {
-                                    tx_packet_handler->onNewTransactions(trx_mgr->getNewVerifiedTrxSnapShotSerialized(),
-                                                                         false);
+                                    tx_packet_handler->onNewTransactions(trx_mgr->getNewVerifiedTrxSnapShot(), false);
                                   });
   }
 
@@ -136,6 +135,10 @@ void TaraxaCapability::initPeriodicEvents(const NetworkConfig &conf, const std::
   // Boot nodes checkup periodic event
   if (!boot_nodes_.empty()) {
     auto tmp_host = peers_state_->host_.lock();
+
+    // Something is wrong if host cannot be obtained during tarcap construction
+    assert(tmp_host);
+
     for (auto const &[k, v] : boot_nodes_) {
       tmp_host->addNode(dev::p2p::Node(k, v, dev::p2p::PeerType::Required));
     }
@@ -143,6 +146,10 @@ void TaraxaCapability::initPeriodicEvents(const NetworkConfig &conf, const std::
     // Every 30 seconds check if connected to another node and refresh boot nodes
     periodic_events_tp_.post_loop({30000}, [this] {
       auto host = peers_state_->host_.lock();
+      if (!host) {
+        LOG(log_er_) << "Unable to obtain host in periodic boot nodes checkup!";
+        return;
+      }
 
       // If node count drops to zero add boot nodes again and retry
       if (host->getNodeCount() == 0) {
@@ -233,13 +240,16 @@ unsigned TaraxaCapability::version() const { return TARAXA_NET_VERSION; }
 unsigned TaraxaCapability::messageCount() const { return SubprotocolPacketType::PacketCount; }
 
 void TaraxaCapability::onConnect(weak_ptr<dev::p2p::Session> session, u256 const &) {
-  const auto node_id = session.lock()->id();
+  const auto session_p = session.lock();
+  if (!session_p) {
+    LOG(log_er_) << "Unable to obtain session ptr !";
+    return;
+  }
+
+  const auto node_id = session_p->id();
 
   if (syncing_state_->is_peer_malicious(node_id)) {
-    if (auto session_p = session.lock()) {
-      session_p->disconnect(dev::p2p::UserReason);
-    }
-
+    session_p->disconnect(dev::p2p::UserReason);
     LOG(log_wr_) << "Node " << node_id << " connection dropped - malicious node";
     return;
   }
@@ -275,6 +285,12 @@ std::string TaraxaCapability::packetTypeToString(unsigned _packetType) const {
 }
 
 void TaraxaCapability::interpretCapabilityPacket(weak_ptr<dev::p2p::Session> session, unsigned _id, RLP const &_r) {
+  const auto session_p = session.lock();
+  if (!session_p) {
+    LOG(log_er_) << "Unable to obtain session ptr !";
+    return;
+  }
+
   auto node_id = session.lock()->id();
 
   // Drop any packet (except StatusPacket) that comes before the connection between nodes is initialized by sending

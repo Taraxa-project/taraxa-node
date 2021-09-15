@@ -176,11 +176,6 @@ void DagBlockManager::insertBroadcastedBlockWithTransactions(DagBlock const &blk
                  << " , tips count: " << blk.getTips().size();
 }
 
-// TODO: do we need this ?
-// void DagBlockManager::pushUnverifiedBlock(DagBlock const &blk, bool critical) {
-//  pushUnverifiedBlock(blk, {}, critical);
-//}
-
 std::pair<size_t, size_t> DagBlockManager::getDagBlockQueueSize() const {
   std::pair<size_t, size_t> res;
   {

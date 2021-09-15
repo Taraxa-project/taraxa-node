@@ -658,15 +658,10 @@ void NextVotesForPreviousRound::addNextVotes(std::vector<Vote> const& next_votes
 
     next_votes_set_.insert(vote_hash);
     auto voted_block_hash = v.getBlockHash();
-    if (next_votes_.count(voted_block_hash)) {
-      next_votes_[voted_block_hash].emplace_back(v);
-    } else {
-      std::vector<Vote> votes{v};
-      next_votes_[voted_block_hash] = votes;
-    }
+    next_votes_[voted_block_hash].emplace_back(v);
 
     next_votes_size_++;
-    voted_values.insert(voted_block_hash);
+    voted_values.insert(std::move(voted_block_hash));
     next_votes_in_db.emplace_back(v);
   }
 

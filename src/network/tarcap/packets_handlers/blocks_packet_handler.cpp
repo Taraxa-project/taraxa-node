@@ -17,7 +17,7 @@ BlocksPacketHandler::BlocksPacketHandler(std::shared_ptr<PeersState> peers_state
       dag_blk_mgr_(std::move(dag_blk_mgr)) {}
 
 void BlocksPacketHandler::process(const dev::RLP& packet_rlp, const PacketData& packet_data,
-                                  const std::shared_ptr<dev::p2p::Host>& host __attribute__((unused)),
+                                  [[maybe_unused]] const std::shared_ptr<dev::p2p::Host>& host,
                                   const std::shared_ptr<TaraxaPeer>& peer) {
   std::string received_dag_blocks_str;
   std::unordered_set<blk_hash_t> missing_blks;

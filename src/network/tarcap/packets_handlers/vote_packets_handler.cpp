@@ -30,7 +30,7 @@ void VotePacketsHandler::process(const dev::RLP &packet_rlp, const PacketData &p
 }
 
 inline void VotePacketsHandler::processPbftVotePacket(const dev::RLP &packet_rlp,
-                                                      const PacketData &packet_data __attribute__((unused)),
+                                                      [[maybe_unused]] const PacketData &packet_data,
                                                       const std::shared_ptr<TaraxaPeer> &peer) {
   Vote vote(packet_rlp[0].toBytes());
   const auto vote_hash = vote.getHash();
