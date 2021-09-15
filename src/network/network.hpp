@@ -17,7 +17,7 @@
 #include "config/config.hpp"
 #include "consensus/vote.hpp"
 #include "dag/dag_block_manager.hpp"
-#include "tarcap/new_taraxa_capability.hpp"
+#include "tarcap/taraxa_capability.hpp"
 #include "transaction_manager/transaction.hpp"
 #include "util/thread_pool.hpp"
 #include "util/util.hpp"

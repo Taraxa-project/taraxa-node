@@ -30,14 +30,13 @@ set(SOURCES
         final_chain/final_chain.hpp
         logger/log.hpp
         logger/logger_config.hpp
-        network/syncing_state.hpp
-        network/sync_block.hpp
+        consensus/sync_block.hpp
         network/rpc/rpc_error_handler.hpp
         network/rpc/eth/watches.hpp
         network/rpc/eth/LogFilter.hpp
         network/rpc/eth/data.hpp
         network/network.hpp
-        network/tarcap/new_taraxa_capability.hpp
+        network/tarcap/taraxa_capability.hpp
         network/tarcap/stats/node_stats.hpp
         network/tarcap/threadpool/tarcap_thread_pool.hpp
         network/tarcap/threadpool/priority_queue.hpp
@@ -132,8 +131,8 @@ set(SOURCES
         network/rpc/eth/LogFilter.cpp
         network/rpc/eth/Eth.cpp
         network/network.cpp
-        network/sync_block.cpp
-        network/tarcap/new_taraxa_capability.cpp
+        consensus/sync_block.cpp
+        network/tarcap/taraxa_capability.cpp
         network/tarcap/stats/node_stats.cpp
         network/tarcap/threadpool/tarcap_thread_pool.cpp
         network/tarcap/threadpool/priority_queue.cpp

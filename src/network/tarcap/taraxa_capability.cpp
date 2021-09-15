@@ -1,4 +1,4 @@
-#include "new_taraxa_capability.hpp"
+#include "taraxa_capability.hpp"
 
 #include <algorithm>
 

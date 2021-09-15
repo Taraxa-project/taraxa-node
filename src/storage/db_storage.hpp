@@ -11,10 +11,10 @@
 
 #include "common/types.hpp"
 #include "consensus/pbft_chain.hpp"
+#include "consensus/sync_block.hpp"
 #include "dag/dag_block.hpp"
 #include "dag/proposal_period_levels_map.hpp"
 #include "logger/log.hpp"
-#include "network/sync_block.hpp"
 #include "transaction_manager/transaction.hpp"
 #include "transaction_manager/transaction_status.hpp"
 
