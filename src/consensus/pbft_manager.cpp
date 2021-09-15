@@ -1555,6 +1555,8 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
         break;
       }
 
+      syncBlockQueuePop();
+
       if (executed_pbft_block_) {
         vote_mgr_->removeVerifiedVotes();
         update_dpos_state_();
@@ -1946,7 +1948,6 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
     return nullopt;
   }
 
-  syncBlockQueuePop();
   return std::optional<SyncBlock>(std::move(sync_block.first));
 }
 
