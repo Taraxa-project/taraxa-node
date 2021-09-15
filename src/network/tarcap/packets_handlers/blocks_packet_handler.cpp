@@ -35,17 +35,17 @@ void BlocksPacketHandler::process(const dev::RLP& packet_rlp, const PacketData& 
       new_transactions.push_back(std::move(transaction));
     }
 
-    received_dag_blocks_str += block.getHash().toString() + " ";
+    received_dag_blocks_str += block.getHash().abridged() + " ";
 
     auto status = syncing_handler_->checkDagBlockValidation(block);
     if (!status.first) {
-      LOG(log_wr_) << "DagBlockValidation failed " << status.second;
+      LOG(log_er_) << "DagBlockValidation failed " << status.second;
       status.second.insert(block.getHash());
       missing_blks.merge(status.second);
       continue;
     }
 
-    LOG(log_dg_) << "Storing block " << block.getHash().toString() << " with " << new_transactions.size()
+    LOG(log_dg_) << "Storing block " << block.getHash().abridged() << " with " << new_transactions.size()
                  << " transactions";
     if (block.getLevel() > peer->dag_level_) peer->dag_level_ = block.getLevel();
     dag_blk_mgr_->insertBroadcastedBlockWithTransactions(block, new_transactions);

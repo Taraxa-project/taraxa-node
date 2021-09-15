@@ -91,8 +91,8 @@ void GetBlocksPacketsHandler::sendBlocks(dev::p2p::NodeID const &peer_id,
       transactions.emplace_back(std::move(t->second));
       total_transactions_count++;
     }
-    block_transactions[block->getHash()] = std::move(transactions);
     LOG(log_nf_) << "Send DagBlock " << block->getHash() << "# Trx: " << transactions.size() << std::endl;
+    block_transactions[block->getHash()] = std::move(transactions);
   }
 
   RLPStream s(blocks.size() + total_transactions_count);

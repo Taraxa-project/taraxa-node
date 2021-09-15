@@ -168,7 +168,7 @@ std::pair<bool, std::unordered_set<blk_hash_t>> SyncingHandler::checkDagBlockVal
   for (auto const &tip : block.getTips()) {
     auto tip_block = dag_blk_mgr_->getDagBlock(tip);
     if (!tip_block) {
-      LOG(log_er_) << "Block " << block.getHash().toString() << " has a missing tip " << tip.toString();
+      LOG(log_er_) << "Block " << block.getHash().abridged() << " has a missing tip " << tip.abridged();
       missing_blks.insert(tip);
     } else {
       expected_level = std::max(tip_block->getLevel(), expected_level);
@@ -178,7 +178,7 @@ std::pair<bool, std::unordered_set<blk_hash_t>> SyncingHandler::checkDagBlockVal
   const auto pivot = block.getPivot();
   const auto pivot_block = dag_blk_mgr_->getDagBlock(pivot);
   if (!pivot_block) {
-    LOG(log_er_) << "Block " << block.getHash().toString() << " has a missing pivot " << pivot.toString();
+    LOG(log_er_) << "Block " << block.getHash().abridged() << " has a missing pivot " << pivot.abridged();
     missing_blks.insert(pivot);
   }
 
@@ -187,7 +187,7 @@ std::pair<bool, std::unordered_set<blk_hash_t>> SyncingHandler::checkDagBlockVal
   expected_level = std::max(pivot_block->getLevel(), expected_level);
   expected_level++;
   if (expected_level != block.getLevel()) {
-    LOG(log_er_) << "Invalid block level " << block.getLevel() << " for block " << block.getHash()
+    LOG(log_er_) << "Invalid block level " << block.getLevel() << " for block " << block.getHash().abridged()
                  << " . Expected level " << expected_level;
     return std::make_pair(false, missing_blks);
   }
