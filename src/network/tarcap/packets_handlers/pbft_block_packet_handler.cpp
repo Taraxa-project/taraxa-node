@@ -106,7 +106,7 @@ void PbftBlockPacketHandler::process(const dev::RLP &packet_rlp, const PacketDat
 }
 
 void PbftBlockPacketHandler::pbftSyncComplete() {
-  if (!pbft_mgr_->syncBlockQueueSize()) {
+  if (pbft_mgr_->syncBlockQueueSize()) {
     LOG(log_dg_) << "Syncing pbft blocks faster than processing. Remaining sync size "
                  << pbft_mgr_->syncBlockQueueSize();
     delayed_sync_events_tp_.post(1000, [this] { pbftSyncComplete(); });
