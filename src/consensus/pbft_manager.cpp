@@ -1647,6 +1647,7 @@ bool PbftManager::pushPbftBlock_(SyncBlock &sync_block, vec_blk_t &dag_blocks_or
   auto const &anchor_hash = sync_block.pbft_blk->getPivotDagBlockHash();
   dag_mgr_->setDagBlockOrder(anchor_hash, pbft_period, dag_blocks_order, batch);
 
+  std::vector<trx_hash_t> non_executed_transactions;
   if (!sync) {
     std::unordered_set<trx_hash_t> trx_set;
     std::vector<trx_hash_t> transactions_to_query;
@@ -1663,7 +1664,6 @@ bool PbftManager::pushPbftBlock_(SyncBlock &sync_block, vec_blk_t &dag_blocks_or
       }
       sync_block.dag_blocks.emplace_back(std::move(dag_block));
     }
-    std::vector<trx_hash_t> non_executed_transactions;
     db_query.append(DbStorage::Columns::trx_status, transactions_to_query);
     auto transactions_status_res = db_query.execute();
     uint32_t trx_index = 0;
@@ -1690,6 +1690,8 @@ bool PbftManager::pushPbftBlock_(SyncBlock &sync_block, vec_blk_t &dag_blocks_or
       if (trx_raw.size() > 0) sync_block.transactions.emplace_back(asBytes(trx_raw));
     }
   }
+
+  assert(sync_block.pbft_blk->getOrderHash() == calculateOrderHash(dag_blocks_order, non_executed_transactions));
 
   db_->savePeriodData(sync_block, batch);
 
