@@ -83,7 +83,7 @@ inline void VotePacketsHandler::processGetPbftNextVotePacket(const dev::RLP &pac
     std::vector<Vote> send_next_votes_bundle;
     for (auto const &v : next_votes_bundle) {
       if (!peer->isVoteKnown(v.getHash())) {
-        send_next_votes_bundle.emplace_back(v);
+        send_next_votes_bundle.push_back(std::move(v));
       }
     }
     sendPbftNextVotes(packet_data.from_node_id_, send_next_votes_bundle);
@@ -182,7 +182,7 @@ inline void VotePacketsHandler::processPbftNextVotesPacket(const dev::RLP &packe
       std::vector<Vote> send_next_votes_bundle;
       for (auto const &v : next_votes) {
         if (!peer_to_share_to.second->isVoteKnown(v.getHash())) {
-          send_next_votes_bundle.emplace_back(v);
+          send_next_votes_bundle.push_back(std::move(v));
         }
       }
       sendPbftNextVotes(peer_to_share_to.first, send_next_votes_bundle);
@@ -250,7 +250,7 @@ void VotePacketsHandler::broadcastPreviousRoundNextVotesBundle() {
       std::vector<Vote> send_next_votes_bundle;
       for (auto const &v : next_votes_bundle) {
         if (!peer.second->isVoteKnown(v.getHash())) {
-          send_next_votes_bundle.emplace_back(v);
+          send_next_votes_bundle.push_back(std::move(v));
         }
       }
       sendPbftNextVotes(peer.first, send_next_votes_bundle);

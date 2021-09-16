@@ -423,11 +423,7 @@ void DagManager::addDagBlock(DagBlock const &blk, bool finalized, bool save) {
     auto blk_hash = blk.getHash();
     auto pivot_hash = blk.getPivot();
 
-    std::vector<blk_hash_t> tips;
-    for (auto const &tip : blk.getTips()) {
-      tips.push_back(tip);
-    }
-
+    std::vector<blk_hash_t> tips = blk.getTips();
     level_t current_max_level = max_level_;
     max_level_ = std::max(current_max_level, blk.getLevel());
 
@@ -570,10 +566,7 @@ uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period,
       if (dag_order_set.count(blk) == 0) {
         auto dag_block = dag_blk_mgr_->getDagBlock(blk);
         auto pivot_hash = dag_block->getPivot();
-        std::vector<blk_hash_t> tips;
-        for (auto const &tip : dag_block->getTips()) {
-          tips.push_back(tip);
-        }
+        std::vector<blk_hash_t> tips = dag_block->getTips();
         addToDag(blk, pivot_hash, tips, dag_block->getLevel(), write_batch, false);
       }
     }

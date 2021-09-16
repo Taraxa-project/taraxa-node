@@ -1,5 +1,7 @@
 #pragma once
 
+#include <shared_mutex>
+
 #include "dag/dag_block.hpp"
 #include "transaction_manager/transaction.hpp"
 

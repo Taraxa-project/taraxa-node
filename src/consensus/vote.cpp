@@ -603,9 +603,7 @@ std::vector<Vote> NextVotesForPreviousRound::getNextVotes() {
 
   sharedLock_ lock(access_);
   for (auto const& blk_hash_nv : next_votes_) {
-    for (auto const& v : blk_hash_nv.second) {
-      next_votes_bundle.emplace_back(v);
-    }
+    std::copy(blk_hash_nv.second.begin(), blk_hash_nv.second.end(), std::back_inserter(next_votes_bundle));
   }
   assert(next_votes_bundle.size() == next_votes_size_);
 
