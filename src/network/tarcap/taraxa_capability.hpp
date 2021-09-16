@@ -74,7 +74,7 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   void onNewBlockVerified(std::shared_ptr<DagBlock> const &blk, bool proposed);
   void onNewTransactions(const std::vector<Transaction> &transactions);
   void onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_block);
-  void onNewPbftVote(const Vote &vote);
+  void onNewPbftVote(const std::shared_ptr<Vote> &vote);
   void broadcastPreviousRoundNextVotesBundle();
   void sendTransactions(dev::p2p::NodeID const &id, std::vector<taraxa::bytes> const &transactions);
   void handleMaliciousSyncPeer(dev::p2p::NodeID const &id);
@@ -92,7 +92,7 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
 
   // PBFT
   void sendPbftBlock(dev::p2p::NodeID const &id, PbftBlock const &pbft_block, uint64_t pbft_chain_size);
-  void sendPbftVote(dev::p2p::NodeID const &id, Vote const &vote);
+  void sendPbftVote(dev::p2p::NodeID const &id, std::shared_ptr<Vote> const &vote);
   // END METHODS USED IN TESTS ONLY
 
  private:

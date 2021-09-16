@@ -782,7 +782,7 @@ void NextVotesForPreviousRound::addNextVotes(std::vector<std::shared_ptr<Vote>> 
     }
 
     next_votes_set_.insert(vote_hash);
-    auto voted_block_hash = v.getBlockHash();
+    auto voted_block_hash = v->getBlockHash();
     next_votes_[voted_block_hash].emplace_back(v);
 
     next_votes_size_++;
@@ -989,7 +989,7 @@ void NextVotesForPreviousRound::updateWithSyncedVotes(std::vector<std::shared_pt
     if (own_votes_map.count(voted_value_and_votes.first)) {
       continue;
     }
-    
+
     if (voted_value_and_votes.second.size() >= pbft_2t_plus_1) {
       LOG(log_nf_) << "Don't have the voted value " << voted_value_and_votes.first << " for previous round. Add votes";
       for (auto const& v : voted_value_and_votes.second) {
