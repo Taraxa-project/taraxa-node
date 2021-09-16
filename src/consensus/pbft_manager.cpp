@@ -1825,8 +1825,10 @@ void PbftManager::countVotes_() {
     auto unverified_votes = vote_mgr_->getUnverifiedVotes();
     std::vector<Vote> votes;
     votes.reserve(verified_votes.size() + unverified_votes.size());
-    votes.insert(votes.end(), verified_votes.begin(), verified_votes.end());
-    votes.insert(votes.end(), unverified_votes.begin(), unverified_votes.end());
+    votes.insert(votes.end(), std::make_move_iterator(verified_votes.begin()),
+                 std::make_move_iterator(verified_votes.end()));
+    votes.insert(votes.end(), std::make_move_iterator(unverified_votes.begin()),
+                 std::make_move_iterator(unverified_votes.end()));
 
     size_t last_step_votes = 0;
     size_t current_step_votes = 0;

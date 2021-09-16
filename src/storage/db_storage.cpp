@@ -653,8 +653,10 @@ void DbStorage::removeVerifiedVoteToBatch(vote_hash_t const& vote_hash, Batch& w
 std::vector<Vote> DbStorage::getSoftVotes(uint64_t pbft_round) {
   std::vector<Vote> soft_votes;
   auto soft_votes_raw = asBytes(lookup(toSlice(pbft_round), Columns::soft_votes));
+  auto soft_votes_rlp = RLP(soft_votes_raw);
+  soft_votes.reserve(soft_votes_rlp.size());
 
-  for (auto const soft_vote : RLP(soft_votes_raw)) {
+  for (auto const soft_vote : soft_votes_rlp) {
     soft_votes.emplace_back(soft_vote);
   }
 
@@ -696,8 +698,10 @@ std::vector<Vote> DbStorage::getCertVotes(uint64_t period) {
 std::vector<Vote> DbStorage::getNextVotes(uint64_t pbft_round) {
   std::vector<Vote> next_votes;
   auto next_votes_raw = asBytes(lookup(toSlice(pbft_round), Columns::next_votes));
+  auto next_votes_rlp = RLP(next_votes_raw);
+  next_votes.reserve(next_votes_rlp.size());
 
-  for (auto const next_vote : RLP(next_votes_raw)) {
+  for (auto const next_vote : next_votes_rlp) {
     next_votes.emplace_back(next_vote);
   }
 

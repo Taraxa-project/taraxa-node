@@ -94,7 +94,6 @@ class Vote {
   explicit Vote(dev::RLP const& rlp);
   explicit Vote(bytes const& rlp);
   bool operator==(Vote const& other) const { return rlp() == other.rlp(); }
-  ~Vote() {}
 
   vote_hash_t getHash() const { return vote_hash_; }
   public_t getVoter() const {
