@@ -16,13 +16,13 @@ PacketData::PacketData(PriorityQueuePacketType type, std::string&& type_str, dev
  * @return PacketPriority <high/mid/low> based om packet_type
  */
 PacketData::PacketPriority PacketData::getPacketPriority(PriorityQueuePacketType packet_type) {
-  if (packet_type > PriorityQueuePacketType::PQ_HighPriorityPackets &&
-      packet_type < PriorityQueuePacketType::PQ_MidPriorityPackets) {
+  if (packet_type > PriorityQueuePacketType::kPqHighPriorityPackets &&
+      packet_type < PriorityQueuePacketType::kPqMidPriorityPackets) {
     return PacketPriority::High;
-  } else if (packet_type > PriorityQueuePacketType::PQ_MidPriorityPackets &&
-             packet_type < PriorityQueuePacketType::PQ_LowPriorityPackets) {
+  } else if (packet_type > PriorityQueuePacketType::kPqMidPriorityPackets &&
+             packet_type < PriorityQueuePacketType::kPqLowPriorityPackets) {
     return PacketPriority::Mid;
-  } else if (packet_type > PriorityQueuePacketType::PQ_LowPriorityPackets) {
+  } else if (packet_type > PriorityQueuePacketType::kPqLowPriorityPackets) {
     return PacketPriority::Low;
   }
 

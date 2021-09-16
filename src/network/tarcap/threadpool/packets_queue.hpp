@@ -31,7 +31,7 @@ class PacketsQueue {
   std::optional<PacketData> pop(const PacketsBlockingMask& packets_blocking_mask);
 
   /**
-   * @return false in case there is already MAX_WORKERS_COUNT workers processing packets from
+   * @return false in case there is already kMaxWorkersCount_ workers processing packets from
    *         this queue at the same time, otherwise true
    */
   bool maxWorkersCountReached() const;
@@ -67,7 +67,7 @@ class PacketsQueue {
   std::list<PacketData> packets_;
 
   // How many workers can process packets from this queue at the same time
-  size_t MAX_WORKERS_COUNT;
+  size_t kMaxWorkersCount_;
 
   // How many workers are currently processing packets from this queue at the same time
   std::atomic<size_t> act_workers_count_;

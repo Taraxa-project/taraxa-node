@@ -32,7 +32,7 @@ void PbftBlockPacketHandler::process(const dev::RLP &packet_rlp, const PacketDat
 
   // Also handle SyncedPacket here
   // TODO: create separate handler
-  if (packet_data.type_ == PriorityQueuePacketType::PQ_SyncedPacket) {
+  if (packet_data.type_ == PriorityQueuePacketType::kPqSyncedPacket) {
     LOG(log_dg_) << "Received synced message from " << packet_data.from_node_id_;
     peer->syncing_ = false;
     return;

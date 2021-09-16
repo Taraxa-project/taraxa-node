@@ -104,7 +104,7 @@ void TaraxaCapability::initPeriodicEvents(const NetworkConfig &conf, const std::
   const auto lambda_ms_min = pbft_mgr ? pbft_mgr->getPbftInitialLambda() : 2000;
 
   // Send new txs periodic event
-  const auto &tx_handler = packets_handlers_->getSpecificHandler(PriorityQueuePacketType::PQ_TransactionPacket);
+  const auto &tx_handler = packets_handlers_->getSpecificHandler(PriorityQueuePacketType::kPqTransactionPacket);
   auto tx_packet_handler = std::static_pointer_cast<TransactionPacketHandler>(tx_handler);
   if (trx_mgr /* just because of tests */ && conf.network_transaction_interval > 0) {
     periodic_events_tp_.post_loop({conf.network_transaction_interval},
@@ -114,7 +114,7 @@ void TaraxaCapability::initPeriodicEvents(const NetworkConfig &conf, const std::
   }
 
   // Send status periodic event
-  const auto &status_handler = packets_handlers_->getSpecificHandler(PriorityQueuePacketType::PQ_StatusPacket);
+  const auto &status_handler = packets_handlers_->getSpecificHandler(PriorityQueuePacketType::kPqStatusPacket);
   auto status_packet_handler = std::static_pointer_cast<StatusPacketHandler>(status_handler);
   const auto send_status_interval = 6 * lambda_ms_min;
   periodic_events_tp_.post_loop({send_status_interval}, [status_packet_handler = std::move(status_packet_handler)] {
@@ -182,53 +182,53 @@ void TaraxaCapability::registerPacketHandlers(
   // Consensus packets with high processing priority
   const auto votes_handler = std::make_shared<VotePacketsHandler>(peers_state_, packets_stats, pbft_mgr, vote_mgr,
                                                                   next_votes_mgr, db, node_addr);
-  packets_handlers_->registerHandler(PriorityQueuePacketType::PQ_PbftVotePacket, votes_handler);
-  packets_handlers_->registerHandler(PriorityQueuePacketType::PQ_GetPbftNextVotes, votes_handler);
-  packets_handlers_->registerHandler(PriorityQueuePacketType::PQ_PbftNextVotesPacket, votes_handler);
+  packets_handlers_->registerHandler(PriorityQueuePacketType::kPqPbftVotePacket, votes_handler);
+  packets_handlers_->registerHandler(PriorityQueuePacketType::kPqGetPbftNextVotes, votes_handler);
+  packets_handlers_->registerHandler(PriorityQueuePacketType::kPqPbftNextVotesPacket, votes_handler);
 
   // Standard packets with mid processing priority
   packets_handlers_->registerHandler(
-      PriorityQueuePacketType::PQ_NewPbftBlockPacket,
+      PriorityQueuePacketType::kPqNewPbftBlockPacket,
       std::make_shared<NewPbftBlockPacketHandler>(peers_state_, packets_stats, pbft_chain, pbft_mgr, node_addr));
 
   const auto dag_handler = std::make_shared<DagPacketsHandler>(
       peers_state_, packets_stats, syncing_state_, syncing_handler_, trx_mgr, dag_blk_mgr, db, test_state_,
       conf.network_min_dag_block_broadcast, conf.network_max_dag_block_broadcast, node_addr);
-  packets_handlers_->registerHandler(PriorityQueuePacketType::PQ_NewBlockPacket, dag_handler);
-  packets_handlers_->registerHandler(PriorityQueuePacketType::PQ_NewBlockHashPacket, dag_handler);
-  packets_handlers_->registerHandler(PriorityQueuePacketType::PQ_GetNewBlockPacket, dag_handler);
+  packets_handlers_->registerHandler(PriorityQueuePacketType::kPqNewBlockPacket, dag_handler);
+  packets_handlers_->registerHandler(PriorityQueuePacketType::kPqNewBlockHashPacket, dag_handler);
+  packets_handlers_->registerHandler(PriorityQueuePacketType::kPqGetNewBlockPacket, dag_handler);
 
   packets_handlers_->registerHandler(
-      PriorityQueuePacketType::PQ_TransactionPacket,
+      PriorityQueuePacketType::kPqTransactionPacket,
       std::make_shared<TransactionPacketHandler>(peers_state_, packets_stats, trx_mgr, dag_blk_mgr, test_state_,
                                                  conf.network_transaction_interval, node_addr));
 
   // Non critical packets with low processing priority
-  packets_handlers_->registerHandler(PriorityQueuePacketType::PQ_TestPacket,
+  packets_handlers_->registerHandler(PriorityQueuePacketType::kPqTestPacket,
                                      std::make_shared<TestPacketHandler>(peers_state_, packets_stats, node_addr));
   packets_handlers_->registerHandler(
-      PriorityQueuePacketType::PQ_StatusPacket,
+      PriorityQueuePacketType::kPqStatusPacket,
       std::make_shared<StatusPacketHandler>(peers_state_, packets_stats, syncing_state_, syncing_handler_, pbft_chain,
                                             dag_mgr, next_votes_mgr, pbft_mgr, conf.network_id, node_addr));
-  packets_handlers_->registerHandler(PriorityQueuePacketType::PQ_GetBlocksPacket,
+  packets_handlers_->registerHandler(PriorityQueuePacketType::kPqGetBlocksPacket,
                                      std::make_shared<GetBlocksPacketsHandler>(peers_state_, packets_stats, trx_mgr,
                                                                                dag_mgr, dag_blk_mgr, db, node_addr));
 
-  packets_handlers_->registerHandler(PriorityQueuePacketType::PQ_BlocksPacket,
+  packets_handlers_->registerHandler(PriorityQueuePacketType::kPqBlocksPacket,
                                      std::make_shared<BlocksPacketHandler>(peers_state_, packets_stats, syncing_state_,
                                                                            syncing_handler_, dag_blk_mgr, node_addr));
 
   // TODO there is additional logic, that should be moved outside process function
   packets_handlers_->registerHandler(
-      PriorityQueuePacketType::PQ_GetPbftBlockPacket,
+      PriorityQueuePacketType::kPqGetPbftBlockPacket,
       std::make_shared<GetPbftBlockPacketHandler>(peers_state_, packets_stats, syncing_state_, pbft_chain, db,
                                                   conf.network_sync_level_size, node_addr));
 
   const auto pbft_handler = std::make_shared<PbftBlockPacketHandler>(
       peers_state_, packets_stats, syncing_state_, syncing_handler_, pbft_chain, pbft_mgr, dag_blk_mgr,
       conf.network_sync_level_size, node_addr);
-  packets_handlers_->registerHandler(PriorityQueuePacketType::PQ_PbftBlockPacket, pbft_handler);
-  packets_handlers_->registerHandler(PriorityQueuePacketType::PQ_SyncedPacket, pbft_handler);
+  packets_handlers_->registerHandler(PriorityQueuePacketType::kPqPbftBlockPacket, pbft_handler);
+  packets_handlers_->registerHandler(PriorityQueuePacketType::kPqSyncedPacket, pbft_handler);
 
   thread_pool_.setPacketsHandlers(packets_handlers_);
 }
@@ -258,7 +258,7 @@ void TaraxaCapability::onConnect(weak_ptr<dev::p2p::Session> session, u256 const
   LOG(log_nf_) << "Node " << node_id << " connected";
 
   // TODO: check if this cast creates a copy of shared ptr ?
-  const auto &handler = packets_handlers_->getSpecificHandler(PriorityQueuePacketType::PQ_StatusPacket);
+  const auto &handler = packets_handlers_->getSpecificHandler(PriorityQueuePacketType::kPqStatusPacket);
   auto status_packet_handler = std::static_pointer_cast<StatusPacketHandler>(handler);
 
   status_packet_handler->sendStatus(node_id, true);
@@ -356,56 +356,56 @@ void TaraxaCapability::handleMaliciousSyncPeer(dev::p2p::NodeID const &id) {
 
 void TaraxaCapability::onNewBlockVerified(std::shared_ptr<DagBlock> const &blk, bool proposed) {
   std::static_pointer_cast<DagPacketsHandler>(
-      packets_handlers_->getSpecificHandler(PriorityQueuePacketType::PQ_NewBlockPacket))
+      packets_handlers_->getSpecificHandler(PriorityQueuePacketType::kPqNewBlockPacket))
       ->onNewBlockVerified(*blk, proposed);
 }
 
 void TaraxaCapability::onNewTransactions(const std::vector<Transaction> &transactions) {
   std::static_pointer_cast<TransactionPacketHandler>(
-      packets_handlers_->getSpecificHandler(PriorityQueuePacketType::PQ_TransactionPacket))
+      packets_handlers_->getSpecificHandler(PriorityQueuePacketType::kPqTransactionPacket))
       ->onNewTransactions(transactions, true);
 }
 
 void TaraxaCapability::onNewBlockReceived(const DagBlock &block, const std::vector<Transaction> &transactions) {
   std::static_pointer_cast<DagPacketsHandler>(
-      packets_handlers_->getSpecificHandler(PriorityQueuePacketType::PQ_NewBlockPacket))
+      packets_handlers_->getSpecificHandler(PriorityQueuePacketType::kPqNewBlockPacket))
       ->onNewBlockReceived(block, transactions);
 }
 
 void TaraxaCapability::onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_block) {
   std::static_pointer_cast<NewPbftBlockPacketHandler>(
-      packets_handlers_->getSpecificHandler(PriorityQueuePacketType::PQ_NewPbftBlockPacket))
+      packets_handlers_->getSpecificHandler(PriorityQueuePacketType::kPqNewPbftBlockPacket))
       ->onNewPbftBlock(*pbft_block);
 }
 
 void TaraxaCapability::onNewPbftVote(const Vote &vote) {
   std::static_pointer_cast<VotePacketsHandler>(
-      packets_handlers_->getSpecificHandler(PriorityQueuePacketType::PQ_PbftVotePacket))
+      packets_handlers_->getSpecificHandler(PriorityQueuePacketType::kPqPbftVotePacket))
       ->onNewPbftVote(vote);
 }
 
 void TaraxaCapability::broadcastPreviousRoundNextVotesBundle() {
   std::static_pointer_cast<VotePacketsHandler>(
-      packets_handlers_->getSpecificHandler(PriorityQueuePacketType::PQ_PbftVotePacket))
+      packets_handlers_->getSpecificHandler(PriorityQueuePacketType::kPqPbftVotePacket))
       ->broadcastPreviousRoundNextVotesBundle();
 }
 
 void TaraxaCapability::sendTransactions(dev::p2p::NodeID const &id, std::vector<taraxa::bytes> const &transactions) {
   std::static_pointer_cast<TransactionPacketHandler>(
-      packets_handlers_->getSpecificHandler(PriorityQueuePacketType::PQ_TransactionPacket))
+      packets_handlers_->getSpecificHandler(PriorityQueuePacketType::kPqTransactionPacket))
       ->sendTransactions(id, transactions);
 }
 
 // METHODS USED IN TESTS ONLY
 void TaraxaCapability::sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk) {
   std::static_pointer_cast<DagPacketsHandler>(
-      packets_handlers_->getSpecificHandler(PriorityQueuePacketType::PQ_NewBlockPacket))
+      packets_handlers_->getSpecificHandler(PriorityQueuePacketType::kPqNewBlockPacket))
       ->sendBlock(id, blk);
 }
 
 void TaraxaCapability::sendBlocks(dev::p2p::NodeID const &id, std::vector<std::shared_ptr<DagBlock>> blocks) {
   std::static_pointer_cast<GetBlocksPacketsHandler>(
-      packets_handlers_->getSpecificHandler(PriorityQueuePacketType::PQ_GetBlocksPacket))
+      packets_handlers_->getSpecificHandler(PriorityQueuePacketType::kPqGetBlocksPacket))
       ->sendBlocks(id, std::move(blocks));
 }
 
@@ -415,13 +415,13 @@ size_t TaraxaCapability::getReceivedTransactionsCount() const { return test_stat
 
 void TaraxaCapability::sendTestMessage(dev::p2p::NodeID const &id, int x, std::vector<char> const &data) {
   std::static_pointer_cast<TestPacketHandler>(
-      packets_handlers_->getSpecificHandler(PriorityQueuePacketType::PQ_TestPacket))
+      packets_handlers_->getSpecificHandler(PriorityQueuePacketType::kPqTestPacket))
       ->sendTestMessage(id, x, data);
 }
 
 std::pair<size_t, uint64_t> TaraxaCapability::retrieveTestData(const dev::p2p::NodeID &node_id) {
   return std::static_pointer_cast<TestPacketHandler>(
-             packets_handlers_->getSpecificHandler(PriorityQueuePacketType::PQ_TestPacket))
+             packets_handlers_->getSpecificHandler(PriorityQueuePacketType::kPqTestPacket))
       ->retrieveTestData(node_id);
 }
 
@@ -429,13 +429,13 @@ std::pair<size_t, uint64_t> TaraxaCapability::retrieveTestData(const dev::p2p::N
 void TaraxaCapability::sendPbftBlock(dev::p2p::NodeID const &id, PbftBlock const &pbft_block,
                                      uint64_t pbft_chain_size) {
   std::static_pointer_cast<NewPbftBlockPacketHandler>(
-      packets_handlers_->getSpecificHandler(PriorityQueuePacketType::PQ_NewPbftBlockPacket))
+      packets_handlers_->getSpecificHandler(PriorityQueuePacketType::kPqNewPbftBlockPacket))
       ->sendPbftBlock(id, pbft_block, pbft_chain_size);
 }
 
 void TaraxaCapability::sendPbftVote(dev::p2p::NodeID const &id, Vote const &vote) {
   std::static_pointer_cast<VotePacketsHandler>(
-      packets_handlers_->getSpecificHandler(PriorityQueuePacketType::PQ_PbftVotePacket))
+      packets_handlers_->getSpecificHandler(PriorityQueuePacketType::kPqPbftVotePacket))
       ->sendPbftVote(id, vote);
 }
 // END METHODS USED IN TESTS ONLY

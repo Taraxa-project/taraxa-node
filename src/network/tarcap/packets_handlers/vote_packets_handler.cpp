@@ -18,11 +18,11 @@ VotePacketsHandler::VotePacketsHandler(std::shared_ptr<PeersState> peers_state,
 
 void VotePacketsHandler::process(const dev::RLP &packet_rlp, const PacketData &packet_data,
                                  const std::shared_ptr<dev::p2p::Host> &host, const std::shared_ptr<TaraxaPeer> &peer) {
-  if (packet_data.type_ == PriorityQueuePacketType::PQ_PbftVotePacket) {
+  if (packet_data.type_ == PriorityQueuePacketType::kPqPbftVotePacket) {
     processPbftVotePacket(packet_rlp, packet_data, peer);
-  } else if (packet_data.type_ == PriorityQueuePacketType::PQ_GetPbftNextVotes) {
+  } else if (packet_data.type_ == PriorityQueuePacketType::kPqGetPbftNextVotes) {
     processGetPbftNextVotePacket(packet_rlp, packet_data, peer);
-  } else if (packet_data.type_ == PriorityQueuePacketType::PQ_PbftNextVotesPacket) {
+  } else if (packet_data.type_ == PriorityQueuePacketType::kPqPbftNextVotesPacket) {
     processPbftNextVotesPacket(packet_rlp, packet_data, host, peer);
   } else {
     assert(false);

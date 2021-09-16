@@ -25,7 +25,7 @@ void PacketHandler::processPacket(const PacketData& packet_data) {
     }
 
     auto tmp_peer = peers_state_->getPeer(packet_data.from_node_id_);
-    if (!tmp_peer && packet_data.type_ != PriorityQueuePacketType::PQ_StatusPacket) {
+    if (!tmp_peer && packet_data.type_ != PriorityQueuePacketType::kPqStatusPacket) {
       LOG(log_er_) << "Peer " << packet_data.from_node_id_.abridged()
                    << " not in peers map. He probably did not send initial status message - will be disconnected.";
       tmp_host->disconnect(packet_data.from_node_id_, dev::p2p::UserReason);

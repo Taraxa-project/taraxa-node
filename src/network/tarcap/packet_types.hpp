@@ -34,28 +34,28 @@ enum SubprotocolPacketType : uint32_t {
  */
 enum PriorityQueuePacketType : uint32_t {
   // Consensus packets with high processing priority
-  PQ_HighPriorityPackets = 0,
-  PQ_PbftVotePacket = 1,
-  PQ_GetPbftNextVotes = 1 << 1,
-  PQ_PbftNextVotesPacket = 1 << 2,
+  kPqHighPriorityPackets = 0,
+  kPqPbftVotePacket = 1,
+  kPqGetPbftNextVotes = 1 << 1,
+  kPqPbftNextVotesPacket = 1 << 2,
 
   // Standard packets with mid processing priority
-  PQ_MidPriorityPackets = 1 << 3,
-  PQ_NewPbftBlockPacket = 1 << 4,
-  PQ_NewBlockPacket = 1 << 5,
-  PQ_NewBlockHashPacket = 1 << 6,
-  PQ_GetNewBlockPacket = 1 << 7,
-  PQ_TransactionPacket = 1 << 8,
+  kPqMidPriorityPackets = 1 << 3,
+  kPqNewPbftBlockPacket = 1 << 4,
+  kPqNewBlockPacket = 1 << 5,
+  kPqNewBlockHashPacket = 1 << 6,
+  kPqGetNewBlockPacket = 1 << 7,
+  kPqTransactionPacket = 1 << 8,
 
   // Non critical packets with low processing priority
-  PQ_LowPriorityPackets = 1 << 9,
-  PQ_TestPacket = 1 << 10,
-  PQ_StatusPacket = 1 << 11,
-  PQ_GetBlocksPacket = 1 << 12,
-  PQ_BlocksPacket = 1 << 13,
-  PQ_GetPbftBlockPacket = 1 << 14,
-  PQ_PbftBlockPacket = 1 << 15,
-  PQ_SyncedPacket = 1 << 16,
+  kPqLowPriorityPackets = 1 << 9,
+  kPqTestPacket = 1 << 10,
+  kPqStatusPacket = 1 << 11,
+  kPqGetBlocksPacket = 1 << 12,
+  kPqBlocksPacket = 1 << 13,
+  kPqGetPbftBlockPacket = 1 << 14,
+  kPqPbftBlockPacket = 1 << 15,
+  kPqSyncedPacket = 1 << 16,
 };
 
 /**
@@ -65,35 +65,35 @@ enum PriorityQueuePacketType : uint32_t {
 inline PriorityQueuePacketType mapSubProtocolToPriorityPacketType(SubprotocolPacketType packet_type) {
   switch (packet_type) {
     case SubprotocolPacketType::StatusPacket:
-      return PriorityQueuePacketType::PQ_StatusPacket;
+      return PriorityQueuePacketType::kPqStatusPacket;
     case SubprotocolPacketType::NewBlockPacket:
-      return PriorityQueuePacketType::PQ_NewBlockPacket;
+      return PriorityQueuePacketType::kPqNewBlockPacket;
     case SubprotocolPacketType::NewBlockHashPacket:
-      return PriorityQueuePacketType::PQ_NewBlockHashPacket;
+      return PriorityQueuePacketType::kPqNewBlockHashPacket;
     case SubprotocolPacketType::GetNewBlockPacket:
-      return PriorityQueuePacketType::PQ_GetNewBlockPacket;
+      return PriorityQueuePacketType::kPqGetNewBlockPacket;
     case SubprotocolPacketType::GetBlocksPacket:
-      return PriorityQueuePacketType::PQ_GetBlocksPacket;
+      return PriorityQueuePacketType::kPqGetBlocksPacket;
     case SubprotocolPacketType::BlocksPacket:
-      return PriorityQueuePacketType::PQ_BlocksPacket;
+      return PriorityQueuePacketType::kPqBlocksPacket;
     case SubprotocolPacketType::TransactionPacket:
-      return PriorityQueuePacketType::PQ_TransactionPacket;
+      return PriorityQueuePacketType::kPqTransactionPacket;
     case SubprotocolPacketType::TestPacket:
-      return PriorityQueuePacketType::PQ_TestPacket;
+      return PriorityQueuePacketType::kPqTestPacket;
     case SubprotocolPacketType::PbftVotePacket:
-      return PriorityQueuePacketType::PQ_PbftVotePacket;
+      return PriorityQueuePacketType::kPqPbftVotePacket;
     case SubprotocolPacketType::GetPbftNextVotes:
-      return PriorityQueuePacketType::PQ_GetPbftNextVotes;
+      return PriorityQueuePacketType::kPqGetPbftNextVotes;
     case SubprotocolPacketType::PbftNextVotesPacket:
-      return PriorityQueuePacketType::PQ_PbftNextVotesPacket;
+      return PriorityQueuePacketType::kPqPbftNextVotesPacket;
     case SubprotocolPacketType::NewPbftBlockPacket:
-      return PriorityQueuePacketType::PQ_NewPbftBlockPacket;
+      return PriorityQueuePacketType::kPqNewPbftBlockPacket;
     case SubprotocolPacketType::GetPbftBlockPacket:
-      return PriorityQueuePacketType::PQ_GetPbftBlockPacket;
+      return PriorityQueuePacketType::kPqGetPbftBlockPacket;
     case SubprotocolPacketType::PbftBlockPacket:
-      return PriorityQueuePacketType::PQ_PbftBlockPacket;
+      return PriorityQueuePacketType::kPqPbftBlockPacket;
     case SubprotocolPacketType::SyncedPacket:
-      return PriorityQueuePacketType::PQ_SyncedPacket;
+      return PriorityQueuePacketType::kPqSyncedPacket;
     default:
       break;
   }

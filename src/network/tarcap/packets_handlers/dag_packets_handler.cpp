@@ -32,11 +32,11 @@ thread_local mt19937_64 DagPacketsHandler::urng_{std::mt19937_64(std::random_dev
 void DagPacketsHandler::process(const dev::RLP &packet_rlp, const PacketData &packet_data,
                                 [[maybe_unused]] const std::shared_ptr<dev::p2p::Host> &host,
                                 const std::shared_ptr<TaraxaPeer> &peer) {
-  if (packet_data.type_ == PriorityQueuePacketType::PQ_NewBlockPacket) {
+  if (packet_data.type_ == PriorityQueuePacketType::kPqNewBlockPacket) {
     processNewBlockPacket(packet_rlp, packet_data, peer);
-  } else if (packet_data.type_ == PriorityQueuePacketType::PQ_NewBlockHashPacket) {
+  } else if (packet_data.type_ == PriorityQueuePacketType::kPqNewBlockHashPacket) {
     processNewBlockHashPacket(packet_rlp, packet_data, peer);
-  } else if (packet_data.type_ == PriorityQueuePacketType::PQ_GetNewBlockPacket) {
+  } else if (packet_data.type_ == PriorityQueuePacketType::kPqGetNewBlockPacket) {
     processGetNewBlockPacket(packet_rlp, packet_data, peer);
   } else {
     assert(false);

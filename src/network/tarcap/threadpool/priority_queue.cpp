@@ -114,18 +114,18 @@ void PriorityQueue::updateDependenciesStart(const PacketData& packet) {
   //  _GetBlocksPacket -> serve syncing data to only 1 node at the time
   //  _BlocksPacket -> process sync dag blocks synchronously
   //  _PbftBlockPacket -> process sync pbft blocks synchronously
-  if (packet.type_ == PriorityQueuePacketType::PQ_GetBlocksPacket ||
-      packet.type_ == PriorityQueuePacketType::PQ_BlocksPacket ||
-      packet.type_ == PriorityQueuePacketType::PQ_PbftBlockPacket) {
+  if (packet.type_ == PriorityQueuePacketType::kPqGetBlocksPacket ||
+      packet.type_ == PriorityQueuePacketType::kPqBlocksPacket ||
+      packet.type_ == PriorityQueuePacketType::kPqPbftBlockPacket) {
     blocked_packets_mask_.markPacketAsHardBlocked(packet.type_);
   }
 
   // When processing TransactionPacket, processing of all dag block packets that were received after that (from the same
   // peer). No need to block processing of dag blocks packets received before as it should not be possible to send dag
   // block before sending txs it contains...
-  if (packet.type_ == PriorityQueuePacketType::PQ_TransactionPacket) {
-    blocked_packets_mask_.markPacketAsPeerTimeBlocked(packet, PriorityQueuePacketType::PQ_NewBlockPacket);
-    blocked_packets_mask_.markPacketAsPeerTimeBlocked(packet, PriorityQueuePacketType::PQ_NewBlockHashPacket);
+  if (packet.type_ == PriorityQueuePacketType::kPqTransactionPacket) {
+    blocked_packets_mask_.markPacketAsPeerTimeBlocked(packet, PriorityQueuePacketType::kPqNewBlockPacket);
+    blocked_packets_mask_.markPacketAsPeerTimeBlocked(packet, PriorityQueuePacketType::kPqNewBlockHashPacket);
   }
 }
 
@@ -134,18 +134,18 @@ void PriorityQueue::updateDependenciesFinish(const PacketData& packet, std::mute
 
   // Process all dependencies here - it is called when packet processing is finished
 
-  if (packet.type_ == PriorityQueuePacketType::PQ_GetBlocksPacket ||
-      packet.type_ == PriorityQueuePacketType::PQ_BlocksPacket ||
-      packet.type_ == PriorityQueuePacketType::PQ_PbftBlockPacket) {
+  if (packet.type_ == PriorityQueuePacketType::kPqGetBlocksPacket ||
+      packet.type_ == PriorityQueuePacketType::kPqBlocksPacket ||
+      packet.type_ == PriorityQueuePacketType::kPqPbftBlockPacket) {
     blocked_packets_mask_.markPacketAsHardUnblocked(packet.type_);
   }
 
-  if (packet.type_ == PriorityQueuePacketType::PQ_TransactionPacket) {
+  if (packet.type_ == PriorityQueuePacketType::kPqTransactionPacket) {
     // Lock queue mutex as it writes to the non-atomic blocked_packets_mask_ data
     std::unique_lock<std::mutex> lock(queue_mutex);
 
-    blocked_packets_mask_.markPacketAsPeerTimeUnblocked(packet, PriorityQueuePacketType::PQ_NewBlockPacket);
-    blocked_packets_mask_.markPacketAsPeerTimeUnblocked(packet, PriorityQueuePacketType::PQ_NewBlockHashPacket);
+    blocked_packets_mask_.markPacketAsPeerTimeUnblocked(packet, PriorityQueuePacketType::kPqNewBlockPacket);
+    blocked_packets_mask_.markPacketAsPeerTimeUnblocked(packet, PriorityQueuePacketType::kPqNewBlockHashPacket);
   }
 
   act_total_workers_count_--;
