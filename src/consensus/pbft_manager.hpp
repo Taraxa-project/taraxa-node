@@ -1,6 +1,7 @@
 #pragma once
 
 #include <atomic>
+#include <queue>
 #include <string>
 #include <thread>
 
@@ -8,7 +9,6 @@
 #include "config/config.hpp"
 #include "logger/log.hpp"
 #include "network/network.hpp"
-#include "network/taraxa_capability.hpp"
 #include "pbft_chain.hpp"
 #include "vote.hpp"
 #include "vrf_wrapper.hpp"
@@ -78,7 +78,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   uint64_t pbftSyncingPeriod() const;
   void clearSyncBlockQueue();
   size_t syncBlockQueueSize() const;
-  void syncBlockQueuePush(SyncBlock const &block, NodeID const &node_id);
+  void syncBlockQueuePush(SyncBlock const &block, dev::p2p::NodeID const &node_id);
 
   // Notice: Test purpose
   // TODO: Add a check for some kind of guards to ensure these are only called from within a test

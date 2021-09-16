@@ -21,7 +21,7 @@
  */
 namespace taraxa {
 
-struct DbStorage;
+class DbStorage;
 class FullNode;
 class Vote;
 class DagBlock;
@@ -86,7 +86,7 @@ class PbftChain {
   bool findPbftBlockInSyncedSet(blk_hash_t const& pbft_block_hash) const;
 
   void cleanupUnverifiedPbftBlocks(taraxa::PbftBlock const& pbft_block);
-  void pushUnverifiedPbftBlock(std::shared_ptr<PbftBlock> const& pbft_block);
+  bool pushUnverifiedPbftBlock(std::shared_ptr<PbftBlock> const& pbft_block);
 
   void updatePbftChain(blk_hash_t const& pbft_block_hash);
 

@@ -11,10 +11,10 @@
 
 #include "common/types.hpp"
 #include "consensus/pbft_chain.hpp"
+#include "consensus/sync_block.hpp"
 #include "dag/dag_block.hpp"
 #include "dag/proposal_period_levels_map.hpp"
 #include "logger/log.hpp"
-#include "network/sync_block.hpp"
 #include "transaction_manager/transaction.hpp"
 #include "transaction_manager/transaction_status.hpp"
 
@@ -56,10 +56,11 @@ class DbException : public exception {
   string desc_;
 };
 
-struct DbStorage;
+class DbStorage;
 using DB = DbStorage;
 
-struct DbStorage : std::enable_shared_from_this<DbStorage> {
+class DbStorage : public std::enable_shared_from_this<DbStorage> {
+ public:
   using Slice = rocksdb::Slice;
   using Batch = rocksdb::WriteBatch;
   using OnEntry = function<bool(Slice const&, Slice const&)>;

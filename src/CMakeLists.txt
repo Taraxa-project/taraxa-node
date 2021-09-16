@@ -30,17 +30,40 @@ set(SOURCES
         final_chain/final_chain.hpp
         logger/log.hpp
         logger/logger_config.hpp
-        network/peers_state.hpp
-        network/taraxa_capability.hpp
-        network/taraxa_peer.hpp
-        network/syncing_state.hpp
-        network/sync_block.hpp
+        consensus/sync_block.hpp
         network/rpc/rpc_error_handler.hpp
         network/rpc/eth/watches.hpp
         network/rpc/eth/LogFilter.hpp
         network/rpc/eth/data.hpp
         network/network.hpp
-        network/packets_stats.hpp
+        network/tarcap/taraxa_capability.hpp
+        network/tarcap/stats/node_stats.hpp
+        network/tarcap/threadpool/tarcap_thread_pool.hpp
+        network/tarcap/threadpool/priority_queue.hpp
+        network/tarcap/threadpool/packets_queue.hpp
+        network/tarcap/threadpool/packet_data.hpp
+        network/tarcap/threadpool/packets_blocking_mask.hpp
+        network/tarcap/packet_types.hpp
+        network/tarcap/shared_states/syncing_state.hpp
+        network/tarcap/shared_states/test_state.hpp
+        network/tarcap/shared_states/peers_state.hpp
+        network/tarcap/packets_handler.hpp
+        network/tarcap/taraxa_peer.hpp
+        network/tarcap/packets_handlers/blocks_packet_handler.hpp
+        network/tarcap/packets_handlers/dag_packets_handler.hpp
+        network/tarcap/packets_handlers/get_blocks_packet_handler.hpp
+        network/tarcap/packets_handlers/get_pbft_block_packet_handler.hpp
+        network/tarcap/packets_handlers/new_pbft_block_packet_handler.hpp
+        network/tarcap/packets_handlers/common/packet_handler.hpp
+        network/tarcap/packets_handlers/pbft_block_packet_handler.hpp
+        network/tarcap/packets_handlers/status_packet_handler.hpp
+        network/tarcap/packets_handlers/test_packet_handler.hpp
+        network/tarcap/packets_handlers/transaction_packet_handler.hpp
+        network/tarcap/packets_handlers/vote_packets_handler.hpp
+        network/tarcap/packets_handlers/common/syncing_handler.hpp
+        network/tarcap/packets_handlers/common/get_blocks_request_type.hpp
+        network/tarcap/stats/packets_stats.hpp
+        network/tarcap/stats/packets_avg_stats.hpp
         node/full_node.hpp
         storage/db_storage.hpp
         transaction_manager/transaction_order_manager.hpp
@@ -72,6 +95,7 @@ set(SOURCES
         network/rpc/TaraxaClient.h
         network/rpc/NetFace.h
         network/rpc/TestFace.h
+
         # sources
         cli/config.cpp
         cli/tools.cpp
@@ -107,11 +131,32 @@ set(SOURCES
         network/rpc/eth/LogFilter.cpp
         network/rpc/eth/Eth.cpp
         network/network.cpp
-        network/packets_stats.cpp
-        network/peers_state.cpp
-        network/taraxa_capability.cpp
-        network/syncing_state.cpp
-        network/sync_block.cpp
+        consensus/sync_block.cpp
+        network/tarcap/taraxa_capability.cpp
+        network/tarcap/stats/node_stats.cpp
+        network/tarcap/threadpool/tarcap_thread_pool.cpp
+        network/tarcap/threadpool/priority_queue.cpp
+        network/tarcap/threadpool/packets_queue.cpp
+        network/tarcap/threadpool/packet_data.cpp
+        network/tarcap/threadpool/packets_blocking_mask.cpp
+        network/tarcap/shared_states/test_state.cpp
+        network/tarcap/shared_states/peers_state.cpp
+        network/tarcap/packets_handler.cpp
+        network/tarcap/shared_states/syncing_state.cpp
+        network/tarcap/packets_handlers/blocks_packet_handler.cpp
+        network/tarcap/packets_handlers/dag_packets_handler.cpp
+        network/tarcap/packets_handlers/get_blocks_packet_handler.cpp
+        network/tarcap/packets_handlers/get_pbft_block_packet_handler.cpp
+        network/tarcap/packets_handlers/new_pbft_block_packet_handler.cpp
+        network/tarcap/packets_handlers/common/packet_handler.cpp
+        network/tarcap/packets_handlers/pbft_block_packet_handler.cpp
+        network/tarcap/packets_handlers/status_packet_handler.cpp
+        network/tarcap/packets_handlers/test_packet_handler.cpp
+        network/tarcap/packets_handlers/transaction_packet_handler.cpp
+        network/tarcap/packets_handlers/vote_packets_handler.cpp
+        network/tarcap/packets_handlers/common/syncing_handler.cpp
+        network/tarcap/stats/packets_avg_stats.cpp
+        network/tarcap/stats/packets_stats.cpp
         node/full_node.cpp
         storage/db_storage.cpp
         transaction_manager/transaction.cpp
@@ -120,8 +165,7 @@ set(SOURCES
         transaction_manager/transaction_manager.cpp
         util/jsoncpp.cpp
         util/util.cpp
-        util/thread_pool.cpp
-        )
+        util/thread_pool.cpp)
 
 add_subdirectory(network/rpc)
 

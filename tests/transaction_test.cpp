@@ -116,8 +116,8 @@ TEST_F(TransactionTest, sig) {
 }
 
 TEST_F(TransactionTest, verifiers) {
-  TransactionManager trx_mgr(std::make_shared<DbStorage>(data_dir), addr_t());
-  trx_mgr.setVerifyMode(TransactionManager::VerifyMode::skip_verify_sig);
+  TransactionManager trx_mgr(FullNodeConfig(), addr_t(), std::make_shared<DbStorage>(data_dir),
+                             TransactionManager::VerifyMode::skip_verify_sig);
   trx_mgr.start();
 
   // insert trx
@@ -138,8 +138,8 @@ TEST_F(TransactionTest, verifiers) {
 }
 
 TEST_F(TransactionTest, transaction_limit) {
-  TransactionManager trx_mgr(std::make_shared<DbStorage>(data_dir), addr_t());
-  trx_mgr.setVerifyMode(TransactionManager::VerifyMode::skip_verify_sig);
+  TransactionManager trx_mgr(FullNodeConfig(), addr_t(), std::make_shared<DbStorage>(data_dir),
+                             TransactionManager::VerifyMode::skip_verify_sig);
   trx_mgr.start();
 
   // insert trx
@@ -165,7 +165,7 @@ TEST_F(TransactionTest, transaction_limit) {
 }
 
 TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
-  TransactionManager trx_mgr(std::make_shared<DbStorage>(data_dir), addr_t());
+  TransactionManager trx_mgr(FullNodeConfig(), addr_t(), std::make_shared<DbStorage>(data_dir));
   trx_mgr.start();
 
   std::thread insertTrx([&trx_mgr]() {

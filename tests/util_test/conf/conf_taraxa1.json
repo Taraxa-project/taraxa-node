@@ -11,6 +11,7 @@
   "network_ideal_peer_count": 10,
   "network_max_peer_count": 50,
   "network_sync_level_size": 1,
+  "network_packets_processing_threads": 5,
   "network_boot_nodes": [
     {
       "ip": "127.0.0.1",
@@ -22,7 +23,7 @@
   "rpc": {
     "http_port": 7777,
     "ws_port": 8777,
-    "threads_num": 10
+    "threads_num": 2
   },
   "test_params": {
     "max_transaction_queue_warn": 0,

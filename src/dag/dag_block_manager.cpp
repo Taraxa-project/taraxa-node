@@ -63,6 +63,10 @@ bool DagBlockManager::isBlockKnown(blk_hash_t const &hash) {
   return true;
 }
 
+bool DagBlockManager::markBlockAsSeen(const DagBlock &dag_block) {
+  return seen_blocks_.insert(dag_block.getHash(), dag_block);
+}
+
 std::shared_ptr<DagBlock> DagBlockManager::getDagBlock(blk_hash_t const &hash) const {
   auto blk = seen_blocks_.get(hash);
   if (blk.second) {
@@ -104,17 +108,27 @@ level_t DagBlockManager::getMaxDagLevelInQueue() const {
 }
 
 void DagBlockManager::insertBlock(DagBlock const &blk) {
-  if (isBlockKnown(blk.getHash())) {
-    LOG(log_nf_) << "Block known " << blk.getHash();
-    return;
-  }
   pushUnverifiedBlock(std::move(blk), true /*critical*/);
   LOG(log_time_) << "Store cblock " << blk.getHash() << " at: " << getCurrentTimeMilliSeconds()
                  << " ,trxs: " << blk.getTrxs().size() << " , tips: " << blk.getTips().size();
 }
 
-void DagBlockManager::pushUnverifiedBlock(DagBlock const &blk, std::vector<Transaction> const &transactions,
-                                          bool critical) {
+void DagBlockManager::pushUnverifiedBlock(DagBlock const &blk, bool critical,
+                                          std::vector<Transaction> const &transactions) {
+  // Block is already known -> it is either in cache or in dag structure
+  if (isBlockKnown(blk.getHash())) {
+    LOG(log_dg_) << "Trying to push new unverified block " << blk.getHash().abridged()
+                 << " that is already known, skip it";
+    return;
+  }
+
+  // Mark block as seen - synchronization point in case multiple threads are processing the same block at the same time
+  if (!markBlockAsSeen(blk)) {
+    LOG(log_dg_) << "Trying to push new unverified block " << blk.getHash().abridged()
+                 << " that is already marked as known, skip it";
+    return;
+  }
+
   if (queue_limit_ > 0) {
     auto queue_size = getDagBlockQueueSize();
     if (queue_limit_ > queue_size.first + queue_size.second) {
@@ -122,7 +136,7 @@ void DagBlockManager::pushUnverifiedBlock(DagBlock const &blk, std::vector<Trans
                    << "; Verified queue: " << queue_size.second << "; Limit: " << queue_limit_;
     }
   }
-  seen_blocks_.update(blk.getHash(), blk);
+
   {
     uLock lock(shared_mutex_for_unverified_qu_);
     if (critical) {
@@ -140,6 +154,9 @@ void DagBlockManager::pushUnverifiedBlock(DagBlock const &blk, std::vector<Trans
 }
 
 void DagBlockManager::processSyncedBlock(DbStorage::Batch &batch, SyncBlock const &sync_block) {
+  // TODO: check synchronization due to concurrent processing of packets,
+  // TODO: shouldn't be dag blocks marked as known trhough markBlockAsSeen here ?
+
   trx_mgr_->addTrxCount(sync_block.transactions.size());
   db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_mgr_->getTransactionCount(), batch);
   vector<trx_hash_t> transactions;
@@ -154,17 +171,9 @@ void DagBlockManager::processSyncedBlock(DbStorage::Batch &batch, SyncBlock cons
 
 void DagBlockManager::insertBroadcastedBlockWithTransactions(DagBlock const &blk,
                                                              std::vector<Transaction> const &transactions) {
-  if (isBlockKnown(blk.getHash())) {
-    LOG(log_dg_) << "Block known " << blk.getHash();
-    return;
-  }
-  pushUnverifiedBlock(blk, transactions, false /*critical*/);
-  LOG(log_time_) << "Store ncblock " << blk.getHash() << " at: " << getCurrentTimeMilliSeconds()
-                 << " ,trxs: " << blk.getTrxs().size() << " , tips: " << blk.getTips().size();
-}
-
-void DagBlockManager::pushUnverifiedBlock(DagBlock const &blk, bool critical) {
-  pushUnverifiedBlock(blk, std::vector<Transaction>(), critical);
+  pushUnverifiedBlock(blk, false /*critical*/, transactions);
+  LOG(log_time_) << "Store block " << blk.getHash() << " ,txs count: " << blk.getTrxs().size()
+                 << " , tips count: " << blk.getTips().size();
 }
 
 std::pair<size_t, size_t> DagBlockManager::getDagBlockQueueSize() const {

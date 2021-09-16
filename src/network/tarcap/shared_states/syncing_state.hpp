@@ -1,25 +1,28 @@
 #pragma once
 
-#include <libp2p/Common.h>
-
 #include <atomic>
-#include <optional>
-#include <shared_mutex>
 
+#include "libp2p/Common.h"
 #include "util/util.hpp"
 
-namespace taraxa {
+namespace taraxa::network::tarcap {
 
+class PeersState;
+
+/**
+ * @brief SyncingState contains common members and functions related to syncing that are shared among multiple classes
+ */
 class SyncingState {
  public:
-  SyncingState() : malicious_peers_(300, 50) {}
+  SyncingState(std::shared_ptr<PeersState> peers_state);
+
   /**
    * @brief Set pbft syncing
    *
    * @param syncing
    * @param peer_id used in case syncing flag == true to set which peer is the node syncing with
    */
-  void set_pbft_syncing(bool syncing, const std::optional<dev::p2p::NodeID>& peer_id = {});
+  void set_pbft_syncing(bool syncing, const std::optional<dev::p2p::NodeID> &peer_id = {});
 
   /**
    * @brief Set dag syncing
@@ -27,7 +30,7 @@ class SyncingState {
    * @param syncing
    * @param peer_id used in case syncing flag == true to set which peer is the node syncing with
    */
-  void set_dag_syncing(bool syncing, const std::optional<dev::p2p::NodeID>& peer_id = {});
+  void set_dag_syncing(bool syncing, const std::optional<dev::p2p::NodeID> &peer_id = {});
 
   /**
    * @brief Set current time as last received sync packet  time
@@ -45,19 +48,21 @@ class SyncingState {
   bool is_pbft_syncing() const;
   bool is_dag_syncing() const;
 
-  dev::p2p::NodeID syncing_peer() const;
+  const dev::p2p::NodeID &syncing_peer() const;
 
   /**
    * @brief Marks peer as malicious, in case none is provided, peer_id_ (node that we currently syncing with) is marked
    * @param peer_id
    */
-  void set_peer_malicious(const std::optional<dev::p2p::NodeID>& peer_id = {});
-  bool is_peer_malicious(const dev::p2p::NodeID& peer_id) const;
+  void set_peer_malicious(const std::optional<dev::p2p::NodeID> &peer_id = {});
+  bool is_peer_malicious(const dev::p2p::NodeID &peer_id) const;
 
  private:
-  void set_peer(const dev::p2p::NodeID& peer_id);
+  void set_peer(const dev::p2p::NodeID &peer_id);
 
  private:
+  std::shared_ptr<PeersState> peers_state_{nullptr};
+
   std::atomic<bool> pbft_syncing_{false};
   std::atomic<bool> dag_syncing_{false};
 
@@ -75,4 +80,4 @@ class SyncingState {
   mutable std::shared_mutex peer_mutex_;
 };
 
-}  // namespace taraxa
+}  // namespace taraxa::network::tarcap

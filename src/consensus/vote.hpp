@@ -155,7 +155,7 @@ class VoteManager {
   void setNetwork(std::weak_ptr<Network> network);
 
   // Unverified votes
-  void addUnverifiedVote(Vote const& vote);
+  bool addUnverifiedVote(Vote const& vote);
   void addUnverifiedVotes(std::vector<Vote> const& votes);
   void removeUnverifiedVote(uint64_t const& pbft_round, vote_hash_t const& vote_hash);
   bool voteInUnverifiedMap(uint64_t const& pbft_round, vote_hash_t const& vote_hash);

@@ -53,19 +53,17 @@ TEST_F(NetworkTest, transfer_block) {
                {g_signed_trx_samples[0].getHash(), g_signed_trx_samples[1].getHash()}, sig_t(7777), blk_hash_t(888),
                addr_t(999));
 
-  std::vector<taraxa::bytes> transactions;
-  transactions.emplace_back(*g_signed_trx_samples[0].rlp());
-  transactions.emplace_back(*g_signed_trx_samples[1].rlp());
+  std::vector<Transaction> transactions{g_signed_trx_samples[0], g_signed_trx_samples[1]};
   nw2->onNewTransactions(transactions);
 
-  taraxa::thisThreadSleepForSeconds(1);
+  EXPECT_HAPPENS({10s, 200ms}, [&](auto& ctx) {
+    nw1->setPendingPeersToReady();
+    nw2->setPendingPeersToReady();
+    WAIT_EXPECT_EQ(ctx, nw1->getPeerCount(), 1)
+    WAIT_EXPECT_EQ(ctx, nw2->getPeerCount(), 1)
+  });
 
-  nw1->setPendingPeersToReady();
-  nw2->setPendingPeersToReady();
-
-  for (auto i = 0; i < 1; ++i) {
-    nw2->sendBlock(nw1->getNodeId(), blk);
-  }
+  nw2->sendBlock(nw1->getNodeId(), blk);
 
   std::cout << "Waiting packages for 10 seconds ..." << std::endl;
 
@@ -89,12 +87,10 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
 
   std::vector<std::shared_ptr<DagBlock>> dag_blocks;
   std::vector<trx_hash_t> trx_hashes;
-  std::vector<taraxa::bytes> trx_bytes;
 
   // creating a lot of trxs
   auto trxs = samples::createSignedTrxSamples(0, 1500, g_secret);
   for (const auto& trx : trxs) {
-    trx_bytes.emplace_back(*trx.rlp());
     trx_hashes.push_back(trx.getHash());
   }
 
@@ -116,7 +112,7 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
   auto block_hash = blk.getHash();
   dag_blocks.emplace_back(std::make_shared<DagBlock>(blk));
 
-  nodes[0]->getNetwork()->onNewTransactions(std::move(trx_bytes));
+  nodes[0]->getNetwork()->onNewTransactions(trxs);
   taraxa::thisThreadSleepForSeconds(1);
   nodes[0]->getNetwork()->sendBlocks(nodes[1]->getNetwork()->getNodeId(), std::move(dag_blocks));
 
@@ -1065,12 +1061,7 @@ TEST_F(NetworkTest, node_transaction_sync) {
   auto& node1 = nodes[0];
   auto& node2 = nodes[1];
 
-  std::vector<taraxa::bytes> transactions;
-  for (auto const& t : *g_signed_trx_samples) {
-    transactions.emplace_back(*t.rlp());
-  }
-
-  node1->getTransactionManager()->insertBroadcastedTransactions(transactions);
+  node1->getTransactionManager()->insertBroadcastedTransactions(*g_signed_trx_samples);
 
   std::cout << "Waiting Sync for 2000 milliseconds ..." << std::endl;
   taraxa::thisThreadSleepForMilliSeconds(2000);
@@ -1104,9 +1095,8 @@ TEST_F(NetworkTest, node_full_sync) {
     ts.push_back(samples::TX_GEN->getWithRandomUniqueSender());
   }
   for (auto i = 0; i < 50; ++i) {
-    std::vector<taraxa::bytes> transactions;
-    transactions.emplace_back(*ts[i].rlp());
-    nodes[distNodes(rng)]->getTransactionManager()->insertBroadcastedTransactions(transactions);
+    // TODO: Is this intentional or not that we send only 1 tx at a time ?
+    nodes[distNodes(rng)]->getTransactionManager()->insertBroadcastedTransactions({ts[i]});
     thisThreadSleepForMilliSeconds(distTransactions(rng));
     counter++;
   }

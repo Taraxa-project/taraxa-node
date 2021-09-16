@@ -17,14 +17,26 @@ class TransactionQueue {
 
   void start();
   void stop();
-  void insert(Transaction const &trx, bool verify);
 
   /**
-   * @brief Insert batch of unverified transactions at once
+   * @brief Inserts transaction into tx queue and database
+   *
+   * @param trx
+   * @param queue_verified flag if tx should be inserted into the verified or unverified queue
+   * @param tx_verified flag if tx was actually verified (verification is skipped in tests. TODO: bad architecture)
+   * @return true if trx was inserted, otherwise false(might be already added by different thread)
+   */
+  bool insert(Transaction const &trx, bool queue_verified, bool tx_verified, const std::shared_ptr<DbStorage> &db);
+
+  /**
+   * @brief Inserts batch of unverified transactions into the queue and database at once
+   * @note Some of the provided txs might not be inserted as they were already inserted by different thread
+   *
    * @param trxs
    * @param verify
+   * @param db
    */
-  void insertUnverifiedTrxs(const vector<Transaction> &trxs);
+  void insertUnverifiedTrxs(const vector<Transaction> &trxs, const std::shared_ptr<DbStorage> &db);
 
   Transaction top();
   void pop();

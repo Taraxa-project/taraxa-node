@@ -232,25 +232,34 @@ void PbftChain::cleanupUnverifiedPbftBlocks(taraxa::PbftBlock const& pbft_block)
   unverified_blocks_map_.erase(prev_block_hash);
 }
 
-void PbftChain::pushUnverifiedPbftBlock(std::shared_ptr<PbftBlock> const& pbft_block) {
+bool PbftChain::pushUnverifiedPbftBlock(std::shared_ptr<PbftBlock> const& pbft_block) {
   blk_hash_t block_hash = pbft_block->getBlockHash();
   blk_hash_t prev_block_hash = pbft_block->getPrevBlockHash();
   if (prev_block_hash != getLastPbftBlockHash()) {
     if (findPbftBlockInChain(block_hash)) {
       // The block comes from slow node, drop
-      return;
+      return false;
     } else {
       // TODO: The block comes from fast node that should insert.
       //  Or comes from malicious node, need check
     }
   }
-  // Store in unverified_blocks_map_ for cleaning later
-  insertUnverifiedPbftBlockIntoParentMap_(prev_block_hash, block_hash);
-  // Store in unverified_blocks_ table
-  uniqueLock_ lock(unverified_access_);
-  unverified_blocks_[pbft_block->getBlockHash()] = pbft_block;
+
+  {
+    // Store in unverified_blocks_ table
+    uniqueLock_ lock(unverified_access_);
+    if (!unverified_blocks_.insert({block_hash, pbft_block}).second) {
+      LOG(log_dg_) << "Pbft block " << block_hash.abridged() << " already in unverified queue";
+      return false;
+    }
+
+    // Store in unverified_blocks_map_ for cleaning later
+    unverified_blocks_map_[prev_block_hash].emplace_back(block_hash);
+  }
+
   LOG(log_dg_) << "Push unverified block " << block_hash
                << ". Pbft unverified blocks size: " << unverified_blocks_.size();
+  return true;
 }
 
 std::string PbftChain::getJsonStr() const {
@@ -276,18 +285,6 @@ std::string PbftChain::getJsonStrForBlock(blk_hash_t const& block_hash) const {
 std::ostream& operator<<(std::ostream& strm, PbftChain const& pbft_chain) {
   strm << pbft_chain.getJsonStr();
   return strm;
-}
-
-void PbftChain::insertUnverifiedPbftBlockIntoParentMap_(blk_hash_t const& prev_block_hash,
-                                                        blk_hash_t const& block_hash) {
-  upgradableLock_ lock(unverified_access_);
-  if (unverified_blocks_map_.find(prev_block_hash) == unverified_blocks_map_.end()) {
-    upgradeLock_ locked(lock);
-    unverified_blocks_map_[prev_block_hash] = {block_hash};
-  } else {
-    upgradeLock_ locked(lock);
-    unverified_blocks_map_[prev_block_hash].emplace_back(block_hash);
-  }
 }
 
 }  // namespace taraxa

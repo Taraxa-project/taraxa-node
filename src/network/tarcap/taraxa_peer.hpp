@@ -7,7 +7,7 @@
 
 #include "util/util.hpp"
 
-namespace taraxa {
+namespace taraxa::network::tarcap {
 
 class TaraxaPeer : public boost::noncopyable {
  public:
@@ -16,7 +16,6 @@ class TaraxaPeer : public boost::noncopyable {
         known_transactions_(100000, 10000),
         known_pbft_blocks_(10000, 1000),
         known_votes_(10000, 1000) {}
-
   explicit TaraxaPeer(dev::p2p::NodeID id)
       : m_id(id),
         known_blocks_(10000, 1000),
@@ -58,4 +57,4 @@ class TaraxaPeer : public boost::noncopyable {
   ExpirationCache<vote_hash_t> known_votes_;  // for peers
 };
 
-}  // namespace taraxa
+}  // namespace taraxa::network::tarcap

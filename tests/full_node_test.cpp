@@ -621,7 +621,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
                 << " Node 2: Dag size = " << num_vertices2.first << " Trx count = " << num_trx2 << std::endl
                 << " Node 3: Dag size = " << num_vertices3.first << " Trx count = " << num_trx3 << std::endl
                 << " Node 4: Dag size = " << num_vertices4.first << " Trx count = " << num_trx4 << std::endl
-                << " Node 5: Dag size = " << num_vertices5.first << " Trx count = " << num_trx5
+                << " Node 5: Dag size = " << num_vertices5.first << " Trx count = " << num_trx5 << std::endl
                 << " Issued transaction count = " << issued_trx_count << std::endl;
       std::cout << "Send a dummy transaction to coverge DAG" << std::endl;
       context.dummy_transaction();
@@ -1097,6 +1097,11 @@ TEST_F(FullNodeTest, sync_two_nodes2) {
   }
   EXPECT_GE(vertices1.first, 3);
   EXPECT_EQ(vertices1, vertices2);
+
+  // this sleep is needed to process all remaining packets and destruct all network stuff
+  // on removal will cause next tests in the suite to fail because p2p port left binded
+  // see https://github.com/Taraxa-project/taraxa-node/issues/977 for more info
+  this_thread::sleep_for(2s);
 }
 
 TEST_F(FullNodeTest, single_node_run_two_transactions) {

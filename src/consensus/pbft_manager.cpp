@@ -1555,6 +1555,8 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
         break;
       }
 
+      syncBlockQueuePop();
+
       if (executed_pbft_block_) {
         vote_mgr_->removeVerifiedVotes();
         update_dpos_state_();
@@ -1900,6 +1902,7 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
     LOG(log_er_) << "Invalid PBFT block " << pbft_block_hash
                  << "; prevHash: " << sync_block.first.pbft_blk->getPrevBlockHash() << " from peer "
                  << sync_block.second.abridged() << " received, stop syncing.";
+    clearSyncBlockQueue();
     // Handle malicious peer on network level
     net->handleMaliciousSyncPeer(sync_queue_.front().second);
     return nullopt;
@@ -1910,6 +1913,7 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
     if (vote.getBlockHash() != pbft_block_hash) {
       LOG(log_er_) << "Invalid cert votes block hash " << vote.getBlockHash() << " instead of " << pbft_block_hash
                    << " from peer " << sync_block.second.abridged() << " received, stop syncing.";
+      clearSyncBlockQueue();
       net->handleMaliciousSyncPeer(sync_queue_.front().second);
       return nullopt;
     }
@@ -1920,6 +1924,7 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
     LOG(log_er_) << "Order hash incorrect in sync block " << pbft_block_hash << " expected: " << order_hash
                  << " received " << sync_block.first.pbft_blk->getOrderHash() << " from "
                  << sync_block.second.abridged() << ", stop syncing.";
+    clearSyncBlockQueue();
     net->handleMaliciousSyncPeer(sync_block.second);
     return nullopt;
   }
@@ -1938,21 +1943,22 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
     LOG(log_er_) << "Synced PBFT block " << pbft_block_hash
                  << " doesn't have enough valid cert votes. Clear synced PBFT blocks! DPOS total votes count: "
                  << getDposTotalVotesCount();
+    clearSyncBlockQueue();
     net->handleMaliciousSyncPeer(sync_block.second);
     return nullopt;
   }
-  syncBlockQueuePop();
+
   return std::optional<SyncBlock>(std::move(sync_block.first));
 }
 
-void PbftManager::syncBlockQueuePush(SyncBlock const &block, NodeID const &node_id) {
+void PbftManager::syncBlockQueuePush(SyncBlock const &block, dev::p2p::NodeID const &node_id) {
   std::unique_lock lock(sync_queue_access_);
   sync_queue_.push({block, node_id});
 }
 
 void PbftManager::clearSyncBlockQueue() {
   std::unique_lock lock(sync_queue_access_);
-  std::queue<std::pair<SyncBlock, NodeID>> empty;
+  std::queue<std::pair<SyncBlock, dev::p2p::NodeID>> empty;
   std::swap(sync_queue_, empty);
 }
 

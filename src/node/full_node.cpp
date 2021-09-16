@@ -84,7 +84,7 @@ void FullNode::init() {
   LOG(log_nf_) << "DB initialized ...";
 
   final_chain_ = NewFinalChain(db_, conf_.chain.final_chain, node_addr);
-  trx_mgr_ = std::make_shared<TransactionManager>(conf_, node_addr, db_, log_time_);
+  trx_mgr_ = std::make_shared<TransactionManager>(conf_, node_addr, db_);
 
   auto genesis_hash = conf_.chain.dag_genesis_block.getHash();
   auto dag_genesis_hash_from_db = *db_->getBlocksByLevel(0).begin();
@@ -265,7 +265,7 @@ void FullNode::rebuildDb() {
     SyncBlock sync_block(data);
 
     LOG(log_nf_) << "Adding sync block into queue " << sync_block.pbft_blk->getBlockHash().toString();
-    pbft_mgr_->syncBlockQueuePush(sync_block, NodeID());
+    pbft_mgr_->syncBlockQueuePush(sync_block, dev::p2p::NodeID());
 
     // Wait if more than 10 pbft blocks in queue to be processed
     while (pbft_mgr_->syncBlockQueueSize() > 10) {
