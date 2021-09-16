@@ -56,14 +56,14 @@ TEST_F(NetworkTest, transfer_block) {
   std::vector<Transaction> transactions{g_signed_trx_samples[0], g_signed_trx_samples[1]};
   nw2->onNewTransactions(transactions);
 
-  taraxa::thisThreadSleepForSeconds(1);
+  EXPECT_HAPPENS({10s, 200ms}, [&](auto& ctx) {
+    nw1->setPendingPeersToReady();
+    nw2->setPendingPeersToReady();
+    WAIT_EXPECT_EQ(ctx, nw1->getPeerCount(), 1)
+    WAIT_EXPECT_EQ(ctx, nw2->getPeerCount(), 1)
+  });
 
-  nw1->setPendingPeersToReady();
-  nw2->setPendingPeersToReady();
-
-  for (auto i = 0; i < 1; ++i) {
-    nw2->sendBlock(nw1->getNodeId(), blk);
-  }
+  nw2->sendBlock(nw1->getNodeId(), blk);
 
   std::cout << "Waiting packages for 10 seconds ..." << std::endl;
 
