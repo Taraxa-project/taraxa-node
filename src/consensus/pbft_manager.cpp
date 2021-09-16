@@ -1335,6 +1335,9 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     }
   }
 
+  LOG(log_nf_) << "DAG order for proposed block" << dag_block_order.second;
+  LOG(log_nf_) << "Transaction order for proposed block" << non_executed_transactions;
+
   auto order_hash = calculateOrderHash(dag_block_order.second, non_executed_transactions);
 
   // generate generate pbft block
@@ -1688,6 +1691,12 @@ bool PbftManager::pushPbftBlock_(SyncBlock &sync_block, vec_blk_t &dag_blocks_or
     sync_block.transactions.reserve(transactions_res.size());
     for (auto const &trx_raw : transactions_res) {
       if (trx_raw.size() > 0) sync_block.transactions.emplace_back(asBytes(trx_raw));
+    }
+    auto calculated_order_hash = calculateOrderHash(sync_block.dag_blocks, sync_block.transactions);
+    if (calculated_order_hash != sync_block.pbft_blk->getOrderHash()) {
+      LOG(log_er_) << "Order hash incorrect. Pbft order hash: " << sync_block.pbft_blk->getOrderHash()
+                   << " . Calculated hash:" << calculated_order_hash;
+      return false;
     }
   }
 

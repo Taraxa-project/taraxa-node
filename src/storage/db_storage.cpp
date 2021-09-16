@@ -403,27 +403,20 @@ std::shared_ptr<PbftBlock> DbStorage::getPbftBlock(uint64_t period) {
 }
 
 std::shared_ptr<Transaction> DbStorage::getTransaction(trx_hash_t const& hash) {
-  auto status = getTransactionStatus(hash);
-  switch (status.state) {
-    case TransactionStatusEnum::not_seen: {
-      return nullptr;
-    }
-    case TransactionStatusEnum::finalized: {
-      auto period_data = getPeriodDataRaw(status.period);
-      // DB is corrupted if status point to missing or incorrect transaction
-      assert(period_data.size() > 0);
-      auto period_data_rlp = RLP(period_data);
-      auto transaction_data = period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA];
-      return std::make_shared<Transaction>(transaction_data[status.position]);
-    }
-    default: {
-      auto data = asBytes(lookup(toSlice(hash.asBytes()), Columns::transactions));
-      if (data.size() > 0) {
-        return std::make_shared<Transaction>(data);
-      }
-      return nullptr;
-    }
+  auto data = asBytes(lookup(toSlice(hash.asBytes()), Columns::transactions));
+  if (data.size() > 0) {
+    return std::make_shared<Transaction>(data);
   }
+  auto status = getTransactionStatus(hash);
+  if (status.state == TransactionStatusEnum::finalized) {
+    auto period_data = getPeriodDataRaw(status.period);
+    // DB is corrupted if status point to missing or incorrect transaction
+    assert(period_data.size() > 0);
+    auto period_data_rlp = RLP(period_data);
+    auto transaction_data = period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA];
+    return std::make_shared<Transaction>(transaction_data[status.position]);
+  }
+  return nullptr;
 }
 
 std::shared_ptr<std::pair<Transaction, taraxa::bytes>> DbStorage::getTransactionExt(trx_hash_t const& hash) {
