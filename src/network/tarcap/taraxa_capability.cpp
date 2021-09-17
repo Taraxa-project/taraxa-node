@@ -378,7 +378,7 @@ void TaraxaCapability::onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_blo
       ->onNewPbftBlock(*pbft_block);
 }
 
-void TaraxaCapability::onNewPbftVote(const Vote &vote) {
+void TaraxaCapability::onNewPbftVote(const std::shared_ptr<Vote> &vote) {
   std::static_pointer_cast<VotePacketsHandler>(
       packets_handlers_->getSpecificHandler(PriorityQueuePacketType::kPqPbftVotePacket))
       ->onNewPbftVote(vote);
@@ -433,7 +433,7 @@ void TaraxaCapability::sendPbftBlock(dev::p2p::NodeID const &id, PbftBlock const
       ->sendPbftBlock(id, pbft_block, pbft_chain_size);
 }
 
-void TaraxaCapability::sendPbftVote(dev::p2p::NodeID const &id, Vote const &vote) {
+void TaraxaCapability::sendPbftVote(dev::p2p::NodeID const &id, std::shared_ptr<Vote> const &vote) {
   std::static_pointer_cast<VotePacketsHandler>(
       packets_handlers_->getSpecificHandler(PriorityQueuePacketType::kPqPbftVotePacket))
       ->sendPbftVote(id, vote);

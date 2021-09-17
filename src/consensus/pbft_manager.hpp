@@ -31,16 +31,6 @@ enum PbftSyncRequestReason {
   exceeded_max_steps
 };
 
-struct votesBundle {
-  bool enough;
-  blk_hash_t voted_block_hash;
-  std::vector<Vote> votes;  // exactly 2t+1 votes
-
-  votesBundle() : enough(false), voted_block_hash(NULL_BLOCK_HASH) {}
-  votesBundle(bool const enough_, blk_hash_t const &voted_block_hash_, std::vector<Vote> const &votes_)
-      : enough(enough_), voted_block_hash(voted_block_hash_), votes(votes_) {}
-};
-
 class PbftManager : public std::enable_shared_from_this<PbftManager> {
  public:
   using time_point = std::chrono::system_clock::time_point;
@@ -69,8 +59,8 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   void setTwoTPlusOne(size_t const two_t_plus_one);
   void setPbftStep(size_t const pbft_step);
 
-  Vote generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, uint64_t round, size_t step,
-                    size_t weighted_index);
+  std::shared_ptr<Vote> generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, uint64_t round, size_t step,
+                                     size_t weighted_index);
 
   size_t getDposTotalVotesCount() const;
   size_t getDposWeightedVotesCount() const;
@@ -122,19 +112,11 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   void firstFinish_();
   void secondFinish_();
 
-  uint64_t roundDeterminedFromVotes_();
-
-  votesBundle blockWithEnoughVotes_(std::vector<Vote> const &votes) const;
-
-  std::vector<Vote> getVotesOfTypeFromVotesForRoundAndStep_(PbftVoteTypes vote_type, std::vector<Vote> &votes,
-                                                            uint64_t round, size_t step,
-                                                            std::pair<blk_hash_t, bool> blockhash);
-
   size_t placeVote_(blk_hash_t const &blockhash, PbftVoteTypes vote_type, uint64_t round, size_t step);
 
   std::pair<blk_hash_t, bool> proposeMyPbftBlock_();
 
-  std::pair<blk_hash_t, bool> identifyLeaderBlock_(std::vector<Vote> const &votes);
+  std::pair<blk_hash_t, bool> identifyLeaderBlock_();
 
   bool syncRequestedAlreadyThisStep_() const;
 
@@ -146,7 +128,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   std::pair<vec_blk_t, bool> comparePbftBlockScheduleWithDAGblocks_(PbftBlock const &pbft_block);
 
   bool pushCertVotedPbftBlockIntoChain_(blk_hash_t const &cert_voted_block_hash,
-                                        std::vector<Vote> const &cert_votes_for_round);
+                                        std::vector<std::shared_ptr<Vote>> const &cert_votes_for_round);
 
   void pushSyncedPbftBlocksIntoChain_();
 
@@ -209,8 +191,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   blk_hash_t own_starting_value_for_round_ = NULL_BLOCK_HASH;
 
   std::pair<blk_hash_t, bool> soft_voted_block_for_this_round_ = std::make_pair(NULL_BLOCK_HASH, false);
-
-  std::vector<Vote> votes_;
 
   time_point round_clock_initial_datetime_;
   time_point now_;

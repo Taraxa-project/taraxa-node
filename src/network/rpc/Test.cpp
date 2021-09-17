@@ -315,11 +315,11 @@ Json::Value Test::get_votes(const Json::Value & /*param1*/) {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {
-      std::shared_ptr<VoteManager> vote_mgr = node->getVoteManager();
+      auto vote_mgr = node->getVoteManager();
 
       auto verified_votes = vote_mgr->getVerifiedVotes();
       auto unverified_votes = vote_mgr->getUnverifiedVotes();
-      std::vector<Vote> votes;
+      std::vector<std::shared_ptr<Vote>> votes;
       votes.reserve(verified_votes.size() + unverified_votes.size());
       votes.insert(votes.end(), verified_votes.begin(), verified_votes.end());
       votes.insert(votes.end(), unverified_votes.begin(), unverified_votes.end());

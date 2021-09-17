@@ -11,14 +11,14 @@ namespace taraxa {
 
 using namespace std;
 
-SyncBlock::SyncBlock(PbftBlock const& pbft_blk, std::vector<Vote> const& cert_votes)
+SyncBlock::SyncBlock(PbftBlock const& pbft_blk, std::vector<std::shared_ptr<Vote>> const& cert_votes)
     : pbft_blk(new PbftBlock(pbft_blk)), cert_votes(cert_votes) {}
 
 SyncBlock::SyncBlock(dev::RLP const& rlp) {
   auto it = rlp.begin();
-  pbft_blk = make_shared<PbftBlock>(*it++);
+  pbft_blk = std::make_shared<PbftBlock>(*it++);
   for (auto const vote_rlp : *it++) {
-    cert_votes.emplace_back(vote_rlp);
+    cert_votes.emplace_back(std::make_shared<Vote>(vote_rlp));
   }
 
   for (auto const dag_block_rlp : *it++) {
@@ -39,7 +39,7 @@ bytes SyncBlock::rlp() const {
   s.appendRaw(pbft_blk->rlp(true));
   s.appendList(cert_votes.size());
   for (auto const& v : cert_votes) {
-    s.appendRaw(v.rlp(true));
+    s.appendRaw(v->rlp(true));
   }
   s.appendList(dag_blocks.size());
   for (auto const& b : dag_blocks) {

@@ -106,9 +106,9 @@ uint64_t Network::syncTimeSeconds() const { return taraxa_capability_->getNodeSt
 
 void Network::handleMaliciousSyncPeer(dev::p2p::NodeID const &id) { taraxa_capability_->handleMaliciousSyncPeer({id}); }
 
-void Network::onNewPbftVotes(std::vector<Vote> votes) {
+void Network::onNewPbftVotes(std::vector<std::shared_ptr<Vote>> votes) {
   for (auto const &vote : votes) {
-    LOG(log_dg_) << "Network broadcast PBFT vote: " << vote.getHash();
+    LOG(log_dg_) << "Network broadcast PBFT vote: " << vote->getHash();
     taraxa_capability_->onNewPbftVote(vote);
   }
 }
@@ -162,8 +162,8 @@ void Network::sendPbftBlock(dev::p2p::NodeID const &id, PbftBlock const &pbft_bl
   taraxa_capability_->sendPbftBlock(id, pbft_block, pbft_chain_size);
 }
 
-void Network::sendPbftVote(dev::p2p::NodeID const &id, Vote const &vote) {
-  LOG(log_dg_) << "Network sent PBFT vote: " << vote.getHash() << " to: " << id;
+void Network::sendPbftVote(dev::p2p::NodeID const &id, std::shared_ptr<Vote> const &vote) {
+  LOG(log_dg_) << "Network sent PBFT vote: " << vote->getHash() << " to: " << id;
   taraxa_capability_->sendPbftVote(id, vote);
 }
 

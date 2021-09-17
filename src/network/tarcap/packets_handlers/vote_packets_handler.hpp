@@ -21,9 +21,10 @@ class VotePacketsHandler : public PacketHandler {
 
   virtual ~VotePacketsHandler() = default;
 
-  void sendPbftVote(dev::p2p::NodeID const& peer_id, Vote const& vote);
-  void onNewPbftVote(Vote const& vote);
-  void sendPbftNextVotes(dev::p2p::NodeID const& peer_id, std::vector<Vote> const& send_next_votes_bundle);
+  void sendPbftVote(dev::p2p::NodeID const& peer_id, std::shared_ptr<Vote> const& vote);
+  void onNewPbftVote(std::shared_ptr<Vote> const& vote);
+  void sendPbftNextVotes(dev::p2p::NodeID const& peer_id,
+                         std::vector<std::shared_ptr<Vote>> const& send_next_votes_bundle);
   void broadcastPreviousRoundNextVotesBundle();
 
  private:

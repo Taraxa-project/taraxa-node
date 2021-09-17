@@ -55,7 +55,7 @@ class Network {
 
   void handleMaliciousSyncPeer(dev::p2p::NodeID const &id);
 
-  void onNewPbftVotes(std::vector<Vote> votes);
+  void onNewPbftVotes(std::vector<std::shared_ptr<Vote>> votes);
   void broadcastPreviousRoundNextVotesBundle();
 
   // METHODS USED IN TESTS ONLY
@@ -70,7 +70,7 @@ class Network {
 
   // PBFT
   void sendPbftBlock(dev::p2p::NodeID const &id, PbftBlock const &pbft_block, uint64_t const &pbft_chain_size);
-  void sendPbftVote(dev::p2p::NodeID const &id, Vote const &vote);
+  void sendPbftVote(dev::p2p::NodeID const &id, std::shared_ptr<Vote> const &vote);
   // END METHODS USED IN TESTS ONLY
 
  private:
