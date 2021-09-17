@@ -919,7 +919,7 @@ void PbftManager::certifyBlock_() {
         auto cert_voted_block = pbft_chain_->getUnverifiedPbftBlock(last_cert_voted_value_);
 
         auto batch = db_->createWriteBatch();
-        db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::last_cert_voted_value, last_cert_voted_value_, batch);
+        db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::LastCertVotedValue, last_cert_voted_value_, batch);
         db_->addPbftCertVotedBlockToBatch(*cert_voted_block, batch);
         db_->commitWriteBatch(batch);
 
@@ -983,7 +983,7 @@ void PbftManager::firstFinish_() {
         } else if (comparePbftBlockScheduleWithDAGblocks_(previous_round_next_voted_value_)) {
           // Check if we have received the previous round next voted value and its a viable value...
           // IF it is viable then reset own starting value to it...
-          db_->savePbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round, previous_round_next_voted_value_);
+          db_->savePbftMgrVotedValue(PbftMgrVotedValue::OwnStartingValueInRound, previous_round_next_voted_value_);
           LOG(log_dg_) << "Updating own starting value of " << own_starting_value_for_round_
                        << " to previous round next voted value of " << previous_round_next_voted_value_;
           own_starting_value_for_round_ = previous_round_next_voted_value_;
@@ -1444,7 +1444,7 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
       }
 
       syncBlockQueuePop();
-      
+
       if (executed_pbft_block_) {
         vote_mgr_->removeVerifiedVotes();
         update_dpos_state_();
@@ -1584,7 +1584,7 @@ bool PbftManager::pushPbftBlock_(SyncBlock &sync_block, vec_blk_t &dag_blocks_or
   db_->savePeriodData(sync_block, batch);
 
   // Reset last cert voted value to NULL_BLOCK_HASH
-  db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::last_cert_voted_value, NULL_BLOCK_HASH, batch);
+  db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::LastCertVotedValue, NULL_BLOCK_HASH, batch);
 
   // Commit DB
   db_->commitWriteBatch(batch);

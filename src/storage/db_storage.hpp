@@ -49,11 +49,7 @@ enum PbftMgrStatus : uint8_t {
   NextVotedNullBlockHash,
 };
 
-enum PbftMgrVotedValue : uint8_t {
-  OwnStartingValueInRound = 0,
-  SoftVotedBlockHashInRound,
-  LastCertVotedValue
-};
+enum PbftMgrVotedValue : uint8_t { OwnStartingValueInRound = 0, SoftVotedBlockHashInRound, LastCertVotedValue };
 
 enum DposProposalPeriodLevelsStatus : uint8_t { MaxProposalPeriod = 0 };
 

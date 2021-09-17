@@ -1008,8 +1008,8 @@ void NextVotesForPreviousRound::updateWithSyncedVotes(std::vector<std::shared_pt
     } else {
       LOG(log_dg_) << "Voted value " << voted_value_and_votes.first
                    << " doesn't have enough next votes. Size of syncing next votes "
-                   << voted_value_and_votes.second.size() << ", PBFT previous round 2t+1 is " << pbft_2t_plus_1 << " for round "
-                   << voted_value_and_votes.second[0].getRound();
+                   << voted_value_and_votes.second.size() << ", PBFT previous round 2t+1 is " << pbft_2t_plus_1
+                   << " for round " << voted_value_and_votes.second[0].getRound();
     }
   }
 

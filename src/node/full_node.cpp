@@ -93,7 +93,7 @@ void FullNode::init() {
                  << dag_genesis_hash_from_db << " in DB";
     assert(false);
   }
-  
+
   pbft_chain_ = std::make_shared<PbftChain>(genesis_hash, node_addr, db_);
   next_votes_mgr_ = std::make_shared<NextVotesForPreviousRound>(node_addr, db_, final_chain_);
   dag_blk_mgr_ = std::make_shared<DagBlockManager>(node_addr, conf_.chain.vdf, conf_.chain.final_chain.state.dpos,
