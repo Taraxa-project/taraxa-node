@@ -80,12 +80,12 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
     peer->pbft_chain_size_ = sync_block.pbft_blk->getPeriod();
   }
 
-  pbft_mgr_->syncBlockQueuePush(sync_block, packet_data.from_node_id_);
-
-  auto pbft_sync_period = pbft_mgr_->pbftSyncingPeriod();
   LOG(log_nf_) << "Synced PBFT block hash " << pbft_blk_hash << " with " << sync_block.cert_votes.size()
                << " cert votes";
   LOG(log_dg_) << "Synced PBFT block " << sync_block;
+  pbft_mgr_->syncBlockQueuePush(std::move(sync_block), packet_data.from_node_id_);
+
+  auto pbft_sync_period = pbft_mgr_->pbftSyncingPeriod();
 
   // Reset last sync packet received time
   syncing_state_->set_last_sync_packet_time();

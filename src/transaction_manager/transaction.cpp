@@ -129,25 +129,21 @@ void Transaction::streamRLP(dev::RLPStream &s) const {
   }
 }
 
-shared_ptr<bytes> Transaction::rlp(bool cache, bool w_sender) const {
+shared_ptr<bytes> Transaction::rlp(bool w_sender) const {
   if (cached_rlp_ && !w_sender) {
     return cached_rlp_;
   }
-  std::unique_ptr<std::unique_lock<std::mutex>> l;
-  if (cache) {
-    l = make_unique<std::unique_lock<std::mutex>>(cached_rlp_mu_.val, std::try_to_lock);
-    if (!l->owns_lock()) {
-      l->lock();
-      return cached_rlp_;
-    }
+  std::unique_lock l(cached_rlp_mu_.val, std::try_to_lock);
+  if (!l.owns_lock()) {
+    l.lock();
+    return cached_rlp_;
   }
   dev::RLPStream s;
   if (w_sender)
     streamRLP<false, true>(s);
   else
     streamRLP<false, false>(s);
-  auto ret = make_shared<bytes>(move(s.invalidate()));
-  return cache ? cached_rlp_ = move(ret) : ret;
+  return cached_rlp_ = make_shared<bytes>(move(s.invalidate()));
 }
 
 trx_hash_t Transaction::hash_for_signature() const {

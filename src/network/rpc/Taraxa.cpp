@@ -80,7 +80,7 @@ Json::Value Taraxa::taraxa_getScheduleBlockByPeriod(std::string const& _period) 
     auto node = tryGetNode();
     auto db = node->getDB();
     auto blk = db->getPbftBlock(std::stoull(_period, 0, 16));
-    if (!blk) {
+    if (!blk.has_value()) {
       return Json::Value();
     }
     return PbftBlock::toJson(*blk, db->getFinalizedDagBlockHashesByAnchor(blk->getPivotDagBlockHash()));

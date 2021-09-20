@@ -11,10 +11,10 @@ namespace taraxa {
 
 using namespace std;
 
-SyncBlock::SyncBlock(PbftBlock const& pbft_blk, std::vector<std::shared_ptr<Vote>> const& cert_votes)
-    : pbft_blk(new PbftBlock(pbft_blk)), cert_votes(cert_votes) {}
+SyncBlock::SyncBlock(std::shared_ptr<PbftBlock> pbft_blk, std::vector<std::shared_ptr<Vote>> cert_votes)
+    : pbft_blk(std::move(pbft_blk)), cert_votes(std::move(cert_votes)) {}
 
-SyncBlock::SyncBlock(dev::RLP const& rlp) {
+SyncBlock::SyncBlock(dev::RLP&& rlp) {
   auto it = rlp.begin();
   pbft_blk = std::make_shared<PbftBlock>(*it++);
   for (auto const vote_rlp : *it++) {
@@ -22,13 +22,11 @@ SyncBlock::SyncBlock(dev::RLP const& rlp) {
   }
 
   for (auto const dag_block_rlp : *it++) {
-    DagBlock block(dag_block_rlp);
-    dag_blocks.emplace_back(block);
+    dag_blocks.emplace_back(dag_block_rlp);
   }
 
   for (auto const trx_rlp : *it) {
-    auto trx = Transaction(trx_rlp);
-    transactions.emplace_back(trx);
+    transactions.emplace_back(trx_rlp);
   }
 }
 
@@ -47,7 +45,7 @@ bytes SyncBlock::rlp() const {
   }
   s.appendList(transactions.size());
   for (auto const& t : transactions) {
-    s.appendRaw(*t.rlp(true));
+    s.appendRaw(*t.rlp());
   }
   return s.out();
 }

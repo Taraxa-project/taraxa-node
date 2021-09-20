@@ -48,13 +48,6 @@ struct Transaction {
                        bool rlp_w_sender = false);
   explicit Transaction(bytes const &_rlp, bool verify_strict = false, h256 const &hash = {})
       : Transaction(dev::RLP(_rlp), verify_strict, hash) {}
-  explicit Transaction(bytes &&_rlp, bool verify_strict = false, h256 const &hash = {}, bool cache_rlp = false,
-                       bool rlp_w_sender = false)
-      : Transaction(dev::RLP(_rlp), verify_strict, hash, rlp_w_sender) {
-    if (cache_rlp) {
-      cached_rlp_ = std::make_shared<bytes>(std::move(_rlp));
-    }
-  }
 
   auto isZero() const { return is_zero_; }
   trx_hash_t const &getHash() const;
@@ -70,7 +63,7 @@ struct Transaction {
 
   bool operator==(Transaction const &other) const { return getHash() == other.getHash(); }
 
-  std::shared_ptr<bytes> rlp(bool cache = false, bool w_sender = false) const;
+  std::shared_ptr<bytes> rlp(bool w_sender = false) const;
 
   Json::Value toJSON() const;
 };
