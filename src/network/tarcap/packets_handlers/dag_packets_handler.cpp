@@ -44,6 +44,8 @@ void DagPacketsHandler::process(const dev::RLP &packet_rlp, const PacketData &pa
     new_transactions.push_back(std::move(transaction));
   }
 
+  // TODO: check if we dont already have this block from some other peer, if so -> return here
+
   // Ignore new block packets when pbft syncing
   if (syncing_state_->is_pbft_syncing()) return;
 
@@ -69,11 +71,18 @@ void DagPacketsHandler::process(const dev::RLP &packet_rlp, const PacketData &pa
 }
 
 void DagPacketsHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::DagBlock block) {
-  vec_trx_t transactions_to_send;
+  std::shared_ptr<TaraxaPeer> peer = peers_state_->getPeer(peer_id);
+  if (!peer) {
+    LOG(log_er_) << "Send dag block " << block.getHash() << ". Failed to obtain peer " << peer_id.abridged();
+    return;
+  }
 
-  if (auto peer = peers_state_->getPeer(peer_id); peer) {
-    for (auto trx_hash : block.getTrxs())
-      if (!peer->isTransactionKnown(trx_hash)) transactions_to_send.push_back(trx_hash);
+  vec_trx_t transactions_to_send;
+  for (const auto &trx_hash : block.getTrxs()) {
+    if (peer->isTransactionKnown(trx_hash)) {
+      continue;
+    }
+    transactions_to_send.push_back(trx_hash);
   }
 
   dev::RLPStream s(1 + transactions_to_send.size());
@@ -81,7 +90,7 @@ void DagPacketsHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::DagBl
 
   taraxa::bytes trx_bytes;
   std::shared_ptr<std::pair<Transaction, taraxa::bytes>> transaction;
-  for (auto trx_hash : transactions_to_send) {
+  for (const auto &trx_hash : transactions_to_send) {
     if (dag_blk_mgr_) {
       transaction = trx_mgr_->getTransaction(trx_hash);
     } else {
@@ -95,7 +104,19 @@ void DagPacketsHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::DagBl
     transaction.reset();
   }
   s.appendRaw(trx_bytes, transactions_to_send.size());
-  sealAndSend(peer_id, NewBlockPacket, move(s));
+
+  // Try to send data over network
+  if (!sealAndSend(peer_id, NewBlockPacket, move(s))) {
+    LOG(log_er_) << "Sending DagBlock " << block.getHash() << " failed";
+    return;
+  }
+
+  // Mark data as known if sending was successful
+  peer->markDagBlockAsKnown(block.getHash());
+  for (const auto &trx_hash : transactions_to_send) {
+    peer->markTransactionAsKnown(trx_hash);
+  }
+
   LOG(log_dg_) << "Send DagBlock " << block.getHash() << " #Trx: " << transactions_to_send.size();
 }
 

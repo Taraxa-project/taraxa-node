@@ -60,6 +60,8 @@ class TaraxaPeer : public boost::noncopyable {
   bool markPbftBlockAsKnown(blk_hash_t const &_hash) { return known_pbft_blocks_.insert(_hash); }
   bool isPbftBlockKnown(blk_hash_t const &_hash) const { return known_pbft_blocks_.count(_hash); }
 
+  const dev::p2p::NodeID& getId() const { return m_id; }
+
   std::atomic<bool> syncing_ = false;
   std::atomic<uint64_t> dag_level_ = 0;
   std::atomic<uint64_t> pbft_chain_size_ = 0;

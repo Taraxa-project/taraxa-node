@@ -64,7 +64,7 @@ bool PacketHandler::sealAndSend(const dev::p2p::NodeID& nodeID, SubprotocolPacke
     peer = peers_state_->getPendingPeer(nodeID);
 
     if (!peer) {
-      LOG(log_wr_) << "sealAndSend failed to find peer";
+      LOG(log_er_) << "sealAndSend failed to find peer";
       return false;
     }
 

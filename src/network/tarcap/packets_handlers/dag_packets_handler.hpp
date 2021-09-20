@@ -16,6 +16,8 @@ class TestState;
 
 class DagPacketsHandler : public PacketHandler {
  public:
+  using PeersPtrVector = std::vector<std::shared_ptr<TaraxaPeer>>;
+
   DagPacketsHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
                     std::shared_ptr<SyncingState> syncing_state, std::shared_ptr<SyncingHandler> syncing_handler,
                     std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
