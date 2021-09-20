@@ -55,8 +55,6 @@ class TransactionQueue {
  private:
   using uLock = boost::unique_lock<boost::shared_mutex>;
   using sharedLock = boost::shared_lock<boost::shared_mutex>;
-  using upgradableLock = boost::upgrade_lock<boost::shared_mutex>;
-  using upgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
   addr_t getFullNodeAddress() const;
   std::atomic<bool> stopped_ = true;
   bool new_verified_transactions_ = true;

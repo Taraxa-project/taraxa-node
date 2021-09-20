@@ -27,7 +27,8 @@ class TaraxaPeer : public boost::noncopyable {
    * @brief Mark dag block as known
    *
    * @param _hash
-   * @return true in case dag block was actually marked as known(was not known before), otherwise false (was already known)
+   * @return true in case dag block was actually marked as known(was not known before), otherwise false (was already
+   * known)
    */
   bool markDagBlockAsKnown(blk_hash_t const &_hash) { return known_dag_blocks_.insert(_hash); }
   bool isDagBlockKnown(blk_hash_t const &_hash) const { return known_dag_blocks_.count(_hash); }
@@ -36,7 +37,8 @@ class TaraxaPeer : public boost::noncopyable {
    * @brief Mark transaction as known
    *
    * @param _hash
-   * @return true in case transaction was actually marked as known(was not known before), otherwise false (was already known)
+   * @return true in case transaction was actually marked as known(was not known before), otherwise false (was already
+   * known)
    */
   bool markTransactionAsKnown(trx_hash_t const &_hash) { return known_transactions_.insert(_hash); }
   bool isTransactionKnown(trx_hash_t const &_hash) const { return known_transactions_.count(_hash); }
@@ -55,12 +57,13 @@ class TaraxaPeer : public boost::noncopyable {
    * @brief Mark pbft block as known
    *
    * @param _hash
-   * @return true in case pbft block was actually marked as known(was not known before), otherwise false (was already known)
+   * @return true in case pbft block was actually marked as known(was not known before), otherwise false (was already
+   * known)
    */
   bool markPbftBlockAsKnown(blk_hash_t const &_hash) { return known_pbft_blocks_.insert(_hash); }
   bool isPbftBlockKnown(blk_hash_t const &_hash) const { return known_pbft_blocks_.count(_hash); }
 
-  const dev::p2p::NodeID& getId() const { return m_id; }
+  const dev::p2p::NodeID &getId() const { return m_id; }
 
   std::atomic<bool> syncing_ = false;
   std::atomic<uint64_t> dag_level_ = 0;

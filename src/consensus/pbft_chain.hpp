@@ -95,10 +95,10 @@ class PbftChain {
  private:
   void insertUnverifiedPbftBlockIntoParentMap_(blk_hash_t const& prev_block_hash, blk_hash_t const& block_hash);
 
-  using uniqueLock_ = boost::unique_lock<boost::shared_mutex>;
-  using sharedLock_ = boost::shared_lock<boost::shared_mutex>;
-  using upgradableLock_ = boost::upgrade_lock<boost::shared_mutex>;
-  using upgradeLock_ = boost::upgrade_to_unique_lock<boost::shared_mutex>;
+  using UniqueLock = boost::unique_lock<boost::shared_mutex>;
+  using SharedLock = boost::shared_lock<boost::shared_mutex>;
+  using UpgradableLock = boost::upgrade_lock<boost::shared_mutex>;
+  using UpgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
 
   mutable boost::shared_mutex unverified_access_;
   mutable boost::shared_mutex chain_head_access_;

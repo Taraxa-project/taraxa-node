@@ -109,7 +109,7 @@ void VoteManager::retreieveVotes_() {
     auto pbft_round = v->getRound();
     auto hash = v->getHash();
     {
-      uniqueLock_ lock(unverified_votes_access_);
+      UniqueLock lock(unverified_votes_access_);
       if (unverified_votes_.count(pbft_round)) {
         unverified_votes_[pbft_round][hash] = v;
       } else {
@@ -143,7 +143,7 @@ bool VoteManager::addUnverifiedVote(std::shared_ptr<Vote> const& vote) {
   vote->getVoterAddr();  // this will cache object variables - speed up
 
   {
-    uniqueLock_ lock(unverified_votes_access_);
+    UniqueLock lock(unverified_votes_access_);
     if (auto found_round = unverified_votes_.find(pbft_round); found_round != unverified_votes_.end()) {
       if (!found_round->second.insert({hash, vote}).second) {
         LOG(log_dg_) << "Vote " << hash << " is in unverified map already";
@@ -178,15 +178,15 @@ void VoteManager::addUnverifiedVotes(std::vector<std::shared_ptr<Vote>> const& v
 }
 
 void VoteManager::removeUnverifiedVote(uint64_t pbft_round, vote_hash_t const& vote_hash) {
-  upgradableLock_ lock(unverified_votes_access_);
+  UpgradableLock lock(unverified_votes_access_);
   if (unverified_votes_.count(pbft_round)) {
-    upgradeLock_ locked(lock);
+    UpgradeLock locked(lock);
     unverified_votes_[pbft_round].erase(vote_hash);
   }
 }
 
 bool VoteManager::voteInUnverifiedMap(uint64_t pbft_round, vote_hash_t const& vote_hash) {
-  sharedLock_ lock(unverified_votes_access_);
+  SharedLock lock(unverified_votes_access_);
   if (unverified_votes_.count(pbft_round)) {
     return unverified_votes_[pbft_round].count(vote_hash);
   }
@@ -197,7 +197,7 @@ bool VoteManager::voteInUnverifiedMap(uint64_t pbft_round, vote_hash_t const& vo
 std::vector<std::shared_ptr<Vote>> VoteManager::getUnverifiedVotes() {
   std::vector<std::shared_ptr<Vote>> votes;
 
-  sharedLock_ lock(unverified_votes_access_);
+  SharedLock lock(unverified_votes_access_);
   for (auto const& round_votes : unverified_votes_) {
     std::transform(round_votes.second.begin(), round_votes.second.end(), std::back_inserter(votes),
                    [](std::pair<const taraxa::vote_hash_t, std::shared_ptr<Vote>> const& v) { return v.second; });
@@ -208,14 +208,14 @@ std::vector<std::shared_ptr<Vote>> VoteManager::getUnverifiedVotes() {
 
 // Only for tests
 void VoteManager::clearUnverifiedVotesTable() {
-  uniqueLock_ lock(unverified_votes_access_);
+  UniqueLock lock(unverified_votes_access_);
   unverified_votes_.clear();
 }
 
 uint64_t VoteManager::getUnverifiedVotesSize() const {
   uint64_t size = 0;
 
-  sharedLock_ lock(unverified_votes_access_);
+  SharedLock lock(unverified_votes_access_);
   for (auto it = unverified_votes_.begin(); it != unverified_votes_.end(); ++it) {
     size += it->second.size();
   }
@@ -227,7 +227,7 @@ std::vector<std::shared_ptr<Vote>> VoteManager::getVerifiedVotes() {
   std::vector<std::shared_ptr<Vote>> votes;
   votes.reserve(getVerifiedVotesSize());
 
-  sharedLock_ lock(verified_votes_access_);
+  SharedLock lock(verified_votes_access_);
   for (auto const& round : verified_votes_) {
     for (auto const& step : round.second) {
       for (auto const& voted_value : step.second) {
@@ -244,7 +244,7 @@ std::vector<std::shared_ptr<Vote>> VoteManager::getVerifiedVotes() {
 uint64_t VoteManager::getVerifiedVotesSize() const {
   uint64_t size = 0;
 
-  sharedLock_ lock(verified_votes_access_);
+  SharedLock lock(verified_votes_access_);
   for (auto const& round : verified_votes_) {
     for (auto const& step : round.second) {
       for (auto const& voted_value : step.second) {
@@ -262,7 +262,7 @@ void VoteManager::addVerifiedVote(std::shared_ptr<Vote> const& vote) {
   auto voted_value = vote->getBlockHash();
   auto hash = vote->getHash();
 
-  upgradableLock_ lock(verified_votes_access_);
+  UpgradableLock lock(verified_votes_access_);
   auto found_round_it = verified_votes_.find(round);
   if (found_round_it != verified_votes_.end()) {
     // Found round
@@ -286,7 +286,7 @@ void VoteManager::addVerifiedVote(std::shared_ptr<Vote> const& vote) {
         // Add voted value
         std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> votes{{hash, vote}};
 
-        upgradeLock_ locked(lock);
+        UpgradeLock locked(lock);
         verified_votes_[round][step][voted_value] = std::move(votes);
       }
     } else {
@@ -295,7 +295,7 @@ void VoteManager::addVerifiedVote(std::shared_ptr<Vote> const& vote) {
       std::unordered_map<blk_hash_t, std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>> voted_values{
           {voted_value, std::move(votes)}};
 
-      upgradeLock_ locked(lock);
+      UpgradeLock locked(lock);
       verified_votes_[round][step] = std::move(voted_values);
     }
   } else {
@@ -306,7 +306,7 @@ void VoteManager::addVerifiedVote(std::shared_ptr<Vote> const& vote) {
     std::map<size_t, std::unordered_map<blk_hash_t, std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>>> steps{
         {step, std::move(voted_values)}};
 
-    upgradeLock_ locked(lock);
+    UpgradeLock locked(lock);
     verified_votes_[round] = std::move(steps);
   }
 
@@ -340,7 +340,7 @@ bool VoteManager::voteInVerifiedMap(std::shared_ptr<Vote> const& vote) {
   auto voted_value = vote->getBlockHash();
   auto hash = vote->getHash();
 
-  sharedLock_ lock(verified_votes_access_);
+  SharedLock lock(verified_votes_access_);
   auto found_round_it = verified_votes_.find(round);
   if (found_round_it != verified_votes_.end()) {
     auto found_step_it = found_round_it->second.find(step);
@@ -356,7 +356,7 @@ bool VoteManager::voteInVerifiedMap(std::shared_ptr<Vote> const& vote) {
 }
 
 void VoteManager::clearVerifiedVotesTable() {
-  uniqueLock_ lock(verified_votes_access_);
+  UniqueLock lock(verified_votes_access_);
   verified_votes_.clear();
 }
 
@@ -440,11 +440,13 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
   // Remove unverified votes
   vector<vote_hash_t> remove_unverified_votes_hash;
   {
-    upgradableLock_ lock(unverified_votes_access_);
+    UpgradableLock lock(unverified_votes_access_);
     std::map<uint64_t, std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>>::iterator it = unverified_votes_.begin();
     std::map<uint64_t, std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>>::reverse_iterator rit;
 
-    upgradeLock_ locked(lock);
+    UniqueLock lock(unverified_votes_access_);
+    std::map<uint64_t, std::unordered_map<vote_hash_t, Vote>>::iterator it = unverified_votes_.begin();
+
     while (it != unverified_votes_.end() && it->first < pbft_round) {
       for (auto const& v : it->second) {
         remove_unverified_votes_hash.emplace_back(v.first);
@@ -500,7 +502,7 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
   // Remove verified votes
   vector<vote_hash_t> remove_verified_votes_hash;
   {
-    uniqueLock_ lock(verified_votes_access_);
+    UniqueLock lock(verified_votes_access_);
     auto it = verified_votes_.begin();
     while (it != verified_votes_.end() && it->first < pbft_round) {
       for (auto const& step : it->second) {
@@ -702,7 +704,7 @@ NextVotesForPreviousRound::NextVotesForPreviousRound(addr_t node_addr, std::shar
 }
 
 void NextVotesForPreviousRound::clear() {
-  uniqueLock_ lock(access_);
+  UniqueLock lock(access_);
   enough_votes_for_null_block_hash_ = false;
   voted_value_ = NULL_BLOCK_HASH;
   next_votes_size_ = 0;
@@ -711,29 +713,29 @@ void NextVotesForPreviousRound::clear() {
 }
 
 bool NextVotesForPreviousRound::find(vote_hash_t next_vote_hash) {
-  sharedLock_ lock(access_);
+  SharedLock lock(access_);
   return next_votes_set_.find(next_vote_hash) != next_votes_set_.end();
 }
 
 bool NextVotesForPreviousRound::enoughNextVotes() const {
-  sharedLock_ lock(access_);
+  SharedLock lock(access_);
   return enough_votes_for_null_block_hash_ && (voted_value_ != NULL_BLOCK_HASH);
 }
 
 bool NextVotesForPreviousRound::haveEnoughVotesForNullBlockHash() const {
-  sharedLock_ lock(access_);
+  SharedLock lock(access_);
   return enough_votes_for_null_block_hash_;
 }
 
 blk_hash_t NextVotesForPreviousRound::getVotedValue() const {
-  sharedLock_ lock(access_);
+  SharedLock lock(access_);
   return voted_value_;
 }
 
 std::vector<std::shared_ptr<Vote>> NextVotesForPreviousRound::getNextVotes() {
   std::vector<std::shared_ptr<Vote>> next_votes_bundle;
 
-  sharedLock_ lock(access_);
+  SharedLock lock(access_);
   for (auto const& blk_hash_nv : next_votes_) {
     std::copy(blk_hash_nv.second.begin(), blk_hash_nv.second.end(), std::back_inserter(next_votes_bundle));
   }
@@ -743,7 +745,7 @@ std::vector<std::shared_ptr<Vote>> NextVotesForPreviousRound::getNextVotes() {
 }
 
 size_t NextVotesForPreviousRound::getNextVotesSize() const {
-  sharedLock_ lock(access_);
+  SharedLock lock(access_);
   return next_votes_size_;
 }
 
@@ -773,7 +775,7 @@ void NextVotesForPreviousRound::addNextVotes(std::vector<std::shared_ptr<Vote>> 
   }
   LOG(log_dg_) << "There are " << next_votes.size() << " new next votes for adding.";
 
-  uniqueLock_ lock(access_);
+  UniqueLock lock(access_);
 
   auto next_votes_in_db = db_->getNextVotes(sync_voted_round);
 
@@ -856,7 +858,7 @@ void NextVotesForPreviousRound::updateNextVotes(std::vector<std::shared_ptr<Vote
 
   clear();
 
-  uniqueLock_ lock(access_);
+  UniqueLock lock(access_);
 
   // Copy all next votes
   for (auto const& v : next_votes) {
@@ -936,7 +938,7 @@ void NextVotesForPreviousRound::updateWithSyncedVotes(std::vector<std::shared_pt
 
   std::unordered_map<blk_hash_t, std::vector<std::shared_ptr<Vote>>> own_votes_map;
   {
-    sharedLock_ lock(access_);
+    SharedLock lock(access_);
     own_votes_map = next_votes_;
   }
 

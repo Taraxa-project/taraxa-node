@@ -109,8 +109,6 @@ class StatusTable {
  public:
   using uLock = boost::unique_lock<boost::shared_mutex>;
   using sharedLock = boost::shared_lock<boost::shared_mutex>;
-  using upgradableLock = boost::upgrade_lock<boost::shared_mutex>;
-  using upgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
   using UnsafeStatusTable = std::unordered_map<K, V>;
   StatusTable(size_t capacity = 10000) : capacity_(capacity) {}
   std::pair<V, bool> get(K const &hash) {
