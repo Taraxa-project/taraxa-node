@@ -34,17 +34,24 @@ enum StatusDbField : uint8_t {
   DbMinorVersion
 };
 
-enum PbftMgrRoundStep : uint8_t { PbftRound = 0, PbftStep };
-enum PbftMgrStatus {
-  soft_voted_block_in_round = 0,
-  executed_block,
-  executed_in_round,
-  next_voted_soft_value,
-  next_voted_null_block_hash,
+enum PbftMgrPreviousRoundStatus : uint8_t {
+  PreviousRoundSortitionThreshold = 0,
+  PreviousRoundDposPeriod,
+  PreviousRoundDposTotalVotesCount
 };
-enum PbftMgrVotedValue { own_starting_value_in_round = 0, soft_voted_block_hash_in_round, last_cert_voted_value };
 
-enum DposProposalPeriodLevelsStatus : uint8_t { max_proposal_period = 0 };
+enum PbftMgrRoundStep : uint8_t { PbftRound = 0, PbftStep };
+enum PbftMgrStatus : uint8_t {
+  SoftVotedBlockInRound = 0,
+  ExecutedBlock,
+  ExecutedInRound,
+  NextVotedSoftValue,
+  NextVotedNullBlockHash,
+};
+
+enum PbftMgrVotedValue : uint8_t { OwnStartingValueInRound = 0, SoftVotedBlockHashInRound, LastCertVotedValue };
+
+enum DposProposalPeriodLevelsStatus : uint8_t { MaxProposalPeriod = 0 };
 
 class DbException : public exception {
  public:
@@ -95,6 +102,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN(transactions);
     COLUMN(trx_status);
     COLUMN(status);
+    COLUMN(pbft_mgr_previous_round_status);
     COLUMN(pbft_mgr_round_step);
     COLUMN(pbft_round_2t_plus_1);
     COLUMN(pbft_mgr_status);
@@ -205,21 +213,25 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::unordered_map<trx_hash_t, TransactionStatus> getAllTransactionStatus();
 
   // PBFT manager
-  uint64_t getPbftMgrField(PbftMgrRoundStep const& field);
-  void savePbftMgrField(PbftMgrRoundStep const& field, uint64_t value);
-  void addPbftMgrFieldToBatch(PbftMgrRoundStep const& field, uint64_t value, Batch& write_batch);
+  uint64_t getPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus field);
+  void savePbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus field, uint64_t value);
+  void addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus field, uint64_t value, Batch& write_batch);
+
+  uint64_t getPbftMgrField(PbftMgrRoundStep field);
+  void savePbftMgrField(PbftMgrRoundStep field, uint64_t value);
+  void addPbftMgrFieldToBatch(PbftMgrRoundStep field, uint64_t value, Batch& write_batch);
 
   size_t getPbft2TPlus1(uint64_t pbft_round);
   void savePbft2TPlus1(uint64_t pbft_round, size_t pbft_2t_plus_1);
   void addPbft2TPlus1ToBatch(uint64_t pbft_round, size_t pbft_2t_plus_1, Batch& write_batch);
 
-  bool getPbftMgrStatus(PbftMgrStatus const& field);
-  void savePbftMgrStatus(PbftMgrStatus const& field, bool const& value);
-  void addPbftMgrStatusToBatch(PbftMgrStatus const& field, bool const& value, Batch& write_batch);
+  bool getPbftMgrStatus(PbftMgrStatus field);
+  void savePbftMgrStatus(PbftMgrStatus field, bool const& value);
+  void addPbftMgrStatusToBatch(PbftMgrStatus field, bool const& value, Batch& write_batch);
 
-  shared_ptr<blk_hash_t> getPbftMgrVotedValue(PbftMgrVotedValue const& field);
-  void savePbftMgrVotedValue(PbftMgrVotedValue const& field, blk_hash_t const& value);
-  void addPbftMgrVotedValueToBatch(PbftMgrVotedValue const& field, blk_hash_t const& value, Batch& write_batch);
+  shared_ptr<blk_hash_t> getPbftMgrVotedValue(PbftMgrVotedValue field);
+  void savePbftMgrVotedValue(PbftMgrVotedValue field, blk_hash_t const& value);
+  void addPbftMgrVotedValueToBatch(PbftMgrVotedValue field, blk_hash_t const& value, Batch& write_batch);
 
   shared_ptr<PbftBlock> getPbftCertVotedBlock(blk_hash_t const& block_hash);
   void savePbftCertVotedBlock(PbftBlock const& pbft_block);
@@ -290,9 +302,9 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void putFinalizedDagBlockHashesByAnchor(WriteBatch& b, blk_hash_t const& anchor, vector<blk_hash_t> const& hs);
 
   // DPOS proposal period levels status
-  uint64_t getDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus const& field);
-  void saveDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus const& field, uint64_t value);
-  void addDposProposalPeriodLevelsFieldToBatch(DposProposalPeriodLevelsStatus const& field, uint64_t value,
+  uint64_t getDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus field);
+  void saveDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus field, uint64_t value);
+  void addDposProposalPeriodLevelsFieldToBatch(DposProposalPeriodLevelsStatus field, uint64_t value,
                                                Batch& write_batch);
 
   // DPOS proposal period to DAG block levels map

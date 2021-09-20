@@ -147,7 +147,7 @@ class Vote {
 
 class NextVotesForPreviousRound {
  public:
-  NextVotesForPreviousRound(addr_t node_addr, std::shared_ptr<DbStorage> db);
+  NextVotesForPreviousRound(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<FinalChain> final_chain);
 
   void clear();
 
@@ -167,7 +167,10 @@ class NextVotesForPreviousRound {
 
   void updateNextVotes(std::vector<std::shared_ptr<Vote>> const& next_votes, size_t pbft_2t_plus_1);
 
-  void updateWithSyncedVotes(std::vector<std::shared_ptr<Vote>> const& votes, size_t pbft_2t_plus_1);
+  void updateWithSyncedVotes(std::vector<std::shared_ptr<Vote>>& votes, size_t pbft_2t_plus_1);
+
+  bool voteVerification(std::shared_ptr<Vote>& vote, uint64_t dpos_period, size_t dpos_total_votes_count,
+                        size_t pbft_sortition_threshold);
 
  private:
   using uniqueLock_ = boost::unique_lock<boost::shared_mutex>;
@@ -181,6 +184,7 @@ class NextVotesForPreviousRound {
   mutable boost::shared_mutex access_;
 
   std::shared_ptr<DbStorage> db_;
+  std::shared_ptr<FinalChain> final_chain_;
 
   bool enough_votes_for_null_block_hash_;
   blk_hash_t voted_value_;  // For value is not null block hash

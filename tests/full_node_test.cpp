@@ -118,6 +118,42 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(g_trx_signed_samples[2], *db.getTransaction(g_trx_signed_samples[2].getHash()));
   EXPECT_EQ(g_trx_signed_samples[3], *db.getTransaction(g_trx_signed_samples[3].getHash()));
 
+  // PBFT manager previous round status
+  EXPECT_EQ(db.getPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundSortitionThreshold), 0);
+  EXPECT_EQ(db.getPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposPeriod), 0);
+  EXPECT_EQ(db.getPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposTotalVotesCount), 0);
+  size_t previous_round_sortition_threshold = 2;
+  db.savePbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundSortitionThreshold,
+                                    previous_round_sortition_threshold);
+  EXPECT_EQ(db.getPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundSortitionThreshold),
+            previous_round_sortition_threshold);
+  uint64_t previous_round_dpos_period = 3;
+  db.savePbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposPeriod, previous_round_dpos_period);
+  EXPECT_EQ(db.getPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposPeriod),
+            previous_round_dpos_period);
+  size_t previous_round_dpos_total_votes_count = 4;
+  db.savePbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposTotalVotesCount,
+                                    previous_round_dpos_total_votes_count);
+  EXPECT_EQ(db.getPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposTotalVotesCount),
+            previous_round_dpos_total_votes_count);
+  previous_round_sortition_threshold = 6;
+  previous_round_dpos_period = 7;
+  previous_round_dpos_total_votes_count = 8;
+  batch = db.createWriteBatch();
+  db.addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundSortitionThreshold,
+                                   previous_round_sortition_threshold, batch);
+  db.addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposPeriod, previous_round_dpos_period,
+                                   batch);
+  db.addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposTotalVotesCount,
+                                   previous_round_dpos_total_votes_count, batch);
+  db.commitWriteBatch(batch);
+  EXPECT_EQ(db.getPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundSortitionThreshold),
+            previous_round_sortition_threshold);
+  EXPECT_EQ(db.getPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposPeriod),
+            previous_round_dpos_period);
+  EXPECT_EQ(db.getPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposTotalVotesCount),
+            previous_round_dpos_total_votes_count);
+
   // PBFT manager round and step
   EXPECT_EQ(db.getPbftMgrField(PbftMgrRoundStep::PbftRound), 1);
   EXPECT_EQ(db.getPbftMgrField(PbftMgrRoundStep::PbftStep), 1);
@@ -147,52 +183,52 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(db.getPbft2TPlus1(11), 3);
 
   // PBFT manager status
-  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::soft_voted_block_in_round));
-  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::executed_block));
-  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::executed_in_round));
-  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::next_voted_soft_value));
-  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::next_voted_null_block_hash));
-  db.savePbftMgrStatus(PbftMgrStatus::soft_voted_block_in_round, true);
-  db.savePbftMgrStatus(PbftMgrStatus::executed_block, true);
-  db.savePbftMgrStatus(PbftMgrStatus::executed_in_round, true);
-  db.savePbftMgrStatus(PbftMgrStatus::next_voted_soft_value, true);
-  db.savePbftMgrStatus(PbftMgrStatus::next_voted_null_block_hash, true);
-  EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::soft_voted_block_in_round));
-  EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::executed_block));
-  EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::executed_in_round));
-  EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::next_voted_soft_value));
-  EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::next_voted_null_block_hash));
+  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::SoftVotedBlockInRound));
+  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedBlock));
+  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedInRound));
+  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::NextVotedSoftValue));
+  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::NextVotedNullBlockHash));
+  db.savePbftMgrStatus(PbftMgrStatus::SoftVotedBlockInRound, true);
+  db.savePbftMgrStatus(PbftMgrStatus::ExecutedBlock, true);
+  db.savePbftMgrStatus(PbftMgrStatus::ExecutedInRound, true);
+  db.savePbftMgrStatus(PbftMgrStatus::NextVotedSoftValue, true);
+  db.savePbftMgrStatus(PbftMgrStatus::NextVotedNullBlockHash, true);
+  EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::SoftVotedBlockInRound));
+  EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedBlock));
+  EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedInRound));
+  EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::NextVotedSoftValue));
+  EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::NextVotedNullBlockHash));
   batch = db.createWriteBatch();
-  db.addPbftMgrStatusToBatch(PbftMgrStatus::soft_voted_block_in_round, false, batch);
-  db.addPbftMgrStatusToBatch(PbftMgrStatus::executed_block, false, batch);
-  db.addPbftMgrStatusToBatch(PbftMgrStatus::executed_in_round, false, batch);
-  db.addPbftMgrStatusToBatch(PbftMgrStatus::next_voted_soft_value, false, batch);
-  db.addPbftMgrStatusToBatch(PbftMgrStatus::next_voted_null_block_hash, false, batch);
+  db.addPbftMgrStatusToBatch(PbftMgrStatus::SoftVotedBlockInRound, false, batch);
+  db.addPbftMgrStatusToBatch(PbftMgrStatus::ExecutedBlock, false, batch);
+  db.addPbftMgrStatusToBatch(PbftMgrStatus::ExecutedInRound, false, batch);
+  db.addPbftMgrStatusToBatch(PbftMgrStatus::NextVotedSoftValue, false, batch);
+  db.addPbftMgrStatusToBatch(PbftMgrStatus::NextVotedNullBlockHash, false, batch);
   db.commitWriteBatch(batch);
-  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::soft_voted_block_in_round));
-  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::executed_block));
-  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::executed_in_round));
-  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::next_voted_soft_value));
-  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::next_voted_null_block_hash));
+  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::SoftVotedBlockInRound));
+  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedBlock));
+  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedInRound));
+  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::NextVotedSoftValue));
+  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::NextVotedNullBlockHash));
 
   // PBFT manager voted value
-  EXPECT_EQ(db.getPbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round), nullptr);
-  EXPECT_EQ(db.getPbftMgrVotedValue(PbftMgrVotedValue::soft_voted_block_hash_in_round), nullptr);
-  EXPECT_EQ(db.getPbftMgrVotedValue(PbftMgrVotedValue::last_cert_voted_value), nullptr);
-  db.savePbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round, blk_hash_t(1));
-  db.savePbftMgrVotedValue(PbftMgrVotedValue::soft_voted_block_hash_in_round, blk_hash_t(2));
-  db.savePbftMgrVotedValue(PbftMgrVotedValue::last_cert_voted_value, blk_hash_t(3));
-  EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round), blk_hash_t(1));
-  EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::soft_voted_block_hash_in_round), blk_hash_t(2));
-  EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::last_cert_voted_value), blk_hash_t(3));
+  EXPECT_EQ(db.getPbftMgrVotedValue(PbftMgrVotedValue::OwnStartingValueInRound), nullptr);
+  EXPECT_EQ(db.getPbftMgrVotedValue(PbftMgrVotedValue::SoftVotedBlockHashInRound), nullptr);
+  EXPECT_EQ(db.getPbftMgrVotedValue(PbftMgrVotedValue::LastCertVotedValue), nullptr);
+  db.savePbftMgrVotedValue(PbftMgrVotedValue::OwnStartingValueInRound, blk_hash_t(1));
+  db.savePbftMgrVotedValue(PbftMgrVotedValue::SoftVotedBlockHashInRound, blk_hash_t(2));
+  db.savePbftMgrVotedValue(PbftMgrVotedValue::LastCertVotedValue, blk_hash_t(3));
+  EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::OwnStartingValueInRound), blk_hash_t(1));
+  EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::SoftVotedBlockHashInRound), blk_hash_t(2));
+  EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::LastCertVotedValue), blk_hash_t(3));
   batch = db.createWriteBatch();
-  db.addPbftMgrVotedValueToBatch(PbftMgrVotedValue::own_starting_value_in_round, blk_hash_t(4), batch);
-  db.addPbftMgrVotedValueToBatch(PbftMgrVotedValue::soft_voted_block_hash_in_round, blk_hash_t(5), batch);
-  db.addPbftMgrVotedValueToBatch(PbftMgrVotedValue::last_cert_voted_value, blk_hash_t(6), batch);
+  db.addPbftMgrVotedValueToBatch(PbftMgrVotedValue::OwnStartingValueInRound, blk_hash_t(4), batch);
+  db.addPbftMgrVotedValueToBatch(PbftMgrVotedValue::SoftVotedBlockHashInRound, blk_hash_t(5), batch);
+  db.addPbftMgrVotedValueToBatch(PbftMgrVotedValue::LastCertVotedValue, blk_hash_t(6), batch);
   db.commitWriteBatch(batch);
-  EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round), blk_hash_t(4));
-  EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::soft_voted_block_hash_in_round), blk_hash_t(5));
-  EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::last_cert_voted_value), blk_hash_t(6));
+  EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::OwnStartingValueInRound), blk_hash_t(4));
+  EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::SoftVotedBlockHashInRound), blk_hash_t(5));
+  EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::LastCertVotedValue), blk_hash_t(6));
 
   // PBFT cert voted block
   auto pbft_block1 = make_simple_pbft_block(blk_hash_t(1), 1);
@@ -452,13 +488,13 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(4, db.getDagBlockPeriod(blk_hash_t(2))->second);
 
   // DPOS proposal period DAG levels status
-  EXPECT_EQ(0, db.getDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus::max_proposal_period));
-  db.saveDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus::max_proposal_period, 5);
-  EXPECT_EQ(5, db.getDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus::max_proposal_period));
+  EXPECT_EQ(0, db.getDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus::MaxProposalPeriod));
+  db.saveDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus::MaxProposalPeriod, 5);
+  EXPECT_EQ(5, db.getDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus::MaxProposalPeriod));
   batch = db.createWriteBatch();
-  db.addDposProposalPeriodLevelsFieldToBatch(DposProposalPeriodLevelsStatus::max_proposal_period, 10, batch);
+  db.addDposProposalPeriodLevelsFieldToBatch(DposProposalPeriodLevelsStatus::MaxProposalPeriod, 10, batch);
   db.commitWriteBatch(batch);
-  EXPECT_EQ(10, db.getDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus::max_proposal_period));
+  EXPECT_EQ(10, db.getDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus::MaxProposalPeriod));
 
   // DPOS proposal period DAG levels map
   EXPECT_TRUE(db.getProposalPeriodDagLevelsMap(0).empty());
