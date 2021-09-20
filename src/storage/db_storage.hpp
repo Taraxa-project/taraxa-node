@@ -214,8 +214,8 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
   // PBFT manager
   uint64_t getPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus field);
-  void savePbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus field, uint64_t const& value);
-  void addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus field, uint64_t const& value, Batch& write_batch);
+  void savePbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus field, uint64_t value);
+  void addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus field, uint64_t value, Batch& write_batch);
 
   uint64_t getPbftMgrField(PbftMgrRoundStep field);
   void savePbftMgrField(PbftMgrRoundStep field, uint64_t value);

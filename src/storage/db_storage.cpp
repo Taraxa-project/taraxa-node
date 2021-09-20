@@ -471,12 +471,11 @@ uint64_t DbStorage::getPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus fie
   return 0;
 }
 
-void DbStorage::savePbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus field, uint64_t const& value) {
+void DbStorage::savePbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus field, uint64_t value) {
   insert(Columns::pbft_mgr_previous_round_status, toSlice(field), toSlice(value));
 }
 
-void DbStorage::addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus field, uint64_t const& value,
-                                              Batch& write_batch) {
+void DbStorage::addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus field, uint64_t value, Batch& write_batch) {
   insert(write_batch, Columns::pbft_mgr_previous_round_status, toSlice(field), toSlice(value));
 }
 
