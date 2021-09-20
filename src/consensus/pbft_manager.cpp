@@ -43,7 +43,7 @@ PbftManager::PbftManager(PbftConfig const &conf, blk_hash_t const &genesis, addr
       RUN_COUNT_VOTES(conf.run_count_votes),
       dag_genesis_(genesis) {
   LOG_OBJECTS_CREATE("PBFT_MGR");
-  update_dpos_state_();
+  updateDposState_();
 }
 
 PbftManager::~PbftManager() { stop(); }
@@ -279,7 +279,7 @@ void PbftManager::setSortitionThreshold(size_t const sortition_threshold) {
   sortition_threshold_ = sortition_threshold;
 }
 
-void PbftManager::update_dpos_state_() {
+void PbftManager::updateDposState_() {
   dpos_period_ = pbft_chain_->getPbftChainSize();
   do {
     try {
@@ -304,7 +304,7 @@ size_t PbftManager::getDposTotalVotesCount() const { return dpos_votes_count_.lo
 
 size_t PbftManager::getDposWeightedVotesCount() const { return weighted_votes_count_.load(); }
 
-size_t PbftManager::dpos_eligible_vote_count_(addr_t const &addr) {
+size_t PbftManager::dposEligibleVoteCount_(addr_t const &addr) {
   try {
     return final_chain_->dpos_eligible_vote_count(dpos_period_, addr);
   } catch (state_api::ErrFutureBlock &c) {
@@ -397,7 +397,7 @@ bool PbftManager::resetRound_() {
 
     if (executed_pbft_block_) {
       vote_mgr_->removeVerifiedVotes();
-      update_dpos_state_();
+      updateDposState_();
       // reset sortition_threshold and TWO_T_PLUS_ONE
       updateTwoTPlusOneAndThreshold_();
       db_->savePbftMgrStatus(PbftMgrStatus::ExecutedBlock, false);
@@ -662,7 +662,7 @@ bool PbftManager::stateOperations_() {
 
   // Periodically verify unverified votes
   vote_mgr_->verifyVotes(round, sortition_threshold_, getDposTotalVotesCount(),
-                         [this](auto const &addr) { return dpos_eligible_vote_count_(addr); });
+                         [this](auto const &addr) { return dposEligibleVoteCount_(addr); });
 
   // CHECK IF WE HAVE RECEIVED 2t+1 CERT VOTES FOR A BLOCK IN OUR CURRENT
   // ROUND.  IF WE HAVE THEN WE EXECUTE THE BLOCK
@@ -1446,7 +1446,7 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
 
       if (executed_pbft_block_) {
         vote_mgr_->removeVerifiedVotes();
-        update_dpos_state_();
+        updateDposState_();
         // update sortition_threshold and TWO_T_PLUS_ONE
         updateTwoTPlusOneAndThreshold_();
         db_->savePbftMgrStatus(PbftMgrStatus::ExecutedBlock, false);

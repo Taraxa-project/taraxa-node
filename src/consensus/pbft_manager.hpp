@@ -85,8 +85,8 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
  private:
   // DPOS
-  void update_dpos_state_();
-  size_t dpos_eligible_vote_count_(addr_t const &addr);
+  void updateDposState_();
+  size_t dposEligibleVoteCount_(addr_t const &addr);
 
   void resetStep_();
   bool resetRound_();
