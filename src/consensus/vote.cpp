@@ -1030,7 +1030,8 @@ bool NextVotesForPreviousRound::voteVerification(std::shared_ptr<Vote>& vote, ui
   try {
     dpos_votes_count = final_chain_->dpos_eligible_vote_count(dpos_period, vote_account_addr);
   } catch (state_api::ErrFutureBlock& c) {
-    LOG(log_er_) << c.what() << ", period " << dpos_period << " is too far ahead of DPOS";
+    LOG(log_er_) << c.what() << ". For voter account " << vote_account_addr << " period " << dpos_period
+                 << " is too far ahead of DPOS. Have executed chain size " << final_chain_->last_block_number();
     return false;
   }
   auto vote_weighted_index = vote->getWeightedIndex();
