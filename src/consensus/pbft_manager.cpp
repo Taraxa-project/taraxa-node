@@ -368,8 +368,7 @@ bool PbftManager::resetRound_() {
     auto batch = db_->createWriteBatch();
     db_->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundSortitionThreshold,
                                        sortition_threshold_, batch);
-    db_->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposPeriod, dpos_period_.load(),
-                                       batch);
+    db_->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposPeriod, dpos_period_.load(), batch);
     db_->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposTotalVotesCount,
                                        getDposTotalVotesCount(), batch);
     db_->addPbftMgrStatusToBatch(PbftMgrStatus::ExecutedInRound, false, batch);

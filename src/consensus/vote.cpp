@@ -692,7 +692,7 @@ uint64_t VoteManager::roundDeterminedFromVotes(size_t two_t_plus_one) {
 
 NextVotesForPreviousRound::NextVotesForPreviousRound(addr_t node_addr, std::shared_ptr<DbStorage> db,
                                                      std::shared_ptr<FinalChain> final_chain)
-    : db_(std::move(db)), 
+    : db_(std::move(db)),
       final_chain_(std::move(final_chain)),
       enough_votes_for_null_block_hash_(false),
       voted_value_(NULL_BLOCK_HASH),
@@ -1009,7 +1009,7 @@ void NextVotesForPreviousRound::updateWithSyncedVotes(std::vector<std::shared_pt
       LOG(log_dg_) << "Voted value " << voted_value_and_votes.first
                    << " doesn't have enough next votes. Size of syncing next votes "
                    << voted_value_and_votes.second.size() << ", PBFT previous round 2t+1 is " << pbft_2t_plus_1
-                   << " for round " << voted_value_and_votes.second[0].getRound();
+                   << " for round " << voted_value_and_votes.second[0]->getRound();
     }
   }
 
@@ -1017,16 +1017,15 @@ void NextVotesForPreviousRound::updateWithSyncedVotes(std::vector<std::shared_pt
   addNextVotes(update_votes, pbft_2t_plus_1);
 }
 
-bool NextVotesForPreviousRound::voteVerification(Vote& vote, uint64_t const dpos_period,
-                                                 size_t const dpos_total_votes_count,
-                                                 size_t const pbft_sortition_threshold) {
+bool NextVotesForPreviousRound::voteVerification(std::shared_ptr<Vote>& vote, uint64_t dpos_period,
+                                                 size_t dpos_total_votes_count, size_t pbft_sortition_threshold) {
   // Voted round has checked in tarcap already
-  if (vote.getType() != next_vote_type) {
-    LOG(log_er_) << "The vote is not at next voting phase." << vote;
+  if (vote->getType() != next_vote_type) {
+    LOG(log_er_) << "The vote is not at next voting phase." << *vote;
     return false;
   }
 
-  auto vote_account_addr = vote.getVoterAddr();
+  auto vote_account_addr = vote->getVoterAddr();
   uint64_t dpos_votes_count;
   try {
     dpos_votes_count = final_chain_->dpos_eligible_vote_count(dpos_period, vote_account_addr);
@@ -1034,26 +1033,26 @@ bool NextVotesForPreviousRound::voteVerification(Vote& vote, uint64_t const dpos
     LOG(log_er_) << c.what() << ", period " << dpos_period << " is too far ahead of DPOS";
     return false;
   }
-  auto vote_weighted_index = vote.getWeightedIndex();
+  auto vote_weighted_index = vote->getWeightedIndex();
   if (vote_weighted_index >= dpos_votes_count) {
     LOG(log_er_) << "Vote weighted index " << vote_weighted_index << " is not less than DPOS votes count "
-                 << dpos_votes_count << vote;
+                 << dpos_votes_count << *vote;
     return false;
   }
 
-  if (!vote.verifyVrfSortition()) {
-    LOG(log_er_) << "Invalid vrf proof. " << vote;
+  if (!vote->verifyVrfSortition()) {
+    LOG(log_er_) << "Invalid vrf proof. " << *vote;
     return false;
   }
 
-  if (!vote.verifyVote()) {
-    LOG(log_er_) << "Invalid vote signature. " << vote;
+  if (!vote->verifyVote()) {
+    LOG(log_er_) << "Invalid vote signature. " << *vote;
     return false;
   }
 
-  if (!vote.verifyCanSpeak(pbft_sortition_threshold, dpos_total_votes_count)) {
+  if (!vote->verifyCanSpeak(pbft_sortition_threshold, dpos_total_votes_count)) {
     LOG(log_er_) << "Vote sortition failed. PBFT sortition threshold " << pbft_sortition_threshold
-                 << ", DPOS total votes count " << dpos_total_votes_count << vote;
+                 << ", DPOS total votes count " << dpos_total_votes_count << *vote;
     return false;
   }
 

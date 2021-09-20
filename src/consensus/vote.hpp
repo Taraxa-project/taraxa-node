@@ -168,9 +168,9 @@ class NextVotesForPreviousRound {
   void updateNextVotes(std::vector<std::shared_ptr<Vote>> const& next_votes, size_t pbft_2t_plus_1);
 
   void updateWithSyncedVotes(std::vector<std::shared_ptr<Vote>>& votes, size_t pbft_2t_plus_1);
-  
-  bool voteVerification(Vote& vote, uint64_t const dpos_period, size_t const dpos_total_votes_count,
-                        size_t const pbft_sortition_threshold);
+
+  bool voteVerification(std::shared_ptr<Vote>& vote, uint64_t dpos_period, size_t dpos_total_votes_count,
+                        size_t pbft_sortition_threshold);
 
  private:
   using uniqueLock_ = boost::unique_lock<boost::shared_mutex>;
