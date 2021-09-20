@@ -57,13 +57,13 @@ void DagBlockManager::stop() {
   }
 }
 
-bool DagBlockManager::isBlockKnown(blk_hash_t const &hash) {
+bool DagBlockManager::isDagBlockKnown(blk_hash_t const &hash) {
   auto known = seen_blocks_.count(hash);
   if (!known) return getDagBlock(hash) != nullptr;
   return true;
 }
 
-bool DagBlockManager::markBlockAsSeen(const DagBlock &dag_block) {
+bool DagBlockManager::markDagBlockAsSeen(const DagBlock &dag_block) {
   return seen_blocks_.insert(dag_block.getHash(), dag_block);
 }
 
@@ -116,14 +116,14 @@ void DagBlockManager::insertBlock(DagBlock const &blk) {
 void DagBlockManager::pushUnverifiedBlock(DagBlock const &blk, bool critical,
                                           std::vector<Transaction> const &transactions) {
   // Block is already known -> it is either in cache or in dag structure
-  if (isBlockKnown(blk.getHash())) {
+  if (isDagBlockKnown(blk.getHash())) {
     LOG(log_dg_) << "Trying to push new unverified block " << blk.getHash().abridged()
                  << " that is already known, skip it";
     return;
   }
 
   // Mark block as seen - synchronization point in case multiple threads are processing the same block at the same time
-  if (!markBlockAsSeen(blk)) {
+  if (!markDagBlockAsSeen(blk)) {
     LOG(log_dg_) << "Trying to push new unverified block " << blk.getHash().abridged()
                  << " that is already marked as known, skip it";
     return;
@@ -155,7 +155,7 @@ void DagBlockManager::pushUnverifiedBlock(DagBlock const &blk, bool critical,
 
 void DagBlockManager::processSyncedBlock(DbStorage::Batch &batch, SyncBlock const &sync_block) {
   // TODO: check synchronization due to concurrent processing of packets,
-  // TODO: shouldn't be dag blocks marked as known trhough markBlockAsSeen here ?
+  // TODO: shouldn't be dag blocks marked as known trhough markDagBlockAsSeen here ?
 
   vector<trx_hash_t> transactions;
   transactions.reserve(sync_block.transactions.size());

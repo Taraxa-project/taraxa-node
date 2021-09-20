@@ -30,11 +30,12 @@ void DagPacketsHandler::process(const dev::RLP &packet_rlp, const PacketData &pa
 
                                 const std::shared_ptr<TaraxaPeer> &peer) {
   DagBlock block(packet_rlp[0].data().toBytes());
-  blk_hash_t const hash = block.getHash();
-  peer->markBlockAsKnown(hash);
 
+  blk_hash_t const hash = block.getHash();
   const auto transactions_count = packet_rlp.itemCount() - 1;
   LOG(log_dg_) << "Received NewBlockPacket " << hash.abridged() << " with " << transactions_count << " txs";
+
+  peer->markDagBlockAsKnown(hash);
 
   std::vector<Transaction> new_transactions;
   for (size_t i_transaction = 1; i_transaction < transactions_count + 1; i_transaction++) {
@@ -47,6 +48,10 @@ void DagPacketsHandler::process(const dev::RLP &packet_rlp, const PacketData &pa
   if (syncing_state_->is_pbft_syncing()) return;
 
   if (dag_blk_mgr_) {
+    if (dag_blk_mgr_->isDagBlockKnown(block.getHash())) {
+      return;
+    }
+
     if (auto status = syncing_handler_->checkDagBlockValidation(block); !status.first) {
       LOG(log_wr_) << "Received NewBlock " << hash.toString() << " has missing pivot or/and tips";
       status.second.insert(hash);
@@ -136,7 +141,7 @@ void DagPacketsHandler::onNewBlockVerified(DagBlock const &block, bool proposed)
     auto peer = peers_state_->getPeer(peer_id);
     if (peer && !peer->syncing_) {
       sendBlock(peer_id, block);
-      peer->markBlockAsKnown(block_hash);
+      peer->markDagBlockAsKnown(block_hash);
     }
   }
   if (!peers_to_send.empty()) LOG(log_dg_) << "Sent block to " << peers_to_send.size() << " peers";

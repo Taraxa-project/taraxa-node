@@ -26,7 +26,7 @@ void BlocksPacketHandler::process(const dev::RLP& packet_rlp, const PacketData& 
 
   for (; it != packet_rlp.end();) {
     DagBlock block(*it++);
-    peer->markBlockAsKnown(block.getHash());
+    peer->markDagBlockAsKnown(block.getHash());
 
     std::vector<Transaction> new_transactions;
     for (size_t i = 0; i < block.getTrxs().size(); i++) {

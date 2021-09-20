@@ -42,7 +42,7 @@ class DagBlockManager {
    * @param hash
    * @return true in case block was already seen or is part of dag structure
    */
-  bool isBlockKnown(blk_hash_t const &hash);
+  bool isDagBlockKnown(blk_hash_t const &hash);
 
   /**
    * @brief Mark block as seen
@@ -50,7 +50,7 @@ class DagBlockManager {
    * @param dag_block
    * @return true in case block was actually marked as seen(was not seen before), otherwise false (was already seen)
    */
-  bool markBlockAsSeen(const DagBlock &dag_block);
+  bool markDagBlockAsSeen(const DagBlock &dag_block);
 
   std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash) const;
   void clearBlockStatausTable() { blk_status_.clear(); }
