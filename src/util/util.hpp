@@ -223,14 +223,29 @@ class ExpirationCache {
  public:
   ExpirationCache(uint32_t max_size, uint32_t delete_step) : max_size_(max_size), delete_step_(delete_step) {}
 
+  /**
+   * @brief Inserts key into the cache map. In case provided key is already in cache, only shared lock
+   *        is acquired and function returns false. This means insert does not need to be used together with count()
+   *        to save the performance by not acquiring unique lock
+   *
+   * @param key
+   * @return true if actual insertion took place, otherwise false
+   */
   bool insert(Key const &key) {
-    boost::unique_lock lck(mtx_);
+    {
+      boost::shared_lock lock(mtx_);
+      if (cache_.count(key)) {
+        return false;
+      }
+    }
 
-    if (cache_.find(key) != cache_.end()) {
+    boost::unique_lock lock(mtx_);
+
+    // There must be double check if key is not already in cache due to possible race condition
+    if (!cache_.insert(key).second) {
       return false;
     }
 
-    cache_.insert(key);
     expiration_.push_back(key);
     if (cache_.size() > max_size_) {
       for (uint32_t i = 0; i < delete_step_; i++) {
@@ -279,11 +294,30 @@ class ExpirationCacheMap {
  public:
   ExpirationCacheMap(uint32_t max_size, uint32_t delete_step) : max_size_(max_size), delete_step_(delete_step) {}
 
+  /**
+   * @brief Inserts <key,value> pair into the cache map. In case provided key is already in cache, only shared lock
+   *        is acquired and function returns false. This means insert does not need to be used together with count()
+   *        to save the performance by not acquiring unique lock
+   *
+   * @param key
+   * @param value
+   * @return true if actual insertion took place, otherwise false
+   */
   bool insert(Key const &key, Value const &value) {
-    boost::unique_lock lck(mtx_);
-    if (cache_.find(key) != cache_.end()) return false;
+    {
+      boost::shared_lock lock(mtx_);
+      if (cache_.count(key)) {
+        return false;
+      }
+    }
 
-    cache_[key] = value;
+    boost::unique_lock lock(mtx_);
+
+    // There must be double check if key is not already in cache due to possible race condition
+    if (!cache_.emplace(key, value).second) {
+      return false;
+    }
+
     expiration_.push_back(key);
     if (cache_.size() > max_size_) {
       eraseOldest();
