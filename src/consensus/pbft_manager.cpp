@@ -287,7 +287,7 @@ void PbftManager::update_dpos_state_() {
       weighted_votes_count_ = final_chain_->dpos_eligible_vote_count(dpos_period_, node_addr_);
       break;
     } catch (state_api::ErrFutureBlock &c) {
-      LOG(log_er_) << c.what();
+      LOG(log_nf_) << c.what();
       LOG(log_nf_) << "PBFT period " << dpos_period_ << " is too far ahead of DPOS, need wait! PBFT chain size "
                    << pbft_chain_->getPbftChainSize() << ", have executed chain size "
                    << final_chain_->last_block_number();
@@ -1594,7 +1594,7 @@ bool PbftManager::pushPbftBlock_(SyncBlock &sync_block, vec_blk_t &dag_blocks_or
   LOG(log_nf_) << node_addr_ << " successful push unexecuted PBFT block " << pbft_block_hash << " in period "
                << pbft_period << " into chain! In round " << getPbftRound();
 
-  finalize_(*sync_block.pbft_blk, move(dag_blocks_order), sync);
+  finalize_(*sync_block.pbft_blk, move(dag_blocks_order));
 
   // Reset proposed PBFT block hash to False for next pbft block proposal
   proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
