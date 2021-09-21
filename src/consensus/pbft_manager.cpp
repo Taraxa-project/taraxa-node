@@ -1614,42 +1614,6 @@ bool PbftManager::pushPbftBlock_(SyncBlock &sync_block, vec_blk_t &dag_blocks_or
   auto const &cert_votes = sync_block.cert_votes;
   auto pbft_period = sync_block.pbft_blk->getPeriod();
 
-  auto batch = db_->createWriteBatch();
-  dag_blk_mgr_->processSyncedBlock(batch, sync_block);
-
-  LOG(log_nf_) << "Storing cert votes of pbft blk " << pbft_block_hash;
-  LOG(log_dg_) << "Stored following cert votes:\n" << cert_votes;
-  // Update PBFT chain head block
-  db_->addPbftHeadToBatch(pbft_chain_->getHeadHash(), pbft_chain_->getJsonStrForBlock(pbft_block_hash), batch);
-
-  if (sync) {
-    dag_blocks_order.reserve(sync_block.dag_blocks.size());
-    std::transform(sync_block.dag_blocks.begin(), sync_block.dag_blocks.end(), std::back_inserter(dag_blocks_order),
-                   [](const DagBlock &dag_block) { return dag_block.getHash(); });
-    // Update counts correctly
-
-    // Non-finalized block should be empty when syncing, maybe we should clear it if we are deep out of sync to improve
-    // performance
-    auto non_finalized_blocks = dag_mgr_->getNonFinalizedBlocks();
-    unordered_set<blk_hash_t> non_finalized_blocks_set;
-    for (auto const &level : non_finalized_blocks) {
-      for (auto const &blk : level.second) {
-        non_finalized_blocks_set.insert(blk);
-      }
-    }
-    vector<DagBlock> dag_blocks_to_update_counters;
-    for (auto const &blk : sync_block.dag_blocks) {
-      if (non_finalized_blocks_set.count(blk.getHash()) == 0) {
-        dag_blocks_to_update_counters.push_back(blk);
-      }
-    }
-    db_->updateDagBlockCounters(batch, dag_blocks_to_update_counters);
-  }
-
-  // Set DAG blocks period
-  auto const &anchor_hash = sync_block.pbft_blk->getPivotDagBlockHash();
-  dag_mgr_->setDagBlockOrder(anchor_hash, pbft_period, dag_blocks_order, batch);
-
   if (!sync) {
     std::unordered_set<trx_hash_t> trx_set;
     std::vector<trx_hash_t> transactions_to_query;
@@ -1696,9 +1660,55 @@ bool PbftManager::pushPbftBlock_(SyncBlock &sync_block, vec_blk_t &dag_blocks_or
     if (calculated_order_hash != sync_block.pbft_blk->getOrderHash()) {
       LOG(log_er_) << "Order hash incorrect. Pbft order hash: " << sync_block.pbft_blk->getOrderHash()
                    << " . Calculated hash:" << calculated_order_hash;
+      std::vector<trx_hash_t> trx_order;
+      std::vector<blk_hash_t> blk_order;
+      for (auto t : sync_block.transactions) {
+        trx_order.push_back(t.getHash());
+      }
+      for (auto b : sync_block.dag_blocks) {
+        blk_order.push_back(b.getHash());
+      }
+      LOG(log_er_) << "Dag order " << blk_order;
+      LOG(log_er_) << "Trx order " << trx_order;
       return false;
     }
   }
+
+  auto batch = db_->createWriteBatch();
+  dag_blk_mgr_->processSyncedBlock(batch, sync_block);
+
+  LOG(log_nf_) << "Storing cert votes of pbft blk " << pbft_block_hash;
+  LOG(log_dg_) << "Stored following cert votes:\n" << cert_votes;
+  // Update PBFT chain head block
+  db_->addPbftHeadToBatch(pbft_chain_->getHeadHash(), pbft_chain_->getJsonStrForBlock(pbft_block_hash), batch);
+
+  if (sync) {
+    dag_blocks_order.reserve(sync_block.dag_blocks.size());
+    std::transform(sync_block.dag_blocks.begin(), sync_block.dag_blocks.end(), std::back_inserter(dag_blocks_order),
+                   [](const DagBlock &dag_block) { return dag_block.getHash(); });
+    // Update counts correctly
+
+    // Non-finalized block should be empty when syncing, maybe we should clear it if we are deep out of sync to improve
+    // performance
+    auto non_finalized_blocks = dag_mgr_->getNonFinalizedBlocks();
+    unordered_set<blk_hash_t> non_finalized_blocks_set;
+    for (auto const &level : non_finalized_blocks) {
+      for (auto const &blk : level.second) {
+        non_finalized_blocks_set.insert(blk);
+      }
+    }
+    vector<DagBlock> dag_blocks_to_update_counters;
+    for (auto const &blk : sync_block.dag_blocks) {
+      if (non_finalized_blocks_set.count(blk.getHash()) == 0) {
+        dag_blocks_to_update_counters.push_back(blk);
+      }
+    }
+    db_->updateDagBlockCounters(batch, dag_blocks_to_update_counters);
+  }
+
+  // Set DAG blocks period
+  auto const &anchor_hash = sync_block.pbft_blk->getPivotDagBlockHash();
+  dag_mgr_->setDagBlockOrder(anchor_hash, pbft_period, dag_blocks_order, batch);
 
   db_->savePeriodData(sync_block, batch);
 
@@ -1718,7 +1728,7 @@ bool PbftManager::pushPbftBlock_(SyncBlock &sync_block, vec_blk_t &dag_blocks_or
   LOG(log_nf_) << node_addr_ << " successful push unexecuted PBFT block " << pbft_block_hash << " in period "
                << pbft_period << " into chain! In round " << getPbftRound();
 
-  finalize_(*sync_block.pbft_blk, move(dag_blocks_order), sync);
+  finalize_(*sync_block.pbft_blk, move(dag_blocks_order));
 
   // Reset proposed PBFT block hash to False for next pbft block proposal
   proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
@@ -1929,6 +1939,16 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
     LOG(log_er_) << "Order hash incorrect in sync block " << pbft_block_hash << " expected: " << order_hash
                  << " received " << sync_block.first.pbft_blk->getOrderHash() << " from "
                  << sync_block.second.abridged() << ", stop syncing.";
+    std::vector<trx_hash_t> trx_order;
+    std::vector<blk_hash_t> blk_order;
+    for (auto t : sync_block.first.transactions) {
+      trx_order.push_back(t.getHash());
+    }
+    for (auto b : sync_block.first.dag_blocks) {
+      blk_order.push_back(b.getHash());
+    }
+    LOG(log_er_) << "Dag order " << blk_order;
+    LOG(log_er_) << "Trx order " << trx_order;
     net->handleMaliciousSyncPeer(sync_block.second);
     return nullopt;
   }
