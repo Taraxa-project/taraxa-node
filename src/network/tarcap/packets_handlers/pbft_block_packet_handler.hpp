@@ -27,8 +27,7 @@ class PbftBlockPacketHandler : public PacketHandler {
   void sendSyncedMessage();
 
  private:
-  void process(const dev::RLP& packet_rlp, const PacketData& packet_data,
-               const std::shared_ptr<TaraxaPeer>& peer) override;
+  void process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
 
   void pbftSyncComplete();
   void delayedPbftSync(int counter);

@@ -31,8 +31,7 @@ class SyncingHandler : public PacketHandler {
   /**
    * @note This method is not intended to be used for SyncingHandler
    */
-  void process(const dev::RLP &packet_rlp, const PacketData &packet_data,
-               const std::shared_ptr<TaraxaPeer> &peer) override;
+  void process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) override;
 
   /**
    * @brief Restart syncing

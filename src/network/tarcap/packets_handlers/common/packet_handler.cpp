@@ -12,7 +12,7 @@ PacketHandler::PacketHandler(std::shared_ptr<PeersState> peers_state, std::share
 
 void PacketHandler::processPacket(const PacketData& packet_data) {
   try {
-    SinglePacketStats packet_stats{packet_data.from_node_id_, packet_data.rlp_bytes_.size(), false,
+    SinglePacketStats packet_stats{packet_data.from_node_id_, packet_data.rlp_.data().size(), false,
                                    std::chrono::microseconds(0), std::chrono::microseconds(0)};
     auto begin = std::chrono::steady_clock::now();
 
@@ -25,7 +25,7 @@ void PacketHandler::processPacket(const PacketData& packet_data) {
     }
 
     // Main processing function
-    process(dev::RLP(packet_data.rlp_bytes_), packet_data, tmp_peer);
+    process(packet_data, tmp_peer);
 
     auto processing_duration =
         std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - begin);

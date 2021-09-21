@@ -19,12 +19,11 @@ GetPbftBlockPacketHandler::GetPbftBlockPacketHandler(std::shared_ptr<PeersState>
       db_(std::move(db)),
       network_sync_level_size_(network_sync_level_size) {}
 
-void GetPbftBlockPacketHandler::process(const dev::RLP &packet_rlp, const PacketData &packet_data,
-
+void GetPbftBlockPacketHandler::process(const PacketData &packet_data,
                                         [[maybe_unused]] const std::shared_ptr<TaraxaPeer> &peer) {
   LOG(log_dg_) << "Received GetPbftBlockPacket Block";
 
-  const size_t height_to_sync = packet_rlp[0].toInt();
+  const size_t height_to_sync = packet_data.rlp_[0].toInt();
   // Here need PBFT chain size, not synced period since synced blocks has not verified yet.
   const size_t my_chain_size = pbft_chain_->getPbftChainSize();
   size_t blocks_to_transfer = 0;

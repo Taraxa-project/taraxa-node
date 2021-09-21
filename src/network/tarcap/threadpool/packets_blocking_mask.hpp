@@ -53,12 +53,11 @@ class PacketsBlockingMask {
       blocked_packets_peers_time_;
 
   // This "blocking dependency" is specific just for NewBlockPacket. Ideally only dag blocks with the same level should
-  // be processed. In reality there are situation when node receives dag block with smaller level than the level of blocks
-  // that are already being processed. In such case these blocks with smaller levels can be processed concurrently with
-  // blocks that have higher level.
-  // All new dag blocks with higher level than the lowest level from all the blocks that currently being processed
-  // are blocked for processing
-  // In this map are saved pairs of <level, count>, where:
+  // be processed. In reality there are situation when node receives dag block with smaller level than the level of
+  // blocks that are already being processed. In such case these blocks with smaller levels can be processed
+  // concurrently with blocks that have higher level. All new dag blocks with higher level than the lowest level from
+  // all the blocks that currently being processed are blocked for processing In this map are saved pairs of <level,
+  // count>, where:
   //    level - What dag level have blocks that are currently being processed
   //    count - How many "NewBlockPacket" packets (of the same dag block level) are currently being processed
   //    concurrently

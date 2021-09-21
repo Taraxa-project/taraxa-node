@@ -39,10 +39,8 @@ class PacketHandler {
 
   /**
    * @brief Main packet processing function
-   * @note packet_rlp is RLP object created from packet_data.rlp_bytes
    */
-  virtual void process(const dev::RLP& packet_rlp, const PacketData& packet_data,
-                       const std::shared_ptr<TaraxaPeer>& peer) = 0;
+  virtual void process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) = 0;
 
  protected:
   bool sealAndSend(const dev::p2p::NodeID& nodeID, SubprotocolPacketType packet_type, dev::RLPStream&& rlp);

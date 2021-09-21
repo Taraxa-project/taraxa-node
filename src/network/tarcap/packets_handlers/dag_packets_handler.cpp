@@ -25,21 +25,15 @@ DagPacketsHandler::DagPacketsHandler(std::shared_ptr<PeersState> peers_state,
       test_state_(std::move(test_state)) {}
 
 thread_local mt19937_64 DagPacketsHandler::urng_{std::mt19937_64(std::random_device()())};
-
-void DagPacketsHandler::process(const dev::RLP &packet_rlp, const PacketData &packet_data,
-
-                                const std::shared_ptr<TaraxaPeer> &peer) {
-  DagBlock block(packet_rlp[0].data().toBytes());
-
   blk_hash_t const hash = block.getHash();
-  const auto transactions_count = packet_rlp.itemCount() - 1;
+  const auto transactions_count = packet_data.rlp_.itemCount() - 1;
   LOG(log_dg_) << "Received NewBlockPacket " << hash.abridged() << " with " << transactions_count << " txs";
 
   peer->markDagBlockAsKnown(hash);
 
   std::vector<Transaction> new_transactions;
   for (size_t i_transaction = 1; i_transaction < transactions_count + 1; i_transaction++) {
-    Transaction transaction(packet_rlp[i_transaction].data().toBytes());
+    Transaction transaction(packet_data.rlp_[i_transaction].data().toBytes());
     peer->markTransactionAsKnown(transaction.getHash());
     new_transactions.push_back(std::move(transaction));
   }

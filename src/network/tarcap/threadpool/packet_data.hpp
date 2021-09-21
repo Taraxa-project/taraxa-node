@@ -25,13 +25,17 @@ class PacketData {
   PacketData& operator=(const PacketData&) = default;
   PacketData& operator=(PacketData&&) = default;
 
+ private:
+  // Packet bytes had to be copied here as dev::RLP does not own vector of bytes, it only "points to" it
+  std::vector<unsigned char> rlp_bytes_;
+
  public:
   std::chrono::steady_clock::time_point receive_time_;
   PriorityQueuePacketType type_;
   std::string type_str_;
   PacketPriority priority_;
   dev::p2p::NodeID from_node_id_;
-  std::vector<unsigned char> rlp_bytes_;
+  dev::RLP rlp_;
 };
 
 }  // namespace taraxa::network::tarcap

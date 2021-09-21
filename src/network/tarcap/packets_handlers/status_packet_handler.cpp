@@ -27,9 +27,8 @@ StatusPacketHandler::StatusPacketHandler(std::shared_ptr<PeersState> peers_state
       pbft_mgr_(std::move(pbft_mgr)),
       conf_network_id_(conf_network_id) {}
 
-void StatusPacketHandler::process(const dev::RLP& packet_rlp, const PacketData& packet_data,
-                                  const std::shared_ptr<TaraxaPeer>& peer) {
-  bool initial_status = packet_rlp.itemCount() == INITIAL_STATUS_PACKET_ITEM_COUNT;
+void StatusPacketHandler::process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) {
+  bool initial_status = packet_data.rlp_.itemCount() == INITIAL_STATUS_PACKET_ITEM_COUNT;
 
   // Important !!! Use only "selected_peer" and not "peer" in this function as "peer" might be nullptr
   auto selected_peer = peer;
@@ -47,7 +46,7 @@ void StatusPacketHandler::process(const dev::RLP& packet_rlp, const PacketData& 
       selected_peer = std::move(pending_peer);
     }
 
-    auto it = packet_rlp.begin();
+    auto it = packet_data.rlp_.begin();
     auto const peer_network_id = (*it++).toInt<uint64_t>();
     auto const peer_dag_level = (*it++).toPositiveInt64();
     auto const genesis_hash = blk_hash_t(*it++);
@@ -107,7 +106,7 @@ void StatusPacketHandler::process(const dev::RLP& packet_rlp, const PacketData& 
       return;
     }
 
-    auto it = packet_rlp.begin();
+    auto it = packet_data.rlp_.begin();
     selected_peer->dag_level_ = (*it++).toPositiveInt64();
     selected_peer->pbft_chain_size_ = (*it++).toPositiveInt64();
     selected_peer->syncing_ = (*it++).toInt();

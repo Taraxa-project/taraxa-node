@@ -30,11 +30,7 @@ class DagPacketsHandler : public PacketHandler {
   void onNewBlockVerified(DagBlock const &block, bool proposed);
 
  private:
-  void process(const dev::RLP &packet_rlp, const PacketData &packet_data,
-               const std::shared_ptr<TaraxaPeer> &peer) override;
-
-  inline void processNewBlockPacket(const dev::RLP &packet_rlp, const PacketData &packet_data,
-                                    const std::shared_ptr<TaraxaPeer> &peer);
+  void process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) override;
 
   std::shared_ptr<SyncingState> syncing_state_;
   std::shared_ptr<SyncingHandler> syncing_handler_;

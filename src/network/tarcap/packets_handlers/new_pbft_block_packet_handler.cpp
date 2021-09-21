@@ -15,13 +15,11 @@ NewPbftBlockPacketHandler::NewPbftBlockPacketHandler(std::shared_ptr<PeersState>
       pbft_chain_(std::move(pbft_chain)),
       pbft_mgr_(std::move(pbft_mgr)) {}
 
-void NewPbftBlockPacketHandler::process(const dev::RLP &packet_rlp, [[maybe_unused]] const PacketData &packet_data,
-
-                                        const std::shared_ptr<TaraxaPeer> &peer) {
+void NewPbftBlockPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
   LOG(log_dg_) << "In NewPbftBlockPacket";
 
-  auto pbft_block = std::make_shared<PbftBlock>(packet_rlp[0]);
-  const uint64_t peer_pbft_chain_size = packet_rlp[1].toInt();
+  auto pbft_block = std::make_shared<PbftBlock>(packet_data.rlp_[0]);
+  const uint64_t peer_pbft_chain_size = packet_data.rlp_[1].toInt();
   LOG(log_dg_) << "Receive proposed PBFT Block " << pbft_block->getBlockHash().abridged()
                << ", Peer PBFT Chain size: " << peer_pbft_chain_size;
 

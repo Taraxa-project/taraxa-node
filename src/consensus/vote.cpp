@@ -279,7 +279,7 @@ void VoteManager::addVerifiedVote(std::shared_ptr<Vote> const& vote) {
 
         } else {
           // Add vote hash
-          upgradeLock_ locked(lock);
+          UpgradeLock locked(lock);
           found_voted_value_it->second.insert({hash, vote});
         }
       } else {
@@ -440,12 +440,8 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
   // Remove unverified votes
   vector<vote_hash_t> remove_unverified_votes_hash;
   {
-    UpgradableLock lock(unverified_votes_access_);
-    std::map<uint64_t, std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>>::iterator it = unverified_votes_.begin();
-    std::map<uint64_t, std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>>::reverse_iterator rit;
-
     UniqueLock lock(unverified_votes_access_);
-    std::map<uint64_t, std::unordered_map<vote_hash_t, Vote>>::iterator it = unverified_votes_.begin();
+    auto it = unverified_votes_.begin();
 
     while (it != unverified_votes_.end() && it->first < pbft_round) {
       for (auto const& v : it->second) {
@@ -456,7 +452,7 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
 
     size_t stale_removed_votes_count = 0;
 
-    rit = unverified_votes_.rbegin();
+    auto rit = unverified_votes_.rbegin();
     while (rit != unverified_votes_.rend()) {
       auto vote_round = rit->first;
       auto v = rit->second.begin();
@@ -618,7 +614,7 @@ std::string VoteManager::getJsonStr(std::vector<std::shared_ptr<Vote>> const& vo
 std::vector<std::shared_ptr<Vote>> VoteManager::getProposalVotes(uint64_t pbft_round) {
   std::vector<std::shared_ptr<Vote>> proposal_votes;
 
-  sharedLock_ lock(verified_votes_access_);
+  SharedLock lock(verified_votes_access_);
   // For each proposed value should only have one vote(except NULL_BLOCK_HASH)
   proposal_votes.reserve(verified_votes_[pbft_round][1].size());
   for (auto const& voted_value : verified_votes_[pbft_round][1]) {
@@ -633,7 +629,7 @@ std::vector<std::shared_ptr<Vote>> VoteManager::getProposalVotes(uint64_t pbft_r
 VotesBundle VoteManager::getVotesBundleByRoundAndStep(uint64_t round, size_t step, size_t two_t_plus_one) {
   std::vector<std::shared_ptr<Vote>> votes;
 
-  sharedLock_ lock(verified_votes_access_);
+  SharedLock lock(verified_votes_access_);
   auto found_round_it = verified_votes_.find(round);
   if (found_round_it != verified_votes_.end()) {
     auto found_step_it = found_round_it->second.find(step);
@@ -663,7 +659,7 @@ VotesBundle VoteManager::getVotesBundleByRoundAndStep(uint64_t round, size_t ste
 }
 
 uint64_t VoteManager::roundDeterminedFromVotes(size_t two_t_plus_one) {
-  sharedLock_ lock(verified_votes_access_);
+  SharedLock lock(verified_votes_access_);
   for (auto rit = verified_votes_.rbegin(); rit != verified_votes_.rend(); ++rit) {
     for (auto const& step : rit->second) {
       if (step.first <= 3) {

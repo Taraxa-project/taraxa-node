@@ -19,20 +19,19 @@ GetBlocksPacketsHandler::GetBlocksPacketsHandler(std::shared_ptr<PeersState> pee
       dag_blk_mgr_(std::move(dag_blk_mgr)),
       db_(std::move(db)) {}
 
-void GetBlocksPacketsHandler::process(const dev::RLP &packet_rlp, const PacketData &packet_data,
-
+void GetBlocksPacketsHandler::process(const PacketData &packet_data,
                                       [[maybe_unused]] const std::shared_ptr<TaraxaPeer> &peer) {
   std::unordered_set<blk_hash_t> blocks_hashes;
   std::vector<std::shared_ptr<DagBlock>> dag_blocks;
-  auto it = packet_rlp.begin();
+  auto it = packet_data.rlp_.begin();
   const auto mode = static_cast<GetBlocksPacketRequestType>((*it++).toInt<unsigned>());
 
   if (mode == GetBlocksPacketRequestType::MissingHashes)
-    LOG(log_dg_) << "Received GetBlocksPacket with " << packet_rlp.itemCount() - 1 << " missing blocks";
+    LOG(log_dg_) << "Received GetBlocksPacket with " << packet_data.rlp_.itemCount() - 1 << " missing blocks";
   else if (mode == GetBlocksPacketRequestType::KnownHashes)
-    LOG(log_dg_) << "Received GetBlocksPacket with " << packet_rlp.itemCount() - 1 << " known blocks";
+    LOG(log_dg_) << "Received GetBlocksPacket with " << packet_data.rlp_.itemCount() - 1 << " known blocks";
 
-  for (; it != packet_rlp.end(); ++it) {
+  for (; it != packet_data.rlp_.end(); ++it) {
     blocks_hashes.emplace(*it);
   }
 

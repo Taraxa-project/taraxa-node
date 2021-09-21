@@ -75,7 +75,7 @@ std::optional<taraxa::level_t> PacketsBlockingMask::getSmallestDagLevelBeingProc
 }
 
 void PacketsBlockingMask::setDagBlockLevelBeingProcessed(const PacketData& packet) {
-  level_t dag_level = DagBlock::extract_dag_level_from_rlp(dev::RLP(packet.rlp_bytes_)[0]);
+  level_t dag_level = DagBlock::extract_dag_level_from_rlp(packet.rlp_[0]);
 
   const auto smallest_processing_dag_level = getSmallestDagLevelBeingProcessed();
   if (smallest_processing_dag_level.has_value()) {
@@ -94,7 +94,7 @@ void PacketsBlockingMask::setDagBlockLevelBeingProcessed(const PacketData& packe
 }
 
 void PacketsBlockingMask::unsetDagBlockLevelBeingProcessed(const PacketData& packet) {
-  level_t dag_block_level = DagBlock::extract_dag_level_from_rlp(dev::RLP(packet.rlp_bytes_)[0]);
+  level_t dag_block_level = DagBlock::extract_dag_level_from_rlp(packet.rlp_[0]);
 
   const auto processing_dag_level = processing_dag_levels_.find(dag_block_level);
 
@@ -120,8 +120,9 @@ bool PacketsBlockingMask::isPacketBlocked(const PacketData& packet_data) const {
 
   // Custom packet types blocks
   if (packet_data.type_ == PriorityQueuePacketType::kPqNewBlockPacket) {
-    if (const auto smallest_processing_dag_level = getSmallestDagLevelBeingProcessed(); smallest_processing_dag_level.has_value()) {
-      const auto dag_level = DagBlock::extract_dag_level_from_rlp(dev::RLP(packet_data.rlp_bytes_)[0]);
+    if (const auto smallest_processing_dag_level = getSmallestDagLevelBeingProcessed();
+        smallest_processing_dag_level.has_value()) {
+      const auto dag_level = DagBlock::extract_dag_level_from_rlp(packet_data.rlp_[0]);
       if (dag_level > smallest_processing_dag_level.value()) {
         return true;
       }

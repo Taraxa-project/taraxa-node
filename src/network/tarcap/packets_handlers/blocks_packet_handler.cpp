@@ -16,15 +16,13 @@ BlocksPacketHandler::BlocksPacketHandler(std::shared_ptr<PeersState> peers_state
       syncing_handler_(std::move(syncing_handler)),
       dag_blk_mgr_(std::move(dag_blk_mgr)) {}
 
-void BlocksPacketHandler::process(const dev::RLP& packet_rlp, const PacketData& packet_data,
-
-                                  const std::shared_ptr<TaraxaPeer>& peer) {
+void BlocksPacketHandler::process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) {
   std::string received_dag_blocks_str;
   std::unordered_set<blk_hash_t> missing_blks;
 
-  auto it = packet_rlp.begin();
+  auto it = packet_data.rlp_.begin();
 
-  for (; it != packet_rlp.end();) {
+  for (; it != packet_data.rlp_.end();) {
     DagBlock block(*it++);
     peer->markDagBlockAsKnown(block.getHash());
 

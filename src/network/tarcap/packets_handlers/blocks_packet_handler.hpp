@@ -24,8 +24,7 @@ class BlocksPacketHandler : public PacketHandler {
   virtual ~BlocksPacketHandler() = default;
 
  private:
-  void process(const dev::RLP& packet_rlp, const PacketData& packet_data,
-               const std::shared_ptr<TaraxaPeer>& peer) override;
+  void process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
 
   std::shared_ptr<SyncingState> syncing_state_;
   std::shared_ptr<SyncingHandler> syncing_handler_;

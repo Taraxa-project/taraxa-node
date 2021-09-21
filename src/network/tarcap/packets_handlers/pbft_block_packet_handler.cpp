@@ -24,9 +24,7 @@ PbftBlockPacketHandler::PbftBlockPacketHandler(
       network_sync_level_size_(network_sync_level_size),
       delayed_sync_events_tp_(1, true) {}
 
-void PbftBlockPacketHandler::process(const dev::RLP &packet_rlp, const PacketData &packet_data,
-
-                                     const std::shared_ptr<TaraxaPeer> &peer) {
+void PbftBlockPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
   // Note: no need to consider possible race conditions due to concurrent processing as it is
   // disabled on priority_queue blocking dependencies level
 
@@ -44,7 +42,7 @@ void PbftBlockPacketHandler::process(const dev::RLP &packet_rlp, const PacketDat
     return;
   }
 
-  const size_t item_count = packet_rlp.itemCount();
+  const size_t item_count = packet_data.rlp_.itemCount();
 
   // No blocks received - syncing is complete
   if (item_count == 0) {
@@ -53,7 +51,7 @@ void PbftBlockPacketHandler::process(const dev::RLP &packet_rlp, const PacketDat
   }
 
   // Process received pbft blocks
-  auto it = packet_rlp.begin();
+  auto it = packet_data.rlp_.begin();
   bool last_block = (*it++).toInt<bool>();
   SyncBlock sync_block(*it);
 
