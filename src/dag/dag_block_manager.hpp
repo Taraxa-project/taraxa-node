@@ -8,7 +8,7 @@
 
 namespace taraxa {
 
-enum class BlockStatus { invalid, proposed, broadcasted, verified, unseen };
+enum class BlockStatus { invalid, proposed, broadcasted };
 
 using BlockStatusTable = ExpirationCacheMap<blk_hash_t, BlockStatus>;
 

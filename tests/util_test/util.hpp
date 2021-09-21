@@ -327,8 +327,8 @@ inline vector<blk_hash_t> getOrderedDagBlocks(shared_ptr<DbStorage> const& db) {
   while (true) {
     auto pbft_block = db->getPbftBlock(period);
     if (pbft_block.has_value()) {
-      for (auto const& dag_block_hash : db->getFinalizedDagBlockHashesByAnchor(pbft_block->getPivotDagBlockHash())) {
-        res.push_back(dag_block_hash);
+      for (auto const& dag_block_hash : db->getFinalizedDagBlockHashesByPeriod(period)) {
+        res.push_back(std::move(dag_block_hash));
       }
       period++;
       continue;

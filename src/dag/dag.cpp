@@ -510,7 +510,6 @@ uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period,
                                   DbStorage::Batch &write_batch) {
   uLock lock(mutex_);
   LOG(log_dg_) << "setDagBlockOrder called with anchor " << new_anchor << " and period " << period;
-  db_->putFinalizedDagBlockHashesByAnchor(write_batch, new_anchor, dag_order);
   if (period != period_ + 1) {
     LOG(log_er_) << " Inserting period (" << period << ") anchor " << new_anchor
                  << " does not match ..., previous internal period (" << period_ << ") " << anchor_;

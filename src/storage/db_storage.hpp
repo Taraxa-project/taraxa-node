@@ -41,6 +41,7 @@ enum PbftMgrPreviousRoundStatus : uint8_t {
 };
 
 enum PbftMgrRoundStep : uint8_t { PbftRound = 0, PbftStep };
+
 enum PbftMgrStatus : uint8_t {
   SoftVotedBlockInRound = 0,
   ExecutedBlock,
@@ -91,14 +92,12 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
 #define COLUMN(__name__) static inline auto const __name__ = all_.emplace_back(#__name__, all_.size())
 
-    COLUMN(default_column);
     // Contains full data for an executed PBFT block including PBFT block, cert votes, dag blocks and transactions
     COLUMN(period_data);
     COLUMN(dag_blocks);
     COLUMN(dag_blocks_index);
-    COLUMN(dag_blocks_state);
+    COLUMN(dag_blocks_state);  // remove
     // anchor_hash->[...dag_block_hashes_since_previous_anchor, anchor_hash]
-    COLUMN(dag_finalized_blocks);
     COLUMN(transactions);
     COLUMN(trx_status);
     COLUMN(status);
@@ -298,8 +297,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   auto getNumBlockExecuted() { return getStatusField(StatusDbField::ExecutedBlkCount); }
   uint64_t getNumDagBlocks() { return getDagBlocksCount(); }
 
-  vector<blk_hash_t> getFinalizedDagBlockHashesByAnchor(blk_hash_t const& anchor);
-  void putFinalizedDagBlockHashesByAnchor(WriteBatch& b, blk_hash_t const& anchor, vector<blk_hash_t> const& hs);
+  vector<blk_hash_t> getFinalizedDagBlockHashesByPeriod(uint32_t period);
 
   // DPOS proposal period levels status
   uint64_t getDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus field);

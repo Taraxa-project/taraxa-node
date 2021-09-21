@@ -786,17 +786,16 @@ void DbStorage::addDagBlockPeriodToBatch(blk_hash_t const& hash, uint32_t period
   insert(write_batch, Columns::dag_block_period, toSlice(hash.asBytes()), toSlice(s.invalidate()));
 }
 
-vector<blk_hash_t> DbStorage::getFinalizedDagBlockHashesByAnchor(blk_hash_t const& anchor) {
-  auto raw = lookup(toSlice(anchor), Columns::dag_finalized_blocks);
-  if (raw.empty()) {
-    return {};
+vector<blk_hash_t> DbStorage::getFinalizedDagBlockHashesByPeriod(uint32_t period) {
+  std::vector<blk_hash_t> ret;
+  if (auto period_data = getPeriodDataRaw(period); period_data.size() > 0) {
+    auto dag_blocks_data = RLP(period_data)[DAG_BLOCKS_POS_IN_PERIOD_DATA];
+    ret.reserve(dag_blocks_data.size());
+    std::transform(dag_blocks_data.begin(), dag_blocks_data.end(), std::back_inserter(ret),
+                   [](const auto& dag_block) { return DagBlock(dag_block).getHash(); });
   }
-  return RLP(raw).toVector<blk_hash_t>();
-}
 
-void DbStorage::putFinalizedDagBlockHashesByAnchor(WriteBatch& b, blk_hash_t const& anchor,
-                                                   vector<blk_hash_t> const& hs) {
-  insert(b, DbStorage::Columns::dag_finalized_blocks, anchor, RLPStream().appendVector(hs).out());
+  return ret;
 }
 
 uint64_t DbStorage::getDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus field) {

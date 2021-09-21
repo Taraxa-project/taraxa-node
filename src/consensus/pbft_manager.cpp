@@ -113,8 +113,7 @@ void PbftManager::run() {
                    << pbft_block->getPeriod() << " in block data than in block order db: " << period;
       assert(false);
     }
-    finalize_(*pbft_block, db_->getFinalizedDagBlockHashesByAnchor(pbft_block->getPivotDagBlockHash()),
-              period == curr_period);
+    finalize_(*pbft_block, db_->getFinalizedDagBlockHashesByPeriod(period), period == curr_period);
   }
 
   // Initialize PBFT status

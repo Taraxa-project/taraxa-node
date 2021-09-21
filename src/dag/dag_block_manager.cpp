@@ -175,9 +175,6 @@ void DagBlockManager::processSyncedBlock(DbStorage::Batch &batch, SyncBlock cons
   db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_mgr_->getTransactionCount(), batch);
 
   trx_mgr_->getTransactionQueue().removeBlockTransactionsFromQueue(transactions);
-  for (auto const &blk : sync_block.dag_blocks) {
-    blk_status_.update(blk.getHash(), BlockStatus::verified);
-  }
 }
 
 void DagBlockManager::insertBroadcastedBlockWithTransactions(DagBlock const &blk,
@@ -326,9 +323,6 @@ void DagBlockManager::verifyBlock() {
         verified_qu_[blk.first.getLevel()].emplace_back(blk.first);
       }
     }
-
-    blk_status_.update(block_hash, BlockStatus::verified);
-
     cond_for_verified_qu_.notify_one();
     LOG(log_dg_) << "Verified block: " << block_hash << std::endl;
   }
