@@ -236,6 +236,8 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   bool loop_back_finish_state_ = false;
   bool polling_state_print_log_ = true;
 
+  bool have_failed_ordering_check_in_this_step_ = false;
+
   uint64_t max_wait_for_soft_voted_block_steps_ms_ = 30;
   uint64_t max_wait_for_next_voted_block_steps_ms_ = 30;
 

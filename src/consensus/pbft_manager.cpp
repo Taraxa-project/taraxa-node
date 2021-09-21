@@ -584,6 +584,7 @@ void PbftManager::setCertifyState_() {
   last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
   current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
   polling_state_print_log_ = true;
+  have_failed_ordering_check_in_this_step_ = false;
 }
 
 void PbftManager::setFinishState_() {
@@ -594,6 +595,7 @@ void PbftManager::setFinishState_() {
   last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
   current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
   polling_state_print_log_ = true;
+  have_failed_ordering_check_in_this_step_ = false;
 }
 
 void PbftManager::setFinishPollingState_() {
@@ -606,6 +608,7 @@ void PbftManager::setFinishPollingState_() {
   next_voted_soft_value_ = false;
   next_voted_null_block_hash_ = false;
   polling_state_print_log_ = true;
+  have_failed_ordering_check_in_this_step_ = false;
   last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
   current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
 }
@@ -639,6 +642,7 @@ void PbftManager::loopBackFinishState_() {
   next_voted_soft_value_ = false;
   next_voted_null_block_hash_ = false;
   polling_state_print_log_ = true;
+  have_failed_ordering_check_in_this_step_ = false;
   assert(step_ >= startingStepInRound_);
   next_step_time_ms_ = (1 + step_ - startingStepInRound_) * LAMBDA_ms;
   last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
@@ -903,13 +907,10 @@ void PbftManager::certifyBlock_() {
       bool unverified_soft_vote_block_for_this_round_is_valid = false;
       if (!executed_soft_voted_block_for_this_round) {
         auto block = pbft_chain_->getUnverifiedPbftBlock(soft_voted_block_for_this_round_.first);
-        if (block && pbft_chain_->checkPbftBlockValidation(*block)) {
+        assert(block);
+        if (pbft_chain_->checkPbftBlockValidation(*block)) {
           unverified_soft_vote_block_for_this_round_is_valid = true;
         } else {
-          if (!block) {
-            LOG(log_er_) << "Cannot find the unverified pbft block " << soft_voted_block_for_this_round_.first
-                         << " in round " << round << " step 3";
-          }
           syncPbftChainFromPeers_(invalid_soft_voted_block, soft_voted_block_for_this_round_.first);
         }
       }
@@ -979,6 +980,9 @@ void PbftManager::firstFinish_() {
       if (own_starting_value_for_round_ != previous_round_next_voted_value_ &&
           previous_round_next_voted_value_ != NULL_BLOCK_HASH &&
           !pbft_chain_->findPbftBlockInChain(previous_round_next_voted_value_)) {
+        // Reset have_failed_ordering_check_in_this_step_ for checking previous round next voted value
+        have_failed_ordering_check_in_this_step_ = false;
+
         if (own_starting_value_for_round_ == NULL_BLOCK_HASH) {
           db_->savePbftMgrVotedValue(PbftMgrVotedValue::own_starting_value_in_round, previous_round_next_voted_value_);
           own_starting_value_for_round_ = previous_round_next_voted_value_;
@@ -1303,15 +1307,15 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
   addr_t beneficiary = node_addr_;
 
   // get DAG block and transaction order
-  auto dag_block_order = dag_mgr_->getDagBlockOrder(dag_block_hash);
-  if (dag_block_order.second.empty()) {
+  auto dag_block_order = dag_mgr_->getDagBlockOrder(dag_block_hash).second;
+  if (dag_block_order.empty()) {
     LOG(log_er_) << "DAG anchor block hash " << dag_block_hash << " getDagBlockOrder failed in propose";
     assert(false);
   }
   std::vector<trx_hash_t> non_executed_transactions;
   std::unordered_set<trx_hash_t> trx_hashes_set;
   std::vector<trx_hash_t> trx_hashes;
-  for (auto const &blk_hash : dag_block_order.second) {
+  for (auto const &blk_hash : dag_block_order) {
     auto dag_blk = dag_blk_mgr_->getDagBlock(blk_hash);
     if (!dag_blk) {
       LOG(log_er_) << "DAG anchor block hash " << dag_block_hash << " getDagBlock failed in propose for block "
@@ -1335,10 +1339,13 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     }
   }
 
-  LOG(log_nf_) << "DAG order for proposed block" << dag_block_order.second;
+  // DAG blocks order have sorted in Dag::computeOrder, sort transactions order
+  std::sort(non_executed_transactions.begin(), non_executed_transactions.end());
+
+  LOG(log_nf_) << "DAG order for proposed block" << dag_block_order;
   LOG(log_nf_) << "Transaction order for proposed block" << non_executed_transactions;
 
-  auto order_hash = calculateOrderHash(dag_block_order.second, non_executed_transactions);
+  auto order_hash = calculateOrderHash(dag_block_order, non_executed_transactions);
 
   // generate generate pbft block
   auto pbft_block = std::make_shared<PbftBlock>(last_pbft_block_hash, dag_block_hash, order_hash, propose_pbft_period,
@@ -1505,11 +1512,55 @@ bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(blk_hash_t const &pbft_
 std::pair<vec_blk_t, bool> PbftManager::comparePbftBlockScheduleWithDAGblocks_(PbftBlock const &pbft_block) {
   auto const &anchor_hash = pbft_block.getPivotDagBlockHash();
   auto dag_blocks_order = dag_mgr_->getDagBlockOrder(anchor_hash).second;
-  if (!dag_blocks_order.empty()) {
-    return std::make_pair(std::move(dag_blocks_order), true);
+  if (dag_blocks_order.empty()) {
+    syncPbftChainFromPeers_(missing_dag_blk, anchor_hash);
+    return std::make_pair(std::move(dag_blocks_order), false);
   }
-  syncPbftChainFromPeers_(missing_dag_blk, anchor_hash);
-  return std::make_pair(std::move(dag_blocks_order), false);
+
+  if (have_failed_ordering_check_in_this_step_) {
+    return std::make_pair(std::move(dag_blocks_order), false);
+  }
+
+  std::vector<trx_hash_t> non_executed_transactions;
+  std::unordered_set<trx_hash_t> trx_hashes_set;
+  std::vector<trx_hash_t> trx_hashes;
+  for (auto const &blk_hash : dag_blocks_order) {
+    auto dag_blk = dag_blk_mgr_->getDagBlock(blk_hash);
+    if (!dag_blk) {
+      LOG(log_er_) << "DAG anchor block hash " << anchor_hash << " getDagBlock failed in propose for block "
+                   << blk_hash;
+      assert(false);
+    }
+    for (auto const &trx_hash : dag_blk->getTrxs()) {
+      if (trx_hashes_set.emplace(trx_hash).second) {
+        trx_hashes.emplace_back(trx_hash);
+      }
+    }
+  }
+  auto trx_statuses = db_->getTransactionStatus(trx_hashes);
+  for (uint32_t i = 0; i < trx_statuses.size(); i++) {
+    if (trx_statuses[i].state == TransactionStatusEnum::in_block) {
+      non_executed_transactions.emplace_back(trx_hashes[i]);
+    } else if (trx_statuses[i].state != TransactionStatusEnum::finalized) {
+      LOG(log_er_) << "Incorrect transaction state for trx: " << trx_hashes[i]
+                   << " state : " << (uint16_t)trx_statuses[i].state;
+      assert(false);
+    }
+  }
+
+  // DAG blocks order have sorted in Dag::computeOrder, sort transactions order
+  std::sort(non_executed_transactions.begin(), non_executed_transactions.end());
+  auto calculated_order_hash = calculateOrderHash(dag_blocks_order, non_executed_transactions);
+  if (calculated_order_hash != pbft_block.getOrderHash()) {
+    LOG(log_er_) << "Order hash incorrect. Pbft block order hash: " << pbft_block.getOrderHash()
+                 << " . Calculated hash: " << calculated_order_hash;
+    LOG(log_er_) << "Dag order " << dag_blocks_order;
+    LOG(log_er_) << "Trx order " << non_executed_transactions;
+    have_failed_ordering_check_in_this_step_ = true;
+    return std::make_pair(std::move(dag_blocks_order), false);
+  }
+
+  return std::make_pair(std::move(dag_blocks_order), true);
 }
 
 bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cert_voted_block_hash,
@@ -1617,67 +1668,67 @@ bool PbftManager::pushPbftBlock_(SyncBlock &sync_block, vec_blk_t &dag_blocks_or
   auto batch = db_->createWriteBatch();
   dag_blk_mgr_->processSyncedBlock(batch, sync_block);
 
-  if (!sync) {
-    std::unordered_set<trx_hash_t> trx_set;
-    std::vector<trx_hash_t> transactions_to_query;
-    DbStorage::MultiGetQuery db_query(db_);
-    db_query.append(DbStorage::Columns::dag_blocks, dag_blocks_order);
-    auto dag_blocks_res = db_query.execute();
+  // if (!sync) {
+  //   std::unordered_set<trx_hash_t> trx_set;
+  //   std::vector<trx_hash_t> transactions_to_query;
+  //   DbStorage::MultiGetQuery db_query(db_);
+  //   db_query.append(DbStorage::Columns::dag_blocks, dag_blocks_order);
+  //   auto dag_blocks_res = db_query.execute();
 
-    for (auto const &dag_blk_raw : dag_blocks_res) {
-      DagBlock dag_block(asBytes(dag_blk_raw));
-      for (auto const &trx_hash : dag_block.getTrxs()) {
-        if (trx_set.insert(trx_hash).second) {
-          transactions_to_query.emplace_back(trx_hash);
-        }
-      }
-      sync_block.dag_blocks.emplace_back(std::move(dag_block));
-    }
-    std::vector<trx_hash_t> non_executed_transactions;
-    db_query.append(DbStorage::Columns::trx_status, transactions_to_query);
-    auto transactions_status_res = db_query.execute();
-    uint32_t trx_index = 0;
-    for (auto const &trx_status_raw : transactions_status_res) {
-      if (!trx_status_raw.empty()) {
-        auto data = asBytes(trx_status_raw);
-        dev::RLP rlp(data);
-        TransactionStatus transaction_status(rlp);
-        if (transaction_status.state == TransactionStatusEnum::in_block) {
-          non_executed_transactions.emplace_back(transactions_to_query[trx_index]);
-        } else if (transaction_status.state != TransactionStatusEnum::finalized) {
-          LOG(log_er_) << transactions_to_query[trx_index] << " in incorrect state"
-                       << (uint16_t)transaction_status.state;
-          assert(false);
-        }
-      }
-      trx_index++;
-    }
+  //   for (auto const &dag_blk_raw : dag_blocks_res) {
+  //     DagBlock dag_block(asBytes(dag_blk_raw));
+  //     for (auto const &trx_hash : dag_block.getTrxs()) {
+  //       if (trx_set.insert(trx_hash).second) {
+  //         transactions_to_query.emplace_back(trx_hash);
+  //       }
+  //     }
+  //     sync_block.dag_blocks.emplace_back(std::move(dag_block));
+  //   }
+  //   std::vector<trx_hash_t> non_executed_transactions;
+  //   db_query.append(DbStorage::Columns::trx_status, transactions_to_query);
+  //   auto transactions_status_res = db_query.execute();
+  //   uint32_t trx_index = 0;
+  //   for (auto const &trx_status_raw : transactions_status_res) {
+  //     if (!trx_status_raw.empty()) {
+  //       auto data = asBytes(trx_status_raw);
+  //       dev::RLP rlp(data);
+  //       TransactionStatus transaction_status(rlp);
+  //       if (transaction_status.state == TransactionStatusEnum::in_block) {
+  //         non_executed_transactions.emplace_back(transactions_to_query[trx_index]);
+  //       } else if (transaction_status.state != TransactionStatusEnum::finalized) {
+  //         LOG(log_er_) << transactions_to_query[trx_index] << " in incorrect state"
+  //                      << (uint16_t)transaction_status.state;
+  //         assert(false);
+  //       }
+  //     }
+  //     trx_index++;
+  //   }
 
-    db_query.append(DbStorage::Columns::transactions, non_executed_transactions);
-    auto transactions_res = db_query.execute();
-    sync_block.transactions.reserve(transactions_res.size());
-    for (auto const &trx_raw : transactions_res) {
-      if (trx_raw.size() > 0) sync_block.transactions.emplace_back(asBytes(trx_raw));
-    }
-    auto calculated_order_hash = calculateOrderHash(sync_block.dag_blocks, sync_block.transactions);
-    if (calculated_order_hash != sync_block.pbft_blk->getOrderHash()) {
-      LOG(log_er_) << "Order hash incorrect. Pbft order hash: " << sync_block.pbft_blk->getOrderHash()
-                   << " . Calculated hash:" << calculated_order_hash;
-      std::vector<trx_hash_t> trx_order;
-      trx_order.reserve(sync_block.transactions.size());
-      for (auto const &t : sync_block.transactions) {
-        trx_order.push_back(t.getHash());
-      }
-      std::vector<blk_hash_t> blk_order;
-      blk_order.reserve(sync_block.dag_blocks.size());
-      for (auto const &b : sync_block.dag_blocks) {
-        blk_order.push_back(b.getHash());
-      }
-      LOG(log_er_) << "Dag order " << blk_order;
-      LOG(log_er_) << "Trx order " << trx_order;
-      return false;
-    }
-  }
+  //   db_query.append(DbStorage::Columns::transactions, non_executed_transactions);
+  //   auto transactions_res = db_query.execute();
+  //   sync_block.transactions.reserve(transactions_res.size());
+  //   for (auto const &trx_raw : transactions_res) {
+  //     if (trx_raw.size() > 0) sync_block.transactions.emplace_back(asBytes(trx_raw));
+  //   }
+  //   auto calculated_order_hash = calculateOrderHash(sync_block.dag_blocks, sync_block.transactions);
+  //   if (calculated_order_hash != sync_block.pbft_blk->getOrderHash()) {
+  //     LOG(log_er_) << "Order hash incorrect. Pbft order hash: " << sync_block.pbft_blk->getOrderHash()
+  //                  << " . Calculated hash:" << calculated_order_hash;
+  //     std::vector<trx_hash_t> trx_order;
+  //     trx_order.reserve(sync_block.transactions.size());
+  //     for (auto const &t : sync_block.transactions) {
+  //       trx_order.push_back(t.getHash());
+  //     }
+  //     std::vector<blk_hash_t> blk_order;
+  //     blk_order.reserve(sync_block.dag_blocks.size());
+  //     for (auto const &b : sync_block.dag_blocks) {
+  //       blk_order.push_back(b.getHash());
+  //     }
+  //     LOG(log_er_) << "Dag order " << blk_order;
+  //     LOG(log_er_) << "Trx order " << trx_order;
+  //     return false;
+  //   }
+  // }
 
   LOG(log_nf_) << "Storing cert votes of pbft blk " << pbft_block_hash;
   LOG(log_dg_) << "Stored following cert votes:\n" << cert_votes;
@@ -1936,26 +1987,26 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
     }
   }
 
-  auto order_hash = calculateOrderHash(sync_block.first.dag_blocks, sync_block.first.transactions);
-  if (order_hash != sync_block.first.pbft_blk->getOrderHash()) {
-    LOG(log_er_) << "Order hash incorrect in sync block " << pbft_block_hash << " expected: " << order_hash
-                 << " received " << sync_block.first.pbft_blk->getOrderHash() << " from "
-                 << sync_block.second.abridged() << ", stop syncing.";
-    std::vector<trx_hash_t> trx_order;
-    trx_order.reserve(sync_block.first.transactions.size());
-    for (auto const &t : sync_block.first.transactions) {
-      trx_order.push_back(t.getHash());
-    }
-    std::vector<blk_hash_t> blk_order;
-    blk_order.reserve(sync_block.first.dag_blocks.size());
-    for (auto const &b : sync_block.first.dag_blocks) {
-      blk_order.push_back(b.getHash());
-    }
-    LOG(log_er_) << "Dag order " << blk_order;
-    LOG(log_er_) << "Trx order " << trx_order;
-    net->handleMaliciousSyncPeer(sync_block.second);
-    return nullopt;
-  }
+  // auto order_hash = calculateOrderHash(sync_block.first.dag_blocks, sync_block.first.transactions);
+  // if (order_hash != sync_block.first.pbft_blk->getOrderHash()) {
+  //   LOG(log_er_) << "Order hash incorrect in sync block " << pbft_block_hash << " expected: " << order_hash
+  //                << " received " << sync_block.first.pbft_blk->getOrderHash() << " from "
+  //                << sync_block.second.abridged() << ", stop syncing.";
+  //   std::vector<trx_hash_t> trx_order;
+  //   trx_order.reserve(sync_block.first.transactions.size());
+  //   for (auto const &t : sync_block.first.transactions) {
+  //     trx_order.push_back(t.getHash());
+  //   }
+  //   std::vector<blk_hash_t> blk_order;
+  //   blk_order.reserve(sync_block.first.dag_blocks.size());
+  //   for (auto const &b : sync_block.first.dag_blocks) {
+  //     blk_order.push_back(b.getHash());
+  //   }
+  //   LOG(log_er_) << "Dag order " << blk_order;
+  //   LOG(log_er_) << "Trx order " << trx_order;
+  //   net->handleMaliciousSyncPeer(sync_block.second);
+  //   return nullopt;
+  // }
 
   if (pbft_chain_->findPbftBlockInChain(pbft_block_hash)) {
     LOG(log_dg_) << "PBFT block " << pbft_block_hash << " already present in chain.";
