@@ -1664,11 +1664,13 @@ bool PbftManager::pushPbftBlock_(SyncBlock &sync_block, vec_blk_t &dag_blocks_or
       LOG(log_er_) << "Order hash incorrect. Pbft order hash: " << sync_block.pbft_blk->getOrderHash()
                    << " . Calculated hash:" << calculated_order_hash;
       std::vector<trx_hash_t> trx_order;
-      std::vector<blk_hash_t> blk_order;
-      for (auto t : sync_block.transactions) {
+      trx_order.reserve(sync_block.transactions.size());
+      for (auto const &t : sync_block.transactions) {
         trx_order.push_back(t.getHash());
       }
-      for (auto b : sync_block.dag_blocks) {
+      std::vector<blk_hash_t> blk_order;
+      blk_order.reserve(sync_block.dag_blocks.size());
+      for (auto const &b : sync_block.dag_blocks) {
         blk_order.push_back(b.getHash());
       }
       LOG(log_er_) << "Dag order " << blk_order;
@@ -1940,11 +1942,13 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
                  << " received " << sync_block.first.pbft_blk->getOrderHash() << " from "
                  << sync_block.second.abridged() << ", stop syncing.";
     std::vector<trx_hash_t> trx_order;
-    std::vector<blk_hash_t> blk_order;
-    for (auto t : sync_block.first.transactions) {
+    trx_order.reserve(sync_block.first.transactions.size());
+    for (auto const &t : sync_block.first.transactions) {
       trx_order.push_back(t.getHash());
     }
-    for (auto b : sync_block.first.dag_blocks) {
+    std::vector<blk_hash_t> blk_order;
+    blk_order.reserve(sync_block.first.dag_blocks.size());
+    for (auto const &b : sync_block.first.dag_blocks) {
       blk_order.push_back(b.getHash());
     }
     LOG(log_er_) << "Dag order " << blk_order;
