@@ -1,5 +1,7 @@
 #include "packets_blocking_mask.hpp"
 
+#include "dag/dag_block.hpp"
+
 namespace taraxa::network::tarcap {
 
 void PacketsBlockingMask::markPacketAsHardBlocked(PriorityQueuePacketType packet_type) {
@@ -64,10 +66,66 @@ void PacketsBlockingMask::markPacketAsPeerTimeUnblocked(const PacketData& blocki
   //       evaluate 1 less condition if it is erased...
 }
 
+std::optional<taraxa::level_t> PacketsBlockingMask::getSmallestDagLevelBeingProcessed() const {
+  if (!processing_dag_levels_.empty()) {
+    return {processing_dag_levels_.begin()->first};
+  }
+
+  return {};
+}
+
+void PacketsBlockingMask::setDagBlockLevelBeingProcessed(const PacketData& packet) {
+  level_t dag_level = DagBlock::extract_dag_level_from_rlp(dev::RLP(packet.rlp_bytes_)[0]);
+
+  const auto smallest_processing_dag_level = getSmallestDagLevelBeingProcessed();
+  if (smallest_processing_dag_level.has_value()) {
+    // Only new dag blocks with smaller or equal level than the smallest level from all blocks currently being processed
+    // are allowed
+    assert(dag_level <= smallest_processing_dag_level.value());
+
+    // Adjust number of concurrent processing count for the current existing smallest dag level being provessed
+    if (dag_level == smallest_processing_dag_level.value()) {
+      processing_dag_levels_[dag_level]++;
+    }
+  }
+
+  // Create new smallest dag level
+  processing_dag_levels_.emplace(dag_level, 1);
+}
+
+void PacketsBlockingMask::unsetDagBlockLevelBeingProcessed(const PacketData& packet) {
+  level_t dag_block_level = DagBlock::extract_dag_level_from_rlp(dev::RLP(packet.rlp_bytes_)[0]);
+
+  const auto processing_dag_level = processing_dag_levels_.find(dag_block_level);
+
+  // There must be existing dag level inside processing_dag_levels_
+  assert(processing_dag_level != processing_dag_levels_.end());
+
+  // Concurrent processing count for specified dag level must be >= 1
+  assert(processing_dag_level->second >= 1);
+
+  if (processing_dag_level->second > 1) {
+    processing_dag_level->second--;
+    return;
+  }
+
+  processing_dag_levels_.erase(processing_dag_level);
+}
+
 bool PacketsBlockingMask::isPacketBlocked(const PacketData& packet_data) const {
-  // If packet is hard blocked, no need to check peer time blocks
+  // If packet is hard blocked, no need to check custom packet blocks or peer time blocks
   if (packet_data.type_ & blocked_packets_types_mask_) {
     return true;
+  }
+
+  // Custom packet types blocks
+  if (packet_data.type_ == PriorityQueuePacketType::kPqNewBlockPacket) {
+    if (const auto smallest_processing_dag_level = getSmallestDagLevelBeingProcessed(); smallest_processing_dag_level.has_value()) {
+      const auto dag_level = DagBlock::extract_dag_level_from_rlp(dev::RLP(packet_data.rlp_bytes_)[0]);
+      if (dag_level > smallest_processing_dag_level.value()) {
+        return true;
+      }
+    }
   }
 
   // There is no peers_time block for packet_data.type_ packet type

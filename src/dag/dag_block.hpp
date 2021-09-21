@@ -10,6 +10,12 @@ using VdfSortition = vdf_sortition::VdfSortition;
 
 // Note: Need to sign first then sender() and hash() is available
 class DagBlock {
+  // !!! Important: Any change in order or types of DagBlock class members will result in broken RLP ctor and some
+  // methods
+  //                as it is parsed with strong assumption of which member is at which position in rlp bytes
+  //                representation. See "DagBlock(dev::RLP const &_rlp)" or "extract_dag_level_from_rlp". If some change
+  //                needs to be done in class members, please check carefully all possible dependencies it has like for
+  //                example in mentioned methods...
   blk_hash_t pivot_;
   level_t level_ = 0;
   vec_blk_t tips_;
@@ -36,7 +42,13 @@ class DagBlock {
   explicit DagBlock(dev::RLP const &_rlp);
   explicit DagBlock(dev::bytes const &_rlp) : DagBlock(dev::RLP(_rlp)) {}
 
-  static std::vector<trx_hash_t> extract_transactions_from_rlp(dev::RLP const &rlp);
+  /**
+   * @brief Extracts dag level from rlp representation
+   *
+   * @param rlp
+   * @return
+   */
+  static level_t extract_dag_level_from_rlp(const dev::RLP &rlp);
 
   friend std::ostream &operator<<(std::ostream &str, DagBlock const &u) {
     str << "	pivot		= " << u.pivot_.abridged() << std::endl;

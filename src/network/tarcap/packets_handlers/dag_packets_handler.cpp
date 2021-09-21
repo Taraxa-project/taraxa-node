@@ -44,12 +44,11 @@ void DagPacketsHandler::process(const dev::RLP &packet_rlp, const PacketData &pa
     new_transactions.push_back(std::move(transaction));
   }
 
-  // TODO: check if we dont already have this block from some other peer, if so -> return here
-
   // Ignore new block packets when pbft syncing
   if (syncing_state_->is_pbft_syncing()) return;
 
   if (dag_blk_mgr_) {
+    // Do not process this block in case we already have it
     if (dag_blk_mgr_->isDagBlockKnown(block.getHash())) {
       return;
     }

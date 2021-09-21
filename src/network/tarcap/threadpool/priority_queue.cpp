@@ -110,21 +110,30 @@ void PriorityQueue::updateDependenciesStart(const PacketData& packet) {
   // !!! Important - there is a "mirror" function updateDependenciesFinish and all dependencies that are set
   // here should be unset in updateDependenciesFinish
 
-  // Packets that can be processed only 1 at the time
-  //  _GetBlocksPacket -> serve syncing data to only 1 node at the time
-  //  _BlocksPacket -> process sync dag blocks synchronously
-  //  _PbftBlockPacket -> process sync pbft blocks synchronously
-  if (packet.type_ == PriorityQueuePacketType::kPqGetBlocksPacket ||
-      packet.type_ == PriorityQueuePacketType::kPqBlocksPacket ||
-      packet.type_ == PriorityQueuePacketType::kPqPbftBlockPacket) {
-    blocked_packets_mask_.markPacketAsHardBlocked(packet.type_);
-  }
+  switch (packet.type_) {
+    // Packets that can be processed only 1 at the time
+    //  _GetBlocksPacket -> serve syncing data to only 1 node at the time
+    //  _BlocksPacket -> process sync dag blocks synchronously
+    //  _PbftBlockPacket -> process sync pbft blocks synchronously
+    case PriorityQueuePacketType::kPqGetBlocksPacket:
+    case PriorityQueuePacketType::kPqBlocksPacket:
+    case PriorityQueuePacketType::kPqPbftBlockPacket:
+      blocked_packets_mask_.markPacketAsHardBlocked(packet.type_);
+      break;
 
-  // When processing TransactionPacket, processing of all dag block packets that were received after that (from the same
-  // peer). No need to block processing of dag blocks packets received before as it should not be possible to send dag
-  // block before sending txs it contains...
-  if (packet.type_ == PriorityQueuePacketType::kPqTransactionPacket) {
-    blocked_packets_mask_.markPacketAsPeerTimeBlocked(packet, PriorityQueuePacketType::kPqNewBlockPacket);
+    // When processing TransactionPacket, processing of all dag block packets that were received after that (from the
+    // same peer). No need to block processing of dag blocks packets received before as it should not be possible to
+    // send dag block before sending txs it contains...
+    case PriorityQueuePacketType::kPqTransactionPacket:
+      blocked_packets_mask_.markPacketAsPeerTimeBlocked(packet, PriorityQueuePacketType::kPqNewBlockPacket);
+      break;
+
+    case PriorityQueuePacketType::kPqNewBlockPacket:
+      blocked_packets_mask_.setDagBlockLevelBeingProcessed(packet);
+      break;
+
+    default:
+      break;
   }
 }
 
@@ -133,17 +142,29 @@ void PriorityQueue::updateDependenciesFinish(const PacketData& packet, std::mute
 
   // Process all dependencies here - it is called when packet processing is finished
 
-  if (packet.type_ == PriorityQueuePacketType::kPqGetBlocksPacket ||
-      packet.type_ == PriorityQueuePacketType::kPqBlocksPacket ||
-      packet.type_ == PriorityQueuePacketType::kPqPbftBlockPacket) {
-    blocked_packets_mask_.markPacketAsHardUnblocked(packet.type_);
-  }
+  switch (packet.type_) {
+    case PriorityQueuePacketType::kPqGetBlocksPacket:
+    case PriorityQueuePacketType::kPqBlocksPacket:
+    case PriorityQueuePacketType::kPqPbftBlockPacket:
+      blocked_packets_mask_.markPacketAsHardUnblocked(packet.type_);
+      break;
 
-  if (packet.type_ == PriorityQueuePacketType::kPqTransactionPacket) {
-    // Lock queue mutex as it writes to the non-atomic blocked_packets_mask_ data
-    std::unique_lock<std::mutex> lock(queue_mutex);
+    case PriorityQueuePacketType::kPqTransactionPacket: {
+      // Lock queue mutex as it writes to the non-atomic blocked_packets_mask_ data
+      std::unique_lock<std::mutex> lock(queue_mutex);
+      blocked_packets_mask_.markPacketAsPeerTimeUnblocked(packet, PriorityQueuePacketType::kPqNewBlockPacket);
+      break;
+    }
 
-    blocked_packets_mask_.markPacketAsPeerTimeUnblocked(packet, PriorityQueuePacketType::kPqNewBlockPacket);
+    case PriorityQueuePacketType::kPqNewBlockPacket: {
+      // Lock queue mutex as it writes to the non-atomic blocked_packets_mask_ data
+      std::unique_lock<std::mutex> lock(queue_mutex);
+      blocked_packets_mask_.unsetDagBlockLevelBeingProcessed(packet);
+      break;
+    }
+
+    default:
+      break;
   }
 
   act_total_workers_count_--;
