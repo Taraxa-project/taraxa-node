@@ -1614,6 +1614,9 @@ bool PbftManager::pushPbftBlock_(SyncBlock &sync_block, vec_blk_t &dag_blocks_or
   auto const &cert_votes = sync_block.cert_votes;
   auto pbft_period = sync_block.pbft_blk->getPeriod();
 
+  auto batch = db_->createWriteBatch();
+  dag_blk_mgr_->processSyncedBlock(batch, sync_block);
+
   if (!sync) {
     std::unordered_set<trx_hash_t> trx_set;
     std::vector<trx_hash_t> transactions_to_query;
@@ -1673,9 +1676,6 @@ bool PbftManager::pushPbftBlock_(SyncBlock &sync_block, vec_blk_t &dag_blocks_or
       return false;
     }
   }
-
-  auto batch = db_->createWriteBatch();
-  dag_blk_mgr_->processSyncedBlock(batch, sync_block);
 
   LOG(log_nf_) << "Storing cert votes of pbft blk " << pbft_block_hash;
   LOG(log_dg_) << "Stored following cert votes:\n" << cert_votes;
