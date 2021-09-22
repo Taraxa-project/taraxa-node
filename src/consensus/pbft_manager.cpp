@@ -1576,13 +1576,13 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cer
     return false;
   }
 
-  auto dag_blocks_order = comparePbftBlockScheduleWithDAGblocks_(*pbft_block);
-  if (!dag_blocks_order.second) {
+  auto dag_blocks_order = dag_mgr_->getDagBlockOrder(pbft_block->getPivotDagBlockHash()).second;
+  if (dag_blocks_order.empty()) {
     LOG(log_nf_) << "DAG has not build up for PBFT block " << cert_voted_block_hash;
     return false;
   }
   SyncBlock sync_block(*pbft_block, cert_votes_for_round);
-  if (!pushPbftBlock_(sync_block, dag_blocks_order.first)) {
+  if (!pushPbftBlock_(sync_block, dag_blocks_order)) {
     LOG(log_er_) << "Failed push PBFT block " << pbft_block->getBlockHash() << " into chain";
     return false;
   }
