@@ -20,7 +20,7 @@ GetBlocksPacketsHandler::GetBlocksPacketsHandler(std::shared_ptr<PeersState> pee
       db_(std::move(db)) {}
 
 void GetBlocksPacketsHandler::process(const dev::RLP &packet_rlp, const PacketData &packet_data,
-                                      [[maybe_unused]] const std::shared_ptr<dev::p2p::Host> &host,
+
                                       [[maybe_unused]] const std::shared_ptr<TaraxaPeer> &peer) {
   std::unordered_set<blk_hash_t> blocks_hashes;
   std::vector<std::shared_ptr<DagBlock>> dag_blocks;

@@ -23,7 +23,7 @@ class GetPbftBlockPacketHandler : public PacketHandler {
   void sendPbftBlocks(dev::p2p::NodeID const& peer_id, size_t height_to_sync, size_t blocks_to_transfer);
 
  private:
-  void process(const dev::RLP& packet_rlp, const PacketData& packet_data, const std::shared_ptr<dev::p2p::Host>& host,
+  void process(const dev::RLP& packet_rlp, const PacketData& packet_data,
                const std::shared_ptr<TaraxaPeer>& peer) override;
 
   std::shared_ptr<SyncingState> syncing_state_;

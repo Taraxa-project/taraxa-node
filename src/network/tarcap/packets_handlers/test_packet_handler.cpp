@@ -7,7 +7,6 @@ TestPacketHandler::TestPacketHandler(std::shared_ptr<PeersState> peers_state,
     : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "TEST_PH") {}
 
 void TestPacketHandler::process(const dev::RLP& packet_rlp, const PacketData& packet_data,
-                                [[maybe_unused]] const std::shared_ptr<dev::p2p::Host>& host,
                                 [[maybe_unused]] const std::shared_ptr<TaraxaPeer>& peer) {
   assert(packet_data.type_ == PriorityQueuePacketType::kPqTestPacket);
 

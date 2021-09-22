@@ -20,7 +20,7 @@ GetPbftBlockPacketHandler::GetPbftBlockPacketHandler(std::shared_ptr<PeersState>
       network_sync_level_size_(network_sync_level_size) {}
 
 void GetPbftBlockPacketHandler::process(const dev::RLP &packet_rlp, const PacketData &packet_data,
-                                        [[maybe_unused]] const std::shared_ptr<dev::p2p::Host> &host,
+
                                         [[maybe_unused]] const std::shared_ptr<TaraxaPeer> &peer) {
   LOG(log_dg_) << "Received GetPbftBlockPacket Block";
 

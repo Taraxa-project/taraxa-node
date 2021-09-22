@@ -32,7 +32,7 @@ class DagPacketsHandler : public PacketHandler {
   void onNewBlockVerified(DagBlock const &block, bool proposed);
 
  private:
-  void process(const dev::RLP &packet_rlp, const PacketData &packet_data, const std::shared_ptr<dev::p2p::Host> &host,
+  void process(const dev::RLP &packet_rlp, const PacketData &packet_data,
                const std::shared_ptr<TaraxaPeer> &peer) override;
 
   inline void processNewBlockPacket(const dev::RLP &packet_rlp, const PacketData &packet_data,

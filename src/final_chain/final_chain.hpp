@@ -16,7 +16,7 @@ using namespace ::dev;
 using namespace ::taraxa::final_chain;
 using namespace ::taraxa::util;
 
-class FinalChain : public std::enable_shared_from_this<FinalChain> {
+class FinalChain {
  public:
   static constexpr auto GAS_LIMIT = ((uint64_t)1 << 53) - 1;
 

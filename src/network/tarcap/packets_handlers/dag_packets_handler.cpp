@@ -30,7 +30,7 @@ DagPacketsHandler::DagPacketsHandler(std::shared_ptr<PeersState> peers_state,
 thread_local mt19937_64 DagPacketsHandler::urng_{std::mt19937_64(std::random_device()())};
 
 void DagPacketsHandler::process(const dev::RLP &packet_rlp, const PacketData &packet_data,
-                                [[maybe_unused]] const std::shared_ptr<dev::p2p::Host> &host,
+
                                 const std::shared_ptr<TaraxaPeer> &peer) {
   if (packet_data.type_ == PriorityQueuePacketType::kPqNewBlockPacket) {
     processNewBlockPacket(packet_rlp, packet_data, peer);
