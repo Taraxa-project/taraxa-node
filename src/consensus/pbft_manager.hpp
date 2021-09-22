@@ -143,7 +143,8 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   bool broadcastAlreadyThisStep_() const;
 
   bool comparePbftBlockScheduleWithDAGblocks_(blk_hash_t const &pbft_block_hash);
-  std::pair<vec_blk_t, bool> comparePbftBlockScheduleWithDAGblocks_(PbftBlock const &pbft_block);
+  std::optional<vec_blk_t> comparePbftBlockScheduleWithDAGblocks_(PbftBlock const &pbft_block);
+  bool checkHashOrderAndBuildSyncBlock(std::shared_ptr<PbftBlock> pbft_block, vec_blk_t const &dag_blocks);
 
   bool pushCertVotedPbftBlockIntoChain_(blk_hash_t const &cert_voted_block_hash,
                                         std::vector<Vote> const &cert_votes_for_round);
@@ -211,6 +212,9 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   std::pair<blk_hash_t, bool> soft_voted_block_for_this_round_ = std::make_pair(NULL_BLOCK_HASH, false);
 
   std::vector<Vote> votes_;
+
+  // Full sync block for pbft block that is being currecntly cert voted for
+  SyncBlock cert_sync_block_;
 
   time_point round_clock_initial_datetime_;
   time_point now_;

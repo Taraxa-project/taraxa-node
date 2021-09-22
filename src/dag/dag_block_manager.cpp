@@ -140,12 +140,23 @@ void DagBlockManager::pushUnverifiedBlock(DagBlock const &blk, std::vector<Trans
 }
 
 void DagBlockManager::processSyncedBlock(DbStorage::Batch &batch, SyncBlock const &sync_block) {
-  trx_mgr_->addTrxCount(sync_block.transactions.size());
-  db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_mgr_->getTransactionCount(), batch);
   vector<trx_hash_t> transactions;
   transactions.reserve(sync_block.transactions.size());
   std::transform(sync_block.transactions.begin(), sync_block.transactions.end(), std::back_inserter(transactions),
                  [](const Transaction &transaction) { return transaction.getHash(); });
+
+  // TODO: optimize counters
+  uint32_t new_trx_count = 0;
+  auto trx_statuses = db_->getTransactionStatus(transactions);
+  for (auto const &trx_status : trx_statuses) {
+    if (trx_status.state != TransactionStatusEnum::in_block) {
+      new_trx_count++;
+    }
+  }
+
+  trx_mgr_->addTrxCount(new_trx_count);
+  db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_mgr_->getTransactionCount(), batch);
+
   trx_mgr_->getTransactionQueue().removeBlockTransactionsFromQueue(transactions);
   for (auto const &blk : sync_block.dag_blocks) {
     blk_status_.update(blk.getHash(), BlockStatus::verified);
