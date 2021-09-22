@@ -220,12 +220,6 @@ std::string fmt(const std::string &pattern, const TS &...args) {
 
 }  // namespace taraxa
 
-/**
- * Stack Trace
- * https://oroboro.com/stack-trace-on-crash/
- */
-void abortHandler(int sig);
-
 template <class Key>
 class ExpirationCache {
  public:

@@ -12,7 +12,6 @@ TaraxaEVMError::~TaraxaEVMError() throw() {}
 ErrFutureBlock::~ErrFutureBlock() throw() {}
 
 h256 const& Account::storage_root_eth() const { return storage_root_hash ? storage_root_hash : EmptyRLPListSHA3(); }
-h256 const& Account::code_hash_eth() const { return code_size ? code_hash : EmptySHA3(); }
 
 u256 Config::effective_genesis_balance(addr_t const& addr) const {
   if (!genesis_balances.count(addr)) {

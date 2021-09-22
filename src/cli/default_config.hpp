@@ -10,7 +10,6 @@ const char *default_json = R"foo({
   "network_udp_port": 10002,
   "network_simulated_delay": 0,
   "network_transaction_interval": 100,
-  "network_encrypted": 1,
   "network_bandwidth": 40,
   "network_ideal_peer_count": 10,
   "network_max_peer_count": 50,

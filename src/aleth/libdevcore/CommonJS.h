@@ -54,21 +54,6 @@ enum class OnFailed { InterpretRaw, Empty, Throw };
 /// Convert string to byte array. Input parameter is hex, optionally prefixed by
 /// "0x". Returns empty array if invalid input.
 bytes jsToBytes(std::string const& _s, OnFailed _f = OnFailed::Empty);
-/// Add '0' on, or remove items from, the front of @a _b until it is of length
-/// @a _l.
-bytes padded(bytes _b, unsigned _l);
-/// Add '0' on, or remove items from,  the back of @a _b until it is of length
-/// @a _l.
-bytes paddedRight(bytes _b, unsigned _l);
-/// Removing all trailing '0'. Returns empty array if input contains only '0'
-/// char.
-bytes unpadded(bytes _s);
-/// Remove all 0 byte on the head of @a _s.
-bytes unpadLeft(bytes _s);
-/// Convert h256 into user-readable string (by directly using std::string
-/// constructor). If it can't be interpreted as an ASCII string, empty string is
-/// returned.
-std::string fromRaw(h256 _n);
 
 template <unsigned N>
 FixedHash<N> jsToFixed(std::string const& _s) {

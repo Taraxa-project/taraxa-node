@@ -137,11 +137,6 @@ void Config::InitLogging(addr_t const &node) {
     }
 
     boost::log::add_common_attributes();
-
-    // TODO: this wouldn't work anyway, refactor our logging so it can differenciate between multiple threads logs
-    // similar to aleth
-    //    boost::log::core::get()->add_global_attribute("ThreadName",
-    //                                                  boost::log::attributes::make_function(&::dev::getThreadName));
   }
 
   boost::log::core::get()->set_exception_handler(boost::log::make_exception_handler<std::exception>(

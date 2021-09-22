@@ -236,15 +236,6 @@ bool dev::verify(PublicCompressed const& _key, h512 const& _signature, h256 cons
   return secp256k1_ecdsa_verify(ctx, &rawSig, _hash.data(), &rawPubkey);
 }
 
-bytesSec dev::pbkdf2(string const& _pass, bytes const& _salt, unsigned _iterations, unsigned _dkLen) {
-  bytesSec ret(_dkLen);
-  if (CryptoPP::PKCS5_PBKDF2_HMAC<CryptoPP::SHA256>().DeriveKey(
-          ret.writable().data(), _dkLen, 0, reinterpret_cast<::byte const*>(_pass.data()), _pass.size(), _salt.data(),
-          _salt.size(), _iterations) != _iterations)
-    BOOST_THROW_EXCEPTION(CryptoException() << errinfo_comment("Key derivation failed."));
-  return ret;
-}
-
 KeyPair::KeyPair(Secret const& _sec) : m_secret(_sec), m_public(toPublic(_sec)) {
   // Assign address only if the secret key is valid.
   if (m_public) m_address = toAddress(m_public);

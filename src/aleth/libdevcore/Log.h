@@ -40,13 +40,6 @@ namespace dev {
 /// information that musl doesn't currently implement 'pthread_setname_np'
 /// https://marc.info/?l=musl&m=146171729013062&w=1
 ///
-/// For better formatting it is recommended to limit thread name to max 4
-/// characters.
-void setThreadName(std::string const& _n);
-
-/// Set the current thread's log name.
-std::string getThreadName();
-
 #define LOG BOOST_LOG
 
 enum Verbosity {
@@ -99,9 +92,6 @@ struct LoggingOptions {
   strings excludeChannels;
   std::string logfilename;
 };
-
-// Should be called in every executable
-void setupLogging(LoggingOptions const& _options);
 
 // Simple non-thread-safe logger with fixed severity and channel for each
 // message For better formatting it is recommended to limit channel name to max

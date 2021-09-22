@@ -80,10 +80,6 @@ class Dag {
  protected:
   // Note: private functions does not lock
 
-  // edge API
-  edge_t addEdge(blk_hash_t const &v1, blk_hash_t const &v2);
-  edge_t addEdge(vertex_t v1, vertex_t v2);
-
   // traverser API
   bool reachable(vertex_t const &from, vertex_t const &to) const;
 
@@ -144,7 +140,6 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
                         DbStorage::Batch &write_batch);
 
   bool getLatestPivotAndTips(blk_hash_t &pivot, std::vector<blk_hash_t> &tips) const;
-  void collectTotalLeaves(std::vector<blk_hash_t> &leaves) const;
 
   void getGhostPath(blk_hash_t const &source, std::vector<blk_hash_t> &ghost) const;
   void getGhostPath(std::vector<blk_hash_t> &ghost) const;  // get ghost path from last anchor

@@ -162,10 +162,6 @@ inline u256 s2u(s256 _u) {
     return u256(c_end + _u);
 }
 
-/// Converts given int to a string and appends one of a series of units
-/// according to its size.
-std::string inUnits(bigint const& _b, strings const& _units);
-
 /// @returns the smallest n >= 0 such that (1 << n) >= _x
 inline unsigned int toLog2(u256 _x) {
   unsigned ret;
@@ -266,26 +262,9 @@ class Timer {
 #define DEV_UNUSED __attribute__((unused))
 #endif
 
-enum class WithExisting : int { Trust = 0, Verify, Rescue, Kill };
-
 /// Get the current time in seconds since the epoch in UTC
 int64_t utcTime();
 
-void setDefaultOrCLocale();
-
-static constexpr unsigned c_lineWidth = 160;
-
 static const auto c_steadyClockMin = std::chrono::steady_clock::time_point::min();
 
-class ExitHandler {
- public:
-  static void exitHandler(int) { s_shouldExit = true; }
-  bool shouldExit() const { return s_shouldExit; }
-
- private:
-  static bool s_shouldExit;
-};
-
-bool isTrue(std::string const& _m);
-bool isFalse(std::string const& _m);
 }  // namespace dev

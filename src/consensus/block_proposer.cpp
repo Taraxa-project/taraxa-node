@@ -151,17 +151,6 @@ bool BlockProposer::getShardedTrxs(vec_trx_t& sharded_trxs) {
   return true;
 }
 
-blk_hash_t BlockProposer::getProposeAnchor() const {
-  auto anchors = dag_mgr_->getAnchors();
-  if (anchors.first.isZero()) {
-    // Only includes DAG genesis
-    return anchors.second;
-  } else {
-    // return second to last anchor
-    return anchors.first;
-  }
-}
-
 level_t BlockProposer::getProposeLevel(blk_hash_t const& pivot, vec_blk_t const& tips) {
   level_t max_level = 0;
   // get current level

@@ -134,7 +134,7 @@ void Network::sendTransactions(dev::p2p::NodeID const &_id, std::vector<taraxa::
   LOG(log_dg_) << "Sent transactions:" << transactions.size();
 }
 
-// TODO remove
+// Only for test
 void Network::setPendingPeersToReady() {
   const auto &peers_state = taraxa_capability_->getPeersState();
 

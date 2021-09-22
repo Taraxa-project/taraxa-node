@@ -26,8 +26,6 @@ void to_bytes(taraxa_evm_Bytes b, bytes& result) { result.assign(b.Data, b.Data 
 
 void to_u256(taraxa_evm_Bytes b, u256& result) { result = fromBigEndian<u256>(map_bytes(b)); }
 
-void to_h256(taraxa_evm_Bytes b, h256& result) { result = h256(b.Data, h256::ConstructFromPointer); }
-
 template <typename Result, void (*decode)(taraxa_evm_Bytes, Result&)>
 taraxa_evm_BytesCallback decoder_cb_c(Result& res) {
   return {

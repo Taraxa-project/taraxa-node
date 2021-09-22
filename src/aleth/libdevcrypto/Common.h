@@ -126,9 +126,6 @@ bool verify(Public const& _k, Signature const& _s, h256 const& _hash);
 // Verify signature with compressed public key
 bool verify(PublicCompressed const& _key, h512 const& _signature, h256 const& _hash);
 
-/// Derive key via PBKDF2.
-bytesSec pbkdf2(std::string const& _pass, bytes const& _salt, unsigned _iterations, unsigned _dkLen = 32);
-
 /// Simple class that represents a "key pair".
 /// All of the data of the class can be regenerated from the secret key
 /// (m_secret) alone. Actually stores a tuplet of secret, public and address

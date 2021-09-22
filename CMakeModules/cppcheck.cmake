@@ -9,15 +9,16 @@ else ()
     add_custom_target(cpp-check ALL
             COMMAND ${CPP_CHECK_EXE}
             --error-exitcode=1
-            --enable=warning,style,performance,portability,information
+            --enable=all
             --suppress=missingInclude
             --suppress=useStlAlgorithm
-            --suppress=shadowVariable
             --suppress=noExplicitConstructor
-            --suppress=unreadVariable
             --suppress=unknownMacro
             --suppress=templateRecursion
             --suppress=uninitMemberVar src/libp2p/UPnP.cpp
+            # This is only enabled because of test functions
+            --suppress=unusedFunction
+            
             # Only show found errors
             "--quiet"
 

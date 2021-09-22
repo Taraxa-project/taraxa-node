@@ -164,21 +164,12 @@ void TransactionQueue::removeBlockTransactionsFromQueue(vec_trx_t const &all_blo
   }
 }
 
-std::unordered_map<trx_hash_t, Transaction> TransactionQueue::getVerifiedTrxSnapShot() const {
-  std::unordered_map<trx_hash_t, Transaction> verified_trxs;
-  sharedLock lock(main_shared_mutex_);
-  for (auto const &trx : verified_trxs_) {
-    verified_trxs[trx.first] = *(trx.second);
-  }
-  LOG(log_dg_) << "Get: " << verified_trxs.size() << " verified trx out. " << std::endl;
-  return verified_trxs;
-}
-
 std::vector<Transaction> TransactionQueue::getNewVerifiedTrxSnapShot() {
   std::vector<Transaction> verified_trxs;
   {
     sharedLock lock(main_shared_mutex_);
     if (new_verified_transactions_) {
+      verified_trxs.reserve(verified_trxs_.size());
       new_verified_transactions_ = false;
       std::transform(
           verified_trxs_.begin(), verified_trxs_.end(), std::back_inserter(verified_trxs),

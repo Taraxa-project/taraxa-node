@@ -127,6 +127,7 @@ class ReplayProtectionServiceImpl : public virtual ReplayProtectionService {
   }
 };
 
+// Only for tests
 std::unique_ptr<ReplayProtectionService> NewReplayProtectionService(ReplayProtectionService::Config config,
                                                                     std::shared_ptr<DB> db) {
   return make_unique<ReplayProtectionServiceImpl>(config, move(db));

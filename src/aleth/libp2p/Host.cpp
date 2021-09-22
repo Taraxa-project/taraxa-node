@@ -8,7 +8,6 @@
 #include <libdevcore/Common.h>
 #include <libdevcore/CommonIO.h>
 #include <libdevcore/Exceptions.h>
-#include <libdevcore/FileSystem.h>
 
 #include <boost/algorithm/string.hpp>
 #include <chrono>
