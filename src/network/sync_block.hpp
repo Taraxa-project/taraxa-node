@@ -17,6 +17,7 @@ class DagBlock;
 
 class SyncBlock {
  public:
+  SyncBlock() = default;
   SyncBlock(PbftBlock const& pbft_blk, std::vector<Vote> const& cert_votes);
   SyncBlock(dev::RLP const& all_rlp);
   SyncBlock(bytes const& all_rlp);
