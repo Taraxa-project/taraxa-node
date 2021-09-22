@@ -77,9 +77,12 @@ class FinalChainImpl final : public FinalChain {
   future<shared_ptr<FinalizationResult const>> finalize(NewBlock new_blk, uint64_t period,
                                                         finalize_precommit_ext precommit_ext = {}) override {
     auto p = make_shared<promise<shared_ptr<FinalizationResult const>>>();
-    executor_thread_.post([this, s = shared_from_this(), new_blk = move(new_blk), period,
-                           precommit_ext = move(precommit_ext),
-                           p]() mutable { p->set_value(finalize_(move(new_blk), period, precommit_ext)); });
+    executor_thread_.post([this, weak_ptr = weak_from_this(), new_blk = move(new_blk), period,
+                           precommit_ext = move(precommit_ext), p]() mutable {
+      auto ptr = weak_ptr.lock();
+      if (!ptr) return;  // it was destroyed
+      p->set_value(finalize_(move(new_blk), period, precommit_ext));
+    });
     return p->get_future();
   }
 

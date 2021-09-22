@@ -24,8 +24,12 @@ bool ThreadPool::is_running() const { return !threads_.empty(); }
 
 void ThreadPool::stop() {
   ioc_.stop();
+  auto id = std::this_thread::get_id();
   for (auto &th : threads_) {
-    th.join();
+    // check if we are not trying to join ourselfs
+    if (th.joinable() && id != threads_[0].get_id()) {
+      th.join();
+    }
   }
   threads_.clear();
   ioc_.restart();  // for potential restart
