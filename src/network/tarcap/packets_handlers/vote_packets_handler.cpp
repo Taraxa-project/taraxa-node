@@ -105,7 +105,7 @@ inline void VotePacketsHandler::processPbftNextVotesPacket(const PacketData &pac
 
   std::vector<std::shared_ptr<Vote>> next_votes;
   for (size_t i = 0; i < next_votes_count; i++) {
-    auto next_vote = std::make_shared<Vote>(packet_data.rlp_[0].data().toBytes());
+    auto next_vote = std::make_shared<Vote>(packet_data.rlp_[i].data().toBytes());
     if (next_vote->getRound() != peer_pbftpacket_rlpound - 1) {
       LOG(log_er_) << "Received next votes bundle with unmatched rounds from " << packet_data.from_node_id_
                    << ". The peer may be a malicous player, will be disconnected";
