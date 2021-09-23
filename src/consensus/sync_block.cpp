@@ -52,6 +52,13 @@ bytes SyncBlock::rlp() const {
   return s.out();
 }
 
+void SyncBlock::clear() {
+  pbft_blk.reset();
+  dag_blocks.clear();
+  transactions.clear();
+  cert_votes.clear();
+}
+
 std::ostream& operator<<(std::ostream& strm, SyncBlock const& b) {
   strm << "[SyncBlock] : " << b.pbft_blk << " , num of votes " << b.cert_votes.size() << std::endl;
   return strm;

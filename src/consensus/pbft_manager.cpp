@@ -1202,6 +1202,9 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     }
   }
 
+  LOG(log_nf_) << "DAG order for proposed block" << dag_block_order.second;
+  LOG(log_nf_) << "Transaction order for proposed block" << non_executed_transactions;
+
   auto order_hash = calculateOrderHash(dag_block_order.second, non_executed_transactions);
 
   // generate generate pbft block
@@ -1367,18 +1370,76 @@ bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(blk_hash_t const &pbft_
   if (!pbft_block) {
     return false;
   }
-
-  return comparePbftBlockScheduleWithDAGblocks_(*pbft_block).second;
+  return comparePbftBlockScheduleWithDAGblocks_(pbft_block).has_value();
 }
 
-std::pair<vec_blk_t, bool> PbftManager::comparePbftBlockScheduleWithDAGblocks_(PbftBlock const &pbft_block) {
-  auto const &anchor_hash = pbft_block.getPivotDagBlockHash();
+std::optional<vec_blk_t> PbftManager::comparePbftBlockScheduleWithDAGblocks_(std::shared_ptr<PbftBlock> pbft_block) {
+  // If cert sync block is already populated with this pbft block, no need to do verification again
+  if (cert_sync_block_.pbft_blk && cert_sync_block_.pbft_blk->getBlockHash() == pbft_block->getBlockHash()) {
+    vec_blk_t dag_blocks_order;
+    dag_blocks_order.reserve(cert_sync_block_.dag_blocks.size());
+    std::transform(cert_sync_block_.dag_blocks.begin(), cert_sync_block_.dag_blocks.end(),
+                   std::back_inserter(dag_blocks_order), [](const DagBlock &dag_block) { return dag_block.getHash(); });
+    return std::move(dag_blocks_order);
+  }
+  auto const &anchor_hash = pbft_block->getPivotDagBlockHash();
   auto dag_blocks_order = dag_mgr_->getDagBlockOrder(anchor_hash).second;
   if (!dag_blocks_order.empty()) {
-    return std::make_pair(std::move(dag_blocks_order), true);
+    std::unordered_set<trx_hash_t> trx_set;
+    std::vector<trx_hash_t> transactions_to_query;
+    DbStorage::MultiGetQuery db_query(db_);
+    db_query.append(DbStorage::Columns::dag_blocks, dag_blocks_order);
+    auto dag_blocks_res = db_query.execute();
+    cert_sync_block_.clear();
+    cert_sync_block_.dag_blocks.reserve(dag_blocks_res.size());
+    for (auto const &dag_blk_raw : dag_blocks_res) {
+      DagBlock dag_block(asBytes(dag_blk_raw));
+      for (auto const &trx_hash : dag_block.getTrxs()) {
+        if (trx_set.insert(trx_hash).second) {
+          transactions_to_query.emplace_back(trx_hash);
+        }
+      }
+      cert_sync_block_.dag_blocks.emplace_back(std::move(dag_block));
+    }
+    std::vector<trx_hash_t> non_executed_transactions;
+    db_query.append(DbStorage::Columns::trx_status, transactions_to_query);
+    auto transactions_status_res = db_query.execute();
+    uint32_t trx_index = 0;
+    for (auto const &trx_status_raw : transactions_status_res) {
+      if (!trx_status_raw.empty()) {
+        auto data = asBytes(trx_status_raw);
+        dev::RLP rlp(data);
+        TransactionStatus transaction_status(rlp);
+        if (transaction_status.state == TransactionStatusEnum::in_block) {
+          non_executed_transactions.emplace_back(transactions_to_query[trx_index]);
+        } else if (transaction_status.state != TransactionStatusEnum::finalized) {
+          LOG(log_er_) << transactions_to_query[trx_index] << " in incorrect state"
+                       << (uint16_t)transaction_status.state;
+          assert(false);
+        }
+      }
+      trx_index++;
+    }
+    db_query.append(DbStorage::Columns::transactions, non_executed_transactions);
+    auto transactions_res = db_query.execute();
+    cert_sync_block_.transactions.reserve(transactions_res.size());
+    for (auto const &trx_raw : transactions_res) {
+      if (trx_raw.size() > 0) cert_sync_block_.transactions.emplace_back(asBytes(trx_raw));
+    }
+
+    auto calculated_order_hash = calculateOrderHash(dag_blocks_order, non_executed_transactions);
+    if (calculated_order_hash != pbft_block->getOrderHash()) {
+      LOG(log_er_) << "Order hash incorrect. Pbft order hash: " << pbft_block->getOrderHash()
+                   << " . Calculated hash:" << calculated_order_hash << ". Dag order: " << dag_blocks_order
+                   << ". Trx order: " << non_executed_transactions;
+      return {};
+    }
+    cert_sync_block_.pbft_blk = pbft_block;
+
+    return std::move(dag_blocks_order);
   }
   syncPbftChainFromPeers_(missing_dag_blk, anchor_hash);
-  return std::make_pair(std::move(dag_blocks_order), false);
+  return {};
 }
 
 bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cert_voted_block_hash,
@@ -1394,13 +1455,13 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cer
     return false;
   }
 
-  auto dag_blocks_order = comparePbftBlockScheduleWithDAGblocks_(*pbft_block);
-  if (!dag_blocks_order.second) {
+  auto dag_blocks_order = comparePbftBlockScheduleWithDAGblocks_(pbft_block);
+  if (!dag_blocks_order.has_value()) {
     LOG(log_nf_) << "DAG has not build up for PBFT block " << cert_voted_block_hash;
     return false;
   }
-  SyncBlock sync_block(*pbft_block, cert_votes_for_round);
-  if (!pushPbftBlock_(sync_block, dag_blocks_order.first)) {
+  cert_sync_block_.cert_votes = cert_votes_for_round;
+  if (!pushPbftBlock_(cert_sync_block_, *dag_blocks_order)) {
     LOG(log_er_) << "Failed push PBFT block " << pbft_block->getBlockHash() << " into chain";
     return false;
   }
@@ -1493,10 +1554,13 @@ bool PbftManager::pushPbftBlock_(SyncBlock &sync_block, vec_blk_t &dag_blocks_or
   // Update PBFT chain head block
   db_->addPbftHeadToBatch(pbft_chain_->getHeadHash(), pbft_chain_->getJsonStrForBlock(pbft_block_hash), batch);
 
-  if (sync) {
+  if (dag_blocks_order.empty()) {
     dag_blocks_order.reserve(sync_block.dag_blocks.size());
     std::transform(sync_block.dag_blocks.begin(), sync_block.dag_blocks.end(), std::back_inserter(dag_blocks_order),
                    [](const DagBlock &dag_block) { return dag_block.getHash(); });
+  }
+
+  if (sync) {
     // Update counts correctly
 
     // Non-finalized block should be empty when syncing, maybe we should clear it if we are deep out of sync to improve
@@ -1520,50 +1584,6 @@ bool PbftManager::pushPbftBlock_(SyncBlock &sync_block, vec_blk_t &dag_blocks_or
   // Set DAG blocks period
   auto const &anchor_hash = sync_block.pbft_blk->getPivotDagBlockHash();
   dag_mgr_->setDagBlockOrder(anchor_hash, pbft_period, dag_blocks_order, batch);
-
-  if (!sync) {
-    std::unordered_set<trx_hash_t> trx_set;
-    std::vector<trx_hash_t> transactions_to_query;
-    DbStorage::MultiGetQuery db_query(db_);
-    db_query.append(DbStorage::Columns::dag_blocks, dag_blocks_order);
-    auto dag_blocks_res = db_query.execute();
-
-    for (auto const &dag_blk_raw : dag_blocks_res) {
-      DagBlock dag_block(asBytes(dag_blk_raw));
-      for (auto const &trx_hash : dag_block.getTrxs()) {
-        if (trx_set.insert(trx_hash).second) {
-          transactions_to_query.emplace_back(trx_hash);
-        }
-      }
-      sync_block.dag_blocks.emplace_back(std::move(dag_block));
-    }
-    std::vector<trx_hash_t> non_executed_transactions;
-    db_query.append(DbStorage::Columns::trx_status, transactions_to_query);
-    auto transactions_status_res = db_query.execute();
-    uint32_t trx_index = 0;
-    for (auto const &trx_status_raw : transactions_status_res) {
-      if (!trx_status_raw.empty()) {
-        auto data = asBytes(trx_status_raw);
-        dev::RLP rlp(data);
-        TransactionStatus transaction_status(rlp);
-        if (transaction_status.state == TransactionStatusEnum::in_block) {
-          non_executed_transactions.emplace_back(transactions_to_query[trx_index]);
-        } else if (transaction_status.state != TransactionStatusEnum::finalized) {
-          LOG(log_er_) << transactions_to_query[trx_index] << " in incorrect state"
-                       << (uint16_t)transaction_status.state;
-          assert(false);
-        }
-      }
-      trx_index++;
-    }
-
-    db_query.append(DbStorage::Columns::transactions, non_executed_transactions);
-    auto transactions_res = db_query.execute();
-    sync_block.transactions.reserve(transactions_res.size());
-    for (auto const &trx_raw : transactions_res) {
-      if (trx_raw.size() > 0) sync_block.transactions.emplace_back(asBytes(trx_raw));
-    }
-  }
 
   db_->savePeriodData(sync_block, batch);
 
@@ -1795,9 +1815,19 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
 
   auto order_hash = calculateOrderHash(sync_block.first.dag_blocks, sync_block.first.transactions);
   if (order_hash != sync_block.first.pbft_blk->getOrderHash()) {
+    std::vector<trx_hash_t> trx_order;
+    trx_order.reserve(sync_block.first.transactions.size());
+    std::vector<blk_hash_t> blk_order;
+    blk_order.reserve(sync_block.first.dag_blocks.size());
+    for (auto t : sync_block.first.transactions) {
+      trx_order.push_back(t.getHash());
+    }
+    for (auto b : sync_block.first.dag_blocks) {
+      blk_order.push_back(b.getHash());
+    }
     LOG(log_er_) << "Order hash incorrect in sync block " << pbft_block_hash << " expected: " << order_hash
-                 << " received " << sync_block.first.pbft_blk->getOrderHash() << " from "
-                 << sync_block.second.abridged() << ", stop syncing.";
+                 << " received " << sync_block.first.pbft_blk->getOrderHash() << "; Dag order: " << blk_order
+                 << "; Trx order: " << trx_order << "; from " << sync_block.second.abridged() << ", stop syncing.";
     clearSyncBlockQueue();
     net->handleMaliciousSyncPeer(sync_block.second);
     return nullopt;
