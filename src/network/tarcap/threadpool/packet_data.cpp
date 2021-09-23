@@ -2,9 +2,10 @@
 
 namespace taraxa::network::tarcap {
 
-PacketData::PacketData(PriorityQueuePacketType type, std::string&& type_str, dev::p2p::NodeID&& from_node_id_,
-                       std::vector<unsigned char>&& bytes)
+PacketData::PacketData(PacketId packet_id, SubprotocolPacketType type, std::string&& type_str,
+                       dev::p2p::NodeID&& from_node_id_, std::vector<unsigned char>&& bytes)
     : rlp_bytes_(std::move(bytes)),
+      id_(packet_id),
       receive_time_(std::chrono::steady_clock::now()),
       type_(type),
       type_str_(std::move(type_str)),
@@ -16,14 +17,14 @@ PacketData::PacketData(PriorityQueuePacketType type, std::string&& type_str, dev
  * @param packet_type
  * @return PacketPriority <high/mid/low> based om packet_type
  */
-PacketData::PacketPriority PacketData::getPacketPriority(PriorityQueuePacketType packet_type) {
-  if (packet_type > PriorityQueuePacketType::kPqHighPriorityPackets &&
-      packet_type < PriorityQueuePacketType::kPqMidPriorityPackets) {
+PacketData::PacketPriority PacketData::getPacketPriority(SubprotocolPacketType packet_type) {
+  if (packet_type > SubprotocolPacketType::HighPriorityPackets &&
+      packet_type < SubprotocolPacketType::MidPriorityPackets) {
     return PacketPriority::High;
-  } else if (packet_type > PriorityQueuePacketType::kPqMidPriorityPackets &&
-             packet_type < PriorityQueuePacketType::kPqLowPriorityPackets) {
+  } else if (packet_type > SubprotocolPacketType::MidPriorityPackets &&
+             packet_type < SubprotocolPacketType::LowPriorityPackets) {
     return PacketPriority::Mid;
-  } else if (packet_type > PriorityQueuePacketType::kPqLowPriorityPackets) {
+  } else if (packet_type > SubprotocolPacketType::LowPriorityPackets) {
     return PacketPriority::Low;
   }
 

@@ -8,7 +8,7 @@ TestPacketHandler::TestPacketHandler(std::shared_ptr<PeersState> peers_state,
 
 void TestPacketHandler::process(const PacketData& packet_data,
                                 [[maybe_unused]] const std::shared_ptr<TaraxaPeer>& peer) {
-  assert(packet_data.type_ == PriorityQueuePacketType::kPqTestPacket);
+  assert(packet_data.type_ == SubprotocolPacketType::TestPacket);
 
   std::scoped_lock lock(mutex_);
 

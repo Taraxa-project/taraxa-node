@@ -7,7 +7,7 @@ set(TARAXA_PATCH_VERSION 0)
 set(TARAXA_VERSION ${TARAXA_MAJOR_VERSION}.${TARAXA_MINOR_VERSION}.${TARAXA_PATCH_VERSION})
 
 # Any time a change in the network protocol is introduced this version should be increased
-set(TARAXA_NET_VERSION 16)
+set(TARAXA_NET_VERSION 17)
 # Major version is modified when DAG blocks, pbft blocks and any basic building blocks of our blockchan is modified
 # in the db
 set(TARAXA_DB_MAJOR_VERSION 2)

@@ -17,11 +17,11 @@ VotePacketsHandler::VotePacketsHandler(std::shared_ptr<PeersState> peers_state,
       db_(std::move(db)) {}
 
 void VotePacketsHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
-  if (packet_data.type_ == PriorityQueuePacketType::kPqPbftVotePacket) {
+  if (packet_data.type_ == SubprotocolPacketType::PbftVotePacket) {
     processPbftVotePacket(packet_data, peer);
-  } else if (packet_data.type_ == PriorityQueuePacketType::kPqGetPbftNextVotes) {
+  } else if (packet_data.type_ == SubprotocolPacketType::GetPbftNextVotes) {
     processGetPbftNextVotePacket(packet_data, peer);
-  } else if (packet_data.type_ == PriorityQueuePacketType::kPqPbftNextVotesPacket) {
+  } else if (packet_data.type_ == SubprotocolPacketType::PbftNextVotesPacket) {
     processPbftNextVotesPacket(packet_data, peer);
   } else {
     assert(false);

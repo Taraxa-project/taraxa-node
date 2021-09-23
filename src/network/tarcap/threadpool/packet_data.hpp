@@ -10,15 +10,16 @@ namespace taraxa::network::tarcap {
 
 class PacketData {
  public:
+  using PacketId = uint64_t;
   enum PacketPriority : size_t { High = 0, Mid, Low, Count };
 
   /**
    * @param packet_type
    * @return PacketPriority <high/mid/low> based om packet_type
    */
-  static inline PacketPriority getPacketPriority(PriorityQueuePacketType packet_type);
+  static inline PacketPriority getPacketPriority(SubprotocolPacketType packet_type);
 
-  PacketData(PriorityQueuePacketType type, std::string&& type_str, dev::p2p::NodeID&& from_node_id_,
+  PacketData(PacketId packet_id, SubprotocolPacketType type, std::string&& type_str, dev::p2p::NodeID&& from_node_id_,
              std::vector<unsigned char>&& bytes);
   PacketData(const PacketData&) = default;
   PacketData(PacketData&&) = default;
@@ -30,8 +31,9 @@ class PacketData {
   std::vector<unsigned char> rlp_bytes_;
 
  public:
+  PacketId id_;  // Unique packet id (counter)
   std::chrono::steady_clock::time_point receive_time_;
-  PriorityQueuePacketType type_;
+  SubprotocolPacketType type_;
   std::string type_str_;
   PacketPriority priority_;
   dev::p2p::NodeID from_node_id_;

@@ -17,7 +17,7 @@ void PacketHandler::processPacket(const PacketData& packet_data) {
     auto begin = std::chrono::steady_clock::now();
 
     auto tmp_peer = peers_state_->getPeer(packet_data.from_node_id_);
-    if (!tmp_peer && packet_data.type_ != PriorityQueuePacketType::kPqStatusPacket) {
+    if (!tmp_peer && packet_data.type_ != SubprotocolPacketType::StatusPacket) {
       LOG(log_er_) << "Peer " << packet_data.from_node_id_.abridged()
                    << " not in peers map. He probably did not send initial status message - will be disconnected.";
       disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
