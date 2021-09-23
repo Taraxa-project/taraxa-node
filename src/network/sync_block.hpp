@@ -27,6 +27,7 @@ class SyncBlock {
   std::vector<DagBlock> dag_blocks;
   std::vector<Transaction> transactions;
   bytes rlp() const;
+  void clear();
 };
 std::ostream& operator<<(std::ostream& strm, SyncBlock const& b);
 
