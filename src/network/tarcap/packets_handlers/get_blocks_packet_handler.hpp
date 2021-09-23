@@ -23,7 +23,7 @@ class GetBlocksPacketsHandler : public PacketHandler {
   void sendBlocks(dev::p2p::NodeID const& peer_id, std::vector<std::shared_ptr<DagBlock>> blocks);
 
  private:
-  void process(const dev::RLP& packet_rlp, const PacketData& packet_data, const std::shared_ptr<dev::p2p::Host>& host,
+  void process(const dev::RLP& packet_rlp, const PacketData& packet_data,
                const std::shared_ptr<TaraxaPeer>& peer) override;
 
   std::shared_ptr<TransactionManager> trx_mgr_;

@@ -11,29 +11,21 @@ PacketHandler::PacketHandler(std::shared_ptr<PeersState> peers_state, std::share
 }
 
 void PacketHandler::processPacket(const PacketData& packet_data) {
-  std::shared_ptr<dev::p2p::Host> tmp_host{nullptr};
-
   try {
     SinglePacketStats packet_stats{packet_data.from_node_id_, packet_data.rlp_bytes_.size(), false,
                                    std::chrono::microseconds(0), std::chrono::microseconds(0)};
     auto begin = std::chrono::steady_clock::now();
 
-    tmp_host = peers_state_->host_.lock();
-    if (!tmp_host) {
-      LOG(log_er_) << "Invalid host during packet processing";
-      return;
-    }
-
     auto tmp_peer = peers_state_->getPeer(packet_data.from_node_id_);
     if (!tmp_peer && packet_data.type_ != PriorityQueuePacketType::kPqStatusPacket) {
       LOG(log_er_) << "Peer " << packet_data.from_node_id_.abridged()
                    << " not in peers map. He probably did not send initial status message - will be disconnected.";
-      tmp_host->disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
+      disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
       return;
     }
 
     // Main processing function
-    process(dev::RLP(packet_data.rlp_bytes_), packet_data, tmp_host, tmp_peer);
+    process(dev::RLP(packet_data.rlp_bytes_), packet_data, tmp_peer);
 
     auto processing_duration =
         std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - begin);
@@ -45,18 +37,17 @@ void PacketHandler::processPacket(const PacketData& packet_data) {
     packets_stats_->addReceivedPacket(peers_state_->node_id_, packet_data.type_str_, packet_stats);
 
   } catch (...) {
-    handle_read_exception(tmp_host, packet_data);
+    handle_read_exception(packet_data);
   }
 }
 
-void PacketHandler::handle_read_exception(const std::shared_ptr<dev::p2p::Host>& host, const PacketData& packet_data) {
+void PacketHandler::handle_read_exception(const PacketData& packet_data) {
   try {
     throw;
   } catch (std::exception const& _e) {
     LOG(log_er_) << "Read exception: " << _e.what() << ". PacketType: " << packet_data.type_str_ << " ("
                  << packet_data.type_ << ")";
-
-    host->disconnect(packet_data.from_node_id_, dev::p2p::DisconnectReason::BadProtocol);
+    disconnect(packet_data.from_node_id_, dev::p2p::DisconnectReason::BadProtocol);
   }
 }
 
@@ -93,6 +84,14 @@ bool PacketHandler::sealAndSend(const dev::p2p::NodeID& nodeID, SubprotocolPacke
   packets_stats_->addSentPacket(peers_state_->node_id_, convertPacketTypeToString(packet_type), packet_stats);
 
   return true;
+}
+
+void PacketHandler::disconnect(dev::p2p::NodeID const& node_id, dev::p2p::DisconnectReason reason) {
+  if (auto host = peers_state_->host_.lock(); host) {
+    host->disconnect(node_id, reason);
+  } else {
+    LOG(log_er_) << "Invalid host " << node_id.abridged();
+  }
 }
 
 }  // namespace taraxa::network::tarcap

@@ -20,7 +20,7 @@ TransactionPacketHandler::TransactionPacketHandler(std::shared_ptr<PeersState> p
 
 inline void TransactionPacketHandler::process(const dev::RLP &packet_rlp,
                                               [[maybe_unused]] const PacketData &packet_data,
-                                              [[maybe_unused]] const std::shared_ptr<dev::p2p::Host> &host,
+
                                               const std::shared_ptr<TaraxaPeer> &peer) {
   std::string received_transactions;
   const auto transaction_count = packet_rlp.itemCount();

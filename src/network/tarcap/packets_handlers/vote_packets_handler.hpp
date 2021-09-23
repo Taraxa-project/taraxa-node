@@ -28,7 +28,7 @@ class VotePacketsHandler : public PacketHandler {
   void broadcastPreviousRoundNextVotesBundle();
 
  private:
-  void process(const dev::RLP& packet_rlp, const PacketData& packet_data, const std::shared_ptr<dev::p2p::Host>& host,
+  void process(const dev::RLP& packet_rlp, const PacketData& packet_data,
                const std::shared_ptr<TaraxaPeer>& peer) override;
 
   inline void processPbftVotePacket(const dev::RLP& packet_rlp, const PacketData& packet_data,
@@ -36,7 +36,7 @@ class VotePacketsHandler : public PacketHandler {
   inline void processGetPbftNextVotePacket(const dev::RLP& packet_rlp, const PacketData& packet_data,
                                            const std::shared_ptr<TaraxaPeer>& peer);
   inline void processPbftNextVotesPacket(const dev::RLP& packet_rlp, const PacketData& packet_data,
-                                         const std::shared_ptr<dev::p2p::Host>& host,
+
                                          const std::shared_ptr<TaraxaPeer>& peer);
 
   std::shared_ptr<PbftManager> pbft_mgr_;

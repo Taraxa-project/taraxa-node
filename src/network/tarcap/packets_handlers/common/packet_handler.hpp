@@ -35,17 +35,18 @@ class PacketHandler {
   std::string getCapabilityName() const;
 
  private:
-  void handle_read_exception(const std::shared_ptr<dev::p2p::Host>& host, const PacketData& packet_data);
+  void handle_read_exception(const PacketData& packet_data);
 
   /**
    * @brief Main packet processing function
    * @note packet_rlp is RLP object created from packet_data.rlp_bytes
    */
   virtual void process(const dev::RLP& packet_rlp, const PacketData& packet_data,
-                       const std::shared_ptr<dev::p2p::Host>& host, const std::shared_ptr<TaraxaPeer>& peer) = 0;
+                       const std::shared_ptr<TaraxaPeer>& peer) = 0;
 
  protected:
   bool sealAndSend(const dev::p2p::NodeID& nodeID, SubprotocolPacketType packet_type, dev::RLPStream&& rlp);
+  void disconnect(dev::p2p::NodeID const& node_id, dev::p2p::DisconnectReason reason);
 
  protected:
   std::shared_ptr<PeersState> peers_state_{nullptr};

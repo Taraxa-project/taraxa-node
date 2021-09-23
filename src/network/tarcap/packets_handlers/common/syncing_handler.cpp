@@ -22,7 +22,7 @@ SyncingHandler::SyncingHandler(std::shared_ptr<PeersState> peers_state, std::sha
 
 void SyncingHandler::process([[maybe_unused]] const dev::RLP &packet_rlp,
                              [[maybe_unused]] const PacketData &packet_data,
-                             [[maybe_unused]] const std::shared_ptr<dev::p2p::Host> &host,
+
                              [[maybe_unused]] const std::shared_ptr<TaraxaPeer> &peer) {}
 
 void SyncingHandler::restartSyncingPbft(bool force) {

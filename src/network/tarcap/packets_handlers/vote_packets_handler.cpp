@@ -17,20 +17,19 @@ VotePacketsHandler::VotePacketsHandler(std::shared_ptr<PeersState> peers_state,
       db_(std::move(db)) {}
 
 void VotePacketsHandler::process(const dev::RLP &packet_rlp, const PacketData &packet_data,
-                                 const std::shared_ptr<dev::p2p::Host> &host, const std::shared_ptr<TaraxaPeer> &peer) {
+                                 const std::shared_ptr<TaraxaPeer> &peer) {
   if (packet_data.type_ == PriorityQueuePacketType::kPqPbftVotePacket) {
     processPbftVotePacket(packet_rlp, packet_data, peer);
   } else if (packet_data.type_ == PriorityQueuePacketType::kPqGetPbftNextVotes) {
     processGetPbftNextVotePacket(packet_rlp, packet_data, peer);
   } else if (packet_data.type_ == PriorityQueuePacketType::kPqPbftNextVotesPacket) {
-    processPbftNextVotesPacket(packet_rlp, packet_data, host, peer);
+    processPbftNextVotesPacket(packet_rlp, packet_data, peer);
   } else {
     assert(false);
   }
 }
 
-inline void VotePacketsHandler::processPbftVotePacket(const dev::RLP &packet_rlp,
-                                                      [[maybe_unused]] const PacketData &packet_data,
+inline void VotePacketsHandler::processPbftVotePacket(const dev::RLP &packet_rlp, const PacketData &packet_data,
                                                       const std::shared_ptr<TaraxaPeer> &peer) {
   auto vote = std::make_shared<Vote>(packet_rlp[0].toBytes());
   const auto vote_hash = vote->getHash();
@@ -91,14 +90,12 @@ inline void VotePacketsHandler::processGetPbftNextVotePacket(const dev::RLP &pac
 }
 
 inline void VotePacketsHandler::processPbftNextVotesPacket(const dev::RLP &packet_rlp, const PacketData &packet_data,
-                                                           const std::shared_ptr<dev::p2p::Host> &host,
                                                            const std::shared_ptr<TaraxaPeer> &peer) {
   const auto next_votes_count = packet_rlp.itemCount();
   if (next_votes_count == 0) {
     LOG(log_er_) << "Receive 0 next votes from peer " << packet_data.from_node_id_
                  << ". The peer may be a malicous player, will be disconnected";
-    host->disconnect(packet_data.from_node_id_, p2p::UserReason);
-
+    disconnect(packet_data.from_node_id_, p2p::UserReason);
     return;
   }
 
@@ -113,8 +110,7 @@ inline void VotePacketsHandler::processPbftNextVotesPacket(const dev::RLP &packe
     if (next_vote->getRound() != peer_pbftpacket_rlpound - 1) {
       LOG(log_er_) << "Received next votes bundle with unmatched rounds from " << packet_data.from_node_id_
                    << ". The peer may be a malicous player, will be disconnected";
-      host->disconnect(packet_data.from_node_id_, p2p::UserReason);
-
+      disconnect(packet_data.from_node_id_, p2p::UserReason);
       return;
     }
 
