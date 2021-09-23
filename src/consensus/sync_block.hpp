@@ -17,6 +17,7 @@ class DagBlock;
 
 class SyncBlock {
  public:
+  SyncBlock() = default;
   SyncBlock(PbftBlock const& pbft_blk, std::vector<std::shared_ptr<Vote>> const& cert_votes);
   SyncBlock(dev::RLP const& all_rlp);
   SyncBlock(bytes const& all_rlp);
@@ -26,6 +27,7 @@ class SyncBlock {
   std::vector<DagBlock> dag_blocks;
   std::vector<Transaction> transactions;
   bytes rlp() const;
+  void clear();
 };
 std::ostream& operator<<(std::ostream& strm, SyncBlock const& b);
 
