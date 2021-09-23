@@ -1370,7 +1370,7 @@ bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(blk_hash_t const &pbft_
   if (!pbft_block) {
     return false;
   }
-  return comparePbftBlockScheduleWithDAGblocks_(pbft_block).has_value();
+  return comparePbftBlockScheduleWithDAGblocks_(std::move(pbft_block)).has_value();
 }
 
 std::optional<vec_blk_t> PbftManager::comparePbftBlockScheduleWithDAGblocks_(std::shared_ptr<PbftBlock> pbft_block) {
@@ -1387,21 +1387,20 @@ std::optional<vec_blk_t> PbftManager::comparePbftBlockScheduleWithDAGblocks_(std
   if (!dag_blocks_order.empty()) {
     std::unordered_set<trx_hash_t> trx_set;
     std::vector<trx_hash_t> transactions_to_query;
-    DbStorage::MultiGetQuery db_query(db_);
-    db_query.append(DbStorage::Columns::dag_blocks, dag_blocks_order);
-    auto dag_blocks_res = db_query.execute();
     cert_sync_block_.clear();
-    cert_sync_block_.dag_blocks.reserve(dag_blocks_res.size());
-    for (auto const &dag_blk_raw : dag_blocks_res) {
-      DagBlock dag_block(asBytes(dag_blk_raw));
-      for (auto const &trx_hash : dag_block.getTrxs()) {
+    cert_sync_block_.dag_blocks.reserve(dag_blocks_order.size());
+    for (auto const &dag_blk_hash : dag_blocks_order) {
+      auto dag_block = dag_blk_mgr_->getDagBlock(dag_blk_hash);
+      assert(dag_block);
+      for (auto const &trx_hash : dag_block->getTrxs()) {
         if (trx_set.insert(trx_hash).second) {
           transactions_to_query.emplace_back(trx_hash);
         }
       }
-      cert_sync_block_.dag_blocks.emplace_back(std::move(dag_block));
+      cert_sync_block_.dag_blocks.emplace_back(std::move(*dag_block));
     }
     std::vector<trx_hash_t> non_executed_transactions;
+    DbStorage::MultiGetQuery db_query(db_);
     db_query.append(DbStorage::Columns::trx_status, transactions_to_query);
     auto transactions_status_res = db_query.execute();
     uint32_t trx_index = 0;
@@ -1434,7 +1433,7 @@ std::optional<vec_blk_t> PbftManager::comparePbftBlockScheduleWithDAGblocks_(std
                    << ". Trx order: " << non_executed_transactions;
       return {};
     }
-    cert_sync_block_.pbft_blk = pbft_block;
+    cert_sync_block_.pbft_blk = std::move(pbft_block);
 
     return std::move(dag_blocks_order);
   }
