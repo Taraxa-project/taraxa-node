@@ -29,15 +29,6 @@ thread_local mt19937_64 DagPacketsHandler::urng_{std::mt19937_64(std::random_dev
 void DagPacketsHandler::process(const dev::RLP &packet_rlp, const PacketData &packet_data,
 
                                 const std::shared_ptr<TaraxaPeer> &peer) {
-  if (packet_data.type_ == PriorityQueuePacketType::kPqNewBlockPacket) {
-    processNewBlockPacket(packet_rlp, packet_data, peer);
-  } else {
-    assert(false);
-  }
-}
-
-inline void DagPacketsHandler::processNewBlockPacket(const dev::RLP &packet_rlp, const PacketData &packet_data,
-                                                     const std::shared_ptr<TaraxaPeer> &peer) {
   DagBlock block(packet_rlp[0].data().toBytes());
   blk_hash_t const hash = block.getHash();
   peer->markBlockAsKnown(hash);
@@ -121,12 +112,6 @@ void DagPacketsHandler::onNewBlockReceived(DagBlock block, std::vector<Transacti
     LOG(log_dg_) << "Received NewBlock " << block.getHash().toString() << "that is already known";
     return;
   }
-}
-
-bool DagPacketsHandler::insertBlockRequest(const blk_hash_t &block_hash) {
-  std::unique_lock lock(block_requestes_mutex_);
-
-  return block_requestes_set_.insert(block_hash).second;
 }
 
 void DagPacketsHandler::onNewBlockVerified(DagBlock const &block, bool proposed) {

@@ -34,23 +34,12 @@ class DagPacketsHandler : public PacketHandler {
   inline void processNewBlockPacket(const dev::RLP &packet_rlp, const PacketData &packet_data,
                                     const std::shared_ptr<TaraxaPeer> &peer);
 
-  /**
-   * @brief Inserts block request
-   *
-   * @param block_hash
-   * @return true in case actual insertion took place, otherwise false
-   */
-  bool insertBlockRequest(const blk_hash_t &block_hash);
-
   std::shared_ptr<SyncingState> syncing_state_;
   std::shared_ptr<SyncingHandler> syncing_handler_;
   std::shared_ptr<TransactionManager> trx_mgr_;
   std::shared_ptr<DagBlockManager> dag_blk_mgr_;
   std::shared_ptr<DbStorage> db_;
   std::shared_ptr<TestState> test_state_;
-
-  mutable std::shared_mutex block_requestes_mutex_;
-  std::unordered_set<blk_hash_t> block_requestes_set_;
 
   thread_local static std::mt19937_64 urng_;
 };
