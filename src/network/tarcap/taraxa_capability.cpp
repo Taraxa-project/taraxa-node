@@ -191,11 +191,8 @@ void TaraxaCapability::registerPacketHandlers(
       std::make_shared<NewPbftBlockPacketHandler>(peers_state_, packets_stats, pbft_chain, pbft_mgr, node_addr));
 
   const auto dag_handler = std::make_shared<DagPacketsHandler>(
-      peers_state_, packets_stats, syncing_state_, syncing_handler_, trx_mgr, dag_blk_mgr, db, test_state_,
-      conf.network_min_dag_block_broadcast, conf.network_max_dag_block_broadcast, node_addr);
+      peers_state_, packets_stats, syncing_state_, syncing_handler_, trx_mgr, dag_blk_mgr, db, test_state_, node_addr);
   packets_handlers_->registerHandler(PriorityQueuePacketType::kPqNewBlockPacket, dag_handler);
-  packets_handlers_->registerHandler(PriorityQueuePacketType::kPqNewBlockHashPacket, dag_handler);
-  packets_handlers_->registerHandler(PriorityQueuePacketType::kPqGetNewBlockPacket, dag_handler);
 
   packets_handlers_->registerHandler(
       PriorityQueuePacketType::kPqTransactionPacket,

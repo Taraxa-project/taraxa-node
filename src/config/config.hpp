@@ -37,8 +37,6 @@ struct NetworkConfig {
   uint16_t network_ideal_peer_count = 0;
   uint16_t network_max_peer_count = 0;
   uint16_t network_transaction_interval = 0;
-  uint16_t network_min_dag_block_broadcast = 0;
-  uint16_t network_max_dag_block_broadcast = 0;
   uint16_t network_sync_level_size = 0;
   uint64_t network_id;
   uint16_t network_performance_log_interval = 0;

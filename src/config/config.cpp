@@ -101,8 +101,6 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
   network.network_performance_log_interval =
       getConfigDataAsUInt(root, {"network_performance_log_interval"}, true, 30000 /*ms*/);
   network.network_transaction_interval = getConfigDataAsUInt(root, {"network_transaction_interval"});
-  network.network_min_dag_block_broadcast = getConfigDataAsUInt(root, {"network_min_dag_block_broadcast"}, true, 5);
-  network.network_max_dag_block_broadcast = getConfigDataAsUInt(root, {"network_max_dag_block_broadcast"}, true, 20);
   network.network_bandwidth = getConfigDataAsUInt(root, {"network_bandwidth"});
   network.network_ideal_peer_count = getConfigDataAsUInt(root, {"network_ideal_peer_count"});
   network.network_max_peer_count = getConfigDataAsUInt(root, {"network_max_peer_count"});

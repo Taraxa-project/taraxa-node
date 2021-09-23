@@ -12,8 +12,6 @@ namespace taraxa::network::tarcap {
 enum SubprotocolPacketType : uint32_t {
   StatusPacket = 0,
   NewBlockPacket,
-  NewBlockHashPacket,
-  GetNewBlockPacket,
   GetBlocksPacket,
   BlocksPacket,
   TransactionPacket,
@@ -43,19 +41,17 @@ enum PriorityQueuePacketType : uint32_t {
   kPqMidPriorityPackets = 1 << 3,
   kPqNewPbftBlockPacket = 1 << 4,
   kPqNewBlockPacket = 1 << 5,
-  kPqNewBlockHashPacket = 1 << 6,
-  kPqGetNewBlockPacket = 1 << 7,
-  kPqTransactionPacket = 1 << 8,
+  kPqTransactionPacket = 1 << 6,
 
   // Non critical packets with low processing priority
-  kPqLowPriorityPackets = 1 << 9,
-  kPqTestPacket = 1 << 10,
-  kPqStatusPacket = 1 << 11,
-  kPqGetBlocksPacket = 1 << 12,
-  kPqBlocksPacket = 1 << 13,
-  kPqGetPbftBlockPacket = 1 << 14,
-  kPqPbftBlockPacket = 1 << 15,
-  kPqSyncedPacket = 1 << 16,
+  kPqLowPriorityPackets = 1 << 7,
+  kPqTestPacket = 1 << 8,
+  kPqStatusPacket = 1 << 9,
+  kPqGetBlocksPacket = 1 << 10,
+  kPqBlocksPacket = 1 << 11,
+  kPqGetPbftBlockPacket = 1 << 12,
+  kPqPbftBlockPacket = 1 << 13,
+  kPqSyncedPacket = 1 << 14,
 };
 
 /**
@@ -68,10 +64,6 @@ inline PriorityQueuePacketType mapSubProtocolToPriorityPacketType(SubprotocolPac
       return PriorityQueuePacketType::kPqStatusPacket;
     case SubprotocolPacketType::NewBlockPacket:
       return PriorityQueuePacketType::kPqNewBlockPacket;
-    case SubprotocolPacketType::NewBlockHashPacket:
-      return PriorityQueuePacketType::kPqNewBlockHashPacket;
-    case SubprotocolPacketType::GetNewBlockPacket:
-      return PriorityQueuePacketType::kPqGetNewBlockPacket;
     case SubprotocolPacketType::GetBlocksPacket:
       return PriorityQueuePacketType::kPqGetBlocksPacket;
     case SubprotocolPacketType::BlocksPacket:
@@ -112,10 +104,6 @@ inline std::string convertPacketTypeToString(SubprotocolPacketType packet_type) 
       return "StatusPacket";
     case NewBlockPacket:
       return "NewBlockPacket";
-    case NewBlockHashPacket:
-      return "NewBlockHashPacket";
-    case GetNewBlockPacket:
-      return "GetNewBlockPacket";
     case GetBlocksPacket:
       return "GetBlocksPacket";
     case BlocksPacket:
