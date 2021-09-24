@@ -1,4 +1,4 @@
-#include "get_blocks_packet_handler.hpp"
+#include "get_dag_blocks_sync_packet_handler.hpp"
 
 #include "dag/dag.hpp"
 #include "network/tarcap/packets_handlers/common/get_blocks_request_type.hpp"
@@ -7,29 +7,29 @@
 
 namespace taraxa::network::tarcap {
 
-GetBlocksPacketsHandler::GetBlocksPacketsHandler(std::shared_ptr<PeersState> peers_state,
-                                                 std::shared_ptr<PacketsStats> packets_stats,
-                                                 std::shared_ptr<TransactionManager> trx_mgr,
-                                                 std::shared_ptr<DagManager> dag_mgr,
-                                                 std::shared_ptr<DagBlockManager> dag_blk_mgr,
-                                                 std::shared_ptr<DbStorage> db, const addr_t &node_addr)
+GetDagBlocksSyncPacketsHandler::GetDagBlocksSyncPacketsHandler(std::shared_ptr<PeersState> peers_state,
+                                                               std::shared_ptr<PacketsStats> packets_stats,
+                                                               std::shared_ptr<TransactionManager> trx_mgr,
+                                                               std::shared_ptr<DagManager> dag_mgr,
+                                                               std::shared_ptr<DagBlockManager> dag_blk_mgr,
+                                                               std::shared_ptr<DbStorage> db, const addr_t &node_addr)
     : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "GET_BLOCKS_PH"),
       trx_mgr_(std::move(trx_mgr)),
       dag_mgr_(std::move(dag_mgr)),
       dag_blk_mgr_(std::move(dag_blk_mgr)),
       db_(std::move(db)) {}
 
-void GetBlocksPacketsHandler::process(const PacketData &packet_data,
-                                      [[maybe_unused]] const std::shared_ptr<TaraxaPeer> &peer) {
+void GetDagBlocksSyncPacketsHandler::process(const PacketData &packet_data,
+                                             [[maybe_unused]] const std::shared_ptr<TaraxaPeer> &peer) {
   std::unordered_set<blk_hash_t> blocks_hashes;
   std::vector<std::shared_ptr<DagBlock>> dag_blocks;
   auto it = packet_data.rlp_.begin();
-  const auto mode = static_cast<GetBlocksPacketRequestType>((*it++).toInt<unsigned>());
+  const auto mode = static_cast<GetDagBlocksSyncPacketRequestType>((*it++).toInt<unsigned>());
 
-  if (mode == GetBlocksPacketRequestType::MissingHashes)
-    LOG(log_dg_) << "Received GetBlocksPacket with " << packet_data.rlp_.itemCount() - 1 << " missing blocks";
-  else if (mode == GetBlocksPacketRequestType::KnownHashes)
-    LOG(log_dg_) << "Received GetBlocksPacket with " << packet_data.rlp_.itemCount() - 1 << " known blocks";
+  if (mode == GetDagBlocksSyncPacketRequestType::MissingHashes)
+    LOG(log_dg_) << "Received GetDagBlocksSyncPacket with " << packet_data.rlp_.itemCount() - 1 << " missing blocks";
+  else if (mode == GetDagBlocksSyncPacketRequestType::KnownHashes)
+    LOG(log_dg_) << "Received GetDagBlocksSyncPacket with " << packet_data.rlp_.itemCount() - 1 << " known blocks";
 
   for (; it != packet_data.rlp_.end(); ++it) {
     blocks_hashes.emplace(*it);
@@ -39,7 +39,7 @@ void GetBlocksPacketsHandler::process(const PacketData &packet_data,
   for (auto &level_blocks : blocks) {
     for (auto &block : level_blocks.second) {
       const auto hash = block;
-      if (mode == GetBlocksPacketRequestType::MissingHashes) {
+      if (mode == GetDagBlocksSyncPacketRequestType::MissingHashes) {
         if (blocks_hashes.count(hash) == 1) {
           if (auto blk = dag_blk_mgr_->getDagBlock(hash); blk) {
             dag_blocks.emplace_back(blk);
@@ -48,7 +48,7 @@ void GetBlocksPacketsHandler::process(const PacketData &packet_data,
             assert(false);
           }
         }
-      } else if (mode == GetBlocksPacketRequestType::KnownHashes) {
+      } else if (mode == GetDagBlocksSyncPacketRequestType::KnownHashes) {
         if (blocks_hashes.count(hash) == 0) {
           if (auto blk = dag_blk_mgr_->getDagBlock(hash); blk) {
             dag_blocks.emplace_back(blk);
@@ -62,15 +62,15 @@ void GetBlocksPacketsHandler::process(const PacketData &packet_data,
   }
 
   // This means that someone requested more hashes that we actually have -> do not send anything
-  if (mode == GetBlocksPacketRequestType::MissingHashes && dag_blocks.size() != blocks_hashes.size()) {
+  if (mode == GetDagBlocksSyncPacketRequestType::MissingHashes && dag_blocks.size() != blocks_hashes.size()) {
     LOG(log_nf_) << "Node " << packet_data.from_node_id_ << " requested unknown DAG block";
     return;
   }
   sendBlocks(packet_data.from_node_id_, dag_blocks);
 }
 
-void GetBlocksPacketsHandler::sendBlocks(dev::p2p::NodeID const &peer_id,
-                                         std::vector<std::shared_ptr<DagBlock>> blocks) {
+void GetDagBlocksSyncPacketsHandler::sendBlocks(dev::p2p::NodeID const &peer_id,
+                                                std::vector<std::shared_ptr<DagBlock>> blocks) {
   auto peer = peers_state_->getPeer(peer_id);
   if (!peer) return;
 
@@ -103,7 +103,7 @@ void GetBlocksPacketsHandler::sendBlocks(dev::p2p::NodeID const &peer_id,
     }
     s.appendRaw(trx_bytes, block_transactions[block->getHash()].size());
   }
-  sealAndSend(peer_id, BlocksPacket, std::move(s));
+  sealAndSend(peer_id, SubprotocolPacketType::DagBlocksSyncPacket, std::move(s));
 }
 
 }  // namespace taraxa::network::tarcap

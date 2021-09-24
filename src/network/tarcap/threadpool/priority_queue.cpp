@@ -112,31 +112,29 @@ void PriorityQueue::updateDependenciesStart(const PacketData& packet) {
 
   switch (packet.type_) {
     // Packets that can be processed only 1 at the time
-    //  GetBlocksPacket -> serve syncing data to only 1 node at the time
-    //  PbftBlockPacket -> process sync pbft blocks synchronously
-    case SubprotocolPacketType::GetBlocksPacket:
-    case SubprotocolPacketType::PbftBlockPacket:
+    //  GetDagBlocksSyncPacket -> serve syncing data to only 1 node at the time
+    //  PbftBlocksSyncPacket -> process sync pbft blocks synchronously
+    case SubprotocolPacketType::GetDagBlocksSyncPacket:
+    case SubprotocolPacketType::PbftBlocksSyncPacket:
       blocked_packets_mask_.markPacketAsHardBlocked(packet, packet.type_);
       break;
 
     //  When syncing dag blocks, process only 1 packet at a time:
-    //  BlocksPacket -> process sync dag blocks synchronously
-    //  NewBlockPacket -> wait with processing of new dag blocks until old blocks are synced
-    //  NewBlockHashPacket -> wait with processing of new dag blocks hashes until old blocks are synced
-    case SubprotocolPacketType::BlocksPacket:
+    //  DagBlocksSyncPacket -> process sync dag blocks synchronously
+    //  NewDagBlockPacket -> wait with processing of new dag blocks until old blocks are synced
+    case SubprotocolPacketType::DagBlocksSyncPacket:
       blocked_packets_mask_.markPacketAsHardBlocked(packet, packet.type_);
-      blocked_packets_mask_.markPacketAsHardBlocked(packet, SubprotocolPacketType::NewBlockPacket);
-      blocked_packets_mask_.markPacketAsHardBlocked(packet, SubprotocolPacketType::NewBlockHashPacket);
+      blocked_packets_mask_.markPacketAsHardBlocked(packet, SubprotocolPacketType::NewDagBlockPacket);
       break;
 
     // When processing TransactionPacket, processing of all dag block packets that were received after that (from the
     // same peer). No need to block processing of dag blocks packets received before as it should not be possible to
     // send dag block before sending txs it contains...
-    case PriorityQueuePacketType::kPqTransactionPacket:
-      blocked_packets_mask_.markPacketAsPeerTimeBlocked(packet, SubprotocolPacketType::NewBlockPacket);
+    case SubprotocolPacketType::TransactionPacket:
+      blocked_packets_mask_.markPacketAsPeerOrderBlocked(packet, SubprotocolPacketType::NewDagBlockPacket);
       break;
 
-    case SubprotocolPacketType::NewBlockPacket:
+    case SubprotocolPacketType::NewDagBlockPacket:
       blocked_packets_mask_.setDagBlockLevelBeingProcessed(packet);
       break;
 
@@ -152,27 +150,27 @@ void PriorityQueue::updateDependenciesFinish(const PacketData& packet, std::mute
 
   // Note: every case in this switch must lock queue_mutex !!!
   switch (packet.type_) {
-    case SubprotocolPacketType::GetBlocksPacket:
-    case SubprotocolPacketType::PbftBlockPacket: {
+    case SubprotocolPacketType::GetDagBlocksSyncPacket:
+    case SubprotocolPacketType::PbftBlocksSyncPacket: {
       std::unique_lock<std::mutex> lock(queue_mutex);
       blocked_packets_mask_.markPacketAsHardUnblocked(packet, packet.type_);
       break;
     }
 
-    case SubprotocolPacketType::BlocksPacket: {
+    case SubprotocolPacketType::DagBlocksSyncPacket: {
       std::unique_lock<std::mutex> lock(queue_mutex);
       blocked_packets_mask_.markPacketAsHardUnblocked(packet, packet.type_);
-      blocked_packets_mask_.markPacketAsHardUnblocked(packet, SubprotocolPacketType::NewBlockPacket);
+      blocked_packets_mask_.markPacketAsHardUnblocked(packet, SubprotocolPacketType::NewDagBlockPacket);
       break;
     }
 
     case SubprotocolPacketType::TransactionPacket: {
       std::unique_lock<std::mutex> lock(queue_mutex);
-      blocked_packets_mask_.markPacketAsPeerOrderUnblocked(packet, SubprotocolPacketType::NewBlockPacket);
+      blocked_packets_mask_.markPacketAsPeerOrderUnblocked(packet, SubprotocolPacketType::NewDagBlockPacket);
       break;
     }
 
-    case SubprotocolPacketType::NewBlockPacket: {
+    case SubprotocolPacketType::NewDagBlockPacket: {
       std::unique_lock<std::mutex> lock(queue_mutex);
       blocked_packets_mask_.unsetDagBlockLevelBeingProcessed(packet);
       break;

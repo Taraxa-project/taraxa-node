@@ -78,12 +78,7 @@ void SyncingHandler::restartSyncingPbft(bool force) {
 void SyncingHandler::syncPeerPbft(unsigned long height_to_sync) {
   const auto node_id = syncing_state_->syncing_peer();
   LOG(log_nf_) << "Sync peer node " << node_id << " from pbft chain height " << height_to_sync;
-  requestPbftBlocks(node_id, height_to_sync);
-}
-
-void SyncingHandler::requestPbftBlocks(dev::p2p::NodeID const &_id, size_t height_to_sync) {
-  LOG(log_dg_) << "Sending GetPbftBlockPacket with height: " << height_to_sync;
-  sealAndSend(_id, SubprotocolPacketType::GetPbftBlockPacket, std::move(dev::RLPStream(1) << height_to_sync));
+  sealAndSend(node_id, SubprotocolPacketType::GetPbftBlocksSyncPacket, std::move(dev::RLPStream(1) << height_to_sync));
 }
 
 void SyncingHandler::requestPendingDagBlocks() {
@@ -95,18 +90,19 @@ void SyncingHandler::requestPendingDagBlocks() {
     }
   }
 
-  requestBlocks(syncing_state_->syncing_peer(), known_non_finalized_blocks, GetBlocksPacketRequestType::KnownHashes);
+  requestBlocks(syncing_state_->syncing_peer(), known_non_finalized_blocks,
+                GetDagBlocksSyncPacketRequestType::KnownHashes);
 }
 
 void SyncingHandler::requestBlocks(const dev::p2p::NodeID &_nodeID, const std::unordered_set<blk_hash_t> &blocks,
-                                   GetBlocksPacketRequestType mode) {
-  LOG(log_nf_) << "Sending GetBlocksPacket";
+                                   GetDagBlocksSyncPacketRequestType mode) {
+  LOG(log_nf_) << "Sending GetDagBlocksSyncPacket";
   dev::RLPStream s(blocks.size() + 1);  // Mode + block itself
   s << static_cast<uint8_t>(mode);      // Send mode first
   for (const auto &blk : blocks) {
     s << blk;
   }
-  sealAndSend(_nodeID, SubprotocolPacketType::GetBlocksPacket, std::move(s));
+  sealAndSend(_nodeID, SubprotocolPacketType::GetDagBlocksSyncPacket, std::move(s));
 }
 
 void SyncingHandler::syncPbftNextVotes(uint64_t pbft_round, size_t pbft_previous_round_next_votes_size) {

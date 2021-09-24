@@ -25,9 +25,12 @@ DagPacketsHandler::DagPacketsHandler(std::shared_ptr<PeersState> peers_state,
       test_state_(std::move(test_state)) {}
 
 thread_local mt19937_64 DagPacketsHandler::urng_{std::mt19937_64(std::random_device()())};
+
+void DagPacketsHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
+  DagBlock block(packet_data.rlp_[0].data().toBytes());
   blk_hash_t const hash = block.getHash();
   const auto transactions_count = packet_data.rlp_.itemCount() - 1;
-  LOG(log_dg_) << "Received NewBlockPacket " << hash.abridged() << " with " << transactions_count << " txs";
+  LOG(log_dg_) << "Received NewDagBlockPacket " << hash.abridged() << " with " << transactions_count << " txs";
 
   peer->markDagBlockAsKnown(hash);
 
@@ -51,7 +54,7 @@ thread_local mt19937_64 DagPacketsHandler::urng_{std::mt19937_64(std::random_dev
       LOG(log_wr_) << "Received NewBlock " << hash.toString() << " has missing pivot or/and tips";
       status.second.insert(hash);
       syncing_handler_->requestBlocks(packet_data.from_node_id_, status.second,
-                                      GetBlocksPacketRequestType::MissingHashes);
+                                      GetDagBlocksSyncPacketRequestType::MissingHashes);
       return;
     }
   }
@@ -99,7 +102,7 @@ void DagPacketsHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::DagBl
   s.appendRaw(trx_bytes, transactions_to_send.size());
 
   // Try to send data over network
-  if (!sealAndSend(peer_id, NewBlockPacket, move(s))) {
+  if (!sealAndSend(peer_id, NewDagBlockPacket, move(s))) {
     LOG(log_er_) << "Sending DagBlock " << block.getHash() << " failed";
     return;
   }
@@ -145,7 +148,7 @@ void DagPacketsHandler::onNewBlockVerified(DagBlock const &block, bool proposed)
 
   std::vector<dev::p2p::NodeID> peers_to_send;
   for (auto const &peer : peers_state_->getAllPeers()) {
-    if (!peer.second->isBlockKnown(block_hash) && !peer.second->syncing_) {
+    if (!peer.second->isDagBlockKnown(block_hash) && !peer.second->syncing_) {
       peers_to_send.push_back(peer.first);
     }
   }
