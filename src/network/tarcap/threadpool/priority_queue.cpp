@@ -125,7 +125,6 @@ void PriorityQueue::updateDependenciesStart(const PacketData& packet) {
   // block before sending txs it contains...
   if (packet.type_ == PriorityQueuePacketType::kPqTransactionPacket) {
     blocked_packets_mask_.markPacketAsPeerTimeBlocked(packet, PriorityQueuePacketType::kPqNewBlockPacket);
-    blocked_packets_mask_.markPacketAsPeerTimeBlocked(packet, PriorityQueuePacketType::kPqNewBlockHashPacket);
   }
 }
 
@@ -145,7 +144,6 @@ void PriorityQueue::updateDependenciesFinish(const PacketData& packet, std::mute
     std::unique_lock<std::mutex> lock(queue_mutex);
 
     blocked_packets_mask_.markPacketAsPeerTimeUnblocked(packet, PriorityQueuePacketType::kPqNewBlockPacket);
-    blocked_packets_mask_.markPacketAsPeerTimeUnblocked(packet, PriorityQueuePacketType::kPqNewBlockHashPacket);
   }
 
   act_total_workers_count_--;
