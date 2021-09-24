@@ -28,8 +28,7 @@ class StatusPacketHandler : public PacketHandler {
   void sendStatusToPeers();
 
  private:
-  void process(const dev::RLP& packet_rlp, const PacketData& packet_data,
-               const std::shared_ptr<TaraxaPeer>& peer) override;
+  void process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
 
   static constexpr uint16_t INITIAL_STATUS_PACKET_ITEM_COUNT = 10;
 

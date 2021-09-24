@@ -31,8 +31,7 @@ class SyncingHandler : public PacketHandler {
   /**
    * @note This method is not intended to be used for SyncingHandler
    */
-  void process(const dev::RLP &packet_rlp, const PacketData &packet_data,
-               const std::shared_ptr<TaraxaPeer> &peer) override;
+  void process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) override;
 
   /**
    * @brief Restart syncing
@@ -44,13 +43,12 @@ class SyncingHandler : public PacketHandler {
 
   void syncPeerPbft(unsigned long height_to_sync);
   void requestBlocks(const dev::p2p::NodeID &_nodeID, const std::unordered_set<blk_hash_t> &blocks,
-                     GetBlocksPacketRequestType mode = MissingHashes);
+                     DagSyncRequestType mode = MissingHashes);
   void syncPbftNextVotes(uint64_t pbft_round, size_t pbft_previous_round_next_votes_size);
 
   std::pair<bool, std::unordered_set<blk_hash_t>> checkDagBlockValidation(const DagBlock &block) const;
 
  private:
-  void requestPbftBlocks(dev::p2p::NodeID const &_id, size_t height_to_sync);
   void requestPendingDagBlocks();
   void requestPbftNextVotes(dev::p2p::NodeID const &peerID, uint64_t pbft_round,
                             size_t pbft_previous_round_next_votes_size);

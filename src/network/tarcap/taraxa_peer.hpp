@@ -12,34 +12,58 @@ namespace taraxa::network::tarcap {
 class TaraxaPeer : public boost::noncopyable {
  public:
   TaraxaPeer()
-      : known_blocks_(10000, 1000),
+      : known_dag_blocks_(10000, 1000),
         known_transactions_(100000, 10000),
         known_pbft_blocks_(10000, 1000),
         known_votes_(10000, 1000) {}
   explicit TaraxaPeer(dev::p2p::NodeID id)
       : m_id(id),
-        known_blocks_(10000, 1000),
+        known_dag_blocks_(10000, 1000),
         known_transactions_(100000, 10000),
         known_pbft_blocks_(10000, 1000),
         known_votes_(100000, 1000) {}
 
-  bool isBlockKnown(blk_hash_t const &_hash) const { return known_blocks_.count(_hash); }
-  void markBlockAsKnown(blk_hash_t const &_hash) { known_blocks_.insert(_hash); }
+  /**
+   * @brief Mark dag block as known
+   *
+   * @param _hash
+   * @return true in case dag block was actually marked as known(was not known before), otherwise false (was already
+   * known)
+   */
+  bool markDagBlockAsKnown(blk_hash_t const &_hash) { return known_dag_blocks_.insert(_hash); }
+  bool isDagBlockKnown(blk_hash_t const &_hash) const { return known_dag_blocks_.count(_hash); }
 
+  /**
+   * @brief Mark transaction as known
+   *
+   * @param _hash
+   * @return true in case transaction was actually marked as known(was not known before), otherwise false (was already
+   * known)
+   */
+  bool markTransactionAsKnown(trx_hash_t const &_hash) { return known_transactions_.insert(_hash); }
   bool isTransactionKnown(trx_hash_t const &_hash) const { return known_transactions_.count(_hash); }
-  void markTransactionAsKnown(trx_hash_t const &_hash) { known_transactions_.insert(_hash); }
-
-  void clearAllKnownBlocksAndTransactions() {
-    known_transactions_.clear();
-    known_blocks_.clear();
-  }
 
   // PBFT
+  /**
+   * @brief Mark vote as known
+   *
+   * @param _hash
+   * @return true in case vote was actually marked as known(was not known before), otherwise false (was already known)
+   */
+  bool markVoteAsKnown(vote_hash_t const &_hash) { return known_votes_.insert(_hash); }
   bool isVoteKnown(vote_hash_t const &_hash) const { return known_votes_.count(_hash); }
-  void markVoteAsKnown(vote_hash_t const &_hash) { known_votes_.insert(_hash); }
 
+  /**
+   * @brief Mark pbft block as known
+   *
+   * @param _hash
+   * @return true in case pbft block was actually marked as known(was not known before), otherwise false (was already
+   * known)
+   */
+  bool markPbftBlockAsKnown(blk_hash_t const &_hash) { return known_pbft_blocks_.insert(_hash); }
   bool isPbftBlockKnown(blk_hash_t const &_hash) const { return known_pbft_blocks_.count(_hash); }
-  void markPbftBlockAsKnown(blk_hash_t const &_hash) { known_pbft_blocks_.insert(_hash); }
+
+  const dev::p2p::NodeID &getId() const { return m_id; }
 
   std::atomic<bool> syncing_ = false;
   std::atomic<uint64_t> dag_level_ = 0;
@@ -50,7 +74,7 @@ class TaraxaPeer : public boost::noncopyable {
  private:
   dev::p2p::NodeID m_id;
 
-  ExpirationCache<blk_hash_t> known_blocks_;
+  ExpirationCache<blk_hash_t> known_dag_blocks_;
   ExpirationCache<trx_hash_t> known_transactions_;
   // PBFT
   ExpirationCache<blk_hash_t> known_pbft_blocks_;

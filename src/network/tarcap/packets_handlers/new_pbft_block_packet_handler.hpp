@@ -22,8 +22,7 @@ class NewPbftBlockPacketHandler : public PacketHandler {
   void sendPbftBlock(dev::p2p::NodeID const& peer_id, PbftBlock const& pbft_block, uint64_t pbft_chain_size);
 
  private:
-  void process(const dev::RLP& packet_rlp, const PacketData& packet_data,
-               const std::shared_ptr<TaraxaPeer>& peer) override;
+  void process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
 
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<PbftManager> pbft_mgr_;
