@@ -27,6 +27,7 @@ class FinalChain {
   decltype(block_finalized_emitter_)::Subscriber const& block_finalized_ = block_finalized_emitter_;
 
   virtual ~FinalChain() = default;
+  virtual void stop() = 0;
 
   using finalize_precommit_ext = std::function<void(FinalizationResult const&, DB::Batch&)>;
   virtual future<shared_ptr<FinalizationResult const>> finalize(NewBlock new_blk, uint64_t period,

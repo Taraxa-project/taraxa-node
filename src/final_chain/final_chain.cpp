@@ -74,6 +74,8 @@ class FinalChainImpl final : public FinalChain {
     }
   }
 
+  void stop() override { executor_thread_.stop(); }
+
   future<shared_ptr<FinalizationResult const>> finalize(NewBlock new_blk, uint64_t period,
                                                         finalize_precommit_ext precommit_ext = {}) override {
     auto p = make_shared<promise<shared_ptr<FinalizationResult const>>>();

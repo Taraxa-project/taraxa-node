@@ -85,6 +85,7 @@ void PbftManager::stop() {
     stop_cv_.notify_all();
   }
   daemon_->join();
+  final_chain_->stop();
 
   LOG(log_dg_) << "PBFT daemon terminated ...";
 }
