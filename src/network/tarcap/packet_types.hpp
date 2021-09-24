@@ -20,17 +20,17 @@ enum SubprotocolPacketType : uint32_t {
   MidPriorityPackets,
   NewPbftBlockPacket,
   NewDagBlockPacket,
-  // DagBlocksSyncPacket has mid priority as it is also used for ad-hoc syncing in case new dag blocks miss tips/pivot
-  DagBlocksSyncPacket,
+  // DagSyncPacket has mid priority as it is also used for ad-hoc syncing in case new dag blocks miss tips/pivot
+  DagSyncPacket,
   TransactionPacket,
 
   // Non critical packets with low processing priority
   LowPriorityPackets,
   TestPacket,
   StatusPacket,
-  GetPbftBlocksSyncPacket,
-  PbftBlocksSyncPacket,
-  GetDagBlocksSyncPacket,
+  GetPbftSyncPacket,
+  PbftSyncPacket,
+  GetDagSyncPacket,
   SyncedPacket,
 
   PacketCount
@@ -46,10 +46,10 @@ inline std::string convertPacketTypeToString(SubprotocolPacketType packet_type) 
       return "StatusPacket";
     case NewDagBlockPacket:
       return "NewDagBlockPacket";
-    case GetDagBlocksSyncPacket:
-      return "GetDagBlocksSyncPacket";
-    case DagBlocksSyncPacket:
-      return "DagBlocksSyncPacket";
+    case GetDagSyncPacket:
+      return "GetDagSyncPacket";
+    case DagSyncPacket:
+      return "DagSyncPacket";
     case TransactionPacket:
       return "TransactionPacket";
     case TestPacket:
@@ -62,10 +62,10 @@ inline std::string convertPacketTypeToString(SubprotocolPacketType packet_type) 
       return "PbftNextVotesPacket";
     case NewPbftBlockPacket:
       return "NewPbftBlockPacket";
-    case GetPbftBlocksSyncPacket:
-      return "GetPbftBlocksSyncPacket";
-    case PbftBlocksSyncPacket:
-      return "PbftBlocksSyncPacket";
+    case GetPbftSyncPacket:
+      return "GetPbftSyncPacket";
+    case PbftSyncPacket:
+      return "PbftSyncPacket";
     case SyncedPacket:
       return "SyncedPacket";
     default:

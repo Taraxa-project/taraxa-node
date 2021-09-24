@@ -10,7 +10,8 @@ void PacketsBlockingMask::markPacketAsHardBlocked(const PacketData& blocking_pac
 
   // If this assert is triggered, it means we are trying to insert blocking packet id that is already inserted, which
   // should never happen as packets id's are supposed to be unique
-  assert(packet_hard_block.insert(blocking_packet.id_).second);
+  bool packet_id_inserted = packet_hard_block.insert(blocking_packet.id_).second;
+  assert(packet_id_inserted);
 }
 
 void PacketsBlockingMask::markPacketAsHardUnblocked(const PacketData& blocking_packet,
@@ -38,7 +39,8 @@ void PacketsBlockingMask::markPacketAsPeerOrderBlocked(const PacketData& blockin
 
   // If this assert is triggered, it means we are trying to insert blocking packet id that is already inserted, which
   // should never happen as packets id's are supposed to be unique
-  assert(peer_order_blocks.insert(blocking_packet.id_).second);
+  bool packet_id_inserted = peer_order_blocks.insert(blocking_packet.id_).second;
+  assert(packet_id_inserted);
 }
 
 void PacketsBlockingMask::markPacketAsPeerOrderUnblocked(const PacketData& blocking_packet,
@@ -88,7 +90,8 @@ void PacketsBlockingMask::setDagBlockLevelBeingProcessed(const PacketData& packe
 
   // If this assert is triggered, it means we are trying to insert blocking packet id that is already inserted, which
   // should never happen as packets id's are supposed to be unique
-  assert(processing_dag_level.insert(packet.id_).second);
+  bool packet_id_inserted = processing_dag_level.insert(packet.id_).second;
+  assert(packet_id_inserted);
 }
 
 void PacketsBlockingMask::unsetDagBlockLevelBeingProcessed(const PacketData& packet) {

@@ -206,25 +206,24 @@ void TaraxaCapability::registerPacketHandlers(
       SubprotocolPacketType::StatusPacket,
       std::make_shared<StatusPacketHandler>(peers_state_, packets_stats, syncing_state_, syncing_handler_, pbft_chain,
                                             dag_mgr, next_votes_mgr, pbft_mgr, conf.network_id, node_addr));
-  packets_handlers_->registerHandler(SubprotocolPacketType::GetDagBlocksSyncPacket,
-                                     std::make_shared<GetDagBlocksSyncPacketsHandler>(
-                                         peers_state_, packets_stats, trx_mgr, dag_mgr, dag_blk_mgr, db, node_addr));
+  packets_handlers_->registerHandler(SubprotocolPacketType::GetDagSyncPacket,
+                                     std::make_shared<GetDagSyncPacketsHandler>(peers_state_, packets_stats, trx_mgr,
+                                                                                dag_mgr, dag_blk_mgr, db, node_addr));
 
-  packets_handlers_->registerHandler(
-      SubprotocolPacketType::DagBlocksSyncPacket,
-      std::make_shared<DagBlocksSyncPacketHandler>(peers_state_, packets_stats, syncing_state_, syncing_handler_,
-                                                   dag_blk_mgr, node_addr));
+  packets_handlers_->registerHandler(SubprotocolPacketType::DagSyncPacket,
+                                     std::make_shared<DagSyncPacketHandler>(peers_state_, packets_stats, syncing_state_,
+                                                                            syncing_handler_, dag_blk_mgr, node_addr));
 
   // TODO there is additional logic, that should be moved outside process function
   packets_handlers_->registerHandler(
-      SubprotocolPacketType::GetPbftBlocksSyncPacket,
-      std::make_shared<GetPbftBlocksSyncPacketHandler>(peers_state_, packets_stats, syncing_state_, pbft_chain, db,
-                                                       conf.network_sync_level_size, node_addr));
+      SubprotocolPacketType::GetPbftSyncPacket,
+      std::make_shared<GetPbftSyncPacketHandler>(peers_state_, packets_stats, syncing_state_, pbft_chain, db,
+                                                 conf.network_sync_level_size, node_addr));
 
-  const auto pbft_handler = std::make_shared<PbftBlocksSyncPacketHandler>(
-      peers_state_, packets_stats, syncing_state_, syncing_handler_, pbft_chain, pbft_mgr, dag_blk_mgr,
-      conf.network_sync_level_size, node_addr);
-  packets_handlers_->registerHandler(SubprotocolPacketType::PbftBlocksSyncPacket, pbft_handler);
+  const auto pbft_handler =
+      std::make_shared<PbftSyncPacketHandler>(peers_state_, packets_stats, syncing_state_, syncing_handler_, pbft_chain,
+                                              pbft_mgr, dag_blk_mgr, conf.network_sync_level_size, node_addr);
+  packets_handlers_->registerHandler(SubprotocolPacketType::PbftSyncPacket, pbft_handler);
   packets_handlers_->registerHandler(SubprotocolPacketType::SyncedPacket, pbft_handler);
 
   thread_pool_.setPacketsHandlers(packets_handlers_);
@@ -404,8 +403,8 @@ void TaraxaCapability::sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk
 }
 
 void TaraxaCapability::sendBlocks(dev::p2p::NodeID const &id, std::vector<std::shared_ptr<DagBlock>> blocks) {
-  std::static_pointer_cast<GetDagBlocksSyncPacketsHandler>(
-      packets_handlers_->getSpecificHandler(SubprotocolPacketType::GetDagBlocksSyncPacket))
+  std::static_pointer_cast<GetDagSyncPacketsHandler>(
+      packets_handlers_->getSpecificHandler(SubprotocolPacketType::GetDagSyncPacket))
       ->sendBlocks(id, std::move(blocks));
 }
 

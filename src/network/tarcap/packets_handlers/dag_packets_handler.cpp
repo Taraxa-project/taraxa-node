@@ -53,8 +53,7 @@ void DagPacketsHandler::process(const PacketData &packet_data, const std::shared
     if (auto status = syncing_handler_->checkDagBlockValidation(block); !status.first) {
       LOG(log_wr_) << "Received NewBlock " << hash.toString() << " has missing pivot or/and tips";
       status.second.insert(hash);
-      syncing_handler_->requestBlocks(packet_data.from_node_id_, status.second,
-                                      GetDagBlocksSyncPacketRequestType::MissingHashes);
+      syncing_handler_->requestBlocks(packet_data.from_node_id_, status.second, DagSyncRequestType::MissingHashes);
       return;
     }
   }
@@ -69,7 +68,7 @@ void DagPacketsHandler::process(const PacketData &packet_data, const std::shared
 void DagPacketsHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::DagBlock block) {
   std::shared_ptr<TaraxaPeer> peer = peers_state_->getPeer(peer_id);
   if (!peer) {
-    LOG(log_er_) << "Send dag block " << block.getHash() << ". Failed to obtain peer " << peer_id.abridged();
+    LOG(log_wr_) << "Send dag block " << block.getHash() << ". Failed to obtain peer " << peer_id.abridged();
     return;
   }
 

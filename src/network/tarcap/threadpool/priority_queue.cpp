@@ -112,17 +112,17 @@ void PriorityQueue::updateDependenciesStart(const PacketData& packet) {
 
   switch (packet.type_) {
     // Packets that can be processed only 1 at the time
-    //  GetDagBlocksSyncPacket -> serve syncing data to only 1 node at the time
-    //  PbftBlocksSyncPacket -> process sync pbft blocks synchronously
-    case SubprotocolPacketType::GetDagBlocksSyncPacket:
-    case SubprotocolPacketType::PbftBlocksSyncPacket:
+    //  GetDagSyncPacket -> serve syncing data to only 1 node at the time
+    //  PbftSyncPacket -> process sync pbft blocks synchronously
+    case SubprotocolPacketType::GetDagSyncPacket:
+    case SubprotocolPacketType::PbftSyncPacket:
       blocked_packets_mask_.markPacketAsHardBlocked(packet, packet.type_);
       break;
 
     //  When syncing dag blocks, process only 1 packet at a time:
-    //  DagBlocksSyncPacket -> process sync dag blocks synchronously
+    //  DagSyncPacket -> process sync dag blocks synchronously
     //  NewDagBlockPacket -> wait with processing of new dag blocks until old blocks are synced
-    case SubprotocolPacketType::DagBlocksSyncPacket:
+    case SubprotocolPacketType::DagSyncPacket:
       blocked_packets_mask_.markPacketAsHardBlocked(packet, packet.type_);
       blocked_packets_mask_.markPacketAsHardBlocked(packet, SubprotocolPacketType::NewDagBlockPacket);
       break;
@@ -150,14 +150,14 @@ void PriorityQueue::updateDependenciesFinish(const PacketData& packet, std::mute
 
   // Note: every case in this switch must lock queue_mutex !!!
   switch (packet.type_) {
-    case SubprotocolPacketType::GetDagBlocksSyncPacket:
-    case SubprotocolPacketType::PbftBlocksSyncPacket: {
+    case SubprotocolPacketType::GetDagSyncPacket:
+    case SubprotocolPacketType::PbftSyncPacket: {
       std::unique_lock<std::mutex> lock(queue_mutex);
       blocked_packets_mask_.markPacketAsHardUnblocked(packet, packet.type_);
       break;
     }
 
-    case SubprotocolPacketType::DagBlocksSyncPacket: {
+    case SubprotocolPacketType::DagSyncPacket: {
       std::unique_lock<std::mutex> lock(queue_mutex);
       blocked_packets_mask_.markPacketAsHardUnblocked(packet, packet.type_);
       blocked_packets_mask_.markPacketAsHardUnblocked(packet, SubprotocolPacketType::NewDagBlockPacket);

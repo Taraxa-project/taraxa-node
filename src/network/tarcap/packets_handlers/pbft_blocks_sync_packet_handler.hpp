@@ -14,15 +14,15 @@ namespace taraxa::network::tarcap {
 class SyncingState;
 class SyncingHandler;
 
-class PbftBlocksSyncPacketHandler : public PacketHandler {
+class PbftSyncPacketHandler : public PacketHandler {
  public:
-  PbftBlocksSyncPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
-                              std::shared_ptr<SyncingState> syncing_state,
-                              std::shared_ptr<SyncingHandler> syncing_handler, std::shared_ptr<PbftChain> pbft_chain,
-                              std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
-                              size_t network_sync_level_size, const addr_t& node_addr = {});
+  PbftSyncPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
+                        std::shared_ptr<SyncingState> syncing_state, std::shared_ptr<SyncingHandler> syncing_handler,
+                        std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<PbftManager> pbft_mgr,
+                        std::shared_ptr<DagBlockManager> dag_blk_mgr, size_t network_sync_level_size,
+                        const addr_t& node_addr = {});
 
-  virtual ~PbftBlocksSyncPacketHandler() = default;
+  virtual ~PbftSyncPacketHandler() = default;
 
   void sendSyncedMessage();
 

@@ -43,7 +43,7 @@ class SyncingHandler : public PacketHandler {
 
   void syncPeerPbft(unsigned long height_to_sync);
   void requestBlocks(const dev::p2p::NodeID &_nodeID, const std::unordered_set<blk_hash_t> &blocks,
-                     GetDagBlocksSyncPacketRequestType mode = MissingHashes);
+                     DagSyncRequestType mode = MissingHashes);
   void syncPbftNextVotes(uint64_t pbft_round, size_t pbft_previous_round_next_votes_size);
 
   std::pair<bool, std::unordered_set<blk_hash_t>> checkDagBlockValidation(const DagBlock &block) const;
