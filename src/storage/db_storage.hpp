@@ -96,8 +96,6 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN(period_data);
     COLUMN(dag_blocks);
     COLUMN(dag_blocks_index);
-    COLUMN(dag_blocks_state);  // remove
-    // anchor_hash->[...dag_block_hashes_since_previous_anchor, anchor_hash]
     COLUMN(transactions);
     COLUMN(trx_status);
     COLUMN(status);
@@ -191,11 +189,8 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::set<blk_hash_t> getBlocksByLevel(level_t level);
   std::vector<std::shared_ptr<DagBlock>> getDagBlocksAtLevel(level_t level, int number_of_levels);
   void updateDagBlockCounters(Batch& write_batch, std::vector<DagBlock> blks);
-
-  // DAG state
-  void addDagBlockStateToBatch(Batch& write_batch, blk_hash_t const& blk_hash, bool finalized);
-  void removeDagBlockStateToBatch(Batch& write_batch, blk_hash_t const& blk_hash);
-  std::map<blk_hash_t, bool> getAllDagBlockState();
+  std::vector<DagBlock> getNonfinalizedDagBlocks();
+  void removeNonfinalizedDagBlock(blk_hash_t const& hash);
 
   // Transaction
   void saveTransaction(Transaction const& trx, bool verified = false);

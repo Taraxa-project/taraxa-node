@@ -258,8 +258,7 @@ void DagBlockManager::verifyBlock() {
       // Verify transactions
       if (!trx_mgr_->verifyBlockTransactions(blk.first, blk.second)) {
         LOG(log_er_) << "Ignore block " << block_hash << " since it has invalid or missing transactions";
-        blk_status_.update(block_hash, BlockStatus::invalid);
-        seen_blocks_.erase(block_hash);
+        markBlockInvalid(block_hash);
         continue;
       }
 
@@ -270,8 +269,7 @@ void DagBlockManager::verifyBlock() {
       } catch (vdf_sortition::VdfSortition::InvalidVdfSortition const &e) {
         LOG(log_er_) << "DAG block " << block_hash << " failed on VDF verification with pivot hash "
                      << blk.first.getPivot() << " reason " << e.what();
-        blk_status_.update(block_hash, BlockStatus::invalid);
-        seen_blocks_.erase(block_hash);
+        markBlockInvalid(block_hash);
         continue;
       }
 
@@ -304,8 +302,7 @@ void DagBlockManager::verifyBlock() {
           LOG(log_er_) << "Invalid DAG block DPOS. DAG block " << blk.first << " is not eligible for DPOS at period "
                        << propose_period.first << " for sender " << dag_block_sender.toString() << ". Executed period "
                        << executed_period << ", DPOS period " << dpos_period;
-          blk_status_.update(block_hash, BlockStatus::invalid);
-          seen_blocks_.erase(block_hash);
+          markBlockInvalid(block_hash);
         } else {
           // The incoming DAG block is ahead of DPOS period, add back in unverified queue
           uLock lock(shared_mutex_for_unverified_qu_);
@@ -380,6 +377,12 @@ std::shared_ptr<ProposalPeriodDagLevelsMap> DagBlockManager::newProposePeriodDag
   ProposalPeriodDagLevelsMap new_period_levels_map(propose_period, level_start, level_end);
 
   return std::make_shared<ProposalPeriodDagLevelsMap>(new_period_levels_map);
+}
+
+void DagBlockManager::markBlockInvalid(blk_hash_t const &hash) {
+  blk_status_.update(hash, BlockStatus::invalid);
+  seen_blocks_.erase(hash);
+  db_->removeNonfinalizedDagBlock(hash);
 }
 
 }  // namespace taraxa

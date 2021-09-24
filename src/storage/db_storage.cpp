@@ -246,6 +246,20 @@ std::vector<std::shared_ptr<DagBlock>> DbStorage::getDagBlocksAtLevel(level_t le
   return res;
 }
 
+std::vector<DagBlock> DbStorage::getNonfinalizedDagBlocks() {
+  std::vector<DagBlock> res;
+  auto i = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::dag_blocks)));
+  i->SeekToFirst();
+  if (!i->Valid()) return res;
+  i->Next();  // Skip genesis
+  for (; i->Valid(); i->Next()) {
+    res.emplace_back(asBytes(i->value().ToString()));
+  }
+  return res;
+}
+
+void DbStorage::removeNonfinalizedDagBlock(blk_hash_t const& hash) { remove(Columns::dag_blocks, toSlice(hash)); }
+
 void DbStorage::updateDagBlockCounters(Batch& write_batch, vector<DagBlock> blks) {
   // Lock is needed since we are editing some fields
   lock_guard<mutex> u_lock(dag_blocks_mutex_);
@@ -299,23 +313,6 @@ void DbStorage::saveDagBlock(DagBlock const& blk, Batch* write_batch_p) {
   if (commit) {
     commitWriteBatch(write_batch);
   }
-}
-
-void DbStorage::addDagBlockStateToBatch(Batch& write_batch, blk_hash_t const& blk_hash, bool finalized) {
-  insert(write_batch, Columns::dag_blocks_state, toSlice(blk_hash.asBytes()), toSlice(finalized));
-}
-
-void DbStorage::removeDagBlockStateToBatch(Batch& write_batch, blk_hash_t const& blk_hash) {
-  remove(write_batch, Columns::dag_blocks_state, toSlice(blk_hash.asBytes()));
-}
-
-std::map<blk_hash_t, bool> DbStorage::getAllDagBlockState() {
-  std::map<blk_hash_t, bool> res;
-  auto i = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::dag_blocks_state)));
-  for (i->SeekToFirst(); i->Valid(); i->Next()) {
-    res[blk_hash_t(asBytes(i->key().ToString()))] = (bool)*(uint8_t*)(i->value().data());
-  }
-  return res;
 }
 
 void DbStorage::savePeriodData(const SyncBlock& sync_block, Batch& write_batch) {

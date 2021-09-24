@@ -856,9 +856,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
     EXPECT_EQ(order[4], blk_hash_t(5));
     EXPECT_EQ(order[5], blk_hash_t(7));
   }
-  auto write_batch = node->getDB()->createWriteBatch();
-  auto num_blks_set = node->getDagManager()->setDagBlockOrder(pivot, period, order, write_batch);
-  node->getDB()->commitWriteBatch(write_batch);
+  auto num_blks_set = node->getDagManager()->setDagBlockOrder(pivot, period, order);
   EXPECT_EQ(num_blks_set, 6);
   // -------- second period ----------
 
@@ -879,9 +877,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
     EXPECT_EQ(order[5], blk_hash_t(14));
     EXPECT_EQ(order[6], blk_hash_t(15));
   }
-  write_batch = node->getDB()->createWriteBatch();
-  num_blks_set = node->getDagManager()->setDagBlockOrder(pivot, period, order, write_batch);
-  node->getDB()->commitWriteBatch(write_batch);
+  num_blks_set = node->getDagManager()->setDagBlockOrder(pivot, period, order);
   EXPECT_EQ(num_blks_set, 7);
 
   // -------- third period ----------
@@ -901,9 +897,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
     EXPECT_EQ(order[3], blk_hash_t(18));
     EXPECT_EQ(order[4], blk_hash_t(19));
   }
-  write_batch = node->getDB()->createWriteBatch();
-  num_blks_set = node->getDagManager()->setDagBlockOrder(pivot, period, order, write_batch);
-  node->getDB()->commitWriteBatch(write_batch);
+  num_blks_set = node->getDagManager()->setDagBlockOrder(pivot, period, order);
   EXPECT_EQ(num_blks_set, 5);
 }
 

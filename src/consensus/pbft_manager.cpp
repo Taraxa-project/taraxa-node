@@ -1380,7 +1380,7 @@ std::optional<vec_blk_t> PbftManager::comparePbftBlockScheduleWithDAGblocks_(std
     dag_blocks_order.reserve(cert_sync_block_.dag_blocks.size());
     std::transform(cert_sync_block_.dag_blocks.begin(), cert_sync_block_.dag_blocks.end(),
                    std::back_inserter(dag_blocks_order), [](const DagBlock &dag_block) { return dag_block.getHash(); });
-    return std::move(dag_blocks_order);
+    return {std::move(dag_blocks_order)};
   }
   auto const &anchor_hash = pbft_block->getPivotDagBlockHash();
   auto dag_blocks_order = dag_mgr_->getDagBlockOrder(anchor_hash).second;
@@ -1435,7 +1435,7 @@ std::optional<vec_blk_t> PbftManager::comparePbftBlockScheduleWithDAGblocks_(std
     }
     cert_sync_block_.pbft_blk = std::move(pbft_block);
 
-    return std::move(dag_blocks_order);
+    return {std::move(dag_blocks_order)};
   }
   syncPbftChainFromPeers_(missing_dag_blk, anchor_hash);
   return {};
@@ -1580,7 +1580,7 @@ bool PbftManager::pushPbftBlock_(SyncBlock &sync_block, vec_blk_t &dag_blocks_or
 
   // Set DAG blocks period
   auto const &anchor_hash = sync_block.pbft_blk->getPivotDagBlockHash();
-  dag_mgr_->setDagBlockOrder(anchor_hash, pbft_period, dag_blocks_order, batch);
+  dag_mgr_->setDagBlockOrder(anchor_hash, pbft_period, dag_blocks_order);
 
   db_->savePeriodData(sync_block, batch);
 

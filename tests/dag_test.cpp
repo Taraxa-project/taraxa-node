@@ -177,9 +177,7 @@ TEST_F(DagTest, compute_epoch) {
   EXPECT_EQ(orders.size(), 1);
   EXPECT_EQ(period, 1);
 
-  auto write_batch = db_ptr->createWriteBatch();
-  mgr->setDagBlockOrder(blkA.getHash(), period, orders, write_batch);
-  db_ptr->commitWriteBatch(write_batch);
+  mgr->setDagBlockOrder(blkA.getHash(), period, orders);
 
   std::tie(period, orders) = mgr->getDagBlockOrder(blkC.getHash());
   EXPECT_EQ(orders.size(), 2);
@@ -189,23 +187,17 @@ TEST_F(DagTest, compute_epoch) {
   EXPECT_EQ(orders.size(), 2);
   EXPECT_EQ(period, 2);
 
-  write_batch = db_ptr->createWriteBatch();
-  mgr->setDagBlockOrder(blkC.getHash(), period, orders, write_batch);
-  db_ptr->commitWriteBatch(write_batch);
+  mgr->setDagBlockOrder(blkC.getHash(), period, orders);
 
   std::tie(period, orders) = mgr->getDagBlockOrder(blkE.getHash());
   EXPECT_EQ(orders.size(), 3);
   EXPECT_EQ(period, 3);
-  write_batch = db_ptr->createWriteBatch();
-  mgr->setDagBlockOrder(blkE.getHash(), period, orders, write_batch);
-  db_ptr->commitWriteBatch(write_batch);
+  mgr->setDagBlockOrder(blkE.getHash(), period, orders);
 
   std::tie(period, orders) = mgr->getDagBlockOrder(blkH.getHash());
   EXPECT_EQ(orders.size(), 4);
   EXPECT_EQ(period, 4);
-  write_batch = db_ptr->createWriteBatch();
-  mgr->setDagBlockOrder(blkH.getHash(), period, orders, write_batch);
-  db_ptr->commitWriteBatch(write_batch);
+  mgr->setDagBlockOrder(blkH.getHash(), period, orders);
 
   if (orders.size() == 4) {
     EXPECT_EQ(orders[0], blk_hash_t(11));
@@ -216,9 +208,7 @@ TEST_F(DagTest, compute_epoch) {
   std::tie(period, orders) = mgr->getDagBlockOrder(blkK.getHash());
   EXPECT_EQ(orders.size(), 1);
   EXPECT_EQ(period, 5);
-  write_batch = db_ptr->createWriteBatch();
-  mgr->setDagBlockOrder(blkK.getHash(), period, orders, write_batch);
-  db_ptr->commitWriteBatch(write_batch);
+  mgr->setDagBlockOrder(blkK.getHash(), period, orders);
 }
 
 TEST_F(DagTest, receive_block_in_order) {
@@ -302,9 +292,7 @@ TEST_F(DagTest, compute_epoch_2) {
   EXPECT_EQ(orders.size(), 1);
   EXPECT_EQ(period, 1);
 
-  auto write_batch = db_ptr->createWriteBatch();
-  mgr->setDagBlockOrder(blkA.getHash(), period, orders, write_batch);
-  db_ptr->commitWriteBatch(write_batch);
+  mgr->setDagBlockOrder(blkA.getHash(), period, orders);
 
   std::tie(period, orders) = mgr->getDagBlockOrder(blkC.getHash());
   EXPECT_EQ(orders.size(), 2);
@@ -314,23 +302,17 @@ TEST_F(DagTest, compute_epoch_2) {
   EXPECT_EQ(orders.size(), 2);
   EXPECT_EQ(period, 2);
 
-  write_batch = db_ptr->createWriteBatch();
-  mgr->setDagBlockOrder(blkC.getHash(), period, orders, write_batch);
-  db_ptr->commitWriteBatch(write_batch);
+  mgr->setDagBlockOrder(blkC.getHash(), period, orders);
 
   std::tie(period, orders) = mgr->getDagBlockOrder(blkE.getHash());
   EXPECT_EQ(orders.size(), 3);
   EXPECT_EQ(period, 3);
-  write_batch = db_ptr->createWriteBatch();
-  mgr->setDagBlockOrder(blkE.getHash(), period, orders, write_batch);
-  db_ptr->commitWriteBatch(write_batch);
+  mgr->setDagBlockOrder(blkE.getHash(), period, orders);
 
   std::tie(period, orders) = mgr->getDagBlockOrder(blkH.getHash());
   EXPECT_EQ(orders.size(), 4);
   EXPECT_EQ(period, 4);
-  write_batch = db_ptr->createWriteBatch();
-  mgr->setDagBlockOrder(blkH.getHash(), period, orders, write_batch);
-  db_ptr->commitWriteBatch(write_batch);
+  mgr->setDagBlockOrder(blkH.getHash(), period, orders);
 
   if (orders.size() == 4) {
     EXPECT_EQ(orders[0], blk_hash_t(11));
@@ -341,9 +323,7 @@ TEST_F(DagTest, compute_epoch_2) {
   std::tie(period, orders) = mgr->getDagBlockOrder(blkK.getHash());
   EXPECT_EQ(orders.size(), 1);
   EXPECT_EQ(period, 5);
-  write_batch = db_ptr->createWriteBatch();
-  mgr->setDagBlockOrder(blkK.getHash(), period, orders, write_batch);
-  db_ptr->commitWriteBatch(write_batch);
+  mgr->setDagBlockOrder(blkK.getHash(), period, orders);
 }
 
 TEST_F(DagTest, get_latest_pivot_tips) {
