@@ -265,7 +265,7 @@ void FullNode::rebuildDb() {
     SyncBlock sync_block(data);
 
     LOG(log_nf_) << "Adding sync block into queue " << sync_block.pbft_blk->getBlockHash().toString();
-    pbft_mgr_->syncBlockQueuePush(sync_block, dev::p2p::NodeID());
+    pbft_mgr_->syncBlockQueuePush(std::move(sync_block), dev::p2p::NodeID());
 
     // Wait if more than 10 pbft blocks in queue to be processed
     while (pbft_mgr_->syncBlockQueueSize() > 10) {

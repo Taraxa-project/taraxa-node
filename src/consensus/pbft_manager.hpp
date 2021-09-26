@@ -1,7 +1,7 @@
 #pragma once
 
 #include <atomic>
-#include <queue>
+#include <deque>
 #include <string>
 #include <thread>
 
@@ -67,7 +67,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   uint64_t pbftSyncingPeriod() const;
   void clearSyncBlockQueue();
   size_t syncBlockQueueSize() const;
-  void syncBlockQueuePush(SyncBlock const &block, dev::p2p::NodeID const &node_id);
+  void syncBlockQueuePush(SyncBlock &&block, dev::p2p::NodeID const &node_id);
 
   // Notice: Test purpose
   // TODO: Add a check for some kind of guards to ensure these are only called from within a test
@@ -126,7 +126,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   std::optional<vec_blk_t> comparePbftBlockScheduleWithDAGblocks_(std::shared_ptr<PbftBlock> pbft_block);
 
   bool pushCertVotedPbftBlockIntoChain_(blk_hash_t const &cert_voted_block_hash,
-                                        std::vector<std::shared_ptr<Vote>> const &cert_votes_for_round);
+                                        std::vector<std::shared_ptr<Vote>> &&cert_votes_for_round);
 
   void pushSyncedPbftBlocksIntoChain_();
 
@@ -146,7 +146,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   blk_hash_t calculateOrderHash(std::vector<blk_hash_t> const &dag_block_hashes,
                                 std::vector<trx_hash_t> const &trx_hashes);
   blk_hash_t calculateOrderHash(std::vector<DagBlock> const &dag_blocks, std::vector<Transaction> const &transactions);
-  void syncBlockQueuePop();
+
   std::optional<SyncBlock> processSyncBlock();
 
   std::shared_ptr<PbftBlock> getUnfinalizedBlock_(blk_hash_t const &block_hash);
@@ -238,7 +238,8 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   std::condition_variable stop_cv_;
   std::mutex stop_mtx_;
 
-  std::queue<std::pair<SyncBlock, dev::p2p::NodeID>> sync_queue_;
+  std::deque<std::pair<SyncBlock, dev::p2p::NodeID>> sync_queue_;
+  std::atomic<uint64_t> sync_period_{0};
   mutable std::shared_mutex sync_queue_access_;
 
   // TODO: will remove later, TEST CODE

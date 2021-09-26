@@ -165,11 +165,11 @@ bool PbftChain::findUnverifiedPbftBlock(taraxa::blk_hash_t const& pbft_block_has
 
 PbftBlock PbftChain::getPbftBlockInChain(const taraxa::blk_hash_t& pbft_block_hash) {
   auto pbft_block = db_->getPbftBlock(pbft_block_hash);
-  if (pbft_block == nullptr) {
+  if (!pbft_block.has_value()) {
     LOG(log_er_) << "Cannot find PBFT block hash " << pbft_block_hash << " in DB";
     assert(false);
   }
-  return *pbft_block;
+  return pbft_block.value();
 }
 
 std::shared_ptr<PbftBlock> PbftChain::getUnverifiedPbftBlock(const taraxa::blk_hash_t& pbft_block_hash) {
@@ -187,7 +187,7 @@ std::vector<std::string> PbftChain::getPbftBlocksStr(size_t period, size_t count
   std::vector<std::string> result;
   for (auto i = period; i < period + count; i++) {
     auto pbft_block = db_->getPbftBlock(i);
-    if (pbft_block == nullptr) {
+    if (!pbft_block.has_value()) {
       LOG(log_er_) << "PBFT block period " << i << " does not exist in blocks order DB.";
       break;
     }

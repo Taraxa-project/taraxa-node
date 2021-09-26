@@ -342,7 +342,7 @@ dev::bytes DbStorage::getPeriodDataRaw(uint64_t period) {
 }
 
 void DbStorage::saveTransaction(Transaction const& trx, bool verified) {
-  insert(Columns::transactions, toSlice(trx.getHash().asBytes()), toSlice(*trx.rlp(false, verified)));
+  insert(Columns::transactions, toSlice(trx.getHash().asBytes()), toSlice(*trx.rlp(verified)));
 }
 
 void DbStorage::saveTransactionStatus(trx_hash_t const& trx_hash, TransactionStatus const& status) {
@@ -391,14 +391,14 @@ std::unordered_map<trx_hash_t, TransactionStatus> DbStorage::getAllTransactionSt
   return res;
 }
 
-std::shared_ptr<PbftBlock> DbStorage::getPbftBlock(uint64_t period) {
+std::optional<PbftBlock> DbStorage::getPbftBlock(uint64_t period) {
   auto period_data = getPeriodDataRaw(period);
   // DB is corrupted if status point to missing or incorrect transaction
   if (period_data.size() > 0) {
     auto period_data_rlp = RLP(period_data);
-    return make_shared<PbftBlock>(period_data_rlp[PBFT_BLOCK_POS_IN_PERIOD_DATA]);
+    return std::optional<PbftBlock>(period_data_rlp[PBFT_BLOCK_POS_IN_PERIOD_DATA]);
   }
-  return nullptr;
+  return {};
 }
 
 std::shared_ptr<Transaction> DbStorage::getTransaction(trx_hash_t const& hash) {
@@ -421,14 +421,13 @@ std::shared_ptr<Transaction> DbStorage::getTransaction(trx_hash_t const& hash) {
 std::shared_ptr<std::pair<Transaction, taraxa::bytes>> DbStorage::getTransactionExt(trx_hash_t const& hash) {
   auto trx = getTransaction(hash);
   if (trx) {
-    return std::make_shared<std::pair<Transaction, taraxa::bytes>>(*trx, *trx->rlp(true));
+    return std::make_shared<std::pair<Transaction, taraxa::bytes>>(*trx, *trx->rlp());
   }
   return nullptr;
 }
 
 void DbStorage::addTransactionToBatch(Transaction const& trx, Batch& write_batch, bool verified) {
-  insert(write_batch, DbStorage::Columns::transactions, toSlice(trx.getHash().asBytes()),
-         toSlice(*trx.rlp(false, verified)));
+  insert(write_batch, DbStorage::Columns::transactions, toSlice(trx.getHash().asBytes()), toSlice(*trx.rlp(verified)));
 }
 
 void DbStorage::removeTransactionToBatch(trx_hash_t const& trx, Batch& write_batch) {
@@ -568,12 +567,12 @@ void DbStorage::addPbftCertVotedBlockToBatch(PbftBlock const& pbft_block, Batch&
          toSlice(pbft_block.rlp(true)));
 }
 
-std::shared_ptr<PbftBlock> DbStorage::getPbftBlock(blk_hash_t const& hash) {
+std::optional<PbftBlock> DbStorage::getPbftBlock(blk_hash_t const& hash) {
   auto res = getPeriodFromPbftHash(hash);
   if (res.first) {
     return getPbftBlock(res.second);
   }
-  return nullptr;
+  return {};
 }
 
 bool DbStorage::pbftBlockInDb(blk_hash_t const& hash) {

@@ -178,7 +178,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   // Period data
   void savePeriodData(const SyncBlock& sync_block, Batch& write_batch);
   dev::bytes getPeriodDataRaw(uint64_t period);
-  shared_ptr<PbftBlock> getPbftBlock(uint64_t period);
+  std::optional<PbftBlock> getPbftBlock(uint64_t period);
 
   static constexpr uint16_t PBFT_BLOCK_POS_IN_PERIOD_DATA = 0;
   static constexpr uint16_t CERT_VOTES_POS_IN_PERIOD_DATA = 1;
@@ -238,7 +238,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void addPbftCertVotedBlockToBatch(PbftBlock const& pbft_block, Batch& write_batch);
 
   // pbft_blocks
-  shared_ptr<PbftBlock> getPbftBlock(blk_hash_t const& hash);
+  std::optional<PbftBlock> getPbftBlock(blk_hash_t const& hash);
   bool pbftBlockInDb(blk_hash_t const& hash);
   // pbft_blocks (head)
   // TODO: I would recommend storing this differently and not in the same db as
