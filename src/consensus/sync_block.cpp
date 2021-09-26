@@ -11,8 +11,8 @@ namespace taraxa {
 
 using namespace std;
 
-SyncBlock::SyncBlock(std::shared_ptr<PbftBlock> pbft_blk, std::vector<std::shared_ptr<Vote>> cert_votes)
-    : pbft_blk(std::move(pbft_blk)), cert_votes(std::move(cert_votes)) {}
+SyncBlock::SyncBlock(std::shared_ptr<PbftBlock> pbft_blk, std::vector<std::shared_ptr<Vote>> const& cert_votes)
+    : pbft_blk(std::move(pbft_blk)), cert_votes(cert_votes) {}
 
 SyncBlock::SyncBlock(dev::RLP&& rlp) {
   auto it = rlp.begin();

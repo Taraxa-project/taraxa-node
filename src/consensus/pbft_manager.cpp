@@ -1845,7 +1845,10 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
 
 void PbftManager::syncBlockQueuePush(SyncBlock &&block, dev::p2p::NodeID const &node_id) {
   const auto period = block.pbft_blk->getPeriod();
-  if (period <= sync_period_) return;
+  if ((period != sync_period_ + 1) && sync_period_ != 0) {
+    LOG(log_er_) << "Trying to push block with " << period << " period, but current period is " << sync_period_;
+    return;
+  }
   sync_period_ = period;
   std::unique_lock lock(sync_queue_access_);
   sync_queue_.emplace_back(std::move(block), node_id);

@@ -18,7 +18,7 @@ class DagBlock;
 class SyncBlock {
  public:
   SyncBlock() = default;
-  SyncBlock(std::shared_ptr<PbftBlock> pbft_blk, std::vector<std::shared_ptr<Vote>> cert_votes);
+  SyncBlock(std::shared_ptr<PbftBlock> pbft_blk, std::vector<std::shared_ptr<Vote>> const& cert_votes);
   SyncBlock(dev::RLP&& all_rlp);
   SyncBlock(bytes const& all_rlp);
 

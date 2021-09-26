@@ -404,7 +404,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
   // Add cert votes in DB
   // Add PBFT block in DB
 
-  SyncBlock sync_block1(std::make_shared<PbftBlock>(pbft_block1), std::move(votes_for_pbft_blk1));
+  SyncBlock sync_block1(std::make_shared<PbftBlock>(pbft_block1), votes_for_pbft_blk1);
   sync_block1.dag_blocks.push_back(blk1);
   sync_block1.transactions.push_back(g_signed_trx_samples[0]);
   sync_block1.transactions.push_back(g_signed_trx_samples[1]);
@@ -454,7 +454,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
   // Add cert votes in DB
   // Add PBFT block in DB
 
-  SyncBlock sync_block2(std::make_shared<PbftBlock>(pbft_block2), std::move(votes_for_pbft_blk2));
+  SyncBlock sync_block2(std::make_shared<PbftBlock>(pbft_block2), votes_for_pbft_blk2);
   sync_block2.dag_blocks.push_back(blk2);
   sync_block2.transactions.push_back(g_signed_trx_samples[2]);
   sync_block2.transactions.push_back(g_signed_trx_samples[3]);
@@ -597,7 +597,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   // Add fake votes in DB
   // Add PBFT block in DB
 
-  SyncBlock sync_block2(std::make_shared<PbftBlock>(pbft_block2), std::move(votes_for_pbft_blk1));
+  SyncBlock sync_block2(std::make_shared<PbftBlock>(pbft_block2), votes_for_pbft_blk1);
   sync_block2.dag_blocks.push_back(blk1);
   sync_block2.transactions.push_back(g_signed_trx_samples[2]);
   sync_block2.transactions.push_back(g_signed_trx_samples[3]);

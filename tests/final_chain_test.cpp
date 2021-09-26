@@ -49,7 +49,7 @@ struct FinalChainTest : WithDataDir {
     db->saveDagBlock(dag_blk);
     PbftBlock pbft_block(blk_hash_t(), blk_hash_t(), blk_hash_t(), 1, addr_t(1), KeyPair::create().secret());
     std::vector<std::shared_ptr<Vote>> votes;
-    SyncBlock sync_block(std::make_shared<PbftBlock>(std::move(pbft_block)), std::move(votes));
+    SyncBlock sync_block(std::make_shared<PbftBlock>(std::move(pbft_block)), votes);
     sync_block.dag_blocks.push_back(dag_blk);
     sync_block.transactions = trxs;
 
