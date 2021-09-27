@@ -76,7 +76,10 @@ RUN conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/ap
     conan profile update settings.compiler.libcxx=libstdc++11 clang && \
     conan profile update env.CC=clang-$LLVM_VERSION clang && \
     conan profile update env.CXX=clang++-$LLVM_VERSION clang && \
+    conan config set storage.path=/opt/taraxa/.conan && \
     conan install --build missing -s build_type=RelWithDebInfo -pr=clang .
+
+
 
 ###################################################################
 # Build stage - use builder image for actual build of taraxa node #
@@ -102,11 +105,13 @@ RUN mkdir $BUILD_OUTPUT_DIR && cd $BUILD_OUTPUT_DIR \
     && find . -maxdepth 1 ! -name "lib" ! -name "bin" -exec rm -rfv {} \;
 
 
+
 ###############################################################################
 ##### Taraxa image containing taraxad binary + dynamic libraries + config #####
 ###############################################################################
-FROM ubuntu:20.04
+FROM ubuntu:20.04 as ubuntubase
 
+COPY --from=build /root/.conan/ /opt/taraxa/.conan/
 # Install curl and jq
 RUN apt-get update \
     && apt-get install -y curl jq \
