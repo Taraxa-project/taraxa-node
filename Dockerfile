@@ -111,7 +111,7 @@ RUN mkdir $BUILD_OUTPUT_DIR && cd $BUILD_OUTPUT_DIR \
 ###############################################################################
 FROM ubuntu:20.04 as ubuntubase
 
-COPY --from=build /root/.conan/ /opt/taraxa/.conan/
+COPY --from=build /opt/taraxa/.conan /home/circleci/project/
 # Install curl and jq
 RUN apt-get update \
     && apt-get install -y curl jq \
