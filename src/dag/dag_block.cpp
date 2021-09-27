@@ -86,9 +86,7 @@ DagBlock::DagBlock(dev::RLP const &rlp) {
   }
 }
 
-std::vector<trx_hash_t> DagBlock::extract_transactions_from_rlp(RLP const &rlp) {
-  return rlp[5].toVector<trx_hash_t>();
-}
+level_t DagBlock::extract_dag_level_from_rlp(const dev::RLP &rlp) { return rlp[1].toInt<level_t>(); }
 
 Json::Value DagBlock::getJson(bool with_derived_fields) const {
   Json::Value res;

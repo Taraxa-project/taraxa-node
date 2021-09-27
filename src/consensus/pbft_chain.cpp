@@ -140,17 +140,17 @@ PbftChain::PbftChain(blk_hash_t const& dag_genesis_hash, addr_t node_addr, std::
 }
 
 blk_hash_t PbftChain::getHeadHash() const {
-  sharedLock_ lock(chain_head_access_);
+  SharedLock lock(chain_head_access_);
   return head_hash_;
 }
 
 uint64_t PbftChain::getPbftChainSize() const {
-  sharedLock_ lock(chain_head_access_);
+  SharedLock lock(chain_head_access_);
   return size_;
 }
 
 blk_hash_t PbftChain::getLastPbftBlockHash() const {
-  sharedLock_ lock(chain_head_access_);
+  SharedLock lock(chain_head_access_);
   return last_pbft_block_hash_;
 }
 
@@ -159,21 +159,21 @@ bool PbftChain::findPbftBlockInChain(taraxa::blk_hash_t const& pbft_block_hash) 
 }
 
 bool PbftChain::findUnverifiedPbftBlock(taraxa::blk_hash_t const& pbft_block_hash) const {
-  sharedLock_ lock(unverified_access_);
+  SharedLock lock(unverified_access_);
   return unverified_blocks_.find(pbft_block_hash) != unverified_blocks_.end();
 }
 
 PbftBlock PbftChain::getPbftBlockInChain(const taraxa::blk_hash_t& pbft_block_hash) {
   auto pbft_block = db_->getPbftBlock(pbft_block_hash);
-  if (pbft_block == nullptr) {
+  if (!pbft_block.has_value()) {
     LOG(log_er_) << "Cannot find PBFT block hash " << pbft_block_hash << " in DB";
     assert(false);
   }
-  return *pbft_block;
+  return pbft_block.value();
 }
 
 std::shared_ptr<PbftBlock> PbftChain::getUnverifiedPbftBlock(const taraxa::blk_hash_t& pbft_block_hash) {
-  sharedLock_ lock(unverified_access_);
+  SharedLock lock(unverified_access_);
   auto found_block = unverified_blocks_.find(pbft_block_hash);
   if (found_block == unverified_blocks_.end()) {
     return nullptr;
@@ -187,7 +187,7 @@ std::vector<std::string> PbftChain::getPbftBlocksStr(size_t period, size_t count
   std::vector<std::string> result;
   for (auto i = period; i < period + count; i++) {
     auto pbft_block = db_->getPbftBlock(i);
-    if (pbft_block == nullptr) {
+    if (!pbft_block.has_value()) {
       LOG(log_er_) << "PBFT block period " << i << " does not exist in blocks order DB.";
       break;
     }
@@ -200,7 +200,7 @@ std::vector<std::string> PbftChain::getPbftBlocksStr(size_t period, size_t count
 }
 
 void PbftChain::updatePbftChain(blk_hash_t const& pbft_block_hash) {
-  uniqueLock_ lock(chain_head_access_);
+  UniqueLock lock(chain_head_access_);
   size_++;
   last_pbft_block_hash_ = pbft_block_hash;
 }
@@ -217,13 +217,15 @@ bool PbftChain::checkPbftBlockValidation(taraxa::PbftBlock const& pbft_block) co
 
 void PbftChain::cleanupUnverifiedPbftBlocks(taraxa::PbftBlock const& pbft_block) {
   blk_hash_t prev_block_hash = pbft_block.getPrevBlockHash();
-  upgradableLock_ lock(unverified_access_);
+  UpgradableLock lock(unverified_access_);
   if (unverified_blocks_map_.find(prev_block_hash) == unverified_blocks_map_.end()) {
     LOG(log_er_) << "Cannot find the prev PBFT block hash " << prev_block_hash;
     assert(false);
+    return;
   }
+
   // cleanup PBFT blocks in unverified_blocks_ table
-  upgradeLock_ locked(lock);
+  UpgradeLock locked(lock);
   for (blk_hash_t const& block_hash : unverified_blocks_map_[prev_block_hash]) {
     unverified_blocks_.erase(block_hash);
   }
@@ -237,6 +239,7 @@ bool PbftChain::pushUnverifiedPbftBlock(std::shared_ptr<PbftBlock> const& pbft_b
   if (prev_block_hash != getLastPbftBlockHash()) {
     if (findPbftBlockInChain(block_hash)) {
       // The block comes from slow node, drop
+      LOG(log_dg_) << "Cannot add the PBFT block " << block_hash << " since it's in chain already";
       return false;
     } else {
       // TODO: The block comes from fast node that should insert.
@@ -246,7 +249,7 @@ bool PbftChain::pushUnverifiedPbftBlock(std::shared_ptr<PbftBlock> const& pbft_b
 
   {
     // Store in unverified_blocks_ table
-    uniqueLock_ lock(unverified_access_);
+    UniqueLock lock(unverified_access_);
     if (!unverified_blocks_.insert({block_hash, pbft_block}).second) {
       LOG(log_dg_) << "Pbft block " << block_hash.abridged() << " already in unverified queue";
       return false;
@@ -263,7 +266,7 @@ bool PbftChain::pushUnverifiedPbftBlock(std::shared_ptr<PbftBlock> const& pbft_b
 
 std::string PbftChain::getJsonStr() const {
   Json::Value json;
-  sharedLock_ lock(chain_head_access_);
+  SharedLock lock(chain_head_access_);
   json["head_hash"] = head_hash_.toString();
   json["dag_genesis_hash"] = dag_genesis_hash_.toString();
   json["size"] = (Json::Value::UInt64)size_;
@@ -273,7 +276,7 @@ std::string PbftChain::getJsonStr() const {
 
 std::string PbftChain::getJsonStrForBlock(blk_hash_t const& block_hash) const {
   Json::Value json;
-  sharedLock_ lock(chain_head_access_);
+  SharedLock lock(chain_head_access_);
   json["head_hash"] = head_hash_.toString();
   json["dag_genesis_hash"] = dag_genesis_hash_.toString();
   json["size"] = (Json::Value::UInt64)size_ + 1;

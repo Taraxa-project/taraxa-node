@@ -1,90 +1,181 @@
 #include "packets_blocking_mask.hpp"
 
+#include "dag/dag_block.hpp"
+
 namespace taraxa::network::tarcap {
 
-void PacketsBlockingMask::markPacketAsHardBlocked(PriorityQueuePacketType packet_type) {
-  // blocked_packets_peers_time_ contains peers_time blocks that are not compatible with hard blocks, we should
-  // not try to create hard block (and later unblock) when there is ongoing peers_time block
-  assert(blocked_packets_peers_time_.find(packet_type) == blocked_packets_peers_time_.end());
+void PacketsBlockingMask::markPacketAsHardBlocked(const PacketData& blocking_packet,
+                                                  SubprotocolPacketType packet_type_to_block) {
+  auto& packet_hard_block = hard_blocked_packet_types_[packet_type_to_block];
 
-  assert(!(blocked_packets_types_mask_ & packet_type));
-  blocked_packets_types_mask_ |= packet_type;
+  // If this assert is triggered, it means we are trying to insert blocking packet id that is already inserted, which
+  // should never happen as packets id's are supposed to be unique
+  bool packet_id_inserted = packet_hard_block.insert(blocking_packet.id_).second;
+  assert(packet_id_inserted);
 }
 
-void PacketsBlockingMask::markPacketAsHardUnblocked(PriorityQueuePacketType packet_type) {
-  assert(blocked_packets_types_mask_ & packet_type);
-  blocked_packets_types_mask_ ^= packet_type;
-}
+void PacketsBlockingMask::markPacketAsHardUnblocked(const PacketData& blocking_packet,
+                                                    SubprotocolPacketType packet_type_to_unblock) {
+  const auto packet_hard_block = hard_blocked_packet_types_.find(packet_type_to_unblock);
+  assert(packet_hard_block != hard_blocked_packet_types_.end());
 
-void PacketsBlockingMask::markPacketAsPeerTimeBlocked(const PacketData& blocking_packet,
-                                                      PriorityQueuePacketType packet_to_be_blocked) {
-  // blocked_packets_types_mask_ contains hard blocks that are not compatible with peers_time blocks, we should
-  // not try to create peers time block when there is ongoing hard block
-  assert(!(blocked_packets_types_mask_ & packet_to_be_blocked));
+  const auto found_blocking_packet = packet_hard_block->second.find(blocking_packet.id_);
+  assert(found_blocking_packet != packet_hard_block->second.end());
 
-  // There is no existing peer time block for specific packet_type & peer_id, create new one
-  auto& peer_time_blocks = blocked_packets_peers_time_[packet_to_be_blocked];
-  if (!peer_time_blocks.count(blocking_packet.from_node_id_)) {
-    peer_time_blocks[blocking_packet.from_node_id_] = {1, {blocking_packet.receive_time_}};
+  // Delete only found blocking packet block if there is currently multiple packets hard blocking this packet type
+  if (packet_hard_block->second.size() > 1) {
+    packet_hard_block->second.erase(found_blocking_packet);
     return;
   }
 
-  // There is existing peer time block for specific packet_type & peer_id, update it
-  auto& time_block = peer_time_blocks[blocking_packet.from_node_id_];
-  time_block.concurrent_processing_count_++;
-  time_block.times_.insert(blocking_packet.receive_time_);
+  // Delete whole packet_hard_block once the last blocking packet is processed
+  hard_blocked_packet_types_.erase(packet_type_to_unblock);
 }
 
-void PacketsBlockingMask::markPacketAsPeerTimeUnblocked(const PacketData& blocking_packet,
-                                                        PriorityQueuePacketType packet_to_be_unblocked) {
-  auto blocked_packet_peers_time = blocked_packets_peers_time_.find(packet_to_be_unblocked);
-  assert(blocked_packet_peers_time != blocked_packets_peers_time_.end());
+void PacketsBlockingMask::markPacketAsPeerOrderBlocked(const PacketData& blocking_packet,
+                                                       SubprotocolPacketType packet_type_to_block) {
+  auto& packet_peer_order_blocks = peer_order_blocked_packet_types_[packet_type_to_block];
+  auto& peer_order_blocks = packet_peer_order_blocks[blocking_packet.from_node_id_];
 
-  auto peers_time_block = blocked_packet_peers_time->second.find(blocking_packet.from_node_id_);
-  assert(peers_time_block != blocked_packet_peers_time->second.end());
+  // If this assert is triggered, it means we are trying to insert blocking packet id that is already inserted, which
+  // should never happen as packets id's are supposed to be unique
+  bool packet_id_inserted = peer_order_blocks.insert(blocking_packet.id_).second;
+  assert(packet_id_inserted);
+}
 
-  assert(peers_time_block->second.concurrent_processing_count_);
+void PacketsBlockingMask::markPacketAsPeerOrderUnblocked(const PacketData& blocking_packet,
+                                                         SubprotocolPacketType packet_type_to_unblock) {
+  const auto packet_peer_order_block = peer_order_blocked_packet_types_.find(packet_type_to_unblock);
+  assert(packet_peer_order_block != peer_order_blocked_packet_types_.end());
 
-  // Do not delete time_block if there is currently multiple packets (of the same type & same peer) being processed
-  if (peers_time_block->second.concurrent_processing_count_ > 1) {
-    peers_time_block->second.concurrent_processing_count_--;
+  const auto peer_order_block = packet_peer_order_block->second.find(blocking_packet.from_node_id_);
+  assert(peer_order_block != packet_peer_order_block->second.end());
 
-    assert(peers_time_block->second.times_.find(blocking_packet.receive_time_) !=
-           peers_time_block->second.times_.end());
-    peers_time_block->second.times_.erase(blocking_packet.receive_time_);
+  const auto found_blocking_packet = peer_order_block->second.find(blocking_packet.id_);
+  assert(found_blocking_packet != peer_order_block->second.end());
+
+  // Do not delete peer_order_block if there is currently multiple packets (of the same type & same peer) being
+  // processed, thus blocking processing of packet_type_to_unblock
+  if (peer_order_block->second.size() > 1) {
+    peer_order_block->second.erase(found_blocking_packet);
     return;
   }
 
-  // Delete time_block once the last packet (of the same type & same peer) is processed
-  blocked_packet_peers_time->second.erase(peers_time_block);
+  // Delete peer_order_block once the last packet (of the same type & same peer) is processed
+  packet_peer_order_block->second.erase(peer_order_block);
 
-  // TODO: in case blocked_packet_peers_time.empty() == true, we might even erase
-  // blocked_packets_peers_time_.erase(packet_data.type_)
-  //       but it might be less efficient than keeping it there all the time. On the other isPacketBlocked might need to
-  //       evaluate 1 less condition if it is erased...
+  // Note: first level(SubprotocolPacketType) -> packet_peer_order_block blocks are not deleted as it is more effective
+  // to keep it always in memory (even with 0 size) rather than deleting and creating it
 }
 
-bool PacketsBlockingMask::isPacketBlocked(const PacketData& packet_data) const {
-  // If packet is hard blocked, no need to check peer time blocks
-  if (packet_data.type_ & blocked_packets_types_mask_) {
+std::optional<taraxa::level_t> PacketsBlockingMask::getSmallestDagLevelBeingProcessed() const {
+  if (!processing_dag_levels_.empty()) {
+    return {processing_dag_levels_.begin()->first};
+  }
+
+  return {};
+}
+
+void PacketsBlockingMask::setDagBlockLevelBeingProcessed(const PacketData& packet) {
+  level_t dag_level = DagBlock::extract_dag_level_from_rlp(packet.rlp_[0]);
+
+  // Only new dag blocks with smaller or equal level than the smallest level from all blocks currently being processed
+  // are allowed
+  if (const auto smallest_processing_dag_level = getSmallestDagLevelBeingProcessed();
+      smallest_processing_dag_level.has_value()) {
+    assert(dag_level <= smallest_processing_dag_level.value());
+  }
+
+  auto& processing_dag_level = processing_dag_levels_[dag_level];
+
+  // If this assert is triggered, it means we are trying to insert blocking packet id that is already inserted, which
+  // should never happen as packets id's are supposed to be unique
+  bool packet_id_inserted = processing_dag_level.insert(packet.id_).second;
+  assert(packet_id_inserted);
+}
+
+void PacketsBlockingMask::unsetDagBlockLevelBeingProcessed(const PacketData& packet) {
+  level_t dag_block_level = DagBlock::extract_dag_level_from_rlp(packet.rlp_[0]);
+
+  // There must be existing dag level inside processing_dag_levels_
+  const auto processing_dag_level = processing_dag_levels_.find(dag_block_level);
+  assert(processing_dag_level != processing_dag_levels_.end());
+
+  // There must be existing specific packet_id inside processing_dag_level
+  const auto found_blocking_packet = processing_dag_level->second.find(packet.id_);
+  assert(found_blocking_packet != processing_dag_level->second.end());
+
+  // Delete only blocking packet id if there is currently multiple NewDagBlock packets with the same dag level
+  // being processed
+  if (processing_dag_level->second.size() > 1) {
+    processing_dag_level->second.erase(found_blocking_packet);
+    return;
+  }
+
+  // Delete whole processing_dag_level once the last NewDagBlock packet with the same dag level is processed
+  processing_dag_levels_.erase(processing_dag_level);
+}
+
+bool PacketsBlockingMask::isPacketHardBlocked(const PacketData& packet_data) const {
+  // There is no peers_time block for packet_data.type_ packet type
+  return hard_blocked_packet_types_.count(packet_data.type_);
+}
+
+bool PacketsBlockingMask::isDagBlockPacketBlockedByLevel(const PacketData& packet_data) const {
+  const auto smallest_processing_dag_level = getSmallestDagLevelBeingProcessed();
+
+  if (!smallest_processing_dag_level.has_value()) {
+    return false;
+  }
+
+  const auto dag_level = DagBlock::extract_dag_level_from_rlp(packet_data.rlp_[0]);
+  if (dag_level > smallest_processing_dag_level.value()) {
     return true;
   }
 
-  // There is no peers_time block for packet_data.type_ packet type
-  auto blocked_packet_peers_time = blocked_packets_peers_time_.find(packet_data.type_);
-  if (blocked_packet_peers_time == blocked_packets_peers_time_.end()) {
+  return false;
+}
+
+bool PacketsBlockingMask::isPacketPeerOrderBlocked(const PacketData& packet_data) const {
+  // There is no peer_order block for packet_data.type_
+  const auto packet_peer_order_block = peer_order_blocked_packet_types_.find(packet_data.type_);
+  if (packet_peer_order_block == peer_order_blocked_packet_types_.end()) {
     return false;
   }
 
-  // There is no peers_time block for packet_data.from_node_id_ peer
-  auto peers_time_block = blocked_packet_peers_time->second.find(packet_data.from_node_id_);
-  if (peers_time_block == blocked_packet_peers_time->second.end()) {
+  // There is no peer_order block for packet_data.from_node_id_ peer
+  const auto peer_order_block = packet_peer_order_block->second.find(packet_data.from_node_id_);
+  if (peer_order_block == packet_peer_order_block->second.end()) {
     return false;
   }
 
-  // There is peers_time block for packet_data.from_node_id_ packet type and packet_data.from_node_id_ peer
-  // Block all packets that were received after peers_time block timestamp
-  if (packet_data.receive_time_ >= *peers_time_block->second.times_.begin()) {
+  // There is peer_order block for packet_data.type_ and packet_data.from_node_id_ peer
+  // Block all packets that were received after peer_order block with lowest id (time)
+  const auto smallest_blocking_packet_id = *peer_order_block->second.begin();
+  if (packet_data.id_ > smallest_blocking_packet_id) {
+    return true;
+  }
+
+  // This should never happen as packets id's are supposed to be unique
+  assert(packet_data.id_ != smallest_blocking_packet_id);
+
+  return false;
+}
+
+bool PacketsBlockingMask::isPacketBlocked(const PacketData& packet_data) const {
+  // Check if packet is hard blocked
+  if (isPacketHardBlocked(packet_data)) {
+    return true;
+  }
+
+  // Custom blocks for specific packet types...
+  // Check if NewDagBlockPacket is blocked by processing some dag blocks with <= dag level
+  if (packet_data.type_ == SubprotocolPacketType::NewDagBlockPacket && isDagBlockPacketBlockedByLevel(packet_data)) {
+    return true;
+  }
+
+  // Check if packet is order blocked
+  if (isPacketPeerOrderBlocked(packet_data)) {
     return true;
   }
 

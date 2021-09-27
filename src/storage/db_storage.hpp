@@ -41,6 +41,7 @@ enum PbftMgrPreviousRoundStatus : uint8_t {
 };
 
 enum PbftMgrRoundStep : uint8_t { PbftRound = 0, PbftStep };
+
 enum PbftMgrStatus : uint8_t {
   SoftVotedBlockInRound = 0,
   ExecutedBlock,
@@ -91,14 +92,10 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
 #define COLUMN(__name__) static inline auto const __name__ = all_.emplace_back(#__name__, all_.size())
 
-    COLUMN(default_column);
     // Contains full data for an executed PBFT block including PBFT block, cert votes, dag blocks and transactions
     COLUMN(period_data);
     COLUMN(dag_blocks);
     COLUMN(dag_blocks_index);
-    COLUMN(dag_blocks_state);
-    // anchor_hash->[...dag_block_hashes_since_previous_anchor, anchor_hash]
-    COLUMN(dag_finalized_blocks);
     COLUMN(transactions);
     COLUMN(trx_status);
     COLUMN(status);
@@ -178,7 +175,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   // Period data
   void savePeriodData(const SyncBlock& sync_block, Batch& write_batch);
   dev::bytes getPeriodDataRaw(uint64_t period);
-  shared_ptr<PbftBlock> getPbftBlock(uint64_t period);
+  std::optional<PbftBlock> getPbftBlock(uint64_t period);
 
   static constexpr uint16_t PBFT_BLOCK_POS_IN_PERIOD_DATA = 0;
   static constexpr uint16_t CERT_VOTES_POS_IN_PERIOD_DATA = 1;
@@ -192,11 +189,8 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::set<blk_hash_t> getBlocksByLevel(level_t level);
   std::vector<std::shared_ptr<DagBlock>> getDagBlocksAtLevel(level_t level, int number_of_levels);
   void updateDagBlockCounters(Batch& write_batch, std::vector<DagBlock> blks);
-
-  // DAG state
-  void addDagBlockStateToBatch(Batch& write_batch, blk_hash_t const& blk_hash, bool finalized);
-  void removeDagBlockStateToBatch(Batch& write_batch, blk_hash_t const& blk_hash);
-  std::map<blk_hash_t, bool> getAllDagBlockState();
+  std::vector<DagBlock> getNonfinalizedDagBlocks();
+  void removeNonfinalizedDagBlock(blk_hash_t const& hash);
 
   // Transaction
   void saveTransaction(Transaction const& trx, bool verified = false);
@@ -238,7 +232,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void addPbftCertVotedBlockToBatch(PbftBlock const& pbft_block, Batch& write_batch);
 
   // pbft_blocks
-  shared_ptr<PbftBlock> getPbftBlock(blk_hash_t const& hash);
+  std::optional<PbftBlock> getPbftBlock(blk_hash_t const& hash);
   bool pbftBlockInDb(blk_hash_t const& hash);
   // pbft_blocks (head)
   // TODO: I would recommend storing this differently and not in the same db as
@@ -298,8 +292,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   auto getNumBlockExecuted() { return getStatusField(StatusDbField::ExecutedBlkCount); }
   uint64_t getNumDagBlocks() { return getDagBlocksCount(); }
 
-  vector<blk_hash_t> getFinalizedDagBlockHashesByAnchor(blk_hash_t const& anchor);
-  void putFinalizedDagBlockHashesByAnchor(WriteBatch& b, blk_hash_t const& anchor, vector<blk_hash_t> const& hs);
+  vector<blk_hash_t> getFinalizedDagBlockHashesByPeriod(uint32_t period);
 
   // DPOS proposal period levels status
   uint64_t getDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus field);

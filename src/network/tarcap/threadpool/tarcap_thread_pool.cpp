@@ -113,8 +113,6 @@ void TarcapThreadPool::processPacket(size_t worker_id) {
     }
 
     // Once packet handler is finish, update priority queue dependencies
-    // In specific cases when peers_time dependencies are processed -> queue_mutex_ is locked, otherwise
-    // no locking is done as standard blocking dependencies are processed through atomic bitmask
     queue_.updateDependenciesFinish(packet.value(), queue_mutex_);
   }
 }

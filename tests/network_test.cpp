@@ -167,7 +167,7 @@ TEST_F(NetworkTest, sync_large_pbft_block) {
   // Verify that a block over MAX_PACKET_SIZE is created
   auto pbft_blocks = nodes[0]->getDB()->getPbftBlock(1);
   size_t total_size = pbft_blocks->rlp(true).size();
-  auto blocks = nodes[0]->getDB()->getFinalizedDagBlockHashesByAnchor(pbft_blocks->getPivotDagBlockHash());
+  auto blocks = nodes[0]->getDB()->getFinalizedDagBlockHashesByPeriod(1);
   for (auto b : blocks) {
     auto block = nodes[0]->getDB()->getDagBlock(b);
     EXPECT_NE(block, nullptr);
@@ -175,7 +175,7 @@ TEST_F(NetworkTest, sync_large_pbft_block) {
     for (auto t : block->getTrxs()) {
       auto trx = nodes[0]->getDB()->getTransaction(t);
       EXPECT_NE(trx, nullptr);
-      total_size += trx->rlp(true)->size();
+      total_size += trx->rlp()->size();
     }
   }
   EXPECT_GT(total_size, MAX_PACKET_SIZE);
@@ -395,8 +395,6 @@ TEST_F(NetworkTest, node_pbft_sync) {
 
   PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), dev::sha3(order_stream.out()), period, beneficiary,
                         node1->getSecretKey());
-  db1->putFinalizedDagBlockHashesByAnchor(batch, pbft_block1.getPivotDagBlockHash(),
-                                          {pbft_block1.getPivotDagBlockHash()});
   std::vector<std::shared_ptr<Vote>> votes_for_pbft_blk1;
   votes_for_pbft_blk1.emplace_back(
       node1->getPbftManager()->generateVote(pbft_block1.getBlockHash(), cert_vote_type, 1, 3, 0));
@@ -404,7 +402,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
   // Add cert votes in DB
   // Add PBFT block in DB
 
-  SyncBlock sync_block1(pbft_block1, votes_for_pbft_blk1);
+  SyncBlock sync_block1(std::make_shared<PbftBlock>(pbft_block1), votes_for_pbft_blk1);
   sync_block1.dag_blocks.push_back(blk1);
   sync_block1.transactions.push_back(g_signed_trx_samples[0]);
   sync_block1.transactions.push_back(g_signed_trx_samples[1]);
@@ -443,9 +441,6 @@ TEST_F(NetworkTest, node_pbft_sync) {
   order_stream2 << g_signed_trx_samples[2].getHash() << g_signed_trx_samples[3].getHash();
   PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), dev::sha3(order_stream2.out()), 2, beneficiary,
                         node1->getSecretKey());
-  db1->putFinalizedDagBlockHashesByAnchor(batch, pbft_block2.getPivotDagBlockHash(),
-                                          {pbft_block2.getPivotDagBlockHash()});
-
   std::vector<std::shared_ptr<Vote>> votes_for_pbft_blk2;
   votes_for_pbft_blk2.emplace_back(
       node1->getPbftManager()->generateVote(pbft_block2.getBlockHash(), cert_vote_type, 2, 3, 0));
@@ -454,7 +449,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
   // Add cert votes in DB
   // Add PBFT block in DB
 
-  SyncBlock sync_block2(pbft_block2, votes_for_pbft_blk2);
+  SyncBlock sync_block2(std::make_shared<PbftBlock>(pbft_block2), votes_for_pbft_blk2);
   sync_block2.dag_blocks.push_back(blk2);
   sync_block2.transactions.push_back(g_signed_trx_samples[2]);
   sync_block2.transactions.push_back(g_signed_trx_samples[3]);
@@ -541,8 +536,6 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
 
   PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), dev::sha3(order_stream.out()), period, beneficiary,
                         node1->getSecretKey());
-  db1->putFinalizedDagBlockHashesByAnchor(batch, pbft_block1.getPivotDagBlockHash(),
-                                          {pbft_block1.getPivotDagBlockHash()});
   std::vector<std::shared_ptr<Vote>> votes_for_pbft_blk1;
   votes_for_pbft_blk1.emplace_back(
       node1->getPbftManager()->generateVote(pbft_block1.getBlockHash(), cert_vote_type, 1, 3, 0));
@@ -550,7 +543,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   // Add cert votes in DB
   // Add PBFT block in DB
 
-  SyncBlock sync_block1(pbft_block1, votes_for_pbft_blk1);
+  SyncBlock sync_block1(std::make_shared<PbftBlock>(pbft_block1), votes_for_pbft_blk1);
   sync_block1.dag_blocks.push_back(blk1);
   sync_block1.transactions.push_back(g_signed_trx_samples[0]);
   sync_block1.transactions.push_back(g_signed_trx_samples[1]);
@@ -590,14 +583,12 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
 
   PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), dev::sha3(order_stream2.out()), period, beneficiary,
                         node1->getSecretKey());
-  db1->putFinalizedDagBlockHashesByAnchor(batch, pbft_block2.getPivotDagBlockHash(),
-                                          {pbft_block2.getPivotDagBlockHash()});
   std::cout << "Use fake votes for the second PBFT block" << std::endl;
   // node1 put block2 into pbft chain and use fake votes storing into DB (malicious player)
   // Add fake votes in DB
   // Add PBFT block in DB
 
-  SyncBlock sync_block2(pbft_block2, votes_for_pbft_blk1);
+  SyncBlock sync_block2(std::make_shared<PbftBlock>(pbft_block2), votes_for_pbft_blk1);
   sync_block2.dag_blocks.push_back(blk1);
   sync_block2.transactions.push_back(g_signed_trx_samples[2]);
   sync_block2.transactions.push_back(g_signed_trx_samples[3]);

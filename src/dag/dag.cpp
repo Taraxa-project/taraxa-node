@@ -281,13 +281,11 @@ DagManager::DagManager(blk_hash_t const &genesis, addr_t node_addr, std::shared_
       genesis_(genesis),
       log_time_(log_time) {
   LOG_OBJECTS_CREATE("DAGMGR");
-  DagBlock blk;
-  blk_hash_t pivot;
-  std::vector<blk_hash_t> tips;
-  getLatestPivotAndTips(pivot, tips);
-  frontier_.pivot = pivot;
-  for (auto const &t : tips) {
-    frontier_.tips.push_back(t);
+  if (auto ret = getLatestPivotAndTips(); ret) {
+    frontier_.pivot = std::move(ret->first);
+    for (auto const &t : ret->second) {
+      frontier_.tips.push_back(std::move(t));
+    }
   }
   recoverDag();
 } catch (std::exception &e) {
@@ -313,22 +311,22 @@ void DagManager::stop() {
 }
 
 std::pair<uint64_t, uint64_t> DagManager::getNumVerticesInDag() const {
-  sharedLock lock(mutex_);
+  SharedLock lock(mutex_);
   return {db_->getNumDagBlocks(), total_dag_->getNumVertices()};
 }
 
 std::pair<uint64_t, uint64_t> DagManager::getNumEdgesInDag() const {
-  sharedLock lock(mutex_);
+  SharedLock lock(mutex_);
   return {db_->getDagEdgeCount(), total_dag_->getNumEdges()};
 }
 
 void DagManager::drawTotalGraph(std::string const &str) const {
-  sharedLock lock(mutex_);
+  SharedLock lock(mutex_);
   total_dag_->drawGraph(str);
 }
 
 void DagManager::drawPivotGraph(std::string const &str) const {
-  sharedLock lock(mutex_);
+  SharedLock lock(mutex_);
   pivot_tree_->drawGraph(str);
 }
 
@@ -352,7 +350,7 @@ bool DagManager::pivotAndTipsAvailable(DagBlock const &blk) {
 }
 
 DagFrontier DagManager::getDagFrontier() {
-  sharedLock lock(mutex_);
+  SharedLock lock(mutex_);
   return frontier_;
 }
 
@@ -396,10 +394,10 @@ void DagManager::worker() {
   }
 }
 
-void DagManager::addDagBlock(DagBlock const &blk, bool finalized, bool save) {
+void DagManager::addDagBlock(DagBlock const &blk, bool save) {
   auto write_batch = db_->createWriteBatch();
   {
-    uLock lock(mutex_);
+    ULock lock(mutex_);
     if (save) {
       db_->saveDagBlock(blk, &write_batch);
     }
@@ -410,7 +408,7 @@ void DagManager::addDagBlock(DagBlock const &blk, bool finalized, bool save) {
     level_t current_max_level = max_level_;
     max_level_ = std::max(current_max_level, blk.getLevel());
 
-    addToDag(blk_hash, pivot_hash, tips, blk.getLevel(), write_batch, finalized);
+    addToDag(blk_hash, pivot_hash, tips, blk.getLevel());
 
     auto [p, ts] = getFrontier();
     frontier_.pivot = p;
@@ -425,30 +423,24 @@ void DagManager::addDagBlock(DagBlock const &blk, bool finalized, bool save) {
 }
 
 void DagManager::drawGraph(std::string const &dotfile) const {
-  sharedLock lock(mutex_);
+  SharedLock lock(mutex_);
   drawPivotGraph("pivot." + dotfile);
   drawTotalGraph("total." + dotfile);
 }
 
 void DagManager::addToDag(blk_hash_t const &hash, blk_hash_t const &pivot, std::vector<blk_hash_t> const &tips,
-                          uint64_t level, DbStorage::Batch &write_batch, bool finalized) {
+                          uint64_t level, bool finalized) {
   total_dag_->addVEEs(hash, pivot, tips);
   pivot_tree_->addVEEs(hash, pivot, {});
-  db_->addDagBlockStateToBatch(write_batch, hash, finalized);
   if (!finalized) {
     non_finalized_blks_[level].push_back(hash);
   }
   LOG(log_dg_) << " Insert block to DAG : " << hash;
 }
 
-bool DagManager::getLatestPivotAndTips(blk_hash_t &pivot, std::vector<blk_hash_t> &tips) const {
-  // make sure the state of dag is the same when collection pivot and tips
-  sharedLock lock(mutex_);
-  pivot.clear();
-  tips.clear();
-  std::tie(pivot, tips) = getFrontier();
-
-  return !pivot.isZero();
+std::optional<std::pair<blk_hash_t, std::vector<blk_hash_t>>> DagManager::getLatestPivotAndTips() const {
+  SharedLock lock(mutex_);
+  return {getFrontier()};
 }
 
 std::pair<blk_hash_t, std::vector<blk_hash_t>> DagManager::getFrontier() const {
@@ -469,12 +461,12 @@ std::pair<blk_hash_t, std::vector<blk_hash_t>> DagManager::getFrontier() const {
 }
 
 void DagManager::getGhostPath(blk_hash_t const &source, std::vector<blk_hash_t> &ghost) const {
-  sharedLock lock(mutex_);
+  SharedLock lock(mutex_);
   pivot_tree_->getGhostPath(source, ghost);
 }
 
 void DagManager::getGhostPath(std::vector<blk_hash_t> &ghost) const {
-  sharedLock lock(mutex_);
+  SharedLock lock(mutex_);
   auto last_pivot = anchor_;
   ghost.clear();
   pivot_tree_->getGhostPath(last_pivot, ghost);
@@ -482,7 +474,7 @@ void DagManager::getGhostPath(std::vector<blk_hash_t> &ghost) const {
 
 // return {period, block order}, for pbft-pivot-blk proposing
 std::pair<uint64_t, std::vector<blk_hash_t>> DagManager::getDagBlockOrder(blk_hash_t const &anchor) {
-  sharedLock lock(mutex_);
+  SharedLock lock(mutex_);
   // TODO: need to check if the anchor already processed
   // if the period already processed
   std::vector<blk_hash_t> blk_orders;
@@ -506,11 +498,9 @@ std::pair<uint64_t, std::vector<blk_hash_t>> DagManager::getDagBlockOrder(blk_ha
   return {new_period, std::move(blk_orders)};
 }
 
-uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period, vec_blk_t const &dag_order,
-                                  DbStorage::Batch &write_batch) {
-  uLock lock(mutex_);
+uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period, vec_blk_t const &dag_order) {
+  ULock lock(mutex_);
   LOG(log_dg_) << "setDagBlockOrder called with anchor " << new_anchor << " and period " << period;
-  db_->putFinalizedDagBlockHashesByAnchor(write_batch, new_anchor, dag_order);
   if (period != period_ + 1) {
     LOG(log_er_) << " Inserting period (" << period << ") anchor " << new_anchor
                  << " does not match ..., previous internal period (" << period_ << ") " << anchor_;
@@ -519,34 +509,19 @@ uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period,
 
   total_dag_->clear();
   pivot_tree_->clear();
-  auto non_finalized_blocks = non_finalized_blks_;
+  auto non_finalized_blocks = std::move(non_finalized_blks_);
   non_finalized_blks_.clear();
 
-  // Remove old anchor state
-  db_->removeDagBlockStateToBatch(write_batch, anchor_);
+  std::unordered_set<blk_hash_t> dag_order_set(dag_order.begin(), dag_order.end());
+  assert(dag_order_set.count(new_anchor));
+  addToDag(new_anchor, blk_hash_t(), vec_blk_t(), 0, true);
 
-  bool new_anchor_found = false;
-  for (auto &block : dag_order) {
-    // Remove all just finalized except the new_anchor
-    if (block == new_anchor) {
-      new_anchor_found = true;
-      addToDag(block, blk_hash_t(), vec_blk_t(), 0, write_batch, true);
-      db_->addDagBlockStateToBatch(write_batch, block, true);
-    } else {
-      db_->removeDagBlockStateToBatch(write_batch, block);
-    }
-  }
-  assert(new_anchor_found);
-
-  // Add remaining blocks that are not finalized
-  std::set<blk_hash_t> dag_order_set(dag_order.begin(), dag_order.end());
   for (auto &v : non_finalized_blocks) {
     for (auto &blk : v.second) {
       if (dag_order_set.count(blk) == 0) {
         auto dag_block = dag_blk_mgr_->getDagBlock(blk);
         auto pivot_hash = dag_block->getPivot();
-        std::vector<blk_hash_t> tips = dag_block->getTips();
-        addToDag(blk, pivot_hash, tips, dag_block->getLevel(), write_batch, false);
+        addToDag(blk, pivot_hash, dag_block->getTips(), dag_block->getLevel(), false);
       }
     }
   }
@@ -569,6 +544,7 @@ void DagManager::recoverDag() {
       period_ = pbft_block.getPeriod();
       anchor_ = dag_block_hash_as_anchor;
       LOG(log_nf_) << "Recover anchor " << anchor_;
+      addToDag(anchor_, blk_hash_t(), vec_blk_t(), 0, true);
 
       pbft_block_hash = pbft_block.getPrevBlockHash();
       if (pbft_block_hash) {
@@ -579,36 +555,18 @@ void DagManager::recoverDag() {
     }
   }
 
-  auto dag_state_map = db_->getAllDagBlockState();
-  std::map<uint64_t, std::vector<blk_hash_t>> finalized, non_finalized;
-  for (auto &it : dag_state_map) {
-    if (it.second) {
-      finalized[dag_blk_mgr_->getDagBlock(it.first)->getLevel()].push_back(it.first);
-    } else {
-      non_finalized[dag_blk_mgr_->getDagBlock(it.first)->getLevel()].push_back(it.first);
-    }
-  }
-  for (auto &it : finalized) {
-    for (auto &blk_hash : it.second) {
-      auto blk = dag_blk_mgr_->getDagBlock(blk_hash);
-      addDagBlock(*blk, true, false);
-    }
-  }
-  for (auto &it : non_finalized) {
-    for (auto &blk_hash : it.second) {
-      auto blk = dag_blk_mgr_->getDagBlock(blk_hash);
-      addDagBlock(*blk, false, false);
-    }
+  for (auto &blk : db_->getNonfinalizedDagBlocks()) {
+    addDagBlock(std::move(blk), false);
   }
 }
 
 const std::map<uint64_t, std::vector<blk_hash_t>> DagManager::getNonFinalizedBlocks() const {
-  sharedLock lock(mutex_);
+  SharedLock lock(mutex_);
   return non_finalized_blks_;
 }
 
 std::pair<size_t, size_t> DagManager::getNonFinalizedBlocksSize() const {
-  sharedLock lock(mutex_);
+  SharedLock lock(mutex_);
 
   size_t blocks_counter = 0;
   for (auto it = non_finalized_blks_.begin(); it != non_finalized_blks_.end(); ++it) {

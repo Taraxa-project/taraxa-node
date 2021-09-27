@@ -18,26 +18,23 @@ TransactionPacketHandler::TransactionPacketHandler(std::shared_ptr<PeersState> p
       test_state_(std::move(test_state)),
       network_transaction_interval_(network_transaction_interval) {}
 
-inline void TransactionPacketHandler::process(const dev::RLP &packet_rlp,
-                                              [[maybe_unused]] const PacketData &packet_data,
-
-                                              const std::shared_ptr<TaraxaPeer> &peer) {
+inline void TransactionPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
   std::string received_transactions;
-  const auto transaction_count = packet_rlp.itemCount();
+  const auto transaction_count = packet_data.rlp_.itemCount();
 
   std::vector<Transaction> transactions;
   transactions.reserve(transaction_count);
 
   for (size_t tx_idx = 0; tx_idx < transaction_count; tx_idx++) {
-    const auto &transaction = transactions.emplace_back(packet_rlp[tx_idx].data().toBytes());
+    const auto &transaction = transactions.emplace_back(packet_data.rlp_[tx_idx].data().toBytes());
 
     received_transactions += transaction.getHash().abridged() + " ";
     peer->markTransactionAsKnown(transaction.getHash());
   }
 
   if (transaction_count > 0) {
-    LOG(log_dg_) << "Received TransactionPacket with " << packet_rlp.itemCount() << " transactions";
-    LOG(log_tr_) << "Received TransactionPacket with " << packet_rlp.itemCount()
+    LOG(log_dg_) << "Received TransactionPacket with " << packet_data.rlp_.itemCount() << " transactions";
+    LOG(log_tr_) << "Received TransactionPacket with " << packet_data.rlp_.itemCount()
                  << " transactions:" << received_transactions.c_str();
 
     onNewTransactions(transactions, true);

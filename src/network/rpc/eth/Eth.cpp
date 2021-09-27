@@ -86,7 +86,7 @@ class EthImpl : public Eth, EthParams {
     Transaction trx(t.nonce.value_or(0), t.value, t.gas_price.value_or(0), t.gas.value_or(0), t.data, secret,
                     t.to ? optional(t.to) : nullopt, chain_id);
     send_trx(trx);
-    trx.rlp(true);
+    trx.rlp();
     return toJS(trx.getHash());
   }
 

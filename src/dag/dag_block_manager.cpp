@@ -57,13 +57,13 @@ void DagBlockManager::stop() {
   }
 }
 
-bool DagBlockManager::isBlockKnown(blk_hash_t const &hash) {
+bool DagBlockManager::isDagBlockKnown(blk_hash_t const &hash) {
   auto known = seen_blocks_.count(hash);
   if (!known) return getDagBlock(hash) != nullptr;
   return true;
 }
 
-bool DagBlockManager::markBlockAsSeen(const DagBlock &dag_block) {
+bool DagBlockManager::markDagBlockAsSeen(const DagBlock &dag_block) {
   return seen_blocks_.insert(dag_block.getHash(), dag_block);
 }
 
@@ -116,14 +116,14 @@ void DagBlockManager::insertBlock(DagBlock const &blk) {
 void DagBlockManager::pushUnverifiedBlock(DagBlock const &blk, bool critical,
                                           std::vector<Transaction> const &transactions) {
   // Block is already known -> it is either in cache or in dag structure
-  if (isBlockKnown(blk.getHash())) {
+  if (isDagBlockKnown(blk.getHash())) {
     LOG(log_dg_) << "Trying to push new unverified block " << blk.getHash().abridged()
                  << " that is already known, skip it";
     return;
   }
 
   // Mark block as seen - synchronization point in case multiple threads are processing the same block at the same time
-  if (!markBlockAsSeen(blk)) {
+  if (!markDagBlockAsSeen(blk)) {
     LOG(log_dg_) << "Trying to push new unverified block " << blk.getHash().abridged()
                  << " that is already marked as known, skip it";
     return;
@@ -155,7 +155,7 @@ void DagBlockManager::pushUnverifiedBlock(DagBlock const &blk, bool critical,
 
 void DagBlockManager::processSyncedBlock(DbStorage::Batch &batch, SyncBlock const &sync_block) {
   // TODO: check synchronization due to concurrent processing of packets,
-  // TODO: shouldn't be dag blocks marked as known trhough markBlockAsSeen here ?
+  // TODO: shouldn't be dag blocks marked as known trhough markDagBlockAsSeen here ?
 
   vector<trx_hash_t> transactions;
   transactions.reserve(sync_block.transactions.size());
@@ -175,9 +175,6 @@ void DagBlockManager::processSyncedBlock(DbStorage::Batch &batch, SyncBlock cons
   db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_mgr_->getTransactionCount(), batch);
 
   trx_mgr_->getTransactionQueue().removeBlockTransactionsFromQueue(transactions);
-  for (auto const &blk : sync_block.dag_blocks) {
-    blk_status_.update(blk.getHash(), BlockStatus::verified);
-  }
 }
 
 void DagBlockManager::insertBroadcastedBlockWithTransactions(DagBlock const &blk,
@@ -261,8 +258,7 @@ void DagBlockManager::verifyBlock() {
       // Verify transactions
       if (!trx_mgr_->verifyBlockTransactions(blk.first, blk.second)) {
         LOG(log_er_) << "Ignore block " << block_hash << " since it has invalid or missing transactions";
-        blk_status_.update(block_hash, BlockStatus::invalid);
-        seen_blocks_.erase(block_hash);
+        markBlockInvalid(block_hash);
         continue;
       }
 
@@ -273,8 +269,7 @@ void DagBlockManager::verifyBlock() {
       } catch (vdf_sortition::VdfSortition::InvalidVdfSortition const &e) {
         LOG(log_er_) << "DAG block " << block_hash << " failed on VDF verification with pivot hash "
                      << blk.first.getPivot() << " reason " << e.what();
-        blk_status_.update(block_hash, BlockStatus::invalid);
-        seen_blocks_.erase(block_hash);
+        markBlockInvalid(block_hash);
         continue;
       }
 
@@ -307,8 +302,7 @@ void DagBlockManager::verifyBlock() {
           LOG(log_er_) << "Invalid DAG block DPOS. DAG block " << blk.first << " is not eligible for DPOS at period "
                        << propose_period.first << " for sender " << dag_block_sender.toString() << ". Executed period "
                        << executed_period << ", DPOS period " << dpos_period;
-          blk_status_.update(block_hash, BlockStatus::invalid);
-          seen_blocks_.erase(block_hash);
+          markBlockInvalid(block_hash);
         } else {
           // The incoming DAG block is ahead of DPOS period, add back in unverified queue
           uLock lock(shared_mutex_for_unverified_qu_);
@@ -326,9 +320,6 @@ void DagBlockManager::verifyBlock() {
         verified_qu_[blk.first.getLevel()].emplace_back(blk.first);
       }
     }
-
-    blk_status_.update(block_hash, BlockStatus::verified);
-
     cond_for_verified_qu_.notify_one();
     LOG(log_dg_) << "Verified block: " << block_hash << std::endl;
   }
@@ -386,6 +377,12 @@ std::shared_ptr<ProposalPeriodDagLevelsMap> DagBlockManager::newProposePeriodDag
   ProposalPeriodDagLevelsMap new_period_levels_map(propose_period, level_start, level_end);
 
   return std::make_shared<ProposalPeriodDagLevelsMap>(new_period_levels_map);
+}
+
+void DagBlockManager::markBlockInvalid(blk_hash_t const &hash) {
+  blk_status_.update(hash, BlockStatus::invalid);
+  seen_blocks_.erase(hash);
+  db_->removeNonfinalizedDagBlock(hash);
 }
 
 }  // namespace taraxa

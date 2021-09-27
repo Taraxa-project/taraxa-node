@@ -173,10 +173,10 @@ class NextVotesForPreviousRound {
                         size_t pbft_sortition_threshold);
 
  private:
-  using uniqueLock_ = boost::unique_lock<boost::shared_mutex>;
-  using sharedLock_ = boost::shared_lock<boost::shared_mutex>;
-  using upgradableLock_ = boost::upgrade_lock<boost::shared_mutex>;
-  using upgradeLock_ = boost::upgrade_to_unique_lock<boost::shared_mutex>;
+  using UniqueLock = boost::unique_lock<boost::shared_mutex>;
+  using SharedLock = boost::shared_lock<boost::shared_mutex>;
+  using UpgradableLock = boost::upgrade_lock<boost::shared_mutex>;
+  using UpgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
 
   void assertError_(std::vector<std::shared_ptr<Vote>> next_votes_1,
                     std::vector<std::shared_ptr<Vote>> next_votes_2) const;
@@ -254,10 +254,10 @@ class VoteManager {
  private:
   void retreieveVotes_();
 
-  using uniqueLock_ = boost::unique_lock<boost::shared_mutex>;
-  using sharedLock_ = boost::shared_lock<boost::shared_mutex>;
-  using upgradableLock_ = boost::upgrade_lock<boost::shared_mutex>;
-  using upgradeLock_ = boost::upgrade_to_unique_lock<boost::shared_mutex>;
+  using UniqueLock = boost::unique_lock<boost::shared_mutex>;
+  using SharedLock = boost::shared_lock<boost::shared_mutex>;
+  using UpgradableLock = boost::upgrade_lock<boost::shared_mutex>;
+  using UpgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
 
   // <pbft round, <vote hash, vote>>
   std::map<uint64_t, std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>> unverified_votes_;
