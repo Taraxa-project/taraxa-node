@@ -16,8 +16,8 @@ class PacketsStats {
   void addReceivedPacket(const dev::p2p::NodeID& node, const std::string& packet_type, const SinglePacketStats& packet);
   void addSentPacket(const dev::p2p::NodeID& node, const std::string& packet_type, const SinglePacketStats& packet);
 
-  const PacketsAvgStats& getSentPacketsStats() const;
-  const PacketsAvgStats& getReceivedPacketsStats() const;
+  const AllPacketTypesStats& getSentPacketsStats() const;
+  const AllPacketTypesStats& getReceivedPacketsStats() const;
 
   /**
    * @brief Logs both received as well as sent avg packets stats
@@ -25,8 +25,8 @@ class PacketsStats {
   void logStats();
 
  private:
-  PacketsAvgStats sent_packets_stats_;
-  PacketsAvgStats received_packets_stats_;
+  AllPacketTypesStats sent_packets_stats_;
+  AllPacketTypesStats received_packets_stats_;
 
   // Declare logger instances
   LOG_OBJECTS_DEFINE

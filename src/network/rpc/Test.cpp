@@ -210,6 +210,18 @@ Json::Value Test::get_node_status() {
   return res;
 }
 
+Json::Value Test::get_packets_stats() {
+  Json::Value res;
+  try {
+    if (auto node = full_node_.lock()) {
+      return node->getNetwork()->getPacketsStats();
+    }
+  } catch (std::exception &e) {
+    res["status"] = e.what();
+  }
+  return res;
+}
+
 Json::Value Test::get_node_version() {
   Json::Value res;
   try {

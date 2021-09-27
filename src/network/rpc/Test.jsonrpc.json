@@ -60,6 +60,11 @@
     "returns": {}
   },
   {
+    "name": "get_packets_stats",
+    "params": [],
+    "returns": {}
+  },
+  {
     "name": "get_node_version",
     "params": [],
     "returns": {}

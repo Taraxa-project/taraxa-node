@@ -2,115 +2,92 @@
 
 namespace taraxa::network::tarcap {
 
-PacketsAvgStats::PacketsAvgStats(const PacketsAvgStats &ro) : stats_(ro.stats_), mutex_() {}
+AllPacketTypesStats::AllPacketTypesStats(const AllPacketTypesStats &ro) : stats_(ro.stats_), mutex_() {}
 
-PacketsAvgStats &PacketsAvgStats::operator=(const PacketsAvgStats &ro) {
-  stats_ = ro.stats_;
+AllPacketTypesStats &AllPacketTypesStats::operator=(const AllPacketTypesStats &ro) {
+  std::scoped_lock<std::shared_mutex> lock(mutex_);
+  stats_ = ro.getStatsCopy();
+
   return *this;
 }
 
-void PacketsAvgStats::addPacket(const std::string &packet_type, const SinglePacketStats &packet) {
-  std::lock_guard<std::mutex> guard(mutex_);
+void AllPacketTypesStats::addPacket(const std::string &packet_type, const SinglePacketStats &packet) {
+  std::scoped_lock<std::shared_mutex> lock(mutex_);
   auto &packet_stats = stats_[packet_type];
 
-  if (packet.is_unique_) {
-    packet_stats.total_unique_count_++;
-    packet_stats.total_unique_size_ += packet.size_;
-    packet_stats.processing_unique_duration_ += packet.processing_duration_;
-    packet_stats.tp_wait_unique_duration_ += packet.tp_wait_duration_;
-  }
-
-  packet_stats.total_count_++;
-  packet_stats.total_size_ += packet.size_;
+  packet_stats.count_++;
+  packet_stats.size_ += packet.size_;
   packet_stats.processing_duration_ += packet.processing_duration_;
   packet_stats.tp_wait_duration_ += packet.tp_wait_duration_;
 }
 
-std::optional<PacketsAvgStats::SinglePacketAvgStats> PacketsAvgStats::getPacketStats(
+std::optional<AllPacketTypesStats::PacketTypeStats> AllPacketTypesStats::getPacketTypeStats(
     const std::string &packet_type) const {
+  std::shared_lock<std::shared_mutex> lock(mutex_);
   const auto found_stats = stats_.find(packet_type);
 
   if (found_stats == stats_.end()) {
-    return std::nullopt;
+    return {};
   }
 
   return {found_stats->second};
 }
 
-PacketsAvgStats::SinglePacketAvgStats PacketsAvgStats::SinglePacketAvgStats::operator-(
-    const SinglePacketAvgStats &ro) const {
-  SinglePacketAvgStats result;
-
-  result.total_count_ = total_count_ - ro.total_count_;
-  result.total_size_ = total_size_ - ro.total_size_;
-  result.processing_duration_ = processing_duration_ - ro.processing_duration_;
-  result.tp_wait_duration_ = tp_wait_duration_ - ro.tp_wait_duration_;
-  result.total_unique_count_ = total_unique_count_ - ro.total_unique_count_;
-  result.total_unique_size_ = total_unique_size_ - ro.total_unique_size_;
-  result.processing_unique_duration_ = processing_unique_duration_ - ro.processing_unique_duration_;
-  result.tp_wait_unique_duration_ = tp_wait_unique_duration_ - ro.tp_wait_unique_duration_;
-
-  return result;
+std::unordered_map<std::string, AllPacketTypesStats::PacketTypeStats> AllPacketTypesStats::getStatsCopy() const {
+  std::shared_lock<std::shared_mutex> lock(mutex_);
+  return stats_;
 }
 
-std::ostream &operator<<(std::ostream &os, const SinglePacketStats &stats) {
-  os << "node: " << stats.node_.abridged() << ", size: " << stats.size_ << " [B]"
-     << ", processing duration: " << stats.processing_duration_.count() << " [us]"
-     << ", threadpool wait duration: " << stats.tp_wait_duration_.count() << " [us]"
-     << ", is unique: " << stats.is_unique_;
+Json::Value AllPacketTypesStats::getStatsJson(bool include_duration_fields) const {
+  Json::Value ret;
 
-  return os;
-}
+  for (const auto &single_packet_stats : getStatsCopy()) {
+    Json::Value packet_json;
 
-std::ostream &operator<<(std::ostream &os, const PacketsAvgStats::SinglePacketAvgStats &stats) {
-  auto divisor = stats.total_count_ ? stats.total_count_ : 1;
+    const auto &packet_stats = single_packet_stats.second;
+    const auto divisor = packet_stats.count_ ? packet_stats.count_ : 1;
 
-  os << "total_count: " << stats.total_count_ << ", total_size: " << stats.total_size_ << " [B]"
-     << ", avg_size: " << stats.total_size_ / divisor << " [B]"
-     << ", processing_duration: " << stats.processing_duration_.count() << " [us]"
-     << ", avg processing_duration: " << stats.processing_duration_.count() / divisor << " [us]"
-     << ", tp_wait_duration: " << stats.tp_wait_duration_.count() << " [us]"
-     << ", avg tp_wait_duration: " << stats.tp_wait_duration_.count() / divisor << " [us]";
+    packet_json["name"] = std::move(single_packet_stats.first);
+    packet_json["total_count"] = Json::UInt64(packet_stats.count_);
+    packet_json["total_size"] = Json::UInt64(packet_stats.size_);
+    packet_json["avg_size"] = Json::UInt64(packet_stats.size_ / divisor);
 
-  // Most packet dont support total_unique_count_, print this stats only for those, who have some unique packets
-  // registered
-  if (stats.total_unique_count_ > 0) {
-    auto unique_divisor = stats.total_unique_count_ ? stats.total_unique_count_ : 1;
-    os << ", total_unique_count: " << stats.total_unique_count_ << ", total_unique_size: " << stats.total_unique_size_
-       << " [B]"
-       << ", avg_unique_size: " << stats.total_unique_size_ / unique_divisor << " [B]"
-       << ", processing_unique_duration: " << stats.processing_unique_duration_.count() << " [us]"
-       << ", avg processing_unique_duration: " << stats.processing_unique_duration_.count() / unique_divisor << " [us]"
-       << ", tp_wait_unique_duration: " << stats.tp_wait_unique_duration_.count() << " [us]"
-       << ", avg tp_wait_unique_duration: " << stats.tp_wait_unique_duration_.count() / unique_divisor << " [us]";
+    if (include_duration_fields) {
+      packet_json["total_processing_duration"] = Json::UInt64(packet_stats.processing_duration_.count());
+      packet_json["total_tp_wait_duration"] = Json::UInt64(packet_stats.tp_wait_duration_.count());
+      packet_json["avg_processing_duration"] = Json::UInt64(packet_stats.processing_duration_.count() / divisor);
+      packet_json["avg_tp_wait_duration"] = Json::UInt64(packet_stats.tp_wait_duration_.count() / divisor);
+    }
+
+    ret.append(std::move(packet_json));
   }
 
-  return os;
+  return ret;
 }
 
-PacketsAvgStats PacketsAvgStats::operator-(const PacketsAvgStats &ro) const {
-  PacketsAvgStats result;
+AllPacketTypesStats AllPacketTypesStats::operator-(const AllPacketTypesStats &ro) const {
+  AllPacketTypesStats result;
 
-  for (const auto &packet_stats : stats_) {
-    const auto ro_packet_stats = ro.getPacketStats(packet_stats.first);
+  for (const auto &packet_stats : getStatsCopy()) {
+    const auto ro_packet_stats = ro.getPacketTypeStats(packet_stats.first);
 
-    if (ro_packet_stats == std::nullopt) {
-      result.stats_[packet_stats.first] = packet_stats.second;
-    } else {
-      SinglePacketAvgStats packet_avg_stats_result = packet_stats.second - ro_packet_stats.value();
-      if (packet_avg_stats_result.total_count_ > 0) {
+    if (ro_packet_stats.has_value()) {
+      PacketTypeStats packet_avg_stats_result = packet_stats.second - ro_packet_stats.value();
+      if (packet_avg_stats_result.count_ > 0) {
         result.stats_[packet_stats.first] = std::move(packet_avg_stats_result);
       }
+    } else {
+      result.stats_[packet_stats.first] = std::move(packet_stats.second);
     }
   }
 
   return result;
 }
 
-std::ostream &operator<<(std::ostream &os, const PacketsAvgStats &packets_stats) {
+std::ostream &operator<<(std::ostream &os, const AllPacketTypesStats &packets_stats) {
   os << "[";
   size_t idx = 0;
-  for (const auto &stats : packets_stats.stats_) {
+  for (const auto &stats : packets_stats.getStatsCopy()) {
     if (idx > 0) {
       os << ",";
     }
@@ -119,6 +96,38 @@ std::ostream &operator<<(std::ostream &os, const PacketsAvgStats &packets_stats)
     idx++;
   }
   os << "]";
+
+  return os;
+}
+
+AllPacketTypesStats::PacketTypeStats AllPacketTypesStats::PacketTypeStats::operator-(const PacketTypeStats &ro) const {
+  PacketTypeStats result;
+
+  result.count_ = count_ - ro.count_;
+  result.size_ = size_ - ro.size_;
+  result.processing_duration_ = processing_duration_ - ro.processing_duration_;
+  result.tp_wait_duration_ = tp_wait_duration_ - ro.tp_wait_duration_;
+
+  return result;
+}
+
+std::ostream &operator<<(std::ostream &os, const SinglePacketStats &stats) {
+  os << "node: " << stats.node_.abridged() << ", size: " << stats.size_ << " [B]"
+     << ", processing duration: " << stats.processing_duration_.count() << " [us]"
+     << ", threadpool wait duration: " << stats.tp_wait_duration_.count() << " [us]";
+
+  return os;
+}
+
+std::ostream &operator<<(std::ostream &os, const AllPacketTypesStats::PacketTypeStats &stats) {
+  auto divisor = stats.count_ ? stats.count_ : 1;
+
+  os << "total_count: " << stats.count_ << ", total_size: " << stats.size_ << " [B]"
+     << ", avg_size: " << stats.size_ / divisor << " [B]"
+     << ", processing_duration: " << stats.processing_duration_.count() << " [us]"
+     << ", avg processing_duration: " << stats.processing_duration_.count() / divisor << " [us]"
+     << ", tp_wait_duration: " << stats.tp_wait_duration_.count() << " [us]"
+     << ", avg tp_wait_duration: " << stats.tp_wait_duration_.count() / divisor << " [us]";
 
   return os;
 }
