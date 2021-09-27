@@ -113,8 +113,8 @@ class FullNode;
 
 class DagManager : public std::enable_shared_from_this<DagManager> {
  public:
-  using uLock = boost::unique_lock<boost::shared_mutex>;
-  using sharedLock = boost::shared_lock<boost::shared_mutex>;
+  using ULock = boost::unique_lock<boost::shared_mutex>;
+  using SharedLock = boost::shared_lock<boost::shared_mutex>;
 
   explicit DagManager(blk_hash_t const &genesis, addr_t node_addr, std::shared_ptr<TransactionManager> trx_mgr,
                       std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DagBlockManager> dag_blk_mgr,
@@ -128,7 +128,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   blk_hash_t const &get_genesis() { return genesis_; }
 
   bool pivotAndTipsAvailable(DagBlock const &blk);
-  void addDagBlock(DagBlock const &blk, bool finalized = false,
+  void addDagBlock(DagBlock const &blk,
                    bool save = true);  // insert to buffer if fail
 
   // return {period, block order}, for pbft-pivot-blk proposing (does not
@@ -136,10 +136,9 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::pair<uint64_t, vec_blk_t> getDagBlockOrder(blk_hash_t const &anchor);
   // receive pbft-povit-blk, update periods and finalized, return size of
   // ordered blocks
-  uint setDagBlockOrder(blk_hash_t const &anchor, uint64_t period, vec_blk_t const &dag_order,
-                        DbStorage::Batch &write_batch);
+  uint setDagBlockOrder(blk_hash_t const &anchor, uint64_t period, vec_blk_t const &dag_order);
 
-  bool getLatestPivotAndTips(blk_hash_t &pivot, std::vector<blk_hash_t> &tips) const;
+  std::optional<std::pair<blk_hash_t, std::vector<blk_hash_t>>> getLatestPivotAndTips() const;
 
   void getGhostPath(blk_hash_t const &source, std::vector<blk_hash_t> &ghost) const;
   void getGhostPath(std::vector<blk_hash_t> &ghost) const;  // get ghost path from last anchor
@@ -157,11 +156,11 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
 
   // DAG anchors
   uint64_t getLatestPeriod() const {
-    sharedLock lock(mutex_);
+    SharedLock lock(mutex_);
     return period_;
   }
   std::pair<blk_hash_t, blk_hash_t> getAnchors() const {
-    sharedLock lock(mutex_);
+    SharedLock lock(mutex_);
     return std::make_pair(old_anchor_, anchor_);
   }
 
@@ -179,7 +178,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
  private:
   void recoverDag();
   void addToDag(blk_hash_t const &hash, blk_hash_t const &pivot, std::vector<blk_hash_t> const &tips, uint64_t level,
-                DbStorage::Batch &write_batch, bool finalized = false);
+                bool finalized = false);
   void worker();
   std::pair<blk_hash_t, std::vector<blk_hash_t>> getFrontier() const;  // return pivot and tips
   std::atomic<level_t> max_level_ = 0;

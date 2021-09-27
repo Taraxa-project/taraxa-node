@@ -8,7 +8,7 @@
 
 namespace taraxa {
 
-enum class BlockStatus { invalid, proposed, broadcasted, verified, unseen };
+enum class BlockStatus { invalid, proposed, broadcasted };
 
 using BlockStatusTable = ExpirationCacheMap<blk_hash_t, BlockStatus>;
 
@@ -66,6 +66,7 @@ class DagBlockManager {
   using sharedLock = boost::shared_lock<boost::shared_mutex>;
 
   void verifyBlock();
+  void markBlockInvalid(blk_hash_t const &hash);
 
   std::atomic<bool> stopped_ = true;
   size_t num_verifiers_ = 4;

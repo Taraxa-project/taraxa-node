@@ -624,7 +624,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   PbftBlock pbft_second_block = nodes[0]->getPbftChain()->getPbftBlockInChain(pbft_second_block_hash);
   for (auto &node : nodes) {
     auto db = node->getDB();
-    auto dag_blocks_hash_in_schedule = db->getFinalizedDagBlockHashesByAnchor(pbft_second_block.getPivotDagBlockHash());
+    auto dag_blocks_hash_in_schedule = db->getFinalizedDagBlockHashesByPeriod(pbft_second_block.getPeriod());
     // due to change of trx packing change, a trx can be packed in multiple
     // blocks
     std::unordered_set<blk_hash_t> unique_dag_block_hash_set;
@@ -637,7 +637,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
     blk_hash_t pbft_first_block_hash = pbft_second_block.getPrevBlockHash();
     // PBFT first block
     PbftBlock pbft_first_block = nodes[0]->getPbftChain()->getPbftBlockInChain(pbft_first_block_hash);
-    dag_blocks_hash_in_schedule = db->getFinalizedDagBlockHashesByAnchor(pbft_first_block.getPivotDagBlockHash());
+    dag_blocks_hash_in_schedule = db->getFinalizedDagBlockHashesByPeriod(pbft_first_block.getPeriod());
     // due to change of trx packing change, a trx can be packed in multiple
     // blocks
     EXPECT_GE(dag_blocks_hash_in_schedule.size(), 1);
