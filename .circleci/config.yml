@@ -452,7 +452,10 @@ jobs:
          name: Login into gcr
          command: |
             echo ${GCLOUD_SERVICE_KEY} | docker login -u _json_key --password-stdin https://gcr.io
-
+      - restore_cache:
+         keys:
+          - conan-cache-v2-linux--{{ checksum "conanfile.py" }}
+          - conan-cache-v2-linux
       - run:
          name: Build docker image
          command: |
