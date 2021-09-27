@@ -115,20 +115,6 @@ void BlockProposer::stop() {
   proposer_worker_->join();
 }
 
-bool BlockProposer::getLatestPivotAndTips(blk_hash_t& pivot, vec_blk_t& tips) {
-  bool ok = dag_mgr_->getLatestPivotAndTips(pivot, tips);
-  if (ok) {
-    LOG(log_nf_) << "BlockProposer: pivot: " << pivot.toString() << ", tip size = " << tips.size() << std::endl;
-    LOG(log_tr_) << "Tips: " << tips;
-  } else {
-    LOG(log_er_) << "Pivot and tips unavailable ..." << std::endl;
-    return ok;
-  }
-
-  LOG(log_time_) << "Pivot and Tips retrieved at: " << getCurrentTimeMilliSeconds();
-  return ok;
-}
-
 bool BlockProposer::getShardedTrxs(vec_trx_t& sharded_trxs) {
   vec_trx_t to_be_packed_trx;
   trx_mgr_->packTrxs(to_be_packed_trx, bp_config_.transaction_limit);

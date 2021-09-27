@@ -113,8 +113,8 @@ class FullNode;
 
 class DagManager : public std::enable_shared_from_this<DagManager> {
  public:
-  using uLock = boost::unique_lock<boost::shared_mutex>;
-  using sharedLock = boost::shared_lock<boost::shared_mutex>;
+  using ULock = boost::unique_lock<boost::shared_mutex>;
+  using SharedLock = boost::shared_lock<boost::shared_mutex>;
 
   explicit DagManager(blk_hash_t const &genesis, addr_t node_addr, std::shared_ptr<TransactionManager> trx_mgr,
                       std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DagBlockManager> dag_blk_mgr,
@@ -138,7 +138,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   // ordered blocks
   uint setDagBlockOrder(blk_hash_t const &anchor, uint64_t period, vec_blk_t const &dag_order);
 
-  bool getLatestPivotAndTips(blk_hash_t &pivot, std::vector<blk_hash_t> &tips) const;
+  std::optional<std::pair<blk_hash_t, std::vector<blk_hash_t>>> getLatestPivotAndTips() const;
 
   void getGhostPath(blk_hash_t const &source, std::vector<blk_hash_t> &ghost) const;
   void getGhostPath(std::vector<blk_hash_t> &ghost) const;  // get ghost path from last anchor
@@ -156,11 +156,11 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
 
   // DAG anchors
   uint64_t getLatestPeriod() const {
-    sharedLock lock(mutex_);
+    SharedLock lock(mutex_);
     return period_;
   }
   std::pair<blk_hash_t, blk_hash_t> getAnchors() const {
-    sharedLock lock(mutex_);
+    SharedLock lock(mutex_);
     return std::make_pair(old_anchor_, anchor_);
   }
 

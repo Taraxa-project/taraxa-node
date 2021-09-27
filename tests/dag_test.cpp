@@ -234,13 +234,10 @@ TEST_F(DagTest, receive_block_in_order) {
   mgr->addDagBlock(blk3);
   taraxa::thisThreadSleepForMilliSeconds(500);
 
-  blk_hash_t pivot;
-  std::vector<blk_hash_t> tips;
-  std::vector<Dag::vertex_t> criticals;
-  mgr->getLatestPivotAndTips(pivot, tips);
+  auto ret = mgr->getLatestPivotAndTips();
 
-  EXPECT_EQ(pivot, blk_hash_t("0000000000000000000000000000000000000000000000000000000000000002"));
-  EXPECT_EQ(tips.size(), 1);
+  EXPECT_EQ(ret->first, blk_hash_t("0000000000000000000000000000000000000000000000000000000000000002"));
+  EXPECT_EQ(ret->second.size(), 1);
   EXPECT_EQ(mgr->getNumVerticesInDag().first, 4);
   // total edges
   EXPECT_EQ(mgr->getNumEdgesInDag().first, 5);
@@ -350,14 +347,11 @@ TEST_F(DagTest, get_latest_pivot_tips) {
   mgr->addDagBlock(blk6);
   taraxa::thisThreadSleepForMilliSeconds(100);
 
-  blk_hash_t pivot;
-  std::vector<blk_hash_t> tips;
-  std::vector<Dag::vertex_t> criticals;
-  mgr->getLatestPivotAndTips(pivot, tips);
+  auto ret = mgr->getLatestPivotAndTips();
 
-  EXPECT_EQ(pivot, blk_hash_t("0000000000000000000000000000000000000000000000000000000000000003"));
-  EXPECT_EQ(tips.size(), 1);
-  EXPECT_EQ(tips[0], blk_hash_t("0000000000000000000000000000000000000000000000000000000000000006"));
+  EXPECT_EQ(ret->first, blk_hash_t("0000000000000000000000000000000000000000000000000000000000000003"));
+  EXPECT_EQ(ret->second.size(), 1);
+  EXPECT_EQ(ret->second[0], blk_hash_t("0000000000000000000000000000000000000000000000000000000000000006"));
 }
 
 }  // namespace taraxa::core_tests
