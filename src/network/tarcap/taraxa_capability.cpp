@@ -315,13 +315,13 @@ void TaraxaCapability::interpretCapabilityPacket(weak_ptr<dev::p2p::Session> ses
   }
 
   // Unique packet id (counter)
-  static uint64_t packet_id = 0;
+  static std::atomic<uint64_t> packet_id = 0;
 
   // TODO: we are making a copy here for each packet bytes(toBytes()), which is pretty significant. Check why RLP does
   //       not support move semantics so we can take advantage of it...
   SubprotocolPacketType packet_type = static_cast<SubprotocolPacketType>(_id);
   thread_pool_.push(
-      PacketData(packet_id++, packet_type, packetTypeToString(packet_type), std::move(node_id), _r.data().toBytes()));
+      PacketData(++packet_id, packet_type, packetTypeToString(packet_type), std::move(node_id), _r.data().toBytes()));
 }
 
 void TaraxaCapability::start() {
