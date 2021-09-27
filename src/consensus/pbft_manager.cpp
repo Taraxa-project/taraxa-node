@@ -895,12 +895,9 @@ void PbftManager::certifyBlock_() {
       }
 
       if (executed_soft_voted_block_for_this_round || unverified_soft_vote_block_for_this_round_is_valid) {
-        // generate cert vote
-
         // comparePbftBlockScheduleWithDAGblocks_ has checked the cert voted block exist
-
         last_cert_voted_value_ = soft_voted_block_for_this_round_.first;
-        auto cert_voted_block = pbft_chain_->getUnverifiedPbftBlock(last_cert_voted_value_);
+        auto cert_voted_block = getUnfinalizedBlock_(last_cert_voted_value_);
 
         auto batch = db_->createWriteBatch();
         db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::LastCertVotedValue, last_cert_voted_value_, batch);
@@ -909,6 +906,7 @@ void PbftManager::certifyBlock_() {
 
         should_have_cert_voted_in_this_round_ = true;
 
+        // generate cert vote
         auto place_votes = placeVote_(soft_voted_block_for_this_round_.first, cert_vote_type, round, step_);
         if (place_votes) {
           LOG(log_nf_) << "Cert votes " << place_votes << " voting " << soft_voted_block_for_this_round_.first
