@@ -67,7 +67,9 @@ ENV CONAN_REVISIONS_ENABLED=1
 
 # Install conan deps
 WORKDIR /opt/taraxa/
+
 COPY conanfile.py .
+COPY .conan/ .
 
 RUN conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan" && \
     conan profile new clang --detect && \
