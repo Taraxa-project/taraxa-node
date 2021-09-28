@@ -1480,6 +1480,7 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
       vec_blk_t dag_blocks_order;
       if (pushPbftBlock_(sync_block, dag_blocks_order, true /* syncing flag */)) {
         LOG(log_nf_) << node_addr_ << " push synced PBFT block " << pbft_block_hash << " in round " << round;
+        syncBlockQueuePop();
       } else {
         LOG(log_er_) << "Failed push PBFT block " << pbft_block_hash << " into chain";
         break;
@@ -1761,24 +1762,24 @@ bool PbftManager::is_syncing_() {
   return false;
 }
 
-uint64_t PbftManager::pbftSyncingPeriod() const {
-  return std::max(sync_period_.load(), pbft_chain_->getPbftChainSize());
-}
-
 std::optional<SyncBlock> PbftManager::processSyncBlock() {
   std::unique_lock lock(sync_queue_access_);
-  auto sync_block = std::move(sync_queue_.front());
-  sync_queue_.pop_front();
+  auto sync_block = sync_queue_.front();
   lock.unlock();
   auto pbft_block_hash = sync_block.first.pbft_blk->getBlockHash();
   LOG(log_nf_) << "Pop pbft block " << pbft_block_hash << " from synced queue";
+
+  if (pbft_chain_->findPbftBlockInChain(pbft_block_hash)) {
+    LOG(log_dg_) << "PBFT block " << pbft_block_hash << " already present in chain.";
+    syncBlockQueuePop();
+    return nullopt;
+  }
 
   auto net = network_.lock();
   assert(net);  // Should never happen
 
   // Check previous hash matches
   if (sync_block.first.pbft_blk->getPrevBlockHash() != pbft_chain_->getLastPbftBlockHash()) {
-    // TODO: should be clear it is related to syncing, was log_er_pbft_sync_
     LOG(log_er_) << "Invalid PBFT block " << pbft_block_hash
                  << "; prevHash: " << sync_block.first.pbft_blk->getPrevBlockHash() << " from peer "
                  << sync_block.second.abridged() << " received, stop syncing.";
@@ -1819,11 +1820,6 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
     return nullopt;
   }
 
-  if (pbft_chain_->findPbftBlockInChain(pbft_block_hash)) {
-    LOG(log_dg_) << "PBFT block " << pbft_block_hash << " already present in chain.";
-    return nullopt;
-  }
-
   // Check cert votes validation
   if (!vote_mgr_->pbftBlockHasEnoughValidCertVotes(sync_block.first, getDposTotalVotesCount(), getSortitionThreshold(),
                                                    getTwoTPlusOne())) {
@@ -1840,19 +1836,34 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
   return std::optional<SyncBlock>(std::move(sync_block.first));
 }
 
+uint64_t PbftManager::pbftSyncingPeriod() const {
+  std::shared_lock lock(sync_queue_access_);
+  if (sync_queue_.empty()) {
+    return pbft_chain_->getPbftChainSize();
+  }
+
+  return sync_queue_.back().first.pbft_blk->getPeriod();
+}
+
+void PbftManager::syncBlockQueuePop() {
+  std::unique_lock lock(sync_queue_access_);
+  sync_queue_.pop_front();
+}
+
 void PbftManager::syncBlockQueuePush(SyncBlock &&block, dev::p2p::NodeID const &node_id) {
-  const auto period = block.pbft_blk->getPeriod();
-  if ((period != sync_period_ + 1) && sync_period_ != 0) {
-    LOG(log_er_) << "Trying to push block with " << period << " period, but current period is " << sync_period_;
+  const auto block_period = block.pbft_blk->getPeriod();
+  const auto last_period = pbftSyncingPeriod();
+  if (block_period != last_period + 1) {
+    LOG(log_er_) << "Trying to push block with " << block_period << " period, but current last period is "
+                 << last_period;
     return;
   }
-  sync_period_ = period;
+
   std::unique_lock lock(sync_queue_access_);
   sync_queue_.emplace_back(std::move(block), node_id);
 }
 
 void PbftManager::clearSyncBlockQueue() {
-  sync_period_ = 0;
   std::unique_lock lock(sync_queue_access_);
   sync_queue_.clear();
 }

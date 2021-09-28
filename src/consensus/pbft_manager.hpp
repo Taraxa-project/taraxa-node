@@ -65,6 +65,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   size_t getDposWeightedVotesCount() const;
 
   uint64_t pbftSyncingPeriod() const;
+  void syncBlockQueuePop();
   void clearSyncBlockQueue();
   size_t syncBlockQueueSize() const;
   void syncBlockQueuePush(SyncBlock &&block, dev::p2p::NodeID const &node_id);
@@ -239,7 +240,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   std::mutex stop_mtx_;
 
   std::deque<std::pair<SyncBlock, dev::p2p::NodeID>> sync_queue_;
-  std::atomic<uint64_t> sync_period_{0};
   mutable std::shared_mutex sync_queue_access_;
 
   // TODO: will remove later, TEST CODE
