@@ -460,6 +460,7 @@ jobs:
       - run:
          name: Build docker image
          command: |
+               mkdir -p .conan
                BUILDKIT=1 docker build -t ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} .
       - save_cache:
          paths:
