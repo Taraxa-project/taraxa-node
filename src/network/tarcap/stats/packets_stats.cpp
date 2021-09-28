@@ -20,13 +20,13 @@ void PacketsStats::addSentPacket(const dev::p2p::NodeID& node, const std::string
                << "\"). Stats: " << packet;
 }
 
-const PacketsAvgStats& PacketsStats::getSentPacketsStats() const { return sent_packets_stats_; }
+const AllPacketTypesStats& PacketsStats::getSentPacketsStats() const { return sent_packets_stats_; }
 
-const PacketsAvgStats& PacketsStats::getReceivedPacketsStats() const { return received_packets_stats_; }
+const AllPacketTypesStats& PacketsStats::getReceivedPacketsStats() const { return received_packets_stats_; }
 
 void PacketsStats::logStats() {
-  static PacketsAvgStats previous_received_packets_stats = received_packets_stats_;
-  static PacketsAvgStats previous_sent_packets_stats = sent_packets_stats_;
+  static AllPacketTypesStats previous_received_packets_stats = received_packets_stats_;
+  static AllPacketTypesStats previous_sent_packets_stats = sent_packets_stats_;
 
   LOG(log_nf_) << "Received packets stats: " << received_packets_stats_ - previous_received_packets_stats;
   LOG(log_nf_) << "Sent packets stats: " << sent_packets_stats_ - previous_sent_packets_stats;

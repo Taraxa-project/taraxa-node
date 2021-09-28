@@ -28,6 +28,7 @@ class Test : public TestFace {
   virtual Json::Value get_account_balance(const Json::Value& param1) override;
   virtual Json::Value get_peer_count() override;
   virtual Json::Value get_node_status() override;
+  virtual Json::Value get_packets_stats() override;
   virtual Json::Value get_node_version() override;
   virtual Json::Value get_node_count() override;
   virtual Json::Value get_all_peers() override;
