@@ -93,6 +93,7 @@ ARG BUILD_OUTPUT_DIR
 
 # Build taraxa-node project
 WORKDIR /opt/taraxa/
+COPY --from=builder /opt/taraxa/.conan/ /home/circleci/project/.conan/
 COPY . .
 
 RUN mkdir $BUILD_OUTPUT_DIR && cd $BUILD_OUTPUT_DIR \
@@ -106,7 +107,7 @@ RUN mkdir $BUILD_OUTPUT_DIR && cd $BUILD_OUTPUT_DIR \
     # keep only required shared libraries and final binaries
     && find . -maxdepth 1 ! -name "lib" ! -name "bin" -exec rm -rfv {} \;
 
-COPY --from=builder /opt/taraxa/.conan/ /home/circleci/project/.conan/
+
 
 
 ###############################################################################

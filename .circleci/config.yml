@@ -454,8 +454,8 @@ jobs:
             echo ${GCLOUD_SERVICE_KEY} | docker login -u _json_key --password-stdin https://gcr.io
       - restore_cache:
          keys:
-          - conan-cache-v4-linux-docker-{{ checksum "conanfile.py" }}
-          - conan-cache-v4-linux-docker
+          - conan-cache-v5-linux-docker-{{ checksum "conanfile.py" }}
+          - conan-cache-v5-linux-docker
 
       - run:
          name: Build docker image
@@ -466,7 +466,7 @@ jobs:
       - save_cache:
          paths:
            - ~/project/.conan
-         key: conan-cache-v4-linux-docker-{{ checksum "conanfile.py" }}
+         key: conan-cache-v5-linux-docker-{{ checksum "conanfile.py" }}
       - run:
          name: Build ctest image
          command: |
