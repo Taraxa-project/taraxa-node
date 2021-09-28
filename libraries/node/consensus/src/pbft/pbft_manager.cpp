@@ -15,7 +15,7 @@
 
 #include "dag/dag.hpp"
 #include "final_chain/final_chain.hpp"
-#include "vote/vote_manager.hpp"
+#include "vote_manager/vote_manager.hpp"
 
 namespace taraxa {
 using vrf_output_t = vrf_wrapper::vrf_output_t;

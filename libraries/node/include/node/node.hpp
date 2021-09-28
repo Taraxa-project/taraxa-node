@@ -27,7 +27,7 @@
 #include "pbft/pbft_chain.hpp"
 #include "storage/storage.hpp"
 #include "transaction/transaction.hpp"
-#include "vote/vote_manager.hpp"
+#include "vote_manager/vote_manager.hpp"
 
 namespace taraxa {
 

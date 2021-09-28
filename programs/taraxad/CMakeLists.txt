@@ -3,9 +3,7 @@ target_link_libraries(taraxad PRIVATE
     cli
     common
     config
-    consensus
     logger
-    network
     node 
     storage
 )
