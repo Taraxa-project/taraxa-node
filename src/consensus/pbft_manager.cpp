@@ -1763,7 +1763,7 @@ bool PbftManager::is_syncing_() {
 }
 
 std::optional<SyncBlock> PbftManager::processSyncBlock() {
-  std::unique_lock lock(sync_queue_access_);
+  std::shared_lock lock(sync_queue_access_);
   auto sync_block = sync_queue_.front();
   lock.unlock();
   auto pbft_block_hash = sync_block.first.pbft_blk->getBlockHash();
