@@ -1842,7 +1842,8 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
 
 void PbftManager::syncBlockQueuePush(SyncBlock &&block, dev::p2p::NodeID const &node_id) {
   const auto period = block.pbft_blk->getPeriod();
-  if ((period != sync_period_ + 1) && sync_period_ != 0) {
+  //This condition should be enough as we can get blocks by gossiping
+  if (period < sync_period_) {
     LOG(log_er_) << "Trying to push block with " << period << " period, but current period is " << sync_period_;
     return;
   }
