@@ -462,7 +462,7 @@ jobs:
          command: |
                mkdir -p .conan
                ls -la && pwd
-               DOCKER_BUILDKIT=1 docker build -t ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} . --output .
+               DOCKER_BUILDKIT=1 docker build -t ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} . --progress=plain --output0 .
       - save_cache:
          paths:
            - ~/project/.conan
