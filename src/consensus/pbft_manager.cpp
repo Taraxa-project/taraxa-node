@@ -1762,14 +1762,11 @@ bool PbftManager::is_syncing_() {
 }
 
 uint64_t PbftManager::pbftSyncingPeriod() const {
-  return std::max(sync_period_.load(), pbft_chain_->getPbftChainSize());
+  return std::max(sync_queue_.getPeriod(), pbft_chain_->getPbftChainSize());
 }
 
 std::optional<SyncBlock> PbftManager::processSyncBlock() {
-  std::unique_lock lock(sync_queue_access_);
-  auto sync_block = std::move(sync_queue_.front());
-  sync_queue_.pop_front();
-  lock.unlock();
+  auto sync_block = sync_queue_.pop();
   auto pbft_block_hash = sync_block.first.pbft_blk->getBlockHash();
   LOG(log_nf_) << "Pop pbft block " << pbft_block_hash << " from synced queue";
 
@@ -1782,7 +1779,7 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
     LOG(log_er_) << "Invalid PBFT block " << pbft_block_hash
                  << "; prevHash: " << sync_block.first.pbft_blk->getPrevBlockHash() << " from peer "
                  << sync_block.second.abridged() << " received, stop syncing.";
-    clearSyncBlockQueue();
+    sync_queue_.clear();
     // Handle malicious peer on network level
     net->handleMaliciousSyncPeer(sync_block.second);
     return nullopt;
@@ -1793,7 +1790,7 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
     if (vote->getBlockHash() != pbft_block_hash) {
       LOG(log_er_) << "Invalid cert votes block hash " << vote->getBlockHash() << " instead of " << pbft_block_hash
                    << " from peer " << sync_block.second.abridged() << " received, stop syncing.";
-      clearSyncBlockQueue();
+      sync_queue_.clear();
       net->handleMaliciousSyncPeer(sync_block.second);
       return nullopt;
     }
@@ -1814,7 +1811,7 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
     LOG(log_er_) << "Order hash incorrect in sync block " << pbft_block_hash << " expected: " << order_hash
                  << " received " << sync_block.first.pbft_blk->getOrderHash() << "; Dag order: " << blk_order
                  << "; Trx order: " << trx_order << "; from " << sync_block.second.abridged() << ", stop syncing.";
-    clearSyncBlockQueue();
+    sync_queue_.clear();
     net->handleMaliciousSyncPeer(sync_block.second);
     return nullopt;
   }
@@ -1832,7 +1829,7 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
     LOG(log_er_) << "Synced PBFT block " << pbft_block_hash
                  << " doesn't have enough valid cert votes. Clear synced PBFT blocks! DPOS total votes count: "
                  << getDposTotalVotesCount();
-    clearSyncBlockQueue();
+    sync_queue_.clear();
     net->handleMaliciousSyncPeer(sync_block.second);
     return nullopt;
   }
@@ -1842,24 +1839,12 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
 
 void PbftManager::syncBlockQueuePush(SyncBlock &&block, dev::p2p::NodeID const &node_id) {
   const auto period = block.pbft_blk->getPeriod();
-  if ((period != sync_period_ + 1) && sync_period_ != 0) {
-    LOG(log_er_) << "Trying to push block with " << period << " period, but current period is " << sync_period_;
-    return;
+  if (!sync_queue_.push(std::move(block), node_id, pbft_chain_->getPbftChainSize())) {
+    LOG(log_er_) << "Trying to push block with " << period << " period, but current period is "
+                 << sync_queue_.getPeriod();
   }
-  sync_period_ = period;
-  std::unique_lock lock(sync_queue_access_);
-  sync_queue_.emplace_back(std::move(block), node_id);
 }
 
-void PbftManager::clearSyncBlockQueue() {
-  sync_period_ = 0;
-  std::unique_lock lock(sync_queue_access_);
-  sync_queue_.clear();
-}
-
-size_t PbftManager::syncBlockQueueSize() const {
-  std::shared_lock lock(sync_queue_access_);
-  return sync_queue_.size();
-}
+size_t PbftManager::syncBlockQueueSize() const { return sync_queue_.size(); }
 
 }  // namespace taraxa
