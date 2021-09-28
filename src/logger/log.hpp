@@ -21,7 +21,7 @@ using Logger = boost::log::sources::severity_channel_logger_mt<>;
  *       logging_config.verbosity = logger::Verbosity::Error;
  *       logging_config.channels["SAMPLE_CHANNEL"] = logger::Verbosity::Error;
  *
- *       // Initializes logging according to the provied config
+ *       // Initializes logging according to the provided config
  *       InitLogging(logging_config);
  *
  *       addr_t node_addr;

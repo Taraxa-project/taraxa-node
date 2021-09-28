@@ -11,7 +11,7 @@
 namespace taraxa::logger {
 
 BOOST_LOG_ATTRIBUTE_KEYWORD(channel, "Channel", std::string)
-BOOST_LOG_ATTRIBUTE_KEYWORD(short_node_id, "ShortNodeId", uint32_t)
+BOOST_LOG_ATTRIBUTE_KEYWORD(short_node_id, "ShortNodeId", std::string)
 BOOST_LOG_ATTRIBUTE_KEYWORD(severity, "Severity", int)
 
 Verbosity stringToVerbosity(std::string _verbosity) {
@@ -91,7 +91,7 @@ void Config::InitLogging(addr_t const &node) {
     outputs.push_back(Config::OutputConfig());
   }
 
-  auto filter = [this, short_node_id_conf = *(uint32_t *)node.data()](boost::log::attribute_value_set const &_set) {
+  auto filter = [this, short_node_id_conf = node.abridged()](boost::log::attribute_value_set const &_set) {
     if (channels.count(*_set[channel])) {
       if (short_node_id_conf == _set[short_node_id] || _set[short_node_id].empty()) {
         auto channel_name = _set[channel].get();
