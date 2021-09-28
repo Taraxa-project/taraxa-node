@@ -462,7 +462,7 @@ jobs:
          command: |
                mkdir -p .conan
                ls -la && pwd
-               BUILDKIT=1 docker build -t ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} .
+               DOCKER_BUILDKIT=1 docker build -t ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} . --out .
       - save_cache:
          paths:
            - ~/project/.conan
@@ -470,7 +470,7 @@ jobs:
       - run:
          name: Build ctest image
          command: |
-               BUILDKIT=1 docker build -t ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} \
+               DOCKER_BUILDKIT=1 docker build -t ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} \
                  --target build .              
                 
       - run:
