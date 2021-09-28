@@ -246,14 +246,15 @@ std::vector<std::shared_ptr<DagBlock>> DbStorage::getDagBlocksAtLevel(level_t le
   return res;
 }
 
-std::vector<DagBlock> DbStorage::getNonfinalizedDagBlocks() {
-  std::vector<DagBlock> res;
+std::map<int, std::vector<DagBlock>> DbStorage::getNonfinalizedDagBlocks() {
+  std::map<int, std::vector<DagBlock>> res;
   auto i = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::dag_blocks)));
   i->SeekToFirst();
   if (!i->Valid()) return res;
   i->Next();  // Skip genesis
   for (; i->Valid(); i->Next()) {
-    res.emplace_back(asBytes(i->value().ToString()));
+    DagBlock block(asBytes(i->value().ToString()));
+    res[block.getLevel()].emplace_back(std::move(block));
   }
   return res;
 }
