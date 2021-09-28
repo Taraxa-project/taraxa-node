@@ -3,7 +3,6 @@
 #include <libdevcore/Common.h>
 #include <libdevcore/RLP.h>
 
-#include <map>
 #include <vector>
 
 #include "common/types.hpp"

@@ -17,6 +17,8 @@ set(SOURCES
         consensus/pbft_chain.hpp
         consensus/vrf_wrapper.hpp
         consensus/pbft_config.hpp
+        consensus/sync_block.hpp
+        consensus/sync_queue.hpp
         dag/dag.hpp
         dag/dag_block_manager.hpp
         dag/dag_block.hpp
@@ -30,7 +32,6 @@ set(SOURCES
         final_chain/final_chain.hpp
         logger/log.hpp
         logger/logger_config.hpp
-        consensus/sync_block.hpp
         network/rpc/rpc_error_handler.hpp
         network/rpc/eth/watches.hpp
         network/rpc/eth/LogFilter.hpp
@@ -108,6 +109,8 @@ set(SOURCES
         consensus/block_proposer.cpp
         consensus/vrf_wrapper.cpp
         consensus/pbft_chain.cpp
+        consensus/sync_block.cpp
+        consensus/sync_queue.cpp
         dag/dag_block_manager.cpp
         dag/dag.cpp
         dag/dag_block.cpp
@@ -131,7 +134,6 @@ set(SOURCES
         network/rpc/eth/LogFilter.cpp
         network/rpc/eth/Eth.cpp
         network/network.cpp
-        consensus/sync_block.cpp
         network/tarcap/taraxa_capability.cpp
         network/tarcap/stats/node_stats.cpp
         network/tarcap/threadpool/tarcap_thread_pool.cpp
