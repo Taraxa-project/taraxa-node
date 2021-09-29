@@ -1200,14 +1200,16 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     }
   }
 
-  LOG(log_nf_) << "DAG order for proposed block" << dag_block_order.second;
-  LOG(log_nf_) << "Transaction order for proposed block" << non_executed_transactions;
-
   auto order_hash = calculateOrderHash(dag_block_order.second, non_executed_transactions);
 
   // generate generate pbft block
   auto pbft_block = std::make_shared<PbftBlock>(last_pbft_block_hash, dag_block_hash, order_hash, propose_pbft_period,
                                                 beneficiary, node_sk_);
+
+  LOG(log_nf_) << "Proposed Pbft block: " << pbft_block->getBlockHash() << ". Order hash:" << order_hash
+               << ". DAG order for proposed block" << dag_block_order.second << ". Transaction order for proposed block"
+               << non_executed_transactions;
+
   // push pbft block
   pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
   // broadcast pbft block
@@ -1426,9 +1428,9 @@ std::optional<vec_blk_t> PbftManager::comparePbftBlockScheduleWithDAGblocks_(std
 
     auto calculated_order_hash = calculateOrderHash(dag_blocks_order, non_executed_transactions);
     if (calculated_order_hash != pbft_block->getOrderHash()) {
-      LOG(log_er_) << "Order hash incorrect. Pbft order hash: " << pbft_block->getOrderHash()
-                   << " . Calculated hash:" << calculated_order_hash << ". Dag order: " << dag_blocks_order
-                   << ". Trx order: " << non_executed_transactions;
+      LOG(log_er_) << "Order hash incorrect. Pbft block: " << pbft_block->getBlockHash()
+                   << ". Order hash: " << pbft_block->getOrderHash() << " . Calculated hash:" << calculated_order_hash
+                   << ". Dag order: " << dag_blocks_order << ". Trx order: " << non_executed_transactions;
       return {};
     }
     cert_sync_block_.pbft_blk = std::move(pbft_block);
