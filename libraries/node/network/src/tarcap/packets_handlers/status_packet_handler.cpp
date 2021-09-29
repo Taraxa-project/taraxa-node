@@ -39,7 +39,7 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
       if (!pending_peer) {
         LOG(log_er_) << "Peer " << packet_data.from_node_id_.abridged()
                      << " missing in both peers and pending peers map - will be disconnected.";
-        disconnect(packet_data.from_node_id_, p2p::UserReason);
+        disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
         return;
       }
 
@@ -64,21 +64,21 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
                    << getFormattedVersion({node_major_version, node_minor_version, node_patch_version})
                    << ", our node version" << TARAXA_VERSION << ", host " << packet_data.from_node_id_.abridged()
                    << " will be disconnected";
-      disconnect(packet_data.from_node_id_, p2p::UserReason);
+      disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
       return;
     }
 
     if (peer_network_id != conf_network_id_) {
       LOG(log_er_) << "Incorrect network id " << peer_network_id << ", host " << packet_data.from_node_id_.abridged()
                    << " will be disconnected";
-      disconnect(packet_data.from_node_id_, p2p::UserReason);
+      disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
       return;
     }
 
     if (genesis_hash != dag_mgr_->get_genesis()) {
       LOG(log_er_) << "Incorrect genesis hash " << genesis_hash << ", host " << packet_data.from_node_id_.abridged()
                    << " will be disconnected";
-      disconnect(packet_data.from_node_id_, p2p::UserReason);
+      disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
       return;
     }
 
@@ -102,7 +102,7 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
     if (!selected_peer) {
       LOG(log_er_) << "Received standard status packet from " << packet_data.from_node_id_.abridged()
                    << ", without previously received initial status packet. Will be disconnected";
-      disconnect(packet_data.from_node_id_, p2p::UserReason);
+      disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
       return;
     }
 

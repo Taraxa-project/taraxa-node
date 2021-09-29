@@ -151,8 +151,8 @@ uint32_t TransactionManager::insertBroadcastedTransactions(const std::vector<Tra
 
       TransactionStatus trx_status;
       if (!trx_raw_status.empty()) {
-        auto data = asBytes(trx_raw_status);
-        trx_status = TransactionStatus(RLP(data));
+        auto data = dev::asBytes(trx_raw_status);
+        trx_status = TransactionStatus(dev::RLP(data));
       }
 
       LOG(log_dg_) << "Broadcasted transaction " << trx_hash << " received at: " << getCurrentTimeMilliSeconds();
@@ -310,7 +310,7 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx, uint16_t max_trx_
   auto verified_trx = trx_qu_.moveVerifiedTrxSnapShot(max_trx_to_pack);
 
   auto trx_batch = db_->createWriteBatch();
-  vector<h256> accepted_trx_hashes;
+  std::vector<h256> accepted_trx_hashes;
   accepted_trx_hashes.reserve(verified_trx.size());
   {
     std::unique_lock transaction_status_lock(transaction_status_mutex_);
@@ -391,8 +391,8 @@ bool TransactionManager::verifyBlockTransactions(DagBlock const &blk, std::vecto
   for (size_t idx = 0; idx < db_trxs_statuses.size(); ++idx) {
     TransactionStatus status;
     if (!db_trxs_statuses[idx].empty()) {
-      auto data = asBytes(db_trxs_statuses[idx]);
-      status = TransactionStatus(RLP(data));
+      auto data = dev::asBytes(db_trxs_statuses[idx]);
+      status = TransactionStatus(dev::RLP(data));
     }
 
     if (status.state == TransactionStatusEnum::in_queue_unverified || status.state == TransactionStatusEnum::not_seen) {
@@ -437,8 +437,8 @@ bool TransactionManager::verifyBlockTransactions(DagBlock const &blk, std::vecto
       for (size_t idx = 0; idx < db_trxs_statuses.size(); ++idx) {
         TransactionStatus status;
         if (!db_trxs_statuses[idx].empty()) {
-          auto data = asBytes(db_trxs_statuses[idx]);
-          status = TransactionStatus(RLP(data));
+          auto data = dev::asBytes(db_trxs_statuses[idx]);
+          status = TransactionStatus(dev::RLP(data));
         }
 
         if (status.state != TransactionStatusEnum::in_block && status.state != TransactionStatusEnum::finalized) {

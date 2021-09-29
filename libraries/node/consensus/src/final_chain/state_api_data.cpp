@@ -6,7 +6,7 @@
 
 namespace taraxa::state_api {
 
-TaraxaEVMError::TaraxaEVMError(string type, string msg) : runtime_error(move(msg)), type(move(type)) {}
+TaraxaEVMError::TaraxaEVMError(std::string type, std::string msg) : runtime_error(move(msg)), type(move(type)) {}
 TaraxaEVMError::~TaraxaEVMError() throw() {}
 
 ErrFutureBlock::~ErrFutureBlock() throw() {}

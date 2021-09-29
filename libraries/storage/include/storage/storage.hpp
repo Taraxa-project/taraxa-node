@@ -19,8 +19,6 @@
 #include "transaction/transaction.hpp"
 
 namespace taraxa {
-using namespace std;
-using namespace dev;
 namespace fs = std::filesystem;
 
 enum StatusDbField : uint8_t {
@@ -131,12 +129,12 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   const std::string db_dir = "db";
   const std::string state_db_dir = "state_db";
   rocksdb::DB* db_;
-  vector<rocksdb::ColumnFamilyHandle*> handles_;
+  std::vector<rocksdb::ColumnFamilyHandle*> handles_;
   rocksdb::ReadOptions read_options_;
   rocksdb::WriteOptions write_options_;
-  mutex dag_blocks_mutex_;
-  atomic<uint64_t> dag_blocks_count_;
-  atomic<uint64_t> dag_edge_count_;
+  std::mutex dag_blocks_mutex_;
+  std::atomic<uint64_t> dag_blocks_count_;
+  std::atomic<uint64_t> dag_edge_count_;
   uint32_t db_snapshot_each_n_pbft_block_ = 0;
   uint32_t db_max_snapshots_ = 0;
   std::set<uint64_t> snapshots_;
@@ -175,7 +173,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
   // DAG
   void saveDagBlock(DagBlock const& blk, Batch* write_batch_p = nullptr);
-  shared_ptr<DagBlock> getDagBlock(blk_hash_t const& hash);
+  std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const& hash);
   bool dagBlockInDb(blk_hash_t const& hash);
   std::set<blk_hash_t> getBlocksByLevel(level_t level);
   std::vector<std::shared_ptr<DagBlock>> getDagBlocksAtLevel(level_t level, int number_of_levels);
@@ -185,8 +183,8 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
   // Transaction
   void saveTransaction(Transaction const& trx, bool verified = false);
-  shared_ptr<Transaction> getTransaction(trx_hash_t const& hash);
-  shared_ptr<pair<Transaction, taraxa::bytes>> getTransactionExt(trx_hash_t const& hash);
+  std::shared_ptr<Transaction> getTransaction(trx_hash_t const& hash);
+  std::shared_ptr<std::pair<Transaction, taraxa::bytes>> getTransactionExt(trx_hash_t const& hash);
   bool transactionInDb(trx_hash_t const& hash);
   void addTransactionToBatch(Transaction const& trx, Batch& write_batch, bool verified = false);
   void removeTransactionToBatch(trx_hash_t const& trx, Batch& write_batch);
@@ -214,11 +212,11 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void savePbftMgrStatus(PbftMgrStatus field, bool const& value);
   void addPbftMgrStatusToBatch(PbftMgrStatus field, bool const& value, Batch& write_batch);
 
-  shared_ptr<blk_hash_t> getPbftMgrVotedValue(PbftMgrVotedValue field);
+  std::shared_ptr<blk_hash_t> getPbftMgrVotedValue(PbftMgrVotedValue field);
   void savePbftMgrVotedValue(PbftMgrVotedValue field, blk_hash_t const& value);
   void addPbftMgrVotedValueToBatch(PbftMgrVotedValue field, blk_hash_t const& value, Batch& write_batch);
 
-  shared_ptr<PbftBlock> getPbftCertVotedBlock(blk_hash_t const& block_hash);
+  std::shared_ptr<PbftBlock> getPbftCertVotedBlock(blk_hash_t const& block_hash);
   void savePbftCertVotedBlock(PbftBlock const& pbft_block);
   void addPbftCertVotedBlockToBatch(PbftBlock const& pbft_block, Batch& write_batch);
 
@@ -270,9 +268,9 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
   // period_pbft_block
   void addPbftBlockPeriodToBatch(uint64_t period, taraxa::blk_hash_t const& pbft_block_hash, Batch& write_batch);
-  pair<bool, uint64_t> getPeriodFromPbftHash(taraxa::blk_hash_t const& pbft_block_hash);
+  std::pair<bool, uint64_t> getPeriodFromPbftHash(taraxa::blk_hash_t const& pbft_block_hash);
   // dag_block_period
-  shared_ptr<std::pair<uint32_t, uint32_t>> getDagBlockPeriod(blk_hash_t const& hash);
+  std::shared_ptr<std::pair<uint32_t, uint32_t>> getDagBlockPeriod(blk_hash_t const& hash);
   void addDagBlockPeriodToBatch(blk_hash_t const& hash, uint32_t period, uint32_t position, Batch& write_batch);
 
   uint64_t getDagBlocksCount() const { return dag_blocks_count_.load(); }
@@ -283,7 +281,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   auto getNumBlockExecuted() { return getStatusField(StatusDbField::ExecutedBlkCount); }
   uint64_t getNumDagBlocks() { return getDagBlocksCount(); }
 
-  vector<blk_hash_t> getFinalizedDagBlockHashesByPeriod(uint32_t period);
+  std::vector<blk_hash_t> getFinalizedDagBlockHashesByPeriod(uint32_t period);
 
   // DPOS proposal period levels status
   uint64_t getDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus field);
@@ -322,7 +320,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   inline static Slice toSlice(dev::bytes const& b) { return make_slice(b.data(), b.size()); }
 
   template <class N>
-  inline static auto toSlice(N const& n) -> enable_if_t<is_integral_v<N> || is_enum_v<N>, Slice> {
+  inline static auto toSlice(N const& n) -> std::enable_if_t<std::is_integral_v<N> || std::is_enum_v<N>, Slice> {
     return make_slice(&n, sizeof(N));
   }
 
@@ -402,16 +400,16 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void forEach(Column const& col, OnEntry const& f);
 
   class MultiGetQuery {
-    shared_ptr<DbStorage> const db_;
-    vector<rocksdb::ColumnFamilyHandle*> cfs_;
-    vector<Slice> keys_;
-    vector<string> str_pool_;
+    std::shared_ptr<DbStorage> const db_;
+    std::vector<rocksdb::ColumnFamilyHandle*> cfs_;
+    std::vector<Slice> keys_;
+    std::vector<string> str_pool_;
 
    public:
-    explicit MultiGetQuery(shared_ptr<DbStorage> const& db, uint capacity = 0);
+    explicit MultiGetQuery(std::shared_ptr<DbStorage> const& db, uint capacity = 0);
 
     template <typename T>
-    MultiGetQuery& append(Column const& col, vector<T> const& keys, bool copy_key = true) {
+    MultiGetQuery& append(Column const& col, std::vector<T> const& keys, bool copy_key = true) {
       auto h = db_->handle(col);
       for (auto const& k : keys) {
         cfs_.emplace_back(h);
@@ -427,11 +425,11 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
     template <typename T>
     MultiGetQuery& append(Column const& col, T const& key, bool copy_key = true) {
-      return append(col, vector{toSlice(key)}, copy_key);
+      return append(col, std::vector{toSlice(key)}, copy_key);
     }
 
     uint size();
-    vector<string> execute(bool and_reset = true);
+    std::vector<string> execute(bool and_reset = true);
     MultiGetQuery& reset();
   };
 };

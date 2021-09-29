@@ -307,7 +307,7 @@ void DagManager::stop() {
   if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
-  unique_lock lock(mutex_);
+  std::unique_lock lock(mutex_);
   trx_mgr_ = nullptr;
   block_worker_.join();
 }

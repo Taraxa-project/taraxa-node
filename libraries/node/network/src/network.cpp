@@ -44,7 +44,7 @@ Network::Network(NetworkConfig const &config, std::filesystem::path const &netwo
                                                                              dag_blk_mgr, trx_mgr, key.address());
     return dev::p2p::Host::CapabilityList{taraxa_capability_};
   };
-  host_ = dev::p2p::Host::make(net_version, construct_capabilities, key, net_conf, move(taraxa_net_conf),
+  host_ = dev::p2p::Host::make(net_version, construct_capabilities, key, net_conf, std::move(taraxa_net_conf),
                                network_file_path);
 
   for (uint i = 0; i < tp_.capacity(); ++i) {
@@ -83,7 +83,7 @@ std::vector<dev::p2p::NodeID> Network::getAllPeersIDs() const {
   return taraxa_capability_->getPeersState()->getAllPeersIDs();
 }
 
-void Network::onNewBlockVerified(shared_ptr<DagBlock> const &blk, bool proposed) {
+void Network::onNewBlockVerified(std::shared_ptr<DagBlock> const &blk, bool proposed) {
   taraxa_capability_->onNewBlockVerified(blk, proposed);
   LOG(log_dg_) << "On new block verified:" << blk->getHash().toString();
 }

@@ -22,7 +22,7 @@ auto g_mock_dag0 = Lazy([] { return samples::createMockDag0(); });
 
 struct PbftManagerTest : BaseTest {};
 
-pair<size_t, size_t> calculate_2tPuls1_threshold(size_t committee_size, size_t valid_voting_players) {
+std::pair<size_t, size_t> calculate_2tPuls1_threshold(size_t committee_size, size_t valid_voting_players) {
   size_t two_t_plus_one;
   size_t threshold;
   if (committee_size <= valid_voting_players) {
@@ -33,7 +33,7 @@ pair<size_t, size_t> calculate_2tPuls1_threshold(size_t committee_size, size_t v
     two_t_plus_one = valid_voting_players * 2 / 3 + 1;
     threshold = valid_voting_players;
   }
-  return make_pair(two_t_plus_one, threshold);
+  return std::make_pair(two_t_plus_one, threshold);
 }
 
 void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_size) {
@@ -120,7 +120,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
     std::cout << "Node" << i << " committee " << committee << ", valid voting players " << valid_voting_players
               << ", 2t+1 " << two_t_plus_one << ", sortition threshold " << threshold << std::endl;
     EXPECT_EQ(valid_voting_players, nodes.size());
-    tie(expected_2tPlus1, expected_threshold) = calculate_2tPuls1_threshold(committee, valid_voting_players);
+    std::tie(expected_2tPlus1, expected_threshold) = calculate_2tPuls1_threshold(committee, valid_voting_players);
     EXPECT_EQ(two_t_plus_one, expected_2tPlus1);
     EXPECT_EQ(threshold, expected_threshold);
   }
@@ -175,7 +175,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
     std::cout << "Node" << i << " committee " << committee << ", valid voting players " << valid_voting_players
               << ", 2t+1 " << two_t_plus_one << ", sortition threshold " << threshold << std::endl;
     EXPECT_EQ(valid_voting_players, nodes.size());
-    tie(expected_2tPlus1, expected_threshold) = calculate_2tPuls1_threshold(committee, valid_voting_players);
+    std::tie(expected_2tPlus1, expected_threshold) = calculate_2tPuls1_threshold(committee, valid_voting_players);
     EXPECT_EQ(two_t_plus_one, expected_2tPlus1);
     EXPECT_EQ(threshold, expected_threshold);
   }
@@ -189,7 +189,7 @@ TEST_F(PbftManagerTest, terminate_soft_voting_pbft_block) {
   auto pbft_mgr = nodes[0]->getPbftManager();
   pbft_mgr->stop();
 
-  cout << "Initialize PBFT manager at round 2 step 2" << endl;
+  std::cout << "Initialize PBFT manager at round 2 step 2" << std::endl;
 
   auto vote_mgr = nodes[0]->getVoteManager();
 
@@ -207,25 +207,26 @@ TEST_F(PbftManagerTest, terminate_soft_voting_pbft_block) {
   pbft_mgr->setLastSoftVotedValue(stale_block_hash);
 
   uint64_t time_till_stale_ms = 1000;
-  cout << "Set max wait for soft voted value to " << time_till_stale_ms << "ms...";
+  std::cout << "Set max wait for soft voted value to " << time_till_stale_ms << "ms...";
   pbft_mgr->setMaxWaitForSoftVotedBlock_ms(time_till_stale_ms);
   pbft_mgr->setMaxWaitForNextVotedBlock_ms(std::numeric_limits<uint64_t>::max());
 
-  cout << "Sleep " << time_till_stale_ms << "ms so that last soft voted value of " << stale_block_hash.abridged()
-       << " becomes stale..." << endl;
+  std::cout << "Sleep " << time_till_stale_ms << "ms so that last soft voted value of " << stale_block_hash.abridged()
+            << " becomes stale..." << std::endl;
   taraxa::thisThreadSleepForMilliSeconds(time_till_stale_ms);
 
   pbft_mgr->setPbftRound(2);
   pbft_mgr->setPbftStep(2);
   pbft_mgr->resumeSingleState();
 
-  cout << "Wait to get to cert voted state in round 2..." << endl;
+  std::cout << "Wait to get to cert voted state in round 2..." << std::endl;
   EXPECT_HAPPENS({2s, 50ms}, [&](auto &ctx) {
     auto reached_step_three_in_round_two = (pbft_mgr->getPbftRound() == 2 && pbft_mgr->getPbftStep() == 3);
     WAIT_EXPECT_EQ(ctx, reached_step_three_in_round_two, true)
   });
 
-  cout << "Check did not soft vote for stale soft voted value of " << stale_block_hash.abridged() << "..." << endl;
+  std::cout << "Check did not soft vote for stale soft voted value of " << stale_block_hash.abridged() << "..."
+            << std::endl;
   bool skipped_soft_voting = true;
   auto votes = vote_mgr->getVerifiedVotes();
   for (auto const &v : votes) {
@@ -233,7 +234,7 @@ TEST_F(PbftManagerTest, terminate_soft_voting_pbft_block) {
       if (v->getBlockHash() == stale_block_hash) {
         skipped_soft_voting = false;
       }
-      cout << "Found soft voted value of " << v->getBlockHash().abridged() << " in round 2" << endl;
+      std::cout << "Found soft voted value of " << v->getBlockHash().abridged() << " in round 2" << std::endl;
     }
   }
   EXPECT_EQ(skipped_soft_voting, true);
@@ -241,7 +242,7 @@ TEST_F(PbftManagerTest, terminate_soft_voting_pbft_block) {
   auto start_round = pbft_mgr->getPbftRound();
   pbft_mgr->resume();
 
-  cout << "Wait ensure node is still advancing in rounds... " << endl;
+  std::cout << "Wait ensure node is still advancing in rounds... " << std::endl;
   EXPECT_HAPPENS({60s, 50ms}, [&](auto &ctx) { WAIT_EXPECT_NE(ctx, start_round, pbft_mgr->getPbftRound()) });
 }
 
@@ -254,7 +255,7 @@ TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
   auto pbft_mgr = nodes[0]->getPbftManager();
   auto db = nodes[0]->getDB();
   pbft_mgr->stop();
-  cout << "Initialize PBFT manager at round 1 step 4" << endl;
+  std::cout << "Initialize PBFT manager at round 1 step 4" << std::endl;
   pbft_mgr->setPbftRound(1);
   pbft_mgr->setPbftStep(4);
 
@@ -296,7 +297,7 @@ TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
 
   auto start_round = pbft_mgr->getPbftRound();
 
-  cout << "After some time, terminate voting on the bogus value " << pbft_block_hash << endl;
+  std::cout << "After some time, terminate voting on the bogus value " << pbft_block_hash << std::endl;
   EXPECT_HAPPENS({10s, 50ms}, [&](auto &ctx) {
     auto next_vote_value = pbft_block_hash;
     auto votes = vote_mgr->getVerifiedVotes();
@@ -313,7 +314,7 @@ TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
     WAIT_EXPECT_EQ(ctx, next_vote_value, NULL_BLOCK_HASH)
   });
 
-  cout << "Wait ensure node is still advancing in rounds... " << endl;
+  std::cout << "Wait ensure node is still advancing in rounds... " << std::endl;
   EXPECT_HAPPENS({60s, 50ms}, [&](auto &ctx) { WAIT_EXPECT_NE(ctx, start_round, pbft_mgr->getPbftRound()) });
 }
 
@@ -325,7 +326,7 @@ TEST_F(PbftManagerTest, terminate_missing_proposed_pbft_block) {
   auto pbft_mgr = nodes[0]->getPbftManager();
   auto db = nodes[0]->getDB();
   pbft_mgr->stop();
-  cout << "Initialize PBFT manager at round 1 step 4" << endl;
+  std::cout << "Initialize PBFT manager at round 1 step 4" << std::endl;
   pbft_mgr->setPbftRound(1);
   pbft_mgr->setPbftStep(4);
 
@@ -359,7 +360,7 @@ TEST_F(PbftManagerTest, terminate_missing_proposed_pbft_block) {
 
   auto start_round = pbft_mgr->getPbftRound();
 
-  cout << "After some time, terminate voting on the missing proposed block " << pbft_block_hash << endl;
+  std::cout << "After some time, terminate voting on the missing proposed block " << pbft_block_hash << std::endl;
   // After some rounds, terminate the bogus value and vote on NULL_BLOCK_HASH since no new DAG blocks generated
   EXPECT_HAPPENS({10s, 50ms}, [&](auto &ctx) {
     auto soft_vote_value = pbft_block_hash;
@@ -377,7 +378,7 @@ TEST_F(PbftManagerTest, terminate_missing_proposed_pbft_block) {
     WAIT_EXPECT_EQ(ctx, soft_vote_value, NULL_BLOCK_HASH)
   });
 
-  cout << "Wait ensure node is still advancing in rounds... " << endl;
+  std::cout << "Wait ensure node is still advancing in rounds... " << std::endl;
   EXPECT_HAPPENS({60s, 50ms}, [&](auto &ctx) { WAIT_EXPECT_NE(ctx, start_round, pbft_mgr->getPbftRound()) });
 }
 
@@ -524,7 +525,7 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
               << eligible_total_vote_count << ", 2t+1 " << two_t_plus_one << ", sortition threshold " << threshold
               << std::endl;
     EXPECT_EQ(eligible_total_vote_count, expected_eligible_total_vote);
-    tie(expected_2tPlus1, expected_threshold) = calculate_2tPuls1_threshold(committee, eligible_total_vote_count);
+    std::tie(expected_2tPlus1, expected_threshold) = calculate_2tPuls1_threshold(committee, eligible_total_vote_count);
     EXPECT_EQ(two_t_plus_one, expected_2tPlus1);
     EXPECT_EQ(threshold, expected_threshold);
   }

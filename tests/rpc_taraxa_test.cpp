@@ -6,11 +6,11 @@ namespace taraxa::net {
 using namespace core_tests;
 
 struct TaraxaTest : BaseTest {
-  vector<shared_ptr<FullNode>> nodes = launch_nodes(make_node_cfgs<20, true>(1));
+  std::vector<std::shared_ptr<FullNode>> nodes = launch_nodes(make_node_cfgs<20, true>(1));
   TransactionClient trx_client{nodes[0]};
   FullNode& node = *nodes[0];
   FullNodeConfig const& cfg = node.getConfig();
-  filesystem::path response_file = data_dir / "response.json";
+  std::filesystem::path response_file = data_dir / "response.json";
 };
 
 TEST_F(TaraxaTest, queryDPOS) {
@@ -244,12 +244,12 @@ TEST_F(TaraxaTest, queryDPOS) {
     req_wrapper["id"] = "0";
     req_wrapper["method"] = "taraxa_queryDPOS";
     (req_wrapper["params"] = Json::Value(Json::arrayValue)).append(req);
-    stringstream curl_cmd;
+    std::stringstream curl_cmd;
     curl_cmd << "curl -m 10 -s -X POST -d '" << util::to_string(req_wrapper) << "' 0.0.0.0:" << *cfg.rpc->http_port
              << " >" << response_file;
     EXPECT_FALSE(system(curl_cmd.str().c_str()));
     Json::Value res_wrapper;
-    ifstream(response_file) >> res_wrapper;
+    std::ifstream(response_file) >> res_wrapper;
     EXPECT_EQ(res_expected, res_wrapper["result"]);
   }
 }

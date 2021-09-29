@@ -357,16 +357,16 @@ class FinalChainImpl final : public FinalChain {
   }
 
   state_api::DPOSQueryResult dpos_query(state_api::DPOSQuery const& q,
-                                        optional<EthBlockNumber> blk_n = {}) const override {
+                                        std::optional<EthBlockNumber> blk_n = {}) const override {
     return state_api_.dpos_query(last_if_absent(blk_n), q);
   }
 
-  EthBlockNumber last_if_absent(optional<EthBlockNumber> const& client_blk_n) const {
+  EthBlockNumber last_if_absent(std::optional<EthBlockNumber> const& client_blk_n) const {
     return client_blk_n ? *client_blk_n : last_block_number();
   }
 
   static util::RangeView<state_api::EVMTransaction> to_state_api_transactions(Transactions const& trxs) {
-    return make_range_view(trxs).map([](auto const& trx) {
+    return util::make_range_view(trxs).map([](auto const& trx) {
       return state_api::EVMTransaction{
           trx.getSender(), trx.getGasPrice(), trx.getReceiver(), trx.getNonce(),
           trx.getValue(),  trx.getGas(),      trx.getData(),

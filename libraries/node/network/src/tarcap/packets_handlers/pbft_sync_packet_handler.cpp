@@ -149,7 +149,7 @@ void PbftSyncPacketHandler::delayedPbftSync(int counter) {
 void PbftSyncPacketHandler::sendSyncedMessage() {
   LOG(log_dg_) << "sendSyncedMessage ";
   for (const auto &peer : peers_state_->getAllPeersIDs()) {
-    sealAndSend(peer, SyncedPacket, RLPStream(0));
+    sealAndSend(peer, SyncedPacket, dev::RLPStream(0));
   }
 }
 

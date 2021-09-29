@@ -11,13 +11,10 @@
 #include "config/state_api_config.hpp"
 
 namespace taraxa::state_api {
-using namespace ::dev;
-using namespace ::std;
-using namespace ::taraxa::util;
 
 struct TaraxaEVMError : std::runtime_error {
-  string const type;
-  TaraxaEVMError(string type, string msg);
+  std::string const type;
+  TaraxaEVMError(std::string type, std::string msg);
   ~TaraxaEVMError() throw();
 };
 
@@ -33,7 +30,7 @@ struct DPOSTransfer {
   HAS_RLP_FIELDS
 };
 
-using DPOSTransfers = unordered_map<addr_t, DPOSTransfer>;
+using DPOSTransfers = std::unordered_map<addr_t, DPOSTransfer>;
 
 struct EVMBlock {
   addr_t author;
@@ -47,7 +44,7 @@ struct EVMBlock {
 struct EVMTransaction {
   addr_t from;
   u256 gas_price;
-  optional<addr_t> to;
+  std::optional<addr_t> to;
   uint64_t nonce = 0;
   u256 value;
   gas_t gas = 0;
@@ -65,7 +62,7 @@ struct UncleBlock {
 
 struct LogRecord {
   addr_t address;
-  vector<h256> topics;
+  std::vector<h256> topics;
   bytes data;
 
   HAS_RLP_FIELDS
@@ -74,16 +71,16 @@ struct LogRecord {
 struct ExecutionResult {
   bytes code_retval;
   addr_t new_contract_addr;
-  vector<LogRecord> logs;
+  std::vector<LogRecord> logs;
   gas_t gas_used = 0;
-  string code_err;
-  string consensus_err;
+  std::string code_err;
+  std::string consensus_err;
 
   HAS_RLP_FIELDS
 };
 
 struct StateTransitionResult {
-  vector<ExecutionResult> execution_results;
+  std::vector<ExecutionResult> execution_results;
   h256 state_root;
 
   HAS_RLP_FIELDS
@@ -103,14 +100,14 @@ struct Account {
 
 struct TrieProof {
   bytes value;
-  vector<bytes> nodes;
+  std::vector<bytes> nodes;
 
   HAS_RLP_FIELDS
 };
 
 struct Proof {
   TrieProof account_proof;
-  vector<TrieProof> storage_proofs;
+  std::vector<TrieProof> storage_proofs;
 
   HAS_RLP_FIELDS
 };
@@ -134,7 +131,7 @@ struct DPOSQuery {
   };
 
   bool with_eligible_count = 0;
-  unordered_map<addr_t, AccountQuery> account_queries;
+  std::unordered_map<addr_t, AccountQuery> account_queries;
 
   HAS_RLP_FIELDS
 };
@@ -146,7 +143,7 @@ struct DPOSQueryResult {
     u256 staking_balance;
     bool is_eligible = 0;
     // intentionally used ordered map to have a stable key order in iteration
-    using deposits_t = map<addr_t, u256>;
+    using deposits_t = std::map<addr_t, u256>;
     deposits_t outbound_deposits;
     deposits_t inbound_deposits;
 
@@ -154,7 +151,7 @@ struct DPOSQueryResult {
   };
 
   uint64_t eligible_count = 0;
-  unordered_map<addr_t, AccountResult> account_results;
+  std::unordered_map<addr_t, AccountResult> account_results;
 
   HAS_RLP_FIELDS
 };

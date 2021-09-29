@@ -175,8 +175,8 @@ TEST_F(PbftChainTest, block_broadcast) {
 
   nw1->onNewPbftBlock(pbft_block);
 
-  shared_ptr<PbftBlock> pbft_block_from_node2;
-  shared_ptr<PbftBlock> pbft_block_from_node3;
+  std::shared_ptr<PbftBlock> pbft_block_from_node2;
+  std::shared_ptr<PbftBlock> pbft_block_from_node3;
   for (int i = 0; i < 300; i++) {
     // test timeout is 30 seconds
     pbft_block_from_node2 = pbft_chain2->getUnverifiedPbftBlock(pbft_block->getBlockHash());

@@ -79,7 +79,7 @@ void TaraxaCapability::initBootNodes(const std::vector<NodeConfig> &network_boot
   };
 
   for (auto const &node : network_boot_nodes) {
-    Public pub(node.id);
+    dev::Public pub(node.id);
     if (pub == key.pub()) {
       LOG(log_wr_) << "not adding self to the boot node list";
       continue;
@@ -235,7 +235,7 @@ unsigned TaraxaCapability::version() const { return TARAXA_NET_VERSION; }
 
 unsigned TaraxaCapability::messageCount() const { return SubprotocolPacketType::PacketCount; }
 
-void TaraxaCapability::onConnect(weak_ptr<dev::p2p::Session> session, u256 const &) {
+void TaraxaCapability::onConnect(std::weak_ptr<dev::p2p::Session> session, u256 const &) {
   const auto session_p = session.lock();
   if (!session_p) {
     LOG(log_er_) << "Unable to obtain session ptr !";
@@ -259,7 +259,7 @@ void TaraxaCapability::onConnect(weak_ptr<dev::p2p::Session> session, u256 const
   status_packet_handler->sendStatus(node_id, true);
 }
 
-void TaraxaCapability::onDisconnect(p2p::NodeID const &_nodeID) {
+void TaraxaCapability::onDisconnect(dev::p2p::NodeID const &_nodeID) {
   LOG(log_nf_) << "Node " << _nodeID << " disconnected";
   peers_state_->erasePeer(_nodeID);
 
@@ -279,7 +279,8 @@ std::string TaraxaCapability::packetTypeToString(unsigned _packetType) const {
   return convertPacketTypeToString(static_cast<SubprotocolPacketType>(_packetType));
 }
 
-void TaraxaCapability::interpretCapabilityPacket(weak_ptr<dev::p2p::Session> session, unsigned _id, RLP const &_r) {
+void TaraxaCapability::interpretCapabilityPacket(std::weak_ptr<dev::p2p::Session> session, unsigned _id,
+                                                 dev::RLP const &_r) {
   const auto session_p = session.lock();
   if (!session_p) {
     LOG(log_er_) << "Unable to obtain session ptr !";
@@ -347,7 +348,7 @@ void TaraxaCapability::handleMaliciousSyncPeer(dev::p2p::NodeID const &id) {
   // syncing_state_->set_peer_malicious(id);
 
   if (auto host = peers_state_->host_.lock(); host) {
-    host->disconnect(id, p2p::UserReason);
+    host->disconnect(id, dev::p2p::UserReason);
   } else {
     LOG(log_er_) << "Unable to handleMaliciousSyncPeer, host == nullptr";
   }

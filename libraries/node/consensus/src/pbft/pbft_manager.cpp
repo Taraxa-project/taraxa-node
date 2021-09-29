@@ -1407,7 +1407,7 @@ std::optional<vec_blk_t> PbftManager::comparePbftBlockScheduleWithDAGblocks_(std
     uint32_t trx_index = 0;
     for (auto const &trx_status_raw : transactions_status_res) {
       if (!trx_status_raw.empty()) {
-        auto data = asBytes(trx_status_raw);
+        auto data = dev::asBytes(trx_status_raw);
         dev::RLP rlp(data);
         TransactionStatus transaction_status(rlp);
         if (transaction_status.state == TransactionStatusEnum::in_block) {
@@ -1424,7 +1424,7 @@ std::optional<vec_blk_t> PbftManager::comparePbftBlockScheduleWithDAGblocks_(std
     auto transactions_res = db_query.execute();
     cert_sync_block_.transactions.reserve(transactions_res.size());
     for (auto const &trx_raw : transactions_res) {
-      if (trx_raw.size() > 0) cert_sync_block_.transactions.emplace_back(asBytes(trx_raw));
+      if (trx_raw.size() > 0) cert_sync_block_.transactions.emplace_back(dev::asBytes(trx_raw));
     }
 
     auto calculated_order_hash = calculateOrderHash(dag_blocks_order, non_executed_transactions);
@@ -1500,7 +1500,7 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
   }
 }
 
-void PbftManager::finalize_(PbftBlock const &pbft_block, vector<h256> finalized_dag_blk_hashes, bool sync) {
+void PbftManager::finalize_(PbftBlock const &pbft_block, std::vector<h256> finalized_dag_blk_hashes, bool sync) {
   auto result = final_chain_->finalize(
       {
           pbft_block.getBeneficiary(),
@@ -1564,13 +1564,13 @@ bool PbftManager::pushPbftBlock_(SyncBlock &sync_block, vec_blk_t &dag_blocks_or
     // Non-finalized block should be empty when syncing, maybe we should clear it if we are deep out of sync to improve
     // performance
     auto non_finalized_blocks = dag_mgr_->getNonFinalizedBlocks();
-    unordered_set<blk_hash_t> non_finalized_blocks_set;
+    std::unordered_set<blk_hash_t> non_finalized_blocks_set;
     for (auto const &level : non_finalized_blocks) {
       for (auto const &blk : level.second) {
         non_finalized_blocks_set.insert(blk);
       }
     }
-    vector<DagBlock> dag_blocks_to_update_counters;
+    std::vector<DagBlock> dag_blocks_to_update_counters;
     for (auto const &blk : sync_block.dag_blocks) {
       if (non_finalized_blocks_set.count(blk.getHash()) == 0) {
         dag_blocks_to_update_counters.push_back(blk);
@@ -1790,7 +1790,7 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
     sync_queue_.clear();
     // Handle malicious peer on network level
     net->handleMaliciousSyncPeer(sync_block.second);
-    return nullopt;
+    return std::nullopt;
   }
 
   // Check cert vote matches
@@ -1800,7 +1800,7 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
                    << " from peer " << sync_block.second.abridged() << " received, stop syncing.";
       sync_queue_.clear();
       net->handleMaliciousSyncPeer(sync_block.second);
-      return nullopt;
+      return std::nullopt;
     }
   }
 
@@ -1821,7 +1821,7 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
                  << "; Trx order: " << trx_order << "; from " << sync_block.second.abridged() << ", stop syncing.";
     sync_queue_.clear();
     net->handleMaliciousSyncPeer(sync_block.second);
-    return nullopt;
+    return std::nullopt;
   }
 
   // Check cert votes validation
@@ -1833,7 +1833,7 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
                  << getDposTotalVotesCount();
     sync_queue_.clear();
     net->handleMaliciousSyncPeer(sync_block.second);
-    return nullopt;
+    return std::nullopt;
   }
 
   return std::optional<SyncBlock>(std::move(sync_block.first));

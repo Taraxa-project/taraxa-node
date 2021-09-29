@@ -5,31 +5,29 @@
 #include "watches.hpp"
 
 namespace taraxa::net::rpc::eth {
-using namespace ::taraxa::final_chain;
-using namespace ::std;
-using namespace ::dev;
 
 struct EthParams {
   Address address;
   Secret secret;
   uint64_t chain_id = 0;
-  shared_ptr<FinalChain> final_chain;
-  function<shared_ptr<Transaction>(h256 const&)> get_trx;
-  function<void(Transaction const& trx)> send_trx;
-  function<u256()> gas_pricer = [] { return u256(0); };
-  function<optional<SyncStatus>()> syncing_probe = [] { return nullopt; };
+  std::shared_ptr<FinalChain> final_chain;
+  std::function<std::shared_ptr<Transaction>(h256 const&)> get_trx;
+  std::function<void(Transaction const& trx)> send_trx;
+  std::function<u256()> gas_pricer = [] { return u256(0); };
+  std::function<std::optional<SyncStatus>()> syncing_probe = [] { return std::nullopt; };
   WatchesConfig watches_cfg;
 };
 
 struct Eth : virtual ::taraxa::net::EthFace {
   virtual ~Eth() {}
 
-  virtual void note_block_executed(BlockHeader const&, Transactions const&, TransactionReceipts const&) = 0;
+  virtual void note_block_executed(final_chain::BlockHeader const&, Transactions const&,
+                                   final_chain::TransactionReceipts const&) = 0;
   virtual void note_pending_transaction(h256 const& trx_hash) = 0;
 };
 
 std::shared_ptr<Eth> NewEth(EthParams&&);
 
-Json::Value toJson(BlockHeader const& obj);
+Json::Value toJson(final_chain::BlockHeader const& obj);
 
 }  // namespace taraxa::net::rpc::eth

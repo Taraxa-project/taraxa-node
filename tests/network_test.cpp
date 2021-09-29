@@ -292,7 +292,7 @@ TEST_F(NetworkTest, node_sync) {
   // Allow node to start up
   taraxa::thisThreadSleepForMilliSeconds(1000);
 
-  std::vector<pair<DagBlock, Transaction>> blks;
+  std::vector<std::pair<DagBlock, Transaction>> blks;
   // Generate DAG blocks
   auto dag_genesis = node1->getConfig().chain.dag_genesis_block.getHash();
   auto sk = node1->getSecretKey();
@@ -689,9 +689,9 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_1) {
   auto pbft_previous_round = 1;
 
   auto node_cfgs = make_node_cfgs<20>(2);
-  vector<shared_ptr<FullNode>> nodes;
+  std::vector<std::shared_ptr<FullNode>> nodes;
   for (auto i(0); i < 2; i++) {
-    nodes.emplace_back(make_shared<FullNode>(node_cfgs[i]));
+    nodes.emplace_back(std::make_shared<FullNode>(node_cfgs[i]));
     nodes.back()->start();
     // Stop PBFT manager, that will place vote
     nodes.back()->getPbftManager()->stop();
@@ -763,9 +763,9 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
   auto pbft_previous_round = 1;
 
   auto node_cfgs = make_node_cfgs<20>(2);
-  vector<shared_ptr<FullNode>> nodes;
+  std::vector<std::shared_ptr<FullNode>> nodes;
   for (auto i(0); i < 2; i++) {
-    nodes.emplace_back(make_shared<FullNode>(node_cfgs[i]));
+    nodes.emplace_back(std::make_shared<FullNode>(node_cfgs[i]));
     nodes.back()->start();
     // Stop PBFT manager, that will place vote
     nodes.back()->getPbftManager()->stop();
@@ -1135,17 +1135,17 @@ TEST_F(NetworkTest, node_full_sync) {
 
   bool dag_synced = true;
   auto node0_vertices = nodes[0]->getDagManager()->getNumVerticesInDag().first;
-  cout << "node0 vertices " << node0_vertices << endl;
+  std::cout << "node0 vertices " << node0_vertices << std::endl;
   for (int i(1); i < numberOfNodes - 1; i++) {
     auto node_vertices = nodes[i]->getDagManager()->getNumVerticesInDag().first;
-    cout << "node" << i << " vertices " << node_vertices << endl;
+    std::cout << "node" << i << " vertices " << node_vertices << std::endl;
     if (node_vertices != node0_vertices) {
       dag_synced = false;
     }
   }
   // When last level have more than 1 DAG blocks, send a dummy transaction to converge DAG
   if (!dag_synced) {
-    cout << "Send dummy trx" << endl;
+    std::cout << "Send dummy trx" << std::endl;
     Transaction dummy_trx(counter++, 0, 2, TEST_TX_GAS_LIMIT, bytes(), nodes[0]->getSecretKey(),
                           nodes[0]->getAddress());
     // broadcast dummy transaction
@@ -1173,7 +1173,7 @@ TEST_F(NetworkTest, node_full_sync) {
   }
 
   // Bootstrapping node5 join the network
-  nodes.emplace_back(make_shared<FullNode>(node_cfgs[numberOfNodes - 1]));
+  nodes.emplace_back(std::make_shared<FullNode>(node_cfgs[numberOfNodes - 1]));
   nodes.back()->start();
   EXPECT_TRUE(wait_connect(nodes));
 
@@ -1190,17 +1190,17 @@ TEST_F(NetworkTest, node_full_sync) {
 
   dag_synced = true;
   node0_vertices = nodes[0]->getDagManager()->getNumVerticesInDag().first;
-  cout << "node0 vertices " << node0_vertices << endl;
+  std::cout << "node0 vertices " << node0_vertices << std::endl;
   for (int i(1); i < numberOfNodes; i++) {
     auto node_vertices = nodes[i]->getDagManager()->getNumVerticesInDag().first;
-    cout << "node" << i << " vertices " << node_vertices << endl;
+    std::cout << "node" << i << " vertices " << node_vertices << std::endl;
     if (node_vertices != node0_vertices) {
       dag_synced = false;
     }
   }
   // When last level have more than 1 DAG blocks, send a dummy transaction to converge DAG
   if (!dag_synced) {
-    cout << "Send dummy trx" << endl;
+    std::cout << "Send dummy trx" << std::endl;
     Transaction dummy_trx(counter++, 0, 2, TEST_TX_GAS_LIMIT, bytes(), nodes[0]->getSecretKey(),
                           nodes[0]->getAddress());
     // broadcast dummy transaction

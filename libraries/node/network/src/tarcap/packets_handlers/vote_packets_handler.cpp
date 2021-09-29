@@ -94,7 +94,7 @@ inline void VotePacketsHandler::processPbftNextVotesPacket(const PacketData &pac
   if (next_votes_count == 0) {
     LOG(log_er_) << "Receive 0 next votes from peer " << packet_data.from_node_id_
                  << ". The peer may be a malicous player, will be disconnected";
-    disconnect(packet_data.from_node_id_, p2p::UserReason);
+    disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
     return;
   }
 
@@ -109,7 +109,7 @@ inline void VotePacketsHandler::processPbftNextVotesPacket(const PacketData &pac
     if (next_vote->getRound() != peer_pbftpacket_rlpound - 1) {
       LOG(log_er_) << "Received next votes bundle with unmatched rounds from " << packet_data.from_node_id_
                    << ". The peer may be a malicous player, will be disconnected";
-      disconnect(packet_data.from_node_id_, p2p::UserReason);
+      disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
       return;
     }
 
@@ -188,7 +188,7 @@ void VotePacketsHandler::sendPbftVote(dev::p2p::NodeID const &peer_id, std::shar
   const auto peer = peers_state_->getPeer(peer_id);
   // TODO: We should disable PBFT votes when a node is bootstrapping but not when trying to resync
   if (peer) {
-    if (sealAndSend(peer_id, PbftVotePacket, std::move(RLPStream(1) << vote->rlp(true)))) {
+    if (sealAndSend(peer_id, PbftVotePacket, std::move(dev::RLPStream(1) << vote->rlp(true)))) {
       LOG(log_dg_) << "sendPbftVote " << vote->getHash() << " to " << peer_id;
       peer->markVoteAsKnown(vote->getHash());
     }
@@ -213,13 +213,13 @@ void VotePacketsHandler::sendPbftNextVotes(dev::p2p::NodeID const &peer_id,
     return;
   }
 
-  RLPStream s(send_next_votes_bundle.size());
+  dev::RLPStream s(send_next_votes_bundle.size());
   for (auto const &next_vote : send_next_votes_bundle) {
     s.appendRaw(next_vote->rlp());
     LOG(log_dg_) << "Send out next vote " << next_vote->getHash() << " to peer " << peer_id;
   }
 
-  if (sealAndSend(peer_id, PbftNextVotesPacket, move(s))) {
+  if (sealAndSend(peer_id, PbftNextVotesPacket, std::move(s))) {
     LOG(log_nf_) << "Send out size of " << send_next_votes_bundle.size() << " PBFT next votes to " << peer_id;
     if (auto peer = peers_state_->getPeer(peer_id)) {
       for (auto const &v : send_next_votes_bundle) {

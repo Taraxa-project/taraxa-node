@@ -47,7 +47,7 @@ struct FinalChainTest : WithDataDir {
     }
     DagBlock dag_blk({}, {}, {}, trx_hashes, {}, secret_t::random());
     db->saveDagBlock(dag_blk);
-    PbftBlock pbft_block(blk_hash_t(), blk_hash_t(), blk_hash_t(), 1, addr_t(1), KeyPair::create().secret());
+    PbftBlock pbft_block(blk_hash_t(), blk_hash_t(), blk_hash_t(), 1, addr_t(1), dev::KeyPair::create().secret());
     std::vector<std::shared_ptr<Vote>> votes;
     SyncBlock sync_block(std::make_shared<PbftBlock>(std::move(pbft_block)), votes);
     sync_block.dag_blocks.push_back(dag_blk);
@@ -162,7 +162,7 @@ TEST_F(FinalChainTest, genesis_balances) {
 }
 
 TEST_F(FinalChainTest, contract) {
-  auto sender_keys = KeyPair::create();
+  auto sender_keys = dev::KeyPair::create();
   auto const& addr = sender_keys.address();
   auto const& sk = sender_keys.secret();
   cfg.state.genesis_balances = {};
@@ -268,10 +268,10 @@ TEST_F(FinalChainTest, coin_transfers) {
   constexpr size_t NUM_ACCS = 500;
   cfg.state.genesis_balances = {};
   cfg.state.dpos = nullopt;
-  vector<KeyPair> keys;
+  vector<dev::KeyPair> keys;
   keys.reserve(NUM_ACCS);
   for (size_t i = 0; i < NUM_ACCS; ++i) {
-    auto const& k = keys.emplace_back(KeyPair::create());
+    auto const& k = keys.emplace_back(dev::KeyPair::create());
     cfg.state.genesis_balances[k.address()] = numeric_limits<u256>::max() / NUM_ACCS;
   }
   cfg.state.execution_options.disable_gas_fee = false;

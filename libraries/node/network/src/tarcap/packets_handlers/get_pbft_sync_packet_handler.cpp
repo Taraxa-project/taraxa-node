@@ -72,7 +72,7 @@ void GetPbftSyncPacketHandler::sendPbftBlocks(dev::p2p::NodeID const &peer_id, s
                << ", will send at most " << blocks_to_transfer << " pbft blocks to " << peer_id;
   uint64_t current_period = height_to_sync;
   if (blocks_to_transfer == 0) {
-    sealAndSend(peer_id, SubprotocolPacketType::PbftSyncPacket, RLPStream(0));
+    sealAndSend(peer_id, SubprotocolPacketType::PbftSyncPacket, dev::RLPStream(0));
     return;
   }
 
@@ -81,12 +81,12 @@ void GetPbftSyncPacketHandler::sendPbftBlocks(dev::p2p::NodeID const &peer_id, s
     auto data = db_->getPeriodDataRaw(current_period);
 
     if (data.size() == 0) {
-      sealAndSend(peer_id, SubprotocolPacketType::PbftSyncPacket, RLPStream(0));
+      sealAndSend(peer_id, SubprotocolPacketType::PbftSyncPacket, dev::RLPStream(0));
       LOG(log_er_) << "Missing pbft block in db, send no pbft blocks to " << peer_id;
       return;
     }
 
-    RLPStream s;
+    dev::RLPStream s;
     s.appendList(2);
     s << last_block;
     s.appendRaw(data);

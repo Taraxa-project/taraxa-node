@@ -43,7 +43,7 @@ template <typename T>
 T parse_rlp_file(path const& p) {
   ifstream strm(p.string());
   T ret;
-  rlp(RLP(string(istreambuf_iterator(strm), {}), 0), ret);
+  util::rlp(dev::RLP(string(istreambuf_iterator(strm), {}), 0), ret);
   return ret;
 }
 
@@ -196,7 +196,7 @@ TEST_F(StateAPITest, eth_mainnet_smoke) {
   auto genesis_balances_rlp_hex_c = taraxa_evm_mainnet_genesis_balances();
   auto genesis_balances_rlp =
       dev::jsToBytes(string((char*)genesis_balances_rlp_hex_c.Data, genesis_balances_rlp_hex_c.Len));
-  rlp(RLP(genesis_balances_rlp), chain_config.genesis_balances);
+  util::rlp(dev::RLP(genesis_balances_rlp), chain_config.genesis_balances);
 
   Opts opts;
   opts.expected_max_trx_per_block = 300;

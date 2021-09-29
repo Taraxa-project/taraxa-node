@@ -10,7 +10,7 @@
 namespace taraxa::core_tests {
 
 struct DagTest : BaseTest {
-  vector<FullNodeConfig> node_cfgs = make_node_cfgs(1);
+  std::vector<FullNodeConfig> node_cfgs = make_node_cfgs(1);
   logger::Logger time_log = logger::createLogger(logger::Verbosity::Info, "TMSTM", addr_t());
 };
 

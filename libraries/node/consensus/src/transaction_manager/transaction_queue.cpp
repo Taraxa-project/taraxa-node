@@ -58,7 +58,8 @@ bool TransactionQueue::insert(Transaction const &trx, bool queue_verified, bool 
   return true;
 }
 
-void TransactionQueue::insertUnverifiedTrxs(const vector<Transaction> &trxs, const std::shared_ptr<DbStorage> &db) {
+void TransactionQueue::insertUnverifiedTrxs(const std::vector<Transaction> &trxs,
+                                            const std::shared_ptr<DbStorage> &db) {
   if (trxs.empty()) {
     return;
   }
@@ -70,7 +71,7 @@ void TransactionQueue::insertUnverifiedTrxs(const vector<Transaction> &trxs, con
   for (const auto &trx : trxs) {
     const auto tx_hash = trx.getHash();
     // TODO: get rid of this useless Transaction copy
-    auto trx_ptr = make_shared<Transaction>(trx);
+    auto trx_ptr = std::make_shared<Transaction>(trx);
 
     // There might be race condition here but it is not because of the way we process txs in queued_trxs_
     // Important: in case txs processing in this queue is somehow changed, this race condition must be handled !!!

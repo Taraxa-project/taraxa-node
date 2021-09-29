@@ -5,7 +5,7 @@
 namespace taraxa {
 
 DagBlockManager::DagBlockManager(addr_t node_addr, VdfConfig const &vdf_config,
-                                 optional<state_api::DPOSConfig> dpos_config, unsigned num_verifiers,
+                                 std::optional<state_api::DPOSConfig> dpos_config, unsigned num_verifiers,
                                  std::shared_ptr<DbStorage> db, std::shared_ptr<TransactionManager> trx_mgr,
                                  std::shared_ptr<FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain,
                                  logger::Logger log_time, uint32_t queue_limit)
@@ -157,7 +157,7 @@ void DagBlockManager::processSyncedBlock(DbStorage::Batch &batch, SyncBlock cons
   // TODO: check synchronization due to concurrent processing of packets,
   // TODO: shouldn't be dag blocks marked as known trhough markDagBlockAsSeen here ?
 
-  vector<trx_hash_t> transactions;
+  std::vector<trx_hash_t> transactions;
   transactions.reserve(sync_block.transactions.size());
   std::transform(sync_block.transactions.begin(), sync_block.transactions.end(), std::back_inserter(transactions),
                  [](const Transaction &transaction) { return transaction.getHash(); });

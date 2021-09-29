@@ -94,7 +94,7 @@ void GetDagSyncPacketsHandler::sendBlocks(dev::p2p::NodeID const &peer_id,
     block_transactions[block->getHash()] = std::move(transactions);
   }
 
-  RLPStream s(blocks.size() + total_transactions_count);
+  dev::RLPStream s(blocks.size() + total_transactions_count);
   for (auto &block : blocks) {
     s.appendRaw(block->rlp(true));
     taraxa::bytes trx_bytes;

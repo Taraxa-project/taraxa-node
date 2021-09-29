@@ -2,7 +2,7 @@
 
 namespace taraxa::net::rpc::eth {
 
-LogFilter::LogFilter(EthBlockNumber from_block, optional<EthBlockNumber> to_block, AddressSet addresses,
+LogFilter::LogFilter(EthBlockNumber from_block, std::optional<EthBlockNumber> to_block, AddressSet addresses,
                      LogFilter::Topics topics)
     : from_block_(from_block), to_block_(to_block), addresses_(move(addresses)), topics_(move(topics)) {
   if (!addresses_.empty()) {
@@ -16,9 +16,9 @@ LogFilter::LogFilter(EthBlockNumber from_block, optional<EthBlockNumber> to_bloc
   is_range_only_ = true;
 }
 
-vector<LogBloom> LogFilter::bloomPossibilities() const {
+std::vector<LogBloom> LogFilter::bloomPossibilities() const {
   // return combination of each of the addresses/topics
-  vector<LogBloom> ret;
+  std::vector<LogBloom> ret;
   // | every address with every topic
   for (auto const& i : addresses_) {
     // 1st case, there are addresses and topics
@@ -108,7 +108,7 @@ bool LogFilter::matches(LogBloom b) const {
   return true;
 }
 
-void LogFilter::match_one(TransactionReceipt const& r, function<void(size_t)> const& cb) const {
+void LogFilter::match_one(TransactionReceipt const& r, std::function<void(size_t)> const& cb) const {
   if (!matches(r.bloom())) {
     return;
   }
@@ -135,7 +135,7 @@ bool LogFilter::blk_number_matches(EthBlockNumber blk_n) const {
 }
 
 void LogFilter::match_one(ExtendedTransactionLocation const& trx_loc, TransactionReceipt const& r,
-                          function<void(LocalisedLogEntry const&)> const& cb) const {
+                          std::function<void(LocalisedLogEntry const&)> const& cb) const {
   if (!blk_number_matches(trx_loc.blk_n)) {
     return;
   }
@@ -149,8 +149,8 @@ void LogFilter::match_one(ExtendedTransactionLocation const& trx_loc, Transactio
   }
 }
 
-vector<LocalisedLogEntry> LogFilter::match_all(FinalChain const& final_chain) const {
-  vector<LocalisedLogEntry> ret;
+std::vector<LocalisedLogEntry> LogFilter::match_all(FinalChain const& final_chain) const {
+  std::vector<LocalisedLogEntry> ret;
   auto action = [&, this](EthBlockNumber blk_n) {
     ExtendedTransactionLocation trx_loc{{{blk_n}, *final_chain.block_hash(blk_n)}};
     auto hashes = final_chain.transaction_hashes(trx_loc.blk_n);
@@ -168,7 +168,7 @@ vector<LocalisedLogEntry> LogFilter::match_all(FinalChain const& final_chain) co
     }
     return ret;
   }
-  set<EthBlockNumber> matchingBlocks;
+  std::set<EthBlockNumber> matchingBlocks;
   for (auto const& bloom : bloomPossibilities()) {
     for (auto blk_n : final_chain.withBlockBloom(bloom, from_block_, to_blk_n)) {
       matchingBlocks.insert(blk_n);

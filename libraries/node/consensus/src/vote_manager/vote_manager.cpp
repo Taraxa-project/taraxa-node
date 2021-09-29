@@ -365,7 +365,7 @@ void VoteManager::verifyVotes(uint64_t pbft_round, size_t sortition_threshold, u
 // cleanup votes < pbft_round
 void VoteManager::cleanupVotes(uint64_t pbft_round) {
   // Remove unverified votes
-  vector<vote_hash_t> remove_unverified_votes_hash;
+  std::vector<vote_hash_t> remove_unverified_votes_hash;
   {
     UniqueLock lock(unverified_votes_access_);
     auto it = unverified_votes_.begin();
@@ -423,7 +423,7 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
   db_->commitWriteBatch(batch);
 
   // Remove verified votes
-  vector<vote_hash_t> remove_verified_votes_hash;
+  std::vector<vote_hash_t> remove_verified_votes_hash;
   {
     UniqueLock lock(verified_votes_access_);
     auto it = verified_votes_.begin();

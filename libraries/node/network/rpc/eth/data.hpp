@@ -3,9 +3,12 @@
 #include "final_chain/data.hpp"
 
 namespace taraxa::net::rpc::eth {
-using namespace ::dev;
-using namespace ::taraxa::final_chain;
-using namespace ::std;
+
+using taraxa::final_chain::LogBloom;
+using taraxa::final_chain::LogBlooms;
+using taraxa::final_chain::LogEntry;
+using taraxa::final_chain::TransactionLocation;
+using taraxa::final_chain::TransactionReceipt;
 
 struct TransactionLocationWithBlockHash : TransactionLocation {
   h256 blk_h{};
@@ -13,7 +16,7 @@ struct TransactionLocationWithBlockHash : TransactionLocation {
 
 struct LocalisedTransaction {
   Transaction trx{};
-  optional<TransactionLocationWithBlockHash> trx_loc{};
+  std::optional<TransactionLocationWithBlockHash> trx_loc{};
 };
 
 struct ExtendedTransactionLocation : TransactionLocationWithBlockHash {
@@ -24,7 +27,7 @@ struct LocalisedTransactionReceipt {
   TransactionReceipt r;
   ExtendedTransactionLocation trx_loc;
   addr_t trx_from;
-  optional<addr_t> trx_to;
+  std::optional<addr_t> trx_to;
 };
 
 struct LocalisedLogEntry {
@@ -37,10 +40,10 @@ struct TransactionSkeleton {
   Address from;
   u256 value;
   bytes data;
-  optional<Address> to;
-  optional<uint64_t> nonce;
-  optional<uint64_t> gas;
-  optional<u256> gas_price;
+  std::optional<Address> to;
+  std::optional<uint64_t> nonce;
+  std::optional<uint64_t> gas;
+  std::optional<u256> gas_price;
 };
 
 struct SyncStatus {

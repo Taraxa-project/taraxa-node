@@ -128,10 +128,10 @@ void FullNode::start() {
     eth_rpc_params.send_trx = [trx_manager = trx_mgr_](auto const &trx) {
       if (auto [ok, err_msg] = trx_manager->insertTransaction(trx); !ok) {
         BOOST_THROW_EXCEPTION(
-            runtime_error(fmt("Transaction is rejected.\n"
-                              "RLP: %s\n"
-                              "Reason: %s",
-                              dev::toJS(*trx.rlp()), err_msg)));
+            std::runtime_error(fmt("Transaction is rejected.\n"
+                                   "RLP: %s\n"
+                                   "Reason: %s",
+                                   dev::toJS(*trx.rlp()), err_msg)));
       }
     };
     eth_rpc_params.syncing_probe = [network = network_, pbft_chain = pbft_chain_, pbft_mgr = pbft_mgr_] {
@@ -146,7 +146,7 @@ void FullNode::start() {
       status.highest_block = pbft_mgr->pbftSyncingPeriod();
       return ret;
     };
-    auto eth_json_rpc = net::rpc::eth::NewEth(move(eth_rpc_params));
+    auto eth_json_rpc = net::rpc::eth::NewEth(std::move(eth_rpc_params));
     jsonrpc_api_ = std::make_unique<jsonrpc_server_t>(
         make_shared<net::Test>(shared_from_this()),    // TODO Because this object refers to FullNode, the
                                                        // lifecycle/dependency management is more complicated

@@ -22,7 +22,7 @@ auto g_sk = Lazy([] {
 });
 struct VoteTest : BaseTest {};
 
-void clearAllVotes(shared_ptr<FullNode> &node) {
+void clearAllVotes(std::shared_ptr<FullNode> &node) {
   // Clear unverified votes and verified votes table
   auto db = node->getDB();
   auto vote_mgr = node->getVoteManager();

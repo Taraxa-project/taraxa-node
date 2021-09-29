@@ -1548,7 +1548,7 @@ TEST_F(FullNodeTest, chain_config_json) {
 	}
 })";
   Json::Value default_chain_config_json;
-  istringstream(expected_default_chain_cfg_json) >> default_chain_config_json;
+  std::istringstream(expected_default_chain_cfg_json) >> default_chain_config_json;
   ASSERT_EQ(default_chain_config_json, enc_json(ChainConfig::predefined()));
   Json::Value test_node_config_json;
   std::ifstream((DIR_CONF / "conf_taraxa1.json").string(), std::ifstream::binary) >> test_node_config_json;

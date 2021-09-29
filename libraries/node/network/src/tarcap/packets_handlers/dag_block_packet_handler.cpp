@@ -22,7 +22,7 @@ DagBlockPacketHandler::DagBlockPacketHandler(
       db_(std::move(db)),
       test_state_(std::move(test_state)) {}
 
-thread_local mt19937_64 DagBlockPacketHandler::urng_{std::mt19937_64(std::random_device()())};
+thread_local std::mt19937_64 DagBlockPacketHandler::urng_{std::mt19937_64(std::random_device()())};
 
 void DagBlockPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
   DagBlock block(packet_data.rlp_[0].data().toBytes());
@@ -103,7 +103,7 @@ void DagBlockPacketHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::D
   s.appendRaw(trx_bytes, transactions_to_send.size());
 
   // Try to send data over network
-  if (!sealAndSend(peer_id, DagBlockPacket, move(s))) {
+  if (!sealAndSend(peer_id, DagBlockPacket, std::move(s))) {
     LOG(log_er_) << "Sending DagBlock " << block.getHash() << " failed";
     return;
   }
@@ -155,7 +155,7 @@ void DagBlockPacketHandler::onNewBlockVerified(DagBlock const &block, bool propo
   }
 
   for (dev::p2p::NodeID const &peer_id : peers_to_send) {
-    RLPStream ts;
+    dev::RLPStream ts;
     auto peer = peers_state_->getPeer(peer_id);
     if (peer && !peer->syncing_) {
       sendBlock(peer_id, block);

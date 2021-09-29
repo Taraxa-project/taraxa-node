@@ -10,10 +10,9 @@
 #include "common/util.hpp"
 
 namespace taraxa::util::encoding_rlp {
-using namespace std;
-using namespace dev;
+using dev::RLP;
 
-using RLPEncoderRef = RLPStream&;
+using RLPEncoderRef = dev::RLPStream&;
 struct RLPDecoderRef {
   RLP const& value;
   RLP::Strictness strictness;
@@ -32,7 +31,7 @@ auto rlp(RLPEncoderRef encoding, T const& target) -> decltype(RLP().toInt<T>(), 
 }
 
 template <unsigned N>
-void rlp(RLPEncoderRef encoding, FixedHash<N> const& target) {
+void rlp(RLPEncoderRef encoding, dev::FixedHash<N> const& target) {
   encoding.append(target);
 }
 
@@ -41,12 +40,12 @@ inline auto rlp(RLPEncoderRef encoding, T const& target) -> decltype(target.rlp(
   target.rlp(encoding);
 }
 
-inline auto rlp(RLPEncoderRef encoding, string const& target) { encoding.append(target); }
+inline auto rlp(RLPEncoderRef encoding, std::string const& target) { encoding.append(target); }
 
 inline auto rlp(RLPEncoderRef encoding, bytes const& target) { encoding.append(target); }
 
 template <typename Param>
-void rlp(RLPEncoderRef encoding, optional<Param> const& target) {
+void rlp(RLPEncoderRef encoding, std::optional<Param> const& target) {
   if (target) {
     rlp(encoding, *target);
   } else {
@@ -99,18 +98,18 @@ auto rlp(RLPDecoderRef encoding, T& target) -> decltype(encoding.value.toInt<T>(
 }
 
 template <unsigned N>
-void rlp(RLPDecoderRef encoding, FixedHash<N>& target) {
-  target = encoding.value.toHash<FixedHash<N>>(encoding.strictness);
+void rlp(RLPDecoderRef encoding, dev::FixedHash<N>& target) {
+  target = encoding.value.toHash<dev::FixedHash<N>>(encoding.strictness);
 }
 
-inline auto rlp(RLPDecoderRef encoding, string& target) { target = encoding.value.toString(encoding.strictness); }
+inline auto rlp(RLPDecoderRef encoding, std::string& target) { target = encoding.value.toString(encoding.strictness); }
 
 inline auto rlp(RLPDecoderRef encoding, bytes& target) { target = encoding.value.toBytes(encoding.strictness); }
 
 template <typename Param>
-void rlp(RLPDecoderRef encoding, optional<Param>& target) {
+void rlp(RLPDecoderRef encoding, std::optional<Param>& target) {
   if (encoding.value.isNull() || encoding.value.isEmpty()) {
-    target = nullopt;
+    target = std::nullopt;
   } else {
     rlp(encoding, target.emplace());
   }
@@ -131,7 +130,7 @@ inline auto rlp(RLPDecoderRef encoding, T& target) -> decltype(target.rlp(encodi
 
 template <typename Map>
 auto rlp(RLPDecoderRef encoding, Map& target) -> decltype(target[target.begin()->first], void()) {
-  using key_type = remove_cv_t<decltype(target.begin()->first)>;
+  using key_type = std::remove_cv_t<decltype(target.begin()->first)>;
   for (auto i : encoding.value) {
     auto entry_i = i.begin();
     key_type key;
@@ -189,7 +188,7 @@ bytes const& rlp_enc(RLPEncoderRef encoder_to_reuse, T const& obj) {
 
 template <typename T>
 bytes rlp_enc(T const& obj) {
-  RLPStream s;
+  dev::RLPStream s;
   rlp(s, obj);
   return move(s.invalidate());
 }

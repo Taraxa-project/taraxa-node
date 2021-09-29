@@ -100,13 +100,13 @@ void TransactionPacketHandler::sendTransactions(dev::p2p::NodeID const &peer_id,
                                                 std::vector<taraxa::bytes> const &transactions) {
   LOG(log_nf_) << "sendTransactions " << transactions.size() << " to " << peer_id;
 
-  RLPStream s(transactions.size());
+  dev::RLPStream s(transactions.size());
   taraxa::bytes trx_bytes;
   for (const auto &transaction : transactions) {
     trx_bytes.insert(trx_bytes.end(), std::begin(transaction), std::end(transaction));
   }
   s.appendRaw(trx_bytes, transactions.size());
-  sealAndSend(peer_id, TransactionPacket, move(s));
+  sealAndSend(peer_id, TransactionPacket, std::move(s));
 }
 
 }  // namespace taraxa::network::tarcap
