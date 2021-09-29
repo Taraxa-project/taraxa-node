@@ -52,7 +52,7 @@ void NewPbftBlockPacketHandler::onNewPbftBlock(PbftBlock const &pbft_block) {
   for (auto const &peer : peers_state_->getAllPeers()) {
     if (!peer.second->isPbftBlockKnown(pbft_block.getBlockHash()) && !peer.second->syncing_) {
       if (!peer.second->isDagBlockKnown(pbft_block.getPivotDagBlockHash())) {
-        LOG(log_wr_) << "sending PbftBlock " << pbft_block.getBlockHash() << " with missing dag anchor"
+        LOG(log_dg_) << "sending PbftBlock " << pbft_block.getBlockHash() << " with missing dag anchor"
                      << pbft_block.getPivotDagBlockHash() << " to " << peer.first;
       }
       peers_to_send.push_back(peer.first);
