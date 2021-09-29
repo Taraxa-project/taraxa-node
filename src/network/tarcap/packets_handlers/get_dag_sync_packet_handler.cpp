@@ -1,4 +1,4 @@
-#include "get_dag_blocks_sync_packet_handler.hpp"
+#include "get_dag_sync_packet_handler.hpp"
 
 #include "dag/dag.hpp"
 #include "network/tarcap/packets_handlers/common/get_blocks_request_type.hpp"
@@ -13,7 +13,7 @@ GetDagSyncPacketsHandler::GetDagSyncPacketsHandler(std::shared_ptr<PeersState> p
                                                    std::shared_ptr<DagManager> dag_mgr,
                                                    std::shared_ptr<DagBlockManager> dag_blk_mgr,
                                                    std::shared_ptr<DbStorage> db, const addr_t &node_addr)
-    : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "GET_BLOCKS_PH"),
+    : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "GET_DAG_SYNC_PH"),
       trx_mgr_(std::move(trx_mgr)),
       dag_mgr_(std::move(dag_mgr)),
       dag_blk_mgr_(std::move(dag_blk_mgr)),

@@ -47,14 +47,14 @@ class PacketsBlockingMask {
   std::unordered_map<SubprotocolPacketType, std::unordered_map<dev::p2p::NodeID, std::set<PacketData::PacketId>>>
       peer_order_blocked_packet_types_;
 
-  // This "blocking dependency" is specific just for NewDagBlockPacket. Ideally only dag blocks with the same level
+  // This "blocking dependency" is specific just for DagBlockPacket. Ideally only dag blocks with the same level
   // should be processed. In reality there are situation when node receives dag block with smaller level than the level
   // of blocks that are already being processed. In such case these blocks with smaller levels can be processed
   // concurrently with blocks that have higher level. All new dag blocks with higher level than the lowest level from
   // all the blocks that currently being processed are blocked for processing In this map are saved pairs of <level,
   // list>, where:
   //    level - What dag level have blocks that are currently being processed
-  //    list - list of "NewDagBlockPacket" packets (of the same dag block level) that are currently being processed
+  //    list - list of "DagBlockPacket" packets (of the same dag block level) that are currently being processed
   //    concurrently
   // Order of levels must be preserved, therefore using std::map
   std::map<taraxa::level_t, std::unordered_set<PacketData::PacketId>> processing_dag_levels_;

@@ -18,8 +18,8 @@ enum SubprotocolPacketType : uint32_t {
 
   // Standard packets with mid processing priority
   MidPriorityPackets,
-  NewPbftBlockPacket,
-  NewDagBlockPacket,
+  PbftBlockPacket,
+  DagBlockPacket,
   // DagSyncPacket has mid priority as it is also used for ad-hoc syncing in case new dag blocks miss tips/pivot
   DagSyncPacket,
   TransactionPacket,
@@ -44,8 +44,8 @@ inline std::string convertPacketTypeToString(SubprotocolPacketType packet_type) 
   switch (packet_type) {
     case StatusPacket:
       return "StatusPacket";
-    case NewDagBlockPacket:
-      return "NewDagBlockPacket";
+    case DagBlockPacket:
+      return "DagBlockPacket";
     case GetDagSyncPacket:
       return "GetDagSyncPacket";
     case DagSyncPacket:
@@ -60,8 +60,8 @@ inline std::string convertPacketTypeToString(SubprotocolPacketType packet_type) 
       return "GetPbftNextVotes";
     case PbftNextVotesPacket:
       return "PbftNextVotesPacket";
-    case NewPbftBlockPacket:
-      return "NewPbftBlockPacket";
+    case PbftBlockPacket:
+      return "PbftBlockPacket";
     case GetPbftSyncPacket:
       return "GetPbftSyncPacket";
     case PbftSyncPacket:
