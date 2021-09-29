@@ -1772,6 +1772,11 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
   auto pbft_block_hash = sync_block.first.pbft_blk->getBlockHash();
   LOG(log_nf_) << "Pop pbft block " << pbft_block_hash << " from synced queue";
 
+  if (pbft_chain_->findPbftBlockInChain(pbft_block_hash)) {
+    LOG(log_dg_) << "PBFT block " << pbft_block_hash << " already present in chain.";
+    return nullopt;
+  }
+
   auto net = network_.lock();
   assert(net);  // Should never happen
 
@@ -1815,11 +1820,6 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
                  << "; Trx order: " << trx_order << "; from " << sync_block.second.abridged() << ", stop syncing.";
     sync_queue_.clear();
     net->handleMaliciousSyncPeer(sync_block.second);
-    return nullopt;
-  }
-
-  if (pbft_chain_->findPbftBlockInChain(pbft_block_hash)) {
-    LOG(log_dg_) << "PBFT block " << pbft_block_hash << " already present in chain.";
     return nullopt;
   }
 
