@@ -7,12 +7,12 @@
 #include "consensus/vote.hpp"
 #include "dag/dag.hpp"
 #include "network/tarcap/packets_handlers/common/syncing_handler.hpp"
-#include "network/tarcap/packets_handlers/dag_blocks_sync_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/dag_packets_handler.hpp"
-#include "network/tarcap/packets_handlers/get_dag_blocks_sync_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/get_pbft_blocks_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/dag_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/get_dag_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/get_pbft_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/new_dag_block_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/new_pbft_block_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/pbft_blocks_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/pbft_sync_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/status_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/test_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/transaction_packet_handler.hpp"
@@ -190,7 +190,7 @@ void TaraxaCapability::registerPacketHandlers(
       SubprotocolPacketType::NewPbftBlockPacket,
       std::make_shared<NewPbftBlockPacketHandler>(peers_state_, packets_stats, pbft_chain, pbft_mgr, node_addr));
 
-  const auto dag_handler = std::make_shared<DagPacketsHandler>(
+  const auto dag_handler = std::make_shared<NewDagBlockPacketHandler>(
       peers_state_, packets_stats, syncing_state_, syncing_handler_, trx_mgr, dag_blk_mgr, db, test_state_, node_addr);
   packets_handlers_->registerHandler(SubprotocolPacketType::NewDagBlockPacket, dag_handler);
 
@@ -354,7 +354,7 @@ void TaraxaCapability::handleMaliciousSyncPeer(dev::p2p::NodeID const &id) {
 }
 
 void TaraxaCapability::onNewBlockVerified(std::shared_ptr<DagBlock> const &blk, bool proposed) {
-  std::static_pointer_cast<DagPacketsHandler>(
+  std::static_pointer_cast<NewDagBlockPacketHandler>(
       packets_handlers_->getSpecificHandler(SubprotocolPacketType::NewDagBlockPacket))
       ->onNewBlockVerified(*blk, proposed);
 }
@@ -366,7 +366,7 @@ void TaraxaCapability::onNewTransactions(const std::vector<Transaction> &transac
 }
 
 void TaraxaCapability::onNewBlockReceived(const DagBlock &block, const std::vector<Transaction> &transactions) {
-  std::static_pointer_cast<DagPacketsHandler>(
+  std::static_pointer_cast<NewDagBlockPacketHandler>(
       packets_handlers_->getSpecificHandler(SubprotocolPacketType::NewDagBlockPacket))
       ->onNewBlockReceived(block, transactions);
 }
@@ -397,7 +397,7 @@ void TaraxaCapability::sendTransactions(dev::p2p::NodeID const &id, std::vector<
 
 // METHODS USED IN TESTS ONLY
 void TaraxaCapability::sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk) {
-  std::static_pointer_cast<DagPacketsHandler>(
+  std::static_pointer_cast<NewDagBlockPacketHandler>(
       packets_handlers_->getSpecificHandler(SubprotocolPacketType::NewDagBlockPacket))
       ->sendBlock(id, blk);
 }

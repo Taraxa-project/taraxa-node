@@ -1,4 +1,4 @@
-#include "dag_packets_handler.hpp"
+#include "new_dag_block_packet_handler.hpp"
 
 #include "dag/dag_block_manager.hpp"
 #include "network/tarcap/packets_handlers/common/get_blocks_request_type.hpp"
@@ -9,14 +9,12 @@
 
 namespace taraxa::network::tarcap {
 
-DagPacketsHandler::DagPacketsHandler(std::shared_ptr<PeersState> peers_state,
-                                     std::shared_ptr<PacketsStats> packets_stats,
-                                     std::shared_ptr<SyncingState> syncing_state,
-                                     std::shared_ptr<SyncingHandler> syncing_handler,
-                                     std::shared_ptr<TransactionManager> trx_mgr,
-                                     std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<DbStorage> db,
-                                     std::shared_ptr<TestState> test_state, const addr_t &node_addr)
-    : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "DAG_BLOCKS_PH"),
+NewDagBlockPacketHandler::NewDagBlockPacketHandler(
+    std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
+    std::shared_ptr<SyncingState> syncing_state, std::shared_ptr<SyncingHandler> syncing_handler,
+    std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
+    std::shared_ptr<DbStorage> db, std::shared_ptr<TestState> test_state, const addr_t &node_addr)
+    : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "NEW_DAG_BLOCK_PH"),
       syncing_state_(std::move(syncing_state)),
       syncing_handler_(std::move(syncing_handler)),
       trx_mgr_(std::move(trx_mgr)),
@@ -24,9 +22,9 @@ DagPacketsHandler::DagPacketsHandler(std::shared_ptr<PeersState> peers_state,
       db_(std::move(db)),
       test_state_(std::move(test_state)) {}
 
-thread_local mt19937_64 DagPacketsHandler::urng_{std::mt19937_64(std::random_device()())};
+thread_local mt19937_64 NewDagBlockPacketHandler::urng_{std::mt19937_64(std::random_device()())};
 
-void DagPacketsHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
+void NewDagBlockPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
   DagBlock block(packet_data.rlp_[0].data().toBytes());
   blk_hash_t const hash = block.getHash();
   const auto transactions_count = packet_data.rlp_.itemCount() - 1;
@@ -42,11 +40,15 @@ void DagPacketsHandler::process(const PacketData &packet_data, const std::shared
   }
 
   // Ignore new block packets when pbft syncing
-  if (syncing_state_->is_pbft_syncing()) return;
+  if (syncing_state_->is_pbft_syncing()) {
+    LOG(log_dg_) << "Ignore new dag block " << hash.abridged() << ", pbft syncing is on";
+    return;
+  }
 
   if (dag_blk_mgr_) {
     // Do not process this block in case we already have it
     if (dag_blk_mgr_->isDagBlockKnown(block.getHash())) {
+      LOG(log_dg_) << "Ignore new dag block " << hash.abridged() << ", block is already known";
       return;
     }
 
@@ -65,7 +67,7 @@ void DagPacketsHandler::process(const PacketData &packet_data, const std::shared
   onNewBlockReceived(block, new_transactions);
 }
 
-void DagPacketsHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::DagBlock block) {
+void NewDagBlockPacketHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::DagBlock block) {
   std::shared_ptr<TaraxaPeer> peer = peers_state_->getPeer(peer_id);
   if (!peer) {
     LOG(log_wr_) << "Send dag block " << block.getHash() << ". Failed to obtain peer " << peer_id.abridged();
@@ -115,7 +117,7 @@ void DagPacketsHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::DagBl
   LOG(log_dg_) << "Send DagBlock " << block.getHash() << " #Trx: " << transactions_to_send.size();
 }
 
-void DagPacketsHandler::onNewBlockReceived(DagBlock block, std::vector<Transaction> transactions) {
+void NewDagBlockPacketHandler::onNewBlockReceived(DagBlock block, std::vector<Transaction> transactions) {
   LOG(log_nf_) << "Receive DagBlock " << block.getHash() << " #Trx " << transactions.size();
   if (dag_blk_mgr_) {
     LOG(log_nf_) << "Storing block " << block.getHash().toString() << " with " << transactions.size()
@@ -135,7 +137,7 @@ void DagPacketsHandler::onNewBlockReceived(DagBlock block, std::vector<Transacti
   }
 }
 
-void DagPacketsHandler::onNewBlockVerified(DagBlock const &block, bool proposed) {
+void NewDagBlockPacketHandler::onNewBlockVerified(DagBlock const &block, bool proposed) {
   // If node is pbft syncing and block is not proposed by us, this is an old block that has been verified - no block
   // goosip is needed
   if (!proposed && syncing_state_->is_pbft_syncing()) {

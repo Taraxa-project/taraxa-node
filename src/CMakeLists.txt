@@ -50,13 +50,13 @@ set(SOURCES
         network/tarcap/shared_states/peers_state.hpp
         network/tarcap/packets_handler.hpp
         network/tarcap/taraxa_peer.hpp
-        network/tarcap/packets_handlers/dag_blocks_sync_packet_handler.hpp
-        network/tarcap/packets_handlers/dag_packets_handler.hpp
-        network/tarcap/packets_handlers/get_dag_blocks_sync_packet_handler.hpp
-        network/tarcap/packets_handlers/get_pbft_blocks_sync_packet_handler.hpp
+        network/tarcap/packets_handlers/dag_sync_packet_handler.hpp
+        network/tarcap/packets_handlers/new_dag_block_packet_handler.hpp
+        network/tarcap/packets_handlers/get_dag_sync_packet_handler.hpp
+        network/tarcap/packets_handlers/get_pbft_sync_packet_handler.hpp
         network/tarcap/packets_handlers/new_pbft_block_packet_handler.hpp
         network/tarcap/packets_handlers/common/packet_handler.hpp
-        network/tarcap/packets_handlers/pbft_blocks_sync_packet_handler.hpp
+        network/tarcap/packets_handlers/pbft_sync_packet_handler.hpp
         network/tarcap/packets_handlers/status_packet_handler.hpp
         network/tarcap/packets_handlers/test_packet_handler.hpp
         network/tarcap/packets_handlers/transaction_packet_handler.hpp
@@ -145,13 +145,13 @@ set(SOURCES
         network/tarcap/shared_states/peers_state.cpp
         network/tarcap/packets_handler.cpp
         network/tarcap/shared_states/syncing_state.cpp
-        network/tarcap/packets_handlers/dag_blocks_sync_packet_handler.cpp
-        network/tarcap/packets_handlers/dag_packets_handler.cpp
-        network/tarcap/packets_handlers/get_dag_blocks_sync_packet_handler.cpp
-        network/tarcap/packets_handlers/get_pbft_blocks_sync_packet_handler.cpp
+        network/tarcap/packets_handlers/dag_sync_packet_handler.cpp
+        network/tarcap/packets_handlers/new_dag_block_packet_handler.cpp
+        network/tarcap/packets_handlers/get_dag_sync_packet_handler.cpp
+        network/tarcap/packets_handlers/get_pbft_sync_packet_handler.cpp
         network/tarcap/packets_handlers/new_pbft_block_packet_handler.cpp
         network/tarcap/packets_handlers/common/packet_handler.cpp
-        network/tarcap/packets_handlers/pbft_blocks_sync_packet_handler.cpp
+        network/tarcap/packets_handlers/pbft_sync_packet_handler.cpp
         network/tarcap/packets_handlers/status_packet_handler.cpp
         network/tarcap/packets_handlers/test_packet_handler.cpp
         network/tarcap/packets_handlers/transaction_packet_handler.cpp
