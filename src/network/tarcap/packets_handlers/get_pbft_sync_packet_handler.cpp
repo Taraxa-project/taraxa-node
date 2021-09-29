@@ -1,4 +1,4 @@
-#include "get_pbft_blocks_sync_packet_handler.hpp"
+#include "get_pbft_sync_packet_handler.hpp"
 
 #include "consensus/pbft_chain.hpp"
 #include "consensus/vote.hpp"
@@ -12,7 +12,7 @@ GetPbftSyncPacketHandler::GetPbftSyncPacketHandler(std::shared_ptr<PeersState> p
                                                    std::shared_ptr<SyncingState> syncing_state,
                                                    std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DbStorage> db,
                                                    size_t network_sync_level_size, const addr_t &node_addr)
-    : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "GET_PBFT_BLOCK_PH"),
+    : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "GET_PBFT_SYNC_PH"),
       syncing_state_(std::move(syncing_state)),
       pbft_chain_(std::move(pbft_chain)),
       db_(std::move(db)),

@@ -249,7 +249,7 @@ void TransactionManager::verifyQueuedTrxs() {
         db_->saveTransaction(*item.second, mode_ != VerifyMode::skip_verify_sig);
         trx_qu_.addTransactionToVerifiedQueue(hash, item.second);
       } else {
-        LOG(log_er_) << "Tx " << item.second->getHash().abridged() << " status was changed from in_queue_unverified to "
+        LOG(log_dg_) << "Tx " << item.second->getHash().abridged() << " status was changed from in_queue_unverified to "
                      << static_cast<int>(status.state) << " while it was in unverified queue";
       }
     }

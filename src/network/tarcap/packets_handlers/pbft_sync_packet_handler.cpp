@@ -1,4 +1,4 @@
-#include "pbft_blocks_sync_packet_handler.hpp"
+#include "pbft_sync_packet_handler.hpp"
 
 #include "consensus/pbft_chain.hpp"
 #include "consensus/pbft_manager.hpp"
@@ -15,7 +15,7 @@ PbftSyncPacketHandler::PbftSyncPacketHandler(
     std::shared_ptr<SyncingState> syncing_state, std::shared_ptr<SyncingHandler> syncing_handler,
     std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<PbftManager> pbft_mgr,
     std::shared_ptr<DagBlockManager> dag_blk_mgr, size_t network_sync_level_size, const addr_t &node_addr)
-    : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "PBFT_BLOCK_PH"),
+    : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "PBFT_SYNC_PH"),
       syncing_state_(std::move(syncing_state)),
       syncing_handler_(std::move(syncing_handler)),
       pbft_chain_(std::move(pbft_chain)),
