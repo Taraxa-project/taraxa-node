@@ -31,7 +31,7 @@ Logger createLogger(Verbosity verboseLevel, const std::string& channel, const ad
   Logger logger(boost::log::keywords::severity = verboseLevel, boost::log::keywords::channel = channel);
   std::string severity_str = verbosityToString(verboseLevel);
   logger.add_attribute("SeverityStr", boost::log::attributes::constant<std::string>(severity_str));
-  logger.add_attribute("ShortNodeId", boost::log::attributes::constant<uint32_t>(*(uint32_t*)node_id.data()));
+  logger.add_attribute("ShortNodeId", boost::log::attributes::constant<std::string>(node_id.abridged()));
   logger.add_attribute("NodeId", boost::log::attributes::constant<std::string>(node_id.toString()));
   return logger;
 }
