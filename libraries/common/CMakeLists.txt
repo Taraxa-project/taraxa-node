@@ -26,13 +26,13 @@ set(SOURCES
 add_library(common ${SOURCES} ${HEADERS})
 target_include_directories(common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(common PUBLIC
-    aleth
+    devcore
     taraxa-vrf
     CONAN_PKG::openssl
     CONAN_PKG::jsoncpp
 )
 
 install(TARGETS common
-        ARCHIVE  DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        LIBRARY  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY  DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )

@@ -9,7 +9,7 @@
 #include "common/lazy.hpp"
 #include "common/static_init.hpp"
 #include "dag/dag.hpp"
-#include "logger/log.hpp"
+#include "logger/logger.hpp"
 #include "pbft/block_proposer.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "util_test/samples.hpp"
@@ -102,9 +102,9 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
   }
 
   // add one valid as last
-  auto dag_genesis = nodes[1]->getConfig().chain.dag_genesis_block.getHash();
-  VdfConfig vdf_config(node_cfgs[1].chain.vdf);
-  vdf_sortition::VdfSortition vdf(vdf_config, nodes[1]->getVrfSecretKey(), getRlpBytes(1));
+  auto dag_genesis = nodes[0]->getConfig().chain.dag_genesis_block.getHash();
+  VdfConfig vdf_config(node_cfgs[0].chain.vdf);
+  vdf_sortition::VdfSortition vdf(vdf_config, nodes[0]->getVrfSecretKey(), getRlpBytes(1));
   vdf.computeVdfSolution(vdf_config, dag_genesis.asBytes());
   DagBlock blk(dag_genesis, 1, {}, {samples::createSignedTrxSamples(0, 1, g_secret)[0].getHash()}, vdf,
                nodes[0]->getSecretKey());

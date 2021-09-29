@@ -14,6 +14,10 @@ target_link_libraries(storage PRIVATE
     config
     logger
     pbft_block
-    proposal_period_levels_map
     vote
+)
+
+install(TARGETS storage
+    ARCHIVE  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY  DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )

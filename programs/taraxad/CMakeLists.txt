@@ -4,7 +4,7 @@ target_link_libraries(taraxad PRIVATE
     common
     config
     logger
-    node 
+    core_libs
     storage
 )
 

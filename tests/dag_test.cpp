@@ -4,7 +4,7 @@
 
 #include "common/static_init.hpp"
 #include "common/types.hpp"
-#include "logger/log.hpp"
+#include "logger/logger.hpp"
 #include "util_test/util.hpp"
 
 namespace taraxa::core_tests {

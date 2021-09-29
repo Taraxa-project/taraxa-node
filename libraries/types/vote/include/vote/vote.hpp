@@ -7,7 +7,6 @@
 
 #include "common/types.hpp"
 #include "common/vrf_wrapper.hpp"
-#include "logger/log.hpp"
 
 namespace taraxa {
 
@@ -89,7 +88,7 @@ class Vote {
   explicit Vote(bytes const& rlp);
   bool operator==(Vote const& other) const { return rlp() == other.rlp(); }
 
-  bool validate(size_t const valid_sortition_players, size_t const sortition_threshold) const;
+  void validate(size_t const valid_sortition_players, size_t const sortition_threshold) const;
   vote_hash_t getHash() const { return vote_hash_; }
   public_t getVoter() const {
     if (!cached_voter_) cached_voter_ = dev::recover(vote_signature_, sha3(false));
@@ -138,8 +137,6 @@ class Vote {
   VrfPbftSortition vrf_sortition_;
   mutable public_t cached_voter_;
   mutable addr_t cached_voter_addr_;
-
-  LOG_OBJECTS_DEFINE
 };
 
 struct VotesBundle {

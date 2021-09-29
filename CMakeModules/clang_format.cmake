@@ -16,7 +16,6 @@ else ()
             ${CMAKE_CURRENT_SOURCE_DIR}/libraries/*.[ch]pp
             ${CMAKE_CURRENT_SOURCE_DIR}/libraries/*.h # jsonrpc stubs are generated as .h
             ${CMAKE_CURRENT_SOURCE_DIR}/programs/*.[ch]pp
-            ${CMAKE_CURRENT_SOURCE_DIR}/programs/*.h # jsonrpc stubs are generated as .h
             ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.[ch]pp)
 
     # TODO: print error/line

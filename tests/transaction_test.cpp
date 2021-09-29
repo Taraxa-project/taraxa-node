@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "common/static_init.hpp"
-#include "logger/log.hpp"
+#include "logger/logger.hpp"
 #include "transaction_manager/transaction_manager.hpp"
 #include "util_test/samples.hpp"
 

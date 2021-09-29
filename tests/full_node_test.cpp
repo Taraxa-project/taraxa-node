@@ -9,7 +9,7 @@
 
 #include "common/static_init.hpp"
 #include "dag/dag.hpp"
-#include "logger/log.hpp"
+#include "logger/logger.hpp"
 #include "network/network.hpp"
 #include "network/rpc/Taraxa.h"
 #include "node/node.hpp"

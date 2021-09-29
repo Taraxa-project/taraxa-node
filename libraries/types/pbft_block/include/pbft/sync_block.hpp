@@ -6,7 +6,6 @@
 #include <vector>
 
 #include "common/types.hpp"
-#include "logger/log.hpp"
 
 namespace taraxa {
 
@@ -28,9 +27,7 @@ class SyncBlock {
   std::vector<Transaction> transactions;
   bytes rlp() const;
   void clear();
-  bool hasEnoughValidCertVotes(size_t valid_sortition_players, size_t sortition_threshold, size_t pbft_2t_plus_1) const;
-
-  LOG_OBJECTS_DEFINE
+  void hasEnoughValidCertVotes(size_t valid_sortition_players, size_t sortition_threshold, size_t pbft_2t_plus_1) const;
 };
 std::ostream& operator<<(std::ostream& strm, SyncBlock const& b);
 

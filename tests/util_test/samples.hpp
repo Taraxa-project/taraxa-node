@@ -5,7 +5,7 @@
 #include <string>
 
 #include "common/lazy.hpp"
-#include "dag/block.hpp"
+#include "dag/dag_block.hpp"
 #include "transaction/transaction.hpp"
 #include "util.hpp"
 

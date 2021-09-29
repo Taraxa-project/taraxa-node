@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "common/static_init.hpp"
-#include "logger/log.hpp"
+#include "logger/logger.hpp"
 #include "network/network.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "util_test/samples.hpp"

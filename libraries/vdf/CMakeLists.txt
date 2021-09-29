@@ -4,7 +4,7 @@ set(SOURCES src/sortition.cpp src/config.cpp)
 
 add_library(vdf ${SOURCES} ${HEADERS})
 target_include_directories(vdf PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(vdf PUBLIC 
+target_link_libraries(vdf PUBLIC
     common
     logger
     taraxa-vdf
@@ -12,6 +12,6 @@ target_link_libraries(vdf PUBLIC
 )
 
 install(TARGETS vdf
-        ARCHIVE  DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        LIBRARY  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY  DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )

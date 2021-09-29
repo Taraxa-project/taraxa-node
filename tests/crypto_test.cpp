@@ -11,7 +11,7 @@
 #include "common/static_init.hpp"
 #include "common/vrf_wrapper.hpp"
 #include "config/config.hpp"
-#include "logger/log.hpp"
+#include "logger/logger.hpp"
 #include "util_test/gtest.hpp"
 #include "vdf/sortition.hpp"
 #include "vote/vote.hpp"

@@ -8,7 +8,7 @@
 #include "common/lazy.hpp"
 #include "config/final_chain_config.hpp"
 #include "config/pbft_config.hpp"
-#include "dag/block.hpp"
+#include "dag/dag_block.hpp"
 
 namespace taraxa::chain_config {
 using std::string;

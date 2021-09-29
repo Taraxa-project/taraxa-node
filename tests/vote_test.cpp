@@ -2,7 +2,7 @@
 #include <libdevcore/SHA3.h>
 
 #include "common/static_init.hpp"
-#include "logger/log.hpp"
+#include "logger/logger.hpp"
 #include "network/network.hpp"
 #include "node/node.hpp"
 #include "pbft/pbft_manager.hpp"

@@ -15,7 +15,7 @@ add_executable(dag_block_test dag_block_test.cpp)
 target_link_libraries(dag_block_test
     common
     config
-    node
+    core_libs
     storage
     CONAN_PKG::gtest
 )
@@ -25,7 +25,7 @@ add_executable(dag_test dag_test.cpp)
 target_link_libraries(dag_test
     common
     config
-    node
+    core_libs
     storage
     CONAN_PKG::gtest
 )
@@ -35,7 +35,7 @@ add_executable(final_chain_test final_chain_test.cpp)
 target_link_libraries(final_chain_test
     common
     config
-    node
+    core_libs
     storage
     CONAN_PKG::gtest
 )
@@ -45,7 +45,7 @@ add_executable(full_node_test full_node_test.cpp)
 target_link_libraries(full_node_test
     common
     config
-    node
+    core_libs
     storage
     CONAN_PKG::gtest
 )
@@ -55,7 +55,7 @@ add_executable(network_test network_test.cpp)
 target_link_libraries(network_test
     common
     config
-    node
+    core_libs
     storage
     CONAN_PKG::gtest
 )
@@ -65,7 +65,7 @@ add_executable(p2p_test p2p_test.cpp)
 target_link_libraries(p2p_test 
     common
     config
-    node
+    core_libs
     storage
     CONAN_PKG::gtest
 )
@@ -75,7 +75,7 @@ add_executable(pbft_chain_test pbft_chain_test.cpp)
 target_link_libraries(pbft_chain_test 
     common
     config
-    node
+    core_libs
     storage
     CONAN_PKG::gtest
 )
@@ -85,7 +85,7 @@ add_executable(pbft_manager_test pbft_manager_test.cpp)
 target_link_libraries(pbft_manager_test 
     common
     config
-    node
+    core_libs
     storage
     CONAN_PKG::gtest
 )
@@ -95,7 +95,7 @@ add_executable(replay_protection_service_test replay_protection_service_test.cpp
 target_link_libraries(replay_protection_service_test
     common
     config
-    node
+    core_libs
     storage
     CONAN_PKG::gtest
 )
@@ -105,7 +105,7 @@ add_executable(rpc_taraxa_test rpc_taraxa_test.cpp)
 target_link_libraries(rpc_taraxa_test
     common
     config
-    node
+    core_libs
     storage
     CONAN_PKG::gtest
 )
@@ -115,7 +115,7 @@ add_executable(state_api_test state_api_test.cpp)
 target_link_libraries(state_api_test 
     common
     config
-    node
+    core_libs
     storage
     CONAN_PKG::gtest
 )
@@ -125,7 +125,7 @@ add_executable(vote_test vote_test.cpp)
 target_link_libraries(vote_test 
     common
     config
-    node
+    core_libs
     storage
     CONAN_PKG::gtest
 )
@@ -135,7 +135,7 @@ add_executable(transaction_test transaction_test.cpp)
 target_link_libraries(transaction_test 
     common
     config
-    node
+    core_libs
     storage
     CONAN_PKG::gtest
 )

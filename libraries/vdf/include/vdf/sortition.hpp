@@ -6,7 +6,7 @@
 #include "common/types.hpp"
 #include "common/vrf_wrapper.hpp"
 #include "libdevcore/CommonData.h"
-#include "logger/log.hpp"
+#include "logger/logger.hpp"
 #include "openssl/bn.h"
 #include "vdf/config.hpp"
 

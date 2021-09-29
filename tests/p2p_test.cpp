@@ -13,7 +13,7 @@
 
 #include "common/lazy.hpp"
 #include "common/static_init.hpp"
-#include "logger/log.hpp"
+#include "logger/logger.hpp"
 #include "network/network.hpp"
 #include "network/tarcap/taraxa_capability.hpp"
 #include "util_test/samples.hpp"

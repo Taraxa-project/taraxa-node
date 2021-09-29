@@ -10,10 +10,10 @@
 #include <string_view>
 
 #include "common/types.hpp"
-#include "dag/block.hpp"
+#include "dag/dag_block.hpp"
 #include "dag/proposal_period_levels_map.hpp"
-#include "logger/log.hpp"
-#include "pbft/block.hpp"
+#include "logger/logger.hpp"
+#include "pbft/pbft_block.hpp"
 #include "pbft/sync_block.hpp"
 #include "transaction/status.hpp"
 #include "transaction/transaction.hpp"

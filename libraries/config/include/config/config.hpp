@@ -7,7 +7,7 @@
 #include "common/util.hpp"
 #include "common/vrf_wrapper.hpp"
 #include "config/chain_config.hpp"
-#include "logger/log_config.hpp"
+#include "logger/logger_config.hpp"
 
 namespace taraxa {
 
