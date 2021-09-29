@@ -555,8 +555,10 @@ void DagManager::recoverDag() {
     }
   }
 
-  for (auto &blk : db_->getNonfinalizedDagBlocks()) {
-    addDagBlock(std::move(blk), false);
+  for (auto const &lvl : db_->getNonfinalizedDagBlocks()) {
+    for (auto const &blk : lvl.second) {
+      addDagBlock(std::move(blk), false);
+    }
   }
 }
 

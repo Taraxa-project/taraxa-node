@@ -12,7 +12,7 @@ PacketHandler::PacketHandler(std::shared_ptr<PeersState> peers_state, std::share
 
 void PacketHandler::processPacket(const PacketData& packet_data) {
   try {
-    SinglePacketStats packet_stats{packet_data.from_node_id_, packet_data.rlp_.data().size(), false,
+    SinglePacketStats packet_stats{packet_data.from_node_id_, packet_data.rlp_.data().size(),
                                    std::chrono::microseconds(0), std::chrono::microseconds(0)};
     auto begin = std::chrono::steady_clock::now();
 
@@ -79,8 +79,7 @@ bool PacketHandler::sealAndSend(const dev::p2p::NodeID& nodeID, SubprotocolPacke
 
   host->send(nodeID, TARAXA_CAPABILITY_NAME, packet_type, rlp.invalidate());
 
-  SinglePacketStats packet_stats{nodeID, packet_size, false, std::chrono::microseconds{0},
-                                 std::chrono::microseconds{0}};
+  SinglePacketStats packet_stats{nodeID, packet_size, std::chrono::microseconds{0}, std::chrono::microseconds{0}};
   packets_stats_->addSentPacket(peers_state_->node_id_, convertPacketTypeToString(packet_type), packet_stats);
 
   return true;

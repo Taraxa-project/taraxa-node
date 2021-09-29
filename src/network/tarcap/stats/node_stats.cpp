@@ -270,14 +270,8 @@ Json::Value NodeStats::getStatus() const {
 
 Json::Value NodeStats::getPacketsStats() const {
   Json::Value ret;
-
-  std::ostringstream stream;
-  stream << packets_stats_->getReceivedPacketsStats();
-  ret["received_packets_stats"] = stream.str();
-
-  stream.clear();
-  stream << packets_stats_->getSentPacketsStats();
-  ret["sent_packets_stats"] = stream.str();
+  ret["received_packets"] = packets_stats_->getReceivedPacketsStats().getStatsJson(true);
+  ret["sent_packets"] = packets_stats_->getSentPacketsStats().getStatsJson(false);
 
   return ret;
 }
