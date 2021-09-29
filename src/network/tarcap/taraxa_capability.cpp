@@ -343,7 +343,8 @@ void TaraxaCapability::restartSyncingPbft(bool force) { syncing_handler_->restar
 bool TaraxaCapability::pbft_syncing() const { return syncing_state_->is_pbft_syncing(); }
 
 void TaraxaCapability::handleMaliciousSyncPeer(dev::p2p::NodeID const &id) {
-  syncing_state_->set_peer_malicious(id);
+  // TODO: enable once malicious issues are resolved
+  // syncing_state_->set_peer_malicious(id);
 
   if (auto host = peers_state_->host_.lock(); host) {
     host->disconnect(id, p2p::UserReason);
