@@ -14,15 +14,15 @@ class SyncingState;
 class SyncingHandler;
 class TestState;
 
-class NewDagBlockPacketHandler : public PacketHandler {
+class DagBlockPacketHandler : public PacketHandler {
  public:
-  NewDagBlockPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
-                           std::shared_ptr<SyncingState> syncing_state, std::shared_ptr<SyncingHandler> syncing_handler,
-                           std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
-                           std::shared_ptr<DbStorage> db, std::shared_ptr<TestState> test_state,
-                           const addr_t &node_addr = {});
+  DagBlockPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
+                        std::shared_ptr<SyncingState> syncing_state, std::shared_ptr<SyncingHandler> syncing_handler,
+                        std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
+                        std::shared_ptr<DbStorage> db, std::shared_ptr<TestState> test_state,
+                        const addr_t &node_addr = {});
 
-  virtual ~NewDagBlockPacketHandler() = default;
+  virtual ~DagBlockPacketHandler() = default;
 
   void sendBlock(dev::p2p::NodeID const &peer_id, DagBlock block);
   void onNewBlockReceived(DagBlock block, std::vector<Transaction> transactions);

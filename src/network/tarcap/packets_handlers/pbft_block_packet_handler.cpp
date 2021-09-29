@@ -1,4 +1,4 @@
-#include "new_pbft_block_packet_handler.hpp"
+#include "pbft_block_packet_handler.hpp"
 
 #include <libp2p/Common.h>
 
@@ -7,16 +7,16 @@
 
 namespace taraxa::network::tarcap {
 
-NewPbftBlockPacketHandler::NewPbftBlockPacketHandler(std::shared_ptr<PeersState> peers_state,
-                                                     std::shared_ptr<PacketsStats> packets_stats,
-                                                     std::shared_ptr<PbftChain> pbft_chain,
-                                                     std::shared_ptr<PbftManager> pbft_mgr, const addr_t &node_addr)
+PbftBlockPacketHandler::PbftBlockPacketHandler(std::shared_ptr<PeersState> peers_state,
+                                               std::shared_ptr<PacketsStats> packets_stats,
+                                               std::shared_ptr<PbftChain> pbft_chain,
+                                               std::shared_ptr<PbftManager> pbft_mgr, const addr_t &node_addr)
     : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "NEW_PBFT_BLOCK_PH"),
       pbft_chain_(std::move(pbft_chain)),
       pbft_mgr_(std::move(pbft_mgr)) {}
 
-void NewPbftBlockPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
-  LOG(log_dg_) << "In NewPbftBlockPacket";
+void PbftBlockPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
+  LOG(log_dg_) << "In PbftBlockPacket";
 
   auto pbft_block = std::make_shared<PbftBlock>(packet_data.rlp_[0]);
   const uint64_t peer_pbft_chain_size = packet_data.rlp_[1].toInt();
@@ -45,7 +45,7 @@ void NewPbftBlockPacketHandler::process(const PacketData &packet_data, const std
   onNewPbftBlock(*pbft_block);
 }
 
-void NewPbftBlockPacketHandler::onNewPbftBlock(PbftBlock const &pbft_block) {
+void PbftBlockPacketHandler::onNewPbftBlock(PbftBlock const &pbft_block) {
   std::vector<dev::p2p::NodeID> peers_to_send;
   const auto my_chain_size = pbft_chain_->getPbftChainSize();
 
@@ -64,13 +64,13 @@ void NewPbftBlockPacketHandler::onNewPbftBlock(PbftBlock const &pbft_block) {
   }
 }
 
-void NewPbftBlockPacketHandler::sendPbftBlock(dev::p2p::NodeID const &peer_id, PbftBlock const &pbft_block,
-                                              uint64_t pbft_chain_size) {
+void PbftBlockPacketHandler::sendPbftBlock(dev::p2p::NodeID const &peer_id, PbftBlock const &pbft_block,
+                                           uint64_t pbft_chain_size) {
   LOG(log_dg_) << "sendPbftBlock " << pbft_block.getBlockHash() << " to " << peer_id;
   dev::RLPStream s(2);
   pbft_block.streamRLP(s, true);
   s << pbft_chain_size;
-  sealAndSend(peer_id, NewPbftBlockPacket, std::move(s));
+  sealAndSend(peer_id, PbftBlockPacket, std::move(s));
 }
 
 }  // namespace taraxa::network::tarcap
