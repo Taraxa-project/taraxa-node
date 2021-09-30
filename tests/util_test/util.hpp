@@ -15,24 +15,18 @@
 #include "config/config.hpp"
 #include "gtest.hpp"
 #include "network/network.hpp"
-#include "node/full_node.hpp"
+#include "node/node.hpp"
 #include "transaction_manager/transaction_manager.hpp"
-#include "util/lazy.hpp"
 
 // TODO rename this namespace to `util_test`
 namespace taraxa::core_tests {
-using namespace std;
-using namespace std::chrono;
 using dev::KeyPair;
 using dev::Secret;
-using filesystem::is_regular_file;
-using filesystem::path;
-using filesystem::recursive_directory_iterator;
-using filesystem::remove_all;
-using ::taraxa::util::lazy::Lazy;
-
-inline auto const DIR = path(__FILE__).parent_path();
-inline auto const DIR_CONF = DIR / "conf";
+using std::filesystem::is_regular_file;
+using std::filesystem::path;
+using std::filesystem::recursive_directory_iterator;
+using std::filesystem::remove_all;
+using namespace std::chrono;
 
 inline const uint64_t TEST_TX_GAS_LIMIT = 0;
 
@@ -47,9 +41,9 @@ class wait_ctx {
   bool const is_last_attempt;
   uint64_t const attempt;
   uint64_t const attempt_count;
-  ostream& fail_log;
+  std::ostream& fail_log;
 
-  wait_ctx(uint64_t attempt, uint64_t attempt_count, ostream& fail_log)
+  wait_ctx(uint64_t attempt, uint64_t attempt_count, std::ostream& fail_log)
       : is_last_attempt(attempt == attempt_count - 1),
         attempt(attempt),
         attempt_count(attempt_count),
@@ -64,8 +58,8 @@ class wait_ctx {
   }
   auto failed() const { return failed_; }
 };
-inline bool wait(wait_opts const& opts, function<void(wait_ctx&)> const& poller) {
-  struct NullBuffer : streambuf {
+inline bool wait(wait_opts const& opts, std::function<void(wait_ctx&)> const& poller) {
+  struct NullBuffer : std::streambuf {
     int overflow(int c) override { return c; }
   } static null_buf;
 
@@ -73,22 +67,22 @@ inline bool wait(wait_opts const& opts, function<void(wait_ctx&)> const& poller)
   uint64_t attempt_count = opts.timeout / opts.poll_period;
   for (uint64_t i(0); i < attempt_count; ++i) {
     if (i == attempt_count - 1) {
-      stringstream err_log;
+      std::stringstream err_log;
       wait_ctx ctx(i, attempt_count, err_log);
       if (poller(ctx); !ctx.failed()) {
         return true;
       }
       if (auto const& s = err_log.str(); !s.empty()) {
-        cout << err_log.str() << endl;
+        std::cout << err_log.str() << std::endl;
       }
       return false;
     }
-    ostream null_strm(&null_buf);
+    std::ostream null_strm(&null_buf);
     wait_ctx ctx(i, attempt_count, null_strm);
     if (poller(ctx); !ctx.failed()) {
       return true;
     }
-    this_thread::sleep_for(opts.poll_period);
+    std::this_thread::sleep_for(opts.poll_period);
   }
   assert(false);
 }
@@ -118,21 +112,6 @@ inline bool wait(wait_opts const& opts, function<void(wait_ctx&)> const& poller)
     EXPECT_LT(o1, o2);                      \
   }
 
-inline auto const node_cfgs_original = Lazy([] {
-  vector<FullNodeConfig> ret;
-  for (int i = 1;; ++i) {
-    auto p = DIR_CONF / (string("conf_taraxa") + std::to_string(i) + ".json");
-    if (!fs::exists(p)) {
-      break;
-    }
-    auto w = DIR_CONF / (string("wallet") + std::to_string(i) + ".json");
-    Json::Value test_node_wallet_json;
-    std::ifstream(w.string(), std::ifstream::binary) >> test_node_wallet_json;
-    ret.emplace_back(p.string(), test_node_wallet_json);
-  }
-  return ret;
-});
-
 template <uint tests_speed = 1, bool enable_rpc_http = false, bool enable_rpc_ws = false>
 inline auto make_node_cfgs(uint count) {
   static auto const ret = [] {
@@ -154,10 +133,10 @@ inline auto make_node_cfgs(uint count) {
         cfg.network.network_transaction_interval /= tests_speed;
       }
       if constexpr (!enable_rpc_http) {
-        cfg.rpc->http_port = nullopt;
+        cfg.rpc->http_port = std::nullopt;
       }
       if constexpr (!enable_rpc_ws) {
-        cfg.rpc->ws_port = nullopt;
+        cfg.rpc->ws_port = std::nullopt;
       }
     }
     return ret;
@@ -168,7 +147,7 @@ inline auto make_node_cfgs(uint count) {
   return slice(ret, 0, count);
 }
 
-inline auto wait_connect(vector<shared_ptr<FullNode>> const& nodes) {
+inline auto wait_connect(std::vector<std::shared_ptr<FullNode>> const& nodes) {
   auto num_peers_connected = nodes.size() - 1;
   return wait({30s, 1s}, [&](auto& ctx) {
     for (auto const& node : nodes) {
@@ -182,10 +161,10 @@ inline auto wait_connect(vector<shared_ptr<FullNode>> const& nodes) {
 inline auto create_nodes(uint count, bool start = false) {
   auto cfgs = make_node_cfgs(count);
   auto node_count = cfgs.size();
-  vector<std::shared_ptr<FullNode>> nodes;
+  std::vector<std::shared_ptr<FullNode>> nodes;
   for (uint j = 0; j < node_count; ++j) {
     if (j > 0) {
-      this_thread::sleep_for(500ms);
+      std::this_thread::sleep_for(500ms);
     }
     nodes.emplace_back(std::make_shared<FullNode>(cfgs[j]));
     if (start) nodes.back()->start();
@@ -193,12 +172,12 @@ inline auto create_nodes(uint count, bool start = false) {
   return nodes;
 }
 
-inline auto create_nodes(vector<FullNodeConfig> const& cfgs, bool start = false) {
+inline auto create_nodes(std::vector<FullNodeConfig> const& cfgs, bool start = false) {
   auto node_count = cfgs.size();
-  vector<std::shared_ptr<FullNode>> nodes;
+  std::vector<std::shared_ptr<FullNode>> nodes;
   for (uint j = 0; j < node_count; ++j) {
     if (j > 0) {
-      this_thread::sleep_for(500ms);
+      std::this_thread::sleep_for(500ms);
     }
     nodes.emplace_back(std::make_shared<FullNode>(cfgs[j]));
     if (start) nodes.back()->start();
@@ -206,7 +185,7 @@ inline auto create_nodes(vector<FullNodeConfig> const& cfgs, bool start = false)
   return nodes;
 }
 
-inline auto launch_nodes(vector<FullNodeConfig> const& cfgs) {
+inline auto launch_nodes(std::vector<FullNodeConfig> const& cfgs) {
   constexpr auto RETRY_COUNT = 4;
   auto node_count = cfgs.size();
   for (auto i = RETRY_COUNT;; --i) {
@@ -215,7 +194,7 @@ inline auto launch_nodes(vector<FullNodeConfig> const& cfgs) {
       return nodes;
     }
     if (wait_connect(nodes)) {
-      cout << "Nodes connected and initial status packets passed" << endl;
+      std::cout << "Nodes connected and initial status packets passed" << std::endl;
       return nodes;
     }
     if (i == 0) {
@@ -224,20 +203,6 @@ inline auto launch_nodes(vector<FullNodeConfig> const& cfgs) {
     }
   }
 }
-
-struct BaseTest : virtual WithDataDir {
-  BaseTest() : WithDataDir() {
-    for (auto& cfg : *node_cfgs_original) {
-      remove_all(cfg.data_path);
-    }
-  }
-  void TearDown() override {
-    for (auto& cfg : *node_cfgs_original) {
-      remove_all(cfg.data_path);
-    }
-  }
-  virtual ~BaseTest(){};
-};
 
 inline auto addr(Secret const& secret = Secret::random()) { return KeyPair(secret).address(); }
 
@@ -255,7 +220,7 @@ struct TransactionClient {
   };
 
  private:
-  shared_ptr<FullNode> node_;
+  std::shared_ptr<FullNode> node_;
   wait_opts wait_opts_;
 
  public:
@@ -271,7 +236,7 @@ struct TransactionClient {
         TransactionStage::created,
         trx,
     };
-    if (!node_->getTransactionManager()->insertTransaction(ctx.trx, false, true).first) {
+    if (!node_->getTransactionManager()->insertTransaction(ctx.trx, false).first) {
       return ctx;
     }
     ctx.stage = TransactionStage::inserted;
@@ -286,7 +251,7 @@ struct TransactionClient {
     return ctx;
   }
 
-  Context coinTransfer(addr_t const& to, val_t const& val, optional<KeyPair> const& from_k = {},
+  Context coinTransfer(addr_t const& to, val_t const& val, std::optional<KeyPair> const& from_k = {},
                        bool wait_executed = true) const {
     // As long as nonce rules are completely disabled, this hack allows to
     // generate unique nonces that contribute to transaction uniqueness.
@@ -295,7 +260,7 @@ struct TransactionClient {
     // account state. The latter won't work in general because in some tests
     // we don't wait for previous transactions for a sender to complete before
     // sending a new one
-    static atomic<uint64_t> nonce = 100000;
+    static std::atomic<uint64_t> nonce = 100000;
     return process(
         Transaction(++nonce, val, 0, TEST_TX_GAS_LIMIT, bytes(), from_k ? from_k->secret() : node_->getSecretKey(), to),
         wait_executed);
@@ -309,7 +274,7 @@ inline auto make_dpos_trx(FullNodeConfig const& sender_node_cfg, state_api::DPOS
                      dev::Secret(sender_node_cfg.node_secret), proto.to, sender_node_cfg.chain.chain_id);
 }
 
-inline auto own_balance(shared_ptr<FullNode> const& node) {
+inline auto own_balance(std::shared_ptr<FullNode> const& node) {
   return node->getFinalChain()->getBalance(node->getAddress()).first;
 }
 
@@ -321,9 +286,9 @@ inline auto make_simple_pbft_block(h256 const& hash, uint64_t period) {
   return PbftBlock(hash, blk_hash_t(0), blk_hash_t(), period, addr_t(0), secret_t::random());
 }
 
-inline vector<blk_hash_t> getOrderedDagBlocks(shared_ptr<DbStorage> const& db) {
+inline std::vector<blk_hash_t> getOrderedDagBlocks(std::shared_ptr<DbStorage> const& db) {
   uint64_t period = 1;
-  vector<blk_hash_t> res;
+  std::vector<blk_hash_t> res;
   while (true) {
     auto pbft_block = db->getPbftBlock(period);
     if (pbft_block.has_value()) {
@@ -345,8 +310,8 @@ inline auto make_addr(uint8_t i) {
 }
 
 using expected_balances_map_t = std::map<addr_t, u256>;
-inline void wait_for_balances(const vector<std::shared_ptr<FullNode>>& nodes, const expected_balances_map_t& balances,
-                              wait_opts to_wait = {10s, 500ms}) {
+inline void wait_for_balances(const std::vector<std::shared_ptr<FullNode>>& nodes,
+                              const expected_balances_map_t& balances, wait_opts to_wait = {10s, 500ms}) {
   TransactionClient trx_client(nodes[0]);
   auto sendDummyTransaction = [&]() {
     trx_client.coinTransfer(KeyPair::create().address(), 0, KeyPair::create(), false);

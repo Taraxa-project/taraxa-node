@@ -6,12 +6,12 @@
 #include <iostream>
 #include <vector>
 
+#include "common/lazy.hpp"
 #include "common/static_init.hpp"
-#include "consensus/block_proposer.hpp"
-#include "consensus/pbft_manager.hpp"
 #include "dag/dag.hpp"
-#include "logger/log.hpp"
-#include "util/lazy.hpp"
+#include "logger/logger.hpp"
+#include "pbft/block_proposer.hpp"
+#include "pbft/pbft_manager.hpp"
 #include "util_test/samples.hpp"
 #include "util_test/util.hpp"
 
@@ -103,7 +103,7 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
 
   // add one valid as last
   auto dag_genesis = nodes[0]->getConfig().chain.dag_genesis_block.getHash();
-  vdf_sortition::VdfConfig vdf_config(node_cfgs[0].chain.vdf);
+  VdfConfig vdf_config(node_cfgs[0].chain.vdf);
   vdf_sortition::VdfSortition vdf(vdf_config, nodes[0]->getVrfSecretKey(), getRlpBytes(1));
   vdf.computeVdfSolution(vdf_config, dag_genesis.asBytes());
   DagBlock blk(dag_genesis, 1, {}, {samples::createSignedTrxSamples(0, 1, g_secret)[0].getHash()}, vdf,
@@ -157,7 +157,7 @@ TEST_F(NetworkTest, sync_large_pbft_block) {
         ctx.fail_if(trx_queue_size.first > 0 || trx_queue_size.second > 0);
       });
     }
-    nodes[0]->getTransactionManager()->insertTransaction(signed_trxs[i], true, false);
+    nodes[0]->getTransactionManager()->insertTransaction(signed_trxs[i], true);
   }
   nodes[0]->getPbftManager()->start();
   // Wait untill pbft block is created
@@ -292,12 +292,12 @@ TEST_F(NetworkTest, node_sync) {
   // Allow node to start up
   taraxa::thisThreadSleepForMilliSeconds(1000);
 
-  std::vector<pair<DagBlock, Transaction>> blks;
+  std::vector<std::pair<DagBlock, Transaction>> blks;
   // Generate DAG blocks
   auto dag_genesis = node1->getConfig().chain.dag_genesis_block.getHash();
   auto sk = node1->getSecretKey();
   auto vrf_sk = node1->getVrfSecretKey();
-  vdf_sortition::VdfConfig vdf_config(node_cfgs[0].chain.vdf);
+  VdfConfig vdf_config(node_cfgs[0].chain.vdf);
 
   auto propose_level = 1;
   vdf_sortition::VdfSortition vdf1(vdf_config, vrf_sk, getRlpBytes(propose_level));
@@ -371,7 +371,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
   auto dag_genesis = node1->getConfig().chain.dag_genesis_block.getHash();
   auto sk = node1->getSecretKey();
   auto vrf_sk = node1->getVrfSecretKey();
-  vdf_sortition::VdfConfig vdf_config(node_cfgs[0].chain.vdf);
+  VdfConfig vdf_config(node_cfgs[0].chain.vdf);
   auto batch = db1->createWriteBatch();
 
   // generate first PBFT block sample
@@ -514,7 +514,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   auto dag_genesis = node1->getConfig().chain.dag_genesis_block.getHash();
   auto sk = node1->getSecretKey();
   auto vrf_sk = node1->getVrfSecretKey();
-  vdf_sortition::VdfConfig vdf_config(node_cfgs[0].chain.vdf);
+  VdfConfig vdf_config(node_cfgs[0].chain.vdf);
   auto batch = db1->createWriteBatch();
 
   // generate first PBFT block sample
@@ -689,9 +689,9 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_1) {
   auto pbft_previous_round = 1;
 
   auto node_cfgs = make_node_cfgs<20>(2);
-  vector<shared_ptr<FullNode>> nodes;
+  std::vector<std::shared_ptr<FullNode>> nodes;
   for (auto i(0); i < 2; i++) {
-    nodes.emplace_back(make_shared<FullNode>(node_cfgs[i]));
+    nodes.emplace_back(std::make_shared<FullNode>(node_cfgs[i]));
     nodes.back()->start();
     // Stop PBFT manager, that will place vote
     nodes.back()->getPbftManager()->stop();
@@ -763,9 +763,9 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
   auto pbft_previous_round = 1;
 
   auto node_cfgs = make_node_cfgs<20>(2);
-  vector<shared_ptr<FullNode>> nodes;
+  std::vector<std::shared_ptr<FullNode>> nodes;
   for (auto i(0); i < 2; i++) {
-    nodes.emplace_back(make_shared<FullNode>(node_cfgs[i]));
+    nodes.emplace_back(std::make_shared<FullNode>(node_cfgs[i]));
     nodes.back()->start();
     // Stop PBFT manager, that will place vote
     nodes.back()->getPbftManager()->stop();
@@ -867,7 +867,7 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
   auto dag_genesis = node1->getConfig().chain.dag_genesis_block.getHash();
   auto sk = node1->getSecretKey();
   auto vrf_sk = node1->getVrfSecretKey();
-  vdf_sortition::VdfConfig vdf_config(node_cfgs[0].chain.vdf);
+  VdfConfig vdf_config(node_cfgs[0].chain.vdf);
   auto propose_level = 1;
   vdf_sortition::VdfSortition vdf1(vdf_config, vrf_sk, getRlpBytes(propose_level));
   vdf1.computeVdfSolution(vdf_config, dag_genesis.asBytes());
@@ -949,7 +949,7 @@ TEST_F(NetworkTest, node_sync2) {
   auto dag_genesis = node1->getConfig().chain.dag_genesis_block.getHash();
   auto sk = node1->getSecretKey();
   auto vrf_sk = node1->getVrfSecretKey();
-  vdf_sortition::VdfConfig vdf_config(node_cfgs[0].chain.vdf);
+  VdfConfig vdf_config(node_cfgs[0].chain.vdf);
   auto transactions = samples::createSignedTrxSamples(0, NUM_TRX2, sk);
   // DAG block1
   auto propose_level = 1;
@@ -1135,17 +1135,17 @@ TEST_F(NetworkTest, node_full_sync) {
 
   bool dag_synced = true;
   auto node0_vertices = nodes[0]->getDagManager()->getNumVerticesInDag().first;
-  cout << "node0 vertices " << node0_vertices << endl;
+  std::cout << "node0 vertices " << node0_vertices << std::endl;
   for (int i(1); i < numberOfNodes - 1; i++) {
     auto node_vertices = nodes[i]->getDagManager()->getNumVerticesInDag().first;
-    cout << "node" << i << " vertices " << node_vertices << endl;
+    std::cout << "node" << i << " vertices " << node_vertices << std::endl;
     if (node_vertices != node0_vertices) {
       dag_synced = false;
     }
   }
   // When last level have more than 1 DAG blocks, send a dummy transaction to converge DAG
   if (!dag_synced) {
-    cout << "Send dummy trx" << endl;
+    std::cout << "Send dummy trx" << std::endl;
     Transaction dummy_trx(counter++, 0, 2, TEST_TX_GAS_LIMIT, bytes(), nodes[0]->getSecretKey(),
                           nodes[0]->getAddress());
     // broadcast dummy transaction
@@ -1173,7 +1173,7 @@ TEST_F(NetworkTest, node_full_sync) {
   }
 
   // Bootstrapping node5 join the network
-  nodes.emplace_back(make_shared<FullNode>(node_cfgs[numberOfNodes - 1]));
+  nodes.emplace_back(std::make_shared<FullNode>(node_cfgs[numberOfNodes - 1]));
   nodes.back()->start();
   EXPECT_TRUE(wait_connect(nodes));
 
@@ -1190,17 +1190,17 @@ TEST_F(NetworkTest, node_full_sync) {
 
   dag_synced = true;
   node0_vertices = nodes[0]->getDagManager()->getNumVerticesInDag().first;
-  cout << "node0 vertices " << node0_vertices << endl;
+  std::cout << "node0 vertices " << node0_vertices << std::endl;
   for (int i(1); i < numberOfNodes; i++) {
     auto node_vertices = nodes[i]->getDagManager()->getNumVerticesInDag().first;
-    cout << "node" << i << " vertices " << node_vertices << endl;
+    std::cout << "node" << i << " vertices " << node_vertices << std::endl;
     if (node_vertices != node0_vertices) {
       dag_synced = false;
     }
   }
   // When last level have more than 1 DAG blocks, send a dummy transaction to converge DAG
   if (!dag_synced) {
-    cout << "Send dummy trx" << endl;
+    std::cout << "Send dummy trx" << std::endl;
     Transaction dummy_trx(counter++, 0, 2, TEST_TX_GAS_LIMIT, bytes(), nodes[0]->getSecretKey(),
                           nodes[0]->getAddress());
     // broadcast dummy transaction

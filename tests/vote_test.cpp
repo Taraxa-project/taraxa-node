@@ -2,10 +2,10 @@
 #include <libdevcore/SHA3.h>
 
 #include "common/static_init.hpp"
-#include "consensus/pbft_manager.hpp"
-#include "logger/log.hpp"
+#include "logger/logger.hpp"
 #include "network/network.hpp"
-#include "node/full_node.hpp"
+#include "node/node.hpp"
+#include "pbft/pbft_manager.hpp"
 #include "util_test/util.hpp"
 
 namespace taraxa::core_tests {
@@ -22,7 +22,7 @@ auto g_sk = Lazy([] {
 });
 struct VoteTest : BaseTest {};
 
-void clearAllVotes(shared_ptr<FullNode> &node) {
+void clearAllVotes(std::shared_ptr<FullNode> &node) {
   // Clear unverified votes and verified votes table
   auto db = node->getDB();
   auto vote_mgr = node->getVoteManager();

@@ -63,6 +63,9 @@ function(add_make_target libprefix libname buildcommand)
     set_property(TARGET taraxa-${libprefix} PROPERTY IMPORTED_LOCATION_RELEASE "${${libprefix}_LIBRARY}")
     set_property(TARGET taraxa-${libprefix} PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${${libprefix}_INCLUDE_DIR}")
     add_dependencies(taraxa-${libprefix} ${libprefix}_lib_submodule)
+
+    # add public includes
+    target_include_directories(taraxa-${libprefix} PUBLIC ${INTERFACE_INCLUDE_DIRECTORIES})
 endfunction()
 
 # Add taraxa-vdf
@@ -130,3 +133,11 @@ add_library(taraxa-evm INTERFACE)
 add_dependencies(taraxa-evm taraxa_evm_build)
 target_link_libraries(taraxa-evm INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/taraxa-evm/lib/${EVM_LIBRARY_NAME})
 target_include_directories(taraxa-evm INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/taraxa-evm/include)
+
+# needed for golang runtime that comes together with taraxa-evm
+if (APPLE)  # if "APPLE" not sufficient, use if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    target_link_libraries(taraxa-evm INTERFACE "-framework CoreFoundation")
+    target_link_libraries(taraxa-evm INTERFACE "-framework Security")
+else ()
+    target_link_libraries(taraxa-evm INTERFACE stdc++fs)
+endif ()
