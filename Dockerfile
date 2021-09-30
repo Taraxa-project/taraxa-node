@@ -76,6 +76,7 @@ RUN conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/ap
     conan profile update settings.compiler.libcxx=libstdc++11 clang && \
     conan profile update env.CC=clang-$LLVM_VERSION clang && \
     conan profile update env.CXX=clang++-$LLVM_VERSION clang && \
+    conan remote update conancenter https://center.conan.io false && \
     conan install --build missing -s build_type=RelWithDebInfo -pr=clang .
 
 ###################################################################
