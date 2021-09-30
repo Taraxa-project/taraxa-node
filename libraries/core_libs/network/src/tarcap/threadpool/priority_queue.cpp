@@ -124,7 +124,7 @@ void PriorityQueue::updateDependenciesStart(const PacketData& packet) {
     //  DagBlockPacket -> wait with processing of new dag blocks until old blocks are synced
     case SubprotocolPacketType::DagSyncPacket:
       blocked_packets_mask_.markPacketAsHardBlocked(packet, packet.type_);
-      blocked_packets_mask_.markPacketAsHardBlocked(packet, SubprotocolPacketType::DagBlockPacket);
+      blocked_packets_mask_.markPacketAsPeerOrderBlocked(packet, SubprotocolPacketType::DagBlockPacket);
       break;
 
     // When processing TransactionPacket, processing of all dag block packets that were received after that (from the
@@ -162,7 +162,7 @@ void PriorityQueue::updateDependenciesFinish(const PacketData& packet, std::mute
     case SubprotocolPacketType::DagSyncPacket: {
       std::unique_lock<std::mutex> lock(queue_mutex);
       blocked_packets_mask_.markPacketAsHardUnblocked(packet, packet.type_);
-      blocked_packets_mask_.markPacketAsHardUnblocked(packet, SubprotocolPacketType::DagBlockPacket);
+      blocked_packets_mask_.markPacketAsPeerOrderUnblocked(packet, SubprotocolPacketType::DagBlockPacket);
       cond_var.notify_all();
       break;
     }

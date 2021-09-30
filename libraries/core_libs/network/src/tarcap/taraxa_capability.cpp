@@ -35,7 +35,7 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev
                                    std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
                                    std::shared_ptr<TransactionManager> trx_mgr, addr_t const &node_addr)
     : test_state_(std::make_shared<TestState>()),
-      peers_state_(std::make_shared<PeersState>(std::move(host))),
+      peers_state_(nullptr),
       syncing_state_(std::make_shared<SyncingState>(peers_state_)),
       syncing_handler_(nullptr),
       node_stats_(nullptr),
@@ -43,6 +43,9 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev
       thread_pool_(conf.network_packets_processing_threads, node_addr),
       periodic_events_tp_(1, false) {
   LOG_OBJECTS_CREATE("TARCAP");
+
+  assert(host.lock());
+  peers_state_ = std::make_shared<PeersState>(host, host.lock()->id());
 
   auto packets_stats = std::make_shared<PacketsStats>(node_addr);
 
@@ -207,8 +210,8 @@ void TaraxaCapability::registerPacketHandlers(
       std::make_shared<StatusPacketHandler>(peers_state_, packets_stats, syncing_state_, syncing_handler_, pbft_chain,
                                             dag_mgr, next_votes_mgr, pbft_mgr, conf.network_id, node_addr));
   packets_handlers_->registerHandler(SubprotocolPacketType::GetDagSyncPacket,
-                                     std::make_shared<GetDagSyncPacketsHandler>(peers_state_, packets_stats, trx_mgr,
-                                                                                dag_mgr, dag_blk_mgr, db, node_addr));
+                                     std::make_shared<GetDagSyncPacketHandler>(peers_state_, packets_stats, trx_mgr,
+                                                                               dag_mgr, dag_blk_mgr, db, node_addr));
 
   packets_handlers_->registerHandler(SubprotocolPacketType::DagSyncPacket,
                                      std::make_shared<DagSyncPacketHandler>(peers_state_, packets_stats, syncing_state_,
@@ -321,8 +324,7 @@ void TaraxaCapability::interpretCapabilityPacket(std::weak_ptr<dev::p2p::Session
   // TODO: we are making a copy here for each packet bytes(toBytes()), which is pretty significant. Check why RLP does
   //       not support move semantics so we can take advantage of it...
   SubprotocolPacketType packet_type = static_cast<SubprotocolPacketType>(_id);
-  thread_pool_.push(
-      PacketData(++packet_id, packet_type, packetTypeToString(packet_type), std::move(node_id), _r.data().toBytes()));
+  thread_pool_.push(PacketData(++packet_id, packet_type, std::move(node_id), _r.data().toBytes()));
 }
 
 void TaraxaCapability::start() {
@@ -405,7 +407,7 @@ void TaraxaCapability::sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk
 }
 
 void TaraxaCapability::sendBlocks(dev::p2p::NodeID const &id, std::vector<std::shared_ptr<DagBlock>> blocks) {
-  std::static_pointer_cast<GetDagSyncPacketsHandler>(
+  std::static_pointer_cast<GetDagSyncPacketHandler>(
       packets_handlers_->getSpecificHandler(SubprotocolPacketType::GetDagSyncPacket))
       ->sendBlocks(id, std::move(blocks));
 }

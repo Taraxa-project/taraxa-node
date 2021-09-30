@@ -33,7 +33,7 @@ void TarcapThreadPool::push(PacketData&& packet_data) {
     return;
   }
 
-  LOG(log_dg_) << "ThreadPool new packet pushed: " << packet_data.type_str_ << std::endl;
+  LOG(log_dg_) << "ThreadPool new packet pushed: " << packet_data.type_str_ << ", id(" << packet_data.id_ << ")";
 
   // Put packet into the priority queue
   std::scoped_lock lock(queue_mutex_);
@@ -87,7 +87,8 @@ void TarcapThreadPool::processPacket(size_t worker_id) {
       cond_var_.wait(lock);
     }
 
-    LOG(log_dg_) << "Worker (" << worker_id << ") process packet: " << packet->type_str_;
+    LOG(log_dg_) << "Worker (" << worker_id << ") process packet: " << packet->type_str_ << ", id(" << packet->id_
+                 << ")";
 
     queue_.updateDependenciesStart(packet.value());
     lock.unlock();
@@ -99,9 +100,11 @@ void TarcapThreadPool::processPacket(size_t worker_id) {
       // Process packet by specific packet type handler
       handler->processPacket(packet.value());
     } catch (const std::exception& e) {
-      LOG(log_er_) << "Worker (" << worker_id << ") packet processing exception caught: " << e.what();
+      LOG(log_er_) << "Worker (" << worker_id << ") packet: " << packet->type_str_ << ", id(" << packet->id_
+                   << ") processing exception caught: " << e.what();
     } catch (...) {
-      LOG(log_er_) << "Worker (" << worker_id << ") packet processing unknown exception caught";
+      LOG(log_er_) << "Worker (" << worker_id << ") packet: " << packet->type_str_ << ", id(" << packet->id_
+                   << ") processing unknown exception caught";
     }
 
     // Once packet handler is done with processing, update priority queue dependencies

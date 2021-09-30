@@ -19,7 +19,7 @@ class PacketData {
    */
   static inline PacketPriority getPacketPriority(SubprotocolPacketType packet_type);
 
-  PacketData(PacketId packet_id, SubprotocolPacketType type, std::string&& type_str, dev::p2p::NodeID&& from_node_id_,
+  PacketData(PacketId packet_id, SubprotocolPacketType type, dev::p2p::NodeID&& from_node_id_,
              std::vector<unsigned char>&& bytes);
   PacketData(const PacketData&) = default;
   PacketData(PacketData&&) = default;
