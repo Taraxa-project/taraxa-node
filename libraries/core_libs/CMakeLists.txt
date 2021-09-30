@@ -41,13 +41,6 @@ target_link_libraries(core_libs PRIVATE
     storage
 )
 
-if (APPLE)  # if "APPLE" not sufficient, use if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    target_link_libraries(core_libs PUBLIC "-framework CoreFoundation")
-    target_link_libraries(core_libs PUBLIC "-framework Security")
-else ()
-    target_link_libraries(core_libs PUBLIC stdc++fs)
-endif ()
-
 install(TARGETS core_libs
     ARCHIVE  DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY  DESTINATION ${CMAKE_INSTALL_LIBDIR}
