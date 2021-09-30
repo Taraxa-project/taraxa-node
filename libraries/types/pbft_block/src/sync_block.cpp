@@ -113,6 +113,7 @@ void SyncBlock::hasEnoughValidCertVotes(size_t dpos_total_votes_count, size_t so
 
 std::ostream& operator<<(std::ostream& strm, SyncBlock const& b) {
   strm << "[SyncBlock] : " << b.pbft_blk << " , num of votes " << b.cert_votes.size() << std::endl;
+  
   return strm;
 }
 
