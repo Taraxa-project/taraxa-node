@@ -43,9 +43,10 @@ class PriorityQueue {
    * @brief Updates blocking dependencies after packet processing is done
    *
    * @param packet
-   * @param queue_mutex in specific cases when peers_time dependencies are processed -> queue_mutex_ is locked
+   * @param queue_mutex_ must be locked if processing also blocking dependencies
+   * @param cond_var notify function is called if processing also blocking dependencies
    */
-  void updateDependenciesFinish(const PacketData& packet, std::mutex& queue_mutex);
+  void updateDependenciesFinish(const PacketData& packet, std::mutex& queue_mutex, std::condition_variable& cond_var);
 
  private:
   // Declare logger instances

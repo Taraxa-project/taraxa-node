@@ -143,7 +143,8 @@ void PriorityQueue::updateDependenciesStart(const PacketData& packet) {
   }
 }
 
-void PriorityQueue::updateDependenciesFinish(const PacketData& packet, std::mutex& queue_mutex) {
+void PriorityQueue::updateDependenciesFinish(const PacketData& packet, std::mutex& queue_mutex,
+                                             std::condition_variable& cond_var) {
   assert(act_total_workers_count_ > 0);
 
   // Process all dependencies here - it is called when packet processing is finished
@@ -154,6 +155,7 @@ void PriorityQueue::updateDependenciesFinish(const PacketData& packet, std::mute
     case SubprotocolPacketType::PbftSyncPacket: {
       std::unique_lock<std::mutex> lock(queue_mutex);
       blocked_packets_mask_.markPacketAsHardUnblocked(packet, packet.type_);
+      cond_var.notify_one();
       break;
     }
 
@@ -161,18 +163,21 @@ void PriorityQueue::updateDependenciesFinish(const PacketData& packet, std::mute
       std::unique_lock<std::mutex> lock(queue_mutex);
       blocked_packets_mask_.markPacketAsHardUnblocked(packet, packet.type_);
       blocked_packets_mask_.markPacketAsHardUnblocked(packet, SubprotocolPacketType::DagBlockPacket);
+      cond_var.notify_all();
       break;
     }
 
     case SubprotocolPacketType::TransactionPacket: {
       std::unique_lock<std::mutex> lock(queue_mutex);
       blocked_packets_mask_.markPacketAsPeerOrderUnblocked(packet, SubprotocolPacketType::DagBlockPacket);
+      cond_var.notify_all();
       break;
     }
 
     case SubprotocolPacketType::DagBlockPacket: {
       std::unique_lock<std::mutex> lock(queue_mutex);
       blocked_packets_mask_.unsetDagBlockLevelBeingProcessed(packet);
+      cond_var.notify_all();
       break;
     }
 
