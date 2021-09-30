@@ -475,11 +475,15 @@ void DagManager::getGhostPath(std::vector<blk_hash_t> &ghost) const {
 }
 
 // return {period, block order}, for pbft-pivot-blk proposing
-std::pair<uint64_t, std::vector<blk_hash_t>> DagManager::getDagBlockOrder(blk_hash_t const &anchor) {
+std::pair<uint64_t, std::vector<blk_hash_t>> DagManager::getDagBlockOrder(blk_hash_t const &anchor, uint64_t period) {
   SharedLock lock(mutex_);
-  // TODO: need to check if the anchor already processed
-  // if the period already processed
   std::vector<blk_hash_t> blk_orders;
+
+  if (period != period_ + 1) {
+    LOG(log_er_) << "getDagBlockOrder called with period " << period << ". Expected period " << period_ + 1
+                 << std::endl;
+    return {0, {}};
+  }
 
   if (anchor_ == anchor) {
     LOG(log_wr_) << "Query period from " << anchor_ << " to " << anchor << " not ok " << std::endl;

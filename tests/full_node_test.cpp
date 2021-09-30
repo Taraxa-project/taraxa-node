@@ -840,7 +840,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   auto ret = node->getDagManager()->getLatestPivotAndTips();
   uint64_t period;
   vec_blk_t order;
-  std::tie(period, order) = node->getDagManager()->getDagBlockOrder(ret->first);
+  std::tie(period, order) = node->getDagManager()->getDagBlockOrder(ret->first, 1);
   EXPECT_EQ(period, 1);
   EXPECT_EQ(order.size(), 6);
 
@@ -862,7 +862,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   taraxa::thisThreadSleepForMilliSeconds(200);
 
   ret = node->getDagManager()->getLatestPivotAndTips();
-  std::tie(period, order) = node->getDagManager()->getDagBlockOrder(ret->first);
+  std::tie(period, order) = node->getDagManager()->getDagBlockOrder(ret->first, 2);
   EXPECT_EQ(period, 2);
   if (order.size() == 7) {
     EXPECT_EQ(order[0], blk_hash_t(11));
@@ -884,7 +884,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   taraxa::thisThreadSleepForMilliSeconds(200);
 
   ret = node->getDagManager()->getLatestPivotAndTips();
-  std::tie(period, order) = node->getDagManager()->getDagBlockOrder(ret->first);
+  std::tie(period, order) = node->getDagManager()->getDagBlockOrder(ret->first, 3);
   EXPECT_EQ(period, 3);
   if (order.size() == 5) {
     EXPECT_EQ(order[0], blk_hash_t(17));

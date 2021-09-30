@@ -1169,7 +1169,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
   addr_t beneficiary = node_addr_;
 
   // get DAG block and transaction order
-  auto dag_block_order = dag_mgr_->getDagBlockOrder(dag_block_hash);
+  auto dag_block_order = dag_mgr_->getDagBlockOrder(dag_block_hash, propose_pbft_period);
   if (dag_block_order.second.empty()) {
     LOG(log_er_) << "DAG anchor block hash " << dag_block_hash << " getDagBlockOrder failed in propose";
     assert(false);
@@ -1384,7 +1384,7 @@ std::optional<vec_blk_t> PbftManager::comparePbftBlockScheduleWithDAGblocks_(std
     return {std::move(dag_blocks_order)};
   }
   auto const &anchor_hash = pbft_block->getPivotDagBlockHash();
-  auto dag_blocks_order = dag_mgr_->getDagBlockOrder(anchor_hash).second;
+  auto dag_blocks_order = dag_mgr_->getDagBlockOrder(anchor_hash, pbft_block->getPeriod()).second;
   if (!dag_blocks_order.empty()) {
     std::unordered_set<trx_hash_t> trx_set;
     std::vector<trx_hash_t> transactions_to_query;
