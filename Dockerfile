@@ -71,11 +71,6 @@ WORKDIR /opt/taraxa/
 COPY conanfile.py .
 
 RUN conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan" 
-#RUN conan remote update conancenter https://center.conan.io false
-#RUN conan remote add -f gnuorg "https://ftp.gnu.org" false 
-#RUN conan remote add -f openssl "https://www.openssl.org" false 
-#RUN conan remote add -f pcre "https://ftp.pcre.org" false 
-#RUN conan remote add -f sourceware "https://sourceware.org" false 
 RUN conan profile new clang --detect
 RUN conan profile update settings.compiler=clang clang 
 RUN conan profile update settings.compiler.version=$LLVM_VERSION clang 
