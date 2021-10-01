@@ -29,29 +29,29 @@ target_include_directories(ethash PUBLIC ${include_dir})
 
 include(ExternalProject)
 
+# prefix of build dir
+set(BUILD_DIR_PREFIX "${CMAKE_BINARY_DIR}/deps")
 ## add not cmake target
-## libprefix - submodule prefix (examples: vrf/vdf/evm)
+## libprefix - submodule prefix (examples: vrf/vdf)
 ## libpath - name of compiled library (examples: libvdf.a/libsodium.a/libtaraxaevm.dylib)
 ## libincludepath - relative path (after `*/include/`) to headers (examples: ""/""/tarxa-evm)
 ## buildcommand - build command of library (example: "${CMAKE_MAKE_PROGRAM} OPENSSL_HOME=${CONAN_OPENSSL_ROOT} all")
 function(add_make_target libprefix libname buildcommand)
-    # prefix of build dir
-    set(prefix "${CMAKE_BINARY_DIR}/deps")
     # write it to file
     # because if we use it as it is we will have an error with enviroment vars
     # they will be interpreted in the wrong key (CGO_CFLAGS_ALLOW='.*' goes as "CGO_CFLAGS_ALLOW=.*")
-    set(${libprefix}_SHFILE ${prefix}/setenv_for_taraxa_${libprefix}.sh)
+    set(${libprefix}_SHFILE ${BUILD_DIR_PREFIX}/setenv_for_taraxa_${libprefix}.sh)
     file(WRITE ${${libprefix}_SHFILE} "${buildcommand}")
     # library path
-    set(${libprefix}_LIBRARY "${prefix}/taraxa-${libprefix}/lib/${libname}")
+    set(${libprefix}_LIBRARY "${BUILD_DIR_PREFIX}/taraxa-${libprefix}/lib/${libname}")
     # inlcude path
-    set(${libprefix}_INCLUDE_DIR "${prefix}/taraxa-${libprefix}/include")
+    set(${libprefix}_INCLUDE_DIR "${BUILD_DIR_PREFIX}/taraxa-${libprefix}/include")
     ExternalProject_Add(
         ${libprefix}_lib_submodule
-        PREFIX ${prefix}
+        PREFIX ${BUILD_DIR_PREFIX}
         SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/taraxa-${libprefix}
-        BINARY_DIR ${prefix}/taraxa-${libprefix}
-        CONFIGURE_COMMAND cp -r <SOURCE_DIR> ${prefix}
+        BINARY_DIR ${BUILD_DIR_PREFIX}/taraxa-${libprefix}
+        CONFIGURE_COMMAND cp -r <SOURCE_DIR> ${BUILD_DIR_PREFIX}
         BUILD_COMMAND chmod +x ${${libprefix}_SHFILE} && bash ${${libprefix}_SHFILE}
         INSTALL_COMMAND ""
         BUILD_BYPRODUCTS ${${libprefix}_LIBRARY}
@@ -83,8 +83,8 @@ set(VRF_AUTOTOOLS_CMD "autoreconf && automake")
 set(VRF_AUTOTOOLS_CMD "${VRF_AUTOTOOLS_CMD} && ./configure --enable-static=\"yes\" --enable-shared=\"no\" --with-pic=\"yes\" --prefix=${CMAKE_BINARY_DIR}/deps/taraxa-vrf")
 add_make_target(vrf libsodium.a "${VRF_AUTOTOOLS_CMD} && ${CMAKE_MAKE_PROGRAM} && ${CMAKE_MAKE_PROGRAM} install")
 
-
 # Add taraxa-evm
+set(EVM_BUILD_DIR ${BUILD_DIR_PREFIX}/taraxa-evm)
 ## add include of libs
 set(EVM_BUILD_INCLUDE -I${CONAN_INCLUDE_DIRS_ROCKSDB})
 ## set C flags
@@ -105,13 +105,13 @@ endif()
 ## go env settings
 set(EVM_BUILD_ENV CGO_CFLAGS_ALLOW='.*' CGO_CXXFLAGS_ALLOW='.*' CGO_CXXFLAGS=\"-O3\" CGO_CFLAGS=\"${EVM_BUILD_CGO_CFLAGS}\" CGO_LDFLAGS=\"${EVM_BUILD_LD}\")
 ## add build command
-set(EVM_BUILD_COMMAND cd taraxa/C && ${EVM_BUILD_ENV} go build -buildmode=c-archive -o ${EVM_LIBRARY_NAME})
+set(EVM_BUILD_COMMAND cd taraxa/C && ${EVM_BUILD_ENV} go build -buildmode=c-archive -o ${EVM_BUILD_DIR}/${EVM_LIBRARY_NAME})
 ## cp headers into `taraxa-evm/include`
-set(EVM_AFTER_BUILD_COMMAND cd - && mkdir -p include/taraxa-evm && cp taraxa/C/*.h include/taraxa-evm/.)
-## cp library into `taraxa-evm/lib`
-set(EVM_AFTER_BUILD_COMMAND ${EVM_AFTER_BUILD_COMMAND} && mkdir -p lib && cp taraxa/C/${EVM_LIBRARY_NAME} lib/.)
+set(EVM_AFTER_BUILD_COMMAND cd - && mkdir -p ${EVM_BUILD_DIR}/include/taraxa-evm && cp taraxa/C/*.h ${EVM_BUILD_DIR}/include/taraxa-evm/)
+## mv library into `lib`
+set(EVM_AFTER_BUILD_COMMAND ${EVM_AFTER_BUILD_COMMAND} && mkdir -p ${EVM_BUILD_DIR}/lib && cp ${EVM_BUILD_DIR}/${EVM_LIBRARY_NAME} ${EVM_BUILD_DIR}/lib/)
 ## rename header `libtaraxaevm.h` into `taraxa-evm.h`
-set(EVM_AFTER_BUILD_COMMAND ${EVM_AFTER_BUILD_COMMAND} && mv include/taraxa-evm/libtaraxaevm.h include/taraxa-evm/taraxa-evm.h)
+set(EVM_AFTER_BUILD_COMMAND ${EVM_AFTER_BUILD_COMMAND} && mv ${EVM_BUILD_DIR}/libtaraxaevm.h ${EVM_BUILD_DIR}/include/taraxa-evm/taraxa-evm.h)
 ## final command
 set(EVM_LIBRARY_COMMAND ${EVM_BUILD_COMMAND} && ${EVM_AFTER_BUILD_COMMAND})
 
@@ -121,18 +121,18 @@ list(APPEND TARAXA_EVM_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/taraxa-evm/taraxa/C/state.h)
 
 add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/taraxa-evm/lib/${EVM_LIBRARY_NAME}
+    OUTPUT ${EVM_BUILD_DIR}/lib/${EVM_LIBRARY_NAME}
     DEPENDS ${TARAXA_EVM_SOURCES}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/taraxa-evm
     COMMAND ${EVM_LIBRARY_COMMAND}
     COMMENT "Building taraxa-evm library")
 
-add_custom_target(taraxa_evm_build DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/taraxa-evm/lib/${EVM_LIBRARY_NAME})
+add_custom_target(taraxa_evm_build DEPENDS ${EVM_BUILD_DIR}/lib/${EVM_LIBRARY_NAME})
 
 add_library(taraxa-evm INTERFACE)
 add_dependencies(taraxa-evm taraxa_evm_build)
-target_link_libraries(taraxa-evm INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/taraxa-evm/lib/${EVM_LIBRARY_NAME})
-target_include_directories(taraxa-evm INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/taraxa-evm/include)
+target_link_libraries(taraxa-evm INTERFACE ${EVM_BUILD_DIR}/lib/${EVM_LIBRARY_NAME})
+target_include_directories(taraxa-evm INTERFACE ${EVM_BUILD_DIR}/include)
 
 # needed for golang runtime that comes together with taraxa-evm
 if (APPLE)  # if "APPLE" not sufficient, use if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
