@@ -169,34 +169,40 @@ TEST_F(DagTest, compute_epoch) {
 
   vec_blk_t orders;
   uint64_t period;
-  std::tie(period, orders) = mgr->getDagBlockOrder(blkA.getHash());
+
+  // Test that with incorrect period, order is not returned
+  orders = mgr->getDagBlockOrder(blkA.getHash(), 2);
+  EXPECT_EQ(orders.size(), 0);
+
+  orders = mgr->getDagBlockOrder(blkA.getHash(), 0);
+  EXPECT_EQ(orders.size(), 0);
+
+  period = 1;
+  orders = mgr->getDagBlockOrder(blkA.getHash(), period);
   EXPECT_EQ(orders.size(), 1);
-  EXPECT_EQ(period, 1);
   // repeat, should not change
-  std::tie(period, orders) = mgr->getDagBlockOrder(blkA.getHash());
+  orders = mgr->getDagBlockOrder(blkA.getHash(), period);
   EXPECT_EQ(orders.size(), 1);
-  EXPECT_EQ(period, 1);
 
   mgr->setDagBlockOrder(blkA.getHash(), period, orders);
 
-  std::tie(period, orders) = mgr->getDagBlockOrder(blkC.getHash());
+  period = 2;
+  orders = mgr->getDagBlockOrder(blkC.getHash(), period);
   EXPECT_EQ(orders.size(), 2);
-  EXPECT_EQ(period, 2);
   // repeat, should not change
-  std::tie(period, orders) = mgr->getDagBlockOrder(blkC.getHash());
+  orders = mgr->getDagBlockOrder(blkC.getHash(), period);
   EXPECT_EQ(orders.size(), 2);
-  EXPECT_EQ(period, 2);
 
   mgr->setDagBlockOrder(blkC.getHash(), period, orders);
 
-  std::tie(period, orders) = mgr->getDagBlockOrder(blkE.getHash());
-  EXPECT_EQ(orders.size(), 3);
-  EXPECT_EQ(period, 3);
+  period = 3;
+  orders = mgr->getDagBlockOrder(blkE.getHash(), period);
+  EXPECT_EQ(orders.size(), period);
   mgr->setDagBlockOrder(blkE.getHash(), period, orders);
 
-  std::tie(period, orders) = mgr->getDagBlockOrder(blkH.getHash());
-  EXPECT_EQ(orders.size(), 4);
-  EXPECT_EQ(period, 4);
+  period = 4;
+  orders = mgr->getDagBlockOrder(blkH.getHash(), period);
+  EXPECT_EQ(orders.size(), period);
   mgr->setDagBlockOrder(blkH.getHash(), period, orders);
 
   if (orders.size() == 4) {
@@ -205,9 +211,10 @@ TEST_F(DagTest, compute_epoch) {
     EXPECT_EQ(orders[2], blk_hash_t(8));
     EXPECT_EQ(orders[3], blk_hash_t(9));
   }
-  std::tie(period, orders) = mgr->getDagBlockOrder(blkK.getHash());
+
+  period = 5;
+  orders = mgr->getDagBlockOrder(blkK.getHash(), period);
   EXPECT_EQ(orders.size(), 1);
-  EXPECT_EQ(period, 5);
   mgr->setDagBlockOrder(blkK.getHash(), period, orders);
 }
 
@@ -280,35 +287,32 @@ TEST_F(DagTest, compute_epoch_2) {
   taraxa::thisThreadSleepForMilliSeconds(100);
 
   vec_blk_t orders;
-  uint64_t period;
-  std::tie(period, orders) = mgr->getDagBlockOrder(blkA.getHash());
+  uint64_t period = 1;
+  orders = mgr->getDagBlockOrder(blkA.getHash(), period);
   EXPECT_EQ(orders.size(), 1);
-  EXPECT_EQ(period, 1);
   // repeat, should not change
-  std::tie(period, orders) = mgr->getDagBlockOrder(blkA.getHash());
+  orders = mgr->getDagBlockOrder(blkA.getHash(), period);
   EXPECT_EQ(orders.size(), 1);
-  EXPECT_EQ(period, 1);
 
   mgr->setDagBlockOrder(blkA.getHash(), period, orders);
 
-  std::tie(period, orders) = mgr->getDagBlockOrder(blkC.getHash());
+  period = 2;
+  orders = mgr->getDagBlockOrder(blkC.getHash(), period);
   EXPECT_EQ(orders.size(), 2);
-  EXPECT_EQ(period, 2);
   // repeat, should not change
-  std::tie(period, orders) = mgr->getDagBlockOrder(blkC.getHash());
+  orders = mgr->getDagBlockOrder(blkC.getHash(), period);
   EXPECT_EQ(orders.size(), 2);
-  EXPECT_EQ(period, 2);
 
   mgr->setDagBlockOrder(blkC.getHash(), period, orders);
 
-  std::tie(period, orders) = mgr->getDagBlockOrder(blkE.getHash());
-  EXPECT_EQ(orders.size(), 3);
-  EXPECT_EQ(period, 3);
+  period = 3;
+  orders = mgr->getDagBlockOrder(blkE.getHash(), period);
+  EXPECT_EQ(orders.size(), period);
   mgr->setDagBlockOrder(blkE.getHash(), period, orders);
 
-  std::tie(period, orders) = mgr->getDagBlockOrder(blkH.getHash());
+  period = 4;
+  orders = mgr->getDagBlockOrder(blkH.getHash(), period);
   EXPECT_EQ(orders.size(), 4);
-  EXPECT_EQ(period, 4);
   mgr->setDagBlockOrder(blkH.getHash(), period, orders);
 
   if (orders.size() == 4) {
@@ -317,9 +321,10 @@ TEST_F(DagTest, compute_epoch_2) {
     EXPECT_EQ(orders[2], blk_hash_t(8));
     EXPECT_EQ(orders[3], blk_hash_t(9));
   }
-  std::tie(period, orders) = mgr->getDagBlockOrder(blkK.getHash());
+
+  period = 5;
+  orders = mgr->getDagBlockOrder(blkK.getHash(), period);
   EXPECT_EQ(orders.size(), 1);
-  EXPECT_EQ(period, 5);
   mgr->setDagBlockOrder(blkK.getHash(), period, orders);
 }
 

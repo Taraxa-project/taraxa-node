@@ -1169,15 +1169,15 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
   addr_t beneficiary = node_addr_;
 
   // get DAG block and transaction order
-  auto dag_block_order = dag_mgr_->getDagBlockOrder(dag_block_hash);
-  if (dag_block_order.second.empty()) {
+  auto dag_block_order = dag_mgr_->getDagBlockOrder(dag_block_hash, propose_pbft_period);
+  if (dag_block_order.empty()) {
     LOG(log_er_) << "DAG anchor block hash " << dag_block_hash << " getDagBlockOrder failed in propose";
     assert(false);
   }
   std::vector<trx_hash_t> non_executed_transactions;
   std::unordered_set<trx_hash_t> trx_hashes_set;
   std::vector<trx_hash_t> trx_hashes;
-  for (auto const &blk_hash : dag_block_order.second) {
+  for (auto const &blk_hash : dag_block_order) {
     auto dag_blk = dag_blk_mgr_->getDagBlock(blk_hash);
     if (!dag_blk) {
       LOG(log_er_) << "DAG anchor block hash " << dag_block_hash << " getDagBlock failed in propose for block "
@@ -1201,14 +1201,14 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     }
   }
 
-  auto order_hash = calculateOrderHash(dag_block_order.second, non_executed_transactions);
+  auto order_hash = calculateOrderHash(dag_block_order, non_executed_transactions);
 
   // generate generate pbft block
   auto pbft_block = std::make_shared<PbftBlock>(last_pbft_block_hash, dag_block_hash, order_hash, propose_pbft_period,
                                                 beneficiary, node_sk_);
 
   LOG(log_nf_) << "Proposed Pbft block: " << pbft_block->getBlockHash() << ". Order hash:" << order_hash
-               << ". DAG order for proposed block" << dag_block_order.second << ". Transaction order for proposed block"
+               << ". DAG order for proposed block" << dag_block_order << ". Transaction order for proposed block"
                << non_executed_transactions;
 
   // push pbft block
@@ -1384,7 +1384,7 @@ std::optional<vec_blk_t> PbftManager::comparePbftBlockScheduleWithDAGblocks_(std
     return {std::move(dag_blocks_order)};
   }
   auto const &anchor_hash = pbft_block->getPivotDagBlockHash();
-  auto dag_blocks_order = dag_mgr_->getDagBlockOrder(anchor_hash).second;
+  auto dag_blocks_order = dag_mgr_->getDagBlockOrder(anchor_hash, pbft_block->getPeriod());
   if (!dag_blocks_order.empty()) {
     std::unordered_set<trx_hash_t> trx_set;
     std::vector<trx_hash_t> transactions_to_query;
