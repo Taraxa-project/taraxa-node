@@ -171,29 +171,6 @@ TEST_F(DagBlockTest, sign_verify) {
   EXPECT_TRUE(blk2.verifySig());
 }
 
-TEST_F(DagBlockTest, push_and_pop) {
-  auto node_cfgs = make_node_cfgs(1);
-  auto node = create_nodes(node_cfgs).front();
-  DagBlockManager blk_qu(addr_t(), node_cfgs[0].chain.vdf, node_cfgs[0].chain.final_chain.state.dpos, 1024,
-                         node->getDB(), nullptr, nullptr, nullptr, node->getTimeLogger());
-  blk_qu.start();
-  DagBlock blk1(blk_hash_t(1111), level_t(0), {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)}, {}, sig_t(7777),
-                blk_hash_t(888), addr_t(999));
-
-  DagBlock blk2(blk_hash_t(21111), level_t(0), {blk_hash_t(2222), blk_hash_t(2333), blk_hash_t(2444)}, {}, sig_t(27777),
-                blk_hash_t(2888), addr_t(2999));
-
-  blk_qu.pushUnverifiedBlock(blk1, true);
-  blk_qu.pushUnverifiedBlock(blk2, true);
-
-  auto blk3 = *blk_qu.popVerifiedBlock().first;
-  auto blk4 = *blk_qu.popVerifiedBlock().first;
-  // The order is non-deterministic
-  bool res = (blk1 == blk3) ? blk2 == blk4 : blk2 == blk3;
-  EXPECT_TRUE(res);
-  blk_qu.stop();
-}
-
 TEST_F(DagBlockMgrTest, proposal_period) {
   auto node = create_nodes(1).front();
   auto db = node->getDB();
