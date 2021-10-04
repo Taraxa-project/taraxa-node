@@ -75,9 +75,10 @@ RUN conan profile new clang --detect
 RUN conan profile update settings.compiler=clang clang 
 RUN conan profile update settings.compiler.version=$LLVM_VERSION clang 
 RUN conan profile update settings.compiler.libcxx=libstdc++11 clang
+RUN conan profile update settings.build_type=RelWithDebInfo clang
 RUN conan profile update env.CC=clang-$LLVM_VERSION clang 
 RUN conan profile update env.CXX=clang++-$LLVM_VERSION clang 
-RUN conan install --build missing -s build_type=RelWithDebInfo -pr=clang .
+RUN conan install --build missing -pr=clang .
 
 ###################################################################
 # Build stage - use builder image for actual build of taraxa node #
