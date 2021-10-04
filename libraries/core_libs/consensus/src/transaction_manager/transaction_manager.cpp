@@ -373,6 +373,7 @@ void TransactionManager::updateFinalizedTransactionsStatus(SyncBlock const &sync
 // transactions that are in the queue. This will update the transaction
 // status as well and remove the transactions from the queue
 bool TransactionManager::verifyBlockTransactions(DagBlock const &blk, std::vector<Transaction> const &trxs) {
+  std::unique_lock transaction_status_lock(transaction_status_mutex_);
   vec_trx_t const &all_block_trx_hashes = blk.getTrxs();
   if (all_block_trx_hashes.empty()) {
     LOG(log_er_) << "Ignore block " << blk.getHash() << " since it has no transactions";
@@ -433,31 +434,29 @@ bool TransactionManager::verifyBlockTransactions(DagBlock const &blk, std::vecto
 
   if (all_transactions_saved) {
     std::vector<trx_hash_t> accepted_trx_hashes;
-    {
-      size_t newly_added_txs_to_block_counter = 0;
-      trx_batch = db_->createWriteBatch();
-      accepted_trx_hashes.reserve(all_block_trx_hashes.size());
-      db_trxs_statuses = db_query.execute();
-      for (size_t idx = 0; idx < db_trxs_statuses.size(); ++idx) {
-        TransactionStatus status;
-        if (!db_trxs_statuses[idx].empty()) {
-          auto data = dev::asBytes(db_trxs_statuses[idx]);
-          status = TransactionStatus(dev::RLP(data));
-        }
-
-        if (status.state != TransactionStatusEnum::in_block && status.state != TransactionStatusEnum::finalized) {
-          const trx_hash_t &trx_hash = all_block_trx_hashes[idx];
-          newly_added_txs_to_block_counter++;
-          accepted_trx_hashes.push_back(trx_hash);
-          db_->addTransactionStatusToBatch(trx_batch, trx_hash, TransactionStatusEnum::in_block);
-        }
+    size_t newly_added_txs_to_block_counter = 0;
+    trx_batch = db_->createWriteBatch();
+    accepted_trx_hashes.reserve(all_block_trx_hashes.size());
+    db_trxs_statuses = db_query.execute();
+    for (size_t idx = 0; idx < db_trxs_statuses.size(); ++idx) {
+      TransactionStatus status;
+      if (!db_trxs_statuses[idx].empty()) {
+        auto data = dev::asBytes(db_trxs_statuses[idx]);
+        status = TransactionStatus(dev::RLP(data));
       }
-      // Write prepared batch to db
-      trx_count_ += newly_added_txs_to_block_counter;
-      db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_count_, trx_batch);
 
-      db_->commitWriteBatch(trx_batch);
+      if (status.state != TransactionStatusEnum::in_block && status.state != TransactionStatusEnum::finalized) {
+        const trx_hash_t &trx_hash = all_block_trx_hashes[idx];
+        newly_added_txs_to_block_counter++;
+        accepted_trx_hashes.push_back(trx_hash);
+        db_->addTransactionStatusToBatch(trx_batch, trx_hash, TransactionStatusEnum::in_block);
+      }
     }
+    // Write prepared batch to db
+    trx_count_ += newly_added_txs_to_block_counter;
+    db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_count_, trx_batch);
+
+    db_->commitWriteBatch(trx_batch);
     for (auto const &h : accepted_trx_hashes) {
       transaction_accepted_.emit(h);
     }

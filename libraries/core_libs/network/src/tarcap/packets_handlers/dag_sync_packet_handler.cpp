@@ -30,6 +30,9 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
     for (size_t i = 0; i < block.getTrxs().size(); i++) {
       Transaction transaction(*it++);
       peer->markTransactionAsKnown(transaction.getHash());
+      LOG(log_er_) << "Received DagSyncPacket trx" << transaction.getHash().abridged() << " peer id "
+                   << packet_data.from_node_id_ << " id " << packet_data.id_ << " time "
+                   << packet_data.receive_time_.time_since_epoch().count();
       new_transactions.push_back(std::move(transaction));
     }
 
@@ -45,6 +48,9 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
 
     LOG(log_dg_) << "Storing block " << block.getHash().abridged() << " with " << new_transactions.size()
                  << " transactions";
+    LOG(log_er_) << "Received DagSyncPacket block" << block.getHash().abridged() << " peer id "
+                 << packet_data.from_node_id_ << " id " << packet_data.id_ << " time "
+                 << packet_data.receive_time_.time_since_epoch().count();
     if (block.getLevel() > peer->dag_level_) peer->dag_level_ = block.getLevel();
     dag_blk_mgr_->insertBroadcastedBlockWithTransactions(block, new_transactions);
   }

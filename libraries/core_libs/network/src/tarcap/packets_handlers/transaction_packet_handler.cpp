@@ -28,6 +28,10 @@ inline void TransactionPacketHandler::process(const PacketData &packet_data, con
   for (size_t tx_idx = 0; tx_idx < transaction_count; tx_idx++) {
     const auto &transaction = transactions.emplace_back(packet_data.rlp_[tx_idx].data().toBytes());
 
+    LOG(log_er_) << "Received Transaction " << transaction.getHash().abridged() << " peer id "
+                 << packet_data.from_node_id_ << " id " << packet_data.id_ << " time "
+                 << packet_data.receive_time_.time_since_epoch().count();
+
     received_transactions += transaction.getHash().abridged() + " ";
     peer->markTransactionAsKnown(transaction.getHash());
   }
@@ -90,6 +94,7 @@ void TransactionPacketHandler::onNewTransactions(std::vector<Transaction> const 
     }
     for (auto &it : transactions_hash_to_send) {
       for (auto &it2 : it.second) {
+        LOG(log_nf_) << "markTransactionAsKnown " << it2 << " to " << it.first;
         peers[it.first]->markTransactionAsKnown(it2);
       }
     }

@@ -28,7 +28,9 @@ void DagBlockPacketHandler::process(const PacketData &packet_data, const std::sh
   DagBlock block(packet_data.rlp_[0].data().toBytes());
   blk_hash_t const hash = block.getHash();
   const auto transactions_count = packet_data.rlp_.itemCount() - 1;
-  LOG(log_dg_) << "Received DagBlockPacket " << hash.abridged() << " with " << transactions_count << " txs";
+  LOG(log_er_) << "Received DagBlockPacket " << hash.abridged() << " with " << transactions_count << " txs"
+               << " peer id " << packet_data.from_node_id_ << " id " << packet_data.id_ << " time "
+               << packet_data.receive_time_.time_since_epoch().count();
 
   peer->markDagBlockAsKnown(hash);
 
@@ -36,6 +38,7 @@ void DagBlockPacketHandler::process(const PacketData &packet_data, const std::sh
   for (size_t i_transaction = 1; i_transaction < transactions_count + 1; i_transaction++) {
     Transaction transaction(packet_data.rlp_[i_transaction].data().toBytes());
     peer->markTransactionAsKnown(transaction.getHash());
+    LOG(log_er_) << "Received DagBlockPacket trx" << transaction.getHash().abridged();
     new_transactions.push_back(std::move(transaction));
   }
 
