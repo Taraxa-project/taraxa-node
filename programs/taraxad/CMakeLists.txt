@@ -5,6 +5,7 @@ target_link_libraries(taraxad PRIVATE
     config
     logger
     core_libs
+    taraxa-evm
     storage
 )
 

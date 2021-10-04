@@ -16,6 +16,7 @@ target_link_libraries(dag_block_test
     common
     config
     core_libs
+    taraxa-evm
     storage
     CONAN_PKG::gtest
 )
@@ -36,6 +37,7 @@ target_link_libraries(final_chain_test
     common
     config
     core_libs
+    taraxa-evm
     storage
     CONAN_PKG::gtest
 )
@@ -46,6 +48,7 @@ target_link_libraries(full_node_test
     common
     config
     core_libs
+    taraxa-evm
     storage
     CONAN_PKG::gtest
 )
@@ -56,6 +59,7 @@ target_link_libraries(network_test
     common
     config
     core_libs
+    taraxa-evm
     storage
     CONAN_PKG::gtest
 )
@@ -76,6 +80,7 @@ target_link_libraries(pbft_chain_test
     common
     config
     core_libs
+    taraxa-evm
     storage
     CONAN_PKG::gtest
 )
@@ -86,6 +91,7 @@ target_link_libraries(pbft_manager_test
     common
     config
     core_libs
+    taraxa-evm
     storage
     CONAN_PKG::gtest
 )
@@ -106,6 +112,7 @@ target_link_libraries(rpc_taraxa_test
     common
     config
     core_libs
+    taraxa-evm
     storage
     CONAN_PKG::gtest
 )
@@ -116,6 +123,7 @@ target_link_libraries(state_api_test
     common
     config
     core_libs
+    taraxa-evm
     storage
     CONAN_PKG::gtest
 )
@@ -126,6 +134,7 @@ target_link_libraries(vote_test
     common
     config
     core_libs
+    taraxa-evm
     storage
     CONAN_PKG::gtest
 )
