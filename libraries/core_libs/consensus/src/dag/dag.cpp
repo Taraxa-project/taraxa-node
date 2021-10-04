@@ -474,14 +474,13 @@ void DagManager::getGhostPath(std::vector<blk_hash_t> &ghost) const {
   pivot_tree_->getGhostPath(last_pivot, ghost);
 }
 
-// return {period, block order}, for pbft-pivot-blk proposing
+// return {block order}, for pbft-pivot-blk proposing
 std::vector<blk_hash_t> DagManager::getDagBlockOrder(blk_hash_t const &anchor, uint64_t period) {
   SharedLock lock(mutex_);
   std::vector<blk_hash_t> blk_orders;
 
   if (period != period_ + 1) {
-    LOG(log_er_) << "getDagBlockOrder called with period " << period << ". Expected period " << period_ + 1
-                 << std::endl;
+    LOG(log_wr_) << "getDagBlockOrder called with period " << period << ". Expected period " << period_ + 1;
     return {};
   }
 
