@@ -1,6 +1,4 @@
 
-#include "node/full_node.hpp"
-
 #include <gtest/gtest.h>
 
 #include <atomic>
@@ -10,11 +8,12 @@
 #include <vector>
 
 #include "common/static_init.hpp"
-#include "consensus/pbft_manager.hpp"
 #include "dag/dag.hpp"
-#include "logger/log.hpp"
+#include "logger/logger.hpp"
 #include "network/network.hpp"
 #include "network/rpc/Taraxa.h"
+#include "node/node.hpp"
+#include "pbft/pbft_manager.hpp"
 #include "string"
 #include "transaction_manager/transaction_manager.hpp"
 #include "util_test/samples.hpp"
@@ -839,10 +838,9 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   // -------- first period ----------
 
   auto ret = node->getDagManager()->getLatestPivotAndTips();
-  uint64_t period;
+  uint64_t period = 1;
   vec_blk_t order;
-  std::tie(period, order) = node->getDagManager()->getDagBlockOrder(ret->first);
-  EXPECT_EQ(period, 1);
+  order = node->getDagManager()->getDagBlockOrder(ret->first, period);
   EXPECT_EQ(order.size(), 6);
 
   if (order.size() == 6) {
@@ -863,8 +861,8 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   taraxa::thisThreadSleepForMilliSeconds(200);
 
   ret = node->getDagManager()->getLatestPivotAndTips();
-  std::tie(period, order) = node->getDagManager()->getDagBlockOrder(ret->first);
-  EXPECT_EQ(period, 2);
+  period = 2;
+  order = node->getDagManager()->getDagBlockOrder(ret->first, period);
   if (order.size() == 7) {
     EXPECT_EQ(order[0], blk_hash_t(11));
     EXPECT_EQ(order[1], blk_hash_t(10));
@@ -885,8 +883,8 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   taraxa::thisThreadSleepForMilliSeconds(200);
 
   ret = node->getDagManager()->getLatestPivotAndTips();
-  std::tie(period, order) = node->getDagManager()->getDagBlockOrder(ret->first);
-  EXPECT_EQ(period, 3);
+  period = 3;
+  order = node->getDagManager()->getDagBlockOrder(ret->first, period);
   if (order.size() == 5) {
     EXPECT_EQ(order[0], blk_hash_t(17));
     EXPECT_EQ(order[1], blk_hash_t(16));
@@ -1263,7 +1261,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
     Transaction master_boot_node_send_coins(nonce++, test_transfer_val, gas_price, 100000, data,
                                             nodes[0]->getSecretKey(), nodes[i]->getAddress());
     // broadcast trx and insert
-    nodes[0]->getTransactionManager()->insertTransaction(master_boot_node_send_coins, false, true);
+    nodes[0]->getTransactionManager()->insertTransaction(master_boot_node_send_coins, false);
     trxs_count++;
   }
 
@@ -1276,7 +1274,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
         if (ctx.fail(); !ctx.is_last_attempt) {
           Transaction dummy_trx(nonce++, 0, 2, 100000, bytes(), nodes[0]->getSecretKey(), nodes[0]->getAddress());
           // broadcast dummy transaction
-          nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false, true);
+          nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false);
           trxs_count++;
           return;
         }
@@ -1304,7 +1302,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
       Transaction send_coins_in_robin_cycle(nonce++, send_coins, gas_price, 100000, data, nodes[i]->getSecretKey(),
                                             nodes[receiver_index]->getAddress());
       // broadcast trx and insert
-      nodes[i]->getTransactionManager()->insertTransaction(send_coins_in_robin_cycle, false, true);
+      nodes[i]->getTransactionManager()->insertTransaction(send_coins_in_robin_cycle, false);
       trxs_count++;
     }
     std::cout << "Node" << i << " sends " << j << " transactions to Node" << receiver_index << std::endl;
@@ -1319,7 +1317,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
         if (ctx.fail(); !ctx.is_last_attempt) {
           Transaction dummy_trx(nonce++, 0, 2, 100000, bytes(), nodes[0]->getSecretKey(), nodes[0]->getAddress());
           // broadcast dummy transaction
-          nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false, true);
+          nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false);
           trxs_count++;
           return;
         }
@@ -1348,7 +1346,6 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   EXPECT_EQ(num_vertices1, num_vertices2);
   EXPECT_EQ(num_vertices2, num_vertices3);
   EXPECT_EQ(num_vertices3, num_vertices4);
-  std::cout << "DAG size " << num_vertices0 << std::endl;
 
   // Check duplicate transactions in single one DAG block
   auto ordered_dag_blocks = getOrderedDagBlocks(nodes[0]->getDB());
@@ -1395,7 +1392,7 @@ TEST_F(FullNodeTest, db_rebuild) {
     while (executed_chain_size < 10) {
       Transaction dummy_trx(nonce++, 0, gas_price, TEST_TX_GAS_LIMIT, bytes(), nodes[0]->getSecretKey(),
                             nodes[0]->getAddress());
-      nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false, true);
+      nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false);
       trxs_count++;
       thisThreadSleepForMilliSeconds(100);
       executed_chain_size = nodes[0]->getFinalChain()->last_block_number();
@@ -1550,7 +1547,7 @@ TEST_F(FullNodeTest, chain_config_json) {
 	}
 })";
   Json::Value default_chain_config_json;
-  istringstream(expected_default_chain_cfg_json) >> default_chain_config_json;
+  std::istringstream(expected_default_chain_cfg_json) >> default_chain_config_json;
   ASSERT_EQ(default_chain_config_json, enc_json(ChainConfig::predefined()));
   Json::Value test_node_config_json;
   std::ifstream((DIR_CONF / "conf_taraxa1.json").string(), std::ifstream::binary) >> test_node_config_json;

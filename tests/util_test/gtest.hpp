@@ -4,7 +4,15 @@
 
 #include <filesystem>
 
+#include "common/lazy.hpp"
 #include "common/static_init.hpp"
+#include "config/config.hpp"
+
+namespace fs = std::filesystem;
+using ::taraxa::util::lazy::Lazy;
+
+inline auto const DIR = fs::path(__FILE__).parent_path();
+inline auto const DIR_CONF = DIR / "conf";
 
 #define TARAXA_TEST_MAIN(_extension)                         \
   int main(int argc, char** argv) {                          \
@@ -33,4 +41,33 @@ struct WithDataDir : virtual WithTestInfo {
     std::filesystem::create_directories(data_dir);
   }
   virtual ~WithDataDir() { std::filesystem::remove_all(data_dir); }
+};
+
+inline auto const node_cfgs_original = Lazy([] {
+  std::vector<taraxa::FullNodeConfig> ret;
+  for (int i = 1;; ++i) {
+    auto p = DIR_CONF / (std::string("conf_taraxa") + std::to_string(i) + ".json");
+    if (!fs::exists(p)) {
+      break;
+    }
+    auto w = DIR_CONF / (std::string("wallet") + std::to_string(i) + ".json");
+    Json::Value test_node_wallet_json;
+    std::ifstream(w.string(), std::ifstream::binary) >> test_node_wallet_json;
+    ret.emplace_back(p.string(), test_node_wallet_json);
+  }
+  return ret;
+});
+
+struct BaseTest : virtual WithDataDir {
+  BaseTest() : WithDataDir() {
+    for (auto& cfg : *node_cfgs_original) {
+      remove_all(cfg.data_path);
+    }
+  }
+  void TearDown() override {
+    for (auto& cfg : *node_cfgs_original) {
+      remove_all(cfg.data_path);
+    }
+  }
+  virtual ~BaseTest(){};
 };

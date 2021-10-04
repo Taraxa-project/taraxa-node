@@ -11,10 +11,11 @@
 #include <iostream>
 #include <vector>
 
+#include "common/lazy.hpp"
 #include "common/static_init.hpp"
-#include "logger/log.hpp"
+#include "logger/logger.hpp"
 #include "network/network.hpp"
-#include "util/lazy.hpp"
+#include "network/tarcap/taraxa_capability.hpp"
 #include "util_test/samples.hpp"
 #include "util_test/util.hpp"
 
@@ -32,7 +33,7 @@ auto g_signed_trx_samples = Lazy([] { return samples::createSignedTrxSamples(0, 
 struct P2PTest : BaseTest {};
 
 // TODO this needs to be removed and called from tracap->setPendingPeersToReady() directly
-void setPendingPeersToReady(shared_ptr<taraxa::network::tarcap::TaraxaCapability> taraxa_capability) {
+void setPendingPeersToReady(std::shared_ptr<taraxa::network::tarcap::TaraxaCapability> taraxa_capability) {
   const auto &peers_state = taraxa_capability->getPeersState();
 
   auto peerIds = peers_state->getAllPendingPeersIDs();
@@ -94,7 +95,7 @@ TEST_F(P2PTest, capability_send_test) {
   network_conf.network_simulated_delay = 0;
   network_conf.network_bandwidth = 40;
   network_conf.network_transaction_interval = 1000;
-  shared_ptr<taraxa::network::tarcap::TaraxaCapability> thc1, thc2;
+  std::shared_ptr<taraxa::network::tarcap::TaraxaCapability> thc1, thc2;
   auto host1 = Host::make(
       "Test",
       [&](auto host) {
@@ -127,7 +128,7 @@ TEST_F(P2PTest, capability_send_test) {
   // Wait for up to 12 seconds, to give the hosts time to connect to each
   // other.
   for (unsigned i = 0; i < 12000; i += step) {
-    this_thread::sleep_for(chrono::milliseconds(step));
+    std::this_thread::sleep_for(std::chrono::milliseconds(step));
     setPendingPeersToReady(thc1);
     setPendingPeersToReady(thc2);
 
@@ -142,7 +143,7 @@ TEST_F(P2PTest, capability_send_test) {
   std::vector<char> dummy_data(10 * 1024 * 1024);  // 10MB memory buffer
   for (int i = 0; i < target; checksum += i++) thc2->sendTestMessage(host1->id(), i, dummy_data);
 
-  this_thread::sleep_for(chrono::seconds(target / 2));
+  std::this_thread::sleep_for(std::chrono::seconds(target / 2));
   std::pair<int, int> testData = thc1->retrieveTestData(host2->id());
   EXPECT_EQ(target, testData.first);
   EXPECT_EQ(checksum, testData.second);
@@ -165,7 +166,7 @@ TEST_F(P2PTest, capability_send_block) {
   network_conf.network_simulated_delay = 0;
   network_conf.network_bandwidth = 40;
   network_conf.network_transaction_interval = 1000;
-  shared_ptr<taraxa::network::tarcap::TaraxaCapability> thc1, thc2;
+  std::shared_ptr<taraxa::network::tarcap::TaraxaCapability> thc1, thc2;
   auto host1 = Host::make(
       "Test",
       [&](auto host) {
@@ -197,7 +198,7 @@ TEST_F(P2PTest, capability_send_block) {
   // Wait for up to 12 seconds, to give the hosts time to connect to each
   // other.
   for (unsigned i = 0; i < 12000; i += step) {
-    this_thread::sleep_for(chrono::milliseconds(step));
+    std::this_thread::sleep_for(std::chrono::milliseconds(step));
     setPendingPeersToReady(thc1);
     setPendingPeersToReady(thc2);
 
@@ -215,7 +216,7 @@ TEST_F(P2PTest, capability_send_block) {
   thc2->onNewTransactions(transactions);
   thc2->sendBlock(host1->id(), blk);
 
-  this_thread::sleep_for(chrono::seconds(1));
+  std::this_thread::sleep_for(std::chrono::seconds(1));
   auto blocks = thc1->test_state_->getBlocks();
   auto rtransactions = thc1->test_state_->getTransactions();
   EXPECT_EQ(blocks.size(), 1);
@@ -249,7 +250,7 @@ TEST_F(P2PTest, block_propagate) {
   network_conf.network_simulated_delay = 0;
   network_conf.network_bandwidth = 40;
   network_conf.network_transaction_interval = 1000;
-  shared_ptr<taraxa::network::tarcap::TaraxaCapability> thc1;
+  std::shared_ptr<taraxa::network::tarcap::TaraxaCapability> thc1;
   auto host1 = Host::make(
       "Test",
       [&](auto host) {
@@ -260,7 +261,7 @@ TEST_F(P2PTest, block_propagate) {
       KeyPair::create(), prefs1, taraxa_net_conf_1);
   util::ThreadPool tp;
   tp.post_loop({}, [=] { host1->do_work(); });
-  std::vector<shared_ptr<Host>> vHosts;
+  std::vector<std::shared_ptr<Host>> vHosts;
   std::vector<std::shared_ptr<taraxa::network::tarcap::TaraxaCapability>> vCapabilities;
   for (int i = 0; i < nodeCount; i++) {
     auto host = vHosts.emplace_back(Host::make(
@@ -290,7 +291,7 @@ TEST_F(P2PTest, block_propagate) {
       vHosts[i]->addNode(
           Node(vHosts[i % 10]->id(), NodeIPEndpoint(bi::address::from_string(localhost), vHosts[i % 10]->listenPort(),
                                                     vHosts[i % 10]->listenPort())));
-    this_thread::sleep_for(chrono::milliseconds(20));
+    std::this_thread::sleep_for(std::chrono::milliseconds(20));
   }
 
   printf("Addnode %d hosts\n", nodeCount);
@@ -299,7 +300,7 @@ TEST_F(P2PTest, block_propagate) {
   // other.
   bool connected = false;
   for (unsigned i = 0; i < 500; i++) {
-    this_thread::sleep_for(chrono::milliseconds(100));
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
     connected = true;
     int counterConnected = 0;
     setPendingPeersToReady(thc1);
@@ -328,7 +329,7 @@ TEST_F(P2PTest, block_propagate) {
   thc1->onNewBlockReceived(blk, transactions2);
 
   for (int i = 0; i < 50; i++) {
-    this_thread::sleep_for(chrono::seconds(1));
+    std::this_thread::sleep_for(std::chrono::seconds(1));
     bool synced = true;
     for (int j = 0; j < nodeCount; j++)
       if (vCapabilities[j]->test_state_->getBlocks().size() == 0) {

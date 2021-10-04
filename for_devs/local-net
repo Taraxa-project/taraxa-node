@@ -7,9 +7,12 @@ import os
 from random import *
 import time
 import json
+import sys
 from web3 import Web3
 
 colors = {
+    "grey": 89,
+    "darkGrey": 90,
     "red": 91,
     "green": 92,
     "yellow": 93,
@@ -18,6 +21,9 @@ colors = {
     "cyan": 96,
     "lightGray": 97,
 }
+
+default_color = "grey"
+
 worker_colors = {}
 chain_id = 0
 faucet_private_key = ''
@@ -57,8 +63,9 @@ def config(binary, boot_nodes, rpc_nodes):
     private_keys = {}
     for i in range(boot_nodes):
         worker_name = f'boot-node-{i}'
+        wallet_path = f'wallet-boot-node-{i}.json'
 
-        (private_key, public_key, public_address) = generate_wallet(binary)
+        (private_key, public_key, public_address) = generate_node_wallet(binary, wallet_path)
 
         private_keys[worker_name] = private_key
         boot_nodes_public_addresses[worker_name] = public_address
@@ -72,6 +79,9 @@ def config(binary, boot_nodes, rpc_nodes):
 
     timestamp = hex(int(time.time()))
 
+    existing_chain_config = None
+    existing_chain_config_node = None
+
     for type in ("boot", "rpc"):
         if type == "boot":
             nodes = boot_nodes
@@ -84,7 +94,28 @@ def config(binary, boot_nodes, rpc_nodes):
             else:
                 worker_name = f'rpc-node-{i}'
 
-            config_name = f'./{data_dir}/conf-{worker_name}.json'
+            config_path = f'./{data_dir}/conf-{worker_name}.json'
+            wallet_path = f'./{data_dir}/wallet-{worker_name}.json'
+
+            if os.path.isfile(config_path) and os.path.isfile(wallet_path):
+                # If there is some existing config, take timestamp from it
+                tmp_config = json.loads('{}')
+                with open(config_path) as json_file:
+                    config_data = json.load(json_file)
+                    tmp_config.update(config_data)
+
+                if not existing_chain_config:
+                    existing_chain_config = tmp_config['chain_config']
+                    existing_chain_config_node = worker_name
+
+                if tmp_config['chain_config'] != existing_chain_config:
+                    sys.exit("Existing chain_configs don't match between nodes: " + existing_chain_config_node + " & " + worker_name)
+
+                timestamp = tmp_config['chain_config']['dag_genesis_block']['timestamp']
+                continue
+
+            if type == "boot" and existing_chain_config:
+                sys.exit("Cannot increase number of boot nodes without resetting the network")
 
             if not os.path.isdir(f'{local_net}/db-{worker_name}'):
                 os.mkdir(f'{local_net}/db-{worker_name}')
@@ -102,46 +133,63 @@ def config(binary, boot_nodes, rpc_nodes):
             else:
                 port_prefix = '1'
 
-            cmd += f'--config {config_name} '
-            cmd += f'--wallet ./{data_dir}/wallet-{worker_name}.json '
+            cmd += f'--config {config_path} '
+            cmd += f'--wallet {wallet_path} '
             cmd += f'--data-dir {local_net}/db-{worker_name} '
 
             os.system(cmd)
 
             config = json.loads('{}')
-            with open(config_name) as json_file:
+            with open(config_path) as json_file:
                 config_data = json.load(json_file)
                 config.update(config_data)
 
-            eligibility_balance_threshold = config['chain_config'][
-                'final_chain']['state']['dpos']['eligibility_balance_threshold']
-            genesis_state = config['chain_config']['final_chain']['state']['dpos']['genesis_state']
-            genesis_balances = config['chain_config']['final_chain']['state']['genesis_balances']
+            if existing_chain_config:
+                config['chain_config'] = existing_chain_config
+            else:
+                eligibility_balance_threshold = config['chain_config'][
+                    'final_chain']['state']['dpos']['eligibility_balance_threshold']
+                genesis_state = config['chain_config']['final_chain']['state']['dpos']['genesis_state']
+                genesis_balances = config['chain_config']['final_chain']['state']['genesis_balances']
 
-            genesis_balances_faucet_address = list(genesis_balances.keys())[0]
-            genesis_balances_faucet_value = genesis_balances[genesis_balances_faucet_address]
-            del genesis_balances[genesis_balances_faucet_address]
-            genesis_balances[faucet_public_address] = genesis_balances_faucet_value
+                genesis_balances_faucet_address = list(genesis_balances.keys())[0]
+                genesis_balances_faucet_value = genesis_balances[genesis_balances_faucet_address]
+                del genesis_balances[genesis_balances_faucet_address]
+                genesis_balances[faucet_public_address] = genesis_balances_faucet_value
 
-            for j in genesis_state:
-                genesis_state[j] = {}
-                for a in boot_nodes_public_addresses:
-                    genesis_state[j][boot_nodes_public_addresses[a]
-                                     ] = eligibility_balance_threshold
+                for j in genesis_state:
+                    genesis_state[j] = {}
+                    for a in boot_nodes_public_addresses:
+                        genesis_state[j][boot_nodes_public_addresses[a]
+                                         ] = eligibility_balance_threshold
 
-            config['chain_config']['final_chain']['state']['dpos']['genesis_state'] = genesis_state
-            config['chain_config']['final_chain']['state']['genesis_balances'] = genesis_balances
+                config['chain_config']['final_chain']['state']['dpos']['genesis_state'] = genesis_state
+                config['chain_config']['final_chain']['state']['genesis_balances'] = genesis_balances
+                config['chain_config']['dag_genesis_block']['timestamp'] = timestamp
+                config['chain_config']['final_chain']['genesis_block_fields']['timestamp'] = timestamp
 
             config['network_tcp_port'] = int(f'1{port_prefix}{i+1}02')
             config['network_udp_port'] = int(f'1{port_prefix}{i+1}02')
             config['rpc']['http_port'] = int(f'7{port_prefix}{i+1}7')
             config['rpc']['ws_port'] = int(f'8{port_prefix}{i+1}7')
-            config['chain_config']['dag_genesis_block']['timestamp'] = timestamp
-            config['chain_config']['final_chain']['genesis_block_fields']['timestamp'] = timestamp
 
-            with open(config_name, 'w') as json_file:
+            with open(config_path, 'w') as json_file:
                 json.dump(config, json_file, indent=2)
 
+def generate_node_wallet(binary, wallet_path):
+    global chain_id
+    global faucet_private_key
+    global faucet_public_address
+
+    if os.path.isfile(wallet_path):
+        wallet = json.loads('{}')
+        with open(wallet_path) as json_file:
+            wallet_data = json.load(json_file)
+            wallet.update(wallet_data)
+
+        return (wallet['node_secret'], wallet['node_public'], wallet['node_address'])
+    else:
+        return generate_wallet(binary)
 
 def generate_faucet_wallet(binary):
     global chain_id
@@ -197,13 +245,21 @@ def start_workers(binary, boot_nodes, rpc_nodes, tps):
             else:
                 worker_name = f'rpc-node-{i}'
 
-            worker_colors[worker_name] = c.pop()
+            color = default_color
+            if c:
+                color = c.pop()
+
+            worker_colors[worker_name] = color
             thread = threading.Thread(
                 target=node_worker, args=(binary, worker_name))
             thread.start()
 
     if tps > 0:
-        worker_colors['faucet'] = c.pop()
+        color = default_color
+        if c:
+            color = c.pop()
+
+        worker_colors['faucet'] = color
         thread = threading.Thread(
             target=faucet_worker, args=(tps,))
         thread.start()

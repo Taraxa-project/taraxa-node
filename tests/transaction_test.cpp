@@ -1,4 +1,4 @@
-#include "transaction_manager/transaction.hpp"
+#include "transaction/transaction.hpp"
 
 #include <gtest/gtest.h>
 #include <libdevcore/CommonJS.h>
@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "common/static_init.hpp"
-#include "logger/log.hpp"
+#include "logger/logger.hpp"
 #include "transaction_manager/transaction_manager.hpp"
 #include "util_test/samples.hpp"
 
@@ -74,7 +74,7 @@ TEST_F(TransactionTest, sig) {
                                           "4fb635e7237e0e8d3ea33bbea19c36ca0229e80d57ba91a0f347686"
                                           "30fd21ad86e4c403b307de9ac4550d0ccc81c90fe3")),
                Transaction::InvalidSignature);
-  vector<pair<uint64_t, string>> valid_cases{
+  std::vector<std::pair<uint64_t, string>> valid_cases{
       {0, "0xf647d1d47ce927ce2fb9f57e4e2a3c32b037c5e544b44611077f5cc6980b0bc2"},
       {1, "0x49c1cb845df5d3ed238ca37ad25ca96f417e4f22d7911224cf3c2a725985e7ff"},
       {uint64_t(1) << uint(32), "0xc1651c53d21ad6ddaac0af7ad93947074ef9f3b03479a36b29fa577b9faba8a9"},
@@ -90,11 +90,11 @@ TEST_F(TransactionTest, sig) {
         t = Transaction(*t.rlp());
         continue;
       }
-      RLPStream with_modified_payload(9);
-      RLPStream with_invalid_signature(9);
+      dev::RLPStream with_modified_payload(9);
+      dev::RLPStream with_invalid_signature(9);
       uint fields_processed = 0;
       auto rlp = t.rlp();
-      for (auto const el : RLP(*rlp)) {
+      for (auto const el : dev::RLP(*rlp)) {
         if (auto el_modified = el.toBytes(); ++fields_processed <= 6) {
           for (auto& b : el_modified) {
             b = ~b;
@@ -123,13 +123,13 @@ TEST_F(TransactionTest, verifiers) {
   // insert trx
   std::thread t([&trx_mgr]() {
     for (auto const& t : *g_trx_samples) {
-      trx_mgr.insertTransaction(t, true, false);
+      trx_mgr.insertTransaction(t, true);
     }
   });
 
   // insert trx again, should not duplicated
   for (auto const& t : *g_trx_samples) {
-    trx_mgr.insertTransaction(t, false, false);
+    trx_mgr.insertTransaction(t, false);
   }
   t.join();
   thisThreadSleepForMilliSeconds(100);
@@ -144,13 +144,13 @@ TEST_F(TransactionTest, transaction_limit) {
   // insert trx
   std::thread t([&trx_mgr]() {
     for (auto const& t : *g_trx_samples) {
-      trx_mgr.insertTransaction(t, true, false);
+      trx_mgr.insertTransaction(t, true);
     }
   });
 
   // insert trx again, should not duplicated
   for (auto const& t : *g_trx_samples) {
-    trx_mgr.insertTransaction(t, false, false);
+    trx_mgr.insertTransaction(t, false);
   }
   t.join();
   thisThreadSleepForMilliSeconds(100);
@@ -169,7 +169,7 @@ TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
 
   std::thread insertTrx([&trx_mgr]() {
     for (auto const& t : *g_signed_trx_samples) {
-      trx_mgr.insertTransaction(t, false, false);
+      trx_mgr.insertTransaction(t, false);
     }
   });
 

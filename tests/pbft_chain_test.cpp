@@ -1,4 +1,4 @@
-#include "consensus/pbft_chain.hpp"
+#include "pbft/pbft_chain.hpp"
 
 #include <gtest/gtest.h>
 
@@ -7,9 +7,9 @@
 #include <vector>
 
 #include "common/static_init.hpp"
-#include "consensus/pbft_manager.hpp"
-#include "logger/log.hpp"
+#include "logger/logger.hpp"
 #include "network/network.hpp"
+#include "pbft/pbft_manager.hpp"
 #include "util_test/samples.hpp"
 #include "util_test/util.hpp"
 
@@ -52,7 +52,7 @@ TEST_F(PbftChainTest, pbft_db_test) {
   auto dag_genesis = node->getConfig().chain.dag_genesis_block.getHash();
   auto sk = node->getSecretKey();
   auto vrf_sk = node->getVrfSecretKey();
-  vdf_sortition::VdfConfig vdf_config(node_cfgs[0].chain.vdf);
+  VdfConfig vdf_config(node_cfgs[0].chain.vdf);
 
   // generate PBFT block sample
   blk_hash_t prev_block_hash(0);
@@ -100,7 +100,7 @@ TEST_F(PbftChainTest, block_broadcast) {
   auto dag_genesis = node1->getConfig().chain.dag_genesis_block.getHash();
   auto sk = node1->getSecretKey();
   auto vrf_sk = node1->getVrfSecretKey();
-  vdf_sortition::VdfConfig vdf_config(node_cfgs[0].chain.vdf);
+  VdfConfig vdf_config(node_cfgs[0].chain.vdf);
 
   // generate first PBFT block sample
   blk_hash_t prev_block_hash(0);
@@ -175,8 +175,8 @@ TEST_F(PbftChainTest, block_broadcast) {
 
   nw1->onNewPbftBlock(pbft_block);
 
-  shared_ptr<PbftBlock> pbft_block_from_node2;
-  shared_ptr<PbftBlock> pbft_block_from_node3;
+  std::shared_ptr<PbftBlock> pbft_block_from_node2;
+  std::shared_ptr<PbftBlock> pbft_block_from_node3;
   for (int i = 0; i < 300; i++) {
     // test timeout is 30 seconds
     pbft_block_from_node2 = pbft_chain2->getUnverifiedPbftBlock(pbft_block->getBlockHash());

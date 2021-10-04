@@ -13,8 +13,9 @@ else ()
 
     # get all project files
     file(GLOB_RECURSE ALL_SOURCE_FILES
-            ${CMAKE_CURRENT_SOURCE_DIR}/src/*.[ch]pp
-            ${CMAKE_CURRENT_SOURCE_DIR}/src/*.h # jsonrpc stubs are generated as .h
+            ${CMAKE_CURRENT_SOURCE_DIR}/libraries/*.[ch]pp
+            ${CMAKE_CURRENT_SOURCE_DIR}/libraries/*.h # jsonrpc stubs are generated as .h
+            ${CMAKE_CURRENT_SOURCE_DIR}/programs/*.[ch]pp
             ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.[ch]pp)
 
     # TODO: print error/line
