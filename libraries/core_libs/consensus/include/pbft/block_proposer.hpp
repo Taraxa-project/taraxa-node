@@ -55,7 +55,6 @@ class SortitionPropose : public ProposeModelFace {
   int num_tries_ = 0;
   const int max_num_tries_ = 20;  // Wait 2000(ms)
   level_t last_propose_level_ = 0;
-  level_t last_successful_proposed_level_ = 0;
   std::shared_ptr<DagManager> dag_mgr_;
   std::shared_ptr<TransactionManager> trx_mgr_;
 
@@ -95,7 +94,7 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   void stop();
   std::shared_ptr<BlockProposer> getShared();
   void setNetwork(std::weak_ptr<Network> network) { network_ = move(network); }
-  void proposeBlock(blk_hash_t const& pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, VdfSortition const& vdf);
+  void proposeBlock(DagFrontier frontier, level_t level, vec_trx_t trxs, VdfSortition vdf);
   bool getShardedTrxs(vec_trx_t& sharded_trx);
   level_t getProposeLevel(blk_hash_t const& pivot, vec_blk_t const& tips);
   bool validDposProposer(level_t const propose_level);

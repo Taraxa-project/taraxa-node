@@ -9,7 +9,7 @@
 
 namespace taraxa {
 
-enum class BlockStatus { invalid, proposed, broadcasted };
+enum class BlockStatus { invalid, broadcasted };
 
 using BlockStatusTable = ExpirationCacheMap<blk_hash_t, BlockStatus>;
 
@@ -30,7 +30,7 @@ class DagBlockManager {
    */
   void processSyncedBlock(DbStorage::Batch &batch, SyncBlock const &sync_block);
   void insertBroadcastedBlockWithTransactions(DagBlock const &blk, std::vector<Transaction> const &transactions);
-  void pushUnverifiedBlock(DagBlock const &block, bool critical, std::vector<Transaction> const &transactions = {});
+  void pushUnverifiedBlock(DagBlock const &block, std::vector<Transaction> const &transactions = {});
   std::pair<std::shared_ptr<DagBlock>, bool> popVerifiedBlock(bool level_limit = false,
                                                               uint64_t level = 0);  // get one verified block and pop
   void pushVerifiedBlock(DagBlock const &blk);
@@ -81,7 +81,7 @@ class DagBlockManager {
   std::shared_ptr<FinalChain> final_chain_;
   std::shared_ptr<PbftChain> pbft_chain_;
   logger::Logger log_time_;
-  // seen blks
+
   BlockStatusTable blk_status_;
   ExpirationCacheMap<blk_hash_t, DagBlock> seen_blocks_;
   std::vector<std::thread> verifiers_;
