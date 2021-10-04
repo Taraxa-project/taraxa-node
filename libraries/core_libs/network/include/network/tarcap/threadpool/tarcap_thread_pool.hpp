@@ -30,8 +30,10 @@ class TarcapThreadPool {
 
   /**
    * @brief Push the given element value to the end of the queue. Used for r-values
+   *
+   * @return packet unique ID. In case push was not successful, empty optional is returned
    **/
-  void push(PacketData&& packet_data);
+  std::optional<uint64_t> push(PacketData&& packet_data);
 
   /**
    * @brief Start all processing threads
@@ -66,7 +68,10 @@ class TarcapThreadPool {
   std::shared_ptr<PacketsHandler> packets_handlers_;
 
   // If true, stop processing packets and join all workers threads
-  bool stopProcessing_;
+  bool stopProcessing_{false};
+
+  // How many packets were pushed into the queue, it also serves for creating packet unique id
+  uint64_t packets_count_{0};
 
   // Queue of unprocessed packets
   PriorityQueue queue_;
