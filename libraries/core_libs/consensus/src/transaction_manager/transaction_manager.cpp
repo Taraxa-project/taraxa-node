@@ -381,6 +381,10 @@ bool TransactionManager::verifyBlockTransactions(DagBlock const &blk, std::vecto
 
   DbStorage::MultiGetQuery db_query(db_, all_block_trx_hashes.size());
   db_query.append(DbStorage::Columns::trx_status, all_block_trx_hashes);
+
+  // TODO: rework tx_status synchronization...
+  std::unique_lock transaction_status_lock(transaction_status_mutex_);
+
   auto db_trxs_statuses = db_query.execute(false);
 
   std::unordered_map<trx_hash_t, Transaction> known_trx(trxs.size());
@@ -430,9 +434,6 @@ bool TransactionManager::verifyBlockTransactions(DagBlock const &blk, std::vecto
   if (all_transactions_saved) {
     std::vector<trx_hash_t> accepted_trx_hashes;
     {
-      // TODO: rework tx_status synchronization...
-      std::unique_lock transaction_status_lock(transaction_status_mutex_);
-
       size_t newly_added_txs_to_block_counter = 0;
       trx_batch = db_->createWriteBatch();
       accepted_trx_hashes.reserve(all_block_trx_hashes.size());

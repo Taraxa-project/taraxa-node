@@ -39,12 +39,6 @@ void DagBlockPacketHandler::process(const PacketData &packet_data, const std::sh
     new_transactions.push_back(std::move(transaction));
   }
 
-  // Ignore new block packets when pbft syncing
-  if (syncing_state_->is_pbft_syncing()) {
-    LOG(log_dg_) << "Ignore new dag block " << hash.abridged() << ", pbft syncing is on";
-    return;
-  }
-
   if (dag_blk_mgr_) {
     // Do not process this block in case we already have it
     if (dag_blk_mgr_->isDagBlockKnown(block.getHash())) {
@@ -53,6 +47,12 @@ void DagBlockPacketHandler::process(const PacketData &packet_data, const std::sh
     }
 
     if (auto status = syncing_handler_->checkDagBlockValidation(block); !status.first) {
+      // Ignore new block packets when pbft syncing
+      if (syncing_state_->is_pbft_syncing()) {
+        LOG(log_dg_) << "Ignore new dag block " << hash.abridged() << ", pbft syncing is on";
+        return;
+      }
+
       LOG(log_wr_) << "Received NewBlock " << hash.toString() << " has missing pivot or/and tips";
       status.second.insert(hash);
       syncing_handler_->requestBlocks(packet_data.from_node_id_, status.second, DagSyncRequestType::MissingHashes);
