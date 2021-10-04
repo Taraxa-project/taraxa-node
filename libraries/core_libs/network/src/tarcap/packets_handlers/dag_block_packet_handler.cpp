@@ -53,6 +53,7 @@ void DagBlockPacketHandler::process(const PacketData &packet_data, const std::sh
     }
 
     if (auto status = syncing_handler_->checkDagBlockValidation(block); !status.first) {
+      trx_mgr_->insertBroadcastedTransactions(new_transactions);
       LOG(log_wr_) << "Received NewBlock " << hash.toString() << " has missing pivot or/and tips";
       status.second.insert(hash);
       syncing_handler_->requestBlocks(packet_data.from_node_id_, status.second, DagSyncRequestType::MissingHashes);
