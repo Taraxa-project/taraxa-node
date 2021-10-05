@@ -1579,10 +1579,6 @@ bool PbftManager::pushPbftBlock_(SyncBlock &sync_block, vec_blk_t &dag_blocks_or
     db_->updateDagBlockCounters(batch, dag_blocks_to_update_counters);
   }
 
-  // Set DAG blocks period
-  auto const &anchor_hash = sync_block.pbft_blk->getPivotDagBlockHash();
-  dag_mgr_->setDagBlockOrder(anchor_hash, pbft_period, dag_blocks_order);
-
   db_->savePeriodData(sync_block, batch);
 
   // Reset last cert voted value to NULL_BLOCK_HASH
@@ -1590,6 +1586,10 @@ bool PbftManager::pushPbftBlock_(SyncBlock &sync_block, vec_blk_t &dag_blocks_or
 
   // Commit DB
   db_->commitWriteBatch(batch);
+
+  // Set DAG blocks period
+  auto const &anchor_hash = sync_block.pbft_blk->getPivotDagBlockHash();
+  dag_mgr_->setDagBlockOrder(anchor_hash, pbft_period, dag_blocks_order);
 
   trx_mgr_->updateFinalizedTransactionsStatus(sync_block);
 
