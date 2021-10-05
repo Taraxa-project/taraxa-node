@@ -373,7 +373,6 @@ void TransactionManager::updateFinalizedTransactionsStatus(SyncBlock const &sync
 // transactions that are in the queue. This will update the transaction
 // status as well and remove the transactions from the queue
 bool TransactionManager::verifyBlockTransactions(DagBlock const &blk, std::vector<Transaction> const &trxs) {
-  std::unique_lock transaction_status_lock(transaction_status_mutex_);
   vec_trx_t const &all_block_trx_hashes = blk.getTrxs();
   if (all_block_trx_hashes.empty()) {
     LOG(log_er_) << "Ignore block " << blk.getHash() << " since it has no transactions";

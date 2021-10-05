@@ -38,7 +38,7 @@ void DagBlockPacketHandler::process(const PacketData &packet_data, const std::sh
   for (size_t i_transaction = 1; i_transaction < transactions_count + 1; i_transaction++) {
     Transaction transaction(packet_data.rlp_[i_transaction].data().toBytes());
     peer->markTransactionAsKnown(transaction.getHash());
-    LOG(log_er_) << "Received DagBlockPacket trx" << transaction.getHash().abridged();
+    LOG(log_er_) << "Received DagBlockPacket " << hash.abridged() << " trx " << transaction.getHash().abridged();
     new_transactions.push_back(std::move(transaction));
   }
 
@@ -55,7 +55,7 @@ void DagBlockPacketHandler::process(const PacketData &packet_data, const std::sh
         LOG(log_dg_) << "Ignore new dag block " << hash.abridged() << ", pbft syncing is on";
         return;
       }
-
+      trx_mgr_->insertBroadcastedTransactions(new_transactions);
       LOG(log_wr_) << "Received NewBlock " << hash.toString() << " has missing pivot or/and tips";
       status.second.insert(hash);
       syncing_handler_->requestBlocks(packet_data.from_node_id_, status.second, DagSyncRequestType::MissingHashes);
