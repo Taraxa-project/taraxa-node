@@ -63,7 +63,7 @@ class TarcapThreadPool {
    * @return std::tuple<size_t, size_t, size_t> - > std::tuple<HighPriorityQueue.size(), MidPriorityQueue.size(),
    * LowPriorityQueue.size()>
    */
-  std::tuple<size_t, size_t, size_t> getPriorityQueuesSizes() const;
+  std::tuple<size_t, size_t, size_t> getQueueSize() const;
 
  private:
   // Declare logger instances

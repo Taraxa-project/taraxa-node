@@ -10,7 +10,7 @@ namespace taraxa::network::tarcap {
 
 class PacketsQueue {
  public:
-  PacketsQueue(size_t max_workers_count = 5);
+  PacketsQueue() = default;
 
   /**
    * @brief Push new task to the queue
