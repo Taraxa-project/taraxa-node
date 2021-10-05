@@ -57,6 +57,14 @@ class TarcapThreadPool {
    */
   void setPacketsHandlers(std::shared_ptr<PacketsHandler> packets_handlers);
 
+  /**
+   * @brief Returns actual size of all priority queues (thread-safe)
+   *
+   * @return std::tuple<size_t, size_t, size_t> - > std::tuple<HighPriorityQueue.size(), MidPriorityQueue.size(),
+   * LowPriorityQueue.size()>
+   */
+  std::tuple<size_t, size_t, size_t> getPriorityQueuesSizes() const;
+
  private:
   // Declare logger instances
   LOG_OBJECTS_DEFINE

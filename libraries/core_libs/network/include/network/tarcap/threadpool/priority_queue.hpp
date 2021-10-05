@@ -48,12 +48,21 @@ class PriorityQueue {
    */
   void updateDependenciesFinish(const PacketData& packet, std::mutex& queue_mutex, std::condition_variable& cond_var);
 
+  /**
+   * @brief Returns specified priority queue actual size
+   *
+   * @param priority
+   * @return size_t
+   */
+  size_t getPrirotityQueueSize(PacketData::PacketPriority priority) const;
+
  private:
   // Declare logger instances
   LOG_OBJECTS_DEFINE
 
   // Queues that group packets by it's priority.
   // All packets with PacketPriority::High go to packets_queues_[PacketPriority::High], etc...
+  // TODO: make packets_queues_ const
   std::array<PacketsQueue, PacketData::PacketPriority::Count> packets_queues_{PacketsQueue(), PacketsQueue(),
                                                                               PacketsQueue()};
 

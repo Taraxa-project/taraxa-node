@@ -130,4 +130,10 @@ void TarcapThreadPool::setPacketsHandlers(std::shared_ptr<PacketsHandler> packet
   packets_handlers_ = std::move(packets_handlers);
 }
 
+std::tuple<size_t, size_t, size_t> TarcapThreadPool::getPriorityQueuesSizes() const {
+  return {queue_.getPrirotityQueueSize(PacketData::PacketPriority::High),
+          queue_.getPrirotityQueueSize(PacketData::PacketPriority::Mid),
+          queue_.getPrirotityQueueSize(PacketData::PacketPriority::Low)};
+}
+
 }  // namespace taraxa::network::tarcap

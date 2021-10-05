@@ -34,7 +34,7 @@ void PriorityQueue::pushBack(PacketData&& packet) { packets_queues_[packet.prior
 
 std::optional<PacketData> PriorityQueue::pop() {
   if (act_total_workers_count_ >= MAX_TOTAL_WORKERS_COUNT) {
-    LOG(log_tr_) << "MAX_TOTAL_WORKERS_COUNT(" << MAX_TOTAL_WORKERS_COUNT << ") reached, unable to pop data.";
+    LOG(log_dg_) << "MAX_TOTAL_WORKERS_COUNT(" << MAX_TOTAL_WORKERS_COUNT << ") reached, unable to pop data.";
     return {};
   }
 
@@ -68,7 +68,7 @@ std::optional<PacketData> PriorityQueue::pop() {
   }
 
   if (!do_second_iteration) {
-    LOG(log_tr_) << "No non-blocked packets to be processed.";
+    LOG(log_dg_) << "No non-blocked packets to be processed.";
     return {};
   }
 
@@ -86,7 +86,7 @@ std::optional<PacketData> PriorityQueue::pop() {
   }
 
   // There was no unblocked packet to be processed in all queues
-  LOG(log_tr_) << "No non-blocked packets to be processed.";
+  LOG(log_dg_) << "No non-blocked packets to be processed.";
   return {};
 }
 
@@ -112,9 +112,11 @@ void PriorityQueue::updateDependenciesStart(const PacketData& packet) {
 
   switch (packet.type_) {
     // Packets that can be processed only 1 at the time
-    //  GetDagSyncPacket -> serve syncing data to only 1 node at the time
+    //  GetDagSyncPacket -> serve dag syncing data to only 1 node at the time
+    //  GetPbftSyncPacket -> serve pbft syncing data to only 1 node at the time
     //  PbftSyncPacket -> process sync pbft blocks synchronously
     case SubprotocolPacketType::GetDagSyncPacket:
+    case SubprotocolPacketType::GetPbftSyncPacket:
     case SubprotocolPacketType::PbftSyncPacket:
       blocked_packets_mask_.markPacketAsHardBlocked(packet, packet.type_);
       break;
@@ -152,6 +154,7 @@ void PriorityQueue::updateDependenciesFinish(const PacketData& packet, std::mute
   // Note: every case in this switch must lock queue_mutex !!!
   switch (packet.type_) {
     case SubprotocolPacketType::GetDagSyncPacket:
+    case SubprotocolPacketType::GetPbftSyncPacket:
     case SubprotocolPacketType::PbftSyncPacket: {
       std::unique_lock<std::mutex> lock(queue_mutex);
       blocked_packets_mask_.markPacketAsHardUnblocked(packet, packet.type_);
@@ -187,6 +190,10 @@ void PriorityQueue::updateDependenciesFinish(const PacketData& packet, std::mute
 
   act_total_workers_count_--;
   packets_queues_[packet.priority_].decrementActWorkersCount();
+}
+
+size_t PriorityQueue::getPrirotityQueueSize(PacketData::PacketPriority priority) const {
+  return packets_queues_[priority].size();
 }
 
 }  // namespace taraxa::network::tarcap
