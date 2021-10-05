@@ -47,6 +47,8 @@ void DagBlockPacketHandler::process(const PacketData &packet_data, const std::sh
     }
 
     if (auto status = syncing_handler_->checkDagBlockValidation(block); !status.first) {
+      trx_mgr_->insertBroadcastedTransactions(new_transactions);
+
       // Ignore new block packets when pbft syncing
       if (syncing_state_->is_pbft_syncing()) {
         LOG(log_dg_) << "Ignore new dag block " << hash.abridged() << ", pbft syncing is on";

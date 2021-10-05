@@ -178,7 +178,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::set<blk_hash_t> getBlocksByLevel(level_t level);
   std::vector<std::shared_ptr<DagBlock>> getDagBlocksAtLevel(level_t level, int number_of_levels);
   void updateDagBlockCounters(Batch& write_batch, std::vector<DagBlock> blks);
-  std::map<int, std::vector<DagBlock>> getNonfinalizedDagBlocks();
+  std::map<level_t, std::vector<DagBlock>> getNonfinalizedDagBlocks();
   void removeNonfinalizedDagBlock(blk_hash_t const& hash);
 
   // Transaction

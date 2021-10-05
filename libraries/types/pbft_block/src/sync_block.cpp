@@ -60,12 +60,18 @@ void SyncBlock::clear() {
 void SyncBlock::hasEnoughValidCertVotes(size_t dpos_total_votes_count, size_t sortition_threshold,
                                         size_t pbft_2t_plus_1) const {
   if (cert_votes.empty()) {
-    throw std::logic_error("No cert votes! The synced PBFT block comes from a malicious player.");
+    throw std::logic_error("No cert votes provided! The synced PBFT block comes from a malicious player.");
   }
 
-  std::vector<std::shared_ptr<Vote>> valid_votes;
-  auto first_cert_vote_round = cert_votes[0]->getRound();
+  if (cert_votes.size() != pbft_2t_plus_1) {
+    std::stringstream err;
+    err << "PBFT block " << pbft_blk->getBlockHash() << " has a wrong number of cert votes. There are "
+        << cert_votes.size() << " cert votes with the block. But 2t+1 is " << pbft_2t_plus_1
+        << ", DPOS total votes count " << dpos_total_votes_count << ", sortition threshold is " << sortition_threshold;
+    throw std::logic_error(err.str());
+  }
 
+  auto first_cert_vote_round = cert_votes[0]->getRound();
   for (auto& v : cert_votes) {
     // Any info is wrong that can determine the synced PBFT block comes from a malicious player
     if (v->getType() != cert_vote_type) {
@@ -93,21 +99,12 @@ void SyncBlock::hasEnoughValidCertVotes(size_t dpos_total_votes_count, size_t so
 
     try {
       v->validate(dpos_total_votes_count, sortition_threshold);
-      valid_votes.emplace_back(v);
     } catch (const std::logic_error& e) {
       std::stringstream err;
       err << "For PBFT block " << pbft_blk->getBlockHash() << ", cert vote " << v->getHash()
           << " failed validation: " << e.what();
       throw std::logic_error(err.str());
     }
-  }
-
-  if (valid_votes.size() < pbft_2t_plus_1) {
-    std::stringstream err;
-    err << "PBFT block " << pbft_blk->getBlockHash() << " with " << cert_votes.size() << " cert votes. Has "
-        << valid_votes.size() << " valid cert votes. 2t+1 is " << pbft_2t_plus_1 << ", DPOS total votes count "
-        << dpos_total_votes_count << ", sortition threshold is " << sortition_threshold;
-    throw std::logic_error(err.str());
   }
 }
 
