@@ -128,6 +128,10 @@ bool DagBlock::verifySig() const {
   return !pk.isZero();
 }
 
+void DagBlock::verifyVdf(const VdfConfig &vdf_config) const {
+  vdf_.verifyVdf(vdf_config, getRlpBytes(getLevel()), getPivot().asBytes());
+}
+
 blk_hash_t const &DagBlock::getHash() const {
   if (!hash_) {
     std::unique_lock l(hash_mu_.val, std::try_to_lock);
