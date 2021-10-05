@@ -83,7 +83,7 @@ void VdfSortition::computeVdfSolution(VdfConfig const& config, bytes const& msg)
   }
 }
 
-void VdfSortition::verifyVdf(VdfConfig const& config, bytes const& vrf_input, bytes const& vdf_input) {
+void VdfSortition::verifyVdf(VdfConfig const& config, bytes const& vrf_input, bytes const& vdf_input) const {
   // Verify VRF output
   if (!verifyVrf(vrf_input)) {
     throw InvalidVdfSortition("VRF verify failed. VDF input " + bytes2str(vdf_input) + ", lambda " +
@@ -107,7 +107,7 @@ void VdfSortition::verifyVdf(VdfConfig const& config, bytes const& vrf_input, by
   }
 }
 
-bool VdfSortition::verifyVrf(bytes const& vrf_input) { return VrfSortitionBase::verify(vrf_input); }
+bool VdfSortition::verifyVrf(bytes const& vrf_input) const { return VrfSortitionBase::verify(vrf_input); }
 
 uint16_t VdfSortition::getDifficulty() const { return difficulty_; }
 

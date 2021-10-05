@@ -74,13 +74,13 @@ class DagBlock {
   auto const &getTrxs() const { return trxs_; }
   auto const &getSig() const { return sig_; }
   blk_hash_t const &getHash() const;
-  auto const &getVdf() const { return vdf_; }
 
   addr_t const &getSender() const;
   Json::Value getJson(bool with_derived_fields = true) const;
   std::string getJsonStr() const;
 
   bool verifySig() const;
+  void verifyVdf(const VdfConfig &vdf_config) const;
   bytes rlp(bool include_sig) const;
 
  private:
