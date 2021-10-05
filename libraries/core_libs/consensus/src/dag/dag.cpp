@@ -369,6 +369,7 @@ void DagManager::worker() {
   while (!stopped_) {
     // will block if no verified block available
     auto verified_block = dag_blk_mgr_->popVerifiedBlock(level_limit, level);
+
     level_limit = false;
     auto const &blk = *(verified_block.first);
 
@@ -401,6 +402,10 @@ void DagManager::addDagBlock(DagBlock const &blk, bool save) {
   {
     ULock lock(mutex_);
     if (save) {
+      if (db_->dagBlockInDb(blk.getHash())) {
+        LOG(log_dg_) << "Block already in DB: " << blk.getHash();
+        return;
+      }
       db_->saveDagBlock(blk, &write_batch);
     }
     auto blk_hash = blk.getHash();
