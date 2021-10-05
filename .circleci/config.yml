@@ -427,11 +427,7 @@ jobs:
                 docker image prune -a --force --filter "until=${time}h"
               fi
            done
-      - run:
-         name: Checkout Submodules
-         command: |
-              git submodule sync
-              git submodule update --init --recursive --jobs 8
+
       - run:
          name: Prepare Environment
          command: |
@@ -456,7 +452,13 @@ jobs:
       - run:
          name: Build docker builder image
          command: |
-                docker build -t ${IMAGE}-builder:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} --target builder .
+                docker build -t ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} --target builder .
+
+      - run:
+         name: Checkout Submodules
+         command: |
+              git submodule sync
+              git submodule update --init --recursive --jobs 8
 
       - run:
          name: Build ctest image
