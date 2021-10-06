@@ -11,7 +11,7 @@ PbftBlockPacketHandler::PbftBlockPacketHandler(std::shared_ptr<PeersState> peers
                                                std::shared_ptr<PacketsStats> packets_stats,
                                                std::shared_ptr<PbftChain> pbft_chain,
                                                std::shared_ptr<PbftManager> pbft_mgr, const addr_t &node_addr)
-    : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "NEW_PBFT_BLOCK_PH"),
+    : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "PBFT_BLOCK_PH"),
       pbft_chain_(std::move(pbft_chain)),
       pbft_mgr_(std::move(pbft_mgr)) {}
 

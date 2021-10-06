@@ -131,7 +131,6 @@ void SyncingHandler::syncPbftNextVotes(uint64_t pbft_round, size_t pbft_previous
   if (pbft_round < peer_max_pbft_round ||
       (pbft_round == peer_max_pbft_round &&
        pbft_previous_round_next_votes_size < peer_max_previous_round_next_votes_size)) {
-    // TODO: was log_dg_next_votes_sync_
     LOG(log_dg_) << "Syncing PBFT next votes. Current PBFT round " << pbft_round << ", previous round next votes size "
                  << pbft_previous_round_next_votes_size << ". Peer " << peer_node_ID << " is in PBFT round "
                  << peer_max_pbft_round << ", previous round next votes size "
@@ -142,10 +141,9 @@ void SyncingHandler::syncPbftNextVotes(uint64_t pbft_round, size_t pbft_previous
 
 void SyncingHandler::requestPbftNextVotes(dev::p2p::NodeID const &peerID, uint64_t pbft_round,
                                           size_t pbft_previous_round_next_votes_size) {
-  // TODO: was log_dg_next_votes_sync_
-  LOG(log_dg_) << "Sending GetPbftNextVotes with round " << pbft_round << " previous round next votes size "
+  LOG(log_dg_) << "Sending GetVotesSyncPacket with round " << pbft_round << " previous round next votes size "
                << pbft_previous_round_next_votes_size;
-  sealAndSend(peerID, GetPbftNextVotes,
+  sealAndSend(peerID, GetVotesSyncPacket,
               std::move(dev::RLPStream(2) << pbft_round << pbft_previous_round_next_votes_size));
 }
 

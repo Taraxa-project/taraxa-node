@@ -14,7 +14,7 @@ DagBlockPacketHandler::DagBlockPacketHandler(
     std::shared_ptr<SyncingState> syncing_state, std::shared_ptr<SyncingHandler> syncing_handler,
     std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
     std::shared_ptr<DbStorage> db, std::shared_ptr<TestState> test_state, const addr_t &node_addr)
-    : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "NEW_DAG_BLOCK_PH"),
+    : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "DAG_BLOCK_PH"),
       syncing_state_(std::move(syncing_state)),
       syncing_handler_(std::move(syncing_handler)),
       trx_mgr_(std::move(trx_mgr)),

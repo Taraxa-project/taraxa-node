@@ -31,8 +31,6 @@ class PacketHandler {
    */
   void processPacket(const PacketData& packet_data);
 
-  std::string getCapabilityName() const;
-
  private:
   void handle_read_exception(const PacketData& packet_data);
 

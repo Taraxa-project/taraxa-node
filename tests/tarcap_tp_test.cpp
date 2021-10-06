@@ -190,10 +190,10 @@ TEST_F(TarcapTpTest, block_free_packets) {
                                    createDummyPacketHandler(init_data, "SYNCED_PH", 20));
   packets_handler->registerHandler(tarcap::SubprotocolPacketType::PbftVotePacket,
                                    createDummyPacketHandler(init_data, "PBFT_VOTE_PH", 20));
-  packets_handler->registerHandler(tarcap::SubprotocolPacketType::GetPbftNextVotes,
-                                   createDummyPacketHandler(init_data, "GET_PBFT_NEXT_VOTES_PH", 20));
-  packets_handler->registerHandler(tarcap::SubprotocolPacketType::PbftNextVotesPacket,
-                                   createDummyPacketHandler(init_data, "PBFT_NEXT_VOTES_PH", 20));
+  packets_handler->registerHandler(tarcap::SubprotocolPacketType::GetVotesSyncPacket,
+                                   createDummyPacketHandler(init_data, "GET_VOTES_SYNC_PH", 20));
+  packets_handler->registerHandler(tarcap::SubprotocolPacketType::VotesSyncPacket,
+                                   createDummyPacketHandler(init_data, "VOTES_SYNC_PH", 20));
 
   // Creates threadpool
   // Note: make num of threads >= num of packets to check if they are processed concurrently without blocks, otherwise
@@ -242,14 +242,14 @@ TEST_F(TarcapTpTest, block_free_packets) {
       tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::PbftVotePacket, {})).value();
 
   const auto packet14_get_pbft_next_votes_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::GetPbftNextVotes, {})).value();
+      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::GetVotesSyncPacket, {})).value();
   const auto packet15_get_pbft_next_votes_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::GetPbftNextVotes, {})).value();
+      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::GetVotesSyncPacket, {})).value();
 
   const auto packet16_pbft_next_votes_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::PbftNextVotesPacket, {})).value();
+      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::VotesSyncPacket, {})).value();
   const auto packet17_pbft_next_votes_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::PbftNextVotesPacket, {})).value();
+      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::VotesSyncPacket, {})).value();
 
   tp.startProcessing();
 
