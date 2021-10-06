@@ -2,15 +2,12 @@
 
 namespace taraxa::network::tarcap {
 
-PacketsQueue::PacketsQueue(size_t max_workers_count)
-    : packets_(), kMaxWorkersCount_(max_workers_count) {}
-
 bool PacketsQueue::maxWorkersCountReached() const {
   if (act_workers_count_ >= kMaxWorkersCount_) {
-    return false;
+    return true;
   }
 
-  return true;
+  return false;
 }
 
 void PacketsQueue::pushBack(PacketData&& packet) {
