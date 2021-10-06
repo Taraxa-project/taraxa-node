@@ -10,7 +10,7 @@ GetVotesSyncPacketHandler::GetVotesSyncPacketHandler(std::shared_ptr<PeersState>
                                                      std::shared_ptr<PbftManager> pbft_mgr,
                                                      std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr,
                                                      const addr_t &node_addr)
-    : VotesHandler(std::move(peers_state), std::move(packets_stats), node_addr, "GET_VOTES_SYNC_PH"),
+    : ExtVotesPacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "GET_VOTES_SYNC_PH"),
       pbft_mgr_(std::move(pbft_mgr)),
       next_votes_mgr_(std::move(next_votes_mgr)) {}
 

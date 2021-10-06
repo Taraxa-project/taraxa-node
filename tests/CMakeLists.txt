@@ -137,12 +137,12 @@ target_link_libraries(transaction_test
 )
 add_test(transaction_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/transaction_test)
 
-add_executable(tarcap_tp_test tarcap_tp_test.cpp)
-target_link_libraries(tarcap_tp_test
+add_executable(tarcap_threadpool_test tarcap_threadpool_test.cpp)
+target_link_libraries(tarcap_threadpool_test
         core_libs
         CONAN_PKG::gtest
         )
-add_test(tarcap_tp_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/tarcap_tp_test)
+add_test(tarcap_threadpool_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/tarcap_threadpool_test)
 
 add_executable(py_test py_test.cpp)
 add_dependencies(py_test taraxad)

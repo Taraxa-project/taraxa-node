@@ -1,7 +1,7 @@
 #include "network/tarcap/packets_handlers/dag_sync_packet_handler.hpp"
 
 #include "dag/dag_block_manager.hpp"
-#include "network/tarcap/packets_handlers/common/syncing_handler.hpp"
+#include "network/tarcap/packets_handlers/common/ext_syncing_packet_handler.hpp"
 #include "network/tarcap/shared_states/syncing_state.hpp"
 
 namespace taraxa::network::tarcap {
@@ -9,12 +9,12 @@ namespace taraxa::network::tarcap {
 DagSyncPacketHandler::DagSyncPacketHandler(std::shared_ptr<PeersState> peers_state,
                                            std::shared_ptr<PacketsStats> packets_stats,
                                            std::shared_ptr<SyncingState> syncing_state,
-                                           std::shared_ptr<SyncingHandler> syncing_handler,
+                                           std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<PbftManager> pbft_mgr,
+                                           std::shared_ptr<DagManager> dag_mgr,
                                            std::shared_ptr<DagBlockManager> dag_blk_mgr, const addr_t& node_addr)
-    : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "DAG_SYNC_PH"),
-      syncing_state_(std::move(syncing_state)),
-      syncing_handler_(std::move(syncing_handler)),
-      dag_blk_mgr_(std::move(dag_blk_mgr)) {}
+    : ExtSyncingPacketHandler(std::move(peers_state), std::move(packets_stats), std::move(syncing_state),
+                              std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(dag_blk_mgr),
+                              node_addr, "DAG_SYNC_PH") {}
 
 void DagSyncPacketHandler::process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) {
   std::string received_dag_blocks_str;
@@ -35,7 +35,7 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
 
     received_dag_blocks_str += block.getHash().abridged() + " ";
 
-    auto status = syncing_handler_->checkDagBlockValidation(block);
+    auto status = checkDagBlockValidation(block);
     if (!status.first) {
       LOG(log_er_) << "DagBlockValidation failed " << status.second;
       status.second.insert(block.getHash());
@@ -50,7 +50,7 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
   }
 
   if (missing_blks.size() > 0) {
-    syncing_handler_->requestBlocks(packet_data.from_node_id_, missing_blks, DagSyncRequestType::MissingHashes);
+    requestDagBlocks(packet_data.from_node_id_, missing_blks, DagSyncRequestType::MissingHashes);
   }
   syncing_state_->set_dag_syncing(false);
 

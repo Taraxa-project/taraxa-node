@@ -11,7 +11,7 @@ namespace taraxa::network::tarcap {
 class TestPacketHandler : public PacketHandler {
  public:
   TestPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
-                    const addr_t& node_addr);
+                    const addr_t& node_addr = {});
 
   virtual ~TestPacketHandler() = default;
 

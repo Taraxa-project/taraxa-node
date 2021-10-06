@@ -1,14 +1,15 @@
-#include "network/tarcap/packets_handlers/common/votes_handler.hpp"
+#include "network/tarcap/packets_handlers/common/ext_votes_packet_handler.hpp"
 
 #include "vote/vote.hpp"
 
 namespace taraxa::network::tarcap {
 
-VotesHandler::VotesHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
-                           const addr_t &node_addr, const std::string &log_channel_name)
+ExtVotesPacketHandler::ExtVotesPacketHandler(std::shared_ptr<PeersState> peers_state,
+                                             std::shared_ptr<PacketsStats> packets_stats, const addr_t &node_addr,
+                                             const std::string &log_channel_name)
     : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, log_channel_name) {}
 
-void VotesHandler::onNewPbftVote(std::shared_ptr<Vote> const &vote) {
+void ExtVotesPacketHandler::onNewPbftVote(std::shared_ptr<Vote> const &vote) {
   std::vector<dev::p2p::NodeID> peers_to_send;
   for (auto const &peer : peers_state_->getAllPeers()) {
     if (!peer.second->isVoteKnown(vote->getHash())) {
@@ -20,7 +21,7 @@ void VotesHandler::onNewPbftVote(std::shared_ptr<Vote> const &vote) {
   }
 }
 
-void VotesHandler::sendPbftVote(dev::p2p::NodeID const &peer_id, std::shared_ptr<Vote> const &vote) {
+void ExtVotesPacketHandler::sendPbftVote(dev::p2p::NodeID const &peer_id, std::shared_ptr<Vote> const &vote) {
   const auto peer = peers_state_->getPeer(peer_id);
   // TODO: We should disable PBFT votes when a node is bootstrapping but not when trying to resync
   if (peer) {
@@ -31,8 +32,8 @@ void VotesHandler::sendPbftVote(dev::p2p::NodeID const &peer_id, std::shared_ptr
   }
 }
 
-void VotesHandler::sendPbftNextVotes(dev::p2p::NodeID const &peer_id,
-                                     std::vector<std::shared_ptr<Vote>> const &send_next_votes_bundle) {
+void ExtVotesPacketHandler::sendPbftNextVotes(dev::p2p::NodeID const &peer_id,
+                                              std::vector<std::shared_ptr<Vote>> const &send_next_votes_bundle) {
   if (send_next_votes_bundle.empty()) {
     return;
   }

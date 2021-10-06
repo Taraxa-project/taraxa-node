@@ -4,7 +4,6 @@
 
 #include "dag/dag.hpp"
 #include "network/tarcap/packets_handler.hpp"
-#include "network/tarcap/packets_handlers/common/syncing_handler.hpp"
 #include "network/tarcap/packets_handlers/dag_block_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/dag_sync_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/get_dag_sync_packet_handler.hpp"
@@ -39,7 +38,6 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev
     : test_state_(std::make_shared<TestState>()),
       peers_state_(nullptr),
       syncing_state_(std::make_shared<SyncingState>(peers_state_)),
-      syncing_handler_(nullptr),
       node_stats_(nullptr),
       packets_handlers_(std::make_shared<PacketsHandler>()),
       thread_pool_(conf.network_packets_processing_threads, node_addr),
@@ -176,9 +174,6 @@ void TaraxaCapability::registerPacketHandlers(
     const std::shared_ptr<VoteManager> &vote_mgr, const std::shared_ptr<NextVotesForPreviousRound> &next_votes_mgr,
     const std::shared_ptr<DagManager> &dag_mgr, const std::shared_ptr<DagBlockManager> &dag_blk_mgr,
     const std::shared_ptr<TransactionManager> &trx_mgr, addr_t const &node_addr) {
-  syncing_handler_ = std::make_shared<SyncingHandler>(peers_state_, packets_stats, syncing_state_, pbft_chain, pbft_mgr,
-                                                      dag_mgr, dag_blk_mgr, node_addr);
-
   node_stats_ = std::make_shared<NodeStats>(peers_state_, syncing_state_, pbft_chain, pbft_mgr, dag_mgr, dag_blk_mgr,
                                             vote_mgr, trx_mgr, packets_stats, node_addr);
 
@@ -200,8 +195,9 @@ void TaraxaCapability::registerPacketHandlers(
       SubprotocolPacketType::PbftBlockPacket,
       std::make_shared<PbftBlockPacketHandler>(peers_state_, packets_stats, pbft_chain, pbft_mgr, node_addr));
 
-  const auto dag_handler = std::make_shared<DagBlockPacketHandler>(
-      peers_state_, packets_stats, syncing_state_, syncing_handler_, trx_mgr, dag_blk_mgr, db, test_state_, node_addr);
+  const auto dag_handler =
+      std::make_shared<DagBlockPacketHandler>(peers_state_, packets_stats, syncing_state_, pbft_chain, pbft_mgr,
+                                              dag_mgr, dag_blk_mgr, trx_mgr, db, test_state_, node_addr);
   packets_handlers_->registerHandler(SubprotocolPacketType::DagBlockPacket, dag_handler);
 
   packets_handlers_->registerHandler(
@@ -214,15 +210,16 @@ void TaraxaCapability::registerPacketHandlers(
                                      std::make_shared<TestPacketHandler>(peers_state_, packets_stats, node_addr));
   packets_handlers_->registerHandler(
       SubprotocolPacketType::StatusPacket,
-      std::make_shared<StatusPacketHandler>(peers_state_, packets_stats, syncing_state_, syncing_handler_, pbft_chain,
-                                            dag_mgr, next_votes_mgr, pbft_mgr, conf.network_id, node_addr));
+      std::make_shared<StatusPacketHandler>(peers_state_, packets_stats, syncing_state_, pbft_chain, pbft_mgr, dag_mgr,
+                                            dag_blk_mgr, next_votes_mgr, conf.network_id, node_addr));
   packets_handlers_->registerHandler(SubprotocolPacketType::GetDagSyncPacket,
                                      std::make_shared<GetDagSyncPacketHandler>(peers_state_, packets_stats, trx_mgr,
                                                                                dag_mgr, dag_blk_mgr, db, node_addr));
 
-  packets_handlers_->registerHandler(SubprotocolPacketType::DagSyncPacket,
-                                     std::make_shared<DagSyncPacketHandler>(peers_state_, packets_stats, syncing_state_,
-                                                                            syncing_handler_, dag_blk_mgr, node_addr));
+  packets_handlers_->registerHandler(
+      SubprotocolPacketType::DagSyncPacket,
+      std::make_shared<DagSyncPacketHandler>(peers_state_, packets_stats, syncing_state_, pbft_chain, pbft_mgr, dag_mgr,
+                                             dag_blk_mgr, node_addr));
 
   // TODO there is additional logic, that should be moved outside process function
   packets_handlers_->registerHandler(
@@ -231,8 +228,8 @@ void TaraxaCapability::registerPacketHandlers(
                                                  conf.network_sync_level_size, node_addr));
 
   const auto pbft_handler =
-      std::make_shared<PbftSyncPacketHandler>(peers_state_, packets_stats, syncing_state_, syncing_handler_, pbft_chain,
-                                              pbft_mgr, dag_blk_mgr, conf.network_sync_level_size, node_addr);
+      std::make_shared<PbftSyncPacketHandler>(peers_state_, packets_stats, syncing_state_, pbft_chain, pbft_mgr,
+                                              dag_mgr, dag_blk_mgr, conf.network_sync_level_size, node_addr);
   packets_handlers_->registerHandler(SubprotocolPacketType::PbftSyncPacket, pbft_handler);
   packets_handlers_->registerHandler(SubprotocolPacketType::SyncedPacket, pbft_handler);
 
@@ -345,7 +342,11 @@ const std::shared_ptr<PeersState> &TaraxaCapability::getPeersState() { return pe
 
 const std::shared_ptr<NodeStats> &TaraxaCapability::getNodeStats() { return node_stats_; }
 
-void TaraxaCapability::restartSyncingPbft(bool force) { syncing_handler_->restartSyncingPbft(force); }
+void TaraxaCapability::restartSyncingPbft(bool force) {
+  std::static_pointer_cast<PbftSyncPacketHandler>(
+      packets_handlers_->getSpecificHandler(SubprotocolPacketType::PbftSyncPacket))
+      ->restartSyncingPbft(force);
+}
 
 bool TaraxaCapability::pbft_syncing() const { return syncing_state_->is_pbft_syncing(); }
 

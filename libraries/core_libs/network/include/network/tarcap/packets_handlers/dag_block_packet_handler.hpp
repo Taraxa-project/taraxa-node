@@ -1,24 +1,22 @@
 #pragma once
 
-#include "network/tarcap/packets_handlers/common/packet_handler.hpp"
+#include "network/tarcap/packets_handlers/common/ext_syncing_packet_handler.hpp"
 
 namespace taraxa {
-class DagBlockManager;
 class DbStorage;
 class TransactionManager;
 }  // namespace taraxa
 
 namespace taraxa::network::tarcap {
 
-class SyncingState;
-class SyncingHandler;
 class TestState;
 
-class DagBlockPacketHandler : public PacketHandler {
+class DagBlockPacketHandler : public ExtSyncingPacketHandler {
  public:
   DagBlockPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
-                        std::shared_ptr<SyncingState> syncing_state, std::shared_ptr<SyncingHandler> syncing_handler,
-                        std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
+                        std::shared_ptr<SyncingState> syncing_state, std::shared_ptr<PbftChain> pbft_chain,
+                        std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
+                        std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<TransactionManager> trx_mgr,
                         std::shared_ptr<DbStorage> db, std::shared_ptr<TestState> test_state,
                         const addr_t &node_addr = {});
 
@@ -31,10 +29,7 @@ class DagBlockPacketHandler : public PacketHandler {
  private:
   void process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) override;
 
-  std::shared_ptr<SyncingState> syncing_state_;
-  std::shared_ptr<SyncingHandler> syncing_handler_;
   std::shared_ptr<TransactionManager> trx_mgr_;
-  std::shared_ptr<DagBlockManager> dag_blk_mgr_;
   std::shared_ptr<DbStorage> db_;
   std::shared_ptr<TestState> test_state_;
 

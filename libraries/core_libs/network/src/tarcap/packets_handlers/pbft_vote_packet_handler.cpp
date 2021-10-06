@@ -9,7 +9,7 @@ PbftVotePacketHandler::PbftVotePacketHandler(std::shared_ptr<PeersState> peers_s
                                              std::shared_ptr<PacketsStats> packets_stats,
                                              std::shared_ptr<PbftManager> pbft_mgr,
                                              std::shared_ptr<VoteManager> vote_mgr, const addr_t &node_addr)
-    : VotesHandler(std::move(peers_state), std::move(packets_stats), node_addr, "PBFT_VOTE_PH"),
+    : ExtVotesPacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "PBFT_VOTE_PH"),
       pbft_mgr_(std::move(pbft_mgr)),
       vote_mgr_(std::move(vote_mgr)) {}
 

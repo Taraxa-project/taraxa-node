@@ -2,7 +2,7 @@
 
 #include "config/version.hpp"
 #include "dag/dag.hpp"
-#include "network/tarcap/packets_handlers/common/syncing_handler.hpp"
+#include "network/tarcap/packets_handlers/common/ext_syncing_packet_handler.hpp"
 #include "network/tarcap/shared_states/syncing_state.hpp"
 #include "pbft/pbft_chain.hpp"
 #include "pbft/pbft_manager.hpp"
@@ -13,19 +13,16 @@ namespace taraxa::network::tarcap {
 StatusPacketHandler::StatusPacketHandler(std::shared_ptr<PeersState> peers_state,
                                          std::shared_ptr<PacketsStats> packets_stats,
                                          std::shared_ptr<SyncingState> syncing_state,
-                                         std::shared_ptr<SyncingHandler> syncing_handler,
-                                         std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DagManager> dag_mgr,
+                                         std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<PbftManager> pbft_mgr,
+                                         std::shared_ptr<DagManager> dag_mgr,
+                                         std::shared_ptr<DagBlockManager> dag_blk_mgr,
                                          std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr,
-                                         std::shared_ptr<PbftManager> pbft_mgr, uint64_t conf_network_id,
-                                         const addr_t& node_addr)
-    : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "STATUS_PH"),
-      syncing_state_(std::move(syncing_state)),
-      syncing_handler_(std::move(syncing_handler)),
-      pbft_chain_(std::move(pbft_chain)),
-      dag_mgr_(std::move(dag_mgr)),
-      next_votes_mgr_(std::move(next_votes_mgr)),
-      pbft_mgr_(std::move(pbft_mgr)),
-      conf_network_id_(conf_network_id) {}
+                                         uint64_t conf_network_id, const addr_t& node_addr)
+    : ExtSyncingPacketHandler(std::move(peers_state), std::move(packets_stats), std::move(syncing_state),
+                              std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(dag_blk_mgr),
+                              node_addr, "STATUS_PH"),
+      conf_network_id_(conf_network_id),
+      next_votes_mgr_(std::move(next_votes_mgr)) {}
 
 void StatusPacketHandler::process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) {
   bool initial_status = packet_data.rlp_.itemCount() == INITIAL_STATUS_PACKET_ITEM_COUNT;
@@ -123,17 +120,6 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
                  << selected_peer->pbft_previous_round_next_votes_size_;
   }
 
-  // TODO: do we keep syncing specific channels ?
-  /*
-      LOG(log_dg_dag_sync_) << "Received status message from " << packet_data.from_node_id_ << " peer DAG max level:" <<
-      peer_->dag_level_; LOG(log_dg_pbft_sync_) << "Received status message from " << packet_data.from_node_id_ << ",
-      peer sycning: " << std::boolalpha
-                             << peer_->syncing_ << ", peer PBFT chain size:" << peer_->pbft_chain_size_;
-      LOG(log_dg_next_votes_sync_) << "Received status message from " << packet_data.from_node_id_ << ", PBFT round " <<
-      peer_->pbft_round_
-                                   << ", peer PBFT previous round next votes size "
-                                   << peer_->pbft_previous_round_next_votes_size_;
-  */
   // If we are still syncing - do not trigger new syncing
   if (syncing_state_->is_pbft_syncing() && syncing_state_->is_actively_syncing()) {
     LOG(log_dg_) << "There is ongoing syncing, do not trigger new one.";
@@ -149,9 +135,9 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
     LOG(log_nf_) << "Restart PBFT chain syncing. Own synced PBFT at period " << pbft_synced_period
                  << ", peer PBFT chain size " << selected_peer->pbft_chain_size_;
     if (pbft_synced_period + 5 < selected_peer->pbft_chain_size_) {
-      syncing_handler_->restartSyncingPbft(true);
+      restartSyncingPbft(true);
     } else {
-      syncing_handler_->restartSyncingPbft(false);
+      restartSyncingPbft(false);
     }
   }
 
@@ -160,7 +146,7 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
   if (pbft_current_round < selected_peer->pbft_round_ ||
       (pbft_current_round == selected_peer->pbft_round_ &&
        pbft_previous_round_next_votes_size < selected_peer->pbft_previous_round_next_votes_size_)) {
-    syncing_handler_->syncPbftNextVotes(pbft_current_round, pbft_previous_round_next_votes_size);
+    syncPbftNextVotes(pbft_current_round, pbft_previous_round_next_votes_size);
   }
 }
 
@@ -178,16 +164,6 @@ bool StatusPacketHandler::sendStatus(const dev::p2p::NodeID& node_id, bool initi
     auto pbft_chain_size = pbft_chain_->getPbftChainSize();
     auto pbft_round = pbft_mgr_->getPbftRound();
     auto pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesSize();
-
-    // TODO: do we keep syncing specific channels ?
-    /*
-        LOG(log_dg_dag_sync_) << "Sending status message to " << node_id << " with dag level: " << dag_max_level;
-        LOG(log_dg_pbft_sync_) << "Sending status message to " << node_id << " with pbft chain size: " <<
-        pbft_chain_size
-                               << ", syncing: " << std::boolalpha << syncing_state_->is_pbft_syncing();
-        LOG(log_dg_next_votes_sync_) << "Sending status message to " << node_id << " with PBFT round: " << pbft_round
-                                     << ", previous round next votes size " << pbft_previous_round_next_votes_size;
-    */
 
     if (initial) {
       success = sealAndSend(
@@ -217,6 +193,49 @@ void StatusPacketHandler::sendStatusToPeers() {
   for (auto const& peer : peers_state_->getAllPeers()) {
     sendStatus(peer.first, false);
   }
+}
+
+void StatusPacketHandler::syncPbftNextVotes(uint64_t pbft_round, size_t pbft_previous_round_next_votes_size) {
+  dev::p2p::NodeID peer_node_ID;
+  uint64_t peer_max_pbft_round = 1;
+  size_t peer_max_previous_round_next_votes_size = 0;
+
+  auto peers = peers_state_->getAllPeers();
+  // Find max peer PBFT round
+  for (auto const& peer : peers) {
+    if (peer.second->pbft_round_ > peer_max_pbft_round) {
+      peer_max_pbft_round = peer.second->pbft_round_;
+      peer_node_ID = peer.first;
+    }
+  }
+
+  if (pbft_round == peer_max_pbft_round) {
+    // No peers ahead, find peer PBFT previous round max next votes size
+    for (auto const& peer : peers) {
+      if (peer.second->pbft_previous_round_next_votes_size_ > peer_max_previous_round_next_votes_size) {
+        peer_max_previous_round_next_votes_size = peer.second->pbft_previous_round_next_votes_size_;
+        peer_node_ID = peer.first;
+      }
+    }
+  }
+
+  if (pbft_round < peer_max_pbft_round ||
+      (pbft_round == peer_max_pbft_round &&
+       pbft_previous_round_next_votes_size < peer_max_previous_round_next_votes_size)) {
+    LOG(log_dg_) << "Syncing PBFT next votes. Current PBFT round " << pbft_round << ", previous round next votes size "
+                 << pbft_previous_round_next_votes_size << ". Peer " << peer_node_ID << " is in PBFT round "
+                 << peer_max_pbft_round << ", previous round next votes size "
+                 << peer_max_previous_round_next_votes_size;
+    requestPbftNextVotes(peer_node_ID, pbft_round, pbft_previous_round_next_votes_size);
+  }
+}
+
+void StatusPacketHandler::requestPbftNextVotes(dev::p2p::NodeID const& peerID, uint64_t pbft_round,
+                                               size_t pbft_previous_round_next_votes_size) {
+  LOG(log_dg_) << "Sending GetVotesSyncPacket with round " << pbft_round << " previous round next votes size "
+               << pbft_previous_round_next_votes_size;
+  sealAndSend(peerID, GetVotesSyncPacket,
+              std::move(dev::RLPStream(2) << pbft_round << pbft_previous_round_next_votes_size));
 }
 
 }  // namespace taraxa::network::tarcap

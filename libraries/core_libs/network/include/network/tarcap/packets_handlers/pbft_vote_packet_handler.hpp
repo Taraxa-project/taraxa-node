@@ -1,6 +1,6 @@
 #pragma once
 
-#include "network/tarcap/packets_handlers/common/votes_handler.hpp"
+#include "network/tarcap/packets_handlers/common/ext_votes_packet_handler.hpp"
 
 namespace taraxa {
 class PbftManager;
@@ -9,7 +9,7 @@ class VoteManager;
 
 namespace taraxa::network::tarcap {
 
-class PbftVotePacketHandler : public VotesHandler {
+class PbftVotePacketHandler : public ExtVotesPacketHandler {
  public:
   PbftVotePacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
                         std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<VoteManager> vote_mgr,
