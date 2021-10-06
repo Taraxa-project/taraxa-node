@@ -263,8 +263,6 @@ std::map<level_t, std::vector<DagBlock>> DbStorage::getNonfinalizedDagBlocks() {
   return res;
 }
 
-void DbStorage::removeNonfinalizedDagBlock(blk_hash_t const& hash) { remove(Columns::dag_blocks, toSlice(hash)); }
-
 void DbStorage::updateDagBlockCounters(Batch& write_batch, std::vector<DagBlock> blks) {
   // Lock is needed since we are editing some fields
   std::lock_guard<std::mutex> u_lock(dag_blocks_mutex_);
