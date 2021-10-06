@@ -28,16 +28,20 @@ void DagBlockPacketHandler::process(const PacketData &packet_data, const std::sh
   DagBlock block(packet_data.rlp_[0].data().toBytes());
   blk_hash_t const hash = block.getHash();
   const auto transactions_count = packet_data.rlp_.itemCount() - 1;
-  LOG(log_dg_) << "Received DagBlockPacket " << hash.abridged() << " with " << transactions_count << " txs";
 
   peer->markDagBlockAsKnown(hash);
 
   std::vector<Transaction> new_transactions;
+  std::vector<trx_hash_t> new_transactions_hashes;
+  new_transactions.reserve(transactions_count);
+  new_transactions_hashes.reserve(transactions_count);
   for (size_t i_transaction = 1; i_transaction < transactions_count + 1; i_transaction++) {
     Transaction transaction(packet_data.rlp_[i_transaction].data().toBytes());
     peer->markTransactionAsKnown(transaction.getHash());
-    new_transactions.push_back(std::move(transaction));
+    new_transactions_hashes.emplace_back(transaction.getHash());
+    new_transactions.emplace_back(std::move(transaction));
   }
+  LOG(log_dg_) << "Received DagBlockPacket " << hash.abridged() << " with " << new_transactions_hashes;
 
   if (dag_blk_mgr_) {
     // Do not process this block in case we already have it
@@ -46,9 +50,8 @@ void DagBlockPacketHandler::process(const PacketData &packet_data, const std::sh
       return;
     }
 
+    trx_mgr_->insertBroadcastedTransactions(new_transactions);
     if (auto status = syncing_handler_->checkDagBlockValidation(block); !status.first) {
-      trx_mgr_->insertBroadcastedTransactions(new_transactions);
-
       // Ignore new block packets when pbft syncing
       if (syncing_state_->is_pbft_syncing()) {
         LOG(log_dg_) << "Ignore new dag block " << hash.abridged() << ", pbft syncing is on";
