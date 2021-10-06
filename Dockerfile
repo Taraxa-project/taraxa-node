@@ -33,11 +33,10 @@ RUN curl -SL -o llvm.sh https://apt.llvm.org/llvm.sh && \
     rm -f llvm.sh
 
 # To get Solidity compiler for python integration tests
-RUN add-apt-repository ppa:ethereum/ethereum
-
-# Install standard tools
-RUN apt-get update \
-    && apt-get install -y \
+# install standart tools
+RUN add-apt-repository ppa:ethereum/ethereum \
+    && apt-get update \
+    && apt-get install -y \ 
     clang-format-$LLVM_VERSION \
     clang-tidy-$LLVM_VERSION \
     ca-certificates \
@@ -70,14 +69,15 @@ ENV CONAN_REVISIONS_ENABLED=1
 WORKDIR /opt/taraxa/
 COPY conanfile.py .
 
-RUN conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan" 
-RUN conan profile new clang --detect
-RUN conan profile update settings.compiler=clang clang 
-RUN conan profile update settings.compiler.version=$LLVM_VERSION clang 
-RUN conan profile update settings.compiler.libcxx=libstdc++11 clang
-RUN conan profile update env.CC=clang-$LLVM_VERSION clang 
-RUN conan profile update env.CXX=clang++-$LLVM_VERSION clang 
-RUN conan install --build missing -s build_type=RelWithDebInfo -pr=clang .
+RUN conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan" \
+    && conan profile new clang --detect \
+    && conan profile update settings.compiler=clang clang  \
+    && conan profile update settings.compiler.version=$LLVM_VERSION clang  \
+    && conan profile update settings.compiler.libcxx=libstdc++11 clang \
+    && conan profile update settings.build_type=RelWithDebInfo clang \
+    && conan profile update env.CC=clang-$LLVM_VERSION clang  \
+    && conan profile update env.CXX=clang++-$LLVM_VERSION clang  \
+    && conan install --build missing -pr=clang .
 
 ###################################################################
 # Build stage - use builder image for actual build of taraxa node #
