@@ -164,6 +164,15 @@ void checkConcurrentProcessing(
   }
 }
 
+size_t queuesSize(const tarcap::TarcapThreadPool& tp) {
+  const auto [high_priority_queue_size, mid_priority_queue_size, low_priority_queue_size] = tp.getQueueSize();
+
+  return high_priority_queue_size + mid_priority_queue_size + low_priority_queue_size;
+}
+
+// Extra delay for queue locking, popping packets, etc... on top of how much time is packet processing taking
+constexpr size_t WAIT_TRESHOLD_MS = 15;
+
 // Test if all "block-free" packets are processed concurrently
 // Note: in case someone creates new blocking dependency and does not adjust tests, this test should fail
 TEST_F(TarcapTpTest, block_free_packets) {
@@ -188,8 +197,8 @@ TEST_F(TarcapTpTest, block_free_packets) {
                                    createDummyPacketHandler(init_data, "STATUS_PH", 20));
   packets_handler->registerHandler(tarcap::SubprotocolPacketType::SyncedPacket,
                                    createDummyPacketHandler(init_data, "SYNCED_PH", 20));
-  packets_handler->registerHandler(tarcap::SubprotocolPacketType::PbftVotePacket,
-                                   createDummyPacketHandler(init_data, "PBFT_VOTE_PH", 20));
+  packets_handler->registerHandler(tarcap::SubprotocolPacketType::VotePacket,
+                                   createDummyPacketHandler(init_data, "VOTE_PH", 20));
   packets_handler->registerHandler(tarcap::SubprotocolPacketType::GetVotesSyncPacket,
                                    createDummyPacketHandler(init_data, "GET_VOTES_SYNC_PH", 20));
   packets_handler->registerHandler(tarcap::SubprotocolPacketType::VotesSyncPacket,
@@ -236,10 +245,10 @@ TEST_F(TarcapTpTest, block_free_packets) {
   const auto packet11_synced_id =
       tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::SyncedPacket, {})).value();
 
-  const auto packet12_pbft_vote_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::PbftVotePacket, {})).value();
-  const auto packet13_pbft_vote_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::PbftVotePacket, {})).value();
+  const auto packet12_vote_id =
+      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::VotePacket, {})).value();
+  const auto packet13_vote_id =
+      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::VotePacket, {})).value();
 
   const auto packet14_get_pbft_next_votes_id =
       tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::GetVotesSyncPacket, {})).value();
@@ -253,8 +262,34 @@ TEST_F(TarcapTpTest, block_free_packets) {
 
   tp.startProcessing();
 
-  // Wait for all packets to be processed
-  std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  // How should packets be processed:
+  // Note: To understand how are different packet types processed (concurrently without any blocking dependencies or
+  // synchronously due to some blocking dependencies - depends on situation), check
+  // PriorityQueue::updateDependenciesStart
+  /*
+    ----------------------
+    - packet0_pbft_block -
+    ----------------------
+    ----------------------
+    - packet1_pbft_block -
+    ----------------------
+    -----------------------
+    - packet2_transaction -
+    -----------------------
+
+             -||-
+             ...
+
+    -----------------------
+    - packet17_votes_sync -
+    -----------------------
+    0.....................20.................... time [ms]
+  */
+
+  // Wait specific amount of time during which all packets should be already processed if concurrent processing works as
+  // it is supposed to
+  std::this_thread::sleep_for(std::chrono::milliseconds(20 + WAIT_TRESHOLD_MS));
+  EXPECT_EQ(queuesSize(tp), 0);
 
   // Check order of packets how they were processed
   const auto packets_proc_info = init_data.packets_processing_info;
@@ -277,8 +312,8 @@ TEST_F(TarcapTpTest, block_free_packets) {
   const auto packet10_synced_proc_info = packets_proc_info->getPacketProcessingTimes(packet10_synced_id);
   const auto packet11_synced_proc_info = packets_proc_info->getPacketProcessingTimes(packet11_synced_id);
 
-  const auto packet12_pbft_vote_proc_info = packets_proc_info->getPacketProcessingTimes(packet12_pbft_vote_id);
-  const auto packet13_pbft_vote_proc_info = packets_proc_info->getPacketProcessingTimes(packet13_pbft_vote_id);
+  const auto packet12_vote_proc_info = packets_proc_info->getPacketProcessingTimes(packet12_vote_id);
+  const auto packet13_vote_proc_info = packets_proc_info->getPacketProcessingTimes(packet13_vote_id);
 
   const auto packet14_get_pbft_next_votes_proc_info =
       packets_proc_info->getPacketProcessingTimes(packet14_get_pbft_next_votes_id);
@@ -303,8 +338,8 @@ TEST_F(TarcapTpTest, block_free_packets) {
       {packet9_status_proc_info, "packet9_status"},
       {packet10_synced_proc_info, "packet10_synced"},
       {packet11_synced_proc_info, "packet10_synced"},
-      {packet12_pbft_vote_proc_info, "packet12_pbft_vote"},
-      {packet13_pbft_vote_proc_info, "packet13_pbft_vote"},
+      {packet12_vote_proc_info, "packet12_vote"},
+      {packet13_vote_proc_info, "packet13_vote"},
       {packet14_get_pbft_next_votes_proc_info, "packet14_get_pbft_next_votes"},
       {packet15_get_pbft_next_votes_proc_info, "packet15_get_pbft_next_votes"},
       {packet16_pbft_next_votes_proc_info, "packet16_pbft_next_votes"},
@@ -356,7 +391,10 @@ TEST_F(TarcapTpTest, hard_blocking_deps) {
 
   tp.startProcessing();
 
-  // How should dag blocks packets be processed:
+  // How should packets be processed:
+  // Note: To understand how are different packet types processed (concurrently without any blocking dependencies or
+  // synchronously due to some blocking dependencies - depends on situation), check
+  // PriorityQueue::updateDependenciesStart
   /*
     ------------------------
     --- packet0_dag_sync ---
@@ -385,11 +423,13 @@ TEST_F(TarcapTpTest, hard_blocking_deps) {
                                                        ------------------------
                                                        - packet8_get_dag_sync -
                                                        ------------------------
-    ..................................................................................... time
+    0......................20........................60........................80.......... time
   */
 
-  // Wait for all packets to be processed
-  std::this_thread::sleep_for(std::chrono::milliseconds(200));
+  // Wait specific amount of time during which all packets should be already processed if concurrent processing works as
+  // it is supposed to
+  std::this_thread::sleep_for(std::chrono::milliseconds(60 + WAIT_TRESHOLD_MS));
+  EXPECT_EQ(queuesSize(tp), 0);
 
   // Check order of packets how they were processed
   const auto packets_proc_info = init_data.packets_processing_info;
@@ -461,7 +501,10 @@ TEST_F(TarcapTpTest, peer_order_blocking_deps) {
             createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::DagBlockPacket, {createDagBlockRlp(1)}))
           .value();
 
-  // How should dag blocks packets be processed:
+  // How should packets be processed:
+  // Note: To understand how are different packet types processed (concurrently without any blocking dependencies or
+  // synchronously due to some blocking dependencies - depends on situation), check
+  // PriorityQueue::updateDependenciesStart
   /*
     --------------
     - packet0_tx -
@@ -478,13 +521,15 @@ TEST_F(TarcapTpTest, peer_order_blocking_deps) {
                                  ---------------------
                                  - packet4_dag_block -
                                  ---------------------
-    ..................................................................................... time
+    0............20.............40....................60.................. time [ms]
   */
 
   tp.startProcessing();
 
-  // Wait for all packets to be processed
-  std::this_thread::sleep_for(std::chrono::milliseconds(200));
+  // Wait specific amount of time during which all packets should be already processed if concurrent processing works as
+  // it is supposed to
+  std::this_thread::sleep_for(std::chrono::milliseconds(60 + WAIT_TRESHOLD_MS));
+  EXPECT_EQ(queuesSize(tp), 0);
 
   // Check order of packets how they were processed
   const auto packets_proc_info = init_data.packets_processing_info;
@@ -549,6 +594,9 @@ TEST_F(TarcapTpTest, dag_blks_lvls_ordering) {
   tp.startProcessing();
 
   // How should dag blocks packets be processed:
+  // Note: To understand how are different packet types processed (concurrently without any blocking dependencies or
+  // synchronously due to some blocking dependencies - depends on situation), check
+  // PriorityQueue::updateDependenciesStart
   /*
     -------------
     - blk0_lvl1 -
@@ -568,11 +616,13 @@ TEST_F(TarcapTpTest, dag_blks_lvls_ordering) {
                                               -------------
                                               - blk5_lvl3 -
                                               -------------
-    ..................................................................................... time
+    0...........20............40............60.............80................. time [ms]
   */
 
-  // Wait for all packets to be processed
-  std::this_thread::sleep_for(std::chrono::milliseconds(200));
+  // Wait specific amount of time during which all packets should be already processed if concurrent processing works as
+  // it is supposed to
+  std::this_thread::sleep_for(std::chrono::milliseconds(80 + WAIT_TRESHOLD_MS));
+  EXPECT_EQ(queuesSize(tp), 0);
 
   // Check order of packets how they were processed
   const auto packets_proc_info = init_data.packets_processing_info;
@@ -607,8 +657,8 @@ TEST_F(TarcapTpTest, threads_borrowing) {
   HandlersInitData init_data = createHandlersInitData();
 
   auto packets_handler = std::make_shared<tarcap::PacketsHandler>();
-  packets_handler->registerHandler(tarcap::SubprotocolPacketType::PbftVotePacket,
-                                   createDummyPacketHandler(init_data, "PBFT_VOTE_PH", 20));
+  packets_handler->registerHandler(tarcap::SubprotocolPacketType::VotePacket,
+                                   createDummyPacketHandler(init_data, "VOTE_PH", 100));
 
   // Creates threadpool
   const size_t threads_num = 10;
@@ -619,14 +669,40 @@ TEST_F(TarcapTpTest, threads_borrowing) {
   std::vector<uint64_t> pushed_packets_ids;
   for (size_t i = 0; i < threads_num; i++) {
     uint64_t packet_id =
-        tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::PbftVotePacket, {})).value();
+        tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::VotePacket, {})).value();
     pushed_packets_ids.push_back(packet_id);
   }
 
   tp.startProcessing();
 
-  // Wait for all packets to be processed
-  std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  // How should packets be processed:
+  // Note: To understand how are different packet types processed (concurrently without any blocking dependencies or
+  // synchronously due to some blocking dependencies - depends on situation), check
+  // PriorityQueue::updateDependenciesStart
+  /*
+    ----------------
+    - packet0_vote -
+    ----------------
+    ----------------
+    - packet1_vote -
+    ----------------
+    ----------------
+    - packet2_vote -
+    ----------------
+
+          -||-
+          ...
+
+    ----------------
+    - packet9_vote -
+    ----------------
+    0..............100............... time [ms]
+   */
+
+  // Wait specific amount of time during which all packets should be already processed if concurrent processing works as
+  // it is supposed to
+  std::this_thread::sleep_for(std::chrono::milliseconds(100 + WAIT_TRESHOLD_MS));
+  EXPECT_EQ(queuesSize(tp), 0);
 
   // Check order of packets how they were processed
   const auto packets_proc_info = init_data.packets_processing_info;
@@ -634,7 +710,7 @@ TEST_F(TarcapTpTest, threads_borrowing) {
   std::vector<std::pair<PacketsProcessingInfo::PacketProcessingTimes, std::string>> packets_proc_info_vec;
   for (const auto packet_id : pushed_packets_ids) {
     packets_proc_info_vec.emplace_back(packets_proc_info->getPacketProcessingTimes(packet_id),
-                                       "packet" + std::to_string(packet_id) + "_pbft_vote");
+                                       "packet" + std::to_string(packet_id) + "_vote");
   }
 
   // Check if all pbft vote packets were processed concurrently -> threads from other queues had to be borrowed for that
@@ -650,8 +726,8 @@ TEST_F(TarcapTpTest, low_priotity_queue_starvation) {
 
   auto packets_handler = std::make_shared<tarcap::PacketsHandler>();
   // Handler for packet from high priority queue
-  packets_handler->registerHandler(tarcap::SubprotocolPacketType::PbftVotePacket,
-                                   createDummyPacketHandler(init_data, "PBFT_VOTE_PH", 20));
+  packets_handler->registerHandler(tarcap::SubprotocolPacketType::VotePacket,
+                                   createDummyPacketHandler(init_data, "VOTE_PH", 20));
 
   // Handler for packet from mid priority queue
   packets_handler->registerHandler(tarcap::SubprotocolPacketType::TransactionPacket,
@@ -666,11 +742,11 @@ TEST_F(TarcapTpTest, low_priotity_queue_starvation) {
   tarcap::TarcapThreadPool tp(threads_num);
   tp.setPacketsHandlers(packets_handler);
 
-  // Push 10x more packets for each prioRtiy queue than max tp capacity to make sure that tp wont be able to process all
+  // Push 10x more packets for each prioriy queue than max tp capacity to make sure that tp wont be able to process all
   // packets from each queue concurrently -> many packets will be waiting due to max threads num reached for specific
   // priority queues
   for (size_t i = 0; i < 2 * 10 * threads_num; i++) {
-    tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::PbftVotePacket, {})).value();
+    tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::VotePacket, {})).value();
     tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::TransactionPacket, {})).value();
   }
 
@@ -681,9 +757,63 @@ TEST_F(TarcapTpTest, low_priotity_queue_starvation) {
 
   tp.startProcessing();
 
-  // Do not Wwit for all packets to be processed, wait only for packets from low priority queues to be processed
-  std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  // How should packets be processed:
+  // Note: To understand how are different packet types processed (concurrently without any blocking dependencies or
+  // synchronously due to some blocking dependencies - depends on situation), check
+  // PriorityQueue::updateDependenciesStart In this test are max concurrent processing limits for queues reached, so
+  // when we have 10 threads in thredpool:
+  // - 4 is limit for High priority queue - VotePacket
+  // - 4 is limit for Mid priority queue - TransactionPacket
+  // - 3 is limit for Low priority queue - TestPacket, but because max total limit (10) is always checked first
+  // , low priority queue wont be able to use more than 2 threads concurrently
+  /*
+    ----------------
+    - packet0_vote -
+    ----------------
+    ----------------
+    - packet1_vote -
+    ----------------
+    ----------------
+    - packet2_vote -
+    ----------------
+    ----------------
+    - packet3_vote -
+    ----------------
+    ----------------
+    -- packet4_tx --
+    ----------------
+    ----------------
+    -- packet5_tx --
+    ----------------
+    ----------------
+    -- packet6_tx --
+    ----------------
+    ----------------
+    -- packet7_tx --
+    ----------------
 
+         ....
+      votes and tx packets are processed concurrently 4 at a time until all of them are processed
+
+
+    ------------------
+    - packet400_test -
+    ------------------
+    ------------------
+    - packet401_test -
+    ------------------
+                       ------------------
+                       - packet402_test -
+                       ------------------
+                       ------------------
+                       - packet403_test -
+                       ------------------
+    0.................20.................40................... time [ms]
+  */
+
+  // Wait specific amount of time during which all packets should be already processed if concurrent processing works as
+  // it is supposed to
+  std::this_thread::sleep_for(std::chrono::milliseconds(40 + WAIT_TRESHOLD_MS));
   const auto [high_priority_queue_size, mid_priority_queue_size, low_priority_queue_size] = tp.getQueueSize();
 
   EXPECT_GT(high_priority_queue_size, 0);

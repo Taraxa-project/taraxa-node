@@ -16,7 +16,7 @@ class GetDagSyncPacketHandler : public PacketHandler {
   GetDagSyncPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
                           std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DagManager> dag_mgr,
                           std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<DbStorage> db,
-                          const addr_t& node_addr = {});
+                          const addr_t& node_addr);
 
   virtual ~GetDagSyncPacketHandler() = default;
 

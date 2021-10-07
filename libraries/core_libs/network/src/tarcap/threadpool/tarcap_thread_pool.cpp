@@ -33,7 +33,7 @@ TarcapThreadPool::~TarcapThreadPool() {
  **/
 std::optional<uint64_t> TarcapThreadPool::push(PacketData&& packet_data) {
   if (stopProcessing_) {
-    LOG(log_wr_) << "TRying to push packet while tp processing is stopped";
+    LOG(log_wr_) << "Trying to push packet while tp processing is stopped";
     return {};
   }
 

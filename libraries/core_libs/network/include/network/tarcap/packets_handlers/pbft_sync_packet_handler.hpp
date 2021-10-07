@@ -11,7 +11,7 @@ class PbftSyncPacketHandler : public ExtSyncingPacketHandler {
                         std::shared_ptr<SyncingState> syncing_state, std::shared_ptr<PbftChain> pbft_chain,
                         std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
                         std::shared_ptr<DagBlockManager> dag_blk_mgr, size_t network_sync_level_size,
-                        const addr_t& node_addr = {});
+                        const addr_t& node_addr);
 
   virtual ~PbftSyncPacketHandler() = default;
 

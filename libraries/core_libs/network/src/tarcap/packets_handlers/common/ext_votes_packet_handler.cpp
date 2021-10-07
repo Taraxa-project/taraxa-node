@@ -25,7 +25,7 @@ void ExtVotesPacketHandler::sendPbftVote(dev::p2p::NodeID const &peer_id, std::s
   const auto peer = peers_state_->getPeer(peer_id);
   // TODO: We should disable PBFT votes when a node is bootstrapping but not when trying to resync
   if (peer) {
-    if (sealAndSend(peer_id, PbftVotePacket, std::move(dev::RLPStream(1) << vote->rlp(true)))) {
+    if (sealAndSend(peer_id, SubprotocolPacketType::VotePacket, std::move(dev::RLPStream(1) << vote->rlp(true)))) {
       LOG(log_dg_) << "sendPbftVote " << vote->getHash() << " to " << peer_id;
       peer->markVoteAsKnown(vote->getHash());
     }

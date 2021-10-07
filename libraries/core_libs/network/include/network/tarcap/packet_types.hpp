@@ -12,7 +12,7 @@ namespace taraxa::network::tarcap {
 enum SubprotocolPacketType : uint32_t {
   // Consensus packets with high processing priority
   HighPriorityPackets = 0,
-  PbftVotePacket,
+  VotePacket,
   GetVotesSyncPacket,
   VotesSyncPacket,
 
@@ -54,8 +54,8 @@ inline std::string convertPacketTypeToString(SubprotocolPacketType packet_type) 
       return "TransactionPacket";
     case TestPacket:
       return "TestPacket";
-    case PbftVotePacket:
-      return "PbftVotePacket";
+    case VotePacket:
+      return "VotePacket";
     case GetVotesSyncPacket:
       return "GetVotesSyncPacket";
     case VotesSyncPacket:

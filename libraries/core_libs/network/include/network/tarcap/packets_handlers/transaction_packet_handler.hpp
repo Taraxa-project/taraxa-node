@@ -18,7 +18,7 @@ class TransactionPacketHandler : public PacketHandler {
   TransactionPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
                            std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
                            std::shared_ptr<TestState> test_state, uint16_t network_transaction_interval,
-                           const addr_t& node_addr = {});
+                           const addr_t& node_addr);
 
   virtual ~TransactionPacketHandler() = default;
 

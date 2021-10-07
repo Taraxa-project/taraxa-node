@@ -11,10 +11,10 @@
 #include "network/tarcap/packets_handlers/get_votes_sync_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/pbft_block_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/pbft_sync_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/pbft_vote_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/status_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/test_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/transaction_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/vote_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/votes_sync_packet_handler.hpp"
 #include "network/tarcap/shared_states/syncing_state.hpp"
 #include "network/tarcap/shared_states/test_state.hpp"
@@ -181,8 +181,8 @@ void TaraxaCapability::registerPacketHandlers(
 
   // Consensus packets with high processing priority
   packets_handlers_->registerHandler(
-      SubprotocolPacketType::PbftVotePacket,
-      std::make_shared<PbftVotePacketHandler>(peers_state_, packets_stats, pbft_mgr, vote_mgr, node_addr));
+      SubprotocolPacketType::VotePacket,
+      std::make_shared<VotePacketHandler>(peers_state_, packets_stats, pbft_mgr, vote_mgr, node_addr));
   packets_handlers_->registerHandler(
       SubprotocolPacketType::GetVotesSyncPacket,
       std::make_shared<GetVotesSyncPacketHandler>(peers_state_, packets_stats, pbft_mgr, next_votes_mgr, node_addr));
@@ -387,8 +387,7 @@ void TaraxaCapability::onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_blo
 }
 
 void TaraxaCapability::onNewPbftVote(const std::shared_ptr<Vote> &vote) {
-  std::static_pointer_cast<PbftVotePacketHandler>(
-      packets_handlers_->getSpecificHandler(SubprotocolPacketType::PbftVotePacket))
+  std::static_pointer_cast<VotePacketHandler>(packets_handlers_->getSpecificHandler(SubprotocolPacketType::VotePacket))
       ->onNewPbftVote(vote);
 }
 
@@ -441,8 +440,7 @@ void TaraxaCapability::sendPbftBlock(dev::p2p::NodeID const &id, PbftBlock const
 }
 
 void TaraxaCapability::sendPbftVote(dev::p2p::NodeID const &id, std::shared_ptr<Vote> const &vote) {
-  std::static_pointer_cast<PbftVotePacketHandler>(
-      packets_handlers_->getSpecificHandler(SubprotocolPacketType::PbftVotePacket))
+  std::static_pointer_cast<VotePacketHandler>(packets_handlers_->getSpecificHandler(SubprotocolPacketType::VotePacket))
       ->sendPbftVote(id, vote);
 }
 // END METHODS USED IN TESTS ONLY
