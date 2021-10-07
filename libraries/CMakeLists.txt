@@ -3,7 +3,6 @@ add_subdirectory(common)
 add_subdirectory(config)
 add_subdirectory(logger)
 add_subdirectory(core_libs)
-add_subdirectory(storage)
 add_subdirectory(types)
 add_subdirectory(vdf)
 
