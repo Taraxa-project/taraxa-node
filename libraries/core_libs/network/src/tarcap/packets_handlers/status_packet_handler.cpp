@@ -37,7 +37,7 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
     if (!selected_peer) {
       auto pending_peer = peers_state_->getPendingPeer(packet_data.from_node_id_);
       if (!pending_peer) {
-        LOG(log_er_) << "Peer " << packet_data.from_node_id_.abridged()
+        LOG(log_wr_) << "Peer " << packet_data.from_node_id_.abridged()
                      << " missing in both peers and pending peers map - will be disconnected.";
         disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
         return;
@@ -60,24 +60,27 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
 
     // We need logic when some different node versions might still be compatible
     if (node_major_version != TARAXA_MAJOR_VERSION || node_minor_version != TARAXA_MINOR_VERSION) {
-      LOG(log_er_) << "Incorrect node version: "
-                   << getFormattedVersion({node_major_version, node_minor_version, node_patch_version})
-                   << ", our node version" << TARAXA_VERSION << ", host " << packet_data.from_node_id_.abridged()
-                   << " will be disconnected";
+      // Log this only if we have 0 peers, so it is error of this node
+      LOG((peers_state_->getPeersCount()) ? log_nf_ : log_er_)
+          << "Incorrect node version: "
+          << getFormattedVersion({node_major_version, node_minor_version, node_patch_version}) << ", our node version"
+          << TARAXA_VERSION << ", host " << packet_data.from_node_id_.abridged() << " will be disconnected";
       disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
       return;
     }
 
     if (peer_network_id != conf_network_id_) {
-      LOG(log_er_) << "Incorrect network id " << peer_network_id << ", host " << packet_data.from_node_id_.abridged()
-                   << " will be disconnected";
+      LOG((peers_state_->getPeersCount()) ? log_nf_ : log_er_)
+          << "Incorrect network id " << peer_network_id << ", host " << packet_data.from_node_id_.abridged()
+          << " will be disconnected";
       disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
       return;
     }
 
     if (genesis_hash != dag_mgr_->get_genesis()) {
-      LOG(log_er_) << "Incorrect genesis hash " << genesis_hash << ", host " << packet_data.from_node_id_.abridged()
-                   << " will be disconnected";
+      LOG((peers_state_->getPeersCount()) ? log_nf_ : log_er_)
+          << "Incorrect genesis hash " << genesis_hash << ", host " << packet_data.from_node_id_.abridged()
+          << " will be disconnected";
       disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
       return;
     }

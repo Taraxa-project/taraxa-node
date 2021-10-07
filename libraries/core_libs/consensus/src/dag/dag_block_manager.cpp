@@ -383,7 +383,6 @@ void DagBlockManager::markBlockInvalid(blk_hash_t const &hash) {
   // TODO: uncomment once differentiate between invalid and incomplete blocks
   // blk_status_.update(hash, BlockStatus::invalid);
   seen_blocks_.erase(hash);
-  db_->removeNonfinalizedDagBlock(hash);
 }
 
 }  // namespace taraxa

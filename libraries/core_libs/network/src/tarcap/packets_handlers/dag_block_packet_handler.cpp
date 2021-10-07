@@ -106,7 +106,7 @@ void DagBlockPacketHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::D
 
   // Try to send data over network
   if (!sealAndSend(peer_id, DagBlockPacket, std::move(s))) {
-    LOG(log_er_) << "Sending DagBlock " << block.getHash() << " failed";
+    LOG(log_wr_) << "Sending DagBlock " << block.getHash() << " failed";
     return;
   }
 
