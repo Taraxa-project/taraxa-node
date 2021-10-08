@@ -8,11 +8,6 @@
 #include "vdf/sortition.hpp"
 
 namespace taraxa {
-
-enum class BlockStatus { invalid, broadcasted };
-
-using BlockStatusTable = ExpirationCacheMap<blk_hash_t, BlockStatus>;
-
 // Thread safe
 class DagBlockManager {
  public:
@@ -54,7 +49,6 @@ class DagBlockManager {
   bool markDagBlockAsSeen(const DagBlock &dag_block);
 
   std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash) const;
-  void clearBlockStatausTable() { blk_status_.clear(); }
   bool pivotAndTipsValid(DagBlock const &blk);
   uint64_t getCurrentMaxProposalPeriod() const;
   uint64_t getLastProposalPeriod() const;
@@ -82,7 +76,7 @@ class DagBlockManager {
   std::shared_ptr<PbftChain> pbft_chain_;
   logger::Logger log_time_;
 
-  BlockStatusTable blk_status_;
+  ExpirationCache<blk_hash_t> invalid_blocks_;
   ExpirationCacheMap<blk_hash_t, DagBlock> seen_blocks_;
   std::vector<std::thread> verifiers_;
   mutable boost::shared_mutex shared_mutex_for_unverified_qu_;

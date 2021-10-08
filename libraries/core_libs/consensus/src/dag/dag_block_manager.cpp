@@ -15,7 +15,7 @@ DagBlockManager::DagBlockManager(addr_t node_addr, VdfConfig const &vdf_config,
       final_chain_(final_chain),
       pbft_chain_(pbft_chain),
       log_time_(log_time),
-      blk_status_(cache_max_size_, cache_delete_step_),
+      invalid_blocks_(cache_max_size_, cache_delete_step_),
       seen_blocks_(cache_max_size_, cache_delete_step_),
       queue_limit_(queue_limit),
       vdf_config_(vdf_config),
@@ -77,20 +77,22 @@ std::shared_ptr<DagBlock> DagBlockManager::getDagBlock(blk_hash_t const &hash) c
 }
 
 bool DagBlockManager::pivotAndTipsValid(DagBlock const &blk) {
-  auto status = blk_status_.get(blk.getPivot());
-  if (status.second && status.first == BlockStatus::invalid) {
-    blk_status_.update(blk.getHash(), BlockStatus::invalid);
-    LOG(log_dg_) << "DAG Block " << blk.getHash() << " pivot " << blk.getPivot() << " unavailable";
+  // Check pivot validation
+  if (invalid_blocks_.count(blk.getPivot())) {
+    invalid_blocks_.insert(blk.getHash());
+    LOG(log_dg_) << "DAG Block " << blk.getHash() << " pivot " << blk.getPivot() << " is unavailable";
     return false;
   }
-  for (auto const &t : blk.getTips()) {
-    status = blk_status_.get(t);
-    if (status.second && status.first == BlockStatus::invalid) {
-      blk_status_.update(blk.getHash(), BlockStatus::invalid);
-      LOG(log_dg_) << "DAG Block " << blk.getHash() << " tip " << t << " unavailable";
+
+  // check tips validation
+  for (auto const &tip : blk.getTips()) {
+    if (invalid_blocks_.count(tip)) {
+      invalid_blocks_.insert(blk.getHash());
+      LOG(log_dg_) << "DAG Block " << blk.getHash() << " tip " << tip << " is unavailable";
       return false;
     }
   }
+
   return true;
 }
 
@@ -138,7 +140,6 @@ void DagBlockManager::pushUnverifiedBlock(DagBlock const &blk, std::vector<Trans
 
   {
     uLock lock(shared_mutex_for_unverified_qu_);
-    blk_status_.insert(blk.getHash(), BlockStatus::broadcasted);
     unverified_qu_[blk.getLevel()].emplace_back(std::make_pair(blk, transactions));
     LOG(log_dg_) << "Insert unverified DAG block " << blk.getHash();
   }
@@ -240,11 +241,9 @@ void DagBlockManager::verifyBlock() {
     }
 
     const auto &block_hash = blk.first.getHash();
-    auto status = blk_status_.get(block_hash);
-
     LOG(log_time_) << "Verifying Trx block  " << block_hash << " at: " << getCurrentTimeMilliSeconds();
 
-    if (status.second && status.first == BlockStatus::invalid) {
+    if (invalid_blocks_.count(block_hash)) {
       LOG(log_dg_) << "Skip invalid DAG block " << block_hash;
       continue;
     }
@@ -370,7 +369,7 @@ std::shared_ptr<ProposalPeriodDagLevelsMap> DagBlockManager::newProposePeriodDag
 
 void DagBlockManager::markBlockInvalid(blk_hash_t const &hash) {
   // TODO: uncomment once differentiate between invalid and incomplete blocks
-  // blk_status_.update(hash, BlockStatus::invalid);
+  // invalid_blocks_.insert(hash);
   seen_blocks_.erase(hash);
 }
 
