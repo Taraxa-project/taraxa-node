@@ -1,4 +1,4 @@
-#include "network/tarcap/packets_handlers/common/syncing_handler.hpp"
+#include "network/tarcap/packets_handlers/common/ext_syncing_packet_handler.hpp"
 
 #include "dag/dag.hpp"
 #include "dag/dag_block_manager.hpp"
@@ -9,21 +9,19 @@
 
 namespace taraxa::network::tarcap {
 
-SyncingHandler::SyncingHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
-                               std::shared_ptr<SyncingState> syncing_state, std::shared_ptr<PbftChain> pbft_chain,
-                               std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
-                               std::shared_ptr<DagBlockManager> dag_blk_mgr, const addr_t &node_addr)
-    : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "SYNCING"),
+ExtSyncingPacketHandler::ExtSyncingPacketHandler(
+    std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
+    std::shared_ptr<SyncingState> syncing_state, std::shared_ptr<PbftChain> pbft_chain,
+    std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
+    std::shared_ptr<DagBlockManager> dag_blk_mgr, const addr_t &node_addr, const std::string &log_channel_name)
+    : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, log_channel_name),
       syncing_state_(std::move(syncing_state)),
       pbft_chain_(std::move(pbft_chain)),
       pbft_mgr_(std::move(pbft_mgr)),
       dag_mgr_(std::move(dag_mgr)),
       dag_blk_mgr_(std::move(dag_blk_mgr)) {}
 
-void SyncingHandler::process([[maybe_unused]] const PacketData &packet_data,
-                             [[maybe_unused]] const std::shared_ptr<TaraxaPeer> &peer) {}
-
-void SyncingHandler::restartSyncingPbft(bool force) {
+void ExtSyncingPacketHandler::restartSyncingPbft(bool force) {
   if (syncing_state_->is_pbft_syncing() && !force) {
     LOG(log_dg_) << "restartSyncingPbft called but syncing_ already true";
     return;
@@ -75,13 +73,13 @@ void SyncingHandler::restartSyncingPbft(bool force) {
   }
 }
 
-void SyncingHandler::syncPeerPbft(unsigned long height_to_sync) {
+void ExtSyncingPacketHandler::syncPeerPbft(unsigned long height_to_sync) {
   const auto node_id = syncing_state_->syncing_peer();
   LOG(log_nf_) << "Sync peer node " << node_id << " from pbft chain height " << height_to_sync;
   sealAndSend(node_id, SubprotocolPacketType::GetPbftSyncPacket, std::move(dev::RLPStream(1) << height_to_sync));
 }
 
-void SyncingHandler::requestPendingDagBlocks() {
+void ExtSyncingPacketHandler::requestPendingDagBlocks() {
   std::unordered_set<blk_hash_t> known_non_finalized_blocks;
   auto blocks = dag_mgr_->getNonFinalizedBlocks();
   for (auto &level_blocks : blocks) {
@@ -90,11 +88,11 @@ void SyncingHandler::requestPendingDagBlocks() {
     }
   }
 
-  requestBlocks(syncing_state_->syncing_peer(), known_non_finalized_blocks, DagSyncRequestType::KnownHashes);
+  requestDagBlocks(syncing_state_->syncing_peer(), known_non_finalized_blocks, DagSyncRequestType::KnownHashes);
 }
 
-void SyncingHandler::requestBlocks(const dev::p2p::NodeID &_nodeID, const std::unordered_set<blk_hash_t> &blocks,
-                                   DagSyncRequestType mode) {
+void ExtSyncingPacketHandler::requestDagBlocks(const dev::p2p::NodeID &_nodeID,
+                                               const std::unordered_set<blk_hash_t> &blocks, DagSyncRequestType mode) {
   LOG(log_nf_) << "Sending GetDagSyncPacket";
   dev::RLPStream s(blocks.size() + 1);  // Mode + block itself
   s << static_cast<uint8_t>(mode);      // Send mode first
@@ -104,52 +102,8 @@ void SyncingHandler::requestBlocks(const dev::p2p::NodeID &_nodeID, const std::u
   sealAndSend(_nodeID, SubprotocolPacketType::GetDagSyncPacket, std::move(s));
 }
 
-void SyncingHandler::syncPbftNextVotes(uint64_t pbft_round, size_t pbft_previous_round_next_votes_size) {
-  dev::p2p::NodeID peer_node_ID;
-  uint64_t peer_max_pbft_round = 1;
-  size_t peer_max_previous_round_next_votes_size = 0;
-
-  auto peers = peers_state_->getAllPeers();
-  // Find max peer PBFT round
-  for (auto const &peer : peers) {
-    if (peer.second->pbft_round_ > peer_max_pbft_round) {
-      peer_max_pbft_round = peer.second->pbft_round_;
-      peer_node_ID = peer.first;
-    }
-  }
-
-  if (pbft_round == peer_max_pbft_round) {
-    // No peers ahead, find peer PBFT previous round max next votes size
-    for (auto const &peer : peers) {
-      if (peer.second->pbft_previous_round_next_votes_size_ > peer_max_previous_round_next_votes_size) {
-        peer_max_previous_round_next_votes_size = peer.second->pbft_previous_round_next_votes_size_;
-        peer_node_ID = peer.first;
-      }
-    }
-  }
-
-  if (pbft_round < peer_max_pbft_round ||
-      (pbft_round == peer_max_pbft_round &&
-       pbft_previous_round_next_votes_size < peer_max_previous_round_next_votes_size)) {
-    // TODO: was log_dg_next_votes_sync_
-    LOG(log_dg_) << "Syncing PBFT next votes. Current PBFT round " << pbft_round << ", previous round next votes size "
-                 << pbft_previous_round_next_votes_size << ". Peer " << peer_node_ID << " is in PBFT round "
-                 << peer_max_pbft_round << ", previous round next votes size "
-                 << peer_max_previous_round_next_votes_size;
-    requestPbftNextVotes(peer_node_ID, pbft_round, pbft_previous_round_next_votes_size);
-  }
-}
-
-void SyncingHandler::requestPbftNextVotes(dev::p2p::NodeID const &peerID, uint64_t pbft_round,
-                                          size_t pbft_previous_round_next_votes_size) {
-  // TODO: was log_dg_next_votes_sync_
-  LOG(log_dg_) << "Sending GetPbftNextVotes with round " << pbft_round << " previous round next votes size "
-               << pbft_previous_round_next_votes_size;
-  sealAndSend(peerID, GetPbftNextVotes,
-              std::move(dev::RLPStream(2) << pbft_round << pbft_previous_round_next_votes_size));
-}
-
-std::pair<bool, std::unordered_set<blk_hash_t>> SyncingHandler::checkDagBlockValidation(const DagBlock &block) const {
+std::pair<bool, std::unordered_set<blk_hash_t>> ExtSyncingPacketHandler::checkDagBlockValidation(
+    const DagBlock &block) const {
   std::unordered_set<blk_hash_t> missing_blks;
 
   if (dag_blk_mgr_->getDagBlock(block.getHash())) {

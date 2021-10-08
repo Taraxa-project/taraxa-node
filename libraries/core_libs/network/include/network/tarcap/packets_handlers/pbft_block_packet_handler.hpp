@@ -14,7 +14,7 @@ class PbftBlockPacketHandler : public PacketHandler {
  public:
   PbftBlockPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
                          std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<PbftManager> pbft_mgr,
-                         const addr_t& node_addr = {});
+                         const addr_t& node_addr);
 
   virtual ~PbftBlockPacketHandler() = default;
 
