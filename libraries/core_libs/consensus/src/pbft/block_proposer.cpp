@@ -154,8 +154,8 @@ level_t BlockProposer::getProposeLevel(blk_hash_t const& pivot, vec_blk_t const&
 void BlockProposer::proposeBlock(DagFrontier frontier, level_t level, vec_trx_t trxs, VdfSortition vdf) {
   if (stopped_) return;
 
-  auto blk =
-      std::make_shared<DagBlock>(frontier.pivot, level, std::move(frontier.tips), std::move(trxs), vdf, node_sk_);
+  auto blk = std::make_shared<DagBlock>(frontier.pivot, level, std::move(frontier.tips), std::move(trxs),
+                                        std::move(vdf), node_sk_);
   dag_mgr_->addDagBlock(*blk);
   dag_blk_mgr_->markDagBlockAsSeen(*blk);
 
