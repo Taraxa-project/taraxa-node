@@ -40,7 +40,12 @@ class PacketsProcessingInfo {
     std::shared_lock<std::shared_mutex> lock(mutex_);
 
     auto found_packet_info = packets_processing_times_.find(packet_id);
-    assert(found_packet_info != packets_processing_times_.end());
+
+    // Failed to obtain processing times for packet id: packet_id. Processing did not finish yet. This should be
+    // caught in processing times comparing
+    if (found_packet_info == packets_processing_times_.end()) {
+      return {};
+    }
 
     return found_packet_info->second;
   }
@@ -653,6 +658,8 @@ TEST_F(TarcapTpTest, dag_blks_lvls_ordering) {
 // High priority queue reached it's max workers limit, other queues have inside many blocked packets that cannot be
 // currently processed concurrently and MAX_TOTAL_WORKERS_COUNT is not reached yet. In such case some threads might
 // be unused. In such cases priority queues max workers limits can and should be ignored.
+//
+// Always keep 1 reserved thread for each priority queue at all times
 TEST_F(TarcapTpTest, threads_borrowing) {
   HandlersInitData init_data = createHandlersInitData();
 
@@ -679,6 +686,9 @@ TEST_F(TarcapTpTest, threads_borrowing) {
   // Note: To understand how are different packet types processed (concurrently without any blocking dependencies or
   // synchronously due to some blocking dependencies - depends on situation), check
   // PriorityQueue::updateDependenciesStart
+  //
+  // Note: each queue has 1 thread reserved at all times(even if it does not do anything) and there is 10 threads in
+  //       total, even with borrowing only 8 threads could be used at the same time
   /*
     ----------------
     - packet0_vote -
@@ -694,26 +704,43 @@ TEST_F(TarcapTpTest, threads_borrowing) {
           ...
 
     ----------------
-    - packet9_vote -
+    - packet7_vote -
     ----------------
-    0..............100............... time [ms]
+                     ----------------
+                     - packet8_vote -
+                     ----------------
+                     ----------------
+                     - packet9_vote -
+                     ----------------
+    0..............100...............200........... time [ms]
    */
 
-  // Wait specific amount of time during which all packets should be already processed if concurrent processing works as
-  // it is supposed to
+  // Wait specific amount of time during which first 8 packets should be already processed if
+  // concurrent processing works as it is supposed to
   std::this_thread::sleep_for(std::chrono::milliseconds(100 + WAIT_TRESHOLD_MS));
-  EXPECT_EQ(queuesSize(tp), 0);
+  EXPECT_LE(queuesSize(tp), 2);
 
   // Check order of packets how they were processed
   const auto packets_proc_info = init_data.packets_processing_info;
 
+  // In case some packet processing is not finished yet, getPacketProcessingTimes() returns default (empty) value
+  std::chrono::steady_clock::time_point default_time_point;
+
+  // Because each queue has 1 thread reserved at all times(even if it does not do anything) and there is 10 threads in
+  // total, even with borrowing only 8 threads could be used at the same time, thus last 2 packets (9th & 10th) should
+  // not be processed after (100 + WAIT_TRESHOLD_MS) ms
+  EXPECT_EQ(packets_proc_info->getPacketProcessingTimes(pushed_packets_ids[8]).start_time_, default_time_point);
+  EXPECT_EQ(packets_proc_info->getPacketProcessingTimes(pushed_packets_ids[8]).finish_time_, default_time_point);
+  EXPECT_EQ(packets_proc_info->getPacketProcessingTimes(pushed_packets_ids[9]).start_time_, default_time_point);
+  EXPECT_EQ(packets_proc_info->getPacketProcessingTimes(pushed_packets_ids[9]).finish_time_, default_time_point);
+
   std::vector<std::pair<PacketsProcessingInfo::PacketProcessingTimes, std::string>> packets_proc_info_vec;
-  for (const auto packet_id : pushed_packets_ids) {
-    packets_proc_info_vec.emplace_back(packets_proc_info->getPacketProcessingTimes(packet_id),
-                                       "packet" + std::to_string(packet_id) + "_vote");
+  for (size_t i = 0; i < threads_num - (tarcap::PacketData::PacketPriority::Count - 1); i++) {
+    packets_proc_info_vec.emplace_back(packets_proc_info->getPacketProcessingTimes(pushed_packets_ids[i]),
+                                       "packet" + std::to_string(pushed_packets_ids[i]) + "_vote");
   }
 
-  // Check if all pbft vote packets were processed concurrently -> threads from other queues had to be borrowed for that
+  // Check if first 8 pbft vote packets were processed concurrently -> threads from other queues had to be borrowed for that
   checkConcurrentProcessing(packets_proc_info_vec);
 }
 

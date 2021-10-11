@@ -5,7 +5,8 @@ namespace taraxa::network::tarcap {
 PriorityQueue::PriorityQueue(size_t tp_workers_count, const addr_t& node_addr)
     : blocked_packets_mask_(), MAX_TOTAL_WORKERS_COUNT(tp_workers_count), act_total_workers_count_(0) {
   assert(packets_queues_.size() == PacketData::PacketPriority::Count);
-  assert(tp_workers_count >= 1);
+  // tp_workers_count value should be validated (>=3) after it is read from config
+  assert(tp_workers_count >= 3);
 
   LOG_OBJECTS_CREATE("PRIORITY_QUEUE");
 
@@ -32,6 +33,21 @@ PriorityQueue::PriorityQueue(size_t tp_workers_count, const addr_t& node_addr)
 
 void PriorityQueue::pushBack(PacketData&& packet) { packets_queues_[packet.priority_].pushBack(std::move(packet)); }
 
+bool PriorityQueue::canBorrowThread() {
+  size_t reserved_threads_num = 0;
+
+  for (const auto& queue : packets_queues_) {
+    // No need to reserve thread for this queue as it is using at least 1 thread at the moment
+    if (queue.getActiveWorkersNum()) {
+      continue;
+    }
+
+    reserved_threads_num++;
+  }
+
+  return act_total_workers_count_ < (MAX_TOTAL_WORKERS_COUNT - reserved_threads_num);
+}
+
 std::optional<PacketData> PriorityQueue::pop() {
   if (act_total_workers_count_ >= MAX_TOTAL_WORKERS_COUNT) {
     LOG(log_dg_) << "MAX_TOTAL_WORKERS_COUNT(" << MAX_TOTAL_WORKERS_COUNT << ") reached, unable to pop data.";
@@ -45,8 +61,8 @@ std::optional<PacketData> PriorityQueue::pop() {
   //
   // High priority queue reached it's max workers limit, other queues have inside many blocked packets that cannot be
   // currently processed concurrently and MAX_TOTAL_WORKERS_COUNT is not reached yet. In such case some threads might
-  // be unused. In such cases priority queues max workers limits can and should be ignored.
-  bool do_second_iteration = false;
+  // be unused. In such cases priority queues max workers limits can and should be ignored
+  bool try_borrow_thread = false;
 
   // Get first packet to be processed. Queues are ordered by priority
   // starting with highest priority and ending with lowest priority
@@ -56,7 +72,7 @@ std::optional<PacketData> PriorityQueue::pop() {
     }
 
     if (queue.maxWorkersCountReached()) {
-      do_second_iteration = true;
+      try_borrow_thread = true;
       continue;
     }
 
@@ -67,8 +83,14 @@ std::optional<PacketData> PriorityQueue::pop() {
     // All packets in this queue are currently blocked
   }
 
-  if (!do_second_iteration) {
+  if (!try_borrow_thread) {
     LOG(log_dg_) << "No non-blocked packets to be processed.";
+    return {};
+  }
+
+  if (!canBorrowThread()) {
+    LOG(log_dg_) << "No non-blocked packets to be processed + limits reached -> unable to borrow thread due to "
+                    "\"Always keep at least 1 reserved thread for each priority queue \" rule";
     return {};
   }
 
@@ -79,6 +101,7 @@ std::optional<PacketData> PriorityQueue::pop() {
     }
 
     if (auto packet = queue.pop(blocked_packets_mask_); packet.has_value()) {
+      LOG(log_dg_) << "Thread for packet processing borrowed";
       return packet;
     }
 
