@@ -24,6 +24,8 @@ std::optional<PacketData> PacketsQueue::pop(const PacketsBlockingMask& packets_b
 
     std::optional<PacketData> ret = std::move(*packet_it);
     packets_.erase(packet_it);
+
+    assert(act_packets_count_);
     act_packets_count_--;
 
     return ret;
