@@ -128,7 +128,7 @@ bool DagBlock::verifySig() const {
   return !pk.isZero();
 }
 
-void DagBlock::verifyVdf(const VdfConfig &vdf_config) const {
+void DagBlock::verifyVdf(const SortitionConfig &vdf_config) const {
   vdf_.verifyVdf(vdf_config, getRlpBytes(getLevel()), getPivot().asBytes());
 }
 

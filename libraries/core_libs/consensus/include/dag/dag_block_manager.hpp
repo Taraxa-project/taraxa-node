@@ -11,8 +11,9 @@ namespace taraxa {
 // Thread safe
 class DagBlockManager {
  public:
-  DagBlockManager(addr_t node_addr, VdfConfig const &vdf_config, std::optional<state_api::DPOSConfig> dpos_config,
-                  unsigned verify_threads, std::shared_ptr<DbStorage> db, std::shared_ptr<TransactionManager> trx_mgr,
+  DagBlockManager(addr_t node_addr, SortitionConfig const &sortition_config,
+                  std::optional<state_api::DPOSConfig> dpos_config, unsigned verify_threads,
+                  std::shared_ptr<DbStorage> db, std::shared_ptr<TransactionManager> trx_mgr,
                   std::shared_ptr<FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain,
                   logger::Logger log_time_, uint32_t queue_limit = 0);
   ~DagBlockManager();
@@ -81,7 +82,7 @@ class DagBlockManager {
   std::map<uint64_t, std::deque<DagBlock>> unverified_qu_;
   std::map<uint64_t, std::deque<DagBlock>> verified_qu_;
 
-  VdfConfig vdf_config_;
+  SortitionConfig sortition_config_;
   std::optional<state_api::DPOSConfig> dpos_config_;
 
   LOG_OBJECTS_DEFINE

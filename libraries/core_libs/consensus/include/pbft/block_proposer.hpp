@@ -41,7 +41,7 @@ class ProposeModelFace {
 
 class SortitionPropose : public ProposeModelFace {
  public:
-  SortitionPropose(VdfConfig const& vdf_config, addr_t node_addr, std::shared_ptr<DagManager> dag_mgr,
+  SortitionPropose(SortitionConfig const& vdf_config, addr_t node_addr, std::shared_ptr<DagManager> dag_mgr,
                    std::shared_ptr<TransactionManager> trx_mgr)
       : vdf_config_(vdf_config), dag_mgr_(dag_mgr), trx_mgr_(trx_mgr) {
     LOG_OBJECTS_CREATE("PR_MDL");
@@ -51,7 +51,7 @@ class SortitionPropose : public ProposeModelFace {
   bool propose() override;
 
  private:
-  VdfConfig vdf_config_;
+  SortitionConfig vdf_config_;
   int num_tries_ = 0;
   const int max_num_tries_ = 20;  // Wait 2000(ms)
   level_t last_propose_level_ = 0;
@@ -67,10 +67,10 @@ class SortitionPropose : public ProposeModelFace {
  */
 class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
  public:
-  BlockProposer(BlockProposerConfig const& bp_config, VdfConfig const& vdf_config, std::shared_ptr<DagManager> dag_mgr,
-                std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
-                std::shared_ptr<FinalChain> final_chain, addr_t node_addr, secret_t node_sk, vrf_sk_t vrf_sk,
-                logger::Logger log_time)
+  BlockProposer(BlockProposerConfig const& bp_config, SortitionConfig const& vdf_config,
+                std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr,
+                std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<FinalChain> final_chain, addr_t node_addr,
+                secret_t node_sk, vrf_sk_t vrf_sk, logger::Logger log_time)
       : bp_config_(bp_config),
         dag_mgr_(std::move(dag_mgr)),
         trx_mgr_(std::move(trx_mgr)),

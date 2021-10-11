@@ -109,7 +109,7 @@ TEST_F(CryptoTest, vrf_sortition) {
 }
 
 TEST_F(CryptoTest, vdf_sortition) {
-  VdfConfig vdf_config(0xffff, 0xe665, 5, 10, 10, 1500);
+  SortitionConfig vdf_config(0xffff, 0xe665, 5, 10, 10, 1500);
   vrf_sk_t sk(
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
       "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -125,20 +125,20 @@ TEST_F(CryptoTest, vdf_sortition) {
   EXPECT_EQ(vdf, vdf2);
   EXPECT_EQ(vdf, vdf3);
 
-  VdfConfig vdf_config_no_omit_no_stale(0xffff, 0, 5, 10, 10, 1500);
+  SortitionConfig vdf_config_no_omit_no_stale(0xffff, 0, 5, 10, 10, 1500);
   EXPECT_FALSE(vdf.isStale(vdf_config_no_omit_no_stale));
-  EXPECT_FALSE(vdf.omitVdf(vdf_config_no_omit_no_stale));
+  EXPECT_FALSE(vdf.isOmitVdf(vdf_config_no_omit_no_stale));
 
-  VdfConfig vdf_config_omit_no_stale(0xffff, 0xff00, 5, 10, 10, 1500);
+  SortitionConfig vdf_config_omit_no_stale(0xffff, 0xff00, 5, 10, 10, 1500);
   EXPECT_FALSE(vdf.isStale(vdf_config_omit_no_stale));
-  EXPECT_TRUE(vdf.omitVdf(vdf_config_omit_no_stale));
+  EXPECT_TRUE(vdf.isOmitVdf(vdf_config_omit_no_stale));
 
-  VdfConfig vdf_config_stale(0xfff, 0, 5, 10, 10, 1500);
+  SortitionConfig vdf_config_stale(0xfff, 0, 5, 10, 10, 1500);
   EXPECT_TRUE(vdf.isStale(vdf_config_stale));
 }
 
 TEST_F(CryptoTest, vdf_solution) {
-  VdfConfig vdf_config(0xffff, 0xe665, 5, 10, 10, 1500);
+  SortitionConfig vdf_config(0xffff, 0xe665, 5, 10, 10, 1500);
   vrf_sk_t sk(
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
       "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -160,7 +160,7 @@ TEST_F(CryptoTest, vdf_solution) {
 }
 
 TEST_F(CryptoTest, vdf_proof_verify) {
-  VdfConfig vdf_config(255, 0, 5, 10, 10, 1500);
+  SortitionConfig vdf_config(255, 0, 5, 10, 10, 1500);
   vrf_sk_t sk(
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
       "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -179,8 +179,8 @@ TEST_F(CryptoTest, DISABLED_compute_vdf_solution_cost_time) {
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
       "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
   level_t level = 1;
-  uint16_t threshold_selection = 0;  // diffculty == diffuclty_stale
-  uint16_t threshold_vdf_omit = 0;   // Force no omit VDF
+  uint16_t threshold_upper = 0;  // diffculty == diffuclty_stale
+  uint16_t threshold_lower = 0;  // Force no omit VDF
   uint16_t difficulty_min = 0;
   uint16_t difficulty_max = 0;
   uint16_t lambda_bound = 100;
@@ -193,8 +193,8 @@ TEST_F(CryptoTest, DISABLED_compute_vdf_solution_cost_time) {
   // Fix lambda, vary difficulty
   for (uint16_t difficulty_stale = 0; difficulty_stale <= 20; difficulty_stale++) {
     std::cout << "Start at difficulty " << difficulty_stale << " :" << std::endl;
-    VdfConfig vdf_config(threshold_selection, threshold_vdf_omit, difficulty_min, difficulty_max, difficulty_stale,
-                         lambda_bound);
+    SortitionConfig vdf_config(threshold_upper, threshold_lower, difficulty_min, difficulty_max, difficulty_stale,
+                               lambda_bound);
     VdfSortition vdf(vdf_config, sk, getRlpBytes(level));
     vdf.computeVdfSolution(vdf_config, proposal_dag_block_pivot_hash1.asBytes());
     vdf_computation_time = vdf.getComputationTime();
@@ -213,8 +213,8 @@ TEST_F(CryptoTest, DISABLED_compute_vdf_solution_cost_time) {
   uint16_t difficulty_stale = 15;
   for (uint16_t lambda = 100; lambda <= 5000; lambda += 200) {
     std::cout << "Start at lambda " << lambda << " :" << std::endl;
-    VdfConfig vdf_config(threshold_selection, threshold_vdf_omit, difficulty_min, difficulty_max, difficulty_stale,
-                         lambda);
+    SortitionConfig vdf_config(threshold_upper, threshold_lower, difficulty_min, difficulty_max, difficulty_stale,
+                               lambda);
     VdfSortition vdf(vdf_config, sk, getRlpBytes(level));
     vdf.computeVdfSolution(vdf_config, proposal_dag_block_pivot_hash1.asBytes());
     vdf_computation_time = vdf.getComputationTime();
@@ -230,7 +230,7 @@ TEST_F(CryptoTest, DISABLED_compute_vdf_solution_cost_time) {
               << vdf.getDifficulty() << ", computation cost time " << vdf_computation_time << "(ms)" << std::endl;
   }
 
-  VdfConfig vdf_config(32768, 29184, 16, 21, 22, 100);
+  SortitionConfig vdf_config(32768, 29184, 16, 21, 22, 100);
   VdfSortition vdf(vdf_config, sk, getRlpBytes(level));
   std::cout << "output " << vdf.output << std::endl;
   int i = 0;

@@ -96,7 +96,7 @@ void FullNode::init() {
 
   pbft_chain_ = std::make_shared<PbftChain>(genesis_hash, node_addr, db_);
   next_votes_mgr_ = std::make_shared<NextVotesForPreviousRound>(node_addr, db_, final_chain_);
-  dag_blk_mgr_ = std::make_shared<DagBlockManager>(node_addr, conf_.chain.vdf, conf_.chain.final_chain.state.dpos,
+  dag_blk_mgr_ = std::make_shared<DagBlockManager>(node_addr, conf_.chain.sortition, conf_.chain.final_chain.state.dpos,
                                                    4 /* verifer thread*/, db_, trx_mgr_, final_chain_, pbft_chain_,
                                                    log_time_, conf_.test_params.max_block_queue_warn);
   dag_mgr_ = std::make_shared<DagManager>(genesis_hash, node_addr, trx_mgr_, pbft_chain_, dag_blk_mgr_, db_, log_time_);
@@ -104,8 +104,8 @@ void FullNode::init() {
   pbft_mgr_ = std::make_shared<PbftManager>(conf_.chain.pbft, genesis_hash, node_addr, db_, pbft_chain_, vote_mgr_,
                                             next_votes_mgr_, dag_mgr_, dag_blk_mgr_, trx_mgr_, final_chain_,
                                             kp_.secret(), conf_.vrf_secret);
-  blk_proposer_ = std::make_shared<BlockProposer>(conf_.test_params.block_proposer, conf_.chain.vdf, dag_mgr_, trx_mgr_,
-                                                  dag_blk_mgr_, final_chain_, node_addr, getSecretKey(),
+  blk_proposer_ = std::make_shared<BlockProposer>(conf_.test_params.block_proposer, conf_.chain.sortition, dag_mgr_,
+                                                  trx_mgr_, dag_blk_mgr_, final_chain_, node_addr, getSecretKey(),
                                                   getVrfSecretKey(), log_time_);
   network_ = std::make_shared<Network>(conf_.network, conf_.net_file_path().string(), kp_, db_, pbft_mgr_, pbft_chain_,
                                        vote_mgr_, next_votes_mgr_, dag_mgr_, dag_blk_mgr_, trx_mgr_);
