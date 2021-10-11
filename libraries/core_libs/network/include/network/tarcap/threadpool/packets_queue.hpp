@@ -65,6 +65,12 @@ class PacketsQueue {
    */
   size_t size() const;
 
+  /**
+   * @note This method is thread-safe
+   * @return number of workers that are currently processing packets from this queue
+   */
+  size_t getActiveWorkersNum() const;
+
  private:
   std::list<PacketData> packets_;
 

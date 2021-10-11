@@ -219,9 +219,9 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
 void FullNodeConfig::validate() {
   // Max enabled number of threads for processing rpc requests
   constexpr uint16_t MAX_PACKETS_PROCESSING_THREADS_NUM = 30;
-  if (network.network_packets_processing_threads == 0 ||
+  if (network.network_packets_processing_threads < 3 ||
       network.network_packets_processing_threads > MAX_PACKETS_PROCESSING_THREADS_NUM) {
-    throw ConfigException(std::string("network_packets_processing_threads must be in range (0, ") +
+    throw ConfigException(std::string("network_packets_processing_threads must be in range <3, ") +
                           std::to_string(MAX_PACKETS_PROCESSING_THREADS_NUM) + ">");
   }
 

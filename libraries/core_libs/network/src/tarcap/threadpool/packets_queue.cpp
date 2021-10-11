@@ -46,4 +46,6 @@ bool PacketsQueue::empty() const { return act_packets_count_ == 0; }
 
 size_t PacketsQueue::size() const { return act_packets_count_; }
 
+size_t PacketsQueue::getActiveWorkersNum() const { return act_workers_count_; }
+
 }  // namespace taraxa::network::tarcap

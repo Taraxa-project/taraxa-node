@@ -57,6 +57,15 @@ class PriorityQueue {
   size_t getPrirotityQueueSize(PacketData::PacketPriority priority) const;
 
  private:
+  /**
+   * @brief Queue can borrow reserved thread from one of the other priority queues but each queue must have
+   *        at least 1 thread reserved all the time even if has nothing to do
+   *
+   * @return true if thread can be borrowed, otherwise false
+   */
+  bool canBorrowThread();
+
+ private:
   // Declare logger instances
   LOG_OBJECTS_DEFINE
 
