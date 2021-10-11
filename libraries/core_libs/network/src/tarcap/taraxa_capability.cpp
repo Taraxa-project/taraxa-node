@@ -40,7 +40,7 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev
       syncing_state_(std::make_shared<SyncingState>(peers_state_)),
       node_stats_(nullptr),
       packets_handlers_(std::make_shared<PacketsHandler>()),
-      thread_pool_(conf.network_packets_processing_threads, node_addr),
+      thread_pool_(std::make_shared<TarcapThreadPool>(conf.network_packets_processing_threads, node_addr)),
       periodic_events_tp_(1, false) {
   LOG_OBJECTS_CREATE("TARCAP");
 
@@ -175,7 +175,7 @@ void TaraxaCapability::registerPacketHandlers(
     const std::shared_ptr<DagManager> &dag_mgr, const std::shared_ptr<DagBlockManager> &dag_blk_mgr,
     const std::shared_ptr<TransactionManager> &trx_mgr, addr_t const &node_addr) {
   node_stats_ = std::make_shared<NodeStats>(peers_state_, syncing_state_, pbft_chain, pbft_mgr, dag_mgr, dag_blk_mgr,
-                                            vote_mgr, trx_mgr, packets_stats, node_addr);
+                                            vote_mgr, trx_mgr, packets_stats, thread_pool_, node_addr);
 
   // Register all packet handlers
 
@@ -233,7 +233,7 @@ void TaraxaCapability::registerPacketHandlers(
   packets_handlers_->registerHandler(SubprotocolPacketType::PbftSyncPacket, pbft_handler);
   packets_handlers_->registerHandler(SubprotocolPacketType::SyncedPacket, pbft_handler);
 
-  thread_pool_.setPacketsHandlers(packets_handlers_);
+  thread_pool_->setPacketsHandlers(packets_handlers_);
 }
 
 std::string TaraxaCapability::name() const { return TARAXA_CAPABILITY_NAME; }
@@ -325,16 +325,16 @@ void TaraxaCapability::interpretCapabilityPacket(std::weak_ptr<dev::p2p::Session
   // TODO: we are making a copy here for each packet bytes(toBytes()), which is pretty significant. Check why RLP does
   //       not support move semantics so we can take advantage of it...
   SubprotocolPacketType packet_type = static_cast<SubprotocolPacketType>(_id);
-  thread_pool_.push(PacketData(packet_type, std::move(node_id), _r.data().toBytes()));
+  thread_pool_->push(PacketData(packet_type, std::move(node_id), _r.data().toBytes()));
 }
 
 void TaraxaCapability::start() {
-  thread_pool_.startProcessing();
+  thread_pool_->startProcessing();
   periodic_events_tp_.start();
 }
 
 void TaraxaCapability::stop() {
-  thread_pool_.stopProcessing();
+  thread_pool_->stopProcessing();
   periodic_events_tp_.stop();
 }
 

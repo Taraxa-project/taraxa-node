@@ -740,7 +740,8 @@ TEST_F(TarcapTpTest, threads_borrowing) {
                                        "packet" + std::to_string(pushed_packets_ids[i]) + "_vote");
   }
 
-  // Check if first 8 pbft vote packets were processed concurrently -> threads from other queues had to be borrowed for that
+  // Check if first 8 pbft vote packets were processed concurrently -> threads from other queues had to be borrowed for
+  // that
   checkConcurrentProcessing(packets_proc_info_vec);
 }
 

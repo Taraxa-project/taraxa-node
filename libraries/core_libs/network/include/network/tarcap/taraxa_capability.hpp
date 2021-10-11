@@ -131,7 +131,7 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   std::shared_ptr<PacketsHandler> packets_handlers_;
 
   // Main Threadpool for processing packets
-  TarcapThreadPool thread_pool_;
+  std::shared_ptr<TarcapThreadPool> thread_pool_;
 
   // TODO: refactor this: we could have some shared global threadpool for periodic events ?
   // Fake threadpool (1 thread) for periodic events like printing summary logs, packets stats, etc...
