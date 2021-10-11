@@ -34,7 +34,7 @@ Json::Value Test::insert_dag_block(const Json::Value &param1) {
 
       DagBlock blk(pivot, 0, tips, {}, signature, hash, sender);
       res = blk.getJsonStr();
-      node->getDagBlockManager()->insertBlock(std::move(blk));
+      node->getDagManager()->addDagBlock(std::move(blk));
     }
   } catch (std::exception &e) {
     res["status"] = e.what();

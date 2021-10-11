@@ -16,7 +16,6 @@ class DagBlockManager {
                   std::shared_ptr<FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain,
                   logger::Logger log_time_, uint32_t queue_limit = 0);
   ~DagBlockManager();
-  void insertBlock(DagBlock const &blk);
   /**
    * @brief Synchronously process synced dag block with transactions and inserts it into db
    *

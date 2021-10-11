@@ -109,12 +109,6 @@ level_t DagBlockManager::getMaxDagLevelInQueue() const {
   return max_level;
 }
 
-void DagBlockManager::insertBlock(DagBlock const &blk) {
-  pushUnverifiedBlock(std::move(blk));
-  LOG(log_time_) << "Store cblock " << blk.getHash() << " at: " << getCurrentTimeMilliSeconds()
-                 << " ,trxs: " << blk.getTrxs().size() << " , tips: " << blk.getTips().size();
-}
-
 void DagBlockManager::pushUnverifiedBlock(DagBlock const &blk, std::vector<Transaction> const &transactions) {
   // Block is already known -> it is either in cache or in dag structure
   if (isDagBlockKnown(blk.getHash())) {
