@@ -4,7 +4,7 @@
 
 namespace taraxa {
 
-DagBlockManager::DagBlockManager(addr_t node_addr, VdfConfig const &vdf_config,
+DagBlockManager::DagBlockManager(addr_t node_addr, SortitionConfig const &sortition_config,
                                  std::optional<state_api::DPOSConfig> dpos_config, unsigned num_verifiers,
                                  std::shared_ptr<DbStorage> db, std::shared_ptr<TransactionManager> trx_mgr,
                                  std::shared_ptr<FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain,
@@ -18,7 +18,7 @@ DagBlockManager::DagBlockManager(addr_t node_addr, VdfConfig const &vdf_config,
       invalid_blocks_(cache_max_size_, cache_delete_step_),
       seen_blocks_(cache_max_size_, cache_delete_step_),
       queue_limit_(queue_limit),
-      vdf_config_(vdf_config),
+      sortition_config_(sortition_config),
       dpos_config_(dpos_config) {
   LOG_OBJECTS_CREATE("BLKQU");
 
@@ -226,7 +226,7 @@ void DagBlockManager::verifyBlock() {
 
     // Verify VDF solution
     try {
-      blk.verifyVdf(vdf_config_);
+      blk.verifyVdf(sortition_config_);
     } catch (vdf_sortition::VdfSortition::InvalidVdfSortition const &e) {
       LOG(log_er_) << "DAG block " << block_hash << " failed on VDF verification with pivot hash " << blk.getPivot()
                    << " reason " << e.what();

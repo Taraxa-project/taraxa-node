@@ -138,13 +138,17 @@ const char *devnet_json = R"foo({
     "replay_protection_service": {
       "range": "0xa"
     },
-    "vdf": {
-      "difficulty_max": "0x12",
-      "difficulty_min": "0x10",
-      "threshold_selection": "0xbffd",
-      "threshold_vdf_omit": "0x6bf7",
-      "difficulty_stale": "0x13",
-      "lambda_bound": "0x64"
+    "sortition": {
+      "vrf": {
+        "threshold_upper": "0xbffd",
+        "threshold_lower": "0x6bf7"
+      },
+      "vdf": {
+        "difficulty_max": "0x12",
+        "difficulty_min": "0x10",
+        "difficulty_stale": "0x13",
+        "lambda_bound": "0x64"
+      }
     }
   }
 }

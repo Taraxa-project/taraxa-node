@@ -1529,14 +1529,18 @@ TEST_F(FullNodeTest, chain_config_json) {
     "lambda_ms_min": "0x7d0",
     "run_count_votes": false
   },
-  "vdf": {
-    "difficulty_max" : "0x15",
-		"difficulty_min" : "0x10",
-    "difficulty_stale" : "0x16",
-		"lambda_bound" : "0x64",
-		"threshold_selection" : "0x8000",
-		"threshold_vdf_omit" : "0x7200"
-	}
+  "sortition": {
+    "vrf": {
+      "threshold_upper": "0x8000",
+      "threshold_lower": "0x7200"
+    },
+    "vdf": {
+      "difficulty_max": "0x15",
+      "difficulty_min": "0x10",
+      "difficulty_stale": "0x16",
+      "lambda_bound": "0x64"
+    }
+  }
 })";
   Json::Value default_chain_config_json;
   std::istringstream(expected_default_chain_cfg_json) >> default_chain_config_json;

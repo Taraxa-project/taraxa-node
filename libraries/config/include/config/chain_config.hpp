@@ -18,7 +18,7 @@ using ::taraxa::util::lazy::LazyVal;
 struct ChainConfig {
   uint64_t chain_id = 0;
   DagBlock dag_genesis_block;
-  VdfConfig vdf;
+  SortitionConfig sortition;
   PbftConfig pbft;
   final_chain::Config final_chain;
 

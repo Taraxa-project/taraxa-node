@@ -1,6 +1,12 @@
 
-set(HEADERS include/vdf/sortition.hpp include/vdf/config.hpp)
-set(SOURCES src/sortition.cpp src/config.cpp)
+set(HEADERS 
+    include/vdf/config.hpp
+    include/vdf/sortition.hpp 
+)
+set(SOURCES 
+    src/config.cpp
+    src/sortition.cpp 
+)
 
 add_library(vdf ${SOURCES} ${HEADERS})
 target_include_directories(vdf PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
