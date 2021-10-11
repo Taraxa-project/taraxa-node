@@ -371,13 +371,13 @@ void DagManager::worker() {
     auto verified_block = dag_blk_mgr_->popVerifiedBlock(level_limit, level);
 
     level_limit = false;
-    auto const &blk = *(verified_block.first);
+    auto const &blk = *verified_block;
 
     if (pivotAndTipsAvailable(blk)) {
       addDagBlock(blk);
       block_verified_.emit(blk);
       if (auto net = network_.lock()) {
-        net->onNewBlockVerified(verified_block.first, verified_block.second);
+        net->onNewBlockVerified(verified_block, false);
       }
       LOG(log_time_) << "Broadcast block " << blk.getHash() << " at: " << getCurrentTimeMilliSeconds();
     } else {

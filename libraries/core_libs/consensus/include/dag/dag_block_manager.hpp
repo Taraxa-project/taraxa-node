@@ -26,8 +26,8 @@ class DagBlockManager {
   void processSyncedBlock(DbStorage::Batch &batch, SyncBlock const &sync_block);
   void insertBroadcastedBlockWithTransactions(DagBlock const &blk, std::vector<Transaction> const &transactions);
   void pushUnverifiedBlock(DagBlock const &block, std::vector<Transaction> const &transactions = {});
-  std::pair<std::shared_ptr<DagBlock>, bool> popVerifiedBlock(bool level_limit = false,
-                                                              uint64_t level = 0);  // get one verified block and pop
+  std::shared_ptr<DagBlock> popVerifiedBlock(bool level_limit = false,
+                                             uint64_t level = 0);  // get one verified block and pop
   void pushVerifiedBlock(DagBlock const &blk);
   std::pair<size_t, size_t> getDagBlockQueueSize() const;
   level_t getMaxDagLevelInQueue() const;
