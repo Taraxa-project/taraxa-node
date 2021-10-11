@@ -103,7 +103,7 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
 
   // add one valid as last
   auto dag_genesis = nodes[0]->getConfig().chain.dag_genesis_block.getHash();
-  VdfConfig vdf_config(node_cfgs[0].chain.vdf);
+  SortitionConfig vdf_config(node_cfgs[0].chain.sortition);
   vdf_sortition::VdfSortition vdf(vdf_config, nodes[0]->getVrfSecretKey(), getRlpBytes(1));
   vdf.computeVdfSolution(vdf_config, dag_genesis.asBytes());
   DagBlock blk(dag_genesis, 1, {}, {samples::createSignedTrxSamples(0, 1, g_secret)[0]->getHash()}, vdf,
@@ -188,6 +188,11 @@ TEST_F(NetworkTest, sync_large_pbft_block) {
   auto pbft_blocks1 = nodes[0]->getDB()->getPbftBlock(1);
   auto pbft_blocks2 = nodes2[0]->getDB()->getPbftBlock(1);
   EXPECT_EQ(pbft_blocks1->rlp(true), pbft_blocks2->rlp(true));
+
+  // this sleep is needed to process all remaining packets and destruct all network stuff
+  // on removal will cause next tests in the suite to fail because p2p port left binded
+  // see https://github.com/Taraxa-project/taraxa-node/issues/977 for more info
+  std::this_thread::sleep_for(1s);
 }
 
 // Test creates two Network setup and verifies sending transaction
@@ -297,7 +302,7 @@ TEST_F(NetworkTest, node_sync) {
   auto dag_genesis = node1->getConfig().chain.dag_genesis_block.getHash();
   auto sk = node1->getSecretKey();
   auto vrf_sk = node1->getVrfSecretKey();
-  VdfConfig vdf_config(node_cfgs[0].chain.vdf);
+  SortitionConfig vdf_config(node_cfgs[0].chain.sortition);
 
   auto propose_level = 1;
   vdf_sortition::VdfSortition vdf1(vdf_config, vrf_sk, getRlpBytes(propose_level));
@@ -372,7 +377,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
   auto dag_genesis = node1->getConfig().chain.dag_genesis_block.getHash();
   auto sk = node1->getSecretKey();
   auto vrf_sk = node1->getVrfSecretKey();
-  VdfConfig vdf_config(node_cfgs[0].chain.vdf);
+  SortitionConfig vdf_config(node_cfgs[0].chain.sortition);
   auto batch = db1->createWriteBatch();
 
   // generate first PBFT block sample
@@ -520,7 +525,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   auto dag_genesis = node1->getConfig().chain.dag_genesis_block.getHash();
   auto sk = node1->getSecretKey();
   auto vrf_sk = node1->getVrfSecretKey();
-  VdfConfig vdf_config(node_cfgs[0].chain.vdf);
+  SortitionConfig vdf_config(node_cfgs[0].chain.sortition);
   auto batch = db1->createWriteBatch();
 
   // generate first PBFT block sample
@@ -875,7 +880,7 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
   auto dag_genesis = node1->getConfig().chain.dag_genesis_block.getHash();
   auto sk = node1->getSecretKey();
   auto vrf_sk = node1->getVrfSecretKey();
-  VdfConfig vdf_config(node_cfgs[0].chain.vdf);
+  SortitionConfig vdf_config(node_cfgs[0].chain.sortition);
   auto propose_level = 1;
   vdf_sortition::VdfSortition vdf1(vdf_config, vrf_sk, getRlpBytes(propose_level));
   vdf1.computeVdfSolution(vdf_config, dag_genesis.asBytes());
@@ -963,7 +968,7 @@ TEST_F(NetworkTest, node_sync2) {
   auto dag_genesis = node1->getConfig().chain.dag_genesis_block.getHash();
   auto sk = node1->getSecretKey();
   auto vrf_sk = node1->getVrfSecretKey();
-  VdfConfig vdf_config(node_cfgs[0].chain.vdf);
+  SortitionConfig vdf_config(node_cfgs[0].chain.sortition);
   auto transactions = samples::createSignedTrxSamples(0, NUM_TRX2, sk);
   // DAG block1
   auto propose_level = 1;
