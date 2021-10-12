@@ -19,8 +19,7 @@ class PacketData {
    */
   static inline PacketPriority getPacketPriority(SubprotocolPacketType packet_type);
 
-  PacketData(PacketId packet_id, SubprotocolPacketType type, std::string&& type_str, dev::p2p::NodeID&& from_node_id_,
-             std::vector<unsigned char>&& bytes);
+  PacketData(SubprotocolPacketType type, dev::p2p::NodeID&& from_node_id_, std::vector<unsigned char>&& bytes);
   PacketData(const PacketData&) = default;
   PacketData(PacketData&&) = default;
   PacketData& operator=(const PacketData&) = default;
@@ -31,7 +30,7 @@ class PacketData {
   std::vector<unsigned char> rlp_bytes_;
 
  public:
-  PacketId id_;  // Unique packet id (counter)
+  PacketId id_{0};  // Unique packet id (counter)
   std::chrono::steady_clock::time_point receive_time_;
   SubprotocolPacketType type_;
   std::string type_str_;

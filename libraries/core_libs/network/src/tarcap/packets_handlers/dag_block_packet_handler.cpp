@@ -2,23 +2,24 @@
 
 #include "dag/dag_block_manager.hpp"
 #include "network/tarcap/packets_handlers/common/get_blocks_request_type.hpp"
-#include "network/tarcap/packets_handlers/common/syncing_handler.hpp"
 #include "network/tarcap/shared_states/syncing_state.hpp"
 #include "network/tarcap/shared_states/test_state.hpp"
 #include "transaction_manager/transaction_manager.hpp"
 
 namespace taraxa::network::tarcap {
 
-DagBlockPacketHandler::DagBlockPacketHandler(
-    std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
-    std::shared_ptr<SyncingState> syncing_state, std::shared_ptr<SyncingHandler> syncing_handler,
-    std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
-    std::shared_ptr<DbStorage> db, std::shared_ptr<TestState> test_state, const addr_t &node_addr)
-    : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "NEW_DAG_BLOCK_PH"),
-      syncing_state_(std::move(syncing_state)),
-      syncing_handler_(std::move(syncing_handler)),
+DagBlockPacketHandler::DagBlockPacketHandler(std::shared_ptr<PeersState> peers_state,
+                                             std::shared_ptr<PacketsStats> packets_stats,
+                                             std::shared_ptr<SyncingState> syncing_state,
+                                             std::shared_ptr<PbftChain> pbft_chain,
+                                             std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
+                                             std::shared_ptr<DagBlockManager> dag_blk_mgr,
+                                             std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DbStorage> db,
+                                             std::shared_ptr<TestState> test_state, const addr_t &node_addr)
+    : ExtSyncingPacketHandler(std::move(peers_state), std::move(packets_stats), std::move(syncing_state),
+                              std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(dag_blk_mgr),
+                              node_addr, "DAG_BLOCK_PH"),
       trx_mgr_(std::move(trx_mgr)),
-      dag_blk_mgr_(std::move(dag_blk_mgr)),
       db_(std::move(db)),
       test_state_(std::move(test_state)) {}
 
@@ -46,7 +47,7 @@ void DagBlockPacketHandler::process(const PacketData &packet_data, const std::sh
       return;
     }
 
-    if (auto status = syncing_handler_->checkDagBlockValidation(block); !status.first) {
+    if (auto status = checkDagBlockValidation(block); !status.first) {
       trx_mgr_->insertBroadcastedTransactions(new_transactions);
 
       // Ignore new block packets when pbft syncing
@@ -57,7 +58,7 @@ void DagBlockPacketHandler::process(const PacketData &packet_data, const std::sh
 
       LOG(log_er_) << "Received NewBlock " << hash.toString() << " has missing pivot or/and tips " << status.second;
       status.second.insert(hash);
-      syncing_handler_->requestBlocks(packet_data.from_node_id_, status.second, DagSyncRequestType::MissingHashes);
+      requestDagBlocks(packet_data.from_node_id_, status.second, DagSyncRequestType::MissingHashes);
       return;
     }
   }
@@ -106,7 +107,7 @@ void DagBlockPacketHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::D
 
   // Try to send data over network
   if (!sealAndSend(peer_id, DagBlockPacket, std::move(s))) {
-    LOG(log_er_) << "Sending DagBlock " << block.getHash() << " failed";
+    LOG(log_wr_) << "Sending DagBlock " << block.getHash() << " failed";
     return;
   }
 

@@ -2,18 +2,18 @@
 
 namespace taraxa::network::tarcap {
 
-PacketsQueue::PacketsQueue(size_t max_workers_count)
-    : packets_(), kMaxWorkersCount_(max_workers_count), act_workers_count_(0) {}
-
 bool PacketsQueue::maxWorkersCountReached() const {
   if (act_workers_count_ >= kMaxWorkersCount_) {
-    return false;
+    return true;
   }
 
-  return true;
+  return false;
 }
 
-void PacketsQueue::pushBack(PacketData&& packet) { packets_.push_back(std::move(packet)); }
+void PacketsQueue::pushBack(PacketData&& packet) {
+  packets_.push_back(std::move(packet));
+  act_packets_count_++;
+}
 
 std::optional<PacketData> PacketsQueue::pop(const PacketsBlockingMask& packets_blocking_mask) {
   for (auto packet_it = packets_.begin(); packet_it != packets_.end(); ++packet_it) {
@@ -24,6 +24,9 @@ std::optional<PacketData> PacketsQueue::pop(const PacketsBlockingMask& packets_b
 
     std::optional<PacketData> ret = std::move(*packet_it);
     packets_.erase(packet_it);
+
+    assert(act_packets_count_);
+    act_packets_count_--;
 
     return ret;
   }
@@ -41,8 +44,10 @@ void PacketsQueue::decrementActWorkersCount() {
   act_workers_count_--;
 }
 
-bool PacketsQueue::empty() const { return packets_.empty(); }
+bool PacketsQueue::empty() const { return act_packets_count_ == 0; }
 
-size_t PacketsQueue::size() const { return packets_.size(); }
+size_t PacketsQueue::size() const { return act_packets_count_; }
+
+size_t PacketsQueue::getActiveWorkersNum() const { return act_workers_count_; }
 
 }  // namespace taraxa::network::tarcap

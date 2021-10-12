@@ -10,7 +10,7 @@ namespace taraxa::network::tarcap {
 
 class PacketsQueue {
  public:
-  PacketsQueue(size_t max_workers_count = 5);
+  PacketsQueue() = default;
 
   /**
    * @brief Push new task to the queue
@@ -54,23 +54,34 @@ class PacketsQueue {
   void decrementActWorkersCount();
 
   /**
+   * @note This method is thread-safe
    * @return true if queue is empty, otherwise false
    */
   bool empty() const;
 
   /**
+   * @note This method is thread-safe
    * @return size of the queue
    */
   size_t size() const;
+
+  /**
+   * @note This method is thread-safe
+   * @return number of workers that are currently processing packets from this queue
+   */
+  size_t getActiveWorkersNum() const;
 
  private:
   std::list<PacketData> packets_;
 
   // How many workers can process packets from this queue at the same time
-  size_t kMaxWorkersCount_;
+  size_t kMaxWorkersCount_{0};
 
   // How many workers are currently processing packets from this queue at the same time
-  std::atomic<size_t> act_workers_count_;
+  std::atomic<size_t> act_workers_count_{0};
+
+  // How many packets are currently inside the queue
+  std::atomic<size_t> act_packets_count_{0};
 };
 
 }  // namespace taraxa::network::tarcap

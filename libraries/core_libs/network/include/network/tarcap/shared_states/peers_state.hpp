@@ -16,7 +16,7 @@ namespace taraxa::network::tarcap {
  */
 class PeersState {
  public:
-  PeersState(std::weak_ptr<dev::p2p::Host>&& host);
+  PeersState(std::weak_ptr<dev::p2p::Host> host, const dev::p2p::NodeID& own_node_id);
 
   std::shared_ptr<TaraxaPeer> getPeer(const dev::p2p::NodeID& node_id) const;
   std::shared_ptr<TaraxaPeer> getPendingPeer(const dev::p2p::NodeID& node_id) const;

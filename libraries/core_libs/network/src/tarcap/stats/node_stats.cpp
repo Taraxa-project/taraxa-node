@@ -6,6 +6,7 @@
 #include "network/tarcap/shared_states/peers_state.hpp"
 #include "network/tarcap/shared_states/syncing_state.hpp"
 #include "network/tarcap/stats/packets_stats.hpp"
+#include "network/tarcap/threadpool/tarcap_thread_pool.hpp"
 #include "pbft/pbft_chain.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "transaction_manager/transaction_manager.hpp"
@@ -17,7 +18,8 @@ NodeStats::NodeStats(std::shared_ptr<PeersState> peers_state, std::shared_ptr<Sy
                      std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<PbftManager> pbft_mgr,
                      std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
                      std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<TransactionManager> trx_mgr,
-                     std::shared_ptr<PacketsStats> packets_stats, const addr_t &node_addr)
+                     std::shared_ptr<PacketsStats> packets_stats, std::shared_ptr<const TarcapThreadPool> thread_pool,
+                     const addr_t &node_addr)
     : peers_state_(std::move(peers_state)),
       syncing_state_(std::move(syncing_state)),
       pbft_chain_(std::move(pbft_chain)),
@@ -26,7 +28,8 @@ NodeStats::NodeStats(std::shared_ptr<PeersState> peers_state, std::shared_ptr<Sy
       dag_blk_mgr_(std::move(dag_blk_mgr)),
       vote_mgr_(std::move(vote_mgr)),
       trx_mgr_(std::move(trx_mgr)),
-      packets_stats_(std::move(packets_stats)) {
+      packets_stats_(std::move(packets_stats)),
+      thread_pool_(std::move(thread_pool)) {
   LOG_OBJECTS_CREATE("SUMMARY");
 }
 
@@ -164,6 +167,12 @@ void NodeStats::logNodeStats() {
     LOG(log_dg_) << "Verified dag blocks size:        " << verified_blocks_size;
     LOG(log_dg_) << "Non finalized dag blocks levels: " << non_finalized_blocks_levels;
     LOG(log_dg_) << "Non finalized dag blocks size:   " << non_finalized_blocks_size;
+
+    const auto [high_priority_queue_size, mid_priority_queue_size, low_priority_queue_size] =
+        thread_pool_->getQueueSize();
+    LOG(log_dg_) << "High priority queue size: " << high_priority_queue_size;
+    LOG(log_dg_) << "Mid priority queue size: " << mid_priority_queue_size;
+    LOG(log_dg_) << "Low priority queue size: " << low_priority_queue_size;
   }
 
   LOG(log_nf_) << "------------- tl;dr -------------";

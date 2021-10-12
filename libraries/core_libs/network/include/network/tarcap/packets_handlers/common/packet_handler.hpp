@@ -21,7 +21,6 @@ class PacketsStats;
  */
 class PacketHandler {
  public:
-  // TODO: node_addr is everywhere just because it is used (hardcoded) inside LOG_OBJECTS_CREATE macro - refactor this !
   PacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
                 const addr_t& node_addr, const std::string& log_channel_name);
 
@@ -31,8 +30,6 @@ class PacketHandler {
    * @param packet_data
    */
   void processPacket(const PacketData& packet_data);
-
-  std::string getCapabilityName() const;
 
  private:
   void handle_read_exception(const PacketData& packet_data);

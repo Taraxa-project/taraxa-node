@@ -15,7 +15,7 @@ class GetPbftSyncPacketHandler : public PacketHandler {
  public:
   GetPbftSyncPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
                            std::shared_ptr<SyncingState> syncing_state, std::shared_ptr<PbftChain> pbft_chain,
-                           std::shared_ptr<DbStorage> db, size_t network_sync_level_size, const addr_t& node_addr = {});
+                           std::shared_ptr<DbStorage> db, size_t network_sync_level_size, const addr_t& node_addr);
 
   virtual ~GetPbftSyncPacketHandler() = default;
 

@@ -1,26 +1,17 @@
 #pragma once
 
 #include "common/thread_pool.hpp"
-#include "network/tarcap/packets_handlers/common/packet_handler.hpp"
-
-namespace taraxa {
-class PbftChain;
-class DagBlockManager;
-class PbftManager;
-}  // namespace taraxa
+#include "network/tarcap/packets_handlers/common/ext_syncing_packet_handler.hpp"
 
 namespace taraxa::network::tarcap {
 
-class SyncingState;
-class SyncingHandler;
-
-class PbftSyncPacketHandler : public PacketHandler {
+class PbftSyncPacketHandler : public ExtSyncingPacketHandler {
  public:
   PbftSyncPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
-                        std::shared_ptr<SyncingState> syncing_state, std::shared_ptr<SyncingHandler> syncing_handler,
-                        std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<PbftManager> pbft_mgr,
+                        std::shared_ptr<SyncingState> syncing_state, std::shared_ptr<PbftChain> pbft_chain,
+                        std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
                         std::shared_ptr<DagBlockManager> dag_blk_mgr, size_t network_sync_level_size,
-                        const addr_t& node_addr = {});
+                        const addr_t& node_addr);
 
   virtual ~PbftSyncPacketHandler() = default;
 
@@ -31,12 +22,6 @@ class PbftSyncPacketHandler : public PacketHandler {
 
   void pbftSyncComplete();
   void delayedPbftSync(int counter);
-
-  std::shared_ptr<SyncingState> syncing_state_;
-  std::shared_ptr<SyncingHandler> syncing_handler_;
-  std::shared_ptr<PbftChain> pbft_chain_;
-  std::shared_ptr<PbftManager> pbft_mgr_;
-  std::shared_ptr<DagBlockManager> dag_blk_mgr_;
 
   // Initialized from network config
   const size_t network_sync_level_size_;

@@ -1,7 +1,7 @@
 #include "network/tarcap/packets_handlers/pbft_sync_packet_handler.hpp"
 
 #include "dag/dag_block_manager.hpp"
-#include "network/tarcap/packets_handlers/common/syncing_handler.hpp"
+#include "network/tarcap/packets_handlers/common/ext_syncing_packet_handler.hpp"
 #include "network/tarcap/shared_states/syncing_state.hpp"
 #include "pbft/pbft_chain.hpp"
 #include "pbft/pbft_manager.hpp"
@@ -10,17 +10,16 @@
 
 namespace taraxa::network::tarcap {
 
-PbftSyncPacketHandler::PbftSyncPacketHandler(
-    std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
-    std::shared_ptr<SyncingState> syncing_state, std::shared_ptr<SyncingHandler> syncing_handler,
-    std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<PbftManager> pbft_mgr,
-    std::shared_ptr<DagBlockManager> dag_blk_mgr, size_t network_sync_level_size, const addr_t &node_addr)
-    : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "PBFT_SYNC_PH"),
-      syncing_state_(std::move(syncing_state)),
-      syncing_handler_(std::move(syncing_handler)),
-      pbft_chain_(std::move(pbft_chain)),
-      pbft_mgr_(std::move(pbft_mgr)),
-      dag_blk_mgr_(std::move(dag_blk_mgr)),
+PbftSyncPacketHandler::PbftSyncPacketHandler(std::shared_ptr<PeersState> peers_state,
+                                             std::shared_ptr<PacketsStats> packets_stats,
+                                             std::shared_ptr<SyncingState> syncing_state,
+                                             std::shared_ptr<PbftChain> pbft_chain,
+                                             std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
+                                             std::shared_ptr<DagBlockManager> dag_blk_mgr,
+                                             size_t network_sync_level_size, const addr_t &node_addr)
+    : ExtSyncingPacketHandler(std::move(peers_state), std::move(packets_stats), std::move(syncing_state),
+                              std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(dag_blk_mgr),
+                              node_addr, "PBFT_SYNC_PH"),
       network_sync_level_size_(network_sync_level_size),
       delayed_sync_events_tp_(1, true) {}
 
@@ -97,7 +96,7 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
                      << ", PBFT chain size " << pbft_chain_->getPbftChainSize();
         delayed_sync_events_tp_.post(1000, [this] { delayedPbftSync(1); });
       } else {
-        syncing_handler_->syncPeerPbft(pbft_sync_period + 1);
+        syncPeerPbft(pbft_sync_period + 1);
       }
     }
   }
@@ -114,7 +113,7 @@ void PbftSyncPacketHandler::pbftSyncComplete() {
     // calling restartSyncingPbft will check if some nodes have
     // greater pbft chain size and we should continue syncing with
     // them, Or sync pending DAG blocks
-    syncing_handler_->restartSyncingPbft(true);
+    restartSyncingPbft(true);
     // We are pbft synced, send message to other node to start
     // gossiping new blocks
     if (!syncing_state_->is_pbft_syncing()) {
@@ -141,7 +140,7 @@ void PbftSyncPacketHandler::delayedPbftSync(int counter) {
                    << pbft_chain_->getPbftChainSize();
       delayed_sync_events_tp_.post(1000, [this, counter] { delayedPbftSync(counter + 1); });
     } else {
-      syncing_handler_->syncPeerPbft(pbft_sync_period + 1);
+      syncPeerPbft(pbft_sync_period + 1);
     }
   }
 }

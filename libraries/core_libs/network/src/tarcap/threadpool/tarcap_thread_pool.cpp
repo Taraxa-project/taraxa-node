@@ -8,6 +8,7 @@ TarcapThreadPool::TarcapThreadPool(size_t workers_num, const addr_t& node_addr)
     : workers_num_(workers_num),
       packets_handlers_(nullptr),
       stopProcessing_(false),
+      packets_count_(0),
       queue_(workers_num, node_addr),
       queue_mutex_(),
       cond_var_(),
@@ -27,18 +28,31 @@ TarcapThreadPool::~TarcapThreadPool() {
 
 /**
  * @brief Pushes the given element value to the end of the queue. Used for r-values
+ *
+ * @return packet unique ID. In case push was not successful, empty optional is returned
  **/
-void TarcapThreadPool::push(PacketData&& packet_data) {
+std::optional<uint64_t> TarcapThreadPool::push(PacketData&& packet_data) {
   if (stopProcessing_) {
-    return;
+    LOG(log_wr_) << "Trying to push packet while tp processing is stopped";
+    return {};
   }
 
-  LOG(log_dg_) << "ThreadPool new packet pushed: " << packet_data.type_str_ << std::endl;
+  std::string packet_type_str = packet_data.type_str_;
+  uint64_t packet_unique_id;
+  {
+    // Put packet into the priority queue
+    std::scoped_lock lock(queue_mutex_);
 
-  // Put packet into the priority queue
-  std::scoped_lock lock(queue_mutex_);
-  queue_.pushBack(std::move(packet_data));
-  cond_var_.notify_one();
+    // Create packet unique id
+    packet_unique_id = packets_count_++;
+    packet_data.id_ = packet_unique_id;
+
+    queue_.pushBack(std::move(packet_data));
+    cond_var_.notify_one();
+  }
+
+  LOG(log_dg_) << "New packet pushed: " << packet_type_str << ", id(" << packet_unique_id << ")";
+  return {packet_unique_id};
 }
 
 void TarcapThreadPool::startProcessing() {
@@ -87,7 +101,8 @@ void TarcapThreadPool::processPacket(size_t worker_id) {
       cond_var_.wait(lock);
     }
 
-    LOG(log_dg_) << "Worker (" << worker_id << ") process packet: " << packet->type_str_;
+    LOG(log_dg_) << "Worker (" << worker_id << ") process packet: " << packet->type_str_ << ", id(" << packet->id_
+                 << ")";
 
     queue_.updateDependenciesStart(packet.value());
     lock.unlock();
@@ -99,9 +114,11 @@ void TarcapThreadPool::processPacket(size_t worker_id) {
       // Process packet by specific packet type handler
       handler->processPacket(packet.value());
     } catch (const std::exception& e) {
-      LOG(log_er_) << "Worker (" << worker_id << ") packet processing exception caught: " << e.what();
+      LOG(log_er_) << "Worker (" << worker_id << ") packet: " << packet->type_str_ << ", id(" << packet->id_
+                   << ") processing exception caught: " << e.what();
     } catch (...) {
-      LOG(log_er_) << "Worker (" << worker_id << ") packet processing unknown exception caught";
+      LOG(log_er_) << "Worker (" << worker_id << ") packet: " << packet->type_str_ << ", id(" << packet->id_
+                   << ") processing unknown exception caught";
     }
 
     // Once packet handler is done with processing, update priority queue dependencies
@@ -111,6 +128,12 @@ void TarcapThreadPool::processPacket(size_t worker_id) {
 
 void TarcapThreadPool::setPacketsHandlers(std::shared_ptr<PacketsHandler> packets_handlers) {
   packets_handlers_ = std::move(packets_handlers);
+}
+
+std::tuple<size_t, size_t, size_t> TarcapThreadPool::getQueueSize() const {
+  return {queue_.getPrirotityQueueSize(PacketData::PacketPriority::High),
+          queue_.getPrirotityQueueSize(PacketData::PacketPriority::Mid),
+          queue_.getPrirotityQueueSize(PacketData::PacketPriority::Low)};
 }
 
 }  // namespace taraxa::network::tarcap

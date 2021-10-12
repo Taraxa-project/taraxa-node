@@ -427,11 +427,7 @@ jobs:
                 docker image prune -a --force --filter "until=${time}h"
               fi
            done
-      - run:
-         name: Checkout Submodules
-         command: |
-              git submodule sync
-              git submodule update --init --recursive --jobs 8
+
       - run:
          name: Prepare Environment
          command: |
@@ -454,22 +450,32 @@ jobs:
             echo ${GCLOUD_SERVICE_KEY} | docker login -u _json_key --password-stdin https://gcr.io
 
       - run:
-         name: Build docker image
+         name: Build docker builder image
          command: |
-                docker build -t ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} .
+                docker build -t ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} --target builder .
+
+      - run:
+         name: Checkout Submodules
+         command: |
+              git submodule sync
+              git submodule update --init --recursive --jobs 8
 
       - run:
          name: Build ctest image
          command: |
-               docker build -t ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} \
-                 --target build .              
-                
+               docker build -t ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} --target build .
+
+      - run:
+         name: Build taraxad image
+         command: |
+               docker build -t ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} .
+
       - run:
          name: Run Ctest
          command: |
            docker run  --ulimit nofile=4096:4096 \
                        --rm -v $PWD/tmp_docker:/tmp \
-                       --name taraxa-node-ctest-${DOCKER_BRANCH_TAG} \
+                       --name ${IMAGE}-ctest-${DOCKER_BRANCH_TAG} \
                        ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}\
                         sh -c \
                        'cd cmake-docker-build-debug/bin \
@@ -522,7 +528,6 @@ jobs:
                 exit $http_code
             fi
 
-
       - run:
          name: Tag images
          command: |
@@ -547,7 +552,7 @@ jobs:
            if [[ ${PR} != "false" ]];then
               docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:pr-${PR}-${CIRCLE_BUILD_NUM}
            fi
-           
+
       - run:
          name: Install/configure helm and chart
          no_output_timeout: 15m
@@ -697,8 +702,8 @@ jobs:
               brew install solidity
         - restore_cache:
            keys:
-            - conan-cache-v5-mac-{{ checksum "conanfile.py" }}
-            - conan-cache-v5-mac
+            - conan-cache-v6-mac-{{ checksum "conanfile.py" }}
+            - conan-cache-v6-mac
         - run:
            name: add conan bincrafters remote
            command: conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan"
@@ -709,12 +714,13 @@ jobs:
                conan profile update settings.compiler=clang clang && \
                conan profile update settings.compiler.version=$LLVM_VERSION clang && \
                conan profile update settings.compiler.libcxx=libc++ clang && \
+               conan profile update settings.build_type=RelWithDebInfo clang && \
                conan profile update env.CC=clang clang && \
                conan profile update env.CXX=clang++ clang
         - save_cache:
            paths:
              - ~/.conan
-           key: conan-cache-v5-mac-{{ checksum "conanfile.py" }}
+           key: conan-cache-v6-mac-{{ checksum "conanfile.py" }}
         - run:
            name: Cmake
            command: |
@@ -764,15 +770,25 @@ jobs:
            command: mkdir $BUILD_OUTPUT_DIR
         - restore_cache:
            keys:
-            - conan-cache-v2-linux--{{ checksum "conanfile.py" }}
-            - conan-cache-v2-linux
+            - conan-cache-v3-linux--{{ checksum "conanfile.py" }}
+            - conan-cache-v3-linux
         - run:
            name: Add conan bincrafters remote
            command: conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan"
+        - run:
+           name: setup conan profile
+           command: |
+               conan profile new clang --detect || true && \
+               conan profile update settings.compiler=clang clang && \
+               conan profile update settings.compiler.version=$LLVM_VERSION clang && \
+               conan profile update settings.compiler.libcxx=libc++ clang && \
+               conan profile update settings.build_type=RelWithDebInfo clang && \
+               conan profile update env.CC=clang clang && \
+               conan profile update env.CXX=clang++ clang
         - save_cache:
            paths:
              - ~/.conan
-           key: conan-cache-v2-linux--{{ checksum "conanfile.py" }}
+           key: conan-cache-v3-linux--{{ checksum "conanfile.py" }}
         - run:
             name: Cmake
             command: |
