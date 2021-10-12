@@ -86,14 +86,14 @@ const char *testnet_json = R"foo({
       "level": "0x0",
       "pivot": "0x0000000000000000000000000000000000000000000000000000000000000000",
       "sig": "0xb7e22d46c1ba94d5e8347b01d137b5c428fcbbeaf0a77fb024cbbf1517656ff00d04f7f25be608c321b0d7483c402c294ff46c49b265305d046a52236c0a363701",
-      "timestamp": "0x60b03303",
+      "timestamp": "0x60b03304",
       "tips": [],
       "transactions": []
     },
     "final_chain": {
       "genesis_block_fields": {
         "author": "0x0000000000000000000000000000000000000000",
-        "timestamp": "0x60b03303"
+        "timestamp": "0x60b03304"
       },
       "state": {
         "disable_block_rewards": true,
@@ -139,11 +139,11 @@ const char *testnet_json = R"foo({
       "range": "0xa"
     },
     "vdf": {
-      "difficulty_max": "0x12",
+      "difficulty_max": "0x15",
       "difficulty_min": "0x10",
-      "threshold_selection": "0xbffd",
-      "threshold_vdf_omit": "0x6bf7",
-      "difficulty_stale": "0x13",
+      "threshold_selection": "0x2fff",
+      "threshold_vdf_omit": "0x17ff",
+      "difficulty_stale": "0x16",
       "lambda_bound": "0x64"
     }
   }
