@@ -15,7 +15,7 @@ std::atomic<uint64_t> BlockProposer::num_proposed_blocks = 0;
 bool SortitionPropose::propose() {
   auto proposer = proposer_.lock();
   if (!proposer) {
-    LOG(log_er_) << "Block proposer not available" << std::endl;
+    LOG(log_er_) << "Block proposer not available";
     return false;
   }
 
@@ -23,12 +23,11 @@ bool SortitionPropose::propose() {
     return false;
   }
 
-  DagFrontier frontier = dag_mgr_->getDagFrontier();
+  auto frontier = dag_mgr_->getDagFrontier();
   LOG(log_dg_) << "Get frontier with pivot: " << frontier.pivot << " tips: " << frontier.tips;
   assert(!frontier.pivot.isZero());
   auto propose_level = proposer->getProposeLevel(frontier.pivot, frontier.tips) + 1;
   if (!proposer->validDposProposer(propose_level)) {
-    LOG(log_tr_) << node_addr_ << " is not a valid DPOS proposer for DAG level " << propose_level;
     return false;
   }
 
@@ -50,28 +49,22 @@ bool SortitionPropose::propose() {
     }
   }
 
-  // Do not propose DAG with same level twice
-  if (propose_level == last_successful_proposed_level_) {
-    return false;
-  }
-
   vdf.computeVdfSolution(vdf_config_, frontier.pivot.asBytes());
   if (vdf.isStale(vdf_config_)) {
-    DagFrontier latestFrontier = dag_mgr_->getDagFrontier();
-    if (latestFrontier.pivot != frontier.pivot) {
+    auto latest_frontier = dag_mgr_->getDagFrontier();
+    if (latest_frontier.pivot != frontier.pivot) {
       return false;
     }
   }
 
   vec_trx_t sharded_trxs;
-  bool ok = proposer->getShardedTrxs(sharded_trxs);
+  auto ok = proposer->getShardedTrxs(sharded_trxs);
   if (!ok) {
     return false;
   }
   LOG(log_nf_) << "VDF computation time " << vdf.getComputationTime() << " difficulty " << vdf.getDifficulty();
-  proposer->proposeBlock(frontier.pivot, propose_level, frontier.tips, move(sharded_trxs), vdf);
+  proposer->proposeBlock(std::move(frontier), propose_level, std::move(sharded_trxs), std::move(vdf));
   last_propose_level_ = propose_level;
-  last_successful_proposed_level_ = propose_level;
   num_tries_ = 0;
   return true;
 }
@@ -158,19 +151,24 @@ level_t BlockProposer::getProposeLevel(blk_hash_t const& pivot, vec_blk_t const&
   return max_level;
 }
 
-void BlockProposer::proposeBlock(blk_hash_t const& pivot, level_t level, vec_blk_t tips, vec_trx_t trxs,
-                                 VdfSortition const& vdf) {
+void BlockProposer::proposeBlock(DagFrontier&& frontier, level_t level, vec_trx_t&& trxs, VdfSortition&& vdf) {
   if (stopped_) return;
 
-  DagBlock blk(pivot, level, move(tips), move(trxs), vdf, node_sk_);
-  dag_blk_mgr_->insertBlock(blk);
+  auto blk = std::make_shared<DagBlock>(frontier.pivot, level, std::move(frontier.tips), std::move(trxs),
+                                        std::move(vdf), node_sk_);
+  dag_mgr_->addDagBlock(*blk);
+  dag_blk_mgr_->markDagBlockAsSeen(*blk);
 
   auto now = getCurrentTimeMilliSeconds();
-  LOG(log_time_) << "Propose block " << blk.getHash() << " at: " << now << " ,trxs: " << blk.getTrxs()
-                 << " , tips: " << blk.getTips().size();
-  LOG(log_nf_) << " Propose block :" << blk.getHash() << " pivot: " << blk.getPivot() << " , number of trx ("
-               << blk.getTrxs().size() << ")";
+  LOG(log_time_) << "Propose block " << blk->getHash() << " at: " << now << " ,trxs: " << blk->getTrxs()
+                 << " , tips: " << blk->getTips().size();
+  LOG(log_nf_) << "Add proposed DAG block " << blk->getHash() << ", pivot " << blk->getPivot() << " , number of trx ("
+               << blk->getTrxs().size() << ")";
   BlockProposer::num_proposed_blocks.fetch_add(1);
+
+  if (auto net = network_.lock()) {
+    net->onNewBlockVerified(blk, true);
+  }
 }
 
 bool BlockProposer::validDposProposer(level_t const propose_level) {

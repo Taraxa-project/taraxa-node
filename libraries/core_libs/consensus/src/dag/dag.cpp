@@ -369,15 +369,19 @@ void DagManager::worker() {
   while (!stopped_) {
     // will block if no verified block available
     auto verified_block = dag_blk_mgr_->popVerifiedBlock(level_limit, level);
+    if (!verified_block) {
+      LOG(log_er_) << "DAG block manager stopped";
+      continue;
+    }
 
     level_limit = false;
-    auto const &blk = *(verified_block.first);
+    auto const &blk = *verified_block;
 
     if (pivotAndTipsAvailable(blk)) {
       addDagBlock(blk);
       block_verified_.emit(blk);
       if (auto net = network_.lock()) {
-        net->onNewBlockVerified(verified_block.first, verified_block.second);
+        net->onNewBlockVerified(verified_block, false);
       }
       LOG(log_time_) << "Broadcast block " << blk.getHash() << " at: " << getCurrentTimeMilliSeconds();
     } else {

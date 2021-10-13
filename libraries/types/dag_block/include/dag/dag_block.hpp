@@ -35,7 +35,7 @@ class DagBlock {
            addr_t sender);
   // fixme: used only in tests, Eliminate it
   DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, secret_t const &sk);
-  DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, VdfSortition const &vdf,
+  DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, VdfSortition vdf,
            secret_t const &sk);
   explicit DagBlock(Json::Value const &doc);
   explicit DagBlock(string const &json);
