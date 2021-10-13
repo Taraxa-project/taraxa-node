@@ -151,7 +151,7 @@ level_t BlockProposer::getProposeLevel(blk_hash_t const& pivot, vec_blk_t const&
   return max_level;
 }
 
-void BlockProposer::proposeBlock(DagFrontier frontier, level_t level, vec_trx_t trxs, VdfSortition vdf) {
+void BlockProposer::proposeBlock(DagFrontier&& frontier, level_t level, vec_trx_t&& trxs, VdfSortition&& vdf) {
   if (stopped_) return;
 
   auto blk = std::make_shared<DagBlock>(frontier.pivot, level, std::move(frontier.tips), std::move(trxs),

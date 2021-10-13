@@ -202,7 +202,8 @@ std::shared_ptr<DagBlock> DagBlockManager::popVerifiedBlock(bool level_limit, ui
       cond_for_verified_qu_.wait(lock);
     }
   }
-  if (stopped_) return std::make_shared<DagBlock>();
+
+  if (stopped_) return nullptr;
 
   auto blk = std::make_shared<DagBlock>(verified_qu_.begin()->second.front());
   verified_qu_.begin()->second.pop_front();

@@ -369,6 +369,10 @@ void DagManager::worker() {
   while (!stopped_) {
     // will block if no verified block available
     auto verified_block = dag_blk_mgr_->popVerifiedBlock(level_limit, level);
+    if (!verified_block) {
+      LOG(log_er_) << "DAG block manager stopped";
+      continue;
+    }
 
     level_limit = false;
     auto const &blk = *verified_block;
