@@ -72,8 +72,8 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
 
   void restartSyncingPbft(bool force = false);
   bool pbft_syncing() const;
-  void onNewBlockVerified(std::shared_ptr<DagBlock> const &blk, bool proposed);
-  void onNewTransactions(const std::vector<Transaction> &transactions);
+  void onNewBlockVerified(DagBlock const &blk, bool proposed);
+  void onNewTransactions(const std::vector<std::shared_ptr<Transaction>> &transactions);
   void onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_block);
   void onNewPbftVote(const std::shared_ptr<Vote> &vote);
   void broadcastPreviousRoundNextVotesBundle();
@@ -86,7 +86,7 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   size_t getReceivedBlocksCount() const;
   size_t getReceivedTransactionsCount() const;
 
-  void onNewBlockReceived(const DagBlock &block, const std::vector<Transaction> &transactions);
+  void onNewBlockReceived(const DagBlock &block);
 
   void sendTestMessage(dev::p2p::NodeID const &id, int x, std::vector<char> const &data);
   std::pair<size_t, uint64_t> retrieveTestData(const dev::p2p::NodeID &node_id);

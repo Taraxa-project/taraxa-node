@@ -129,7 +129,8 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   blk_hash_t const &get_genesis() { return genesis_; }
 
   bool pivotAndTipsAvailable(DagBlock const &blk);
-  void addDagBlock(DagBlock const &blk, bool save = true);  // insert to buffer if fail
+  void addDagBlock(DagBlock const &blk, std::vector<std::shared_ptr<Transaction>> const &trxs, bool proposed = false,
+                   bool save = true);  // insert to buffer if fail
 
   // return block order
   vec_blk_t getDagBlockOrder(blk_hash_t const &anchor, uint64_t period);

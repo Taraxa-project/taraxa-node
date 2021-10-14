@@ -64,7 +64,7 @@ Json::Value Taraxa::taraxa_getDagBlockByHash(string const& _blockHash, bool _inc
       if (_includeTransactions) {
         block_json["transactions"] = Json::Value(Json::arrayValue);
         for (auto const& t : block->getTrxs()) {
-          block_json["transactions"].append(node->getTransactionManager()->getTransaction(t)->first.toJSON());
+          block_json["transactions"].append(node->getTransactionManager()->getTransaction(t)->toJSON());
         }
       }
       return block_json;
@@ -105,7 +105,7 @@ Json::Value Taraxa::taraxa_getDagBlockByLevel(string const& _blockLevel, bool _i
       if (_includeTransactions) {
         block_json["transactions"] = Json::Value(Json::arrayValue);
         for (auto const& t : b->getTrxs()) {
-          block_json["transactions"].append(node->getTransactionManager()->getTransaction(t)->first.toJSON());
+          block_json["transactions"].append(node->getTransactionManager()->getTransaction(t)->toJSON());
         }
       }
       res.append(block_json);

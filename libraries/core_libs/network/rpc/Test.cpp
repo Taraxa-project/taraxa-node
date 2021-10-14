@@ -34,7 +34,7 @@ Json::Value Test::insert_dag_block(const Json::Value &param1) {
 
       DagBlock blk(pivot, 0, tips, {}, signature, hash, sender);
       res = blk.getJsonStr();
-      node->getDagManager()->addDagBlock(std::move(blk));
+      node->getDagManager()->addDagBlock(std::move(blk), {});
     }
   } catch (std::exception &e) {
     res["status"] = e.what();
@@ -76,7 +76,7 @@ Json::Value Test::send_coin_transaction(const Json::Value &param1) {
       auto now = getCurrentTimeMilliSeconds();
       taraxa::Transaction trx(nonce, value, gas_price, gas, data, sk, receiver);
       LOG(log_time) << "Transaction " << trx.getHash() << " received at: " << now;
-      node->getTransactionManager()->insertTransaction(trx, true);
+      node->getTransactionManager()->insertTransaction(trx);
       res = toHex(*trx.rlp());
     }
   } catch (std::exception &e) {
@@ -105,7 +105,7 @@ Json::Value Test::create_test_coin_transactions(const Json::Value &param1) {
         val_t value = val_t(100);
         auto trx = taraxa::Transaction(i + nonce, value, 1000, 0, bytes(), sk, receiver);
         LOG(log_time) << "Transaction " << trx.getHash() << " received at: " << now;
-        node->getTransactionManager()->insertTransaction(trx, false);
+        node->getTransactionManager()->insertTransaction(trx);
         thisThreadSleepForMicroSeconds(delay);
         i++;
       }
@@ -198,8 +198,8 @@ Json::Value Test::get_node_status() {
       res["dpos_node_votes"] = Json::UInt64(node->getPbftManager()->getDposWeightedVotesCount());
       res["dpos_quorum"] = Json::UInt64(node->getPbftManager()->getTwoTPlusOne());
       res["pbft_sync_queue_size"] = Json::UInt64(node->getPbftManager()->syncBlockQueueSize());
-      res["trx_queue_unverified_size"] = Json::UInt64(node->getTransactionManager()->getTransactionQueueSize().first);
-      res["trx_queue_verified_size"] = Json::UInt64(node->getTransactionManager()->getTransactionQueueSize().second);
+      res["trx_pool_size"] = Json::UInt64(node->getTransactionManager()->getTransactionPoolSize());
+      res["trx_nonfinalized_size"] = Json::UInt64(node->getTransactionManager()->getNonfinalizedTrxSize());
       res["blk_queue_unverified_size"] = Json::UInt64(node->getDagBlockManager()->getDagBlockQueueSize().first);
       res["blk_queue_verified_size"] = Json::UInt64(node->getDagBlockManager()->getDagBlockQueueSize().second);
       res["network"] = node->getNetwork()->getStatus();

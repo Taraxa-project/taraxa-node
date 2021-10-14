@@ -111,7 +111,7 @@ void TaraxaCapability::initPeriodicEvents(const NetworkConfig &conf, const std::
   if (trx_mgr /* just because of tests */ && conf.network_transaction_interval > 0) {
     periodic_events_tp_.post_loop({conf.network_transaction_interval},
                                   [tx_packet_handler = std::move(tx_packet_handler), trx_mgr = std::move(trx_mgr)] {
-                                    tx_packet_handler->onNewTransactions(trx_mgr->getNewVerifiedTrxSnapShot(), false);
+                                    tx_packet_handler->onNewTransactions(trx_mgr->getTransactionsSnapShot(), false);
                                   });
   }
 
@@ -219,7 +219,7 @@ void TaraxaCapability::registerPacketHandlers(
   packets_handlers_->registerHandler(
       SubprotocolPacketType::DagSyncPacket,
       std::make_shared<DagSyncPacketHandler>(peers_state_, packets_stats, syncing_state_, pbft_chain, pbft_mgr, dag_mgr,
-                                             dag_blk_mgr, node_addr));
+                                             trx_mgr, dag_blk_mgr, node_addr));
 
   // TODO there is additional logic, that should be moved outside process function
   packets_handlers_->registerHandler(
@@ -362,22 +362,22 @@ void TaraxaCapability::handleMaliciousSyncPeer(dev::p2p::NodeID const &id) {
   restartSyncingPbft(true);
 }
 
-void TaraxaCapability::onNewBlockVerified(std::shared_ptr<DagBlock> const &blk, bool proposed) {
+void TaraxaCapability::onNewBlockVerified(DagBlock const &blk, bool proposed) {
   std::static_pointer_cast<DagBlockPacketHandler>(
       packets_handlers_->getSpecificHandler(SubprotocolPacketType::DagBlockPacket))
-      ->onNewBlockVerified(*blk, proposed);
+      ->onNewBlockVerified(blk, proposed);
 }
 
-void TaraxaCapability::onNewTransactions(const std::vector<Transaction> &transactions) {
+void TaraxaCapability::onNewTransactions(const std::vector<std::shared_ptr<Transaction>> &transactions) {
   std::static_pointer_cast<TransactionPacketHandler>(
       packets_handlers_->getSpecificHandler(SubprotocolPacketType::TransactionPacket))
       ->onNewTransactions(transactions, true);
 }
 
-void TaraxaCapability::onNewBlockReceived(const DagBlock &block, const std::vector<Transaction> &transactions) {
+void TaraxaCapability::onNewBlockReceived(const DagBlock &block) {
   std::static_pointer_cast<DagBlockPacketHandler>(
       packets_handlers_->getSpecificHandler(SubprotocolPacketType::DagBlockPacket))
-      ->onNewBlockReceived(block, transactions);
+      ->onNewBlockReceived(block);
 }
 
 void TaraxaCapability::onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_block) {

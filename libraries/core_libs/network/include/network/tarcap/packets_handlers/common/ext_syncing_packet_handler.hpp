@@ -9,6 +9,7 @@ class PbftChain;
 class PbftManager;
 class DagManager;
 class DagBlockManager;
+class TransactionManager;
 }  // namespace taraxa
 
 namespace taraxa::network::tarcap {

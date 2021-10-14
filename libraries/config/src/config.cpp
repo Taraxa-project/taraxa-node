@@ -138,10 +138,8 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
   }
 
   {  // for test experiments
-    test_params.max_transaction_queue_warn =
-        getConfigDataAsUInt(root, {"test_params", "max_transaction_queue_warn"}, true);
-    test_params.max_transaction_queue_drop =
-        getConfigDataAsUInt(root, {"test_params", "max_transaction_queue_drop"}, true);
+    test_params.max_transactions_pool_warn = getConfigDataAsUInt(root, {"test_params", "max_transactions_pool_warn"});
+    test_params.max_transactions_pool_drop = getConfigDataAsUInt(root, {"test_params", "max_transactions_pool_drop"});
 
     test_params.max_block_queue_warn = getConfigDataAsUInt(root, {"test_params", "max_block_queue_warn"}, true);
 

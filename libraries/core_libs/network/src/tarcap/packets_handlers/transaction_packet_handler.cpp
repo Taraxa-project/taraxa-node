@@ -22,26 +22,28 @@ inline void TransactionPacketHandler::process(const PacketData &packet_data, con
   std::string received_transactions;
   const auto transaction_count = packet_data.rlp_.itemCount();
 
-  std::vector<Transaction> transactions;
+  std::vector<std::shared_ptr<Transaction>> transactions;
   transactions.reserve(transaction_count);
 
   for (size_t tx_idx = 0; tx_idx < transaction_count; tx_idx++) {
-    const auto &transaction = transactions.emplace_back(packet_data.rlp_[tx_idx].data().toBytes());
+    const auto &transaction =
+        transactions.emplace_back(std::make_shared<Transaction>(packet_data.rlp_[tx_idx].data().toBytes()));
 
-    received_transactions += transaction.getHash().abridged() + " ";
-    peer->markTransactionAsKnown(transaction.getHash());
+    received_transactions += transaction->getHash().abridged() + " ";
+    peer->markTransactionAsKnown(transaction->getHash());
   }
 
   if (transaction_count > 0) {
     LOG(log_dg_) << "Received TransactionPacket with " << packet_data.rlp_.itemCount() << " transactions";
     LOG(log_tr_) << "Received TransactionPacket with " << packet_data.rlp_.itemCount()
-                 << " transactions:" << received_transactions.c_str();
+                 << " transactions:" << received_transactions.c_str() << "from: " << peer->getId().abridged();
 
     onNewTransactions(transactions, true);
   }
 }
 
-void TransactionPacketHandler::onNewTransactions(std::vector<Transaction> const &transactions, bool fromNetwork) {
+void TransactionPacketHandler::onNewTransactions(std::vector<std::shared_ptr<Transaction>> const &transactions,
+                                                 bool fromNetwork) {
   if (fromNetwork) {
     if (dag_blk_mgr_) {
       LOG(log_nf_) << "Storing " << transactions.size() << " transactions";
@@ -49,9 +51,9 @@ void TransactionPacketHandler::onNewTransactions(std::vector<Transaction> const 
       unique_received_trx_count_ += trx_mgr_->insertBroadcastedTransactions(transactions);
     } else {
       for (auto const &trx : transactions) {
-        auto trx_hash = trx.getHash();
+        auto trx_hash = trx->getHash();
         if (!test_state_->hasTransaction(trx_hash)) {
-          test_state_->insertTransaction(trx);
+          test_state_->insertTransaction(*trx);
           LOG(log_dg_) << "Received New Transaction " << trx_hash;
         } else {
           LOG(log_dg_) << "Received New Transaction" << trx_hash << "that is already known";
@@ -70,7 +72,7 @@ void TransactionPacketHandler::onNewTransactions(std::vector<Transaction> const 
       // incorrectly markTransactionAsKnown
       if (!peer.second->syncing_) {
         for (auto const &trx : transactions) {
-          auto trx_hash = trx.getHash();
+          auto trx_hash = trx->getHash();
           if (peer.second->isTransactionKnown(trx_hash)) {
             continue;
           }
@@ -79,7 +81,7 @@ void TransactionPacketHandler::onNewTransactions(std::vector<Transaction> const 
             break;
           }
 
-          transactions_to_send[peer.first].push_back(*trx.rlp());
+          transactions_to_send[peer.first].push_back(*trx->rlp());
           transactions_hash_to_send[peer.first].push_back(trx_hash);
         }
       }

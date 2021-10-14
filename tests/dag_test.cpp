@@ -137,8 +137,10 @@ TEST_F(DagTest, genesis_get_pivot) {
 TEST_F(DagTest, compute_epoch) {
   const blk_hash_t GENESIS("0000000000000000000000000000000000000000000000000000000000000001");
   auto db_ptr = std::make_shared<DbStorage>(data_dir / "db");
+  auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), addr_t(), db_ptr,
+                                                      TransactionManager::VerifyMode::skip_verify_sig);
   auto mgr = std::make_shared<DagManager>(
-      GENESIS, addr_t(), nullptr, nullptr,
+      GENESIS, addr_t(), trx_mgr, nullptr,
       std::make_shared<DagBlockManager>(addr_t(), node_cfgs[0].chain.vdf, node_cfgs[0].chain.final_chain.state.dpos, 1,
                                         db_ptr, nullptr, nullptr, nullptr, time_log),
       db_ptr, logger::Logger());
@@ -153,18 +155,18 @@ TEST_F(DagTest, compute_epoch) {
   DagBlock blkI(blk_hash_t(11), 0, {blk_hash_t(4)}, {}, sig_t(1), blk_hash_t(10), addr_t(1));
   DagBlock blkJ(blk_hash_t(7), 0, {}, {}, sig_t(1), blk_hash_t(11), addr_t(1));
   DagBlock blkK(blk_hash_t(9), 0, {}, {}, sig_t(1), blk_hash_t(12), addr_t(1));
-  mgr->addDagBlock(blkA);
-  mgr->addDagBlock(blkB);
-  mgr->addDagBlock(blkC);
-  mgr->addDagBlock(blkD);
-  mgr->addDagBlock(blkF);
+  mgr->addDagBlock(blkA, {});
+  mgr->addDagBlock(blkB, {});
+  mgr->addDagBlock(blkC, {});
+  mgr->addDagBlock(blkD, {});
+  mgr->addDagBlock(blkF, {});
   taraxa::thisThreadSleepForMilliSeconds(100);
-  mgr->addDagBlock(blkE);
-  mgr->addDagBlock(blkG);
-  mgr->addDagBlock(blkJ);
-  mgr->addDagBlock(blkI);
-  mgr->addDagBlock(blkH);
-  mgr->addDagBlock(blkK);
+  mgr->addDagBlock(blkE, {});
+  mgr->addDagBlock(blkG, {});
+  mgr->addDagBlock(blkJ, {});
+  mgr->addDagBlock(blkI, {});
+  mgr->addDagBlock(blkH, {});
+  mgr->addDagBlock(blkK, {});
   taraxa::thisThreadSleepForMilliSeconds(100);
 
   vec_blk_t orders;
@@ -221,8 +223,10 @@ TEST_F(DagTest, compute_epoch) {
 TEST_F(DagTest, receive_block_in_order) {
   const blk_hash_t GENESIS("000000000000000000000000000000000000000000000000000000000000000a");
   auto db_ptr = std::make_shared<DbStorage>(data_dir / "db");
+  auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), addr_t(), db_ptr,
+                                                      TransactionManager::VerifyMode::skip_verify_sig);
   auto mgr = std::make_shared<DagManager>(
-      GENESIS, addr_t(), nullptr, nullptr,
+      GENESIS, addr_t(), trx_mgr, nullptr,
       std::make_shared<DagBlockManager>(addr_t(), node_cfgs[0].chain.vdf, node_cfgs[0].chain.final_chain.state.dpos, 1,
                                         db_ptr, nullptr, nullptr, nullptr, time_log),
       db_ptr, logger::Logger());
@@ -232,13 +236,13 @@ TEST_F(DagTest, receive_block_in_order) {
   DagBlock blk2(blk_hash_t(1), 0, {}, {}, sig_t(777), blk_hash_t(2), addr_t(15));
   DagBlock blk3(blk_hash_t(10), 0, {blk_hash_t(1), blk_hash_t(2)}, {}, sig_t(777), blk_hash_t(3), addr_t(15));
 
-  mgr->addDagBlock(genesis_block);
-  mgr->addDagBlock(blk1);
-  mgr->addDagBlock(blk2);
+  mgr->addDagBlock(genesis_block, {});
+  mgr->addDagBlock(blk1, {});
+  mgr->addDagBlock(blk2, {});
   EXPECT_EQ(mgr->getNumVerticesInDag().first, 3);
   EXPECT_EQ(mgr->getNumEdgesInDag().first, 2);
 
-  mgr->addDagBlock(blk3);
+  mgr->addDagBlock(blk3, {});
   taraxa::thisThreadSleepForMilliSeconds(500);
 
   auto ret = mgr->getLatestPivotAndTips();
@@ -255,8 +259,10 @@ TEST_F(DagTest, receive_block_in_order) {
 TEST_F(DagTest, compute_epoch_2) {
   const blk_hash_t GENESIS("0000000000000000000000000000000000000000000000000000000000000001");
   auto db_ptr = std::make_shared<DbStorage>(data_dir / "db");
+  auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), addr_t(), db_ptr,
+                                                      TransactionManager::VerifyMode::skip_verify_sig);
   auto mgr = std::make_shared<DagManager>(
-      GENESIS, addr_t(), nullptr, nullptr,
+      GENESIS, addr_t(), trx_mgr, nullptr,
       std::make_shared<DagBlockManager>(addr_t(), node_cfgs[0].chain.vdf, node_cfgs[0].chain.final_chain.state.dpos, 1,
                                         db_ptr, nullptr, nullptr, nullptr, time_log),
       db_ptr, logger::Logger());
@@ -272,18 +278,18 @@ TEST_F(DagTest, compute_epoch_2) {
   DagBlock blkJ(blk_hash_t(7), 0, {}, {}, sig_t(1), blk_hash_t(11), addr_t(1));
   DagBlock blkK(blk_hash_t(10), 0, {}, {}, sig_t(1), blk_hash_t(12), addr_t(1));
 
-  mgr->addDagBlock(blkA);
-  mgr->addDagBlock(blkB);
-  mgr->addDagBlock(blkC);
-  mgr->addDagBlock(blkD);
-  mgr->addDagBlock(blkF);
-  mgr->addDagBlock(blkJ);
-  mgr->addDagBlock(blkE);
+  mgr->addDagBlock(blkA, {});
+  mgr->addDagBlock(blkB, {});
+  mgr->addDagBlock(blkC, {});
+  mgr->addDagBlock(blkD, {});
+  mgr->addDagBlock(blkF, {});
+  mgr->addDagBlock(blkJ, {});
+  mgr->addDagBlock(blkE, {});
   taraxa::thisThreadSleepForMilliSeconds(100);
-  mgr->addDagBlock(blkG);
-  mgr->addDagBlock(blkI);
-  mgr->addDagBlock(blkH);
-  mgr->addDagBlock(blkK);
+  mgr->addDagBlock(blkG, {});
+  mgr->addDagBlock(blkI, {});
+  mgr->addDagBlock(blkH, {});
+  mgr->addDagBlock(blkK, {});
   taraxa::thisThreadSleepForMilliSeconds(100);
 
   vec_blk_t orders;
@@ -331,8 +337,10 @@ TEST_F(DagTest, compute_epoch_2) {
 TEST_F(DagTest, get_latest_pivot_tips) {
   const blk_hash_t GENESIS("0000000000000000000000000000000000000000000000000000000000000001");
   auto db_ptr = std::make_shared<DbStorage>(data_dir / "db");
+  auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), addr_t(), db_ptr,
+                                                      TransactionManager::VerifyMode::skip_verify_sig);
   auto mgr = std::make_shared<DagManager>(
-      GENESIS, addr_t(), nullptr, nullptr,
+      GENESIS, addr_t(), trx_mgr, nullptr,
       std::make_shared<DagBlockManager>(addr_t(), node_cfgs[0].chain.vdf, node_cfgs[0].chain.final_chain.state.dpos, 1,
                                         db_ptr, nullptr, nullptr, nullptr, time_log),
       db_ptr, logger::Logger());
@@ -344,12 +352,12 @@ TEST_F(DagTest, get_latest_pivot_tips) {
   DagBlock blk4(blk_hash_t(1), 0, {}, {}, sig_t(1), blk_hash_t(4), addr_t(15));
   DagBlock blk5(blk_hash_t(4), 0, {}, {}, sig_t(1), blk_hash_t(5), addr_t(15));
   DagBlock blk6(blk_hash_t(2), 0, {blk_hash_t(5)}, {}, sig_t(1), blk_hash_t(6), addr_t(15));
-  mgr->addDagBlock(blk1);
-  mgr->addDagBlock(blk2);
-  mgr->addDagBlock(blk3);
-  mgr->addDagBlock(blk4);
-  mgr->addDagBlock(blk5);
-  mgr->addDagBlock(blk6);
+  mgr->addDagBlock(blk1, {});
+  mgr->addDagBlock(blk2, {});
+  mgr->addDagBlock(blk3, {});
+  mgr->addDagBlock(blk4, {});
+  mgr->addDagBlock(blk5, {});
+  mgr->addDagBlock(blk6, {});
   taraxa::thisThreadSleepForMilliSeconds(100);
 
   auto ret = mgr->getLatestPivotAndTips();

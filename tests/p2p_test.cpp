@@ -209,10 +209,10 @@ TEST_F(P2PTest, capability_send_block) {
   EXPECT_GT(host2->peer_count(), 0);
 
   DagBlock blk(blk_hash_t(1111), 0, {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)},
-               {g_signed_trx_samples[0].getHash(), g_signed_trx_samples[1].getHash()}, sig_t(7777), blk_hash_t(888),
+               {g_signed_trx_samples[0]->getHash(), g_signed_trx_samples[1]->getHash()}, sig_t(7777), blk_hash_t(888),
                addr_t(999));
 
-  std::vector<Transaction> transactions{g_signed_trx_samples[0], g_signed_trx_samples[1]};
+  std::vector<std::shared_ptr<Transaction>> transactions{g_signed_trx_samples[0], g_signed_trx_samples[1]};
   thc2->onNewTransactions(transactions);
   thc2->sendBlock(host1->id(), blk);
 
@@ -225,8 +225,8 @@ TEST_F(P2PTest, capability_send_block) {
   }
   EXPECT_EQ(rtransactions.size(), 2);
   if (rtransactions.size() == 2) {
-    EXPECT_EQ(Transaction(transactions[0]), rtransactions[g_signed_trx_samples[0].getHash()]);
-    EXPECT_EQ(Transaction(transactions[1]), rtransactions[g_signed_trx_samples[1].getHash()]);
+    EXPECT_EQ(Transaction(*transactions[0]), rtransactions[g_signed_trx_samples[0]->getHash()]);
+    EXPECT_EQ(Transaction(*transactions[1]), rtransactions[g_signed_trx_samples[1]->getHash()]);
   }
 }
 
@@ -320,13 +320,14 @@ TEST_F(P2PTest, block_propagate) {
   EXPECT_GT(host1->peer_count(), 0);
 
   DagBlock blk(blk_hash_t(1111), 0, {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)},
-               {g_signed_trx_samples[0].getHash(), g_signed_trx_samples[1].getHash()}, sig_t(7777), blk_hash_t(0),
+               {g_signed_trx_samples[0]->getHash(), g_signed_trx_samples[1]->getHash()}, sig_t(7777), blk_hash_t(0),
                addr_t(999));
 
-  std::vector<Transaction> transactions{g_signed_trx_samples[0], g_signed_trx_samples[1]};
+  std::vector<std::shared_ptr<Transaction>> transactions{g_signed_trx_samples[0], g_signed_trx_samples[1]};
   thc1->onNewTransactions(transactions);
-  std::vector<Transaction> transactions2;
-  thc1->onNewBlockReceived(blk, transactions2);
+  std::vector<std::shared_ptr<Transaction>> transactions2;
+  thc1->onNewTransactions(transactions2);
+  thc1->onNewBlockReceived(blk);
 
   for (int i = 0; i < 50; i++) {
     std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -347,8 +348,8 @@ TEST_F(P2PTest, block_propagate) {
     auto rtransactions = vCapabilities[i]->test_state_->getTransactions();
     EXPECT_EQ(rtransactions.size(), 2);
     if (rtransactions.size() == 2) {
-      EXPECT_EQ(Transaction(transactions[0]), rtransactions[g_signed_trx_samples[0].getHash()]);
-      EXPECT_EQ(Transaction(transactions[1]), rtransactions[g_signed_trx_samples[1].getHash()]);
+      EXPECT_EQ(Transaction(*transactions[0]), rtransactions[g_signed_trx_samples[0]->getHash()]);
+      EXPECT_EQ(Transaction(*transactions[1]), rtransactions[g_signed_trx_samples[1]->getHash()]);
     }
   }
   EXPECT_EQ(blocks1.size(), 1);

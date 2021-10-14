@@ -87,7 +87,7 @@ void GetDagSyncPacketHandler::sendBlocks(dev::p2p::NodeID const &peer_id,
         // better solution needed
         return;
       }
-      transactions.emplace_back(std::move(t->second));
+      transactions.emplace_back(std::move(*t->rlp()));
       total_transactions_count++;
     }
     LOG(log_nf_) << "Send DagBlock " << block->getHash() << "# Trx: " << transactions.size() << std::endl;

@@ -83,12 +83,12 @@ std::vector<dev::p2p::NodeID> Network::getAllPeersIDs() const {
   return taraxa_capability_->getPeersState()->getAllPeersIDs();
 }
 
-void Network::onNewBlockVerified(std::shared_ptr<DagBlock> const &blk, bool proposed) {
+void Network::onNewBlockVerified(DagBlock const &blk, bool proposed) {
   taraxa_capability_->onNewBlockVerified(blk, proposed);
-  LOG(log_dg_) << "On new block verified:" << blk->getHash().toString();
+  LOG(log_dg_) << "On new block verified:" << blk.getHash().toString();
 }
 
-void Network::onNewTransactions(const std::vector<Transaction> &transactions) {
+void Network::onNewTransactions(const std::vector<std::shared_ptr<Transaction>> &transactions) {
   taraxa_capability_->onNewTransactions(transactions);
   LOG(log_dg_) << "On new transactions" << transactions.size();
 }

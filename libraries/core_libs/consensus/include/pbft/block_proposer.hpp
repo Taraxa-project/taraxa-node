@@ -94,8 +94,9 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   void stop();
   std::shared_ptr<BlockProposer> getShared();
   void setNetwork(std::weak_ptr<Network> network) { network_ = move(network); }
-  void proposeBlock(DagFrontier&& frontier, level_t level, vec_trx_t&& trxs, VdfSortition&& vdf);
-  bool getShardedTrxs(vec_trx_t& sharded_trx);
+  void proposeBlock(DagFrontier&& frontier, level_t level, std::vector<std::shared_ptr<Transaction>>&& trxs,
+                    VdfSortition&& vdf);
+  std::vector<std::shared_ptr<Transaction>> getShardedTrxs();
   level_t getProposeLevel(blk_hash_t const& pivot, vec_blk_t const& tips);
   bool validDposProposer(level_t const propose_level);
   // debug

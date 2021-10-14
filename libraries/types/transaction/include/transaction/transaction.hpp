@@ -47,7 +47,10 @@ struct Transaction {
   explicit Transaction(dev::RLP const &_rlp, bool verify_strict = false, h256 const &hash = {},
                        bool rlp_w_sender = false);
   explicit Transaction(bytes const &_rlp, bool verify_strict = false, h256 const &hash = {})
-      : Transaction(dev::RLP(_rlp), verify_strict, hash) {}
+      : Transaction(dev::RLP(_rlp), verify_strict, hash) {
+    // TODO : Check if it is useful to store the RLP we create transactions from into cahched_rlp
+    // cached_rlp_ = std::make_shared<bytes>(std::move(_rlp));
+  }
 
   auto isZero() const { return is_zero_; }
   trx_hash_t const &getHash() const;

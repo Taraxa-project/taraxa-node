@@ -1,6 +1,5 @@
 set(HEADERS 
-    include/transaction/transaction.hpp 
-    include/transaction/status.hpp
+    include/transaction/transaction.hpp
 )
 set(SOURCES src/transaction.cpp)
 
