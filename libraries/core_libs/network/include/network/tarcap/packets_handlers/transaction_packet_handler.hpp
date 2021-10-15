@@ -22,7 +22,7 @@ class TransactionPacketHandler : public PacketHandler {
 
   virtual ~TransactionPacketHandler() = default;
 
-  void onNewTransactions(std::vector<std::shared_ptr<Transaction>> const& transactions, bool fromNetwork);
+  void onNewTransactions(SharedTransactions const& transactions, bool fromNetwork);
   void sendTransactions(dev::p2p::NodeID const& peer_id, std::vector<taraxa::bytes> const& transactions);
 
  private:

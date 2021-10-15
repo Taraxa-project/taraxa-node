@@ -263,8 +263,8 @@ std::map<level_t, std::vector<DagBlock>> DbStorage::getNonfinalizedDagBlocks() {
   return res;
 }
 
-std::vector<std::shared_ptr<Transaction>> DbStorage::getNonfinalizedTransactions() {
-  std::vector<std::shared_ptr<Transaction>> res;
+SharedTransactions DbStorage::getNonfinalizedTransactions() {
+  SharedTransactions res;
   auto i = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::transactions)));
   i->SeekToFirst();
   if (!i->Valid()) return res;

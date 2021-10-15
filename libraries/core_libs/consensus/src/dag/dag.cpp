@@ -368,10 +368,9 @@ void DagManager::worker() {
   uint64_t level = 0;
   while (!stopped_) {
     // will block if no verified block available
-    auto blk = dag_blk_mgr_->popVerifiedBlock(level_limit, level);
-    if (blk) {
+    if (auto blk = dag_blk_mgr_->popVerifiedBlock(level_limit, level)) {
       level_limit = false;
-      std::vector<std::shared_ptr<Transaction>> transactions;
+      SharedTransactions transactions;
       if (pivotAndTipsAvailable(*blk)) {
         // Retrieve all the transactions
         for (auto const &trx_hash : blk->getTrxs()) {
@@ -380,7 +379,7 @@ void DagManager::worker() {
           assert(trx != nullptr);
           transactions.emplace_back(std::move(trx));
         }
-        addDagBlock(*blk, transactions);
+        addDagBlock(*blk, std::move(transactions));
         LOG(log_time_) << "Broadcast block " << blk->getHash() << " at: " << getCurrentTimeMilliSeconds();
       } else {
         // Networking makes sure that dag block that reaches queue already had
@@ -399,8 +398,7 @@ void DagManager::worker() {
   }
 }
 
-void DagManager::addDagBlock(DagBlock const &blk, std::vector<std::shared_ptr<Transaction>> const &trxs, bool proposed,
-                             bool save) {
+void DagManager::addDagBlock(DagBlock const &blk, SharedTransactions &&trxs, bool proposed, bool save) {
   {
     ULock lock(mutex_);
     if (save) {

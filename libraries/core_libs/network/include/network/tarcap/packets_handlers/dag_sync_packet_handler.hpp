@@ -2,6 +2,10 @@
 
 #include "network/tarcap/packets_handlers/common/ext_syncing_packet_handler.hpp"
 
+namespace taraxa {
+class TransactionManager;
+}  // namespace taraxa
+
 namespace taraxa::network::tarcap {
 
 class DagSyncPacketHandler : public ExtSyncingPacketHandler {

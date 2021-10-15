@@ -368,7 +368,7 @@ void TaraxaCapability::onNewBlockVerified(DagBlock const &blk, bool proposed) {
       ->onNewBlockVerified(blk, proposed);
 }
 
-void TaraxaCapability::onNewTransactions(const std::vector<std::shared_ptr<Transaction>> &transactions) {
+void TaraxaCapability::onNewTransactions(const SharedTransactions &transactions) {
   std::static_pointer_cast<TransactionPacketHandler>(
       packets_handlers_->getSpecificHandler(SubprotocolPacketType::TransactionPacket))
       ->onNewTransactions(transactions, true);

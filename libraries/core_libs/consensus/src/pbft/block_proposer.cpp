@@ -57,7 +57,7 @@ bool SortitionPropose::propose() {
     }
   }
 
-  std::vector<std::shared_ptr<Transaction>> sharded_trxs = proposer->getShardedTrxs();
+  SharedTransactions sharded_trxs = proposer->getShardedTrxs();
   if (sharded_trxs.empty()) {
     return false;
   }
@@ -107,14 +107,14 @@ void BlockProposer::stop() {
   proposer_worker_->join();
 }
 
-std::vector<std::shared_ptr<Transaction>> BlockProposer::getShardedTrxs() {
-  std::vector<std::shared_ptr<Transaction>> to_be_packed_trx = trx_mgr_->packTrxs(bp_config_.transaction_limit);
+SharedTransactions BlockProposer::getShardedTrxs() {
+  SharedTransactions to_be_packed_trx = trx_mgr_->packTrxs(bp_config_.transaction_limit);
 
   if (to_be_packed_trx.empty()) {
     LOG(log_tr_) << "Skip block proposer, zero unpacked transactions ..." << std::endl;
     return {};
   }
-  std::vector<std::shared_ptr<Transaction>> sharded_trxs;
+  SharedTransactions sharded_trxs;
   for (auto const& t : to_be_packed_trx) {
     auto shard = std::stoull(t->getHash().toString().substr(0, 10), NULL, 16);
     if (shard % total_trx_shards_ == my_trx_shard_) {
@@ -149,8 +149,7 @@ level_t BlockProposer::getProposeLevel(blk_hash_t const& pivot, vec_blk_t const&
   return max_level;
 }
 
-void BlockProposer::proposeBlock(DagFrontier&& frontier, level_t level,
-                                 std::vector<std::shared_ptr<Transaction>>&& trxs, VdfSortition&& vdf) {
+void BlockProposer::proposeBlock(DagFrontier&& frontier, level_t level, SharedTransactions&& trxs, VdfSortition&& vdf) {
   if (stopped_) return;
 
   vec_trx_t trx_hashes;
@@ -161,7 +160,7 @@ void BlockProposer::proposeBlock(DagFrontier&& frontier, level_t level,
   // simply add the block to the DAG
   DagBlock blk(frontier.pivot, std::move(level), std::move(frontier.tips), std::move(trx_hashes), std::move(vdf),
                node_sk_);
-  dag_mgr_->addDagBlock(blk, trxs, true);
+  dag_mgr_->addDagBlock(blk, std::move(trxs), true);
   dag_blk_mgr_->markDagBlockAsSeen(blk);
 
   auto now = getCurrentTimeMilliSeconds();

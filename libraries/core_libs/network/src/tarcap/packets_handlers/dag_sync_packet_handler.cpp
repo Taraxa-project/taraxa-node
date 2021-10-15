@@ -29,7 +29,7 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
     DagBlock block(*it++);
     peer->markDagBlockAsKnown(block.getHash());
 
-    std::vector<std::shared_ptr<Transaction>> new_transactions;
+    SharedTransactions new_transactions;
     for (size_t i = 0; i < block.getTrxs().size(); i++) {
       Transaction transaction(*it++);
       peer->markTransactionAsKnown(transaction.getHash());

@@ -28,12 +28,12 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   /**
    * Retrieves transactions to be included in a proposed pbft block
    */
-  std::vector<std::shared_ptr<Transaction>> packTrxs(uint16_t max_trx_to_pack = 0);
+  SharedTransactions packTrxs(uint16_t max_trx_to_pack = 0);
 
   /**
    * Removes transactions from memory pool. Invoked when transactions are included in proposed or received dag block
    */
-  void removeTransactionsFromPool(std::vector<std::shared_ptr<Transaction>> const &trxs);
+  void removeTransactionsFromPool(SharedTransactions const &trxs);
 
   /**
    * @brief Inserts new transaction to transaction pool
@@ -50,12 +50,12 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
    * @param txs transactions to be processed
    * @return number of successfully inserted unseen transactions
    */
-  uint32_t insertBroadcastedTransactions(const std::vector<std::shared_ptr<Transaction>> &txs);
+  uint32_t insertBroadcastedTransactions(const SharedTransactions &txs);
 
   /**
    * Returns a copy of transactions pool
    */
-  std::vector<std::shared_ptr<Transaction>> getTransactionsSnapShot() const;
+  SharedTransactions getTransactionsSnapShot() const;
 
   size_t getTransactionPoolSize() const;
 

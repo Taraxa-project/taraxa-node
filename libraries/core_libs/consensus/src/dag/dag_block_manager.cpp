@@ -217,7 +217,7 @@ void DagBlockManager::verifyBlock() {
       continue;
     }
 
-    // Verify transactionse
+    // Verify transactions
     if (!trx_mgr_->checkBlockTransactions(blk)) {
       LOG(log_er_) << "Ignore block " << block_hash << " since it has invalid or missing transactions";
       markBlockInvalid(block_hash);

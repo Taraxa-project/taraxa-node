@@ -22,7 +22,7 @@ inline void TransactionPacketHandler::process(const PacketData &packet_data, con
   std::string received_transactions;
   const auto transaction_count = packet_data.rlp_.itemCount();
 
-  std::vector<std::shared_ptr<Transaction>> transactions;
+  SharedTransactions transactions;
   transactions.reserve(transaction_count);
 
   for (size_t tx_idx = 0; tx_idx < transaction_count; tx_idx++) {
@@ -42,8 +42,7 @@ inline void TransactionPacketHandler::process(const PacketData &packet_data, con
   }
 }
 
-void TransactionPacketHandler::onNewTransactions(std::vector<std::shared_ptr<Transaction>> const &transactions,
-                                                 bool fromNetwork) {
+void TransactionPacketHandler::onNewTransactions(SharedTransactions const &transactions, bool fromNetwork) {
   if (fromNetwork) {
     if (dag_blk_mgr_) {
       LOG(log_nf_) << "Storing " << transactions.size() << " transactions";

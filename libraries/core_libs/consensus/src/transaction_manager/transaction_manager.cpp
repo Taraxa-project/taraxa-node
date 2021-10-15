@@ -71,9 +71,9 @@ std::pair<bool, std::string> TransactionManager::insertTransaction(const Transac
   }
 }
 
-uint32_t TransactionManager::insertBroadcastedTransactions(const std::vector<std::shared_ptr<Transaction>> &txs) {
-  std::vector<std::shared_ptr<Transaction>> verified_txs;
-  std::vector<std::shared_ptr<Transaction>> unseen_txs;
+uint32_t TransactionManager::insertBroadcastedTransactions(const SharedTransactions &txs) {
+  SharedTransactions verified_txs;
+  SharedTransactions unseen_txs;
   std::vector<trx_hash_t> verified_txs_hashes;
 
   if (checkMemoryPoolOverflow() == true) {
@@ -140,7 +140,7 @@ std::shared_ptr<Transaction> TransactionManager::getTransaction(trx_hash_t const
   return db_->getTransaction(hash);
 }
 
-void TransactionManager::removeTransactionsFromPool(std::vector<std::shared_ptr<Transaction>> const &trxs) {
+void TransactionManager::removeTransactionsFromPool(SharedTransactions const &trxs) {
   // This lock synchronizes inserting and removing transactions from transactions memory pool with database insertion.
   // Unique lock here makes sure that transactions we are removing are not reinserted in transactions_pool_
   std::unique_lock transactions_lock(transactions_mutex_);
@@ -163,9 +163,7 @@ void TransactionManager::recoverNonfinalizedTransactions() {
   }
 }
 
-std::vector<std::shared_ptr<Transaction>> TransactionManager::getTransactionsSnapShot() const {
-  return transactions_pool_.getValues();
-}
+SharedTransactions TransactionManager::getTransactionsSnapShot() const { return transactions_pool_.getValues(); }
 
 size_t TransactionManager::getTransactionPoolSize() const { return transactions_pool_.size(); }
 
@@ -174,8 +172,8 @@ size_t TransactionManager::getNonfinalizedTrxSize() const { return nonfinalized_
 /**
  * Retrieve transactions to be included in proposed block
  */
-std::vector<std::shared_ptr<Transaction>> TransactionManager::packTrxs(uint16_t max_trx_to_pack) {
-  std::vector<std::shared_ptr<Transaction>> to_be_packed_trx = transactions_pool_.getValues(max_trx_to_pack);
+SharedTransactions TransactionManager::packTrxs(uint16_t max_trx_to_pack) {
+  SharedTransactions to_be_packed_trx = transactions_pool_.getValues(max_trx_to_pack);
 
   // sort trx based on sender and nonce
   std::sort(to_be_packed_trx.begin(), to_be_packed_trx.end(), trxComp);

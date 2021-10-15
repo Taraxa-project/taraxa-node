@@ -139,7 +139,7 @@ TEST_F(PbftChainTest, block_broadcast) {
   // generate first PBFT block sample
 
   DagBlock blk1(dag_genesis, 1, {}, {g_signed_trx_samples[0]->getHash(), g_signed_trx_samples[1]->getHash()}, vdf1, sk);
-  std::vector<std::shared_ptr<Transaction>> txs1({g_signed_trx_samples[0], g_signed_trx_samples[1]});
+  SharedTransactions txs1({g_signed_trx_samples[0], g_signed_trx_samples[1]});
 
   auto pbft_block = std::make_shared<PbftBlock>(prev_block_hash, blk1.getHash(), blk_hash_t(), period, beneficiary,
                                                 node1->getSecretKey());

@@ -88,7 +88,7 @@ void Network::onNewBlockVerified(DagBlock const &blk, bool proposed) {
   LOG(log_dg_) << "On new block verified:" << blk.getHash().toString();
 }
 
-void Network::onNewTransactions(const std::vector<std::shared_ptr<Transaction>> &transactions) {
+void Network::onNewTransactions(const SharedTransactions &transactions) {
   taraxa_capability_->onNewTransactions(transactions);
   LOG(log_dg_) << "On new transactions" << transactions.size();
 }

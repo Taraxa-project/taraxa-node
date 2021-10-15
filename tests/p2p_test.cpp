@@ -212,7 +212,7 @@ TEST_F(P2PTest, capability_send_block) {
                {g_signed_trx_samples[0]->getHash(), g_signed_trx_samples[1]->getHash()}, sig_t(7777), blk_hash_t(888),
                addr_t(999));
 
-  std::vector<std::shared_ptr<Transaction>> transactions{g_signed_trx_samples[0], g_signed_trx_samples[1]};
+  SharedTransactions transactions{g_signed_trx_samples[0], g_signed_trx_samples[1]};
   thc2->onNewTransactions(transactions);
   thc2->sendBlock(host1->id(), blk);
 
@@ -323,9 +323,9 @@ TEST_F(P2PTest, block_propagate) {
                {g_signed_trx_samples[0]->getHash(), g_signed_trx_samples[1]->getHash()}, sig_t(7777), blk_hash_t(0),
                addr_t(999));
 
-  std::vector<std::shared_ptr<Transaction>> transactions{g_signed_trx_samples[0], g_signed_trx_samples[1]};
+  SharedTransactions transactions{g_signed_trx_samples[0], g_signed_trx_samples[1]};
   thc1->onNewTransactions(transactions);
-  std::vector<std::shared_ptr<Transaction>> transactions2;
+  SharedTransactions transactions2;
   thc1->onNewTransactions(transactions2);
   thc1->onNewBlockReceived(blk);
 

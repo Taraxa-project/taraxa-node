@@ -150,7 +150,7 @@ TEST_F(TransactionTest, transaction_limit) {
   }
   t.join();
   thisThreadSleepForMilliSeconds(100);
-  std::vector<std::shared_ptr<Transaction>> verified_trxs1, verified_trxs2, verified_trxs3;
+  SharedTransactions verified_trxs1, verified_trxs2, verified_trxs3;
   verified_trxs1 = trx_mgr.packTrxs(10);
   verified_trxs2 = trx_mgr.packTrxs(20);
   verified_trxs3 = trx_mgr.packTrxs(0);
@@ -171,7 +171,7 @@ TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
   thisThreadSleepForMilliSeconds(500);
 
   insertTrx.join();
-  std::vector<std::shared_ptr<Transaction>> total_packed_trxs, packed_trxs;
+  SharedTransactions total_packed_trxs, packed_trxs;
   std::cout << "Start block proposing ..." << std::endl;
   std::thread wakeup([]() { thisThreadSleepForSeconds(2); });
   auto batch = db->createWriteBatch();
