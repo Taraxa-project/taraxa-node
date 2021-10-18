@@ -1495,15 +1495,19 @@ TEST_F(FullNodeTest, chain_config_json) {
     "run_count_votes": false
   },
   "sortition": {
-    "vrf": {
-      "threshold_upper": "0x8000",
-      "threshold_lower": "0x7200"
-    },
+    "changes_count_for_average": "0x5",
+    "max_interval_correction": "0x3e8",
+    "computation_interval": "0x32",
+    "target_dag_efficiency": "0x1388",
     "vdf": {
       "difficulty_max": "0x15",
       "difficulty_min": "0x10",
       "difficulty_stale": "0x16",
       "lambda_bound": "0x64"
+    },
+    "vrf": {
+      "threshold_lower": "0x7200",
+      "threshold_upper": "0x8000"
     }
   }
 })";

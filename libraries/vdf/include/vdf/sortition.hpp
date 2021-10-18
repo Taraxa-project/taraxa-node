@@ -23,12 +23,12 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
   };
 
   VdfSortition() = default;
-  explicit VdfSortition(SortitionConfig const& config, vrf_sk_t const& sk, bytes const& msg);
+  explicit VdfSortition(SortitionParams const& config, vrf_sk_t const& sk, bytes const& msg);
   explicit VdfSortition(bytes const& b);
   explicit VdfSortition(Json::Value const& json);
 
-  void computeVdfSolution(SortitionConfig const& config, dev::bytes const& msg);
-  void verifyVdf(SortitionConfig const& config, bytes const& vrf_input, bytes const& vdf_input) const;
+  void computeVdfSolution(SortitionParams const& config, dev::bytes const& msg);
+  void verifyVdf(SortitionParams const& config, bytes const& vrf_input, bytes const& vdf_input) const;
 
   bytes rlp() const;
   bool operator==(VdfSortition const& other) const {
@@ -49,9 +49,9 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
 
   auto getComputationTime() const { return vdf_computation_time_; }
   uint16_t getDifficulty() const;
-  uint16_t calculateDifficulty(SortitionConfig const& config) const;
-  bool isOmitVdf(SortitionConfig const& config) const;
-  bool isStale(SortitionConfig const& config) const;
+  uint16_t calculateDifficulty(SortitionParams const& config) const;
+  bool isOmitVdf(SortitionParams const& config) const;
+  bool isStale(SortitionParams const& config) const;
   Json::Value getJson() const;
 
  private:

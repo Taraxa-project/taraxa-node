@@ -1,6 +1,6 @@
-#include <libdevcore/CommonJS.h>
+#include "vdf/config.hpp"
 
-#include <vdf/config.hpp>
+#include <libdevcore/CommonJS.h>
 
 namespace taraxa {
 
@@ -31,16 +31,33 @@ void dec_json(Json::Value const& json, VdfParams& obj) {
   obj.lambda_bound = dev::jsToInt(json["lambda_bound"].asString());
 }
 
-Json::Value enc_json(SortitionConfig const& obj) {
+Json::Value enc_json(SortitionParams const& obj) {
   Json::Value ret(Json::objectValue);
   ret["vrf"] = enc_json(obj.vrf);
   ret["vdf"] = enc_json(obj.vdf);
   return ret;
 }
 
-void dec_json(Json::Value const& json, SortitionConfig& obj) {
+void dec_json(Json::Value const& json, SortitionParams& obj) {
   dec_json(json["vrf"], obj.vrf);
   dec_json(json["vdf"], obj.vdf);
+}
+
+Json::Value enc_json(SortitionConfig const& obj) {
+  auto ret = enc_json(dynamic_cast<SortitionParams const&>(obj));
+  ret["changes_count_for_average"] = dev::toJS(obj.changes_count_for_average);
+  ret["max_interval_correction"] = dev::toJS(obj.max_interval_correction);
+  ret["target_dag_efficiency"] = dev::toJS(obj.target_dag_efficiency);
+  ret["computation_interval"] = dev::toJS(obj.computation_interval);
+  return ret;
+}
+
+void dec_json(Json::Value const& json, SortitionConfig& obj) {
+  dec_json(json, dynamic_cast<SortitionParams&>(obj));
+  obj.changes_count_for_average = dev::jsToInt(json["changes_count_for_average"].asString());
+  obj.max_interval_correction = dev::jsToInt(json["max_interval_correction"].asString());
+  obj.target_dag_efficiency = dev::jsToInt(json["target_dag_efficiency"].asString());
+  obj.computation_interval = dev::jsToInt(json["computation_interval"].asString());
 }
 
 }  // namespace taraxa

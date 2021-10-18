@@ -110,6 +110,16 @@ target_link_libraries(rpc_taraxa_test
 )
 add_test(rpc_taraxa_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/rpc_taraxa_test)
 
+add_executable(sortition_test sortition_test.cpp ${UTIL_HEADERS})
+target_link_libraries(sortition_test 
+    common
+    config
+    core_libs
+    taraxa-evm
+    CONAN_PKG::gtest
+)
+add_test(sortition_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/sortition_test)
+
 add_executable(state_api_test state_api_test.cpp ${UTIL_HEADERS})
 target_link_libraries(state_api_test 
     common
@@ -119,6 +129,15 @@ target_link_libraries(state_api_test
     CONAN_PKG::gtest
 )
 add_test(state_api_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/state_api_test)
+
+add_executable(transaction_test transaction_test.cpp ${UTIL_HEADERS})
+target_link_libraries(transaction_test 
+    common
+    config
+    core_libs
+    CONAN_PKG::gtest
+)
+add_test(transaction_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/transaction_test)
 
 add_executable(vote_test vote_test.cpp ${UTIL_HEADERS})
 target_link_libraries(vote_test 
@@ -130,14 +149,6 @@ target_link_libraries(vote_test
 )
 add_test(vote_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/vote_test)
 
-add_executable(transaction_test transaction_test.cpp ${UTIL_HEADERS})
-target_link_libraries(transaction_test 
-    common
-    config
-    core_libs
-    CONAN_PKG::gtest
-)
-add_test(transaction_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/transaction_test)
 
 add_executable(tarcap_threadpool_test tarcap_threadpool_test.cpp)
 target_link_libraries(tarcap_threadpool_test

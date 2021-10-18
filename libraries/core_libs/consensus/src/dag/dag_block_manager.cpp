@@ -18,7 +18,7 @@ DagBlockManager::DagBlockManager(addr_t node_addr, SortitionConfig const &sortit
       invalid_blocks_(cache_max_size_, cache_delete_step_),
       seen_blocks_(cache_max_size_, cache_delete_step_),
       queue_limit_(queue_limit),
-      sortition_config_(sortition_config),
+      sortition_params_manager_(sortition_config, db_),
       dpos_config_(dpos_config) {
   LOG_OBJECTS_CREATE("BLKQU");
 
@@ -226,7 +226,7 @@ void DagBlockManager::verifyBlock() {
 
     // Verify VDF solution
     try {
-      blk.verifyVdf(sortition_config_);
+      blk.verifyVdf(sortition_params_manager_.getSortitionParams());
     } catch (vdf_sortition::VdfSortition::InvalidVdfSortition const &e) {
       LOG(log_er_) << "DAG block " << block_hash << " failed on VDF verification with pivot hash " << blk.getPivot()
                    << " reason " << e.what();
