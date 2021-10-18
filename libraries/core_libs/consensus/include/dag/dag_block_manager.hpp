@@ -2,6 +2,7 @@
 
 #include "config/state_api_config.hpp"
 #include "dag/dag_block.hpp"
+#include "dag/sortition_params_manager.hpp"
 #include "final_chain/final_chain.hpp"
 #include "pbft/pbft_chain.hpp"
 #include "transaction_manager/transaction_manager.hpp"
@@ -48,6 +49,7 @@ class DagBlockManager {
   void setLastProposalPeriod(uint64_t const period);
   std::pair<uint64_t, bool> getProposalPeriod(level_t level);
   std::shared_ptr<ProposalPeriodDagLevelsMap> newProposePeriodDagLevelsMap(level_t anchor_level);
+  SortitionParamsManager &sortitionParamsManager() { return sortition_params_manager_; }
 
  private:
   using uLock = boost::unique_lock<boost::shared_mutex>;
@@ -82,7 +84,7 @@ class DagBlockManager {
   std::map<uint64_t, std::deque<DagBlock>> unverified_qu_;
   std::map<uint64_t, std::deque<DagBlock>> verified_qu_;
 
-  SortitionConfig sortition_config_;
+  SortitionParamsManager sortition_params_manager_;
   std::optional<state_api::DPOSConfig> dpos_config_;
 
   LOG_OBJECTS_DEFINE

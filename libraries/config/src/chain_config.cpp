@@ -42,8 +42,8 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
       "sender": "de2b1203d72d3549ee2f733b00b2789414c7cea5",
       "pivot": "0000000000000000000000000000000000000000000000000000000000000000",
       "timestamp": 1564617600,
-      "sortition": ""
-  })"));
+      "vdf": ""
+    })"));
     cfg.final_chain.state.disable_block_rewards = true;
     cfg.final_chain.state.eth_chain_config.dao_fork_block = state_api::BlockNumberNIL;
     cfg.final_chain.state.execution_options.disable_nonce_check = true;
