@@ -118,77 +118,133 @@ TEST_F(TransactionTest, sig) {
 TEST_F(TransactionTest, verifiers) {
   TransactionManager trx_mgr(FullNodeConfig(), addr_t(), std::make_shared<DbStorage>(data_dir),
                              TransactionManager::VerifyMode::skip_verify_sig);
-  trx_mgr.start();
-
   // insert trx
   std::thread t([&trx_mgr]() {
     for (auto const& t : *g_trx_samples) {
-      trx_mgr.insertTransaction(t, true);
+      trx_mgr.insertTransaction(t);
     }
   });
 
   // insert trx again, should not duplicated
   for (auto const& t : *g_trx_samples) {
-    trx_mgr.insertTransaction(t, false);
+    trx_mgr.insertTransaction(t);
   }
   t.join();
   thisThreadSleepForMilliSeconds(100);
-  EXPECT_EQ(trx_mgr.getVerifiedTrxCount(), g_trx_samples->size());
+  EXPECT_EQ(trx_mgr.getTransactionPoolSize(), g_trx_samples->size());
 }
 
 TEST_F(TransactionTest, transaction_limit) {
   TransactionManager trx_mgr(FullNodeConfig(), addr_t(), std::make_shared<DbStorage>(data_dir),
                              TransactionManager::VerifyMode::skip_verify_sig);
-  trx_mgr.start();
-
   // insert trx
   std::thread t([&trx_mgr]() {
     for (auto const& t : *g_trx_samples) {
-      trx_mgr.insertTransaction(t, true);
+      trx_mgr.insertTransaction(t);
     }
   });
 
   // insert trx again, should not duplicated
   for (auto const& t : *g_trx_samples) {
-    trx_mgr.insertTransaction(t, false);
+    trx_mgr.insertTransaction(t);
   }
   t.join();
   thisThreadSleepForMilliSeconds(100);
-  auto& trx_qu = trx_mgr.getTransactionQueue();
-  auto verified_trxs1 = trx_qu.moveVerifiedTrxSnapShot(10);
-  auto verified_trxs2 = trx_qu.moveVerifiedTrxSnapShot(20);
-  auto verified_trxs3 = trx_qu.moveVerifiedTrxSnapShot(0);
+  SharedTransactions verified_trxs1, verified_trxs2, verified_trxs3;
+  verified_trxs1 = trx_mgr.packTrxs(10);
+  verified_trxs2 = trx_mgr.packTrxs(20);
+  verified_trxs3 = trx_mgr.packTrxs(0);
   EXPECT_EQ(verified_trxs1.size(), 10);
   EXPECT_EQ(verified_trxs2.size(), 20);
-  EXPECT_EQ(verified_trxs3.size(), g_trx_samples->size() - 30);
+  EXPECT_EQ(verified_trxs3.size(), g_trx_samples->size());
 }
 
 TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
-  TransactionManager trx_mgr(FullNodeConfig(), addr_t(), std::make_shared<DbStorage>(data_dir));
-  trx_mgr.start();
-
+  auto db = std::make_shared<DbStorage>(data_dir);
+  TransactionManager trx_mgr(FullNodeConfig(), addr_t(), db);
   std::thread insertTrx([&trx_mgr]() {
     for (auto const& t : *g_signed_trx_samples) {
-      trx_mgr.insertTransaction(t, false);
+      trx_mgr.insertTransaction(*t);
     }
   });
 
   thisThreadSleepForMilliSeconds(500);
 
   insertTrx.join();
-  vec_trx_t total_packed_trxs, packed_trxs;
+  SharedTransactions total_packed_trxs, packed_trxs;
   std::cout << "Start block proposing ..." << std::endl;
-  std::thread wakeup([&trx_mgr]() {
-    thisThreadSleepForSeconds(2);
-    trx_mgr.stop();
-  });
+  std::thread wakeup([]() { thisThreadSleepForSeconds(2); });
+  auto batch = db->createWriteBatch();
+
   do {
-    trx_mgr.packTrxs(packed_trxs);
+    packed_trxs = trx_mgr.packTrxs();
     total_packed_trxs.insert(total_packed_trxs.end(), packed_trxs.begin(), packed_trxs.end());
+    trx_mgr.removeTransactionsFromPool(packed_trxs);
     thisThreadSleepForMicroSeconds(100);
   } while (!packed_trxs.empty());
   wakeup.join();
   EXPECT_EQ(total_packed_trxs.size(), NUM_TRX) << " Packed Trx: " << ::testing::PrintToString(total_packed_trxs);
+}
+
+TEST_F(TransactionTest, transaction_concurrency) {
+  auto db = std::make_shared<DbStorage>(data_dir);
+  TransactionManager trx_mgr(FullNodeConfig(), addr_t(), db);
+  bool stopped = false;
+  // Insert transactions to memory pool and keep trying to insert them again on separate thread, it should always fail
+  std::thread insertTrx([&trx_mgr, &stopped]() {
+    for (auto const& t : *g_signed_trx_samples) {
+      trx_mgr.insertTransaction(*t);
+    }
+    while (!stopped) {
+      for (auto const& t : *g_signed_trx_samples) {
+        EXPECT_FALSE(trx_mgr.insertTransaction(*t).first);
+      }
+    }
+  });
+
+  // 2/3 of transactions removed from pool and saved to db
+  for (size_t i = 0; i < g_signed_trx_samples->size() * 2 / 3; i++) {
+    db->saveTransaction(*g_signed_trx_samples[i]);
+    trx_mgr.removeTransactionsFromPool({g_signed_trx_samples[i]});
+  }
+
+  // 1/3 transactions finalized
+  for (size_t i = 0; i < g_signed_trx_samples->size() / 3; i++) {
+    db->saveTransactionPeriod(g_signed_trx_samples[i]->getHash(), 1, i);
+    SyncBlock sync_block;
+    sync_block.transactions = {*g_signed_trx_samples[i]};
+    trx_mgr.updateFinalizedTransactionsStatus(sync_block);
+  }
+
+  // Stop the thread which is trying to indert transactions to pool
+  stopped = true;
+  insertTrx.join();
+
+  // Verify all transactions are in correct state in pool, db and finalized
+  auto trx_pool = trx_mgr.getTransactionsSnapShot();
+  std::set<trx_hash_t> pool_trx_hashes;
+  for (auto const& t : trx_mgr.getTransactionsSnapShot()) {
+    pool_trx_hashes.insert(t->getHash());
+  }
+
+  EXPECT_EQ(pool_trx_hashes.size(), g_signed_trx_samples->size() - g_signed_trx_samples->size() * 2 / 3);
+
+  for (size_t i = 0; i < g_signed_trx_samples->size() / 3; i++) {
+    EXPECT_FALSE(pool_trx_hashes.count(g_signed_trx_samples[i]->getHash()) > 0);
+    EXPECT_TRUE(db->transactionInDb(g_signed_trx_samples[i]->getHash()));
+    EXPECT_TRUE(db->transactionFinalized(g_signed_trx_samples[i]->getHash()));
+  }
+
+  for (size_t i = g_signed_trx_samples->size() / 3; i < g_signed_trx_samples->size() * 2 / 3; i++) {
+    EXPECT_FALSE(pool_trx_hashes.count(g_signed_trx_samples[i]->getHash()) > 0);
+    EXPECT_TRUE(db->transactionInDb(g_signed_trx_samples[i]->getHash()));
+    EXPECT_FALSE(db->transactionFinalized(g_signed_trx_samples[i]->getHash()));
+  }
+
+  for (size_t i = g_signed_trx_samples->size() * 2 / 3; i < g_signed_trx_samples->size(); i++) {
+    EXPECT_TRUE(pool_trx_hashes.count(g_signed_trx_samples[i]->getHash()) > 0);
+    EXPECT_FALSE(db->transactionInDb(g_signed_trx_samples[i]->getHash()));
+  }
 }
 
 }  // namespace taraxa::core_tests

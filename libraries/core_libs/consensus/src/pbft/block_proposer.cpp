@@ -19,7 +19,7 @@ bool SortitionPropose::propose() {
     return false;
   }
 
-  if (trx_mgr_->getTransactionQueueSize().second == 0) {
+  if (trx_mgr_->getTransactionPoolSize() == 0) {
     return false;
   }
 
@@ -57,9 +57,8 @@ bool SortitionPropose::propose() {
     }
   }
 
-  vec_trx_t sharded_trxs;
-  auto ok = proposer->getShardedTrxs(sharded_trxs);
-  if (!ok) {
+  SharedTransactions sharded_trxs = proposer->getShardedTrxs();
+  if (sharded_trxs.empty()) {
     return false;
   }
   LOG(log_nf_) << "VDF computation time " << vdf.getComputationTime() << " difficulty " << vdf.getDifficulty();
@@ -108,26 +107,25 @@ void BlockProposer::stop() {
   proposer_worker_->join();
 }
 
-bool BlockProposer::getShardedTrxs(vec_trx_t& sharded_trxs) {
-  vec_trx_t to_be_packed_trx;
-  trx_mgr_->packTrxs(to_be_packed_trx, bp_config_.transaction_limit);
+SharedTransactions BlockProposer::getShardedTrxs() {
+  SharedTransactions to_be_packed_trx = trx_mgr_->packTrxs(bp_config_.transaction_limit);
 
   if (to_be_packed_trx.empty()) {
     LOG(log_tr_) << "Skip block proposer, zero unpacked transactions ..." << std::endl;
-    return false;
+    return {};
   }
-  sharded_trxs.clear();
+  SharedTransactions sharded_trxs;
   for (auto const& t : to_be_packed_trx) {
-    auto shard = std::stoull(t.toString().substr(0, 10), NULL, 16);
+    auto shard = std::stoull(t->getHash().toString().substr(0, 10), NULL, 16);
     if (shard % total_trx_shards_ == my_trx_shard_) {
       sharded_trxs.emplace_back(t);
     }
   }
   if (sharded_trxs.empty()) {
     LOG(log_tr_) << "Skip block proposer, zero sharded transactions ..." << std::endl;
-    return false;
+    return {};
   }
-  return true;
+  return sharded_trxs;
 }
 
 level_t BlockProposer::getProposeLevel(blk_hash_t const& pivot, vec_blk_t const& tips) {
@@ -151,24 +149,26 @@ level_t BlockProposer::getProposeLevel(blk_hash_t const& pivot, vec_blk_t const&
   return max_level;
 }
 
-void BlockProposer::proposeBlock(DagFrontier&& frontier, level_t level, vec_trx_t&& trxs, VdfSortition&& vdf) {
+void BlockProposer::proposeBlock(DagFrontier&& frontier, level_t level, SharedTransactions&& trxs, VdfSortition&& vdf) {
   if (stopped_) return;
 
-  auto blk = std::make_shared<DagBlock>(frontier.pivot, level, std::move(frontier.tips), std::move(trxs),
-                                        std::move(vdf), node_sk_);
-  dag_mgr_->addDagBlock(*blk);
-  dag_blk_mgr_->markDagBlockAsSeen(*blk);
+  vec_trx_t trx_hashes;
+  std::transform(trxs.begin(), trxs.end(), std::back_inserter(trx_hashes),
+                 [](std::shared_ptr<Transaction> const& t) { return t->getHash(); });
+
+  // When we propose block we know it is valid, no need for block verification with queue,
+  // simply add the block to the DAG
+  DagBlock blk(frontier.pivot, std::move(level), std::move(frontier.tips), std::move(trx_hashes), std::move(vdf),
+               node_sk_);
+  dag_mgr_->addDagBlock(blk, std::move(trxs), true);
+  dag_blk_mgr_->markDagBlockAsSeen(blk);
 
   auto now = getCurrentTimeMilliSeconds();
-  LOG(log_time_) << "Propose block " << blk->getHash() << " at: " << now << " ,trxs: " << blk->getTrxs()
-                 << " , tips: " << blk->getTips().size();
-  LOG(log_nf_) << "Add proposed DAG block " << blk->getHash() << ", pivot " << blk->getPivot() << " , number of trx ("
-               << blk->getTrxs().size() << ")";
+  LOG(log_time_) << "Propose block " << blk.getHash() << " at: " << now << " ,trxs: " << blk.getTrxs()
+                 << " , tips: " << blk.getTips().size();
+  LOG(log_nf_) << "Add proposed DAG block " << blk.getHash() << ", pivot " << blk.getPivot() << " , number of trx ("
+               << blk.getTrxs().size() << ")";
   BlockProposer::num_proposed_blocks.fetch_add(1);
-
-  if (auto net = network_.lock()) {
-    net->onNewBlockVerified(blk, true);
-  }
 }
 
 bool BlockProposer::validDposProposer(level_t const propose_level) {

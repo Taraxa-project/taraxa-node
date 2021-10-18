@@ -15,7 +15,6 @@
 #include "logger/logger.hpp"
 #include "pbft/pbft_block.hpp"
 #include "pbft/sync_block.hpp"
-#include "transaction/status.hpp"
 #include "transaction/transaction.hpp"
 
 namespace taraxa {
@@ -91,7 +90,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN(dag_blocks);
     COLUMN(dag_blocks_index);
     COLUMN(transactions);
-    COLUMN(trx_status);
+    COLUMN(trx_period);
     COLUMN(status);
     COLUMN(pbft_mgr_previous_round_status);
     COLUMN(pbft_mgr_round_step);
@@ -177,22 +176,25 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   bool dagBlockInDb(blk_hash_t const& hash);
   std::set<blk_hash_t> getBlocksByLevel(level_t level);
   std::vector<std::shared_ptr<DagBlock>> getDagBlocksAtLevel(level_t level, int number_of_levels);
-  void updateDagBlockCounters(Batch& write_batch, std::vector<DagBlock> blks);
+  void updateDagBlockCounters(std::vector<DagBlock> blks);
   std::map<level_t, std::vector<DagBlock>> getNonfinalizedDagBlocks();
+  void removeDagBlock(Batch& write_batch, blk_hash_t const& hash);
 
   // Transaction
   void saveTransaction(Transaction const& trx, bool verified = false);
   std::shared_ptr<Transaction> getTransaction(trx_hash_t const& hash);
-  std::shared_ptr<std::pair<Transaction, taraxa::bytes>> getTransactionExt(trx_hash_t const& hash);
+  SharedTransactions getNonfinalizedTransactions();
   bool transactionInDb(trx_hash_t const& hash);
+  bool transactionFinalized(trx_hash_t const& hash);
+  std::vector<bool> transactionsInDb(std::vector<trx_hash_t> const& trx_hashes);
+  std::vector<bool> transactionsFinalized(std::vector<trx_hash_t> const& trx_hashes);
   void addTransactionToBatch(Transaction const& trx, Batch& write_batch, bool verified = false);
   void removeTransactionToBatch(trx_hash_t const& trx, Batch& write_batch);
 
-  void saveTransactionStatus(trx_hash_t const& trx, TransactionStatus const& status);
-  void addTransactionStatusToBatch(Batch& write_batch, trx_hash_t const& trx, TransactionStatus const& status);
-  TransactionStatus getTransactionStatus(trx_hash_t const& hash);
-  std::vector<TransactionStatus> getTransactionStatus(std::vector<trx_hash_t> const& trx_hashes);
-  std::unordered_map<trx_hash_t, TransactionStatus> getAllTransactionStatus();
+  void saveTransactionPeriod(trx_hash_t const& trx, uint32_t period, uint32_t position);
+  void addTransactionPeriodToBatch(Batch& write_batch, trx_hash_t const& trx, uint32_t period, uint32_t position);
+  std::optional<std::pair<uint32_t, uint32_t>> getTransactionPeriod(trx_hash_t const& hash);
+  std::unordered_map<trx_hash_t, uint32_t> getAllTransactionPeriod();
 
   // PBFT manager
   uint64_t getPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus field);

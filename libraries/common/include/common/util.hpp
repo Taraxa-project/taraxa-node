@@ -16,6 +16,7 @@
 #include <list>
 #include <optional>
 #include <regex>
+#include <shared_mutex>
 #include <streambuf>
 #include <string>
 #include <unordered_set>
@@ -94,8 +95,8 @@ std::string getFormattedVersion(std::initializer_list<uint32_t> list);
 template <typename K, typename V>
 class StatusTable {
  public:
-  using uLock = boost::unique_lock<boost::shared_mutex>;
-  using sharedLock = boost::shared_lock<boost::shared_mutex>;
+  using uLock = std::unique_lock<std::shared_mutex>;
+  using sharedLock = std::shared_lock<std::shared_mutex>;
   using UnsafeStatusTable = std::unordered_map<K, V>;
   StatusTable(size_t capacity = 10000) : capacity_(capacity) {}
   std::pair<V, bool> get(K const &hash) {
@@ -193,7 +194,7 @@ class StatusTable {
   }
   using Element = std::list<std::pair<K, V>>;
   size_t capacity_;
-  mutable boost::shared_mutex shared_mutex_;
+  mutable std::shared_mutex shared_mutex_;
   std::unordered_map<K, typename std::list<std::pair<K, V>>::iterator> status_;
   std::list<std::pair<K, V>> lru_;
 };  // namespace taraxa
@@ -220,13 +221,13 @@ class ExpirationCache {
    */
   bool insert(Key const &key) {
     {
-      boost::shared_lock lock(mtx_);
+      std::shared_lock lock(mtx_);
       if (cache_.count(key)) {
         return false;
       }
     }
 
-    boost::unique_lock lock(mtx_);
+    std::unique_lock lock(mtx_);
 
     // There must be double check if key is not already in cache due to possible race condition
     if (!cache_.insert(key).second) {
@@ -245,12 +246,12 @@ class ExpirationCache {
   }
 
   std::size_t count(Key const &key) const {
-    boost::shared_lock lck(mtx_);
+    std::shared_lock lck(mtx_);
     return cache_.count(key);
   }
 
   void clear() {
-    boost::unique_lock lck(mtx_);
+    std::unique_lock lck(mtx_);
     cache_.clear();
     expiration_.clear();
   }
@@ -260,7 +261,7 @@ class ExpirationCache {
   std::deque<Key> expiration_;
   const uint32_t max_size_;
   const uint32_t delete_step_;
-  mutable boost::shared_mutex mtx_;
+  mutable std::shared_mutex mtx_;
 };
 
 template <typename T>
@@ -292,13 +293,13 @@ class ExpirationCacheMap {
    */
   bool insert(Key const &key, Value const &value) {
     {
-      boost::shared_lock lock(mtx_);
+      std::shared_lock lock(mtx_);
       if (cache_.count(key)) {
         return false;
       }
     }
 
-    boost::unique_lock lock(mtx_);
+    std::unique_lock lock(mtx_);
 
     // There must be double check if key is not already in cache due to possible race condition
     if (!cache_.emplace(key, value).second) {
@@ -313,30 +314,30 @@ class ExpirationCacheMap {
   }
 
   std::size_t count(Key const &key) const {
-    boost::shared_lock lck(mtx_);
+    std::shared_lock lck(mtx_);
     return cache_.count(key);
   }
 
   std::size_t size() const {
-    boost::shared_lock lck(mtx_);
+    std::shared_lock lck(mtx_);
     return cache_.size();
   }
 
   std::pair<Value, bool> get(Key const &key) const {
-    boost::shared_lock lck(mtx_);
+    std::shared_lock lck(mtx_);
     auto it = cache_.find(key);
     if (it == cache_.end()) return std::make_pair(Value(), false);
     return std::make_pair(it->second, true);
   }
 
   void clear() {
-    boost::unique_lock lck(mtx_);
+    std::unique_lock lck(mtx_);
     cache_.clear();
     expiration_.clear();
   }
 
   void update(Key const &key, Value value) {
-    boost::unique_lock lck(mtx_);
+    std::unique_lock lck(mtx_);
 
     if (cache_.find(key) != cache_.end()) {
       expiration_.erase(std::remove(expiration_.begin(), expiration_.end(), key), expiration_.end());
@@ -354,13 +355,13 @@ class ExpirationCacheMap {
   }
 
   void erase(const Key &key) {
-    boost::unique_lock lck(mtx_);
+    std::unique_lock lck(mtx_);
     cache_.erase(key);
     expiration_.erase(std::remove(expiration_.begin(), expiration_.end(), key), expiration_.end());
   }
 
   std::pair<Value, bool> updateWithGet(Key const &key, Value value) {
-    boost::unique_lock lck(mtx_);
+    std::unique_lock lck(mtx_);
     std::pair<Value, bool> ret;
     auto it = cache_.find(key);
     if (it == cache_.end()) {
@@ -380,12 +381,12 @@ class ExpirationCacheMap {
   }
 
   std::unordered_map<Key, Value> getRawMap() {
-    boost::shared_lock lck(mtx_);
+    std::shared_lock lck(mtx_);
     return cache_;
   }
 
   bool update(Key const &key, Value value, Value expected_value) {
-    boost::unique_lock lck(mtx_);
+    std::unique_lock lck(mtx_);
     auto it = cache_.find(key);
     if (it != cache_.end() && it->second == expected_value) {
       it->second = value;
@@ -413,5 +414,95 @@ class ExpirationCacheMap {
   std::deque<Key> expiration_;
   const uint32_t max_size_;
   const uint32_t delete_step_;
-  mutable boost::shared_mutex mtx_;
+  mutable std::shared_mutex mtx_;
+};
+
+template <class Key, class Value>
+class ThreadSafeMap {
+ public:
+  bool emplace(Key const &key, Value const &value) {
+    std::unique_lock lock(mtx_);
+    return map_.emplace(key, value).second;
+  }
+
+  std::size_t count(Key const &key) const {
+    std::shared_lock lck(mtx_);
+    return map_.count(key);
+  }
+
+  std::size_t size() const {
+    std::shared_lock lck(mtx_);
+    return map_.size();
+  }
+
+  std::pair<Value, bool> get(Key const &key) const {
+    std::shared_lock lck(mtx_);
+    auto it = map_.find(key);
+    if (it == map_.end()) return std::make_pair(Value(), false);
+    return std::make_pair(it->second, true);
+  }
+
+  std::vector<Value> getValues(uint32_t count = 0) const {
+    std::vector<Value> values;
+    uint32_t counter = 0;
+    std::shared_lock lck(mtx_);
+    values.reserve(map_.size());
+    for (auto const &t : map_) {
+      values.emplace_back(t.second);
+      if (count != 0) {
+        counter++;
+        if (counter == count) {
+          break;
+        }
+      }
+    }
+    return std::move(values);
+  }
+
+  void clear() {
+    std::unique_lock lck(mtx_);
+    map_.clear();
+  }
+
+  bool erase(const Key &key) {
+    std::unique_lock lck(mtx_);
+    return map_.erase(key);
+  }
+
+ protected:
+  std::unordered_map<Key, Value> map_;
+  mutable std::shared_mutex mtx_;
+};
+
+template <class Key>
+class ThreadSafeSet {
+ public:
+  bool emplace(Key const &key) {
+    std::unique_lock lock(mtx_);
+    return set_.insert(key).second;
+  }
+
+  std::size_t count(Key const &key) const {
+    std::shared_lock lck(mtx_);
+    return set_.count(key);
+  }
+
+  void clear() {
+    std::unique_lock lck(mtx_);
+    set_.clear();
+  }
+
+  bool erase(const Key &key) {
+    std::unique_lock lck(mtx_);
+    return set_.erase(key);
+  }
+
+  std::size_t size() const {
+    std::shared_lock lck(mtx_);
+    return set_.size();
+  }
+
+ private:
+  std::unordered_set<Key> set_;
+  mutable std::shared_mutex mtx_;
 };

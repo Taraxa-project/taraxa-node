@@ -16,17 +16,10 @@ class DagBlockManager {
                   std::shared_ptr<FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain,
                   logger::Logger log_time_, uint32_t queue_limit = 0);
   ~DagBlockManager();
-  /**
-   * @brief Synchronously process synced dag block with transactions and inserts it into db
-   *
-   * @param blk
-   * @param transactions
-   */
-  void processSyncedBlock(DbStorage::Batch &batch, SyncBlock const &sync_block);
-  void insertBroadcastedBlockWithTransactions(DagBlock const &blk, std::vector<Transaction> const &transactions);
-  void pushUnverifiedBlock(DagBlock const &block, std::vector<Transaction> const &transactions = {});
-  std::shared_ptr<DagBlock> popVerifiedBlock(bool level_limit = false,
-                                             uint64_t level = 0);  // get one verified block and pop
+  void insertBroadcastedBlock(DagBlock const &blk);
+  void pushUnverifiedBlock(DagBlock const &block);
+  std::optional<DagBlock> popVerifiedBlock(bool level_limit = false,
+                                           uint64_t level = 0);  // get one verified block and pop
   void pushVerifiedBlock(DagBlock const &blk);
   std::pair<size_t, size_t> getDagBlockQueueSize() const;
   level_t getMaxDagLevelInQueue() const;
@@ -85,7 +78,7 @@ class DagBlockManager {
   boost::condition_variable_any cond_for_verified_qu_;
   uint32_t queue_limit_;
 
-  std::map<uint64_t, std::deque<std::pair<DagBlock, std::vector<Transaction>>>> unverified_qu_;
+  std::map<uint64_t, std::deque<DagBlock>> unverified_qu_;
   std::map<uint64_t, std::deque<DagBlock>> verified_qu_;
 
   VdfConfig vdf_config_;

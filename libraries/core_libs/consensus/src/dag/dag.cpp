@@ -368,49 +368,55 @@ void DagManager::worker() {
   uint64_t level = 0;
   while (!stopped_) {
     // will block if no verified block available
-    auto verified_block = dag_blk_mgr_->popVerifiedBlock(level_limit, level);
-    if (!verified_block) {
-      LOG(log_er_) << "DAG block manager stopped";
+    auto blk = dag_blk_mgr_->popVerifiedBlock(level_limit, level);
+    if (blk == std::nullopt) {
       continue;
     }
-
     level_limit = false;
-    auto const &blk = *verified_block;
-
-    if (pivotAndTipsAvailable(blk)) {
-      addDagBlock(blk);
-      block_verified_.emit(blk);
-      if (auto net = network_.lock()) {
-        net->onNewBlockVerified(verified_block, false);
+    SharedTransactions transactions;
+    if (pivotAndTipsAvailable(*blk)) {
+      // Retrieve all the transactions
+      for (auto const &trx_hash : blk->getTrxs()) {
+        auto trx = trx_mgr_->getTransaction(trx_hash);
+        // DAG block should not have been verified if it is missing a transaction
+        assert(trx != nullptr);
+        transactions.emplace_back(std::move(trx));
       }
-      LOG(log_time_) << "Broadcast block " << blk.getHash() << " at: " << getCurrentTimeMilliSeconds();
+      addDagBlock(*blk, std::move(transactions));
+      LOG(log_time_) << "Broadcast block " << blk->getHash() << " at: " << getCurrentTimeMilliSeconds();
     } else {
       // Networking makes sure that dag block that reaches queue already had
       // its pivot and tips processed This should happen in a very rare case
       // where in some race condition older block is verfified faster then
       // new block but should resolve quickly, return block to queue
       if (!stopped_) {
-        if (dag_blk_mgr_->pivotAndTipsValid(blk)) {
-          LOG(log_wr_) << "Block could not be added to DAG " << blk.getHash().toString();
-          dag_blk_mgr_->pushVerifiedBlock(blk);
+        if (dag_blk_mgr_->pivotAndTipsValid(*blk)) {
+          dag_blk_mgr_->pushVerifiedBlock(*blk);
           level_limit = true;
-          level = blk.getLevel();
+          level = blk->getLevel();
         }
       }
     }
   }
 }
 
-void DagManager::addDagBlock(DagBlock const &blk, bool save) {
-  auto write_batch = db_->createWriteBatch();
+void DagManager::addDagBlock(DagBlock const &blk, SharedTransactions &&trxs, bool proposed, bool save) {
   {
     ULock lock(mutex_);
     if (save) {
+      auto write_batch = db_->createWriteBatch();
       if (db_->dagBlockInDb(blk.getHash())) {
         LOG(log_dg_) << "Block already in DB: " << blk.getHash();
         return;
       }
+      // Save the dag block and all of its transactions to DB
       db_->saveDagBlock(blk, &write_batch);
+      for (auto const &t : trxs) {
+        db_->addTransactionToBatch(*t, write_batch);
+      }
+      db_->commitWriteBatch(write_batch);
+      // Remove transactions from memory pool
+      trx_mgr_->removeTransactionsFromPool(trxs);
     }
     auto blk_hash = blk.getHash();
     auto pivot_hash = blk.getPivot();
@@ -427,7 +433,13 @@ void DagManager::addDagBlock(DagBlock const &blk, bool save) {
     for (auto const &t : ts) {
       frontier_.tips.push_back(t);
     }
-    db_->commitWriteBatch(write_batch);
+
+    if (save) {
+      block_verified_.emit(blk);
+      if (auto net = network_.lock()) {
+        net->onNewBlockVerified(blk, proposed);
+      }
+    }
   }
   LOG(log_dg_) << " Update frontier after adding block " << blk.getHash() << "anchor " << anchor_
                << " pivot = " << frontier_.pivot << " tips: " << frontier_.tips;
@@ -521,6 +533,31 @@ uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period,
     return 0;
   }
 
+  // Update dag counts correctly
+  // When synced and gossiping there should not be anything to update
+  // When syncing we must check if some of the DAG blocks are both in sync block and in memory DAG although
+  // non-finalized block should be empty when syncing, maybe we should clear it if we are deep out of sync to improve
+  // performance
+  std::unordered_set<blk_hash_t> non_finalized_blocks_set;
+  for (auto const &level : non_finalized_blks_) {
+    for (auto const &blk : level.second) {
+      non_finalized_blocks_set.insert(blk);
+    }
+  }
+  // Only update counter for blocks that are in the dag_order and not in memory DAG, this is only possible when pbft
+  // syncing and processing sync block
+  std::vector<DagBlock> dag_blocks_to_update_counters;
+  for (auto const &blk : dag_order) {
+    if (non_finalized_blocks_set.count(blk) == 0) {
+      auto dag_block = dag_blk_mgr_->getDagBlock(blk);
+      dag_blocks_to_update_counters.push_back(*dag_block);
+    }
+  }
+
+  if (dag_blocks_to_update_counters.size()) {
+    db_->updateDagBlockCounters(std::move(dag_blocks_to_update_counters));
+  }
+
   total_dag_->clear();
   pivot_tree_->clear();
   auto non_finalized_blocks = std::move(non_finalized_blks_);
@@ -569,10 +606,11 @@ void DagManager::recoverDag() {
     }
   }
 
-  for (auto const &lvl : db_->getNonfinalizedDagBlocks()) {
-    for (auto const &blk : lvl.second) {
-      addDagBlock(std::move(blk), false);
+  for (auto &lvl : db_->getNonfinalizedDagBlocks()) {
+    for (auto &blk : lvl.second) {
+      addDagBlock(std::move(blk), {}, false, false);
     }
+    trx_mgr_->recoverNonfinalizedTransactions();
   }
 }
 

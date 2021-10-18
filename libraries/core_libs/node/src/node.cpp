@@ -17,7 +17,6 @@
 #include "network/rpc/rpc_error_handler.hpp"
 #include "pbft/block_proposer.hpp"
 #include "pbft/pbft_manager.hpp"
-#include "transaction/status.hpp"
 #include "transaction_manager/transaction_manager.hpp"
 
 namespace taraxa {
@@ -211,9 +210,6 @@ void FullNode::start() {
   }
   if (!conf_.test_params.rebuild_db) {
     network_->start();
-  }
-  trx_mgr_->start();
-  if (!conf_.test_params.rebuild_db) {
     blk_proposer_->setNetwork(network_);
     blk_proposer_->start();
   }
@@ -245,7 +241,6 @@ void FullNode::close() {
                            // self-reference from FullNode to FullNode).
   blk_proposer_->stop();
   pbft_mgr_->stop();
-  trx_mgr_->stop();
   dag_blk_mgr_->stop();
   dag_mgr_->stop();
   LOG(log_nf_) << "Node stopped ... ";

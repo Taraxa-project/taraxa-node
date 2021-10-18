@@ -4,9 +4,7 @@
 #include "config/config.hpp"
 #include "logger/logger.hpp"
 #include "storage/storage.hpp"
-#include "transaction/status.hpp"
 #include "transaction/transaction.hpp"
-#include "transaction_manager/transaction_queue.hpp"
 
 namespace taraxa {
 
@@ -16,8 +14,8 @@ class FullNode;
 
 /**
  * Manage transactions within an epoch
- * 1. Check existence of transaction (seen in queue? in db?)
- * 2. Push to transaction queue and verify
+ * 1. Check existence of transaction
+ * 2. Push to transaction pool and verify
  *
  */
 class TransactionManager : public std::enable_shared_from_this<TransactionManager> {
@@ -26,87 +24,84 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
 
   TransactionManager(FullNodeConfig const &conf, addr_t node_addr, std::shared_ptr<DbStorage> db,
                      VerifyMode mode = VerifyMode::normal);
-  virtual ~TransactionManager();
-
-  void start();
-  void stop();
 
   /**
-   * The following function will require a lock for verified qu
+   * Retrieves transactions to be included in a proposed pbft block
    */
-  void packTrxs(vec_trx_t &to_be_packed_trx, uint16_t max_trx_to_pack = 0);
+  SharedTransactions packTrxs(uint16_t max_trx_to_pack = 0);
 
   /**
-   * @brief Inserts new transaction to queue and db
+   * Removes transactions from memory pool. Invoked when transactions are included in proposed or received dag block
+   */
+  void removeTransactionsFromPool(SharedTransactions const &trxs);
+
+  /**
+   * @brief Inserts new transaction to transaction pool
    *
    * @param trx transaction to be processed
-   * @param verify - if set to true, tx is also verified and inserted (if valid) into verified queue and db
-   *                 otherwise inserted into unverified queue and db
-   * @param broadcast - if set to true, tx is broadcasted to the network
    * @return std::pair<bool, std::string> -> pair<OK status, ERR message>
    */
-  std::pair<bool, std::string> insertTransaction(Transaction const &trx, bool verify = true);
+  std::pair<bool, std::string> insertTransaction(Transaction const &trx);
 
   /**
-   * @brief Inserts batch of unverified broadcasted transactions to unverified queue and db
+   * @brief Inserts batch of unverified broadcasted transactions to transaction pool
    *
    * @note Some of the transactions might be already processed -> they are not processed and inserted again
    * @param txs transactions to be processed
    * @return number of successfully inserted unseen transactions
    */
-  uint32_t insertBroadcastedTransactions(const std::vector<Transaction> &txs);
+  uint32_t insertBroadcastedTransactions(const SharedTransactions &txs);
 
-  size_t getVerifiedTrxCount() const;
-  std::vector<Transaction> getNewVerifiedTrxSnapShot();
-  std::pair<size_t, size_t> getTransactionQueueSize() const;
-  size_t getTransactionBufferSize() const;
+  /**
+   * Returns a copy of transactions pool
+   */
+  SharedTransactions getTransactionsSnapShot() const;
 
-  // Verify transactions in broadcasted blocks
-  bool verifyBlockTransactions(DagBlock const &blk, std::vector<Transaction> const &trxs);
+  size_t getTransactionPoolSize() const;
+
+  size_t getNonfinalizedTrxSize() const;
+
+  // Check transactions are present in broadcasted blocks
+  bool checkBlockTransactions(DagBlock const &blk);
 
   // Update the status of transactions to finalized and remove from transactions column
   void updateFinalizedTransactionsStatus(SyncBlock const &sync_block);
 
-  std::shared_ptr<std::pair<Transaction, taraxa::bytes>> getTransaction(trx_hash_t const &hash) const;
+  std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash) const;
   unsigned long getTransactionCount() const;
-  void addTrxCount(unsigned long num);
-  // Received block means these trxs are packed by others
-
-  // TODO: not a good idea to return reference to the private tx_queue
-  TransactionQueue &getTransactionQueue();
+  void recoverNonfinalizedTransactions();
 
  private:
   /**
-   * @brief Checks if transaction queue is overflowed
+   * @brief Checks if transaction pool is overflowed
    *
-   * @return true if transaction queue is overflowed, otherwise false
+   * @return true if transaction pool is overflowed, otherwise false
    */
-  bool checkQueueOverflow();
+  bool checkMemoryPoolOverflow();
 
   addr_t getFullNodeAddress() const;
-  void verifyQueuedTrxs();
   std::pair<bool, std::string> verifyTransaction(Transaction const &trx) const;
 
  public:
   util::Event<TransactionManager, h256> const transaction_accepted_{};
 
  private:
-  const size_t num_verifiers_{4};
   const VerifyMode mode_;
   const FullNodeConfig conf_;
 
-  std::atomic<bool> stopped_{true};
-  std::atomic<unsigned long> trx_count_{0};
+  std::atomic_uint64_t trx_count_ = 0;
 
-  TransactionQueue trx_qu_;
-  std::vector<std::thread> verifiers_;
+  ThreadSafeMap<trx_hash_t, std::shared_ptr<Transaction>> transactions_pool_;
+  ThreadSafeSet<trx_hash_t> nonfinalized_transactions_in_dag_;
   ExpirationCache<trx_hash_t> seen_txs_;
+  mutable bool transactions_pool_changed_ = true;
 
   std::shared_ptr<DbStorage> db_{nullptr};
-  std::shared_ptr<DagManager> dag_mgr_{nullptr};
 
-  // Guards updating transaction status based on retrieved status
-  std::shared_mutex transaction_status_mutex_;
+  // Guards updating transaction status
+  // Transactions can be in one of three states:
+  // 1. In transactions pool; 2. In non-finalized Dag block 3. Executed
+  mutable std::shared_mutex transactions_mutex_;
 
   LOG_OBJECTS_DEFINE
 };

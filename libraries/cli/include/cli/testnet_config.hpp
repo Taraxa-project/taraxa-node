@@ -14,7 +14,7 @@ const char *testnet_json = R"foo({
   "network_ideal_peer_count": 5,
   "network_max_peer_count": 15,
   "network_sync_level_size": 25,
-  "network_packets_processing_threads": 3,
+  "network_packets_processing_threads": 10,
   "network_boot_nodes": [
     {
       "id": "f36f467529fe91a750dfdc8086fd0d2f30bad9f55a5800b6b4aa603c7787501db78dc4ac1bf3cf16e42af7c2ebb53648653013c3da1987494960d751871d598a",
@@ -41,8 +41,8 @@ const char *testnet_json = R"foo({
     "threads_num": 10
   },
   "test_params": {
-    "max_transaction_queue_warn": 0,
-    "max_transaction_queue_drop": 0,
+    "max_transactions_pool_warn": 0,
+    "max_transactions_pool_drop": 0,
     "max_block_queue_warn": 0,
     "db_snapshot_each_n_pbft_block": 100,
     "db_max_snapshots": 5,

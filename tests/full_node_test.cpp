@@ -94,28 +94,20 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(db.getBlocksByLevel(2), s2);
 
   // Transaction
-  db.saveTransaction(g_trx_signed_samples[0]);
-  db.saveTransaction(g_trx_signed_samples[1]);
+  db.saveTransaction(*g_trx_signed_samples[0]);
+  db.saveTransaction(*g_trx_signed_samples[1]);
   auto batch = db.createWriteBatch();
-  db.addTransactionToBatch(g_trx_signed_samples[2], batch);
-  db.addTransactionToBatch(g_trx_signed_samples[3], batch);
-  db.addTransactionStatusToBatch(batch, g_trx_signed_samples[0].getHash(),
-                                 TransactionStatus(TransactionStatusEnum::in_block));
-  db.addTransactionStatusToBatch(batch, g_trx_signed_samples[1].getHash(),
-                                 TransactionStatus(TransactionStatusEnum::in_block));
-  db.addTransactionStatusToBatch(batch, g_trx_signed_samples[2].getHash(),
-                                 TransactionStatus(TransactionStatusEnum::in_block));
-  db.addTransactionStatusToBatch(batch, g_trx_signed_samples[3].getHash(),
-                                 TransactionStatus(TransactionStatusEnum::in_block));
+  db.addTransactionToBatch(*g_trx_signed_samples[2], batch);
+  db.addTransactionToBatch(*g_trx_signed_samples[3], batch);
   db.commitWriteBatch(batch);
-  EXPECT_TRUE(db.transactionInDb(g_trx_signed_samples[0].getHash()));
-  EXPECT_TRUE(db.transactionInDb(g_trx_signed_samples[1].getHash()));
-  EXPECT_TRUE(db.transactionInDb(g_trx_signed_samples[2].getHash()));
-  EXPECT_TRUE(db.transactionInDb(g_trx_signed_samples[3].getHash()));
-  EXPECT_EQ(g_trx_signed_samples[0], *db.getTransaction(g_trx_signed_samples[0].getHash()));
-  EXPECT_EQ(g_trx_signed_samples[1], *db.getTransaction(g_trx_signed_samples[1].getHash()));
-  EXPECT_EQ(g_trx_signed_samples[2], *db.getTransaction(g_trx_signed_samples[2].getHash()));
-  EXPECT_EQ(g_trx_signed_samples[3], *db.getTransaction(g_trx_signed_samples[3].getHash()));
+  EXPECT_TRUE(db.transactionInDb(g_trx_signed_samples[0]->getHash()));
+  EXPECT_TRUE(db.transactionInDb(g_trx_signed_samples[1]->getHash()));
+  EXPECT_TRUE(db.transactionInDb(g_trx_signed_samples[2]->getHash()));
+  EXPECT_TRUE(db.transactionInDb(g_trx_signed_samples[3]->getHash()));
+  EXPECT_EQ(*g_trx_signed_samples[0], *db.getTransaction(g_trx_signed_samples[0]->getHash()));
+  EXPECT_EQ(*g_trx_signed_samples[1], *db.getTransaction(g_trx_signed_samples[1]->getHash()));
+  EXPECT_EQ(*g_trx_signed_samples[2], *db.getTransaction(g_trx_signed_samples[2]->getHash()));
+  EXPECT_EQ(*g_trx_signed_samples[3], *db.getTransaction(g_trx_signed_samples[3]->getHash()));
 
   // PBFT manager previous round status
   EXPECT_EQ(db.getPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundSortitionThreshold), 0);
@@ -898,16 +890,15 @@ TEST_F(FullNodeTest, destroy_db) {
   {
     auto node = create_nodes(node_cfgs).front();
     auto db = node->getDB();
-    db->saveTransaction(g_trx_signed_samples[0]);
-    db->saveTransactionStatus(g_trx_signed_samples[0].getHash(), TransactionStatus(TransactionStatusEnum::in_block));
+    db->saveTransaction(*g_trx_signed_samples[0]);
     // Verify trx saved in db
-    EXPECT_TRUE(db->getTransaction(g_trx_signed_samples[0].getHash()));
+    EXPECT_TRUE(db->getTransaction(g_trx_signed_samples[0]->getHash()));
   }
   {
     auto node = create_nodes(node_cfgs).front();
     auto db = node->getDB();
     // Verify trx saved in db after restart with destroy_db false
-    EXPECT_TRUE(db->getTransaction(g_trx_signed_samples[0].getHash()));
+    EXPECT_TRUE(db->getTransaction(g_trx_signed_samples[0]->getHash()));
   }
 }
 
@@ -1258,7 +1249,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
     Transaction master_boot_node_send_coins(nonce++, test_transfer_val, gas_price, 100000, data,
                                             nodes[0]->getSecretKey(), nodes[i]->getAddress());
     // broadcast trx and insert
-    nodes[0]->getTransactionManager()->insertTransaction(master_boot_node_send_coins, false);
+    nodes[0]->getTransactionManager()->insertTransaction(master_boot_node_send_coins);
     trxs_count++;
   }
 
@@ -1271,7 +1262,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
         if (ctx.fail(); !ctx.is_last_attempt) {
           Transaction dummy_trx(nonce++, 0, 2, 100000, bytes(), nodes[0]->getSecretKey(), nodes[0]->getAddress());
           // broadcast dummy transaction
-          nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false);
+          nodes[0]->getTransactionManager()->insertTransaction(dummy_trx);
           trxs_count++;
           return;
         }
@@ -1299,7 +1290,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
       Transaction send_coins_in_robin_cycle(nonce++, send_coins, gas_price, 100000, data, nodes[i]->getSecretKey(),
                                             nodes[receiver_index]->getAddress());
       // broadcast trx and insert
-      nodes[i]->getTransactionManager()->insertTransaction(send_coins_in_robin_cycle, false);
+      nodes[i]->getTransactionManager()->insertTransaction(send_coins_in_robin_cycle);
       trxs_count++;
     }
     std::cout << "Node" << i << " sends " << j << " transactions to Node" << receiver_index << std::endl;
@@ -1314,7 +1305,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
         if (ctx.fail(); !ctx.is_last_attempt) {
           Transaction dummy_trx(nonce++, 0, 2, 100000, bytes(), nodes[0]->getSecretKey(), nodes[0]->getAddress());
           // broadcast dummy transaction
-          nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false);
+          nodes[0]->getTransactionManager()->insertTransaction(dummy_trx);
           trxs_count++;
           return;
         }
@@ -1360,7 +1351,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   }
 
   // Check executed duplicate transactions
-  auto trxs_table = nodes[0]->getDB()->getAllTransactionStatus();
+  auto trxs_table = nodes[0]->getDB()->getAllTransactionPeriod();
   EXPECT_EQ(trxs_count, trxs_table.size());
   std::unordered_set<trx_hash_t> unique_trxs;
   for (auto const &t : trxs_table) {
@@ -1373,9 +1364,9 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
 
 TEST_F(FullNodeTest, db_rebuild) {
   uint64_t trxs_count = 0;
-  auto trxs_count_at_pbft_size_5 = 0;
-  auto executed_trxs = 0;
-  auto executed_chain_size = 0;
+  uint64_t trxs_count_at_pbft_size_5 = 0;
+  uint64_t executed_trxs = 0;
+  uint64_t executed_chain_size = 0;
 
   {
     auto node_cfgs = make_node_cfgs<5>(1);
@@ -1389,7 +1380,7 @@ TEST_F(FullNodeTest, db_rebuild) {
     while (executed_chain_size < 10) {
       Transaction dummy_trx(nonce++, 0, gas_price, TEST_TX_GAS_LIMIT, bytes(), nodes[0]->getSecretKey(),
                             nodes[0]->getAddress());
-      nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false);
+      nodes[0]->getTransactionManager()->insertTransaction(dummy_trx);
       trxs_count++;
       thisThreadSleepForMilliSeconds(100);
       executed_chain_size = nodes[0]->getFinalChain()->last_block_number();
@@ -1427,8 +1418,10 @@ TEST_F(FullNodeTest, db_rebuild) {
     std::cout << "Check rebuild DB" << std::endl;
     auto node_cfgs = make_node_cfgs<5>(1);
     auto nodes = launch_nodes(node_cfgs);
-    EXPECT_EQ(nodes[0]->getDB()->getNumTransactionExecuted(), trxs_count);
-    EXPECT_EQ(nodes[0]->getFinalChain()->last_block_number(), executed_chain_size);
+    EXPECT_HAPPENS({10s, 1s}, [&](auto &ctx) {
+      WAIT_EXPECT_EQ(ctx, nodes[0]->getDB()->getNumTransactionExecuted(), trxs_count)
+      WAIT_EXPECT_EQ(ctx, nodes[0]->getFinalChain()->last_block_number(), executed_chain_size)
+    });
   }
 
   {
@@ -1443,8 +1436,10 @@ TEST_F(FullNodeTest, db_rebuild) {
     std::cout << "Check rebuild for period 5" << std::endl;
     auto node_cfgs = make_node_cfgs<5>(1);
     auto nodes = launch_nodes(node_cfgs);
-    EXPECT_EQ(nodes[0]->getDB()->getNumTransactionExecuted(), trxs_count_at_pbft_size_5);
-    EXPECT_EQ(nodes[0]->getFinalChain()->last_block_number(), 5);
+    EXPECT_HAPPENS({10s, 1s}, [&](auto &ctx) {
+      WAIT_EXPECT_EQ(ctx, nodes[0]->getDB()->getNumTransactionExecuted(), trxs_count_at_pbft_size_5)
+      WAIT_EXPECT_EQ(ctx, nodes[0]->getFinalChain()->last_block_number(), 5)
+    });
   }
 }
 

@@ -263,9 +263,27 @@ std::map<level_t, std::vector<DagBlock>> DbStorage::getNonfinalizedDagBlocks() {
   return res;
 }
 
-void DbStorage::updateDagBlockCounters(Batch& write_batch, std::vector<DagBlock> blks) {
+SharedTransactions DbStorage::getNonfinalizedTransactions() {
+  SharedTransactions res;
+  auto i = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::transactions)));
+  i->SeekToFirst();
+  if (!i->Valid()) return res;
+  i->Next();  // Skip genesis
+  for (; i->Valid(); i->Next()) {
+    Transaction transaction(asBytes(i->value().ToString()));
+    res.emplace_back(std::make_shared<Transaction>(std::move(transaction)));
+  }
+  return res;
+}
+
+void DbStorage::removeDagBlock(Batch& write_batch, blk_hash_t const& hash) {
+  remove(write_batch, Columns::dag_blocks, toSlice(hash));
+}
+
+void DbStorage::updateDagBlockCounters(std::vector<DagBlock> blks) {
   // Lock is needed since we are editing some fields
   std::lock_guard<std::mutex> u_lock(dag_blocks_mutex_);
+  auto write_batch = createWriteBatch();
   for (auto const& blk : blks) {
     auto level = blk.getLevel();
     auto block_hashes = getBlocksByLevel(level);
@@ -285,6 +303,7 @@ void DbStorage::updateDagBlockCounters(Batch& write_batch, std::vector<DagBlock>
   }
   insert(write_batch, Columns::status, toSlice((uint8_t)StatusDbField::DagBlkCount), toSlice(dag_blocks_count_.load()));
   insert(write_batch, Columns::status, toSlice((uint8_t)StatusDbField::DagEdgeCount), toSlice(dag_edge_count_.load()));
+  commitWriteBatch(write_batch);
 }
 
 void DbStorage::saveDagBlock(DagBlock const& blk, Batch* write_batch_p) {
@@ -322,16 +341,20 @@ void DbStorage::savePeriodData(const SyncBlock& sync_block, Batch& write_batch) 
   uint64_t period = sync_block.pbft_blk->getPeriod();
   addPbftBlockPeriodToBatch(period, sync_block.pbft_blk->getBlockHash(), write_batch);
 
-  // Add dag_block_period in DB
+  // Remove dag blocks from non finalized column in db and add dag_block_period in DB
   uint64_t block_pos = 0;
   for (auto const& block : sync_block.dag_blocks) {
+    removeDagBlock(write_batch, block.getHash());
     addDagBlockPeriodToBatch(block.getHash(), period, block_pos, write_batch);
     block_pos++;
   }
 
-  for (auto const& block : sync_block.dag_blocks) {
-    // Remove dag blocks
-    remove(write_batch, Columns::dag_blocks, toSlice(block.getHash()));
+  // Remove transactions from non finalized column in db and add dag_block_period in DB
+  uint32_t trx_pos = 0;
+  for (auto const& trx : sync_block.transactions) {
+    removeTransactionToBatch(trx.getHash(), write_batch);
+    addTransactionPeriodToBatch(write_batch, trx.getHash(), sync_block.pbft_blk->getPeriod(), trx_pos);
+    trx_pos++;
   }
 
   insert(write_batch, Columns::period_data, toSlice(period), toSlice(sync_block.rlp()));
@@ -345,48 +368,59 @@ void DbStorage::saveTransaction(Transaction const& trx, bool verified) {
   insert(Columns::transactions, toSlice(trx.getHash().asBytes()), toSlice(*trx.rlp(verified)));
 }
 
-void DbStorage::saveTransactionStatus(trx_hash_t const& trx_hash, TransactionStatus const& status) {
-  insert(Columns::trx_status, toSlice(trx_hash.asBytes()), toSlice(status.rlp()));
+void DbStorage::saveTransactionPeriod(trx_hash_t const& trx_hash, uint32_t period, uint32_t position) {
+  dev::RLPStream s;
+  s.appendList(2);
+  s << period;
+  s << position;
+  insert(Columns::trx_period, toSlice(trx_hash.asBytes()), toSlice(s.out()));
 }
 
-void DbStorage::addTransactionStatusToBatch(Batch& write_batch, trx_hash_t const& trx,
-                                            TransactionStatus const& status) {
-  insert(write_batch, Columns::trx_status, toSlice(trx.asBytes()), toSlice(status.rlp()));
+void DbStorage::addTransactionPeriodToBatch(Batch& write_batch, trx_hash_t const& trx, uint32_t period,
+                                            uint32_t position) {
+  dev::RLPStream s;
+  s.appendList(2);
+  s << period;
+  s << position;
+  insert(write_batch, Columns::trx_period, toSlice(trx.asBytes()), toSlice(s.out()));
 }
 
-TransactionStatus DbStorage::getTransactionStatus(trx_hash_t const& hash) {
-  auto data = lookup(toSlice(hash.asBytes()), Columns::trx_status);
+std::optional<std::pair<uint32_t, uint32_t>> DbStorage::getTransactionPeriod(trx_hash_t const& hash) {
+  auto data = lookup(toSlice(hash.asBytes()), Columns::trx_period);
   if (!data.empty()) {
+    std::pair<uint32_t, uint32_t> res;
     dev::RLP const rlp(data);
-    return TransactionStatus(rlp);
+    auto it = rlp.begin();
+    res.first = (*it++).toInt<uint32_t>();
+    res.second = (*it++).toInt<uint32_t>();
+    return res;
   }
-  return TransactionStatus();
+  return std::nullopt;
 }
 
-std::vector<TransactionStatus> DbStorage::getTransactionStatus(std::vector<trx_hash_t> const& trx_hashes) {
-  std::vector<TransactionStatus> result;
+std::vector<bool> DbStorage::transactionsFinalized(std::vector<trx_hash_t> const& trx_hashes) {
+  std::vector<bool> result;
   result.reserve(trx_hashes.size());
+
   DbStorage::MultiGetQuery db_query(shared_from_this(), trx_hashes.size());
-  db_query.append(DbStorage::Columns::trx_status, trx_hashes);
-  auto db_trxs_statuses = db_query.execute();
-  for (size_t idx = 0; idx < db_trxs_statuses.size(); idx++) {
-    auto& trx_raw_status = db_trxs_statuses[idx];
-    if (!trx_raw_status.empty()) {
-      auto data = asBytes(trx_raw_status);
-      result.emplace_back(dev::RLP(data));
-    }
+  db_query.append(DbStorage::Columns::trx_period, trx_hashes);
+  auto db_trxs_period = db_query.execute();
+  for (size_t idx = 0; idx < db_trxs_period.size(); idx++) {
+    auto& trx_raw_period = db_trxs_period[idx];
+    result.push_back(!trx_raw_period.empty());
   }
 
   return result;
 }
 
-std::unordered_map<trx_hash_t, TransactionStatus> DbStorage::getAllTransactionStatus() {
-  std::unordered_map<trx_hash_t, TransactionStatus> res;
-  auto i = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::trx_status)));
+std::unordered_map<trx_hash_t, uint32_t> DbStorage::getAllTransactionPeriod() {
+  std::unordered_map<trx_hash_t, uint32_t> res;
+  auto i = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::trx_period)));
   for (i->SeekToFirst(); i->Valid(); i->Next()) {
     auto data = asBytes(i->value().ToString());
     dev::RLP const rlp(data);
-    res[trx_hash_t(asBytes(i->key().ToString()))] = TransactionStatus(rlp);
+    auto it = rlp.begin();
+    res[trx_hash_t(asBytes(i->key().ToString()))] = (*it++).toInt<uint32_t>();
   }
   return res;
 }
@@ -402,26 +436,18 @@ std::optional<PbftBlock> DbStorage::getPbftBlock(uint64_t period) {
 }
 
 std::shared_ptr<Transaction> DbStorage::getTransaction(trx_hash_t const& hash) {
-  auto data = asBytes(lookup(toSlice(hash.asBytes()), Columns::transactions));
-  if (data.size() > 0) {
-    return std::make_shared<Transaction>(data);
-  }
-  auto status = getTransactionStatus(hash);
-  if (status.state == TransactionStatusEnum::finalized) {
-    auto period_data = getPeriodDataRaw(status.period);
+  auto res = getTransactionPeriod(hash);
+  if (res) {
+    auto period_data = getPeriodDataRaw(res->first);
     // DB is corrupted if status point to missing or incorrect transaction
     assert(period_data.size() > 0);
     auto period_data_rlp = dev::RLP(period_data);
     auto transaction_data = period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA];
-    return std::make_shared<Transaction>(transaction_data[status.position]);
+    return std::make_shared<Transaction>(transaction_data[res->second]);
   }
-  return nullptr;
-}
-
-std::shared_ptr<std::pair<Transaction, taraxa::bytes>> DbStorage::getTransactionExt(trx_hash_t const& hash) {
-  auto trx = getTransaction(hash);
-  if (trx) {
-    return std::make_shared<std::pair<Transaction, taraxa::bytes>>(*trx, *trx->rlp());
+  auto data = asBytes(lookup(toSlice(hash.asBytes()), Columns::transactions));
+  if (data.size() > 0) {
+    return std::make_shared<Transaction>(data);
   }
   return nullptr;
 }
@@ -435,7 +461,32 @@ void DbStorage::removeTransactionToBatch(trx_hash_t const& trx, Batch& write_bat
 }
 
 bool DbStorage::transactionInDb(trx_hash_t const& hash) {
-  return exist(toSlice(hash.asBytes()), Columns::transactions);
+  return exist(toSlice(hash.asBytes()), Columns::transactions) || exist(toSlice(hash.asBytes()), Columns::trx_period);
+}
+
+bool DbStorage::transactionFinalized(trx_hash_t const& hash) {
+  return exist(toSlice(hash.asBytes()), Columns::trx_period);
+}
+
+std::vector<bool> DbStorage::transactionsInDb(std::vector<trx_hash_t> const& trx_hashes) {
+  std::vector<bool> result;
+  result.reserve(trx_hashes.size());
+
+  DbStorage::MultiGetQuery db_query(shared_from_this(), trx_hashes.size());
+  db_query.append(DbStorage::Columns::trx_period, trx_hashes);
+  auto db_trxs_statuses = db_query.execute();
+  for (size_t idx = 0; idx < db_trxs_statuses.size(); idx++) {
+    auto& trx_raw_status = db_trxs_statuses[idx];
+    result[idx] = !trx_raw_status.empty();
+  }
+
+  db_query.append(DbStorage::Columns::transactions, trx_hashes);
+  db_trxs_statuses = db_query.execute();
+  for (size_t idx = 0; idx < db_trxs_statuses.size(); idx++) {
+    auto& trx_raw_status = db_trxs_statuses[idx];
+    result[idx] = result[idx] || (!trx_raw_status.empty());
+  }
+  return result;
 }
 
 uint64_t DbStorage::getStatusField(StatusDbField const& field) {

@@ -80,7 +80,7 @@ bool DagBlockManager::pivotAndTipsValid(DagBlock const &blk) {
   // Check pivot validation
   if (invalid_blocks_.count(blk.getPivot())) {
     invalid_blocks_.insert(blk.getHash());
-    LOG(log_dg_) << "DAG Block " << blk.getHash() << " pivot " << blk.getPivot() << " is unavailable";
+    LOG(log_wr_) << "DAG Block " << blk.getHash() << " pivot " << blk.getPivot() << " is unavailable";
     return false;
   }
 
@@ -88,7 +88,7 @@ bool DagBlockManager::pivotAndTipsValid(DagBlock const &blk) {
   for (auto const &tip : blk.getTips()) {
     if (invalid_blocks_.count(tip)) {
       invalid_blocks_.insert(blk.getHash());
-      LOG(log_dg_) << "DAG Block " << blk.getHash() << " tip " << tip << " is unavailable";
+      LOG(log_wr_) << "DAG Block " << blk.getHash() << " tip " << tip << " is unavailable";
       return false;
     }
   }
@@ -109,7 +109,7 @@ level_t DagBlockManager::getMaxDagLevelInQueue() const {
   return max_level;
 }
 
-void DagBlockManager::pushUnverifiedBlock(DagBlock const &blk, std::vector<Transaction> const &transactions) {
+void DagBlockManager::pushUnverifiedBlock(DagBlock const &blk) {
   // Block is already known -> it is either in cache or in dag structure
   if (isDagBlockKnown(blk.getHash())) {
     LOG(log_dg_) << "Trying to push new unverified block " << blk.getHash().abridged()
@@ -134,39 +134,14 @@ void DagBlockManager::pushUnverifiedBlock(DagBlock const &blk, std::vector<Trans
 
   {
     uLock lock(shared_mutex_for_unverified_qu_);
-    unverified_qu_[blk.getLevel()].emplace_back(std::make_pair(blk, transactions));
+    unverified_qu_[blk.getLevel()].emplace_back(blk);
     LOG(log_dg_) << "Insert unverified DAG block " << blk.getHash();
   }
   cond_for_unverified_qu_.notify_one();
 }
 
-void DagBlockManager::processSyncedBlock(DbStorage::Batch &batch, SyncBlock const &sync_block) {
-  // TODO: check synchronization due to concurrent processing of packets,
-  // TODO: shouldn't be dag blocks marked as known trhough markDagBlockAsSeen here ?
-
-  std::vector<trx_hash_t> transactions;
-  transactions.reserve(sync_block.transactions.size());
-  std::transform(sync_block.transactions.begin(), sync_block.transactions.end(), std::back_inserter(transactions),
-                 [](const Transaction &transaction) { return transaction.getHash(); });
-
-  // TODO: optimize counters
-  uint32_t new_trx_count = 0;
-  auto trx_statuses = db_->getTransactionStatus(transactions);
-  for (auto const &trx_status : trx_statuses) {
-    if (trx_status.state != TransactionStatusEnum::in_block) {
-      new_trx_count++;
-    }
-  }
-
-  trx_mgr_->addTrxCount(new_trx_count);
-  db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_mgr_->getTransactionCount(), batch);
-
-  trx_mgr_->getTransactionQueue().removeBlockTransactionsFromQueue(transactions);
-}
-
-void DagBlockManager::insertBroadcastedBlockWithTransactions(DagBlock const &blk,
-                                                             std::vector<Transaction> const &transactions) {
-  pushUnverifiedBlock(blk, transactions);
+void DagBlockManager::insertBroadcastedBlock(DagBlock const &blk) {
+  pushUnverifiedBlock(blk);
   LOG(log_time_) << "Store block " << blk.getHash() << " ,txs count: " << blk.getTrxs().size()
                  << " , tips count: " << blk.getTips().size();
 }
@@ -191,7 +166,7 @@ std::pair<size_t, size_t> DagBlockManager::getDagBlockQueueSize() const {
   return res;
 }
 
-std::shared_ptr<DagBlock> DagBlockManager::popVerifiedBlock(bool level_limit, uint64_t level) {
+std::optional<DagBlock> DagBlockManager::popVerifiedBlock(bool level_limit, uint64_t level) {
   uLock lock(shared_mutex_for_verified_qu_);
   if (level_limit) {
     while ((verified_qu_.empty() || verified_qu_.begin()->first >= level) && !stopped_) {
@@ -202,10 +177,9 @@ std::shared_ptr<DagBlock> DagBlockManager::popVerifiedBlock(bool level_limit, ui
       cond_for_verified_qu_.wait(lock);
     }
   }
+  if (stopped_) return std::nullopt;
 
-  if (stopped_) return nullptr;
-
-  auto blk = std::make_shared<DagBlock>(verified_qu_.begin()->second.front());
+  auto blk = std::move(verified_qu_.begin()->second.front());
   verified_qu_.begin()->second.pop_front();
   if (verified_qu_.begin()->second.empty()) verified_qu_.erase(verified_qu_.begin());
 
@@ -219,7 +193,7 @@ void DagBlockManager::pushVerifiedBlock(DagBlock const &blk) {
 
 void DagBlockManager::verifyBlock() {
   while (!stopped_) {
-    std::pair<DagBlock, std::vector<Transaction>> blk;
+    DagBlock blk;
     {
       uLock lock(shared_mutex_for_unverified_qu_);
       while (unverified_qu_.empty() && !stopped_) {
@@ -235,7 +209,7 @@ void DagBlockManager::verifyBlock() {
       }
     }
 
-    const auto &block_hash = blk.first.getHash();
+    const auto &block_hash = blk.getHash();
     LOG(log_time_) << "Verifying Trx block  " << block_hash << " at: " << getCurrentTimeMilliSeconds();
 
     if (invalid_blocks_.count(block_hash)) {
@@ -244,40 +218,40 @@ void DagBlockManager::verifyBlock() {
     }
 
     // Verify transactions
-    if (!trx_mgr_->verifyBlockTransactions(blk.first, blk.second)) {
+    if (!trx_mgr_->checkBlockTransactions(blk)) {
       LOG(log_er_) << "Ignore block " << block_hash << " since it has invalid or missing transactions";
       markBlockInvalid(block_hash);
       continue;
     }
 
     // Verify VDF solution
-    vdf_sortition::VdfSortition vdf = blk.first.getVdf();
+    vdf_sortition::VdfSortition vdf = blk.getVdf();
     try {
-      vdf.verifyVdf(vdf_config_, getRlpBytes(blk.first.getLevel()), blk.first.getPivot().asBytes());
+      vdf.verifyVdf(vdf_config_, getRlpBytes(blk.getLevel()), blk.getPivot().asBytes());
     } catch (vdf_sortition::VdfSortition::InvalidVdfSortition const &e) {
-      LOG(log_er_) << "DAG block " << block_hash << " failed on VDF verification with pivot hash "
-                   << blk.first.getPivot() << " reason " << e.what();
+      LOG(log_er_) << "DAG block " << block_hash << " failed on VDF verification with pivot hash " << blk.getPivot()
+                   << " reason " << e.what();
       markBlockInvalid(block_hash);
       continue;
     }
 
     // Verify DPOS
-    auto propose_period = getProposalPeriod(blk.first.getLevel());
+    auto propose_period = getProposalPeriod(blk.getLevel());
     if (!propose_period.second) {
       // Cannot find the proposal period in DB yet. The slow node gets an ahead block, puts back.
-      LOG(log_nf_) << "Cannot find proposal period " << propose_period.first << " in DB for DAG block " << blk.first;
+      LOG(log_nf_) << "Cannot find proposal period " << propose_period.first << " in DB for DAG block " << blk;
       uLock lock(shared_mutex_for_unverified_qu_);
-      unverified_qu_[blk.first.getLevel()].emplace_back(blk);
+      unverified_qu_[blk.getLevel()].emplace_back(blk);
       continue;
     }
-    auto dag_block_sender = blk.first.getSender();
+    auto dag_block_sender = blk.getSender();
     bool dpos_qualified;
     try {
       dpos_qualified = final_chain_->dpos_is_eligible(propose_period.first, dag_block_sender);
     } catch (state_api::ErrFutureBlock &c) {
       LOG(log_er_) << "Verify proposal period " << propose_period.first << " is too far ahead of DPOS. " << c.what();
       uLock lock(shared_mutex_for_unverified_qu_);
-      unverified_qu_[blk.first.getLevel()].emplace_back(blk);
+      unverified_qu_[blk.getLevel()].emplace_back(blk);
       continue;
     }
     if (!dpos_qualified) {
@@ -287,21 +261,21 @@ void DagBlockManager::verifyBlock() {
         dpos_period += dpos_config_->deposit_delay;
       }
       if (propose_period.first <= dpos_period) {
-        LOG(log_er_) << "Invalid DAG block DPOS. DAG block " << blk.first << " is not eligible for DPOS at period "
+        LOG(log_er_) << "Invalid DAG block DPOS. DAG block " << blk << " is not eligible for DPOS at period "
                      << propose_period.first << " for sender " << dag_block_sender.toString() << ". Executed period "
                      << executed_period << ", DPOS period " << dpos_period;
         markBlockInvalid(block_hash);
       } else {
         // The incoming DAG block is ahead of DPOS period, add back in unverified queue
         uLock lock(shared_mutex_for_unverified_qu_);
-        unverified_qu_[blk.first.getLevel()].emplace_back(blk);
+        unverified_qu_[blk.getLevel()].emplace_back(blk);
       }
       continue;
     }
 
     {
       uLock lock(shared_mutex_for_verified_qu_);
-      verified_qu_[blk.first.getLevel()].emplace_back(blk.first);
+      verified_qu_[blk.getLevel()].emplace_back(blk);
     }
     cond_for_verified_qu_.notify_one();
     LOG(log_dg_) << "Verified block: " << block_hash;

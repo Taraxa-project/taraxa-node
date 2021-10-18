@@ -69,5 +69,6 @@ struct Transaction {
 };
 
 using Transactions = ::std::vector<Transaction>;
+using SharedTransactions = ::std::vector<std::shared_ptr<Transaction>>;
 
 }  // namespace taraxa

@@ -14,7 +14,7 @@ const char *default_json = R"foo({
   "network_ideal_peer_count": 10,
   "network_max_peer_count": 50,
   "network_sync_level_size": 10,
-  "network_packets_processing_threads": 3,
+  "network_packets_processing_threads": 10,
   "network_boot_nodes": [
   ],
   "rpc": {
@@ -23,8 +23,8 @@ const char *default_json = R"foo({
     "threads_num": 10
   },
   "test_params": {
-    "max_transaction_queue_warn": 0,
-    "max_transaction_queue_drop": 0,
+    "max_transactions_pool_warn": 0,
+    "max_transactions_pool_drop": 0,
     "max_block_queue_warn": 0,
     "db_snapshot_each_n_pbft_block": 100,
     "db_max_snapshots": 5,

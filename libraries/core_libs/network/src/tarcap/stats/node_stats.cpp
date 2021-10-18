@@ -134,8 +134,8 @@ void NodeStats::logNodeStats() {
     const auto syncing_time_sec = syncTimeSeconds();
     LOG(log_nf_) << "Syncing for " << syncing_time_sec << " seconds, " << percent_synced << "% synced";
     LOG(log_nf_) << "Currently syncing from node " << syncing_state_->syncing_peer();
-    LOG(log_nf_) << "Max peer PBFT chain size:      " << peer_max_pbft_chain_size << " (peer " << max_pbft_chain_node_id
-                 << ")";
+    LOG(log_nf_) << "Max peer PBFT chain size:       " << peer_max_pbft_chain_size << " (peer "
+                 << max_pbft_chain_node_id << ")";
     LOG(log_nf_) << "Max peer PBFT consensus round:  " << peer_max_pbft_round << " (peer " << max_pbft_round_node_id
                  << ")";
     LOG(log_nf_) << "Max peer DAG level:             " << peer_max_node_dag_level << " (peer "
@@ -144,22 +144,20 @@ void NodeStats::logNodeStats() {
     const auto sync_percentage =
         (100 * intervals_in_sync_since_launch_) / (intervals_in_sync_since_launch_ + intervals_syncing_since_launch_);
     LOG(log_nf_) << "In sync since launch for " << sync_percentage << "% of the time";
-    LOG(log_nf_) << "Max DAG block level in DAG:    " << local_max_level_in_dag;
-    LOG(log_nf_) << "Max DAG block level in queue:  " << local_max_dag_level_in_queue;
-    LOG(log_nf_) << "PBFT chain size:               " << local_chain_size;
-    LOG(log_nf_) << "Current PBFT round:            " << local_pbft_round;
-    LOG(log_nf_) << "DPOS total votes count:        " << local_dpos_total_votes_count;
-    LOG(log_nf_) << "PBFT consensus 2t+1 threshold: " << local_twotplusone;
-    LOG(log_nf_) << "Node elligible vote count:     " << local_weighted_votes;
+    LOG(log_nf_) << "Max DAG block level in DAG:      " << local_max_level_in_dag;
+    LOG(log_nf_) << "Max DAG block level in queue:    " << local_max_dag_level_in_queue;
+    LOG(log_nf_) << "PBFT chain size:                 " << local_chain_size;
+    LOG(log_nf_) << "Current PBFT round:              " << local_pbft_round;
+    LOG(log_nf_) << "DPOS total votes count:          " << local_dpos_total_votes_count;
+    LOG(log_nf_) << "PBFT consensus 2t+1 threshold:   " << local_twotplusone;
+    LOG(log_nf_) << "Node elligible vote count:       " << local_weighted_votes;
 
     LOG(log_dg_) << "****** Memory structures sizes ******";
     LOG(log_dg_) << "Unverified votes size:           " << vote_mgr_->getUnverifiedVotesSize();
     LOG(log_dg_) << "Verified votes size:             " << vote_mgr_->getVerifiedVotesSize();
 
-    const auto [unverified_txs_size, verified_txs_size] = trx_mgr_->getTransactionQueueSize();
-    LOG(log_dg_) << "Unverified txs size:             " << unverified_txs_size;
-    LOG(log_dg_) << "Verified txs size:               " << verified_txs_size;
-    LOG(log_dg_) << "Txs buffer size:                 " << trx_mgr_->getTransactionBufferSize();
+    LOG(log_dg_) << "Non finalized txs size:          " << trx_mgr_->getNonfinalizedTrxSize();
+    LOG(log_dg_) << "Txs pool size:                   " << trx_mgr_->getTransactionPoolSize();
 
     const auto [unverified_blocks_size, verified_blocks_size] = dag_blk_mgr_->getDagBlockQueueSize();
     const auto [non_finalized_blocks_levels, non_finalized_blocks_size] = dag_mgr_->getNonFinalizedBlocksSize();
@@ -170,9 +168,9 @@ void NodeStats::logNodeStats() {
 
     const auto [high_priority_queue_size, mid_priority_queue_size, low_priority_queue_size] =
         thread_pool_->getQueueSize();
-    LOG(log_dg_) << "High priority queue size: " << high_priority_queue_size;
-    LOG(log_dg_) << "Mid priority queue size: " << mid_priority_queue_size;
-    LOG(log_dg_) << "Low priority queue size: " << low_priority_queue_size;
+    LOG(log_dg_) << "High priority queue size:        " << high_priority_queue_size;
+    LOG(log_dg_) << "Mid priority queue size:         " << mid_priority_queue_size;
+    LOG(log_dg_) << "Low priority queue size:         " << low_priority_queue_size;
   }
 
   LOG(log_nf_) << "------------- tl;dr -------------";

@@ -41,7 +41,7 @@ struct NetworkConfig {
   uint64_t network_id;
   uint16_t network_performance_log_interval = 0;
   uint16_t network_num_threads = std::max(uint(1), uint(std::thread::hardware_concurrency() / 2));
-  uint16_t network_packets_processing_threads = 3;
+  uint16_t network_packets_processing_threads = 10;
 };
 
 struct BlockProposerConfig {
@@ -52,8 +52,8 @@ struct BlockProposerConfig {
 // Parameter Tuning purpose
 struct TestParamsConfig {
   BlockProposerConfig block_proposer;  // test_params.block_proposer
-  uint32_t max_transaction_queue_warn = 0;
-  uint32_t max_transaction_queue_drop = 0;
+  uint32_t max_transactions_pool_warn = 0;
+  uint32_t max_transactions_pool_drop = 0;
   uint32_t max_block_queue_warn = 0;
   uint32_t db_snapshot_each_n_pbft_block = 0;
   uint32_t db_max_snapshots = 0;
