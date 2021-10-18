@@ -368,30 +368,32 @@ void DagManager::worker() {
   uint64_t level = 0;
   while (!stopped_) {
     // will block if no verified block available
-    if (auto blk = dag_blk_mgr_->popVerifiedBlock(level_limit, level)) {
-      level_limit = false;
-      SharedTransactions transactions;
-      if (pivotAndTipsAvailable(*blk)) {
-        // Retrieve all the transactions
-        for (auto const &trx_hash : blk->getTrxs()) {
-          auto trx = trx_mgr_->getTransaction(trx_hash);
-          // DAG block should not have been verified if it is missing a transaction
-          assert(trx != nullptr);
-          transactions.emplace_back(std::move(trx));
-        }
-        addDagBlock(*blk, std::move(transactions));
-        LOG(log_time_) << "Broadcast block " << blk->getHash() << " at: " << getCurrentTimeMilliSeconds();
-      } else {
-        // Networking makes sure that dag block that reaches queue already had
-        // its pivot and tips processed This should happen in a very rare case
-        // where in some race condition older block is verfified faster then
-        // new block but should resolve quickly, return block to queue
-        if (!stopped_) {
-          if (dag_blk_mgr_->pivotAndTipsValid(*blk)) {
-            dag_blk_mgr_->pushVerifiedBlock(*blk);
-            level_limit = true;
-            level = blk->getLevel();
-          }
+    auto blk = dag_blk_mgr_->popVerifiedBlock(level_limit, level);
+    if (blk == std::nullopt) {
+      continue;
+    }
+    level_limit = false;
+    SharedTransactions transactions;
+    if (pivotAndTipsAvailable(*blk)) {
+      // Retrieve all the transactions
+      for (auto const &trx_hash : blk->getTrxs()) {
+        auto trx = trx_mgr_->getTransaction(trx_hash);
+        // DAG block should not have been verified if it is missing a transaction
+        assert(trx != nullptr);
+        transactions.emplace_back(std::move(trx));
+      }
+      addDagBlock(*blk, std::move(transactions));
+      LOG(log_time_) << "Broadcast block " << blk->getHash() << " at: " << getCurrentTimeMilliSeconds();
+    } else {
+      // Networking makes sure that dag block that reaches queue already had
+      // its pivot and tips processed This should happen in a very rare case
+      // where in some race condition older block is verfified faster then
+      // new block but should resolve quickly, return block to queue
+      if (!stopped_) {
+        if (dag_blk_mgr_->pivotAndTipsValid(*blk)) {
+          dag_blk_mgr_->pushVerifiedBlock(*blk);
+          level_limit = true;
+          level = blk->getLevel();
         }
       }
     }

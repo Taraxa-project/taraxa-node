@@ -169,10 +169,6 @@ void BlockProposer::proposeBlock(DagFrontier&& frontier, level_t level, SharedTr
   LOG(log_nf_) << "Add proposed DAG block " << blk.getHash() << ", pivot " << blk.getPivot() << " , number of trx ("
                << blk.getTrxs().size() << ")";
   BlockProposer::num_proposed_blocks.fetch_add(1);
-
-  if (auto net = network_.lock()) {
-    net->onNewBlockVerified(blk, true);
-  }
 }
 
 bool BlockProposer::validDposProposer(level_t const propose_level) {

@@ -22,7 +22,7 @@ class DagBlockPacketHandler : public ExtSyncingPacketHandler {
   virtual ~DagBlockPacketHandler() = default;
 
   void sendBlock(dev::p2p::NodeID const &peer_id, DagBlock block);
-  void onNewBlockReceived(DagBlock block);
+  void onNewBlockReceived(DagBlock &&block);
   void onNewBlockVerified(DagBlock const &block, bool proposed);
 
  private:

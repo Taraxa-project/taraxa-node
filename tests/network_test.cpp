@@ -54,7 +54,7 @@ TEST_F(NetworkTest, transfer_block) {
                addr_t(999));
 
   SharedTransactions transactions{g_signed_trx_samples[0], g_signed_trx_samples[1]};
-  nw2->onNewTransactions(transactions);
+  nw2->onNewTransactions(std::move(transactions));
 
   EXPECT_HAPPENS({10s, 200ms}, [&](auto& ctx) {
     nw1->setPendingPeersToReady();
@@ -112,7 +112,7 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
   auto block_hash = blk.getHash();
   dag_blocks.emplace_back(std::make_shared<DagBlock>(blk));
 
-  nodes[0]->getNetwork()->onNewTransactions(trxs);
+  nodes[0]->getNetwork()->onNewTransactions(std::move(trxs));
   taraxa::thisThreadSleepForSeconds(1);
   nodes[0]->getNetwork()->sendBlocks(nodes[1]->getNetwork()->getNodeId(), std::move(dag_blocks));
 

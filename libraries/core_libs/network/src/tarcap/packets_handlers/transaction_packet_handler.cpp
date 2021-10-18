@@ -38,11 +38,11 @@ inline void TransactionPacketHandler::process(const PacketData &packet_data, con
     LOG(log_tr_) << "Received TransactionPacket with " << packet_data.rlp_.itemCount()
                  << " transactions:" << received_transactions.c_str() << "from: " << peer->getId().abridged();
 
-    onNewTransactions(transactions, true);
+    onNewTransactions(std::move(transactions), true);
   }
 }
 
-void TransactionPacketHandler::onNewTransactions(SharedTransactions const &transactions, bool fromNetwork) {
+void TransactionPacketHandler::onNewTransactions(SharedTransactions &&transactions, bool fromNetwork) {
   if (fromNetwork) {
     if (dag_blk_mgr_) {
       LOG(log_nf_) << "Storing " << transactions.size() << " transactions";

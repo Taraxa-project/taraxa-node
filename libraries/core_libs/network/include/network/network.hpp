@@ -50,7 +50,7 @@ class Network {
   Json::Value getPacketsStats();
   std::vector<dev::p2p::NodeID> getAllPeersIDs() const;
   void onNewBlockVerified(DagBlock const &blk, bool proposed);
-  void onNewTransactions(const SharedTransactions &transactions);
+  void onNewTransactions(SharedTransactions &&transactions);
   void restartSyncingPbft(bool force = false);
   void onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_block);
   bool pbft_syncing();

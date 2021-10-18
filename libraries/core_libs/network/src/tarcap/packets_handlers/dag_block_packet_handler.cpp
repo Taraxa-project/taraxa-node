@@ -113,7 +113,7 @@ void DagBlockPacketHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::D
   LOG(log_dg_) << "Send DagBlock " << block.getHash() << " #Trx: " << transactions_to_send.size();
 }
 
-void DagBlockPacketHandler::onNewBlockReceived(DagBlock block) {
+void DagBlockPacketHandler::onNewBlockReceived(DagBlock &&block) {
   LOG(log_nf_) << "Receive DagBlock " << block.getHash();
   if (dag_blk_mgr_) {
     LOG(log_nf_) << "Storing block " << block.getHash().toString();

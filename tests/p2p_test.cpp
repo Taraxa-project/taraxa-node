@@ -213,7 +213,7 @@ TEST_F(P2PTest, capability_send_block) {
                addr_t(999));
 
   SharedTransactions transactions{g_signed_trx_samples[0], g_signed_trx_samples[1]};
-  thc2->onNewTransactions(transactions);
+  thc2->onNewTransactions(std::move(transactions));
   thc2->sendBlock(host1->id(), blk);
 
   std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -324,10 +324,10 @@ TEST_F(P2PTest, block_propagate) {
                addr_t(999));
 
   SharedTransactions transactions{g_signed_trx_samples[0], g_signed_trx_samples[1]};
-  thc1->onNewTransactions(transactions);
+  thc1->onNewTransactions(std::move(transactions));
   SharedTransactions transactions2;
-  thc1->onNewTransactions(transactions2);
-  thc1->onNewBlockReceived(blk);
+  thc1->onNewTransactions(std::move(transactions2));
+  thc1->onNewBlockReceived(std::move(blk));
 
   for (int i = 0; i < 50; i++) {
     std::this_thread::sleep_for(std::chrono::seconds(1));
