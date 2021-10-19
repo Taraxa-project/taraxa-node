@@ -171,18 +171,14 @@ void FullNode::start() {
       jsonrpc_ws_->run();
     }
     final_chain_->block_finalized_.subscribe(
-        [eth_json_rpc = as_weak(eth_json_rpc), ws = as_weak(jsonrpc_ws_), db = as_weak(db_)](auto const &res) {
+        [eth_json_rpc = as_weak(eth_json_rpc), ws = as_weak(jsonrpc_ws_)](auto const &res) {
           if (auto _eth_json_rpc = eth_json_rpc.lock()) {
             _eth_json_rpc->note_block_executed(*res->final_chain_blk, res->trxs, res->trx_receipts);
           }
           if (auto _ws = ws.lock()) {
             _ws->newEthBlock(*res->final_chain_blk);
-            if (auto _db = db.lock()) {
-              auto pbft_blk = _db->getPbftBlock(res->pbft_block_hash);
-              _ws->newDagBlockFinalized(pbft_blk->getPivotDagBlockHash(), pbft_blk->getPeriod());
-              // TODO: big todo
-              //_ws->newPbftBlockExecuted(*pbft_blk, res->dag_blk_hashes);
-            }
+            _ws->newDagBlockFinalized(res->pbft_block->getPivotDagBlockHash(), res->pbft_block->getPeriod());
+            _ws->newPbftBlockExecuted(*res->pbft_block, res->dag_blocks_hashes);
           }
         },
         *rpc_thread_pool_);

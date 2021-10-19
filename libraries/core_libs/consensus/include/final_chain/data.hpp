@@ -13,6 +13,10 @@
 #include "final_chain/state_api_data.hpp"
 #include "transaction/transaction.hpp"
 
+namespace taraxa {
+class PbftBlock;
+}
+
 namespace taraxa::final_chain {
 
 using LogBloom = dev::h2048;
@@ -87,8 +91,9 @@ struct TransactionLocation {
 };
 
 struct FinalizationResult {
-  std::shared_ptr<BlockHeader const> final_chain_blk;
-  blk_hash_t pbft_block_hash;
+  std::shared_ptr<const BlockHeader> final_chain_blk;
+  std::shared_ptr<const PbftBlock> pbft_block;
+  vec_blk_t dag_blocks_hashes;
   Transactions trxs;
   TransactionReceipts trx_receipts;
 };
