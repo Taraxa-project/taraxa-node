@@ -181,7 +181,8 @@ class FinalChainImpl final : public FinalChain {
 
     auto result = make_shared<FinalizationResult>(FinalizationResult{
         blk_header,
-        pbft_block->getBlockHash(),
+        pbft_block,
+        sync_block.getDagBlocksHashes(),
         std::move(txs_to_execute),
         std::move(receipts),
     });
