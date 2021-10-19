@@ -36,7 +36,7 @@ struct FinalChainTest : WithDataDir {
     }
   }
 
-  auto advance(Transactions const& trxs, advance_check_opts opts = {}) {
+  auto advance(const Transactions& trxs, advance_check_opts opts = {}) {
     SUT = nullptr;
     SUT = NewFinalChain(db, cfg);
     vector<h256> trx_hashes;
@@ -47,24 +47,22 @@ struct FinalChainTest : WithDataDir {
     }
     DagBlock dag_blk({}, {}, {}, trx_hashes, {}, secret_t::random());
     db->saveDagBlock(dag_blk);
+
     PbftBlock pbft_block(blk_hash_t(), blk_hash_t(), blk_hash_t(), 1, addr_t(1), dev::KeyPair::create().secret());
-    std::vector<std::shared_ptr<Vote>> votes;
-    SyncBlock sync_block(std::make_shared<PbftBlock>(std::move(pbft_block)), votes);
-    sync_block.dag_blocks.push_back(dag_blk);
-    sync_block.transactions = trxs;
+    const auto pbft_block_author = pbft_block.getBeneficiary();
+    const auto pbft_block_timestamp = pbft_block.getTimestamp();
+
+    auto trxs_copy = trxs;
+    SyncBlock sync_block(std::make_shared<PbftBlock>(std::move(pbft_block)), {dag_blk}, {dag_blk.getHash()},
+                         std::move(trxs_copy), std::move(trx_hashes));
 
     auto batch = db->createWriteBatch();
     db->savePeriodData(sync_block, batch);
 
     db->commitWriteBatch(batch);
-    NewBlock new_blk{
-        addr_t::random(),
-        uint64_t(chrono::high_resolution_clock::now().time_since_epoch().count()),
-        {dag_blk.getHash()},
-        h256::random(),
-    };
-    auto result = SUT->finalize(new_blk, 1).get();
+    auto result = SUT->finalize(std::move(sync_block)).get();
     ++expected_blk_num;
+
     auto const& blk_h = *result->final_chain_blk;
     EXPECT_EQ(util::rlp_enc(blk_h), util::rlp_enc(*SUT->block_header(blk_h.number)));
     EXPECT_EQ(util::rlp_enc(blk_h), util::rlp_enc(*SUT->block_header()));
@@ -77,8 +75,8 @@ struct FinalChainTest : WithDataDir {
     EXPECT_EQ(SUT->transactionCount(blk_h.number), trxs.size());
     EXPECT_EQ(SUT->transactions(blk_h.number), trxs);
     EXPECT_EQ(*SUT->block_number(*SUT->block_hash(blk_h.number)), expected_blk_num);
-    EXPECT_EQ(blk_h.author, new_blk.author);
-    EXPECT_EQ(blk_h.timestamp, new_blk.timestamp);
+    EXPECT_EQ(blk_h.author, pbft_block_author);
+    EXPECT_EQ(blk_h.timestamp, pbft_block_timestamp);
     EXPECT_EQ(receipts.size(), trxs.size());
     EXPECT_EQ(blk_h.transactions_root,
               trieRootOver(
@@ -305,158 +303,161 @@ TEST_F(FinalChainTest, coin_transfers) {
   });
 }
 
-TEST_F(FinalChainTest, mining_rewards_distribution) {
-  cfg.state.dpos = nullopt;
-  cfg.state.execution_options.disable_gas_fee = false;
-  cfg.state.execution_options.disable_dag_stats_rewards = false;
-  cfg.state.disable_block_rewards = false;
-  cfg.state.genesis_balances = {};
-
-  constexpr uint64_t BLOCKS_COUNT = 5;
-  constexpr uint64_t TRX_COUNT = 10;
-  constexpr uint64_t TRX_GAS = 21000;
-  constexpr uint64_t TRX_GAS_PRICE = 1;
-  constexpr size_t TRANSACTORS_NUM = 10;
-  constexpr size_t PROPOSERS_NUM = 4;
-
-  // Create pbft proposer
-  dev::KeyPair pbft_proposer = dev::KeyPair::create();
-  cfg.state.genesis_balances[pbft_proposer.address()] = 0;
-
-  // Create dag proposers
-  std::vector<dev::KeyPair> dag_proposers;
-  dag_proposers.reserve(PROPOSERS_NUM);
-  for (size_t i = 0; i < PROPOSERS_NUM; ++i) {
-    auto const& k = dag_proposers.emplace_back(dev::KeyPair::create());
-    cfg.state.genesis_balances[k.address()] = 0;
-  }
-
-  // Create transactors
-  std::vector<dev::KeyPair> transactors;
-  transactors.reserve(TRANSACTORS_NUM);
-  for (size_t i = 0; i < TRANSACTORS_NUM; ++i) {
-    auto const& k = transactors.emplace_back(dev::KeyPair::create());
-    cfg.state.genesis_balances[k.address()] = 31000;
-  }
-
-  init();
-
-  // Create default transactions
-  auto createTx = [&TRX_GAS, &TRX_GAS_PRICE](const dev::KeyPair& from, const dev::KeyPair& to,
-                                             uint64_t value) -> Transaction {
-    return Transaction(0 /* TODO: what nonce ? */, value, TRX_GAS_PRICE, TRX_GAS, {}, from.secret(), to.address());
-  };
-
-  std::vector<Transaction> default_txs{
-      createTx(transactors[0], transactors[1], 1000), createTx(transactors[1], transactors[2], 1000),
-      createTx(transactors[2], transactors[3], 1000), createTx(transactors[3], transactors[4], 1000),
-      createTx(transactors[4], transactors[5], 1000), createTx(transactors[5], transactors[6], 1000),
-      createTx(transactors[6], transactors[7], 1000), createTx(transactors[7], transactors[8], 1000),
-      createTx(transactors[8], transactors[9], 1000), createTx(transactors[9], transactors[0], 1000)};
-
-  struct DummyBlock {
-    addr_t proposer;
-    std::vector<Transaction> txs;
-  };
-
-  // Create dummy blocks with transactions
-  std::vector<DummyBlock> blocks;
-  blocks.push_back({dag_proposers[0].address(), {default_txs[0], default_txs[1], default_txs[2], default_txs[3]}});
-  blocks.push_back({dag_proposers[1].address(), {default_txs[3], default_txs[4]}});
-  blocks.push_back({dag_proposers[2].address(), {default_txs[5], default_txs[6], default_txs[7]}});
-  blocks.push_back({dag_proposers[3].address(), {default_txs[7], default_txs[8]}});
-  blocks.push_back({dag_proposers[3].address(), {default_txs[9]}});
-  assert(BLOCKS_COUNT == blocks.size());
-
-  DagStats dag_stats;
-  std::vector<Transaction> unique_txs;
-  std::vector<DagStats::TransactionStats> txs_stats;
-
-  // Simulate algorithm from Executor::executePbftBlocks_()
-  for (const auto& block : blocks) {
-    for (const auto& tx : block.txs) {
-      if (dag_stats.addTransaction(tx.getHash(), block.proposer)) {
-        continue;
-      }
-
-      unique_txs.emplace_back(tx);
-    }
-    dag_stats.addDagBlock(block.proposer);
-  }
-  for (const auto& tx : unique_txs) {
-    txs_stats.emplace_back(dag_stats.getTransactionStats(tx.getHash()));
-  }
-
-  // Process sorted unique transactions in taraxa-evm
-  auto batch = db->createWriteBatch();
-  auto result = SUT->advance(batch, pbft_proposer.address(), {}, unique_txs, txs_stats, dag_stats.getBlocksStats());
-  db->commitWriteBatch(batch);
-  SUT->advance_confirm();
-
-  /*  Rewards distribution model:
-   *
-   *  Fixed pbft block reward:
-   *    25% out of fixed pbft block reward goes to pbft block proposer
-   *    75% OUT OF fixed pbft block reward goes to dag block proposers proportionally to how many dag blocks they
-   * created
-   *
-   *  All included transaction fees -> rewards:
-   *    100% of txs fees included in dag blocks goes to dag block proposers who included them in their blocks
-   *
-   *  Single transaction fee -> reward:
-   *    100% goes to the proposer, if he included the tx in his block as the only one proposer
-   *
-   *    or
-   *
-   *    75% goes to the proposer, who included this tx in his block as first proposer
-   *    25% goes to the rest of the proposers (uncle proposers), who included this tx in their bocks as second, third,
-   * etc... This 1/4 of tx fee is divided equally between all uncle proposers
-   */
-  constexpr uint64_t FIXED_BLOCK_REWARD = 2000000000000000000;
-  constexpr uint64_t TRANSCATION_FEE = TRX_GAS * TRX_GAS_PRICE;
-  constexpr uint64_t FULL_TRANSCATION_REWARD = TRANSCATION_FEE;
-  constexpr uint64_t FIRST_TRANSCATION_REWARD = TRANSCATION_FEE * 0.75;
-  constexpr uint64_t UNCLE_TRANSCATION_REWARD = TRANSCATION_FEE * 0.25;
-  constexpr uint64_t TRANSCATIONS_FEES = TRX_COUNT * TRANSCATION_FEE;
-  constexpr uint64_t PBFT_BLOCK_CREATION_REWARD = FIXED_BLOCK_REWARD * 0.25;
-  constexpr uint64_t DAG_BLOCK_CREATION_REWARD = (FIXED_BLOCK_REWARD * 0.75) / BLOCKS_COUNT;
-
-  // Check pbft block proposer reward -> 25% out of fixed pbft block reward
-  EXPECT_EQ(PBFT_BLOCK_CREATION_REWARD, SUT->getBalance(pbft_proposer.address()).first);
-
-  // Check proposer0 rewards, who created 1 dag block and included 3 txs as the only proposer and 1 tx as first proposer
-  constexpr uint64_t EXPECTED_PROPOSER0_REWARDS =
-      1 * DAG_BLOCK_CREATION_REWARD + 3 * FULL_TRANSCATION_REWARD + 1 * FIRST_TRANSCATION_REWARD;
-  EXPECT_EQ(EXPECTED_PROPOSER0_REWARDS, SUT->getBalance(dag_proposers[0].address()).first);
-
-  // Check proposer1 rewards, who created 1 dag block and included 1 uncle tx and 1 tx as the only one proposer
-  constexpr uint64_t EXPECTED_PROPOSER1_REWARDS =
-      1 * DAG_BLOCK_CREATION_REWARD + 1 * UNCLE_TRANSCATION_REWARD + 1 * FULL_TRANSCATION_REWARD;
-  EXPECT_EQ(EXPECTED_PROPOSER1_REWARDS, SUT->getBalance(dag_proposers[1].address()).first);
-
-  // Check proposer2 rewards, who created 1 dag block and included 2 txs as the only proposer and 1 tx as first proposer
-  constexpr uint64_t EXPECTED_PROPOSER2_REWARDS =
-      1 * DAG_BLOCK_CREATION_REWARD + 2 * FULL_TRANSCATION_REWARD + 1 * FIRST_TRANSCATION_REWARD;
-  EXPECT_EQ(EXPECTED_PROPOSER2_REWARDS, SUT->getBalance(dag_proposers[2].address()).first);
-
-  // Check proposer3 rewards, who created 2 dag blocks and included 2 txs as first proposer and 1 uncle tx
-  constexpr uint64_t EXPECTED_PROPOSER3_REWARDS =
-      2 * DAG_BLOCK_CREATION_REWARD + 2 * FULL_TRANSCATION_REWARD + 1 * UNCLE_TRANSCATION_REWARD;
-  EXPECT_EQ(EXPECTED_PROPOSER3_REWARDS, SUT->getBalance(dag_proposers[3].address()).first);
-
-  // Check proposer4 rewards, who created 0 dag blocks and included 0 txs
-  constexpr uint64_t EXPECTED_PROPOSER4_REWARDS = 0;
-  EXPECT_EQ(EXPECTED_PROPOSER4_REWARDS, SUT->getBalance(dag_proposers[4].address()).first);
-
-  // Check total distributed rewards == rewards that actually should be distributed based on included txs and fixed
-  // block rewards
-  constexpr uint64_t TOTAL_BLOCK_REWARD = FIXED_BLOCK_REWARD + TRANSCATIONS_FEES;
-  auto distributed_rewards = SUT->getBalance(pbft_proposer.address()).first;
-  for (const auto& dag_proposer : dag_proposers) {
-    distributed_rewards += SUT->getBalance(dag_proposer.address()).first;
-  }
-  EXPECT_EQ(TOTAL_BLOCK_REWARD, distributed_rewards);
-}
+// TEST_F(FinalChainTest, mining_rewards_distribution) {
+//  cfg.state.dpos = nullopt;
+//  cfg.state.execution_options.disable_gas_fee = false;
+//  cfg.state.execution_options.disable_dag_stats_rewards = false;
+//  cfg.state.disable_block_rewards = false;
+//  cfg.state.genesis_balances = {};
+//
+//  constexpr uint64_t BLOCKS_COUNT = 5;
+//  constexpr uint64_t TRX_COUNT = 10;
+//  constexpr uint64_t TRX_GAS = 21000;
+//  constexpr uint64_t TRX_GAS_PRICE = 1;
+//  constexpr size_t TRANSACTORS_NUM = 10;
+//  constexpr size_t PROPOSERS_NUM = 4;
+//
+//  // Create pbft proposer
+//  dev::KeyPair pbft_proposer = dev::KeyPair::create();
+//  cfg.state.genesis_balances[pbft_proposer.address()] = 0;
+//
+//  // Create dag proposers
+//  std::vector<dev::KeyPair> dag_proposers;
+//  dag_proposers.reserve(PROPOSERS_NUM);
+//  for (size_t i = 0; i < PROPOSERS_NUM; ++i) {
+//    auto const& k = dag_proposers.emplace_back(dev::KeyPair::create());
+//    cfg.state.genesis_balances[k.address()] = 0;
+//  }
+//
+//  // Create transactors
+//  std::vector<dev::KeyPair> transactors;
+//  transactors.reserve(TRANSACTORS_NUM);
+//  for (size_t i = 0; i < TRANSACTORS_NUM; ++i) {
+//    auto const& k = transactors.emplace_back(dev::KeyPair::create());
+//    cfg.state.genesis_balances[k.address()] = 31000;
+//  }
+//
+//  init();
+//
+//  // Create default transactions
+//  auto createTx = [&TRX_GAS, &TRX_GAS_PRICE](const dev::KeyPair& from, const dev::KeyPair& to,
+//                                             uint64_t value) -> Transaction {
+//    return Transaction(0 /* TODO: what nonce ? */, value, TRX_GAS_PRICE, TRX_GAS, {}, from.secret(), to.address());
+//  };
+//
+//  std::vector<Transaction> default_txs{
+//      createTx(transactors[0], transactors[1], 1000), createTx(transactors[1], transactors[2], 1000),
+//      createTx(transactors[2], transactors[3], 1000), createTx(transactors[3], transactors[4], 1000),
+//      createTx(transactors[4], transactors[5], 1000), createTx(transactors[5], transactors[6], 1000),
+//      createTx(transactors[6], transactors[7], 1000), createTx(transactors[7], transactors[8], 1000),
+//      createTx(transactors[8], transactors[9], 1000), createTx(transactors[9], transactors[0], 1000)};
+//
+//  struct DummyBlock {
+//    addr_t proposer;
+//    std::vector<Transaction> txs;
+//  };
+//
+//  // Create dummy blocks with transactions
+//  std::vector<DummyBlock> blocks;
+//  blocks.push_back({dag_proposers[0].address(), {default_txs[0], default_txs[1], default_txs[2], default_txs[3]}});
+//  blocks.push_back({dag_proposers[1].address(), {default_txs[3], default_txs[4]}});
+//  blocks.push_back({dag_proposers[2].address(), {default_txs[5], default_txs[6], default_txs[7]}});
+//  blocks.push_back({dag_proposers[3].address(), {default_txs[7], default_txs[8]}});
+//  blocks.push_back({dag_proposers[3].address(), {default_txs[9]}});
+//  assert(BLOCKS_COUNT == blocks.size());
+//
+//  DagStats dag_stats;
+//  std::vector<Transaction> unique_txs;
+//  std::vector<DagStats::TransactionStats> txs_stats;
+//
+//  // Simulate algorithm from Executor::executePbftBlocks_()
+//  for (const auto& block : blocks) {
+//    for (const auto& tx : block.txs) {
+//      if (dag_stats.addTransaction(tx.getHash(), block.proposer)) {
+//        continue;
+//      }
+//
+//      unique_txs.emplace_back(tx);
+//    }
+//    dag_stats.addDagBlock(block.proposer);
+//  }
+//  for (const auto& tx : unique_txs) {
+//    txs_stats.emplace_back(dag_stats.getTransactionStats(tx.getHash()));
+//  }
+//
+//  // Process sorted unique transactions in taraxa-evm
+//  auto batch = db->createWriteBatch();
+//  auto result = SUT->finalize()
+//
+//  // TODO: remove...
+////  auto result = SUT->advance(batch, pbft_proposer.address(), {}, unique_txs, txs_stats, dag_stats.getBlocksStats());
+////  db->commitWriteBatch(batch);
+////  SUT->advance_confirm();
+//
+//  /*  Rewards distribution model:
+//   *
+//   *  Fixed pbft block reward:
+//   *    25% out of fixed pbft block reward goes to pbft block proposer
+//   *    75% OUT OF fixed pbft block reward goes to dag block proposers proportionally to how many dag blocks they
+//   * created
+//   *
+//   *  All included transaction fees -> rewards:
+//   *    100% of txs fees included in dag blocks goes to dag block proposers who included them in their blocks
+//   *
+//   *  Single transaction fee -> reward:
+//   *    100% goes to the proposer, if he included the tx in his block as the only one proposer
+//   *
+//   *    or
+//   *
+//   *    75% goes to the proposer, who included this tx in his block as first proposer
+//   *    25% goes to the rest of the proposers (uncle proposers), who included this tx in their bocks as second, third,
+//   * etc... This 1/4 of tx fee is divided equally between all uncle proposers
+//   */
+//  constexpr uint64_t FIXED_BLOCK_REWARD = 2000000000000000000;
+//  constexpr uint64_t TRANSCATION_FEE = TRX_GAS * TRX_GAS_PRICE;
+//  constexpr uint64_t FULL_TRANSCATION_REWARD = TRANSCATION_FEE;
+//  constexpr uint64_t FIRST_TRANSCATION_REWARD = TRANSCATION_FEE * 0.75;
+//  constexpr uint64_t UNCLE_TRANSCATION_REWARD = TRANSCATION_FEE * 0.25;
+//  constexpr uint64_t TRANSCATIONS_FEES = TRX_COUNT * TRANSCATION_FEE;
+//  constexpr uint64_t PBFT_BLOCK_CREATION_REWARD = FIXED_BLOCK_REWARD * 0.25;
+//  constexpr uint64_t DAG_BLOCK_CREATION_REWARD = (FIXED_BLOCK_REWARD * 0.75) / BLOCKS_COUNT;
+//
+//  // Check pbft block proposer reward -> 25% out of fixed pbft block reward
+//  EXPECT_EQ(PBFT_BLOCK_CREATION_REWARD, SUT->getBalance(pbft_proposer.address()).first);
+//
+//  // Check proposer0 rewards, who created 1 dag block and included 3 txs as the only proposer and 1 tx as first
+//  proposer constexpr uint64_t EXPECTED_PROPOSER0_REWARDS =
+//      1 * DAG_BLOCK_CREATION_REWARD + 3 * FULL_TRANSCATION_REWARD + 1 * FIRST_TRANSCATION_REWARD;
+//  EXPECT_EQ(EXPECTED_PROPOSER0_REWARDS, SUT->getBalance(dag_proposers[0].address()).first);
+//
+//  // Check proposer1 rewards, who created 1 dag block and included 1 uncle tx and 1 tx as the only one proposer
+//  constexpr uint64_t EXPECTED_PROPOSER1_REWARDS =
+//      1 * DAG_BLOCK_CREATION_REWARD + 1 * UNCLE_TRANSCATION_REWARD + 1 * FULL_TRANSCATION_REWARD;
+//  EXPECT_EQ(EXPECTED_PROPOSER1_REWARDS, SUT->getBalance(dag_proposers[1].address()).first);
+//
+//  // Check proposer2 rewards, who created 1 dag block and included 2 txs as the only proposer and 1 tx as first
+//  proposer constexpr uint64_t EXPECTED_PROPOSER2_REWARDS =
+//      1 * DAG_BLOCK_CREATION_REWARD + 2 * FULL_TRANSCATION_REWARD + 1 * FIRST_TRANSCATION_REWARD;
+//  EXPECT_EQ(EXPECTED_PROPOSER2_REWARDS, SUT->getBalance(dag_proposers[2].address()).first);
+//
+//  // Check proposer3 rewards, who created 2 dag blocks and included 2 txs as first proposer and 1 uncle tx
+//  constexpr uint64_t EXPECTED_PROPOSER3_REWARDS =
+//      2 * DAG_BLOCK_CREATION_REWARD + 2 * FULL_TRANSCATION_REWARD + 1 * UNCLE_TRANSCATION_REWARD;
+//  EXPECT_EQ(EXPECTED_PROPOSER3_REWARDS, SUT->getBalance(dag_proposers[3].address()).first);
+//
+//  // Check proposer4 rewards, who created 0 dag blocks and included 0 txs
+//  constexpr uint64_t EXPECTED_PROPOSER4_REWARDS = 0;
+//  EXPECT_EQ(EXPECTED_PROPOSER4_REWARDS, SUT->getBalance(dag_proposers[4].address()).first);
+//
+//  // Check total distributed rewards == rewards that actually should be distributed based on included txs and fixed
+//  // block rewards
+//  constexpr uint64_t TOTAL_BLOCK_REWARD = FIXED_BLOCK_REWARD + TRANSCATIONS_FEES;
+//  auto distributed_rewards = SUT->getBalance(pbft_proposer.address()).first;
+//  for (const auto& dag_proposer : dag_proposers) {
+//    distributed_rewards += SUT->getBalance(dag_proposer.address()).first;
+//  }
+//  EXPECT_EQ(TOTAL_BLOCK_REWARD, distributed_rewards);
+//}
 
 }  // namespace taraxa::final_chain
 

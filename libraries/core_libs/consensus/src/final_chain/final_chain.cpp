@@ -76,30 +76,25 @@ class FinalChainImpl final : public FinalChain {
 
   void stop() override { executor_thread_.stop(); }
 
-  future<shared_ptr<FinalizationResult const>> finalize(NewBlock new_blk, uint64_t period,
+  future<shared_ptr<FinalizationResult const>> finalize(SyncBlock&& sync_block,
                                                         finalize_precommit_ext precommit_ext = {}) override {
     auto p = make_shared<promise<shared_ptr<FinalizationResult const>>>();
-    executor_thread_.post([this, new_blk = move(new_blk), period, precommit_ext = move(precommit_ext), p]() mutable {
-      p->set_value(finalize_(move(new_blk), period, precommit_ext));
+    executor_thread_.post([this, sync_block = std::move(sync_block), precommit_ext = move(precommit_ext), p]() mutable {
+      p->set_value(finalize_(std::move(sync_block), precommit_ext));
     });
+
     return p->get_future();
   }
 
-  shared_ptr<FinalizationResult> finalize_(NewBlock new_blk, uint64_t period,
-                                           finalize_precommit_ext const& precommit_ext) {
+  shared_ptr<FinalizationResult> finalize_(SyncBlock&& sync_block, finalize_precommit_ext const& precommit_ext) {
     auto batch = db_->createWriteBatch();
-    Transactions txs_to_execute;
-
-    // TODO: why not reading data from SyncBlock rather than looking into db ???
-    auto period_raw = db_->getPeriodDataRaw(period);
-    SyncBlock sync_block(period_raw);
 
     // Create transactions stats for rewards distribution
     // TODO: in case we dont want to reward dag authors who include some tx as "not first" this extra processing
     //       is not necessary
     DagStats dag_stats;
     std::vector<DagStats::TransactionStats> txs_stats;
-    for (const auto& dag_block : sync_block.dag_blocks) {
+    for (const auto& dag_block : sync_block.getDagBlocks()) {
       const addr_t& dag_block_author = dag_block.getSender();
 
       // TODO: there is a possibility that some proposer includes only trxs that are later in filtered out due to
@@ -113,36 +108,36 @@ class FinalChainImpl final : public FinalChain {
       }
     }
 
-    // This artificial scope will make sure we clean up the big chunk of memory allocated for this batch-processing
-    // stuff as soon as possible
-    {
-      DB::MultiGetQuery db_query(db_, sync_block.transactions.size());
-      for (auto const& trx : sync_block.transactions) {
-        db_query.append(DB::Columns::final_chain_transaction_location_by_hash, trx.getHash());
+    DB::MultiGetQuery db_query(db_, sync_block.getTransactionsHashes().size());
+    for (auto const& tx_hash : sync_block.getTransactionsHashes()) {
+      db_query.append(DB::Columns::final_chain_transaction_location_by_hash, tx_hash);
+    }
+    auto trx_db_results = db_query.execute(false);
+
+    Transactions txs_to_execute;
+    txs_to_execute.reserve(sync_block.getTransactions().size());
+
+    const auto& txs = sync_block.getTransactions();
+    for (size_t i = 0; i < txs.size(); ++i) {
+      if (auto has_been_executed = !trx_db_results[i].empty(); has_been_executed) {
+        continue;
       }
 
-      auto trx_db_results = db_query.execute(false);
-      txs_to_execute.reserve(sync_block.transactions.size());
-      for (size_t i = 0; i < sync_block.transactions.size(); ++i) {
-        if (auto has_been_executed = !trx_db_results[i].empty(); has_been_executed) {
-          continue;
-        }
-
-        auto const& tx = sync_block.transactions[i];
-        if (!replay_protection_service_ || replay_protection_service_->is_nonce_stale(tx.getSender(), tx.getNonce()))
-            [[likely]] {
-          continue;
-        }
-
-        // Non-executed trxs
-        txs_stats.emplace_back(dag_stats.getTransactionStatsRvalue(tx.getHash()));
-        txs_to_execute.push_back(std::move(tx));
+      const auto& tx = txs[i];
+      if (replay_protection_service_ && replay_protection_service_->is_nonce_stale(tx.getSender(), tx.getNonce())) {
+        continue;
       }
+
+      // Non-executed trxs
+      txs_stats.push_back(dag_stats.getTransactionStatsRvalue(tx.getHash()));
+      txs_to_execute.push_back(std::move(tx));
     }
 
+    const auto& pbft_block = sync_block.getPbftBlock();
     auto const& [exec_results, state_root] = state_api_.transition_state(
-        {new_blk.author, GAS_LIMIT, new_blk.timestamp, BlockHeader::difficulty()},
+        {pbft_block->getBeneficiary(), GAS_LIMIT, pbft_block->getTimestamp(), BlockHeader::difficulty()},
         to_state_api_transactions(txs_to_execute), {}, txs_stats, dag_stats.getBlocksStats());
+
     TransactionReceipts receipts;
     receipts.reserve(exec_results.size());
     gas_t cumulative_gas_used = 0;
@@ -152,16 +147,19 @@ class FinalChainImpl final : public FinalChain {
       for (auto const& l : r.logs) {
         logs.emplace_back(LogEntry{l.address, l.topics, l.data});
       }
+
       receipts.emplace_back(TransactionReceipt{
           r.code_err.empty() && r.consensus_err.empty(),
           r.gas_used,
           cumulative_gas_used += r.gas_used,
-          move(logs),
+          std::move(logs),
           r.new_contract_addr ? optional(r.new_contract_addr) : nullopt,
       });
     }
-    auto blk_header =
-        append_block(batch, new_blk.author, new_blk.timestamp, GAS_LIMIT, state_root, txs_to_execute, receipts);
+
+    auto blk_header = append_block(batch, pbft_block->getBeneficiary(), pbft_block->getTimestamp(), GAS_LIMIT,
+                                   state_root, txs_to_execute, receipts);
+
     if (replay_protection_service_) {
       // Update replay protection service, like nonce watermark. Nonce watermark has been disabled
       replay_protection_service_->update(
@@ -169,38 +167,48 @@ class FinalChainImpl final : public FinalChain {
             return ReplayProtectionService::TransactionInfo{trx.getSender(), trx.getNonce()};
           }));
     }
+
     // Update number of executed DAG blocks and transactions
-    auto num_executed_dag_blk = num_executed_dag_blk_ + new_blk.dag_blk_hashes.size();
+    const auto& dag_blocks_hashes = sync_block.getDagBlocksHashes();
+    auto num_executed_dag_blk = num_executed_dag_blk_ + dag_blocks_hashes.size();
     auto num_executed_trx = num_executed_trx_ + txs_to_execute.size();
-    if (!new_blk.dag_blk_hashes.empty()) {
+    if (!dag_blocks_hashes.empty()) {
       db_->insert(batch, DB::Columns::status, StatusDbField::ExecutedBlkCount, num_executed_dag_blk);
       db_->insert(batch, DB::Columns::status, StatusDbField::ExecutedTrxCount, num_executed_trx);
-      LOG(log_nf_) << "Executed dag blocks #" << num_executed_dag_blk_ - new_blk.dag_blk_hashes.size() << "-"
+      LOG(log_nf_) << "Executed dag blocks #" << num_executed_dag_blk_ - dag_blocks_hashes.size() << "-"
                    << num_executed_dag_blk_ - 1 << " , Transactions count: " << txs_to_execute.size();
     }
+
     auto result = make_shared<FinalizationResult>(FinalizationResult{
-        move(new_blk),
         blk_header,
-        move(txs_to_execute),
-        move(receipts),
+        pbft_block->getBlockHash(),
+        std::move(txs_to_execute),
+        std::move(receipts),
     });
+
     if (precommit_ext) {
       precommit_ext(*result, batch);
     }
+
     db_->commitWriteBatch(batch, db_opts_w_);
     state_api_.transition_state_commit();
+
     {
       unique_lock l(last_block_mu_);
       last_block_ = blk_header;
     }
+
     num_executed_dag_blk_ = num_executed_dag_blk;
     num_executed_trx_ = num_executed_trx;
     block_finalized_emitter_.emit(result);
-    LOG(log_nf_) << " successful finalize block " << result->hash << " with number " << blk_header->number;
+    LOG(log_nf_) << " successful finalize block " << pbft_block->getBlockHash() << " with number "
+                 << blk_header->number;
+
     // Creates snapshot if needed
     if (db_->createSnapshot(blk_header->number)) {
       state_api_.create_snapshot(blk_header->number);
     }
+
     return result;
   }
 

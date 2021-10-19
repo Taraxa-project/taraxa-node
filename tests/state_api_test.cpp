@@ -185,6 +185,9 @@ TEST_F(StateAPITest, eth_mainnet_smoke) {
                                         "taraxa" / "data" / "eth_mainnet_blocks_0_300000.rlp");
 
   Config chain_config;
+  chain_config.disable_block_rewards = false;
+  chain_config.execution_options.disable_dag_stats_rewards = true;
+
   auto& eth_cfg = chain_config.eth_chain_config;
   eth_cfg.homestead_block = 1150000;
   eth_cfg.dao_fork_block = 1920000;

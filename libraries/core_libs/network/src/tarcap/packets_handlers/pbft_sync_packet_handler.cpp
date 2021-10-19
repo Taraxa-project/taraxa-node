@@ -56,33 +56,33 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
   SyncBlock sync_block(*it);
 
   string received_dag_blocks_str;
-  for (auto const &block : sync_block.dag_blocks) {
+  for (auto const &block : sync_block.getDagBlocks()) {
     received_dag_blocks_str += block.getHash().toString() + " ";
     if (peer->dag_level_ < block.getLevel()) {
       peer->dag_level_ = block.getLevel();
     }
   }
 
-  LOG(log_nf_) << "PbftSyncPacket received. Period: " << sync_block.pbft_blk->getPeriod()
+  const auto &pbft_block = sync_block.getPbftBlock();
+  LOG(log_nf_) << "PbftSyncPacket received. Period: " << pbft_block->getPeriod()
                << ", dag Blocks: " << received_dag_blocks_str;
 
-  auto pbft_blk_hash = sync_block.pbft_blk->getBlockHash();
+  auto pbft_blk_hash = pbft_block->getBlockHash();
   peer->markPbftBlockAsKnown(pbft_blk_hash);
   LOG(log_dg_) << "Processing pbft block: " << pbft_blk_hash;
 
-  if (sync_block.pbft_blk->getPeriod() != pbft_mgr_->pbftSyncingPeriod() + 1) {
-    LOG(log_dg_) << "Block " << pbft_blk_hash << " period unexpected: " << sync_block.pbft_blk->getPeriod()
+  if (pbft_block->getPeriod() != pbft_mgr_->pbftSyncingPeriod() + 1) {
+    LOG(log_dg_) << "Block " << pbft_blk_hash << " period unexpected: " << pbft_block->getPeriod()
                  << ". Expected period: " << pbft_mgr_->pbftSyncingPeriod() + 1;
     return;
   }
   // Update peer's pbft period if outdated
-  if (peer->pbft_chain_size_ < sync_block.pbft_blk->getPeriod()) {
-    peer->pbft_chain_size_ = sync_block.pbft_blk->getPeriod();
+  if (peer->pbft_chain_size_ < pbft_block->getPeriod()) {
+    peer->pbft_chain_size_ = pbft_block->getPeriod();
   }
 
-  LOG(log_nf_) << "Synced PBFT block hash " << pbft_blk_hash << " with " << sync_block.cert_votes.size()
+  LOG(log_nf_) << "Synced PBFT block hash " << pbft_blk_hash << " with " << sync_block.getCertVotes().size()
                << " cert votes";
-  LOG(log_dg_) << "Synced PBFT block " << sync_block;
   pbft_mgr_->syncBlockQueuePush(std::move(sync_block), packet_data.from_node_id_);
 
   auto pbft_sync_period = pbft_mgr_->pbftSyncingPeriod();

@@ -444,22 +444,22 @@ std::optional<SortitionParamsChange> DbStorage::getParamsChangeForPeriod(uint64_
 }
 
 void DbStorage::savePeriodData(const SyncBlock& sync_block, Batch& write_batch) {
-  uint64_t period = sync_block.pbft_blk->getPeriod();
-  addPbftBlockPeriodToBatch(period, sync_block.pbft_blk->getBlockHash(), write_batch);
+  uint64_t period = sync_block.getPbftBlock()->getPeriod();
+  addPbftBlockPeriodToBatch(period, sync_block.getPbftBlock()->getBlockHash(), write_batch);
 
   // Remove dag blocks from non finalized column in db and add dag_block_period in DB
   uint64_t block_pos = 0;
-  for (auto const& block : sync_block.dag_blocks) {
-    removeDagBlock(write_batch, block.getHash());
-    addDagBlockPeriodToBatch(block.getHash(), period, block_pos, write_batch);
+  for (auto const& block_hash : sync_block.getDagBlocksHashes()) {
+    removeDagBlock(write_batch, block_hash);
+    addDagBlockPeriodToBatch(block_hash, period, block_pos, write_batch);
     block_pos++;
   }
 
   // Remove transactions from non finalized column in db and add dag_block_period in DB
   uint32_t trx_pos = 0;
-  for (auto const& trx : sync_block.transactions) {
-    removeTransactionToBatch(trx.getHash(), write_batch);
-    addTransactionPeriodToBatch(write_batch, trx.getHash(), sync_block.pbft_blk->getPeriod(), trx_pos);
+  for (auto const& trx_hash : sync_block.getTransactionsHashes()) {
+    removeTransactionToBatch(trx_hash, write_batch);
+    addTransactionPeriodToBatch(write_batch, trx_hash, period, trx_pos);
     trx_pos++;
   }
 

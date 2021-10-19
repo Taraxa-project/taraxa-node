@@ -68,10 +68,7 @@ TEST_F(PbftChainTest, pbft_db_test) {
   // put into pbft chain and store into DB
   auto batch = db->createWriteBatch();
   // Add PBFT block in DB
-  std::vector<std::shared_ptr<Vote>> votes;
-
-  SyncBlock sync_block(std::make_shared<PbftBlock>(pbft_block), votes);
-  sync_block.dag_blocks.push_back(blk1);
+  SyncBlock sync_block(std::make_shared<PbftBlock>(pbft_block), {blk1}, {blk1.getHash()}, {}, {});
   db->savePeriodData(sync_block, batch);
 
   // Update PBFT chain
@@ -154,10 +151,9 @@ TEST_F(PbftChainTest, block_broadcast) {
   // node1 put block into pbft chain and store into DB
   auto db1 = node1->getDB();
   auto batch = db1->createWriteBatch();
+
   // Add PBFT block in DB
-  std::vector<std::shared_ptr<Vote>> votes;
-  SyncBlock sync_block(pbft_block, votes);
-  sync_block.dag_blocks.push_back(blk1);
+  SyncBlock sync_block(pbft_block, {blk1}, {blk1.getHash()}, {}, {});
   db1->savePeriodData(sync_block, batch);
 
   // Update pbft chain

@@ -210,9 +210,7 @@ TEST_F(TransactionTest, transaction_concurrency) {
   // 1/3 transactions finalized
   for (size_t i = 0; i < g_signed_trx_samples->size() / 3; i++) {
     db->saveTransactionPeriod(g_signed_trx_samples[i]->getHash(), 1, i);
-    SyncBlock sync_block;
-    sync_block.transactions = {*g_signed_trx_samples[i]};
-    trx_mgr.updateFinalizedTransactionsStatus(sync_block);
+    trx_mgr.updateFinalizedTransactionsStatus({g_signed_trx_samples[i]->getHash()});
   }
 
   // Stop the thread which is trying to indert transactions to pool

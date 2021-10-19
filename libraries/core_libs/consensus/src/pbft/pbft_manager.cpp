@@ -113,7 +113,8 @@ void PbftManager::run() {
                    << pbft_block->getPeriod() << " in block data than in block order db: " << period;
       assert(false);
     }
-    finalize_(*pbft_block, db_->getFinalizedDagBlockHashesByPeriod(period), period == curr_period);
+
+    finalize_(SyncBlock(db_->getPeriodDataRaw(period)), period == curr_period);
   }
 
   // Initialize PBFT status
@@ -356,7 +357,7 @@ bool PbftManager::resetRound_() {
     return false;
   }
 
-  LOG(log_nf_) << "From votes determined round " << consensus_pbft_round;
+  LOG(log_nf_) << "Determined round from votes: " << consensus_pbft_round;
   round_clock_initial_datetime_ = now_;
   // Update current round and reset step to 1
   round_ = consensus_pbft_round;
@@ -695,6 +696,7 @@ bool PbftManager::stateOperations_() {
         duration_ = std::chrono::system_clock::now() - now_;
         auto execute_trxs_in_ms = std::chrono::duration_cast<std::chrono::milliseconds>(duration_).count();
         LOG(log_dg_) << "Pushing PBFT block and Execution spent " << execute_trxs_in_ms << " ms. in round " << round;
+
         // Restart while loop
         return true;
       }
@@ -1383,30 +1385,33 @@ bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(blk_hash_t const &pbft_
   if (!pbft_block) {
     return false;
   }
-  return comparePbftBlockScheduleWithDAGblocks_(std::move(pbft_block)).has_value();
+
+  return comparePbftBlockScheduleWithDAGblocks_(std::move(pbft_block));
 }
 
-std::optional<vec_blk_t> PbftManager::comparePbftBlockScheduleWithDAGblocks_(std::shared_ptr<PbftBlock> pbft_block) {
+bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(const std::shared_ptr<PbftBlock> &pbft_block) {
   // If cert sync block is already populated with this pbft block, no need to do verification again
-  if (cert_sync_block_.pbft_blk && cert_sync_block_.pbft_blk->getBlockHash() == pbft_block->getBlockHash()) {
-    vec_blk_t dag_blocks_order;
-    dag_blocks_order.reserve(cert_sync_block_.dag_blocks.size());
-    std::transform(cert_sync_block_.dag_blocks.begin(), cert_sync_block_.dag_blocks.end(),
-                   std::back_inserter(dag_blocks_order), [](const DagBlock &dag_block) { return dag_block.getHash(); });
-    return {std::move(dag_blocks_order)};
+  const auto &cached_pbft_block = cert_sync_block_.getPbftBlock();
+  if (cached_pbft_block && cached_pbft_block->getBlockHash() == pbft_block->getBlockHash()) {
+    return true;
   }
 
   auto const &anchor_hash = pbft_block->getPivotDagBlockHash();
   auto dag_blocks_order = dag_mgr_->getDagBlockOrder(anchor_hash, pbft_block->getPeriod());
+
   if (dag_blocks_order.empty()) {
     syncPbftChainFromPeers_(missing_dag_blk, anchor_hash);
-    return {};
+    return false;
   }
+
+  cert_sync_block_.clear();
+
+  std::vector<DagBlock> tmp_dag_blocks;
+  tmp_dag_blocks.reserve(dag_blocks_order.size());
 
   std::unordered_set<trx_hash_t> trx_set;
   std::vector<trx_hash_t> transactions_to_query;
-  cert_sync_block_.clear();
-  cert_sync_block_.dag_blocks.reserve(dag_blocks_order.size());
+
   for (auto const &dag_blk_hash : dag_blocks_order) {
     auto dag_block = dag_blk_mgr_->getDagBlock(dag_blk_hash);
     assert(dag_block);
@@ -1415,8 +1420,10 @@ std::optional<vec_blk_t> PbftManager::comparePbftBlockScheduleWithDAGblocks_(std
         transactions_to_query.emplace_back(trx_hash);
       }
     }
-    cert_sync_block_.dag_blocks.emplace_back(std::move(*dag_block));
+
+    tmp_dag_blocks.emplace_back(std::move(*dag_block));
   }
+
   std::vector<trx_hash_t> non_finalized_transactions;
 
   auto trx_finalized = db_->transactionsFinalized(transactions_to_query);
@@ -1426,25 +1433,35 @@ std::optional<vec_blk_t> PbftManager::comparePbftBlockScheduleWithDAGblocks_(std
     }
   }
 
-  DbStorage::MultiGetQuery db_query(db_);
-  db_query.append(DbStorage::Columns::transactions, non_finalized_transactions);
-  auto transactions_res = db_query.execute();
-  cert_sync_block_.transactions.reserve(transactions_res.size());
-  for (auto const &trx_raw : transactions_res) {
-    assert(trx_raw.size() > 0);
-    cert_sync_block_.transactions.emplace_back(dev::asBytes(trx_raw));
-  }
-
   auto calculated_order_hash = calculateOrderHash(dag_blocks_order, non_finalized_transactions);
   if (calculated_order_hash != pbft_block->getOrderHash()) {
     LOG(log_er_) << "Order hash incorrect. Pbft block: " << pbft_block->getBlockHash()
                  << ". Order hash: " << pbft_block->getOrderHash() << " . Calculated hash:" << calculated_order_hash
                  << ". Dag order: " << dag_blocks_order << ". Trx order: " << non_finalized_transactions;
-    return {};
+    return false;
   }
-  cert_sync_block_.pbft_blk = std::move(pbft_block);
 
-  return {std::move(dag_blocks_order)};
+  DbStorage::MultiGetQuery db_query(db_);
+  db_query.append(DbStorage::Columns::transactions, non_finalized_transactions);
+  auto transactions_res = db_query.execute();
+
+  std::vector<Transaction> tmp_txs;
+  tmp_txs.reserve(transactions_res.size());
+  vec_trx_t tmp_txs_hashes;
+  tmp_txs_hashes.reserve(transactions_res.size());
+
+  for (auto const &trx_raw : transactions_res) {
+    assert(trx_raw.size() > 0);
+    auto tx = Transaction(dev::asBytes(trx_raw));
+
+    tmp_txs_hashes.push_back(tx.getHash());
+    tmp_txs.push_back(std::move(tx));
+  }
+
+  cert_sync_block_ = SyncBlock(pbft_block, std::move(tmp_dag_blocks), std::move(dag_blocks_order), std::move(tmp_txs),
+                               std::move(tmp_txs_hashes));
+
+  return true;
 }
 
 bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cert_voted_block_hash,
@@ -1460,16 +1477,19 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cer
     return false;
   }
 
-  auto dag_blocks_order = comparePbftBlockScheduleWithDAGblocks_(pbft_block);
-  if (!dag_blocks_order.has_value()) {
+  if (!comparePbftBlockScheduleWithDAGblocks_(pbft_block)) {
     LOG(log_nf_) << "DAG has not build up for PBFT block " << cert_voted_block_hash;
     return false;
   }
-  cert_sync_block_.cert_votes = std::move(cert_votes_for_round);
-  if (!pushPbftBlock_(cert_sync_block_, *dag_blocks_order)) {
+  cert_sync_block_.setCertVotes(std::move(cert_votes_for_round));
+
+  // TODO: check if cert_sync_block_ has to be created again inside comparePbftBlockScheduleWithDAGblocks_ even
+  //  after pushPbftBlock. If yes, shared_ptr to const SyncBlock should be probably used ?
+  if (!pushPbftBlock_(std::move(cert_sync_block_))) {
     LOG(log_er_) << "Failed push PBFT block " << pbft_block->getBlockHash() << " into chain";
     return false;
   }
+
   // cleanup PBFT unverified blocks table
   pbft_chain_->cleanupUnverifiedPbftBlocks(*pbft_block);
   return true;
@@ -1484,13 +1504,10 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
         continue;
       }
 
-      auto pbft_block_hash = sync_block->pbft_blk->getBlockHash();
+      auto pbft_block_hash = sync_block->getPbftBlock()->getBlockHash();
       LOG(log_nf_) << "Pick pbft block " << pbft_block_hash << " from synced queue in round " << round;
 
-      vec_blk_t dag_blocks_order;
-      if (pushPbftBlock_(sync_block.value(), dag_blocks_order, true /* syncing flag */)) {
-        LOG(log_nf_) << node_addr_ << " push synced PBFT block " << pbft_block_hash << " in round " << round;
-      } else {
+      if (!pushPbftBlock_(std::move(sync_block.value()))) {
         LOG(log_er_) << "Failed push PBFT block " << pbft_block_hash << " into chain";
         break;
       }
@@ -1509,16 +1526,11 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
   }
 }
 
-void PbftManager::finalize_(PbftBlock const &pbft_block, std::vector<h256> finalized_dag_blk_hashes, bool sync) {
+void PbftManager::finalize_(SyncBlock &&sync_block, bool synchronous_processing) {
+  auto anchor_block_hash = sync_block.getPbftBlock()->getPivotDagBlockHash();
   auto result = final_chain_->finalize(
-      {
-          pbft_block.getBeneficiary(),
-          pbft_block.getTimestamp(),
-          move(finalized_dag_blk_hashes),
-          pbft_block.getBlockHash(),
-      },
-      pbft_block.getPeriod(),
-      [this, weak_ptr = weak_from_this(), anchor_hash = pbft_block.getPivotDagBlockHash()](auto const &, auto &batch) {
+      std::move(sync_block),
+      [this, weak_ptr = weak_from_this(), anchor_hash = std::move(anchor_block_hash)](auto const &, auto &batch) {
         // Update proposal period DAG levels map
         auto ptr = weak_ptr.lock();
         if (!ptr) return;  // it was destroyed
@@ -1533,13 +1545,15 @@ void PbftManager::finalize_(PbftBlock const &pbft_block, std::vector<h256> final
         db_->addDposProposalPeriodLevelsFieldToBatch(DposProposalPeriodLevelsStatus::MaxProposalPeriod,
                                                      dpos_current_max_proposal_period, batch);
       });
-  if (sync) {
+  if (synchronous_processing) {
     result.wait();
   }
 }
 
-bool PbftManager::pushPbftBlock_(SyncBlock &sync_block, vec_blk_t &dag_blocks_order) {
-  auto const &pbft_block_hash = sync_block.pbft_blk->getBlockHash();
+bool PbftManager::pushPbftBlock_(SyncBlock &&sync_block) {
+  const auto &pbft_block = sync_block.getPbftBlock();
+  const auto &pbft_block_hash = pbft_block->getBlockHash();
+
   if (db_->pbftBlockInDb(pbft_block_hash)) {
     LOG(log_nf_) << "PBFT block: " << pbft_block_hash << " in DB already.";
     if (last_cert_voted_value_ == pbft_block_hash) {
@@ -1550,21 +1564,12 @@ bool PbftManager::pushPbftBlock_(SyncBlock &sync_block, vec_blk_t &dag_blocks_or
     return false;
   }
 
-  auto const &cert_votes = sync_block.cert_votes;
-  auto pbft_period = sync_block.pbft_blk->getPeriod();
-
   auto batch = db_->createWriteBatch();
 
   LOG(log_nf_) << "Storing cert votes of pbft blk " << pbft_block_hash;
-  LOG(log_dg_) << "Stored following cert votes:\n" << cert_votes;
+  LOG(log_dg_) << "Stored following cert votes:\n" << sync_block.getCertVotes();
   // Update PBFT chain head block
   db_->addPbftHeadToBatch(pbft_chain_->getHeadHash(), pbft_chain_->getJsonStrForBlock(pbft_block_hash), batch);
-
-  if (dag_blocks_order.empty()) {
-    dag_blocks_order.reserve(sync_block.dag_blocks.size());
-    std::transform(sync_block.dag_blocks.begin(), sync_block.dag_blocks.end(), std::back_inserter(dag_blocks_order),
-                   [](const DagBlock &dag_block) { return dag_block.getHash(); });
-  }
 
   db_->savePeriodData(sync_block, batch);
 
@@ -1578,20 +1583,21 @@ bool PbftManager::pushPbftBlock_(SyncBlock &sync_block, vec_blk_t &dag_blocks_or
   db_->commitWriteBatch(batch);
 
   // Set DAG blocks period
-  auto const &anchor_hash = sync_block.pbft_blk->getPivotDagBlockHash();
-  dag_mgr_->setDagBlockOrder(anchor_hash, pbft_period, dag_blocks_order);
+  // TODO: could be passed only SyncBlock -> a lot of refactoring in tests
+  dag_mgr_->setDagBlockOrder(pbft_block->getPivotDagBlockHash(), pbft_block->getPeriod(),
+                             sync_block.getDagBlocksHashes());
 
-  trx_mgr_->updateFinalizedTransactionsStatus(sync_block);
+  trx_mgr_->updateFinalizedTransactionsStatus(sync_block.getTransactionsHashes());
 
   // update PBFT chain size
   pbft_chain_->updatePbftChain(pbft_block_hash);
 
   last_cert_voted_value_ = NULL_BLOCK_HASH;
 
-  LOG(log_nf_) << node_addr_ << " successful push unexecuted PBFT block " << pbft_block_hash << " in period "
-               << pbft_period << " into chain! In round " << getPbftRound();
+  LOG(log_nf_) << "Pushed new PBFT block " << pbft_block_hash << " into chain. Period: " << pbft_block->getPeriod()
+               << ", round: " << getPbftRound();
 
-  finalize_(*sync_block.pbft_blk, move(dag_blocks_order));
+  finalize_(std::move(sync_block));
 
   // Reset proposed PBFT block hash to False for next pbft block proposal
   proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
@@ -1760,7 +1766,8 @@ uint64_t PbftManager::pbftSyncingPeriod() const {
 
 std::optional<SyncBlock> PbftManager::processSyncBlock() {
   auto sync_block = sync_queue_.pop();
-  auto pbft_block_hash = sync_block.first.pbft_blk->getBlockHash();
+  const auto &pbft_block = sync_block.first.getPbftBlock();
+  const auto &pbft_block_hash = pbft_block->getBlockHash();
   LOG(log_nf_) << "Pop pbft block " << pbft_block_hash << " from synced queue";
 
   if (pbft_chain_->findPbftBlockInChain(pbft_block_hash)) {
@@ -1772,11 +1779,10 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
   assert(net);  // Should never happen
 
   // Check previous hash matches
-  if (sync_block.first.pbft_blk->getPrevBlockHash() != pbft_chain_->getLastPbftBlockHash()) {
+  if (pbft_block->getPrevBlockHash() != pbft_chain_->getLastPbftBlockHash()) {
     // TODO: should be clear it is related to syncing, was log_er_pbft_sync_
-    LOG(log_er_) << "Invalid PBFT block " << pbft_block_hash
-                 << "; prevHash: " << sync_block.first.pbft_blk->getPrevBlockHash() << " from peer "
-                 << sync_block.second.abridged() << " received, stop syncing.";
+    LOG(log_er_) << "Invalid PBFT block " << pbft_block_hash << "; prevHash: " << pbft_block->getPrevBlockHash()
+                 << " from peer " << sync_block.second.abridged() << " received, stop syncing.";
     sync_queue_.clear();
     // Handle malicious peer on network level
     net->handleMaliciousSyncPeer(sync_block.second);
@@ -1784,7 +1790,7 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
   }
 
   // Check cert vote matches
-  for (auto const &vote : sync_block.first.cert_votes) {
+  for (auto const &vote : sync_block.first.getCertVotes()) {
     if (vote->getBlockHash() != pbft_block_hash) {
       LOG(log_er_) << "Invalid cert votes block hash " << vote->getBlockHash() << " instead of " << pbft_block_hash
                    << " from peer " << sync_block.second.abridged() << " received, stop syncing.";
@@ -1794,21 +1800,13 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
     }
   }
 
-  auto order_hash = calculateOrderHash(sync_block.first.dag_blocks, sync_block.first.transactions);
-  if (order_hash != sync_block.first.pbft_blk->getOrderHash()) {
-    std::vector<trx_hash_t> trx_order;
-    trx_order.reserve(sync_block.first.transactions.size());
-    std::vector<blk_hash_t> blk_order;
-    blk_order.reserve(sync_block.first.dag_blocks.size());
-    for (auto t : sync_block.first.transactions) {
-      trx_order.push_back(t.getHash());
-    }
-    for (auto b : sync_block.first.dag_blocks) {
-      blk_order.push_back(b.getHash());
-    }
+  auto order_hash = calculateOrderHash(sync_block.first.getDagBlocks(), sync_block.first.getTransactions());
+  if (order_hash != pbft_block->getOrderHash()) {
     LOG(log_er_) << "Order hash incorrect in sync block " << pbft_block_hash << " expected: " << order_hash
-                 << " received " << sync_block.first.pbft_blk->getOrderHash() << "; Dag order: " << blk_order
-                 << "; Trx order: " << trx_order << "; from " << sync_block.second.abridged() << ", stop syncing.";
+                 << " received " << pbft_block->getOrderHash()
+                 << "; Dag order: " << sync_block.first.getDagBlocksHashes()
+                 << "; Trx order: " << sync_block.first.getTransactionsHashes() << "; from "
+                 << sync_block.second.abridged() << ", stop syncing.";
     sync_queue_.clear();
     net->handleMaliciousSyncPeer(sync_block.second);
     return std::nullopt;
@@ -1834,7 +1832,7 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
 }
 
 void PbftManager::syncBlockQueuePush(SyncBlock &&block, dev::p2p::NodeID const &node_id) {
-  const auto period = block.pbft_blk->getPeriod();
+  const auto period = block.getPbftBlock()->getPeriod();
   if (!sync_queue_.push(std::move(block), node_id, pbft_chain_->getPbftChainSize())) {
     LOG(log_er_) << "Trying to push block with " << period << " period, but current period is "
                  << sync_queue_.getPeriod();

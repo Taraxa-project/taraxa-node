@@ -23,7 +23,7 @@ void SyncBlockQueue::clear() {
 }
 
 bool SyncBlockQueue::push(SyncBlock &&block, dev::p2p::NodeID const &node_id, uint64_t max_pbft_size) {
-  const auto period = block.pbft_blk->getPeriod();
+  const auto period = block.getPbftBlock()->getPeriod();
   std::unique_lock lock(queue_access_);
   if (period != std::max(period_, max_pbft_size) + 1) {
     return false;
