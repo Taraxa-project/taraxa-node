@@ -65,7 +65,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   bool checkBlockTransactions(DagBlock const &blk);
 
   // Update the status of transactions to finalized and remove from transactions column
-  void updateFinalizedTransactionsStatus(SyncBlock const &sync_block);
+  void updateFinalizedTransactionsStatus(const vec_trx_t &txs);
 
   std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash) const;
   unsigned long getTransactionCount() const;

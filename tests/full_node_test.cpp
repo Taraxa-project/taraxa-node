@@ -259,12 +259,13 @@ TEST_F(FullNodeTest, db_test) {
   }
 
   batch = db.createWriteBatch();
-  std::vector<std::shared_ptr<Vote>> votes;
 
-  SyncBlock sync_block1(std::make_shared<PbftBlock>(pbft_block1), cert_votes);
-  SyncBlock sync_block2(std::make_shared<PbftBlock>(pbft_block2), votes);
-  SyncBlock sync_block3(std::make_shared<PbftBlock>(pbft_block3), votes);
-  SyncBlock sync_block4(std::make_shared<PbftBlock>(pbft_block4), votes);
+  SyncBlock sync_block1(std::make_shared<PbftBlock>(pbft_block1), {}, {}, {}, {});
+  sync_block1.setCertVotes(std::move(cert_votes));
+
+  SyncBlock sync_block2(std::make_shared<PbftBlock>(pbft_block2), {}, {}, {}, {});
+  SyncBlock sync_block3(std::make_shared<PbftBlock>(pbft_block3), {}, {}, {}, {});
+  SyncBlock sync_block4(std::make_shared<PbftBlock>(pbft_block4), {}, {}, {}, {});
 
   db.savePeriodData(sync_block1, batch);
   db.savePeriodData(sync_block2, batch);
@@ -281,10 +282,9 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(db.getPbftBlock(pbft_block3.getBlockHash())->rlp(false), pbft_block3.rlp(false));
   EXPECT_EQ(db.getPbftBlock(pbft_block4.getBlockHash())->rlp(false), pbft_block4.rlp(false));
 
-  SyncBlock pbft_block_cert_votes(std::make_shared<PbftBlock>(pbft_block1), cert_votes);
-  auto cert_votes_from_db = db.getCertVotes(pbft_block1.getPeriod());
-  SyncBlock pbft_block_cert_votes_from_db(std::make_shared<PbftBlock>(pbft_block1), cert_votes_from_db);
-  EXPECT_EQ(pbft_block_cert_votes.rlp(), pbft_block_cert_votes_from_db.rlp());
+  SyncBlock pbft_block_cert_votes_from_db(std::make_shared<PbftBlock>(pbft_block1), {}, {}, {}, {});
+  pbft_block_cert_votes_from_db.setCertVotes(db.getCertVotes(pbft_block1.getPeriod()));
+  EXPECT_EQ(sync_block1.rlp(), pbft_block_cert_votes_from_db.rlp());
 
   // pbft_blocks (head)
   PbftChain pbft_chain(blk_hash_t(0), addr_t(), db_ptr);
@@ -1318,7 +1318,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   std::unordered_set<trx_hash_t> unique_trxs;
   for (auto const &t : trxs_table) {
     if (unique_trxs.count(t.first)) {
-      EXPECT_FALSE(true) << "Executed duplicate transacton " << t.first << std::endl;
+      EXPECT_FALSE(true) << "Executed duplicate transaction " << t.first << std::endl;
     }
     unique_trxs.insert(t.first);
   }

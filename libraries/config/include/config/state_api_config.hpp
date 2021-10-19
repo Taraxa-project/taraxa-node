@@ -42,6 +42,8 @@ void dec_json(Json::Value const& json, DPOSConfig& obj);
 struct ExecutionOptions {
   bool disable_nonce_check = false;
   bool disable_gas_fee = false;
+  // Do not process reward pool (newly minted tokens & tx fees) according to the dag statistics,
+  // give whole reward pool to the pbft block proposer
   bool disable_dag_stats_rewards = false;
 
   HAS_RLP_FIELDS
@@ -51,6 +53,7 @@ void dec_json(Json::Value const& json, ExecutionOptions& obj);
 
 struct Config {
   ETHChainConfig eth_chain_config;
+  // Do not mint new tokens with new block creation
   bool disable_block_rewards = false;
   ExecutionOptions execution_options;
   BalanceMap genesis_balances;

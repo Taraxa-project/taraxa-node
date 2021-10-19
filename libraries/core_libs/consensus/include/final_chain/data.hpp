@@ -86,15 +86,9 @@ struct TransactionLocation {
   HAS_RLP_FIELDS
 };
 
-struct NewBlock {
-  addr_t author;
-  uint64_t timestamp;
-  std::vector<h256> dag_blk_hashes;
-  h256 hash;
-};
-
-struct FinalizationResult : NewBlock {
+struct FinalizationResult {
   std::shared_ptr<BlockHeader const> final_chain_blk;
+  blk_hash_t pbft_block_hash;
   Transactions trxs;
   TransactionReceipts trx_receipts;
 };

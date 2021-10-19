@@ -212,18 +212,18 @@ SharedTransactions TransactionManager::packTrxs(uint16_t max_trx_to_pack) {
 /**
  * Update transaction counters and state, it only has effect when PBFT syncing
  */
-void TransactionManager::updateFinalizedTransactionsStatus(SyncBlock const &sync_block) {
+void TransactionManager::updateFinalizedTransactionsStatus(const vec_trx_t &txs) {
   // This lock synchronizes inserting and removing transactions from transactions memory pool with database insertion.
   // Unique lock here makes sure that transactions we are removing are not reinserted in transactions_pool_
   std::unique_lock transactions_lock(transactions_mutex_);
-  for (auto const &trx : sync_block.transactions) {
-    if (!nonfinalized_transactions_in_dag_.erase(trx.getHash())) {
+  for (auto const &tx_hash : txs) {
+    if (!nonfinalized_transactions_in_dag_.erase(tx_hash)) {
       trx_count_++;
     } else {
-      LOG(log_dg_) << "Transaction " << trx.getHash() << " removed from nonfinalized transactions";
+      LOG(log_dg_) << "Transaction " << tx_hash << " removed from nonfinalized transactions";
     }
-    if (transactions_pool_.erase(trx.getHash())) {
-      LOG(log_dg_) << "Transaction " << trx.getHash() << " removed from transactions_pool_";
+    if (transactions_pool_.erase(tx_hash)) {
+      LOG(log_dg_) << "Transaction " << tx_hash << " removed from transactions_pool_";
     }
   }
   db_->saveStatusField(StatusDbField::TrxCount, trx_count_);

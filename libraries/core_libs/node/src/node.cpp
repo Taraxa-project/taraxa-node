@@ -178,9 +178,10 @@ void FullNode::start() {
           if (auto _ws = ws.lock()) {
             _ws->newEthBlock(*res->final_chain_blk);
             if (auto _db = db.lock()) {
-              auto pbft_blk = _db->getPbftBlock(res->hash);
+              auto pbft_blk = _db->getPbftBlock(res->pbft_block_hash);
               _ws->newDagBlockFinalized(pbft_blk->getPivotDagBlockHash(), pbft_blk->getPeriod());
-              _ws->newPbftBlockExecuted(*pbft_blk, res->dag_blk_hashes);
+              // TODO: big todo
+              //_ws->newPbftBlockExecuted(*pbft_blk, res->dag_blk_hashes);
             }
           }
         },
@@ -258,7 +259,7 @@ void FullNode::rebuildDb() {
     }
     SyncBlock sync_block(data);
 
-    LOG(log_nf_) << "Adding sync block into queue " << sync_block.pbft_blk->getBlockHash().toString();
+    LOG(log_nf_) << "Adding sync block into queue " << sync_block.getPbftBlock()->getBlockHash().toString();
     pbft_mgr_->syncBlockQueuePush(std::move(sync_block), dev::p2p::NodeID());
 
     // Wait if more than 10 pbft blocks in queue to be processed

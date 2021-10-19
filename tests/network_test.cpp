@@ -409,10 +409,10 @@ TEST_F(NetworkTest, node_pbft_sync) {
   // Add cert votes in DB
   // Add PBFT block in DB
 
-  SyncBlock sync_block1(std::make_shared<PbftBlock>(pbft_block1), votes_for_pbft_blk1);
-  sync_block1.dag_blocks.push_back(blk1);
-  sync_block1.transactions.push_back(*g_signed_trx_samples[0]);
-  sync_block1.transactions.push_back(*g_signed_trx_samples[1]);
+  SyncBlock sync_block1(std::make_shared<PbftBlock>(pbft_block1), {blk1}, {blk1.getHash()},
+                        {*g_signed_trx_samples[0], *g_signed_trx_samples[1]},
+                        {g_signed_trx_samples[0]->getHash(), g_signed_trx_samples[1]->getHash()});
+  sync_block1.setCertVotes(std::move(votes_for_pbft_blk1));
 
   db1->savePeriodData(sync_block1, batch);
   // Update period_pbft_block in DB
@@ -458,12 +458,10 @@ TEST_F(NetworkTest, node_pbft_sync) {
   // Add cert votes in DB
   // Add PBFT block in DB
 
-  std::cout << "B1 " << pbft_block2.getBlockHash() << std::endl;
-
-  SyncBlock sync_block2(std::make_shared<PbftBlock>(pbft_block2), votes_for_pbft_blk2);
-  sync_block2.dag_blocks.push_back(blk2);
-  sync_block2.transactions.push_back(*g_signed_trx_samples[2]);
-  sync_block2.transactions.push_back(*g_signed_trx_samples[3]);
+  SyncBlock sync_block2(std::make_shared<PbftBlock>(pbft_block2), {blk2}, {blk2.getHash()},
+                        {*g_signed_trx_samples[2], *g_signed_trx_samples[3]},
+                        {g_signed_trx_samples[2]->getHash(), g_signed_trx_samples[3]->getHash()});
+  sync_block2.setCertVotes(std::move(votes_for_pbft_blk2));
 
   db1->savePeriodData(sync_block2, batch);
 
@@ -555,10 +553,11 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   // Add cert votes in DB
   // Add PBFT block in DB
 
-  SyncBlock sync_block1(std::make_shared<PbftBlock>(pbft_block1), votes_for_pbft_blk1);
-  sync_block1.dag_blocks.push_back(blk1);
-  sync_block1.transactions.push_back(*g_signed_trx_samples[0]);
-  sync_block1.transactions.push_back(*g_signed_trx_samples[1]);
+  std::vector<std::shared_ptr<Vote>> votes_for_pbft_blk1_copy = votes_for_pbft_blk1;
+  SyncBlock sync_block1(std::make_shared<PbftBlock>(pbft_block1), {blk1}, {blk1.getHash()},
+                        {*g_signed_trx_samples[0], *g_signed_trx_samples[1]},
+                        {g_signed_trx_samples[0]->getHash(), g_signed_trx_samples[1]->getHash()});
+  sync_block1.setCertVotes(std::move(votes_for_pbft_blk1));
 
   db1->savePeriodData(sync_block1, batch);
   // Update pbft chain
@@ -601,10 +600,10 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   // Add fake votes in DB
   // Add PBFT block in DB
 
-  SyncBlock sync_block2(std::make_shared<PbftBlock>(pbft_block2), votes_for_pbft_blk1);
-  sync_block2.dag_blocks.push_back(blk1);
-  sync_block2.transactions.push_back(*g_signed_trx_samples[2]);
-  sync_block2.transactions.push_back(*g_signed_trx_samples[3]);
+  SyncBlock sync_block2(std::make_shared<PbftBlock>(pbft_block2), {blk1}, {blk1.getHash()},
+                        {*g_signed_trx_samples[2], *g_signed_trx_samples[3]},
+                        {g_signed_trx_samples[2]->getHash(), g_signed_trx_samples[3]->getHash()});
+  sync_block2.setCertVotes(std::move(votes_for_pbft_blk1_copy));
 
   db1->savePeriodData(sync_block2, batch);
   // Update pbft chain

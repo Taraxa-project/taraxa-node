@@ -521,7 +521,7 @@ std::vector<blk_hash_t> DagManager::getDagBlockOrder(blk_hash_t const &anchor, u
   return blk_orders;
 }
 
-uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period, vec_blk_t const &dag_order) {
+size_t DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period, vec_blk_t const &dag_order) {
   ULock lock(mutex_);
   LOG(log_dg_) << "setDagBlockOrder called with anchor " << new_anchor << " and period " << period;
   if (period != period_ + 1) {

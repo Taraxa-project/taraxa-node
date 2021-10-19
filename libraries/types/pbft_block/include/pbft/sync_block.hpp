@@ -17,19 +17,40 @@ class DagBlock;
 class SyncBlock {
  public:
   SyncBlock() = default;
-  SyncBlock(std::shared_ptr<PbftBlock> pbft_blk, std::vector<std::shared_ptr<Vote>> const& cert_votes);
-  explicit SyncBlock(dev::RLP&& all_rlp);
-  explicit SyncBlock(bytes const& all_rlp);
+  SyncBlock(std::shared_ptr<PbftBlock> pbft_blk, std::vector<DagBlock>&& ordered_dag_blocks,
+            vec_blk_t&& ordered_dag_blocks_hashes, std::vector<Transaction>&& ordered_txs,
+            vec_trx_t&& ordered_transactions_hashes);
+  SyncBlock(dev::RLP&& all_rlp);
+  SyncBlock(bytes const& all_rlp);
 
-  std::shared_ptr<PbftBlock> pbft_blk;
-  std::vector<std::shared_ptr<Vote>> cert_votes;
-  std::vector<DagBlock> dag_blocks;
-  std::vector<Transaction> transactions;
-  bytes rlp() const;
   void clear();
-  void hasEnoughValidCertVotes(size_t valid_sortition_players, size_t sortition_threshold, size_t pbft_2t_plus_1,
-                               std::function<size_t(addr_t const&)> const& dpos_eligible_vote_count) const;
+  void setCertVotes(std::vector<std::shared_ptr<Vote>>&& votes);
+
+  bytes rlp() const;
+  void hasEnoughValidCertVotes(size_t valid_sortition_players, size_t sortition_threshold, size_t pbft_2t_plus_1) const;
+
+  const std::shared_ptr<PbftBlock>& getPbftBlock() const;
+  const std::vector<std::shared_ptr<Vote>>& getCertVotes() const;
+  const std::vector<DagBlock>& getDagBlocks() const;
+  const vec_blk_t& getDagBlocksHashes() const;
+  const std::vector<Transaction>& getTransactions() const;
+  const vec_trx_t& getTransactionsHashes() const;
+
+ private:
+  std::shared_ptr<PbftBlock> pbft_blk_{nullptr};
+  std::vector<std::shared_ptr<Vote>> cert_votes_;
+
+  // Dag blocks are ordered based on comparePbftBlockScheduleWithDAGblocks_
+  std::vector<DagBlock> ordered_dag_blocks_;
+
+  // ordered_dag_blocks_ transformed into vector of their hashes
+  vec_blk_t ordered_dag_blocks_hashes_;
+
+  // Transactions are ordered based on ordered_dag_blocks_
+  std::vector<Transaction> ordered_transactions_;
+
+  // ordered_transactions_ transformed into vector of their hashes
+  vec_trx_t ordered_transactions_hashes_;
 };
-std::ostream& operator<<(std::ostream& strm, SyncBlock const& b);
 
 }  // namespace taraxa

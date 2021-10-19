@@ -57,7 +57,7 @@ void DagStats::clear() {
   blocks_stats_.proposers_blocks_count_.clear();
 }
 
-RLP_FIELDS_DEFINE(DagStats::BlocksStats, miners_blocks_count_, total_blocks_count_)
-RLP_FIELDS_DEFINE(DagStats::TransactionStats, miner_, uncle_miners_)
+RLP_FIELDS_DEFINE(DagStats::BlocksStats, proposers_blocks_count_, total_blocks_count_)
+RLP_FIELDS_DEFINE(DagStats::TransactionStats, proposer_, uncle_proposers_)
 
 }  // namespace taraxa
