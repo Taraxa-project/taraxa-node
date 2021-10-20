@@ -456,7 +456,7 @@ class ThreadSafeMap {
         }
       }
     }
-    return std::move(values);
+    return values;
   }
 
   void clear() {

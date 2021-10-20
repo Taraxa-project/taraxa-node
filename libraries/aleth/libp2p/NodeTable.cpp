@@ -274,15 +274,6 @@ void NodeTable::schedulePing(Node const& _node) {
 
 void NodeTable::evict(NodeEntry const& _leastSeen, shared_ptr<NodeEntry> _replacement) {
   if (!m_socket->isOpen()) return;
-  // If this is a boot node we should drop the leastSeen
-  // Boot node should share the discovery data with new nodes
-  if (is_boot_node_) {
-    if (auto lNode = nodeEntry(_leastSeen.id())) {
-      dropNode(move(lNode));
-    }
-    ping(_replacement->node);
-    return;
-  }
   LOG(m_logger) << "Evicting node " << _leastSeen.node;
   ping(_leastSeen.node, move(_replacement));
 
@@ -330,16 +321,17 @@ void NodeTable::noteActiveNode(shared_ptr<NodeEntry> _nodeEntry) {
         nodeToEvict = nodes.front().lock();
         // It could have been replaced in addNode(), then weak_ptr is expired.
         // If so, just add a new one instead of expired
-        if (!nodeToEvict) {
+        // TODO maybe remove is_boot_node_ part
+        if (!nodeToEvict || is_boot_node_) {
           nodes.pop_front();
           nodes.push_back(_nodeEntry);
           DEV_GUARDED(x_nodes) { m_allNodes.insert({_nodeEntry->id(), _nodeEntry}); }
           if (m_nodeEventHandler) m_nodeEventHandler->appendEvent(_nodeEntry->id(), NodeEntryAdded);
+          return;
         }
       }
     }
   }
-
   if (nodeToEvict) evict(*nodeToEvict, _nodeEntry);
 }
 void NodeTable::invalidateNode(NodeID const& _id) {
