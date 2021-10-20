@@ -47,7 +47,7 @@ Json::Value Tools::overrideConfig(Json::Value& conf, std::string& data_dir, bool
     conf["data_path"] = data_dir;
   }
 
-  conf["network_is_boot_node"] = boot_node;
+  if (boot_node) conf["network_is_boot_node"] = boot_node;
 
   if (log_channels.size() > 0 && log_channels_append.size() > 0) {
     throw invalid_argument("log_channels and log_channels_append args are not allowed to be used together");
