@@ -415,3 +415,93 @@ class ExpirationCacheMap {
   const uint32_t delete_step_;
   mutable boost::shared_mutex mtx_;
 };
+
+template <class Key, class Value>
+class ThreadSafeMap {
+ public:
+  bool emplace(Key const &key, Value const &value) {
+    std::unique_lock lock(mtx_);
+    return map_.emplace(key, value).second;
+  }
+
+  std::size_t count(Key const &key) const {
+    std::shared_lock lck(mtx_);
+    return map_.count(key);
+  }
+
+  std::size_t size() const {
+    std::shared_lock lck(mtx_);
+    return map_.size();
+  }
+
+  std::pair<Value, bool> get(Key const &key) const {
+    std::shared_lock lck(mtx_);
+    auto it = map_.find(key);
+    if (it == map_.end()) return std::make_pair(Value(), false);
+    return std::make_pair(it->second, true);
+  }
+
+  std::vector<Value> getValues(uint32_t count = 0) const {
+    std::vector<Value> values;
+    uint32_t counter = 0;
+    std::shared_lock lck(mtx_);
+    values.reserve(map_.size());
+    for (auto const &t : map_) {
+      values.emplace_back(t.second);
+      if (count != 0) {
+        counter++;
+        if (counter == count) {
+          break;
+        }
+      }
+    }
+    return values;
+  }
+
+  void clear() {
+    std::unique_lock lck(mtx_);
+    map_.clear();
+  }
+
+  bool erase(const Key &key) {
+    std::unique_lock lck(mtx_);
+    return map_.erase(key);
+  }
+
+ protected:
+  std::unordered_map<Key, Value> map_;
+  mutable std::shared_mutex mtx_;
+};
+
+template <class Key>
+class ThreadSafeSet {
+ public:
+  bool emplace(Key const &key) {
+    std::unique_lock lock(mtx_);
+    return set_.insert(key).second;
+  }
+
+  std::size_t count(Key const &key) const {
+    std::shared_lock lck(mtx_);
+    return set_.count(key);
+  }
+
+  void clear() {
+    std::unique_lock lck(mtx_);
+    set_.clear();
+  }
+
+  bool erase(const Key &key) {
+    std::unique_lock lck(mtx_);
+    return set_.erase(key);
+  }
+
+  std::size_t size() const {
+    std::shared_lock lck(mtx_);
+    return set_.size();
+  }
+
+ private:
+  std::unordered_set<Key> set_;
+  mutable std::shared_mutex mtx_;
+};
