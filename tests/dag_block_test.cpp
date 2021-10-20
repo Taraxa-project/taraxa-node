@@ -7,12 +7,12 @@
 
 #include "common/static_init.hpp"
 #include "common/types.hpp"
-#include "dag/vdf_sortition.hpp"
-#include "logger/log.hpp"
-#include "node/full_node.hpp"
-#include "util/util.hpp"
+#include "common/util.hpp"
+#include "logger/logger.hpp"
+#include "node/node.hpp"
 #include "util_test/samples.hpp"
 #include "util_test/util.hpp"
+#include "vdf/sortition.hpp"
 
 namespace taraxa::core_tests {
 const unsigned NUM_BLK = 4;
@@ -39,12 +39,12 @@ TEST_F(DagBlockTest, clear) {
 }
 
 TEST_F(DagBlockTest, serialize_deserialize) {
-  vdf_sortition::VdfConfig vdf_config(0xFFFF, 0xe665, 0, 5, 5, 1500);
+  VdfConfig vdf_config(0xFFFF, 0xe665, 0, 5, 5, 1500);
   vrf_sk_t sk(
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
       "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
   level_t level = 3;
-  VdfSortition vdf(vdf_config, g_key_pair.address(), sk, getRlpBytes(level));
+  VdfSortition vdf(vdf_config, sk, getRlpBytes(level));
   blk_hash_t vdf_input(200);
   vdf.computeVdfSolution(vdf_config, vdf_input.asBytes());
   DagBlock blk1(blk_hash_t(1), 2, {}, {}, vdf, secret_t::random());
@@ -171,55 +171,8 @@ TEST_F(DagBlockTest, sign_verify) {
   EXPECT_TRUE(blk2.verifySig());
 }
 
-TEST_F(DagBlockTest, push_and_pop) {
-  auto node_cfgs = make_node_cfgs(1);
-  FullNode::Handle node(node_cfgs[0]);
-  DagBlockManager blk_qu(addr_t(), node_cfgs[0].chain.vdf, node_cfgs[0].chain.final_chain.state.dpos, 1024,
-                         node->getDB(), nullptr, nullptr, nullptr, node->getTimeLogger());
-  blk_qu.start();
-  DagBlock blk1(blk_hash_t(1111), level_t(0), {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)}, {}, sig_t(7777),
-                blk_hash_t(888), addr_t(999));
-
-  DagBlock blk2(blk_hash_t(21111), level_t(0), {blk_hash_t(2222), blk_hash_t(2333), blk_hash_t(2444)}, {}, sig_t(27777),
-                blk_hash_t(2888), addr_t(2999));
-
-  blk_qu.pushUnverifiedBlock(blk1, true);
-  blk_qu.pushUnverifiedBlock(blk2, true);
-
-  auto blk3 = blk_qu.popVerifiedBlock();
-  auto blk4 = blk_qu.popVerifiedBlock();
-  // The order is non-deterministic
-  bool res = (blk1 == blk3) ? blk2 == blk4 : blk2 == blk3;
-  EXPECT_TRUE(res);
-  blk_qu.stop();
-}
-
-TEST_F(DagBlockTest, overlap) {
-  DagBlock blk1(blk_hash_t(1111), level_t(1), {}, {trx_hash_t(1000), trx_hash_t(2000), trx_hash_t(3000)}, sig_t(7777),
-                blk_hash_t(888), addr_t(999));
-
-  DagBlock blk2(blk_hash_t(1112), level_t(1), {},
-                {trx_hash_t(100), trx_hash_t(2000), trx_hash_t(3000), trx_hash_t(1000)}, sig_t(7777), blk_hash_t(888),
-                addr_t(999));
-
-  addr_t addr;
-  TransactionOrderManager detector(addr, nullptr);
-  TransactionExecStatusTable table;
-  auto overlap1 = detector.computeOrderInBlock(blk1, table);
-  auto overlap2 = detector.computeOrderInBlock(blk2, table);
-  EXPECT_TRUE(overlap1[0]);
-  EXPECT_TRUE(overlap1[1]);
-  EXPECT_TRUE(overlap1[2]);
-
-  EXPECT_TRUE(overlap2[0]);
-  EXPECT_FALSE(overlap2[1]);
-  EXPECT_FALSE(overlap2[2]);
-  EXPECT_FALSE(overlap2[3]);
-}
-
 TEST_F(DagBlockMgrTest, proposal_period) {
-  auto node_cfgs = make_node_cfgs(1);
-  FullNode::Handle node(node_cfgs[0]);
+  auto node = create_nodes(1).front();
   auto db = node->getDB();
   auto dag_blk_mgr = node->getDagBlockManager();
 

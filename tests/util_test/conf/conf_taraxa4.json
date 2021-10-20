@@ -1,17 +1,15 @@
 {
-  "node_secret": "7f38ee36812f2e4b1d75c9d21057fd718b9e7903ee9f9d4eb93b690790bb4029",
-  "vrf_secret": "1c15656b71a93e7987e6a164d25d3a645871bcd8b70f30d4454f857c770c2345783a02cd21f22a9f305ccedaef677f16b0d6c48dd9844cb676d5178ed628eb92",
-  "db_path": "/tmp/taraxa4",
+  "data_path": "/tmp/taraxa4",
   "network_address": "127.0.0.1",
   "network_tcp_port": 10005,
   "network_udp_port": 10005,
   "network_simulated_delay": 0,
   "network_transaction_interval": 100,
-  "network_encrypted": 1,
   "network_bandwidth": 40,
   "network_ideal_peer_count": 10,
   "network_max_peer_count": 50,
   "network_sync_level_size": 1,
+  "network_packets_processing_threads": 5,
   "network_boot_nodes": [
     {
       "id": "7b1fcf0ec1078320117b96e9e9ad9032c06d030cf4024a598347a4623a14a421d4f030cf25ef368ab394a45e920e14b57a259a09c41767dd50d1da27b627412a",
@@ -23,11 +21,11 @@
   "rpc": {
     "http_port": 7780,
     "ws_port": 8780,
-    "threads_num": 10
+    "threads_num": 2
   },
   "test_params": {
-    "max_transaction_queue_warn" : 0,
-    "max_transaction_queue_drop" : 0,
+    "max_transactions_pool_warn" : 0,
+    "max_transactions_pool_drop" : 0,
     "max_block_queue_warn" : 0,
     "block_proposer": {
       "shard": 1,
@@ -49,14 +47,14 @@
         "outputs": [
           {
             "type": "console",
-            "format": "%NodeId% %Channel% [%TimeStamp%] %SeverityStr%: %Message%"
+            "format": "%ThreadID% %ShortNodeId% %Channel% [%TimeStamp%] %SeverityStr%: %Message%"
           },
           {
             "type": "file",
             "file_name": "Taraxa_N4_%m%d%Y_%H%M%S_%5N.log",
             "rotation_size": 10000000,
             "time_based_rotation": "0,0,0",
-            "format": "%NodeId% %Channel% [%TimeStamp%] %SeverityStr%: %Message%",
+            "format": "%ThreadID% %ShortNodeId% %Channel% [%TimeStamp%] %SeverityStr%: %Message%",
             "max_size": 1000000000
           }
         ]

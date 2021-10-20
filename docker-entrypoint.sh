@@ -1,15 +1,11 @@
 #!/bin/bash
 
-export TARAXA_CONF_PATH=${TARAXA_CONF_PATH:=/opt/taraxa/config.json}
-export TARAXA_PERSISTENT_PATH=${TARAXA_PERSISTENT_PATH:=/opt/taraxa/data}
+export TARAXA_CONF_PATH=${TARAXA_CONF_PATH:=/root/.taraxa/conf_taraxa.json}
+export TARAXA_PERSISTENT_PATH=${TARAXA_PERSISTENT_PATH:=/root/.taraxa}
 export TARAXA_COPY_COREDUMPS=${TARAXA_COPY_COREDUMPS:=true}
 export TARAXA_SLEEP_DIAGNOSE=${TARAXA_SLEEP_DIAGNOSE:=false}
 
 case $1 in
-
-  cli)
-    exec cli/taraxa "${@:2}"
-    ;;
 
   taraxad)
     echo "Starting taraxad..."
@@ -17,25 +13,19 @@ case $1 in
     ;;
 
   join)
-	cli/taraxa config \
-        node \
-        --network $2 \
-        --file $TARAXA_CONF_PATH
-
     echo "Starting taraxad..."
     taraxad \
-            --conf_taraxa $TARAXA_CONF_PATH
+            --config $TARAXA_CONF_PATH
+            --network-id $2
+
     ;;
 
   single)
-	cli/taraxa config \
-        node \
-        --as-boot-node \
-        --file $TARAXA_CONF_PATH
-
-    echo "Starting taraxad..."
+	  echo "Starting taraxad..."
     taraxad \
-            --conf_taraxa $TARAXA_CONF_PATH
+            --config $TARAXA_CONF_PATH
+            --boot-node true
+
     ;;
   exec)
     exec "${@:2}"

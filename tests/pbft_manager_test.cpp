@@ -1,11 +1,11 @@
-#include "consensus/pbft_manager.hpp"
+#include "pbft/pbft_manager.hpp"
 
 #include <gtest/gtest.h>
 
+#include "common/lazy.hpp"
 #include "common/static_init.hpp"
-#include "logger/log.hpp"
+#include "logger/logger.hpp"
 #include "network/network.hpp"
-#include "util/lazy.hpp"
 #include "util_test/samples.hpp"
 #include "util_test/util.hpp"
 
@@ -22,7 +22,7 @@ auto g_mock_dag0 = Lazy([] { return samples::createMockDag0(); });
 
 struct PbftManagerTest : BaseTest {};
 
-pair<size_t, size_t> calculate_2tPuls1_threshold(size_t committee_size, size_t valid_voting_players) {
+std::pair<size_t, size_t> calculate_2tPuls1_threshold(size_t committee_size, size_t valid_voting_players) {
   size_t two_t_plus_one;
   size_t threshold;
   if (committee_size <= valid_voting_players) {
@@ -33,11 +33,11 @@ pair<size_t, size_t> calculate_2tPuls1_threshold(size_t committee_size, size_t v
     two_t_plus_one = valid_voting_players * 2 / 3 + 1;
     threshold = valid_voting_players;
   }
-  return make_pair(two_t_plus_one, threshold);
+  return std::make_pair(two_t_plus_one, threshold);
 }
 
 void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_size) {
-  auto node_cfgs = make_node_cfgs<20>(5);
+  auto node_cfgs = make_node_cfgs<5>(5);
   auto node_1_expected_bal = own_effective_genesis_bal(node_cfgs[0]);
   for (auto &cfg : node_cfgs) {
     cfg.chain.pbft.committee_size = committee_size;
@@ -56,14 +56,15 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
     auto min_stake_to_vote = node_cfgs[0].chain.final_chain.state.dpos->eligibility_balance_threshold;
     state_api::DPOSTransfers delegations;
     for (size_t i(1); i < nodes.size(); ++i) {
+      std::cout << "Delegating stake of " << min_stake_to_vote << " to node " << i << std::endl;
       node_1_expected_bal -= delegations[nodes[i]->getAddress()].value = min_stake_to_vote;
     }
     auto trx = make_dpos_trx(node_cfgs[0], delegations, nonce++);
-    nodes[0]->getTransactionManager()->insertTransaction(trx, false, true);
+    nodes[0]->getTransactionManager()->insertTransaction(trx);
     trxs_count++;
-    EXPECT_HAPPENS({60s, 1s}, [&](auto &ctx) {
+    EXPECT_HAPPENS({120s, 1s}, [&](auto &ctx) {
       for (auto &node : nodes) {
-        if (ctx.fail_if(!node->getFinalChain()->isKnownTransaction(trx.getHash()))) {
+        if (ctx.fail_if(!node->getFinalChain()->transaction_location(trx.getHash()))) {
           return;
         }
       }
@@ -76,7 +77,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
                                             nodes[0]->getSecretKey(), nodes[i]->getAddress());
     node_1_expected_bal -= init_bal;
     // broadcast trx and insert
-    nodes[0]->getTransactionManager()->insertTransaction(master_boot_node_send_coins, false, true);
+    nodes[0]->getTransactionManager()->insertTransaction(master_boot_node_send_coins);
     trxs_count++;
   }
 
@@ -89,7 +90,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
         Transaction dummy_trx(nonce++, 0, 2, TEST_TX_GAS_LIMIT, bytes(), nodes[0]->getSecretKey(),
                               nodes[0]->getAddress());
         // broadcast dummy transaction
-        nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false, true);
+        nodes[0]->getTransactionManager()->insertTransaction(dummy_trx);
         trxs_count++;
         ctx.fail();
         return;
@@ -119,7 +120,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
     std::cout << "Node" << i << " committee " << committee << ", valid voting players " << valid_voting_players
               << ", 2t+1 " << two_t_plus_one << ", sortition threshold " << threshold << std::endl;
     EXPECT_EQ(valid_voting_players, nodes.size());
-    tie(expected_2tPlus1, expected_threshold) = calculate_2tPuls1_threshold(committee, valid_voting_players);
+    std::tie(expected_2tPlus1, expected_threshold) = calculate_2tPuls1_threshold(committee, valid_voting_players);
     EXPECT_EQ(two_t_plus_one, expected_2tPlus1);
     EXPECT_EQ(threshold, expected_threshold);
   }
@@ -132,7 +133,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
     Transaction send_coins_in_robin_cycle(nonce++, send_coins, gas_price, TEST_TX_GAS_LIMIT, data,
                                           nodes[i]->getSecretKey(), nodes[receiver_index]->getAddress());
     // broadcast trx and insert
-    nodes[i]->getTransactionManager()->insertTransaction(send_coins_in_robin_cycle, false, true);
+    nodes[i]->getTransactionManager()->insertTransaction(send_coins_in_robin_cycle);
     trxs_count++;
   }
 
@@ -145,7 +146,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
         Transaction dummy_trx(nonce++, 0, 2, TEST_TX_GAS_LIMIT, bytes(), nodes[0]->getSecretKey(),
                               nodes[0]->getAddress());
         // broadcast dummy transaction
-        nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false, true);
+        nodes[0]->getTransactionManager()->insertTransaction(dummy_trx);
         trxs_count++;
         ctx.fail();
         return;
@@ -174,15 +175,215 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
     std::cout << "Node" << i << " committee " << committee << ", valid voting players " << valid_voting_players
               << ", 2t+1 " << two_t_plus_one << ", sortition threshold " << threshold << std::endl;
     EXPECT_EQ(valid_voting_players, nodes.size());
-    tie(expected_2tPlus1, expected_threshold) = calculate_2tPuls1_threshold(committee, valid_voting_players);
+    std::tie(expected_2tPlus1, expected_threshold) = calculate_2tPuls1_threshold(committee, valid_voting_players);
     EXPECT_EQ(two_t_plus_one, expected_2tPlus1);
     EXPECT_EQ(threshold, expected_threshold);
   }
 }
 
+// Test that after some amount of elapsed time will not continue soft voting for same value
+TEST_F(PbftManagerTest, terminate_soft_voting_pbft_block) {
+  auto node_cfgs = make_node_cfgs<20>(1);
+  auto nodes = launch_nodes(node_cfgs);
+
+  auto pbft_mgr = nodes[0]->getPbftManager();
+  pbft_mgr->stop();
+
+  std::cout << "Initialize PBFT manager at round 2 step 2" << std::endl;
+
+  auto vote_mgr = nodes[0]->getVoteManager();
+
+  // Generate bogus votes
+  auto weighted_index = 0;
+  auto stale_block_hash = blk_hash_t("0000000100000000000000000000000000000000000000000000000000000000");
+  auto alternate_propose_block_hash = blk_hash_t("0000000200000000000000000000000000000000000000000000000000000000");
+  auto prev_round_next_vote = pbft_mgr->generateVote(stale_block_hash, next_vote_type, 1, 4, weighted_index);
+  vote_mgr->addVerifiedVote(prev_round_next_vote);
+  auto propose_vote = pbft_mgr->generateVote(stale_block_hash, propose_vote_type, 2, 1, weighted_index);
+  vote_mgr->addVerifiedVote(propose_vote);
+  propose_vote = pbft_mgr->generateVote(alternate_propose_block_hash, propose_vote_type, 2, 1, weighted_index);
+  vote_mgr->addVerifiedVote(propose_vote);
+
+  pbft_mgr->setLastSoftVotedValue(stale_block_hash);
+
+  uint64_t time_till_stale_ms = 1000;
+  std::cout << "Set max wait for soft voted value to " << time_till_stale_ms << "ms...";
+  pbft_mgr->setMaxWaitForSoftVotedBlock_ms(time_till_stale_ms);
+  pbft_mgr->setMaxWaitForNextVotedBlock_ms(std::numeric_limits<uint64_t>::max());
+
+  std::cout << "Sleep " << time_till_stale_ms << "ms so that last soft voted value of " << stale_block_hash.abridged()
+            << " becomes stale..." << std::endl;
+  taraxa::thisThreadSleepForMilliSeconds(time_till_stale_ms);
+
+  pbft_mgr->setPbftRound(2);
+  pbft_mgr->setPbftStep(2);
+  pbft_mgr->resumeSingleState();
+
+  std::cout << "Wait to get to cert voted state in round 2..." << std::endl;
+  EXPECT_HAPPENS({2s, 50ms}, [&](auto &ctx) {
+    auto reached_step_three_in_round_two = (pbft_mgr->getPbftRound() == 2 && pbft_mgr->getPbftStep() == 3);
+    WAIT_EXPECT_EQ(ctx, reached_step_three_in_round_two, true)
+  });
+
+  std::cout << "Check did not soft vote for stale soft voted value of " << stale_block_hash.abridged() << "..."
+            << std::endl;
+  bool skipped_soft_voting = true;
+  auto votes = vote_mgr->getVerifiedVotes();
+  for (auto const &v : votes) {
+    if (soft_vote_type == v->getType()) {
+      if (v->getBlockHash() == stale_block_hash) {
+        skipped_soft_voting = false;
+      }
+      std::cout << "Found soft voted value of " << v->getBlockHash().abridged() << " in round 2" << std::endl;
+    }
+  }
+  EXPECT_EQ(skipped_soft_voting, true);
+
+  auto start_round = pbft_mgr->getPbftRound();
+  pbft_mgr->resume();
+
+  std::cout << "Wait ensure node is still advancing in rounds... " << std::endl;
+  EXPECT_HAPPENS({60s, 50ms}, [&](auto &ctx) { WAIT_EXPECT_NE(ctx, start_round, pbft_mgr->getPbftRound()) });
+}
+
+// Test that after some amount of elapsed time will give up next voting for some value if corresponding DAG blocks can't
+// be found
+TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
+  auto node_cfgs = make_node_cfgs<20>(1);
+  auto nodes = launch_nodes(node_cfgs);
+
+  auto pbft_mgr = nodes[0]->getPbftManager();
+  auto db = nodes[0]->getDB();
+  pbft_mgr->stop();
+  std::cout << "Initialize PBFT manager at round 1 step 4" << std::endl;
+  pbft_mgr->setPbftRound(1);
+  pbft_mgr->setPbftStep(4);
+
+  auto pbft_chain = nodes[0]->getPbftChain();
+  auto vote_mgr = nodes[0]->getVoteManager();
+
+  // Generate bogus DAG anchor for PBFT block
+  auto dag_anchor = blk_hash_t("1234567890000000000000000000000000000000000000000000000000000000");
+  auto last_pbft_block_hash = pbft_chain->getLastPbftBlockHash();
+  auto propose_pbft_period = pbft_chain->getPbftChainSize() + 1;
+  auto beneficiary = nodes[0]->getAddress();
+  auto node_sk = nodes[0]->getSecretKey();
+  auto propose_pbft_block = std::make_shared<PbftBlock>(last_pbft_block_hash, dag_anchor, blk_hash_t(),
+                                                        propose_pbft_period, beneficiary, node_sk);
+  auto pbft_block_hash = propose_pbft_block->getBlockHash();
+  pbft_chain->pushUnverifiedPbftBlock(propose_pbft_block);
+
+  // Generate bogus vote
+  auto round = 1;
+  auto step = 4;
+  auto weighted_index = 0;
+  auto propose_vote = pbft_mgr->generateVote(pbft_block_hash, next_vote_type, round, step, weighted_index);
+  vote_mgr->addVerifiedVote(propose_vote);
+
+  pbft_mgr->start();
+
+  // Vote at the bogus PBFT block hash
+  EXPECT_HAPPENS({10s, 50ms}, [&](auto &ctx) {
+    auto soft_vote_value = blk_hash_t(0);
+    auto votes = vote_mgr->getVerifiedVotes();
+    for (auto const &v : votes) {
+      if (soft_vote_type == v->getType() && v->getBlockHash() == pbft_block_hash) {
+        soft_vote_value = v->getBlockHash();
+        break;
+      }
+    }
+    WAIT_EXPECT_EQ(ctx, soft_vote_value, pbft_block_hash)
+  });
+
+  auto start_round = pbft_mgr->getPbftRound();
+
+  std::cout << "After some time, terminate voting on the bogus value " << pbft_block_hash << std::endl;
+  EXPECT_HAPPENS({10s, 50ms}, [&](auto &ctx) {
+    auto next_vote_value = pbft_block_hash;
+    auto votes = vote_mgr->getVerifiedVotes();
+
+    for (auto const &v : votes) {
+      if (propose_vote_type == v->getType() && v->getBlockHash() == NULL_BLOCK_HASH) {
+        auto soft_voted_from_db = *db->getPbftMgrVotedValue(PbftMgrVotedValue::SoftVotedBlockHashInRound);
+        if (soft_voted_from_db == NULL_BLOCK_HASH) {
+          next_vote_value = v->getBlockHash();
+          break;
+        }
+      }
+    }
+    WAIT_EXPECT_EQ(ctx, next_vote_value, NULL_BLOCK_HASH)
+  });
+
+  std::cout << "Wait ensure node is still advancing in rounds... " << std::endl;
+  EXPECT_HAPPENS({60s, 50ms}, [&](auto &ctx) { WAIT_EXPECT_NE(ctx, start_round, pbft_mgr->getPbftRound()) });
+}
+
+// Test that after some number of rounds will give up proposing a value if proposed block is not available
+TEST_F(PbftManagerTest, terminate_missing_proposed_pbft_block) {
+  auto node_cfgs = make_node_cfgs<20>(1);
+  auto nodes = launch_nodes(node_cfgs);
+
+  auto pbft_mgr = nodes[0]->getPbftManager();
+  auto db = nodes[0]->getDB();
+  pbft_mgr->stop();
+  std::cout << "Initialize PBFT manager at round 1 step 4" << std::endl;
+  pbft_mgr->setPbftRound(1);
+  pbft_mgr->setPbftStep(4);
+
+  auto pbft_chain = nodes[0]->getPbftChain();
+  auto vote_mgr = nodes[0]->getVoteManager();
+
+  auto node_sk = nodes[0]->getSecretKey();
+
+  // Generate bogus vote
+  auto round = 1;
+  auto step = 4;
+  auto weighted_index = 0;
+  auto pbft_block_hash = blk_hash_t("0000000100000000000000000000000000000000000000000000000000000000");
+  auto propose_vote = pbft_mgr->generateVote(pbft_block_hash, next_vote_type, round, step, weighted_index);
+  vote_mgr->addVerifiedVote(propose_vote);
+
+  pbft_mgr->start();
+
+  // Vote at the bogus PBFT block hash
+  EXPECT_HAPPENS({10s, 50ms}, [&](auto &ctx) {
+    auto soft_vote_value = NULL_BLOCK_HASH;
+    auto votes = vote_mgr->getVerifiedVotes();
+    for (auto const &v : votes) {
+      if (soft_vote_type == v->getType() && v->getBlockHash() == pbft_block_hash) {
+        soft_vote_value = v->getBlockHash();
+        break;
+      }
+    }
+    WAIT_EXPECT_EQ(ctx, soft_vote_value, pbft_block_hash)
+  });
+
+  auto start_round = pbft_mgr->getPbftRound();
+
+  std::cout << "After some time, terminate voting on the missing proposed block " << pbft_block_hash << std::endl;
+  // After some rounds, terminate the bogus value and vote on NULL_BLOCK_HASH since no new DAG blocks generated
+  EXPECT_HAPPENS({10s, 50ms}, [&](auto &ctx) {
+    auto soft_vote_value = pbft_block_hash;
+    auto votes = vote_mgr->getVerifiedVotes();
+
+    for (auto const &v : votes) {
+      if (propose_vote_type == v->getType() && v->getBlockHash() == NULL_BLOCK_HASH) {
+        auto soft_voted_from_db = *db->getPbftMgrVotedValue(PbftMgrVotedValue::SoftVotedBlockHashInRound);
+        if (soft_voted_from_db == NULL_BLOCK_HASH) {
+          soft_vote_value = v->getBlockHash();
+          break;
+        }
+      }
+    }
+    WAIT_EXPECT_EQ(ctx, soft_vote_value, NULL_BLOCK_HASH)
+  });
+
+  std::cout << "Wait ensure node is still advancing in rounds... " << std::endl;
+  EXPECT_HAPPENS({60s, 50ms}, [&](auto &ctx) { WAIT_EXPECT_NE(ctx, start_round, pbft_mgr->getPbftRound()) });
+}
+
 TEST_F(PbftManagerTest, full_node_lambda_input_test) {
-  auto node_cfgs = make_node_cfgs(1);
-  FullNode::Handle node(node_cfgs[0]);
+  auto node = create_nodes(1, true /*start*/).front();
 
   node->start();
   auto pbft_mgr = node->getPbftManager();
@@ -220,12 +421,12 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
       node_1_expected_bal -= delegations[nodes[i]->getAddress()].value = stake_to_vote;
     }
     auto trx = make_dpos_trx(node_cfgs[0], delegations, nonce++);
-    nodes[0]->getTransactionManager()->insertTransaction(trx, false, true);
+    nodes[0]->getTransactionManager()->insertTransaction(trx);
 
     trxs_count++;
     EXPECT_HAPPENS({120s, 1s}, [&](auto &ctx) {
       for (auto &node : nodes) {
-        if (ctx.fail_if(!node->getFinalChain()->isKnownTransaction(trx.getHash()))) {
+        if (ctx.fail_if(!node->getFinalChain()->transaction_location(trx.getHash()))) {
           return;
         }
       }
@@ -238,7 +439,7 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
                                             nodes[0]->getSecretKey(), nodes[i]->getAddress());
     node_1_expected_bal -= init_bal;
     // broadcast trx and insert
-    nodes[0]->getTransactionManager()->insertTransaction(master_boot_node_send_coins, false, true);
+    nodes[0]->getTransactionManager()->insertTransaction(master_boot_node_send_coins);
     trxs_count++;
   }
 
@@ -251,7 +452,7 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
         Transaction dummy_trx(nonce++, 0, 2, TEST_TX_GAS_LIMIT, bytes(), nodes[0]->getSecretKey(),
                               nodes[0]->getAddress());
         // broadcast dummy transaction
-        nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false, true);
+        nodes[0]->getTransactionManager()->insertTransaction(dummy_trx);
         trxs_count++;
         ctx.fail();
         return;
@@ -279,7 +480,7 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
     Transaction send_coins_in_robin_cycle(nonce++, send_coins, gas_price, TEST_TX_GAS_LIMIT, data,
                                           nodes[i]->getSecretKey(), nodes[receiver_index]->getAddress());
     // broadcast trx and insert
-    nodes[i]->getTransactionManager()->insertTransaction(send_coins_in_robin_cycle, false, true);
+    nodes[i]->getTransactionManager()->insertTransaction(send_coins_in_robin_cycle);
     trxs_count++;
   }
 
@@ -292,7 +493,7 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
         Transaction dummy_trx(nonce++, 0, 2, TEST_TX_GAS_LIMIT, bytes(), nodes[0]->getSecretKey(),
                               nodes[0]->getAddress());
         // broadcast dummy transaction
-        nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false);
+        nodes[0]->getTransactionManager()->insertTransaction(dummy_trx);
         trxs_count++;
         ctx.fail();
         return;
@@ -324,7 +525,7 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
               << eligible_total_vote_count << ", 2t+1 " << two_t_plus_one << ", sortition threshold " << threshold
               << std::endl;
     EXPECT_EQ(eligible_total_vote_count, expected_eligible_total_vote);
-    tie(expected_2tPlus1, expected_threshold) = calculate_2tPuls1_threshold(committee, eligible_total_vote_count);
+    std::tie(expected_2tPlus1, expected_threshold) = calculate_2tPuls1_threshold(committee, eligible_total_vote_count);
     EXPECT_EQ(two_t_plus_one, expected_2tPlus1);
     EXPECT_EQ(threshold, expected_threshold);
   }
@@ -332,7 +533,7 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
 
 TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
   auto node_cfgs = make_node_cfgs<20>(1);
-  FullNode::Handle node(node_cfgs[0], true);
+  auto node = create_nodes(node_cfgs, true /*start*/).front();
 
   // create a transaction
   auto coins_value = val_t(100);
@@ -341,7 +542,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
   auto data = bytes();
   Transaction trx_master_boot_node_to_receiver(0, coins_value, gas_price, TEST_TX_GAS_LIMIT, data, node->getSecretKey(),
                                                receiver);
-  node->getTransactionManager()->insertTransaction(trx_master_boot_node_to_receiver, false, true);
+  node->getTransactionManager()->insertTransaction(trx_master_boot_node_to_receiver);
 
   for (auto _(0); _ < 120; ++_) {
     // test timeout is 60 seconds
@@ -395,96 +596,36 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   Transaction trx_master_boot_node_to_node2(0, coins_value2, gas_price, TEST_TX_GAS_LIMIT, data,
                                             nodes[0]->getSecretKey(), node2_addr);
   // broadcast trx and insert
-  nodes[0]->getTransactionManager()->insertTransaction(trx_master_boot_node_to_node2, false, true);
+  nodes[0]->getTransactionManager()->insertTransaction(trx_master_boot_node_to_node2);
 
   std::cout << "Checking all nodes see transaction from node 1 to node 2..." << std::endl;
 
-  bool checkpoint_passed = false;
-  for (auto _(0); _ < 120; ++_) {
-    checkpoint_passed = true;
-    // test timeout is 60 seconds
-    for (size_t i(0); i < nodes.size(); ++i) {
-      if (nodes[i]->getDB()->getNumTransactionExecuted() == 0) {
-        checkpoint_passed = false;
-      }
-    }
-    if (checkpoint_passed) break;
-    taraxa::thisThreadSleepForMilliSeconds(500);
-  }
-
-  if (checkpoint_passed == false) {
-    for (size_t i(0); i < nodes.size(); ++i) {
-      ASSERT_EQ(nodes[i]->getDB()->getNumTransactionExecuted(), 1);
-    }
-  }
-
-  uint64_t pbft_chain_size = 1;
-  for (size_t i(0); i < nodes.size(); ++i) {
-    EXPECT_EQ(nodes[i]->getFinalChain()->last_block_number(), pbft_chain_size);
-  }
-
-  for (size_t i(0); i < nodes.size(); ++i) {
-    std::cout << "Checking account balances on node " << i << " ..." << std::endl;
-    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node1_addr).first, node1_genesis_bal - 100);
-    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node2_addr).first, 100);
-    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node3_addr).first, 0);
-  }
+  const expected_balances_map_t expected_balances1 = {
+      {node1_addr, node1_genesis_bal - 100}, {node2_addr, 100}, {node3_addr, 0}};
+  wait_for_balances(nodes, expected_balances1);
 
   // create a transaction transfer coins from node1 to node3
   auto coins_value3 = val_t(1000);
   Transaction trx_master_boot_node_to_node3(1, coins_value3, gas_price, TEST_TX_GAS_LIMIT, data,
                                             nodes[0]->getSecretKey(), node3_addr);
   // broadcast trx and insert
-  nodes[0]->getTransactionManager()->insertTransaction(trx_master_boot_node_to_node3, false, true);
+  nodes[0]->getTransactionManager()->insertTransaction(trx_master_boot_node_to_node3);
 
   std::cout << "Checking all nodes see transaction from node 1 to node 3..." << std::endl;
 
-  checkpoint_passed = false;
-  for (auto _(0); _ < 120; ++_) {
-    checkpoint_passed = true;
-    // test timeout is 60 seconds
-    for (size_t i(0); i < nodes.size(); ++i) {
-      if (nodes[i]->getDB()->getNumTransactionExecuted() != 2) {
-        checkpoint_passed = false;
-      }
-    }
-    if (checkpoint_passed) break;
-    taraxa::thisThreadSleepForMilliSeconds(500);
-  }
+  const expected_balances_map_t expected_balances2 = {
+      {node1_addr, node1_genesis_bal - 1100}, {node2_addr, 100}, {node3_addr, 1000}};
+  wait_for_balances(nodes, expected_balances2);
 
-  if (checkpoint_passed == false) {
-    for (size_t i(0); i < nodes.size(); ++i) {
-      ASSERT_EQ(nodes[i]->getDB()->getNumTransactionExecuted(), 1);
-    }
-  }
-
-  pbft_chain_size = 2;
-  // Vote DAG block
-  for (auto _(0); _ < 120; ++_) {
-    // test timeout is 60 seconds
-    if (nodes[0]->getFinalChain()->last_block_number() == pbft_chain_size &&
-        nodes[1]->getFinalChain()->last_block_number() == pbft_chain_size &&
-        nodes[2]->getFinalChain()->last_block_number() == pbft_chain_size) {
-      break;
-    }
-    taraxa::thisThreadSleepForMilliSeconds(500);
-  }
-  for (size_t i(0); i < nodes.size(); ++i) {
-    EXPECT_EQ(nodes[i]->getFinalChain()->last_block_number(), pbft_chain_size);
-  }
-
-  for (size_t i(0); i < nodes.size(); ++i) {
-    std::cout << "Checking account balances on node " << i << " ..." << std::endl;
-    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node1_addr).first, node1_genesis_bal - 1100);
-    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node2_addr).first, 100);
-    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node3_addr).first, 1000);
+  for (auto &node : nodes) {
+    node->getPbftManager()->stop();
   }
   // PBFT second block
   blk_hash_t pbft_second_block_hash = nodes[0]->getPbftChain()->getLastPbftBlockHash();
   PbftBlock pbft_second_block = nodes[0]->getPbftChain()->getPbftBlockInChain(pbft_second_block_hash);
   for (auto &node : nodes) {
     auto db = node->getDB();
-    auto dag_blocks_hash_in_schedule = db->getFinalizedDagBlockHashesByAnchor(pbft_second_block.getPivotDagBlockHash());
+    auto dag_blocks_hash_in_schedule = db->getFinalizedDagBlockHashesByPeriod(pbft_second_block.getPeriod());
     // due to change of trx packing change, a trx can be packed in multiple
     // blocks
     std::unordered_set<blk_hash_t> unique_dag_block_hash_set;
@@ -497,7 +638,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
     blk_hash_t pbft_first_block_hash = pbft_second_block.getPrevBlockHash();
     // PBFT first block
     PbftBlock pbft_first_block = nodes[0]->getPbftChain()->getPbftBlockInChain(pbft_first_block_hash);
-    dag_blocks_hash_in_schedule = db->getFinalizedDagBlockHashesByAnchor(pbft_first_block.getPivotDagBlockHash());
+    dag_blocks_hash_in_schedule = db->getFinalizedDagBlockHashesByPeriod(pbft_first_block.getPeriod());
     // due to change of trx packing change, a trx can be packed in multiple
     // blocks
     EXPECT_GE(dag_blocks_hash_in_schedule.size(), 1);

@@ -1,12 +1,13 @@
-#include "chain/final_chain.hpp"
-
-#include <libdevcore/TrieHash.h>
+#include "final_chain/final_chain.hpp"
 
 #include <optional>
 #include <vector>
 
-#include "chain/chain_config.hpp"
+#include "common/constants.hpp"
+#include "config/chain_config.hpp"
+#include "final_chain/trie_common.hpp"
 #include "util_test/gtest.hpp"
+#include "vote/vote.hpp"
 
 namespace taraxa::final_chain {
 using namespace std;
@@ -18,8 +19,8 @@ struct advance_check_opts {
 
 struct FinalChainTest : WithDataDir {
   shared_ptr<DbStorage> db{new DbStorage(data_dir / "db")};
-  FinalChain::Config cfg = ChainConfig::predefined().final_chain;
-  unique_ptr<FinalChain> SUT;
+  Config cfg = ChainConfig::predefined().final_chain;
+  shared_ptr<FinalChain> SUT;
   bool assume_only_toplevel_transfers = true;
   unordered_map<addr_t, u256> expected_balances;
   uint64_t expected_blk_num = 0;
@@ -30,94 +31,124 @@ struct FinalChainTest : WithDataDir {
       auto acc_actual = SUT->get_account(addr);
       ASSERT_TRUE(acc_actual);
       auto expected_bal = cfg.state.effective_genesis_balance(addr);
-      ASSERT_EQ(acc_actual->Balance, expected_bal);
+      ASSERT_EQ(acc_actual->balance, expected_bal);
       expected_balances[addr] = expected_bal;
     }
   }
 
   auto advance(Transactions const& trxs, advance_check_opts opts = {}) {
+    SUT = nullptr;
+    SUT = NewFinalChain(db, cfg);
+    vector<h256> trx_hashes;
+    int pos = 0;
+    for (auto const& trx : trxs) {
+      db->saveTransactionPeriod(trx.getHash(), 1, pos++);
+      trx_hashes.emplace_back(trx.getHash());
+    }
+    DagBlock dag_blk({}, {}, {}, trx_hashes, {}, secret_t::random());
+    db->saveDagBlock(dag_blk);
+    PbftBlock pbft_block(blk_hash_t(), blk_hash_t(), blk_hash_t(), 1, addr_t(1), dev::KeyPair::create().secret());
+    std::vector<std::shared_ptr<Vote>> votes;
+    SyncBlock sync_block(std::make_shared<PbftBlock>(std::move(pbft_block)), votes);
+    sync_block.dag_blocks.push_back(dag_blk);
+    sync_block.transactions = trxs;
+
     auto batch = db->createWriteBatch();
-    auto author = addr_t::random();
-    uint64_t timestamp = chrono::high_resolution_clock::now().time_since_epoch().count();
-    auto result = SUT->advance(batch, author, timestamp, trxs);
+    db->savePeriodData(sync_block, batch);
+
     db->commitWriteBatch(batch);
-    SUT->advance_confirm();
+    NewBlock new_blk{
+        addr_t::random(),
+        uint64_t(chrono::high_resolution_clock::now().time_since_epoch().count()),
+        {dag_blk.getHash()},
+        h256::random(),
+    };
+    auto result = SUT->finalize(new_blk, 1).get();
     ++expected_blk_num;
-    auto const& blk_h = result.new_header;
-    EXPECT_EQ(blk_h.hash(), SUT->get_last_block()->hash());
-    EXPECT_EQ(blk_h.parentHash(), SUT->blockHeader(expected_blk_num - 1).hash());
-    EXPECT_EQ(blk_h.number(), expected_blk_num);
-    EXPECT_EQ(blk_h.author(), author);
-    EXPECT_EQ(blk_h.timestamp(), timestamp);
-    EXPECT_EQ(result.receipts.size(), trxs.size());
-    EXPECT_EQ(blk_h.transactionsRoot(),
+    auto const& blk_h = *result->final_chain_blk;
+    EXPECT_EQ(util::rlp_enc(blk_h), util::rlp_enc(*SUT->block_header(blk_h.number)));
+    EXPECT_EQ(util::rlp_enc(blk_h), util::rlp_enc(*SUT->block_header()));
+    auto const& receipts = result->trx_receipts;
+    EXPECT_EQ(blk_h.hash, SUT->block_header()->hash);
+    EXPECT_EQ(blk_h.hash, SUT->block_hash());
+    EXPECT_EQ(blk_h.parent_hash, SUT->block_header(expected_blk_num - 1)->hash);
+    EXPECT_EQ(blk_h.number, expected_blk_num);
+    EXPECT_EQ(blk_h.number, SUT->last_block_number());
+    EXPECT_EQ(SUT->transactionCount(blk_h.number), trxs.size());
+    EXPECT_EQ(SUT->transactions(blk_h.number), trxs);
+    EXPECT_EQ(*SUT->block_number(*SUT->block_hash(blk_h.number)), expected_blk_num);
+    EXPECT_EQ(blk_h.author, new_blk.author);
+    EXPECT_EQ(blk_h.timestamp, new_blk.timestamp);
+    EXPECT_EQ(receipts.size(), trxs.size());
+    EXPECT_EQ(blk_h.transactions_root,
               trieRootOver(
-                  trxs.size(), [&](auto i) { return rlp(i); }, [&](auto i) { return trxs[i].rlp(); }));
-    EXPECT_EQ(blk_h.receiptsRoot(),
-              trieRootOver(
-                  trxs.size(), [&](auto i) { return rlp(i); }, [&](auto i) { return result.receipts[i].rlp(); }));
-    EXPECT_EQ(blk_h.gasLimit(), ((uint64_t)1 << 53) - 1);
-    EXPECT_EQ(blk_h.extraData(), bytes());
+                  trxs.size(), [&](auto i) { return dev::rlp(i); }, [&](auto i) { return *trxs[i].rlp(); }));
+    EXPECT_EQ(blk_h.receipts_root, trieRootOver(
+                                       trxs.size(), [&](auto i) { return dev::rlp(i); },
+                                       [&](auto i) { return util::rlp_enc(receipts[i]); }));
+    EXPECT_EQ(blk_h.gas_limit, FinalChain::GAS_LIMIT);
+    EXPECT_EQ(blk_h.extra_data, bytes());
     EXPECT_EQ(blk_h.nonce(), Nonce());
     EXPECT_EQ(blk_h.difficulty(), 0);
-    EXPECT_EQ(blk_h.mixHash(), h256());
-    EXPECT_EQ(blk_h.sha3Uncles(), EmptyListSHA3);
-    EXPECT_EQ(blk_h.gasUsed(), result.receipts.empty() ? 0 : result.receipts.back().cumulativeGasUsed());
+    EXPECT_EQ(blk_h.mix_hash(), h256());
+    EXPECT_EQ(blk_h.uncles_hash(), EmptyRLPListSHA3());
+    EXPECT_TRUE(!blk_h.state_root.isZero());
     LogBloom expected_block_log_bloom;
     unordered_map<addr_t, u256> expected_balance_changes;
     unordered_set<addr_t> all_addrs_w_changed_balance;
+    uint64_t cumulative_gas_used_actual = 0;
     for (size_t i = 0; i < trxs.size(); ++i) {
       auto const& trx = trxs[i];
-      auto const& r = result.receipts[i];
-      EXPECT_EQ(r.rlp(), SUT->transactionReceipt(trx.sha3()).rlp());
-      EXPECT_EQ(trx.rlp(), SUT->transaction(trx.sha3()).rlp());
-      if (assume_only_toplevel_transfers && trx.value() != 0 && r.statusCode() == 1) {
-        auto const& sender = trx.from();
-        auto const& sender_bal = expected_balances[sender] -= trx.value();
-        auto const& receiver = trx.isCreation() ? r.contractAddress() : trx.to();
+      auto const& r = receipts[i];
+      EXPECT_TRUE(r.gas_used != 0);
+      EXPECT_EQ(util::rlp_enc(r), util::rlp_enc(*SUT->transaction_receipt(trx.getHash())));
+      cumulative_gas_used_actual += r.gas_used;
+      if (assume_only_toplevel_transfers && trx.getValue() != 0 && r.status_code == 1) {
+        auto const& sender = trx.getSender();
+        auto const& sender_bal = expected_balances[sender] -= trx.getValue();
+        auto const& receiver = !trx.getReceiver() ? *r.new_contract_address : *trx.getReceiver();
         all_addrs_w_changed_balance.insert(sender);
         all_addrs_w_changed_balance.insert(receiver);
-        auto const& receiver_bal = expected_balances[receiver] += trx.value();
-        if (SUT->get_account(sender)->CodeSize == 0) {
+        auto const& receiver_bal = expected_balances[receiver] += trx.getValue();
+        if (SUT->get_account(sender)->code_size == 0) {
           expected_balance_changes[sender] = sender_bal;
         }
-        if (SUT->get_account(receiver)->CodeSize == 0) {
+        if (SUT->get_account(receiver)->code_size == 0) {
           expected_balance_changes[receiver] = receiver_bal;
         }
       }
-      EXPECT_TRUE(r.hasStatusCode());
       if (!opts.dont_assume_all_trx_success) {
-        EXPECT_EQ(r.statusCode(), 1);
+        EXPECT_EQ(r.status_code, 1);
       }
       if (!opts.dont_assume_no_logs) {
-        EXPECT_EQ(r.log().size(), 0);
+        EXPECT_EQ(r.logs.size(), 0);
         EXPECT_EQ(r.bloom(), LogBloom());
       }
       expected_block_log_bloom |= r.bloom();
-      auto r_from_db = SUT->localisedTransactionReceipt(trxs[i].sha3());
-      EXPECT_EQ(r_from_db.contractAddress(), result.state_transition_result.ExecutionResults[i].NewContractAddr);
-      EXPECT_EQ(r_from_db.from(), trx.from());
-      EXPECT_EQ(r_from_db.blockHash(), blk_h.hash());
-      EXPECT_EQ(r_from_db.blockNumber(), blk_h.number());
-      EXPECT_EQ(r_from_db.transactionIndex(), i);
-      EXPECT_EQ(r_from_db.hash(), trx.sha3());
-      EXPECT_EQ(r_from_db.to(), trx.to());
-      EXPECT_EQ(r_from_db.bloom(), r.bloom());
-      EXPECT_TRUE(r_from_db.hasStatusCode());
-      EXPECT_EQ(r_from_db.statusCode(), r.statusCode());
-      EXPECT_EQ(r_from_db.gasUsed(), result.state_transition_result.ExecutionResults[i].GasUsed);
-      EXPECT_EQ(r_from_db.gasUsed(),
-                i == 0 ? r.cumulativeGasUsed() : r.cumulativeGasUsed() - result.receipts[i - 1].cumulativeGasUsed());
+      auto trx_loc = *SUT->transaction_location(trx.getHash());
+      EXPECT_EQ(trx_loc.blk_n, blk_h.number);
+      EXPECT_EQ(trx_loc.index, i);
     }
-    expected_block_log_bloom.shiftBloom<3>(sha3(blk_h.author().ref()));
-    EXPECT_EQ(blk_h.logBloom(), expected_block_log_bloom);
-    EXPECT_EQ(blk_h.stateRoot(), result.state_transition_result.StateRoot);
+    EXPECT_EQ(blk_h.gas_used, cumulative_gas_used_actual);
+    if (!receipts.empty()) {
+      EXPECT_EQ(receipts.back().cumulative_gas_used, cumulative_gas_used_actual);
+    }
+    EXPECT_EQ(blk_h.log_bloom, expected_block_log_bloom);
     if (assume_only_toplevel_transfers) {
       for (auto const& addr : all_addrs_w_changed_balance) {
-        EXPECT_EQ(SUT->get_account(addr)->Balance, expected_balances[addr]);
+        EXPECT_EQ(SUT->get_account(addr)->balance, expected_balances[addr]);
       }
     }
     return result;
+  }
+
+  template <class T, class U>
+  static h256 trieRootOver(uint _itemCount, T const& _getKey, U const& _getValue) {
+    dev::BytesMap m;
+    for (uint i = 0; i < _itemCount; ++i) {
+      m[_getKey(i)] = _getValue(i);
+    }
+    return hash256(m);
   }
 };
 
@@ -131,7 +162,7 @@ TEST_F(FinalChainTest, genesis_balances) {
 }
 
 TEST_F(FinalChainTest, contract) {
-  auto sender_keys = KeyPair::create();
+  auto sender_keys = dev::KeyPair::create();
   auto const& addr = sender_keys.address();
   auto const& sk = sender_keys.secret();
   cfg.state.genesis_balances = {};
@@ -193,9 +224,10 @@ TEST_F(FinalChainTest, contract) {
       "03ea91906103ee565b5090565b61041091905b8082111561040c57600081600090555060"
       "01016103f4565b5090565b9056fea264697066735822122004585b83cf41cfb8af886165"
       "0679892acca0561c1a8ab45ce31c7fdb15a67b7764736f6c63430006080033";
-  dev::eth::Transaction trx(100, 0, 0, dev::fromHex(contract_deploy_code), 0, sk);
+  Transaction trx(0, 100, 0, 0, dev::fromHex(contract_deploy_code), sk);
   auto result = advance({trx});
-  auto contract_addr = result.state_transition_result.ExecutionResults[0].NewContractAddr;
+  auto contract_addr = result->trx_receipts[0].new_contract_address;
+  EXPECT_EQ(contract_addr, dev::right160(dev::sha3(dev::rlpList(addr, 0))));
   auto greet = [&] {
     auto ret = SUT->call({
         addr,
@@ -207,7 +239,7 @@ TEST_F(FinalChainTest, contract) {
         // greet()
         dev::fromHex("0xcfae3217"),
     });
-    return dev::toHexPrefixed(ret.CodeRet);
+    return dev::toHexPrefixed(ret.code_retval);
   };
   ASSERT_EQ(greet(),
             // "Hello"
@@ -215,14 +247,15 @@ TEST_F(FinalChainTest, contract) {
             "000000000000000000000000000000000000000000000000000000000000000548"
             "656c6c6f000000000000000000000000000000000000000000000000000000");
   {
-    dev::eth::Transaction trx(11, 0, 0, contract_addr,
-                              // setGreeting("Hola")
-                              dev::fromHex("0xa4136862000000000000000000000000000000000000000000000000"
-                                           "00000000000000200000000000000000000000000000000000000000000"
-                                           "000000000000000000004486f6c61000000000000000000000000000000"
-                                           "00000000000000000000000000"),
-                              0, sk);
-    advance({trx});
+    advance({
+        Transaction(0, 11, 0, 0,
+                    // setGreeting("Hola")
+                    dev::fromHex("0xa4136862000000000000000000000000000000000000000000000000"
+                                 "00000000000000200000000000000000000000000000000000000000000"
+                                 "000000000000000000004486f6c61000000000000000000000000000000"
+                                 "00000000000000000000000000"),
+                    sk, contract_addr),
+    });
   }
   ASSERT_EQ(greet(),
             // "Hola"
@@ -235,39 +268,39 @@ TEST_F(FinalChainTest, coin_transfers) {
   constexpr size_t NUM_ACCS = 500;
   cfg.state.genesis_balances = {};
   cfg.state.dpos = nullopt;
-  vector<KeyPair> keys;
+  vector<dev::KeyPair> keys;
   keys.reserve(NUM_ACCS);
   for (size_t i = 0; i < NUM_ACCS; ++i) {
-    auto const& k = keys.emplace_back(KeyPair::create());
+    auto const& k = keys.emplace_back(dev::KeyPair::create());
     cfg.state.genesis_balances[k.address()] = numeric_limits<u256>::max() / NUM_ACCS;
   }
   cfg.state.execution_options.disable_gas_fee = false;
   init();
   constexpr auto TRX_GAS = 100000;
   advance({
-      {13, 0, TRX_GAS, keys[10].address(), {}, 0, keys[10].secret()},
-      {11300, 0, TRX_GAS, keys[44].address(), {}, 0, keys[102].secret()},
-      {1040, 0, TRX_GAS, keys[50].address(), {}, 0, keys[122].secret()},
+      {0, 13, 0, TRX_GAS, {}, keys[10].secret(), keys[10].address()},
+      {0, 11300, 0, TRX_GAS, {}, keys[102].secret(), keys[44].address()},
+      {0, 1040, 0, TRX_GAS, {}, keys[122].secret(), keys[50].address()},
   });
   advance({});
   advance({
-      {0, 0, TRX_GAS, keys[1].address(), {}, 0, keys[2].secret()},
-      {131, 0, TRX_GAS, keys[133].address(), {}, 0, keys[133].secret()},
+      {0, 0, 0, TRX_GAS, {}, keys[2].secret(), keys[1].address()},
+      {0, 131, 0, TRX_GAS, {}, keys[133].secret(), keys[133].address()},
   });
   advance({
-      {100441, 0, TRX_GAS, keys[431].address(), {}, 0, keys[177].secret()},
-      {2300, 0, TRX_GAS, keys[343].address(), {}, 0, keys[131].secret()},
-      {130, 0, TRX_GAS, keys[23].address(), {}, 0, keys[11].secret()},
+      {0, 100441, 0, TRX_GAS, {}, keys[177].secret(), keys[431].address()},
+      {0, 2300, 0, TRX_GAS, {}, keys[131].secret(), keys[343].address()},
+      {0, 130, 0, TRX_GAS, {}, keys[11].secret(), keys[23].address()},
   });
   advance({});
   advance({
-      {100431, 0, TRX_GAS, keys[232].address(), {}, 0, keys[135].secret()},
-      {13411, 0, TRX_GAS, keys[34].address(), {}, 0, keys[112].secret()},
-      {130, 0, TRX_GAS, keys[233].address(), {}, 0, keys[133].secret()},
-      {343434, 0, TRX_GAS, keys[213].address(), {}, 0, keys[13].secret()},
-      {131313, 0, TRX_GAS, keys[344].address(), {}, 0, keys[405].secret()},
-      {143430, 0, TRX_GAS, keys[420].address(), {}, 0, keys[331].secret()},
-      {1313145, 0, TRX_GAS, keys[134].address(), {}, 0, keys[345].secret()},
+      {0, 100431, 0, TRX_GAS, {}, keys[135].secret(), keys[232].address()},
+      {0, 13411, 0, TRX_GAS, {}, keys[112].secret(), keys[34].address()},
+      {0, 130, 0, TRX_GAS, {}, keys[133].secret(), keys[233].address()},
+      {0, 343434, 0, TRX_GAS, {}, keys[13].secret(), keys[213].address()},
+      {0, 131313, 0, TRX_GAS, {}, keys[405].secret(), keys[344].address()},
+      {0, 143430, 0, TRX_GAS, {}, keys[331].secret(), keys[420].address()},
+      {0, 1313145, 0, TRX_GAS, {}, keys[345].secret(), keys[134].address()},
   });
 }
 

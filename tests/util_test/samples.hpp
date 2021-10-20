@@ -4,10 +4,10 @@
 #include <map>
 #include <string>
 
+#include "common/lazy.hpp"
 #include "dag/dag_block.hpp"
-#include "transaction_manager/transaction.hpp"
+#include "transaction/transaction.hpp"
 #include "util.hpp"
-#include "util/lazy.hpp"
 
 namespace taraxa::core_tests::samples {
 
@@ -131,13 +131,13 @@ inline std::vector<Transaction> createMockTrxSamples(unsigned start, unsigned nu
   return trxs;
 }
 
-inline std::vector<Transaction> createSignedTrxSamples(unsigned start, unsigned num, secret_t const &sk) {
+inline SharedTransactions createSignedTrxSamples(unsigned start, unsigned num, secret_t const &sk,
+                                                 bytes data = str2bytes("00FEDCBA9876543210000000")) {
   assert(start + num < std::numeric_limits<unsigned>::max());
-  std::vector<Transaction> trxs;
+  SharedTransactions trxs;
   for (auto i = start; i < num; ++i) {
     blk_hash_t hash(i);
-    trxs.emplace_back(
-        Transaction(i, i * 100, 0, 1000000, str2bytes("00FEDCBA9876543210000000"), sk, addr_t((i + 1) * 100)));
+    trxs.emplace_back(std::make_shared<Transaction>(i, i * 100, 0, 1000000, data, sk, addr_t((i + 1) * 100)));
   }
   return trxs;
 }
@@ -171,15 +171,15 @@ inline std::vector<DagBlock> createMockDagBlkSamples(unsigned pivot_start, unsig
   return blks;
 }
 
-inline std::vector<std::pair<DagBlock, std::vector<Transaction>>> createMockDagBlkSamplesWithSignedTransactions(
+inline std::vector<std::pair<DagBlock, SharedTransactions>> createMockDagBlkSamplesWithSignedTransactions(
     unsigned pivot_start, unsigned blk_num, unsigned trx_start, unsigned trx_len, unsigned /*trx_overlap*/,
     secret_t const &sk) {
   assert(pivot_start + blk_num < std::numeric_limits<unsigned>::max());
-  std::vector<std::pair<DagBlock, std::vector<Transaction>>> blks;
+  std::vector<std::pair<DagBlock, SharedTransactions>> blks;
   for (auto i = pivot_start; i < blk_num; ++i) {
     auto full_trx = createSignedTrxSamples(trx_start + i * trx_len, trx_len, sk);
     vec_trx_t trxs;
-    for (auto t : full_trx) trxs.push_back(t.getHash());
+    for (auto t : full_trx) trxs.push_back(t->getHash());
 
     DagBlock blk(blk_hash_t(i),      // pivot
                  0,                  // level

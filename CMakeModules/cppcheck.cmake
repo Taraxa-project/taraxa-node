@@ -9,29 +9,25 @@ else ()
     add_custom_target(cpp-check ALL
             COMMAND ${CPP_CHECK_EXE}
             --error-exitcode=1
-            --enable=warning,style,performance,portability,information
+            --enable=all
             --suppress=missingInclude
             --suppress=useStlAlgorithm
-            --suppress=shadowVariable
-            #--suppress=unusedStructMember
-            # --suppress=stlIfFind
-            #--suppress=identicalConditionAfterEarlyExit
-            #--suppress=noCopyConstructor
             --suppress=noExplicitConstructor
-            --suppress=unreadVariable
             --suppress=unknownMacro
-            #--suppress=useInitializationList
-            #--suppress=syntaxError
-            # --suppress=internalAstError # because of https://trac.cppcheck.net/ticket/9537 -> state_api.cpp, line 53, TODO: remove this
-
+            --suppress=templateRecursion
+            --suppress=uninitMemberVar src/libp2p/UPnP.cpp
+            # This is only enabled because of test functions
+            --suppress=unusedFunction
+            
             # Only show found errors
             "--quiet"
 
             # Optional: Specified C++ version
-            "--std=c++17"
+            "--std=c++20"
 
             # folder with source files to be checked
-            ${PROJECT_SOURCE_DIR}/src
+            ${PROJECT_SOURCE_DIR}/libraries
+            ${PROJECT_SOURCE_DIR}/programs
 
             COMMENT "Analysing files in src/ by cppcheck"
             )

@@ -1,10 +1,4 @@
 from conans import ConanFile, CMake, tools
-import platform
-import shutil
-import urllib.request
-import tarfile
-import sys
-import os
 
 class TaraxaConan(ConanFile):
     name = "taraxa-node"
@@ -18,46 +12,17 @@ class TaraxaConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     generators = "cmake"
 
-    def _add_clang_utils_on_darwin(self):
-        current_path = self.recipe_folder # dir with conanfile.py
-        clang_format = "clang-format"
-        clang_tidy = "clang-tidy"
-        path_to_format = current_path + "/" + clang_format
-        path_to_tidy = current_path + "/" + clang_tidy
-        find_format = os.path.exists(path_to_format)
-        find_tidy = os.path.exists(path_to_tidy)
-        if not find_format or not find_tidy:
-            print("downloading LLVM...")
-            dirname = "clang+llvm-10.0.0-x86_64-apple-darwin"
-            llvm_bin_link = "https://github.com/llvm/llvm-project/releases/download/llvmorg-10.0.0/" + dirname + ".tar.xz"
-            ftpstream = urllib.request.urlopen(llvm_bin_link)
-            thetarfile = tarfile.open(fileobj=ftpstream, mode="r|xz")
-            thetarfile.extractall()
-            if not find_format:
-                shutil.move(dirname + "/bin/" + clang_format, path_to_format)
-            if not find_tidy:
-                shutil.move(dirname + "/bin/" + clang_tidy, path_to_tidy)
-            shutil.rmtree(dirname)
-        print("clang-format path: " + path_to_format)
-        print("clang-tidy path: " + path_to_tidy)
-
     def requirements(self):
-        self.requires("boost/1.71.0")
+        self.requires("boost/1.76.0")
         self.requires("cppcheck/2.3")
-        self.requires("openssl/1.1.1f")
-        self.requires("cryptopp/8.4.0")
-        self.requires("gtest/1.10.0")
-        self.requires("rocksdb/6.8.1")
+        self.requires("openssl/1.1.1k")
+        self.requires("cryptopp/8.5.0")
+        self.requires("gtest/1.11.0")
+        self.requires("lz4/1.9.3")
+        self.requires("rocksdb/6.10.2") # we currently can not go higher as golang rocksdb wrapper is limiting us
         self.requires("gmp/6.2.1")
-        self.requires("mpfr/4.0.2")
-        self.requires("snappy/1.1.8")
-        self.requires("zstd/1.4.4")
-        self.requires("lz4/1.9.2")
-        self.requires("libjson-rpc-cpp/1.1.0@bincrafters/stable")
-
-        # if it darwin we will check for some clang utils
-        if platform.system() == "Darwin":
-            self._add_clang_utils_on_darwin()
+        self.requires("mpfr/4.1.0")
+        self.requires("libjson-rpc-cpp/1.3.0@bincrafters/stable")
 
     def _configure_boost_libs(self):
         self.options["boost"].without_atomic = False
@@ -96,6 +61,7 @@ class TaraxaConan(ConanFile):
         # Configure gtest
         self.options["gtest"].build_gmock = False
         self.options["rocksdb"].use_rtti = True
+        self.options["rocksdb"].with_lz4= True
         self.options["libjson-rpc-cpp"].shared = False
 
     def _configure_cmake(self):

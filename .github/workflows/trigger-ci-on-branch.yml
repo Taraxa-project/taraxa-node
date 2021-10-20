@@ -1,0 +1,27 @@
+name: trigger-ci-on-branch
+ Controls when the action will run.
+ Triggers the workflow on push events but only for the some specific branch
+on:
+  push:
+    branches: 
+     - testnet
+
+jobs:
+  trigger-build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+    - name: Set env
+      run: echo "CIRCLE_BRANCH=$(git symbolic-ref -q --short HEAD)" >> $GITHUB_ENV
+    - name: Trigger CircleCI build
+      env:
+        TOKEN: ${{ secrets.CIRCLE_TOKEN }}
+      run: |
+        curl -X POST \
+          -u ${TOKEN}: \
+          -H 'Content-Type: application/json' \
+          -H 'Accept: application/json' \
+          -d "{\"branch\":\"${CIRCLE_BRANCH}\"}" \
+          https://circleci.com/api/v2/project/gh/Taraxa-project/taraxa-node/pipeline

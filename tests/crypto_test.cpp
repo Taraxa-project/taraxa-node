@@ -9,13 +9,12 @@
 #include <string>
 
 #include "common/static_init.hpp"
+#include "common/vrf_wrapper.hpp"
 #include "config/config.hpp"
-#include "consensus/pbft_manager.hpp"
-#include "consensus/vrf_wrapper.hpp"
-#include "dag/vdf_sortition.hpp"
-#include "logger/log.hpp"
-#include "node/full_node.hpp"
-#include "util_test/util.hpp"
+#include "logger/logger.hpp"
+#include "util_test/gtest.hpp"
+#include "vdf/sortition.hpp"
+#include "vote/vote.hpp"
 
 namespace taraxa::core_tests {
 using namespace vdf;
@@ -79,7 +78,7 @@ TEST_F(CryptoTest, vrf_proof_verify) {
     std::cout << "VRF proof bytes: (" << crypto_vrf_proofbytes() << ") " << proof.value() << std::endl;
   }
   if (output) {
-    std::cout << "VRF output bytes: (" << crypto_vrf_outputbytes() << ") " << output.value() << endl;
+    std::cout << "VRF output bytes: (" << crypto_vrf_outputbytes() << ") " << output.value() << std::endl;
   }
 }
 
@@ -104,41 +103,42 @@ TEST_F(CryptoTest, vrf_sortition) {
   EXPECT_TRUE(sortition.canSpeak(1, 0));
   auto b = sortition.getRlpBytes();
   VrfPbftSortition sortition3(b);
+  sortition3.verify();
   EXPECT_EQ(sortition, sortition2);
   EXPECT_EQ(sortition, sortition3);
 }
 
 TEST_F(CryptoTest, vdf_sortition) {
-  vdf_sortition::VdfConfig vdf_config(0xffff, 0xe665, 5, 10, 10, 1500);
+  VdfConfig vdf_config(0xffff, 0xe665, 5, 10, 10, 1500);
   vrf_sk_t sk(
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
       "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
   level_t level = 3;
   blk_hash_t vdf_input = blk_hash_t(200);
-  VdfSortition vdf(vdf_config, node_key.address(), sk, getRlpBytes(level));
-  VdfSortition vdf2(vdf_config, node_key.address(), sk, getRlpBytes(level));
+  VdfSortition vdf(vdf_config, sk, getRlpBytes(level));
+  VdfSortition vdf2(vdf_config, sk, getRlpBytes(level));
   vdf.computeVdfSolution(vdf_config, vdf_input.asBytes());
   vdf2.computeVdfSolution(vdf_config, vdf_input.asBytes());
   auto b = vdf.rlp();
-  VdfSortition vdf3(node_key.address(), b);
-  EXPECT_TRUE(vdf3.verifyVdf(vdf_config, getRlpBytes(level), vdf_input.asBytes()));
+  VdfSortition vdf3(b);
+  EXPECT_NO_THROW(vdf3.verifyVdf(vdf_config, getRlpBytes(level), vdf_input.asBytes()));
   EXPECT_EQ(vdf, vdf2);
   EXPECT_EQ(vdf, vdf3);
 
-  vdf_sortition::VdfConfig vdf_config_no_omit_no_stale(0xffff, 0, 5, 10, 10, 1500);
+  VdfConfig vdf_config_no_omit_no_stale(0xffff, 0, 5, 10, 10, 1500);
   EXPECT_FALSE(vdf.isStale(vdf_config_no_omit_no_stale));
   EXPECT_FALSE(vdf.omitVdf(vdf_config_no_omit_no_stale));
 
-  vdf_sortition::VdfConfig vdf_config_omit_no_stale(0xffff, 0xff00, 5, 10, 10, 1500);
+  VdfConfig vdf_config_omit_no_stale(0xffff, 0xff00, 5, 10, 10, 1500);
   EXPECT_FALSE(vdf.isStale(vdf_config_omit_no_stale));
   EXPECT_TRUE(vdf.omitVdf(vdf_config_omit_no_stale));
 
-  vdf_sortition::VdfConfig vdf_config_stale(0xfff, 0, 5, 10, 10, 1500);
+  VdfConfig vdf_config_stale(0xfff, 0, 5, 10, 10, 1500);
   EXPECT_TRUE(vdf.isStale(vdf_config_stale));
 }
 
 TEST_F(CryptoTest, vdf_solution) {
-  vdf_sortition::VdfConfig vdf_config(0xffff, 0xe665, 5, 10, 10, 1500);
+  VdfConfig vdf_config(0xffff, 0xe665, 5, 10, 10, 1500);
   vrf_sk_t sk(
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
       "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -146,8 +146,8 @@ TEST_F(CryptoTest, vdf_solution) {
       "90f59a7ee7a392c811c5d299b557a4e09e610de7d109d6b3fcb19ab8d51c9a0d931f5e7d"
       "b07c9969e438db7e287eabbaaca49ca414f5f3a402ea6997ade40081");
   level_t level = 1;
-  VdfSortition vdf(vdf_config, node_key.address(), sk, getRlpBytes(level));
-  VdfSortition vdf2(vdf_config, node_key.address(), sk2, getRlpBytes(level));
+  VdfSortition vdf(vdf_config, sk, getRlpBytes(level));
+  VdfSortition vdf2(vdf_config, sk2, getRlpBytes(level));
   blk_hash_t vdf_input = blk_hash_t(200);
 
   std::thread th1([&vdf, vdf_input, vdf_config]() { vdf.computeVdfSolution(vdf_config, vdf_input.asBytes()); });
@@ -160,18 +160,18 @@ TEST_F(CryptoTest, vdf_solution) {
 }
 
 TEST_F(CryptoTest, vdf_proof_verify) {
-  vdf_sortition::VdfConfig vdf_config(255, 0, 5, 10, 10, 1500);
+  VdfConfig vdf_config(255, 0, 5, 10, 10, 1500);
   vrf_sk_t sk(
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
       "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
   level_t level = 1;
-  VdfSortition vdf(vdf_config, node_key.address(), sk, getRlpBytes(level));
+  VdfSortition vdf(vdf_config, sk, getRlpBytes(level));
   blk_hash_t vdf_input = blk_hash_t(200);
 
   vdf.computeVdfSolution(vdf_config, vdf_input.asBytes());
-  EXPECT_TRUE(vdf.verifyVdf(vdf_config, getRlpBytes(level), vdf_input.asBytes()));
-  VdfSortition vdf2(vdf_config, node_key.address(), sk, getRlpBytes(level));
-  EXPECT_FALSE(vdf2.verifyVdf(vdf_config, getRlpBytes(level), vdf_input.asBytes()));
+  EXPECT_NO_THROW(vdf.verifyVdf(vdf_config, getRlpBytes(level), vdf_input.asBytes()));
+  VdfSortition vdf2(vdf_config, sk, getRlpBytes(level));
+  EXPECT_THROW(vdf2.verifyVdf(vdf_config, getRlpBytes(level), vdf_input.asBytes()), VdfSortition::InvalidVdfSortition);
 }
 
 TEST_F(CryptoTest, DISABLED_compute_vdf_solution_cost_time) {
@@ -193,9 +193,9 @@ TEST_F(CryptoTest, DISABLED_compute_vdf_solution_cost_time) {
   // Fix lambda, vary difficulty
   for (uint16_t difficulty_stale = 0; difficulty_stale <= 20; difficulty_stale++) {
     std::cout << "Start at difficulty " << difficulty_stale << " :" << std::endl;
-    vdf_sortition::VdfConfig vdf_config(threshold_selection, threshold_vdf_omit, difficulty_min, difficulty_max,
-                                        difficulty_stale, lambda_bound);
-    VdfSortition vdf(vdf_config, node_key.address(), sk, getRlpBytes(level));
+    VdfConfig vdf_config(threshold_selection, threshold_vdf_omit, difficulty_min, difficulty_max, difficulty_stale,
+                         lambda_bound);
+    VdfSortition vdf(vdf_config, sk, getRlpBytes(level));
     vdf.computeVdfSolution(vdf_config, proposal_dag_block_pivot_hash1.asBytes());
     vdf_computation_time = vdf.getComputationTime();
     std::cout << "VDF message " << proposal_dag_block_pivot_hash1 << ", lambda bits " << lambda_bound << ", difficulty "
@@ -213,9 +213,9 @@ TEST_F(CryptoTest, DISABLED_compute_vdf_solution_cost_time) {
   uint16_t difficulty_stale = 15;
   for (uint16_t lambda = 100; lambda <= 5000; lambda += 200) {
     std::cout << "Start at lambda " << lambda << " :" << std::endl;
-    vdf_sortition::VdfConfig vdf_config(threshold_selection, threshold_vdf_omit, difficulty_min, difficulty_max,
-                                        difficulty_stale, lambda);
-    VdfSortition vdf(vdf_config, node_key.address(), sk, getRlpBytes(level));
+    VdfConfig vdf_config(threshold_selection, threshold_vdf_omit, difficulty_min, difficulty_max, difficulty_stale,
+                         lambda);
+    VdfSortition vdf(vdf_config, sk, getRlpBytes(level));
     vdf.computeVdfSolution(vdf_config, proposal_dag_block_pivot_hash1.asBytes());
     vdf_computation_time = vdf.getComputationTime();
     std::cout << "VDF message " << proposal_dag_block_pivot_hash1 << ", lambda bits " << lambda << ", difficulty "
@@ -230,8 +230,8 @@ TEST_F(CryptoTest, DISABLED_compute_vdf_solution_cost_time) {
               << vdf.getDifficulty() << ", computation cost time " << vdf_computation_time << "(ms)" << std::endl;
   }
 
-  vdf_sortition::VdfConfig vdf_config(32768, 29184, 16, 21, 22, 100);
-  VdfSortition vdf(vdf_config, node_key.address(), sk, getRlpBytes(level));
+  VdfConfig vdf_config(32768, 29184, 16, 21, 22, 100);
+  VdfSortition vdf(vdf_config, sk, getRlpBytes(level));
   std::cout << "output " << vdf.output << std::endl;
   int i = 0;
   for (; i < vdf.output.size; i++) {
@@ -331,9 +331,8 @@ int main(int argc, char** argv) {
   auto logging = logger::createDefaultLoggingConfig();
   logging.verbosity = logger::Verbosity::Error;
   logging.channels["SORTITION"] = logger::Verbosity::Error;
-
   addr_t node_addr;
-  logger::InitLogging(logging, node_addr);
+  logging.InitLogging(node_addr);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

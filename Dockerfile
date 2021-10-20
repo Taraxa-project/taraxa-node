@@ -4,66 +4,80 @@ ARG BUILD_OUTPUT_DIR=cmake-docker-build-debug
 #############################################
 # builder image - contains all dependencies #
 #############################################
-FROM ubuntu:20.04 as builder
+FROM amd64/ubuntu:20.04 as builder
 
 # deps versions
-ARG GO_VERSION=1.13.7
+ARG GO_VERSION=1.16.3
 ARG CMAKE_VERSION=3.16.3-1ubuntu1
-ARG GCC_VERSION=4:9.3.0-1ubuntu2
 ARG GFLAGS_VERSION=2.2.2-1build1
-ARG CLANG_FORMAT_VERSION=clang+llvm-10.0.0-x86_64-linux-gnu-ubuntu-18.04
+ARG LLVM_VERSION=12
 
 # Install standard packages
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends tzdata \
     && apt-get install -y \
-        tar \
-        git \
-        xz-utils \
-        curl \
-        libtool \
-        autoconf \
-        binutils \
-        \
-        ccache \
-        cmake=$CMAKE_VERSION \
-        gcc=$GCC_VERSION \
-        g++=$GCC_VERSION \
-        libgflags-dev=$GFLAGS_VERSION \
-        \
-        python3-pip \
+    tar \
+    git \
+    curl \
+    wget \
+    python3-pip \
+    lsb-release \
+    software-properties-common \
     && rm -rf /var/lib/apt/lists/*
 
 
-# install clang-format and clang-tidy
-RUN curl -SLs https://github.com/llvm/llvm-project/releases/download/llvmorg-10.0.0/$CLANG_FORMAT_VERSION.tar.xz \
-        | tar -xJ && \
-    mv $CLANG_FORMAT_VERSION/bin/clang-format /usr/bin/clang-format && \
-    mv $CLANG_FORMAT_VERSION/bin/clang-tidy /usr/bin/clang-tidy && \
-    rm -rf $CLANG_FORMAT_VERSION && \
-    rm -f $CLANG_FORMAT_VERSION.tar.xz
+# Install LLVM
+RUN curl -SL -o llvm.sh https://apt.llvm.org/llvm.sh && \
+    chmod +x llvm.sh && \
+    ./llvm.sh $LLVM_VERSION && \
+    rm -f llvm.sh
+
+# To get Solidity compiler for python integration tests
+# install standart tools
+RUN add-apt-repository ppa:ethereum/ethereum \
+    && apt-get update \
+    && apt-get install -y \ 
+    clang-format-$LLVM_VERSION \
+    clang-tidy-$LLVM_VERSION \
+    ca-certificates \
+    libtool \
+    autoconf \
+    binutils \
+    cmake=$CMAKE_VERSION \
+    ccache \
+    libgflags-dev=$GFLAGS_VERSION \
+    solc \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV CXX="clang++-${LLVM_VERSION}"
+ENV CC="clang-${LLVM_VERSION}"
 
 # Install conan
 RUN pip3 install conan
 
 # Install go
 RUN curl -SL https://dl.google.com/go/go$GO_VERSION.linux-amd64.tar.gz \
-        | tar -xzC /usr/local
+    | tar -xzC /usr/local
 
 # Add go to PATH
 ENV GOROOT=/usr/local/go
 ENV GOPATH=$HOME/.go
 ENV PATH=$GOPATH/bin:$GOROOT/bin:$PATH
-
-# Default output dir containing build artifacts
-ARG BUILD_OUTPUT_DIR
+ENV CONAN_REVISIONS_ENABLED=1
 
 # Install conan deps
 WORKDIR /opt/taraxa/
 COPY conanfile.py .
-RUN conan remote add -f bincrafters "https://api.bintray.com/conan/bincrafters/public-conan"
-RUN conan install -if $BUILD_OUTPUT_DIR --build missing -s build_type=Debug .
 
+RUN conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan" \
+    && conan profile new clang --detect \
+    && conan profile update settings.compiler=clang clang  \
+    && conan profile update settings.compiler.version=$LLVM_VERSION clang  \
+    && conan profile update settings.compiler.libcxx=libstdc++11 clang \
+    && conan profile update settings.build_type=RelWithDebInfo clang \
+    && conan profile update env.CC=clang-$LLVM_VERSION clang  \
+    && conan profile update env.CXX=clang++-$LLVM_VERSION clang  \
+    && conan install --build missing -pr=clang .
 
 ###################################################################
 # Build stage - use builder image for actual build of taraxa node #
@@ -76,43 +90,39 @@ ARG BUILD_OUTPUT_DIR
 # Build taraxa-node project
 WORKDIR /opt/taraxa/
 COPY . .
-RUN cd $BUILD_OUTPUT_DIR \
-    && cmake -DCMAKE_BUILD_TYPE=Debug \
-             -DTARAXA_ENABLE_LTO=ON \
-             -DTARAXA_STATIC_BUILD=ON \
-             -DTARAXAD_INSTALL_DIR=./bin_install \
-             -DTARAXAD_CONF_INSTALL_DIR=./bin_install \
-             ../ \
+
+RUN mkdir $BUILD_OUTPUT_DIR && cd $BUILD_OUTPUT_DIR \
+    && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+    -DTARAXA_ENABLE_LTO=OFF \
+    -DTARAXA_STATIC_BUILD=OFF \
+    ../ \
     && make -j$(nproc) all \
-    && make install
+    # Copy CMake generated Testfile to be able to trigger ctest from bin directory
+    && cp tests/CTestTestfile.cmake bin/ \
+    # keep only required shared libraries and final binaries
+    && find . -maxdepth 1 ! -name "lib" ! -name "bin" -exec rm -rfv {} \;
+
 
 ###############################################################################
-# Taraxa Cli #
+##### Taraxa image containing taraxad binary + dynamic libraries + config #####
 ###############################################################################
-FROM ubuntu:20.04 as cli
+FROM ubuntu:20.04
 
-WORKDIR /opt/taraxa
-
+# Install curl and jq
 RUN apt-get update \
-    && apt-get install -y python3-pip
-
-COPY cli/requirements.txt cli/requirements.txt
-RUN pip3 install --no-cache-dir -r cli/requirements.txt
-
-COPY cli/taraxa cli/taraxa
-
-
-###############################################################################
-# Taraxa image containing taraxad binary with statically linked deps + config #
-###############################################################################
-FROM cli
+    && apt-get install -y curl jq \
+    && rm -rf /var/lib/apt/lists/*
 
 ARG BUILD_OUTPUT_DIR
-WORKDIR /opt/taraxa
+WORKDIR /root/.taraxa
 
-# Keep the old struct for now
-COPY --from=build /opt/taraxa/$BUILD_OUTPUT_DIR/bin_install/taraxad /usr/local/bin/taraxad
-COPY config config
+# Copy required binaries
+COPY --from=build /opt/taraxa/$BUILD_OUTPUT_DIR/bin/taraxad /usr/local/bin/taraxad
+COPY --from=build /opt/taraxa/$BUILD_OUTPUT_DIR/lib/*.so /usr/local/lib/
+
+# Set LD_LIBRARY_PATH so taraxad binary finds shared libs
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
+
 COPY docker-entrypoint.sh /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]

@@ -1,5 +1,9 @@
 # additional target to perform clang-tidy run, requires clang-tidy
-find_program(CLANG_TIDY_EXE NAMES "clang-tidy" DOC "Path to clang-tidy executable")
+
+find_program(CLANG_TIDY_EXE
+        NAMES clang-tidy-${LLVM_VERSION} clang-tidy
+        DOC "Path to clang-tidy executable"
+        )
 
 set(taraxa_LINT_LEVEL "OFF" CACHE STRING "Lint level during taraxa build (FULL, HIGH, LOW, OFF)")
 
