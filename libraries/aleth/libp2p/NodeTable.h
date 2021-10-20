@@ -362,7 +362,7 @@ class NodeTable : UDPSocketEvents {
 
   // The info about PING packets we've sent to other nodes and haven't received
   // PONG yet
-  std::map<bi::udp::endpoint, NodeValidation> m_sentPings;
+  std::unordered_map<bi::udp::endpoint, NodeValidation> m_sentPings;
 
   // Expiration time of sent discovery packets.
   std::chrono::seconds m_requestTimeToLive;
