@@ -262,21 +262,7 @@ std::map<level_t, std::vector<DagBlock>> DbStorage::getNonfinalizedDagBlocks() {
   return res;
 }
 
-SharedTransactions DbStorage::getNonfinalizedTransactions() {
-  SharedTransactions res;
-  auto i = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::transactions)));
-  for (i->SeekToFirst(); i->Valid(); i->Next()) {
-    Transaction transaction(asBytes(i->value().ToString()));
-    res.emplace_back(std::make_shared<Transaction>(std::move(transaction)));
-  }
-  return res;
-}
-
-void DbStorage::removeDagBlock(Batch& write_batch, blk_hash_t const& hash) {
-  remove(write_batch, Columns::dag_blocks, toSlice(hash));
-}
-
-void DbStorage::updateDagBlockCounters(std::vector<DagBlock> blks) {
+void DbStorage::updateDagBlockCounters(Batch& write_batch, std::vector<DagBlock> blks) {
   // Lock is needed since we are editing some fields
   std::lock_guard<std::mutex> u_lock(dag_blocks_mutex_);
   for (auto const& blk : blks) {
