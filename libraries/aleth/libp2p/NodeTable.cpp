@@ -334,6 +334,7 @@ void NodeTable::noteActiveNode(shared_ptr<NodeEntry> _nodeEntry) {
   }
   if (nodeToEvict) evict(*nodeToEvict, _nodeEntry);
 }
+
 void NodeTable::invalidateNode(NodeID const& _id) {
   auto sourceNodeEntry = nodeEntry(_id);
   if (!sourceNodeEntry) {

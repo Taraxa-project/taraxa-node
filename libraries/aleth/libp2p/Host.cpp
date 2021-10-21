@@ -94,7 +94,7 @@ Host::Host(std::string _clientVersion, KeyPair const& kp, NetworkConfig _n, Tara
   }
   LOG(m_logger) << "devp2p started. Node id: " << id();
   runAcceptor();
-  ba::post(strand_, [this] { main_loop_body(); });
+  ba::post(make_strand(session_ioc_), [this] { main_loop_body(); });
 }
 
 std::shared_ptr<Host> Host::make(std::string _clientVersion, CapabilitiesFactory const& cap_factory, KeyPair const& kp,
@@ -140,6 +140,18 @@ ba::io_context::count_type Host::do_work() {
     try {
       ret += ioc_.poll();
       ret += session_ioc_.poll();
+    } catch (std::exception const& e) {
+      cerror << "Host::do_work exception: " << e.what();
+    }
+  }
+  return ret;
+}
+
+ba::io_context::count_type Host::do_discov() {
+  ba::io_context::count_type ret = 0;
+  if (fully_initialized_) {
+    try {
+      ret += ioc_.poll();
     } catch (std::exception const& e) {
       cerror << "Host::do_work exception: " << e.what();
     }

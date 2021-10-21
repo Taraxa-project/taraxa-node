@@ -18,7 +18,9 @@ else ()
             --suppress=uninitMemberVar src/libp2p/UPnP.cpp
             # This is only enabled because of test functions
             --suppress=unusedFunction
-            
+            # TODO remove this when we solve correct exit of programs
+            --suppress=localMutex */main.cpp
+
             # Only show found errors
             "--quiet"
 

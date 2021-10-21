@@ -20,10 +20,9 @@ class Config {
   FullNodeConfig getNodeConfiguration();
 
   enum class NetworkIdType { Mainnet = 1, Testnet, Devnet };
-
- protected:
   static constexpr NetworkIdType DEFAULT_NETWORK_ID = NetworkIdType::Testnet;
 
+ protected:
   FullNodeConfig node_config_;
   bool node_configured_ = false;
 

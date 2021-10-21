@@ -1,0 +1,154 @@
+#include <libp2p/Common.h>
+#include <libp2p/Host.h>
+
+#include <boost/core/null_deleter.hpp>
+#include <boost/log/attributes/clock.hpp>
+#include <boost/log/sources/severity_channel_logger.hpp>
+#include <boost/log/utility/exception_handler.hpp>
+#include <boost/program_options.hpp>
+#include <boost/program_options/options_description.hpp>
+#include <condition_variable>
+#include <filesystem>
+#include <iostream>
+#include <thread>
+
+#include "cli/config.hpp"
+#include "cli/tools.hpp"
+#include "common/thread_pool.hpp"
+
+namespace po = boost::program_options;
+namespace bi = boost::asio::ip;
+
+namespace {
+std::string const kProgramName = "taraxa-bootnode";
+std::string const kNetworkConfigFileName = kProgramName + "-network.rlp";
+static constexpr unsigned kLineWidth = 160;
+
+BOOST_LOG_ATTRIBUTE_KEYWORD(severity, "Severity", int)
+
+po::options_description createLoggingProgramOptions(dev::LoggingOptions& options) {
+  po::options_description options_descr("LOGGING OPTIONS", kLineWidth);
+  auto addLoggingOption = options_descr.add_options();
+  addLoggingOption("log-verbosity,v", po::value<int>(&options.verbosity)->value_name("<0 - 4>"),
+                   "Set the log verbosity from 0 to 4 (default: 2).");
+  return options_descr;
+}
+
+void setupLogging(dev::LoggingOptions const& options) {
+  auto sink = boost::make_shared<boost::log::sinks::synchronous_sink<boost::log::sinks::text_ostream_backend>>();
+
+  boost::shared_ptr<std::ostream> stream{&std::cout, boost::null_deleter{}};
+  sink->locked_backend()->add_stream(stream);
+  // Enable auto-flushing after each log record written
+  sink->locked_backend()->auto_flush(true);
+
+  sink->set_filter([options](boost::log::attribute_value_set const& set) {
+    if (set[severity] > options.verbosity) return false;
+    return true;
+  });
+
+  sink->set_formatter(boost::log::aux::acquire_formatter("%Channel% [%TimeStamp%] %SeverityStr%: %Message%"));
+
+  boost::log::core::get()->add_sink(sink);
+  boost::log::core::get()->add_global_attribute("TimeStamp", boost::log::attributes::local_clock());
+
+  boost::log::core::get()->set_exception_handler(boost::log::make_exception_handler<std::exception>(
+      [](std::exception const& _ex) { std::cerr << "Exception from the logging library: " << _ex.what() << '\n'; }));
+}
+
+}  // namespace
+
+int main(int argc, char** argv) {
+  bool allowLocalDiscovery = false;
+
+  po::options_description general_options("GENERAL OPTIONS", kLineWidth);
+  auto addGeneralOption = general_options.add_options();
+  addGeneralOption("help,h", "Show this help message and exit\n");
+
+  dev::LoggingOptions logging_options;
+  po::options_description logging_program_options(createLoggingProgramOptions(logging_options));
+
+  po::options_description client_networking("NETWORKING", kLineWidth);
+  auto addNetworkingOption = client_networking.add_options();
+  addNetworkingOption("public-ip", po::value<std::string>()->value_name("<ip>"),
+                      "Force advertised public IP to the given IP (default: auto)");
+  addNetworkingOption("listen-ip", po::value<std::string>()->value_name("<ip>(:<port>)"),
+                      "Listen on the given IP for incoming connections (default: 0.0.0.0)");
+  addNetworkingOption("listen", po::value<unsigned short>()->value_name("<port>"),
+                      "Listen on the given port for incoming connections (default: 1002)");
+  addNetworkingOption("allow-local-discovery", po::bool_switch(&allowLocalDiscovery),
+                      "Include local addresses in the discovery process. Used for testing purposes.");
+  addNetworkingOption("network-id", po::value<unsigned short>()->value_name("<id>"),
+                      "Connect to default mainet/testnet/devnet bootnodes");
+  po::options_description allowedOptions("Allowed options");
+  allowedOptions.add(general_options).add(logging_program_options).add(client_networking);
+
+  po::variables_map vm;
+  try {
+    po::parsed_options parsed = po::parse_command_line(argc, argv, allowedOptions);
+    po::store(parsed, vm);
+    po::notify(vm);
+  } catch (po::error const& e) {
+    std::cout << e.what() << std::endl;
+    return 1;
+  }
+
+  if (vm.count("help")) {
+    std::cout << "NAME:\n"
+              << "   " << kProgramName << std::endl
+              << "USAGE:\n"
+              << "   " << kProgramName << " [options]\n\n";
+    std::cout << general_options << client_networking << logging_program_options;
+    return 0;
+  }
+
+  /// Networking params.
+  unsigned short network_id = (unsigned short)taraxa::cli::Config::DEFAULT_NETWORK_ID;
+  if (vm.count("network-id")) network_id = vm["network-id"].as<unsigned short>();
+
+  Json::Value conf = taraxa::cli::Tools::generateConfig((taraxa::cli::Config::NetworkIdType)network_id);
+  std::string listen_ip = "127.0.0.1";
+  unsigned short listen_port = conf["network_udp_port"].asUInt();
+  std::string public_ip;
+
+  if (vm.count("public-ip")) public_ip = vm["public-ip"].as<std::string>();
+  if (vm.count("listen-ip")) listen_ip = vm["listen-ip"].as<std::string>();
+  if (vm.count("listen")) listen_port = vm["listen"].as<unsigned short>();
+
+  setupLogging(logging_options);
+  if (logging_options.verbosity > 0)
+    std::cout << EthGrayBold << kProgramName << ", a Taraxa bootnode implementation" EthReset << std::endl;
+
+  auto key = dev::KeyPair(dev::Secret::random());
+  auto net_conf = public_ip.empty() ? dev::p2p::NetworkConfig(listen_ip, listen_port, false)
+                                    : dev::p2p::NetworkConfig(public_ip, listen_ip, listen_port, false);
+  net_conf.allowLocalDiscovery = allowLocalDiscovery;
+
+  dev::p2p::TaraxaNetworkConfig taraxa_net_conf;
+  taraxa_net_conf.is_boot_node = true;
+  auto network_file_path = taraxa::cli::Tools::getTaraxaDefaultDir() / std::filesystem::path(kNetworkConfigFileName);
+
+  auto boot_host = dev::p2p::Host::make(
+      kProgramName, [](auto /*host*/) { return dev::p2p::Host::CapabilityList{}; }, key, net_conf, taraxa_net_conf,
+      network_file_path);
+  taraxa::util::ThreadPool tp{1};
+  tp.post_loop({}, [boot_host] {
+    if (!boot_host->do_discov()) taraxa::thisThreadSleepForMilliSeconds(500);
+  });
+
+  if (boot_host->isRunning()) {
+    std::cout << "Node ID: " << boot_host->enode() << std::endl;
+    for (auto const& bn : conf["network_boot_nodes"]) {
+      bi::tcp::endpoint ep = dev::p2p::Network::resolveHost(bn["ip"].asString() + ":" + bn["udp_port"].asString());
+      boot_host->addNode(
+          dev::p2p::Node(dev::Public(bn["id"].asString()),
+                         dev::p2p::NodeIPEndpoint{ep.address(), ep.port() /* udp */, ep.port() /* tcp */},
+                         dev::p2p::PeerType::Required));
+    }
+    // TODO graceful shutdown
+    std::mutex mu;
+    std::unique_lock l(mu);
+    std::condition_variable().wait(l);
+  }
+  return 0;
+}
