@@ -202,7 +202,7 @@ commands:
         - run:
            name: Get repo and install helm/kubectl
            command: |
-              git clone --branch fix-consensus-pernets https://github.com/Taraxa-project/taraxa-testnet.git
+              git clone --branch fix-consensus-prnets https://github.com/Taraxa-project/taraxa-testnet.git
               mkdir -p $HOME/.kube
               echo -n "<< parameters.kubeconfig >>" | base64 --decode > $HOME/.kube/config
               curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
