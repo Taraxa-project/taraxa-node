@@ -44,7 +44,6 @@ PbftManager::PbftManager(PbftConfig const &conf, blk_hash_t const &genesis, addr
       RUN_COUNT_VOTES(conf.run_count_votes),
       dag_genesis_(genesis) {
   LOG_OBJECTS_CREATE("PBFT_MGR");
-  updateDposState_();
 }
 
 PbftManager::~PbftManager() { stop(); }
@@ -533,6 +532,7 @@ void PbftManager::initialState_() {
   last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
   next_step_time_ms_ = 0;
 
+  updateDposState_();
   // Initialize TWO_T_PLUS_ONE and sortition_threshold
   updateTwoTPlusOneAndThreshold_();
 }
