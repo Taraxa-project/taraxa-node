@@ -566,7 +566,7 @@ size_t DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t perio
 
   for (auto &v : non_finalized_blocks) {
     for (auto &blk : v.second) {
-      if (dag_order_set.count(blk)) {
+      if (dag_order_set.contains(blk)) {
         continue;
       }
 
