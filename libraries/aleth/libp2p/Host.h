@@ -227,8 +227,8 @@ struct Host final : std::enable_shared_from_this<Host> {
   /// which have timed out.
   void keepAlivePeers();
 
-  /// Log count of active peers and information about each peer
-  void logActivePeers();
+  /// Log count of active peers and information about each peer and save to disk
+  void logActivePeersAndSaveState();
 
   void runAcceptor();
 
@@ -305,6 +305,9 @@ struct Host final : std::enable_shared_from_this<Host> {
   /// When the last "active peers" message was logged - used to throttle
   /// logging to once every c_logActivePeersInterval seconds
   std::chrono::steady_clock::time_point m_lastPeerLogMessage;
+
+  /// When the last network state was saved
+  std::chrono::steady_clock::time_point m_lastSaveState;
 
   // MUTABLE STATE | THREAD SAFETY GUARANTEED BY THE CLASSES
 

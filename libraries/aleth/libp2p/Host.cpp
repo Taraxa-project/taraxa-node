@@ -44,7 +44,8 @@ Host::Host(std::string _clientVersion, KeyPair const& kp, NetworkConfig _n, Tara
       m_listenPort(m_netConfig.listenPort),
       m_alias{kp},
       m_lastPing(chrono::steady_clock::time_point::min()),
-      m_lastPeerLogMessage(chrono::steady_clock::time_point::min()) {
+      m_lastPeerLogMessage(chrono::steady_clock::time_point::min()),
+      m_lastSaveState(chrono::steady_clock::time_point::min()) {
   assert(m_netConfig.listenPort);
   assert(1 <= taraxa_conf.expected_parallelism);
   // try to open acceptor (todo: ipv6)
@@ -484,7 +485,7 @@ void Host::main_loop_body() {
   m_connecting.remove_if([](auto const& h) { return h.expired(); });
 
   keepAlivePeers();
-  logActivePeers();
+  logActivePeersAndSaveState();
 
   // At this time peers will be disconnected based on natural TCP timeout.
   // disconnectLatePeers needs to be updated for the assumption that Session
@@ -554,8 +555,9 @@ void Host::keepAlivePeers() {
   m_lastPing = chrono::steady_clock::now();
 }
 
-void Host::logActivePeers() {
-  if (chrono::steady_clock::now() - taraxa_conf_.log_active_peers_interval < m_lastPeerLogMessage) {
+void Host::logActivePeersAndSaveState() {
+  auto now = chrono::steady_clock::now();
+  if (now - taraxa_conf_.log_active_peers_interval < m_lastPeerLogMessage) {
     return;
   }
 
@@ -564,6 +566,13 @@ void Host::logActivePeers() {
 
   LOG(m_logger) << "Peers: " << peerSessionInfos();
   m_lastPeerLogMessage = chrono::steady_clock::now();
+
+  if (now - taraxa_conf_.save_network_state_interval < m_lastSaveState) {
+    return;
+  }
+
+  m_lastSaveState = chrono::steady_clock::now();
+  save_state();
 }
 
 void Host::save_state() const {

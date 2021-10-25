@@ -542,6 +542,10 @@ std::shared_ptr<NodeEntry> NodeTable::handleFindNode(bi::udp::endpoint const& _f
 std::shared_ptr<NodeEntry> NodeTable::handlePingNode(bi::udp::endpoint const& _from, DiscoveryDatagram const& _packet) {
   auto const& in = dynamic_cast<PingNode const&>(_packet);
 
+  if (in.version != dev::p2p::c_protocolVersion) {
+    LOG(m_logger) << "Received a ping from a different protocol version node " << in.version << " from: " << _from;
+    return nullptr;
+  }
   NodeIPEndpoint sourceEndpoint{_from.address(), _from.port(), in.source.tcpPort()};
   if (!addNode({in.sourceid, sourceEndpoint}))
     return {};  // Need to have valid endpoint proof before adding node to node

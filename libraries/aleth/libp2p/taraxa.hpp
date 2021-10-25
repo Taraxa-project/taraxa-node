@@ -13,6 +13,7 @@ struct TaraxaNetworkConfig {
   std::chrono::seconds peer_healthcheck_timeout{1};
   std::chrono::milliseconds main_loop_interval{100};
   std::chrono::seconds log_active_peers_interval{30};
+  std::chrono::minutes save_network_state_interval{10};
 };
 
 class CapabilityFace;
