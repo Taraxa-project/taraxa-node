@@ -1411,7 +1411,7 @@ bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(blk_hash_t const &pbft_
     return false;
   }
 
-  return comparePbftBlockScheduleWithDAGblocks_(std::move(pbft_block));
+  return comparePbftBlockScheduleWithDAGblocks_(pbft_block);
 }
 
 bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(const std::shared_ptr<PbftBlock> &pbft_block) {

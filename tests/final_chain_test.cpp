@@ -376,7 +376,7 @@ TEST_F(FinalChainTest, mining_rewards_distribution) {
   std::transform(blocks.begin(), blocks.end(), std::back_inserter(blocks_hashes),
                  [](const DagBlock& block) { return block.getHash(); });
 
-  PbftBlock pbft_block({}, {}, {}, 0, pbft_proposer.address(),pbft_proposer.secret());
+  PbftBlock pbft_block({}, {}, {}, 0, pbft_proposer.address(), pbft_proposer.secret());
 
   SyncBlock pbft_period_data(std::make_shared<PbftBlock>(std::move(pbft_block)), std::move(blocks),
                              std::move(blocks_hashes), std::move(txs), std::move(txs_hashes));

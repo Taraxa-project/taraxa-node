@@ -22,7 +22,7 @@ class DagStats {
    *            - total number of dag blocks
    */
   struct BlocksStats {
-    std::map<addr_t, uint32_t> proposers_blocks_count_;
+    std::unordered_map<addr_t, uint32_t> proposers_blocks_count_;
     uint32_t total_blocks_count_{0};
 
     HAS_RLP_FIELDS

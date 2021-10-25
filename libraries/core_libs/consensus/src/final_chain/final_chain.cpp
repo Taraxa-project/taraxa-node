@@ -89,12 +89,13 @@ class FinalChainImpl final : public FinalChain {
   shared_ptr<FinalizationResult> finalize_(SyncBlock&& sync_block, finalize_precommit_ext const& precommit_ext) {
     auto batch = db_->createWriteBatch();
 
-    // Create transactions stats for rewards distribution
-    // TODO: in case we dont want to reward dag authors who include some tx as "not first" this extra processing
+    // Create dag & transactions stats for rewards distribution
+    // TODO: in case we dont want to reward dag proposers who include some tx as "not first", this extra processing
     //       is not necessary
     DagStats dag_stats;
-    std::vector<DagStats::TransactionStats> txs_stats;
     for (const auto& dag_block : sync_block.getDagBlocks()) {
+      assert(dag_block.getTrxs().size());
+
       const addr_t& dag_block_author = dag_block.getSender();
 
       // TODO: there is a possibility that some proposer includes only trxs that are later in filtered out due to
@@ -108,14 +109,15 @@ class FinalChainImpl final : public FinalChain {
       }
     }
 
-    DB::MultiGetQuery db_query(db_, sync_block.getTransactionsHashes().size());
-    for (auto const& tx_hash : sync_block.getTransactionsHashes()) {
-      db_query.append(DB::Columns::final_chain_transaction_location_by_hash, tx_hash);
-    }
+    DB::MultiGetQuery db_query(db_);
+    db_query.append(DB::Columns::final_chain_transaction_location_by_hash, sync_block.getTransactionsHashes());
     auto trx_db_results = db_query.execute(false);
 
     Transactions txs_to_execute;
     txs_to_execute.reserve(sync_block.getTransactions().size());
+
+    std::vector<DagStats::TransactionStats> selected_txs_stats;
+    selected_txs_stats.reserve(sync_block.getTransactions().size());
 
     const auto& txs = sync_block.getTransactions();
     for (size_t i = 0; i < txs.size(); ++i) {
@@ -129,14 +131,14 @@ class FinalChainImpl final : public FinalChain {
       }
 
       // Non-executed trxs
-      txs_stats.push_back(dag_stats.getTransactionStatsRvalue(tx.getHash()));
+      selected_txs_stats.push_back(dag_stats.getTransactionStatsRvalue(tx.getHash()));
       txs_to_execute.push_back(std::move(tx));
     }
 
     const auto& pbft_block = sync_block.getPbftBlock();
     auto const& [exec_results, state_root] = state_api_.transition_state(
         {pbft_block->getBeneficiary(), GAS_LIMIT, pbft_block->getTimestamp(), BlockHeader::difficulty()},
-        to_state_api_transactions(txs_to_execute), {}, txs_stats, dag_stats.getBlocksStats());
+        to_state_api_transactions(txs_to_execute), {}, selected_txs_stats, dag_stats.getBlocksStats());
 
     TransactionReceipts receipts;
     receipts.reserve(exec_results.size());
