@@ -36,7 +36,8 @@ class RLPStream;
 namespace p2p {
 
 /// Peer network protocol version.
-constexpr unsigned c_protocolVersion = 4;
+constexpr unsigned c_protocolVersionTaraxaOffset = 1024;
+constexpr unsigned c_protocolVersion = c_protocolVersionTaraxaOffset + 4;
 
 class NodeIPEndpoint;
 class Node;
