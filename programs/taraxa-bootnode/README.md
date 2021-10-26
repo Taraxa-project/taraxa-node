@@ -22,9 +22,10 @@ GENERAL OPTIONS:
 NETWORKING:
   --public-ip <ip>          Force advertised public IP to the given IP (default: auto)
   --listen-ip <ip>(:<port>) Listen on the given IP for incoming connections (default: 0.0.0.0)
-  --listen <port>           Listen on the given port for incoming connections (default: 10002)
+  --listen <port>           Listen on the given port for incoming connections (default: 1002)
   --allow-local-discovery   Include local addresses in the discovery process. Used for testing purposes.
   --network-id <id>         Connect to default mainet/testnet/devnet bootnodes
+  --number-of-threads <#>   Define number of threads for this bootnode (default: 1)
 LOGGING OPTIONS:
   -v [ --log-verbosity ] <0 - 4> Set the log verbosity from 0 to 4 (default: 2).
   ```

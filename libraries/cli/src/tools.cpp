@@ -29,7 +29,7 @@ void Tools::generateConfig(const std::string& config, Config::NetworkIdType netw
     default:
       conf = readJsonFromString(default_json);
       std::stringstream stream;
-      stream << "0x" << std::hex << (int)network_id;
+      stream << "0x" << std::hex << static_cast<int>(network_id);
       conf["chain_config"]["chain_id"] = stream.str();
   }
   writeJsonToFile(config, conf);
@@ -47,7 +47,7 @@ Json::Value Tools::generateConfig(Config::NetworkIdType network_id) {
     default:
       conf = readJsonFromString(default_json);
       std::stringstream stream;
-      stream << "0x" << std::hex << (int)network_id;
+      stream << "0x" << std::hex << static_cast<int>(network_id);
       conf["chain_config"]["chain_id"] = stream.str();
   }
   return conf;

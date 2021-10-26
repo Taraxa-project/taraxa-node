@@ -80,6 +80,8 @@ int main(int argc, char** argv) {
                       "Include local addresses in the discovery process. Used for testing purposes.");
   addNetworkingOption("network-id", po::value<unsigned short>()->value_name("<id>"),
                       "Connect to default mainet/testnet/devnet bootnodes");
+  addNetworkingOption("number-of-threads", po::value<uint32_t>()->value_name("<#>"),
+                      "Define number of threads for this bootnode (default: 1)");
   po::options_description allowedOptions("Allowed options");
   allowedOptions.add(general_options).add(logging_program_options).add(client_networking);
 
@@ -103,17 +105,19 @@ int main(int argc, char** argv) {
   }
 
   /// Networking params.
-  unsigned short network_id = (unsigned short)taraxa::cli::Config::DEFAULT_NETWORK_ID;
+  unsigned short network_id = static_cast<unsigned short>(taraxa::cli::Config::DEFAULT_NETWORK_ID);
   if (vm.count("network-id")) network_id = vm["network-id"].as<unsigned short>();
 
   Json::Value conf = taraxa::cli::Tools::generateConfig((taraxa::cli::Config::NetworkIdType)network_id);
   std::string listen_ip = "127.0.0.1";
   unsigned short listen_port = conf["network_udp_port"].asUInt();
   std::string public_ip;
+  uint32_t num_of_threads = 1;
 
   if (vm.count("public-ip")) public_ip = vm["public-ip"].as<std::string>();
   if (vm.count("listen-ip")) listen_ip = vm["listen-ip"].as<std::string>();
   if (vm.count("listen")) listen_port = vm["listen"].as<unsigned short>();
+  if (vm.count("number-of-threads")) num_of_threads = vm["number-of-threads"].as<uint32_t>();
 
   setupLogging(logging_options);
   if (logging_options.verbosity > 0)
@@ -131,10 +135,13 @@ int main(int argc, char** argv) {
   auto boot_host = dev::p2p::Host::make(
       kProgramName, [](auto /*host*/) { return dev::p2p::Host::CapabilityList{}; }, key, net_conf, taraxa_net_conf,
       network_file_path);
-  taraxa::util::ThreadPool tp{1};
-  tp.post_loop({}, [boot_host] {
-    if (!boot_host->do_discov()) taraxa::thisThreadSleepForMilliSeconds(500);
-  });
+
+  taraxa::util::ThreadPool tp{num_of_threads};
+  for (uint i = 0; i < tp.capacity(); ++i) {
+    tp.post_loop({i * 20}, [boot_host] {
+      if (!boot_host->do_discov()) taraxa::thisThreadSleepForMilliSeconds(500);
+    });
+  }
 
   if (boot_host->isRunning()) {
     std::cout << "Node ID: " << boot_host->enode() << std::endl;
