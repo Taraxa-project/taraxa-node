@@ -29,10 +29,28 @@ void Tools::generateConfig(const std::string& config, Config::NetworkIdType netw
     default:
       conf = readJsonFromString(default_json);
       std::stringstream stream;
-      stream << "0x" << std::hex << (int)network_id;
+      stream << "0x" << std::hex << static_cast<int>(network_id);
       conf["chain_config"]["chain_id"] = stream.str();
   }
   writeJsonToFile(config, conf);
+}
+
+Json::Value Tools::generateConfig(Config::NetworkIdType network_id) {
+  Json::Value conf;
+  switch (network_id) {
+    case Config::NetworkIdType::Testnet:
+      conf = readJsonFromString(testnet_json);
+      break;
+    case Config::NetworkIdType::Devnet:
+      conf = readJsonFromString(devnet_json);
+      break;
+    default:
+      conf = readJsonFromString(default_json);
+      std::stringstream stream;
+      stream << "0x" << std::hex << static_cast<int>(network_id);
+      conf["chain_config"]["chain_id"] = stream.str();
+  }
+  return conf;
 }
 
 Json::Value Tools::overrideConfig(Json::Value& conf, std::string& data_dir, bool boot_node, vector<string> boot_nodes,

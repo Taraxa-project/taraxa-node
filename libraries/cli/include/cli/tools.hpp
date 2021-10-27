@@ -29,6 +29,7 @@ class Tools {
 
   // Generate default config and wallet files
   static void generateConfig(const std::string& config, cli::Config::NetworkIdType network_id);
+  static Json::Value generateConfig(Config::NetworkIdType network_id);
   static void generateWallet(const std::string& wallet);
 
   // Override existing config and wallet files

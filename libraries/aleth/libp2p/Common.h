@@ -255,9 +255,6 @@ inline boost::log::formatting_ostream& operator<<(boost::log::formatting_ostream
 
 /// Simple stream output for a NodeIPEndpoint.
 std::ostream& operator<<(std::ostream& _out, NodeIPEndpoint const& _ep);
-
-/// Official Ethereum boot nodes
-std::vector<std::pair<Public, const char*>> defaultBootNodes();
 }  // namespace p2p
 }  // namespace dev
 

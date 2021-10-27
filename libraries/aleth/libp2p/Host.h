@@ -88,6 +88,11 @@ struct Host final : std::enable_shared_from_this<Host> {
 
   ba::io_context::count_type do_work();
 
+  // This is only for discovery !!!!
+  ba::io_context::count_type do_discov();
+
+  bool isRunning() { return !ioc_.stopped(); }
+
   uint64_t peer_count() const { return peer_count_snapshot_; }
   /// Get the port we're listening on currently.
   unsigned short listenPort() const { return m_listenPort; }
@@ -120,6 +125,25 @@ struct Host final : std::enable_shared_from_this<Host> {
     });
   }
 
+  /// Get the endpoint information.
+  std::string enode() const {
+    std::string address;
+    if (!m_netConfig.publicIPAddress.empty())
+      address = m_netConfig.publicIPAddress;
+    else if (!m_tcpPublic.address().is_unspecified())
+      address = m_tcpPublic.address().to_string();
+    else
+      address = c_localhostIp;
+
+    std::string port;
+    if (m_tcpPublic.port())
+      port = toString(m_tcpPublic.port());
+    else
+      port = toString(m_netConfig.listenPort);
+
+    return "enode://" + id().hex() + "@" + address + ":" + port;
+  }
+
   // private but can be made public if needed
  private:
   bool nodeTableHasNode(Public const& _id) const;
@@ -143,25 +167,6 @@ struct Host final : std::enable_shared_from_this<Host> {
 
   /// Get the public TCP endpoint.
   bi::tcp::endpoint const& tcpPublic() const { return m_tcpPublic; }
-
-  /// Get the endpoint information.
-  std::string enode() const {
-    std::string address;
-    if (!m_netConfig.publicIPAddress.empty())
-      address = m_netConfig.publicIPAddress;
-    else if (!m_tcpPublic.address().is_unspecified())
-      address = m_tcpPublic.address().to_string();
-    else
-      address = c_localhostIp;
-
-    std::string port;
-    if (m_tcpPublic.port())
-      port = toString(m_tcpPublic.port());
-    else
-      port = toString(m_netConfig.listenPort);
-
-    return "enode://" + id().hex() + "@" + address + ":" + port;
-  }
 
   /// Get the node information.
   p2p::NodeInfo nodeInfo() const {

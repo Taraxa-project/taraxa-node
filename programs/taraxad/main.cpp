@@ -6,7 +6,6 @@
 #include "node/node.hpp"
 
 using namespace taraxa;
-using namespace std;
 
 namespace bpo = boost::program_options;
 
@@ -16,23 +15,23 @@ int main(int argc, const char* argv[]) {
     cli::Config cli_conf(argc, argv);
 
     if (cli_conf.nodeConfigured()) {
-      auto node = make_shared<FullNode>(cli_conf.getNodeConfiguration());
+      auto node = std::make_shared<FullNode>(cli_conf.getNodeConfiguration());
       node->start();
 
       if (node->isStarted()) {
-        cout << "Taraxa node started" << endl;
+        std::cout << "Taraxa node started" << std::endl;
         // TODO graceful shutdown
-        mutex mu;
-        unique_lock l(mu);
-        condition_variable().wait(l);
+        std::mutex mu;
+        std::unique_lock l(mu);
+        std::condition_variable().wait(l);
       }
-      cout << "Taraxa Node exited ..." << endl;
+      std::cout << "Taraxa Node exited ..." << std::endl;
     }
     return 0;
   } catch (taraxa::ConfigException const& e) {
-    cerr << "Configuration exception: " << e.what() << endl;
+    std::cerr << "Configuration exception: " << e.what() << std::endl;
   } catch (...) {
-    cerr << boost::current_exception_diagnostic_information() << endl;
+    std::cerr << boost::current_exception_diagnostic_information() << std::endl;
   }
   return 1;
 }
