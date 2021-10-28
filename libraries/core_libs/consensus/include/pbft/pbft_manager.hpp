@@ -79,9 +79,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   void setMaxWaitForSoftVotedBlock_ms(uint64_t wait_ms);
   void setMaxWaitForNextVotedBlock_ms(uint64_t wait_ms);
 
-  void enableDBSnapshots();
-  void disableDBSnapshots();
-
  private:
   // DPOS
   void updateDposState_();

@@ -48,9 +48,6 @@ PbftManager::PbftManager(PbftConfig const &conf, blk_hash_t const &genesis, addr
 
 PbftManager::~PbftManager() { stop(); }
 
-void PbftManager::enableDBSnapshots() { db_->enableSnapshots(); }
-void PbftManager::disableDBSnapshots() { db_->disableSnapshots(); }
-
 void PbftManager::setNetwork(std::weak_ptr<Network> network) { network_ = move(network); }
 
 void PbftManager::start() {

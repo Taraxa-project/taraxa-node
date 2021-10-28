@@ -105,34 +105,35 @@ void DbStorage::loadSnapshots() {
 
 bool DbStorage::createSnapshot(uint64_t period) {
   // Only creates snapshot each db_snapshot_each_n_pbft_block_ periods
-  if (snapshot_enable_ && db_snapshot_each_n_pbft_block_ > 0 && period % db_snapshot_each_n_pbft_block_ == 0 &&
-      snapshots_.find(period) == snapshots_.end()) {
-    LOG(log_nf_) << "Creating DB snapshot on period: " << period;
-
-    // Create rocskd checkpoint/snapshot
-    rocksdb::Checkpoint* checkpoint;
-    auto status = rocksdb::Checkpoint::Create(db_, &checkpoint);
-    // Scope is to delete checkpoint object as soon as we don't need it anymore
-    {
-      checkStatus(status);
-      auto snapshot_path = db_path_;
-      snapshot_path += std::to_string(period);
-      status = checkpoint->CreateCheckpoint(snapshot_path.string());
-    }
-    checkStatus(status);
-    snapshots_.insert(period);
-
-    // Delete any snapshot over db_max_snapshots_
-    if (db_max_snapshots_ && snapshots_.size() > db_max_snapshots_) {
-      while (snapshots_.size() > db_max_snapshots_) {
-        auto snapshot = snapshots_.begin();
-        deleteSnapshot(*snapshot);
-        snapshots_.erase(snapshot);
-      }
-    }
-    return true;
+  if (!snapshot_enable_ || db_snapshot_each_n_pbft_block_ <= 0 || period % db_snapshot_each_n_pbft_block_ != 0 ||
+      snapshots_.find(period) != snapshots_.end()) {
+    return false;
   }
-  return false;
+
+  LOG(log_nf_) << "Creating DB snapshot on period: " << period;
+
+  // Create rocskd checkpoint/snapshot
+  rocksdb::Checkpoint* checkpoint;
+  auto status = rocksdb::Checkpoint::Create(db_, &checkpoint);
+  // Scope is to delete checkpoint object as soon as we don't need it anymore
+  {
+    checkStatus(status);
+    auto snapshot_path = db_path_;
+    snapshot_path += std::to_string(period);
+    status = checkpoint->CreateCheckpoint(snapshot_path.string());
+  }
+  checkStatus(status);
+  snapshots_.insert(period);
+
+  // Delete any snapshot over db_max_snapshots_
+  if (db_max_snapshots_ && snapshots_.size() > db_max_snapshots_) {
+    while (snapshots_.size() > db_max_snapshots_) {
+      auto snapshot = snapshots_.begin();
+      deleteSnapshot(*snapshot);
+      snapshots_.erase(snapshot);
+    }
+  }
+  return true;
 }
 
 void DbStorage::recoverToPeriod(uint64_t period) {
