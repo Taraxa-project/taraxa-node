@@ -1476,7 +1476,7 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
       }
 
       if (executed_pbft_block_) {
-        vote_mgr_->removeVerifiedVotes();
+        vote_mgr_->cleanupVotes(round);
         updateDposState_();
         // update sortition_threshold and TWO_T_PLUS_ONE
         updateTwoTPlusOneAndThreshold_();
