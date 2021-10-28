@@ -26,7 +26,7 @@ const char *default_json = R"foo({
     "max_transactions_pool_warn": 0,
     "max_transactions_pool_drop": 0,
     "max_block_queue_warn": 0,
-    "db_snapshot_each_n_pbft_block": 100,
+    "db_snapshot_each_n_pbft_block": 10000,
     "db_max_snapshots": 5,
     "block_proposer": {
       "shard": 1,

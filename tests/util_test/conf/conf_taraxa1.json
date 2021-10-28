@@ -20,7 +20,7 @@
     }
   ],
   "rpc": {
-    "http_port": 7777,
+    "http_port": 7782,
     "ws_port": 8777,
     "threads_num": 2
   },

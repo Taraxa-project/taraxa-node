@@ -53,12 +53,14 @@ void ExtSyncingPacketHandler::restartSyncingPbft(bool force) {
 
     syncing_state_->set_dag_syncing(false);
     syncing_state_->set_pbft_syncing(true, max_pbft_chain_nodeID);
+    pbft_mgr_->disableDBSnapshots();
     syncPeerPbft(pbft_sync_period + 1);
   } else {
     LOG(log_nf_) << "Restarting syncing PBFT not needed since our pbft chain size: " << pbft_sync_period << "("
                  << pbft_chain_->getPbftChainSize() << ")"
                  << " is greater or equal than max node pbft chain size:" << max_pbft_chain_size;
     syncing_state_->set_pbft_syncing(false);
+    pbft_mgr_->enableDBSnapshots();
 
     if (force || (!syncing_state_->is_dag_syncing() &&
                   max_node_dag_level > std::max(dag_mgr_->getMaxLevel(), dag_blk_mgr_->getMaxDagLevelInQueue()))) {

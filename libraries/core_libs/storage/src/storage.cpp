@@ -105,7 +105,7 @@ void DbStorage::loadSnapshots() {
 
 bool DbStorage::createSnapshot(uint64_t period) {
   // Only creates snapshot each db_snapshot_each_n_pbft_block_ periods
-  if (db_snapshot_each_n_pbft_block_ > 0 && period % db_snapshot_each_n_pbft_block_ == 0 &&
+  if (snapshot_enable_ && db_snapshot_each_n_pbft_block_ > 0 && period % db_snapshot_each_n_pbft_block_ == 0 &&
       snapshots_.find(period) == snapshots_.end()) {
     LOG(log_nf_) << "Creating DB snapshot on period: " << period;
 
@@ -182,6 +182,10 @@ void DbStorage::deleteSnapshot(uint64_t period) {
   fs::remove_all(period_state_path);
   LOG(log_dg_) << "Deleted folder: " << period_path;
 }
+
+void DbStorage::disableSnapshots() { snapshot_enable_ = false; }
+
+void DbStorage::enableSnapshots() { snapshot_enable_ = true; }
 
 DbStorage::~DbStorage() {
   for (auto cf : handles_) {
