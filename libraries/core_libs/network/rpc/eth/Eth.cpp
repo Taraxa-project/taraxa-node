@@ -272,6 +272,7 @@ class EthImpl : public Eth, EthParams {
             trx.value,
             trx.gas.value_or(0),
             trx.data,
+            {}  // hash is needed only when executing pbft block & distributing rewards
         },
         blk_n,
         state_api::ExecutionOptions{

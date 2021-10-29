@@ -48,7 +48,7 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
     cfg.final_chain.state.eth_chain_config.dao_fork_block = state_api::BlockNumberNIL;
     cfg.final_chain.state.execution_options.disable_nonce_check = true;
     cfg.final_chain.state.execution_options.disable_gas_fee = true;
-    cfg.final_chain.state.execution_options.disable_dag_stats_rewards = true;
+    cfg.final_chain.state.execution_options.disable_stats_rewards = true;
     addr_t root_node_addr("de2b1203d72d3549ee2f733b00b2789414c7cea5");
     cfg.final_chain.state.genesis_balances[root_node_addr] = 9007199254740991;
     auto& dpos = cfg.final_chain.state.dpos.emplace();
