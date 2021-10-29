@@ -3,6 +3,7 @@
 #include "common/constants.hpp"
 #include "common/thread_pool.hpp"
 #include "final_chain/replay_protection_service.hpp"
+#include "final_chain/rewards_stats.hpp"
 #include "final_chain/trie_common.hpp"
 #include "vote/vote.hpp"
 
@@ -90,23 +91,16 @@ class FinalChainImpl final : public FinalChain {
     auto batch = db_->createWriteBatch();
 
     // Create dag & transactions stats for rewards distribution
-    // TODO: in case we dont want to reward dag proposers who include some tx as "not first", this extra processing
-    //       is not necessary
-    DagStats dag_stats;
+    RewardsStats rewards_stats(sync_block.getTransactions().size(), sync_block.getDagBlocks().size());
     for (const auto& dag_block : sync_block.getDagBlocks()) {
       assert(dag_block.getTrxs().size());
 
       const addr_t& dag_block_author = dag_block.getSender();
-
-      // TODO: there is a possibility that some proposer includes only trxs that are later in filtered out due to
-      // replay_protection_service_ or "has_been_executed", but gets rewards for dag block creation
-      // It might or might not be ok, he provided valid block and validated therefore other blocks so he did
-      // some work, on the other hand none of the trxs that he included were actually processed...
-      dag_stats.addDagBlock(dag_block_author);
-
       for (const auto& tx_hash : dag_block.getTrxs()) {
-        dag_stats.addTransaction(tx_hash, dag_block_author);
+        rewards_stats.addTransaction(tx_hash, dag_block_author);
       }
+
+      // TODO: add votes to rewards_stats
     }
 
     DB::MultiGetQuery db_query(db_);
@@ -116,29 +110,28 @@ class FinalChainImpl final : public FinalChain {
     Transactions txs_to_execute;
     txs_to_execute.reserve(sync_block.getTransactions().size());
 
-    std::vector<DagStats::TransactionStats> selected_txs_stats;
-    selected_txs_stats.reserve(sync_block.getTransactions().size());
-
     const auto& txs = sync_block.getTransactions();
     for (size_t i = 0; i < txs.size(); ++i) {
+      const auto& tx = txs[i];
+
       if (auto has_been_executed = !trx_db_results[i].empty(); has_been_executed) {
+        rewards_stats.removeTransaction(tx.getHash());
         continue;
       }
 
-      const auto& tx = txs[i];
       if (replay_protection_service_ && replay_protection_service_->is_nonce_stale(tx.getSender(), tx.getNonce())) {
+        rewards_stats.removeTransaction(tx.getHash());
         continue;
       }
 
       // Non-executed trxs
-      selected_txs_stats.push_back(dag_stats.getTransactionStatsRvalue(tx.getHash()));
       txs_to_execute.push_back(std::move(tx));
     }
 
     const auto& pbft_block = sync_block.getPbftBlock();
     auto const& [exec_results, state_root] = state_api_.transition_state(
         {pbft_block->getBeneficiary(), GAS_LIMIT, pbft_block->getTimestamp(), BlockHeader::difficulty()},
-        to_state_api_transactions(txs_to_execute), {}, selected_txs_stats, dag_stats.getBlocksStats());
+        to_state_api_transactions(txs_to_execute), {}, rewards_stats);
 
     TransactionReceipts receipts;
     receipts.reserve(exec_results.size());
@@ -406,10 +399,8 @@ class FinalChainImpl final : public FinalChain {
 
   static util::RangeView<state_api::EVMTransaction> to_state_api_transactions(Transactions const& trxs) {
     return util::make_range_view(trxs).map([](auto const& trx) {
-      return state_api::EVMTransaction{
-          trx.getSender(), trx.getGasPrice(), trx.getReceiver(), trx.getNonce(),
-          trx.getValue(),  trx.getGas(),      trx.getData(),
-      };
+      return state_api::EVMTransaction{trx.getSender(), trx.getGasPrice(), trx.getReceiver(), trx.getNonce(),
+                                       trx.getValue(),  trx.getGas(),      trx.getData(),     trx.getHash()};
     });
   }
 

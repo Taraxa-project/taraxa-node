@@ -227,16 +227,15 @@ TEST_F(FinalChainTest, contract) {
   auto contract_addr = result->trx_receipts[0].new_contract_address;
   EXPECT_EQ(contract_addr, dev::right160(dev::sha3(dev::rlpList(addr, 0))));
   auto greet = [&] {
-    auto ret = SUT->call({
-        addr,
-        0,
-        contract_addr,
-        0,
-        0,
-        0,
-        // greet()
-        dev::fromHex("0xcfae3217"),
-    });
+    auto ret = SUT->call({addr,
+                          0,
+                          contract_addr,
+                          0,
+                          0,
+                          0,
+                          // greet()
+                          dev::fromHex("0xcfae3217"),
+                          {}});
     return dev::toHexPrefixed(ret.code_retval);
   };
   ASSERT_EQ(greet(),
@@ -273,7 +272,7 @@ TEST_F(FinalChainTest, coin_transfers) {
     cfg.state.genesis_balances[k.address()] = numeric_limits<u256>::max() / NUM_ACCS;
   }
   cfg.state.execution_options.disable_gas_fee = false;
-  cfg.state.execution_options.disable_dag_stats_rewards = true;
+  cfg.state.execution_options.disable_stats_rewards = true;
   init();
   constexpr auto TRX_GAS = 100000;
   advance({
@@ -306,7 +305,7 @@ TEST_F(FinalChainTest, coin_transfers) {
 TEST_F(FinalChainTest, mining_rewards_distribution) {
   cfg.state.dpos = nullopt;
   cfg.state.execution_options.disable_gas_fee = false;
-  cfg.state.execution_options.disable_dag_stats_rewards = false;
+  cfg.state.execution_options.disable_stats_rewards = false;
   cfg.state.disable_block_rewards = false;
   cfg.state.genesis_balances = {};
 
@@ -387,52 +386,38 @@ TEST_F(FinalChainTest, mining_rewards_distribution) {
   /*  Rewards distribution model:
    *
    *  Fixed pbft block reward:
-   *    25% out of fixed pbft block reward goes to pbft block proposer
-   *    75% OUT OF fixed pbft block reward goes to dag block proposers proportionally to how many dag blocks they
-   * created
+   *    - to be defined !
    *
    *  All included transaction fees -> rewards:
    *    100% of txs fees included in dag blocks goes to dag block proposers who included them in their blocks
-   *
-   *  Single transaction fee -> reward:
-   *    100% goes to the proposer, if he included the tx in his block as the only one proposer
-   *
-   *    or
-   *
-   *    75% goes to the proposer, who included this tx in his block as first proposer
-   *    25% goes to the rest of the proposers (uncle proposers), who included this tx in their bocks as second, third,
-   * etc... This 1/4 of tx fee is divided equally between all uncle proposers
    */
   constexpr uint64_t FIXED_BLOCK_REWARD = 2000000000000000000;
-  constexpr uint64_t TRANSCATION_FEE = TRX_GAS * TRX_GAS_PRICE;
-  constexpr uint64_t FULL_TRANSCATION_REWARD = TRANSCATION_FEE;
-  constexpr uint64_t FIRST_TRANSCATION_REWARD = TRANSCATION_FEE * 0.75;
-  constexpr uint64_t UNCLE_TRANSCATION_REWARD = TRANSCATION_FEE * 0.25;
-  constexpr uint64_t TRANSCATIONS_FEES = TRX_COUNT * TRANSCATION_FEE;
-  constexpr uint64_t PBFT_BLOCK_CREATION_REWARD = FIXED_BLOCK_REWARD * 0.25;
-  constexpr uint64_t DAG_BLOCK_CREATION_REWARD = (FIXED_BLOCK_REWARD * 0.75) / BLOCKS_COUNT;
+  constexpr uint64_t TRANSACTION_FEE = TRX_GAS * TRX_GAS_PRICE;
+  constexpr uint64_t TRANSACTION_REWARD = TRANSACTION_FEE;
+  constexpr uint64_t TRANSACTIONS_FEES = TRX_COUNT * TRANSACTION_FEE;
 
-  // Check pbft block proposer reward -> 25% out of fixed pbft block reward
-  EXPECT_EQ(PBFT_BLOCK_CREATION_REWARD, SUT->getBalance(pbft_proposer.address()).first);
+  // TODO: this test becomes obsolete as rewards wont be added directly to validators balances
+  //  but to the staking/delegation contract
+  //
+  // TODO: these checks do not reflect final rewards distribution model
 
-  // Check proposer0 rewards, who created 1 dag block and included 3 txs as the only proposer and 1 tx as first
-  constexpr uint64_t EXPECTED_PROPOSER0_REWARDS =
-      1 * DAG_BLOCK_CREATION_REWARD + 3 * FULL_TRANSCATION_REWARD + 1 * FIRST_TRANSCATION_REWARD;
+  // Check pbft block proposer reward -> 100% out of fixed pbft block reward
+  EXPECT_EQ(FIXED_BLOCK_REWARD, SUT->getBalance(pbft_proposer.address()).first);
+
+  // Check proposer0 rewards, who created 1 dag block and included 4 unique txs
+  constexpr uint64_t EXPECTED_PROPOSER0_REWARDS = 4 * TRANSACTION_REWARD;
   EXPECT_EQ(EXPECTED_PROPOSER0_REWARDS, SUT->getBalance(dag_proposers[0].address()).first);
 
-  // Check proposer1 rewards, who created 1 dag block and included 1 uncle tx and 1 tx as the only one proposer
-  constexpr uint64_t EXPECTED_PROPOSER1_REWARDS =
-      1 * DAG_BLOCK_CREATION_REWARD + 1 * UNCLE_TRANSCATION_REWARD + 1 * FULL_TRANSCATION_REWARD;
+  // Check proposer1 rewards, who created 1 dag block and included 1 unique tx
+  constexpr uint64_t EXPECTED_PROPOSER1_REWARDS = 1 * TRANSACTION_REWARD;
   EXPECT_EQ(EXPECTED_PROPOSER1_REWARDS, SUT->getBalance(dag_proposers[1].address()).first);
 
-  // Check proposer2 rewards, who created 1 dag block and included 2 txs as the only proposer and 1 tx as first
-  constexpr uint64_t EXPECTED_PROPOSER2_REWARDS =
-      1 * DAG_BLOCK_CREATION_REWARD + 2 * FULL_TRANSCATION_REWARD + 1 * FIRST_TRANSCATION_REWARD;
+  // Check proposer2 rewards, who created 1 dag block and included 3 unique txs
+  constexpr uint64_t EXPECTED_PROPOSER2_REWARDS = 3 * TRANSACTION_REWARD;
   EXPECT_EQ(EXPECTED_PROPOSER2_REWARDS, SUT->getBalance(dag_proposers[2].address()).first);
 
-  // Check proposer3 rewards, who created 2 dag blocks and included 2 txs as first proposer and 1 uncle tx
-  constexpr uint64_t EXPECTED_PROPOSER3_REWARDS =
-      2 * DAG_BLOCK_CREATION_REWARD + 2 * FULL_TRANSCATION_REWARD + 1 * UNCLE_TRANSCATION_REWARD;
+  // Check proposer3 rewards, who created 2 dag blocks and included 2 unique txs
+  constexpr uint64_t EXPECTED_PROPOSER3_REWARDS = 2 * TRANSACTION_REWARD;
   EXPECT_EQ(EXPECTED_PROPOSER3_REWARDS, SUT->getBalance(dag_proposers[3].address()).first);
 
   // Check proposer4 rewards, who created 0 dag blocks and included 0 txs
@@ -441,7 +426,7 @@ TEST_F(FinalChainTest, mining_rewards_distribution) {
 
   // Check total distributed rewards == rewards that actually should be distributed based on included txs and fixed
   // block rewards
-  constexpr uint64_t TOTAL_BLOCK_REWARD = FIXED_BLOCK_REWARD + TRANSCATIONS_FEES;
+  constexpr uint64_t TOTAL_BLOCK_REWARD = FIXED_BLOCK_REWARD + TRANSACTIONS_FEES;
   auto distributed_rewards = SUT->getBalance(pbft_proposer.address()).first;
   for (const auto& dag_proposer : dag_proposers) {
     distributed_rewards += SUT->getBalance(dag_proposer.address()).first;

@@ -1,4 +1,5 @@
 # Rewards distribution algorithm
+## Outdated - TODO: update this !!!
 The main goal of fair rewards distribution is to motivate validators to participate in all steps of the validation process
 (creating high-quality DAG blocks, creating PBFT blocks, voting for PBFT blocks) as much as possible.
 
