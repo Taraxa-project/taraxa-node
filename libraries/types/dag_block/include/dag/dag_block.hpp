@@ -17,8 +17,8 @@ class DagBlock {
   //                needs to be done in class members, please check carefully all possible dependencies it has like for
   //                example in mentioned methods...
   blk_hash_t pivot_;
-  uint64_t proposal_period_ = 0;
   level_t level_ = 0;
+  uint64_t proposal_period_ = 0;
   vec_blk_t tips_;
   vec_trx_t trxs_;  // transactions
   sig_t sig_;
