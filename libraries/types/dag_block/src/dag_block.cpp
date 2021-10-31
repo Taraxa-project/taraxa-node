@@ -21,8 +21,8 @@ DagBlock::DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_t
 DagBlock::DagBlock(blk_hash_t const &pivot, uint64_t period, level_t level, vec_blk_t tips, vec_trx_t trxs,
                    VdfSortition vdf, secret_t const &sk)
     : pivot_(pivot),
-      proposal_period_(period),
       level_(level),
+      proposal_period_(period),
       tips_(std::move(tips)),
       trxs_(std::move(trxs)),
       timestamp_(dev::utcTime()),
@@ -70,9 +70,9 @@ DagBlock::DagBlock(dev::RLP const &rlp) {
     if (field_n == 0) {
       pivot_ = el.toHash<blk_hash_t>();
     } else if (field_n == 1) {
-      proposal_period_ = el.toInt<uint64_t>();
-    } else if (field_n == 2) {
       level_ = el.toInt<level_t>();
+    } else if (field_n == 2) {
+      proposal_period_ = el.toInt<uint64_t>();
     } else if (field_n == 3) {
       timestamp_ = el.toInt<uint64_t>();
     } else if (field_n == 4) {
@@ -95,8 +95,8 @@ level_t DagBlock::extract_dag_level_from_rlp(const dev::RLP &rlp) { return rlp[1
 Json::Value DagBlock::getJson(bool with_derived_fields) const {
   Json::Value res;
   res["pivot"] = dev::toJS(pivot_);
-  res["proposal_period"] = dev::toJS(proposal_period_);
   res["level"] = dev::toJS(level_);
+  res["proposal_period"] = dev::toJS(proposal_period_);
   res["tips"] = Json::Value(Json::arrayValue);
   for (auto const &t : tips_) {
     res["tips"].append(dev::toJS(t));
@@ -167,8 +167,8 @@ void DagBlock::streamRLP(dev::RLPStream &s, bool include_sig) const {
   constexpr auto base_field_count = 7;
   s.appendList(include_sig ? base_field_count + 1 : base_field_count);
   s << pivot_;
-  s << proposal_period_;
   s << level_;
+  s << proposal_period_;
   s << timestamp_;
   s << vdf_.rlp();
   s.appendVector(tips_);
