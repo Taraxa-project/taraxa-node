@@ -72,7 +72,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
  public:
   using Slice = rocksdb::Slice;
   using Batch = rocksdb::WriteBatch;
-  using OnEntry = std::function<bool(Slice const&, Slice const&)>;
+  using OnEntry = std::function<void(Slice const&, Slice const&)>;
 
   class Column {
     string const name_;
@@ -195,11 +195,13 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::map<level_t, std::vector<DagBlock>> getNonfinalizedDagBlocks();
   void removeDagBlock(Batch& write_batch, blk_hash_t const& hash);
   // DAG Efficiency
-  void savePbftBlockDagEfficiency(uint64_t period, uint16_t efficiency);
+  void savePbftBlockDagEfficiency(uint64_t period, uint16_t efficiency, DbStorage::Batch& batch);
   std::vector<uint16_t> getLastIntervalEfficiencies(uint16_t computation_interval);
+  void cleanupDagEfficiencies(DbStorage::Batch& batch);
   // Sortition params
-  void saveSortitionParamsChange(uint64_t period, SortitionParamsChange params);
+  void saveSortitionParamsChange(uint64_t period, SortitionParamsChange params, DbStorage::Batch& batch);
   std::deque<SortitionParamsChange> getLastSortitionParams(size_t count);
+  void cleanupParamsChanges(DbStorage::Batch& batch, uint16_t changes_to_leave);
 
   // Transaction
   void saveTransaction(Transaction const& trx, bool verified = false);

@@ -7,13 +7,15 @@
 namespace taraxa {
 
 struct SortitionParamsChange {
-  VrfParams vrf_params_;
-  uint16_t interval_efficiency_ = 0;
-  uint16_t actual_correction_per_percent_ = 1;
+  uint64_t period = 0;
+  VrfParams vrf_params;
+  uint16_t interval_efficiency = 0;
+  uint16_t actual_correction_per_percent = 1;
 
   SortitionParamsChange() = default;
-  SortitionParamsChange(uint16_t efficiency, VrfParams const& vrf);
-  SortitionParamsChange(uint16_t efficiency, VrfParams const& vrf, SortitionParamsChange const& previous);
+  SortitionParamsChange(uint64_t period, uint16_t efficiency, VrfParams const& vrf);
+  SortitionParamsChange(uint64_t period, uint16_t efficiency, VrfParams const& vrf,
+                        SortitionParamsChange const& previous);
   static SortitionParamsChange from_rlp(dev::RLP const& rlp);
   bytes rlp() const;
 
@@ -32,13 +34,14 @@ class SortitionParamsManager {
   std::shared_ptr<DbStorage> db_;
   std::vector<uint16_t> dag_efficiencies_;
   std::deque<SortitionParamsChange> params_changes_;
-  void recalculate(const uint64_t period);
+  SortitionParamsChange calculateChange(const uint64_t period);
   int32_t getChange(const uint64_t period, const uint16_t efficiency) const;
+  void cleanup();
 
  public:
   SortitionParamsManager(SortitionConfig sort_conf, std::shared_ptr<DbStorage> db);
-  const SortitionParams& getSortitionParams() const { return config_; }
-
+  SortitionParams getSortitionParams(std::optional<uint64_t> for_period = {}) const;
+  uint64_t currentProposalPeriod() const;
   /**
    * Calculates the average correction from previous changes we store in memory.
    * We can regulate corrections count by removing oldest elements of  params_changes_ collection
@@ -57,7 +60,7 @@ class SortitionParamsManager {
    * Calculates and stores needed data on every block.
    * Every `computation_interval` blocks from config launches `recalculate` based on previous data
    */
-  void pbftBlockPushed(const SyncBlock& block);
+  void pbftBlockPushed(const SyncBlock& block, DbStorage::Batch& batch);
 
   /**
    * Calculate average DAG efficiency from dag_efficiencies_

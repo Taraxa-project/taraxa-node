@@ -127,8 +127,8 @@ const char *default_json = R"foo({
       "target_dag_efficiency": "0x1388",
       "computation_interval": "0x32",
       "vrf": {
-        "threshold_upper": "0xbffd",
-        "threshold_lower": "0x6bf7"
+        "threshold_upper": "0xeffd",
+        "threshold_lower": "0xebf7"
       },
       "vdf": {
         "difficulty_max": "0x12",

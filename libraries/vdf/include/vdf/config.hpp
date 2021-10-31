@@ -31,6 +31,7 @@ struct SortitionParams {
   SortitionParams(uint16_t const selection, uint16_t const threshold_lower, uint16_t const min, uint16_t const max,
                   uint16_t const stale, uint16_t const lambda_max_bound)
       : vrf{selection, threshold_lower}, vdf{min, max, stale, lambda_max_bound} {}
+  SortitionParams(VrfParams vrf, VdfParams vdf) : vrf{vrf}, vdf{vdf} {}
 
   SortitionParams& operator=(SortitionParams&&) = default;
   SortitionParams& operator=(const SortitionParams&) = default;

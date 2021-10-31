@@ -79,19 +79,19 @@ TEST_F(SortitionTest, sortition_config_serialization) {
 }
 
 TEST_F(SortitionTest, params_change_serialization) {
-  SortitionParamsChange start(25 * ONE_PERCENT, {1100, 1500});
+  SortitionParamsChange start(1, 25 * ONE_PERCENT, {1100, 1500});
   // 1700 - 1500 / 2 = 100 (change per percent)
-  SortitionParamsChange params(27 * ONE_PERCENT, {1300, 1700}, start);
+  SortitionParamsChange params(2, 27 * ONE_PERCENT, {1300, 1700}, start);
 
-  EXPECT_EQ(params.actual_correction_per_percent_, 100);
+  EXPECT_EQ(params.actual_correction_per_percent, 100);
 
   const auto params_rlp = params.rlp();
   const auto deserialized_params = SortitionParamsChange::from_rlp(dev::RLP(params_rlp));
 
-  EXPECT_EQ(params.vrf_params_.threshold_lower, deserialized_params.vrf_params_.threshold_lower);
-  EXPECT_EQ(params.vrf_params_.threshold_upper, deserialized_params.vrf_params_.threshold_upper);
-  EXPECT_EQ(params.interval_efficiency_, deserialized_params.interval_efficiency_);
-  EXPECT_EQ(params.actual_correction_per_percent_, deserialized_params.actual_correction_per_percent_);
+  EXPECT_EQ(params.vrf_params.threshold_lower, deserialized_params.vrf_params.threshold_lower);
+  EXPECT_EQ(params.vrf_params.threshold_upper, deserialized_params.vrf_params.threshold_upper);
+  EXPECT_EQ(params.interval_efficiency, deserialized_params.interval_efficiency);
+  EXPECT_EQ(params.actual_correction_per_percent, deserialized_params.actual_correction_per_percent);
 }
 
 TEST_F(SortitionTest, efficiency_calculation) {
@@ -111,21 +111,21 @@ TEST_F(SortitionTest, efficiency_calculation) {
 TEST_F(SortitionTest, correction_calculation) {
   VrfParams params{300, 100};
 
-  SortitionParamsChange pc1(60 * ONE_PERCENT, params);
-  SortitionParamsChange pc2(62 * ONE_PERCENT, {400, 200}, pc1);
+  SortitionParamsChange pc1(1, 60 * ONE_PERCENT, params);
+  SortitionParamsChange pc2(2, 62 * ONE_PERCENT, {400, 200}, pc1);
 
   // 100 / 2 = 50
-  EXPECT_EQ(pc2.actual_correction_per_percent_, 50);
+  EXPECT_EQ(pc2.actual_correction_per_percent, 50);
 }
 
 TEST_F(SortitionTest, minimal_correction) {
   VrfParams params{100, 300};
 
-  SortitionParamsChange pc1(60 * ONE_PERCENT, params);
-  SortitionParamsChange pc2(62 * ONE_PERCENT, params, pc1);
+  SortitionParamsChange pc1(1, 60 * ONE_PERCENT, params);
+  SortitionParamsChange pc2(2, 62 * ONE_PERCENT, params, pc1);
 
   // params not changed so correction should be minimal(1)
-  EXPECT_EQ(pc2.actual_correction_per_percent_, 1);
+  EXPECT_EQ(pc2.actual_correction_per_percent, 1);
 }
 
 TEST_F(SortitionTest, average_correction_per_percent) {
@@ -137,11 +137,14 @@ TEST_F(SortitionTest, average_correction_per_percent) {
 
   auto threshold_upper = sp.getSortitionParams().vrf.threshold_upper;
   auto correction_per_percent = sp.averageCorrectionPerPercent();
-
-  for (int i = 1; i <= 5; i++) {
-    auto efficiency = 72 * ONE_PERCENT;
-    auto b = createBlock(i, efficiency, 5);
-    sp.pbftBlockPushed(b);
+  {
+    auto batch = db->createWriteBatch();
+    for (int i = 1; i <= 5; i++) {
+      auto efficiency = 72 * ONE_PERCENT;
+      auto b = createBlock(i, efficiency, 5);
+      sp.pbftBlockPushed(b, batch);
+    }
+    db->commitWriteBatch(batch);
   }
   EXPECT_EQ(correction_per_percent, 1);
   EXPECT_EQ(threshold_upper -= 3 * correction_per_percent, sp.getSortitionParams().vrf.threshold_upper);
@@ -149,20 +152,29 @@ TEST_F(SortitionTest, average_correction_per_percent) {
   correction_per_percent = sp.averageCorrectionPerPercent();
   EXPECT_EQ(correction_per_percent, 1);
 
-  for (int i = 6; i <= 10; i++) {
-    auto efficiency = 72 * ONE_PERCENT;
-    auto b = createBlock(i, efficiency, 5);
-    sp.pbftBlockPushed(b);
+  {
+    auto batch = db->createWriteBatch();
+    for (int i = 6; i <= 10; i++) {
+      auto efficiency = 72 * ONE_PERCENT;
+      auto b = createBlock(i, efficiency, 5);
+      sp.pbftBlockPushed(b, batch);
+    }
+    db->commitWriteBatch(batch);
   }
+
   EXPECT_EQ(threshold_upper -= 3 * correction_per_percent, sp.getSortitionParams().vrf.threshold_upper);
   threshold_upper = sp.getSortitionParams().vrf.threshold_upper;
   correction_per_percent = sp.averageCorrectionPerPercent();
   EXPECT_EQ(correction_per_percent, 150);
 
-  for (int i = 11; i <= 15; i++) {
-    auto efficiency = 77 * ONE_PERCENT;
-    auto b = createBlock(i, efficiency, 5);
-    sp.pbftBlockPushed(b);
+  {
+    auto batch = db->createWriteBatch();
+    for (int i = 11; i <= 15; i++) {
+      auto efficiency = 77 * ONE_PERCENT;
+      auto b = createBlock(i, efficiency, 5);
+      sp.pbftBlockPushed(b, batch);
+    }
+    db->commitWriteBatch(batch);
   }
   // 1 + 300 / 2 = 150
   EXPECT_EQ(threshold_upper += correction_per_percent * 2, sp.getSortitionParams().vrf.threshold_upper);
@@ -170,17 +182,25 @@ TEST_F(SortitionTest, average_correction_per_percent) {
   correction_per_percent = sp.averageCorrectionPerPercent();
   EXPECT_EQ(correction_per_percent, 120);
 
-  for (int i = 16; i <= 20; i++) {
-    auto efficiency = 74 * ONE_PERCENT;
-    auto b = createBlock(i, efficiency, 5);
-    sp.pbftBlockPushed(b);
+  {
+    auto batch = db->createWriteBatch();
+    for (int i = 16; i <= 20; i++) {
+      auto efficiency = 74 * ONE_PERCENT;
+      auto b = createBlock(i, efficiency, 5);
+      sp.pbftBlockPushed(b, batch);
+    }
+    db->commitWriteBatch(batch);
   }
   EXPECT_EQ(threshold_upper -= correction_per_percent * 1, sp.getSortitionParams().vrf.threshold_upper);
 
-  for (int i = 21; i <= 23; i++) {
-    auto efficiency = std::rand() % 100 * ONE_PERCENT;
-    auto b = createBlock(i, efficiency, 5);
-    sp.pbftBlockPushed(b);
+  {
+    auto batch = db->createWriteBatch();
+    for (int i = 21; i <= 23; i++) {
+      auto efficiency = std::rand() % 100 * ONE_PERCENT;
+      auto b = createBlock(i, efficiency, 5);
+      sp.pbftBlockPushed(b, batch);
+    }
+    db->commitWriteBatch(batch);
   }
 
   SortitionParamsManager sp2(node_cfgs[0].chain.sortition, db);
@@ -190,40 +210,52 @@ TEST_F(SortitionTest, average_correction_per_percent) {
 
 TEST_F(SortitionTest, params_changes_from_db) {
   auto db = std::make_shared<DbStorage>(data_dir / "db");
+
+  auto batch = db->createWriteBatch();
   for (uint16_t i = 0; i < 10; ++i) {
-    SortitionParamsChange p{i, {i, i}};
-    db->saveSortitionParamsChange(i, p);
+    SortitionParamsChange p{i, i, {i, i}};
+    db->saveSortitionParamsChange(i, p, batch);
   }
+  db->commitWriteBatch(batch);
+
   auto res = db->getLastSortitionParams(5);
   EXPECT_EQ(res.size(), 5);
   for (uint16_t i = 0; i < 5; ++i) {
     // +5 is offset to the middle of data
-    EXPECT_EQ(res[i].interval_efficiency_, i + 5);
-    EXPECT_EQ(res[i].vrf_params_.threshold_lower, i + 5);
-    EXPECT_EQ(res[i].vrf_params_.threshold_upper, i + 5);
+    EXPECT_EQ(res[i].interval_efficiency, i + 5);
+    EXPECT_EQ(res[i].vrf_params.threshold_lower, i + 5);
+    EXPECT_EQ(res[i].vrf_params.threshold_upper, i + 5);
   }
 }
 
 TEST_F(SortitionTest, params_changes_from_db2) {
   auto db = std::make_shared<DbStorage>(data_dir / "db");
+
+  auto batch = db->createWriteBatch();
   for (uint16_t i = 0; i < 2; ++i) {
-    SortitionParamsChange p{i, {i, i}};
-    db->saveSortitionParamsChange(i, p);
+    SortitionParamsChange p{i, i, {i, i}};
+    db->saveSortitionParamsChange(i, p, batch);
   }
+  db->commitWriteBatch(batch);
+
   auto res = db->getLastSortitionParams(5);
   EXPECT_EQ(res.size(), 2);
   for (uint16_t i = 0; i < 2; ++i) {
-    EXPECT_EQ(res[i].interval_efficiency_, i);
-    EXPECT_EQ(res[i].vrf_params_.threshold_lower, i);
-    EXPECT_EQ(res[i].vrf_params_.threshold_upper, i);
+    EXPECT_EQ(res[i].interval_efficiency, i);
+    EXPECT_EQ(res[i].vrf_params.threshold_lower, i);
+    EXPECT_EQ(res[i].vrf_params.threshold_upper, i);
   }
 }
 
 TEST_F(SortitionTest, efficiencies_from_db) {
   auto db = std::make_shared<DbStorage>(data_dir / "db");
+
+  auto batch = db->createWriteBatch();
   for (int i = 0; i <= 143; ++i) {
-    db->savePbftBlockDagEfficiency(i, i);
+    db->savePbftBlockDagEfficiency(i, i, batch);
   }
+  db->commitWriteBatch(batch);
+
   const auto efficiencies = db->getLastIntervalEfficiencies(50);
   EXPECT_EQ(efficiencies.size(), 43);
   EXPECT_EQ(efficiencies.back(), 101);
@@ -232,19 +264,54 @@ TEST_F(SortitionTest, efficiencies_from_db) {
 
 TEST_F(SortitionTest, load_from_db) {
   auto db = std::make_shared<DbStorage>(data_dir / "db");
+
+  auto batch = db->createWriteBatch();
   for (uint16_t i = 0; i < 10; ++i) {
-    SortitionParamsChange p{i, {i, i}};
-    p.actual_correction_per_percent_ = 25 * ONE_PERCENT;
-    db->saveSortitionParamsChange(i, p);
+    SortitionParamsChange p{i, i, {i, i}};
+    p.actual_correction_per_percent = 25 * ONE_PERCENT;
+    db->saveSortitionParamsChange(i, p, batch);
   }
   for (int i = 0; i <= node_cfgs[0].chain.sortition.computation_interval - 1; ++i) {
-    db->savePbftBlockDagEfficiency(i, 44 * ONE_PERCENT);
+    db->savePbftBlockDagEfficiency(i, 44 * ONE_PERCENT, batch);
   }
+  db->commitWriteBatch(batch);
 
   SortitionParamsManager sp(node_cfgs[0].chain.sortition, db);
 
   EXPECT_EQ(sp.averageCorrectionPerPercent(), 25 * ONE_PERCENT);
   EXPECT_EQ(sp.averageDagEfficiency(), 44 * ONE_PERCENT);
+}
+
+TEST_F(SortitionTest, db_cleanup) {
+  auto& cfg = node_cfgs[0].chain.sortition;
+  cfg.computation_interval = 5;
+  cfg.target_dag_efficiency = 75 * ONE_PERCENT;
+
+  auto db = std::make_shared<DbStorage>(data_dir / "db");
+  SortitionParamsManager sp(node_cfgs[0].chain.sortition, db);
+
+  {
+    auto batch = db->createWriteBatch();
+    for (int i = 1; i <= 2 * cfg.computation_interval * cfg.changes_count_for_average; i++) {
+      auto efficiency = 72 * ONE_PERCENT;
+      auto b = createBlock(i, efficiency, 5);
+      sp.pbftBlockPushed(b, batch);
+    }
+    db->commitWriteBatch(batch);
+    EXPECT_EQ(db->getLastIntervalEfficiencies(cfg.computation_interval).size(), 0);
+    EXPECT_EQ(db->getLastSortitionParams(cfg.changes_count_for_average).size(), 5);
+  }
+  {
+    auto batch = db->createWriteBatch();
+    for (int i = 1; i <= 3; i++) {
+      auto efficiency = 73 * ONE_PERCENT;
+      auto b = createBlock(2 * cfg.computation_interval * cfg.changes_count_for_average + i, efficiency, 5);
+      sp.pbftBlockPushed(b, batch);
+    }
+    db->commitWriteBatch(batch);
+    EXPECT_EQ(db->getLastIntervalEfficiencies(cfg.computation_interval).size(), 3);
+    EXPECT_EQ(db->getLastSortitionParams(cfg.changes_count_for_average).size(), 5);
+  }
 }
 
 }  // namespace taraxa::core_tests

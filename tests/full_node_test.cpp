@@ -1447,6 +1447,7 @@ TEST_F(FullNodeTest, chain_config_json) {
   "dag_genesis_block": {
     "level": "0x0",
     "pivot": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "proposal_period" : "0x0",
     "sig": "0xb7e22d46c1ba94d5e8347b01d137b5c428fcbbeaf0a77fb024cbbf1517656ff00d04f7f25be608c321b0d7483c402c294ff46c49b265305d046a52236c0a363701",
     "timestamp": "0x5d422b80",
     "tips": [],
@@ -1498,7 +1499,7 @@ TEST_F(FullNodeTest, chain_config_json) {
     "changes_count_for_average": "0x5",
     "max_interval_correction": "0x3e8",
     "computation_interval": "0x32",
-    "target_dag_efficiency": "0x1388",
+      "target_dag_efficiency": "0x1388",
     "vdf": {
       "difficulty_max": "0x15",
       "difficulty_min": "0x10",

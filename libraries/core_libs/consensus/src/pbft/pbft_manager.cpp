@@ -1552,6 +1552,9 @@ bool PbftManager::pushPbftBlock_(SyncBlock &sync_block, vec_blk_t &dag_blocks_or
   // Reset last cert voted value to NULL_BLOCK_HASH
   db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::LastCertVotedValue, NULL_BLOCK_HASH, batch);
 
+  // pass pbft with dag blocks and transactions to adjust difficulty
+  dag_blk_mgr_->sortitionParamsManager().pbftBlockPushed(sync_block, batch);
+
   // Commit DB
   db_->commitWriteBatch(batch);
 
@@ -1570,9 +1573,6 @@ bool PbftManager::pushPbftBlock_(SyncBlock &sync_block, vec_blk_t &dag_blocks_or
                << pbft_period << " into chain! In round " << getPbftRound();
 
   finalize_(*sync_block.pbft_blk, move(dag_blocks_order));
-
-  // pass pbft with dag blocks and transactions to adjust difficulty
-  dag_blk_mgr_->sortitionParamsManager().pbftBlockPushed(sync_block);
 
   // Reset proposed PBFT block hash to False for next pbft block proposal
   proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
