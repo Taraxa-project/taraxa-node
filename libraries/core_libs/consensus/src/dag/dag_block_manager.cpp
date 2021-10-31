@@ -225,11 +225,20 @@ void DagBlockManager::verifyBlock() {
     }
 
     // Verify VDF solution
+    auto proposal_period = getProposalPeriod(blk.getLevel()).first;
+    if (blk.getProposePeriod() != proposal_period) {
+      LOG(log_er_) << " (IN BLOCK, FROM MAP) IS NOT EQUAL (" << blk.getProposePeriod() << ", " << proposal_period
+                   << ")";
+    }
     try {
-      blk.verifyVdf(sortition_params_manager_.getSortitionParams());
+      blk.verifyVdf(sortition_params_manager_.getSortitionParams(blk.getProposePeriod()));
     } catch (vdf_sortition::VdfSortition::InvalidVdfSortition const &e) {
       LOG(log_er_) << "DAG block " << block_hash << " failed on VDF verification with pivot hash " << blk.getPivot()
                    << " reason " << e.what();
+      LOG(log_er_) << "period from map: " << proposal_period << " current: " << pbft_chain_->getPbftChainSize();
+      auto p = sortition_params_manager_.getSortitionParams(blk.getProposePeriod());
+      LOG(log_er_) << " from block: " << blk.getProposePeriod() << " params: (" << p.vrf.threshold_lower << ", "
+                   << p.vrf.threshold_upper << ")";
       markBlockInvalid(block_hash);
       continue;
     }
@@ -310,7 +319,7 @@ std::pair<uint64_t, bool> DagBlockManager::getProposalPeriod(level_t level) {
     } else if (level > period_levels_map.levels_interval.second) {
       proposal_period++;
     } else {
-      // propsoal level less than the interval
+      // proposal level less than the interval
       assert(proposal_period);  // Avoid overflow
       proposal_period--;
     }

@@ -93,10 +93,11 @@ void VdfSortition::verifyVdf(SortitionParams const& config, bytes const& vrf_inp
   if (!isOmitVdf(config)) {
     const auto expected = calculateDifficulty(config);
     if (difficulty_ != expected) {
-      throw InvalidVdfSortition("VDF solution verification failed. Incorrect difficulty. VDF input " +
-                                bytes2str(vdf_input) + ", lambda " + std::to_string(config.vdf.lambda_bound) +
-                                ", difficulty " + std::to_string(getDifficulty()) +
-                                ", expected: " + std::to_string(expected));
+      throw InvalidVdfSortition(
+          "VDF solution verification failed. Incorrect difficulty. VDF input " + bytes2str(vdf_input) + ", lambda " +
+          std::to_string(config.vdf.lambda_bound) + ", difficulty " + std::to_string(getDifficulty()) +
+          ", expected: " + std::to_string(expected) + ", vrf_params: (" + std::to_string(config.vrf.threshold_lower) +
+          ", " + std::to_string(config.vrf.threshold_upper) + ") THRESHOLD: " + std::to_string(threshold));
     }
 
     // Verify VDF solution

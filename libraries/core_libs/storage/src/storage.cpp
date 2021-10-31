@@ -335,8 +335,8 @@ void DbStorage::saveDagBlock(DagBlock const& blk, Batch* write_batch_p) {
 }
 
 // DAG Efficiency
-void DbStorage::savePbftBlockDagEfficiency(uint64_t period, uint16_t efficiency) {
-  insert(Columns::pbft_block_dag_efficiency, toSlice(period), toSlice(efficiency));
+void DbStorage::savePbftBlockDagEfficiency(uint64_t period, uint16_t efficiency, DbStorage::Batch& batch) {
+  insert(batch, Columns::pbft_block_dag_efficiency, toSlice(period), toSlice(efficiency));
 }
 
 std::vector<uint16_t> DbStorage::getLastIntervalEfficiencies(uint16_t computation_interval) {
@@ -358,9 +358,14 @@ std::vector<uint16_t> DbStorage::getLastIntervalEfficiencies(uint16_t computatio
   return efficiencies;
 }
 
+void DbStorage::cleanupDagEfficiencies(DbStorage::Batch& batch) {
+  forEach(Columns::pbft_block_dag_efficiency,
+          [this, &batch](auto key, auto) { remove(batch, Columns::pbft_block_dag_efficiency, key); });
+}
+
 // Sortition params
-void DbStorage::saveSortitionParamsChange(uint64_t period, SortitionParamsChange params) {
-  insert(Columns::sortition_params_change, toSlice(period), toSlice(params.rlp()));
+void DbStorage::saveSortitionParamsChange(uint64_t period, SortitionParamsChange params, Batch& batch) {
+  insert(batch, Columns::sortition_params_change, toSlice(period), toSlice(params.rlp()));
 }
 
 std::deque<SortitionParamsChange> DbStorage::getLastSortitionParams(size_t count) {
@@ -373,6 +378,17 @@ std::deque<SortitionParamsChange> DbStorage::getLastSortitionParams(size_t count
   }
 
   return changes;
+}
+
+void DbStorage::cleanupParamsChanges(DbStorage::Batch& batch, uint16_t changes_to_leave) {
+  auto it =
+      std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::sortition_params_change)));
+  it->SeekToLast();
+  for (uint16_t i = 0; it->Valid(); it->Prev(), ++i) {
+    if (i >= changes_to_leave) {
+      remove(batch, Columns::sortition_params_change, it->key());
+    }
+  }
 }
 
 void DbStorage::savePeriodData(const SyncBlock& sync_block, Batch& write_batch) {
@@ -932,9 +948,7 @@ uint64_t DbStorage::getColumnSize(Column const& col) const {
 void DbStorage::forEach(Column const& col, OnEntry const& f) {
   auto i = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(col)));
   for (i->SeekToFirst(); i->Valid(); i->Next()) {
-    if (!f(i->key(), i->value())) {
-      break;
-    }
+    f(i->key(), i->value());
   }
 }
 

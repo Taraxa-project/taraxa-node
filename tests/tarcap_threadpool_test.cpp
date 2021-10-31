@@ -645,9 +645,12 @@ TEST_F(TarcapTpTest, dag_blks_lvls_ordering) {
       {blk2_lvl0_proc_info, "blk2_lvl0"},
   });
 
-  EXPECT_GT(blk3_lvl1_proc_info.start_time_, blk2_lvl0_proc_info.finish_time_);
-  EXPECT_GT(blk4_lvl2_proc_info.start_time_, blk3_lvl1_proc_info.finish_time_);
-  EXPECT_GT(blk5_lvl3_proc_info.start_time_, blk4_lvl2_proc_info.finish_time_);
+  EXPECT_GT(blk3_lvl1_proc_info.start_time_.time_since_epoch().count(),
+            blk2_lvl0_proc_info.finish_time_.time_since_epoch().count());
+  EXPECT_GT(blk4_lvl2_proc_info.start_time_.time_since_epoch().count(),
+            blk3_lvl1_proc_info.finish_time_.time_since_epoch().count());
+  EXPECT_GT(blk5_lvl3_proc_info.start_time_.time_since_epoch().count(),
+            blk4_lvl2_proc_info.finish_time_.time_since_epoch().count());
 }
 
 // Test threads borrowing

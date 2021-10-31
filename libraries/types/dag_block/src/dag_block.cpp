@@ -16,11 +16,12 @@ DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t tr
     : pivot_(pivot), level_(level), tips_(tips), trxs_(trxs), sig_(sig), hash_(hash), cached_sender_(sender) {}
 
 DagBlock::DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, secret_t const &sk)
-    : DagBlock(pivot, level, std::move(tips), std::move(trxs), VdfSortition(), sk) {}
+    : DagBlock(pivot, 0, level, std::move(tips), std::move(trxs), VdfSortition(), sk) {}
 
-DagBlock::DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, VdfSortition vdf,
-                   secret_t const &sk)
+DagBlock::DagBlock(blk_hash_t const &pivot, uint64_t period, level_t level, vec_blk_t tips, vec_trx_t trxs,
+                   VdfSortition vdf, secret_t const &sk)
     : pivot_(pivot),
+      proposal_period_(period),
       level_(level),
       tips_(std::move(tips)),
       trxs_(std::move(trxs)),
@@ -36,25 +37,23 @@ DagBlock::DagBlock(string const &json)
         return doc;
       }()) {}
 
-DagBlock::DagBlock(Json::Value const &doc) {
-  if (auto const &v = doc["level"]; v.isString()) {
-    level_ = dev::jsToInt(v.asString());
-  } else {
-    // this was inconsistent with getJson()
-    // fixme: eliminate this branch
-    level_ = v.asUInt64();
+uint64_t getUInt(auto const &v) {
+  if (v.isString()) {
+    return dev::jsToInt(v.asString());
   }
+
+  return v.asUInt64();
+}
+
+DagBlock::DagBlock(Json::Value const &doc) {
+  level_ = getUInt(doc["level"]);
+  proposal_period_ = getUInt(doc["proposal_period"]);
+
   tips_ = asVector<blk_hash_t, std::string>(doc, "tips");
   trxs_ = asVector<trx_hash_t, std::string>(doc, "trxs");
   sig_ = sig_t(doc["sig"].asString());
   pivot_ = blk_hash_t(doc["pivot"].asString());
-  if (auto const &v = doc["timestamp"]; v.isString()) {
-    timestamp_ = dev::jsToInt(v.asString());
-  } else {
-    // this was inconsistent with getJson()
-    // fixme: eliminate this branch
-    timestamp_ = v.asUInt64();
-  }
+  timestamp_ = getUInt(doc["timestamp"]);
 
   // Allow vdf not to be present for genesis
   if (level_ > 0) {
@@ -71,16 +70,18 @@ DagBlock::DagBlock(dev::RLP const &rlp) {
     if (field_n == 0) {
       pivot_ = el.toHash<blk_hash_t>();
     } else if (field_n == 1) {
-      level_ = el.toInt<level_t>();
+      proposal_period_ = el.toInt<uint64_t>();
     } else if (field_n == 2) {
-      timestamp_ = el.toInt<uint64_t>();
+      level_ = el.toInt<level_t>();
     } else if (field_n == 3) {
-      vdf_ = vdf_sortition::VdfSortition(el.toBytes());
+      timestamp_ = el.toInt<uint64_t>();
     } else if (field_n == 4) {
-      tips_ = el.toVector<trx_hash_t>();
+      vdf_ = vdf_sortition::VdfSortition(el.toBytes());
     } else if (field_n == 5) {
-      trxs_ = el.toVector<trx_hash_t>();
+      tips_ = el.toVector<trx_hash_t>();
     } else if (field_n == 6) {
+      trxs_ = el.toVector<trx_hash_t>();
+    } else if (field_n == 7) {
       sig_ = el.toHash<sig_t>();
     } else {
       BOOST_THROW_EXCEPTION(std::runtime_error("too many rlp fields for dag block"));
@@ -94,6 +95,7 @@ level_t DagBlock::extract_dag_level_from_rlp(const dev::RLP &rlp) { return rlp[1
 Json::Value DagBlock::getJson(bool with_derived_fields) const {
   Json::Value res;
   res["pivot"] = dev::toJS(pivot_);
+  res["proposal_period"] = dev::toJS(proposal_period_);
   res["level"] = dev::toJS(level_);
   res["tips"] = Json::Value(Json::arrayValue);
   for (auto const &t : tips_) {
@@ -162,9 +164,10 @@ addr_t const &DagBlock::getSender() const {
 }
 
 void DagBlock::streamRLP(dev::RLPStream &s, bool include_sig) const {
-  constexpr auto base_field_count = 6;
+  constexpr auto base_field_count = 7;
   s.appendList(include_sig ? base_field_count + 1 : base_field_count);
   s << pivot_;
+  s << proposal_period_;
   s << level_;
   s << timestamp_;
   s << vdf_.rlp();

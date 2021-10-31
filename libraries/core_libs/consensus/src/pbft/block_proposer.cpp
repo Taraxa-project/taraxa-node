@@ -12,7 +12,7 @@ namespace taraxa {
 using namespace vdf_sortition;
 std::atomic<uint64_t> BlockProposer::num_proposed_blocks = 0;
 
-bool SortitionPropose::propose() {
+bool SortitionPropose::propose(uint64_t proposal_period) {
   auto proposer = proposer_.lock();
   if (!proposer) {
     LOG(log_er_) << "Block proposer not available";
@@ -32,8 +32,9 @@ bool SortitionPropose::propose() {
   }
 
   // get sortition
-  vdf_sortition::VdfSortition vdf(vdf_config_, vrf_sk_, getRlpBytes(propose_level));
-  if (vdf.isStale(vdf_config_)) {
+  const auto sortition_params = sortition_manager_.getSortitionParams();
+  vdf_sortition::VdfSortition vdf(sortition_params, vrf_sk_, getRlpBytes(propose_level));
+  if (vdf.isStale(sortition_params)) {
     if (propose_level == last_propose_level_ && num_tries_ < max_num_tries_) {
       LOG(log_dg_) << "Will not propose DAG block. Get difficulty at stale, last propose level " << last_propose_level_
                    << ", has tried " << num_tries_ << " times.";
@@ -49,20 +50,20 @@ bool SortitionPropose::propose() {
     }
   }
 
-  vdf.computeVdfSolution(vdf_config_, frontier.pivot.asBytes());
-  if (vdf.isStale(vdf_config_)) {
+  vdf.computeVdfSolution(sortition_params, frontier.pivot.asBytes());
+  if (vdf.isStale(sortition_params)) {
     auto latest_frontier = dag_mgr_->getDagFrontier();
     if (latest_frontier.pivot != frontier.pivot) {
       return false;
     }
   }
 
-  SharedTransactions sharded_trxs = proposer->getShardedTrxs();
-  if (sharded_trxs.empty()) {
+  SharedTransactions shared_trxs = proposer->getShardedTrxs();
+  if (shared_trxs.empty()) {
     return false;
   }
   LOG(log_nf_) << "VDF computation time " << vdf.getComputationTime() << " difficulty " << vdf.getDifficulty();
-  proposer->proposeBlock(std::move(frontier), propose_level, std::move(sharded_trxs), std::move(vdf));
+  proposer->proposeBlock(std::move(frontier), proposal_period, propose_level, std::move(shared_trxs), std::move(vdf));
   last_propose_level_ = propose_level;
   num_tries_ = 0;
   return true;
@@ -93,7 +94,7 @@ void BlockProposer::start() {
         syncing = net->pbft_syncing();
       }
       if (!syncing) {
-        propose_model_->propose();
+        propose_model_->propose(final_chain_->last_block_number());
       }
       thisThreadSleepForMilliSeconds(min_proposal_delay);
     }
@@ -149,7 +150,8 @@ level_t BlockProposer::getProposeLevel(blk_hash_t const& pivot, vec_blk_t const&
   return max_level;
 }
 
-void BlockProposer::proposeBlock(DagFrontier&& frontier, level_t level, SharedTransactions&& trxs, VdfSortition&& vdf) {
+void BlockProposer::proposeBlock(DagFrontier&& frontier, uint64_t proposal_period, level_t level,
+                                 SharedTransactions&& trxs, VdfSortition&& vdf) {
   if (stopped_) return;
 
   vec_trx_t trx_hashes;
@@ -158,8 +160,8 @@ void BlockProposer::proposeBlock(DagFrontier&& frontier, level_t level, SharedTr
 
   // When we propose block we know it is valid, no need for block verification with queue,
   // simply add the block to the DAG
-  DagBlock blk(frontier.pivot, std::move(level), std::move(frontier.tips), std::move(trx_hashes), std::move(vdf),
-               node_sk_);
+  DagBlock blk(frontier.pivot, proposal_period, std::move(level), std::move(frontier.tips), std::move(trx_hashes),
+               std::move(vdf), node_sk_);
   dag_mgr_->addDagBlock(blk, std::move(trxs), true);
   dag_blk_mgr_->markDagBlockAsSeen(blk);
 

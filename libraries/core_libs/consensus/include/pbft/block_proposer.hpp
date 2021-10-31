@@ -23,7 +23,7 @@ using vrf_sk_t = vrf_wrapper::vrf_sk_t;
 class ProposeModelFace {
  public:
   virtual ~ProposeModelFace() {}
-  virtual bool propose() = 0;
+  virtual bool propose(uint64_t proposal_period) = 0;
   void setProposer(std::shared_ptr<BlockProposer> proposer, addr_t node_addr, secret_t const& sk,
                    vrf_sk_t const& vrf_sk) {
     proposer_ = proposer;
@@ -41,17 +41,17 @@ class ProposeModelFace {
 
 class SortitionPropose : public ProposeModelFace {
  public:
-  SortitionPropose(SortitionConfig const& vdf_config, addr_t node_addr, std::shared_ptr<DagManager> dag_mgr,
+  SortitionPropose(SortitionParamsManager& sortition_manager, addr_t node_addr, std::shared_ptr<DagManager> dag_mgr,
                    std::shared_ptr<TransactionManager> trx_mgr)
-      : vdf_config_(vdf_config), dag_mgr_(dag_mgr), trx_mgr_(trx_mgr) {
+      : sortition_manager_(sortition_manager), dag_mgr_(dag_mgr), trx_mgr_(trx_mgr) {
     LOG_OBJECTS_CREATE("PR_MDL");
-    LOG(log_nf_) << "Set sorition DAG block proposal" << vdf_config_;
+    LOG(log_nf_) << "Set sortition DAG block proposal" << sortition_manager.getSortitionParams();
   }
   ~SortitionPropose() {}
-  bool propose() override;
+  bool propose(uint64_t proposal_period) override;
 
  private:
-  SortitionConfig vdf_config_;
+  SortitionParamsManager& sortition_manager_;
   int num_tries_ = 0;
   const int max_num_tries_ = 20;  // Wait 2000(ms)
   level_t last_propose_level_ = 0;
@@ -67,10 +67,10 @@ class SortitionPropose : public ProposeModelFace {
  */
 class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
  public:
-  BlockProposer(BlockProposerConfig const& bp_config, SortitionConfig const& vdf_config,
-                std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr,
-                std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<FinalChain> final_chain, addr_t node_addr,
-                secret_t node_sk, vrf_sk_t vrf_sk, logger::Logger log_time)
+  BlockProposer(BlockProposerConfig const& bp_config, std::shared_ptr<DagManager> dag_mgr,
+                std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
+                std::shared_ptr<FinalChain> final_chain, addr_t node_addr, secret_t node_sk, vrf_sk_t vrf_sk,
+                logger::Logger log_time)
       : bp_config_(bp_config),
         dag_mgr_(std::move(dag_mgr)),
         trx_mgr_(std::move(trx_mgr)),
@@ -81,7 +81,8 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
         node_sk_(node_sk),
         vrf_sk_(vrf_sk) {
     LOG_OBJECTS_CREATE("PR_MDL");
-    propose_model_ = std::make_unique<SortitionPropose>(vdf_config, node_addr, dag_mgr_, trx_mgr_);
+    propose_model_ =
+        std::make_unique<SortitionPropose>(dag_blk_mgr_->sortitionParamsManager(), node_addr, dag_mgr_, trx_mgr_);
     total_trx_shards_ = std::max((unsigned int)bp_config_.shard, 1u);
     auto addr = std::stoull(node_addr.toString().substr(0, 6).c_str(), NULL, 16);
     my_trx_shard_ = addr % bp_config_.shard;
@@ -94,7 +95,8 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   void stop();
   std::shared_ptr<BlockProposer> getShared();
   void setNetwork(std::weak_ptr<Network> network) { network_ = move(network); }
-  void proposeBlock(DagFrontier&& frontier, level_t level, SharedTransactions&& trxs, VdfSortition&& vdf);
+  void proposeBlock(DagFrontier&& frontier, uint64_t proposal_period, level_t level, SharedTransactions&& trxs,
+                    VdfSortition&& vdf);
   SharedTransactions getShardedTrxs();
   level_t getProposeLevel(blk_hash_t const& pivot, vec_blk_t const& tips);
   bool validDposProposer(level_t const propose_level);
