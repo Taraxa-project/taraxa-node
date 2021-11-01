@@ -10,11 +10,7 @@ namespace taraxa {
 struct VrfParams {
   uint16_t threshold_upper = 0;  // upper bound of normal selection
   uint16_t threshold_lower = 0;  // lower bound of normal selection
-  VrfParams& operator+=(int change) {
-    threshold_upper += change;
-    threshold_lower += change;
-    return *this;
-  }
+  VrfParams& operator+=(int32_t change);
 };
 
 struct VdfParams {
@@ -53,8 +49,10 @@ struct SortitionParams {
 struct SortitionConfig : SortitionParams {
   uint16_t changes_count_for_average = 5;  // intervals
   uint16_t max_interval_correction = 10 * ONE_PERCENT;
-  uint16_t target_dag_efficiency = 50 * ONE_PERCENT;
+  std::pair<uint16_t, uint16_t> dag_efficiency_targets = {48 * ONE_PERCENT, 52 * ONE_PERCENT};
   uint16_t computation_interval = 50;  // pbft blocks
+
+  uint16_t targetEfficiency() const { return (dag_efficiency_targets.first + dag_efficiency_targets.second) / 2; }
 };
 
 Json::Value enc_json(VrfParams const& obj);

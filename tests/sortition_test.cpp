@@ -46,12 +46,46 @@ SyncBlock createBlock(uint64_t period, uint16_t efficiency, size_t dag_blocks_co
   return b;
 }
 
+TEST_F(SortitionTest, vrf_lower_overflow) {
+  VrfParams vrf;
+
+  vrf.threshold_lower = 100;
+  vrf.threshold_upper = 300;
+
+  vrf += -200;
+
+  EXPECT_EQ(vrf.threshold_lower, 0);
+  EXPECT_EQ(vrf.threshold_upper, 200);
+
+  vrf += -200;
+
+  EXPECT_EQ(vrf.threshold_lower, 0);
+  EXPECT_EQ(vrf.threshold_upper, 200);
+}
+
+TEST_F(SortitionTest, vrf_upper_overflow) {
+  VrfParams vrf;
+
+  vrf.threshold_upper = std::numeric_limits<uint16_t>::max() - 100;
+  vrf.threshold_lower = vrf.threshold_upper - 200;
+
+  vrf += 200;
+
+  EXPECT_EQ(vrf.threshold_upper, std::numeric_limits<uint16_t>::max());
+  EXPECT_EQ(vrf.threshold_lower, std::numeric_limits<uint16_t>::max() - 200);
+
+  vrf += 200;
+
+  EXPECT_EQ(vrf.threshold_upper, std::numeric_limits<uint16_t>::max());
+  EXPECT_EQ(vrf.threshold_lower, std::numeric_limits<uint16_t>::max() - 200);
+}
+
 TEST_F(SortitionTest, sortition_config_serialization) {
   // Fill with values that are different from default one, so take random
   SortitionConfig config;
 
   config.computation_interval = std::rand();
-  config.target_dag_efficiency = std::rand();
+  config.dag_efficiency_targets = {std::rand(), std::rand()};
 
   config.vdf.difficulty_min = std::rand();
   config.vdf.difficulty_max = std::rand();
@@ -67,7 +101,7 @@ TEST_F(SortitionTest, sortition_config_serialization) {
 
   // Raw compare because it is not needed anywhere else
   EXPECT_EQ(config.computation_interval, restored_config.computation_interval);
-  EXPECT_EQ(config.target_dag_efficiency, restored_config.target_dag_efficiency);
+  EXPECT_EQ(config.dag_efficiency_targets, restored_config.dag_efficiency_targets);
 
   EXPECT_EQ(config.vdf.difficulty_min, restored_config.vdf.difficulty_min);
   EXPECT_EQ(config.vdf.difficulty_max, restored_config.vdf.difficulty_max);
@@ -130,7 +164,7 @@ TEST_F(SortitionTest, minimal_correction) {
 
 TEST_F(SortitionTest, average_correction_per_percent) {
   node_cfgs[0].chain.sortition.computation_interval = 5;
-  node_cfgs[0].chain.sortition.target_dag_efficiency = 75 * ONE_PERCENT;
+  node_cfgs[0].chain.sortition.dag_efficiency_targets = {75 * ONE_PERCENT, 75 * ONE_PERCENT};
 
   auto db = std::make_shared<DbStorage>(data_dir / "db");
   SortitionParamsManager sp(node_cfgs[0].chain.sortition, db);
@@ -285,7 +319,7 @@ TEST_F(SortitionTest, load_from_db) {
 TEST_F(SortitionTest, db_cleanup) {
   auto& cfg = node_cfgs[0].chain.sortition;
   cfg.computation_interval = 5;
-  cfg.target_dag_efficiency = 75 * ONE_PERCENT;
+  cfg.dag_efficiency_targets = {75 * ONE_PERCENT, 75 * ONE_PERCENT};
 
   auto db = std::make_shared<DbStorage>(data_dir / "db");
   SortitionParamsManager sp(node_cfgs[0].chain.sortition, db);
@@ -312,6 +346,54 @@ TEST_F(SortitionTest, db_cleanup) {
     EXPECT_EQ(db->getLastIntervalEfficiencies(cfg.computation_interval).size(), 3);
     EXPECT_EQ(db->getLastSortitionParams(cfg.changes_count_for_average).size(), 5);
   }
+}
+
+TEST_F(SortitionTest, get_params_from_period) {
+  auto& cfg = node_cfgs[0].chain.sortition;
+  cfg.computation_interval = 10;
+  cfg.dag_efficiency_targets = {75 * ONE_PERCENT, 75 * ONE_PERCENT};
+
+  auto db = std::make_shared<DbStorage>(data_dir / "db");
+  SortitionParamsManager sp(node_cfgs[0].chain.sortition, db);
+  auto batch = db->createWriteBatch();
+  {
+    auto b = createBlock(10, 70 * ONE_PERCENT, 5);
+    sp.pbftBlockPushed(b, batch);
+  }
+  {
+    auto b = createBlock(20, 70 * ONE_PERCENT, 5);
+    sp.pbftBlockPushed(b, batch);
+  }
+  {
+    auto b = createBlock(30, 75 * ONE_PERCENT, 5);
+    sp.pbftBlockPushed(b, batch);
+  }
+  {
+    auto b = createBlock(40, 70 * ONE_PERCENT, 5);
+    sp.pbftBlockPushed(b, batch);
+  }
+  {
+    auto b = createBlock(50, 75 * ONE_PERCENT, 5);
+    sp.pbftBlockPushed(b, batch);
+  }
+  {
+    auto b = createBlock(60, 70 * ONE_PERCENT, 5);
+    sp.pbftBlockPushed(b, batch);
+  }
+  db->commitWriteBatch(batch);
+
+  EXPECT_EQ(sp.getSortitionParams(11).vrf.threshold_upper, cfg.vrf.threshold_upper - 5);
+  EXPECT_EQ(sp.getSortitionParams(19).vrf.threshold_upper, cfg.vrf.threshold_upper - 5);
+  EXPECT_EQ(sp.getSortitionParams(21).vrf.threshold_upper, cfg.vrf.threshold_upper - 10);
+  EXPECT_EQ(sp.getSortitionParams(29).vrf.threshold_upper, cfg.vrf.threshold_upper - 10);
+  EXPECT_EQ(sp.getSortitionParams(32).vrf.threshold_upper, cfg.vrf.threshold_upper - 10);
+  EXPECT_EQ(sp.getSortitionParams(39).vrf.threshold_upper, cfg.vrf.threshold_upper - 10);
+  EXPECT_EQ(sp.getSortitionParams(41).vrf.threshold_upper, cfg.vrf.threshold_upper - 1260);
+  EXPECT_EQ(sp.getSortitionParams(51).vrf.threshold_upper, cfg.vrf.threshold_upper - 1260);
+  EXPECT_EQ(sp.getSortitionParams(59).vrf.threshold_upper, cfg.vrf.threshold_upper - 1260);
+  EXPECT_EQ(sp.getSortitionParams(69).vrf.threshold_upper, cfg.vrf.threshold_upper - 3185);
+  EXPECT_EQ(sp.getSortitionParams(79).vrf.threshold_upper, cfg.vrf.threshold_upper - 3185);
+  EXPECT_EQ(sp.getSortitionParams(210).vrf.threshold_upper, cfg.vrf.threshold_upper - 3185);
 }
 
 }  // namespace taraxa::core_tests
