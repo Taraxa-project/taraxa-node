@@ -1499,7 +1499,7 @@ TEST_F(FullNodeTest, chain_config_json) {
     "changes_count_for_average": "0x5",
     "max_interval_correction": "0x3e8",
     "computation_interval": "0x32",
-      "target_dag_efficiency": "0x1388",
+    "dag_efficiency_targets": ["0x12c0", "0x1450"],
     "vdf": {
       "difficulty_max": "0x15",
       "difficulty_min": "0x10",

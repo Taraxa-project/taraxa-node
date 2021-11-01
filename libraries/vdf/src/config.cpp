@@ -4,6 +4,25 @@
 
 namespace taraxa {
 
+int32_t fixFromOverflow(uint16_t value, int32_t change, uint16_t limit) {
+  int32_t diff = limit - value;
+  if (std::abs(change) > std::abs(diff)) {
+    return diff;
+  }
+  return change;
+}
+
+VrfParams& VrfParams::operator+=(int32_t change) {
+  if (change < 0) {
+    change = fixFromOverflow(threshold_lower, change, std::numeric_limits<uint16_t>::min());
+  } else {
+    change = fixFromOverflow(threshold_upper, change, std::numeric_limits<uint16_t>::max());
+  }
+  threshold_upper += change;
+  threshold_lower += change;
+  return *this;
+}
+
 Json::Value enc_json(VrfParams const& obj) {
   Json::Value ret(Json::objectValue);
   ret["threshold_upper"] = dev::toJS(obj.threshold_upper);
@@ -47,7 +66,12 @@ Json::Value enc_json(SortitionConfig const& obj) {
   auto ret = enc_json(dynamic_cast<SortitionParams const&>(obj));
   ret["changes_count_for_average"] = dev::toJS(obj.changes_count_for_average);
   ret["max_interval_correction"] = dev::toJS(obj.max_interval_correction);
-  ret["target_dag_efficiency"] = dev::toJS(obj.target_dag_efficiency);
+
+  Json::Value targets(Json::arrayValue);
+  targets.append(dev::toJS(obj.dag_efficiency_targets.first));
+  targets.append(dev::toJS(obj.dag_efficiency_targets.second));
+
+  ret["dag_efficiency_targets"] = targets;
   ret["computation_interval"] = dev::toJS(obj.computation_interval);
   return ret;
 }
@@ -56,7 +80,11 @@ void dec_json(Json::Value const& json, SortitionConfig& obj) {
   dec_json(json, dynamic_cast<SortitionParams&>(obj));
   obj.changes_count_for_average = dev::jsToInt(json["changes_count_for_average"].asString());
   obj.max_interval_correction = dev::jsToInt(json["max_interval_correction"].asString());
-  obj.target_dag_efficiency = dev::jsToInt(json["target_dag_efficiency"].asString());
+
+  auto first = dev::jsToInt(json["dag_efficiency_targets"][0].asString());
+  auto second = dev::jsToInt(json["dag_efficiency_targets"][1].asString());
+  obj.dag_efficiency_targets = {first, second};
+
   obj.computation_interval = dev::jsToInt(json["computation_interval"].asString());
 }
 

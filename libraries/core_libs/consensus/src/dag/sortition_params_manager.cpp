@@ -78,8 +78,12 @@ SortitionParams SortitionParamsManager::getSortitionParams(std::optional<uint64_
     return config_;
   }
   auto p = config_;
-  for (auto it = params_changes_.rbegin(); it != params_changes_.rend(); ++it) {
-    if (period >= it->period && period < (it->period + config_.computation_interval)) {
+  for (auto prev = params_changes_.rbegin(), it = params_changes_.rbegin(); it != params_changes_.rend(); prev = it++) {
+    auto upper_bound = prev->period;
+    if (it->period == upper_bound) {
+      upper_bound = it->period + config_.computation_interval;
+    }
+    if (period >= it->period && period < upper_bound) {
       p.vrf = it->vrf_params;
     }
   }
@@ -124,9 +128,10 @@ void SortitionParamsManager::pbftBlockPushed(const SyncBlock& block, DbStorage::
   const auto& height = block.pbft_blk->getPeriod();
   if (height % config_.computation_interval == 0) {
     const auto params_change = calculateChange(height);
-
-    db_->saveSortitionParamsChange(block.pbft_blk->getPeriod(), params_change, batch);
-    params_changes_.push_back(params_change);
+    if (params_change) {
+      db_->saveSortitionParamsChange(block.pbft_blk->getPeriod(), *params_change, batch);
+      params_changes_.push_back(*params_change);
+    }
 
     cleanup();
   }
@@ -134,7 +139,7 @@ void SortitionParamsManager::pbftBlockPushed(const SyncBlock& block, DbStorage::
 
 int32_t SortitionParamsManager::getChange(const uint64_t period, const uint16_t efficiency) const {
   const uint16_t per_percent = averageCorrectionPerPercent();
-  int32_t correction = -(config_.target_dag_efficiency - efficiency);
+  int32_t correction = -(config_.targetEfficiency() - efficiency);
   if (std::abs(correction) > config_.max_interval_correction) {
     correction = (correction < 0 ? -1 : 1) * config_.max_interval_correction;
   }
@@ -147,8 +152,14 @@ int32_t SortitionParamsManager::getChange(const uint64_t period, const uint16_t 
   return change;
 }
 
-SortitionParamsChange SortitionParamsManager::calculateChange(const uint64_t period) {
+std::optional<SortitionParamsChange> SortitionParamsManager::calculateChange(const uint64_t period) {
   const auto average_dag_efficiency = averageDagEfficiency();
+  if (average_dag_efficiency >= config_.dag_efficiency_targets.first &&
+      average_dag_efficiency <= config_.dag_efficiency_targets.second) {
+    LOG(log_dg_) << "Current efficiency(" << average_dag_efficiency / 100.
+                 << "%) is between configured lower and upper bounds";
+    return {};
+  }
 
   const int32_t change = getChange(period, average_dag_efficiency);
   config_.vrf += change;
