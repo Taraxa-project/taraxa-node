@@ -18,7 +18,6 @@ class DagBlock {
   //                example in mentioned methods...
   blk_hash_t pivot_;
   level_t level_ = 0;
-  uint64_t proposal_period_ = 0;
   vec_blk_t tips_;
   vec_trx_t trxs_;  // transactions
   sig_t sig_;
@@ -36,7 +35,7 @@ class DagBlock {
            addr_t sender);
   // fixme: used only in tests, Eliminate it
   DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, secret_t const &sk);
-  DagBlock(blk_hash_t const &pivot, uint64_t period, level_t level, vec_blk_t tips, vec_trx_t trxs, VdfSortition vdf,
+  DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, VdfSortition vdf,
            secret_t const &sk);
   explicit DagBlock(Json::Value const &doc);
   explicit DagBlock(string const &json);
@@ -53,7 +52,6 @@ class DagBlock {
 
   friend std::ostream &operator<<(std::ostream &str, DagBlock const &u) {
     str << "	pivot		= " << u.pivot_.abridged() << std::endl;
-    str << "	proposal_period		= " << u.proposal_period_ << std::endl;
     str << "	level		= " << u.level_ << std::endl;
     str << "	tips ( " << u.tips_.size() << " )	= ";
     for (auto const &t : u.tips_) str << t.abridged() << " ";
@@ -76,7 +74,6 @@ class DagBlock {
   auto const &getTrxs() const { return trxs_; }
   auto const &getSig() const { return sig_; }
   blk_hash_t const &getHash() const;
-  uint64_t getProposePeriod() const { return proposal_period_; }
 
   addr_t const &getSender() const;
   Json::Value getJson(bool with_derived_fields = true) const;

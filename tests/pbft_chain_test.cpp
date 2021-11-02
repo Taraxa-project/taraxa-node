@@ -59,7 +59,7 @@ TEST_F(PbftChainTest, pbft_db_test) {
   level_t level = 1;
   vdf_sortition::VdfSortition vdf1(vdf_config, vrf_sk, getRlpBytes(level));
   vdf1.computeVdfSolution(vdf_config, dag_genesis.asBytes());
-  DagBlock blk1(dag_genesis, 1, 1, {}, {}, vdf1, sk);
+  DagBlock blk1(dag_genesis, 1, {}, {}, vdf1, sk);
 
   uint64_t period = 1;
   addr_t beneficiary(987);
@@ -138,8 +138,7 @@ TEST_F(PbftChainTest, block_broadcast) {
 
   // generate first PBFT block sample
 
-  DagBlock blk1(dag_genesis, 1, 1, {}, {g_signed_trx_samples[0]->getHash(), g_signed_trx_samples[1]->getHash()}, vdf1,
-                sk);
+  DagBlock blk1(dag_genesis, 1, {}, {g_signed_trx_samples[0]->getHash(), g_signed_trx_samples[1]->getHash()}, vdf1, sk);
   SharedTransactions txs1({g_signed_trx_samples[0], g_signed_trx_samples[1]});
 
   auto pbft_block = std::make_shared<PbftBlock>(prev_block_hash, blk1.getHash(), blk_hash_t(), period, beneficiary,

@@ -224,27 +224,19 @@ void DagBlockManager::verifyBlock() {
       continue;
     }
 
+    auto propose_period = getProposalPeriod(blk.getLevel());
     // Verify VDF solution
-    auto proposal_period = getProposalPeriod(blk.getLevel()).first;
-    if (blk.getProposePeriod() != proposal_period) {
-      LOG(log_er_) << " (IN BLOCK, FROM MAP) IS NOT EQUAL (" << blk.getProposePeriod() << ", " << proposal_period
-                   << ")";
-    }
     try {
-      blk.verifyVdf(sortition_params_manager_.getSortitionParams(blk.getProposePeriod()));
+      blk.verifyVdf(sortition_params_manager_.getSortitionParams(propose_period.first));
     } catch (vdf_sortition::VdfSortition::InvalidVdfSortition const &e) {
-      LOG(log_er_) << "DAG block " << block_hash << " failed on VDF verification with pivot hash " << blk.getPivot()
-                   << " reason " << e.what();
-      LOG(log_er_) << "period from map: " << proposal_period << " current: " << pbft_chain_->getPbftChainSize();
-      auto p = sortition_params_manager_.getSortitionParams(blk.getProposePeriod());
-      LOG(log_er_) << " from block: " << blk.getProposePeriod() << " params: (" << p.vrf.threshold_lower << ", "
-                   << p.vrf.threshold_upper << ")";
+      LOG(log_er_) << "DAG block " << block_hash << " with " << blk.getLevel()
+                   << " level failed on VDF verification with pivot hash " << blk.getPivot() << " reason " << e.what();
+      LOG(log_er_) << "period from map: " << propose_period.first << " current: " << pbft_chain_->getPbftChainSize();
       markBlockInvalid(block_hash);
       continue;
     }
 
     // Verify DPOS
-    auto propose_period = getProposalPeriod(blk.getLevel());
     if (!propose_period.second) {
       // Cannot find the proposal period in DB yet. The slow node gets an ahead block, puts back.
       LOG(log_nf_) << "Cannot find proposal period " << propose_period.first << " in DB for DAG block " << blk;
@@ -252,6 +244,7 @@ void DagBlockManager::verifyBlock() {
       unverified_qu_[blk.getLevel()].emplace_back(blk);
       continue;
     }
+
     auto dag_block_sender = blk.getSender();
     bool dpos_qualified;
     try {

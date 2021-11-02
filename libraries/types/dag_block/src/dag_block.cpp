@@ -16,13 +16,12 @@ DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t tr
     : pivot_(pivot), level_(level), tips_(tips), trxs_(trxs), sig_(sig), hash_(hash), cached_sender_(sender) {}
 
 DagBlock::DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, secret_t const &sk)
-    : DagBlock(pivot, 0, level, std::move(tips), std::move(trxs), VdfSortition(), sk) {}
+    : DagBlock(pivot, level, std::move(tips), std::move(trxs), VdfSortition(), sk) {}
 
-DagBlock::DagBlock(blk_hash_t const &pivot, uint64_t period, level_t level, vec_blk_t tips, vec_trx_t trxs,
-                   VdfSortition vdf, secret_t const &sk)
+DagBlock::DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, VdfSortition vdf,
+                   secret_t const &sk)
     : pivot_(pivot),
       level_(level),
-      proposal_period_(period),
       tips_(std::move(tips)),
       trxs_(std::move(trxs)),
       timestamp_(dev::utcTime()),
@@ -47,7 +46,6 @@ uint64_t getUInt(auto const &v) {
 
 DagBlock::DagBlock(Json::Value const &doc) {
   level_ = getUInt(doc["level"]);
-  proposal_period_ = getUInt(doc["proposal_period"]);
 
   tips_ = asVector<blk_hash_t, std::string>(doc, "tips");
   trxs_ = asVector<trx_hash_t, std::string>(doc, "trxs");
@@ -72,16 +70,14 @@ DagBlock::DagBlock(dev::RLP const &rlp) {
     } else if (field_n == 1) {
       level_ = el.toInt<level_t>();
     } else if (field_n == 2) {
-      proposal_period_ = el.toInt<uint64_t>();
-    } else if (field_n == 3) {
       timestamp_ = el.toInt<uint64_t>();
-    } else if (field_n == 4) {
+    } else if (field_n == 3) {
       vdf_ = vdf_sortition::VdfSortition(el.toBytes());
-    } else if (field_n == 5) {
+    } else if (field_n == 4) {
       tips_ = el.toVector<trx_hash_t>();
-    } else if (field_n == 6) {
+    } else if (field_n == 5) {
       trxs_ = el.toVector<trx_hash_t>();
-    } else if (field_n == 7) {
+    } else if (field_n == 6) {
       sig_ = el.toHash<sig_t>();
     } else {
       BOOST_THROW_EXCEPTION(std::runtime_error("too many rlp fields for dag block"));
@@ -96,7 +92,6 @@ Json::Value DagBlock::getJson(bool with_derived_fields) const {
   Json::Value res;
   res["pivot"] = dev::toJS(pivot_);
   res["level"] = dev::toJS(level_);
-  res["proposal_period"] = dev::toJS(proposal_period_);
   res["tips"] = Json::Value(Json::arrayValue);
   for (auto const &t : tips_) {
     res["tips"].append(dev::toJS(t));
@@ -164,11 +159,10 @@ addr_t const &DagBlock::getSender() const {
 }
 
 void DagBlock::streamRLP(dev::RLPStream &s, bool include_sig) const {
-  constexpr auto base_field_count = 7;
+  constexpr auto base_field_count = 6;
   s.appendList(include_sig ? base_field_count + 1 : base_field_count);
   s << pivot_;
   s << level_;
-  s << proposal_period_;
   s << timestamp_;
   s << vdf_.rlp();
   s.appendVector(tips_);
