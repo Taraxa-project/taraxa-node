@@ -1,7 +1,5 @@
 #pragma once
 
-#include <libdevcrypto/Common.h>
-
 #include <array>
 #include <cstdio>
 #include <filesystem>

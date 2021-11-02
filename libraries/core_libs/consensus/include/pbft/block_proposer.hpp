@@ -23,7 +23,7 @@ using vrf_sk_t = vrf_wrapper::vrf_sk_t;
 class ProposeModelFace {
  public:
   virtual ~ProposeModelFace() {}
-  virtual bool propose(uint64_t proposal_period) = 0;
+  virtual bool propose() = 0;
   void setProposer(std::shared_ptr<BlockProposer> proposer, addr_t node_addr, secret_t const& sk,
                    vrf_sk_t const& vrf_sk) {
     proposer_ = proposer;
@@ -48,7 +48,7 @@ class SortitionPropose : public ProposeModelFace {
     LOG(log_nf_) << "Set sortition DAG block proposal" << sortition_manager.getSortitionParams();
   }
   ~SortitionPropose() {}
-  bool propose(uint64_t proposal_period) override;
+  bool propose() override;
 
  private:
   SortitionParamsManager& sortition_manager_;
@@ -99,7 +99,7 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
                     VdfSortition&& vdf);
   SharedTransactions getShardedTrxs();
   level_t getProposeLevel(blk_hash_t const& pivot, vec_blk_t const& tips);
-  bool validDposProposer(level_t const propose_level);
+  std::pair<uint64_t, bool> getDposProposalPeriod(level_t propose_level);
   // debug
   static uint64_t getNumProposedBlocks() { return BlockProposer::num_proposed_blocks; }
   friend ProposeModelFace;

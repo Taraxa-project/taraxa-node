@@ -18,11 +18,11 @@ DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t tr
 DagBlock::DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, secret_t const &sk)
     : DagBlock(pivot, 0, level, std::move(tips), std::move(trxs), VdfSortition(), sk) {}
 
-DagBlock::DagBlock(blk_hash_t const &pivot, uint64_t period, level_t level, vec_blk_t tips, vec_trx_t trxs,
+DagBlock::DagBlock(blk_hash_t const &pivot, uint64_t proposal_period, level_t level, vec_blk_t tips, vec_trx_t trxs,
                    VdfSortition vdf, secret_t const &sk)
     : pivot_(pivot),
       level_(level),
-      proposal_period_(period),
+      proposal_period_(proposal_period),
       tips_(std::move(tips)),
       trxs_(std::move(trxs)),
       timestamp_(dev::utcTime()),

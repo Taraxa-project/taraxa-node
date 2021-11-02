@@ -12,7 +12,7 @@ namespace taraxa {
 using namespace vdf_sortition;
 std::atomic<uint64_t> BlockProposer::num_proposed_blocks = 0;
 
-bool SortitionPropose::propose(uint64_t proposal_period) {
+bool SortitionPropose::propose() {
   auto proposer = proposer_.lock();
   if (!proposer) {
     LOG(log_er_) << "Block proposer not available";
@@ -27,7 +27,8 @@ bool SortitionPropose::propose(uint64_t proposal_period) {
   LOG(log_dg_) << "Get frontier with pivot: " << frontier.pivot << " tips: " << frontier.tips;
   assert(!frontier.pivot.isZero());
   auto propose_level = proposer->getProposeLevel(frontier.pivot, frontier.tips) + 1;
-  if (!proposer->validDposProposer(propose_level)) {
+  auto proposal_period = proposer->getDposProposalPeriod(propose_level);
+  if (!proposal_period.second) {
     return false;
   }
 
@@ -63,7 +64,8 @@ bool SortitionPropose::propose(uint64_t proposal_period) {
     return false;
   }
   LOG(log_nf_) << "VDF computation time " << vdf.getComputationTime() << " difficulty " << vdf.getDifficulty();
-  proposer->proposeBlock(std::move(frontier), proposal_period, propose_level, std::move(shared_trxs), std::move(vdf));
+  proposer->proposeBlock(std::move(frontier), proposal_period.first, propose_level, std::move(shared_trxs),
+                         std::move(vdf));
   last_propose_level_ = propose_level;
   num_tries_ = 0;
   return true;
@@ -94,7 +96,7 @@ void BlockProposer::start() {
         syncing = net->pbft_syncing();
       }
       if (!syncing) {
-        propose_model_->propose(final_chain_->last_block_number());
+        propose_model_->propose();
       }
       thisThreadSleepForMilliSeconds(min_proposal_delay);
     }
@@ -160,8 +162,8 @@ void BlockProposer::proposeBlock(DagFrontier&& frontier, uint64_t proposal_perio
 
   // When we propose block we know it is valid, no need for block verification with queue,
   // simply add the block to the DAG
-  DagBlock blk(frontier.pivot, proposal_period, std::move(level), std::move(frontier.tips), std::move(trx_hashes),
-               std::move(vdf), node_sk_);
+  DagBlock blk(frontier.pivot, proposal_period, level, std::move(frontier.tips), std::move(trx_hashes), std::move(vdf),
+               node_sk_);
   dag_mgr_->addDagBlock(blk, std::move(trxs), true);
   dag_blk_mgr_->markDagBlockAsSeen(blk);
 
@@ -173,19 +175,20 @@ void BlockProposer::proposeBlock(DagFrontier&& frontier, uint64_t proposal_perio
   BlockProposer::num_proposed_blocks.fetch_add(1);
 }
 
-bool BlockProposer::validDposProposer(level_t const propose_level) {
+std::pair<uint64_t, bool> BlockProposer::getDposProposalPeriod(level_t propose_level) {
   auto proposal_period = dag_blk_mgr_->getProposalPeriod(propose_level);
   if (!proposal_period.second) {
     LOG(log_nf_) << "Cannot find the proposal level " << propose_level
                  << " in DB, too far ahead of proposal DAG blocks level";
-    return false;
+    return std::make_pair(0, false);
   }
 
   try {
-    return final_chain_->dpos_is_eligible(proposal_period.first, node_addr_);
+    auto valid_dpos_proposer = final_chain_->dpos_is_eligible(proposal_period.first, node_addr_);
+    return std::make_pair(proposal_period.first, valid_dpos_proposer);
   } catch (state_api::ErrFutureBlock& c) {
     LOG(log_er_) << "Proposal period " << proposal_period.first << " is too far ahead of DPOS. " << c.what();
-    return false;
+    return std::make_pair(0, false);
   }
 }
 
