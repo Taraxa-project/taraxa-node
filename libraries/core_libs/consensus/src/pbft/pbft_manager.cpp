@@ -1558,12 +1558,16 @@ void PbftManager::finalize_(SyncBlock &&sync_block, bool synchronous_processing)
       [this, weak_ptr = weak_from_this(), anchor_hash = std::move(anchor_block_hash)](auto const &, auto &batch) {
         // Update proposal period DAG levels map
         auto ptr = weak_ptr.lock();
-        if (!ptr) return;  // it was destroyed
+        if (!ptr) {
+          return;  // it was destroyed
+        }
+
         auto anchor = dag_blk_mgr_->getDagBlock(anchor_hash);
         if (!anchor) {
           LOG(log_er_) << "DB corrupted - Cannot find anchor block: " << anchor_hash << " in DB.";
           assert(false);
         }
+
         auto new_proposal_period_levels_map = dag_blk_mgr_->newProposePeriodDagLevelsMap(anchor->getLevel());
         db_->addProposalPeriodDagLevelsMapToBatch(*new_proposal_period_levels_map, batch);
         auto dpos_current_max_proposal_period = dag_blk_mgr_->getCurrentMaxProposalPeriod();
@@ -1732,7 +1736,7 @@ std::shared_ptr<PbftBlock> PbftManager::getUnfinalizedBlock_(blk_hash_t const &b
 void PbftManager::countVotes_() {
   auto round = getPbftRound();
   while (!monitor_stop_) {
-    auto verified_votes = vote_mgr_->getVerifiedVotes();
+    auto verified_votes = vote_mgr_->copyVerifiedVotes();
     auto unverified_votes = vote_mgr_->getUnverifiedVotes();
     std::vector<std::shared_ptr<Vote>> votes;
     votes.reserve(verified_votes.size() + unverified_votes.size());

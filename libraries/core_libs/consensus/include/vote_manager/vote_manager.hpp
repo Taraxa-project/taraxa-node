@@ -72,8 +72,8 @@ class VoteManager {
   void setNetwork(std::weak_ptr<Network> network);
 
   // Unverified votes
-  bool addUnverifiedVote(std::shared_ptr<Vote> const& vote);
-  void addUnverifiedVotes(std::vector<std::shared_ptr<Vote>> const& votes);
+  bool addUnverifiedVote(std::shared_ptr<Vote>&& vote);
+  void addUnverifiedVotes(std::vector<std::shared_ptr<Vote>>&& votes);
   void removeUnverifiedVote(uint64_t pbft_round, vote_hash_t const& vote_hash);
   bool voteInUnverifiedMap(uint64_t pbft_round, vote_hash_t const& vote_hash);
   std::vector<std::shared_ptr<Vote>> getUnverifiedVotes();
@@ -84,7 +84,7 @@ class VoteManager {
   void addVerifiedVote(std::shared_ptr<Vote> const& vote);
   bool voteInVerifiedMap(std::shared_ptr<Vote> const& vote);
   void clearVerifiedVotesTable();
-  std::vector<std::shared_ptr<Vote>> getVerifiedVotes();
+  std::vector<std::shared_ptr<Vote>> copyVerifiedVotes();
   uint64_t getVerifiedVotesSize() const;
 
   void removeVerifiedVotes();

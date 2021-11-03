@@ -52,7 +52,7 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
 
   if (pbft_current_round < peer_pbft_round) {
     // Add into votes unverified queue
-    for (auto const &vote_n : next_votes) {
+    for (auto &vote_n : next_votes) {
       auto vote_hash = vote_n->getHash();
       auto vote_round = vote_n->getRound();
 
@@ -61,16 +61,17 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
                      << ") already saved in queue.";
         continue;
       }
+      auto vote_ptr_copy = vote_n;
 
       // Synchronization point in case multiple threads are processing the same vote at the same time
       // Adds unverified vote into local structure + database
-      if (!vote_mgr_->addUnverifiedVote(vote_n)) {
+      if (!vote_mgr_->addUnverifiedVote(std::move(vote_n))) {
         LOG(log_dg_) << "Received PBFT next vote " << vote_hash << " (from " << packet_data.from_node_id_.abridged()
                      << ") already saved in unverified queue by a different thread(race condition).";
         continue;
       }
 
-      onNewPbftVote(vote_n);
+      onNewPbftVote(vote_ptr_copy);
     }
   } else if (pbft_current_round == peer_pbft_round) {
     // Update previous round next votes

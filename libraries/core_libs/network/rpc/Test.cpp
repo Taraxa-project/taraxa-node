@@ -324,7 +324,7 @@ Json::Value Test::get_votes(const Json::Value & /*param1*/) {
     if (auto node = full_node_.lock()) {
       auto vote_mgr = node->getVoteManager();
 
-      auto verified_votes = vote_mgr->getVerifiedVotes();
+      auto verified_votes = vote_mgr->copyVerifiedVotes();
       auto unverified_votes = vote_mgr->getUnverifiedVotes();
       std::vector<std::shared_ptr<Vote>> votes;
       votes.reserve(verified_votes.size() + unverified_votes.size());
