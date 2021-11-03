@@ -47,35 +47,37 @@ void VoteManager::retreieveVotes_() {
   }
 }
 
-bool VoteManager::addUnverifiedVote(std::shared_ptr<Vote> const& vote) {
+bool VoteManager::addUnverifiedVote(std::shared_ptr<Vote>&& vote) {
   uint64_t pbft_round = vote->getRound();
   const auto& hash = vote->getHash();
   vote->getVoterAddr();  // this will cache object variables - speed up
 
+  if (voteInUnverifiedMap(pbft_round, hash)) {
+    LOG(log_dg_) << "Vote " << hash << " is already in unverified map";
+    return false;
+  }
+
   {
     UniqueLock lock(unverified_votes_access_);
-    if (auto found_round = unverified_votes_.find(pbft_round); found_round != unverified_votes_.end()) {
-      if (!found_round->second.insert({hash, vote}).second) {
-        LOG(log_dg_) << "Vote " << hash << " is in unverified map already";
-        return false;
-      }
-    } else {
-      std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> votes{std::make_pair(hash, vote)};
-      unverified_votes_[pbft_round] = std::move(votes);
+    // Potential edge-case race condition between calls to voteInUnverifiedMap and this insert
+    // -> need to check insert return value
+    if (!unverified_votes_[pbft_round].insert({hash, std::move(vote)}).second) {
+      LOG(log_dg_) << "Vote " << hash << " is already in unverified map(race condition)";
+      return false;
     }
   }
-  LOG(log_nf_) << "Add unverified vote " << vote->getHash().abridged();
+  LOG(log_nf_) << "Add unverified vote " << hash.abridged();
 
   return true;
 }
 
-void VoteManager::addUnverifiedVotes(std::vector<std::shared_ptr<Vote>> const& votes) {
-  for (auto const& v : votes) {
+void VoteManager::addUnverifiedVotes(std::vector<std::shared_ptr<Vote>>&& votes) {
+  for (auto& v : votes) {
     if (voteInUnverifiedMap(v->getRound(), v->getHash())) {
-      LOG(log_dg_) << "The vote is in unverified queue already " << v->getHash();
+      LOG(log_dg_) << "Vote " << v->getHash() << " is already in unverified queue";
       continue;
     }
-    addUnverifiedVote(v);
+    addUnverifiedVote(std::move(v));
   }
 }
 
@@ -89,11 +91,13 @@ void VoteManager::removeUnverifiedVote(uint64_t pbft_round, vote_hash_t const& v
 
 bool VoteManager::voteInUnverifiedMap(uint64_t pbft_round, vote_hash_t const& vote_hash) {
   SharedLock lock(unverified_votes_access_);
-  if (unverified_votes_.count(pbft_round)) {
-    return unverified_votes_[pbft_round].count(vote_hash);
+
+  auto found_round = unverified_votes_.find(pbft_round);
+  if (found_round == unverified_votes_.end()) {
+    return false;
   }
 
-  return false;
+  return found_round->second.contains(vote_hash);
 }
 
 std::vector<std::shared_ptr<Vote>> VoteManager::getUnverifiedVotes() {
@@ -125,7 +129,7 @@ uint64_t VoteManager::getUnverifiedVotesSize() const {
   return size;
 }
 
-std::vector<std::shared_ptr<Vote>> VoteManager::getVerifiedVotes() {
+std::vector<std::shared_ptr<Vote>> VoteManager::copyVerifiedVotes() {
   std::vector<std::shared_ptr<Vote>> votes;
   votes.reserve(getVerifiedVotesSize());
 
@@ -224,20 +228,20 @@ void VoteManager::addVerifiedVote(std::shared_ptr<Vote> const& vote) {
 // Move all verified votes back to unverified queue/DB. Since PBFT chain pushed new blocks, that will affect DPOS
 // eligible vote count and players' eligibility
 void VoteManager::removeVerifiedVotes() {
-  auto votes = getVerifiedVotes();
+  auto votes = copyVerifiedVotes();
   if (votes.empty()) {
     return;
   }
 
-  clearVerifiedVotesTable();
   LOG(log_nf_) << "Remove " << votes.size() << " verified votes.";
-
-  addUnverifiedVotes(votes);
+  clearVerifiedVotesTable();
 
   auto batch = db_->createWriteBatch();
   for (auto const& v : votes) {
     db_->removeVerifiedVoteToBatch(v->getHash(), batch);
   }
+
+  addUnverifiedVotes(std::move(votes));
   db_->commitWriteBatch(batch);
 }
 
@@ -249,17 +253,21 @@ bool VoteManager::voteInVerifiedMap(std::shared_ptr<Vote> const& vote) {
 
   SharedLock lock(verified_votes_access_);
   auto found_round_it = verified_votes_.find(round);
-  if (found_round_it != verified_votes_.end()) {
-    auto found_step_it = found_round_it->second.find(step);
-    if (found_step_it != found_round_it->second.end()) {
-      auto found_voted_value_it = found_step_it->second.find(voted_value);
-      if (found_voted_value_it != found_step_it->second.end()) {
-        return found_voted_value_it->second.second.find(hash) != found_voted_value_it->second.second.end();
-      }
-    }
+  if (found_round_it == verified_votes_.end()) {
+    return false;
   }
 
-  return false;
+  auto found_step_it = found_round_it->second.find(step);
+  if (found_step_it == found_round_it->second.end()) {
+    return false;
+  }
+
+  auto found_voted_value_it = found_step_it->second.find(voted_value);
+  if (found_voted_value_it == found_step_it->second.end()) {
+    return false;
+  }
+
+  return found_voted_value_it->second.find(hash) != found_voted_value_it->second.end();
 }
 
 void VoteManager::clearVerifiedVotesTable() {
@@ -420,31 +428,38 @@ VotesBundle VoteManager::getVotesBundleByRoundAndStep(uint64_t round, size_t ste
 
   SharedLock lock(verified_votes_access_);
   auto found_round_it = verified_votes_.find(round);
-  if (found_round_it != verified_votes_.end()) {
-    auto found_step_it = found_round_it->second.find(step);
-    if (found_step_it != found_round_it->second.end()) {
-      for (auto const& voted_value : found_step_it->second) {
-        if (voted_value.second.first >= two_t_plus_one) {
-          auto voted_block_hash = voted_value.first;
-          votes.reserve(two_t_plus_one);
-
-          auto it = voted_value.second.second.begin();
-          size_t count = 0;
-          // Only copy 2t+1 votes
-          while (count < two_t_plus_one) {
-            votes.emplace_back(it->second);
-            count += it->second->getWeight().value();
-            it++;
-          }
-          LOG(log_nf_) << "Found enough " << votes.size() << " votes at voted value " << voted_block_hash
-                       << " for round " << round << " step " << step;
-          return VotesBundle(true, voted_block_hash, votes);
-        }
-      }
-    }
+  if (found_round_it == verified_votes_.end()) {
+    return {};
   }
 
-  return VotesBundle();
+  auto found_step_it = found_round_it->second.find(step);
+  if (found_step_it == found_round_it->second.end()) {
+    return {};
+  }
+
+  for (auto const& voted_value : found_step_it->second) {
+    if (voted_value.second.first < two_t_plus_one) {
+      continue;
+    }
+
+    auto voted_block_hash = voted_value.first;
+    votes.reserve(two_t_plus_one);
+
+    auto it = voted_value.second.second.begin();
+    size_t count = 0;
+    // Only copy 2t+1 votes
+    while (count < two_t_plus_one) {
+      votes.emplace_back(it->second);
+      count += it->second->getWeight().value();
+      it++;
+    }
+
+    LOG(log_nf_) << "Found enough " << votes.size() << " votes at voted value " << voted_block_hash
+                 << " for round " << round << " step " << step;
+    return VotesBundle(true, voted_block_hash, votes);
+  }
+
+  return {};
 }
 
 uint64_t VoteManager::roundDeterminedFromVotes(size_t two_t_plus_one) {

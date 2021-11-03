@@ -230,7 +230,7 @@ TEST_F(PbftManagerTest, terminate_soft_voting_pbft_block) {
   std::cout << "Check did not soft vote for stale soft voted value of " << stale_block_hash.abridged() << "..."
             << std::endl;
   bool skipped_soft_voting = true;
-  auto votes = vote_mgr->getVerifiedVotes();
+  auto votes = vote_mgr->copyVerifiedVotes();
   for (auto const &v : votes) {
     if (soft_vote_type == v->getType()) {
       if (v->getBlockHash() == stale_block_hash) {
@@ -287,7 +287,7 @@ TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
   // Vote at the bogus PBFT block hash
   EXPECT_HAPPENS({10s, 50ms}, [&](auto &ctx) {
     auto soft_vote_value = blk_hash_t(0);
-    auto votes = vote_mgr->getVerifiedVotes();
+    auto votes = vote_mgr->copyVerifiedVotes();
     for (auto const &v : votes) {
       if (soft_vote_type == v->getType() && v->getBlockHash() == pbft_block_hash) {
         soft_vote_value = v->getBlockHash();
@@ -302,7 +302,7 @@ TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
   std::cout << "After some time, terminate voting on the bogus value " << pbft_block_hash << std::endl;
   EXPECT_HAPPENS({10s, 50ms}, [&](auto &ctx) {
     auto next_vote_value = pbft_block_hash;
-    auto votes = vote_mgr->getVerifiedVotes();
+    auto votes = vote_mgr->copyVerifiedVotes();
 
     for (auto const &v : votes) {
       if (propose_vote_type == v->getType() && v->getBlockHash() == NULL_BLOCK_HASH) {
@@ -350,7 +350,7 @@ TEST_F(PbftManagerTest, terminate_missing_proposed_pbft_block) {
   // Vote at the bogus PBFT block hash
   EXPECT_HAPPENS({10s, 50ms}, [&](auto &ctx) {
     auto soft_vote_value = NULL_BLOCK_HASH;
-    auto votes = vote_mgr->getVerifiedVotes();
+    auto votes = vote_mgr->copyVerifiedVotes();
     for (auto const &v : votes) {
       if (soft_vote_type == v->getType() && v->getBlockHash() == pbft_block_hash) {
         soft_vote_value = v->getBlockHash();
@@ -366,7 +366,7 @@ TEST_F(PbftManagerTest, terminate_missing_proposed_pbft_block) {
   // After some rounds, terminate the bogus value and vote on NULL_BLOCK_HASH since no new DAG blocks generated
   EXPECT_HAPPENS({10s, 50ms}, [&](auto &ctx) {
     auto soft_vote_value = pbft_block_hash;
-    auto votes = vote_mgr->getVerifiedVotes();
+    auto votes = vote_mgr->copyVerifiedVotes();
 
     for (auto const &v : votes) {
       if (propose_vote_type == v->getType() && v->getBlockHash() == NULL_BLOCK_HASH) {

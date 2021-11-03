@@ -52,29 +52,35 @@ TEST_F(VoteTest, unverified_votes) {
   PbftVoteTypes type = propose_vote_type;
   auto round = 1;
   auto step = 1;
-  auto vote = pbft_mgr->generateVote(blockhash, type, round, step);
+  auto weighted_index = 0;
+
+  auto vote = pbft_mgr->generateVote(blockhash, type, round, step, weighted_index);
+  auto vote_round = vote->getRound();
+  auto vote_hash = vote->getHash();
 
   auto vote_mgr = node->getVoteManager();
-  vote_mgr->addUnverifiedVote(vote);
-  EXPECT_TRUE(vote_mgr->voteInUnverifiedMap(vote->getRound(), vote->getHash()));
+  vote_mgr->addUnverifiedVote(std::move(vote));
+  EXPECT_TRUE(vote_mgr->voteInUnverifiedMap(vote_round, vote_hash));
 
   // Generate 3 votes, (round = 1, step = 1) is duplicate
   std::vector<std::shared_ptr<Vote>> unverified_votes;
   for (auto i = 1; i <= 3; i++) {
     round = i;
     step = i;
-    auto vote = pbft_mgr->generateVote(blockhash, type, round, step);
-    unverified_votes.emplace_back(vote);
+    unverified_votes.emplace_back(pbft_mgr->generateVote(blockhash, type, round, step));
   }
 
-  vote_mgr->addUnverifiedVotes(unverified_votes);
-  EXPECT_EQ(vote_mgr->getUnverifiedVotes().size(), unverified_votes.size());
-  EXPECT_EQ(vote_mgr->getUnverifiedVotesSize(), unverified_votes.size());
+  size_t unverified_votes_size = unverified_votes.size();
+  auto first_unverified_vote = unverified_votes[0];
 
-  vote_mgr->removeUnverifiedVote(unverified_votes[0]->getRound(), unverified_votes[0]->getHash());
-  EXPECT_FALSE(vote_mgr->voteInUnverifiedMap(unverified_votes[0]->getRound(), unverified_votes[0]->getHash()));
-  EXPECT_EQ(vote_mgr->getUnverifiedVotes().size(), unverified_votes.size() - 1);
-  EXPECT_EQ(vote_mgr->getUnverifiedVotesSize(), unverified_votes.size() - 1);
+  vote_mgr->addUnverifiedVotes(std::move(unverified_votes));
+  EXPECT_EQ(vote_mgr->getUnverifiedVotes().size(), unverified_votes_size);
+  EXPECT_EQ(vote_mgr->getUnverifiedVotesSize(), unverified_votes_size);
+
+  vote_mgr->removeUnverifiedVote(first_unverified_vote->getRound(), first_unverified_vote->getHash());
+  EXPECT_FALSE(vote_mgr->voteInUnverifiedMap(first_unverified_vote->getRound(), first_unverified_vote->getHash()));
+  EXPECT_EQ(vote_mgr->getUnverifiedVotes().size(), unverified_votes_size - 1);
+  EXPECT_EQ(vote_mgr->getUnverifiedVotesSize(), unverified_votes_size - 1);
 
   vote_mgr->clearUnverifiedVotesTable();
   EXPECT_TRUE(vote_mgr->getUnverifiedVotes().empty());
@@ -104,12 +110,12 @@ TEST_F(VoteTest, verified_votes) {
   // Test same vote cannot add twice
   vote_mgr->addVerifiedVote(vote);
   EXPECT_EQ(vote_mgr->getVerifiedVotesSize(), 1);
-  EXPECT_EQ(vote_mgr->getVerifiedVotes().size(), 1);
+  EXPECT_EQ(vote_mgr->copyVerifiedVotes().size(), 1);
 
   vote_mgr->clearVerifiedVotesTable();
   EXPECT_FALSE(vote_mgr->voteInVerifiedMap(vote));
   EXPECT_EQ(vote_mgr->getVerifiedVotesSize(), 0);
-  EXPECT_EQ(vote_mgr->getVerifiedVotes().size(), 0);
+  EXPECT_EQ(vote_mgr->copyVerifiedVotes().size(), 0);
 }
 
 // Test moving all verified votes to unverified table/DB
@@ -144,7 +150,7 @@ TEST_F(VoteTest, remove_verified_votes) {
   vote_mgr->removeVerifiedVotes();
 
   EXPECT_EQ(vote_mgr->getVerifiedVotesSize(), 0);
-  EXPECT_EQ(vote_mgr->getVerifiedVotes().size(), 0);
+  EXPECT_EQ(vote_mgr->copyVerifiedVotes().size(), 0);
   EXPECT_TRUE(db->getVerifiedVotes().empty());
   EXPECT_EQ(vote_mgr->getUnverifiedVotesSize(), votes.size());
 }
@@ -168,8 +174,7 @@ TEST_F(VoteTest, add_cleanup_get_votes) {
     for (int j = 1; j <= 2; j++) {
       uint64_t round = i;
       size_t step = 3 + j;
-      auto vote = pbft_mgr->generateVote(voted_block_hash, type, round, step);
-      vote_mgr->addUnverifiedVote(vote);
+      vote_mgr->addUnverifiedVote(pbft_mgr->generateVote(voted_block_hash, type, round, step));
     }
   }
 
@@ -186,7 +191,7 @@ TEST_F(VoteTest, add_cleanup_get_votes) {
                         [](...) { return true; });
   auto verified_votes_size = vote_mgr->getVerifiedVotesSize();
   EXPECT_EQ(verified_votes_size, 4);
-  auto votes = vote_mgr->getVerifiedVotes();
+  auto votes = vote_mgr->copyVerifiedVotes();
   EXPECT_EQ(votes.size(), 4);
   for (auto const &v : votes) {
     EXPECT_GT(v->getRound(), 1);
@@ -196,7 +201,7 @@ TEST_F(VoteTest, add_cleanup_get_votes) {
   vote_mgr->cleanupVotes(4);  // cleanup round 2 & 3
   verified_votes_size = vote_mgr->getVerifiedVotesSize();
   EXPECT_EQ(verified_votes_size, 0);
-  votes = vote_mgr->getVerifiedVotes();
+  votes = vote_mgr->copyVerifiedVotes();
   EXPECT_TRUE(votes.empty());
 }
 

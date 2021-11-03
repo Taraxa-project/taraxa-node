@@ -33,10 +33,19 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
     return;
   }
 
-  // Adds unverified vote into local structure
-  if (vote_mgr_->voteInVerifiedMap(vote) || !vote_mgr_->addUnverifiedVote(vote)) {
-    LOG(log_dg_) << "Received PBFT vote " << vote_hash << " (from " << packet_data.from_node_id_.abridged()
-                 << ") already saved in (un)verified queues.";
+  // No need to check unverified map as it is checked inside addUnverifiedVote
+  if (vote_mgr_->voteInVerifiedMap(vote)) {
+    LOG(log_dg_) << "Vote " << vote_hash << " (from " << packet_data.from_node_id_.abridged()
+                 << ") already saved in verified queue";
+    return;
+  }
+  auto vote_ptr_copy = vote;
+
+  // Synchronization point 2 in case multiple threads are processing the same vote at the same time
+  // Adds unverified vote into local structure + database
+  if (!vote_mgr_->addUnverifiedVote(std::move(vote))) {
+    LOG(log_dg_) << "Vote " << vote_hash << " (from " << packet_data.from_node_id_.abridged()
+                 << ") already saved in unverified queue";
     return;
   }
 
@@ -44,7 +53,7 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
   // And we do not need to mark it before this point as we won't be sending
   peer->markVoteAsKnown(vote_hash);
 
-  onNewPbftVote(vote);
+  onNewPbftVote(vote_ptr_copy);
 }
 
 }  // namespace taraxa::network::tarcap
