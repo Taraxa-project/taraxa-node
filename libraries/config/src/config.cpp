@@ -106,6 +106,8 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
   network.network_max_peer_count = getConfigDataAsUInt(root, {"network_max_peer_count"});
   network.network_sync_level_size = getConfigDataAsUInt(root, {"network_sync_level_size"});
   network.network_packets_processing_threads = getConfigDataAsUInt(root, {"network_packets_processing_threads"});
+  network.deep_syncing_threshold =
+      getConfigDataAsUInt(root, {"deep_syncing_threshold"}, true, network.deep_syncing_threshold);
   for (auto &item : root["network_boot_nodes"]) {
     NodeConfig node;
     node.id = getConfigDataAsString(item, {"id"});
@@ -138,8 +140,10 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
   }
 
   {  // for test experiments
-    test_params.max_transactions_pool_warn = getConfigDataAsUInt(root, {"test_params", "max_transactions_pool_warn"});
-    test_params.max_transactions_pool_drop = getConfigDataAsUInt(root, {"test_params", "max_transactions_pool_drop"});
+    test_params.max_transactions_pool_warn =
+        getConfigDataAsUInt(root, {"test_params", "max_transactions_pool_warn"}, true);
+    test_params.max_transactions_pool_drop =
+        getConfigDataAsUInt(root, {"test_params", "max_transactions_pool_drop"}, true);
 
     test_params.max_block_queue_warn = getConfigDataAsUInt(root, {"test_params", "max_block_queue_warn"}, true);
 
@@ -273,6 +277,7 @@ std::ostream &operator<<(std::ostream &strm, NetworkConfig const &conf) {
   strm << "  network_performance_log_interval: " << conf.network_performance_log_interval << std::endl;
   strm << "  network_num_threads: " << conf.network_num_threads << std::endl;
   strm << "  network_packets_processing_threads: " << conf.network_packets_processing_threads << std::endl;
+  strm << "  deep_syncing_threshold: " << conf.deep_syncing_threshold << std::endl;
 
   strm << "  --> boot nodes  ... " << std::endl;
   for (auto const &c : conf.network_boot_nodes) {

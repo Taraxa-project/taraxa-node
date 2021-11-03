@@ -131,7 +131,7 @@ void DagBlockPacketHandler::onNewBlockReceived(DagBlock &&block) {
 void DagBlockPacketHandler::onNewBlockVerified(DagBlock const &block, bool proposed) {
   // If node is pbft syncing and block is not proposed by us, this is an old block that has been verified - no block
   // goosip is needed
-  if (!proposed && syncing_state_->is_pbft_syncing()) {
+  if (!proposed && syncing_state_->is_deep_pbft_syncing()) {
     return;
   }
 

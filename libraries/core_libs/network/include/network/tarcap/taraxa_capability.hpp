@@ -109,6 +109,8 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
                               const std::shared_ptr<DagBlockManager> &dag_blk_mgr,
                               const std::shared_ptr<TransactionManager> &trx_mgr, addr_t const &node_addr);
 
+  bool filterSyncIrrelevantPackets(SubprotocolPacketType packet_type) const;
+
  public:
   // TODO: Remove in future when tests are refactored
   // Test state

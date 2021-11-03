@@ -173,7 +173,7 @@ bool StatusPacketHandler::sendStatus(const dev::p2p::NodeID& node_id, bool initi
     } else {
       success = sealAndSend(
           node_id, StatusPacket,
-          std::move(dev::RLPStream(5) << dag_max_level << pbft_chain_size << syncing_state_->is_pbft_syncing()
+          std::move(dev::RLPStream(5) << dag_max_level << pbft_chain_size << syncing_state_->is_deep_pbft_syncing()
                                       << pbft_round << pbft_previous_round_next_votes_size));
     }
   }
