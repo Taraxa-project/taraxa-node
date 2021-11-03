@@ -9,6 +9,7 @@ class PbftChain;
 class PbftManager;
 class DagManager;
 class DagBlockManager;
+class DbStorage;
 }  // namespace taraxa
 
 namespace taraxa::network::tarcap {
@@ -24,8 +25,8 @@ class ExtSyncingPacketHandler : public PacketHandler {
   ExtSyncingPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
                           std::shared_ptr<SyncingState> syncing_state, std::shared_ptr<PbftChain> pbft_chain,
                           std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
-                          std::shared_ptr<DagBlockManager> dag_blk_mgr, const addr_t &node_addr,
-                          const std::string &log_channel_name);
+                          std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<DbStorage> db,
+                          const addr_t &node_addr, const std::string &log_channel_name);
 
   virtual ~ExtSyncingPacketHandler() = default;
 
@@ -53,6 +54,7 @@ class ExtSyncingPacketHandler : public PacketHandler {
   std::shared_ptr<PbftManager> pbft_mgr_{nullptr};
   std::shared_ptr<DagManager> dag_mgr_{nullptr};
   std::shared_ptr<DagBlockManager> dag_blk_mgr_{nullptr};
+  std::shared_ptr<DbStorage> db_{nullptr};
 };
 
 }  // namespace taraxa::network::tarcap

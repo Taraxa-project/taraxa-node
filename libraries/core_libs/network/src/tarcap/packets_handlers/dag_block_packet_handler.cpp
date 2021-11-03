@@ -18,8 +18,7 @@ DagBlockPacketHandler::DagBlockPacketHandler(std::shared_ptr<PeersState> peers_s
                                              std::shared_ptr<TestState> test_state, const addr_t &node_addr)
     : ExtSyncingPacketHandler(std::move(peers_state), std::move(packets_stats), std::move(syncing_state),
                               std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(dag_blk_mgr),
-                              node_addr, "DAG_BLOCK_PH"),
-      db_(std::move(db)),
+                              std::move(db), node_addr, "DAG_BLOCK_PH"),
       test_state_(std::move(test_state)),
       trx_mgr_(std::move(trx_mgr)) {}
 

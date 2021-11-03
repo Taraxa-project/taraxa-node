@@ -14,7 +14,7 @@ class DagSyncPacketHandler : public ExtSyncingPacketHandler {
                        std::shared_ptr<SyncingState> syncing_state, std::shared_ptr<PbftChain> pbft_chain,
                        std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
                        std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
-                       const addr_t& node_addr);
+                       std::shared_ptr<DbStorage> db, const addr_t& node_addr);
 
   DagSyncPacketHandler(const DagSyncPacketHandler&) = default;
   DagSyncPacketHandler& operator=(const DagSyncPacketHandler&) = default;

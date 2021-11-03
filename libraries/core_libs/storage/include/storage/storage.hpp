@@ -135,6 +135,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::atomic<uint64_t> dag_blocks_count_;
   std::atomic<uint64_t> dag_edge_count_;
   uint32_t db_snapshot_each_n_pbft_block_ = 0;
+  bool snapshot_enable_ = true;
   uint32_t db_max_snapshots_ = 0;
   std::set<uint64_t> snapshots_;
   addr_t node_addr_;
@@ -164,6 +165,8 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void deleteSnapshot(uint64_t period);
   void recoverToPeriod(uint64_t period);
   void loadSnapshots();
+  void disableSnapshots();
+  void enableSnapshots();
 
   // Period data
   void savePeriodData(const SyncBlock& sync_block, Batch& write_batch);

@@ -16,10 +16,11 @@ PbftSyncPacketHandler::PbftSyncPacketHandler(std::shared_ptr<PeersState> peers_s
                                              std::shared_ptr<PbftChain> pbft_chain,
                                              std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
                                              std::shared_ptr<DagBlockManager> dag_blk_mgr,
-                                             size_t network_sync_level_size, const addr_t &node_addr)
+                                             std::shared_ptr<DbStorage> db, size_t network_sync_level_size,
+                                             const addr_t &node_addr)
     : ExtSyncingPacketHandler(std::move(peers_state), std::move(packets_stats), std::move(syncing_state),
                               std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(dag_blk_mgr),
-                              node_addr, "PBFT_SYNC_PH"),
+                              std::move(db), node_addr, "PBFT_SYNC_PH"),
       network_sync_level_size_(network_sync_level_size),
       delayed_sync_events_tp_(1, true) {}
 

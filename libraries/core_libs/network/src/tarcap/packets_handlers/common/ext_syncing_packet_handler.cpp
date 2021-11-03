@@ -13,13 +13,15 @@ ExtSyncingPacketHandler::ExtSyncingPacketHandler(
     std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
     std::shared_ptr<SyncingState> syncing_state, std::shared_ptr<PbftChain> pbft_chain,
     std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
-    std::shared_ptr<DagBlockManager> dag_blk_mgr, const addr_t &node_addr, const std::string &log_channel_name)
+    std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<DbStorage> db, const addr_t &node_addr,
+    const std::string &log_channel_name)
     : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, log_channel_name),
       syncing_state_(std::move(syncing_state)),
       pbft_chain_(std::move(pbft_chain)),
       pbft_mgr_(std::move(pbft_mgr)),
       dag_mgr_(std::move(dag_mgr)),
-      dag_blk_mgr_(std::move(dag_blk_mgr)) {}
+      dag_blk_mgr_(std::move(dag_blk_mgr)),
+      db_(std::move(db)) {}
 
 void ExtSyncingPacketHandler::restartSyncingPbft(bool force) {
   if (syncing_state_->is_pbft_syncing() && !force) {
@@ -54,11 +56,16 @@ void ExtSyncingPacketHandler::restartSyncingPbft(bool force) {
     syncing_state_->set_dag_syncing(false);
     syncing_state_->set_pbft_syncing(true, max_pbft_chain_nodeID);
     syncPeerPbft(pbft_sync_period + 1);
+    // Disable snapshots only if are syncing from scratch
+    if (max_pbft_chain_size > pbft_sync_period + 5) {
+      db_->disableSnapshots();
+    }
   } else {
     LOG(log_nf_) << "Restarting syncing PBFT not needed since our pbft chain size: " << pbft_sync_period << "("
                  << pbft_chain_->getPbftChainSize() << ")"
                  << " is greater or equal than max node pbft chain size:" << max_pbft_chain_size;
     syncing_state_->set_pbft_syncing(false);
+    db_->enableSnapshots();
 
     if (force || (!syncing_state_->is_dag_syncing() &&
                   max_node_dag_level > std::max(dag_mgr_->getMaxLevel(), dag_blk_mgr_->getMaxDagLevelInQueue()))) {

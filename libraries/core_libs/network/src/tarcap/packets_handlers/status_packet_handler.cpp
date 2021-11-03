@@ -10,17 +10,15 @@
 
 namespace taraxa::network::tarcap {
 
-StatusPacketHandler::StatusPacketHandler(std::shared_ptr<PeersState> peers_state,
-                                         std::shared_ptr<PacketsStats> packets_stats,
-                                         std::shared_ptr<SyncingState> syncing_state,
-                                         std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<PbftManager> pbft_mgr,
-                                         std::shared_ptr<DagManager> dag_mgr,
-                                         std::shared_ptr<DagBlockManager> dag_blk_mgr,
-                                         std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr,
-                                         uint64_t conf_network_id, const addr_t& node_addr)
+StatusPacketHandler::StatusPacketHandler(
+    std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
+    std::shared_ptr<SyncingState> syncing_state, std::shared_ptr<PbftChain> pbft_chain,
+    std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
+    std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr,
+    std::shared_ptr<DbStorage> db, uint64_t conf_network_id, const addr_t& node_addr)
     : ExtSyncingPacketHandler(std::move(peers_state), std::move(packets_stats), std::move(syncing_state),
                               std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(dag_blk_mgr),
-                              node_addr, "STATUS_PH"),
+                              std::move(db), node_addr, "STATUS_PH"),
       conf_network_id_(conf_network_id),
       next_votes_mgr_(std::move(next_votes_mgr)) {}
 
