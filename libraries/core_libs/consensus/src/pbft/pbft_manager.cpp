@@ -349,68 +349,67 @@ void PbftManager::resetStep_() {
 }
 
 bool PbftManager::resetRound_() {
-  bool restart = false;
   auto consensus_pbft_round = vote_mgr_->roundDeterminedFromVotes(TWO_T_PLUS_ONE);
   auto round = getPbftRound();
 
-  if (consensus_pbft_round > round) {
-    LOG(log_nf_) << "From votes determined round " << consensus_pbft_round;
-    round_clock_initial_datetime_ = now_;
-    setPbftRound(consensus_pbft_round);
-    resetStep_();
-    state_ = value_proposal_state;
-
-    LOG(log_dg_) << "Advancing clock to pbft round " << consensus_pbft_round << ", step 1, and resetting clock.";
-
-    // Update in DB first
-    auto batch = db_->createWriteBatch();
-    db_->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundSortitionThreshold,
-                                       sortition_threshold_, batch);
-    db_->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposPeriod, dpos_period_.load(), batch);
-    db_->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposTotalVotesCount,
-                                       getDposTotalVotesCount(), batch);
-    db_->addPbftMgrStatusToBatch(PbftMgrStatus::ExecutedInRound, false, batch);
-    db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::OwnStartingValueInRound, NULL_BLOCK_HASH, batch);
-    db_->addPbftMgrStatusToBatch(PbftMgrStatus::NextVotedNullBlockHash, false, batch);
-    db_->addPbftMgrStatusToBatch(PbftMgrStatus::NextVotedSoftValue, false, batch);
-    db_->addPbftMgrStatusToBatch(PbftMgrStatus::SoftVotedBlockInRound, false, batch);
-    db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::SoftVotedBlockHashInRound, NULL_BLOCK_HASH, batch);
-    if (soft_voted_block_for_this_round_.second && soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH) {
-      db_->removeSoftVotesToBatch(round, batch);
-    }
-    db_->commitWriteBatch(batch);
-
-    have_executed_this_round_ = false;
-    should_have_cert_voted_in_this_round_ = false;
-    // reset starting value to NULL_BLOCK_HASH
-    own_starting_value_for_round_ = NULL_BLOCK_HASH;
-    // reset next voted value since start a new round
-    next_voted_null_block_hash_ = false;
-    next_voted_soft_value_ = false;
-    polling_state_print_log_ = true;
-
-    // Key thing is to set .second to false to mark that we have not
-    // identified a soft voted block in the new upcoming round...
-    soft_voted_block_for_this_round_ = std::make_pair(NULL_BLOCK_HASH, false);
-
-    if (executed_pbft_block_) {
-      vote_mgr_->removeVerifiedVotes();
-      updateDposState_();
-      // reset sortition_threshold and TWO_T_PLUS_ONE
-      updateTwoTPlusOneAndThreshold_();
-      db_->savePbftMgrStatus(PbftMgrStatus::ExecutedBlock, false);
-      executed_pbft_block_ = false;
-    }
-
-    LAMBDA_ms = LAMBDA_ms_MIN;
-    last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
-    current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
-
-    // Restart while loop...
-    restart = true;
+  if (consensus_pbft_round <= round) {
+    return false;
   }
 
-  return restart;
+  LOG(log_nf_) << "From votes determined round " << consensus_pbft_round;
+  round_clock_initial_datetime_ = now_;
+  setPbftRound(consensus_pbft_round);
+  resetStep_();
+  state_ = value_proposal_state;
+
+  LOG(log_dg_) << "Advancing clock to pbft round " << consensus_pbft_round << ", step 1, and resetting clock.";
+
+  // Update in DB first
+  auto batch = db_->createWriteBatch();
+  db_->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundSortitionThreshold, sortition_threshold_,
+                                     batch);
+  db_->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposPeriod, dpos_period_.load(), batch);
+  db_->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposTotalVotesCount,
+                                     getDposTotalVotesCount(), batch);
+  db_->addPbftMgrStatusToBatch(PbftMgrStatus::ExecutedInRound, false, batch);
+  db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::OwnStartingValueInRound, NULL_BLOCK_HASH, batch);
+  db_->addPbftMgrStatusToBatch(PbftMgrStatus::NextVotedNullBlockHash, false, batch);
+  db_->addPbftMgrStatusToBatch(PbftMgrStatus::NextVotedSoftValue, false, batch);
+  db_->addPbftMgrStatusToBatch(PbftMgrStatus::SoftVotedBlockInRound, false, batch);
+  db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::SoftVotedBlockHashInRound, NULL_BLOCK_HASH, batch);
+  if (soft_voted_block_for_this_round_.second && soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH) {
+    db_->removeSoftVotesToBatch(round, batch);
+  }
+  db_->commitWriteBatch(batch);
+
+  have_executed_this_round_ = false;
+  should_have_cert_voted_in_this_round_ = false;
+  // reset starting value to NULL_BLOCK_HASH
+  own_starting_value_for_round_ = NULL_BLOCK_HASH;
+  // reset next voted value since start a new round
+  next_voted_null_block_hash_ = false;
+  next_voted_soft_value_ = false;
+  polling_state_print_log_ = true;
+
+  // Key thing is to set .second to false to mark that we have not
+  // identified a soft voted block in the new upcoming round...
+  soft_voted_block_for_this_round_ = std::make_pair(NULL_BLOCK_HASH, false);
+
+  if (executed_pbft_block_) {
+    vote_mgr_->removeVerifiedVotes();
+    updateDposState_();
+    // reset sortition_threshold and TWO_T_PLUS_ONE
+    updateTwoTPlusOneAndThreshold_();
+    db_->savePbftMgrStatus(PbftMgrStatus::ExecutedBlock, false);
+    executed_pbft_block_ = false;
+  }
+
+  LAMBDA_ms = LAMBDA_ms_MIN;
+  last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
+  current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
+
+  // Restart while loop...
+  return true;
 }
 
 void PbftManager::sleep_() {
@@ -1050,7 +1049,6 @@ std::shared_ptr<Vote> PbftManager::generateVote(blk_hash_t const &blockhash, Pbf
 size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteTypes vote_type, uint64_t round,
                                size_t step) {
   std::vector<std::shared_ptr<Vote>> votes;
-
   for (size_t weighted_index(0); weighted_index < weighted_votes_count_; weighted_index++) {
     if (step == 1 && weighted_index > 0) {
       break;
@@ -1104,15 +1102,9 @@ blk_hash_t PbftManager::calculateOrderHash(std::vector<DagBlock> const &dag_bloc
 }
 
 std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
-  bool able_to_propose = false;
   auto round = getPbftRound();
-  for (size_t weighted_index(0); weighted_index < weighted_votes_count_; weighted_index++) {
-    if (shouldSpeak(propose_vote_type, round, step_, weighted_index)) {
-      able_to_propose = true;
-      break;
-    }
-  }
-  if (!able_to_propose) {
+  // In propose block, only use first weighted index 0 for VRF sortition
+  if (weighted_votes_count_ == 0 || !shouldSpeak(propose_vote_type, round, step_, 0)) {
     return std::make_pair(NULL_BLOCK_HASH, false);
   }
 
@@ -1379,54 +1371,56 @@ std::optional<vec_blk_t> PbftManager::comparePbftBlockScheduleWithDAGblocks_(std
                    std::back_inserter(dag_blocks_order), [](const DagBlock &dag_block) { return dag_block.getHash(); });
     return {std::move(dag_blocks_order)};
   }
+
   auto const &anchor_hash = pbft_block->getPivotDagBlockHash();
   auto dag_blocks_order = dag_mgr_->getDagBlockOrder(anchor_hash, pbft_block->getPeriod());
-  if (!dag_blocks_order.empty()) {
-    std::unordered_set<trx_hash_t> trx_set;
-    std::vector<trx_hash_t> transactions_to_query;
-    cert_sync_block_.clear();
-    cert_sync_block_.dag_blocks.reserve(dag_blocks_order.size());
-    for (auto const &dag_blk_hash : dag_blocks_order) {
-      auto dag_block = dag_blk_mgr_->getDagBlock(dag_blk_hash);
-      assert(dag_block);
-      for (auto const &trx_hash : dag_block->getTrxs()) {
-        if (trx_set.insert(trx_hash).second) {
-          transactions_to_query.emplace_back(trx_hash);
-        }
-      }
-      cert_sync_block_.dag_blocks.emplace_back(std::move(*dag_block));
-    }
-    std::vector<trx_hash_t> non_finalized_transactions;
-
-    auto trx_finalized = db_->transactionsFinalized(transactions_to_query);
-    for (uint32_t i = 0; i < trx_finalized.size(); i++) {
-      if (!trx_finalized[i]) {
-        non_finalized_transactions.emplace_back(transactions_to_query[i]);
-      }
-    }
-
-    DbStorage::MultiGetQuery db_query(db_);
-    db_query.append(DbStorage::Columns::transactions, non_finalized_transactions);
-    auto transactions_res = db_query.execute();
-    cert_sync_block_.transactions.reserve(transactions_res.size());
-    for (auto const &trx_raw : transactions_res) {
-      assert(trx_raw.size() > 0);
-      cert_sync_block_.transactions.emplace_back(dev::asBytes(trx_raw));
-    }
-
-    auto calculated_order_hash = calculateOrderHash(dag_blocks_order, non_finalized_transactions);
-    if (calculated_order_hash != pbft_block->getOrderHash()) {
-      LOG(log_er_) << "Order hash incorrect. Pbft block: " << pbft_block->getBlockHash()
-                   << ". Order hash: " << pbft_block->getOrderHash() << " . Calculated hash:" << calculated_order_hash
-                   << ". Dag order: " << dag_blocks_order << ". Trx order: " << non_finalized_transactions;
-      return {};
-    }
-    cert_sync_block_.pbft_blk = std::move(pbft_block);
-
-    return {std::move(dag_blocks_order)};
+  if (dag_blocks_order.empty()) {
+    syncPbftChainFromPeers_(missing_dag_blk, anchor_hash);
+    return {};
   }
-  syncPbftChainFromPeers_(missing_dag_blk, anchor_hash);
-  return {};
+
+  std::unordered_set<trx_hash_t> trx_set;
+  std::vector<trx_hash_t> transactions_to_query;
+  cert_sync_block_.clear();
+  cert_sync_block_.dag_blocks.reserve(dag_blocks_order.size());
+  for (auto const &dag_blk_hash : dag_blocks_order) {
+    auto dag_block = dag_blk_mgr_->getDagBlock(dag_blk_hash);
+    assert(dag_block);
+    for (auto const &trx_hash : dag_block->getTrxs()) {
+      if (trx_set.insert(trx_hash).second) {
+        transactions_to_query.emplace_back(trx_hash);
+      }
+    }
+    cert_sync_block_.dag_blocks.emplace_back(std::move(*dag_block));
+  }
+  std::vector<trx_hash_t> non_finalized_transactions;
+
+  auto trx_finalized = db_->transactionsFinalized(transactions_to_query);
+  for (uint32_t i = 0; i < trx_finalized.size(); i++) {
+    if (!trx_finalized[i]) {
+      non_finalized_transactions.emplace_back(transactions_to_query[i]);
+    }
+  }
+
+  DbStorage::MultiGetQuery db_query(db_);
+  db_query.append(DbStorage::Columns::transactions, non_finalized_transactions);
+  auto transactions_res = db_query.execute();
+  cert_sync_block_.transactions.reserve(transactions_res.size());
+  for (auto const &trx_raw : transactions_res) {
+    assert(trx_raw.size() > 0);
+    cert_sync_block_.transactions.emplace_back(dev::asBytes(trx_raw));
+  }
+
+  auto calculated_order_hash = calculateOrderHash(dag_blocks_order, non_finalized_transactions);
+  if (calculated_order_hash != pbft_block->getOrderHash()) {
+    LOG(log_er_) << "Order hash incorrect. Pbft block: " << pbft_block->getBlockHash()
+                 << ". Order hash: " << pbft_block->getOrderHash() << " . Calculated hash:" << calculated_order_hash
+                 << ". Dag order: " << dag_blocks_order << ". Trx order: " << non_finalized_transactions;
+    return {};
+  }
+  cert_sync_block_.pbft_blk = std::move(pbft_block);
+
+  return {std::move(dag_blocks_order)};
 }
 
 bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cert_voted_block_hash,
