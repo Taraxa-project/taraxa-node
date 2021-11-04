@@ -101,7 +101,6 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN(pbft_mgr_voted_value);
     COLUMN(pbft_cert_voted_block);
     COLUMN(pbft_head);
-    COLUMN(unverified_votes);
     COLUMN(verified_votes);
     COLUMN(soft_votes);  // only for current PBFT round
     COLUMN(next_votes);  // only for previous PBFT round
@@ -140,7 +139,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   bool snapshot_enable_ = true;
   uint32_t db_max_snapshots_ = 0;
   std::set<uint64_t> snapshots_;
-  addr_t node_addr_;
+
   bool minor_version_changed_ = false;
 
   auto handle(Column const& col) const { return handles_[col.ordinal_]; }
@@ -240,14 +239,6 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   uint64_t getStatusField(StatusDbField const& field);
   void saveStatusField(StatusDbField const& field, uint64_t value);
   void addStatusFieldToBatch(StatusDbField const& field, uint64_t value, Batch& write_batch);
-
-  // Unverified votes
-  std::vector<std::shared_ptr<Vote>> getUnverifiedVotes();
-  std::shared_ptr<Vote> getUnverifiedVote(vote_hash_t const& vote_hash);
-  bool unverifiedVoteExist(vote_hash_t const& vote_hash);
-  void saveUnverifiedVote(std::shared_ptr<Vote> const& vote);
-  void addUnverifiedVoteToBatch(std::shared_ptr<Vote> const& vote, Batch& write_batch);
-  void removeUnverifiedVoteToBatch(vote_hash_t const& vote_hash, Batch& write_batch);
 
   // Verified votes
   std::vector<std::shared_ptr<Vote>> getVerifiedVotes();

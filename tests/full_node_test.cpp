@@ -312,46 +312,11 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(db.getStatusField(StatusDbField::ExecutedBlkCount), 10);
   EXPECT_EQ(db.getStatusField(StatusDbField::ExecutedTrxCount), 20);
 
-  // Unverified votes
-  auto unverified_votes = db.getUnverifiedVotes();
-  EXPECT_TRUE(unverified_votes.empty());
-  EXPECT_FALSE(db.unverifiedVoteExist(blk_hash_t(0)));
-  blk_hash_t voted_pbft_block_hash(1);
-  auto weighted_index = 0;
-  for (auto i = 0; i < 3; i++) {
-    auto round = i;
-    auto step = i;
-    VrfPbftMsg msg(soft_vote_type, round, step, weighted_index);
-    vrf_wrapper::vrf_sk_t vrf_sk(
-        "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
-        "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
-    VrfPbftSortition vrf_sortition(vrf_sk, msg);
-    Vote vote(g_secret, vrf_sortition, voted_pbft_block_hash);
-    unverified_votes.emplace_back(std::make_shared<Vote>(vote));
-  }
-  db.saveUnverifiedVote(unverified_votes[0]);
-  EXPECT_TRUE(db.unverifiedVoteExist(unverified_votes[0]->getHash()));
-  EXPECT_EQ(db.getUnverifiedVote(unverified_votes[0]->getHash())->rlp(true), unverified_votes[0]->rlp(true));
-  batch = db.createWriteBatch();
-  db.addUnverifiedVoteToBatch(unverified_votes[1], batch);
-  db.addUnverifiedVoteToBatch(unverified_votes[2], batch);
-  db.commitWriteBatch(batch);
-  EXPECT_TRUE(db.unverifiedVoteExist(unverified_votes[1]->getHash()));
-  EXPECT_TRUE(db.unverifiedVoteExist(unverified_votes[2]->getHash()));
-  EXPECT_EQ(db.getUnverifiedVotes().size(), unverified_votes.size());
-  batch = db.createWriteBatch();
-  db.removeUnverifiedVoteToBatch(unverified_votes[0]->getHash(), batch);
-  db.removeUnverifiedVoteToBatch(unverified_votes[1]->getHash(), batch);
-  db.commitWriteBatch(batch);
-  EXPECT_FALSE(db.unverifiedVoteExist(unverified_votes[0]->getHash()));
-  EXPECT_FALSE(db.unverifiedVoteExist(unverified_votes[1]->getHash()));
-  EXPECT_EQ(db.getUnverifiedVotes().size(), unverified_votes.size() - 2);
-
   // Verified votes
   auto verified_votes = db.getVerifiedVotes();
   EXPECT_TRUE(verified_votes.empty());
-  voted_pbft_block_hash = blk_hash_t(2);
-  weighted_index = 0;
+  auto voted_pbft_block_hash = blk_hash_t(2);
+  auto weighted_index = 0;
   for (auto i = 0; i < 3; i++) {
     auto round = i;
     auto step = i;

@@ -20,8 +20,7 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
     : path_(path),
       handles_(Columns::all.size()),
       db_snapshot_each_n_pbft_block_(db_snapshot_each_n_pbft_block),
-      db_max_snapshots_(db_max_snapshots),
-      node_addr_(node_addr) {
+      db_max_snapshots_(db_max_snapshots) {
   db_path_ = (path / db_dir);
   state_db_path_ = (path / state_db_dir);
 
@@ -670,47 +669,6 @@ void DbStorage::savePbftHead(blk_hash_t const& hash, string const& pbft_chain_he
 void DbStorage::addPbftHeadToBatch(taraxa::blk_hash_t const& head_hash, std::string const& head_str,
                                    Batch& write_batch) {
   insert(write_batch, Columns::pbft_head, toSlice(head_hash.asBytes()), head_str);
-}
-
-std::vector<std::shared_ptr<Vote>> DbStorage::getUnverifiedVotes() {
-  std::vector<std::shared_ptr<Vote>> votes;
-
-  auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::unverified_votes)));
-  for (it->SeekToFirst(); it->Valid(); it->Next()) {
-    votes.emplace_back(std::make_shared<Vote>(asBytes(it->value().ToString())));
-  }
-
-  return votes;
-}
-
-// Only for test
-std::shared_ptr<Vote> DbStorage::getUnverifiedVote(vote_hash_t const& vote_hash) {
-  auto vote = asBytes(lookup(toSlice(vote_hash.asBytes()), Columns::unverified_votes));
-  if (!vote.empty()) {
-    return std::make_shared<Vote>(dev::RLP(vote));
-  }
-  return nullptr;
-}
-
-bool DbStorage::unverifiedVoteExist(vote_hash_t const& vote_hash) {
-  auto vote = asBytes(lookup(toSlice(vote_hash.asBytes()), Columns::unverified_votes));
-  if (vote.empty()) {
-    return false;
-  }
-
-  return true;
-}
-
-void DbStorage::saveUnverifiedVote(std::shared_ptr<Vote> const& vote) {
-  insert(Columns::unverified_votes, toSlice(vote->getHash().asBytes()), toSlice(vote->rlp(true)));
-}
-
-void DbStorage::addUnverifiedVoteToBatch(std::shared_ptr<Vote> const& vote, Batch& write_batch) {
-  insert(write_batch, Columns::unverified_votes, toSlice(vote->getHash().asBytes()), toSlice(vote->rlp(true)));
-}
-
-void DbStorage::removeUnverifiedVoteToBatch(vote_hash_t const& vote_hash, Batch& write_batch) {
-  remove(write_batch, Columns::unverified_votes, toSlice(vote_hash.asBytes()));
 }
 
 std::vector<std::shared_ptr<Vote>> DbStorage::getVerifiedVotes() {

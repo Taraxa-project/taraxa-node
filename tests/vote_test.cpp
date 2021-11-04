@@ -26,13 +26,9 @@ void clearAllVotes(std::shared_ptr<FullNode> &node) {
   // Clear unverified votes and verified votes table
   auto db = node->getDB();
   auto vote_mgr = node->getVoteManager();
-  auto unverified_votes = db->getUnverifiedVotes();
   auto verified_votes = db->getVerifiedVotes();
 
   auto batch = db->createWriteBatch();
-  for (auto const &v : unverified_votes) {
-    db->removeUnverifiedVoteToBatch(v->getHash(), batch);
-  }
   for (auto const &v : verified_votes) {
     db->removeVerifiedVoteToBatch(v->getHash(), batch);
   }
@@ -152,7 +148,6 @@ TEST_F(VoteTest, remove_verified_votes) {
   EXPECT_EQ(vote_mgr->getVerifiedVotes().size(), 0);
   EXPECT_TRUE(db->getVerifiedVotes().empty());
   EXPECT_EQ(vote_mgr->getUnverifiedVotesSize(), votes.size());
-  EXPECT_EQ(db->getUnverifiedVotes().size(), votes.size());
 }
 
 // Add votes round 1, 2 and 3 into unverified vote table
