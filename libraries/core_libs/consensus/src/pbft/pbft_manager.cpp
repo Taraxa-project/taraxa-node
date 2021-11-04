@@ -1737,7 +1737,7 @@ void PbftManager::countVotes_() {
   auto round = getPbftRound();
   while (!monitor_stop_) {
     auto verified_votes = vote_mgr_->copyVerifiedVotes();
-    auto unverified_votes = vote_mgr_->getUnverifiedVotes();
+    auto unverified_votes = vote_mgr_->copyUnverifiedVotes();
     std::vector<std::shared_ptr<Vote>> votes;
     votes.reserve(verified_votes.size() + unverified_votes.size());
     votes.insert(votes.end(), std::make_move_iterator(verified_votes.begin()),

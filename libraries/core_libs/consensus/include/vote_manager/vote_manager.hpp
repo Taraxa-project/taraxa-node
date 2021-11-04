@@ -76,7 +76,7 @@ class VoteManager {
   void addUnverifiedVotes(std::vector<std::shared_ptr<Vote>>&& votes);
   void removeUnverifiedVote(uint64_t pbft_round, vote_hash_t const& vote_hash);
   bool voteInUnverifiedMap(uint64_t pbft_round, vote_hash_t const& vote_hash);
-  std::vector<std::shared_ptr<Vote>> getUnverifiedVotes();
+  std::vector<std::shared_ptr<Vote>> copyUnverifiedVotes();
   void clearUnverifiedVotesTable();
   uint64_t getUnverifiedVotesSize() const;
 
@@ -84,6 +84,7 @@ class VoteManager {
   void addVerifiedVote(std::shared_ptr<Vote> const& vote);
   bool voteInVerifiedMap(std::shared_ptr<Vote> const& vote);
   void clearVerifiedVotesTable();
+  // TODO: This method could be probably deleted
   std::vector<std::shared_ptr<Vote>> copyVerifiedVotes();
   uint64_t getVerifiedVotesSize() const;
 

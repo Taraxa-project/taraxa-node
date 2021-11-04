@@ -74,16 +74,16 @@ TEST_F(VoteTest, unverified_votes) {
   auto first_unverified_vote = unverified_votes[0];
 
   vote_mgr->addUnverifiedVotes(std::move(unverified_votes));
-  EXPECT_EQ(vote_mgr->getUnverifiedVotes().size(), unverified_votes_size);
+  EXPECT_EQ(vote_mgr->copyUnverifiedVotes().size(), unverified_votes_size);
   EXPECT_EQ(vote_mgr->getUnverifiedVotesSize(), unverified_votes_size);
 
   vote_mgr->removeUnverifiedVote(first_unverified_vote->getRound(), first_unverified_vote->getHash());
   EXPECT_FALSE(vote_mgr->voteInUnverifiedMap(first_unverified_vote->getRound(), first_unverified_vote->getHash()));
-  EXPECT_EQ(vote_mgr->getUnverifiedVotes().size(), unverified_votes_size - 1);
+  EXPECT_EQ(vote_mgr->copyUnverifiedVotes().size(), unverified_votes_size - 1);
   EXPECT_EQ(vote_mgr->getUnverifiedVotesSize(), unverified_votes_size - 1);
 
   vote_mgr->clearUnverifiedVotesTable();
-  EXPECT_TRUE(vote_mgr->getUnverifiedVotes().empty());
+  EXPECT_TRUE(vote_mgr->copyUnverifiedVotes().empty());
   EXPECT_EQ(vote_mgr->getUnverifiedVotesSize(), 0);
 }
 
