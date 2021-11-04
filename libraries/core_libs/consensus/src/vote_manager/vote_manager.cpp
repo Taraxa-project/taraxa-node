@@ -100,7 +100,7 @@ bool VoteManager::voteInUnverifiedMap(uint64_t pbft_round, vote_hash_t const& vo
   return found_round->second.contains(vote_hash);
 }
 
-std::vector<std::shared_ptr<Vote>> VoteManager::getUnverifiedVotes() {
+std::vector<std::shared_ptr<Vote>> VoteManager::copyUnverifiedVotes() {
   std::vector<std::shared_ptr<Vote>> votes;
 
   SharedLock lock(unverified_votes_access_);
@@ -280,7 +280,7 @@ void VoteManager::verifyVotes(uint64_t pbft_round, size_t sortition_threshold, u
                               std::function<size_t(addr_t const&)> const& dpos_eligible_vote_count) {
   // Cleanup votes for previous rounds
   cleanupVotes(pbft_round);
-  auto votes_to_verify = getUnverifiedVotes();
+  auto votes_to_verify = copyUnverifiedVotes();
 
   h256 latest_final_chain_block_hash = final_chain_->block_header()->hash;
 
@@ -384,6 +384,7 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
       it = verified_votes_.erase(it);
     }
   }
+
   db_->commitWriteBatch(batch);
 }
 
