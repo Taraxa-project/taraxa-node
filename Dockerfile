@@ -110,8 +110,11 @@ FROM ubuntu:20.04
 
 # Install curl and jq
 RUN apt-get update \
-    && apt-get install -y curl jq \
+    && apt-get install -y curl jq python3 python3-pip \
     && rm -rf /var/lib/apt/lists/*
+
+# Install required Python packages
+RUN pip3 install click eth-account eth-utils
 
 ARG BUILD_OUTPUT_DIR
 WORKDIR /root/.taraxa
@@ -119,6 +122,9 @@ WORKDIR /root/.taraxa
 # Copy required binaries
 COPY --from=build /opt/taraxa/$BUILD_OUTPUT_DIR/bin/taraxad /usr/local/bin/taraxad
 COPY --from=build /opt/taraxa/$BUILD_OUTPUT_DIR/lib/*.so /usr/local/lib/
+
+# Copy scripts
+COPY scripts/taraxa-sign.py /usr/local/bin/taraxa-sign
 
 # Set LD_LIBRARY_PATH so taraxad binary finds shared libs
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
