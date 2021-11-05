@@ -36,6 +36,7 @@ class Config {
   static constexpr const char* REBUILD_DB = "rebuild-db";
   static constexpr const char* REBUILD_DB_PERIOD = "rebuild-db-period";
   static constexpr const char* REVERT_TO_PERIOD = "revert-to-period";
+  static constexpr const char* REBUILD_DB_COLUMNS = "rebuild-db-columns";
   static constexpr const char* HELP = "help";
   static constexpr const char* VERSION = "version";
   static constexpr const char* WALLET = "wallet";
