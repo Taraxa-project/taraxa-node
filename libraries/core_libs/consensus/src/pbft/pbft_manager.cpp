@@ -395,6 +395,9 @@ bool PbftManager::resetRound_() {
   // identified a soft voted block in the new upcoming round...
   soft_voted_block_for_this_round_ = std::make_pair(NULL_BLOCK_HASH, false);
 
+  // Move to a new round, cleanup previous round votes
+  vote_mgr_->cleanupVotes(consensus_pbft_round);
+
   if (executed_pbft_block_) {
     vote_mgr_->removeVerifiedVotes();
     updateDposState_();
