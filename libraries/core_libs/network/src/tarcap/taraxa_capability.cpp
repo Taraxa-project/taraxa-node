@@ -37,7 +37,7 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev
                                    std::shared_ptr<TransactionManager> trx_mgr, addr_t const &node_addr)
     : test_state_(std::make_shared<TestState>()),
       peers_state_(nullptr),
-      syncing_state_(std::make_shared<SyncingState>(peers_state_)),
+      syncing_state_(std::make_shared<SyncingState>(conf.deep_syncing_threshold)),
       node_stats_(nullptr),
       packets_handlers_(std::make_shared<PacketsHandler>()),
       thread_pool_(std::make_shared<TarcapThreadPool>(conf.network_packets_processing_threads, node_addr)),
@@ -321,11 +321,27 @@ void TaraxaCapability::interpretCapabilityPacket(std::weak_ptr<dev::p2p::Session
       return;
     }
   }
-
+  SubprotocolPacketType packet_type = static_cast<SubprotocolPacketType>(_id);
+  if (syncing_state_->is_deep_pbft_syncing() && filterSyncIrrelevantPackets(packet_type)) {
+    LOG(log_dg_) << "Ignored " << convertPacketTypeToString(packet_type) << " because we are still syncing";
+    return;
+  }
   // TODO: we are making a copy here for each packet bytes(toBytes()), which is pretty significant. Check why RLP does
   //       not support move semantics so we can take advantage of it...
-  SubprotocolPacketType packet_type = static_cast<SubprotocolPacketType>(_id);
   thread_pool_->push(PacketData(packet_type, std::move(node_id), _r.data().toBytes()));
+}
+
+inline bool TaraxaCapability::filterSyncIrrelevantPackets(SubprotocolPacketType packet_type) const {
+  switch (packet_type) {
+    case TestPacket:
+    case StatusPacket:
+    case GetPbftSyncPacket:
+    case PbftSyncPacket:
+    case SyncedPacket:
+      return true;
+    default:
+      return false;
+  }
 }
 
 void TaraxaCapability::start() {

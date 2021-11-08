@@ -31,37 +31,6 @@ void GetPbftSyncPacketHandler::process(const PacketData &packet_data,
   }
   LOG(log_dg_) << "Will send " << blocks_to_transfer << " PBFT blocks to " << packet_data.from_node_id_;
 
-  // TODO: this logic could go tarcap::interpretCapabilityPacket packet, but it might not be needed anymore !!!
-
-  //   Stop syncing if too many sync requests or if the rest of the node is busy
-  //   if (blocks_to_transfer > 0) {
-  // if (syncing_tp_.num_pending_tasks() >= MAX_SYNCING_NODES) {
-  //   LOG(log_wr_) << "Node is already serving max syncing nodes, host " << packet_data.from_node_id_.abridged()
-  //                << " will be disconnected";
-  //   host->disconnect(packet_data.from_node_id_, p2p::UserReason);
-  //   break;
-  // }
-  //   }
-  // If blocks_to_transfer is 0, send peer empty PBFT blocks for talking to peer syncing has completed
-  //   syncing_tp_.post([host, packet_data.from_node_id_, height_to_sync, blocks_to_transfer, this] {
-  //     bool send_blocks = true;
-  //     if (blocks_to_transfer > 0) {
-  //       uint32_t total_wait_time = 0;
-  //       while (tp_.num_pending_tasks() > MAX_NETWORK_QUEUE_TO_DROP_SYNCING) {
-  //         uint32_t delay_time = MAX_TIME_TO_WAIT_FOR_QUEUE_TO_CLEAR_MS / 10;
-  //         thisThreadSleepForMilliSeconds(delay_time);
-  //         total_wait_time += delay_time;
-  //         if (total_wait_time >= MAX_TIME_TO_WAIT_FOR_QUEUE_TO_CLEAR_MS) {
-  //           LOG(log_er_) << "Node is busy with " << tp_.num_pending_tasks() << " network packets. Host "
-  //                        << packet_data.from_node_id_.abridged() << " will be disconnected";
-  //           host->disconnect(packet_data.from_node_id_, p2p::UserReason);
-  //           send_blocks = false;
-  //           break;
-  //         }
-  //       }
-  //     }
-  //     if (send_blocks) sendPbftBlocks(packet_data.from_node_id_, height_to_sync, blocks_to_transfer);
-  //   });
   sendPbftBlocks(packet_data.from_node_id_, height_to_sync, blocks_to_transfer);
 }
 

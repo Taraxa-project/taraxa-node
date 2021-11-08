@@ -15,6 +15,7 @@ const char *testnet_json = R"foo({
   "network_max_peer_count": 15,
   "network_sync_level_size": 25,
   "network_packets_processing_threads": 10,
+  "deep_syncing_threshold" : 10,
   "network_boot_nodes": [
     {
       "id": "f36f467529fe91a750dfdc8086fd0d2f30bad9f55a5800b6b4aa603c7787501db78dc4ac1bf3cf16e42af7c2ebb53648653013c3da1987494960d751871d598a",
