@@ -41,15 +41,6 @@ auto int_pow(Int1 x, Int2 y) {
   return x;
 }
 
-template <typename T, typename U = T>
-std::vector<T> asVector(Json::Value const &json, std::string const &key) {
-  std::vector<T> v;
-  auto key_child = json[key];
-  std::transform(key_child.begin(), key_child.end(), std::back_inserter(v),
-                 [](const Json::Value &item) { return T(item.asString()); });
-  return v;
-}
-
 template <typename T>
 std::vector<T> asVector(Json::Value const &json) {
   std::vector<T> v;

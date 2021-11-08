@@ -3,16 +3,16 @@
 #include "pbft/pbft_block.hpp"
 namespace taraxa {
 
-SortitionParamsChange::SortitionParamsChange(uint64_t period, uint16_t efficiency, VrfParams const& vrf,
-                                             SortitionParamsChange const& previous)
+SortitionParamsChange::SortitionParamsChange(uint64_t period, uint16_t efficiency, const VrfParams& vrf,
+                                             const SortitionParamsChange& previous)
     : period(period), vrf_params(vrf), interval_efficiency(efficiency) {
   actual_correction_per_percent = correctionPerPercent(previous);
 }
 
-SortitionParamsChange::SortitionParamsChange(uint64_t period, uint16_t efficiency, VrfParams const& vrf)
+SortitionParamsChange::SortitionParamsChange(uint64_t period, uint16_t efficiency, const VrfParams& vrf)
     : period(period), vrf_params(vrf), interval_efficiency(efficiency) {}
 
-uint16_t SortitionParamsChange::correctionPerPercent(SortitionParamsChange const& previous) const {
+uint16_t SortitionParamsChange::correctionPerPercent(const SortitionParamsChange& previous) const {
   // make calculations on vrf upper threshold
   const auto param_change = vrf_params.threshold_upper - previous.vrf_params.threshold_upper;
   int32_t actual_efficiency_change = interval_efficiency - previous.interval_efficiency;
@@ -21,7 +21,7 @@ uint16_t SortitionParamsChange::correctionPerPercent(SortitionParamsChange const
     actual_efficiency_change = 1;
   }
 
-  auto correction_per_percent = std::abs(param_change * ONE_PERCENT / actual_efficiency_change);
+  auto correction_per_percent = std::abs(param_change * kOnePercent / actual_efficiency_change);
   // zero correction could lead to stuck of that protocol and give up with zero corrections
   if (correction_per_percent == 0) {
     correction_per_percent = 1;
@@ -43,7 +43,7 @@ bytes SortitionParamsChange::rlp() const {
   return s.out();
 }
 
-SortitionParamsChange SortitionParamsChange::from_rlp(dev::RLP const& rlp) {
+SortitionParamsChange SortitionParamsChange::from_rlp(const dev::RLP& rlp) {
   SortitionParamsChange p;
 
   p.vrf_params.threshold_lower = rlp[0].toInt<uint16_t>();
@@ -55,8 +55,10 @@ SortitionParamsChange SortitionParamsChange::from_rlp(dev::RLP const& rlp) {
   return p;
 }
 
-SortitionParamsManager::SortitionParamsManager(SortitionConfig sort_conf, std::shared_ptr<DbStorage> db)
-    : config_(sort_conf), db_(db) {
+SortitionParamsManager::SortitionParamsManager(const addr_t& node_addr, SortitionConfig sort_conf,
+                                               std::shared_ptr<DbStorage> db)
+    : config_(std::move(sort_conf)), db_(std::move(db)) {
+  LOG_OBJECTS_CREATE("TARCAP");
   // load cache values from db
   params_changes_ = db_->getLastSortitionParams(config_.changes_count_for_average);
   // restore VRF params from last change
@@ -77,7 +79,7 @@ SortitionParams SortitionParamsManager::getSortitionParams(std::optional<uint64_
   if (!period) {
     return config_;
   }
-  auto p = config_;
+  SortitionParams p = config_;
   for (auto prev = params_changes_.rbegin(), it = params_changes_.rbegin(); it != params_changes_.rend(); prev = it++) {
     auto upper_bound = prev->period;
     if (it->period == upper_bound) {
@@ -87,14 +89,14 @@ SortitionParams SortitionParamsManager::getSortitionParams(std::optional<uint64_
       p.vrf = it->vrf_params;
     }
   }
-  return std::move(p);
+  return p;
 }
 
 uint16_t SortitionParamsManager::calculateDagEfficiency(const SyncBlock& block) const {
   size_t total_count = std::accumulate(block.dag_blocks.begin(), block.dag_blocks.end(), 0,
                                        [](uint32_t s, const auto& b) { return s + b.getTrxs().size(); });
 
-  return block.transactions.size() * 100 * ONE_PERCENT / total_count;
+  return block.transactions.size() * 100 * kOnePercent / total_count;
 }
 
 uint16_t SortitionParamsManager::averageDagEfficiency() {
@@ -108,13 +110,13 @@ uint16_t SortitionParamsManager::averageCorrectionPerPercent() const {
   return sum / params_changes_.size();
 }
 
-void SortitionParamsManager::cleanup() {
+void SortitionParamsManager::cleanup(uint64_t current_period) {
   dag_efficiencies_.clear();
   while (params_changes_.size() > config_.changes_count_for_average) {
     params_changes_.pop_front();
   }
   auto batch = db_->createWriteBatch();
-  db_->cleanupDagEfficiencies(batch);
+  db_->cleanupDagEfficiencies(current_period);
   db_->cleanupParamsChanges(batch, config_.changes_count_for_average);
   db_->commitWriteBatch(batch);
 }
@@ -122,28 +124,29 @@ void SortitionParamsManager::cleanup() {
 void SortitionParamsManager::pbftBlockPushed(const SyncBlock& block, DbStorage::Batch& batch) {
   uint16_t dag_efficiency = calculateDagEfficiency(block);
   dag_efficiencies_.push_back(dag_efficiency);
-  db_->savePbftBlockDagEfficiency(block.pbft_blk->getPeriod(), dag_efficiency, batch);
-  LOG(log_dg_) << block.pbft_blk->getPeriod() << " pbftBlockPushed, efficiency: " << dag_efficiency / 100. << "%";
+  const auto& period = block.pbft_blk->getPeriod();
+  db_->savePbftBlockDagEfficiency(period, dag_efficiency, batch);
+  LOG(log_dg_) << period << " pbftBlockPushed, efficiency: " << dag_efficiency / 100. << "%";
 
-  const auto& height = block.pbft_blk->getPeriod();
+  const auto& height = period;
   if (height % config_.computation_interval == 0) {
     const auto params_change = calculateChange(height);
     if (params_change) {
-      db_->saveSortitionParamsChange(block.pbft_blk->getPeriod(), *params_change, batch);
+      db_->saveSortitionParamsChange(period, *params_change, batch);
       params_changes_.push_back(*params_change);
     }
 
-    cleanup();
+    cleanup(period);
   }
 }
 
-int32_t SortitionParamsManager::getChange(const uint64_t period, const uint16_t efficiency) const {
+int32_t SortitionParamsManager::getChange(uint64_t period, uint16_t efficiency) const {
   const uint16_t per_percent = averageCorrectionPerPercent();
   int32_t correction = -(config_.targetEfficiency() - efficiency);
   if (std::abs(correction) > config_.max_interval_correction) {
     correction = (correction < 0 ? -1 : 1) * config_.max_interval_correction;
   }
-  const int32_t change = correction * per_percent / ONE_PERCENT;
+  const int32_t change = correction * per_percent / kOnePercent;
 
   LOG(log_dg_) << "Average interval efficiency: " << efficiency / 100. << "%, correction per percent: " << per_percent;
   LOG(log_nf_) << "Changing VRF params on " << period << " period from (" << config_.vrf.threshold_lower << ", "
@@ -152,7 +155,7 @@ int32_t SortitionParamsManager::getChange(const uint64_t period, const uint16_t 
   return change;
 }
 
-std::optional<SortitionParamsChange> SortitionParamsManager::calculateChange(const uint64_t period) {
+std::optional<SortitionParamsChange> SortitionParamsManager::calculateChange(uint64_t period) {
   const auto average_dag_efficiency = averageDagEfficiency();
   if (average_dag_efficiency >= config_.dag_efficiency_targets.first &&
       average_dag_efficiency <= config_.dag_efficiency_targets.second) {

@@ -11,6 +11,6 @@ GLOBAL_CONST(h256, EmptyRLPListSHA3);
 GLOBAL_CONST(h64, EmptyNonce);
 GLOBAL_CONST(u256, ZeroU256);
 
-constexpr uint16_t ONE_PERCENT = 100;
+constexpr uint16_t kOnePercent = 100;
 
 }  // namespace taraxa

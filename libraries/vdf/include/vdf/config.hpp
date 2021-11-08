@@ -23,16 +23,16 @@ struct VdfParams {
 struct SortitionParams {
   SortitionParams() = default;
   SortitionParams(SortitionParams&&) = default;
-  SortitionParams(SortitionParams const& config) = default;
-  SortitionParams(uint16_t const selection, uint16_t const threshold_lower, uint16_t const min, uint16_t const max,
-                  uint16_t const stale, uint16_t const lambda_max_bound)
-      : vrf{selection, threshold_lower}, vdf{min, max, stale, lambda_max_bound} {}
-  SortitionParams(VrfParams vrf, VdfParams vdf) : vrf{vrf}, vdf{vdf} {}
+  SortitionParams(const SortitionParams& config) = default;
+  SortitionParams(uint16_t threshold_upper, uint16_t threshold_lower, uint16_t min, uint16_t max, uint16_t stale,
+                  uint16_t lambda_max_bound)
+      : vrf{threshold_upper, threshold_lower}, vdf{min, max, stale, lambda_max_bound} {}
+  SortitionParams(const VrfParams& vrf, const VdfParams& vdf) : vrf{vrf}, vdf{vdf} {}
 
   SortitionParams& operator=(SortitionParams&&) = default;
   SortitionParams& operator=(const SortitionParams&) = default;
 
-  friend std::ostream& operator<<(std::ostream& strm, SortitionParams const& config) {
+  friend std::ostream& operator<<(std::ostream& strm, const SortitionParams& config) {
     strm << " [VDF config] " << std::endl;
     strm << "    vrf upper threshold: " << config.vrf.threshold_upper << std::endl;
     strm << "    vrf lower threshold: " << config.vrf.threshold_lower << std::endl;
@@ -48,22 +48,22 @@ struct SortitionParams {
 
 struct SortitionConfig : SortitionParams {
   uint16_t changes_count_for_average = 5;  // intervals
-  uint16_t max_interval_correction = 10 * ONE_PERCENT;
-  std::pair<uint16_t, uint16_t> dag_efficiency_targets = {48 * ONE_PERCENT, 52 * ONE_PERCENT};
+  uint16_t max_interval_correction = 10 * kOnePercent;
+  std::pair<uint16_t, uint16_t> dag_efficiency_targets = {48 * kOnePercent, 52 * kOnePercent};
   uint16_t computation_interval = 50;  // pbft blocks
 
   uint16_t targetEfficiency() const { return (dag_efficiency_targets.first + dag_efficiency_targets.second) / 2; }
 };
 
-Json::Value enc_json(VrfParams const& obj);
-void dec_json(Json::Value const& json, VrfParams& obj);
-Json::Value enc_json(VdfParams const& obj);
-void dec_json(Json::Value const& json, VdfParams& obj);
+Json::Value enc_json(const VrfParams& obj);
+void dec_json(const Json::Value& json, VrfParams& obj);
+Json::Value enc_json(const VdfParams& obj);
+void dec_json(const Json::Value& json, VdfParams& obj);
 
-Json::Value enc_json(SortitionParams const& obj);
-void dec_json(Json::Value const& json, SortitionParams& obj);
+Json::Value enc_json(const SortitionParams& obj);
+void dec_json(const Json::Value& json, SortitionParams& obj);
 
-Json::Value enc_json(SortitionConfig const& obj);
-void dec_json(Json::Value const& json, SortitionConfig& obj);
+Json::Value enc_json(const SortitionConfig& obj);
+void dec_json(const Json::Value& json, SortitionConfig& obj);
 
 }  // namespace taraxa

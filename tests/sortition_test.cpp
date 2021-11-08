@@ -20,10 +20,10 @@ vec_trx_t generateTrxHashes(size_t count) {
 SyncBlock createBlock(uint64_t period, uint16_t efficiency, size_t dag_blocks_count = 5) {
   // produced transactions count should be equal to or multiple of this value to produce block with accurate enough
   // efficiency
-  const size_t TRX_COUNT = 100 * ONE_PERCENT;
+  const size_t kTrxCount = 100 * kOnePercent;
   SyncBlock b;
   b.pbft_blk = std::make_shared<PbftBlock>(PbftBlock{{}, {}, {}, period, {}, dev::KeyPair::create().secret()});
-  size_t effective_transactions = TRX_COUNT * efficiency / (100 * ONE_PERCENT);
+  size_t effective_transactions = kTrxCount * efficiency / (100 * kOnePercent);
   auto trx_hashes = generateTrxHashes(effective_transactions);
   auto trx_per_block = effective_transactions / dag_blocks_count;
 
@@ -37,8 +37,8 @@ SyncBlock createBlock(uint64_t period, uint16_t efficiency, size_t dag_blocks_co
   };
 
   size_t issued_overlap_count = 0;
-  while (issued_overlap_count != TRX_COUNT - effective_transactions) {
-    size_t overlap = std::min(TRX_COUNT - effective_transactions - issued_overlap_count, trx_hashes.size());
+  while (issued_overlap_count != kTrxCount - effective_transactions) {
+    size_t overlap = std::min(kTrxCount - effective_transactions - issued_overlap_count, trx_hashes.size());
     issued_overlap_count += overlap;
     vec_trx_t trxs{trx_hashes.begin(), trx_hashes.begin() + overlap};
     b.dag_blocks.push_back({{}, {}, {}, trxs, {}});
@@ -113,9 +113,9 @@ TEST_F(SortitionTest, sortition_config_serialization) {
 }
 
 TEST_F(SortitionTest, params_change_serialization) {
-  SortitionParamsChange start(1, 25 * ONE_PERCENT, {1100, 1500});
+  SortitionParamsChange start(1, 25 * kOnePercent, {1100, 1500});
   // 1700 - 1500 / 2 = 100 (change per percent)
-  SortitionParamsChange params(2, 27 * ONE_PERCENT, {1300, 1700}, start);
+  SortitionParamsChange params(2, 27 * kOnePercent, {1300, 1700}, start);
 
   EXPECT_EQ(params.actual_correction_per_percent, 100);
 
@@ -131,10 +131,10 @@ TEST_F(SortitionTest, params_change_serialization) {
 TEST_F(SortitionTest, efficiency_calculation) {
   size_t tries = 10;
   auto db = std::make_shared<DbStorage>(data_dir / "db");
-  SortitionParamsManager sp(node_cfgs[0].chain.sortition, db);
+  SortitionParamsManager sp({}, node_cfgs[0].chain.sortition, db);
 
   while (tries--) {
-    auto target_efficiency = std::rand() % 100 * ONE_PERCENT;
+    auto target_efficiency = std::rand() % 100 * kOnePercent;
     auto b = createBlock(1, target_efficiency, 5);
 
     auto calc_efficiency = sp.calculateDagEfficiency(b);
@@ -145,8 +145,8 @@ TEST_F(SortitionTest, efficiency_calculation) {
 TEST_F(SortitionTest, correction_calculation) {
   VrfParams params{300, 100};
 
-  SortitionParamsChange pc1(1, 60 * ONE_PERCENT, params);
-  SortitionParamsChange pc2(2, 62 * ONE_PERCENT, {400, 200}, pc1);
+  SortitionParamsChange pc1(1, 60 * kOnePercent, params);
+  SortitionParamsChange pc2(2, 62 * kOnePercent, {400, 200}, pc1);
 
   // 100 / 2 = 50
   EXPECT_EQ(pc2.actual_correction_per_percent, 50);
@@ -155,8 +155,8 @@ TEST_F(SortitionTest, correction_calculation) {
 TEST_F(SortitionTest, minimal_correction) {
   VrfParams params{100, 300};
 
-  SortitionParamsChange pc1(1, 60 * ONE_PERCENT, params);
-  SortitionParamsChange pc2(2, 62 * ONE_PERCENT, params, pc1);
+  SortitionParamsChange pc1(1, 60 * kOnePercent, params);
+  SortitionParamsChange pc2(2, 62 * kOnePercent, params, pc1);
 
   // params not changed so correction should be minimal(1)
   EXPECT_EQ(pc2.actual_correction_per_percent, 1);
@@ -164,17 +164,17 @@ TEST_F(SortitionTest, minimal_correction) {
 
 TEST_F(SortitionTest, average_correction_per_percent) {
   node_cfgs[0].chain.sortition.computation_interval = 5;
-  node_cfgs[0].chain.sortition.dag_efficiency_targets = {75 * ONE_PERCENT, 75 * ONE_PERCENT};
+  node_cfgs[0].chain.sortition.dag_efficiency_targets = {75 * kOnePercent, 75 * kOnePercent};
 
   auto db = std::make_shared<DbStorage>(data_dir / "db");
-  SortitionParamsManager sp(node_cfgs[0].chain.sortition, db);
+  SortitionParamsManager sp({}, node_cfgs[0].chain.sortition, db);
 
   auto threshold_upper = sp.getSortitionParams().vrf.threshold_upper;
   auto correction_per_percent = sp.averageCorrectionPerPercent();
   {
     auto batch = db->createWriteBatch();
     for (int i = 1; i <= 5; i++) {
-      auto efficiency = 72 * ONE_PERCENT;
+      auto efficiency = 72 * kOnePercent;
       auto b = createBlock(i, efficiency, 5);
       sp.pbftBlockPushed(b, batch);
     }
@@ -189,7 +189,7 @@ TEST_F(SortitionTest, average_correction_per_percent) {
   {
     auto batch = db->createWriteBatch();
     for (int i = 6; i <= 10; i++) {
-      auto efficiency = 72 * ONE_PERCENT;
+      auto efficiency = 72 * kOnePercent;
       auto b = createBlock(i, efficiency, 5);
       sp.pbftBlockPushed(b, batch);
     }
@@ -204,7 +204,7 @@ TEST_F(SortitionTest, average_correction_per_percent) {
   {
     auto batch = db->createWriteBatch();
     for (int i = 11; i <= 15; i++) {
-      auto efficiency = 77 * ONE_PERCENT;
+      auto efficiency = 77 * kOnePercent;
       auto b = createBlock(i, efficiency, 5);
       sp.pbftBlockPushed(b, batch);
     }
@@ -219,7 +219,7 @@ TEST_F(SortitionTest, average_correction_per_percent) {
   {
     auto batch = db->createWriteBatch();
     for (int i = 16; i <= 20; i++) {
-      auto efficiency = 74 * ONE_PERCENT;
+      auto efficiency = 74 * kOnePercent;
       auto b = createBlock(i, efficiency, 5);
       sp.pbftBlockPushed(b, batch);
     }
@@ -230,14 +230,14 @@ TEST_F(SortitionTest, average_correction_per_percent) {
   {
     auto batch = db->createWriteBatch();
     for (int i = 21; i <= 23; i++) {
-      auto efficiency = std::rand() % 100 * ONE_PERCENT;
+      auto efficiency = std::rand() % 100 * kOnePercent;
       auto b = createBlock(i, efficiency, 5);
       sp.pbftBlockPushed(b, batch);
     }
     db->commitWriteBatch(batch);
   }
 
-  SortitionParamsManager sp2(node_cfgs[0].chain.sortition, db);
+  SortitionParamsManager sp2({}, node_cfgs[0].chain.sortition, db);
   EXPECT_EQ(sp2.averageDagEfficiency(), sp.averageDagEfficiency());
   EXPECT_EQ(sp2.averageCorrectionPerPercent(), sp.averageCorrectionPerPercent());
 }
@@ -302,32 +302,32 @@ TEST_F(SortitionTest, load_from_db) {
   auto batch = db->createWriteBatch();
   for (uint16_t i = 0; i < 10; ++i) {
     SortitionParamsChange p{i, i, {i, i}};
-    p.actual_correction_per_percent = 25 * ONE_PERCENT;
+    p.actual_correction_per_percent = 25 * kOnePercent;
     db->saveSortitionParamsChange(i, p, batch);
   }
   for (int i = 0; i <= node_cfgs[0].chain.sortition.computation_interval - 1; ++i) {
-    db->savePbftBlockDagEfficiency(i, 44 * ONE_PERCENT, batch);
+    db->savePbftBlockDagEfficiency(i, 44 * kOnePercent, batch);
   }
   db->commitWriteBatch(batch);
 
-  SortitionParamsManager sp(node_cfgs[0].chain.sortition, db);
+  SortitionParamsManager sp({}, node_cfgs[0].chain.sortition, db);
 
-  EXPECT_EQ(sp.averageCorrectionPerPercent(), 25 * ONE_PERCENT);
-  EXPECT_EQ(sp.averageDagEfficiency(), 44 * ONE_PERCENT);
+  EXPECT_EQ(sp.averageCorrectionPerPercent(), 25 * kOnePercent);
+  EXPECT_EQ(sp.averageDagEfficiency(), 44 * kOnePercent);
 }
 
 TEST_F(SortitionTest, db_cleanup) {
   auto& cfg = node_cfgs[0].chain.sortition;
   cfg.computation_interval = 5;
-  cfg.dag_efficiency_targets = {75 * ONE_PERCENT, 75 * ONE_PERCENT};
+  cfg.dag_efficiency_targets = {75 * kOnePercent, 75 * kOnePercent};
 
   auto db = std::make_shared<DbStorage>(data_dir / "db");
-  SortitionParamsManager sp(node_cfgs[0].chain.sortition, db);
+  SortitionParamsManager sp({}, node_cfgs[0].chain.sortition, db);
 
   {
     auto batch = db->createWriteBatch();
     for (int i = 1; i <= 2 * cfg.computation_interval * cfg.changes_count_for_average; i++) {
-      auto efficiency = 72 * ONE_PERCENT;
+      auto efficiency = 72 * kOnePercent;
       auto b = createBlock(i, efficiency, 5);
       sp.pbftBlockPushed(b, batch);
     }
@@ -338,7 +338,7 @@ TEST_F(SortitionTest, db_cleanup) {
   {
     auto batch = db->createWriteBatch();
     for (int i = 1; i <= 3; i++) {
-      auto efficiency = 73 * ONE_PERCENT;
+      auto efficiency = 73 * kOnePercent;
       auto b = createBlock(2 * cfg.computation_interval * cfg.changes_count_for_average + i, efficiency, 5);
       sp.pbftBlockPushed(b, batch);
     }
@@ -351,33 +351,33 @@ TEST_F(SortitionTest, db_cleanup) {
 TEST_F(SortitionTest, get_params_from_period) {
   auto& cfg = node_cfgs[0].chain.sortition;
   cfg.computation_interval = 10;
-  cfg.dag_efficiency_targets = {75 * ONE_PERCENT, 75 * ONE_PERCENT};
+  cfg.dag_efficiency_targets = {75 * kOnePercent, 75 * kOnePercent};
 
   auto db = std::make_shared<DbStorage>(data_dir / "db");
-  SortitionParamsManager sp(node_cfgs[0].chain.sortition, db);
+  SortitionParamsManager sp({}, node_cfgs[0].chain.sortition, db);
   auto batch = db->createWriteBatch();
   {
-    auto b = createBlock(10, 70 * ONE_PERCENT, 5);
+    auto b = createBlock(10, 70 * kOnePercent, 5);
     sp.pbftBlockPushed(b, batch);
   }
   {
-    auto b = createBlock(20, 70 * ONE_PERCENT, 5);
+    auto b = createBlock(20, 70 * kOnePercent, 5);
     sp.pbftBlockPushed(b, batch);
   }
   {
-    auto b = createBlock(30, 75 * ONE_PERCENT, 5);
+    auto b = createBlock(30, 75 * kOnePercent, 5);
     sp.pbftBlockPushed(b, batch);
   }
   {
-    auto b = createBlock(40, 70 * ONE_PERCENT, 5);
+    auto b = createBlock(40, 70 * kOnePercent, 5);
     sp.pbftBlockPushed(b, batch);
   }
   {
-    auto b = createBlock(50, 75 * ONE_PERCENT, 5);
+    auto b = createBlock(50, 75 * kOnePercent, 5);
     sp.pbftBlockPushed(b, batch);
   }
   {
-    auto b = createBlock(60, 70 * ONE_PERCENT, 5);
+    auto b = createBlock(60, 70 * kOnePercent, 5);
     sp.pbftBlockPushed(b, batch);
   }
   db->commitWriteBatch(batch);

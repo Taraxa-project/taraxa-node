@@ -400,9 +400,9 @@ std::vector<uint16_t> DbStorage::getLastIntervalEfficiencies(uint16_t computatio
   return efficiencies;
 }
 
-void DbStorage::cleanupDagEfficiencies(DbStorage::Batch& batch) {
-  forEach(Columns::pbft_block_dag_efficiency,
-          [this, &batch](auto key, auto) { remove(batch, Columns::pbft_block_dag_efficiency, key); });
+void DbStorage::cleanupDagEfficiencies(uint64_t current_period) {
+  // endKey is not including, so add 1
+  db_->DeleteRange(write_options_, handle(Columns::pbft_block_dag_efficiency), 0, toSlice(current_period + 1));
 }
 
 // Sortition params

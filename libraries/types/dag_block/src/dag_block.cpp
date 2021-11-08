@@ -36,22 +36,14 @@ DagBlock::DagBlock(string const &json)
         return doc;
       }()) {}
 
-uint64_t getUInt(auto const &v) {
-  if (v.isString()) {
-    return dev::jsToInt(v.asString());
-  }
-
-  return v.asUInt64();
-}
-
 DagBlock::DagBlock(Json::Value const &doc) {
-  level_ = getUInt(doc["level"]);
+  level_ = dev::getUInt(doc["level"]);
 
-  tips_ = asVector<blk_hash_t, std::string>(doc, "tips");
-  trxs_ = asVector<trx_hash_t, std::string>(doc, "trxs");
+  tips_ = asVector<blk_hash_t>(doc["tips"]);
+  trxs_ = asVector<trx_hash_t>(doc["trxs"]);
   sig_ = sig_t(doc["sig"].asString());
   pivot_ = blk_hash_t(doc["pivot"].asString());
-  timestamp_ = getUInt(doc["timestamp"]);
+  timestamp_ = dev::getUInt(doc["timestamp"]);
 
   // Allow vdf not to be present for genesis
   if (level_ > 0) {

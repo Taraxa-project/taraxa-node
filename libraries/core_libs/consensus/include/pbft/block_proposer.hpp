@@ -43,7 +43,7 @@ class SortitionPropose : public ProposeModelFace {
  public:
   SortitionPropose(addr_t node_addr, std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
                    std::shared_ptr<TransactionManager> trx_mgr)
-      : dag_mgr_(dag_mgr), dag_blk_mgr_(std::move(dag_blk_mgr)), trx_mgr_(trx_mgr) {
+      : dag_mgr_(std::move(dag_mgr)), dag_blk_mgr_(std::move(dag_blk_mgr)), trx_mgr_(std::move(trx_mgr)) {
     LOG_OBJECTS_CREATE("PR_MDL");
     LOG(log_nf_) << "Set sortition DAG block proposal" << dag_blk_mgr_->sortitionParamsManager().getSortitionParams();
   }

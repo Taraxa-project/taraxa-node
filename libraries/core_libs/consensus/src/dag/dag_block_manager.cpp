@@ -18,7 +18,7 @@ DagBlockManager::DagBlockManager(addr_t node_addr, SortitionConfig const &sortit
       invalid_blocks_(cache_max_size_, cache_delete_step_),
       seen_blocks_(cache_max_size_, cache_delete_step_),
       queue_limit_(queue_limit),
-      sortition_params_manager_(sortition_config, db_),
+      sortition_params_manager_(node_addr, sortition_config, db_),
       dpos_config_(dpos_config) {
   LOG_OBJECTS_CREATE("BLKQU");
 
@@ -225,6 +225,15 @@ void DagBlockManager::verifyBlock() {
     }
 
     auto propose_period = getProposalPeriod(blk.getLevel());
+    // Verify DPOS
+    if (!propose_period.second) {
+      // Cannot find the proposal period in DB yet. The slow node gets an ahead block, puts back.
+      LOG(log_nf_) << "Cannot find proposal period " << propose_period.first << " in DB for DAG block " << blk;
+      uLock lock(shared_mutex_for_unverified_qu_);
+      unverified_qu_[blk.getLevel()].emplace_back(blk);
+      continue;
+    }
+
     // Verify VDF solution
     try {
       blk.verifyVdf(sortition_params_manager_.getSortitionParams(propose_period.first));
@@ -233,15 +242,6 @@ void DagBlockManager::verifyBlock() {
                    << " level failed on VDF verification with pivot hash " << blk.getPivot() << " reason " << e.what();
       LOG(log_er_) << "period from map: " << propose_period.first << " current: " << pbft_chain_->getPbftChainSize();
       markBlockInvalid(block_hash);
-      continue;
-    }
-
-    // Verify DPOS
-    if (!propose_period.second) {
-      // Cannot find the proposal period in DB yet. The slow node gets an ahead block, puts back.
-      LOG(log_nf_) << "Cannot find proposal period " << propose_period.first << " in DB for DAG block " << blk;
-      uLock lock(shared_mutex_for_unverified_qu_);
-      unverified_qu_[blk.getLevel()].emplace_back(blk);
       continue;
     }
 
