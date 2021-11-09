@@ -39,9 +39,9 @@ Network::Network(NetworkConfig const &config, std::filesystem::path const &netwo
   auto construct_capabilities = [&, this](auto host) {
     assert(!host.expired());
 
-    taraxa_capability_ = std::make_shared<network::tarcap::TaraxaCapability>(host, key, conf_, db, pbft_mgr, pbft_chain,
-                                                                             vote_mgr, next_votes_mgr, dag_mgr,
-                                                                             dag_blk_mgr, trx_mgr, key.address());
+    taraxa_capability_ = std::make_shared<network::tarcap::TaraxaCapability>(
+        host, key, conf_, db, final_chain, pbft_mgr, pbft_chain, vote_mgr, next_votes_mgr, dag_mgr, dag_blk_mgr,
+        trx_mgr, key.address());
     return dev::p2p::Host::CapabilityList{taraxa_capability_};
   };
   host_ = dev::p2p::Host::make(net_version, construct_capabilities, key, net_conf, std::move(taraxa_net_conf),

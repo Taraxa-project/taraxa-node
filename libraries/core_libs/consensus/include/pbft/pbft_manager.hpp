@@ -38,7 +38,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
               std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
               std::shared_ptr<NextVotesManager> next_votes_mgr, std::shared_ptr<DagManager> dag_mgr,
               std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<TransactionManager> trx_mgr,
-              std::shared_ptr<FinalChain> final_chain, secret_t node_sk, vrf_sk_t vrf_sk);
+              std::shared_ptr<final_chain::FinalChain> final_chain, secret_t node_sk, vrf_sk_t vrf_sk);
   ~PbftManager();
 
   void setNetwork(std::weak_ptr<Network> network);
@@ -53,12 +53,14 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   uint64_t getPbftStep() const;
   void setPbftRound(uint64_t const round);
   size_t getSortitionThreshold() const;
+  size_t getPreviousPbftPeriodSortitionThreshold() const;
   size_t getTwoTPlusOne() const;
   void setPbftStep(size_t const pbft_step);
 
   std::shared_ptr<Vote> generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, uint64_t round, size_t step);
 
   size_t getDposTotalVotesCount() const;
+  size_t getPreviousPbftPeriodDposTotalVotesCount() const;
   size_t getDposWeightedVotesCount() const;
 
   uint64_t pbftSyncingPeriod() const;
@@ -160,7 +162,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   std::weak_ptr<Network> network_;
   std::shared_ptr<DagBlockManager> dag_blk_mgr_;
   std::shared_ptr<TransactionManager> trx_mgr_;
-  std::shared_ptr<FinalChain> final_chain_;
+  std::shared_ptr<final_chain::FinalChain> final_chain_;
 
   addr_t node_addr_;
   secret_t node_sk_;
@@ -221,11 +223,13 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   uint64_t pbft_round_last_broadcast_ = 0;
   size_t pbft_step_last_broadcast_ = 0;
 
-  std::atomic<uint64_t> dpos_period_;
-  std::atomic<size_t> dpos_votes_count_;
-  std::atomic<size_t> weighted_votes_count_;
+  std::atomic<uint64_t> dpos_period_ = 0;
+  std::atomic<size_t> dpos_votes_count_ = 0;
+  std::atomic<size_t> previous_pbft_period_dpos_votes_count_ = 0;
+  std::atomic<size_t> weighted_votes_count_ = 0;
 
   size_t sortition_threshold_ = 0;
+  std::atomic<size_t> previous_pbft_period_sortition_threshold_ = 0;
   // 2t+1 minimum number of votes for consensus
   size_t TWO_T_PLUS_ONE = 0;
 

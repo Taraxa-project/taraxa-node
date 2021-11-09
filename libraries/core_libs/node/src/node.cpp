@@ -107,6 +107,11 @@ void FullNode::init() {
   blk_proposer_ =
       std::make_shared<BlockProposer>(conf_.test_params.block_proposer, dag_mgr_, trx_mgr_, dag_blk_mgr_, final_chain_,
                                       node_addr, getSecretKey(), getVrfSecretKey(), log_time_);
+  // TODO: merge orig:
+  // blk_proposer_ = std::make_shared<BlockProposer>(conf_.test_params.block_proposer, conf_.chain.vdf, dag_mgr_, trx_mgr_,
+  //                                                 dag_blk_mgr_, final_chain_, node_addr, getSecretKey(),
+  //                                                 getVrfSecretKey(), log_time_);
+
   network_ = std::make_shared<Network>(conf_.network, conf_.net_file_path().string(), kp_, db_, pbft_mgr_, pbft_chain_,
                                        vote_mgr_, next_votes_mgr_, dag_mgr_, dag_blk_mgr_, trx_mgr_);
 }

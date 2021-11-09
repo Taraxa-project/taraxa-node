@@ -15,6 +15,7 @@
 #include "network/tarcap/packets_handlers/test_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/transaction_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/vote_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/votes_dag_sync_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/votes_sync_packet_handler.hpp"
 #include "network/tarcap/shared_states/syncing_state.hpp"
 #include "network/tarcap/shared_states/test_state.hpp"
@@ -30,6 +31,7 @@ namespace taraxa::network::tarcap {
 
 TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev::KeyPair &key,
                                    const NetworkConfig &conf, std::shared_ptr<DbStorage> db,
+                                   std::shared_ptr<final_chain::FinalChain> final_chain,
                                    std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
                                    std::shared_ptr<VoteManager> vote_mgr,
                                    std::shared_ptr<NextVotesManager> next_votes_mgr,
@@ -53,8 +55,8 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev
   initBootNodes(conf.network_boot_nodes, key);
 
   // Creates and registers all packets handlers
-  registerPacketHandlers(conf, packets_stats, db, pbft_mgr, pbft_chain, vote_mgr, next_votes_mgr, dag_mgr, dag_blk_mgr,
-                         trx_mgr, node_addr);
+  registerPacketHandlers(conf, packets_stats, db, final_chain, pbft_mgr, pbft_chain, vote_mgr, next_votes_mgr, dag_mgr,
+                         dag_blk_mgr, trx_mgr, node_addr);
 
   // Inits periodic events. Must be called after registerHandlers !!!
   initPeriodicEvents(conf, pbft_mgr, trx_mgr, packets_stats);

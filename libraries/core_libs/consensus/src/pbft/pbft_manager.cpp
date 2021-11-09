@@ -24,7 +24,7 @@ PbftManager::PbftManager(PbftConfig const &conf, blk_hash_t const &genesis, addr
                          std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
                          std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<NextVotesManager> next_votes_mgr,
                          std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
-                         std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<FinalChain> final_chain,
+                         std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<final_chain::FinalChain> final_chain,
                          secret_t node_sk, vrf_sk_t vrf_sk)
     : db_(db),
       next_votes_manager_(next_votes_mgr),
@@ -271,6 +271,10 @@ void PbftManager::setPbftRound(uint64_t const round) {
 
 size_t PbftManager::getSortitionThreshold() const { return sortition_threshold_; }
 
+size_t PbftManager::getPreviousPbftPeriodSortitionThreshold() const {
+  return previous_pbft_period_sortition_threshold_;
+}
+
 size_t PbftManager::getTwoTPlusOne() const { return TWO_T_PLUS_ONE; }
 
 // Notice: Test purpose
@@ -282,8 +286,13 @@ void PbftManager::updateDposState_() {
   dpos_period_ = pbft_chain_->getPbftChainSize();
   do {
     try {
+      size_t tmp_dpos_votes_count = dpos_votes_count_;
+
       dpos_votes_count_ = final_chain_->dpos_eligible_total_vote_count(dpos_period_);
       weighted_votes_count_ = final_chain_->dpos_eligible_vote_count(dpos_period_, node_addr_);
+
+      // Save current dpos_votes_count_
+      previous_pbft_period_dpos_votes_count_ = tmp_dpos_votes_count;
       break;
     } catch (state_api::ErrFutureBlock &c) {
       LOG(log_nf_) << c.what();
@@ -300,6 +309,10 @@ void PbftManager::updateDposState_() {
 }
 
 size_t PbftManager::getDposTotalVotesCount() const { return dpos_votes_count_.load(); }
+
+size_t PbftManager::getPreviousPbftPeriodDposTotalVotesCount() const {
+  return previous_pbft_period_dpos_votes_count_.load();
+}
 
 size_t PbftManager::getDposWeightedVotesCount() const { return weighted_votes_count_.load(); }
 
@@ -675,6 +688,10 @@ bool PbftManager::stateOperations_() {
   LOG(log_tr_) << "PBFT current step is " << step_;
 
   // Periodically verify unverified votes
+  // TODO: sending dposEligibleVoteCount_ as a parameter is not needed here and was added probably just because of
+  // single
+  //       test that is calling verifyVotes with some dummy lambda function... Very bad design if we adjust live code
+  //       because of tests...
   vote_mgr_->verifyVotes(round, sortition_threshold_, getDposTotalVotesCount(),
                          [this](auto const &addr) { return dposEligibleVoteCount_(addr); });
 
@@ -1611,6 +1628,9 @@ bool PbftManager::pushPbftBlock_(SyncBlock &&sync_block) {
 }
 
 void PbftManager::updateTwoTPlusOneAndThreshold_() {
+  // Save current threshold
+  previous_pbft_period_sortition_threshold_ = sortition_threshold_;
+
   // Update 2t+1 and threshold
   auto dpos_total_votes_count = getDposTotalVotesCount();
   sortition_threshold_ = std::min<size_t>(COMMITTEE_SIZE, dpos_total_votes_count);

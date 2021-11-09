@@ -26,6 +26,10 @@ class DagBlockManager;
 class TransactionManager;
 }  // namespace taraxa
 
+namespace taraxa::final_chain {
+class FinalChain;
+}
+
 namespace taraxa::network::tarcap {
 
 class PacketsHandler;
