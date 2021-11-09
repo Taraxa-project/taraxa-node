@@ -53,7 +53,7 @@ ENV CXX="clang++-${LLVM_VERSION}"
 ENV CC="clang-${LLVM_VERSION}"
 
 # Install conan
-RUN pip3 install conan
+RUN pip3 install --upgrade conan
 
 # Install go
 RUN curl -SL https://dl.google.com/go/go$GO_VERSION.linux-amd64.tar.gz \

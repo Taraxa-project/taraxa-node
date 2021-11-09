@@ -85,6 +85,8 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
 #define COLUMN(__name__) static inline auto const __name__ = all_.emplace_back(#__name__, all_.size())
 
+    // do not change/move
+    COLUMN(default_column);
     // Contains full data for an executed PBFT block including PBFT block, cert votes, dag blocks and transactions
     COLUMN(period_data);
     COLUMN(dag_blocks);
@@ -151,7 +153,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
   explicit DbStorage(fs::path const& base_path, uint32_t db_snapshot_each_n_pbft_block = 0,
                      uint32_t db_max_snapshots = 0, uint32_t db_revert_to_period = 0, addr_t node_addr = addr_t(),
-                     bool rebuild = 0);
+                     bool rebuild = false, bool rebuild_columns = false);
   ~DbStorage();
 
   auto const& path() const { return path_; }
@@ -161,6 +163,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void commitWriteBatch(Batch& write_batch, rocksdb::WriteOptions const& opts);
   void commitWriteBatch(Batch& write_batch) { commitWriteBatch(write_batch, write_options_); }
 
+  void rebuildColumns(const rocksdb::Options& options);
   bool createSnapshot(uint64_t period);
   void deleteSnapshot(uint64_t period);
   void recoverToPeriod(uint64_t period);

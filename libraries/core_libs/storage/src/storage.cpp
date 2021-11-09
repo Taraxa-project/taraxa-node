@@ -16,7 +16,7 @@ static constexpr uint16_t DAG_BLOCKS_POS_IN_PERIOD_DATA = 2;
 static constexpr uint16_t TRANSACTIONS_POS_IN_PERIOD_DATA = 3;
 
 DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_block, uint32_t db_max_snapshots,
-                     uint32_t db_revert_to_period, addr_t node_addr, bool rebuild)
+                     uint32_t db_revert_to_period, addr_t node_addr, bool rebuild, bool rebuild_columns)
     : path_(path),
       handles_(Columns::all.size()),
       db_snapshot_each_n_pbft_block_(db_snapshot_each_n_pbft_block),
@@ -49,6 +49,10 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
   });
   LOG_OBJECTS_CREATE("DBS");
 
+  if (rebuild_columns) {
+    rebuildColumns(options);
+  }
+
   // Iterate over the db folders and populate snapshot set
   loadSnapshots();
 
@@ -75,6 +79,32 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
       minor_version_changed_ = true;
     }
   }
+}
+
+void DbStorage::rebuildColumns(const rocksdb::Options& options) {
+  rocksdb::DB* db;
+  std::vector<std::string> column_families;
+  rocksdb::DB::ListColumnFamilies(options, db_path_.string(), &column_families);
+
+  std::vector<rocksdb::ColumnFamilyDescriptor> descriptors(column_families.size());
+  std::vector<rocksdb::ColumnFamilyHandle*> handles(column_families.size());
+  std::transform(column_families.begin(), column_families.end(), std::back_inserter(descriptors), [](const auto& name) {
+    return rocksdb::ColumnFamilyDescriptor(name, rocksdb::ColumnFamilyOptions());
+  });
+  checkStatus(rocksdb::DB::Open(options, db_path_.string(), descriptors, &handles, &db));
+  for (size_t i = 0; i < handles.size(); ++i) {
+    const auto it = std::find_if(Columns::all.begin(), Columns::all.end(),
+                                 [&handles, i](const Column& col) { return col.name() == handles[i]->GetName(); });
+    if (it == Columns::all.end()) {
+      LOG(log_si_) << "Removing column: " << handles[i]->GetName();
+      checkStatus(db->DropColumnFamily(handles[i]));
+    }
+  }
+  for (auto cf : handles) {
+    checkStatus(db->DestroyColumnFamilyHandle(cf));
+  }
+  checkStatus(db->Close());
+  delete db;
 }
 
 void DbStorage::loadSnapshots() {

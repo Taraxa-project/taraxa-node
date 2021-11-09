@@ -29,9 +29,10 @@ Config::Config(int argc, const char* argv[]) {
   bool overwrite_config;
 
   bool boot_node = false;
-  bool destroy_db = 0;
-  bool rebuild_network = 0;
-  bool rebuild_db = 0;
+  bool destroy_db = false;
+  bool rebuild_network = false;
+  bool rebuild_db = false;
+  bool rebuild_db_columns = false;
   bool version = false;
   uint64_t rebuild_db_period = 0;
   uint64_t revert_to_period = 0;
@@ -66,6 +67,8 @@ Config::Config(int argc, const char* argv[]) {
                                      "rebuilding all the other "
                                      "database tables - this could take a long "
                                      "time");
+  node_command_options.add_options()(REBUILD_DB_COLUMNS, bpo::bool_switch(&rebuild_db_columns),
+                                     "Removes old DB columns ");
   node_command_options.add_options()(REBUILD_DB_PERIOD, bpo::value<uint64_t>(&rebuild_db_period),
                                      "Use with rebuild-db - Rebuild db up "
                                      "to a specified period");
@@ -184,6 +187,7 @@ Config::Config(int argc, const char* argv[]) {
     }
     node_config_.test_params.db_revert_to_period = revert_to_period;
     node_config_.test_params.rebuild_db = rebuild_db;
+    node_config_.test_params.rebuild_db_columns = rebuild_db_columns;
     node_config_.test_params.rebuild_db_period = rebuild_db_period;
     if (command[0] == NODE_COMMAND) node_configured_ = true;
   } else if (command.size() > 0 && command[0] == ACCOUNT_COMMAND) {
