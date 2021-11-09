@@ -10,7 +10,7 @@ constexpr size_t EXTENDED_PARTITION_STEPS = 1000;
 constexpr size_t FIRST_FINISH_STEP = 4;
 
 namespace taraxa {
-VoteManager::VoteManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<FinalChain> final_chain,
+VoteManager::VoteManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<final_chain::FinalChain> final_chain,
                          std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<NextVotesManager> next_votes_mgr)
     : node_addr_(std::move(node_addr)),
       db_(std::move(db)),
@@ -73,6 +73,8 @@ bool VoteManager::addUnverifiedVote(std::shared_ptr<Vote>&& vote) {
 
 void VoteManager::addUnverifiedVotes(std::vector<std::shared_ptr<Vote>>&& votes) {
   for (auto& v : votes) {
+    // TODO: remove this call after votes are no more saed in db as voteInUnverifiedMap is checked also
+    //       inside addUnverifiedVote
     if (voteInUnverifiedMap(v->getRound(), v->getHash())) {
       LOG(log_dg_) << "Vote " << v->getHash() << " is already in unverified queue";
       continue;
@@ -280,10 +282,14 @@ void VoteManager::verifyVotes(uint64_t pbft_round, size_t sortition_threshold, u
                               std::function<size_t(addr_t const&)> const& dpos_eligible_vote_count) {
   // Cleanup votes for previous rounds
   cleanupVotes(pbft_round);
+  // TODO: Why not just pop vote from unverified queue, validate it and put into
+  //       the verified queue. tmp structures are used for this process, which seems useless. + neither saving votes
+  //       into db is probably necessary here
   auto votes_to_verify = copyUnverifiedVotes();
 
   h256 latest_final_chain_block_hash = final_chain_->block_header()->hash;
 
+  // TODO: do we need this ??? See todo below
   if (latest_final_chain_block_hash != current_period_final_chain_block_hash_) {
     current_period_final_chain_block_hash_ = latest_final_chain_block_hash;
     if (!votes_invalid_in_current_final_chain_period_.empty()) {
@@ -294,7 +300,9 @@ void VoteManager::verifyVotes(uint64_t pbft_round, size_t sortition_threshold, u
   }
 
   for (auto& v : votes_to_verify) {
-    if (votes_invalid_in_current_final_chain_period_.count(v->getHash())) {
+    // TODO: how can this even happen ? We should not save duplicate votes inside unverified votes queue so once some
+    //       vote is invalidt it should never make it back to unverified queue and this should never happen
+    if (votes_invalid_in_current_final_chain_period_.contains(v->getHash())) {
       continue;
     }
 
@@ -326,12 +334,15 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
     UniqueLock lock(unverified_votes_access_);
     auto it = unverified_votes_.begin();
 
+    // Remove all unverified votes for round < pbft_round
     while (it != unverified_votes_.end() && it->first < pbft_round) {
       it = unverified_votes_.erase(it);
     }
 
     size_t stale_removed_votes_count = 0;
 
+    // Find the vote with the biggest_round for each voter address and remove all votes where:
+    // biggest_round - vote_roud >= 2 for each voter
     auto rit = unverified_votes_.rbegin();
     while (rit != unverified_votes_.rend()) {
       auto vote_round = rit->first;
@@ -486,7 +497,7 @@ uint64_t VoteManager::roundDeterminedFromVotes(size_t two_t_plus_one) {
 }
 
 NextVotesManager::NextVotesManager(addr_t node_addr, std::shared_ptr<DbStorage> db,
-                                   std::shared_ptr<FinalChain> final_chain)
+                                   std::shared_ptr<final_chain::FinalChain> final_chain)
     : db_(std::move(db)),
       final_chain_(std::move(final_chain)),
       enough_votes_for_null_block_hash_(false),

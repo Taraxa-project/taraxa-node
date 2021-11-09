@@ -15,7 +15,7 @@ class DagBlockManager {
   DagBlockManager(addr_t node_addr, SortitionConfig const &sortition_config,
                   std::optional<state_api::DPOSConfig> dpos_config, unsigned verify_threads,
                   std::shared_ptr<DbStorage> db, std::shared_ptr<TransactionManager> trx_mgr,
-                  std::shared_ptr<FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain,
+                  std::shared_ptr<final_chain::FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain,
                   logger::Logger log_time_, uint32_t queue_limit = 0);
   ~DagBlockManager();
   void insertBroadcastedBlock(DagBlock const &blk);
@@ -67,7 +67,7 @@ class DagBlockManager {
 
   std::shared_ptr<DbStorage> db_;
   std::shared_ptr<TransactionManager> trx_mgr_;
-  std::shared_ptr<FinalChain> final_chain_;
+  std::shared_ptr<final_chain::FinalChain> final_chain_;
   std::shared_ptr<PbftChain> pbft_chain_;
   logger::Logger log_time_;
 

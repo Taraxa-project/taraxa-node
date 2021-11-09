@@ -22,6 +22,7 @@ enum SubprotocolPacketType : uint32_t {
   DagBlockPacket,
   // DagSyncPacket has mid priority as it is also used for ad-hoc syncing in case new dag blocks miss tips/pivot
   DagSyncPacket,
+  VotesDagSyncPacket,
   TransactionPacket,
 
   // Non critical packets with low processing priority
@@ -50,6 +51,8 @@ inline std::string convertPacketTypeToString(SubprotocolPacketType packet_type) 
       return "GetDagSyncPacket";
     case DagSyncPacket:
       return "DagSyncPacket";
+    case VotesDagSyncPacket:
+      return "VotesDagSyncPacket";
     case TransactionPacket:
       return "TransactionPacket";
     case TestPacket:

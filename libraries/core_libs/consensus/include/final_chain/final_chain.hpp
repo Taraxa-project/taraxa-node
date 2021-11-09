@@ -78,8 +78,3 @@ std::shared_ptr<FinalChain> NewFinalChain(std::shared_ptr<DB> const& db, Config 
                                           addr_t const& node_addr = {});
 
 }  // namespace taraxa::final_chain
-
-namespace taraxa {
-using final_chain::FinalChain;
-using final_chain::NewFinalChain;
-}  // namespace taraxa

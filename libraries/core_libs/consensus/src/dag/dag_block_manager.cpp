@@ -7,8 +7,8 @@ namespace taraxa {
 DagBlockManager::DagBlockManager(addr_t node_addr, SortitionConfig const &sortition_config,
                                  std::optional<state_api::DPOSConfig> dpos_config, unsigned num_verifiers,
                                  std::shared_ptr<DbStorage> db, std::shared_ptr<TransactionManager> trx_mgr,
-                                 std::shared_ptr<FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain,
-                                 logger::Logger log_time, uint32_t queue_limit)
+                                 std::shared_ptr<final_chain::FinalChain> final_chain,
+                                 std::shared_ptr<PbftChain> pbft_chain, logger::Logger log_time, uint32_t queue_limit)
     : num_verifiers_(num_verifiers),
       db_(db),
       trx_mgr_(trx_mgr),

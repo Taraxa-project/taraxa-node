@@ -13,7 +13,7 @@ class Network;
 
 class NextVotesManager {
  public:
-  NextVotesManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<FinalChain> final_chain);
+  NextVotesManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<final_chain::FinalChain> final_chain);
 
   void clear();
 
@@ -50,7 +50,7 @@ class NextVotesManager {
   mutable boost::shared_mutex access_;
 
   std::shared_ptr<DbStorage> db_;
-  std::shared_ptr<FinalChain> final_chain_;
+  std::shared_ptr<final_chain::FinalChain> final_chain_;
 
   bool enough_votes_for_null_block_hash_;
   blk_hash_t voted_value_;  // For value is not null block hash
@@ -65,7 +65,7 @@ class NextVotesManager {
 
 class VoteManager {
  public:
-  VoteManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<FinalChain> final_chain,
+  VoteManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<final_chain::FinalChain> final_chain,
               std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<NextVotesManager> next_votes_mgr);
   ~VoteManager();
 
@@ -134,7 +134,7 @@ class VoteManager {
 
   std::shared_ptr<DbStorage> db_;
   std::shared_ptr<PbftChain> pbft_chain_;
-  std::shared_ptr<FinalChain> final_chain_;
+  std::shared_ptr<final_chain::FinalChain> final_chain_;
   std::shared_ptr<NextVotesManager> next_votes_manager_;
   std::weak_ptr<Network> network_;
 

@@ -149,7 +149,7 @@ void LogFilter::match_one(ExtendedTransactionLocation const& trx_loc, Transactio
   }
 }
 
-std::vector<LocalisedLogEntry> LogFilter::match_all(FinalChain const& final_chain) const {
+std::vector<LocalisedLogEntry> LogFilter::match_all(final_chain::FinalChain const& final_chain) const {
   std::vector<LocalisedLogEntry> ret;
   auto action = [&, this](EthBlockNumber blk_n) {
     ExtendedTransactionLocation trx_loc{{{blk_n}, *final_chain.block_hash(blk_n)}};

@@ -10,7 +10,7 @@ struct EthParams {
   Address address;
   Secret secret;
   uint64_t chain_id = 0;
-  std::shared_ptr<FinalChain> final_chain;
+  std::shared_ptr<final_chain::FinalChain> final_chain;
   std::function<std::shared_ptr<Transaction>(h256 const&)> get_trx;
   std::function<void(Transaction const& trx)> send_trx;
   std::function<u256()> gas_pricer = [] { return u256(0); };

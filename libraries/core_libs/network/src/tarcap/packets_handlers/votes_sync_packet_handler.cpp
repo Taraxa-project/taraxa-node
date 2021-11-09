@@ -32,6 +32,9 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
   const auto peer_pbft_round = vote->getRound() + 1;
 
   std::vector<std::shared_ptr<Vote>> next_votes;
+  next_votes.reserve(next_votes_count);
+
+  // Check if all received votes have the same round
   for (size_t i = 0; i < next_votes_count; i++) {
     auto next_vote = std::make_shared<Vote>(packet_data.rlp_[i].data().toBytes());
     if (next_vote->getRound() != peer_pbft_round - 1) {
@@ -42,9 +45,9 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
     }
 
     const auto next_vote_hash = next_vote->getHash();
-    LOG(log_nf_) << "Received PBFT next vote " << next_vote_hash;
+    LOG(log_dg_) << "Received PBFT next vote " << next_vote_hash;
     peer->markVoteAsKnown(next_vote_hash);
-    next_votes.emplace_back(next_vote);
+    next_votes.emplace_back(std::move(next_vote));
   }
 
   LOG(log_nf_) << "Received " << next_votes_count << " next votes from peer " << packet_data.from_node_id_
