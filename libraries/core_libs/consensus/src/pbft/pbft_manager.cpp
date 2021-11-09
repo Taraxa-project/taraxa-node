@@ -505,9 +505,15 @@ void PbftManager::initialState_() {
 
   auto soft_voted_block_hash = db_->getPbftMgrVotedValue(PbftMgrVotedValue::SoftVotedBlockHashInRound);
   auto soft_voted_block = db_->getPbftMgrStatus(PbftMgrStatus::SoftVotedBlockInRound);
+
   if (soft_voted_block_hash) {
     // From DB
     soft_voted_block_for_this_round_ = std::make_pair(*soft_voted_block_hash, soft_voted_block);
+    for (const auto &vote : db_->getSoftVotes(round)) {
+      if (vote->getBlockHash() == *soft_voted_block_hash) {
+        vote_mgr_->addVerifiedVote(vote);
+      }
+    }
   } else {
     // Default value
     soft_voted_block_for_this_round_ = std::make_pair(NULL_BLOCK_HASH, soft_voted_block);
