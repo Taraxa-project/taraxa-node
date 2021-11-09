@@ -14,12 +14,9 @@ class DagBlock {
   // fixme: This constructor is bogus, used only in tests. Eliminate it
   DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, sig_t signature, blk_hash_t hash,
            addr_t sender);
-  // fixme: used only in tests, Eliminate it
-  DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, secret_t const &sk);
-  DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, VdfSortition vdf,
-           secret_t const &sk);
+  DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, VdfSortition vdf = {},
+           secret_t const &sk = secret_t::random());
   explicit DagBlock(Json::Value const &doc);
-  explicit DagBlock(string const &json);
   explicit DagBlock(dev::RLP const &_rlp);
   explicit DagBlock(dev::bytes const &_rlp) : DagBlock(dev::RLP(_rlp)) {}
 
@@ -40,6 +37,9 @@ class DagBlock {
     str << "	trxs ( " << u.trxs_.size() << " )	= ";
     for (auto const &t : u.trxs_) str << t.abridged() << " ";
     str << std::endl;
+    str << "	votes_to_be_rewarded ( " << u.votes_to_be_rewarded_.size() << " )	= ";
+    for (auto const &t : u.votes_to_be_rewarded_) str << t.abridged() << " ";
+    str << std::endl;
     str << "	signature	= " << u.sig_.abridged() << std::endl;
     str << "	hash		= " << u.getHash().abridged() << std::endl;
     str << "	sender		= " << u.getSender().abridged() << std::endl;
@@ -48,13 +48,15 @@ class DagBlock {
   }
   bool operator==(DagBlock const &other) const { return this->sha3(true) == other.sha3(true); }
 
-  auto const &getPivot() const { return pivot_; }
-  auto getLevel() const { return level_; }
-  auto getTimestamp() const { return timestamp_; }
-  auto const &getTips() const { return tips_; }
-  auto const &getTrxs() const { return trxs_; }
-  auto const &getSig() const { return sig_; }
-  blk_hash_t const &getHash() const;
+  const blk_hash_t &getPivot() const { return pivot_; }
+  level_t getLevel() const { return level_; }
+  uint64_t getTimestamp() const { return timestamp_; }
+  const vec_blk_t &getTips() const { return tips_; }
+  const vec_trx_t &getTrxs() const { return trxs_; }
+  const std::vector<vote_hash_t> &getVotesToBeRewarded() const { return votes_to_be_rewarded_; }
+  const sig_t &getSig() const { return sig_; }
+  const blk_hash_t &getHash() const;
+  const vdf_sortition::VdfSortition &getVdf() const { return vdf_; }
 
   addr_t const &getSender() const;
   Json::Value getJson(bool with_derived_fields = true) const;
@@ -65,21 +67,30 @@ class DagBlock {
   bytes rlp(bool include_sig) const;
 
  private:
+  // How many rlp base fields has DagBlock rlp, signature is optional so it is not base field
+  static constexpr size_t k_base_field_count = 7;
+
   // !!! Important: Any change in order or types of DagBlock class members will result in broken RLP ctor and some
   //                methods
   //                as it is parsed with strong assumption of which member is at which position in rlp bytes
   //                representation. See "DagBlock(dev::RLP const &_rlp)" or "extract_dag_level_from_rlp". If some
-  //                change needs to be done in class members, please check carefully all possible dependencies it has
-  //                like for example in mentioned methods...
+  //                change needs to be done in class members, please check carefully all possible dependencies it has:
+  //                for example in mentioned methods...
   blk_hash_t pivot_;
   level_t level_ = 0;
-  vec_blk_t tips_;
-  vec_trx_t trxs_;  // transactions
-  sig_t sig_;
-  mutable blk_hash_t hash_;
-  mutable util::DefaultConstructCopyableMovable<std::mutex> hash_mu_;
   uint64_t timestamp_ = 0;
   vdf_sortition::VdfSortition vdf_;
+  vec_blk_t tips_;
+  vec_trx_t trxs_;  // transactions
+
+  // List of votes hashes from previous (already finalized) pbft period that should be rewarded in the current period
+  std::vector<vote_hash_t> votes_to_be_rewarded_;
+
+  sig_t sig_;
+
+  mutable blk_hash_t hash_;
+  mutable util::DefaultConstructCopyableMovable<std::mutex> hash_mu_;
+
   mutable addr_t cached_sender_;  // block creater
   mutable util::DefaultConstructCopyableMovable<std::mutex> cached_sender_mu_;
 

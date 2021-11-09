@@ -151,10 +151,10 @@ inline std::vector<DagBlock> createMockDagBlkSamples(unsigned pivot_start, unsig
     blk_hash_t pivot(i);
     blk_hash_t hash(i + 1);
     vec_trx_t trxs;
-    for (unsigned i = 0; i < trx_len; ++i, trx++) {
+    for (unsigned idx = 0; idx < trx_len; ++idx, trx++) {
       trxs.emplace_back(trx_hash_t(trx));
     }
-    for (unsigned i = 0; i < trx_overlap; ++i) {
+    for (unsigned idx = 0; idx < trx_overlap; ++idx) {
       trx--;
     }
 
@@ -202,79 +202,79 @@ inline std::vector<DagBlock> createMockDag0(
   DagBlock blk1(blk_hash_t(genesis),  // pivot
                 1,                    // level
                 {},                   // tips
-                {}, secret_t::random());
+                {});
   DagBlock blk2(blk_hash_t(genesis),  // pivot
                 1,                    // level
                 {},                   // tips
-                {}, secret_t::random());
+                {});
   DagBlock blk3(blk_hash_t(genesis),  // pivot
                 1,                    // level
                 {},                   // tips
-                {}, secret_t::random());
+                {});
   DagBlock blk4(blk1.getHash(),  // pivot
                 2,               // level
                 {},              // tips
-                {}, secret_t::random());
+                {});
   DagBlock blk5(blk1.getHash(),    // pivot
                 2,                 // level
                 {blk2.getHash()},  // tips
-                {}, secret_t::random());
+                {});
   DagBlock blk6(blk3.getHash(),  // pivot
                 2,               // level
                 {},              // tips
-                {}, secret_t::random());
+                {});
   DagBlock blk7(blk5.getHash(),    // pivot
                 3,                 // level
                 {blk6.getHash()},  // tips
-                {}, secret_t::random());
+                {});
   DagBlock blk8(blk5.getHash(),  // pivot
                 3,               // level
                 {},              // tips
-                {}, secret_t::random());
+                {});
   DagBlock blk9(blk6.getHash(),  // pivot
                 3,               // level
                 {},              // tips
-                {}, secret_t::random());
+                {});
   DagBlock blk10(blk7.getHash(),  // pivot
                  4,               // level
                  {},              // tips
-                 {}, secret_t::random());
+                 {});
   DagBlock blk11(blk7.getHash(),  // pivot
                  4,               // level
                  {},              // tips
-                 {}, secret_t::random());
+                 {});
   DagBlock blk12(blk9.getHash(),  // pivot
                  4,               // level
                  {},              // tips
-                 {}, secret_t::random());
+                 {});
   DagBlock blk13(blk10.getHash(),  // pivot
                  5,                // level
                  {},               // tips
-                 {}, secret_t::random());
+                 {});
   DagBlock blk14(blk11.getHash(),    // pivot
                  5,                  // level
                  {blk12.getHash()},  // tips
-                 {}, secret_t::random());
+                 {});
   DagBlock blk15(blk13.getHash(),    // pivot
                  6,                  // level
                  {blk14.getHash()},  // tips
-                 {}, secret_t::random());
+                 {});
   DagBlock blk16(blk13.getHash(),  // pivot
                  6,                // level
                  {},               // tips
-                 {}, secret_t::random());
+                 {});
   DagBlock blk17(blk12.getHash(),  // pivot
                  5,                // level
                  {},               // tips
-                 {}, secret_t::random());
+                 {});
   DagBlock blk18(blk15.getHash(),                                     // pivot
                  7,                                                   // level
                  {blk8.getHash(), blk16.getHash(), blk17.getHash()},  // tips
-                 {}, secret_t::random());
+                 {});
   DagBlock blk19(blk18.getHash(),  // pivot
                  8,                // level
                  {},               // tips
-                 {}, secret_t::random());
+                 {});
   blks.emplace_back(dummy);
   blks.emplace_back(blk1);
   blks.emplace_back(blk2);

@@ -1447,7 +1447,8 @@ TEST_F(FullNodeTest, chain_config_json) {
     "sig": "0xb7e22d46c1ba94d5e8347b01d137b5c428fcbbeaf0a77fb024cbbf1517656ff00d04f7f25be608c321b0d7483c402c294ff46c49b265305d046a52236c0a363701",
     "timestamp": "0x5d422b80",
     "tips": [],
-    "transactions": []
+    "transactions": [],
+    "votes_to_be_rewarded": []
   },
   "final_chain": {
     "genesis_block_fields": {
