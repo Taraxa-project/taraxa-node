@@ -15,8 +15,9 @@ static constexpr uint16_t CERT_VOTES_POS_IN_PERIOD_DATA = 1;
 static constexpr uint16_t DAG_BLOCKS_POS_IN_PERIOD_DATA = 2;
 static constexpr uint16_t TRANSACTIONS_POS_IN_PERIOD_DATA = 3;
 
-DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_block, uint32_t db_max_snapshots,
-                     uint32_t db_revert_to_period, addr_t node_addr, bool rebuild, bool rebuild_columns)
+DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_block, uint32_t max_open_files,
+                     uint32_t db_max_snapshots, uint32_t db_revert_to_period, addr_t node_addr, bool rebuild,
+                     bool rebuild_columns)
     : path_(path),
       handles_(Columns::all.size()),
       db_snapshot_each_n_pbft_block_(db_snapshot_each_n_pbft_block),
@@ -42,6 +43,10 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
   options.create_missing_column_families = true;
   options.create_if_missing = true;
   options.compression = rocksdb::CompressionType::kLZ4Compression;
+  // This options is related to memory consuption
+  // https://github.com/facebook/rocksdb/issues/3216#issuecomment-817358217
+  // aleth default 256 (state_db is using another 128)
+  options.max_open_files = (max_open_files) ? max_open_files : 256;
   std::vector<rocksdb::ColumnFamilyDescriptor> descriptors;
   std::transform(Columns::all.begin(), Columns::all.end(), std::back_inserter(descriptors), [](const Column& col) {
     return rocksdb::ColumnFamilyDescriptor(col.name(), rocksdb::ColumnFamilyOptions());
@@ -59,8 +64,10 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
   if (db_revert_to_period) {
     recoverToPeriod(db_revert_to_period);
   }
-
-  checkStatus(rocksdb::DB::Open(options, db_path_.string(), descriptors, &handles_, &db_));
+  rocksdb::DB* db = nullptr;
+  checkStatus(rocksdb::DB::Open(options, db_path_.string(), descriptors, &handles_, &db));
+  assert(db);
+  db_.reset(db);
   dag_blocks_count_.store(getStatusField(StatusDbField::DagBlkCount));
   dag_edge_count_.store(getStatusField(StatusDbField::DagEdgeCount));
 
@@ -81,7 +88,7 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
 }
 
 void DbStorage::rebuildColumns(const rocksdb::Options& options) {
-  rocksdb::DB* db;
+  std::unique_ptr<rocksdb::DB> db;
   std::vector<std::string> column_families;
   rocksdb::DB::ListColumnFamilies(options, db_path_.string(), &column_families);
 
@@ -90,7 +97,10 @@ void DbStorage::rebuildColumns(const rocksdb::Options& options) {
   std::transform(column_families.begin(), column_families.end(), std::back_inserter(descriptors), [](const auto& name) {
     return rocksdb::ColumnFamilyDescriptor(name, rocksdb::ColumnFamilyOptions());
   });
-  checkStatus(rocksdb::DB::Open(options, db_path_.string(), descriptors, &handles, &db));
+  rocksdb::DB* db_ptr = nullptr;
+  checkStatus(rocksdb::DB::Open(options, db_path_.string(), descriptors, &handles, &db_ptr));
+  assert(db_ptr);
+  db.reset(db_ptr);
   for (size_t i = 0; i < handles.size(); ++i) {
     const auto it = std::find_if(Columns::all.begin(), Columns::all.end(),
                                  [&handles, i](const Column& col) { return col.name() == handles[i]->GetName(); });
@@ -103,7 +113,6 @@ void DbStorage::rebuildColumns(const rocksdb::Options& options) {
     checkStatus(db->DestroyColumnFamilyHandle(cf));
   }
   checkStatus(db->Close());
-  delete db;
 }
 
 void DbStorage::loadSnapshots() {
@@ -143,7 +152,7 @@ bool DbStorage::createSnapshot(uint64_t period) {
 
   // Create rocskd checkpoint/snapshot
   rocksdb::Checkpoint* checkpoint;
-  auto status = rocksdb::Checkpoint::Create(db_, &checkpoint);
+  auto status = rocksdb::Checkpoint::Create(db_.get(), &checkpoint);
   // Scope is to delete checkpoint object as soon as we don't need it anymore
   {
     checkStatus(status);
@@ -222,7 +231,6 @@ DbStorage::~DbStorage() {
     checkStatus(db_->DestroyColumnFamilyHandle(cf));
   }
   checkStatus(db_->Close());
-  delete db_;
 }
 
 void DbStorage::checkStatus(rocksdb::Status const& status) {
