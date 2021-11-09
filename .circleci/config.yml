@@ -452,7 +452,7 @@ jobs:
       - run:
          name: Build docker builder image
          command: |
-                docker build --no-cache -t ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} --target builder .
+                docker build -t ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} --target builder .
 
       - run:
          name: Checkout Submodules
