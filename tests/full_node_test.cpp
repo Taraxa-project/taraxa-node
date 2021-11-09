@@ -1521,9 +1521,9 @@ TEST_F(FullNodeTest, chain_config_json) {
   ASSERT_EQ(enc_json(FullNodeConfig(test_node_config_json, test_node_wallet_json).chain), default_chain_config_json);
   test_node_config_json["chain_config"] = default_chain_config_json;
   ASSERT_EQ(enc_json(FullNodeConfig(test_node_config_json, test_node_wallet_json).chain), default_chain_config_json);
-  test_node_config_json["chain_config"] = "test";
+  test_node_config_json["chain_config"] = "default";
   ASSERT_EQ(enc_json(FullNodeConfig(test_node_config_json, test_node_wallet_json).chain),
-            enc_json(ChainConfig::predefined("test")));
+            enc_json(ChainConfig::predefined()));
 }
 
 }  // namespace taraxa::core_tests

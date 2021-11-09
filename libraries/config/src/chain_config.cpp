@@ -75,13 +75,7 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
   default_cfg.pbft.ghost_path_move_back = 1;
   default_cfg.pbft.run_count_votes = false;
 
-  ChainConfig test_cfg = default_cfg;
-  default_cfg.chain_id = 12345;
-  default_cfg.final_chain.state.genesis_balances[addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5")] =
-      u256(7200999050) * 10000000000000000;  // https://ethereum.stackexchange.com/a/74832
-
   cfgs["default"] = std::move(default_cfg);
-  cfgs["test"] = std::move(default_cfg);
 
   return cfgs;
 });

@@ -262,7 +262,8 @@ struct TransactionClient {
     // sending a new one
     static std::atomic<uint64_t> nonce = 100000;
     return process(
-        Transaction(++nonce, val, 0, TEST_TX_GAS_LIMIT, bytes(), from_k ? from_k->secret() : node_->getSecretKey(), to),
+        Transaction(++nonce, val, 0, TEST_TX_GAS_LIMIT, bytes(), from_k ? from_k->secret() : node_->getSecretKey(), to,
+                    node_->getConfig().chain.chain_id),
         wait_executed);
   }
 };
