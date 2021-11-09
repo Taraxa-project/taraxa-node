@@ -15,8 +15,8 @@ static constexpr uint16_t CERT_VOTES_POS_IN_PERIOD_DATA = 1;
 static constexpr uint16_t DAG_BLOCKS_POS_IN_PERIOD_DATA = 2;
 static constexpr uint16_t TRANSACTIONS_POS_IN_PERIOD_DATA = 3;
 
-DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_block, uint32_t db_max_snapshots,
-                     uint32_t db_revert_to_period, addr_t node_addr, bool rebuild)
+DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_block, uint32_t max_open_files,
+                     uint32_t db_max_snapshots, uint32_t db_revert_to_period, addr_t node_addr, bool rebuild)
     : path_(path),
       handles_(Columns::all.size()),
       db_snapshot_each_n_pbft_block_(db_snapshot_each_n_pbft_block),
@@ -43,6 +43,10 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
   options.create_missing_column_families = true;
   options.create_if_missing = true;
   options.compression = rocksdb::CompressionType::kLZ4Compression;
+  // This options is related to memory consuption
+  // https://github.com/facebook/rocksdb/issues/3216#issuecomment-817358217
+  // aleth default 256 (state_db is using another 128)
+  options.max_open_files = (max_open_files) ? max_open_files : 256;
   std::vector<rocksdb::ColumnFamilyDescriptor> descriptors;
   std::transform(Columns::all.begin(), Columns::all.end(), std::back_inserter(descriptors), [](const Column& col) {
     return rocksdb::ColumnFamilyDescriptor(col.name(), rocksdb::ColumnFamilyOptions());
@@ -56,8 +60,10 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
   if (db_revert_to_period) {
     recoverToPeriod(db_revert_to_period);
   }
-
-  checkStatus(rocksdb::DB::Open(options, db_path_.string(), descriptors, &handles_, &db_));
+  rocksdb::DB* db = nullptr;
+  checkStatus(rocksdb::DB::Open(options, db_path_.string(), descriptors, &handles_, &db));
+  assert(db);
+  db_.reset(db);
   dag_blocks_count_.store(getStatusField(StatusDbField::DagBlkCount));
   dag_edge_count_.store(getStatusField(StatusDbField::DagEdgeCount));
 
@@ -111,7 +117,7 @@ bool DbStorage::createSnapshot(uint64_t period) {
 
     // Create rocskd checkpoint/snapshot
     rocksdb::Checkpoint* checkpoint;
-    auto status = rocksdb::Checkpoint::Create(db_, &checkpoint);
+    auto status = rocksdb::Checkpoint::Create(db_.get(), &checkpoint);
     // Scope is to delete checkpoint object as soon as we don't need it anymore
     {
       checkStatus(status);
@@ -188,7 +194,6 @@ DbStorage::~DbStorage() {
     checkStatus(db_->DestroyColumnFamilyHandle(cf));
   }
   checkStatus(db_->Close());
-  delete db_;
 }
 
 void DbStorage::checkStatus(rocksdb::Status const& status) {
