@@ -21,6 +21,19 @@ void ExtVotesPacketHandler::onNewPbftVote(std::shared_ptr<Vote> const &vote) {
   }
 }
 
+void ExtVotesPacketHandler::rebroadcastOwnNextVote(const std::shared_ptr<Vote> &vote) {
+  std::vector<dev::p2p::NodeID> peers_to_send;
+  for (auto const &peer : peers_state_->getAllPeers()) {
+    // only send to peer with the same PBFT round
+    if (!peer.second->isVoteKnown(vote->getHash()) && peer.second->pbft_round_ == vote->getRound()) {
+      peers_to_send.push_back(peer.first);
+    }
+  }
+  for (auto const &peer_id : peers_to_send) {
+    sendPbftVote(peer_id, vote);
+  }
+}
+
 void ExtVotesPacketHandler::sendPbftVote(dev::p2p::NodeID const &peer_id, std::shared_ptr<Vote> const &vote) {
   const auto peer = peers_state_->getPeer(peer_id);
   // TODO: We should disable PBFT votes when a node is bootstrapping but not when trying to resync

@@ -53,9 +53,8 @@ void VoteManager::retreieveVotes_() {
     // Rebroadcast our own next votes in case we were partitioned...
     if (v->getVoterAddr() == node_addr_ && v->getStep() >= FIRST_FINISH_STEP &&
         db_->getPbftMgrField(PbftMgrRoundStep::PbftStep) > EXTENDED_PARTITION_STEPS) {
-      std::vector<std::shared_ptr<Vote>> votes = {v};
       if (auto net = network_.lock()) {
-        net->onNewPbftVotes(std::move(votes));
+        net->rebroadcastOwnNextVote(v);
       }
     }
 
