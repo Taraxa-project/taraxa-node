@@ -128,7 +128,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   fs::path state_db_path_;
   const std::string db_dir = "db";
   const std::string state_db_dir = "state_db";
-  rocksdb::DB* db_;
+  std::unique_ptr<rocksdb::DB> db_;
   std::vector<rocksdb::ColumnFamilyHandle*> handles_;
   rocksdb::ReadOptions read_options_;
   rocksdb::WriteOptions write_options_;
@@ -150,7 +150,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   DbStorage(DbStorage const&) = delete;
   DbStorage& operator=(DbStorage const&) = delete;
 
-  explicit DbStorage(fs::path const& base_path, uint32_t db_snapshot_each_n_pbft_block = 0,
+  explicit DbStorage(fs::path const& base_path, uint32_t db_snapshot_each_n_pbft_block = 0, uint32_t max_open_files = 0,
                      uint32_t db_max_snapshots = 0, uint32_t db_revert_to_period = 0, addr_t node_addr = addr_t(),
                      bool rebuild = false, bool rebuild_columns = false);
   ~DbStorage();
