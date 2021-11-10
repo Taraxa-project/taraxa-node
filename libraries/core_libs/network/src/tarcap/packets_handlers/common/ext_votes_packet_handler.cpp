@@ -11,8 +11,9 @@ ExtVotesPacketHandler::ExtVotesPacketHandler(std::shared_ptr<PeersState> peers_s
 
 void ExtVotesPacketHandler::onNewPbftVote(std::shared_ptr<Vote> const &vote) {
   std::vector<dev::p2p::NodeID> peers_to_send;
+  const auto round = vote->getRound();
   for (auto const &peer : peers_state_->getAllPeers()) {
-    if (!peer.second->isVoteKnown(vote->getHash())) {
+    if (!peer.second->isVoteKnown(vote->getHash()) && peer.second->pbft_round_ <= round) {
       peers_to_send.push_back(peer.first);
     }
   }
