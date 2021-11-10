@@ -76,6 +76,7 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   void onNewTransactions(SharedTransactions &&transactions);
   void onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_block);
   void onNewPbftVote(const std::shared_ptr<Vote> &vote);
+  void rebroadcastOwnNextVote(const std::shared_ptr<Vote> &vote);
   void broadcastPreviousRoundNextVotesBundle();
   void sendTransactions(dev::p2p::NodeID const &id, std::vector<taraxa::bytes> const &transactions);
   void handleMaliciousSyncPeer(dev::p2p::NodeID const &id);

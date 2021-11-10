@@ -407,6 +407,11 @@ void TaraxaCapability::onNewPbftVote(const std::shared_ptr<Vote> &vote) {
       ->onNewPbftVote(vote);
 }
 
+void TaraxaCapability::rebroadcastOwnNextVote(const std::shared_ptr<Vote> &vote) {
+  std::static_pointer_cast<VotePacketHandler>(packets_handlers_->getSpecificHandler(SubprotocolPacketType::VotePacket))
+      ->rebroadcastOwnNextVote(vote);
+}
+
 void TaraxaCapability::broadcastPreviousRoundNextVotesBundle() {
   std::static_pointer_cast<VotesSyncPacketHandler>(
       packets_handlers_->getSpecificHandler(SubprotocolPacketType::VotesSyncPacket))

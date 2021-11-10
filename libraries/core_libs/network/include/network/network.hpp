@@ -59,6 +59,7 @@ class Network {
   void handleMaliciousSyncPeer(dev::p2p::NodeID const &id);
 
   void onNewPbftVotes(std::vector<std::shared_ptr<Vote>> votes);
+  void rebroadcastOwnNextVote(std::shared_ptr<Vote> const &vote);
   void broadcastPreviousRoundNextVotesBundle();
 
   // METHODS USED IN TESTS ONLY

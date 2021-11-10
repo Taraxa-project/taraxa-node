@@ -115,6 +115,11 @@ void Network::onNewPbftVotes(std::vector<std::shared_ptr<Vote>> votes) {
   }
 }
 
+void Network::rebroadcastOwnNextVote(const std::shared_ptr<Vote> &vote) {
+  LOG(log_dg_) << "Network rebroadcast node own next vote " << vote->getHash();
+  taraxa_capability_->rebroadcastOwnNextVote(vote);
+}
+
 void Network::broadcastPreviousRoundNextVotesBundle() {
   LOG(log_dg_) << "Network broadcast previous round next votes bundle";
   taraxa_capability_->broadcastPreviousRoundNextVotesBundle();
