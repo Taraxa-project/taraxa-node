@@ -38,6 +38,9 @@ bytes VrfPbftSortition::getRlpBytes() const {
  * otherwise return false
  */
 bool VrfPbftSortition::canSpeak(size_t threshold, size_t dpos_total_votes_count) const {
+  if (output == vrf_output_t()) {
+    verify();
+  }
   uint1024_t left = (uint1024_t)((uint512_t)output) * dpos_total_votes_count;
   uint1024_t right = (uint1024_t)max512bits * threshold;
   return left <= right;
