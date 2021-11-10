@@ -23,9 +23,10 @@ void ExtVotesPacketHandler::onNewPbftVote(std::shared_ptr<Vote> const &vote) {
 
 void ExtVotesPacketHandler::rebroadcastOwnNextVote(const std::shared_ptr<Vote> &vote) {
   std::vector<dev::p2p::NodeID> peers_to_send;
+  const auto vote_round = vote->getRound();
   for (auto const &peer : peers_state_->getAllPeers()) {
     // only send to peer with the same PBFT round
-    if (!peer.second->isVoteKnown(vote->getHash()) && peer.second->pbft_round_ == vote->getRound()) {
+    if (!peer.second->isVoteKnown(vote->getHash()) && peer.second->pbft_round_ == vote_round) {
       peers_to_send.push_back(peer.first);
     }
   }
