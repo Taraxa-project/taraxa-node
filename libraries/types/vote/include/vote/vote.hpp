@@ -88,7 +88,7 @@ class Vote {
   explicit Vote(bytes const& rlp);
   bool operator==(Vote const& other) const { return rlp() == other.rlp(); }
 
-  void validate(size_t const valid_sortition_players, size_t const sortition_threshold) const;
+  void validate(size_t valid_sortition_players, size_t sortition_threshold) const;
   vote_hash_t getHash() const { return vote_hash_; }
   public_t getVoter() const {
     if (!cached_voter_) cached_voter_ = dev::recover(vote_signature_, sha3(false));

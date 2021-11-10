@@ -301,7 +301,12 @@ void VoteManager::verifyVotes(uint64_t pbft_round, size_t sortition_threshold, u
       LOG(log_dg_) << "Account " << voter_account_address << " is not eligible to vote. Vote: " << v;
       vote_is_valid = false;
     } else {
-      vote_is_valid = voteValidation(v, dpos_total_votes_count, sortition_threshold);
+      try {
+        v->validate(dpos_total_votes_count, sortition_threshold);
+      } catch (const std::logic_error& e) {
+        LOG(log_er_) << e.what();
+        vote_is_valid = false;
+      }
     }
 
     if (vote_is_valid) {
@@ -384,27 +389,6 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
     }
   }
   db_->commitWriteBatch(batch);
-}
-
-bool VoteManager::voteValidation(std::shared_ptr<Vote>& vote, size_t dpos_total_votes_count,
-                                 size_t sortition_threshold) const {
-  if (!vote->verifyVrfSortition()) {
-    LOG(log_er_) << "Invalid vrf proof. " << vote;
-    return false;
-  }
-
-  if (!vote->verifyVote()) {
-    LOG(log_er_) << "Invalid vote signature. " << vote;
-    return false;
-  }
-
-  if (!vote->verifyCanSpeak(sortition_threshold, dpos_total_votes_count)) {
-    LOG(log_er_) << "Vote sortition failed. Sortition threshold " << sortition_threshold << ", DPOS total votes count "
-                 << dpos_total_votes_count << vote;
-    return false;
-  }
-
-  return true;
 }
 
 std::string VoteManager::getJsonStr(std::vector<std::shared_ptr<Vote>> const& votes) {
@@ -857,19 +841,10 @@ bool NextVotesForPreviousRound::voteVerification(std::shared_ptr<Vote>& vote, ui
     return false;
   }
 
-  if (!vote->verifyVrfSortition()) {
-    LOG(log_er_) << "Invalid vrf proof. " << *vote;
-    return false;
-  }
-
-  if (!vote->verifyVote()) {
-    LOG(log_er_) << "Invalid vote signature. " << *vote;
-    return false;
-  }
-
-  if (!vote->verifyCanSpeak(pbft_sortition_threshold, dpos_total_votes_count)) {
-    LOG(log_er_) << "Vote sortition failed. PBFT sortition threshold " << pbft_sortition_threshold
-                 << ", DPOS total votes count " << dpos_total_votes_count << *vote;
+  try {
+    vote->validate(dpos_total_votes_count, pbft_sortition_threshold);
+  } catch (const std::logic_error& e) {
+    LOG(log_er_) << e.what();
     return false;
   }
 

@@ -61,23 +61,23 @@ Vote::Vote(secret_t const& node_sk, VrfPbftSortition const& vrf_sortition, blk_h
   vote_hash_ = sha3(true);
 }
 
-void Vote::validate(size_t const dpos_total_votes_count, size_t const sortition_threshold) const {
+void Vote::validate(size_t dpos_total_votes_count, size_t sortition_threshold) const {
   if (!verifyVrfSortition()) {
     std::stringstream err;
     err << "Invalid vrf proof. " << *this;
     throw std::logic_error(err.str());
   }
 
-  if (!verifyVote()) {
-    std::stringstream err;
-    err << "Invalid vote signature. " << dev::toHex(rlp(false)) << "  " << *this;
-    throw std::logic_error(err.str());
-  }
-
   if (!verifyCanSpeak(sortition_threshold, dpos_total_votes_count)) {
     std::stringstream err;
     err << "Vote sortition failed. Sortition threshold " << sortition_threshold << ", DPOS total votes count "
-        << dpos_total_votes_count << *this;
+        << dpos_total_votes_count << " " << *this;
+    throw std::logic_error(err.str());
+  }
+
+  if (!verifyVote()) {
+    std::stringstream err;
+    err << "Invalid vote signature. " << dev::toHex(rlp(false)) << "  " << *this;
     throw std::logic_error(err.str());
   }
 }
