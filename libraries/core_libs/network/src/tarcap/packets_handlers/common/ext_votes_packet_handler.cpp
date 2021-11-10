@@ -10,26 +10,32 @@ ExtVotesPacketHandler::ExtVotesPacketHandler(std::shared_ptr<PeersState> peers_s
     : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, log_channel_name) {}
 
 void ExtVotesPacketHandler::onNewPbftVote(std::shared_ptr<Vote> const &vote) {
+  const auto vote_hash = vote->getHash();
   std::vector<dev::p2p::NodeID> peers_to_send;
+
   for (auto const &peer : peers_state_->getAllPeers()) {
-    if (!peer.second->isVoteKnown(vote->getHash())) {
+    if (!peer.second->isVoteKnown(vote_hash)) {
       peers_to_send.push_back(peer.first);
     }
   }
+
   for (auto const &peer_id : peers_to_send) {
     sendPbftVote(peer_id, vote);
   }
 }
 
 void ExtVotesPacketHandler::rebroadcastOwnNextVote(const std::shared_ptr<Vote> &vote) {
-  std::vector<dev::p2p::NodeID> peers_to_send;
+  const auto vote_hash = vote->getHash();
   const auto vote_round = vote->getRound();
+  std::vector<dev::p2p::NodeID> peers_to_send;
+
   for (auto const &peer : peers_state_->getAllPeers()) {
     // only send to peer with the same PBFT round
-    if (!peer.second->isVoteKnown(vote->getHash()) && peer.second->pbft_round_ == vote_round) {
+    if (!peer.second->isVoteKnown(vote_hash) && peer.second->pbft_round_ == vote_round) {
       peers_to_send.push_back(peer.first);
     }
   }
+
   for (auto const &peer_id : peers_to_send) {
     sendPbftVote(peer_id, vote);
   }
