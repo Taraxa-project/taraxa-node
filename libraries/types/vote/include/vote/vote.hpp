@@ -27,7 +27,7 @@ struct VrfPbftMsg {
 
   friend std::ostream& operator<<(std::ostream& strm, VrfPbftMsg const& pbft_msg) {
     strm << "  [Vrf Pbft Msg] " << std::endl;
-    strm << "    type: " << pbft_msg.type << std::endl;
+    strm << "    type: " << static_cast<uint8_t>(pbft_msg.type) << std::endl;
     strm << "    round: " << pbft_msg.round << std::endl;
     strm << "    step: " << pbft_msg.step << std::endl;
     strm << "    weighted_index: " << pbft_msg.weighted_index << std::endl;

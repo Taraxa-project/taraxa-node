@@ -57,7 +57,7 @@ void ExtSyncingPacketHandler::restartSyncingPbft(bool force) {
     syncing_state_->set_pbft_syncing(true, max_pbft_chain_size - pbft_sync_period, max_pbft_chain_nodeID);
     syncPeerPbft(pbft_sync_period + 1);
     // Disable snapshots only if are syncing from scratch
-    if (max_pbft_chain_size > pbft_sync_period + 5) {
+    if (syncing_state_->is_deep_pbft_syncing()) {
       db_->disableSnapshots();
     }
   } else {
