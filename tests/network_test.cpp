@@ -1307,14 +1307,101 @@ TEST_F(NetworkTest, node_full_sync) {
 }
 
 TEST_F(NetworkTest, limit_bandwidth_test) {
-  network::tarcap::BandwidthStats bandwidth_stats(std::chrono::seconds(1), 100, 8, 30, 3);
+  // Bandwidth limits
+
+  // period duration during which bandwidth stats are relevant.
+  // After this period duration passes, stats are reset to zero
+  constexpr std::chrono::seconds k_bandwidth_throttle_period_seconds{1};
+
+  // max allowed received packets size of all types per bandwidth_throttle [Bytes]
+  constexpr size_t k_max_allowed_total_packets_size{100};
+
+  // max allowed received packets count of all types per bandwidth_throttle
+  constexpr size_t k_max_allowed_total_packets_count{10};
+
+  // max allowed received packets size of one specific type per bandwidth_throttle [Bytes]
+  constexpr size_t k_max_allowed_same_type_packets_size{30};
+
+  // max allowed received packets count of one specific type per bandwidth_throttle
+  constexpr size_t k_max_allowed_same_type_packets_count{3};
+
+  network::tarcap::BandwidthStats bandwidth_stats(
+      k_bandwidth_throttle_period_seconds, k_max_allowed_total_packets_size, k_max_allowed_total_packets_count,
+      k_max_allowed_same_type_packets_size, k_max_allowed_same_type_packets_count);
 
   dev::p2p::NodeID node_id(1);
 
-  for (size_t idx = 0; idx < 10; idx++) {
-    auto result = bandwidth_stats.isExceeded(node_id, network::tarcap::SubprotocolPacketType::VotePacket, 10);
-    if (result.first) {
-      std::cout << "idx: " << idx << " -> Bandwidth exceeded. Reasons: " << result.second << std::endl;
+  // Test specific packet type count exceeded
+  constexpr network::tarcap::SubprotocolPacketType k_packet_type1 =
+      static_cast<network::tarcap::SubprotocolPacketType>(k_max_allowed_total_packets_count + 1);
+  size_t idx;
+  for (idx = 0; idx <= k_max_allowed_same_type_packets_count; idx++) {
+    auto result = bandwidth_stats.isExceeded(node_id, k_packet_type1, 0);
+    if (idx >= k_max_allowed_same_type_packets_count) {
+      EXPECT_EQ(result.first, true) << "type1 packet #" << idx << ". Exceeded reasons: " << result.second;
+    } else {
+      EXPECT_EQ(result.first, false) << "type1 packet #" << idx << ". Exceeded reasons: " << result.second;
+    }
+  }
+
+  // Test total packets count(all types) exceeded
+  for (; idx <= k_max_allowed_total_packets_count; idx++) {
+    auto result = bandwidth_stats.isExceeded(node_id, static_cast<network::tarcap::SubprotocolPacketType>(idx), 0);
+    if (idx >= k_max_allowed_total_packets_count) {
+      EXPECT_EQ(result.first, true) << "packet #" << idx << ". Exceeded reasons: " << result.second;
+    } else {
+      EXPECT_EQ(result.first, false) << "packet #" << idx << ". Exceeded reasons: " << result.second;
+    }
+  }
+
+  // Wait for k_bandwidth_throttle_period_seconds so the bandwidth stats are reset to zero
+  std::this_thread::sleep_for(k_bandwidth_throttle_period_seconds);
+
+  // Check if stats were reset by providing again k_packet_type1, which count was already exceeded in previous test
+  for (idx = 0; idx <= k_max_allowed_same_type_packets_count; idx++) {
+    auto result = bandwidth_stats.isExceeded(node_id, k_packet_type1, 0);
+    if (idx >= k_max_allowed_same_type_packets_count) {
+      EXPECT_EQ(result.first, true) << "type1 packet #" << idx << ". Exceeded reasons: " << result.second;
+    } else {
+      EXPECT_EQ(result.first, false) << "type1 packet #" << idx << ". Exceeded reasons: " << result.second;
+    }
+  }
+
+  // Wait for k_bandwidth_throttle_period_seconds so the bandwidth stats are reset to zero
+  std::this_thread::sleep_for(k_bandwidth_throttle_period_seconds);
+
+  // Test specific packet type size exceeded
+  constexpr network::tarcap::SubprotocolPacketType k_packet_type2 =
+      static_cast<network::tarcap::SubprotocolPacketType>(k_max_allowed_total_packets_count + 2);
+  constexpr size_t k_type2_packet_size = 15;
+  size_t all_type2_packets_size = 0;
+  for (idx = 0; idx < k_max_allowed_same_type_packets_count; idx++) {
+    auto result = bandwidth_stats.isExceeded(node_id, k_packet_type2, k_type2_packet_size);
+    all_type2_packets_size += k_type2_packet_size;
+
+    if (all_type2_packets_size > k_max_allowed_same_type_packets_size) {
+      EXPECT_EQ(result.first, true) << "type2 packet #" << idx << ", size: " << all_type2_packets_size
+                                    << ". Exceeded reasons: " << result.second;
+    } else {
+      EXPECT_EQ(result.first, false) << "type2 packet #" << idx << ", size: " << all_type2_packets_size
+                                     << ". Exceeded reasons: " << result.second;
+    }
+  }
+
+  // Test total packets size (all types) exceeded
+  constexpr size_t k_generic_packet_size = 20;
+  size_t all_packets_size = all_type2_packets_size;
+  for (idx = 0; idx < k_max_allowed_same_type_packets_count; idx++) {
+    auto result = bandwidth_stats.isExceeded(node_id, static_cast<network::tarcap::SubprotocolPacketType>(idx),
+                                             k_generic_packet_size);
+    all_packets_size += k_generic_packet_size;
+
+    if (all_packets_size > k_max_allowed_total_packets_size) {
+      EXPECT_EQ(result.first, true) << "packet #" << idx << ", size: " << all_packets_size
+                                    << ". Exceeded reasons: " << result.second;
+    } else {
+      EXPECT_EQ(result.first, false) << "packet #" << idx << ", size: " << all_packets_size
+                                     << ". Exceeded reasons: " << result.second;
     }
   }
 }

@@ -42,20 +42,20 @@ std::pair<bool, std::string> BandwidthStats::isExceeded(const dev::p2p::NodeID& 
   if (total_packets_count > k_max_allowed_total_packets_count_) {
     bandwidth_exceeded = true;
     reasons += "total packets count exceeded: " + std::to_string(total_packets_count) + " > " +
-               std::to_string(k_max_allowed_total_packets_count_) + " \n";
+               std::to_string(k_max_allowed_total_packets_count_) + ", \n";
   }
 
   if (total_packets_size > k_max_allowed_total_packets_size_) {
     bandwidth_exceeded = true;
     reasons += "total packets size exceeded: " + std::to_string(total_packets_size) + " > " +
-               std::to_string(k_max_allowed_total_packets_size_) + " [Bytes] \n";
+               std::to_string(k_max_allowed_total_packets_size_) + " [Bytes], \n";
   }
 
   if (type_packets_count > k_max_allowed_same_type_packets_count_) {
     bandwidth_exceeded = true;
     reasons += "packet type " + convertPacketTypeToString(packet_type) +
                " count exceeded: " + std::to_string(type_packets_count) + " > " +
-               std::to_string(k_max_allowed_same_type_packets_count_) + " \n";
+               std::to_string(k_max_allowed_same_type_packets_count_) + ", \n";
   }
 
   if (type_packets_size > k_max_allowed_same_type_packets_size_) {
