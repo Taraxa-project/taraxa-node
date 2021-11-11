@@ -92,8 +92,6 @@ TEST_F(P2PTest, capability_send_test) {
   dev::p2p::NetworkConfig prefs2(localhost, 10003, false, true);
   prefs2.discovery = false;
   NetworkConfig network_conf;
-  network_conf.network_simulated_delay = 0;
-  network_conf.network_bandwidth = 40;
   network_conf.network_transaction_interval = 1000;
   std::shared_ptr<taraxa::network::tarcap::TaraxaCapability> thc1, thc2;
   auto host1 = Host::make(
@@ -163,8 +161,6 @@ TEST_F(P2PTest, capability_send_block) {
   dev::p2p::NetworkConfig prefs2(localhost, 10003, false, true);
   prefs2.discovery = false;
   NetworkConfig network_conf;
-  network_conf.network_simulated_delay = 0;
-  network_conf.network_bandwidth = 40;
   network_conf.network_transaction_interval = 1000;
   std::shared_ptr<taraxa::network::tarcap::TaraxaCapability> thc1, thc2;
   auto host1 = Host::make(
@@ -251,8 +247,6 @@ TEST_F(P2PTest, block_propagate) {
   TaraxaNetworkConfig taraxa_net_conf_1;
   taraxa_net_conf_1.is_boot_node = true;
   NetworkConfig network_conf;
-  network_conf.network_simulated_delay = 0;
-  network_conf.network_bandwidth = 40;
   network_conf.network_transaction_interval = 1000;
   std::shared_ptr<taraxa::network::tarcap::TaraxaCapability> thc1;
   auto host1 = Host::make(

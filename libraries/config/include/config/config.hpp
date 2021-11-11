@@ -33,8 +33,6 @@ struct NetworkConfig {
   std::string network_listen_ip;
   uint16_t network_tcp_port = 0;
   std::vector<NodeConfig> network_boot_nodes;
-  uint16_t network_simulated_delay = 0;  // TODO: unsed -> delete
-  uint16_t network_bandwidth = 0;        // TODO: unsed -> delete
   uint16_t network_ideal_peer_count = 0;
   uint16_t network_max_peer_count = 0;
   uint16_t network_transaction_interval = 0;
