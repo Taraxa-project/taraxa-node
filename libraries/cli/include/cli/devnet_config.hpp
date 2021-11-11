@@ -15,10 +15,10 @@ const char *devnet_json = R"foo({
   "network_packets_processing_threads": 10,
   "deep_syncing_threshold" : 10,
   "bandwidth_throttle_period_seconds" : 10,
-  "max_allowed_total_packets_size" : 52428800,
-  "max_allowed_total_packets_count" : 500,
-  "max_allowed_same_type_packets_size" : 10485760,
-  "max_allowed_same_type_packets_count" : 100,
+  "max_allowed_total_packets_size" : 25600000,
+  "max_allowed_total_packets_count" : 25000,
+  "max_allowed_same_type_packets_size" : 10240000,
+  "max_allowed_same_type_packets_count" : 10000,
   "network_boot_nodes": [
     {
       "id": "fdcf4c860d9bb1f17608cbf2dd10ac3ae8d0ba41aa20b3e43fb85a72617a356f8609475d68b44e25dd508a0e5b36da75e7ae9aaf93360f4f002464d1d75fd353",

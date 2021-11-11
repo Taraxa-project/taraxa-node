@@ -10,10 +10,10 @@
   "network_sync_level_size": 1,
   "network_packets_processing_threads": 5,
   "bandwidth_throttle_period_seconds" : 10,
-  "max_allowed_total_packets_size" : 52428800,
-  "max_allowed_total_packets_count" : 500,
-  "max_allowed_same_type_packets_size" : 10485760,
-  "max_allowed_same_type_packets_count" : 100,
+  "max_allowed_total_packets_size" : 25600000,
+  "max_allowed_total_packets_count" : 25000,
+  "max_allowed_same_type_packets_size" : 10240000,
+  "max_allowed_same_type_packets_count" : 10000,
   "network_boot_nodes": [
     {
       "ip": "127.0.0.1",

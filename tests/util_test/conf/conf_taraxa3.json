@@ -9,10 +9,10 @@
   "network_sync_level_size": 1,
   "network_packets_processing_threads": 5,
   "bandwidth_throttle_period_seconds" : 10,
-  "max_allowed_total_packets_size" : 52428800,
-  "max_allowed_total_packets_count" : 500,
-  "max_allowed_same_type_packets_size" : 10485760,
-  "max_allowed_same_type_packets_count" : 100,
+  "max_allowed_total_packets_size" : 25600000,
+  "max_allowed_total_packets_count" : 25000,
+  "max_allowed_same_type_packets_size" : 10240000,
+  "max_allowed_same_type_packets_count" : 10000,
   "network_boot_nodes": [
     {
       "id": "7b1fcf0ec1078320117b96e9e9ad9032c06d030cf4024a598347a4623a14a421d4f030cf25ef368ab394a45e920e14b57a259a09c41767dd50d1da27b627412a",

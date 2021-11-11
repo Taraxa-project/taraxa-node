@@ -49,16 +49,16 @@ struct NetworkConfig {
   std::chrono::seconds bandwidth_throttle_period_seconds{10};
 
   // max allowed received packets size of all types per bandwidth_throttle [Bytes]
-  size_t max_allowed_total_packets_size{50 * 1024 * 1024};
+  uint64_t max_allowed_total_packets_size{25000 * 1024};
 
   // max allowed received packets count of all types per bandwidth_throttle
-  size_t max_allowed_total_packets_count{500};
+  size_t max_allowed_total_packets_count{25000};
 
   // max allowed received packets size of one specific type per bandwidth_throttle [Bytes]
-  size_t max_allowed_same_type_packets_size{10 * 1024 * 1024};
+  uint64_t max_allowed_same_type_packets_size{10000 * 1024};
 
   // max allowed received packets count of one specific type per bandwidth_throttle
-  size_t max_allowed_same_type_packets_count{100};
+  size_t max_allowed_same_type_packets_count{10000};
 };
 
 struct BlockProposerConfig {

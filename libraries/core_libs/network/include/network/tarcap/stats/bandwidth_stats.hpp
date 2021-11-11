@@ -20,8 +20,8 @@ namespace taraxa::network::tarcap {
  */
 class BandwidthStats {
  public:
-  BandwidthStats(std::chrono::seconds bandwidth_throttle_period_duration, size_t max_allowed_total_packets_size_,
-                 size_t max_allowed_total_packets_count_, size_t max_allowed_same_type_packets_size,
+  BandwidthStats(std::chrono::seconds bandwidth_throttle_period_duration, uint64_t max_allowed_total_packets_size_,
+                 size_t max_allowed_total_packets_count_, uint64_t max_allowed_same_type_packets_size,
                  size_t max_allowed_same_type_packets_count);
   ~BandwidthStats() = default;
 
@@ -34,7 +34,7 @@ class BandwidthStats {
    * @return <true, "reason"> if max allowed bandwidth is exceeded, otherwise <false, "">
    */
   std::pair<bool, std::string> isExceeded(const dev::p2p::NodeID& node_id, SubprotocolPacketType packet_type,
-                                          size_t packet_size);
+                                          uint64_t packet_size);
 
  private:
   /**
@@ -42,7 +42,7 @@ class BandwidthStats {
    */
   struct PacketTypeStats {
     size_t packets_count_{0};
-    size_t packets_size_{0};  // [Bytes]
+    uint64_t packets_size_{0};  // [Bytes]
   };
 
   /**
@@ -58,7 +58,7 @@ class BandwidthStats {
     size_t total_packets_count_{0};
 
     // total size of all received packets(all types) [Bytes]
-    size_t total_packets_size_{0};
+    uint64_t total_packets_size_{0};
 
     // count/size stats per packet type
     std::array<PacketTypeStats, SubprotocolPacketType::PacketCount> packets_types_stats_{};
@@ -70,13 +70,13 @@ class BandwidthStats {
   const std::chrono::seconds k_bandwidth_throttle_period_duration_;
 
   // max allowed received packets size of all types per k_bandwidth_throttle_period_duration_ [Bytes]
-  const size_t k_max_allowed_total_packets_size_;
+  const uint64_t k_max_allowed_total_packets_size_;
 
   // max allowed received packets count of all types per k_bandwidth_throttle_period_duration_
   const size_t k_max_allowed_total_packets_count_;
 
   // max allowed received packets size of one specific type per k_bandwidth_throttle_period_duration_ [Bytes]
-  const size_t k_max_allowed_same_type_packets_size_;
+  const uint64_t k_max_allowed_same_type_packets_size_;
 
   // max allowed received packets count of one specific type per k_bandwidth_throttle_period_duration_
   const size_t k_max_allowed_same_type_packets_count_;

@@ -3,8 +3,8 @@
 namespace taraxa::network::tarcap {
 
 BandwidthStats::BandwidthStats(std::chrono::seconds bandwidth_throttle_period_duration,
-                               size_t max_allowed_total_packets_size, size_t max_allowed_total_packets_count,
-                               size_t max_allowed_same_type_packets_size, size_t max_allowed_same_type_packets_count)
+                               uint64_t max_allowed_total_packets_size, size_t max_allowed_total_packets_count,
+                               uint64_t max_allowed_same_type_packets_size, size_t max_allowed_same_type_packets_count)
     : k_bandwidth_throttle_period_duration_(bandwidth_throttle_period_duration),
       k_max_allowed_total_packets_size_(max_allowed_total_packets_size),
       k_max_allowed_total_packets_count_(max_allowed_total_packets_count),
@@ -12,8 +12,9 @@ BandwidthStats::BandwidthStats(std::chrono::seconds bandwidth_throttle_period_du
       k_max_allowed_same_type_packets_count_(max_allowed_same_type_packets_count) {}
 
 std::pair<bool, std::string> BandwidthStats::isExceeded(const dev::p2p::NodeID& node_id,
-                                                        SubprotocolPacketType packet_type, size_t packet_size) {
-  size_t total_packets_count, total_packets_size, type_packets_count, type_packets_size;
+                                                        SubprotocolPacketType packet_type, uint64_t packet_size) {
+  uint64_t total_packets_size, type_packets_size;
+  size_t total_packets_count, type_packets_count;
 
   {
     std::scoped_lock lock(stats_mutex_);

@@ -15,10 +15,10 @@ const char *default_json = R"foo({
   "network_packets_processing_threads": 10,
   "deep_syncing_threshold" : 10,
   "bandwidth_throttle_period_seconds" : 10,
-  "max_allowed_total_packets_size" : 52428800,
-  "max_allowed_total_packets_count" : 500,
-  "max_allowed_same_type_packets_size" : 10485760,
-  "max_allowed_same_type_packets_count" : 100,
+  "max_allowed_total_packets_size" : 25600000,
+  "max_allowed_total_packets_count" : 25000,
+  "max_allowed_same_type_packets_size" : 10240000,
+  "max_allowed_same_type_packets_count" : 10000,
   "network_boot_nodes": [
     {
       "id": "d063098ceca0f5ea06f9455debffe6f6d5b2efdeb179215877e356cf8154afad99f058214bd25d8198a3854a4ed8f7ef97af59b0441a7d30bc4b3918c42764ef",

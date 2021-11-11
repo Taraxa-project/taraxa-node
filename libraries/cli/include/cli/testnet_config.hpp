@@ -8,17 +8,17 @@ const char *testnet_json = R"foo({
   "network_listen_ip": "0.0.0.0",
   "network_tcp_port": 10002,
   "network_udp_port": 10002,
-  "network_transaction_interval": 100
+  "network_transaction_interval": 100,
   "network_ideal_peer_count": 5,
   "network_max_peer_count": 15,
   "network_sync_level_size": 25,
   "network_packets_processing_threads": 10,
   "deep_syncing_threshold" : 10,
   "bandwidth_throttle_period_seconds" : 10,
-  "max_allowed_total_packets_size" : 52428800,
-  "max_allowed_total_packets_count" : 500,
-  "max_allowed_same_type_packets_size" : 10485760,
-  "max_allowed_same_type_packets_count" : 100,
+  "max_allowed_total_packets_size" : 25600000,
+  "max_allowed_total_packets_count" : 25000,
+  "max_allowed_same_type_packets_size" : 10240000,
+  "max_allowed_same_type_packets_count" : 10000,
   "network_boot_nodes": [
     {
       "id": "f36f467529fe91a750dfdc8086fd0d2f30bad9f55a5800b6b4aa603c7787501db78dc4ac1bf3cf16e42af7c2ebb53648653013c3da1987494960d751871d598a",
