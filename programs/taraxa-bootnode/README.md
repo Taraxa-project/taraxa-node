@@ -26,6 +26,7 @@ NETWORKING:
   --allow-local-discovery   Include local addresses in the discovery process. Used for testing purposes.
   --network-id <id>         Connect to default mainet/testnet/devnet bootnodes
   --number-of-threads <#>   Define number of threads for this bootnode (default: 1)
+  --wallet arg              JSON wallet file, if not specified key random generated
 LOGGING OPTIONS:
   -v [ --log-verbosity ] <0 - 4> Set the log verbosity from 0 to 4 (default: 2).
   ```

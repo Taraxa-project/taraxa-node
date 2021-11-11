@@ -10,6 +10,7 @@
 #include <condition_variable>
 #include <filesystem>
 #include <iostream>
+#include <string>
 #include <thread>
 
 #include "cli/config.hpp"
@@ -56,10 +57,24 @@ void setupLogging(dev::LoggingOptions const& options) {
       [](std::exception const& _ex) { std::cerr << "Exception from the logging library: " << _ex.what() << '\n'; }));
 }
 
+dev::KeyPair getKey(std::string const& path) {
+  if (!std::filesystem::exists(path)) {
+    throw std::runtime_error("Wallet file does not exist at: " + path);
+  }
+
+  auto wallet_json = taraxa::cli::Tools::readJsonFromFile(path);
+  if (wallet_json["node_secret"].isNull()) {
+    throw std::runtime_error("Wallet file does not contain node_secret field");
+  }
+
+  auto sk = dev::Secret(wallet_json["node_secret"].asString(), dev::Secret::ConstructFromStringType::FromHex);
+  return dev::KeyPair(sk);
+}
 }  // namespace
 
 int main(int argc, char** argv) {
   bool allowLocalDiscovery = false;
+  std::string wallet;
 
   po::options_description general_options("GENERAL OPTIONS", kLineWidth);
   auto addGeneralOption = general_options.add_options();
@@ -82,6 +97,8 @@ int main(int argc, char** argv) {
                       "Connect to default mainet/testnet/devnet bootnodes");
   addNetworkingOption("number-of-threads", po::value<uint32_t>()->value_name("<#>"),
                       "Define number of threads for this bootnode (default: 1)");
+  addNetworkingOption("wallet", po::value<std::string>(&wallet),
+                      "JSON wallet file, if not specified key random generated");
   po::options_description allowedOptions("Allowed options");
   allowedOptions.add(general_options).add(logging_program_options).add(client_networking);
 
@@ -124,6 +141,15 @@ int main(int argc, char** argv) {
     std::cout << EthGrayBold << kProgramName << ", a Taraxa bootnode implementation" EthReset << std::endl;
 
   auto key = dev::KeyPair(dev::Secret::random());
+  if (!wallet.empty()) {
+    try {
+      key = getKey(wallet);
+    } catch (std::exception const& e) {
+      std::cerr << e.what() << std::endl;
+      return 1;
+    }
+  }
+
   auto net_conf = public_ip.empty() ? dev::p2p::NetworkConfig(listen_ip, listen_port, false)
                                     : dev::p2p::NetworkConfig(public_ip, listen_ip, listen_port, false);
   net_conf.allowLocalDiscovery = allowLocalDiscovery;
