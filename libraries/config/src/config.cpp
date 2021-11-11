@@ -150,6 +150,7 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
         getConfigDataAsUInt(root, {"test_params", "db_snapshot_each_n_pbft_block"}, true);
 
     test_params.db_max_snapshots = getConfigDataAsUInt(root, {"test_params", "db_max_snapshots"}, true);
+    test_params.db_max_open_files = getConfigDataAsUInt(root, {"test_params", "db_max_open_files"}, true);
 
     // DAG proposal
     test_params.block_proposer.shard = getConfigDataAsUInt(root, {"test_params", "block_proposer", "shard"});
