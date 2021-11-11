@@ -1,7 +1,7 @@
 #include "network/tarcap/packets_handlers/vote_packet_handler.hpp"
 
 #include "pbft/pbft_manager.hpp"
-#include "vote_manager/vote_manager.hpp"
+#include "votes/vote_manager.hpp"
 
 namespace taraxa::network::tarcap {
 

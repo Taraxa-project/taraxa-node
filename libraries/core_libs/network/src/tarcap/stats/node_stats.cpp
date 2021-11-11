@@ -10,7 +10,7 @@
 #include "pbft/pbft_chain.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "transaction_manager/transaction_manager.hpp"
-#include "vote_manager/vote_manager.hpp"
+#include "votes/vote_manager.hpp"
 
 namespace taraxa::network::tarcap {
 

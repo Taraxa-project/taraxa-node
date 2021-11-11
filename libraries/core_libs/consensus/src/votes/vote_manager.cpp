@@ -1,4 +1,4 @@
-#include "vote_manager/vote_manager.hpp"
+#include "votes/vote_manager.hpp"
 
 #include <libdevcore/SHA3.h>
 #include <libdevcrypto/Common.h>
