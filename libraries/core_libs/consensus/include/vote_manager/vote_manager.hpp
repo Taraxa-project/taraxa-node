@@ -94,8 +94,6 @@ class VoteManager {
 
   void cleanupVotes(uint64_t pbft_round);
 
-  bool voteValidation(std::shared_ptr<Vote>& vote, size_t valid_sortition_players, size_t sortition_threshold) const;
-
   std::string getJsonStr(std::vector<std::shared_ptr<Vote>> const& votes);
 
   std::vector<std::shared_ptr<Vote>> getProposalVotes(uint64_t pbft_round);
