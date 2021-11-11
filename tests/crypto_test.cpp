@@ -259,6 +259,30 @@ TEST_F(CryptoTest, keypair_signature_verify_hash_test) {
   EXPECT_EQ(credential.length(), 64);
 }
 
+TEST_F(CryptoTest, new_sortition_rate) {
+  uint64_t hitcount = 0;
+  uint64_t N = 1000;
+  uint64_t expectedSize = 20;
+  uint64_t myMoney = 100;
+  uint64_t totalMoney = 200;
+  for (uint64_t i = 0; i < N; i++) {
+    uint512_t vrfOutput = dev::FixedHash<64>::random();
+    hitcount += VrfPbftSortition::binominal_cdf(myMoney, totalMoney, expectedSize, vrfOutput);
+  }
+  auto expected = N * expectedSize / 2;
+  uint64_t d;
+  if (expected > hitcount) {
+    d = expected - hitcount;
+  } else {
+    d = hitcount - expected;
+  }
+  // within 2% good enough
+  auto maxd = expected / 50;
+  EXPECT_LE(d, maxd);
+  std::cout << "wanted " << expected << " selections but got " << hitcount << ", d=" << d << ", maxd=" << maxd
+            << std::endl;
+}
+
 TEST_F(CryptoTest, sortition_rate) {
   vrf_sk_t sk(
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"

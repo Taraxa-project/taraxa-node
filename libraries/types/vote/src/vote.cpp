@@ -1,5 +1,8 @@
 #include "vote/vote.hpp"
 
+#include <boost/math/distributions/binomial.hpp>
+#include <boost/multiprecision/mpfr.hpp>
+
 namespace taraxa {
 
 VrfPbftSortition::VrfPbftSortition(bytes const& b) {
@@ -41,6 +44,37 @@ bool VrfPbftSortition::canSpeak(size_t threshold, size_t dpos_total_votes_count)
   uint1024_t left = (uint1024_t)((uint512_t)output) * dpos_total_votes_count;
   uint1024_t right = (uint1024_t)max512bits * threshold;
   return left <= right;
+}
+
+uint64_t VrfPbftSortition::binominal_cdf(uint64_t stake, double threshold, double dpos_total_votes_count) const {
+  auto l = static_cast<uint512_t>(output).convert_to<boost::multiprecision::mpfr_float>();
+  boost::multiprecision::mpfr_float max = max512bits.convert_to<boost::multiprecision::mpfr_float>();
+  auto division = l / max;
+  double ratio = division.convert_to<double>();
+  boost::math::binomial_distribution<double> dist(static_cast<double>(stake), threshold / dpos_total_votes_count);
+  for (uint64_t j = 0; j < stake; ++j) {
+    // Found the correct boundary, break
+    if (ratio <= cdf(dist, j)) {
+      return j;
+    }
+  }
+  return stake;
+}
+
+uint64_t VrfPbftSortition::binominal_cdf(uint64_t stake, double dpos_total_votes_count, double threshold,
+                                         uint512_t& output1) {
+  auto l = static_cast<uint512_t>(output1).convert_to<boost::multiprecision::mpfr_float>();
+  boost::multiprecision::mpfr_float max = max512bits.convert_to<boost::multiprecision::mpfr_float>();
+  auto division = l / max;
+  double ratio = division.convert_to<double>();
+  boost::math::binomial_distribution<double> dist(static_cast<double>(stake), threshold / dpos_total_votes_count);
+  for (uint64_t j = 0; j < stake; ++j) {
+    // Found the correct boundary, break
+    if (ratio <= cdf(dist, j)) {
+      return j;
+    }
+  }
+  return stake;
 }
 
 Vote::Vote(dev::RLP const& rlp) {

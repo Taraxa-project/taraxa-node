@@ -67,6 +67,8 @@ struct VrfPbftSortition : public vrf_wrapper::VrfSortitionBase {
   }
   static inline uint512_t max512bits = std::numeric_limits<uint512_t>::max();
   bool canSpeak(size_t threshold, size_t valid_players) const;
+  uint64_t binominal_cdf(uint64_t stake, double threshold, double dpos_total_votes_count) const;
+  static uint64_t binominal_cdf(uint64_t stake, double threshold, double dpos_total_votes_count, uint512_t& output);
   friend std::ostream& operator<<(std::ostream& strm, VrfPbftSortition const& vrf_sortition) {
     strm << "[VRF sortition] " << std::endl;
     strm << "  pk: " << vrf_sortition.pk << std::endl;
