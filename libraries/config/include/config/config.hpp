@@ -33,8 +33,8 @@ struct NetworkConfig {
   std::string network_listen_ip;
   uint16_t network_tcp_port = 0;
   std::vector<NodeConfig> network_boot_nodes;
-  uint16_t network_simulated_delay = 0;
-  uint16_t network_bandwidth = 0;
+  uint16_t network_simulated_delay = 0;  // TODO: unsed -> delete
+  uint16_t network_bandwidth = 0;        // TODO: unsed -> delete
   uint16_t network_ideal_peer_count = 0;
   uint16_t network_max_peer_count = 0;
   uint16_t network_transaction_interval = 0;
@@ -44,6 +44,23 @@ struct NetworkConfig {
   uint16_t network_num_threads = std::max(uint(1), uint(std::thread::hardware_concurrency() / 2));
   uint16_t network_packets_processing_threads = 10;
   uint16_t deep_syncing_threshold = 10;
+  // Bandwidth limits
+
+  // period duration during which bandwidth stats are relevant.
+  // After this period duration passes, stats are reset to zero
+  std::chrono::seconds bandwidth_throttle_period_seconds{10};
+
+  // max allowed received packets size of all types per bandwidth_throttle [Bytes]
+  size_t max_allowed_total_packets_size{50 * 1024 * 1024};
+
+  // max allowed received packets count of all types per bandwidth_throttle
+  size_t max_allowed_total_packets_count{500};
+
+  // max allowed received packets size of one specific type per bandwidth_throttle [Bytes]
+  size_t max_allowed_same_type_packets_size{10 * 1024 * 1024};
+
+  // max allowed received packets count of one specific type per bandwidth_throttle
+  size_t max_allowed_same_type_packets_count{100};
 };
 
 struct BlockProposerConfig {

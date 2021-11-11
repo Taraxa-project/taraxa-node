@@ -35,6 +35,15 @@ enum SubprotocolPacketType : uint32_t {
   PacketCount
 };
 
+inline std::optional<SubprotocolPacketType> getPacketType(unsigned packet_id) {
+  if (packet_id >= SubprotocolPacketType::PacketCount || packet_id == HighPriorityPackets ||
+      packet_id == MidPriorityPackets || packet_id == LowPriorityPackets) {
+    return {};
+  }
+
+  return {static_cast<SubprotocolPacketType>(packet_id)};
+}
+
 /**
  * @param packet_type
  * @return string representation of packet_type

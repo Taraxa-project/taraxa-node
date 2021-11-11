@@ -10,6 +10,7 @@
 #include "common/static_init.hpp"
 #include "dag/dag.hpp"
 #include "logger/logger.hpp"
+#include "network/tarcap/stats/bandwidth_stats.hpp"
 #include "pbft/block_proposer.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "util_test/samples.hpp"
@@ -1302,6 +1303,19 @@ TEST_F(NetworkTest, node_full_sync) {
     }
     if (blocks1.size() == 0) break;
     level++;
+  }
+}
+
+TEST_F(NetworkTest, limit_bandwidth_test) {
+  network::tarcap::BandwidthStats bandwidth_stats(std::chrono::seconds(1), 100, 8, 30, 3);
+
+  dev::p2p::NodeID node_id(1);
+
+  for (size_t idx = 0; idx < 10; idx++) {
+    auto result = bandwidth_stats.isExceeded(node_id, network::tarcap::SubprotocolPacketType::VotePacket, 10);
+    if (result.first) {
+      std::cout << "idx: " << idx << " -> Bandwidth exceeded. Reasons: " << result.second << std::endl;
+    }
   }
 }
 

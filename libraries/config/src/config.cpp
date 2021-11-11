@@ -118,6 +118,15 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
   network.network_packets_processing_threads = getConfigDataAsUInt(root, {"network_packets_processing_threads"});
   network.deep_syncing_threshold =
       getConfigDataAsUInt(root, {"deep_syncing_threshold"}, true, network.deep_syncing_threshold);
+
+  // Bandwidth limits
+  network.bandwidth_throttle_period_seconds =
+      std::chrono::seconds(getConfigDataAsUInt(root, {"bandwidth_throttle_period_seconds"}));
+  network.max_allowed_total_packets_size = getConfigDataAsUInt(root, {"max_allowed_total_packets_size"});
+  network.max_allowed_total_packets_count = getConfigDataAsUInt(root, {"max_allowed_total_packets_count"});
+  network.max_allowed_same_type_packets_size = getConfigDataAsUInt(root, {"max_allowed_same_type_packets_size"});
+  network.max_allowed_same_type_packets_count = getConfigDataAsUInt(root, {"max_allowed_same_type_packets_count"});
+
   for (auto &item : root["network_boot_nodes"]) {
     NodeConfig node;
     node.id = getConfigDataAsString(item, {"id"});
@@ -290,6 +299,11 @@ std::ostream &operator<<(std::ostream &strm, NetworkConfig const &conf) {
   strm << "  network_num_threads: " << conf.network_num_threads << std::endl;
   strm << "  network_packets_processing_threads: " << conf.network_packets_processing_threads << std::endl;
   strm << "  deep_syncing_threshold: " << conf.deep_syncing_threshold << std::endl;
+  strm << "  bandwidth_throttle_period_seconds " << conf.bandwidth_throttle_period_seconds.count() << std::endl;
+  strm << "  max_allowed_total_packets_size " << conf.max_allowed_total_packets_size << std::endl;
+  strm << "  max_allowed_total_packets_count " << conf.max_allowed_total_packets_count << std::endl;
+  strm << "  max_allowed_same_type_packets_size " << conf.max_allowed_same_type_packets_size << std::endl;
+  strm << "  max_allowed_same_type_packets_count " << conf.max_allowed_same_type_packets_count << std::endl;
 
   strm << "  --> boot nodes  ... " << std::endl;
   for (auto const &c : conf.network_boot_nodes) {
