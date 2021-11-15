@@ -22,7 +22,7 @@ class VotePacketHandler : public ExtVotesPacketHandler {
 
   std::shared_ptr<PbftManager> pbft_mgr_;
   std::shared_ptr<VoteManager> vote_mgr_;
-  ExpirationCache<vote_hash_t> known_votes_;
+  ExpirationCache<vote_hash_t> seen_votes_;
 };
 
 }  // namespace taraxa::network::tarcap
