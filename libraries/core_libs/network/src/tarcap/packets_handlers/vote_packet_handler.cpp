@@ -11,7 +11,7 @@ VotePacketHandler::VotePacketHandler(std::shared_ptr<PeersState> peers_state,
     : ExtVotesPacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "PBFT_VOTE_PH"),
       pbft_mgr_(std::move(pbft_mgr)),
       vote_mgr_(std::move(vote_mgr)),
-      known_votes_(1000000, 1000) {}
+      seen_votes_(1000000, 1000) {}
 
 void VotePacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
   auto vote = std::make_shared<Vote>(packet_data.rlp_[0].toBytes());
@@ -26,22 +26,23 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
     return;
   }
 
-  if (!known_votes_.insert(vote_hash)) {
+  // Synchronization point in case multiple threads are processing the same vote at the same time
+  if (!seen_votes_.insert(vote_hash)) {
     LOG(log_dg_) << "Received PBFT vote " << vote_hash << " (from " << packet_data.from_node_id_.abridged()
-                 << ") already processed.";
+                 << ") already seen.";
+    return;
+  }
+
+  // Adds unverified vote into local structure
+  if (vote_mgr_->voteInVerifiedMap(vote) || !vote_mgr_->addUnverifiedVote(vote)) {
+    LOG(log_dg_) << "Received PBFT vote " << vote_hash << " (from " << packet_data.from_node_id_.abridged()
+                 << ") already saved in (un)verified queues.";
     return;
   }
 
   // Do not mark it before, as peers have small caches of known votes.
+  // And we do not need to mark it before this point as we won't be sending
   peer->markVoteAsKnown(vote_hash);
-
-  // Synchronization point in case multiple threads are processing the same vote at the same time
-  // Adds unverified vote into local structure + database
-  if (!vote_mgr_->addUnverifiedVote(vote)) {
-    LOG(log_dg_) << "Received PBFT vote " << vote_hash << " (from " << packet_data.from_node_id_.abridged()
-                 << ") already saved in unverified queue by a different thread(race condition).";
-    return;
-  }
 
   onNewPbftVote(vote);
 }
