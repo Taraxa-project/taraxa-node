@@ -17,7 +17,7 @@ class TaraxaPeer : public boost::noncopyable {
         known_pbft_blocks_(10000, 1000),
         known_votes_(10000, 1000) {}
   explicit TaraxaPeer(dev::p2p::NodeID id)
-      : m_id(id),
+      : id_(std::move(id)),
         known_dag_blocks_(10000, 1000),
         known_transactions_(100000, 10000),
         known_pbft_blocks_(10000, 1000),
@@ -63,7 +63,7 @@ class TaraxaPeer : public boost::noncopyable {
   bool markPbftBlockAsKnown(blk_hash_t const &_hash) { return known_pbft_blocks_.insert(_hash); }
   bool isPbftBlockKnown(blk_hash_t const &_hash) const { return known_pbft_blocks_.count(_hash); }
 
-  const dev::p2p::NodeID &getId() const { return m_id; }
+  const dev::p2p::NodeID &getId() const { return id_; }
 
   std::atomic<bool> syncing_ = false;
   std::atomic<uint64_t> dag_level_ = 0;
@@ -72,7 +72,7 @@ class TaraxaPeer : public boost::noncopyable {
   std::atomic<size_t> pbft_previous_round_next_votes_size_ = 0;
 
  private:
-  dev::p2p::NodeID m_id;
+  dev::p2p::NodeID id_;
 
   ExpirationCache<blk_hash_t> known_dag_blocks_;
   ExpirationCache<trx_hash_t> known_transactions_;
