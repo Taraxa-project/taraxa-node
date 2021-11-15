@@ -36,7 +36,7 @@ class ExtSyncingPacketHandler : public PacketHandler {
    * @param shared_state
    * @param force
    */
-  void restartSyncingPbft(bool force);
+  void restartSyncingPbft(bool force = false);
 
   void syncPeerPbft(unsigned long height_to_sync);
   void requestDagBlocks(const dev::p2p::NodeID &_nodeID, const std::unordered_set<blk_hash_t> &blocks,

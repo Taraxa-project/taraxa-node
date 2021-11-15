@@ -132,11 +132,7 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
   if (pbft_synced_period + 1 < selected_peer->pbft_chain_size_) {
     LOG(log_nf_) << "Restart PBFT chain syncing. Own synced PBFT at period " << pbft_synced_period
                  << ", peer PBFT chain size " << selected_peer->pbft_chain_size_;
-    if (pbft_synced_period + 5 < selected_peer->pbft_chain_size_) {
-      restartSyncingPbft(true);
-    } else {
-      restartSyncingPbft(false);
-    }
+    restartSyncingPbft();
   }
 
   auto pbft_current_round = pbft_mgr_->getPbftRound();
