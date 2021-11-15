@@ -18,7 +18,9 @@
 #define MAX_WAIT_FOR_NEXT_VOTED_BLOCK_STEPS 20
 
 namespace taraxa {
+
 class FullNode;
+class RewardsVotes;
 
 enum PbftStates { value_proposal_state = 1, filter_state, certify_state, finish_state, finish_polling_state };
 
@@ -38,7 +40,8 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
               std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
               std::shared_ptr<NextVotesManager> next_votes_mgr, std::shared_ptr<DagManager> dag_mgr,
               std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<TransactionManager> trx_mgr,
-              std::shared_ptr<final_chain::FinalChain> final_chain, secret_t node_sk, vrf_sk_t vrf_sk);
+              std::shared_ptr<final_chain::FinalChain> final_chain, std::shared_ptr<RewardsVotes> rewards_votes,
+              secret_t node_sk, vrf_sk_t vrf_sk);
   ~PbftManager();
 
   void setNetwork(std::weak_ptr<Network> network);
@@ -163,6 +166,9 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   std::shared_ptr<DagBlockManager> dag_blk_mgr_;
   std::shared_ptr<TransactionManager> trx_mgr_;
   std::shared_ptr<final_chain::FinalChain> final_chain_;
+
+  // Votes that are candidates for rewards based inclusion in dag blocks
+  std::shared_ptr<RewardsVotes> rewards_votes_;
 
   addr_t node_addr_;
   secret_t node_sk_;

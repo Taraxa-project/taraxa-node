@@ -836,10 +836,9 @@ bool NextVotesManager::voteVerification(std::shared_ptr<Vote>& vote, uint64_t dp
     return false;
   }
 
-  try {
-    vote->validate(dpos_votes_count, dpos_total_votes_count, pbft_sortition_threshold);
-  } catch (const std::logic_error& e) {
-    LOG(log_er_) << e.what();
+  // TODO: (after merge) this was in try catch block originally
+  if (auto result = vote->validate(dpos_total_votes_count, pbft_sortition_threshold); !result.first) {
+    LOG(log_er_) << result.second;
     return false;
   }
 

@@ -126,13 +126,11 @@ void SyncBlock::hasEnoughValidCertVotes(size_t dpos_total_votes_count, size_t so
           << " has wrong vote block hash " << v->getBlockHash();
       throw std::logic_error(err.str());
     }
-    auto stake = dpos_eligible_vote_count(v->getVoterAddr());
-    try {
-      v->validate(stake, dpos_total_votes_count, sortition_threshold);
-    } catch (const std::logic_error& e) {
+
+    if (auto result = v->validate(dpos_total_votes_count, sortition_threshold); !result.first) {
       std::stringstream err;
       err << "For PBFT block " << pbft_blk_->getBlockHash() << ", cert vote " << v->getHash()
-          << " failed validation: " << e.what();
+          << " failed validation: " << result.second;
       throw std::logic_error(err.str());
     }
 

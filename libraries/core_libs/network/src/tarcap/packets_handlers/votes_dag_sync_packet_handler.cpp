@@ -3,22 +3,22 @@
 #include "final_chain/final_chain.hpp"
 #include "pbft/pbft_chain.hpp"
 #include "pbft/pbft_manager.hpp"
+#include "votes/rewards_votes.hpp"
 #include "votes/vote_manager.hpp"
 
 namespace taraxa::network::tarcap {
 
-VotesDagSyncPacketHandler::VotesDagSyncPacketHandler(std::shared_ptr<PeersState> peers_state,
-                                                     std::shared_ptr<PacketsStats> packets_stats,
-                                                     std::shared_ptr<PbftManager> pbft_mgr,
-                                                     std::shared_ptr<VoteManager> vote_mgr,
-                                                     std::shared_ptr<final_chain::FinalChain> final_chain,
-                                                     std::shared_ptr<PbftChain> pbft_chain,
-                                                     std::shared_ptr<DbStorage> db, const addr_t &node_addr)
+VotesDagSyncPacketHandler::VotesDagSyncPacketHandler(
+    std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
+    std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<VoteManager> vote_mgr,
+    std::shared_ptr<final_chain::FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain,
+    std::shared_ptr<DbStorage> db, std::shared_ptr<RewardsVotes> rewards_votes, const addr_t &node_addr)
     : ExtVotesPacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "VOTES_DAG_SYNC_PH"),
       pbft_mgr_(std::move(pbft_mgr)),
       vote_mgr_(std::move(vote_mgr)),
       final_chain_(std::move(final_chain)),
       pbft_chain_(std::move(pbft_chain)),
+      rewards_votes_(std::move(rewards_votes)),
       db_(std::move(db)) {}
 
 void VotesDagSyncPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
@@ -88,14 +88,26 @@ void VotesDagSyncPacketHandler::process(const PacketData &packet_data, const std
 
     // TODO: pbft_mgr_->getPreviousPbftPeriodDposTotalVotesCount and
     // pbft_mgr_->getPreviousPbftPeriodSortitionThreshold() mght be incosistent with current_pbft_period - 1
-    if (!vote_mgr_->voteValidation(vote, pbft_mgr_->getPreviousPbftPeriodDposTotalVotesCount(),
-                                   pbft_mgr_->getPreviousPbftPeriodSortitionThreshold())) {
-      LOG(log_dg_) << "Account " << voter << " was not eligible to vote. Vote: " << vote;
+    if (auto result = vote->validate(pbft_mgr_->getPreviousPbftPeriodDposTotalVotesCount(),
+                                     pbft_mgr_->getPreviousPbftPeriodSortitionThreshold());
+        !result.first) {
+      LOG(log_dg_) << "Account " << voter << " was not eligible to vote. Reason: " << result.second
+                   << ", Vote: " << vote;
       continue;
     }
 
-    // TODO: add vote into the thread-safe container with all votes that were not part of current_pbft_period - 1
-    // observed 2t+1 cert votes
+    // TODO: save vote into the new column - we are saving dag blocks into the db as they come, if we save such dag
+    // block
+    //       in db but we would not save new vote candidates for rewards and this node crash, we would probably not
+    //       recover
+    //       - another solution would be not so save dag blocks into db s they come but only after pbft block is
+    //       finalized
+
+    // Inserts vote into the list of votes that were not part of the latest finalized pbft block observed 2t+1 cert
+    // votes
+    if (rewards_votes_->isNewVote(vote_hash)) {
+      rewards_votes_->insertNewVote(std::move(vote));
+    }
   }
 }
 

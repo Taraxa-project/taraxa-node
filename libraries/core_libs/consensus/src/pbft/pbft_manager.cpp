@@ -15,6 +15,7 @@
 
 #include "dag/dag.hpp"
 #include "final_chain/final_chain.hpp"
+#include "votes/rewards_votes.hpp"
 #include "votes/vote_manager.hpp"
 
 namespace taraxa {
@@ -25,7 +26,7 @@ PbftManager::PbftManager(PbftConfig const &conf, blk_hash_t const &genesis, addr
                          std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<NextVotesManager> next_votes_mgr,
                          std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
                          std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<final_chain::FinalChain> final_chain,
-                         secret_t node_sk, vrf_sk_t vrf_sk)
+                         std::shared_ptr<RewardsVotes> rewards_votes, secret_t node_sk, vrf_sk_t vrf_sk)
     : db_(db),
       next_votes_manager_(next_votes_mgr),
       pbft_chain_(pbft_chain),
@@ -34,6 +35,7 @@ PbftManager::PbftManager(PbftConfig const &conf, blk_hash_t const &genesis, addr
       dag_blk_mgr_(dag_blk_mgr),
       trx_mgr_(trx_mgr),
       final_chain_(final_chain),
+      rewards_votes_(std::move(rewards_votes)),
       node_addr_(node_addr),
       node_sk_(node_sk),
       vrf_sk_(vrf_sk),
@@ -701,13 +703,21 @@ bool PbftManager::stateOperations_() {
   if (state_ == certify_state && !have_executed_this_round_) {
     auto voted_block_hash_with_cert_votes = vote_mgr_->getVotesBundleByRoundAndStep(round, 3, TWO_T_PLUS_ONE);
     if (voted_block_hash_with_cert_votes.enough) {
-      LOG(log_dg_) << "PBFT block " << voted_block_hash_with_cert_votes.voted_block_hash << " has enough certed votes";
+      LOG(log_dg_) << "PBFT block " << voted_block_hash_with_cert_votes.voted_block_hash << " has enough cert votes";
+
+      // Get hashes of 2t+1 cert votes
+      auto cert_votes_hashes = voted_block_hash_with_cert_votes.getVotesHashes();
+
       // put pbft block into chain
       const auto vote_size = voted_block_hash_with_cert_votes.votes.size();
       if (pushCertVotedPbftBlockIntoChain_(voted_block_hash_with_cert_votes.voted_block_hash,
                                            std::move(voted_block_hash_with_cert_votes.votes))) {
         db_->savePbftMgrStatus(PbftMgrStatus::ExecutedInRound, true);
         have_executed_this_round_ = true;
+
+        // Reset 2t+1 cert votes in rewards votes(votes that should be rewarded in the next pbft period)
+        rewards_votes_->setCertVotes(std::move(cert_votes_hashes), voted_block_hash_with_cert_votes.voted_block_hash);
+
         LOG(log_nf_) << "Write " << vote_size << " cert votes ... in round " << round;
 
         duration_ = std::chrono::system_clock::now() - now_;

@@ -21,10 +21,12 @@
 #include "tarcap/taraxa_capability.hpp"
 #include "transaction/transaction.hpp"
 
+// TODO: use taraxa::network namespace
 namespace taraxa {
 
 struct TaraxaCapability;
 class TaraxaPeer;
+class RewardsVotes;
 
 // TODO merge with TaraxaCapability, and then split the result in reasonable components
 class Network {
@@ -34,7 +36,7 @@ class Network {
           std::shared_ptr<PbftManager> pbft_mgr = {}, std::shared_ptr<PbftChain> pbft_chain = {},
           std::shared_ptr<VoteManager> vote_mgr = {}, std::shared_ptr<NextVotesManager> next_votes_mgr = {},
           std::shared_ptr<DagManager> dag_mgr = {}, std::shared_ptr<DagBlockManager> dag_blk_mgr = {},
-          std::shared_ptr<TransactionManager> trx_mgr = {});
+          std::shared_ptr<TransactionManager> trx_mgr = {}, std::shared_ptr<RewardsVotes> rewards_votes = {});
 
   ~Network();
 

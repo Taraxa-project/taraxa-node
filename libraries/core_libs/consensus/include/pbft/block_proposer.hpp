@@ -17,6 +17,7 @@ class TransactionManager;
 class FullNode;
 class BlockProposer;
 class DagBlock;
+class RewardsVotes;
 
 using vrf_sk_t = vrf_wrapper::vrf_sk_t;
 
@@ -69,13 +70,14 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
  public:
   BlockProposer(BlockProposerConfig const& bp_config, std::shared_ptr<DagManager> dag_mgr,
                 std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
-                std::shared_ptr<final_chain::FinalChain> final_chain, addr_t node_addr, secret_t node_sk,
-                vrf_sk_t vrf_sk, logger::Logger log_time)
+                std::shared_ptr<final_chain::FinalChain> final_chain, std::shared_ptr<RewardsVotes> rewards_votes,
+                addr_t node_addr, secret_t node_sk, vrf_sk_t vrf_sk, logger::Logger log_time)
       : bp_config_(bp_config),
         dag_mgr_(std::move(dag_mgr)),
         trx_mgr_(std::move(trx_mgr)),
         dag_blk_mgr_(std::move(dag_blk_mgr)),
         final_chain_(std::move(final_chain)),
+        rewards_votes_(std::move(rewards_votes)),
         log_time_(log_time),
         node_addr_(node_addr),
         node_sk_(node_sk),
@@ -115,6 +117,7 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   std::shared_ptr<TransactionManager> trx_mgr_;
   std::shared_ptr<DagBlockManager> dag_blk_mgr_;
   std::shared_ptr<final_chain::FinalChain> final_chain_;
+  std::shared_ptr<RewardsVotes> rewards_votes_;
   std::shared_ptr<std::thread> proposer_worker_;
   std::unique_ptr<ProposeModelFace> propose_model_;
   std::weak_ptr<Network> network_;

@@ -89,7 +89,16 @@ class Vote {
   explicit Vote(bytes const& rlp);
   bool operator==(Vote const& other) const { return rlp() == other.rlp(); }
 
-  void validate(uint64_t stake, double dpos_total_votes_count, double sortition_threshold) const;
+  /**
+   * @brief Validates vote based on valid_sortition_players and sortition_threshold
+   *
+   * @param stake
+   * @param dpos_total_votes_count
+   * @param sortition_threshold
+   * @return <true, ""> in case vote is valid, otherwise <false, "validation fail reason">
+   */
+  std::pair<bool, std::string> validate(uint64_t stake, double dpos_total_votes_count, double sortition_threshold) const;
+
   vote_hash_t getHash() const { return vote_hash_; }
   public_t getVoter() const {
     if (!cached_voter_) cached_voter_ = dev::recover(vote_signature_, sha3(false));
@@ -154,6 +163,15 @@ struct VotesBundle {
   VotesBundle() : enough(false), voted_block_hash(blk_hash_t(0)) {}
   VotesBundle(bool enough, blk_hash_t const& voted_block_hash, std::vector<std::shared_ptr<Vote>> const& votes)
       : enough(enough), voted_block_hash(voted_block_hash), votes(votes) {}
+
+  std::unordered_set<vote_hash_t> getVotesHashes() const {
+    std::unordered_set<vote_hash_t> hashes;
+    hashes.reserve(votes.size());
+    for (const auto& vote : votes) {
+      hashes.insert(vote->getHash());
+    }
+    return hashes;
+  }
 };
 
 }  // namespace taraxa

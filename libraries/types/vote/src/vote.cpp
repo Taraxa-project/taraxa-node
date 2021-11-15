@@ -76,27 +76,29 @@ void Vote::validate(uint64_t stake, double dpos_total_votes_count, double sortit
     // If in PBFT blocks syncing for cert votes, that's malicious blocks
     std::stringstream err;
     err << "Invalid stake " << *this;
-    throw std::logic_error(err.str());
+    return {false, err.str()};
   }
 
   if (!verifyVrfSortition()) {
     std::stringstream err;
     err << "Invalid vrf proof. " << *this;
-    throw std::logic_error(err.str());
+    return {false, err.str()};
   }
 
   if (!calculateWeight(stake, dpos_total_votes_count, sortition_threshold)) {
     std::stringstream err;
     err << "Vote sortition failed. Sortition threshold " << sortition_threshold << ", DPOS total votes count "
         << dpos_total_votes_count << " " << *this;
-    throw std::logic_error(err.str());
+    return {false, err.str()};
   }
 
   if (!verifyVote()) {
     std::stringstream err;
     err << "Invalid vote signature. " << dev::toHex(rlp(false)) << "  " << *this;
-    throw std::logic_error(err.str());
+    return {false, err.str()};
   }
+
+  return {true, ""};
 }
 
 bytes Vote::rlp(bool inc_sig, bool inc_weight) const {

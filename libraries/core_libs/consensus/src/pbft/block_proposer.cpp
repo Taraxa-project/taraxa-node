@@ -158,6 +158,8 @@ void BlockProposer::proposeBlock(DagFrontier&& frontier, level_t level, SharedTr
   std::transform(trxs.begin(), trxs.end(), std::back_inserter(trx_hashes),
                  [](std::shared_ptr<Transaction> const& t) { return t->getHash(); });
 
+  // TODO: add votes candidates for rewards from rewards_votes_ into the dag block, can include max 100 unique votes
+
   // When we propose block we know it is valid, no need for block verification with queue,
   // simply add the block to the DAG
   DagBlock blk(frontier.pivot, std::move(level), std::move(frontier.tips), std::move(trx_hashes), std::move(vdf),

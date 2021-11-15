@@ -24,6 +24,7 @@ class NextVotesManager;
 class DagManager;
 class DagBlockManager;
 class TransactionManager;
+class RewardsVotes;
 }  // namespace taraxa
 
 namespace taraxa::final_chain {
@@ -43,7 +44,7 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
                    std::shared_ptr<PbftChain> pbft_chain = {}, std::shared_ptr<VoteManager> vote_mgr = {},
                    std::shared_ptr<NextVotesManager> next_votes_mgr = {}, std::shared_ptr<DagManager> dag_mgr = {},
                    std::shared_ptr<DagBlockManager> dag_blk_mgr = {}, std::shared_ptr<TransactionManager> trx_mgr = {},
-                   addr_t const &node_addr = {});
+                   std::shared_ptr<RewardsVotes> rewards_votes = {}, addr_t const &node_addr = {});
 
   virtual ~TaraxaCapability() = default;
 
@@ -113,7 +114,8 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
                               const std::shared_ptr<NextVotesManager> &next_votes_mgr,
                               const std::shared_ptr<DagManager> &dag_mgr,
                               const std::shared_ptr<DagBlockManager> &dag_blk_mgr,
-                              const std::shared_ptr<TransactionManager> &trx_mgr, addr_t const &node_addr);
+                              const std::shared_ptr<TransactionManager> &trx_mgr, const std::shared_ptr<RewardsVotes> &rewards_votes,
+			       addr_t const &node_addr);
 
   bool filterSyncIrrelevantPackets(SubprotocolPacketType packet_type) const;
 

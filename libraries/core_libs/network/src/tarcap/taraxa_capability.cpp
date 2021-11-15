@@ -36,7 +36,8 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev
                                    std::shared_ptr<VoteManager> vote_mgr,
                                    std::shared_ptr<NextVotesManager> next_votes_mgr,
                                    std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
-                                   std::shared_ptr<TransactionManager> trx_mgr, addr_t const &node_addr)
+                                   std::shared_ptr<TransactionManager> trx_mgr,
+                                   std::shared_ptr<RewardsVotes> rewards_votes, addr_t const &node_addr)
     : test_state_(std::make_shared<TestState>()),
       peers_state_(nullptr),
       syncing_state_(std::make_shared<SyncingState>(conf.deep_syncing_threshold)),
@@ -56,7 +57,7 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev
 
   // Creates and registers all packets handlers
   registerPacketHandlers(conf, packets_stats, db, final_chain, pbft_mgr, pbft_chain, vote_mgr, next_votes_mgr, dag_mgr,
-                         dag_blk_mgr, trx_mgr, node_addr);
+                         dag_blk_mgr, trx_mgr, rewards_votes, node_addr);
 
   // Inits periodic events. Must be called after registerHandlers !!!
   initPeriodicEvents(conf, pbft_mgr, trx_mgr, packets_stats);
@@ -175,7 +176,8 @@ void TaraxaCapability::registerPacketHandlers(
     const std::shared_ptr<PbftManager> &pbft_mgr, const std::shared_ptr<PbftChain> &pbft_chain,
     const std::shared_ptr<VoteManager> &vote_mgr, const std::shared_ptr<NextVotesManager> &next_votes_mgr,
     const std::shared_ptr<DagManager> &dag_mgr, const std::shared_ptr<DagBlockManager> &dag_blk_mgr,
-    const std::shared_ptr<TransactionManager> &trx_mgr, addr_t const &node_addr) {
+    const std::shared_ptr<TransactionManager> &trx_mgr, const std::shared_ptr<RewardsVotes> &rewards_votes, 
+    addr_t const &node_addr) {
   node_stats_ = std::make_shared<NodeStats>(peers_state_, syncing_state_, pbft_chain, pbft_mgr, dag_mgr, dag_blk_mgr,
                                             vote_mgr, trx_mgr, packets_stats, thread_pool_, node_addr);
 

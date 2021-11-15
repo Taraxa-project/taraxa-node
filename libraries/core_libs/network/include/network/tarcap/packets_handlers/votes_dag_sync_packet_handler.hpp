@@ -8,6 +8,7 @@ class VoteManager;
 class FinalChain;
 class PbftChain;
 class DbStorage;
+class RewardsVotes;
 }  // namespace taraxa
 
 namespace taraxa::final_chain {
@@ -23,7 +24,8 @@ class VotesDagSyncPacketHandler : public ExtVotesPacketHandler {
   VotesDagSyncPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
                             std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<VoteManager> vote_mgr,
                             std::shared_ptr<final_chain::FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain,
-                            std::shared_ptr<DbStorage> db, const addr_t& node_addr);
+                            std::shared_ptr<DbStorage> db, std::shared_ptr<RewardsVotes> rewards_votes,
+                            const addr_t& node_addr);
 
   virtual ~VotesDagSyncPacketHandler() = default;
 
@@ -34,6 +36,7 @@ class VotesDagSyncPacketHandler : public ExtVotesPacketHandler {
   std::shared_ptr<VoteManager> vote_mgr_;
   std::shared_ptr<final_chain::FinalChain> final_chain_;
   std::shared_ptr<PbftChain> pbft_chain_;
+  std::shared_ptr<RewardsVotes> rewards_votes_;
   std::shared_ptr<DbStorage> db_;
 };
 
