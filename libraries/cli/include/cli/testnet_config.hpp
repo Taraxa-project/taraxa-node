@@ -106,7 +106,10 @@ const char *testnet_json = R"foo({
             "0x6c05d6e367a8c798308efbf4cefc1a18921a6f89": {
               "0x18551e353aa65bc0ffbdf9d93b7ad4a8fe29cf95": "0xf4240",
               "0xc578bb5fc3dac3e96a8c4cb126c71d2dc9082817": "0xf4240",
-              "0x5c9afb23fba3967ca6102fb60c9949f6a38cd9e8": "0xf4240"
+              "0x5c9afb23fba3967ca6102fb60c9949f6a38cd9e8": "0xf4240",
+              "0x403480c2b2ade0851c62bd1ff7a594c416aff7ce": "0xf4240",
+              "0x5042fa2711fe547e46c2f64852fdaa5982c80697": "0xf4240",
+              "0x6258d8f51ea17e873f69a2a978fe311fd95743dd": "0xf4240"
             }
           }
         },
