@@ -43,7 +43,8 @@ bool Dag::addVEEs(blk_hash_t const &new_vertex, blk_hash_t const &pivot, std::ve
   // add vertex
   vertex_t ret = add_vertex(new_vertex, graph_);
   boost::get(boost::vertex_index, graph_)[ret] = new_vertex;
-  edge_index_map_t weight_map = boost::get(boost::edge_index, graph_);
+  // TODO do we need this?
+  // edge_index_map_t weight_map = boost::get(boost::edge_index, graph_);
 
   edge_t edge;
   bool res = true;
@@ -54,7 +55,8 @@ bool Dag::addVEEs(blk_hash_t const &new_vertex, blk_hash_t const &pivot, std::ve
   if (!pivot.isZero()) {
     if (hasVertex(pivot)) {
       std::tie(edge, res) = boost::add_edge_by_label(pivot, new_vertex, graph_);
-      weight_map[edge] = 1;
+      // TODO do we need this?
+      // weight_map[edge] = 1;
       if (!res) {
         LOG(log_wr_) << "Creating pivot edge \n" << pivot << "\n-->\n" << new_vertex << " \nunsuccessful!" << std::endl;
       }
@@ -64,8 +66,8 @@ bool Dag::addVEEs(blk_hash_t const &new_vertex, blk_hash_t const &pivot, std::ve
   for (auto const &e : tips) {
     if (hasVertex(e)) {
       std::tie(edge, res2) = boost::add_edge_by_label(e, new_vertex, graph_);
-      weight_map[edge] = 0;
-
+      // TODO do we need this?
+      // weight_map[edge] = 0;
       if (!res2) {
         LOG(log_wr_) << "Creating tip edge \n" << e << "\n-->\n" << new_vertex << " \nunsuccessful!" << std::endl;
       }

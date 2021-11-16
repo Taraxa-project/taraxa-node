@@ -19,7 +19,7 @@ u256 Config::effective_genesis_balance(addr_t const& addr) const {
   }
   auto ret = genesis_balances.at(addr);
   if (dpos && dpos->genesis_state.count(addr)) {
-    for (auto const& [_, val] : dpos->genesis_state.at(addr)) {
+    for ([[maybe_unused]] auto const& [_, val] : dpos->genesis_state.at(addr)) {
       ret -= val;
     }
   }
