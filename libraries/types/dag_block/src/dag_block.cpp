@@ -15,14 +15,15 @@ DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t tr
                    addr_t sender)
     : pivot_(pivot), level_(level), tips_(tips), trxs_(trxs), sig_(sig), hash_(hash), cached_sender_(sender) {}
 
-DagBlock::DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, VdfSortition vdf,
-                   secret_t const &sk)
+DagBlock::DagBlock(blk_hash_t const &pivot, level_t &&level, vec_blk_t &&tips, vec_trx_t &&trxs,
+                   std::vector<vote_hash_t> &&votes_to_be_rewarded, VdfSortition &&vdf, secret_t const &sk)
     : pivot_(pivot),
       level_(level),
       timestamp_(dev::utcTime()),
       vdf_(std::move(vdf)),
       tips_(std::move(tips)),
       trxs_(std::move(trxs)),
+      votes_to_be_rewarded_(std::move(votes_to_be_rewarded)),
       sig_(dev::sign(sk, sha3(false))) {}
 
 DagBlock::DagBlock(Json::Value const &doc) {

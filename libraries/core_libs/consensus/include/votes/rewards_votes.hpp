@@ -17,12 +17,36 @@ class Vote;
 class RewardsVotes {
  public:
   /**
-   * @brief Sets 2t+1 cert votes as well as voted block hash
+   * @brief Resets votes. RewardsVotes state after calling resetVotes:
+   *            - previous_period_cert_votes_ = cert_votes_ + new_votes_
+   *            - cert_votes_                 = cert_votes
+   *            - unrewarded_votes_           = cert_votes
+   *            - new_votes_                  = empty
+   *            - cert_voted_block_hash_      = voted_block_hash
    *
-   * @param cert_votes
-   * @param voted_block_hash
+   * @param cert_votes 2t+1 cert votes observed for latest pbft period
+   * @param voted_block_hash hash of the latest cert voted pbft block
    */
-  void setCertVotes(std::unordered_set<vote_hash_t>&& cert_votes, const blk_hash_t& voted_block_hash);
+  void resetVotes(std::unordered_set<vote_hash_t>&& cert_votes, const blk_hash_t& voted_block_hash);
+
+  /**
+   * @brief Pops count votes from unrewarded_votes_. If count > unrewarded_votes_.size(), unrewarded_votes_.size()
+   *        number of votes are popped
+   *
+   * @param count
+   * @return vector<vote_hash_t>
+   */
+  std::vector<vote_hash_t> popUnrewardedVotes(size_t count);
+
+  /**
+   * @brief Checks if all block rewards votes are present (are part of 2t+1 cert votes or were received
+   *        as new votes through VotesDagSyncPacket)
+   *
+   * @param block_rewards_votes block rewards votes
+   * @return <true, ""> in case all block rewards votes are present, <false, "err message"> in case some of them are
+   * missing
+   */
+  std::pair<bool, std::string> checkBlockRewardsVotes(const std::vector<vote_hash_t>& block_rewards_votes);
 
   /**
    * @return false in case vote is either in cert_votes_ ot new_votes_, otherwise true
@@ -44,6 +68,13 @@ class RewardsVotes {
   // voted pbft block hash from cert_votes_
   blk_hash_t cert_voted_block_hash_{0};
   mutable std::shared_mutex cert_votes_mutex_;
+
+  // All cert votes from the previous finalized pbft period (2t+1 cert votes + all new votes received in dag blocks).
+  // It is reset every time new pbft block is pushed into the final chain
+  // Note: this container is just optimization for cases when received dag block with reward vote that is related
+  //       to the previous finalized pbft block - can prevent database lookup, which is necessary for old votes
+  std::unordered_set<vote_hash_t> previous_period_cert_votes_;
+  mutable std::shared_mutex previous_period_cert_votes_mutex_;
 
   // 2t+1 cert votes from the latest finalized pbft period votes that has not been included in dag blocks for rewards
   // yet. At the beginning (when new pbft block is pushed into the final chain) it is equal tp cert_votes_. Votes are

@@ -9,6 +9,9 @@
 #include "vdf/sortition.hpp"
 
 namespace taraxa {
+
+class RewardsVotes;
+
 // Thread safe
 class DagBlockManager {
  public:
@@ -16,7 +19,7 @@ class DagBlockManager {
                   std::optional<state_api::DPOSConfig> dpos_config, unsigned verify_threads,
                   std::shared_ptr<DbStorage> db, std::shared_ptr<TransactionManager> trx_mgr,
                   std::shared_ptr<final_chain::FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain,
-                  logger::Logger log_time_, uint32_t queue_limit = 0);
+                  std::shared_ptr<RewardsVotes> rewards_votes, logger::Logger log_time_, uint32_t queue_limit = 0);
   ~DagBlockManager();
   void insertBroadcastedBlock(DagBlock const &blk);
   void pushUnverifiedBlock(DagBlock const &block);
@@ -69,6 +72,7 @@ class DagBlockManager {
   std::shared_ptr<TransactionManager> trx_mgr_;
   std::shared_ptr<final_chain::FinalChain> final_chain_;
   std::shared_ptr<PbftChain> pbft_chain_;
+  std::shared_ptr<RewardsVotes> rewards_votes_;
   logger::Logger log_time_;
 
   ExpirationCache<blk_hash_t> invalid_blocks_;

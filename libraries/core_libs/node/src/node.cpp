@@ -95,15 +95,15 @@ void FullNode::init() {
     assert(false);
   }
 
+  auto rewards_votes = std::make_shared<RewardsVotes>();
+
   pbft_chain_ = std::make_shared<PbftChain>(genesis_hash, node_addr, db_);
   next_votes_mgr_ = std::make_shared<NextVotesManager>(node_addr, db_, final_chain_);
   dag_blk_mgr_ = std::make_shared<DagBlockManager>(node_addr, conf_.chain.sortition, conf_.chain.final_chain.state.dpos,
                                                    4 /* verifer thread*/, db_, trx_mgr_, final_chain_, pbft_chain_,
-                                                   log_time_, conf_.test_params.max_block_queue_warn);
+                                                   rewards_votes, log_time_, conf_.test_params.max_block_queue_warn);
   dag_mgr_ = std::make_shared<DagManager>(genesis_hash, node_addr, trx_mgr_, pbft_chain_, dag_blk_mgr_, db_, log_time_);
   vote_mgr_ = std::make_shared<VoteManager>(node_addr, db_, final_chain_, pbft_chain_, next_votes_mgr_);
-
-  auto rewards_votes = std::make_shared<RewardsVotes>();
 
   pbft_mgr_ = std::make_shared<PbftManager>(conf_.chain.pbft, genesis_hash, node_addr, db_, pbft_chain_, vote_mgr_,
                                             next_votes_mgr_, dag_mgr_, dag_blk_mgr_, trx_mgr_, final_chain_,

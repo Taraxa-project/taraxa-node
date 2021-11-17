@@ -14,8 +14,8 @@ class DagBlock {
   // fixme: This constructor is bogus, used only in tests. Eliminate it
   DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, sig_t signature, blk_hash_t hash,
            addr_t sender);
-  DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, VdfSortition vdf = {},
-           secret_t const &sk = secret_t::random());
+  DagBlock(blk_hash_t const &pivot, level_t &&level, vec_blk_t &&tips, vec_trx_t &&trxs,
+           std::vector<vote_hash_t> &&votes_to_be_rewarded, VdfSortition &&vdf, secret_t const &sk);
   explicit DagBlock(Json::Value const &doc);
   explicit DagBlock(dev::RLP const &_rlp);
   explicit DagBlock(dev::bytes const &_rlp) : DagBlock(dev::RLP(_rlp)) {}

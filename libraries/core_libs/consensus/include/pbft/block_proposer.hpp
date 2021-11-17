@@ -117,7 +117,13 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   std::shared_ptr<TransactionManager> trx_mgr_;
   std::shared_ptr<DagBlockManager> dag_blk_mgr_;
   std::shared_ptr<final_chain::FinalChain> final_chain_;
+
+  // Container containing votes candidates for rewards
   std::shared_ptr<RewardsVotes> rewards_votes_;
+
+  // Upper limit of how many votes that should be rewarded can dag block proposer include in his block
+  const size_t k_max_rewards_votes_in_block_{100};
+
   std::shared_ptr<std::thread> proposer_worker_;
   std::unique_ptr<ProposeModelFace> propose_model_;
   std::weak_ptr<Network> network_;

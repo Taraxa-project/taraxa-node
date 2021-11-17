@@ -45,7 +45,8 @@ struct FinalChainTest : WithDataDir {
       db->saveTransactionPeriod(trx.getHash(), 1, pos++);
       trx_hashes.emplace_back(trx.getHash());
     }
-    DagBlock dag_blk({}, {}, {}, trx_hashes, {}, secret_t::random());
+    vector<h256> trx_hashes_copy = trx_hashes;
+    DagBlock dag_blk({}, {}, {}, std::move(trx_hashes_copy), {}, VdfSortition(), secret_t::random());
     db->saveDagBlock(dag_blk);
 
     PbftBlock pbft_block(blk_hash_t(), blk_hash_t(), blk_hash_t(), 1, addr_t(1), dev::KeyPair::create().secret());

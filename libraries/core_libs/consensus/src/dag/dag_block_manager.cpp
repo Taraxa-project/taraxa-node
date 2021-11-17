@@ -1,6 +1,7 @@
 #include "dag/dag_block_manager.hpp"
 
 #include "dag/dag.hpp"
+#include "votes/rewards_votes.hpp"
 
 namespace taraxa {
 
@@ -8,12 +9,14 @@ DagBlockManager::DagBlockManager(addr_t node_addr, SortitionConfig const &sortit
                                  std::optional<state_api::DPOSConfig> dpos_config, unsigned num_verifiers,
                                  std::shared_ptr<DbStorage> db, std::shared_ptr<TransactionManager> trx_mgr,
                                  std::shared_ptr<final_chain::FinalChain> final_chain,
-                                 std::shared_ptr<PbftChain> pbft_chain, logger::Logger log_time, uint32_t queue_limit)
+                                 std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<RewardsVotes> rewards_votes,
+                                 logger::Logger log_time, uint32_t queue_limit)
     : num_verifiers_(num_verifiers),
-      db_(db),
-      trx_mgr_(trx_mgr),
-      final_chain_(final_chain),
-      pbft_chain_(pbft_chain),
+      db_(std::move(db)),
+      trx_mgr_(std::move(trx_mgr)),
+      final_chain_(std::move(final_chain)),
+      pbft_chain_(std::move(pbft_chain)),
+      rewards_votes_(std::move(rewards_votes)),
       log_time_(log_time),
       invalid_blocks_(cache_max_size_, cache_delete_step_),
       seen_blocks_(cache_max_size_, cache_delete_step_),
@@ -218,6 +221,7 @@ void DagBlockManager::verifyBlock() {
     }
 
     // Verify transactions
+    // TODO: do not send whole block, send only block's txs so trx_mgr_ does not need to link & include DagBlock
     if (!trx_mgr_->checkBlockTransactions(blk)) {
       LOG(log_er_) << "Ignore block " << block_hash << " since it has invalid or missing transactions";
       // This can be a valid block so just remove it from the seen list
@@ -225,8 +229,15 @@ void DagBlockManager::verifyBlock() {
       continue;
     }
 
-    auto propose_period = getProposalPeriod(blk.getLevel());
+    // Check if all votes candidates for rewards are present
+    if (auto res = rewards_votes_->checkBlockRewardsVotes(blk.getVotesToBeRewarded()); !res.first) {
+      LOG(log_er_) << "Ignore block " << block_hash << " since it has missing votes_to_be_rewarded: " << res.second;
+      markBlockInvalid(block_hash);
+      continue;
+    }
+
     // Verify DPOS
+    auto propose_period = getProposalPeriod(blk.getLevel());
     if (!propose_period.second) {
       // Cannot find the proposal period in DB yet. The slow node gets an ahead block, puts back.
       LOG(log_nf_) << "Cannot find proposal period " << propose_period.first << " in DB for DAG block " << blk;
@@ -274,6 +285,8 @@ void DagBlockManager::verifyBlock() {
       }
       continue;
     }
+
+    // TODO: if success, remove block candidates for votes rewards from rewards_votes_
 
     {
       uLock lock(shared_mutex_for_verified_qu_);

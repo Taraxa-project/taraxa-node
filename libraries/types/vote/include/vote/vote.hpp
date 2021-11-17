@@ -163,15 +163,6 @@ struct VotesBundle {
   VotesBundle() : enough(false), voted_block_hash(blk_hash_t(0)) {}
   VotesBundle(bool enough, blk_hash_t const& voted_block_hash, std::vector<std::shared_ptr<Vote>> const& votes)
       : enough(enough), voted_block_hash(voted_block_hash), votes(votes) {}
-
-  std::unordered_set<vote_hash_t> getVotesHashes() const {
-    std::unordered_set<vote_hash_t> hashes;
-    hashes.reserve(votes.size());
-    for (const auto& vote : votes) {
-      hashes.insert(vote->getHash());
-    }
-    return hashes;
-  }
 };
 
 }  // namespace taraxa
