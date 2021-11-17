@@ -17,7 +17,6 @@ std::shared_ptr<TaraxaPeer> PeersState::getPeer(const dev::p2p::NodeID& node_id)
 }
 
 std::shared_ptr<TaraxaPeer> PeersState::getPendingPeer(const dev::p2p::NodeID& node_id) const {
-  // TODO: pending_peers_ might have different mutex than peers ?
   std::shared_lock lock(peers_mutex_);
 
   auto it_peer = pending_peers_.find(node_id);
@@ -26,6 +25,20 @@ std::shared_ptr<TaraxaPeer> PeersState::getPendingPeer(const dev::p2p::NodeID& n
   }
 
   return nullptr;
+}
+
+std::pair<std::shared_ptr<TaraxaPeer>, bool> PeersState::getAnyPeer(const dev::p2p::NodeID& node_id) const {
+  std::shared_lock lock(peers_mutex_);
+
+  if (const auto it_peer = peers_.find(node_id); it_peer != peers_.end()) {
+    return {it_peer->second, false};
+  }
+
+  if (const auto it_peer = pending_peers_.find(node_id); it_peer != pending_peers_.end()) {
+    return {it_peer->second, true};
+  }
+
+  return {nullptr, false};
 }
 
 std::vector<dev::p2p::NodeID> PeersState::getAllPeersIDs() const {

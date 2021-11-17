@@ -31,15 +31,13 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
 
   if (initial_status) {
     if (!selected_peer) {
-      auto pending_peer = peers_state_->getPendingPeer(packet_data.from_node_id_);
-      if (!pending_peer) {
-        LOG(log_er_) << "Peer " << packet_data.from_node_id_.abridged()
+      selected_peer = peers_state_->getPendingPeer(packet_data.from_node_id_);
+      if (!selected_peer) {
+        LOG(log_wr_) << "Peer " << packet_data.from_node_id_.abridged()
                      << " missing in both peers and pending peers map - will be disconnected.";
         disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
         return;
       }
-
-      selected_peer = std::move(pending_peer);
     }
 
     auto it = packet_data.rlp_.begin();
