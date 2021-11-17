@@ -16,6 +16,7 @@
 #include <list>
 #include <optional>
 #include <regex>
+#include <shared_mutex>
 #include <streambuf>
 #include <string>
 #include <unordered_set>
