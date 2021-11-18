@@ -338,9 +338,9 @@ inline bool TaraxaCapability::filterSyncIrrelevantPackets(SubprotocolPacketType 
     case GetPbftSyncPacket:
     case PbftSyncPacket:
     case SyncedPacket:
-      return true;
-    default:
       return false;
+    default:
+      return true;
   }
 }
 
