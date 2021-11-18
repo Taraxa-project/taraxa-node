@@ -3,7 +3,7 @@
 #include "network/tarcap/packets_handlers/common/ext_syncing_packet_handler.hpp"
 
 namespace taraxa {
-class NextVotesForPreviousRound;
+class NextVotesManager;
 }  // namespace taraxa
 
 namespace taraxa::network::tarcap {
@@ -13,9 +13,8 @@ class StatusPacketHandler : public ExtSyncingPacketHandler {
   StatusPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
                       std::shared_ptr<SyncingState> syncing_state, std::shared_ptr<PbftChain> pbft_chain,
                       std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
-                      std::shared_ptr<DagBlockManager> dag_blk_mgr,
-                      std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr, std::shared_ptr<DbStorage> db,
-                      uint64_t conf_network_id, const addr_t& node_addr);
+                      std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<NextVotesManager> next_votes_mgr,
+                      std::shared_ptr<DbStorage> db, uint64_t conf_network_id, const addr_t& node_addr);
 
   virtual ~StatusPacketHandler() = default;
 
@@ -32,7 +31,7 @@ class StatusPacketHandler : public ExtSyncingPacketHandler {
   static constexpr uint16_t INITIAL_STATUS_PACKET_ITEM_COUNT = 10;
   const uint64_t conf_network_id_;
 
-  std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr_;
+  std::shared_ptr<NextVotesManager> next_votes_mgr_;
 };
 
 }  // namespace taraxa::network::tarcap

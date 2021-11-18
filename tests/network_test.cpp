@@ -404,7 +404,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
                         node1->getSecretKey());
   std::vector<std::shared_ptr<Vote>> votes_for_pbft_blk1;
   votes_for_pbft_blk1.emplace_back(
-      node1->getPbftManager()->generateVote(pbft_block1.getBlockHash(), cert_vote_type, 1, 3, 0));
+      node1->getPbftManager()->generateVote(pbft_block1.getBlockHash(), cert_vote_type, 1, 3));
   std::cout << "Generate 1 vote for first PBFT block" << std::endl;
   // Add cert votes in DB
   // Add PBFT block in DB
@@ -452,7 +452,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
                         node1->getSecretKey());
   std::vector<std::shared_ptr<Vote>> votes_for_pbft_blk2;
   votes_for_pbft_blk2.emplace_back(
-      node1->getPbftManager()->generateVote(pbft_block2.getBlockHash(), cert_vote_type, 2, 3, 0));
+      node1->getPbftManager()->generateVote(pbft_block2.getBlockHash(), cert_vote_type, 2, 3));
   std::cout << "Generate 1 vote for second PBFT block" << std::endl;
   // node1 put block2 into pbft chain and store into DB
   // Add cert votes in DB
@@ -550,7 +550,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
                         node1->getSecretKey());
   std::vector<std::shared_ptr<Vote>> votes_for_pbft_blk1;
   votes_for_pbft_blk1.emplace_back(
-      node1->getPbftManager()->generateVote(pbft_block1.getBlockHash(), cert_vote_type, 1, 3, 0));
+      node1->getPbftManager()->generateVote(pbft_block1.getBlockHash(), cert_vote_type, 1, 3));
   std::cout << "Generate 1 vote for first PBFT block" << std::endl;
   // Add cert votes in DB
   // Add PBFT block in DB
@@ -665,11 +665,9 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_behind_round) {
   PbftVoteTypes type = next_vote_type;
   uint64_t round = 1;
   size_t step = 5;
-  size_t weighted_index;
   for (auto i = 0; i < 3; i++) {
     blk_hash_t voted_pbft_block_hash(i % 2);  // Next votes could vote on 2 values
-    weighted_index = i;
-    auto vote = pbft_mgr1->generateVote(voted_pbft_block_hash, type, round, step, weighted_index);
+    auto vote = pbft_mgr1->generateVote(voted_pbft_block_hash, type, round, step);
     next_votes.emplace_back(vote);
   }
 
@@ -732,10 +730,9 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_1) {
   uint64_t round = 1;
   size_t step = 5;
   PbftVoteTypes type = next_vote_type;
-  size_t weighted_index = 0;
   for (uint64_t i = 0; i < 2; i++) {
     blk_hash_t voted_pbft_block_hash1(i);  // Next votes could vote on 2 values
-    auto vote = pbft_mgr1->generateVote(voted_pbft_block_hash1, type, round, step, weighted_index);
+    auto vote = pbft_mgr1->generateVote(voted_pbft_block_hash1, type, round, step);
     next_votes1.emplace_back(vote);
   }
 
@@ -745,7 +742,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_1) {
 
   // Generate 1 same next votes with node1, voted same value on NULL_BLOCK_HASH
   blk_hash_t voted_pbft_block_hash2(0);
-  auto vote1 = pbft_mgr1->generateVote(voted_pbft_block_hash2, type, round, step, weighted_index);
+  auto vote1 = pbft_mgr1->generateVote(voted_pbft_block_hash2, type, round, step);
   std::vector<std::shared_ptr<Vote>> next_votes2{vote1};
 
   // Update node2 next votes bundle
@@ -806,8 +803,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
   PbftVoteTypes type = next_vote_type;
   uint64_t round = 1;
   size_t step = 5;
-  size_t weighted_index = 0;
-  auto vote1 = pbft_mgr1->generateVote(voted_pbft_block_hash1, type, round, step, weighted_index);
+  auto vote1 = pbft_mgr1->generateVote(voted_pbft_block_hash1, type, round, step);
   std::vector<std::shared_ptr<Vote>> next_votes1{vote1};
 
   // Update node1 next votes bundle
@@ -816,7 +812,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
 
   // Node1 generate 1 different next vote for node2, because node2 is not delegated
   blk_hash_t voted_pbft_block_hash2("1234567890000000000000000000000000000000000000000000000000000000");
-  auto vote2 = pbft_mgr1->generateVote(voted_pbft_block_hash2, type, round, step, weighted_index);
+  auto vote2 = pbft_mgr1->generateVote(voted_pbft_block_hash2, type, round, step);
   std::vector<std::shared_ptr<Vote>> next_votes2{vote2};
 
   // Update node2 next votes bundle

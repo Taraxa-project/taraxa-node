@@ -8,7 +8,7 @@ namespace taraxa::network::tarcap {
 GetVotesSyncPacketHandler::GetVotesSyncPacketHandler(std::shared_ptr<PeersState> peers_state,
                                                      std::shared_ptr<PacketsStats> packets_stats,
                                                      std::shared_ptr<PbftManager> pbft_mgr,
-                                                     std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr,
+                                                     std::shared_ptr<NextVotesManager> next_votes_mgr,
                                                      const addr_t &node_addr)
     : ExtVotesPacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "GET_VOTES_SYNC_PH"),
       pbft_mgr_(std::move(pbft_mgr)),

@@ -36,7 +36,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   PbftManager(PbftConfig const &conf, blk_hash_t const &genesis, addr_t node_addr, std::shared_ptr<DbStorage> db,
               std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
-              std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr, std::shared_ptr<DagManager> dag_mgr,
+              std::shared_ptr<NextVotesManager> next_votes_mgr, std::shared_ptr<DagManager> dag_mgr,
               std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<TransactionManager> trx_mgr,
               std::shared_ptr<FinalChain> final_chain, secret_t node_sk, vrf_sk_t vrf_sk);
   ~PbftManager();
@@ -46,7 +46,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   void stop();
   void run();
 
-  bool shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step, size_t weighted_index);
+  bool shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step);
 
   std::pair<bool, uint64_t> getDagBlockPeriod(blk_hash_t const &hash);
   uint64_t getPbftRound() const;
@@ -56,8 +56,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   size_t getTwoTPlusOne() const;
   void setPbftStep(size_t const pbft_step);
 
-  std::shared_ptr<Vote> generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, uint64_t round, size_t step,
-                                     size_t weighted_index);
+  std::shared_ptr<Vote> generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, uint64_t round, size_t step);
 
   size_t getDposTotalVotesCount() const;
   size_t getDposWeightedVotesCount() const;
@@ -154,7 +153,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   std::unique_ptr<std::thread> daemon_;
   std::shared_ptr<DbStorage> db_;
-  std::shared_ptr<NextVotesForPreviousRound> previous_round_next_votes_;
+  std::shared_ptr<NextVotesManager> previous_round_next_votes_;
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<VoteManager> vote_mgr_;
   std::shared_ptr<DagManager> dag_mgr_;

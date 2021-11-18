@@ -249,7 +249,7 @@ TEST_F(FullNodeTest, db_test) {
   // Certified votes
   std::vector<std::shared_ptr<Vote>> cert_votes;
   for (auto i = 0; i < 3; i++) {
-    VrfPbftMsg msg(cert_vote_type, 2, 3, 0);
+    VrfPbftMsg msg(cert_vote_type, 2, 3);
     vrf_wrapper::vrf_sk_t vrf_sk(
         "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
         "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -316,11 +316,10 @@ TEST_F(FullNodeTest, db_test) {
   auto verified_votes = db.getVerifiedVotes();
   EXPECT_TRUE(verified_votes.empty());
   auto voted_pbft_block_hash = blk_hash_t(2);
-  auto weighted_index = 0;
   for (auto i = 0; i < 3; i++) {
     auto round = i;
     auto step = i;
-    VrfPbftMsg msg(next_vote_type, round, step, weighted_index);
+    VrfPbftMsg msg(next_vote_type, round, step);
     vrf_wrapper::vrf_sk_t vrf_sk(
         "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
         "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -346,10 +345,9 @@ TEST_F(FullNodeTest, db_test) {
   auto round = 1, step = 2;
   auto soft_votes = db.getSoftVotes(round);
   EXPECT_TRUE(soft_votes.empty());
-  weighted_index = 0;
   for (auto i = 0; i < 3; i++) {
     blk_hash_t voted_pbft_block_hash(i);
-    VrfPbftMsg msg(soft_vote_type, round, step, weighted_index);
+    VrfPbftMsg msg(soft_vote_type, round, step);
     vrf_wrapper::vrf_sk_t vrf_sk(
         "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
         "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -363,7 +361,7 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(soft_votes_from_db.size(), 3);
   for (auto i = 3; i < 5; i++) {
     blk_hash_t voted_pbft_block_hash(i);
-    VrfPbftMsg msg(soft_vote_type, round, step, weighted_index);
+    VrfPbftMsg msg(soft_vote_type, round, step);
     vrf_wrapper::vrf_sk_t vrf_sk(
         "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
         "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -385,12 +383,11 @@ TEST_F(FullNodeTest, db_test) {
 
   // Next votes
   round = 3, step = 5;
-  weighted_index = 0;
   auto next_votes = db.getNextVotes(round);
   EXPECT_TRUE(next_votes.empty());
   for (auto i = 0; i < 3; i++) {
     blk_hash_t voted_pbft_block_hash(i);
-    VrfPbftMsg msg(next_vote_type, round, step, weighted_index);
+    VrfPbftMsg msg(next_vote_type, round, step);
     vrf_wrapper::vrf_sk_t vrf_sk(
         "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
         "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -405,7 +402,7 @@ TEST_F(FullNodeTest, db_test) {
   next_votes.clear();
   for (auto i = 3; i < 5; i++) {
     blk_hash_t voted_pbft_block_hash(i);
-    VrfPbftMsg msg(next_vote_type, round, step, weighted_index);
+    VrfPbftMsg msg(next_vote_type, round, step);
     vrf_wrapper::vrf_sk_t vrf_sk(
         "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
         "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");

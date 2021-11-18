@@ -194,14 +194,13 @@ TEST_F(PbftManagerTest, terminate_soft_voting_pbft_block) {
   auto vote_mgr = nodes[0]->getVoteManager();
 
   // Generate bogus votes
-  auto weighted_index = 0;
   auto stale_block_hash = blk_hash_t("0000000100000000000000000000000000000000000000000000000000000000");
   auto alternate_propose_block_hash = blk_hash_t("0000000200000000000000000000000000000000000000000000000000000000");
-  auto prev_round_next_vote = pbft_mgr->generateVote(stale_block_hash, next_vote_type, 1, 4, weighted_index);
+  auto prev_round_next_vote = pbft_mgr->generateVote(stale_block_hash, next_vote_type, 1, 4);
   vote_mgr->addVerifiedVote(prev_round_next_vote);
-  auto propose_vote = pbft_mgr->generateVote(stale_block_hash, propose_vote_type, 2, 1, weighted_index);
+  auto propose_vote = pbft_mgr->generateVote(stale_block_hash, propose_vote_type, 2, 1);
   vote_mgr->addVerifiedVote(propose_vote);
-  propose_vote = pbft_mgr->generateVote(alternate_propose_block_hash, propose_vote_type, 2, 1, weighted_index);
+  propose_vote = pbft_mgr->generateVote(alternate_propose_block_hash, propose_vote_type, 2, 1);
   vote_mgr->addVerifiedVote(propose_vote);
 
   pbft_mgr->setLastSoftVotedValue(stale_block_hash);
@@ -276,8 +275,7 @@ TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
   // Generate bogus vote
   auto round = 1;
   auto step = 4;
-  auto weighted_index = 0;
-  auto propose_vote = pbft_mgr->generateVote(pbft_block_hash, next_vote_type, round, step, weighted_index);
+  auto propose_vote = pbft_mgr->generateVote(pbft_block_hash, next_vote_type, round, step);
   vote_mgr->addVerifiedVote(propose_vote);
 
   pbft_mgr->start();
@@ -338,9 +336,8 @@ TEST_F(PbftManagerTest, terminate_missing_proposed_pbft_block) {
   // Generate bogus vote
   auto round = 1;
   auto step = 4;
-  auto weighted_index = 0;
   auto pbft_block_hash = blk_hash_t("0000000100000000000000000000000000000000000000000000000000000000");
-  auto propose_vote = pbft_mgr->generateVote(pbft_block_hash, next_vote_type, round, step, weighted_index);
+  auto propose_vote = pbft_mgr->generateVote(pbft_block_hash, next_vote_type, round, step);
   vote_mgr->addVerifiedVote(propose_vote);
 
   pbft_mgr->start();

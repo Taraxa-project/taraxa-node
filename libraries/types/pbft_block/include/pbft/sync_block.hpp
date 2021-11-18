@@ -27,7 +27,8 @@ class SyncBlock {
   std::vector<Transaction> transactions;
   bytes rlp() const;
   void clear();
-  void hasEnoughValidCertVotes(size_t valid_sortition_players, size_t sortition_threshold, size_t pbft_2t_plus_1) const;
+  void hasEnoughValidCertVotes(size_t valid_sortition_players, size_t sortition_threshold, size_t pbft_2t_plus_1,
+                               std::function<size_t(addr_t const&)> const& dpos_eligible_vote_count) const;
 };
 std::ostream& operator<<(std::ostream& strm, SyncBlock const& b);
 

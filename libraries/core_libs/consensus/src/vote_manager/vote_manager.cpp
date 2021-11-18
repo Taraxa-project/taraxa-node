@@ -11,8 +11,7 @@ constexpr size_t FIRST_FINISH_STEP = 4;
 
 namespace taraxa {
 VoteManager::VoteManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<FinalChain> final_chain,
-                         std::shared_ptr<PbftChain> pbft_chain,
-                         std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr)
+                         std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<NextVotesManager> next_votes_mgr)
     : node_addr_(std::move(node_addr)),
       db_(std::move(db)),
       pbft_chain_(std::move(pbft_chain)),
@@ -286,27 +285,12 @@ void VoteManager::verifyVotes(uint64_t pbft_round, size_t sortition_threshold, u
     if (votes_invalid_in_current_final_chain_period_.count(v->getHash())) {
       continue;
     }
-
     bool vote_is_valid = true;
-
-    addr_t voter_account_address = v->getVoterAddr();
-    // Check if the voter account is valid, malicious vote
-    auto vote_weighted_index = v->getWeightedIndex();
-    auto dpos_votes_count = dpos_eligible_vote_count(voter_account_address);
-    if (vote_weighted_index > 0 && v->getStep() == 1) {
-      LOG(log_dg_) << "Account " << voter_account_address
-                   << " attempted to vote with weighted index > 0 in propose step. Vote: " << v;
+    try {
+      v->validate(dpos_eligible_vote_count(v->getVoterAddr()), sortition_threshold, dpos_total_votes_count);
+    } catch (const std::logic_error& e) {
+      LOG(log_er_) << e.what();
       vote_is_valid = false;
-    } else if (vote_weighted_index >= dpos_votes_count) {
-      LOG(log_dg_) << "Account " << voter_account_address << " is not eligible to vote. Vote: " << v;
-      vote_is_valid = false;
-    } else {
-      try {
-        v->validate(dpos_total_votes_count, sortition_threshold);
-      } catch (const std::logic_error& e) {
-        LOG(log_er_) << e.what();
-        vote_is_valid = false;
-      }
     }
 
     if (vote_is_valid) {
@@ -443,10 +427,11 @@ VotesBundle VoteManager::getVotesBundleByRoundAndStep(uint64_t round, size_t ste
           auto it = voted_value.second.begin();
           size_t count = 0;
           // Only copy 2t+1 votes
-          while (count != two_t_plus_one) {
+          while (count >= two_t_plus_one) {
             votes.emplace_back(it->second);
             it++;
-            count++;
+            assert(it->second->getWeight());
+            count += it->second->getWeight().value();
           }
           LOG(log_nf_) << "Found enough " << votes.size() << " votes at voted value " << voted_block_hash
                        << " for round " << round << " step " << step;
@@ -490,67 +475,63 @@ uint64_t VoteManager::roundDeterminedFromVotes(size_t two_t_plus_one) {
   return 0;
 }
 
-NextVotesForPreviousRound::NextVotesForPreviousRound(addr_t node_addr, std::shared_ptr<DbStorage> db,
-                                                     std::shared_ptr<FinalChain> final_chain)
+NextVotesManager::NextVotesManager(addr_t node_addr, std::shared_ptr<DbStorage> db,
+                                   std::shared_ptr<FinalChain> final_chain)
     : db_(std::move(db)),
       final_chain_(std::move(final_chain)),
       enough_votes_for_null_block_hash_(false),
-      voted_value_(NULL_BLOCK_HASH),
-      next_votes_size_(0) {
+      voted_value_(NULL_BLOCK_HASH) {
   LOG_OBJECTS_CREATE("NEXT_VOTES");
 }
 
-void NextVotesForPreviousRound::clear() {
+void NextVotesManager::clear() {
   UniqueLock lock(access_);
   enough_votes_for_null_block_hash_ = false;
   voted_value_ = NULL_BLOCK_HASH;
-  next_votes_size_ = 0;
   next_votes_.clear();
+  next_votes_weight_.clear();
   next_votes_set_.clear();
 }
 
-bool NextVotesForPreviousRound::find(vote_hash_t next_vote_hash) {
+bool NextVotesManager::find(vote_hash_t next_vote_hash) {
   SharedLock lock(access_);
   return next_votes_set_.find(next_vote_hash) != next_votes_set_.end();
 }
 
-bool NextVotesForPreviousRound::enoughNextVotes() const {
+bool NextVotesManager::enoughNextVotes() const {
   SharedLock lock(access_);
   return enough_votes_for_null_block_hash_ && (voted_value_ != NULL_BLOCK_HASH);
 }
 
-bool NextVotesForPreviousRound::haveEnoughVotesForNullBlockHash() const {
+bool NextVotesManager::haveEnoughVotesForNullBlockHash() const {
   SharedLock lock(access_);
   return enough_votes_for_null_block_hash_;
 }
 
-blk_hash_t NextVotesForPreviousRound::getVotedValue() const {
+blk_hash_t NextVotesManager::getVotedValue() const {
   SharedLock lock(access_);
   return voted_value_;
 }
 
-std::vector<std::shared_ptr<Vote>> NextVotesForPreviousRound::getNextVotes() {
+std::vector<std::shared_ptr<Vote>> NextVotesManager::getNextVotes() {
   std::vector<std::shared_ptr<Vote>> next_votes_bundle;
 
   SharedLock lock(access_);
   for (auto const& blk_hash_nv : next_votes_) {
     std::copy(blk_hash_nv.second.begin(), blk_hash_nv.second.end(), std::back_inserter(next_votes_bundle));
   }
-  assert(next_votes_bundle.size() == next_votes_size_);
-
   return next_votes_bundle;
 }
 
-size_t NextVotesForPreviousRound::getNextVotesSize() const {
+size_t NextVotesManager::getNextVotesSize() const {
   SharedLock lock(access_);
-  return next_votes_size_;
+  return next_votes_weight_.at(voted_value_);
 }
 
 // Assumption is that all votes are validated, in next voting phase, in the same round.
 // Votes for same voted value are in the same step
 // Voted values have maximum 2 PBFT block hashes, NULL_BLOCK_HASH and a non NULL_BLOCK_HASH
-void NextVotesForPreviousRound::addNextVotes(std::vector<std::shared_ptr<Vote>> const& next_votes,
-                                             size_t pbft_2t_plus_1) {
+void NextVotesManager::addNextVotes(std::vector<std::shared_ptr<Vote>> const& next_votes, size_t pbft_2t_plus_1) {
   if (next_votes.empty()) {
     return;
   }
@@ -589,8 +570,8 @@ void NextVotesForPreviousRound::addNextVotes(std::vector<std::shared_ptr<Vote>> 
     next_votes_set_.insert(vote_hash);
     auto voted_block_hash = v->getBlockHash();
     next_votes_[voted_block_hash].emplace_back(v);
+    next_votes_weight_[voted_block_hash] += v->getWeight().value();
 
-    next_votes_size_++;
     voted_values.insert(std::move(voted_block_hash));
     next_votes_in_db.emplace_back(v);
   }
@@ -605,7 +586,7 @@ void NextVotesForPreviousRound::addNextVotes(std::vector<std::shared_ptr<Vote>> 
 
   LOG(log_dg_) << "PBFT 2t+1 is " << pbft_2t_plus_1 << " in round " << next_votes[0]->getRound();
   for (auto const& voted_value : voted_values) {
-    auto const& voted_value_next_votes_size = next_votes_.at(voted_value).size();
+    auto const& voted_value_next_votes_size = next_votes_weight_[voted_value];
     if (voted_value_next_votes_size >= pbft_2t_plus_1) {
       LOG(log_dg_) << "Voted PBFT block hash " << voted_value << " has enough " << voted_value_next_votes_size
                    << " next votes";
@@ -626,16 +607,11 @@ void NextVotesForPreviousRound::addNextVotes(std::vector<std::shared_ptr<Vote>> 
       for (auto const& v : next_votes_.at(voted_value)) {
         next_votes_set_.erase(v->getHash());
       }
-      next_votes_size_ -= voted_value_next_votes_size;
       next_votes_.erase(voted_value);
+      next_votes_weight_.erase(voted_value);
     }
   }
 
-  if (next_votes_set_.size() != next_votes_size_) {
-    LOG(log_er_) << "Size of next votes set is " << next_votes_set_.size() << ", but next votes size is "
-                 << next_votes_size_;
-    assert(next_votes_set_.size() == next_votes_size_);
-  }
   if (next_votes_.size() != 1 && next_votes_.size() != 2) {
     LOG(log_er_) << "There are " << next_votes_.size() << " voted values.";
     for (auto const& voted_value : next_votes_) {
@@ -646,8 +622,7 @@ void NextVotesForPreviousRound::addNextVotes(std::vector<std::shared_ptr<Vote>> 
 }
 
 // Assumption is that all votes are validated, in next voting phase, in the same round and step
-void NextVotesForPreviousRound::updateNextVotes(std::vector<std::shared_ptr<Vote>> const& next_votes,
-                                                size_t pbft_2t_plus_1) {
+void NextVotesManager::updateNextVotes(std::vector<std::shared_ptr<Vote>> const& next_votes, size_t pbft_2t_plus_1) {
   LOG(log_nf_) << "There are " << next_votes.size() << " next votes for updating.";
   if (next_votes.empty()) {
     return;
@@ -665,21 +640,22 @@ void NextVotesForPreviousRound::updateNextVotes(std::vector<std::shared_ptr<Vote
     auto voted_block_hash = v->getBlockHash();
     if (next_votes_.count(voted_block_hash)) {
       next_votes_[voted_block_hash].emplace_back(v);
+      next_votes_weight_[voted_block_hash] += v->getWeight().value();
     } else {
       std::vector<std::shared_ptr<Vote>> votes{v};
       next_votes_[voted_block_hash] = std::move(votes);
+      next_votes_weight_[voted_block_hash] = v->getWeight().value();
     }
   }
 
   // Protect for malicious players. If no malicious players, will include either/both NULL BLOCK HASH and a non NULL
   // BLOCK HASH
   LOG(log_nf_) << "PBFT 2t+1 is " << pbft_2t_plus_1 << " in round " << next_votes[0]->getRound();
-  auto next_votes_size = next_votes.size();
-
   auto it = next_votes_.begin();
   while (it != next_votes_.end()) {
-    if (it->second.size() >= pbft_2t_plus_1) {
-      LOG(log_nf_) << "Voted PBFT block hash " << it->first << " has " << it->second.size() << " next votes";
+    if (next_votes_weight_[it->first] >= pbft_2t_plus_1) {
+      LOG(log_nf_) << "Voted PBFT block hash " << it->first << " has " << next_votes_weight_[it->first]
+                   << " next votes";
 
       if (it->first == NULL_BLOCK_HASH) {
         enough_votes_for_null_block_hash_ = true;
@@ -693,22 +669,14 @@ void NextVotesForPreviousRound::updateNextVotes(std::vector<std::shared_ptr<Vote
 
       it++;
     } else {
-      LOG(log_dg_) << "Voted PBFT block hash " << it->first << " has " << it->second.size()
+      LOG(log_dg_) << "Voted PBFT block hash " << it->first << " has " << next_votes_weight_[it->first]
                    << " next votes. Not enough, removed!";
       for (auto const& v : it->second) {
         next_votes_set_.erase(v->getHash());
       }
-      next_votes_size -= it->second.size();
+      next_votes_weight_.erase(it->first);
       it = next_votes_.erase(it);
     }
-  }
-
-  next_votes_size_ = next_votes_size;
-
-  if (next_votes_set_.size() != next_votes_size_) {
-    LOG(log_er_) << "Size of next votes set is " << next_votes_set_.size() << ", but next votes size is "
-                 << next_votes_size_;
-    assert(next_votes_set_.size() == next_votes_size_);
   }
   if (next_votes_.size() != 1 && next_votes_.size() != 2) {
     LOG(log_er_) << "There are " << next_votes_.size() << " voted values.";
@@ -721,8 +689,7 @@ void NextVotesForPreviousRound::updateNextVotes(std::vector<std::shared_ptr<Vote
 
 // Assumption is that all synced votes are in next voting phase, in the same round.
 // Valid voted values have maximum 2 block hash, NULL_BLOCK_HASH and a non NULL_BLOCK_HASH
-void NextVotesForPreviousRound::updateWithSyncedVotes(std::vector<std::shared_ptr<Vote>>& next_votes,
-                                                      size_t pbft_2t_plus_1) {
+void NextVotesManager::updateWithSyncedVotes(std::vector<std::shared_ptr<Vote>>& next_votes, size_t pbft_2t_plus_1) {
   if (next_votes.empty()) {
     LOG(log_er_) << "Synced next votes is empty.";
     return;
@@ -756,6 +723,7 @@ void NextVotesForPreviousRound::updateWithSyncedVotes(std::vector<std::shared_pt
                << ", previous round DPOS total votes count " << previous_round_dpos_total_votes_count;
 
   std::unordered_map<blk_hash_t, std::vector<std::shared_ptr<Vote>>> synced_next_votes;
+  std::unordered_map<blk_hash_t, uint64_t> synced_next_votes_weight;
   for (auto& vote : next_votes) {
     if (!voteVerification(vote, previous_round_dpos_period, previous_round_dpos_total_votes_count,
                           previous_round_sortition_threshold)) {
@@ -765,9 +733,11 @@ void NextVotesForPreviousRound::updateWithSyncedVotes(std::vector<std::shared_pt
     auto voted_block_hash = vote->getBlockHash();
     if (synced_next_votes.count(voted_block_hash)) {
       synced_next_votes[voted_block_hash].emplace_back(vote);
+      synced_next_votes_weight[voted_block_hash] += vote->getWeight().value();
     } else {
       std::vector<std::shared_ptr<Vote>> votes{vote};
       synced_next_votes[voted_block_hash] = std::move(votes);
+      synced_next_votes_weight[voted_block_hash] = vote->getWeight().value();
     }
   }
 
@@ -799,7 +769,7 @@ void NextVotesForPreviousRound::updateWithSyncedVotes(std::vector<std::shared_pt
       continue;
     }
 
-    if (voted_value_and_votes.second.size() >= pbft_2t_plus_1) {
+    if (synced_next_votes_weight[voted_value_and_votes.first] >= pbft_2t_plus_1) {
       LOG(log_nf_) << "Don't have the voted value " << voted_value_and_votes.first << " for previous round. Add votes";
       for (auto const& v : voted_value_and_votes.second) {
         LOG(log_dg_) << "Add next vote " << *v;
@@ -808,8 +778,8 @@ void NextVotesForPreviousRound::updateWithSyncedVotes(std::vector<std::shared_pt
     } else {
       LOG(log_dg_) << "Voted value " << voted_value_and_votes.first
                    << " doesn't have enough next votes. Size of syncing next votes "
-                   << voted_value_and_votes.second.size() << ", PBFT previous round 2t+1 is " << pbft_2t_plus_1
-                   << " for round " << voted_value_and_votes.second[0]->getRound();
+                   << synced_next_votes_weight[voted_value_and_votes.first] << ", PBFT previous round 2t+1 is "
+                   << pbft_2t_plus_1 << " for round " << voted_value_and_votes.second[0]->getRound();
     }
   }
 
@@ -817,8 +787,8 @@ void NextVotesForPreviousRound::updateWithSyncedVotes(std::vector<std::shared_pt
   addNextVotes(update_votes, pbft_2t_plus_1);
 }
 
-bool NextVotesForPreviousRound::voteVerification(std::shared_ptr<Vote>& vote, uint64_t dpos_period,
-                                                 size_t dpos_total_votes_count, size_t pbft_sortition_threshold) {
+bool NextVotesManager::voteVerification(std::shared_ptr<Vote>& vote, uint64_t dpos_period,
+                                        size_t dpos_total_votes_count, size_t pbft_sortition_threshold) {
   // Voted round has checked in tarcap already
   if (vote->getType() != next_vote_type) {
     LOG(log_er_) << "The vote is not at next voting phase." << *vote;
@@ -834,15 +804,9 @@ bool NextVotesForPreviousRound::voteVerification(std::shared_ptr<Vote>& vote, ui
                  << " is too far ahead of DPOS. Have executed chain size " << final_chain_->last_block_number();
     return false;
   }
-  auto vote_weighted_index = vote->getWeightedIndex();
-  if (vote_weighted_index >= dpos_votes_count) {
-    LOG(log_er_) << "Vote weighted index " << vote_weighted_index << " is not less than DPOS votes count "
-                 << dpos_votes_count << *vote;
-    return false;
-  }
 
   try {
-    vote->validate(dpos_total_votes_count, pbft_sortition_threshold);
+    vote->validate(dpos_votes_count, pbft_sortition_threshold, dpos_total_votes_count);
   } catch (const std::logic_error& e) {
     LOG(log_er_) << e.what();
     return false;
@@ -851,8 +815,8 @@ bool NextVotesForPreviousRound::voteVerification(std::shared_ptr<Vote>& vote, ui
   return true;
 }
 
-void NextVotesForPreviousRound::assertError_(std::vector<std::shared_ptr<Vote>> next_votes_1,
-                                             std::vector<std::shared_ptr<Vote>> next_votes_2) const {
+void NextVotesManager::assertError_(std::vector<std::shared_ptr<Vote>> next_votes_1,
+                                    std::vector<std::shared_ptr<Vote>> next_votes_2) const {
   if (next_votes_1.empty() || next_votes_2.empty()) {
     return;
   }

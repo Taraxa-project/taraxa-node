@@ -95,7 +95,7 @@ void FullNode::init() {
   }
 
   pbft_chain_ = std::make_shared<PbftChain>(genesis_hash, node_addr, db_);
-  next_votes_mgr_ = std::make_shared<NextVotesForPreviousRound>(node_addr, db_, final_chain_);
+  next_votes_mgr_ = std::make_shared<NextVotesManager>(node_addr, db_, final_chain_);
   dag_blk_mgr_ = std::make_shared<DagBlockManager>(node_addr, conf_.chain.sortition, conf_.chain.final_chain.state.dpos,
                                                    4 /* verifer thread*/, db_, trx_mgr_, final_chain_, pbft_chain_,
                                                    log_time_, conf_.test_params.max_block_queue_warn);

@@ -11,9 +11,9 @@ class PbftManager;
 class PbftChain;
 class Network;
 
-class NextVotesForPreviousRound {
+class NextVotesManager {
  public:
-  NextVotesForPreviousRound(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<FinalChain> final_chain);
+  NextVotesManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<FinalChain> final_chain);
 
   void clear();
 
@@ -54,10 +54,10 @@ class NextVotesForPreviousRound {
 
   bool enough_votes_for_null_block_hash_;
   blk_hash_t voted_value_;  // For value is not null block hash
-  size_t next_votes_size_;
   // <voted PBFT block hash, next votes list that have exactly 2t+1 votes voted at the PBFT block hash>
   // only save votes == 2t+1 voted at same value in map and set
   std::unordered_map<blk_hash_t, std::vector<std::shared_ptr<Vote>>> next_votes_;
+  std::unordered_map<blk_hash_t, uint64_t> next_votes_weight_;
   std::unordered_set<vote_hash_t> next_votes_set_;
 
   LOG_OBJECTS_DEFINE
@@ -66,7 +66,7 @@ class NextVotesForPreviousRound {
 class VoteManager {
  public:
   VoteManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<FinalChain> final_chain,
-              std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr);
+              std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<NextVotesManager> next_votes_mgr);
   ~VoteManager();
 
   void setNetwork(std::weak_ptr<Network> network);
@@ -132,7 +132,7 @@ class VoteManager {
   std::shared_ptr<DbStorage> db_;
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<FinalChain> final_chain_;
-  std::shared_ptr<NextVotesForPreviousRound> previous_round_next_votes_;
+  std::shared_ptr<NextVotesManager> previous_round_next_votes_;
   std::weak_ptr<Network> network_;
 
   LOG_OBJECTS_DEFINE

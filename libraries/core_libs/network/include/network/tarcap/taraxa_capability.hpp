@@ -20,7 +20,7 @@ class DbStorage;
 class PbftManager;
 class PbftChain;
 class VoteManager;
-class NextVotesForPreviousRound;
+class NextVotesManager;
 class DagManager;
 class DagBlockManager;
 class TransactionManager;
@@ -37,9 +37,9 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev::KeyPair &key, const NetworkConfig &conf,
                    std::shared_ptr<DbStorage> db = {}, std::shared_ptr<PbftManager> pbft_mgr = {},
                    std::shared_ptr<PbftChain> pbft_chain = {}, std::shared_ptr<VoteManager> vote_mgr = {},
-                   std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr = {},
-                   std::shared_ptr<DagManager> dag_mgr = {}, std::shared_ptr<DagBlockManager> dag_blk_mgr = {},
-                   std::shared_ptr<TransactionManager> trx_mgr = {}, addr_t const &node_addr = {});
+                   std::shared_ptr<NextVotesManager> next_votes_mgr = {}, std::shared_ptr<DagManager> dag_mgr = {},
+                   std::shared_ptr<DagBlockManager> dag_blk_mgr = {}, std::shared_ptr<TransactionManager> trx_mgr = {},
+                   addr_t const &node_addr = {});
 
   virtual ~TaraxaCapability() = default;
 
@@ -104,7 +104,7 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
                               const std::shared_ptr<DbStorage> &db, const std::shared_ptr<PbftManager> &pbft_mgr,
                               const std::shared_ptr<PbftChain> &pbft_chain,
                               const std::shared_ptr<VoteManager> &vote_mgr,
-                              const std::shared_ptr<NextVotesForPreviousRound> &next_votes_mgr,
+                              const std::shared_ptr<NextVotesManager> &next_votes_mgr,
                               const std::shared_ptr<DagManager> &dag_mgr,
                               const std::shared_ptr<DagBlockManager> &dag_blk_mgr,
                               const std::shared_ptr<TransactionManager> &trx_mgr, addr_t const &node_addr);

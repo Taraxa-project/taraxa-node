@@ -288,8 +288,7 @@ Json::Value Test::should_speak(const Json::Value &param1) {
       PbftVoteTypes type = static_cast<PbftVoteTypes>(param1["type"].asInt());
       uint64_t period = param1["period"].asUInt64();
       size_t step = param1["step"].asUInt();
-      size_t weighted_index = param1["weighted_index"].asUInt();
-      if (node->getPbftManager()->shouldSpeak(type, period, step, weighted_index)) {
+      if (node->getPbftManager()->shouldSpeak(type, period, step)) {
         res = "True";
       } else {
         res = "False";

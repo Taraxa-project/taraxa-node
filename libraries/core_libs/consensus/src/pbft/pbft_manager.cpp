@@ -22,10 +22,10 @@ using vrf_output_t = vrf_wrapper::vrf_output_t;
 
 PbftManager::PbftManager(PbftConfig const &conf, blk_hash_t const &genesis, addr_t node_addr,
                          std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
-                         std::shared_ptr<VoteManager> vote_mgr,
-                         std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr, std::shared_ptr<DagManager> dag_mgr,
-                         std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<TransactionManager> trx_mgr,
-                         std::shared_ptr<FinalChain> final_chain, secret_t node_sk, vrf_sk_t vrf_sk)
+                         std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<NextVotesManager> next_votes_mgr,
+                         std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
+                         std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<FinalChain> final_chain,
+                         secret_t node_sk, vrf_sk_t vrf_sk)
     : db_(db),
       previous_round_next_votes_(next_votes_mgr),
       pbft_chain_(pbft_chain),
@@ -311,11 +311,11 @@ size_t PbftManager::dposEligibleVoteCount_(addr_t const &addr) {
   }
 }
 
-bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step, size_t weighted_index) {
+bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
   // compute sortition
-  VrfPbftMsg msg(type, round, step, weighted_index);
+  VrfPbftMsg msg(type, round, step);
   VrfPbftSortition vrf_sortition(vrf_sk_, msg);
-  if (!vrf_sortition.canSpeak(sortition_threshold_, getDposTotalVotesCount())) {
+  if (!vrf_sortition.getBinominalDistribution(weighted_votes_count_, sortition_threshold_, getDposTotalVotesCount())) {
     LOG(log_tr_) << "Don't get sortition";
     return false;
   }
@@ -1047,9 +1047,9 @@ void PbftManager::secondFinish_() {
 }
 
 std::shared_ptr<Vote> PbftManager::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, uint64_t round,
-                                                size_t step, size_t weighted_index) {
+                                                size_t step) {
   // sortition proof
-  VrfPbftMsg msg(type, round, step, weighted_index);
+  VrfPbftMsg msg(type, round, step);
   VrfPbftSortition vrf_sortition(vrf_sk_, msg);
 
   return std::make_shared<Vote>(node_sk_, vrf_sortition, blockhash);
@@ -1057,29 +1057,17 @@ std::shared_ptr<Vote> PbftManager::generateVote(blk_hash_t const &blockhash, Pbf
 
 size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteTypes vote_type, uint64_t round,
                                size_t step) {
-  std::vector<std::shared_ptr<Vote>> votes;
-  for (size_t weighted_index(0); weighted_index < weighted_votes_count_; weighted_index++) {
-    if (step == 1 && weighted_index > 0) {
-      break;
-    }
-    if (shouldSpeak(vote_type, round, step_, weighted_index)) {
-      auto vote = generateVote(blockhash, vote_type, round, step, weighted_index);
-      votes.emplace_back(vote);
-      db_->saveVerifiedVote(vote);
-      vote_mgr_->addVerifiedVote(vote);
-    }
-  }
-
-  auto size = votes.size();
-
-  // pbft votes broadcast
-  if (size) {
+  auto vote = generateVote(blockhash, vote_type, round, step);
+  if (vote->calculateWeight(weighted_votes_count_, sortition_threshold_, getDposTotalVotesCount())) {
+    db_->saveVerifiedVote(vote);
+    vote_mgr_->addVerifiedVote(vote);
     if (auto net = network_.lock()) {
-      net->onNewPbftVotes(move(votes));
+      net->onNewPbftVotes({vote});  // TODO rework to single vote
     }
+    assert(vote->getWeight());
+    return vote->getWeight().value();
   }
-
-  return size;
+  return 0;
 }
 
 blk_hash_t PbftManager::calculateOrderHash(std::vector<blk_hash_t> const &dag_block_hashes,
@@ -1113,7 +1101,7 @@ blk_hash_t PbftManager::calculateOrderHash(std::vector<DagBlock> const &dag_bloc
 std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
   auto round = getPbftRound();
   // In propose block, only use first weighted index 0 for VRF sortition
-  if (weighted_votes_count_ == 0 || !shouldSpeak(propose_vote_type, round, step_, 0)) {
+  if (weighted_votes_count_ == 0 || !shouldSpeak(propose_vote_type, round, step_)) {
     return std::make_pair(NULL_BLOCK_HASH, false);
   }
 
@@ -1797,7 +1785,8 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
 
   // Check cert votes validation
   try {
-    sync_block.first.hasEnoughValidCertVotes(getDposTotalVotesCount(), getSortitionThreshold(), getTwoTPlusOne());
+    sync_block.first.hasEnoughValidCertVotes(getDposTotalVotesCount(), getSortitionThreshold(), getTwoTPlusOne(),
+                                             [this](auto const &addr) { return dposEligibleVoteCount_(addr); });
   } catch (const std::logic_error &e) {
     // Failed cert votes validation, flush synced PBFT queue and set since
     // next block validation depends on the current one
