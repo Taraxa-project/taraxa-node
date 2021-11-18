@@ -1552,6 +1552,9 @@ bool PbftManager::pushPbftBlock_(SyncBlock &sync_block, vec_blk_t &dag_blocks_or
   // Reset last cert voted value to NULL_BLOCK_HASH
   db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::LastCertVotedValue, NULL_BLOCK_HASH, batch);
 
+  // pass pbft with dag blocks and transactions to adjust difficulty
+  dag_blk_mgr_->sortitionParamsManager().pbftBlockPushed(sync_block, batch);
+
   // Commit DB
   db_->commitWriteBatch(batch);
 

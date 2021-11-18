@@ -4,6 +4,7 @@
 #include <boost/algorithm/string/split.hpp>
 
 #include "config/version.hpp"
+#include "dag/sortition_params_manager.hpp"
 #include "rocksdb/utilities/checkpoint.h"
 #include "vote/vote.hpp"
 
@@ -372,6 +373,63 @@ void DbStorage::saveDagBlock(DagBlock const& blk, Batch* write_batch_p) {
   insert(write_batch, Columns::status, toSlice((uint8_t)StatusDbField::DagEdgeCount), toSlice(dag_edge_count_.load()));
   if (commit) {
     commitWriteBatch(write_batch);
+  }
+}
+
+// DAG Efficiency
+void DbStorage::savePbftBlockDagEfficiency(uint64_t period, uint16_t efficiency, DbStorage::Batch& batch) {
+  insert(batch, Columns::pbft_block_dag_efficiency, toSlice(period), toSlice(efficiency));
+}
+
+std::vector<uint16_t> DbStorage::getLastIntervalEfficiencies(uint16_t computation_interval) {
+  std::vector<uint16_t> efficiencies;
+
+  auto it =
+      std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::pbft_block_dag_efficiency)));
+  it->SeekToLast();
+  const auto last_period = FromSlice<uint64_t>(it->key().data());
+  const auto count_to_get = last_period % computation_interval;
+  efficiencies.reserve(count_to_get);
+
+  for (uint16_t i = 0; i < count_to_get; ++i) {
+    // order doesn't matter
+    efficiencies.push_back(FromSlice<uint16_t>(it->value()));
+    it->Prev();
+  }
+
+  return efficiencies;
+}
+
+void DbStorage::cleanupDagEfficiencies(uint64_t current_period) {
+  // endKey is not including, so add 1
+  db_->DeleteRange(write_options_, handle(Columns::pbft_block_dag_efficiency), 0, toSlice(current_period + 1));
+}
+
+// Sortition params
+void DbStorage::saveSortitionParamsChange(uint64_t period, SortitionParamsChange params, Batch& batch) {
+  insert(batch, Columns::sortition_params_change, toSlice(period), toSlice(params.rlp()));
+}
+
+std::deque<SortitionParamsChange> DbStorage::getLastSortitionParams(size_t count) {
+  std::deque<SortitionParamsChange> changes;
+
+  auto it =
+      std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::sortition_params_change)));
+  for (it->SeekToLast(); it->Valid() && changes.size() < count; it->Prev()) {
+    changes.push_front(SortitionParamsChange::from_rlp(dev::RLP(it->value().ToString())));
+  }
+
+  return changes;
+}
+
+void DbStorage::cleanupParamsChanges(DbStorage::Batch& batch, uint16_t changes_to_leave) {
+  auto it =
+      std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::sortition_params_change)));
+  it->SeekToLast();
+  for (uint16_t i = 0; it->Valid(); it->Prev(), ++i) {
+    if (i >= changes_to_leave) {
+      remove(batch, Columns::sortition_params_change, it->key());
+    }
   }
 }
 
@@ -891,9 +949,7 @@ uint64_t DbStorage::getColumnSize(Column const& col) const {
 void DbStorage::forEach(Column const& col, OnEntry const& f) {
   auto i = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(col)));
   for (i->SeekToFirst(); i->Valid(); i->Next()) {
-    if (!f(i->key(), i->value())) {
-      break;
-    }
+    f(i->key(), i->value());
   }
 }
 

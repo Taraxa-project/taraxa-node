@@ -13,7 +13,7 @@ Json::Value enc_json(ChainConfig const& obj) {
     json["chain_id"] = dev::toJS(obj.chain_id);
   }
   json["dag_genesis_block"] = obj.dag_genesis_block.getJson(false);
-  json["vdf"] = enc_json(obj.vdf);
+  json["sortition"] = enc_json(obj.sortition);
   json["pbft"] = enc_json(obj.pbft);
   json["final_chain"] = enc_json(obj.final_chain);
   return json;
@@ -24,7 +24,7 @@ void dec_json(Json::Value const& json, ChainConfig& obj) {
     obj.chain_id = dev::jsToInt(e.asString());
   }
   obj.dag_genesis_block = DagBlock(json["dag_genesis_block"]);
-  dec_json(json["vdf"], obj.vdf);
+  dec_json(json["sortition"], obj.sortition);
   dec_json(json["pbft"], obj.pbft);
   dec_json(json["final_chain"], obj.final_chain);
 }
@@ -43,7 +43,7 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
       "pivot": "0000000000000000000000000000000000000000000000000000000000000000",
       "timestamp": 1564617600,
       "vdf": ""
-  })"));
+    })"));
     cfg.final_chain.state.disable_block_rewards = true;
     cfg.final_chain.state.eth_chain_config.dao_fork_block = state_api::BlockNumberNIL;
     cfg.final_chain.state.execution_options.disable_nonce_check = true;
@@ -54,12 +54,12 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
     dpos.eligibility_balance_threshold = 1000000000;
     dpos.genesis_state[root_node_addr][root_node_addr] = dpos.eligibility_balance_threshold;
     // VDF config
-    cfg.vdf.threshold_selection = 0x8000;
-    cfg.vdf.threshold_vdf_omit = 0x7200;
-    cfg.vdf.difficulty_min = 16;
-    cfg.vdf.difficulty_max = 21;
-    cfg.vdf.difficulty_stale = 22;
-    cfg.vdf.lambda_bound = 100;
+    cfg.sortition.vrf.threshold_upper = 0x8000;
+    cfg.sortition.vrf.threshold_lower = 0x7200;
+    cfg.sortition.vdf.difficulty_min = 16;
+    cfg.sortition.vdf.difficulty_max = 21;
+    cfg.sortition.vdf.difficulty_stale = 22;
+    cfg.sortition.vdf.lambda_bound = 100;
     // PBFT config
     cfg.pbft.lambda_ms_min = 2000;
     cfg.pbft.committee_size = 5;

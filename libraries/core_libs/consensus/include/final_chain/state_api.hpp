@@ -1,6 +1,5 @@
 #pragma once
 
-#include <rocksdb/db.h>
 #include <taraxa-evm/taraxa-evm.h>
 
 #include <functional>

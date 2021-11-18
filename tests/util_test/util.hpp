@@ -122,12 +122,12 @@ inline auto make_node_cfgs(uint count) {
     for (auto& cfg : ret) {
       if constexpr (tests_speed != 1) {
         // VDF config
-        cfg.chain.vdf.threshold_selection = 0xffff;
-        cfg.chain.vdf.threshold_vdf_omit = 0xe665;
-        cfg.chain.vdf.difficulty_min = 0;
-        cfg.chain.vdf.difficulty_max = 5;
-        cfg.chain.vdf.difficulty_stale = 5;
-        cfg.chain.vdf.lambda_bound = 100;
+        cfg.chain.sortition.vrf.threshold_upper = 0xffff;
+        cfg.chain.sortition.vrf.threshold_lower = 0xe665;
+        cfg.chain.sortition.vdf.difficulty_min = 0;
+        cfg.chain.sortition.vdf.difficulty_max = 5;
+        cfg.chain.sortition.vdf.difficulty_stale = 5;
+        cfg.chain.sortition.vdf.lambda_bound = 100;
         // PBFT config
         cfg.chain.pbft.lambda_ms_min /= tests_speed;
         cfg.network.network_transaction_interval /= tests_speed;

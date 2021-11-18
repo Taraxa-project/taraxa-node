@@ -37,24 +37,13 @@ DagBlock::DagBlock(string const &json)
       }()) {}
 
 DagBlock::DagBlock(Json::Value const &doc) {
-  if (auto const &v = doc["level"]; v.isString()) {
-    level_ = dev::jsToInt(v.asString());
-  } else {
-    // this was inconsistent with getJson()
-    // fixme: eliminate this branch
-    level_ = v.asUInt64();
-  }
-  tips_ = asVector<blk_hash_t, std::string>(doc, "tips");
-  trxs_ = asVector<trx_hash_t, std::string>(doc, "trxs");
+  level_ = dev::getUInt(doc["level"]);
+
+  tips_ = asVector<blk_hash_t>(doc["tips"]);
+  trxs_ = asVector<trx_hash_t>(doc["trxs"]);
   sig_ = sig_t(doc["sig"].asString());
   pivot_ = blk_hash_t(doc["pivot"].asString());
-  if (auto const &v = doc["timestamp"]; v.isString()) {
-    timestamp_ = dev::jsToInt(v.asString());
-  } else {
-    // this was inconsistent with getJson()
-    // fixme: eliminate this branch
-    timestamp_ = v.asUInt64();
-  }
+  timestamp_ = dev::getUInt(doc["timestamp"]);
 
   // Allow vdf not to be present for genesis
   if (level_ > 0) {
@@ -126,6 +115,10 @@ bool DagBlock::verifySig() const {
   auto msg = sha3(false);
   auto pk = dev::recover(sig_, msg);  // recover is equal to verify
   return !pk.isZero();
+}
+
+void DagBlock::verifyVdf(const SortitionParams &vdf_config) const {
+  vdf_.verifyVdf(vdf_config, getRlpBytes(getLevel()), getPivot().asBytes());
 }
 
 blk_hash_t const &DagBlock::getHash() const {

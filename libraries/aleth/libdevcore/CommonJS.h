@@ -3,6 +3,8 @@
 // Licensed under the GNU General Public License, Version 3.
 #pragma once
 
+#include <json/json.h>
+
 #include <string>
 
 #include "CommonData.h"
@@ -91,5 +93,13 @@ inline u256 jsToU256(std::string const& _s) { return jsToInt<32>(_s); }
 inline uint64_t jsToInt(std::string const& _s) { return std::stoull(_s, 0, 16); }
 
 inline std::string jsToDecimal(std::string const& _s) { return toString(jsToU256(_s)); }
+
+inline uint64_t getUInt(const Json::Value& v) {
+  if (v.isString()) {
+    return dev::jsToInt(v.asString());
+  }
+
+  return v.asUInt64();
+}
 
 }  // namespace dev

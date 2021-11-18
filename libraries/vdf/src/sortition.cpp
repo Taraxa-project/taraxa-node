@@ -5,21 +5,22 @@
 
 namespace taraxa::vdf_sortition {
 
-VdfSortition::VdfSortition(VdfConfig const& config, vrf_sk_t const& sk, bytes const& msg) : VrfSortitionBase(sk, msg) {
+VdfSortition::VdfSortition(SortitionParams const& config, vrf_sk_t const& sk, bytes const& msg)
+    : VrfSortitionBase(sk, msg) {
   difficulty_ = calculateDifficulty(config);
 }
 
-bool VdfSortition::omitVdf(VdfConfig const& config) const { return threshold <= config.threshold_vdf_omit; }
+bool VdfSortition::isOmitVdf(SortitionParams const& config) const { return threshold <= config.vrf.threshold_lower; }
 
-bool VdfSortition::isStale(VdfConfig const& config) const { return threshold > config.threshold_selection; }
+bool VdfSortition::isStale(SortitionParams const& config) const { return threshold > config.vrf.threshold_upper; }
 
-uint16_t VdfSortition::calculateDifficulty(VdfConfig const& config) const {
+uint16_t VdfSortition::calculateDifficulty(SortitionParams const& config) const {
   uint16_t difficulty = 0;
-  if (!omitVdf(config)) {
+  if (!isOmitVdf(config)) {
     if (isStale(config)) {
-      difficulty = config.difficulty_stale;
+      difficulty = config.vdf.difficulty_stale;
     } else {
-      difficulty = config.difficulty_min + threshold % (config.difficulty_max - config.difficulty_min);
+      difficulty = config.vdf.difficulty_min + threshold % (config.vdf.difficulty_max - config.vdf.difficulty_min);
     }
   }
   return difficulty;
@@ -71,10 +72,10 @@ Json::Value VdfSortition::getJson() const {
   return res;
 }
 
-void VdfSortition::computeVdfSolution(VdfConfig const& config, bytes const& msg) {
-  if (!omitVdf(config)) {
+void VdfSortition::computeVdfSolution(SortitionParams const& config, bytes const& msg) {
+  if (!isOmitVdf(config)) {
     auto t1 = getCurrentTimeMilliSeconds();
-    VerifierWesolowski verifier(config.lambda_bound, difficulty_, msg, N);
+    VerifierWesolowski verifier(config.vdf.lambda_bound, difficulty_, msg, N);
 
     ProverWesolowski prover;
     vdf_sol_ = prover(verifier);  // this line takes time ...
@@ -83,31 +84,33 @@ void VdfSortition::computeVdfSolution(VdfConfig const& config, bytes const& msg)
   }
 }
 
-void VdfSortition::verifyVdf(VdfConfig const& config, bytes const& vrf_input, bytes const& vdf_input) {
+void VdfSortition::verifyVdf(SortitionParams const& config, bytes const& vrf_input, bytes const& vdf_input) const {
   // Verify VRF output
   if (!verifyVrf(vrf_input)) {
-    throw InvalidVdfSortition("VRF verify failed. VDF input " + bytes2str(vdf_input) + ", lambda " +
-                              std::to_string(config.lambda_bound) + ", difficulty " + std::to_string(getDifficulty()));
+    throw InvalidVdfSortition("VRF verify failed. VRF input " + bytes2str(vrf_input));
   }
 
-  if (!omitVdf(config)) {
-    if (difficulty_ != calculateDifficulty(config)) {
-      throw InvalidVdfSortition("VDF solution verification failed. Incorrect difficulty. VDF input " +
-                                bytes2str(vdf_input) + ", lambda " + std::to_string(config.lambda_bound) +
-                                ", difficulty " + std::to_string(getDifficulty()));
+  if (!isOmitVdf(config)) {
+    const auto expected = calculateDifficulty(config);
+    if (difficulty_ != expected) {
+      throw InvalidVdfSortition(
+          "VDF solution verification failed. Incorrect difficulty. VDF input " + bytes2str(vdf_input) + ", lambda " +
+          std::to_string(config.vdf.lambda_bound) + ", difficulty " + std::to_string(getDifficulty()) +
+          ", expected: " + std::to_string(expected) + ", vrf_params: (" + std::to_string(config.vrf.threshold_lower) +
+          ", " + std::to_string(config.vrf.threshold_upper) + ") THRESHOLD: " + std::to_string(threshold));
     }
 
     // Verify VDF solution
-    VerifierWesolowski verifier(config.lambda_bound, getDifficulty(), vdf_input, N);
+    VerifierWesolowski verifier(config.vdf.lambda_bound, getDifficulty(), vdf_input, N);
     if (!verifier(vdf_sol_)) {
       throw InvalidVdfSortition("VDF solution verification failed. VDF input " + bytes2str(vdf_input) + ", lambda " +
-                                std::to_string(config.lambda_bound) + ", difficulty " +
+                                std::to_string(config.vdf.lambda_bound) + ", difficulty " +
                                 std::to_string(getDifficulty()));
     }
   }
 }
 
-bool VdfSortition::verifyVrf(bytes const& vrf_input) { return VrfSortitionBase::verify(vrf_input); }
+bool VdfSortition::verifyVrf(bytes const& vrf_input) const { return VrfSortitionBase::verify(vrf_input); }
 
 uint16_t VdfSortition::getDifficulty() const { return difficulty_; }
 

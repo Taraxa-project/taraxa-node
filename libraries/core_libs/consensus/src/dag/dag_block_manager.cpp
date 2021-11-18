@@ -4,7 +4,7 @@
 
 namespace taraxa {
 
-DagBlockManager::DagBlockManager(addr_t node_addr, VdfConfig const &vdf_config,
+DagBlockManager::DagBlockManager(addr_t node_addr, SortitionConfig const &sortition_config,
                                  std::optional<state_api::DPOSConfig> dpos_config, unsigned num_verifiers,
                                  std::shared_ptr<DbStorage> db, std::shared_ptr<TransactionManager> trx_mgr,
                                  std::shared_ptr<FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain,
@@ -18,7 +18,7 @@ DagBlockManager::DagBlockManager(addr_t node_addr, VdfConfig const &vdf_config,
       invalid_blocks_(cache_max_size_, cache_delete_step_),
       seen_blocks_(cache_max_size_, cache_delete_step_),
       queue_limit_(queue_limit),
-      vdf_config_(vdf_config),
+      sortition_params_manager_(node_addr, sortition_config, db_),
       dpos_config_(dpos_config) {
   LOG_OBJECTS_CREATE("BLKQU");
 
@@ -224,19 +224,8 @@ void DagBlockManager::verifyBlock() {
       continue;
     }
 
-    // Verify VDF solution
-    vdf_sortition::VdfSortition vdf = blk.getVdf();
-    try {
-      vdf.verifyVdf(vdf_config_, getRlpBytes(blk.getLevel()), blk.getPivot().asBytes());
-    } catch (vdf_sortition::VdfSortition::InvalidVdfSortition const &e) {
-      LOG(log_er_) << "DAG block " << block_hash << " failed on VDF verification with pivot hash " << blk.getPivot()
-                   << " reason " << e.what();
-      markBlockInvalid(block_hash);
-      continue;
-    }
-
-    // Verify DPOS
     auto propose_period = getProposalPeriod(blk.getLevel());
+    // Verify DPOS
     if (!propose_period.second) {
       // Cannot find the proposal period in DB yet. The slow node gets an ahead block, puts back.
       LOG(log_nf_) << "Cannot find proposal period " << propose_period.first << " in DB for DAG block " << blk;
@@ -244,6 +233,18 @@ void DagBlockManager::verifyBlock() {
       unverified_qu_[blk.getLevel()].emplace_back(blk);
       continue;
     }
+
+    // Verify VDF solution
+    try {
+      blk.verifyVdf(sortition_params_manager_.getSortitionParams(propose_period.first));
+    } catch (vdf_sortition::VdfSortition::InvalidVdfSortition const &e) {
+      LOG(log_er_) << "DAG block " << block_hash << " with " << blk.getLevel()
+                   << " level failed on VDF verification with pivot hash " << blk.getPivot() << " reason " << e.what();
+      LOG(log_er_) << "period from map: " << propose_period.first << " current: " << pbft_chain_->getPbftChainSize();
+      markBlockInvalid(block_hash);
+      continue;
+    }
+
     auto dag_block_sender = blk.getSender();
     bool dpos_qualified;
     try {
@@ -311,7 +312,7 @@ std::pair<uint64_t, bool> DagBlockManager::getProposalPeriod(level_t level) {
     } else if (level > period_levels_map.levels_interval.second) {
       proposal_period++;
     } else {
-      // propsoal level less than the interval
+      // proposal level less than the interval
       assert(proposal_period);  // Avoid overflow
       proposal_period--;
     }

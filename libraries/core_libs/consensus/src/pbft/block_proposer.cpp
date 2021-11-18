@@ -31,9 +31,11 @@ bool SortitionPropose::propose() {
     return false;
   }
 
+  const auto proposal_period = dag_blk_mgr_->getProposalPeriod(propose_level);
   // get sortition
-  vdf_sortition::VdfSortition vdf(vdf_config_, vrf_sk_, getRlpBytes(propose_level));
-  if (vdf.isStale(vdf_config_)) {
+  const auto sortition_params = dag_blk_mgr_->sortitionParamsManager().getSortitionParams(proposal_period.first);
+  vdf_sortition::VdfSortition vdf(sortition_params, vrf_sk_, getRlpBytes(propose_level));
+  if (vdf.isStale(sortition_params)) {
     if (propose_level == last_propose_level_ && num_tries_ < max_num_tries_) {
       LOG(log_dg_) << "Will not propose DAG block. Get difficulty at stale, last propose level " << last_propose_level_
                    << ", has tried " << num_tries_ << " times.";
@@ -49,20 +51,20 @@ bool SortitionPropose::propose() {
     }
   }
 
-  vdf.computeVdfSolution(vdf_config_, frontier.pivot.asBytes());
-  if (vdf.isStale(vdf_config_)) {
+  vdf.computeVdfSolution(sortition_params, frontier.pivot.asBytes());
+  if (vdf.isStale(sortition_params)) {
     auto latest_frontier = dag_mgr_->getDagFrontier();
     if (latest_frontier.pivot != frontier.pivot) {
       return false;
     }
   }
 
-  SharedTransactions sharded_trxs = proposer->getShardedTrxs();
-  if (sharded_trxs.empty()) {
+  SharedTransactions shared_trxs = proposer->getShardedTrxs();
+  if (shared_trxs.empty()) {
     return false;
   }
   LOG(log_nf_) << "VDF computation time " << vdf.getComputationTime() << " difficulty " << vdf.getDifficulty();
-  proposer->proposeBlock(std::move(frontier), propose_level, std::move(sharded_trxs), std::move(vdf));
+  proposer->proposeBlock(std::move(frontier), propose_level, std::move(shared_trxs), std::move(vdf));
   last_propose_level_ = propose_level;
   num_tries_ = 0;
   return true;

@@ -139,13 +139,21 @@ const char *testnet_json = R"foo({
     "replay_protection_service": {
       "range": "0xa"
     },
-    "vdf": {
-      "difficulty_max": "0x15",
-      "difficulty_min": "0x10",
-      "threshold_selection": "0x2fff",
-      "threshold_vdf_omit": "0x17ff",
-      "difficulty_stale": "0x16",
-      "lambda_bound": "0x64"
+    "sortition": {
+      "changes_count_for_average": "0x5",
+      "max_interval_correction": "0x3E8",
+      "dag_efficiency_targets": ["0x12C0", "0x1450"],
+      "computation_interval": "0x32",
+      "vrf": {
+        "threshold_upper": "0x2fff",
+        "threshold_lower": "0x17ff"
+      },
+      "vdf": {
+        "difficulty_max": "0x15",
+        "difficulty_min": "0x10",
+        "difficulty_stale": "0x16",
+        "lambda_bound": "0x64"
+      }
     }
   }
 }

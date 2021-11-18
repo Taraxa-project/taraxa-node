@@ -19,6 +19,7 @@
 
 namespace taraxa {
 namespace fs = std::filesystem;
+struct SortitionParamsChange;
 
 enum StatusDbField : uint8_t {
   ExecutedBlkCount = 0,
@@ -50,6 +51,13 @@ enum PbftMgrVotedValue : uint8_t { OwnStartingValueInRound = 0, SoftVotedBlockHa
 
 enum DposProposalPeriodLevelsStatus : uint8_t { MaxProposalPeriod = 0 };
 
+template <typename T>
+T FromSlice(rocksdb::Slice const& e) {
+  T value;
+  memcpy(&value, e.data(), sizeof(T));
+  return value;
+}
+
 class DbException : public std::exception {
  public:
   explicit DbException(string const& desc) : desc_(desc) {}
@@ -64,7 +72,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
  public:
   using Slice = rocksdb::Slice;
   using Batch = rocksdb::WriteBatch;
-  using OnEntry = std::function<bool(Slice const&, Slice const&)>;
+  using OnEntry = std::function<void(Slice const&, Slice const&)>;
 
   class Column {
     string const name_;
@@ -118,6 +126,8 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN(final_chain_blk_number_by_hash);
     COLUMN(final_chain_receipt_by_trx_hash);
     COLUMN(final_chain_log_blooms_index);
+    COLUMN(pbft_block_dag_efficiency);
+    COLUMN(sortition_params_change);
 
 #undef COLUMN
   };
@@ -184,6 +194,14 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void updateDagBlockCounters(std::vector<DagBlock> blks);
   std::map<level_t, std::vector<DagBlock>> getNonfinalizedDagBlocks();
   void removeDagBlock(Batch& write_batch, blk_hash_t const& hash);
+  // DAG Efficiency
+  void savePbftBlockDagEfficiency(uint64_t period, uint16_t efficiency, DbStorage::Batch& batch);
+  std::vector<uint16_t> getLastIntervalEfficiencies(uint16_t computation_interval);
+  void cleanupDagEfficiencies(uint64_t current_period);
+  // Sortition params
+  void saveSortitionParamsChange(uint64_t period, SortitionParamsChange params, DbStorage::Batch& batch);
+  std::deque<SortitionParamsChange> getLastSortitionParams(size_t count);
+  void cleanupParamsChanges(DbStorage::Batch& batch, uint16_t changes_to_leave);
 
   // Transaction
   void saveTransaction(Transaction const& trx, bool verified = false);
