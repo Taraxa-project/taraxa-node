@@ -180,16 +180,18 @@ Json::Value Test::get_account_votes(const Json::Value &param1) {
       auto total_votes = node->getFinalChain()->dpos_eligible_total_vote_count(block_number);
       res["votes"] = votes;
       res["total_votes"] = total_votes;
+      double estimate = ((double)votes) / total_votes;
       if (range > 1) {
         auto last_block_number = node->getFinalChain()->last_block_number();
         for (uint64_t i = 1; i < range; i++) {
-          if (block_number + i > last_block_number) break;
-          votes += node->getFinalChain()->dpos_eligible_vote_count(block_number + i, addr);
-          total_votes += node->getFinalChain()->dpos_eligible_total_vote_count(block_number + i);
+          if (block_number + i > last_block_number) {
+            break;
+          }
+          votes = node->getFinalChain()->dpos_eligible_vote_count(block_number + i, addr);
+          total_votes = node->getFinalChain()->dpos_eligible_total_vote_count(block_number + i);
+          estimate += ((double)votes) / total_votes;
         }
-        res["range_votes"] = votes;
-        res["range_total_votes"] = total_votes;
-        res["estimate_blocks_production"] = range * votes / total_votes;
+        res["estimate_blocks_production"] = (int)(estimate);
       }
     }
   } catch (std::exception &e) {
