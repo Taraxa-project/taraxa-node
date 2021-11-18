@@ -45,6 +45,13 @@
     "returns": {}
   },
   {
+    "name": "get_account_votes",
+    "params": [
+      {}
+    ],
+    "returns": {}
+  },
+  {
     "name": "get_node_count",
     "params": [],
     "returns": {}

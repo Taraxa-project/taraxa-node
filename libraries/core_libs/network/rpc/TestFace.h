@@ -33,6 +33,9 @@ class TestFace : public ServerInterface<TestFace> {
     this->bindAndAddMethod(jsonrpc::Procedure("get_account_balance", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
                                               "param1", jsonrpc::JSON_OBJECT, NULL),
                            &taraxa::net::TestFace::get_account_balanceI);
+    this->bindAndAddMethod(jsonrpc::Procedure("get_account_votes", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
+                                              "param1", jsonrpc::JSON_OBJECT, NULL),
+                           &taraxa::net::TestFace::get_account_votesI);
     this->bindAndAddMethod(
         jsonrpc::Procedure("get_node_count", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, NULL),
         &taraxa::net::TestFace::get_node_countI);
@@ -112,6 +115,9 @@ class TestFace : public ServerInterface<TestFace> {
   inline virtual void get_account_balanceI(const Json::Value &request, Json::Value &response) {
     response = this->get_account_balance(request[0u]);
   }
+  inline virtual void get_account_votesI(const Json::Value &request, Json::Value &response) {
+    response = this->get_account_votes(request[0u]);
+  }
   inline virtual void get_node_countI(const Json::Value &request, Json::Value &response) {
     (void)request;
     response = this->get_node_count();
@@ -185,6 +191,7 @@ class TestFace : public ServerInterface<TestFace> {
   virtual Json::Value get_num_proposed_blocks() = 0;
   virtual Json::Value get_account_address() = 0;
   virtual Json::Value get_account_balance(const Json::Value &param1) = 0;
+  virtual Json::Value get_account_votes(const Json::Value &param1) = 0;
   virtual Json::Value get_node_count() = 0;
   virtual Json::Value get_peer_count() = 0;
   virtual Json::Value get_node_status() = 0;

@@ -165,6 +165,39 @@ Json::Value Test::get_account_balance(const Json::Value &param1) {
   return res;
 }
 
+Json::Value Test::get_account_votes(const Json::Value &param1) {
+  Json::Value res;
+  try {
+    if (auto node = full_node_.lock()) {
+      addr_t addr = addr_t(param1["address"].asString());
+      uint64_t block_number = param1["block_number"].asUInt64();
+      uint64_t range = 0;
+      if (!param1["range"].isNull()) {
+        range = param1["range"].asUInt64();
+      }
+
+      auto votes = node->getFinalChain()->dpos_eligible_vote_count(block_number, addr);
+      auto total_votes = node->getFinalChain()->dpos_eligible_total_vote_count(block_number);
+      res["votes"] = votes;
+      res["total_votes"] = total_votes;
+      if (range > 1) {
+        auto last_block_number = node->getFinalChain()->last_block_number();
+        for (uint64_t i = 1; i < range; i++) {
+          if (block_number + i > last_block_number) break;
+          votes += node->getFinalChain()->dpos_eligible_vote_count(block_number + i, addr);
+          total_votes += node->getFinalChain()->dpos_eligible_total_vote_count(block_number + i);
+        }
+        res["range_votes"] = votes;
+        res["range_total_votes"] = total_votes;
+        res["estimate_blocks_production"] = range * votes / total_votes;
+      }
+    }
+  } catch (std::exception &e) {
+    res["status"] = e.what();
+  }
+  return res;
+}
+
 Json::Value Test::get_peer_count() {
   Json::Value res;
   try {
