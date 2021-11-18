@@ -99,8 +99,8 @@ TEST_F(CryptoTest, vrf_sortition) {
   VrfPbftSortition sortition(sk, msg);
   VrfPbftSortition sortition2(sk, msg);
 
-  // EXPECT_FALSE(sortition.canSpeak(0, 1));
-  // EXPECT_TRUE(sortition.canSpeak(1, 0));
+  EXPECT_FALSE(sortition.getBinominalDistribution(0, 1, 1));
+  EXPECT_TRUE(sortition.getBinominalDistribution(1, 1, 1));
   auto b = sortition.getRlpBytes();
   VrfPbftSortition sortition3(b);
   sortition3.verify();
@@ -276,8 +276,8 @@ TEST_F(CryptoTest, new_sortition_rate) {
   } else {
     d = hitcount - expected;
   }
-  // within 2% good enough
-  auto maxd = expected / 50;
+  // within 2.5% good enough
+  auto maxd = expected / 40;
   EXPECT_LE(d, maxd);
   std::cout << "wanted " << expected << " selections but got " << hitcount << ", d=" << d << ", maxd=" << maxd
             << std::endl;
@@ -290,34 +290,25 @@ TEST_F(CryptoTest, sortition_rate) {
   int count = 0;
   int round = 1000;
   int valid_sortition_players = 100;
-  // int sortition_threshold = 5;
+  int sortition_threshold = 5;
   // Test for one player sign round messages to get sortition
   // Sortition rate THRESHOLD / PLAYERS = 5%
-  uint64_t pbft_round;
   size_t pbft_step = 3;
   for (int i = 0; i < round; i++) {
-    pbft_round = i;
-    VrfPbftMsg msg(PbftVoteTypes::cert_vote_type, pbft_round, pbft_step);
+    VrfPbftMsg msg(PbftVoteTypes::cert_vote_type, i, pbft_step);
     VrfPbftSortition sortition(sk, msg);
-    // bool win = sortition.canSpeak(sortition_threshold, valid_sortition_players);
-    // if (win) {
-    //   count++;
-    // }
+    count += sortition.getBinominalDistribution(1, valid_sortition_players, sortition_threshold);
   }
   EXPECT_EQ(count, 54);  // Test experience
 
   count = 0;
-  // sortition_threshold = valid_sortition_players;
+  sortition_threshold = valid_sortition_players;
   // Test for one player sign round messages to get sortition
   // Sortition rate THRESHOLD / PLAYERS = 100%
   for (int i = 0; i < round; i++) {
-    pbft_round = i;
-    VrfPbftMsg msg(PbftVoteTypes::cert_vote_type, pbft_round, pbft_step);
+    VrfPbftMsg msg(PbftVoteTypes::cert_vote_type, i, pbft_step);
     VrfPbftSortition sortition(sk, msg);
-    // bool win = sortition.canSpeak(sortition_threshold, valid_sortition_players);
-    // if (win) {
-    //   count++;
-    // }
+    count += sortition.getBinominalDistribution(1, valid_sortition_players, sortition_threshold);
   }
   // depend on sortition THRESHOLD
   // CREDENTIAL / SIGNATURE_HASH_MAX <= SORTITION THRESHOLD / VALID PLAYERS
@@ -331,13 +322,9 @@ TEST_F(CryptoTest, sortition_rate) {
     dev::KeyPair key_pair = dev::KeyPair::create();
     for (int j = 0; j < round; j++) {
       auto [pk, sk] = getVrfKeyPair();
-      pbft_round = i;
-      VrfPbftMsg msg(PbftVoteTypes::cert_vote_type, pbft_round, pbft_step);
+      VrfPbftMsg msg(PbftVoteTypes::cert_vote_type, i, pbft_step);
       VrfPbftSortition sortition(sk, msg);
-      // bool win = sortition.canSpeak(sortition_threshold, valid_sortition_players);
-      // if (win) {
-      //   count++;
-      // }
+      count += sortition.getBinominalDistribution(1, valid_sortition_players, sortition_threshold);
     }
   }
   // depend on sortition THRESHOLD, sortition rate for all players:
