@@ -71,6 +71,12 @@ Vote::Vote(secret_t const& node_sk, VrfPbftSortition const& vrf_sortition, blk_h
 }
 
 void Vote::validate(uint64_t stake, double sortition_threshold, double dpos_total_votes_count) const {
+  if (!stake || !dpos_total_votes_count) {
+    std::stringstream err;
+    err << "Invalid stake " << *this;
+    throw std::logic_error(err.str());
+  }
+
   if (!verifyVrfSortition()) {
     std::stringstream err;
     err << "Invalid vrf proof. " << *this;

@@ -27,7 +27,7 @@ PbftManager::PbftManager(PbftConfig const &conf, blk_hash_t const &genesis, addr
                          std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<FinalChain> final_chain,
                          secret_t node_sk, vrf_sk_t vrf_sk)
     : db_(db),
-      previous_round_next_votes_(next_votes_mgr),
+      next_votes_manager_(next_votes_mgr),
       pbft_chain_(pbft_chain),
       vote_mgr_(vote_mgr),
       dag_mgr_(dag_mgr),
@@ -478,17 +478,17 @@ void PbftManager::initialState_() {
                    << step;
       assert(false);
     }
-    previous_round_next_votes_->updateNextVotes(next_votes_in_previous_round, previous_round_2t_plus_1);
+    next_votes_manager_->updateNextVotes(next_votes_in_previous_round, previous_round_2t_plus_1);
   }
 
-  previous_round_next_voted_value_ = previous_round_next_votes_->getVotedValue();
-  previous_round_next_voted_null_block_hash_ = previous_round_next_votes_->haveEnoughVotesForNullBlockHash();
+  previous_round_next_voted_value_ = next_votes_manager_->getVotedValue();
+  previous_round_next_voted_null_block_hash_ = next_votes_manager_->haveEnoughVotesForNullBlockHash();
 
   LOG(log_nf_) << "Node initialize at round " << round << " step " << step
                << ". Previous round has enough next votes for NULL_BLOCK_HASH: " << std::boolalpha
-               << previous_round_next_votes_->haveEnoughVotesForNullBlockHash() << ", voted value "
+               << next_votes_manager_->haveEnoughVotesForNullBlockHash() << ", voted value "
                << previous_round_next_voted_value_ << ", next votes size in previous round is "
-               << previous_round_next_votes_->getNextVotesSize();
+               << next_votes_manager_->getNextVotesSize();
 
   // Initial last sync request
   pbft_round_last_requested_sync_ = 0;
@@ -744,8 +744,8 @@ void PbftManager::updateLastSoftVotedValue_(blk_hash_t const new_soft_voted_valu
 }
 
 void PbftManager::checkPreviousRoundNextVotedValueChange_() {
-  auto previous_round_next_voted_value = previous_round_next_votes_->getVotedValue();
-  auto previous_round_next_voted_null_block_hash = previous_round_next_votes_->haveEnoughVotesForNullBlockHash();
+  auto previous_round_next_voted_value = next_votes_manager_->getVotedValue();
+  auto previous_round_next_voted_null_block_hash = next_votes_manager_->haveEnoughVotesForNullBlockHash();
 
   if (previous_round_next_voted_value != previous_round_next_voted_value_) {
     time_began_waiting_next_voted_block_ = std::chrono::system_clock::now();
@@ -762,7 +762,7 @@ void PbftManager::proposeBlock_() {
 
   LOG(log_tr_) << "PBFT value proposal state in round " << round;
   if (round > 1) {
-    if (previous_round_next_votes_->haveEnoughVotesForNullBlockHash()) {
+    if (next_votes_manager_->haveEnoughVotesForNullBlockHash()) {
       LOG(log_nf_) << "Previous round " << round - 1 << " next voted block is NULL_BLOCK_HASH";
     } else if (previous_round_next_voted_value_ != NULL_BLOCK_HASH) {
       LOG(log_nf_) << "Previous round " << round - 1 << " next voted block is " << previous_round_next_voted_value_;
@@ -1049,14 +1049,15 @@ void PbftManager::secondFinish_() {
 std::shared_ptr<Vote> PbftManager::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, uint64_t round,
                                                 size_t step) {
   // sortition proof
-  VrfPbftMsg msg(type, round, step);
-  VrfPbftSortition vrf_sortition(vrf_sk_, msg);
-
+  VrfPbftSortition vrf_sortition(vrf_sk_, {type, round, step});
   return std::make_shared<Vote>(node_sk_, vrf_sortition, blockhash);
 }
 
 size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteTypes vote_type, uint64_t round,
                                size_t step) {
+  if (!weighted_votes_count_ || !getDposTotalVotesCount()) {
+    return 0;
+  }
   auto vote = generateVote(blockhash, vote_type, round, step);
   if (vote->calculateWeight(weighted_votes_count_, sortition_threshold_, getDposTotalVotesCount())) {
     db_->saveVerifiedVote(vote);
@@ -1064,7 +1065,6 @@ size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteType
     if (auto net = network_.lock()) {
       net->onNewPbftVotes({vote});  // TODO rework to single vote
     }
-    assert(vote->getWeight());
     return vote->getWeight().value();
   }
   return 0;
@@ -1100,8 +1100,10 @@ blk_hash_t PbftManager::calculateOrderHash(std::vector<DagBlock> const &dag_bloc
 
 std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
   auto round = getPbftRound();
-  // In propose block, only use first weighted index 0 for VRF sortition
-  if (weighted_votes_count_ == 0 || !shouldSpeak(propose_vote_type, round, step_)) {
+  // In propose block, only use one vote for VRF sortition
+  VrfPbftSortition vrf_sortition(vrf_sk_, {propose_vote_type, propose_vote_type, step_});
+  if (weighted_votes_count_ == 0 ||
+      !vrf_sortition.getBinominalDistribution(1, sortition_threshold_, getDposTotalVotesCount())) {
     return std::make_pair(NULL_BLOCK_HASH, false);
   }
 
@@ -1625,7 +1627,7 @@ bool PbftManager::giveUpNextVotedBlock_() {
     LOG(log_nf_) << "In round " << round << " step " << step_
                  << ", have received 2t+1 next votes for NULL_BLOCK_HASH for previous round.";
     return true;
-  } else if (previous_round_next_votes_->haveEnoughVotesForNullBlockHash()) {
+  } else if (next_votes_manager_->haveEnoughVotesForNullBlockHash()) {
     LOG(log_nf_)
         << "In round " << round << " step " << step_
         << ", There are 2 voted values in previous round, and have received 2t+1 next votes for NULL_BLOCK_HASH";

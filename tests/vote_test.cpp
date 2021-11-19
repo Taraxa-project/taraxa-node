@@ -96,6 +96,7 @@ TEST_F(VoteTest, verified_votes) {
   auto round = 1;
   auto step = 2;
   auto vote = pbft_mgr->generateVote(blockhash, type, round, step);
+  vote->calculateWeight(1, 1, 1);
 
   auto vote_mgr = node->getVoteManager();
   vote_mgr->addVerifiedVote(vote);
@@ -132,6 +133,7 @@ TEST_F(VoteTest, remove_verified_votes) {
     auto round = i;
     auto step = i;
     auto vote = pbft_mgr->generateVote(blockhash, type, round, step);
+    vote->calculateWeight(1, 1, 1);
     votes.emplace_back(vote);
     db->saveVerifiedVote(vote);
     vote_mgr->addVerifiedVote(vote);
@@ -217,10 +219,9 @@ TEST_F(VoteTest, round_determine_from_next_votes) {
     for (int j = 4; j <= 5; j++) {
       uint64_t round = i;
       size_t step = j;
-      for (int n = 0; n <= 2; n++) {
-        auto vote = pbft_mgr->generateVote(voted_block_hash, type, round, step);
-        vote_mgr->addVerifiedVote(vote);
-      }
+      auto vote = pbft_mgr->generateVote(voted_block_hash, type, round, step);
+      vote->calculateWeight(3, 3, 3);
+      vote_mgr->addVerifiedVote(vote);
     }
   }
 
@@ -340,6 +341,7 @@ TEST_F(VoteTest, previous_round_next_votes) {
   auto step = 4;
   blk_hash_t voted_pbft_block_hash(0);
   auto vote1 = pbft_mgr->generateVote(voted_pbft_block_hash, type, round, step);
+  vote1->calculateWeight(1, 1, 1);
   std::vector<std::shared_ptr<Vote>> next_votes_1{vote1};
 
   // Enough votes for NULL_BLOCK_HASH
@@ -352,6 +354,7 @@ TEST_F(VoteTest, previous_round_next_votes) {
   voted_pbft_block_hash = blk_hash_t(1);
   step = 5;
   auto vote2 = pbft_mgr->generateVote(voted_pbft_block_hash, type, round, step);
+  vote2->calculateWeight(1, 1, 1);
   std::vector<std::shared_ptr<Vote>> next_votes_2{vote2};
 
   // Enough votes for blk_hash_t(1)
@@ -384,6 +387,7 @@ TEST_F(VoteTest, previous_round_next_votes) {
   voted_pbft_block_hash = blk_hash_t(2);
   round = 2;
   auto vote3 = pbft_mgr->generateVote(voted_pbft_block_hash, type, round, step);
+  vote3->calculateWeight(1, 1, 1);
   std::vector<std::shared_ptr<Vote>> next_votes_4{vote3};
 
   next_votes_mgr->updateNextVotes(next_votes_4, pbft_2t_plus_1);

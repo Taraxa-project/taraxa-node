@@ -16,7 +16,7 @@ VoteManager::VoteManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::s
       db_(std::move(db)),
       pbft_chain_(std::move(pbft_chain)),
       final_chain_(std::move(final_chain)),
-      previous_round_next_votes_(std::move(next_votes_mgr)) {
+      next_votes_manager_(std::move(next_votes_mgr)) {
   LOG_OBJECTS_CREATE("VOTE_MGR");
 
   // Retrieve votes from DB
@@ -133,7 +133,7 @@ std::vector<std::shared_ptr<Vote>> VoteManager::getVerifiedVotes() {
   for (auto const& round : verified_votes_) {
     for (auto const& step : round.second) {
       for (auto const& voted_value : step.second) {
-        for (auto const& v : voted_value.second) {
+        for (auto const& v : voted_value.second.second) {
           votes.emplace_back(v.second);
         }
       }
@@ -150,7 +150,7 @@ uint64_t VoteManager::getVerifiedVotesSize() const {
   for (auto const& round : verified_votes_) {
     for (auto const& step : round.second) {
       for (auto const& voted_value : step.second) {
-        size += voted_value.second.size();
+        size += voted_value.second.second.size();
       }
     }
   }
@@ -159,10 +159,13 @@ uint64_t VoteManager::getVerifiedVotesSize() const {
 }
 
 void VoteManager::addVerifiedVote(std::shared_ptr<Vote> const& vote) {
-  auto round = vote->getRound();
-  auto step = vote->getStep();
-  auto voted_value = vote->getBlockHash();
-  auto hash = vote->getHash();
+  const auto round = vote->getRound();
+  const auto step = vote->getStep();
+  const auto voted_value = vote->getBlockHash();
+  const auto hash = vote->getHash();
+  assert(vote->getWeight());
+  const auto weight = vote->getWeight().value();
+  if (!weight) return;
 
   UpgradableLock lock(verified_votes_access_);
   auto found_round_it = verified_votes_.find(round);
@@ -174,7 +177,7 @@ void VoteManager::addVerifiedVote(std::shared_ptr<Vote> const& vote) {
       auto found_voted_value_it = found_step_it->second.find(voted_value);
       if (found_voted_value_it != found_step_it->second.end()) {
         // Found voted value
-        if (found_voted_value_it->second.find(hash) != found_voted_value_it->second.end()) {
+        if (found_voted_value_it->second.second.find(hash) != found_voted_value_it->second.second.end()) {
           // Found vote hash
           LOG(log_dg_) << "Vote " << hash << " is in verified map already";
           return;
@@ -182,20 +185,21 @@ void VoteManager::addVerifiedVote(std::shared_ptr<Vote> const& vote) {
         } else {
           // Add vote hash
           UpgradeLock locked(lock);
-          found_voted_value_it->second.insert({hash, vote});
+          found_voted_value_it->second.first += weight;
+          found_voted_value_it->second.second.insert({hash, vote});
         }
       } else {
         // Add voted value
         std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> votes{{hash, vote}};
 
         UpgradeLock locked(lock);
-        verified_votes_[round][step][voted_value] = std::move(votes);
+        verified_votes_[round][step][voted_value] = {weight, std::move(votes)};
       }
     } else {
       // Add step
       std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> votes{{hash, vote}};
-      std::unordered_map<blk_hash_t, std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>> voted_values{
-          {voted_value, std::move(votes)}};
+      std::unordered_map<blk_hash_t, std::pair<uint64_t, std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>>>
+          voted_values{{voted_value, {weight, std::move(votes)}}};
 
       UpgradeLock locked(lock);
       verified_votes_[round][step] = std::move(voted_values);
@@ -203,10 +207,11 @@ void VoteManager::addVerifiedVote(std::shared_ptr<Vote> const& vote) {
   } else {
     // Add round
     std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> votes{{hash, vote}};
-    std::unordered_map<blk_hash_t, std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>> voted_values{
-        {voted_value, std::move(votes)}};
-    std::map<size_t, std::unordered_map<blk_hash_t, std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>>> steps{
-        {step, std::move(voted_values)}};
+    std::unordered_map<blk_hash_t, std::pair<uint64_t, std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>>>
+        voted_values{{voted_value, {weight, std::move(votes)}}};
+    std::map<size_t, std::unordered_map<blk_hash_t,
+                                        std::pair<uint64_t, std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>>>>
+        steps{{step, std::move(voted_values)}};
 
     UpgradeLock locked(lock);
     verified_votes_[round] = std::move(steps);
@@ -231,8 +236,7 @@ void VoteManager::removeVerifiedVotes() {
 
   auto batch = db_->createWriteBatch();
   for (auto const& v : votes) {
-    if (v->getVoterAddr() == node_addr_)  // we save in db only our own votes
-      db_->removeVerifiedVoteToBatch(v->getHash(), batch);
+    db_->removeVerifiedVoteToBatch(v->getHash(), batch);
   }
   db_->commitWriteBatch(batch);
 }
@@ -250,7 +254,7 @@ bool VoteManager::voteInVerifiedMap(std::shared_ptr<Vote> const& vote) {
     if (found_step_it != found_round_it->second.end()) {
       auto found_voted_value_it = found_step_it->second.find(voted_value);
       if (found_voted_value_it != found_step_it->second.end()) {
-        return found_voted_value_it->second.find(hash) != found_voted_value_it->second.end();
+        return found_voted_value_it->second.second.find(hash) != found_voted_value_it->second.second.end();
       }
     }
   }
@@ -362,10 +366,8 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
     while (it != verified_votes_.end() && it->first < pbft_round) {
       for (auto const& step : it->second) {
         for (auto const& voted_value : step.second) {
-          for (auto const& v : voted_value.second) {
-            if (v.second->getVoterAddr() == node_addr_) {
-              db_->removeVerifiedVoteToBatch(v.first, batch);
-            }
+          for (auto const& v : voted_value.second.second) {
+            db_->removeVerifiedVoteToBatch(v.first, batch);
           }
         }
       }
@@ -403,7 +405,7 @@ std::vector<std::shared_ptr<Vote>> VoteManager::getProposalVotes(uint64_t pbft_r
   // For each proposed value should only have one vote(except NULL_BLOCK_HASH)
   proposal_votes.reserve(verified_votes_[pbft_round][1].size());
   for (auto const& voted_value : verified_votes_[pbft_round][1]) {
-    for (auto const& v : voted_value.second) {
+    for (auto const& v : voted_value.second.second) {
       proposal_votes.emplace_back(v.second);
     }
   }
@@ -420,18 +422,17 @@ VotesBundle VoteManager::getVotesBundleByRoundAndStep(uint64_t round, size_t ste
     auto found_step_it = found_round_it->second.find(step);
     if (found_step_it != found_round_it->second.end()) {
       for (auto const& voted_value : found_step_it->second) {
-        if (voted_value.second.size() >= two_t_plus_one) {
+        if (voted_value.second.first >= two_t_plus_one) {
           auto voted_block_hash = voted_value.first;
           votes.reserve(two_t_plus_one);
 
-          auto it = voted_value.second.begin();
+          auto it = voted_value.second.second.begin();
           size_t count = 0;
           // Only copy 2t+1 votes
-          while (count >= two_t_plus_one) {
+          while (count < two_t_plus_one) {
             votes.emplace_back(it->second);
-            it++;
-            assert(it->second->getWeight());
             count += it->second->getWeight().value();
+            it++;
           }
           LOG(log_nf_) << "Found enough " << votes.size() << " votes at voted value " << voted_block_hash
                        << " for round " << round << " step " << step;
@@ -456,8 +457,8 @@ uint64_t VoteManager::roundDeterminedFromVotes(size_t two_t_plus_one) {
         LOG(log_dg_) << "Found sufficient next votes in round " << rit->first << ", step " << step.first
                      << ", PBFT 2t+1 " << two_t_plus_one;
         // Update next votes
-        previous_round_next_votes_->updateNextVotes(voted_block_hash_with_next_votes.votes, two_t_plus_one);
-        auto next_votes = previous_round_next_votes_->getNextVotes();
+        next_votes_manager_->updateNextVotes(voted_block_hash_with_next_votes.votes, two_t_plus_one);
+        auto next_votes = next_votes_manager_->getNextVotes();
 
         auto batch = db_->createWriteBatch();
         db_->addPbft2TPlus1ToBatch(rit->first, two_t_plus_one, batch);
@@ -525,7 +526,7 @@ std::vector<std::shared_ptr<Vote>> NextVotesManager::getNextVotes() {
 
 size_t NextVotesManager::getNextVotesSize() const {
   SharedLock lock(access_);
-  return next_votes_weight_.at(voted_value_);
+  return next_votes_weight_.contains(voted_value_) ? next_votes_weight_.at(voted_value_) : 0;
 }
 
 // Assumption is that all votes are validated, in next voting phase, in the same round.

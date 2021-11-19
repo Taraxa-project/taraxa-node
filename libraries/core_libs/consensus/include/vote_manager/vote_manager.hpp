@@ -113,9 +113,11 @@ class VoteManager {
   // <pbft round, <vote hash, vote>>
   std::map<uint64_t, std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>> unverified_votes_;
 
-  // <PBFT round, <PBFT step, <voted value, <vote hash, vote>>>>
-  std::map<uint64_t,
-           std::map<size_t, std::unordered_map<blk_hash_t, std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>>>>
+  // <PBFT round, <PBFT step, <voted value, pair<voted weight, <vote hash, vote>>>>
+  std::map<
+      uint64_t,
+      std::map<size_t, std::unordered_map<blk_hash_t,
+                                          std::pair<uint64_t, std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>>>>>
       verified_votes_;
 
   std::unordered_set<vote_hash_t> votes_invalid_in_current_final_chain_period_;
@@ -132,7 +134,7 @@ class VoteManager {
   std::shared_ptr<DbStorage> db_;
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<FinalChain> final_chain_;
-  std::shared_ptr<NextVotesManager> previous_round_next_votes_;
+  std::shared_ptr<NextVotesManager> next_votes_manager_;
   std::weak_ptr<Network> network_;
 
   LOG_OBJECTS_DEFINE

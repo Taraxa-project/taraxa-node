@@ -153,7 +153,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   std::unique_ptr<std::thread> daemon_;
   std::shared_ptr<DbStorage> db_;
-  std::shared_ptr<NextVotesManager> previous_round_next_votes_;
+  std::shared_ptr<NextVotesManager> next_votes_manager_;
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<VoteManager> vote_mgr_;
   std::shared_ptr<DagManager> dag_mgr_;

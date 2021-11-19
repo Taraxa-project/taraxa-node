@@ -116,7 +116,8 @@ class Vote {
   }
 
   uint64_t calculateWeight(uint64_t stake, double threshold, double dpos_total_votes_count) const {
-    if (!weight_) weight_ = vrf_sortition_.getBinominalDistribution(stake, threshold, dpos_total_votes_count);
+    assert(stake);
+    weight_ = vrf_sortition_.getBinominalDistribution(stake, threshold, dpos_total_votes_count);
     return weight_.value();
   }
 
