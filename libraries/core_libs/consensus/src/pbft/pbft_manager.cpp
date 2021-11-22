@@ -1050,7 +1050,6 @@ std::shared_ptr<Vote> PbftManager::generateVote(blk_hash_t const &blockhash, Pbf
 size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteTypes vote_type, uint64_t round,
                                size_t step) {
   std::vector<std::shared_ptr<Vote>> votes;
-
   for (size_t weighted_index(0); weighted_index < weighted_votes_count_; weighted_index++) {
     if (step == 1 && weighted_index > 0) {
       break;
@@ -1104,15 +1103,9 @@ blk_hash_t PbftManager::calculateOrderHash(std::vector<DagBlock> const &dag_bloc
 }
 
 std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
-  bool able_to_propose = false;
   auto round = getPbftRound();
-  for (size_t weighted_index(0); weighted_index < weighted_votes_count_; weighted_index++) {
-    if (shouldSpeak(propose_vote_type, round, step_, weighted_index)) {
-      able_to_propose = true;
-      break;
-    }
-  }
-  if (!able_to_propose) {
+  // In propose block, only use first weighted index 0 for VRF sortition
+  if (weighted_votes_count_ == 0 || !shouldSpeak(propose_vote_type, round, step_, 0)) {
     return std::make_pair(NULL_BLOCK_HASH, false);
   }
 
