@@ -392,7 +392,7 @@ std::vector<uint16_t> DbStorage::getLastIntervalEfficiencies(uint16_t computatio
     const auto count_to_get = last_period % computation_interval;
     efficiencies.reserve(count_to_get);
 
-    for (; it->Valid() && efficiencies.size() <= count_to_get; it->Prev()) {
+    for (; it->Valid() && efficiencies.size() < count_to_get; it->Prev()) {
       // order doesn't matter
       efficiencies.push_back(FromSlice<uint16_t>(it->value()));
     }
