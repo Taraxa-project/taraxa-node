@@ -26,7 +26,7 @@ struct VrfPbftMsg {
 
   friend std::ostream& operator<<(std::ostream& strm, VrfPbftMsg const& pbft_msg) {
     strm << "  [Vrf Pbft Msg] " << std::endl;
-    strm << "    type: " << static_cast<uint8_t>(pbft_msg.type) << std::endl;
+    strm << "    type: " << static_cast<uint32_t>(pbft_msg.type) << std::endl;
     strm << "    round: " << pbft_msg.round << std::endl;
     strm << "    step: " << pbft_msg.step << std::endl;
     return strm;
@@ -53,8 +53,8 @@ struct VrfPbftSortition : public vrf_wrapper::VrfSortitionBase {
   using vrf_output_t = vrf_wrapper::vrf_output_t;
   using bytes = dev::bytes;
   VrfPbftSortition() = default;
-  VrfPbftSortition(vrf_sk_t const& sk, VrfPbftMsg const& pbft_msg)
-      : VrfSortitionBase(sk, pbft_msg.getRlpBytes()), pbft_msg(pbft_msg) {}
+  VrfPbftSortition(vrf_sk_t const& sk, VrfPbftMsg pbft_msg)
+      : VrfSortitionBase(sk, pbft_msg.getRlpBytes()), pbft_msg(std::move(pbft_msg)) {}
   explicit VrfPbftSortition(bytes const& rlp);
   bytes getRlpBytes() const;
   bool verify() const { return VrfSortitionBase::verify(pbft_msg.getRlpBytes()); }
@@ -83,7 +83,7 @@ class Vote {
  public:
   using vrf_pk_t = vrf_wrapper::vrf_pk_t;
   Vote() = default;
-  Vote(secret_t const& node_sk, VrfPbftSortition const& vrf_sortition, blk_hash_t const& blockhash);
+  Vote(secret_t const& node_sk, VrfPbftSortition vrf_sortition, blk_hash_t const& blockhash);
 
   explicit Vote(dev::RLP const& rlp);
   explicit Vote(bytes const& rlp);
@@ -109,7 +109,7 @@ class Vote {
   PbftVoteTypes getType() const { return vrf_sortition_.pbft_msg.type; }
   uint64_t getRound() const { return vrf_sortition_.pbft_msg.round; }
   size_t getStep() const { return vrf_sortition_.pbft_msg.step; }
-  bytes rlp(bool inc_sig = true, bool inc_weight = true) const;
+  bytes rlp(bool inc_sig = true, bool inc_weight = false) const;
   bool verifyVote() const {
     auto pk = getVoter();
     return !pk.isZero();  // recoverd public key means that it was verified

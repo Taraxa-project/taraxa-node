@@ -64,8 +64,8 @@ Vote::Vote(dev::RLP const& rlp) {
 
 Vote::Vote(bytes const& b) : Vote(dev::RLP(b)) {}
 
-Vote::Vote(secret_t const& node_sk, VrfPbftSortition const& vrf_sortition, blk_hash_t const& blockhash)
-    : blockhash_(blockhash), vrf_sortition_(vrf_sortition) {
+Vote::Vote(secret_t const& node_sk, VrfPbftSortition vrf_sortition, blk_hash_t const& blockhash)
+    : blockhash_(blockhash), vrf_sortition_(std::move(vrf_sortition)) {
   vote_signature_ = dev::sign(node_sk, sha3(false));
   vote_hash_ = sha3(true);
 }

@@ -313,8 +313,7 @@ size_t PbftManager::dposEligibleVoteCount_(addr_t const &addr) {
 
 bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
   // compute sortition
-  VrfPbftMsg msg(type, round, step);
-  VrfPbftSortition vrf_sortition(vrf_sk_, msg);
+  VrfPbftSortition vrf_sortition(vrf_sk_, {type, round, step});
   if (!vrf_sortition.getBinominalDistribution(weighted_votes_count_, getDposTotalVotesCount(), sortition_threshold_)) {
     LOG(log_tr_) << "Don't get sortition";
     return false;
@@ -1050,7 +1049,7 @@ std::shared_ptr<Vote> PbftManager::generateVote(blk_hash_t const &blockhash, Pbf
                                                 size_t step) {
   // sortition proof
   VrfPbftSortition vrf_sortition(vrf_sk_, {type, round, step});
-  return std::make_shared<Vote>(node_sk_, vrf_sortition, blockhash);
+  return std::make_shared<Vote>(node_sk_, std::move(vrf_sortition), blockhash);
 }
 
 size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteTypes vote_type, uint64_t round,
