@@ -548,15 +548,6 @@ uint64_t VoteManager::roundDeterminedFromVotes(size_t two_t_plus_one) {
                      << ", PBFT 2t+1 " << two_t_plus_one;
         // Update next votes
         previous_round_next_votes_->updateNextVotes(voted_block_hash_with_next_votes.votes, two_t_plus_one);
-        auto next_votes = previous_round_next_votes_->getNextVotes();
-
-        auto batch = db_->createWriteBatch();
-        db_->addPbft2TPlus1ToBatch(rit->first, two_t_plus_one, batch);
-        db_->addNextVotesToBatch(rit->first, next_votes, batch);
-        if (rit->first > 1) {
-          db_->removeNextVotesToBatch(rit->first - 1, batch);
-        }
-        db_->commitWriteBatch(batch);
 
         return rit->first + 1;
       }
