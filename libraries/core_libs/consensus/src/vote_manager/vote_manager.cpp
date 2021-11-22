@@ -473,19 +473,6 @@ uint64_t VoteManager::roundDeterminedFromVotes(size_t two_t_plus_one) {
                      << two_t_plus_one;
         // Update next votes
         previous_round_next_votes_->updateNextVotes(voted_block_hash_with_next_votes.votes, two_t_plus_one);
-        auto next_votes = previous_round_next_votes_->getNextVotes();
-
-        auto batch = db_->createWriteBatch();
-        db_->addPbft2TPlus1ToBatch(round, two_t_plus_one, batch);
-        db_->addNextVotesToBatch(round, next_votes, batch);
-        if (round > 1) {
-          db_->removeNextVotesToBatch(round - 1, batch);
-        }
-        // Update PBFT round and reset step to 1
-        db_->addPbftMgrFieldToBatch(PbftMgrRoundStep::PbftRound, round + 1, batch);
-        db_->addPbftMgrFieldToBatch(PbftMgrRoundStep::PbftStep, 1, batch);
-
-        db_->commitWriteBatch(batch);
 
         return round + 1;
       }

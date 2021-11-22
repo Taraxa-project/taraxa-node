@@ -344,15 +344,21 @@ void PbftManager::setPbftStep(size_t const pbft_step) {
 }
 
 void PbftManager::resetStep_() {
+  last_step_ = step_;
+  step_ = 1;
   startingStepInRound_ = 1;
-  setPbftStep(1);
+
+  LAMBDA_ms = LAMBDA_ms_MIN;
+  LAMBDA_backoff_multiple = 1;
 }
 
 bool PbftManager::resetRound_() {
+  // Jump to round
   auto consensus_pbft_round = vote_mgr_->roundDeterminedFromVotes(TWO_T_PLUS_ONE);
+  // current round
   auto round = getPbftRound();
 
-  if (consensus_pbft_round <= round) {
+  if (consensus_pbft_round != 0 && consensus_pbft_round <= round) {
     LOG(log_er_) << "Consensus round " << consensus_pbft_round << " should never less or equal to current round "
                  << round;
     assert(false);
@@ -360,14 +366,31 @@ bool PbftManager::resetRound_() {
 
   LOG(log_nf_) << "From votes determined round " << consensus_pbft_round;
   round_clock_initial_datetime_ = now_;
-  round_ = round;
+  // Update current round and reset step to 1
+  round_ = consensus_pbft_round;
   resetStep_();
   state_ = value_proposal_state;
 
   LOG(log_dg_) << "Advancing clock to pbft round " << consensus_pbft_round << ", step 1, and resetting clock.";
 
+  const auto previoud_round = consensus_pbft_round - 1;
+
+  auto next_votes = previous_round_next_votes_->getNextVotes();
+
   // Update in DB first
   auto batch = db_->createWriteBatch();
+
+  // Update PBFT round and reset step to 1
+  db_->addPbftMgrFieldToBatch(PbftMgrRoundStep::PbftRound, consensus_pbft_round, batch);
+  db_->addPbftMgrFieldToBatch(PbftMgrRoundStep::PbftStep, 1, batch);
+
+  db_->addPbft2TPlus1ToBatch(previoud_round, TWO_T_PLUS_ONE, batch);
+  db_->addNextVotesToBatch(previoud_round, next_votes, batch);
+  if (round > 1) {
+    // Cleanup old previoud round next votes
+    db_->removeNextVotesToBatch(round - 1, batch);
+  }
+
   db_->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundSortitionThreshold, sortition_threshold_,
                                      batch);
   db_->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposPeriod, dpos_period_.load(), batch);
