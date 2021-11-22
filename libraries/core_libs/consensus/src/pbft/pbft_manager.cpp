@@ -353,12 +353,14 @@ bool PbftManager::resetRound_() {
   auto round = getPbftRound();
 
   if (consensus_pbft_round <= round) {
-    return false;
+    LOG(log_er_) << "Consensus round " << consensus_pbft_round << " should never less or equal to current round "
+                 << round;
+    assert(false);
   }
 
   LOG(log_nf_) << "From votes determined round " << consensus_pbft_round;
   round_clock_initial_datetime_ = now_;
-  setPbftRound(consensus_pbft_round);
+  round_ = round;
   resetStep_();
   state_ = value_proposal_state;
 

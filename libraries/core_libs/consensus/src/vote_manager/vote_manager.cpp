@@ -466,23 +466,28 @@ uint64_t VoteManager::roundDeterminedFromVotes(size_t two_t_plus_one) {
       if (step.first <= 3) {
         continue;
       }
-      auto voted_block_hash_with_next_votes = getVotesBundleByRoundAndStep(rit->first, step.first, two_t_plus_one);
+      const auto round = rit->first;
+      auto voted_block_hash_with_next_votes = getVotesBundleByRoundAndStep(round, step.first, two_t_plus_one);
       if (voted_block_hash_with_next_votes.enough) {
-        LOG(log_dg_) << "Found sufficient next votes in round " << rit->first << ", step " << step.first
-                     << ", PBFT 2t+1 " << two_t_plus_one;
+        LOG(log_dg_) << "Found sufficient next votes in round " << round << ", step " << step.first << ", PBFT 2t+1 "
+                     << two_t_plus_one;
         // Update next votes
         previous_round_next_votes_->updateNextVotes(voted_block_hash_with_next_votes.votes, two_t_plus_one);
         auto next_votes = previous_round_next_votes_->getNextVotes();
 
         auto batch = db_->createWriteBatch();
-        db_->addPbft2TPlus1ToBatch(rit->first, two_t_plus_one, batch);
-        db_->addNextVotesToBatch(rit->first, next_votes, batch);
-        if (rit->first > 1) {
-          db_->removeNextVotesToBatch(rit->first - 1, batch);
+        db_->addPbft2TPlus1ToBatch(round, two_t_plus_one, batch);
+        db_->addNextVotesToBatch(round, next_votes, batch);
+        if (round > 1) {
+          db_->removeNextVotesToBatch(round - 1, batch);
         }
+        // Update PBFT round and reset step to 1
+        db_->addPbftMgrFieldToBatch(PbftMgrRoundStep::PbftRound, round + 1, batch);
+        db_->addPbftMgrFieldToBatch(PbftMgrRoundStep::PbftStep, 1, batch);
+
         db_->commitWriteBatch(batch);
 
-        return rit->first + 1;
+        return round + 1;
       }
     }
   }
