@@ -387,14 +387,15 @@ std::vector<uint16_t> DbStorage::getLastIntervalEfficiencies(uint16_t computatio
   auto it =
       std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::pbft_block_dag_efficiency)));
   it->SeekToLast();
-  const auto last_period = FromSlice<uint64_t>(it->key().data());
-  const auto count_to_get = last_period % computation_interval;
-  efficiencies.reserve(count_to_get);
+  if (it->Valid()) {
+    const auto last_period = FromSlice<uint64_t>(it->key().data());
+    const auto count_to_get = last_period % computation_interval;
+    efficiencies.reserve(count_to_get);
 
-  for (uint16_t i = 0; i < count_to_get; ++i) {
-    // order doesn't matter
-    efficiencies.push_back(FromSlice<uint16_t>(it->value()));
-    it->Prev();
+    for (; it->Valid() && efficiencies.size() <= count_to_get; it->Prev()) {
+      // order doesn't matter
+      efficiencies.push_back(FromSlice<uint16_t>(it->value()));
+    }
   }
 
   return efficiencies;
