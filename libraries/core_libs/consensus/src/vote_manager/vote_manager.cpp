@@ -290,11 +290,19 @@ void VoteManager::verifyVotes(uint64_t pbft_round, size_t sortition_threshold, u
       continue;
     }
     bool vote_is_valid = true;
-    try {
-      v->validate(dpos_eligible_vote_count(v->getVoterAddr()), sortition_threshold, dpos_total_votes_count);
-    } catch (const std::logic_error& e) {
-      LOG(log_er_) << e.what();
-      vote_is_valid = false;
+    auto dpos_votes_count = dpos_eligible_vote_count(v->getVoterAddr());
+    if (v->getStep() == 1 && v->getType() == propose_vote_type) {
+      // We need to handle propose_vote_type
+      if (!dpos_votes_count) vote_is_valid = false;
+      dpos_votes_count = 1;
+    }
+    if (vote_is_valid) {
+      try {
+        v->validate(dpos_votes_count, dpos_total_votes_count, sortition_threshold);
+      } catch (const std::logic_error& e) {
+        LOG(log_er_) << e.what();
+        vote_is_valid = false;
+      }
     }
 
     if (vote_is_valid) {
@@ -796,7 +804,7 @@ bool NextVotesManager::voteVerification(std::shared_ptr<Vote>& vote, uint64_t dp
     return false;
   }
 
-  auto vote_account_addr = vote->getVoterAddr();
+  const auto vote_account_addr = vote->getVoterAddr();
   uint64_t dpos_votes_count;
   try {
     dpos_votes_count = final_chain_->dpos_eligible_vote_count(dpos_period, vote_account_addr);
@@ -806,8 +814,13 @@ bool NextVotesManager::voteVerification(std::shared_ptr<Vote>& vote, uint64_t dp
     return false;
   }
 
+  if (!dpos_votes_count) {
+    LOG(log_wr_) << "Vote is invalid because DPOS votes count is 0 " << *vote;
+    return false;
+  }
+
   try {
-    vote->validate(dpos_votes_count, pbft_sortition_threshold, dpos_total_votes_count);
+    vote->validate(dpos_votes_count, dpos_total_votes_count, pbft_sortition_threshold);
   } catch (const std::logic_error& e) {
     LOG(log_er_) << e.what();
     return false;

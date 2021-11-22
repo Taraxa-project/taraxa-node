@@ -64,9 +64,9 @@ struct VrfPbftSortition : public vrf_wrapper::VrfSortitionBase {
 
   static inline uint512_t max512bits = std::numeric_limits<uint512_t>::max();
   static inline auto kMax512bFP = max512bits.convert_to<boost::multiprecision::mpfr_float>();
-  static uint64_t getBinominalDistribution(uint64_t stake, double threshold, double dpos_total_votes_count,
+  static uint64_t getBinominalDistribution(uint64_t stake, double dpos_total_votes_count, double threshold,
                                            const uint512_t& output);
-  uint64_t getBinominalDistribution(uint64_t stake, double threshold, double dpos_total_votes_count) const;
+  uint64_t getBinominalDistribution(uint64_t stake, double dpos_total_votes_count, double threshold) const;
 
   friend std::ostream& operator<<(std::ostream& strm, VrfPbftSortition const& vrf_sortition) {
     strm << "[VRF sortition] " << std::endl;
@@ -89,7 +89,7 @@ class Vote {
   explicit Vote(bytes const& rlp);
   bool operator==(Vote const& other) const { return rlp() == other.rlp(); }
 
-  void validate(uint64_t stake, double sortition_threshold, double dpos_total_votes_count) const;
+  void validate(uint64_t stake, double dpos_total_votes_count, double sortition_threshold) const;
   vote_hash_t getHash() const { return vote_hash_; }
   public_t getVoter() const {
     if (!cached_voter_) cached_voter_ = dev::recover(vote_signature_, sha3(false));
@@ -115,9 +115,9 @@ class Vote {
     return !pk.isZero();  // recoverd public key means that it was verified
   }
 
-  uint64_t calculateWeight(uint64_t stake, double threshold, double dpos_total_votes_count) const {
+  uint64_t calculateWeight(uint64_t stake, double dpos_total_votes_count, double threshold) const {
     assert(stake);
-    weight_ = vrf_sortition_.getBinominalDistribution(stake, threshold, dpos_total_votes_count);
+    weight_ = vrf_sortition_.getBinominalDistribution(stake, dpos_total_votes_count, threshold);
     return weight_.value();
   }
 

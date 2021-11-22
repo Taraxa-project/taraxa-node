@@ -315,7 +315,7 @@ bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
   // compute sortition
   VrfPbftMsg msg(type, round, step);
   VrfPbftSortition vrf_sortition(vrf_sk_, msg);
-  if (!vrf_sortition.getBinominalDistribution(weighted_votes_count_, sortition_threshold_, getDposTotalVotesCount())) {
+  if (!vrf_sortition.getBinominalDistribution(weighted_votes_count_, getDposTotalVotesCount(), sortition_threshold_)) {
     LOG(log_tr_) << "Don't get sortition";
     return false;
   }
@@ -1055,11 +1055,11 @@ std::shared_ptr<Vote> PbftManager::generateVote(blk_hash_t const &blockhash, Pbf
 
 size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteTypes vote_type, uint64_t round,
                                size_t step) {
-  if (!weighted_votes_count_ || !getDposTotalVotesCount()) {
+  if (!weighted_votes_count_) {
     return 0;
   }
   auto vote = generateVote(blockhash, vote_type, round, step);
-  if (vote->calculateWeight(weighted_votes_count_, sortition_threshold_, getDposTotalVotesCount())) {
+  if (vote->calculateWeight(weighted_votes_count_, getDposTotalVotesCount(), sortition_threshold_)) {
     db_->saveVerifiedVote(vote);
     vote_mgr_->addVerifiedVote(vote);
     if (auto net = network_.lock()) {
@@ -1101,9 +1101,9 @@ blk_hash_t PbftManager::calculateOrderHash(std::vector<DagBlock> const &dag_bloc
 std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
   auto round = getPbftRound();
   // In propose block, only use one vote for VRF sortition
-  VrfPbftSortition vrf_sortition(vrf_sk_, {propose_vote_type, propose_vote_type, step_});
+  VrfPbftSortition vrf_sortition(vrf_sk_, {propose_vote_type, round, step_});
   if (weighted_votes_count_ == 0 ||
-      !vrf_sortition.getBinominalDistribution(1, sortition_threshold_, getDposTotalVotesCount())) {
+      !vrf_sortition.getBinominalDistribution(1, getDposTotalVotesCount(), sortition_threshold_)) {
     return std::make_pair(NULL_BLOCK_HASH, false);
   }
 

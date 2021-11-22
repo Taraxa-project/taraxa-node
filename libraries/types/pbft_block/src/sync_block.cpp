@@ -91,7 +91,7 @@ void SyncBlock::hasEnoughValidCertVotes(size_t dpos_total_votes_count, size_t so
     }
     auto stake = dpos_eligible_vote_count(v->getVoterAddr());
     try {
-      v->validate(stake, sortition_threshold, dpos_total_votes_count);
+      v->validate(stake, dpos_total_votes_count, sortition_threshold);
     } catch (const std::logic_error& e) {
       std::stringstream err;
       err << "For PBFT block " << pbft_blk->getBlockHash() << ", cert vote " << v->getHash()

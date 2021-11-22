@@ -46,9 +46,9 @@ uint64_t VrfPbftSortition::getBinominalDistribution(uint64_t stake, double dpos_
   return stake;
 }
 
-uint64_t VrfPbftSortition::getBinominalDistribution(uint64_t stake, double threshold,
-                                                    double dpos_total_votes_count) const {
-  return VrfPbftSortition::getBinominalDistribution(stake, threshold, dpos_total_votes_count, output);
+uint64_t VrfPbftSortition::getBinominalDistribution(uint64_t stake, double dpos_total_votes_count,
+                                                    double threshold) const {
+  return VrfPbftSortition::getBinominalDistribution(stake, dpos_total_votes_count, threshold, output);
 }
 
 Vote::Vote(dev::RLP const& rlp) {
@@ -70,8 +70,8 @@ Vote::Vote(secret_t const& node_sk, VrfPbftSortition const& vrf_sortition, blk_h
   vote_hash_ = sha3(true);
 }
 
-void Vote::validate(uint64_t stake, double sortition_threshold, double dpos_total_votes_count) const {
-  if (!stake || !dpos_total_votes_count) {
+void Vote::validate(uint64_t stake, double dpos_total_votes_count, double sortition_threshold) const {
+  if (!stake) {
     std::stringstream err;
     err << "Invalid stake " << *this;
     throw std::logic_error(err.str());
@@ -83,7 +83,7 @@ void Vote::validate(uint64_t stake, double sortition_threshold, double dpos_tota
     throw std::logic_error(err.str());
   }
 
-  if (!calculateWeight(stake, sortition_threshold, dpos_total_votes_count)) {
+  if (!calculateWeight(stake, dpos_total_votes_count, sortition_threshold)) {
     std::stringstream err;
     err << "Vote sortition failed. Sortition threshold " << sortition_threshold << ", DPOS total votes count "
         << dpos_total_votes_count << " " << *this;
