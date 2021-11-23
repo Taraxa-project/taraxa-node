@@ -131,7 +131,7 @@ Config::Config(int argc, const char* argv[]) {
     return;
   }
 
-  if (command.size() > 0 && (command[0] == NODE_COMMAND || command[0] == CONFIG_COMMAND)) {
+  if (command[0] == NODE_COMMAND || command[0] == CONFIG_COMMAND) {
     // Create dir if missing
     auto config_dir = dirNameFromFile(config);
     auto wallet_dir = dirNameFromFile(wallet);
@@ -190,12 +190,12 @@ Config::Config(int argc, const char* argv[]) {
     node_config_.test_params.rebuild_db_columns = rebuild_db_columns;
     node_config_.test_params.rebuild_db_period = rebuild_db_period;
     if (command[0] == NODE_COMMAND) node_configured_ = true;
-  } else if (command.size() > 0 && command[0] == ACCOUNT_COMMAND) {
+  } else if (command[0] == ACCOUNT_COMMAND) {
     if (command.size() == 1)
       Tools::generateAccount();
     else
       Tools::generateAccountFromKey(command[1]);
-  } else if (command.size() > 0 && command[0] == VRF_COMMAND) {
+  } else if (command[0] == VRF_COMMAND) {
     if (command.size() == 1)
       Tools::generateVrf();
     else

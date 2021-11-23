@@ -14,8 +14,8 @@ class TaraxaConan(ConanFile):
 
     def requirements(self):
         self.requires("boost/1.76.0")
-        self.requires("cppcheck/2.3")
-        self.requires("openssl/1.1.1k")
+        self.requires("cppcheck/2.5") # 2.6 Segmentation fault (core dumped) while building
+        self.requires("openssl/1.1.1l")
         self.requires("cryptopp/8.5.0")
         self.requires("gtest/1.11.0")
         self.requires("lz4/1.9.3")
@@ -60,6 +60,8 @@ class TaraxaConan(ConanFile):
         self._configure_boost_libs()
         # Configure gtest
         self.options["gtest"].build_gmock = False
+        # this links cppcheck to prce library
+        self.options["cppcheck"].have_rules = False
         self.options["rocksdb"].use_rtti = True
         self.options["rocksdb"].with_lz4= True
         self.options["libjson-rpc-cpp"].shared = False

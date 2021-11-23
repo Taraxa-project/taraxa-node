@@ -20,6 +20,9 @@ else ()
             --suppress=unusedFunction
             # TODO remove this when we solve correct exit of programs
             --suppress=localMutex */main.cpp
+            # error: Rethrowing current exception with 'throw;', it seems there is no current exception to rethrow.
+            # false positive
+            --suppress=rethrowNoCurrentException libraries/core_libs/network/rpc/rpc_error_handler.cpp
 
             # Only show found errors
             "--quiet"
