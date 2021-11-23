@@ -33,7 +33,7 @@ class Test : public TestFace {
   virtual Json::Value get_node_count() override;
   virtual Json::Value get_all_peers() override;
   virtual Json::Value get_all_nodes() override;
-  virtual Json::Value should_speak(const Json::Value& param1) override;
+  virtual Json::Value get_vote_weight(const Json::Value& param1) override;
   virtual Json::Value place_vote(const Json::Value& param1) override;
   virtual Json::Value get_votes(const Json::Value& param1) override;
   virtual Json::Value draw_graph(const Json::Value& param1) override;

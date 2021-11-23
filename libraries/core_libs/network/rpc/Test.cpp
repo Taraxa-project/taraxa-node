@@ -281,18 +281,14 @@ Json::Value Test::get_all_nodes() {
   return res;
 }
 
-Json::Value Test::should_speak(const Json::Value &param1) {
+Json::Value Test::get_vote_weight(const Json::Value &param1) {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {
       PbftVoteTypes type = static_cast<PbftVoteTypes>(param1["type"].asInt());
       uint64_t period = param1["period"].asUInt64();
       size_t step = param1["step"].asUInt();
-      if (node->getPbftManager()->shouldSpeak(type, period, step)) {
-        res = "True";
-      } else {
-        res = "False";
-      }
+      res = node->getPbftManager()->getVoteWeight(type, period, step);
     }
   } catch (std::exception &e) {
     res["status"] = e.what();

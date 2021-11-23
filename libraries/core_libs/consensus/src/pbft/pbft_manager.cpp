@@ -311,15 +311,10 @@ size_t PbftManager::dposEligibleVoteCount_(addr_t const &addr) {
   }
 }
 
-bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
-  // compute sortition
+// Only used by RPC call
+uint64_t PbftManager::getVoteWeight(PbftVoteTypes type, uint64_t round, size_t step) const {
   VrfPbftSortition vrf_sortition(vrf_sk_, {type, round, step});
-  if (!vrf_sortition.getBinominalDistribution(weighted_votes_count_, getDposTotalVotesCount(), sortition_threshold_)) {
-    LOG(log_tr_) << "Don't get sortition";
-    return false;
-  }
-
-  return true;
+  return vrf_sortition.getBinominalDistribution(weighted_votes_count_, getDposTotalVotesCount(), sortition_threshold_);
 }
 
 void PbftManager::setPbftStep(size_t const pbft_step) {

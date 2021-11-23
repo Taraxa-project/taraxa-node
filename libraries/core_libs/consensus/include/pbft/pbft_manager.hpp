@@ -46,7 +46,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   void stop();
   void run();
 
-  bool shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step);
+  uint64_t getVoteWeight(PbftVoteTypes type, uint64_t round, size_t step) const;
 
   std::pair<bool, uint64_t> getDagBlockPeriod(blk_hash_t const &hash);
   uint64_t getPbftRound() const;
