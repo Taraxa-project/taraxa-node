@@ -534,7 +534,11 @@ std::vector<std::shared_ptr<Vote>> NextVotesManager::getNextVotes() {
 
 size_t NextVotesManager::getNextVotesSize() const {
   SharedLock lock(access_);
-  return next_votes_weight_.contains(voted_value_) ? next_votes_weight_.at(voted_value_) : 0;
+  size_t size = 0;
+  for (const auto& w : next_votes_weight_) {
+    size += w.second;
+  }
+  return size;
 }
 
 // Assumption is that all votes are validated, in next voting phase, in the same round.
