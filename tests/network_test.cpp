@@ -667,8 +667,9 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_behind_round) {
   size_t step = 5;
   for (auto i = 0; i < 3; i++) {
     blk_hash_t voted_pbft_block_hash(i % 2);  // Next votes could vote on 2 values
-    auto vote = pbft_mgr1->generateVote(voted_pbft_block_hash, type, round, step);
-    next_votes.emplace_back(vote);
+    auto vote = pbft_mgr1->generateVote(voted_pbft_block_hash, type, round, step + i);
+    vote->calculateWeight(1, 1, 1);
+    next_votes.push_back(std::move(vote));
   }
 
   // Update next votes bundle and set PBFT round
@@ -733,7 +734,8 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_1) {
   for (uint64_t i = 0; i < 2; i++) {
     blk_hash_t voted_pbft_block_hash1(i);  // Next votes could vote on 2 values
     auto vote = pbft_mgr1->generateVote(voted_pbft_block_hash1, type, round, step);
-    next_votes1.emplace_back(vote);
+    vote->calculateWeight(1, 1, 1);
+    next_votes1.push_back(std::move(vote));
   }
 
   // Update node1 next votes bundle
@@ -743,6 +745,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_1) {
   // Generate 1 same next votes with node1, voted same value on NULL_BLOCK_HASH
   blk_hash_t voted_pbft_block_hash2(0);
   auto vote1 = pbft_mgr1->generateVote(voted_pbft_block_hash2, type, round, step);
+  vote1->calculateWeight(1, 1, 1);
   std::vector<std::shared_ptr<Vote>> next_votes2{vote1};
 
   // Update node2 next votes bundle
@@ -804,6 +807,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
   uint64_t round = 1;
   size_t step = 5;
   auto vote1 = pbft_mgr1->generateVote(voted_pbft_block_hash1, type, round, step);
+  vote1->calculateWeight(1, 1, 1);
   std::vector<std::shared_ptr<Vote>> next_votes1{vote1};
 
   // Update node1 next votes bundle
@@ -813,6 +817,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
   // Node1 generate 1 different next vote for node2, because node2 is not delegated
   blk_hash_t voted_pbft_block_hash2("1234567890000000000000000000000000000000000000000000000000000000");
   auto vote2 = pbft_mgr1->generateVote(voted_pbft_block_hash2, type, round, step);
+  vote2->calculateWeight(1, 1, 1);
   std::vector<std::shared_ptr<Vote>> next_votes2{vote2};
 
   // Update node2 next votes bundle

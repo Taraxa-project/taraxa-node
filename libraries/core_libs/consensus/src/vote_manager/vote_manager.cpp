@@ -648,6 +648,7 @@ void NextVotesManager::updateNextVotes(std::vector<std::shared_ptr<Vote>> const&
   // Copy all next votes
   for (auto const& v : next_votes) {
     LOG(log_dg_) << "Add next vote: " << *v;
+    assert(v->getWeight());
 
     next_votes_set_.insert(v->getHash());
     auto voted_block_hash = v->getBlockHash();
