@@ -128,19 +128,25 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
   // and by syncing here we open node up to attack of sending bogus
   // status.  We also have nothing to punish a node failing to send
   // sync info.
-  auto pbft_synced_period = pbft_mgr_->pbftSyncingPeriod();
+  const auto pbft_synced_period = pbft_mgr_->pbftSyncingPeriod();
   if (pbft_synced_period + 1 < selected_peer->pbft_chain_size_) {
     LOG(log_nf_) << "Restart PBFT chain syncing. Own synced PBFT at period " << pbft_synced_period
                  << ", peer PBFT chain size " << selected_peer->pbft_chain_size_;
     restartSyncingPbft();
   }
 
-  auto pbft_current_round = pbft_mgr_->getPbftRound();
-  auto pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesSize();
-  if (pbft_current_round < selected_peer->pbft_round_ ||
-      (pbft_current_round == selected_peer->pbft_round_ &&
-       pbft_previous_round_next_votes_size < selected_peer->pbft_previous_round_next_votes_size_)) {
+  const auto pbft_current_round = pbft_mgr_->getPbftRound();
+  const auto pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesSize();
+  if (pbft_current_round < selected_peer->pbft_round_) {
     syncPbftNextVotes(pbft_current_round, pbft_previous_round_next_votes_size);
+  } else if (pbft_current_round == selected_peer->pbft_round_) {
+    // because of weighted votes some peers could have more votes than we have
+    // if we have 2 * 2T+1 votes, we will not request more votes
+    //
+    if (pbft_previous_round_next_votes_size < (pbft_mgr_->getTwoTPlusOne() * 2) &&
+        pbft_previous_round_next_votes_size < selected_peer->pbft_previous_round_next_votes_size_) {
+      syncPbftNextVotes(pbft_current_round, pbft_previous_round_next_votes_size);
+    }
   }
 }
 

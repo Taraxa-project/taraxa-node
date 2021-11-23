@@ -1061,10 +1061,11 @@ size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteType
   if (vote->calculateWeight(weighted_votes_count_, getDposTotalVotesCount(), sortition_threshold_)) {
     db_->saveVerifiedVote(vote);
     vote_mgr_->addVerifiedVote(vote);
+    const auto weight = vote->getWeight().value();
     if (auto net = network_.lock()) {
-      net->onNewPbftVotes({vote});  // TODO rework to single vote
+      net->onNewPbftVotes({std::move(vote)});
     }
-    return vote->getWeight().value();
+    return weight;
   }
   return 0;
 }
