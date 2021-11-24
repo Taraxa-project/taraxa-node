@@ -14,7 +14,7 @@ StatusPacketHandler::StatusPacketHandler(
     std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
     std::shared_ptr<SyncingState> syncing_state, std::shared_ptr<PbftChain> pbft_chain,
     std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
-    std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr,
+    std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<NextVotesManager> next_votes_mgr,
     std::shared_ptr<DbStorage> db, uint64_t conf_network_id, const addr_t& node_addr)
     : ExtSyncingPacketHandler(std::move(peers_state), std::move(packets_stats), std::move(syncing_state),
                               std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(dag_blk_mgr),
@@ -128,19 +128,25 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
   // and by syncing here we open node up to attack of sending bogus
   // status.  We also have nothing to punish a node failing to send
   // sync info.
-  auto pbft_synced_period = pbft_mgr_->pbftSyncingPeriod();
+  const auto pbft_synced_period = pbft_mgr_->pbftSyncingPeriod();
   if (pbft_synced_period + 1 < selected_peer->pbft_chain_size_) {
     LOG(log_nf_) << "Restart PBFT chain syncing. Own synced PBFT at period " << pbft_synced_period
                  << ", peer PBFT chain size " << selected_peer->pbft_chain_size_;
     restartSyncingPbft();
   }
 
-  auto pbft_current_round = pbft_mgr_->getPbftRound();
-  auto pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesSize();
-  if (pbft_current_round < selected_peer->pbft_round_ ||
-      (pbft_current_round == selected_peer->pbft_round_ &&
-       pbft_previous_round_next_votes_size < selected_peer->pbft_previous_round_next_votes_size_)) {
+  const auto pbft_current_round = pbft_mgr_->getPbftRound();
+  const auto pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesWeight();
+  if (pbft_current_round < selected_peer->pbft_round_) {
     syncPbftNextVotes(pbft_current_round, pbft_previous_round_next_votes_size);
+  } else if (pbft_current_round == selected_peer->pbft_round_) {
+    // because of weighted votes some peers could have more votes than we have
+    // if we have 2 * 2T+1 votes, we will not request more votes
+    //
+    if (pbft_previous_round_next_votes_size < (pbft_mgr_->getTwoTPlusOne() * 2) &&
+        pbft_previous_round_next_votes_size < selected_peer->pbft_previous_round_next_votes_size_) {
+      syncPbftNextVotes(pbft_current_round, pbft_previous_round_next_votes_size);
+    }
   }
 }
 
@@ -157,7 +163,7 @@ bool StatusPacketHandler::sendStatus(const dev::p2p::NodeID& node_id, bool initi
     auto dag_max_level = dag_mgr_->getMaxLevel();
     auto pbft_chain_size = pbft_chain_->getPbftChainSize();
     auto pbft_round = pbft_mgr_->getPbftRound();
-    auto pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesSize();
+    auto pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesWeight();
 
     if (initial) {
       success = sealAndSend(

@@ -9,7 +9,7 @@ VotesSyncPacketHandler::VotesSyncPacketHandler(std::shared_ptr<PeersState> peers
                                                std::shared_ptr<PacketsStats> packets_stats,
                                                std::shared_ptr<PbftManager> pbft_mgr,
                                                std::shared_ptr<VoteManager> vote_mgr,
-                                               std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr,
+                                               std::shared_ptr<NextVotesManager> next_votes_mgr,
                                                std::shared_ptr<DbStorage> db, const addr_t &node_addr)
     : ExtVotesPacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "VOTES_SYNC_PH"),
       pbft_mgr_(std::move(pbft_mgr)),
@@ -83,7 +83,7 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
     // Update our previous round next vote bundles...
     next_votes_mgr_->updateWithSyncedVotes(next_votes, pbft_2t_plus_1);
     // Pass them on to our peers...
-    const auto updated_next_votes_size = next_votes_mgr_->getNextVotesSize();
+    const auto updated_next_votes_size = next_votes_mgr_->getNextVotesWeight();
     for (auto const &peer_to_share_to : peers_state_->getAllPeers()) {
       // Do not send votes right back to same peer...
       if (peer_to_share_to.first == packet_data.from_node_id_) {

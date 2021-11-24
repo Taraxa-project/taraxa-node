@@ -759,11 +759,11 @@ std::shared_ptr<Vote> DbStorage::getVerifiedVote(vote_hash_t const& vote_hash) {
 }
 
 void DbStorage::saveVerifiedVote(std::shared_ptr<Vote> const& vote) {
-  insert(Columns::verified_votes, toSlice(vote->getHash().asBytes()), toSlice(vote->rlp(true)));
+  insert(Columns::verified_votes, toSlice(vote->getHash().asBytes()), toSlice(vote->rlp(true, true)));
 }
 
 void DbStorage::addVerifiedVoteToBatch(std::shared_ptr<Vote> const& vote, Batch& write_batch) {
-  insert(write_batch, Columns::verified_votes, toSlice(vote->getHash().asBytes()), toSlice(vote->rlp(true)));
+  insert(write_batch, Columns::verified_votes, toSlice(vote->getHash().asBytes()), toSlice(vote->rlp(true, true)));
 }
 
 void DbStorage::removeVerifiedVoteToBatch(vote_hash_t const& vote_hash, Batch& write_batch) {
@@ -787,7 +787,7 @@ std::vector<std::shared_ptr<Vote>> DbStorage::getSoftVotes(uint64_t pbft_round) 
 void DbStorage::saveSoftVotes(uint64_t pbft_round, std::vector<std::shared_ptr<Vote>> const& soft_votes) {
   dev::RLPStream s(soft_votes.size());
   for (auto const& v : soft_votes) {
-    s.appendRaw(v->rlp(true));
+    s.appendRaw(v->rlp(true, true));
   }
   insert(Columns::soft_votes, toSlice(pbft_round), toSlice(s.out()));
 }
@@ -796,7 +796,7 @@ void DbStorage::addSoftVotesToBatch(uint64_t pbft_round, std::vector<std::shared
                                     Batch& write_batch) {
   dev::RLPStream s(soft_votes.size());
   for (auto const& v : soft_votes) {
-    s.appendRaw(v->rlp(true));
+    s.appendRaw(v->rlp(true, true));
   }
   insert(write_batch, Columns::soft_votes, toSlice(pbft_round), toSlice(s.out()));
 }
@@ -836,7 +836,7 @@ std::vector<std::shared_ptr<Vote>> DbStorage::getNextVotes(uint64_t pbft_round) 
 void DbStorage::saveNextVotes(uint64_t pbft_round, std::vector<std::shared_ptr<Vote>> const& next_votes) {
   dev::RLPStream s(next_votes.size());
   for (auto const& v : next_votes) {
-    s.appendRaw(v->rlp(true));
+    s.appendRaw(v->rlp(true, true));
   }
   insert(Columns::next_votes, toSlice(pbft_round), toSlice(s.out()));
 }
@@ -845,7 +845,7 @@ void DbStorage::addNextVotesToBatch(uint64_t pbft_round, std::vector<std::shared
                                     Batch& write_batch) {
   dev::RLPStream s(next_votes.size());
   for (auto const& v : next_votes) {
-    s.appendRaw(v->rlp(true));
+    s.appendRaw(v->rlp(true, true));
   }
   insert(write_batch, Columns::next_votes, toSlice(pbft_round), toSlice(s.out()));
 }

@@ -80,7 +80,7 @@
     "returns": {}
   },
   {
-    "name": "should_speak",
+    "name": "get_vote_weight",
     "params": [
       {}
     ],

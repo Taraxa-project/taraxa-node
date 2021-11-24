@@ -8,7 +8,7 @@ namespace taraxa::network::tarcap {
 GetVotesSyncPacketHandler::GetVotesSyncPacketHandler(std::shared_ptr<PeersState> peers_state,
                                                      std::shared_ptr<PacketsStats> packets_stats,
                                                      std::shared_ptr<PbftManager> pbft_mgr,
-                                                     std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr,
+                                                     std::shared_ptr<NextVotesManager> next_votes_mgr,
                                                      const addr_t &node_addr)
     : ExtVotesPacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "GET_VOTES_SYNC_PH"),
       pbft_mgr_(std::move(pbft_mgr)),
@@ -20,7 +20,7 @@ void GetVotesSyncPacketHandler::process(const PacketData &packet_data, const std
   const uint64_t peer_pbft_round = packet_data.rlp_[0].toPositiveInt64();
   const size_t peer_pbft_previous_round_next_votes_size = packet_data.rlp_[1].toInt<unsigned>();
   const uint64_t pbft_round = pbft_mgr_->getPbftRound();
-  const size_t pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesSize();
+  const size_t pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesWeight();
 
   if (pbft_round > peer_pbft_round || (pbft_round == peer_pbft_round && pbft_previous_round_next_votes_size >
                                                                             peer_pbft_previous_round_next_votes_size)) {

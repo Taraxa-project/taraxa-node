@@ -3,6 +3,7 @@
 #include <libdevcore/SHA3.h>
 #include <libdevcrypto/Common.h>
 
+#include <boost/multiprecision/mpfr.hpp>
 #include <string>
 
 #include "common/types.hpp"
@@ -13,41 +14,36 @@ namespace taraxa {
 enum PbftVoteTypes : uint8_t { propose_vote_type = 0, soft_vote_type, cert_vote_type, next_vote_type };
 struct VrfPbftMsg {
   VrfPbftMsg() = default;
-  VrfPbftMsg(PbftVoteTypes type, uint64_t round, size_t step, size_t weighted_index)
-      : type(type), round(round), step(step), weighted_index(weighted_index) {}
+  VrfPbftMsg(PbftVoteTypes type, uint64_t round, size_t step) : type(type), round(round), step(step) {}
 
   std::string toString() const {
-    return std::to_string(type) + "_" + std::to_string(round) + "_" + std::to_string(step) + "_" +
-           std::to_string(weighted_index);
+    return std::to_string(type) + "_" + std::to_string(round) + "_" + std::to_string(step);
   }
 
   bool operator==(VrfPbftMsg const& other) const {
-    return type == other.type && round == other.round && step == other.step && weighted_index == other.weighted_index;
+    return type == other.type && round == other.round && step == other.step;
   }
 
   friend std::ostream& operator<<(std::ostream& strm, VrfPbftMsg const& pbft_msg) {
     strm << "  [Vrf Pbft Msg] " << std::endl;
-    strm << "    type: " << static_cast<uint8_t>(pbft_msg.type) << std::endl;
+    strm << "    type: " << static_cast<uint32_t>(pbft_msg.type) << std::endl;
     strm << "    round: " << pbft_msg.round << std::endl;
     strm << "    step: " << pbft_msg.step << std::endl;
-    strm << "    weighted_index: " << pbft_msg.weighted_index << std::endl;
     return strm;
   }
 
   bytes getRlpBytes() const {
     dev::RLPStream s;
-    s.appendList(4);
+    s.appendList(3);
     s << static_cast<uint8_t>(type);
     s << round;
     s << step;
-    s << weighted_index;
     return s.out();
   }
 
   PbftVoteTypes type;
   uint64_t round;
   size_t step;
-  size_t weighted_index;
 };
 
 struct VrfPbftSortition : public vrf_wrapper::VrfSortitionBase {
@@ -57,16 +53,21 @@ struct VrfPbftSortition : public vrf_wrapper::VrfSortitionBase {
   using vrf_output_t = vrf_wrapper::vrf_output_t;
   using bytes = dev::bytes;
   VrfPbftSortition() = default;
-  VrfPbftSortition(vrf_sk_t const& sk, VrfPbftMsg const& pbft_msg)
-      : VrfSortitionBase(sk, pbft_msg.getRlpBytes()), pbft_msg(pbft_msg) {}
+  VrfPbftSortition(vrf_sk_t const& sk, VrfPbftMsg pbft_msg)
+      : VrfSortitionBase(sk, pbft_msg.getRlpBytes()), pbft_msg(std::move(pbft_msg)) {}
   explicit VrfPbftSortition(bytes const& rlp);
   bytes getRlpBytes() const;
   bool verify() const { return VrfSortitionBase::verify(pbft_msg.getRlpBytes()); }
   bool operator==(VrfPbftSortition const& other) const {
     return pk == other.pk && pbft_msg == other.pbft_msg && proof == other.proof && output == other.output;
   }
+
   static inline uint512_t max512bits = std::numeric_limits<uint512_t>::max();
-  bool canSpeak(size_t threshold, size_t valid_players) const;
+  static inline auto kMax512bFP = max512bits.convert_to<boost::multiprecision::mpfr_float>();
+  static uint64_t getBinominalDistribution(uint64_t stake, double dpos_total_votes_count, double threshold,
+                                           const uint512_t& output);
+  uint64_t getBinominalDistribution(uint64_t stake, double dpos_total_votes_count, double threshold) const;
+
   friend std::ostream& operator<<(std::ostream& strm, VrfPbftSortition const& vrf_sortition) {
     strm << "[VRF sortition] " << std::endl;
     strm << "  pk: " << vrf_sortition.pk << std::endl;
@@ -82,13 +83,13 @@ class Vote {
  public:
   using vrf_pk_t = vrf_wrapper::vrf_pk_t;
   Vote() = default;
-  Vote(secret_t const& node_sk, VrfPbftSortition const& vrf_sortition, blk_hash_t const& blockhash);
+  Vote(secret_t const& node_sk, VrfPbftSortition vrf_sortition, blk_hash_t const& blockhash);
 
   explicit Vote(dev::RLP const& rlp);
   explicit Vote(bytes const& rlp);
   bool operator==(Vote const& other) const { return rlp() == other.rlp(); }
 
-  void validate(size_t valid_sortition_players, size_t sortition_threshold) const;
+  void validate(uint64_t stake, double dpos_total_votes_count, double sortition_threshold) const;
   vote_hash_t getHash() const { return vote_hash_; }
   public_t getVoter() const {
     if (!cached_voter_) cached_voter_ = dev::recover(vote_signature_, sha3(false));
@@ -108,15 +109,19 @@ class Vote {
   PbftVoteTypes getType() const { return vrf_sortition_.pbft_msg.type; }
   uint64_t getRound() const { return vrf_sortition_.pbft_msg.round; }
   size_t getStep() const { return vrf_sortition_.pbft_msg.step; }
-  size_t getWeightedIndex() const { return vrf_sortition_.pbft_msg.weighted_index; }
-  bytes rlp(bool inc_sig = true) const;
+  bytes rlp(bool inc_sig = true, bool inc_weight = false) const;
   bool verifyVote() const {
     auto pk = getVoter();
     return !pk.isZero();  // recoverd public key means that it was verified
   }
-  bool verifyCanSpeak(size_t threshold, size_t dpos_total_votes_count) const {
-    return vrf_sortition_.canSpeak(threshold, dpos_total_votes_count);
+
+  uint64_t calculateWeight(uint64_t stake, double dpos_total_votes_count, double threshold) const {
+    assert(stake);
+    weight_ = vrf_sortition_.getBinominalDistribution(stake, dpos_total_votes_count, threshold);
+    return weight_.value();
   }
+
+  std::optional<uint64_t> getWeight() const { return weight_; }
 
   friend std::ostream& operator<<(std::ostream& strm, Vote const& vote) {
     strm << "[Vote] " << std::endl;
@@ -124,6 +129,7 @@ class Vote {
     strm << "  voter: " << vote.getVoter() << std::endl;
     strm << "  vote_signatue: " << vote.vote_signature_ << std::endl;
     strm << "  blockhash: " << vote.blockhash_ << std::endl;
+    if (vote.weight_) strm << "  weight: " << vote.weight_.value() << std::endl;
     strm << "  vrf_sorition: " << vote.vrf_sortition_ << std::endl;
     return strm;
   }
@@ -137,6 +143,7 @@ class Vote {
   VrfPbftSortition vrf_sortition_;
   mutable public_t cached_voter_;
   mutable addr_t cached_voter_addr_;
+  mutable std::optional<uint64_t> weight_;
 };
 
 struct VotesBundle {

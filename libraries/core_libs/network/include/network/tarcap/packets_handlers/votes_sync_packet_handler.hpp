@@ -5,7 +5,7 @@
 namespace taraxa {
 class PbftManager;
 class VoteManager;
-class NextVotesForPreviousRound;
+class NextVotesManager;
 class DbStorage;
 }  // namespace taraxa
 
@@ -15,7 +15,7 @@ class VotesSyncPacketHandler : public ExtVotesPacketHandler {
  public:
   VotesSyncPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
                          std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<VoteManager> vote_mgr,
-                         std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr, std::shared_ptr<DbStorage> db,
+                         std::shared_ptr<NextVotesManager> next_votes_mgr, std::shared_ptr<DbStorage> db,
                          const addr_t& node_addr);
 
   virtual ~VotesSyncPacketHandler() = default;
@@ -27,7 +27,7 @@ class VotesSyncPacketHandler : public ExtVotesPacketHandler {
 
   std::shared_ptr<PbftManager> pbft_mgr_;
   std::shared_ptr<VoteManager> vote_mgr_;
-  std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr_;
+  std::shared_ptr<NextVotesManager> next_votes_mgr_;
   std::shared_ptr<DbStorage> db_;
 };
 

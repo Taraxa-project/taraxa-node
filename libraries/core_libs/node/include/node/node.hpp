@@ -70,7 +70,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<Network> network_;
   std::shared_ptr<BlockProposer> blk_proposer_;
   std::shared_ptr<VoteManager> vote_mgr_;
-  std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr_;
+  std::shared_ptr<NextVotesManager> next_votes_mgr_;
   std::shared_ptr<PbftManager> pbft_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<FinalChain> final_chain_;

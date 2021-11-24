@@ -95,12 +95,12 @@ TEST_F(CryptoTest, vrf_sortition) {
   vrf_sk_t sk(
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
       "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
-  VrfPbftMsg msg(PbftVoteTypes::cert_vote_type, 2, 3, 0);
+  VrfPbftMsg msg(PbftVoteTypes::cert_vote_type, 2, 3);
   VrfPbftSortition sortition(sk, msg);
   VrfPbftSortition sortition2(sk, msg);
 
-  EXPECT_FALSE(sortition.canSpeak(0, 1));
-  EXPECT_TRUE(sortition.canSpeak(1, 0));
+  EXPECT_FALSE(sortition.getBinominalDistribution(0, 1, 1));
+  EXPECT_TRUE(sortition.getBinominalDistribution(1, 1, 1));
   auto b = sortition.getRlpBytes();
   VrfPbftSortition sortition3(b);
   sortition3.verify();
@@ -259,6 +259,30 @@ TEST_F(CryptoTest, keypair_signature_verify_hash_test) {
   EXPECT_EQ(credential.length(), 64);
 }
 
+TEST_F(CryptoTest, new_sortition_rate) {
+  uint64_t hitcount = 0;
+  const uint64_t N = 1000;
+  const uint64_t kExpectedSize = 20;
+  const uint64_t kMyMoney = 100;
+  const uint64_t kTotalMoney = 200;
+  for (uint64_t i = 0; i < N; i++) {
+    const uint512_t kVrfOutput = dev::FixedHash<64>::random();
+    hitcount += VrfPbftSortition::getBinominalDistribution(kMyMoney, kTotalMoney, kExpectedSize, kVrfOutput);
+  }
+  const auto expected = N * kExpectedSize / 2;
+  uint64_t d;
+  if (expected > hitcount) {
+    d = expected - hitcount;
+  } else {
+    d = hitcount - expected;
+  }
+  // within 2.5% good enough
+  auto maxd = expected / 40;
+  EXPECT_LE(d, maxd);
+  std::cout << "wanted " << expected << " selections but got " << hitcount << ", d=" << d << ", maxd=" << maxd
+            << std::endl;
+}
+
 TEST_F(CryptoTest, sortition_rate) {
   vrf_sk_t sk(
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
@@ -269,18 +293,11 @@ TEST_F(CryptoTest, sortition_rate) {
   int sortition_threshold = 5;
   // Test for one player sign round messages to get sortition
   // Sortition rate THRESHOLD / PLAYERS = 5%
-  uint64_t pbft_round;
   size_t pbft_step = 3;
-  size_t weighted_index;
   for (int i = 0; i < round; i++) {
-    pbft_round = i;
-    weighted_index = i;
-    VrfPbftMsg msg(PbftVoteTypes::cert_vote_type, pbft_round, pbft_step, weighted_index);
+    VrfPbftMsg msg(PbftVoteTypes::cert_vote_type, i, pbft_step);
     VrfPbftSortition sortition(sk, msg);
-    bool win = sortition.canSpeak(sortition_threshold, valid_sortition_players);
-    if (win) {
-      count++;
-    }
+    count += sortition.getBinominalDistribution(1, valid_sortition_players, sortition_threshold);
   }
   EXPECT_EQ(count, 54);  // Test experience
 
@@ -289,14 +306,9 @@ TEST_F(CryptoTest, sortition_rate) {
   // Test for one player sign round messages to get sortition
   // Sortition rate THRESHOLD / PLAYERS = 100%
   for (int i = 0; i < round; i++) {
-    pbft_round = i;
-    weighted_index = i;
-    VrfPbftMsg msg(PbftVoteTypes::cert_vote_type, pbft_round, pbft_step, weighted_index);
+    VrfPbftMsg msg(PbftVoteTypes::cert_vote_type, i, pbft_step);
     VrfPbftSortition sortition(sk, msg);
-    bool win = sortition.canSpeak(sortition_threshold, valid_sortition_players);
-    if (win) {
-      count++;
-    }
+    count += sortition.getBinominalDistribution(1, valid_sortition_players, sortition_threshold);
   }
   // depend on sortition THRESHOLD
   // CREDENTIAL / SIGNATURE_HASH_MAX <= SORTITION THRESHOLD / VALID PLAYERS
@@ -310,14 +322,9 @@ TEST_F(CryptoTest, sortition_rate) {
     dev::KeyPair key_pair = dev::KeyPair::create();
     for (int j = 0; j < round; j++) {
       auto [pk, sk] = getVrfKeyPair();
-      pbft_round = i;
-      weighted_index = i;
-      VrfPbftMsg msg(PbftVoteTypes::cert_vote_type, pbft_round, pbft_step, weighted_index);
+      VrfPbftMsg msg(PbftVoteTypes::cert_vote_type, i, pbft_step);
       VrfPbftSortition sortition(sk, msg);
-      bool win = sortition.canSpeak(sortition_threshold, valid_sortition_players);
-      if (win) {
-        count++;
-      }
+      count += sortition.getBinominalDistribution(1, valid_sortition_players, sortition_threshold);
     }
   }
   // depend on sortition THRESHOLD, sortition rate for all players:

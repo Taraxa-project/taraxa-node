@@ -4,7 +4,7 @@
 
 namespace taraxa {
 class PbftManager;
-class NextVotesForPreviousRound;
+class NextVotesManager;
 }  // namespace taraxa
 
 namespace taraxa::network::tarcap {
@@ -12,8 +12,8 @@ namespace taraxa::network::tarcap {
 class GetVotesSyncPacketHandler : public ExtVotesPacketHandler {
  public:
   GetVotesSyncPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
-                            std::shared_ptr<PbftManager> pbft_mgr,
-                            std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr, const addr_t& node_addr);
+                            std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<NextVotesManager> next_votes_mgr,
+                            const addr_t& node_addr);
 
   virtual ~GetVotesSyncPacketHandler() = default;
 
@@ -21,7 +21,7 @@ class GetVotesSyncPacketHandler : public ExtVotesPacketHandler {
   void process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
 
   std::shared_ptr<PbftManager> pbft_mgr_;
-  std::shared_ptr<NextVotesForPreviousRound> next_votes_mgr_;
+  std::shared_ptr<NextVotesManager> next_votes_mgr_;
 };
 
 }  // namespace taraxa::network::tarcap

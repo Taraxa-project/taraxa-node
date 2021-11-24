@@ -41,7 +41,7 @@ void ExtVotesPacketHandler::sendPbftNextVotes(dev::p2p::NodeID const &peer_id,
 
   dev::RLPStream s(send_next_votes_bundle.size());
   for (auto const &next_vote : send_next_votes_bundle) {
-    s.appendRaw(next_vote->rlp());
+    s.appendRaw(next_vote->rlp(true));
     LOG(log_dg_) << "Send out next vote " << next_vote->getHash() << " to peer " << peer_id;
   }
 
