@@ -6,6 +6,9 @@
 #include "libp2p/Common.h"
 
 namespace taraxa::network::tarcap {
+
+class TaraxaPeer;
+
 /**
  * @brief SyncingState contains common members and functions related to syncing that are shared among multiple classes
  */
@@ -17,23 +20,28 @@ class SyncingState {
    * @brief Set pbft syncing
    *
    * @param syncing
-   * @param peer_id used in case syncing flag == true to set which peer is the node syncing with
+   * @param current_period
+   * @param peer used in case syncing flag == true to set which peer is the node syncing with
    */
-  void set_pbft_syncing(bool syncing, uint32_t period_difference = 0,
-                        const std::optional<dev::p2p::NodeID> &peer_id = {});
+  void set_pbft_syncing(bool syncing, uint64_t current_period = 0, const std::shared_ptr<TaraxaPeer> &peer = nullptr);
 
   /**
    * @brief Set dag syncing
    *
    * @param syncing
-   * @param peer_id used in case syncing flag == true to set which peer is the node syncing with
+   * @param peer used in case syncing flag == true to set which peer is the node syncing with
    */
-  void set_dag_syncing(bool syncing, const std::optional<dev::p2p::NodeID> &peer_id = {});
+  void set_dag_syncing(bool syncing, const std::shared_ptr<TaraxaPeer> &peer = nullptr);
 
   /**
    * @brief Set current time as last received sync packet  time
    */
   void set_last_sync_packet_time();
+
+  /**
+   * @brief Set current pbft period
+   */
+  void setSyncStatePeriod(uint64_t period);
 
   /**
    * @brief Check if syncing is active
@@ -57,7 +65,7 @@ class SyncingState {
   bool is_peer_malicious(const dev::p2p::NodeID &peer_id) const;
 
  private:
-  void set_peer(const dev::p2p::NodeID &peer_id);
+  void set_peer(const std::shared_ptr<TaraxaPeer> &peer);
 
  private:
   std::atomic<bool> deep_pbft_syncing_{false};
@@ -75,8 +83,8 @@ class SyncingState {
   std::chrono::steady_clock::time_point last_received_sync_packet_time_{std::chrono::steady_clock::now()};
   mutable std::shared_mutex time_mutex_;
 
-  // Peer id that the node is syncing with
-  dev::p2p::NodeID peer_id_;
+  // Peer that the node is syncing with
+  std::shared_ptr<TaraxaPeer> peer_;
   mutable std::shared_mutex peer_mutex_;
 };
 

@@ -419,6 +419,8 @@ void TaraxaCapability::sendTransactions(dev::p2p::NodeID const &id, std::vector<
       ->sendTransactions(id, transactions);
 }
 
+void TaraxaCapability::setSyncStatePeriod(uint64_t period) { syncing_state_->setSyncStatePeriod(period); }
+
 // METHODS USED IN TESTS ONLY
 void TaraxaCapability::sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk) {
   std::static_pointer_cast<DagBlockPacketHandler>(
@@ -459,6 +461,7 @@ void TaraxaCapability::sendPbftVote(dev::p2p::NodeID const &id, std::shared_ptr<
   std::static_pointer_cast<VotePacketHandler>(packets_handlers_->getSpecificHandler(SubprotocolPacketType::VotePacket))
       ->sendPbftVote(id, vote);
 }
+
 // END METHODS USED IN TESTS ONLY
 
 }  // namespace taraxa::network::tarcap
