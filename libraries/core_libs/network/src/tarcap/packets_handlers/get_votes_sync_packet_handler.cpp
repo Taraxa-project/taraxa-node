@@ -20,7 +20,7 @@ void GetVotesSyncPacketHandler::process(const PacketData &packet_data, const std
   const uint64_t peer_pbft_round = packet_data.rlp_[0].toPositiveInt64();
   const size_t peer_pbft_previous_round_next_votes_size = packet_data.rlp_[1].toInt<unsigned>();
   const uint64_t pbft_round = pbft_mgr_->getPbftRound();
-  const size_t pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesSize();
+  const size_t pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesWeight();
 
   if (pbft_round > peer_pbft_round || (pbft_round == peer_pbft_round && pbft_previous_round_next_votes_size >
                                                                             peer_pbft_previous_round_next_votes_size)) {

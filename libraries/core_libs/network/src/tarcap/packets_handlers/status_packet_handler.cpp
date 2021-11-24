@@ -136,7 +136,7 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
   }
 
   const auto pbft_current_round = pbft_mgr_->getPbftRound();
-  const auto pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesSize();
+  const auto pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesWeight();
   if (pbft_current_round < selected_peer->pbft_round_) {
     syncPbftNextVotes(pbft_current_round, pbft_previous_round_next_votes_size);
   } else if (pbft_current_round == selected_peer->pbft_round_) {
@@ -163,7 +163,7 @@ bool StatusPacketHandler::sendStatus(const dev::p2p::NodeID& node_id, bool initi
     auto dag_max_level = dag_mgr_->getMaxLevel();
     auto pbft_chain_size = pbft_chain_->getPbftChainSize();
     auto pbft_round = pbft_mgr_->getPbftRound();
-    auto pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesSize();
+    auto pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesWeight();
 
     if (initial) {
       success = sealAndSend(

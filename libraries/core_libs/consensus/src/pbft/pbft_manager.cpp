@@ -482,7 +482,7 @@ void PbftManager::initialState_() {
                << ". Previous round has enough next votes for NULL_BLOCK_HASH: " << std::boolalpha
                << next_votes_manager_->haveEnoughVotesForNullBlockHash() << ", voted value "
                << previous_round_next_voted_value_ << ", next votes size in previous round is "
-               << next_votes_manager_->getNextVotesSize();
+               << next_votes_manager_->getNextVotesWeight();
 
   // Initial last sync request
   pbft_round_last_requested_sync_ = 0;
@@ -1053,10 +1053,10 @@ size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteType
     return 0;
   }
   auto vote = generateVote(blockhash, vote_type, round, step);
-  if (vote->calculateWeight(weighted_votes_count_, getDposTotalVotesCount(), sortition_threshold_)) {
+  if (const auto weight = vote->calculateWeight(weighted_votes_count_, getDposTotalVotesCount(), sortition_threshold_);
+      weight) {
     db_->saveVerifiedVote(vote);
     vote_mgr_->addVerifiedVote(vote);
-    const auto weight = vote->getWeight().value();
     if (auto net = network_.lock()) {
       net->onNewPbftVotes({std::move(vote)});
     }

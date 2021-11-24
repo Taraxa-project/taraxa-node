@@ -532,7 +532,7 @@ std::vector<std::shared_ptr<Vote>> NextVotesManager::getNextVotes() {
   return next_votes_bundle;
 }
 
-size_t NextVotesManager::getNextVotesSize() const {
+size_t NextVotesManager::getNextVotesWeight() const {
   SharedLock lock(access_);
   size_t size = 0;
   for (const auto& w : next_votes_weight_) {

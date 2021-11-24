@@ -27,7 +27,7 @@ class NextVotesManager {
 
   std::vector<std::shared_ptr<Vote>> getNextVotes();
 
-  size_t getNextVotesSize() const;
+  size_t getNextVotesWeight() const;
 
   void addNextVotes(std::vector<std::shared_ptr<Vote>> const& next_votes, size_t pbft_2t_plus_1);
 

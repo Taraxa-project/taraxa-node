@@ -348,7 +348,7 @@ TEST_F(VoteTest, previous_round_next_votes) {
   next_votes_mgr->addNextVotes(next_votes_1, pbft_2t_plus_1);
   EXPECT_TRUE(next_votes_mgr->haveEnoughVotesForNullBlockHash());
   EXPECT_EQ(next_votes_mgr->getNextVotes().size(), next_votes_1.size());
-  EXPECT_EQ(next_votes_mgr->getNextVotesSize(), next_votes_1.size());
+  EXPECT_EQ(next_votes_mgr->getNextVotesWeight(), next_votes_1.size());
 
   // Generate a vote voted at value blk_hash_t(1)
   voted_pbft_block_hash = blk_hash_t(1);
@@ -370,7 +370,7 @@ TEST_F(VoteTest, previous_round_next_votes) {
   auto expect_size = next_votes_1.size() + next_votes_2.size();
   EXPECT_EQ(expect_size, 2);
   EXPECT_EQ(next_votes_mgr->getNextVotes().size(), expect_size);
-  EXPECT_EQ(next_votes_mgr->getNextVotesSize(), expect_size);
+  EXPECT_EQ(next_votes_mgr->getNextVotesWeight(), expect_size);
 
   // Copy next_votes_1 and next_votes_2 into next_votes_3
   std::vector<std::shared_ptr<Vote>> next_votes_3;
@@ -382,12 +382,12 @@ TEST_F(VoteTest, previous_round_next_votes) {
   // Should not update anything
   next_votes_mgr->addNextVotes(next_votes_3, pbft_2t_plus_1);
   EXPECT_EQ(next_votes_mgr->getNextVotes().size(), expect_size);
-  EXPECT_EQ(next_votes_mgr->getNextVotesSize(), expect_size);
+  EXPECT_EQ(next_votes_mgr->getNextVotesWeight(), expect_size);
 
   // Should not update anything
   next_votes_mgr->updateWithSyncedVotes(next_votes_3, pbft_2t_plus_1);
   EXPECT_EQ(next_votes_mgr->getNextVotes().size(), next_votes_3.size());
-  EXPECT_EQ(next_votes_mgr->getNextVotesSize(), next_votes_3.size());
+  EXPECT_EQ(next_votes_mgr->getNextVotesWeight(), next_votes_3.size());
 
   // Generate a vote voted at value blk_hash_t(2)
   voted_pbft_block_hash = blk_hash_t(2);
@@ -401,7 +401,7 @@ TEST_F(VoteTest, previous_round_next_votes) {
   EXPECT_EQ(next_votes_mgr->getVotedValue(), voted_pbft_block_hash);
   EXPECT_FALSE(next_votes_mgr->enoughNextVotes());
   EXPECT_EQ(next_votes_mgr->getNextVotes().size(), next_votes_4.size());
-  EXPECT_EQ(next_votes_mgr->getNextVotesSize(), next_votes_4.size());
+  EXPECT_EQ(next_votes_mgr->getNextVotesWeight(), next_votes_4.size());
 }
 
 }  // namespace taraxa::core_tests
