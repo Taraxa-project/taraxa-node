@@ -54,7 +54,7 @@ void ExtSyncingPacketHandler::restartSyncingPbft(bool force) {
                  << max_pbft_chain_size << ", own PBFT chain synced at period " << pbft_sync_period;
 
     syncing_state_->set_dag_syncing(false);
-    syncing_state_->set_pbft_syncing(true, max_pbft_chain_size - pbft_sync_period, max_pbft_chain_peer);
+    syncing_state_->set_pbft_syncing(true, pbft_sync_period, max_pbft_chain_peer);
     syncPeerPbft(pbft_sync_period + 1);
     // Disable snapshots only if are syncing from scratch
     if (syncing_state_->is_deep_pbft_syncing()) {
