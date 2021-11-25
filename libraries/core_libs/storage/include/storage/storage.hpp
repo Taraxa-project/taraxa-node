@@ -201,7 +201,6 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   // Sortition params
   void saveSortitionParamsChange(uint64_t period, SortitionParamsChange params, DbStorage::Batch& batch);
   std::deque<SortitionParamsChange> getLastSortitionParams(size_t count);
-  void cleanupParamsChanges(DbStorage::Batch& batch, uint16_t changes_to_leave);
 
   // Transaction
   void saveTransaction(Transaction const& trx, bool verified = false);

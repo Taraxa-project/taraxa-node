@@ -117,7 +117,6 @@ void SortitionParamsManager::cleanup(uint64_t current_period) {
   }
   auto batch = db_->createWriteBatch();
   db_->cleanupDagEfficiencies(current_period);
-  db_->cleanupParamsChanges(batch, config_.changes_count_for_average);
   db_->commitWriteBatch(batch);
 }
 

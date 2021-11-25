@@ -423,17 +423,6 @@ std::deque<SortitionParamsChange> DbStorage::getLastSortitionParams(size_t count
   return changes;
 }
 
-void DbStorage::cleanupParamsChanges(DbStorage::Batch& batch, uint16_t changes_to_leave) {
-  auto it =
-      std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::sortition_params_change)));
-  it->SeekToLast();
-  for (uint16_t i = 0; it->Valid(); it->Prev(), ++i) {
-    if (i >= changes_to_leave) {
-      remove(batch, Columns::sortition_params_change, it->key());
-    }
-  }
-}
-
 void DbStorage::savePeriodData(const SyncBlock& sync_block, Batch& write_batch) {
   uint64_t period = sync_block.pbft_blk->getPeriod();
   addPbftBlockPeriodToBatch(period, sync_block.pbft_blk->getBlockHash(), write_batch);
