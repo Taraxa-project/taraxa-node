@@ -13,9 +13,12 @@ void SyncingState::set_peer(const std::shared_ptr<TaraxaPeer> &peer) {
   peer_ = peer;
 }
 
-const dev::p2p::NodeID &SyncingState::syncing_peer() const {
+const dev::p2p::NodeID SyncingState::syncing_peer() const {
   std::shared_lock lock(peer_mutex_);
-  return peer_->getId();
+  if (peer_) {
+    return peer_->getId();
+  }
+  return dev::p2p::NodeID();
 }
 
 void SyncingState::setSyncStatePeriod(uint64_t period) {

@@ -55,7 +55,7 @@ class SyncingState {
   bool is_pbft_syncing() const;
   bool is_dag_syncing() const;
 
-  const dev::p2p::NodeID &syncing_peer() const;
+  const dev::p2p::NodeID syncing_peer() const;
 
   /**
    * @brief Marks peer as malicious, in case none is provided, peer_id_ (node that we currently syncing with) is marked
