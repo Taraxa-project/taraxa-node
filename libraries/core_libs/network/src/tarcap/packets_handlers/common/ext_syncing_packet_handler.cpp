@@ -54,7 +54,7 @@ void ExtSyncingPacketHandler::restartSyncingPbft(bool force) {
                  << max_pbft_chain_size << ", own PBFT chain synced at period " << pbft_sync_period;
 
     syncing_state_->set_dag_syncing(false);
-    syncing_state_->set_pbft_syncing(true, pbft_sync_period, max_pbft_chain_peer);
+    syncing_state_->set_pbft_syncing(true, pbft_sync_period, std::move(max_pbft_chain_peer));
     syncPeerPbft(pbft_sync_period + 1);
     // Disable snapshots only if are syncing from scratch
     if (syncing_state_->is_deep_pbft_syncing()) {
@@ -72,7 +72,7 @@ void ExtSyncingPacketHandler::restartSyncingPbft(bool force) {
       LOG(log_nf_) << "Request pending " << max_node_dag_level << " "
                    << std::max(dag_mgr_->getMaxLevel(), dag_blk_mgr_->getMaxDagLevelInQueue()) << "("
                    << dag_mgr_->getMaxLevel() << ")";
-      syncing_state_->set_dag_syncing(true, max_pbft_chain_peer);
+      syncing_state_->set_dag_syncing(true, std::move(max_pbft_chain_peer));
       requestPendingDagBlocks();
     } else {
       syncing_state_->set_dag_syncing(false);

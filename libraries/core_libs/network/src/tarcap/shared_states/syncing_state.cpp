@@ -8,9 +8,9 @@ namespace taraxa::network::tarcap {
 SyncingState::SyncingState(uint16_t deep_syncing_threshold)
     : malicious_peers_(300, 50), kDeepSyncingThreshold(deep_syncing_threshold) {}
 
-void SyncingState::set_peer(const std::shared_ptr<TaraxaPeer> &peer) {
+void SyncingState::set_peer(std::shared_ptr<TaraxaPeer> &&peer) {
   std::unique_lock lock(peer_mutex_);
-  peer_ = peer;
+  peer_ = std::move(peer);
 }
 
 const dev::p2p::NodeID SyncingState::syncing_peer() const {
@@ -23,22 +23,24 @@ const dev::p2p::NodeID SyncingState::syncing_peer() const {
 
 void SyncingState::setSyncStatePeriod(uint64_t period) {
   if (pbft_syncing_) {
+    std::shared_lock lock(peer_mutex_);
     deep_pbft_syncing_ = (peer_->pbft_chain_size_ - period >= kDeepSyncingThreshold);
   } else {
     deep_pbft_syncing_ = false;
   }
 }
 
-void SyncingState::set_pbft_syncing(bool syncing, uint64_t current_period, const std::shared_ptr<TaraxaPeer> &peer) {
+void SyncingState::set_pbft_syncing(bool syncing, uint64_t current_period, std::shared_ptr<TaraxaPeer> peer) {
   assert((syncing && peer) || !syncing);
   pbft_syncing_ = syncing;
 
   if (peer) {
-    set_peer(peer);
+    set_peer(std::move(peer));
   }
 
   if (syncing) {
-    deep_pbft_syncing_ = (peer->pbft_chain_size_ - current_period >= kDeepSyncingThreshold);
+    std::shared_lock lock(peer_mutex_);
+    deep_pbft_syncing_ = (peer_->pbft_chain_size_ - current_period >= kDeepSyncingThreshold);
     // Reset last sync packet time when syncing is restarted/fresh syncing flag is set
     set_last_sync_packet_time();
   } else {
@@ -46,12 +48,12 @@ void SyncingState::set_pbft_syncing(bool syncing, uint64_t current_period, const
   }
 }
 
-void SyncingState::set_dag_syncing(bool syncing, const std::shared_ptr<TaraxaPeer> &peer) {
+void SyncingState::set_dag_syncing(bool syncing, std::shared_ptr<TaraxaPeer> peer) {
   assert((syncing && peer) || !syncing);
   dag_syncing_ = syncing;
 
   if (peer) {
-    set_peer(peer);
+    set_peer(std::move(peer));
   }
 }
 
