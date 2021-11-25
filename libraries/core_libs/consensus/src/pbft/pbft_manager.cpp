@@ -1463,6 +1463,8 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
         break;
       }
 
+      net->setSyncStatePeriod(sync_block.pbft_blk->getPeriod());
+
       if (executed_pbft_block_) {
         vote_mgr_->removeVerifiedVotes();
         updateDposState_();

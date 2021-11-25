@@ -55,6 +55,7 @@ class Network {
   void onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_block);
   bool pbft_syncing();
   uint64_t syncTimeSeconds() const;
+  void setSyncStatePeriod(uint64_t period);
 
   void handleMaliciousSyncPeer(dev::p2p::NodeID const &id);
 

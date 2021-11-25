@@ -106,6 +106,8 @@ bool Network::pbft_syncing() { return taraxa_capability_->pbft_syncing(); }
 
 uint64_t Network::syncTimeSeconds() const { return taraxa_capability_->getNodeStats()->syncTimeSeconds(); }
 
+void Network::setSyncStatePeriod(uint64_t period) { taraxa_capability_->setSyncStatePeriod(period); }
+
 void Network::handleMaliciousSyncPeer(dev::p2p::NodeID const &id) { taraxa_capability_->handleMaliciousSyncPeer({id}); }
 
 void Network::onNewPbftVotes(std::vector<std::shared_ptr<Vote>> votes) {

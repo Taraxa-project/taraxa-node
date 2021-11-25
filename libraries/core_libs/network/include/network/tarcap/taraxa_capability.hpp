@@ -79,6 +79,7 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   void broadcastPreviousRoundNextVotesBundle();
   void sendTransactions(dev::p2p::NodeID const &id, std::vector<taraxa::bytes> const &transactions);
   void handleMaliciousSyncPeer(dev::p2p::NodeID const &id);
+  void setSyncStatePeriod(uint64_t period);
 
   // METHODS USED IN TESTS ONLY
   void sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk);
@@ -94,6 +95,7 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   // PBFT
   void sendPbftBlock(dev::p2p::NodeID const &id, PbftBlock const &pbft_block, uint64_t pbft_chain_size);
   void sendPbftVote(dev::p2p::NodeID const &id, std::shared_ptr<Vote> const &vote);
+
   // END METHODS USED IN TESTS ONLY
 
  private:

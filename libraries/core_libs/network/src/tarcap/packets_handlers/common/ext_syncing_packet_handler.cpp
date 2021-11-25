@@ -29,7 +29,7 @@ void ExtSyncingPacketHandler::restartSyncingPbft(bool force) {
     return;
   }
 
-  dev::p2p::NodeID max_pbft_chain_nodeID;
+  std::shared_ptr<TaraxaPeer> max_pbft_chain_peer;
   uint64_t max_pbft_chain_size = 0;
   uint64_t max_node_dag_level = 0;
 
@@ -40,21 +40,21 @@ void ExtSyncingPacketHandler::restartSyncingPbft(bool force) {
   for (auto const &peer : peers_state_->getAllPeers()) {
     if (peer.second->pbft_chain_size_ > max_pbft_chain_size) {
       max_pbft_chain_size = peer.second->pbft_chain_size_;
-      max_pbft_chain_nodeID = peer.first;
       max_node_dag_level = peer.second->dag_level_;
+      max_pbft_chain_peer = peer.second;
     } else if (peer.second->pbft_chain_size_ == max_pbft_chain_size && peer.second->dag_level_ > max_node_dag_level) {
-      max_pbft_chain_nodeID = peer.first;
       max_node_dag_level = peer.second->dag_level_;
+      max_pbft_chain_peer = peer.second;
     }
   }
 
   auto pbft_sync_period = pbft_mgr_->pbftSyncingPeriod();
   if (max_pbft_chain_size > pbft_sync_period) {
-    LOG(log_si_) << "Restarting syncing PBFT from peer " << max_pbft_chain_nodeID << ", peer PBFT chain size "
+    LOG(log_si_) << "Restarting syncing PBFT from peer " << max_pbft_chain_peer->getId() << ", peer PBFT chain size "
                  << max_pbft_chain_size << ", own PBFT chain synced at period " << pbft_sync_period;
 
     syncing_state_->set_dag_syncing(false);
-    syncing_state_->set_pbft_syncing(true, max_pbft_chain_size - pbft_sync_period, max_pbft_chain_nodeID);
+    syncing_state_->set_pbft_syncing(true, pbft_sync_period, max_pbft_chain_peer);
     syncPeerPbft(pbft_sync_period + 1);
     // Disable snapshots only if are syncing from scratch
     if (syncing_state_->is_deep_pbft_syncing()) {
@@ -72,7 +72,7 @@ void ExtSyncingPacketHandler::restartSyncingPbft(bool force) {
       LOG(log_nf_) << "Request pending " << max_node_dag_level << " "
                    << std::max(dag_mgr_->getMaxLevel(), dag_blk_mgr_->getMaxDagLevelInQueue()) << "("
                    << dag_mgr_->getMaxLevel() << ")";
-      syncing_state_->set_dag_syncing(true, max_pbft_chain_nodeID);
+      syncing_state_->set_dag_syncing(true, max_pbft_chain_peer);
       requestPendingDagBlocks();
     } else {
       syncing_state_->set_dag_syncing(false);
