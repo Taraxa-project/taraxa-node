@@ -23,7 +23,7 @@ class SyncingState {
    * @param current_period
    * @param peer used in case syncing flag == true to set which peer is the node syncing with
    */
-  void set_pbft_syncing(bool syncing, uint64_t current_period = 0, const std::shared_ptr<TaraxaPeer> &peer = nullptr);
+  void set_pbft_syncing(bool syncing, uint64_t current_period = 0, std::shared_ptr<TaraxaPeer> peer = nullptr);
 
   /**
    * @brief Set dag syncing
@@ -31,7 +31,7 @@ class SyncingState {
    * @param syncing
    * @param peer used in case syncing flag == true to set which peer is the node syncing with
    */
-  void set_dag_syncing(bool syncing, const std::shared_ptr<TaraxaPeer> &peer = nullptr);
+  void set_dag_syncing(bool syncing, std::shared_ptr<TaraxaPeer> peer = nullptr);
 
   /**
    * @brief Set current time as last received sync packet  time
@@ -65,7 +65,7 @@ class SyncingState {
   bool is_peer_malicious(const dev::p2p::NodeID &peer_id) const;
 
  private:
-  void set_peer(const std::shared_ptr<TaraxaPeer> &peer);
+  void set_peer(std::shared_ptr<TaraxaPeer> &&peer);
 
  private:
   std::atomic<bool> deep_pbft_syncing_{false};
