@@ -41,7 +41,8 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev
       node_stats_(nullptr),
       packets_handlers_(std::make_shared<PacketsHandler>()),
       thread_pool_(std::make_shared<TarcapThreadPool>(conf.network_packets_processing_threads, node_addr)),
-      periodic_events_tp_(1, false) {
+      periodic_events_tp_(1, false),
+      pbft_chain_(pbft_chain) {
   LOG_OBJECTS_CREATE("TARCAP");
 
   assert(host.lock());
@@ -321,6 +322,12 @@ void TaraxaCapability::interpretCapabilityPacket(std::weak_ptr<dev::p2p::Session
       return;
     }
   }
+
+  // Temporary hotfix for memory issue in testnet, a proper fix is already implemented on develop and will be merged to
+  // testnet
+  if (_id == SubprotocolPacketType::VotePacket && syncing_state_->is_pbft_syncing() &&
+      peer->pbft_chain_size_ > pbft_chain_->getPbftChainSize() + 10)
+    return;
 
   // TODO: we are making a copy here for each packet bytes(toBytes()), which is pretty significant. Check why RLP does
   //       not support move semantics so we can take advantage of it...

@@ -137,6 +137,9 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   // Fake threadpool (1 thread) for periodic events like printing summary logs, packets stats, etc...
   util::ThreadPool periodic_events_tp_;
 
+  // Pbft Chain
+  std::shared_ptr<PbftChain> pbft_chain_;
+
   LOG_OBJECTS_DEFINE
 };
 }  // namespace taraxa::network::tarcap
