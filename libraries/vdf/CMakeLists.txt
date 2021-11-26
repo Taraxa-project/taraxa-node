@@ -11,7 +11,6 @@ set(SOURCES
 add_library(vdf ${SOURCES} ${HEADERS})
 target_include_directories(vdf PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(vdf PUBLIC
-    common
     logger
     taraxa-vdf
     CONAN_PKG::mpfr

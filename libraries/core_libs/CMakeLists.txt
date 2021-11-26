@@ -33,7 +33,6 @@ target_include_directories(core_libs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(core_libs PUBLIC
     cli
     pbft_block
-    vote
     taraxa-evm
     p2p
     CONAN_PKG::libjson-rpc-cpp

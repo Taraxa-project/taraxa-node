@@ -21,7 +21,6 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/version/version.hpp.in ${CMAKE_CURREN
 add_library(config ${SOURCES} ${HEADERS})
 target_include_directories(config PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(config PUBLIC dag_block)
-target_link_libraries(config PRIVATE common logger)
 
 install(TARGETS common
     ARCHIVE  DESTINATION ${CMAKE_INSTALL_LIBDIR}

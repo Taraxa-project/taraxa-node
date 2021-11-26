@@ -202,8 +202,8 @@ add_subdirectory(tests)
 include(local/CMakeLists_ext.cmake OPTIONAL)
 
 # dependency graph
-add_custom_target(graphviz ALL
-    COMMAND ${CMAKE_COMMAND} "--graphviz=foo.dot" .
-    COMMAND dot -Tpng foo.dot -o foo.png
-    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
-)
+# add_custom_target(graphviz ALL
+#     COMMAND ${CMAKE_COMMAND} "--graphviz=foo.dot" .
+#     COMMAND dot -Tpng foo.dot -o foo.png
+#     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
+# )

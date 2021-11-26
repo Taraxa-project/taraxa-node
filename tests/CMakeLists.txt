@@ -5,9 +5,7 @@ file(GLOB_RECURSE UTIL_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/util_test/*.hpp)
 
 add_executable(crypto_test crypto_test.cpp ${UTIL_HEADERS})
 target_link_libraries(crypto_test
-    common
     config
-    vdf
     vote
     CONAN_PKG::gtest
 )
