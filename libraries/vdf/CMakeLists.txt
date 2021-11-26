@@ -1,11 +1,11 @@
 
-set(HEADERS 
+set(HEADERS
     include/vdf/config.hpp
-    include/vdf/sortition.hpp 
+    include/vdf/sortition.hpp
 )
-set(SOURCES 
+set(SOURCES
     src/config.cpp
-    src/sortition.cpp 
+    src/sortition.cpp
 )
 
 add_library(vdf ${SOURCES} ${HEADERS})
