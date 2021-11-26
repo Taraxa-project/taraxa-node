@@ -95,6 +95,15 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN(default_column);
     // Contains full data for an executed PBFT block including PBFT block, cert votes, dag blocks and transactions
     COLUMN(period_data);
+    // Contains verified cert votes that were proposed to be rewarded through dag blocks(included in them) but
+    // are not part of observed 2t+1 cert votes based on which the pbft block was applied. Votes are appended
+    // to this db column only after dag block that contains them is verified and added to the dag.
+    // Once the votes are rewarded through pbft block finalization, they are removed from new_rewards_votes and
+    // appended into the period_data
+    COLUMN(new_rewards_votes);
+    // Index cert_vote_hash -> <pbft period, position>
+    COLUMN(cert_votes_period);
+
     COLUMN(dag_blocks);
     COLUMN(dag_blocks_index);
     COLUMN(transactions);
@@ -181,6 +190,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
   // Period data
   void savePeriodData(const SyncBlock& sync_block, Batch& write_batch);
+  // void appendPeriodDataCertVoteToBatch(uint64_t period, const std::shared_ptr<Vote>& vote, Batch& write_batch);
   dev::bytes getPeriodDataRaw(uint64_t period);
   std::optional<PbftBlock> getPbftBlock(uint64_t period);
 
@@ -257,6 +267,11 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void saveStatusField(StatusDbField const& field, uint64_t value);
   void addStatusFieldToBatch(StatusDbField const& field, uint64_t value, Batch& write_batch);
 
+  // New dag rewards votes
+  std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> getNewRewardsVotes();
+  void addNewRewardsVotesToBatch(const std::vector<std::shared_ptr<Vote>>& votes, Batch& write_batch);
+  void removeNewRewardsVotesToBatch(const std::vector<std::shared_ptr<Vote>>& votes, Batch& write_batch);
+
   // Verified votes
   std::vector<std::shared_ptr<Vote>> getVerifiedVotes();
   std::shared_ptr<Vote> getVerifiedVote(vote_hash_t const& vote_hash);
@@ -273,6 +288,15 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
   // Certified votes
   std::vector<std::shared_ptr<Vote>> getCertVotes(uint64_t period);
+  void addCertVotePeriodToBatch(const vote_hash_t& vote_hash, uint32_t period, uint32_t position, Batch& write_batch);
+  std::optional<std::pair<uint32_t, uint32_t>> getCertVotePeriod(const vote_hash_t& vote_hash);
+  bool isCertVoteInDb(const vote_hash_t& vote_hash);
+
+  /**
+   * @param votes_hashes
+   * @return those votes from provided votes_hashes that are not saved in db
+   */
+  std::unordered_set<vote_hash_t> certVotesInDb(std::unordered_set<vote_hash_t>&& votes_hashes);
 
   // Next votes
   std::vector<std::shared_ptr<Vote>> getNextVotes(uint64_t pbft_round);

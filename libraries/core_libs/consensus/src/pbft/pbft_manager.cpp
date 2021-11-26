@@ -1632,21 +1632,17 @@ bool PbftManager::pushPbftBlock_(SyncBlock &&sync_block) {
     cert_votes_hashes.insert(vote->getHash());
   }
 
+  // TODO: can sent only sync_block...
+  // Reset 2t+1 cert votes in rewards votes(votes that should be rewarded in the next pbft period)
+  rewards_votes_->newPbftBlockFinalized(std::move(cert_votes_hashes), pbft_block_hash,
+                                        sync_block.getAllUniqueRewardsVotes());
+
   finalize_(std::move(sync_block));
 
   // Reset proposed PBFT block hash to False for next pbft block proposal
   proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
   db_->savePbftMgrStatus(PbftMgrStatus::ExecutedBlock, true);
   executed_pbft_block_ = true;
-
-  // Reset 2t+1 cert votes in rewards votes(votes that should be rewarded in the next pbft period)
-  rewards_votes_->resetVotes(std::move(cert_votes_hashes), pbft_block_hash);
-
-  // TODO: get all new votes (that were actually included in dag blocks) from BLOCK_REWARDS_VOTES db column and
-  //       append it to the PERIOD_DATA of the previous period. If new votes will be added directly into the
-  //       PERIOD_DATA, this step can bi skipped
-
-  // TODO: delete everything from BLOCK_REWARDS_VOTES in case we use it
 
   return true;
 }

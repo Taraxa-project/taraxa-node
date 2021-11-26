@@ -13,9 +13,9 @@ namespace taraxa {
 namespace fs = std::filesystem;
 
 static constexpr uint16_t PBFT_BLOCK_POS_IN_PERIOD_DATA = 0;
-static constexpr uint16_t CERT_VOTES_POS_IN_PERIOD_DATA = 1;
-static constexpr uint16_t DAG_BLOCKS_POS_IN_PERIOD_DATA = 2;
-static constexpr uint16_t TRANSACTIONS_POS_IN_PERIOD_DATA = 3;
+static constexpr uint16_t DAG_BLOCKS_POS_IN_PERIOD_DATA = 1;
+static constexpr uint16_t TRANSACTIONS_POS_IN_PERIOD_DATA = 2;
+static constexpr uint16_t CERT_VOTES_POS_IN_PERIOD_DATA = 3;
 
 DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_block, uint32_t max_open_files,
                      uint32_t db_max_snapshots, uint32_t db_revert_to_period, addr_t node_addr, bool rebuild,
@@ -463,6 +463,13 @@ void DbStorage::savePeriodData(const SyncBlock& sync_block, Batch& write_batch) 
     trx_pos++;
   }
 
+  // Saves cert_votes_period into the DB
+  uint32_t vote_pos = 0;
+  for (auto const& vote_hash : sync_block.getAllUniqueRewardsVotes()) {
+    addCertVotePeriodToBatch(vote_hash, period, vote_pos, write_batch);
+    vote_pos++;
+  }
+
   insert(write_batch, Columns::period_data, toSlice(period), toSlice(sync_block.rlp()));
 }
 
@@ -748,6 +755,31 @@ void DbStorage::addPbftHeadToBatch(taraxa::blk_hash_t const& head_hash, std::str
   insert(write_batch, Columns::pbft_head, toSlice(head_hash.asBytes()), head_str);
 }
 
+std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> DbStorage::getNewRewardsVotes() {
+  std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> votes;
+
+  auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::new_rewards_votes)));
+  for (it->SeekToFirst(); it->Valid(); it->Next()) {
+    auto vote = std::make_shared<Vote>(asBytes(it->value().ToString()));
+    auto vote_hash = vote->getHash();
+    votes.emplace(std::move(vote_hash), std::move(vote));
+  }
+
+  return votes;
+}
+
+void DbStorage::addNewRewardsVotesToBatch(const std::vector<std::shared_ptr<Vote>>& votes, Batch& write_batch) {
+  for (const auto& vote : votes) {
+    insert(write_batch, Columns::new_rewards_votes, toSlice(vote->getHash().asBytes()), toSlice(vote->rlp(true)));
+  }
+}
+
+void DbStorage::removeNewRewardsVotesToBatch(const std::vector<std::shared_ptr<Vote>>& votes, Batch& write_batch) {
+  for (const auto& vote : votes) {
+    remove(write_batch, Columns::new_rewards_votes, toSlice(vote->getHash().asBytes()));
+  }
+}
+
 std::vector<std::shared_ptr<Vote>> DbStorage::getVerifiedVotes() {
   std::vector<std::shared_ptr<Vote>> votes;
 
@@ -818,16 +850,65 @@ void DbStorage::removeSoftVotesToBatch(uint64_t pbft_round, Batch& write_batch) 
 std::vector<std::shared_ptr<Vote>> DbStorage::getCertVotes(uint64_t period) {
   std::vector<std::shared_ptr<Vote>> cert_votes;
   auto period_data = getPeriodDataRaw(period);
-  if (period_data.size() > 0) {
-    auto period_data_rlp = dev::RLP(period_data);
-    auto cert_votes_data = period_data_rlp[CERT_VOTES_POS_IN_PERIOD_DATA];
-    cert_votes.reserve(cert_votes_data.size());
-    for (auto const vote : cert_votes_data) {
-      cert_votes.emplace_back(std::make_shared<Vote>(vote));
-    }
+  if (period_data.empty()) {
+    return cert_votes;
+  }
+
+  auto period_data_rlp = dev::RLP(period_data);
+  auto cert_votes_data = period_data_rlp[CERT_VOTES_POS_IN_PERIOD_DATA];
+
+  cert_votes.reserve(cert_votes_data.size());
+  for (auto const vote : cert_votes_data) {
+    cert_votes.emplace_back(std::make_shared<Vote>(vote));
   }
 
   return cert_votes;
+}
+
+void DbStorage::addCertVotePeriodToBatch(const vote_hash_t& vote_hash, uint32_t period, uint32_t position,
+                                         Batch& write_batch) {
+  dev::RLPStream s;
+  s.appendList(2);
+  s << period;
+  s << position;
+  insert(write_batch, Columns::cert_votes_period, toSlice(vote_hash.asBytes()), toSlice(s.out()));
+}
+
+std::optional<std::pair<uint32_t, uint32_t>> DbStorage::getCertVotePeriod(const vote_hash_t& vote_hash) {
+  auto data = lookup(toSlice(vote_hash.asBytes()), Columns::cert_votes_period);
+  if (data.empty()) {
+    return {};
+  }
+
+  dev::RLP rlp(data);
+  auto it = rlp.begin();
+  return std::make_pair((*it++).toInt<uint32_t>(), (*it++).toInt<uint32_t>());
+}
+
+bool DbStorage::isCertVoteInDb(const vote_hash_t& vote_hash) {
+  return exist(toSlice(vote_hash.asBytes()), Columns::cert_votes_period);
+}
+
+std::unordered_set<vote_hash_t> DbStorage::certVotesInDb(std::unordered_set<vote_hash_t>&& votes_hashes) {
+  std::unordered_set<vote_hash_t> missing_votes;
+
+  DbStorage::MultiGetQuery db_query(shared_from_this(), votes_hashes.size());
+  for (auto it = votes_hashes.begin(); it != votes_hashes.end(); it++) {
+    db_query.append(DbStorage::Columns::cert_votes_period, *it);
+  }
+  auto query_results = db_query.execute();
+  assert(votes_hashes.size() == query_results.size());
+
+  size_t idx = 0;
+  for (auto it = votes_hashes.begin(); it != votes_hashes.end(); it++) {
+    if (query_results[idx].empty()) {
+      missing_votes.insert(std::move(*it));
+    }
+
+    idx++;
+  }
+
+  return missing_votes;
 }
 
 std::vector<std::shared_ptr<Vote>> DbStorage::getNextVotes(uint64_t pbft_round) {

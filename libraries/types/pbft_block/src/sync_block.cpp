@@ -23,9 +23,6 @@ SyncBlock::SyncBlock(std::shared_ptr<PbftBlock> pbft_blk, std::vector<DagBlock>&
 SyncBlock::SyncBlock(dev::RLP&& rlp) {
   auto it = rlp.begin();
   pbft_blk_ = std::make_shared<PbftBlock>(*it++);
-  for (auto const vote_rlp : *it++) {
-    cert_votes_.push_back(std::make_shared<Vote>(vote_rlp));
-  }
 
   for (auto const dag_block_rlp : *it++) {
     const auto dag_block = DagBlock(dag_block_rlp);
@@ -34,11 +31,17 @@ SyncBlock::SyncBlock(dev::RLP&& rlp) {
     ordered_dag_blocks_.push_back(std::move(dag_block));
   }
 
-  for (auto const trx_rlp : *it) {
+  for (auto const trx_rlp : *it++) {
     const auto tx = Transaction(trx_rlp);
 
     ordered_transactions_hashes_.push_back(tx.getHash());
     ordered_transactions_.push_back(std::move(tx));
+  }
+
+  // Cert votes must be alwyas last in period_data as additional votes are merged into this db column during node
+  // operation
+  for (auto const vote_rlp : *it) {
+    cert_votes_.push_back(std::make_shared<Vote>(vote_rlp));
   }
 }
 
@@ -47,10 +50,6 @@ SyncBlock::SyncBlock(bytes const& all_rlp) : SyncBlock(dev::RLP(all_rlp)) {}
 bytes SyncBlock::rlp() const {
   dev::RLPStream s(4);
   s.appendRaw(pbft_blk_->rlp(true));
-  s.appendList(cert_votes_.size());
-  for (auto const& v : cert_votes_) {
-    s.appendRaw(v->rlp(true));
-  }
   s.appendList(ordered_dag_blocks_.size());
   for (auto const& b : ordered_dag_blocks_) {
     s.appendRaw(b.rlp(true));
@@ -59,21 +58,28 @@ bytes SyncBlock::rlp() const {
   for (auto const& t : ordered_transactions_) {
     s.appendRaw(*t.rlp());
   }
+  s.appendList(cert_votes_.size());
+  for (auto const& v : cert_votes_) {
+    s.appendRaw(v->rlp(true));
+  }
   return s.out();
 }
 
 void SyncBlock::clear() {
   pbft_blk_.reset();
-  cert_votes_.clear();
 
   ordered_dag_blocks_.clear();
   ordered_dag_blocks_hashes_.clear();
 
   ordered_transactions_.clear();
   ordered_transactions_hashes_.clear();
+
+  cert_votes_.clear();
 }
 
 void SyncBlock::setCertVotes(std::vector<std::shared_ptr<Vote>>&& votes) { cert_votes_ = std::move(votes); }
+
+void SyncBlock::addCertVote(std::shared_ptr<Vote>&& vote) { cert_votes_.push_back(std::move(vote)); }
 
 const std::shared_ptr<PbftBlock>& SyncBlock::getPbftBlock() const { return pbft_blk_; }
 
@@ -86,6 +92,21 @@ const vec_blk_t& SyncBlock::getDagBlocksHashes() const { return ordered_dag_bloc
 const std::vector<Transaction>& SyncBlock::getTransactions() const { return ordered_transactions_; }
 
 const vec_trx_t& SyncBlock::getTransactionsHashes() const { return ordered_transactions_hashes_; }
+
+std::unordered_set<vote_hash_t> SyncBlock::getAllUniqueRewardsVotes() const {
+  std::unordered_set<vote_hash_t> unique_rewards_votes;
+  // There is up to 1000 votes in single pbft period. Dag blocks might include duplicate votes or votes from other
+  // periods but that is hard to predict how much of those are present...
+  unique_rewards_votes.reserve(1000);
+
+  for (const auto& dag_block : ordered_dag_blocks_) {
+    for (const auto& dag_block_reward_vote : dag_block.getVotesToBeRewarded()) {
+      unique_rewards_votes.insert(dag_block_reward_vote);
+    }
+  }
+
+  return unique_rewards_votes;
+}
 
 void SyncBlock::hasEnoughValidCertVotes(size_t dpos_total_votes_count, size_t sortition_threshold,
                                         size_t pbft_2t_plus_1) const {

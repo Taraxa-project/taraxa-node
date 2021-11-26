@@ -229,7 +229,8 @@ void DagBlockManager::verifyBlock() {
       continue;
     }
 
-    // Check if all votes candidates for rewards are present
+    // Check if all votes candidates for rewards are present.
+    // No need to verify these votes as RewardsVotes contains only verified votes
     if (auto res = rewards_votes_->checkBlockRewardsVotes(blk.getVotesToBeRewarded()); !res.first) {
       LOG(log_er_) << "Ignore block " << block_hash << " since it has missing votes_to_be_rewarded: " << res.second;
       markBlockInvalid(block_hash);
@@ -285,8 +286,6 @@ void DagBlockManager::verifyBlock() {
       }
       continue;
     }
-
-    // TODO: if success, remove block candidates for votes rewards from rewards_votes_
 
     {
       uLock lock(shared_mutex_for_verified_qu_);

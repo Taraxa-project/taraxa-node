@@ -1,19 +1,16 @@
 #include "dag/dag.hpp"
 
-#include <libdevcore/CommonIO.h>
-
 #include <algorithm>
 #include <fstream>
-#include <queue>
 #include <stack>
 #include <tuple>
 #include <unordered_set>
 #include <utility>
 #include <vector>
 
-#include "dag/dag.hpp"
 #include "network/network.hpp"
 #include "transaction_manager/transaction_manager.hpp"
+#include "votes/rewards_votes.hpp"
 
 namespace taraxa {
 
@@ -273,13 +270,15 @@ void PivotTree::getGhostPath(blk_hash_t const &vertex, std::vector<blk_hash_t> &
 
 DagManager::DagManager(blk_hash_t const &genesis, addr_t node_addr, std::shared_ptr<TransactionManager> trx_mgr,
                        std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DagBlockManager> dag_blk_mgr,
-                       std::shared_ptr<DbStorage> db, logger::Logger log_time) try
+                       std::shared_ptr<DbStorage> db, std::shared_ptr<RewardsVotes> rewards_votes,
+                       logger::Logger log_time) try
     : pivot_tree_(std::make_shared<PivotTree>(genesis, node_addr)),
       total_dag_(std::make_shared<Dag>(genesis, node_addr)),
-      trx_mgr_(trx_mgr),
-      pbft_chain_(pbft_chain),
-      dag_blk_mgr_(dag_blk_mgr),
-      db_(db),
+      trx_mgr_(std::move(trx_mgr)),
+      pbft_chain_(std::move(pbft_chain)),
+      dag_blk_mgr_(std::move(dag_blk_mgr)),
+      db_(std::move(db)),
+      rewards_votes_(std::move(rewards_votes)),
       anchor_(genesis),
       period_(0),
       genesis_(genesis),
@@ -410,10 +409,32 @@ void DagManager::addDagBlock(DagBlock const &blk, SharedTransactions &&trxs, boo
         LOG(log_dg_) << "Block already in DB: " << blk.getHash();
         return;
       }
+
+      // TODO: merge -> revisit this code bloc. How about trx_mgr_->removeTransactionsFromPool ???
       // Saves transactions and remove them from memory pool
       trx_mgr_->saveTransactionsFromDagBlock(trxs);
       // Save the dag block
       db_->saveDagBlock(blk);
+
+      // Filters dag block rewards votes that are new (not in observed 2t+1 cert votes or new already processed votes)
+      const auto new_block_rewards_votes = rewards_votes_->filterNewVotes(blk.getVotesToBeRewarded());
+
+      // Saves new votes into the db. In case node crashes, these new votes are not yet part of period_data but dag
+      // blocks contain them are already saved in db so votes must be saved too. Once the pbft block (that contains dag
+      // blocks that contain such votes) is finalized, they are moved into the period_data and cert_votes_period db
+      // columns
+      db_->addNewRewardsVotesToBatch(new_block_rewards_votes, write_batch);
+
+      db_->commitWriteBatch(write_batch);
+
+      // Remove transactions from memory pool
+      trx_mgr_->removeTransactionsFromPool(trxs);
+
+      // Removes all blk->rewards_votes from unrewarded_votes_
+      rewards_votes_->removeUnrewardedVotes(blk.getVotesToBeRewarded());
+
+      // Mark new block rewards votes as processed
+      rewards_votes_->markNewVotesAsProcessed(new_block_rewards_votes);
     }
     auto blk_hash = blk.getHash();
     auto pivot_hash = blk.getPivot();

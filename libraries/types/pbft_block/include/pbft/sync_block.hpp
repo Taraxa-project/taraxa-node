@@ -23,8 +23,13 @@ class SyncBlock {
   SyncBlock(dev::RLP&& all_rlp);
   SyncBlock(bytes const& all_rlp);
 
+  /**** Non thread-safe methods ****/
+  // These methods are not thread-safe. It is caller's responsibility to make sure they are not called when using
+  // shared object on multiple threads
   void clear();
   void setCertVotes(std::vector<std::shared_ptr<Vote>>&& votes);
+  void addCertVote(std::shared_ptr<Vote>&& vote);
+  /**** Non thread-safe methods ****/
 
   bytes rlp() const;
   void hasEnoughValidCertVotes(size_t valid_sortition_players, size_t sortition_threshold, size_t pbft_2t_plus_1) const;
@@ -36,9 +41,13 @@ class SyncBlock {
   const std::vector<Transaction>& getTransactions() const;
   const vec_trx_t& getTransactionsHashes() const;
 
+  /**
+   * @return all unique rewards votes included in ordered_dag_blocks_
+   */
+  std::unordered_set<vote_hash_t> getAllUniqueRewardsVotes() const;
+
  private:
   std::shared_ptr<PbftBlock> pbft_blk_{nullptr};
-  std::vector<std::shared_ptr<Vote>> cert_votes_;
 
   // Dag blocks are ordered based on comparePbftBlockScheduleWithDAGblocks_
   std::vector<DagBlock> ordered_dag_blocks_;
@@ -51,6 +60,8 @@ class SyncBlock {
 
   // ordered_transactions_ transformed into vector of their hashes
   vec_trx_t ordered_transactions_hashes_;
+
+  std::vector<std::shared_ptr<Vote>> cert_votes_;
 };
 
 }  // namespace taraxa

@@ -144,7 +144,7 @@ TEST_F(DagTest, compute_epoch) {
                                    std::make_shared<DagBlockManager>(addr_t(), node_cfgs[0].chain.sortition,
                                                                      node_cfgs[0].chain.final_chain.state.dpos, 1,
                                                                      db_ptr, nullptr, nullptr, nullptr, nullptr, time_log),
-                                   db_ptr, logger::Logger());
+                                   db_ptr, nullptr, logger::Logger());
   DagBlock blkA(blk_hash_t(1), 0, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(2), addr_t(1));
   DagBlock blkB(blk_hash_t(1), 0, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1), blk_hash_t(3), addr_t(1));
   DagBlock blkC(blk_hash_t(2), 0, {blk_hash_t(3)}, {}, sig_t(1), blk_hash_t(4), addr_t(1));
@@ -231,7 +231,7 @@ TEST_F(DagTest, receive_block_in_order) {
                                    std::make_shared<DagBlockManager>(addr_t(), node_cfgs[0].chain.sortition,
                                                                      node_cfgs[0].chain.final_chain.state.dpos, 1,
                                                                      db_ptr, nullptr, nullptr, nullptr, nullptr, time_log),
-                                   db_ptr, logger::Logger());
+                                   db_ptr, nullptr, logger::Logger());
   // mgr.setVerbose(true);
   DagBlock genesis_block(blk_hash_t(0), 0, {}, {}, sig_t(777), blk_hash_t(10), addr_t(15));
   DagBlock blk1(blk_hash_t(10), 0, {}, {}, sig_t(777), blk_hash_t(1), addr_t(15));
@@ -268,7 +268,7 @@ TEST_F(DagTest, compute_epoch_2) {
                                    std::make_shared<DagBlockManager>(addr_t(), node_cfgs[0].chain.sortition,
                                                                      node_cfgs[0].chain.final_chain.state.dpos, 1,
                                                                      db_ptr, nullptr, nullptr, nullptr, nullptr, time_log),
-                                   db_ptr, logger::Logger());
+                                   db_ptr, nullptr, logger::Logger());
   DagBlock blkA(blk_hash_t(1), 0, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(2), addr_t(1));
   DagBlock blkB(blk_hash_t(1), 0, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1), blk_hash_t(3), addr_t(1));
   DagBlock blkC(blk_hash_t(2), 0, {blk_hash_t(3)}, {}, sig_t(1), blk_hash_t(4), addr_t(1));
@@ -321,6 +321,7 @@ TEST_F(DagTest, compute_epoch_2) {
 
   period = 4;
   orders = mgr->getDagBlockOrder(blkH.getHash(), period);
+  orders = mgr->getDagBlockOrder(blkH.getHash(), period);
   EXPECT_EQ(orders.size(), 4);
   mgr->setDagBlockOrder(blkH.getHash(), period, orders);
 
@@ -347,7 +348,7 @@ TEST_F(DagTest, get_latest_pivot_tips) {
                                    std::make_shared<DagBlockManager>(addr_t(), node_cfgs[0].chain.sortition,
                                                                      node_cfgs[0].chain.final_chain.state.dpos, 1,
                                                                      db_ptr, nullptr, nullptr, nullptr, nullptr, time_log),
-                                   db_ptr, logger::Logger());
+                                   db_ptr, nullptr, logger::Logger());
 
   // mgr.setVerbose(true);
   DagBlock blk1(blk_hash_t(0), 0, {}, {}, sig_t(0), blk_hash_t(1), addr_t(15));

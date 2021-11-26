@@ -61,6 +61,11 @@ void GetDagSyncPacketHandler::process(const PacketData &packet_data,
     }
   }
 
+  // TODO: load all votes from BLOCK_REWARDS_VOTES and send it before sending non-finalize dag blocks, votes from
+  //       BLOCK_REWARDS_VOTES are new (not seen before) votes included in to be set dag blocks so full votes have to
+  //       be sent so dag blocks can be actually verified
+
+  // TODO: MissingHashes should not be used anymore after Matus's changes...
   // This means that someone requested more hashes that we actually have -> do not send anything
   if (mode == DagSyncRequestType::MissingHashes && dag_blocks.size() != blocks_hashes.size()) {
     LOG(log_nf_) << "Node " << packet_data.from_node_id_ << " requested unknown DAG block";

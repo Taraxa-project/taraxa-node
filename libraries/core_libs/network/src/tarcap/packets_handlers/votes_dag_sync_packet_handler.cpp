@@ -30,29 +30,19 @@ void VotesDagSyncPacketHandler::process(const PacketData &packet_data, const std
     return;
   }
 
-  auto zero_vote = std::make_shared<Vote>(packet_data.rlp_[0].data().toBytes());
-
-  const auto current_pbft_round = pbft_mgr_->getPbftRound();
-  const auto votes_pbft_round = zero_vote->getRound();
-
-  // Dag sync votes are related to the previous finalized pbft period
-  // -> current_pbft_round must be greater than votes_pbft_round
-  if (votes_pbft_round >= current_pbft_round) {
-    LOG(log_wr_) << "Received votes_pbft_round(" << votes_pbft_round << ") >= current_pbft_round(" << current_pbft_round
-                 << ")";
-    return;
-  }
-
-  const auto current_pbft_period = pbft_chain_->getPbftChainSize();
-
   // Process each vote
   for (size_t i = 0; i < votes_count; i++) {
     auto vote = std::make_shared<Vote>(packet_data.rlp_[i].data().toBytes());
 
-    // Check if all received votes have the same round
-    if (vote->getRound() != votes_pbft_round) {
-      LOG(log_er_) << "Received dag sync votes bundle with unmatched rounds from " << packet_data.from_node_id_
-                   << ". The peer may be a malicious player, will be disconnected";
+    // Vote was already processed
+    if (rewards_votes_->isKnownVote(vote)) {
+      continue;
+    }
+
+    // Checks if received vote is cert votes
+    if (vote->getType() != PbftVoteTypes::cert_vote_type) {
+      LOG(log_er_) << "Received dag sync votes bundle contains non-cert votes. Peer " << packet_data.from_node_id_
+                   << " may be a malicious player, will be disconnected";
       disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
       return;
     }
@@ -61,25 +51,20 @@ void VotesDagSyncPacketHandler::process(const PacketData &packet_data, const std
     LOG(log_dg_) << "Received dag sync vote " << vote_hash;
     peer->markVoteAsKnown(vote_hash);
 
-    // TODO: check if current_pbft_period - 1 pbft_block hash == vote->blockHash
-
-    // TODO: Check if the voter address is unique. Same voter should be able to vote for the same block twice -> double
-    // rewards
-
     // Check if the voter account is valid, malicious vote
     addr_t voter = vote->getVoterAddr();
     auto vote_weighted_index = vote->getWeightedIndex();
     size_t voter_dpos_votes_count = 0;
 
-    // get voter dpos eligible vote count
-    try {
-      voter_dpos_votes_count = final_chain_->dpos_eligible_vote_count(current_pbft_period - 1, voter);
-    } catch (state_api::ErrFutureBlock &c) {
-      LOG(log_er_) << c.what() << ". Period " << current_pbft_period - 1
-                   << " is too far ahead of DPOS, have executed chain size " << final_chain_->last_block_number();
-      // TODO: should all these failed checks do continue or return ?
-      continue;
-    }
+    //    // get voter dpos eligible vote count
+    //    try {
+    //      voter_dpos_votes_count = final_chain_->dpos_eligible_vote_count(current_pbft_period - 1, voter);
+    //    } catch (state_api::ErrFutureBlock &c) {
+    //      LOG(log_er_) << c.what() << ". Period " << current_pbft_period - 1
+    //                   << " is too far ahead of DPOS, have executed chain size " << final_chain_->last_block_number();
+    //      // TODO: should all these failed checks do continue or return ?
+    //      continue;
+    //    }
 
     if (vote_weighted_index >= voter_dpos_votes_count) {
       LOG(log_dg_) << "Account " << voter << " was not eligible to vote. Vote: " << vote;
@@ -96,18 +81,9 @@ void VotesDagSyncPacketHandler::process(const PacketData &packet_data, const std
       continue;
     }
 
-    // TODO: save vote into the new column - we are saving dag blocks into the db as they come, if we save such dag
-    // block
-    //       in db but we would not save new vote candidates for rewards and this node crash, we would probably not
-    //       recover
-    //       - another solution would be not so save dag blocks into db s they come but only after pbft block is
-    //       finalized
-
     // Inserts vote into the list of votes that were not part of the latest finalized pbft block observed 2t+1 cert
     // votes
-    if (rewards_votes_->isNewVote(vote_hash)) {
-      rewards_votes_->insertNewVote(std::move(vote));
-    }
+    rewards_votes_->insertVote(std::move(vote));
   }
 }
 

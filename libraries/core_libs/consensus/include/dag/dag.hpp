@@ -30,11 +30,13 @@
 #include "transaction_manager/transaction_manager.hpp"
 namespace taraxa {
 
+class DagManager;
+class Network;
+class RewardsVotes;
+
 /**
  * Thread safe. Labelled graph.
  */
-class DagManager;
-class Network;
 class Dag {
  public:
   // properties
@@ -97,7 +99,6 @@ class Dag {
  * PivotTree is a special DAG, every vertex only has one out-edge,
  * therefore, there is no convergent tree
  */
-
 class PivotTree : public Dag {
  public:
   friend DagManager;
@@ -109,8 +110,6 @@ class PivotTree : public Dag {
 
   void getGhostPath(blk_hash_t const &vertex, std::vector<blk_hash_t> &pivot_chain) const;
 };
-class DagBuffer;
-class FullNode;
 
 class DagManager : public std::enable_shared_from_this<DagManager> {
  public:
@@ -119,7 +118,8 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
 
   explicit DagManager(blk_hash_t const &genesis, addr_t node_addr, std::shared_ptr<TransactionManager> trx_mgr,
                       std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DagBlockManager> dag_blk_mgr,
-                      std::shared_ptr<DbStorage> db, logger::Logger log_time);
+                      std::shared_ptr<DbStorage> db, std::shared_ptr<RewardsVotes> rewards_votes,
+                      logger::Logger log_time);
   virtual ~DagManager() { stop(); }
   std::shared_ptr<DagManager> getShared();
   void start();
@@ -189,6 +189,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::shared_ptr<DagBlockManager> dag_blk_mgr_;
   std::weak_ptr<Network> network_;
   std::shared_ptr<DbStorage> db_;
+  std::shared_ptr<RewardsVotes> rewards_votes_;
   blk_hash_t anchor_;      // anchor of the last period
   blk_hash_t old_anchor_;  // anchor of the second to last period
   uint64_t period_;        // last period
