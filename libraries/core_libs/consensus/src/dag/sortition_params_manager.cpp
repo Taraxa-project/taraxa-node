@@ -79,6 +79,7 @@ SortitionParams SortitionParamsManager::getSortitionParams(std::optional<uint64_
   if (!period) {
     return config_;
   }
+  bool is_period_params_found = false;
   SortitionParams p = config_;
   for (auto prev = params_changes_.rbegin(), it = params_changes_.rbegin(); it != params_changes_.rend(); prev = it++) {
     auto upper_bound = prev->period;
@@ -86,9 +87,17 @@ SortitionParams SortitionParamsManager::getSortitionParams(std::optional<uint64_
       upper_bound = it->period + config_.computation_interval;
     }
     if (period >= it->period && period < upper_bound) {
+      is_period_params_found = true;
       p.vrf = it->vrf_params;
     }
   }
+  if (!is_period_params_found) {
+    auto change = db_->getParamsChangeForPeriod(period.value());
+    if (change.has_value()) {
+      p.vrf = change->vrf_params;
+    }
+  }
+
   return p;
 }
 
