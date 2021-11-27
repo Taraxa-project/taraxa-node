@@ -93,7 +93,9 @@ SortitionParams SortitionParamsManager::getSortitionParams(std::optional<uint64_
   }
   if (!is_period_params_found) {
     auto change = db_->getParamsChangeForPeriod(period.value());
-    p.vrf = change.vrf_params;
+    if (change.has_value()) {
+      p.vrf = change->vrf_params;
+    }
   }
 
   return p;

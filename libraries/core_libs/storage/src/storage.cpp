@@ -423,12 +423,15 @@ std::deque<SortitionParamsChange> DbStorage::getLastSortitionParams(size_t count
   return changes;
 }
 
-SortitionParamsChange DbStorage::getParamsChangeForPeriod(uint64_t period) {
+std::optional<SortitionParamsChange> DbStorage::getParamsChangeForPeriod(uint64_t period) {
   auto it =
       std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::sortition_params_change)));
   it->SeekForPrev(toSlice(period));
-  // no parans for requested period. something is definitely wrong
-  assert(it->Valid());
+
+  // this means that no sortition_params_change in database. It could be met in the tests
+  if (!it->Valid()) {
+    return {};
+  }
 
   return SortitionParamsChange::from_rlp(dev::RLP(it->value().ToString()));
 }

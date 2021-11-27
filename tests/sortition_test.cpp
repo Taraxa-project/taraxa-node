@@ -400,18 +400,18 @@ TEST_F(SortitionTest, get_params_from_period) {
   EXPECT_EQ(sp.getSortitionParams(79).vrf.threshold_upper, params_for_period_60_and_more);
   EXPECT_EQ(sp.getSortitionParams(210).vrf.threshold_upper, params_for_period_60_and_more);
 
-  EXPECT_EQ(db->getParamsChangeForPeriod(11).vrf_params.threshold_upper, params_for_period_10_19);
-  EXPECT_EQ(db->getParamsChangeForPeriod(19).vrf_params.threshold_upper, params_for_period_10_19);
-  EXPECT_EQ(db->getParamsChangeForPeriod(21).vrf_params.threshold_upper, params_for_period_20_39);
-  EXPECT_EQ(db->getParamsChangeForPeriod(29).vrf_params.threshold_upper, params_for_period_20_39);
-  EXPECT_EQ(db->getParamsChangeForPeriod(32).vrf_params.threshold_upper, params_for_period_20_39);
-  EXPECT_EQ(db->getParamsChangeForPeriod(39).vrf_params.threshold_upper, params_for_period_20_39);
-  EXPECT_EQ(db->getParamsChangeForPeriod(41).vrf_params.threshold_upper, params_for_period_40_59);
-  EXPECT_EQ(db->getParamsChangeForPeriod(51).vrf_params.threshold_upper, params_for_period_40_59);
-  EXPECT_EQ(db->getParamsChangeForPeriod(59).vrf_params.threshold_upper, params_for_period_40_59);
-  EXPECT_EQ(db->getParamsChangeForPeriod(69).vrf_params.threshold_upper, params_for_period_60_and_more);
-  EXPECT_EQ(db->getParamsChangeForPeriod(79).vrf_params.threshold_upper, params_for_period_60_and_more);
-  EXPECT_EQ(db->getParamsChangeForPeriod(210).vrf_params.threshold_upper, params_for_period_60_and_more);
+  EXPECT_EQ(db->getParamsChangeForPeriod(11)->vrf_params.threshold_upper, params_for_period_10_19);
+  EXPECT_EQ(db->getParamsChangeForPeriod(19)->vrf_params.threshold_upper, params_for_period_10_19);
+  EXPECT_EQ(db->getParamsChangeForPeriod(21)->vrf_params.threshold_upper, params_for_period_20_39);
+  EXPECT_EQ(db->getParamsChangeForPeriod(29)->vrf_params.threshold_upper, params_for_period_20_39);
+  EXPECT_EQ(db->getParamsChangeForPeriod(32)->vrf_params.threshold_upper, params_for_period_20_39);
+  EXPECT_EQ(db->getParamsChangeForPeriod(39)->vrf_params.threshold_upper, params_for_period_20_39);
+  EXPECT_EQ(db->getParamsChangeForPeriod(41)->vrf_params.threshold_upper, params_for_period_40_59);
+  EXPECT_EQ(db->getParamsChangeForPeriod(51)->vrf_params.threshold_upper, params_for_period_40_59);
+  EXPECT_EQ(db->getParamsChangeForPeriod(59)->vrf_params.threshold_upper, params_for_period_40_59);
+  EXPECT_EQ(db->getParamsChangeForPeriod(69)->vrf_params.threshold_upper, params_for_period_60_and_more);
+  EXPECT_EQ(db->getParamsChangeForPeriod(79)->vrf_params.threshold_upper, params_for_period_60_and_more);
+  EXPECT_EQ(db->getParamsChangeForPeriod(210)->vrf_params.threshold_upper, params_for_period_60_and_more);
 
   batch = db->createWriteBatch();
   {
@@ -435,22 +435,22 @@ TEST_F(SortitionTest, get_params_from_period) {
   // It will be already cleaned up in memory, but availiable in DB
   EXPECT_EQ(sp.getSortitionParams(11).vrf.threshold_upper, params_for_period_10_19);
 
-  EXPECT_EQ(db->getParamsChangeForPeriod(10).period, 10);
-  EXPECT_EQ(db->getParamsChangeForPeriod(11).period, 10);
-  EXPECT_EQ(db->getParamsChangeForPeriod(19).period, 10);
-  EXPECT_EQ(db->getParamsChangeForPeriod(25).period, 20);
+  EXPECT_EQ(db->getParamsChangeForPeriod(10)->period, 10);
+  EXPECT_EQ(db->getParamsChangeForPeriod(11)->period, 10);
+  EXPECT_EQ(db->getParamsChangeForPeriod(19)->period, 10);
+  EXPECT_EQ(db->getParamsChangeForPeriod(25)->period, 20);
 
   // should found data for previous interval because current was in target
-  EXPECT_EQ(db->getParamsChangeForPeriod(32).period, 20);
+  EXPECT_EQ(db->getParamsChangeForPeriod(32)->period, 20);
   // should found data for previous interval because current was in target
-  EXPECT_EQ(db->getParamsChangeForPeriod(55).period, 40);
+  EXPECT_EQ(db->getParamsChangeForPeriod(55)->period, 40);
 
-  EXPECT_EQ(db->getParamsChangeForPeriod(72).period, 70);
-  EXPECT_EQ(db->getParamsChangeForPeriod(72).interval_efficiency, 70 * kOnePercent);
-  EXPECT_EQ(db->getParamsChangeForPeriod(80).period, 80);
-  EXPECT_EQ(db->getParamsChangeForPeriod(80).interval_efficiency, 80 * kOnePercent);
-  EXPECT_EQ(db->getParamsChangeForPeriod(95).period, 90);
-  EXPECT_EQ(db->getParamsChangeForPeriod(95).interval_efficiency, 90 * kOnePercent);
+  EXPECT_EQ(db->getParamsChangeForPeriod(72)->period, 70);
+  EXPECT_EQ(db->getParamsChangeForPeriod(72)->interval_efficiency, 70 * kOnePercent);
+  EXPECT_EQ(db->getParamsChangeForPeriod(80)->period, 80);
+  EXPECT_EQ(db->getParamsChangeForPeriod(80)->interval_efficiency, 80 * kOnePercent);
+  EXPECT_EQ(db->getParamsChangeForPeriod(95)->period, 90);
+  EXPECT_EQ(db->getParamsChangeForPeriod(95)->interval_efficiency, 90 * kOnePercent);
 }
 
 }  // namespace taraxa::core_tests
