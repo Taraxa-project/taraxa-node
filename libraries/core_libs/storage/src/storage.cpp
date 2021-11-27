@@ -423,6 +423,16 @@ std::deque<SortitionParamsChange> DbStorage::getLastSortitionParams(size_t count
   return changes;
 }
 
+SortitionParamsChange DbStorage::getParamsChangeForPeriod(uint64_t period) {
+  auto it =
+      std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::sortition_params_change)));
+  it->SeekForPrev(toSlice(period));
+  // no parans for requested period. something is definitely wrong
+  assert(it->Valid());
+
+  return SortitionParamsChange::from_rlp(dev::RLP(it->value().ToString()));
+}
+
 void DbStorage::savePeriodData(const SyncBlock& sync_block, Batch& write_batch) {
   uint64_t period = sync_block.pbft_blk->getPeriod();
   addPbftBlockPeriodToBatch(period, sync_block.pbft_blk->getBlockHash(), write_batch);
