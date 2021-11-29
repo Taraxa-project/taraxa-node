@@ -1,11 +1,6 @@
 add_executable(taraxad main.cpp)
 target_link_libraries(taraxad PRIVATE
-    cli
-    common
-    config
-    logger
     core_libs
-    taraxa-evm
 )
 
 if(TCMALLOC_LIB)

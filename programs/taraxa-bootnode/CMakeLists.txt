@@ -1,7 +1,6 @@
 add_executable(taraxa-bootnode main.cpp)
 target_link_libraries(taraxa-bootnode PRIVATE
     cli
-    config
     p2p
 )
 

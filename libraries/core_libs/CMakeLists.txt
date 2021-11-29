@@ -31,21 +31,14 @@ target_include_directories(core_libs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/node/inc
 target_include_directories(core_libs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/storage/include)
 target_include_directories(core_libs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(core_libs PUBLIC
-    dag_block
+    cli
     pbft_block
-    transaction
-    vote
     taraxa-evm
     p2p
     CONAN_PKG::libjson-rpc-cpp
     CONAN_PKG::rocksdb
 )
-target_link_libraries(core_libs PRIVATE
-    common
-    cli
-    config
-    logger
-)
+
 
 install(TARGETS core_libs
     ARCHIVE  DESTINATION ${CMAKE_INSTALL_LIBDIR}

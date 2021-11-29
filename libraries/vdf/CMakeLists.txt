@@ -1,17 +1,16 @@
 
-set(HEADERS 
+set(HEADERS
     include/vdf/config.hpp
-    include/vdf/sortition.hpp 
+    include/vdf/sortition.hpp
 )
-set(SOURCES 
+set(SOURCES
     src/config.cpp
-    src/sortition.cpp 
+    src/sortition.cpp
 )
 
 add_library(vdf ${SOURCES} ${HEADERS})
 target_include_directories(vdf PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(vdf PUBLIC
-    common
     logger
     taraxa-vdf
     CONAN_PKG::mpfr

@@ -1,7 +1,7 @@
 file(GLOB sources "*.cpp" "*.h")
 
 add_library(p2p ${sources})
-target_link_libraries(p2p PUBLIC devcrypto devcore CONAN_PKG::lz4)
+target_link_libraries(p2p PUBLIC devcrypto CONAN_PKG::lz4)
 
 target_include_directories(p2p SYSTEM PUBLIC ../)
 
