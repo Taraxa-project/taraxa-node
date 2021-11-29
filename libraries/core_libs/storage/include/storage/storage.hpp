@@ -87,9 +87,9 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
    public:
     static inline auto const& all = all_;
 
+#define COLUMN(__name__) static inline auto const __name__ = all_.emplace_back(#__name__, all_.size())
 #define COLUMN_W_COMP(__name__, ...) \
   static inline auto const __name__ = all_.emplace_back(#__name__, all_.size(), __VA_ARGS__)
-#define COLUMN(__name__) static inline auto const __name__ = all_.emplace_back(#__name__, all_.size())
 
     // do not change/move
     COLUMN(default_column);

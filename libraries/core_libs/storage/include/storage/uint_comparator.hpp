@@ -7,9 +7,11 @@
 namespace taraxa {
 class UintComparator : public rocksdb::Comparator {
  public:
-  ~UintComparator() {}
+  UintComparator() = default;
+  ~UintComparator() = default;
 
-  UintComparator() {}
+  static const char *kClassName() { return "taraxa.UintComparator"; }
+  virtual const char *Name() const override { return kClassName(); }
 
   // Three-way comparison function:
   // if a < b: negative result
@@ -23,17 +25,13 @@ class UintComparator : public rocksdb::Comparator {
     return 1;
   };
 
-  // Ignore the following methods for now:
-  virtual const char *Name() const override { return "UintComparator"; };
-
   virtual void FindShortestSeparator(std::string *, const rocksdb::Slice &) const override{};
 
   virtual void FindShortSuccessor(std::string *) const override{};
 };
 
-const rocksdb::Comparator *getUintComparator() {
-  const static taraxa::UintComparator cmp;
-  return &cmp;
+inline const rocksdb::Comparator *getUintComparator() {
+  const static taraxa::UintComparator kComparator;
+  return &kComparator;
 }
-
 }  // end namespace taraxa
