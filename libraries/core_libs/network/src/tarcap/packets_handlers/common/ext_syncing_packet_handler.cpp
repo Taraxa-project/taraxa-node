@@ -33,10 +33,6 @@ void ExtSyncingPacketHandler::restartSyncingPbft(bool force) {
   uint64_t max_pbft_chain_size = 0;
   uint64_t max_node_dag_level = 0;
 
-  if (!peers_state_->getPeersCount()) {
-    LOG(log_nf_) << "Restarting syncing PBFT not possible since no connected peers";
-    return;
-  }
   for (auto const &peer : peers_state_->getAllPeers()) {
     if (peer.second->pbft_chain_size_ > max_pbft_chain_size) {
       max_pbft_chain_size = peer.second->pbft_chain_size_;
@@ -46,6 +42,11 @@ void ExtSyncingPacketHandler::restartSyncingPbft(bool force) {
       max_node_dag_level = peer.second->dag_level_;
       max_pbft_chain_peer = peer.second;
     }
+  }
+
+  if (!max_pbft_chain_peer) {
+    LOG(log_nf_) << "Restarting syncing PBFT not possible since no connected peers";
+    return;
   }
 
   auto pbft_sync_period = pbft_mgr_->pbftSyncingPeriod();
