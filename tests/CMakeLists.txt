@@ -9,7 +9,7 @@ target_link_libraries(crypto_test
     config
     vdf
     vote
-    CONAN_PKG::gtest
+    CONAN_PKG::GTest
 )
 add_test(crypto_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/crypto_test)
 
@@ -19,7 +19,7 @@ target_link_libraries(dag_block_test
     config
     core_libs
     taraxa-evm
-    CONAN_PKG::gtest
+    CONAN_PKG::GTest
 )
 add_test(dag_block_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/dag_block_test)
 
@@ -28,7 +28,7 @@ target_link_libraries(dag_test
     common
     config
     core_libs
-    CONAN_PKG::gtest
+    CONAN_PKG::GTest
 )
 add_test(dag_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/dag_test)
 
@@ -38,7 +38,7 @@ target_link_libraries(final_chain_test
     config
     core_libs
     taraxa-evm
-    CONAN_PKG::gtest
+    CONAN_PKG::GTest
 )
 add_test(final_chain_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/final_chain_test)
 
@@ -48,7 +48,7 @@ target_link_libraries(full_node_test
     config
     core_libs
     taraxa-evm
-    CONAN_PKG::gtest
+    CONAN_PKG::GTest
 )
 add_test(full_node_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/full_node_test)
 
@@ -58,7 +58,7 @@ target_link_libraries(network_test
     config
     core_libs
     taraxa-evm
-    CONAN_PKG::gtest
+    CONAN_PKG::GTest
 )
 add_test(network_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/network_test)
 
@@ -67,7 +67,7 @@ target_link_libraries(p2p_test
     common
     config
     core_libs
-    CONAN_PKG::gtest
+    CONAN_PKG::GTest
 )
 add_test(p2p_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/p2p_test)
 
@@ -77,7 +77,7 @@ target_link_libraries(pbft_chain_test
     config
     core_libs
     taraxa-evm
-    CONAN_PKG::gtest
+    CONAN_PKG::GTest
 )
 add_test(pbft_chain_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/pbft_chain_test)
 
@@ -87,7 +87,7 @@ target_link_libraries(pbft_manager_test
     config
     core_libs
     taraxa-evm
-    CONAN_PKG::gtest
+    CONAN_PKG::GTest
 )
 add_test(pbft_manager_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/pbft_manager_test)
 
@@ -96,7 +96,7 @@ target_link_libraries(replay_protection_service_test
     common
     config
     core_libs
-    CONAN_PKG::gtest
+    CONAN_PKG::GTest
 )
 add_test(replay_protection_service_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/replay_protection_service_test)
 
@@ -106,7 +106,7 @@ target_link_libraries(rpc_taraxa_test
     config
     core_libs
     taraxa-evm
-    CONAN_PKG::gtest
+    CONAN_PKG::GTest
 )
 add_test(rpc_taraxa_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/rpc_taraxa_test)
 
@@ -116,7 +116,7 @@ target_link_libraries(sortition_test
     config
     core_libs
     taraxa-evm
-    CONAN_PKG::gtest
+    CONAN_PKG::GTest
 )
 add_test(sortition_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/sortition_test)
 
@@ -126,7 +126,7 @@ target_link_libraries(state_api_test
     config
     core_libs
     taraxa-evm
-    CONAN_PKG::gtest
+    CONAN_PKG::GTest
 )
 add_test(state_api_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/state_api_test)
 
@@ -135,7 +135,7 @@ target_link_libraries(transaction_test
     common
     config
     core_libs
-    CONAN_PKG::gtest
+    CONAN_PKG::GTest
 )
 add_test(transaction_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/transaction_test)
 
@@ -145,7 +145,7 @@ target_link_libraries(vote_test
     config
     core_libs
     taraxa-evm
-    CONAN_PKG::gtest
+    CONAN_PKG::GTest
 )
 add_test(vote_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/vote_test)
 
@@ -153,7 +153,7 @@ add_test(vote_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/vote_test)
 add_executable(tarcap_threadpool_test tarcap_threadpool_test.cpp)
 target_link_libraries(tarcap_threadpool_test
         core_libs
-        CONAN_PKG::gtest
+        CONAN_PKG::GTest
         )
 add_test(tarcap_threadpool_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/tarcap_threadpool_test)
 
