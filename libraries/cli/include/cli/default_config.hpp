@@ -136,6 +136,9 @@ const char *default_json = R"foo({
         "difficulty_stale": "0x13",
         "lambda_bound": "0x64"
       }
+    },
+    "hardforks": {
+      "enable_vrf_adjustion_block": "0x12c"
     }
   }
 }

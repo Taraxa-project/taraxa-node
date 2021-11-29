@@ -145,8 +145,8 @@ const char *devnet_json = R"foo({
       "dag_efficiency_targets": ["0x12C0", "0x1450"],
       "computation_interval": "0x32",
       "vrf": {
-        "threshold_upper": "0xbffd",
-        "threshold_lower": "0x6bf7"
+        "threshold_upper": "0x2fff",
+        "threshold_lower": "0x17ff"
       },
       "vdf": {
         "difficulty_max": "0x12",
@@ -154,6 +154,9 @@ const char *devnet_json = R"foo({
         "difficulty_stale": "0x13",
         "lambda_bound": "0x64"
       }
+    },
+    "hardforks": {
+      "enable_vrf_adjustion_block": "0xc8"
     }
   }
 }

@@ -7,6 +7,7 @@
 
 #include "common/lazy.hpp"
 #include "config/final_chain_config.hpp"
+#include "config/hardfork.hpp"
 #include "config/pbft_config.hpp"
 #include "dag/dag_block.hpp"
 
@@ -21,6 +22,7 @@ struct ChainConfig {
   SortitionConfig sortition;
   PbftConfig pbft;
   final_chain::Config final_chain;
+  Hardforks hardforks;
 
  private:
   static LazyVal<std::unordered_map<string, ChainConfig>> const predefined_;

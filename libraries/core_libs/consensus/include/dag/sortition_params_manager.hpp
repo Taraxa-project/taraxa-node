@@ -34,7 +34,8 @@ struct SortitionParamsChange {
 
 class SortitionParamsManager {
  public:
-  SortitionParamsManager(const addr_t& node_addr, SortitionConfig sort_conf, std::shared_ptr<DbStorage> db);
+  SortitionParamsManager(const addr_t& node_addr, uint64_t vrf_adjustion_hardfork_block, SortitionConfig sort_conf,
+                         std::shared_ptr<DbStorage> db);
   SortitionParams getSortitionParams(std::optional<uint64_t> for_period = {}) const;
   uint64_t currentProposalPeriod() const;
   /**
@@ -66,14 +67,15 @@ class SortitionParamsManager {
    * Calculate average DAG efficiency from dag_efficiencies_. Used at the end of interval.
    * @returns average DAG efficiency in current interval
    */
-  uint16_t averageDagEfficiency();
+  uint16_t averageDagEfficiency() const;
 
  private:
+  const uint64_t kVrfAdjustionHardforkBlock;
   SortitionConfig config_;
   std::shared_ptr<DbStorage> db_;
   std::vector<uint16_t> dag_efficiencies_;
   std::deque<SortitionParamsChange> params_changes_;
-  std::optional<SortitionParamsChange> calculateChange(uint64_t period);
+  std::optional<SortitionParamsChange> calculateChange(uint64_t period) const;
   int32_t getChange(uint64_t period, uint16_t efficiency) const;
   void cleanup(uint64_t current_period);
 

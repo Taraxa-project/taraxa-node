@@ -424,7 +424,10 @@ std::deque<SortitionParamsChange> DbStorage::getLastSortitionParams(size_t count
   auto it =
       std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::sortition_params_change)));
   for (it->SeekToLast(); it->Valid() && changes.size() < count; it->Prev()) {
-    changes.push_front(SortitionParamsChange::from_rlp(dev::RLP(it->value().ToString())));
+    // don't include params from zero period because it is initial params
+    if (FromSlice<uint64_t>(it->key()) != 0) {
+      changes.push_front(SortitionParamsChange::from_rlp(dev::RLP(it->value().ToString())));
+    }
   }
 
   return changes;

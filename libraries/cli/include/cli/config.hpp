@@ -4,6 +4,7 @@
 #include <string>
 
 #include "config/config.hpp"
+#include "config/hardfork.hpp"
 
 namespace taraxa::cli {
 

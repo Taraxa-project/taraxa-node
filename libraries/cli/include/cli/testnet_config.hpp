@@ -154,6 +154,9 @@ const char *testnet_json = R"foo({
         "difficulty_stale": "0x16",
         "lambda_bound": "0x64"
       }
+    },
+    "hardforks": {
+      "enable_vrf_adjustion_block": "0x989680"
     }
   }
 }

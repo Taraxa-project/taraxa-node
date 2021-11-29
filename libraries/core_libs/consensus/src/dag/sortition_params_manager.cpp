@@ -1,6 +1,7 @@
 #include "dag/sortition_params_manager.hpp"
 
 #include "pbft/pbft_block.hpp"
+
 namespace taraxa {
 
 SortitionParamsChange::SortitionParamsChange(uint64_t period, uint16_t efficiency, const VrfParams& vrf,
@@ -55,9 +56,9 @@ SortitionParamsChange SortitionParamsChange::from_rlp(const dev::RLP& rlp) {
   return p;
 }
 
-SortitionParamsManager::SortitionParamsManager(const addr_t& node_addr, SortitionConfig sort_conf,
-                                               std::shared_ptr<DbStorage> db)
-    : config_(std::move(sort_conf)), db_(std::move(db)) {
+SortitionParamsManager::SortitionParamsManager(const addr_t& node_addr, uint64_t vrf_adjustion_hardfork_block,
+                                               SortitionConfig sort_conf, std::shared_ptr<DbStorage> db)
+    : kVrfAdjustionHardforkBlock(vrf_adjustion_hardfork_block), config_(std::move(sort_conf)), db_(std::move(db)) {
   LOG_OBJECTS_CREATE("TARCAP");
   // load cache values from db
   params_changes_ = db_->getLastSortitionParams(config_.changes_count_for_average);
@@ -68,6 +69,13 @@ SortitionParamsManager::SortitionParamsManager(const addr_t& node_addr, Sortitio
 
   dag_efficiencies_.reserve(config_.computation_interval);
   dag_efficiencies_ = db_->getLastIntervalEfficiencies(config_.computation_interval);
+
+  // First initialization, so save default config to db with zero period
+  if (params_changes_.empty()) {
+    auto batch = db_->createWriteBatch();
+    db_->saveSortitionParamsChange(0, {0, 0, config_.vrf}, batch);
+    db_->commitWriteBatch(batch);
+  }
 }
 uint64_t SortitionParamsManager::currentProposalPeriod() const {
   if (params_changes_.empty()) return 0;
@@ -108,12 +116,14 @@ uint16_t SortitionParamsManager::calculateDagEfficiency(const SyncBlock& block) 
   return block.transactions.size() * 100 * kOnePercent / total_count;
 }
 
-uint16_t SortitionParamsManager::averageDagEfficiency() {
+uint16_t SortitionParamsManager::averageDagEfficiency() const {
   return std::accumulate(dag_efficiencies_.begin(), dag_efficiencies_.end(), 0) / dag_efficiencies_.size();
 }
 
 uint16_t SortitionParamsManager::averageCorrectionPerPercent() const {
-  if (params_changes_.empty()) return 1;
+  if (params_changes_.empty()) {
+    return 1;
+  }
   auto sum = std::accumulate(params_changes_.begin(), params_changes_.end(), 0,
                              [](uint32_t s, const auto& e) { return s + e.actual_correction_per_percent; });
   return sum / params_changes_.size();
@@ -130,9 +140,12 @@ void SortitionParamsManager::cleanup(uint64_t current_period) {
 }
 
 void SortitionParamsManager::pbftBlockPushed(const SyncBlock& block, DbStorage::Batch& batch) {
+  const auto& period = block.pbft_blk->getPeriod();
+  if (period <= kVrfAdjustionHardforkBlock) {
+    return;
+  }
   uint16_t dag_efficiency = calculateDagEfficiency(block);
   dag_efficiencies_.push_back(dag_efficiency);
-  const auto& period = block.pbft_blk->getPeriod();
   db_->savePbftBlockDagEfficiency(period, dag_efficiency, batch);
   LOG(log_dg_) << period << " pbftBlockPushed, efficiency: " << dag_efficiency / 100. << "%";
 
@@ -140,6 +153,7 @@ void SortitionParamsManager::pbftBlockPushed(const SyncBlock& block, DbStorage::
   if (height % config_.computation_interval == 0) {
     const auto params_change = calculateChange(height);
     if (params_change) {
+      config_.vrf = params_change->vrf_params;
       db_->saveSortitionParamsChange(period, *params_change, batch);
       params_changes_.push_back(*params_change);
     }
@@ -163,7 +177,7 @@ int32_t SortitionParamsManager::getChange(uint64_t period, uint16_t efficiency) 
   return change;
 }
 
-std::optional<SortitionParamsChange> SortitionParamsManager::calculateChange(uint64_t period) {
+std::optional<SortitionParamsChange> SortitionParamsManager::calculateChange(uint64_t period) const {
   const auto average_dag_efficiency = averageDagEfficiency();
   if (average_dag_efficiency >= config_.dag_efficiency_targets.first &&
       average_dag_efficiency <= config_.dag_efficiency_targets.second) {
@@ -173,13 +187,14 @@ std::optional<SortitionParamsChange> SortitionParamsManager::calculateChange(uin
   }
 
   const int32_t change = getChange(period, average_dag_efficiency);
-  config_.vrf += change;
+  VrfParams vrf = config_.vrf;
+  vrf += change;
 
   if (params_changes_.empty()) {
-    return SortitionParamsChange{period, average_dag_efficiency, config_.vrf};
+    return SortitionParamsChange{period, average_dag_efficiency, vrf};
   }
 
-  return SortitionParamsChange{period, average_dag_efficiency, config_.vrf, *params_changes_.rbegin()};
+  return SortitionParamsChange{period, average_dag_efficiency, vrf, *params_changes_.rbegin()};
 }
 
 }  // namespace taraxa

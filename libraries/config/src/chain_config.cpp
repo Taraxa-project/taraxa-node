@@ -16,6 +16,7 @@ Json::Value enc_json(ChainConfig const& obj) {
   json["sortition"] = enc_json(obj.sortition);
   json["pbft"] = enc_json(obj.pbft);
   json["final_chain"] = enc_json(obj.final_chain);
+  json["hardforks"] = enc_json(obj.hardforks);
   return json;
 }
 
@@ -27,6 +28,7 @@ void dec_json(Json::Value const& json, ChainConfig& obj) {
   dec_json(json["sortition"], obj.sortition);
   dec_json(json["pbft"], obj.pbft);
   dec_json(json["final_chain"], obj.final_chain);
+  dec_json(json["hardforks"], obj.hardforks);
 }
 
 decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {

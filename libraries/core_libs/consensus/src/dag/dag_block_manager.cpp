@@ -4,8 +4,8 @@
 
 namespace taraxa {
 
-DagBlockManager::DagBlockManager(addr_t node_addr, SortitionConfig const &sortition_config,
-                                 std::optional<state_api::DPOSConfig> dpos_config, unsigned num_verifiers,
+// conf_.chain.hardforks. conf_.chain.sortition, conf_.chain.final_chain.state.dpos,
+DagBlockManager::DagBlockManager(addr_t node_addr, const ChainConfig &chain_config, unsigned num_verifiers,
                                  std::shared_ptr<DbStorage> db, std::shared_ptr<TransactionManager> trx_mgr,
                                  std::shared_ptr<FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain,
                                  logger::Logger log_time, uint32_t queue_limit)
@@ -18,8 +18,9 @@ DagBlockManager::DagBlockManager(addr_t node_addr, SortitionConfig const &sortit
       invalid_blocks_(cache_max_size_, cache_delete_step_),
       seen_blocks_(cache_max_size_, cache_delete_step_),
       queue_limit_(queue_limit),
-      sortition_params_manager_(node_addr, sortition_config, db_),
-      dpos_config_(dpos_config) {
+      sortition_params_manager_(node_addr, chain_config.hardforks.enable_vrf_adjustion_block, chain_config.sortition,
+                                db_),
+      dpos_config_(chain_config.final_chain.state.dpos) {
   LOG_OBJECTS_CREATE("BLKQU");
 
   // Set DAG level proposal period map

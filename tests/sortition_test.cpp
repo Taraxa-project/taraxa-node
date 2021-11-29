@@ -131,7 +131,7 @@ TEST_F(SortitionTest, params_change_serialization) {
 TEST_F(SortitionTest, efficiency_calculation) {
   size_t tries = 10;
   auto db = std::make_shared<DbStorage>(data_dir / "db");
-  SortitionParamsManager sp({}, node_cfgs[0].chain.sortition, db);
+  SortitionParamsManager sp({}, 0, node_cfgs[0].chain.sortition, db);
 
   while (tries--) {
     auto target_efficiency = std::rand() % 100 * kOnePercent;
@@ -167,7 +167,7 @@ TEST_F(SortitionTest, average_correction_per_percent) {
   node_cfgs[0].chain.sortition.dag_efficiency_targets = {75 * kOnePercent, 75 * kOnePercent};
 
   auto db = std::make_shared<DbStorage>(data_dir / "db");
-  SortitionParamsManager sp({}, node_cfgs[0].chain.sortition, db);
+  SortitionParamsManager sp({}, 0, node_cfgs[0].chain.sortition, db);
 
   auto threshold_upper = sp.getSortitionParams().vrf.threshold_upper;
   auto correction_per_percent = sp.averageCorrectionPerPercent();
@@ -237,7 +237,7 @@ TEST_F(SortitionTest, average_correction_per_percent) {
     db->commitWriteBatch(batch);
   }
 
-  SortitionParamsManager sp2({}, node_cfgs[0].chain.sortition, db);
+  SortitionParamsManager sp2({}, 0, node_cfgs[0].chain.sortition, db);
   EXPECT_EQ(sp2.averageDagEfficiency(), sp.averageDagEfficiency());
   EXPECT_EQ(sp2.averageCorrectionPerPercent(), sp.averageCorrectionPerPercent());
 }
@@ -281,7 +281,7 @@ TEST_F(SortitionTest, params_changes_from_db2) {
   auto db = std::make_shared<DbStorage>(data_dir / "db");
 
   auto batch = db->createWriteBatch();
-  for (uint16_t i = 0; i < 2; ++i) {
+  for (uint16_t i = 1; i < 3; ++i) {
     SortitionParamsChange p{i, i, {i, i}};
     db->saveSortitionParamsChange(i, p, batch);
   }
@@ -290,9 +290,9 @@ TEST_F(SortitionTest, params_changes_from_db2) {
   auto res = db->getLastSortitionParams(5);
   EXPECT_EQ(res.size(), 2);
   for (uint16_t i = 0; i < 2; ++i) {
-    EXPECT_EQ(res[i].interval_efficiency, i);
-    EXPECT_EQ(res[i].vrf_params.threshold_lower, i);
-    EXPECT_EQ(res[i].vrf_params.threshold_upper, i);
+    EXPECT_EQ(res[i].interval_efficiency, i + 1);
+    EXPECT_EQ(res[i].vrf_params.threshold_lower, i + 1);
+    EXPECT_EQ(res[i].vrf_params.threshold_upper, i + 1);
   }
 }
 
@@ -325,7 +325,7 @@ TEST_F(SortitionTest, load_from_db) {
   }
   db->commitWriteBatch(batch);
 
-  SortitionParamsManager sp({}, node_cfgs[0].chain.sortition, db);
+  SortitionParamsManager sp({}, 0, node_cfgs[0].chain.sortition, db);
 
   EXPECT_EQ(sp.averageCorrectionPerPercent(), 25 * kOnePercent);
   EXPECT_EQ(sp.averageDagEfficiency(), 44 * kOnePercent);
@@ -337,7 +337,7 @@ TEST_F(SortitionTest, db_cleanup) {
   cfg.dag_efficiency_targets = {75 * kOnePercent, 75 * kOnePercent};
 
   auto db = std::make_shared<DbStorage>(data_dir / "db");
-  SortitionParamsManager sp({}, node_cfgs[0].chain.sortition, db);
+  SortitionParamsManager sp({}, 0, node_cfgs[0].chain.sortition, db);
 
   {
     auto batch = db->createWriteBatch();
@@ -364,12 +364,13 @@ TEST_F(SortitionTest, db_cleanup) {
 }
 
 TEST_F(SortitionTest, get_params_from_period) {
+  SortitionConfig original_config = node_cfgs[0].chain.sortition;
   auto& cfg = node_cfgs[0].chain.sortition;
   cfg.computation_interval = 10;
   cfg.dag_efficiency_targets = {75 * kOnePercent, 75 * kOnePercent};
 
   auto db = std::make_shared<DbStorage>(data_dir / "db");
-  SortitionParamsManager sp({}, node_cfgs[0].chain.sortition, db);
+  SortitionParamsManager sp({}, 0, node_cfgs[0].chain.sortition, db);
   auto batch = db->createWriteBatch();
   {
     auto b = createBlock(10, 70 * kOnePercent, 5);
@@ -466,6 +467,10 @@ TEST_F(SortitionTest, get_params_from_period) {
   EXPECT_EQ(db->getParamsChangeForPeriod(80)->interval_efficiency, 80 * kOnePercent);
   EXPECT_EQ(db->getParamsChangeForPeriod(95)->period, 90);
   EXPECT_EQ(db->getParamsChangeForPeriod(95)->interval_efficiency, 90 * kOnePercent);
+
+  // try to request default params after all that manipulations
+  const auto init_params = db->getParamsChangeForPeriod(1);
+  EXPECT_EQ(init_params->vrf_params.threshold_upper, original_config.vrf.threshold_upper);
 }
 
 }  // namespace taraxa::core_tests
