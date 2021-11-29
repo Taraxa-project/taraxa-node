@@ -2,7 +2,7 @@
 
 #include <rocksdb/comparator.h>
 
-#include "storage/storage.hpp"
+#include "storage/db_utils.hpp"
 
 namespace taraxa {
 class UintComparator : public rocksdb::Comparator {
@@ -32,7 +32,8 @@ class UintComparator : public rocksdb::Comparator {
 };
 
 const rocksdb::Comparator *getUintComparator() {
-  static taraxa::UintComparator cmp;
+  const static taraxa::UintComparator cmp;
   return &cmp;
 }
+
 }  // end namespace taraxa

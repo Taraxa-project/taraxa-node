@@ -53,7 +53,7 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
   std::vector<rocksdb::ColumnFamilyDescriptor> descriptors(Columns::all.size());
   std::transform(Columns::all.begin(), Columns::all.end(), std::back_inserter(descriptors), [](const Column& col) {
     auto options = rocksdb::ColumnFamilyOptions();
-    options.comparator = getUintComparator();
+    if (col.comparator_) options.comparator = col.comparator_;
     return rocksdb::ColumnFamilyDescriptor(col.name(), options);
   });
   LOG_OBJECTS_CREATE("DBS");
