@@ -367,7 +367,7 @@ bool PbftManager::resetRound_() {
 
   const auto previoud_round = consensus_pbft_round - 1;
 
-  auto next_votes = previous_round_next_votes_->getNextVotes();
+  auto next_votes = next_votes_manager_->getNextVotes();
 
   // Update in DB first
   auto batch = db_->createWriteBatch();
