@@ -5,6 +5,7 @@
 #include "storage/db_utils.hpp"
 
 namespace taraxa {
+template<class T>
 class UintComparator : public rocksdb::Comparator {
  public:
   UintComparator() = default;
@@ -18,8 +19,8 @@ class UintComparator : public rocksdb::Comparator {
   // if a > b: positive result
   // else: zero result
   virtual int Compare(const rocksdb::Slice &a, const rocksdb::Slice &b) const override {
-    const auto x = FromSlice<uint64_t>(a.data());
-    const auto y = FromSlice<uint64_t>(b.data());
+    const auto x = FromSlice<T>(a.data());
+    const auto y = FromSlice<T>(b.data());
     if (x == y) return 0;
     if (x < y) return -1;
     return 1;
@@ -30,8 +31,9 @@ class UintComparator : public rocksdb::Comparator {
   virtual void FindShortSuccessor(std::string *) const override{};
 };
 
-inline const rocksdb::Comparator *getUintComparator() {
-  const static taraxa::UintComparator kComparator;
+template<class T>
+inline const rocksdb::Comparator *getIntComparator() {
+  const static taraxa::UintComparator<T> kComparator;
   return &kComparator;
 }
 }  // end namespace taraxa

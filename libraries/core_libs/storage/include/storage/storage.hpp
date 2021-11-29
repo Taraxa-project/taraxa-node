@@ -125,7 +125,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN(final_chain_receipt_by_trx_hash);
     COLUMN(final_chain_log_blooms_index);
     COLUMN(pbft_block_dag_efficiency);
-    COLUMN_W_COMP(sortition_params_change, getUintComparator());
+    COLUMN_W_COMP(sortition_params_change, getIntComparator<uint64_t>());
 
 #undef COLUMN
 #undef COLUMN_W_COMP
