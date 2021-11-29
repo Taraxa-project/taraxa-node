@@ -15,6 +15,7 @@
 #include "logger/logger.hpp"
 #include "pbft/pbft_block.hpp"
 #include "pbft/sync_block.hpp"
+#include "storage/uint_comparator.hpp"
 #include "transaction/transaction.hpp"
 
 namespace taraxa {
@@ -51,13 +52,6 @@ enum PbftMgrVotedValue : uint8_t { OwnStartingValueInRound = 0, SoftVotedBlockHa
 
 enum DposProposalPeriodLevelsStatus : uint8_t { MaxProposalPeriod = 0 };
 
-template <typename T>
-T FromSlice(rocksdb::Slice const& e) {
-  T value;
-  memcpy(&value, e.data(), sizeof(T));
-  return value;
-}
-
 class DbException : public std::exception {
  public:
   explicit DbException(string const& desc) : desc_(desc) {}
@@ -79,8 +73,10 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
    public:
     size_t const ordinal_;
+    const rocksdb::Comparator* comparator_;
 
-    Column(string name, size_t ordinal) : name_(std::move(name)), ordinal_(ordinal) {}
+    Column(string name, size_t ordinal, const rocksdb::Comparator* comparator = nullptr)
+        : name_(std::move(name)), ordinal_(ordinal), comparator_(comparator) {}
 
     auto const& name() const { return ordinal_ ? name_ : rocksdb::kDefaultColumnFamilyName; }
   };
@@ -92,6 +88,8 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     static inline auto const& all = all_;
 
 #define COLUMN(__name__) static inline auto const __name__ = all_.emplace_back(#__name__, all_.size())
+#define COLUMN_W_COMP(__name__, ...) \
+  static inline auto const __name__ = all_.emplace_back(#__name__, all_.size(), __VA_ARGS__)
 
     // do not change/move
     COLUMN(default_column);
@@ -127,9 +125,10 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN(final_chain_receipt_by_trx_hash);
     COLUMN(final_chain_log_blooms_index);
     COLUMN(pbft_block_dag_efficiency);
-    COLUMN(sortition_params_change);
+    COLUMN_W_COMP(sortition_params_change, getIntComparator<uint64_t>());
 
 #undef COLUMN
+#undef COLUMN_W_COMP
   };
 
  private:

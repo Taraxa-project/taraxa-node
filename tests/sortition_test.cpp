@@ -242,6 +242,21 @@ TEST_F(SortitionTest, average_correction_per_percent) {
   EXPECT_EQ(sp2.averageCorrectionPerPercent(), sp.averageCorrectionPerPercent());
 }
 
+TEST_F(SortitionTest, db_keys_order) {
+  auto db = std::make_shared<DbStorage>(data_dir / "db");
+
+  auto batch = db->createWriteBatch();
+  for (uint16_t i = 1; i <= 1000; ++i) {
+    db->saveSortitionParamsChange(i, {i, i, {}}, batch);
+  }
+  db->commitWriteBatch(batch);
+
+  const auto params_from_db = db->getLastSortitionParams(1000);
+  for (uint16_t i = 1; i < 1000; ++i) {
+    EXPECT_EQ(i + 1, params_from_db[i].period);
+  }
+}
+
 TEST_F(SortitionTest, params_changes_from_db) {
   auto db = std::make_shared<DbStorage>(data_dir / "db");
 
