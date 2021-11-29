@@ -252,8 +252,8 @@ TEST_F(SortitionTest, db_keys_order) {
   db->commitWriteBatch(batch);
 
   const auto params_from_db = db->getLastSortitionParams(1000);
-  for (const auto& e : params_from_db) {
-    std::cout << "params for period" << e.period << std::endl;
+  for (uint16_t i = 1; i < 1000; ++i) {
+    EXPECT_EQ(i + 1, params_from_db[i].period);
   }
 }
 

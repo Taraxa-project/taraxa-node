@@ -6,6 +6,7 @@
 #include "config/version.hpp"
 #include "dag/sortition_params_manager.hpp"
 #include "rocksdb/utilities/checkpoint.h"
+#include "storage/uint_comparator.hpp"
 #include "vote/vote.hpp"
 
 namespace taraxa {
@@ -48,9 +49,12 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
   // https://github.com/facebook/rocksdb/issues/3216#issuecomment-817358217
   // aleth default 256 (state_db is using another 128)
   options.max_open_files = (max_open_files) ? max_open_files : 256;
-  std::vector<rocksdb::ColumnFamilyDescriptor> descriptors;
+
+  std::vector<rocksdb::ColumnFamilyDescriptor> descriptors(Columns::all.size());
   std::transform(Columns::all.begin(), Columns::all.end(), std::back_inserter(descriptors), [](const Column& col) {
-    return rocksdb::ColumnFamilyDescriptor(col.name(), rocksdb::ColumnFamilyOptions());
+    auto options = rocksdb::ColumnFamilyOptions();
+    options.comparator = getUintComparator();
+    return rocksdb::ColumnFamilyDescriptor(col.name(), options);
   });
   LOG_OBJECTS_CREATE("DBS");
 
