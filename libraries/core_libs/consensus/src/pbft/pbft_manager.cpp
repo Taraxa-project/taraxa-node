@@ -1091,11 +1091,8 @@ size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteType
     if (auto net = network_.lock()) {
       net->onNewPbftVotes({std::move(vote)});
     }
-
-    return weight;
   }
-
-  return 0;
+  return weight;
 }
 
 blk_hash_t PbftManager::calculateOrderHash(std::vector<blk_hash_t> const &dag_block_hashes,
