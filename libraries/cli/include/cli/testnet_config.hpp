@@ -148,8 +148,8 @@ const char *testnet_json = R"foo({
       "dag_efficiency_targets": ["0x12C0", "0x1450"],
       "computation_interval": "0x32",
       "vrf": {
-        "threshold_upper": "0x2fff",
-        "threshold_lower": "0x17ff"
+        "threshold_upper": "0x9fff",
+        "threshold_lower": "0x87ff"
       },
       "vdf": {
         "difficulty_max": "0x15",
