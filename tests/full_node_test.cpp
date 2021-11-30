@@ -1506,9 +1506,6 @@ TEST_F(FullNodeTest, chain_config_json) {
       "threshold_lower": "0x7200",
       "threshold_upper": "0x8000"
     }
-  }, 
-  "hardforks": {
-    "enable_vrf_adjustion_block": "0x0"
   }
 })";
   Json::Value default_chain_config_json;

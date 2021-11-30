@@ -16,7 +16,9 @@ Json::Value enc_json(ChainConfig const& obj) {
   json["sortition"] = enc_json(obj.sortition);
   json["pbft"] = enc_json(obj.pbft);
   json["final_chain"] = enc_json(obj.final_chain);
-  json["hardforks"] = enc_json(obj.hardforks);
+  // not include it in local json to not mess up values
+  // json["hardforks"] = enc_json(obj.hardforks);
+
   return json;
 }
 
