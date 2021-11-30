@@ -140,11 +140,11 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
   if (pbft_current_round < selected_peer->pbft_round_) {
     syncPbftNextVotes(pbft_current_round, pbft_previous_round_next_votes_size);
   } else if (pbft_current_round == selected_peer->pbft_round_) {
-    // because of weighted votes some peers could have more votes than we have
-    // if we have 2 * 2T+1 votes, we will not request more votes
-    //
-    if (pbft_previous_round_next_votes_size < (pbft_mgr_->getTwoTPlusOne() * 2) &&
-        pbft_previous_round_next_votes_size < selected_peer->pbft_previous_round_next_votes_size_) {
+    const auto two_times_2t_plus_1 = pbft_mgr_->getTwoTPlusOne() * 2;
+    // Node at lease have one next vote value for previoud PBFT round. There may have 2 next vote values for previous
+    // PBFT round. If node own have one next vote value and peer have two, need sync here.
+    if (pbft_previous_round_next_votes_size < two_times_2t_plus_1 &&
+        selected_peer->pbft_previous_round_next_votes_size_ >= two_times_2t_plus_1) {
       syncPbftNextVotes(pbft_current_round, pbft_previous_round_next_votes_size);
     }
   }

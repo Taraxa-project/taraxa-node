@@ -1073,19 +1073,26 @@ std::shared_ptr<Vote> PbftManager::generateVote(blk_hash_t const &blockhash, Pbf
 size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteTypes vote_type, uint64_t round,
                                size_t step) {
   if (!weighted_votes_count_) {
+    // No delegation
     return 0;
   }
+
+  auto dpos_weighted_votes_count = weighted_votes_count_.load();
+  if (step == 1) {
+    // For proposal vote, only use 1 weight for VRF sortition
+    dpos_weighted_votes_count = 1;
+  }
+
   auto vote = generateVote(blockhash, vote_type, round, step);
-  if (const auto weight = vote->calculateWeight(weighted_votes_count_, getDposTotalVotesCount(), sortition_threshold_);
-      weight) {
+  const auto weight = vote->calculateWeight(dpos_weighted_votes_count, getDposTotalVotesCount(), sortition_threshold_);
+  if (weight) {
     db_->saveVerifiedVote(vote);
     vote_mgr_->addVerifiedVote(vote);
     if (auto net = network_.lock()) {
       net->onNewPbftVotes({std::move(vote)});
     }
-    return weight;
   }
-  return 0;
+  return weight;
 }
 
 blk_hash_t PbftManager::calculateOrderHash(std::vector<blk_hash_t> const &dag_block_hashes,
