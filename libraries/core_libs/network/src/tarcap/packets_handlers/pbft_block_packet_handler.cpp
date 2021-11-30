@@ -46,7 +46,7 @@ void PbftBlockPacketHandler::process(const PacketData &packet_data, const std::s
 }
 
 void PbftBlockPacketHandler::onNewPbftBlock(PbftBlock const &pbft_block) {
-  std::vector<dev::p2p::NodeID> peers_to_send;
+  std::vector<std::shared_ptr<TaraxaPeer>> peers_to_send;
   const auto my_chain_size = pbft_chain_->getPbftChainSize();
 
   for (auto const &peer : peers_state_->getAllPeers()) {
@@ -55,12 +55,13 @@ void PbftBlockPacketHandler::onNewPbftBlock(PbftBlock const &pbft_block) {
         LOG(log_dg_) << "sending PbftBlock " << pbft_block.getBlockHash() << " with missing dag anchor"
                      << pbft_block.getPivotDagBlockHash() << " to " << peer.first;
       }
-      peers_to_send.push_back(peer.first);
+      peers_to_send.emplace_back(peer.second);
     }
   }
 
   for (auto const &peer : peers_to_send) {
-    sendPbftBlock(peer, pbft_block, my_chain_size);
+    sendPbftBlock(peer->getId(), pbft_block, my_chain_size);
+    peer->markPbftBlockAsKnown(pbft_block.getBlockHash());
   }
 }
 
