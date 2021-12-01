@@ -31,9 +31,9 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   SharedTransactions packTrxs(uint16_t max_trx_to_pack = 0);
 
   /**
-   * Removes transactions from memory pool. Invoked when transactions are included in proposed or received dag block
+   * Saves transactions from dag block which was added to the DAG. Removes transactions from memory pool
    */
-  void removeTransactionsFromPool(SharedTransactions const &trxs);
+  void saveTransactionsFromDagBlock(SharedTransactions const &trxs);
 
   /**
    * @brief Inserts new transaction to transaction pool

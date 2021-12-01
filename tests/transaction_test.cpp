@@ -179,7 +179,7 @@ TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
   do {
     packed_trxs = trx_mgr.packTrxs();
     total_packed_trxs.insert(total_packed_trxs.end(), packed_trxs.begin(), packed_trxs.end());
-    trx_mgr.removeTransactionsFromPool(packed_trxs);
+    trx_mgr.saveTransactionsFromDagBlock(packed_trxs);
     thisThreadSleepForMicroSeconds(100);
   } while (!packed_trxs.empty());
   wakeup.join();
@@ -204,8 +204,7 @@ TEST_F(TransactionTest, transaction_concurrency) {
 
   // 2/3 of transactions removed from pool and saved to db
   for (size_t i = 0; i < g_signed_trx_samples->size() * 2 / 3; i++) {
-    db->saveTransaction(*g_signed_trx_samples[i]);
-    trx_mgr.removeTransactionsFromPool({g_signed_trx_samples[i]});
+    trx_mgr.saveTransactionsFromDagBlock({g_signed_trx_samples[i]});
   }
 
   // 1/3 transactions finalized
