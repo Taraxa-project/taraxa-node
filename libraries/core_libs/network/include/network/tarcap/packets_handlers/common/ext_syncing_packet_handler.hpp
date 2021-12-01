@@ -38,7 +38,7 @@ class ExtSyncingPacketHandler : public PacketHandler {
    */
   void restartSyncingPbft(bool force = false);
 
-  void syncPeerPbft(unsigned long height_to_sync);
+  bool syncPeerPbft(unsigned long height_to_sync);
   void requestDagBlocks(const dev::p2p::NodeID &_nodeID, const std::unordered_set<blk_hash_t> &blocks,
                         DagSyncRequestType mode = MissingHashes);
 
