@@ -289,31 +289,25 @@ void VoteManager::verifyVotes(uint64_t pbft_round, size_t sortition_threshold, u
     if (votes_invalid_in_current_final_chain_period_.count(v->getHash())) {
       continue;
     }
-    bool vote_is_valid = true;
+
     auto dpos_votes_count = dpos_eligible_vote_count(v->getVoterAddr());
-    if (v->getStep() == 1 && v->getType() == propose_vote_type) {
+    if (dpos_votes_count && v->getStep() == 1) {
       // We need to handle propose_vote_type
-      if (!dpos_votes_count) vote_is_valid = false;
       dpos_votes_count = 1;
     }
-    if (vote_is_valid) {
-      try {
-        v->validate(dpos_votes_count, dpos_total_votes_count, sortition_threshold);
-      } catch (const std::logic_error& e) {
-        LOG(log_er_) << e.what();
-        vote_is_valid = false;
-      }
-    }
-
-    if (vote_is_valid) {
-      addVerifiedVote(v);
-      removeUnverifiedVote(v->getRound(), v->getHash());
-    } else {
+    try {
+      v->validate(dpos_votes_count, dpos_total_votes_count, sortition_threshold);
+    } catch (const std::logic_error& e) {
+      LOG(log_wr_) << e.what();
       votes_invalid_in_current_final_chain_period_.emplace(v->getHash());
       if (v->getRound() > pbft_round + 1) {
         removeUnverifiedVote(v->getRound(), v->getHash());
       }
+      continue;
     }
+
+    addVerifiedVote(v);
+    removeUnverifiedVote(v->getRound(), v->getHash());
   }
 }
 
