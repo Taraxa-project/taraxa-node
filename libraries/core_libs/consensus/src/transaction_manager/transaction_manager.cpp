@@ -140,18 +140,24 @@ std::shared_ptr<Transaction> TransactionManager::getTransaction(trx_hash_t const
   return db_->getTransaction(hash);
 }
 
-void TransactionManager::removeTransactionsFromPool(SharedTransactions const &trxs) {
+void TransactionManager::saveTransactionsFromDagBlock(SharedTransactions const &trxs) {
   // This lock synchronizes inserting and removing transactions from transactions memory pool with database insertion.
   // Unique lock here makes sure that transactions we are removing are not reinserted in transactions_pool_
   std::unique_lock transactions_lock(transactions_mutex_);
+  auto write_batch = db_->createWriteBatch();
   for (auto const &trx : trxs) {
-    nonfinalized_transactions_in_dag_.emplace(trx->getHash());
     if (transactions_pool_.erase(trx->getHash())) {
       LOG(log_dg_) << "Transaction " << trx->getHash() << " removed from trx pool";
       // Transactions are counted when included in DAG
       trx_count_++;
+      transaction_accepted_.emit(trx->getHash());
     }
-    transaction_accepted_.emit(trx->getHash());
+    // We only save transaction if it has not already been saved
+    if (!db_->transactionInDb(trx->getHash())) {
+      db_->addTransactionToBatch(*trx, write_batch);
+      nonfinalized_transactions_in_dag_.emplace(trx->getHash());
+    }
+    db_->commitWriteBatch(write_batch);
   }
   db_->saveStatusField(StatusDbField::TrxCount, trx_count_);
 }

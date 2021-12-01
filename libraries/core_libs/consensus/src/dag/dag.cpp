@@ -406,19 +406,14 @@ void DagManager::addDagBlock(DagBlock const &blk, SharedTransactions &&trxs, boo
   {
     ULock lock(mutex_);
     if (save) {
-      auto write_batch = db_->createWriteBatch();
       if (db_->dagBlockInDb(blk.getHash())) {
         LOG(log_dg_) << "Block already in DB: " << blk.getHash();
         return;
       }
-      // Save the dag block and all of its transactions to DB
-      db_->saveDagBlock(blk, &write_batch);
-      for (auto const &t : trxs) {
-        db_->addTransactionToBatch(*t, write_batch);
-      }
-      db_->commitWriteBatch(write_batch);
-      // Remove transactions from memory pool
-      trx_mgr_->removeTransactionsFromPool(trxs);
+      // Saves transactions and remove them from memory pool
+      trx_mgr_->saveTransactionsFromDagBlock(trxs);
+      // Save the dag block
+      db_->saveDagBlock(blk);
     }
     auto blk_hash = blk.getHash();
     auto pivot_hash = blk.getPivot();
