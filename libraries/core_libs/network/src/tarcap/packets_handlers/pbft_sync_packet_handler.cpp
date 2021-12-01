@@ -97,7 +97,10 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
                      << ", PBFT chain size " << pbft_chain_->getPbftChainSize();
         delayed_sync_events_tp_.post(1000, [this] { delayedPbftSync(1); });
       } else {
-        syncPeerPbft(pbft_sync_period + 1);
+        if (!syncPeerPbft(pbft_sync_period + 1)) {
+          syncing_state_->set_pbft_syncing(false);
+          return restartSyncingPbft();
+        }
       }
     }
   }
@@ -141,7 +144,10 @@ void PbftSyncPacketHandler::delayedPbftSync(int counter) {
                    << pbft_chain_->getPbftChainSize();
       delayed_sync_events_tp_.post(1000, [this, counter] { delayedPbftSync(counter + 1); });
     } else {
-      syncPeerPbft(pbft_sync_period + 1);
+      if (!syncPeerPbft(pbft_sync_period + 1)) {
+        syncing_state_->set_pbft_syncing(false);
+        return restartSyncingPbft();
+      }
     }
   }
 }

@@ -45,6 +45,8 @@ void ExtSyncingPacketHandler::restartSyncingPbft(bool force) {
   }
 
   if (!max_pbft_chain_peer) {
+    syncing_state_->set_pbft_syncing(false);
+    syncing_state_->set_dag_syncing(false);
     LOG(log_nf_) << "Restarting syncing PBFT not possible since no connected peers";
     return;
   }
@@ -56,7 +58,12 @@ void ExtSyncingPacketHandler::restartSyncingPbft(bool force) {
 
     syncing_state_->set_dag_syncing(false);
     syncing_state_->set_pbft_syncing(true, pbft_sync_period, std::move(max_pbft_chain_peer));
-    syncPeerPbft(pbft_sync_period + 1);
+
+    if (!syncPeerPbft(pbft_sync_period + 1)) {
+      syncing_state_->set_pbft_syncing(false);
+      return restartSyncingPbft();
+    }
+
     // Disable snapshots only if are syncing from scratch
     if (syncing_state_->is_deep_pbft_syncing()) {
       db_->disableSnapshots();
@@ -81,10 +88,10 @@ void ExtSyncingPacketHandler::restartSyncingPbft(bool force) {
   }
 }
 
-void ExtSyncingPacketHandler::syncPeerPbft(unsigned long height_to_sync) {
+bool ExtSyncingPacketHandler::syncPeerPbft(unsigned long height_to_sync) {
   const auto node_id = syncing_state_->syncing_peer();
   LOG(log_nf_) << "Sync peer node " << node_id << " from pbft chain height " << height_to_sync;
-  sealAndSend(node_id, SubprotocolPacketType::GetPbftSyncPacket, std::move(dev::RLPStream(1) << height_to_sync));
+  return sealAndSend(node_id, SubprotocolPacketType::GetPbftSyncPacket, std::move(dev::RLPStream(1) << height_to_sync));
 }
 
 void ExtSyncingPacketHandler::requestPendingDagBlocks() {

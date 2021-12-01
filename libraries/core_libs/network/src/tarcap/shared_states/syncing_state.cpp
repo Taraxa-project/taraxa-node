@@ -34,27 +34,22 @@ void SyncingState::set_pbft_syncing(bool syncing, uint64_t current_period, std::
   assert((syncing && peer) || !syncing);
   pbft_syncing_ = syncing;
 
-  if (peer) {
-    set_peer(std::move(peer));
-  }
-
+  std::shared_lock lock(peer_mutex_);
   if (syncing) {
-    std::shared_lock lock(peer_mutex_);
+    peer_ = std::move(peer);
     deep_pbft_syncing_ = (peer_->pbft_chain_size_ - current_period >= kDeepSyncingThreshold);
     // Reset last sync packet time when syncing is restarted/fresh syncing flag is set
     set_last_sync_packet_time();
   } else {
     deep_pbft_syncing_ = false;
+    peer_ = nullptr;
   }
 }
 
 void SyncingState::set_dag_syncing(bool syncing, std::shared_ptr<TaraxaPeer> peer) {
   assert((syncing && peer) || !syncing);
   dag_syncing_ = syncing;
-
-  if (peer) {
-    set_peer(std::move(peer));
-  }
+  set_peer(std::move(peer));
 }
 
 void SyncingState::set_last_sync_packet_time() {
