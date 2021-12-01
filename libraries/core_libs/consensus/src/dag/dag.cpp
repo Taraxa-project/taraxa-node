@@ -607,8 +607,8 @@ void DagManager::recoverDag() {
     for (auto &blk : lvl.second) {
       addDagBlock(std::move(blk), {}, false, false);
     }
-    trx_mgr_->recoverNonfinalizedTransactions();
   }
+  trx_mgr_->recoverNonfinalizedTransactions();
 }
 
 const std::map<uint64_t, std::vector<blk_hash_t>> DagManager::getNonFinalizedBlocks() const {

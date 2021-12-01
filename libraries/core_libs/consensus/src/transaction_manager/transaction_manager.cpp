@@ -164,8 +164,16 @@ void TransactionManager::saveTransactionsFromDagBlock(SharedTransactions const &
 
 void TransactionManager::recoverNonfinalizedTransactions() {
   // On restart populate nonfinalized_transactions_in_dag_ structure from db
+  auto write_batch = db_->createWriteBatch();
   for (auto const &trx : db_->getNonfinalizedTransactions()) {
-    nonfinalized_transactions_in_dag_.emplace(trx->getHash());
+    if (db_->transactionFinalized(trx->getHash())) {
+      // TODO: This section where transactions are deleted is only to recover from a bug where non-finalized
+      // transactions were not properly deleted from the DB, once there are no nodes with such corrupted data, this
+      // line can be removed oe replaced with an assert
+      db_->removeTransactionToBatch(trx->getHash(), write_batch);
+    } else {
+      nonfinalized_transactions_in_dag_.emplace(trx->getHash());
+    }
   }
 }
 
