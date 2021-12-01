@@ -579,19 +579,20 @@ std::vector<bool> DbStorage::transactionsInDb(std::vector<trx_hash_t> const& trx
   result.reserve(trx_hashes.size());
 
   DbStorage::MultiGetQuery db_query(shared_from_this(), trx_hashes.size());
-  db_query.append(DbStorage::Columns::trx_period, trx_hashes);
+  db_query.append(DbStorage::Columns::transactions, trx_hashes);
   auto db_trxs_statuses = db_query.execute();
   for (size_t idx = 0; idx < db_trxs_statuses.size(); idx++) {
     auto& trx_raw_status = db_trxs_statuses[idx];
     result[idx] = !trx_raw_status.empty();
   }
 
-  db_query.append(DbStorage::Columns::transactions, trx_hashes);
+  db_query.append(DbStorage::Columns::trx_period, trx_hashes);
   db_trxs_statuses = db_query.execute();
   for (size_t idx = 0; idx < db_trxs_statuses.size(); idx++) {
     auto& trx_raw_status = db_trxs_statuses[idx];
     result[idx] = result[idx] || (!trx_raw_status.empty());
   }
+
   return result;
 }
 
