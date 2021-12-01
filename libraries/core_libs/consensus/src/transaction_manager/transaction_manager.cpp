@@ -145,36 +145,49 @@ void TransactionManager::saveTransactionsFromDagBlock(SharedTransactions const &
   // Unique lock here makes sure that transactions we are removing are not reinserted in transactions_pool_
   std::unique_lock transactions_lock(transactions_mutex_);
   auto write_batch = db_->createWriteBatch();
-  for (auto const &trx : trxs) {
-    if (transactions_pool_.erase(trx->getHash())) {
-      LOG(log_dg_) << "Transaction " << trx->getHash() << " removed from trx pool";
+  vec_trx_t trx_hashes;
+  std::transform(trxs.begin(), trxs.end(), std::back_inserter(trx_hashes),
+                 [](std::shared_ptr<Transaction> const &t) { return t->getHash(); });
+  auto trx_in_db = db_->transactionsInDb(trx_hashes);
+  for (uint64_t i = 0; i < trxs.size(); i++) {
+    auto const &trx_hash = trx_hashes[i];
+    if (transactions_pool_.erase(trx_hash)) {
+      LOG(log_dg_) << "Transaction " << trx_hash << " removed from trx pool";
       // Transactions are counted when included in DAG
       trx_count_++;
-      transaction_accepted_.emit(trx->getHash());
+      transaction_accepted_.emit(trx_hash);
     }
     // We only save transaction if it has not already been saved
-    if (!db_->transactionInDb(trx->getHash())) {
-      db_->addTransactionToBatch(*trx, write_batch);
-      nonfinalized_transactions_in_dag_.emplace(trx->getHash());
+    if (!trx_in_db[i]) {
+      db_->addTransactionToBatch(*trxs[i], write_batch);
+      nonfinalized_transactions_in_dag_.emplace(trx_hash);
     }
-    db_->commitWriteBatch(write_batch);
   }
-  db_->saveStatusField(StatusDbField::TrxCount, trx_count_);
+  db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_count_, write_batch);
+  db_->commitWriteBatch(write_batch);
 }
 
 void TransactionManager::recoverNonfinalizedTransactions() {
+  std::unique_lock transactions_lock(transactions_mutex_);
   // On restart populate nonfinalized_transactions_in_dag_ structure from db
+  auto trxs = db_->getNonfinalizedTransactions();
+  vec_trx_t trx_hashes;
+  std::transform(trxs.begin(), trxs.end(), std::back_inserter(trx_hashes),
+                 [](std::shared_ptr<Transaction> const &t) { return t->getHash(); });
+  auto trx_finalized = db_->transactionsFinalized(trx_hashes);
   auto write_batch = db_->createWriteBatch();
-  for (auto const &trx : db_->getNonfinalizedTransactions()) {
-    if (db_->transactionFinalized(trx->getHash())) {
+  for (uint64_t i = 0; i < trxs.size(); i++) {
+    auto const &trx_hash = trx_hashes[i];
+    if (trx_finalized[i]) {
       // TODO: This section where transactions are deleted is only to recover from a bug where non-finalized
       // transactions were not properly deleted from the DB, once there are no nodes with such corrupted data, this
-      // line can be removed oe replaced with an assert
-      db_->removeTransactionToBatch(trx->getHash(), write_batch);
+      // line can be removed or replaced with an assert
+      db_->removeTransactionToBatch(trx_hash, write_batch);
     } else {
-      nonfinalized_transactions_in_dag_.emplace(trx->getHash());
+      nonfinalized_transactions_in_dag_.emplace(trx_hash);
     }
   }
+  db_->commitWriteBatch(write_batch);
 }
 
 SharedTransactions TransactionManager::getTransactionsSnapShot() const { return transactions_pool_.getValues(); }
