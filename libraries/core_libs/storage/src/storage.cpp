@@ -542,6 +542,10 @@ std::optional<PbftBlock> DbStorage::getPbftBlock(uint64_t period) {
 }
 
 std::shared_ptr<Transaction> DbStorage::getTransaction(trx_hash_t const& hash) {
+  auto data = asBytes(lookup(toSlice(hash.asBytes()), Columns::transactions));
+  if (data.size() > 0) {
+    return std::make_shared<Transaction>(data);
+  }
   auto res = getTransactionPeriod(hash);
   if (res) {
     auto period_data = getPeriodDataRaw(res->first);
@@ -550,10 +554,6 @@ std::shared_ptr<Transaction> DbStorage::getTransaction(trx_hash_t const& hash) {
     auto period_data_rlp = dev::RLP(period_data);
     auto transaction_data = period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA];
     return std::make_shared<Transaction>(transaction_data[res->second]);
-  }
-  auto data = asBytes(lookup(toSlice(hash.asBytes()), Columns::transactions));
-  if (data.size() > 0) {
-    return std::make_shared<Transaction>(data);
   }
   return nullptr;
 }

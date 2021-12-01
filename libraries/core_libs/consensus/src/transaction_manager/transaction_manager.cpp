@@ -133,6 +133,7 @@ uint32_t TransactionManager::insertBroadcastedTransactions(const SharedTransacti
 unsigned long TransactionManager::getTransactionCount() const { return trx_count_; }
 
 std::shared_ptr<Transaction> TransactionManager::getTransaction(trx_hash_t const &hash) const {
+  std::shared_lock transactions_lock(transactions_mutex_);
   auto trx_it = transactions_pool_.get(hash);
   if (trx_it.second) {
     return trx_it.first;
@@ -151,16 +152,16 @@ void TransactionManager::saveTransactionsFromDagBlock(SharedTransactions const &
   auto trx_in_db = db_->transactionsInDb(trx_hashes);
   for (uint64_t i = 0; i < trxs.size(); i++) {
     auto const &trx_hash = trx_hashes[i];
+    // We only save transaction if it has not already been saved
+    if (!trx_in_db[i]) {
+      db_->addTransactionToBatch(*trxs[i], write_batch);
+      nonfinalized_transactions_in_dag_.emplace(trx_hash);
+    }
     if (transactions_pool_.erase(trx_hash)) {
       LOG(log_dg_) << "Transaction " << trx_hash << " removed from trx pool";
       // Transactions are counted when included in DAG
       trx_count_++;
       transaction_accepted_.emit(trx_hash);
-    }
-    // We only save transaction if it has not already been saved
-    if (!trx_in_db[i]) {
-      db_->addTransactionToBatch(*trxs[i], write_batch);
-      nonfinalized_transactions_in_dag_.emplace(trx_hash);
     }
   }
   db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_count_, write_batch);
