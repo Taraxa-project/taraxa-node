@@ -283,6 +283,17 @@ TEST_F(CryptoTest, new_sortition_rate) {
             << std::endl;
 }
 
+TEST_F(CryptoTest, binomial_distribution) {
+  const uint64_t N = 1000;
+  const uint64_t kExpectedSize = 667;
+  const uint64_t kTotalMoney = 1000;
+  for (uint64_t i = 1; i <= N; i++) {
+    const uint512_t kVrfOutput = dev::FixedHash<64>::random();
+    EXPECT_EQ(VrfPbftSortition::getBinominalDistribution(i, kTotalMoney + i, kExpectedSize, kVrfOutput),
+              VrfPbftSortition::getBinominalDistribution(i, kTotalMoney + i, kExpectedSize, kVrfOutput));
+  }
+}
+
 TEST_F(CryptoTest, sortition_rate) {
   vrf_sk_t sk(
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
