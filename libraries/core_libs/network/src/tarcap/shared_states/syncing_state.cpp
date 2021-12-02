@@ -10,6 +10,10 @@ SyncingState::SyncingState(uint16_t deep_syncing_threshold)
 
 void SyncingState::set_peer(std::shared_ptr<TaraxaPeer> &&peer) {
   std::unique_lock lock(peer_mutex_);
+  // we set peer to null if dag and pbft syncing are not enabled
+  if (peer == nullptr && (pbft_syncing_ || dag_syncing_)) {
+    return;
+  }
   peer_ = std::move(peer);
 }
 
@@ -30,23 +34,23 @@ void SyncingState::setSyncStatePeriod(uint64_t period) {
   }
 }
 
-void SyncingState::set_pbft_syncing(bool syncing, uint64_t current_period, std::shared_ptr<TaraxaPeer> peer) {
+void SyncingState::set_pbft_syncing(bool syncing, uint64_t current_period,
+                                    std::shared_ptr<TaraxaPeer> peer /*=nullptr*/) {
   assert((syncing && peer) || !syncing);
   pbft_syncing_ = syncing;
+  peer_ = std::move(peer);
 
-  std::shared_lock lock(peer_mutex_);
   if (syncing) {
-    peer_ = std::move(peer);
+    std::shared_lock lock(peer_mutex_);
     deep_pbft_syncing_ = (peer_->pbft_chain_size_ - current_period >= kDeepSyncingThreshold);
     // Reset last sync packet time when syncing is restarted/fresh syncing flag is set
     set_last_sync_packet_time();
   } else {
     deep_pbft_syncing_ = false;
-    peer_ = nullptr;
   }
 }
 
-void SyncingState::set_dag_syncing(bool syncing, std::shared_ptr<TaraxaPeer> peer) {
+void SyncingState::set_dag_syncing(bool syncing, std::shared_ptr<TaraxaPeer> peer /*=nullptr*/) {
   assert((syncing && peer) || !syncing);
   dag_syncing_ = syncing;
   set_peer(std::move(peer));
