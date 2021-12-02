@@ -34,7 +34,7 @@ uint16_t SortitionParamsChange::correctionPerPercent(const SortitionParamsChange
 bytes SortitionParamsChange::rlp() const {
   dev::RLPStream s;
   s.appendList(5);
-  s << vrf_params.threshold_lower;
+  s << vrf_params.threshold_range;
   s << vrf_params.threshold_upper;
   s << period;
   s << interval_efficiency;
@@ -46,7 +46,7 @@ bytes SortitionParamsChange::rlp() const {
 SortitionParamsChange SortitionParamsChange::from_rlp(const dev::RLP& rlp) {
   SortitionParamsChange p;
 
-  p.vrf_params.threshold_lower = rlp[0].toInt<uint16_t>();
+  p.vrf_params.threshold_range = rlp[0].toInt<uint16_t>();
   p.vrf_params.threshold_upper = rlp[1].toInt<uint16_t>();
   p.period = rlp[2].toInt<uint64_t>();
   p.interval_efficiency = rlp[3].toInt<uint16_t>();
@@ -157,7 +157,7 @@ int32_t SortitionParamsManager::getChange(uint64_t period, uint16_t efficiency) 
   const int32_t change = correction * per_percent / kOnePercent;
 
   LOG(log_dg_) << "Average interval efficiency: " << efficiency / 100. << "%, correction per percent: " << per_percent;
-  LOG(log_nf_) << "Changing VRF params on " << period << " period from (" << config_.vrf.threshold_lower << ", "
+  LOG(log_nf_) << "Changing VRF params on " << period << " period from (" << config_.vrf.threshold_range << ", "
                << config_.vrf.threshold_upper << ") by " << change;
 
   return change;

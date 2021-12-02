@@ -49,35 +49,40 @@ SyncBlock createBlock(uint64_t period, uint16_t efficiency, size_t dag_blocks_co
 TEST_F(SortitionTest, vrf_lower_overflow) {
   VrfParams vrf;
 
-  vrf.threshold_lower = 100;
+  vrf.threshold_range = 200;
   vrf.threshold_upper = 300;
 
   vrf += -200;
 
-  EXPECT_EQ(vrf.threshold_lower, 0);
-  EXPECT_EQ(vrf.threshold_upper, 200);
+  EXPECT_EQ(vrf.threshold_range, 200);
+  EXPECT_EQ(vrf.threshold_upper, 100);
 
   vrf += -200;
 
-  EXPECT_EQ(vrf.threshold_lower, 0);
-  EXPECT_EQ(vrf.threshold_upper, 200);
+  EXPECT_EQ(vrf.threshold_range, 200);
+  EXPECT_EQ(vrf.threshold_upper, VrfParams::kThresholdUpperMinValue);
+
+  vrf += 50;
+
+  EXPECT_EQ(vrf.threshold_range, 200);
+  EXPECT_EQ(vrf.threshold_upper, VrfParams::kThresholdUpperMinValue + 50);
 }
 
 TEST_F(SortitionTest, vrf_upper_overflow) {
   VrfParams vrf;
 
   vrf.threshold_upper = std::numeric_limits<uint16_t>::max() - 100;
-  vrf.threshold_lower = vrf.threshold_upper - 200;
+  vrf.threshold_range = 200;
 
   vrf += 200;
 
   EXPECT_EQ(vrf.threshold_upper, std::numeric_limits<uint16_t>::max());
-  EXPECT_EQ(vrf.threshold_lower, std::numeric_limits<uint16_t>::max() - 200);
+  EXPECT_EQ(vrf.threshold_range, 200);
 
   vrf += 200;
 
   EXPECT_EQ(vrf.threshold_upper, std::numeric_limits<uint16_t>::max());
-  EXPECT_EQ(vrf.threshold_lower, std::numeric_limits<uint16_t>::max() - 200);
+  EXPECT_EQ(vrf.threshold_range, 200);
 }
 
 TEST_F(SortitionTest, sortition_config_serialization) {
@@ -92,7 +97,7 @@ TEST_F(SortitionTest, sortition_config_serialization) {
   config.vdf.difficulty_stale = std::rand();
   config.vdf.lambda_bound = std::rand();
 
-  config.vrf.threshold_lower = std::rand();
+  config.vrf.threshold_range = std::rand();
   config.vrf.threshold_upper = std::rand();
 
   auto config_json = enc_json(config);
@@ -108,7 +113,7 @@ TEST_F(SortitionTest, sortition_config_serialization) {
   EXPECT_EQ(config.vdf.difficulty_stale, restored_config.vdf.difficulty_stale);
   EXPECT_EQ(config.vdf.lambda_bound, restored_config.vdf.lambda_bound);
 
-  EXPECT_EQ(config.vrf.threshold_lower, restored_config.vrf.threshold_lower);
+  EXPECT_EQ(config.vrf.threshold_range, restored_config.vrf.threshold_range);
   EXPECT_EQ(config.vrf.threshold_upper, restored_config.vrf.threshold_upper);
 }
 
@@ -122,7 +127,7 @@ TEST_F(SortitionTest, params_change_serialization) {
   const auto params_rlp = params.rlp();
   const auto deserialized_params = SortitionParamsChange::from_rlp(dev::RLP(params_rlp));
 
-  EXPECT_EQ(params.vrf_params.threshold_lower, deserialized_params.vrf_params.threshold_lower);
+  EXPECT_EQ(params.vrf_params.threshold_range, deserialized_params.vrf_params.threshold_range);
   EXPECT_EQ(params.vrf_params.threshold_upper, deserialized_params.vrf_params.threshold_upper);
   EXPECT_EQ(params.interval_efficiency, deserialized_params.interval_efficiency);
   EXPECT_EQ(params.actual_correction_per_percent, deserialized_params.actual_correction_per_percent);
@@ -272,7 +277,7 @@ TEST_F(SortitionTest, params_changes_from_db) {
   for (uint16_t i = 0; i < 5; ++i) {
     // +5 is offset to the middle of data
     EXPECT_EQ(res[i].interval_efficiency, i + 5);
-    EXPECT_EQ(res[i].vrf_params.threshold_lower, i + 5);
+    EXPECT_EQ(res[i].vrf_params.threshold_range, i + 5);
     EXPECT_EQ(res[i].vrf_params.threshold_upper, i + 5);
   }
 }
@@ -291,7 +296,7 @@ TEST_F(SortitionTest, params_changes_from_db2) {
   EXPECT_EQ(res.size(), 2);
   for (uint16_t i = 0; i < 2; ++i) {
     EXPECT_EQ(res[i].interval_efficiency, i);
-    EXPECT_EQ(res[i].vrf_params.threshold_lower, i);
+    EXPECT_EQ(res[i].vrf_params.threshold_range, i);
     EXPECT_EQ(res[i].vrf_params.threshold_upper, i);
   }
 }

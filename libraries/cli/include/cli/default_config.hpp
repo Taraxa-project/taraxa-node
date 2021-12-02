@@ -128,7 +128,7 @@ const char *default_json = R"foo({
       "computation_interval": "0x32",
       "vrf": {
         "threshold_upper": "0xeffd",
-        "threshold_lower": "0xebf7"
+        "threshold_range": "0x406"
       },
       "vdf": {
         "difficulty_max": "0x12",
