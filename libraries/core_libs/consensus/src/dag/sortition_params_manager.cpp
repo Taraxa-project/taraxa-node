@@ -52,6 +52,12 @@ SortitionParamsChange SortitionParamsChange::from_rlp(const dev::RLP& rlp) {
   p.interval_efficiency = rlp[3].toInt<uint16_t>();
   p.actual_correction_per_percent = rlp[4].toInt<uint16_t>();
 
+  if (p.vrf_params.threshold_lower == 0) {
+    assert(p.vrf_params.threshold_upper <= p.vrf_params.k_threshold_range);
+  } else {
+    assert(p.vrf_params.threshold_upper - p.vrf_params.threshold_lower == p.vrf_params.k_threshold_range);
+  }
+
   return p;
 }
 
@@ -173,7 +179,7 @@ std::optional<SortitionParamsChange> SortitionParamsManager::calculateChange(uin
   }
 
   const int32_t change = getChange(period, average_dag_efficiency);
-  config_.vrf += change;
+  config_.vrf.addChange(change, period >= k_threshold_testnet_hard_fork_period);
 
   if (params_changes_.empty()) {
     return SortitionParamsChange{period, average_dag_efficiency, config_.vrf};

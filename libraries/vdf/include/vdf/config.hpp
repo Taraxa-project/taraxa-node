@@ -10,7 +10,10 @@ namespace taraxa {
 struct VrfParams {
   uint16_t threshold_upper = 0;  // upper bound of normal selection
   uint16_t threshold_lower = 0;  // lower bound of normal selection
-  VrfParams& operator+=(int32_t change);
+  void addChange(int32_t change, bool fork_threshold);
+
+  static constexpr uint16_t k_threshold_range = 0x1800;
+  static constexpr uint16_t k_threshold_upper_min_value = 0x50;
 };
 
 struct VdfParams {
