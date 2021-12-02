@@ -180,7 +180,7 @@ std::optional<SortitionParamsChange> SortitionParamsManager::calculateChange(uin
 
   const int32_t change = getChange(period, average_dag_efficiency);
   config_.vrf.addChange(change, period >= k_threshold_testnet_hard_fork_period);
-  
+
   if (params_changes_.empty()) {
     return SortitionParamsChange{period, average_dag_efficiency, config_.vrf};
   }
