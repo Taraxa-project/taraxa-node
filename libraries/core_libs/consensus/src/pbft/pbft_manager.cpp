@@ -20,10 +20,9 @@
 namespace taraxa {
 using vrf_output_t = vrf_wrapper::vrf_output_t;
 
-PbftManager::PbftManager(const addr_t& node_addr, const PbftConfig& conf, const blk_hash_t& genesis,
-                         const secret_t& node_sk, const vrf_sk_t& vrf_sk,
-                         std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
-                         std::shared_ptr<NextVotesManager> next_votes_mgr,
+PbftManager::PbftManager(const addr_t &node_addr, const PbftConfig &conf, const blk_hash_t &genesis,
+                         const secret_t &node_sk, const vrf_sk_t &vrf_sk, std::shared_ptr<DbStorage> db,
+                         std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<NextVotesManager> next_votes_mgr,
                          std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
                          std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<TransactionManager> trx_mgr,
                          std::shared_ptr<FinalChain> final_chain)
@@ -346,8 +345,8 @@ void PbftManager::resetStep_() {
   step_ = 1;
   startingStepInRound_ = 1;
 
-  LAMBDA_ms = LAMBDA_ms_MIN;
-  LAMBDA_backoff_multiple = 1;
+  lambda_ = kLambdaUint;
+  lambda_backoff_multiple_ = 1;
 }
 
 bool PbftManager::resetRound_() {

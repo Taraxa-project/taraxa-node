@@ -51,13 +51,11 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   using time_point = std::chrono::system_clock::time_point;
   using vrf_sk_t = vrf_wrapper::vrf_sk_t;
 
-  PbftManager(const addr_t& node_addr, const PbftConfig& conf, const blk_hash_t& genesis,
-              const secret_t& node_sk, const vrf_sk_t& vrf_sk,
-              std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
-              std::shared_ptr<NextVotesManager> next_votes_mgr, 
-              std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
-              std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<TransactionManager> trx_mgr,
-              std::shared_ptr<FinalChain> final_chain);
+  PbftManager(const addr_t &node_addr, const PbftConfig &conf, const blk_hash_t &genesis, const secret_t &node_sk,
+              const vrf_sk_t &vrf_sk, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
+              std::shared_ptr<NextVotesManager> next_votes_mgr, std::shared_ptr<VoteManager> vote_mgr,
+              std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
+              std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<FinalChain> final_chain);
   ~PbftManager();
 
   void setNetwork(std::weak_ptr<Network> network);
