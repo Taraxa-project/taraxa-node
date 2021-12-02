@@ -10,7 +10,10 @@ VdfSortition::VdfSortition(SortitionParams const& config, vrf_sk_t const& sk, by
   difficulty_ = calculateDifficulty(config);
 }
 
-bool VdfSortition::isOmitVdf(SortitionParams const& config) const { return threshold <= config.vrf.threshold_lower; }
+bool VdfSortition::isOmitVdf(SortitionParams const& config) const {
+  return config.vrf.threshold_upper >= config.vrf.threshold_range &&
+         threshold <= config.vrf.threshold_upper - config.vrf.threshold_range;
+}
 
 bool VdfSortition::isStale(SortitionParams const& config) const { return threshold > config.vrf.threshold_upper; }
 
@@ -93,11 +96,13 @@ void VdfSortition::verifyVdf(SortitionParams const& config, bytes const& vrf_inp
   if (!isOmitVdf(config)) {
     const auto expected = calculateDifficulty(config);
     if (difficulty_ != expected) {
-      throw InvalidVdfSortition(
-          "VDF solution verification failed. Incorrect difficulty. VDF input " + bytes2str(vdf_input) + ", lambda " +
-          std::to_string(config.vdf.lambda_bound) + ", difficulty " + std::to_string(getDifficulty()) +
-          ", expected: " + std::to_string(expected) + ", vrf_params: (" + std::to_string(config.vrf.threshold_lower) +
-          ", " + std::to_string(config.vrf.threshold_upper) + ") THRESHOLD: " + std::to_string(threshold));
+      throw InvalidVdfSortition("VDF solution verification failed. Incorrect difficulty. VDF input " +
+                                bytes2str(vdf_input) + ", lambda " + std::to_string(config.vdf.lambda_bound) +
+                                ", difficulty " + std::to_string(getDifficulty()) +
+                                ", expected: " + std::to_string(expected) +
+                                ", vrf_params: ( range: " + std::to_string(config.vrf.threshold_range) +
+                                ", threshold_upper: " + std::to_string(config.vrf.threshold_upper) +
+                                ") THRESHOLD: " + std::to_string(threshold));
     }
 
     // Verify VDF solution

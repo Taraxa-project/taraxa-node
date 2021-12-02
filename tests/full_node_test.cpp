@@ -1503,7 +1503,7 @@ TEST_F(FullNodeTest, chain_config_json) {
       "lambda_bound": "0x64"
     },
     "vrf": {
-      "threshold_lower": "0x7200",
+      "threshold_range": "0xe00",
       "threshold_upper": "0x8000"
     }
   }

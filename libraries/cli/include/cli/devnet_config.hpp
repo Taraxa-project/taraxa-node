@@ -146,7 +146,7 @@ const char *devnet_json = R"foo({
       "computation_interval": "0x32",
       "vrf": {
         "threshold_upper": "0xbffd",
-        "threshold_lower": "0x6bf7"
+        "threshold_range": "0x5406"
       },
       "vdf": {
         "difficulty_max": "0x12",

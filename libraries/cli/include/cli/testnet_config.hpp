@@ -149,7 +149,7 @@ const char *testnet_json = R"foo({
       "computation_interval": "0x32",
       "vrf": {
         "threshold_upper": "0x2fff",
-        "threshold_lower": "0x17ff"
+        "threshold_range": "0x1800"
       },
       "vdf": {
         "difficulty_max": "0x15",
