@@ -113,10 +113,10 @@ const char *default_json = R"foo({
     },
     "pbft": {
       "committee_size": "0x3e8",
-      "dag_blocks_size": "0xa",
+      "max_ghost_size": "0xa",
       "ghost_path_move_back": "0x0",
-      "lambda_ms_min": "0x29a",
-      "run_count_votes": false
+      "lambda_uint": "0x29a",
+      "debug_count_votes": false
     },
     "replay_protection_service": {
       "range": "0xa"

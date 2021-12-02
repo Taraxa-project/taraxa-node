@@ -103,7 +103,7 @@ void TaraxaCapability::initPeriodicEvents(const NetworkConfig &conf, const std::
   //       1. Most of time is this single threaded thread pool doing nothing...
   //       2. These periodic events are sending packets - that might be processed by main thread_pool ???
   // Creates periodic events
-  const auto lambda_ms_min = pbft_mgr ? pbft_mgr->getPbftInitialLambda() : 2000;
+  const auto lambda_uint = pbft_mgr ? pbft_mgr->getPbftInitialLambda() : 2000;
 
   // Send new txs periodic event
   const auto &tx_handler = packets_handlers_->getSpecificHandler(SubprotocolPacketType::TransactionPacket);
@@ -118,7 +118,7 @@ void TaraxaCapability::initPeriodicEvents(const NetworkConfig &conf, const std::
   // Send status periodic event
   const auto &status_handler = packets_handlers_->getSpecificHandler(SubprotocolPacketType::StatusPacket);
   auto status_packet_handler = std::static_pointer_cast<StatusPacketHandler>(status_handler);
-  const auto send_status_interval = 6 * lambda_ms_min;
+  const auto send_status_interval = 6 * lambda_uint;
   periodic_events_tp_.post_loop({send_status_interval}, [status_packet_handler = std::move(status_packet_handler)] {
     status_packet_handler->sendStatusToPeers();
   });
@@ -130,7 +130,7 @@ void TaraxaCapability::initPeriodicEvents(const NetworkConfig &conf, const std::
   }
 
   // SUMMARY log periodic event
-  const auto node_stats_log_interval = 5 * 6 * lambda_ms_min;
+  const auto node_stats_log_interval = 5 * 6 * lambda_uint;
   periodic_events_tp_.post_loop({node_stats_log_interval},
                                 [node_stats = node_stats_]() mutable { node_stats->logNodeStats(); });
 

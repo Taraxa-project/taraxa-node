@@ -129,7 +129,7 @@ inline auto make_node_cfgs(uint count) {
         cfg.chain.sortition.vdf.difficulty_stale = 5;
         cfg.chain.sortition.vdf.lambda_bound = 100;
         // PBFT config
-        cfg.chain.pbft.lambda_ms_min /= tests_speed;
+        cfg.chain.pbft.lambda_uint /= tests_speed;
         cfg.network.network_transaction_interval /= tests_speed;
       }
       if constexpr (!enable_rpc_http) {

@@ -61,11 +61,11 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
     cfg.sortition.vdf.difficulty_stale = 22;
     cfg.sortition.vdf.lambda_bound = 100;
     // PBFT config
-    cfg.pbft.lambda_ms_min = 2000;
+    cfg.pbft.lambda_uint = 2000;
     cfg.pbft.committee_size = 5;
-    cfg.pbft.dag_blocks_size = 100;
+    cfg.pbft.max_ghost_size = 100;
     cfg.pbft.ghost_path_move_back = 1;
-    cfg.pbft.run_count_votes = false;
+    cfg.pbft.debug_count_votes = false;
     return cfg;
   }();
   cfgs["test"] = [&] {

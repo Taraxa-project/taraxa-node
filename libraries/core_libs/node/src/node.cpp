@@ -101,10 +101,10 @@ void FullNode::init() {
                                                    log_time_, conf_.test_params.max_block_queue_warn);
   dag_mgr_ = std::make_shared<DagManager>(genesis_hash, node_addr, trx_mgr_, pbft_chain_, dag_blk_mgr_, db_, log_time_);
   vote_mgr_ = std::make_shared<VoteManager>(node_addr, db_, final_chain_, pbft_chain_, next_votes_mgr_);
-  
-  pbft_mgr_ = std::make_shared<PbftManager>(conf_.chain.pbft, genesis_hash, node_addr, db_, pbft_chain_, vote_mgr_,
-                                            next_votes_mgr_, dag_mgr_, dag_blk_mgr_, trx_mgr_, final_chain_,
-                                            kp_.secret(), conf_.vrf_secret);
+
+  pbft_mgr_ = std::make_shared<PbftManager>(node_addr, conf_.chain.pbft, genesis_hash, kp_.secret(), conf_.vrf_secret,
+                                            db_, pbft_chain_, next_votes_mgr_, vote_mgr_,
+                                            dag_mgr_, dag_blk_mgr_, trx_mgr_, final_chain_);
   blk_proposer_ =
       std::make_shared<BlockProposer>(conf_.test_params.block_proposer, dag_mgr_, trx_mgr_, dag_blk_mgr_, final_chain_,
                                       node_addr, getSecretKey(), getVrfSecretKey(), log_time_);

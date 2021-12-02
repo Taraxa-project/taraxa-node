@@ -20,13 +20,30 @@
 namespace taraxa {
 class FullNode;
 
-enum PbftStates { value_proposal_state = 1, filter_state, certify_state, finish_state, finish_polling_state };
+/**
+ * @brief PBFT states:
+ *
+ * Proposal state: generate PBFT block and propose vote at the block hash
+ *
+ * Filter state: identify leader block from all received proposed values in the current round by using minimum VRF
+ * sortition output. Soft vote at the leader block hash. In filter state, don’t need check voted value correction. This
+ * is pre-pre state.
+ *
+ * Certify state: if receive enough(2t+1) soft vote, cert vote at the value. This is pre state.
+ *
+ * First finish state: happens at even number steps from step 4. Next vote at finishing value for the current round.
+ * This is commit state.
+ *
+ * Second finish state: happens at odd number steps from step 5. Next vote at finishing value for the current round.
+ * This is commit state.
+ **/
+enum PbftStates : uint8_t { ProposalState = 1, FilterState, CertifyState, FirstFinishState, SecondFinishState };
 
-enum PbftSyncRequestReason {
-  missing_dag_blk = 1,
-  invalid_cert_voted_block,
-  invalid_soft_voted_block,
-  exceeded_max_steps
+enum PbftSyncRequestReason : uint8_t {
+  MissingDagBlock = 1,
+  InvalidCertVotedBlock,
+  InvalidSoftVotedBlock,
+  ExceededMaxSteps
 };
 
 class PbftManager : public std::enable_shared_from_this<PbftManager> {
@@ -34,11 +51,13 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   using time_point = std::chrono::system_clock::time_point;
   using vrf_sk_t = vrf_wrapper::vrf_sk_t;
 
-  PbftManager(PbftConfig const &conf, blk_hash_t const &genesis, addr_t node_addr, std::shared_ptr<DbStorage> db,
-              std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
-              std::shared_ptr<NextVotesManager> next_votes_mgr, std::shared_ptr<DagManager> dag_mgr,
+  PbftManager(const addr_t& node_addr, const PbftConfig& conf, const blk_hash_t& genesis,
+              const secret_t& node_sk, const vrf_sk_t& vrf_sk,
+              std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
+              std::shared_ptr<NextVotesManager> next_votes_mgr, 
+              std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
               std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<TransactionManager> trx_mgr,
-              std::shared_ptr<FinalChain> final_chain, secret_t node_sk, vrf_sk_t vrf_sk);
+              std::shared_ptr<FinalChain> final_chain);
   ~PbftManager();
 
   void setNetwork(std::weak_ptr<Network> network);
@@ -71,8 +90,8 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   void setSortitionThreshold(size_t const sortition_threshold);
   std::vector<std::vector<uint>> createMockTrxSchedule(
       std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>> trx_overlap_table);
-  size_t getPbftCommitteeSize() const { return COMMITTEE_SIZE; }
-  u_long getPbftInitialLambda() const { return LAMBDA_ms_MIN; }
+  size_t getPbftCommitteeSize() const { return kCommitteeSize; }
+  u_long getPbftInitialLambda() const { return kLambdaUint; }
   void setLastSoftVotedValue(blk_hash_t soft_voted_value);
   void resume();
   void resumeSingleState();
@@ -167,19 +186,20 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   secret_t node_sk_;
   vrf_sk_t vrf_sk_;
 
-  u_long const LAMBDA_ms_MIN;
-  u_long LAMBDA_ms = 0;
-  u_long LAMBDA_backoff_multiple = 1;
-  const u_long kMaxLambda = 3600000;  // in ms, max lambda is 1 hour
+  // lambda in milliseconds
+  const u_long kLambdaUint;
+  u_long lambda_ = 0;
+  u_long lambda_backoff_multiple_ = 1;
+  const u_long kMaxLambda = 3600000;  // max lambda is 1 hour
 
   std::default_random_engine random_engine_{std::random_device{}()};
 
-  size_t const COMMITTEE_SIZE;
-  size_t const DAG_BLOCKS_SIZE;
-  size_t const GHOST_PATH_MOVE_BACK;
-  bool RUN_COUNT_VOTES;  // TODO: Only for test, need remove later
+  const size_t kCommitteeSize;
+  const size_t kMaxGhostSize;
+  const size_t kGhostPathMoveBack;
+  const bool kDebugCountVotes;  // TODO: Only for debug purpose
 
-  PbftStates state_ = value_proposal_state;
+  PbftStates state_ = ProposalState;
   std::atomic<uint64_t> round_ = 1;
   size_t step_ = 1;
   size_t startingStepInRound_ = 1;

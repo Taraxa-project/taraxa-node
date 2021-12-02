@@ -134,10 +134,10 @@ const char *testnet_json = R"foo({
     },
     "pbft": {
       "committee_size": "0x3e8",
-      "dag_blocks_size": "0x32",
+      "max_ghost_size": "0x32",
       "ghost_path_move_back": "0x0",
-      "lambda_ms_min": "0x3e8",
-      "run_count_votes": false
+      "lambda_uint": "0x3e8",
+      "debug_count_votes": false
     },
     "replay_protection_service": {
       "range": "0xa"

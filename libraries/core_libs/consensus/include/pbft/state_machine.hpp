@@ -1,7 +1,6 @@
 #pragma once
 
 #include "common/types.hpp"
-#include "logger/logger.hpp"
 
 namespace taraxa {
 
@@ -22,38 +21,5 @@ namespace taraxa {
  **/
 enum PbftStates : uint8_t { ProposalState = 0, FilterState, CertifyState, FirstFinishState, SecondFinishState };
 // enum PbftStates { value_proposal_state = 1, filter_state, certify_state, finish_state, finish_polling_state };
-
-/**
- * All players keep a timer clock. The timer clock will reset to 0 at every new round. That don’t require all players
- * clock to be synchronized, only require they have same clock speed.
- **/
-class TimeMachine {
- public:
-//   TimeMachine(addr_t node_addr, uint32_t lambda);
-  TimeMachine(addr_t node_addr);
-  ~TimeMachine();
-
-  void stop();
-
-  void initialClockInNewRound();
-  void setTimeOut(time_stamp_t end_time);
-  void timeOut();
-
- private:
-//   time_stamp_t lambda_;
-
-//   time_point_t round_clock_initial_datetime_;
-//   time_point_t now_;
-//   time_stamp_t next_step_time_ms_ = 0;
-  time_point_t round_clock_initial_time_;
-  time_stamp_t end_time_ = 0;
-//   time_stamp_t elapsed_time_in_round_ms_ = 0;
-//   std::chrono::duration<double> duration_;
-
-  std::condition_variable stop_cv_;
-  std::mutex stop_mtx_;
-
-  LOG_OBJECTS_DEFINE
-};
 
 }  // namespace taraxa

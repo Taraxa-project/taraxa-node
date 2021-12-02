@@ -1486,10 +1486,10 @@ TEST_F(FullNodeTest, chain_config_json) {
   },
   "pbft": {
     "committee_size": "0x5",
-    "dag_blocks_size": "0x64",
+    "max_ghost_size": "0x64",
     "ghost_path_move_back": "0x1",
-    "lambda_ms_min": "0x7d0",
-    "run_count_votes": false
+    "lambda_uint": "0x7d0",
+    "debug_count_votes": false
   },
   "sortition": {
     "changes_count_for_average": "0x5",
