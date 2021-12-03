@@ -231,7 +231,7 @@ void DagBlockManager::verifyBlock() {
 
     // Check if all votes candidates for rewards are present.
     // No need to verify these votes as RewardsVotes contains only verified votes
-    if (auto res = rewards_votes_->checkBlockRewardsVotes(blk.getVotesToBeRewarded()); !res.first) {
+    if (auto res = rewards_votes_->checkBlockRewardsVotes(blk.getRewardsVotes()); !res.first) {
       LOG(log_er_) << "Ignore block " << block_hash << " since it has missing votes_to_be_rewarded: " << res.second;
       markBlockInvalid(block_hash);
       continue;
@@ -353,6 +353,34 @@ std::shared_ptr<ProposalPeriodDagLevelsMap> DagBlockManager::newProposePeriodDag
 void DagBlockManager::markBlockInvalid(blk_hash_t const &hash) {
   invalid_blocks_.insert(hash);
   seen_blocks_.erase(hash);
+}
+
+// TODO: use this function to check whether dag block is valid or not upon receiving it in handlers
+std::pair<bool, std::string> DagBlockManager::validateBlock(
+    const DagBlock &block, const std::vector<std::shared_ptr<Vote>> &unknown_rewards_votes) {
+  // TODO: add to this function all validation steps (e.g. stuff from verifyBlock() function)
+
+  // Validates unknown rewards votes
+  for (const auto &vote : unknown_rewards_votes) {
+    // Checks if received vote is cert votes
+    if (vote->getType() != PbftVoteTypes::cert_vote_type) {
+      return {false, "Invalid vote " + vote->getHash().abridged() + ". Type: " + std::to_string(vote->getType()) +
+                         " -> not a cert vote"};
+    }
+
+    // TODO: get mapped pbft period based on dag block level
+    std::cout << block.getHash();
+
+    // TODO: check if voter was elidgible to vote during that period
+
+    // TODO: validate vote based on stakes during mapped pbft period
+    //    if (auto result = vote->validate(pbft_mgr_->getPreviousPbftPeriodDposTotalVotesCount(),
+    //                                     pbft_mgr_->getPreviousPbftPeriodSortitionThreshold());
+    //        !result.first) {
+    //    }
+  }
+
+  return {true, ""};
 }
 
 }  // namespace taraxa

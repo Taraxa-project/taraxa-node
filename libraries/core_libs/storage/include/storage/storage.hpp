@@ -290,13 +290,32 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::vector<std::shared_ptr<Vote>> getCertVotes(uint64_t period);
   void addCertVotePeriodToBatch(const vote_hash_t& vote_hash, uint32_t period, uint32_t position, Batch& write_batch);
   std::optional<std::pair<uint32_t, uint32_t>> getCertVotePeriod(const vote_hash_t& vote_hash);
+
+  /**
+   * @note It is caller's responsibility to check if returned votes periods have the same size as provided votes_hashes.
+   *       If it does not, it means that not all votes were found in db
+   * @param votes_hashes
+   * @return found votes periods
+   */
+  std::unordered_map<vote_hash_t, std::pair<uint32_t, uint32_t>> getCertVotesPeriods(
+      const std::unordered_set<vote_hash_t>& votes_hashes);
+
+  /**
+   * @note It is caller's responsibility to check if returned votes have the same size as provided votes_data.
+   *       If does not, it means that not all votes were found in db
+   * @param votes_data <vote hash, <period, position inside period votes>>
+   * @return found votes
+   */
+  std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> getCertVotes(
+      const std::unordered_map<vote_hash_t, std::pair<uint32_t, uint32_t>>& votes_data);
+
   bool isCertVoteInDb(const vote_hash_t& vote_hash);
 
   /**
    * @param votes_hashes
    * @return those votes from provided votes_hashes that are not saved in db
    */
-  std::unordered_set<vote_hash_t> certVotesInDb(std::unordered_set<vote_hash_t>&& votes_hashes);
+  std::unordered_set<vote_hash_t> certVotesInDb(const std::unordered_set<vote_hash_t>& votes_hashes);
 
   // Next votes
   std::vector<std::shared_ptr<Vote>> getNextVotes(uint64_t pbft_round);

@@ -53,7 +53,7 @@ class DagBlock {
   uint64_t getTimestamp() const { return timestamp_; }
   const vec_blk_t &getTips() const { return tips_; }
   const vec_trx_t &getTrxs() const { return trxs_; }
-  const std::vector<vote_hash_t> &getVotesToBeRewarded() const { return votes_to_be_rewarded_; }
+  const std::vector<vote_hash_t> &getRewardsVotes() const { return votes_to_be_rewarded_; }
   const sig_t &getSig() const { return sig_; }
   const blk_hash_t &getHash() const;
   const vdf_sortition::VdfSortition &getVdf() const { return vdf_; }

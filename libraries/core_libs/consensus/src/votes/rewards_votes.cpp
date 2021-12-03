@@ -17,24 +17,32 @@ RewardsVotes::RewardsVotes(std::shared_ptr<DbStorage> db, uint64_t last_saved_pb
     auto cert_votes = db->getCertVotes(period);
     assert(!cert_votes.empty());
 
-    std::unordered_set<vote_hash_t> votes_set;
-    std::transform(cert_votes.begin(), cert_votes.end(), inserter(votes_set, votes_set.begin()),
-                   [](const auto& vote) { return vote->getHash(); });
+    std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> votes_map;
+    for (auto cert_vote : cert_votes) {
+      auto vote_hash = cert_vote->getHash();
+      votes_map.emplace(std::move(vote_hash), std::move(cert_vote));
+    }
 
     auto voted_block_hash = cert_votes[0]->getBlockHash();
-    blocks_cert_votes_.emplace(std::move(voted_block_hash), std::move(votes_set));
+    blocks_cert_votes_.emplace(std::move(voted_block_hash), std::move(votes_map));
   }
 }
 
-void RewardsVotes::newPbftBlockFinalized(std::unordered_set<vote_hash_t>&& cert_votes,
+void RewardsVotes::newPbftBlockFinalized(std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>&& cert_votes,
                                          const blk_hash_t& voted_block_hash,
                                          const std::unordered_set<vote_hash_t>& pbft_rewards_votes) {
+  std::unordered_set<vote_hash_t> cert_votes_hashes;
+  cert_votes_hashes.reserve(cert_votes.size());
+  for (const auto& cert_vote : cert_votes) {
+    cert_votes_hashes.insert(cert_vote.first);
+  }
+
   // Save new finalized pbft block 2t+1 cert votes + shift older cached cert votes
   {
     std::scoped_lock lock(blocks_cert_votes_mutex_);
     assert(blocks_cert_votes_.contains(voted_block_hash));
 
-    blocks_cert_votes_.emplace(voted_block_hash, cert_votes);
+    blocks_cert_votes_.emplace(voted_block_hash, std::move(cert_votes));
 
     // Keep only k_max_cached_periods_count cached periods
     if (blocks_cert_votes_.size() > k_max_cached_periods_count) {
@@ -42,10 +50,10 @@ void RewardsVotes::newPbftBlockFinalized(std::unordered_set<vote_hash_t>&& cert_
     }
   }
 
-  // Merge unrewarded_votes_ with new cert_votes
+  // Merge unrewarded_votes_ with new cert_votes_hashes
   {
     std::scoped_lock lock(unrewarded_votes_mutex_);
-    unrewarded_votes_.merge(std::move(cert_votes));
+    unrewarded_votes_.merge(std::move(cert_votes_hashes));
   }
 
   // Filters dag block rewards votes that are new & included in dag blocks (not in observed 2t+1 cert votes or new & not
@@ -154,60 +162,41 @@ void RewardsVotes::removeUnrewardedVotes(const std::vector<vote_hash_t>& votes) 
 }
 
 std::pair<bool, std::string> RewardsVotes::checkBlockRewardsVotes(const std::vector<vote_hash_t>& block_rewards_votes) {
-  std::unordered_set<vote_hash_t> missing_votes;
-  for (const auto& vote_hash : block_rewards_votes) {
-    missing_votes.insert(vote_hash);
-  }
-
-  // Checks votes container. In case all vote have been found in container, true is returned, otherwise false
-  auto checkVotesContainer = [&missing_votes](const auto& container) -> bool {
-    for (auto it = missing_votes.begin(); it != missing_votes.end(); it++) {
-      if (container.contains(*it)) {
-        it = missing_votes.erase(it);
-      }
-    }
-
-    return missing_votes.empty();
-  };
-
-  // Checks blocks_cert_votes_
-  {
-    std::shared_lock lock(blocks_cert_votes_mutex_);
-    for (const auto& period_cert_votes : blocks_cert_votes_) {
-      if (checkVotesContainer(period_cert_votes.second)) {
-        return {true, ""};
-      }
-    }
-  }
-
-  // Checks new_votes_
-  {
-    std::shared_lock lock(new_votes_mutex_);
-    if (checkVotesContainer(new_votes_)) {
-      return {true, ""};
-    }
-  }
-
-  // Checks new_processed_votes_
-  {
-    std::shared_lock lock(new_processed_votes_mutex_);
-    if (checkVotesContainer(new_processed_votes_)) {
-      return {true, ""};
-    }
-  }
-
-  // Check db
-  missing_votes = db_->certVotesInDb(std::move(missing_votes));
-  if (missing_votes.empty()) {
+  auto unknown_votes_hashes = filterUnknownVotesHashes(block_rewards_votes);
+  if (unknown_votes_hashes.empty()) {
     return {true, ""};
   }
 
   std::string err_msg = "Missing votes: ";
-  for (const auto& vote_hash : missing_votes) {
+  for (const auto& vote_hash : unknown_votes_hashes) {
     err_msg += vote_hash.abridged() + ", ";
   }
 
   return {false, std::move(err_msg)};
+}
+
+std::vector<std::shared_ptr<Vote>> RewardsVotes::filterUnknownVotes(
+    const std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>& votes) {
+  std::vector<vote_hash_t> hashes;
+  hashes.reserve(votes.size());
+  for (const auto& vote_data : votes) {
+    hashes.push_back(vote_data.first);
+  }
+
+  // All votes are known
+  auto unknown_votes_hashes = filterUnknownVotesHashes(hashes);
+  if (unknown_votes_hashes.empty()) {
+    return {};
+  }
+
+  // Returns unknown votes
+  std::vector<std::shared_ptr<Vote>> unknown_votes;
+  unknown_votes.reserve(unknown_votes_hashes.size());
+  for (const auto& uknown_vote_hash : unknown_votes_hashes) {
+    unknown_votes.push_back(votes.at(uknown_vote_hash));
+  }
+
+  return unknown_votes;
 }
 
 std::vector<std::shared_ptr<Vote>> RewardsVotes::filterNewVotes(
@@ -256,6 +245,148 @@ void RewardsVotes::markNewVotesAsProcessed(const std::vector<std::shared_ptr<Vot
       new_votes_.erase(vote->getHash());
     }
   }
+}
+
+std::pair<bool, std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>> RewardsVotes::getVotes(
+    std::unordered_set<vote_hash_t>&& votes_hashes) {
+  std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> result_votes;
+
+  // Searches cached votes from provided container and insert found ones into the result_votes. In case all votes were
+  // found, returns true, otherwise false
+  auto searchForVotes = [&result_votes, &votes_hashes](
+                            const std::unordered_map<blk_hash_t, std::shared_ptr<Vote>>& cached_votes) -> bool {
+    for (auto it = votes_hashes.begin(); it != votes_hashes.end(); it++) {
+      auto found_vote = cached_votes.find(*it);
+      if (found_vote == cached_votes.end()) {
+        continue;
+      }
+
+      result_votes.emplace(*found_vote);
+      it = votes_hashes.erase(it);
+    }
+
+    return votes_hashes.empty();
+  };
+
+  // Returns missing votes
+  auto getMissingVotes = [&votes_hashes]() -> std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> {
+    std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> missing_votes;
+    missing_votes.reserve(votes_hashes.size());
+    for (const auto& missing_vote_hash : votes_hashes) {
+      missing_votes.emplace(missing_vote_hash, nullptr);
+    }
+
+    return missing_votes;
+  };
+
+  // Checks cached cert votes
+  {
+    std::shared_lock lock(blocks_cert_votes_mutex_);
+    for (const auto& block_cert_votes : blocks_cert_votes_) {
+      if (searchForVotes(block_cert_votes.second)) {
+        return std::make_pair(true, std::move(result_votes));
+      }
+    }
+  }
+
+  // Checks new_votes_
+  {
+    std::shared_lock lock(new_votes_mutex_);
+    if (searchForVotes(new_votes_)) {
+      return std::make_pair(true, std::move(result_votes));
+    }
+  }
+
+  // Checks new_processed_votes_
+  {
+    std::shared_lock lock(new_processed_votes_mutex_);
+    if (searchForVotes(new_processed_votes_)) {
+      return std::make_pair(true, std::move(result_votes));
+    }
+  }
+
+  // Checks db
+  auto db_votes_periods = db_->getCertVotesPeriods(votes_hashes);
+  // Not all votes periods were found
+  if (db_votes_periods.size() != votes_hashes.size()) {
+    // Filters out all that were found
+    for (const auto& db_vote_data : db_votes_periods) {
+      votes_hashes.erase(db_vote_data.first);
+    }
+
+    return std::make_pair(false, getMissingVotes());
+  }
+
+  auto db_votes = db_->getCertVotes(db_votes_periods);
+  // Not all votes in period_data were found
+  if (db_votes.size() != db_votes_periods.size()) {
+    // Filters out all that were found
+    for (const auto& db_vote : db_votes) {
+      votes_hashes.erase(db_vote.first);
+    }
+
+    return std::make_pair(false, getMissingVotes());
+  }
+
+  // All votes were found
+  for (auto& db_vote : db_votes) {
+    result_votes.emplace(std::move(db_vote.first), std::move(db_vote.second));
+    // No need to erase from votes_hashes as there is no more processing after this
+  }
+
+  return std::make_pair(true, std::move(result_votes));
+}
+
+std::unordered_set<vote_hash_t> RewardsVotes::filterUnknownVotesHashes(const std::vector<vote_hash_t>& votes_hashes) {
+  std::unordered_set<vote_hash_t> unknown_votes;
+  for (const auto& vote_hash : votes_hashes) {
+    unknown_votes.insert(vote_hash);
+  }
+
+  // Checks votes container. In case all vote have been found in container, true is returned, otherwise false
+  auto checkVotesContainer = [&unknown_votes](const auto& container) -> bool {
+    for (auto it = unknown_votes.begin(); it != unknown_votes.end(); it++) {
+      if (container.contains(*it)) {
+        it = unknown_votes.erase(it);
+      }
+    }
+
+    return unknown_votes.empty();
+  };
+
+  // Checks blocks_cert_votes_
+  {
+    std::shared_lock lock(blocks_cert_votes_mutex_);
+    for (const auto& period_cert_votes : blocks_cert_votes_) {
+      if (checkVotesContainer(period_cert_votes.second)) {
+        return unknown_votes;
+      }
+    }
+  }
+
+  // Checks new_votes_
+  {
+    std::shared_lock lock(new_votes_mutex_);
+    if (checkVotesContainer(new_votes_)) {
+      return unknown_votes;
+    }
+  }
+
+  // Checks new_processed_votes_
+  {
+    std::shared_lock lock(new_processed_votes_mutex_);
+    if (checkVotesContainer(new_processed_votes_)) {
+      return unknown_votes;
+    }
+  }
+
+  // Check db
+  unknown_votes = db_->certVotesInDb(unknown_votes);
+  if (unknown_votes.empty()) {
+    return unknown_votes;
+  }
+
+  return unknown_votes;
 }
 
 std::vector<std::shared_ptr<Vote>> RewardsVotes::filterNewProcessedVotes(
@@ -309,7 +440,7 @@ void RewardsVotes::appendNewVotesToCertVotes(
     }
 
     for (const auto& vote : block_votes.second) {
-      cached_block_votes->second.insert(vote->getHash());
+      cached_block_votes->second.emplace(vote->getHash(), vote);
     }
   }
 }
@@ -353,11 +484,12 @@ bool RewardsVotes::isKnownVote(const std::shared_ptr<Vote>& vote) const {
   return false;
 }
 
-bool RewardsVotes::insertVote(std::shared_ptr<Vote>&& new_vote) {
-  const auto& vote_hash = new_vote->getHash();
-
+void RewardsVotes::insertVotes(std::vector<std::shared_ptr<Vote>>&& votes) {
   std::scoped_lock lock(new_votes_mutex_);
-  return new_votes_.emplace(vote_hash, std::move(new_vote)).second;
+  for (auto& vote : votes) {
+    auto vote_hash = vote->getHash();
+    new_votes_.emplace(std::move(vote_hash), std::move(vote));
+  }
 }
 
 }  // namespace taraxa

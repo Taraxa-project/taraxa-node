@@ -54,6 +54,21 @@ class TaraxaPeer : public boost::noncopyable {
   bool isVoteKnown(vote_hash_t const &_hash) const { return known_votes_.count(_hash); }
 
   /**
+   * @param votes_hashes
+   * @return those votes from <votes_hashes> that are not inside inside known_votes_
+   */
+  std::unordered_set<vote_hash_t> filterUnknownVotes(const std::vector<vote_hash_t> &votes_hashes) const {
+    std::unordered_set<vote_hash_t> unknown_votes;
+    for (const auto &vote_hash : votes_hashes) {
+      if (!isVoteKnown(vote_hash)) {
+        unknown_votes.insert(vote_hash);
+      }
+    }
+
+    return unknown_votes;
+  }
+
+  /**
    * @brief Mark pbft block as known
    *
    * @param _hash

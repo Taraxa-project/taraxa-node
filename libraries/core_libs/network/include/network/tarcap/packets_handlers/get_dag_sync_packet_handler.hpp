@@ -7,6 +7,7 @@ class DagManager;
 class DagBlockManager;
 class DbStorage;
 class TransactionManager;
+class RewardsVotes;
 }  // namespace taraxa
 
 namespace taraxa::network::tarcap {
@@ -16,7 +17,7 @@ class GetDagSyncPacketHandler : public PacketHandler {
   GetDagSyncPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
                           std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DagManager> dag_mgr,
                           std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<DbStorage> db,
-                          const addr_t& node_addr);
+                          std::shared_ptr<RewardsVotes> rewards_votes, const addr_t& node_addr);
 
   virtual ~GetDagSyncPacketHandler() = default;
 
@@ -29,6 +30,7 @@ class GetDagSyncPacketHandler : public PacketHandler {
   std::shared_ptr<DagManager> dag_mgr_;
   std::shared_ptr<DagBlockManager> dag_blk_mgr_;
   std::shared_ptr<DbStorage> db_;
+  std::shared_ptr<RewardsVotes> rewards_votes_;
 };
 
 }  // namespace taraxa::network::tarcap

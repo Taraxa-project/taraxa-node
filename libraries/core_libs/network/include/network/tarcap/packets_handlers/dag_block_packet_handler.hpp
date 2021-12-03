@@ -4,6 +4,7 @@
 
 namespace taraxa {
 class TransactionManager;
+class RewardsVotes;
 }  // namespace taraxa
 
 namespace taraxa::network::tarcap {
@@ -16,7 +17,8 @@ class DagBlockPacketHandler : public ExtSyncingPacketHandler {
                         std::shared_ptr<SyncingState> syncing_state, std::shared_ptr<PbftChain> pbft_chain,
                         std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
                         std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<TransactionManager> trx_mgr,
-                        std::shared_ptr<DbStorage> db, std::shared_ptr<TestState> test_state, const addr_t &node_addr);
+                        std::shared_ptr<DbStorage> db, std::shared_ptr<TestState> test_state,
+                        std::shared_ptr<RewardsVotes> rewards_votes, const addr_t &node_addr);
 
   virtual ~DagBlockPacketHandler() = default;
 
@@ -30,6 +32,7 @@ class DagBlockPacketHandler : public ExtSyncingPacketHandler {
   std::shared_ptr<DbStorage> db_;
   std::shared_ptr<TestState> test_state_;
   std::shared_ptr<TransactionManager> trx_mgr_{nullptr};
+  std::shared_ptr<RewardsVotes> rewards_votes_{nullptr};
 
   thread_local static std::mt19937_64 urng_;
 };

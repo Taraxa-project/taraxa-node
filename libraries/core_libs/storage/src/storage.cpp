@@ -865,6 +865,58 @@ std::vector<std::shared_ptr<Vote>> DbStorage::getCertVotes(uint64_t period) {
   return cert_votes;
 }
 
+std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> DbStorage::getCertVotes(
+    const std::unordered_map<vote_hash_t, std::pair<uint32_t, uint32_t>>& votes_data) {
+  std::unordered_map<uint32_t, std::vector<std::pair<vote_hash_t, uint32_t /* position in period_data */>>>
+      periods_votes_hashes;
+
+  // Groups votes by periods
+  for (const auto& db_vote : votes_data) {
+    periods_votes_hashes[db_vote.second.first].push_back({db_vote.first, db_vote.second.second});
+  }
+
+  // Gets period-data raw data from db
+  DbStorage::MultiGetQuery db_query(shared_from_this(), periods_votes_hashes.size());
+  for (const auto& period_votes_hashes : periods_votes_hashes) {
+    db_query.append(DbStorage::Columns::period_data, period_votes_hashes.first);
+  }
+  auto query_results = db_query.execute();
+  assert(periods_votes_hashes.size() == query_results.size());
+
+  // Found votes
+  std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> found_votes;
+  found_votes.reserve(votes_data.size());
+
+  size_t idx = 0;
+  for (auto it = periods_votes_hashes.begin(); it != periods_votes_hashes.end(); it++, idx++) {
+    const auto& period_data_str = query_results[idx];
+
+    // No period_data from specified period in db
+    if (period_data_str.empty()) {
+      continue;
+    }
+
+    // Parses period-data
+    auto period_data_rlp = dev::RLP(period_data_str);
+    auto cert_votes_rlp = period_data_rlp[CERT_VOTES_POS_IN_PERIOD_DATA];
+
+    // Get all specified cert votes
+    for (const auto& vote : it->second) {
+      // Cert vote not found
+      if (cert_votes_rlp.itemCount() <= vote.second /* vote position */) {
+        continue;
+      }
+
+      auto vote_obj = std::make_shared<Vote>(cert_votes_rlp[vote.second]);
+      auto vote_hash = vote_obj->getHash();
+
+      found_votes.emplace(std::move(vote_hash), std::move(vote_obj));
+    }
+  }
+
+  return found_votes;
+}
+
 void DbStorage::addCertVotePeriodToBatch(const vote_hash_t& vote_hash, uint32_t period, uint32_t position,
                                          Batch& write_batch) {
   dev::RLPStream s;
@@ -885,11 +937,40 @@ std::optional<std::pair<uint32_t, uint32_t>> DbStorage::getCertVotePeriod(const 
   return std::make_pair((*it++).toInt<uint32_t>(), (*it++).toInt<uint32_t>());
 }
 
+std::unordered_map<vote_hash_t, std::pair<uint32_t, uint32_t>> DbStorage::getCertVotesPeriods(
+    const std::unordered_set<vote_hash_t>& votes_hashes) {
+  DbStorage::MultiGetQuery db_query(shared_from_this(), votes_hashes.size());
+  for (auto it = votes_hashes.begin(); it != votes_hashes.end(); it++) {
+    db_query.append(DbStorage::Columns::cert_votes_period, *it);
+  }
+  auto query_results = db_query.execute();
+  assert(votes_hashes.size() == query_results.size());
+
+  std::unordered_map<vote_hash_t, std::pair<uint32_t, uint32_t>> votes_periods;
+  votes_periods.reserve(votes_hashes.size());
+
+  size_t idx = 0;
+  for (auto it = votes_hashes.begin(); it != votes_hashes.end(); it++) {
+    const auto& vote_period_str = query_results[idx];
+    if (vote_period_str.empty()) {
+      continue;
+    }
+
+    dev::RLP rlp(vote_period_str);
+    auto rlp_it = rlp.begin();
+    votes_periods.emplace(*it, std::make_pair((*rlp_it++).toInt<uint32_t>(), (*rlp_it++).toInt<uint32_t>()));
+
+    idx++;
+  }
+
+  return votes_periods;
+}
+
 bool DbStorage::isCertVoteInDb(const vote_hash_t& vote_hash) {
   return exist(toSlice(vote_hash.asBytes()), Columns::cert_votes_period);
 }
 
-std::unordered_set<vote_hash_t> DbStorage::certVotesInDb(std::unordered_set<vote_hash_t>&& votes_hashes) {
+std::unordered_set<vote_hash_t> DbStorage::certVotesInDb(const std::unordered_set<vote_hash_t>& votes_hashes) {
   std::unordered_set<vote_hash_t> missing_votes;
 
   DbStorage::MultiGetQuery db_query(shared_from_this(), votes_hashes.size());

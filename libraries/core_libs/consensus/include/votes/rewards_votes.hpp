@@ -23,11 +23,12 @@ class RewardsVotes {
   /**
    * @brief Stores new pbft finalized block cert votes and clears unrewarded_votes_
    *
-   * @param pbft_cert_votes 2t+1 cert votes observed for latest pbft period
+   * @param cert_votes 2t+1 cert votes observed for latest pbft period
    * @param voted_pbft_block_hash hash of the latest cert voted pbft block
    * @param pbft_rewards_votes all unique rewards votes included in dag block from voted_pbft_block_hash pbft block
    */
-  void newPbftBlockFinalized(std::unordered_set<vote_hash_t>&& pbft_cert_votes, const blk_hash_t& voted_pbft_block_hash,
+  void newPbftBlockFinalized(std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>&& cert_votes,
+                             const blk_hash_t& voted_pbft_block_hash,
                              const std::unordered_set<vote_hash_t>& pbft_rewards_votes);
 
   /**
@@ -59,6 +60,13 @@ class RewardsVotes {
   std::pair<bool, std::string> checkBlockRewardsVotes(const std::vector<vote_hash_t>& block_rewards_votes);
 
   /**
+   * @param votes
+   * @return filtered unknown votes based on provided votes
+   */
+  std::vector<std::shared_ptr<Vote>> filterUnknownVotes(
+      const std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>& votes);
+
+  /**
    * @brief Returns only those dag_block_rewards_votes that are also part of new_votes_
    *
    * @param dag_block_rewards_votes
@@ -76,19 +84,38 @@ class RewardsVotes {
   void markNewVotesAsProcessed(const std::vector<std::shared_ptr<Vote>>& dag_block_new_rewards_votes);
 
   /**
+   * @brief Returns all found full votes object based on provided votes_hashes. In case all votes were found,
+   *        <true, std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> is returned. In case not all votes were found,
+   *        <false, std::unordered_map<vote_hash_t, nullptr> is returned
+   *
+   * @param votes_hashes
+   * @note It is caller's responsibility to check if all votes were found - votes_hashes.size() should be equal to
+   *       returned vector of votes size
+   *
+   * @return <true, found_votes> in case all vots were found, otherwise <false, missing_votes>
+   */
+  std::pair<bool, std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>> getVotes(
+      std::unordered_set<vote_hash_t>&& votes_hashes);
+
+  /**
    * @return true if vote is known (either in db or RewardsVotes internal structures), otherwise false
    */
   bool isKnownVote(const std::shared_ptr<Vote>& vote) const;
 
   /**
-   * @brief Inserts new vote into new_votes_ container
+   * @brief Inserts votes into new_votes_ container
    *
-   * @param new_vote
-   * @return true if insertion actually took place, otherwise false (vote eas already inserted)
+   * @param votes
    */
-  bool insertVote(std::shared_ptr<Vote>&& new_vote);
+  void insertVotes(std::vector<std::shared_ptr<Vote>>&& votes);
 
  private:
+  /**
+   * @param votes_hashes
+   * @return filtered unknown votes hashes based on provided votes_hashes
+   */
+  std::unordered_set<vote_hash_t> filterUnknownVotesHashes(const std::vector<vote_hash_t>& votes_hashes);
+
   /**
    * @brief Returns only those dag_blocks_rewards_votes that are also part of new_processed_votes_
    *
@@ -124,7 +151,7 @@ class RewardsVotes {
 
   // Observed <voted_block_hash, 2t+1 cert votes> for the last N finalized pbft periods. It is shifted
   // (blocks_cert_votes_[N] = blocks_cert_votes_[N-1], ...) every time new pbft block is pushed into the final chain
-  std::map<blk_hash_t, std::unordered_set<vote_hash_t>> blocks_cert_votes_;
+  std::map<blk_hash_t, std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>> blocks_cert_votes_;
   mutable std::shared_mutex blocks_cert_votes_mutex_;
 
   // 2t+1 cert votes from the latest finalized pbft period votes that has not been included in dag blocks for rewards

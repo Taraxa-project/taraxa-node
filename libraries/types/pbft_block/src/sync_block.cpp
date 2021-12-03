@@ -100,7 +100,7 @@ std::unordered_set<vote_hash_t> SyncBlock::getAllUniqueRewardsVotes() const {
   unique_rewards_votes.reserve(1000);
 
   for (const auto& dag_block : ordered_dag_blocks_) {
-    for (const auto& dag_block_reward_vote : dag_block.getVotesToBeRewarded()) {
+    for (const auto& dag_block_reward_vote : dag_block.getRewardsVotes()) {
       unique_rewards_votes.insert(dag_block_reward_vote);
     }
   }

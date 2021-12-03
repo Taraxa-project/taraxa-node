@@ -4,6 +4,7 @@
 #include "network/tarcap/packets_handlers/common/get_blocks_request_type.hpp"
 #include "network/tarcap/shared_states/syncing_state.hpp"
 #include "transaction_manager/transaction_manager.hpp"
+#include "votes/rewards_votes.hpp"
 
 namespace taraxa::network::tarcap {
 
@@ -12,12 +13,14 @@ GetDagSyncPacketHandler::GetDagSyncPacketHandler(std::shared_ptr<PeersState> pee
                                                  std::shared_ptr<TransactionManager> trx_mgr,
                                                  std::shared_ptr<DagManager> dag_mgr,
                                                  std::shared_ptr<DagBlockManager> dag_blk_mgr,
-                                                 std::shared_ptr<DbStorage> db, const addr_t &node_addr)
+                                                 std::shared_ptr<DbStorage> db,
+                                                 std::shared_ptr<RewardsVotes> rewards_votes, const addr_t &node_addr)
     : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "GET_DAG_SYNC_PH"),
       trx_mgr_(std::move(trx_mgr)),
       dag_mgr_(std::move(dag_mgr)),
       dag_blk_mgr_(std::move(dag_blk_mgr)),
-      db_(std::move(db)) {}
+      db_(std::move(db)),
+      rewards_votes_(std::move(rewards_votes)) {}
 
 void GetDagSyncPacketHandler::process(const PacketData &packet_data,
                                       [[maybe_unused]] const std::shared_ptr<TaraxaPeer> &peer) {
@@ -79,35 +82,71 @@ void GetDagSyncPacketHandler::sendBlocks(dev::p2p::NodeID const &peer_id,
   auto peer = peers_state_->getPeer(peer_id);
   if (!peer) return;
 
-  std::unordered_map<blk_hash_t, std::vector<taraxa::bytes>> block_transactions;
-  size_t total_transactions_count = 0;
+  size_t total_votes_count = 0;
+  size_t total_txs_count = 0;
+  size_t total_blocks_count = 0;
+  std::string blocks_hashes_str{""};
+
+  // TODO: we are not marking anything we sent here as known for peer - is it by purpose ???
+
+  dev::RLPStream s(blocks.size());
   for (const auto &block : blocks) {
-    std::vector<taraxa::bytes> transactions;
-    for (auto trx : block->getTrxs()) {
-      auto t = trx_mgr_->getTransaction(trx);
-      if (!t) {
-        LOG(log_er_) << "Transacation " << trx << " is not available. SendBlocks canceled";
-        // TODO: This can happen on stopping the node because network
-        // is not stopped since network does not support restart,
-        // better solution needed
+    // Each block data consists of block, extra txs, extra votes
+    dev::RLPStream block_data_rlp(3);
+
+    // Appends block
+    block_data_rlp.appendRaw(block->rlp(true));
+    blocks_hashes_str += block->getHash().abridged() + ", ";
+    total_blocks_count++;
+
+    // Appends txs
+    const auto block_txs_hashes = block->getTrxs();
+    block_data_rlp.appendList(block_txs_hashes.size());
+    for (const auto &tx_hash : block_txs_hashes) {
+      auto tx = trx_mgr_->getTransaction(tx_hash);
+      if (!tx) {
+        LOG(log_er_) << "SendBlocks canceled. Tx " << tx_hash.abridged() << " is not available.";
+        // This can happen on stopping the node because network is not stopped since it does not support restart
+        // TODO: better solution needed
         return;
       }
-      transactions.emplace_back(std::move(*t->rlp()));
-      total_transactions_count++;
+
+      // TODO: no filter based on peer->isTxKnow() - is it on purpose not filtered ???
+      block_data_rlp.appendRaw(*tx->rlp(true));
     }
-    LOG(log_nf_) << "Send DagBlock " << block->getHash() << "# Trx: " << transactions.size() << std::endl;
-    block_transactions[block->getHash()] = std::move(transactions);
+    total_txs_count += block_txs_hashes.size();
+
+    // Appends votes
+    // TODO: should we filter out peer known votes or not as with txs ?
+    const auto &rewards_votes_hashes = block->getRewardsVotes();
+    std::unordered_set<vote_hash_t> votes_hashes;
+    votes_hashes.reserve(rewards_votes_hashes.size());
+    auto res = rewards_votes_->getVotes(std::move(votes_hashes));
+    if (!res.first) {
+      std::string missing_votes_str{""};
+      for (const auto &missing_vote : res.second) {
+        missing_votes_str += missing_vote.first.abridged() + ", ";
+      }
+
+      LOG(log_er_) << "SendBlocks canceled. Block rewards votes not found: " << missing_votes_str;
+      // This can happen on stopping the node because network is not stopped since it does not support restart
+      // TODO: better solution needed
+      return;
+    }
+    total_votes_count += rewards_votes_hashes.size();
+
+    auto rewards_votes = std::move(res.second);
+    block_data_rlp.appendList(rewards_votes.size());
+    for (const auto &vote : rewards_votes) {
+      block_data_rlp.appendRaw(vote.second->rlp(true));
+    }
+
+    // Append block_data
+    s.appendRaw(block_data_rlp.invalidate());
   }
 
-  dev::RLPStream s(blocks.size() + total_transactions_count);
-  for (auto &block : blocks) {
-    s.appendRaw(block->rlp(true));
-    taraxa::bytes trx_bytes;
-    for (auto &trx : block_transactions[block->getHash()]) {
-      trx_bytes.insert(trx_bytes.end(), std::make_move_iterator(trx.begin()), std::make_move_iterator(trx.end()));
-    }
-    s.appendRaw(trx_bytes, block_transactions[block->getHash()].size());
-  }
+  LOG(log_nf_) << "Send DagSyncPacket with " << total_blocks_count << " blocks, " << total_txs_count << " txs and "
+               << total_votes_count << " votes. List of blocks: " << blocks_hashes_str;
   sealAndSend(peer_id, SubprotocolPacketType::DagSyncPacket, std::move(s));
 }
 

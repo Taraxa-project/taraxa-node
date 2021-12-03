@@ -15,7 +15,6 @@
 #include "network/tarcap/packets_handlers/test_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/transaction_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/vote_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/votes_dag_sync_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/votes_sync_packet_handler.hpp"
 #include "network/tarcap/shared_states/syncing_state.hpp"
 #include "network/tarcap/shared_states/test_state.hpp"
@@ -31,7 +30,6 @@ namespace taraxa::network::tarcap {
 
 TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev::KeyPair &key,
                                    const NetworkConfig &conf, std::shared_ptr<DbStorage> db,
-                                   std::shared_ptr<final_chain::FinalChain> final_chain,
                                    std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
                                    std::shared_ptr<VoteManager> vote_mgr,
                                    std::shared_ptr<NextVotesManager> next_votes_mgr,
@@ -56,8 +54,8 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev
   initBootNodes(conf.network_boot_nodes, key);
 
   // Creates and registers all packets handlers
-  registerPacketHandlers(conf, packets_stats, db, final_chain, pbft_mgr, pbft_chain, vote_mgr, next_votes_mgr, dag_mgr,
-                         dag_blk_mgr, trx_mgr, rewards_votes, node_addr);
+  registerPacketHandlers(conf, packets_stats, db, pbft_mgr, pbft_chain, vote_mgr, next_votes_mgr, dag_mgr, dag_blk_mgr,
+                         trx_mgr, rewards_votes, node_addr);
 
   // Inits periodic events. Must be called after registerHandlers !!!
   initPeriodicEvents(conf, pbft_mgr, trx_mgr, packets_stats);
@@ -201,7 +199,7 @@ void TaraxaCapability::registerPacketHandlers(
 
   const auto dag_handler =
       std::make_shared<DagBlockPacketHandler>(peers_state_, packets_stats, syncing_state_, pbft_chain, pbft_mgr,
-                                              dag_mgr, dag_blk_mgr, trx_mgr, db, test_state_, node_addr);
+                                              dag_mgr, dag_blk_mgr, trx_mgr, db, test_state_, rewards_votes, node_addr);
   packets_handlers_->registerHandler(SubprotocolPacketType::DagBlockPacket, dag_handler);
 
   packets_handlers_->registerHandler(
@@ -216,14 +214,15 @@ void TaraxaCapability::registerPacketHandlers(
       SubprotocolPacketType::StatusPacket,
       std::make_shared<StatusPacketHandler>(peers_state_, packets_stats, syncing_state_, pbft_chain, pbft_mgr, dag_mgr,
                                             dag_blk_mgr, next_votes_mgr, db, conf.network_id, node_addr));
-  packets_handlers_->registerHandler(SubprotocolPacketType::GetDagSyncPacket,
-                                     std::make_shared<GetDagSyncPacketHandler>(peers_state_, packets_stats, trx_mgr,
-                                                                               dag_mgr, dag_blk_mgr, db, node_addr));
+  packets_handlers_->registerHandler(
+      SubprotocolPacketType::GetDagSyncPacket,
+      std::make_shared<GetDagSyncPacketHandler>(peers_state_, packets_stats, trx_mgr, dag_mgr, dag_blk_mgr, db,
+                                                rewards_votes, node_addr));
 
   packets_handlers_->registerHandler(
       SubprotocolPacketType::DagSyncPacket,
       std::make_shared<DagSyncPacketHandler>(peers_state_, packets_stats, syncing_state_, pbft_chain, pbft_mgr, dag_mgr,
-                                             trx_mgr, dag_blk_mgr, db, node_addr));
+                                             trx_mgr, dag_blk_mgr, db, rewards_votes, node_addr));
 
   // TODO there is additional logic, that should be moved outside process function
   packets_handlers_->registerHandler(

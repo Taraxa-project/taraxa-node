@@ -1626,15 +1626,15 @@ bool PbftManager::pushPbftBlock_(SyncBlock &&sync_block) {
 
   // Transform cert votes into the set of hashes
   const auto &cert_votes = sync_block.getCertVotes();
-  std::unordered_set<vote_hash_t> cert_votes_hashes;
-  cert_votes_hashes.reserve(cert_votes.size());
+  std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> cert_votes_map;
+  cert_votes_map.reserve(cert_votes.size());
   for (const auto &vote : cert_votes) {
-    cert_votes_hashes.insert(vote->getHash());
+    cert_votes_map.emplace(vote->getHash(), vote);
   }
 
   // TODO: can sent only sync_block...
   // Reset 2t+1 cert votes in rewards votes(votes that should be rewarded in the next pbft period)
-  rewards_votes_->newPbftBlockFinalized(std::move(cert_votes_hashes), pbft_block_hash,
+  rewards_votes_->newPbftBlockFinalized(std::move(cert_votes_map), pbft_block_hash,
                                         sync_block.getAllUniqueRewardsVotes());
 
   finalize_(std::move(sync_block));

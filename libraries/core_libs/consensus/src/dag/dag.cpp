@@ -417,7 +417,7 @@ void DagManager::addDagBlock(DagBlock const &blk, SharedTransactions &&trxs, boo
       db_->saveDagBlock(blk);
 
       // Filters dag block rewards votes that are new (not in observed 2t+1 cert votes or new already processed votes)
-      const auto new_block_rewards_votes = rewards_votes_->filterNewVotes(blk.getVotesToBeRewarded());
+      const auto new_block_rewards_votes = rewards_votes_->filterNewVotes(blk.getRewardsVotes());
 
       // Saves new votes into the db. In case node crashes, these new votes are not yet part of period_data but dag
       // blocks contain them are already saved in db so votes must be saved too. Once the pbft block (that contains dag
@@ -431,7 +431,7 @@ void DagManager::addDagBlock(DagBlock const &blk, SharedTransactions &&trxs, boo
       trx_mgr_->removeTransactionsFromPool(trxs);
 
       // Removes all blk->rewards_votes from unrewarded_votes_
-      rewards_votes_->removeUnrewardedVotes(blk.getVotesToBeRewarded());
+      rewards_votes_->removeUnrewardedVotes(blk.getRewardsVotes());
 
       // Mark new block rewards votes as processed
       rewards_votes_->markNewVotesAsProcessed(new_block_rewards_votes);

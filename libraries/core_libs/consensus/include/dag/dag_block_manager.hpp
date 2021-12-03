@@ -54,6 +54,16 @@ class DagBlockManager {
   std::shared_ptr<ProposalPeriodDagLevelsMap> newProposePeriodDagLevelsMap(level_t anchor_level);
   SortitionParamsManager &sortitionParamsManager() { return sortition_params_manager_; }
 
+  /**
+   * @brief Validates dag block
+   *
+   * @param block to be verified
+   * @param unknown_rewards_votes new votes that are not known for this node yet
+   * @return <true, ""> in case block is valid, otherwise <false, "validation fail reason">
+   */
+  std::pair<bool, std::string> validateBlock(const DagBlock &block,
+                                             const std::vector<std::shared_ptr<Vote>> &unknown_rewards_votes);
+
  private:
   using uLock = boost::unique_lock<boost::shared_mutex>;
   using sharedLock = boost::shared_lock<boost::shared_mutex>;
