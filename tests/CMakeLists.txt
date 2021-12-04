@@ -53,6 +53,13 @@ target_link_libraries(p2p_test
 )
 add_test(p2p_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/p2p_test)
 
+add_executable(timing_machine_test timing_machine_test.cpp ${UTIL_HEADERS})
+target_link_libraries(timing_machine_test
+    core_libs
+    CONAN_PKG::gtest
+)
+add_test(timing_machine_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/timing_machine_test)
+
 add_executable(pbft_chain_test pbft_chain_test.cpp ${UTIL_HEADERS})
 target_link_libraries(pbft_chain_test
     core_libs
