@@ -10,6 +10,7 @@
 #include "network/network.hpp"
 #include "network/tarcap/taraxa_capability.hpp"
 #include "pbft/sync_queue.hpp"
+#include "pbft/timing_machine.hpp"
 
 #define NULL_BLOCK_HASH blk_hash_t(0)
 #define POLLING_INTERVAL_ms 100  // milliseconds...
@@ -55,7 +56,8 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
               const vrf_sk_t &vrf_sk, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
               std::shared_ptr<NextVotesManager> next_votes_mgr, std::shared_ptr<VoteManager> vote_mgr,
               std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
-              std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<FinalChain> final_chain);
+              std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<FinalChain> final_chain,
+              std::shared_ptr<TimingMachine> timing_machine);
   ~PbftManager();
 
   void setNetwork(std::weak_ptr<Network> network);
@@ -103,7 +105,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   void resetStep_();
   bool resetRound_();
-  void sleep_();
 
   void initialState_();
   void continuousOperation_();
@@ -179,6 +180,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   std::shared_ptr<DagBlockManager> dag_blk_mgr_;
   std::shared_ptr<TransactionManager> trx_mgr_;
   std::shared_ptr<FinalChain> final_chain_;
+  std::shared_ptr<TimingMachine> timing_machine_;
 
   addr_t node_addr_;
   secret_t node_sk_;

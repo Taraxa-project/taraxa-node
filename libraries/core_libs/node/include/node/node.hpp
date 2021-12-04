@@ -25,6 +25,7 @@
 #include "network/rpc/TestFace.h"
 #include "network/rpc/WSServer.h"
 #include "pbft/pbft_chain.hpp"
+#include "pbft/timing_machine.hpp"
 #include "storage/storage.hpp"
 #include "transaction/transaction.hpp"
 #include "vote_manager/vote_manager.hpp"
@@ -71,6 +72,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<BlockProposer> blk_proposer_;
   std::shared_ptr<VoteManager> vote_mgr_;
   std::shared_ptr<NextVotesManager> next_votes_mgr_;
+  std::shared_ptr<TimingMachine> timing_machine_;
   std::shared_ptr<PbftManager> pbft_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<FinalChain> final_chain_;

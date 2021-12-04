@@ -25,7 +25,7 @@ PbftManager::PbftManager(const addr_t &node_addr, const PbftConfig &conf, const 
                          std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<NextVotesManager> next_votes_mgr,
                          std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
                          std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<TransactionManager> trx_mgr,
-                         std::shared_ptr<FinalChain> final_chain)
+                         std::shared_ptr<FinalChain> final_chain, std::shared_ptr<TimingMachine> timing_machine)
     : db_(std::move(db)),
       next_votes_manager_(std::move(next_votes_mgr)),
       pbft_chain_(std::move(pbft_chain)),
@@ -34,6 +34,7 @@ PbftManager::PbftManager(const addr_t &node_addr, const PbftConfig &conf, const 
       dag_blk_mgr_(std::move(dag_blk_mgr)),
       trx_mgr_(std::move(trx_mgr)),
       final_chain_(std::move(final_chain)),
+      timing_machine_(std::move(timing_machine)),
       node_addr_(node_addr),
       node_sk_(node_sk),
       vrf_sk_(vrf_sk),
@@ -210,7 +211,7 @@ void PbftManager::doNextState_() {
     if (state_ != initial_state) {
       return;
     }
-    sleep_();
+    timing_machine_->timeOut();
   }
 }
 
@@ -243,7 +244,7 @@ void PbftManager::continuousOperation_() {
     }
 
     setNextState_();
-    sleep_();
+    timing_machine_->timeOut();
   }
 }
 
@@ -435,23 +436,6 @@ bool PbftManager::resetRound_() {
   return true;
 }
 
-void PbftManager::sleep_() {
-  now_ = std::chrono::system_clock::now();
-  duration_ = now_ - round_clock_initial_datetime_;
-  elapsed_time_in_round_ms_ = std::chrono::duration_cast<std::chrono::milliseconds>(duration_).count();
-  LOG(log_tr_) << "elapsed time in round(ms): " << elapsed_time_in_round_ms_;
-  // Add 25ms for practical reality that a thread will not stall for less than 10-25 ms...
-  if (next_step_time_ms_ > elapsed_time_in_round_ms_ + 25) {
-    auto time_to_sleep_for_ms = next_step_time_ms_ - elapsed_time_in_round_ms_;
-    LOG(log_tr_) << "Time to sleep(ms): " << time_to_sleep_for_ms << " in round " << getPbftRound() << ", step "
-                 << step_;
-    std::unique_lock<std::mutex> lock(stop_mtx_);
-    stop_cv_.wait_for(lock, std::chrono::milliseconds(time_to_sleep_for_ms));
-  } else {
-    LOG(log_tr_) << "Skipping sleep, running late...";
-  }
-}
-
 void PbftManager::initialState_() {
   // Initial PBFT state
 
@@ -578,6 +562,7 @@ void PbftManager::setNextState_() {
         setFinishState_();
       } else {
         next_step_time_ms_ += POLLING_INTERVAL_ms;
+        timing_machine_->setTimeOut(next_step_time_ms_);
       }
       break;
     case FirstFinishState:
@@ -588,6 +573,7 @@ void PbftManager::setNextState_() {
         loopBackFinishState_();
       } else {
         next_step_time_ms_ += POLLING_INTERVAL_ms;
+        timing_machine_->setTimeOut(next_step_time_ms_);
       }
       break;
     default:
@@ -601,6 +587,7 @@ void PbftManager::setFilterState_() {
   state_ = FilterState;
   setPbftStep(step_ + 1);
   next_step_time_ms_ = 2 * lambda_;
+  timing_machine_->setTimeOut(next_step_time_ms_);
   last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
   current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
   polling_state_print_log_ = true;
@@ -610,6 +597,7 @@ void PbftManager::setCertifyState_() {
   state_ = CertifyState;
   setPbftStep(step_ + 1);
   next_step_time_ms_ = 2 * lambda_;
+  timing_machine_->setTimeOut(next_step_time_ms_);
   last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
   current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
   polling_state_print_log_ = true;
@@ -620,6 +608,7 @@ void PbftManager::setFinishState_() {
   state_ = FirstFinishState;
   setPbftStep(step_ + 1);
   next_step_time_ms_ = 4 * lambda_;
+  timing_machine_->setTimeOut(next_step_time_ms_);
   last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
   current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
   polling_state_print_log_ = true;
@@ -659,6 +648,7 @@ void PbftManager::loopBackFinishState_() {
   polling_state_print_log_ = true;
   assert(step_ >= startingStepInRound_);
   next_step_time_ms_ = (1 + step_ - startingStepInRound_) * lambda_;
+  timing_machine_->setTimeOut(next_step_time_ms_);
   last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
   current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
 }
