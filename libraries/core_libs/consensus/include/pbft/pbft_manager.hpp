@@ -126,8 +126,8 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   void pushSyncedPbftBlocksIntoChain_();
 
-  void finalize_(PbftBlock const &pbft_block, std::vector<h256> finalized_dag_blk_hashes, bool sync = false);
-  bool pushPbftBlock_(SyncBlock &sync_block, vec_blk_t &dag_blocks_order);
+  void finalize_(SyncBlock &&sync_block, std::vector<h256> &&finalized_dag_blk_hashes, bool sync = false);
+  bool pushPbftBlock_(SyncBlock &&sync_block, vec_blk_t &&dag_blocks_order = {});
 
   void updateTwoTPlusOneAndThreshold_();
   bool is_syncing_();
