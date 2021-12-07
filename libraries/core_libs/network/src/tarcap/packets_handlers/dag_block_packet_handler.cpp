@@ -20,9 +20,8 @@ DagBlockPacketHandler::DagBlockPacketHandler(std::shared_ptr<PeersState> peers_s
                               std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(dag_blk_mgr),
                               std::move(db), node_addr, "DAG_BLOCK_PH"),
       test_state_(std::move(test_state)),
-      trx_mgr_(std::move(trx_mgr)) {}
-
-thread_local std::mt19937_64 DagBlockPacketHandler::urng_{std::mt19937_64(std::random_device()())};
+      trx_mgr_(std::move(trx_mgr)),
+      seen_dags_(10000, 100) {}
 
 void DagBlockPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
   DagBlock block(packet_data.rlp_[0].data().toBytes());
@@ -30,6 +29,12 @@ void DagBlockPacketHandler::process(const PacketData &packet_data, const std::sh
   LOG(log_dg_) << "Received DagBlockPacket " << hash.abridged() << "from: " << peer->getId().abridged();
 
   peer->markDagBlockAsKnown(hash);
+
+  if (!seen_dags_.insert(block.getHash())) {
+    LOG(log_dg_) << "Received dag block" << block.getHash() << " (from " << packet_data.from_node_id_.abridged()
+                 << ") already seen.";
+    return;
+  }
 
   if (dag_blk_mgr_) {
     // Do not process this block in case we already have it
