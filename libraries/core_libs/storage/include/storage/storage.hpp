@@ -203,14 +203,14 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::optional<SortitionParamsChange> getParamsChangeForPeriod(uint64_t period);
 
   // Transaction
-  void saveTransaction(Transaction const& trx, bool verified = false);
+  void saveTransaction(Transaction const& trx);
   std::shared_ptr<Transaction> getTransaction(trx_hash_t const& hash);
   SharedTransactions getNonfinalizedTransactions();
   bool transactionInDb(trx_hash_t const& hash);
   bool transactionFinalized(trx_hash_t const& hash);
   std::vector<bool> transactionsInDb(std::vector<trx_hash_t> const& trx_hashes);
   std::vector<bool> transactionsFinalized(std::vector<trx_hash_t> const& trx_hashes);
-  void addTransactionToBatch(Transaction const& trx, Batch& write_batch, bool verified = false);
+  void addTransactionToBatch(Transaction const& trx, Batch& write_batch);
   void removeTransactionToBatch(trx_hash_t const& trx, Batch& write_batch);
 
   void saveTransactionPeriod(trx_hash_t const& trx, uint32_t period, uint32_t position);

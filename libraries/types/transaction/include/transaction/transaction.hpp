@@ -34,7 +34,7 @@ struct Transaction {
   mutable std::shared_ptr<bytes> cached_rlp_;
   mutable util::DefaultConstructCopyableMovable<std::mutex> cached_rlp_mu_;
 
-  template <bool for_signature, bool w_sender>
+  template <bool for_signature>
   void streamRLP(dev::RLPStream &s) const;
   trx_hash_t hash_for_signature() const;
   addr_t const &get_sender_() const;
@@ -44,8 +44,7 @@ struct Transaction {
   Transaction() : is_zero_(true){};
   Transaction(uint64_t nonce, val_t const &value, val_t const &gas_price, uint64_t gas, bytes data, secret_t const &sk,
               std::optional<addr_t> const &receiver = std::nullopt, uint64_t chain_id = 0);
-  explicit Transaction(dev::RLP const &_rlp, bool verify_strict = false, h256 const &hash = {},
-                       bool rlp_w_sender = false);
+  explicit Transaction(dev::RLP const &_rlp, bool verify_strict = false, h256 const &hash = {});
   explicit Transaction(bytes const &_rlp, bool verify_strict = false, h256 const &hash = {})
       : Transaction(dev::RLP(_rlp), verify_strict, hash) {}
 
@@ -63,7 +62,7 @@ struct Transaction {
 
   bool operator==(Transaction const &other) const { return getHash() == other.getHash(); }
 
-  std::shared_ptr<bytes> rlp(bool w_sender = false) const;
+  std::shared_ptr<bytes> rlp() const;
 
   Json::Value toJSON() const;
 };
