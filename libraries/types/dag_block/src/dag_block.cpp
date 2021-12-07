@@ -16,14 +16,14 @@ DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t tr
     : pivot_(pivot), level_(level), tips_(tips), trxs_(trxs), sig_(sig), hash_(hash), cached_sender_(sender) {}
 
 DagBlock::DagBlock(blk_hash_t const &pivot, level_t &&level, vec_blk_t &&tips, vec_trx_t &&trxs,
-                   std::vector<vote_hash_t> &&votes_to_be_rewarded, VdfSortition &&vdf, secret_t const &sk)
+                   std::vector<vote_hash_t> &&rewards_votes, VdfSortition &&vdf, secret_t const &sk)
     : pivot_(pivot),
       level_(level),
       timestamp_(dev::utcTime()),
       vdf_(std::move(vdf)),
       tips_(std::move(tips)),
       trxs_(std::move(trxs)),
-      votes_to_be_rewarded_(std::move(votes_to_be_rewarded)),
+      rewards_votes_(std::move(rewards_votes)),
       sig_(dev::sign(sk, sha3(false))) {}
 
 DagBlock::DagBlock(Json::Value const &doc) {
@@ -52,7 +52,7 @@ DagBlock::DagBlock(dev::RLP const &rlp) {
   vdf_ = vdf_sortition::VdfSortition(rlp[3].toBytes());
   tips_ = rlp[4].toVector<blk_hash_t>();
   trxs_ = rlp[5].toVector<trx_hash_t>();
-  votes_to_be_rewarded_ = rlp[6].toVector<vote_hash_t>();
+  rewards_votes_ = rlp[6].toVector<vote_hash_t>();
 
   if (rlp.itemCount() == k_base_field_count + 1) {
     sig_ = rlp[7].toHash<sig_t>();
@@ -75,9 +75,9 @@ Json::Value DagBlock::getJson(bool with_derived_fields) const {
   for (auto const &t : trxs_) {
     res["transactions"].append(dev::toJS(t));
   }
-  res["votes_to_be_rewarded"] = Json::Value(Json::arrayValue);
-  for (auto const &t : votes_to_be_rewarded_) {
-    res["votes_to_be_rewarded"].append(dev::toJS(t));
+  res["rewards_votes"] = Json::Value(Json::arrayValue);
+  for (auto const &t : rewards_votes_) {
+    res["rewards_votes"].append(dev::toJS(t));
   }
   res["sig"] = dev::toJS(sig_);
   if (with_derived_fields) {
@@ -145,7 +145,7 @@ void DagBlock::streamRLP(dev::RLPStream &s, bool include_sig) const {
   s << vdf_.rlp();
   s.appendVector(tips_);
   s.appendVector(trxs_);
-  s.appendVector(votes_to_be_rewarded_);
+  s.appendVector(rewards_votes_);
   if (include_sig) {
     s << sig_;
   }

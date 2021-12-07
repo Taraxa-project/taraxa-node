@@ -90,7 +90,7 @@ const char *devnet_json = R"foo({
       "timestamp": "0x60aee104",
       "tips": [],
       "transactions": [],
-      "votes_to_be_rewarded": []
+      "rewards_votes": []
     },
     "final_chain": {
       "genesis_block_fields": {

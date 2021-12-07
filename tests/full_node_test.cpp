@@ -1448,7 +1448,7 @@ TEST_F(FullNodeTest, chain_config_json) {
     "timestamp": "0x5d422b80",
     "tips": [],
     "transactions": [],
-    "votes_to_be_rewarded": []
+    "rewards_votes": []
   },
   "final_chain": {
     "genesis_block_fields": {

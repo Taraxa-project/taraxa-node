@@ -4,6 +4,7 @@
 #include "network/tarcap/packets_handlers/common/get_blocks_request_type.hpp"
 #include "network/tarcap/shared_states/syncing_state.hpp"
 #include "network/tarcap/shared_states/test_state.hpp"
+#include "pbft/pbft_manager.hpp"
 #include "transaction_manager/transaction_manager.hpp"
 #include "votes/rewards_votes.hpp"
 
@@ -70,7 +71,7 @@ void DagBlockPacketHandler::process(const PacketData &packet_data, const std::sh
 
     // Validates block
     // TODO: this validation should replace verifyBlock & unverified_queue becomes useless after that
-    if (auto res = dag_blk_mgr_->validateBlock(block, unknown_votes); !res.first) {
+    if (auto res = dag_blk_mgr_->validateBlock(block, unknown_votes, pbft_mgr_->getPbftCommitteeSize()); !res.first) {
       LOG(log_dg_) << "Received invalid DagBlock from node " << peer->getId() << ", Reason: : " << res.second;
       disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
       return;
@@ -155,6 +156,37 @@ void DagBlockPacketHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::D
 
   // Append also unknown rewards votes. Votes have to be sent together with dag block(not in separate packet)
   // because they are validated based on mapped pbft period from dag block level, in which they are included
+
+  // TODO: Very very important !!! There is a race condition in generic votes processing & votes rewards processing:
+  //       Scenario: Node is receiving cert votes for current pbft period. As soon as it has >= 2t+1 cert votes, it
+  //       takes these votes and finalizes pbft block with them. At the same time (or later) node might receive
+  //       additional votes for that pbft block, but they are basically ignored as the node has enough. The other node
+  //       that sent those additional votes mark them as known for the peer, then it sends the dag block containing
+  //       those additional votes as rewards votes. Here is the race condition: The other node did not send full votes
+  //       objects together with dag block as it thinks that the first node saved it (but it didnt as it already had
+  //       2t+1 votes). It is even worse because those additional votes might still being processed by vote packet
+  //       handler or it is in unverified queue (still not dropped).
+  //
+  // TODO: Solution:
+  //       1. Either we need to use mutex that would synchronize all te processing mentioned above(NO GO - it would
+  //       slow processing too much...)
+  //       2. Or we use missing_queue for this. We should implement missing queue for things like missing tips/pivot,
+  //          missing txs and also missing votes. Then once we receive sme missing item, queue is checked and all
+  //          objects that are waiting for that specific missing item is validated and processed. For votes we need:
+  //          - vote(and receive votes) only for valid pbft blocks that the node already has
+  //          - delete votes unverified_queue. Verify each vote in packet handler and have only verified_queue
+  //          - if the node receives vote for pbft period, which was already finalized(race condition mentioned above),
+  //            check missing_queue if some dag blocks are not waiting for this missing vote, if yes add it to the
+  //            rewards_votes.new_votes_ and proceed with validating such dag blocks
+  //       3. Temporary fix: with each dag block simply send all of the rewards votes as full objects
+  //       4. Optional solution: include votes hashes to be rewarded in pbft block. No need to create votes index,
+  //          much less complex processing, pbft proposer would get bonus each extra vote > 2t+1 votes. We would need
+  //          to implement storing of votes that were received after the pbft block was finalized but that is not that
+  //          difficult...
+  //
+
+  // TODO: once the above todos are solved, node can filter unknown votes for peer and send only those.
+  //       Atm filterUnknownVotes has disabled filter
   auto peer_unknown_votes_hashes = peer->filterUnknownVotes(block.getRewardsVotes());
   size_t peer_unknown_votes_count = peer_unknown_votes_hashes.size();
 
@@ -169,7 +201,7 @@ void DagBlockPacketHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::D
     }
 
     // Should not be happening - keep ERROR
-    LOG(log_er_) << "Cannot send DagBlock(" << block.getHash()
+    LOG(log_er_) << "Cannot send DagBlock(" << block.getHash().abridged()
                  << ") due to incomplete data (missing rewards votes): " << missing_votes;
     return;
   }
@@ -181,7 +213,7 @@ void DagBlockPacketHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::D
 
   // Try to send data over network
   if (!sealAndSend(peer_id, DagBlockPacket, std::move(block_stream))) {
-    LOG(log_wr_) << "Sending DagBlock " << block.getHash() << " failed";
+    LOG(log_wr_) << "Sending DagBlock " << block.getHash().abridged() << " failed";
     return;
   }
 
@@ -191,11 +223,11 @@ void DagBlockPacketHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::D
     peer->markVoteAsKnown(vote.first);
   }
 
-  LOG(log_dg_) << "Send DagBlock " << block.getHash() << " #Trx: " << transactions_to_send.size();
+  LOG(log_dg_) << "Send DagBlock " << block.getHash().abridged() << " #Trx: " << transactions_to_send.size();
 }
 
 void DagBlockPacketHandler::onNewBlockReceived(DagBlock &&block) {
-  LOG(log_nf_) << "Receive DagBlock " << block.getHash();
+  LOG(log_nf_) << "Receive DagBlock " << block.getHash().abridged();
   if (dag_blk_mgr_) {
     LOG(log_nf_) << "Storing block " << block.getHash().toString();
     dag_blk_mgr_->insertBroadcastedBlock(block);
@@ -205,7 +237,7 @@ void DagBlockPacketHandler::onNewBlockReceived(DagBlock &&block) {
     onNewBlockVerified(block, false);
 
   } else {
-    LOG(log_dg_) << "Received NewBlock " << block.getHash() << "that is already known";
+    LOG(log_dg_) << "Received NewBlock " << block.getHash().abridged() << "that is already known";
     return;
   }
 }
@@ -218,7 +250,7 @@ void DagBlockPacketHandler::onNewBlockVerified(DagBlock const &block, bool propo
   }
 
   const auto &block_hash = block.getHash();
-  LOG(log_dg_) << "Verified NewBlock " << block_hash.toString();
+  LOG(log_dg_) << "Verified NewBlock " << block_hash.abridged();
 
   std::vector<dev::p2p::NodeID> peers_to_send;
   for (auto const &peer : peers_state_->getAllPeers()) {

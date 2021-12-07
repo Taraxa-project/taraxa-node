@@ -111,16 +111,18 @@ void GetDagSyncPacketHandler::sendBlocks(dev::p2p::NodeID const &peer_id,
         return;
       }
 
-      // TODO: no filter based on peer->isTxKnow() - is it on purpose not filtered ???
-      block_data_rlp.appendRaw(*tx->rlp(true));
+      block_data_rlp.appendRaw(*tx->rlp());
     }
     total_txs_count += block_txs_hashes.size();
 
     // Appends votes
-    // TODO: should we filter out peer known votes or not as with txs ?
     const auto &rewards_votes_hashes = block->getRewardsVotes();
     std::unordered_set<vote_hash_t> votes_hashes;
     votes_hashes.reserve(rewards_votes_hashes.size());
+    for (const auto &block_reward_vote : rewards_votes_hashes) {
+      votes_hashes.insert(block_reward_vote);
+    }
+
     auto res = rewards_votes_->getVotes(std::move(votes_hashes));
     if (!res.first) {
       std::string missing_votes_str{""};

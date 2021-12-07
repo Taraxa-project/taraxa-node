@@ -72,7 +72,7 @@ const char *default_json = R"foo({
       "timestamp": "0x60aee100",
       "tips": [],
       "transactions": [],
-      "votes_to_be_rewarded": []
+      "rewards_votes": []
     },
     "final_chain": {
       "genesis_block_fields": {

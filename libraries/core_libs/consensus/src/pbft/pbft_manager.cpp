@@ -25,7 +25,8 @@ PbftManager::PbftManager(PbftConfig const &conf, blk_hash_t const &genesis, addr
                          std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
                          std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<NextVotesManager> next_votes_mgr,
                          std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
-                         std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<final_chain::FinalChain> final_chain,
+                         std::shared_ptr<TransactionManager> trx_mgr,
+                         std::shared_ptr<final_chain::FinalChain> final_chain,
                          std::shared_ptr<RewardsVotes> rewards_votes, secret_t node_sk, vrf_sk_t vrf_sk)
     : db_(db),
       next_votes_manager_(next_votes_mgr),
@@ -691,9 +692,8 @@ bool PbftManager::stateOperations_() {
 
   // Periodically verify unverified votes
   // TODO: sending dposEligibleVoteCount_ as a parameter is not needed here and was added probably just because of
-  // single
-  //       test that is calling verifyVotes with some dummy lambda function... Very bad design if we adjust live code
-  //       because of tests...
+  //       single test that is calling verifyVotes with some dummy lambda function... Very bad design if we adjust
+  //       live code because of tests...
   vote_mgr_->verifyVotes(round, sortition_threshold_, getDposTotalVotesCount(),
                          [this](auto const &addr) { return dposEligibleVoteCount_(addr); });
 
@@ -1526,6 +1526,7 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
       }
 
       auto pbft_block_hash = sync_block->getPbftBlock()->getBlockHash();
+      auto pbft_block_period = sync_block->getPbftBlock()->getPeriod();
       LOG(log_nf_) << "Pick pbft block " << pbft_block_hash << " from synced queue in round " << round;
 
       if (!pushPbftBlock_(std::move(sync_block.value()))) {
@@ -1533,7 +1534,7 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
         break;
       }
 
-      net->setSyncStatePeriod(sync_block.pbft_blk->getPeriod());
+      net->setSyncStatePeriod(pbft_block_period);
 
       if (executed_pbft_block_) {
         vote_mgr_->removeVerifiedVotes();
@@ -1636,6 +1637,17 @@ bool PbftManager::pushPbftBlock_(SyncBlock &&sync_block) {
   // Reset 2t+1 cert votes in rewards votes(votes that should be rewarded in the next pbft period)
   rewards_votes_->newPbftBlockFinalized(std::move(cert_votes_map), pbft_block_hash,
                                         sync_block.getAllUniqueRewardsVotes());
+
+  std::string cert_votes_str{""};
+  for (const auto &cert_vote : sync_block.getCertVotes()) {
+    cert_votes_str += cert_vote->getHash().abridged() + ", ";
+  }
+
+  LOG(log_wr_) << "New PBFT block finalized " << pbft_block_hash << ", Period: " << pbft_block->getPeriod()
+               << ", dag blocks(" << sync_block.getDagBlocksHashes().size() << "): " << sync_block.getDagBlocksHashes()
+               << ", cert votes(" << sync_block.getCertVotes().size() << "): " << cert_votes_str << ", rewards votes("
+               << sync_block.getAllUniqueRewardsVotes().size() << "): " << sync_block.getAllUniqueRewardsVotes()
+               << "(REMOVE ME)";
 
   finalize_(std::move(sync_block));
 

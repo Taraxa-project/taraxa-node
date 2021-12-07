@@ -455,7 +455,7 @@ void DbStorage::savePeriodData(const SyncBlock& sync_block, Batch& write_batch) 
     block_pos++;
   }
 
-  // Remove transactions from non finalized column in db and add dag_block_period in DB
+  // Remove transactions from non finalized column in db and add trx_block_period in DB
   uint32_t trx_pos = 0;
   for (auto const& trx_hash : sync_block.getTransactionsHashes()) {
     removeTransactionToBatch(trx_hash, write_batch);
@@ -465,8 +465,8 @@ void DbStorage::savePeriodData(const SyncBlock& sync_block, Batch& write_batch) 
 
   // Saves cert_votes_period into the DB
   uint32_t vote_pos = 0;
-  for (auto const& vote_hash : sync_block.getAllUniqueRewardsVotes()) {
-    addCertVotePeriodToBatch(vote_hash, period, vote_pos, write_batch);
+  for (auto const& vote : sync_block.getCertVotes()) {
+    addCertVotePeriodToBatch(vote->getHash(), period, vote_pos, write_batch);
     vote_pos++;
   }
 

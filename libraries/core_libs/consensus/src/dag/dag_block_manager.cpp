@@ -232,7 +232,7 @@ void DagBlockManager::verifyBlock() {
     // Check if all votes candidates for rewards are present.
     // No need to verify these votes as RewardsVotes contains only verified votes
     if (auto res = rewards_votes_->checkBlockRewardsVotes(blk.getRewardsVotes()); !res.first) {
-      LOG(log_er_) << "Ignore block " << block_hash << " since it has missing votes_to_be_rewarded: " << res.second;
+      LOG(log_er_) << "Ignore block " << block_hash << " since it has missing rewards_votes: " << res.second;
       markBlockInvalid(block_hash);
       continue;
     }
@@ -357,7 +357,8 @@ void DagBlockManager::markBlockInvalid(blk_hash_t const &hash) {
 
 // TODO: use this function to check whether dag block is valid or not upon receiving it in handlers
 std::pair<bool, std::string> DagBlockManager::validateBlock(
-    const DagBlock &block, const std::vector<std::shared_ptr<Vote>> &unknown_rewards_votes) {
+    const DagBlock &block, const std::vector<std::shared_ptr<Vote>> &unknown_rewards_votes,
+    size_t pbft_committee_size) {
   // TODO: add to this function all validation steps (e.g. stuff from verifyBlock() function)
 
   // Validates unknown rewards votes
@@ -368,16 +369,23 @@ std::pair<bool, std::string> DagBlockManager::validateBlock(
                          " -> not a cert vote"};
     }
 
-    // TODO: get mapped pbft period based on dag block level
-    std::cout << block.getHash();
+    // Gets mapped pbft period based on dag block level
+    auto propose_period = getProposalPeriod(block.getLevel());
+    if (!propose_period.second) {
+      // Cannot find the proposal period in DB yet. The slow node gets an ahead block, puts back.
+      return {false, "Cannot find proposal period " + std::to_string(propose_period.first) + " in DB for DAG block " +
+                         block.getHash().abridged() + " while trying to validate rewards votes"};
+    }
 
-    // TODO: check if voter was elidgible to vote during that period
+    // Validates vote based on stakes during mapped pbft period
+    auto total_dpos_votes_count = final_chain_->dpos_eligible_total_vote_count(propose_period.first);
+    auto voter_dpos_votes_count = final_chain_->dpos_eligible_vote_count(propose_period.first, vote->getVoterAddr());
+    auto sortition_threshold = std::min<size_t>(pbft_committee_size, total_dpos_votes_count);
 
-    // TODO: validate vote based on stakes during mapped pbft period
-    //    if (auto result = vote->validate(pbft_mgr_->getPreviousPbftPeriodDposTotalVotesCount(),
-    //                                     pbft_mgr_->getPreviousPbftPeriodSortitionThreshold());
-    //        !result.first) {
-    //    }
+    if (auto result = vote->validate(voter_dpos_votes_count, total_dpos_votes_count, sortition_threshold);
+        !result.first) {
+      return result;
+    }
   }
 
   return {true, ""};

@@ -410,11 +410,13 @@ void DagManager::addDagBlock(DagBlock const &blk, SharedTransactions &&trxs, boo
         return;
       }
 
-      // TODO: merge -> revisit this code bloc. How about trx_mgr_->removeTransactionsFromPool ???
       // Saves transactions and remove them from memory pool
       trx_mgr_->saveTransactionsFromDagBlock(trxs);
+
+      auto write_batch = db_->createWriteBatch();
+
       // Save the dag block
-      db_->saveDagBlock(blk);
+      db_->saveDagBlock(blk, &write_batch);
 
       // Filters dag block rewards votes that are new (not in observed 2t+1 cert votes or new already processed votes)
       const auto new_block_rewards_votes = rewards_votes_->filterNewVotes(blk.getRewardsVotes());
@@ -424,11 +426,7 @@ void DagManager::addDagBlock(DagBlock const &blk, SharedTransactions &&trxs, boo
       // blocks that contain such votes) is finalized, they are moved into the period_data and cert_votes_period db
       // columns
       db_->addNewRewardsVotesToBatch(new_block_rewards_votes, write_batch);
-
       db_->commitWriteBatch(write_batch);
-
-      // Remove transactions from memory pool
-      trx_mgr_->removeTransactionsFromPool(trxs);
 
       // Removes all blk->rewards_votes from unrewarded_votes_
       rewards_votes_->removeUnrewardedVotes(blk.getRewardsVotes());

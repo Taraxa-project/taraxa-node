@@ -47,7 +47,7 @@ TEST_F(DagBlockTest, serialize_deserialize) {
   VdfSortition vdf(sortition_params, sk, getRlpBytes(level));
   blk_hash_t vdf_input(200);
   vdf.computeVdfSolution(sortition_params, vdf_input.asBytes());
-  DagBlock blk1(blk_hash_t(1), 2, {}, {}, {}, std::move(sortition_params), secret_t::random());
+  DagBlock blk1(blk_hash_t(1), 2, {}, {}, {}, std::move(vdf), secret_t::random());
   auto b = blk1.rlp(true);
   DagBlock blk2(b);
   EXPECT_EQ(blk1, blk2);
@@ -145,7 +145,7 @@ TEST_F(DagBlockTest, sign_verify) {
                  blk_hash_t(333), blk_hash_t(444)},
                 {trx_hash_t(555),  // trxs
                  trx_hash_t(666)},
-                {},  // votes_to_be_rewarded
+                {},  // rewards_votes
                 VdfSortition(), g_secret);
   DagBlock blk1c(blk_hash_t(111),   // pivot
                  0,                 // level
@@ -153,7 +153,7 @@ TEST_F(DagBlockTest, sign_verify) {
                   blk_hash_t(333), blk_hash_t(444)},
                  {trx_hash_t(555),  // trxs
                   trx_hash_t(666)},
-                 {},  // votes_to_be_rewarded
+                 {},  // rewards_votes
                  VdfSortition(), g_secret);
   EXPECT_EQ(blk1.getSig(), blk1c.getSig()) << blk1 << std::endl << blk1c;
   EXPECT_EQ(blk1.getSender(), blk1c.getSender());
@@ -165,7 +165,7 @@ TEST_F(DagBlockTest, sign_verify) {
                 0,                 // level
                 {},                // tips,
                 {},                // trxs
-                {},                // votes_to_be_rewarded
+                {},                // rewards_votes
                 VdfSortition(), g_secret);
 
   EXPECT_NE(blk1.getSig(), blk2.getSig());

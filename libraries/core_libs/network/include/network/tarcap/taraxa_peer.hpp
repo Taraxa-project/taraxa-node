@@ -60,9 +60,10 @@ class TaraxaPeer : public boost::noncopyable {
   std::unordered_set<vote_hash_t> filterUnknownVotes(const std::vector<vote_hash_t> &votes_hashes) const {
     std::unordered_set<vote_hash_t> unknown_votes;
     for (const auto &vote_hash : votes_hashes) {
-      if (!isVoteKnown(vote_hash)) {
-        unknown_votes.insert(vote_hash);
-      }
+      //      if (!isVoteKnown(vote_hash)) {
+      //        unknown_votes.insert(vote_hash);
+      //      }
+      unknown_votes.insert(vote_hash);
     }
 
     return unknown_votes;

@@ -13,7 +13,8 @@ class Network;
 
 class NextVotesManager {
  public:
-  NextVotesManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<final_chain::FinalChain> final_chain);
+  NextVotesManager(addr_t node_addr, std::shared_ptr<DbStorage> db,
+                   std::shared_ptr<final_chain::FinalChain> final_chain);
 
   void clear();
 

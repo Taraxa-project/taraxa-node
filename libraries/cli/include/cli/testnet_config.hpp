@@ -90,7 +90,7 @@ const char *testnet_json = R"foo({
       "timestamp": "0x60b03305",
       "tips": [],
       "transactions": [],
-      "votes_to_be_rewarded": []
+      "rewards_votes": []
     },
     "final_chain": {
       "genesis_block_fields": {

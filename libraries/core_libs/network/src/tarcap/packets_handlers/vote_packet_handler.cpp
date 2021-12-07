@@ -16,26 +16,24 @@ VotePacketHandler::VotePacketHandler(std::shared_ptr<PeersState> peers_state,
 void VotePacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
   auto vote = std::make_shared<Vote>(packet_data.rlp_[0].toBytes());
   const auto vote_hash = vote->getHash();
-  LOG(log_dg_) << "Received PBFT vote " << vote_hash;
-
   const auto vote_round = vote->getRound();
 
   if (vote_round < pbft_mgr_->getPbftRound()) {
-    LOG(log_dg_) << "Received old PBFT vote " << vote_hash << " from " << packet_data.from_node_id_.abridged()
+    LOG(log_dg_) << "Received old vote " << vote_hash << " from " << packet_data.from_node_id_.abridged()
                  << ". Vote round: " << vote_round << ", current pbft round: " << pbft_mgr_->getPbftRound();
     return;
   }
 
   // Synchronization point in case multiple threads are processing the same vote at the same time
   if (!seen_votes_.insert(vote_hash)) {
-    LOG(log_dg_) << "Received PBFT vote " << vote_hash << " (from " << packet_data.from_node_id_.abridged()
+    LOG(log_dg_) << "Received vote " << vote_hash << " (from " << packet_data.from_node_id_.abridged()
                  << ") already seen.";
     return;
   }
 
   // No need to check unverified map as it is checked inside addUnverifiedVote
   if (vote_mgr_->voteInVerifiedMap(vote)) {
-    LOG(log_dg_) << "Vote " << vote_hash << " (from " << packet_data.from_node_id_.abridged()
+    LOG(log_dg_) << "Received vote " << vote_hash << " (from " << packet_data.from_node_id_.abridged()
                  << ") already saved in verified queue";
     return;
   }
@@ -44,10 +42,13 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
   // Synchronization point 2 in case multiple threads are processing the same vote at the same time
   // Adds unverified vote into local structure + database
   if (!vote_mgr_->addUnverifiedVote(std::move(vote))) {
-    LOG(log_dg_) << "Vote " << vote_hash << " (from " << packet_data.from_node_id_.abridged()
+    LOG(log_dg_) << "Received vote " << vote_hash << " (from " << packet_data.from_node_id_.abridged()
                  << ") already saved in unverified queue";
     return;
   }
+
+  LOG(log_dg_) << "Received new unknown vote " << vote_hash;
+  LOG(log_wr_) << "Received new unknown vote " << vote_hash << " (REMOVE ME)";
 
   // Do not mark it before, as peers have small caches of known votes.
   // And we do not need to mark it before this point as we won't be sending

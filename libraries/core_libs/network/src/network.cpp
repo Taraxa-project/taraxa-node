@@ -13,7 +13,7 @@ Network::Network(NetworkConfig const &config, std::filesystem::path const &netwo
                  std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
                  std::shared_ptr<NextVotesManager> next_votes_mgr, std::shared_ptr<DagManager> dag_mgr,
                  std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<TransactionManager> trx_mgr,
- 		 std::shared_ptr<RewardsVotes> rewards_votes)
+                 std::shared_ptr<RewardsVotes> rewards_votes)
     : conf_(config), tp_(config.network_num_threads, false) {
   auto const &node_addr = key.address();
   LOG_OBJECTS_CREATE("NETWORK");

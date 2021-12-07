@@ -18,17 +18,30 @@ SyncBlock::SyncBlock(std::shared_ptr<PbftBlock> pbft_blk, std::vector<DagBlock>&
       ordered_dag_blocks_(std::move(ordered_dag_blocks)),
       ordered_dag_blocks_hashes_(ordered_dag_blocks_hashes),
       ordered_transactions_(std::move(ordered_txs)),
-      ordered_transactions_hashes_(std::move(ordered_transactions_hashes)) {}
+      ordered_transactions_hashes_(std::move(ordered_transactions_hashes)) {
+  rewards_votes_.reserve(1000);
+  for (const auto& dag_block : ordered_dag_blocks_) {
+    for (const auto& reward_vote_hash : dag_block.getRewardsVotes()) {
+      rewards_votes_.insert(reward_vote_hash);
+    }
+  }
+}
 
 SyncBlock::SyncBlock(dev::RLP&& rlp) {
   auto it = rlp.begin();
   pbft_blk_ = std::make_shared<PbftBlock>(*it++);
+
+  rewards_votes_.reserve(1000);
 
   for (auto const dag_block_rlp : *it++) {
     const auto dag_block = DagBlock(dag_block_rlp);
 
     ordered_dag_blocks_hashes_.push_back(dag_block.getHash());
     ordered_dag_blocks_.push_back(std::move(dag_block));
+
+    for (const auto& reward_vote_hash : dag_block.getRewardsVotes()) {
+      rewards_votes_.insert(reward_vote_hash);
+    }
   }
 
   for (auto const trx_rlp : *it++) {
@@ -75,11 +88,12 @@ void SyncBlock::clear() {
   ordered_transactions_hashes_.clear();
 
   cert_votes_.clear();
+  rewards_votes_.clear();
 }
 
 void SyncBlock::setCertVotes(std::vector<std::shared_ptr<Vote>>&& votes) { cert_votes_ = std::move(votes); }
 
-void SyncBlock::addCertVote(std::shared_ptr<Vote>&& vote) { cert_votes_.push_back(std::move(vote)); }
+void SyncBlock::addCertVote(std::shared_ptr<Vote> vote) { cert_votes_.push_back(std::move(vote)); }
 
 const std::shared_ptr<PbftBlock>& SyncBlock::getPbftBlock() const { return pbft_blk_; }
 
@@ -93,35 +107,15 @@ const std::vector<Transaction>& SyncBlock::getTransactions() const { return orde
 
 const vec_trx_t& SyncBlock::getTransactionsHashes() const { return ordered_transactions_hashes_; }
 
-std::unordered_set<vote_hash_t> SyncBlock::getAllUniqueRewardsVotes() const {
-  std::unordered_set<vote_hash_t> unique_rewards_votes;
-  // There is up to 1000 votes in single pbft period. Dag blocks might include duplicate votes or votes from other
-  // periods but that is hard to predict how much of those are present...
-  unique_rewards_votes.reserve(1000);
-
-  for (const auto& dag_block : ordered_dag_blocks_) {
-    for (const auto& dag_block_reward_vote : dag_block.getRewardsVotes()) {
-      unique_rewards_votes.insert(dag_block_reward_vote);
-    }
-  }
-
-  return unique_rewards_votes;
-}
+const std::unordered_set<vote_hash_t>& SyncBlock::getAllUniqueRewardsVotes() const { return rewards_votes_; }
 
 void SyncBlock::hasEnoughValidCertVotes(size_t dpos_total_votes_count, size_t sortition_threshold,
-                                        size_t pbft_2t_plus_1) const {
+                                        size_t pbft_2t_plus_1,
+                                        std::function<size_t(addr_t const&)> const& dpos_eligible_vote_count) const {
   if (cert_votes_.empty()) {
     throw std::logic_error("No cert votes provided! The synced PBFT block comes from a malicious player.");
   }
-
-  if (cert_votes_.size() != pbft_2t_plus_1) {
-    std::stringstream err;
-    err << "PBFT block " << pbft_blk_->getBlockHash() << " has a wrong number of cert votes. There are "
-        << cert_votes_.size() << " cert votes with the block. But 2t+1 is " << pbft_2t_plus_1
-        << ", DPOS total votes count " << dpos_total_votes_count << ", sortition threshold is " << sortition_threshold;
-    throw std::logic_error(err.str());
-  }
-
+  size_t total_votes = 0;
   auto first_cert_vote_round = cert_votes_[0]->getRound();
   for (auto& v : cert_votes_) {
     // Any info is wrong that can determine the synced PBFT block comes from a malicious player
@@ -147,8 +141,9 @@ void SyncBlock::hasEnoughValidCertVotes(size_t dpos_total_votes_count, size_t so
           << " has wrong vote block hash " << v->getBlockHash();
       throw std::logic_error(err.str());
     }
+    auto stake = dpos_eligible_vote_count(v->getVoterAddr());
 
-    if (auto result = v->validate(dpos_total_votes_count, sortition_threshold); !result.first) {
+    if (auto result = v->validate(stake, dpos_total_votes_count, sortition_threshold); !result.first) {
       std::stringstream err;
       err << "For PBFT block " << pbft_blk_->getBlockHash() << ", cert vote " << v->getHash()
           << " failed validation: " << result.second;
@@ -161,8 +156,8 @@ void SyncBlock::hasEnoughValidCertVotes(size_t dpos_total_votes_count, size_t so
 
   if (total_votes < pbft_2t_plus_1) {
     std::stringstream err;
-    err << "PBFT block " << pbft_blk->getBlockHash() << " has a wrong number of cert votes. There are "
-        << cert_votes.size() << " cert votes with the block. But 2t+1 is " << pbft_2t_plus_1
+    err << "PBFT block " << pbft_blk_->getBlockHash() << " has a wrong number of cert votes. There are "
+        << cert_votes_.size() << " cert votes with the block. But 2t+1 is " << pbft_2t_plus_1
         << ", DPOS total votes count " << dpos_total_votes_count << ", sortition threshold is " << sortition_threshold;
     throw std::logic_error(err.str());
   }

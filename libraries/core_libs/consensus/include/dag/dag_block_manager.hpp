@@ -59,10 +59,12 @@ class DagBlockManager {
    *
    * @param block to be verified
    * @param unknown_rewards_votes new votes that are not known for this node yet
+   * @param pbft_committee_size
    * @return <true, ""> in case block is valid, otherwise <false, "validation fail reason">
    */
   std::pair<bool, std::string> validateBlock(const DagBlock &block,
-                                             const std::vector<std::shared_ptr<Vote>> &unknown_rewards_votes);
+                                             const std::vector<std::shared_ptr<Vote>> &unknown_rewards_votes,
+                                             size_t pbft_committee_size);
 
  private:
   using uLock = boost::unique_lock<boost::shared_mutex>;

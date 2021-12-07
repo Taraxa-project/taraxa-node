@@ -174,7 +174,7 @@ void TaraxaCapability::registerPacketHandlers(
     const std::shared_ptr<PbftManager> &pbft_mgr, const std::shared_ptr<PbftChain> &pbft_chain,
     const std::shared_ptr<VoteManager> &vote_mgr, const std::shared_ptr<NextVotesManager> &next_votes_mgr,
     const std::shared_ptr<DagManager> &dag_mgr, const std::shared_ptr<DagBlockManager> &dag_blk_mgr,
-    const std::shared_ptr<TransactionManager> &trx_mgr, const std::shared_ptr<RewardsVotes> &rewards_votes, 
+    const std::shared_ptr<TransactionManager> &trx_mgr, const std::shared_ptr<RewardsVotes> &rewards_votes,
     addr_t const &node_addr) {
   node_stats_ = std::make_shared<NodeStats>(peers_state_, syncing_state_, pbft_chain, pbft_mgr, dag_mgr, dag_blk_mgr,
                                             vote_mgr, trx_mgr, packets_stats, thread_pool_, node_addr);

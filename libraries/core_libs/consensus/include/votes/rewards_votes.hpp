@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <queue>
 #include <shared_mutex>
 #include <unordered_set>
 
@@ -17,7 +18,7 @@ class Vote;
  */
 class RewardsVotes {
  public:
-  RewardsVotes(std::shared_ptr<DbStorage> db, uint64_t last_saved_pbft_period);
+  RewardsVotes(std::shared_ptr<DbStorage> db, uint64_t last_saved_pbft_period = 0);
   ~RewardsVotes() = default;
 
   /**
@@ -152,6 +153,8 @@ class RewardsVotes {
   // Observed <voted_block_hash, 2t+1 cert votes> for the last N finalized pbft periods. It is shifted
   // (blocks_cert_votes_[N] = blocks_cert_votes_[N-1], ...) every time new pbft block is pushed into the final chain
   std::map<blk_hash_t, std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>> blocks_cert_votes_;
+  // Time(period) ordering of blocks_cert_votes_
+  std::queue<blk_hash_t> blocks_cert_votes_ordering_;
   mutable std::shared_mutex blocks_cert_votes_mutex_;
 
   // 2t+1 cert votes from the latest finalized pbft period votes that has not been included in dag blocks for rewards

@@ -160,21 +160,22 @@ void BlockProposer::proposeBlock(DagFrontier&& frontier, level_t level, SharedTr
                  [](std::shared_ptr<Transaction> const& t) { return t->getHash(); });
 
   // Votes candidates for rewards from rewards_votes_, can include max k_max_rewards_votes_in_block_(100) unique votes
-  auto votes_to_be_rewarded = rewards_votes_->popUnrewardedVotes(k_max_rewards_votes_in_block_);
+  auto rewards_votes = rewards_votes_->popUnrewardedVotes(k_max_rewards_votes_in_block_);
 
   // When we propose block we know it is valid, no need for block verification with queue,
   // simply add the block to the DAG
   DagBlock blk(frontier.pivot, std::move(level), std::move(frontier.tips), std::move(trx_hashes),
-               std::move(votes_to_be_rewarded), std::move(vdf), node_sk_);
+               std::move(rewards_votes), std::move(vdf), node_sk_);
 
   dag_mgr_->addDagBlock(blk, std::move(trxs), true);
   dag_blk_mgr_->markDagBlockAsSeen(blk);
 
-  auto now = getCurrentTimeMilliSeconds();
-  LOG(log_time_) << "Propose block " << blk.getHash() << " at: " << now << " ,trxs: " << blk.getTrxs()
-                 << " , tips: " << blk.getTips().size();
-  LOG(log_nf_) << "Add proposed DAG block " << blk.getHash() << ", pivot " << blk.getPivot() << " , number of trx ("
-               << blk.getTrxs().size() << ")";
+  LOG(log_nf_) << "Add proposed DAG block " << blk.getHash() << ", pivot " << blk.getPivot()
+               << ", txs count: " << blk.getTrxs().size() << ", tips count: " << blk.getTips().size()
+               << ", rewards_votes count: " << blk.getRewardsVotes().size();
+
+  LOG(log_wr_) << "Proposed DAG block " << blk.getHash() << ", rewards votes: " << blk.getRewardsVotes()
+               << "(REMOVE ME)";
   BlockProposer::num_proposed_blocks.fetch_add(1);
 }
 

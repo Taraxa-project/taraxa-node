@@ -15,7 +15,7 @@ class DagBlock {
   DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, sig_t signature, blk_hash_t hash,
            addr_t sender);
   DagBlock(blk_hash_t const &pivot, level_t &&level, vec_blk_t &&tips, vec_trx_t &&trxs,
-           std::vector<vote_hash_t> &&votes_to_be_rewarded, VdfSortition &&vdf, secret_t const &sk);
+           std::vector<vote_hash_t> &&rewards_votes, VdfSortition &&vdf, secret_t const &sk);
   explicit DagBlock(Json::Value const &doc);
   explicit DagBlock(dev::RLP const &_rlp);
   explicit DagBlock(dev::bytes const &_rlp) : DagBlock(dev::RLP(_rlp)) {}
@@ -37,8 +37,8 @@ class DagBlock {
     str << "	trxs ( " << u.trxs_.size() << " )	= ";
     for (auto const &t : u.trxs_) str << t.abridged() << " ";
     str << std::endl;
-    str << "	votes_to_be_rewarded ( " << u.votes_to_be_rewarded_.size() << " )	= ";
-    for (auto const &t : u.votes_to_be_rewarded_) str << t.abridged() << " ";
+    str << "	rewards_votes ( " << u.rewards_votes_.size() << " )	= ";
+    for (auto const &t : u.rewards_votes_) str << t.abridged() << " ";
     str << std::endl;
     str << "	signature	= " << u.sig_.abridged() << std::endl;
     str << "	hash		= " << u.getHash().abridged() << std::endl;
@@ -53,7 +53,7 @@ class DagBlock {
   uint64_t getTimestamp() const { return timestamp_; }
   const vec_blk_t &getTips() const { return tips_; }
   const vec_trx_t &getTrxs() const { return trxs_; }
-  const std::vector<vote_hash_t> &getRewardsVotes() const { return votes_to_be_rewarded_; }
+  const std::vector<vote_hash_t> &getRewardsVotes() const { return rewards_votes_; }
   const sig_t &getSig() const { return sig_; }
   const blk_hash_t &getHash() const;
   const vdf_sortition::VdfSortition &getVdf() const { return vdf_; }
@@ -84,7 +84,7 @@ class DagBlock {
   vec_trx_t trxs_;  // transactions
 
   // List of votes hashes from previous (already finalized) pbft period that should be rewarded in the current period
-  std::vector<vote_hash_t> votes_to_be_rewarded_;
+  std::vector<vote_hash_t> rewards_votes_;
 
   sig_t sig_;
 

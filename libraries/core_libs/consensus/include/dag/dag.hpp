@@ -180,7 +180,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
                 bool finalized = false);
   void worker();
   std::pair<blk_hash_t, std::vector<blk_hash_t>> getFrontier() const;  // return pivot and tips
-  std::atomic<level_t> max_level_ = 0;
+  std::atomic<level_t> max_level_{0};
   mutable boost::shared_mutex mutex_;
   std::shared_ptr<PivotTree> pivot_tree_;  // only contains pivot edges
   std::shared_ptr<Dag> total_dag_;         // contains both pivot and tips

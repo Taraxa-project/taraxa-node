@@ -28,11 +28,12 @@ class SyncBlock {
   // shared object on multiple threads
   void clear();
   void setCertVotes(std::vector<std::shared_ptr<Vote>>&& votes);
-  void addCertVote(std::shared_ptr<Vote>&& vote);
+  void addCertVote(std::shared_ptr<Vote> vote);
   /**** Non thread-safe methods ****/
 
   bytes rlp() const;
-  void hasEnoughValidCertVotes(size_t valid_sortition_players, size_t sortition_threshold, size_t pbft_2t_plus_1) const;
+  void hasEnoughValidCertVotes(size_t valid_sortition_players, size_t sortition_threshold, size_t pbft_2t_plus_1,
+                               std::function<size_t(addr_t const&)> const& dpos_eligible_vote_count) const;
 
   const std::shared_ptr<PbftBlock>& getPbftBlock() const;
   const std::vector<std::shared_ptr<Vote>>& getCertVotes() const;
@@ -44,7 +45,7 @@ class SyncBlock {
   /**
    * @return all unique rewards votes included in ordered_dag_blocks_
    */
-  std::unordered_set<vote_hash_t> getAllUniqueRewardsVotes() const;
+  const std::unordered_set<vote_hash_t>& getAllUniqueRewardsVotes() const;
 
  private:
   std::shared_ptr<PbftBlock> pbft_blk_{nullptr};
@@ -62,6 +63,9 @@ class SyncBlock {
   vec_trx_t ordered_transactions_hashes_;
 
   std::vector<std::shared_ptr<Vote>> cert_votes_;
+
+  // Rewards votes included in dag blocks
+  std::unordered_set<vote_hash_t> rewards_votes_;
 };
 
 }  // namespace taraxa

@@ -97,7 +97,8 @@ class Vote {
    * @param sortition_threshold
    * @return <true, ""> in case vote is valid, otherwise <false, "validation fail reason">
    */
-  std::pair<bool, std::string> validate(uint64_t stake, double dpos_total_votes_count, double sortition_threshold) const;
+  std::pair<bool, std::string> validate(uint64_t stake, double dpos_total_votes_count,
+                                        double sortition_threshold) const;
 
   vote_hash_t getHash() const { return vote_hash_; }
   public_t getVoter() const {

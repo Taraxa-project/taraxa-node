@@ -43,6 +43,18 @@
           {
             "name": "FULLND",
             "verbosity": "ERROR"
+          },
+          {
+            "name": "PBFT_VOTE_PH",
+            "verbosity": "DEBUG"
+          },
+          {
+            "name": "PR_MDL",
+            "verbosity": "WARN"
+          },
+          {
+            "name": "PBFT_MGR",
+            "verbosity": "WARN"
           }
         ],
         "outputs": [

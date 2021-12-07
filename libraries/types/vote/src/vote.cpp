@@ -70,7 +70,8 @@ Vote::Vote(secret_t const& node_sk, VrfPbftSortition vrf_sortition, blk_hash_t c
   vote_hash_ = sha3(true);
 }
 
-void Vote::validate(uint64_t stake, double dpos_total_votes_count, double sortition_threshold) const {
+std::pair<bool, std::string> Vote::validate(uint64_t stake, double dpos_total_votes_count,
+                                            double sortition_threshold) const {
   if (!stake) {
     // After deep syncing, node could receive votes but still behind, may don't have vote sender state in table
     // If in PBFT blocks syncing for cert votes, that's malicious blocks

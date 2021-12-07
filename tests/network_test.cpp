@@ -112,6 +112,10 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
   auto block_hash = blk.getHash();
   dag_blocks.emplace_back(std::make_shared<DagBlock>(blk));
 
+  for (const auto& tx : trxs) {
+    tx->rlp(true);
+  }
+
   nodes[0]->getNetwork()->onNewTransactions(std::move(trxs));
   taraxa::thisThreadSleepForSeconds(1);
   nodes[0]->getNetwork()->sendBlocks(nodes[1]->getNetwork()->getNodeId(), std::move(dag_blocks));

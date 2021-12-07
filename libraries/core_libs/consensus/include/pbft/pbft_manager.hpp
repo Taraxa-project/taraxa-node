@@ -229,10 +229,10 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   uint64_t pbft_round_last_broadcast_ = 0;
   size_t pbft_step_last_broadcast_ = 0;
 
-  std::atomic<uint64_t> dpos_period_ = 0;
-  std::atomic<size_t> dpos_votes_count_ = 0;
-  std::atomic<size_t> previous_pbft_period_dpos_votes_count_ = 0;
-  std::atomic<size_t> weighted_votes_count_ = 0;
+  std::atomic<uint64_t> dpos_period_;
+  std::atomic<size_t> dpos_votes_count_;
+  std::atomic<size_t> previous_pbft_period_dpos_votes_count_;
+  std::atomic<size_t> weighted_votes_count_;
 
   size_t sortition_threshold_ = 0;
   std::atomic<size_t> previous_pbft_period_sortition_threshold_ = 0;

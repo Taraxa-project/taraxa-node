@@ -9,12 +9,12 @@ namespace taraxa {
 
 RewardsVotes::RewardsVotes(std::shared_ptr<DbStorage> db, uint64_t last_saved_pbft_period) : db_(std::move(db)) {
   // Inits votes containers from database
-  new_processed_votes_ = db->getNewRewardsVotes();
+  new_processed_votes_ = db_->getNewRewardsVotes();
 
   uint64_t start_period = std::max(uint64_t(0), last_saved_pbft_period - k_max_cached_periods_count) + 1;
 
   for (uint64_t period = start_period; period <= last_saved_pbft_period; period++) {
-    auto cert_votes = db->getCertVotes(period);
+    auto cert_votes = db_->getCertVotes(period);
     assert(!cert_votes.empty());
 
     std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> votes_map;
@@ -24,6 +24,7 @@ RewardsVotes::RewardsVotes(std::shared_ptr<DbStorage> db, uint64_t last_saved_pb
     }
 
     auto voted_block_hash = cert_votes[0]->getBlockHash();
+    blocks_cert_votes_ordering_.push(voted_block_hash);
     blocks_cert_votes_.emplace(std::move(voted_block_hash), std::move(votes_map));
   }
 }
@@ -40,13 +41,17 @@ void RewardsVotes::newPbftBlockFinalized(std::unordered_map<vote_hash_t, std::sh
   // Save new finalized pbft block 2t+1 cert votes + shift older cached cert votes
   {
     std::scoped_lock lock(blocks_cert_votes_mutex_);
-    assert(blocks_cert_votes_.contains(voted_block_hash));
+    assert(!blocks_cert_votes_.contains(voted_block_hash));
+    assert(blocks_cert_votes_ordering_.size() == blocks_cert_votes_.size());
 
     blocks_cert_votes_.emplace(voted_block_hash, std::move(cert_votes));
+    blocks_cert_votes_ordering_.push(voted_block_hash);
 
     // Keep only k_max_cached_periods_count cached periods
     if (blocks_cert_votes_.size() > k_max_cached_periods_count) {
-      blocks_cert_votes_.erase(blocks_cert_votes_.begin());
+      const auto& block_to_be_removed = blocks_cert_votes_ordering_.front();
+      blocks_cert_votes_.erase(block_to_be_removed);
+      blocks_cert_votes_ordering_.pop();
     }
   }
 
@@ -72,10 +77,10 @@ void RewardsVotes::newPbftBlockFinalized(std::unordered_map<vote_hash_t, std::sh
   }
 
   // TODO: this could be probably optimised so actual db period is not read from db based on block hash:
-  //       1. Either case few last pbft blocks periods
+  //       1. Either save few last pbft blocks periods
   //       2. or save somehow the period in RewardsVotes internal structures
   // Adds new votes into the period_data & cert_votes_period db columns
-  for (auto& new_rewards_votes_period : new_rewards_votes_by_blocks) {
+  for (const auto& new_rewards_votes_period : new_rewards_votes_by_blocks) {
     uint64_t period;
     if (auto pbft_block = db_->getPbftBlock(new_rewards_votes_period.first); pbft_block.has_value()) {
       period = pbft_block->getPeriod();
@@ -95,11 +100,11 @@ void RewardsVotes::newPbftBlockFinalized(std::unordered_map<vote_hash_t, std::sh
     //       be loaded in order to properly setup position of new votes inside period data
     // Appends new cert votes into the period data object
     uint32_t new_vote_pos = syncBlock.getCertVotes().size();
-    for (auto& new_vote : new_rewards_votes_period.second) {
+    for (const auto& new_vote : new_rewards_votes_period.second) {
       assert(new_vote->getBlockHash() == syncBlock.getPbftBlock()->getBlockHash());
 
       db_->addCertVotePeriodToBatch(new_vote->getHash(), period, new_vote_pos, batch);
-      syncBlock.addCertVote(std::move(new_vote));
+      syncBlock.addCertVote(new_vote);
       new_vote_pos++;
     }
 
@@ -251,16 +256,22 @@ std::pair<bool, std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>> RewardsV
     std::unordered_set<vote_hash_t>&& votes_hashes) {
   std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> result_votes;
 
+  if (votes_hashes.empty()) {
+    return std::make_pair(true, std::move(result_votes));
+  }
+
   // Searches cached votes from provided container and insert found ones into the result_votes. In case all votes were
   // found, returns true, otherwise false
   auto searchForVotes = [&result_votes, &votes_hashes](
                             const std::unordered_map<blk_hash_t, std::shared_ptr<Vote>>& cached_votes) -> bool {
-    for (auto it = votes_hashes.begin(); it != votes_hashes.end(); it++) {
+    for (auto it = votes_hashes.begin(); it != votes_hashes.end();) {
       auto found_vote = cached_votes.find(*it);
       if (found_vote == cached_votes.end()) {
+        it++;
         continue;
       }
 
+      std::cout << "found vote: " << it->abridged() << std::endl;
       result_votes.emplace(*found_vote);
       it = votes_hashes.erase(it);
     }
@@ -345,9 +356,11 @@ std::unordered_set<vote_hash_t> RewardsVotes::filterUnknownVotesHashes(const std
 
   // Checks votes container. In case all vote have been found in container, true is returned, otherwise false
   auto checkVotesContainer = [&unknown_votes](const auto& container) -> bool {
-    for (auto it = unknown_votes.begin(); it != unknown_votes.end(); it++) {
+    for (auto it = unknown_votes.begin(); it != unknown_votes.end();) {
       if (container.contains(*it)) {
         it = unknown_votes.erase(it);
+      } else {
+        it++;
       }
     }
 

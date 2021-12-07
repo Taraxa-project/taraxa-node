@@ -114,8 +114,8 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
                               const std::shared_ptr<NextVotesManager> &next_votes_mgr,
                               const std::shared_ptr<DagManager> &dag_mgr,
                               const std::shared_ptr<DagBlockManager> &dag_blk_mgr,
-                              const std::shared_ptr<TransactionManager> &trx_mgr, const std::shared_ptr<RewardsVotes> &rewards_votes,
-			       addr_t const &node_addr);
+                              const std::shared_ptr<TransactionManager> &trx_mgr,
+                              const std::shared_ptr<RewardsVotes> &rewards_votes, addr_t const &node_addr);
 
   bool filterSyncIrrelevantPackets(SubprotocolPacketType packet_type) const;
 

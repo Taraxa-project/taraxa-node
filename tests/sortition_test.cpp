@@ -22,18 +22,22 @@ SyncBlock createBlock(uint64_t period, uint16_t efficiency, size_t dag_blocks_co
   // efficiency
   const size_t kTrxCount = 100 * kOnePercent;
   SyncBlock b;
-  b.pbft_blk = std::make_shared<PbftBlock>(PbftBlock{{}, {}, {}, period, {}, dev::KeyPair::create().secret()});
+  auto pbft_blk = std::make_shared<PbftBlock>(PbftBlock{{}, {}, {}, period, {}, dev::KeyPair::create().secret()});
   size_t effective_transactions = kTrxCount * efficiency / (100 * kOnePercent);
   auto trx_hashes = generateTrxHashes(effective_transactions);
   auto trx_per_block = effective_transactions / dag_blocks_count;
 
+  std::vector<Transaction> transactions;
+  transactions.reserve(trx_hashes.size());
   for (uint32_t i = 0; i < trx_hashes.size(); ++i) {
-    b.transactions.push_back(Transaction());
+    transactions.push_back(Transaction());
   }
 
+  std::vector<DagBlock> dag_blocks;
+  dag_blocks.reserve(dag_blocks_count);
   for (size_t i = 0; i < dag_blocks_count; ++i) {
     vec_trx_t trxs{trx_hashes.begin() + i * trx_per_block, trx_hashes.begin() + (i + 1) * trx_per_block};
-    b.dag_blocks.push_back({{}, {}, {}, trxs, {}});
+    dag_blocks.push_back({{}, 0, {}, std::move(trxs), {}, {}, addr_t(0)});
   };
 
   size_t issued_overlap_count = 0;
@@ -41,9 +45,10 @@ SyncBlock createBlock(uint64_t period, uint16_t efficiency, size_t dag_blocks_co
     size_t overlap = std::min(kTrxCount - effective_transactions - issued_overlap_count, trx_hashes.size());
     issued_overlap_count += overlap;
     vec_trx_t trxs{trx_hashes.begin(), trx_hashes.begin() + overlap};
-    b.dag_blocks.push_back({{}, {}, {}, trxs, {}});
+    dag_blocks.push_back({{}, 0, {}, std::move(trxs), {}, {}, addr_t(0)});
   }
-  return b;
+
+  return SyncBlock(std::move(pbft_blk), std::move(dag_blocks), {}, std::move(transactions), {});
 }
 
 TEST_F(SortitionTest, vrf_lower_overflow) {

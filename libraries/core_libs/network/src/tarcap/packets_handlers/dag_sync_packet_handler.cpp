@@ -3,6 +3,7 @@
 #include "dag/dag_block_manager.hpp"
 #include "network/tarcap/packets_handlers/common/ext_syncing_packet_handler.hpp"
 #include "network/tarcap/shared_states/syncing_state.hpp"
+#include "pbft/pbft_manager.hpp"
 #include "transaction_manager/transaction_manager.hpp"
 #include "votes/rewards_votes.hpp"
 
@@ -76,8 +77,8 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
 
     // Validates block
     // TODO: this validation should replace verifyBlock & unverified_queue becomes useless after that
-    if (auto res = dag_blk_mgr_->validateBlock(block, unknown_votes); !res.first) {
-      LOG(log_dg_) << "Received invalid DagBlock from node " << peer->getId() << ", Reason: : " << res.second;
+    if (auto res = dag_blk_mgr_->validateBlock(block, unknown_votes, pbft_mgr_->getPbftCommitteeSize()); !res.first) {
+      LOG(log_er_) << "Received invalid DagBlock from node " << peer->getId() << ", Reason: : " << res.second;
       disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
       return;
     }

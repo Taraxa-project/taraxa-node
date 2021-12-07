@@ -10,8 +10,9 @@ constexpr size_t EXTENDED_PARTITION_STEPS = 1000;
 constexpr size_t FIRST_FINISH_STEP = 4;
 
 namespace taraxa {
-VoteManager::VoteManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<final_chain::FinalChain> final_chain,
-                         std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<NextVotesManager> next_votes_mgr)
+VoteManager::VoteManager(addr_t node_addr, std::shared_ptr<DbStorage> db,
+                         std::shared_ptr<final_chain::FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain,
+                         std::shared_ptr<NextVotesManager> next_votes_mgr)
     : node_addr_(std::move(node_addr)),
       db_(std::move(db)),
       pbft_chain_(std::move(pbft_chain)),
@@ -269,7 +270,7 @@ bool VoteManager::voteInVerifiedMap(std::shared_ptr<Vote> const& vote) {
     return false;
   }
 
-  return found_voted_value_it->second.find(hash) != found_voted_value_it->second.end();
+  return found_voted_value_it->second.second.find(hash) != found_voted_value_it->second.second.end();
 }
 
 void VoteManager::clearVerifiedVotesTable() {
@@ -301,7 +302,7 @@ void VoteManager::verifyVotes(uint64_t pbft_round, size_t sortition_threshold, u
 
   for (auto& v : votes_to_verify) {
     // TODO: how can this even happen ? We should not save duplicate votes inside unverified votes queue so once some
-    //       vote is invalidt it should never make it back to unverified queue and this should never happen
+    //       vote is invalid it should never make it back to unverified queue and this should never happen
     if (votes_invalid_in_current_final_chain_period_.contains(v->getHash())) {
       continue;
     }
@@ -311,10 +312,10 @@ void VoteManager::verifyVotes(uint64_t pbft_round, size_t sortition_threshold, u
       // We need to handle propose_vote_type
       dpos_votes_count = 1;
     }
-    try {
-      v->validate(dpos_votes_count, dpos_total_votes_count, sortition_threshold);
-    } catch (const std::logic_error& e) {
-      LOG(log_wr_) << e.what();
+
+    if (auto result = v->validate(dpos_votes_count, dpos_total_votes_count, sortition_threshold); !result.first) {
+      std::cout << "verifyVotes vote " << v->getHash().abridged() << " validation fail ( REMOVE ME )" << std::endl;
+      LOG(log_er_) << result.second;
       votes_invalid_in_current_final_chain_period_.emplace(v->getHash());
       if (v->getRound() > pbft_round + 1) {
         removeUnverifiedVote(v->getRound(), v->getHash());
@@ -455,20 +456,17 @@ VotesBundle VoteManager::getVotesBundleByRoundAndStep(uint64_t round, size_t ste
     }
 
     auto voted_block_hash = voted_value.first;
-    votes.reserve(two_t_plus_one);
+    votes.reserve(voted_value.second.second.size());
 
-    auto it = voted_value.second.second.begin();
-    size_t count = 0;
-    // Only copy 2t+1 votes
-    while (count < two_t_plus_one) {
+    // Copy all existing votes. Originally only 2t+1 votes were copied as it is enough but with votes rewarding, most
+    // of the votes would be added later anyway as full votes need to be saved so they can be validated and rewarded...
+    for (auto it = voted_value.second.second.begin(); it != voted_value.second.second.end(); it++) {
       votes.emplace_back(it->second);
-      count += it->second->getWeight().value();
-      it++;
     }
 
-    LOG(log_nf_) << "Found enough " << votes.size() << " votes at voted value " << voted_block_hash
-                 << " for round " << round << " step " << step;
-    return VotesBundle(true, voted_block_hash, votes);
+    LOG(log_nf_) << "Found enough " << votes.size() << " votes at voted value " << voted_block_hash << " for round "
+                 << round << " step " << step;
+    return VotesBundle(true, voted_block_hash, std::move(votes));
   }
 
   return {};
@@ -836,8 +834,9 @@ bool NextVotesManager::voteVerification(std::shared_ptr<Vote>& vote, uint64_t dp
     return false;
   }
 
-  // TODO: (after merge) this was in try catch block originally
-  if (auto result = vote->validate(dpos_total_votes_count, pbft_sortition_threshold); !result.first) {
+  if (auto result = vote->validate(dpos_votes_count, dpos_total_votes_count, pbft_sortition_threshold); !result.first) {
+    std::cout << "voteVerification vote " << vote->getHash().abridged() << " validation fail ( REMOVE ME )"
+              << std::endl;
     LOG(log_er_) << result.second;
     return false;
   }

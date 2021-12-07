@@ -38,7 +38,7 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
       "level": 0,
       "tips": [],
       "trxs": [],
-      "votes_to_be_rewarded": [],
+      "rewards_votes": [],
       "sig": "b7e22d46c1ba94d5e8347b01d137b5c428fcbbeaf0a77fb024cbbf1517656ff00d04f7f25be608c321b0d7483c402c294ff46c49b265305d046a52236c0a363701",
       "hash": "c9524784c4bf29e6facdd94ef7d214b9f512cdfd0f68184432dab85d053cbc69",
       "sender": "de2b1203d72d3549ee2f733b00b2789414c7cea5",
@@ -64,10 +64,10 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
   // VDF config
   default_cfg.sortition.vrf.threshold_upper = 0x8000;
   default_cfg.sortition.vrf.threshold_range = 0xE00;
-  default_cfg.vdf.difficulty_min = 16;
-  default_cfg.vdf.difficulty_max = 21;
-  default_cfg.vdf.difficulty_stale = 22;
-  default_cfg.vdf.lambda_bound = 100;
+  default_cfg.sortition.vdf.difficulty_min = 16;
+  default_cfg.sortition.vdf.difficulty_max = 21;
+  default_cfg.sortition.vdf.difficulty_stale = 22;
+  default_cfg.sortition.vdf.lambda_bound = 100;
   // PBFT config
   default_cfg.pbft.lambda_ms_min = 2000;
   default_cfg.pbft.committee_size = 5;
