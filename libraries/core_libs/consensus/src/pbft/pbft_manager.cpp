@@ -362,6 +362,7 @@ bool PbftManager::resetRound_() {
 
   LOG(log_nf_) << "From votes determined round " << consensus_pbft_round;
   round_clock_initial_datetime_ = now_;
+  timing_machine_->initialClockInNewRound();
   // Update current round and reset step to 1
   round_ = consensus_pbft_round;
   resetStep_();
@@ -540,6 +541,7 @@ void PbftManager::initialState_() {
   next_voted_null_block_hash_ = db_->getPbftMgrStatus(PbftMgrStatus::NextVotedNullBlockHash);
 
   round_clock_initial_datetime_ = std::chrono::system_clock::now();
+  timing_machine_->initialClockInNewRound();
   current_step_clock_initial_datetime_ = round_clock_initial_datetime_;
   last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
   next_step_time_ms_ = 0;
