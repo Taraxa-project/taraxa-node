@@ -119,7 +119,7 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
   }
 
   // If we are still syncing - do not trigger new syncing
-  if (syncing_state_->is_pbft_syncing() && syncing_state_->is_actively_syncing()) {
+  if (syncing_state_->is_pbft_syncing()) {
     LOG(log_dg_) << "There is ongoing syncing, do not trigger new one.";
     return;
   }
