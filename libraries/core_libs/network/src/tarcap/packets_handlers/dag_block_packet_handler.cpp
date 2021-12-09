@@ -30,6 +30,8 @@ void DagBlockPacketHandler::process(const PacketData &packet_data, const std::sh
 
   peer->markDagBlockAsKnown(hash);
 
+  // This cache is used save block that we requested from the peer
+  // dag_blk_mgr_ cache is only for valid DagBlocks that means with all the tips/pivots
   if (!seen_dags_.insert(block.getHash())) {
     LOG(log_dg_) << "Received dag block" << block.getHash() << " (from " << packet_data.from_node_id_.abridged()
                  << ") already seen.";
