@@ -15,6 +15,7 @@
 
 #include "dag/dag.hpp"
 #include "final_chain/final_chain.hpp"
+#include "hardforks.hpp"
 #include "vote_manager/vote_manager.hpp"
 
 namespace taraxa {
@@ -685,12 +686,14 @@ bool PbftManager::stateOperations_() {
 
     auto threshold = sortition_threshold_;
     auto total_votes_count = getDposTotalVotesCount();
-    
+
     if (v->getStep() == 1) {
       // We need to handle propose_vote_type
       dpos_votes_count = 1;
-      total_votes_count = getDposTotalAddressCount();
-      threshold = std::min(getDposTotalAddressCount(), COMMITTEE_SIZE);
+      if (dpos_period_ >= k_hard_fork_2) {
+        total_votes_count = getDposTotalAddressCount();
+        threshold = std::min(getDposTotalAddressCount(), COMMITTEE_SIZE);
+      }
     }
 
     try {
@@ -1105,7 +1108,12 @@ size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteType
   uint64_t weight = 0;
   if (step == 1) {
     // For proposal vote, only use 1 weight for VRF sortition
-    weight = vote->calculateWeight(1, getDposTotalAddressCount(), std::min(getDposTotalAddressCount(), COMMITTEE_SIZE));
+    if (dpos_period_ >= k_hard_fork_2) {
+      weight =
+          vote->calculateWeight(1, getDposTotalAddressCount(), std::min(getDposTotalAddressCount(), COMMITTEE_SIZE));
+    } else {
+      weight = vote->calculateWeight(1, getDposTotalVotesCount(), sortition_threshold_);
+    }
   } else {
     weight = vote->calculateWeight(getDposWeightedVotesCount(), getDposTotalVotesCount(), sortition_threshold_);
   }
@@ -1152,9 +1160,13 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
   auto round = getPbftRound();
   // In propose block, only use one vote for VRF sortition
   VrfPbftSortition vrf_sortition(vrf_sk_, {propose_vote_type, round, 1});
-  if (weighted_votes_count_ == 0 ||
-      !vrf_sortition.getBinominalDistribution(1, getDposTotalAddressCount(),
-                                              std::min(getDposTotalAddressCount(), COMMITTEE_SIZE))) {
+  auto threshold = sortition_threshold_;
+  auto total_votes_count = getDposTotalVotesCount();
+  if (dpos_period_ >= k_hard_fork_2) {
+    total_votes_count = getDposTotalAddressCount();
+    threshold = std::min(getDposTotalAddressCount(), COMMITTEE_SIZE);
+  }
+  if (weighted_votes_count_ == 0 || !vrf_sortition.getBinominalDistribution(1, total_votes_count, threshold)) {
     return std::make_pair(NULL_BLOCK_HASH, false);
   }
 

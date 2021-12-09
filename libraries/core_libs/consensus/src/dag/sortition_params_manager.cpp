@@ -1,6 +1,8 @@
 #include "dag/sortition_params_manager.hpp"
 
+#include "hardforks.hpp"
 #include "pbft/pbft_block.hpp"
+
 namespace taraxa {
 
 SortitionParamsChange::SortitionParamsChange(uint64_t period, uint16_t efficiency, const VrfParams& vrf,
@@ -178,7 +180,7 @@ int32_t SortitionParamsManager::getChange(uint64_t period, uint16_t efficiency) 
 std::optional<SortitionParamsChange> SortitionParamsManager::calculateChange(uint64_t period) {
   uint16_t average_dag_efficiency;
   // To prevent oscillations extending efficiency calculation to 3 * last interval
-  if (period < k_threshold_testnet_oscillation_hard_fork_period)
+  if (period < k_hard_fork_2)
     average_dag_efficiency = averageDagEfficiency();
   else
     average_dag_efficiency = averageDagEfficiencyExtended();
@@ -191,8 +193,8 @@ std::optional<SortitionParamsChange> SortitionParamsManager::calculateChange(uin
 
   int32_t change = getChange(period, average_dag_efficiency);
   // To prevent oscillations reducing change to 1/3 change
-  if (period >= k_threshold_testnet_oscillation_hard_fork_period) change = std::max(1, change / 3);
-  config_.vrf.addChange(change, period >= k_threshold_testnet_hard_fork_period);
+  if (period >= k_hard_fork_2) change = std::max(1, change / 3);
+  config_.vrf.addChange(change, period >= k_hard_fork_1);
 
   if (params_changes_.empty()) {
     return SortitionParamsChange{period, average_dag_efficiency, config_.vrf};
