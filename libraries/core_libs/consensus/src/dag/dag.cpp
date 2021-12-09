@@ -611,9 +611,9 @@ void DagManager::recoverDag() {
   trx_mgr_->recoverNonfinalizedTransactions();
 }
 
-const std::map<uint64_t, std::vector<blk_hash_t>> DagManager::getNonFinalizedBlocks() const {
+const std::pair<uint64_t, std::map<uint64_t, std::vector<blk_hash_t>>> DagManager::getNonFinalizedBlocks() const {
   SharedLock lock(mutex_);
-  return non_finalized_blks_;
+  return {period_, non_finalized_blks_};
 }
 
 std::pair<size_t, size_t> DagManager::getNonFinalizedBlocksSize() const {

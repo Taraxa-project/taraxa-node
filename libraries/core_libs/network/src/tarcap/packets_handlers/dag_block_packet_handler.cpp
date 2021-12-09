@@ -1,7 +1,6 @@
 #include "network/tarcap/packets_handlers/dag_block_packet_handler.hpp"
 
 #include "dag/dag_block_manager.hpp"
-#include "network/tarcap/packets_handlers/common/get_blocks_request_type.hpp"
 #include "network/tarcap/shared_states/syncing_state.hpp"
 #include "network/tarcap/shared_states/test_state.hpp"
 #include "transaction_manager/transaction_manager.hpp"
@@ -30,12 +29,8 @@ void DagBlockPacketHandler::process(const PacketData &packet_data, const std::sh
 
   peer->markDagBlockAsKnown(hash);
 
-  // This cache is used save block that we requested from the peer
-  // dag_blk_mgr_ cache is only for valid DagBlocks that means with all the tips/pivots
-  if (!seen_dags_.insert(block.getHash())) {
-    LOG(log_dg_) << "Received dag block" << block.getHash() << " (from " << packet_data.from_node_id_.abridged()
-                 << ") already seen.";
-    return;
+  if (block.getLevel() > peer->dag_level_) {
+    peer->dag_level_ = block.getLevel();
   }
 
   if (dag_blk_mgr_) {
@@ -52,15 +47,13 @@ void DagBlockPacketHandler::process(const PacketData &packet_data, const std::sh
         return;
       }
 
-      LOG(log_er_) << "Received NewBlock " << hash << " has missing pivot or/and tips " << status.second;
-      status.second.insert(hash);
-      requestDagBlocks(packet_data.from_node_id_, status.second, DagSyncRequestType::MissingHashes);
+      // There are some transition state between syncing nad gossiping when it is normal to get blocks with missing
+      // tips/pivot
+      LOG(log_dg_) << "DagBlock" << block.getHash() << " has missing pivot or/and tips " << status.second << " . Peer "
+                   << packet_data.from_node_id_.abridged() << " will be disconnected.";
+      // TODO: handle malicious/forked node that sends large number of invalid dag blocks
       return;
     }
-  }
-
-  if (block.getLevel() > peer->dag_level_) {
-    peer->dag_level_ = block.getLevel();
   }
 
   onNewBlockReceived(std::move(block));

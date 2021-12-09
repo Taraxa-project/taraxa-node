@@ -2,7 +2,6 @@
 
 #include "dag/dag.hpp"
 #include "dag/dag_block_manager.hpp"
-#include "network/tarcap/packets_handlers/common/get_blocks_request_type.hpp"
 #include "network/tarcap/shared_states/syncing_state.hpp"
 #include "pbft/pbft_chain.hpp"
 #include "pbft/pbft_manager.hpp"
@@ -46,7 +45,6 @@ void ExtSyncingPacketHandler::restartSyncingPbft(bool force) {
 
   if (!max_pbft_chain_peer) {
     syncing_state_->set_pbft_syncing(false);
-    syncing_state_->set_dag_syncing(false);
     LOG(log_nf_) << "Restarting syncing PBFT not possible since no connected peers";
     return;
   }
@@ -56,7 +54,6 @@ void ExtSyncingPacketHandler::restartSyncingPbft(bool force) {
     LOG(log_si_) << "Restarting syncing PBFT from peer " << max_pbft_chain_peer->getId() << ", peer PBFT chain size "
                  << max_pbft_chain_size << ", own PBFT chain synced at period " << pbft_sync_period;
 
-    syncing_state_->set_dag_syncing(false);
     syncing_state_->set_pbft_syncing(true, pbft_sync_period, std::move(max_pbft_chain_peer));
 
     if (!syncPeerPbft(pbft_sync_period + 1)) {
@@ -75,15 +72,12 @@ void ExtSyncingPacketHandler::restartSyncingPbft(bool force) {
     syncing_state_->set_pbft_syncing(false);
     db_->enableSnapshots();
 
-    if (force || (!syncing_state_->is_dag_syncing() &&
-                  max_node_dag_level > std::max(dag_mgr_->getMaxLevel(), dag_blk_mgr_->getMaxDagLevelInQueue()))) {
+    // Only request dag blocks if periods are matching
+    if (force && pbft_sync_period == max_pbft_chain_size) {
       LOG(log_nf_) << "Request pending " << max_node_dag_level << " "
                    << std::max(dag_mgr_->getMaxLevel(), dag_blk_mgr_->getMaxDagLevelInQueue()) << "("
                    << dag_mgr_->getMaxLevel() << ")";
-      syncing_state_->set_dag_syncing(true, std::move(max_pbft_chain_peer));
       requestPendingDagBlocks();
-    } else {
-      syncing_state_->set_dag_syncing(false);
     }
   }
 }
@@ -96,21 +90,21 @@ bool ExtSyncingPacketHandler::syncPeerPbft(unsigned long height_to_sync) {
 
 void ExtSyncingPacketHandler::requestPendingDagBlocks() {
   std::unordered_set<blk_hash_t> known_non_finalized_blocks;
-  auto blocks = dag_mgr_->getNonFinalizedBlocks();
+  auto [period, blocks] = dag_mgr_->getNonFinalizedBlocks();
   for (auto &level_blocks : blocks) {
     for (auto &block : level_blocks.second) {
       known_non_finalized_blocks.insert(block);
     }
   }
 
-  requestDagBlocks(syncing_state_->syncing_peer(), known_non_finalized_blocks, DagSyncRequestType::KnownHashes);
+  requestDagBlocks(syncing_state_->syncing_peer(), known_non_finalized_blocks, period);
 }
 
 void ExtSyncingPacketHandler::requestDagBlocks(const dev::p2p::NodeID &_nodeID,
-                                               const std::unordered_set<blk_hash_t> &blocks, DagSyncRequestType mode) {
+                                               const std::unordered_set<blk_hash_t> &blocks, uint64_t period) {
   LOG(log_nf_) << "Sending GetDagSyncPacket";
-  dev::RLPStream s(blocks.size() + 1);  // Mode + block itself
-  s << static_cast<uint8_t>(mode);      // Send mode first
+  dev::RLPStream s(blocks.size() + 1);  // Period + block itself
+  s << static_cast<uint64_t>(period);   // Send period first
   for (const auto &blk : blocks) {
     s << blk;
   }

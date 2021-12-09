@@ -31,7 +31,6 @@ enum SubprotocolPacketType : uint32_t {
   GetPbftSyncPacket,
   PbftSyncPacket,
   GetDagSyncPacket,
-  SyncedPacket,
 
   PacketCount
 };
@@ -66,8 +65,6 @@ inline std::string convertPacketTypeToString(SubprotocolPacketType packet_type) 
       return "GetPbftSyncPacket";
     case PbftSyncPacket:
       return "PbftSyncPacket";
-    case SyncedPacket:
-      return "SyncedPacket";
     default:
       break;
   }

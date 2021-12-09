@@ -114,7 +114,7 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
 
   nodes[0]->getNetwork()->onNewTransactions(std::move(trxs));
   taraxa::thisThreadSleepForSeconds(1);
-  nodes[0]->getNetwork()->sendBlocks(nodes[1]->getNetwork()->getNodeId(), std::move(dag_blocks));
+  nodes[0]->getNetwork()->sendBlocks(nodes[1]->getNetwork()->getNodeId(), std::move(dag_blocks), 1, 1);
 
   std::cout << "Waiting Sync ..." << std::endl;
   wait({30s, 200ms},

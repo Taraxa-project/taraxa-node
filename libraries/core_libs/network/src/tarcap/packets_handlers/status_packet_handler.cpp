@@ -27,6 +27,7 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
 
   // Important !!! Use only "selected_peer" and not "peer" in this function as "peer" might be nullptr
   auto selected_peer = peer;
+  const auto pbft_synced_period = pbft_mgr_->pbftSyncingPeriod();
 
   if (initial_status) {
     if (!selected_peer) {
@@ -43,11 +44,11 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
 
     auto it = packet_data.rlp_.begin();
     auto const peer_network_id = (*it++).toInt<uint64_t>();
-    auto const peer_dag_level = (*it++).toPositiveInt64();
+    auto const peer_dag_level = (*it++).toInt<uint64_t>();
     auto const genesis_hash = blk_hash_t(*it++);
-    auto const peer_pbft_chain_size = (*it++).toPositiveInt64();
+    auto const peer_pbft_chain_size = (*it++).toInt<uint64_t>();
     auto const peer_syncing = (*it++).toInt();
-    auto const peer_pbft_round = (*it++).toPositiveInt64();
+    auto const peer_pbft_round = (*it++).toInt<uint64_t>();
     auto const peer_pbft_previous_round_next_votes_size = (*it++).toInt<unsigned>();
     auto const node_major_version = (*it++).toInt<unsigned>();
     auto const node_minor_version = (*it++).toInt<unsigned>();
@@ -88,6 +89,11 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
 
     peers_state_->setPeerAsReadyToSendMessages(packet_data.from_node_id_, selected_peer);
 
+    // if not syncing and the peer period is matching our period request any pending dag blocks
+    if (!syncing_state_->is_pbft_syncing() && pbft_synced_period == peer_pbft_chain_size) {
+      requestPendingDagBlocks();
+    }
+
     LOG(log_dg_) << "Received initial status message from " << packet_data.from_node_id_ << ", network id "
                  << peer_network_id << ", peer DAG max level " << selected_peer->dag_level_ << ", genesis "
                  << genesis_hash << ", peer pbft chain size " << selected_peer->pbft_chain_size_ << ", peer syncing "
@@ -105,10 +111,10 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
     }
 
     auto it = packet_data.rlp_.begin();
-    selected_peer->dag_level_ = (*it++).toPositiveInt64();
-    selected_peer->pbft_chain_size_ = (*it++).toPositiveInt64();
+    selected_peer->dag_level_ = (*it++).toInt<uint64_t>();
+    selected_peer->pbft_chain_size_ = (*it++).toInt<uint64_t>();
     selected_peer->syncing_ = (*it++).toInt();
-    selected_peer->pbft_round_ = (*it++).toPositiveInt64();
+    selected_peer->pbft_round_ = (*it++).toInt<uint64_t>();
     selected_peer->pbft_previous_round_next_votes_size_ = (*it++).toInt<unsigned>();
 
     LOG(log_dg_) << "Received status message from " << packet_data.from_node_id_ << ", peer DAG max level "
@@ -128,8 +134,7 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
   // and by syncing here we open node up to attack of sending bogus
   // status.  We also have nothing to punish a node failing to send
   // sync info.
-  const auto pbft_synced_period = pbft_mgr_->pbftSyncingPeriod();
-  if (pbft_synced_period + 1 < selected_peer->pbft_chain_size_) {
+  if (pbft_synced_period < selected_peer->pbft_chain_size_) {
     LOG(log_nf_) << "Restart PBFT chain syncing. Own synced PBFT at period " << pbft_synced_period
                  << ", peer PBFT chain size " << selected_peer->pbft_chain_size_;
     restartSyncingPbft();

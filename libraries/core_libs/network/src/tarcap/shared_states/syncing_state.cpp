@@ -11,7 +11,7 @@ SyncingState::SyncingState(uint16_t deep_syncing_threshold)
 void SyncingState::set_peer(std::shared_ptr<TaraxaPeer> &&peer) {
   std::unique_lock lock(peer_mutex_);
   // we set peer to null if dag and pbft syncing are not enabled
-  if (peer == nullptr && (pbft_syncing_ || dag_syncing_)) {
+  if (peer == nullptr && pbft_syncing_) {
     return;
   }
   peer_ = std::move(peer);
@@ -50,12 +50,6 @@ void SyncingState::set_pbft_syncing(bool syncing, uint64_t current_period,
   }
 }
 
-void SyncingState::set_dag_syncing(bool syncing, std::shared_ptr<TaraxaPeer> peer /*=nullptr*/) {
-  assert((syncing && peer) || !syncing);
-  dag_syncing_ = syncing;
-  set_peer(std::move(peer));
-}
-
 void SyncingState::set_last_sync_packet_time() {
   std::unique_lock lock(time_mutex_);
   last_received_sync_packet_time_ = std::chrono::steady_clock::now();
@@ -82,7 +76,7 @@ void SyncingState::set_peer_malicious(const std::optional<dev::p2p::NodeID> &pee
 
 bool SyncingState::is_peer_malicious(const dev::p2p::NodeID &peer_id) const { return malicious_peers_.count(peer_id); }
 
-bool SyncingState::is_syncing() { return is_pbft_syncing() || is_dag_syncing(); }
+bool SyncingState::is_syncing() { return is_pbft_syncing(); }
 
 bool SyncingState::is_deep_pbft_syncing() const { return deep_pbft_syncing_; }
 
@@ -92,7 +86,5 @@ bool SyncingState::is_pbft_syncing() {
   }
   return pbft_syncing_;
 }
-
-bool SyncingState::is_dag_syncing() const { return dag_syncing_; }
 
 }  // namespace taraxa::network::tarcap

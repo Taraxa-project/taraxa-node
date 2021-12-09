@@ -150,6 +150,7 @@ void PriorityQueue::updateDependenciesStart(const PacketData& packet) {
     case SubprotocolPacketType::DagSyncPacket:
       blocked_packets_mask_.markPacketAsHardBlocked(packet, packet.type_);
       blocked_packets_mask_.markPacketAsPeerOrderBlocked(packet, SubprotocolPacketType::DagBlockPacket);
+      blocked_packets_mask_.markPacketAsPeerOrderBlocked(packet, SubprotocolPacketType::PbftBlockPacket);
       break;
 
     // When processing TransactionPacket, processing of all dag block packets that were received after that (from the
@@ -159,8 +160,11 @@ void PriorityQueue::updateDependenciesStart(const PacketData& packet) {
       blocked_packets_mask_.markPacketAsPeerOrderBlocked(packet, SubprotocolPacketType::DagBlockPacket);
       break;
 
+    // When processing DagBlockPacket, processing of all pbft block packets that were received after that (from the
+    // same peer).
     case SubprotocolPacketType::DagBlockPacket:
       blocked_packets_mask_.setDagBlockLevelBeingProcessed(packet);
+      blocked_packets_mask_.markPacketAsPeerOrderBlocked(packet, SubprotocolPacketType::PbftBlockPacket);
       break;
 
     default:
@@ -189,6 +193,7 @@ void PriorityQueue::updateDependenciesFinish(const PacketData& packet, std::mute
       std::unique_lock<std::mutex> lock(queue_mutex);
       blocked_packets_mask_.markPacketAsHardUnblocked(packet, packet.type_);
       blocked_packets_mask_.markPacketAsPeerOrderUnblocked(packet, SubprotocolPacketType::DagBlockPacket);
+      blocked_packets_mask_.markPacketAsPeerOrderUnblocked(packet, SubprotocolPacketType::PbftBlockPacket);
       cond_var.notify_all();
       break;
     }
@@ -203,6 +208,7 @@ void PriorityQueue::updateDependenciesFinish(const PacketData& packet, std::mute
     case SubprotocolPacketType::DagBlockPacket: {
       std::unique_lock<std::mutex> lock(queue_mutex);
       blocked_packets_mask_.unsetDagBlockLevelBeingProcessed(packet);
+      blocked_packets_mask_.markPacketAsPeerOrderUnblocked(packet, SubprotocolPacketType::PbftBlockPacket);
       cond_var.notify_all();
       break;
     }

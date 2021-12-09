@@ -28,14 +28,6 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
   // Note: no need to consider possible race conditions due to concurrent processing as it is
   // disabled on priority_queue blocking dependencies level
 
-  // Also handle SyncedPacket here
-  // TODO: create separate handler
-  if (packet_data.type_ == SubprotocolPacketType::SyncedPacket) {
-    LOG(log_dg_) << "Received synced message from " << packet_data.from_node_id_;
-    peer->syncing_ = false;
-    return;
-  }
-
   if (syncing_state_->syncing_peer() != packet_data.from_node_id_) {
     LOG(log_wr_) << "PbftSyncPacket received from unexpected peer " << packet_data.from_node_id_.abridged()
                  << " current syncing peer " << syncing_state_->syncing_peer().abridged();
@@ -118,13 +110,6 @@ void PbftSyncPacketHandler::pbftSyncComplete() {
     // greater pbft chain size and we should continue syncing with
     // them, Or sync pending DAG blocks
     restartSyncingPbft(true);
-    // We are pbft synced, send message to other node to start
-    // gossiping new blocks
-    if (!syncing_state_->is_pbft_syncing()) {
-      // TODO: Why need to clear all DAG blocks and transactions?
-      // This is inside PbftSyncPacket. Why don't clear PBFT blocks and votes?
-      sendSyncedMessage();
-    }
   }
 }
 
@@ -149,13 +134,6 @@ void PbftSyncPacketHandler::delayedPbftSync(int counter) {
         return restartSyncingPbft();
       }
     }
-  }
-}
-
-void PbftSyncPacketHandler::sendSyncedMessage() {
-  LOG(log_dg_) << "sendSyncedMessage ";
-  for (const auto &peer : peers_state_->getAllPeersIDs()) {
-    sealAndSend(peer, SyncedPacket, dev::RLPStream(0));
   }
 }
 

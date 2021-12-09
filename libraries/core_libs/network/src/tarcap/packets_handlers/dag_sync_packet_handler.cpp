@@ -22,9 +22,22 @@ DagSyncPacketHandler::DagSyncPacketHandler(std::shared_ptr<PeersState> peers_sta
 
 void DagSyncPacketHandler::process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) {
   std::string received_dag_blocks_str;
-  std::unordered_set<blk_hash_t> missing_blks;
 
   auto it = packet_data.rlp_.begin();
+
+  const auto request_period = (*it++).toInt<uint64_t>();
+  const auto response_period = (*it++).toInt<uint64_t>();
+
+  // If the periods did not match restart syncing
+  if (response_period != request_period) {
+    LOG(log_nf_) << "Received DagSyncPacket with mismatching periods: " << response_period << " " << request_period;
+    if (peer->pbft_chain_size_ < response_period) {
+      peer->pbft_chain_size_ = response_period;
+    }
+    // We are behind, restart pbft sync
+    restartSyncingPbft(true);
+    return;
+  }
 
   for (; it != packet_data.rlp_.end();) {
     DagBlock block(*it++);
@@ -41,10 +54,12 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
 
     auto status = checkDagBlockValidation(block);
     if (!status.first) {
-      LOG(log_er_) << "DagBlock" << block.getHash() << " Validation failed " << status.second;
-      status.second.insert(block.getHash());
-      missing_blks.merge(status.second);
-      continue;
+      // This should only happen with a malicious node or a fork
+      LOG(log_er_) << "DagBlock" << block.getHash() << " Validation failed " << status.second << " . Peer "
+                   << packet_data.from_node_id_.abridged() << " will be disconnected.";
+      disconnect(peer->getId(), dev::p2p::UserReason);
+      // TODO: malicious peer handling
+      return;
     }
 
     LOG(log_dg_) << "Storing block " << block.getHash().abridged() << " with " << new_transactions.size()
@@ -55,12 +70,7 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
     dag_blk_mgr_->insertBroadcastedBlock(std::move(block));
   }
 
-  if (missing_blks.size() > 0) {
-    requestDagBlocks(packet_data.from_node_id_, missing_blks, DagSyncRequestType::MissingHashes);
-  }
-  syncing_state_->set_dag_syncing(false);
-
-  LOG(log_nf_) << "Received DagDagSyncPacket with blocks: " << received_dag_blocks_str;
+  LOG(log_nf_) << "Received DagSyncPacket with blocks: " << received_dag_blocks_str;
 }
 
 }  // namespace taraxa::network::tarcap

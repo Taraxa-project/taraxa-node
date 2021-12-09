@@ -4,6 +4,11 @@
 
 namespace taraxa::network::tarcap {
 
+PacketsBlockingMask::PacketsBlockingMask() {
+  addr_t node_addr;
+  LOG_OBJECTS_CREATE("PRIORITY_QUEUEx");
+}
+
 void PacketsBlockingMask::markPacketAsHardBlocked(const PacketData& blocking_packet,
                                                   SubprotocolPacketType packet_type_to_block) {
   auto& packet_hard_block = hard_blocked_packet_types_[packet_type_to_block];

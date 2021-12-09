@@ -1,7 +1,6 @@
 #include "network/tarcap/packets_handlers/get_dag_sync_packet_handler.hpp"
 
 #include "dag/dag.hpp"
-#include "network/tarcap/packets_handlers/common/get_blocks_request_type.hpp"
 #include "network/tarcap/shared_states/syncing_state.hpp"
 #include "transaction_manager/transaction_manager.hpp"
 
@@ -24,31 +23,20 @@ void GetDagSyncPacketHandler::process(const PacketData &packet_data,
   std::unordered_set<blk_hash_t> blocks_hashes;
   std::vector<std::shared_ptr<DagBlock>> dag_blocks;
   auto it = packet_data.rlp_.begin();
-  const auto mode = static_cast<DagSyncRequestType>((*it++).toInt<unsigned>());
+  const auto peer_period = (*it++).toInt<uint64_t>();
 
-  if (mode == DagSyncRequestType::MissingHashes)
-    LOG(log_dg_) << "Received GetDagSyncPacket with " << packet_data.rlp_.itemCount() - 1 << " missing blocks";
-  else if (mode == DagSyncRequestType::KnownHashes)
-    LOG(log_dg_) << "Received GetDagSyncPacket with " << packet_data.rlp_.itemCount() - 1 << " known blocks";
+  LOG(log_dg_) << "Received GetDagSyncPacket with " << packet_data.rlp_.itemCount() - 1 << " known blocks";
 
   for (; it != packet_data.rlp_.end(); ++it) {
     blocks_hashes.emplace(*it);
   }
 
-  const auto &blocks = dag_mgr_->getNonFinalizedBlocks();
-  for (auto &level_blocks : blocks) {
-    for (auto &block : level_blocks.second) {
-      const auto hash = block;
-      if (mode == DagSyncRequestType::MissingHashes) {
-        if (blocks_hashes.count(hash) == 1) {
-          if (auto blk = dag_blk_mgr_->getDagBlock(hash); blk) {
-            dag_blocks.emplace_back(blk);
-          } else {
-            LOG(log_er_) << "NonFinalizedBlock " << hash << " not in DB";
-            assert(false);
-          }
-        }
-      } else if (mode == DagSyncRequestType::KnownHashes) {
+  const auto [period, blocks] = dag_mgr_->getNonFinalizedBlocks();
+  // There is no point in sending blocks if periods do not match
+  if (peer_period != period) {
+    for (auto &level_blocks : blocks) {
+      for (auto &block : level_blocks.second) {
+        const auto hash = block;
         if (blocks_hashes.count(hash) == 0) {
           if (auto blk = dag_blk_mgr_->getDagBlock(hash); blk) {
             dag_blocks.emplace_back(blk);
@@ -60,17 +48,12 @@ void GetDagSyncPacketHandler::process(const PacketData &packet_data,
       }
     }
   }
-
-  // This means that someone requested more hashes that we actually have -> do not send anything
-  if (mode == DagSyncRequestType::MissingHashes && dag_blocks.size() != blocks_hashes.size()) {
-    LOG(log_nf_) << "Node " << packet_data.from_node_id_ << " requested unknown DAG block";
-    return;
-  }
-  sendBlocks(packet_data.from_node_id_, dag_blocks);
+  sendBlocks(packet_data.from_node_id_, dag_blocks, peer_period, period);
+  peer->syncing_ = false;
 }
 
-void GetDagSyncPacketHandler::sendBlocks(dev::p2p::NodeID const &peer_id,
-                                         std::vector<std::shared_ptr<DagBlock>> blocks) {
+void GetDagSyncPacketHandler::sendBlocks(dev::p2p::NodeID const &peer_id, std::vector<std::shared_ptr<DagBlock>> blocks,
+                                         uint64_t request_period, uint64_t period) {
   auto peer = peers_state_->getPeer(peer_id);
   if (!peer) return;
 
@@ -94,7 +77,9 @@ void GetDagSyncPacketHandler::sendBlocks(dev::p2p::NodeID const &peer_id,
     block_transactions[block->getHash()] = std::move(transactions);
   }
 
-  dev::RLPStream s(blocks.size() + total_transactions_count);
+  dev::RLPStream s(2 + blocks.size() + total_transactions_count);
+  s << static_cast<uint64_t>(request_period);
+  s << static_cast<uint64_t>(period);
   for (auto &block : blocks) {
     s.appendRaw(block->rlp(true));
     taraxa::bytes trx_bytes;
