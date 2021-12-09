@@ -50,9 +50,9 @@ class SyncingState {
    */
   bool is_actively_syncing() const;
 
-  bool is_syncing() const;
+  bool is_syncing();
   bool is_deep_pbft_syncing() const;
-  bool is_pbft_syncing() const;
+  bool is_pbft_syncing();
   bool is_dag_syncing() const;
 
   const dev::p2p::NodeID syncing_peer() const;

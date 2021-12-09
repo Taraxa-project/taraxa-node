@@ -82,11 +82,16 @@ void SyncingState::set_peer_malicious(const std::optional<dev::p2p::NodeID> &pee
 
 bool SyncingState::is_peer_malicious(const dev::p2p::NodeID &peer_id) const { return malicious_peers_.count(peer_id); }
 
-bool SyncingState::is_syncing() const { return is_pbft_syncing() || is_dag_syncing(); }
+bool SyncingState::is_syncing() { return is_pbft_syncing() || is_dag_syncing(); }
 
 bool SyncingState::is_deep_pbft_syncing() const { return deep_pbft_syncing_; }
 
-bool SyncingState::is_pbft_syncing() const { return pbft_syncing_; }
+bool SyncingState::is_pbft_syncing() {
+  if (!is_actively_syncing()) {
+    set_pbft_syncing(false);
+  }
+  return pbft_syncing_;
+}
 
 bool SyncingState::is_dag_syncing() const { return dag_syncing_; }
 
