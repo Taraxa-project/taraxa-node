@@ -683,7 +683,7 @@ bool PbftManager::stateOperations_() {
 
     auto threshold = sortition_threshold_;
     auto total_votes_count = getDposTotalVotesCount();
-    
+
     if (v->getStep() == 1) {
       // We need to handle propose_vote_type
       dpos_votes_count = 1;
