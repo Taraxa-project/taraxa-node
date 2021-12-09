@@ -57,7 +57,7 @@ class FinalChain {
                                           std::optional<EthBlockNumber> blk_n = {},
                                           std::optional<state_api::ExecutionOptions> const& opts = {}) const = 0;
 
-  virtual uint64_t dpos_eligible_count(EthBlockNumber blk_num) const = 0;
+  virtual uint64_t dpos_eligible_address_count(EthBlockNumber blk_num) const = 0;
   virtual uint64_t dpos_eligible_total_vote_count(EthBlockNumber blk_num) const = 0;
   virtual uint64_t dpos_eligible_vote_count(EthBlockNumber blk_num, addr_t const& addr) const = 0;
 
