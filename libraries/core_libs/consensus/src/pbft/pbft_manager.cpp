@@ -1530,6 +1530,7 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
       }
 
       auto pbft_block_hash = sync_block->getPbftBlock()->getBlockHash();
+      auto pbft_block_period = sync_block->getPbftBlock()->getPeriod();
       LOG(log_nf_) << "Pick pbft block " << pbft_block_hash << " from synced queue in round " << round;
 
       if (!pushPbftBlock_(std::move(sync_block.value()))) {
@@ -1537,7 +1538,7 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
         break;
       }
 
-      net->setSyncStatePeriod(sync_block.pbft_blk->getPeriod());
+      net->setSyncStatePeriod(pbft_block_period);
 
       if (executed_pbft_block_) {
         vote_mgr_->removeVerifiedVotes();

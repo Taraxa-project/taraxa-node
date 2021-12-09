@@ -88,19 +88,12 @@ const std::vector<Transaction>& SyncBlock::getTransactions() const { return orde
 const vec_trx_t& SyncBlock::getTransactionsHashes() const { return ordered_transactions_hashes_; }
 
 void SyncBlock::hasEnoughValidCertVotes(size_t dpos_total_votes_count, size_t sortition_threshold,
-                                        size_t pbft_2t_plus_1) const {
+                                        size_t pbft_2t_plus_1,
+                                        std::function<size_t(addr_t const&)> const& dpos_eligible_vote_count) const {
   if (cert_votes_.empty()) {
     throw std::logic_error("No cert votes provided! The synced PBFT block comes from a malicious player.");
   }
-
-  if (cert_votes_.size() != pbft_2t_plus_1) {
-    std::stringstream err;
-    err << "PBFT block " << pbft_blk_->getBlockHash() << " has a wrong number of cert votes. There are "
-        << cert_votes_.size() << " cert votes with the block. But 2t+1 is " << pbft_2t_plus_1
-        << ", DPOS total votes count " << dpos_total_votes_count << ", sortition threshold is " << sortition_threshold;
-    throw std::logic_error(err.str());
-  }
-
+  size_t total_votes = 0;
   auto first_cert_vote_round = cert_votes_[0]->getRound();
   for (auto& v : cert_votes_) {
     // Any info is wrong that can determine the synced PBFT block comes from a malicious player
@@ -142,8 +135,8 @@ void SyncBlock::hasEnoughValidCertVotes(size_t dpos_total_votes_count, size_t so
 
   if (total_votes < pbft_2t_plus_1) {
     std::stringstream err;
-    err << "PBFT block " << pbft_blk->getBlockHash() << " has a wrong number of cert votes. There are "
-        << cert_votes.size() << " cert votes with the block. But 2t+1 is " << pbft_2t_plus_1
+    err << "PBFT block " << pbft_blk_->getBlockHash() << " has a wrong number of cert votes. There are "
+        << cert_votes_.size() << " cert votes with the block. But 2t+1 is " << pbft_2t_plus_1
         << ", DPOS total votes count " << dpos_total_votes_count << ", sortition threshold is " << sortition_threshold;
     throw std::logic_error(err.str());
   }

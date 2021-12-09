@@ -52,9 +52,8 @@ TEST_F(VoteTest, unverified_votes) {
   PbftVoteTypes type = propose_vote_type;
   auto round = 1;
   auto step = 1;
-  auto weighted_index = 0;
 
-  auto vote = pbft_mgr->generateVote(blockhash, type, round, step, weighted_index);
+  auto vote = pbft_mgr->generateVote(blockhash, type, round, step);
   auto vote_round = vote->getRound();
   auto vote_hash = vote->getHash();
 

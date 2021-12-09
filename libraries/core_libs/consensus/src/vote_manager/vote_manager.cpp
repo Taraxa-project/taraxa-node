@@ -267,7 +267,7 @@ bool VoteManager::voteInVerifiedMap(std::shared_ptr<Vote> const& vote) {
     return false;
   }
 
-  return found_voted_value_it->second.find(hash) != found_voted_value_it->second.end();
+  return found_voted_value_it->second.second.find(hash) != found_voted_value_it->second.second.end();
 }
 
 void VoteManager::clearVerifiedVotesTable() {
@@ -445,8 +445,8 @@ VotesBundle VoteManager::getVotesBundleByRoundAndStep(uint64_t round, size_t ste
       it++;
     }
 
-    LOG(log_nf_) << "Found enough " << votes.size() << " votes at voted value " << voted_block_hash
-                 << " for round " << round << " step " << step;
+    LOG(log_nf_) << "Found enough " << votes.size() << " votes at voted value " << voted_block_hash << " for round "
+                 << round << " step " << step;
     return VotesBundle(true, voted_block_hash, votes);
   }
 

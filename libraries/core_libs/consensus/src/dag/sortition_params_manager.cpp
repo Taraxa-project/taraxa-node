@@ -102,10 +102,10 @@ SortitionParams SortitionParamsManager::getSortitionParams(std::optional<uint64_
 }
 
 uint16_t SortitionParamsManager::calculateDagEfficiency(const SyncBlock& block) const {
-  size_t total_count = std::accumulate(block.dag_blocks.begin(), block.dag_blocks.end(), 0,
+  size_t total_count = std::accumulate(block.getDagBlocks().begin(), block.getDagBlocks().end(), 0,
                                        [](uint32_t s, const auto& b) { return s + b.getTrxs().size(); });
 
-  return block.transactions.size() * 100 * kOnePercent / total_count;
+  return block.getTransactions().size() * 100 * kOnePercent / total_count;
 }
 
 uint16_t SortitionParamsManager::averageDagEfficiency() {
@@ -132,7 +132,7 @@ void SortitionParamsManager::cleanup(uint64_t current_period) {
 void SortitionParamsManager::pbftBlockPushed(const SyncBlock& block, DbStorage::Batch& batch) {
   uint16_t dag_efficiency = calculateDagEfficiency(block);
   dag_efficiencies_.push_back(dag_efficiency);
-  const auto& period = block.pbft_blk->getPeriod();
+  const auto& period = block.getPbftBlock()->getPeriod();
   db_->savePbftBlockDagEfficiency(period, dag_efficiency, batch);
   LOG(log_dg_) << period << " pbftBlockPushed, efficiency: " << dag_efficiency / 100. << "%";
 
