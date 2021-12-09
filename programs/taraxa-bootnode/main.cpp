@@ -73,7 +73,7 @@ dev::KeyPair getKey(std::string const& path) {
 }  // namespace
 
 int main(int argc, char** argv) {
-  bool allowLocalDiscovery = false;
+  bool denyLocalDiscovery;
   std::string wallet;
 
   po::options_description general_options("GENERAL OPTIONS", kLineWidth);
@@ -90,9 +90,9 @@ int main(int argc, char** argv) {
   addNetworkingOption("listen-ip", po::value<std::string>()->value_name("<ip>(:<port>)"),
                       "Listen on the given IP for incoming connections (default: 0.0.0.0)");
   addNetworkingOption("listen", po::value<unsigned short>()->value_name("<port>"),
-                      "Listen on the given port for incoming connections (default: 1002)");
-  addNetworkingOption("allow-local-discovery", po::bool_switch(&allowLocalDiscovery),
-                      "Include local addresses in the discovery process. Used for testing purposes.");
+                      "Listen on the given port for incoming connections (default: 10002)");
+  addNetworkingOption("deny-local-discovery", po::bool_switch(&denyLocalDiscovery),
+                      "Reject local addresses in the discovery process. Used for testing purposes.");
   addNetworkingOption("network-id", po::value<unsigned short>()->value_name("<id>"),
                       "Connect to default mainet/testnet/devnet bootnodes");
   addNetworkingOption("number-of-threads", po::value<uint32_t>()->value_name("<#>"),
@@ -126,7 +126,7 @@ int main(int argc, char** argv) {
   if (vm.count("network-id")) network_id = vm["network-id"].as<unsigned short>();
 
   Json::Value conf = taraxa::cli::Tools::generateConfig((taraxa::cli::Config::NetworkIdType)network_id);
-  std::string listen_ip = "127.0.0.1";
+  std::string listen_ip = "0.0.0.0";
   unsigned short listen_port = conf["network_udp_port"].asUInt();
   std::string public_ip;
   uint32_t num_of_threads = 1;
@@ -152,7 +152,7 @@ int main(int argc, char** argv) {
 
   auto net_conf = public_ip.empty() ? dev::p2p::NetworkConfig(listen_ip, listen_port, false)
                                     : dev::p2p::NetworkConfig(public_ip, listen_ip, listen_port, false);
-  net_conf.allowLocalDiscovery = allowLocalDiscovery;
+  net_conf.allowLocalDiscovery = !denyLocalDiscovery;
 
   dev::p2p::TaraxaNetworkConfig taraxa_net_conf;
   taraxa_net_conf.is_boot_node = true;
