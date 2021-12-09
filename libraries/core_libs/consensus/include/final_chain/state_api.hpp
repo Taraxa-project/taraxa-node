@@ -37,7 +37,7 @@ class StateAPI {
   void transition_state_commit();
   void create_snapshot(uint64_t period);
   // DPOS
-  uint64_t dpos_eligible_count(EthBlockNumber blk_num) const;
+  uint64_t dpos_eligible_address_count(EthBlockNumber blk_num) const;
   uint64_t dpos_eligible_total_vote_count(EthBlockNumber blk_num) const;
   uint64_t dpos_eligible_vote_count(EthBlockNumber blk_num, addr_t const& addr) const;
 
