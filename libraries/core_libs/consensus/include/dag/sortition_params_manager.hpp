@@ -68,6 +68,12 @@ class SortitionParamsManager {
    */
   uint16_t averageDagEfficiency();
 
+  /**
+   * Calculate average DAG efficiency from extended dag_efficiencies_. Used at the end of interval.
+   * @returns average DAG efficiency in current interval
+   */
+  uint16_t averageDagEfficiencyExtended();
+
  private:
   SortitionConfig config_;
   std::shared_ptr<DbStorage> db_;
@@ -78,6 +84,7 @@ class SortitionParamsManager {
   void cleanup(uint64_t current_period);
 
   const uint64_t k_threshold_testnet_hard_fork_period = 110000;
+  const uint64_t k_threshold_testnet_oscillation_hard_fork_period = 200000;
 
   LOG_OBJECTS_DEFINE
 };

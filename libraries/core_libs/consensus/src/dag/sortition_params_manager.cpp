@@ -118,6 +118,12 @@ uint16_t SortitionParamsManager::averageDagEfficiency() {
   return std::accumulate(dag_efficiencies_.begin(), dag_efficiencies_.end(), 0) / dag_efficiencies_.size();
 }
 
+uint16_t SortitionParamsManager::averageDagEfficiencyExtended() {
+  // Increasing efficiency calculation to last 3 intervals
+  auto efficiencies = db_->getLastIntervalEfficiencies(config_.computation_interval * 3);
+  return std::accumulate(efficiencies.begin(), efficiencies.end(), 0) / efficiencies.size();
+}
+
 uint16_t SortitionParamsManager::averageCorrectionPerPercent() const {
   if (params_changes_.empty()) return 1;
   auto sum = std::accumulate(params_changes_.begin(), params_changes_.end(), 0,
@@ -170,7 +176,12 @@ int32_t SortitionParamsManager::getChange(uint64_t period, uint16_t efficiency) 
 }
 
 std::optional<SortitionParamsChange> SortitionParamsManager::calculateChange(uint64_t period) {
-  const auto average_dag_efficiency = averageDagEfficiency();
+  uint16_t average_dag_efficiency;
+  // To prevent oscillations extending efficiency calculation to 3 * last interval
+  if (period < k_threshold_testnet_oscillation_hard_fork_period)
+    average_dag_efficiency = averageDagEfficiency();
+  else
+    average_dag_efficiency = averageDagEfficiencyExtended();
   if (average_dag_efficiency >= config_.dag_efficiency_targets.first &&
       average_dag_efficiency <= config_.dag_efficiency_targets.second) {
     LOG(log_dg_) << "Current efficiency(" << average_dag_efficiency / 100.
@@ -178,7 +189,9 @@ std::optional<SortitionParamsChange> SortitionParamsManager::calculateChange(uin
     return {};
   }
 
-  const int32_t change = getChange(period, average_dag_efficiency);
+  int32_t change = getChange(period, average_dag_efficiency);
+  // To prevent oscillations reducing change to 1/3 change
+  if (period >= k_threshold_testnet_oscillation_hard_fork_period) change = std::max(1, change / 3);
   config_.vrf.addChange(change, period >= k_threshold_testnet_hard_fork_period);
 
   if (params_changes_.empty()) {
