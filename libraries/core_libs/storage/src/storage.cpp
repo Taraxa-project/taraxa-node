@@ -91,6 +91,21 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
       minor_version_changed_ = true;
     }
   }
+
+  rebuildPbftBlockDagEfficiencies();
+}
+
+void DbStorage::rebuildPbftBlockDagEfficiencies() {
+  auto i =
+      std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::pbft_block_dag_efficiency)));
+  auto write_batch = createWriteBatch();
+  for (i->SeekToFirst(); i->Valid(); i->Next()) {
+    const auto period = FromSlice<uint64_t>(i->key().data());
+    const auto efficiency = FromSlice<uint16_t>(i->value());
+    savePbftBlockDagEfficiency(period, efficiency, write_batch);
+  }
+  commitWriteBatch(write_batch);
+  db_->DropColumnFamily(handle(Columns::pbft_block_dag_efficiency));
 }
 
 void DbStorage::rebuildColumns(const rocksdb::Options& options) {
@@ -385,14 +400,14 @@ void DbStorage::saveDagBlock(DagBlock const& blk, Batch* write_batch_p) {
 
 // DAG Efficiency
 void DbStorage::savePbftBlockDagEfficiency(uint64_t period, uint16_t efficiency, DbStorage::Batch& batch) {
-  insert(batch, Columns::pbft_block_dag_efficiency, toSlice(period), toSlice(efficiency));
+  insert(batch, Columns::pbft_block_dag_efficiency_with_comparator, toSlice(period), toSlice(efficiency));
 }
 
 std::vector<uint16_t> DbStorage::getLastIntervalEfficiencies(uint16_t computation_interval) {
   std::vector<uint16_t> efficiencies;
 
-  auto it =
-      std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::pbft_block_dag_efficiency)));
+  auto it = std::unique_ptr<rocksdb::Iterator>(
+      db_->NewIterator(read_options_, handle(Columns::pbft_block_dag_efficiency_with_comparator)));
   it->SeekToLast();
   if (it->Valid()) {
     const auto last_period = FromSlice<uint64_t>(it->key().data());
@@ -410,7 +425,8 @@ std::vector<uint16_t> DbStorage::getLastIntervalEfficiencies(uint16_t computatio
 
 void DbStorage::cleanupDagEfficiencies(uint64_t current_period) {
   // endKey is not including, so add 1
-  db_->DeleteRange(write_options_, handle(Columns::pbft_block_dag_efficiency), 0, toSlice(current_period + 1));
+  db_->DeleteRange(write_options_, handle(Columns::pbft_block_dag_efficiency_with_comparator), 0,
+                   toSlice(current_period + 1));
 }
 
 // Sortition params
