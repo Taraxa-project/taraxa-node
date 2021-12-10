@@ -125,6 +125,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN(final_chain_receipt_by_trx_hash);
     COLUMN(final_chain_log_blooms_index);
     COLUMN(pbft_block_dag_efficiency);
+    COLUMN_W_COMP(pbft_block_dag_efficiency_with_comparator, getIntComparator<uint64_t>());
     COLUMN_W_COMP(sortition_params_change, getIntComparator<uint64_t>());
 
 #undef COLUMN
@@ -178,6 +179,8 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void loadSnapshots();
   void disableSnapshots();
   void enableSnapshots();
+
+  void rebuildPbftBlockDagEfficiencies();
 
   // Period data
   void savePeriodData(const SyncBlock& sync_block, Batch& write_batch);
