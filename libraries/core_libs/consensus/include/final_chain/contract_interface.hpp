@@ -20,6 +20,11 @@ class ContractInterface {
   template <typename Result>
   static Result unpack(bytes const& data);
 
+  template <typename T, std::enable_if_t<std::numeric_limits<T>::is_integer>* = nullptr>
+  static auto unpack(bytes& data, T& num) {
+    num = fromBigEndian<T>(data);
+  }
+
   /// PACKING ///
   template <typename... Params>
   static bytes pack(const string& function, const Params&... args) {
@@ -56,6 +61,21 @@ class ContractInterface {
     assert(value.size() <= 32);
     data.insert(data.end(), value.begin(), value.end());
     data.insert(data.end(), 32 - value.size(), 0);
+  }
+
+  template <typename T>
+  static void pack(bytes& data, const std::vector<T>& array) {
+    pack(data, array.size());
+    for (const auto& value : array) {
+      pack(data, value);
+    }
+  }
+
+  template <typename T, std::size_t N>
+  static void pack(bytes& data, const std::array<T, N>& array) {
+    for (const auto& value : array) {
+      pack(data, value);
+    }
   }
   ////////////
 
