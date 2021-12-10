@@ -30,8 +30,7 @@ class DagBlockPacketHandler : public ExtSyncingPacketHandler {
   std::shared_ptr<DbStorage> db_;
   std::shared_ptr<TestState> test_state_;
   std::shared_ptr<TransactionManager> trx_mgr_{nullptr};
-
-  thread_local static std::mt19937_64 urng_;
+  ExpirationCache<blk_hash_t> seen_dags_;
 };
 
 }  // namespace taraxa::network::tarcap
