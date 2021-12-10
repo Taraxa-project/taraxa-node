@@ -90,8 +90,7 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
         delayed_sync_events_tp_.post(1000, [this] { delayedPbftSync(1); });
       } else {
         if (!syncPeerPbft(pbft_sync_period + 1)) {
-          syncing_state_->set_pbft_syncing(false);
-          return restartSyncingPbft();
+          return restartSyncingPbft(true);
         }
       }
     }
@@ -110,6 +109,9 @@ void PbftSyncPacketHandler::pbftSyncComplete() {
     // greater pbft chain size and we should continue syncing with
     // them, Or sync pending DAG blocks
     restartSyncingPbft(true);
+    if (!syncing_state_->is_pbft_syncing()) {
+      requestPendingDagBlocks();
+    }
   }
 }
 
@@ -130,8 +132,7 @@ void PbftSyncPacketHandler::delayedPbftSync(int counter) {
       delayed_sync_events_tp_.post(1000, [this, counter] { delayedPbftSync(counter + 1); });
     } else {
       if (!syncPeerPbft(pbft_sync_period + 1)) {
-        syncing_state_->set_pbft_syncing(false);
-        return restartSyncingPbft();
+        return restartSyncingPbft(true);
       }
     }
   }

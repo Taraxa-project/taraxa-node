@@ -42,6 +42,7 @@ class ExtSyncingPacketHandler : public PacketHandler {
   void requestPendingDagBlocks();
 
   std::pair<bool, std::unordered_set<blk_hash_t>> checkDagBlockValidation(const DagBlock &block) const;
+  std::shared_ptr<TaraxaPeer> getMaxChainPeer();
 
  protected:
   std::shared_ptr<SyncingState> syncing_state_{nullptr};

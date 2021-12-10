@@ -23,15 +23,56 @@ ExtSyncingPacketHandler::ExtSyncingPacketHandler(
       db_(std::move(db)) {}
 
 void ExtSyncingPacketHandler::restartSyncingPbft(bool force) {
-  if (syncing_state_->is_pbft_syncing() && !force) {
+  if (syncing_state_->is_pbft_syncing()) {
     LOG(log_dg_) << "restartSyncingPbft called but syncing_ already true";
     return;
   }
 
+  std::shared_ptr<TaraxaPeer> peer = getMaxChainPeer();
+
+  if (!peer) {
+    syncing_state_->set_pbft_syncing(false);
+    LOG(log_nf_) << "Restarting syncing PBFT not possible since no connected peers";
+    return;
+  }
+
+  auto pbft_sync_period = pbft_mgr_->pbftSyncingPeriod();
+  if (peer->pbft_chain_size_ > pbft_sync_period) {
+    LOG(log_si_) << "Restarting syncing PBFT from peer " << peer->getId() << ", peer PBFT chain size "
+                 << peer->pbft_chain_size_ << ", own PBFT chain synced at period " << pbft_sync_period;
+
+    syncing_state_->set_pbft_syncing(true, pbft_sync_period, std::move(peer));
+
+    // Handle case where syncing peer just disconnected
+    if (!syncPeerPbft(pbft_sync_period + 1)) {
+      return restartSyncingPbft(true);
+    }
+
+    // Disable snapshots only if are syncing from scratch
+    if (syncing_state_->is_deep_pbft_syncing()) {
+      db_->disableSnapshots();
+    }
+  } else {
+    LOG(log_nf_) << "Restarting syncing PBFT not needed since our pbft chain size: " << pbft_sync_period << "("
+                 << pbft_chain_->getPbftChainSize() << ")"
+                 << " is greater or equal than max node pbft chain size:" << peer->pbft_chain_size_;
+    syncing_state_->set_pbft_syncing(false);
+    db_->enableSnapshots();
+  }
+}
+
+bool ExtSyncingPacketHandler::syncPeerPbft(unsigned long height_to_sync) {
+  const auto node_id = syncing_state_->syncing_peer();
+  LOG(log_nf_) << "Sync peer node " << node_id << " from pbft chain height " << height_to_sync;
+  return sealAndSend(node_id, SubprotocolPacketType::GetPbftSyncPacket, std::move(dev::RLPStream(1) << height_to_sync));
+}
+
+std::shared_ptr<TaraxaPeer> ExtSyncingPacketHandler::getMaxChainPeer() {
   std::shared_ptr<TaraxaPeer> max_pbft_chain_peer;
   uint64_t max_pbft_chain_size = 0;
   uint64_t max_node_dag_level = 0;
 
+  // Find peer with max pbft chain and dag level
   for (auto const &peer : peers_state_->getAllPeers()) {
     if (peer.second->pbft_chain_size_ > max_pbft_chain_size) {
       max_pbft_chain_size = peer.second->pbft_chain_size_;
@@ -42,62 +83,31 @@ void ExtSyncingPacketHandler::restartSyncingPbft(bool force) {
       max_pbft_chain_peer = peer.second;
     }
   }
-
-  if (!max_pbft_chain_peer) {
-    syncing_state_->set_pbft_syncing(false);
-    LOG(log_nf_) << "Restarting syncing PBFT not possible since no connected peers";
-    return;
-  }
-
-  auto pbft_sync_period = pbft_mgr_->pbftSyncingPeriod();
-  if (max_pbft_chain_size > pbft_sync_period) {
-    LOG(log_si_) << "Restarting syncing PBFT from peer " << max_pbft_chain_peer->getId() << ", peer PBFT chain size "
-                 << max_pbft_chain_size << ", own PBFT chain synced at period " << pbft_sync_period;
-
-    syncing_state_->set_pbft_syncing(true, pbft_sync_period, std::move(max_pbft_chain_peer));
-
-    if (!syncPeerPbft(pbft_sync_period + 1)) {
-      syncing_state_->set_pbft_syncing(false);
-      return restartSyncingPbft();
-    }
-
-    // Disable snapshots only if are syncing from scratch
-    if (syncing_state_->is_deep_pbft_syncing()) {
-      db_->disableSnapshots();
-    }
-  } else {
-    LOG(log_nf_) << "Restarting syncing PBFT not needed since our pbft chain size: " << pbft_sync_period << "("
-                 << pbft_chain_->getPbftChainSize() << ")"
-                 << " is greater or equal than max node pbft chain size:" << max_pbft_chain_size;
-    syncing_state_->set_pbft_syncing(false);
-    db_->enableSnapshots();
-
-    // Only request dag blocks if periods are matching
-    if (force && pbft_sync_period == max_pbft_chain_size) {
-      LOG(log_nf_) << "Request pending " << max_node_dag_level << " "
-                   << std::max(dag_mgr_->getMaxLevel(), dag_blk_mgr_->getMaxDagLevelInQueue()) << "("
-                   << dag_mgr_->getMaxLevel() << ")";
-      requestPendingDagBlocks();
-    }
-  }
-}
-
-bool ExtSyncingPacketHandler::syncPeerPbft(unsigned long height_to_sync) {
-  const auto node_id = syncing_state_->syncing_peer();
-  LOG(log_nf_) << "Sync peer node " << node_id << " from pbft chain height " << height_to_sync;
-  return sealAndSend(node_id, SubprotocolPacketType::GetPbftSyncPacket, std::move(dev::RLPStream(1) << height_to_sync));
+  return max_pbft_chain_peer;
 }
 
 void ExtSyncingPacketHandler::requestPendingDagBlocks() {
-  std::unordered_set<blk_hash_t> known_non_finalized_blocks;
-  auto [period, blocks] = dag_mgr_->getNonFinalizedBlocks();
-  for (auto &level_blocks : blocks) {
-    for (auto &block : level_blocks.second) {
-      known_non_finalized_blocks.insert(block);
-    }
+  std::shared_ptr<TaraxaPeer> peer = getMaxChainPeer();
+
+  if (!peer) {
+    LOG(log_nf_) << "requestPendingDagBlocks not possible since no connected peers";
+    return;
   }
 
-  requestDagBlocks(syncing_state_->syncing_peer(), known_non_finalized_blocks, period);
+  // Only request dag blocks if periods are matching
+  auto pbft_sync_period = pbft_mgr_->pbftSyncingPeriod();
+  if (pbft_sync_period == peer->pbft_chain_size_) {
+    LOG(log_nf_) << "Request pending blocks from peer " << peer->getId();
+    std::unordered_set<blk_hash_t> known_non_finalized_blocks;
+    auto [period, blocks] = dag_mgr_->getNonFinalizedBlocks();
+    for (auto &level_blocks : blocks) {
+      for (auto &block : level_blocks.second) {
+        known_non_finalized_blocks.insert(block);
+      }
+    }
+
+    requestDagBlocks(peer->getId(), known_non_finalized_blocks, period);
+  }
 }
 
 void ExtSyncingPacketHandler::requestDagBlocks(const dev::p2p::NodeID &_nodeID,

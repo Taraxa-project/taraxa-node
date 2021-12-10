@@ -34,8 +34,8 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
     if (peer->pbft_chain_size_ < response_period) {
       peer->pbft_chain_size_ = response_period;
     }
-    // We are behind, restart pbft sync
-    restartSyncingPbft(true);
+    // We might be behind, restart pbft sync
+    restartSyncingPbft();
     return;
   }
 
