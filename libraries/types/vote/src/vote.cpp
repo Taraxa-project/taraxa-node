@@ -35,17 +35,17 @@ uint64_t VrfPbftSortition::getBinominalDistribution(uint64_t stake, double dpos_
                                                     const uint512_t& output) {
   if (!stake) return 0;  // Stake is 0
 
-  auto l = static_cast<uint512_t>(output).convert_to<boost::multiprecision::mpfr_float>();
-  auto division = l / kMax512bFP;
-  double ratio = division.convert_to<double>();
+  const auto l = static_cast<uint512_t>(output).convert_to<boost::multiprecision::mpfr_float>();
+  const auto division = l / kMax512bFP;
+  const double ratio = division.convert_to<double>();
   boost::math::binomial_distribution<double> dist(static_cast<double>(stake), threshold / dpos_total_votes_count);
 
   // Binary search for find the lowest stake <= cdf
   uint64_t start = 0;
   uint64_t end = stake - 1;
   while (start + 1 < end) {
-    auto mid = start + (end - start) / 2;
-    auto target = cdf(dist, mid);
+    const auto mid = start + (end - start) / 2;
+    const auto target = cdf(dist, mid);
     if (ratio <= target) {
       end = mid;
     } else {
