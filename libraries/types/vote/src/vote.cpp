@@ -36,7 +36,7 @@ uint64_t VrfPbftSortition::getBinominalDistribution(uint64_t stake, double dpos_
   if (!stake) return 0;  // Stake is 0
 
   const auto l = static_cast<uint512_t>(output).convert_to<boost::multiprecision::mpfr_float>();
-  const auto division = l / kMax512bFP;
+  auto division = l / kMax512bFP;
   const double ratio = division.convert_to<double>();
   boost::math::binomial_distribution<double> dist(static_cast<double>(stake), threshold / dpos_total_votes_count);
 
