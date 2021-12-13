@@ -7,6 +7,27 @@ export TARAXA_SLEEP_DIAGNOSE=${TARAXA_SLEEP_DIAGNOSE:=false}
 
 case $1 in
 
+  taraxa-bootnode)
+    echo "Starting taraxa-bootnode..."
+
+    FLAGS=""
+    if [[ -z "${HOSTNAME}" ]]; then
+      echo "HOSTNAME is not set."
+    else
+      INDEX=${HOSTNAME##*-}
+      ADVERTISED_IP_NAME="ADVERTISED_IP_$INDEX"
+      ADVERTISED_IP=${!ADVERTISED_IP_NAME}
+
+      if [[ -z "${ADVERTISED_IP}" ]]; then
+        echo "ADVERTISED_IP is not set."
+      else
+        FLAGS="--public-ip ${ADVERTISED_IP}"
+      fi
+    fi
+
+    taraxa-bootnode $FLAGS "${@:2}"
+    ;;
+
   taraxad)
     echo "Starting taraxad..."
     taraxad "${@:2}"
@@ -33,7 +54,7 @@ case $1 in
 
   *)
     echo "You should choose between:"
-    echo "cli, taraxad, single, join {NAMED_NETWOTK}"
+    echo "taraxa-bootnode, taraxad, single, join {NAMED_NETWOTK}"
     ;;
 
 esac
