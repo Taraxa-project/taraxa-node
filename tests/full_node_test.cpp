@@ -1477,8 +1477,7 @@ TEST_F(FullNodeTest, chain_config_json) {
       },
       "execution_options": {
         "disable_gas_fee": true,
-        "disable_nonce_check": true,
-        "disable_stats_rewards": true
+        "disable_nonce_check": true
       },
       "genesis_balances": {
         "0xde2b1203d72d3549ee2f733b00b2789414c7cea5": "0x1fffffffffffff"

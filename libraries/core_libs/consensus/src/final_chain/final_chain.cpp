@@ -132,7 +132,7 @@ class FinalChainImpl final : public FinalChain {
     const auto& pbft_block = sync_block.getPbftBlock();
     auto const& [exec_results, state_root] = state_api_.transition_state(
         {pbft_block->getBeneficiary(), GAS_LIMIT, pbft_block->getTimestamp(), BlockHeader::difficulty()},
-        to_state_api_transactions(txs_to_execute), {}, rewards_stats);
+        to_state_api_transactions(txs_to_execute), {});
 
     TransactionReceipts receipts;
     receipts.reserve(exec_results.size());
@@ -152,6 +152,8 @@ class FinalChainImpl final : public FinalChain {
           r.new_contract_addr ? optional(r.new_contract_addr) : nullopt,
       });
     }
+
+    // TODO: call multisend smartcontract to distribute rewards
 
     auto blk_header = append_block(batch, pbft_block->getBeneficiary(), pbft_block->getTimestamp(), GAS_LIMIT,
                                    state_root, txs_to_execute, receipts);
@@ -401,7 +403,7 @@ class FinalChainImpl final : public FinalChain {
   static util::RangeView<state_api::EVMTransaction> to_state_api_transactions(Transactions const& trxs) {
     return util::make_range_view(trxs).map([](auto const& trx) {
       return state_api::EVMTransaction{trx.getSender(), trx.getGasPrice(), trx.getReceiver(), trx.getNonce(),
-                                       trx.getValue(),  trx.getGas(),      trx.getData(),     trx.getHash()};
+                                       trx.getValue(),  trx.getGas(),      trx.getData()};
     });
   }
 

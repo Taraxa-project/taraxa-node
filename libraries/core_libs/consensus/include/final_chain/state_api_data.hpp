@@ -49,7 +49,6 @@ struct EVMTransaction {
   u256 value;
   gas_t gas = 0;
   bytes input;
-  trx_hash_t hash;
 
   HAS_RLP_FIELDS
 };

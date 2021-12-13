@@ -5,7 +5,6 @@
 #include <functional>
 
 #include "common/range_view.hpp"
-#include "final_chain/rewards_stats.hpp"
 #include "final_chain/state_api_data.hpp"
 #include "storage/storage.hpp"
 
@@ -34,8 +33,7 @@ class StateAPI {
   StateDescriptor get_last_committed_state_descriptor() const;
   StateTransitionResult const& transition_state(const EVMBlock& block,
                                                 const util::RangeView<EVMTransaction>& transactions,
-                                                const util::RangeView<UncleBlock>& uncles = {},
-                                                const RewardsStats& rewards_stats = {});
+                                                const util::RangeView<UncleBlock>& uncles = {});
   void transition_state_commit();
   void create_snapshot(uint64_t period);
   // DPOS
