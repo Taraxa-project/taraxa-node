@@ -94,7 +94,7 @@ TEST_F(StateAPITest, dpos_integration) {
       EXPECT_TRUE(SUT.dpos_is_eligible(curr_blk, addr)) << meta;
       EXPECT_EQ(SUT.dpos_eligible_vote_count(curr_blk, addr), 1) << meta;
     }
-    EXPECT_EQ(SUT.dpos_eligible_address_count(curr_blk), expected_eligible_set.size()) << meta;
+    EXPECT_EQ(SUT.dpos_eligible_count(curr_blk), expected_eligible_set.size()) << meta;
     EXPECT_EQ(SUT.dpos_eligible_total_vote_count(curr_blk), expected_eligible_set.size()) << meta;
     auto q_res = SUT.dpos_query(curr_blk, q);
     EXPECT_EQ(q_res.eligible_count, expected_eligible_set.size()) << meta;

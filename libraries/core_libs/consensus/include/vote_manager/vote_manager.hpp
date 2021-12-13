@@ -89,7 +89,8 @@ class VoteManager {
 
   void removeVerifiedVotes();
 
-  void verifyVotes(uint64_t pbft_round, std::function<bool(std::shared_ptr<Vote> const&)> const& is_valid);
+  void verifyVotes(uint64_t pbft_round, size_t sortition_threshold, uint64_t dpos_total_votes_count,
+                   std::function<size_t(addr_t const&)> const& dpos_eligible_vote_count);
 
   void cleanupVotes(uint64_t pbft_round);
 

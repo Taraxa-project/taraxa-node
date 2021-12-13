@@ -283,7 +283,6 @@ void PbftManager::updateDposState_() {
     try {
       dpos_votes_count_ = final_chain_->dpos_eligible_total_vote_count(dpos_period_);
       weighted_votes_count_ = final_chain_->dpos_eligible_vote_count(dpos_period_, node_addr_);
-      dpos_address_count_ = final_chain_->dpos_eligible_address_count(dpos_period_);
       break;
     } catch (state_api::ErrFutureBlock &c) {
       LOG(log_nf_) << c.what();
@@ -302,8 +301,6 @@ void PbftManager::updateDposState_() {
 size_t PbftManager::getDposTotalVotesCount() const { return dpos_votes_count_.load(); }
 
 size_t PbftManager::getDposWeightedVotesCount() const { return weighted_votes_count_.load(); }
-
-size_t PbftManager::getDposTotalAddressCount() const { return dpos_address_count_.load(); }
 
 size_t PbftManager::dposEligibleVoteCount_(addr_t const &addr) {
   try {
@@ -677,28 +674,8 @@ bool PbftManager::stateOperations_() {
   LOG(log_tr_) << "PBFT current step is " << step_;
 
   // Periodically verify unverified votes
-  vote_mgr_->verifyVotes(round, [this](auto const &v) {
-    auto dpos_votes_count = dposEligibleVoteCount_(v->getVoterAddr());
-    if (!dpos_votes_count) return false;
-
-    auto threshold = sortition_threshold_;
-    auto total_votes_count = getDposTotalVotesCount();
-    
-    if (v->getStep() == 1) {
-      // We need to handle propose_vote_type
-      dpos_votes_count = 1;
-      total_votes_count = getDposTotalAddressCount();
-      threshold = std::min(getDposTotalAddressCount(), COMMITTEE_SIZE);
-    }
-
-    try {
-      v->validate(dpos_votes_count, total_votes_count, threshold);
-    } catch (const std::logic_error &e) {
-      LOG(log_wr_) << e.what();
-      return false;
-    }
-    return true;
-  });
+  vote_mgr_->verifyVotes(round, sortition_threshold_, getDposTotalVotesCount(),
+                         [this](auto const &addr) { return dposEligibleVoteCount_(addr); });
 
   // CHECK IF WE HAVE RECEIVED 2t+1 CERT VOTES FOR A BLOCK IN OUR CURRENT
   // ROUND.  IF WE HAVE THEN WE EXECUTE THE BLOCK
@@ -1099,15 +1076,15 @@ size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteType
     // No delegation
     return 0;
   }
-  auto vote = generateVote(blockhash, vote_type, round, step);
-  uint64_t weight = 0;
+
+  auto dpos_weighted_votes_count = weighted_votes_count_.load();
   if (step == 1) {
     // For proposal vote, only use 1 weight for VRF sortition
-    weight = vote->calculateWeight(1, getDposTotalAddressCount(), std::min(getDposTotalAddressCount(), COMMITTEE_SIZE));
-  } else {
-    weight = vote->calculateWeight(getDposWeightedVotesCount(), getDposTotalVotesCount(), sortition_threshold_);
+    dpos_weighted_votes_count = 1;
   }
 
+  auto vote = generateVote(blockhash, vote_type, round, step);
+  const auto weight = vote->calculateWeight(dpos_weighted_votes_count, getDposTotalVotesCount(), sortition_threshold_);
   if (weight) {
     db_->saveVerifiedVote(vote);
     vote_mgr_->addVerifiedVote(vote);
@@ -1149,10 +1126,9 @@ blk_hash_t PbftManager::calculateOrderHash(std::vector<DagBlock> const &dag_bloc
 std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
   auto round = getPbftRound();
   // In propose block, only use one vote for VRF sortition
-  VrfPbftSortition vrf_sortition(vrf_sk_, {propose_vote_type, round, 1});
+  VrfPbftSortition vrf_sortition(vrf_sk_, {propose_vote_type, round, step_});
   if (weighted_votes_count_ == 0 ||
-      !vrf_sortition.getBinominalDistribution(1, getDposTotalAddressCount(),
-                                              std::min(getDposTotalAddressCount(), COMMITTEE_SIZE))) {
+      !vrf_sortition.getBinominalDistribution(1, getDposTotalVotesCount(), sortition_threshold_)) {
     return std::make_pair(NULL_BLOCK_HASH, false);
   }
 
