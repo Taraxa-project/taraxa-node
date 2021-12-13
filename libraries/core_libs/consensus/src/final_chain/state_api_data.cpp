@@ -85,7 +85,7 @@ Json::Value enc_json(DPOSQueryResult const& obj, DPOSQuery* q) {
 
 RLP_FIELDS_DEFINE(DPOSTransfer, value, negative)
 RLP_FIELDS_DEFINE(EVMBlock, author, gas_limit, time, difficulty)
-RLP_FIELDS_DEFINE(EVMTransaction, from, gas_price, to, nonce, value, gas, input)
+RLP_FIELDS_DEFINE(EVMTransaction, from, gas_price, to, nonce, value, gas, input, hash)
 RLP_FIELDS_DEFINE(UncleBlock, number, author)
 RLP_FIELDS_DEFINE(LogRecord, address, topics, data)
 RLP_FIELDS_DEFINE(ExecutionResult, code_retval, new_contract_addr, logs, gas_used, code_err, consensus_err)
