@@ -332,6 +332,19 @@ TEST_F(CryptoTest, sortition_rate) {
   EXPECT_EQ(count, valid_sortition_players * round);
 }
 
+TEST_F(CryptoTest, binomial_distribution) {
+  const uint64_t number = 1000;
+  const uint64_t k_committee_size = 1000;
+  const uint64_t k_total_count_at_start = 900;
+  for (uint64_t i = 1; i <= number; i++) {
+    const uint512_t k_vrf_output = dev::FixedHash<64>::random();
+    auto total_count = k_total_count_at_start + i;
+    auto threshold = std::min(k_committee_size, total_count);
+    EXPECT_EQ(VrfPbftSortition::getBinominalDistribution(i, total_count, threshold, k_vrf_output),
+              VrfPbftSortition::getBinominalDistribution(i, total_count, threshold, k_vrf_output));
+  }
+}
+
 }  // namespace taraxa::core_tests
 
 using namespace taraxa;
