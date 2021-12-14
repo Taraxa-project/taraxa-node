@@ -37,7 +37,7 @@ void PbftBlockPacketHandler::process(const PacketData &packet_data, const std::s
   if (!dag_blk_mgr_->isDagBlockKnown(pbft_block->getPivotDagBlockHash())) {
     // If we are not syncing and missing anchor block, disconnect the node
     if (!syncing_state_->is_pbft_syncing()) {
-      LOG(log_er_) << "Pbft block" << pbft_block->getBlockHash() << " missing dag anchor "
+      LOG(log_wr_) << "Pbft block" << pbft_block->getBlockHash() << " missing dag anchor "
                    << pbft_block->getPivotDagBlockHash() << " . Peer " << packet_data.from_node_id_.abridged()
                    << " will be disconnected.";
       disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
@@ -65,6 +65,7 @@ void PbftBlockPacketHandler::process(const PacketData &packet_data, const std::s
 
 void PbftBlockPacketHandler::onNewPbftBlock(PbftBlock const &pbft_block) {
   std::vector<std::shared_ptr<TaraxaPeer>> peers_to_send;
+  std::vector<std::shared_ptr<TaraxaPeer>> peers_missing_anchor;
   const auto my_chain_size = pbft_chain_->getPbftChainSize();
 
   for (auto const &peer : peers_state_->getAllPeers()) {
@@ -72,9 +73,25 @@ void PbftBlockPacketHandler::onNewPbftBlock(PbftBlock const &pbft_block) {
       if (peer.second->isDagBlockKnown(pbft_block.getPivotDagBlockHash())) {
         peers_to_send.emplace_back(peer.second);
       } else {
-        LOG(log_dg_) << "PbftBlock " << pbft_block.getBlockHash() << " dag anchor is not broadcast to peer yet "
-                     << pbft_block.getPivotDagBlockHash() << " to " << peer.first;
+        peers_missing_anchor.emplace_back(peer.second);
       }
+    }
+  }
+
+  for (auto const &peer : peers_to_send) {
+    sendPbftBlock(peer->getId(), pbft_block, my_chain_size);
+    peer->markPbftBlockAsKnown(pbft_block.getBlockHash());
+  }
+
+  peers_to_send.clear();
+
+  // Check again for peers missing anchor
+  for (auto const &peer : peers_missing_anchor) {
+    if (peer->isDagBlockKnown(pbft_block.getPivotDagBlockHash())) {
+      peers_to_send.emplace_back(peer);
+    } else {
+      LOG(log_wr_) << "PbftBlock " << pbft_block.getBlockHash() << " dag anchor is not broadcast to peer yet "
+                   << pbft_block.getPivotDagBlockHash() << " to " << peer->getId();
     }
   }
 

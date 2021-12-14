@@ -94,14 +94,7 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
     trx_hashes.push_back(trx->getHash());
   }
 
-  // creating lot of non valid blocks just for size
-  for (int i = 0; i < 100; ++i) {
-    DagBlock blk(blk_hash_t(1111 + i), 0, {blk_hash_t(222 + i), blk_hash_t(333 + i), blk_hash_t(444 + i)}, trx_hashes,
-                 sig_t(7777 + i), blk_hash_t(888 + i), addr_t(999 + i));
-    dag_blocks.emplace_back(std::make_shared<DagBlock>(blk));
-  }
-
-  // add one valid as last
+  // add one valid block
   auto dag_genesis = nodes[0]->getConfig().chain.dag_genesis_block.getHash();
   SortitionConfig vdf_config(node_cfgs[0].chain.sortition);
   vdf_sortition::VdfSortition vdf(vdf_config, nodes[0]->getVrfSecretKey(), getRlpBytes(1));
@@ -111,6 +104,13 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
 
   auto block_hash = blk.getHash();
   dag_blocks.emplace_back(std::make_shared<DagBlock>(blk));
+
+  // creating lot of non valid blocks just for size
+  for (int i = 0; i < 100; ++i) {
+    DagBlock blk(blk_hash_t(1111 + i), 0, {blk_hash_t(222 + i), blk_hash_t(333 + i), blk_hash_t(444 + i)}, trx_hashes,
+                 sig_t(7777 + i), blk_hash_t(888 + i), addr_t(999 + i));
+    dag_blocks.emplace_back(std::make_shared<DagBlock>(blk));
+  }
 
   nodes[0]->getNetwork()->onNewTransactions(std::move(trxs));
   taraxa::thisThreadSleepForSeconds(1);
@@ -127,7 +127,7 @@ TEST_F(NetworkTest, send_pbft_block) {
   auto nw1 = nodes[0]->getNetwork();
   auto nw2 = nodes[1]->getNetwork();
 
-  auto pbft_block = make_simple_pbft_block(blk_hash_t(1), 2);
+  auto pbft_block = make_simple_pbft_block(blk_hash_t(1), 2, node_cfgs[0].chain.dag_genesis_block.getHash());
   uint64_t chain_size = 111;
 
   nw2->sendPbftBlock(nw1->getNodeId(), pbft_block, chain_size);

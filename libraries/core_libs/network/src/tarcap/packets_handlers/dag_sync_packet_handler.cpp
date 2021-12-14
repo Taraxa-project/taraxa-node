@@ -29,13 +29,22 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
   const auto response_period = (*it++).toInt<uint64_t>();
 
   // If the periods did not match restart syncing
-  if (response_period != request_period) {
+  if (response_period > request_period) {
     LOG(log_nf_) << "Received DagSyncPacket with mismatching periods: " << response_period << " " << request_period;
     if (peer->pbft_chain_size_ < response_period) {
       peer->pbft_chain_size_ = response_period;
     }
-    // We might be behind, restart pbft sync
+    // DAG synced is set to true because this flag is used to prevent any possible ddos requesting
+    peer->peer_dag_synced = true;
+    peer->peer_dag_syncing = false;
+    // We might be behind, restart pbft sync if needed
     restartSyncingPbft();
+    return;
+  } else if (response_period < request_period) {
+    // This should not be possible for honest node
+    LOG(log_wr_) << "Received DagSyncPacket with mismatching periods: " << response_period << " " << request_period;
+    disconnect(peer->getId(), dev::p2p::UserReason);
+    // TODO: malicious peer handling
     return;
   }
 
@@ -69,6 +78,9 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
     trx_mgr_->insertBroadcastedTransactions(std::move(new_transactions));
     dag_blk_mgr_->insertBroadcastedBlock(std::move(block));
   }
+
+  peer->peer_dag_synced = true;
+  peer->peer_dag_syncing = false;
 
   LOG(log_nf_) << "Received DagSyncPacket with blocks: " << received_dag_blocks_str;
 }

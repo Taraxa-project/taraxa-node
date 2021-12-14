@@ -1382,7 +1382,10 @@ void PbftManager::syncPbftChainFromPeers_(PbftSyncRequestReason reason, taraxa::
           LOG(log_nf_) << "Restarting sync in round " << round << ", step " << step_;
       }
 
-      net->restartSyncingPbft();
+      // TODO: Is there any need to sync here???
+      // If we detect some stalled situation, a better step would be to disconnect/reconnect to nodes to try to get
+      // network unstuck since reconnecting both shuffles the nodes and invokes pbft/dag syncing if needed
+      // net->restartSyncingPbft();
 
       pbft_round_last_requested_sync_ = round;
       pbft_step_last_requested_sync_ = step_;

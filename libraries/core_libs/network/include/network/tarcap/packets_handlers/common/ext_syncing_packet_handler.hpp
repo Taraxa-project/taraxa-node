@@ -39,7 +39,7 @@ class ExtSyncingPacketHandler : public PacketHandler {
 
   bool syncPeerPbft(unsigned long height_to_sync);
   void requestDagBlocks(const dev::p2p::NodeID &_nodeID, const std::unordered_set<blk_hash_t> &blocks, uint64_t period);
-  void requestPendingDagBlocks();
+  void requestPendingDagBlocks(std::shared_ptr<TaraxaPeer> peer = nullptr);
 
   std::pair<bool, std::unordered_set<blk_hash_t>> checkDagBlockValidation(const DagBlock &block) const;
   std::shared_ptr<TaraxaPeer> getMaxChainPeer();

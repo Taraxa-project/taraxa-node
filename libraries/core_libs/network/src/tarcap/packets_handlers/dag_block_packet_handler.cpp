@@ -41,18 +41,25 @@ void DagBlockPacketHandler::process(const PacketData &packet_data, const std::sh
     }
 
     if (auto status = checkDagBlockValidation(block); !status.first) {
-      // Ignore new block packets when pbft syncing
+      // Ignore new block packets when pbft syncing or dag syncing
       if (syncing_state_->is_pbft_syncing()) {
         LOG(log_dg_) << "Ignore new dag block " << hash.abridged() << ", pbft syncing is on";
         return;
       }
 
-      // There are some transition state between syncing nad gossiping when it is normal to get blocks with missing
-      // tips/pivot
-      LOG(log_dg_) << "DagBlock" << block.getHash() << " has missing pivot or/and tips " << status.second << " . Peer "
-                   << packet_data.from_node_id_.abridged() << " will be disconnected.";
-      // TODO: handle malicious/forked node that sends large number of invalid dag blocks
-      return;
+      if (peer->peer_dag_syncing) {
+        LOG(log_dg_) << "Ignore new dag block " << hash.abridged() << ", dag syncing is on";
+      } else {
+        if (peer->peer_dag_synced) {
+          LOG(log_er_) << "DagBlock" << block.getHash() << " has missing pivot or/and tips " << status.second
+                       << " . Peer " << packet_data.from_node_id_.abridged() << " will be disconnected.";
+          disconnect(peer->getId(), dev::p2p::UserReason);
+          return;
+        } else {
+          // peer_dag_synced flag ensures that this can only be performed once for a peer
+          requestPendingDagBlocks(peer);
+        }
+      }
     }
   }
 

@@ -91,7 +91,7 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
 
     // if not syncing and the peer period is matching our period request any pending dag blocks
     if (!syncing_state_->is_pbft_syncing() && pbft_synced_period == peer_pbft_chain_size) {
-      requestPendingDagBlocks();
+      requestPendingDagBlocks(selected_peer);
     }
 
     LOG(log_dg_) << "Received initial status message from " << packet_data.from_node_id_ << ", network id "
@@ -130,15 +130,21 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
     return;
   }
 
-  // TODO: Address the CONCERN that it isn't NECESSARY to sync here
-  // and by syncing here we open node up to attack of sending bogus
-  // status.  We also have nothing to punish a node failing to send
-  // sync info.
+  // TODO: Address malicious status
   if (pbft_synced_period < selected_peer->pbft_chain_size_) {
     LOG(log_nf_) << "Restart PBFT chain syncing. Own synced PBFT at period " << pbft_synced_period
                  << ", peer PBFT chain size " << selected_peer->pbft_chain_size_;
-    restartSyncingPbft();
+    if (pbft_synced_period < selected_peer->pbft_chain_size_ + 1) {
+      restartSyncingPbft();
+    } else {
+      // If we are behind by only one block wait for two status messages before syncing because nodes are not always in
+      // perfect sync
+      if (selected_peer->last_status_pbft_chain_size_ == selected_peer->pbft_chain_size_) {
+        restartSyncingPbft();
+      }
+    }
   }
+  selected_peer->last_status_pbft_chain_size_ = selected_peer->pbft_chain_size_.load();
 
   const auto pbft_current_round = pbft_mgr_->getPbftRound();
   const auto pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesWeight();

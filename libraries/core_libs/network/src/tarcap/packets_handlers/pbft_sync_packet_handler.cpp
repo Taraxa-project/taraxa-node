@@ -29,7 +29,7 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
   // disabled on priority_queue blocking dependencies level
 
   if (syncing_state_->syncing_peer() != packet_data.from_node_id_) {
-    LOG(log_wr_) << "PbftSyncPacket received from unexpected peer " << packet_data.from_node_id_.abridged()
+    LOG(log_er_) << "PbftSyncPacket received from unexpected peer " << packet_data.from_node_id_.abridged()
                  << " current syncing peer " << syncing_state_->syncing_peer().abridged();
     return;
   }
@@ -63,8 +63,9 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
   LOG(log_dg_) << "Processing pbft block: " << pbft_blk_hash;
 
   if (sync_block.pbft_blk->getPeriod() != pbft_mgr_->pbftSyncingPeriod() + 1) {
-    LOG(log_dg_) << "Block " << pbft_blk_hash << " period unexpected: " << sync_block.pbft_blk->getPeriod()
+    LOG(log_wr_) << "Block " << pbft_blk_hash << " period unexpected: " << sync_block.pbft_blk->getPeriod()
                  << ". Expected period: " << pbft_mgr_->pbftSyncingPeriod() + 1;
+    restartSyncingPbft(true);
     return;
   }
   // Update peer's pbft period if outdated

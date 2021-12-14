@@ -33,7 +33,8 @@ void GetDagSyncPacketHandler::process(const PacketData &packet_data,
 
   const auto [period, blocks] = dag_mgr_->getNonFinalizedBlocks();
   // There is no point in sending blocks if periods do not match
-  if (peer_period != period) {
+  if (peer_period == period) {
+    peer->syncing_ = false;
     for (auto &level_blocks : blocks) {
       for (auto &block : level_blocks.second) {
         const auto hash = block;
@@ -49,7 +50,6 @@ void GetDagSyncPacketHandler::process(const PacketData &packet_data,
     }
   }
   sendBlocks(packet_data.from_node_id_, dag_blocks, peer_period, period);
-  peer->syncing_ = false;
 }
 
 void GetDagSyncPacketHandler::sendBlocks(dev::p2p::NodeID const &peer_id, std::vector<std::shared_ptr<DagBlock>> blocks,
