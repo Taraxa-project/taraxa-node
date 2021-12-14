@@ -96,8 +96,7 @@ void ExtSyncingPacketHandler::requestPendingDagBlocks(std::shared_ptr<TaraxaPeer
     return;
   }
 
-  // This prevents ddos requesting dag blocks. We can only request one time from one peer. Only exception is post pbft
-  // syncing this is reset
+  // This prevents ddos requesting dag blocks. We can only request this one time from one peer.
   if (peer->peer_dag_synced) {
     LOG(log_nf_) << "requestPendingDagBlocks not possible since already requested for peer";
     return;

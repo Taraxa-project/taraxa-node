@@ -15,7 +15,6 @@ namespace taraxa::network::tarcap {
 
 class PacketsBlockingMask {
  public:
-  PacketsBlockingMask();
   void markPacketAsHardBlocked(const PacketData& blocking_packet, SubprotocolPacketType packet_type_to_block);
   void markPacketAsHardUnblocked(const PacketData& blocking_packet, SubprotocolPacketType packet_type_to_unblock);
 
@@ -61,8 +60,6 @@ class PacketsBlockingMask {
   //    concurrently
   // Order of levels must be preserved, therefore using std::map
   std::map<taraxa::level_t, std::unordered_set<PacketData::PacketId>> processing_dag_levels_;
-
-  LOG_OBJECTS_DEFINE
 };
 
 }  // namespace taraxa::network::tarcap
