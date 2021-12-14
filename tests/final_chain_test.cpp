@@ -1,16 +1,19 @@
 #include "final_chain/final_chain.hpp"
 
+#include <chrono>
 #include <optional>
 #include <vector>
 
 #include "common/constants.hpp"
 #include "config/chain_config.hpp"
+#include "final_chain/contract_interface.hpp"
 #include "final_chain/trie_common.hpp"
 #include "util_test/gtest.hpp"
 #include "vote/vote.hpp"
 
 namespace taraxa::final_chain {
 using namespace std;
+using namespace std::chrono;
 
 struct advance_check_opts {
   bool dont_assume_no_logs = 0;
@@ -152,83 +155,71 @@ struct FinalChainTest : WithDataDir {
   }
 };
 
-TEST_F(FinalChainTest, genesis_balances) {
-  cfg.state.dpos = nullopt;
-  cfg.state.genesis_balances = {};
-  cfg.state.genesis_balances[addr_t::random()] = 0;
-  cfg.state.genesis_balances[addr_t::random()] = 1000;
-  cfg.state.genesis_balances[addr_t::random()] = 100000;
-  init();
-}
+// TEST_F(FinalChainTest, genesis_balances) {
+//   cfg.state.dpos = nullopt;
+//   cfg.state.genesis_balances = {};
+//   cfg.state.genesis_balances[addr_t::random()] = 0;
+//   cfg.state.genesis_balances[addr_t::random()] = 1000;
+//   cfg.state.genesis_balances[addr_t::random()] = 100000;
+//   init();
+// }
 
 TEST_F(FinalChainTest, contract) {
+  std::vector<addr_t> accounts;
+  for (int i = 0; i < 100; i++) {
+    accounts.push_back(dev::FixedHash<20>::random());
+  }
   auto sender_keys = dev::KeyPair::create();
   auto const& addr = sender_keys.address();
   auto const& sk = sender_keys.secret();
   cfg.state.genesis_balances = {};
   cfg.state.genesis_balances[addr] = 100000;
-  cfg.state.dpos = nullopt;
+  for (const auto& acc : accounts) {
+    cfg.state.genesis_balances[acc] = 100000;
+  }
+  // cfg.state.dpos = nullopt;
+  auto& dpos = cfg.state.dpos.emplace();
+  dpos.eligibility_balance_threshold = 10;
+  dpos.genesis_state[addr][addr] = dpos.eligibility_balance_threshold;
+  for (const auto& acc : accounts) {
+    dpos.genesis_state[acc][acc] = dpos.eligibility_balance_threshold;
+  }
   init();
   static string const contract_deploy_code =
       // pragma solidity ^0.6.8;
-      // contract Greeter {
-      //    string public greeting;
-      //
-      //    constructor() public payable {
-      //       greeting = 'Hello';
-      //    }
-      //
-      //    function setGreeting(string memory _greeting) public payable {
-      //       greeting = _greeting;
-      //    }
-      //
-      //    function greet() view public returns (string memory) {
-      //       return greeting;
-      //    }
-      //}
-      "0x60806040526040518060400160405280600581526020017f48656c6c6f000000000000"
-      "000000000000000000000000000000000000000000815250600090805190602001906100"
-      "4f929190610055565b506100fa565b828054600181600116156101000203166002900490"
-      "600052602060002090601f016020900481019282601f1061009657805160ff1916838001"
-      "1785556100c4565b828001600101855582156100c4579182015b828111156100c3578251"
-      "8255916020019190600101906100a8565b5b5090506100d191906100d5565b5090565b61"
-      "00f791905b808211156100f35760008160009055506001016100db565b5090565b90565b"
-      "610449806101096000396000f3fe6080604052600436106100345760003560e01c8063a4"
-      "13686214610039578063cfae3217146100f4578063ef690cc014610184575b600080fd5b"
-      "6100f26004803603602081101561004f57600080fd5b8101908080359060200190640100"
-      "00000081111561006c57600080fd5b82018360208201111561007e57600080fd5b803590"
-      "602001918460018302840111640100000000831117156100a057600080fd5b9190808060"
-      "1f0160208091040260200160405190810160405280939291908181526020018383808284"
-      "37600081840152601f19601f820116905080830192505050505050509192919290505050"
-      "610214565b005b34801561010057600080fd5b5061010961022e565b6040518080602001"
-      "828103825283818151815260200191508051906020019080838360005b83811015610149"
-      "57808201518184015260208101905061012e565b50505050905090810190601f16801561"
-      "01765780820380516001836020036101000a031916815260200191505b50925050506040"
-      "5180910390f35b34801561019057600080fd5b506101996102d0565b6040518080602001"
-      "828103825283818151815260200191508051906020019080838360005b838110156101d9"
-      "5780820151818401526020810190506101be565b50505050905090810190601f16801561"
-      "02065780820380516001836020036101000a031916815260200191505b50925050506040"
-      "5180910390f35b806000908051906020019061022a92919061036e565b5050565b606060"
-      "008054600181600116156101000203166002900480601f01602080910402602001604051"
-      "908101604052809291908181526020018280546001816001161561010002031660029004"
-      "80156102c65780601f1061029b576101008083540402835291602001916102c6565b8201"
-      "91906000526020600020905b8154815290600101906020018083116102a957829003601f"
-      "168201915b5050505050905090565b600080546001816001161561010002031660029004"
-      "80601f016020809104026020016040519081016040528092919081815260200182805460"
-      "0181600116156101000203166002900480156103665780601f1061033b57610100808354"
-      "040283529160200191610366565b820191906000526020600020905b8154815290600101"
-      "9060200180831161034957829003601f168201915b505050505081565b82805460018160"
-      "0116156101000203166002900490600052602060002090601f016020900481019282601f"
-      "106103af57805160ff19168380011785556103dd565b828001600101855582156103dd57"
-      "9182015b828111156103dc5782518255916020019190600101906103c1565b5b50905061"
-      "03ea91906103ee565b5090565b61041091905b8082111561040c57600081600090555060"
-      "01016103f4565b5090565b9056fea264697066735822122004585b83cf41cfb8af886165"
-      "0679892acca0561c1a8ab45ce31c7fdb15a67b7764736f6c63430006080033";
-  Transaction trx(0, 100, 0, 0, dev::fromHex(contract_deploy_code), sk);
+      // contract TEST {
+      //  constructor() public payable {}
+      //   mapping (address => uint256) private _delegations;
+
+      //   function set(address delegationAccount, uint256 amount) public payable {
+      //     _delegations[delegationAccount] = amount;
+      //   }
+
+      //   function get(address delegationAccount) view public returns (uint256) {
+      //       return _delegations[delegationAccount];
+      //   }
+      // }
+      "6080604052610104806100136000396000f3fe60806040526004361060265760003560e01c80633825d82814602b578063c2bc2efc146056"
+      "575b600080fd5b605460048036036040811015603f57600080fd5b506001600160a01b0381351690602001356097565b005b348015606157"
+      "600080fd5b50608560048036036020811015607657600080fd5b50356001600160a01b031660b3565b604080519182525190819003602001"
+      "90f35b6001600160a01b03909116600090815260208190526040902055565b6001600160a01b031660009081526020819052604090205490"
+      "56fea26469706673582212201aab427094e4b0b9f50d1804bc02c95ffbe6a65a88e605ea6b2a36a96647a62e64736f6c63430006080033";
+  Transaction trx(0, 200, 0, 0, dev::fromHex(contract_deploy_code), sk);
   auto result = advance({trx});
   auto contract_addr = result->trx_receipts[0].new_contract_address;
   EXPECT_EQ(contract_addr, dev::right160(dev::sha3(dev::rlpList(addr, 0))));
-  auto greet = [&] {
+
+  advance({
+      Transaction(1, 200, 0, 0, ContractInterface::pack("set(address,uint256)", addr, 1), sk, contract_addr),
+  });
+
+  for (const auto& acc : accounts) {
+    advance({
+        Transaction(1, 200, 0, 0, ContractInterface::pack("set(address,uint256)", acc, 1), sk, contract_addr),
+    });
+  }
+
+  auto get = [&](const auto& acc) {
     auto ret = SUT->call({
         addr,
         0,
@@ -236,73 +227,67 @@ TEST_F(FinalChainTest, contract) {
         0,
         0,
         0,
-        // greet()
-        dev::fromHex("0xcfae3217"),
+        ContractInterface::pack("get(address)", acc),
     });
     return dev::toHexPrefixed(ret.code_retval);
   };
-  ASSERT_EQ(greet(),
-            // "Hello"
-            "0x0000000000000000000000000000000000000000000000000000000000000020"
-            "000000000000000000000000000000000000000000000000000000000000000548"
-            "656c6c6f000000000000000000000000000000000000000000000000000000");
-  {
-    advance({
-        Transaction(0, 11, 0, 0,
-                    // setGreeting("Hola")
-                    dev::fromHex("0xa4136862000000000000000000000000000000000000000000000000"
-                                 "00000000000000200000000000000000000000000000000000000000000"
-                                 "000000000000000000004486f6c61000000000000000000000000000000"
-                                 "00000000000000000000000000"),
-                    sk, contract_addr),
-    });
+
+  auto start = high_resolution_clock::now();
+  for (const auto& acc : accounts) {
+    get(acc);
   }
-  ASSERT_EQ(greet(),
-            // "Hola"
-            "0x000000000000000000000000000000000000000000000000000000000000002000"
-            "00000000000000000000000000000000000000000000000000000000000004486f"
-            "6c6100000000000000000000000000000000000000000000000000000000");
+  auto stop = high_resolution_clock::now();
+  auto duration = duration_cast<microseconds>(stop - start);
+  cout << duration.count() << endl;
+
+  start = high_resolution_clock::now();
+  for (const auto& acc : accounts) {
+    SUT->dpos_eligible_vote_count(1, acc);
+  }
+  stop = high_resolution_clock::now();
+  duration = duration_cast<microseconds>(stop - start);
+  cout << duration.count() << endl;
 }
 
-TEST_F(FinalChainTest, coin_transfers) {
-  constexpr size_t NUM_ACCS = 500;
-  cfg.state.genesis_balances = {};
-  cfg.state.dpos = nullopt;
-  vector<dev::KeyPair> keys;
-  keys.reserve(NUM_ACCS);
-  for (size_t i = 0; i < NUM_ACCS; ++i) {
-    auto const& k = keys.emplace_back(dev::KeyPair::create());
-    cfg.state.genesis_balances[k.address()] = numeric_limits<u256>::max() / NUM_ACCS;
-  }
-  cfg.state.execution_options.disable_gas_fee = false;
-  init();
-  constexpr auto TRX_GAS = 100000;
-  advance({
-      {0, 13, 0, TRX_GAS, {}, keys[10].secret(), keys[10].address()},
-      {0, 11300, 0, TRX_GAS, {}, keys[102].secret(), keys[44].address()},
-      {0, 1040, 0, TRX_GAS, {}, keys[122].secret(), keys[50].address()},
-  });
-  advance({});
-  advance({
-      {0, 0, 0, TRX_GAS, {}, keys[2].secret(), keys[1].address()},
-      {0, 131, 0, TRX_GAS, {}, keys[133].secret(), keys[133].address()},
-  });
-  advance({
-      {0, 100441, 0, TRX_GAS, {}, keys[177].secret(), keys[431].address()},
-      {0, 2300, 0, TRX_GAS, {}, keys[131].secret(), keys[343].address()},
-      {0, 130, 0, TRX_GAS, {}, keys[11].secret(), keys[23].address()},
-  });
-  advance({});
-  advance({
-      {0, 100431, 0, TRX_GAS, {}, keys[135].secret(), keys[232].address()},
-      {0, 13411, 0, TRX_GAS, {}, keys[112].secret(), keys[34].address()},
-      {0, 130, 0, TRX_GAS, {}, keys[133].secret(), keys[233].address()},
-      {0, 343434, 0, TRX_GAS, {}, keys[13].secret(), keys[213].address()},
-      {0, 131313, 0, TRX_GAS, {}, keys[405].secret(), keys[344].address()},
-      {0, 143430, 0, TRX_GAS, {}, keys[331].secret(), keys[420].address()},
-      {0, 1313145, 0, TRX_GAS, {}, keys[345].secret(), keys[134].address()},
-  });
-}
+// TEST_F(FinalChainTest, coin_transfers) {
+//   constexpr size_t NUM_ACCS = 500;
+//   cfg.state.genesis_balances = {};
+//   cfg.state.dpos = nullopt;
+//   vector<dev::KeyPair> keys;
+//   keys.reserve(NUM_ACCS);
+//   for (size_t i = 0; i < NUM_ACCS; ++i) {
+//     auto const& k = keys.emplace_back(dev::KeyPair::create());
+//     cfg.state.genesis_balances[k.address()] = numeric_limits<u256>::max() / NUM_ACCS;
+//   }
+//   cfg.state.execution_options.disable_gas_fee = false;
+//   init();
+//   constexpr auto TRX_GAS = 100000;
+//   advance({
+//       {0, 13, 0, TRX_GAS, {}, keys[10].secret(), keys[10].address()},
+//       {0, 11300, 0, TRX_GAS, {}, keys[102].secret(), keys[44].address()},
+//       {0, 1040, 0, TRX_GAS, {}, keys[122].secret(), keys[50].address()},
+//   });
+//   advance({});
+//   advance({
+//       {0, 0, 0, TRX_GAS, {}, keys[2].secret(), keys[1].address()},
+//       {0, 131, 0, TRX_GAS, {}, keys[133].secret(), keys[133].address()},
+//   });
+//   advance({
+//       {0, 100441, 0, TRX_GAS, {}, keys[177].secret(), keys[431].address()},
+//       {0, 2300, 0, TRX_GAS, {}, keys[131].secret(), keys[343].address()},
+//       {0, 130, 0, TRX_GAS, {}, keys[11].secret(), keys[23].address()},
+//   });
+//   advance({});
+//   advance({
+//       {0, 100431, 0, TRX_GAS, {}, keys[135].secret(), keys[232].address()},
+//       {0, 13411, 0, TRX_GAS, {}, keys[112].secret(), keys[34].address()},
+//       {0, 130, 0, TRX_GAS, {}, keys[133].secret(), keys[233].address()},
+//       {0, 343434, 0, TRX_GAS, {}, keys[13].secret(), keys[213].address()},
+//       {0, 131313, 0, TRX_GAS, {}, keys[405].secret(), keys[344].address()},
+//       {0, 143430, 0, TRX_GAS, {}, keys[331].secret(), keys[420].address()},
+//       {0, 1313145, 0, TRX_GAS, {}, keys[345].secret(), keys[134].address()},
+//   });
+// }
 
 }  // namespace taraxa::final_chain
 
