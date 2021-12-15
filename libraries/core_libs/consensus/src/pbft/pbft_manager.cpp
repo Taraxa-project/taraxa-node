@@ -1318,7 +1318,20 @@ std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_() {
 
       if (round == 1 ||
           (proposed_block_hash != NULL_BLOCK_HASH && !pbft_chain_->findPbftBlockInChain(proposed_block_hash))) {
-        leader_candidates.emplace_back(std::make_pair(v->getCredential(), proposed_block_hash));
+        // Exclude any pbft block that our node has not received or has a missing anchor
+        auto proposed_block = pbft_chain_->getUnverifiedPbftBlock(proposed_block_hash);
+        if (proposed_block) {
+          if (dag_blk_mgr_->isDagBlockKnown(proposed_block->getPivotDagBlockHash())) {
+            leader_candidates.emplace_back(std::make_pair(v->getCredential(), proposed_block_hash));
+          } else {
+            LOG(log_wr_) << "identifyLeaderBlock vote " << v->getHash()
+                         << " votes for a pbft block: " << proposed_block_hash
+                         << " with missing anchor block: " << proposed_block->getPivotDagBlockHash();
+          }
+        } else {
+          LOG(log_wr_) << "identifyLeaderBlock vote " << v->getHash()
+                       << " votes for a missing pbft block: " << proposed_block_hash;
+        }
       }
     }
   }

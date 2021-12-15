@@ -193,8 +193,7 @@ void TaraxaCapability::registerPacketHandlers(
   // Standard packets with mid processing priority
   packets_handlers_->registerHandler(
       SubprotocolPacketType::PbftBlockPacket,
-      std::make_shared<PbftBlockPacketHandler>(peers_state_, packets_stats, syncing_state_, pbft_chain, pbft_mgr,
-                                               dag_blk_mgr, node_addr));
+      std::make_shared<PbftBlockPacketHandler>(peers_state_, packets_stats, pbft_chain, pbft_mgr, node_addr));
 
   const auto dag_handler =
       std::make_shared<DagBlockPacketHandler>(peers_state_, packets_stats, syncing_state_, pbft_chain, pbft_mgr,

@@ -73,6 +73,9 @@ void DagBlockPacketHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::D
     return;
   }
 
+  // This lock prevents race condition between syncing and gossiping dag blocks
+  std::unique_lock lock(peer->mutex_for_sending_dag_blocks_);
+
   vec_trx_t transactions_to_send;
   for (const auto &trx_hash : block.getTrxs()) {
     if (peer->isTransactionKnown(trx_hash)) {
