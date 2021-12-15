@@ -29,7 +29,7 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
   // disabled on priority_queue blocking dependencies level
 
   if (syncing_state_->syncing_peer() != packet_data.from_node_id_) {
-    LOG(log_er_) << "PbftSyncPacket received from unexpected peer " << packet_data.from_node_id_.abridged()
+    LOG(log_dg_) << "PbftSyncPacket received from unexpected peer " << packet_data.from_node_id_.abridged()
                  << " current syncing peer " << syncing_state_->syncing_peer().abridged();
     return;
   }

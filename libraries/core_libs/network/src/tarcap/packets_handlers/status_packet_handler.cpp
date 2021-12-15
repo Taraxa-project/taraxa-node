@@ -33,7 +33,7 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
     if (!selected_peer) {
       auto pending_peer = peers_state_->getPendingPeer(packet_data.from_node_id_);
       if (!pending_peer) {
-        LOG(log_wr_) << "Peer " << packet_data.from_node_id_.abridged()
+        LOG(log_er_) << "Peer " << packet_data.from_node_id_.abridged()
                      << " missing in both peers and pending peers map - will be disconnected.";
         disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
         return;
@@ -89,11 +89,6 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
 
     peers_state_->setPeerAsReadyToSendMessages(packet_data.from_node_id_, selected_peer);
 
-    // if not syncing and the peer period is matching our period request any pending dag blocks
-    if (!syncing_state_->is_pbft_syncing() && pbft_synced_period == peer_pbft_chain_size) {
-      requestPendingDagBlocks(selected_peer);
-    }
-
     LOG(log_dg_) << "Received initial status message from " << packet_data.from_node_id_ << ", network id "
                  << peer_network_id << ", peer DAG max level " << selected_peer->dag_level_ << ", genesis "
                  << genesis_hash << ", peer pbft chain size " << selected_peer->pbft_chain_size_ << ", peer syncing "
@@ -117,47 +112,45 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
     selected_peer->pbft_round_ = (*it++).toInt<uint64_t>();
     selected_peer->pbft_previous_round_next_votes_size_ = (*it++).toInt<unsigned>();
 
+    // TODO: Address malicious status
+    if (!syncing_state_->is_pbft_syncing()) {
+      if (pbft_synced_period < selected_peer->pbft_chain_size_) {
+        LOG(log_nf_) << "Restart PBFT chain syncing. Own synced PBFT at period " << pbft_synced_period
+                     << ", peer PBFT chain size " << selected_peer->pbft_chain_size_;
+        if (pbft_synced_period < selected_peer->pbft_chain_size_ + 1) {
+          restartSyncingPbft();
+        } else {
+          // If we are behind by only one block wait for two status messages before syncing because nodes are not always
+          // in perfect sync
+          if (selected_peer->last_status_pbft_chain_size_ == selected_peer->pbft_chain_size_) {
+            restartSyncingPbft();
+          }
+        }
+      } else if (pbft_synced_period == selected_peer->pbft_chain_size_ && !selected_peer->peer_dag_synced) {
+        // if not syncing and the peer period is matching our period request any pending dag blocks
+        requestPendingDagBlocks(selected_peer);
+      }
+      const auto pbft_current_round = pbft_mgr_->getPbftRound();
+      const auto pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesWeight();
+      if (pbft_current_round < selected_peer->pbft_round_) {
+        syncPbftNextVotes(pbft_current_round, pbft_previous_round_next_votes_size);
+      } else if (pbft_current_round == selected_peer->pbft_round_) {
+        const auto two_times_2t_plus_1 = pbft_mgr_->getTwoTPlusOne() * 2;
+        // Node at lease have one next vote value for previoud PBFT round. There may have 2 next vote values for
+        // previous PBFT round. If node own have one next vote value and peer have two, need sync here.
+        if (pbft_previous_round_next_votes_size < two_times_2t_plus_1 &&
+            selected_peer->pbft_previous_round_next_votes_size_ >= two_times_2t_plus_1) {
+          syncPbftNextVotes(pbft_current_round, pbft_previous_round_next_votes_size);
+        }
+      }
+    }
+    selected_peer->last_status_pbft_chain_size_ = selected_peer->pbft_chain_size_.load();
+
     LOG(log_dg_) << "Received status message from " << packet_data.from_node_id_ << ", peer DAG max level "
                  << selected_peer->dag_level_ << ", peer pbft chain size " << selected_peer->pbft_chain_size_
                  << ", peer syncing " << std::boolalpha << selected_peer->syncing_ << ", peer pbft round "
                  << selected_peer->pbft_round_ << ", peer pbft previous round next votes size "
                  << selected_peer->pbft_previous_round_next_votes_size_;
-  }
-
-  // If we are still syncing - do not trigger new syncing
-  if (syncing_state_->is_pbft_syncing()) {
-    LOG(log_dg_) << "There is ongoing syncing, do not trigger new one.";
-    return;
-  }
-
-  // TODO: Address malicious status
-  if (pbft_synced_period < selected_peer->pbft_chain_size_) {
-    LOG(log_nf_) << "Restart PBFT chain syncing. Own synced PBFT at period " << pbft_synced_period
-                 << ", peer PBFT chain size " << selected_peer->pbft_chain_size_;
-    if (pbft_synced_period < selected_peer->pbft_chain_size_ + 1) {
-      restartSyncingPbft();
-    } else {
-      // If we are behind by only one block wait for two status messages before syncing because nodes are not always in
-      // perfect sync
-      if (selected_peer->last_status_pbft_chain_size_ == selected_peer->pbft_chain_size_) {
-        restartSyncingPbft();
-      }
-    }
-  }
-  selected_peer->last_status_pbft_chain_size_ = selected_peer->pbft_chain_size_.load();
-
-  const auto pbft_current_round = pbft_mgr_->getPbftRound();
-  const auto pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesWeight();
-  if (pbft_current_round < selected_peer->pbft_round_) {
-    syncPbftNextVotes(pbft_current_round, pbft_previous_round_next_votes_size);
-  } else if (pbft_current_round == selected_peer->pbft_round_) {
-    const auto two_times_2t_plus_1 = pbft_mgr_->getTwoTPlusOne() * 2;
-    // Node at lease have one next vote value for previoud PBFT round. There may have 2 next vote values for previous
-    // PBFT round. If node own have one next vote value and peer have two, need sync here.
-    if (pbft_previous_round_next_votes_size < two_times_2t_plus_1 &&
-        selected_peer->pbft_previous_round_next_votes_size_ >= two_times_2t_plus_1) {
-      syncPbftNextVotes(pbft_current_round, pbft_previous_round_next_votes_size);
-    }
   }
 }
 
