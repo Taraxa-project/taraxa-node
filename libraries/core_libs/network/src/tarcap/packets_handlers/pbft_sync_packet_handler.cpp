@@ -73,6 +73,7 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
   if (sync_block.pbft_blk->getPeriod() != pbft_mgr_->pbftSyncingPeriod() + 1) {
     LOG(log_dg_) << "Block " << pbft_blk_hash << " period unexpected: " << sync_block.pbft_blk->getPeriod()
                  << ". Expected period: " << pbft_mgr_->pbftSyncingPeriod() + 1;
+    restartSyncingPbft(true);
     return;
   }
   // Update peer's pbft period if outdated
