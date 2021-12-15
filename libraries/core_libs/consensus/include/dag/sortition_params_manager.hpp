@@ -84,7 +84,7 @@ class SortitionParamsManager {
   void cleanup(uint64_t current_period);
 
   const uint64_t k_threshold_testnet_hard_fork_period = 110000;
-  const uint64_t k_threshold_testnet_oscillation_hard_fork_period = 200000;
+  const uint64_t k_threshold_testnet_oscillation_hard_fork_period = 146000;
 
   LOG_OBJECTS_DEFINE
 };
