@@ -108,31 +108,40 @@ class FinalChainImpl final : public FinalChain {
     db_query.append(DB::Columns::final_chain_transaction_location_by_hash, sync_block.getTransactionsHashes());
     auto trx_db_results = db_query.execute(false);
 
+    // Transactions to be executed in evm
     Transactions txs_to_execute;
     txs_to_execute.reserve(sync_block.getTransactions().size());
+
+    // Dag blocks validators that included transactions to be executed as first in their blocks
+    std::vector<addr_t> txs_to_execute_validators;
+    txs_to_execute_validators.reserve(sync_block.getTransactions().size());
 
     const auto& txs = sync_block.getTransactions();
     for (size_t i = 0; i < txs.size(); ++i) {
       const auto& tx = txs[i];
 
       if (auto has_been_executed = !trx_db_results[i].empty(); has_been_executed) {
-        rewards_stats.removeTransaction(tx.getHash());
+        // rewards_stats.removeTransaction(tx.getHash());
         continue;
       }
 
       if (replay_protection_service_ && replay_protection_service_->is_nonce_stale(tx.getSender(), tx.getNonce())) {
-        rewards_stats.removeTransaction(tx.getHash());
+        // rewards_stats.removeTransaction(tx.getHash());
         continue;
       }
 
       // Non-executed trxs
+      auto tx_validator = rewards_stats.getTransactionValidator(tx.getHash());
+      assert(tx_validator.has_value());
+
       txs_to_execute.push_back(std::move(tx));
+      txs_to_execute_validators.push_back(tx_validator.value());
     }
 
     const auto& pbft_block = sync_block.getPbftBlock();
     auto const& [exec_results, state_root] = state_api_.transition_state(
         {pbft_block->getBeneficiary(), GAS_LIMIT, pbft_block->getTimestamp(), BlockHeader::difficulty()},
-        to_state_api_transactions(txs_to_execute), {}, rewards_stats);
+        to_state_api_transactions(txs_to_execute), txs_to_execute_validators, {}, rewards_stats);
 
     TransactionReceipts receipts;
     receipts.reserve(exec_results.size());
@@ -401,7 +410,7 @@ class FinalChainImpl final : public FinalChain {
   static util::RangeView<state_api::EVMTransaction> to_state_api_transactions(Transactions const& trxs) {
     return util::make_range_view(trxs).map([](auto const& trx) {
       return state_api::EVMTransaction{trx.getSender(), trx.getGasPrice(), trx.getReceiver(), trx.getNonce(),
-                                       trx.getValue(),  trx.getGas(),      trx.getData(),     trx.getHash()};
+                                       trx.getValue(),  trx.getGas(),      trx.getData()};
     });
   }
 

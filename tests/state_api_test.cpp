@@ -41,7 +41,7 @@ struct TestBlock {
 };
 
 template <typename T>
-T parse_rlp_file(path const& p) {
+T parse_rlp_file(fs::path const& p) {
   ifstream strm(p.string());
   T ret;
   util::rlp(dev::RLP(string(istreambuf_iterator(strm), {}), 0), ret);
@@ -179,10 +179,78 @@ TEST_F(StateAPITest, dpos_integration) {
   EXEC_AND_CHECK({});
 }
 
+// void transform_mainnet_blocks_rlp(const fs::path& orig_file_path, StateAPI& sut) {
+//  struct EVMTransactionOld {
+//    addr_t from;
+//    u256 gas_price;
+//    std::optional<addr_t> to;
+//    uint64_t nonce = 0;
+//    u256 value;
+//    gas_t gas = 0;
+//    bytes input;
+//
+//    RLP_FIELDS_DEFINE_INPLACE(from, gas_price, to, nonce, value, gas, input)
+//  };
+//
+//  struct TestBlockOld {
+//    h256 hash;
+//    h256 state_root;
+//    EVMBlock evm_block;
+//    vector<EVMTransactionOld> transactions;
+//    vector<UncleBlock> uncle_blocks;
+//
+//    RLP_FIELDS_DEFINE_INPLACE(hash, state_root, evm_block, transactions, uncle_blocks)
+//  };
+//
+//  auto transformBlocks = [&sut](const vector<TestBlockOld>& blocks) -> vector<TestBlock> {
+//    vector<TestBlock> transformed_blocks;
+//    transformed_blocks.reserve(blocks.size());
+//
+//    for (const auto& block : blocks) {
+//      vector<EVMTransaction> transformed_txs;
+//      transformed_txs.reserve(block.transactions.size());
+//
+//      size_t idx = 0;
+//      for (const auto& tx : block.transactions) {
+//        // Create new tx with invalid hash based on tx idx
+//        transformed_txs.push_back(
+//            {tx.from, tx.gas_price, tx.to, tx.nonce, tx.value, tx.gas, tx.input, trx_hash_t(idx)});
+//      }
+//
+//      TestBlock transformed_block{block.hash, block.state_root, block.evm_block, std::move(transformed_txs),
+//                                  block.uncle_blocks};
+//      auto transformed_block_state_root =
+//          sut.transition_state(transformed_block.evm_block, transformed_block.transactions,
+//                               transformed_block.uncle_blocks)
+//              .state_root;
+//      transformed_block.state_root = transformed_block_state_root;
+//
+//      transformed_blocks.push_back(std::move(transformed_block));
+//    }
+//
+//    return transformed_blocks;
+//  };
+//
+//  auto transformed_file_path = orig_file_path.string() + "_new";
+//
+//  auto loaded_blocks = parse_rlp_file<vector<TestBlockOld>>(orig_file_path);
+//  auto transformed_blocks = transformBlocks(loaded_blocks);
+//  auto transformed_blocks_bytes = util::rlp_enc(transformed_blocks);
+//  auto transformed_blocks_rlp = dev::RLP(transformed_blocks_bytes);
+//
+//  std::cout << "transformed_blocks_rlp.size():" << transformed_blocks_rlp.itemCount() << std::endl;
+//  std::cout << "transformed_file_path:" << transformed_file_path << std::endl;
+//
+//  ofstream myfile;
+//  myfile.open(transformed_file_path);
+//  myfile << transformed_blocks_rlp.data().toString();
+//  myfile.close();
+//}
+
 TEST_F(StateAPITest, eth_mainnet_smoke) {
-  auto test_blocks =
-      parse_rlp_file<vector<TestBlock>>(path(__FILE__).parent_path().parent_path() / "submodules" / "taraxa-evm" /
-                                        "taraxa" / "data" / "eth_mainnet_blocks_0_300000.rlp");
+  auto path = fs::current_path().parent_path().parent_path() / "submodules" / "taraxa-evm" / "taraxa" / "data" /
+              "eth_mainnet_blocks_0_300000.rlp";
+  auto test_blocks = parse_rlp_file<vector<TestBlock>>(path);
 
   Config chain_config;
   chain_config.disable_block_rewards = false;
@@ -222,7 +290,8 @@ TEST_F(StateAPITest, eth_mainnet_smoke) {
       progress_pct_log_threshold += 10;
     }
     auto const& test_block = test_blocks[blk_num];
-    auto const& result = SUT.transition_state(test_block.evm_block, test_block.transactions, test_block.uncle_blocks);
+    auto const& result =
+        SUT.transition_state(test_block.evm_block, test_block.transactions, {}, test_block.uncle_blocks);
     ASSERT_EQ(result.state_root, test_block.state_root);
     SUT.transition_state_commit();
   }

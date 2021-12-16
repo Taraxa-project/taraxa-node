@@ -264,16 +264,7 @@ class EthImpl : public Eth, EthParams {
 
   state_api::ExecutionResult call(EthBlockNumber blk_n, TransactionSkeleton const& trx, bool free_gas) {
     return final_chain->call(
-        {
-            trx.from,
-            trx.gas_price.value_or(0),
-            trx.to,
-            trx.nonce.value_or(0),
-            trx.value,
-            trx.gas.value_or(0),
-            trx.data,
-            {}  // hash is needed only when executing pbft block & distributing rewards
-        },
+        {trx.from, trx.gas_price.value_or(0), trx.to, trx.nonce.value_or(0), trx.value, trx.gas.value_or(0), trx.data},
         blk_n,
         state_api::ExecutionOptions{
             true,

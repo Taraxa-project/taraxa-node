@@ -4,43 +4,54 @@ namespace taraxa {
 
 RewardsStats::RewardsStats(uint32_t expected_max_tx_count, uint32_t expected_max_validators_count) {
   if (expected_max_tx_count > 0) {
-    transactions_stats_.reserve(expected_max_tx_count);
+    txs_validators_.reserve(expected_max_tx_count);
   }
 
   if (expected_max_validators_count > 0) {
-    blocks_stats_.reserve(expected_max_validators_count);
+    txs_stats_.reserve(expected_max_validators_count);
     votes_stats_.reserve(expected_max_validators_count);
     unique_votes_.reserve(expected_max_validators_count);
   }
 }
 
 bool RewardsStats::addTransaction(const trx_hash_t& tx_hash, const addr_t& validator) {
-  auto found_tx = transactions_stats_.find(tx_hash);
+  auto found_tx = txs_validators_.find(tx_hash);
 
   // Already processed tx
-  if (found_tx != transactions_stats_.end()) {
+  if (found_tx != txs_validators_.end()) {
     return false;
   }
 
   // New tx
-  transactions_stats_[tx_hash] = validator;
+  txs_validators_[tx_hash] = validator;
+  total_unique_txs_count_++;
 
   // Increment validator's unique txs count
-  blocks_stats_[validator]++;
+  txs_stats_[validator]++;
 
   return true;
 }
 
 void RewardsStats::removeTransaction(const trx_hash_t& tx_hash) {
-  auto found_tx = transactions_stats_.find(tx_hash);
-  assert(found_tx != transactions_stats_.end());
+  auto found_tx = txs_validators_.find(tx_hash);
+  assert(found_tx != txs_validators_.end());
 
-  auto found_validator = blocks_stats_.find(found_tx->second);
-  assert(found_validator != blocks_stats_.end());
+  auto found_validator = txs_stats_.find(found_tx->second);
+  assert(found_validator != txs_stats_.end());
 
   assert(found_validator->second);
 
   found_validator->second--;
+  total_unique_txs_count_--;
+}
+
+std::optional<addr_t> RewardsStats::getTransactionValidator(const trx_hash_t& tx_hash) {
+  auto found_tx = txs_validators_.find(tx_hash);
+  if (found_tx == txs_validators_.end()) {
+    return {};
+  }
+
+  return {found_tx->second};
 }
 
 bool RewardsStats::addVote(const Vote& vote) {
@@ -53,13 +64,13 @@ bool RewardsStats::addVote(const Vote& vote) {
 
   // New vote
   unique_votes_.insert(vote.getHash());
-  unique_votes_count_++;
+  total_unique_votes_count_++;
 
   // Increment validator's unique vote count
   votes_stats_[vote.getVoterAddr()]++;
   return true;
 }
 
-RLP_FIELDS_DEFINE(RewardsStats, transactions_stats_, blocks_stats_, votes_stats_, unique_votes_count_)
+RLP_FIELDS_DEFINE(RewardsStats, txs_stats_, total_unique_txs_count_, votes_stats_, total_unique_votes_count_)
 
 }  // namespace taraxa

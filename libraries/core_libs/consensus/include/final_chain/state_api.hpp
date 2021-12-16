@@ -34,6 +34,7 @@ class StateAPI {
   StateDescriptor get_last_committed_state_descriptor() const;
   StateTransitionResult const& transition_state(const EVMBlock& block,
                                                 const util::RangeView<EVMTransaction>& transactions,
+                                                const util::RangeView<addr_t>& transactions_validators = {},
                                                 const util::RangeView<UncleBlock>& uncles = {},
                                                 const RewardsStats& rewards_stats = {});
   void transition_state_commit();

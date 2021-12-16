@@ -227,15 +227,9 @@ TEST_F(FinalChainTest, contract) {
   auto contract_addr = result->trx_receipts[0].new_contract_address;
   EXPECT_EQ(contract_addr, dev::right160(dev::sha3(dev::rlpList(addr, 0))));
   auto greet = [&] {
-    auto ret = SUT->call({addr,
-                          0,
-                          contract_addr,
-                          0,
-                          0,
-                          0,
+    auto ret = SUT->call({addr, 0, contract_addr, 0, 0, 0,
                           // greet()
-                          dev::fromHex("0xcfae3217"),
-                          {}});
+                          dev::fromHex("0xcfae3217")});
     return dev::toHexPrefixed(ret.code_retval);
   };
   ASSERT_EQ(greet(),
@@ -302,137 +296,137 @@ TEST_F(FinalChainTest, coin_transfers) {
   });
 }
 
-TEST_F(FinalChainTest, mining_rewards_distribution) {
-  cfg.state.dpos = nullopt;
-  cfg.state.execution_options.disable_gas_fee = false;
-  cfg.state.execution_options.disable_stats_rewards = false;
-  cfg.state.disable_block_rewards = false;
-  cfg.state.genesis_balances = {};
-
-  constexpr uint64_t BLOCKS_COUNT = 5;
-  constexpr uint64_t TRX_COUNT = 10;
-  constexpr uint64_t TRX_GAS = 21000;
-  constexpr uint64_t TRX_GAS_PRICE = 1;
-  constexpr size_t TRANSACTORS_NUM = 10;
-  constexpr size_t PROPOSERS_NUM = 4;
-
-  // Create pbft proposer
-  dev::KeyPair pbft_proposer = dev::KeyPair::create();
-  cfg.state.genesis_balances[pbft_proposer.address()] = 0;
-
-  // Create dag proposers
-  std::vector<dev::KeyPair> dag_proposers;
-  dag_proposers.reserve(PROPOSERS_NUM);
-  for (size_t i = 0; i < PROPOSERS_NUM; ++i) {
-    auto const& k = dag_proposers.emplace_back(dev::KeyPair::create());
-    cfg.state.genesis_balances[k.address()] = 0;
-  }
-
-  // Create transactors
-  std::vector<dev::KeyPair> transactors;
-  transactors.reserve(TRANSACTORS_NUM);
-  for (size_t i = 0; i < TRANSACTORS_NUM; ++i) {
-    auto const& k = transactors.emplace_back(dev::KeyPair::create());
-    cfg.state.genesis_balances[k.address()] = 31000;
-  }
-
-  init();
-
-  auto createTx = [TRX_GAS_PRICE /*, TRX_GAS*/](const dev::KeyPair& from, const dev::KeyPair& to,
-                                                uint64_t value) -> Transaction {
-    return Transaction(0, value, TRX_GAS_PRICE, TRX_GAS, {}, from.secret(), {to.address()});
-  };
-
-  // Create dummy test transactions
-  std::vector<Transaction> txs{
-      createTx(transactors[0], transactors[1], 1000), createTx(transactors[1], transactors[2], 1000),
-      createTx(transactors[2], transactors[3], 1000), createTx(transactors[3], transactors[4], 1000),
-      createTx(transactors[4], transactors[5], 1000), createTx(transactors[5], transactors[6], 1000),
-      createTx(transactors[6], transactors[7], 1000), createTx(transactors[7], transactors[8], 1000),
-      createTx(transactors[8], transactors[9], 1000), createTx(transactors[9], transactors[0], 1000)};
-
-  vec_trx_t txs_hashes;
-  std::transform(txs.begin(), txs.end(), std::back_inserter(txs_hashes),
-                 [](const Transaction& t) { return t.getHash(); });
-
-  // Create dummy test dag blocks with transactions
-  std::vector<DagBlock> blocks;
-  blocks.push_back({{},
-                    0,
-                    {},
-                    {txs_hashes[0], txs_hashes[1], txs_hashes[2], txs_hashes[3]},
-                    {},
-                    blk_hash_t(0),
-                    dag_proposers[0].address()});
-  blocks.push_back({{}, 1, {}, {txs_hashes[3], txs_hashes[4]}, {}, blk_hash_t(1), dag_proposers[1].address()});
-  blocks.push_back(
-      {{}, 2, {}, {txs_hashes[5], txs_hashes[6], txs_hashes[7]}, {}, blk_hash_t(2), dag_proposers[2].address()});
-  blocks.push_back({{}, 3, {}, {txs_hashes[7], txs_hashes[8]}, {}, blk_hash_t(3), dag_proposers[3].address()});
-  blocks.push_back({{}, 4, {}, {txs_hashes[9]}, {}, blk_hash_t(4), dag_proposers[3].address()});
-  assert(BLOCKS_COUNT == blocks.size());
-
-  vec_blk_t blocks_hashes;
-  std::transform(blocks.begin(), blocks.end(), std::back_inserter(blocks_hashes),
-                 [](const DagBlock& block) { return block.getHash(); });
-
-  PbftBlock pbft_block({}, {}, {}, 0, pbft_proposer.address(), pbft_proposer.secret());
-
-  SyncBlock pbft_period_data(std::make_shared<PbftBlock>(std::move(pbft_block)), std::move(blocks),
-                             std::move(blocks_hashes), std::move(txs), std::move(txs_hashes));
-
-  // Process pbft period data in taraxa-evm
-  SUT->finalize(std::move(pbft_period_data)).wait();
-
-  /*  Rewards distribution model:
-   *
-   *  Fixed pbft block reward:
-   *    - to be defined !
-   *
-   *  All included transaction fees -> rewards:
-   *    100% of txs fees included in dag blocks goes to dag block proposers who included them in their blocks
-   */
-  constexpr uint64_t FIXED_BLOCK_REWARD = 2000000000000000000;
-  constexpr uint64_t TRANSACTION_FEE = TRX_GAS * TRX_GAS_PRICE;
-  constexpr uint64_t TRANSACTION_REWARD = TRANSACTION_FEE;
-  constexpr uint64_t TRANSACTIONS_FEES = TRX_COUNT * TRANSACTION_FEE;
-
-  // TODO: this test becomes obsolete as rewards wont be added directly to validators balances
-  //  but to the staking/delegation contract
-  //
-  // TODO: these checks do not reflect final rewards distribution model
-
-  // Check pbft block proposer reward -> 100% out of fixed pbft block reward
-  EXPECT_EQ(FIXED_BLOCK_REWARD, SUT->getBalance(pbft_proposer.address()).first);
-
-  // Check proposer0 rewards, who created 1 dag block and included 4 unique txs
-  constexpr uint64_t EXPECTED_PROPOSER0_REWARDS = 4 * TRANSACTION_REWARD;
-  EXPECT_EQ(EXPECTED_PROPOSER0_REWARDS, SUT->getBalance(dag_proposers[0].address()).first);
-
-  // Check proposer1 rewards, who created 1 dag block and included 1 unique tx
-  constexpr uint64_t EXPECTED_PROPOSER1_REWARDS = 1 * TRANSACTION_REWARD;
-  EXPECT_EQ(EXPECTED_PROPOSER1_REWARDS, SUT->getBalance(dag_proposers[1].address()).first);
-
-  // Check proposer2 rewards, who created 1 dag block and included 3 unique txs
-  constexpr uint64_t EXPECTED_PROPOSER2_REWARDS = 3 * TRANSACTION_REWARD;
-  EXPECT_EQ(EXPECTED_PROPOSER2_REWARDS, SUT->getBalance(dag_proposers[2].address()).first);
-
-  // Check proposer3 rewards, who created 2 dag blocks and included 2 unique txs
-  constexpr uint64_t EXPECTED_PROPOSER3_REWARDS = 2 * TRANSACTION_REWARD;
-  EXPECT_EQ(EXPECTED_PROPOSER3_REWARDS, SUT->getBalance(dag_proposers[3].address()).first);
-
-  // Check proposer4 rewards, who created 0 dag blocks and included 0 txs
-  constexpr uint64_t EXPECTED_PROPOSER4_REWARDS = 0;
-  EXPECT_EQ(EXPECTED_PROPOSER4_REWARDS, SUT->getBalance(dag_proposers[4].address()).first);
-
-  // Check total distributed rewards == rewards that actually should be distributed based on included txs and fixed
-  // block rewards
-  constexpr uint64_t TOTAL_BLOCK_REWARD = FIXED_BLOCK_REWARD + TRANSACTIONS_FEES;
-  auto distributed_rewards = SUT->getBalance(pbft_proposer.address()).first;
-  for (const auto& dag_proposer : dag_proposers) {
-    distributed_rewards += SUT->getBalance(dag_proposer.address()).first;
-  }
-  EXPECT_EQ(TOTAL_BLOCK_REWARD, distributed_rewards);
-}
+// TEST_F(FinalChainTest, mining_rewards_distribution) {
+//  cfg.state.dpos = nullopt;
+//  cfg.state.execution_options.disable_gas_fee = false;
+//  cfg.state.execution_options.disable_stats_rewards = false;
+//  cfg.state.disable_block_rewards = false;
+//  cfg.state.genesis_balances = {};
+//
+//  constexpr uint64_t BLOCKS_COUNT = 5;
+//  constexpr uint64_t TRX_COUNT = 10;
+//  constexpr uint64_t TRX_GAS = 21000;
+//  constexpr uint64_t TRX_GAS_PRICE = 1;
+//  constexpr size_t TRANSACTORS_NUM = 10;
+//  constexpr size_t PROPOSERS_NUM = 4;
+//
+//  // Create pbft proposer
+//  dev::KeyPair pbft_proposer = dev::KeyPair::create();
+//  cfg.state.genesis_balances[pbft_proposer.address()] = 0;
+//
+//  // Create dag proposers
+//  std::vector<dev::KeyPair> dag_proposers;
+//  dag_proposers.reserve(PROPOSERS_NUM);
+//  for (size_t i = 0; i < PROPOSERS_NUM; ++i) {
+//    auto const& k = dag_proposers.emplace_back(dev::KeyPair::create());
+//    cfg.state.genesis_balances[k.address()] = 0;
+//  }
+//
+//  // Create transactors
+//  std::vector<dev::KeyPair> transactors;
+//  transactors.reserve(TRANSACTORS_NUM);
+//  for (size_t i = 0; i < TRANSACTORS_NUM; ++i) {
+//    auto const& k = transactors.emplace_back(dev::KeyPair::create());
+//    cfg.state.genesis_balances[k.address()] = 31000;
+//  }
+//
+//  init();
+//
+//  auto createTx = [TRX_GAS_PRICE /*, TRX_GAS*/](const dev::KeyPair& from, const dev::KeyPair& to,
+//                                                uint64_t value) -> Transaction {
+//    return Transaction(0, value, TRX_GAS_PRICE, TRX_GAS, {}, from.secret(), {to.address()});
+//  };
+//
+//  // Create dummy test transactions
+//  std::vector<Transaction> txs{
+//      createTx(transactors[0], transactors[1], 1000), createTx(transactors[1], transactors[2], 1000),
+//      createTx(transactors[2], transactors[3], 1000), createTx(transactors[3], transactors[4], 1000),
+//      createTx(transactors[4], transactors[5], 1000), createTx(transactors[5], transactors[6], 1000),
+//      createTx(transactors[6], transactors[7], 1000), createTx(transactors[7], transactors[8], 1000),
+//      createTx(transactors[8], transactors[9], 1000), createTx(transactors[9], transactors[0], 1000)};
+//
+//  vec_trx_t txs_hashes;
+//  std::transform(txs.begin(), txs.end(), std::back_inserter(txs_hashes),
+//                 [](const Transaction& t) { return t.getHash(); });
+//
+//  // Create dummy test dag blocks with transactions
+//  std::vector<DagBlock> blocks;
+//  blocks.push_back({{},
+//                    0,
+//                    {},
+//                    {txs_hashes[0], txs_hashes[1], txs_hashes[2], txs_hashes[3]},
+//                    {},
+//                    blk_hash_t(0),
+//                    dag_proposers[0].address()});
+//  blocks.push_back({{}, 1, {}, {txs_hashes[3], txs_hashes[4]}, {}, blk_hash_t(1), dag_proposers[1].address()});
+//  blocks.push_back(
+//      {{}, 2, {}, {txs_hashes[5], txs_hashes[6], txs_hashes[7]}, {}, blk_hash_t(2), dag_proposers[2].address()});
+//  blocks.push_back({{}, 3, {}, {txs_hashes[7], txs_hashes[8]}, {}, blk_hash_t(3), dag_proposers[3].address()});
+//  blocks.push_back({{}, 4, {}, {txs_hashes[9]}, {}, blk_hash_t(4), dag_proposers[3].address()});
+//  assert(BLOCKS_COUNT == blocks.size());
+//
+//  vec_blk_t blocks_hashes;
+//  std::transform(blocks.begin(), blocks.end(), std::back_inserter(blocks_hashes),
+//                 [](const DagBlock& block) { return block.getHash(); });
+//
+//  PbftBlock pbft_block({}, {}, {}, 0, pbft_proposer.address(), pbft_proposer.secret());
+//
+//  SyncBlock pbft_period_data(std::make_shared<PbftBlock>(std::move(pbft_block)), std::move(blocks),
+//                             std::move(blocks_hashes), std::move(txs), std::move(txs_hashes));
+//
+//  // Process pbft period data in taraxa-evm
+//  SUT->finalize(std::move(pbft_period_data)).wait();
+//
+//  /*  Rewards distribution model:
+//   *
+//   *  Fixed pbft block reward:
+//   *    - to be defined !
+//   *
+//   *  All included transaction fees -> rewards:
+//   *    100% of txs fees included in dag blocks goes to dag block proposers who included them in their blocks
+//   */
+//  constexpr uint64_t FIXED_BLOCK_REWARD = 2000000000000000000;
+//  constexpr uint64_t TRANSACTION_FEE = TRX_GAS * TRX_GAS_PRICE;
+//  constexpr uint64_t TRANSACTION_REWARD = TRANSACTION_FEE;
+//  constexpr uint64_t TRANSACTIONS_FEES = TRX_COUNT * TRANSACTION_FEE;
+//
+//  // TODO: this test becomes obsolete as rewards wont be added directly to validators balances
+//  //  but to the staking/delegation contract
+//  //
+//  // TODO: these checks do not reflect final rewards distribution model
+//
+//  // Check pbft block proposer reward -> 100% out of fixed pbft block reward
+//  EXPECT_EQ(FIXED_BLOCK_REWARD, SUT->getBalance(pbft_proposer.address()).first);
+//
+//  // Check proposer0 rewards, who created 1 dag block and included 4 unique txs
+//  constexpr uint64_t EXPECTED_PROPOSER0_REWARDS = 4 * TRANSACTION_REWARD;
+//  EXPECT_EQ(EXPECTED_PROPOSER0_REWARDS, SUT->getBalance(dag_proposers[0].address()).first);
+//
+//  // Check proposer1 rewards, who created 1 dag block and included 1 unique tx
+//  constexpr uint64_t EXPECTED_PROPOSER1_REWARDS = 1 * TRANSACTION_REWARD;
+//  EXPECT_EQ(EXPECTED_PROPOSER1_REWARDS, SUT->getBalance(dag_proposers[1].address()).first);
+//
+//  // Check proposer2 rewards, who created 1 dag block and included 3 unique txs
+//  constexpr uint64_t EXPECTED_PROPOSER2_REWARDS = 3 * TRANSACTION_REWARD;
+//  EXPECT_EQ(EXPECTED_PROPOSER2_REWARDS, SUT->getBalance(dag_proposers[2].address()).first);
+//
+//  // Check proposer3 rewards, who created 2 dag blocks and included 2 unique txs
+//  constexpr uint64_t EXPECTED_PROPOSER3_REWARDS = 2 * TRANSACTION_REWARD;
+//  EXPECT_EQ(EXPECTED_PROPOSER3_REWARDS, SUT->getBalance(dag_proposers[3].address()).first);
+//
+//  // Check proposer4 rewards, who created 0 dag blocks and included 0 txs
+//  constexpr uint64_t EXPECTED_PROPOSER4_REWARDS = 0;
+//  EXPECT_EQ(EXPECTED_PROPOSER4_REWARDS, SUT->getBalance(dag_proposers[4].address()).first);
+//
+//  // Check total distributed rewards == rewards that actually should be distributed based on included txs and fixed
+//  // block rewards
+//  constexpr uint64_t TOTAL_BLOCK_REWARD = FIXED_BLOCK_REWARD + TRANSACTIONS_FEES;
+//  auto distributed_rewards = SUT->getBalance(pbft_proposer.address()).first;
+//  for (const auto& dag_proposer : dag_proposers) {
+//    distributed_rewards += SUT->getBalance(dag_proposer.address()).first;
+//  }
+//  EXPECT_EQ(TOTAL_BLOCK_REWARD, distributed_rewards);
+//}
 
 }  // namespace taraxa::final_chain
 
