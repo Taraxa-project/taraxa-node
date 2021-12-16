@@ -46,13 +46,15 @@ class SortitionPropose : public ProposeModelFace {
       : dag_mgr_(std::move(dag_mgr)), dag_blk_mgr_(std::move(dag_blk_mgr)), trx_mgr_(std::move(trx_mgr)) {
     LOG_OBJECTS_CREATE("PR_MDL");
     LOG(log_nf_) << "Set sortition DAG block proposal" << dag_blk_mgr_->sortitionParamsManager().getSortitionParams();
+    // Add a random component in proposing stale blocks so that not all nodes propose stale blocks at the same time
+    max_num_tries_ += (node_addr_[0] % max_num_tries_);
   }
   ~SortitionPropose() {}
   bool propose() override;
 
  private:
   int num_tries_ = 0;
-  const int max_num_tries_ = 20;  // Wait 2000(ms)
+  int max_num_tries_ = 20;  // Wait 2000(ms)
   level_t last_propose_level_ = 0;
   std::shared_ptr<DagManager> dag_mgr_;
   std::shared_ptr<DagBlockManager> dag_blk_mgr_;
