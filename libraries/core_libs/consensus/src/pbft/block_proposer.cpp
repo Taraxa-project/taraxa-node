@@ -54,7 +54,18 @@ bool SortitionPropose::propose() {
   vdf.computeVdfSolution(sortition_params, frontier.pivot.asBytes());
   if (vdf.isStale(sortition_params)) {
     auto latest_frontier = dag_mgr_->getDagFrontier();
-    if (latest_frontier.pivot != frontier.pivot) {
+    if (latest_frontier.pivot == frontier.pivot && latest_frontier.tips.size() == frontier.tips.size()) {
+      bool tips_changed = false;
+      for (uint32_t i = 0; i < latest_frontier.tips.size(); i++) {
+        if (latest_frontier.tips[i] != frontier.tips[i]) {
+          tips_changed = true;
+          break;
+        }
+      }
+      if (tips_changed) {
+        return false;
+      }
+    } else {
       return false;
     }
   }
