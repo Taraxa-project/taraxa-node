@@ -334,7 +334,7 @@ void PbftManager::setPbftStep(size_t const pbft_step) {
     lambda_backoff_multiple_ = 2 * lambda_backoff_multiple_;
     lambda_ = std::min(kMaxLambda, kLambdaUint * (lambda_backoff_multiple_ + lambda_random_count));
     LOG(log_dg_) << "Surpassed max steps, exponentially backing off lambda to " << lambda_ << " ms in round "
-                << getPbftRound() << ", step " << step_;
+                 << getPbftRound() << ", step " << step_;
   } else {
     lambda_ = kLambdaUint;
     lambda_backoff_multiple_ = 1;
@@ -680,7 +680,7 @@ bool PbftManager::stateOperations_() {
       // We need to handle propose_vote_type
       dpos_votes_count = 1;
       total_votes_count = getDposTotalAddressCount();
-      threshold = std::min(getDposTotalAddressCount(), COMMITTEE_SIZE);
+      threshold = std::min(getDposTotalAddressCount(), kCommitteeSize);
     }
 
     try {
@@ -1095,7 +1095,7 @@ size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteType
   uint64_t weight = 0;
   if (step == 1) {
     // For proposal vote, only use 1 weight for VRF sortition
-    weight = vote->calculateWeight(1, getDposTotalAddressCount(), std::min(getDposTotalAddressCount(), COMMITTEE_SIZE));
+    weight = vote->calculateWeight(1, getDposTotalAddressCount(), std::min(getDposTotalAddressCount(), kCommitteeSize));
   } else {
     weight = vote->calculateWeight(getDposWeightedVotesCount(), getDposTotalVotesCount(), sortition_threshold_);
   }
@@ -1144,7 +1144,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
   VrfPbftSortition vrf_sortition(vrf_sk_, {propose_vote_type, round, 1});
   if (weighted_votes_count_ == 0 ||
       !vrf_sortition.getBinominalDistribution(1, getDposTotalAddressCount(),
-                                              std::min(getDposTotalAddressCount(), COMMITTEE_SIZE))) {
+                                              std::min(getDposTotalAddressCount(), kCommitteeSize))) {
     return std::make_pair(NULL_BLOCK_HASH, false);
   }
 
