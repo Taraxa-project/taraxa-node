@@ -30,6 +30,7 @@ void dec_json(Json::Value const& json, BalanceMap& obj);
 
 struct DPOSConfig {
   u256 eligibility_balance_threshold;
+  addr_t contract_address;
   EthBlockNumber deposit_delay = 0;
   EthBlockNumber withdrawal_delay = 0;
   std::unordered_map<addr_t, BalanceMap> genesis_state;
