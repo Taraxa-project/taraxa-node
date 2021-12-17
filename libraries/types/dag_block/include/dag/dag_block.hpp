@@ -95,6 +95,25 @@ struct DagFrontier {
     pivot.clear();
     tips.clear();
   }
+
+  bool isEqual(const DagFrontier &frontier) {
+    if (pivot == frontier.pivot && tips.size() == frontier.tips.size()) {
+      bool tips_changed = false;
+      for (uint32_t i = 0; i < tips.size(); i++) {
+        if (tips[i] != frontier.tips[i]) {
+          tips_changed = true;
+          break;
+        }
+      }
+      if (tips_changed) {
+        return false;
+      }
+    } else {
+      return false;
+    }
+    return true;
+  }
+
   blk_hash_t pivot;
   vec_blk_t tips;
 };
