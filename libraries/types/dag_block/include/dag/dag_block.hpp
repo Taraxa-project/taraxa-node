@@ -97,21 +97,11 @@ struct DagFrontier {
   }
 
   bool isEqual(const DagFrontier &frontier) {
-    if (pivot == frontier.pivot && tips.size() == frontier.tips.size()) {
-      bool tips_changed = false;
-      for (uint32_t i = 0; i < tips.size(); i++) {
-        if (tips[i] != frontier.tips[i]) {
-          tips_changed = true;
-          break;
-        }
-      }
-      if (tips_changed) {
-        return false;
-      }
-    } else {
+    if (pivot != frontier.pivot) {
       return false;
     }
-    return true;
+
+    return std::equal(tips.begin(), tips.end(), frontier.tips.begin(), frontier.tips.end());
   }
 
   blk_hash_t pivot;
