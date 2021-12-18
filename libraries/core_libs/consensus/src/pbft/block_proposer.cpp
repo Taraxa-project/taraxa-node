@@ -54,14 +54,21 @@ bool SortitionPropose::propose() {
 
   vdf.computeVdfSolution(sortition_params, frontier.pivot.asBytes());
   if (vdf.isStale(sortition_params)) {
+    // Computing VDF for a stale block is CPU extensive, there is a possibility that some dag blocks are in a queue,
+    // give it a second to process these dag blocks
+    thisThreadSleepForSeconds(1);
     auto latest_frontier = dag_mgr_->getDagFrontier();
     if (!latest_frontier.isEqual(frontier)) {
+      last_frontier_ = frontier;
+      num_tries_ = 0;
       return false;
     }
   }
 
   SharedTransactions shared_trxs = proposer->getShardedTrxs();
   if (shared_trxs.empty()) {
+    last_frontier_ = frontier;
+    num_tries_ = 0;
     return false;
   }
   LOG(log_nf_) << "VDF computation time " << vdf.getComputationTime() << " difficulty " << vdf.getDifficulty();

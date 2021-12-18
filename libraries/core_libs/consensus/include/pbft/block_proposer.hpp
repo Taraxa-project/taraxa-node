@@ -47,7 +47,8 @@ class SortitionPropose : public ProposeModelFace {
     LOG_OBJECTS_CREATE("PR_MDL");
     LOG(log_nf_) << "Set sortition DAG block proposal" << dag_blk_mgr_->sortitionParamsManager().getSortitionParams();
     // Add a random component in proposing stale blocks so that not all nodes propose stale blocks at the same time
-    max_num_tries_ += (node_addr_[0] % max_num_tries_);
+    // This will make stale block be proposed after waiting random interval between 2 and 20 seconds
+    max_num_tries_ += (node_addr_[0] % (10 * max_num_tries_));
   }
   ~SortitionPropose() {}
   bool propose() override;
