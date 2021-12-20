@@ -51,9 +51,11 @@ void ExtSyncingPacketHandler::restartSyncingPbft(bool force) {
     return;
   }
 
+  auto max_pbft_chain_peer_id = max_pbft_chain_peer->getId();
+
   auto pbft_sync_period = pbft_mgr_->pbftSyncingPeriod();
   if (max_pbft_chain_size > pbft_sync_period) {
-    LOG(log_si_) << "Restarting syncing PBFT from peer " << max_pbft_chain_peer->getId() << ", peer PBFT chain size "
+    LOG(log_si_) << "Restarting syncing PBFT from peer " << max_pbft_chain_peer_id << ", peer PBFT chain size "
                  << max_pbft_chain_size << ", own PBFT chain synced at period " << pbft_sync_period;
 
     syncing_state_->set_dag_syncing(false);
@@ -81,7 +83,7 @@ void ExtSyncingPacketHandler::restartSyncingPbft(bool force) {
                    << std::max(dag_mgr_->getMaxLevel(), dag_blk_mgr_->getMaxDagLevelInQueue()) << "("
                    << dag_mgr_->getMaxLevel() << ")";
       syncing_state_->set_dag_syncing(true, std::move(max_pbft_chain_peer));
-      requestPendingDagBlocks();
+      requestPendingDagBlocks(max_pbft_chain_peer_id);
     } else {
       syncing_state_->set_dag_syncing(false);
     }
@@ -94,7 +96,7 @@ bool ExtSyncingPacketHandler::syncPeerPbft(unsigned long height_to_sync) {
   return sealAndSend(node_id, SubprotocolPacketType::GetPbftSyncPacket, std::move(dev::RLPStream(1) << height_to_sync));
 }
 
-void ExtSyncingPacketHandler::requestPendingDagBlocks() {
+void ExtSyncingPacketHandler::requestPendingDagBlocks(const dev::p2p::NodeID &node_id) {
   std::unordered_set<blk_hash_t> known_non_finalized_blocks;
   auto blocks = dag_mgr_->getNonFinalizedBlocks();
   for (auto &level_blocks : blocks) {
@@ -103,12 +105,12 @@ void ExtSyncingPacketHandler::requestPendingDagBlocks() {
     }
   }
 
-  requestDagBlocks(syncing_state_->syncing_peer(), known_non_finalized_blocks, DagSyncRequestType::KnownHashes);
+  requestDagBlocks(node_id, known_non_finalized_blocks, DagSyncRequestType::KnownHashes);
 }
 
 void ExtSyncingPacketHandler::requestDagBlocks(const dev::p2p::NodeID &_nodeID,
                                                const std::unordered_set<blk_hash_t> &blocks, DagSyncRequestType mode) {
-  LOG(log_nf_) << "Sending GetDagSyncPacket";
+  LOG(log_nf_) << "Sending GetDagSyncPacket " << _nodeID;
   dev::RLPStream s(blocks.size() + 1);  // Mode + block itself
   s << static_cast<uint8_t>(mode);      // Send mode first
   for (const auto &blk : blocks) {

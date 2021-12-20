@@ -45,7 +45,7 @@ class ExtSyncingPacketHandler : public PacketHandler {
   std::pair<bool, std::unordered_set<blk_hash_t>> checkDagBlockValidation(const DagBlock &block) const;
 
  private:
-  void requestPendingDagBlocks();
+  void requestPendingDagBlocks(const dev::p2p::NodeID &node_id);
 
  protected:
   std::shared_ptr<SyncingState> syncing_state_{nullptr};
