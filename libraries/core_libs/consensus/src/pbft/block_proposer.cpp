@@ -54,14 +54,21 @@ bool SortitionPropose::propose() {
 
   vdf.computeVdfSolution(sortition_params, frontier.pivot.asBytes());
   if (vdf.isStale(sortition_params)) {
+    // Computing VDF for a stale block is CPU extensive, there is a possibility that some dag blocks are in a queue,
+    // give it a second to process these dag blocks
+    thisThreadSleepForSeconds(1);
     auto latest_frontier = dag_mgr_->getDagFrontier();
     if (!latest_frontier.isEqual(frontier)) {
+      last_frontier_ = frontier;
+      num_tries_ = 0;
       return false;
     }
   }
 
   SharedTransactions shared_trxs = proposer->getShardedTrxs();
   if (shared_trxs.empty()) {
+    last_frontier_ = frontier;
+    num_tries_ = 0;
     return false;
   }
   LOG(log_nf_) << "VDF computation time " << vdf.getComputationTime() << " difficulty " << vdf.getDifficulty();
@@ -111,6 +118,15 @@ void BlockProposer::stop() {
 }
 
 SharedTransactions BlockProposer::getShardedTrxs() {
+  // If syncing return empty list
+  auto syncing = false;
+  if (auto net = network_.lock()) {
+    syncing = net->pbft_syncing();
+  }
+  if (syncing) {
+    return {};
+  }
+
   SharedTransactions to_be_packed_trx = trx_mgr_->packTrxs(bp_config_.transaction_limit);
 
   if (to_be_packed_trx.empty()) {
