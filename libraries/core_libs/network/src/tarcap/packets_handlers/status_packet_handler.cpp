@@ -117,7 +117,7 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
       if (pbft_synced_period < selected_peer->pbft_chain_size_) {
         LOG(log_nf_) << "Restart PBFT chain syncing. Own synced PBFT at period " << pbft_synced_period
                      << ", peer PBFT chain size " << selected_peer->pbft_chain_size_;
-        if (pbft_synced_period < selected_peer->pbft_chain_size_ + 1) {
+        if (pbft_synced_period + 1 < selected_peer->pbft_chain_size_) {
           restartSyncingPbft();
         } else {
           // If we are behind by only one block wait for two status messages before syncing because nodes are not always
