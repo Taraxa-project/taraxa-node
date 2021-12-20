@@ -38,7 +38,7 @@ void SyncingState::set_pbft_syncing(bool syncing, uint64_t current_period,
                                     std::shared_ptr<TaraxaPeer> peer /*=nullptr*/) {
   assert((syncing && peer) || !syncing);
   pbft_syncing_ = syncing;
-  peer_ = std::move(peer);
+  set_peer(std::move(peer));
 
   if (syncing) {
     std::shared_lock lock(peer_mutex_);
