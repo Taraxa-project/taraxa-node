@@ -118,6 +118,15 @@ void BlockProposer::stop() {
 }
 
 SharedTransactions BlockProposer::getShardedTrxs() {
+  // If syncing return empty list
+  auto syncing = false;
+  if (auto net = network_.lock()) {
+    syncing = net->pbft_syncing();
+  }
+  if (syncing) {
+    return {};
+  }
+
   SharedTransactions to_be_packed_trx = trx_mgr_->packTrxs(bp_config_.transaction_limit);
 
   if (to_be_packed_trx.empty()) {
