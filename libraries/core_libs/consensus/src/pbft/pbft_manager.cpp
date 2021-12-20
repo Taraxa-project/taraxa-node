@@ -1489,6 +1489,20 @@ bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(const std::shared_ptr<P
   return true;
 }
 
+bool PbftManager::pbftSyncBlockProcessed(const SyncBlock &sync_block) {
+  if (auto pbft_block_hash = sync_block.getPbftBlock()->getBlockHash(); db_->pbftBlockInDb(pbft_block_hash)) {
+    LOG(log_nf_) << "PBFT block: " << pbft_block_hash << " in DB already.";
+    if (last_cert_voted_value_ == pbft_block_hash) {
+      LOG(log_er_) << "Last cert voted value should be NULL_BLOCK_HASH. Block hash " << last_cert_voted_value_
+                   << " has been pushed into chain already";
+      assert(false);
+    }
+    return true;
+  }
+
+  return false;
+}
+
 bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cert_voted_block_hash,
                                                    std::vector<std::shared_ptr<Vote>> &&cert_votes_for_round) {
   auto pbft_block = getUnfinalizedBlock_(cert_voted_block_hash);
@@ -1508,8 +1522,11 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cer
   }
   cert_sync_block_.setCertVotes(std::move(cert_votes_for_round));
 
-  // TODO: check if cert_sync_block_ has to be created again inside comparePbftBlockScheduleWithDAGblocks_ even
-  //  after pushPbftBlock. If yes, shared_ptr to const SyncBlock should be probably used ?
+  // Pbft block from cert_sync_block_ was already processed and saved in db
+  if (pbftSyncBlockProcessed(cert_sync_block_)) {
+    return false;
+  }
+
   if (!pushPbftBlock_(std::move(cert_sync_block_))) {
     LOG(log_er_) << "Failed push PBFT block " << pbft_block->getBlockHash() << " into chain";
     return false;
@@ -1526,6 +1543,11 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
     while (syncBlockQueueSize() > 0) {
       auto sync_block = processSyncBlock();
       if (!sync_block.has_value()) {
+        continue;
+      }
+
+      // Pbft block from sync_block was already processed and saved in db
+      if (pbftSyncBlockProcessed(sync_block.value())) {
         continue;
       }
 
@@ -1583,16 +1605,6 @@ void PbftManager::finalize_(SyncBlock &&sync_block, bool synchronous_processing)
 bool PbftManager::pushPbftBlock_(SyncBlock &&sync_block) {
   const auto &pbft_block = sync_block.getPbftBlock();
   const auto &pbft_block_hash = pbft_block->getBlockHash();
-
-  if (db_->pbftBlockInDb(pbft_block_hash)) {
-    LOG(log_nf_) << "PBFT block: " << pbft_block_hash << " in DB already.";
-    if (last_cert_voted_value_ == pbft_block_hash) {
-      LOG(log_er_) << "Last cert voted value should be NULL_BLOCK_HASH. Block hash " << last_cert_voted_value_
-                   << " has been pushed into chain already";
-      assert(false);
-    }
-    return false;
-  }
 
   auto batch = db_->createWriteBatch();
 

@@ -66,6 +66,12 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   size_t syncBlockQueueSize() const;
   void syncBlockQueuePush(SyncBlock &&block, dev::p2p::NodeID const &node_id);
 
+  /**
+   * @param sync_block
+   * @return true if pbft block from sync_block is already processed and saved in db
+   */
+  bool pbftSyncBlockProcessed(const SyncBlock &sync_block);
+
   // Notice: Test purpose
   // TODO: Add a check for some kind of guards to ensure these are only called from within a test
   void setSortitionThreshold(size_t const sortition_threshold);
