@@ -58,6 +58,8 @@ void ExtSyncingPacketHandler::restartSyncingPbft(bool force) {
     LOG(log_si_) << "Restarting syncing PBFT from peer " << max_pbft_chain_peer_id << ", peer PBFT chain size "
                  << max_pbft_chain_size << ", own PBFT chain synced at period " << pbft_sync_period;
 
+    last_request_pending_dag_blocks_time.clear();
+
     syncing_state_->set_dag_syncing(false);
     syncing_state_->set_pbft_syncing(true, pbft_sync_period, std::move(max_pbft_chain_peer));
 
