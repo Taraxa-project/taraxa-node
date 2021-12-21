@@ -612,6 +612,22 @@ std::vector<bool> DbStorage::transactionsInDb(std::vector<trx_hash_t> const& trx
   return result;
 }
 
+std::vector<std::shared_ptr<Transaction>> DbStorage::getTransactions(std::vector<trx_hash_t> const& trx_hashes) {
+  std::vector<std::shared_ptr<Transaction>> result;
+  result.reserve(trx_hashes.size());
+
+  DbStorage::MultiGetQuery db_query(shared_from_this(), trx_hashes.size());
+  db_query.append(DbStorage::Columns::transactions, trx_hashes);
+  auto db_trxs = db_query.execute();
+  for (size_t idx = 0; idx < db_trxs.size(); idx++) {
+    auto& trx_raw = db_trxs[idx];
+    if (!trx_raw.empty()) {
+      result.emplace_back(std::make_shared<Transaction>(asBytes(trx_raw)));
+    }
+  }
+  return result;
+}
+
 uint64_t DbStorage::getStatusField(StatusDbField const& field) {
   auto status = lookup(toSlice((uint8_t)field), Columns::status);
   if (!status.empty()) {

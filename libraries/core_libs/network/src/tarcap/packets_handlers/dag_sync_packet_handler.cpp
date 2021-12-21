@@ -25,17 +25,19 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
   std::unordered_set<blk_hash_t> missing_blks;
 
   auto it = packet_data.rlp_.begin();
+  uint64_t transactions_count = (*it++).toInt<uint64_t>();
+  SharedTransactions new_transactions;
+  for (uint64_t i = 0; i < transactions_count; i++) {
+    Transaction transaction(*it++);
+    peer->markTransactionAsKnown(transaction.getHash());
+    new_transactions.emplace_back(std::make_shared<Transaction>(std::move(transaction)));
+  }
+
+  trx_mgr_->insertBroadcastedTransactions(std::move(new_transactions));
 
   for (; it != packet_data.rlp_.end();) {
     DagBlock block(*it++);
     peer->markDagBlockAsKnown(block.getHash());
-
-    SharedTransactions new_transactions;
-    for (size_t i = 0; i < block.getTrxs().size(); i++) {
-      Transaction transaction(*it++);
-      peer->markTransactionAsKnown(transaction.getHash());
-      new_transactions.emplace_back(std::make_shared<Transaction>(std::move(transaction)));
-    }
 
     received_dag_blocks_str += block.getHash().abridged() + " ";
 
@@ -51,7 +53,6 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
                  << " transactions";
     if (block.getLevel() > peer->dag_level_) peer->dag_level_ = block.getLevel();
 
-    trx_mgr_->insertBroadcastedTransactions(std::move(new_transactions));
     dag_blk_mgr_->insertBroadcastedBlock(std::move(block));
   }
 

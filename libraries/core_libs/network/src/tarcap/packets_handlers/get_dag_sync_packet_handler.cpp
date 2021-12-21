@@ -81,35 +81,39 @@ void GetDagSyncPacketHandler::sendBlocks(dev::p2p::NodeID const &peer_id,
   auto peer = peers_state_->getPeer(peer_id);
   if (!peer) return;
 
-  std::unordered_map<blk_hash_t, std::vector<taraxa::bytes>> block_transactions;
   size_t total_transactions_count = 0;
+  std::unordered_set<trx_hash_t> unique_trxs;
+  std::vector<taraxa::bytes> transactions;
   for (const auto &block : blocks) {
-    std::vector<taraxa::bytes> transactions;
+    std::vector<trx_hash_t> trx_to_query;
     for (auto trx : block->getTrxs()) {
-      auto t = trx_mgr_->getTransaction(trx);
-      if (!t) {
-        LOG(log_er_) << "Transacation " << trx << " is not available. SendBlocks canceled";
-        // TODO: This can happen on stopping the node because network
-        // is not stopped since network does not support restart,
-        // better solution needed
-        return;
+      if (unique_trxs.emplace(trx).second) {
+        trx_to_query.emplace_back(trx);
       }
+    }
+    auto trxs = db_->getTransactions(trx_to_query);
+
+    for (auto t : trxs) {
       transactions.emplace_back(std::move(*t->rlp()));
       total_transactions_count++;
     }
+
     LOG(log_nf_) << "Send DagBlock " << block->getHash() << "# Trx: " << transactions.size() << std::endl;
-    block_transactions[block->getHash()] = std::move(transactions);
   }
 
-  dev::RLPStream s(blocks.size() + total_transactions_count);
+  dev::RLPStream s(1 + blocks.size() + total_transactions_count);
+
+  s << transactions.size();
+  taraxa::bytes trx_bytes;
+  for (auto &trx : transactions) {
+    trx_bytes.insert(trx_bytes.end(), std::make_move_iterator(trx.begin()), std::make_move_iterator(trx.end()));
+  }
+  s.appendRaw(trx_bytes, transactions.size());
+
   for (auto &block : blocks) {
     s.appendRaw(block->rlp(true));
-    taraxa::bytes trx_bytes;
-    for (auto &trx : block_transactions[block->getHash()]) {
-      trx_bytes.insert(trx_bytes.end(), std::make_move_iterator(trx.begin()), std::make_move_iterator(trx.end()));
-    }
-    s.appendRaw(trx_bytes, block_transactions[block->getHash()].size());
   }
+
   sealAndSend(peer_id, SubprotocolPacketType::DagSyncPacket, std::move(s));
 }
 
