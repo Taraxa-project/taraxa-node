@@ -208,6 +208,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   // Transaction
   void saveTransaction(Transaction const& trx, bool verified = false);
   std::shared_ptr<Transaction> getTransaction(trx_hash_t const& hash);
+  std::vector<std::shared_ptr<Transaction>> getTransactions(std::vector<trx_hash_t> const& trx_hashes);
   SharedTransactions getNonfinalizedTransactions();
   bool transactionInDb(trx_hash_t const& hash);
   bool transactionFinalized(trx_hash_t const& hash);
