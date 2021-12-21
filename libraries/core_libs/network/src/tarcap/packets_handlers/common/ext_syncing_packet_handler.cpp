@@ -97,15 +97,21 @@ bool ExtSyncingPacketHandler::syncPeerPbft(unsigned long height_to_sync) {
 }
 
 void ExtSyncingPacketHandler::requestPendingDagBlocks(const dev::p2p::NodeID &node_id) {
-  std::unordered_set<blk_hash_t> known_non_finalized_blocks;
-  auto blocks = dag_mgr_->getNonFinalizedBlocks();
-  for (auto &level_blocks : blocks) {
-    for (auto &block : level_blocks.second) {
-      known_non_finalized_blocks.insert(block);
+  auto last_request = last_request_pending_dag_blocks_time.find(node_id);
+  if (last_request == last_request_pending_dag_blocks_time.end() ||
+      std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - last_request->second) >
+          PENDING_REQUEST_THRESHOLD) {
+    last_request_pending_dag_blocks_time[node_id] = std::chrono::steady_clock::now();
+    std::unordered_set<blk_hash_t> known_non_finalized_blocks;
+    auto blocks = dag_mgr_->getNonFinalizedBlocks();
+    for (auto &level_blocks : blocks) {
+      for (auto &block : level_blocks.second) {
+        known_non_finalized_blocks.insert(block);
+      }
     }
-  }
 
-  requestDagBlocks(node_id, known_non_finalized_blocks, DagSyncRequestType::KnownHashes);
+    requestDagBlocks(node_id, known_non_finalized_blocks, DagSyncRequestType::KnownHashes);
+  }
 }
 
 void ExtSyncingPacketHandler::requestDagBlocks(const dev::p2p::NodeID &_nodeID,
