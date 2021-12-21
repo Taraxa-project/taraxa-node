@@ -85,7 +85,11 @@ void ExtSyncingPacketHandler::restartSyncingPbft(bool force) {
                    << std::max(dag_mgr_->getMaxLevel(), dag_blk_mgr_->getMaxDagLevelInQueue()) << "("
                    << dag_mgr_->getMaxLevel() << ")";
       syncing_state_->set_dag_syncing(true, std::move(max_pbft_chain_peer));
-      requestPendingDagBlocks(max_pbft_chain_peer_id);
+      for (auto const &peer : peers_state_->getAllPeers()) {
+        if (peer.second->pbft_chain_size_ == pbft_sync_period) {
+          requestPendingDagBlocks(peer.first);
+        }
+      }
     } else {
       syncing_state_->set_dag_syncing(false);
     }
