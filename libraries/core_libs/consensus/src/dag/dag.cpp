@@ -418,6 +418,8 @@ void DagManager::addDagBlock(DagBlock const &blk, SharedTransactions &&trxs, boo
       // TODO: This is an ugly temporary fix for testnet, a better solution is needed later
       if (db_->getDagBlockPeriod(blk.getHash()) != nullptr) {
         db_->removeDagBlock(blk.getHash());
+        LOG(log_er_) << "Block already in DB: " << blk.getHash();
+        return;
       }
     }
     auto blk_hash = blk.getHash();
