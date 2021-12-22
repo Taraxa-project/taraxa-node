@@ -195,7 +195,8 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::vector<std::shared_ptr<DagBlock>> getDagBlocksAtLevel(level_t level, int number_of_levels);
   void updateDagBlockCounters(std::vector<DagBlock> blks);
   std::map<level_t, std::vector<DagBlock>> getNonfinalizedDagBlocks();
-  void removeDagBlock(Batch& write_batch, blk_hash_t const& hash);
+  void removeDagBlockBatch(Batch& write_batch, blk_hash_t const& hash);
+  void removeDagBlock(blk_hash_t const& hash);
   // DAG Efficiency
   void savePbftBlockDagEfficiency(uint64_t period, uint16_t efficiency, DbStorage::Batch& batch);
   std::vector<uint16_t> getLastIntervalEfficiencies(uint16_t computation_interval);

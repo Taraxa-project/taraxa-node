@@ -414,6 +414,13 @@ void DagManager::addDagBlock(DagBlock const &blk, SharedTransactions &&trxs, boo
       trx_mgr_->saveTransactionsFromDagBlock(trxs);
       // Save the dag block
       db_->saveDagBlock(blk);
+
+      // TODO: This is an ugly temporary fix for testnet, a better solution is needed later
+      if (db_->getDagBlockPeriod(blk.getHash()) != nullptr) {
+        db_->removeDagBlock(blk.getHash());
+        LOG(log_er_) << "Block already in DB: " << blk.getHash();
+        return;
+      }
     }
     auto blk_hash = blk.getHash();
     auto pivot_hash = blk.getPivot();
@@ -605,7 +612,13 @@ void DagManager::recoverDag() {
 
   for (auto &lvl : db_->getNonfinalizedDagBlocks()) {
     for (auto &blk : lvl.second) {
-      addDagBlock(std::move(blk), {}, false, false);
+      auto period = db_->getDagBlockPeriod(blk.getHash());
+      if (period != nullptr) {
+        LOG(log_er_) << "Nonfinalized Dag Block actually finalized in period " << period->first;
+        db_->removeDagBlock(blk.getHash());
+      } else {
+        addDagBlock(std::move(blk), {}, false, false);
+      }
     }
   }
   trx_mgr_->recoverNonfinalizedTransactions();
