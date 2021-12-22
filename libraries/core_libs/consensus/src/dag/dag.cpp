@@ -377,8 +377,14 @@ void DagManager::worker() {
     level_limit = false;
     SharedTransactions transactions;
     if (pivotAndTipsAvailable(*blk)) {
+      auto transactions_finalized = db_->transactionsFinalized(blk->getTrxs());
+      auto it_trx_finalized = transactions_finalized.begin();
+
       // Retrieve all the transactions
       for (auto const &trx_hash : blk->getTrxs()) {
+        if (*it_trx_finalized++) {
+          continue;
+        }
         auto trx = trx_mgr_->getTransaction(trx_hash);
         // DAG block should not have been verified if it is missing a transaction
         assert(trx != nullptr);
