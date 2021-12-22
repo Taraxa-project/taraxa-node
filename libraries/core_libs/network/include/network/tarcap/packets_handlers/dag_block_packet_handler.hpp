@@ -27,7 +27,6 @@ class DagBlockPacketHandler : public ExtSyncingPacketHandler {
  private:
   void process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) override;
 
-  std::shared_ptr<DbStorage> db_;
   std::shared_ptr<TestState> test_state_;
   std::shared_ptr<TransactionManager> trx_mgr_{nullptr};
   ExpirationCache<blk_hash_t> seen_dags_;
