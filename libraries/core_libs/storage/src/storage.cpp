@@ -337,9 +337,11 @@ SharedTransactions DbStorage::getNonfinalizedTransactions() {
   return res;
 }
 
-void DbStorage::removeDagBlock(Batch& write_batch, blk_hash_t const& hash) {
+void DbStorage::removeDagBlockBatch(Batch& write_batch, blk_hash_t const& hash) {
   remove(write_batch, Columns::dag_blocks, toSlice(hash));
 }
+
+void DbStorage::removeDagBlock(blk_hash_t const& hash) { remove(Columns::dag_blocks, toSlice(hash)); }
 
 void DbStorage::updateDagBlockCounters(std::vector<DagBlock> blks) {
   // Lock is needed since we are editing some fields
@@ -466,7 +468,7 @@ void DbStorage::savePeriodData(const SyncBlock& sync_block, Batch& write_batch) 
   // Remove dag blocks from non finalized column in db and add dag_block_period in DB
   uint64_t block_pos = 0;
   for (auto const& block : sync_block.dag_blocks) {
-    removeDagBlock(write_batch, block.getHash());
+    removeDagBlockBatch(write_batch, block.getHash());
     addDagBlockPeriodToBatch(block.getHash(), period, block_pos, write_batch);
     block_pos++;
   }
