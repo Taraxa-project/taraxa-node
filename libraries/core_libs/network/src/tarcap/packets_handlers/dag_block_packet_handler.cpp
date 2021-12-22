@@ -80,7 +80,6 @@ void DagBlockPacketHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::D
   }
 
   // Transactions are first sent in transactions packet before sending the block
-  dev::RLPStream s(transactions_to_send.size());
   taraxa::bytes trx_bytes;
   std::shared_ptr<Transaction> transaction;
 
@@ -108,6 +107,7 @@ void DagBlockPacketHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::D
     trx_bytes.insert(trx_bytes.end(), std::begin(trx_data), std::end(trx_data));
     transactions_count++;
   }
+  dev::RLPStream s(transactions_count);
   s.appendRaw(trx_bytes, transactions_count);
   sealAndSend(peer_id, TransactionPacket, std::move(s));
 
