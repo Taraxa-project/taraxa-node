@@ -83,8 +83,20 @@ void DagBlockPacketHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::D
   dev::RLPStream s(transactions_to_send.size());
   taraxa::bytes trx_bytes;
   std::shared_ptr<Transaction> transaction;
+
+  std::vector<bool> transactions_finalized;
+  std::vector<bool>::iterator it_trx_finalized;
+  if (db_) {
+    transactions_finalized = db_->transactionsFinalized(transactions_to_send);
+    it_trx_finalized = transactions_finalized.begin();
+  }
+
+  uint64_t transactions_count = 0;
   for (const auto &trx_hash : transactions_to_send) {
     if (dag_blk_mgr_) {
+      if (db_ && *it_trx_finalized++) {
+        continue;
+      }
       transaction = trx_mgr_->getTransaction(trx_hash);
       assert(transaction != nullptr);  // We should never try to send a block for
                                        // which  we do not have all transactions
@@ -94,8 +106,9 @@ void DagBlockPacketHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::D
     }
     auto &trx_data = *transaction->rlp();
     trx_bytes.insert(trx_bytes.end(), std::begin(trx_data), std::end(trx_data));
+    transactions_count++;
   }
-  s.appendRaw(trx_bytes, transactions_to_send.size());
+  s.appendRaw(trx_bytes, transactions_count);
   sealAndSend(peer_id, TransactionPacket, std::move(s));
 
   // Send the block
