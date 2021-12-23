@@ -4,6 +4,8 @@
 
 namespace taraxa {
 
+constexpr uint16_t k_testnet_hardfork2_sortition_interval_length = 200;
+
 SortitionParamsChange::SortitionParamsChange(uint64_t period, uint16_t efficiency, const VrfParams& vrf,
                                              const SortitionParamsChange& previous)
     : period(period), vrf_params(vrf), interval_efficiency(efficiency) {
@@ -73,8 +75,11 @@ SortitionParamsManager::SortitionParamsManager(const addr_t& node_addr, Sortitio
     config_.vrf = params_changes_.back().vrf_params;
   }
 
-  dag_efficiencies_.reserve(config_.computation_interval);
-  dag_efficiencies_ = db_->getLastIntervalEfficiencies(config_.computation_interval);
+  auto changes_count_to_calculate = config_.computation_interval;
+  if (!params_changes_.empty() && params_changes_.back().period >= k_testnet_hardfork2_block_num) {
+    changes_count_to_calculate = k_testnet_hardfork2_sortition_interval_length;
+  }
+  dag_efficiencies_ = db_->getLastIntervalEfficiencies(config_.computation_interval, changes_count_to_calculate);
 }
 uint64_t SortitionParamsManager::currentProposalPeriod() const {
   if (params_changes_.empty()) return 0;
@@ -148,13 +153,22 @@ uint16_t SortitionParamsManager::averageCorrectionPerPercent() const {
 }
 
 void SortitionParamsManager::cleanup(uint64_t current_period) {
-  dag_efficiencies_.clear();
+  uint16_t efficiencies_to_leave = 0;
+  if (current_period >= k_testnet_hardfork2_block_num) {
+    efficiencies_to_leave = k_testnet_hardfork2_sortition_interval_length - config_.computation_interval;
+  }
+
   while (params_changes_.size() > config_.changes_count_for_average) {
     params_changes_.pop_front();
   }
-  auto batch = db_->createWriteBatch();
-  db_->cleanupDagEfficiencies(current_period);
-  db_->commitWriteBatch(batch);
+  while (dag_efficiencies_.size() > efficiencies_to_leave) {
+    dag_efficiencies_.pop_front();
+  }
+  if ((current_period - efficiencies_to_leave) > 0) {
+    auto batch = db_->createWriteBatch();
+    db_->cleanupDagEfficiencies(current_period - efficiencies_to_leave);
+    db_->commitWriteBatch(batch);
+  }
 }
 
 void SortitionParamsManager::pbftBlockPushed(const SyncBlock& block, DbStorage::Batch& batch) {

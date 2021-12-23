@@ -71,7 +71,7 @@ class SortitionParamsManager {
  private:
   SortitionConfig config_;
   std::shared_ptr<DbStorage> db_;
-  std::vector<uint16_t> dag_efficiencies_;
+  std::deque<uint16_t> dag_efficiencies_;
   std::deque<SortitionParamsChange> params_changes_;
   std::optional<SortitionParamsChange> calculateChange(uint64_t period);
   int32_t getChange(uint64_t period, uint16_t efficiency) const;

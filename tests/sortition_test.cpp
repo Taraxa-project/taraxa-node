@@ -343,10 +343,21 @@ TEST_F(SortitionTest, efficiencies_from_db) {
   }
   db->commitWriteBatch(batch);
 
-  const auto efficiencies = db->getLastIntervalEfficiencies(50);
-  EXPECT_EQ(efficiencies.size(), 43);
-  EXPECT_EQ(efficiencies.back(), 101);
-  EXPECT_EQ(efficiencies.front(), 143);
+  {
+    const auto efficiencies = db->getLastIntervalEfficiencies(50, 50);
+    EXPECT_EQ(efficiencies.size(), 43);
+    EXPECT_EQ(efficiencies.front(), 101);
+    EXPECT_EQ(efficiencies.back(), 143);
+  }
+  {
+    const auto efficiencies = db->getLastIntervalEfficiencies(50, 100);
+    EXPECT_EQ(efficiencies.size(), 93);
+    uint16_t starting_num = 51;
+    // check whole order is not messing up
+    for (uint16_t i = 0; i < efficiencies.size(); ++i) {
+      EXPECT_EQ(efficiencies[i], starting_num + i);
+    }
+  }
 }
 
 TEST_F(SortitionTest, load_from_db) {
@@ -386,7 +397,7 @@ TEST_F(SortitionTest, db_cleanup) {
       sp.pbftBlockPushed(b, batch);
     }
     db->commitWriteBatch(batch);
-    EXPECT_EQ(db->getLastIntervalEfficiencies(cfg.computation_interval).size(), 0);
+    EXPECT_EQ(db->getLastIntervalEfficiencies(cfg.computation_interval, cfg.computation_interval).size(), 0);
     EXPECT_EQ(db->getLastSortitionParams(cfg.changes_count_for_average).size(), 5);
   }
   {
@@ -397,7 +408,7 @@ TEST_F(SortitionTest, db_cleanup) {
       sp.pbftBlockPushed(b, batch);
     }
     db->commitWriteBatch(batch);
-    EXPECT_EQ(db->getLastIntervalEfficiencies(cfg.computation_interval).size(), 3);
+    EXPECT_EQ(db->getLastIntervalEfficiencies(cfg.computation_interval, cfg.computation_interval).size(), 3);
     EXPECT_EQ(db->getLastSortitionParams(cfg.changes_count_for_average).size(), 5);
   }
 }

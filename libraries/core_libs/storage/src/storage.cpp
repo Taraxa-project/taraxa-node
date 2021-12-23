@@ -405,20 +405,20 @@ void DbStorage::savePbftBlockDagEfficiency(uint64_t period, uint16_t efficiency,
   insert(batch, Columns::pbft_block_dag_efficiency_with_comparator, toSlice(period), toSlice(efficiency));
 }
 
-std::vector<uint16_t> DbStorage::getLastIntervalEfficiencies(uint16_t computation_interval) {
-  std::vector<uint16_t> efficiencies;
+std::deque<uint16_t> DbStorage::getLastIntervalEfficiencies(uint16_t changing_interval, uint16_t computation_interval) {
+  std::deque<uint16_t> efficiencies;
 
   auto it = std::unique_ptr<rocksdb::Iterator>(
       db_->NewIterator(read_options_, handle(Columns::pbft_block_dag_efficiency_with_comparator)));
   it->SeekToLast();
   if (it->Valid()) {
     const auto last_period = FromSlice<uint64_t>(it->key().data());
-    const auto count_to_get = last_period % computation_interval;
-    efficiencies.reserve(count_to_get);
+    auto count_to_get = last_period % changing_interval;
+    count_to_get += (computation_interval - changing_interval);
 
     for (; it->Valid() && efficiencies.size() < count_to_get; it->Prev()) {
       // order doesn't matter
-      efficiencies.push_back(FromSlice<uint16_t>(it->value()));
+      efficiencies.push_front(FromSlice<uint16_t>(it->value()));
     }
   }
 
