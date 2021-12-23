@@ -624,6 +624,7 @@ void DagManager::recoverDag() {
         LOG(log_er_) << "Nonfinalized Dag Block actually finalized in period " << period->first;
         db_->removeDagBlock(blk.getHash());
       } else {
+        // Testnet hotfix
         auto propose_period = dag_blk_mgr_->getProposalPeriod(blk.getLevel());
         // Verify VDF solution
         try {
@@ -632,6 +633,7 @@ void DagManager::recoverDag() {
           LOG(log_er_) << "DAG block " << blk.getHash() << " with " << blk.getLevel()
                        << " level failed on VDF verification with pivot hash " << blk.getPivot() << " reason "
                        << e.what();
+          // Even when this is set to true check all the blocks to log all invalid ones
           found_invalid = true;
         }
         if (found_invalid) {
