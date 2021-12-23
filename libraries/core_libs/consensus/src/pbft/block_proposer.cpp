@@ -99,12 +99,10 @@ void BlockProposer::start() {
     while (!stopped_) {
       // Blocks are not proposed if we are behind the network and still syncing
       auto syncing = false;
-      size_t peer_count = 0;
       if (auto net = network_.lock()) {
         syncing = net->pbft_syncing();
-        peer_count = net->getPeerCount();
       }
-      if (!syncing && peer_count > 0) {
+      if (!syncing) {
         propose_model_->propose();
       }
       thisThreadSleepForMilliSeconds(min_proposal_delay);

@@ -616,6 +616,7 @@ void DagManager::recoverDag() {
     }
   }
 
+  bool found_invalid = false;
   for (auto &lvl : db_->getNonfinalizedDagBlocks()) {
     for (auto &blk : lvl.second) {
       auto period = db_->getDagBlockPeriod(blk.getHash());
@@ -623,7 +624,21 @@ void DagManager::recoverDag() {
         LOG(log_er_) << "Nonfinalized Dag Block actually finalized in period " << period->first;
         db_->removeDagBlock(blk.getHash());
       } else {
-        addDagBlock(std::move(blk), {}, false, false);
+        auto propose_period = dag_blk_mgr_->getProposalPeriod(blk.getLevel());
+        // Verify VDF solution
+        try {
+          blk.verifyVdf(dag_blk_mgr_->sortitionParamsManager().getSortitionParams(propose_period.first));
+        } catch (vdf_sortition::VdfSortition::InvalidVdfSortition const &e) {
+          LOG(log_er_) << "DAG block " << blk.getHash() << " with " << blk.getLevel()
+                       << " level failed on VDF verification with pivot hash " << blk.getPivot() << " reason "
+                       << e.what();
+          found_invalid = true;
+        }
+        if (found_invalid) {
+          db_->removeDagBlock(blk.getHash());
+        } else {
+          addDagBlock(std::move(blk), {}, false, false);
+        }
       }
     }
   }
