@@ -133,6 +133,8 @@ uint16_t calculateEfficiencyHF2(const SyncBlock& block, uint16_t stale_difficult
     total_transactions_count += trxs.size();
   }
 
+  if (total_transactions_count == 0) return 100 * kOnePercent;
+
   return unique_transactions.size() * 100 * kOnePercent / total_transactions_count;
 }
 
