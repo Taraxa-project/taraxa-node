@@ -110,6 +110,11 @@ SortitionParams SortitionParamsManager::getSortitionParams(std::optional<uint64_
     }
   }
 
+  // Testnet hotfix
+  if (period >= k_testnet_hardfork2_block_num) {
+    p.vdf.difficulty_stale = 23;
+  }
+
   return p;
 }
 
