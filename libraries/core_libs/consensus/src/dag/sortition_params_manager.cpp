@@ -1,7 +1,10 @@
 #include "dag/sortition_params_manager.hpp"
 
 #include "pbft/pbft_block.hpp"
+
 namespace taraxa {
+
+constexpr uint16_t k_testnet_hardfork2_sortition_interval_length = 200;
 
 SortitionParamsChange::SortitionParamsChange(uint64_t period, uint16_t efficiency, const VrfParams& vrf,
                                              const SortitionParamsChange& previous)
@@ -52,7 +55,7 @@ SortitionParamsChange SortitionParamsChange::from_rlp(const dev::RLP& rlp) {
   p.interval_efficiency = rlp[3].toInt<uint16_t>();
   p.actual_correction_per_percent = rlp[4].toInt<uint16_t>();
 
-  if (p.vrf_params.threshold_lower == 0) {
+  if (p.vrf_params.threshold_lower == 0 || p.vrf_params.threshold_upper == std::numeric_limits<uint16_t>::max()) {
     assert(p.vrf_params.threshold_upper <= p.vrf_params.k_threshold_range);
   } else {
     assert(p.vrf_params.threshold_upper - p.vrf_params.threshold_lower == p.vrf_params.k_threshold_range);
@@ -64,7 +67,7 @@ SortitionParamsChange SortitionParamsChange::from_rlp(const dev::RLP& rlp) {
 SortitionParamsManager::SortitionParamsManager(const addr_t& node_addr, SortitionConfig sort_conf,
                                                std::shared_ptr<DbStorage> db)
     : config_(std::move(sort_conf)), db_(std::move(db)) {
-  LOG_OBJECTS_CREATE("TARCAP");
+  LOG_OBJECTS_CREATE("SORT_MGR");
   // load cache values from db
   params_changes_ = db_->getLastSortitionParams(config_.changes_count_for_average);
   // restore VRF params from last change
@@ -72,8 +75,11 @@ SortitionParamsManager::SortitionParamsManager(const addr_t& node_addr, Sortitio
     config_.vrf = params_changes_.back().vrf_params;
   }
 
-  dag_efficiencies_.reserve(config_.computation_interval);
-  dag_efficiencies_ = db_->getLastIntervalEfficiencies(config_.computation_interval);
+  auto changes_count_to_calculate = config_.computation_interval;
+  if (!params_changes_.empty() && params_changes_.back().period >= k_testnet_hardfork2_block_num) {
+    changes_count_to_calculate = k_testnet_hardfork2_sortition_interval_length;
+  }
+  dag_efficiencies_ = db_->getLastIntervalEfficiencies(config_.computation_interval, changes_count_to_calculate);
 }
 uint64_t SortitionParamsManager::currentProposalPeriod() const {
   if (params_changes_.empty()) return 0;
@@ -104,10 +110,35 @@ SortitionParams SortitionParamsManager::getSortitionParams(std::optional<uint64_
     }
   }
 
+  // Testnet hotfix
+  if (period >= k_testnet_hardfork2_block_num) {
+    p.vdf.difficulty_stale = 23;
+  }
+
   return p;
 }
 
+uint16_t calculateEfficiencyHF2(const SyncBlock& block, uint16_t stale_difficulty) {
+  // calculate efficiency only for current block because it is not worth to check if transaction was finalized before
+  size_t total_transactions_count = 0;
+  std::unordered_set<trx_hash_t> unique_transactions;
+  for (const auto& dag_block : block.dag_blocks) {
+    if (dag_block.getDifficulty() == stale_difficulty) {
+      continue;
+    }
+    const auto& trxs = dag_block.getTrxs();
+    unique_transactions.insert(trxs.begin(), trxs.end());
+    total_transactions_count += trxs.size();
+  }
+
+  return unique_transactions.size() * 100 * kOnePercent / total_transactions_count;
+}
+
 uint16_t SortitionParamsManager::calculateDagEfficiency(const SyncBlock& block) const {
+  if (block.pbft_blk->getPeriod() >= k_testnet_hardfork2_block_num) {
+    return calculateEfficiencyHF2(block, config_.vdf.difficulty_stale);
+  }
+
   size_t total_count = std::accumulate(block.dag_blocks.begin(), block.dag_blocks.end(), 0,
                                        [](uint32_t s, const auto& b) { return s + b.getTrxs().size(); });
 
@@ -126,13 +157,22 @@ uint16_t SortitionParamsManager::averageCorrectionPerPercent() const {
 }
 
 void SortitionParamsManager::cleanup(uint64_t current_period) {
-  dag_efficiencies_.clear();
+  uint16_t efficiencies_to_leave = 0;
+  if (current_period >= k_testnet_hardfork2_block_num) {
+    efficiencies_to_leave = k_testnet_hardfork2_sortition_interval_length - config_.computation_interval;
+  }
+
   while (params_changes_.size() > config_.changes_count_for_average) {
     params_changes_.pop_front();
   }
-  auto batch = db_->createWriteBatch();
-  db_->cleanupDagEfficiencies(current_period);
-  db_->commitWriteBatch(batch);
+  while (dag_efficiencies_.size() > efficiencies_to_leave) {
+    dag_efficiencies_.pop_front();
+  }
+  if ((current_period - efficiencies_to_leave) > 0) {
+    auto batch = db_->createWriteBatch();
+    db_->cleanupDagEfficiencies(current_period - efficiencies_to_leave);
+    db_->commitWriteBatch(batch);
+  }
 }
 
 void SortitionParamsManager::pbftBlockPushed(const SyncBlock& block, DbStorage::Batch& batch) {
