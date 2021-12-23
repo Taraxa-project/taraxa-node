@@ -67,7 +67,7 @@ SortitionParamsChange SortitionParamsChange::from_rlp(const dev::RLP& rlp) {
 SortitionParamsManager::SortitionParamsManager(const addr_t& node_addr, SortitionConfig sort_conf,
                                                std::shared_ptr<DbStorage> db)
     : config_(std::move(sort_conf)), db_(std::move(db)) {
-  LOG_OBJECTS_CREATE("TARCAP");
+  LOG_OBJECTS_CREATE("SORT_MGR");
   // load cache values from db
   params_changes_ = db_->getLastSortitionParams(config_.changes_count_for_average);
   // restore VRF params from last change
@@ -114,20 +114,19 @@ SortitionParams SortitionParamsManager::getSortitionParams(std::optional<uint64_
 }
 
 uint16_t calculateEfficiencyHF2(const SyncBlock& block, uint16_t stale_difficulty) {
-  auto accLambda = [&stale_difficulty](uint32_t s, const DagBlock& b) -> uint32_t {
-    if (b.getDifficulty() == stale_difficulty) {
-      return s;
+  // calculate efficiency only for current block because it is not worth to check if transaction was finalized before
+  size_t total_transactions_count = 0;
+  std::unordered_set<trx_hash_t> unique_transactions;
+  for (const auto& dag_block : block.dag_blocks) {
+    if (dag_block.getDifficulty() == stale_difficulty) {
+      continue;
     }
-    return s + b.getTrxs().size();
-  };
-  size_t total_count = std::accumulate(block.dag_blocks.begin(), block.dag_blocks.end(), 0, accLambda);
-  uint16_t res = 100 * kOnePercent;
-  if (total_count != 0) {
-    res = block.transactions.size() * 100 * kOnePercent / total_count;
+    const auto& trxs = dag_block.getTrxs();
+    unique_transactions.insert(trxs.begin(), trxs.end());
+    total_transactions_count += trxs.size();
   }
-  // this needed because stale blocks could have efficient transactions and efficiency would be bigger than 100%
-  res = std::min(uint16_t(100 * kOnePercent), res);
-  return res;
+
+  return unique_transactions.size() * kOnePercent / total_transactions_count;
 }
 
 uint16_t SortitionParamsManager::calculateDagEfficiency(const SyncBlock& block) const {
