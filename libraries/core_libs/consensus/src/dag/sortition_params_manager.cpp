@@ -55,7 +55,7 @@ SortitionParamsChange SortitionParamsChange::from_rlp(const dev::RLP& rlp) {
   p.interval_efficiency = rlp[3].toInt<uint16_t>();
   p.actual_correction_per_percent = rlp[4].toInt<uint16_t>();
 
-  if (p.vrf_params.threshold_lower == 0) {
+  if (p.vrf_params.threshold_lower == 0 || p.vrf_params.threshold_upper == std::numeric_limits<uint16_t>::max()) {
     assert(p.vrf_params.threshold_upper <= p.vrf_params.k_threshold_range);
   } else {
     assert(p.vrf_params.threshold_upper - p.vrf_params.threshold_lower == p.vrf_params.k_threshold_range);
@@ -126,7 +126,7 @@ uint16_t calculateEfficiencyHF2(const SyncBlock& block, uint16_t stale_difficult
     total_transactions_count += trxs.size();
   }
 
-  return unique_transactions.size() * kOnePercent / total_transactions_count;
+  return unique_transactions.size() * 100 * kOnePercent / total_transactions_count;
 }
 
 uint16_t SortitionParamsManager::calculateDagEfficiency(const SyncBlock& block) const {
