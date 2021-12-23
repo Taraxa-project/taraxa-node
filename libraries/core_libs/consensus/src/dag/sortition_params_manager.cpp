@@ -5,6 +5,7 @@
 namespace taraxa {
 
 constexpr uint16_t k_testnet_hardfork2_sortition_interval_length = 200;
+constexpr uint16_t k_testnet_hardfork2_difficulty_stale = 23;
 
 SortitionParamsChange::SortitionParamsChange(uint64_t period, uint16_t efficiency, const VrfParams& vrf,
                                              const SortitionParamsChange& previous)
@@ -112,7 +113,7 @@ SortitionParams SortitionParamsManager::getSortitionParams(std::optional<uint64_
 
   // Testnet hotfix
   if (period >= k_testnet_hardfork2_block_num) {
-    p.vdf.difficulty_stale = 23;
+    p.vdf.difficulty_stale = k_testnet_hardfork2_difficulty_stale;
   }
 
   return p;
@@ -123,7 +124,8 @@ uint16_t calculateEfficiencyHF2(const SyncBlock& block, uint16_t stale_difficult
   size_t total_transactions_count = 0;
   std::unordered_set<trx_hash_t> unique_transactions;
   for (const auto& dag_block : block.dag_blocks) {
-    if (dag_block.getDifficulty() == stale_difficulty) {
+    if (dag_block.getDifficulty() == stale_difficulty ||
+        dag_block.getDifficulty() == k_testnet_hardfork2_difficulty_stale) {
       continue;
     }
     const auto& trxs = dag_block.getTrxs();
