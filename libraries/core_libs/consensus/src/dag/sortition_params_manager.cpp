@@ -1,6 +1,7 @@
 #include "dag/sortition_params_manager.hpp"
 
 #include "pbft/pbft_block.hpp"
+
 namespace taraxa {
 
 SortitionParamsChange::SortitionParamsChange(uint64_t period, uint16_t efficiency, const VrfParams& vrf,
@@ -107,7 +108,28 @@ SortitionParams SortitionParamsManager::getSortitionParams(std::optional<uint64_
   return p;
 }
 
+uint16_t calculateEfficiencyHF2(const SyncBlock& block, uint16_t stale_difficulty) {
+  auto accLambda = [&stale_difficulty](uint32_t s, const DagBlock& b) -> uint32_t {
+    if (b.getDifficulty() == stale_difficulty) {
+      return s;
+    }
+    return s + b.getTrxs().size();
+  };
+  size_t total_count = std::accumulate(block.dag_blocks.begin(), block.dag_blocks.end(), 0, accLambda);
+  uint16_t res = 100 * kOnePercent;
+  if (total_count != 0) {
+    res = block.transactions.size() * 100 * kOnePercent / total_count;
+  }
+  // this needed because stale blocks could have efficient transactions and efficiency would be bigger than 100%
+  res = std::min(uint16_t(100 * kOnePercent), res);
+  return res;
+}
+
 uint16_t SortitionParamsManager::calculateDagEfficiency(const SyncBlock& block) const {
+  if (block.pbft_blk->getPeriod() >= k_testnet_hardfork2_block_num) {
+    return calculateEfficiencyHF2(block, config_.vdf.difficulty_stale);
+  }
+
   size_t total_count = std::accumulate(block.dag_blocks.begin(), block.dag_blocks.end(), 0,
                                        [](uint32_t s, const auto& b) { return s + b.getTrxs().size(); });
 

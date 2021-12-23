@@ -74,6 +74,7 @@ class DagBlock {
   auto const &getTrxs() const { return trxs_; }
   auto const &getSig() const { return sig_; }
   blk_hash_t const &getHash() const;
+  uint16_t getDifficulty() const { return vdf_.getDifficulty(); }
 
   addr_t const &getSender() const;
   Json::Value getJson(bool with_derived_fields = true) const;
