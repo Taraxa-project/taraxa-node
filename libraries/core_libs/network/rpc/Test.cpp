@@ -60,6 +60,30 @@ Json::Value Test::get_dag_block(const Json::Value &param1) {
   return res;
 }
 
+Json::Value Test::get_nf_blocks(const Json::Value &) {
+  Json::Value res;
+  try {
+    if (auto node = full_node_.lock()) {
+      auto nf = node->getDagManager()->getNonFinalizedBlocks();
+      res["value"] = Json::Value(Json::arrayValue);
+      for (auto const &n : nf) {
+        Json::Value level_json;
+        level_json["level"] = n.first;
+        level_json["blocks"] = Json::Value(Json::arrayValue);
+        for (auto const &b : n.second) {
+          Json::Value block_json;
+          block_json["hash"] = b.abridged();
+          level_json["value"].append(block_json);
+        }
+        res["value"].append(level_json);
+      }
+    }
+  } catch (std::exception &e) {
+    res["status"] = e.what();
+  }
+  return res;
+}
+
 Json::Value Test::send_coin_transaction(const Json::Value &param1) {
   Json::Value res;
   try {

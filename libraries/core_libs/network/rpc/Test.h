@@ -21,6 +21,7 @@ class Test : public TestFace {
 
   virtual Json::Value insert_dag_block(const Json::Value& param1) override;
   virtual Json::Value get_dag_block(const Json::Value& param1) override;
+  virtual Json::Value get_nf_blocks(const Json::Value& param1) override;
   virtual Json::Value send_coin_transaction(const Json::Value& param1) override;
   virtual Json::Value create_test_coin_transactions(const Json::Value& param1) override;
   virtual Json::Value get_num_proposed_blocks() override;
