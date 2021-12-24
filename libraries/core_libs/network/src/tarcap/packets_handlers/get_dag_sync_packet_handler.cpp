@@ -35,20 +35,14 @@ void GetDagSyncPacketHandler::process(const PacketData &packet_data,
     blocks_hashes.emplace(*it);
   }
 
-  uint32_t block_count = 0;
-
-  static const uint32_t max_blocks_to_send = 100;
-
   const auto &blocks = dag_mgr_->getNonFinalizedBlocks();
   for (auto &level_blocks : blocks) {
     for (auto &block : level_blocks.second) {
-      if (block_count == max_blocks_to_send) break;
       const auto hash = block;
       if (mode == DagSyncRequestType::MissingHashes) {
         if (blocks_hashes.count(hash) == 1) {
           if (auto blk = dag_blk_mgr_->getDagBlock(hash); blk) {
             dag_blocks.emplace_back(blk);
-            block_count++;
           } else {
             LOG(log_er_) << "NonFinalizedBlock " << hash << " not in DB";
             assert(false);
@@ -58,7 +52,6 @@ void GetDagSyncPacketHandler::process(const PacketData &packet_data,
         if (blocks_hashes.count(hash) == 0) {
           if (auto blk = dag_blk_mgr_->getDagBlock(hash); blk) {
             dag_blocks.emplace_back(blk);
-            block_count++;
           } else {
             LOG(log_er_) << "NonFinalizedBlock " << hash << " not in DB";
             assert(false);
