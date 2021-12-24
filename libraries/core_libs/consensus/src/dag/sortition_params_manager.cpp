@@ -4,9 +4,6 @@
 
 namespace taraxa {
 
-constexpr uint16_t k_testnet_hardfork2_sortition_interval_length = 200;
-constexpr uint16_t k_testnet_hardfork2_difficulty_stale = 23;
-
 SortitionParamsChange::SortitionParamsChange(uint64_t period, uint16_t efficiency, const VrfParams& vrf,
                                              const SortitionParamsChange& previous)
     : period(period), vrf_params(vrf), interval_efficiency(efficiency) {
@@ -76,11 +73,7 @@ SortitionParamsManager::SortitionParamsManager(const addr_t& node_addr, Sortitio
     config_.vrf = params_changes_.back().vrf_params;
   }
 
-  auto changes_count_to_calculate = config_.computation_interval;
-  if (!params_changes_.empty() && params_changes_.back().period >= k_testnet_hardfork2_block_num) {
-    changes_count_to_calculate = k_testnet_hardfork2_sortition_interval_length;
-  }
-  dag_efficiencies_ = db_->getLastIntervalEfficiencies(config_.computation_interval, changes_count_to_calculate);
+  dag_efficiencies_ = db_->getLastIntervalEfficiencies(config_.changing_interval, config_.computation_interval);
 }
 uint64_t SortitionParamsManager::currentProposalPeriod() const {
   if (params_changes_.empty()) return 0;
@@ -111,21 +104,15 @@ SortitionParams SortitionParamsManager::getSortitionParams(std::optional<uint64_
     }
   }
 
-  // Testnet hotfix
-  if (period >= k_testnet_hardfork2_block_num) {
-    p.vdf.difficulty_stale = k_testnet_hardfork2_difficulty_stale;
-  }
-
   return p;
 }
 
-uint16_t calculateEfficiencyHF2(const SyncBlock& block, uint16_t stale_difficulty) {
+uint16_t SortitionParamsManager::calculateDagEfficiency(const SyncBlock& block) const {
   // calculate efficiency only for current block because it is not worth to check if transaction was finalized before
   size_t total_transactions_count = 0;
   std::unordered_set<trx_hash_t> unique_transactions;
   for (const auto& dag_block : block.dag_blocks) {
-    if (dag_block.getDifficulty() == stale_difficulty ||
-        dag_block.getDifficulty() == k_testnet_hardfork2_difficulty_stale) {
+    if (dag_block.getDifficulty() == config_.vdf.difficulty_stale) {
       continue;
     }
     const auto& trxs = dag_block.getTrxs();
@@ -136,17 +123,6 @@ uint16_t calculateEfficiencyHF2(const SyncBlock& block, uint16_t stale_difficult
   if (total_transactions_count == 0) return 100 * kOnePercent;
 
   return unique_transactions.size() * 100 * kOnePercent / total_transactions_count;
-}
-
-uint16_t SortitionParamsManager::calculateDagEfficiency(const SyncBlock& block) const {
-  if (block.pbft_blk->getPeriod() >= k_testnet_hardfork2_block_num) {
-    return calculateEfficiencyHF2(block, config_.vdf.difficulty_stale);
-  }
-
-  size_t total_count = std::accumulate(block.dag_blocks.begin(), block.dag_blocks.end(), 0,
-                                       [](uint32_t s, const auto& b) { return s + b.getTrxs().size(); });
-
-  return block.transactions.size() * 100 * kOnePercent / total_count;
 }
 
 uint16_t SortitionParamsManager::averageDagEfficiency() {
@@ -161,10 +137,7 @@ uint16_t SortitionParamsManager::averageCorrectionPerPercent() const {
 }
 
 void SortitionParamsManager::cleanup(uint64_t current_period) {
-  uint16_t efficiencies_to_leave = 0;
-  if (current_period >= k_testnet_hardfork2_block_num) {
-    efficiencies_to_leave = k_testnet_hardfork2_sortition_interval_length - config_.computation_interval;
-  }
+  uint16_t efficiencies_to_leave = config_.computation_interval - config_.changing_interval;
 
   while (params_changes_.size() > config_.changes_count_for_average) {
     params_changes_.pop_front();

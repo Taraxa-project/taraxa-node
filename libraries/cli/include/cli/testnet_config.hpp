@@ -146,7 +146,8 @@ const char *testnet_json = R"foo({
       "changes_count_for_average": "0x5",
       "max_interval_correction": "0x3E8",
       "dag_efficiency_targets": ["0x12C0", "0x1450"],
-      "computation_interval": "0x32",
+      "changing_interval": "0x32",
+      "computation_interval": "0xC8",
       "vrf": {
         "threshold_upper": "0x9fff",
         "threshold_lower": "0x87ff"
@@ -154,7 +155,7 @@ const char *testnet_json = R"foo({
       "vdf": {
         "difficulty_max": "0x15",
         "difficulty_min": "0x10",
-        "difficulty_stale": "0x16",
+        "difficulty_stale": "0x17",
         "lambda_bound": "0x64"
       }
     }
