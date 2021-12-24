@@ -149,8 +149,8 @@ const char *testnet_json = R"foo({
       "changing_interval": "0x32",
       "computation_interval": "0xC8",
       "vrf": {
-        "threshold_upper": "0x9fff",
-        "threshold_lower": "0x87ff"
+        "threshold_upper": "0x2fff",
+        "threshold_range": "0x1800"
       },
       "vdf": {
         "difficulty_max": "0x15",

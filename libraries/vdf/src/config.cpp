@@ -12,37 +12,26 @@ int32_t fixFromOverflow(uint16_t value, int32_t change, uint16_t limit) {
   return change;
 }
 
-void VrfParams::addChange(int32_t change, bool fork_threshold) {
+VrfParams& VrfParams::operator+=(int32_t change) {
   if (change < 0) {
-    if (fork_threshold) {
-      change = fixFromOverflow(threshold_upper, change, k_threshold_upper_min_value);
-    } else {
-      change = fixFromOverflow(threshold_lower, change, std::numeric_limits<uint16_t>::min());
-    }
+    change = fixFromOverflow(threshold_upper, change, kThresholdUpperMinValue);
   } else {
     change = fixFromOverflow(threshold_upper, change, std::numeric_limits<uint16_t>::max());
   }
   threshold_upper += change;
-  if (fork_threshold) {
-    if (threshold_upper >= k_threshold_range) {
-      threshold_lower = threshold_upper - k_threshold_range;
-    } else {
-      threshold_lower = 0;
-    }
-  } else {
-    threshold_lower += change;
-  }
+
+  return *this;
 }
 
 Json::Value enc_json(VrfParams const& obj) {
   Json::Value ret(Json::objectValue);
   ret["threshold_upper"] = dev::toJS(obj.threshold_upper);
-  ret["threshold_lower"] = dev::toJS(obj.threshold_lower);
+  ret["threshold_range"] = dev::toJS(obj.threshold_range);
   return ret;
 }
 void dec_json(Json::Value const& json, VrfParams& obj) {
   obj.threshold_upper = dev::jsToInt(json["threshold_upper"].asString());
-  obj.threshold_lower = dev::jsToInt(json["threshold_lower"].asString());
+  obj.threshold_range = dev::jsToInt(json["threshold_range"].asString());
 }
 
 Json::Value enc_json(VdfParams const& obj) {

@@ -9,11 +9,10 @@ namespace taraxa {
 
 struct VrfParams {
   uint16_t threshold_upper = 0;  // upper bound of normal selection
-  uint16_t threshold_lower = 0;  // lower bound of normal selection
-  void addChange(int32_t change, bool fork_threshold);
+  uint16_t threshold_range = 0;  // range of normal selection
+  VrfParams& operator+=(int32_t change);
 
-  static constexpr uint16_t k_threshold_range = 0x1800;
-  static constexpr uint16_t k_threshold_upper_min_value = 0x50;
+  static constexpr uint16_t kThresholdUpperMinValue = 0x50;
 };
 
 struct VdfParams {
@@ -27,9 +26,9 @@ struct SortitionParams {
   SortitionParams() = default;
   SortitionParams(SortitionParams&&) = default;
   SortitionParams(const SortitionParams& config) = default;
-  SortitionParams(uint16_t threshold_upper, uint16_t threshold_lower, uint16_t min, uint16_t max, uint16_t stale,
+  SortitionParams(uint16_t threshold_upper, uint16_t threshold_range, uint16_t min, uint16_t max, uint16_t stale,
                   uint16_t lambda_max_bound)
-      : vrf{threshold_upper, threshold_lower}, vdf{min, max, stale, lambda_max_bound} {}
+      : vrf{threshold_upper, threshold_range}, vdf{min, max, stale, lambda_max_bound} {}
   SortitionParams(const VrfParams& vrf, const VdfParams& vdf) : vrf{vrf}, vdf{vdf} {}
 
   SortitionParams& operator=(SortitionParams&&) = default;
@@ -38,7 +37,7 @@ struct SortitionParams {
   friend std::ostream& operator<<(std::ostream& strm, const SortitionParams& config) {
     strm << " [VDF config] " << std::endl;
     strm << "    vrf upper threshold: " << config.vrf.threshold_upper << std::endl;
-    strm << "    vrf lower threshold: " << config.vrf.threshold_lower << std::endl;
+    strm << "    vrf threshold range: " << config.vrf.threshold_range << std::endl;
     strm << "    difficulty minimum: " << config.vdf.difficulty_min << std::endl;
     strm << "    difficulty maximum: " << config.vdf.difficulty_max << std::endl;
     strm << "    difficulty stale: " << config.vdf.difficulty_stale << std::endl;

@@ -35,7 +35,7 @@ uint16_t SortitionParamsChange::correctionPerPercent(const SortitionParamsChange
 bytes SortitionParamsChange::rlp() const {
   dev::RLPStream s;
   s.appendList(5);
-  s << vrf_params.threshold_lower;
+  s << vrf_params.threshold_range;
   s << vrf_params.threshold_upper;
   s << period;
   s << interval_efficiency;
@@ -47,17 +47,11 @@ bytes SortitionParamsChange::rlp() const {
 SortitionParamsChange SortitionParamsChange::from_rlp(const dev::RLP& rlp) {
   SortitionParamsChange p;
 
-  p.vrf_params.threshold_lower = rlp[0].toInt<uint16_t>();
+  p.vrf_params.threshold_range = rlp[0].toInt<uint16_t>();
   p.vrf_params.threshold_upper = rlp[1].toInt<uint16_t>();
   p.period = rlp[2].toInt<uint64_t>();
   p.interval_efficiency = rlp[3].toInt<uint16_t>();
   p.actual_correction_per_percent = rlp[4].toInt<uint16_t>();
-
-  if (p.vrf_params.threshold_lower == 0 || p.vrf_params.threshold_upper == std::numeric_limits<uint16_t>::max()) {
-    assert(p.vrf_params.threshold_upper <= p.vrf_params.k_threshold_range);
-  } else {
-    assert(p.vrf_params.threshold_upper - p.vrf_params.threshold_lower == p.vrf_params.k_threshold_range);
-  }
 
   return p;
 }
@@ -180,7 +174,7 @@ int32_t SortitionParamsManager::getChange(uint64_t period, uint16_t efficiency) 
   const int32_t change = correction * per_percent / kOnePercent;
 
   LOG(log_dg_) << "Average interval efficiency: " << efficiency / 100. << "%, correction per percent: " << per_percent;
-  LOG(log_nf_) << "Changing VRF params on " << period << " period from (" << config_.vrf.threshold_lower << ", "
+  LOG(log_nf_) << "Changing VRF params on " << period << " period from (" << config_.vrf.threshold_range << ", "
                << config_.vrf.threshold_upper << ") by " << change;
 
   return change;
@@ -196,7 +190,7 @@ std::optional<SortitionParamsChange> SortitionParamsManager::calculateChange(uin
   }
 
   const int32_t change = getChange(period, average_dag_efficiency);
-  config_.vrf.addChange(change, period >= k_threshold_testnet_hard_fork_period);
+  config_.vrf += change;
 
   if (params_changes_.empty()) {
     return SortitionParamsChange{period, average_dag_efficiency, config_.vrf};
