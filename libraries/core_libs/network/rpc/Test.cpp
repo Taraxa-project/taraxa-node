@@ -60,6 +60,26 @@ Json::Value Test::get_dag_block(const Json::Value &param1) {
   return res;
 }
 
+Json::Value Test::get_sortition_change(const Json::Value &param1) {
+  Json::Value res;
+  try {
+    if (auto node = full_node_.lock()) {
+      uint64_t period = param1["period"].asUInt64();
+      auto params_change = node->getDB()->getParamsChangeForPeriod(period);
+      res["actual_correction_per_percent"] = params_change->actual_correction_per_percent;
+      res["interval_efficiency"] = params_change->interval_efficiency;
+      res["period"] = params_change->period;
+      res["k_threshold_range"] = params_change->vrf_params.k_threshold_range;
+      res["k_threshold_upper_min_value"] = params_change->vrf_params.k_threshold_upper_min_value;
+      res["threshold_lower"] = params_change->vrf_params.threshold_lower;
+      res["threshold_upper"] = params_change->vrf_params.threshold_upper;
+    }
+  } catch (std::exception &e) {
+    res["status"] = e.what();
+  }
+  return res;
+}
+
 Json::Value Test::get_nf_blocks(const Json::Value &) {
   Json::Value res;
   try {

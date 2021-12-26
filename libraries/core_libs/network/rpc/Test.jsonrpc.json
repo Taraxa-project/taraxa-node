@@ -21,6 +21,13 @@
     "returns": {}
   },
   {
+    "name": "get_sortition_change",
+    "params": [
+      {}
+    ],
+    "returns": {}
+  },
+  {
     "name": "send_coin_transaction",
     "params": [
       {}
