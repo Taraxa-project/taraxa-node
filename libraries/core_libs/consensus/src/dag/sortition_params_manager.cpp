@@ -231,9 +231,13 @@ void SortitionParamsManager::cleanup(uint64_t current_period) {
 }
 
 void SortitionParamsManager::pbftBlockPushed(const SyncBlock& block, DbStorage::Batch& batch) {
+  const auto& period = block.pbft_blk->getPeriod();
+  if (period == 155601) {
+    fixDifficulty();
+    params_changes_ = db_->getLastSortitionParams(config_.changes_count_for_average);
+  }
   uint16_t dag_efficiency = calculateDagEfficiency(block);
   dag_efficiencies_.push_back(dag_efficiency);
-  const auto& period = block.pbft_blk->getPeriod();
   db_->savePbftBlockDagEfficiency(period, dag_efficiency, batch);
   LOG(log_dg_) << period << " pbftBlockPushed, efficiency: " << dag_efficiency / 100. << "%";
 
@@ -243,11 +247,6 @@ void SortitionParamsManager::pbftBlockPushed(const SyncBlock& block, DbStorage::
     if (params_change) {
       db_->saveSortitionParamsChange(period, *params_change, batch);
       params_changes_.push_back(*params_change);
-
-      if (period == 155600) {
-        fixDifficulty();
-        params_changes_ = db_->getLastSortitionParams(config_.changes_count_for_average);
-      }
     }
 
     cleanup(period);
