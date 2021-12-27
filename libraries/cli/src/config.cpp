@@ -36,6 +36,7 @@ Config::Config(int argc, const char* argv[]) {
   bool version = false;
   uint64_t rebuild_db_period = 0;
   uint64_t revert_to_period = 0;
+  uint64_t set_pbft_step = 0;
   // Set node as default command
   command.push_back(NODE_COMMAND);
 
@@ -78,6 +79,7 @@ Config::Config(int argc, const char* argv[]) {
   node_command_options.add_options()(REVERT_TO_PERIOD, bpo::value<uint64_t>(&revert_to_period),
                                      "Revert db/state to specified "
                                      "period (specify period)");
+  node_command_options.add_options()(SET_PBFT_STEP, bpo::value<uint64_t>(&set_pbft_step), "Set pbft step");
   node_command_options.add_options()(NETWORK_ID, bpo::value<int>(&network_id),
                                      "Network identifier (integer, 1=Mainnet, 2=Testnet, 3=Devnet) (default: 2)"
                                      "Only used when creating new config file");
@@ -189,6 +191,7 @@ Config::Config(int argc, const char* argv[]) {
     node_config_.test_params.rebuild_db = rebuild_db;
     node_config_.test_params.rebuild_db_columns = rebuild_db_columns;
     node_config_.test_params.rebuild_db_period = rebuild_db_period;
+    node_config_.chain.pbft.set_pbft_step = set_pbft_step;
     if (command[0] == NODE_COMMAND) node_configured_ = true;
   } else if (command[0] == ACCOUNT_COMMAND) {
     if (command.size() == 1)

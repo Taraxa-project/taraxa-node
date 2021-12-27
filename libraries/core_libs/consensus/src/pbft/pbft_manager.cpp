@@ -42,6 +42,7 @@ PbftManager::PbftManager(PbftConfig const &conf, blk_hash_t const &genesis, addr
       DAG_BLOCKS_SIZE(conf.dag_blocks_size),
       GHOST_PATH_MOVE_BACK(conf.ghost_path_move_back),
       RUN_COUNT_VOTES(conf.run_count_votes),
+      override_pbft_step_(conf.set_pbft_step),
       dag_genesis_(genesis) {
   LOG_OBJECTS_CREATE("PBFT_MGR");
 }
@@ -459,6 +460,9 @@ void PbftManager::initialState_() {
 
   auto round = db_->getPbftMgrField(PbftMgrRoundStep::PbftRound);
   auto step = db_->getPbftMgrField(PbftMgrRoundStep::PbftStep);
+  if (override_pbft_step_ > 0) {
+    step = override_pbft_step_;
+  }
   if (round == 1 && step == 1) {
     // Node start from scratch
     state_ = value_proposal_state;
@@ -1002,6 +1006,15 @@ void PbftManager::firstFinish_() {
       if (place_votes) {
         LOG(log_nf_) << "Next votes " << place_votes << " voting nodes own starting value "
                      << own_starting_value_for_round_ << " for round " << round << ", at step " << step_;
+        // Re-broadcast pbft block in case some nodes do not have it
+        if (step_ % 20 == 0) {
+          auto pbft_block = getUnfinalizedBlock_(own_starting_value_for_round_);
+          if (pbft_block) {
+            if (auto net = network_.lock()) {
+              net->onNewPbftBlock(pbft_block);
+            }
+          }
+        }
       }
     }
   }

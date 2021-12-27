@@ -176,6 +176,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   size_t const DAG_BLOCKS_SIZE;
   size_t const GHOST_PATH_MOVE_BACK;
   bool RUN_COUNT_VOTES;  // TODO: Only for test, need remove later
+  uint64_t override_pbft_step_ = 0;
 
   PbftStates state_ = value_proposal_state;
   std::atomic<uint64_t> round_ = 1;

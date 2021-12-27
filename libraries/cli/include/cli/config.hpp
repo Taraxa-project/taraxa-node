@@ -40,6 +40,7 @@ class Config {
   static constexpr const char* HELP = "help";
   static constexpr const char* VERSION = "version";
   static constexpr const char* WALLET = "wallet";
+  static constexpr const char* SET_PBFT_STEP = "set-pbft-step";
 
   static constexpr const char* NODE_COMMAND = "node";
   static constexpr const char* ACCOUNT_COMMAND = "account";
