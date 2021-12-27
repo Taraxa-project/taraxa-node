@@ -65,11 +65,7 @@ SortitionParamsChange SortitionParamsChange::from_rlp(const dev::RLP& rlp) {
   return p;
 }
 
-SortitionParamsManager::SortitionParamsManager(const addr_t& node_addr, SortitionConfig sort_conf,
-                                               std::shared_ptr<DbStorage> db)
-    : config_(std::move(sort_conf)), db_(std::move(db)) {
-  LOG_OBJECTS_CREATE("SORT_MGR");
-
+void SortitionParamsManager::fixDifficulty() {
   // Testnet fix fork for incorrect sortition params changes
   auto params_change = db_->getParamsChangeForPeriod(155400);
   if (params_change.has_value() && params_change->period == 155400) {
@@ -115,6 +111,14 @@ SortitionParamsManager::SortitionParamsManager(const addr_t& node_addr, Sortitio
     {"id":"0","jsonrpc":"2.0","result":{"actual_correction_per_percent":15,"interval_efficiency":6944,"k_threshold_range":6144,"k_threshold_upper_min_value":80,"period":155400,"threshold_lower":0,"threshold_upper":1866}}
 
 */
+}
+
+SortitionParamsManager::SortitionParamsManager(const addr_t& node_addr, SortitionConfig sort_conf,
+                                               std::shared_ptr<DbStorage> db)
+    : config_(std::move(sort_conf)), db_(std::move(db)) {
+  LOG_OBJECTS_CREATE("SORT_MGR");
+
+  fixDifficulty();
 
   // load cache values from db
   params_changes_ = db_->getLastSortitionParams(config_.changes_count_for_average);
@@ -227,9 +231,13 @@ void SortitionParamsManager::cleanup(uint64_t current_period) {
 }
 
 void SortitionParamsManager::pbftBlockPushed(const SyncBlock& block, DbStorage::Batch& batch) {
+  const auto& period = block.pbft_blk->getPeriod();
+  if (period == 155601) {
+    fixDifficulty();
+    params_changes_ = db_->getLastSortitionParams(config_.changes_count_for_average);
+  }
   uint16_t dag_efficiency = calculateDagEfficiency(block);
   dag_efficiencies_.push_back(dag_efficiency);
-  const auto& period = block.pbft_blk->getPeriod();
   db_->savePbftBlockDagEfficiency(period, dag_efficiency, batch);
   LOG(log_dg_) << period << " pbftBlockPushed, efficiency: " << dag_efficiency / 100. << "%";
 
