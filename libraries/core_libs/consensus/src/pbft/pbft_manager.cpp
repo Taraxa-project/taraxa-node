@@ -1005,10 +1005,8 @@ void PbftManager::firstFinish_() {
         // Re-broadcast pbft block in case some nodes do not have it
         if (step_ % 20 == 0) {
           auto pbft_block = getUnfinalizedBlock_(own_starting_value_for_round_);
-          if (pbft_block) {
-            if (auto net = network_.lock()) {
-              net->onNewPbftBlock(pbft_block);
-            }
+          if (auto net = network_.lock(); net && pbft_block) {
+            net->onNewPbftBlock(pbft_block);
           }
         }
       }
