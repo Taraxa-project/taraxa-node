@@ -36,6 +36,13 @@ class SortitionParamsManager {
  public:
   SortitionParamsManager(const addr_t& node_addr, SortitionConfig sort_conf, std::shared_ptr<DbStorage> db);
   SortitionParams getSortitionParams(std::optional<uint64_t> for_period = {}) const;
+
+  /**
+   * Testnet hotfix for difficulty
+   * @returns average of corrections per percent for the latest `config_.changes_count_for_average` elements
+   */
+  void fixDifficulty();
+
   uint64_t currentProposalPeriod() const;
   /**
    * Calculates the average correction from previous changes we store in memory.
