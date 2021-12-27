@@ -69,14 +69,9 @@ SortitionParamsManager::SortitionParamsManager(const addr_t& node_addr, Sortitio
 
   dag_efficiencies_ = db_->getLastIntervalEfficiencies(config_.changing_interval, config_.computation_interval);
 }
-uint64_t SortitionParamsManager::currentProposalPeriod() const {
-  if (params_changes_.empty()) return 0;
-
-  return params_changes_.rbegin()->period;
-}
 
 SortitionParams SortitionParamsManager::getSortitionParams(std::optional<uint64_t> period) const {
-  if (!period) {
+  if (!period || (config_.changing_interval == 0)) {
     return config_;
   }
   bool is_period_params_found = false;
@@ -147,6 +142,9 @@ void SortitionParamsManager::cleanup(uint64_t current_period) {
 }
 
 void SortitionParamsManager::pbftBlockPushed(const SyncBlock& block, DbStorage::Batch& batch) {
+  if (config_.changing_interval == 0) {
+    return;
+  }
   uint16_t dag_efficiency = calculateDagEfficiency(block);
   dag_efficiencies_.push_back(dag_efficiency);
   const auto& period = block.pbft_blk->getPeriod();
