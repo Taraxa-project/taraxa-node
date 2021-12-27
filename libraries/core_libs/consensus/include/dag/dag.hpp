@@ -73,8 +73,8 @@ class Dag {
   void getLeaves(std::vector<blk_hash_t> &tips) const;
   void drawGraph(std::string const &filename) const;
 
-  bool computeOrder(blk_hash_t const &anchor, std::vector<blk_hash_t> &ordered_period_vertices,
-                    std::map<uint64_t, std::vector<blk_hash_t>> const &non_finalized_blks);
+  bool computeOrder(const blk_hash_t &anchor, std::vector<blk_hash_t> &ordered_period_vertices,
+                    const std::map<uint64_t, std::unordered_set<blk_hash_t>> &non_finalized_blks);
 
   void clear();
 
@@ -163,7 +163,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
     return std::make_pair(old_anchor_, anchor_);
   }
 
-  const std::pair<uint64_t, std::map<uint64_t, std::vector<blk_hash_t>>> getNonFinalizedBlocks() const;
+  const std::pair<uint64_t, std::map<uint64_t, std::unordered_set<blk_hash_t>>> getNonFinalizedBlocks() const;
 
   DagFrontier getDagFrontier();
 
@@ -194,7 +194,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   blk_hash_t old_anchor_;  // anchor of the second to last period
   uint64_t period_;        // last period
   blk_hash_t genesis_;
-  std::map<uint64_t, std::vector<blk_hash_t>> non_finalized_blks_;
+  std::map<uint64_t, std::unordered_set<blk_hash_t>> non_finalized_blks_;
   DagFrontier frontier_;
   std::atomic<bool> stopped_ = true;
   std::thread block_worker_;
