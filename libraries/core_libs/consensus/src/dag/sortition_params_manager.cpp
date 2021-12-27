@@ -69,6 +69,53 @@ SortitionParamsManager::SortitionParamsManager(const addr_t& node_addr, Sortitio
                                                std::shared_ptr<DbStorage> db)
     : config_(std::move(sort_conf)), db_(std::move(db)) {
   LOG_OBJECTS_CREATE("SORT_MGR");
+
+  // Testnet fix fork for incorrect sortition params changes
+  auto params_change = db_->getParamsChangeForPeriod(155400);
+  if (params_change.has_value() && params_change->period == 155400) {
+    auto batch = db_->createWriteBatch();
+    VrfParams vrf_params;
+    vrf_params.threshold_lower = 0;
+    vrf_params.threshold_upper = 1866;
+    SortitionParamsChange period_155400(155400, 6944, vrf_params);
+    period_155400.actual_correction_per_percent = 15;
+    db_->saveSortitionParamsChange(155400, period_155400, batch);
+
+    vrf_params.threshold_lower = 0;
+    vrf_params.threshold_upper = 2306;
+    SortitionParamsChange period_155450(155450, 6771, vrf_params);
+    period_155400.actual_correction_per_percent = 254;
+    db_->saveSortitionParamsChange(155450, period_155450, batch);
+
+    vrf_params.threshold_lower = 0;
+    vrf_params.threshold_upper = 3176;
+    SortitionParamsChange period_155500(155500, 8390, vrf_params);
+    period_155400.actual_correction_per_percent = 53;
+    db_->saveSortitionParamsChange(155500, period_155500, batch);
+
+    vrf_params.threshold_lower = 0;
+    vrf_params.threshold_upper = 3966;
+    SortitionParamsChange period_155550(155550, 9831, vrf_params);
+    period_155400.actual_correction_per_percent = 54;
+    db_->saveSortitionParamsChange(155550, period_155550, batch);
+
+    vrf_params.threshold_lower = 0;
+    vrf_params.threshold_upper = 4826;
+    SortitionParamsChange period_155600(155600, 9875, vrf_params);
+    period_155400.actual_correction_per_percent = 655;
+    db_->saveSortitionParamsChange(155600, period_155600, batch);
+
+    db_->commitWriteBatch(batch);
+  }
+  /*
+    {"id":"0","jsonrpc":"2.0","result":{"actual_correction_per_percent":655,"interval_efficiency":9875,"k_threshold_range":6144,"k_threshold_upper_min_value":80,"period":155600,"threshold_lower":0,"threshold_upper":4826}}
+    {"id":"0","jsonrpc":"2.0","result":{"actual_correction_per_percent":54,"interval_efficiency":9831,"k_threshold_range":6144,"k_threshold_upper_min_value":80,"period":155550,"threshold_lower":0,"threshold_upper":3966}}
+    {"id":"0","jsonrpc":"2.0","result":{"actual_correction_per_percent":53,"interval_efficiency":8390,"k_threshold_range":6144,"k_threshold_upper_min_value":80,"period":155500,"threshold_lower":0,"threshold_upper":3176}}
+    {"id":"0","jsonrpc":"2.0","result":{"actual_correction_per_percent":254,"interval_efficiency":6771,"k_threshold_range":6144,"k_threshold_upper_min_value":80,"period":155450,"threshold_lower":0,"threshold_upper":2306}}
+    {"id":"0","jsonrpc":"2.0","result":{"actual_correction_per_percent":15,"interval_efficiency":6944,"k_threshold_range":6144,"k_threshold_upper_min_value":80,"period":155400,"threshold_lower":0,"threshold_upper":1866}}
+
+*/
+
   // load cache values from db
   params_changes_ = db_->getLastSortitionParams(config_.changes_count_for_average);
   // restore VRF params from last change
