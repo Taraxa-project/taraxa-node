@@ -1494,7 +1494,8 @@ TEST_F(FullNodeTest, chain_config_json) {
   "sortition": {
     "changes_count_for_average": "0x5",
     "max_interval_correction": "0x3e8",
-    "computation_interval": "0x32",
+    "computation_interval": "0xc8",
+    "changing_interval" : "0x32",
     "dag_efficiency_targets": ["0x12c0", "0x1450"],
     "vdf": {
       "difficulty_max": "0x15",
@@ -1503,7 +1504,7 @@ TEST_F(FullNodeTest, chain_config_json) {
       "lambda_bound": "0x64"
     },
     "vrf": {
-      "threshold_lower": "0x7200",
+      "threshold_range": "0xe00",
       "threshold_upper": "0x8000"
     }
   }

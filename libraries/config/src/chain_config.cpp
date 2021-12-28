@@ -55,7 +55,7 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
     dpos.genesis_state[root_node_addr][root_node_addr] = dpos.eligibility_balance_threshold;
     // VDF config
     cfg.sortition.vrf.threshold_upper = 0x8000;
-    cfg.sortition.vrf.threshold_lower = 0x7200;
+    cfg.sortition.vrf.threshold_range = 0xe00;
     cfg.sortition.vdf.difficulty_min = 16;
     cfg.sortition.vdf.difficulty_max = 21;
     cfg.sortition.vdf.difficulty_stale = 22;

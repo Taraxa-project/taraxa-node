@@ -4,9 +4,6 @@
 
 namespace taraxa {
 
-constexpr uint16_t k_testnet_hardfork2_sortition_interval_length = 200;
-constexpr uint16_t k_testnet_hardfork2_difficulty_stale = 23;
-
 SortitionParamsChange::SortitionParamsChange(uint64_t period, uint16_t efficiency, const VrfParams& vrf,
                                              const SortitionParamsChange& previous)
     : period(period), vrf_params(vrf), interval_efficiency(efficiency) {
@@ -38,7 +35,7 @@ uint16_t SortitionParamsChange::correctionPerPercent(const SortitionParamsChange
 bytes SortitionParamsChange::rlp() const {
   dev::RLPStream s;
   s.appendList(5);
-  s << vrf_params.threshold_lower;
+  s << vrf_params.threshold_range;
   s << vrf_params.threshold_upper;
   s << period;
   s << interval_efficiency;
@@ -50,17 +47,11 @@ bytes SortitionParamsChange::rlp() const {
 SortitionParamsChange SortitionParamsChange::from_rlp(const dev::RLP& rlp) {
   SortitionParamsChange p;
 
-  p.vrf_params.threshold_lower = rlp[0].toInt<uint16_t>();
+  p.vrf_params.threshold_range = rlp[0].toInt<uint16_t>();
   p.vrf_params.threshold_upper = rlp[1].toInt<uint16_t>();
   p.period = rlp[2].toInt<uint64_t>();
   p.interval_efficiency = rlp[3].toInt<uint16_t>();
   p.actual_correction_per_percent = rlp[4].toInt<uint16_t>();
-
-  if (p.vrf_params.threshold_lower == 0 || p.vrf_params.threshold_upper == std::numeric_limits<uint16_t>::max()) {
-    assert(p.vrf_params.threshold_upper <= p.vrf_params.k_threshold_range);
-  } else {
-    assert(p.vrf_params.threshold_upper - p.vrf_params.threshold_lower == p.vrf_params.k_threshold_range);
-  }
 
   return p;
 }
@@ -76,20 +67,11 @@ SortitionParamsManager::SortitionParamsManager(const addr_t& node_addr, Sortitio
     config_.vrf = params_changes_.back().vrf_params;
   }
 
-  auto changes_count_to_calculate = config_.computation_interval;
-  if (!params_changes_.empty() && params_changes_.back().period >= k_testnet_hardfork2_block_num) {
-    changes_count_to_calculate = k_testnet_hardfork2_sortition_interval_length;
-  }
-  dag_efficiencies_ = db_->getLastIntervalEfficiencies(config_.computation_interval, changes_count_to_calculate);
-}
-uint64_t SortitionParamsManager::currentProposalPeriod() const {
-  if (params_changes_.empty()) return 0;
-
-  return params_changes_.rbegin()->period;
+  dag_efficiencies_ = db_->getLastIntervalEfficiencies(config_.changing_interval, config_.computation_interval);
 }
 
 SortitionParams SortitionParamsManager::getSortitionParams(std::optional<uint64_t> period) const {
-  if (!period) {
+  if (!period || (config_.changing_interval == 0)) {
     return config_;
   }
   bool is_period_params_found = false;
@@ -111,21 +93,15 @@ SortitionParams SortitionParamsManager::getSortitionParams(std::optional<uint64_
     }
   }
 
-  // Testnet hotfix
-  if (period >= k_testnet_hardfork2_block_num) {
-    p.vdf.difficulty_stale = k_testnet_hardfork2_difficulty_stale;
-  }
-
   return p;
 }
 
-uint16_t calculateEfficiencyHF2(const SyncBlock& block, uint16_t stale_difficulty) {
+uint16_t SortitionParamsManager::calculateDagEfficiency(const SyncBlock& block) const {
   // calculate efficiency only for current block because it is not worth to check if transaction was finalized before
   size_t total_transactions_count = 0;
   std::unordered_set<trx_hash_t> unique_transactions;
   for (const auto& dag_block : block.dag_blocks) {
-    if (dag_block.getDifficulty() == stale_difficulty ||
-        dag_block.getDifficulty() == k_testnet_hardfork2_difficulty_stale) {
+    if (dag_block.getDifficulty() == config_.vdf.difficulty_stale) {
       continue;
     }
     const auto& trxs = dag_block.getTrxs();
@@ -136,17 +112,6 @@ uint16_t calculateEfficiencyHF2(const SyncBlock& block, uint16_t stale_difficult
   if (total_transactions_count == 0) return 100 * kOnePercent;
 
   return unique_transactions.size() * 100 * kOnePercent / total_transactions_count;
-}
-
-uint16_t SortitionParamsManager::calculateDagEfficiency(const SyncBlock& block) const {
-  if (block.pbft_blk->getPeriod() >= k_testnet_hardfork2_block_num) {
-    return calculateEfficiencyHF2(block, config_.vdf.difficulty_stale);
-  }
-
-  size_t total_count = std::accumulate(block.dag_blocks.begin(), block.dag_blocks.end(), 0,
-                                       [](uint32_t s, const auto& b) { return s + b.getTrxs().size(); });
-
-  return block.transactions.size() * 100 * kOnePercent / total_count;
 }
 
 uint16_t SortitionParamsManager::averageDagEfficiency() {
@@ -161,10 +126,7 @@ uint16_t SortitionParamsManager::averageCorrectionPerPercent() const {
 }
 
 void SortitionParamsManager::cleanup(uint64_t current_period) {
-  uint16_t efficiencies_to_leave = 0;
-  if (current_period >= k_testnet_hardfork2_block_num) {
-    efficiencies_to_leave = k_testnet_hardfork2_sortition_interval_length - config_.computation_interval;
-  }
+  uint16_t efficiencies_to_leave = config_.computation_interval - config_.changing_interval;
 
   while (params_changes_.size() > config_.changes_count_for_average) {
     params_changes_.pop_front();
@@ -180,6 +142,9 @@ void SortitionParamsManager::cleanup(uint64_t current_period) {
 }
 
 void SortitionParamsManager::pbftBlockPushed(const SyncBlock& block, DbStorage::Batch& batch) {
+  if (config_.changing_interval == 0) {
+    return;
+  }
   uint16_t dag_efficiency = calculateDagEfficiency(block);
   dag_efficiencies_.push_back(dag_efficiency);
   const auto& period = block.pbft_blk->getPeriod();
@@ -207,7 +172,7 @@ int32_t SortitionParamsManager::getChange(uint64_t period, uint16_t efficiency) 
   const int32_t change = correction * per_percent / kOnePercent;
 
   LOG(log_dg_) << "Average interval efficiency: " << efficiency / 100. << "%, correction per percent: " << per_percent;
-  LOG(log_nf_) << "Changing VRF params on " << period << " period from (" << config_.vrf.threshold_lower << ", "
+  LOG(log_nf_) << "Changing VRF params on " << period << " period from (" << config_.vrf.threshold_range << ", "
                << config_.vrf.threshold_upper << ") by " << change;
 
   return change;
@@ -223,7 +188,7 @@ std::optional<SortitionParamsChange> SortitionParamsManager::calculateChange(uin
   }
 
   const int32_t change = getChange(period, average_dag_efficiency);
-  config_.vrf.addChange(change, period >= k_threshold_testnet_hard_fork_period);
+  config_.vrf += change;
 
   if (params_changes_.empty()) {
     return SortitionParamsChange{period, average_dag_efficiency, config_.vrf};

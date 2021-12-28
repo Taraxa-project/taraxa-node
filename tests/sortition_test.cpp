@@ -49,71 +49,40 @@ SyncBlock createBlock(uint64_t period, uint16_t efficiency, size_t dag_blocks_co
 TEST_F(SortitionTest, vrf_lower_overflow) {
   VrfParams vrf;
 
-  vrf.threshold_upper = 0x1900;
-  vrf.threshold_lower = vrf.threshold_upper - vrf.k_threshold_range;
+  vrf.threshold_range = 200;
+  vrf.threshold_upper = 300;
 
-  vrf.addChange(-0x200, false);
+  vrf += -200;
 
-  EXPECT_EQ(vrf.threshold_lower, 0);
-  EXPECT_EQ(vrf.threshold_upper, vrf.k_threshold_range);
+  EXPECT_EQ(vrf.threshold_range, 200);
+  EXPECT_EQ(vrf.threshold_upper, 100);
 
-  vrf.addChange(-0x200, false);
+  vrf += -200;
 
-  EXPECT_EQ(vrf.threshold_lower, 0);
-  EXPECT_EQ(vrf.threshold_upper, vrf.k_threshold_range);
+  EXPECT_EQ(vrf.threshold_range, 200);
+  EXPECT_EQ(vrf.threshold_upper, VrfParams::kThresholdUpperMinValue);
 
-  vrf.threshold_upper = 0x1900;
-  vrf.threshold_lower = vrf.threshold_upper - vrf.k_threshold_range;
+  vrf += 50;
 
-  vrf.addChange(-0x200, true);
-
-  EXPECT_EQ(vrf.threshold_lower, 0);
-  EXPECT_EQ(vrf.threshold_upper, 0x1700);
-
-  vrf.addChange(-0x1800, true);
-
-  EXPECT_EQ(vrf.threshold_lower, 0);
-  EXPECT_EQ(vrf.threshold_upper, vrf.k_threshold_upper_min_value);
-
-  vrf.addChange(0x1500, true);
-
-  EXPECT_EQ(vrf.threshold_lower, 0);
-  EXPECT_EQ(vrf.threshold_upper, vrf.k_threshold_upper_min_value + 0x1500);
-
-  vrf.addChange(0x1000, true);
-
-  EXPECT_EQ(vrf.threshold_lower, vrf.threshold_upper - vrf.k_threshold_range);
-  EXPECT_EQ(vrf.threshold_upper, vrf.k_threshold_upper_min_value + 0x2500);
+  EXPECT_EQ(vrf.threshold_range, 200);
+  EXPECT_EQ(vrf.threshold_upper, VrfParams::kThresholdUpperMinValue + 50);
 }
 
 TEST_F(SortitionTest, vrf_upper_overflow) {
   VrfParams vrf;
 
   vrf.threshold_upper = std::numeric_limits<uint16_t>::max() - 100;
-  vrf.threshold_lower = vrf.threshold_upper - vrf.k_threshold_range;
+  vrf.threshold_range = 200;
 
-  vrf.addChange(200, false);
-
-  EXPECT_EQ(vrf.threshold_upper, std::numeric_limits<uint16_t>::max());
-  EXPECT_EQ(vrf.threshold_lower, std::numeric_limits<uint16_t>::max() - vrf.k_threshold_range);
-
-  vrf.addChange(200, false);
+  vrf += 200;
 
   EXPECT_EQ(vrf.threshold_upper, std::numeric_limits<uint16_t>::max());
-  EXPECT_EQ(vrf.threshold_lower, std::numeric_limits<uint16_t>::max() - vrf.k_threshold_range);
+  EXPECT_EQ(vrf.threshold_range, 200);
 
-  vrf.threshold_upper = std::numeric_limits<uint16_t>::max() - 100;
-  vrf.threshold_lower = vrf.threshold_upper - vrf.k_threshold_range;
-
-  vrf.addChange(200, true);
+  vrf += 200;
 
   EXPECT_EQ(vrf.threshold_upper, std::numeric_limits<uint16_t>::max());
-  EXPECT_EQ(vrf.threshold_lower, std::numeric_limits<uint16_t>::max() - vrf.k_threshold_range);
-
-  vrf.addChange(200, true);
-
-  EXPECT_EQ(vrf.threshold_upper, std::numeric_limits<uint16_t>::max());
-  EXPECT_EQ(vrf.threshold_lower, std::numeric_limits<uint16_t>::max() - vrf.k_threshold_range);
+  EXPECT_EQ(vrf.threshold_range, 200);
 }
 
 TEST_F(SortitionTest, sortition_config_serialization) {
@@ -128,7 +97,7 @@ TEST_F(SortitionTest, sortition_config_serialization) {
   config.vdf.difficulty_stale = std::rand();
   config.vdf.lambda_bound = std::rand();
 
-  config.vrf.threshold_lower = std::rand();
+  config.vrf.threshold_range = std::rand();
   config.vrf.threshold_upper = std::rand();
 
   auto config_json = enc_json(config);
@@ -144,21 +113,21 @@ TEST_F(SortitionTest, sortition_config_serialization) {
   EXPECT_EQ(config.vdf.difficulty_stale, restored_config.vdf.difficulty_stale);
   EXPECT_EQ(config.vdf.lambda_bound, restored_config.vdf.lambda_bound);
 
-  EXPECT_EQ(config.vrf.threshold_lower, restored_config.vrf.threshold_lower);
+  EXPECT_EQ(config.vrf.threshold_range, restored_config.vrf.threshold_range);
   EXPECT_EQ(config.vrf.threshold_upper, restored_config.vrf.threshold_upper);
 }
 
 TEST_F(SortitionTest, params_change_serialization) {
-  SortitionParamsChange start(1, 25 * kOnePercent, {1100 + VrfParams::k_threshold_range, 1100});
-  // 1300 - 1100 / 2 = 100 (change per percent)
-  SortitionParamsChange params(2, 27 * kOnePercent, {1300 + VrfParams::k_threshold_range, 1300}, start);
+  SortitionParamsChange start(1, 25 * kOnePercent, {1100, 1500});
+  // 1700 - 1500 / 2 = 100 (change per percent)
+  SortitionParamsChange params(2, 27 * kOnePercent, {1300, 1700}, start);
 
   EXPECT_EQ(params.actual_correction_per_percent, 100);
 
   const auto params_rlp = params.rlp();
   const auto deserialized_params = SortitionParamsChange::from_rlp(dev::RLP(params_rlp));
 
-  EXPECT_EQ(params.vrf_params.threshold_lower, deserialized_params.vrf_params.threshold_lower);
+  EXPECT_EQ(params.vrf_params.threshold_range, deserialized_params.vrf_params.threshold_range);
   EXPECT_EQ(params.vrf_params.threshold_upper, deserialized_params.vrf_params.threshold_upper);
   EXPECT_EQ(params.interval_efficiency, deserialized_params.interval_efficiency);
   EXPECT_EQ(params.actual_correction_per_percent, deserialized_params.actual_correction_per_percent);
@@ -199,10 +168,9 @@ TEST_F(SortitionTest, minimal_correction) {
 }
 
 TEST_F(SortitionTest, average_correction_per_percent) {
+  node_cfgs[0].chain.sortition.changing_interval = 5;
   node_cfgs[0].chain.sortition.computation_interval = 5;
   node_cfgs[0].chain.sortition.dag_efficiency_targets = {75 * kOnePercent, 75 * kOnePercent};
-  node_cfgs[0].chain.sortition.vrf.threshold_lower =
-      node_cfgs[0].chain.sortition.vrf.threshold_upper - VrfParams::k_threshold_range;
 
   auto db = std::make_shared<DbStorage>(data_dir / "db");
   SortitionParamsManager sp({}, node_cfgs[0].chain.sortition, db);
@@ -300,7 +268,7 @@ TEST_F(SortitionTest, params_changes_from_db) {
 
   auto batch = db->createWriteBatch();
   for (uint16_t i = 0; i < 10; ++i) {
-    SortitionParamsChange p{i, i, {(uint16_t)(i + VrfParams::k_threshold_range), i}};
+    SortitionParamsChange p{i, i, {i, i}};
     db->saveSortitionParamsChange(i, p, batch);
   }
   db->commitWriteBatch(batch);
@@ -310,8 +278,8 @@ TEST_F(SortitionTest, params_changes_from_db) {
   for (uint16_t i = 0; i < 5; ++i) {
     // +5 is offset to the middle of data
     EXPECT_EQ(res[i].interval_efficiency, i + 5);
-    EXPECT_EQ(res[i].vrf_params.threshold_lower, i + 5);
-    EXPECT_EQ(res[i].vrf_params.threshold_upper, i + 5 + VrfParams::k_threshold_range);
+    EXPECT_EQ(res[i].vrf_params.threshold_range, i + 5);
+    EXPECT_EQ(res[i].vrf_params.threshold_upper, i + 5);
   }
 }
 
@@ -320,7 +288,7 @@ TEST_F(SortitionTest, params_changes_from_db2) {
 
   auto batch = db->createWriteBatch();
   for (uint16_t i = 0; i < 2; ++i) {
-    SortitionParamsChange p{i, i, {(uint16_t)(i + VrfParams::k_threshold_range), i}};
+    SortitionParamsChange p{i, i, {i, i}};
     db->saveSortitionParamsChange(i, p, batch);
   }
   db->commitWriteBatch(batch);
@@ -329,8 +297,8 @@ TEST_F(SortitionTest, params_changes_from_db2) {
   EXPECT_EQ(res.size(), 2);
   for (uint16_t i = 0; i < 2; ++i) {
     EXPECT_EQ(res[i].interval_efficiency, i);
-    EXPECT_EQ(res[i].vrf_params.threshold_lower, i);
-    EXPECT_EQ(res[i].vrf_params.threshold_upper, i + VrfParams::k_threshold_range);
+    EXPECT_EQ(res[i].vrf_params.threshold_range, i);
+    EXPECT_EQ(res[i].vrf_params.threshold_upper, i);
   }
 }
 
@@ -342,7 +310,6 @@ TEST_F(SortitionTest, efficiencies_from_db) {
     db->savePbftBlockDagEfficiency(i, i, batch);
   }
   db->commitWriteBatch(batch);
-
   {
     const auto efficiencies = db->getLastIntervalEfficiencies(50, 50);
     EXPECT_EQ(efficiencies.size(), 43);
@@ -365,7 +332,7 @@ TEST_F(SortitionTest, load_from_db) {
 
   auto batch = db->createWriteBatch();
   for (uint16_t i = 0; i < 10; ++i) {
-    SortitionParamsChange p{i, i, {(uint16_t)(i + VrfParams::k_threshold_range), i}};
+    SortitionParamsChange p{i, i, {i, i}};
     p.actual_correction_per_percent = 25 * kOnePercent;
     db->saveSortitionParamsChange(i, p, batch);
   }
@@ -384,7 +351,6 @@ TEST_F(SortitionTest, db_cleanup) {
   auto& cfg = node_cfgs[0].chain.sortition;
   cfg.computation_interval = 5;
   cfg.dag_efficiency_targets = {75 * kOnePercent, 75 * kOnePercent};
-  cfg.vrf.threshold_lower = cfg.vrf.threshold_upper - VrfParams::k_threshold_range;
 
   auto db = std::make_shared<DbStorage>(data_dir / "db");
   SortitionParamsManager sp({}, node_cfgs[0].chain.sortition, db);
@@ -415,9 +381,9 @@ TEST_F(SortitionTest, db_cleanup) {
 
 TEST_F(SortitionTest, get_params_from_period) {
   auto& cfg = node_cfgs[0].chain.sortition;
+  cfg.changing_interval = 10;
   cfg.computation_interval = 10;
   cfg.dag_efficiency_targets = {75 * kOnePercent, 75 * kOnePercent};
-  cfg.vrf.threshold_lower = cfg.vrf.threshold_upper - VrfParams::k_threshold_range;
 
   auto db = std::make_shared<DbStorage>(data_dir / "db");
   SortitionParamsManager sp({}, node_cfgs[0].chain.sortition, db);

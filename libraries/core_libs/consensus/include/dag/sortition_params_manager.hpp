@@ -36,7 +36,7 @@ class SortitionParamsManager {
  public:
   SortitionParamsManager(const addr_t& node_addr, SortitionConfig sort_conf, std::shared_ptr<DbStorage> db);
   SortitionParams getSortitionParams(std::optional<uint64_t> for_period = {}) const;
-  uint64_t currentProposalPeriod() const;
+
   /**
    * Calculates the average correction from previous changes we store in memory.
    * We can regulate corrections count by removing oldest elements of  params_changes_ collection
@@ -76,8 +76,6 @@ class SortitionParamsManager {
   std::optional<SortitionParamsChange> calculateChange(uint64_t period);
   int32_t getChange(uint64_t period, uint16_t efficiency) const;
   void cleanup(uint64_t current_period);
-
-  const uint64_t k_threshold_testnet_hard_fork_period = 110000;
 
   LOG_OBJECTS_DEFINE
 };
