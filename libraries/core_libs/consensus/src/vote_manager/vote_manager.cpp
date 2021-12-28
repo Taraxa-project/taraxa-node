@@ -291,10 +291,6 @@ void VoteManager::verifyVotes(uint64_t pbft_round, size_t sortition_threshold, u
     }
 
     auto dpos_votes_count = dpos_eligible_vote_count(v->getVoterAddr());
-    if (dpos_votes_count && v->getStep() == 1) {
-      // We need to handle propose_vote_type
-      dpos_votes_count = 1;
-    }
     try {
       v->validate(dpos_votes_count, dpos_total_votes_count, sortition_threshold);
     } catch (const std::logic_error& e) {

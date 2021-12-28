@@ -1077,14 +1077,9 @@ size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteType
     return 0;
   }
 
-  auto dpos_weighted_votes_count = weighted_votes_count_.load();
-  if (step == 1) {
-    // For proposal vote, only use 1 weight for VRF sortition
-    dpos_weighted_votes_count = 1;
-  }
-
   auto vote = generateVote(blockhash, vote_type, round, step);
-  const auto weight = vote->calculateWeight(dpos_weighted_votes_count, getDposTotalVotesCount(), sortition_threshold_);
+  const auto weight =
+      vote->calculateWeight(getDposWeightedVotesCount(), getDposTotalVotesCount(), sortition_threshold_);
   if (weight) {
     db_->saveVerifiedVote(vote);
     vote_mgr_->addVerifiedVote(vote);
@@ -1092,6 +1087,7 @@ size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteType
       net->onNewPbftVotes({std::move(vote)});
     }
   }
+
   return weight;
 }
 
@@ -1125,10 +1121,9 @@ blk_hash_t PbftManager::calculateOrderHash(std::vector<DagBlock> const &dag_bloc
 
 std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
   auto round = getPbftRound();
-  // In propose block, only use one vote for VRF sortition
   VrfPbftSortition vrf_sortition(vrf_sk_, {propose_vote_type, round, step_});
-  if (weighted_votes_count_ == 0 ||
-      !vrf_sortition.getBinominalDistribution(1, getDposTotalVotesCount(), sortition_threshold_)) {
+  if (weighted_votes_count_ == 0 || !vrf_sortition.getBinominalDistribution(
+                                        getDposWeightedVotesCount(), getDposTotalVotesCount(), sortition_threshold_)) {
     return std::make_pair(NULL_BLOCK_HASH, false);
   }
 

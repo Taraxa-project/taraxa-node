@@ -205,7 +205,8 @@ TEST_F(SortitionTest, average_correction_per_percent) {
   EXPECT_EQ(threshold_upper -= 3 * correction_per_percent, sp.getSortitionParams().vrf.threshold_upper);
   threshold_upper = sp.getSortitionParams().vrf.threshold_upper;
   correction_per_percent = sp.averageCorrectionPerPercent();
-  EXPECT_EQ(correction_per_percent, 150);
+  // 1 + 1 + 300 / 3 = 100
+  EXPECT_EQ(correction_per_percent, 100);
 
   {
     auto batch = db->createWriteBatch();
@@ -216,11 +217,11 @@ TEST_F(SortitionTest, average_correction_per_percent) {
     }
     db->commitWriteBatch(batch);
   }
-  // 1 + 300 / 2 = 150
   EXPECT_EQ(threshold_upper += correction_per_percent * 2, sp.getSortitionParams().vrf.threshold_upper);
   threshold_upper = sp.getSortitionParams().vrf.threshold_upper;
   correction_per_percent = sp.averageCorrectionPerPercent();
-  EXPECT_EQ(correction_per_percent, 120);
+  // 1 + 1 + 300 + 40 / 4 = 85
+  EXPECT_EQ(correction_per_percent, 85);
 
   {
     auto batch = db->createWriteBatch();
@@ -415,9 +416,9 @@ TEST_F(SortitionTest, get_params_from_period) {
   db->commitWriteBatch(batch);
 
   const auto params_for_period_10_19 = cfg.vrf.threshold_upper - 5;
-  const auto params_for_period_20_39 = cfg.vrf.threshold_upper - 10;
-  const auto params_for_period_40_59 = cfg.vrf.threshold_upper - 1260;
-  const auto params_for_period_60_and_more = cfg.vrf.threshold_upper - 3185;
+  const auto params_for_period_20_39 = cfg.vrf.threshold_upper - 5 - 5;
+  const auto params_for_period_40_59 = cfg.vrf.threshold_upper - 835 - 5 - 5;
+  const auto params_for_period_60_and_more = cfg.vrf.threshold_upper - 1445 - 835 - 5 - 5;
 
   EXPECT_EQ(sp.getSortitionParams(11).vrf.threshold_upper, params_for_period_10_19);
   EXPECT_EQ(sp.getSortitionParams(19).vrf.threshold_upper, params_for_period_10_19);
