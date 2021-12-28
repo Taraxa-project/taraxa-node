@@ -62,8 +62,15 @@ SortitionParamsManager::SortitionParamsManager(const addr_t& node_addr, Sortitio
   LOG_OBJECTS_CREATE("SORT_MGR");
   // load cache values from db
   params_changes_ = db_->getLastSortitionParams(config_.changes_count_for_average);
-  // restore VRF params from last change
-  if (!params_changes_.empty()) {
+  if (params_changes_.empty()) {
+    // if no changes in db save default vrf params
+    auto batch = db_->createWriteBatch();
+    SortitionParamsChange pc{0, config_.targetEfficiency(), config_.vrf};
+    db_->saveSortitionParamsChange(0, pc, batch);
+    db_->commitWriteBatch(batch);
+    params_changes_.push_back(pc);
+  } else {
+    // restore VRF params from last change
     config_.vrf = params_changes_.back().vrf_params;
   }
 
@@ -71,7 +78,8 @@ SortitionParamsManager::SortitionParamsManager(const addr_t& node_addr, Sortitio
 }
 
 SortitionParams SortitionParamsManager::getSortitionParams(std::optional<uint64_t> period) const {
-  if (!period || (config_.changing_interval == 0)) {
+  // remove changing interval check to search in changes
+  if (!period) {
     return config_;
   }
   bool is_period_params_found = false;
@@ -142,6 +150,14 @@ void SortitionParamsManager::cleanup(uint64_t current_period) {
 }
 
 void SortitionParamsManager::pbftBlockPushed(const SyncBlock& block, DbStorage::Batch& batch) {
+  // Simplest way to update that params including node restart without config overrides
+  // we are saving it as change, so we can deal with different proposal periods
+  uint64_t hardfork_block_num = 3630;
+  if (block.pbft_blk->getPeriod() == hardfork_block_num) {
+    SortitionParamsChange pc{hardfork_block_num, 0, {0x5000, 0x1300}};
+    params_changes_.push_back(pc);
+    db_->saveSortitionParamsChange(hardfork_block_num, pc, batch);
+  }
   if (config_.changing_interval == 0) {
     return;
   }
