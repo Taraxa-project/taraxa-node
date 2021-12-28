@@ -18,7 +18,7 @@ Config::Config(int argc, const char* argv[]) {
   boost::program_options::options_description allowed_options("Allowed options");
   string config;
   string wallet;
-  int network_id = (int)DEFAULT_NETWORK_ID;
+  int network_id = static_cast<int>(DEFAULT_NETWORK_ID);
   string data_dir;
   vector<string> command;
   vector<string> boot_nodes;
@@ -80,7 +80,7 @@ Config::Config(int argc, const char* argv[]) {
                                      "Revert db/state to specified "
                                      "period (specify period)");
   node_command_options.add_options()(NETWORK_ID, bpo::value<int>(&network_id),
-                                     "Network identifier (integer, 1=Mainnet, 2=Testnet, 3=Devnet) (default: 2)"
+                                     "Network identifier (integer, 1=Mainnet, 2=Testnet, 3=Devnet) (default: 1)"
                                      "Only used when creating new config file");
   node_command_options.add_options()(BOOT_NODE, bpo::bool_switch(&boot_node), "Run as bootnode (default: false)");
 
