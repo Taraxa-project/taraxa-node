@@ -17,6 +17,51 @@ const char *default_json = R"foo({
   "network_packets_processing_threads": 10,
   "deep_syncing_threshold" : 10,
   "network_boot_nodes": [
+    {
+      "id": "d063098ceca0f5ea06f9455debffe6f6d5b2efdeb179215877e356cf8154afad99f058214bd25d8198a3854a4ed8f7ef97af59b0441a7d30bc4b3918c42764ef",
+      "ip": "boot-node-0.mainnet.taraxa.io",
+      "udp_port": 10002
+    },
+    {
+      "id": "572778c6636361916acbc596808e1aa4e93ee0b577188f594015ec42125f58b7ec75fd59d78ca2282bc1c8c639dfc4d0eac2e57855b4fcc932c6bc6f530cd8f6",
+      "ip": "boot-node-1.mainnet.taraxa.io",
+      "udp_port": 10002
+    },
+    {
+      "id": "10a5108d0070559cacbb0ed368d43c98848fbc0397e9bfc1a6e7e33f15532a804d158e405657650d3ea766ed4b0d7cfcbe5867e9261deacb457da332ed1eaf2a",
+      "ip": "boot-node-2.mainnet.taraxa.io",
+      "udp_port": 10002
+    },
+    {
+      "id": "1dd6ae9674dee4e30f2f2f76036ad01be34bb617095b0513bc3818c8352e040fc3648fd400896fc80a544b3c23118e143928d0d49d4d575b68327f70da342939",
+      "ip": "boot-node-3.mainnet.taraxa.io",
+      "udp_port": 10002
+    },
+    {
+      "id": "56b74f83d3e88319cf554c6e43ca6077f7cf9594547e530582ed12196dd891b289dc7b5b4392440bcead5adbdf4e23e184b7f46940efd603c5bf0a25b36d71c6",
+      "ip": "boot-node-4.mainnet.taraxa.io",
+      "udp_port": 10002
+    },
+    {
+      "id": "833a3a724f5be3654524cb83307628117a668a00808fb2f34c43e5e3cb1a30354536cbdc9355172e5f285e1b4b3dde88d94385fa4df69c89da0638760ed5b0ac",
+      "ip": "boot-node-5.mainnet.taraxa.io",
+      "udp_port": 10002
+    },
+    {
+      "id": "94026c10fce281ede4bae9b54606703eba77cb876ddacb3eba364b7e444618d424641de206f5d5cb39f5c04da48ebad502b76d698ed341e46721c8777a8c3f15",
+      "ip": "boot-node-6.mainnet.taraxa.io",
+      "udp_port": 10002
+    },
+    {
+      "id": "03947eaba01564a69d6ea238f4c264ee50b34918838fee164b1b0f0de833b0098f2d4a7c05448a0f3d3aa05d55fe4d150aa3a1553fd940a433433aff8ae57a0e",
+      "ip": "boot-node-7.mainnet.taraxa.io",
+      "udp_port": 10002
+    },
+    {
+      "id": "8a3394cccb379d66e6b7b131ef8ea9f195c333020b246135bf5d888443e8b6245cef9c90f2b6466240f38c9cfa4ccaa472b0f204623f09da819068c6d1168242",
+      "ip": "boot-node-8.mainnet.taraxa.io",
+      "udp_port": 10002
+    }
   ],
   "rpc": {
     "http_port": 7777,
@@ -85,10 +130,16 @@ const char *default_json = R"foo({
           "withdrawal_delay": "0x5",
           "eligibility_balance_threshold": "0xf4240",
           "genesis_state": {
-            "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": {
-              "0x780fe8b2226cf212c55635de399ee4c2a860810c": "0xf4240",
-              "0x56e0de6933d9d0453d0363caf42b136eb5854e4e": "0xf4240",
-              "0x71bdcbec7e3642782447b0fbf31eed068dfbdbb1": "0xf4240"
+            "0x0274cfffea9fa850e54c93a23042f12a87358a82": {
+              "0x1f8333245650a19a0683891b7afe7787a3ce9f00": "0x989680",
+              "0xd4e4728bea5a67dd70dccb742bdc9c3a48465bec": "0x989680",
+              "0xec591a85f613fe98f057dc09712a9b22cdd05845": "0x989680",
+              "0x267e780b7843992e57f52e13018f0f97467ac06e": "0x989680",
+              "0x9d047654e55248ec38aa6723a5ab36d171008584": "0x989680",
+              "0x0d149e61cc02b5893ef6fc33bc7d67ff13eeeee0": "0x989680",
+              "0x00ccd0de0809ac03fd292036ee1544185583cd88": "0x989680",
+              "0x6f96be7626a74e86c76e65ccbccf0a38e2b62fc5": "0x989680",
+              "0xd20131f980c9932b1df31cf3aafeecfb1d504381": "0x989680"
             }
           }
         },
@@ -106,8 +157,8 @@ const char *default_json = R"foo({
           "disable_nonce_check": true
         },
         "genesis_balances": {
-          "2cd4da7d3b345e022ca7e997c2bb3276a4d3d2e9": "0x1027e72f1f12813088000000",
-          "7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x1027e72f1f12813088000000"
+          "0274cfffea9fa850e54c93a23042f12a87358a82": "0x141e8d17",
+          "111f91441efc8c6c0edf6534970cc887e2fabaa8": "0x24048ce3d"
         }
       }
     },
