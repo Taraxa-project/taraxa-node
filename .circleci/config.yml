@@ -110,8 +110,11 @@ commands:
         - run:
             name: Create PRNET IPs
             command: |
-              if [ ! ${PRNET_IPS} ];then
-                gcloud compute addresses create prnet-<< parameters.pr-name >>-{1..3} --region << parameters.region >> --project << parameters.project >>
+              if [ ! ${PRNET_IPS_BOOT_NODES} ];then
+                gcloud compute addresses create prnet-boot-<< parameters.pr-name >>-{1..3} --region << parameters.region >> --project << parameters.project >>
+              fi
+              if [ ! ${PRNET_IPS_RPC_NODES} ];then
+                gcloud compute addresses create prnet-rpc-<< parameters.pr-name >>-{1..3} --region << parameters.region >> --project << parameters.project >>
               fi
             when: << parameters.when >>
 
@@ -144,10 +147,13 @@ commands:
             command: |
               for i in {1..3}
               do
-               IPS=(${IPS[@]} $(gcloud compute addresses describe prnet-<< parameters.pr-name >>-${i} --region << parameters.region >> --project << parameters.project >> \
+               IPS_BOOT_NODES=(${IPS_BOOT_NODES[@]} $(gcloud compute addresses describe prnet-boot-<< parameters.pr-name >>-${i} --region << parameters.region >> --project << parameters.project >> \
+                    --format="flattened(address)" |cut -d" " -f2) ) || true
+               IPS_RCP_NODES=(${IPS_RCP_NODES[@]} $(gcloud compute addresses describe prnet-rpc-<< parameters.pr-name >>-${i} --region << parameters.region >> --project << parameters.project >> \
                     --format="flattened(address)" |cut -d" " -f2) ) || true
               done
-              echo "export PRNET_IPS=(${IPS[@]})" >> ${BASH_ENV}    
+              echo "export PRNET_IPS_BOOT_NODES=(${IPS_BOOT_NODES[@]})" >> ${BASH_ENV}
+              echo "export PRNET_IPS_RPC_NODES=(${IPS_RCP_NODES[@]})" >> ${BASH_ENV}
             when: << parameters.when >>
 
    cleanup_prnet_ips:
@@ -177,8 +183,11 @@ commands:
         - run:
            name: Cleanup PRNet IPs
            command: |
-              if [[ $(gcloud compute addresses list --format json  --project << parameters.project >> --filter="name~'prnet-<< parameters.pr-name >>.*'" ) != "[]" ]];then 
-               gcloud compute addresses delete prnet-<< parameters.pr-name >>-{1..3} --region << parameters.region >>  --project << parameters.project >> --quiet
+              if [[ $(gcloud compute addresses list --format json  --project << parameters.project >> --filter="name~'prnet-boot-<< parameters.pr-name >>.*'" ) != "[]" ]];then 
+               gcloud compute addresses delete prnet-boot-<< parameters.pr-name >>-{1..3} --region << parameters.region >>  --project << parameters.project >> --quiet
+              fi
+              if [[ $(gcloud compute addresses list --format json  --project << parameters.project >> --filter="name~'prnet-rpc-<< parameters.pr-name >>.*'" ) != "[]" ]];then 
+               gcloud compute addresses delete prnet-rpc-<< parameters.pr-name >>-{1..3} --region << parameters.region >>  --project << parameters.project >> --quiet
               fi
            when: << parameters.when >>
 
@@ -221,7 +230,7 @@ commands:
         - run:
            name: Get Latest image for PR and deploy chart
            command: |
-            if [ ${PRNET_IPS} ];then
+            if [ ${PRNET_IPS_BOOT_NODES} ];then
               PR_TAG=$(gcloud container images list-tags gcr.io/jovial-meridian-249123/taraxa-node      --filter="tags:pr-<< parameters.pr-name >>-*" \
                 --sort-by="~timestamp" \
                 --limit 1 \
@@ -232,16 +241,19 @@ commands:
               else
                 echo "export PR_TAG=${PR_TAG}" >> ${BASH_ENV}
               fi
-              cd taraxa-testnet/tests           
+              cd taraxa-testnet/tests
               helm upgrade -i pr-<< parameters.pr-name >> taraxa-node/ --namespace blockchain-prnet -f taraxa-node/values.yaml -f taraxa-node/prnet.values.yaml \
                 --set image.repository=gcr.io/jovial-meridian-249123/taraxa-node \
                 --set image.tag=${PR_TAG} \
                 --set explorer.configEnvs.rpcHttpProvider="http://pr-<< parameters.pr-name >>-taraxa-node-1.pr-<< parameters.pr-name >>-taraxa-node:7777" \
                 --set explorer.configEnvs.rpcWsProvider="http://pr-<< parameters.pr-name >>-taraxa-node-1.pr-<< parameters.pr-name >>-taraxa-node:8777" \
                 --set explorer.configEnvs.wsProvider="wss://explorer-ws-pr-<< parameters.pr-name >>.prnet.taraxa.io" \
-                --set bootnode.loadBalancer.addresses\[0\]="${PRNET_IPS[0]}" \
-                --set bootnode.loadBalancer.addresses\[1\]="${PRNET_IPS[1]}" \
-                --set bootnode.loadBalancer.addresses\[2\]="${PRNET_IPS[2]}"
+                --set bootnode.loadBalancer.addresses\[0\]="${PRNET_IPS_BOOT_NODES[0]}" \
+                --set bootnode.loadBalancer.addresses\[1\]="${PRNET_IPS_BOOT_NODES[1]}" \
+                --set bootnode.loadBalancer.addresses\[2\]="${PRNET_IPS_BOOT_NODES[2]}" \
+                --set node.loadBalancer.addresses\[0\]="${PRNET_IPS_RPC_NODES[0]}" \
+                --set node.loadBalancer.addresses\[1\]="${PRNET_IPS_RPC_NODES[1]}" \
+                --set node.loadBalancer.addresses\[2\]="${PRNET_IPS_RPC_NODES[2]}"
             fi
 
    cleanup_testnet_chart:
@@ -321,9 +333,15 @@ jobs:
            </table>\
            <h4><p>Boot Nodes</p></h4>\
            <table>\
-            <tr><td>Boot Node 1</td><td>${PRNET_IPS[0]}</td></tr>\
-            <tr><td>Boot Node 2</td><td>${PRNET_IPS[1]}</td></tr>\
-            <tr><td>Boot Node 3</td><td>${PRNET_IPS[2]}</td></tr>\
+            <tr><td>Boot Node 1</td><td>${PRNET_IPS_BOOT_NODES[0]}</td></tr>\
+            <tr><td>Boot Node 2</td><td>${PRNET_IPS_BOOT_NODES[1]}</td></tr>\
+            <tr><td>Boot Node 3</td><td>${PRNET_IPS_BOOT_NODES[2]}</td></tr>\
+           </table>
+           <h4><p>RPC Nodes</p></h4>\
+           <table>\
+            <tr><td>RPC Node 1</td><td>${PRNET_IPS_RPC_NODES[0]}</td></tr>\
+            <tr><td>RPC Node 2</td><td>${PRNET_IPS_RPC_NODES[1]}</td></tr>\
+            <tr><td>RPC Node 3</td><td>${PRNET_IPS_RPC_NODES[2]}</td></tr>\
            </table>"
          pr_number: << pipeline.parameters.pr_number >>
       - cleanup_testnet_chart:
@@ -368,6 +386,12 @@ jobs:
             <tr><td>Boot Node 1</td><td>${PRNET_IPS[0]}</td></tr>\
             <tr><td>Boot Node 2</td><td>${PRNET_IPS[1]}</td></tr>\
             <tr><td>Boot Node 3</td><td>${PRNET_IPS[2]}</td></tr>\
+           </table>
+           <h4><p>RPC Nodes</p></h4>\
+           <table>\
+            <tr><td>RPC Node 1</td><td>${PRNET_IPS_RPC_NODES[0]}</td></tr>\
+            <tr><td>RPC Node 2</td><td>${PRNET_IPS_RPC_NODES[1]}</td></tr>\
+            <tr><td>RPC Node 3</td><td>${PRNET_IPS_RPC_NODES[2]}</td></tr>\
            </table>"
          pr_number: << pipeline.parameters.pr_number >>
       - cleanup_testnet_chart:
