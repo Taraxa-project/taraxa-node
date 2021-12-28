@@ -5,46 +5,45 @@ export TARAXA_PERSISTENT_PATH=${TARAXA_PERSISTENT_PATH:=/root/.taraxa}
 export TARAXA_COPY_COREDUMPS=${TARAXA_COPY_COREDUMPS:=true}
 export TARAXA_SLEEP_DIAGNOSE=${TARAXA_SLEEP_DIAGNOSE:=false}
 
+FLAGS=""
+if [[ -z "${HOSTNAME}" ]]; then
+  echo "HOSTNAME is not set."
+else
+  INDEX=${HOSTNAME##*-}
+  ADVERTISED_IP_NAME="ADVERTISED_IP_$INDEX"
+  ADVERTISED_IP=${!ADVERTISED_IP_NAME}
+
+  if [[ -z "${ADVERTISED_IP}" ]]; then
+    echo "ADVERTISED_IP is not set."
+  else
+    FLAGS="--public-ip ${ADVERTISED_IP}"
+  fi
+fi
+
 case $1 in
 
   taraxa-bootnode)
     echo "Starting taraxa-bootnode..."
-
-    FLAGS=""
-    if [[ -z "${HOSTNAME}" ]]; then
-      echo "HOSTNAME is not set."
-    else
-      INDEX=${HOSTNAME##*-}
-      ADVERTISED_IP_NAME="ADVERTISED_IP_$INDEX"
-      ADVERTISED_IP=${!ADVERTISED_IP_NAME}
-
-      if [[ -z "${ADVERTISED_IP}" ]]; then
-        echo "ADVERTISED_IP is not set."
-      else
-        FLAGS="--public-ip ${ADVERTISED_IP}"
-      fi
-    fi
-
     taraxa-bootnode $FLAGS "${@:2}"
     ;;
 
   taraxad)
     echo "Starting taraxad..."
-    taraxad "${@:2}"
+    taraxad $FLAGS "${@:2}"
     ;;
 
   join)
     echo "Starting taraxad..."
-    taraxad \
-            --config $TARAXA_CONF_PATH
+    taraxad $FLAGS \
+            --config $TARAXA_CONF_PATH \
             --network-id $2
 
     ;;
 
   single)
 	  echo "Starting taraxad..."
-    taraxad \
-            --config $TARAXA_CONF_PATH
+    taraxad $FLAGS \
+            --config $TARAXA_CONF_PATH \
             --boot-node true
 
     ;;
