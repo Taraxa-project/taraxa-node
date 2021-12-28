@@ -88,9 +88,9 @@ void TaraxaCapability::initBootNodes(const std::vector<NodeConfig> &network_boot
       continue;
     }
 
-    LOG(log_nf_) << "Adding boot node:" << node.ip << ":" << node.tcp_port;
-    auto ip = resolveHost(node.ip, node.tcp_port);
-    boot_nodes_[pub] = dev::p2p::NodeIPEndpoint(ip.second.address(), node.tcp_port, node.tcp_port);
+    LOG(log_nf_) << "Adding boot node:" << node.ip << ":" << node.udp_port;
+    auto ip = resolveHost(node.ip, node.udp_port);
+    boot_nodes_[pub] = dev::p2p::NodeIPEndpoint(ip.second.address(), node.udp_port, node.udp_port);
   }
 
   LOG(log_nf_) << " Number of boot node added: " << boot_nodes_.size() << std::endl;

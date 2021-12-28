@@ -23,7 +23,7 @@ struct RpcConfig {
 struct NodeConfig {
   std::string id;
   std::string ip;
-  uint16_t tcp_port = 0;
+  uint16_t udp_port = 0;
 };
 
 struct NetworkConfig {

@@ -112,7 +112,7 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
     NodeConfig node;
     node.id = getConfigDataAsString(item, {"id"});
     node.ip = getConfigDataAsString(item, {"ip"});
-    node.tcp_port = getConfigDataAsUInt(item, {"tcp_port"});
+    node.udp_port = getConfigDataAsUInt(item, {"udp_port"});
     network.network_boot_nodes.push_back(node);
   }
 
@@ -245,10 +245,10 @@ void FullNodeConfig::validate() {
   // TODO validate that the boot node list doesn't contain self (although it's not critical)
   for (auto const &node : network.network_boot_nodes) {
     if (node.ip.empty()) {
-      throw ConfigException(std::string("Boot node ip is empty:") + node.ip + ":" + std::to_string(node.tcp_port));
+      throw ConfigException(std::string("Boot node ip is empty:") + node.ip + ":" + std::to_string(node.udp_port));
     }
-    if (node.tcp_port == 0) {
-      throw ConfigException(std::string("Boot node port invalid: ") + std::to_string(node.tcp_port));
+    if (node.udp_port == 0) {
+      throw ConfigException(std::string("Boot node port invalid: ") + std::to_string(node.udp_port));
     }
   }
   // TODO: add validation of other config values
@@ -258,7 +258,7 @@ std::ostream &operator<<(std::ostream &strm, NodeConfig const &conf) {
   strm << "  [Node Config] " << std::endl;
   strm << "    node_id: " << conf.id << std::endl;
   strm << "    node_ip: " << conf.ip << std::endl;
-  strm << "    node_tcp_port: " << conf.tcp_port << std::endl;
+  strm << "    node_udp_port: " << conf.udp_port << std::endl;
   return strm;
 }
 
