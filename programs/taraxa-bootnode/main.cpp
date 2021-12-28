@@ -150,8 +150,8 @@ int main(int argc, char** argv) {
     }
   }
 
-  auto net_conf = public_ip.empty() ? dev::p2p::NetworkConfig(listen_ip, listen_port, false)
-                                    : dev::p2p::NetworkConfig(public_ip, listen_ip, listen_port, false);
+  auto net_conf = public_ip.empty() ? dev::p2p::NetworkConfig(listen_ip, listen_port, true)
+                                    : dev::p2p::NetworkConfig(public_ip, listen_ip, listen_port, true);
   net_conf.allowLocalDiscovery = !denyLocalDiscovery;
 
   dev::p2p::TaraxaNetworkConfig taraxa_net_conf;
