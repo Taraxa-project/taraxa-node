@@ -62,8 +62,15 @@ SortitionParamsManager::SortitionParamsManager(const addr_t& node_addr, Sortitio
   LOG_OBJECTS_CREATE("SORT_MGR");
   // load cache values from db
   params_changes_ = db_->getLastSortitionParams(config_.changes_count_for_average);
-  // restore VRF params from last change
-  if (!params_changes_.empty()) {
+  if (params_changes_.empty()) {
+    // if no changes in db save default vrf params
+    auto batch = db_->createWriteBatch();
+    SortitionParamsChange pc{0, config_.targetEfficiency(), config_.vrf};
+    db_->saveSortitionParamsChange(0, pc, batch);
+    db_->commitWriteBatch(batch);
+    params_changes_.push_back(pc);
+  } else {
+    // restore VRF params from last change
     config_.vrf = params_changes_.back().vrf_params;
   }
 
