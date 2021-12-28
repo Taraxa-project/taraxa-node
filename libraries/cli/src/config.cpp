@@ -1,10 +1,11 @@
 #include "cli/config.hpp"
 
+#include <libdevcore/CommonJS.h>
+
 #include <iostream>
 
 #include "cli/tools.hpp"
 #include "config/version.hpp"
-#include <libdevcore/CommonJS.h>
 
 using namespace std;
 
@@ -27,6 +28,7 @@ Config::Config(int argc, const char* argv[]) {
   vector<string> log_channels_append;
   string node_secret;
   string vrf_secret;
+  string public_ip;
   bool overwrite_config;
 
   bool boot_node = false;
@@ -97,6 +99,8 @@ Config::Config(int argc, const char* argv[]) {
   node_command_options.add_options()(NODE_SECRET, bpo::value<string>(&node_secret), "Nose secret key to use");
 
   node_command_options.add_options()(VRF_SECRET, bpo::value<string>(&vrf_secret), "Vrf secret key to use");
+
+  node_command_options.add_options()(PUBLIC_IP, bpo::value<string>(&public_ip), "Public IP address");
 
   node_command_options.add_options()(
       OVERWRITE_CONFIG, bpo::bool_switch(&overwrite_config),
@@ -198,6 +202,7 @@ Config::Config(int argc, const char* argv[]) {
     node_config_.test_params.rebuild_db = rebuild_db;
     node_config_.test_params.rebuild_db_columns = rebuild_db_columns;
     node_config_.test_params.rebuild_db_period = rebuild_db_period;
+    node_config_.network.public_ip = public_ip;
     if (command[0] == NODE_COMMAND) node_configured_ = true;
   } else if (command[0] == ACCOUNT_COMMAND) {
     if (command.size() == 1)
