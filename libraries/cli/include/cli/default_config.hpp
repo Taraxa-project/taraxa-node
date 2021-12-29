@@ -128,7 +128,7 @@ const char *default_json = R"foo({
         "dpos": {
           "deposit_delay": "0x5",
           "withdrawal_delay": "0x5",
-          "eligibility_balance_threshold": "0xf4240",
+          "eligibility_balance_threshold": "0x186A0",
           "genesis_state": {
             "0x0274cfffea9fa850e54c93a23042f12a87358a82": {
               "0x1f8333245650a19a0683891b7afe7787a3ce9f00": "0x989680",
