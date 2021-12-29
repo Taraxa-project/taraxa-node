@@ -152,16 +152,12 @@ void SortitionParamsManager::cleanup(uint64_t current_period) {
 void SortitionParamsManager::pbftBlockPushed(const SyncBlock& block, DbStorage::Batch& batch) {
   // Simplest way to update that params including node restart without config overrides
   // we are saving it as change, so we can deal with different proposal periods
-  auto hardfork = [&](uint64_t block_num, const VrfParams& vrf) {
-    if (block.pbft_blk->getPeriod() == block_num) {
-      SortitionParamsChange pc{block_num, 0, vrf};
-      params_changes_.push_back(pc);
-      db_->saveSortitionParamsChange(block_num, pc, batch);
-    }
-  };
-  hardfork(3630, {0x5000, 0x1300});
-  hardfork(5300, {0x1770, 0xbb8});
-
+  uint64_t hardfork_block_num = 3630;
+  if (block.pbft_blk->getPeriod() == hardfork_block_num) {
+    SortitionParamsChange pc{hardfork_block_num, 0, {0x5000, 0x1300}};
+    params_changes_.push_back(pc);
+    db_->saveSortitionParamsChange(hardfork_block_num, pc, batch);
+  }
   if (config_.changing_interval == 0) {
     return;
   }
