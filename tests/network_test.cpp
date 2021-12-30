@@ -349,16 +349,16 @@ TEST_F(NetworkTest, node_sync) {
   }
 
   EXPECT_HAPPENS({30s, 500ms}, [&](auto& ctx) {
-    WAIT_EXPECT_EQ(ctx, node1->getDagManager()->getNumVerticesInDag().first, 7)
-    WAIT_EXPECT_EQ(ctx, node1->getDagManager()->getNumEdgesInDag().first, 8)
+    WAIT_EXPECT_LT(ctx, 6, node1->getDagManager()->getNumVerticesInDag().first)
+    WAIT_EXPECT_LT(ctx, 7, node1->getDagManager()->getNumEdgesInDag().first)
   });
 
   auto node2 = create_nodes({node_cfgs[1]}, true /*start*/).front();
 
   std::cout << "Waiting Sync..." << std::endl;
   EXPECT_HAPPENS({45s, 1500ms}, [&](auto& ctx) {
-    WAIT_EXPECT_EQ(ctx, node2->getDagManager()->getNumVerticesInDag().first, 7)
-    WAIT_EXPECT_EQ(ctx, node2->getDagManager()->getNumEdgesInDag().first, 8)
+    WAIT_EXPECT_LT(ctx, 6, node2->getDagManager()->getNumVerticesInDag().first)
+    WAIT_EXPECT_LT(ctx, 7, node2->getDagManager()->getNumEdgesInDag().first)
   });
 }
 

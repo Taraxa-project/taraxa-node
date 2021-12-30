@@ -588,8 +588,7 @@ bool DbStorage::transactionFinalized(trx_hash_t const& hash) {
 }
 
 std::vector<bool> DbStorage::transactionsInDb(std::vector<trx_hash_t> const& trx_hashes) {
-  std::vector<bool> result;
-  result.reserve(trx_hashes.size());
+  std::vector<bool> result(trx_hashes.size(), false);
 
   DbStorage::MultiGetQuery db_query(shared_from_this(), trx_hashes.size());
   db_query.append(DbStorage::Columns::transactions, trx_hashes);
