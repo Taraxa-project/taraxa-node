@@ -43,7 +43,7 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
 
     auto status = checkDagBlockValidation(block);
     if (!status.first) {
-      LOG(log_er_) << "DagBlock" << block.getHash() << " Validation failed " << status.second;
+      LOG(log_er_) << "DagBlock " << block.getHash() << " validation failed " << status.second;
       status.second.insert(block.getHash());
       missing_blks.merge(status.second);
       continue;
