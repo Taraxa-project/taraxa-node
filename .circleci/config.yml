@@ -898,7 +898,7 @@ workflows:
             branches:
               ignore: /.*/
             tags:
-              only: /^v\d+\.\d+\.\d+$/
+              only: /^v?\d+\.\d+\.\d+(?:-.*)?$/
           context: 
            - TARAXA
            - GCR
@@ -907,7 +907,7 @@ workflows:
             branches:
               ignore: /.*/
             tags:
-              only: /^v\d+\.\d+\.\d+$/
+              only: /^v?\d+\.\d+\.\d+(?:-.*)?$/
           context:
            - TARAXA
            - GCR
@@ -924,7 +924,7 @@ workflows:
             branches:
               ignore: /.*/
             tags:
-              only: /^v\d+\.\d+\.\d+$/
+              only: /^v?\d+\.\d+\.\d+(?:-.*)?$/
           requires:
             - build-linux
             - build-mac
