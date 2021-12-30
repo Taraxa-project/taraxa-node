@@ -95,6 +95,15 @@ struct DagFrontier {
     pivot.clear();
     tips.clear();
   }
+
+  bool isEqual(const DagFrontier &frontier) {
+    if (pivot != frontier.pivot) {
+      return false;
+    }
+
+    return std::equal(tips.begin(), tips.end(), frontier.tips.begin(), frontier.tips.end());
+  }
+
   blk_hash_t pivot;
   vec_blk_t tips;
 };

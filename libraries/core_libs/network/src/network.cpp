@@ -83,8 +83,8 @@ std::vector<dev::p2p::NodeID> Network::getAllPeersIDs() const {
   return taraxa_capability_->getPeersState()->getAllPeersIDs();
 }
 
-void Network::onNewBlockVerified(DagBlock const &blk, bool proposed) {
-  taraxa_capability_->onNewBlockVerified(blk, proposed);
+void Network::onNewBlockVerified(DagBlock const &blk, bool proposed, SharedTransactions &&trxs) {
+  taraxa_capability_->onNewBlockVerified(blk, proposed, std::move(trxs));
   LOG(log_dg_) << "On new block verified:" << blk.getHash().toString();
 }
 
@@ -123,12 +123,12 @@ void Network::broadcastPreviousRoundNextVotesBundle() {
 }
 
 // METHODS USED IN TESTS ONLY
-void Network::sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk) {
-  taraxa_capability_->sendBlock(id, blk);
+void Network::sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk, const SharedTransactions &trxs) {
+  taraxa_capability_->sendBlock(id, blk, trxs);
   LOG(log_dg_) << "Sent Block:" << blk.getHash().toString();
 }
 
-void Network::sendBlocks(dev::p2p::NodeID const &id, std::vector<std::shared_ptr<DagBlock>> blocks,
+void Network::sendBlocks(const dev::p2p::NodeID &id, std::vector<std::shared_ptr<DagBlock>> &&blocks,
                          uint64_t request_period, uint64_t period) {
   LOG(log_dg_) << "Sending Blocks:" << blocks.size();
   taraxa_capability_->sendBlocks(id, std::move(blocks), request_period, period);

@@ -375,15 +375,18 @@ void DagManager::worker() {
       continue;
     }
     level_limit = false;
-    SharedTransactions transactions;
     if (pivotAndTipsAvailable(*blk)) {
-      // Retrieve all the transactions
-      for (auto const &trx_hash : blk->getTrxs()) {
-        auto trx = trx_mgr_->getTransaction(trx_hash);
-        // DAG block should not have been verified if it is missing a transaction
-        assert(trx != nullptr);
-        transactions.emplace_back(std::move(trx));
+      // Retrieve pool transactions
+      auto [transactions, missing_trxs] = trx_mgr_->getPoolTransactions(blk->getTrxs());
+
+      // DAG block should not have been verified if it is missing a transaction
+      // This check is taking some resources so in time we can remove it but it is safe to have it as a sanity check
+      size_t trx_found_count = 0;
+      for (const auto &b : db_->transactionsInDb(missing_trxs)) {
+        if (b) trx_found_count++;
       }
+      assert(missing_trxs.size() == trx_found_count);
+
       addDagBlock(*blk, std::move(transactions));
       LOG(log_time_) << "Broadcast block " << blk->getHash() << " at: " << getCurrentTimeMilliSeconds();
     } else {
@@ -414,6 +417,13 @@ void DagManager::addDagBlock(DagBlock const &blk, SharedTransactions &&trxs, boo
       trx_mgr_->saveTransactionsFromDagBlock(trxs);
       // Save the dag block
       db_->saveDagBlock(blk);
+
+      // TODO: This is an ugly temporary fix for testnet, a better solution is needed for dag block race condition
+      if (db_->getDagBlockPeriod(blk.getHash()) != nullptr) {
+        db_->removeDagBlock(blk.getHash());
+        LOG(log_er_) << "Block already in DB: " << blk.getHash();
+        return;
+      }
     }
     auto blk_hash = blk.getHash();
     auto pivot_hash = blk.getPivot();
@@ -434,7 +444,7 @@ void DagManager::addDagBlock(DagBlock const &blk, SharedTransactions &&trxs, boo
     if (save) {
       block_verified_.emit(blk);
       if (auto net = network_.lock()) {
-        net->onNewBlockVerified(blk, proposed);
+        net->onNewBlockVerified(blk, proposed, std::move(trxs));
       }
     }
   }
@@ -605,6 +615,25 @@ void DagManager::recoverDag() {
 
   for (auto &lvl : db_->getNonfinalizedDagBlocks()) {
     for (auto &blk : lvl.second) {
+      // These are some sanity checks that difficulty is correct and block is truly non-finalized.
+      // This is only done on startup
+      auto period = db_->getDagBlockPeriod(blk.getHash());
+      if (period != nullptr) {
+        LOG(log_er_) << "Nonfinalized Dag Block actually finalized in period " << period->first;
+        break;
+      } else {
+        auto propose_period = dag_blk_mgr_->getProposalPeriod(blk.getLevel());
+        // Verify VDF solution
+        try {
+          blk.verifyVdf(dag_blk_mgr_->sortitionParamsManager().getSortitionParams(propose_period.first));
+        } catch (vdf_sortition::VdfSortition::InvalidVdfSortition const &e) {
+          LOG(log_er_) << "DAG block " << blk.getHash() << " with " << blk.getLevel()
+                       << " level failed on VDF verification with pivot hash " << blk.getPivot() << " reason "
+                       << e.what();
+          break;
+        }
+      }
+
       addDagBlock(std::move(blk), {}, false, false);
     }
   }

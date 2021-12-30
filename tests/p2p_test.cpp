@@ -214,7 +214,7 @@ TEST_F(P2PTest, capability_send_block) {
 
   SharedTransactions transactions{g_signed_trx_samples[0], g_signed_trx_samples[1]};
   thc2->onNewTransactions(std::move(transactions));
-  thc2->sendBlock(host1->id(), blk);
+  thc2->sendBlock(host1->id(), blk, {});
 
   std::this_thread::sleep_for(std::chrono::seconds(1));
   auto blocks = thc1->test_state_->getBlocks();

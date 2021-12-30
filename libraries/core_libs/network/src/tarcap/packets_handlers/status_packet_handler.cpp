@@ -126,7 +126,7 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
             restartSyncingPbft();
           }
         }
-      } else if (pbft_synced_period == selected_peer->pbft_chain_size_ && !selected_peer->peer_dag_synced) {
+      } else if (pbft_synced_period == selected_peer->pbft_chain_size_ && !selected_peer->peer_dag_synced_) {
         // if not syncing and the peer period is matching our period request any pending dag blocks
         requestPendingDagBlocks(selected_peer);
       }

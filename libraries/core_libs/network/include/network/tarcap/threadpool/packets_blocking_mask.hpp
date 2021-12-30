@@ -6,8 +6,6 @@
 #include <map>
 #include <shared_mutex>
 
-#include "config/config.hpp"
-#include "logger/logger.hpp"
 #include "network/tarcap/packet_types.hpp"
 #include "network/tarcap/threadpool/packet_data.hpp"
 

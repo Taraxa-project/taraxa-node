@@ -375,10 +375,10 @@ void TaraxaCapability::handleMaliciousSyncPeer(dev::p2p::NodeID const &id) {
   restartSyncingPbft(true);
 }
 
-void TaraxaCapability::onNewBlockVerified(DagBlock const &blk, bool proposed) {
+void TaraxaCapability::onNewBlockVerified(DagBlock const &blk, bool proposed, SharedTransactions &&trxs) {
   std::static_pointer_cast<DagBlockPacketHandler>(
       packets_handlers_->getSpecificHandler(SubprotocolPacketType::DagBlockPacket))
-      ->onNewBlockVerified(blk, proposed);
+      ->onNewBlockVerified(blk, proposed, std::move(trxs));
 }
 
 void TaraxaCapability::onNewTransactions(SharedTransactions &&transactions) {
@@ -419,13 +419,13 @@ void TaraxaCapability::sendTransactions(dev::p2p::NodeID const &id, std::vector<
 void TaraxaCapability::setSyncStatePeriod(uint64_t period) { syncing_state_->setSyncStatePeriod(period); }
 
 // METHODS USED IN TESTS ONLY
-void TaraxaCapability::sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk) {
+void TaraxaCapability::sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk, const SharedTransactions &trxs) {
   std::static_pointer_cast<DagBlockPacketHandler>(
       packets_handlers_->getSpecificHandler(SubprotocolPacketType::DagBlockPacket))
-      ->sendBlock(id, blk);
+      ->sendBlock(id, blk, trxs);
 }
 
-void TaraxaCapability::sendBlocks(dev::p2p::NodeID const &id, std::vector<std::shared_ptr<DagBlock>> blocks,
+void TaraxaCapability::sendBlocks(const dev::p2p::NodeID &id, std::vector<std::shared_ptr<DagBlock>> &&blocks,
                                   uint64_t request_period, uint64_t period) {
   std::static_pointer_cast<GetDagSyncPacketHandler>(
       packets_handlers_->getSpecificHandler(SubprotocolPacketType::GetDagSyncPacket))

@@ -97,7 +97,7 @@ void ExtSyncingPacketHandler::requestPendingDagBlocks(std::shared_ptr<TaraxaPeer
   }
 
   // This prevents ddos requesting dag blocks. We can only request this one time from one peer.
-  if (peer->peer_dag_synced) {
+  if (peer->peer_dag_synced_) {
     LOG(log_nf_) << "requestPendingDagBlocks not possible since already requested for peer";
     return;
   }
@@ -106,7 +106,7 @@ void ExtSyncingPacketHandler::requestPendingDagBlocks(std::shared_ptr<TaraxaPeer
   auto pbft_sync_period = pbft_mgr_->pbftSyncingPeriod();
   if (pbft_sync_period == peer->pbft_chain_size_) {
     // This prevents parallel requests
-    if (bool b = false; !peer->peer_dag_syncing.compare_exchange_strong(b, !b)) {
+    if (bool b = false; !peer->peer_dag_syncing_.compare_exchange_strong(b, !b)) {
       LOG(log_nf_) << "requestPendingDagBlocks not possible since already requesting for peer";
       return;
     }

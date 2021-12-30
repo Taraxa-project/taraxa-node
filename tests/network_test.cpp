@@ -63,7 +63,7 @@ TEST_F(NetworkTest, transfer_block) {
     WAIT_EXPECT_EQ(ctx, nw2->getPeerCount(), 1)
   });
 
-  nw2->sendBlock(nw1->getNodeId(), blk);
+  nw2->sendBlock(nw1->getNodeId(), blk, {});
 
   std::cout << "Waiting packages for 10 seconds ..." << std::endl;
 
@@ -113,6 +113,7 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
   }
 
   nodes[0]->getNetwork()->onNewTransactions(std::move(trxs));
+  for (auto block : dag_blocks) nodes[0]->getDagBlockManager()->insertBroadcastedBlock(*block);
   taraxa::thisThreadSleepForSeconds(1);
   nodes[0]->getNetwork()->sendBlocks(nodes[1]->getNetwork()->getNodeId(), std::move(dag_blocks), 1, 1);
 

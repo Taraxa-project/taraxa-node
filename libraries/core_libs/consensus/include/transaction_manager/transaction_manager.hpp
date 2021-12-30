@@ -67,7 +67,18 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   // Update the status of transactions to finalized and remove from transactions column
   void updateFinalizedTransactionsStatus(SyncBlock const &sync_block);
 
+  /**
+   * @brief Gets transactions from transactions pool
+   *
+   * @param trx_to_query
+   *
+   * @return Returns transactions found and list of missing transactions hashes
+   */
+  std::pair<std::vector<std::shared_ptr<Transaction>>, std::vector<trx_hash_t>> getPoolTransactions(
+      const std::vector<trx_hash_t> &trx_to_query) const;
+
   std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash) const;
+  std::shared_ptr<Transaction> getNonFinalizedTransaction(trx_hash_t const &hash) const;
   unsigned long getTransactionCount() const;
   void recoverNonfinalizedTransactions();
 

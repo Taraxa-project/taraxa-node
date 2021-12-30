@@ -11,8 +11,6 @@ class DagBlockManager;
 
 namespace taraxa::network::tarcap {
 
-class SyncingState;
-
 class PbftBlockPacketHandler : public PacketHandler {
  public:
   PbftBlockPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,

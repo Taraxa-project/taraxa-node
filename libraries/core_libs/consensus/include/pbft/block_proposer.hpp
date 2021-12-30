@@ -52,8 +52,8 @@ class SortitionPropose : public ProposeModelFace {
 
  private:
   int num_tries_ = 0;
-  const int max_num_tries_ = 20;  // Wait 2000(ms)
-  level_t last_propose_level_ = 0;
+  int max_num_tries_ = 0;
+  DagFrontier last_frontier_;
   std::shared_ptr<DagManager> dag_mgr_;
   std::shared_ptr<DagBlockManager> dag_blk_mgr_;
   std::shared_ptr<TransactionManager> trx_mgr_;

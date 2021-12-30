@@ -132,6 +132,21 @@ uint32_t TransactionManager::insertBroadcastedTransactions(const SharedTransacti
 
 unsigned long TransactionManager::getTransactionCount() const { return trx_count_; }
 
+std::pair<std::vector<std::shared_ptr<Transaction>>, std::vector<trx_hash_t>> TransactionManager::getPoolTransactions(
+    const std::vector<trx_hash_t> &trx_to_query) const {
+  std::shared_lock transactions_lock(transactions_mutex_);
+  std::pair<std::vector<std::shared_ptr<Transaction>>, std::vector<trx_hash_t>> result;
+  for (const auto &hash : trx_to_query) {
+    auto trx_it = transactions_pool_.get(hash);
+    if (trx_it.second) {
+      result.first.emplace_back(trx_it.first);
+    } else {
+      result.second.emplace_back(hash);
+    }
+  }
+  return result;
+}
+
 std::shared_ptr<Transaction> TransactionManager::getTransaction(trx_hash_t const &hash) const {
   std::shared_lock transactions_lock(transactions_mutex_);
   auto trx_it = transactions_pool_.get(hash);
@@ -171,7 +186,7 @@ void TransactionManager::saveTransactionsFromDagBlock(SharedTransactions const &
 void TransactionManager::recoverNonfinalizedTransactions() {
   std::unique_lock transactions_lock(transactions_mutex_);
   // On restart populate nonfinalized_transactions_in_dag_ structure from db
-  auto trxs = db_->getNonfinalizedTransactions();
+  auto trxs = db_->getAllNonfinalizedTransactions();
   vec_trx_t trx_hashes;
   std::transform(trxs.begin(), trxs.end(), std::back_inserter(trx_hashes),
                  [](std::shared_ptr<Transaction> const &t) { return t->getHash(); });

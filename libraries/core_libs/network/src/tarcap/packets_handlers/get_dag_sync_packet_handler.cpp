@@ -52,46 +52,50 @@ void GetDagSyncPacketHandler::process(const PacketData &packet_data,
       }
     }
   }
-  sendBlocks(packet_data.from_node_id_, dag_blocks, peer_period, period);
+  sendBlocks(packet_data.from_node_id_, std::move(dag_blocks), peer_period, period);
 }
 
-void GetDagSyncPacketHandler::sendBlocks(dev::p2p::NodeID const &peer_id, std::vector<std::shared_ptr<DagBlock>> blocks,
-                                         uint64_t request_period, uint64_t period) {
+void GetDagSyncPacketHandler::sendBlocks(const dev::p2p::NodeID &peer_id,
+                                         std::vector<std::shared_ptr<DagBlock>> &&blocks, uint64_t request_period,
+                                         uint64_t period) {
   auto peer = peers_state_->getPeer(peer_id);
   if (!peer) return;
 
-  std::unordered_map<blk_hash_t, std::vector<taraxa::bytes>> block_transactions;
   size_t total_transactions_count = 0;
+  std::unordered_set<trx_hash_t> unique_trxs;
+  std::vector<taraxa::bytes> transactions;
+  std::string dag_blocks_to_send;
   for (const auto &block : blocks) {
-    std::vector<taraxa::bytes> transactions;
+    std::vector<trx_hash_t> trx_to_query;
     for (auto trx : block->getTrxs()) {
-      auto t = trx_mgr_->getTransaction(trx);
-      if (!t) {
-        LOG(log_er_) << "Transacation " << trx << " is not available. SendBlocks canceled";
-        // TODO: This can happen on stopping the node because network
-        // is not stopped since network does not support restart,
-        // better solution needed
-        return;
+      if (unique_trxs.emplace(trx).second) {
+        trx_to_query.emplace_back(trx);
       }
+    }
+    auto trxs = db_->getNonfinalizedTransactions(trx_to_query);
+
+    for (auto t : trxs) {
       transactions.emplace_back(std::move(*t->rlp()));
       total_transactions_count++;
     }
-    LOG(log_nf_) << "Send DagBlock " << block->getHash() << "# Trx: " << transactions.size() << std::endl;
-    block_transactions[block->getHash()] = std::move(transactions);
+    dag_blocks_to_send += block->getHash().abridged();
   }
 
-  dev::RLPStream s(2 + blocks.size() + total_transactions_count);
+  dev::RLPStream s(3 + blocks.size() + total_transactions_count);
   s << static_cast<uint64_t>(request_period);
   s << static_cast<uint64_t>(period);
+  s << transactions.size();
+  taraxa::bytes trx_bytes;
+  for (auto &trx : transactions) {
+    trx_bytes.insert(trx_bytes.end(), std::make_move_iterator(trx.begin()), std::make_move_iterator(trx.end()));
+  }
+  s.appendRaw(trx_bytes, transactions.size());
+
   for (auto &block : blocks) {
     s.appendRaw(block->rlp(true));
-    taraxa::bytes trx_bytes;
-    for (auto &trx : block_transactions[block->getHash()]) {
-      trx_bytes.insert(trx_bytes.end(), std::make_move_iterator(trx.begin()), std::make_move_iterator(trx.end()));
-    }
-    s.appendRaw(trx_bytes, block_transactions[block->getHash()].size());
   }
   sealAndSend(peer_id, SubprotocolPacketType::DagSyncPacket, std::move(s));
+  LOG(log_nf_) << "Send DagSyncPacket with " << dag_blocks_to_send << "# Trx: " << transactions.size() << std::endl;
 }
 
 }  // namespace taraxa::network::tarcap

@@ -80,14 +80,29 @@ bool DagBlockManager::pivotAndTipsValid(DagBlock const &blk) {
   // Check pivot validation
   if (invalid_blocks_.count(blk.getPivot())) {
     invalid_blocks_.insert(blk.getHash());
+    seen_blocks_.erase(blk.getHash());
+    LOG(log_wr_) << "DAG Block " << blk.getHash() << " pivot " << blk.getPivot() << " is invalid";
+    return false;
+  }
+
+  if (seen_blocks_.count(blk.getPivot()) == 0) {
+    seen_blocks_.erase(blk.getHash());
     LOG(log_wr_) << "DAG Block " << blk.getHash() << " pivot " << blk.getPivot() << " is unavailable";
     return false;
   }
 
-  // check tips validation
   for (auto const &tip : blk.getTips()) {
     if (invalid_blocks_.count(tip)) {
       invalid_blocks_.insert(blk.getHash());
+      seen_blocks_.erase(blk.getHash());
+      LOG(log_wr_) << "DAG Block " << blk.getHash() << " tip " << tip << " is invalid";
+      return false;
+    }
+  }
+
+  for (auto const &tip : blk.getTips()) {
+    if (seen_blocks_.count(tip) == 0) {
+      seen_blocks_.erase(blk.getHash());
       LOG(log_wr_) << "DAG Block " << blk.getHash() << " tip " << tip << " is unavailable";
       return false;
     }
