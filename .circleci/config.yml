@@ -703,8 +703,8 @@ jobs:
               brew install solidity
         - restore_cache:
            keys:
-            - conan-cache-v6-mac-{{ checksum "conanfile.py" }}
-            - conan-cache-v6-mac
+            - conan-cache-v7-mac-{{ checksum "conanfile.py" }}
+            - conan-cache-v7-mac
         - run:
            name: add conan bincrafters remote
            command: conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan"
@@ -721,7 +721,7 @@ jobs:
         - save_cache:
            paths:
              - ~/.conan
-           key: conan-cache-v6-mac-{{ checksum "conanfile.py" }}
+           key: conan-cache-v7-mac-{{ checksum "conanfile.py" }}
         - run:
            name: Cmake
            command: |
@@ -772,8 +772,8 @@ jobs:
            command: mkdir $BUILD_OUTPUT_DIR
         - restore_cache:
            keys:
-            - conan-cache-v3-linux--{{ checksum "conanfile.py" }}
-            - conan-cache-v3-linux
+            - conan-cache-v4-linux--{{ checksum "conanfile.py" }}
+            - conan-cache-v4-linux
         - run:
            name: Add conan bincrafters remote
            command: conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan"
@@ -790,7 +790,7 @@ jobs:
         - save_cache:
            paths:
              - ~/.conan
-           key: conan-cache-v3-linux--{{ checksum "conanfile.py" }}
+           key: conan-cache-v4-linux--{{ checksum "conanfile.py" }}
         - run:
             name: Cmake
             command: |
