@@ -224,8 +224,8 @@ const char *default_json = R"foo({
       "changing_interval": "0x0",
       "computation_interval": "0xC8",
       "vrf": {
-        "threshold_upper": "0xeffd",
-        "threshold_range": "0x406"
+        "threshold_upper": "0x1770",
+        "threshold_range": "0xbb8"
       },
       "vdf": {
         "difficulty_max": "0x12",

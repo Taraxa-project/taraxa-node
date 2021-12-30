@@ -178,14 +178,6 @@ Config::Config(int argc, const char* argv[]) {
       Tools::writeJsonToFile(wallet, wallet_json);
     }
 
-    // override chain_config data with one from default json
-    {
-      // network_id is exactly the same thing as chain_id. So get it from config
-      network_id = dev::getUInt(config_json["chain_config"]["chain_id"]);
-      auto network_config_json = Tools::generateConfig((Config::NetworkIdType)network_id);
-      config_json["chain_config"] = network_config_json["chain_config"];
-    }
-
     // Load config
     node_config_ = FullNodeConfig(config_json, wallet_json);
 
