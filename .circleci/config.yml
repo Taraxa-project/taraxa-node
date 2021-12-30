@@ -669,6 +669,7 @@ jobs:
         CC: clang
         LDFLAGS: -L/usr/local/opt/llvm/lib -Wl,-rpath,/usr/local/opt/llvm/lib
         CPPFLAGS: -I/usr/local/opt/llvm/include
+        HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: true
      steps:
         - checkout
         - run:
@@ -747,6 +748,7 @@ jobs:
      environment:
         CONAN_REVISIONS_ENABLED: true
         BUILD_OUTPUT_DIR: "cmake-docker-build-debug"
+        LLVM_VERSION: "12"
         GO_VERSION: "1.16.3"
         CMAKE_VERSION: "3.16.3-1ubuntu1"
         GCC_VERSION: "4:9.3.0-1ubuntu2"
