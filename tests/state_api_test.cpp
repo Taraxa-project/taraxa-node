@@ -178,7 +178,8 @@ TEST_F(StateAPITest, dpos_integration) {
   EXEC_AND_CHECK({});
 }
 
-TEST_F(StateAPITest, eth_mainnet_smoke) {
+// disabled because of changing balances hardfork
+TEST_F(StateAPITest, DISABLED_eth_mainnet_smoke) {
   auto test_blocks =
       parse_rlp_file<vector<TestBlock>>(path(__FILE__).parent_path().parent_path() / "submodules" / "taraxa-evm" /
                                         "taraxa" / "data" / "eth_mainnet_blocks_0_300000.rlp");
@@ -222,6 +223,34 @@ TEST_F(StateAPITest, eth_mainnet_smoke) {
     ASSERT_EQ(result.state_root, test_block.state_root);
     SUT.transition_state_commit();
   }
+}
+
+TEST_F(StateAPITest, increase_balance_hardfork_test) {
+  auto path = fs::current_path().parent_path().parent_path() / "submodules" / "taraxa-evm" / "taraxa" / "data" /
+              "eth_mainnet_blocks_0_300000.rlp";
+
+  Config chain_config;
+  chain_config.genesis_balances.emplace(addr_t(1111), 1000);
+  chain_config.genesis_balances.emplace(addr_t(1234), 10000);
+
+  Opts opts;
+  opts.expected_max_trx_per_block = 300;
+  opts.max_trie_full_node_levels_to_cache = 4;
+
+  StateAPI SUT([&](auto) { return h256(); },  //
+               chain_config, opts,
+               {
+                   (data_dir / "state").string(),
+               });
+  const auto addr = chain_config.genesis_balances.begin()->first;
+  auto balance = SUT.get_account(0, addr)->balance;
+  for (uint16_t i = 0; i < 9001; ++i) {
+    SUT.transition_state({}, {}, {});
+    SUT.transition_state_commit();
+  }
+  const auto balance_after = SUT.get_account(9000, addr)->balance;
+  const auto mult = u256(1e18);
+  EXPECT_EQ(balance * mult, balance_after);
 }
 
 }  // namespace taraxa::state_api
