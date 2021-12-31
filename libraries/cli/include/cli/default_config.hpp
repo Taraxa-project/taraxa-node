@@ -173,18 +173,18 @@ const char *default_json = R"foo({
         "dpos": {
           "deposit_delay": "0x5",
           "withdrawal_delay": "0x5",
-          "eligibility_balance_threshold": "0x186A0",
+          "eligibility_balance_threshold": "0x152d02c7e14af6000000",
           "genesis_state": {
             "0x0274cfffea9fa850e54c93a23042f12a87358a82": {
-              "0x1f8333245650a19a0683891b7afe7787a3ce9f00": "0x989680",
-              "0xd4e4728bea5a67dd70dccb742bdc9c3a48465bec": "0x989680",
-              "0xec591a85f613fe98f057dc09712a9b22cdd05845": "0x989680",
-              "0x267e780b7843992e57f52e13018f0f97467ac06e": "0x989680",
-              "0x9d047654e55248ec38aa6723a5ab36d171008584": "0x989680",
-              "0x0d149e61cc02b5893ef6fc33bc7d67ff13eeeee0": "0x989680",
-              "0x00ccd0de0809ac03fd292036ee1544185583cd88": "0x989680",
-              "0x6f96be7626a74e86c76e65ccbccf0a38e2b62fc5": "0x989680",
-              "0xd20131f980c9932b1df31cf3aafeecfb1d504381": "0x989680"
+              "0x1f8333245650a19a0683891b7afe7787a3ce9f00": "0x845951614014880000000",
+              "0xd4e4728bea5a67dd70dccb742bdc9c3a48465bec": "0x845951614014880000000",
+              "0xec591a85f613fe98f057dc09712a9b22cdd05845": "0x845951614014880000000",
+              "0x267e780b7843992e57f52e13018f0f97467ac06e": "0x845951614014880000000",
+              "0x9d047654e55248ec38aa6723a5ab36d171008584": "0x845951614014880000000",
+              "0x0d149e61cc02b5893ef6fc33bc7d67ff13eeeee0": "0x845951614014880000000",
+              "0x00ccd0de0809ac03fd292036ee1544185583cd88": "0x845951614014880000000",
+              "0x6f96be7626a74e86c76e65ccbccf0a38e2b62fc5": "0x845951614014880000000",
+              "0xd20131f980c9932b1df31cf3aafeecfb1d504381": "0x845951614014880000000"
             }
           }
         },
@@ -202,8 +202,8 @@ const char *default_json = R"foo({
           "disable_nonce_check": true
         },
         "genesis_balances": {
-          "0274cfffea9fa850e54c93a23042f12a87358a82": "0x141e8d17",
-          "111f91441efc8c6c0edf6534970cc887e2fabaa8": "0x24048ce3d"
+          "0274cfffea9fa850e54c93a23042f12a87358a82": "0x117364175f2cb1000000000",
+          "111f91441efc8c6c0edf6534970cc887e2fabaa8": "0x1f3d8d75bcb82e0000000000"
         }
       }
     },
