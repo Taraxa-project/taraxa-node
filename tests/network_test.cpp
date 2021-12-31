@@ -425,6 +425,10 @@ TEST_F(NetworkTest, node_pbft_sync) {
   db1->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
   db1->commitWriteBatch(batch);
 
+  vec_blk_t order1;
+  order1.push_back(blk1.getHash());
+  node1->getDagManager()->setDagBlockOrder(blk1.getHash(), level, order1);
+
   uint64_t expect_pbft_chain_size = 1;
   EXPECT_EQ(node1->getPbftChain()->getPbftChainSize(), expect_pbft_chain_size);
 
@@ -475,6 +479,11 @@ TEST_F(NetworkTest, node_pbft_sync) {
   pbft_chain_head_str = pbft_chain1->getJsonStr();
   db1->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
   db1->commitWriteBatch(batch);
+
+  vec_blk_t order2;
+  order2.push_back(blk2.getHash());
+  node1->getDagManager()->setDagBlockOrder(blk2.getHash(), level, order2);
+
   expect_pbft_chain_size = 2;
   EXPECT_EQ(node1->getPbftChain()->getPbftChainSize(), expect_pbft_chain_size);
 
