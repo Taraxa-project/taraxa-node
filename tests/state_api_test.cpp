@@ -226,9 +226,7 @@ TEST_F(StateAPITest, DISABLED_eth_mainnet_smoke) {
 }
 
 TEST_F(StateAPITest, increase_balance_hardfork_test) {
-  auto path = fs::current_path().parent_path().parent_path() / "submodules" / "taraxa-evm" / "taraxa" / "data" /
-              "eth_mainnet_blocks_0_300000.rlp";
-
+  const auto hardfork_block_num = 12000;
   Config chain_config;
   chain_config.genesis_balances.emplace(addr_t(1111), 1000);
   chain_config.genesis_balances.emplace(addr_t(1234), 10000);
@@ -242,15 +240,16 @@ TEST_F(StateAPITest, increase_balance_hardfork_test) {
                {
                    (data_dir / "state").string(),
                });
-  const auto addr = chain_config.genesis_balances.begin()->first;
-  auto balance = SUT.get_account(0, addr)->balance;
-  for (uint16_t i = 0; i < 9001; ++i) {
+  for (uint16_t i = 0; i < hardfork_block_num; ++i) {
     SUT.transition_state({}, {}, {});
     SUT.transition_state_commit();
   }
-  const auto balance_after = SUT.get_account(9000, addr)->balance;
+
   const auto mult = u256(1e18);
-  EXPECT_EQ(balance * mult, balance_after);
+  for (const auto& b : chain_config.genesis_balances) {
+    const auto balance_after = SUT.get_account(hardfork_block_num, b.first)->balance;
+    EXPECT_EQ(b.second * mult, balance_after);
+  }
 }
 
 }  // namespace taraxa::state_api
