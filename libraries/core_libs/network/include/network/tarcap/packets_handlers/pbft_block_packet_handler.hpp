@@ -6,6 +6,7 @@ namespace taraxa {
 class PbftBlock;
 class PbftChain;
 class PbftManager;
+class DagBlockManager;
 }  // namespace taraxa
 
 namespace taraxa::network::tarcap {

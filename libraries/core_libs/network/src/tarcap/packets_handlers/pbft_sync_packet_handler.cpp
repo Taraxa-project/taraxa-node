@@ -28,16 +28,8 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
   // Note: no need to consider possible race conditions due to concurrent processing as it is
   // disabled on priority_queue blocking dependencies level
 
-  // Also handle SyncedPacket here
-  // TODO: create separate handler
-  if (packet_data.type_ == SubprotocolPacketType::SyncedPacket) {
-    LOG(log_dg_) << "Received synced message from " << packet_data.from_node_id_;
-    peer->syncing_ = false;
-    return;
-  }
-
   if (syncing_state_->syncing_peer() != packet_data.from_node_id_) {
-    LOG(log_wr_) << "PbftSyncPacket received from unexpected peer " << packet_data.from_node_id_.abridged()
+    LOG(log_dg_) << "PbftSyncPacket received from unexpected peer " << packet_data.from_node_id_.abridged()
                  << " current syncing peer " << syncing_state_->syncing_peer().abridged();
     return;
   }
@@ -71,8 +63,9 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
   LOG(log_dg_) << "Processing pbft block: " << pbft_blk_hash;
 
   if (sync_block.pbft_blk->getPeriod() != pbft_mgr_->pbftSyncingPeriod() + 1) {
-    LOG(log_dg_) << "Block " << pbft_blk_hash << " period unexpected: " << sync_block.pbft_blk->getPeriod()
+    LOG(log_wr_) << "Block " << pbft_blk_hash << " period unexpected: " << sync_block.pbft_blk->getPeriod()
                  << ". Expected period: " << pbft_mgr_->pbftSyncingPeriod() + 1;
+    restartSyncingPbft(true);
     return;
   }
   // Update peer's pbft period if outdated
@@ -98,8 +91,7 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
         delayed_sync_events_tp_.post(1000, [this] { delayedPbftSync(1); });
       } else {
         if (!syncPeerPbft(pbft_sync_period + 1)) {
-          syncing_state_->set_pbft_syncing(false);
-          return restartSyncingPbft();
+          return restartSyncingPbft(true);
         }
       }
     }
@@ -118,12 +110,8 @@ void PbftSyncPacketHandler::pbftSyncComplete() {
     // greater pbft chain size and we should continue syncing with
     // them, Or sync pending DAG blocks
     restartSyncingPbft(true);
-    // We are pbft synced, send message to other node to start
-    // gossiping new blocks
     if (!syncing_state_->is_pbft_syncing()) {
-      // TODO: Why need to clear all DAG blocks and transactions?
-      // This is inside PbftSyncPacket. Why don't clear PBFT blocks and votes?
-      sendSyncedMessage();
+      requestPendingDagBlocks();
     }
   }
 }
@@ -145,17 +133,9 @@ void PbftSyncPacketHandler::delayedPbftSync(int counter) {
       delayed_sync_events_tp_.post(1000, [this, counter] { delayedPbftSync(counter + 1); });
     } else {
       if (!syncPeerPbft(pbft_sync_period + 1)) {
-        syncing_state_->set_pbft_syncing(false);
-        return restartSyncingPbft();
+        return restartSyncingPbft(true);
       }
     }
-  }
-}
-
-void PbftSyncPacketHandler::sendSyncedMessage() {
-  LOG(log_dg_) << "sendSyncedMessage ";
-  for (const auto &peer : peers_state_->getAllPeersIDs()) {
-    sealAndSend(peer, SyncedPacket, dev::RLPStream(0));
   }
 }
 

@@ -231,7 +231,6 @@ void TaraxaCapability::registerPacketHandlers(
       std::make_shared<PbftSyncPacketHandler>(peers_state_, packets_stats, syncing_state_, pbft_chain, pbft_mgr,
                                               dag_mgr, dag_blk_mgr, db, conf.network_sync_level_size, node_addr);
   packets_handlers_->registerHandler(SubprotocolPacketType::PbftSyncPacket, pbft_handler);
-  packets_handlers_->registerHandler(SubprotocolPacketType::SyncedPacket, pbft_handler);
 
   thread_pool_->setPacketsHandlers(packets_handlers_);
 }
@@ -277,7 +276,6 @@ void TaraxaCapability::onDisconnect(dev::p2p::NodeID const &_nodeID) {
     } else {
       LOG(log_dg_) << "Stop PBFT/DAG syncing due to syncing peer disconnect and no other peers available.";
       syncing_state_->set_pbft_syncing(false);
-      syncing_state_->set_dag_syncing(false);
     }
   }
 }
@@ -337,7 +335,6 @@ inline bool TaraxaCapability::filterSyncIrrelevantPackets(SubprotocolPacketType 
     case StatusPacket:
     case GetPbftSyncPacket:
     case PbftSyncPacket:
-    case SyncedPacket:
       return false;
     default:
       return true;
@@ -378,10 +375,10 @@ void TaraxaCapability::handleMaliciousSyncPeer(dev::p2p::NodeID const &id) {
   restartSyncingPbft(true);
 }
 
-void TaraxaCapability::onNewBlockVerified(DagBlock const &blk, bool proposed) {
+void TaraxaCapability::onNewBlockVerified(DagBlock const &blk, bool proposed, SharedTransactions &&trxs) {
   std::static_pointer_cast<DagBlockPacketHandler>(
       packets_handlers_->getSpecificHandler(SubprotocolPacketType::DagBlockPacket))
-      ->onNewBlockVerified(blk, proposed);
+      ->onNewBlockVerified(blk, proposed, std::move(trxs));
 }
 
 void TaraxaCapability::onNewTransactions(SharedTransactions &&transactions) {
@@ -422,16 +419,17 @@ void TaraxaCapability::sendTransactions(dev::p2p::NodeID const &id, std::vector<
 void TaraxaCapability::setSyncStatePeriod(uint64_t period) { syncing_state_->setSyncStatePeriod(period); }
 
 // METHODS USED IN TESTS ONLY
-void TaraxaCapability::sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk) {
+void TaraxaCapability::sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk, const SharedTransactions &trxs) {
   std::static_pointer_cast<DagBlockPacketHandler>(
       packets_handlers_->getSpecificHandler(SubprotocolPacketType::DagBlockPacket))
-      ->sendBlock(id, blk);
+      ->sendBlock(id, blk, trxs);
 }
 
-void TaraxaCapability::sendBlocks(dev::p2p::NodeID const &id, std::vector<std::shared_ptr<DagBlock>> blocks) {
+void TaraxaCapability::sendBlocks(const dev::p2p::NodeID &id, std::vector<std::shared_ptr<DagBlock>> &&blocks,
+                                  uint64_t request_period, uint64_t period) {
   std::static_pointer_cast<GetDagSyncPacketHandler>(
       packets_handlers_->getSpecificHandler(SubprotocolPacketType::GetDagSyncPacket))
-      ->sendBlocks(id, std::move(blocks));
+      ->sendBlocks(id, std::move(blocks), request_period, period);
 }
 
 size_t TaraxaCapability::getReceivedBlocksCount() const { return test_state_->getBlocksSize(); }

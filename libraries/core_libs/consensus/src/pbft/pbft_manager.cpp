@@ -1025,6 +1025,13 @@ void PbftManager::firstFinish_() {
       if (place_votes) {
         LOG(log_nf_) << "Next votes " << place_votes << " voting nodes own starting value "
                      << own_starting_value_for_round_ << " for round " << round << ", at step " << step_;
+        // Re-broadcast pbft block in case some nodes do not have it
+        if (step_ % 20 == 0) {
+          auto pbft_block = getUnfinalizedBlock_(own_starting_value_for_round_);
+          if (auto net = network_.lock(); net && pbft_block) {
+            net->onNewPbftBlock(pbft_block);
+          }
+        }
       }
     }
   }
@@ -1354,14 +1361,10 @@ void PbftManager::syncPbftChainFromPeers_(PbftSyncRequestReason reason, taraxa::
     if (!is_syncing_() && !syncRequestedAlreadyThisStep_()) {
       auto round = getPbftRound();
 
-      bool force = false;
-
       switch (reason) {
         case missing_dag_blk:
           LOG(log_nf_) << "DAG blocks have not synced yet, anchor block " << relevant_blk_hash
                        << " not present in DAG.";
-          // We want to force syncing the DAG...
-          force = true;
 
           break;
         case invalid_cert_voted_block:
@@ -1378,20 +1381,18 @@ void PbftManager::syncPbftChainFromPeers_(PbftSyncRequestReason reason, taraxa::
           LOG(log_nf_) << "Suspect consensus is partitioned, reached step " << step_ << " in round " << round
                        << " without advancing.";
           // We want to force sycning the DAG...
-          force = true;
           break;
         default:
           LOG(log_er_) << "Unknown PBFT sync request reason " << reason;
           assert(false);
 
-          if (force) {
-            LOG(log_nf_) << "Restarting sync in round " << round << ", step " << step_ << ", and forcing DAG sync";
-          } else {
-            LOG(log_nf_) << "Restarting sync in round " << round << ", step " << step_;
-          }
+          LOG(log_nf_) << "Restarting sync in round " << round << ", step " << step_;
       }
 
-      net->restartSyncingPbft(force);
+      // TODO: Is there any need to sync here???
+      // If we detect some stalled situation, a better step would be to disconnect/reconnect to nodes to try to get
+      // network unstuck since reconnecting both shuffles the nodes and invokes pbft/dag syncing if needed
+      // net->restartSyncingPbft();
 
       pbft_round_last_requested_sync_ = round;
       pbft_step_last_requested_sync_ = step_;

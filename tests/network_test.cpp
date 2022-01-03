@@ -63,7 +63,7 @@ TEST_F(NetworkTest, transfer_block) {
     WAIT_EXPECT_EQ(ctx, nw2->getPeerCount(), 1)
   });
 
-  nw2->sendBlock(nw1->getNodeId(), blk);
+  nw2->sendBlock(nw1->getNodeId(), blk, {});
 
   std::cout << "Waiting packages for 10 seconds ..." << std::endl;
 
@@ -94,14 +94,7 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
     trx_hashes.push_back(trx->getHash());
   }
 
-  // creating lot of non valid blocks just for size
-  for (int i = 0; i < 100; ++i) {
-    DagBlock blk(blk_hash_t(1111 + i), 0, {blk_hash_t(222 + i), blk_hash_t(333 + i), blk_hash_t(444 + i)}, trx_hashes,
-                 sig_t(7777 + i), blk_hash_t(888 + i), addr_t(999 + i));
-    dag_blocks.emplace_back(std::make_shared<DagBlock>(blk));
-  }
-
-  // add one valid as last
+  // add one valid block
   auto dag_genesis = nodes[0]->getConfig().chain.dag_genesis_block.getHash();
   SortitionConfig vdf_config(node_cfgs[0].chain.sortition);
   vdf_sortition::VdfSortition vdf(vdf_config, nodes[0]->getVrfSecretKey(), getRlpBytes(1));
@@ -112,9 +105,17 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
   auto block_hash = blk.getHash();
   dag_blocks.emplace_back(std::make_shared<DagBlock>(blk));
 
+  // creating lot of non valid blocks just for size
+  for (int i = 0; i < 100; ++i) {
+    DagBlock blk(blk_hash_t(1111 + i), 0, {blk_hash_t(222 + i), blk_hash_t(333 + i), blk_hash_t(444 + i)}, trx_hashes,
+                 sig_t(7777 + i), blk_hash_t(888 + i), addr_t(999 + i));
+    dag_blocks.emplace_back(std::make_shared<DagBlock>(blk));
+  }
+
   nodes[0]->getNetwork()->onNewTransactions(std::move(trxs));
+  for (auto block : dag_blocks) nodes[0]->getDagBlockManager()->insertBroadcastedBlock(*block);
   taraxa::thisThreadSleepForSeconds(1);
-  nodes[0]->getNetwork()->sendBlocks(nodes[1]->getNetwork()->getNodeId(), std::move(dag_blocks));
+  nodes[0]->getNetwork()->sendBlocks(nodes[1]->getNetwork()->getNodeId(), std::move(dag_blocks), 1, 1);
 
   std::cout << "Waiting Sync ..." << std::endl;
   wait({30s, 200ms},
@@ -127,7 +128,7 @@ TEST_F(NetworkTest, send_pbft_block) {
   auto nw1 = nodes[0]->getNetwork();
   auto nw2 = nodes[1]->getNetwork();
 
-  auto pbft_block = make_simple_pbft_block(blk_hash_t(1), 2);
+  auto pbft_block = make_simple_pbft_block(blk_hash_t(1), 2, node_cfgs[0].chain.dag_genesis_block.getHash());
   uint64_t chain_size = 111;
 
   nw2->sendPbftBlock(nw1->getNodeId(), pbft_block, chain_size);
@@ -348,16 +349,16 @@ TEST_F(NetworkTest, node_sync) {
   }
 
   EXPECT_HAPPENS({30s, 500ms}, [&](auto& ctx) {
-    WAIT_EXPECT_EQ(ctx, node1->getDagManager()->getNumVerticesInDag().first, 7)
-    WAIT_EXPECT_EQ(ctx, node1->getDagManager()->getNumEdgesInDag().first, 8)
+    WAIT_EXPECT_LT(ctx, 6, node1->getDagManager()->getNumVerticesInDag().first)
+    WAIT_EXPECT_LT(ctx, 7, node1->getDagManager()->getNumEdgesInDag().first)
   });
 
   auto node2 = create_nodes({node_cfgs[1]}, true /*start*/).front();
 
   std::cout << "Waiting Sync..." << std::endl;
   EXPECT_HAPPENS({45s, 1500ms}, [&](auto& ctx) {
-    WAIT_EXPECT_EQ(ctx, node2->getDagManager()->getNumVerticesInDag().first, 7)
-    WAIT_EXPECT_EQ(ctx, node2->getDagManager()->getNumEdgesInDag().first, 8)
+    WAIT_EXPECT_LT(ctx, 6, node2->getDagManager()->getNumVerticesInDag().first)
+    WAIT_EXPECT_LT(ctx, 7, node2->getDagManager()->getNumEdgesInDag().first)
   });
 }
 
@@ -424,6 +425,10 @@ TEST_F(NetworkTest, node_pbft_sync) {
   db1->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
   db1->commitWriteBatch(batch);
 
+  vec_blk_t order1;
+  order1.push_back(blk1.getHash());
+  node1->getDagManager()->setDagBlockOrder(blk1.getHash(), level, order1);
+
   uint64_t expect_pbft_chain_size = 1;
   EXPECT_EQ(node1->getPbftChain()->getPbftChainSize(), expect_pbft_chain_size);
 
@@ -474,6 +479,11 @@ TEST_F(NetworkTest, node_pbft_sync) {
   pbft_chain_head_str = pbft_chain1->getJsonStr();
   db1->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
   db1->commitWriteBatch(batch);
+
+  vec_blk_t order2;
+  order2.push_back(blk2.getHash());
+  node1->getDagManager()->setDagBlockOrder(blk2.getHash(), level, order2);
+
   expect_pbft_chain_size = 2;
   EXPECT_EQ(node1->getPbftChain()->getPbftChainSize(), expect_pbft_chain_size);
 

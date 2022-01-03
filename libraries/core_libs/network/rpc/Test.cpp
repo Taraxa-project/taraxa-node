@@ -60,6 +60,49 @@ Json::Value Test::get_dag_block(const Json::Value &param1) {
   return res;
 }
 
+Json::Value Test::get_sortition_change(const Json::Value &param1) {
+  Json::Value res;
+  try {
+    if (auto node = full_node_.lock()) {
+      uint64_t period = param1["period"].asUInt64();
+      auto params_change = node->getDB()->getParamsChangeForPeriod(period);
+      res["actual_correction_per_percent"] = params_change->actual_correction_per_percent;
+      res["interval_efficiency"] = params_change->interval_efficiency;
+      res["period"] = params_change->period;
+      res["threshold_range"] = params_change->vrf_params.threshold_range;
+      res["threshold_upper"] = params_change->vrf_params.threshold_upper;
+      res["kThresholdUpperMinValue"] = params_change->vrf_params.kThresholdUpperMinValue;
+    }
+  } catch (std::exception &e) {
+    res["status"] = e.what();
+  }
+  return res;
+}
+
+Json::Value Test::get_nf_blocks(const Json::Value &) {
+  Json::Value res;
+  try {
+    if (auto node = full_node_.lock()) {
+      auto nf = node->getDagManager()->getNonFinalizedBlocks();
+      res["value"] = Json::Value(Json::arrayValue);
+      for (auto const &n : nf.second) {
+        Json::Value level_json;
+        level_json["level"] = n.first;
+        level_json["blocks"] = Json::Value(Json::arrayValue);
+        for (auto const &b : n.second) {
+          Json::Value block_json;
+          block_json["hash"] = b.abridged();
+          level_json["value"].append(block_json);
+        }
+        res["value"].append(level_json);
+      }
+    }
+  } catch (std::exception &e) {
+    res["status"] = e.what();
+  }
+  return res;
+}
+
 Json::Value Test::send_coin_transaction(const Json::Value &param1) {
   Json::Value res;
   try {

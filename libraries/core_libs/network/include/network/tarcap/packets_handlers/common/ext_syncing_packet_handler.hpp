@@ -1,7 +1,6 @@
 #pragma once
 
 #include "dag/dag_block.hpp"
-#include "get_blocks_request_type.hpp"
 #include "packet_handler.hpp"
 
 namespace taraxa {
@@ -39,13 +38,11 @@ class ExtSyncingPacketHandler : public PacketHandler {
   void restartSyncingPbft(bool force = false);
 
   bool syncPeerPbft(unsigned long height_to_sync);
-  void requestDagBlocks(const dev::p2p::NodeID &_nodeID, const std::unordered_set<blk_hash_t> &blocks,
-                        DagSyncRequestType mode = MissingHashes);
+  void requestDagBlocks(const dev::p2p::NodeID &_nodeID, const std::unordered_set<blk_hash_t> &blocks, uint64_t period);
+  void requestPendingDagBlocks(std::shared_ptr<TaraxaPeer> peer = nullptr);
 
   std::pair<bool, std::unordered_set<blk_hash_t>> checkDagBlockValidation(const DagBlock &block) const;
-
- private:
-  void requestPendingDagBlocks();
+  std::shared_ptr<TaraxaPeer> getMaxChainPeer();
 
  protected:
   std::shared_ptr<SyncingState> syncing_state_{nullptr};

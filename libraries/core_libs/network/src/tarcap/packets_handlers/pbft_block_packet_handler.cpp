@@ -2,6 +2,7 @@
 
 #include <libp2p/Common.h>
 
+#include "network/tarcap/shared_states/syncing_state.hpp"
 #include "pbft/pbft_chain.hpp"
 #include "pbft/pbft_manager.hpp"
 
