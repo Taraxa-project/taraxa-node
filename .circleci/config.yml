@@ -570,7 +570,7 @@ jobs:
                 --timeout 600s \
                 --create-namespace \
                 --namespace ${HELM_TEST_NAME} \
-                --set replicaCount=5 \
+                --set node.replicaCount=5 \
                 --set test.pythontester.script=jenkins.py \
                 --set image.repository=${GCP_IMAGE} \
                 --set image.tag=${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} \
