@@ -364,26 +364,28 @@ bi::tcp::endpoint Host::determinePublic() const {
 
   bi::tcp::endpoint ep(bi::address(), m_listenPort);
   if (m_netConfig.traverseNAT && listenIsPublic) {
-    cnetnote << "Listen address set to Public address: " << laddr << ". UPnP disabled.";
+    cout << "Listen address set to Public address: " << laddr << ". UPnP disabled." << std::endl;
     ep.address(laddr);
   } else if (m_netConfig.traverseNAT && publicIsHost) {
-    cnetnote << "Public address set to Host configured address: " << paddr << ". UPnP disabled.";
+    cout << "Public address set to Host configured address: " << paddr << ". UPnP disabled." << std::endl;
     ep.address(paddr);
   } else if (m_netConfig.traverseNAT) {
     bi::address natIFAddr;
     ep = Network::traverseNAT(lset && ifAddresses.count(laddr) ? set<bi::address>({laddr}) : ifAddresses, m_listenPort,
                               natIFAddr);
+    cout << "local address " << natIFAddr << " returned by UPnP!" << std::endl;
 
     if (lset && natIFAddr != laddr)
       // if listen address is set, Host will use it, even if upnp returns
       // different
-      cwarn << "Listen address " << laddr << " differs from local address " << natIFAddr << " returned by UPnP!";
+      cout << "Listen address " << laddr << " differs from local address " << natIFAddr << " returned by UPnP!"
+           << std::endl;
 
     if (pset && ep.address() != paddr) {
       // if public address is set, Host will advertise it, even if upnp returns
       // different
-      cwarn << "Specified public address " << paddr << " differs from external address " << ep.address()
-            << " returned by UPnP!";
+      cout << "Specified public address " << paddr << " differs from external address " << ep.address()
+           << " returned by UPnP!" << std::endl;
       ep.address(paddr);
     }
   } else if (pset)
