@@ -23,7 +23,7 @@ Network::Network(NetworkConfig const &config, std::filesystem::path const &netwo
   net_conf.listenIPAddress = conf_.network_address;
   net_conf.listenPort = conf_.network_tcp_port;
   net_conf.discovery = true;
-  net_conf.allowLocalDiscovery = false;
+  net_conf.allowLocalDiscovery = !config.disable_local_disc;
   net_conf.traverseNAT = true;
   net_conf.publicIPAddress = {};
   net_conf.pin = false;

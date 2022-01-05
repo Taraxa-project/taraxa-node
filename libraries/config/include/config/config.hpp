@@ -43,6 +43,7 @@ struct NetworkConfig {
   uint16_t network_num_threads = std::max(uint(1), uint(std::thread::hardware_concurrency() / 2));
   uint16_t network_packets_processing_threads = 10;
   uint16_t deep_syncing_threshold = 10;
+  bool disable_local_disc = false;
 };
 
 struct BlockProposerConfig {

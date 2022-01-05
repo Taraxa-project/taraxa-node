@@ -34,6 +34,7 @@ Config::Config(int argc, const char* argv[]) {
   bool rebuild_db = false;
   bool rebuild_db_columns = false;
   bool version = false;
+  bool disable_local_disc = false;
   uint64_t rebuild_db_period = 0;
   uint64_t revert_to_period = 0;
   // Set node as default command
@@ -45,6 +46,7 @@ Config::Config(int argc, const char* argv[]) {
 
   // Define all the command line options and descriptions
   main_options.add_options()(HELP, "Print this help message and exit");
+  main_options.add_options()(DENY_LOCAL_DISCOVERY, bpo::bool_switch(&disable_local_disc),"TODO");
   main_options.add_options()(VERSION, bpo::bool_switch(&version), "Print version of taraxad");
   main_options.add_options()(COMMAND, bpo::value<vector<string>>(&command)->multitoken(),
                              "Command arg:"
@@ -184,6 +186,9 @@ Config::Config(int argc, const char* argv[]) {
     }
     if (rebuild_network) {
       fs::remove_all(node_config_.net_file_path());
+    }
+    if (disable_local_disc) {
+      node_config_.network.disable_local_disc = true;
     }
     node_config_.test_params.db_revert_to_period = revert_to_period;
     node_config_.test_params.rebuild_db = rebuild_db;
