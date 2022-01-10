@@ -556,6 +556,7 @@ std::shared_ptr<NodeEntry> NodeTable::handlePingNode(bi::udp::endpoint const& _f
   // Send PONG response.
   Pong p(sourceEndpoint);
   LOG(m_logger) << p.typeName() << " to " << in.sourceid << "@" << _from;
+  LOG(m_logger) << p.typeName() << " to " << in.sourceid << "@" << in.source;
   p.expiration = nextRequestExpirationTime();
   p.echo = in.echo;
   p.seq = m_hostENR.sequenceNumber();
