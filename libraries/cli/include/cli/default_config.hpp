@@ -5,7 +5,7 @@ const char *default_json = R"foo({
   "vrf_secret": "",
   "data_path": "",
   "network_is_boot_node": false,
-  "network_address": "0.0.0.0",
+  "network_listen_ip": "0.0.0.0",
   "network_tcp_port": 10002,
   "network_udp_port": 10002,
   "network_simulated_delay": 0,

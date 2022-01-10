@@ -20,12 +20,12 @@ Network::Network(NetworkConfig const &config, std::filesystem::path const &netwo
 
   // TODO make all these properties configurable
   dev::p2p::NetworkConfig net_conf;
-  net_conf.listenIPAddress = conf_.network_address;
+  net_conf.listenIPAddress = conf_.network_listen_ip;
   net_conf.listenPort = conf_.network_tcp_port;
   net_conf.discovery = true;
   net_conf.allowLocalDiscovery = true;
   net_conf.traverseNAT = false;
-  net_conf.publicIPAddress = {};
+  net_conf.publicIPAddress = conf_.network_public_ip;
   net_conf.pin = false;
   dev::p2p::TaraxaNetworkConfig taraxa_net_conf;
   taraxa_net_conf.ideal_peer_count = conf_.network_ideal_peer_count;
@@ -63,7 +63,7 @@ Network::~Network() {
 void Network::start() {
   tp_.start();
   taraxa_capability_->start();
-  LOG(log_nf_) << "Started Network address: " << conf_.network_address << ":" << conf_.network_tcp_port << std::endl;
+  LOG(log_nf_) << "Started Network address: " << conf_.network_listen_ip << ":" << conf_.network_tcp_port << std::endl;
   LOG(log_nf_) << "Started Node id: " << host_->id();
 }
 

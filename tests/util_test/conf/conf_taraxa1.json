@@ -1,7 +1,7 @@
 {
   "data_path": "/tmp/taraxa",
   "network_is_boot_node": true,
-  "network_address": "0.0.0.0",
+  "network_listen_ip": "0.0.0.0",
   "network_tcp_port": 10007,
   "network_udp_port": 10007,
   "network_simulated_delay": 0,

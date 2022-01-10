@@ -1,6 +1,6 @@
 {
   "data_path": "/tmp/taraxa4",
-  "network_address": "127.0.0.1",
+  "network_listen_ip": "127.0.0.1",
   "network_tcp_port": 10005,
   "network_udp_port": 10005,
   "network_simulated_delay": 0,
