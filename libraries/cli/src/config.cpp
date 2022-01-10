@@ -21,6 +21,7 @@ Config::Config(int argc, const char* argv[]) {
   string data_dir;
   vector<string> command;
   vector<string> boot_nodes;
+  string public_ip;
   vector<string> log_channels;
   vector<string> boot_nodes_append;
   vector<string> log_channels_append;
@@ -88,6 +89,8 @@ Config::Config(int argc, const char* argv[]) {
   node_command_options.add_options()(
       BOOT_NODES_APPEND, bpo::value<vector<string>>(&boot_nodes_append)->multitoken(),
       "Boot nodes to connect to in addition to boot nodes defined in config: [ip_address:port_number/node_id, ....]");
+  node_command_options.add_options()(PUBLIC_IP, bpo::value<string>(&public_ip),
+                                     "Force advertised public IP to the given IP (default: auto)");
   node_command_options.add_options()(LOG_CHANNELS, bpo::value<vector<string>>(&log_channels)->multitoken(),
                                      "Log channels to log: [channel:level, ....]");
   node_command_options.add_options()(
@@ -184,6 +187,9 @@ Config::Config(int argc, const char* argv[]) {
     }
     if (rebuild_network) {
       fs::remove_all(node_config_.net_file_path());
+    }
+    if (!public_ip.empty()) {
+      node_config_.network.network_public_ip = public_ip;
     }
     node_config_.test_params.db_revert_to_period = revert_to_period;
     node_config_.test_params.rebuild_db = rebuild_db;

@@ -29,7 +29,8 @@ struct NodeConfig {
 struct NetworkConfig {
   std::string json_file_name;
   bool network_is_boot_node = 0;
-  std::string network_address;
+  std::string network_public_ip;
+  std::string network_listen_ip;
   uint16_t network_tcp_port = 0;
   std::vector<NodeConfig> network_boot_nodes;
   uint16_t network_simulated_delay = 0;
