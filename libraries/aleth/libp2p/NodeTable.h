@@ -60,6 +60,7 @@ inline std::ostream& operator<<(std::ostream& _out, NodeTable const& _nodeTable)
 
 struct NodeEntry;
 struct DiscoveryDatagram;
+struct PingNode;
 
 /**
  * NodeTable using modified kademlia for node discovery and preference.
@@ -324,6 +325,8 @@ class NodeTable : UDPSocketEvents {
   bool isAllowedEndpoint(NodeIPEndpoint const& _endpointToCheck) const {
     return dev::p2p::isAllowedEndpoint(m_allowLocalDiscovery, _endpointToCheck);
   }
+
+  NodeIPEndpoint getSourceEndpoint(bi::udp::endpoint const& from, PingNode const& packet);
 
   ba::strand<ba::io_context::executor_type> strand_;
 
