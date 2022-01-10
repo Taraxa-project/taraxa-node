@@ -542,9 +542,10 @@ std::shared_ptr<NodeEntry> NodeTable::handleFindNode(bi::udp::endpoint const& _f
 
 std::shared_ptr<NodeEntry> NodeTable::handlePingNode(bi::udp::endpoint const& _from, DiscoveryDatagram const& _packet) {
   auto const& in = dynamic_cast<PingNode const&>(_packet);
-
+  cout << in.typeName() << " from " << in.sourceid << "@" << in.source <<std::endl;
   if (in.version != dev::p2p::c_protocolVersion) {
     LOG(m_logger) << "Received a ping from a different protocol version node " << in.version << " from: " << _from;
+    if (auto node = nodeEntry(_packet.sourceid)) dropNode(move(node));
     return nullptr;
   }
 
@@ -556,7 +557,7 @@ std::shared_ptr<NodeEntry> NodeTable::handlePingNode(bi::udp::endpoint const& _f
   // Send PONG response.
   Pong p(sourceEndpoint);
   LOG(m_logger) << p.typeName() << " to " << in.sourceid << "@" << _from;
-  LOG(m_logger) << p.typeName() << " to " << in.sourceid << "@" << in.source;
+
   p.expiration = nextRequestExpirationTime();
   p.echo = in.echo;
   p.seq = m_hostENR.sequenceNumber();
