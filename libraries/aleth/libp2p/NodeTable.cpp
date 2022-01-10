@@ -540,15 +540,25 @@ std::shared_ptr<NodeEntry> NodeTable::handleFindNode(bi::udp::endpoint const& _f
   return sourceNodeEntry;
 }
 
+NodeIPEndpoint NodeTable::getSourceEndpoint(bi::udp::endpoint const& from, PingNode const& packet) {
+  if (from.address() != packet.source.address() && !isLocalHostAddress(packet.source.address())) {
+    if (isPrivateAddress(from.address()) && !isPrivateAddress(packet.source.address())) {
+      return {packet.source.address(), packet.source.udpPort(), packet.source.tcpPort()};
+    }
+  }
+  return {from.address(), from.port(), packet.source.tcpPort()};
+}
+
 std::shared_ptr<NodeEntry> NodeTable::handlePingNode(bi::udp::endpoint const& _from, DiscoveryDatagram const& _packet) {
   auto const& in = dynamic_cast<PingNode const&>(_packet);
 
   if (in.version != dev::p2p::c_protocolVersion) {
     LOG(m_logger) << "Received a ping from a different protocol version node " << in.version << " from: " << _from;
+    if (auto node = nodeEntry(_packet.sourceid)) dropNode(move(node));
     return nullptr;
   }
 
-  NodeIPEndpoint sourceEndpoint{_from.address(), _from.port(), in.source.tcpPort()};
+  NodeIPEndpoint sourceEndpoint = getSourceEndpoint(_from, in);
   if (!addNode({in.sourceid, sourceEndpoint}))
     return {};  // Need to have valid endpoint proof before adding node to node
                 // table.
