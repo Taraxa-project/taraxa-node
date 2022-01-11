@@ -18,13 +18,8 @@ GetDagSyncPacketHandler::GetDagSyncPacketHandler(std::shared_ptr<PeersState> pee
       dag_blk_mgr_(std::move(dag_blk_mgr)),
       db_(std::move(db)) {}
 
-void GetDagSyncPacketHandler::process(const PacketData &packet_data,
-                                      [[maybe_unused]] const std::shared_ptr<TaraxaPeer> &peer) {
-  // This lock prevents race condition between syncing and gossiping dag blocks
-  std::unique_lock lock(peer->mutex_for_sending_dag_blocks_);
-
+void GetDagSyncPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
   std::unordered_set<blk_hash_t> blocks_hashes;
-  std::vector<std::shared_ptr<DagBlock>> dag_blocks;
   auto it = packet_data.rlp_.begin();
   const auto peer_period = (*it++).toInt<uint64_t>();
 
@@ -34,25 +29,7 @@ void GetDagSyncPacketHandler::process(const PacketData &packet_data,
     blocks_hashes.emplace(*it);
   }
 
-  const auto [period, blocks] = dag_mgr_->getNonFinalizedBlocks();
-  // There is no point in sending blocks if periods do not match
-  if (peer_period == period) {
-    peer->syncing_ = false;
-    for (auto &level_blocks : blocks) {
-      for (auto &block : level_blocks.second) {
-        const auto hash = block;
-        if (blocks_hashes.count(hash) == 0) {
-          if (auto blk = dag_blk_mgr_->getDagBlock(hash); blk) {
-            dag_blocks.emplace_back(blk);
-          } else {
-            LOG(log_er_) << "NonFinalizedBlock " << hash << " not in DB";
-            assert(false);
-          }
-        }
-      }
-    }
-  }
-  sendBlocks(packet_data.from_node_id_, std::move(dag_blocks), peer_period, period);
+  dag_mgr_->sendNonFinalizedBlocks(std::move(blocks_hashes), std::move(peer), peer_period);
 }
 
 void GetDagSyncPacketHandler::sendBlocks(const dev::p2p::NodeID &peer_id,

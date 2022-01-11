@@ -28,6 +28,9 @@
 #include "pbft/pbft_chain.hpp"
 #include "storage/storage.hpp"
 #include "transaction_manager/transaction_manager.hpp"
+namespace taraxa::network::tarcap {
+class TaraxaPeer;
+}
 namespace taraxa {
 
 /**
@@ -164,6 +167,16 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   }
 
   const std::pair<uint64_t, std::map<uint64_t, std::vector<blk_hash_t>>> getNonFinalizedBlocks() const;
+
+  /**
+   * @brief Sends non finalized dag blocks excluding the known block to the peer
+   *
+   * @param blocks_hashes Blocks known to the peer
+   * @param peer Peer to send the blocks to
+   * @param peer_period Peer period
+   */
+  void sendNonFinalizedBlocks(std::unordered_set<blk_hash_t> &&blocks_hashes,
+                              const std::shared_ptr<network::tarcap::TaraxaPeer> &peer, uint64_t peer_period);
 
   DagFrontier getDagFrontier();
 

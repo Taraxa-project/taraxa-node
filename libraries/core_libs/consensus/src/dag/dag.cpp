@@ -13,6 +13,7 @@
 
 #include "dag/dag.hpp"
 #include "network/network.hpp"
+#include "network/tarcap/taraxa_peer.hpp"
 #include "transaction_manager/transaction_manager.hpp"
 
 namespace taraxa {
@@ -450,6 +451,35 @@ void DagManager::addDagBlock(DagBlock const &blk, SharedTransactions &&trxs, boo
   }
   LOG(log_dg_) << " Update frontier after adding block " << blk.getHash() << "anchor " << anchor_
                << " pivot = " << frontier_.pivot << " tips: " << frontier_.tips;
+}
+
+void DagManager::sendNonFinalizedBlocks(std::unordered_set<blk_hash_t> &&blocks_hashes,
+                                        const std::shared_ptr<network::tarcap::TaraxaPeer> &peer,
+                                        uint64_t peer_period) {
+  // Sending of blocks is in DagManager class to use DagManager mutex_ which ensures that there is no race condition
+  // between syncing and gossiping dag blocks
+  SharedLock lock(mutex_);
+  std::vector<std::shared_ptr<DagBlock>> dag_blocks;
+  // There is no point in sending blocks if periods do not match
+  if (peer_period == period_) {
+    peer->syncing_ = false;
+    for (auto &level_blocks : non_finalized_blks_) {
+      for (auto &block : level_blocks.second) {
+        const auto hash = block;
+        if (blocks_hashes.count(hash) == 0) {
+          if (auto blk = dag_blk_mgr_->getDagBlock(hash); blk) {
+            dag_blocks.emplace_back(blk);
+          } else {
+            LOG(log_er_) << "NonFinalizedBlock " << hash << " not in DB";
+            assert(false);
+          }
+        }
+      }
+    }
+  }
+  if (auto net = network_.lock()) {
+    net->sendBlocks(peer->getId(), std::move(dag_blocks), peer_period, period_);
+  }
 }
 
 void DagManager::drawGraph(std::string const &dotfile) const {
