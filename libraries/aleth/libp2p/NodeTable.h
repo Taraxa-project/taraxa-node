@@ -354,6 +354,12 @@ class NodeTable : UDPSocketEvents {
   mutable Mutex x_state;  ///< LOCK x_state first if both x_nodes and x_state
                           ///< locks are required.
 
+  /// This map is used for maping between node id and real network IP
+  std::unordered_map<NodeID, bi::udp::endpoint> m_id2IpMap;
+  /// This map keeps tracking between real IP and IP reported by node (external IP)
+  std::unordered_map<bi::udp::endpoint, NodeIPEndpoint> m_ipMappings;
+  mutable Mutex x_ips;
+
   /// State of p2p node network. Only includes nodes for which we've completed
   /// the endpoint proof
   std::array<NodeBucket, s_bins> m_buckets;
