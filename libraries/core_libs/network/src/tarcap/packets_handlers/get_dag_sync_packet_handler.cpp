@@ -29,7 +29,7 @@ void GetDagSyncPacketHandler::process(const PacketData &packet_data, const std::
     blocks_hashes.emplace(*it);
   }
 
-  dag_mgr_->sendNonFinalizedBlocks(std::move(blocks_hashes), std::move(peer), peer_period);
+  dag_mgr_->sendNonFinalizedBlocks(std::move(blocks_hashes), peer, peer_period);
 }
 
 void GetDagSyncPacketHandler::sendBlocks(const dev::p2p::NodeID &peer_id,

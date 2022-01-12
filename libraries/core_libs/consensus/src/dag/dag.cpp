@@ -464,15 +464,15 @@ void DagManager::sendNonFinalizedBlocks(std::unordered_set<blk_hash_t> &&blocks_
   if (peer_period == period_) {
     peer->syncing_ = false;
     for (auto &level_blocks : non_finalized_blks_) {
-      for (auto &block : level_blocks.second) {
-        const auto hash = block;
-        if (blocks_hashes.count(hash) == 0) {
-          if (auto blk = dag_blk_mgr_->getDagBlock(hash); blk) {
-            dag_blocks.emplace_back(blk);
-          } else {
-            LOG(log_er_) << "NonFinalizedBlock " << hash << " not in DB";
-            assert(false);
-          }
+      for (auto &hash : level_blocks.second) {
+        if (blocks_hashes.count(hash) != 0) {
+          continue;
+        }
+        if (auto blk = dag_blk_mgr_->getDagBlock(hash); blk) {
+          dag_blocks.emplace_back(std::move(blk));
+        } else {
+          LOG(log_er_) << "NonFinalizedBlock " << hash << " not in DB";
+          assert(false);
         }
       }
     }

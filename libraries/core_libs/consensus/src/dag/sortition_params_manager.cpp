@@ -156,8 +156,8 @@ int32_t SortitionParamsManager::getChange(uint64_t period, uint16_t efficiency) 
   }
   const int32_t change = correction * per_percent / kOnePercent;
 
-  LOG(log_dg_) << "Average interval efficiency: " << efficiency / 100. << "%, correction per percent: " << per_percent;
-  LOG(log_nf_) << "Changing VRF params on " << period << " period from (" << config_.vrf.threshold_range << ", "
+  LOG(log_er_) << "Average interval efficiency: " << efficiency / 100. << "%, correction per percent: " << per_percent;
+  LOG(log_er_) << "Changing VRF params on " << period << " period from (" << config_.vrf.threshold_range << ", "
                << config_.vrf.threshold_upper << ") by " << change;
 
   return change;
