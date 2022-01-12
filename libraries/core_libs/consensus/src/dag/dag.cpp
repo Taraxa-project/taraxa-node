@@ -382,7 +382,7 @@ void DagManager::worker() {
       // DAG block should not have been verified if it is missing a transaction
       // This check is taking some resources so in time we can remove it but it is safe to have it as a sanity check
       size_t trx_found_count = 0;
-      for (const auto &b : db_->transactionsInDb(missing_trxs)) {
+      for (auto &&b : db_->transactionsInDb(missing_trxs)) {
         if (b) trx_found_count++;
       }
       assert(missing_trxs.size() == trx_found_count);
