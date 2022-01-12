@@ -680,25 +680,13 @@ bool PbftManager::stateOperations_() {
 
   // Periodically verify unverified votes
   vote_mgr_->verifyVotes(round, [this](auto const &v) {
-    auto dpos_votes_count = dposEligibleVoteCount_(v->getVoterAddr());
-    if (!dpos_votes_count) return false;
-
-    auto threshold = sortition_threshold_;
-    auto total_votes_count = getDposTotalVotesCount();
-
-    if (v->getStep() == 1) {
-      // We need to handle propose_vote_type
-      dpos_votes_count = 1;
-      total_votes_count = getDposTotalAddressCount();
-      threshold = std::min(getDposTotalAddressCount(), kMaxProposalCommitteeSize);
-    }
-
     try {
-      v->validate(dpos_votes_count, total_votes_count, threshold);
+      v->validate(dposEligibleVoteCount_(v->getVoterAddr()), getDposTotalVotesCount(), sortition_threshold_);
     } catch (const std::logic_error &e) {
       LOG(log_wr_) << e.what();
       return false;
     }
+
     return true;
   });
 
@@ -1108,16 +1096,10 @@ size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteType
     // No delegation
     return 0;
   }
-  auto vote = generateVote(blockhash, vote_type, round, step);
-  uint64_t weight = 0;
-  if (step == 1) {
-    // For proposal vote, only use 1 weight for VRF sortition
-    weight = vote->calculateWeight(1, getDposTotalAddressCount(),
-                                   std::min(getDposTotalAddressCount(), kMaxProposalCommitteeSize));
-  } else {
-    weight = vote->calculateWeight(getDposWeightedVotesCount(), getDposTotalVotesCount(), sortition_threshold_);
-  }
 
+  auto vote = generateVote(blockhash, vote_type, round, step);
+  const auto weight =
+      vote->calculateWeight(getDposWeightedVotesCount(), getDposTotalVotesCount(), sortition_threshold_);
   if (weight) {
     db_->saveVerifiedVote(vote);
     vote_mgr_->addVerifiedVote(vote);
@@ -1125,6 +1107,7 @@ size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteType
       net->onNewPbftVotes({std::move(vote)});
     }
   }
+
   return weight;
 }
 
@@ -1158,11 +1141,9 @@ blk_hash_t PbftManager::calculateOrderHash(std::vector<DagBlock> const &dag_bloc
 
 std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
   auto round = getPbftRound();
-  // In propose block, only use one vote for VRF sortition
   VrfPbftSortition vrf_sortition(vrf_sk_, {propose_vote_type, round, 1});
-  if (weighted_votes_count_ == 0 ||
-      !vrf_sortition.getBinominalDistribution(1, getDposTotalAddressCount(),
-                                              std::min(getDposTotalAddressCount(), kMaxProposalCommitteeSize))) {
+  if (weighted_votes_count_ == 0 || !vrf_sortition.getBinominalDistribution(
+                                        getDposWeightedVotesCount(), getDposTotalVotesCount(), sortition_threshold_)) {
     return std::make_pair(NULL_BLOCK_HASH, false);
   }
 
