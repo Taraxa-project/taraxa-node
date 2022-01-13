@@ -56,12 +56,6 @@ SortitionParamsChange SortitionParamsChange::from_rlp(const dev::RLP& rlp) {
   p.interval_efficiency = rlp[3].toInt<uint16_t>();
   p.actual_correction_per_percent = rlp[4].toInt<uint16_t>();
 
-  if (p.vrf_params.threshold_lower == 0 || p.vrf_params.threshold_upper == std::numeric_limits<uint16_t>::max()) {
-    assert(p.vrf_params.threshold_upper <= p.vrf_params.k_threshold_range);
-  } else {
-    assert(p.vrf_params.threshold_upper - p.vrf_params.threshold_lower == p.vrf_params.k_threshold_range);
-  }
-
   return p;
 }
 
@@ -128,11 +122,15 @@ SortitionParamsManager::SortitionParamsManager(const addr_t& node_addr, Sortitio
   }
 
   auto changes_count_to_calculate = config_.computation_interval;
+  auto computation_interval = config_.computation_interval;
   if (!params_changes_.empty() && params_changes_.back().period >= k_testnet_hardfork2_block_num) {
     changes_count_to_calculate = k_testnet_hardfork2_sortition_interval_length;
+  } else if (!params_changes_.empty() && params_changes_.back().period >= k_testnet_hardfork3_block_num) {
+    computation_interval = k_testnet_hardfork2_sortition_interval_length;
   }
-  dag_efficiencies_ = db_->getLastIntervalEfficiencies(config_.computation_interval, changes_count_to_calculate);
+  dag_efficiencies_ = db_->getLastIntervalEfficiencies(computation_interval, changes_count_to_calculate);
 }
+
 uint64_t SortitionParamsManager::currentProposalPeriod() const {
   if (params_changes_.empty()) return 0;
 
@@ -145,10 +143,14 @@ SortitionParams SortitionParamsManager::getSortitionParams(std::optional<uint64_
   }
   bool is_period_params_found = false;
   SortitionParams p = config_;
+  auto computation_interval = config_.computation_interval;
+  if (period >= k_testnet_hardfork3_block_num) {
+    computation_interval = k_testnet_hardfork2_sortition_interval_length;
+  }
   for (auto prev = params_changes_.rbegin(), it = params_changes_.rbegin(); it != params_changes_.rend(); prev = it++) {
     auto upper_bound = prev->period;
     if (it->period == upper_bound) {
-      upper_bound = it->period + config_.computation_interval;
+      upper_bound = it->period + computation_interval;
     }
     if (period >= it->period && period < upper_bound) {
       is_period_params_found = true;
@@ -213,7 +215,7 @@ uint16_t SortitionParamsManager::averageCorrectionPerPercent() const {
 
 void SortitionParamsManager::cleanup(uint64_t current_period) {
   uint16_t efficiencies_to_leave = 0;
-  if (current_period >= k_testnet_hardfork2_block_num) {
+  if (current_period >= k_testnet_hardfork2_block_num && current_period < k_testnet_hardfork3_block_num) {
     efficiencies_to_leave = k_testnet_hardfork2_sortition_interval_length - config_.computation_interval;
   }
 
@@ -241,9 +243,12 @@ void SortitionParamsManager::pbftBlockPushed(const SyncBlock& block, DbStorage::
   db_->savePbftBlockDagEfficiency(period, dag_efficiency, batch);
   LOG(log_dg_) << period << " pbftBlockPushed, efficiency: " << dag_efficiency / 100. << "%";
 
-  const auto& height = period;
-  if (height % config_.computation_interval == 0) {
-    const auto params_change = calculateChange(height);
+  auto computation_interval = config_.computation_interval;
+  if (period >= k_testnet_hardfork3_block_num) {
+    computation_interval = k_testnet_hardfork2_sortition_interval_length;
+  }
+  if (period % computation_interval == 0) {
+    const auto params_change = calculateChange(period);
     if (params_change) {
       db_->saveSortitionParamsChange(period, *params_change, batch);
       params_changes_.push_back(*params_change);
