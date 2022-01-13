@@ -407,40 +407,45 @@ void DagManager::worker() {
 
 void DagManager::addDagBlock(DagBlock const &blk, SharedTransactions &&trxs, bool proposed, bool save) {
   {
-    ULock lock(mutex_);
-    if (save) {
-      if (db_->dagBlockInDb(blk.getHash())) {
-        LOG(log_dg_) << "Block already in DB: " << blk.getHash();
-        return;
-      }
-      // Saves transactions and remove them from memory pool
-      trx_mgr_->saveTransactionsFromDagBlock(trxs);
-      // Save the dag block
-      db_->saveDagBlock(blk);
+    // One mutex protects the DagManager internal state, the other mutex ensures that dag blocks are gossiped in
+    // correct order since multiple threads can call this method. There is a need for using two mutexes since having
+    // blocks gossip under mutex_ leads to a deadlock with mutex in TaraxaPeer
+    ULock order_lock(order_dag_blocks_mutex_);
+    {
+      ULock lock(mutex_);
+      if (save) {
+        if (db_->dagBlockInDb(blk.getHash())) {
+          LOG(log_dg_) << "Block already in DB: " << blk.getHash();
+          return;
+        }
+        // Saves transactions and remove them from memory pool
+        trx_mgr_->saveTransactionsFromDagBlock(trxs);
+        // Save the dag block
+        db_->saveDagBlock(blk);
 
-      // TODO: This is an ugly temporary fix for testnet, a better solution is needed for dag block race condition
-      if (db_->getDagBlockPeriod(blk.getHash()) != nullptr) {
-        db_->removeDagBlock(blk.getHash());
-        LOG(log_er_) << "Block already in DB: " << blk.getHash();
-        return;
+        // TODO: This is an ugly temporary fix for testnet, a better solution is needed for dag block race condition
+        if (db_->getDagBlockPeriod(blk.getHash()) != nullptr) {
+          db_->removeDagBlock(blk.getHash());
+          LOG(log_er_) << "Block already in DB: " << blk.getHash();
+          return;
+        }
+      }
+      auto blk_hash = blk.getHash();
+      auto pivot_hash = blk.getPivot();
+
+      std::vector<blk_hash_t> tips = blk.getTips();
+      level_t current_max_level = max_level_;
+      max_level_ = std::max(current_max_level, blk.getLevel());
+
+      addToDag(blk_hash, pivot_hash, tips, blk.getLevel());
+
+      auto [p, ts] = getFrontier();
+      frontier_.pivot = p;
+      frontier_.tips.clear();
+      for (auto const &t : ts) {
+        frontier_.tips.push_back(t);
       }
     }
-    auto blk_hash = blk.getHash();
-    auto pivot_hash = blk.getPivot();
-
-    std::vector<blk_hash_t> tips = blk.getTips();
-    level_t current_max_level = max_level_;
-    max_level_ = std::max(current_max_level, blk.getLevel());
-
-    addToDag(blk_hash, pivot_hash, tips, blk.getLevel());
-
-    auto [p, ts] = getFrontier();
-    frontier_.pivot = p;
-    frontier_.tips.clear();
-    for (auto const &t : ts) {
-      frontier_.tips.push_back(t);
-    }
-
     if (save) {
       block_verified_.emit(blk);
       if (auto net = network_.lock()) {
