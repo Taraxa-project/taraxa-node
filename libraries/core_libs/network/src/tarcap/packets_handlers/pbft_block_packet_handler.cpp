@@ -22,7 +22,7 @@ void PbftBlockPacketHandler::process(const PacketData &packet_data, const std::s
   auto pbft_block = std::make_shared<PbftBlock>(packet_data.rlp_[0]);
   const uint64_t peer_pbft_chain_size = packet_data.rlp_[1].toInt();
   LOG(log_dg_) << "Receive proposed PBFT Block " << pbft_block->getBlockHash().abridged()
-               << ", Peer PBFT Chain size: " << peer_pbft_chain_size;
+               << ", Peer PBFT Chain size: " << peer_pbft_chain_size << " from " << peer->getId();
 
   peer->markPbftBlockAsKnown(pbft_block->getBlockHash());
   if (peer_pbft_chain_size > peer->pbft_chain_size_) {
@@ -43,12 +43,16 @@ void PbftBlockPacketHandler::process(const PacketData &packet_data, const std::s
     return;
   }
 
+  LOG(log_nf_) << "Receive proposed PBFT Block " << pbft_block->getBlockHash().abridged()
+               << ", Peer PBFT Chain size: " << peer_pbft_chain_size << " from " << peer->getId();
+
   onNewPbftBlock(*pbft_block);
 }
 
 void PbftBlockPacketHandler::onNewPbftBlock(PbftBlock const &pbft_block) {
   std::vector<std::shared_ptr<TaraxaPeer>> peers_to_send;
   const auto my_chain_size = pbft_chain_->getPbftChainSize();
+  std::string peers_to_log;
 
   for (auto const &peer : peers_state_->getAllPeers()) {
     if (!peer.second->isPbftBlockKnown(pbft_block.getBlockHash()) && !peer.second->syncing_) {
@@ -57,9 +61,11 @@ void PbftBlockPacketHandler::onNewPbftBlock(PbftBlock const &pbft_block) {
                      << pbft_block.getPivotDagBlockHash() << " to " << peer.first;
       }
       peers_to_send.emplace_back(peer.second);
+      peers_to_log += peer.second->getId().abridged();
     }
   }
 
+  LOG(log_nf_) << "sendPbftBlock " << pbft_block.getBlockHash() << " to " << peers_to_log;
   for (auto const &peer : peers_to_send) {
     sendPbftBlock(peer->getId(), pbft_block, my_chain_size);
     peer->markPbftBlockAsKnown(pbft_block.getBlockHash());

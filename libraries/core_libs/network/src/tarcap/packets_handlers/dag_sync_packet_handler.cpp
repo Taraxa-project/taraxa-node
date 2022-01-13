@@ -29,7 +29,8 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
 
   // If the periods did not match restart syncing
   if (response_period > request_period) {
-    LOG(log_nf_) << "Received DagSyncPacket with mismatching periods: " << response_period << " " << request_period;
+    LOG(log_nf_) << "Received DagSyncPacket with mismatching periods: " << response_period << " " << request_period
+                 << " from " << packet_data.from_node_id_.abridged();
     if (peer->pbft_chain_size_ < response_period) {
       peer->pbft_chain_size_ = response_period;
     }
@@ -39,7 +40,8 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
     return;
   } else if (response_period < request_period) {
     // This should not be possible for honest node
-    LOG(log_wr_) << "Received DagSyncPacket with mismatching periods: " << response_period << " " << request_period;
+    LOG(log_wr_) << "Received DagSyncPacket with mismatching periods: " << response_period << " " << request_period
+                 << " from " << packet_data.from_node_id_.abridged();
     disconnect(peer->getId(), dev::p2p::UserReason);
     // TODO: malicious peer handling
     return;
@@ -47,9 +49,11 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
 
   uint64_t transactions_count = (*it++).toInt<uint64_t>();
   SharedTransactions new_transactions;
+  std::string transactions_to_log;
   for (uint64_t i = 0; i < transactions_count; i++) {
     Transaction transaction(*it++);
     peer->markTransactionAsKnown(transaction.getHash());
+    transactions_to_log += transaction.getHash().abridged();
     new_transactions.emplace_back(std::make_shared<Transaction>(std::move(transaction)));
   }
 
@@ -65,14 +69,12 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
     if (!status.first) {
       // This should only happen with a malicious node or a fork
       LOG(log_er_) << "DagBlock" << block.getHash() << " Validation failed " << status.second << " . Peer "
-                   << packet_data.from_node_id_.abridged() << " will be disconnected.";
+                   << packet_data.from_node_id_ << " will be disconnected.";
       disconnect(peer->getId(), dev::p2p::UserReason);
       // TODO: malicious peer handling
       return;
     }
 
-    LOG(log_dg_) << "Storing block " << block.getHash().abridged() << " with " << new_transactions.size()
-                 << " transactions";
     if (block.getLevel() > peer->dag_level_) peer->dag_level_ = block.getLevel();
 
     dag_blk_mgr_->insertBroadcastedBlock(std::move(block));
@@ -81,7 +83,8 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
   peer->peer_dag_synced_ = true;
   peer->peer_dag_syncing_ = false;
 
-  LOG(log_nf_) << "Received DagSyncPacket with blocks: " << received_dag_blocks_str;
+  LOG(log_nf_) << "Received DagSyncPacket with blocks: " << received_dag_blocks_str
+               << " Transactions: " << transactions_to_log << " from " << packet_data.from_node_id_;
 }
 
 }  // namespace taraxa::network::tarcap

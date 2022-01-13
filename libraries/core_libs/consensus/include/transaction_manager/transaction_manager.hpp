@@ -53,6 +53,14 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   uint32_t insertBroadcastedTransactions(const SharedTransactions &txs);
 
   /**
+   * @brief Checks the cache if transaction is already seen
+   *
+   * @param trx_hash transaction hash
+   * @return true if seen
+   */
+  bool transactionSeen(const trx_hash_t &trx_hash);
+
+  /**
    * Returns a copy of transactions pool
    */
   SharedTransactions getTransactionsSnapShot() const;

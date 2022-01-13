@@ -339,13 +339,13 @@ bool DagManager::pivotAndTipsAvailable(DagBlock const &blk) {
   auto dag_blk_pivot = blk.getPivot();
 
   if (!db_->dagBlockInDb(dag_blk_pivot)) {
-    LOG(log_dg_) << "DAG Block " << dag_blk_hash << " pivot " << dag_blk_pivot << " unavailable";
+    LOG(log_nf_) << "DAG Block " << dag_blk_hash << " pivot " << dag_blk_pivot << " unavailable";
     return false;
   }
 
   for (auto const &t : blk.getTips()) {
     if (!db_->dagBlockInDb(t)) {
-      LOG(log_dg_) << "DAG Block " << dag_blk_hash << " tip " << t << " unavailable";
+      LOG(log_nf_) << "DAG Block " << dag_blk_hash << " tip " << t << " unavailable";
       return false;
     }
   }
@@ -453,7 +453,7 @@ void DagManager::addDagBlock(DagBlock const &blk, SharedTransactions &&trxs, boo
       }
     }
   }
-  LOG(log_dg_) << " Update frontier after adding block " << blk.getHash() << "anchor " << anchor_
+  LOG(log_nf_) << " Update frontier after adding block " << blk.getHash() << "anchor " << anchor_
                << " pivot = " << frontier_.pivot << " tips: " << frontier_.tips;
 }
 

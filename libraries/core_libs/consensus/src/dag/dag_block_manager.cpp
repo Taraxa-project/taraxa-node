@@ -20,7 +20,7 @@ DagBlockManager::DagBlockManager(addr_t node_addr, SortitionConfig const &sortit
       queue_limit_(queue_limit),
       sortition_params_manager_(node_addr, sortition_config, db_),
       dpos_config_(dpos_config) {
-  LOG_OBJECTS_CREATE("BLKQU");
+  LOG_OBJECTS_CREATE("DAGBLKMGR");
 
   // Set DAG level proposal period map
   current_max_proposal_period_ =
@@ -295,7 +295,7 @@ void DagBlockManager::verifyBlock() {
       verified_qu_[blk.getLevel()].emplace_back(blk);
     }
     cond_for_verified_qu_.notify_one();
-    LOG(log_dg_) << "Verified block: " << block_hash;
+    LOG(log_nf_) << "Verified block: " << block_hash;
   }
 }
 
