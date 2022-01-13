@@ -133,6 +133,15 @@ StateAPI::~StateAPI() {
   err_h.check();
 }
 
+void StateAPI::update_state_config(const Config& new_config) const {
+  dev::RLPStream encoding;
+  util::rlp_tuple(encoding, new_config);
+
+  ErrorHandler err_h;
+  taraxa_evm_state_api_update_state_config(this_c_, map_bytes(encoding.out()), err_h.cgo_part_);
+  err_h.check();
+}
+
 Proof StateAPI::prove(EthBlockNumber blk_num, root_t const& state_root, addr_t const& addr,
                       std::vector<h256> const& keys) const {
   return c_method_args_rlp<Proof, from_rlp, taraxa_evm_state_api_prove>(this_c_, blk_num, state_root, addr, keys);

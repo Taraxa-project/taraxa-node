@@ -159,6 +159,8 @@ TEST_F(FinalChainTest, genesis_balances) {
   cfg.state.genesis_balances[addr_t::random()] = 1000;
   cfg.state.genesis_balances[addr_t::random()] = 100000;
   init();
+  cfg.state.hardforks.fix_genesis_hardfork_block_num = 2222222;
+  SUT->update_state_config(cfg.state);
 }
 
 TEST_F(FinalChainTest, contract) {
@@ -302,6 +304,24 @@ TEST_F(FinalChainTest, coin_transfers) {
       {0, 143430, 0, TRX_GAS, {}, keys[331].secret(), keys[420].address()},
       {0, 1313145, 0, TRX_GAS, {}, keys[345].secret(), keys[134].address()},
   });
+}
+
+TEST_F(FinalChainTest, hardfork_apply_test) {
+  cfg.state.genesis_balances = {};
+  cfg.state.dpos = nullopt;
+  auto hardfork_block_num = cfg.state.hardforks.fix_genesis_hardfork_block_num = 10;
+
+  cfg.state.execution_options.disable_gas_fee = false;
+  init();
+  for (size_t i = 0; i < hardfork_block_num; ++i) {
+    advance({});
+  }
+
+  const auto mult = u256(1e18);
+  for (const auto& b : cfg.state.genesis_balances) {
+    const auto balance_after = SUT->get_account(b.first)->balance;
+    EXPECT_EQ(b.second * mult, balance_after);
+  }
 }
 
 }  // namespace taraxa::final_chain

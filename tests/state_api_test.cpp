@@ -226,17 +226,18 @@ TEST_F(StateAPITest, DISABLED_eth_mainnet_smoke) {
 }
 
 TEST_F(StateAPITest, increase_balance_hardfork_test) {
-  const auto hardfork_block_num = 12000;
-  Config chain_config;
-  chain_config.genesis_balances.emplace(addr_t(1111), 1000);
-  chain_config.genesis_balances.emplace(addr_t(1234), 10000);
-
+  Config state_config;
+  state_config.genesis_balances.emplace(addr_t(1111), 1000);
+  state_config.genesis_balances.emplace(addr_t(1234), 10000);
+  state_config.dpos = DPOSConfig();
+  state_config.dpos->eligibility_balance_threshold = 10;
+  auto hardfork_block_num = state_config.hardforks.fix_genesis_hardfork_block_num = 100;
   Opts opts;
   opts.expected_max_trx_per_block = 300;
   opts.max_trie_full_node_levels_to_cache = 4;
 
   StateAPI SUT([&](auto) { return h256(); },  //
-               chain_config, opts,
+               state_config, opts,
                {
                    (data_dir / "state").string(),
                });
@@ -246,10 +247,16 @@ TEST_F(StateAPITest, increase_balance_hardfork_test) {
   }
 
   const auto mult = u256(1e18);
-  for (const auto& b : chain_config.genesis_balances) {
+  for (const auto& b : state_config.genesis_balances) {
     const auto balance_after = SUT.get_account(hardfork_block_num, b.first)->balance;
     EXPECT_EQ(b.second * mult, balance_after);
   }
+  // simulating cpp part hardfork
+  Config new_config = state_config;
+  { new_config.dpos->eligibility_balance_threshold *= 1000; }
+  EXPECT_EQ(SUT.dpos_eligible_total_vote_count(hardfork_block_num), 0);
+  SUT.update_state_config(new_config);
+  // EXPECT_EQ(SUT.dpos_eligible_total_vote_count(hardfork_block_num), new_config.dpos->eligibility_balance_threshold);
 }
 
 }  // namespace taraxa::state_api

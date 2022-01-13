@@ -5,6 +5,7 @@
 
 #include "common/encoding_rlp.hpp"
 #include "common/types.hpp"
+#include "config/hardfork.hpp"
 
 namespace taraxa::state_api {
 
@@ -54,6 +55,7 @@ struct Config {
   ExecutionOptions execution_options;
   BalanceMap genesis_balances;
   std::optional<DPOSConfig> dpos;
+  Hardforks hardforks;
 
   HAS_RLP_FIELDS
 

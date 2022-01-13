@@ -202,8 +202,11 @@ const char *default_json = R"foo({
           "disable_nonce_check": true
         },
         "genesis_balances": {
-          "0274cfffea9fa850e54c93a23042f12a87358a82": "0x141e8d17",
-          "111f91441efc8c6c0edf6534970cc887e2fabaa8": "0x24048ce3d"
+          "0274cfffea9fa850e54c93a23042f12a87358a82": "0x141e8d17000000000000000000",
+          "111f91441efc8c6c0edf6534970cc887e2fabaa8": "0x24048ce3d000000000000000000"
+        },
+        "hardforks": {
+          "enable_vrf_adjustion_block": "0x12c"
         }
       }
     },

@@ -185,6 +185,23 @@ void FullNode::start() {
           }
         },
         *rpc_thread_pool_);
+
+    // Subscription to process hardforks
+    final_chain_->block_finalized_.subscribe([&](const std::shared_ptr<final_chain::FinalizationResult> &res) {
+      // TODO: should have only common hardfork code calling hardfork executor
+      std::cout << "APPLY CPP PART OF HARDFORK" << std::endl;
+      const auto block_num = res->final_chain_blk->number;
+      auto &state_conf = conf_.chain.final_chain.state;
+      if (state_conf.hardforks.fix_genesis_hardfork_block_num == block_num) {
+        for (auto &e : state_conf.dpos->genesis_state) {
+          for (auto &b : e.second) {
+            b.second = b.second * u256(1e18) - b.second;
+          }
+        }
+        final_chain_->update_state_config(state_conf);
+      }
+    });
+
     trx_mgr_->transaction_accepted_.subscribe(
         [eth_json_rpc = as_weak(eth_json_rpc), ws = as_weak(jsonrpc_ws_)](auto const &trx_hash) {
           if (auto _eth_json_rpc = eth_json_rpc.lock()) {

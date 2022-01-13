@@ -126,6 +126,9 @@ const char *devnet_json = R"foo({
         "genesis_balances": {
           "2cd4da7d3b345e022ca7e997c2bb3276a4d3d2e9": "0x1027e72f1f12813088000000",
           "7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x1027e72f1f12813088000000"
+        },
+        "hardforks": {
+          "enable_vrf_adjustion_block": "0x0"
         }
       }
     },

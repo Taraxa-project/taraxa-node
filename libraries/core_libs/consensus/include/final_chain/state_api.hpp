@@ -23,6 +23,8 @@ class StateAPI {
            OptsDB const& opts_db);
   ~StateAPI();
 
+  void update_state_config(const Config& new_config) const;
+
   Proof prove(EthBlockNumber blk_num, root_t const& state_root, addr_t const& addr,
               std::vector<h256> const& keys) const;
   std::optional<Account> get_account(EthBlockNumber blk_num, addr_t const& addr) const;
