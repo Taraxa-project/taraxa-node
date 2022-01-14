@@ -1256,41 +1256,6 @@ blk_hash_t PbftManager::proposePbftBlock_() {
   return pbft_block->getBlockHash();
 }
 
-std::vector<std::vector<uint>> PbftManager::createMockTrxSchedule(
-    std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>> trx_overlap_table) {
-  std::vector<std::vector<uint>> blocks_trx_modes;
-
-  if (!trx_overlap_table) {
-    LOG(log_er_) << "Transaction overlap table nullptr, cannot create mock "
-                 << "transactions schedule";
-    return blocks_trx_modes;
-  }
-
-  for (size_t i = 0; i < trx_overlap_table->size(); i++) {
-    blk_hash_t &dag_block_hash = (*trx_overlap_table)[i].first;
-    auto blk = dag_blk_mgr_->getDagBlock(dag_block_hash);
-    if (!blk) {
-      LOG(log_er_) << "Cannot create schedule block, DAG block missing " << dag_block_hash;
-      continue;
-    }
-
-    auto num_trx = blk->getTrxs().size();
-    std::vector<uint> block_trx_modes;
-    for (size_t j = 0; j < num_trx; j++) {
-      if ((*trx_overlap_table)[i].second[j]) {
-        // trx sequential mode
-        block_trx_modes.emplace_back(1);
-      } else {
-        // trx invalid mode
-        block_trx_modes.emplace_back(0);
-      }
-    }
-    blocks_trx_modes.emplace_back(block_trx_modes);
-  }
-
-  return blocks_trx_modes;
-}
-
 blk_hash_t PbftManager::identifyLeaderBlock_() {
   auto round = getPbftRound();
   LOG(log_dg_) << "Into identify leader block, in round " << round;
