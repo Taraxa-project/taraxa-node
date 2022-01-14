@@ -25,7 +25,6 @@ DagBlockPacketHandler::DagBlockPacketHandler(std::shared_ptr<PeersState> peers_s
 void DagBlockPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
   DagBlock block(packet_data.rlp_[0].data().toBytes());
   blk_hash_t const hash = block.getHash();
-  LOG(log_dg_) << "Received DagBlockPacket " << hash.abridged() << "from: " << peer->getId().abridged();
 
   peer->markDagBlockAsKnown(hash);
 
@@ -36,23 +35,25 @@ void DagBlockPacketHandler::process(const PacketData &packet_data, const std::sh
   if (dag_blk_mgr_) {
     // Do not process this block in case we already have it
     if (dag_blk_mgr_->isDagBlockKnown(block.getHash())) {
-      LOG(log_dg_) << "Ignore new dag block " << hash.abridged() << ", block is already known";
+      LOG(log_dg_) << "Received known DagBlockPacket " << hash << "from: " << peer->getId();
       return;
     }
+
+    LOG(log_nf_) << "Received DagBlockPacket " << hash << "from: " << peer->getId();
 
     if (auto status = checkDagBlockValidation(block); !status.first) {
       // Ignore new block packets when pbft syncing
       if (syncing_state_->is_pbft_syncing()) {
-        LOG(log_dg_) << "Ignore new dag block " << hash.abridged() << ", pbft syncing is on";
+        LOG(log_nf_) << "Ignore new dag block " << hash << ", pbft syncing is on";
         return;
       }
 
       if (peer->peer_dag_syncing_) {
-        LOG(log_dg_) << "Ignore new dag block " << hash.abridged() << ", dag syncing is on";
+        LOG(log_nf_) << "Ignore new dag block " << hash << ", dag syncing is on";
       } else {
         if (peer->peer_dag_synced_) {
           LOG(log_er_) << "DagBlock" << block.getHash() << " has missing pivot or/and tips " << status.second
-                       << " . Peer " << packet_data.from_node_id_.abridged() << " will be disconnected.";
+                       << " . Peer " << packet_data.from_node_id_ << " will be disconnected.";
           disconnect(peer->getId(), dev::p2p::UserReason);
           return;
         } else {
@@ -70,30 +71,22 @@ void DagBlockPacketHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::D
                                       const SharedTransactions &trxs) {
   std::shared_ptr<TaraxaPeer> peer = peers_state_->getPeer(peer_id);
   if (!peer) {
-    LOG(log_wr_) << "Send dag block " << block.getHash() << ". Failed to obtain peer " << peer_id.abridged();
+    LOG(log_wr_) << "Send dag block " << block.getHash() << ". Failed to obtain peer " << peer_id;
     return;
   }
 
   // This lock prevents race condition between syncing and gossiping dag blocks
   std::unique_lock lock(peer->mutex_for_sending_dag_blocks_);
 
-  SharedTransactions transactions_to_send;
-  for (const auto &trx : trxs) {
-    if (peer->isTransactionKnown(trx->getHash())) {
-      continue;
-    }
-    transactions_to_send.push_back(trx);
-  }
-
   // Transactions are first sent in transactions packet before sending the block
   dev::RLPStream s;
   taraxa::bytes trx_bytes;
-  s.appendList(transactions_to_send.size());
-  for (auto &trx : transactions_to_send) {
+  s.appendList(trxs.size());
+  for (auto &trx : trxs) {
     auto &trx_data = *trx->rlp();
     trx_bytes.insert(trx_bytes.end(), std::begin(trx_data), std::end(trx_data));
   }
-  s.appendRaw(trx_bytes, transactions_to_send.size());
+  s.appendRaw(trx_bytes, trxs.size());
   sealAndSend(peer_id, TransactionPacket, std::move(s));
 
   // Send the block
@@ -102,25 +95,20 @@ void DagBlockPacketHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::D
 
   // Try to send data over network
   if (!sealAndSend(peer_id, DagBlockPacket, std::move(block_stream))) {
-    LOG(log_wr_) << "Sending DagBlock " << block.getHash() << " failed";
+    LOG(log_wr_) << "Sending DagBlock " << block.getHash() << " failed to " << peer_id;
     return;
   }
 
   // Mark data as known if sending was successful
   peer->markDagBlockAsKnown(block.getHash());
-  for (const auto &trx : transactions_to_send) {
+  for (const auto &trx : trxs) {
     peer->markTransactionAsKnown(trx->getHash());
   }
-
-  LOG(log_dg_) << "Send DagBlock " << block.getHash() << " #Trx: " << transactions_to_send.size();
 }
 
 void DagBlockPacketHandler::onNewBlockReceived(DagBlock &&block) {
-  LOG(log_nf_) << "Receive DagBlock " << block.getHash();
   if (dag_blk_mgr_) {
-    LOG(log_nf_) << "Storing block " << block.getHash().toString();
     dag_blk_mgr_->insertBroadcastedBlock(block);
-
   } else if (!test_state_->hasBlock(block.getHash())) {
     test_state_->insertBlock(block);
     onNewBlockVerified(block, false, {});
@@ -148,14 +136,26 @@ void DagBlockPacketHandler::onNewBlockVerified(DagBlock const &block, bool propo
     }
   }
 
+  std::string peer_and_transactions_to_log;
   for (dev::p2p::NodeID const &peer_id : peers_to_send) {
     dev::RLPStream ts;
     auto peer = peers_state_->getPeer(peer_id);
     if (peer && !peer->syncing_) {
-      sendBlock(peer_id, block, trxs);
+      peer_and_transactions_to_log += " Peer: " + peer->getId().abridged() + " Trxs: ";
+      SharedTransactions transactions_to_send;
+      for (const auto &trx : trxs) {
+        if (peer->isTransactionKnown(trx->getHash())) {
+          continue;
+        }
+        transactions_to_send.push_back(trx);
+        peer_and_transactions_to_log += trx->getHash().abridged();
+      }
+
+      sendBlock(peer_id, block, transactions_to_send);
       peer->markDagBlockAsKnown(block_hash);
     }
   }
+  LOG(log_nf_) << "Send DagBlock " << block.getHash() << " to peers: " << peer_and_transactions_to_log;
   if (!peers_to_send.empty()) LOG(log_dg_) << "Sent block to " << peers_to_send.size() << " peers";
 }
 }  // namespace taraxa::network::tarcap

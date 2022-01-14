@@ -53,6 +53,8 @@ bool TransactionManager::checkMemoryPoolOverflow() {
   return false;
 }
 
+bool TransactionManager::transactionSeen(const trx_hash_t &trx_hash) const { return seen_txs_.count(trx_hash) != 0; }
+
 std::pair<bool, std::string> TransactionManager::insertTransaction(const Transaction &trx) {
   auto inserted = insertBroadcastedTransactions({std::make_shared<Transaction>(trx)});
   if (inserted) {

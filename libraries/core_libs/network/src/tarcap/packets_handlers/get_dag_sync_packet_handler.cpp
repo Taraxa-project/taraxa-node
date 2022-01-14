@@ -28,11 +28,14 @@ void GetDagSyncPacketHandler::process(const PacketData &packet_data,
   auto it = packet_data.rlp_.begin();
   const auto peer_period = (*it++).toInt<uint64_t>();
 
-  LOG(log_dg_) << "Received GetDagSyncPacket with " << packet_data.rlp_.itemCount() - 1 << " known blocks";
-
+  std::string blocks_hashes_to_log;
   for (; it != packet_data.rlp_.end(); ++it) {
-    blocks_hashes.emplace(*it);
+    blk_hash_t hash(*it);
+    blocks_hashes_to_log += hash.abridged();
+    blocks_hashes.emplace(std::move(hash));
   }
+
+  LOG(log_nf_) << "Received GetDagSyncPacket: " << blocks_hashes_to_log << " from " << peer->getId();
 
   const auto [period, blocks] = dag_mgr_->getNonFinalizedBlocks();
   // There is no point in sending blocks if periods do not match
@@ -65,6 +68,7 @@ void GetDagSyncPacketHandler::sendBlocks(const dev::p2p::NodeID &peer_id,
   std::unordered_set<trx_hash_t> unique_trxs;
   std::vector<taraxa::bytes> transactions;
   std::string dag_blocks_to_send;
+  std::string transactions_to_log;
   for (const auto &block : blocks) {
     std::vector<trx_hash_t> trx_to_query;
     for (auto trx : block->getTrxs()) {
@@ -75,6 +79,7 @@ void GetDagSyncPacketHandler::sendBlocks(const dev::p2p::NodeID &peer_id,
     auto trxs = db_->getNonfinalizedTransactions(trx_to_query);
 
     for (auto t : trxs) {
+      transactions_to_log += t->getHash().abridged();
       transactions.emplace_back(std::move(*t->rlp()));
       total_transactions_count++;
     }
@@ -95,7 +100,8 @@ void GetDagSyncPacketHandler::sendBlocks(const dev::p2p::NodeID &peer_id,
     s.appendRaw(block->rlp(true));
   }
   sealAndSend(peer_id, SubprotocolPacketType::DagSyncPacket, std::move(s));
-  LOG(log_nf_) << "Send DagSyncPacket with " << dag_blocks_to_send << "# Trx: " << transactions.size() << std::endl;
+  LOG(log_nf_) << "Send DagSyncPacket with " << dag_blocks_to_send << "# Trx: " << transactions_to_log << " from "
+               << peer->getId();
 }
 
 }  // namespace taraxa::network::tarcap

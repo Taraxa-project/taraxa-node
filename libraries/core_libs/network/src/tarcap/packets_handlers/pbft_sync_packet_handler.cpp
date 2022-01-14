@@ -29,7 +29,7 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
   // disabled on priority_queue blocking dependencies level
 
   if (syncing_state_->syncing_peer() != packet_data.from_node_id_) {
-    LOG(log_dg_) << "PbftSyncPacket received from unexpected peer " << packet_data.from_node_id_.abridged()
+    LOG(log_wr_) << "PbftSyncPacket received from unexpected peer " << packet_data.from_node_id_.abridged()
                  << " current syncing peer " << syncing_state_->syncing_peer().abridged();
     return;
   }
@@ -56,7 +56,7 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
   }
 
   LOG(log_nf_) << "PbftSyncPacket received. Period: " << sync_block.pbft_blk->getPeriod()
-               << ", dag Blocks: " << received_dag_blocks_str;
+               << ", dag Blocks: " << received_dag_blocks_str << " from " << packet_data.from_node_id_;
 
   auto pbft_blk_hash = sync_block.pbft_blk->getBlockHash();
   peer->markPbftBlockAsKnown(pbft_blk_hash);
@@ -73,7 +73,7 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
     peer->pbft_chain_size_ = sync_block.pbft_blk->getPeriod();
   }
 
-  LOG(log_nf_) << "Synced PBFT block hash " << pbft_blk_hash << " with " << sync_block.cert_votes.size()
+  LOG(log_dg_) << "Synced PBFT block hash " << pbft_blk_hash << " with " << sync_block.cert_votes.size()
                << " cert votes";
   LOG(log_dg_) << "Synced PBFT block " << sync_block;
   pbft_mgr_->syncBlockQueuePush(std::move(sync_block), packet_data.from_node_id_);
@@ -104,7 +104,7 @@ void PbftSyncPacketHandler::pbftSyncComplete() {
                  << pbft_mgr_->syncBlockQueueSize();
     delayed_sync_events_tp_.post(1000, [this] { pbftSyncComplete(); });
   } else {
-    LOG(log_dg_) << "Syncing PBFT is completed";
+    LOG(log_nf_) << "Syncing PBFT is completed";
     // We are pbft synced with the node we are connected to but
     // calling restartSyncingPbft will check if some nodes have
     // greater pbft chain size and we should continue syncing with

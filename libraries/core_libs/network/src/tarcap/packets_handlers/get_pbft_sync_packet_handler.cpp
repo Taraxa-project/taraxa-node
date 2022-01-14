@@ -41,6 +41,7 @@ void GetPbftSyncPacketHandler::sendPbftBlocks(dev::p2p::NodeID const &peer_id, s
                << ", will send at most " << blocks_to_transfer << " pbft blocks to " << peer_id;
   uint64_t current_period = height_to_sync;
   if (blocks_to_transfer == 0) {
+    LOG(log_nf_) << "Sending empty PbftSyncPacket to " << peer_id;
     sealAndSend(peer_id, SubprotocolPacketType::PbftSyncPacket, dev::RLPStream(0));
     return;
   }
@@ -59,7 +60,7 @@ void GetPbftSyncPacketHandler::sendPbftBlocks(dev::p2p::NodeID const &peer_id, s
     s.appendList(2);
     s << last_block;
     s.appendRaw(data);
-    LOG(log_dg_) << "Sending PbftSyncPacket period " << current_period << " to " << peer_id;
+    LOG(log_nf_) << "Sending PbftSyncPacket period " << current_period << " to " << peer_id;
     sealAndSend(peer_id, SubprotocolPacketType::PbftSyncPacket, std::move(s));
     current_period++;
   }
