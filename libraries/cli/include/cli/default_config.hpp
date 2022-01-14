@@ -42,30 +42,6 @@ const char *default_json = R"foo({
         "verbosity": "ERROR",
         "channels": [
           {
-            "name": "DAG_BLOCK_PH",
-            "verbosity": "INFO"
-          },{
-            "name": "DAG_SYNC_PH",
-            "verbosity": "INFO"
-          },{
-            "name": "GET_DAG_SYNC_PH",
-            "verbosity": "INFO"
-          },{
-            "name": "GET_PBFT_SYNC_PH",
-            "verbosity": "INFO"
-          },{
-            "name": "PBFT_BLOCK_PH",
-            "verbosity": "INFO"
-          },{
-            "name": "TRANSACTION_PH",
-            "verbosity": "INFO"
-          },{
-            "name": "DAGBLKMGR",
-            "verbosity": "INFO"
-          },{
-            "name": "DAGMGR",
-            "verbosity": "INFO"
-          },{
             "name": "SUMMARY",
             "verbosity": "INFO"
           }

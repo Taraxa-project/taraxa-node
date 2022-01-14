@@ -244,7 +244,8 @@ void DagBlockManager::verifyBlock() {
     // Verify DPOS
     if (!propose_period.second) {
       // Cannot find the proposal period in DB yet. The slow node gets an ahead block, puts back.
-      LOG(log_nf_) << "Cannot find proposal period " << propose_period.first << " in DB for DAG block " << blk.getHash();
+      LOG(log_nf_) << "Cannot find proposal period " << propose_period.first << " in DB for DAG block "
+                   << blk.getHash();
       uLock lock(shared_mutex_for_unverified_qu_);
       unverified_qu_[blk.getLevel()].emplace_back(blk);
       continue;
