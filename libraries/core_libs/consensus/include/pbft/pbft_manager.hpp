@@ -56,6 +56,15 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   size_t getTwoTPlusOne() const;
   void setPbftStep(size_t const pbft_step);
 
+  /**
+   * @brief Generate PBFT block, push into unverified queue, and broadcast to peers
+   * @param prev_blk_hash previous PBFT block hash
+   * @param anchor_hash proposed DAG pivot block hash for finalization
+   * @param order_hash the hash of all DAG blocks include in the PBFT block
+   * @return PBFT block
+   */
+  std::shared_ptr<PbftBlock> generatePbftBlock(const blk_hash_t &prev_blk_hash, const blk_hash_t &anchor_hash,
+                                               const blk_hash_t &order_hash);
   std::shared_ptr<Vote> generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, uint64_t round, size_t step);
 
   size_t getDposTotalVotesCount() const;
@@ -116,9 +125,9 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   uint64_t getThreshold(PbftVoteTypes vote_type) const;
 
-  std::pair<blk_hash_t, bool> proposeMyPbftBlock_();
+  blk_hash_t proposePbftBlock_();
 
-  std::pair<blk_hash_t, bool> identifyLeaderBlock_();
+  blk_hash_t identifyLeaderBlock_();
 
   h256 getProposal(const std::shared_ptr<Vote> &vote) const;
 
@@ -129,7 +138,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   bool broadcastAlreadyThisStep_() const;
 
   bool comparePbftBlockScheduleWithDAGblocks_(blk_hash_t const &pbft_block_hash);
-  std::optional<vec_blk_t> comparePbftBlockScheduleWithDAGblocks_(std::shared_ptr<PbftBlock> pbft_block);
+  std::pair<vec_blk_t, bool> comparePbftBlockScheduleWithDAGblocks_(std::shared_ptr<PbftBlock> pbft_block);
 
   bool pushCertVotedPbftBlockIntoChain_(blk_hash_t const &cert_voted_block_hash,
                                         std::vector<std::shared_ptr<Vote>> &&cert_votes_for_round);
@@ -154,8 +163,9 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   std::shared_ptr<PbftBlock> getUnfinalizedBlock_(blk_hash_t const &block_hash);
 
   std::atomic<bool> stopped_ = true;
-  // Using to check if PBFT block has been proposed already in one period
-  std::pair<blk_hash_t, bool> proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
+
+  // Only be able to propose one PBFT block for each period
+  blk_hash_t proposed_block_hash_ = NULL_BLOCK_HASH;
 
   std::unique_ptr<std::thread> daemon_;
   std::shared_ptr<DbStorage> db_;
