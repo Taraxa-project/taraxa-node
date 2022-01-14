@@ -48,7 +48,14 @@ class DagBlockManager {
   uint64_t getLastProposalPeriod() const;
   void setLastProposalPeriod(uint64_t const period);
   std::pair<uint64_t, bool> getProposalPeriod(level_t level);
-  std::shared_ptr<ProposalPeriodDagLevelsMap> newProposePeriodDagLevelsMap(level_t anchor_level);
+
+  /**
+   * @brief generate a proposal period with DAG levels entry
+   * @param anchor_level anchor block level in PBFT block
+   * @return ProposalPeriodDagLevelsMap
+   */
+  std::shared_ptr<ProposalPeriodDagLevelsMap> newProposePeriodDagLevelsMap(level_t anchor_level = 0);
+
   SortitionParamsManager &sortitionParamsManager() { return sortition_params_manager_; }
 
  private:

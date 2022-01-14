@@ -105,7 +105,7 @@ uint16_t SortitionParamsManager::calculateDagEfficiency(const SyncBlock& block) 
   size_t total_count = std::accumulate(block.dag_blocks.begin(), block.dag_blocks.end(), 0,
                                        [](uint32_t s, const auto& b) { return s + b.getTrxs().size(); });
 
-  return block.transactions.size() * 100 * kOnePercent / total_count;
+  return total_count ? block.transactions.size() * 100 * kOnePercent / total_count : 0;
 }
 
 uint16_t SortitionParamsManager::averageDagEfficiency() {
