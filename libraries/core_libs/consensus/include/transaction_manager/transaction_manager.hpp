@@ -58,7 +58,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
    * @param trx_hash transaction hash
    * @return true if seen
    */
-  bool transactionSeen(const trx_hash_t &trx_hash);
+  bool transactionSeen(const trx_hash_t &trx_hash) const;
 
   /**
    * Returns a copy of transactions pool
