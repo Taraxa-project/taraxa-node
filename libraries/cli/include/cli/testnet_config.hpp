@@ -141,6 +141,9 @@ const char *testnet_json = R"foo({
         "genesis_balances": {
           "76870407332398322576505f3c5423d0a71af296": "0x141e8d17",
           "f4a52b8f6dc8ab046fec6ad02e77023c044342e4": "0x24048ce3d"
+        },
+        "hardforks": {
+          "fix_genesis_hardfork_block_num": "0x0"
         }
       }
     },

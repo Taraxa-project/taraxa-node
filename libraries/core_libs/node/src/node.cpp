@@ -187,12 +187,11 @@ void FullNode::start() {
         *rpc_thread_pool_);
 
     // Subscription to process hardforks
-    final_chain_->block_finalized_.subscribe([&](const std::shared_ptr<final_chain::FinalizationResult> &res) {
+    final_chain_->block_applying.subscribe([&](uint64_t block_num) {
       // TODO: should have only common hardfork code calling hardfork executor
-      std::cout << "APPLY CPP PART OF HARDFORK" << std::endl;
-      const auto block_num = res->final_chain_blk->number;
       auto &state_conf = conf_.chain.final_chain.state;
       if (state_conf.hardforks.fix_genesis_hardfork_block_num == block_num) {
+        std::cout << "APPLY CPP PART OF HARDFORK" << std::endl;
         for (auto &e : state_conf.dpos->genesis_state) {
           for (auto &b : e.second) {
             b.second = b.second * u256(1e18) - b.second;

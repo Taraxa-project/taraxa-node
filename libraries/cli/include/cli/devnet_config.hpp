@@ -128,7 +128,7 @@ const char *devnet_json = R"foo({
           "7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x1027e72f1f12813088000000"
         },
         "hardforks": {
-          "enable_vrf_adjustion_block": "0x0"
+          "fix_genesis_hardfork_block_num": "0x0"
         }
       }
     },

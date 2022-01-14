@@ -206,7 +206,7 @@ const char *default_json = R"foo({
           "111f91441efc8c6c0edf6534970cc887e2fabaa8": "0x24048ce3d000000000000000000"
         },
         "hardforks": {
-          "enable_vrf_adjustion_block": "0x12c"
+          "fix_genesis_hardfork_block_num": "0x12c"
         }
       }
     },

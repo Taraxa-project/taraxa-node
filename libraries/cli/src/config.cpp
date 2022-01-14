@@ -160,6 +160,15 @@ Config::Config(int argc, const char* argv[]) {
     Json::Value config_json = Tools::readJsonFromFile(config);
     Json::Value wallet_json = Tools::readJsonFromFile(wallet);
 
+    auto override = [&]() {
+      Tools::writeJsonToFile(config, config_json);
+      Tools::writeJsonToFile(wallet, wallet_json);
+    };
+
+    // override hardforks data with one from default json
+    addNewHardforks(config_json);
+    override();
+
     // Override config values with values from CLI
     config_json = Tools::overrideConfig(config_json, data_dir, boot_node, boot_nodes, log_channels, boot_nodes_append,
                                         log_channels_append);
@@ -174,18 +183,9 @@ Config::Config(int argc, const char* argv[]) {
     // or if running config command
     // This can overwrite secret keys in wallet
     if (overwrite_config || command[0] == CONFIG_COMMAND) {
-      Tools::writeJsonToFile(config, config_json);
-      Tools::writeJsonToFile(wallet, wallet_json);
+      override();
     }
 
-    // override hardforks data with one from default json
-    // TODO: make it only add new fields, but not override the old ones?
-    {
-      // network_id is exactly the same thing as chain_id. So get it from config
-      network_id = dev::getUInt(config_json["chain_config"]["chain_id"]);
-      auto network_config_json = Tools::generateConfig((Config::NetworkIdType)network_id);
-      config_json["chain_config"]["hardforks"] = network_config_json["chain_config"]["hardforks"];
-    }
     // Load config
     node_config_ = FullNodeConfig(config_json, wallet_json);
 
@@ -224,6 +224,24 @@ Config::Config(int argc, const char* argv[]) {
 bool Config::nodeConfigured() { return node_configured_; }
 
 FullNodeConfig Config::getNodeConfiguration() { return node_config_; }
+
+void Config::addNewHardforks(Json::Value& config) {
+  // network_id is exactly the same thing as chain_id. So get it from config
+  auto network_id = Config::NetworkIdType(dev::getUInt(config["chain_config"]["chain_id"]));
+  auto network_config = Tools::generateConfig(network_id);
+  auto& new_hardforks_json = network_config["chain_config"]["final_chain"]["state"]["hardforks"];
+  auto& local_hardforks_json = config["chain_config"]["final_chain"]["state"]["hardforks"];
+  if (new_hardforks_json.isNull()) {
+    std::cout << "is null so override all" << std::endl;
+    new_hardforks_json = local_hardforks_json;
+  }
+  for (auto itr = new_hardforks_json.begin(); itr != new_hardforks_json.end(); ++itr) {
+    auto& local = local_hardforks_json[itr.key().asString()];
+    if (local.isNull()) {
+      local = itr->asString();
+    }
+  }
+}
 
 string Config::dirNameFromFile(const string& file) {
   size_t pos = file.find_last_of("\\/");

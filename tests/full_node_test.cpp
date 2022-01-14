@@ -7,6 +7,8 @@
 #include <shared_mutex>
 #include <vector>
 
+#include "cli/config.hpp"
+#include "cli/tools.hpp"
 #include "common/static_init.hpp"
 #include "dag/dag.hpp"
 #include "logger/logger.hpp"
@@ -580,7 +582,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
     }
     context.wait_all_transactions_known();
   }
-  std::cout << "Issued transatnion count " << context.getIssuedTrxCount() << std::endl;
+  std::cout << "Issued " << context.getIssuedTrxCount() << " transactions" << std::endl;
 
   auto TIMEOUT = SYNC_TIMEOUT;
   for (unsigned i = 0; i < TIMEOUT; i++) {
@@ -1440,7 +1442,7 @@ TEST_F(FullNodeTest, transfer_to_self) {
 }
 
 TEST_F(FullNodeTest, chain_config_json) {
-  string expected_default_chain_cfg_json = R"({
+  const string expected_default_chain_cfg_json = R"({
   "dag_genesis_block": {
     "level": "0x0",
     "pivot": "0x0000000000000000000000000000000000000000000000000000000000000000",
@@ -1481,6 +1483,9 @@ TEST_F(FullNodeTest, chain_config_json) {
       },
       "genesis_balances": {
         "0xde2b1203d72d3549ee2f733b00b2789414c7cea5": "0x1fffffffffffff"
+      },
+      "hardforks": {
+        "fix_genesis_hardfork_block_num": "0x0"
       }
     }
   },
@@ -1523,6 +1528,63 @@ TEST_F(FullNodeTest, chain_config_json) {
   test_node_config_json["chain_config"] = "test";
   ASSERT_EQ(enc_json(FullNodeConfig(test_node_config_json, test_node_wallet_json).chain),
             enc_json(ChainConfig::predefined("test")));
+}
+
+TEST_F(FullNodeTest, hardfork_override) {
+  auto default_json = cli::Tools::generateConfig(cli::Config::DEFAULT_NETWORK_ID);
+  auto default_hardforks = default_json["chain_config"]["final_chain"]["state"]["hardforks"];
+  Json::Value config = default_json;
+  auto &state_cfg = config["chain_config"]["final_chain"]["state"];
+  state_cfg["hardforks"].removeMember("fix_genesis_hardfork_block_num");
+  EXPECT_TRUE(state_cfg["hardforks"]["fix_genesis_hardfork_block_num"].isNull());
+  cli::Config::addNewHardforks(config);
+  EXPECT_EQ(state_cfg["hardforks"], default_hardforks);
+  state_cfg.removeMember("hardforks");
+  EXPECT_TRUE(state_cfg["hardforks"].isNull());
+  cli::Config::addNewHardforks(config);
+  EXPECT_EQ(state_cfg["hardforks"], default_hardforks);
+}
+
+TEST_F(FullNodeTest, hardfork) {
+  auto node_cfgs = make_node_cfgs(1);
+  auto &cfg = node_cfgs.front().chain.final_chain;
+  cfg.state.hardforks.fix_genesis_hardfork_block_num = 2;
+  auto node = launch_nodes(node_cfgs).front();
+  bool hardfork_applied = false;
+  auto nonce = 0;
+  auto dummy_trx = [&nonce, node]() {
+    std::cout << "dummy trx" << std::endl;
+    Transaction dummy_trx(nonce++, 0, 0, 0, bytes(), node->getSecretKey(), node->getAddress());
+    // broadcast dummy transaction
+    node->getTransactionManager()->insertTransaction(dummy_trx);
+  };
+  dummy_trx();
+  node->getFinalChain()->block_finalized_.subscribe([&](const std::shared_ptr<final_chain::FinalizationResult> &res) {
+    const auto block_num = res->final_chain_blk->number;
+    if (cfg.state.hardforks.fix_genesis_hardfork_block_num == block_num) {
+      hardfork_applied = true;
+      return;
+    }
+    dummy_trx();
+  });
+  std::map<addr_t, u256> balances_before;
+  for (const auto &b : node->getConfig().chain.final_chain.state.genesis_balances) {
+    auto balance = node->getFinalChain()->get_account(b.first)->balance;
+    balances_before.emplace(b.first, balance);
+  }
+  wait({100s, 500ms}, [&](auto &ctx) {
+    if (!hardfork_applied) {
+      ctx.fail();
+    }
+  });
+
+  const auto mult = u256(1e18);
+  for (const auto &b : node->getConfig().chain.final_chain.state.genesis_balances) {
+    auto balance_after = node->getFinalChain()->get_account(b.first)->balance;
+    // correction for what was spent before the fork
+    balance_after += b.second - balances_before.at(b.first);
+    EXPECT_EQ(b.second * mult, balance_after);
+  }
 }
 
 }  // namespace taraxa::core_tests
