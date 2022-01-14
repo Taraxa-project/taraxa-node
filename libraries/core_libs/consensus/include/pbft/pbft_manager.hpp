@@ -78,8 +78,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   // Notice: Test purpose
   // TODO: Add a check for some kind of guards to ensure these are only called from within a test
   void setSortitionThreshold(size_t const sortition_threshold);
-  std::vector<std::vector<uint>> createMockTrxSchedule(
-      std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>> trx_overlap_table);
   size_t getPbftCommitteeSize() const { return COMMITTEE_SIZE; }
   u_long getPbftInitialLambda() const { return LAMBDA_ms_MIN; }
   void setLastSoftVotedValue(blk_hash_t soft_voted_value);
