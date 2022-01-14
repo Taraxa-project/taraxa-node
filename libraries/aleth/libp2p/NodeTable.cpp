@@ -354,6 +354,10 @@ void NodeTable::dropNode(shared_ptr<NodeEntry> _n) {
   }
 
   DEV_GUARDED(x_nodes) { m_allNodes.erase(_n->id()); }
+  DEV_GUARDED(x_ips) {
+    m_ipMappings.erase(m_id2IpMap[_n->id()]);
+    m_id2IpMap.erase(_n->id());
+  }
 
   // notify host
   LOG(m_logger) << "p2p.nodes.drop " << _n->id();
@@ -363,49 +367,55 @@ void NodeTable::dropNode(shared_ptr<NodeEntry> _n) {
 NodeTable::NodeBucket& NodeTable::bucket_UNSAFE(NodeEntry const* _n) { return m_buckets[_n->distance - 1]; }
 
 void NodeTable::onPacketReceived(UDPSocketFace*, bi::udp::endpoint const& _from, bytesConstRef _packet) {
+  auto node_ip = _from;
+  {
+    Guard l(x_ips);
+    if (m_ipMappings.contains(_from)) {
+      node_ip = m_ipMappings[_from];
+    }
+  }
   try {
-    unique_ptr<DiscoveryDatagram> packet = DiscoveryDatagram::interpretUDP(_from, _packet);
+    unique_ptr<DiscoveryDatagram> packet = DiscoveryDatagram::interpretUDP(node_ip, _packet);
     if (!packet) return;
     if (packet->isExpired()) {
-      LOG(m_logger) << "Expired " << packet->typeName() << " from " << packet->sourceid << "@" << _from;
+      LOG(m_logger) << "Expired " << packet->typeName() << " from " << packet->sourceid << "@" << node_ip;
       return;
     }
-
-    LOG(m_logger) << packet->typeName() << " from " << packet->sourceid << "@" << _from;
+    LOG(m_logger) << packet->typeName() << " from " << packet->sourceid << "@" << node_ip;
 
     shared_ptr<NodeEntry> sourceNodeEntry;
     switch (packet->packetType()) {
       case Pong::type:
-        sourceNodeEntry = handlePong(_from, *packet);
+        sourceNodeEntry = handlePong(node_ip, *packet);
         break;
 
       case Neighbours::type:
-        sourceNodeEntry = handleNeighbours(_from, *packet);
+        sourceNodeEntry = handleNeighbours(node_ip, *packet);
         break;
 
       case FindNode::type:
-        sourceNodeEntry = handleFindNode(_from, *packet);
+        sourceNodeEntry = handleFindNode(node_ip, *packet);
         break;
 
       case PingNode::type:
-        sourceNodeEntry = handlePingNode(_from, *packet);
+        sourceNodeEntry = handlePingNode(node_ip, *packet);
         break;
 
       case ENRRequest::type:
-        sourceNodeEntry = handleENRRequest(_from, *packet);
+        sourceNodeEntry = handleENRRequest(node_ip, *packet);
         break;
 
       case ENRResponse::type:
-        sourceNodeEntry = handleENRResponse(_from, *packet);
+        sourceNodeEntry = handleENRResponse(node_ip, *packet);
         break;
     }
 
     if (sourceNodeEntry) noteActiveNode(move(sourceNodeEntry));
   } catch (exception const& _e) {
-    LOG(m_logger) << "Exception processing message from " << _from.address().to_string() << ":" << _from.port() << ": "
-                  << _e.what();
+    LOG(m_logger) << "Exception processing message from " << node_ip.address().to_string() << ":" << node_ip.port()
+                  << ": " << _e.what();
   } catch (...) {
-    LOG(m_logger) << "Exception processing message from " << _from.address().to_string() << ":" << _from.port();
+    LOG(m_logger) << "Exception processing message from " << node_ip.address().to_string() << ":" << node_ip.port();
   }
 }
 
@@ -540,22 +550,42 @@ std::shared_ptr<NodeEntry> NodeTable::handleFindNode(bi::udp::endpoint const& _f
   return sourceNodeEntry;
 }
 
+NodeIPEndpoint NodeTable::getSourceEndpoint(bi::udp::endpoint const& from, PingNode const& packet) {
+  if (from.address() != packet.source.address() && !isLocalHostAddress(packet.source.address())) {
+    if (isPrivateAddress(from.address()) && !isPrivateAddress(packet.source.address())) {
+      Guard l(x_ips);
+      if (m_id2IpMap.contains(packet.sourceid)) {
+        if (m_id2IpMap[packet.sourceid] != from) {
+          m_ipMappings.erase(m_id2IpMap[packet.sourceid]);
+          m_id2IpMap[packet.sourceid] = from;
+        }
+      } else {
+        m_id2IpMap[packet.sourceid] = from;
+      }
+      m_ipMappings[from] = {packet.source.address(), packet.source.udpPort(), packet.source.tcpPort()};
+      return m_ipMappings[from];
+    }
+  }
+  return {from.address(), from.port(), packet.source.tcpPort()};
+}
+
 std::shared_ptr<NodeEntry> NodeTable::handlePingNode(bi::udp::endpoint const& _from, DiscoveryDatagram const& _packet) {
   auto const& in = dynamic_cast<PingNode const&>(_packet);
 
   if (in.version != dev::p2p::c_protocolVersion) {
     LOG(m_logger) << "Received a ping from a different protocol version node " << in.version << " from: " << _from;
+    if (auto node = nodeEntry(_packet.sourceid)) dropNode(move(node));
     return nullptr;
   }
 
-  NodeIPEndpoint sourceEndpoint{_from.address(), _from.port(), in.source.tcpPort()};
+  NodeIPEndpoint sourceEndpoint = getSourceEndpoint(_from, in);
   if (!addNode({in.sourceid, sourceEndpoint}))
     return {};  // Need to have valid endpoint proof before adding node to node
                 // table.
 
   // Send PONG response.
   Pong p(sourceEndpoint);
-  LOG(m_logger) << p.typeName() << " to " << in.sourceid << "@" << _from;
+  LOG(m_logger) << p.typeName() << " to " << in.sourceid << "@" << sourceEndpoint;
   p.expiration = nextRequestExpirationTime();
   p.echo = in.echo;
   p.seq = m_hostENR.sequenceNumber();

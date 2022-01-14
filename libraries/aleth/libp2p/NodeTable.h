@@ -60,6 +60,7 @@ inline std::ostream& operator<<(std::ostream& _out, NodeTable const& _nodeTable)
 
 struct NodeEntry;
 struct DiscoveryDatagram;
+struct PingNode;
 
 /**
  * NodeTable using modified kademlia for node discovery and preference.
@@ -325,6 +326,8 @@ class NodeTable : UDPSocketEvents {
     return dev::p2p::isAllowedEndpoint(m_allowLocalDiscovery, _endpointToCheck);
   }
 
+  NodeIPEndpoint getSourceEndpoint(bi::udp::endpoint const& from, PingNode const& packet);
+
   ba::strand<ba::io_context::executor_type> strand_;
 
   std::unique_ptr<NodeTableEventHandler> m_nodeEventHandler;  ///< Event handler for node events.
@@ -350,6 +353,12 @@ class NodeTable : UDPSocketEvents {
 
   mutable Mutex x_state;  ///< LOCK x_state first if both x_nodes and x_state
                           ///< locks are required.
+
+  /// This map is used for maping between node id and real network IP
+  std::unordered_map<NodeID, bi::udp::endpoint> m_id2IpMap;
+  /// This map keeps tracking between real IP and IP reported by node (external IP)
+  std::unordered_map<bi::udp::endpoint, NodeIPEndpoint> m_ipMappings;
+  mutable Mutex x_ips;
 
   /// State of p2p node network. Only includes nodes for which we've completed
   /// the endpoint proof
