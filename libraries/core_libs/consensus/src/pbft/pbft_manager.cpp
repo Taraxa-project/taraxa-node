@@ -103,17 +103,19 @@ void PbftManager::run() {
   for (auto period = final_chain_->last_block_number() + 1, curr_period = pbft_chain_->getPbftChainSize();
        period <= curr_period;  //
        ++period) {
-    auto pbft_block = db_->getPbftBlock(period);
-    if (!pbft_block.has_value()) {
+    auto period_raw = db_->getPeriodDataRaw(period);
+    if (period_raw.size() == 0) {
       LOG(log_er_) << "DB corrupted - Cannot find PBFT block in period " << period << " in PBFT chain DB pbft_blocks.";
       assert(false);
     }
-    if (pbft_block->getPeriod() != period) {
-      LOG(log_er_) << "DB corrupted - PBFT block hash " << pbft_block->getBlockHash() << " has different period "
-                   << pbft_block->getPeriod() << " in block data than in block order db: " << period;
+    SyncBlock sync_block(period_raw);
+    if (sync_block.pbft_blk->getPeriod() != period) {
+      LOG(log_er_) << "DB corrupted - PBFT block hash " << sync_block.pbft_blk->getBlockHash()
+                   << " has different period " << sync_block.pbft_blk->getPeriod()
+                   << " in block data than in block order db: " << period;
       assert(false);
     }
-    finalize_(*pbft_block, db_->getFinalizedDagBlockHashesByPeriod(period), period == curr_period);
+    finalize_(std::move(sync_block), db_->getFinalizedDagBlockHashesByPeriod(period), period == curr_period);
   }
 
   // Initialize PBFT status
@@ -1492,7 +1494,7 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cer
     return false;
   }
   cert_sync_block_.cert_votes = std::move(cert_votes_for_round);
-  if (!pushPbftBlock_(cert_sync_block_, *dag_blocks_order)) {
+  if (!pushPbftBlock_(std::move(cert_sync_block_), std::move(*dag_blocks_order))) {
     LOG(log_er_) << "Failed push PBFT block " << pbft_block->getBlockHash() << " into chain";
     return false;
   }
@@ -1507,19 +1509,19 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
     while (syncBlockQueueSize() > 0) {
       auto sync_block_opt = processSyncBlock();
       if (!sync_block_opt) continue;
-      auto &sync_block = *sync_block_opt;
+      auto sync_block = std::move(sync_block_opt.value());
+      const auto period = sync_block.pbft_blk->getPeriod();
       auto pbft_block_hash = sync_block.pbft_blk->getBlockHash();
       LOG(log_nf_) << "Pick pbft block " << pbft_block_hash << " from synced queue in round " << round;
 
-      vec_blk_t dag_blocks_order;
-      if (pushPbftBlock_(sync_block, dag_blocks_order)) {
+      if (pushPbftBlock_(std::move(sync_block))) {
         LOG(log_nf_) << node_addr_ << " push synced PBFT block " << pbft_block_hash << " in round " << round;
       } else {
         LOG(log_er_) << "Failed push PBFT block " << pbft_block_hash << " into chain";
         break;
       }
 
-      net->setSyncStatePeriod(sync_block.pbft_blk->getPeriod());
+      net->setSyncStatePeriod(period);
 
       if (executed_pbft_block_) {
         vote_mgr_->removeVerifiedVotes();
@@ -1533,16 +1535,12 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
   }
 }
 
-void PbftManager::finalize_(PbftBlock const &pbft_block, std::vector<h256> finalized_dag_blk_hashes, bool sync) {
+void PbftManager::finalize_(SyncBlock &&sync_block, std::vector<h256> &&finalized_dag_blk_hashes, bool sync) {
+  const auto anchor = sync_block.pbft_blk->getPivotDagBlockHash();
+
   auto result = final_chain_->finalize(
-      {
-          pbft_block.getBeneficiary(),
-          pbft_block.getTimestamp(),
-          move(finalized_dag_blk_hashes),
-          pbft_block.getBlockHash(),
-      },
-      pbft_block.getPeriod(),
-      [this, weak_ptr = weak_from_this(), anchor_hash = pbft_block.getPivotDagBlockHash()](auto const &, auto &batch) {
+      std::move(sync_block), std::move(finalized_dag_blk_hashes),
+      [this, weak_ptr = weak_from_this(), anchor_hash = std::move(anchor)](auto const &, auto &batch) {
         // Update proposal period DAG levels map
         auto ptr = weak_ptr.lock();
         if (!ptr) return;  // it was destroyed
@@ -1562,7 +1560,7 @@ void PbftManager::finalize_(PbftBlock const &pbft_block, std::vector<h256> final
   }
 }
 
-bool PbftManager::pushPbftBlock_(SyncBlock &sync_block, vec_blk_t &dag_blocks_order) {
+bool PbftManager::pushPbftBlock_(SyncBlock &&sync_block, vec_blk_t &&dag_blocks_order) {
   auto const &pbft_block_hash = sync_block.pbft_blk->getBlockHash();
   if (db_->pbftBlockInDb(pbft_block_hash)) {
     LOG(log_nf_) << "PBFT block: " << pbft_block_hash << " in DB already.";
@@ -1615,7 +1613,7 @@ bool PbftManager::pushPbftBlock_(SyncBlock &sync_block, vec_blk_t &dag_blocks_or
   LOG(log_nf_) << node_addr_ << " successful push unexecuted PBFT block " << pbft_block_hash << " in period "
                << pbft_period << " into chain! In round " << getPbftRound();
 
-  finalize_(*sync_block.pbft_blk, move(dag_blocks_order));
+  finalize_(std::move(sync_block), std::move(dag_blocks_order));
 
   // Reset proposed PBFT block hash to False for next pbft block proposal
   proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);

@@ -26,7 +26,8 @@ class FinalChain {
   virtual void stop() = 0;
 
   using finalize_precommit_ext = std::function<void(FinalizationResult const&, DB::Batch&)>;
-  virtual std::future<std::shared_ptr<FinalizationResult const>> finalize(NewBlock new_blk, uint64_t period,
+  virtual std::future<std::shared_ptr<FinalizationResult const>> finalize(SyncBlock&& sync_block,
+                                                                          std::vector<h256>&& finalized_dag_blk_hashes,
                                                                           finalize_precommit_ext = {}) = 0;
 
   virtual std::shared_ptr<BlockHeader const> block_header(std::optional<EthBlockNumber> n = {}) const = 0;

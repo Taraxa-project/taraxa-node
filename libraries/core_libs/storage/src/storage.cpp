@@ -483,8 +483,8 @@ dev::bytes DbStorage::getPeriodDataRaw(uint64_t period) {
   return asBytes(lookup(toSlice(period), Columns::period_data));
 }
 
-void DbStorage::saveTransaction(Transaction const& trx, bool verified) {
-  insert(Columns::transactions, toSlice(trx.getHash().asBytes()), toSlice(*trx.rlp(verified)));
+void DbStorage::saveTransaction(Transaction const& trx) {
+  insert(Columns::transactions, toSlice(trx.getHash().asBytes()), toSlice(*trx.rlp()));
 }
 
 void DbStorage::saveTransactionPeriod(trx_hash_t const& trx_hash, uint32_t period, uint32_t position) {
@@ -571,8 +571,8 @@ std::shared_ptr<Transaction> DbStorage::getTransaction(trx_hash_t const& hash) {
   return nullptr;
 }
 
-void DbStorage::addTransactionToBatch(Transaction const& trx, Batch& write_batch, bool verified) {
-  insert(write_batch, DbStorage::Columns::transactions, toSlice(trx.getHash().asBytes()), toSlice(*trx.rlp(verified)));
+void DbStorage::addTransactionToBatch(Transaction const& trx, Batch& write_batch) {
+  insert(write_batch, DbStorage::Columns::transactions, toSlice(trx.getHash().asBytes()), toSlice(*trx.rlp()));
 }
 
 void DbStorage::removeTransactionToBatch(trx_hash_t const& trx, Batch& write_batch) {

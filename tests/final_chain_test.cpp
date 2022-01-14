@@ -47,7 +47,8 @@ struct FinalChainTest : WithDataDir {
     }
     DagBlock dag_blk({}, {}, {}, trx_hashes, {}, secret_t::random());
     db->saveDagBlock(dag_blk);
-    PbftBlock pbft_block(blk_hash_t(), blk_hash_t(), blk_hash_t(), 1, addr_t(1), dev::KeyPair::create().secret());
+    PbftBlock pbft_block(blk_hash_t(), blk_hash_t(), blk_hash_t(), 1, addr_t::random(),
+                         dev::KeyPair::create().secret());
     std::vector<std::shared_ptr<Vote>> votes;
     SyncBlock sync_block(std::make_shared<PbftBlock>(std::move(pbft_block)), votes);
     sync_block.dag_blocks.push_back(dag_blk);
@@ -57,13 +58,8 @@ struct FinalChainTest : WithDataDir {
     db->savePeriodData(sync_block, batch);
 
     db->commitWriteBatch(batch);
-    NewBlock new_blk{
-        addr_t::random(),
-        uint64_t(chrono::high_resolution_clock::now().time_since_epoch().count()),
-        {dag_blk.getHash()},
-        h256::random(),
-    };
-    auto result = SUT->finalize(new_blk, 1).get();
+
+    auto result = SUT->finalize(std::move(sync_block), {dag_blk.getHash()}).get();
     ++expected_blk_num;
     auto const& blk_h = *result->final_chain_blk;
     EXPECT_EQ(util::rlp_enc(blk_h), util::rlp_enc(*SUT->block_header(blk_h.number)));
@@ -77,8 +73,8 @@ struct FinalChainTest : WithDataDir {
     EXPECT_EQ(SUT->transactionCount(blk_h.number), trxs.size());
     EXPECT_EQ(SUT->transactions(blk_h.number), trxs);
     EXPECT_EQ(*SUT->block_number(*SUT->block_hash(blk_h.number)), expected_blk_num);
-    EXPECT_EQ(blk_h.author, new_blk.author);
-    EXPECT_EQ(blk_h.timestamp, new_blk.timestamp);
+    EXPECT_EQ(blk_h.author, pbft_block.getBeneficiary());
+    EXPECT_EQ(blk_h.timestamp, pbft_block.getTimestamp());
     EXPECT_EQ(receipts.size(), trxs.size());
     EXPECT_EQ(blk_h.transactions_root,
               trieRootOver(
