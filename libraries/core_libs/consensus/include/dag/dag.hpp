@@ -114,8 +114,8 @@ class FullNode;
 
 class DagManager : public std::enable_shared_from_this<DagManager> {
  public:
-  using ULock = boost::unique_lock<boost::shared_mutex>;
-  using SharedLock = boost::shared_lock<boost::shared_mutex>;
+  using ULock = std::unique_lock<std::shared_mutex>;
+  using SharedLock = std::shared_lock<std::shared_mutex>;
 
   explicit DagManager(blk_hash_t const &genesis, addr_t node_addr, std::shared_ptr<TransactionManager> trx_mgr,
                       std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DagBlockManager> dag_blk_mgr,
@@ -181,7 +181,8 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   void worker();
   std::pair<blk_hash_t, std::vector<blk_hash_t>> getFrontier() const;  // return pivot and tips
   std::atomic<level_t> max_level_ = 0;
-  mutable boost::shared_mutex mutex_;
+  mutable std::shared_mutex mutex_;
+  mutable std::shared_mutex order_dag_blocks_mutex_;
   std::shared_ptr<PivotTree> pivot_tree_;  // only contains pivot edges
   std::shared_ptr<Dag> total_dag_;         // contains both pivot and tips
   std::shared_ptr<TransactionManager> trx_mgr_;
