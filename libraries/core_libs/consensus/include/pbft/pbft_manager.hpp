@@ -174,7 +174,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   std::default_random_engine random_engine_{std::random_device{}()};
 
-  const size_t kMaxProposalCommitteeSize = 200;  // For proposal votes/blocks
   size_t const COMMITTEE_SIZE;
   size_t const DAG_BLOCKS_SIZE;
   size_t const GHOST_PATH_MOVE_BACK;
