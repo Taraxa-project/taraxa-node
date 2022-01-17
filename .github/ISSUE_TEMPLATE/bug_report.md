@@ -1,6 +1,7 @@
 ---
 name: Bug report
-about: Create a report to help us improve
+about: Create a report to help us improve. This bug report is purely for community.
+  For Internal bug reports Task  template is used !
 title: ''
 labels: bug
 assignees: ''
