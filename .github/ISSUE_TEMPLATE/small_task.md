@@ -1,7 +1,11 @@
 ---
 name: Task
+about: A small task that is, most likely, part of an Epic. It may be a new feature, refactor, perf. improvement, etc... It will usually be labeled
+  as `task` + another appropriate label 
+title: ''
 labels: task
-about: A small task that is, most likely, part of an Epic. It will usually be labeled as `good first issue`.
+assignees: ''
+
 ---
 
 <!-- Issue title should mirror the Task Title. -->
