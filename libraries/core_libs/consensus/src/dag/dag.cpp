@@ -656,6 +656,39 @@ const std::pair<uint64_t, std::map<uint64_t, std::unordered_set<blk_hash_t>>> Da
   return {period_, non_finalized_blks_};
 }
 
+const std::tuple<uint64_t, std::vector<std::shared_ptr<DagBlock>>, SharedTransactions>
+DagManager::getNonFinalizedBlocksWithTransactions(const std::unordered_set<blk_hash_t> &known_hashes) const {
+  SharedLock lock(mutex_);
+  std::vector<std::shared_ptr<DagBlock>> dag_blocks;
+  std::unordered_set<trx_hash_t> unique_trxs;
+  std::vector<trx_hash_t> trx_to_query;
+  SharedTransactions transactions;
+  for (const auto &level_blocks : non_finalized_blks_) {
+    for (const auto &hash : level_blocks.second) {
+      if (known_hashes.count(hash) == 0) {
+        if (auto blk = dag_blk_mgr_->getDagBlock(hash); blk) {
+          dag_blocks.emplace_back(blk);
+        } else {
+          LOG(log_er_) << "NonFinalizedBlock " << hash << " not in DB";
+          assert(false);
+        }
+      }
+    }
+  }
+  for (const auto &block : dag_blocks) {
+    for (auto trx : block->getTrxs()) {
+      if (unique_trxs.emplace(trx).second) {
+        trx_to_query.emplace_back(trx);
+      }
+    }
+  }
+  auto trxs = db_->getNonfinalizedTransactions(trx_to_query);
+  for (auto t : trxs) {
+    transactions.emplace_back(t);
+  }
+  return {period_, std::move(dag_blocks), std::move(transactions)};
+}
+
 std::pair<size_t, size_t> DagManager::getNonFinalizedBlocksSize() const {
   SharedLock lock(mutex_);
 

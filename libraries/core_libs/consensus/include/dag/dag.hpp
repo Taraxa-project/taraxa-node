@@ -165,6 +165,16 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
 
   const std::pair<uint64_t, std::map<uint64_t, std::unordered_set<blk_hash_t>>> getNonFinalizedBlocks() const;
 
+  /**
+   * @brief Retrieves current period together with non finalized blocks with the unique list of non finalized
+   * transactions from these blocks
+   *
+   * @param known_hashes excludes known hashes from result
+   * @return Period, blocks and transactions
+   */
+  const std::tuple<uint64_t, std::vector<std::shared_ptr<DagBlock>>, SharedTransactions>
+  getNonFinalizedBlocksWithTransactions(const std::unordered_set<blk_hash_t> &known_hashes) const;
+
   DagFrontier getDagFrontier();
 
   /**

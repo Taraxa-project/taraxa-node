@@ -24,7 +24,6 @@ void GetDagSyncPacketHandler::process(const PacketData &packet_data,
   std::unique_lock lock(peer->mutex_for_sending_dag_blocks_);
 
   std::unordered_set<blk_hash_t> blocks_hashes;
-  std::vector<std::shared_ptr<DagBlock>> dag_blocks;
   auto it = packet_data.rlp_.begin();
   const auto peer_period = (*it++).toInt<uint64_t>();
 
@@ -37,64 +36,46 @@ void GetDagSyncPacketHandler::process(const PacketData &packet_data,
 
   LOG(log_nf_) << "Received GetDagSyncPacket: " << blocks_hashes_to_log << " from " << peer->getId();
 
-  const auto [period, blocks] = dag_mgr_->getNonFinalizedBlocks();
-  // There is no point in sending blocks if periods do not match
+  auto [period, blocks, transactions] = dag_mgr_->getNonFinalizedBlocksWithTransactions(blocks_hashes);
   if (peer_period == period) {
     peer->syncing_ = false;
-    for (auto &level_blocks : blocks) {
-      for (auto &block : level_blocks.second) {
-        const auto hash = block;
-        if (blocks_hashes.count(hash) == 0) {
-          if (auto blk = dag_blk_mgr_->getDagBlock(hash); blk) {
-            dag_blocks.emplace_back(blk);
-          } else {
-            LOG(log_er_) << "NonFinalizedBlock " << hash << " not in DB";
-            assert(false);
-          }
-        }
-      }
-    }
+  } else {
+    // There is no point in sending blocks if periods do not match
+    blocks.clear();
   }
-  sendBlocks(packet_data.from_node_id_, std::move(dag_blocks), peer_period, period);
+  sendBlocks(packet_data.from_node_id_, std::move(blocks), std::move(transactions), peer_period, period);
 }
 
 void GetDagSyncPacketHandler::sendBlocks(const dev::p2p::NodeID &peer_id,
-                                         std::vector<std::shared_ptr<DagBlock>> &&blocks, uint64_t request_period,
-                                         uint64_t period) {
+                                         std::vector<std::shared_ptr<DagBlock>> &&blocks,
+                                         SharedTransactions &&transactions, uint64_t request_period, uint64_t period) {
   auto peer = peers_state_->getPeer(peer_id);
   if (!peer) return;
 
   size_t total_transactions_count = 0;
-  std::unordered_set<trx_hash_t> unique_trxs;
-  std::vector<taraxa::bytes> transactions;
+  std::vector<taraxa::bytes> raw_transactions;
   std::string dag_blocks_to_send;
   std::string transactions_to_log;
-  for (const auto &block : blocks) {
-    std::vector<trx_hash_t> trx_to_query;
-    for (auto trx : block->getTrxs()) {
-      if (unique_trxs.emplace(trx).second) {
-        trx_to_query.emplace_back(trx);
-      }
-    }
-    auto trxs = db_->getNonfinalizedTransactions(trx_to_query);
 
-    for (auto t : trxs) {
-      transactions_to_log += t->getHash().abridged();
-      transactions.emplace_back(std::move(*t->rlp()));
-      total_transactions_count++;
-    }
+  for (const auto &block : blocks) {
     dag_blocks_to_send += block->getHash().abridged();
+  }
+
+  for (const auto &t : transactions) {
+    transactions_to_log += t->getHash().abridged();
+    raw_transactions.emplace_back(std::move(*t->rlp()));
+    total_transactions_count++;
   }
 
   dev::RLPStream s(3 + blocks.size() + total_transactions_count);
   s << static_cast<uint64_t>(request_period);
   s << static_cast<uint64_t>(period);
-  s << transactions.size();
+  s << raw_transactions.size();
   taraxa::bytes trx_bytes;
-  for (auto &trx : transactions) {
+  for (auto &trx : raw_transactions) {
     trx_bytes.insert(trx_bytes.end(), std::make_move_iterator(trx.begin()), std::make_move_iterator(trx.end()));
   }
-  s.appendRaw(trx_bytes, transactions.size());
+  s.appendRaw(trx_bytes, raw_transactions.size());
 
   for (auto &block : blocks) {
     s.appendRaw(block->rlp(true));

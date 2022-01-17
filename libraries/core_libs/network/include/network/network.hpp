@@ -64,8 +64,8 @@ class Network {
 
   // METHODS USED IN TESTS ONLY
   void sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk, const SharedTransactions &trxs);
-  void sendBlocks(const dev::p2p::NodeID &id, std::vector<std::shared_ptr<DagBlock>> &&blocks, uint64_t request_period,
-                  uint64_t period);
+  void sendBlocks(const dev::p2p::NodeID &id, std::vector<std::shared_ptr<DagBlock>> &&blocks,
+                  SharedTransactions &&transactions, uint64_t request_period, uint64_t period);
   void sendTransactions(dev::p2p::NodeID const &_id, std::vector<taraxa::bytes> const &transactions);
   void setPendingPeersToReady();
   dev::p2p::NodeID getNodeId() const;
