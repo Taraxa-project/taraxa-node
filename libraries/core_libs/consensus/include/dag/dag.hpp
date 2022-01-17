@@ -184,6 +184,8 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
 
   util::Event<DagManager, DagBlock> const block_verified_{};
 
+  std::shared_mutex &getDagMutex() { return mutex_; }
+
  private:
   void recoverDag();
   void addToDag(blk_hash_t const &hash, blk_hash_t const &pivot, std::vector<blk_hash_t> const &tips, uint64_t level,

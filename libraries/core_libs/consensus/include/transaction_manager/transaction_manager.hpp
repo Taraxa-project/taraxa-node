@@ -75,6 +75,8 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   // Update the status of transactions to finalized and remove from transactions column
   void updateFinalizedTransactionsStatus(SyncBlock const &sync_block);
 
+  std::shared_mutex &getTransactionsMutex() { return transactions_mutex_; }
+
   /**
    * @brief Gets transactions from transactions pool
    *
