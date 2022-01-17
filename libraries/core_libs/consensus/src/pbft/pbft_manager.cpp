@@ -1580,8 +1580,8 @@ bool PbftManager::pushPbftBlock_(SyncBlock &&sync_block, vec_blk_t &&dag_blocks_
   {
     // This makes sure that no DAG block or transaction can be added or change state in transaction and dag manager when
     // finalizing pbft block with dag blocks and transactions
-    std::unique_lock(dag_mgr_->getDagMutex());
-    std::unique_lock(trx_mgr_->getTransactionsMutex());
+    std::unique_lock dag_lock(dag_mgr_->getDagMutex());
+    std::unique_lock trx_lock(trx_mgr_->getTransactionsMutex());
 
     // Commit DB
     db_->commitWriteBatch(batch);
