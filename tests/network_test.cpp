@@ -1096,13 +1096,15 @@ TEST_F(NetworkTest, node_sync2) {
   auto node2 = create_nodes({node_cfgs[1]}, true /*start*/).front();
 
   EXPECT_HAPPENS({10s, 100ms}, [&](auto& ctx) {
-    WAIT_EXPECT_EQ(ctx, node1->getDagManager()->getNumVerticesInDag().first, 13)
-    WAIT_EXPECT_EQ(ctx, node1->getDagManager()->getNumEdgesInDag().first, 13)
+    WAIT_EXPECT_LT(ctx, 12, node1->getDagManager()->getNumVerticesInDag().first)
+    WAIT_EXPECT_LT(ctx, 12, node1->getDagManager()->getNumEdgesInDag().first)
   });
 
   EXPECT_HAPPENS({50s, 300ms}, [&](auto& ctx) {
-    WAIT_EXPECT_EQ(ctx, node2->getDagManager()->getNumVerticesInDag().first, 13)
-    WAIT_EXPECT_EQ(ctx, node2->getDagManager()->getNumEdgesInDag().first, 13)
+    WAIT_EXPECT_EQ(ctx, node1->getDagManager()->getNumVerticesInDag().first,
+                   node2->getDagManager()->getNumVerticesInDag().first)
+    WAIT_EXPECT_EQ(ctx, node1->getDagManager()->getNumEdgesInDag().first,
+                   node2->getDagManager()->getNumEdgesInDag().first)
   });
 }
 
