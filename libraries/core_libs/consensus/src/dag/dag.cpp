@@ -103,8 +103,8 @@ void Dag::collectLeafVertices(std::vector<vertex_t> &leaves) const {
 }
 
 // only iterate through non finalized blocks
-bool Dag::computeOrder(blk_hash_t const &anchor, std::vector<blk_hash_t> &ordered_period_vertices,
-                       std::map<uint64_t, std::vector<blk_hash_t>> const &non_finalized_blks) {
+bool Dag::computeOrder(const blk_hash_t &anchor, std::vector<blk_hash_t> &ordered_period_vertices,
+                       const std::map<uint64_t, std::unordered_set<blk_hash_t>> &non_finalized_blks) {
   vertex_t target = graph_.vertex(anchor);
 
   if (target == graph_.null_vertex()) {
@@ -119,7 +119,7 @@ bool Dag::computeOrder(blk_hash_t const &anchor, std::vector<blk_hash_t> &ordere
   epfriend[index_map[target]] = target;
 
   // Step 1: collect all epoch blks that can reach anchor
-  // Erase from recent_added_blks after mark epoch number if finialized
+  // Erase from recent_added_blks after mark epoch number if finalized
 
   for (auto &l : non_finalized_blks) {
     for (auto &blk : l.second) {
@@ -467,10 +467,15 @@ void DagManager::addToDag(blk_hash_t const &hash, blk_hash_t const &pivot, std::
                           uint64_t level, bool finalized) {
   total_dag_->addVEEs(hash, pivot, tips);
   pivot_tree_->addVEEs(hash, pivot, {});
-  if (!finalized) {
-    non_finalized_blks_[level].push_back(hash);
-  }
+
   LOG(log_dg_) << " Insert block to DAG : " << hash;
+  if (finalized) {
+    return;
+  }
+
+  if (!non_finalized_blks_[level].insert(hash).second) {
+    LOG(log_er_) << "Trying to insert duplicate block into the dag: " << hash;
+  }
 }
 
 std::optional<std::pair<blk_hash_t, std::vector<blk_hash_t>>> DagManager::getLatestPivotAndTips() const {
@@ -645,7 +650,7 @@ void DagManager::recoverDag() {
   trx_mgr_->recoverNonfinalizedTransactions();
 }
 
-const std::pair<uint64_t, std::map<uint64_t, std::vector<blk_hash_t>>> DagManager::getNonFinalizedBlocks() const {
+const std::pair<uint64_t, std::map<uint64_t, std::unordered_set<blk_hash_t>>> DagManager::getNonFinalizedBlocks() const {
   SharedLock lock(mutex_);
   return {period_, non_finalized_blks_};
 }
