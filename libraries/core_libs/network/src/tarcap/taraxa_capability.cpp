@@ -303,22 +303,21 @@ void TaraxaCapability::interpretCapabilityPacket(std::weak_ptr<dev::p2p::Session
     return;
   }
 
-  auto peer = peers_state_->getPeer(node_id);
-  if (!peer) {
-    peer = peers_state_->getPendingPeer(node_id);
-    if (!peer) {
-      // It should not be possible to get here but log it just in case
-      LOG(log_wr_) << "Peer missing in peers map, peer " << node_id.abridged() << " will be disconnected";
-      host->disconnect(node_id, dev::p2p::UserReason);
-      return;
-    }
-    if (_id != SubprotocolPacketType::StatusPacket) {
-      LOG(log_wr_) << "Connected peer did not send status message, peer " << node_id.abridged()
-                   << " will be disconnected";
-      host->disconnect(node_id, dev::p2p::UserReason);
-      return;
-    }
+  const auto [peer, is_pending] = peers_state_->getAnyPeer(node_id);
+  if (!peer) [[unlikely]] {
+    // It should not be possible to get here but log it just in case
+    LOG(log_wr_) << "Peer missing in peers map, peer " << node_id.abridged() << " will be disconnected";
+    host->disconnect(node_id, dev::p2p::UserReason);
+    return;
   }
+
+  if (is_pending && _id != SubprotocolPacketType::StatusPacket) [[unlikely]] {
+    LOG(log_wr_) << "Connected peer did not send status message, peer " << node_id.abridged()
+                 << " will be disconnected";
+    host->disconnect(node_id, dev::p2p::UserReason);
+    return;
+  }
+
   SubprotocolPacketType packet_type = static_cast<SubprotocolPacketType>(_id);
   if (syncing_state_->is_deep_pbft_syncing() && filterSyncIrrelevantPackets(packet_type)) {
     LOG(log_dg_) << "Ignored " << convertPacketTypeToString(packet_type) << " because we are still syncing";

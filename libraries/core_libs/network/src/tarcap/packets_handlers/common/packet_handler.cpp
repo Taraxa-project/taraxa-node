@@ -14,7 +14,7 @@ void PacketHandler::processPacket(const PacketData& packet_data) {
   try {
     SinglePacketStats packet_stats{packet_data.from_node_id_, packet_data.rlp_.data().size(),
                                    std::chrono::microseconds(0), std::chrono::microseconds(0)};
-    auto begin = std::chrono::steady_clock::now();
+    const auto begin = std::chrono::steady_clock::now();
 
     auto tmp_peer = peers_state_->getPeer(packet_data.from_node_id_);
     if (!tmp_peer && packet_data.type_ != SubprotocolPacketType::StatusPacket) {
@@ -51,7 +51,7 @@ void PacketHandler::handle_read_exception(const PacketData& packet_data) {
   }
 }
 
-bool PacketHandler::sealAndSend(const dev::p2p::NodeID& nodeID, SubprotocolPacketType packet_type,
+bool PacketHandler::sealAndSend(const dev::p2p::NodeID& node_id, SubprotocolPacketType packet_type,
                                 dev::RLPStream&& rlp) {
   auto host = peers_state_->host_.lock();
   if (!host) {
@@ -59,28 +59,30 @@ bool PacketHandler::sealAndSend(const dev::p2p::NodeID& nodeID, SubprotocolPacke
     return false;
   }
 
-  auto peer = peers_state_->getPeer(nodeID);
-  if (!peer) {
-    peer = peers_state_->getPendingPeer(nodeID);
-
-    if (!peer) {
-      LOG(log_wr_) << "sealAndSend failed to find peer";
-      return false;
-    }
-
-    if (packet_type != SubprotocolPacketType::StatusPacket) {
-      LOG(log_er_) << "sealAndSend failed initial status check, peer " << nodeID.abridged() << " will be disconnected";
-      host->disconnect(nodeID, dev::p2p::UserReason);
-      return false;
-    }
+  const auto [peer, is_pending] = peers_state_->getAnyPeer(node_id);
+  if (!peer) [[unlikely]] {
+    LOG(log_wr_) << "sealAndSend failed to find peer";
+    return false;
   }
 
+  if (is_pending && packet_type != SubprotocolPacketType::StatusPacket) [[unlikely]] {
+    LOG(log_wr_) << "sealAndSend failed initial status check, peer " << node_id.abridged() << " will be disconnected";
+    host->disconnect(node_id, dev::p2p::UserReason);
+    return false;
+  }
+
+  const auto begin = std::chrono::steady_clock::now();
   const size_t packet_size = rlp.out().size();
 
-  host->send(nodeID, TARAXA_CAPABILITY_NAME, packet_type, rlp.invalidate());
-
-  SinglePacketStats packet_stats{nodeID, packet_size, std::chrono::microseconds{0}, std::chrono::microseconds{0}};
-  packets_stats_->addSentPacket(peers_state_->node_id_, convertPacketTypeToString(packet_type), packet_stats);
+  host->send(node_id, TARAXA_CAPABILITY_NAME, packet_type, rlp.invalidate(),
+             [begin, node_id, packet_size, packet_type, this]() {
+               SinglePacketStats packet_stats{
+                   node_id, packet_size,
+                   std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - begin),
+                   std::chrono::microseconds{0}};
+               packets_stats_->addSentPacket(peers_state_->node_id_, convertPacketTypeToString(packet_type),
+                                             packet_stats);
+             });
 
   return true;
 }

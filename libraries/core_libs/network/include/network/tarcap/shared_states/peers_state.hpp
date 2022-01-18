@@ -20,6 +20,10 @@ class PeersState {
 
   std::shared_ptr<TaraxaPeer> getPeer(const dev::p2p::NodeID& node_id) const;
   std::shared_ptr<TaraxaPeer> getPendingPeer(const dev::p2p::NodeID& node_id) const;
+  /**
+   * @brief Returns TaraxaPeer object for specified node_id and bool value that indicates if peer was still pending
+   */
+  std::pair<std::shared_ptr<TaraxaPeer>, bool> getAnyPeer(const dev::p2p::NodeID& node_id) const;
   std::unordered_map<dev::p2p::NodeID, std::shared_ptr<TaraxaPeer>> getAllPeers() const;
   std::vector<dev::p2p::NodeID> getAllPeersIDs() const;
   std::vector<dev::p2p::NodeID> getAllPendingPeersIDs() const;
