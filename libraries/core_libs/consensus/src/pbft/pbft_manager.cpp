@@ -1591,10 +1591,10 @@ bool PbftManager::pushPbftBlock_(SyncBlock &&sync_block, vec_blk_t &&dag_blocks_
     dag_mgr_->setDagBlockOrder(anchor_hash, pbft_period, dag_blocks_order);
 
     trx_mgr_->updateFinalizedTransactionsStatus(sync_block);
-  }
 
-  // update PBFT chain size
-  pbft_chain_->updatePbftChain(pbft_block_hash);
+    // update PBFT chain size
+    pbft_chain_->updatePbftChain(pbft_block_hash);
+  }
 
   last_cert_voted_value_ = NULL_BLOCK_HASH;
 

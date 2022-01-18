@@ -134,7 +134,18 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
 
   // return block order
   vec_blk_t getDagBlockOrder(blk_hash_t const &anchor, uint64_t period);
-  // receive pbft-pivot-blk, update periods and finalized, return size of ordered blocks
+
+  /**
+   * @brief Sets the dag block order on finalizing PBFT block
+   * IMPORTANT: This method is invoked on finalizing a pbft block, it needs to be protected with mutex_ but the mutex is
+   * locked from pbft manager for the entire pbft finalization to make the finalization atomic
+   *
+   * @param anchor Anchor of the finalized pbft block
+   * @param period Period finalized
+   * @param dag_order Dag order of the finalized pbft block
+   *
+   * @return number of dag blocks finalized
+   */
   uint setDagBlockOrder(blk_hash_t const &anchor, uint64_t period, vec_blk_t const &dag_order);
 
   std::optional<std::pair<blk_hash_t, std::vector<blk_hash_t>>> getLatestPivotAndTips() const;
@@ -184,6 +195,11 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
 
   util::Event<DagManager, DagBlock> const block_verified_{};
 
+  /**
+   * @brief Retrieves Dag Manager mutex, only to be used when finalizing pbft block
+   *
+   * @return mutex
+   */
   std::shared_mutex &getDagMutex() { return mutex_; }
 
  private:
