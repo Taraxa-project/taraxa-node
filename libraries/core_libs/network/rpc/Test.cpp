@@ -281,7 +281,7 @@ Json::Value Test::get_all_nodes() {
   return res;
 }
 
-Json::Value Test::get_vote_weight(const Json::Value &param1) {
+Json::Value Test::get_coins_per_vote(const Json::Value &param1) {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {

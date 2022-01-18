@@ -53,6 +53,7 @@ class FinalChain {
 
   virtual std::optional<state_api::Account> get_account(addr_t const& addr,
                                                         std::optional<EthBlockNumber> blk_n = {}) const = 0;
+  virtual u256 get_staking_balance(addr_t const& addr, std::optional<EthBlockNumber> blk_n = {}) const = 0;
   virtual u256 get_account_storage(addr_t const& addr, u256 const& key,
                                    std::optional<EthBlockNumber> blk_n = {}) const = 0;
   virtual bytes get_code(addr_t const& addr, std::optional<EthBlockNumber> blk_n = {}) const = 0;

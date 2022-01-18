@@ -165,8 +165,15 @@ Config::Config(int argc, const char* argv[]) {
       Tools::writeJsonToFile(wallet, wallet_json);
     };
 
+    network_id = dev::getUInt(config_json["chain_config"]["chain_id"]);
+    auto default_config_json = Tools::generateConfig((Config::NetworkIdType)network_id);
     // override hardforks data with one from default json
-    addNewHardforks(config_json);
+    addNewHardforks(config_json, default_config_json);
+    // add coins_per_vote field if it is missing in the config
+    if (config_json["chain_config"]["final_chain"]["state"]["dpos"]["coins_per_vote"].isNull()) {
+      config_json["chain_config"]["final_chain"]["state"]["dpos"]["coins_per_vote"] =
+          default_config_json["chain_config"]["final_chain"]["state"]["dpos"]["coins_per_vote"];
+    }
     override();
 
     // Override config values with values from CLI
@@ -225,15 +232,13 @@ bool Config::nodeConfigured() { return node_configured_; }
 
 FullNodeConfig Config::getNodeConfiguration() { return node_config_; }
 
-void Config::addNewHardforks(Json::Value& config) {
+void Config::addNewHardforks(Json::Value& config, const Json::Value& default_config) {
   // network_id is exactly the same thing as chain_id. So get it from config
-  auto network_id = Config::NetworkIdType(dev::getUInt(config["chain_config"]["chain_id"]));
-  auto network_config = Tools::generateConfig(network_id);
-  auto& new_hardforks_json = network_config["chain_config"]["final_chain"]["state"]["hardforks"];
+  auto& new_hardforks_json = default_config["chain_config"]["final_chain"]["state"]["hardforks"];
   auto& local_hardforks_json = config["chain_config"]["final_chain"]["state"]["hardforks"];
-  if (new_hardforks_json.isNull()) {
-    std::cout << "is null so override all" << std::endl;
-    new_hardforks_json = local_hardforks_json;
+
+  if (local_hardforks_json.isNull()) {
+    local_hardforks_json = new_hardforks_json;
   }
   for (auto itr = new_hardforks_json.begin(); itr != new_hardforks_json.end(); ++itr) {
     auto& local = local_hardforks_json[itr.key().asString()];

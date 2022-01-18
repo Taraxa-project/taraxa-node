@@ -320,6 +320,10 @@ class FinalChainImpl final : public FinalChain {
     return state_api_.get_account(last_if_absent(blk_n), addr);
   }
 
+  virtual u256 get_staking_balance(addr_t const& addr, std::optional<EthBlockNumber> blk_n = {}) const override {
+    return state_api_.get_staking_balance(last_if_absent(blk_n), addr);
+  }
+
   void update_state_config(const state_api::Config& new_config) const override {
     state_api_.update_state_config(new_config);
   }

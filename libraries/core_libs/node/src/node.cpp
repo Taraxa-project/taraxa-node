@@ -191,12 +191,20 @@ void FullNode::start() {
       // TODO: should have only common hardfork code calling hardfork executor
       auto &state_conf = conf_.chain.final_chain.state;
       if (state_conf.hardforks.fix_genesis_hardfork_block_num == block_num) {
-        std::cout << "APPLY CPP PART OF HARDFORK" << std::endl;
         for (auto &e : state_conf.dpos->genesis_state) {
           for (auto &b : e.second) {
-            b.second = b.second * u256(1e18) - b.second;
+            b.second = b.second * kOneTara;
           }
         }
+        for (auto &b : state_conf.genesis_balances) {
+          b.second = b.second * kOneTara;
+        }
+        // we are multiplying it by TARA precision
+        state_conf.dpos->eligibility_balance_threshold *= kOneTara;
+        // amount of stake per vote should be 10 times smaller than eligibility threshold
+        state_conf.dpos->coins_per_vote = state_conf.dpos->eligibility_balance_threshold;
+        state_conf.dpos->eligibility_balance_threshold *= 10;
+
         final_chain_->update_state_config(state_conf);
       }
     });

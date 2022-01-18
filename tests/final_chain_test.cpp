@@ -307,23 +307,6 @@ TEST_F(FinalChainTest, coin_transfers) {
   });
 }
 
-TEST_F(FinalChainTest, hardfork_apply_test) {
-  cfg.state.genesis_balances[addr_t::random()] = 100000;
-  cfg.state.dpos = state_api::DPOSConfig();
-  cfg.state.dpos->eligibility_balance_threshold = 1000;
-  auto hardfork_block_num = cfg.state.hardforks.fix_genesis_hardfork_block_num = 10;
-  init();
-  for (size_t i = 0; i <= hardfork_block_num; ++i) {
-    advance({});
-  }
-
-  const auto mult = u256(1e18);
-  for (const auto& b : cfg.state.genesis_balances) {
-    const auto balance_after = SUT->get_account(b.first)->balance;
-    EXPECT_EQ(b.second * mult, balance_after);
-  }
-}
-
 }  // namespace taraxa::final_chain
 
 TARAXA_TEST_MAIN({})

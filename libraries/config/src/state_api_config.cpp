@@ -71,6 +71,7 @@ Json::Value enc_json(DPOSConfig const& obj) {
   json["eligibility_balance_threshold"] = dev::toJS(obj.eligibility_balance_threshold);
   json["deposit_delay"] = dev::toJS(obj.deposit_delay);
   json["withdrawal_delay"] = dev::toJS(obj.withdrawal_delay);
+  json["coins_per_vote"] = dev::toJS(obj.coins_per_vote);
   auto& genesis_state = json["genesis_state"] = Json::Value(Json::objectValue);
   for (auto const& [k, v] : obj.genesis_state) {
     genesis_state[dev::toJS(k)] = enc_json(v);
@@ -82,6 +83,7 @@ void dec_json(Json::Value const& json, DPOSConfig& obj) {
   obj.eligibility_balance_threshold = dev::jsToU256(json["eligibility_balance_threshold"].asString());
   obj.deposit_delay = dev::jsToInt(json["deposit_delay"].asString());
   obj.withdrawal_delay = dev::jsToInt(json["withdrawal_delay"].asString());
+  obj.coins_per_vote = dev::jsToInt(json["coins_per_vote"].asString());
   auto const& genesis_state = json["genesis_state"];
   for (auto const& k : genesis_state.getMemberNames()) {
     dec_json(genesis_state[k], obj.genesis_state[addr_t(k)]);
@@ -103,7 +105,8 @@ void dec_json(Json::Value const& json, ExecutionOptions& obj) {
 RLP_FIELDS_DEFINE(ExecutionOptions, disable_nonce_check, disable_gas_fee)
 RLP_FIELDS_DEFINE(ETHChainConfig, homestead_block, dao_fork_block, eip_150_block, eip_158_block, byzantium_block,
                   constantinople_block, petersburg_block)
-RLP_FIELDS_DEFINE(DPOSConfig, eligibility_balance_threshold, deposit_delay, withdrawal_delay, genesis_state)
+RLP_FIELDS_DEFINE(DPOSConfig, eligibility_balance_threshold, coins_per_vote, deposit_delay, withdrawal_delay,
+                  genesis_state)
 RLP_FIELDS_DEFINE(Config, eth_chain_config, disable_block_rewards, execution_options, genesis_balances, dpos, hardforks)
 RLP_FIELDS_DEFINE(Opts, expected_max_trx_per_block, max_trie_full_node_levels_to_cache)
 RLP_FIELDS_DEFINE(OptsDB, db_path, disable_most_recent_trie_value_views)

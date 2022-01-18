@@ -114,6 +114,7 @@ const char *testnet_json = R"foo({
           "deposit_delay": "0x5",
           "withdrawal_delay": "0x5",
           "eligibility_balance_threshold": "0x186A0",
+          "coins_per_vote": "0x186A0",
           "genesis_state": {
             "0x76870407332398322576505f3c5423d0a71af296": {
               "0x18551e353aa65bc0ffbdf9d93b7ad4a8fe29cf95": "0x989680",

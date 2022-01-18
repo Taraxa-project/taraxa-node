@@ -52,9 +52,9 @@ class TestFace : public ServerInterface<TestFace> {
                            &taraxa::net::TestFace::get_all_peersI);
     this->bindAndAddMethod(jsonrpc::Procedure("get_all_nodes", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, NULL),
                            &taraxa::net::TestFace::get_all_nodesI);
-    this->bindAndAddMethod(jsonrpc::Procedure("get_vote_weight", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
+    this->bindAndAddMethod(jsonrpc::Procedure("get_coins_per_vote", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
                                               "param1", jsonrpc::JSON_OBJECT, NULL),
-                           &taraxa::net::TestFace::get_vote_weightI);
+                           &taraxa::net::TestFace::get_coins_per_voteI);
     this->bindAndAddMethod(jsonrpc::Procedure("place_vote", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, "param1",
                                               jsonrpc::JSON_OBJECT, NULL),
                            &taraxa::net::TestFace::place_voteI);
@@ -140,8 +140,8 @@ class TestFace : public ServerInterface<TestFace> {
     (void)request;
     response = this->get_all_nodes();
   }
-  inline virtual void get_vote_weightI(const Json::Value &request, Json::Value &response) {
-    response = this->get_vote_weight(request[0u]);
+  inline virtual void get_coins_per_voteI(const Json::Value &request, Json::Value &response) {
+    response = this->get_coins_per_vote(request[0u]);
   }
   inline virtual void place_voteI(const Json::Value &request, Json::Value &response) {
     response = this->place_vote(request[0u]);
@@ -192,7 +192,7 @@ class TestFace : public ServerInterface<TestFace> {
   virtual Json::Value get_node_version() = 0;
   virtual Json::Value get_all_peers() = 0;
   virtual Json::Value get_all_nodes() = 0;
-  virtual Json::Value get_vote_weight(const Json::Value &param1) = 0;
+  virtual Json::Value get_coins_per_vote(const Json::Value &param1) = 0;
   virtual Json::Value place_vote(const Json::Value &param1) = 0;
   virtual Json::Value get_votes(const Json::Value &param1) = 0;
   virtual Json::Value draw_graph(const Json::Value &param1) = 0;

@@ -80,7 +80,7 @@
     "returns": {}
   },
   {
-    "name": "get_vote_weight",
+    "name": "get_coins_per_vote",
     "params": [
       {}
     ],

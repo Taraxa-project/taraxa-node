@@ -234,6 +234,10 @@ bool StateAPI::dpos_is_eligible(EthBlockNumber blk_num, addr_t const& addr) cons
   return ret;
 }
 
+u256 StateAPI::get_staking_balance(EthBlockNumber blk_num, addr_t const& addr) const {
+  return c_method_args_rlp<u256, to_u256, taraxa_evm_state_api_dpos_get_staking_balance>(this_c_, blk_num, addr);
+}
+
 DPOSQueryResult StateAPI::dpos_query(EthBlockNumber blk_num, DPOSQuery const& q) const {
   return c_method_args_rlp<DPOSQueryResult, from_rlp, taraxa_evm_state_api_dpos_query>(this_c_, blk_num, q);
 }

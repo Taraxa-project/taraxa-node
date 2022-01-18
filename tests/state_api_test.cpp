@@ -66,7 +66,9 @@ TEST_F(StateAPITest, dpos_integration) {
   dpos_cfg.deposit_delay = 2;
   dpos_cfg.withdrawal_delay = 4;
   dpos_cfg.eligibility_balance_threshold = 1000;
+  dpos_cfg.coins_per_vote = 1000;
   addr_1_bal_expected -= dpos_cfg.genesis_state[make_addr(1)][make_addr(1)] = dpos_cfg.eligibility_balance_threshold;
+  chain_cfg.hardforks.fix_genesis_hardfork_block_num = 0;
 
   uint64_t curr_blk = 0;
   StateAPI SUT([&](auto /*n*/) -> h256 { assert(false); },  //
@@ -223,40 +225,6 @@ TEST_F(StateAPITest, DISABLED_eth_mainnet_smoke) {
     ASSERT_EQ(result.state_root, test_block.state_root);
     SUT.transition_state_commit();
   }
-}
-
-TEST_F(StateAPITest, increase_balance_hardfork_test) {
-  Config state_config;
-  state_config.genesis_balances.emplace(addr_t(1111), 1000);
-  state_config.genesis_balances.emplace(addr_t(1234), 10000);
-  state_config.dpos = DPOSConfig();
-  state_config.dpos->eligibility_balance_threshold = 10;
-  auto hardfork_block_num = state_config.hardforks.fix_genesis_hardfork_block_num = 100;
-  Opts opts;
-  opts.expected_max_trx_per_block = 300;
-  opts.max_trie_full_node_levels_to_cache = 4;
-
-  StateAPI SUT([&](auto) { return h256(); },  //
-               state_config, opts,
-               {
-                   (data_dir / "state").string(),
-               });
-  for (uint16_t i = 0; i < hardfork_block_num; ++i) {
-    SUT.transition_state({}, {}, {});
-    SUT.transition_state_commit();
-  }
-
-  const auto mult = u256(1e18);
-  for (const auto& b : state_config.genesis_balances) {
-    const auto balance_after = SUT.get_account(hardfork_block_num, b.first)->balance;
-    EXPECT_EQ(b.second * mult, balance_after);
-  }
-  // simulating cpp part hardfork
-  Config new_config = state_config;
-  { new_config.dpos->eligibility_balance_threshold *= 1000; }
-  EXPECT_EQ(SUT.dpos_eligible_total_vote_count(hardfork_block_num), 0);
-  SUT.update_state_config(new_config);
-  // EXPECT_EQ(SUT.dpos_eligible_total_vote_count(hardfork_block_num), new_config.dpos->eligibility_balance_threshold);
 }
 
 }  // namespace taraxa::state_api

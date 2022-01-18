@@ -102,6 +102,7 @@ const char *devnet_json = R"foo({
           "deposit_delay": "0x5",
           "withdrawal_delay": "0x5",
           "eligibility_balance_threshold": "0xf4240",
+          "coins_per_vote": "0xf4240",
           "genesis_state": {
             "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": {
               "0x780fe8b2226cf212c55635de399ee4c2a860810c": "0xf4240",
