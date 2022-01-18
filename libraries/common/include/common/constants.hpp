@@ -14,6 +14,6 @@ GLOBAL_CONST(u256, ZeroU256);
 constexpr uint16_t kOnePercent = 100;
 constexpr uint64_t k_threshold_testnet_hard_fork_period = 110000;
 constexpr uint64_t k_testnet_hardfork2_block_num = 155350;
-constexpr uint64_t k_testnet_hardfork3_block_num = 219700;
+constexpr uint64_t k_testnet_hardfork3_block_num = 241700;
 
 }  // namespace taraxa
