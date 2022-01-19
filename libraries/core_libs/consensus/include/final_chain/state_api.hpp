@@ -44,7 +44,7 @@ class StateAPI {
   uint64_t dpos_eligible_vote_count(EthBlockNumber blk_num, addr_t const& addr) const;
 
   bool dpos_is_eligible(EthBlockNumber blk_num, addr_t const& addr) const;
-  u256 get_staking_balance(EthBlockNumber blk_num, addr_t const& addr) const;
+  u256 get_staking_balance(EthBlockNumber blk_num, const addr_t& addr) const;
 
   DPOSQueryResult dpos_query(EthBlockNumber blk_num, DPOSQuery const& q) const;
   static addr_t const& dpos_contract_addr();

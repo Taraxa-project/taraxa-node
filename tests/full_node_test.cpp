@@ -1461,7 +1461,7 @@ TEST_F(FullNodeTest, chain_config_json) {
       "dpos": {
         "deposit_delay": "0x0",
         "eligibility_balance_threshold": "0x3b9aca00",
-        "coins_per_vote": "0x3b9aca00",
+        "vote_eligibility_balance_step": "0x3b9aca00",
         "genesis_state": {
           "0xde2b1203d72d3549ee2f733b00b2789414c7cea5": {
             "0xde2b1203d72d3549ee2f733b00b2789414c7cea5": "0x3b9aca00"
@@ -1486,7 +1486,7 @@ TEST_F(FullNodeTest, chain_config_json) {
         "0xde2b1203d72d3549ee2f733b00b2789414c7cea5": "0x1fffffffffffff"
       },
       "hardforks": {
-        "fix_genesis_hardfork_block_num": "0x0"
+        "fix_genesis_fork_block": "0x0"
       }
     }
   },
@@ -1536,9 +1536,9 @@ TEST_F(FullNodeTest, hardfork_override) {
   auto default_hardforks = default_json["chain_config"]["final_chain"]["state"]["hardforks"];
   Json::Value config = default_json;
   auto &state_cfg = config["chain_config"]["final_chain"]["state"];
-  state_cfg["hardforks"].removeMember("fix_genesis_hardfork_block_num");
+  state_cfg["hardforks"].removeMember("fix_genesis_fork_block");
 
-  EXPECT_TRUE(state_cfg["hardforks"]["fix_genesis_hardfork_block_num"].isNull());
+  EXPECT_TRUE(state_cfg["hardforks"]["fix_genesis_fork_block"].isNull());
   cli::Config::addNewHardforks(config, default_json);
   EXPECT_EQ(state_cfg["hardforks"], default_hardforks);
 
@@ -1549,19 +1549,19 @@ TEST_F(FullNodeTest, hardfork_override) {
   EXPECT_EQ(state_cfg["hardforks"], default_hardforks);
 }
 
-TEST_F(FullNodeTest, fix_genesis_hardfork_block_num_is_zero) {
+TEST_F(FullNodeTest, fix_genesis_fork_block_is_zero) {
   auto node_cfgs = make_node_cfgs(1);
   auto &cfg = node_cfgs.front().chain.final_chain;
-  cfg.state.hardforks.fix_genesis_hardfork_block_num = 0;
+  cfg.state.hardforks.fix_genesis_fork_block = 0;
   auto node = launch_nodes(node_cfgs).front();
 }
 
 TEST_F(FullNodeTest, hardfork) {
   auto node_cfgs = make_node_cfgs(1);
   auto &cfg = node_cfgs.front().chain.final_chain;
-  cfg.state.hardforks.fix_genesis_hardfork_block_num = 2;
+  cfg.state.hardforks.fix_genesis_fork_block = 2;
   cfg.state.dpos->eligibility_balance_threshold = 100000;
-  cfg.state.dpos->coins_per_vote = cfg.state.dpos->eligibility_balance_threshold;
+  cfg.state.dpos->vote_eligibility_balance_step = cfg.state.dpos->eligibility_balance_threshold;
   for (auto &gs : cfg.state.dpos->genesis_state) {
     for (auto &b : gs.second) {
       b.second = 1100000;
@@ -1580,7 +1580,7 @@ TEST_F(FullNodeTest, hardfork) {
   dummy_trx();
   node->getFinalChain()->block_finalized_.subscribe([&](const std::shared_ptr<final_chain::FinalizationResult> &res) {
     const auto block_num = res->final_chain_blk->number;
-    if (cfg.state.hardforks.fix_genesis_hardfork_block_num == block_num) {
+    if (cfg.state.hardforks.fix_genesis_fork_block == block_num) {
       hardfork_applied = true;
       return;
     }

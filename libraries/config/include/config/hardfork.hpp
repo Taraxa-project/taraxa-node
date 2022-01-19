@@ -5,7 +5,7 @@
 #include "common/encoding_rlp.hpp"
 
 struct Hardforks {
-  uint64_t fix_genesis_hardfork_block_num = 0;
+  uint64_t fix_genesis_fork_block = 0;
   void processFixGenesisHardfork() const;
   HAS_RLP_FIELDS
 };

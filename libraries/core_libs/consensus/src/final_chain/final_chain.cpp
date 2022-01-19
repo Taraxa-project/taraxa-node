@@ -161,7 +161,6 @@ class FinalChainImpl final : public FinalChain {
       precommit_ext(*result, batch);
     }
     db_->commitWriteBatch(batch, db_opts_w_);
-    block_finalized_emitter_.emit(result);
     state_api_.transition_state_commit();
     {
       unique_lock l(last_block_mu_);
@@ -169,6 +168,7 @@ class FinalChainImpl final : public FinalChain {
     }
     num_executed_dag_blk_ = num_executed_dag_blk;
     num_executed_trx_ = num_executed_trx;
+    block_finalized_emitter_.emit(result);
     LOG(log_nf_) << " successful finalize block " << result->hash << " with number " << blk_header->number;
     // Creates snapshot if needed
     if (db_->createSnapshot(blk_header->number)) {

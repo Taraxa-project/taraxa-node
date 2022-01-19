@@ -118,14 +118,4 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   void rebuildDb();
 };
 
-class HardforkExecutors {
-  using ForkExecutor = std::function<void(FullNode &)>;
-
- public:
-  void registerExecutor(uint64_t block, ForkExecutor exec);
-
- private:
-  std::map<uint64_t, ForkExecutor> executors;
-};
-
 }  // namespace taraxa

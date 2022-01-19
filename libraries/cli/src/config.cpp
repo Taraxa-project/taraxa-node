@@ -160,21 +160,24 @@ Config::Config(int argc, const char* argv[]) {
     Json::Value config_json = Tools::readJsonFromFile(config);
     Json::Value wallet_json = Tools::readJsonFromFile(wallet);
 
-    auto override = [&]() {
+    auto override_config_file = [&]() {
       Tools::writeJsonToFile(config, config_json);
       Tools::writeJsonToFile(wallet, wallet_json);
     };
 
-    network_id = dev::getUInt(config_json["chain_config"]["chain_id"]);
-    auto default_config_json = Tools::generateConfig((Config::NetworkIdType)network_id);
-    // override hardforks data with one from default json
-    addNewHardforks(config_json, default_config_json);
-    // add coins_per_vote field if it is missing in the config
-    if (config_json["chain_config"]["final_chain"]["state"]["dpos"]["coins_per_vote"].isNull()) {
-      config_json["chain_config"]["final_chain"]["state"]["dpos"]["coins_per_vote"] =
-          default_config_json["chain_config"]["final_chain"]["state"]["dpos"]["coins_per_vote"];
+    // Check that it is not empty, to not create chain config with just overwritten files
+    if (!config_json["chain_config"].isNull()) {
+      network_id = dev::getUInt(config_json["chain_config"]["chain_id"]);
+      auto default_config_json = Tools::generateConfig((Config::NetworkIdType)network_id);
+      // override hardforks data with one from default json
+      addNewHardforks(config_json, default_config_json);
+      // add vote_eligibility_balance_step field if it is missing in the config
+      if (config_json["chain_config"]["final_chain"]["state"]["dpos"]["vote_eligibility_balance_step"].isNull()) {
+        config_json["chain_config"]["final_chain"]["state"]["dpos"]["vote_eligibility_balance_step"] =
+            default_config_json["chain_config"]["final_chain"]["state"]["dpos"]["vote_eligibility_balance_step"];
+      }
+      override_config_file();
     }
-    override();
 
     // Override config values with values from CLI
     config_json = Tools::overrideConfig(config_json, data_dir, boot_node, boot_nodes, log_channels, boot_nodes_append,
@@ -190,7 +193,7 @@ Config::Config(int argc, const char* argv[]) {
     // or if running config command
     // This can overwrite secret keys in wallet
     if (overwrite_config || command[0] == CONFIG_COMMAND) {
-      override();
+      override_config_file();
     }
 
     // Load config
@@ -233,12 +236,12 @@ bool Config::nodeConfigured() { return node_configured_; }
 FullNodeConfig Config::getNodeConfiguration() { return node_config_; }
 
 void Config::addNewHardforks(Json::Value& config, const Json::Value& default_config) {
-  // network_id is exactly the same thing as chain_id. So get it from config
   auto& new_hardforks_json = default_config["chain_config"]["final_chain"]["state"]["hardforks"];
   auto& local_hardforks_json = config["chain_config"]["final_chain"]["state"]["hardforks"];
 
   if (local_hardforks_json.isNull()) {
     local_hardforks_json = new_hardforks_json;
+    return;
   }
   for (auto itr = new_hardforks_json.begin(); itr != new_hardforks_json.end(); ++itr) {
     auto& local = local_hardforks_json[itr.key().asString()];

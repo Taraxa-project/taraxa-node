@@ -66,9 +66,9 @@ TEST_F(StateAPITest, dpos_integration) {
   dpos_cfg.deposit_delay = 2;
   dpos_cfg.withdrawal_delay = 4;
   dpos_cfg.eligibility_balance_threshold = 1000;
-  dpos_cfg.coins_per_vote = 1000;
+  dpos_cfg.vote_eligibility_balance_step = 1000;
   addr_1_bal_expected -= dpos_cfg.genesis_state[make_addr(1)][make_addr(1)] = dpos_cfg.eligibility_balance_threshold;
-  chain_cfg.hardforks.fix_genesis_hardfork_block_num = 0;
+  chain_cfg.hardforks.fix_genesis_fork_block = 0;
 
   uint64_t curr_blk = 0;
   StateAPI SUT([&](auto /*n*/) -> h256 { assert(false); },  //

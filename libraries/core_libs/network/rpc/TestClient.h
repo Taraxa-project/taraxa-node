@@ -140,10 +140,10 @@ class TestClient : public jsonrpc::Client {
     else
       throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
   }
-  Json::Value get_coins_per_vote(const Json::Value& param1) throw(jsonrpc::JsonRpcException) {
+  Json::Value get_vote_weight(const Json::Value& param1) throw(jsonrpc::JsonRpcException) {
     Json::Value p;
     p.append(param1);
-    Json::Value result = this->CallMethod("get_coins_per_vote", p);
+    Json::Value result = this->CallMethod("get_vote_weight", p);
     if (result.isObject())
       return result;
     else

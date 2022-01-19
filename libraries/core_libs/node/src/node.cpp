@@ -190,7 +190,7 @@ void FullNode::start() {
     final_chain_->block_applying.subscribe([&](uint64_t block_num) {
       // TODO: should have only common hardfork code calling hardfork executor
       auto &state_conf = conf_.chain.final_chain.state;
-      if (state_conf.hardforks.fix_genesis_hardfork_block_num == block_num) {
+      if (state_conf.hardforks.fix_genesis_fork_block == block_num) {
         for (auto &e : state_conf.dpos->genesis_state) {
           for (auto &b : e.second) {
             b.second = b.second * kOneTara;
@@ -202,7 +202,7 @@ void FullNode::start() {
         // we are multiplying it by TARA precision
         state_conf.dpos->eligibility_balance_threshold *= kOneTara;
         // amount of stake per vote should be 10 times smaller than eligibility threshold
-        state_conf.dpos->coins_per_vote = state_conf.dpos->eligibility_balance_threshold;
+        state_conf.dpos->vote_eligibility_balance_step = state_conf.dpos->eligibility_balance_threshold;
         state_conf.dpos->eligibility_balance_threshold *= 10;
 
         final_chain_->update_state_config(state_conf);

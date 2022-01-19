@@ -52,7 +52,7 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
     cfg.final_chain.state.genesis_balances[root_node_addr] = 9007199254740991;
     auto& dpos = cfg.final_chain.state.dpos.emplace();
     dpos.eligibility_balance_threshold = 1000000000;
-    dpos.coins_per_vote = 1000000000;
+    dpos.vote_eligibility_balance_step = 1000000000;
     dpos.genesis_state[root_node_addr][root_node_addr] = dpos.eligibility_balance_threshold;
     // VDF config
     cfg.sortition.vrf.threshold_upper = 0x8000;
