@@ -45,22 +45,19 @@ void DagBlockPacketHandler::process(const PacketData &packet_data, const std::sh
       // Ignore new block packets when pbft syncing
       if (syncing_state_->is_pbft_syncing()) {
         LOG(log_nf_) << "Ignore new dag block " << hash << ", pbft syncing is on";
-        return;
-      }
-
-      if (peer->peer_dag_syncing_) {
+      } else if (peer->peer_dag_syncing_) {
         LOG(log_nf_) << "Ignore new dag block " << hash << ", dag syncing is on";
       } else {
         if (peer->peer_dag_synced_) {
           LOG(log_er_) << "DagBlock" << block.getHash() << " has missing pivot or/and tips " << status.second
                        << " . Peer " << packet_data.from_node_id_ << " will be disconnected.";
           disconnect(peer->getId(), dev::p2p::UserReason);
-          return;
         } else {
           // peer_dag_synced_ flag ensures that this can only be performed once for a peer
           requestPendingDagBlocks(peer);
         }
       }
+      return;
     }
   }
 
