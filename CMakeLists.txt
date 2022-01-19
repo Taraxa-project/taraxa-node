@@ -14,6 +14,8 @@ set(TARAXA_DB_MAJOR_VERSION 1)
 # Minor version should be modified when changes to the database are made in the tables that can be rebuilt from the
 # basic tables
 set(TARAXA_DB_MINOR_VERSION 0)
+# If config params are changed we should increase the version
+set(TARAXA_CONFIG_VERSION 1)
 
 # Defines Taraxa library target.
 project(taraxa-node VERSION ${TARAXA_VERSION})
