@@ -1,5 +1,7 @@
 #include "common/thread_pool.hpp"
 
+#include <iostream>
+
 namespace taraxa::util {
 
 ThreadPool::ThreadPool(size_t num_threads, bool _start)
@@ -34,11 +36,14 @@ void ThreadPool::stop() {
 }
 
 void ThreadPool::post(uint64_t do_in_ms, asio_callback action) {
+  // std::cout << "Into ThreadPool::post1" << std::endl;
   ++num_pending_tasks_;
+  // std::cout << "&&&&&&&&&&&&&& post1 do in ms " << do_in_ms << std::endl;
   if (!do_in_ms) {
     boost::asio::post(ioc_, [this, action = std::move(action)] {
       action({});
       --num_pending_tasks_;
+      // std::cout << "************************ num pending task --" << std::endl;
     });
     return;
   }
@@ -51,9 +56,12 @@ void ThreadPool::post(uint64_t do_in_ms, asio_callback action) {
 }
 
 void ThreadPool::post(uint64_t do_in_ms, std::function<void()> action) {
+  // std::cout << "Into ThreadPool::post2" << std::endl;
+  // std::cout << "################ post2 do in ms " << do_in_ms << std::endl;
   post(do_in_ms, [action = std::move(action)](auto const &err) {
     if (!err) {
       action();
+      // std::cout << "************************* Finish action " << std::endl;
       return;
     }
     assert(err == boost::asio::error::operation_aborted);

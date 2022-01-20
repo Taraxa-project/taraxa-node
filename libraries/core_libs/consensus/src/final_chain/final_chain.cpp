@@ -79,22 +79,43 @@ class FinalChainImpl final : public FinalChain {
   future<shared_ptr<FinalizationResult const>> finalize(SyncBlock&& new_blk,
                                                         std::vector<h256>&& finalized_dag_blk_hashes,
                                                         finalize_precommit_ext precommit_ext = {}) override {
+    std::cout << "**************** Into finalize " << std::endl;
     auto p = make_shared<promise<shared_ptr<FinalizationResult const>>>();
+    std::cout << "**************** Will execute PBFT block " << *(new_blk.pbft_blk) << "\n cert votes size "
+              << new_blk.cert_votes.size() << "\n dag blocks size " << new_blk.dag_blocks.size()
+              << "\n transactions size " << new_blk.transactions.size() << std::endl;
+    std::cout << "before post threads capacity " << executor_thread_.capacity() << std::endl;
+    std::cout << "before post number of pending task " << executor_thread_.num_pending_tasks() << std::endl;
     executor_thread_.post([this, new_blk = std::move(new_blk),
                            finalized_dag_blk_hashes = std::move(finalized_dag_blk_hashes),
                            precommit_ext = move(precommit_ext), p]() mutable {
+      std::cout << "**************** before set value" << std::endl;
       p->set_value(finalize_(std::move(new_blk), std::move(finalized_dag_blk_hashes), precommit_ext));
+      std::cout << "**************** executor_thread_ post task " << std::endl;
     });
+
+    while (true) {
+      std::cout << "threads capacity " << executor_thread_.capacity() << std::endl;
+      std::cout << "number of pending task " << executor_thread_.num_pending_tasks() << std::endl;
+      if (executor_thread_.num_pending_tasks() == 0) {
+        break;
+      }
+      taraxa::thisThreadSleepForMilliSeconds(1000);
+    }
+    std::cout << "**************** before return " << std::endl;
     return p->get_future();
   }
 
   shared_ptr<FinalizationResult> finalize_(SyncBlock&& new_blk, std::vector<h256>&& finalized_dag_blk_hashes,
                                            finalize_precommit_ext const& precommit_ext) {
+    std::cout << "************************** Into finalize_" << std::endl;
     auto batch = db_->createWriteBatch();
     Transactions to_execute;
     {
       // This artificial scope will make sure we clean up the big chunk of memory allocated for this batch-processing
       // stuff as soon as possible
+      std::cout << "Transactions size " << new_blk.transactions.size() << std::endl;
+
       DB::MultiGetQuery db_query(db_, new_blk.transactions.size());
       for (auto const& trx : new_blk.transactions) {
         db_query.append(DB::Columns::final_chain_transaction_location_by_hash, trx.getHash());
@@ -112,10 +133,15 @@ class FinalChainImpl final : public FinalChain {
           to_execute.push_back(std::move(trx));
         }
       }
+
+      std::cout << "Transanctions to execute size " << to_execute.size() << std::endl;
     }
+
     auto const& [exec_results, state_root] = state_api_.transition_state(
         {new_blk.pbft_blk->getBeneficiary(), GAS_LIMIT, new_blk.pbft_blk->getTimestamp(), BlockHeader::difficulty()},
         to_state_api_transactions(to_execute));
+    std::cout << "transaction receipts size " << exec_results.size() << std::endl;
+
     TransactionReceipts receipts;
     receipts.reserve(exec_results.size());
     gas_t cumulative_gas_used = 0;
@@ -133,8 +159,11 @@ class FinalChainImpl final : public FinalChain {
           r.new_contract_addr ? optional(r.new_contract_addr) : nullopt,
       });
     }
+
     auto blk_header = append_block(batch, new_blk.pbft_blk->getBeneficiary(), new_blk.pbft_blk->getTimestamp(),
                                    GAS_LIMIT, state_root, to_execute, receipts);
+    std::cout << "Append block " << blk_header << std::endl;
+
     if (replay_protection_service_) {
       // Update replay protection service, like nonce watermark. Nonce watermark has been disabled
       replay_protection_service_->update(
@@ -142,6 +171,7 @@ class FinalChainImpl final : public FinalChain {
             return ReplayProtectionService::TransactionInfo{trx.getSender(), trx.getNonce()};
           }));
     }
+
     // Update number of executed DAG blocks and transactions
     auto num_executed_dag_blk = num_executed_dag_blk_ + finalized_dag_blk_hashes.size();
     auto num_executed_trx = num_executed_trx_ + to_execute.size();
@@ -163,23 +193,30 @@ class FinalChainImpl final : public FinalChain {
         std::move(to_execute),
         std::move(receipts),
     });
+
     if (precommit_ext) {
       precommit_ext(*result, batch);
     }
     db_->commitWriteBatch(batch, db_opts_w_);
+
     state_api_.transition_state_commit();
+
     {
       unique_lock l(last_block_mu_);
       last_block_ = blk_header;
     }
+
     num_executed_dag_blk_ = num_executed_dag_blk;
     num_executed_trx_ = num_executed_trx;
     block_finalized_emitter_.emit(result);
+
     LOG(log_nf_) << " successful finalize block " << result->hash << " with number " << blk_header->number;
+
     // Creates snapshot if needed
     if (db_->createSnapshot(blk_header->number)) {
       state_api_.create_snapshot(blk_header->number);
     }
+
     return result;
   }
 

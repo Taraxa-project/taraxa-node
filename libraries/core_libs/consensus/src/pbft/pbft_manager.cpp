@@ -1500,11 +1500,12 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
 
 void PbftManager::finalize_(SyncBlock &&sync_block, std::vector<h256> &&finalized_dag_blk_hashes, bool sync) {
   const auto anchor = sync_block.pbft_blk->getPivotDagBlockHash();
-
+  std::cout << "Will execute PBFT block" << std::endl;
   auto result = final_chain_->finalize(
       std::move(sync_block), std::move(finalized_dag_blk_hashes),
       [this, weak_ptr = weak_from_this(), anchor_hash = std::move(anchor)](auto const &, auto &batch) {
         // Update proposal period DAG levels map
+        std::cout << "Update proposal period DAG levels map" << std::endl;
         auto ptr = weak_ptr.lock();
         if (!ptr) return;  // it was destroyed
 
@@ -1527,9 +1528,11 @@ void PbftManager::finalize_(SyncBlock &&sync_block, std::vector<h256> &&finalize
                                                      dpos_current_max_proposal_period, batch);
       });
 
+  std::cout << "**************** wait result" << std::endl;
   if (sync) {
     result.wait();
   }
+  std::cout << "**************** before return in PbftManager::finalize_" << std::endl;
 }
 
 bool PbftManager::pushPbftBlock_(SyncBlock &&sync_block, vec_blk_t &&dag_blocks_order) {
@@ -1587,7 +1590,7 @@ bool PbftManager::pushPbftBlock_(SyncBlock &&sync_block, vec_blk_t &&dag_blocks_
   LOG(log_nf_) << node_addr_ << " successful push unexecuted PBFT block " << pbft_block_hash << " in period "
                << pbft_period << " into chain! In round " << getPbftRound();
 
-  finalize_(std::move(sync_block), std::move(dag_blocks_order));
+  finalize_(std::move(sync_block), std::move(dag_blocks_order), true);
 
   // Reset proposed PBFT block hash to NULL for next period PBFT block proposal
   proposed_block_hash_ = NULL_BLOCK_HASH;

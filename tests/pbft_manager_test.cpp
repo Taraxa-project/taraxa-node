@@ -180,7 +180,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
     EXPECT_EQ(threshold, expected_threshold);
   }
 }
-
+/*
 // Test that after some amount of elapsed time will not continue soft voting for same value
 TEST_F(PbftManagerTest, terminate_soft_voting_pbft_block) {
   auto node_cfgs = make_node_cfgs<20>(1);
@@ -188,21 +188,13 @@ TEST_F(PbftManagerTest, terminate_soft_voting_pbft_block) {
 
   auto pbft_mgr = nodes[0]->getPbftManager();
   pbft_mgr->stop();
-
-  std::cout << "Initialize PBFT manager at round 2 step 2" << std::endl;
+  std::cout << "PBFT manager stopped" << std::endl;
 
   auto vote_mgr = nodes[0]->getVoteManager();
 
   // Generate bogus votes
   auto stale_block_hash = blk_hash_t("0000000100000000000000000000000000000000000000000000000000000000");
-  auto alternate_propose_block_hash = blk_hash_t("0000000200000000000000000000000000000000000000000000000000000000");
-  auto prev_round_next_vote = pbft_mgr->generateVote(stale_block_hash, next_vote_type, 1, 4);
-  prev_round_next_vote->calculateWeight(1, 1, 1);
-  vote_mgr->addVerifiedVote(prev_round_next_vote);
   auto propose_vote = pbft_mgr->generateVote(stale_block_hash, propose_vote_type, 2, 1);
-  propose_vote->calculateWeight(1, 1, 1);
-  vote_mgr->addVerifiedVote(propose_vote);
-  propose_vote = pbft_mgr->generateVote(alternate_propose_block_hash, propose_vote_type, 2, 1);
   propose_vote->calculateWeight(1, 1, 1);
   vote_mgr->addVerifiedVote(propose_vote);
 
@@ -217,6 +209,7 @@ TEST_F(PbftManagerTest, terminate_soft_voting_pbft_block) {
             << " becomes stale..." << std::endl;
   taraxa::thisThreadSleepForMilliSeconds(time_till_stale_ms);
 
+  std::cout << "Initialize PBFT manager at round 2 step 2" << std::endl;
   pbft_mgr->setPbftRound(2);
   pbft_mgr->setPbftStep(2);
   pbft_mgr->resumeSingleState();
@@ -231,7 +224,7 @@ TEST_F(PbftManagerTest, terminate_soft_voting_pbft_block) {
             << std::endl;
   bool skipped_soft_voting = true;
   auto votes = vote_mgr->getVerifiedVotes();
-  for (auto const &v : votes) {
+  for (const auto &v : votes) {
     if (soft_vote_type == v->getType()) {
       if (v->getBlockHash() == stale_block_hash) {
         skipped_soft_voting = false;
@@ -247,19 +240,16 @@ TEST_F(PbftManagerTest, terminate_soft_voting_pbft_block) {
   std::cout << "Wait ensure node is still advancing in rounds... " << std::endl;
   EXPECT_HAPPENS({60s, 50ms}, [&](auto &ctx) { WAIT_EXPECT_NE(ctx, start_round, pbft_mgr->getPbftRound()) });
 }
-
-// Test that after some amount of elapsed time will give up next voting for some value if corresponding DAG blocks can't
+*/
+// Test that after some amount of elapsed time will give up on the next voting value if corresponding DAG blocks can't
 // be found
 TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
   auto node_cfgs = make_node_cfgs<20>(1);
   auto nodes = launch_nodes(node_cfgs);
 
   auto pbft_mgr = nodes[0]->getPbftManager();
-  auto db = nodes[0]->getDB();
   pbft_mgr->stop();
-  std::cout << "Initialize PBFT manager at round 1 step 4" << std::endl;
-  pbft_mgr->setPbftRound(1);
-  pbft_mgr->setPbftStep(4);
+  std::cout << "PBFT manager stopped" << std::endl;
 
   auto pbft_chain = nodes[0]->getPbftChain();
   auto vote_mgr = nodes[0]->getVoteManager();
@@ -282,44 +272,46 @@ TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
   propose_vote->calculateWeight(1, 1, 1);
   vote_mgr->addVerifiedVote(propose_vote);
 
+  std::cout << "Initialize PBFT manager at round 1 step 4" << std::endl;
+  pbft_mgr->setPbftRound(1);
+  pbft_mgr->setPbftStep(4);
   pbft_mgr->start();
 
   // Vote at the bogus PBFT block hash
   EXPECT_HAPPENS({10s, 50ms}, [&](auto &ctx) {
-    auto soft_vote_value = blk_hash_t(0);
+    blk_hash_t soft_vote_value;
     auto votes = vote_mgr->getVerifiedVotes();
-    for (auto const &v : votes) {
+    for (const auto &v : votes) {
       if (soft_vote_type == v->getType() && v->getBlockHash() == pbft_block_hash) {
         soft_vote_value = v->getBlockHash();
         break;
       }
     }
+
     WAIT_EXPECT_EQ(ctx, soft_vote_value, pbft_block_hash)
   });
 
-  auto start_round = pbft_mgr->getPbftRound();
-
   std::cout << "After some time, terminate voting on the bogus value " << pbft_block_hash << std::endl;
   EXPECT_HAPPENS({10s, 50ms}, [&](auto &ctx) {
-    auto next_vote_value = pbft_block_hash;
+    auto proposal_value = pbft_block_hash;
     auto votes = vote_mgr->getVerifiedVotes();
-
-    for (auto const &v : votes) {
-      if (propose_vote_type == v->getType() && v->getBlockHash() == NULL_BLOCK_HASH) {
-        auto soft_voted_from_db = *db->getPbftMgrVotedValue(PbftMgrVotedValue::SoftVotedBlockHashInRound);
-        if (soft_voted_from_db == NULL_BLOCK_HASH) {
-          next_vote_value = v->getBlockHash();
-          break;
-        }
+    for (const auto &v : votes) {
+      if (propose_vote_type == v->getType() && v->getBlockHash() != pbft_block_hash) {
+        proposal_value = v->getBlockHash();
+        break;
       }
     }
-    WAIT_EXPECT_EQ(ctx, next_vote_value, NULL_BLOCK_HASH)
+
+    WAIT_EXPECT_NE(ctx, proposal_value, pbft_block_hash)
   });
 
   std::cout << "Wait ensure node is still advancing in rounds... " << std::endl;
-  EXPECT_HAPPENS({60s, 50ms}, [&](auto &ctx) { WAIT_EXPECT_NE(ctx, start_round, pbft_mgr->getPbftRound()) });
+  auto start_round = pbft_mgr->getPbftRound();
+  // EXPECT_HAPPENS({60s, 50ms}, [&](auto &ctx) { WAIT_EXPECT_NE(ctx, start_round, pbft_mgr->getPbftRound()) });
+  EXPECT_HAPPENS({2000s, 50ms}, [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, start_round, 20) });
 }
 
+/*
 // Test that after some number of rounds will give up proposing a value if proposed block is not available
 TEST_F(PbftManagerTest, terminate_missing_proposed_pbft_block) {
   auto node_cfgs = make_node_cfgs<20>(1);
@@ -385,11 +377,11 @@ TEST_F(PbftManagerTest, terminate_missing_proposed_pbft_block) {
 }
 
 TEST_F(PbftManagerTest, full_node_lambda_input_test) {
-  auto node = create_nodes(1, true /*start*/).front();
+  auto node = create_nodes(1, true).front();
 
-  node->start();
-  auto pbft_mgr = node->getPbftManager();
-  EXPECT_EQ(pbft_mgr->getPbftInitialLambda(), 2000);
+node->start();
+auto pbft_mgr = node -> getPbftManager();
+EXPECT_EQ(pbft_mgr->getPbftInitialLambda(), 2000);
 }
 
 TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
@@ -535,51 +527,51 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
 
 TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
   auto node_cfgs = make_node_cfgs<20>(1);
-  auto node = create_nodes(node_cfgs, true /*start*/).front();
+  auto node = create_nodes(node_cfgs, true).front();
 
-  // create a transaction
-  auto coins_value = val_t(100);
-  auto gas_price = val_t(2);
-  auto receiver = addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0");
-  auto data = bytes();
-  Transaction trx_master_boot_node_to_receiver(0, coins_value, gas_price, TEST_TX_GAS_LIMIT, data, node->getSecretKey(),
-                                               receiver);
-  node->getTransactionManager()->insertTransaction(trx_master_boot_node_to_receiver);
+// create a transaction
+auto coins_value = val_t(100);
+auto gas_price = val_t(2);
+auto receiver = addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0");
+auto data = bytes();
+Transaction trx_master_boot_node_to_receiver(0, coins_value, gas_price, TEST_TX_GAS_LIMIT, data, node->getSecretKey(),
+                                             receiver);
+node->getTransactionManager()->insertTransaction(trx_master_boot_node_to_receiver);
 
-  for (auto _(0); _ < 120; ++_) {
-    // test timeout is 60 seconds
-    if (node->getNumProposedBlocks() == 1) {
-      break;
-    }
-    taraxa::thisThreadSleepForMilliSeconds(500);
+for (auto _(0); _ < 120; ++_) {
+  // test timeout is 60 seconds
+  if (node->getNumProposedBlocks() == 1) {
+    break;
   }
-  EXPECT_EQ(node->getNumProposedBlocks(), 1);
+  taraxa::thisThreadSleepForMilliSeconds(500);
+}
+EXPECT_EQ(node->getNumProposedBlocks(), 1);
 
-  std::shared_ptr<PbftChain> pbft_chain = node->getPbftChain();
-  // Vote DAG block
-  uint64_t pbft_chain_size = 1;
-  for (auto _(0); _ < 120; ++_) {
-    // test timeout is 60 seconds
-    if (pbft_chain->getPbftChainSize() == pbft_chain_size) {
-      break;
-    }
-    taraxa::thisThreadSleepForMilliSeconds(500);
+std::shared_ptr<PbftChain> pbft_chain = node->getPbftChain();
+// Vote DAG block
+uint64_t pbft_chain_size = 1;
+for (auto _(0); _ < 120; ++_) {
+  // test timeout is 60 seconds
+  if (pbft_chain->getPbftChainSize() == pbft_chain_size) {
+    break;
   }
-  EXPECT_EQ(pbft_chain->getPbftChainSize(), pbft_chain_size);
+  taraxa::thisThreadSleepForMilliSeconds(500);
+}
+EXPECT_EQ(pbft_chain->getPbftChainSize(), pbft_chain_size);
 
-  for (auto _(0); _ < 120; ++_) {
-    // test timeout is 60 seconds
-    if (node->getDB()->getNumTransactionExecuted() != 0) {
-      break;
-    }
-    taraxa::thisThreadSleepForMilliSeconds(500);
+for (auto _(0); _ < 120; ++_) {
+  // test timeout is 60 seconds
+  if (node->getDB()->getNumTransactionExecuted() != 0) {
+    break;
   }
+  taraxa::thisThreadSleepForMilliSeconds(500);
+}
 
-  std::cout << "Checking nodes sees 1 transaction..." << std::endl;
-  ASSERT_EQ(node->getDB()->getNumTransactionExecuted(), 1);
-  EXPECT_EQ(node->getFinalChain()->getBalance(addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5")).first,
-            own_effective_genesis_bal(node_cfgs[0]) - 100);
-  EXPECT_EQ(node->getFinalChain()->getBalance(receiver).first, 100);
+std::cout << "Checking nodes sees 1 transaction..." << std::endl;
+ASSERT_EQ(node->getDB()->getNumTransactionExecuted(), 1);
+EXPECT_EQ(node->getFinalChain()->getBalance(addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5")).first,
+          own_effective_genesis_bal(node_cfgs[0]) - 100);
+EXPECT_EQ(node->getFinalChain()->getBalance(receiver).first, 100);
 }
 
 TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
@@ -661,14 +653,16 @@ TEST_F(PbftManagerTest, check_committeeSize_greater_than_activePlayers) {
   // committee > active_players always
   check_2tPlus1_validVotingPlayers_activePlayers_threshold(6);
 }
-
+*/
 }  // namespace taraxa::core_tests
 
 using namespace taraxa;
 int main(int argc, char **argv) {
   taraxa::static_init();
   auto logging = logger::createDefaultLoggingConfig();
-  logging.verbosity = logger::Verbosity::Error;
+  // logging.verbosity = logger::Verbosity::Error;
+  logging.channels["PBFT_MGR"] = logger::Verbosity::Debug;
+  logging.channels["EXECUTOR"] = logger::Verbosity::Info;
 
   addr_t node_addr;
   logger::InitLogging(logging, node_addr);
