@@ -330,12 +330,12 @@ void PbftManager::setPbftStep(size_t const pbft_step) {
   if (step_ > MAX_STEPS && LAMBDA_backoff_multiple < 8) {
     // Note: We calculate the lambda for a step independently of prior steps
     //       in case missed earlier steps.
-    std::uniform_int_distribution<u_long> distribution(0, step_ - MAX_STEPS);
-    auto lambda_random_count = distribution(random_engine_);
-    LAMBDA_backoff_multiple = 2 * LAMBDA_backoff_multiple;
-    LAMBDA_ms = LAMBDA_ms_MIN * (LAMBDA_backoff_multiple + lambda_random_count);
-    LOG(log_si_) << "Surpassed max steps, exponentially backing off lambda to " << LAMBDA_ms << " ms in round "
-                 << getPbftRound() << ", step " << step_;
+    // std::uniform_int_distribution<u_long> distribution(0, step_ - MAX_STEPS);
+    // auto lambda_random_count = distribution(random_engine_);
+    // LAMBDA_backoff_multiple = 2 * LAMBDA_backoff_multiple;
+    // LAMBDA_ms = LAMBDA_ms_MIN * (LAMBDA_backoff_multiple + lambda_random_count);
+    // LOG(log_si_) << "Surpassed max steps, exponentially backing off lambda to " << LAMBDA_ms << " ms in round "
+    //             << getPbftRound() << ", step " << step_;
   } else {
     LAMBDA_ms = LAMBDA_ms_MIN;
     LAMBDA_backoff_multiple = 1;
