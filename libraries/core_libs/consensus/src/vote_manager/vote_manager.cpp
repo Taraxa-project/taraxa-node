@@ -426,7 +426,7 @@ VotesBundle VoteManager::getVotesBundleByRoundAndStep(uint64_t round, size_t ste
             count += it->second->getWeight().value();
             it++;
           }
-          LOG(log_nf_) << "Found enough " << votes.size() << " votes at voted value " << voted_block_hash
+          LOG(log_nf_) << "Found enough " << count << " votes at voted value " << voted_block_hash
                        << " for round " << round << " step " << step;
           return VotesBundle(true, voted_block_hash, votes);
         }
