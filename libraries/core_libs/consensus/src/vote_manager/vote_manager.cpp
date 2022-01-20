@@ -34,6 +34,14 @@ void VoteManager::retreieveVotes_() {
   auto verified_votes = db_->getVerifiedVotes();
   const auto pbft_step = db_->getPbftMgrField(PbftMgrRoundStep::PbftStep);
   for (auto const& v : verified_votes) {
+    addVerifiedVote(v);
+    LOG(log_dg_) << "Retrieved verified vote " << *v;
+  }
+
+  // TODO: Implement votes sync properly
+  // Since this is invoked on startup no peers are connected yet, invoke two minutes after startup
+  thisThreadSleepForSeconds(120);
+  for (auto const& v : verified_votes) {
     // Rebroadcast our own next votes in case we were partitioned...
     if (v->getStep() >= FIRST_FINISH_STEP && pbft_step > EXTENDED_PARTITION_STEPS) {
       std::vector<std::shared_ptr<Vote>> votes = {v};
@@ -41,9 +49,6 @@ void VoteManager::retreieveVotes_() {
         net->onNewPbftVotes(std::move(votes));
       }
     }
-
-    addVerifiedVote(v);
-    LOG(log_dg_) << "Retrieved verified vote " << *v;
   }
 }
 
