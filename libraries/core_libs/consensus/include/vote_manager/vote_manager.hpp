@@ -103,6 +103,7 @@ class VoteManager {
   uint64_t roundDeterminedFromVotes(size_t two_t_plus_one);
 
  private:
+  std::atomic<bool> stopped_ = true;
   void retreieveVotes_();
 
   using UniqueLock = boost::unique_lock<boost::shared_mutex>;

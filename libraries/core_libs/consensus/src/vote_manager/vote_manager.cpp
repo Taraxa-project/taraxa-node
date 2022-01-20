@@ -20,12 +20,18 @@ VoteManager::VoteManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::s
   LOG_OBJECTS_CREATE("VOTE_MGR");
 
   // Retrieve votes from DB
-  daemon_ = std::make_unique<std::thread>([this]() { retreieveVotes_(); });
+  daemon_ = std::make_unique<std::thread>([this]() {
+    stopped_ = false;
+    retreieveVotes_();
+  });
 
   current_period_final_chain_block_hash_ = final_chain_->block_header()->hash;
 }
 
-VoteManager::~VoteManager() { daemon_->join(); }
+VoteManager::~VoteManager() {
+  stopped_ = true;
+  daemon_->join();
+}
 
 void VoteManager::setNetwork(std::weak_ptr<Network> network) { network_ = std::move(network); }
 
@@ -40,7 +46,12 @@ void VoteManager::retreieveVotes_() {
 
   // TODO: Implement votes sync properly
   // Since this is invoked on startup no peers are connected yet, invoke two minutes after startup
-  thisThreadSleepForSeconds(120);
+  for (int i = 0; i < 120; i++) {
+    if (stopped_ == false) {
+      thisThreadSleepForSeconds(1);
+    } else
+      return;
+  }
   for (auto const& v : verified_votes) {
     // Rebroadcast our own next votes in case we were partitioned...
     if (v->getStep() >= FIRST_FINISH_STEP && pbft_step > EXTENDED_PARTITION_STEPS) {
