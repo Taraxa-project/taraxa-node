@@ -322,7 +322,7 @@ void PbftManager::setPbftStep(size_t const pbft_step) {
   db_->savePbftMgrField(PbftMgrRoundStep::PbftStep, pbft_step);
   step_ = pbft_step;
 
-  if (step_ > MAX_STEPS && LAMBDA_backoff_multiple < 8) {
+  /*if (step_ > MAX_STEPS && LAMBDA_backoff_multiple < 8) {
     // Note: We calculate the lambda for a step independently of prior steps
     //       in case missed earlier steps.
     std::uniform_int_distribution<u_long> distribution(0, step_ - MAX_STEPS);
@@ -334,7 +334,7 @@ void PbftManager::setPbftStep(size_t const pbft_step) {
   } else {
     LAMBDA_ms = LAMBDA_ms_MIN;
     LAMBDA_backoff_multiple = 1;
-  }
+  }*/
 }
 
 void PbftManager::resetStep_() {
