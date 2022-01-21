@@ -16,7 +16,8 @@
 #define MAX_STEPS 13
 #define MAX_WAIT_FOR_SOFT_VOTED_BLOCK_STEPS 20
 #define MAX_WAIT_FOR_NEXT_VOTED_BLOCK_STEPS 20
-
+// Fix for PBFT stalled issue of not enough votes in the testnet
+#define TESTNET_HOTFIX_PBFT_BLOCK_NUM 225053
 namespace taraxa {
 class FullNode;
 

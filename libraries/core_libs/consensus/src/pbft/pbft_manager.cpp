@@ -1085,13 +1085,17 @@ size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteType
   }
 
   auto dpos_weighted_votes_count = weighted_votes_count_.load();
+  auto threshold = sortition_threshold_;
   if (step == 1) {
     // For proposal vote, only use 1 weight for VRF sortition
     dpos_weighted_votes_count = 1;
+  } else if (pbft_chain_->getPbftChainSize() == TESTNET_HOTFIX_PBFT_BLOCK_NUM) {
+    // Fix for PBFT stalled issue of not enough votes in the testnet
+    threshold = getDposTotalVotesCount();
   }
 
   auto vote = generateVote(blockhash, vote_type, round, step);
-  const auto weight = vote->calculateWeight(dpos_weighted_votes_count, getDposTotalVotesCount(), sortition_threshold_);
+  const auto weight = vote->calculateWeight(dpos_weighted_votes_count, getDposTotalVotesCount(), threshold);
   if (weight) {
     db_->saveVerifiedVote(vote);
     vote_mgr_->addVerifiedVote(vote);

@@ -310,6 +310,9 @@ void VoteManager::verifyVotes(uint64_t pbft_round, size_t sortition_threshold, u
     if (dpos_votes_count && v->getStep() == 1) {
       // We need to handle propose_vote_type
       dpos_votes_count = 1;
+    } else if (pbft_chain_->getPbftChainSize() == TESTNET_HOTFIX_PBFT_BLOCK_NUM) {
+      // Fix for PBFT stalled issue of not enough votes in the testnet
+      sortition_threshold = dpos_total_votes_count;
     }
     try {
       v->validate(dpos_votes_count, dpos_total_votes_count, sortition_threshold);
