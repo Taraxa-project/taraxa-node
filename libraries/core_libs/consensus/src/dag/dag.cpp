@@ -597,20 +597,28 @@ uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period,
 
 void DagManager::recoverDag() {
   if (pbft_chain_) {
-    blk_hash_t pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
-    if (pbft_block_hash) {
-      PbftBlock pbft_block = pbft_chain_->getPbftBlockInChain(pbft_block_hash);
-      blk_hash_t dag_block_hash_as_anchor = pbft_block.getPivotDagBlockHash();
+    auto pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
+    while (pbft_block_hash) {
+      auto pbft_block = pbft_chain_->getPbftBlockInChain(pbft_block_hash);
+      auto anchor = pbft_block.getPivotDagBlockHash();
       period_ = pbft_block.getPeriod();
-      anchor_ = dag_block_hash_as_anchor;
-      LOG(log_nf_) << "Recover anchor " << anchor_;
-      addToDag(anchor_, blk_hash_t(), vec_blk_t(), 0, true);
-
+      if (anchor) {
+        anchor_ = anchor;
+        LOG(log_nf_) << "Recover anchor " << anchor_;
+        addToDag(anchor_, blk_hash_t(), vec_blk_t(), 0, true);
+        pbft_block_hash = pbft_block.getPrevBlockHash();
+        break;
+      }
       pbft_block_hash = pbft_block.getPrevBlockHash();
-      if (pbft_block_hash) {
-        pbft_block = pbft_chain_->getPbftBlockInChain(pbft_block_hash);
-        dag_block_hash_as_anchor = pbft_block.getPivotDagBlockHash();
-        old_anchor_ = dag_block_hash_as_anchor;
+    }
+
+    while (pbft_block_hash) {
+      auto pbft_block = pbft_chain_->getPbftBlockInChain(pbft_block_hash);
+      auto anchor = pbft_block.getPivotDagBlockHash();
+      if (anchor) {
+        old_anchor_ = anchor;
+        LOG(log_nf_) << "Recover old anchor " << old_anchor_;
+        break;
       }
     }
   }
