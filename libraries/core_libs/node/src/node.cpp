@@ -106,6 +106,9 @@ void FullNode::init() {
   pbft_mgr_ = std::make_shared<PbftManager>(node_addr, conf_.chain.pbft, genesis_hash, kp_.secret(), conf_.vrf_secret,
                                             db_, pbft_chain_, next_votes_mgr_, vote_mgr_, dag_mgr_, dag_blk_mgr_,
                                             trx_mgr_, final_chain_, timing_machine_);
+  // TODO: need remove
+  vote_mgr_->setPbftManager(pbft_mgr_);
+
   blk_proposer_ =
       std::make_shared<BlockProposer>(conf_.test_params.block_proposer, dag_mgr_, trx_mgr_, dag_blk_mgr_, final_chain_,
                                       node_addr, getSecretKey(), getVrfSecretKey(), log_time_);

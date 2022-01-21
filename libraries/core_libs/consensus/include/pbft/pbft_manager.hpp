@@ -68,6 +68,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   uint64_t getVoteWeight(PbftVoteTypes type, uint64_t round, size_t step) const;
 
   std::pair<bool, uint64_t> getDagBlockPeriod(blk_hash_t const &hash);
+  PbftStates getPbftState() const;
   uint64_t getPbftRound() const;
   uint64_t getPbftStep() const;
   void setPbftRound(uint64_t const round);
@@ -199,7 +200,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   const size_t kGhostPathMoveBack;
   const bool kDebugCountVotes;  // TODO: Only for debug purpose
 
-  PbftStates state_ = ProposalState;
+  std::atomic<PbftStates> state_ = ProposalState;
   std::atomic<uint64_t> round_ = 1;
   size_t step_ = 1;
   size_t startingStepInRound_ = 1;
@@ -250,7 +251,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   size_t sortition_threshold_ = 0;
   // 2t+1 minimum number of votes for consensus
-  size_t TWO_T_PLUS_ONE = 0;
+  std::atomic<size_t> two_t_plus_one_ = 0;
 
   blk_hash_t dag_genesis_;
 

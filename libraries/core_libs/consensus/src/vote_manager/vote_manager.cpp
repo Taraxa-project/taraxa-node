@@ -29,6 +29,8 @@ VoteManager::~VoteManager() { daemon_->join(); }
 
 void VoteManager::setNetwork(std::weak_ptr<Network> network) { network_ = std::move(network); }
 
+void VoteManager::setPbftManager(std::shared_ptr<PbftManager> pbft_mgr) { pbft_mgr_ = std::move(pbft_mgr); }
+
 void VoteManager::retreieveVotes_() {
   LOG(log_si_) << "Retrieve verified votes from DB";
   auto verified_votes = db_->getVerifiedVotes();
@@ -54,7 +56,8 @@ bool VoteManager::addUnverifiedVote(std::shared_ptr<Vote> const& vote) {
 
   {
     UniqueLock lock(unverified_votes_access_);
-    if (auto found_round = unverified_votes_.find(pbft_round); found_round != unverified_votes_.end()) {
+    auto found_round = unverified_votes_.find(pbft_round);
+    if (found_round != unverified_votes_.end()) {
       if (!found_round->second.insert({hash, vote}).second) {
         LOG(log_dg_) << "Vote " << hash << " is in unverified map already";
         return false;
@@ -219,6 +222,29 @@ void VoteManager::addVerifiedVote(std::shared_ptr<Vote> const& vote) {
 
   LOG(log_nf_) << "Added verified vote: " << hash;
   LOG(log_dg_) << "Added verified vote: " << *vote;
+
+  countVerifiedVotes(vote);
+}
+
+void VoteManager::countVerifiedVotes(std::shared_ptr<Vote> const& vote) {
+  const auto step = vote->getStep();
+  if (step <= 1) {
+    return;
+  }
+
+  // Count enough votes
+  if (verified_votes_[vote->getRound()][step][vote->getBlockHash()].first >= pbft_mgr_->getTwoTPlusOne()) {
+    if (step == 2) {
+      // Enough soft votes
+      // TODO
+    } else if (step == 3) {
+      // Enough cert votes
+      // TODO
+    } else {
+      // Enough next votes
+      // TODO
+    }
+  }
 }
 
 // Move all verified votes back to unverified queue/DB. Since PBFT chain pushed new blocks, that will affect DPOS

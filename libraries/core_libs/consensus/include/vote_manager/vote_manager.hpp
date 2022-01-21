@@ -70,6 +70,8 @@ class VoteManager {
   ~VoteManager();
 
   void setNetwork(std::weak_ptr<Network> network);
+  // TODO: need refactor
+  void setPbftManager(std::shared_ptr<PbftManager> pbft_mgr);
 
   // Unverified votes
   bool addUnverifiedVote(std::shared_ptr<Vote> const& vote);
@@ -82,6 +84,7 @@ class VoteManager {
 
   // Verified votes
   void addVerifiedVote(std::shared_ptr<Vote> const& vote);
+  void countVerifiedVotes(std::shared_ptr<Vote> const& vote);
   bool voteInVerifiedMap(std::shared_ptr<Vote> const& vote);
   void clearVerifiedVotesTable();
   std::vector<std::shared_ptr<Vote>> getVerifiedVotes();
@@ -134,6 +137,7 @@ class VoteManager {
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<FinalChain> final_chain_;
   std::shared_ptr<NextVotesManager> next_votes_manager_;
+  std::shared_ptr<PbftManager> pbft_mgr_;  // TODO: need remove
   std::weak_ptr<Network> network_;
 
   LOG_OBJECTS_DEFINE

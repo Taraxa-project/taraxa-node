@@ -178,7 +178,7 @@ void PbftManager::resumeSingleState() {
 
 // Only to be used for tests...
 void PbftManager::doNextState_() {
-  auto initial_state = state_;
+  auto initial_state = state_.load();
 
   while (!stopped_ && state_ == initial_state) {
     if (stateOperations_()) {
@@ -260,7 +260,9 @@ std::pair<bool, uint64_t> PbftManager::getDagBlockPeriod(blk_hash_t const &hash)
   return res;
 }
 
-uint64_t PbftManager::getPbftRound() const { return round_; }
+PbftStates PbftManager::getPbftState() const { return state_.load(); }
+
+uint64_t PbftManager::getPbftRound() const { return round_.load(); }
 
 uint64_t PbftManager::getPbftStep() const { return step_; }
 
@@ -271,7 +273,7 @@ void PbftManager::setPbftRound(uint64_t const round) {
 
 size_t PbftManager::getSortitionThreshold() const { return sortition_threshold_; }
 
-size_t PbftManager::getTwoTPlusOne() const { return TWO_T_PLUS_ONE; }
+size_t PbftManager::getTwoTPlusOne() const { return two_t_plus_one_.load(); }
 
 // Notice: Test purpose
 void PbftManager::setSortitionThreshold(size_t const sortition_threshold) {
@@ -352,7 +354,7 @@ void PbftManager::resetStep_() {
 
 bool PbftManager::resetRound_() {
   // Jump to round
-  auto consensus_pbft_round = vote_mgr_->roundDeterminedFromVotes(TWO_T_PLUS_ONE);
+  auto consensus_pbft_round = vote_mgr_->roundDeterminedFromVotes(two_t_plus_one_);
   // current round
   auto round = getPbftRound();
 
@@ -381,7 +383,7 @@ bool PbftManager::resetRound_() {
   db_->addPbftMgrFieldToBatch(PbftMgrRoundStep::PbftRound, consensus_pbft_round, batch);
   db_->addPbftMgrFieldToBatch(PbftMgrRoundStep::PbftStep, 1, batch);
 
-  db_->addPbft2TPlus1ToBatch(previoud_round, TWO_T_PLUS_ONE, batch);
+  db_->addPbft2TPlus1ToBatch(previoud_round, two_t_plus_one_, batch);
   db_->addNextVotesToBatch(previoud_round, next_votes, batch);
   if (round > 1) {
     // Cleanup old previoud round next votes
@@ -423,7 +425,7 @@ bool PbftManager::resetRound_() {
   if (executed_pbft_block_) {
     vote_mgr_->removeVerifiedVotes();
     updateDposState_();
-    // reset sortition_threshold and TWO_T_PLUS_ONE
+    // reset sortition_threshold and two_t_plus_one_
     updateTwoTPlusOneAndThreshold_();
     db_->savePbftMgrStatus(PbftMgrStatus::ExecutedBlock, false);
     executed_pbft_block_ = false;
@@ -547,7 +549,7 @@ void PbftManager::initialState_() {
   next_step_time_ms_ = 0;
 
   updateDposState_();
-  // Initialize TWO_T_PLUS_ONE and sortition_threshold
+  // Initialize two_t_plus_one_ and sortition_threshold
   updateTwoTPlusOneAndThreshold_();
 }
 
@@ -696,7 +698,7 @@ bool PbftManager::stateOperations_() {
   // ROUND.  IF WE HAVE THEN WE EXECUTE THE BLOCK
   // ONLY CHECK IF HAVE *NOT* YET EXECUTED THIS ROUND...
   if (state_ == CertifyState && !have_executed_this_round_) {
-    auto voted_block_hash_with_cert_votes = vote_mgr_->getVotesBundleByRoundAndStep(round, 3, TWO_T_PLUS_ONE);
+    auto voted_block_hash_with_cert_votes = vote_mgr_->getVotesBundleByRoundAndStep(round, 3, two_t_plus_one_);
     if (voted_block_hash_with_cert_votes.enough) {
       LOG(log_dg_) << "PBFT block " << voted_block_hash_with_cert_votes.voted_block_hash << " has enough certed votes";
       // put pbft block into chain
@@ -723,7 +725,7 @@ bool PbftManager::updateSoftVotedBlockForThisRound_() {
   if (!soft_voted_block_for_this_round_.second) {
     auto round = getPbftRound();
 
-    auto voted_block_hash_with_soft_votes = vote_mgr_->getVotesBundleByRoundAndStep(round, 2, TWO_T_PLUS_ONE);
+    auto voted_block_hash_with_soft_votes = vote_mgr_->getVotesBundleByRoundAndStep(round, 2, two_t_plus_one_);
 
     auto batch = db_->createWriteBatch();
     db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::SoftVotedBlockHashInRound,
@@ -1514,7 +1516,7 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
       if (executed_pbft_block_) {
         vote_mgr_->removeVerifiedVotes();
         updateDposState_();
-        // update sortition_threshold and TWO_T_PLUS_ONE
+        // update sortition_threshold and two_t_plus_one_
         updateTwoTPlusOneAndThreshold_();
         db_->savePbftMgrStatus(PbftMgrStatus::ExecutedBlock, false);
         executed_pbft_block_ = false;
@@ -1618,9 +1620,9 @@ void PbftManager::updateTwoTPlusOneAndThreshold_() {
   // Update 2t+1 and threshold
   auto dpos_total_votes_count = getDposTotalVotesCount();
   sortition_threshold_ = std::min<size_t>(kCommitteeSize, dpos_total_votes_count);
-  TWO_T_PLUS_ONE = sortition_threshold_ * 2 / 3 + 1;
+  two_t_plus_one_ = sortition_threshold_ * 2 / 3 + 1;
   LOG(log_nf_) << "Committee size " << kCommitteeSize << ", DPOS total votes count " << dpos_total_votes_count
-               << ". Update 2t+1 " << TWO_T_PLUS_ONE << ", Threshold " << sortition_threshold_;
+               << ". Update 2t+1 " << two_t_plus_one_ << ", Threshold " << sortition_threshold_;
 }
 
 bool PbftManager::giveUpSoftVotedBlock_() {
