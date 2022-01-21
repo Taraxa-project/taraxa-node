@@ -125,9 +125,8 @@ int main(int argc, char** argv) {
   unsigned short network_id = static_cast<unsigned short>(taraxa::cli::Config::DEFAULT_NETWORK_ID);
   if (vm.count("network-id")) network_id = vm["network-id"].as<unsigned short>();
 
-  Json::Value conf = taraxa::cli::Tools::generateConfig((taraxa::cli::Config::NetworkIdType)network_id);
   std::string listen_ip = "0.0.0.0";
-  unsigned short listen_port = conf["network_udp_port"].asUInt();
+  unsigned short listen_port = 10002;
   std::string public_ip;
   uint32_t num_of_threads = 1;
 
@@ -171,12 +170,16 @@ int main(int argc, char** argv) {
 
   if (boot_host->isRunning()) {
     std::cout << "Node ID: " << boot_host->enode() << std::endl;
-    for (auto const& bn : conf["network_boot_nodes"]) {
-      bi::tcp::endpoint ep = dev::p2p::Network::resolveHost(bn["ip"].asString() + ":" + bn["udp_port"].asString());
-      boot_host->addNode(
-          dev::p2p::Node(dev::Public(bn["id"].asString()),
-                         dev::p2p::NodeIPEndpoint{ep.address(), ep.port() /* udp */, ep.port() /* tcp */},
-                         dev::p2p::PeerType::Required));
+    if (static_cast<taraxa::cli::Config::NetworkIdType>(network_id) <
+        taraxa::cli::Config::NetworkIdType::LastNetworkId) {
+      const auto conf = taraxa::cli::Tools::generateConfig(static_cast<taraxa::cli::Config::NetworkIdType>(network_id));
+      for (auto const& bn : conf["network_boot_nodes"]) {
+        bi::tcp::endpoint ep = dev::p2p::Network::resolveHost(bn["ip"].asString() + ":" + bn["udp_port"].asString());
+        boot_host->addNode(
+            dev::p2p::Node(dev::Public(bn["id"].asString()),
+                           dev::p2p::NodeIPEndpoint{ep.address(), ep.port() /* udp */, ep.port() /* tcp */},
+                           dev::p2p::PeerType::Required));
+      }
     }
     // TODO graceful shutdown
     std::mutex mu;

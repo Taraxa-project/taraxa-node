@@ -19,7 +19,7 @@ class Config {
   // Retrieves loaded node configuration
   FullNodeConfig getNodeConfiguration();
 
-  enum class NetworkIdType { Mainnet = 1, Testnet, Devnet };
+  enum class NetworkIdType { Mainnet = 1, Testnet, Devnet, LastNetworkId };
   static constexpr NetworkIdType DEFAULT_NETWORK_ID = NetworkIdType::Testnet;
 
  protected:
