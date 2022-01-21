@@ -1091,6 +1091,7 @@ size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteType
     dpos_weighted_votes_count = 1;
   } else if (pbft_chain_->getPbftChainSize() == TESTNET_HOTFIX_PBFT_BLOCK_NUM) {
     // Fix for PBFT stalled issue of not enough votes in the testnet
+    dpos_weighted_votes_count = 112;  // 6 CN * 112 = 672 > 2t+1(667), for protecting PBFT chain forking
     threshold = getDposTotalVotesCount();
   }
 

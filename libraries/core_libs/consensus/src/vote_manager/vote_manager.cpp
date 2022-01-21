@@ -312,6 +312,7 @@ void VoteManager::verifyVotes(uint64_t pbft_round, size_t sortition_threshold, u
       dpos_votes_count = 1;
     } else if (pbft_chain_->getPbftChainSize() == TESTNET_HOTFIX_PBFT_BLOCK_NUM) {
       // Fix for PBFT stalled issue of not enough votes in the testnet
+      dpos_votes_count = 112;  // 6 CN * 112 = 672 > 2t+1(667), for protecting PBFT chain forking
       sortition_threshold = dpos_total_votes_count;
     }
     try {
