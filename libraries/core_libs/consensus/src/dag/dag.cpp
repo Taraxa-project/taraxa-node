@@ -654,7 +654,6 @@ DagManager::getNonFinalizedBlocksWithTransactions(const std::unordered_set<blk_h
   std::vector<std::shared_ptr<DagBlock>> dag_blocks;
   std::unordered_set<trx_hash_t> unique_trxs;
   std::vector<trx_hash_t> trx_to_query;
-  SharedTransactions transactions;
   for (const auto &level_blocks : non_finalized_blks_) {
     for (const auto &hash : level_blocks.second) {
       if (known_hashes.count(hash) == 0) {
@@ -675,10 +674,7 @@ DagManager::getNonFinalizedBlocksWithTransactions(const std::unordered_set<blk_h
     }
   }
   auto trxs = db_->getNonfinalizedTransactions(trx_to_query);
-  for (auto t : trxs) {
-    transactions.emplace_back(t);
-  }
-  return {period_, std::move(dag_blocks), std::move(transactions)};
+  return {period_, std::move(dag_blocks), std::move(trxs)};
 }
 
 std::pair<size_t, size_t> DagManager::getNonFinalizedBlocksSize() const {

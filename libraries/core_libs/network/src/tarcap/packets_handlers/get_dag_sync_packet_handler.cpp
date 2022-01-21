@@ -40,8 +40,9 @@ void GetDagSyncPacketHandler::process(const PacketData &packet_data,
   if (peer_period == period) {
     peer->syncing_ = false;
   } else {
-    // There is no point in sending blocks if periods do not match
+    // There is no point in sending blocks if periods do not match, but an empty packet should be sent
     blocks.clear();
+    transactions.clear();
   }
   sendBlocks(packet_data.from_node_id_, std::move(blocks), std::move(transactions), peer_period, period);
 }
