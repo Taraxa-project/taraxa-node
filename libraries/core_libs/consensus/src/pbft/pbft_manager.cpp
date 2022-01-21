@@ -1507,7 +1507,10 @@ void PbftManager::finalize_(SyncBlock &&sync_block, std::vector<h256> &&finalize
         // Update proposal period DAG levels map
         std::cout << "Update proposal period DAG levels map" << std::endl;
         auto ptr = weak_ptr.lock();
-        if (!ptr) return;  // it was destroyed
+        if (!ptr) {
+          std::cout << "Cannot lock weak pointer" << std::endl;
+          return;  // it was destroyed
+        }
 
         std::shared_ptr<ProposalPeriodDagLevelsMap> new_proposal_period_levels_map;
         if (anchor_hash) {

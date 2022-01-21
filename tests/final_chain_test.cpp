@@ -6,6 +6,7 @@
 #include "common/constants.hpp"
 #include "config/chain_config.hpp"
 #include "final_chain/trie_common.hpp"
+#include "pbft/pbft_manager.hpp"
 #include "util_test/gtest.hpp"
 #include "vote/vote.hpp"
 
@@ -298,6 +299,146 @@ TEST_F(FinalChainTest, coin_transfers) {
       {0, 143430, 0, TRX_GAS, {}, keys[331].secret(), keys[420].address()},
       {0, 1313145, 0, TRX_GAS, {}, keys[345].secret(), keys[134].address()},
   });
+}
+
+TEST_F(FinalChainTest, empty_final_block) {
+  init();
+
+  // advance({});
+
+  SUT = nullptr;
+  SUT = NewFinalChain(db, cfg);
+
+  blk_hash_t previous_pbft_block_hash;
+  blk_hash_t anchor;
+  blk_hash_t order_hash;
+  vec_blk_t finalized_dag_blk_hashes;
+  PbftBlock pbft_block(previous_pbft_block_hash, anchor, order_hash, 1, addr_t::random(),
+                       dev::KeyPair::create().secret());
+  std::vector<std::shared_ptr<Vote>> votes;
+  SyncBlock sync_block(std::make_shared<PbftBlock>(std::move(pbft_block)), votes);
+  // sync_block.dag_blocks.push_back(dag_blk);
+  // sync_block.transactions = trxs;
+
+  auto batch = db->createWriteBatch();
+  db->savePeriodData(sync_block, batch);
+
+  db->commitWriteBatch(batch);
+
+  // auto result = SUT->finalize(std::move(sync_block), std::move(finalized_dag_blk_hashes)).get();
+
+  auto result = SUT->finalize(std::move(sync_block), std::move(finalized_dag_blk_hashes),
+                              [anchor_hash = std::move(anchor)](auto const&, auto& batch) {
+                                // Update proposal period DAG levels map
+                                std::cout << "Update proposal period DAG levels map" << std::endl;
+                                // auto ptr = weak_ptr.lock();
+                                // if (!ptr) {
+                                //   std::cout << "Cannot lock weak pointer" << std::endl;
+                                //   return;  // it was destroyed
+                                // }
+
+                                // std::shared_ptr<ProposalPeriodDagLevelsMap> new_proposal_period_levels_map;
+                                std::cout << "Anchor " << anchor_hash << std::endl;
+                                auto db_btach = batch;
+
+                                // if (anchor_hash) {
+                                //   auto anchor = dag_blk_mgr_->getDagBlock(anchor_hash);
+                                //   if (!anchor) {
+                                //     std::cout << "DB corrupted - Cannot find anchor block: " << anchor_hash << " in
+                                //     DB." << std::endl; assert(false);
+                                //   }
+
+                                // new_proposal_period_levels_map =
+                                // dag_blk_mgr_->newProposePeriodDagLevelsMap(anchor->getLevel());
+                                // }
+                                // else {
+                                //   // PBFT block with NULL anchor
+                                //   new_proposal_period_levels_map = dag_blk_mgr_->newProposePeriodDagLevelsMap();
+                                // }
+                                // db_->addProposalPeriodDagLevelsMapToBatch(*new_proposal_period_levels_map, batch);
+                                // auto dpos_current_max_proposal_period = dag_blk_mgr_->getCurrentMaxProposalPeriod();
+                                // db_->addDposProposalPeriodLevelsFieldToBatch(DposProposalPeriodLevelsStatus::MaxProposalPeriod,
+                                //                                              dpos_current_max_proposal_period,
+                                //                                              batch);
+                              });
+
+  // ++expected_blk_num;
+  // auto const& blk_h = *result->final_chain_blk;
+  // EXPECT_EQ(util::rlp_enc(blk_h), util::rlp_enc(*SUT->block_header(blk_h.number)));
+  // EXPECT_EQ(util::rlp_enc(blk_h), util::rlp_enc(*SUT->block_header()));
+  // auto const& receipts = result->trx_receipts;
+  // EXPECT_EQ(blk_h.hash, SUT->block_header()->hash);
+  // EXPECT_EQ(blk_h.hash, SUT->block_hash());
+  // EXPECT_EQ(blk_h.parent_hash, SUT->block_header(expected_blk_num - 1)->hash);
+  // EXPECT_EQ(blk_h.number, expected_blk_num);
+  // EXPECT_EQ(blk_h.number, SUT->last_block_number());
+  // EXPECT_EQ(SUT->transactionCount(blk_h.number), trxs.size());
+  // EXPECT_EQ(SUT->transactions(blk_h.number), trxs);
+  // EXPECT_EQ(*SUT->block_number(*SUT->block_hash(blk_h.number)), expected_blk_num);
+  // EXPECT_EQ(blk_h.author, pbft_block.getBeneficiary());
+  // EXPECT_EQ(blk_h.timestamp, pbft_block.getTimestamp());
+  // EXPECT_EQ(receipts.size(), trxs.size());
+  // EXPECT_EQ(blk_h.transactions_root,
+  //           trieRootOver(
+  //               trxs.size(), [&](auto i) { return dev::rlp(i); }, [&](auto i) { return *trxs[i].rlp(); }));
+  // EXPECT_EQ(blk_h.receipts_root,
+  //           trieRootOver(
+  //               trxs.size(), [&](auto i) { return dev::rlp(i); }, [&](auto i) { return util::rlp_enc(receipts[i]);
+  //               }));
+  // EXPECT_EQ(blk_h.gas_limit, FinalChain::GAS_LIMIT);
+  // EXPECT_EQ(blk_h.extra_data, bytes());
+  // EXPECT_EQ(blk_h.nonce(), Nonce());
+  // EXPECT_EQ(blk_h.difficulty(), 0);
+  // EXPECT_EQ(blk_h.mix_hash(), h256());
+  // EXPECT_EQ(blk_h.uncles_hash(), EmptyRLPListSHA3());
+  // EXPECT_TRUE(!blk_h.state_root.isZero());
+  // LogBloom expected_block_log_bloom;
+  // unordered_map<addr_t, u256> expected_balance_changes;
+  // unordered_set<addr_t> all_addrs_w_changed_balance;
+  // uint64_t cumulative_gas_used_actual = 0;
+  // for (size_t i = 0; i < trxs.size(); ++i) {
+  //   auto const& trx = trxs[i];
+  //   auto const& r = receipts[i];
+  //   EXPECT_TRUE(r.gas_used != 0);
+  //   EXPECT_EQ(util::rlp_enc(r), util::rlp_enc(*SUT->transaction_receipt(trx.getHash())));
+  //   cumulative_gas_used_actual += r.gas_used;
+  //   if (assume_only_toplevel_transfers && trx.getValue() != 0 && r.status_code == 1) {
+  //     auto const& sender = trx.getSender();
+  //     auto const& sender_bal = expected_balances[sender] -= trx.getValue();
+  //     auto const& receiver = !trx.getReceiver() ? *r.new_contract_address : *trx.getReceiver();
+  //     all_addrs_w_changed_balance.insert(sender);
+  //     all_addrs_w_changed_balance.insert(receiver);
+  //     auto const& receiver_bal = expected_balances[receiver] += trx.getValue();
+  //     if (SUT->get_account(sender)->code_size == 0) {
+  //       expected_balance_changes[sender] = sender_bal;
+  //     }
+  //     if (SUT->get_account(receiver)->code_size == 0) {
+  //       expected_balance_changes[receiver] = receiver_bal;
+  //     }
+  //   }
+  //   if (!opts.dont_assume_all_trx_success) {
+  //     EXPECT_EQ(r.status_code, 1);
+  //   }
+  //   if (!opts.dont_assume_no_logs) {
+  //     EXPECT_EQ(r.logs.size(), 0);
+  //     EXPECT_EQ(r.bloom(), LogBloom());
+  //   }
+  //   expected_block_log_bloom |= r.bloom();
+  //   auto trx_loc = *SUT->transaction_location(trx.getHash());
+  //   EXPECT_EQ(trx_loc.blk_n, blk_h.number);
+  //   EXPECT_EQ(trx_loc.index, i);
+  // }
+  // EXPECT_EQ(blk_h.gas_used, cumulative_gas_used_actual);
+  // if (!receipts.empty()) {
+  //   EXPECT_EQ(receipts.back().cumulative_gas_used, cumulative_gas_used_actual);
+  // }
+  // EXPECT_EQ(blk_h.log_bloom, expected_block_log_bloom);
+  // if (assume_only_toplevel_transfers) {
+  //   for (auto const& addr : all_addrs_w_changed_balance) {
+  //     EXPECT_EQ(SUT->get_account(addr)->balance, expected_balances[addr]);
+  //   }
+  // }
+  // return result;
 }
 
 }  // namespace taraxa::final_chain
