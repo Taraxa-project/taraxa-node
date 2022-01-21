@@ -158,7 +158,7 @@ const char *testnet_json = R"foo({
       "changes_count_for_average": "0x5",
       "max_interval_correction": "0x3E8",
       "dag_efficiency_targets": ["0x12C0", "0x1450"],
-      "changing_interval": "0x0",
+      "changing_interval": "0xC8",
       "computation_interval": "0xC8",
       "vrf": {
         "threshold_upper": "0x1770",
