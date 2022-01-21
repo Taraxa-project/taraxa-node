@@ -1577,17 +1577,24 @@ bool PbftManager::pushPbftBlock_(SyncBlock &&sync_block, vec_blk_t &&dag_blocks_
   // pass pbft with dag blocks and transactions to adjust difficulty
   dag_blk_mgr_->sortitionParamsManager().pbftBlockPushed(sync_block, batch);
 
-  // Commit DB
-  db_->commitWriteBatch(batch);
+  {
+    // This makes sure that no DAG block or transaction can be added or change state in transaction and dag manager when
+    // finalizing pbft block with dag blocks and transactions
+    std::unique_lock dag_lock(dag_mgr_->getDagMutex());
+    std::unique_lock trx_lock(trx_mgr_->getTransactionsMutex());
 
-  // Set DAG blocks period
-  auto const &anchor_hash = sync_block.pbft_blk->getPivotDagBlockHash();
-  dag_mgr_->setDagBlockOrder(anchor_hash, pbft_period, dag_blocks_order);
+    // Commit DB
+    db_->commitWriteBatch(batch);
 
-  trx_mgr_->updateFinalizedTransactionsStatus(sync_block);
+    // Set DAG blocks period
+    auto const &anchor_hash = sync_block.pbft_blk->getPivotDagBlockHash();
+    dag_mgr_->setDagBlockOrder(anchor_hash, pbft_period, dag_blocks_order);
 
-  // update PBFT chain size
-  pbft_chain_->updatePbftChain(pbft_block_hash);
+    trx_mgr_->updateFinalizedTransactionsStatus(sync_block);
+
+    // update PBFT chain size
+    pbft_chain_->updatePbftChain(pbft_block_hash);
+  }
 
   last_cert_voted_value_ = NULL_BLOCK_HASH;
 

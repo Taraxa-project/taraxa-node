@@ -105,7 +105,7 @@ inline bool wait(wait_opts const& opts, std::function<void(wait_ctx&)> const& po
   }
 
 #define WAIT_EXPECT_LT(ctx, o1, o2)         \
-  if (o1 < o2) {                            \
+  if (o1 >= o2) {                           \
     if (ctx.fail(); !ctx.is_last_attempt) { \
       return;                               \
     }                                       \

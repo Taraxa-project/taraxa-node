@@ -21,7 +21,7 @@ class GetDagSyncPacketHandler : public PacketHandler {
   virtual ~GetDagSyncPacketHandler() = default;
 
   void sendBlocks(const dev::p2p::NodeID& peer_id, std::vector<std::shared_ptr<DagBlock>>&& blocks,
-                  uint64_t request_period, uint64_t period);
+                  SharedTransactions&& transactions, uint64_t request_period, uint64_t period);
 
  private:
   void process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;

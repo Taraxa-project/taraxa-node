@@ -422,13 +422,6 @@ void DagManager::addDagBlock(DagBlock const &blk, SharedTransactions &&trxs, boo
         trx_mgr_->saveTransactionsFromDagBlock(trxs);
         // Save the dag block
         db_->saveDagBlock(blk);
-
-        // TODO: This is an ugly temporary fix for testnet, a better solution is needed for dag block race condition
-        if (db_->getDagBlockPeriod(blk.getHash()) != nullptr) {
-          db_->removeDagBlock(blk.getHash());
-          LOG(log_er_) << "Block already in DB: " << blk.getHash();
-          return;
-        }
       }
       auto blk_hash = blk.getHash();
       auto pivot_hash = blk.getPivot();
@@ -542,7 +535,6 @@ std::vector<blk_hash_t> DagManager::getDagBlockOrder(blk_hash_t const &anchor, u
 }
 
 uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period, vec_blk_t const &dag_order) {
-  ULock lock(mutex_);
   LOG(log_dg_) << "setDagBlockOrder called with anchor " << new_anchor << " and period " << period;
   if (period != period_ + 1) {
     LOG(log_er_) << " Inserting period (" << period << ") anchor " << new_anchor
@@ -654,6 +646,35 @@ const std::pair<uint64_t, std::map<uint64_t, std::unordered_set<blk_hash_t>>> Da
     const {
   SharedLock lock(mutex_);
   return {period_, non_finalized_blks_};
+}
+
+const std::tuple<uint64_t, std::vector<std::shared_ptr<DagBlock>>, SharedTransactions>
+DagManager::getNonFinalizedBlocksWithTransactions(const std::unordered_set<blk_hash_t> &known_hashes) const {
+  SharedLock lock(mutex_);
+  std::vector<std::shared_ptr<DagBlock>> dag_blocks;
+  std::unordered_set<trx_hash_t> unique_trxs;
+  std::vector<trx_hash_t> trx_to_query;
+  for (const auto &level_blocks : non_finalized_blks_) {
+    for (const auto &hash : level_blocks.second) {
+      if (known_hashes.count(hash) == 0) {
+        if (auto blk = dag_blk_mgr_->getDagBlock(hash); blk) {
+          dag_blocks.emplace_back(blk);
+        } else {
+          LOG(log_er_) << "NonFinalizedBlock " << hash << " not in DB";
+          assert(false);
+        }
+      }
+    }
+  }
+  for (const auto &block : dag_blocks) {
+    for (auto trx : block->getTrxs()) {
+      if (unique_trxs.emplace(trx).second) {
+        trx_to_query.emplace_back(trx);
+      }
+    }
+  }
+  auto trxs = db_->getNonfinalizedTransactions(trx_to_query);
+  return {period_, std::move(dag_blocks), std::move(trxs)};
 }
 
 std::pair<size_t, size_t> DagManager::getNonFinalizedBlocksSize() const {

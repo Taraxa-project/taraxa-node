@@ -72,8 +72,25 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   // Check transactions are present in broadcasted blocks
   bool checkBlockTransactions(DagBlock const &blk);
 
-  // Update the status of transactions to finalized and remove from transactions column
+  /**
+   * @brief Updates the status of transactions to finalized
+   * IMPORTANT: This method is invoked on finalizing a pbft block, it needs to be protected with transactions_mutex_ but
+   * the mutex is locked from pbft manager for the entire pbft finalization process to make the finalization atomic
+   *
+   * @param anchor Anchor of the finalized pbft block
+   * @param period Period finalized
+   * @param dag_order Dag order of the finalized pbft block
+   *
+   * @return number of dag blocks finalized
+   */
   void updateFinalizedTransactionsStatus(SyncBlock const &sync_block);
+
+  /**
+   * @brief Retrieves transactions mutex, only to be used when finalizing pbft block
+   *
+   * @return mutex
+   */
+  std::shared_mutex &getTransactionsMutex() { return transactions_mutex_; }
 
   /**
    * @brief Gets transactions from transactions pool

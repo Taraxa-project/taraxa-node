@@ -83,8 +83,8 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
 
   // METHODS USED IN TESTS ONLY
   void sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk, const SharedTransactions &trxs);
-  void sendBlocks(const dev::p2p::NodeID &id, std::vector<std::shared_ptr<DagBlock>> &&blocks, uint64_t request_period,
-                  uint64_t period);
+  void sendBlocks(const dev::p2p::NodeID &id, std::vector<std::shared_ptr<DagBlock>> &&blocks,
+                  SharedTransactions &&transactions, uint64_t request_period, uint64_t period);
   size_t getReceivedBlocksCount() const;
   size_t getReceivedTransactionsCount() const;
 

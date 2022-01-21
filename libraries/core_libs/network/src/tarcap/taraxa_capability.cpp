@@ -425,10 +425,10 @@ void TaraxaCapability::sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk
 }
 
 void TaraxaCapability::sendBlocks(const dev::p2p::NodeID &id, std::vector<std::shared_ptr<DagBlock>> &&blocks,
-                                  uint64_t request_period, uint64_t period) {
+                                  SharedTransactions &&transactions, uint64_t request_period, uint64_t period) {
   std::static_pointer_cast<GetDagSyncPacketHandler>(
       packets_handlers_->getSpecificHandler(SubprotocolPacketType::GetDagSyncPacket))
-      ->sendBlocks(id, std::move(blocks), request_period, period);
+      ->sendBlocks(id, std::move(blocks), std::move(transactions), request_period, period);
 }
 
 size_t TaraxaCapability::getReceivedBlocksCount() const { return test_state_->getBlocksSize(); }
