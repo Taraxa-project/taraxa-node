@@ -404,6 +404,38 @@ TEST_F(VoteTest, previous_round_next_votes) {
   EXPECT_EQ(next_votes_mgr->getNextVotesWeight(), next_votes_4.size());
 }
 
+TEST_F(VoteTest, vote_count_compare) {
+  auto vote_count_old = [](u256 balance, u256 threshold) { return u256(balance / threshold); };
+  auto vote_count_new = [](u256 balance, u256 threshold, u256 step) {
+    // the same logic as new GO method. Result should be the same as fro the old method if threshold == step
+    u256 res = 0;
+    if (balance >= threshold) {
+      res = balance - threshold;
+      res /= step;
+      res += 1;
+    }
+    return res;
+  };
+
+  {
+    auto balance = 1000000;
+    auto threshold = 100000;
+    EXPECT_EQ(vote_count_old(balance, threshold), vote_count_new(balance, threshold, threshold));
+  }
+
+  {
+    auto balance = 1000000000000;
+    auto threshold = 100000;
+    EXPECT_EQ(vote_count_old(balance, threshold), vote_count_new(balance, threshold, threshold));
+  }
+
+  {
+    auto balance = u256("10000000000000000000000000");
+    auto threshold = 100000;
+    EXPECT_EQ(vote_count_old(balance, threshold), vote_count_new(balance, threshold, threshold));
+  }
+}
+
 }  // namespace taraxa::core_tests
 
 using namespace taraxa;
