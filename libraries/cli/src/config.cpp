@@ -1,10 +1,11 @@
 #include "cli/config.hpp"
 
+#include <libdevcore/CommonJS.h>
+
 #include <iostream>
 
 #include "cli/tools.hpp"
 #include "config/version.hpp"
-#include <libdevcore/CommonJS.h>
 
 using namespace std;
 

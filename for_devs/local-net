@@ -153,15 +153,16 @@ def config(binary, boot_nodes, rpc_nodes):
                 genesis_balances = config['chain_config']['final_chain']['state']['genesis_balances']
 
                 genesis_balances_faucet_address = list(genesis_balances.keys())[0]
+                delegator_address = list(genesis_balances.keys())[1]
                 genesis_balances_faucet_value = genesis_balances[genesis_balances_faucet_address]
                 del genesis_balances[genesis_balances_faucet_address]
                 genesis_balances[faucet_public_address] = genesis_balances_faucet_value
 
-                for j in genesis_state:
-                    genesis_state[j] = {}
-                    for a in boot_nodes_public_addresses:
-                        genesis_state[j][boot_nodes_public_addresses[a]
-                                         ] = eligibility_balance_threshold
+                genesis_state = {}
+                genesis_state[delegator_address] = {}
+                for a in boot_nodes_public_addresses:
+                    genesis_state[delegator_address][boot_nodes_public_addresses[a]
+                                        ] = eligibility_balance_threshold
 
                 config['chain_config']['final_chain']['state']['dpos']['genesis_state'] = genesis_state
                 config['chain_config']['final_chain']['state']['genesis_balances'] = genesis_balances
