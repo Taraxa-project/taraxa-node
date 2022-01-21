@@ -24,8 +24,8 @@ Network::Network(NetworkConfig const &config, std::filesystem::path const &netwo
   net_conf.listenPort = conf_.network_tcp_port;
   net_conf.discovery = true;
   net_conf.allowLocalDiscovery = true;
-  net_conf.traverseNAT = true;
-  net_conf.publicIPAddress = config.public_ip;
+  net_conf.traverseNAT = false;
+  net_conf.publicIPAddress = {};
   net_conf.pin = false;
   dev::p2p::TaraxaNetworkConfig taraxa_net_conf;
   taraxa_net_conf.ideal_peer_count = conf_.network_ideal_peer_count;
