@@ -170,7 +170,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   u_long const LAMBDA_ms_MIN;
   u_long LAMBDA_ms = 0;
   u_long LAMBDA_backoff_multiple = 1;
-  const u_long kMaxLambda = 3600000;  // in ms, max lambda is 1 hour
 
   std::default_random_engine random_engine_{std::random_device{}()};
 
