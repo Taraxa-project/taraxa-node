@@ -165,9 +165,9 @@ const char *testnet_json = R"foo({
         "threshold_range": "0xbb8"
       },
       "vdf": {
-        "difficulty_max": "0x12",
+        "difficulty_max": "0x15",
         "difficulty_min": "0x10",
-        "difficulty_stale": "0x14",
+        "difficulty_stale": "0x17",
         "lambda_bound": "0x64"
       }
     }
