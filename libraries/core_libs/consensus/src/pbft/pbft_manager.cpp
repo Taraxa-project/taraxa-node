@@ -1797,37 +1797,6 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
     return std::nullopt;
   }
 
-  // Check cert vote matches
-  for (auto const &vote : sync_block.first.cert_votes) {
-    if (vote->getBlockHash() != pbft_block_hash) {
-      LOG(log_er_) << "Invalid cert votes block hash " << vote->getBlockHash() << " instead of " << pbft_block_hash
-                   << " from peer " << sync_block.second.abridged() << " received, stop syncing.";
-      sync_queue_.clear();
-      net->handleMaliciousSyncPeer(sync_block.second);
-      return std::nullopt;
-    }
-  }
-
-  auto order_hash = calculateOrderHash(sync_block.first.dag_blocks, sync_block.first.transactions);
-  if (order_hash != sync_block.first.pbft_blk->getOrderHash()) {
-    std::vector<trx_hash_t> trx_order;
-    trx_order.reserve(sync_block.first.transactions.size());
-    std::vector<blk_hash_t> blk_order;
-    blk_order.reserve(sync_block.first.dag_blocks.size());
-    for (auto t : sync_block.first.transactions) {
-      trx_order.push_back(t.getHash());
-    }
-    for (auto b : sync_block.first.dag_blocks) {
-      blk_order.push_back(b.getHash());
-    }
-    LOG(log_er_) << "Order hash incorrect in sync block " << pbft_block_hash << " expected: " << order_hash
-                 << " received " << sync_block.first.pbft_blk->getOrderHash() << "; Dag order: " << blk_order
-                 << "; Trx order: " << trx_order << "; from " << sync_block.second.abridged() << ", stop syncing.";
-    sync_queue_.clear();
-    net->handleMaliciousSyncPeer(sync_block.second);
-    return std::nullopt;
-  }
-
   // Check cert votes validation
   try {
     sync_block.first.hasEnoughValidCertVotes(getDposTotalVotesCount(), getSortitionThreshold(), getTwoTPlusOne(),

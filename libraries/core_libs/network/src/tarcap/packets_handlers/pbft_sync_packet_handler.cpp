@@ -46,8 +46,9 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
   auto it = packet_data.rlp_.begin();
   bool last_block = (*it++).toInt<bool>();
   SyncBlock sync_block(*it);
+  const auto pbft_blk_hash = sync_block.pbft_blk->getBlockHash();
 
-  string received_dag_blocks_str;
+  std::string received_dag_blocks_str;  // This is just log related stuff
   for (auto const &block : sync_block.dag_blocks) {
     received_dag_blocks_str += block.getHash().toString() + " ";
     if (peer->dag_level_ < block.getLevel()) {
@@ -58,9 +59,19 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
   LOG(log_nf_) << "PbftSyncPacket received. Period: " << sync_block.pbft_blk->getPeriod()
                << ", dag Blocks: " << received_dag_blocks_str << " from " << packet_data.from_node_id_;
 
-  auto pbft_blk_hash = sync_block.pbft_blk->getBlockHash();
   peer->markPbftBlockAsKnown(pbft_blk_hash);
+  // Update peer's pbft period if outdated
+  if (peer->pbft_chain_size_ < sync_block.pbft_blk->getPeriod()) {
+    peer->pbft_chain_size_ = sync_block.pbft_blk->getPeriod();
+  }
+
   LOG(log_dg_) << "Processing pbft block: " << pbft_blk_hash;
+
+  if (pbft_chain_->findPbftBlockInChain(pbft_blk_hash)) {
+    LOG(log_wr_) << "PBFT block " << pbft_blk_hash << " from " << packet_data.from_node_id_
+                 << " already present in chain";
+    return;
+  }
 
   if (sync_block.pbft_blk->getPeriod() != pbft_mgr_->pbftSyncingPeriod() + 1) {
     LOG(log_wr_) << "Block " << pbft_blk_hash << " period unexpected: " << sync_block.pbft_blk->getPeriod()
@@ -68,9 +79,37 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
     restartSyncingPbft(true);
     return;
   }
-  // Update peer's pbft period if outdated
-  if (peer->pbft_chain_size_ < sync_block.pbft_blk->getPeriod()) {
-    peer->pbft_chain_size_ = sync_block.pbft_blk->getPeriod();
+
+  // Check cert vote matches
+  for (auto const &vote : sync_block.cert_votes) {
+    if (vote->getBlockHash() != pbft_blk_hash) {
+      LOG(log_er_) << "Invalid cert votes block hash " << vote->getBlockHash() << " instead of " << pbft_blk_hash
+                   << " from peer " << packet_data.from_node_id_.abridged() << " received, stop syncing.";
+      handleMaliciousSyncPeer(packet_data.from_node_id_);
+      return;
+    }
+  }
+
+  auto order_hash = PbftManager::calculateOrderHash(sync_block.dag_blocks, sync_block.transactions);
+  if (order_hash != sync_block.pbft_blk->getOrderHash()) {
+    {  // This is just log related stuff
+      std::vector<trx_hash_t> trx_order;
+      trx_order.reserve(sync_block.transactions.size());
+      std::vector<blk_hash_t> blk_order;
+      blk_order.reserve(sync_block.dag_blocks.size());
+      for (auto t : sync_block.transactions) {
+        trx_order.push_back(t.getHash());
+      }
+      for (auto b : sync_block.dag_blocks) {
+        blk_order.push_back(b.getHash());
+      }
+      LOG(log_er_) << "Order hash incorrect in sync block " << pbft_blk_hash << " expected: " << order_hash
+                   << " received " << sync_block.pbft_blk->getOrderHash() << "; Dag order: " << blk_order
+                   << "; Trx order: " << trx_order << "; from " << packet_data.from_node_id_.abridged()
+                   << ", stop syncing.";
+    }
+    handleMaliciousSyncPeer(packet_data.from_node_id_);
+    return;
   }
 
   LOG(log_dg_) << "Synced PBFT block hash " << pbft_blk_hash << " with " << sync_block.cert_votes.size()

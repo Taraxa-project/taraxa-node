@@ -174,4 +174,16 @@ std::pair<bool, std::unordered_set<blk_hash_t>> ExtSyncingPacketHandler::checkDa
   return std::make_pair(true, missing_blks);
 }
 
+void ExtSyncingPacketHandler::handleMaliciousSyncPeer(dev::p2p::NodeID const &id) {
+  // TODO: enable once malicious issues are resolved
+  // syncing_state_->set_peer_malicious(id);
+
+  if (auto host = peers_state_->host_.lock(); host) {
+    host->disconnect(id, dev::p2p::UserReason);
+  } else {
+    LOG(log_er_) << "Unable to handleMaliciousSyncPeer, host == nullptr";
+  }
+  restartSyncingPbft(true);
+}
+
 }  // namespace taraxa::network::tarcap

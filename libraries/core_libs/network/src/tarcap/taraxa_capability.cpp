@@ -363,15 +363,9 @@ void TaraxaCapability::restartSyncingPbft(bool force) {
 bool TaraxaCapability::pbft_syncing() const { return syncing_state_->is_pbft_syncing(); }
 
 void TaraxaCapability::handleMaliciousSyncPeer(dev::p2p::NodeID const &id) {
-  // TODO: enable once malicious issues are resolved
-  // syncing_state_->set_peer_malicious(id);
-
-  if (auto host = peers_state_->host_.lock(); host) {
-    host->disconnect(id, dev::p2p::UserReason);
-  } else {
-    LOG(log_er_) << "Unable to handleMaliciousSyncPeer, host == nullptr";
-  }
-  restartSyncingPbft(true);
+  std::static_pointer_cast<PbftSyncPacketHandler>(
+      packets_handlers_->getSpecificHandler(SubprotocolPacketType::PbftSyncPacket))
+      ->handleMaliciousSyncPeer(id);
 }
 
 void TaraxaCapability::onNewBlockVerified(DagBlock const &blk, bool proposed, SharedTransactions &&trxs) {
