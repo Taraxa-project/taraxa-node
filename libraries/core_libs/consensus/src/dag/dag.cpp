@@ -542,6 +542,12 @@ uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period,
     return 0;
   }
 
+  if (new_anchor == blk_hash_t(0)) {
+    period_ = period;
+    LOG(log_nf_) << "Set new period " << period << " with anchor " << new_anchor;
+    return 0;
+  }
+
   // Update dag counts correctly
   // When synced and gossiping there should not be anything to update
   // When syncing we must check if some of the DAG blocks are both in sync block and in memory DAG although

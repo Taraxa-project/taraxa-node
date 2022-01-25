@@ -1147,6 +1147,9 @@ size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteType
 
 blk_hash_t PbftManager::calculateOrderHash(std::vector<blk_hash_t> const &dag_block_hashes,
                                            std::vector<trx_hash_t> const &trx_hashes) {
+  if (dag_block_hashes.empty()) {
+    return NULL_BLOCK_HASH;
+  }
   dev::RLPStream order_stream(2);
   order_stream.appendList(dag_block_hashes.size());
   for (auto const &blk_hash : dag_block_hashes) {
@@ -1161,6 +1164,9 @@ blk_hash_t PbftManager::calculateOrderHash(std::vector<blk_hash_t> const &dag_bl
 
 blk_hash_t PbftManager::calculateOrderHash(std::vector<DagBlock> const &dag_blocks,
                                            std::vector<Transaction> const &trxs) {
+  if (dag_blocks.empty()) {
+    return NULL_BLOCK_HASH;
+  }
   dev::RLPStream order_stream(2);
   order_stream.appendList(dag_blocks.size());
   for (auto const &blk : dag_blocks) {
@@ -1187,6 +1193,15 @@ blk_hash_t PbftManager::proposePbftBlock_() {
   auto last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
   if (last_pbft_block_hash) {
     last_period_dag_anchor_block_hash = pbft_chain_->getPbftBlockInChain(last_pbft_block_hash).getPivotDagBlockHash();
+    auto chain_size = pbft_chain_->getPbftChainSize();
+    assert(chain_size > 0);
+    for (auto period_it = chain_size - 1; last_period_dag_anchor_block_hash == NULL_BLOCK_HASH; period_it--) {
+      if (period_it == 0) {
+        last_period_dag_anchor_block_hash = dag_genesis_;
+        break;
+      }
+      last_period_dag_anchor_block_hash = db_->getPbftBlock(period_it)->getPivotDagBlockHash();
+    }
   } else {
     // First PBFT pivot block
     last_period_dag_anchor_block_hash = dag_genesis_;

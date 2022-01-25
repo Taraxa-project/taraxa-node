@@ -1321,7 +1321,6 @@ TEST_F(NetworkTest, node_full_sync) {
               nodes[0]->getDagManager()->getNumVerticesInDag().first);
     EXPECT_EQ(nodes[i]->getDagManager()->getNumVerticesInDag().first, nodes[i]->getDB()->getNumDagBlocks());
     EXPECT_EQ(nodes[i]->getDagManager()->getNumEdgesInDag().first, nodes[0]->getDagManager()->getNumEdgesInDag().first);
-    EXPECT_TRUE(!nodes[i]->getNetwork()->pbft_syncing());
   }
 
   // Write any DAG diff
