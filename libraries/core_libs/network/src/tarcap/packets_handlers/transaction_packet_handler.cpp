@@ -26,13 +26,23 @@ inline void TransactionPacketHandler::process(const PacketData &packet_data, con
   transactions.reserve(transaction_count);
 
   for (size_t tx_idx = 0; tx_idx < transaction_count; tx_idx++) {
-    const auto &transaction = std::make_shared<Transaction>(packet_data.rlp_[tx_idx].data().toBytes());
+    const auto transaction = std::make_shared<Transaction>(packet_data.rlp_[tx_idx].data().toBytes());
 
-    if (!dag_blk_mgr_ || !trx_mgr_->transactionSeen(transaction->getHash())) {
-      received_transactions += transaction->getHash().abridged() + " ";
-      peer->markTransactionAsKnown(transaction->getHash());
-      transactions.emplace_back(std::move(transaction));
+    if (dag_blk_mgr_) [[likely]] {  // ONLY FOR TESTING
+      if (trx_mgr_->markTransactionSeen(transaction->getHash())) {
+        continue;
+      }
+      if (const auto [is_valid, reason] = trx_mgr_->verifyTransaction(transaction); !is_valid) {
+        // TODO: malicious peer handling
+        LOG(log_er_) << "Transaction " << transaction->getHash() << " validation falied: " << reason << " . Peer "
+                     << packet_data.from_node_id_ << " will be disconnected.";
+        disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
+        return;
+      }
     }
+    received_transactions += transaction->getHash().abridged() + " ";
+    peer->markTransactionAsKnown(transaction->getHash());
+    transactions.push_back(std::move(transaction));
   }
 
   if (transaction_count > 0) {
@@ -50,8 +60,8 @@ void TransactionPacketHandler::onNewTransactions(SharedTransactions &&transactio
   if (fromNetwork) {
     if (dag_blk_mgr_) {
       received_trx_count_ += transactions.size();
-      unique_received_trx_count_ += trx_mgr_->insertBroadcastedTransactions(transactions);
-    } else {
+      unique_received_trx_count_ += trx_mgr_->insertValidatedTransactions(transactions);
+    } else {  // ONLY FOR TESTING
       for (auto const &trx : transactions) {
         auto trx_hash = trx->getHash();
         if (!test_state_->hasTransaction(trx_hash)) {

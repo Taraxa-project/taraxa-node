@@ -35,13 +35,6 @@
     "returns": {}
   },
   {
-    "name": "create_test_coin_transactions",
-    "params": [
-      {}
-    ],
-    "returns": {}
-  },
-  {
     "name": "get_num_proposed_blocks",
     "params": [],
     "returns": {}

@@ -18,18 +18,15 @@ class TestFace : public ServerInterface<TestFace> {
     this->bindAndAddMethod(jsonrpc::Procedure("get_dag_block", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
                                               "param1", jsonrpc::JSON_OBJECT, NULL),
                            &taraxa::net::TestFace::get_dag_blockI);
-    this->bindAndAddMethod(jsonrpc::Procedure("get_sortition_change", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
-                                              "param1", jsonrpc::JSON_OBJECT, NULL),
-                           &taraxa::net::TestFace::get_sortition_changeI);
     this->bindAndAddMethod(jsonrpc::Procedure("get_nf_blocks", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
                                               "param1", jsonrpc::JSON_OBJECT, NULL),
                            &taraxa::net::TestFace::get_nf_blocksI);
+    this->bindAndAddMethod(jsonrpc::Procedure("get_sortition_change", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
+                                              "param1", jsonrpc::JSON_OBJECT, NULL),
+                           &taraxa::net::TestFace::get_sortition_changeI);
     this->bindAndAddMethod(jsonrpc::Procedure("send_coin_transaction", jsonrpc::PARAMS_BY_POSITION,
                                               jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT, NULL),
                            &taraxa::net::TestFace::send_coin_transactionI);
-    this->bindAndAddMethod(jsonrpc::Procedure("create_test_coin_transactions", jsonrpc::PARAMS_BY_POSITION,
-                                              jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT, NULL),
-                           &taraxa::net::TestFace::create_test_coin_transactionsI);
     this->bindAndAddMethod(
         jsonrpc::Procedure("get_num_proposed_blocks", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, NULL),
         &taraxa::net::TestFace::get_num_proposed_blocksI);
@@ -101,17 +98,14 @@ class TestFace : public ServerInterface<TestFace> {
   inline virtual void get_dag_blockI(const Json::Value &request, Json::Value &response) {
     response = this->get_dag_block(request[0u]);
   }
-  inline virtual void get_sortition_changeI(const Json::Value &request, Json::Value &response) {
-    response = this->get_sortition_change(request[0u]);
-  }
   inline virtual void get_nf_blocksI(const Json::Value &request, Json::Value &response) {
     response = this->get_nf_blocks(request[0u]);
   }
+  inline virtual void get_sortition_changeI(const Json::Value &request, Json::Value &response) {
+    response = this->get_sortition_change(request[0u]);
+  }
   inline virtual void send_coin_transactionI(const Json::Value &request, Json::Value &response) {
     response = this->send_coin_transaction(request[0u]);
-  }
-  inline virtual void create_test_coin_transactionsI(const Json::Value &request, Json::Value &response) {
-    response = this->create_test_coin_transactions(request[0u]);
   }
   inline virtual void get_num_proposed_blocksI(const Json::Value &request, Json::Value &response) {
     (void)request;
@@ -192,10 +186,9 @@ class TestFace : public ServerInterface<TestFace> {
   }
   virtual Json::Value insert_dag_block(const Json::Value &param1) = 0;
   virtual Json::Value get_dag_block(const Json::Value &param1) = 0;
-  virtual Json::Value get_sortition_change(const Json::Value &param1) = 0;
   virtual Json::Value get_nf_blocks(const Json::Value &param1) = 0;
+  virtual Json::Value get_sortition_change(const Json::Value &param1) = 0;
   virtual Json::Value send_coin_transaction(const Json::Value &param1) = 0;
-  virtual Json::Value create_test_coin_transactions(const Json::Value &param1) = 0;
   virtual Json::Value get_num_proposed_blocks() = 0;
   virtual Json::Value get_account_address() = 0;
   virtual Json::Value get_account_balance(const Json::Value &param1) = 0;

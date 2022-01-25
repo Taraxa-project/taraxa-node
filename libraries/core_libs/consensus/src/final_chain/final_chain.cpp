@@ -368,6 +368,13 @@ class FinalChainImpl final : public FinalChain {
     return state_api_.dpos_query(last_if_absent(blk_n), q);
   }
 
+  bool is_nonce_stale(const addr_t& addr, uint64_t nonce) const override {
+    if (replay_protection_service_ && replay_protection_service_->is_nonce_stale(addr, nonce)) {
+      return true;
+    }
+    return false;
+  }
+
   EthBlockNumber last_if_absent(std::optional<EthBlockNumber> const& client_blk_n) const {
     return client_blk_n ? *client_blk_n : last_block_number();
   }

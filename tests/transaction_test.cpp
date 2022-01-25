@@ -116,8 +116,7 @@ TEST_F(TransactionTest, sig) {
 }
 
 TEST_F(TransactionTest, verifiers) {
-  TransactionManager trx_mgr(FullNodeConfig(), addr_t(), std::make_shared<DbStorage>(data_dir),
-                             TransactionManager::VerifyMode::skip_verify_sig);
+  TransactionManager trx_mgr(FullNodeConfig(), std::make_shared<DbStorage>(data_dir), nullptr, addr_t());
   // insert trx
   std::thread t([&trx_mgr]() {
     for (auto const& t : *g_trx_samples) {
@@ -135,8 +134,7 @@ TEST_F(TransactionTest, verifiers) {
 }
 
 TEST_F(TransactionTest, transaction_limit) {
-  TransactionManager trx_mgr(FullNodeConfig(), addr_t(), std::make_shared<DbStorage>(data_dir),
-                             TransactionManager::VerifyMode::skip_verify_sig);
+  TransactionManager trx_mgr(FullNodeConfig(), std::make_shared<DbStorage>(data_dir), nullptr, addr_t());
   // insert trx
   std::thread t([&trx_mgr]() {
     for (auto const& t : *g_trx_samples) {
@@ -161,7 +159,7 @@ TEST_F(TransactionTest, transaction_limit) {
 
 TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
   auto db = std::make_shared<DbStorage>(data_dir);
-  TransactionManager trx_mgr(FullNodeConfig(), addr_t(), db);
+  TransactionManager trx_mgr(FullNodeConfig(), db, nullptr, addr_t());
   std::thread insertTrx([&trx_mgr]() {
     for (auto const& t : *g_signed_trx_samples) {
       trx_mgr.insertTransaction(*t);
@@ -188,7 +186,7 @@ TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
 
 TEST_F(TransactionTest, transaction_concurrency) {
   auto db = std::make_shared<DbStorage>(data_dir);
-  TransactionManager trx_mgr(FullNodeConfig(), addr_t(), db);
+  TransactionManager trx_mgr(FullNodeConfig(), db, nullptr, addr_t());
   bool stopped = false;
   // Insert transactions to memory pool and keep trying to insert them again on separate thread, it should always fail
   std::thread insertTrx([&trx_mgr, &stopped]() {
