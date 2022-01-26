@@ -1192,18 +1192,22 @@ blk_hash_t PbftManager::proposePbftBlock_() {
   blk_hash_t last_period_dag_anchor_block_hash;
   auto last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
   if (last_pbft_block_hash) {
-    last_period_dag_anchor_block_hash = pbft_chain_->getPbftBlockInChain(last_pbft_block_hash).getPivotDagBlockHash();
-    auto chain_size = pbft_chain_->getPbftChainSize();
-    assert(chain_size > 0);
-    for (auto period_it = chain_size - 1; last_period_dag_anchor_block_hash == NULL_BLOCK_HASH; period_it--) {
-      if (period_it == 0) {
+    auto prev_block_hash = last_pbft_block_hash;
+    auto prev_pbft_block = pbft_chain_->getPbftBlockInChain(prev_block_hash);
+    last_period_dag_anchor_block_hash = prev_pbft_block.getPivotDagBlockHash();
+    while (!last_period_dag_anchor_block_hash) {
+      // The anchor is NULL BLOCK HASH
+      prev_block_hash = prev_pbft_block.getPrevBlockHash();
+      prev_pbft_block = pbft_chain_->getPbftBlockInChain(prev_block_hash);
+      if (!prev_block_hash) {
+        // The genesis PBFT block head
         last_period_dag_anchor_block_hash = dag_genesis_;
         break;
       }
-      last_period_dag_anchor_block_hash = db_->getPbftBlock(period_it)->getPivotDagBlockHash();
+      last_period_dag_anchor_block_hash = prev_pbft_block.getPivotDagBlockHash();
     }
   } else {
-    // First PBFT pivot block
+    // First PBFT block
     last_period_dag_anchor_block_hash = dag_genesis_;
   }
 
