@@ -1198,12 +1198,12 @@ blk_hash_t PbftManager::proposePbftBlock_() {
     while (!last_period_dag_anchor_block_hash) {
       // The anchor is NULL BLOCK HASH
       prev_block_hash = prev_pbft_block.getPrevBlockHash();
-      prev_pbft_block = pbft_chain_->getPbftBlockInChain(prev_block_hash);
       if (!prev_block_hash) {
         // The genesis PBFT block head
         last_period_dag_anchor_block_hash = dag_genesis_;
         break;
       }
+      prev_pbft_block = pbft_chain_->getPbftBlockInChain(prev_block_hash);
       last_period_dag_anchor_block_hash = prev_pbft_block.getPivotDagBlockHash();
     }
   } else {
