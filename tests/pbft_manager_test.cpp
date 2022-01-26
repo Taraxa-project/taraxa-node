@@ -205,9 +205,10 @@ TEST_F(PbftManagerTest, terminate_soft_voting_pbft_block) {
   pbft_mgr->setMaxWaitForSoftVotedBlock_ms(time_till_stale_ms);
   pbft_mgr->setMaxWaitForNextVotedBlock_ms(std::numeric_limits<uint64_t>::max());
 
-  std::cout << "Sleep " << time_till_stale_ms << "ms so that last soft voted value of " << stale_block_hash.abridged()
+  auto sleep_time = time_till_stale_ms + 100;
+  std::cout << "Sleep " << sleep_time << "ms so that last soft voted value of " << stale_block_hash.abridged()
             << " becomes stale..." << std::endl;
-  taraxa::thisThreadSleepForMilliSeconds(time_till_stale_ms);
+  taraxa::thisThreadSleepForMilliSeconds(sleep_time);
 
   std::cout << "Initialize PBFT manager at round 2 step 2" << std::endl;
   pbft_mgr->setPbftRound(2);
