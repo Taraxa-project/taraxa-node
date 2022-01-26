@@ -1496,6 +1496,38 @@ TEST_F(FullNodeTest, chain_config_json) {
             enc_json(ChainConfig::predefined("test")));
 }
 
+TEST_F(FullNodeTest, transaction_validation) {
+  auto node_cfgs = make_node_cfgs<5, true>(1);
+  auto nodes = launch_nodes(node_cfgs);
+  uint32_t nonce = 0;
+
+  auto trx = Transaction(nonce++, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
+  // PASS on GAS
+  EXPECT_TRUE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
+  trx = Transaction(nonce++, 1, 1, FinalChain::GAS_LIMIT + 1, str2bytes("00FEDCBA9876543210000000"), g_secret,
+                    addr_t::random());
+  // FAIL on GAS
+  EXPECT_FALSE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
+
+  trx = Transaction(nonce++, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
+  // PASS on NONCE
+  EXPECT_TRUE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
+  wait({60s, 200ms}, [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, nodes[0]->getDB()->getNumTransactionExecuted(), 2) });
+  trx = Transaction(0, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
+  // FAIL on NONCE
+  // THIS IS DISABLED BY DEFAULT check final_chain to enable
+  // EXPECT_FALSE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
+
+  trx = Transaction(nonce++, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
+  // PASS on BALANCE
+  EXPECT_TRUE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
+
+  trx = Transaction(nonce++, own_effective_genesis_bal(nodes[0]->getConfig()) + 1, 1, 100,
+                    str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
+  // FAIL on BALANCE
+  EXPECT_FALSE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
+}
+
 }  // namespace taraxa::core_tests
 
 int main(int argc, char **argv) {

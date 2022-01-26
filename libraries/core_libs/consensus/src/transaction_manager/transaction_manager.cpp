@@ -47,7 +47,7 @@ std::pair<bool, std::string> TransactionManager::verifyTransaction(const std::sh
   }
 
   // Ensure the transaction adheres to nonce ordering
-  if (final_chain_->is_nonce_stale(trx->getSender(), trx->getNonce())) {
+  if (!final_chain_->is_nonce_valid(trx->getSender(), trx->getNonce())) {
     return {false, "nonce too low"};
   }
 
