@@ -127,9 +127,6 @@ void PbftManager::run() {
 
 // Only to be used for tests...
 void PbftManager::resume() {
-  if (!stopped_.load()) daemon_->join();
-  stopped_ = false;
-
   // Will only appear in testing...
   LOG(log_si_) << "Resuming PBFT daemon...";
 
@@ -175,7 +172,7 @@ void PbftManager::resumeSingleState() {
     state_ = finish_polling_state;
   }
 
-  daemon_ = std::make_unique<std::thread>([this]() { doNextState_(); });
+  doNextState_();
 }
 
 // Only to be used for tests...
@@ -1559,19 +1556,18 @@ void PbftManager::finalize_(SyncBlock &&sync_block, std::vector<h256> &&finalize
         auto ptr = weak_ptr.lock();
         if (!ptr) return;  // it was destroyed
 
-        std::shared_ptr<ProposalPeriodDagLevelsMap> new_proposal_period_levels_map;
-        if (anchor_hash) {
-          auto anchor = dag_blk_mgr_->getDagBlock(anchor_hash);
-          if (!anchor) {
-            LOG(log_er_) << "DB corrupted - Cannot find anchor block: " << anchor_hash << " in DB.";
-            assert(false);
-          }
-
-          new_proposal_period_levels_map = dag_blk_mgr_->newProposePeriodDagLevelsMap(anchor->getLevel());
-        } else {
-          // PBFT block with NULL anchor
-          new_proposal_period_levels_map = dag_blk_mgr_->newProposePeriodDagLevelsMap();
+        if (!anchor_hash) {
+          // Null anchor don't update proposal period DAG levels map
+          return;
         }
+
+        auto anchor = dag_blk_mgr_->getDagBlock(anchor_hash);
+        if (!anchor) {
+          LOG(log_er_) << "DB corrupted - Cannot find anchor block: " << anchor_hash << " in DB.";
+          assert(false);
+        }
+
+        auto new_proposal_period_levels_map = dag_blk_mgr_->newProposePeriodDagLevelsMap(anchor->getLevel());
         db_->addProposalPeriodDagLevelsMapToBatch(*new_proposal_period_levels_map, batch);
         auto dpos_current_max_proposal_period = dag_blk_mgr_->getCurrentMaxProposalPeriod();
         db_->addDposProposalPeriodLevelsFieldToBatch(DposProposalPeriodLevelsStatus::MaxProposalPeriod,

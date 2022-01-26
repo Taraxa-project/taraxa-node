@@ -201,7 +201,7 @@ TEST_F(PbftManagerTest, terminate_soft_voting_pbft_block) {
   pbft_mgr->setLastSoftVotedValue(stale_block_hash);
 
   uint64_t time_till_stale_ms = 1000;
-  std::cout << "Set max wait for soft voted value to " << time_till_stale_ms << "ms...";
+  std::cout << "Set max wait for soft voted value to " << time_till_stale_ms << "ms..." << std::endl;
   pbft_mgr->setMaxWaitForSoftVotedBlock_ms(time_till_stale_ms);
   pbft_mgr->setMaxWaitForNextVotedBlock_ms(std::numeric_limits<uint64_t>::max());
 
@@ -213,12 +213,9 @@ TEST_F(PbftManagerTest, terminate_soft_voting_pbft_block) {
   pbft_mgr->setPbftRound(2);
   pbft_mgr->setPbftStep(2);
   pbft_mgr->resumeSingleState();
-
-  std::cout << "Wait to get to cert voted state in round 2..." << std::endl;
-  EXPECT_HAPPENS({2s, 50ms}, [&](auto &ctx) {
-    auto reached_step_three_in_round_two = (pbft_mgr->getPbftRound() == 2 && pbft_mgr->getPbftStep() == 3);
-    WAIT_EXPECT_EQ(ctx, reached_step_three_in_round_two, true)
-  });
+  std::cout << "Into cert voted state in round 2..." << std::endl;
+  EXPECT_EQ(pbft_mgr->getPbftRound(), 2);
+  EXPECT_EQ(pbft_mgr->getPbftStep(), 3);
 
   std::cout << "Check did not soft vote for stale soft voted value of " << stale_block_hash.abridged() << "..."
             << std::endl;

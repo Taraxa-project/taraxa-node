@@ -266,12 +266,6 @@ std::shared_ptr<ProposalPeriodDagLevelsMap> DagBlockManager::newProposePeriodDag
   assert(!period_levels_bytes.empty());
   ProposalPeriodDagLevelsMap last_period_levels_map(period_levels_bytes);
 
-  if (!anchor_level) {
-    // PBFT block with NULL anchor
-    last_period_levels_map.proposal_period = ++current_max_proposal_period_;
-    return std::make_shared<ProposalPeriodDagLevelsMap>(last_period_levels_map);
-  }
-
   auto propose_period = ++current_max_proposal_period_;
   auto level_start = last_period_levels_map.levels_interval.second + 1;
   auto level_end = anchor_level + last_period_levels_map.max_levels_per_period;
