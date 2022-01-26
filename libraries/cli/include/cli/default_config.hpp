@@ -207,7 +207,7 @@ const char *default_json = R"foo({
           "111f91441efc8c6c0edf6534970cc887e2fabaa8": "0x24048ce3d"
         },
         "hardforks": {
-          "fix_genesis_fork_block": "0x493E0"
+          "fix_genesis_fork_block": "0x64"
         }
       }
     },
@@ -228,7 +228,7 @@ const char *default_json = R"foo({
       "changing_interval": "0x0",
       "computation_interval": "0xC8",
       "vrf": {
-        "threshold_upper": "0x1770",
+        "threshold_upper": "0xf770",
         "threshold_range": "0xbb8"
       },
       "vdf": {

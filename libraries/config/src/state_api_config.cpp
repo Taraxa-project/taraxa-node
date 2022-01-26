@@ -81,9 +81,9 @@ Json::Value enc_json(DPOSConfig const& obj) {
 
 void dec_json(Json::Value const& json, DPOSConfig& obj) {
   obj.eligibility_balance_threshold = dev::jsToU256(json["eligibility_balance_threshold"].asString());
-  obj.deposit_delay = dev::jsToInt(json["deposit_delay"].asString());
-  obj.withdrawal_delay = dev::jsToInt(json["withdrawal_delay"].asString());
-  obj.vote_eligibility_balance_step = dev::jsToInt(json["vote_eligibility_balance_step"].asString());
+  obj.deposit_delay = dev::getUInt(json["deposit_delay"].asString());
+  obj.withdrawal_delay = dev::getUInt(json["withdrawal_delay"].asString());
+  obj.vote_eligibility_balance_step = dev::jsToU256(json["vote_eligibility_balance_step"].asString());
   auto const& genesis_state = json["genesis_state"];
   for (auto const& k : genesis_state.getMemberNames()) {
     dec_json(genesis_state[k], obj.genesis_state[addr_t(k)]);

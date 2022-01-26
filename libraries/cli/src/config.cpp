@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include "cli/tools.hpp"
+#include "common/jsoncpp.hpp"
 #include "config/version.hpp"
 
 using namespace std;
@@ -157,12 +158,12 @@ Config::Config(int argc, const char* argv[]) {
       Tools::generateWallet(wallet);
     }
 
-    Json::Value config_json = Tools::readJsonFromFile(config);
-    Json::Value wallet_json = Tools::readJsonFromFile(wallet);
+    Json::Value config_json = util::readJsonFromFile(config);
+    Json::Value wallet_json = util::readJsonFromFile(wallet);
 
-    auto override_config_file = [&]() {
-      Tools::writeJsonToFile(config, config_json);
-      Tools::writeJsonToFile(wallet, wallet_json);
+    auto write_config_and_wallet_files = [&]() {
+      util::writeJsonToFile(config, config_json);
+      util::writeJsonToFile(wallet, wallet_json);
     };
 
     // Check that it is not empty, to not create chain config with just overwritten files
@@ -176,7 +177,7 @@ Config::Config(int argc, const char* argv[]) {
         config_json["chain_config"]["final_chain"]["state"]["dpos"]["vote_eligibility_balance_step"] =
             default_config_json["chain_config"]["final_chain"]["state"]["dpos"]["vote_eligibility_balance_step"];
       }
-      override_config_file();
+      write_config_and_wallet_files();
     }
 
     // Override config values with values from CLI
@@ -193,11 +194,11 @@ Config::Config(int argc, const char* argv[]) {
     // or if running config command
     // This can overwrite secret keys in wallet
     if (overwrite_config || command[0] == CONFIG_COMMAND) {
-      override_config_file();
+      write_config_and_wallet_files();
     }
 
     // Load config
-    node_config_ = FullNodeConfig(config_json, wallet_json);
+    node_config_ = FullNodeConfig(config_json, wallet_json, config);
 
     // Validate config values
     node_config_.validate();

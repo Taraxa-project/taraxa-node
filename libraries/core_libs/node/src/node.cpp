@@ -193,18 +193,18 @@ void FullNode::start() {
       if (state_conf.hardforks.fix_genesis_fork_block == block_num) {
         for (auto &e : state_conf.dpos->genesis_state) {
           for (auto &b : e.second) {
-            b.second = b.second * kOneTara;
+            b.second *= kOneTara;
           }
         }
         for (auto &b : state_conf.genesis_balances) {
-          b.second = b.second * kOneTara;
+          b.second *= kOneTara;
         }
         // we are multiplying it by TARA precision
         state_conf.dpos->eligibility_balance_threshold *= kOneTara;
         // amount of stake per vote should be 10 times smaller than eligibility threshold
-        state_conf.dpos->vote_eligibility_balance_step = state_conf.dpos->eligibility_balance_threshold;
+        state_conf.dpos->vote_eligibility_balance_step.assign(state_conf.dpos->eligibility_balance_threshold);
         state_conf.dpos->eligibility_balance_threshold *= 10;
-
+        conf_.overwrite_chain_config_in_file();
         final_chain_->update_state_config(state_conf);
       }
     });
