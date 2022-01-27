@@ -738,18 +738,10 @@ bool PbftManager::updateSoftVotedBlockForThisRound_() {
 
     if (soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH && soft_voted_block_for_this_round_.second) {
       // Have enough soft votes for a value other other than NULL BLOCK HASH...
-
-      if (state_ == finish_polling_state) {
-        LOG(log_dg_) << "Node has seen enough soft votes voted at " << soft_voted_block_for_this_round_.first
-                     << ", regossip soft votes. In round " << round;
-        if (auto net = network_.lock()) {
-          net->onNewPbftVotes(move(voted_block_hash_with_soft_votes.votes));
-        }
-      }
-
       return true;
     }
   }
+
   return false;
 }
 
@@ -1035,6 +1027,18 @@ void PbftManager::secondFinish_() {
   auto end_time_for_step = (2 + step_ - startingStepInRound_) * LAMBDA_ms - POLLING_INTERVAL_ms;
 
   updateSoftVotedBlockForThisRound_();
+  if (soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH && soft_voted_block_for_this_round_.second) {
+    // Have enough soft votes for a voting value other than NULL BLOCK HASH
+    LOG(log_dg_) << "Node has seen enough soft votes voted at " << soft_voted_block_for_this_round_.first
+                 << ", regossip soft votes. In round " << round << " step " << step_;
+    auto voted_block_hash_with_soft_votes = vote_mgr_->getVotesBundleByRoundAndStep(round, 2, TWO_T_PLUS_ONE);
+    assert(voted_block_hash_with_soft_votes.voted_block_hash != NULL_BLOCK_HASH);
+    assert(voted_block_hash_with_soft_votes.enough);
+
+    if (auto net = network_.lock()) {
+      net->onNewPbftVotes(move(voted_block_hash_with_soft_votes.votes));
+    }
+  }
 
   // We only want to give up soft voted value IF:
   // 1) haven't cert voted it
