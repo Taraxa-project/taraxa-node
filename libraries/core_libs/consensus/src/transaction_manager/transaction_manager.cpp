@@ -22,7 +22,10 @@ TransactionManager::TransactionManager(FullNodeConfig const &conf, std::shared_p
                                        std::shared_ptr<FinalChain> final_chain, addr_t node_addr)
     : conf_(conf), seen_txs_(200000 /*capacity*/, 2000 /*delete step*/), db_(db), final_chain_(final_chain) {
   LOG_OBJECTS_CREATE("TRXMGR");
-  trx_count_ = db_->getStatusField(taraxa::StatusDbField::TrxCount);
+  {
+    std::unique_lock transactions_lock(transactions_mutex_);
+    trx_count_ = db_->getStatusField(taraxa::StatusDbField::TrxCount);
+  }
 }
 
 std::pair<bool, std::string> TransactionManager::verifyTransaction(const std::shared_ptr<Transaction> &trx) const {
@@ -142,13 +145,15 @@ uint32_t TransactionManager::insertValidatedTransactions(const SharedTransaction
     LOG(log_dg_) << "Transaction " << trx->getHash() << " inserted in trx pool";
     if (transactions_pool_.emplace(trx->getHash(), trx).second) {
       trx_inserted_count++;
-      transactions_pool_changed_ = true;
     }
   }
   return trx_inserted_count;
 }
 
-unsigned long TransactionManager::getTransactionCount() const { return trx_count_; }
+unsigned long TransactionManager::getTransactionCount() const {
+  std::shared_lock shared_transactions_lock(transactions_mutex_);
+  return trx_count_;
+}
 
 std::pair<std::vector<std::shared_ptr<Transaction>>, std::vector<trx_hash_t>> TransactionManager::getPoolTransactions(
     const std::vector<trx_hash_t> &trx_to_query) const {
