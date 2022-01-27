@@ -8,16 +8,6 @@
 #include "transaction/transaction.hpp"
 
 namespace taraxa {
-auto trxComp = [](std::shared_ptr<Transaction> const &t1, std::shared_ptr<Transaction> const &t2) -> bool {
-  if (t1->getSender() < t2->getSender())
-    return true;
-  else if (t1->getSender() == t2->getSender()) {
-    return t1->getNonce() < t2->getNonce();
-  } else {
-    return false;
-  }
-};
-
 TransactionManager::TransactionManager(FullNodeConfig const &conf, std::shared_ptr<DbStorage> db,
                                        std::shared_ptr<FinalChain> final_chain, addr_t node_addr)
     : conf_(conf), seen_txs_(200000 /*capacity*/, 2000 /*delete step*/), db_(db), final_chain_(final_chain) {
@@ -143,7 +133,7 @@ uint32_t TransactionManager::insertValidatedTransactions(const SharedTransaction
   // Save transactions in memory pool
   for (auto const &trx : unseen_txs) {
     LOG(log_dg_) << "Transaction " << trx->getHash() << " inserted in trx pool";
-    if (transactions_pool_.emplace(trx->getHash(), trx).second) {
+    if (transactions_pool_.insert(trx)) {
       trx_inserted_count++;
     }
   }
@@ -160,9 +150,9 @@ std::pair<std::vector<std::shared_ptr<Transaction>>, std::vector<trx_hash_t>> Tr
   std::shared_lock transactions_lock(transactions_mutex_);
   std::pair<std::vector<std::shared_ptr<Transaction>>, std::vector<trx_hash_t>> result;
   for (const auto &hash : trx_to_query) {
-    auto trx_it = transactions_pool_.find(hash);
-    if (trx_it != transactions_pool_.end()) {
-      result.first.emplace_back(trx_it->second);
+    auto trx = transactions_pool_.get(hash);
+    if (trx) {
+      result.first.emplace_back(trx);
     } else {
       result.second.emplace_back(hash);
     }
@@ -172,9 +162,9 @@ std::pair<std::vector<std::shared_ptr<Transaction>>, std::vector<trx_hash_t>> Tr
 
 std::shared_ptr<Transaction> TransactionManager::getTransaction(trx_hash_t const &hash) const {
   std::shared_lock transactions_lock(transactions_mutex_);
-  auto trx_it = transactions_pool_.find(hash);
-  if (trx_it != transactions_pool_.end()) {
-    return trx_it->second;
+  auto trx = transactions_pool_.get(hash);
+  if (trx) {
+    return trx;
   }
   return db_->getTransaction(hash);
 }
@@ -229,17 +219,6 @@ void TransactionManager::recoverNonfinalizedTransactions() {
   db_->commitWriteBatch(write_batch);
 }
 
-SharedTransactions TransactionManager::getTransactionsSnapShot() const {
-  SharedTransactions ret;
-  ret.reserve(transactions_pool_.size());
-  {
-    std::shared_lock transactions_lock(transactions_mutex_);
-    std::transform(transactions_pool_.begin(), transactions_pool_.end(), std::back_inserter(ret),
-                   [](const auto &pair) { return pair.second; });
-  }
-  return ret;
-}
-
 size_t TransactionManager::getTransactionPoolSize() const {
   std::shared_lock transactions_lock(transactions_mutex_);
   return transactions_pool_.size();
@@ -254,26 +233,8 @@ size_t TransactionManager::getNonfinalizedTrxSize() const {
  * Retrieve transactions to be included in proposed block
  */
 SharedTransactions TransactionManager::packTrxs(uint16_t max_trx_to_pack) {
-  SharedTransactions to_be_packed_trx;
-  if (max_trx_to_pack == 0) {
-    to_be_packed_trx = getTransactionsSnapShot();
-  } else {
-    to_be_packed_trx.reserve(max_trx_to_pack);
-    {
-      uint16_t count = 0;
-      std::shared_lock transactions_lock(transactions_mutex_);
-      for ([[maybe_unused]] const auto &[hash, trx] : transactions_pool_) {
-        if (max_trx_to_pack == count) break;
-        to_be_packed_trx.push_back(trx);
-        count++;
-      }
-    }
-  }
-
-  // sort trx based on sender and nonce
-  std::sort(to_be_packed_trx.begin(), to_be_packed_trx.end(), trxComp);
-
-  return to_be_packed_trx;
+  std::shared_lock transactions_lock(transactions_mutex_);
+  return transactions_pool_.get(max_trx_to_pack);
 }
 
 /**
@@ -304,7 +265,7 @@ bool TransactionManager::checkBlockTransactions(DagBlock const &blk) {
   {
     std::shared_lock transactions_lock(transactions_mutex_);
     for (auto const &tx_hash : blk.getTrxs()) {
-      if (transactions_pool_.contains(tx_hash) == 0 && nonfinalized_transactions_in_dag_.contains(tx_hash) == 0 &&
+      if (!transactions_pool_.contains(tx_hash) && !nonfinalized_transactions_in_dag_.contains(tx_hash) &&
           !db_->transactionFinalized(tx_hash)) {
         LOG(log_er_) << "Block " << blk.getHash() << " has missing transaction " << tx_hash;
         return false;

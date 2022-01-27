@@ -218,9 +218,8 @@ TEST_F(TransactionTest, transaction_concurrency) {
   insertTrx.join();
 
   // Verify all transactions are in correct state in pool, db and finalized
-  auto trx_pool = trx_mgr.getTransactionsSnapShot();
   std::set<trx_hash_t> pool_trx_hashes;
-  for (auto const& t : trx_mgr.getTransactionsSnapShot()) {
+  for (auto const& t : trx_mgr.packTrxs()) {
     pool_trx_hashes.insert(t->getHash());
   }
 
