@@ -137,8 +137,7 @@ TEST_F(DagTest, genesis_get_pivot) {
 TEST_F(DagTest, compute_epoch) {
   const blk_hash_t GENESIS("0000000000000000000000000000000000000000000000000000000000000001");
   auto db_ptr = std::make_shared<DbStorage>(data_dir / "db");
-  auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), addr_t(), db_ptr,
-                                                      TransactionManager::VerifyMode::skip_verify_sig);
+  auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), db_ptr, nullptr, addr_t());
   auto mgr =
       std::make_shared<DagManager>(GENESIS, addr_t(), trx_mgr, nullptr,
                                    std::make_shared<DagBlockManager>(addr_t(), node_cfgs[0].chain.sortition,
@@ -224,8 +223,7 @@ TEST_F(DagTest, compute_epoch) {
 TEST_F(DagTest, receive_block_in_order) {
   const blk_hash_t GENESIS("000000000000000000000000000000000000000000000000000000000000000a");
   auto db_ptr = std::make_shared<DbStorage>(data_dir / "db");
-  auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), addr_t(), db_ptr,
-                                                      TransactionManager::VerifyMode::skip_verify_sig);
+  auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), db_ptr, nullptr, addr_t());
   auto mgr =
       std::make_shared<DagManager>(GENESIS, addr_t(), trx_mgr, nullptr,
                                    std::make_shared<DagBlockManager>(addr_t(), node_cfgs[0].chain.sortition,
@@ -261,8 +259,7 @@ TEST_F(DagTest, receive_block_in_order) {
 TEST_F(DagTest, compute_epoch_2) {
   const blk_hash_t GENESIS("0000000000000000000000000000000000000000000000000000000000000001");
   auto db_ptr = std::make_shared<DbStorage>(data_dir / "db");
-  auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), addr_t(), db_ptr,
-                                                      TransactionManager::VerifyMode::skip_verify_sig);
+  auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), db_ptr, nullptr, addr_t());
   auto mgr =
       std::make_shared<DagManager>(GENESIS, addr_t(), trx_mgr, nullptr,
                                    std::make_shared<DagBlockManager>(addr_t(), node_cfgs[0].chain.sortition,
@@ -340,8 +337,7 @@ TEST_F(DagTest, compute_epoch_2) {
 TEST_F(DagTest, get_latest_pivot_tips) {
   const blk_hash_t GENESIS("0000000000000000000000000000000000000000000000000000000000000001");
   auto db_ptr = std::make_shared<DbStorage>(data_dir / "db");
-  auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), addr_t(), db_ptr,
-                                                      TransactionManager::VerifyMode::skip_verify_sig);
+  auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), db_ptr, nullptr, addr_t());
   auto mgr =
       std::make_shared<DagManager>(GENESIS, addr_t(), trx_mgr, nullptr,
                                    std::make_shared<DagBlockManager>(addr_t(), node_cfgs[0].chain.sortition,

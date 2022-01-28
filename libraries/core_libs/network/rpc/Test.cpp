@@ -128,38 +128,6 @@ Json::Value Test::send_coin_transaction(const Json::Value &param1) {
   return res;
 }
 
-Json::Value Test::create_test_coin_transactions(const Json::Value &param1) {
-  Json::Value res;
-  try {
-    if (auto node = full_node_.lock()) {
-      auto &log_time = node->getTimeLogger();
-      uint delay = param1["delay"].asUInt();
-      uint number = param1["number"].asUInt();
-      auto nonce = dev::jsToInt(param1["nonce"].asString());
-      addr_t receiver = addr_t(param1["receiver"].asString());
-      secret_t sk = node->getSecretKey();
-      if (!param1["secret"].empty() && !param1["secret"].asString().empty()) {
-        sk = secret_t(param1["secret"].asString());
-      }
-      // get trx receiving time stamp
-      uint i = 0;
-      while (i < number) {
-        auto now = getCurrentTimeMilliSeconds();
-        val_t value = val_t(100);
-        auto trx = taraxa::Transaction(i + nonce, value, 1000, 0, bytes(), sk, receiver);
-        LOG(log_time) << "Transaction " << trx.getHash() << " received at: " << now;
-        node->getTransactionManager()->insertTransaction(trx);
-        thisThreadSleepForMicroSeconds(delay);
-        i++;
-      }
-      res = "Creating " + std::to_string(number) + " transactions ...";
-    }
-  } catch (std::exception &e) {
-    res["status"] = e.what();
-  }
-  return res;
-}
-
 Json::Value Test::get_num_proposed_blocks() {
   Json::Value res;
   try {

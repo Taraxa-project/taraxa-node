@@ -136,7 +136,6 @@ inline SharedTransactions createSignedTrxSamples(unsigned start, unsigned num, s
   assert(start + num < std::numeric_limits<unsigned>::max());
   SharedTransactions trxs;
   for (auto i = start; i < num; ++i) {
-    blk_hash_t hash(i);
     trxs.emplace_back(std::make_shared<Transaction>(i, i * 100, 0, 1000000, data, sk, addr_t((i + 1) * 100)));
   }
   return trxs;

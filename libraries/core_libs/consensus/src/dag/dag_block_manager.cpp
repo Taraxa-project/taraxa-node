@@ -234,7 +234,7 @@ void DagBlockManager::verifyBlock() {
 
     // Verify transactions
     if (!trx_mgr_->checkBlockTransactions(blk)) {
-      LOG(log_er_) << "Ignore block " << block_hash << " since it has invalid or missing transactions";
+      LOG(log_er_) << "Ignore block " << block_hash << " since it has missing transactions";
       // This can be a valid block so just remove it from the seen list
       seen_blocks_.erase(block_hash);
       continue;

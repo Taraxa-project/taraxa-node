@@ -59,6 +59,7 @@ struct Transaction {
   auto const &getReceiver() const { return receiver_; }
   auto getChainID() const { return chain_id_; }
   auto const &getVRS() const { return vrs_; }
+  auto getCost() const { return gas_price_ * gas_ + value_; }
 
   bool operator==(Transaction const &other) const { return getHash() == other.getHash(); }
 

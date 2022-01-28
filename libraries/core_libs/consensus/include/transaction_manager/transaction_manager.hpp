@@ -2,6 +2,7 @@
 
 #include "common/event.hpp"
 #include "config/config.hpp"
+#include "final_chain/final_chain.hpp"
 #include "logger/logger.hpp"
 #include "storage/storage.hpp"
 #include "transaction/transaction.hpp"
@@ -20,10 +21,8 @@ class FullNode;
  */
 class TransactionManager : public std::enable_shared_from_this<TransactionManager> {
  public:
-  enum class VerifyMode : uint8_t { normal, skip_verify_sig };
-
-  TransactionManager(FullNodeConfig const &conf, addr_t node_addr, std::shared_ptr<DbStorage> db,
-                     VerifyMode mode = VerifyMode::normal);
+  TransactionManager(FullNodeConfig const &conf, std::shared_ptr<DbStorage> db, std::shared_ptr<FinalChain> final_chain,
+                     addr_t node_addr);
 
   /**
    * Retrieves transactions to be included in a proposed pbft block
@@ -36,7 +35,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   void saveTransactionsFromDagBlock(SharedTransactions const &trxs);
 
   /**
-   * @brief Inserts new transaction to transaction pool
+   * @brief Inserts and verify new transaction to transaction pool
    *
    * @param trx transaction to be processed
    * @return std::pair<bool, std::string> -> pair<OK status, ERR message>
@@ -44,21 +43,21 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   std::pair<bool, std::string> insertTransaction(Transaction const &trx);
 
   /**
-   * @brief Inserts batch of unverified broadcasted transactions to transaction pool
+   * @brief Inserts batch of verified transactions to transaction pool
    *
    * @note Some of the transactions might be already processed -> they are not processed and inserted again
    * @param txs transactions to be processed
    * @return number of successfully inserted unseen transactions
    */
-  uint32_t insertBroadcastedTransactions(const SharedTransactions &txs);
+  uint32_t insertValidatedTransactions(const SharedTransactions &txs);
 
   /**
-   * @brief Checks the cache if transaction is already seen
+   * @brief Marks transaction as seen and returns if was seen before
    *
    * @param trx_hash transaction hash
    * @return true if seen
    */
-  bool transactionSeen(const trx_hash_t &trx_hash) const;
+  bool markTransactionSeen(const trx_hash_t &trx_hash);
 
   /**
    * Returns a copy of transactions pool
@@ -106,6 +105,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   std::shared_ptr<Transaction> getNonFinalizedTransaction(trx_hash_t const &hash) const;
   unsigned long getTransactionCount() const;
   void recoverNonfinalizedTransactions();
+  std::pair<bool, std::string> verifyTransaction(const std::shared_ptr<Transaction> &trx) const;
 
  private:
   /**
@@ -116,28 +116,24 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   bool checkMemoryPoolOverflow();
 
   addr_t getFullNodeAddress() const;
-  std::pair<bool, std::string> verifyTransaction(Transaction const &trx) const;
 
  public:
   util::Event<TransactionManager, h256> const transaction_accepted_{};
 
  private:
-  const VerifyMode mode_;
   const FullNodeConfig conf_;
-
-  std::atomic_uint64_t trx_count_ = 0;
-
-  ThreadSafeMap<trx_hash_t, std::shared_ptr<Transaction>> transactions_pool_;
-  ThreadSafeSet<trx_hash_t> nonfinalized_transactions_in_dag_;
-  ExpirationCache<trx_hash_t> seen_txs_;
-  mutable bool transactions_pool_changed_ = true;
-
-  std::shared_ptr<DbStorage> db_{nullptr};
-
   // Guards updating transaction status
   // Transactions can be in one of three states:
   // 1. In transactions pool; 2. In non-finalized Dag block 3. Executed
   mutable std::shared_mutex transactions_mutex_;
+  std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> transactions_pool_;
+  std::unordered_set<trx_hash_t> nonfinalized_transactions_in_dag_;
+  uint64_t trx_count_ = 0;
+
+  ExpirationCache<trx_hash_t> seen_txs_;
+
+  std::shared_ptr<DbStorage> db_{nullptr};
+  std::shared_ptr<FinalChain> final_chain_{nullptr};
 
   LOG_OBJECTS_DEFINE
 };
