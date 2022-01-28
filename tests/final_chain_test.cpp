@@ -160,6 +160,10 @@ TEST_F(FinalChainTest, genesis_balances) {
   cfg.state.genesis_balances[addr_t::random()] = 1000;
   cfg.state.genesis_balances[addr_t::random()] = 100000;
   init();
+}
+
+TEST_F(FinalChainTest, update_state_config) {
+  init();
   cfg.state.hardforks.fix_genesis_fork_block = 2222222;
   SUT->update_state_config(cfg.state);
 }

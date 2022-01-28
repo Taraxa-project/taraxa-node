@@ -434,6 +434,13 @@ TEST_F(VoteTest, vote_count_compare) {
     auto threshold = 100000;
     EXPECT_EQ(vote_count_old(balance, threshold), vote_count_new(balance, threshold, threshold));
   }
+
+  {
+    auto step = 100000;
+    auto threshold = 1000000;
+    auto balance = u256(7 * step);
+    EXPECT_EQ(vote_count_old(balance, threshold), vote_count_new(balance, threshold, threshold));
+  }
 }
 
 }  // namespace taraxa::core_tests
