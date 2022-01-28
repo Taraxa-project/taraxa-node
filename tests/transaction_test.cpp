@@ -9,6 +9,7 @@
 #include "common/static_init.hpp"
 #include "logger/logger.hpp"
 #include "transaction_manager/transaction_manager.hpp"
+#include "transaction_manager/transaction_queue.hpp"
 #include "util_test/samples.hpp"
 
 namespace taraxa::core_tests {
@@ -240,6 +241,42 @@ TEST_F(TransactionTest, transaction_concurrency) {
   for (size_t i = g_signed_trx_samples->size() * 2 / 3; i < g_signed_trx_samples->size(); i++) {
     EXPECT_TRUE(pool_trx_hashes.count(g_signed_trx_samples[i]->getHash()) > 0);
     EXPECT_FALSE(db->transactionInDb(g_signed_trx_samples[i]->getHash()));
+  }
+}
+
+TEST_F(TransactionTest, priority_queue) {
+  // Check ordering by same sender and different nonce
+  {
+    TransactionQueue priority_queue;
+    uint32_t nonce = 0;
+    auto trx = Transaction(nonce++, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
+    auto trx2 = Transaction(nonce, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
+    priority_queue.insert(std::make_shared<Transaction>(trx2));
+    priority_queue.insert(std::make_shared<Transaction>(trx));
+    EXPECT_EQ(priority_queue.get(1)[0]->getHash(), trx.getHash());
+    EXPECT_EQ(priority_queue.size(), 2);
+  }
+
+  // Check double insertion
+  {
+    TransactionQueue priority_queue;
+    uint32_t nonce = 0;
+    auto trx = Transaction(nonce, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
+    EXPECT_TRUE(priority_queue.insert(std::make_shared<Transaction>(trx)));
+    EXPECT_FALSE(priority_queue.insert(std::make_shared<Transaction>(trx)));
+    EXPECT_EQ(priority_queue.size(), 1);
+  }
+
+  // Check ordering by same sender, same nonce but different gas_price
+  {
+    TransactionQueue priority_queue;
+    uint32_t nonce = 0;
+    auto trx = Transaction(nonce, 1, 10, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
+    auto trx2 = Transaction(nonce, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
+    priority_queue.insert(std::make_shared<Transaction>(trx2));
+    priority_queue.insert(std::make_shared<Transaction>(trx));
+    EXPECT_EQ(priority_queue.get(1)[0]->getHash(), trx.getHash());
+    EXPECT_EQ(priority_queue.size(), 2);
   }
 }
 

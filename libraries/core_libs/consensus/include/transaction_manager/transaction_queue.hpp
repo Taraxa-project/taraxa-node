@@ -19,7 +19,7 @@ class TransactionQueue {
  private:
   struct PriorityCompare {
     TransactionQueue& queue;
-    /// Compare transaction by nonce height and gas price.
+    // Compare transaction by nonce height and gas price.
     bool operator()(const std::shared_ptr<Transaction>& first, const std::shared_ptr<Transaction>& second) const {
       const auto& height1 = first->getNonce() - queue.nonce_queue_[first->getSender()].begin()->first;
       const auto& height2 = second->getNonce() - queue.nonce_queue_[second->getSender()].begin()->first;
