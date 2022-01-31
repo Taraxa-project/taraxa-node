@@ -2,7 +2,16 @@
 
 namespace taraxa {
 
-TransactionQueue::TransactionQueue() : priority_queue_{PriorityCompare{*this}} {}
+auto priorityComparator = [](const std::shared_ptr<Transaction> &first, const std::shared_ptr<Transaction> &second) {
+  if (first->getSender() == second->getSender()) {
+    return first->getNonce() < second->getNonce() ||
+           (first->getNonce() == second->getNonce() && first->getGasPrice() > second->getGasPrice());
+  } else {
+    return first->getGasPrice() > second->getGasPrice();
+  }
+};
+
+TransactionQueue::TransactionQueue() : priority_queue_{priorityComparator} {}
 
 size_t TransactionQueue::size() const { return hash_queue_.size(); }
 
@@ -37,12 +46,6 @@ bool TransactionQueue::erase(const trx_hash_t &hash) {
   const auto it = hash_queue_.find(hash);
   if (it == hash_queue_.end()) return false;
 
-  // Remove trx from nonce map
-  const auto nonce_it = nonce_queue_.find((*it->second)->getSender());
-  nonce_it->second.erase((*it->second)->getNonce());
-  // Remove even address from nonce map
-  if (nonce_it->second.empty()) nonce_queue_.erase(nonce_it);
-
   // Clean the rest
   priority_queue_.erase(it->second);
   hash_queue_.erase(it);
@@ -52,14 +55,11 @@ bool TransactionQueue::erase(const trx_hash_t &hash) {
 bool TransactionQueue::insert(const std::shared_ptr<Transaction> &transaction) {
   assert(transaction);
   if (hash_queue_.contains(transaction->getHash())) return false;
-  // First we need to insert it in nonce map, so compare works fine
-  auto nonce_it = nonce_queue_[transaction->getSender()].emplace(
-      std::make_pair(transaction->getNonce(), PriorityQueue::iterator()));
+
   const auto it = priority_queue_.insert(transaction);
-  // This assert is here to check if PriorityCompare works correctly. If object is not inserted, then there could be
+  // This assert is here to check if priorityComparator works correctly. If object is not inserted, then there could be
   // something wrong with comparator
   assert(it != priority_queue_.end());
-  nonce_it.first->second = it;
   hash_queue_[transaction->getHash()] = it;
   return true;
 }

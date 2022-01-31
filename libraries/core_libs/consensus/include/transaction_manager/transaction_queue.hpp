@@ -62,24 +62,11 @@ class TransactionQueue {
   size_t size() const;
 
  private:
-  struct PriorityCompare {
-    TransactionQueue& queue;
-    // Compare transaction by nonce height and gas price.
-    bool operator()(const std::shared_ptr<Transaction>& first, const std::shared_ptr<Transaction>& second) const {
-      const auto& height1 = first->getNonce() - queue.nonce_queue_[first->getSender()].begin()->first;
-      const auto& height2 = second->getNonce() - queue.nonce_queue_[second->getSender()].begin()->first;
-      if (first->getSender() == second->getSender()) {
-        return height1 < height2 || (height1 == height2 && first->getGasPrice() > second->getGasPrice());
-      } else {
-        return first->getGasPrice() > second->getGasPrice();
-      }
-    }
-  };
+  typedef std::function<bool(const std::shared_ptr<Transaction>&, const std::shared_ptr<Transaction>&)> ComperType;
   // It has to be multiset as two trx could have same value (nonce and gas price)
-  using PriorityQueue = std::multiset<std::shared_ptr<Transaction>, PriorityCompare>;
+  using PriorityQueue = std::multiset<std::shared_ptr<Transaction>, ComperType>;
   PriorityQueue priority_queue_;
   std::unordered_map<trx_hash_t, PriorityQueue::iterator> hash_queue_;
-  std::unordered_map<addr_t, std::map<u256, PriorityQueue::iterator>> nonce_queue_;
 };
 
 }  // namespace taraxa
