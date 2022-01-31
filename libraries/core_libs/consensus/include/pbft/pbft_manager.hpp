@@ -79,6 +79,11 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   void setMaxWaitForSoftVotedBlock_ms(uint64_t wait_ms);
   void setMaxWaitForNextVotedBlock_ms(uint64_t wait_ms);
 
+  static blk_hash_t calculateOrderHash(std::vector<blk_hash_t> const &dag_block_hashes,
+                                       std::vector<trx_hash_t> const &trx_hashes);
+  static blk_hash_t calculateOrderHash(std::vector<DagBlock> const &dag_blocks,
+                                       std::vector<Transaction> const &transactions);
+
  private:
   // DPOS
   void updateDposState_();
@@ -139,10 +144,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   void updateLastSoftVotedValue_(blk_hash_t const new_soft_voted_value);
   void checkPreviousRoundNextVotedValueChange_();
   bool updateSoftVotedBlockForThisRound_();
-
-  blk_hash_t calculateOrderHash(std::vector<blk_hash_t> const &dag_block_hashes,
-                                std::vector<trx_hash_t> const &trx_hashes);
-  blk_hash_t calculateOrderHash(std::vector<DagBlock> const &dag_blocks, std::vector<Transaction> const &transactions);
 
   std::optional<SyncBlock> processSyncBlock();
 
