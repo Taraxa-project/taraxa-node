@@ -21,7 +21,7 @@ class TransactionQueue {
   bool insert(const std::shared_ptr<Transaction>& transaction);
 
   /**
-   * @brief removed transaction from queue
+   * @brief remove transaction from queue
    *
    * @param hash
    * @return true
@@ -68,7 +68,11 @@ class TransactionQueue {
     bool operator()(const std::shared_ptr<Transaction>& first, const std::shared_ptr<Transaction>& second) const {
       const auto& height1 = first->getNonce() - queue.nonce_queue_[first->getSender()].begin()->first;
       const auto& height2 = second->getNonce() - queue.nonce_queue_[second->getSender()].begin()->first;
-      return height1 < height2 || (height1 == height2 && first->getGasPrice() > second->getGasPrice());
+      if (first->getSender() == second->getSender()) {
+        return height1 < height2 || (height1 == height2 && first->getGasPrice() > second->getGasPrice());
+      } else {
+        return first->getGasPrice() > second->getGasPrice();
+      }
     }
   };
   // It has to be multiset as two trx could have same value (nonce and gas price)

@@ -278,6 +278,31 @@ TEST_F(TransactionTest, priority_queue) {
     EXPECT_EQ(priority_queue.get(1)[0]->getHash(), trx.getHash());
     EXPECT_EQ(priority_queue.size(), 2);
   }
+
+  /*
+  sender A:
+  - TXA1, nonce 1, fee 5
+  - TXA2, nonce 2, fee 6
+  sender B
+  - TXB1, nonce 1, fee 4
+  Should be TXA1, TXB1, TXA2
+  */
+  {
+    TransactionQueue priority_queue;
+    auto trxa1 =
+        Transaction(1 /*nonce*/, 1, 5 /*fee*/, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
+    auto trxa2 =
+        Transaction(2 /*nonce*/, 1, 6 /*fee*/, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
+    auto trxb1 = Transaction(1 /*nonce*/, 1, 4 /*fee*/, 100, str2bytes("00FEDCBA9876543210000000"), secret_t::random(),
+                             addr_t::random());
+    priority_queue.insert(std::make_shared<Transaction>(trxb1));
+    priority_queue.insert(std::make_shared<Transaction>(trxa2));
+    priority_queue.insert(std::make_shared<Transaction>(trxa1));
+    EXPECT_EQ(priority_queue.size(), 3);
+    EXPECT_EQ(priority_queue.get(3)[0]->getHash(), trxa1.getHash());
+    EXPECT_EQ(priority_queue.get(3)[1]->getHash(), trxa2.getHash());
+    EXPECT_EQ(priority_queue.get(3)[2]->getHash(), trxb1.getHash());
+  }
 }
 
 }  // namespace taraxa::core_tests
