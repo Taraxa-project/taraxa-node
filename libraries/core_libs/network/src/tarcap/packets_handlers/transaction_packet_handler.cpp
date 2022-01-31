@@ -1,6 +1,7 @@
 #include "network/tarcap/packets_handlers/transaction_packet_handler.hpp"
 
 #include "dag/dag_block_manager.hpp"
+#include "network/tarcap/shared_states/syncing_state.hpp"
 #include "network/tarcap/shared_states/test_state.hpp"
 #include "transaction_manager/transaction_manager.hpp"
 
@@ -8,11 +9,13 @@ namespace taraxa::network::tarcap {
 
 TransactionPacketHandler::TransactionPacketHandler(std::shared_ptr<PeersState> peers_state,
                                                    std::shared_ptr<PacketsStats> packets_stats,
+                                                   std::shared_ptr<SyncingState> syncing_state,
                                                    std::shared_ptr<TransactionManager> trx_mgr,
                                                    std::shared_ptr<DagBlockManager> dag_blk_mgr,
                                                    std::shared_ptr<TestState> test_state,
                                                    uint16_t network_transaction_interval, const addr_t &node_addr)
     : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "TRANSACTION_PH"),
+      syncing_state_(std::move(syncing_state)),
       trx_mgr_(std::move(trx_mgr)),
       dag_blk_mgr_(std::move(dag_blk_mgr)),
       test_state_(std::move(test_state)),
@@ -33,9 +36,9 @@ inline void TransactionPacketHandler::process(const PacketData &packet_data, con
         continue;
       }
       if (const auto [is_valid, reason] = trx_mgr_->verifyTransaction(transaction); !is_valid) {
-        // TODO: malicious peer handling
         LOG(log_er_) << "Transaction " << transaction->getHash() << " validation falied: " << reason << " . Peer "
                      << packet_data.from_node_id_ << " will be disconnected.";
+        syncing_state_->set_peer_malicious(peer->getId());
         disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
         return;
       }

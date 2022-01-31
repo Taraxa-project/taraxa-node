@@ -427,7 +427,10 @@ TEST_F(NetworkTest, node_pbft_sync) {
 
   vec_blk_t order1;
   order1.push_back(blk1.getHash());
-  node1->getDagManager()->setDagBlockOrder(blk1.getHash(), level, order1);
+  {
+    std::unique_lock dag_lock(node1->getDagManager()->getDagMutex());
+    node1->getDagManager()->setDagBlockOrder(blk1.getHash(), level, order1);
+  }
 
   uint64_t expect_pbft_chain_size = 1;
   EXPECT_EQ(node1->getPbftChain()->getPbftChainSize(), expect_pbft_chain_size);
@@ -482,7 +485,10 @@ TEST_F(NetworkTest, node_pbft_sync) {
 
   vec_blk_t order2;
   order2.push_back(blk2.getHash());
-  node1->getDagManager()->setDagBlockOrder(blk2.getHash(), level, order2);
+  {
+    std::unique_lock dag_lock(node1->getDagManager()->getDagMutex());
+    node1->getDagManager()->setDagBlockOrder(blk2.getHash(), level, order2);
+  }
 
   expect_pbft_chain_size = 2;
   EXPECT_EQ(node1->getPbftChain()->getPbftChainSize(), expect_pbft_chain_size);

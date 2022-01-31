@@ -780,8 +780,11 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
     EXPECT_EQ(order[4], blk_hash_t(5));
     EXPECT_EQ(order[5], blk_hash_t(7));
   }
-  auto num_blks_set = node->getDagManager()->setDagBlockOrder(ret->first, period, order);
-  EXPECT_EQ(num_blks_set, 6);
+  {
+    std::unique_lock dag_lock(node->getDagManager()->getDagMutex());
+    auto num_blks_set = node->getDagManager()->setDagBlockOrder(ret->first, period, order);
+    EXPECT_EQ(num_blks_set, 6);
+  }
   // -------- second period ----------
 
   for (int i = 10; i <= 16; i++) {
@@ -800,8 +803,11 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
     EXPECT_EQ(order[5], blk_hash_t(14));
     EXPECT_EQ(order[6], blk_hash_t(15));
   }
-  num_blks_set = node->getDagManager()->setDagBlockOrder(ret->first, period, order);
-  EXPECT_EQ(num_blks_set, 7);
+  {
+    std::unique_lock dag_lock(node->getDagManager()->getDagMutex());
+    auto num_blks_set = node->getDagManager()->setDagBlockOrder(ret->first, period, order);
+    EXPECT_EQ(num_blks_set, 7);
+  }
 
   // -------- third period ----------
 
@@ -819,8 +825,11 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
     EXPECT_EQ(order[3], blk_hash_t(18));
     EXPECT_EQ(order[4], blk_hash_t(19));
   }
-  num_blks_set = node->getDagManager()->setDagBlockOrder(ret->first, period, order);
-  EXPECT_EQ(num_blks_set, 5);
+  {
+    std::unique_lock dag_lock(node->getDagManager()->getDagMutex());
+    auto num_blks_set = node->getDagManager()->setDagBlockOrder(ret->first, period, order);
+    EXPECT_EQ(num_blks_set, 5);
+  }
 }
 
 TEST_F(FullNodeTest, destroy_db) {

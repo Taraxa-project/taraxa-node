@@ -73,6 +73,7 @@ class TaraxaPeer : public boost::noncopyable {
   std::atomic<uint64_t> last_status_pbft_chain_size_ = 0;
   std::atomic_bool peer_dag_synced_ = false;
   std::atomic_bool peer_dag_syncing_ = false;
+  std::atomic_bool peer_requested_dag_syncing_ = false;
 
   // Mutex used to prevent race condition between dag syncing and gossiping
   mutable boost::shared_mutex mutex_for_sending_dag_blocks_;

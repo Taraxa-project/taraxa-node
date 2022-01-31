@@ -40,10 +40,10 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
     return;
   } else if (response_period < request_period) {
     // This should not be possible for honest node
-    LOG(log_wr_) << "Received DagSyncPacket with mismatching periods: " << response_period << " " << request_period
-                 << " from " << packet_data.from_node_id_.abridged();
+    LOG(log_er_) << "Received DagSyncPacket with mismatching periods: " << response_period << " " << request_period
+                 << " from " << packet_data.from_node_id_.abridged() << " peer will be disconnected";
+    syncing_state_->set_peer_malicious(peer->getId());
     disconnect(peer->getId(), dev::p2p::UserReason);
-    // TODO: malicious peer handling
     return;
   }
 
@@ -59,9 +59,9 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
     }
     const auto trx = std::make_shared<Transaction>(std::move(transaction));
     if (const auto [is_valid, reason] = trx_mgr_->verifyTransaction(trx); !is_valid) {
-      // TODO: malicious peer handling
       LOG(log_er_) << "DagBlock transaction " << trx->getHash() << " validation falied: " << reason << " . Peer "
                    << packet_data.from_node_id_ << " will be disconnected.";
+      syncing_state_->set_peer_malicious(peer->getId());
       disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
       return;
     }
@@ -81,8 +81,8 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
       // This should only happen with a malicious node or a fork
       LOG(log_er_) << "DagBlock" << block.getHash() << " Validation failed " << status.second << " . Peer "
                    << packet_data.from_node_id_ << " will be disconnected.";
+      syncing_state_->set_peer_malicious(peer->getId());
       disconnect(peer->getId(), dev::p2p::UserReason);
-      // TODO: malicious peer handling
       return;
     }
 

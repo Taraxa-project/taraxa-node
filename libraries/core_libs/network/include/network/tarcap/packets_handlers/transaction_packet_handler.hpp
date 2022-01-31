@@ -12,13 +12,14 @@ class TransactionManager;
 namespace taraxa::network::tarcap {
 
 class TestState;
+class SyncingState;
 
 class TransactionPacketHandler : public PacketHandler {
  public:
   TransactionPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
-                           std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
-                           std::shared_ptr<TestState> test_state, uint16_t network_transaction_interval,
-                           const addr_t& node_addr);
+                           std::shared_ptr<SyncingState> syncing_state, std::shared_ptr<TransactionManager> trx_mgr,
+                           std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<TestState> test_state,
+                           uint16_t network_transaction_interval, const addr_t& node_addr);
 
   virtual ~TransactionPacketHandler() = default;
 
@@ -28,6 +29,7 @@ class TransactionPacketHandler : public PacketHandler {
  private:
   void process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
 
+  std::shared_ptr<SyncingState> syncing_state_;
   std::shared_ptr<TransactionManager> trx_mgr_;
 
   // FOR TESTING ONLY

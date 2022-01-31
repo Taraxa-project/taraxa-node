@@ -8,11 +8,13 @@ namespace taraxa::network::tarcap {
 
 GetDagSyncPacketHandler::GetDagSyncPacketHandler(std::shared_ptr<PeersState> peers_state,
                                                  std::shared_ptr<PacketsStats> packets_stats,
+                                                 std::shared_ptr<SyncingState> syncing_state,
                                                  std::shared_ptr<TransactionManager> trx_mgr,
                                                  std::shared_ptr<DagManager> dag_mgr,
                                                  std::shared_ptr<DagBlockManager> dag_blk_mgr,
                                                  std::shared_ptr<DbStorage> db, const addr_t &node_addr)
     : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "GET_DAG_SYNC_PH"),
+      syncing_state_(std::move(syncing_state)),
       trx_mgr_(std::move(trx_mgr)),
       dag_mgr_(std::move(dag_mgr)),
       dag_blk_mgr_(std::move(dag_blk_mgr)),
@@ -20,6 +22,16 @@ GetDagSyncPacketHandler::GetDagSyncPacketHandler(std::shared_ptr<PeersState> pee
 
 void GetDagSyncPacketHandler::process(const PacketData &packet_data,
                                       [[maybe_unused]] const std::shared_ptr<TaraxaPeer> &peer) {
+  if (peer->peer_requested_dag_syncing_) {
+    // This should not be possible for honest node
+    // Each node should perform dag syncing only once
+    LOG(log_er_) << "Received multiple GetDagSyncPackets from " << packet_data.from_node_id_.abridged()
+                 << " peer will be disconnected";
+    syncing_state_->set_peer_malicious(peer->getId());
+    disconnect(peer->getId(), dev::p2p::UserReason);
+    return;
+  }
+
   // This lock prevents race condition between syncing and gossiping dag blocks
   std::unique_lock lock(peer->mutex_for_sending_dag_blocks_);
 
@@ -39,6 +51,7 @@ void GetDagSyncPacketHandler::process(const PacketData &packet_data,
   auto [period, blocks, transactions] = dag_mgr_->getNonFinalizedBlocksWithTransactions(blocks_hashes);
   if (peer_period == period) {
     peer->syncing_ = false;
+    peer->peer_requested_dag_syncing_ = true;
   } else {
     // There is no point in sending blocks if periods do not match, but an empty packet should be sent
     blocks.clear();
