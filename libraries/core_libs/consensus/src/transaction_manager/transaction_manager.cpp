@@ -129,7 +129,7 @@ uint32_t TransactionManager::insertValidatedTransactions(const SharedTransaction
   // This lock synchronizes inserting and removing transactions from transactions memory pool with database insertion.
   // It is very important to lock checking the db state of transaction together with transaction pool checking to be
   // protected from new DAG block and Sync block transactions insertions which are inserted directly in the database.
-  std::shared_lock shared_transactions_lock(transactions_mutex_);
+  std::unique_lock transactions_lock(transactions_mutex_);
 
   // Check the db with a multiquery if transactions are really new
   auto db_seen = db_->transactionsInDb(txs_hashes);
