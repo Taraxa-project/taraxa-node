@@ -11,7 +11,6 @@
 #include "config/config.hpp"
 #include "network/tarcap/shared_states/peers_state.hpp"
 #include "network/tarcap/shared_states/test_state.hpp"
-#include "network/tarcap/stats/bandwidth_stats.hpp"
 #include "network/tarcap/stats/node_stats.hpp"
 #include "pbft/pbft_chain.hpp"
 #include "threadpool/tarcap_thread_pool.hpp"
@@ -121,6 +120,8 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   std::shared_ptr<TestState> test_state_;
 
  private:
+  const NetworkConfig network_config_;
+
   // Peers state
   std::shared_ptr<PeersState> peers_state_;
 
@@ -132,10 +133,6 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
 
   // Node stats
   std::shared_ptr<NodeStats> node_stats_;
-
-  // Bandwidth Stats - collected data(number of packets, overall size of packets) for each node that are used to limit
-  // their bandwidth based on it
-  BandwidthStats bandwidth_stats_;
 
   // Packets handlers
   std::shared_ptr<PacketsHandler> packets_handlers_;

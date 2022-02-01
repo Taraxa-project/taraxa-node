@@ -36,12 +36,10 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev
                                    std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
                                    std::shared_ptr<TransactionManager> trx_mgr, addr_t const &node_addr)
     : test_state_(std::make_shared<TestState>()),
+      network_config_(conf),
       peers_state_(nullptr),
       syncing_state_(std::make_shared<SyncingState>(conf.deep_syncing_threshold)),
       node_stats_(nullptr),
-      bandwidth_stats_(conf.bandwidth_throttle_period_seconds, conf.max_allowed_total_packets_size,
-                       conf.max_allowed_total_packets_count, conf.max_allowed_same_type_packets_size,
-                       conf.max_allowed_same_type_packets_count),
       packets_handlers_(std::make_shared<PacketsHandler>()),
       thread_pool_(std::make_shared<TarcapThreadPool>(conf.network_packets_processing_threads, node_addr)),
       periodic_events_tp_(1, false) {
@@ -295,16 +293,22 @@ void TaraxaCapability::interpretCapabilityPacket(std::weak_ptr<dev::p2p::Session
     return;
   }
 
-  // Check if received packet type is supported
-  std::optional<SubprotocolPacketType> packet_type = getPacketType(_id);
-  if (!packet_type.has_value()) {
-    LOG(log_er_) << "Unknown packet type: " << _id;
-    return;
-  }
-
   auto host = peers_state_->host_.lock();
   if (!host) {
     LOG(log_er_) << "Unable to process packet, host == nullptr";
+    return;
+  }
+
+  auto node_id = session.lock()->id();
+
+  // Check if received packet type is supported
+  SubprotocolPacketType packet_type;
+  if (auto received_packet_type = getPacketType(_id); received_packet_type.has_value()) {
+    packet_type = received_packet_type.value();
+  } else {
+    LOG(log_er_) << "Unknown packet type: " << _id << ", peer " << node_id.abridged() << " will be disconnected";
+    syncing_state_->set_peer_malicious(node_id);
+    host->disconnect(node_id, dev::p2p::UserReason);
     return;
   }
 
@@ -316,13 +320,11 @@ void TaraxaCapability::interpretCapabilityPacket(std::weak_ptr<dev::p2p::Session
     return;
   }
 
-  auto node_id = session.lock()->id();
-
   // Check if node bandwidth is exceeded
-  auto result = bandwidth_stats_.isExceeded(node_id, packet_type.value(), _r.size());
-  if (result.first) {
+  if (auto result = peer->bandwidth_stats_.isExceeded(packet_type, _r.size(), network_config_); result.first) {
     LOG(log_wr_) << "Node " << node_id.abridged() << " bandwidth exceeded. Reasons: " << result.second;
-    // Note: in cas bandwidth limits are not set properly, it will disconnect nodes even during normal node operation
+    // Note: In case bandwidth limits are not set properly, it will disconnect nodes even during normal node operation
+    syncing_state_->set_peer_malicious(node_id);
     host->disconnect(node_id, dev::p2p::UserReason);
     return;
   }
@@ -337,14 +339,14 @@ void TaraxaCapability::interpretCapabilityPacket(std::weak_ptr<dev::p2p::Session
     return;
   }
 
-  if (syncing_state_->is_deep_pbft_syncing() && filterSyncIrrelevantPackets(packet_type.value())) {
+  if (syncing_state_->is_deep_pbft_syncing() && filterSyncIrrelevantPackets(packet_type)) {
     LOG(log_dg_) << "Ignored " << convertPacketTypeToString(packet_type) << " because we are still syncing";
     return;
   }
 
   // TODO: we are making a copy here for each packet bytes(toBytes()), which is pretty significant. Check why RLP does
   //       not support move semantics so we can take advantage of it...
-  thread_pool_->push(PacketData(packet_type.value(), std::move(node_id), _r.data().toBytes()));
+  thread_pool_->push(PacketData(packet_type, std::move(node_id), _r.data().toBytes()));
 }
 
 inline bool TaraxaCapability::filterSyncIrrelevantPackets(SubprotocolPacketType packet_type) const {

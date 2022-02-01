@@ -23,9 +23,6 @@
 
 namespace taraxa {
 
-struct TaraxaCapability;
-class TaraxaPeer;
-
 // TODO merge with TaraxaCapability, and then split the result in reasonable components
 class Network {
  public:

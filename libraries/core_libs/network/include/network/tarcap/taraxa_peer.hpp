@@ -6,18 +6,21 @@
 #include <boost/noncopyable.hpp>
 
 #include "common/util.hpp"
+#include "network/tarcap/stats/bandwidth_stats.hpp"
 
 namespace taraxa::network::tarcap {
 
 class TaraxaPeer : public boost::noncopyable {
  public:
   TaraxaPeer()
-      : known_dag_blocks_(10000, 1000),
+      : bandwidth_stats_(),
+        known_dag_blocks_(10000, 1000),
         known_transactions_(100000, 10000),
         known_pbft_blocks_(10000, 1000),
         known_votes_(10000, 1000) {}
   explicit TaraxaPeer(dev::p2p::NodeID id)
-      : id_(std::move(id)),
+      : bandwidth_stats_(),
+        id_(std::move(id)),
         known_dag_blocks_(10000, 1000),
         known_transactions_(100000, 10000),
         known_pbft_blocks_(10000, 1000),
@@ -76,6 +79,9 @@ class TaraxaPeer : public boost::noncopyable {
 
   // Mutex used to prevent race condition between dag syncing and gossiping
   mutable boost::shared_mutex mutex_for_sending_dag_blocks_;
+
+  // Collected bandwidth stats(number of received packets, overall size of packets, etc...)
+  BandwidthStats bandwidth_stats_;
 
  private:
   dev::p2p::NodeID id_;

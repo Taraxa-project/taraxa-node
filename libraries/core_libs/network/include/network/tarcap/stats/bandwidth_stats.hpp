@@ -8,6 +8,7 @@
 #include <tuple>
 #include <unordered_map>
 
+#include "config/config.hpp"
 #include "network/tarcap/packet_types.hpp"
 
 namespace taraxa::network::tarcap {
@@ -20,21 +21,19 @@ namespace taraxa::network::tarcap {
  */
 class BandwidthStats {
  public:
-  BandwidthStats(std::chrono::seconds bandwidth_throttle_period_duration, uint64_t max_allowed_total_packets_size_,
-                 size_t max_allowed_total_packets_count_, uint64_t max_allowed_same_type_packets_size,
-                 size_t max_allowed_same_type_packets_count);
+  BandwidthStats();
   ~BandwidthStats() = default;
 
   /**
    * @brief Adds packet bandwidth data into the node's stats and Checks if node bandwidth is exceeded
    *
-   * @param node_id
    * @param packet_type
    * @param packet_size
+   * @param conf
    * @return <true, "reason"> if max allowed bandwidth is exceeded, otherwise <false, "">
    */
-  std::pair<bool, std::string> isExceeded(const dev::p2p::NodeID& node_id, SubprotocolPacketType packet_type,
-                                          uint64_t packet_size);
+  std::pair<bool, std::string> isExceeded(SubprotocolPacketType packet_type, uint64_t packet_size,
+                                          const NetworkConfig &conf);
 
  private:
   /**
@@ -46,43 +45,23 @@ class BandwidthStats {
   };
 
   /**
-   * @brief node bandwidth stats
+   * @brief Resets data to zero
    */
-  struct NodeStats {
-    NodeStats() : bandwidth_throttle_period_start_(std::chrono::steady_clock::now()) {}
-
-    // Beginning of time period for which stats are collected
-    std::chrono::steady_clock::time_point bandwidth_throttle_period_start_;
-
-    // total count of all received packets(all types)
-    size_t total_packets_count_{0};
-
-    // total size of all received packets(all types) [Bytes]
-    uint64_t total_packets_size_{0};
-
-    // count/size stats per packet type
-    std::array<PacketTypeStats, SubprotocolPacketType::PacketCount> packets_types_stats_{};
-  };
+  void resetData();
 
  private:
-  // period duration during which bandwidth stats are relevant.
-  // After this period duration passes, stats are reset to zero
-  const std::chrono::seconds k_bandwidth_throttle_period_duration_;
+  // Beginning of time period for which stats are collected
+  std::chrono::steady_clock::time_point bandwidth_throttle_period_start_;
 
-  // max allowed received packets size of all types per k_bandwidth_throttle_period_duration_ [Bytes]
-  const uint64_t k_max_allowed_total_packets_size_;
+  // total count of all received packets(all types)
+  size_t total_packets_count_{0};
 
-  // max allowed received packets count of all types per k_bandwidth_throttle_period_duration_
-  const size_t k_max_allowed_total_packets_count_;
+  // total size of all received packets(all types) [Bytes]
+  uint64_t total_packets_size_{0};
 
-  // max allowed received packets size of one specific type per k_bandwidth_throttle_period_duration_ [Bytes]
-  const uint64_t k_max_allowed_same_type_packets_size_;
+  // count/size stats per packet type
+  std::array<PacketTypeStats, SubprotocolPacketType::PacketCount> packets_types_stats_{};
 
-  // max allowed received packets count of one specific type per k_bandwidth_throttle_period_duration_
-  const size_t k_max_allowed_same_type_packets_count_;
-
-  // bandwidth stats per nodeID
-  std::unordered_map<dev::p2p::NodeID, NodeStats> stats_;
   std::shared_mutex stats_mutex_;
 };
 
