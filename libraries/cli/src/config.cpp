@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#include "cli/config_updater.hpp"
 #include "cli/tools.hpp"
 #include "config/version.hpp"
 
@@ -166,6 +167,12 @@ Config::Config(int argc, const char* argv[]) {
     // Create data directory
     if (!data_dir.empty() && !fs::exists(data_dir)) {
       fs::create_directories(data_dir);
+    }
+
+    // if there is not chain id it is a test
+    if (!config_json["chain_config"].isNull() && !config_json["chain_config"]["chain_id"].isNull()) {
+      ConfigUpdater updater{std::stoi(config_json["chain_config"]["chain_id"].asString(), nullptr, 16)};
+      updater.UpdateConfig(config, config_json);
     }
 
     // Save changes permanently if overwrite_config option is set
