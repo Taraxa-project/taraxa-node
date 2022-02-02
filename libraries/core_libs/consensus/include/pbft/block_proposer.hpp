@@ -106,8 +106,6 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   friend ProposeModelFace;
 
  private:
-  addr_t getFullNodeAddress() const;
-
   inline static const uint16_t min_proposal_delay = 100;
   static std::atomic<uint64_t> num_proposed_blocks;
   std::atomic<bool> stopped_ = true;

@@ -6,7 +6,6 @@
 
 struct Hardforks {
   uint64_t fix_genesis_fork_block = 0;
-  void processFixGenesisHardfork() const;
   HAS_RLP_FIELDS
 };
 

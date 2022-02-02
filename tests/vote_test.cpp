@@ -407,7 +407,7 @@ TEST_F(VoteTest, previous_round_next_votes) {
 TEST_F(VoteTest, vote_count_compare) {
   auto vote_count_old = [](u256 balance, u256 threshold) { return u256(balance / threshold); };
   auto vote_count_new = [](u256 balance, u256 threshold, u256 step) {
-    // the same logic as new GO method. Result should be the same as fro the old method if threshold == step
+    // the same logic as new GO method. Result should be the same as for the old method if threshold == step
     u256 res = 0;
     if (balance >= threshold) {
       res = balance - threshold;
