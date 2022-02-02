@@ -3,7 +3,6 @@
 #include <atomic>
 
 #include "common/util.hpp"
-#include "config/config.hpp"
 #include "libp2p/Common.h"
 
 namespace taraxa::network::tarcap {
@@ -15,7 +14,7 @@ class TaraxaPeer;
  */
 class SyncingState {
  public:
-  SyncingState(const NetworkConfig &conf);
+  SyncingState(uint16_t deep_syncing_threshold);
 
   /**
    * @brief Set pbft syncing
@@ -49,13 +48,6 @@ class SyncingState {
 
   const dev::p2p::NodeID syncing_peer() const;
 
-  /**
-   * @brief Marks peer as malicious, in case none is provided, peer_id_ (node that we currently syncing with) is marked
-   * @param peer_id
-   */
-  void set_peer_malicious(const std::optional<dev::p2p::NodeID> &peer_id = {});
-  bool is_peer_malicious(const dev::p2p::NodeID &peer_id);
-
  private:
   void set_peer(std::shared_ptr<TaraxaPeer> &&peer);
 
@@ -63,9 +55,7 @@ class SyncingState {
   std::atomic<bool> deep_pbft_syncing_{false};
   std::atomic<bool> pbft_syncing_{false};
 
-  std::unordered_map<dev::p2p::NodeID, std::chrono::steady_clock::time_point> malicious_peers_;
-
-  NetworkConfig conf_;
+  const uint16_t kDeepSyncingThreshold;
 
   // Number of seconds needed for ongoing syncing to be declared as inactive
   static constexpr std::chrono::seconds SYNCING_INACTIVITY_THRESHOLD{60};

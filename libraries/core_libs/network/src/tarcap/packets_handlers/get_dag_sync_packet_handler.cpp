@@ -1,20 +1,17 @@
 #include "network/tarcap/packets_handlers/get_dag_sync_packet_handler.hpp"
 
 #include "dag/dag.hpp"
-#include "network/tarcap/shared_states/syncing_state.hpp"
 #include "transaction_manager/transaction_manager.hpp"
 
 namespace taraxa::network::tarcap {
 
 GetDagSyncPacketHandler::GetDagSyncPacketHandler(std::shared_ptr<PeersState> peers_state,
                                                  std::shared_ptr<PacketsStats> packets_stats,
-                                                 std::shared_ptr<SyncingState> syncing_state,
                                                  std::shared_ptr<TransactionManager> trx_mgr,
                                                  std::shared_ptr<DagManager> dag_mgr,
                                                  std::shared_ptr<DagBlockManager> dag_blk_mgr,
                                                  std::shared_ptr<DbStorage> db, const addr_t &node_addr)
     : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "GET_DAG_SYNC_PH"),
-      syncing_state_(std::move(syncing_state)),
       trx_mgr_(std::move(trx_mgr)),
       dag_mgr_(std::move(dag_mgr)),
       dag_blk_mgr_(std::move(dag_blk_mgr)),
@@ -27,7 +24,7 @@ void GetDagSyncPacketHandler::process(const PacketData &packet_data,
     // Each node should perform dag syncing only once
     LOG(log_er_) << "Received multiple GetDagSyncPackets from " << packet_data.from_node_id_.abridged()
                  << " peer will be disconnected";
-    syncing_state_->set_peer_malicious(peer->getId());
+    peers_state_->set_peer_malicious(peer->getId());
     disconnect(peer->getId(), dev::p2p::UserReason);
     return;
   }

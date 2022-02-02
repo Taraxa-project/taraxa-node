@@ -12,14 +12,12 @@ class TransactionManager;
 
 namespace taraxa::network::tarcap {
 
-class SyncingState;
-
 class GetDagSyncPacketHandler : public PacketHandler {
  public:
   GetDagSyncPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
-                          std::shared_ptr<SyncingState> syncing_state, std::shared_ptr<TransactionManager> trx_mgr,
-                          std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
-                          std::shared_ptr<DbStorage> db, const addr_t& node_addr);
+                          std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DagManager> dag_mgr,
+                          std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<DbStorage> db,
+                          const addr_t& node_addr);
 
   virtual ~GetDagSyncPacketHandler() = default;
 
@@ -29,7 +27,6 @@ class GetDagSyncPacketHandler : public PacketHandler {
  private:
   void process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
 
-  std::shared_ptr<SyncingState> syncing_state_;
   std::shared_ptr<TransactionManager> trx_mgr_;
   std::shared_ptr<DagManager> dag_mgr_;
   std::shared_ptr<DagBlockManager> dag_blk_mgr_;

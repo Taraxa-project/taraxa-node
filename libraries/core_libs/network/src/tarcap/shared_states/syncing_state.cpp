@@ -5,7 +5,7 @@
 
 namespace taraxa::network::tarcap {
 
-SyncingState::SyncingState(const NetworkConfig &conf) : conf_(conf) {}
+SyncingState::SyncingState(uint16_t deep_syncing_threshold) : kDeepSyncingThreshold(deep_syncing_threshold) {}
 
 void SyncingState::set_peer(std::shared_ptr<TaraxaPeer> &&peer) {
   std::unique_lock lock(peer_mutex_);
@@ -27,7 +27,7 @@ const dev::p2p::NodeID SyncingState::syncing_peer() const {
 void SyncingState::setSyncStatePeriod(uint64_t period) {
   if (pbft_syncing_) {
     std::shared_lock lock(peer_mutex_);
-    deep_pbft_syncing_ = (peer_->pbft_chain_size_ - period >= conf_.deep_syncing_threshold);
+    deep_pbft_syncing_ = (peer_->pbft_chain_size_ - period >= kDeepSyncingThreshold);
   } else {
     deep_pbft_syncing_ = false;
   }
@@ -41,7 +41,7 @@ void SyncingState::set_pbft_syncing(bool syncing, uint64_t current_period,
 
   if (syncing) {
     std::shared_lock lock(peer_mutex_);
-    deep_pbft_syncing_ = (peer_->pbft_chain_size_ - current_period >= conf_.deep_syncing_threshold);
+    deep_pbft_syncing_ = (peer_->pbft_chain_size_ - current_period >= kDeepSyncingThreshold);
     // Reset last sync packet time when syncing is restarted/fresh syncing flag is set
     set_last_sync_packet_time();
   } else {
@@ -60,34 +60,6 @@ bool SyncingState::is_actively_syncing() const {
   std::shared_lock lock(time_mutex_);
   return std::chrono::duration_cast<std::chrono::seconds>(now - last_received_sync_packet_time_) <=
          SYNCING_INACTIVITY_THRESHOLD;
-}
-
-void SyncingState::set_peer_malicious(const std::optional<dev::p2p::NodeID> &peer_id) {
-  if (peer_id.has_value()) {
-    malicious_peers_[peer_id.value()] = std::chrono::steady_clock::now();
-    return;
-  }
-
-  // this lock is for peer_id_ not the malicious_peers_
-  std::shared_lock lock(peer_mutex_);
-  malicious_peers_[peer_->getId()] = std::chrono::steady_clock::now();
-}
-
-bool SyncingState::is_peer_malicious(const dev::p2p::NodeID &peer_id) {
-  if (conf_.disable_peer_blacklist) {
-    return false;
-  }
-
-  // Peers are marked malicious for the time defined in conf_.network_peer_blacklist_timeout
-  if (auto i = malicious_peers_.find(peer_id); i != malicious_peers_.end()) {
-    if (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - i->second).count() <=
-        conf_.network_peer_blacklist_timeout) {
-      return true;
-    } else {
-      malicious_peers_.erase(i);
-    }
-  }
-  return false;
 }
 
 bool SyncingState::is_syncing() { return is_pbft_syncing(); }

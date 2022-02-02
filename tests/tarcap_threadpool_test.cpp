@@ -108,7 +108,7 @@ HandlersInitData createHandlersInitData() {
   ret_init_data.own_node_id = dev::p2p::NodeID(2);
   ret_init_data.own_node_addr = addr_t(2);
   ret_init_data.peers_state =
-      std::make_shared<tarcap::PeersState>(std::weak_ptr<dev::p2p::Host>(), ret_init_data.own_node_id);
+      std::make_shared<tarcap::PeersState>(std::weak_ptr<dev::p2p::Host>(), ret_init_data.own_node_id, NetworkConfig());
   ret_init_data.packets_stats = std::make_shared<tarcap::PacketsStats>(ret_init_data.own_node_addr);
   ret_init_data.packets_processing_info = std::make_shared<PacketsProcessingInfo>();
 

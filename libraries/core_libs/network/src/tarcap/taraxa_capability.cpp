@@ -37,7 +37,7 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev
                                    std::shared_ptr<TransactionManager> trx_mgr, addr_t const &node_addr)
     : test_state_(std::make_shared<TestState>()),
       peers_state_(nullptr),
-      syncing_state_(std::make_shared<SyncingState>(conf)),
+      syncing_state_(std::make_shared<SyncingState>(conf.deep_syncing_threshold)),
       node_stats_(nullptr),
       packets_handlers_(std::make_shared<PacketsHandler>()),
       thread_pool_(std::make_shared<TarcapThreadPool>(conf.network_packets_processing_threads, node_addr)),
@@ -45,7 +45,7 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev
   LOG_OBJECTS_CREATE("TARCAP");
 
   assert(host.lock());
-  peers_state_ = std::make_shared<PeersState>(host, host.lock()->id());
+  peers_state_ = std::make_shared<PeersState>(host, host.lock()->id(), conf);
 
   auto packets_stats = std::make_shared<PacketsStats>(node_addr);
 
@@ -202,8 +202,8 @@ void TaraxaCapability::registerPacketHandlers(
 
   packets_handlers_->registerHandler(
       SubprotocolPacketType::TransactionPacket,
-      std::make_shared<TransactionPacketHandler>(peers_state_, packets_stats, syncing_state_, trx_mgr, dag_blk_mgr,
-                                                 test_state_, conf.network_transaction_interval, node_addr));
+      std::make_shared<TransactionPacketHandler>(peers_state_, packets_stats, trx_mgr, dag_blk_mgr, test_state_,
+                                                 conf.network_transaction_interval, node_addr));
 
   // Non critical packets with low processing priority
   packets_handlers_->registerHandler(SubprotocolPacketType::TestPacket,
@@ -212,10 +212,9 @@ void TaraxaCapability::registerPacketHandlers(
       SubprotocolPacketType::StatusPacket,
       std::make_shared<StatusPacketHandler>(peers_state_, packets_stats, syncing_state_, pbft_chain, pbft_mgr, dag_mgr,
                                             dag_blk_mgr, next_votes_mgr, db, conf.network_id, node_addr));
-  packets_handlers_->registerHandler(
-      SubprotocolPacketType::GetDagSyncPacket,
-      std::make_shared<GetDagSyncPacketHandler>(peers_state_, packets_stats, syncing_state_, trx_mgr, dag_mgr,
-                                                dag_blk_mgr, db, node_addr));
+  packets_handlers_->registerHandler(SubprotocolPacketType::GetDagSyncPacket,
+                                     std::make_shared<GetDagSyncPacketHandler>(peers_state_, packets_stats, trx_mgr,
+                                                                               dag_mgr, dag_blk_mgr, db, node_addr));
 
   packets_handlers_->registerHandler(
       SubprotocolPacketType::DagSyncPacket,
@@ -251,7 +250,7 @@ void TaraxaCapability::onConnect(std::weak_ptr<dev::p2p::Session> session, u256 
 
   const auto node_id = session_p->id();
 
-  if (syncing_state_->is_peer_malicious(node_id)) {
+  if (peers_state_->is_peer_malicious(node_id)) {
     session_p->disconnect(dev::p2p::UserReason);
     LOG(log_wr_) << "Node " << node_id << " connection dropped - malicious node";
     return;

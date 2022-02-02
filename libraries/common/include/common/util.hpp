@@ -450,6 +450,16 @@ class ThreadSafeMap {
     return values;
   }
 
+  void erase(std::function<bool(Value)> condition) {
+    std::unique_lock lck(mtx_);
+    for (auto it = map_.cbegin(), next_it = it; it != map_.cend(); it = next_it) {
+      ++next_it;
+      if (condition(it->second)) {
+        map_.erase(it);
+      }
+    }
+  }
+
   void clear() {
     std::unique_lock lck(mtx_);
     map_.clear();
