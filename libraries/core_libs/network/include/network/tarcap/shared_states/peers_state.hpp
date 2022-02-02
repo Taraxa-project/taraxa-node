@@ -57,7 +57,7 @@ class PeersState {
   std::unordered_map<dev::p2p::NodeID, std::shared_ptr<TaraxaPeer>> pending_peers_;
 
   ThreadSafeMap<dev::p2p::NodeID, std::chrono::steady_clock::time_point> malicious_peers_;
-  NetworkConfig conf_;
+  const NetworkConfig conf_;
 };
 
 }  // namespace taraxa::network::tarcap
