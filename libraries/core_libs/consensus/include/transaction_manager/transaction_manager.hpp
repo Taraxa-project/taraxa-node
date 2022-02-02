@@ -6,6 +6,7 @@
 #include "logger/logger.hpp"
 #include "storage/storage.hpp"
 #include "transaction/transaction.hpp"
+#include "transaction_queue.hpp"
 
 namespace taraxa {
 
@@ -58,11 +59,6 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
    * @return true if seen
    */
   bool markTransactionSeen(const trx_hash_t &trx_hash);
-
-  /**
-   * Returns a copy of transactions pool
-   */
-  SharedTransactions getTransactionsSnapShot() const;
 
   size_t getTransactionPoolSize() const;
 
@@ -126,7 +122,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   // Transactions can be in one of three states:
   // 1. In transactions pool; 2. In non-finalized Dag block 3. Executed
   mutable std::shared_mutex transactions_mutex_;
-  std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> transactions_pool_;
+  TransactionQueue transactions_pool_;
   std::unordered_set<trx_hash_t> nonfinalized_transactions_in_dag_;
   uint64_t trx_count_ = 0;
 
