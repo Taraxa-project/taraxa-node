@@ -1,7 +1,6 @@
 #pragma once
 
 #include "network/tarcap/packets_handlers/common/packet_handler.hpp"
-#include "network/tarcap/shared_states/syncing_state.hpp"
 
 namespace taraxa {
 class DagManager;

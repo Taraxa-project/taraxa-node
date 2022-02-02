@@ -125,7 +125,7 @@ bool PeersState::is_peer_malicious(const dev::p2p::NodeID& peer_id) {
 
   // Delete any expired item from the list
   if (conf_.network_peer_blacklist_timeout > 0) {
-    malicious_peers_.erase([this](std::chrono::steady_clock::time_point value) {
+    malicious_peers_.erase([this](const std::chrono::steady_clock::time_point& value) {
       return std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - value).count() >
              conf_.network_peer_blacklist_timeout;
     });
