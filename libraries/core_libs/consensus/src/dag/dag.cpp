@@ -608,23 +608,21 @@ void DagManager::recoverDag() {
       auto pbft_block = pbft_chain_->getPbftBlockInChain(pbft_block_hash);
       auto anchor = pbft_block.getPivotDagBlockHash();
       period_ = pbft_block.getPeriod();
+      pbft_block_hash = pbft_block.getPrevBlockHash();
       if (anchor) {
         anchor_ = anchor;
         LOG(log_nf_) << "Recover anchor " << anchor_;
         addToDag(anchor_, blk_hash_t(), vec_blk_t(), 0, true);
-        pbft_block_hash = pbft_block.getPrevBlockHash();
         break;
       }
-      pbft_block_hash = pbft_block.getPrevBlockHash();
     }
 
-    while (pbft_block_hash) {
+    if (pbft_block_hash) {
       auto pbft_block = pbft_chain_->getPbftBlockInChain(pbft_block_hash);
       auto anchor = pbft_block.getPivotDagBlockHash();
       if (anchor) {
         old_anchor_ = anchor;
         LOG(log_nf_) << "Recover old anchor " << old_anchor_;
-        break;
       }
     }
   }

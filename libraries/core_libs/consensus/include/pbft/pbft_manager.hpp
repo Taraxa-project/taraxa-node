@@ -61,10 +61,10 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @param prev_blk_hash previous PBFT block hash
    * @param anchor_hash proposed DAG pivot block hash for finalization
    * @param order_hash the hash of all DAG blocks include in the PBFT block
-   * @return PBFT block
+   * @return PBFT block hash
    */
-  std::shared_ptr<PbftBlock> generatePbftBlock(const blk_hash_t &prev_blk_hash, const blk_hash_t &anchor_hash,
-                                               const blk_hash_t &order_hash);
+  blk_hash_t generatePbftBlock(const blk_hash_t &prev_blk_hash, const blk_hash_t &anchor_hash,
+                               const blk_hash_t &order_hash);
   std::shared_ptr<Vote> generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, uint64_t round, size_t step);
 
   size_t getDposTotalVotesCount() const;

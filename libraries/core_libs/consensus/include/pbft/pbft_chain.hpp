@@ -28,6 +28,7 @@ class PbftChain {
 
   blk_hash_t getHeadHash() const;
   uint64_t getPbftChainSize() const;
+  uint64_t getPbftChainSizeExcludingEmptyPbftBlocks() const;
   blk_hash_t getLastPbftBlockHash() const;
 
   PbftBlock getPbftBlockInChain(blk_hash_t const& pbft_block_hash);
@@ -43,7 +44,7 @@ class PbftChain {
   void cleanupUnverifiedPbftBlocks(taraxa::PbftBlock const& pbft_block);
   bool pushUnverifiedPbftBlock(std::shared_ptr<PbftBlock> const& pbft_block);
 
-  void updatePbftChain(blk_hash_t const& pbft_block_hash);
+  void updatePbftChain(blk_hash_t const& pbft_block_hash, bool null_anchor = false);
 
   bool checkPbftBlockValidation(taraxa::PbftBlock const& pbft_block) const;
 
@@ -58,9 +59,11 @@ class PbftChain {
   mutable boost::shared_mutex unverified_access_;
   mutable boost::shared_mutex chain_head_access_;
 
-  blk_hash_t head_hash_;             // PBFT head hash
-  blk_hash_t dag_genesis_hash_;      // DAG genesis at height 1
-  uint64_t size_;                    // PBFT chain size, includes both executed and unexecuted PBFT blocks
+  blk_hash_t head_hash_;         // PBFT head hash
+  blk_hash_t dag_genesis_hash_;  // DAG genesis at height 1
+  uint64_t size_;                // PBFT chain size, includes both executed and unexecuted PBFT blocks
+  uint64_t non_empty_size_;  // PBFT chain size excluding blocks with null anchor, includes both executed and unexecuted
+                             // PBFT blocks
   blk_hash_t last_pbft_block_hash_;  // last PBFT block hash in PBFT chain, may not execute yet
 
   std::shared_ptr<DbStorage> db_ = nullptr;

@@ -182,7 +182,7 @@ TEST_F(SortitionTest, average_correction_per_percent) {
     for (int i = 1; i <= 5; i++) {
       auto efficiency = 72 * kOnePercent;
       auto b = createBlock(i, efficiency, 5);
-      sp.pbftBlockPushed(b, batch);
+      sp.pbftBlockPushed(b, batch, b.pbft_blk->getPeriod());
     }
     db->commitWriteBatch(batch);
   }
@@ -197,7 +197,7 @@ TEST_F(SortitionTest, average_correction_per_percent) {
     for (int i = 6; i <= 10; i++) {
       auto efficiency = 72 * kOnePercent;
       auto b = createBlock(i, efficiency, 5);
-      sp.pbftBlockPushed(b, batch);
+      sp.pbftBlockPushed(b, batch, b.pbft_blk->getPeriod());
     }
     db->commitWriteBatch(batch);
   }
@@ -213,7 +213,7 @@ TEST_F(SortitionTest, average_correction_per_percent) {
     for (int i = 11; i <= 15; i++) {
       auto efficiency = 77 * kOnePercent;
       auto b = createBlock(i, efficiency, 5);
-      sp.pbftBlockPushed(b, batch);
+      sp.pbftBlockPushed(b, batch, b.pbft_blk->getPeriod());
     }
     db->commitWriteBatch(batch);
   }
@@ -228,7 +228,7 @@ TEST_F(SortitionTest, average_correction_per_percent) {
     for (int i = 16; i <= 20; i++) {
       auto efficiency = 74 * kOnePercent;
       auto b = createBlock(i, efficiency, 5);
-      sp.pbftBlockPushed(b, batch);
+      sp.pbftBlockPushed(b, batch, b.pbft_blk->getPeriod());
     }
     db->commitWriteBatch(batch);
   }
@@ -239,7 +239,7 @@ TEST_F(SortitionTest, average_correction_per_percent) {
     for (int i = 21; i <= 23; i++) {
       auto efficiency = std::rand() % 100 * kOnePercent;
       auto b = createBlock(i, efficiency, 5);
-      sp.pbftBlockPushed(b, batch);
+      sp.pbftBlockPushed(b, batch, b.pbft_blk->getPeriod());
     }
     db->commitWriteBatch(batch);
   }
@@ -367,7 +367,7 @@ TEST_F(SortitionTest, db_cleanup) {
     for (int i = 1; i <= 2 * cfg.computation_interval * cfg.changes_count_for_average; i++) {
       auto efficiency = 72 * kOnePercent;
       auto b = createBlock(i, efficiency, 5);
-      sp.pbftBlockPushed(b, batch);
+      sp.pbftBlockPushed(b, batch, b.pbft_blk->getPeriod());
     }
     db->commitWriteBatch(batch);
     EXPECT_EQ(db->getLastIntervalEfficiencies(cfg.computation_interval, cfg.computation_interval).size(), 0);
@@ -378,7 +378,7 @@ TEST_F(SortitionTest, db_cleanup) {
     for (int i = 1; i <= 3; i++) {
       auto efficiency = 73 * kOnePercent;
       auto b = createBlock(2 * cfg.computation_interval * cfg.changes_count_for_average + i, efficiency, 5);
-      sp.pbftBlockPushed(b, batch);
+      sp.pbftBlockPushed(b, batch, b.pbft_blk->getPeriod());
     }
     db->commitWriteBatch(batch);
     EXPECT_EQ(db->getLastIntervalEfficiencies(cfg.computation_interval, cfg.computation_interval).size(), 3);
@@ -397,27 +397,27 @@ TEST_F(SortitionTest, get_params_from_period) {
   auto batch = db->createWriteBatch();
   {
     auto b = createBlock(10, 70 * kOnePercent, 5);
-    sp.pbftBlockPushed(b, batch);
+    sp.pbftBlockPushed(b, batch, b.pbft_blk->getPeriod());
   }
   {
     auto b = createBlock(20, 70 * kOnePercent, 5);
-    sp.pbftBlockPushed(b, batch);
+    sp.pbftBlockPushed(b, batch, b.pbft_blk->getPeriod());
   }
   {
     auto b = createBlock(30, 75 * kOnePercent, 5);
-    sp.pbftBlockPushed(b, batch);
+    sp.pbftBlockPushed(b, batch, b.pbft_blk->getPeriod());
   }
   {
     auto b = createBlock(40, 70 * kOnePercent, 5);
-    sp.pbftBlockPushed(b, batch);
+    sp.pbftBlockPushed(b, batch, b.pbft_blk->getPeriod());
   }
   {
     auto b = createBlock(50, 75 * kOnePercent, 5);
-    sp.pbftBlockPushed(b, batch);
+    sp.pbftBlockPushed(b, batch, b.pbft_blk->getPeriod());
   }
   {
     auto b = createBlock(60, 70 * kOnePercent, 5);
-    sp.pbftBlockPushed(b, batch);
+    sp.pbftBlockPushed(b, batch, b.pbft_blk->getPeriod());
   }
   db->commitWriteBatch(batch);
 
@@ -455,19 +455,19 @@ TEST_F(SortitionTest, get_params_from_period) {
   batch = db->createWriteBatch();
   {
     auto b = createBlock(70, 70 * kOnePercent, 5);
-    sp.pbftBlockPushed(b, batch);
+    sp.pbftBlockPushed(b, batch, b.pbft_blk->getPeriod());
   }
   {
     auto b = createBlock(80, 80 * kOnePercent, 5);
-    sp.pbftBlockPushed(b, batch);
+    sp.pbftBlockPushed(b, batch, b.pbft_blk->getPeriod());
   }
   {
     auto b = createBlock(90, 90 * kOnePercent, 5);
-    sp.pbftBlockPushed(b, batch);
+    sp.pbftBlockPushed(b, batch, b.pbft_blk->getPeriod());
   }
   {
     auto b = createBlock(100, 100 * kOnePercent, 5);
-    sp.pbftBlockPushed(b, batch);
+    sp.pbftBlockPushed(b, batch, b.pbft_blk->getPeriod());
   }
   db->commitWriteBatch(batch);
 
