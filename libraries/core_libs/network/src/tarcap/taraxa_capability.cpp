@@ -126,7 +126,7 @@ void TaraxaCapability::initPeriodicEvents(const NetworkConfig &conf, const std::
   // Logs packets stats periodic event
   if (conf.network_performance_log_interval > 0) {
     periodic_events_tp_.post_loop({conf.network_performance_log_interval},
-                                  [packets_stats = std::move(packets_stats)] { packets_stats->logStats(); });
+                                  [packets_stats = std::move(packets_stats)] { packets_stats->logAndUpdateStats(); });
   }
 
   // SUMMARY log periodic event

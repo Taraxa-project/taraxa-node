@@ -13,16 +13,16 @@ class PacketsStats {
  public:
   PacketsStats(const addr_t& node_addr = {});
 
-  void addReceivedPacket(const dev::p2p::NodeID& node, const std::string& packet_type, const SinglePacketStats& packet);
-  void addSentPacket(const dev::p2p::NodeID& node, const std::string& packet_type, const SinglePacketStats& packet);
+  void addReceivedPacket(const std::string& packet_type, const SinglePacketStats& packet);
+  void addSentPacket(const std::string& packet_type, const SinglePacketStats& packet);
 
   const AllPacketTypesStats& getSentPacketsStats() const;
   const AllPacketTypesStats& getReceivedPacketsStats() const;
 
   /**
-   * @brief Logs both received as well as sent avg packets stats
+   * @brief Logs both received as well as sent avg packets stats + updates max count/size stats per period
    */
-  void logStats();
+  void logAndUpdateStats();
 
  private:
   AllPacketTypesStats sent_packets_stats_;
