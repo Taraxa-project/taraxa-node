@@ -64,6 +64,10 @@ const char *testnet_json = R"foo({
           {
             "name": "SUMMARY",
             "verbosity": "INFO"
+          },
+          {
+            "name": "NETPER",
+            "verbosity": "DEBUG"
           }
         ],
         "outputs": [
