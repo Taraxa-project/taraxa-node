@@ -183,7 +183,7 @@ void TransactionManager::saveTransactionsFromDagBlock(SharedTransactions const &
     // We only save transaction if it has not already been saved
     if (!trx_in_db[i]) {
       db_->addTransactionToBatch(*trxs[i], write_batch);
-      nonfinalized_transactions_in_dag_.emplace(trx_hash);
+      nonfinalized_transactions_in_dag_.emplace(trx_hash, std::move(trxs[i]));
     }
     if (transactions_pool_.erase(trx_hash)) {
       LOG(log_dg_) << "Transaction " << trx_hash << " removed from trx pool";
@@ -201,6 +201,7 @@ void TransactionManager::recoverNonfinalizedTransactions() {
   // On restart populate nonfinalized_transactions_in_dag_ structure from db
   auto trxs = db_->getAllNonfinalizedTransactions();
   vec_trx_t trx_hashes;
+  trx_hashes.reserve(trxs.size());
   std::transform(trxs.begin(), trxs.end(), std::back_inserter(trx_hashes),
                  [](std::shared_ptr<Transaction> const &t) { return t->getHash(); });
   auto trx_finalized = db_->transactionsFinalized(trx_hashes);
@@ -213,7 +214,7 @@ void TransactionManager::recoverNonfinalizedTransactions() {
       // line can be removed or replaced with an assert
       db_->removeTransactionToBatch(trx_hash, write_batch);
     } else {
-      nonfinalized_transactions_in_dag_.emplace(trx_hash);
+      nonfinalized_transactions_in_dag_.emplace(trx_hash, std::move(trxs[i]));
     }
   }
   db_->commitWriteBatch(write_batch);
@@ -227,6 +228,32 @@ size_t TransactionManager::getTransactionPoolSize() const {
 size_t TransactionManager::getNonfinalizedTrxSize() const {
   std::shared_lock transactions_lock(transactions_mutex_);
   return nonfinalized_transactions_in_dag_.size();
+}
+
+std::vector<std::shared_ptr<Transaction>> TransactionManager::getNonfinalizedTrx(const std::vector<trx_hash_t> &hashes,
+                                                                                 bool sorted) {
+  std::vector<std::shared_ptr<Transaction>> ret;
+  ret.reserve(hashes.size());
+  std::shared_lock transactions_lock(transactions_mutex_);
+  for (const auto &hash : hashes) {
+    assert(nonfinalized_transactions_in_dag_.contains(hash));
+    ret.push_back(nonfinalized_transactions_in_dag_[hash]);
+  }
+  if (sorted) {
+    std::stable_sort(ret.begin(), ret.end(), [](const auto &t1, const auto &t2) {
+      if (t1->getSender() == t2->getSender()) {
+        t1->getNonce() < t2->getNonce() || (t1->getNonce() == t2->getNonce() && t1->getGasPrice() > t2->getGasPrice());
+      }
+      return true;
+    });
+  }
+  return ret;
+  // if (nonfinalized_transactions_in_dag_.contains(hash)) {
+  //   return nonfinalized_transactions_in_dag_[hash];
+  // }
+  // assert(false);
+  // LOG(log_wr_) << "Transaction " << hash << " not found in pool";
+  // return db_->getTransaction(hash);
 }
 
 /**

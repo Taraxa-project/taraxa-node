@@ -1200,8 +1200,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     return std::make_pair(NULL_BLOCK_HASH, true);
   }
 
-  uint64_t propose_pbft_period = pbft_chain_->getPbftChainSize() + 1;
-  addr_t beneficiary = node_addr_;
+  const uint64_t propose_pbft_period = pbft_chain_->getPbftChainSize() + 1;
 
   // get DAG block and transaction order
   auto dag_block_order = dag_mgr_->getDagBlockOrder(dag_block_hash, propose_pbft_period);
@@ -1232,11 +1231,16 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     }
   }
 
+  const auto transactions = trx_mgr_->getNonfinalizedTrx(non_finalized_transactions, true /*sorted*/);
+  non_finalized_transactions.clear();
+  std::transform(transactions.begin(), transactions.end(), std::back_inserter(non_finalized_transactions),
+                 [](const auto &t) { return t->getHash(); });
+
   auto order_hash = calculateOrderHash(dag_block_order, non_finalized_transactions);
 
   // generate generate pbft block
   auto pbft_block = std::make_shared<PbftBlock>(last_pbft_block_hash, dag_block_hash, order_hash, propose_pbft_period,
-                                                beneficiary, node_sk_);
+                                                node_addr_, node_sk_);
 
   LOG(log_nf_) << "Proposed Pbft block: " << pbft_block->getBlockHash() << ". Order hash:" << order_hash
                << ". DAG order for proposed block" << dag_block_order << ". Transaction order for proposed block"
@@ -1439,13 +1443,12 @@ std::optional<vec_blk_t> PbftManager::comparePbftBlockScheduleWithDAGblocks_(std
     }
   }
 
-  DbStorage::MultiGetQuery db_query(db_);
-  db_query.append(DbStorage::Columns::transactions, non_finalized_transactions);
-  auto transactions_res = db_query.execute();
-  cert_sync_block_.transactions.reserve(transactions_res.size());
-  for (auto const &trx_raw : transactions_res) {
-    assert(trx_raw.size() > 0);
-    cert_sync_block_.transactions.emplace_back(dev::asBytes(trx_raw));
+  const auto transactions = trx_mgr_->getNonfinalizedTrx(non_finalized_transactions, true /*sorted*/);
+  non_finalized_transactions.clear();
+  cert_sync_block_.transactions.reserve(transactions.size());
+  for (const auto &trx : transactions) {
+    non_finalized_transactions.push_back(trx->getHash());
+    cert_sync_block_.transactions.push_back(*trx);
   }
 
   auto calculated_order_hash = calculateOrderHash(dag_blocks_order, non_finalized_transactions);

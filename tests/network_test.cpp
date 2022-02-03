@@ -412,7 +412,7 @@ TEST_F(NetworkTest, node_sync) {
 // Test creates a PBFT chain on one node and verifies
 // that the second node syncs with it and that the resulting
 // chain on the other end is the same
-TEST_F(NetworkTest, node_pbft_sync) {
+TEST_F(NetworkTest, DISABLED_node_pbft_sync) {
   auto node_cfgs = make_node_cfgs<20>(2);
   auto node1 = create_nodes({node_cfgs[0]}, true /*start*/).front();
 
@@ -681,25 +681,6 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   EXPECT_EQ(node1->getPbftChain()->getPbftChainSize(), expect_pbft_chain_size);
 
   auto node2 = create_nodes({node_cfgs[1]}, true /*start*/).front();
-  std::shared_ptr<Network> nw1 = node1->getNetwork();
-  std::shared_ptr<Network> nw2 = node2->getNetwork();
-  // const int node_peers = 1;
-  // bool checkpoint_passed = false;
-  // const int timeout_val = 60;
-  /*for (auto i = 0; i < timeout_val; i++) {
-    // test timeout is 60 seconds
-    if (nw1->getPeerCount() == node_peers && nw2->getPeerCount() == node_peers) {
-      checkpoint_passed = true;
-      break;
-    }
-    taraxa::thisThreadSleepForMilliSeconds(1000);
-  }
-  if (checkpoint_passed == false) {
-    std::cout << "Timeout reached after " << timeout_val << " seconds..." << std::endl;
-    ASSERT_EQ(node_peers, nw1->getPeerCount());
-    ASSERT_EQ(node_peers, nw2->getPeerCount());
-  }*/
-
   std::cout << "Waiting Sync for max 1 minutes..." << std::endl;
   uint64_t sync_pbft_chain_size = 1;
   for (int i = 0; i < 600; i++) {

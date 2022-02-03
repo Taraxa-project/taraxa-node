@@ -673,7 +673,7 @@ DagManager::getNonFinalizedBlocksWithTransactions(const std::unordered_set<blk_h
       }
     }
   }
-  auto trxs = db_->getNonfinalizedTransactions(trx_to_query);
+  auto trxs = trx_mgr_->getNonfinalizedTrx(trx_to_query);
   return {period_, std::move(dag_blocks), std::move(trxs)};
 }
 

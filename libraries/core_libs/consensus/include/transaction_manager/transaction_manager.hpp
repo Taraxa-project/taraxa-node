@@ -64,6 +64,16 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
 
   size_t getNonfinalizedTrxSize() const;
 
+  /**
+   * @brief Get the Nonfinalized Trx objects from cache
+   *
+   * @param hashes
+   * @param sorted
+   * @return std::vector<std::shared_ptr<Transaction>>
+   */
+  std::vector<std::shared_ptr<Transaction>> getNonfinalizedTrx(const std::vector<trx_hash_t> &hashes,
+                                                               bool sorted = false);
+
   // Check transactions are present in broadcasted blocks
   bool checkBlockTransactions(DagBlock const &blk);
 
@@ -123,7 +133,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   // 1. In transactions pool; 2. In non-finalized Dag block 3. Executed
   mutable std::shared_mutex transactions_mutex_;
   TransactionQueue transactions_pool_;
-  std::unordered_set<trx_hash_t> nonfinalized_transactions_in_dag_;
+  std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> nonfinalized_transactions_in_dag_;
   uint64_t trx_count_ = 0;
 
   ExpirationCache<trx_hash_t> seen_txs_;

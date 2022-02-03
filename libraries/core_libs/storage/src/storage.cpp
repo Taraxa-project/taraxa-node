@@ -322,17 +322,6 @@ SharedTransactions DbStorage::getAllNonfinalizedTransactions() {
   return res;
 }
 
-SharedTransactions DbStorage::getNonfinalizedTransactions(std::vector<trx_hash_t> const& trx_hashes) {
-  SharedTransactions res;
-  for (const auto& hash : trx_hashes) {
-    auto data = asBytes(lookup(toSlice(hash.asBytes()), Columns::transactions));
-    if (data.size() > 0) {
-      res.emplace_back(std::make_shared<Transaction>(data));
-    }
-  }
-  return res;
-}
-
 void DbStorage::removeDagBlockBatch(Batch& write_batch, blk_hash_t const& hash) {
   remove(write_batch, Columns::dag_blocks, toSlice(hash));
 }
