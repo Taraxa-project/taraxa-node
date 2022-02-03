@@ -16,9 +16,7 @@ class ConfigUpdater {
  private:
   struct ConfigChange {
     ConfigChange() = default;
-    ConfigChange(auto&& version_function, auto&& apply_function)
-        : should_apply(version_function), apply(apply_function) {}
-    std::function<bool(uint32_t version)> should_apply;
+    ConfigChange(auto&& apply_function) : apply(apply_function) {}
     std::function<void(Json::Value& old_conf, const Json::Value& new_conf)> apply;
   };
 
