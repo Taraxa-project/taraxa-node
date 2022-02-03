@@ -144,7 +144,7 @@ const char *testnet_json = R"foo({
           "f4a52b8f6dc8ab046fec6ad02e77023c044342e4": "0x24048ce3d"
         },
         "hardforks": {
-          "fix_genesis_fork_block": "0x0"
+          "fix_genesis_fork_block": "0x1ADB0"
         }
       }
     },
