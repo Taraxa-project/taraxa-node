@@ -25,4 +25,44 @@ std::string to_string(Json::Value const& json, bool no_indent) {
   return Json::writeString(writer_builder, json);
 }
 
+void writeJsonToFile(const std::string& file_name, const Json::Value& json) {
+  std::ofstream ofile(file_name, std::ios::trunc);
+
+  if (ofile.is_open()) {
+    ofile << json;
+  } else {
+    std::stringstream err;
+    err << "Cannot open file " << file_name << std::endl;
+    throw std::invalid_argument(err.str());
+  }
+}
+
+Json::Value readJsonFromFile(const std::string& file_name) {
+  std::ifstream ifile(file_name);
+  if (ifile.is_open()) {
+    Json::Value json;
+    ifile >> json;
+    ifile.close();
+    return json;
+  } else {
+    throw std::invalid_argument(std::string("Cannot open file ") + file_name);
+  }
+}
+
+Json::Value readJsonFromString(const std::string& str) {
+  Json::CharReaderBuilder builder;
+  Json::CharReader* reader = builder.newCharReader();
+  Json::Value json;
+  std::string errors;
+
+  bool parsingSuccessful = reader->parse(str.c_str(), str.c_str() + str.size(), &json, &errors);
+  delete reader;
+
+  if (!parsingSuccessful) {
+    throw std::invalid_argument(std::string("Cannot parse json"));
+  }
+
+  return json;
+}
+
 }  // namespace taraxa::util

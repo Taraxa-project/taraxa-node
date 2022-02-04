@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include "cli/tools.hpp"
+#include "common/jsoncpp.hpp"
 #include "config/version.hpp"
 
 using namespace std;
@@ -157,8 +158,27 @@ Config::Config(int argc, const char* argv[]) {
       Tools::generateWallet(wallet);
     }
 
-    Json::Value config_json = Tools::readJsonFromFile(config);
-    Json::Value wallet_json = Tools::readJsonFromFile(wallet);
+    Json::Value config_json = util::readJsonFromFile(config);
+    Json::Value wallet_json = util::readJsonFromFile(wallet);
+
+    auto write_config_and_wallet_files = [&]() {
+      util::writeJsonToFile(config, config_json);
+      util::writeJsonToFile(wallet, wallet_json);
+    };
+
+    // Check that it is not empty, to not create chain config with just overwritten files
+    if (!config_json["chain_config"].isNull()) {
+      network_id = dev::getUInt(config_json["chain_config"]["chain_id"]);
+      auto default_config_json = Tools::generateConfig((Config::NetworkIdType)network_id);
+      // override hardforks data with one from default json
+      addNewHardforks(config_json, default_config_json);
+      // add vote_eligibility_balance_step field if it is missing in the config
+      if (config_json["chain_config"]["final_chain"]["state"]["dpos"]["vote_eligibility_balance_step"].isNull()) {
+        config_json["chain_config"]["final_chain"]["state"]["dpos"]["vote_eligibility_balance_step"] =
+            default_config_json["chain_config"]["final_chain"]["state"]["dpos"]["vote_eligibility_balance_step"];
+      }
+      write_config_and_wallet_files();
+    }
 
     // Override config values with values from CLI
     config_json = Tools::overrideConfig(config_json, data_dir, boot_node, boot_nodes, log_channels, boot_nodes_append,
@@ -174,12 +194,11 @@ Config::Config(int argc, const char* argv[]) {
     // or if running config command
     // This can overwrite secret keys in wallet
     if (overwrite_config || command[0] == CONFIG_COMMAND) {
-      Tools::writeJsonToFile(config, config_json);
-      Tools::writeJsonToFile(wallet, wallet_json);
+      write_config_and_wallet_files();
     }
 
     // Load config
-    node_config_ = FullNodeConfig(config_json, wallet_json);
+    node_config_ = FullNodeConfig(config_json, wallet_json, config);
 
     // Validate config values
     node_config_.validate();
@@ -216,6 +235,22 @@ Config::Config(int argc, const char* argv[]) {
 bool Config::nodeConfigured() { return node_configured_; }
 
 FullNodeConfig Config::getNodeConfiguration() { return node_config_; }
+
+void Config::addNewHardforks(Json::Value& config, const Json::Value& default_config) {
+  auto& new_hardforks_json = default_config["chain_config"]["final_chain"]["state"]["hardforks"];
+  auto& local_hardforks_json = config["chain_config"]["final_chain"]["state"]["hardforks"];
+
+  if (local_hardforks_json.isNull()) {
+    local_hardforks_json = new_hardforks_json;
+    return;
+  }
+  for (auto itr = new_hardforks_json.begin(); itr != new_hardforks_json.end(); ++itr) {
+    auto& local = local_hardforks_json[itr.key().asString()];
+    if (local.isNull()) {
+      local = itr->asString();
+    }
+  }
+}
 
 string Config::dirNameFromFile(const string& file) {
   size_t pos = file.find_last_of("\\/");

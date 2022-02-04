@@ -4,6 +4,8 @@
 
 #include <fstream>
 
+#include "common/jsoncpp.hpp"
+
 namespace taraxa {
 
 std::string getConfigErr(std::vector<string> path) {
@@ -93,11 +95,15 @@ Json::Value getJsonFromFileOrString(Json::Value const &value) {
   return value;
 }
 
-FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value const &wallet) {
+FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value const &wallet,
+                               const std::string &config_file_path) {
   Json::Value parsed_from_file = getJsonFromFileOrString(string_or_object);
   if (string_or_object.isString()) {
     json_file_name = string_or_object.asString();
+  } else {
+    json_file_name = config_file_path;
   }
+  assert(!json_file_name.empty());
   auto const &root = string_or_object.isString() ? parsed_from_file : string_or_object;
   data_path = getConfigDataAsString(root, {"data_path"});
   db_path = data_path / "db";
@@ -262,6 +268,12 @@ void FullNodeConfig::validate() {
     }
   }
   // TODO: add validation of other config values
+}
+
+void FullNodeConfig::overwrite_chain_config_in_file() const {
+  Json::Value from_file = getJsonFromFileOrString(json_file_name);
+  from_file["chain_config"] = enc_json(chain);
+  util::writeJsonToFile(json_file_name, from_file);
 }
 
 std::ostream &operator<<(std::ostream &strm, NodeConfig const &conf) {

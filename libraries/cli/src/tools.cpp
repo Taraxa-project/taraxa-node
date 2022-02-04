@@ -10,6 +10,7 @@
 #include "cli/default_config.hpp"
 #include "cli/devnet_config.hpp"
 #include "cli/testnet_config.hpp"
+#include "common/jsoncpp.hpp"
 
 using namespace std;
 using namespace dev;
@@ -21,31 +22,31 @@ void Tools::generateConfig(const std::string& config, Config::NetworkIdType netw
   Json::Value conf;
   switch (network_id) {
     case Config::NetworkIdType::Testnet:
-      conf = readJsonFromString(testnet_json);
+      conf = util::readJsonFromString(testnet_json);
       break;
     case Config::NetworkIdType::Devnet:
-      conf = readJsonFromString(devnet_json);
+      conf = util::readJsonFromString(devnet_json);
       break;
     default:
-      conf = readJsonFromString(default_json);
+      conf = util::readJsonFromString(default_json);
       std::stringstream stream;
       stream << "0x" << std::hex << static_cast<int>(network_id);
       conf["chain_config"]["chain_id"] = stream.str();
   }
-  writeJsonToFile(config, conf);
+  util::writeJsonToFile(config, conf);
 }
 
 Json::Value Tools::generateConfig(Config::NetworkIdType network_id) {
   Json::Value conf;
   switch (network_id) {
     case Config::NetworkIdType::Testnet:
-      conf = readJsonFromString(testnet_json);
+      conf = util::readJsonFromString(testnet_json);
       break;
     case Config::NetworkIdType::Devnet:
-      conf = readJsonFromString(devnet_json);
+      conf = util::readJsonFromString(devnet_json);
       break;
     default:
-      conf = readJsonFromString(default_json);
+      conf = util::readJsonFromString(default_json);
       std::stringstream stream;
       stream << "0x" << std::hex << static_cast<int>(network_id);
       conf["chain_config"]["chain_id"] = stream.str();
@@ -146,7 +147,7 @@ void Tools::generateWallet(const string& wallet) {
   auto account_json = createWalletJson(account, sk, pk);
 
   // Create account file
-  writeJsonToFile(wallet, account_json);
+  util::writeJsonToFile(wallet, account_json);
 }
 
 Json::Value Tools::overrideWallet(Json::Value& wallet, const string& node_key, const string& vrf_key) {
@@ -218,45 +219,5 @@ string Tools::getTaraxaDataDefaultDir() { return getHomeDir() + "/" + DEFAULT_TA
 string Tools::getWalletDefaultFile() { return getTaraxaDefaultDir() + "/" + DEFAULT_WALLET_FILE_NAME; }
 
 string Tools::getTaraxaDefaultConfigFile() { return getTaraxaDefaultDir() + "/" + DEFAULT_CONFIG_FILE_NAME; }
-
-void Tools::writeJsonToFile(const string& file_name, const Json::Value& json) {
-  ofstream ofile(file_name, ios::trunc);
-
-  if (ofile.is_open()) {
-    ofile << json;
-  } else {
-    stringstream err;
-    err << "Cannot open file " << file_name << endl;
-    throw invalid_argument(err.str());
-  }
-}
-
-Json::Value Tools::readJsonFromFile(const string& file_name) {
-  ifstream ifile(file_name);
-  if (ifile.is_open()) {
-    Json::Value json;
-    ifile >> json;
-    ifile.close();
-    return json;
-  } else {
-    throw invalid_argument(string("Cannot open file ") + file_name);
-  }
-}
-
-Json::Value Tools::readJsonFromString(const string& str) {
-  Json::CharReaderBuilder builder;
-  Json::CharReader* reader = builder.newCharReader();
-  Json::Value json;
-  std::string errors;
-
-  bool parsingSuccessful = reader->parse(str.c_str(), str.c_str() + str.size(), &json, &errors);
-  delete reader;
-
-  if (!parsingSuccessful) {
-    throw invalid_argument(string("Cannot parse json"));
-  }
-
-  return json;
-}
 
 }  // namespace taraxa::cli

@@ -102,6 +102,7 @@ const char *devnet_json = R"foo({
           "deposit_delay": "0x5",
           "withdrawal_delay": "0x5",
           "eligibility_balance_threshold": "0xf4240",
+          "vote_eligibility_balance_step": "0xf4240",
           "genesis_state": {
             "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": {
               "0x780fe8b2226cf212c55635de399ee4c2a860810c": "0xf4240",
@@ -126,6 +127,9 @@ const char *devnet_json = R"foo({
         "genesis_balances": {
           "2cd4da7d3b345e022ca7e997c2bb3276a4d3d2e9": "0x1027e72f1f12813088000000",
           "7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x1027e72f1f12813088000000"
+        },
+        "hardforks": {
+          "fix_genesis_fork_block": "0x0"
         }
       }
     },
