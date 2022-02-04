@@ -31,7 +31,7 @@ struct Transaction {
   mutable bool sender_valid_ = false;
   mutable addr_t sender_;
   mutable util::DefaultConstructCopyableMovable<std::mutex> sender_mu_;
-  mutable std::shared_ptr<bytes> cached_rlp_;
+  mutable bytes cached_rlp_;
   mutable util::DefaultConstructCopyableMovable<std::mutex> cached_rlp_mu_;
 
   template <bool for_signature>
@@ -63,7 +63,7 @@ struct Transaction {
 
   bool operator==(Transaction const &other) const { return getHash() == other.getHash(); }
 
-  std::shared_ptr<bytes> rlp() const;
+  const bytes &rlp() const;
 
   Json::Value toJSON() const;
 };

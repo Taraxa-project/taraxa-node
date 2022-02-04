@@ -167,7 +167,7 @@ void DagBlock::streamRLP(dev::RLPStream &s, bool include_sig) const {
 bytes DagBlock::rlp(bool include_sig) const {
   dev::RLPStream s;
   streamRLP(s, include_sig);
-  return s.out();
+  return s.invalidate();
 }
 
 blk_hash_t DagBlock::sha3(bool include_sig) const { return dev::sha3(rlp(include_sig)); }

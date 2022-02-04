@@ -183,7 +183,7 @@ void TransactionManager::saveTransactionsFromDagBlock(SharedTransactions const &
     // We only save transaction if it has not already been saved
     if (!trx_in_db[i]) {
       db_->addTransactionToBatch(*trxs[i], write_batch);
-      nonfinalized_transactions_in_dag_.emplace(trx_hash, std::move(trxs[i]));
+      nonfinalized_transactions_in_dag_.emplace(trx_hash, trxs[i]);
     }
     if (transactions_pool_.erase(trx_hash)) {
       LOG(log_dg_) << "Transaction " << trx_hash << " removed from trx pool";

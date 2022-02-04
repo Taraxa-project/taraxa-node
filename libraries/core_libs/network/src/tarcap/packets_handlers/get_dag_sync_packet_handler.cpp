@@ -74,7 +74,7 @@ void GetDagSyncPacketHandler::sendBlocks(const dev::p2p::NodeID &peer_id,
 
   for (const auto &t : transactions) {
     transactions_to_log += t->getHash().abridged();
-    raw_transactions.emplace_back(std::move(*t->rlp()));
+    raw_transactions.push_back(t->rlp());
     total_transactions_count++;
   }
 

@@ -65,7 +65,7 @@ trx_hash_t const &Transaction::getHash() const {
       l.lock();
       return hash_;
     }
-    hash_ = dev::sha3(*rlp());
+    hash_ = dev::sha3(rlp());
     hash_initialized_ = true;
   }
   return hash_;
@@ -91,8 +91,8 @@ addr_t const &Transaction::getSender() const {
   if (auto const &ret = get_sender_(); sender_valid_) {
     return ret;
   }
-  throw InvalidSignature("transaction body: " + toJSON().toStyledString() +
-                         "\nOriginal RLP: " + (cached_rlp_ ? dev::toJS(*cached_rlp_) : "wasn't created from rlp"));
+  throw InvalidSignature("transaction body: " + toJSON().toStyledString() + "\nOriginal RLP: " +
+                         (cached_rlp_.size() ? dev::toJS(cached_rlp_) : "wasn't created from rlp"));
 }
 
 template <bool for_signature>
@@ -112,8 +112,8 @@ void Transaction::streamRLP(dev::RLPStream &s) const {
   }
 }
 
-shared_ptr<bytes> Transaction::rlp() const {
-  if (cached_rlp_) {
+const bytes &Transaction::rlp() const {
+  if (!cached_rlp_.empty()) {
     return cached_rlp_;
   }
   std::unique_lock l(cached_rlp_mu_.val, std::try_to_lock);
@@ -123,7 +123,7 @@ shared_ptr<bytes> Transaction::rlp() const {
   }
   dev::RLPStream s;
   streamRLP<false>(s);
-  return cached_rlp_ = make_shared<bytes>(move(s.invalidate()));
+  return cached_rlp_ = s.invalidate();
 }
 
 trx_hash_t Transaction::hash_for_signature() const {

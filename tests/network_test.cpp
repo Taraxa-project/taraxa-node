@@ -223,7 +223,7 @@ TEST_F(NetworkTest, sync_large_pbft_block) {
     for (auto t : block->getTrxs()) {
       auto trx = nodes[0]->getDB()->getTransaction(t);
       EXPECT_NE(trx, nullptr);
-      total_size += trx->rlp()->size();
+      total_size += trx->rlp().size();
     }
   }
   EXPECT_GT(total_size, MAX_PACKET_SIZE);
@@ -264,9 +264,9 @@ TEST_F(NetworkTest, transfer_transaction) {
   EXPECT_NE(nw2->getPeer(nw1_nodeid), nullptr);
 
   std::vector<taraxa::bytes> transactions;
-  transactions.push_back(*g_signed_trx_samples[0]->rlp());
-  transactions.push_back(*g_signed_trx_samples[1]->rlp());
-  transactions.push_back(*g_signed_trx_samples[2]->rlp());
+  transactions.push_back(g_signed_trx_samples[0]->rlp());
+  transactions.push_back(g_signed_trx_samples[1]->rlp());
+  transactions.push_back(g_signed_trx_samples[2]->rlp());
 
   nw2->sendTransactions(nw1_nodeid, transactions);
 
@@ -412,7 +412,7 @@ TEST_F(NetworkTest, node_sync) {
 // Test creates a PBFT chain on one node and verifies
 // that the second node syncs with it and that the resulting
 // chain on the other end is the same
-TEST_F(NetworkTest, DISABLED_node_pbft_sync) {
+TEST_F(NetworkTest, node_pbft_sync) {
   auto node_cfgs = make_node_cfgs<20>(2);
   auto node1 = create_nodes({node_cfgs[0]}, true /*start*/).front();
 

@@ -99,7 +99,7 @@ void TransactionPacketHandler::onNewTransactions(SharedTransactions &&transactio
             break;
           }
 
-          transactions_to_send[peer.first].push_back(*trx->rlp());
+          transactions_to_send[peer.first].push_back(trx->rlp());
           transactions_hash_to_send[peer.first].push_back(trx_hash);
         }
       }
