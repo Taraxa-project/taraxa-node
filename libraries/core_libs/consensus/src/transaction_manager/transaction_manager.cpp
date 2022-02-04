@@ -242,7 +242,8 @@ std::vector<std::shared_ptr<Transaction>> TransactionManager::getNonfinalizedTrx
   if (sorted) {
     std::stable_sort(ret.begin(), ret.end(), [](const auto &t1, const auto &t2) {
       if (t1->getSender() == t2->getSender()) {
-        t1->getNonce() < t2->getNonce() || (t1->getNonce() == t2->getNonce() && t1->getGasPrice() > t2->getGasPrice());
+        return t1->getNonce() < t2->getNonce() ||
+               (t1->getNonce() == t2->getNonce() && t1->getGasPrice() > t2->getGasPrice());
       }
       return true;
     });

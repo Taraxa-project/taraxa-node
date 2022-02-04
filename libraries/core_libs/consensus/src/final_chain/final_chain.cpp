@@ -14,9 +14,8 @@ enum DBMetaKeys { LAST_NUMBER = 1 };
 
 class FinalChainImpl final : public FinalChain {
   shared_ptr<DB> db_;
-  StateAPI state_api_;
-  // TODO re-enable it
   unique_ptr<ReplayProtectionService> replay_protection_service_;
+  StateAPI state_api_;
 
   mutable shared_mutex last_block_mu_;
   mutable shared_ptr<BlockHeader> last_block_;
@@ -38,6 +37,7 @@ class FinalChainImpl final : public FinalChain {
  public:
   FinalChainImpl(shared_ptr<DB> const& db, Config const& config, addr_t const& node_addr)
       : db_(db),
+        replay_protection_service_(NewReplayProtectionService({10}, db)),
         state_api_([this](auto n) { return block_hash(n).value_or(ZeroHash()); },  //
                    config.state,
                    {
