@@ -14,7 +14,10 @@ class TaraxaConan(ConanFile):
 
     def requirements(self):
         self.requires("boost/1.76.0")
-        self.requires("cppcheck/2.5") # 2.6 Segmentation fault (core dumped) while building
+        # getting error because of cppcheck: 
+        # At least two recipes provides the same functionality:
+        #    - 'gmp' provided by 'gmp/6.2.1', 'mpir/3.0.0'
+        # self.requires("cppcheck/2.5") # 2.6 Segmentation fault (core dumped) while building
         self.requires("openssl/1.1.1l")
         self.requires("cryptopp/8.5.0")
         self.requires("gtest/1.11.0")
