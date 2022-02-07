@@ -49,9 +49,6 @@ void PacketsStats::logAndUpdateStats() {
   received_packets_stats_.updatePeriodMaxStats(period_received_packets_stats);
   sent_packets_stats_.updatePeriodMaxStats(period_sent_packets_stats);
 
-  LOG(log_dg_) << "Received packets period max count/size stats: "
-               << jsonToUnstyledString(received_packets_stats_.getPeriodMaxStatsJson());
-
   previous_received_packets_stats = received_packets_stats_;
   previous_sent_packets_stats = sent_packets_stats_;
 }
