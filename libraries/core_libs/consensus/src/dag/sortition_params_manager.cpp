@@ -40,7 +40,7 @@ bytes SortitionParamsChange::rlp() const {
   s << interval_efficiency;
   s << actual_correction_per_percent;
 
-  return s.out();
+  return s.invalidate();
 }
 
 SortitionParamsChange SortitionParamsChange::from_rlp(const dev::RLP& rlp) {

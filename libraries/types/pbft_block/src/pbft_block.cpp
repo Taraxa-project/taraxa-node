@@ -103,7 +103,7 @@ void PbftBlock::streamRLP(dev::RLPStream& strm, bool include_sig) const {
 bytes PbftBlock::rlp(bool include_sig) const {
   dev::RLPStream strm;
   streamRLP(strm, include_sig);
-  return strm.out();
+  return strm.invalidate();
 }
 
 std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk) {

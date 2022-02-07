@@ -249,12 +249,6 @@ std::vector<std::shared_ptr<Transaction>> TransactionManager::getNonfinalizedTrx
     });
   }
   return ret;
-  // if (nonfinalized_transactions_in_dag_.contains(hash)) {
-  //   return nonfinalized_transactions_in_dag_[hash];
-  // }
-  // assert(false);
-  // LOG(log_wr_) << "Transaction " << hash << " not found in pool";
-  // return db_->getTransaction(hash);
 }
 
 /**

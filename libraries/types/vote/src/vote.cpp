@@ -28,7 +28,7 @@ bytes VrfPbftSortition::getRlpBytes() const {
   s << pbft_msg.step;
   s << proof;
 
-  return s.out();
+  return s.invalidate();
 }
 
 uint64_t VrfPbftSortition::getBinominalDistribution(uint64_t stake, double dpos_total_votes_count, double threshold,
@@ -132,7 +132,7 @@ bytes Vote::rlp(bool inc_sig, bool inc_weight) const {
     s << weight_.value();
   }
 
-  return s.out();
+  return s.invalidate();
 }
 
 }  // namespace taraxa
