@@ -18,18 +18,12 @@ PacketsStats::PacketsStats(const addr_t& node_addr) { LOG_OBJECTS_CREATE("NETPER
 
 void PacketsStats::addReceivedPacket(const std::string& packet_type, const SinglePacketStats& packet) {
   received_packets_stats_.addPacket(packet_type, packet);
-
-  auto packet_json = packet.getStatsJson();
-  packet_json["type"] = packet_type;
-  LOG(log_tr_) << "Received packet: " << jsonToUnstyledString(packet_json);
+  LOG(log_tr_) << "Received packet: " << packet.getStatsJsonStr(packet_type);
 }
 
 void PacketsStats::addSentPacket(const std::string& packet_type, const SinglePacketStats& packet) {
   sent_packets_stats_.addPacket(packet_type, packet);
-
-  auto packet_json = packet.getStatsJson();
-  packet_json["type"] = packet_type;
-  LOG(log_tr_) << "Sent packet: " << jsonToUnstyledString(packet_json);
+  LOG(log_tr_) << "Sent packet: " << packet.getStatsJsonStr(packet_type);
 }
 
 const AllPacketTypesStats& PacketsStats::getSentPacketsStats() const { return sent_packets_stats_; }

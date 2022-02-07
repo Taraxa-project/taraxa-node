@@ -22,6 +22,7 @@ struct SinglePacketStats {
   std::chrono::microseconds tp_wait_duration_{0};
 
   Json::Value getStatsJson(bool include_duration_fields = true) const;
+  std::string getStatsJsonStr(const std::string &packet_type, bool include_duration_fields = true) const;
 };
 
 /**

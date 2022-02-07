@@ -153,4 +153,20 @@ Json::Value SinglePacketStats::getStatsJson(bool include_duration_fields) const 
   return ret;
 }
 
+std::string SinglePacketStats::getStatsJsonStr(const std::string &packet_type, bool include_duration_fields) const {
+  std::ostringstream ret;
+  ret << "{\"type\":\"" << packet_type << "\",";
+  ret << "\"size\":" << size_ << ",";
+  ret << "\"node\":\"" << node_.abridged() << "\"";
+
+  if (include_duration_fields) {
+    ret << ",\"processing_duration\":" << processing_duration_.count() << ",";
+    ret << "\"tp_wait_duration\":" << tp_wait_duration_.count();
+  }
+
+  ret << "}";
+
+  return ret.str();
+}
+
 }  // namespace taraxa::network::tarcap
