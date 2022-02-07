@@ -43,7 +43,7 @@ void GetDagSyncPacketHandler::process(const PacketData &packet_data,
     blocks_hashes.emplace(std::move(hash));
   }
 
-  LOG(log_nf_) << "Received GetDagSyncPacket: " << blocks_hashes_to_log << " from " << peer->getId();
+  LOG(log_dg_) << "Received GetDagSyncPacket: " << blocks_hashes_to_log << " from " << peer->getId();
 
   auto [period, blocks, transactions] = dag_mgr_->getNonFinalizedBlocksWithTransactions(blocks_hashes);
   if (peer_period == period) {
@@ -92,7 +92,7 @@ void GetDagSyncPacketHandler::sendBlocks(const dev::p2p::NodeID &peer_id,
     s.appendRaw(block->rlp(true));
   }
   sealAndSend(peer_id, SubprotocolPacketType::DagSyncPacket, std::move(s));
-  LOG(log_nf_) << "Send DagSyncPacket with " << dag_blocks_to_send << "# Trx: " << transactions_to_log << " from "
+  LOG(log_dg_) << "Send DagSyncPacket with " << dag_blocks_to_send << "# Trx: " << transactions_to_log << " from "
                << peer->getId();
 }
 

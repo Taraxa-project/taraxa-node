@@ -20,7 +20,7 @@ GetPbftSyncPacketHandler::GetPbftSyncPacketHandler(std::shared_ptr<PeersState> p
 
 void GetPbftSyncPacketHandler::process(const PacketData &packet_data,
                                        [[maybe_unused]] const std::shared_ptr<TaraxaPeer> &peer) {
-  LOG(log_dg_) << "Received GetPbftSyncPacket Block";
+  LOG(log_tr_) << "Received GetPbftSyncPacket Block";
 
   const size_t height_to_sync = packet_data.rlp_[0].toInt();
   // Here need PBFT chain size, not synced period since synced blocks has not verified yet.
@@ -29,7 +29,7 @@ void GetPbftSyncPacketHandler::process(const PacketData &packet_data,
   if (my_chain_size >= height_to_sync) {
     blocks_to_transfer = std::min(network_sync_level_size_, (my_chain_size - (height_to_sync - 1)));
   }
-  LOG(log_dg_) << "Will send " << blocks_to_transfer << " PBFT blocks to " << packet_data.from_node_id_;
+  LOG(log_tr_) << "Will send " << blocks_to_transfer << " PBFT blocks to " << packet_data.from_node_id_;
 
   sendPbftBlocks(packet_data.from_node_id_, height_to_sync, blocks_to_transfer);
 }
@@ -37,11 +37,11 @@ void GetPbftSyncPacketHandler::process(const PacketData &packet_data,
 // api for pbft syncing
 void GetPbftSyncPacketHandler::sendPbftBlocks(dev::p2p::NodeID const &peer_id, size_t height_to_sync,
                                               size_t blocks_to_transfer) {
-  LOG(log_dg_) << "sendPbftBlocks: peer want to sync from pbft chain height " << height_to_sync
+  LOG(log_tr_) << "sendPbftBlocks: peer want to sync from pbft chain height " << height_to_sync
                << ", will send at most " << blocks_to_transfer << " pbft blocks to " << peer_id;
   uint64_t current_period = height_to_sync;
   if (blocks_to_transfer == 0) {
-    LOG(log_nf_) << "Sending empty PbftSyncPacket to " << peer_id;
+    LOG(log_dg_) << "Sending empty PbftSyncPacket to " << peer_id;
     sealAndSend(peer_id, SubprotocolPacketType::PbftSyncPacket, dev::RLPStream(0));
     return;
   }
@@ -60,7 +60,7 @@ void GetPbftSyncPacketHandler::sendPbftBlocks(dev::p2p::NodeID const &peer_id, s
     s.appendList(2);
     s << last_block;
     s.appendRaw(data);
-    LOG(log_nf_) << "Sending PbftSyncPacket period " << current_period << " to " << peer_id;
+    LOG(log_dg_) << "Sending PbftSyncPacket period " << current_period << " to " << peer_id;
     sealAndSend(peer_id, SubprotocolPacketType::PbftSyncPacket, std::move(s));
     current_period++;
   }
