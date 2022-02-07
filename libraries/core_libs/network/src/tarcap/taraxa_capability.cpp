@@ -45,7 +45,7 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev
   LOG_OBJECTS_CREATE("TARCAP");
 
   assert(host.lock());
-  peers_state_ = std::make_shared<PeersState>(host, host.lock()->id());
+  peers_state_ = std::make_shared<PeersState>(host, host.lock()->id(), conf);
 
   auto packets_stats = std::make_shared<PacketsStats>(node_addr);
 
@@ -250,7 +250,7 @@ void TaraxaCapability::onConnect(std::weak_ptr<dev::p2p::Session> session, u256 
 
   const auto node_id = session_p->id();
 
-  if (syncing_state_->is_peer_malicious(node_id)) {
+  if (peers_state_->is_peer_malicious(node_id)) {
     session_p->disconnect(dev::p2p::UserReason);
     LOG(log_wr_) << "Node " << node_id << " connection dropped - malicious node";
     return;

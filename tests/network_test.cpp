@@ -138,6 +138,53 @@ TEST_F(NetworkTest, send_pbft_block) {
                  [&](auto& ctx) { WAIT_EXPECT_EQ(ctx, nw1->getPeer(node2_id)->pbft_chain_size_, chain_size) });
 }
 
+TEST_F(NetworkTest, malicious_peers) {
+  NetworkConfig conf;
+  conf.network_peer_blacklist_timeout = 2;
+  std::shared_ptr<dev::p2p::Host> host;
+  EXPECT_EQ(conf.disable_peer_blacklist, false);
+  network::tarcap::PeersState state1(host, dev::p2p::NodeID(), conf);
+  dev::p2p::NodeID id1(1);
+  dev::p2p::NodeID id2(2);
+  state1.set_peer_malicious(id1);
+  EXPECT_EQ(state1.is_peer_malicious(id1), true);
+  EXPECT_EQ(state1.is_peer_malicious(id2), false);
+
+  conf.network_peer_blacklist_timeout = 0;
+  network::tarcap::PeersState state2(host, dev::p2p::NodeID(), conf);
+  state2.set_peer_malicious(id1);
+  EXPECT_EQ(state2.is_peer_malicious(id1), true);
+  EXPECT_EQ(state2.is_peer_malicious(id2), false);
+
+  conf.network_peer_blacklist_timeout = 2;
+  conf.disable_peer_blacklist = true;
+  network::tarcap::PeersState state3(host, dev::p2p::NodeID(), conf);
+  state1.set_peer_malicious(id1);
+  EXPECT_EQ(state3.is_peer_malicious(id1), false);
+  EXPECT_EQ(state3.is_peer_malicious(id2), false);
+
+  conf.network_peer_blacklist_timeout = 0;
+  conf.disable_peer_blacklist = true;
+  network::tarcap::PeersState state4(host, dev::p2p::NodeID(), conf);
+  state1.set_peer_malicious(id1);
+  EXPECT_EQ(state4.is_peer_malicious(id1), false);
+  EXPECT_EQ(state4.is_peer_malicious(id2), false);
+
+  thisThreadSleepForMilliSeconds(3100);
+
+  EXPECT_EQ(state1.is_peer_malicious(id1), false);
+  EXPECT_EQ(state1.is_peer_malicious(id2), false);
+
+  EXPECT_EQ(state2.is_peer_malicious(id1), true);
+  EXPECT_EQ(state2.is_peer_malicious(id2), false);
+
+  EXPECT_EQ(state3.is_peer_malicious(id1), false);
+  EXPECT_EQ(state3.is_peer_malicious(id2), false);
+
+  EXPECT_EQ(state4.is_peer_malicious(id1), false);
+  EXPECT_EQ(state4.is_peer_malicious(id2), false);
+}
+
 TEST_F(NetworkTest, sync_large_pbft_block) {
   const uint32_t MAX_PACKET_SIZE = 15 * 1024 * 1024;  // 15 MB -> 15 * 1024 * 1024 B
   auto node_cfgs = make_node_cfgs<5>(2);
@@ -427,7 +474,10 @@ TEST_F(NetworkTest, node_pbft_sync) {
 
   vec_blk_t order1;
   order1.push_back(blk1.getHash());
-  node1->getDagManager()->setDagBlockOrder(blk1.getHash(), level, order1);
+  {
+    std::unique_lock dag_lock(node1->getDagManager()->getDagMutex());
+    node1->getDagManager()->setDagBlockOrder(blk1.getHash(), level, order1);
+  }
 
   uint64_t expect_pbft_chain_size = 1;
   EXPECT_EQ(node1->getPbftChain()->getPbftChainSize(), expect_pbft_chain_size);
@@ -482,7 +532,10 @@ TEST_F(NetworkTest, node_pbft_sync) {
 
   vec_blk_t order2;
   order2.push_back(blk2.getHash());
-  node1->getDagManager()->setDagBlockOrder(blk2.getHash(), level, order2);
+  {
+    std::unique_lock dag_lock(node1->getDagManager()->getDagMutex());
+    node1->getDagManager()->setDagBlockOrder(blk2.getHash(), level, order2);
+  }
 
   expect_pbft_chain_size = 2;
   EXPECT_EQ(node1->getPbftChain()->getPbftChainSize(), expect_pbft_chain_size);

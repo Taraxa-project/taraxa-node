@@ -33,9 +33,9 @@ inline void TransactionPacketHandler::process(const PacketData &packet_data, con
         continue;
       }
       if (const auto [is_valid, reason] = trx_mgr_->verifyTransaction(transaction); !is_valid) {
-        // TODO: malicious peer handling
         LOG(log_er_) << "Transaction " << transaction->getHash() << " validation falied: " << reason << " . Peer "
                      << packet_data.from_node_id_ << " will be disconnected.";
+        peers_state_->set_peer_malicious(peer->getId());
         disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
         return;
       }

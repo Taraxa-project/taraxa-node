@@ -5,8 +5,7 @@
 
 namespace taraxa::network::tarcap {
 
-SyncingState::SyncingState(uint16_t deep_syncing_threshold)
-    : malicious_peers_(300, 50), kDeepSyncingThreshold(deep_syncing_threshold) {}
+SyncingState::SyncingState(uint16_t deep_syncing_threshold) : kDeepSyncingThreshold(deep_syncing_threshold) {}
 
 void SyncingState::set_peer(std::shared_ptr<TaraxaPeer> &&peer) {
   std::unique_lock lock(peer_mutex_);
@@ -62,19 +61,6 @@ bool SyncingState::is_actively_syncing() const {
   return std::chrono::duration_cast<std::chrono::seconds>(now - last_received_sync_packet_time_) <=
          SYNCING_INACTIVITY_THRESHOLD;
 }
-
-void SyncingState::set_peer_malicious(const std::optional<dev::p2p::NodeID> &peer_id) {
-  if (peer_id.has_value()) {
-    malicious_peers_.insert(peer_id.value());
-    return;
-  }
-
-  // this lock is for peer_id_ not the malicious_peers_
-  std::shared_lock lock(peer_mutex_);
-  malicious_peers_.insert(peer_->getId());
-}
-
-bool SyncingState::is_peer_malicious(const dev::p2p::NodeID &peer_id) const { return malicious_peers_.count(peer_id); }
 
 bool SyncingState::is_syncing() { return is_pbft_syncing(); }
 

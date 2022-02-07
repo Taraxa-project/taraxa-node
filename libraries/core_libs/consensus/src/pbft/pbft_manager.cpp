@@ -1785,9 +1785,16 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
   auto net = network_.lock();
   assert(net);  // Should never happen
 
+  auto last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
+
   // Check previous hash matches
-  if (sync_block.first.pbft_blk->getPrevBlockHash() != pbft_chain_->getLastPbftBlockHash()) {
-    // TODO: should be clear it is related to syncing, was log_er_pbft_sync_
+  if (sync_block.first.pbft_blk->getPrevBlockHash() != last_pbft_block_hash) {
+    auto last_pbft_block = pbft_chain_->getPbftBlockInChain(last_pbft_block_hash);
+    if (sync_block.first.pbft_blk->getPeriod() <= last_pbft_block.getPeriod()) {
+      // Old block in the sync queue
+      return std::nullopt;
+    }
+
     LOG(log_er_) << "Invalid PBFT block " << pbft_block_hash
                  << "; prevHash: " << sync_block.first.pbft_blk->getPrevBlockHash() << " from peer "
                  << sync_block.second.abridged() << " received, stop syncing.";

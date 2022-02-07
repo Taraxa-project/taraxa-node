@@ -27,6 +27,8 @@ struct NodeConfig {
 };
 
 struct NetworkConfig {
+  static constexpr uint16_t kBlacklistTimeoutDefaultInSeconds = 600;
+
   std::string json_file_name;
   bool network_is_boot_node = 0;
   std::string network_public_ip;
@@ -43,6 +45,8 @@ struct NetworkConfig {
   uint16_t network_performance_log_interval = 0;
   uint16_t network_num_threads = std::max(uint(1), uint(std::thread::hardware_concurrency() / 2));
   uint16_t network_packets_processing_threads = 10;
+  uint16_t network_peer_blacklist_timeout = kBlacklistTimeoutDefaultInSeconds;
+  bool disable_peer_blacklist = false;
   uint16_t deep_syncing_threshold = 10;
 };
 

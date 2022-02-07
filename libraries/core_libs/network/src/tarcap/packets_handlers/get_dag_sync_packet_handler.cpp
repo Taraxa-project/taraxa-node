@@ -1,7 +1,6 @@
 #include "network/tarcap/packets_handlers/get_dag_sync_packet_handler.hpp"
 
 #include "dag/dag.hpp"
-#include "network/tarcap/shared_states/syncing_state.hpp"
 #include "transaction_manager/transaction_manager.hpp"
 
 namespace taraxa::network::tarcap {
@@ -20,6 +19,16 @@ GetDagSyncPacketHandler::GetDagSyncPacketHandler(std::shared_ptr<PeersState> pee
 
 void GetDagSyncPacketHandler::process(const PacketData &packet_data,
                                       [[maybe_unused]] const std::shared_ptr<TaraxaPeer> &peer) {
+  if (peer->peer_requested_dag_syncing_) {
+    // This should not be possible for honest node
+    // Each node should perform dag syncing only once
+    LOG(log_er_) << "Received multiple GetDagSyncPackets from " << packet_data.from_node_id_.abridged()
+                 << " peer will be disconnected";
+    peers_state_->set_peer_malicious(peer->getId());
+    disconnect(peer->getId(), dev::p2p::UserReason);
+    return;
+  }
+
   // This lock prevents race condition between syncing and gossiping dag blocks
   std::unique_lock lock(peer->mutex_for_sending_dag_blocks_);
 
@@ -39,6 +48,7 @@ void GetDagSyncPacketHandler::process(const PacketData &packet_data,
   auto [period, blocks, transactions] = dag_mgr_->getNonFinalizedBlocksWithTransactions(blocks_hashes);
   if (peer_period == period) {
     peer->syncing_ = false;
+    peer->peer_requested_dag_syncing_ = true;
   } else {
     // There is no point in sending blocks if periods do not match, but an empty packet should be sent
     blocks.clear();
