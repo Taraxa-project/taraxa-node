@@ -65,6 +65,8 @@ class TaraxaConan(ConanFile):
         self.options["rocksdb"].use_rtti = True
         self.options["rocksdb"].with_lz4= True
         self.options["libjson-rpc-cpp"].shared = False
+        # mpir is required by cppcheck and it causing gmp confict
+        self.options["mpir"].enable_gmpcompat = False
 
     def _configure_cmake(self):
         cmake = CMake(self)
