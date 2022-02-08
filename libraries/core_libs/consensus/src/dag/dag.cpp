@@ -15,6 +15,8 @@
 #include "network/network.hpp"
 #include "transaction_manager/transaction_manager.hpp"
 
+#define NULL_BLOCK_HASH blk_hash_t(0)
+
 namespace taraxa {
 
 Dag::Dag(blk_hash_t const &genesis, addr_t node_addr) {
@@ -542,9 +544,9 @@ uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period,
     return 0;
   }
 
-  if (new_anchor == blk_hash_t(0)) {
+  if (new_anchor == NULL_BLOCK_HASH) {
     period_ = period;
-    LOG(log_nf_) << "Set new period " << period << " with anchor " << new_anchor;
+    LOG(log_nf_) << "Set new period " << period << " with NULL_BLOCK_HASH anchor";
     return 0;
   }
 

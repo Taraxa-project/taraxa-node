@@ -1214,7 +1214,7 @@ blk_hash_t PbftManager::proposePbftBlock_() {
   std::vector<blk_hash_t> ghost;
   dag_mgr_->getGhostPath(last_period_dag_anchor_block_hash, ghost);
   LOG(log_dg_) << "GHOST size " << ghost.size();
-  // Looks like ghost never empty, at lease include the last period dag anchor block
+  // Looks like ghost never empty, at least include the last period dag anchor block
   if (ghost.empty()) {
     LOG(log_dg_) << "GHOST is empty. No new DAG blocks generated, PBFT propose NULL BLOCK HASH anchor";
     return generatePbftBlock(last_pbft_block_hash, NULL_BLOCK_HASH, NULL_BLOCK_HASH);

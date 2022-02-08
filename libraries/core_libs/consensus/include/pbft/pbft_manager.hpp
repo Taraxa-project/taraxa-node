@@ -162,7 +162,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   std::atomic<bool> stopped_ = true;
 
-  // Only be able to propose one PBFT block for each period
+  // Ensures that only one PBFT block per period can be proposed
   blk_hash_t proposed_block_hash_ = NULL_BLOCK_HASH;
 
   std::unique_ptr<std::thread> daemon_;
