@@ -359,8 +359,8 @@ TEST_F(CryptoTest, testnet) {
   for (uint64_t i = 0; i < comunity_nodes; i++) {
     community.emplace(i + our_nodes, getVrfKeyPair().second);
   }
-  const uint64_t our_nodes_power = 134;  // 1 + 399 * 2 / 6
-  const uint64_t comunity_nodes_power = 1;
+  const uint64_t our_nodes_power = 1331;  // 1 + 399 * 20 / 6
+  const uint64_t comunity_nodes_power = 10;
   const auto valid_sortition_players = our_nodes * our_nodes_power + comunity_nodes * comunity_nodes_power;
   std::map<uint64_t, uint64_t> block_proposed;
   std::map<uint64_t, uint64_t> block_produced;
@@ -391,8 +391,33 @@ TEST_F(CryptoTest, testnet) {
     std::cout << "Node " << node.first << " proposed " << node.second << " blocks" << std::endl;
   }
 
-  for (const auto& node : block_produced)
+  for (const auto& node : block_produced) {
     std::cout << "Node " << node.first << " produced " << node.second << " blocks" << std::endl;
+  }
+
+  auto our_nodes_proposed_blocks = 0;
+  for (uint64_t i = 0; i < our_nodes; i++) {
+    our_nodes_proposed_blocks += block_proposed[i];
+  }
+  std::cout << "All our nodes proposed " << our_nodes_proposed_blocks << " blocks" << std::endl;
+
+  auto community_proposed_blocks = 0;
+  for (uint64_t i = 6; i < our_nodes + comunity_nodes; i++) {
+    community_proposed_blocks += block_proposed[i];
+  }
+  std::cout << "All community nodes proposed " << community_proposed_blocks << " blocks" << std::endl;
+
+  auto our_nodes_produced_blocks = 0;
+  for (uint64_t i = 0; i < our_nodes; i++) {
+    our_nodes_produced_blocks += block_produced[i];
+  }
+  std::cout << "All our nodes produced " << our_nodes_produced_blocks << " blocks" << std::endl;
+
+  auto community_produced_blocks = 0;
+  for (uint64_t i = 6; i < our_nodes + comunity_nodes; i++) {
+    community_produced_blocks += block_produced[i];
+  }
+  std::cout << "All community nodes produced " << community_produced_blocks << " blocks" << std::endl;
 }
 
 }  // namespace taraxa::core_tests
