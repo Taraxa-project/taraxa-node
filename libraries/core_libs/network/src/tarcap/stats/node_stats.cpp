@@ -279,8 +279,11 @@ Json::Value NodeStats::getStatus() const {
 
 Json::Value NodeStats::getPacketsStats() const {
   Json::Value ret;
-  ret["received_packets"] = packets_stats_->getReceivedPacketsStats().getStatsJson(true);
-  ret["sent_packets"] = packets_stats_->getSentPacketsStats().getStatsJson(false);
+  ret["received_packets"] = packets_stats_->getReceivedPacketsStats().getStatsJson();
+  ret["sent_packets"] = packets_stats_->getSentPacketsStats().getStatsJson();
+
+  ret["received_packets_period_max_stats"] = packets_stats_->getReceivedPacketsStats().getPeriodMaxStatsJson();
+  ret["sent_packets_period_max_stats"] = packets_stats_->getSentPacketsStats().getPeriodMaxStatsJson();
 
   return ret;
 }
