@@ -351,7 +351,7 @@ TEST_F(CryptoTest, testnet) {
   std::unordered_map<uint64_t, vrf_sk_t> our;
   const uint64_t committee_size = 1000;
   const uint64_t rounds = 1000;
-  const uint64_t comunity_nodes = 400;
+  const uint64_t comunity_nodes = 399;
   const uint64_t our_nodes = 6;
   for (uint64_t i = 0; i < our_nodes; i++) {
     our.emplace(i, getVrfKeyPair().second);
@@ -359,28 +359,36 @@ TEST_F(CryptoTest, testnet) {
   for (uint64_t i = 0; i < comunity_nodes; i++) {
     community.emplace(i + our_nodes, getVrfKeyPair().second);
   }
-  const uint64_t our_nodes_power = 1700;
-  const uint64_t comunity_nodes_power = 10;
+  const uint64_t our_nodes_power = 134;  // 1 + 399 * 2 / 6
+  const uint64_t comunity_nodes_power = 1;
   const auto valid_sortition_players = our_nodes * our_nodes_power + comunity_nodes * comunity_nodes_power;
+  std::map<uint64_t, uint64_t> block_proposed;
   std::map<uint64_t, uint64_t> block_produced;
   for (uint64_t i = 0; i < rounds; i++) {
     const VrfPbftMsg msg(propose_vote_type, i, 1);
     std::unordered_map<uint64_t, uint512_t> outputs;
     for (const auto& n : our) {
       VrfPbftSortition sortition(n.second, msg);
-      if (sortition.getBinominalDistribution(our_nodes_power, valid_sortition_players, committee_size))
+      if (sortition.getBinominalDistribution(our_nodes_power, valid_sortition_players, committee_size)) {
         outputs.emplace(n.first, sortition.output);
+        block_proposed[n.first]++;
+      }
     }
     for (const auto& n : community) {
       VrfPbftSortition sortition(n.second, msg);
       if (sortition.getBinominalDistribution(comunity_nodes_power, valid_sortition_players, committee_size)) {
         outputs.emplace(n.first, sortition.output);
+        block_proposed[n.first]++;
         // std::cout << "Node " << n.first << " propose in round " << i << std::endl;
       }
     }
     const auto leader = *std::min_element(outputs.begin(), outputs.end(),
                                           [](const auto& i, const auto& j) { return i.second < j.second; });
     block_produced[leader.first]++;
+  }
+
+  for (const auto& node : block_proposed) {
+    std::cout << "Node " << node.first << " proposed " << node.second << " blocks" << std::endl;
   }
 
   for (const auto& node : block_produced)
