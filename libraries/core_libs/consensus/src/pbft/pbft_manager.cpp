@@ -1036,7 +1036,7 @@ void PbftManager::secondFinish_() {
     assert(voted_block_hash_with_soft_votes.enough);
 
     if (auto net = network_.lock()) {
-      net->onNewPbftVotes(move(voted_block_hash_with_soft_votes.votes));
+      net->onNewPbftVotes(std::move(voted_block_hash_with_soft_votes.votes));
     }
   }
 
