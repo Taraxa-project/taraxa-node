@@ -627,7 +627,8 @@ void DagManager::recoverDag() {
         auto propose_period = dag_blk_mgr_->getProposalPeriod(blk.getLevel());
         // Verify VDF solution
         try {
-          blk.verifyVdf(dag_blk_mgr_->sortitionParamsManager().getSortitionParams(propose_period.first));
+          blk.verifyVdf(dag_blk_mgr_->sortitionParamsManager().getSortitionParams(propose_period.first),
+                        db_->getPeriodBlockHash(propose_period.first));
         } catch (vdf_sortition::VdfSortition::InvalidVdfSortition const &e) {
           LOG(log_er_) << "DAG block " << blk.getHash() << " with " << blk.getLevel()
                        << " level failed on VDF verification with pivot hash " << blk.getPivot() << " reason "

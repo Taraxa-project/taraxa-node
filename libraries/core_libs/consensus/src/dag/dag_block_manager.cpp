@@ -192,8 +192,9 @@ bool DagBlockManager::verifyBlock(const DagBlock &blk) {
   }
 
   // Verify VDF solution
+  const auto proposal_period_hash = db_->getPeriodBlockHash(propose_period.first);
   try {
-    blk.verifyVdf(sortition_params_manager_.getSortitionParams(propose_period.first));
+      blk.verifyVdf(sortition_params_manager_.getSortitionParams(propose_period.first), proposal_period_hash);
   } catch (vdf_sortition::VdfSortition::InvalidVdfSortition const &e) {
     LOG(log_er_) << "DAG block " << block_hash << " with " << blk.getLevel()
                  << " level failed on VDF verification with pivot hash " << blk.getPivot() << " reason " << e.what();

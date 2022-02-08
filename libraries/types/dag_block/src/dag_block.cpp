@@ -7,6 +7,8 @@
 
 #include <utility>
 
+#include "common/util.hpp"
+
 namespace taraxa {
 
 using std::to_string;
@@ -117,8 +119,8 @@ bool DagBlock::verifySig() const {
   return !pk.isZero();
 }
 
-void DagBlock::verifyVdf(const SortitionParams &vdf_config) const {
-  vdf_.verifyVdf(vdf_config, getRlpBytes(getLevel()), getPivot().asBytes());
+void DagBlock::verifyVdf(const SortitionParams &vdf_config, const h256 &proposal_period_hash) const {
+  vdf_.verifyVdf(vdf_config, makeVrfInput(getLevel(), proposal_period_hash), getPivot().asBytes());
 }
 
 blk_hash_t const &DagBlock::getHash() const {

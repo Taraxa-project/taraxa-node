@@ -5,8 +5,8 @@
 
 namespace taraxa::vdf_sortition {
 
-VdfSortition::VdfSortition(SortitionParams const& config, vrf_sk_t const& sk, bytes const& msg)
-    : VrfSortitionBase(sk, msg) {
+VdfSortition::VdfSortition(const SortitionParams& config, const vrf_sk_t& sk, const bytes& vrf_input)
+    : VrfSortitionBase(sk, vrf_input) {
   difficulty_ = calculateDifficulty(config);
 }
 
