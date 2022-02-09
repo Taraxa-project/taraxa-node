@@ -105,7 +105,7 @@ void DagBlockPacketHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::D
 
 void DagBlockPacketHandler::onNewBlockReceived(DagBlock &&block) {
   if (dag_blk_mgr_) {
-    dag_blk_mgr_->insertBroadcastedBlock(block);
+    dag_blk_mgr_->insertAndVerifyBlock(std::move(block));
   } else if (!test_state_->hasBlock(block.getHash())) {
     test_state_->insertBlock(block);
     onNewBlockVerified(block, false, {});
