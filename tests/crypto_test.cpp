@@ -351,7 +351,7 @@ TEST_F(CryptoTest, testnet) {
   std::unordered_map<uint64_t, vrf_sk_t> our;
   const uint64_t committee_size = 1000;
   const uint64_t rounds = 1000;
-  const uint64_t comunity_nodes = 399;
+  const uint64_t comunity_nodes = 400;
   const uint64_t our_nodes = 6;
   for (uint64_t i = 0; i < our_nodes; i++) {
     our.emplace(i, getVrfKeyPair().second);
@@ -359,74 +359,50 @@ TEST_F(CryptoTest, testnet) {
   for (uint64_t i = 0; i < comunity_nodes; i++) {
     community.emplace(i + our_nodes, getVrfKeyPair().second);
   }
-  const uint64_t our_nodes_power = 1331;  // 1 + 399 * 20 / 6
-  const uint64_t comunity_nodes_power = 1331;
+  const uint64_t our_nodes_power = 1700;
+  const uint64_t comunity_nodes_power = 10;
   const auto valid_sortition_players = our_nodes * our_nodes_power + comunity_nodes * comunity_nodes_power;
-  std::map<uint64_t, uint64_t> block_proposed;
+
+  uint64_t total_our_nodes_power = 0;
+  uint64_t total_comunity_nodes_power = 0;
   std::map<uint64_t, uint64_t> block_produced;
   for (uint64_t i = 0; i < rounds; i++) {
-    auto our_proposed_blocks = 0;
-    auto community_proposed_blocks = 0;
     const VrfPbftMsg msg(propose_vote_type, i, 1);
     std::unordered_map<uint64_t, uint512_t> outputs;
     for (const auto& n : our) {
       VrfPbftSortition sortition(n.second, msg);
       if (sortition.getBinominalDistribution(our_nodes_power, valid_sortition_players, committee_size)) {
+        total_our_nodes_power += our_nodes_power;
         outputs.emplace(n.first, sortition.output);
-        block_proposed[n.first]++;
-        our_proposed_blocks++;
-        // std::cout << "Node " << n.first << " VRF output " << sortition.output << std::endl;
       }
     }
     for (const auto& n : community) {
       VrfPbftSortition sortition(n.second, msg);
       if (sortition.getBinominalDistribution(comunity_nodes_power, valid_sortition_players, committee_size)) {
+        total_comunity_nodes_power += comunity_nodes_power;
         outputs.emplace(n.first, sortition.output);
-        block_proposed[n.first]++;
-        community_proposed_blocks++;
-        // std::cout << "Node " << n.first << " VRF output " << sortition.output << std::endl;
+        // std::cout << "Node " << n.first << " propose in round " << i << std::endl;
       }
     }
-
     const auto leader = *std::min_element(outputs.begin(), outputs.end(),
                                           [](const auto& i, const auto& j) { return i.second < j.second; });
     block_produced[leader.first]++;
-
-    std::cout << "In round " << i << ", our nodes proposed " << our_proposed_blocks << " blocks, community proposed "
-              << community_proposed_blocks << " blocks. Node " << leader.first << " produced block" << std::endl;
   }
 
-  for (const auto& node : block_proposed) {
-    std::cout << "Node " << node.first << " proposed " << node.second << " blocks" << std::endl;
-  }
-
+  uint64_t our_blocks = 0;
+  uint64_t total_blocks = 0;
   for (const auto& node : block_produced) {
-    std::cout << "Node " << node.first << " produced " << node.second << " blocks" << std::endl;
+    if (node.first < 6) our_blocks += node.second;
+    total_blocks += node.second;
+    // std::cout << "Node " << node.first << " produced " << node.second << " blocks" << std::endl;
   }
-
-  auto our_nodes_proposed_blocks = 0;
-  for (uint64_t i = 0; i < our_nodes; i++) {
-    our_nodes_proposed_blocks += block_proposed[i];
-  }
-  std::cout << "All our nodes proposed " << our_nodes_proposed_blocks << " blocks" << std::endl;
-
-  auto community_proposed_blocks = 0;
-  for (uint64_t i = 6; i < our_nodes + comunity_nodes; i++) {
-    community_proposed_blocks += block_proposed[i];
-  }
-  std::cout << "All community nodes proposed " << community_proposed_blocks << " blocks" << std::endl;
-
-  auto our_nodes_produced_blocks = 0;
-  for (uint64_t i = 0; i < our_nodes; i++) {
-    our_nodes_produced_blocks += block_produced[i];
-  }
-  std::cout << "All our nodes produced " << our_nodes_produced_blocks << " blocks" << std::endl;
-
-  auto community_produced_blocks = 0;
-  for (uint64_t i = 6; i < our_nodes + comunity_nodes; i++) {
-    community_produced_blocks += block_produced[i];
-  }
-  std::cout << "All community nodes produced " << community_produced_blocks << " blocks" << std::endl;
+  std::cout << "Total ratio: 0."
+            << our_nodes_power * our_nodes * 1000 /
+                   (our_nodes_power * our_nodes + comunity_nodes * comunity_nodes_power)
+            << std::endl;
+  std::cout << "After selection ratio: 0."
+            << total_our_nodes_power * 1000 / (total_our_nodes_power + total_comunity_nodes_power) << std::endl;
+  std::cout << "Blocks ratio: 0." << our_blocks * 1000 / (total_blocks) << std::endl;
 }
 
 }  // namespace taraxa::core_tests
