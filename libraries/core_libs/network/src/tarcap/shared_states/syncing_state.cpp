@@ -7,15 +7,6 @@ namespace taraxa::network::tarcap {
 
 SyncingState::SyncingState(uint16_t deep_syncing_threshold) : kDeepSyncingThreshold(deep_syncing_threshold) {}
 
-void SyncingState::set_peer(std::shared_ptr<TaraxaPeer> &&peer) {
-  std::unique_lock lock(peer_mutex_);
-  // we set peer to null if dag and pbft syncing are not enabled
-  if (peer == nullptr && pbft_syncing_) {
-    return;
-  }
-  peer_ = std::move(peer);
-}
-
 const dev::p2p::NodeID SyncingState::syncing_peer() const {
   std::shared_lock lock(peer_mutex_);
   if (peer_) {
@@ -37,10 +28,11 @@ void SyncingState::set_pbft_syncing(bool syncing, uint64_t current_period,
                                     std::shared_ptr<TaraxaPeer> peer /*=nullptr*/) {
   assert((syncing && peer) || !syncing);
   pbft_syncing_ = syncing;
+
+  std::unique_lock lock(peer_mutex_);
   peer_ = std::move(peer);
 
   if (syncing) {
-    std::shared_lock lock(peer_mutex_);
     deep_pbft_syncing_ = (peer_->pbft_chain_size_ - current_period >= kDeepSyncingThreshold);
     // Reset last sync packet time when syncing is restarted/fresh syncing flag is set
     set_last_sync_packet_time();

@@ -49,9 +49,6 @@ class SyncingState {
   const dev::p2p::NodeID syncing_peer() const;
 
  private:
-  void set_peer(std::shared_ptr<TaraxaPeer> &&peer);
-
- private:
   std::atomic<bool> deep_pbft_syncing_{false};
   std::atomic<bool> pbft_syncing_{false};
 
