@@ -1312,7 +1312,9 @@ std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_() {
 
       if (round == 1 ||
           (proposed_block_hash != NULL_BLOCK_HASH && !pbft_chain_->findPbftBlockInChain(proposed_block_hash))) {
-        leader_candidates.emplace_back(std::make_pair(v->getCredential(), proposed_block_hash));
+        leader_candidates.emplace_back(std::make_pair(
+            (((uint512_t)v->getCredential()) & std::numeric_limits<uint256_t>::max()) / v->getWeight().value(),
+            proposed_block_hash));
       }
     }
   }

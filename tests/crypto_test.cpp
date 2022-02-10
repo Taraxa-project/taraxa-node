@@ -347,6 +347,7 @@ TEST_F(CryptoTest, binomial_distribution) {
 }
 
 TEST_F(CryptoTest, testnet) {
+  const auto max256bits = std::numeric_limits<uint256_t>::max();
   std::unordered_map<uint64_t, vrf_sk_t> community;
   std::unordered_map<uint64_t, vrf_sk_t> our;
   const uint64_t committee_size = 1000;
@@ -371,38 +372,37 @@ TEST_F(CryptoTest, testnet) {
     std::unordered_map<uint64_t, uint512_t> outputs;
     for (const auto& n : our) {
       VrfPbftSortition sortition(n.second, msg);
-      if (sortition.getBinominalDistribution(our_nodes_power, valid_sortition_players, committee_size)) {
+      if (auto stake = sortition.getBinominalDistribution(our_nodes_power, valid_sortition_players, committee_size)) {
         total_our_nodes_power += our_nodes_power;
-        outputs.emplace(n.first, sortition.output);
+        outputs.emplace(n.first, (((uint512_t)sortition.output) & max256bits) / stake);
       }
     }
     for (const auto& n : community) {
       VrfPbftSortition sortition(n.second, msg);
-      if (sortition.getBinominalDistribution(comunity_nodes_power, valid_sortition_players, committee_size)) {
+      if (auto stake =
+              sortition.getBinominalDistribution(comunity_nodes_power, valid_sortition_players, committee_size)) {
         total_comunity_nodes_power += comunity_nodes_power;
-        outputs.emplace(n.first, sortition.output);
-        // std::cout << "Node " << n.first << " propose in round " << i << std::endl;
+        outputs.emplace(n.first, (((uint512_t)sortition.output) & max256bits) / stake);
       }
     }
     const auto leader = *std::min_element(outputs.begin(), outputs.end(),
                                           [](const auto& i, const auto& j) { return i.second < j.second; });
+
     block_produced[leader.first]++;
   }
 
   uint64_t our_blocks = 0;
   uint64_t total_blocks = 0;
   for (const auto& node : block_produced) {
-    if (node.first < 6) our_blocks += node.second;
+    if (node.first < our_nodes) our_blocks += node.second;
     total_blocks += node.second;
-    // std::cout << "Node " << node.first << " produced " << node.second << " blocks" << std::endl;
   }
-  std::cout << "Total ratio: 0."
-            << our_nodes_power * our_nodes * 1000 /
-                   (our_nodes_power * our_nodes + comunity_nodes * comunity_nodes_power)
-            << std::endl;
+  std::cout << "Total ratio: "
+            << our_nodes_power * our_nodes * 100 / (our_nodes_power * our_nodes + comunity_nodes * comunity_nodes_power)
+            << "%" << std::endl;
   std::cout << "After selection ratio: 0."
-            << total_our_nodes_power * 1000 / (total_our_nodes_power + total_comunity_nodes_power) << std::endl;
-  std::cout << "Blocks ratio: 0." << our_blocks * 1000 / (total_blocks) << std::endl;
+            << total_our_nodes_power * 100 / (total_our_nodes_power + total_comunity_nodes_power) << "%" << std::endl;
+  std::cout << "Blocks ratio: 0." << our_blocks * 100 / (total_blocks) << "%" << std::endl;
 }
 
 }  // namespace taraxa::core_tests
