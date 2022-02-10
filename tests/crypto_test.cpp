@@ -346,10 +346,24 @@ TEST_F(CryptoTest, binomial_distribution) {
   }
 }
 
+auto max256bits = std::numeric_limits<uint256_t>::max();
+// VRF output (256 bits) / max256bits < stakes / total stakes
+bool proposeBlockSortition(const uint512_t& output, const uint64_t node_stake, const uint64_t total_stake) {
+  // std::cout << "output256bits: " << output << std::endl;
+  // std::cout << "max256bits:    " << max256bits << std::endl;
+  // std::cout << "node_stake:    " << node_stake << std::endl;
+  // std::cout << "total_stake:   " << total_stake << std::endl;
+  // uint512_t left = (uint512_t)output * total_stake;
+  // uint512_t right = (uint512_t)node_stake * max256bits;
+  // std::cout << "left:          " << left << std::endl;
+  // std::cout << "right:         " << right << std::endl;
+  return (uint512_t)output * total_stake < (uint512_t)node_stake * max256bits;
+}
+
 TEST_F(CryptoTest, testnet) {
   std::unordered_map<uint64_t, vrf_sk_t> community;
   std::unordered_map<uint64_t, vrf_sk_t> our;
-  const uint64_t committee_size = 1000;
+  // const uint64_t committee_size = 1000;
   const uint64_t rounds = 1000;
   const uint64_t comunity_nodes = 399;
   const uint64_t our_nodes = 6;
@@ -360,19 +374,22 @@ TEST_F(CryptoTest, testnet) {
     community.emplace(i + our_nodes, getVrfKeyPair().second);
   }
   const uint64_t our_nodes_power = 1331;  // 1 + 399 * 20 / 6
-  const uint64_t comunity_nodes_power = 1331;
+  const uint64_t comunity_nodes_power = 10;
   const auto valid_sortition_players = our_nodes * our_nodes_power + comunity_nodes * comunity_nodes_power;
   std::map<uint64_t, uint64_t> block_proposed;
   std::map<uint64_t, uint64_t> block_produced;
   for (uint64_t i = 0; i < rounds; i++) {
     auto our_proposed_blocks = 0;
-    auto community_proposed_blocks = 0;
+    auto community_proposed_blocks_per_round = 0;
     const VrfPbftMsg msg(propose_vote_type, i, 1);
     std::unordered_map<uint64_t, uint512_t> outputs;
     for (const auto& n : our) {
       VrfPbftSortition sortition(n.second, msg);
-      if (sortition.getBinominalDistribution(our_nodes_power, valid_sortition_players, committee_size)) {
-        outputs.emplace(n.first, sortition.output);
+      // auto node_stake =
+      //     sortition.getBinominalDistribution(comunity_nodes_power, valid_sortition_players, committee_size);
+      auto output256bits = (uint512_t)sortition.output & max256bits;
+      if (proposeBlockSortition(output256bits, our_nodes_power, valid_sortition_players)) {
+        outputs.emplace(n.first, output256bits);
         block_proposed[n.first]++;
         our_proposed_blocks++;
         // std::cout << "Node " << n.first << " VRF output " << sortition.output << std::endl;
@@ -380,20 +397,29 @@ TEST_F(CryptoTest, testnet) {
     }
     for (const auto& n : community) {
       VrfPbftSortition sortition(n.second, msg);
-      if (sortition.getBinominalDistribution(comunity_nodes_power, valid_sortition_players, committee_size)) {
-        outputs.emplace(n.first, sortition.output);
+      // auto node_stake =
+      //     sortition.getBinominalDistribution(comunity_nodes_power, valid_sortition_players, committee_size);
+      auto output256bits = (uint512_t)sortition.output & max256bits;
+      // if (node_stake) {
+      if (proposeBlockSortition(output256bits, comunity_nodes_power, valid_sortition_players)) {
+        outputs.emplace(n.first, output256bits);
         block_proposed[n.first]++;
-        community_proposed_blocks++;
+        community_proposed_blocks_per_round++;
         // std::cout << "Node " << n.first << " VRF output " << sortition.output << std::endl;
       }
     }
 
-    const auto leader = *std::min_element(outputs.begin(), outputs.end(),
-                                          [](const auto& i, const auto& j) { return i.second < j.second; });
-    block_produced[leader.first]++;
+    // std::cout << "In round " << i << ", our nodes proposed " << our_proposed_blocks << " blocks, community proposed "
+    //           << community_proposed_blocks_per_round << " blocks" << std::endl;
+    if (!outputs.empty()) {
+      const auto leader = *std::min_element(outputs.begin(), outputs.end(),
+                                            [](const auto& i, const auto& j) { return i.second < j.second; });
+      block_produced[leader.first]++;
 
-    std::cout << "In round " << i << ", our nodes proposed " << our_proposed_blocks << " blocks, community proposed "
-              << community_proposed_blocks << " blocks. Node " << leader.first << " produced block" << std::endl;
+      std::cout << "In round " << i << ", our nodes proposed " << our_proposed_blocks << " blocks, community proposed "
+                << community_proposed_blocks_per_round << " blocks"
+                << ". Node " << leader.first << " produced block" << std::endl;
+    }
   }
 
   for (const auto& node : block_proposed) {
