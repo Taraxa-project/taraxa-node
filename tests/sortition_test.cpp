@@ -356,6 +356,7 @@ TEST_F(SortitionTest, load_from_db) {
 TEST_F(SortitionTest, db_cleanup) {
   auto& cfg = node_cfgs[0].chain.sortition;
   cfg.computation_interval = 5;
+  cfg.changing_interval = 5;
   cfg.dag_efficiency_targets = {75 * kOnePercent, 75 * kOnePercent};
 
   auto db = std::make_shared<DbStorage>(data_dir / "db");
@@ -489,6 +490,77 @@ TEST_F(SortitionTest, get_params_from_period) {
   EXPECT_EQ(db->getParamsChangeForPeriod(80)->interval_efficiency, 80 * kOnePercent);
   EXPECT_EQ(db->getParamsChangeForPeriod(95)->period, 90);
   EXPECT_EQ(db->getParamsChangeForPeriod(95)->interval_efficiency, 90 * kOnePercent);
+}
+
+class SortitionParamsManagerTest : public SortitionParamsManager {
+ public:
+  SortitionParamsManagerTest(SortitionConfig sort_conf, std::shared_ptr<DbStorage> db)
+      : SortitionParamsManager(addr_t::random(), sort_conf, db) {}
+  std::optional<SortitionParamsChange> processPbftBlockData(uint64_t period, uint64_t dag_efficiency) {
+    dag_efficiencies_.push_back(dag_efficiency);
+    std::optional<SortitionParamsChange> ret;
+    if (period % config_.changing_interval == 0) {
+      const auto params_change = calculateChange(period);
+      if (params_change) {
+        ret = params_change;
+        params_changes_.push_back(*params_change);
+      }
+
+      cleanup(period);
+    }
+    return ret;
+  }
+};
+
+TEST_F(SortitionTest, smaller_calculation_interval) {
+  node_cfgs[0].log_configs[0].verbosity = logger::Error;
+  node_cfgs[0].log_configs[0].channels = std::map<std::string, uint16_t>();
+  auto& cfg = node_cfgs[0].chain.sortition;
+  cfg.changing_interval = 200;
+  cfg.computation_interval = 200;
+  cfg.dag_efficiency_targets = {48 * kOnePercent, 52 * kOnePercent};
+
+  auto db = std::make_shared<DbStorage>(data_dir / "db");
+  SortitionParamsManagerTest sp_manager_equal(cfg, db);
+  cfg.computation_interval = 50;
+  SortitionParamsManagerTest sp_manager_smaller(cfg, db);
+
+  Json::Value testnet_data;
+  const auto DIR = fs::path(__FILE__).parent_path();
+  std::ifstream((DIR / "util_test" / "testnet_efficiencies.json").string(), std::ifstream::binary) >> testnet_data;
+
+  // this needed to sort data by int key, not as strings
+  std::map<uint64_t, uint64_t> data;
+  for (auto i = testnet_data.begin(); i != testnet_data.end(); i++) {
+    data.emplace(dev::jsToInt(i.key().asString(), 10), i->asUInt64());
+  }
+
+  std::pair<uint64_t, uint64_t> total_corrections = {0, 0};
+  for (const auto& e : data) {
+    auto r1 = sp_manager_equal.processPbftBlockData(e.first, e.second);
+    auto r2 = sp_manager_smaller.processPbftBlockData(e.first, e.second);
+    if (r1.has_value() || r2.has_value()) {
+      std::cout << e.first << " period: " << std::endl;
+      std::cout << "FOR 200 efficiency: " << r1->interval_efficiency
+                << ", correction: " << r1->actual_correction_per_percent
+                << ", threshold_upper: " << r1->vrf_params.threshold_upper << std::endl;
+      std::cout << "FOR  50 efficiency: " << r2->interval_efficiency
+                << ", correction: " << r2->actual_correction_per_percent
+                << ", threshold_upper: " << r2->vrf_params.threshold_upper << std::endl;
+      std::cout << std::endl;
+    }
+    if (r1.has_value()) {
+      total_corrections.first += r1->actual_correction_per_percent;
+    }
+    if (r2.has_value()) {
+      total_corrections.second += r2->actual_correction_per_percent;
+    }
+  }
+
+  // we are comapring how much corrections we did on the same data
+  std::cout << "total_corrections: (" << total_corrections.first << ", " << total_corrections.second << ")"
+            << std::endl;
+  EXPECT_GT(total_corrections.first, total_corrections.second);
 }
 
 }  // namespace taraxa::core_tests

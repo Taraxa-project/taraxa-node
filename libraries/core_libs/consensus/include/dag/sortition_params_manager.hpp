@@ -68,7 +68,7 @@ class SortitionParamsManager {
    */
   uint16_t averageDagEfficiency();
 
- private:
+ protected:
   SortitionConfig config_;
   std::shared_ptr<DbStorage> db_;
   std::deque<uint16_t> dag_efficiencies_;

@@ -90,7 +90,7 @@ jsToInt(std::string const& _s) {
 
 inline u256 jsToU256(std::string const& _s) { return jsToInt<32>(_s); }
 
-inline uint64_t jsToInt(std::string const& _s) { return std::stoull(_s, 0, 16); }
+inline uint64_t jsToInt(std::string const& _s, int base = 16) { return std::stoull(_s, 0, base); }
 
 inline std::string jsToDecimal(std::string const& _s) { return toString(jsToU256(_s)); }
 
