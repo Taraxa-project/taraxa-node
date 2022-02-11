@@ -36,6 +36,11 @@ struct HardforkTest : WithDataDir {
     auto data_path_cfg = node_cfg.data_path / fs::path(node_cfg.json_file_name).filename();
     fs::copy_file(node_cfg.json_file_name, data_path_cfg);
     node_cfg.json_file_name = data_path_cfg;
+
+    addr_t root_node_addr("de2b1203d72d3549ee2f733b00b2789414c7cea5");
+    node_cfg.chain.final_chain.state.genesis_balances[root_node_addr] = 9007199254740991;
+    auto &dpos = *node_cfg.chain.final_chain.state.dpos;
+    dpos.genesis_state[root_node_addr][root_node_addr] = dpos.eligibility_balance_threshold;
     // speed up block production
     {
       node_cfg.chain.sortition.vrf.threshold_upper = 0xffff;
