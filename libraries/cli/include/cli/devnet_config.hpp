@@ -206,6 +206,7 @@ const char *devnet_json = R"foo({
     },
     "pbft": {
       "committee_size": "0x3e8",
+      "number_of_proposers": "0x14",
       "dag_blocks_size": "0x32",
       "ghost_path_move_back": "0x0",
       "lambda_ms_min": "0x29a",

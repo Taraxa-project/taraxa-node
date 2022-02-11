@@ -39,6 +39,7 @@ PbftManager::PbftManager(PbftConfig const &conf, blk_hash_t const &genesis, addr
       vrf_sk_(vrf_sk),
       LAMBDA_ms_MIN(conf.lambda_ms_min),
       COMMITTEE_SIZE(conf.committee_size),
+      NUMBER_OF_PROPOSERS(conf.number_of_proposers),
       DAG_BLOCKS_SIZE(conf.dag_blocks_size),
       GHOST_PATH_MOVE_BACK(conf.ghost_path_move_back),
       RUN_COUNT_VOTES(conf.run_count_votes),
@@ -1098,7 +1099,7 @@ std::shared_ptr<Vote> PbftManager::generateVote(blk_hash_t const &blockhash, Pbf
 uint64_t PbftManager::getThreshold(PbftVoteTypes vote_type) const {
   switch (vote_type) {
     case propose_vote_type:
-      return std::min<uint64_t>(20, getDposTotalVotesCount());
+      return std::min<uint64_t>(NUMBER_OF_PROPOSERS, getDposTotalVotesCount());
     case soft_vote_type:
     case cert_vote_type:
     case next_vote_type:
@@ -1160,8 +1161,8 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
   auto round = getPbftRound();
   VrfPbftSortition vrf_sortition(vrf_sk_, {propose_vote_type, round, 1});
   if (weighted_votes_count_ == 0 ||
-      !vrf_sortition.calculateWeight(getDposWeightedVotesCount(), getDposTotalVotesCount(), getThreshold(propose_vote_type),
-                                     dev::toPublic(node_sk_))) {
+      !vrf_sortition.calculateWeight(getDposWeightedVotesCount(), getDposTotalVotesCount(),
+                                     getThreshold(propose_vote_type), dev::toPublic(node_sk_))) {
     return std::make_pair(NULL_BLOCK_HASH, false);
   }
 
