@@ -143,7 +143,7 @@ bytes createDagBlockRlp(level_t level) {
   s.appendRaw(blk.rlp(false));
   s << static_cast<uint8_t>(0);
 
-  return s.out();
+  return s.invalidate();
 }
 
 /**

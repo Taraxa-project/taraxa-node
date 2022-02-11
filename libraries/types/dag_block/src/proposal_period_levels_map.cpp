@@ -23,7 +23,7 @@ bytes ProposalPeriodDagLevelsMap::rlp() const {
   s << levels_interval.first;
   s << levels_interval.second;
 
-  return s.out();
+  return s.invalidate();
 }
 
 }  // namespace taraxa

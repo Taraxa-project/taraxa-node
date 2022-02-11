@@ -38,7 +38,7 @@ struct VrfPbftMsg {
     s << static_cast<uint8_t>(type);
     s << round;
     s << step;
-    return s.out();
+    return s.invalidate();
   }
 
   PbftVoteTypes type;

@@ -78,7 +78,7 @@ struct FinalChainTest : WithDataDir {
     EXPECT_EQ(receipts.size(), trxs.size());
     EXPECT_EQ(blk_h.transactions_root,
               trieRootOver(
-                  trxs.size(), [&](auto i) { return dev::rlp(i); }, [&](auto i) { return *trxs[i].rlp(); }));
+                  trxs.size(), [&](auto i) { return dev::rlp(i); }, [&](auto i) { return trxs[i].rlp(); }));
     EXPECT_EQ(blk_h.receipts_root, trieRootOver(
                                        trxs.size(), [&](auto i) { return dev::rlp(i); },
                                        [&](auto i) { return util::rlp_enc(receipts[i]); }));

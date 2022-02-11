@@ -120,7 +120,7 @@ Json::Value Test::send_coin_transaction(const Json::Value &param1) {
       taraxa::Transaction trx(nonce, value, gas_price, gas, data, sk, receiver);
       LOG(log_time) << "Transaction " << trx.getHash() << " received at: " << now;
       node->getTransactionManager()->insertTransaction(trx);
-      res = toHex(*trx.rlp());
+      res = toHex(trx.rlp());
     }
   } catch (std::exception &e) {
     res["status"] = e.what();

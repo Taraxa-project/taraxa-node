@@ -223,7 +223,7 @@ TEST_F(NetworkTest, sync_large_pbft_block) {
     for (auto t : block->getTrxs()) {
       auto trx = nodes[0]->getDB()->getTransaction(t);
       EXPECT_NE(trx, nullptr);
-      total_size += trx->rlp()->size();
+      total_size += trx->rlp().size();
     }
   }
   EXPECT_GT(total_size, MAX_PACKET_SIZE);
@@ -264,9 +264,9 @@ TEST_F(NetworkTest, transfer_transaction) {
   EXPECT_NE(nw2->getPeer(nw1_nodeid), nullptr);
 
   std::vector<taraxa::bytes> transactions;
-  transactions.push_back(*g_signed_trx_samples[0]->rlp());
-  transactions.push_back(*g_signed_trx_samples[1]->rlp());
-  transactions.push_back(*g_signed_trx_samples[2]->rlp());
+  transactions.push_back(g_signed_trx_samples[0]->rlp());
+  transactions.push_back(g_signed_trx_samples[1]->rlp());
+  transactions.push_back(g_signed_trx_samples[2]->rlp());
 
   nw2->sendTransactions(nw1_nodeid, transactions);
 
@@ -681,25 +681,6 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   EXPECT_EQ(node1->getPbftChain()->getPbftChainSize(), expect_pbft_chain_size);
 
   auto node2 = create_nodes({node_cfgs[1]}, true /*start*/).front();
-  std::shared_ptr<Network> nw1 = node1->getNetwork();
-  std::shared_ptr<Network> nw2 = node2->getNetwork();
-  // const int node_peers = 1;
-  // bool checkpoint_passed = false;
-  // const int timeout_val = 60;
-  /*for (auto i = 0; i < timeout_val; i++) {
-    // test timeout is 60 seconds
-    if (nw1->getPeerCount() == node_peers && nw2->getPeerCount() == node_peers) {
-      checkpoint_passed = true;
-      break;
-    }
-    taraxa::thisThreadSleepForMilliSeconds(1000);
-  }
-  if (checkpoint_passed == false) {
-    std::cout << "Timeout reached after " << timeout_val << " seconds..." << std::endl;
-    ASSERT_EQ(node_peers, nw1->getPeerCount());
-    ASSERT_EQ(node_peers, nw2->getPeerCount());
-  }*/
-
   std::cout << "Waiting Sync for max 1 minutes..." << std::endl;
   uint64_t sync_pbft_chain_size = 1;
   for (int i = 0; i < 600; i++) {

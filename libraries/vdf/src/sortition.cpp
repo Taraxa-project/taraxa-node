@@ -62,7 +62,7 @@ bytes VdfSortition::rlp() const {
   s << vdf_sol_.first;
   s << vdf_sol_.second;
   s << difficulty_;
-  return s.out();
+  return s.invalidate();
 }
 
 Json::Value VdfSortition::getJson() const {

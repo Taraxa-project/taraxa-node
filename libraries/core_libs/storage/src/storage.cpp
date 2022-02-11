@@ -322,17 +322,6 @@ SharedTransactions DbStorage::getAllNonfinalizedTransactions() {
   return res;
 }
 
-SharedTransactions DbStorage::getNonfinalizedTransactions(std::vector<trx_hash_t> const& trx_hashes) {
-  SharedTransactions res;
-  for (const auto& hash : trx_hashes) {
-    auto data = asBytes(lookup(toSlice(hash.asBytes()), Columns::transactions));
-    if (data.size() > 0) {
-      res.emplace_back(std::make_shared<Transaction>(data));
-    }
-  }
-  return res;
-}
-
 void DbStorage::removeDagBlockBatch(Batch& write_batch, blk_hash_t const& hash) {
   remove(write_batch, Columns::dag_blocks, toSlice(hash));
 }
@@ -484,7 +473,7 @@ dev::bytes DbStorage::getPeriodDataRaw(uint64_t period) {
 }
 
 void DbStorage::saveTransaction(Transaction const& trx) {
-  insert(Columns::transactions, toSlice(trx.getHash().asBytes()), toSlice(*trx.rlp()));
+  insert(Columns::transactions, toSlice(trx.getHash().asBytes()), toSlice(trx.rlp()));
 }
 
 void DbStorage::saveTransactionPeriod(trx_hash_t const& trx_hash, uint32_t period, uint32_t position) {
@@ -572,7 +561,7 @@ std::shared_ptr<Transaction> DbStorage::getTransaction(trx_hash_t const& hash) {
 }
 
 void DbStorage::addTransactionToBatch(Transaction const& trx, Batch& write_batch) {
-  insert(write_batch, DbStorage::Columns::transactions, toSlice(trx.getHash().asBytes()), toSlice(*trx.rlp()));
+  insert(write_batch, DbStorage::Columns::transactions, toSlice(trx.getHash().asBytes()), toSlice(trx.rlp()));
 }
 
 void DbStorage::removeTransactionToBatch(trx_hash_t const& trx, Batch& write_batch) {

@@ -265,7 +265,7 @@ template <typename T>
 auto getRlpBytes(T const &t) {
   dev::RLPStream s;
   s << t;
-  return s.out();
+  return s.invalidate();
 }
 
 template <class Key, class Value>
