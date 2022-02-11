@@ -345,6 +345,82 @@ TEST_F(CryptoTest, binomial_distribution) {
   }
 }
 
+TEST_F(CryptoTest, leader_selection) {
+  std::unordered_map<uint64_t, vrf_sk_t> low_stake_nodes;
+  std::unordered_map<uint64_t, vrf_sk_t> high_stake_nodes;
+  std::map<uint64_t, uint64_t> block_produced;
+
+  std::srand(std::time(nullptr));
+  const uint64_t committee_size = 20;
+  const uint64_t rounds = 500;
+  const uint64_t low_stake_nodes_num = 100;
+  const uint64_t high_stake_nodes_num = 2;
+  const uint64_t high_stake_nodes_power = std::rand() % 2000;
+  const uint64_t low_stake_nodes_power = std::rand() % 50;
+  const auto valid_sortition_players = high_stake_nodes_num * high_stake_nodes_power + low_stake_nodes_num * low_stake_nodes_power;
+
+  for (uint64_t i = 0; i < high_stake_nodes_num; i++) {
+    high_stake_nodes.emplace(i, getVrfKeyPair().second);
+  }
+  for (uint64_t i = 0; i < low_stake_nodes_num; i++) {
+    low_stake_nodes.emplace(i + high_stake_nodes_num, getVrfKeyPair().second);
+  }
+
+  for (uint64_t i = 0; i < rounds; i++) {
+    const VrfPbftMsg msg(propose_vote_type, i, 1);
+    std::unordered_map<uint64_t, dev::h256> outputs;
+    for (const auto& n : high_stake_nodes) {
+      VrfPbftSortition sortition(n.second, msg);
+      HashableVrf hash(sortition.output, n.second, 0);
+      if (auto stake = VrfPbftSortition::getBinominalDistribution(
+              high_stake_nodes_power, valid_sortition_players, committee_size, hash.getHash())) {
+        hash.iter = 1;
+        auto lowest = hash.getHash();
+        for (uint64_t j = 2; j <= stake; j++) {
+          hash.iter = j;
+          const auto tmp = hash.getHash();
+          if (tmp < lowest) lowest = std::move(tmp);
+        }
+        outputs.emplace(n.first, lowest);
+      }
+    }
+
+    for (const auto& n : low_stake_nodes) {
+      VrfPbftSortition sortition(n.second, msg);
+      HashableVrf hash(sortition.output, n.second, 0);
+      if (auto stake = VrfPbftSortition::getBinominalDistribution(
+              low_stake_nodes_power, valid_sortition_players, committee_size, hash.getHash())) {
+        hash.iter = 1;
+        auto lowest = hash.getHash();
+        for (uint64_t j = 2; j <= stake; j++) {
+          hash.iter = j;
+          const auto tmp = hash.getHash();
+          if (tmp < lowest) lowest = std::move(tmp);
+        }
+        outputs.emplace(n.first, lowest);
+      }
+    }
+    // every round there needs to be a leader
+    EXPECT_TRUE(outputs.size());
+    const auto leader = *std::min_element(outputs.begin(), outputs.end(),
+                                          [](const auto& i, const auto& j) { return i.second < j.second; });
+    block_produced[leader.first]++;
+  }
+
+  uint64_t high_stake_nodes_blocks = 0;
+  for (const auto& node : block_produced) {
+    if (node.first == high_stake_nodes_num) break;
+     high_stake_nodes_blocks += node.second;
+  }
+
+  const auto stake_ratio = high_stake_nodes_power * high_stake_nodes_num * 100 / valid_sortition_players;
+  const auto blocks_ratio = high_stake_nodes_blocks * 100 / rounds;
+  std::cout << "Stake ratio: " << stake_ratio << " Blocks ratio:" << blocks_ratio << std::endl;
+  const auto diff = (stake_ratio > blocks_ratio) ? (stake_ratio-blocks_ratio) : (blocks_ratio - stake_ratio);
+  //maximal difference is 3%
+  EXPECT_LE(diff, 3);
+}
+
 }  // namespace taraxa::core_tests
 
 using namespace taraxa;
