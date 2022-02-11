@@ -319,7 +319,7 @@ size_t PbftManager::dposEligibleVoteCount_(addr_t const &addr) {
 // Only used by RPC call
 uint64_t PbftManager::getVoteWeight(PbftVoteTypes type, uint64_t round, size_t step) const {
   VrfPbftSortition vrf_sortition(vrf_sk_, {type, round, step});
-  return vrf_sortition.calculateWeight(weighted_votes_count_, getDposTotalVotesCount(), getCommittee(type),
+  return vrf_sortition.calculateWeight(weighted_votes_count_, getDposTotalVotesCount(), getThreshold(type),
                                        dev::toPublic(node_sk_));
 }
 
@@ -682,7 +682,7 @@ bool PbftManager::stateOperations_() {
   // Periodically verify unverified votes
   vote_mgr_->verifyVotes(round, [this](auto const &v) {
     try {
-      v->validate(dposEligibleVoteCount_(v->getVoterAddr()), getDposTotalVotesCount(), getCommittee(v->getType()));
+      v->validate(dposEligibleVoteCount_(v->getVoterAddr()), getDposTotalVotesCount(), getThreshold(v->getType()));
     } catch (const std::logic_error &e) {
       LOG(log_wr_) << e.what();
       return false;
@@ -1095,10 +1095,10 @@ std::shared_ptr<Vote> PbftManager::generateVote(blk_hash_t const &blockhash, Pbf
   return std::make_shared<Vote>(node_sk_, std::move(vrf_sortition), blockhash);
 }
 
-uint64_t PbftManager::getCommittee(PbftVoteTypes vote_type) const {
+uint64_t PbftManager::getThreshold(PbftVoteTypes vote_type) const {
   switch (vote_type) {
     case propose_vote_type:
-      return 30;
+      return std::min<uint64_t>(20, getDposTotalVotesCount());
     case soft_vote_type:
     case cert_vote_type:
     case next_vote_type:
@@ -1116,7 +1116,7 @@ size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteType
 
   auto vote = generateVote(blockhash, vote_type, round, step);
   const auto weight =
-      vote->calculateWeight(getDposWeightedVotesCount(), getDposTotalVotesCount(), getCommittee(vote_type));
+      vote->calculateWeight(getDposWeightedVotesCount(), getDposTotalVotesCount(), getThreshold(vote_type));
   if (weight) {
     db_->saveVerifiedVote(vote);
     vote_mgr_->addVerifiedVote(vote);
@@ -1160,7 +1160,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
   auto round = getPbftRound();
   VrfPbftSortition vrf_sortition(vrf_sk_, {propose_vote_type, round, 1});
   if (weighted_votes_count_ == 0 ||
-      !vrf_sortition.calculateWeight(getDposWeightedVotesCount(), getDposTotalVotesCount(), sortition_threshold_,
+      !vrf_sortition.calculateWeight(getDposWeightedVotesCount(), getDposTotalVotesCount(), getThreshold(propose_vote_type),
                                      dev::toPublic(node_sk_))) {
     return std::make_pair(NULL_BLOCK_HASH, false);
   }
@@ -1307,6 +1307,19 @@ std::vector<std::vector<uint>> PbftManager::createMockTrxSchedule(
   return blocks_trx_modes;
 }
 
+h256 PbftManager::getProposal(const std::shared_ptr<Vote> &vote) const {
+  HashableVrf vrf_hash(vote->getCredential(), vote->getVoter(), 1);
+  auto lowest_hash = vrf_hash.getHash();
+  for (uint64_t i = 2; i <= vote->getWeight(); ++i) {
+    vrf_hash.iter = i;
+    auto tmp_hash = vrf_hash.getHash();
+    if (lowest_hash > tmp_hash) {
+      lowest_hash = tmp_hash;
+    }
+  }
+  return lowest_hash;
+}
+
 std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_() {
   auto round = getPbftRound();
   LOG(log_dg_) << "Into identify leader block, in round " << round;
@@ -1315,7 +1328,7 @@ std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_() {
   auto votes = vote_mgr_->getProposalVotes(round);
 
   // each leader candidate with <vote_signature_hash, pbft_block_hash>
-  std::vector<std::pair<vrf_output_t, blk_hash_t>> leader_candidates;
+  std::vector<std::pair<h256, blk_hash_t>> leader_candidates;
 
   for (auto const &v : votes) {
     if (v->getRound() == round && v->getType() == propose_vote_type) {
@@ -1330,7 +1343,7 @@ std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_() {
 
       if (round == 1 ||
           (proposed_block_hash != NULL_BLOCK_HASH && !pbft_chain_->findPbftBlockInChain(proposed_block_hash))) {
-        leader_candidates.emplace_back(std::make_pair(v->getCredential(), proposed_block_hash));
+        leader_candidates.emplace_back(std::make_pair(getProposal(v), proposed_block_hash));
       }
     }
   }
@@ -1338,11 +1351,8 @@ std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_() {
     // no eligible leader
     return std::make_pair(NULL_BLOCK_HASH, false);
   }
-  std::pair<vrf_output_t, blk_hash_t> leader =
-      *std::min_element(leader_candidates.begin(), leader_candidates.end(),
-                        [](std::pair<vrf_output_t, blk_hash_t> const &i, std::pair<vrf_output_t, blk_hash_t> const &j) {
-                          return i.first < j.first;
-                        });
+  const auto leader = *std::min_element(leader_candidates.begin(), leader_candidates.end(),
+                                        [](const auto &i, const auto &j) { return i.first < j.first; });
 
   return std::make_pair(leader.second, true);
 }
@@ -1823,7 +1833,7 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
 
   // Check cert votes validation
   try {
-    sync_block.first.hasEnoughValidCertVotes(getDposTotalVotesCount(), getCommittee(cert_vote_type), getTwoTPlusOne(),
+    sync_block.first.hasEnoughValidCertVotes(getDposTotalVotesCount(), getThreshold(cert_vote_type), getTwoTPlusOne(),
                                              [this](auto const &addr) { return dposEligibleVoteCount_(addr); });
   } catch (const std::logic_error &e) {
     // Failed cert votes validation, flush synced PBFT queue and set since
