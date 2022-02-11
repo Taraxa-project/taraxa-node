@@ -17,7 +17,7 @@ Json::Value enc_json(PbftConfig const& obj) {
 
 void dec_json(Json::Value const& json, PbftConfig& obj) {
   obj.lambda_ms_min = dev::jsToInt(json["lambda_ms_min"].asString());
-  obj.committee_size = json["committee_size"].asUInt64();
+  obj.committee_size = dev::jsToInt(json["committee_size"].asString());
   obj.number_of_proposers = dev::jsToInt(json["number_of_proposers"].asString());
   obj.dag_blocks_size = dev::jsToInt(json["dag_blocks_size"].asString());
   obj.ghost_path_move_back = dev::jsToInt(json["ghost_path_move_back"].asString());
