@@ -297,9 +297,9 @@ TEST_F(CryptoTest, sortition_rate) {
   for (int i = 0; i < round; i++) {
     VrfPbftMsg msg(PbftVoteTypes::cert_vote_type, i, pbft_step);
     VrfPbftSortition sortition(sk, msg);
-    count += sortition.calculateWeight(1, valid_sortition_players, sortition_threshold, dev::FixedHash<64>::random());
+    count += sortition.calculateWeight(1, valid_sortition_players, sortition_threshold, sk);
   }
-  EXPECT_EQ(count, 46);  // Test experience
+  EXPECT_EQ(count, 48);  // Test experience
 
   count = 0;
   sortition_threshold = valid_sortition_players;

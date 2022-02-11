@@ -114,6 +114,8 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   size_t placeVote_(blk_hash_t const &blockhash, PbftVoteTypes vote_type, uint64_t round, size_t step);
 
+  uint64_t getCommittee(PbftVoteTypes vote_type) const;
+
   std::pair<blk_hash_t, bool> proposeMyPbftBlock_();
 
   std::pair<blk_hash_t, bool> identifyLeaderBlock_();

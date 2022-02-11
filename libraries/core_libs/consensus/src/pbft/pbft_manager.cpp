@@ -319,7 +319,7 @@ size_t PbftManager::dposEligibleVoteCount_(addr_t const &addr) {
 // Only used by RPC call
 uint64_t PbftManager::getVoteWeight(PbftVoteTypes type, uint64_t round, size_t step) const {
   VrfPbftSortition vrf_sortition(vrf_sk_, {type, round, step});
-  return vrf_sortition.calculateWeight(weighted_votes_count_, getDposTotalVotesCount(), sortition_threshold_,
+  return vrf_sortition.calculateWeight(weighted_votes_count_, getDposTotalVotesCount(), getCommittee(type),
                                        dev::toPublic(node_sk_));
 }
 
@@ -682,7 +682,7 @@ bool PbftManager::stateOperations_() {
   // Periodically verify unverified votes
   vote_mgr_->verifyVotes(round, [this](auto const &v) {
     try {
-      v->validate(dposEligibleVoteCount_(v->getVoterAddr()), getDposTotalVotesCount(), sortition_threshold_);
+      v->validate(dposEligibleVoteCount_(v->getVoterAddr()), getDposTotalVotesCount(), getCommittee(v->getType()));
     } catch (const std::logic_error &e) {
       LOG(log_wr_) << e.what();
       return false;
@@ -1095,6 +1095,18 @@ std::shared_ptr<Vote> PbftManager::generateVote(blk_hash_t const &blockhash, Pbf
   return std::make_shared<Vote>(node_sk_, std::move(vrf_sortition), blockhash);
 }
 
+uint64_t PbftManager::getCommittee(PbftVoteTypes vote_type) const {
+  switch (vote_type) {
+    case propose_vote_type:
+      return 30;
+    case soft_vote_type:
+    case cert_vote_type:
+    case next_vote_type:
+    default:
+      return sortition_threshold_;
+  }
+}
+
 size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteTypes vote_type, uint64_t round,
                                size_t step) {
   if (!weighted_votes_count_) {
@@ -1104,7 +1116,7 @@ size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteType
 
   auto vote = generateVote(blockhash, vote_type, round, step);
   const auto weight =
-      vote->calculateWeight(getDposWeightedVotesCount(), getDposTotalVotesCount(), sortition_threshold_);
+      vote->calculateWeight(getDposWeightedVotesCount(), getDposTotalVotesCount(), getCommittee(vote_type));
   if (weight) {
     db_->saveVerifiedVote(vote);
     vote_mgr_->addVerifiedVote(vote);
@@ -1811,7 +1823,7 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
 
   // Check cert votes validation
   try {
-    sync_block.first.hasEnoughValidCertVotes(getDposTotalVotesCount(), getSortitionThreshold(), getTwoTPlusOne(),
+    sync_block.first.hasEnoughValidCertVotes(getDposTotalVotesCount(), getCommittee(cert_vote_type), getTwoTPlusOne(),
                                              [this](auto const &addr) { return dposEligibleVoteCount_(addr); });
   } catch (const std::logic_error &e) {
     // Failed cert votes validation, flush synced PBFT queue and set since

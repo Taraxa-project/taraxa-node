@@ -60,7 +60,8 @@ uint64_t VrfPbftSortition::getBinominalDistribution(uint64_t stake, double dpos_
 
 uint64_t VrfPbftSortition::calculateWeight(uint64_t stake, double dpos_total_votes_count, double threshold,
                                            const public_t& address) const {
-  // Also hash in the address. This is necessary to decorrelate the selection of different accounts that have the same VRF key.
+  // Also hash in the address. This is necessary to decorrelate the selection of different accounts that have the same
+  // VRF key.
   HashableVrf hash_vrf(output, address);
   return VrfPbftSortition::getBinominalDistribution(stake, dpos_total_votes_count, threshold, hash_vrf.getHash());
 }
