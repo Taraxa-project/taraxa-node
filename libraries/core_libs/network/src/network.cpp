@@ -110,10 +110,10 @@ void Network::setSyncStatePeriod(uint64_t period) { taraxa_capability_->setSyncS
 
 void Network::handleMaliciousSyncPeer(dev::p2p::NodeID const &id) { taraxa_capability_->handleMaliciousSyncPeer({id}); }
 
-void Network::onNewPbftVotes(std::vector<std::shared_ptr<Vote>> votes) {
-  for (auto const &vote : votes) {
+void Network::onNewPbftVotes(std::vector<std::shared_ptr<Vote>> &&votes) {
+  for (auto &vote : votes) {
     LOG(log_dg_) << "Network broadcast PBFT vote: " << vote->getHash();
-    taraxa_capability_->onNewPbftVote(vote);
+    taraxa_capability_->onNewPbftVote(std::move(vote));
   }
 }
 

@@ -392,9 +392,9 @@ void TaraxaCapability::onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_blo
       ->onNewPbftBlock(*pbft_block);
 }
 
-void TaraxaCapability::onNewPbftVote(const std::shared_ptr<Vote> &vote) {
+void TaraxaCapability::onNewPbftVote(std::shared_ptr<Vote> &&vote) {
   std::static_pointer_cast<VotePacketHandler>(packets_handlers_->getSpecificHandler(SubprotocolPacketType::VotePacket))
-      ->onNewPbftVote(vote);
+      ->onNewPbftVote(std::move(vote));
 }
 
 void TaraxaCapability::broadcastPreviousRoundNextVotesBundle() {
