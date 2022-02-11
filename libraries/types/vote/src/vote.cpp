@@ -32,11 +32,11 @@ bytes VrfPbftSortition::getRlpBytes() const {
 }
 
 uint64_t VrfPbftSortition::getBinominalDistribution(uint64_t stake, double dpos_total_votes_count, double threshold,
-                                                    const uint512_t& output) {
+                                                    const uint256_t& hash) {
   if (!stake) return 0;  // Stake is 0
 
-  const auto l = static_cast<uint512_t>(output).convert_to<boost::multiprecision::mpfr_float>();
-  auto division = l / kMax512bFP;
+  const auto l = static_cast<uint256_t>(hash).convert_to<boost::multiprecision::mpfr_float>();
+  auto division = l / kMax256bFP;
   const double ratio = division.convert_to<double>();
   boost::math::binomial_distribution<double> dist(static_cast<double>(stake), threshold / dpos_total_votes_count);
 
@@ -58,9 +58,11 @@ uint64_t VrfPbftSortition::getBinominalDistribution(uint64_t stake, double dpos_
   return stake;
 }
 
-uint64_t VrfPbftSortition::getBinominalDistribution(uint64_t stake, double dpos_total_votes_count,
-                                                    double threshold) const {
-  return VrfPbftSortition::getBinominalDistribution(stake, dpos_total_votes_count, threshold, output);
+uint64_t VrfPbftSortition::calculateWeight(uint64_t stake, double dpos_total_votes_count, double threshold,
+                                           const public_t& address) const {
+  // Also hash in the address. This is necessary to decorrelate the selection of different accounts that have the same VRF key.
+  HashableVrf hash_vrf(output, address);
+  return VrfPbftSortition::getBinominalDistribution(stake, dpos_total_votes_count, threshold, hash_vrf.getHash());
 }
 
 Vote::Vote(dev::RLP const& rlp) {
@@ -80,6 +82,7 @@ Vote::Vote(secret_t const& node_sk, VrfPbftSortition vrf_sortition, blk_hash_t c
     : blockhash_(blockhash), vrf_sortition_(std::move(vrf_sortition)) {
   vote_signature_ = dev::sign(node_sk, sha3(false));
   vote_hash_ = sha3(true);
+  cached_voter_ = dev::toPublic(node_sk);
 }
 
 void Vote::validate(uint64_t stake, double dpos_total_votes_count, double sortition_threshold) const {
@@ -97,16 +100,16 @@ void Vote::validate(uint64_t stake, double dpos_total_votes_count, double sortit
     throw std::logic_error(err.str());
   }
 
+  if (!verifyVote()) {
+    std::stringstream err;
+    err << "Invalid vote signature. " << dev::toHex(rlp(false)) << "  " << *this;
+    throw std::logic_error(err.str());
+  }
+
   if (!calculateWeight(stake, dpos_total_votes_count, sortition_threshold)) {
     std::stringstream err;
     err << "Vote sortition failed. Sortition threshold " << sortition_threshold << ", DPOS total votes count "
         << dpos_total_votes_count << " " << *this;
-    throw std::logic_error(err.str());
-  }
-
-  if (!verifyVote()) {
-    std::stringstream err;
-    err << "Invalid vote signature. " << dev::toHex(rlp(false)) << "  " << *this;
     throw std::logic_error(err.str());
   }
 }

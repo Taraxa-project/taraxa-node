@@ -99,8 +99,8 @@ TEST_F(CryptoTest, vrf_sortition) {
   VrfPbftSortition sortition(sk, msg);
   VrfPbftSortition sortition2(sk, msg);
 
-  EXPECT_FALSE(sortition.getBinominalDistribution(0, 1, 1));
-  EXPECT_TRUE(sortition.getBinominalDistribution(1, 1, 1));
+  EXPECT_FALSE(sortition.calculateWeight(0, 1, 1, dev::FixedHash<64>::random()));
+  EXPECT_TRUE(sortition.calculateWeight(1, 1, 1, dev::FixedHash<64>::random()));
   auto b = sortition.getRlpBytes();
   VrfPbftSortition sortition3(b);
   sortition3.verify();
@@ -266,7 +266,7 @@ TEST_F(CryptoTest, new_sortition_rate) {
   const uint64_t kMyMoney = 100;
   const uint64_t kTotalMoney = 200;
   for (uint64_t i = 0; i < N; i++) {
-    const uint512_t kVrfOutput = dev::FixedHash<64>::random();
+    const uint256_t kVrfOutput = dev::FixedHash<32>::random();
     hitcount += VrfPbftSortition::getBinominalDistribution(kMyMoney, kTotalMoney, kExpectedSize, kVrfOutput);
   }
   const auto expected = N * kExpectedSize / 2;
@@ -297,9 +297,9 @@ TEST_F(CryptoTest, sortition_rate) {
   for (int i = 0; i < round; i++) {
     VrfPbftMsg msg(PbftVoteTypes::cert_vote_type, i, pbft_step);
     VrfPbftSortition sortition(sk, msg);
-    count += sortition.getBinominalDistribution(1, valid_sortition_players, sortition_threshold);
+    count += sortition.calculateWeight(1, valid_sortition_players, sortition_threshold, dev::FixedHash<64>::random());
   }
-  EXPECT_EQ(count, 54);  // Test experience
+  EXPECT_EQ(count, 46);  // Test experience
 
   count = 0;
   sortition_threshold = valid_sortition_players;
@@ -308,7 +308,7 @@ TEST_F(CryptoTest, sortition_rate) {
   for (int i = 0; i < round; i++) {
     VrfPbftMsg msg(PbftVoteTypes::cert_vote_type, i, pbft_step);
     VrfPbftSortition sortition(sk, msg);
-    count += sortition.getBinominalDistribution(1, valid_sortition_players, sortition_threshold);
+    count += sortition.calculateWeight(1, valid_sortition_players, sortition_threshold, dev::FixedHash<64>::random());
   }
   // depend on sortition THRESHOLD
   // CREDENTIAL / SIGNATURE_HASH_MAX <= SORTITION THRESHOLD / VALID PLAYERS
@@ -324,7 +324,7 @@ TEST_F(CryptoTest, sortition_rate) {
       auto [pk, sk] = getVrfKeyPair();
       VrfPbftMsg msg(PbftVoteTypes::cert_vote_type, i, pbft_step);
       VrfPbftSortition sortition(sk, msg);
-      count += sortition.getBinominalDistribution(1, valid_sortition_players, sortition_threshold);
+      count += sortition.calculateWeight(1, valid_sortition_players, sortition_threshold, dev::FixedHash<64>::random());
     }
   }
   // depend on sortition THRESHOLD, sortition rate for all players:
@@ -337,7 +337,7 @@ TEST_F(CryptoTest, binomial_distribution) {
   const uint64_t k_committee_size = 1000;
   const uint64_t k_total_count_at_start = 900;
   for (uint64_t i = 1; i <= number; i++) {
-    const uint512_t k_vrf_output = dev::FixedHash<64>::random();
+    const uint256_t k_vrf_output = dev::FixedHash<32>::random();
     auto total_count = k_total_count_at_start + i;
     auto threshold = std::min(k_committee_size, total_count);
     EXPECT_EQ(VrfPbftSortition::getBinominalDistribution(i, total_count, threshold, k_vrf_output),

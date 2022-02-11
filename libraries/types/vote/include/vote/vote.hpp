@@ -46,6 +46,24 @@ struct VrfPbftMsg {
   size_t step;
 };
 
+struct HashableVrf {
+  HashableVrf(const vrf_wrapper::vrf_output_t& vrf, const public_t& addr, uint64_t i = 0)
+      : output(vrf), address(addr), iter(i) {}
+
+  dev::h256 getHash() const {
+    dev::RLPStream s;
+    s.appendList(3);
+    s << output;
+    s << address;
+    s << iter;
+    return dev::sha3(s.invalidate());
+  }
+
+  const vrf_wrapper::vrf_output_t& output;
+  const public_t& address;
+  uint64_t iter;
+};
+
 struct VrfPbftSortition : public vrf_wrapper::VrfSortitionBase {
   using vrf_sk_t = vrf_wrapper::vrf_sk_t;
   using vrf_pk_t = vrf_wrapper::vrf_pk_t;
@@ -62,11 +80,12 @@ struct VrfPbftSortition : public vrf_wrapper::VrfSortitionBase {
     return pk == other.pk && pbft_msg == other.pbft_msg && proof == other.proof && output == other.output;
   }
 
-  static inline uint512_t max512bits = std::numeric_limits<uint512_t>::max();
-  static inline auto kMax512bFP = max512bits.convert_to<boost::multiprecision::mpfr_float>();
+  static inline uint256_t max256bits = std::numeric_limits<uint256_t>::max();
+  static inline auto kMax256bFP = max256bits.convert_to<boost::multiprecision::mpfr_float>();
   static uint64_t getBinominalDistribution(uint64_t stake, double dpos_total_votes_count, double threshold,
-                                           const uint512_t& output);
-  uint64_t getBinominalDistribution(uint64_t stake, double dpos_total_votes_count, double threshold) const;
+                                           const uint256_t& hash);
+  uint64_t calculateWeight(uint64_t stake, double dpos_total_votes_count, double threshold,
+                           const public_t& address) const;
 
   friend std::ostream& operator<<(std::ostream& strm, VrfPbftSortition const& vrf_sortition) {
     strm << "[VRF sortition] " << std::endl;
@@ -117,7 +136,7 @@ class Vote {
 
   uint64_t calculateWeight(uint64_t stake, double dpos_total_votes_count, double threshold) const {
     assert(stake);
-    weight_ = vrf_sortition_.getBinominalDistribution(stake, dpos_total_votes_count, threshold);
+    weight_ = vrf_sortition_.calculateWeight(stake, dpos_total_votes_count, threshold, getVoter());
     return weight_.value();
   }
 

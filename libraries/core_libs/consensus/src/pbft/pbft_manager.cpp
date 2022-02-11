@@ -319,7 +319,8 @@ size_t PbftManager::dposEligibleVoteCount_(addr_t const &addr) {
 // Only used by RPC call
 uint64_t PbftManager::getVoteWeight(PbftVoteTypes type, uint64_t round, size_t step) const {
   VrfPbftSortition vrf_sortition(vrf_sk_, {type, round, step});
-  return vrf_sortition.getBinominalDistribution(weighted_votes_count_, getDposTotalVotesCount(), sortition_threshold_);
+  return vrf_sortition.calculateWeight(weighted_votes_count_, getDposTotalVotesCount(), sortition_threshold_,
+                                       dev::toPublic(node_sk_));
 }
 
 void PbftManager::setPbftStep(size_t const pbft_step) {
@@ -1146,8 +1147,9 @@ blk_hash_t PbftManager::calculateOrderHash(std::vector<DagBlock> const &dag_bloc
 std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
   auto round = getPbftRound();
   VrfPbftSortition vrf_sortition(vrf_sk_, {propose_vote_type, round, 1});
-  if (weighted_votes_count_ == 0 || !vrf_sortition.getBinominalDistribution(
-                                        getDposWeightedVotesCount(), getDposTotalVotesCount(), sortition_threshold_)) {
+  if (weighted_votes_count_ == 0 ||
+      !vrf_sortition.calculateWeight(getDposWeightedVotesCount(), getDposTotalVotesCount(), sortition_threshold_,
+                                     dev::toPublic(node_sk_))) {
     return std::make_pair(NULL_BLOCK_HASH, false);
   }
 
