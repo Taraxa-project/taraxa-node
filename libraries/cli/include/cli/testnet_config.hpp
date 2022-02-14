@@ -81,7 +81,6 @@ const char *testnet_json = R"foo({
           }
         ]
       },
-      ,
       {
         "name": "network",
         "on": false,

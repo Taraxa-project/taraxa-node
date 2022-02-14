@@ -81,7 +81,6 @@ const char *devnet_json = R"foo({
           }
         ]
       },
-      ,
       {
         "name": "network",
         "on": false,
