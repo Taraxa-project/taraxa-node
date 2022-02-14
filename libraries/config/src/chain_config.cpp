@@ -29,6 +29,13 @@ void dec_json(Json::Value const& json, ChainConfig& obj) {
   dec_json(json["final_chain"], obj.final_chain);
 }
 
+const ChainConfig& ChainConfig::predefined(std::string const& name) {
+  if (auto i = predefined_->find(name); i != predefined_->end()) {
+    return i->second;
+  }
+  throw std::runtime_error("unknown chain config: " + name);
+}
+
 decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
   decltype(ChainConfig::predefined_)::val_t cfgs;
   cfgs["default"] = [] {

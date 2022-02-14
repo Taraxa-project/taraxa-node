@@ -23,6 +23,7 @@ struct HardforkTest : WithDataDir {
   FullNodeConfig node_cfg;
 
   HardforkTest() {
+    // creating config this way to prevent config files overwriting
     auto cfg_filename = std::string("conf_taraxa1.json");
     auto p = DIR_CONF / cfg_filename;
     auto w = DIR_CONF / std::string("wallet1.json");
