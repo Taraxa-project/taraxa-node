@@ -13,7 +13,8 @@
 #include "network/tarcap/packets_handlers/pbft_sync_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/status_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/test_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/transaction_packet_handler.hpp"
+//#include "network/tarcap/packets_handlers/transaction_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/alt_transaction_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/vote_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/votes_sync_packet_handler.hpp"
 #include "network/tarcap/shared_states/syncing_state.hpp"
@@ -107,7 +108,7 @@ void TaraxaCapability::initPeriodicEvents(const NetworkConfig &conf, const std::
 
   // Send new txs periodic event
   const auto &tx_handler = packets_handlers_->getSpecificHandler(SubprotocolPacketType::TransactionPacket);
-  auto tx_packet_handler = std::static_pointer_cast<TransactionPacketHandler>(tx_handler);
+  auto tx_packet_handler = std::static_pointer_cast<AltTransactionPacketHandler>(tx_handler);
   if (trx_mgr /* just because of tests */ && conf.network_transaction_interval > 0) {
     periodic_events_tp_.post_loop({conf.network_transaction_interval},
                                   [tx_packet_handler = std::move(tx_packet_handler), trx_mgr = std::move(trx_mgr)] {
@@ -202,8 +203,8 @@ void TaraxaCapability::registerPacketHandlers(
 
   packets_handlers_->registerHandler(
       SubprotocolPacketType::TransactionPacket,
-      std::make_shared<TransactionPacketHandler>(peers_state_, packets_stats, trx_mgr, dag_blk_mgr, test_state_,
-                                                 conf.network_transaction_interval, node_addr));
+      std::make_shared<AltTransactionPacketHandler>(peers_state_, packets_stats, trx_mgr, dag_blk_mgr, test_state_,
+                                                    conf.network_transaction_interval, node_addr));
 
   // Non critical packets with low processing priority
   packets_handlers_->registerHandler(SubprotocolPacketType::TestPacket,
@@ -375,7 +376,7 @@ void TaraxaCapability::onNewBlockVerified(DagBlock const &blk, bool proposed, Sh
 }
 
 void TaraxaCapability::onNewTransactions(SharedTransactions &&transactions) {
-  std::static_pointer_cast<TransactionPacketHandler>(
+  std::static_pointer_cast<AltTransactionPacketHandler>(
       packets_handlers_->getSpecificHandler(SubprotocolPacketType::TransactionPacket))
       ->onNewTransactions(std::move(transactions), true);
 }
@@ -404,7 +405,7 @@ void TaraxaCapability::broadcastPreviousRoundNextVotesBundle() {
 }
 
 void TaraxaCapability::sendTransactions(dev::p2p::NodeID const &id, std::vector<taraxa::bytes> const &transactions) {
-  std::static_pointer_cast<TransactionPacketHandler>(
+  std::static_pointer_cast<AltTransactionPacketHandler>(
       packets_handlers_->getSpecificHandler(SubprotocolPacketType::TransactionPacket))
       ->sendTransactions(id, transactions);
 }

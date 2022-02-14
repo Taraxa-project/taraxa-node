@@ -5,6 +5,7 @@
 #include "dag/dag_block.hpp"
 #include "logger/logger.hpp"
 #include "network/tarcap/packets_handler.hpp"
+#include "network/tarcap/packets_handlers/common/packet_handler.hpp"
 #include "network/tarcap/threadpool/tarcap_thread_pool.hpp"
 
 namespace taraxa::core_tests {

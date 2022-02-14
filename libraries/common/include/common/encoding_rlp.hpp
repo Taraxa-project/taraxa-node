@@ -139,6 +139,15 @@ auto rlp(RLPDecoderRef encoding, Map& target) -> decltype(target[target.begin()-
   }
 }
 
+struct InvalidEncodingSize : std::invalid_argument {
+  uint expected, actual;
+
+  InvalidEncodingSize(uint expected, uint actual)
+      : invalid_argument(fmt("Invalid rlp list size; expected: %s, actual: %s", expected, actual)),
+        expected(expected),
+        actual(actual) {}
+};
+
 template <typename Param, typename... Params>
 void __dec_rlp_tuple_body__(RLP::iterator& i, RLP::iterator const& end, RLP::Strictness strictness, Param& target,
                             Params&... rest) {
@@ -153,26 +162,30 @@ void __dec_rlp_tuple_body__(RLP::iterator& i, RLP::iterator const& end, RLP::Str
   }
 }
 
-struct InvalidEncodingSize : std::invalid_argument {
-  uint expected, actual;
+template <typename Param, typename... Params>
+void __dec_rlp_tuple_body__(RLPDecoderRef encoding, Param& target, Params&... rest) {
+  rlp(encoding, target);
 
-  InvalidEncodingSize(uint expected, uint actual)
-      : invalid_argument(fmt("Invalid rlp list size; expected: %s, actual: %s", expected, actual)),
-        expected(expected),
-        actual(actual) {}
-};
+  if constexpr (sizeof...(rest) > 0) {
+    throw InvalidEncodingSize(sizeof...(rest) + 1 /* +1 -> target */, 1);
+  }
+}
 
 template <typename... Params>
 void rlp_tuple(RLPDecoderRef encoding, Params&... args) {
   constexpr auto num_elements = sizeof...(args);
   static_assert(0 < num_elements);
 
-  if (encoding.value.itemCount() != num_elements) {
-    throw InvalidEncodingSize(num_elements, encoding.value.itemCount());
-  }
+  if (encoding.value.isList()) {
+    if (encoding.value.itemCount() != num_elements) {
+      throw InvalidEncodingSize(num_elements, encoding.value.itemCount());
+    }
 
-  auto it_begin = encoding.value.begin();
-  __dec_rlp_tuple_body__(it_begin, encoding.value.end(), encoding.strictness, args...);
+    auto it_begin = encoding.value.begin();
+    __dec_rlp_tuple_body__(it_begin, encoding.value.end(), encoding.strictness, args...);
+  } else if (encoding.value.isData()) {
+    __dec_rlp_tuple_body__(encoding, args...);
+  }
 }
 
 template <typename T>

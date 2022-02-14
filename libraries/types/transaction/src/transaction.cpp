@@ -58,6 +58,33 @@ Transaction::Transaction(dev::RLP const &_rlp, bool verify_strict, h256 const &h
   }
 }
 
+Transaction::Transaction(TransactionPacketData::SingleTransaction &&packet_data, const h256 &hash)
+    : nonce_(std::move(packet_data.nonce_)),
+      value_(std::move(packet_data.value_)),
+      gas_price_(std::move(packet_data.gas_price_)),
+      gas_(std::move(packet_data.gas_)),
+      data_(std::move(packet_data.data_)),
+      receiver_(std::move(packet_data.receiver_)),
+      hash_(hash),
+      hash_initialized_(!hash.isZero()) {
+  // the following piece of code should be equivalent to
+  // https://github.com/ethereum/aleth/blob/644d420f8ac0f550a28e9ca65fe1ad1905d0f069/libethcore/TransactionBase.cpp#L58-L78
+  // Plus, we don't allow `0` for chain_id. In this code, `chain_id_ == 0` means there is no chain id at all.
+  if (!packet_data.r && !packet_data.s) {
+    chain_id_ = toChainID(packet_data.v);
+  } else {
+    if (36 < packet_data.v) {
+      chain_id_ = toChainID((packet_data.v - 35) / 2);
+    } else if (packet_data.v != 27 && packet_data.v != 28) {
+      BOOST_THROW_EXCEPTION(InvalidSignature(
+          "only values 27 and 28 are allowed for non-replay protected transactions for the 'v' signature field"));
+    }
+    vrs_.v = chain_id_ ? byte{packet_data.v - (u256{chain_id_} * 2 + 35)} : byte{packet_data.v - 27};
+    vrs_.r = packet_data.r;
+    vrs_.s = packet_data.s;
+  }
+}
+
 trx_hash_t const &Transaction::getHash() const {
   if (!hash_initialized_) {
     std::unique_lock l(hash_mu_.val, std::try_to_lock);

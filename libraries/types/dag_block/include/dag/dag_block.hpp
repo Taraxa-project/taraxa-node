@@ -2,6 +2,7 @@
 
 #include "common/default_construct_copyable_movable.hpp"
 #include "vdf/sortition.hpp"
+//#include "common/encoding_rlp.hpp"
 
 namespace taraxa {
 
@@ -64,6 +65,8 @@ class DagBlock {
     str << "	sender		= " << u.getSender().abridged() << std::endl;
     str << "  vdf = " << u.vdf_ << std::endl;
     return str;
+
+    // RLP_FIELDS_DEFINE_INPLACE
   }
   bool operator==(DagBlock const &other) const { return this->sha3(true) == other.sha3(true); }
 

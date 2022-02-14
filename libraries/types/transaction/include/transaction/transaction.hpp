@@ -4,6 +4,7 @@
 #include <libdevcore/RLP.h>
 #include <libdevcore/SHA3.h>
 
+#include "alt_transaction_packet_data.hpp"
 #include "common/default_construct_copyable_movable.hpp"
 #include "common/types.hpp"
 
@@ -47,6 +48,8 @@ struct Transaction {
   explicit Transaction(dev::RLP const &_rlp, bool verify_strict = false, h256 const &hash = {});
   explicit Transaction(bytes const &_rlp, bool verify_strict = false, h256 const &hash = {})
       : Transaction(dev::RLP(_rlp), verify_strict, hash) {}
+
+  Transaction(TransactionPacketData::SingleTransaction &&packet_data, const h256 &hash = {});
 
   auto isZero() const { return is_zero_; }
   trx_hash_t const &getHash() const;
