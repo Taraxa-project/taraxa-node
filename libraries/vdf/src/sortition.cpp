@@ -12,10 +12,10 @@ VdfSortition::VdfSortition(SortitionParams const& config, vrf_sk_t const& sk, by
 
 bool VdfSortition::isOmitVdf(SortitionParams const& config) const {
   return config.vrf.threshold_upper >= config.vrf.threshold_range &&
-         threshold <= config.vrf.threshold_upper - config.vrf.threshold_range;
+         threshold_ <= config.vrf.threshold_upper - config.vrf.threshold_range;
 }
 
-bool VdfSortition::isStale(SortitionParams const& config) const { return threshold > config.vrf.threshold_upper; }
+bool VdfSortition::isStale(SortitionParams const& config) const { return threshold_ > config.vrf.threshold_upper; }
 
 uint16_t VdfSortition::calculateDifficulty(SortitionParams const& config) const {
   uint16_t difficulty = 0;
@@ -23,7 +23,7 @@ uint16_t VdfSortition::calculateDifficulty(SortitionParams const& config) const 
     if (isStale(config)) {
       difficulty = config.vdf.difficulty_stale;
     } else {
-      difficulty = config.vdf.difficulty_min + threshold % (config.vdf.difficulty_max - config.vdf.difficulty_min);
+      difficulty = config.vdf.difficulty_min + threshold_ % (config.vdf.difficulty_max - config.vdf.difficulty_min);
     }
   }
   return difficulty;
@@ -39,16 +39,16 @@ VdfSortition::VdfSortition(bytes const& b) {
   }
 
   auto it = rlp.begin();
-  pk = (*it++).toHash<vrf_pk_t>();
-  proof = (*it++).toHash<vrf_proof_t>();
+  pk_ = (*it++).toHash<vrf_pk_t>();
+  proof_ = (*it++).toHash<vrf_proof_t>();
   vdf_sol_.first = (*it++).toBytes();
   vdf_sol_.second = (*it++).toBytes();
   difficulty_ = (*it++).toInt<uint16_t>();
 }
 
 VdfSortition::VdfSortition(Json::Value const& json) {
-  pk = vrf_pk_t(json["pk"].asString());
-  proof = vrf_proof_t(json["proof"].asString());
+  pk_ = vrf_pk_t(json["pk"].asString());
+  proof_ = vrf_proof_t(json["proof"].asString());
   vdf_sol_.first = dev::fromHex(json["sol1"].asString());
   vdf_sol_.second = dev::fromHex(json["sol2"].asString());
   difficulty_ = dev::jsToInt(json["difficulty"].asString());
@@ -57,8 +57,8 @@ VdfSortition::VdfSortition(Json::Value const& json) {
 bytes VdfSortition::rlp() const {
   dev::RLPStream s;
   s.appendList(5);
-  s << pk;
-  s << proof;
+  s << pk_;
+  s << proof_;
   s << vdf_sol_.first;
   s << vdf_sol_.second;
   s << difficulty_;
@@ -67,8 +67,8 @@ bytes VdfSortition::rlp() const {
 
 Json::Value VdfSortition::getJson() const {
   Json::Value res;
-  res["pk"] = dev::toJS(pk);
-  res["proof"] = dev::toJS(proof);
+  res["pk"] = dev::toJS(pk_);
+  res["proof"] = dev::toJS(proof_);
   res["sol1"] = dev::toJS(dev::toHex(vdf_sol_.first));
   res["sol2"] = dev::toJS(dev::toHex(vdf_sol_.second));
   res["difficulty"] = dev::toJS(difficulty_);
@@ -102,7 +102,7 @@ void VdfSortition::verifyVdf(SortitionParams const& config, bytes const& vrf_inp
                                 ", expected: " + std::to_string(expected) +
                                 ", vrf_params: ( range: " + std::to_string(config.vrf.threshold_range) +
                                 ", threshold_upper: " + std::to_string(config.vrf.threshold_upper) +
-                                ") THRESHOLD: " + std::to_string(threshold));
+                                ") THRESHOLD: " + std::to_string(threshold_));
     }
 
     // Verify VDF solution
