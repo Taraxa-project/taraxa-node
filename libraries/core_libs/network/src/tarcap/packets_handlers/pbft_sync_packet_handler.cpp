@@ -56,7 +56,7 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
     }
   }
 
-  LOG(log_nf_) << "PbftSyncPacket received. Period: " << sync_block.pbft_blk->getPeriod()
+  LOG(log_dg_) << "PbftSyncPacket received. Period: " << sync_block.pbft_blk->getPeriod()
                << ", dag Blocks: " << received_dag_blocks_str << " from " << packet_data.from_node_id_;
 
   peer->markPbftBlockAsKnown(pbft_blk_hash);
@@ -65,7 +65,7 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
     peer->pbft_chain_size_ = sync_block.pbft_blk->getPeriod();
   }
 
-  LOG(log_dg_) << "Processing pbft block: " << pbft_blk_hash;
+  LOG(log_tr_) << "Processing pbft block: " << pbft_blk_hash;
 
   if (pbft_chain_->findPbftBlockInChain(pbft_blk_hash)) {
     LOG(log_wr_) << "PBFT block " << pbft_blk_hash << " from " << packet_data.from_node_id_
@@ -112,9 +112,9 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
     return;
   }
 
-  LOG(log_dg_) << "Synced PBFT block hash " << pbft_blk_hash << " with " << sync_block.cert_votes.size()
+  LOG(log_tr_) << "Synced PBFT block hash " << pbft_blk_hash << " with " << sync_block.cert_votes.size()
                << " cert votes";
-  LOG(log_dg_) << "Synced PBFT block " << sync_block;
+  LOG(log_tr_) << "Synced PBFT block " << sync_block;
   pbft_mgr_->syncBlockQueuePush(std::move(sync_block), packet_data.from_node_id_);
 
   auto pbft_sync_period = pbft_mgr_->pbftSyncingPeriod();
@@ -125,7 +125,7 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
   if (last_block) {
     if (syncing_state_->is_pbft_syncing()) {
       if (pbft_sync_period > pbft_chain_->getPbftChainSize() + (10 * network_sync_level_size_)) {
-        LOG(log_dg_) << "Syncing pbft blocks too fast than processing. Has synced period " << pbft_sync_period
+        LOG(log_tr_) << "Syncing pbft blocks too fast than processing. Has synced period " << pbft_sync_period
                      << ", PBFT chain size " << pbft_chain_->getPbftChainSize();
         delayed_sync_events_tp_.post(1000, [this] { delayedPbftSync(1); });
       } else {
@@ -139,11 +139,11 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
 
 void PbftSyncPacketHandler::pbftSyncComplete() {
   if (pbft_mgr_->syncBlockQueueSize()) {
-    LOG(log_dg_) << "Syncing pbft blocks faster than processing. Remaining sync size "
+    LOG(log_tr_) << "Syncing pbft blocks faster than processing. Remaining sync size "
                  << pbft_mgr_->syncBlockQueueSize();
     delayed_sync_events_tp_.post(1000, [this] { pbftSyncComplete(); });
   } else {
-    LOG(log_nf_) << "Syncing PBFT is completed";
+    LOG(log_dg_) << "Syncing PBFT is completed";
     // We are pbft synced with the node we are connected to but
     // calling restartSyncingPbft will check if some nodes have
     // greater pbft chain size and we should continue syncing with
@@ -161,13 +161,13 @@ void PbftSyncPacketHandler::delayedPbftSync(int counter) {
     LOG(log_er_) << "Pbft blocks stuck in queue, no new block processed in 60 seconds " << pbft_sync_period << " "
                  << pbft_chain_->getPbftChainSize();
     syncing_state_->set_pbft_syncing(false);
-    LOG(log_dg_) << "Syncing PBFT is stopping";
+    LOG(log_tr_) << "Syncing PBFT is stopping";
     return;
   }
 
   if (syncing_state_->is_pbft_syncing()) {
     if (pbft_sync_period > pbft_chain_->getPbftChainSize() + (10 * network_sync_level_size_)) {
-      LOG(log_dg_) << "Syncing pbft blocks faster than processing " << pbft_sync_period << " "
+      LOG(log_tr_) << "Syncing pbft blocks faster than processing " << pbft_sync_period << " "
                    << pbft_chain_->getPbftChainSize();
       delayed_sync_events_tp_.post(1000, [this, counter] { delayedPbftSync(counter + 1); });
     } else {

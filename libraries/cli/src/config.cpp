@@ -24,6 +24,7 @@ Config::Config(int argc, const char* argv[]) {
   vector<string> boot_nodes;
   string public_ip;
   vector<string> log_channels;
+  vector<string> log_configurations;
   vector<string> boot_nodes_append;
   vector<string> log_channels_append;
   string node_secret;
@@ -97,6 +98,8 @@ Config::Config(int argc, const char* argv[]) {
   node_command_options.add_options()(
       LOG_CHANNELS_APPEND, bpo::value<vector<string>>(&log_channels_append)->multitoken(),
       "Log channels to log in addition to log channels defined in config: [channel:level, ....]");
+  node_command_options.add_options()(LOG_CONFIGURATIONS, bpo::value<vector<string>>(&log_configurations)->multitoken(),
+                                     "Log confifugrations to use: [channel:level, ....]");
   node_command_options.add_options()(NODE_SECRET, bpo::value<string>(&node_secret), "Nose secret key to use");
 
   node_command_options.add_options()(VRF_SECRET, bpo::value<string>(&vrf_secret), "Vrf secret key to use");
@@ -160,8 +163,8 @@ Config::Config(int argc, const char* argv[]) {
     Json::Value wallet_json = Tools::readJsonFromFile(wallet);
 
     // Override config values with values from CLI
-    config_json = Tools::overrideConfig(config_json, data_dir, boot_node, boot_nodes, log_channels, boot_nodes_append,
-                                        log_channels_append);
+    config_json = Tools::overrideConfig(config_json, data_dir, boot_node, boot_nodes, log_channels, log_configurations,
+                                        boot_nodes_append, log_channels_append);
     wallet_json = Tools::overrideWallet(wallet_json, node_secret, vrf_secret);
 
     // Create data directory

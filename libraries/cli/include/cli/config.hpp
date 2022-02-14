@@ -48,6 +48,7 @@ class Config {
   static constexpr const char* BOOT_NODES = "boot-nodes";
   static constexpr const char* PUBLIC_IP = "public-ip";
   static constexpr const char* LOG_CHANNELS = "log-channels";
+  static constexpr const char* LOG_CONFIGURATIONS = "log-configurations";
   static constexpr const char* BOOT_NODES_APPEND = "boot-nodes-append";
   static constexpr const char* LOG_CHANNELS_APPEND = "log-channels-append";
   static constexpr const char* NODE_SECRET = "node-secret";

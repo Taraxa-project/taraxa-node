@@ -17,11 +17,11 @@ PbftBlockPacketHandler::PbftBlockPacketHandler(std::shared_ptr<PeersState> peers
       pbft_mgr_(std::move(pbft_mgr)) {}
 
 void PbftBlockPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
-  LOG(log_dg_) << "In PbftBlockPacket";
+  LOG(log_tr_) << "In PbftBlockPacket";
 
   auto pbft_block = std::make_shared<PbftBlock>(packet_data.rlp_[0]);
   const uint64_t peer_pbft_chain_size = packet_data.rlp_[1].toInt();
-  LOG(log_dg_) << "Receive proposed PBFT Block " << pbft_block->getBlockHash().abridged()
+  LOG(log_tr_) << "Receive proposed PBFT Block " << pbft_block->getBlockHash().abridged()
                << ", Peer PBFT Chain size: " << peer_pbft_chain_size << " from " << peer->getId();
 
   peer->markPbftBlockAsKnown(pbft_block->getBlockHash());
@@ -31,19 +31,19 @@ void PbftBlockPacketHandler::process(const PacketData &packet_data, const std::s
 
   const auto pbft_synced_period = pbft_mgr_->pbftSyncingPeriod();
   if (pbft_synced_period >= pbft_block->getPeriod()) {
-    LOG(log_dg_) << "Drop new PBFT block " << pbft_block->getBlockHash().abridged() << " at period "
+    LOG(log_tr_) << "Drop new PBFT block " << pbft_block->getBlockHash().abridged() << " at period "
                  << pbft_block->getPeriod() << ", own PBFT chain has synced at period " << pbft_synced_period;
     return;
   }
 
   // Synchronization point in case multiple threads are processing the same block at the same time
   if (!pbft_chain_->pushUnverifiedPbftBlock(pbft_block)) {
-    LOG(log_dg_) << "Drop new PBFT block " << pbft_block->getBlockHash().abridged() << " at period "
+    LOG(log_tr_) << "Drop new PBFT block " << pbft_block->getBlockHash().abridged() << " at period "
                  << pbft_block->getPeriod() << " -> already inserted in unverified queue ";
     return;
   }
 
-  LOG(log_nf_) << "Receive proposed PBFT Block " << pbft_block->getBlockHash().abridged()
+  LOG(log_dg_) << "Receive proposed PBFT Block " << pbft_block->getBlockHash().abridged()
                << ", Peer PBFT Chain size: " << peer_pbft_chain_size << " from " << peer->getId();
 
   onNewPbftBlock(*pbft_block);
@@ -57,7 +57,7 @@ void PbftBlockPacketHandler::onNewPbftBlock(PbftBlock const &pbft_block) {
   for (auto const &peer : peers_state_->getAllPeers()) {
     if (!peer.second->isPbftBlockKnown(pbft_block.getBlockHash()) && !peer.second->syncing_) {
       if (!peer.second->isDagBlockKnown(pbft_block.getPivotDagBlockHash())) {
-        LOG(log_dg_) << "sending PbftBlock " << pbft_block.getBlockHash() << " with missing dag anchor"
+        LOG(log_tr_) << "sending PbftBlock " << pbft_block.getBlockHash() << " with missing dag anchor"
                      << pbft_block.getPivotDagBlockHash() << " to " << peer.first;
       }
       peers_to_send.emplace_back(peer.second);
@@ -65,7 +65,7 @@ void PbftBlockPacketHandler::onNewPbftBlock(PbftBlock const &pbft_block) {
     }
   }
 
-  LOG(log_nf_) << "sendPbftBlock " << pbft_block.getBlockHash() << " to " << peers_to_log;
+  LOG(log_dg_) << "sendPbftBlock " << pbft_block.getBlockHash() << " to " << peers_to_log;
   for (auto const &peer : peers_to_send) {
     sendPbftBlock(peer->getId(), pbft_block, my_chain_size);
     peer->markPbftBlockAsKnown(pbft_block.getBlockHash());
@@ -74,7 +74,7 @@ void PbftBlockPacketHandler::onNewPbftBlock(PbftBlock const &pbft_block) {
 
 void PbftBlockPacketHandler::sendPbftBlock(dev::p2p::NodeID const &peer_id, PbftBlock const &pbft_block,
                                            uint64_t pbft_chain_size) {
-  LOG(log_dg_) << "sendPbftBlock " << pbft_block.getBlockHash() << " to " << peer_id;
+  LOG(log_tr_) << "sendPbftBlock " << pbft_block.getBlockHash() << " to " << peer_id;
   dev::RLPStream s(2);
   pbft_block.streamRLP(s, true);
   s << pbft_chain_size;

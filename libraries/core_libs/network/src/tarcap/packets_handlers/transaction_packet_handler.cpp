@@ -46,9 +46,9 @@ inline void TransactionPacketHandler::process(const PacketData &packet_data, con
   }
 
   if (transaction_count > 0) {
-    LOG(log_dg_) << "Received TransactionPacket with " << packet_data.rlp_.itemCount() << " transactions";
+    LOG(log_tr_) << "Received TransactionPacket with " << packet_data.rlp_.itemCount() << " transactions";
     if (transactions.size() > 0) {
-      LOG(log_nf_) << "Received TransactionPacket with " << transactions.size()
+      LOG(log_dg_) << "Received TransactionPacket with " << transactions.size()
                    << " unseen transactions:" << received_transactions << " from: " << peer->getId().abridged();
     }
 
@@ -66,9 +66,9 @@ void TransactionPacketHandler::onNewTransactions(SharedTransactions &&transactio
         auto trx_hash = trx->getHash();
         if (!test_state_->hasTransaction(trx_hash)) {
           test_state_->insertTransaction(*trx);
-          LOG(log_dg_) << "Received New Transaction " << trx_hash;
+          LOG(log_tr_) << "Received New Transaction " << trx_hash;
         } else {
-          LOG(log_dg_) << "Received New Transaction" << trx_hash << "that is already known";
+          LOG(log_tr_) << "Received New Transaction" << trx_hash << "that is already known";
         }
       }
     }
@@ -105,7 +105,7 @@ void TransactionPacketHandler::onNewTransactions(SharedTransactions &&transactio
       }
     }
 
-    LOG(log_dg_) << "Sending Transactions " << transactions_to_log << " to " << peers_to_log;
+    LOG(log_tr_) << "Sending Transactions " << transactions_to_log << " to " << peers_to_log;
 
     for (auto &it : transactions_to_send) {
       sendTransactions(it.first, it.second);
@@ -120,7 +120,7 @@ void TransactionPacketHandler::onNewTransactions(SharedTransactions &&transactio
 
 void TransactionPacketHandler::sendTransactions(dev::p2p::NodeID const &peer_id,
                                                 std::vector<taraxa::bytes> const &transactions) {
-  LOG(log_dg_) << "sendTransactions " << transactions.size() << " to " << peer_id;
+  LOG(log_tr_) << "sendTransactions " << transactions.size() << " to " << peer_id;
 
   dev::RLPStream s(transactions.size());
   taraxa::bytes trx_bytes;

@@ -90,7 +90,7 @@ void Network::onNewBlockVerified(DagBlock const &blk, bool proposed, SharedTrans
 
 void Network::onNewTransactions(SharedTransactions &&transactions) {
   taraxa_capability_->onNewTransactions(std::move(transactions));
-  LOG(log_dg_) << "On new transactions" << transactions.size();
+  LOG(log_tr_) << "On new transactions" << transactions.size();
 }
 
 void Network::restartSyncingPbft(bool force) {
@@ -112,7 +112,7 @@ void Network::handleMaliciousSyncPeer(dev::p2p::NodeID const &id) { taraxa_capab
 
 void Network::onNewPbftVotes(std::vector<std::shared_ptr<Vote>> &&votes) {
   for (auto &vote : votes) {
-    LOG(log_dg_) << "Network broadcast PBFT vote: " << vote->getHash();
+    LOG(log_tr_) << "Network broadcast PBFT vote: " << vote->getHash();
     taraxa_capability_->onNewPbftVote(std::move(vote));
   }
 }
@@ -168,7 +168,7 @@ void Network::sendPbftBlock(dev::p2p::NodeID const &id, PbftBlock const &pbft_bl
 }
 
 void Network::sendPbftVote(dev::p2p::NodeID const &id, std::shared_ptr<Vote> const &vote) {
-  LOG(log_dg_) << "Network sent PBFT vote: " << vote->getHash() << " to: " << id;
+  LOG(log_tr_) << "Network sent PBFT vote: " << vote->getHash() << " to: " << id;
   taraxa_capability_->sendPbftVote(id, vote);
 }
 

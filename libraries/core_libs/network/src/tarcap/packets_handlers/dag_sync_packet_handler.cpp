@@ -29,7 +29,7 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
 
   // If the periods did not match restart syncing
   if (response_period > request_period) {
-    LOG(log_nf_) << "Received DagSyncPacket with mismatching periods: " << response_period << " " << request_period
+    LOG(log_dg_) << "Received DagSyncPacket with mismatching periods: " << response_period << " " << request_period
                  << " from " << packet_data.from_node_id_.abridged();
     if (peer->pbft_chain_size_ < response_period) {
       peer->pbft_chain_size_ = response_period;
@@ -94,7 +94,7 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
   peer->peer_dag_synced_ = true;
   peer->peer_dag_syncing_ = false;
 
-  LOG(log_nf_) << "Received DagSyncPacket with blocks: " << received_dag_blocks_str
+  LOG(log_dg_) << "Received DagSyncPacket with blocks: " << received_dag_blocks_str
                << " Transactions: " << transactions_to_log << " from " << packet_data.from_node_id_;
 }
 

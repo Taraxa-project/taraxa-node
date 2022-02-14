@@ -35,18 +35,18 @@ void DagBlockPacketHandler::process(const PacketData &packet_data, const std::sh
   if (dag_blk_mgr_) {
     // Do not process this block in case we already have it
     if (dag_blk_mgr_->isDagBlockKnown(block.getHash())) {
-      LOG(log_dg_) << "Received known DagBlockPacket " << hash << "from: " << peer->getId();
+      LOG(log_tr_) << "Received known DagBlockPacket " << hash << "from: " << peer->getId();
       return;
     }
 
-    LOG(log_nf_) << "Received DagBlockPacket " << hash << "from: " << peer->getId();
+    LOG(log_dg_) << "Received DagBlockPacket " << hash << "from: " << peer->getId();
 
     if (auto status = checkDagBlockValidation(block); !status.first) {
       // Ignore new block packets when pbft syncing
       if (syncing_state_->is_pbft_syncing()) {
-        LOG(log_nf_) << "Ignore new dag block " << hash << ", pbft syncing is on";
+        LOG(log_dg_) << "Ignore new dag block " << hash << ", pbft syncing is on";
       } else if (peer->peer_dag_syncing_) {
-        LOG(log_nf_) << "Ignore new dag block " << hash << ", dag syncing is on";
+        LOG(log_dg_) << "Ignore new dag block " << hash << ", dag syncing is on";
       } else {
         if (peer->peer_dag_synced_) {
           LOG(log_er_) << "DagBlock" << block.getHash() << " has missing pivot or/and tips " << status.second
@@ -111,7 +111,7 @@ void DagBlockPacketHandler::onNewBlockReceived(DagBlock &&block) {
     onNewBlockVerified(block, false, {});
 
   } else {
-    LOG(log_dg_) << "Received NewBlock " << block.getHash() << "that is already known";
+    LOG(log_tr_) << "Received NewBlock " << block.getHash() << "that is already known";
     return;
   }
 }
@@ -124,7 +124,7 @@ void DagBlockPacketHandler::onNewBlockVerified(DagBlock const &block, bool propo
   }
 
   const auto &block_hash = block.getHash();
-  LOG(log_dg_) << "Verified NewBlock " << block_hash.toString();
+  LOG(log_tr_) << "Verified NewBlock " << block_hash.toString();
 
   std::vector<dev::p2p::NodeID> peers_to_send;
   for (auto const &peer : peers_state_->getAllPeers()) {
@@ -152,7 +152,7 @@ void DagBlockPacketHandler::onNewBlockVerified(DagBlock const &block, bool propo
       peer->markDagBlockAsKnown(block_hash);
     }
   }
-  LOG(log_nf_) << "Send DagBlock " << block.getHash() << " to peers: " << peer_and_transactions_to_log;
-  if (!peers_to_send.empty()) LOG(log_dg_) << "Sent block to " << peers_to_send.size() << " peers";
+  LOG(log_dg_) << "Send DagBlock " << block.getHash() << " to peers: " << peer_and_transactions_to_log;
+  if (!peers_to_send.empty()) LOG(log_tr_) << "Sent block to " << peers_to_send.size() << " peers";
 }
 }  // namespace taraxa::network::tarcap
