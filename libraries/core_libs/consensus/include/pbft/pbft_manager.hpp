@@ -114,9 +114,13 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   size_t placeVote_(blk_hash_t const &blockhash, PbftVoteTypes vote_type, uint64_t round, size_t step);
 
+  uint64_t getThreshold(PbftVoteTypes vote_type) const;
+
   std::pair<blk_hash_t, bool> proposeMyPbftBlock_();
 
   std::pair<blk_hash_t, bool> identifyLeaderBlock_();
+
+  h256 getProposal(const std::shared_ptr<Vote> &vote) const;
 
   bool syncRequestedAlreadyThisStep_() const;
 
@@ -174,9 +178,10 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   std::default_random_engine random_engine_{std::random_device{}()};
 
-  size_t const COMMITTEE_SIZE;
-  size_t const DAG_BLOCKS_SIZE;
-  size_t const GHOST_PATH_MOVE_BACK;
+  const size_t COMMITTEE_SIZE;
+  const size_t NUMBER_OF_PROPOSERS;
+  const size_t DAG_BLOCKS_SIZE;
+  const size_t GHOST_PATH_MOVE_BACK;
   bool RUN_COUNT_VOTES;  // TODO: Only for test, need remove later
 
   PbftStates state_ = value_proposal_state;

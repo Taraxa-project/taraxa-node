@@ -1,83 +1,10 @@
 #pragma once
 
-#include <libdevcore/SHA3.h>
-#include <libdevcrypto/Common.h>
-
-#include <boost/multiprecision/mpfr.hpp>
 #include <string>
 
-#include "common/types.hpp"
-#include "common/vrf_wrapper.hpp"
+#include "vrf_sortition.hpp"
 
 namespace taraxa {
-
-enum PbftVoteTypes : uint8_t { propose_vote_type = 0, soft_vote_type, cert_vote_type, next_vote_type };
-struct VrfPbftMsg {
-  VrfPbftMsg() = default;
-  VrfPbftMsg(PbftVoteTypes type, uint64_t round, size_t step) : type(type), round(round), step(step) {}
-
-  std::string toString() const {
-    return std::to_string(type) + "_" + std::to_string(round) + "_" + std::to_string(step);
-  }
-
-  bool operator==(VrfPbftMsg const& other) const {
-    return type == other.type && round == other.round && step == other.step;
-  }
-
-  friend std::ostream& operator<<(std::ostream& strm, VrfPbftMsg const& pbft_msg) {
-    strm << "  [Vrf Pbft Msg] " << std::endl;
-    strm << "    type: " << static_cast<uint32_t>(pbft_msg.type) << std::endl;
-    strm << "    round: " << pbft_msg.round << std::endl;
-    strm << "    step: " << pbft_msg.step << std::endl;
-    return strm;
-  }
-
-  bytes getRlpBytes() const {
-    dev::RLPStream s;
-    s.appendList(3);
-    s << static_cast<uint8_t>(type);
-    s << round;
-    s << step;
-    return s.invalidate();
-  }
-
-  PbftVoteTypes type;
-  uint64_t round;
-  size_t step;
-};
-
-struct VrfPbftSortition : public vrf_wrapper::VrfSortitionBase {
-  using vrf_sk_t = vrf_wrapper::vrf_sk_t;
-  using vrf_pk_t = vrf_wrapper::vrf_pk_t;
-  using vrf_proof_t = vrf_wrapper::vrf_proof_t;
-  using vrf_output_t = vrf_wrapper::vrf_output_t;
-  using bytes = dev::bytes;
-  VrfPbftSortition() = default;
-  VrfPbftSortition(vrf_sk_t const& sk, VrfPbftMsg pbft_msg)
-      : VrfSortitionBase(sk, pbft_msg.getRlpBytes()), pbft_msg(std::move(pbft_msg)) {}
-  explicit VrfPbftSortition(bytes const& rlp);
-  bytes getRlpBytes() const;
-  bool verify() const { return VrfSortitionBase::verify(pbft_msg.getRlpBytes()); }
-  bool operator==(VrfPbftSortition const& other) const {
-    return pk == other.pk && pbft_msg == other.pbft_msg && proof == other.proof && output == other.output;
-  }
-
-  static inline uint512_t max512bits = std::numeric_limits<uint512_t>::max();
-  static inline auto kMax512bFP = max512bits.convert_to<boost::multiprecision::mpfr_float>();
-  static uint64_t getBinominalDistribution(uint64_t stake, double dpos_total_votes_count, double threshold,
-                                           const uint512_t& output);
-  uint64_t getBinominalDistribution(uint64_t stake, double dpos_total_votes_count, double threshold) const;
-
-  friend std::ostream& operator<<(std::ostream& strm, VrfPbftSortition const& vrf_sortition) {
-    strm << "[VRF sortition] " << std::endl;
-    strm << "  pk: " << vrf_sortition.pk << std::endl;
-    strm << "  proof: " << vrf_sortition.proof << std::endl;
-    strm << "  output: " << vrf_sortition.output << std::endl;
-    strm << vrf_sortition.pbft_msg << std::endl;
-    return strm;
-  }
-  VrfPbftMsg pbft_msg;
-};
 
 class Vote {
  public:
@@ -102,13 +29,13 @@ class Vote {
 
   bool verifyVrfSortition() const { return vrf_sortition_.verify(); }
   auto getVrfSortition() const { return vrf_sortition_; }
-  auto getSortitionProof() const { return vrf_sortition_.proof; }
-  auto getCredential() const { return vrf_sortition_.output; }
+  auto getSortitionProof() const { return vrf_sortition_.proof_; }
+  auto getCredential() const { return vrf_sortition_.output_; }
   sig_t getVoteSignature() const { return vote_signature_; }
   blk_hash_t getBlockHash() const { return blockhash_; }
-  PbftVoteTypes getType() const { return vrf_sortition_.pbft_msg.type; }
-  uint64_t getRound() const { return vrf_sortition_.pbft_msg.round; }
-  size_t getStep() const { return vrf_sortition_.pbft_msg.step; }
+  PbftVoteTypes getType() const { return vrf_sortition_.pbft_msg_.type; }
+  uint64_t getRound() const { return vrf_sortition_.pbft_msg_.round; }
+  size_t getStep() const { return vrf_sortition_.pbft_msg_.step; }
   bytes rlp(bool inc_sig = true, bool inc_weight = false) const;
   bool verifyVote() const {
     auto pk = getVoter();
@@ -117,7 +44,7 @@ class Vote {
 
   uint64_t calculateWeight(uint64_t stake, double dpos_total_votes_count, double threshold) const {
     assert(stake);
-    weight_ = vrf_sortition_.getBinominalDistribution(stake, dpos_total_votes_count, threshold);
+    weight_ = vrf_sortition_.calculateWeight(stake, dpos_total_votes_count, threshold, getVoter());
     return weight_.value();
   }
 

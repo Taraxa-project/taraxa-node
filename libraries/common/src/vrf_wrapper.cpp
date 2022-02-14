@@ -38,12 +38,12 @@ std::optional<vrf_output_t> getVrfOutput(vrf_pk_t const &pk, vrf_proof_t const &
 }
 
 bool VrfSortitionBase::verify(bytes const &msg) const {
-  if (!isValidVrfPublicKey(pk)) {
+  if (!isValidVrfPublicKey(pk_)) {
     return false;
   }
-  auto res = vrf_wrapper::getVrfOutput(pk, proof, msg);
+  auto res = vrf_wrapper::getVrfOutput(pk_, proof_, msg);
   if (res != std::nullopt) {
-    output = res.value();
+    output_ = res.value();
     thresholdFromOutput();
     return true;
   }
