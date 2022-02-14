@@ -276,8 +276,8 @@ TEST_F(CryptoTest, new_sortition_rate) {
   } else {
     d = hitcount - expected;
   }
-  // within 2.5% good enough
-  auto maxd = expected / 40;
+  // within 4% good enough
+  auto maxd = expected / 25;
   EXPECT_LE(d, maxd);
   std::cout << "wanted " << expected << " selections but got " << hitcount << ", d=" << d << ", maxd=" << maxd
             << std::endl;
