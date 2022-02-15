@@ -47,9 +47,5 @@ class Tools {
   static std::string getWalletDefaultFile();
   static Json::Value createWalletJson(const dev::KeyPair& account, const taraxa::vrf_wrapper::vrf_sk_t& sk,
                                       const taraxa::vrf_wrapper::vrf_pk_t& pk);
-
-  static void writeJsonToFile(const std::string& file_name, const Json::Value& json);
-  static Json::Value readJsonFromFile(const std::string& file_name);
-  static Json::Value readJsonFromString(const std::string& str);
 };
 }  // namespace taraxa::cli

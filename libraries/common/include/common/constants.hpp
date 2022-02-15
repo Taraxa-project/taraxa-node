@@ -12,5 +12,5 @@ GLOBAL_CONST(h64, EmptyNonce);
 GLOBAL_CONST(u256, ZeroU256);
 
 constexpr uint16_t kOnePercent = 100;
-
+constexpr uint64_t kOneTara = 1e18;
 }  // namespace taraxa

@@ -29,6 +29,13 @@ void dec_json(Json::Value const& json, ChainConfig& obj) {
   dec_json(json["final_chain"], obj.final_chain);
 }
 
+const ChainConfig& ChainConfig::predefined(std::string const& name) {
+  if (auto i = predefined_->find(name); i != predefined_->end()) {
+    return i->second;
+  }
+  throw std::runtime_error("unknown chain config: " + name);
+}
+
 decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
   decltype(ChainConfig::predefined_)::val_t cfgs;
   cfgs["default"] = [] {
@@ -48,14 +55,12 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
     cfg.final_chain.state.eth_chain_config.dao_fork_block = state_api::BlockNumberNIL;
     cfg.final_chain.state.execution_options.disable_nonce_check = true;
     cfg.final_chain.state.execution_options.disable_gas_fee = true;
-    addr_t root_node_addr("de2b1203d72d3549ee2f733b00b2789414c7cea5");
-    cfg.final_chain.state.genesis_balances[root_node_addr] = 9007199254740991;
     auto& dpos = cfg.final_chain.state.dpos.emplace();
     dpos.eligibility_balance_threshold = 1000000000;
-    dpos.genesis_state[root_node_addr][root_node_addr] = dpos.eligibility_balance_threshold;
+    dpos.vote_eligibility_balance_step = 1000000000;
     // VDF config
     cfg.sortition.vrf.threshold_upper = 0x8000;
-    cfg.sortition.vrf.threshold_range = 0xE00;
+    cfg.sortition.vrf.threshold_range = 0xe00;
     cfg.sortition.vdf.difficulty_min = 16;
     cfg.sortition.vdf.difficulty_max = 21;
     cfg.sortition.vdf.difficulty_stale = 22;

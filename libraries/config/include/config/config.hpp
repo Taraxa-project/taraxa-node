@@ -23,7 +23,7 @@ struct RpcConfig {
 struct NodeConfig {
   std::string id;
   std::string ip;
-  uint16_t tcp_port = 0;
+  uint16_t udp_port = 0;
 };
 
 struct NetworkConfig {
@@ -78,7 +78,8 @@ struct FullNodeConfig {
   // if you have std::string and Json::Value constructor. It was easier
   // to just treat Json::Value as a std::string or Json::Value depending on
   // the contents
-  explicit FullNodeConfig(Json::Value const &file_name_str_or_json_object, Json::Value const &wallet);
+  explicit FullNodeConfig(Json::Value const &file_name_str_or_json_object, Json::Value const &wallet,
+                          const std::string &config_file_path = "");
   std::string json_file_name;
   std::string node_secret;
   vrf_wrapper::vrf_sk_t vrf_secret;
@@ -99,6 +100,8 @@ struct FullNodeConfig {
    * @return
    */
   void validate();
+
+  void overwrite_chain_config_in_file() const;
 };
 
 std::ostream &operator<<(std::ostream &strm, NodeConfig const &conf);

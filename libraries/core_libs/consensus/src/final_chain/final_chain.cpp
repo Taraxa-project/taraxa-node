@@ -113,6 +113,7 @@ class FinalChainImpl final : public FinalChain {
         }
       }
     }
+    block_applying_emitter_.emit(block_header()->number + 1);
     auto const& [exec_results, state_root] = state_api_.transition_state(
         {new_blk.pbft_blk->getBeneficiary(), GAS_LIMIT, new_blk.pbft_blk->getTimestamp(), BlockHeader::difficulty()},
         to_state_api_transactions(to_execute));
@@ -324,6 +325,14 @@ class FinalChainImpl final : public FinalChain {
 
   optional<state_api::Account> get_account(addr_t const& addr, optional<EthBlockNumber> blk_n = {}) const override {
     return state_api_.get_account(last_if_absent(blk_n), addr);
+  }
+
+  virtual u256 get_staking_balance(addr_t const& addr, std::optional<EthBlockNumber> blk_n = {}) const override {
+    return state_api_.get_staking_balance(last_if_absent(blk_n), addr);
+  }
+
+  void update_state_config(const state_api::Config& new_config) const override {
+    state_api_.update_state_config(new_config);
   }
 
   u256 get_account_storage(addr_t const& addr, u256 const& key, optional<EthBlockNumber> blk_n = {}) const override {

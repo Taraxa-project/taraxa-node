@@ -15,6 +15,7 @@
 
 #include "cli/config.hpp"
 #include "cli/tools.hpp"
+#include "common/jsoncpp.hpp"
 #include "common/thread_pool.hpp"
 
 namespace po = boost::program_options;
@@ -62,7 +63,7 @@ dev::KeyPair getKey(std::string const& path) {
     throw std::runtime_error("Wallet file does not exist at: " + path);
   }
 
-  auto wallet_json = taraxa::cli::Tools::readJsonFromFile(path);
+  auto wallet_json = taraxa::util::readJsonFromFile(path);
   if (wallet_json["node_secret"].isNull()) {
     throw std::runtime_error("Wallet file does not contain node_secret field");
   }

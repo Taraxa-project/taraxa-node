@@ -390,20 +390,20 @@ void DbStorage::savePbftBlockDagEfficiency(uint64_t period, uint16_t efficiency,
   insert(batch, Columns::pbft_block_dag_efficiency, toSlice(period), toSlice(efficiency));
 }
 
-std::vector<uint16_t> DbStorage::getLastIntervalEfficiencies(uint16_t computation_interval) {
-  std::vector<uint16_t> efficiencies;
+std::deque<uint16_t> DbStorage::getLastIntervalEfficiencies(uint16_t changing_interval, uint16_t computation_interval) {
+  std::deque<uint16_t> efficiencies;
 
   auto it =
       std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::pbft_block_dag_efficiency)));
   it->SeekToLast();
   if (it->Valid()) {
     const auto last_period = FromSlice<uint64_t>(it->key().data());
-    const auto count_to_get = last_period % computation_interval;
-    efficiencies.reserve(count_to_get);
+    auto count_to_get = last_period % changing_interval;
+    count_to_get += (computation_interval - changing_interval);
 
     for (; it->Valid() && efficiencies.size() < count_to_get; it->Prev()) {
       // order doesn't matter
-      efficiencies.push_back(FromSlice<uint16_t>(it->value()));
+      efficiencies.push_front(FromSlice<uint16_t>(it->value()));
     }
   }
 
@@ -594,6 +594,22 @@ std::vector<bool> DbStorage::transactionsInDb(std::vector<trx_hash_t> const& trx
     result[idx] = result[idx] || (!trx_raw_status.empty());
   }
 
+  return result;
+}
+
+std::vector<std::shared_ptr<Transaction>> DbStorage::getTransactions(std::vector<trx_hash_t> const& trx_hashes) {
+  std::vector<std::shared_ptr<Transaction>> result;
+  result.reserve(trx_hashes.size());
+
+  DbStorage::MultiGetQuery db_query(shared_from_this(), trx_hashes.size());
+  db_query.append(DbStorage::Columns::transactions, trx_hashes);
+  auto db_trxs = db_query.execute();
+  for (size_t idx = 0; idx < db_trxs.size(); idx++) {
+    auto& trx_raw = db_trxs[idx];
+    if (!trx_raw.empty()) {
+      result.emplace_back(std::make_shared<Transaction>(asBytes(trx_raw)));
+    }
+  }
   return result;
 }
 

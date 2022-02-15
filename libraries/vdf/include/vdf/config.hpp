@@ -37,7 +37,7 @@ struct SortitionParams {
   friend std::ostream& operator<<(std::ostream& strm, const SortitionParams& config) {
     strm << " [VDF config] " << std::endl;
     strm << "    vrf upper threshold: " << config.vrf.threshold_upper << std::endl;
-    strm << "    vrf range threshold: " << config.vrf.threshold_range << std::endl;
+    strm << "    vrf threshold range: " << config.vrf.threshold_range << std::endl;
     strm << "    difficulty minimum: " << config.vdf.difficulty_min << std::endl;
     strm << "    difficulty maximum: " << config.vdf.difficulty_max << std::endl;
     strm << "    difficulty stale: " << config.vdf.difficulty_stale << std::endl;
@@ -52,7 +52,8 @@ struct SortitionConfig : SortitionParams {
   uint16_t changes_count_for_average = 5;  // intervals
   uint16_t max_interval_correction = 10 * kOnePercent;
   std::pair<uint16_t, uint16_t> dag_efficiency_targets = {48 * kOnePercent, 52 * kOnePercent};
-  uint16_t computation_interval = 50;  // pbft blocks
+  uint16_t changing_interval = 50;      // pbft blocks
+  uint16_t computation_interval = 200;  // pbft blocks
 
   uint16_t targetEfficiency() const { return (dag_efficiency_targets.first + dag_efficiency_targets.second) / 2; }
 };

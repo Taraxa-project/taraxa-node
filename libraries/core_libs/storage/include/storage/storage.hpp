@@ -179,6 +179,8 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void disableSnapshots();
   void enableSnapshots();
 
+  void rebuildPbftBlockDagEfficiencies();
+
   // Period data
   void savePeriodData(const SyncBlock& sync_block, Batch& write_batch);
   dev::bytes getPeriodDataRaw(uint64_t period);
@@ -196,7 +198,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void removeDagBlock(blk_hash_t const& hash);
   // DAG Efficiency
   void savePbftBlockDagEfficiency(uint64_t period, uint16_t efficiency, DbStorage::Batch& batch);
-  std::vector<uint16_t> getLastIntervalEfficiencies(uint16_t computation_interval);
+  std::deque<uint16_t> getLastIntervalEfficiencies(uint16_t changing_interval, uint16_t computation_interval);
   void cleanupDagEfficiencies(uint64_t current_period);
   // Sortition params
   void saveSortitionParamsChange(uint64_t period, SortitionParamsChange params, DbStorage::Batch& batch);
@@ -207,6 +209,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void saveTransaction(Transaction const& trx);
   std::shared_ptr<Transaction> getTransaction(trx_hash_t const& hash);
   SharedTransactions getAllNonfinalizedTransactions();
+  std::vector<std::shared_ptr<Transaction>> getTransactions(std::vector<trx_hash_t> const& trx_hashes);
   bool transactionInDb(trx_hash_t const& hash);
   bool transactionFinalized(trx_hash_t const& hash);
   std::vector<bool> transactionsInDb(std::vector<trx_hash_t> const& trx_hashes);
