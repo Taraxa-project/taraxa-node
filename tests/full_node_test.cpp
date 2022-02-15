@@ -1463,9 +1463,6 @@ TEST_F(FullNodeTest, chain_config_json) {
         "eligibility_balance_threshold": "0x3b9aca00",
         "vote_eligibility_balance_step": "0x3b9aca00",
         "genesis_state": {
-          "0xde2b1203d72d3549ee2f733b00b2789414c7cea5": {
-            "0xde2b1203d72d3549ee2f733b00b2789414c7cea5": "0x3b9aca00"
-          }
         },
         "withdrawal_delay": "0x0"
       },
@@ -1483,7 +1480,6 @@ TEST_F(FullNodeTest, chain_config_json) {
         "disable_nonce_check": true
       },
       "genesis_balances": {
-        "0xde2b1203d72d3549ee2f733b00b2789414c7cea5": "0x1fffffffffffff"
       },
       "hardforks": {
         "fix_genesis_fork_block": "0x0"
