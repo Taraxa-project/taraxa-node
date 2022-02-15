@@ -73,7 +73,6 @@ bool write(stream &stm, T const &value) {
 void thisThreadSleepForSeconds(unsigned sec);
 void thisThreadSleepForMilliSeconds(unsigned millisec);
 void thisThreadSleepForMicroSeconds(unsigned microsec);
-dev::bytes makeVrfInput(taraxa::level_t level, const dev::h256 &period_hash);
 
 unsigned long getCurrentTimeMilliSeconds();
 

@@ -35,7 +35,8 @@ bool SortitionPropose::propose() {
   const auto period_block_hash = db_->getPeriodBlockHash(proposal_period.first);
   // get sortition
   const auto sortition_params = dag_blk_mgr_->sortitionParamsManager().getSortitionParams(proposal_period.first);
-  vdf_sortition::VdfSortition vdf(sortition_params, vrf_sk_, makeVrfInput(propose_level, period_block_hash));
+  vdf_sortition::VdfSortition vdf(sortition_params, vrf_sk_,
+                                  VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
   if (vdf.isStale(sortition_params)) {
     if (last_frontier_.isEqual(frontier)) {
       if (num_tries_ < max_num_tries_) {

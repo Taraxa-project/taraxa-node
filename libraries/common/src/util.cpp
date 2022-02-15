@@ -28,11 +28,4 @@ std::string getFormattedVersion(std::initializer_list<uint32_t> list) {
   return ret.substr(0, ret.size() - 1);
 }
 
-dev::bytes makeVrfInput(taraxa::level_t level, const dev::h256& period_hash) {
-  dev::RLPStream s;
-  s << level;
-  s << period_hash;
-  return s.out();
-}
-
 }  // namespace taraxa
