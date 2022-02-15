@@ -96,7 +96,7 @@ TEST_F(HardforkTest, fix_genesis_fork_block_is_zero) {
 
 TEST_F(HardforkTest, hardfork) {
   auto &cfg = node_cfg.chain.final_chain;
-  cfg.state.hardforks.fix_genesis_fork_block = 20;
+  cfg.state.hardforks.fix_genesis_fork_block = 10;
   cfg.state.dpos->eligibility_balance_threshold = 100000;
   cfg.state.dpos->vote_eligibility_balance_step.assign(cfg.state.dpos->eligibility_balance_threshold);
   cfg.state.dpos->deposit_delay = 5;
@@ -166,6 +166,25 @@ TEST_F(HardforkTest, hardfork) {
   EXPECT_EQ(1, node->getFinalChain()->dpos_eligible_count(block));
   EXPECT_EQ(votes_count, node->getFinalChain()->dpos_eligible_total_vote_count(block));
   EXPECT_EQ(0, node->getFinalChain()->dpos_eligible_vote_count(block, random_node));
+
+  // check for dpos_query method
+  {
+    const auto &genesis_sender = cfg.state.dpos->genesis_state.begin()->first;
+
+    state_api::DPOSQuery::AccountQuery acc_q;
+    acc_q.with_staking_balance = true;
+    acc_q.with_outbound_deposits = true;
+    acc_q.with_inbound_deposits = true;
+    state_api::DPOSQuery q;
+    q.with_eligible_count = true;
+    q.account_queries[genesis_sender] = acc_q;
+
+    auto q_res = node->getFinalChain()->dpos_query(q);
+    auto res = q_res.account_results[genesis_sender];
+    EXPECT_EQ(res.inbound_deposits.size(), 1);
+    EXPECT_EQ(res.inbound_deposits.begin()->first, genesis_sender);
+    EXPECT_EQ(res.inbound_deposits.begin()->second, res.staking_balance);
+  }
 
   EXPECT_EQ(cfg.state.dpos->vote_eligibility_balance_step * kOneTara,
             node->getConfig().chain.final_chain.state.dpos->vote_eligibility_balance_step);
