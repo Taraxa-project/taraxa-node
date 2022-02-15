@@ -101,9 +101,9 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
       }
 
       std::vector<std::shared_ptr<Vote>> send_next_votes_bundle;
-      for (auto &v : next_votes) {
+      for (const auto &v : next_votes) {
         if (!peer_to_share_to.second->isVoteKnown(v->getHash())) {
-          send_next_votes_bundle.push_back(std::move(v));
+          send_next_votes_bundle.push_back(v);
         }
       }
       sendPbftNextVotes(peer_to_share_to.first, send_next_votes_bundle);
