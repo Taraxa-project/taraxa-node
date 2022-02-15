@@ -236,8 +236,9 @@ std::vector<std::shared_ptr<Transaction>> TransactionManager::getNonfinalizedTrx
   ret.reserve(hashes.size());
   std::shared_lock transactions_lock(transactions_mutex_);
   for (const auto &hash : hashes) {
-    assert(nonfinalized_transactions_in_dag_.contains(hash));
-    ret.push_back(nonfinalized_transactions_in_dag_[hash]);
+    if (nonfinalized_transactions_in_dag_.contains(hash)) {
+      ret.push_back(nonfinalized_transactions_in_dag_[hash]);
+    }
   }
   if (sorted) {
     std::stable_sort(ret.begin(), ret.end(), [](const auto &t1, const auto &t2) {
