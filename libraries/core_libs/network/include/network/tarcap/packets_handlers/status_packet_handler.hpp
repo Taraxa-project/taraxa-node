@@ -29,7 +29,7 @@ class StatusPacketHandler : public ExtSyncingPacketHandler {
                             size_t pbft_previous_round_next_votes_size);
   void syncPbftNextVotes(uint64_t pbft_round, size_t pbft_previous_round_next_votes_size);
 
-  static constexpr uint16_t kInitialStatusPacketItemsCount = 10;
+  static constexpr uint16_t kInitialStatusPacketItemsCount = 12;
   static constexpr uint16_t kStandardStatusPacketItemsCount = 5;
   const uint64_t conf_network_id_;
 

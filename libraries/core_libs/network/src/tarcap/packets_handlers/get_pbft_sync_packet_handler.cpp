@@ -11,12 +11,15 @@ GetPbftSyncPacketHandler::GetPbftSyncPacketHandler(std::shared_ptr<PeersState> p
                                                    std::shared_ptr<PacketsStats> packets_stats,
                                                    std::shared_ptr<SyncingState> syncing_state,
                                                    std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DbStorage> db,
-                                                   size_t network_sync_level_size, const addr_t &node_addr)
+                                                   size_t network_sync_level_size, const addr_t &node_addr,
+                                                   bool is_light_node, uint64_t light_node_history)
     : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "GET_PBFT_SYNC_PH"),
       syncing_state_(std::move(syncing_state)),
       pbft_chain_(std::move(pbft_chain)),
       db_(std::move(db)),
-      network_sync_level_size_(network_sync_level_size) {}
+      network_sync_level_size_(network_sync_level_size),
+      is_light_node_(is_light_node),
+      light_node_history_(light_node_history) {}
 
 void GetPbftSyncPacketHandler::validatePacketRlpFormat(const PacketData &packet_data) const {
   if (constexpr size_t required_size = 1; packet_data.rlp_.itemCount() != required_size) {
@@ -36,6 +39,13 @@ void GetPbftSyncPacketHandler::process(const PacketData &packet_data,
     std::ostringstream err_msg;
     err_msg << "Peer " << packet_data.from_node_id_ << " request syncing period start at " << height_to_sync
             << ". That's bigger than own PBFT chain size " << my_chain_size;
+    throw MaliciousPeerException(err_msg.str());
+  }
+
+  if (is_light_node_ && height_to_sync + light_node_history_ <= my_chain_size) {
+    std::ostringstream err_msg;
+    err_msg << "Peer " << packet_data.from_node_id_ << " request syncing period start at " << height_to_sync
+            << ". Light node does not have the data " << my_chain_size;
     throw MaliciousPeerException(err_msg.str());
   }
 

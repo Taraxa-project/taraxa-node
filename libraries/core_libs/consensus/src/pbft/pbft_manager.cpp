@@ -45,6 +45,7 @@ PbftManager::PbftManager(PbftConfig const &conf, blk_hash_t const &genesis, addr
       RUN_COUNT_VOTES(conf.run_count_votes),
       dag_genesis_(genesis) {
   LOG_OBJECTS_CREATE("PBFT_MGR");
+  db_->clearPeriodDataHistory(pbft_chain_->getPbftChainSize(), pbft_chain_->getDagExpiryPeriod(), true);
 }
 
 PbftManager::~PbftManager() { stop(); }
@@ -1631,6 +1632,8 @@ bool PbftManager::pushPbftBlock_(SyncBlock &&sync_block, vec_blk_t &&dag_blocks_
     // update PBFT chain size
     pbft_chain_->updatePbftChain(pbft_block_hash, null_anchor);
   }
+
+  db_->clearPeriodDataHistory(sync_block.pbft_blk->getPeriod(), pbft_chain_->getDagExpiryPeriod());
 
   last_cert_voted_value_ = NULL_BLOCK_HASH;
 

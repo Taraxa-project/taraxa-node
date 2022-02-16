@@ -252,6 +252,7 @@ void TaraxaCapability::onConnect(std::weak_ptr<dev::p2p::Session> session, u256 
     LOG(log_wr_) << "Node " << node_id << " connection dropped - malicious node";
     return;
   }
+
   peers_state_->addPendingPeer(node_id);
   LOG(log_nf_) << "Node " << node_id << " connected";
 

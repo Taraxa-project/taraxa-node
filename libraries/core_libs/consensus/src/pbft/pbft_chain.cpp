@@ -14,6 +14,7 @@ PbftChain::PbftChain(blk_hash_t const& dag_genesis_hash, addr_t node_addr, std::
       dag_genesis_hash_(dag_genesis_hash),
       size_(0),
       non_empty_size_(0),
+      dag_expiry_period_(0),
       last_pbft_block_hash_(blk_hash_t(0)),
       db_(move(db)) {
   LOG_OBJECTS_CREATE("PBFT_CHAIN");
@@ -31,6 +32,7 @@ PbftChain::PbftChain(blk_hash_t const& dag_genesis_hash, addr_t node_addr, std::
   head_hash_ = blk_hash_t(doc["head_hash"].asString());
   size_ = doc["size"].asUInt64();
   non_empty_size_ = doc["non_empty_size"].asUInt64();
+  dag_expiry_period_ = doc["dag_expiry_period"].asUInt64();
   last_pbft_block_hash_ = blk_hash_t(doc["last_pbft_block_hash"].asString());
   auto dag_genesis_hash_db = blk_hash_t(doc["dag_genesis_hash"].asString());
   assert(dag_genesis_hash_ == dag_genesis_hash_db);
@@ -50,6 +52,11 @@ uint64_t PbftChain::getPbftChainSize() const {
 uint64_t PbftChain::getPbftChainSizeExcludingEmptyPbftBlocks() const {
   SharedLock lock(chain_head_access_);
   return non_empty_size_;
+}
+
+uint64_t PbftChain::getDagExpiryPeriod() const {
+  SharedLock lock(chain_head_access_);
+  return dag_expiry_period_;
 }
 
 blk_hash_t PbftChain::getLastPbftBlockHash() const {
@@ -107,6 +114,9 @@ void PbftChain::updatePbftChain(blk_hash_t const& pbft_block_hash, bool null_anc
   size_++;
   if (!null_anchor) {
     non_empty_size_++;
+    if ((dag_expiry_period_ == 0 && non_empty_size_ > kDagExpiryPeriodLimit) || dag_expiry_period_ > 0) {
+      dag_expiry_period_++;
+    }
   }
   last_pbft_block_hash_ = pbft_block_hash;
 }
@@ -182,6 +192,7 @@ std::string PbftChain::getJsonStr() const {
   json["dag_genesis_hash"] = dag_genesis_hash_.toString();
   json["size"] = (Json::Value::UInt64)size_;
   json["non_empty_size"] = (Json::Value::UInt64)non_empty_size_;
+  json["dag_expiry_period"] = (Json::Value::UInt64)dag_expiry_period_;
   json["last_pbft_block_hash"] = last_pbft_block_hash_.toString();
   return json.toStyledString();
 }
@@ -197,6 +208,7 @@ std::string PbftChain::getJsonStrForBlock(blk_hash_t const& block_hash, bool nul
     non_empty_size++;
   }
   json["non_empty_size"] = (Json::Value::UInt64)non_empty_size;
+  json["dag_expiry_period"] = (Json::Value::UInt64)dag_expiry_period_;
   json["last_pbft_block_hash"] = block_hash.toString();
   return json.toStyledString();
 }

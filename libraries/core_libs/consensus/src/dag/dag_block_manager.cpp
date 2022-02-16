@@ -35,7 +35,7 @@ void DagBlockManager::stop() {
 
 bool DagBlockManager::isDagBlockKnown(blk_hash_t const &hash) {
   auto known = seen_blocks_.count(hash);
-  if (!known) return getDagBlock(hash) != nullptr;
+  if (!known) return db_->dagBlockInDb(hash);
   return true;
 }
 
@@ -181,12 +181,18 @@ DagBlockManager::InsertAndVerifyBlockReturnType DagBlockManager::verifyBlock(con
   }
 
   auto propose_period = db_->getProposalPeriodForDagLevel(blk.getLevel());
+  const auto expiry_period = pbft_chain_->getDagExpiryPeriod();
   // Verify DPOS
   if (!propose_period) {
     // Cannot find the proposal period in DB yet. The slow node gets an ahead block, remove from seen_blocks
     LOG(log_nf_) << "Cannot find proposal period " << *propose_period << " in DB for DAG block " << blk.getHash();
     seen_blocks_.erase(block_hash);
     return InsertAndVerifyBlockReturnType::AheadBlock;
+  }
+  if (*propose_period < expiry_period) {
+    LOG(log_nf_) << "Dropping old block: " << blk.getHash() << ". Proposal period: " << *propose_period
+                 << " Expiry period: " << expiry_period << ". Block level: " << blk.getLevel();
+    return InsertAndVerifyBlockReturnType::ExpiredBlock;
   }
 
   // Verify VDF solution

@@ -75,6 +75,14 @@ std::shared_ptr<TaraxaPeer> ExtSyncingPacketHandler::getMaxChainPeer() {
   // Find peer with max pbft chain and dag level
   for (auto const &peer : peers_state_->getAllPeers()) {
     if (peer.second->pbft_chain_size_ > max_pbft_chain_size) {
+      if (peer.second->peer_light_node &&
+          pbft_mgr_->pbftSyncingPeriod() + peer.second->peer_light_node_history < peer.second->pbft_chain_size_) {
+        LOG(log_er_) << "Disconnecting from light node peer " << peer.first
+                     << " History: " << peer.second->peer_light_node_history
+                     << " chain size: " << peer.second->pbft_chain_size_;
+        disconnect(peer.first, dev::p2p::UserReason);
+        continue;
+      }
       max_pbft_chain_size = peer.second->pbft_chain_size_;
       max_node_dag_level = peer.second->dag_level_;
       max_pbft_chain_peer = peer.second;
@@ -138,7 +146,7 @@ std::pair<bool, std::unordered_set<blk_hash_t>> ExtSyncingPacketHandler::checkDa
     const DagBlock &block) const {
   std::unordered_set<blk_hash_t> missing_blks;
 
-  if (dag_blk_mgr_->getDagBlock(block.getHash())) {
+  if (dag_blk_mgr_->isDagBlockKnown(block.getHash())) {
     // The DAG block exist
     return std::make_pair(true, missing_blks);
   }

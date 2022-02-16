@@ -24,7 +24,8 @@ class DagBlockManager {
     AheadBlock,
     FailedVdfVerification,
     FutureBlock,
-    NotEligible
+    NotEligible,
+    ExpiredBlock
   };
 
   DagBlockManager(addr_t node_addr, SortitionConfig const &sortition_config, std::shared_ptr<DbStorage> db,

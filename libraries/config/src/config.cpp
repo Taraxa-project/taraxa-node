@@ -238,6 +238,16 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
     chain = ChainConfig::predefined();
   }
 
+  is_light_node = getConfigDataAsBoolean(root, {"is_light_node"}, true, false);
+  if (is_light_node) {
+    uint64_t min_light_node_history =
+        (uint64_t)kDefaultLightNodeHistoryDays * 24 * 60 * 60000 / (chain.pbft.lambda_ms_min * 6);
+    light_node_history = getConfigDataAsUInt(root, {"light_node_history"}, true, min_light_node_history);
+    if (light_node_history < min_light_node_history) {
+      light_node_history = min_light_node_history;
+    }
+  }
+
   node_secret = wallet["node_secret"].asString();
   vrf_secret = vrf_wrapper::vrf_sk_t(wallet["vrf_secret"].asString());
 
