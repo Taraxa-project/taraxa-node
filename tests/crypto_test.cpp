@@ -276,8 +276,8 @@ TEST_F(CryptoTest, new_sortition_rate) {
   } else {
     d = hitcount - expected;
   }
-  // within 2.5% good enough
-  auto maxd = expected / 40;
+  // within 4% good enough
+  auto maxd = expected / 25;
   EXPECT_LE(d, maxd);
   std::cout << "wanted " << expected << " selections but got " << hitcount << ", d=" << d << ", maxd=" << maxd
             << std::endl;
@@ -352,8 +352,8 @@ TEST_F(CryptoTest, leader_selection) {
 
   std::srand(std::time(nullptr));
   const uint64_t committee_size = 20;
-  const uint64_t rounds = 500;
-  const uint64_t low_stake_nodes_num = 100;
+  const uint64_t rounds = 1000;
+  const uint64_t low_stake_nodes_num = 50;
   const uint64_t high_stake_nodes_num = 2;
   const uint64_t high_stake_nodes_power = std::rand() % 2000;
   const uint64_t low_stake_nodes_power = std::rand() % 50;
@@ -407,6 +407,8 @@ TEST_F(CryptoTest, leader_selection) {
 
   const auto stake_ratio = high_stake_nodes_power * high_stake_nodes_num * 100 / valid_sortition_players;
   const auto blocks_ratio = high_stake_nodes_blocks * 100 / rounds;
+  std::cout << "High stake: " << high_stake_nodes_power << " low stake: " << low_stake_nodes_power
+            << " total stake: " << valid_sortition_players << std::endl;
   std::cout << "Stake ratio: " << stake_ratio << " Blocks ratio:" << blocks_ratio << std::endl;
   const auto diff = (stake_ratio > blocks_ratio) ? (stake_ratio - blocks_ratio) : (blocks_ratio - stake_ratio);
   // maximal difference is 3%
