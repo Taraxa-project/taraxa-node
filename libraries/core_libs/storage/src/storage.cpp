@@ -398,8 +398,11 @@ std::deque<uint16_t> DbStorage::getLastIntervalEfficiencies(uint16_t changing_in
   it->SeekToLast();
   if (it->Valid()) {
     const auto last_period = FromSlice<uint64_t>(it->key().data());
-    auto count_to_get = last_period % changing_interval;
-    count_to_get += (computation_interval - changing_interval);
+    int32_t saved_from_last_change = last_period % changing_interval;
+    int32_t useless_changes_count = std::max(changing_interval - computation_interval, 0);
+    uint16_t count_to_get = std::max(saved_from_last_change - useless_changes_count, 0);
+    // in a situation when computation interval is bigger then changing interval we need an overlap
+    count_to_get += std::max(computation_interval - changing_interval, 0);
 
     for (; it->Valid() && efficiencies.size() < count_to_get; it->Prev()) {
       // order doesn't matter

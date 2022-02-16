@@ -326,6 +326,11 @@ TEST_F(SortitionTest, efficiencies_from_db) {
       EXPECT_EQ(efficiencies[i], starting_num + i);
     }
   }
+
+  {
+    const auto efficiencies = db->getLastIntervalEfficiencies(100, 50);
+    EXPECT_EQ(efficiencies.size(), 0);
+  }
 }
 
 TEST_F(SortitionTest, load_from_db) {
