@@ -392,6 +392,9 @@ void DbStorage::savePbftBlockDagEfficiency(uint64_t period, uint16_t efficiency,
 
 std::deque<uint16_t> DbStorage::getLastIntervalEfficiencies(uint16_t changing_interval, uint16_t computation_interval) {
   std::deque<uint16_t> efficiencies;
+  if (changing_interval == 0) {
+    return efficiencies;
+  }
 
   auto it =
       std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::pbft_block_dag_efficiency)));

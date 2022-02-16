@@ -1496,22 +1496,20 @@ TEST_F(FullNodeTest, chain_config_json) {
   Json::Value default_chain_config_json;
   std::istringstream(expected_default_chain_cfg_json) >> default_chain_config_json;
   ASSERT_EQ(default_chain_config_json, enc_json(ChainConfig::predefined()));
-  std::string config_file_save_to = "/tmp/full_config_test";
+  std::string config_file_path = DIR_CONF / "conf_taraxa1.json";
   Json::Value test_node_config_json;
-  std::ifstream((DIR_CONF / "conf_taraxa1.json").string(), std::ifstream::binary) >> test_node_config_json;
+  std::ifstream(config_file_path, std::ifstream::binary) >> test_node_config_json;
   Json::Value test_node_wallet_json;
   std::ifstream((DIR_CONF / "wallet1.json").string(), std::ifstream::binary) >> test_node_wallet_json;
   test_node_config_json.removeMember("chain_config");
-  ASSERT_EQ(enc_json(FullNodeConfig(test_node_config_json, test_node_wallet_json, config_file_save_to).chain),
+  ASSERT_EQ(enc_json(FullNodeConfig(test_node_config_json, test_node_wallet_json, config_file_path).chain),
             default_chain_config_json);
   test_node_config_json["chain_config"] = default_chain_config_json;
-  ASSERT_EQ(enc_json(FullNodeConfig(test_node_config_json, test_node_wallet_json, config_file_save_to).chain),
+  ASSERT_EQ(enc_json(FullNodeConfig(test_node_config_json, test_node_wallet_json, config_file_path).chain),
             default_chain_config_json);
   test_node_config_json["chain_config"] = "test";
-  ASSERT_EQ(enc_json(FullNodeConfig(test_node_config_json, test_node_wallet_json, config_file_save_to).chain),
+  ASSERT_EQ(enc_json(FullNodeConfig(test_node_config_json, test_node_wallet_json, config_file_path).chain),
             enc_json(ChainConfig::predefined("test")));
-
-  std::filesystem::remove_all(config_file_save_to);
 }
 
 TEST_F(FullNodeTest, transaction_validation) {

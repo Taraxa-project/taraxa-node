@@ -200,15 +200,16 @@ Config::Config(int argc, const char* argv[]) {
       updater.UpdateConfig(config, config_json);
     }
 
+    // Load config
+    node_config_ = FullNodeConfig(config_json, wallet_json, config);
+
     // Save changes permanently if overwrite_config option is set
     // or if running config command
     // This can overwrite secret keys in wallet
     if (overwrite_config || command[0] == CONFIG_COMMAND) {
+      config_json["chain_config"] = enc_json(node_config_.chain);
       write_config_and_wallet_files();
     }
-
-    // Load config
-    node_config_ = FullNodeConfig(config_json, wallet_json, config);
 
     // Validate config values
     node_config_.validate();
