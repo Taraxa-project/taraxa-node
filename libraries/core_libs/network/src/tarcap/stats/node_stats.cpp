@@ -162,10 +162,8 @@ void NodeStats::logNodeStats() {
   LOG(log_dg_) << "Non finalized txs size:          " << trx_mgr_->getNonfinalizedTrxSize();
   LOG(log_dg_) << "Txs pool size:                   " << trx_mgr_->getTransactionPoolSize();
 
-  const auto [unverified_blocks_size, verified_blocks_size] = dag_blk_mgr_->getDagBlockQueueSize();
   const auto [non_finalized_blocks_levels, non_finalized_blocks_size] = dag_mgr_->getNonFinalizedBlocksSize();
-  LOG(log_dg_) << "Unverified dag blocks size:      " << unverified_blocks_size;
-  LOG(log_dg_) << "Verified dag blocks size:        " << verified_blocks_size;
+  LOG(log_dg_) << "Dag blocks size:        " << dag_blk_mgr_->getDagBlockQueueSize();
   LOG(log_dg_) << "Non finalized dag blocks levels: " << non_finalized_blocks_levels;
   LOG(log_dg_) << "Non finalized dag blocks size:   " << non_finalized_blocks_size;
 

@@ -140,9 +140,8 @@ TEST_F(DagTest, compute_epoch) {
   auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), db_ptr, nullptr, addr_t());
   auto mgr =
       std::make_shared<DagManager>(GENESIS, addr_t(), trx_mgr, nullptr,
-                                   std::make_shared<DagBlockManager>(addr_t(), node_cfgs[0].chain.sortition,
-                                                                     node_cfgs[0].chain.final_chain.state.dpos, 1,
-                                                                     db_ptr, nullptr, nullptr, nullptr, time_log),
+                                   std::make_shared<DagBlockManager>(addr_t(), node_cfgs[0].chain.sortition, db_ptr,
+                                                                     nullptr, nullptr, nullptr, time_log),
                                    db_ptr, logger::Logger());
   DagBlock blkA(blk_hash_t(1), 0, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(2), addr_t(1));
   DagBlock blkB(blk_hash_t(1), 0, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1), blk_hash_t(3), addr_t(1));
@@ -226,11 +225,9 @@ TEST_F(DagTest, receive_block_in_order) {
   auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), db_ptr, nullptr, addr_t());
   auto mgr =
       std::make_shared<DagManager>(GENESIS, addr_t(), trx_mgr, nullptr,
-                                   std::make_shared<DagBlockManager>(addr_t(), node_cfgs[0].chain.sortition,
-                                                                     node_cfgs[0].chain.final_chain.state.dpos, 1,
-                                                                     db_ptr, nullptr, nullptr, nullptr, time_log),
+                                   std::make_shared<DagBlockManager>(addr_t(), node_cfgs[0].chain.sortition, db_ptr,
+                                                                     nullptr, nullptr, nullptr, time_log),
                                    db_ptr, logger::Logger());
-  // mgr.setVerbose(true);
   DagBlock genesis_block(blk_hash_t(0), 0, {}, {}, sig_t(777), blk_hash_t(10), addr_t(15));
   DagBlock blk1(blk_hash_t(10), 0, {}, {}, sig_t(777), blk_hash_t(1), addr_t(15));
   DagBlock blk2(blk_hash_t(1), 0, {}, {}, sig_t(777), blk_hash_t(2), addr_t(15));
@@ -262,9 +259,8 @@ TEST_F(DagTest, compute_epoch_2) {
   auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), db_ptr, nullptr, addr_t());
   auto mgr =
       std::make_shared<DagManager>(GENESIS, addr_t(), trx_mgr, nullptr,
-                                   std::make_shared<DagBlockManager>(addr_t(), node_cfgs[0].chain.sortition,
-                                                                     node_cfgs[0].chain.final_chain.state.dpos, 1,
-                                                                     db_ptr, nullptr, nullptr, nullptr, time_log),
+                                   std::make_shared<DagBlockManager>(addr_t(), node_cfgs[0].chain.sortition, db_ptr,
+                                                                     nullptr, nullptr, nullptr, time_log),
                                    db_ptr, logger::Logger());
   DagBlock blkA(blk_hash_t(1), 0, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(2), addr_t(1));
   DagBlock blkB(blk_hash_t(1), 0, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1), blk_hash_t(3), addr_t(1));
@@ -340,12 +336,9 @@ TEST_F(DagTest, get_latest_pivot_tips) {
   auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), db_ptr, nullptr, addr_t());
   auto mgr =
       std::make_shared<DagManager>(GENESIS, addr_t(), trx_mgr, nullptr,
-                                   std::make_shared<DagBlockManager>(addr_t(), node_cfgs[0].chain.sortition,
-                                                                     node_cfgs[0].chain.final_chain.state.dpos, 1,
-                                                                     db_ptr, nullptr, nullptr, nullptr, time_log),
+                                   std::make_shared<DagBlockManager>(addr_t(), node_cfgs[0].chain.sortition, db_ptr,
+                                                                     nullptr, nullptr, nullptr, time_log),
                                    db_ptr, logger::Logger());
-
-  // mgr.setVerbose(true);
   DagBlock blk1(blk_hash_t(0), 0, {}, {}, sig_t(0), blk_hash_t(1), addr_t(15));
   DagBlock blk2(blk_hash_t(1), 0, {}, {}, sig_t(1), blk_hash_t(2), addr_t(15));
   DagBlock blk3(blk_hash_t(2), 0, {}, {}, sig_t(1), blk_hash_t(3), addr_t(15));

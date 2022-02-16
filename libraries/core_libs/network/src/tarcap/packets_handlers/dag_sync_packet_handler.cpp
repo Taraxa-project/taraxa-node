@@ -79,7 +79,7 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
     auto status = checkDagBlockValidation(block);
     if (!status.first) {
       // This should only happen with a malicious node or a fork
-      LOG(log_er_) << "DagBlock" << block.getHash() << " Validation failed " << status.second << " . Peer "
+      LOG(log_er_) << "DagBlock " << block.getHash() << " Validation failed " << status.second << " . Peer "
                    << packet_data.from_node_id_ << " will be disconnected.";
       peers_state_->set_peer_malicious(peer->getId());
       disconnect(peer->getId(), dev::p2p::UserReason);
@@ -88,7 +88,7 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
 
     if (block.getLevel() > peer->dag_level_) peer->dag_level_ = block.getLevel();
 
-    dag_blk_mgr_->insertBroadcastedBlock(std::move(block));
+    dag_blk_mgr_->insertAndVerifyBlock(std::move(block));
   }
 
   peer->peer_dag_synced_ = true;

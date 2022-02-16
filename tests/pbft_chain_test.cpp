@@ -145,7 +145,7 @@ TEST_F(PbftChainTest, block_broadcast) {
                                                 node1->getSecretKey());
 
   node1->getTransactionManager()->insertValidatedTransactions(txs1);
-  node1->getDagBlockManager()->insertBroadcastedBlock(blk1);
+  node1->getDagBlockManager()->insertAndVerifyBlock(DagBlock(blk1));
   taraxa::thisThreadSleepForMilliSeconds(1000);
   node1->getPbftChain()->pushUnverifiedPbftBlock(pbft_block);
   auto block1_from_node1 = pbft_chain1->getUnverifiedPbftBlock(pbft_block->getBlockHash());
