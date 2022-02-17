@@ -176,13 +176,13 @@ const char *devnet_json = R"foo({
         "dpos": {
           "deposit_delay": "0x5",
           "withdrawal_delay": "0x5",
-          "eligibility_balance_threshold": "0xf4240",
-          "vote_eligibility_balance_step": "0xf4240",
+          "eligibility_balance_threshold": "0xd3c21bcecceda1000000",
+          "vote_eligibility_balance_step": "0x152d02c7e14af6800000",
           "genesis_state": {
             "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": {
-              "0x780fe8b2226cf212c55635de399ee4c2a860810c": "0xf4240",
-              "0x56e0de6933d9d0453d0363caf42b136eb5854e4e": "0xf4240",
-              "0x71bdcbec7e3642782447b0fbf31eed068dfbdbb1": "0xf4240"
+              "0x780fe8b2226cf212c55635de399ee4c2a860810c": "0x84595161401484a000000",
+              "0x56e0de6933d9d0453d0363caf42b136eb5854e4e": "0x84595161401484a000000",
+              "0x71bdcbec7e3642782447b0fbf31eed068dfbdbb1": "0x84595161401484a000000"
             }
           }
         },

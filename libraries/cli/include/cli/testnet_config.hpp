@@ -188,16 +188,16 @@ const char *testnet_json = R"foo({
         "dpos": {
           "deposit_delay": "0x5",
           "withdrawal_delay": "0x5",
-          "eligibility_balance_threshold": "0x186A0",
-          "vote_eligibility_balance_step": "0x186A0",
+          "eligibility_balance_threshold": "0xd3c21bcecceda1000000",
+          "vote_eligibility_balance_step": "0x152d02c7e14af6800000",
           "genesis_state": {
             "0x76870407332398322576505f3c5423d0a71af296": {
-              "0x18551e353aa65bc0ffbdf9d93b7ad4a8fe29cf95": "0x989680",
-              "0xc578bb5fc3dac3e96a8c4cb126c71d2dc9082817": "0x989680",
-              "0x5c9afb23fba3967ca6102fb60c9949f6a38cd9e8": "0x989680",
-              "0x403480c2b2ade0851c62bd1ff7a594c416aff7ce": "0x989680",
-              "0x5042fa2711fe547e46c2f64852fdaa5982c80697": "0x989680",
-              "0x6258d8f51ea17e873f69a2a978fe311fd95743dd": "0x989680"
+              "0x18551e353aa65bc0ffbdf9d93b7ad4a8fe29cf95": "0x84595161401484a000000",
+              "0xc578bb5fc3dac3e96a8c4cb126c71d2dc9082817": "0x84595161401484a000000",
+              "0x5c9afb23fba3967ca6102fb60c9949f6a38cd9e8": "0x84595161401484a000000",
+              "0x403480c2b2ade0851c62bd1ff7a594c416aff7ce": "0x84595161401484a000000",
+              "0x5042fa2711fe547e46c2f64852fdaa5982c80697": "0x84595161401484a000000",
+              "0x6258d8f51ea17e873f69a2a978fe311fd95743dd": "0x84595161401484a000000"
             }
           }
         },
@@ -215,11 +215,11 @@ const char *testnet_json = R"foo({
           "disable_nonce_check": true
         },
         "genesis_balances": {
-          "76870407332398322576505f3c5423d0a71af296": "0x141e8d17",
-          "f4a52b8f6dc8ab046fec6ad02e77023c044342e4": "0x24048ce3d"
+          "76870407332398322576505f3c5423d0a71af296": "0x117364175f2cb0e1dfc0000",
+          "f4a52b8f6dc8ab046fec6ad02e77023c044342e4": "0x1f3d8d75bcb82da15ad40000"
         },
         "hardforks": {
-          "fix_genesis_fork_block": "0x1ADB0"
+          "fix_genesis_fork_block": "0x0"
         }
       }
     },
