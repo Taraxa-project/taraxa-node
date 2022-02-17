@@ -495,7 +495,7 @@ TEST_F(SortitionTest, get_params_from_period) {
 class SortitionParamsManagerTest : public SortitionParamsManager {
  public:
   SortitionParamsManagerTest(SortitionConfig sort_conf, std::shared_ptr<DbStorage> db)
-      : SortitionParamsManager(addr_t::random(), sort_conf, db) {}
+      : SortitionParamsManager(addr_t::random(), std::move(sort_conf), std::move(db)) {}
   std::optional<SortitionParamsChange> processPbftBlockData(uint64_t period, uint64_t dag_efficiency) {
     dag_efficiencies_.push_back(dag_efficiency);
     std::optional<SortitionParamsChange> ret;
