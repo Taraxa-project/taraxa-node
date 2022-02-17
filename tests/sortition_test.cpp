@@ -168,6 +168,7 @@ TEST_F(SortitionTest, minimal_correction) {
 }
 
 TEST_F(SortitionTest, average_correction_per_percent) {
+  node_cfgs[0].chain.sortition.changing_interval = 5;
   node_cfgs[0].chain.sortition.computation_interval = 5;
   node_cfgs[0].chain.sortition.dag_efficiency_targets = {75 * kOnePercent, 75 * kOnePercent};
 
@@ -204,7 +205,8 @@ TEST_F(SortitionTest, average_correction_per_percent) {
   EXPECT_EQ(threshold_upper -= 3 * correction_per_percent, sp.getSortitionParams().vrf.threshold_upper);
   threshold_upper = sp.getSortitionParams().vrf.threshold_upper;
   correction_per_percent = sp.averageCorrectionPerPercent();
-  EXPECT_EQ(correction_per_percent, 150);
+  // 1 + 1 + 300 / 3 = 100
+  EXPECT_EQ(correction_per_percent, 100);
 
   {
     auto batch = db->createWriteBatch();
@@ -215,11 +217,11 @@ TEST_F(SortitionTest, average_correction_per_percent) {
     }
     db->commitWriteBatch(batch);
   }
-  // 1 + 300 / 2 = 150
   EXPECT_EQ(threshold_upper += correction_per_percent * 2, sp.getSortitionParams().vrf.threshold_upper);
   threshold_upper = sp.getSortitionParams().vrf.threshold_upper;
   correction_per_percent = sp.averageCorrectionPerPercent();
-  EXPECT_EQ(correction_per_percent, 120);
+  // 1 + 1 + 300 + 40 / 4 = 85
+  EXPECT_EQ(correction_per_percent, 85);
 
   {
     auto batch = db->createWriteBatch();
@@ -309,11 +311,26 @@ TEST_F(SortitionTest, efficiencies_from_db) {
     db->savePbftBlockDagEfficiency(i, i, batch);
   }
   db->commitWriteBatch(batch);
+  {
+    const auto efficiencies = db->getLastIntervalEfficiencies(50, 50);
+    EXPECT_EQ(efficiencies.size(), 43);
+    EXPECT_EQ(efficiencies.front(), 101);
+    EXPECT_EQ(efficiencies.back(), 143);
+  }
+  {
+    const auto efficiencies = db->getLastIntervalEfficiencies(50, 100);
+    EXPECT_EQ(efficiencies.size(), 93);
+    uint16_t starting_num = 51;
+    // check whole order is not messing up
+    for (uint16_t i = 0; i < efficiencies.size(); ++i) {
+      EXPECT_EQ(efficiencies[i], starting_num + i);
+    }
+  }
 
-  const auto efficiencies = db->getLastIntervalEfficiencies(50);
-  EXPECT_EQ(efficiencies.size(), 43);
-  EXPECT_EQ(efficiencies.back(), 101);
-  EXPECT_EQ(efficiencies.front(), 143);
+  {
+    const auto efficiencies = db->getLastIntervalEfficiencies(100, 50);
+    EXPECT_EQ(efficiencies.size(), 0);
+  }
 }
 
 TEST_F(SortitionTest, load_from_db) {
@@ -352,7 +369,7 @@ TEST_F(SortitionTest, db_cleanup) {
       sp.pbftBlockPushed(b, batch);
     }
     db->commitWriteBatch(batch);
-    EXPECT_EQ(db->getLastIntervalEfficiencies(cfg.computation_interval).size(), 0);
+    EXPECT_EQ(db->getLastIntervalEfficiencies(cfg.computation_interval, cfg.computation_interval).size(), 0);
     EXPECT_EQ(db->getLastSortitionParams(cfg.changes_count_for_average).size(), 5);
   }
   {
@@ -363,13 +380,14 @@ TEST_F(SortitionTest, db_cleanup) {
       sp.pbftBlockPushed(b, batch);
     }
     db->commitWriteBatch(batch);
-    EXPECT_EQ(db->getLastIntervalEfficiencies(cfg.computation_interval).size(), 3);
+    EXPECT_EQ(db->getLastIntervalEfficiencies(cfg.computation_interval, cfg.computation_interval).size(), 3);
     EXPECT_EQ(db->getLastSortitionParams(cfg.changes_count_for_average).size(), 5);
   }
 }
 
 TEST_F(SortitionTest, get_params_from_period) {
   auto& cfg = node_cfgs[0].chain.sortition;
+  cfg.changing_interval = 10;
   cfg.computation_interval = 10;
   cfg.dag_efficiency_targets = {75 * kOnePercent, 75 * kOnePercent};
 
@@ -403,9 +421,9 @@ TEST_F(SortitionTest, get_params_from_period) {
   db->commitWriteBatch(batch);
 
   const auto params_for_period_10_19 = cfg.vrf.threshold_upper - 5;
-  const auto params_for_period_20_39 = cfg.vrf.threshold_upper - 10;
-  const auto params_for_period_40_59 = cfg.vrf.threshold_upper - 1260;
-  const auto params_for_period_60_and_more = cfg.vrf.threshold_upper - 3185;
+  const auto params_for_period_20_39 = cfg.vrf.threshold_upper - 5 - 5;
+  const auto params_for_period_40_59 = cfg.vrf.threshold_upper - 835 - 5 - 5;
+  const auto params_for_period_60_and_more = cfg.vrf.threshold_upper - 1445 - 835 - 5 - 5;
 
   EXPECT_EQ(sp.getSortitionParams(11).vrf.threshold_upper, params_for_period_10_19);
   EXPECT_EQ(sp.getSortitionParams(19).vrf.threshold_upper, params_for_period_10_19);

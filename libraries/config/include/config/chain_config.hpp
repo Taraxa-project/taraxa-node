@@ -32,12 +32,7 @@ struct ChainConfig {
   ChainConfig& operator=(ChainConfig&&) = default;
   ChainConfig& operator=(const ChainConfig&) = default;
 
-  static auto const& predefined(std::string const& name = "default") {
-    if (auto i = predefined_->find(name); i != predefined_->end()) {
-      return i->second;
-    }
-    throw std::runtime_error("unknown chain config: " + name);
-  }
+  static const ChainConfig& predefined(std::string const& name = "default");
 };
 
 Json::Value enc_json(ChainConfig const& obj);

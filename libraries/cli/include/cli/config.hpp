@@ -19,8 +19,10 @@ class Config {
   // Retrieves loaded node configuration
   FullNodeConfig getNodeConfiguration();
 
+  static void addNewHardforks(Json::Value& config, const Json::Value& default_config);
+
   enum class NetworkIdType { Mainnet = 1, Testnet, Devnet, LastNetworkId };
-  static constexpr NetworkIdType DEFAULT_NETWORK_ID = NetworkIdType::Testnet;
+  static constexpr NetworkIdType DEFAULT_NETWORK_ID = NetworkIdType::Mainnet;
 
  protected:
   FullNodeConfig node_config_;

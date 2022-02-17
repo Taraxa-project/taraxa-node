@@ -15,6 +15,8 @@ from web3.net import Net
 from common.util.predicates import YES
 from common.util.wait import wait
 
+import os
+
 _localhost = '127.0.0.1'
 
 
@@ -37,7 +39,6 @@ class Node:
             cfg = json.load(f)
         self._w3_by_type = {}
         self._proc = None
-
         with open(wallet_file_path, mode="r") as f:
             self.account: LocalAccount = web3.Account.from_key(json.load(f)["node_secret"])
         self.w3: Optional[Web3] = None
@@ -50,7 +51,27 @@ class Node:
         if isinstance(mode, Node.ManagedProcessInitMode):
             if mode.clean_data:
                 shutil.rmtree(Path(cfg["data_path"]), ignore_errors=True)
-            self._proc = Popen([mode.executable_path, "--config", cfg_file_path, "--wallet", wallet_file_path])
+            os.makedirs(cfg["data_path"], exist_ok=True)
+
+            datadir_cfg_file_path = Path(cfg["data_path"] + "/" + cfg_file_path.name)
+            shutil.copyfile(cfg_file_path, datadir_cfg_file_path)
+
+            datadir_wallet_file_path = Path(cfg["data_path"] + "/" + wallet_file_path.name)
+            shutil.copyfile(wallet_file_path, datadir_wallet_file_path)
+
+            # add default chain config section in config file and add default account to it
+            Popen([mode.executable_path, "--command", "config", "--config", datadir_cfg_file_path, "--wallet", datadir_wallet_file_path, "--network-id", "0"]).wait()
+            with open(datadir_cfg_file_path, mode="r") as f:
+                cfg = json.load(f)
+                cfg["chain_config"]["final_chain"]["state"]["genesis_balances"] = {}
+                cfg["chain_config"]["final_chain"]["state"]["genesis_balances"]["de2b1203d72d3549ee2f733b00b2789414c7cea5"] = "0x1fffffffffffff"
+                cfg["chain_config"]["final_chain"]["state"]["dpos"]["genesis_state"] = {}
+                cfg["chain_config"]["final_chain"]["state"]["dpos"]["genesis_state"]["0xde2b1203d72d3549ee2f733b00b2789414c7cea5"] = {}
+                cfg["chain_config"]["final_chain"]["state"]["dpos"]["genesis_state"]["0xde2b1203d72d3549ee2f733b00b2789414c7cea5"]["0xde2b1203d72d3549ee2f733b00b2789414c7cea5"] = "0x3b9aca00"
+            with open(datadir_cfg_file_path, mode="w") as f:
+                json.dump(cfg, f)
+
+            self._proc = Popen([mode.executable_path, "--config", datadir_cfg_file_path, "--wallet", datadir_wallet_file_path, "--data-dir", cfg["data_path"]])
         elif isinstance(mode, Node.RemoteInitMode):
             net_host = mode.host
         else:

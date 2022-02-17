@@ -91,6 +91,7 @@ void GetDagSyncPacketHandler::sendBlocks(const dev::p2p::NodeID &peer_id,
   for (auto &block : blocks) {
     s.appendRaw(block->rlp(true));
   }
+
   sealAndSend(peer_id, SubprotocolPacketType::DagSyncPacket, std::move(s));
   LOG(log_dg_) << "Send DagSyncPacket with " << dag_blocks_to_send << "# Trx: " << transactions_to_log << " from "
                << peer->getId();

@@ -1,6 +1,7 @@
 #include "dag/sortition_params_manager.hpp"
 
 #include "pbft/pbft_block.hpp"
+
 namespace taraxa {
 
 SortitionParamsChange::SortitionParamsChange(uint64_t period, uint16_t efficiency, const VrfParams& vrf,
@@ -58,25 +59,26 @@ SortitionParamsChange SortitionParamsChange::from_rlp(const dev::RLP& rlp) {
 SortitionParamsManager::SortitionParamsManager(const addr_t& node_addr, SortitionConfig sort_conf,
                                                std::shared_ptr<DbStorage> db)
     : config_(std::move(sort_conf)), db_(std::move(db)) {
-  LOG_OBJECTS_CREATE("TARCAP");
+  LOG_OBJECTS_CREATE("SORT_MGR");
   // load cache values from db
   params_changes_ = db_->getLastSortitionParams(config_.changes_count_for_average);
-  // restore VRF params from last change
-  if (!params_changes_.empty()) {
+  if (params_changes_.empty()) {
+    // if no changes in db save default vrf params
+    auto batch = db_->createWriteBatch();
+    SortitionParamsChange pc{0, config_.targetEfficiency(), config_.vrf};
+    db_->saveSortitionParamsChange(0, pc, batch);
+    db_->commitWriteBatch(batch);
+    params_changes_.push_back(pc);
+  } else {
+    // restore VRF params from last change
     config_.vrf = params_changes_.back().vrf_params;
   }
 
-  dag_efficiencies_.reserve(config_.computation_interval);
-  dag_efficiencies_ = db_->getLastIntervalEfficiencies(config_.computation_interval);
-}
-uint64_t SortitionParamsManager::currentProposalPeriod() const {
-  if (params_changes_.empty()) return 0;
-
-  return params_changes_.rbegin()->period;
+  dag_efficiencies_ = db_->getLastIntervalEfficiencies(config_.changing_interval, config_.computation_interval);
 }
 
 SortitionParams SortitionParamsManager::getSortitionParams(std::optional<uint64_t> period) const {
-  if (!period) {
+  if (!period || (config_.changing_interval == 0)) {
     return config_;
   }
   bool is_period_params_found = false;
@@ -102,10 +104,21 @@ SortitionParams SortitionParamsManager::getSortitionParams(std::optional<uint64_
 }
 
 uint16_t SortitionParamsManager::calculateDagEfficiency(const SyncBlock& block) const {
-  size_t total_count = std::accumulate(block.dag_blocks.begin(), block.dag_blocks.end(), 0,
-                                       [](uint32_t s, const auto& b) { return s + b.getTrxs().size(); });
+  // calculate efficiency only for current block because it is not worth to check if transaction was finalized before
+  size_t total_transactions_count = 0;
+  std::unordered_set<trx_hash_t> unique_transactions;
+  for (const auto& dag_block : block.dag_blocks) {
+    if (dag_block.getDifficulty() == config_.vdf.difficulty_stale) {
+      continue;
+    }
+    const auto& trxs = dag_block.getTrxs();
+    unique_transactions.insert(trxs.begin(), trxs.end());
+    total_transactions_count += trxs.size();
+  }
 
-  return block.transactions.size() * 100 * kOnePercent / total_count;
+  if (total_transactions_count == 0) return 100 * kOnePercent;
+
+  return unique_transactions.size() * 100 * kOnePercent / total_transactions_count;
 }
 
 uint16_t SortitionParamsManager::averageDagEfficiency() {
@@ -120,16 +133,25 @@ uint16_t SortitionParamsManager::averageCorrectionPerPercent() const {
 }
 
 void SortitionParamsManager::cleanup(uint64_t current_period) {
-  dag_efficiencies_.clear();
+  uint16_t efficiencies_to_leave = config_.computation_interval - config_.changing_interval;
+
   while (params_changes_.size() > config_.changes_count_for_average) {
     params_changes_.pop_front();
   }
-  auto batch = db_->createWriteBatch();
-  db_->cleanupDagEfficiencies(current_period);
-  db_->commitWriteBatch(batch);
+  while (dag_efficiencies_.size() > efficiencies_to_leave) {
+    dag_efficiencies_.pop_front();
+  }
+  if ((current_period - efficiencies_to_leave) > 0) {
+    auto batch = db_->createWriteBatch();
+    db_->cleanupDagEfficiencies(current_period - efficiencies_to_leave);
+    db_->commitWriteBatch(batch);
+  }
 }
 
 void SortitionParamsManager::pbftBlockPushed(const SyncBlock& block, DbStorage::Batch& batch) {
+  if (config_.changing_interval == 0) {
+    return;
+  }
   uint16_t dag_efficiency = calculateDagEfficiency(block);
   dag_efficiencies_.push_back(dag_efficiency);
   const auto& period = block.pbft_blk->getPeriod();

@@ -19,6 +19,7 @@ VrfParams& VrfParams::operator+=(int32_t change) {
     change = fixFromOverflow(threshold_upper, change, std::numeric_limits<uint16_t>::max());
   }
   threshold_upper += change;
+
   return *this;
 }
 
@@ -71,6 +72,7 @@ Json::Value enc_json(SortitionConfig const& obj) {
   targets.append(dev::toJS(obj.dag_efficiency_targets.second));
 
   ret["dag_efficiency_targets"] = targets;
+  ret["changing_interval"] = dev::toJS(obj.changing_interval);
   ret["computation_interval"] = dev::toJS(obj.computation_interval);
   return ret;
 }
@@ -84,6 +86,7 @@ void dec_json(Json::Value const& json, SortitionConfig& obj) {
   auto second = dev::jsToInt(json["dag_efficiency_targets"][1].asString());
   obj.dag_efficiency_targets = {first, second};
 
+  obj.changing_interval = dev::jsToInt(json["changing_interval"].asString());
   obj.computation_interval = dev::jsToInt(json["computation_interval"].asString());
 }
 

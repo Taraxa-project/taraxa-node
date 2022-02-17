@@ -138,7 +138,7 @@ TEST_F(CryptoTest, vdf_sortition) {
 }
 
 TEST_F(CryptoTest, vdf_solution) {
-  SortitionParams sortition_params(0xffff, 0xe665, 5, 10, 10, 1500);
+  SortitionParams sortition_params(0xffff, 0xffff - 0xe665, 5, 10, 10, 1500);
   vrf_sk_t sk(
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
       "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");

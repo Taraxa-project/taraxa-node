@@ -5,6 +5,7 @@
 
 #include "common/encoding_rlp.hpp"
 #include "common/types.hpp"
+#include "config/hardfork.hpp"
 
 namespace taraxa::state_api {
 
@@ -30,6 +31,7 @@ void dec_json(Json::Value const& json, BalanceMap& obj);
 
 struct DPOSConfig {
   u256 eligibility_balance_threshold;
+  u256 vote_eligibility_balance_step;
   EthBlockNumber deposit_delay = 0;
   EthBlockNumber withdrawal_delay = 0;
   std::unordered_map<addr_t, BalanceMap> genesis_state;
@@ -54,6 +56,7 @@ struct Config {
   ExecutionOptions execution_options;
   BalanceMap genesis_balances;
   std::optional<DPOSConfig> dpos;
+  Hardforks hardforks;
 
   HAS_RLP_FIELDS
 

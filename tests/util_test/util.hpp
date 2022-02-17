@@ -120,6 +120,10 @@ inline auto make_node_cfgs(uint count) {
       return ret;
     }
     for (auto& cfg : ret) {
+      addr_t root_node_addr("de2b1203d72d3549ee2f733b00b2789414c7cea5");
+      cfg.chain.final_chain.state.genesis_balances[root_node_addr] = 9007199254740991;
+      auto& dpos = *cfg.chain.final_chain.state.dpos;
+      dpos.genesis_state[root_node_addr][root_node_addr] = dpos.eligibility_balance_threshold;
       if constexpr (tests_speed != 1) {
         // VDF config
         cfg.chain.sortition.vrf.threshold_upper = 0xffff;

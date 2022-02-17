@@ -1,6 +1,7 @@
 #include "cli/config_updater.hpp"
 
 #include "cli/tools.hpp"
+#include "common/jsoncpp.hpp"
 #include "config/version.hpp"
 
 namespace taraxa::cli {
@@ -26,7 +27,7 @@ void ConfigUpdater::UpdateConfig(const std::string& config_name, Json::Value& ol
   for (const auto& change : config_changes_) {
     change.apply(old_conf, new_conf_);
   }
-  Tools::writeJsonToFile(config_name, old_conf);
+  util::writeJsonToFile(config_name, old_conf);
 }
 
 }  // namespace taraxa::cli

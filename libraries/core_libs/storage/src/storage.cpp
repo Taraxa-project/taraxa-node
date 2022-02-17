@@ -390,20 +390,26 @@ void DbStorage::savePbftBlockDagEfficiency(uint64_t period, uint16_t efficiency,
   insert(batch, Columns::pbft_block_dag_efficiency, toSlice(period), toSlice(efficiency));
 }
 
-std::vector<uint16_t> DbStorage::getLastIntervalEfficiencies(uint16_t computation_interval) {
-  std::vector<uint16_t> efficiencies;
+std::deque<uint16_t> DbStorage::getLastIntervalEfficiencies(uint16_t changing_interval, uint16_t computation_interval) {
+  std::deque<uint16_t> efficiencies;
+  if (changing_interval == 0) {
+    return efficiencies;
+  }
 
   auto it =
       std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::pbft_block_dag_efficiency)));
   it->SeekToLast();
   if (it->Valid()) {
     const auto last_period = FromSlice<uint64_t>(it->key().data());
-    const auto count_to_get = last_period % computation_interval;
-    efficiencies.reserve(count_to_get);
+    int32_t saved_from_last_change = last_period % changing_interval;
+    int32_t useless_changes_count = std::max(changing_interval - computation_interval, 0);
+    uint16_t count_to_get = std::max(saved_from_last_change - useless_changes_count, 0);
+    // in a situation when computation interval is bigger then changing interval we need an overlap
+    count_to_get += std::max(computation_interval - changing_interval, 0);
 
     for (; it->Valid() && efficiencies.size() < count_to_get; it->Prev()) {
       // order doesn't matter
-      efficiencies.push_back(FromSlice<uint16_t>(it->value()));
+      efficiencies.push_front(FromSlice<uint16_t>(it->value()));
     }
   }
 

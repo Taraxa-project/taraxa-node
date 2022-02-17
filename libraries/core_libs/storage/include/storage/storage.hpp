@@ -196,7 +196,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void removeDagBlock(blk_hash_t const& hash);
   // DAG Efficiency
   void savePbftBlockDagEfficiency(uint64_t period, uint16_t efficiency, DbStorage::Batch& batch);
-  std::vector<uint16_t> getLastIntervalEfficiencies(uint16_t computation_interval);
+  std::deque<uint16_t> getLastIntervalEfficiencies(uint16_t changing_interval, uint16_t computation_interval);
   void cleanupDagEfficiencies(uint64_t current_period);
   // Sortition params
   void saveSortitionParamsChange(uint64_t period, SortitionParamsChange params, DbStorage::Batch& batch);

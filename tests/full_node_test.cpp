@@ -7,6 +7,8 @@
 #include <shared_mutex>
 #include <vector>
 
+#include "cli/config.hpp"
+#include "cli/tools.hpp"
 #include "common/static_init.hpp"
 #include "dag/dag.hpp"
 #include "logger/logger.hpp"
@@ -556,7 +558,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
     }
     context.wait_all_transactions_known();
   }
-  std::cout << "Issued transatnion count " << context.getIssuedTrxCount() << std::endl;
+  std::cout << "Issued " << context.getIssuedTrxCount() << " transactions" << std::endl;
 
   auto TIMEOUT = SYNC_TIMEOUT;
   for (unsigned i = 0; i < TIMEOUT; i++) {
@@ -1421,7 +1423,7 @@ TEST_F(FullNodeTest, transfer_to_self) {
 }
 
 TEST_F(FullNodeTest, chain_config_json) {
-  string expected_default_chain_cfg_json = R"({
+  const string expected_default_chain_cfg_json = R"({
   "dag_genesis_block": {
     "level": "0x0",
     "pivot": "0x0000000000000000000000000000000000000000000000000000000000000000",
@@ -1440,10 +1442,8 @@ TEST_F(FullNodeTest, chain_config_json) {
       "dpos": {
         "deposit_delay": "0x0",
         "eligibility_balance_threshold": "0x3b9aca00",
+        "vote_eligibility_balance_step": "0x3b9aca00",
         "genesis_state": {
-          "0xde2b1203d72d3549ee2f733b00b2789414c7cea5": {
-            "0xde2b1203d72d3549ee2f733b00b2789414c7cea5": "0x3b9aca00"
-          }
         },
         "withdrawal_delay": "0x0"
       },
@@ -1461,7 +1461,9 @@ TEST_F(FullNodeTest, chain_config_json) {
         "disable_nonce_check": true
       },
       "genesis_balances": {
-        "0xde2b1203d72d3549ee2f733b00b2789414c7cea5": "0x1fffffffffffff"
+      },
+      "hardforks": {
+        "fix_genesis_fork_block": "0x0"
       }
     }
   },
@@ -1476,7 +1478,8 @@ TEST_F(FullNodeTest, chain_config_json) {
   "sortition": {
     "changes_count_for_average": "0x5",
     "max_interval_correction": "0x3e8",
-    "computation_interval": "0x32",
+    "computation_interval": "0xc8",
+    "changing_interval" : "0x32",
     "dag_efficiency_targets": ["0x12c0", "0x1450"],
     "vdf": {
       "difficulty_max": "0x15",
@@ -1493,16 +1496,19 @@ TEST_F(FullNodeTest, chain_config_json) {
   Json::Value default_chain_config_json;
   std::istringstream(expected_default_chain_cfg_json) >> default_chain_config_json;
   ASSERT_EQ(default_chain_config_json, enc_json(ChainConfig::predefined()));
+  std::string config_file_path = DIR_CONF / "conf_taraxa1.json";
   Json::Value test_node_config_json;
-  std::ifstream((DIR_CONF / "conf_taraxa1.json").string(), std::ifstream::binary) >> test_node_config_json;
+  std::ifstream(config_file_path, std::ifstream::binary) >> test_node_config_json;
   Json::Value test_node_wallet_json;
   std::ifstream((DIR_CONF / "wallet1.json").string(), std::ifstream::binary) >> test_node_wallet_json;
   test_node_config_json.removeMember("chain_config");
-  ASSERT_EQ(enc_json(FullNodeConfig(test_node_config_json, test_node_wallet_json).chain), default_chain_config_json);
+  ASSERT_EQ(enc_json(FullNodeConfig(test_node_config_json, test_node_wallet_json, config_file_path).chain),
+            default_chain_config_json);
   test_node_config_json["chain_config"] = default_chain_config_json;
-  ASSERT_EQ(enc_json(FullNodeConfig(test_node_config_json, test_node_wallet_json).chain), default_chain_config_json);
+  ASSERT_EQ(enc_json(FullNodeConfig(test_node_config_json, test_node_wallet_json, config_file_path).chain),
+            default_chain_config_json);
   test_node_config_json["chain_config"] = "test";
-  ASSERT_EQ(enc_json(FullNodeConfig(test_node_config_json, test_node_wallet_json).chain),
+  ASSERT_EQ(enc_json(FullNodeConfig(test_node_config_json, test_node_wallet_json, config_file_path).chain),
             enc_json(ChainConfig::predefined("test")));
 }
 
