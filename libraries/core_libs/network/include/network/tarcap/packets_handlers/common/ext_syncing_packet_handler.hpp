@@ -45,16 +45,8 @@ class ExtSyncingPacketHandler : public PacketHandler {
   std::pair<bool, std::unordered_set<blk_hash_t>> checkDagBlockValidation(const DagBlock &block) const;
   std::shared_ptr<TaraxaPeer> getMaxChainPeer();
 
- private:
-  void requestPendingDagBlocks(const dev::p2p::NodeID &node_id);
-
  protected:
   std::shared_ptr<SyncingState> syncing_state_{nullptr};
-
-  std::map<dev::p2p::NodeID, std::chrono::steady_clock::time_point> last_request_pending_dag_blocks_time;
-
-  // Number of seconds in which we do not allow consecutive pending dag blocks request
-  static constexpr std::chrono::seconds PENDING_REQUEST_THRESHOLD{60};
 
   std::shared_ptr<PbftChain> pbft_chain_{nullptr};
   std::shared_ptr<PbftManager> pbft_mgr_{nullptr};
