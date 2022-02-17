@@ -96,9 +96,8 @@ void FullNode::init() {
 
   pbft_chain_ = std::make_shared<PbftChain>(genesis_hash, node_addr, db_);
   next_votes_mgr_ = std::make_shared<NextVotesManager>(node_addr, db_, final_chain_);
-  dag_blk_mgr_ = std::make_shared<DagBlockManager>(node_addr, conf_.chain.sortition, conf_.chain.final_chain.state.dpos,
-                                                   4 /* verifer thread*/, db_, trx_mgr_, final_chain_, pbft_chain_,
-                                                   log_time_, conf_.test_params.max_block_queue_warn);
+  dag_blk_mgr_ = std::make_shared<DagBlockManager>(node_addr, conf_.chain.sortition, db_, trx_mgr_, final_chain_,
+                                                   pbft_chain_, log_time_, conf_.test_params.max_block_queue_warn);
   dag_mgr_ = std::make_shared<DagManager>(genesis_hash, node_addr, trx_mgr_, pbft_chain_, dag_blk_mgr_, db_, log_time_);
   vote_mgr_ = std::make_shared<VoteManager>(node_addr, db_, final_chain_, pbft_chain_, next_votes_mgr_);
   pbft_mgr_ = std::make_shared<PbftManager>(conf_.chain.pbft, genesis_hash, node_addr, db_, pbft_chain_, vote_mgr_,
@@ -242,7 +241,6 @@ void FullNode::start() {
   pbft_mgr_->setNetwork(network_);
   dag_mgr_->setNetwork(network_);
   pbft_mgr_->start();
-  dag_blk_mgr_->start();
   dag_mgr_->start();
 
   if (conf_.test_params.rebuild_db) {
@@ -264,8 +262,10 @@ void FullNode::close() {
                            // lifecycle of objects should be as declarative as possible (RAII).
                            // This line is needed because jsonrpc_api_ indirectly refers to FullNode (produces
                            // self-reference from FullNode to FullNode).
+
   blk_proposer_->stop();
   pbft_mgr_->stop();
+  // Order of following stop calls MUST be like that, becasue dag_mgr_ depends on conditional variable in dag_blk_mgr_
   dag_blk_mgr_->stop();
   dag_mgr_->stop();
   LOG(log_nf_) << "Node stopped ... ";

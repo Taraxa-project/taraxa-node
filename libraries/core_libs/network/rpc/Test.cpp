@@ -211,8 +211,7 @@ Json::Value Test::get_node_status() {
       res["pbft_sync_queue_size"] = Json::UInt64(node->getPbftManager()->syncBlockQueueSize());
       res["trx_pool_size"] = Json::UInt64(node->getTransactionManager()->getTransactionPoolSize());
       res["trx_nonfinalized_size"] = Json::UInt64(node->getTransactionManager()->getNonfinalizedTrxSize());
-      res["blk_queue_unverified_size"] = Json::UInt64(node->getDagBlockManager()->getDagBlockQueueSize().first);
-      res["blk_queue_verified_size"] = Json::UInt64(node->getDagBlockManager()->getDagBlockQueueSize().second);
+      res["blk_queue_size"] = Json::UInt64(node->getDagBlockManager()->getDagBlockQueueSize());
       res["network"] = node->getNetwork()->getStatus();
     }
   } catch (std::exception &e) {
