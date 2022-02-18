@@ -1533,8 +1533,7 @@ TEST_F(FullNodeTest, transaction_validation) {
   wait({60s, 200ms}, [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, nodes[0]->getDB()->getNumTransactionExecuted(), 2) });
   trx = Transaction(0, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
   // FAIL on NONCE
-  // THIS IS DISABLED BY DEFAULT check final_chain to enable
-  // EXPECT_FALSE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
+  EXPECT_FALSE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
 
   trx = Transaction(nonce++, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
   // PASS on BALANCE
