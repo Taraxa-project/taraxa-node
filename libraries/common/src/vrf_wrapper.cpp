@@ -37,6 +37,13 @@ std::optional<vrf_output_t> getVrfOutput(vrf_pk_t const &pk, vrf_proof_t const &
   return {};
 }
 
+dev::bytes VrfSortitionBase::makeVrfInput(taraxa::level_t level, const dev::h256 &period_hash) {
+  dev::RLPStream s;
+  s << level;
+  s << period_hash;
+  return s.invalidate();
+}
+
 bool VrfSortitionBase::verify(bytes const &msg) const {
   if (!isValidVrfPublicKey(pk_)) {
     return false;

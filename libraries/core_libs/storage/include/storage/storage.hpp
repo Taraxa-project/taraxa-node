@@ -181,8 +181,9 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
   // Period data
   void savePeriodData(const SyncBlock& sync_block, Batch& write_batch);
-  dev::bytes getPeriodDataRaw(uint64_t period);
-  std::optional<PbftBlock> getPbftBlock(uint64_t period);
+  dev::bytes getPeriodDataRaw(uint64_t period) const;
+  std::optional<PbftBlock> getPbftBlock(uint64_t period) const;
+  blk_hash_t getPeriodBlockHash(uint64_t period) const;
 
   // DAG
   void saveDagBlock(DagBlock const& blk, Batch* write_batch_p = nullptr);
@@ -357,7 +358,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   inline static auto const& toSlices(std::vector<Slice> const& ss) { return ss; }
 
   template <typename K>
-  std::string lookup(K const& key, Column const& column) {
+  std::string lookup(K const& key, Column const& column) const {
     std::string value;
     auto status = db_->Get(read_options_, handle(column), toSlice(key), &value);
     if (status.IsNotFound()) {
