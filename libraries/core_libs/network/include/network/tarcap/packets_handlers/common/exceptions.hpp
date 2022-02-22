@@ -15,7 +15,7 @@ class PacketProcessingException : public std::runtime_error {
   dev::p2p::DisconnectReason getDisconnectReason() const { return disconnect_reason_; }
 
  private:
-  dev::p2p::DisconnectReason disconnect_reason_;
+  const dev::p2p::DisconnectReason disconnect_reason_;
 };
 
 /**

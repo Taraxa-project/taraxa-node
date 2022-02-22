@@ -24,27 +24,24 @@ PbftSyncPacketHandler::PbftSyncPacketHandler(std::shared_ptr<PeersState> peers_s
       network_sync_level_size_(network_sync_level_size),
       delayed_sync_events_tp_(1, true) {}
 
-void PbftSyncPacketHandler::validatePacketRlpFormat(const PacketData &packet_data) {
-  checkPacketRlpList(packet_data);
-
-  // TODO: the way we handle PbftSyncPacket must be changed as we are using empty rlp as valid data -> it means pbft
-  //       syncing is complete. This is bad - someone could simply send empty PbftSyncPacket over and over again
+void PbftSyncPacketHandler::validatePacketRlpFormat(const PacketData &packet_data) const {
+  // TODO[1561]: the way we handle PbftSyncPacket must be changed as we are using empty rlp as valid data -> it means
+  // pbft
+  //             syncing is complete. This is bad - someone could simply send empty PbftSyncPacket over and over again
   if (packet_data.rlp_.itemCount() == 0) {
     return;
   }
 
-  if (size_t required_size = 2; packet_data.rlp_.itemCount() != required_size) {
+  if (constexpr size_t required_size = 2; packet_data.rlp_.itemCount() != required_size) {
     throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), required_size);
   }
 
   // SyncBlock rlp parsing cannot be done through util::rlp_tuple, which automatically checks the rlp size so it is
   // checked here manually
-  if (size_t required_size = 4; packet_data.rlp_[1].itemCount() != required_size) {
+  if (constexpr size_t required_size = 4; packet_data.rlp_[1].itemCount() != required_size) {
     throw InvalidRlpItemsCountException(packet_data.type_str_ + ":Syncblock", packet_data.rlp_[1].itemCount(),
                                         required_size);
   }
-
-  // In case there is a type mismatch, one of the dev::RLPException's is thrown during further parsing
 }
 
 void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {

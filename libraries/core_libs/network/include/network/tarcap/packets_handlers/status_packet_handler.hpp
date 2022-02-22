@@ -22,7 +22,7 @@ class StatusPacketHandler : public ExtSyncingPacketHandler {
   void sendStatusToPeers();
 
  private:
-  void validatePacketRlpFormat(const PacketData& packet_data) override;
+  void validatePacketRlpFormat(const PacketData& packet_data) const override;
   void process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
 
   void requestPbftNextVotes(dev::p2p::NodeID const& peerID, uint64_t pbft_round,
@@ -30,6 +30,7 @@ class StatusPacketHandler : public ExtSyncingPacketHandler {
   void syncPbftNextVotes(uint64_t pbft_round, size_t pbft_previous_round_next_votes_size);
 
   static constexpr uint16_t kInitialStatusPacketItemsCount = 10;
+  static constexpr uint16_t kStandardStatusPacketItemsCount = 5;
   const uint64_t conf_network_id_;
 
   std::shared_ptr<NextVotesManager> next_votes_mgr_;

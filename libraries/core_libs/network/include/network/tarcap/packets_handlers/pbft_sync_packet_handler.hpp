@@ -18,7 +18,7 @@ class PbftSyncPacketHandler : public ExtSyncingPacketHandler {
   void handleMaliciousSyncPeer(dev::p2p::NodeID const& id);
 
  private:
-  void validatePacketRlpFormat(const PacketData& packet_data) override;
+  void validatePacketRlpFormat(const PacketData& packet_data) const override;
   void process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
 
   void pbftSyncComplete();

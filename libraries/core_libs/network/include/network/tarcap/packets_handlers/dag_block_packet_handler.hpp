@@ -25,7 +25,7 @@ class DagBlockPacketHandler : public ExtSyncingPacketHandler {
   void onNewBlockVerified(DagBlock const &block, bool proposed, SharedTransactions &&trxs);
 
  private:
-  void validatePacketRlpFormat(const PacketData &packet_data) override;
+  void validatePacketRlpFormat(const PacketData &packet_data) const override;
   void process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) override;
 
   std::shared_ptr<TestState> test_state_;

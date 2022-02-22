@@ -23,7 +23,7 @@ class DagSyncPacketHandler : public ExtSyncingPacketHandler {
   virtual ~DagSyncPacketHandler() = default;
 
  private:
-  void validatePacketRlpFormat(const PacketData& packet_data) override;
+  void validatePacketRlpFormat(const PacketData& packet_data) const override;
   void process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
 
   std::shared_ptr<TransactionManager> trx_mgr_{nullptr};

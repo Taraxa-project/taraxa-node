@@ -14,14 +14,10 @@ GetVotesSyncPacketHandler::GetVotesSyncPacketHandler(std::shared_ptr<PeersState>
       pbft_mgr_(std::move(pbft_mgr)),
       next_votes_mgr_(std::move(next_votes_mgr)) {}
 
-void GetVotesSyncPacketHandler::validatePacketRlpFormat(const PacketData &packet_data) {
-  checkPacketRlpList(packet_data);
-
-  if (size_t required_size = 2; packet_data.rlp_.itemCount() != required_size) {
+void GetVotesSyncPacketHandler::validatePacketRlpFormat(const PacketData &packet_data) const {
+  if (constexpr size_t required_size = 2; packet_data.rlp_.itemCount() != required_size) {
     throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), required_size);
   }
-
-  // In case there is a type mismatch, one of the dev::RLPException's is thrown during further parsing
 }
 
 void GetVotesSyncPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {

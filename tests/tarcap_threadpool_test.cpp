@@ -68,7 +68,7 @@ class DummyPacketHandler : public tarcap::PacketHandler {
   virtual ~DummyPacketHandler() = default;
 
  private:
-  void validatePacketRlpFormat([[maybe_unused]] const tarcap::PacketData& packet_data) override {}
+  void validatePacketRlpFormat([[maybe_unused]] const tarcap::PacketData& packet_data) const override {}
 
   void process(const tarcap::PacketData& packet_data,
                [[maybe_unused]] const std::shared_ptr<tarcap::TaraxaPeer>& peer) override {
@@ -134,7 +134,8 @@ tarcap::PacketData createPacket(dev::p2p::NodeID&& sender_node_id, tarcap::Subpr
     return {packet_type, std::move(sender_node_id), std::move(packet_rlp_bytes.value())};
   }
 
-  return {packet_type, std::move(sender_node_id), {}};
+  dev::RLPStream s(0);
+  return {packet_type, std::move(sender_node_id), s.invalidate()};
 }
 
 bytes createDagBlockRlp(level_t level) {

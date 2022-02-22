@@ -18,11 +18,8 @@ TransactionPacketHandler::TransactionPacketHandler(std::shared_ptr<PeersState> p
       test_state_(std::move(test_state)),
       network_transaction_interval_(network_transaction_interval) {}
 
-void TransactionPacketHandler::validatePacketRlpFormat(const PacketData &packet_data) {
-  checkPacketRlpList(packet_data);
-
+void TransactionPacketHandler::validatePacketRlpFormat([[maybe_unused]] const PacketData &packet_data) const {
   // Number of txs is not fixed, nothing to be checked here
-  // In case there is a type mismatch, one of the dev::RLPException's is thrown during further parsing
 }
 
 inline void TransactionPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {

@@ -20,18 +20,14 @@ DagSyncPacketHandler::DagSyncPacketHandler(std::shared_ptr<PeersState> peers_sta
                               std::move(db), node_addr, "DAG_SYNC_PH"),
       trx_mgr_(std::move(trx_mgr)) {}
 
-void DagSyncPacketHandler::validatePacketRlpFormat(const PacketData& packet_data) {
-  checkPacketRlpList(packet_data);
-
-  if (size_t required_min_size = 3; packet_data.rlp_.itemCount() < required_min_size) {
+void DagSyncPacketHandler::validatePacketRlpFormat(const PacketData& packet_data) const {
+  if (constexpr size_t required_min_size = 3; packet_data.rlp_.itemCount() < required_min_size) {
     throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), required_min_size);
   }
 
-  // TODO: rlp format of this packet should be fixed:
-  //       has format: [request_period, response_period, transactions_count, tx1, ..., txN, dag1, ...., dagN]
-  //       should have format: [request_period, response_period, [tx1, ..., txN], [dag1, ...., dagN] ]
-
-  // In case there is a type mismatch, one of the dev::RLPException's is thrown during further parsing
+  // TODO[1551]: rlp format of this packet should be fixed:
+  //             has format: [request_period, response_period, transactions_count, tx1, ..., txN, dag1, ...., dagN]
+  //             should have format: [request_period, response_period, [tx1, ..., txN], [dag1, ...., dagN] ]
 }
 
 void DagSyncPacketHandler::process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) {

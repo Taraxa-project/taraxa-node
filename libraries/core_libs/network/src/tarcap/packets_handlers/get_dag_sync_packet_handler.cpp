@@ -17,18 +17,14 @@ GetDagSyncPacketHandler::GetDagSyncPacketHandler(std::shared_ptr<PeersState> pee
       dag_blk_mgr_(std::move(dag_blk_mgr)),
       db_(std::move(db)) {}
 
-void GetDagSyncPacketHandler::validatePacketRlpFormat(const PacketData &packet_data) {
-  checkPacketRlpList(packet_data);
-
-  if (size_t required_min_size = 1; packet_data.rlp_.itemCount() < required_min_size) {
+void GetDagSyncPacketHandler::validatePacketRlpFormat(const PacketData &packet_data) const {
+  if (constexpr size_t required_min_size = 1; packet_data.rlp_.itemCount() < required_min_size) {
     throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), required_min_size);
   }
 
-  // TODO: rlp format of this packet should be fixed:
-  //       has format: [peer_period, blk_hash1, ..., blk_hashN]
-  //       should have format: [peer_period, [blk_hash1, ..., blk_hashN] ]
-
-  // In case there is a type mismatch, one of the dev::RLPException's is thrown during further parsing
+  // TODO[1551]: rlp format of this packet should be fixed:
+  //             has format: [peer_period, blk_hash1, ..., blk_hashN]
+  //             should have format: [peer_period, [blk_hash1, ..., blk_hashN] ]
 }
 
 void GetDagSyncPacketHandler::process(const PacketData &packet_data,
@@ -36,7 +32,6 @@ void GetDagSyncPacketHandler::process(const PacketData &packet_data,
   if (peer->peer_requested_dag_syncing_) {
     // This should not be possible for honest node
     // Each node should perform dag syncing only once
-    // This should not be possible for honest node
     std::ostringstream err_msg;
     err_msg << "Received multiple GetDagSyncPackets from " << packet_data.from_node_id_.abridged();
 

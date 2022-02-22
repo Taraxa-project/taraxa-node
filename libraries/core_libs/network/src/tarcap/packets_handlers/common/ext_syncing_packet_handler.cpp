@@ -147,7 +147,7 @@ std::pair<bool, std::unordered_set<blk_hash_t>> ExtSyncingPacketHandler::checkDa
   for (auto const &tip : block.getTips()) {
     auto tip_block = dag_blk_mgr_->getDagBlock(tip);
     if (!tip_block) {
-      LOG(log_er_) << "Block " << block.getHash().abridged() << " has a missing tip " << tip.abridged();
+      LOG(log_tr_) << "Block " << block.getHash().abridged() << " has a missing tip " << tip.abridged();
       missing_blks.insert(tip);
     } else {
       expected_level = std::max(tip_block->getLevel(), expected_level);
@@ -157,7 +157,7 @@ std::pair<bool, std::unordered_set<blk_hash_t>> ExtSyncingPacketHandler::checkDa
   const auto pivot = block.getPivot();
   const auto pivot_block = dag_blk_mgr_->getDagBlock(pivot);
   if (!pivot_block) {
-    LOG(log_er_) << "Block " << block.getHash().abridged() << " has a missing pivot " << pivot.abridged();
+    LOG(log_tr_) << "Block " << block.getHash().abridged() << " has a missing pivot " << pivot.abridged();
     missing_blks.insert(pivot);
   }
 

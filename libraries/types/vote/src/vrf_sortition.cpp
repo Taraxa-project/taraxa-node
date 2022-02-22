@@ -3,20 +3,16 @@
 
 #include <boost/math/distributions/binomial.hpp>
 
+#include "common/encoding_rlp.hpp"
+
 namespace taraxa {
 
 VrfPbftSortition::VrfPbftSortition(bytes const& b) {
   dev::RLP const rlp(b);
-  if (!rlp.isList()) {
-    throw std::invalid_argument("VrfPbftSortition RLP must be a list");
-  }
-  auto it = rlp.begin();
 
-  pk_ = (*it++).toHash<vrf_pk_t>();
-  pbft_msg_.type = PbftVoteTypes((*it++).toInt<uint>());
-  pbft_msg_.round = (*it++).toInt<uint64_t>();
-  pbft_msg_.step = (*it++).toInt<size_t>();
-  proof_ = (*it++).toHash<vrf_proof_t>();
+  uint8_t pbft_msg_type;
+  util::rlp_tuple(util::RLPDecoderRef(rlp, true), pk_, pbft_msg_type, pbft_msg_.round, pbft_msg_.step, proof_);
+  pbft_msg_.type = static_cast<PbftVoteTypes>(pbft_msg_type);
 }
 
 bytes VrfPbftSortition::getRlpBytes() const {

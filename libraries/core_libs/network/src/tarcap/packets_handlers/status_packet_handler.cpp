@@ -22,12 +22,8 @@ StatusPacketHandler::StatusPacketHandler(
       conf_network_id_(conf_network_id),
       next_votes_mgr_(std::move(next_votes_mgr)) {}
 
-void StatusPacketHandler::validatePacketRlpFormat(const PacketData& packet_data) {
-  checkPacketRlpList(packet_data);
-
-  constexpr size_t kStandardStatusPacketItemsCount = 5;
-
-  if (auto items_count = packet_data.rlp_.itemCount();
+void StatusPacketHandler::validatePacketRlpFormat(const PacketData& packet_data) const {
+  if (const auto items_count = packet_data.rlp_.itemCount();
       items_count != kInitialStatusPacketItemsCount && items_count != kStandardStatusPacketItemsCount) {
     throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(),
                                         kStandardStatusPacketItemsCount);
@@ -35,13 +31,12 @@ void StatusPacketHandler::validatePacketRlpFormat(const PacketData& packet_data)
 }
 
 void StatusPacketHandler::process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) {
-  bool initial_status = packet_data.rlp_.itemCount() == kInitialStatusPacketItemsCount;
-
   // Important !!! Use only "selected_peer" and not "peer" in this function as "peer" might be nullptr
   auto selected_peer = peer;
   const auto pbft_synced_period = pbft_mgr_->pbftSyncingPeriod();
 
-  if (initial_status) {
+  // Initial status packet
+  if (packet_data.rlp_.itemCount() == kInitialStatusPacketItemsCount) {
     if (!selected_peer) {
       selected_peer = peers_state_->getPendingPeer(packet_data.from_node_id_);
       if (!selected_peer) {
@@ -106,7 +101,7 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
                  << ", peer pbft previous round next votes size " << selected_peer->pbft_previous_round_next_votes_size_
                  << ", node major version" << node_major_version << ", node minor version" << node_minor_version;
 
-  } else {
+  } else {  // Standard status packet
     // TODO: initial and standard status packet could be separated...
     if (!selected_peer) {
       LOG(log_er_) << "Received standard status packet from " << packet_data.from_node_id_.abridged()
@@ -187,9 +182,9 @@ bool StatusPacketHandler::sendStatus(const dev::p2p::NodeID& node_id, bool initi
                     << syncing_state_->is_pbft_syncing() << pbft_round << pbft_previous_round_next_votes_size
                     << TARAXA_MAJOR_VERSION << TARAXA_MINOR_VERSION << TARAXA_PATCH_VERSION));
     } else {
-      success = sealAndSend(
-          node_id, StatusPacket,
-          std::move(dev::RLPStream(5) << dag_max_level << pbft_chain_size << syncing_state_->is_deep_pbft_syncing()
+      success = sealAndSend(node_id, StatusPacket,
+                            std::move(dev::RLPStream(kStandardStatusPacketItemsCount)
+                                      << dag_max_level << pbft_chain_size << syncing_state_->is_deep_pbft_syncing()
                                       << pbft_round << pbft_previous_round_next_votes_size));
     }
   }

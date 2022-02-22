@@ -26,7 +26,7 @@ class TransactionPacketHandler : public PacketHandler {
   void sendTransactions(dev::p2p::NodeID const& peer_id, std::vector<taraxa::bytes> const& transactions);
 
  private:
-  void validatePacketRlpFormat(const PacketData& packet_data) override;
+  void validatePacketRlpFormat(const PacketData& packet_data) const override;
   void process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
 
   std::shared_ptr<TransactionManager> trx_mgr_;

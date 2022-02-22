@@ -18,14 +18,10 @@ GetPbftSyncPacketHandler::GetPbftSyncPacketHandler(std::shared_ptr<PeersState> p
       db_(std::move(db)),
       network_sync_level_size_(network_sync_level_size) {}
 
-void GetPbftSyncPacketHandler::validatePacketRlpFormat(const PacketData &packet_data) {
-  checkPacketRlpList(packet_data);
-
-  if (size_t required_size = 1; packet_data.rlp_.itemCount() != required_size) {
+void GetPbftSyncPacketHandler::validatePacketRlpFormat(const PacketData &packet_data) const {
+  if (constexpr size_t required_size = 1; packet_data.rlp_.itemCount() != required_size) {
     throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), required_size);
   }
-
-  // In case there is a type mismatch, one of the dev::RLPException's is thrown during further parsing
 }
 
 void GetPbftSyncPacketHandler::process(const PacketData &packet_data,

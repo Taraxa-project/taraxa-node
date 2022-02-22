@@ -23,7 +23,7 @@ class VotesSyncPacketHandler : public ExtVotesPacketHandler {
   void broadcastPreviousRoundNextVotesBundle();
 
  private:
-  void validatePacketRlpFormat(const PacketData& packet_data) override;
+  void validatePacketRlpFormat(const PacketData& packet_data) const override;
   void process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
 
   std::shared_ptr<PbftManager> pbft_mgr_;

@@ -10,7 +10,7 @@ PacketHandler::PacketHandler(std::shared_ptr<PeersState> peers_state, std::share
   LOG_OBJECTS_CREATE(log_channel_name);
 }
 
-void PacketHandler::checkPacketRlpList(const PacketData& packet_data) {
+void PacketHandler::checkPacketRlpIsList(const PacketData& packet_data) const {
   if (!packet_data.rlp_.isList()) {
     throw InvalidRlpItemsCountException(packet_data.type_str_ + " RLP must be a list. ", 0, 1);
   }
@@ -31,6 +31,9 @@ void PacketHandler::processPacket(const PacketData& packet_data) {
     }
 
     // Validates packet rlp format
+    // In case there is a type mismatch, one of the dev::RLPException's is thrown during further parsing in process
+    // function
+    checkPacketRlpIsList(packet_data);
     validatePacketRlpFormat(packet_data);
 
     // Main processing function
@@ -53,15 +56,13 @@ void PacketHandler::processPacket(const PacketData& packet_data) {
     handle_caught_exception(e.what(), packet_data, dev::p2p::DisconnectReason::BadProtocol,
                             true /* set peer as malicious */);
   } catch (const std::exception& e) {
-    // TODO: should we set peer as malicious also for generic exceptions ???
     handle_caught_exception(e.what(), packet_data);
   } catch (...) {
-    // TODO: should we set peer as malicious also for generic exceptions ???
     handle_caught_exception("Unknown exception", packet_data);
   }
 }
 
-void PacketHandler::handle_caught_exception(const char* exception_msg, const PacketData& packet_data,
+void PacketHandler::handle_caught_exception(std::string_view exception_msg, const PacketData& packet_data,
                                             dev::p2p::DisconnectReason disconnect_reason, bool set_peer_as_malicious) {
   LOG(log_er_) << "Exception caught during packet processing: " << exception_msg << ". " << std::endl
                << "PacketData: " << packet_data.getPacketDataJson().toStyledString();
@@ -109,7 +110,7 @@ bool PacketHandler::sealAndSend(const dev::p2p::NodeID& node_id, SubprotocolPack
 }
 
 void PacketHandler::disconnect(dev::p2p::NodeID const& node_id, dev::p2p::DisconnectReason reason) {
-  if (auto host = peers_state_->host_.lock(); !host) {
+  if (auto host = peers_state_->host_.lock(); host) {
     host->disconnect(node_id, reason);
   } else {
     LOG(log_er_) << "Unable to disconnect node " << node_id.abridged() << " due to invalid host.";
