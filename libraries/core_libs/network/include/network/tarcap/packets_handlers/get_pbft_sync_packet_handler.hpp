@@ -22,6 +22,7 @@ class GetPbftSyncPacketHandler : public PacketHandler {
   void sendPbftBlocks(dev::p2p::NodeID const& peer_id, size_t height_to_sync, size_t blocks_to_transfer);
 
  private:
+  void validatePacketRlpFormat(const PacketData& packet_data) override;
   void process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
 
   std::shared_ptr<SyncingState> syncing_state_;

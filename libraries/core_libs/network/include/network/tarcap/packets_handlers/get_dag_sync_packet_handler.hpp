@@ -24,6 +24,7 @@ class GetDagSyncPacketHandler : public PacketHandler {
                   SharedTransactions&& transactions, uint64_t request_period, uint64_t period);
 
  private:
+  void validatePacketRlpFormat(const PacketData& packet_data) override;
   void process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
 
   std::shared_ptr<TransactionManager> trx_mgr_;

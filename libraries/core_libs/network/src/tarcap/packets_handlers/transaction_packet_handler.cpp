@@ -18,6 +18,13 @@ TransactionPacketHandler::TransactionPacketHandler(std::shared_ptr<PeersState> p
       test_state_(std::move(test_state)),
       network_transaction_interval_(network_transaction_interval) {}
 
+void TransactionPacketHandler::validatePacketRlpFormat(const PacketData &packet_data) {
+  checkPacketRlpList(packet_data);
+
+  // Number of txs is not fixed, nothing to be checked here
+  // In case there is a type mismatch, one of the dev::RLPException's is thrown during further parsing
+}
+
 inline void TransactionPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
   std::string received_transactions;
   const auto transaction_count = packet_data.rlp_.itemCount();
@@ -26,18 +33,23 @@ inline void TransactionPacketHandler::process(const PacketData &packet_data, con
   transactions.reserve(transaction_count);
 
   for (size_t tx_idx = 0; tx_idx < transaction_count; tx_idx++) {
-    const auto transaction = std::make_shared<Transaction>(packet_data.rlp_[tx_idx].data().toBytes());
+    std::shared_ptr<Transaction> transaction;
+
+    try {
+      transaction = std::make_shared<Transaction>(packet_data.rlp_[tx_idx].data().toBytes());
+    } catch (const Transaction::InvalidSignature &e) {
+      throw MaliciousPeerException("Unable to parse transaction: " + std::string(e.what()));
+    }
 
     if (dag_blk_mgr_) [[likely]] {  // ONLY FOR TESTING
       if (trx_mgr_->markTransactionSeen(transaction->getHash())) {
         continue;
       }
       if (const auto [is_valid, reason] = trx_mgr_->verifyTransaction(transaction); !is_valid) {
-        LOG(log_er_) << "Transaction " << transaction->getHash() << " validation falied: " << reason << " . Peer "
-                     << packet_data.from_node_id_ << " will be disconnected.";
-        peers_state_->set_peer_malicious(peer->getId());
-        disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
-        return;
+        std::ostringstream err_msg;
+        err_msg << "Transaction " << transaction->getHash() << " validation failed: " << reason;
+
+        throw MaliciousPeerException(err_msg.str());
       }
     }
     received_transactions += transaction->getHash().abridged() + " ";

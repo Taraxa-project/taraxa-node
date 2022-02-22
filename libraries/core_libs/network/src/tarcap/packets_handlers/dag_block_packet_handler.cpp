@@ -22,6 +22,21 @@ DagBlockPacketHandler::DagBlockPacketHandler(std::shared_ptr<PeersState> peers_s
       trx_mgr_(std::move(trx_mgr)),
       seen_dags_(10000, 100) {}
 
+void DagBlockPacketHandler::validatePacketRlpFormat(const PacketData &packet_data) {
+  checkPacketRlpList(packet_data);
+
+  // Only one dag block can be received
+  if (size_t required_size = 1; packet_data.rlp_.itemCount() != required_size) {
+    throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), required_size);
+  }
+
+  // TODO: rlp format of this packet should be fixed:
+  //       has format: [[dag_pivot, dag_pivot, ...]]
+  //       should have format: [dag_pivot, dag_pivot, ...]
+
+  // In case there is a type mismatch, one of the dev::RLPException's is thrown during further parsing
+}
+
 void DagBlockPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
   DagBlock block(packet_data.rlp_[0].data().toBytes());
   blk_hash_t const hash = block.getHash();

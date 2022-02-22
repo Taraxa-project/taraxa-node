@@ -23,6 +23,7 @@ class PbftBlockPacketHandler : public PacketHandler {
   void sendPbftBlock(dev::p2p::NodeID const& peer_id, PbftBlock const& pbft_block, uint64_t pbft_chain_size);
 
  private:
+  void validatePacketRlpFormat(const PacketData& packet_data) override;
   void process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
 
   std::shared_ptr<PbftChain> pbft_chain_;

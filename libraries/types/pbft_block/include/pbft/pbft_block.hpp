@@ -25,7 +25,7 @@ class PbftBlock {
  public:
   PbftBlock(blk_hash_t const& prev_blk_hash, blk_hash_t const& dag_blk_hash_as_pivot, blk_hash_t const& order_hash,
             uint64_t period, addr_t const& beneficiary, secret_t const& sk);
-  explicit PbftBlock(dev::RLP const& r);
+  explicit PbftBlock(dev::RLP const& rlp);
   explicit PbftBlock(bytes const& RLP);
   explicit PbftBlock(std::string const& JSON);
 

@@ -24,6 +24,29 @@ PbftSyncPacketHandler::PbftSyncPacketHandler(std::shared_ptr<PeersState> peers_s
       network_sync_level_size_(network_sync_level_size),
       delayed_sync_events_tp_(1, true) {}
 
+void PbftSyncPacketHandler::validatePacketRlpFormat(const PacketData &packet_data) {
+  checkPacketRlpList(packet_data);
+
+  // TODO: the way we handle PbftSyncPacket must be changed as we are using empty rlp as valid data -> it means pbft
+  //       syncing is complete. This is bad - someone could simply send empty PbftSyncPacket over and over again
+  if (packet_data.rlp_.itemCount() == 0) {
+    return;
+  }
+
+  if (size_t required_size = 2; packet_data.rlp_.itemCount() != required_size) {
+    throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), required_size);
+  }
+
+  // SyncBlock rlp parsing cannot be done through util::rlp_tuple, which automatically checks the rlp size so it is
+  // checked here manually
+  if (size_t required_size = 4; packet_data.rlp_[1].itemCount() != required_size) {
+    throw InvalidRlpItemsCountException(packet_data.type_str_ + ":Syncblock", packet_data.rlp_[1].itemCount(),
+                                        required_size);
+  }
+
+  // In case there is a type mismatch, one of the dev::RLPException's is thrown during further parsing
+}
+
 void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
   // Note: no need to consider possible race conditions due to concurrent processing as it is
   // disabled on priority_queue blocking dependencies level
@@ -43,9 +66,15 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
   }
 
   // Process received pbft blocks
-  auto it = packet_data.rlp_.begin();
-  bool last_block = (*it++).toInt<bool>();
-  SyncBlock sync_block(*it);
+  bool last_block = packet_data.rlp_[0].toInt<bool>();
+
+  SyncBlock sync_block;
+  try {
+    sync_block = SyncBlock(packet_data.rlp_[1]);
+  } catch (const Transaction::InvalidSignature &e) {
+    throw MaliciousPeerException("Unable to parse SyncBlock: " + std::string(e.what()));
+  }
+
   const auto pbft_blk_hash = sync_block.pbft_blk->getBlockHash();
 
   std::string received_dag_blocks_str;  // This is just log related stuff
@@ -176,6 +205,17 @@ void PbftSyncPacketHandler::delayedPbftSync(int counter) {
       }
     }
   }
+}
+
+void PbftSyncPacketHandler::handleMaliciousSyncPeer(dev::p2p::NodeID const &id) {
+  peers_state_->set_peer_malicious(id);
+
+  if (auto host = peers_state_->host_.lock(); host) {
+    host->disconnect(id, dev::p2p::UserReason);
+  } else {
+    LOG(log_er_) << "Unable to handleMaliciousSyncPeer, host == nullptr";
+  }
+  restartSyncingPbft(true);
 }
 
 }  // namespace taraxa::network::tarcap

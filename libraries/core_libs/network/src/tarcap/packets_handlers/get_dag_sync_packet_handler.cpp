@@ -17,16 +17,30 @@ GetDagSyncPacketHandler::GetDagSyncPacketHandler(std::shared_ptr<PeersState> pee
       dag_blk_mgr_(std::move(dag_blk_mgr)),
       db_(std::move(db)) {}
 
+void GetDagSyncPacketHandler::validatePacketRlpFormat(const PacketData &packet_data) {
+  checkPacketRlpList(packet_data);
+
+  if (size_t required_min_size = 1; packet_data.rlp_.itemCount() < required_min_size) {
+    throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), required_min_size);
+  }
+
+  // TODO: rlp format of this packet should be fixed:
+  //       has format: [peer_period, blk_hash1, ..., blk_hashN]
+  //       should have format: [peer_period, [blk_hash1, ..., blk_hashN] ]
+
+  // In case there is a type mismatch, one of the dev::RLPException's is thrown during further parsing
+}
+
 void GetDagSyncPacketHandler::process(const PacketData &packet_data,
                                       [[maybe_unused]] const std::shared_ptr<TaraxaPeer> &peer) {
   if (peer->peer_requested_dag_syncing_) {
     // This should not be possible for honest node
     // Each node should perform dag syncing only once
-    LOG(log_er_) << "Received multiple GetDagSyncPackets from " << packet_data.from_node_id_.abridged()
-                 << " peer will be disconnected";
-    peers_state_->set_peer_malicious(peer->getId());
-    disconnect(peer->getId(), dev::p2p::UserReason);
-    return;
+    // This should not be possible for honest node
+    std::ostringstream err_msg;
+    err_msg << "Received multiple GetDagSyncPackets from " << packet_data.from_node_id_.abridged();
+
+    throw MaliciousPeerException(err_msg.str());
   }
 
   // This lock prevents race condition between syncing and gossiping dag blocks
@@ -38,7 +52,7 @@ void GetDagSyncPacketHandler::process(const PacketData &packet_data,
 
   std::string blocks_hashes_to_log;
   for (; it != packet_data.rlp_.end(); ++it) {
-    blk_hash_t hash(*it);
+    blk_hash_t hash = (*it).toHash<blk_hash_t>();
     blocks_hashes_to_log += hash.abridged();
     blocks_hashes.emplace(std::move(hash));
   }

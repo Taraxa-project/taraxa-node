@@ -17,11 +17,18 @@ VotesSyncPacketHandler::VotesSyncPacketHandler(std::shared_ptr<PeersState> peers
       next_votes_mgr_(std::move(next_votes_mgr)),
       db_(std::move(db)) {}
 
+void VotesSyncPacketHandler::validatePacketRlpFormat(const PacketData &packet_data) {
+  checkPacketRlpList(packet_data);
+
+  // Number of votes is not fixed, nothing to be checked here
+  // In case there is a type mismatch, one of the dev::RLPException's is thrown during further parsing
+}
+
 void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
   const auto next_votes_count = packet_data.rlp_.itemCount();
   if (next_votes_count == 0) {
     LOG(log_er_) << "Receive 0 next votes from peer " << packet_data.from_node_id_
-                 << ". The peer may be a malicous player, will be disconnected";
+                 << ". The peer may be a malicious player, will be disconnected";
     disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
     return;
   }

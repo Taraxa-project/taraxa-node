@@ -68,6 +68,8 @@ class DummyPacketHandler : public tarcap::PacketHandler {
   virtual ~DummyPacketHandler() = default;
 
  private:
+  void validatePacketRlpFormat([[maybe_unused]] const tarcap::PacketData& packet_data) override {}
+
   void process(const tarcap::PacketData& packet_data,
                [[maybe_unused]] const std::shared_ptr<tarcap::TaraxaPeer>& peer) override {
     // Note do not use LOG() before saving start & finish time as it is internally synchronized and can

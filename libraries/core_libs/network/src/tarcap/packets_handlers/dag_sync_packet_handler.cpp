@@ -20,6 +20,20 @@ DagSyncPacketHandler::DagSyncPacketHandler(std::shared_ptr<PeersState> peers_sta
                               std::move(db), node_addr, "DAG_SYNC_PH"),
       trx_mgr_(std::move(trx_mgr)) {}
 
+void DagSyncPacketHandler::validatePacketRlpFormat(const PacketData& packet_data) {
+  checkPacketRlpList(packet_data);
+
+  if (size_t required_min_size = 3; packet_data.rlp_.itemCount() < required_min_size) {
+    throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), required_min_size);
+  }
+
+  // TODO: rlp format of this packet should be fixed:
+  //       has format: [request_period, response_period, transactions_count, tx1, ..., txN, dag1, ...., dagN]
+  //       should have format: [request_period, response_period, [tx1, ..., txN], [dag1, ...., dagN] ]
+
+  // In case there is a type mismatch, one of the dev::RLPException's is thrown during further parsing
+}
+
 void DagSyncPacketHandler::process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) {
   std::string received_dag_blocks_str;
 
@@ -40,31 +54,38 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
     return;
   } else if (response_period < request_period) {
     // This should not be possible for honest node
-    LOG(log_er_) << "Received DagSyncPacket with mismatching periods: " << response_period << " " << request_period
-                 << " from " << packet_data.from_node_id_.abridged() << " peer will be disconnected";
-    peers_state_->set_peer_malicious(peer->getId());
-    disconnect(peer->getId(), dev::p2p::UserReason);
-    return;
+    std::ostringstream err_msg;
+    err_msg << "Received DagSyncPacket with mismatching periods: response_period(" << response_period
+            << ") != request_period(" << request_period << ")";
+
+    throw MaliciousPeerException(err_msg.str());
   }
 
   uint64_t transactions_count = (*it++).toInt<uint64_t>();
   SharedTransactions new_transactions;
   std::string transactions_to_log;
   for (uint64_t i = 0; i < transactions_count; i++) {
-    Transaction transaction(*it++);
-    peer->markTransactionAsKnown(transaction.getHash());
-    transactions_to_log += transaction.getHash().abridged();
-    if (trx_mgr_->markTransactionSeen(transaction.getHash())) {
+    std::shared_ptr<Transaction> trx;
+
+    try {
+      trx = std::make_shared<Transaction>(*it++);
+    } catch (const Transaction::InvalidSignature& e) {
+      throw MaliciousPeerException("Unable to parse transaction: " + std::string(e.what()));
+    }
+
+    peer->markTransactionAsKnown(trx->getHash());
+    transactions_to_log += trx->getHash().abridged();
+    if (trx_mgr_->markTransactionSeen(trx->getHash())) {
       continue;
     }
-    const auto trx = std::make_shared<Transaction>(std::move(transaction));
+
     if (const auto [is_valid, reason] = trx_mgr_->verifyTransaction(trx); !is_valid) {
-      LOG(log_er_) << "DagBlock transaction " << trx->getHash() << " validation falied: " << reason << " . Peer "
-                   << packet_data.from_node_id_ << " will be disconnected.";
-      peers_state_->set_peer_malicious(peer->getId());
-      disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
-      return;
+      std::ostringstream err_msg;
+      err_msg << "DagBlock transaction " << trx->getHash() << " validation failed: " << reason;
+
+      throw MaliciousPeerException(err_msg.str());
     }
+
     new_transactions.push_back(std::move(trx));
   }
 
@@ -79,11 +100,10 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
     auto status = checkDagBlockValidation(block);
     if (!status.first) {
       // This should only happen with a malicious node or a fork
-      LOG(log_er_) << "DagBlock " << block.getHash() << " Validation failed " << status.second << " . Peer "
-                   << packet_data.from_node_id_ << " will be disconnected.";
-      peers_state_->set_peer_malicious(peer->getId());
-      disconnect(peer->getId(), dev::p2p::UserReason);
-      return;
+      std::ostringstream err_msg;
+      err_msg << "DagBlock " << block.getHash() << " validation failed: " << status.second;
+
+      throw MaliciousPeerException(err_msg.str());
     }
 
     if (block.getLevel() > peer->dag_level_) peer->dag_level_ = block.getLevel();

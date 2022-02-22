@@ -22,8 +22,20 @@ StatusPacketHandler::StatusPacketHandler(
       conf_network_id_(conf_network_id),
       next_votes_mgr_(std::move(next_votes_mgr)) {}
 
+void StatusPacketHandler::validatePacketRlpFormat(const PacketData& packet_data) {
+  checkPacketRlpList(packet_data);
+
+  constexpr size_t kStandardStatusPacketItemsCount = 5;
+
+  if (auto items_count = packet_data.rlp_.itemCount();
+      items_count != kInitialStatusPacketItemsCount && items_count != kStandardStatusPacketItemsCount) {
+    throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(),
+                                        kStandardStatusPacketItemsCount);
+  }
+}
+
 void StatusPacketHandler::process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) {
-  bool initial_status = packet_data.rlp_.itemCount() == INITIAL_STATUS_PACKET_ITEM_COUNT;
+  bool initial_status = packet_data.rlp_.itemCount() == kInitialStatusPacketItemsCount;
 
   // Important !!! Use only "selected_peer" and not "peer" in this function as "peer" might be nullptr
   auto selected_peer = peer;
@@ -43,7 +55,7 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
     auto it = packet_data.rlp_.begin();
     auto const peer_network_id = (*it++).toInt<uint64_t>();
     auto const peer_dag_level = (*it++).toInt<uint64_t>();
-    auto const genesis_hash = blk_hash_t(*it++);
+    auto const genesis_hash = (*it++).toHash<blk_hash_t>();
     auto const peer_pbft_chain_size = (*it++).toInt<uint64_t>();
     auto const peer_syncing = (*it++).toInt();
     auto const peer_pbft_round = (*it++).toInt<uint64_t>();
@@ -170,7 +182,7 @@ bool StatusPacketHandler::sendStatus(const dev::p2p::NodeID& node_id, bool initi
     if (initial) {
       success = sealAndSend(
           node_id, StatusPacket,
-          std::move(dev::RLPStream(INITIAL_STATUS_PACKET_ITEM_COUNT)
+          std::move(dev::RLPStream(kInitialStatusPacketItemsCount)
                     << conf_network_id_ << dag_max_level << dag_mgr_->get_genesis() << pbft_chain_size
                     << syncing_state_->is_pbft_syncing() << pbft_round << pbft_previous_round_next_votes_size
                     << TARAXA_MAJOR_VERSION << TARAXA_MINOR_VERSION << TARAXA_PATCH_VERSION));
