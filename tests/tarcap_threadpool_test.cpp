@@ -196,8 +196,6 @@ TEST_F(TarcapTpTest, block_free_packets) {
                                    createDummyPacketHandler(init_data, "TX_PH", 20));
   packets_handler->registerHandler(tarcap::SubprotocolPacketType::DagBlockPacket,
                                    createDummyPacketHandler(init_data, "DAG_BLOCK_PH", 20));
-  packets_handler->registerHandler(tarcap::SubprotocolPacketType::TestPacket,
-                                   createDummyPacketHandler(init_data, "TEST_PH", 20));
   packets_handler->registerHandler(tarcap::SubprotocolPacketType::StatusPacket,
                                    createDummyPacketHandler(init_data, "STATUS_PH", 20));
   packets_handler->registerHandler(tarcap::SubprotocolPacketType::VotePacket,
@@ -232,11 +230,6 @@ TEST_F(TarcapTpTest, block_free_packets) {
       tp.push(createPacket(dev::p2p::NodeID(sender2), tarcap::SubprotocolPacketType::DagBlockPacket,
                            {createDagBlockRlp(0)}))
           .value();
-
-  const auto packet6_test_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::TestPacket, {})).value();
-  const auto packet7_test_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::TestPacket, {})).value();
 
   const auto packet8_status_id =
       tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::StatusPacket, {})).value();
@@ -301,9 +294,6 @@ TEST_F(TarcapTpTest, block_free_packets) {
   const auto packet4_dag_block_proc_info = packets_proc_info->getPacketProcessingTimes(packet4_dag_block_id);
   const auto packet5_dag_block_proc_info = packets_proc_info->getPacketProcessingTimes(packet5_dag_block_id);
 
-  const auto packet6_test_proc_info = packets_proc_info->getPacketProcessingTimes(packet6_test_id);
-  const auto packet7_test_proc_info = packets_proc_info->getPacketProcessingTimes(packet7_test_id);
-
   const auto packet8_status_proc_info = packets_proc_info->getPacketProcessingTimes(packet8_status_id);
   const auto packet9_status_proc_info = packets_proc_info->getPacketProcessingTimes(packet9_status_id);
 
@@ -327,8 +317,6 @@ TEST_F(TarcapTpTest, block_free_packets) {
       {packet3_tx_proc_info, "packet3_tx"},
       {packet4_dag_block_proc_info, "packet4_dag_block"},
       {packet5_dag_block_proc_info, "packet5_dag_block"},
-      {packet6_test_proc_info, "packet6_test"},
-      {packet7_test_proc_info, "packet7_test"},
       {packet8_status_proc_info, "packet8_status"},
       {packet9_status_proc_info, "packet9_status"},
       {packet12_vote_proc_info, "packet12_vote"},
@@ -749,9 +737,9 @@ TEST_F(TarcapTpTest, low_priotity_queue_starvation) {
   packets_handler->registerHandler(tarcap::SubprotocolPacketType::TransactionPacket,
                                    createDummyPacketHandler(init_data, "TX_PH", 20));
 
-  // Handler for packet from mid priority queue
-  packets_handler->registerHandler(tarcap::SubprotocolPacketType::TestPacket,
-                                   createDummyPacketHandler(init_data, "TEST_PH", 20));
+  // Handler for packet from low priority queue
+  packets_handler->registerHandler(tarcap::SubprotocolPacketType::StatusPacket,
+                                   createDummyPacketHandler(init_data, "STATUS_PH", 20));
 
   // Creates threadpool
   size_t threads_num = 10;
@@ -768,7 +756,7 @@ TEST_F(TarcapTpTest, low_priotity_queue_starvation) {
 
   // Push a few packets low priority packets
   for (size_t i = 0; i < 4; i++) {
-    tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::TestPacket, {})).value();
+    tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::StatusPacket, {})).value();
   }
 
   tp.startProcessing();
@@ -780,7 +768,7 @@ TEST_F(TarcapTpTest, low_priotity_queue_starvation) {
   // when we have 10 threads in thredpool:
   // - 4 is limit for High priority queue - VotePacket
   // - 4 is limit for Mid priority queue - TransactionPacket
-  // - 3 is limit for Low priority queue - TestPacket, but because max total limit (10) is always checked first
+  // - 3 is limit for Low priority queue - StatusPacket, but because max total limit (10) is always checked first
   // , low priority queue wont be able to use more than 2 threads concurrently
   /*
     ----------------

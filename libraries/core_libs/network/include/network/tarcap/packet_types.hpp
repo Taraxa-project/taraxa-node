@@ -26,7 +26,6 @@ enum SubprotocolPacketType : uint32_t {
 
   // Non critical packets with low processing priority
   LowPriorityPackets,
-  TestPacket,
   StatusPacket,
   GetPbftSyncPacket,
   PbftSyncPacket,
@@ -51,8 +50,6 @@ inline std::string convertPacketTypeToString(SubprotocolPacketType packet_type) 
       return "DagSyncPacket";
     case TransactionPacket:
       return "TransactionPacket";
-    case TestPacket:
-      return "TestPacket";
     case VotePacket:
       return "VotePacket";
     case GetVotesSyncPacket:
