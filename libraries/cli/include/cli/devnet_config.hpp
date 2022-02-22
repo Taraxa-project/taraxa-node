@@ -1,7 +1,6 @@
 namespace taraxa::cli {
 
 const char *devnet_json = R"foo({
-  "version" : 1,
   "node_secret": "",
   "vrf_secret": "",
   "data_path": "",
