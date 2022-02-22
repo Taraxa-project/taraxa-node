@@ -9,6 +9,7 @@
 #include "cli/config.hpp"
 #include "cli/default_config.hpp"
 #include "cli/devnet_config.hpp"
+#include "cli/mainnet_config.hpp"
 #include "cli/testnet_config.hpp"
 #include "common/jsoncpp.hpp"
 
@@ -19,26 +20,15 @@ namespace fs = std::filesystem;
 namespace taraxa::cli {
 
 void Tools::generateConfig(const std::string& config, Config::NetworkIdType network_id) {
-  Json::Value conf;
-  switch (network_id) {
-    case Config::NetworkIdType::Testnet:
-      conf = util::readJsonFromString(testnet_json);
-      break;
-    case Config::NetworkIdType::Devnet:
-      conf = util::readJsonFromString(devnet_json);
-      break;
-    default:
-      conf = util::readJsonFromString(default_json);
-      std::stringstream stream;
-      stream << "0x" << std::hex << static_cast<int>(network_id);
-      conf["chain_config"]["chain_id"] = stream.str();
-  }
-  util::writeJsonToFile(config, conf);
+  util::writeJsonToFile(config, generateConfig(network_id));
 }
 
 Json::Value Tools::generateConfig(Config::NetworkIdType network_id) {
   Json::Value conf;
   switch (network_id) {
+    case Config::NetworkIdType::Mainnet:
+      conf = util::readJsonFromString(mainnet_json);
+      break;
     case Config::NetworkIdType::Testnet:
       conf = util::readJsonFromString(testnet_json);
       break;
