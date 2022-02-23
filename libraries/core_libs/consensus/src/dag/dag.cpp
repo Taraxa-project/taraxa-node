@@ -606,10 +606,13 @@ uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period,
 void DagManager::recoverDag() {
   if (pbft_chain_) {
     auto pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
+    if (pbft_block_hash) {
+      period_ = pbft_chain_->getPbftBlockInChain(pbft_block_hash).getPeriod();
+    }
+
     while (pbft_block_hash) {
       auto pbft_block = pbft_chain_->getPbftBlockInChain(pbft_block_hash);
       auto anchor = pbft_block.getPivotDagBlockHash();
-      period_ = pbft_block.getPeriod();
       pbft_block_hash = pbft_block.getPrevBlockHash();
       if (anchor) {
         anchor_ = anchor;
