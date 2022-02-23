@@ -1301,7 +1301,7 @@ h256 PbftManager::getProposal(const std::shared_ptr<Vote> &vote) const {
     vrf_hash.iter = i;
     auto tmp_hash = vrf_hash.getHash();
     if (lowest_hash > tmp_hash) {
-      lowest_hash = std::move(tmp_hash);Í
+      lowest_hash = std::move(tmp_hash);
     }
   }
   return lowest_hash;

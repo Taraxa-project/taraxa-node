@@ -162,7 +162,6 @@ void SortitionParamsManager::pbftBlockPushed(const SyncBlock& block, DbStorage::
   db_->savePbftBlockDagEfficiency(period, dag_efficiency, batch);
   LOG(log_dg_) << period << " pbftBlockPushed, efficiency: " << dag_efficiency / 100. << "%";
 
-
   if (non_empty_pbft_chain_size % config_.changing_interval == 0) {
     const auto params_change = calculateChange(non_empty_pbft_chain_size);
     if (params_change) {
