@@ -1579,7 +1579,7 @@ void PbftManager::finalize_(SyncBlock &&sync_block, std::vector<h256> &&finalize
 
 bool PbftManager::pushPbftBlock_(SyncBlock &&sync_block, vec_blk_t &&dag_blocks_order) {
   auto const &pbft_block_hash = sync_block.pbft_blk->getBlockHash();
-  if (pbft_chain_->getPbftChainSize() && db_->pbftBlockInDb(pbft_block_hash)) {
+  if (db_->pbftBlockInDb(pbft_block_hash)) {
     LOG(log_nf_) << "PBFT block: " << pbft_block_hash << " in DB already.";
     if (last_cert_voted_value_ == pbft_block_hash) {
       LOG(log_er_) << "Last cert voted value should be NULL_BLOCK_HASH. Block hash " << last_cert_voted_value_
