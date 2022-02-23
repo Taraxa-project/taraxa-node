@@ -519,6 +519,16 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
   }
 }
 
+TEST_F(PbftManagerTest, pbft_produce_blocks_with_null_anchor) {
+  auto node_cfgs = make_node_cfgs<20>(1);
+  auto node = create_nodes(node_cfgs, true).front();
+  EXPECT_EQ(own_balance(node), own_effective_genesis_bal(node_cfgs[0]));
+
+  // Check PBFT produced blocks with no transactions
+  auto pbft_chain = node->getPbftChain();
+  EXPECT_HAPPENS({4s, 200ms}, [&](auto &ctx) { WAIT_EXPECT_GE(ctx, pbft_chain->getPbftChainSize(), 1) });
+}
+
 TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
   auto node_cfgs = make_node_cfgs<20>(1);
   auto node = create_nodes(node_cfgs, true).front();
