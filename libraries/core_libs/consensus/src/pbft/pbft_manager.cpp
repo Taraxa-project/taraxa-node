@@ -1591,13 +1591,15 @@ bool PbftManager::pushPbftBlock_(SyncBlock &&sync_block, vec_blk_t &&dag_blocks_
 
   auto const &cert_votes = sync_block.cert_votes;
   auto pbft_period = sync_block.pbft_blk->getPeriod();
+  auto null_anchor = sync_block.pbft_blk->getPivotDagBlockHash() == NULL_BLOCK_HASH;
 
   auto batch = db_->createWriteBatch();
 
   LOG(log_nf_) << "Storing cert votes of pbft blk " << pbft_block_hash;
   LOG(log_dg_) << "Stored following cert votes:\n" << cert_votes;
   // Update PBFT chain head block
-  db_->addPbftHeadToBatch(pbft_chain_->getHeadHash(), pbft_chain_->getJsonStrForBlock(pbft_block_hash), batch);
+  db_->addPbftHeadToBatch(pbft_chain_->getHeadHash(), pbft_chain_->getJsonStrForBlock(pbft_block_hash, null_anchor),
+                          batch);
 
   if (dag_blocks_order.empty()) {
     dag_blocks_order.reserve(sync_block.dag_blocks.size());
@@ -1631,7 +1633,7 @@ bool PbftManager::pushPbftBlock_(SyncBlock &&sync_block, vec_blk_t &&dag_blocks_
     trx_mgr_->updateFinalizedTransactionsStatus(sync_block);
 
     // update PBFT chain size
-    pbft_chain_->updatePbftChain(pbft_block_hash, sync_block.pbft_blk->getPivotDagBlockHash() == NULL_BLOCK_HASH);
+    pbft_chain_->updatePbftChain(pbft_block_hash, null_anchor);
   }
 
   last_cert_voted_value_ = NULL_BLOCK_HASH;

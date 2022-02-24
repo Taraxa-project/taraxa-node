@@ -186,12 +186,17 @@ std::string PbftChain::getJsonStr() const {
   return json.toStyledString();
 }
 
-std::string PbftChain::getJsonStrForBlock(blk_hash_t const& block_hash) const {
+std::string PbftChain::getJsonStrForBlock(blk_hash_t const& block_hash, bool null_anchor) const {
   Json::Value json;
   SharedLock lock(chain_head_access_);
   json["head_hash"] = head_hash_.toString();
   json["dag_genesis_hash"] = dag_genesis_hash_.toString();
   json["size"] = (Json::Value::UInt64)size_ + 1;
+  auto non_empty_size = non_empty_size_;
+  if (!null_anchor) {
+    non_empty_size++;
+  }
+  json["non_empty_size"] = (Json::Value::UInt64)non_empty_size;
   json["last_pbft_block_hash"] = block_hash.toString();
   return json.toStyledString();
 }
