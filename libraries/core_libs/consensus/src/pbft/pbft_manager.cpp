@@ -1596,9 +1596,8 @@ bool PbftManager::pushPbftBlock_(SyncBlock &&sync_block, vec_blk_t &&dag_blocks_
 
   LOG(log_nf_) << "Storing cert votes of pbft blk " << pbft_block_hash;
   LOG(log_dg_) << "Stored following cert votes:\n" << cert_votes;
-  // Update PBFT chain
-  pbft_chain_->updatePbftChain(pbft_block_hash, sync_block.pbft_blk->getPivotDagBlockHash() == NULL_BLOCK_HASH);
-  db_->addPbftHeadToBatch(pbft_chain_->getHeadHash(), pbft_chain_->getJsonStr(), batch);
+  // Update PBFT chain head block
+  db_->addPbftHeadToBatch(pbft_chain_->getHeadHash(), pbft_chain_->getJsonStrForBlock(pbft_block_hash), batch);
 
   if (dag_blocks_order.empty()) {
     dag_blocks_order.reserve(sync_block.dag_blocks.size());
@@ -1630,6 +1629,9 @@ bool PbftManager::pushPbftBlock_(SyncBlock &&sync_block, vec_blk_t &&dag_blocks_
     dag_mgr_->setDagBlockOrder(anchor_hash, pbft_period, dag_blocks_order);
 
     trx_mgr_->updateFinalizedTransactionsStatus(sync_block);
+
+    // update PBFT chain size
+    pbft_chain_->updatePbftChain(pbft_block_hash, sync_block.pbft_blk->getPivotDagBlockHash() == NULL_BLOCK_HASH);
   }
 
   last_cert_voted_value_ = NULL_BLOCK_HASH;
