@@ -15,6 +15,8 @@
 #include "network/network.hpp"
 #include "transaction_manager/transaction_manager.hpp"
 
+#define NULL_BLOCK_HASH blk_hash_t(0)
+
 namespace taraxa {
 
 Dag::Dag(blk_hash_t const &genesis, addr_t node_addr) {
@@ -542,6 +544,12 @@ uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period,
     return 0;
   }
 
+  if (new_anchor == NULL_BLOCK_HASH) {
+    period_ = period;
+    LOG(log_nf_) << "Set new period " << period << " with NULL_BLOCK_HASH anchor";
+    return 0;
+  }
+
   // Update dag counts correctly
   // When synced and gossiping there should not be anything to update
   // When syncing we must check if some of the DAG blocks are both in sync block and in memory DAG although
@@ -597,20 +605,29 @@ uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period,
 
 void DagManager::recoverDag() {
   if (pbft_chain_) {
-    blk_hash_t pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
+    auto pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
     if (pbft_block_hash) {
-      PbftBlock pbft_block = pbft_chain_->getPbftBlockInChain(pbft_block_hash);
-      blk_hash_t dag_block_hash_as_anchor = pbft_block.getPivotDagBlockHash();
-      period_ = pbft_block.getPeriod();
-      anchor_ = dag_block_hash_as_anchor;
-      LOG(log_nf_) << "Recover anchor " << anchor_;
-      addToDag(anchor_, blk_hash_t(), vec_blk_t(), 0, true);
+      period_ = pbft_chain_->getPbftBlockInChain(pbft_block_hash).getPeriod();
+    }
 
+    while (pbft_block_hash) {
+      auto pbft_block = pbft_chain_->getPbftBlockInChain(pbft_block_hash);
+      auto anchor = pbft_block.getPivotDagBlockHash();
       pbft_block_hash = pbft_block.getPrevBlockHash();
-      if (pbft_block_hash) {
-        pbft_block = pbft_chain_->getPbftBlockInChain(pbft_block_hash);
-        dag_block_hash_as_anchor = pbft_block.getPivotDagBlockHash();
-        old_anchor_ = dag_block_hash_as_anchor;
+      if (anchor) {
+        anchor_ = anchor;
+        LOG(log_nf_) << "Recover anchor " << anchor_;
+        addToDag(anchor_, blk_hash_t(), vec_blk_t(), 0, true);
+        break;
+      }
+    }
+
+    if (pbft_block_hash) {
+      auto pbft_block = pbft_chain_->getPbftBlockInChain(pbft_block_hash);
+      auto anchor = pbft_block.getPivotDagBlockHash();
+      if (anchor) {
+        old_anchor_ = anchor;
+        LOG(log_nf_) << "Recover old anchor " << old_anchor_;
       }
     }
   }

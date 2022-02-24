@@ -59,8 +59,9 @@ class SortitionParamsManager {
    * Every `computation_interval` blocks from config launches `recalculate` based on previous data
    * @param block SyncBlock to process
    * @param batch DB batch in which all changes  will be added
+   * @param non_empty_pbft_chain_size PBFT chain size excluding pbft blocks with null anchor
    */
-  void pbftBlockPushed(const SyncBlock& block, DbStorage::Batch& batch);
+  void pbftBlockPushed(const SyncBlock& block, DbStorage::Batch& batch, size_t non_empty_pbft_chain_size);
 
   /**
    * Calculate average DAG efficiency from dag_efficiencies_. Used at the end of interval.
