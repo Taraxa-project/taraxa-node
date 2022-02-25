@@ -418,7 +418,9 @@ std::deque<uint16_t> DbStorage::getLastIntervalEfficiencies(uint16_t changing_in
 
 void DbStorage::cleanupDagEfficiencies(uint64_t current_period) {
   // endKey is not including, so add 1
-  db_->DeleteRange(write_options_, handle(Columns::pbft_block_dag_efficiency), 0, toSlice(current_period + 1));
+  const uint64_t start = 0;
+  db_->DeleteRange(write_options_, handle(Columns::pbft_block_dag_efficiency), toSlice(start),
+                   toSlice(current_period + 1));
 }
 
 // Sortition params
