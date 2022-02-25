@@ -26,13 +26,13 @@ string maxNonceAtRoundKey(uint64_t period, string const& sender_addr_hex) {
 }
 
 struct SenderState {
-  uint64_t nonce_max = 0;
-  optional<uint64_t> nonce_watermark;
+  trx_nonce_t nonce_max = 0;
+  optional<trx_nonce_t> nonce_watermark;
 
-  explicit SenderState(uint64_t nonce_max) : nonce_max(nonce_max) {}
-  explicit SenderState(RLP const& rlp)
+  explicit SenderState(const trx_nonce_t& nonce_max) : nonce_max(nonce_max) {}
+  explicit SenderState(const RLP& rlp)
       : nonce_max(rlp[0].toInt<trx_nonce_t>()),
-        nonce_watermark(rlp[1].toInt<bool>() ? optional(rlp[2].toInt<uint64_t>()) : std::nullopt) {}
+        nonce_watermark(rlp[1].toInt<bool>() ? optional(rlp[2].toInt<trx_nonce_t>()) : std::nullopt) {}
 
   bytes rlp() {
     RLPStream rlp(3);
@@ -53,7 +53,7 @@ class ReplayProtectionServiceImpl : public virtual ReplayProtectionService {
  public:
   ReplayProtectionServiceImpl(Config const& config, shared_ptr<DB> db) : config_(config), db_(move(db)) {}
 
-  bool is_nonce_stale(addr_t const& addr, uint64_t nonce) const override {
+  bool is_nonce_stale(const addr_t& addr, const trx_nonce_t& nonce) const override {
     shared_lock l(mu_);
     auto sender_state = loadSenderState(senderStateKey(addr.hex()));
     if (!sender_state) {
@@ -90,7 +90,7 @@ class ReplayProtectionServiceImpl : public virtual ReplayProtectionService {
     stringstream period_data_keys;
     for (auto const& [sender, state] : sender_states_dirty) {
       db_->insert(batch, DB::Columns::final_chain_replay_protection, maxNonceAtRoundKey(period, sender),
-                  to_string(state->nonce_max));
+                  toString(state->nonce_max));
       db_->insert(batch, DB::Columns::final_chain_replay_protection, senderStateKey(sender), db_slice(state->rlp()));
       period_data_keys << sender << "\n";
     }

@@ -14,11 +14,11 @@ struct ReplayProtectionService {
 
   virtual ~ReplayProtectionService() = default;
 
-  virtual bool is_nonce_stale(addr_t const&, uint64_t) const = 0;
+  virtual bool is_nonce_stale(const addr_t& addr, const trx_nonce_t& nonce) const = 0;
 
   struct TransactionInfo {
     addr_t sender;
-    uint64_t nonce = 0;
+    trx_nonce_t nonce = 0;
   };
   virtual void update(DB::Batch&, uint64_t, util::RangeView<TransactionInfo> const&) = 0;
 };

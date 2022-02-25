@@ -18,8 +18,8 @@ uint64_t toChainID(u256 const &val) {
   return static_cast<uint64_t>(val);
 }
 
-Transaction::Transaction(uint64_t nonce, val_t const &value, val_t const &gas_price, uint64_t gas, bytes data,
-                         secret_t const &sk, optional<addr_t> const &receiver, uint64_t chain_id)
+Transaction::Transaction(const trx_nonce_t &nonce, const val_t &value, const val_t &gas_price, gas_t gas, bytes data,
+                         const secret_t &sk, const optional<addr_t> &receiver, uint64_t chain_id)
     : nonce_(nonce),
       value_(value),
       gas_price_(gas_price),
@@ -34,7 +34,7 @@ Transaction::Transaction(uint64_t nonce, val_t const &value, val_t const &gas_pr
   getSender();
 }
 
-Transaction::Transaction(dev::RLP const &_rlp, bool verify_strict, h256 const &hash)
+Transaction::Transaction(const dev::RLP &_rlp, bool verify_strict, const h256 &hash)
     : hash_(hash), hash_initialized_(!hash.isZero()) {
   u256 v, r, s;
   util::rlp_tuple(util::RLPDecoderRef(_rlp, verify_strict), nonce_, gas_price_, gas_, receiver_, value_, data_, v, r,

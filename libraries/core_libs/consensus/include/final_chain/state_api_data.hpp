@@ -45,8 +45,8 @@ struct EVMTransaction {
   addr_t from;
   u256 gas_price;
   std::optional<addr_t> to;
-  uint64_t nonce = 0;
-  u256 value;
+  trx_nonce_t nonce = 0;
+  val_t value;
   gas_t gas = 0;
   bytes input;
 

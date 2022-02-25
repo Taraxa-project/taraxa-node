@@ -15,10 +15,10 @@ struct Transaction {
   };
 
  private:
-  uint64_t nonce_ = 0;
+  trx_nonce_t nonce_ = 0;
   val_t value_ = 0;
   val_t gas_price_;
-  uint64_t gas_ = 0;
+  gas_t gas_ = 0;
   bytes data_;
   std::optional<addr_t> receiver_;
   uint64_t chain_id_ = 0;
@@ -42,10 +42,10 @@ struct Transaction {
  public:
   // TODO eliminate and use shared_ptr<Transaction> everywhere
   Transaction() : is_zero_(true){};
-  Transaction(uint64_t nonce, val_t const &value, val_t const &gas_price, uint64_t gas, bytes data, secret_t const &sk,
-              std::optional<addr_t> const &receiver = std::nullopt, uint64_t chain_id = 0);
-  explicit Transaction(dev::RLP const &_rlp, bool verify_strict = false, h256 const &hash = {});
-  explicit Transaction(bytes const &_rlp, bool verify_strict = false, h256 const &hash = {})
+  Transaction(const trx_nonce_t &nonce, const val_t &value, const val_t &gas_price, gas_t gas, bytes data,
+              const secret_t &sk, const std::optional<addr_t> &receiver = std::nullopt, uint64_t chain_id = 0);
+  explicit Transaction(const dev::RLP &_rlp, bool verify_strict = false, const h256 &hash = {});
+  explicit Transaction(const bytes &_rlp, bool verify_strict = false, const h256 &hash = {})
       : Transaction(dev::RLP(_rlp), verify_strict, hash) {}
 
   auto isZero() const { return is_zero_; }
