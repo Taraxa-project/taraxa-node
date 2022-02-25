@@ -35,6 +35,8 @@ class VrfSortitionBase {
     thresholdFromOutput();
   }
 
+  static dev::bytes makeVrfInput(taraxa::level_t level, const dev::h256 &period_hash);
+
   bool verify(bytes const &msg) const;
 
   bool operator==(VrfSortitionBase const &other) const {

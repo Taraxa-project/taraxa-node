@@ -112,6 +112,22 @@ inline bool wait(wait_opts const& opts, std::function<void(wait_ctx&)> const& po
     EXPECT_LT(o1, o2);                      \
   }
 
+#define WAIT_EXPECT_GT(ctx, o1, o2)         \
+  if (o1 <= o2) {                           \
+    if (ctx.fail(); !ctx.is_last_attempt) { \
+      return;                               \
+    }                                       \
+    EXPECT_GT(o1, o2);                      \
+  }
+
+#define WAIT_EXPECT_GE(ctx, o1, o2)         \
+  if (o1 < o2) {                            \
+    if (ctx.fail(); !ctx.is_last_attempt) { \
+      return;                               \
+    }                                       \
+    EXPECT_GE(o1, o2);                      \
+  }
+
 template <uint tests_speed = 1, bool enable_rpc_http = false, bool enable_rpc_ws = false>
 inline auto make_node_cfgs(uint count) {
   static auto const ret = [] {

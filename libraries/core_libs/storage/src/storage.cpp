@@ -476,7 +476,7 @@ void DbStorage::savePeriodData(const SyncBlock& sync_block, Batch& write_batch) 
   insert(write_batch, Columns::period_data, toSlice(period), toSlice(sync_block.rlp()));
 }
 
-dev::bytes DbStorage::getPeriodDataRaw(uint64_t period) {
+dev::bytes DbStorage::getPeriodDataRaw(uint64_t period) const {
   return asBytes(lookup(toSlice(period), Columns::period_data));
 }
 
@@ -541,12 +541,20 @@ std::unordered_map<trx_hash_t, uint32_t> DbStorage::getAllTransactionPeriod() {
   return res;
 }
 
-std::optional<PbftBlock> DbStorage::getPbftBlock(uint64_t period) {
+std::optional<PbftBlock> DbStorage::getPbftBlock(uint64_t period) const {
   auto period_data = getPeriodDataRaw(period);
   // DB is corrupted if status point to missing or incorrect transaction
   if (period_data.size() > 0) {
     auto period_data_rlp = dev::RLP(period_data);
     return std::optional<PbftBlock>(period_data_rlp[PBFT_BLOCK_POS_IN_PERIOD_DATA]);
+  }
+  return {};
+}
+
+blk_hash_t DbStorage::getPeriodBlockHash(uint64_t period) const {
+  const auto& blk = getPbftBlock(period);
+  if (blk.has_value()) {
+    return blk->getBlockHash();
   }
   return {};
 }

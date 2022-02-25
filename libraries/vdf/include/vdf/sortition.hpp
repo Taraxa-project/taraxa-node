@@ -23,7 +23,7 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
   };
 
   VdfSortition() = default;
-  explicit VdfSortition(SortitionParams const& config, vrf_sk_t const& sk, bytes const& msg);
+  explicit VdfSortition(SortitionParams const& config, vrf_sk_t const& sk, bytes const& vrf_input);
   explicit VdfSortition(bytes const& b);
   explicit VdfSortition(Json::Value const& json);
 

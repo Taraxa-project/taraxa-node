@@ -90,9 +90,6 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
 
   void onNewBlockReceived(DagBlock &&block);
 
-  void sendTestMessage(dev::p2p::NodeID const &id, int x, std::vector<char> const &data);
-  std::pair<size_t, uint64_t> retrieveTestData(const dev::p2p::NodeID &node_id);
-
   // PBFT
   void sendPbftBlock(dev::p2p::NodeID const &id, PbftBlock const &pbft_block, uint64_t pbft_chain_size);
   void sendPbftVote(dev::p2p::NodeID const &id, std::shared_ptr<Vote> const &vote);

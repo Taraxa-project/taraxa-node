@@ -17,6 +17,8 @@
 
 namespace taraxa::core_tests {
 
+using vrf_wrapper::VrfSortitionBase;
+
 const unsigned NUM_TRX = 10;
 auto g_secret = Lazy([] {
   return dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
@@ -77,49 +79,64 @@ TEST_F(NetworkTest, transfer_block) {
   ASSERT_EQ(1, num_received);
 }
 
-// Test creates two Network setup and verifies sending blocks
-// between is successfull
+// Test creates two Network setup and verifies sending blocks between is successfull
 TEST_F(NetworkTest, transfer_lot_of_blocks) {
   auto node_cfgs = make_node_cfgs<20>(2);
   auto nodes = launch_nodes(node_cfgs);
-  nodes[0]->getPbftManager()->stop();
-  nodes[1]->getPbftManager()->stop();
+  const auto& node1 = nodes[0];
+  const auto& node2 = nodes[1];
 
+  // Stop PBFT manager
+  node1->getPbftManager()->stop();
+  node2->getPbftManager()->stop();
+
+  const auto db1 = node1->getDB();
+  const auto dag_blk_mgr1 = node1->getDagBlockManager();
+  const auto dag_blk_mgr2 = node2->getDagBlockManager();
+  const auto nw1 = node1->getNetwork();
+  const auto nw2 = node2->getNetwork();
+
+  // node1 add one valid block
+  const auto proposal_level = 1;
+  const auto proposal_period = dag_blk_mgr1->getProposalPeriod(proposal_level).first;
+  const auto period_block_hash = db1->getPeriodBlockHash(proposal_period);
+  const auto sortition_params = dag_blk_mgr1->sortitionParamsManager().getSortitionParams(proposal_period);
+  vdf_sortition::VdfSortition vdf(sortition_params, node1->getVrfSecretKey(),
+                                  VrfSortitionBase::makeVrfInput(proposal_level, period_block_hash));
+  auto dag_genesis = node1->getConfig().chain.dag_genesis_block.getHash();
+  vdf.computeVdfSolution(sortition_params, dag_genesis.asBytes());
+  DagBlock blk(dag_genesis, proposal_level, {}, {samples::createSignedTrxSamples(0, 1, g_secret)[0]->getHash()}, vdf,
+               node1->getSecretKey());
+  auto block_hash = blk.getHash();
   std::vector<std::shared_ptr<DagBlock>> dag_blocks;
-  std::vector<trx_hash_t> trx_hashes;
+  dag_blocks.emplace_back(std::make_shared<DagBlock>(blk));
 
-  // creating a lot of trxs
+  // creating lot of non valid blocks just for size
+  std::vector<trx_hash_t> trx_hashes;
   auto trxs = samples::createSignedTrxSamples(0, 1500, g_secret);
   for (const auto& trx : trxs) {
     trx_hashes.push_back(trx->getHash());
   }
-
-  // add one valid block
-  auto dag_genesis = nodes[0]->getConfig().chain.dag_genesis_block.getHash();
-  SortitionConfig vdf_config(node_cfgs[0].chain.sortition);
-  vdf_sortition::VdfSortition vdf(vdf_config, nodes[0]->getVrfSecretKey(), getRlpBytes(1));
-  vdf.computeVdfSolution(vdf_config, dag_genesis.asBytes());
-  DagBlock blk(dag_genesis, 1, {}, {samples::createSignedTrxSamples(0, 1, g_secret)[0]->getHash()}, vdf,
-               nodes[0]->getSecretKey());
-
-  auto block_hash = blk.getHash();
-  dag_blocks.emplace_back(std::make_shared<DagBlock>(blk));
-
-  // creating lot of non valid blocks just for size
   for (int i = 0; i < 100; ++i) {
     DagBlock blk(blk_hash_t(1111 + i), 0, {blk_hash_t(222 + i), blk_hash_t(333 + i), blk_hash_t(444 + i)}, trx_hashes,
                  sig_t(7777 + i), blk_hash_t(888 + i), addr_t(999 + i));
     dag_blocks.emplace_back(std::make_shared<DagBlock>(blk));
   }
 
-  nodes[0]->getNetwork()->onNewTransactions(std::move(trxs));
-  for (auto block : dag_blocks) nodes[0]->getDagBlockManager()->insertAndVerifyBlock(DagBlock(*block));
+  nw1->onNewTransactions(std::move(trxs));
+  for (auto block : dag_blocks) {
+    dag_blk_mgr1->insertAndVerifyBlock(DagBlock(*block));
+  }
+  wait({1s, 200ms}, [&](auto& ctx) { WAIT_EXPECT_NE(ctx, dag_blk_mgr1->getDagBlock(block_hash), nullptr) });
+
   taraxa::thisThreadSleepForSeconds(1);
-  nodes[0]->getNetwork()->sendBlocks(nodes[1]->getNetwork()->getNodeId(), std::move(dag_blocks), {}, 1, 1);
+  const auto node1_period = node1->getPbftChain()->getPbftChainSize();
+  const auto node2_period = node2->getPbftChain()->getPbftChainSize();
+  std::cout << "node1 period " << node1_period << ", node2 period " << node2_period << std::endl;
+  nw1->sendBlocks(nw2->getNodeId(), std::move(dag_blocks), {}, node2_period, node1_period);
 
   std::cout << "Waiting Sync ..." << std::endl;
-  wait({30s, 200ms},
-       [&](auto& ctx) { WAIT_EXPECT_NE(ctx, nodes[1]->getDagBlockManager()->getDagBlock(block_hash), nullptr) });
+  wait({30s, 200ms}, [&](auto& ctx) { WAIT_EXPECT_NE(ctx, dag_blk_mgr2->getDagBlock(block_hash), nullptr) });
 }
 
 TEST_F(NetworkTest, send_pbft_block) {
@@ -189,9 +206,11 @@ TEST_F(NetworkTest, sync_large_pbft_block) {
   const uint32_t MAX_PACKET_SIZE = 15 * 1024 * 1024;  // 15 MB -> 15 * 1024 * 1024 B
   auto node_cfgs = make_node_cfgs<5>(2);
 
-  // Create large transactions with 10k dummy data
+  // Create 250 transactions, each one has 10k dummy data
   bytes dummy_100k_data(100000, 0);
   auto signed_trxs = samples::createSignedTrxSamples(0, 250, g_secret2, dummy_100k_data);
+
+  // node1 own all coins, could produce blocks by itself
   auto nodes = launch_nodes({node_cfgs[0]});
   nodes[0]->getPbftManager()->stop();
 
@@ -207,34 +226,55 @@ TEST_F(NetworkTest, sync_large_pbft_block) {
     }
     nodes[0]->getTransactionManager()->insertTransaction(*signed_trxs[i]);
   }
+
+  const auto node1_pbft_chain = nodes[0]->getPbftChain();
   nodes[0]->getPbftManager()->start();
-  // Wait untill pbft block is created
-  wait({30s, 100ms}, [&](auto& ctx) { ctx.fail_if(nodes[0]->getPbftChain()->getPbftChainSize() == 0); });
-  EXPECT_GT(nodes[0]->getPbftChain()->getPbftChainSize(), 0);
+  EXPECT_HAPPENS({30s, 100ms}, [&](auto& ctx) {
+    WAIT_EXPECT_GT(ctx, node1_pbft_chain->getPbftChainSizeExcludingEmptyPbftBlocks(), 0)
+  });
+  nodes[0]->getPbftManager()->stop();
 
   // Verify that a block over MAX_PACKET_SIZE is created
-  auto pbft_blocks = nodes[0]->getDB()->getPbftBlock(1);
-  size_t total_size = pbft_blocks->rlp(true).size();
-  auto blocks = nodes[0]->getDB()->getFinalizedDagBlockHashesByPeriod(1);
-  for (auto b : blocks) {
-    auto block = nodes[0]->getDB()->getDagBlock(b);
-    EXPECT_NE(block, nullptr);
-    total_size += block->rlp(true).size();
-    for (auto t : block->getTrxs()) {
-      auto trx = nodes[0]->getDB()->getTransaction(t);
-      EXPECT_NE(trx, nullptr);
-      total_size += trx->rlp().size();
+  auto total_size = 0;
+  auto non_empty_last_period = node1_pbft_chain->getPbftChainSize();
+  while (non_empty_last_period > 0) {
+    auto pbft_block = nodes[0]->getDB()->getPbftBlock(non_empty_last_period);
+    if (!pbft_block.has_value()) {
+      non_empty_last_period--;
+      continue;
     }
+    total_size = pbft_block->rlp(true).size();
+    auto blocks = nodes[0]->getDB()->getFinalizedDagBlockHashesByPeriod(non_empty_last_period);
+    for (auto b : blocks) {
+      auto block = nodes[0]->getDB()->getDagBlock(b);
+      EXPECT_NE(block, nullptr);
+      total_size += block->rlp(true).size();
+      for (auto t : block->getTrxs()) {
+        auto trx = nodes[0]->getDB()->getTransaction(t);
+        EXPECT_NE(trx, nullptr);
+        total_size += trx->rlp().size();
+      }
+    }
+    break;
   }
   EXPECT_GT(total_size, MAX_PACKET_SIZE);
 
-  // Launch second node and verify that the large pbft block is synced
+  // Launch node2, node2 own 0 balance, could not vote
   auto nodes2 = launch_nodes({node_cfgs[1]});
-  wait({30s, 100ms}, [&](auto& ctx) { ctx.fail_if(nodes2[0]->getPbftChain()->getPbftChainSize() == 0); });
-  EXPECT_GT(nodes2[0]->getPbftChain()->getPbftChainSize(), 0);
+  nodes[0]->getPbftManager()->stop();
+  const auto node2_pbft_chain = nodes2[0]->getPbftChain();
 
-  auto pbft_blocks1 = nodes[0]->getDB()->getPbftBlock(1);
-  auto pbft_blocks2 = nodes2[0]->getDB()->getPbftBlock(1);
+  // verify that the large pbft block is synced
+  EXPECT_HAPPENS({30s, 100ms}, [&](auto& ctx) {
+    WAIT_EXPECT_EQ(ctx, node2_pbft_chain->getPbftChainSize(), node1_pbft_chain->getPbftChainSize())
+  });
+
+  auto pbft_blocks1 = nodes[0]->getDB()->getPbftBlock(non_empty_last_period);
+  auto pbft_blocks2 = nodes2[0]->getDB()->getPbftBlock(non_empty_last_period);
+  if (pbft_blocks1->rlp(true) != pbft_blocks2->rlp(true)) {
+    std::cout << "PBFT block1 " << *pbft_blocks1 << std::endl;
+    std::cout << "PBFT block2 " << *pbft_blocks2 << std::endl;
+  }
   EXPECT_EQ(pbft_blocks1->rlp(true), pbft_blocks2->rlp(true));
 
   // this sleep is needed to process all remaining packets and destruct all network stuff
@@ -353,32 +393,39 @@ TEST_F(NetworkTest, node_sync) {
   SortitionConfig vdf_config(node_cfgs[0].chain.sortition);
 
   auto propose_level = 1;
-  vdf_sortition::VdfSortition vdf1(vdf_config, vrf_sk, getRlpBytes(propose_level));
+  const auto period_block_hash = node1->getDB()->getPeriodBlockHash(propose_level);
+  vdf_sortition::VdfSortition vdf1(vdf_config, vrf_sk,
+                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
   vdf1.computeVdfSolution(vdf_config, dag_genesis.asBytes());
   DagBlock blk1(dag_genesis, propose_level, {}, {g_signed_trx_samples[1]->getHash()}, vdf1, sk);
 
   propose_level = 2;
-  vdf_sortition::VdfSortition vdf2(vdf_config, vrf_sk, getRlpBytes(propose_level));
+  vdf_sortition::VdfSortition vdf2(vdf_config, vrf_sk,
+                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
   vdf2.computeVdfSolution(vdf_config, blk1.getHash().asBytes());
   DagBlock blk2(blk1.getHash(), propose_level, {}, {g_signed_trx_samples[2]->getHash()}, vdf2, sk);
 
   propose_level = 3;
-  vdf_sortition::VdfSortition vdf3(vdf_config, vrf_sk, getRlpBytes(propose_level));
+  vdf_sortition::VdfSortition vdf3(vdf_config, vrf_sk,
+                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
   vdf3.computeVdfSolution(vdf_config, blk2.getHash().asBytes());
   DagBlock blk3(blk2.getHash(), propose_level, {}, {g_signed_trx_samples[3]->getHash()}, vdf3, sk);
 
   propose_level = 4;
-  vdf_sortition::VdfSortition vdf4(vdf_config, vrf_sk, getRlpBytes(propose_level));
+  vdf_sortition::VdfSortition vdf4(vdf_config, vrf_sk,
+                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
   vdf4.computeVdfSolution(vdf_config, blk3.getHash().asBytes());
   DagBlock blk4(blk3.getHash(), propose_level, {}, {g_signed_trx_samples[4]->getHash()}, vdf4, sk);
 
   propose_level = 5;
-  vdf_sortition::VdfSortition vdf5(vdf_config, vrf_sk, getRlpBytes(propose_level));
+  vdf_sortition::VdfSortition vdf5(vdf_config, vrf_sk,
+                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
   vdf5.computeVdfSolution(vdf_config, blk4.getHash().asBytes());
   DagBlock blk5(blk4.getHash(), propose_level, {}, {g_signed_trx_samples[5]->getHash()}, vdf5, sk);
 
   propose_level = 6;
-  vdf_sortition::VdfSortition vdf6(vdf_config, vrf_sk, getRlpBytes(propose_level));
+  vdf_sortition::VdfSortition vdf6(vdf_config, vrf_sk,
+                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
   vdf6.computeVdfSolution(vdf_config, blk5.getHash().asBytes());
   DagBlock blk6(blk5.getHash(), propose_level, {blk4.getHash(), blk3.getHash()}, {g_signed_trx_samples[6]->getHash()},
                 vdf6, sk);
@@ -927,32 +974,38 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
   auto vrf_sk = node1->getVrfSecretKey();
   SortitionConfig vdf_config(node_cfgs[0].chain.sortition);
   auto propose_level = 1;
-  vdf_sortition::VdfSortition vdf1(vdf_config, vrf_sk, getRlpBytes(propose_level));
+  const auto period_block_hash = node1->getDB()->getPeriodBlockHash(propose_level);
+  vdf_sortition::VdfSortition vdf1(vdf_config, vrf_sk,
+                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
   vdf1.computeVdfSolution(vdf_config, dag_genesis.asBytes());
   DagBlock blk1(dag_genesis, propose_level, {},
                 {g_signed_trx_samples[0]->getHash(), g_signed_trx_samples[1]->getHash()}, vdf1, sk);
   SharedTransactions tr1({g_signed_trx_samples[0], g_signed_trx_samples[1]});
 
   propose_level = 2;
-  vdf_sortition::VdfSortition vdf2(vdf_config, vrf_sk, getRlpBytes(propose_level));
+  vdf_sortition::VdfSortition vdf2(vdf_config, vrf_sk,
+                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
   vdf2.computeVdfSolution(vdf_config, blk1.getHash().asBytes());
   DagBlock blk2(blk1.getHash(), propose_level, {}, {g_signed_trx_samples[2]->getHash()}, vdf2, sk);
   SharedTransactions tr2({g_signed_trx_samples[2]});
 
   propose_level = 3;
-  vdf_sortition::VdfSortition vdf3(vdf_config, vrf_sk, getRlpBytes(propose_level));
+  vdf_sortition::VdfSortition vdf3(vdf_config, vrf_sk,
+                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
   vdf3.computeVdfSolution(vdf_config, blk2.getHash().asBytes());
   DagBlock blk3(blk2.getHash(), propose_level, {}, {g_signed_trx_samples[3]->getHash()}, vdf3, sk);
   SharedTransactions tr3{g_signed_trx_samples[3]};
 
   propose_level = 4;
-  vdf_sortition::VdfSortition vdf4(vdf_config, vrf_sk, getRlpBytes(propose_level));
+  vdf_sortition::VdfSortition vdf4(vdf_config, vrf_sk,
+                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
   vdf4.computeVdfSolution(vdf_config, blk3.getHash().asBytes());
   DagBlock blk4(blk3.getHash(), propose_level, {}, {g_signed_trx_samples[4]->getHash()}, vdf4, sk);
   SharedTransactions tr4({g_signed_trx_samples[3], g_signed_trx_samples[4]});
 
   propose_level = 5;
-  vdf_sortition::VdfSortition vdf5(vdf_config, vrf_sk, getRlpBytes(propose_level));
+  vdf_sortition::VdfSortition vdf5(vdf_config, vrf_sk,
+                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
   vdf5.computeVdfSolution(vdf_config, blk4.getHash().asBytes());
   DagBlock blk5(blk4.getHash(), propose_level, {},
                 {g_signed_trx_samples[5]->getHash(), g_signed_trx_samples[6]->getHash(),
@@ -962,7 +1015,8 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
       {g_signed_trx_samples[5], g_signed_trx_samples[6], g_signed_trx_samples[7], g_signed_trx_samples[8]});
 
   propose_level = 6;
-  vdf_sortition::VdfSortition vdf6(vdf_config, vrf_sk, getRlpBytes(propose_level));
+  vdf_sortition::VdfSortition vdf6(vdf_config, vrf_sk,
+                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
   vdf6.computeVdfSolution(vdf_config, blk5.getHash().asBytes());
   DagBlock blk6(blk5.getHash(), propose_level, {blk4.getHash(), blk3.getHash()}, {g_signed_trx_samples[9]->getHash()},
                 vdf6, sk);
@@ -1012,79 +1066,92 @@ TEST_F(NetworkTest, node_sync2) {
   auto transactions = samples::createSignedTrxSamples(0, NUM_TRX2, sk);
   // DAG block1
   auto propose_level = 1;
-  vdf_sortition::VdfSortition vdf1(vdf_config, vrf_sk, getRlpBytes(propose_level));
+  const auto period_block_hash = node1->getDB()->getPeriodBlockHash(propose_level);
+  vdf_sortition::VdfSortition vdf1(vdf_config, vrf_sk,
+                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
   vdf1.computeVdfSolution(vdf_config, dag_genesis.asBytes());
   DagBlock blk1(dag_genesis, propose_level, {}, {transactions[0]->getHash(), transactions[1]->getHash()}, vdf1, sk);
   SharedTransactions tr1({transactions[0], transactions[1]});
   // DAG block2
   propose_level = 1;
-  vdf_sortition::VdfSortition vdf2(vdf_config, vrf_sk, getRlpBytes(propose_level));
+  vdf_sortition::VdfSortition vdf2(vdf_config, vrf_sk,
+                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
   vdf2.computeVdfSolution(vdf_config, dag_genesis.asBytes());
   DagBlock blk2(dag_genesis, propose_level, {}, {transactions[2]->getHash(), transactions[3]->getHash()}, vdf2, sk);
   SharedTransactions tr2({transactions[2], transactions[3]});
   // DAG block3
   propose_level = 2;
-  vdf_sortition::VdfSortition vdf3(vdf_config, vrf_sk, getRlpBytes(propose_level));
+  vdf_sortition::VdfSortition vdf3(vdf_config, vrf_sk,
+                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
   vdf3.computeVdfSolution(vdf_config, blk1.getHash().asBytes());
   DagBlock blk3(blk1.getHash(), propose_level, {}, {transactions[4]->getHash(), transactions[5]->getHash()}, vdf3, sk);
   SharedTransactions tr3({transactions[4], transactions[5]});
   // DAG block4
   propose_level = 3;
-  vdf_sortition::VdfSortition vdf4(vdf_config, vrf_sk, getRlpBytes(propose_level));
+  vdf_sortition::VdfSortition vdf4(vdf_config, vrf_sk,
+                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
   vdf4.computeVdfSolution(vdf_config, blk3.getHash().asBytes());
   DagBlock blk4(blk3.getHash(), propose_level, {}, {transactions[6]->getHash(), transactions[7]->getHash()}, vdf4, sk);
   SharedTransactions tr4({transactions[6], transactions[7]});
   // DAG block5
   propose_level = 2;
-  vdf_sortition::VdfSortition vdf5(vdf_config, vrf_sk, getRlpBytes(propose_level));
+  vdf_sortition::VdfSortition vdf5(vdf_config, vrf_sk,
+                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
   vdf5.computeVdfSolution(vdf_config, blk2.getHash().asBytes());
   DagBlock blk5(blk2.getHash(), propose_level, {}, {transactions[8]->getHash(), transactions[9]->getHash()}, vdf5, sk);
   SharedTransactions tr5({transactions[8], transactions[9]});
   // DAG block6
   propose_level = 2;
-  vdf_sortition::VdfSortition vdf6(vdf_config, vrf_sk, getRlpBytes(propose_level));
+  vdf_sortition::VdfSortition vdf6(vdf_config, vrf_sk,
+                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
   vdf6.computeVdfSolution(vdf_config, blk1.getHash().asBytes());
   DagBlock blk6(blk1.getHash(), propose_level, {}, {transactions[10]->getHash(), transactions[11]->getHash()}, vdf6,
                 sk);
   SharedTransactions tr6({transactions[10], transactions[11]});
   // DAG block7
   propose_level = 3;
-  vdf_sortition::VdfSortition vdf7(vdf_config, vrf_sk, getRlpBytes(propose_level));
+  vdf_sortition::VdfSortition vdf7(vdf_config, vrf_sk,
+                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
   vdf7.computeVdfSolution(vdf_config, blk6.getHash().asBytes());
   DagBlock blk7(blk6.getHash(), propose_level, {}, {transactions[12]->getHash(), transactions[13]->getHash()}, vdf7,
                 sk);
   SharedTransactions tr7({transactions[12], transactions[13]});
   // DAG block8
   propose_level = 4;
-  vdf_sortition::VdfSortition vdf8(vdf_config, vrf_sk, getRlpBytes(propose_level));
+  vdf_sortition::VdfSortition vdf8(vdf_config, vrf_sk,
+                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
   vdf8.computeVdfSolution(vdf_config, blk1.getHash().asBytes());
   DagBlock blk8(blk1.getHash(), propose_level, {blk7.getHash()},
                 {transactions[14]->getHash(), transactions[15]->getHash()}, vdf8, sk);
   SharedTransactions tr8({transactions[14], transactions[15]});
   // DAG block9
   propose_level = 2;
-  vdf_sortition::VdfSortition vdf9(vdf_config, vrf_sk, getRlpBytes(propose_level));
+  vdf_sortition::VdfSortition vdf9(vdf_config, vrf_sk,
+                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
   vdf9.computeVdfSolution(vdf_config, blk1.getHash().asBytes());
   DagBlock blk9(blk1.getHash(), propose_level, {}, {transactions[16]->getHash(), transactions[17]->getHash()}, vdf9,
                 sk);
   SharedTransactions tr9({transactions[16], transactions[17]});
   // DAG block10
   propose_level = 5;
-  vdf_sortition::VdfSortition vdf10(vdf_config, vrf_sk, getRlpBytes(propose_level));
+  vdf_sortition::VdfSortition vdf10(vdf_config, vrf_sk,
+                                    VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
   vdf10.computeVdfSolution(vdf_config, blk8.getHash().asBytes());
   DagBlock blk10(blk8.getHash(), propose_level, {}, {transactions[18]->getHash(), transactions[19]->getHash()}, vdf10,
                  sk);
   SharedTransactions tr10({transactions[18], transactions[19]});
   // DAG block11
   propose_level = 3;
-  vdf_sortition::VdfSortition vdf11(vdf_config, vrf_sk, getRlpBytes(propose_level));
+  vdf_sortition::VdfSortition vdf11(vdf_config, vrf_sk,
+                                    VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
   vdf11.computeVdfSolution(vdf_config, blk3.getHash().asBytes());
   DagBlock blk11(blk3.getHash(), propose_level, {}, {transactions[20]->getHash(), transactions[21]->getHash()}, vdf11,
                  sk);
   SharedTransactions tr11({transactions[20], transactions[21]});
   // DAG block12
   propose_level = 3;
-  vdf_sortition::VdfSortition vdf12(vdf_config, vrf_sk, getRlpBytes(propose_level));
+  vdf_sortition::VdfSortition vdf12(vdf_config, vrf_sk,
+                                    VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
   vdf12.computeVdfSolution(vdf_config, blk5.getHash().asBytes());
   DagBlock blk12(blk5.getHash(), propose_level, {}, {transactions[22]->getHash(), transactions[23]->getHash()}, vdf12,
                  sk);
@@ -1290,7 +1357,6 @@ TEST_F(NetworkTest, node_full_sync) {
               nodes[0]->getDagManager()->getNumVerticesInDag().first);
     EXPECT_EQ(nodes[i]->getDagManager()->getNumVerticesInDag().first, nodes[i]->getDB()->getNumDagBlocks());
     EXPECT_EQ(nodes[i]->getDagManager()->getNumEdgesInDag().first, nodes[0]->getDagManager()->getNumEdgesInDag().first);
-    EXPECT_TRUE(!nodes[i]->getNetwork()->pbft_syncing());
   }
 
   // Write any DAG diff

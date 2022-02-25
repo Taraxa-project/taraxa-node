@@ -127,9 +127,6 @@ void PbftManager::run() {
 
 // Only to be used for tests...
 void PbftManager::resume() {
-  if (!stopped_.load()) daemon_->join();
-  stopped_ = false;
-
   // Will only appear in testing...
   LOG(log_si_) << "Resuming PBFT daemon...";
 
@@ -175,7 +172,7 @@ void PbftManager::resumeSingleState() {
     state_ = finish_polling_state;
   }
 
-  daemon_ = std::make_unique<std::thread>([this]() { doNextState_(); });
+  doNextState_();
 }
 
 // Only to be used for tests...
@@ -329,19 +326,19 @@ void PbftManager::setPbftStep(size_t const pbft_step) {
   db_->savePbftMgrField(PbftMgrRoundStep::PbftStep, pbft_step);
   step_ = pbft_step;
 
-  // if (step_ > MAX_STEPS && LAMBDA_backoff_multiple < 8) {
-  //   // Note: We calculate the lambda for a step independently of prior steps
-  //   //       in case missed earlier steps.
-  //   std::uniform_int_distribution<u_long> distribution(0, step_ - MAX_STEPS);
-  //   auto lambda_random_count = distribution(random_engine_);
-  //   LAMBDA_backoff_multiple = 2 * LAMBDA_backoff_multiple;
-  //   LAMBDA_ms = LAMBDA_ms_MIN * (LAMBDA_backoff_multiple + lambda_random_count);
-  //   LOG(log_si_) << "Surpassed max steps, exponentially backing off lambda to " << LAMBDA_ms << " ms in round "
-  //               << getPbftRound() << ", step " << step_;
-  // } else {
-  //   LAMBDA_ms = LAMBDA_ms_MIN;
-  //   LAMBDA_backoff_multiple = 1;
-  // }
+  if (step_ > MAX_STEPS && LAMBDA_backoff_multiple < 8) {
+    // Note: We calculate the lambda for a step independently of prior steps
+    //       in case missed earlier steps.
+    std::uniform_int_distribution<u_long> distribution(0, step_ - MAX_STEPS);
+    auto lambda_random_count = distribution(random_engine_);
+    LAMBDA_backoff_multiple = 2 * LAMBDA_backoff_multiple;
+    LAMBDA_ms = std::min(kMaxLambda, LAMBDA_ms_MIN * (LAMBDA_backoff_multiple + lambda_random_count));
+    LOG(log_dg_) << "Surpassed max steps, exponentially backing off lambda to " << LAMBDA_ms << " ms in round "
+                 << getPbftRound() << ", step " << step_;
+  } else {
+    LAMBDA_ms = LAMBDA_ms_MIN;
+    LAMBDA_backoff_multiple = 1;
+  }
 }
 
 void PbftManager::resetStep_() {
@@ -431,7 +428,6 @@ bool PbftManager::resetRound_() {
     executed_pbft_block_ = false;
   }
 
-  LAMBDA_ms = LAMBDA_ms_MIN;
   last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
   current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
 
@@ -443,7 +439,7 @@ void PbftManager::sleep_() {
   now_ = std::chrono::system_clock::now();
   duration_ = now_ - round_clock_initial_datetime_;
   elapsed_time_in_round_ms_ = std::chrono::duration_cast<std::chrono::milliseconds>(duration_).count();
-  LOG(log_tr_) << "elapsed time in round(ms): " << elapsed_time_in_round_ms_;
+  LOG(log_tr_) << "elapsed time in round(ms): " << elapsed_time_in_round_ms_ << ", step " << step_;
   // Add 25ms for practical reality that a thread will not stall for less than 10-25 ms...
   if (next_step_time_ms_ > elapsed_time_in_round_ms_ + 25) {
     auto time_to_sleep_for_ms = next_step_time_ms_ - elapsed_time_in_round_ms_;
@@ -598,7 +594,7 @@ void PbftManager::setNextState_() {
       LOG(log_er_) << "Unknown PBFT state " << state_;
       assert(false);
   }
-  LOG(log_tr_) << "next step time(ms): " << next_step_time_ms_;
+  LOG(log_tr_) << "next step time(ms): " << next_step_time_ms_ << ", step " << step_;
 }
 
 void PbftManager::setFilterState_() {
@@ -662,7 +658,7 @@ void PbftManager::loopBackFinishState_() {
   next_voted_null_block_hash_ = false;
   polling_state_print_log_ = true;
   assert(step_ >= startingStepInRound_);
-  next_step_time_ms_ = (1 + step_ - startingStepInRound_) * LAMBDA_ms;
+  next_step_time_ms_ += POLLING_INTERVAL_ms;
   last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
   current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
 }
@@ -677,8 +673,7 @@ bool PbftManager::stateOperations_() {
   elapsed_time_in_round_ms_ = std::chrono::duration_cast<std::chrono::milliseconds>(duration_).count();
 
   auto round = getPbftRound();
-  LOG(log_tr_) << "PBFT current round is " << round;
-  LOG(log_tr_) << "PBFT current step is " << step_;
+  LOG(log_tr_) << "PBFT current round is " << round << ", step is " << step_;
 
   // Periodically verify unverified votes
   vote_mgr_->verifyVotes(round, [this](auto const &v) {
@@ -803,14 +798,13 @@ void PbftManager::proposeBlock_() {
                    << " for round 1 by protocol";
     }
   } else if (round >= 2 && giveUpNextVotedBlock_()) {
-    // PBFT block only be proposed once in one period
-    if (!proposed_block_hash_.second || proposed_block_hash_.first == NULL_BLOCK_HASH) {
-      // Propose value...
-      proposed_block_hash_ = proposeMyPbftBlock_();
+    // PBFT block only be able to propose once in each period
+    if (!proposed_block_hash_) {
+      proposed_block_hash_ = proposePbftBlock_();
     }
-    if (proposed_block_hash_.second) {
-      db_->savePbftMgrVotedValue(PbftMgrVotedValue::OwnStartingValueInRound, proposed_block_hash_.first);
-      own_starting_value_for_round_ = proposed_block_hash_.first;
+    if (proposed_block_hash_) {
+      db_->savePbftMgrVotedValue(PbftMgrVotedValue::OwnStartingValueInRound, proposed_block_hash_);
+      own_starting_value_for_round_ = proposed_block_hash_;
 
       auto place_votes = placeVote_(own_starting_value_for_round_, propose_vote_type, round, step_);
       if (place_votes) {
@@ -853,18 +847,18 @@ void PbftManager::identifyBlock_() {
 
   if (round == 1 || (round >= 2 && giveUpNextVotedBlock_())) {
     // Identity leader
-    std::pair<blk_hash_t, bool> leader_block = identifyLeaderBlock_();
-    if (leader_block.second) {
-      db_->savePbftMgrVotedValue(PbftMgrVotedValue::OwnStartingValueInRound, leader_block.first);
-      own_starting_value_for_round_ = leader_block.first;
-      LOG(log_dg_) << "Identify leader block " << leader_block.first << " at round " << round;
+    auto leader_block = identifyLeaderBlock_();
+    if (leader_block) {
+      db_->savePbftMgrVotedValue(PbftMgrVotedValue::OwnStartingValueInRound, leader_block);
+      own_starting_value_for_round_ = leader_block;
+      LOG(log_dg_) << "Identify leader block " << leader_block << " at round " << round;
 
-      auto place_votes = placeVote_(leader_block.first, soft_vote_type, round, step_);
+      auto place_votes = placeVote_(leader_block, soft_vote_type, round, step_);
 
-      updateLastSoftVotedValue_(leader_block.first);
+      updateLastSoftVotedValue_(leader_block);
 
       if (place_votes) {
-        LOG(log_nf_) << "Soft votes " << place_votes << " voting block " << leader_block.first << " at round " << round;
+        LOG(log_nf_) << "Soft votes " << place_votes << " voting block " << leader_block << " at round " << round;
       }
     }
   } else if (round >= 2 && previous_round_next_voted_value_ != NULL_BLOCK_HASH) {
@@ -1027,6 +1021,7 @@ void PbftManager::secondFinish_() {
   LOG(log_tr_) << "PBFT second finishing state at step " << step_ << " in round " << round;
   assert(step_ >= startingStepInRound_);
   auto end_time_for_step = (2 + step_ - startingStepInRound_) * LAMBDA_ms - POLLING_INTERVAL_ms;
+  LOG(log_tr_) << "Step " << step_ << " end time " << end_time_for_step;
 
   updateSoftVotedBlockForThisRound_();
   if (soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH && soft_voted_block_for_this_round_.second) {
@@ -1089,6 +1084,26 @@ void PbftManager::secondFinish_() {
   loop_back_finish_state_ = elapsed_time_in_round_ms_ > end_time_for_step;
 }
 
+blk_hash_t PbftManager::generatePbftBlock(const blk_hash_t &prev_blk_hash, const blk_hash_t &anchor_hash,
+                                          const blk_hash_t &order_hash) {
+  auto propose_period = pbft_chain_->getPbftChainSize() + 1;
+  const auto pbft_block =
+      std::make_shared<PbftBlock>(prev_blk_hash, anchor_hash, order_hash, propose_period, node_addr_, node_sk_);
+
+  // push pbft block
+  pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
+
+  // broadcast pbft block
+  if (auto net = network_.lock()) {
+    net->onNewPbftBlock(pbft_block);
+  }
+
+  LOG(log_dg_) << node_addr_ << " propose PBFT block succussful! in round: " << round_ << " in step: " << step_
+               << " PBFT block: " << pbft_block;
+
+  return pbft_block->getBlockHash();
+}
+
 std::shared_ptr<Vote> PbftManager::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, uint64_t round,
                                                 size_t step) {
   // sortition proof
@@ -1131,6 +1146,9 @@ size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteType
 
 blk_hash_t PbftManager::calculateOrderHash(std::vector<blk_hash_t> const &dag_block_hashes,
                                            std::vector<trx_hash_t> const &trx_hashes) {
+  if (dag_block_hashes.empty()) {
+    return NULL_BLOCK_HASH;
+  }
   dev::RLPStream order_stream(2);
   order_stream.appendList(dag_block_hashes.size());
   for (auto const &blk_hash : dag_block_hashes) {
@@ -1145,6 +1163,9 @@ blk_hash_t PbftManager::calculateOrderHash(std::vector<blk_hash_t> const &dag_bl
 
 blk_hash_t PbftManager::calculateOrderHash(std::vector<DagBlock> const &dag_blocks,
                                            std::vector<Transaction> const &trxs) {
+  if (dag_blocks.empty()) {
+    return NULL_BLOCK_HASH;
+  }
   dev::RLPStream order_stream(2);
   order_stream.appendList(dag_blocks.size());
   for (auto const &blk : dag_blocks) {
@@ -1157,34 +1178,47 @@ blk_hash_t PbftManager::calculateOrderHash(std::vector<DagBlock> const &dag_bloc
   return dev::sha3(order_stream.out());
 }
 
-std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
+blk_hash_t PbftManager::proposePbftBlock_() {
   auto round = getPbftRound();
   VrfPbftSortition vrf_sortition(vrf_sk_, {propose_vote_type, round, 1});
   if (weighted_votes_count_ == 0 ||
       !vrf_sortition.calculateWeight(getDposWeightedVotesCount(), getDposTotalVotesCount(),
                                      getThreshold(propose_vote_type), dev::toPublic(node_sk_))) {
-    return std::make_pair(NULL_BLOCK_HASH, false);
+    return NULL_BLOCK_HASH;
   }
 
   LOG(log_dg_) << "Into propose PBFT block";
   blk_hash_t last_period_dag_anchor_block_hash;
   auto last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
   if (last_pbft_block_hash) {
-    last_period_dag_anchor_block_hash = pbft_chain_->getPbftBlockInChain(last_pbft_block_hash).getPivotDagBlockHash();
+    auto prev_block_hash = last_pbft_block_hash;
+    auto prev_pbft_block = pbft_chain_->getPbftBlockInChain(prev_block_hash);
+    last_period_dag_anchor_block_hash = prev_pbft_block.getPivotDagBlockHash();
+    while (!last_period_dag_anchor_block_hash) {
+      // The anchor is NULL BLOCK HASH
+      prev_block_hash = prev_pbft_block.getPrevBlockHash();
+      if (!prev_block_hash) {
+        // The genesis PBFT block head
+        last_period_dag_anchor_block_hash = dag_genesis_;
+        break;
+      }
+      prev_pbft_block = pbft_chain_->getPbftBlockInChain(prev_block_hash);
+      last_period_dag_anchor_block_hash = prev_pbft_block.getPivotDagBlockHash();
+    }
   } else {
-    // First PBFT pivot block
+    // First PBFT block
     last_period_dag_anchor_block_hash = dag_genesis_;
   }
 
   std::vector<blk_hash_t> ghost;
   dag_mgr_->getGhostPath(last_period_dag_anchor_block_hash, ghost);
   LOG(log_dg_) << "GHOST size " << ghost.size();
-  // Looks like ghost never empty, at lease include the last period dag anchor block
+  // Looks like ghost never empty, at least include the last period dag anchor block
   if (ghost.empty()) {
-    LOG(log_dg_) << "GHOST is empty. No new DAG blocks generated, PBFT "
-                    "propose NULL_BLOCK_HASH";
-    return std::make_pair(NULL_BLOCK_HASH, true);
+    LOG(log_dg_) << "GHOST is empty. No new DAG blocks generated, PBFT propose NULL BLOCK HASH anchor";
+    return generatePbftBlock(last_pbft_block_hash, NULL_BLOCK_HASH, NULL_BLOCK_HASH);
   }
+
   blk_hash_t dag_block_hash;
   if (ghost.size() <= DAG_BLOCKS_SIZE) {
     // Move back GHOST_PATH_MOVE_BACK DAG blocks for DAG sycning
@@ -1199,26 +1233,25 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
   } else {
     dag_block_hash = ghost[DAG_BLOCKS_SIZE - 1];
   }
+
   if (dag_block_hash == dag_genesis_) {
     LOG(log_dg_) << "No new DAG blocks generated. DAG only has genesis " << dag_block_hash
-                 << " PBFT propose NULL_BLOCK_HASH";
-    return std::make_pair(NULL_BLOCK_HASH, true);
+                 << " PBFT propose NULL BLOCK HASH anchor";
+    return generatePbftBlock(last_pbft_block_hash, NULL_BLOCK_HASH, NULL_BLOCK_HASH);
   }
-  // compare with last dag block hash. If they are same, which means no new
-  // dag blocks generated since last round. In that case PBFT proposer should
-  // propose NULL BLOCK HASH as their value and not produce a new block. In
-  // practice this should never happen
+
+  // Compare with last dag block hash. If they are same, which means no new dag blocks generated since last round. In
+  // that case PBFT proposer should propose NULL BLOCK HASH anchor as their value
   if (dag_block_hash == last_period_dag_anchor_block_hash) {
     LOG(log_dg_) << "Last period DAG anchor block hash " << dag_block_hash
-                 << " No new DAG blocks generated, PBFT propose NULL_BLOCK_HASH";
+                 << " No new DAG blocks generated, PBFT propose NULL BLOCK HASH anchor";
     LOG(log_dg_) << "Ghost: " << ghost;
-    return std::make_pair(NULL_BLOCK_HASH, true);
+    return generatePbftBlock(last_pbft_block_hash, NULL_BLOCK_HASH, NULL_BLOCK_HASH);
   }
 
-  const uint64_t propose_pbft_period = pbft_chain_->getPbftChainSize() + 1;
-
   // get DAG block and transaction order
-  auto dag_block_order = dag_mgr_->getDagBlockOrder(dag_block_hash, propose_pbft_period);
+  const auto propose_period = pbft_chain_->getPbftChainSize() + 1;
+  auto dag_block_order = dag_mgr_->getDagBlockOrder(dag_block_hash, propose_period);
   if (dag_block_order.empty()) {
     LOG(log_er_) << "DAG anchor block hash " << dag_block_hash << " getDagBlockOrder failed in propose";
     assert(false);
@@ -1252,60 +1285,12 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
                  [](const auto &t) { return t->getHash(); });
 
   auto order_hash = calculateOrderHash(dag_block_order, non_finalized_transactions);
-
-  // generate generate pbft block
-  auto pbft_block = std::make_shared<PbftBlock>(last_pbft_block_hash, dag_block_hash, order_hash, propose_pbft_period,
-                                                node_addr_, node_sk_);
-
-  LOG(log_nf_) << "Proposed Pbft block: " << pbft_block->getBlockHash() << ". Order hash:" << order_hash
+  auto pbft_block_hash = generatePbftBlock(last_pbft_block_hash, dag_block_hash, order_hash);
+  LOG(log_nf_) << "Proposed Pbft block: " << pbft_block_hash << ". Order hash:" << order_hash
                << ". DAG order for proposed block" << dag_block_order << ". Transaction order for proposed block"
                << non_finalized_transactions;
 
-  // push pbft block
-  pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
-  // broadcast pbft block
-  if (auto net = network_.lock()) {
-    net->onNewPbftBlock(pbft_block);
-  }
-
-  LOG(log_dg_) << node_addr_ << " propose PBFT block succussful! in round: " << round << " in step: " << step_
-               << " PBFT block: " << pbft_block;
-  return std::make_pair(pbft_block->getBlockHash(), true);
-}
-
-std::vector<std::vector<uint>> PbftManager::createMockTrxSchedule(
-    std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>> trx_overlap_table) {
-  std::vector<std::vector<uint>> blocks_trx_modes;
-
-  if (!trx_overlap_table) {
-    LOG(log_er_) << "Transaction overlap table nullptr, cannot create mock "
-                 << "transactions schedule";
-    return blocks_trx_modes;
-  }
-
-  for (size_t i = 0; i < trx_overlap_table->size(); i++) {
-    blk_hash_t &dag_block_hash = (*trx_overlap_table)[i].first;
-    auto blk = dag_blk_mgr_->getDagBlock(dag_block_hash);
-    if (!blk) {
-      LOG(log_er_) << "Cannot create schedule block, DAG block missing " << dag_block_hash;
-      continue;
-    }
-
-    auto num_trx = blk->getTrxs().size();
-    std::vector<uint> block_trx_modes;
-    for (size_t j = 0; j < num_trx; j++) {
-      if ((*trx_overlap_table)[i].second[j]) {
-        // trx sequential mode
-        block_trx_modes.emplace_back(1);
-      } else {
-        // trx invalid mode
-        block_trx_modes.emplace_back(0);
-      }
-    }
-    blocks_trx_modes.emplace_back(block_trx_modes);
-  }
-
-  return blocks_trx_modes;
+  return pbft_block_hash;
 }
 
 h256 PbftManager::getProposal(const std::shared_ptr<Vote> &vote) const {
@@ -1321,20 +1306,18 @@ h256 PbftManager::getProposal(const std::shared_ptr<Vote> &vote) const {
   return lowest_hash;
 }
 
-std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_() {
+blk_hash_t PbftManager::identifyLeaderBlock_() {
   auto round = getPbftRound();
   LOG(log_dg_) << "Into identify leader block, in round " << round;
 
   // Get all proposal votes in the round
   auto votes = vote_mgr_->getProposalVotes(round);
 
-  // each leader candidate with <vote_signature_hash, pbft_block_hash>
+  // Each leader candidate with <vote_signature_hash, pbft_block_hash>
   std::vector<std::pair<h256, blk_hash_t>> leader_candidates;
 
   for (auto const &v : votes) {
     if (v->getRound() == round && v->getType() == propose_vote_type) {
-      // We should not pick any null block as leader (proposed when
-      // no new blocks found, or maliciously) if others have blocks.
       auto proposed_block_hash = v->getBlockHash();
 
       // Make sure we don't keep soft voting for soft value we want to give up...
@@ -1342,20 +1325,20 @@ std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_() {
         continue;
       }
 
-      if (round == 1 ||
-          (proposed_block_hash != NULL_BLOCK_HASH && !pbft_chain_->findPbftBlockInChain(proposed_block_hash))) {
+      if (round == 1 || !pbft_chain_->findPbftBlockInChain(proposed_block_hash)) {
         leader_candidates.emplace_back(std::make_pair(getProposal(v), proposed_block_hash));
       }
     }
   }
+
   if (leader_candidates.empty()) {
     // no eligible leader
-    return std::make_pair(NULL_BLOCK_HASH, false);
+    return NULL_BLOCK_HASH;
   }
+
   const auto leader = *std::min_element(leader_candidates.begin(), leader_candidates.end(),
                                         [](const auto &i, const auto &j) { return i.first < j.first; });
-
-  return std::make_pair(leader.second, true);
+  return leader.second;
 }
 
 bool PbftManager::syncRequestedAlreadyThisStep_() const {
@@ -1425,24 +1408,31 @@ bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(blk_hash_t const &pbft_
   if (!pbft_block) {
     return false;
   }
-  return comparePbftBlockScheduleWithDAGblocks_(std::move(pbft_block)).has_value();
+
+  return comparePbftBlockScheduleWithDAGblocks_(std::move(pbft_block)).second;
 }
 
-std::optional<vec_blk_t> PbftManager::comparePbftBlockScheduleWithDAGblocks_(std::shared_ptr<PbftBlock> pbft_block) {
+std::pair<vec_blk_t, bool> PbftManager::comparePbftBlockScheduleWithDAGblocks_(std::shared_ptr<PbftBlock> pbft_block) {
+  vec_blk_t dag_blocks_order;
   // If cert sync block is already populated with this pbft block, no need to do verification again
   if (cert_sync_block_.pbft_blk && cert_sync_block_.pbft_blk->getBlockHash() == pbft_block->getBlockHash()) {
-    vec_blk_t dag_blocks_order;
     dag_blocks_order.reserve(cert_sync_block_.dag_blocks.size());
     std::transform(cert_sync_block_.dag_blocks.begin(), cert_sync_block_.dag_blocks.end(),
                    std::back_inserter(dag_blocks_order), [](const DagBlock &dag_block) { return dag_block.getHash(); });
-    return {std::move(dag_blocks_order)};
+    return std::make_pair(std::move(dag_blocks_order), true);
   }
 
   auto const &anchor_hash = pbft_block->getPivotDagBlockHash();
-  auto dag_blocks_order = dag_mgr_->getDagBlockOrder(anchor_hash, pbft_block->getPeriod());
+  if (anchor_hash == NULL_BLOCK_HASH) {
+    cert_sync_block_.clear();
+    cert_sync_block_.pbft_blk = std::move(pbft_block);
+    return std::make_pair(std::move(dag_blocks_order), true);
+  }
+
+  dag_blocks_order = dag_mgr_->getDagBlockOrder(anchor_hash, pbft_block->getPeriod());
   if (dag_blocks_order.empty()) {
     syncPbftChainFromPeers_(missing_dag_blk, anchor_hash);
-    return {};
+    return std::make_pair(std::move(dag_blocks_order), false);
   }
 
   std::unordered_set<trx_hash_t> trx_set;
@@ -1481,11 +1471,13 @@ std::optional<vec_blk_t> PbftManager::comparePbftBlockScheduleWithDAGblocks_(std
     LOG(log_er_) << "Order hash incorrect. Pbft block: " << pbft_block->getBlockHash()
                  << ". Order hash: " << pbft_block->getOrderHash() << " . Calculated hash:" << calculated_order_hash
                  << ". Dag order: " << dag_blocks_order << ". Trx order: " << non_finalized_transactions;
-    return {};
+    dag_blocks_order.clear();
+    return std::make_pair(std::move(dag_blocks_order), false);
   }
+
   cert_sync_block_.pbft_blk = std::move(pbft_block);
 
-  return {std::move(dag_blocks_order)};
+  return std::make_pair(std::move(dag_blocks_order), true);
 }
 
 bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cert_voted_block_hash,
@@ -1502,17 +1494,20 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cer
   }
 
   auto dag_blocks_order = comparePbftBlockScheduleWithDAGblocks_(pbft_block);
-  if (!dag_blocks_order.has_value()) {
+  if (!dag_blocks_order.second) {
     LOG(log_nf_) << "DAG has not build up for PBFT block " << cert_voted_block_hash;
     return false;
   }
+
   cert_sync_block_.cert_votes = std::move(cert_votes_for_round);
-  if (!pushPbftBlock_(std::move(cert_sync_block_), std::move(*dag_blocks_order))) {
+  if (!pushPbftBlock_(std::move(cert_sync_block_), std::move(dag_blocks_order.first))) {
     LOG(log_er_) << "Failed push PBFT block " << pbft_block->getBlockHash() << " into chain";
     return false;
   }
+
   // cleanup PBFT unverified blocks table
   pbft_chain_->cleanupUnverifiedPbftBlocks(*pbft_block);
+
   return true;
 }
 
@@ -1557,17 +1552,25 @@ void PbftManager::finalize_(SyncBlock &&sync_block, std::vector<h256> &&finalize
         // Update proposal period DAG levels map
         auto ptr = weak_ptr.lock();
         if (!ptr) return;  // it was destroyed
+
+        if (!anchor_hash) {
+          // Null anchor don't update proposal period DAG levels map
+          return;
+        }
+
         auto anchor = dag_blk_mgr_->getDagBlock(anchor_hash);
         if (!anchor) {
           LOG(log_er_) << "DB corrupted - Cannot find anchor block: " << anchor_hash << " in DB.";
           assert(false);
         }
+
         auto new_proposal_period_levels_map = dag_blk_mgr_->newProposePeriodDagLevelsMap(anchor->getLevel());
         db_->addProposalPeriodDagLevelsMapToBatch(*new_proposal_period_levels_map, batch);
         auto dpos_current_max_proposal_period = dag_blk_mgr_->getCurrentMaxProposalPeriod();
         db_->addDposProposalPeriodLevelsFieldToBatch(DposProposalPeriodLevelsStatus::MaxProposalPeriod,
                                                      dpos_current_max_proposal_period, batch);
       });
+
   if (sync) {
     result.wait();
   }
@@ -1587,13 +1590,15 @@ bool PbftManager::pushPbftBlock_(SyncBlock &&sync_block, vec_blk_t &&dag_blocks_
 
   auto const &cert_votes = sync_block.cert_votes;
   auto pbft_period = sync_block.pbft_blk->getPeriod();
+  auto null_anchor = sync_block.pbft_blk->getPivotDagBlockHash() == NULL_BLOCK_HASH;
 
   auto batch = db_->createWriteBatch();
 
   LOG(log_nf_) << "Storing cert votes of pbft blk " << pbft_block_hash;
   LOG(log_dg_) << "Stored following cert votes:\n" << cert_votes;
   // Update PBFT chain head block
-  db_->addPbftHeadToBatch(pbft_chain_->getHeadHash(), pbft_chain_->getJsonStrForBlock(pbft_block_hash), batch);
+  db_->addPbftHeadToBatch(pbft_chain_->getHeadHash(), pbft_chain_->getJsonStrForBlock(pbft_block_hash, null_anchor),
+                          batch);
 
   if (dag_blocks_order.empty()) {
     dag_blocks_order.reserve(sync_block.dag_blocks.size());
@@ -1607,8 +1612,10 @@ bool PbftManager::pushPbftBlock_(SyncBlock &&sync_block, vec_blk_t &&dag_blocks_
   db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::LastCertVotedValue, NULL_BLOCK_HASH, batch);
 
   // pass pbft with dag blocks and transactions to adjust difficulty
-  dag_blk_mgr_->sortitionParamsManager().pbftBlockPushed(sync_block, batch);
-
+  if (sync_block.pbft_blk->getPivotDagBlockHash() != NULL_BLOCK_HASH) {
+    dag_blk_mgr_->sortitionParamsManager().pbftBlockPushed(sync_block, batch,
+                                                           pbft_chain_->getPbftChainSizeExcludingEmptyPbftBlocks() + 1);
+  }
   {
     // This makes sure that no DAG block or transaction can be added or change state in transaction and dag manager when
     // finalizing pbft block with dag blocks and transactions
@@ -1625,7 +1632,7 @@ bool PbftManager::pushPbftBlock_(SyncBlock &&sync_block, vec_blk_t &&dag_blocks_
     trx_mgr_->updateFinalizedTransactionsStatus(sync_block);
 
     // update PBFT chain size
-    pbft_chain_->updatePbftChain(pbft_block_hash);
+    pbft_chain_->updatePbftChain(pbft_block_hash, null_anchor);
   }
 
   last_cert_voted_value_ = NULL_BLOCK_HASH;
@@ -1635,8 +1642,8 @@ bool PbftManager::pushPbftBlock_(SyncBlock &&sync_block, vec_blk_t &&dag_blocks_
 
   finalize_(std::move(sync_block), std::move(dag_blocks_order));
 
-  // Reset proposed PBFT block hash to False for next pbft block proposal
-  proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
+  // Reset proposed PBFT block hash to NULL for next period PBFT block proposal
+  proposed_block_hash_ = NULL_BLOCK_HASH;
   db_->savePbftMgrStatus(PbftMgrStatus::ExecutedBlock, true);
   executed_pbft_block_ = true;
   return true;

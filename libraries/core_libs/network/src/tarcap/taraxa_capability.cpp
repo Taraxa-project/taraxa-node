@@ -12,7 +12,6 @@
 #include "network/tarcap/packets_handlers/pbft_block_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/pbft_sync_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/status_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/test_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/transaction_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/vote_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/votes_sync_packet_handler.hpp"
@@ -206,8 +205,6 @@ void TaraxaCapability::registerPacketHandlers(
                                                  conf.network_transaction_interval, node_addr));
 
   // Non critical packets with low processing priority
-  packets_handlers_->registerHandler(SubprotocolPacketType::TestPacket,
-                                     std::make_shared<TestPacketHandler>(peers_state_, packets_stats, node_addr));
   packets_handlers_->registerHandler(
       SubprotocolPacketType::StatusPacket,
       std::make_shared<StatusPacketHandler>(peers_state_, packets_stats, syncing_state_, pbft_chain, pbft_mgr, dag_mgr,
@@ -330,7 +327,6 @@ void TaraxaCapability::interpretCapabilityPacket(std::weak_ptr<dev::p2p::Session
 
 inline bool TaraxaCapability::filterSyncIrrelevantPackets(SubprotocolPacketType packet_type) const {
   switch (packet_type) {
-    case TestPacket:
     case StatusPacket:
     case GetPbftSyncPacket:
     case PbftSyncPacket:
@@ -428,17 +424,6 @@ void TaraxaCapability::sendBlocks(const dev::p2p::NodeID &id, std::vector<std::s
 size_t TaraxaCapability::getReceivedBlocksCount() const { return test_state_->getBlocksSize(); }
 
 size_t TaraxaCapability::getReceivedTransactionsCount() const { return test_state_->getTransactionsSize(); }
-
-void TaraxaCapability::sendTestMessage(dev::p2p::NodeID const &id, int x, std::vector<char> const &data) {
-  std::static_pointer_cast<TestPacketHandler>(packets_handlers_->getSpecificHandler(SubprotocolPacketType::TestPacket))
-      ->sendTestMessage(id, x, data);
-}
-
-std::pair<size_t, uint64_t> TaraxaCapability::retrieveTestData(const dev::p2p::NodeID &node_id) {
-  return std::static_pointer_cast<TestPacketHandler>(
-             packets_handlers_->getSpecificHandler(SubprotocolPacketType::TestPacket))
-      ->retrieveTestData(node_id);
-}
 
 // PBFT
 void TaraxaCapability::sendPbftBlock(dev::p2p::NodeID const &id, PbftBlock const &pbft_block,
