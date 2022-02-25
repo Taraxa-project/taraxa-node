@@ -326,19 +326,19 @@ void PbftManager::setPbftStep(size_t const pbft_step) {
   db_->savePbftMgrField(PbftMgrRoundStep::PbftStep, pbft_step);
   step_ = pbft_step;
 
-  // if (step_ > MAX_STEPS && LAMBDA_backoff_multiple < 8) {
-  //   // Note: We calculate the lambda for a step independently of prior steps
-  //   //       in case missed earlier steps.
-  //   std::uniform_int_distribution<u_long> distribution(0, step_ - MAX_STEPS);
-  //   auto lambda_random_count = distribution(random_engine_);
-  //   LAMBDA_backoff_multiple = 2 * LAMBDA_backoff_multiple;
-  //   LAMBDA_ms = LAMBDA_ms_MIN * (LAMBDA_backoff_multiple + lambda_random_count);
-  //   LOG(log_si_) << "Surpassed max steps, exponentially backing off lambda to " << LAMBDA_ms << " ms in round "
-  //               << getPbftRound() << ", step " << step_;
-  // } else {
-  //   LAMBDA_ms = LAMBDA_ms_MIN;
-  //   LAMBDA_backoff_multiple = 1;
-  // }
+  if (step_ > MAX_STEPS && LAMBDA_backoff_multiple < 8) {
+    // Note: We calculate the lambda for a step independently of prior steps
+    //       in case missed earlier steps.
+    std::uniform_int_distribution<u_long> distribution(0, step_ - MAX_STEPS);
+    auto lambda_random_count = distribution(random_engine_);
+    LAMBDA_backoff_multiple = 2 * LAMBDA_backoff_multiple;
+    LAMBDA_ms = std::min(kMaxLambda, LAMBDA_ms_MIN * (LAMBDA_backoff_multiple + lambda_random_count));
+    LOG(log_dg_) << "Surpassed max steps, exponentially backing off lambda to " << LAMBDA_ms << " ms in round "
+                 << getPbftRound() << ", step " << step_;
+  } else {
+    LAMBDA_ms = LAMBDA_ms_MIN;
+    LAMBDA_backoff_multiple = 1;
+  }
 }
 
 void PbftManager::resetStep_() {
@@ -428,7 +428,6 @@ bool PbftManager::resetRound_() {
     executed_pbft_block_ = false;
   }
 
-  LAMBDA_ms = LAMBDA_ms_MIN;
   last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
   current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
 
@@ -440,7 +439,7 @@ void PbftManager::sleep_() {
   now_ = std::chrono::system_clock::now();
   duration_ = now_ - round_clock_initial_datetime_;
   elapsed_time_in_round_ms_ = std::chrono::duration_cast<std::chrono::milliseconds>(duration_).count();
-  LOG(log_tr_) << "elapsed time in round(ms): " << elapsed_time_in_round_ms_;
+  LOG(log_tr_) << "elapsed time in round(ms): " << elapsed_time_in_round_ms_ << ", step " << step_;
   // Add 25ms for practical reality that a thread will not stall for less than 10-25 ms...
   if (next_step_time_ms_ > elapsed_time_in_round_ms_ + 25) {
     auto time_to_sleep_for_ms = next_step_time_ms_ - elapsed_time_in_round_ms_;
@@ -595,7 +594,7 @@ void PbftManager::setNextState_() {
       LOG(log_er_) << "Unknown PBFT state " << state_;
       assert(false);
   }
-  LOG(log_tr_) << "next step time(ms): " << next_step_time_ms_;
+  LOG(log_tr_) << "next step time(ms): " << next_step_time_ms_ << ", step " << step_;
 }
 
 void PbftManager::setFilterState_() {
@@ -659,7 +658,7 @@ void PbftManager::loopBackFinishState_() {
   next_voted_null_block_hash_ = false;
   polling_state_print_log_ = true;
   assert(step_ >= startingStepInRound_);
-  next_step_time_ms_ = (1 + step_ - startingStepInRound_) * LAMBDA_ms;
+  next_step_time_ms_ += POLLING_INTERVAL_ms;
   last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
   current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
 }
@@ -674,8 +673,7 @@ bool PbftManager::stateOperations_() {
   elapsed_time_in_round_ms_ = std::chrono::duration_cast<std::chrono::milliseconds>(duration_).count();
 
   auto round = getPbftRound();
-  LOG(log_tr_) << "PBFT current round is " << round;
-  LOG(log_tr_) << "PBFT current step is " << step_;
+  LOG(log_tr_) << "PBFT current round is " << round << ", step is " << step_;
 
   // Periodically verify unverified votes
   vote_mgr_->verifyVotes(round, [this](auto const &v) {
@@ -1023,6 +1021,7 @@ void PbftManager::secondFinish_() {
   LOG(log_tr_) << "PBFT second finishing state at step " << step_ << " in round " << round;
   assert(step_ >= startingStepInRound_);
   auto end_time_for_step = (2 + step_ - startingStepInRound_) * LAMBDA_ms - POLLING_INTERVAL_ms;
+  LOG(log_tr_) << "Step " << step_ << " end time " << end_time_for_step;
 
   updateSoftVotedBlockForThisRound_();
   if (soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH && soft_voted_block_for_this_round_.second) {

@@ -13,7 +13,7 @@
 
 #define NULL_BLOCK_HASH blk_hash_t(0)
 #define POLLING_INTERVAL_ms 100  // milliseconds...
-#define MAX_STEPS 13
+#define MAX_STEPS 13             // Need to be a odd number
 #define MAX_WAIT_FOR_SOFT_VOTED_BLOCK_STEPS 20
 #define MAX_WAIT_FOR_NEXT_VOTED_BLOCK_STEPS 20
 
@@ -183,6 +183,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   u_long const LAMBDA_ms_MIN;
   u_long LAMBDA_ms = 0;
   u_long LAMBDA_backoff_multiple = 1;
+  const u_long kMaxLambda = 60000;  // in ms, max lambda is 1 minutes
 
   std::default_random_engine random_engine_{std::random_device{}()};
 
