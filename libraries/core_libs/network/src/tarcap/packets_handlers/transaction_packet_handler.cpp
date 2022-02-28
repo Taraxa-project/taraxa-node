@@ -26,17 +26,31 @@ inline void TransactionPacketHandler::process(const PacketData &packet_data, con
   transactions.reserve(transaction_count);
 
   for (size_t tx_idx = 0; tx_idx < transaction_count; tx_idx++) {
-    const auto &transaction =
-        transactions.emplace_back(std::make_shared<Transaction>(packet_data.rlp_[tx_idx].data().toBytes()));
+    const auto transaction = std::make_shared<Transaction>(packet_data.rlp_[tx_idx].data().toBytes());
 
+    if (dag_blk_mgr_) [[likely]] {  // ONLY FOR TESTING
+      if (trx_mgr_->markTransactionSeen(transaction->getHash())) {
+        continue;
+      }
+      if (const auto [is_valid, reason] = trx_mgr_->verifyTransaction(transaction); !is_valid) {
+        LOG(log_er_) << "Transaction " << transaction->getHash() << " validation falied: " << reason << " . Peer "
+                     << packet_data.from_node_id_ << " will be disconnected.";
+        peers_state_->set_peer_malicious(peer->getId());
+        disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
+        return;
+      }
+    }
     received_transactions += transaction->getHash().abridged() + " ";
     peer->markTransactionAsKnown(transaction->getHash());
+    transactions.push_back(std::move(transaction));
   }
 
   if (transaction_count > 0) {
-    LOG(log_dg_) << "Received TransactionPacket with " << packet_data.rlp_.itemCount() << " transactions";
-    LOG(log_tr_) << "Received TransactionPacket with " << packet_data.rlp_.itemCount()
-                 << " transactions:" << received_transactions.c_str() << "from: " << peer->getId().abridged();
+    LOG(log_tr_) << "Received TransactionPacket with " << packet_data.rlp_.itemCount() << " transactions";
+    if (transactions.size() > 0) {
+      LOG(log_dg_) << "Received TransactionPacket with " << transactions.size()
+                   << " unseen transactions:" << received_transactions << " from: " << peer->getId().abridged();
+    }
 
     onNewTransactions(std::move(transactions), true);
   }
@@ -45,17 +59,16 @@ inline void TransactionPacketHandler::process(const PacketData &packet_data, con
 void TransactionPacketHandler::onNewTransactions(SharedTransactions &&transactions, bool fromNetwork) {
   if (fromNetwork) {
     if (dag_blk_mgr_) {
-      LOG(log_nf_) << "Storing " << transactions.size() << " transactions";
       received_trx_count_ += transactions.size();
-      unique_received_trx_count_ += trx_mgr_->insertBroadcastedTransactions(transactions);
-    } else {
+      unique_received_trx_count_ += trx_mgr_->insertValidatedTransactions(transactions);
+    } else {  // ONLY FOR TESTING
       for (auto const &trx : transactions) {
         auto trx_hash = trx->getHash();
         if (!test_state_->hasTransaction(trx_hash)) {
           test_state_->insertTransaction(*trx);
-          LOG(log_dg_) << "Received New Transaction " << trx_hash;
+          LOG(log_tr_) << "Received New Transaction " << trx_hash;
         } else {
-          LOG(log_dg_) << "Received New Transaction" << trx_hash << "that is already known";
+          LOG(log_tr_) << "Received New Transaction" << trx_hash << "that is already known";
         }
       }
     }
@@ -66,10 +79,16 @@ void TransactionPacketHandler::onNewTransactions(SharedTransactions &&transactio
     std::unordered_map<dev::p2p::NodeID, std::vector<trx_hash_t>> transactions_hash_to_send;
 
     auto peers = peers_state_->getAllPeers();
+    std::string transactions_to_log;
+    std::string peers_to_log;
+    for (auto const &trx : transactions) {
+      transactions_to_log += trx->getHash().abridged();
+    }
     for (const auto &peer : peers) {
       // Confirm that status messages were exchanged otherwise message might be ignored and node would
       // incorrectly markTransactionAsKnown
       if (!peer.second->syncing_) {
+        peers_to_log += peer.first.abridged();
         for (auto const &trx : transactions) {
           auto trx_hash = trx->getHash();
           if (peer.second->isTransactionKnown(trx_hash)) {
@@ -80,11 +99,13 @@ void TransactionPacketHandler::onNewTransactions(SharedTransactions &&transactio
             break;
           }
 
-          transactions_to_send[peer.first].push_back(*trx->rlp());
+          transactions_to_send[peer.first].push_back(trx->rlp());
           transactions_hash_to_send[peer.first].push_back(trx_hash);
         }
       }
     }
+
+    LOG(log_tr_) << "Sending Transactions " << transactions_to_log << " to " << peers_to_log;
 
     for (auto &it : transactions_to_send) {
       sendTransactions(it.first, it.second);
@@ -99,7 +120,7 @@ void TransactionPacketHandler::onNewTransactions(SharedTransactions &&transactio
 
 void TransactionPacketHandler::sendTransactions(dev::p2p::NodeID const &peer_id,
                                                 std::vector<taraxa::bytes> const &transactions) {
-  LOG(log_nf_) << "sendTransactions " << transactions.size() << " to " << peer_id;
+  LOG(log_tr_) << "sendTransactions " << transactions.size() << " to " << peer_id;
 
   dev::RLPStream s(transactions.size());
   taraxa::bytes trx_bytes;

@@ -27,27 +27,26 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
 
   // Important !!! Use only "selected_peer" and not "peer" in this function as "peer" might be nullptr
   auto selected_peer = peer;
+  const auto pbft_synced_period = pbft_mgr_->pbftSyncingPeriod();
 
   if (initial_status) {
     if (!selected_peer) {
-      auto pending_peer = peers_state_->getPendingPeer(packet_data.from_node_id_);
-      if (!pending_peer) {
+      selected_peer = peers_state_->getPendingPeer(packet_data.from_node_id_);
+      if (!selected_peer) {
         LOG(log_wr_) << "Peer " << packet_data.from_node_id_.abridged()
                      << " missing in both peers and pending peers map - will be disconnected.";
         disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
         return;
       }
-
-      selected_peer = std::move(pending_peer);
     }
 
     auto it = packet_data.rlp_.begin();
     auto const peer_network_id = (*it++).toInt<uint64_t>();
-    auto const peer_dag_level = (*it++).toPositiveInt64();
+    auto const peer_dag_level = (*it++).toInt<uint64_t>();
     auto const genesis_hash = blk_hash_t(*it++);
-    auto const peer_pbft_chain_size = (*it++).toPositiveInt64();
+    auto const peer_pbft_chain_size = (*it++).toInt<uint64_t>();
     auto const peer_syncing = (*it++).toInt();
-    auto const peer_pbft_round = (*it++).toPositiveInt64();
+    auto const peer_pbft_round = (*it++).toInt<uint64_t>();
     auto const peer_pbft_previous_round_next_votes_size = (*it++).toInt<unsigned>();
     auto const node_major_version = (*it++).toInt<unsigned>();
     auto const node_minor_version = (*it++).toInt<unsigned>();
@@ -105,48 +104,51 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
     }
 
     auto it = packet_data.rlp_.begin();
-    selected_peer->dag_level_ = (*it++).toPositiveInt64();
-    selected_peer->pbft_chain_size_ = (*it++).toPositiveInt64();
+    selected_peer->dag_level_ = (*it++).toInt<uint64_t>();
+    selected_peer->pbft_chain_size_ = (*it++).toInt<uint64_t>();
     selected_peer->syncing_ = (*it++).toInt();
-    selected_peer->pbft_round_ = (*it++).toPositiveInt64();
+    selected_peer->pbft_round_ = (*it++).toInt<uint64_t>();
     selected_peer->pbft_previous_round_next_votes_size_ = (*it++).toInt<unsigned>();
+
+    // TODO: Address malicious status
+    if (!syncing_state_->is_pbft_syncing()) {
+      if (pbft_synced_period < selected_peer->pbft_chain_size_) {
+        LOG(log_nf_) << "Restart PBFT chain syncing. Own synced PBFT at period " << pbft_synced_period
+                     << ", peer PBFT chain size " << selected_peer->pbft_chain_size_;
+        if (pbft_synced_period + 1 < selected_peer->pbft_chain_size_) {
+          restartSyncingPbft();
+        } else {
+          // If we are behind by only one block wait for two status messages before syncing because nodes are not always
+          // in perfect sync
+          if (selected_peer->last_status_pbft_chain_size_ == selected_peer->pbft_chain_size_) {
+            restartSyncingPbft();
+          }
+        }
+      } else if (pbft_synced_period == selected_peer->pbft_chain_size_ && !selected_peer->peer_dag_synced_) {
+        // if not syncing and the peer period is matching our period request any pending dag blocks
+        requestPendingDagBlocks(selected_peer);
+      }
+      const auto pbft_current_round = pbft_mgr_->getPbftRound();
+      const auto pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesWeight();
+      if (pbft_current_round < selected_peer->pbft_round_) {
+        syncPbftNextVotes(pbft_current_round, pbft_previous_round_next_votes_size);
+      } else if (pbft_current_round == selected_peer->pbft_round_) {
+        const auto two_times_2t_plus_1 = pbft_mgr_->getTwoTPlusOne() * 2;
+        // Node at lease have one next vote value for previoud PBFT round. There may have 2 next vote values for
+        // previous PBFT round. If node own have one next vote value and peer have two, need sync here.
+        if (pbft_previous_round_next_votes_size < two_times_2t_plus_1 &&
+            selected_peer->pbft_previous_round_next_votes_size_ >= two_times_2t_plus_1) {
+          syncPbftNextVotes(pbft_current_round, pbft_previous_round_next_votes_size);
+        }
+      }
+    }
+    selected_peer->last_status_pbft_chain_size_ = selected_peer->pbft_chain_size_.load();
 
     LOG(log_dg_) << "Received status message from " << packet_data.from_node_id_ << ", peer DAG max level "
                  << selected_peer->dag_level_ << ", peer pbft chain size " << selected_peer->pbft_chain_size_
                  << ", peer syncing " << std::boolalpha << selected_peer->syncing_ << ", peer pbft round "
                  << selected_peer->pbft_round_ << ", peer pbft previous round next votes size "
                  << selected_peer->pbft_previous_round_next_votes_size_;
-  }
-
-  // If we are still syncing - do not trigger new syncing
-  if (syncing_state_->is_pbft_syncing()) {
-    LOG(log_dg_) << "There is ongoing syncing, do not trigger new one.";
-    return;
-  }
-
-  // TODO: Address the CONCERN that it isn't NECESSARY to sync here
-  // and by syncing here we open node up to attack of sending bogus
-  // status.  We also have nothing to punish a node failing to send
-  // sync info.
-  const auto pbft_synced_period = pbft_mgr_->pbftSyncingPeriod();
-  if (pbft_synced_period + 1 < selected_peer->pbft_chain_size_) {
-    LOG(log_nf_) << "Restart PBFT chain syncing. Own synced PBFT at period " << pbft_synced_period
-                 << ", peer PBFT chain size " << selected_peer->pbft_chain_size_;
-    restartSyncingPbft();
-  }
-
-  const auto pbft_current_round = pbft_mgr_->getPbftRound();
-  const auto pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesWeight();
-  if (pbft_current_round < selected_peer->pbft_round_) {
-    syncPbftNextVotes(pbft_current_round, pbft_previous_round_next_votes_size);
-  } else if (pbft_current_round == selected_peer->pbft_round_) {
-    const auto two_times_2t_plus_1 = pbft_mgr_->getTwoTPlusOne() * 2;
-    // Node at lease have one next vote value for previoud PBFT round. There may have 2 next vote values for previous
-    // PBFT round. If node own have one next vote value and peer have two, need sync here.
-    if (pbft_previous_round_next_votes_size < two_times_2t_plus_1 &&
-        selected_peer->pbft_previous_round_next_votes_size_ >= two_times_2t_plus_1) {
-      syncPbftNextVotes(pbft_current_round, pbft_previous_round_next_votes_size);
-    }
   }
 }
 

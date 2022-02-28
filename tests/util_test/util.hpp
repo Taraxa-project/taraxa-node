@@ -105,7 +105,7 @@ inline bool wait(wait_opts const& opts, std::function<void(wait_ctx&)> const& po
   }
 
 #define WAIT_EXPECT_LT(ctx, o1, o2)         \
-  if (o1 < o2) {                            \
+  if (o1 >= o2) {                           \
     if (ctx.fail(); !ctx.is_last_attempt) { \
       return;                               \
     }                                       \
@@ -286,8 +286,8 @@ inline auto own_effective_genesis_bal(FullNodeConfig const& cfg) {
   return cfg.chain.final_chain.state.effective_genesis_balance(dev::toAddress(dev::Secret(cfg.node_secret)));
 }
 
-inline auto make_simple_pbft_block(h256 const& hash, uint64_t period) {
-  return PbftBlock(hash, blk_hash_t(0), blk_hash_t(), period, addr_t(0), secret_t::random());
+inline auto make_simple_pbft_block(h256 const& hash, uint64_t period, h256 const& anchor_hash = blk_hash_t(0)) {
+  return PbftBlock(hash, anchor_hash, blk_hash_t(), period, addr_t(0), secret_t::random());
 }
 
 inline std::vector<blk_hash_t> getOrderedDagBlocks(std::shared_ptr<DbStorage> const& db) {

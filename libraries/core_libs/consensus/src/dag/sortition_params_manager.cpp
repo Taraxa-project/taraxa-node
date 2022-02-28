@@ -41,7 +41,7 @@ bytes SortitionParamsChange::rlp() const {
   s << interval_efficiency;
   s << actual_correction_per_percent;
 
-  return s.out();
+  return s.invalidate();
 }
 
 SortitionParamsChange SortitionParamsChange::from_rlp(const dev::RLP& rlp) {
@@ -122,29 +122,31 @@ uint16_t SortitionParamsManager::calculateDagEfficiency(const SyncBlock& block) 
 }
 
 uint16_t SortitionParamsManager::averageDagEfficiency() {
+  const auto excess_count = std::max(static_cast<int32_t>(dag_efficiencies_.size()) - config_.computation_interval, 0);
+  dag_efficiencies_.erase(dag_efficiencies_.begin(), dag_efficiencies_.begin() + excess_count);
   return std::accumulate(dag_efficiencies_.begin(), dag_efficiencies_.end(), 0) / dag_efficiencies_.size();
 }
 
 uint16_t SortitionParamsManager::averageCorrectionPerPercent() const {
   if (params_changes_.empty()) return 1;
-  auto sum = std::accumulate(params_changes_.begin(), params_changes_.end(), 0,
-                             [](uint32_t s, const auto& e) { return s + e.actual_correction_per_percent; });
+  const auto sum = std::accumulate(params_changes_.begin(), params_changes_.end(), 0,
+                                   [](uint32_t s, const auto& e) { return s + e.actual_correction_per_percent; });
   return sum / params_changes_.size();
 }
 
 void SortitionParamsManager::cleanup(uint64_t current_period) {
-  uint16_t efficiencies_to_leave = config_.computation_interval - config_.changing_interval;
-
-  while (params_changes_.size() > config_.changes_count_for_average) {
-    params_changes_.pop_front();
+  const auto efficiencies_to_leave = std::max(config_.computation_interval - config_.changing_interval, 0);
+  {
+    const auto excess_count = std::max(static_cast<int32_t>(dag_efficiencies_.size()) - efficiencies_to_leave, 0);
+    dag_efficiencies_.erase(dag_efficiencies_.begin(), dag_efficiencies_.begin() + excess_count);
   }
-  while (dag_efficiencies_.size() > efficiencies_to_leave) {
-    dag_efficiencies_.pop_front();
+  {
+    const auto excess_count =
+        std::max(static_cast<int32_t>(params_changes_.size()) - config_.changes_count_for_average, 0);
+    params_changes_.erase(params_changes_.begin(), params_changes_.begin() + excess_count);
   }
   if ((current_period - efficiencies_to_leave) > 0) {
-    auto batch = db_->createWriteBatch();
     db_->cleanupDagEfficiencies(current_period - efficiencies_to_leave);
-    db_->commitWriteBatch(batch);
   }
 }
 
@@ -159,7 +161,7 @@ void SortitionParamsManager::pbftBlockPushed(const SyncBlock& block, DbStorage::
   LOG(log_dg_) << period << " pbftBlockPushed, efficiency: " << dag_efficiency / 100. << "%";
 
   const auto& height = period;
-  if (height % config_.computation_interval == 0) {
+  if (height % config_.changing_interval == 0) {
     const auto params_change = calculateChange(height);
     if (params_change) {
       db_->saveSortitionParamsChange(period, *params_change, batch);

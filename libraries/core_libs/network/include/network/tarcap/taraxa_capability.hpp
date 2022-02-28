@@ -72,18 +72,19 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
 
   void restartSyncingPbft(bool force = false);
   bool pbft_syncing() const;
-  void onNewBlockVerified(DagBlock const &blk, bool proposed);
+  void onNewBlockVerified(DagBlock const &blk, bool proposed, SharedTransactions &&trxs);
   void onNewTransactions(SharedTransactions &&transactions);
   void onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_block);
-  void onNewPbftVote(const std::shared_ptr<Vote> &vote);
+  void onNewPbftVote(std::shared_ptr<Vote> &&vote);
   void broadcastPreviousRoundNextVotesBundle();
   void sendTransactions(dev::p2p::NodeID const &id, std::vector<taraxa::bytes> const &transactions);
   void handleMaliciousSyncPeer(dev::p2p::NodeID const &id);
   void setSyncStatePeriod(uint64_t period);
 
   // METHODS USED IN TESTS ONLY
-  void sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk);
-  void sendBlocks(dev::p2p::NodeID const &id, std::vector<std::shared_ptr<DagBlock>> blocks);
+  void sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk, const SharedTransactions &trxs);
+  void sendBlocks(const dev::p2p::NodeID &id, std::vector<std::shared_ptr<DagBlock>> &&blocks,
+                  SharedTransactions &&transactions, uint64_t request_period, uint64_t period);
   size_t getReceivedBlocksCount() const;
   size_t getReceivedTransactionsCount() const;
 

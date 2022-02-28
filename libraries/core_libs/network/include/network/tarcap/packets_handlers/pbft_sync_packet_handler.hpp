@@ -15,8 +15,6 @@ class PbftSyncPacketHandler : public ExtSyncingPacketHandler {
 
   virtual ~PbftSyncPacketHandler() = default;
 
-  void sendSyncedMessage();
-
  private:
   void process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
 

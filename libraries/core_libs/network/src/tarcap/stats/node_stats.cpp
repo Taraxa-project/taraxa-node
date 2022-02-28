@@ -79,6 +79,7 @@ void NodeStats::logNodeStats() {
   const auto local_chain_size = pbft_chain_->getPbftChainSize();
 
   const auto local_dpos_total_votes_count = pbft_mgr_->getDposTotalVotesCount();
+  const auto local_dpos_total_address_count = pbft_mgr_->getDposTotalAddressCount();
   const auto local_weighted_votes = pbft_mgr_->getDposWeightedVotesCount();
   const auto local_twotplusone = pbft_mgr_->getTwoTPlusOne();
 
@@ -150,6 +151,7 @@ void NodeStats::logNodeStats() {
   LOG(log_nf_) << "PBFT chain size:                 " << local_chain_size;
   LOG(log_nf_) << "Current PBFT round:              " << local_pbft_round;
   LOG(log_nf_) << "DPOS total votes count:          " << local_dpos_total_votes_count;
+  LOG(log_nf_) << "DPOS total addresses count:      " << local_dpos_total_address_count;
   LOG(log_nf_) << "PBFT consensus 2t+1 threshold:   " << local_twotplusone;
   LOG(log_nf_) << "Node elligible vote count:       " << local_weighted_votes;
 
@@ -160,10 +162,8 @@ void NodeStats::logNodeStats() {
   LOG(log_dg_) << "Non finalized txs size:          " << trx_mgr_->getNonfinalizedTrxSize();
   LOG(log_dg_) << "Txs pool size:                   " << trx_mgr_->getTransactionPoolSize();
 
-  const auto [unverified_blocks_size, verified_blocks_size] = dag_blk_mgr_->getDagBlockQueueSize();
   const auto [non_finalized_blocks_levels, non_finalized_blocks_size] = dag_mgr_->getNonFinalizedBlocksSize();
-  LOG(log_dg_) << "Unverified dag blocks size:      " << unverified_blocks_size;
-  LOG(log_dg_) << "Verified dag blocks size:        " << verified_blocks_size;
+  LOG(log_dg_) << "Dag blocks size:        " << dag_blk_mgr_->getDagBlockQueueSize();
   LOG(log_dg_) << "Non finalized dag blocks levels: " << non_finalized_blocks_levels;
   LOG(log_dg_) << "Non finalized dag blocks size:   " << non_finalized_blocks_size;
 
@@ -277,8 +277,11 @@ Json::Value NodeStats::getStatus() const {
 
 Json::Value NodeStats::getPacketsStats() const {
   Json::Value ret;
-  ret["received_packets"] = packets_stats_->getReceivedPacketsStats().getStatsJson(true);
-  ret["sent_packets"] = packets_stats_->getSentPacketsStats().getStatsJson(false);
+  ret["received_packets"] = packets_stats_->getReceivedPacketsStats().getStatsJson();
+  ret["sent_packets"] = packets_stats_->getSentPacketsStats().getStatsJson();
+
+  ret["received_packets_period_max_stats"] = packets_stats_->getReceivedPacketsStats().getPeriodMaxStatsJson();
+  ret["sent_packets_period_max_stats"] = packets_stats_->getSentPacketsStats().getPeriodMaxStatsJson();
 
   return ret;
 }

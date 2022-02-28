@@ -83,14 +83,14 @@ std::vector<dev::p2p::NodeID> Network::getAllPeersIDs() const {
   return taraxa_capability_->getPeersState()->getAllPeersIDs();
 }
 
-void Network::onNewBlockVerified(DagBlock const &blk, bool proposed) {
-  taraxa_capability_->onNewBlockVerified(blk, proposed);
+void Network::onNewBlockVerified(DagBlock const &blk, bool proposed, SharedTransactions &&trxs) {
+  taraxa_capability_->onNewBlockVerified(blk, proposed, std::move(trxs));
   LOG(log_dg_) << "On new block verified:" << blk.getHash().toString();
 }
 
 void Network::onNewTransactions(SharedTransactions &&transactions) {
   taraxa_capability_->onNewTransactions(std::move(transactions));
-  LOG(log_dg_) << "On new transactions" << transactions.size();
+  LOG(log_tr_) << "On new transactions" << transactions.size();
 }
 
 void Network::restartSyncingPbft(bool force) {
@@ -110,10 +110,10 @@ void Network::setSyncStatePeriod(uint64_t period) { taraxa_capability_->setSyncS
 
 void Network::handleMaliciousSyncPeer(dev::p2p::NodeID const &id) { taraxa_capability_->handleMaliciousSyncPeer({id}); }
 
-void Network::onNewPbftVotes(std::vector<std::shared_ptr<Vote>> votes) {
-  for (auto const &vote : votes) {
-    LOG(log_dg_) << "Network broadcast PBFT vote: " << vote->getHash();
-    taraxa_capability_->onNewPbftVote(vote);
+void Network::onNewPbftVotes(std::vector<std::shared_ptr<Vote>> &&votes) {
+  for (auto &vote : votes) {
+    LOG(log_tr_) << "Network broadcast PBFT vote: " << vote->getHash();
+    taraxa_capability_->onNewPbftVote(std::move(vote));
   }
 }
 
@@ -123,14 +123,15 @@ void Network::broadcastPreviousRoundNextVotesBundle() {
 }
 
 // METHODS USED IN TESTS ONLY
-void Network::sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk) {
-  taraxa_capability_->sendBlock(id, blk);
+void Network::sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk, const SharedTransactions &trxs) {
+  taraxa_capability_->sendBlock(id, blk, trxs);
   LOG(log_dg_) << "Sent Block:" << blk.getHash().toString();
 }
 
-void Network::sendBlocks(dev::p2p::NodeID const &id, std::vector<std::shared_ptr<DagBlock>> blocks) {
+void Network::sendBlocks(const dev::p2p::NodeID &id, std::vector<std::shared_ptr<DagBlock>> &&blocks,
+                         SharedTransactions &&transactions, uint64_t request_period, uint64_t period) {
   LOG(log_dg_) << "Sending Blocks:" << blocks.size();
-  taraxa_capability_->sendBlocks(id, std::move(blocks));
+  taraxa_capability_->sendBlocks(id, std::move(blocks), std::move(transactions), request_period, period);
 }
 
 void Network::sendTransactions(dev::p2p::NodeID const &_id, std::vector<taraxa::bytes> const &transactions) {
@@ -167,7 +168,7 @@ void Network::sendPbftBlock(dev::p2p::NodeID const &id, PbftBlock const &pbft_bl
 }
 
 void Network::sendPbftVote(dev::p2p::NodeID const &id, std::shared_ptr<Vote> const &vote) {
-  LOG(log_dg_) << "Network sent PBFT vote: " << vote->getHash() << " to: " << id;
+  LOG(log_tr_) << "Network sent PBFT vote: " << vote->getHash() << " to: " << id;
   taraxa_capability_->sendPbftVote(id, vote);
 }
 

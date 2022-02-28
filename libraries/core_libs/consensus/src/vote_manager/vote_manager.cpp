@@ -268,8 +268,7 @@ void VoteManager::clearVerifiedVotesTable() {
 }
 
 // Verify all unverified votes >= pbft_round
-void VoteManager::verifyVotes(uint64_t pbft_round, size_t sortition_threshold, uint64_t dpos_total_votes_count,
-                              std::function<size_t(addr_t const&)> const& dpos_eligible_vote_count) {
+void VoteManager::verifyVotes(uint64_t pbft_round, std::function<bool(std::shared_ptr<Vote> const&)> const& is_valid) {
   // Cleanup votes for previous rounds
   cleanupVotes(pbft_round);
   auto votes_to_verify = getUnverifiedVotes();
@@ -289,12 +288,7 @@ void VoteManager::verifyVotes(uint64_t pbft_round, size_t sortition_threshold, u
     if (votes_invalid_in_current_final_chain_period_.count(v->getHash())) {
       continue;
     }
-
-    auto dpos_votes_count = dpos_eligible_vote_count(v->getVoterAddr());
-    try {
-      v->validate(dpos_votes_count, dpos_total_votes_count, sortition_threshold);
-    } catch (const std::logic_error& e) {
-      LOG(log_wr_) << e.what();
+    if (!is_valid(v)) {
       votes_invalid_in_current_final_chain_period_.emplace(v->getHash());
       if (v->getRound() > pbft_round + 1) {
         removeUnverifiedVote(v->getRound(), v->getHash());
@@ -432,8 +426,8 @@ VotesBundle VoteManager::getVotesBundleByRoundAndStep(uint64_t round, size_t ste
             count += it->second->getWeight().value();
             it++;
           }
-          LOG(log_nf_) << "Found enough " << votes.size() << " votes at voted value " << voted_block_hash
-                       << " for round " << round << " step " << step;
+          LOG(log_nf_) << "Found enough " << count << " votes at voted value " << voted_block_hash << " for round "
+                       << round << " step " << step;
           return VotesBundle(true, voted_block_hash, votes);
         }
       }

@@ -45,7 +45,7 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev
   LOG_OBJECTS_CREATE("TARCAP");
 
   assert(host.lock());
-  peers_state_ = std::make_shared<PeersState>(host, host.lock()->id());
+  peers_state_ = std::make_shared<PeersState>(host, host.lock()->id(), conf);
 
   auto packets_stats = std::make_shared<PacketsStats>(node_addr);
 
@@ -111,7 +111,7 @@ void TaraxaCapability::initPeriodicEvents(const NetworkConfig &conf, const std::
   if (trx_mgr /* just because of tests */ && conf.network_transaction_interval > 0) {
     periodic_events_tp_.post_loop({conf.network_transaction_interval},
                                   [tx_packet_handler = std::move(tx_packet_handler), trx_mgr = std::move(trx_mgr)] {
-                                    tx_packet_handler->onNewTransactions(trx_mgr->getTransactionsSnapShot(), false);
+                                    tx_packet_handler->onNewTransactions(trx_mgr->packTrxs(), false);
                                   });
   }
 
@@ -126,7 +126,7 @@ void TaraxaCapability::initPeriodicEvents(const NetworkConfig &conf, const std::
   // Logs packets stats periodic event
   if (conf.network_performance_log_interval > 0) {
     periodic_events_tp_.post_loop({conf.network_performance_log_interval},
-                                  [packets_stats = std::move(packets_stats)] { packets_stats->logStats(); });
+                                  [packets_stats = std::move(packets_stats)] { packets_stats->logAndUpdateStats(); });
   }
 
   // SUMMARY log periodic event
@@ -231,7 +231,6 @@ void TaraxaCapability::registerPacketHandlers(
       std::make_shared<PbftSyncPacketHandler>(peers_state_, packets_stats, syncing_state_, pbft_chain, pbft_mgr,
                                               dag_mgr, dag_blk_mgr, db, conf.network_sync_level_size, node_addr);
   packets_handlers_->registerHandler(SubprotocolPacketType::PbftSyncPacket, pbft_handler);
-  packets_handlers_->registerHandler(SubprotocolPacketType::SyncedPacket, pbft_handler);
 
   thread_pool_->setPacketsHandlers(packets_handlers_);
 }
@@ -251,7 +250,7 @@ void TaraxaCapability::onConnect(std::weak_ptr<dev::p2p::Session> session, u256 
 
   const auto node_id = session_p->id();
 
-  if (syncing_state_->is_peer_malicious(node_id)) {
+  if (peers_state_->is_peer_malicious(node_id)) {
     session_p->disconnect(dev::p2p::UserReason);
     LOG(log_wr_) << "Node " << node_id << " connection dropped - malicious node";
     return;
@@ -277,7 +276,6 @@ void TaraxaCapability::onDisconnect(dev::p2p::NodeID const &_nodeID) {
     } else {
       LOG(log_dg_) << "Stop PBFT/DAG syncing due to syncing peer disconnect and no other peers available.";
       syncing_state_->set_pbft_syncing(false);
-      syncing_state_->set_dag_syncing(false);
     }
   }
 }
@@ -305,22 +303,21 @@ void TaraxaCapability::interpretCapabilityPacket(std::weak_ptr<dev::p2p::Session
     return;
   }
 
-  auto peer = peers_state_->getPeer(node_id);
-  if (!peer) {
-    peer = peers_state_->getPendingPeer(node_id);
-    if (!peer) {
-      // It should not be possible to get here but log it just in case
-      LOG(log_wr_) << "Peer missing in peers map, peer " << node_id.abridged() << " will be disconnected";
-      host->disconnect(node_id, dev::p2p::UserReason);
-      return;
-    }
-    if (_id != SubprotocolPacketType::StatusPacket) {
-      LOG(log_wr_) << "Connected peer did not send status message, peer " << node_id.abridged()
-                   << " will be disconnected";
-      host->disconnect(node_id, dev::p2p::UserReason);
-      return;
-    }
+  const auto [peer, is_pending] = peers_state_->getAnyPeer(node_id);
+  if (!peer) [[unlikely]] {
+    // It should not be possible to get here but log it just in case
+    LOG(log_wr_) << "Peer missing in peers map, peer " << node_id.abridged() << " will be disconnected";
+    host->disconnect(node_id, dev::p2p::UserReason);
+    return;
   }
+
+  if (is_pending && _id != SubprotocolPacketType::StatusPacket) [[unlikely]] {
+    LOG(log_wr_) << "Connected peer did not send status message, peer " << node_id.abridged()
+                 << " will be disconnected";
+    host->disconnect(node_id, dev::p2p::UserReason);
+    return;
+  }
+
   SubprotocolPacketType packet_type = static_cast<SubprotocolPacketType>(_id);
   if (syncing_state_->is_deep_pbft_syncing() && filterSyncIrrelevantPackets(packet_type)) {
     LOG(log_dg_) << "Ignored " << convertPacketTypeToString(packet_type) << " because we are still syncing";
@@ -337,7 +334,6 @@ inline bool TaraxaCapability::filterSyncIrrelevantPackets(SubprotocolPacketType 
     case StatusPacket:
     case GetPbftSyncPacket:
     case PbftSyncPacket:
-    case SyncedPacket:
       return false;
     default:
       return true;
@@ -367,21 +363,15 @@ void TaraxaCapability::restartSyncingPbft(bool force) {
 bool TaraxaCapability::pbft_syncing() const { return syncing_state_->is_pbft_syncing(); }
 
 void TaraxaCapability::handleMaliciousSyncPeer(dev::p2p::NodeID const &id) {
-  // TODO: enable once malicious issues are resolved
-  // syncing_state_->set_peer_malicious(id);
-
-  if (auto host = peers_state_->host_.lock(); host) {
-    host->disconnect(id, dev::p2p::UserReason);
-  } else {
-    LOG(log_er_) << "Unable to handleMaliciousSyncPeer, host == nullptr";
-  }
-  restartSyncingPbft(true);
+  std::static_pointer_cast<PbftSyncPacketHandler>(
+      packets_handlers_->getSpecificHandler(SubprotocolPacketType::PbftSyncPacket))
+      ->handleMaliciousSyncPeer(id);
 }
 
-void TaraxaCapability::onNewBlockVerified(DagBlock const &blk, bool proposed) {
+void TaraxaCapability::onNewBlockVerified(DagBlock const &blk, bool proposed, SharedTransactions &&trxs) {
   std::static_pointer_cast<DagBlockPacketHandler>(
       packets_handlers_->getSpecificHandler(SubprotocolPacketType::DagBlockPacket))
-      ->onNewBlockVerified(blk, proposed);
+      ->onNewBlockVerified(blk, proposed, std::move(trxs));
 }
 
 void TaraxaCapability::onNewTransactions(SharedTransactions &&transactions) {
@@ -402,9 +392,9 @@ void TaraxaCapability::onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_blo
       ->onNewPbftBlock(*pbft_block);
 }
 
-void TaraxaCapability::onNewPbftVote(const std::shared_ptr<Vote> &vote) {
+void TaraxaCapability::onNewPbftVote(std::shared_ptr<Vote> &&vote) {
   std::static_pointer_cast<VotePacketHandler>(packets_handlers_->getSpecificHandler(SubprotocolPacketType::VotePacket))
-      ->onNewPbftVote(vote);
+      ->onNewPbftVote(std::move(vote));
 }
 
 void TaraxaCapability::broadcastPreviousRoundNextVotesBundle() {
@@ -422,16 +412,17 @@ void TaraxaCapability::sendTransactions(dev::p2p::NodeID const &id, std::vector<
 void TaraxaCapability::setSyncStatePeriod(uint64_t period) { syncing_state_->setSyncStatePeriod(period); }
 
 // METHODS USED IN TESTS ONLY
-void TaraxaCapability::sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk) {
+void TaraxaCapability::sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk, const SharedTransactions &trxs) {
   std::static_pointer_cast<DagBlockPacketHandler>(
       packets_handlers_->getSpecificHandler(SubprotocolPacketType::DagBlockPacket))
-      ->sendBlock(id, blk);
+      ->sendBlock(id, blk, trxs);
 }
 
-void TaraxaCapability::sendBlocks(dev::p2p::NodeID const &id, std::vector<std::shared_ptr<DagBlock>> blocks) {
+void TaraxaCapability::sendBlocks(const dev::p2p::NodeID &id, std::vector<std::shared_ptr<DagBlock>> &&blocks,
+                                  SharedTransactions &&transactions, uint64_t request_period, uint64_t period) {
   std::static_pointer_cast<GetDagSyncPacketHandler>(
       packets_handlers_->getSpecificHandler(SubprotocolPacketType::GetDagSyncPacket))
-      ->sendBlocks(id, std::move(blocks));
+      ->sendBlocks(id, std::move(blocks), std::move(transactions), request_period, period);
 }
 
 size_t TaraxaCapability::getReceivedBlocksCount() const { return test_state_->getBlocksSize(); }

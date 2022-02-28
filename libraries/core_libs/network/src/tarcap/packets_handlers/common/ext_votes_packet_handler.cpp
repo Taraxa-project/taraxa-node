@@ -9,7 +9,7 @@ ExtVotesPacketHandler::ExtVotesPacketHandler(std::shared_ptr<PeersState> peers_s
                                              const std::string &log_channel_name)
     : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, log_channel_name) {}
 
-void ExtVotesPacketHandler::onNewPbftVote(std::shared_ptr<Vote> const &vote) {
+void ExtVotesPacketHandler::onNewPbftVote(std::shared_ptr<Vote> &&vote) {
   std::vector<dev::p2p::NodeID> peers_to_send;
   const auto round = vote->getRound();
   for (auto const &peer : peers_state_->getAllPeers()) {

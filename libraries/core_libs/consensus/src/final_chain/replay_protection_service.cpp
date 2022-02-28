@@ -39,7 +39,7 @@ struct SenderState {
     rlp << nonce_max;
     rlp << nonce_watermark.has_value();
     rlp << (nonce_watermark ? *nonce_watermark : 0);
-    return rlp.out();
+    return rlp.invalidate();
   }
 };
 

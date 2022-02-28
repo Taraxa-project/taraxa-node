@@ -1,7 +1,6 @@
 #pragma once
 
 #include "dag/dag_block.hpp"
-#include "get_blocks_request_type.hpp"
 #include "packet_handler.hpp"
 
 namespace taraxa {
@@ -39,21 +38,15 @@ class ExtSyncingPacketHandler : public PacketHandler {
   void restartSyncingPbft(bool force = false);
 
   bool syncPeerPbft(unsigned long height_to_sync);
-  void requestDagBlocks(const dev::p2p::NodeID &_nodeID, const std::unordered_set<blk_hash_t> &blocks,
-                        DagSyncRequestType mode = MissingHashes);
+  void requestDagBlocks(const dev::p2p::NodeID &_nodeID, const std::unordered_set<blk_hash_t> &blocks, uint64_t period);
+  void requestPendingDagBlocks(std::shared_ptr<TaraxaPeer> peer = nullptr);
+  void handleMaliciousSyncPeer(dev::p2p::NodeID const &id);
 
   std::pair<bool, std::unordered_set<blk_hash_t>> checkDagBlockValidation(const DagBlock &block) const;
-
- private:
-  void requestPendingDagBlocks(const dev::p2p::NodeID &node_id);
+  std::shared_ptr<TaraxaPeer> getMaxChainPeer();
 
  protected:
   std::shared_ptr<SyncingState> syncing_state_{nullptr};
-
-  std::map<dev::p2p::NodeID, std::chrono::steady_clock::time_point> last_request_pending_dag_blocks_time;
-
-  // Number of seconds in which we do not allow consecutive pending dag blocks request
-  static constexpr std::chrono::seconds PENDING_REQUEST_THRESHOLD{60};
 
   std::shared_ptr<PbftChain> pbft_chain_{nullptr};
   std::shared_ptr<PbftManager> pbft_mgr_{nullptr};

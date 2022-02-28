@@ -32,7 +32,7 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
 
   bytes rlp() const;
   bool operator==(VdfSortition const& other) const {
-    return pk == other.pk && proof == other.proof && output == other.output && vdf_sol_.first == other.vdf_sol_.first &&
+    return vrf_wrapper::VrfSortitionBase::operator==(other) && vdf_sol_.first == other.vdf_sol_.first &&
            vdf_sol_.second == other.vdf_sol_.second;
   }
   bool operator!=(VdfSortition const& other) const { return !operator==(other); }

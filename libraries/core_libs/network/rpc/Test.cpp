@@ -60,6 +60,49 @@ Json::Value Test::get_dag_block(const Json::Value &param1) {
   return res;
 }
 
+Json::Value Test::get_sortition_change(const Json::Value &param1) {
+  Json::Value res;
+  try {
+    if (auto node = full_node_.lock()) {
+      uint64_t period = param1["period"].asUInt64();
+      auto params_change = node->getDB()->getParamsChangeForPeriod(period);
+      res["actual_correction_per_percent"] = params_change->actual_correction_per_percent;
+      res["interval_efficiency"] = params_change->interval_efficiency;
+      res["period"] = params_change->period;
+      res["threshold_range"] = params_change->vrf_params.threshold_range;
+      res["threshold_upper"] = params_change->vrf_params.threshold_upper;
+      res["kThresholdUpperMinValue"] = params_change->vrf_params.kThresholdUpperMinValue;
+    }
+  } catch (std::exception &e) {
+    res["status"] = e.what();
+  }
+  return res;
+}
+
+Json::Value Test::get_nf_blocks(const Json::Value &) {
+  Json::Value res;
+  try {
+    if (auto node = full_node_.lock()) {
+      auto nf = node->getDagManager()->getNonFinalizedBlocks();
+      res["value"] = Json::Value(Json::arrayValue);
+      for (auto const &n : nf.second) {
+        Json::Value level_json;
+        level_json["level"] = n.first;
+        level_json["blocks"] = Json::Value(Json::arrayValue);
+        for (auto const &b : n.second) {
+          Json::Value block_json;
+          block_json["hash"] = b.abridged();
+          level_json["value"].append(block_json);
+        }
+        res["value"].append(level_json);
+      }
+    }
+  } catch (std::exception &e) {
+    res["status"] = e.what();
+  }
+  return res;
+}
+
 Json::Value Test::send_coin_transaction(const Json::Value &param1) {
   Json::Value res;
   try {
@@ -77,39 +120,7 @@ Json::Value Test::send_coin_transaction(const Json::Value &param1) {
       taraxa::Transaction trx(nonce, value, gas_price, gas, data, sk, receiver);
       LOG(log_time) << "Transaction " << trx.getHash() << " received at: " << now;
       node->getTransactionManager()->insertTransaction(trx);
-      res = toHex(*trx.rlp());
-    }
-  } catch (std::exception &e) {
-    res["status"] = e.what();
-  }
-  return res;
-}
-
-Json::Value Test::create_test_coin_transactions(const Json::Value &param1) {
-  Json::Value res;
-  try {
-    if (auto node = full_node_.lock()) {
-      auto &log_time = node->getTimeLogger();
-      uint delay = param1["delay"].asUInt();
-      uint number = param1["number"].asUInt();
-      auto nonce = dev::jsToInt(param1["nonce"].asString());
-      addr_t receiver = addr_t(param1["receiver"].asString());
-      secret_t sk = node->getSecretKey();
-      if (!param1["secret"].empty() && !param1["secret"].asString().empty()) {
-        sk = secret_t(param1["secret"].asString());
-      }
-      // get trx receiving time stamp
-      uint i = 0;
-      while (i < number) {
-        auto now = getCurrentTimeMilliSeconds();
-        val_t value = val_t(100);
-        auto trx = taraxa::Transaction(i + nonce, value, 1000, 0, bytes(), sk, receiver);
-        LOG(log_time) << "Transaction " << trx.getHash() << " received at: " << now;
-        node->getTransactionManager()->insertTransaction(trx);
-        thisThreadSleepForMicroSeconds(delay);
-        i++;
-      }
-      res = "Creating " + std::to_string(number) + " transactions ...";
+      res = toHex(trx.rlp());
     }
   } catch (std::exception &e) {
     res["status"] = e.what();
@@ -200,8 +211,7 @@ Json::Value Test::get_node_status() {
       res["pbft_sync_queue_size"] = Json::UInt64(node->getPbftManager()->syncBlockQueueSize());
       res["trx_pool_size"] = Json::UInt64(node->getTransactionManager()->getTransactionPoolSize());
       res["trx_nonfinalized_size"] = Json::UInt64(node->getTransactionManager()->getNonfinalizedTrxSize());
-      res["blk_queue_unverified_size"] = Json::UInt64(node->getDagBlockManager()->getDagBlockQueueSize().first);
-      res["blk_queue_verified_size"] = Json::UInt64(node->getDagBlockManager()->getDagBlockQueueSize().second);
+      res["blk_queue_size"] = Json::UInt64(node->getDagBlockManager()->getDagBlockQueueSize());
       res["network"] = node->getNetwork()->getStatus();
     }
   } catch (std::exception &e) {

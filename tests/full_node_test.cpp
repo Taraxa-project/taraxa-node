@@ -34,30 +34,6 @@ auto g_key_pair = Lazy([] { return dev::KeyPair(g_secret); });
 auto g_trx_signed_samples = Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX, g_secret); });
 auto g_mock_dag0 = Lazy([] { return samples::createMockDag0(); });
 
-void send_2_nodes_trxs() {
-  std::string sendtrx1 =
-      R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-                                      "delay": 500,
-                                      "number": 600,
-                                      "nonce": 0,
-                                      "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"}]}' 0.0.0.0:7782)";
-  std::string sendtrx2 =
-      R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "e6af8ca3b4074243f9214e16ac94831f17be38810d09a3edeb56ab55be848a1e",
-                                      "delay": 700,
-                                      "number": 400,
-                                      "nonce": 600 ,
-                                      "receiver":"4fae949ac2b72960fbe857b56532e2d3c8418d5e"}]}' 0.0.0.0:7778)";
-  std::cout << "Sending trxs ..." << std::endl;
-  std::thread t1([sendtrx1]() { EXPECT_FALSE(system(sendtrx1.c_str())); });
-  std::thread t2([sendtrx2]() { EXPECT_FALSE(system(sendtrx2.c_str())); });
-
-  t1.join();
-  t2.join();
-  std::cout << "All trxs sent..." << std::endl;
-}
-
 void send_dummy_trx() {
   std::string dummy_trx =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction",
@@ -806,8 +782,11 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
     EXPECT_EQ(order[4], blk_hash_t(5));
     EXPECT_EQ(order[5], blk_hash_t(7));
   }
-  auto num_blks_set = node->getDagManager()->setDagBlockOrder(ret->first, period, order);
-  EXPECT_EQ(num_blks_set, 6);
+  {
+    std::unique_lock dag_lock(node->getDagManager()->getDagMutex());
+    auto num_blks_set = node->getDagManager()->setDagBlockOrder(ret->first, period, order);
+    EXPECT_EQ(num_blks_set, 6);
+  }
   // -------- second period ----------
 
   for (int i = 10; i <= 16; i++) {
@@ -826,8 +805,11 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
     EXPECT_EQ(order[5], blk_hash_t(14));
     EXPECT_EQ(order[6], blk_hash_t(15));
   }
-  num_blks_set = node->getDagManager()->setDagBlockOrder(ret->first, period, order);
-  EXPECT_EQ(num_blks_set, 7);
+  {
+    std::unique_lock dag_lock(node->getDagManager()->getDagMutex());
+    auto num_blks_set = node->getDagManager()->setDagBlockOrder(ret->first, period, order);
+    EXPECT_EQ(num_blks_set, 7);
+  }
 
   // -------- third period ----------
 
@@ -845,8 +827,11 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
     EXPECT_EQ(order[3], blk_hash_t(18));
     EXPECT_EQ(order[4], blk_hash_t(19));
   }
-  num_blks_set = node->getDagManager()->setDagBlockOrder(ret->first, period, order);
-  EXPECT_EQ(num_blks_set, 5);
+  {
+    std::unique_lock dag_lock(node->getDagManager()->getDagMutex());
+    auto num_blks_set = node->getDagManager()->setDagBlockOrder(ret->first, period, order);
+    EXPECT_EQ(num_blks_set, 5);
+  }
 }
 
 TEST_F(FullNodeTest, destroy_db) {
@@ -948,10 +933,11 @@ TEST_F(FullNodeTest, sync_two_nodes1) {
   auto nodes = launch_nodes(node_cfgs);
 
   // send 1000 trxs
-  try {
-    send_2_nodes_trxs();
-  } catch (std::exception &e) {
-    std::cerr << e.what() << std::endl;
+  for (const auto &trx : samples::createSignedTrxSamples(0, 400, g_secret)) {
+    nodes[0]->getTransactionManager()->insertTransaction(*trx);
+  }
+  for (const auto &trx : samples::createSignedTrxSamples(400, 1000, g_secret)) {
+    nodes[1]->getTransactionManager()->insertTransaction(*trx);
   }
 
   auto num_trx1 = nodes[0]->getTransactionManager()->getTransactionCount();
@@ -985,10 +971,11 @@ TEST_F(FullNodeTest, persist_counter) {
     auto nodes = launch_nodes(node_cfgs);
 
     // send 1000 trxs
-    try {
-      send_2_nodes_trxs();
-    } catch (std::exception &e) {
-      std::cerr << e.what() << std::endl;
+    for (const auto &trx : samples::createSignedTrxSamples(0, 400, g_secret)) {
+      nodes[0]->getTransactionManager()->insertTransaction(*trx);
+    }
+    for (const auto &trx : samples::createSignedTrxSamples(400, 1000, g_secret)) {
+      nodes[1]->getTransactionManager()->insertTransaction(*trx);
     }
 
     num_trx1 = nodes[0]->getTransactionManager()->getTransactionCount();
@@ -1204,7 +1191,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   // Even distribute coins from master boot node to other nodes. Since master
   // boot node owns whole coins, the active players should be only master boot
   // node at the moment.
-  auto gas_price = val_t(2);
+  auto gas_price = 0;
   auto data = bytes();
   auto nonce = 0;
   uint64_t trxs_count = 0;
@@ -1408,7 +1395,7 @@ TEST_F(FullNodeTest, db_rebuild) {
 }
 
 TEST_F(FullNodeTest, transfer_to_self) {
-  auto node_cfgs = make_node_cfgs<5, true>(3);
+  auto node_cfgs = make_node_cfgs<5, true>(1);
   auto nodes = launch_nodes(node_cfgs);
 
   std::cout << "Send first trx ..." << std::endl;
@@ -1416,16 +1403,10 @@ TEST_F(FullNodeTest, transfer_to_self) {
   auto initial_bal = nodes[0]->getFinalChain()->getBalance(node_addr);
   uint64_t trx_count(100);
   EXPECT_TRUE(initial_bal.second);
-  EXPECT_FALSE(system(fmt(R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0",
-  "method": "create_test_coin_transactions",
-  "params": [{
-    "secret":"3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-    "delay": 5,
-    "number": %s,
-    "nonce": 0,
-    "receiver": "%s"}]}' 0.0.0.0:7782)",
-                          trx_count, node_addr)
-                          .data()));
+  for (uint64_t i = 0; i < trx_count; ++i) {
+    const auto trx = Transaction(i, i * 100, 0, 1000000, str2bytes("00FEDCBA9876543210000000"), g_secret, node_addr);
+    nodes[0]->getTransactionManager()->insertTransaction(trx);
+  }
   thisThreadSleepForSeconds(5);
   EXPECT_EQ(nodes[0]->getTransactionManager()->getTransactionCount(), trx_count);
   auto trx_executed1 = nodes[0]->getDB()->getNumTransactionExecuted();
@@ -1491,6 +1472,7 @@ TEST_F(FullNodeTest, chain_config_json) {
     "dag_blocks_size": "0x64",
     "ghost_path_move_back": "0x1",
     "lambda_ms_min": "0x7d0",
+    "number_of_proposers" : "0x14",
     "run_count_votes": false
   },
   "sortition": {
@@ -1514,22 +1496,52 @@ TEST_F(FullNodeTest, chain_config_json) {
   Json::Value default_chain_config_json;
   std::istringstream(expected_default_chain_cfg_json) >> default_chain_config_json;
   ASSERT_EQ(default_chain_config_json, enc_json(ChainConfig::predefined()));
-  std::string config_file_save_to = "/tmp/full_config_test";
+  std::string config_file_path = DIR_CONF / "conf_taraxa1.json";
   Json::Value test_node_config_json;
-  std::ifstream((DIR_CONF / "conf_taraxa1.json").string(), std::ifstream::binary) >> test_node_config_json;
+  std::ifstream(config_file_path, std::ifstream::binary) >> test_node_config_json;
   Json::Value test_node_wallet_json;
   std::ifstream((DIR_CONF / "wallet1.json").string(), std::ifstream::binary) >> test_node_wallet_json;
   test_node_config_json.removeMember("chain_config");
-  ASSERT_EQ(enc_json(FullNodeConfig(test_node_config_json, test_node_wallet_json, config_file_save_to).chain),
+  ASSERT_EQ(enc_json(FullNodeConfig(test_node_config_json, test_node_wallet_json, config_file_path).chain),
             default_chain_config_json);
   test_node_config_json["chain_config"] = default_chain_config_json;
-  ASSERT_EQ(enc_json(FullNodeConfig(test_node_config_json, test_node_wallet_json, config_file_save_to).chain),
+  ASSERT_EQ(enc_json(FullNodeConfig(test_node_config_json, test_node_wallet_json, config_file_path).chain),
             default_chain_config_json);
   test_node_config_json["chain_config"] = "test";
-  ASSERT_EQ(enc_json(FullNodeConfig(test_node_config_json, test_node_wallet_json, config_file_save_to).chain),
+  ASSERT_EQ(enc_json(FullNodeConfig(test_node_config_json, test_node_wallet_json, config_file_path).chain),
             enc_json(ChainConfig::predefined("test")));
+}
 
-  std::filesystem::remove_all(config_file_save_to);
+TEST_F(FullNodeTest, transaction_validation) {
+  auto node_cfgs = make_node_cfgs<5, true>(1);
+  auto nodes = launch_nodes(node_cfgs);
+  uint32_t nonce = 0;
+
+  auto trx = Transaction(nonce++, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
+  // PASS on GAS
+  EXPECT_TRUE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
+  trx = Transaction(nonce++, 1, 1, FinalChain::GAS_LIMIT + 1, str2bytes("00FEDCBA9876543210000000"), g_secret,
+                    addr_t::random());
+  // FAIL on GAS
+  EXPECT_FALSE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
+
+  trx = Transaction(nonce++, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
+  // PASS on NONCE
+  EXPECT_TRUE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
+  wait({60s, 200ms}, [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, nodes[0]->getDB()->getNumTransactionExecuted(), 2) });
+  trx = Transaction(0, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
+  // FAIL on NONCE
+  // THIS IS DISABLED BY DEFAULT check final_chain to enable
+  // EXPECT_FALSE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
+
+  trx = Transaction(nonce++, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
+  // PASS on BALANCE
+  EXPECT_TRUE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
+
+  trx = Transaction(nonce++, own_effective_genesis_bal(nodes[0]->getConfig()) + 1, 1, 100,
+                    str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
+  // FAIL on BALANCE
+  EXPECT_FALSE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
 }
 
 }  // namespace taraxa::core_tests

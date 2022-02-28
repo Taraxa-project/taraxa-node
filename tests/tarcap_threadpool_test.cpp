@@ -108,7 +108,7 @@ HandlersInitData createHandlersInitData() {
   ret_init_data.own_node_id = dev::p2p::NodeID(2);
   ret_init_data.own_node_addr = addr_t(2);
   ret_init_data.peers_state =
-      std::make_shared<tarcap::PeersState>(std::weak_ptr<dev::p2p::Host>(), ret_init_data.own_node_id);
+      std::make_shared<tarcap::PeersState>(std::weak_ptr<dev::p2p::Host>(), ret_init_data.own_node_id, NetworkConfig());
   ret_init_data.packets_stats = std::make_shared<tarcap::PacketsStats>(ret_init_data.own_node_addr);
   ret_init_data.packets_processing_info = std::make_shared<PacketsProcessingInfo>();
 
@@ -143,7 +143,7 @@ bytes createDagBlockRlp(level_t level) {
   s.appendRaw(blk.rlp(false));
   s << static_cast<uint8_t>(0);
 
-  return s.out();
+  return s.invalidate();
 }
 
 /**
@@ -200,8 +200,6 @@ TEST_F(TarcapTpTest, block_free_packets) {
                                    createDummyPacketHandler(init_data, "TEST_PH", 20));
   packets_handler->registerHandler(tarcap::SubprotocolPacketType::StatusPacket,
                                    createDummyPacketHandler(init_data, "STATUS_PH", 20));
-  packets_handler->registerHandler(tarcap::SubprotocolPacketType::SyncedPacket,
-                                   createDummyPacketHandler(init_data, "SYNCED_PH", 20));
   packets_handler->registerHandler(tarcap::SubprotocolPacketType::VotePacket,
                                    createDummyPacketHandler(init_data, "VOTE_PH", 20));
   packets_handler->registerHandler(tarcap::SubprotocolPacketType::GetVotesSyncPacket,
@@ -244,11 +242,6 @@ TEST_F(TarcapTpTest, block_free_packets) {
       tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::StatusPacket, {})).value();
   const auto packet9_status_id =
       tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::StatusPacket, {})).value();
-
-  const auto packet10_synced_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::SyncedPacket, {})).value();
-  const auto packet11_synced_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::SyncedPacket, {})).value();
 
   const auto packet12_vote_id =
       tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::VotePacket, {})).value();
@@ -314,9 +307,6 @@ TEST_F(TarcapTpTest, block_free_packets) {
   const auto packet8_status_proc_info = packets_proc_info->getPacketProcessingTimes(packet8_status_id);
   const auto packet9_status_proc_info = packets_proc_info->getPacketProcessingTimes(packet9_status_id);
 
-  const auto packet10_synced_proc_info = packets_proc_info->getPacketProcessingTimes(packet10_synced_id);
-  const auto packet11_synced_proc_info = packets_proc_info->getPacketProcessingTimes(packet11_synced_id);
-
   const auto packet12_vote_proc_info = packets_proc_info->getPacketProcessingTimes(packet12_vote_id);
   const auto packet13_vote_proc_info = packets_proc_info->getPacketProcessingTimes(packet13_vote_id);
 
@@ -341,8 +331,6 @@ TEST_F(TarcapTpTest, block_free_packets) {
       {packet7_test_proc_info, "packet7_test"},
       {packet8_status_proc_info, "packet8_status"},
       {packet9_status_proc_info, "packet9_status"},
-      {packet10_synced_proc_info, "packet10_synced"},
-      {packet11_synced_proc_info, "packet10_synced"},
       {packet12_vote_proc_info, "packet12_vote"},
       {packet13_vote_proc_info, "packet13_vote"},
       {packet14_get_pbft_next_votes_proc_info, "packet14_get_pbft_next_votes"},

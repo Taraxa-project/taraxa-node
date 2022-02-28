@@ -124,8 +124,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN(final_chain_blk_number_by_hash);
     COLUMN(final_chain_receipt_by_trx_hash);
     COLUMN(final_chain_log_blooms_index);
-    COLUMN(pbft_block_dag_efficiency);
-    COLUMN_W_COMP(pbft_block_dag_efficiency_with_comparator, getIntComparator<uint64_t>());
+    COLUMN_W_COMP(pbft_block_dag_efficiency, getIntComparator<uint64_t>());
     COLUMN_W_COMP(sortition_params_change, getIntComparator<uint64_t>());
 
 #undef COLUMN
@@ -180,8 +179,6 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void disableSnapshots();
   void enableSnapshots();
 
-  void rebuildPbftBlockDagEfficiencies();
-
   // Period data
   void savePeriodData(const SyncBlock& sync_block, Batch& write_batch);
   dev::bytes getPeriodDataRaw(uint64_t period);
@@ -207,15 +204,14 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::optional<SortitionParamsChange> getParamsChangeForPeriod(uint64_t period);
 
   // Transaction
-  void saveTransaction(Transaction const& trx, bool verified = false);
+  void saveTransaction(Transaction const& trx);
   std::shared_ptr<Transaction> getTransaction(trx_hash_t const& hash);
-  std::vector<std::shared_ptr<Transaction>> getTransactions(std::vector<trx_hash_t> const& trx_hashes);
-  SharedTransactions getNonfinalizedTransactions();
+  SharedTransactions getAllNonfinalizedTransactions();
   bool transactionInDb(trx_hash_t const& hash);
   bool transactionFinalized(trx_hash_t const& hash);
   std::vector<bool> transactionsInDb(std::vector<trx_hash_t> const& trx_hashes);
   std::vector<bool> transactionsFinalized(std::vector<trx_hash_t> const& trx_hashes);
-  void addTransactionToBatch(Transaction const& trx, Batch& write_batch, bool verified = false);
+  void addTransactionToBatch(Transaction const& trx, Batch& write_batch);
   void removeTransactionToBatch(trx_hash_t const& trx, Batch& write_batch);
 
   void saveTransactionPeriod(trx_hash_t const& trx, uint32_t period, uint32_t position);

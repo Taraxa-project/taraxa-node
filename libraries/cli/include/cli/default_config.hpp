@@ -14,7 +14,8 @@ const char *default_json = R"foo({
   "network_ideal_peer_count": 10,
   "network_max_peer_count": 50,
   "network_sync_level_size": 10,
-  "network_packets_processing_threads": 10,
+  "network_packets_processing_threads": 14,
+  "network_peer_blacklist_timeout" : 600,
   "deep_syncing_threshold" : 10,
   "network_boot_nodes": [
     {
@@ -61,51 +62,6 @@ const char *default_json = R"foo({
       "id": "8a3394cccb379d66e6b7b131ef8ea9f195c333020b246135bf5d888443e8b6245cef9c90f2b6466240f38c9cfa4ccaa472b0f204623f09da819068c6d1168242",
       "ip": "boot-node-8.mainnet.taraxa.io",
       "udp_port": 10002
-    },
-    {
-      "id": "82689b4ccf6631a3554096444c3d3327d7725512570ec6476f44ce678d5ddf73237cc7a3026976a27a3609094ccff60c741a6b2817814f473ce151df2c4647b8",
-      "ip": "taraxa-node-0.mainnet.taraxa.io",
-      "udp_port": 10002
-    },
-    {
-      "id": "6aa30e3e5885bbc9b12be28bcb97aeedda533c2c5ac31bd66fcb7eff23be3624a440028c8984b7d5396ab65785d9e7907840b53585c32e8db489df68a464f5ee",
-      "ip": "taraxa-node-1.mainnet.taraxa.io",
-      "udp_port": 10002
-    },
-    {
-      "id": "54809adbe6c564359973309a9777435408aadeb0df16377ef8bf739ec88d33e815555c9ef7e921b6b018791041c7ff9fc940ada9cb01ee8c1c95bdb24615473d",
-      "ip": "taraxa-node-2.mainnet.taraxa.io",
-      "udp_port": 10002
-    },
-    {
-      "id": "8ba5faae964e0bad74e72f434b08e92f704b57ced01057748365d185c63ba3b2cba10618d1f722736aa990c401fefc87a8c47da036391f9dd53cd362123e6e69",
-      "ip": "taraxa-node-3.mainnet.taraxa.io",
-      "udp_port": 10002
-    },
-    {
-      "id": "722b49bc32aa799767d8fab0a362e54665caebb1820765ffa0567da29f8d71e17ef392d9bb1b569375538da9d402c3fdfd529ecc90e699a5b07dc97d77ae9a6f",
-      "ip": "taraxa-node-4.mainnet.taraxa.io",
-      "udp_port": 10002
-    },
-    {
-      "id": "5d231160e88b7e095730763b4dea983f9d6fd64ba99ad9abfafba71e58ba5034828fe1660cd31448df9f7a67b98867be2d95a19342bd9fa7c0c98375f7e40bc3",
-      "ip": "taraxa-node-5.mainnet.taraxa.io",
-      "udp_port": 10002
-    },
-    {
-      "id": "77b2019c1419bb0b6c7872a15bdd7376eabd3975867ffca3f86a69e63feccbf5ec9b977c379d67bc4ab4f468c6246fa1308bd6a6d2245d24641f2a4f1efdf382",
-      "ip": "taraxa-node-6.mainnet.taraxa.io",
-      "udp_port": 10002
-    },
-    {
-      "id": "1099a836ffbb3fd26edaf1a6015f8d7fbd2cfd424ab4fa5054f94ee7b04fcfa30768ee06aa9a301488fe4a09f81d0bfc32e49619e0b9ae26270d9f23ba1eed3a",
-      "ip": "taraxa-node-7.mainnet.taraxa.io",
-      "udp_port": 10002
-    },
-    {
-      "id": "d1d51cef23df4e8a7036ead46acb8a9d3cb0c5d539cce81833b2ad7fa68937d70250c77499ac7e9218b27615adc46599fa0eb7e89ed1a0f5ef9594810c76f0d1",
-      "ip": "taraxa-node-8.mainnet.taraxa.io",
-      "udp_port": 10002
     }
   ],
   "rpc": {
@@ -144,6 +100,79 @@ const char *default_json = R"foo({
           {
             "type": "file",
             "file_name": "Taraxa_N1_%m%d%Y_%H%M%S_%5N.log",
+            "rotation_size": 10000000,
+            "time_based_rotation": "0,0,0",
+            "format": "%ThreadID% %ShortNodeId% %Channel% [%TimeStamp%] %SeverityStr%: %Message%",
+            "max_size": 1000000000
+          }
+        ]
+      },
+      {
+        "name": "network",
+        "on": false,
+        "verbosity": "ERROR",
+        "channels": [
+          {
+            "name": "PBFT_CHAIN",
+            "verbosity": "INFO"
+          },
+          {
+            "name": "PBFT_MGR",
+            "verbosity": "DEBUG"
+          },
+          {
+            "name": "GET_PBFT_SYNC_PH",
+            "verbosity": "DEBUG"
+          },
+          {
+            "name": "PBFT_SYNC_PH",
+            "verbosity": "DEBUG"
+          },
+          {
+            "name": "GET_DAG_SYNC_PH",
+            "verbosity": "DEBUG"
+          },
+          {
+            "name": "DAG_SYNC_PH",
+            "verbosity": "DEBUG"
+          },
+          {
+            "name": "DAG_BLOCK_PH",
+            "verbosity": "DEBUG"
+          },
+          {
+            "name": "PBFT_BLOCK_PH",
+            "verbosity": "DEBUG"
+          },
+          {
+            "name": "TARCAP",
+            "verbosity": "DEBUG"
+          },
+          {
+            "name": "NETWORK",
+            "verbosity": "DEBUG"
+          },
+          {
+            "name": "TRANSACTION_PH",
+            "verbosity": "DEBUG"
+          },
+          {
+            "name": "DAGBLKMGR",
+            "verbosity": "INFO"
+          },
+          {
+            "name": "DAGMGR",
+            "verbosity": "INFO"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "console",
+            "format": "%ThreadID% %Channel% [%TimeStamp%] %SeverityStr%: %Message%"
+          },
+          {
+            "type": "file",
+            "file_name": "TaraxaNetwork_N1_%m%d%Y_%H%M%S_%5N.log",
             "rotation_size": 10000000,
             "time_based_rotation": "0,0,0",
             "format": "%ThreadID% %ShortNodeId% %Channel% [%TimeStamp%] %SeverityStr%: %Message%",
@@ -213,6 +242,7 @@ const char *default_json = R"foo({
     },
     "pbft": {
       "committee_size": "0x3e8",
+      "number_of_proposers": "0x14",
       "dag_blocks_size": "0xa",
       "ghost_path_move_back": "0x0",
       "lambda_ms_min": "0x5dc",

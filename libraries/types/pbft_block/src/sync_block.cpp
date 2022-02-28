@@ -45,9 +45,9 @@ bytes SyncBlock::rlp() const {
   }
   s.appendList(transactions.size());
   for (auto const& t : transactions) {
-    s.appendRaw(*t.rlp());
+    s.appendRaw(t.rlp());
   }
-  return s.out();
+  return s.invalidate();
 }
 
 void SyncBlock::clear() {

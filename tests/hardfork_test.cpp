@@ -137,7 +137,7 @@ TEST_F(HardforkTest, hardfork) {
     balances_before.emplace(b.first, balance);
   }
   auto votes_count = 11;
-  EXPECT_EQ(2, node->getFinalChain()->dpos_eligible_count(0));
+  EXPECT_EQ(2, node->getFinalChain()->dpos_eligible_address_count(0));
   EXPECT_EQ(votes_count + random_votes, node->getFinalChain()->dpos_eligible_total_vote_count(0));
   EXPECT_EQ(random_votes, node->getFinalChain()->dpos_eligible_vote_count(0, random_node));
 
@@ -163,7 +163,7 @@ TEST_F(HardforkTest, hardfork) {
   }
 
   auto block = node->getFinalChain()->last_block_number();
-  EXPECT_EQ(1, node->getFinalChain()->dpos_eligible_count(block));
+  EXPECT_EQ(1, node->getFinalChain()->dpos_eligible_address_count(block));
   EXPECT_EQ(votes_count, node->getFinalChain()->dpos_eligible_total_vote_count(block));
   EXPECT_EQ(0, node->getFinalChain()->dpos_eligible_vote_count(block, random_node));
 

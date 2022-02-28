@@ -44,7 +44,7 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
   // And we do not need to mark it before this point as we won't be sending
   peer->markVoteAsKnown(vote_hash);
 
-  onNewPbftVote(vote);
+  onNewPbftVote(std::move(vote));
 }
 
 }  // namespace taraxa::network::tarcap

@@ -49,7 +49,7 @@ class Network {
   Json::Value getStatus();
   Json::Value getPacketsStats();
   std::vector<dev::p2p::NodeID> getAllPeersIDs() const;
-  void onNewBlockVerified(DagBlock const &blk, bool proposed);
+  void onNewBlockVerified(DagBlock const &blk, bool proposed, SharedTransactions &&trxs);
   void onNewTransactions(SharedTransactions &&transactions);
   void restartSyncingPbft(bool force = false);
   void onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_block);
@@ -59,12 +59,13 @@ class Network {
 
   void handleMaliciousSyncPeer(dev::p2p::NodeID const &id);
 
-  void onNewPbftVotes(std::vector<std::shared_ptr<Vote>> votes);
+  void onNewPbftVotes(std::vector<std::shared_ptr<Vote>> &&votes);
   void broadcastPreviousRoundNextVotesBundle();
 
   // METHODS USED IN TESTS ONLY
-  void sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk);
-  void sendBlocks(dev::p2p::NodeID const &id, std::vector<std::shared_ptr<DagBlock>> blocks);
+  void sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk, const SharedTransactions &trxs);
+  void sendBlocks(const dev::p2p::NodeID &id, std::vector<std::shared_ptr<DagBlock>> &&blocks,
+                  SharedTransactions &&transactions, uint64_t request_period, uint64_t period);
   void sendTransactions(dev::p2p::NodeID const &_id, std::vector<taraxa::bytes> const &transactions);
   void setPendingPeersToReady();
   dev::p2p::NodeID getNodeId() const;
