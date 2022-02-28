@@ -353,10 +353,10 @@ TEST_F(CryptoTest, leader_selection) {
   std::srand(std::time(nullptr));
   const uint64_t committee_size = 20;
   const uint64_t rounds = 1000;
-  const uint64_t low_stake_nodes_num = 50;
-  const uint64_t high_stake_nodes_num = 2;
-  const uint64_t high_stake_nodes_power = std::rand() % 2000;
-  const uint64_t low_stake_nodes_power = std::rand() % 50;
+  const uint64_t low_stake_nodes_num = 20;
+  const uint64_t high_stake_nodes_num = 1;
+  const uint64_t high_stake_nodes_power = std::rand() % 1000;
+  const uint64_t low_stake_nodes_power = 10 + std::rand() % 50;
   const auto valid_sortition_players =
       high_stake_nodes_num * high_stake_nodes_power + low_stake_nodes_num * low_stake_nodes_power;
 
@@ -411,8 +411,8 @@ TEST_F(CryptoTest, leader_selection) {
             << " total stake: " << valid_sortition_players << std::endl;
   std::cout << "Stake ratio: " << stake_ratio << " Blocks ratio:" << blocks_ratio << std::endl;
   const auto diff = (stake_ratio > blocks_ratio) ? (stake_ratio - blocks_ratio) : (blocks_ratio - stake_ratio);
-  // maximal difference is 3%
-  EXPECT_LE(diff, 3);
+  // maximal difference is -/+5%
+  EXPECT_LE(diff, 5);
 }
 
 }  // namespace taraxa::core_tests
