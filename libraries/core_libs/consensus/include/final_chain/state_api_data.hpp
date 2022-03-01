@@ -87,7 +87,7 @@ struct StateTransitionResult {
 };
 
 struct Account {
-  uint64_t nonce = 0;
+  trx_nonce_t nonce = 0;
   u256 balance;
   h256 storage_root_hash;
   h256 code_hash;

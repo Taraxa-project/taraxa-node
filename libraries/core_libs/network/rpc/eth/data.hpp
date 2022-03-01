@@ -41,7 +41,7 @@ struct TransactionSkeleton {
   u256 value;
   bytes data;
   std::optional<Address> to;
-  std::optional<uint64_t> nonce;
+  std::optional<trx_nonce_t> nonce;
   std::optional<uint64_t> gas;
   std::optional<u256> gas_price;
 };
