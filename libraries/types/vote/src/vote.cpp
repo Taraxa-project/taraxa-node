@@ -1,14 +1,18 @@
 #include "vote/vote.hpp"
+
+#include "common/encoding_rlp.hpp"
+
 namespace taraxa {
 
 Vote::Vote(dev::RLP const& rlp) {
-  if (!rlp.isList()) throw std::invalid_argument("vote RLP must be a list");
-  auto it = rlp.begin();
+  bytes vrf_bytes;
+  if (rlp.itemCount() == 3) {
+    util::rlp_tuple(util::RLPDecoderRef(rlp, true), blockhash_, vrf_bytes, vote_signature_);
+  } else {
+    util::rlp_tuple(util::RLPDecoderRef(rlp, true), blockhash_, vrf_bytes, vote_signature_, weight_);
+  }
 
-  blockhash_ = (*it++).toHash<blk_hash_t>();
-  vrf_sortition_ = VrfPbftSortition((*it++).toBytes());
-  vote_signature_ = (*it++).toHash<sig_t>();
-  if (it != rlp.end()) weight_ = (*it).toInt<uint64_t>();
+  vrf_sortition_ = VrfPbftSortition(std::move(vrf_bytes));
   vote_hash_ = sha3(true);
 }
 

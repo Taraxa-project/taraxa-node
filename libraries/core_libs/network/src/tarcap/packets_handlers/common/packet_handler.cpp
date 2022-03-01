@@ -10,10 +10,16 @@ PacketHandler::PacketHandler(std::shared_ptr<PeersState> peers_state, std::share
   LOG_OBJECTS_CREATE(log_channel_name);
 }
 
+void PacketHandler::checkPacketRlpIsList(const PacketData& packet_data) const {
+  if (!packet_data.rlp_.isList()) {
+    throw InvalidRlpItemsCountException(packet_data.type_str_ + " RLP must be a list. ", 0, 1);
+  }
+}
+
 void PacketHandler::processPacket(const PacketData& packet_data) {
   try {
-    SinglePacketStats packet_stats{packet_data.from_node_id_, packet_data.rlp_.data().size(),
-                                   std::chrono::microseconds(0), std::chrono::microseconds(0)};
+    SinglePacketStats packet_stats{packet_data.from_node_id_, packet_data.rlp_.size(), std::chrono::microseconds(0),
+                                   std::chrono::microseconds(0)};
     const auto begin = std::chrono::steady_clock::now();
 
     auto tmp_peer = peers_state_->getPeer(packet_data.from_node_id_);
@@ -23,6 +29,12 @@ void PacketHandler::processPacket(const PacketData& packet_data) {
       disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
       return;
     }
+
+    // Validates packet rlp format
+    // In case there is a type mismatch, one of the dev::RLPException's is thrown during further parsing in process
+    // function
+    checkPacketRlpIsList(packet_data);
+    validatePacketRlpFormat(packet_data);
 
     // Main processing function
     process(packet_data, tmp_peer);
@@ -36,19 +48,30 @@ void PacketHandler::processPacket(const PacketData& packet_data) {
 
     packets_stats_->addReceivedPacket(packet_data.type_str_, packet_stats);
 
+  } catch (const PacketProcessingException& e) {
+    // thrown during packets processing -> malicious peer, invalid rlp items count, ...
+    handle_caught_exception(e.what(), packet_data, e.getDisconnectReason(), true /* set peer as malicious */);
+  } catch (const dev::RLPException& e) {
+    // thrown during parsing inside aleth/libdevcore -> type mismatch
+    handle_caught_exception(e.what(), packet_data, dev::p2p::DisconnectReason::BadProtocol,
+                            true /* set peer as malicious */);
+  } catch (const std::exception& e) {
+    handle_caught_exception(e.what(), packet_data);
   } catch (...) {
-    handle_read_exception(packet_data);
+    handle_caught_exception("Unknown exception", packet_data);
   }
 }
 
-void PacketHandler::handle_read_exception(const PacketData& packet_data) {
-  try {
-    throw;
-  } catch (std::exception const& _e) {
-    LOG(log_er_) << "Read exception: " << _e.what() << ". PacketType: " << packet_data.type_str_ << " ("
-                 << packet_data.type_ << ")";
-    disconnect(packet_data.from_node_id_, dev::p2p::DisconnectReason::BadProtocol);
+void PacketHandler::handle_caught_exception(std::string_view exception_msg, const PacketData& packet_data,
+                                            dev::p2p::DisconnectReason disconnect_reason, bool set_peer_as_malicious) {
+  LOG(log_er_) << "Exception caught during packet processing: " << exception_msg << ". " << std::endl
+               << "PacketData: " << packet_data.getPacketDataJson().toStyledString();
+
+  if (set_peer_as_malicious) {
+    peers_state_->set_peer_malicious(packet_data.from_node_id_);
   }
+
+  disconnect(packet_data.from_node_id_, disconnect_reason);
 }
 
 bool PacketHandler::sealAndSend(const dev::p2p::NodeID& node_id, SubprotocolPacketType packet_type,
@@ -90,7 +113,7 @@ void PacketHandler::disconnect(dev::p2p::NodeID const& node_id, dev::p2p::Discon
   if (auto host = peers_state_->host_.lock(); host) {
     host->disconnect(node_id, reason);
   } else {
-    LOG(log_wr_) << "Invalid host " << node_id.abridged();
+    LOG(log_er_) << "Unable to disconnect node " << node_id.abridged() << " due to invalid host.";
   }
 }
 

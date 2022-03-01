@@ -55,30 +55,9 @@ DagBlock::DagBlock(Json::Value const &doc) {
 }
 
 DagBlock::DagBlock(dev::RLP const &rlp) {
-  if (!rlp.isList()) {
-    throw std::invalid_argument("DagBlock RLP must be a list");
-  }
-  uint field_n = 0;
-  for (auto const el : rlp) {
-    if (field_n == 0) {
-      pivot_ = el.toHash<blk_hash_t>();
-    } else if (field_n == 1) {
-      level_ = el.toInt<level_t>();
-    } else if (field_n == 2) {
-      timestamp_ = el.toInt<uint64_t>();
-    } else if (field_n == 3) {
-      vdf_ = vdf_sortition::VdfSortition(el.toBytes());
-    } else if (field_n == 4) {
-      tips_ = el.toVector<trx_hash_t>();
-    } else if (field_n == 5) {
-      trxs_ = el.toVector<trx_hash_t>();
-    } else if (field_n == 6) {
-      sig_ = el.toHash<sig_t>();
-    } else {
-      BOOST_THROW_EXCEPTION(std::runtime_error("too many rlp fields for dag block"));
-    }
-    ++field_n;
-  }
+  dev::bytes vdf_bytes;
+  util::rlp_tuple(util::RLPDecoderRef(rlp, true), pivot_, level_, timestamp_, vdf_bytes, tips_, trxs_, sig_);
+  vdf_ = vdf_sortition::VdfSortition(vdf_bytes);
 }
 
 level_t DagBlock::extract_dag_level_from_rlp(const dev::RLP &rlp) { return rlp[1].toInt<level_t>(); }

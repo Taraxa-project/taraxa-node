@@ -9,17 +9,9 @@
 namespace taraxa {
 PbftBlock::PbftBlock(bytes const& b) : PbftBlock(dev::RLP(b)) {}
 
-PbftBlock::PbftBlock(dev::RLP const& r) {
-  dev::RLP const rlp(r);
-  if (!rlp.isList()) throw std::invalid_argument("PBFT RLP must be a list");
-  auto it = rlp.begin();
-
-  prev_block_hash_ = (*it++).toHash<blk_hash_t>();
-  dag_block_hash_as_pivot_ = (*it++).toHash<blk_hash_t>();
-  order_hash_ = (*it++).toHash<blk_hash_t>();
-  period_ = (*it++).toInt<uint64_t>();
-  timestamp_ = (*it++).toInt<uint64_t>();
-  signature_ = (*it++).toHash<sig_t>();
+PbftBlock::PbftBlock(dev::RLP const& rlp) {
+  util::rlp_tuple(util::RLPDecoderRef(rlp, true), prev_block_hash_, dag_block_hash_as_pivot_, order_hash_, period_,
+                  timestamp_, signature_);
   calculateHash_();
 }
 

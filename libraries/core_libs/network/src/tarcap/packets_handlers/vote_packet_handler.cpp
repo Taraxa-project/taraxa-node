@@ -13,6 +13,12 @@ VotePacketHandler::VotePacketHandler(std::shared_ptr<PeersState> peers_state,
       vote_mgr_(std::move(vote_mgr)),
       seen_votes_(1000000, 1000) {}
 
+void VotePacketHandler::validatePacketRlpFormat(const PacketData &packet_data) const {
+  if (constexpr size_t required_size = 1; packet_data.rlp_.itemCount() != required_size) {
+    throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), required_size);
+  }
+}
+
 void VotePacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
   auto vote = std::make_shared<Vote>(packet_data.rlp_[0].toBytes());
   const auto vote_hash = vote->getHash();

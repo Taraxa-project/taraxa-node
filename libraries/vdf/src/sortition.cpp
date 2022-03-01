@@ -33,17 +33,9 @@ VdfSortition::VdfSortition(bytes const& b) {
   if (b.empty()) {
     return;
   }
-  dev::RLP const rlp(b);
-  if (!rlp.isList()) {
-    throw std::invalid_argument("VdfSortition RLP must be a list");
-  }
 
-  auto it = rlp.begin();
-  pk_ = (*it++).toHash<vrf_pk_t>();
-  proof_ = (*it++).toHash<vrf_proof_t>();
-  vdf_sol_.first = (*it++).toBytes();
-  vdf_sol_.second = (*it++).toBytes();
-  difficulty_ = (*it++).toInt<uint16_t>();
+  dev::RLP rlp(b);
+  util::rlp_tuple(util::RLPDecoderRef(rlp, true), pk_, proof_, vdf_sol_.first, vdf_sol_.second, difficulty_);
 }
 
 VdfSortition::VdfSortition(Json::Value const& json) {
