@@ -63,6 +63,7 @@ void DagBlockPacketHandler::process(const PacketData &packet_data, const std::sh
           LOG(log_er_) << "DagBlock" << block.getHash() << " has missing pivot or/and tips " << status.second
                        << " . Peer " << packet_data.from_node_id_ << " will be disconnected.";
           disconnect(peer->getId(), dev::p2p::UserReason);
+          peers_state_->set_peer_malicious(peer->getId());
         } else {
           // peer_dag_synced_ flag ensures that this can only be performed once for a peer
           requestPendingDagBlocks(peer);
@@ -72,7 +73,7 @@ void DagBlockPacketHandler::process(const PacketData &packet_data, const std::sh
     }
   }
 
-  onNewBlockReceived(std::move(block));
+  onNewBlockReceived(std::move(block), std::move(peer));
 }
 
 void DagBlockPacketHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::DagBlock block,
@@ -114,9 +115,44 @@ void DagBlockPacketHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::D
   }
 }
 
-void DagBlockPacketHandler::onNewBlockReceived(DagBlock &&block) {
+void DagBlockPacketHandler::onNewBlockReceived(DagBlock &&block, const std::shared_ptr<TaraxaPeer> &peer) {
   if (dag_blk_mgr_) {
-    dag_blk_mgr_->insertAndVerifyBlock(std::move(block));
+    const auto verified = dag_blk_mgr_->insertAndVerifyBlock(std::move(block));
+    switch (verified) {
+      case DagBlockManager::InvalidBlock:
+      case DagBlockManager::FailedVdfVerification:
+      case DagBlockManager::NotEligible:
+        LOG(log_er_) << "DagBlock" << block.getHash() << " failed verification with error code " << verified
+                     << " . Peer " << peer->getId() << " will be disconnected and marked as malicious.";
+        disconnect(peer->getId(), dev::p2p::UserReason);
+        peers_state_->set_peer_malicious(peer->getId());
+        break;
+      case DagBlockManager::BlockQueueOverflow:
+        LOG(log_wr_) << "DagBlock" << block.getHash() << " could not be inserted because of block queue overflow. Peer "
+                     << peer->getId() << " will be disconnected";
+        disconnect(peer->getId(), dev::p2p::UserReason);
+        break;
+      case DagBlockManager::MissingTransaction:
+        if (peer->peer_dag_synced_) {
+          LOG(log_er_) << "DagBlock" << block.getHash()
+                       << " is missing a transaction while in a dag synced state. Peer " << peer->getId()
+                       << " will be disconnected and marked as malicious.";
+          disconnect(peer->getId(), dev::p2p::UserReason);
+          peers_state_->set_peer_malicious(peer->getId());
+        }
+        break;
+      case DagBlockManager::AheadBlock:
+      case DagBlockManager::FutureBlock:
+        if (peer->peer_dag_synced_) {
+          LOG(log_wr_) << "DagBlock" << block.getHash() << " is an ahead/future block. Peer " << peer->getId()
+                       << " will be disconnected";
+          disconnect(peer->getId(), dev::p2p::UserReason);
+        }
+        break;
+      case DagBlockManager::InsertedAndVerified:
+      case DagBlockManager::AlreadyKnown:
+        break;
+    }
   } else if (!test_state_->hasBlock(block.getHash())) {
     test_state_->insertBlock(block);
     onNewBlockVerified(block, false, {});
