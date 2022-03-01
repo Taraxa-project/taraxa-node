@@ -33,8 +33,9 @@ Json::Value PacketData::getPacketDataJson() const {
   Json::Value ret;
 
   // Transforms receive_time into the human-readable form
-  const std::time_t t_c = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now() +
-                                                               (receive_time_ - std::chrono::steady_clock::now()));
+  const auto receive_time = std::chrono::system_clock::now() + (receive_time_ - std::chrono::steady_clock::now());
+  const std::time_t t_c = std::chrono::system_clock::to_time_t(
+      std::chrono::time_point_cast<std::chrono::system_clock::duration>(receive_time));
   std::ostringstream receive_time_os;
   receive_time_os << std::put_time(std::localtime(&t_c), "%F %T node local time");
 
@@ -43,8 +44,8 @@ Json::Value PacketData::getPacketDataJson() const {
   ret["priority"] = Json::UInt64(priority_);
   ret["receive_time"] = receive_time_os.str();
   ret["from_node_id"] = from_node_id_.toString();
-  ret["rlp_items_count"] = rlp_.itemCount();
-  ret["rlp_size"] = rlp_.size();
+  ret["rlp_items_count"] = Json::UInt64(rlp_.itemCount());
+  ret["rlp_size"] = Json::UInt64(rlp_.size());
 
   return ret;
 }
