@@ -135,6 +135,7 @@ inline auto make_node_cfgs(uint count) {
     if constexpr (tests_speed == 1 && enable_rpc_http && enable_rpc_ws) {
       return ret;
     }
+
     for (auto& cfg : ret) {
       addr_t root_node_addr("de2b1203d72d3549ee2f733b00b2789414c7cea5");
       cfg.chain.final_chain.state.genesis_balances[root_node_addr] = 9007199254740991;
@@ -256,9 +257,13 @@ struct TransactionClient {
         TransactionStage::created,
         trx,
     };
-    if (!node_->getTransactionManager()->insertTransaction(ctx.trx).first) {
+
+    auto insert_result = node_->getTransactionManager()->insertTransaction(ctx.trx);
+    if (!insert_result.first) {
+      std::cout << "Tx insertion " << ctx.trx.getHash().toString() << " failed: " << insert_result.second << std::endl;
       return ctx;
     }
+
     ctx.stage = TransactionStage::inserted;
     auto trx_hash = ctx.trx.getHash();
     if (wait_executed) {

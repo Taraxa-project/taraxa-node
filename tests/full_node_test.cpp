@@ -450,10 +450,20 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(period_1_levels_from_db.levels_interval.second, 110);
 }
 
-TEST_F(FullNodeTest, DISABLED_sync_five_nodes) {
+TEST_F(FullNodeTest, sync_five_nodes) {
   using namespace std;
 
   auto node_cfgs = make_node_cfgs<20>(5);
+
+  // Sets genesis balance to all nodes
+  for (auto& node_config : node_cfgs) {
+    for (auto& inner_node_config : node_cfgs) {
+      auto inner_node_address =
+          dev::KeyPair(dev::Secret(inner_node_config.node_secret, dev::Secret::ConstructFromStringType::FromHex)).address();
+      node_config.chain.final_chain.state.genesis_balances[inner_node_address] = 9007199254740991;
+    }
+  }
+
   auto nodes = launch_nodes(node_cfgs);
 
   class context {
@@ -466,8 +476,8 @@ TEST_F(FullNodeTest, DISABLED_sync_five_nodes) {
 
    public:
     context(decltype(nodes_) nodes) : nodes_(nodes) {
-      expected_balances[nodes[0]->getAddress()] = own_effective_genesis_bal(nodes[0]->getConfig());
       for (auto const &node : nodes_) {
+        expected_balances[node->getAddress()] = own_effective_genesis_bal(node->getConfig());
         trx_clients.emplace_back(node);
       }
     }
@@ -482,7 +492,10 @@ TEST_F(FullNodeTest, DISABLED_sync_five_nodes) {
         unique_lock l(m);
         ++issued_trx_count;
       }
-      auto result = trx_clients[0].coinTransfer(KeyPair::create().address(), 0, KeyPair::create(), false);
+
+      auto result = trx_clients[0].coinTransfer(KeyPair::create().address(), 0, KeyPair::create(), true);
+      EXPECT_EQ(result.stage, TransactionClient::TransactionStage::executed);
+
       transactions.emplace(result.trx.getHash());
     }
 
@@ -520,7 +533,7 @@ TEST_F(FullNodeTest, DISABLED_sync_five_nodes) {
     }
 
     void wait_all_transactions_known(wait_opts const &wait_for = {30s, 500ms}) {
-      wait(wait_for, [this](auto &ctx) {
+      auto result = wait(wait_for, [this](auto &ctx) {
         for (auto &n : nodes_) {
           for (auto &t : transactions) {
             if (!n->getFinalChain()->transaction_location(t)) {
@@ -528,25 +541,13 @@ TEST_F(FullNodeTest, DISABLED_sync_five_nodes) {
             }
           }
         }
+
         dummy_transaction();
       });
-    }
 
+      EXPECT_TRUE(result);
+    }
   } context(nodes);
-
-  std::vector<trx_hash_t> all_transactions;
-  // transfer some coins to your friends ...
-  auto init_bal = own_effective_genesis_bal(nodes[0]->getConfig()) / nodes.size();
-
-  {
-    for (size_t i(1); i < nodes.size(); ++i) {
-      // we shouldn't wait for transaction execution because it could be in alternative dag
-      context.coin_transfer(0, nodes[i]->getAddress(), init_bal, false);
-    }
-    context.wait_all_transactions_known();
-  }
-
-  std::cout << "Initial coin transfers from node 0 issued ... " << std::endl;
 
   {
     for (size_t i(0); i < nodes.size(); ++i) {
