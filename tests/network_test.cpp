@@ -25,8 +25,6 @@ auto g_secret = Lazy([] {
                      dev::Secret::ConstructFromStringType::FromHex);
 });
 auto node_key = dev::KeyPair(g_secret);
-
-auto g_trx_samples = Lazy([] { return samples::createMockTrxSamples(0, NUM_TRX); });
 auto g_signed_trx_samples = Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX, g_secret); });
 
 const unsigned NUM_TRX2 = 200;
@@ -34,7 +32,6 @@ auto g_secret2 = Lazy([] {
   return dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
                      dev::Secret::ConstructFromStringType::FromHex);
 });
-auto g_trx_samples2 = Lazy([] { return samples::createMockTrxSamples(0, NUM_TRX2); });
 auto g_signed_trx_samples2 = Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX2, g_secret2); });
 auto three_default_configs = Lazy([] { return make_node_cfgs(3); });
 auto g_conf1 = Lazy([] { return three_default_configs[0]; });
@@ -1233,7 +1230,7 @@ TEST_F(NetworkTest, node_transaction_sync) {
 // intervals on randomly selected nodes It verifies that the blocks created from
 // these transactions which get created on random nodes are synced and the
 // resulting DAG is the same on all nodes
-TEST_F(NetworkTest, DISABLED_node_full_sync) {
+TEST_F(NetworkTest, node_full_sync) {
   constexpr auto numberOfNodes = 5;
   auto node_cfgs = make_node_cfgs<20>(numberOfNodes);
   auto nodes = launch_nodes(slice(node_cfgs, 0, numberOfNodes - 1));
@@ -1243,29 +1240,21 @@ TEST_F(NetworkTest, DISABLED_node_full_sync) {
   std::uniform_int_distribution<std::mt19937::result_type> distTransactions(1, 20);
   std::uniform_int_distribution<std::mt19937::result_type> distNodes(0, numberOfNodes - 2);  // range [0, 3]
 
-  int counter = 0;
-  SharedTransactions ts;
-  // Generate 50 transactions
-  for (auto i = 0; i < 50; ++i) {
-    ts.push_back(std::make_shared<Transaction>(samples::TX_GEN->getWithRandomUniqueSender()));
-  }
-  for (auto i = 0; i < 50; ++i) {
-    // TODO: Is this intentional or not that we send only 1 tx at a time ?
-    nodes[distNodes(rng)]->getTransactionManager()->insertValidatedTransactions({ts[i]});
+  int num_of_trxs = 50;
+  const auto trxs = samples::createSignedTrxSamples(0, num_of_trxs, g_secret);
+  for (auto i = 0; i < num_of_trxs; ++i) {
+    nodes[distNodes(rng)]->getTransactionManager()->insertValidatedTransactions({trxs[i]});
     thisThreadSleepForMilliSeconds(distTransactions(rng));
-    counter++;
   }
-  ASSERT_EQ(counter, 50);  // 50 transactions
+  ASSERT_EQ(num_of_trxs, 50);  // 50 transactions
 
   std::cout << "Waiting Sync ..." << std::endl;
 
-  wait({60s, 500ms}, [&](auto& ctx) {
-    // Check 4 nodes DAG syncing
+  wait({60s, 100ms}, [&](auto& ctx) {
+    // Check 4 nodes syncing
     for (int j = 1; j < numberOfNodes - 1; j++) {
-      if (ctx.fail_if(nodes[j]->getDagManager()->getNumVerticesInDag().first !=
-                      nodes[0]->getDagManager()->getNumVerticesInDag().first)) {
-        return;
-      }
+      WAIT_EXPECT_EQ(ctx, nodes[j]->getDagManager()->getNumVerticesInDag().first,
+                     nodes[0]->getDagManager()->getNumVerticesInDag().first);
       ctx.fail_if(nodes[j]->getNetwork()->pbft_syncing());
     }
   });
@@ -1274,7 +1263,7 @@ TEST_F(NetworkTest, DISABLED_node_full_sync) {
   auto node0_vertices = nodes[0]->getDagManager()->getNumVerticesInDag().first;
   std::cout << "node0 vertices " << node0_vertices << std::endl;
   for (int i(1); i < numberOfNodes - 1; i++) {
-    auto node_vertices = nodes[i]->getDagManager()->getNumVerticesInDag().first;
+    const auto node_vertices = nodes[i]->getDagManager()->getNumVerticesInDag().first;
     std::cout << "node" << i << " vertices " << node_vertices << std::endl;
     if (node_vertices != node0_vertices) {
       dag_synced = false;
@@ -1283,13 +1272,13 @@ TEST_F(NetworkTest, DISABLED_node_full_sync) {
   // When last level have more than 1 DAG blocks, send a dummy transaction to converge DAG
   if (!dag_synced) {
     std::cout << "Send dummy trx" << std::endl;
-    Transaction dummy_trx(counter++, 0, 2, TEST_TX_GAS_LIMIT, bytes(), nodes[0]->getSecretKey(),
+    Transaction dummy_trx(num_of_trxs++, 0, 2, TEST_TX_GAS_LIMIT, bytes(), nodes[0]->getSecretKey(),
                           nodes[0]->getAddress());
     // broadcast dummy transaction
     nodes[0]->getTransactionManager()->insertTransaction(dummy_trx);
 
-    wait({60s, 500ms}, [&](auto& ctx) {
-      // Check 4 nodes DAG syncing
+    wait({60s, 100ms}, [&](auto& ctx) {
+      // Check 4 nodes syncing
       for (int j = 1; j < numberOfNodes - 1; j++) {
         WAIT_EXPECT_EQ(ctx, nodes[j]->getDagManager()->getNumVerticesInDag().first,
                        nodes[0]->getDagManager()->getNumVerticesInDag().first);
@@ -1315,7 +1304,7 @@ TEST_F(NetworkTest, DISABLED_node_full_sync) {
   EXPECT_TRUE(wait_connect(nodes));
 
   std::cout << "Waiting Sync for node5..." << std::endl;
-  wait({60s, 500ms}, [&](auto& ctx) {
+  wait({60s, 100ms}, [&](auto& ctx) {
     // Check 5 nodes DAG syncing
     for (int j = 1; j < numberOfNodes; j++) {
       if (ctx.fail_if(nodes[j]->getDagManager()->getNumVerticesInDag().first !=
@@ -1338,12 +1327,12 @@ TEST_F(NetworkTest, DISABLED_node_full_sync) {
   // When last level have more than 1 DAG blocks, send a dummy transaction to converge DAG
   if (!dag_synced) {
     std::cout << "Send dummy trx" << std::endl;
-    Transaction dummy_trx(counter++, 0, 2, TEST_TX_GAS_LIMIT, bytes(), nodes[0]->getSecretKey(),
+    Transaction dummy_trx(num_of_trxs++, 0, 2, TEST_TX_GAS_LIMIT, bytes(), nodes[0]->getSecretKey(),
                           nodes[0]->getAddress());
     // broadcast dummy transaction
     nodes[0]->getTransactionManager()->insertTransaction(dummy_trx);
 
-    wait({60s, 500ms}, [&](auto& ctx) {
+    wait({60s, 100ms}, [&](auto& ctx) {
       // Check all 5 nodes DAG syncing
       for (int j = 1; j < numberOfNodes; j++) {
         WAIT_EXPECT_EQ(ctx, nodes[j]->getDagManager()->getNumVerticesInDag().first,

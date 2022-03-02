@@ -24,10 +24,6 @@ class TxGenerator {
     return secret;
   }
 
-  auto getWithRandomUniqueSender(val_t const &value = 0, addr_t const &to = addr_t::random(),
-                                 bytes const &data = str2bytes("00FEDCBA9876543210000000")) const {
-    return Transaction(0, value, 0, TEST_TX_GAS_LIMIT, data, getRandomUniqueSenderSecret(), to);
-  }
   auto getSerialTrxWithSameSender(uint trx_num, uint64_t const &start_nonce, val_t const &value,
                                   addr_t const &receiver = addr_t::random()) const {
     std::vector<Transaction> trxs;
@@ -136,7 +132,7 @@ inline SharedTransactions createSignedTrxSamples(unsigned start, unsigned num, s
   assert(start + num < std::numeric_limits<unsigned>::max());
   SharedTransactions trxs;
   for (auto i = start; i < num; ++i) {
-    trxs.emplace_back(std::make_shared<Transaction>(i, i * 100, 0, 1000000, data, sk, addr_t((i + 1) * 100)));
+    trxs.emplace_back(std::make_shared<Transaction>(i, i * 100, 0, 1000000, data, sk, addr_t::random()));
   }
   return trxs;
 }
