@@ -556,39 +556,36 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
 }
 
 TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
-  auto node_cfgs = make_node_cfgs<20>(3);
-  auto node1_genesis_bal = own_effective_genesis_bal(node_cfgs[0]);
+  const auto node_cfgs = make_node_cfgs<20>(3);
+  const auto node1_genesis_bal = own_effective_genesis_bal(node_cfgs[0]);
   auto nodes = launch_nodes(node_cfgs);
 
-  auto node1_addr = nodes[0]->getAddress();
-  auto node2_addr = nodes[1]->getAddress();
-  auto node3_addr = nodes[2]->getAddress();
+  const auto node1_addr = nodes[0]->getAddress();
+  const auto node2_addr = nodes[1]->getAddress();
+  const auto node3_addr = nodes[2]->getAddress();
 
   // create a transaction transfer coins from node1 to node2
-  auto coins_value2 = val_t(100);
-  auto gas_price = val_t(2);
-  auto data = bytes();
-  Transaction trx_master_boot_node_to_node2(0, coins_value2, gas_price, TEST_TX_GAS_LIMIT, data,
+  const auto gas_price = val_t(2);
+  Transaction trx_master_boot_node_to_node2(0, val_t(100), gas_price, TEST_TX_GAS_LIMIT, bytes(),
                                             nodes[0]->getSecretKey(), node2_addr);
   // broadcast trx and insert
   nodes[0]->getTransactionManager()->insertTransaction(trx_master_boot_node_to_node2);
 
   // Only node1 be able to propose DAG block
-  EXPECT_HAPPENS({1s, 200ms}, [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, nodes[0]->getNumProposedBlocks(), 1) });
+  EXPECT_HAPPENS({5s, 200ms}, [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, nodes[0]->getNumProposedBlocks(), 1) });
 
   const expected_balances_map_t expected_balances1 = {
       {node1_addr, node1_genesis_bal - 100}, {node2_addr, 100}, {node3_addr, 0}};
   wait_for_balances(nodes, expected_balances1);
 
   // create a transaction transfer coins from node1 to node3
-  auto coins_value3 = val_t(1000);
-  Transaction trx_master_boot_node_to_node3(1, coins_value3, gas_price, TEST_TX_GAS_LIMIT, data,
+  Transaction trx_master_boot_node_to_node3(1, val_t(1000), gas_price, TEST_TX_GAS_LIMIT, bytes(),
                                             nodes[0]->getSecretKey(), node3_addr);
   // broadcast trx and insert
   nodes[0]->getTransactionManager()->insertTransaction(trx_master_boot_node_to_node3);
 
   // Only node1 be able to propose DAG block
-  EXPECT_HAPPENS({1s, 200ms}, [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, nodes[0]->getNumProposedBlocks(), 2) });
+  EXPECT_HAPPENS({5s, 200ms}, [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, nodes[0]->getNumProposedBlocks(), 2) });
 
   std::cout << "Checking all nodes see transaction from node 1 to node 3..." << std::endl;
   const expected_balances_map_t expected_balances2 = {
