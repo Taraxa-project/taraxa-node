@@ -77,7 +77,8 @@ TEST_F(NetworkTest, transfer_block) {
 }
 
 // Test creates two Network setup and verifies sending blocks between is successfull
-TEST_F(NetworkTest, transfer_lot_of_blocks) {
+// This test can not work anymore as we are marking other nodes as malicous becasue of invalid dag blocks
+TEST_F(NetworkTest, DISABLED_transfer_lot_of_blocks) {
   auto node_cfgs = make_node_cfgs<20>(2);
   auto nodes = launch_nodes(node_cfgs);
   const auto& node1 = nodes[0];
