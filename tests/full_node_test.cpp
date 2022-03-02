@@ -450,7 +450,7 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(period_1_levels_from_db.levels_interval.second, 110);
 }
 
-TEST_F(FullNodeTest, sync_five_nodes) {
+TEST_F(FullNodeTest, DISABLED_sync_five_nodes) {
   using namespace std;
 
   auto node_cfgs = make_node_cfgs<20>(5);
