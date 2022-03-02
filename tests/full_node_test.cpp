@@ -450,7 +450,7 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(period_1_levels_from_db.levels_interval.second, 110);
 }
 
-TEST_F(FullNodeTest, DISABLED_sync_five_nodes) {
+TEST_F(FullNodeTest, sync_five_nodes) {
   using namespace std;
 
   auto node_cfgs = make_node_cfgs<20>(5);
@@ -475,15 +475,6 @@ TEST_F(FullNodeTest, DISABLED_sync_five_nodes) {
     auto getIssuedTrxCount() {
       shared_lock l(m);
       return issued_trx_count;
-    }
-
-    void dummy_transaction() {
-      {
-        unique_lock l(m);
-        ++issued_trx_count;
-      }
-      auto result = trx_clients[0].coinTransfer(KeyPair::create().address(), 0, KeyPair::create(), false);
-      transactions.emplace(result.trx.getHash());
     }
 
     void coin_transfer(int sender_node_i, addr_t const &to, val_t const &amount, bool verify_executed = true) {
@@ -528,7 +519,6 @@ TEST_F(FullNodeTest, DISABLED_sync_five_nodes) {
             }
           }
         }
-        dummy_transaction();
       });
     }
 
@@ -590,8 +580,6 @@ TEST_F(FullNodeTest, DISABLED_sync_five_nodes) {
                 << " Node 4: Dag size = " << num_vertices4.first << " Trx count = " << num_trx4 << std::endl
                 << " Node 5: Dag size = " << num_vertices5.first << " Trx count = " << num_trx5 << std::endl
                 << " Issued transaction count = " << issued_trx_count << std::endl;
-      std::cout << "Send a dummy transaction to coverge DAG" << std::endl;
-      context.dummy_transaction();
     }
 
     taraxa::thisThreadSleepForMilliSeconds(500);
