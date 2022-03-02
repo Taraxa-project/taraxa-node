@@ -1229,7 +1229,7 @@ TEST_F(NetworkTest, node_transaction_sync) {
 // intervals on randomly selected nodes It verifies that the blocks created from
 // these transactions which get created on random nodes are synced and the
 // resulting DAG is the same on all nodes
-TEST_F(NetworkTest, node_full_sync) {
+TEST_F(NetworkTest, DISABLED_node_full_sync) {
   constexpr auto numberOfNodes = 5;
   auto node_cfgs = make_node_cfgs<20>(numberOfNodes);
   auto nodes = launch_nodes(slice(node_cfgs, 0, numberOfNodes - 1));
