@@ -1256,7 +1256,8 @@ TEST_F(NetworkTest, node_full_sync) {
     for (int j = 1; j < numberOfNodes - 1; j++) {
       WAIT_EXPECT_EQ(ctx, nodes[j]->getDagManager()->getNumVerticesInDag().first,
                      nodes[0]->getDagManager()->getNumVerticesInDag().first);
-      ctx.fail_if(nodes[j]->getNetwork()->pbft_syncing());
+      WAIT_EXPECT_EQ(ctx, nodes[j]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks(),
+                     nodes[0]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks());
     }
   });
 
@@ -1283,7 +1284,8 @@ TEST_F(NetworkTest, node_full_sync) {
       for (int j = 1; j < numberOfNodes - 1; j++) {
         WAIT_EXPECT_EQ(ctx, nodes[j]->getDagManager()->getNumVerticesInDag().first,
                        nodes[0]->getDagManager()->getNumVerticesInDag().first);
-        ctx.fail_if(nodes[j]->getNetwork()->pbft_syncing());
+        WAIT_EXPECT_EQ(ctx, nodes[j]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks(),
+                       nodes[0]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks());
       }
     });
   }
@@ -1296,7 +1298,6 @@ TEST_F(NetworkTest, node_full_sync) {
               nodes[0]->getDagManager()->getNumVerticesInDag().first);
     EXPECT_EQ(nodes[i]->getDagManager()->getNumVerticesInDag().first, nodes[i]->getDB()->getNumDagBlocks());
     EXPECT_EQ(nodes[i]->getDagManager()->getNumEdgesInDag().first, nodes[0]->getDagManager()->getNumEdgesInDag().first);
-    EXPECT_TRUE(!nodes[i]->getNetwork()->pbft_syncing());
   }
 
   // Bootstrapping node5 join the network
@@ -1338,7 +1339,8 @@ TEST_F(NetworkTest, node_full_sync) {
       for (int j = 1; j < numberOfNodes; j++) {
         WAIT_EXPECT_EQ(ctx, nodes[j]->getDagManager()->getNumVerticesInDag().first,
                        nodes[0]->getDagManager()->getNumVerticesInDag().first);
-        ctx.fail_if(nodes[j]->getNetwork()->pbft_syncing());
+        WAIT_EXPECT_EQ(ctx, nodes[j]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks(),
+                       nodes[0]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks());
       }
     });
   }
