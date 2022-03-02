@@ -379,7 +379,7 @@ void TaraxaCapability::onNewTransactions(SharedTransactions &&transactions) {
 void TaraxaCapability::onNewBlockReceived(DagBlock &&block) {
   std::static_pointer_cast<DagBlockPacketHandler>(
       packets_handlers_->getSpecificHandler(SubprotocolPacketType::DagBlockPacket))
-      ->onNewBlockReceived(std::move(block), nullptr);
+      ->onNewBlockReceived(std::move(block));
 }
 
 void TaraxaCapability::onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_block) {

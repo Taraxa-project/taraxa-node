@@ -104,24 +104,24 @@ DagBlockManager::InsertAndVerifyBlockReturnType DagBlockManager::insertAndVerify
   if (isDagBlockKnown(blk.getHash())) {
     LOG(log_dg_) << "Trying to push new unverified block " << blk.getHash().abridged()
                  << " that is already known, skip it";
-    return AlreadyKnown;
+    return InsertAndVerifyBlockReturnType::AlreadyKnown;
   }
 
   // Mark block as seen - synchronization point in case multiple threads are processing the same block at the same time
   if (!markDagBlockAsSeen(blk)) {
     LOG(log_dg_) << "Trying to push new unverified block " << blk.getHash().abridged()
                  << " that is already marked as known, skip it";
-    return AlreadyKnown;
+    return InsertAndVerifyBlockReturnType::AlreadyKnown;
   }
 
   if (queue_limit_ > 0) {
     if (const auto queue_size = getDagBlockQueueSize(); queue_limit_ < queue_size) {
       LOG(log_er_) << "Block queue large. Verified queue: " << queue_size << "; Limit: " << queue_limit_;
     }
-    return BlockQueueOverflow;
+    return InsertAndVerifyBlockReturnType::BlockQueueOverflow;
   }
   const auto verified = verifyBlock(blk);
-  if (verified == InsertedAndVerified) {
+  if (verified == InsertAndVerifyBlockReturnType::InsertedAndVerified) {
     {
       uLock lock(shared_mutex_for_verified_qu_);
       verified_qu_[blk.getLevel()].push_back(std::move(blk));
@@ -173,7 +173,7 @@ DagBlockManager::InsertAndVerifyBlockReturnType DagBlockManager::verifyBlock(con
 
   if (invalid_blocks_.count(block_hash)) {
     LOG(log_wr_) << "Skip invalid DAG block " << block_hash;
-    return InvalidBlock;
+    return InsertAndVerifyBlockReturnType::InvalidBlock;
   }
 
   // Verify transactions
@@ -181,7 +181,7 @@ DagBlockManager::InsertAndVerifyBlockReturnType DagBlockManager::verifyBlock(con
     LOG(log_nf_) << "Ignore block " << block_hash << " since it has missing transactions";
     // This can be a valid block so just remove it from the seen list
     seen_blocks_.erase(block_hash);
-    return MissingTransaction;
+    return InsertAndVerifyBlockReturnType::MissingTransaction;
   }
 
   auto propose_period = getProposalPeriod(blk.getLevel());
@@ -190,7 +190,7 @@ DagBlockManager::InsertAndVerifyBlockReturnType DagBlockManager::verifyBlock(con
     // Cannot find the proposal period in DB yet. The slow node gets an ahead block, remove from seen_blocks
     LOG(log_nf_) << "Cannot find proposal period " << propose_period.first << " in DB for DAG block " << blk.getHash();
     seen_blocks_.erase(block_hash);
-    return AheadBlock;
+    return InsertAndVerifyBlockReturnType::AheadBlock;
   }
 
   // Verify VDF solution
@@ -202,7 +202,7 @@ DagBlockManager::InsertAndVerifyBlockReturnType DagBlockManager::verifyBlock(con
                  << " level failed on VDF verification with pivot hash " << blk.getPivot() << " reason " << e.what();
     LOG(log_er_) << "period from map: " << propose_period.first << " current: " << pbft_chain_->getPbftChainSize();
     markBlockInvalid(block_hash);
-    return FailedVdfVerification;
+    return InsertAndVerifyBlockReturnType::FailedVdfVerification;
   }
 
   auto dag_block_sender = blk.getSender();
@@ -211,16 +211,16 @@ DagBlockManager::InsertAndVerifyBlockReturnType DagBlockManager::verifyBlock(con
     dpos_qualified = final_chain_->dpos_is_eligible(propose_period.first, dag_block_sender);
   } catch (state_api::ErrFutureBlock &c) {
     LOG(log_er_) << "Verify proposal period " << propose_period.first << " is too far ahead of DPOS. " << c.what();
-    return FutureBlock;
+    return InsertAndVerifyBlockReturnType::FutureBlock;
   }
   if (!dpos_qualified) {
     LOG(log_er_) << "Invalid DAG block DPOS. DAG block " << blk << " is not eligible for DPOS at period "
                  << propose_period.first << " for sender " << dag_block_sender.toString() << " current period "
                  << final_chain_->last_block_number();
     markBlockInvalid(block_hash);
-    return NotEligible;
+    return InsertAndVerifyBlockReturnType::NotEligible;
   }
-  return InsertedAndVerified;
+  return InsertAndVerifyBlockReturnType::InsertedAndVerified;
 }
 
 uint64_t DagBlockManager::getCurrentMaxProposalPeriod() const { return current_max_proposal_period_; }

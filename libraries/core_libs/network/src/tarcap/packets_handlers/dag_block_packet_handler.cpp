@@ -60,10 +60,9 @@ void DagBlockPacketHandler::process(const PacketData &packet_data, const std::sh
         LOG(log_dg_) << "Ignore new dag block " << hash << ", dag syncing is on";
       } else {
         if (peer->peer_dag_synced_) {
-          LOG(log_er_) << "DagBlock" << block.getHash() << " has missing pivot or/and tips " << status.second
-                       << " . Peer " << packet_data.from_node_id_ << " will be disconnected.";
-          disconnect(peer->getId(), dev::p2p::UserReason);
-          peers_state_->set_peer_malicious(peer->getId());
+          std::ostringstream err_msg;
+          err_msg << "DagBlock" << block.getHash() << " has missing pivot or/and tips " << status.second;
+          throw MaliciousPeerException(err_msg.str());
         } else {
           // peer_dag_synced_ flag ensures that this can only be performed once for a peer
           requestPendingDagBlocks(peer);
@@ -73,7 +72,7 @@ void DagBlockPacketHandler::process(const PacketData &packet_data, const std::sh
     }
   }
 
-  onNewBlockReceived(std::move(block), std::move(peer));
+  onNewBlockReceived(std::move(block), peer);
 }
 
 void DagBlockPacketHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::DagBlock block,
@@ -119,38 +118,35 @@ void DagBlockPacketHandler::onNewBlockReceived(DagBlock &&block, const std::shar
   if (dag_blk_mgr_) {
     const auto verified = dag_blk_mgr_->insertAndVerifyBlock(std::move(block));
     switch (verified) {
-      case DagBlockManager::InvalidBlock:
-      case DagBlockManager::FailedVdfVerification:
-      case DagBlockManager::NotEligible:
-        LOG(log_er_) << "DagBlock" << block.getHash() << " failed verification with error code " << verified
-                     << " . Peer " << peer->getId() << " will be disconnected and marked as malicious.";
-        disconnect(peer->getId(), dev::p2p::UserReason);
-        peers_state_->set_peer_malicious(peer->getId());
-        break;
-      case DagBlockManager::BlockQueueOverflow:
+      case DagBlockManager::InsertAndVerifyBlockReturnType::InvalidBlock:
+      case DagBlockManager::InsertAndVerifyBlockReturnType::FailedVdfVerification:
+      case DagBlockManager::InsertAndVerifyBlockReturnType::NotEligible: {
+        std::ostringstream err_msg;
+        err_msg << "DagBlock" << block.getHash() << " failed verification with error code " << (uint32_t)verified;
+        throw MaliciousPeerException(err_msg.str());
+      }
+      case DagBlockManager::InsertAndVerifyBlockReturnType::BlockQueueOverflow:
         LOG(log_wr_) << "DagBlock" << block.getHash() << " could not be inserted because of block queue overflow. Peer "
                      << peer->getId() << " will be disconnected";
         disconnect(peer->getId(), dev::p2p::UserReason);
         break;
-      case DagBlockManager::MissingTransaction:
+      case DagBlockManager::InsertAndVerifyBlockReturnType::MissingTransaction:
         if (peer->peer_dag_synced_) {
-          LOG(log_er_) << "DagBlock" << block.getHash()
-                       << " is missing a transaction while in a dag synced state. Peer " << peer->getId()
-                       << " will be disconnected and marked as malicious.";
-          disconnect(peer->getId(), dev::p2p::UserReason);
-          peers_state_->set_peer_malicious(peer->getId());
+          std::ostringstream err_msg;
+          err_msg << "DagBlock" << block.getHash() << " is missing a transaction while in a dag synced state";
+          throw MaliciousPeerException(err_msg.str());
         }
         break;
-      case DagBlockManager::AheadBlock:
-      case DagBlockManager::FutureBlock:
+      case DagBlockManager::InsertAndVerifyBlockReturnType::AheadBlock:
+      case DagBlockManager::InsertAndVerifyBlockReturnType::FutureBlock:
         if (peer->peer_dag_synced_) {
           LOG(log_wr_) << "DagBlock" << block.getHash() << " is an ahead/future block. Peer " << peer->getId()
                        << " will be disconnected";
           disconnect(peer->getId(), dev::p2p::UserReason);
         }
         break;
-      case DagBlockManager::InsertedAndVerified:
-      case DagBlockManager::AlreadyKnown:
+      case DagBlockManager::InsertAndVerifyBlockReturnType::InsertedAndVerified:
+      case DagBlockManager::InsertAndVerifyBlockReturnType::AlreadyKnown:
         break;
     }
   } else if (!test_state_->hasBlock(block.getHash())) {

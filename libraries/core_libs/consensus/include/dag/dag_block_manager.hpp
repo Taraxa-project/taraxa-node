@@ -15,7 +15,7 @@ class DagBlockManager {
   /**
    * @brief return type of insertAndVerifyBlock
    */
-  enum InsertAndVerifyBlockReturnType : uint32_t {
+  enum class InsertAndVerifyBlockReturnType : uint32_t {
     InsertedAndVerified = 0,
     AlreadyKnown,
     BlockQueueOverflow,
