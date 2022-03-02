@@ -1025,15 +1025,15 @@ void PbftManager::secondFinish_() {
 
   updateSoftVotedBlockForThisRound_();
   if (soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH && soft_voted_block_for_this_round_.second) {
-    // Have enough soft votes for a voting value other than NULL BLOCK HASH
-    LOG(log_dg_) << "Node has seen enough soft votes voted at " << soft_voted_block_for_this_round_.first
-                 << ", regossip soft votes. In round " << round << " step " << step_;
     auto voted_block_hash_with_soft_votes = vote_mgr_->getVotesBundleByRoundAndStep(round, 2, TWO_T_PLUS_ONE);
-    assert(voted_block_hash_with_soft_votes.voted_block_hash != NULL_BLOCK_HASH);
-    assert(voted_block_hash_with_soft_votes.enough);
-
-    if (auto net = network_.lock()) {
+    if (voted_block_hash_with_soft_votes.enough &&
+        voted_block_hash_with_soft_votes.voted_block_hash != NULL_BLOCK_HASH) {
+      // Have enough soft votes for a voting value other than NULL BLOCK HASH
+      auto net = network_.lock();
+      assert(net);  // Should never happen
       net->onNewPbftVotes(std::move(voted_block_hash_with_soft_votes.votes));
+      LOG(log_dg_) << "Node has seen enough soft votes voted at " << voted_block_hash_with_soft_votes.voted_block_hash
+                   << ", regossip soft votes. In round " << round << " step " << step_;
     }
   }
 
