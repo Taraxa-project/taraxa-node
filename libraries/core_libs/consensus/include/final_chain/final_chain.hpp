@@ -70,7 +70,7 @@ class FinalChain {
   virtual state_api::DPOSQueryResult dpos_query(state_api::DPOSQuery const& q,
                                                 std::optional<EthBlockNumber> blk_n = {}) const = 0;
 
-  virtual bool is_nonce_valid(const addr_t& addr, uint64_t nonce) const = 0;
+  virtual bool is_nonce_valid(const addr_t& addr, const trx_nonce_t& nonce) const = 0;
 
   // TODO move out of here:
 

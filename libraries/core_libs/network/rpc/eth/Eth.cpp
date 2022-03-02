@@ -258,7 +258,7 @@ class EthImpl : public Eth, EthParams {
     return n ? final_chain->transactionCount(n) : 0;
   }
 
-  uint64_t transaction_count(EthBlockNumber n, Address const& addr) {
+  trx_nonce_t transaction_count(EthBlockNumber n, Address const& addr) {
     return final_chain->get_account(addr, n).value_or(ZeroAccount).nonce;
   }
 
@@ -333,7 +333,7 @@ class EthImpl : public Eth, EthParams {
       ret.data = jsToBytes(_json["code"].asString(), OnFailed::Throw);
     }
     if (!_json["nonce"].empty()) {
-      ret.nonce = jsToInt(_json["nonce"].asString());
+      ret.nonce = jsToU256(_json["nonce"].asString());
     }
     return ret;
   }

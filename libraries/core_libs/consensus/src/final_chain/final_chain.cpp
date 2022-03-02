@@ -377,7 +377,7 @@ class FinalChainImpl final : public FinalChain {
     return state_api_.dpos_query(last_if_absent(blk_n), q);
   }
 
-  bool is_nonce_valid(const addr_t& addr, uint64_t nonce) const override {
+  bool is_nonce_valid(const addr_t& addr, const trx_nonce_t& nonce) const override {
     return !(replay_protection_service_ && replay_protection_service_->is_nonce_stale(addr, nonce));
   }
 
