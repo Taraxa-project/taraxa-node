@@ -64,9 +64,8 @@ void PacketHandler::processPacket(const PacketData& packet_data) {
 
 void PacketHandler::handle_caught_exception(std::string_view exception_msg, const PacketData& packet_data,
                                             dev::p2p::DisconnectReason disconnect_reason, bool set_peer_as_malicious) {
-  LOG(log_er_) << "Exception caught during packet processing: " << exception_msg << " from "
-               << packet_data.from_node_id_.abridged() << " ." << std::endl
-               << "PacketData: " << packet_data.getPacketDataJson().toStyledString();
+  LOG(log_er_) << "Exception caught during packet processing: " << exception_msg << " ."
+               << "PacketData: " << jsonToUnstyledString(packet_data.getPacketDataJson());
 
   if (set_peer_as_malicious) {
     peers_state_->set_peer_malicious(packet_data.from_node_id_);

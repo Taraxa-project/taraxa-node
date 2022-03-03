@@ -5,6 +5,12 @@
 #include <errno.h>
 namespace taraxa {
 
+std::string jsonToUnstyledString(const Json::Value &value) {
+  Json::StreamWriterBuilder builder;
+  builder["indentation"] = "";  // assume default for comments is None
+  return Json::writeString(builder, value);
+}
+
 void thisThreadSleepForSeconds(unsigned sec) { std::this_thread::sleep_for(std::chrono::seconds(sec)); }
 
 void thisThreadSleepForMilliSeconds(unsigned millisec) {

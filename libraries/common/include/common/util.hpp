@@ -25,6 +25,12 @@
 
 namespace taraxa {
 
+/**
+ * @param value
+ * @return unstyled json string (without new lines and whitespaces).
+ */
+std::string jsonToUnstyledString(const Json::Value &value);
+
 template <typename T>
 std::weak_ptr<T> as_weak(std::shared_ptr<T> sp) {
   return std::weak_ptr<T>(sp);
