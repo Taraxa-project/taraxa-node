@@ -18,7 +18,7 @@ void PacketHandler::checkPacketRlpIsList(const PacketData& packet_data) const {
 
 void PacketHandler::processPacket(const PacketData& packet_data) {
   try {
-    SinglePacketStats packet_stats{packet_data.from_node_id_, packet_data.rlp_.size(), std::chrono::microseconds(0),
+    SinglePacketStats packet_stats{packet_data.from_node_id_, packet_data.rlp_.data().size(), std::chrono::microseconds(0),
                                    std::chrono::microseconds(0)};
     const auto begin = std::chrono::steady_clock::now();
 
