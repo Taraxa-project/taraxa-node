@@ -546,7 +546,9 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
   node->getTransactionManager()->insertTransaction(trx_master_boot_node_to_receiver);
 
   // Check there is proposing DAG blocks
-  EXPECT_HAPPENS({1s, 200ms}, [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, node->getNumProposedBlocks(), 1) });
+  EXPECT_HAPPENS({1s, 200ms}, [&](auto &ctx) {
+    WAIT_EXPECT_EQ(ctx, node->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks(), 1)
+  });
 
   // Make sure the transaction get executed
   EXPECT_HAPPENS({1s, 200ms}, [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), 1) });
@@ -572,11 +574,13 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   nodes[0]->getTransactionManager()->insertTransaction(trx_master_boot_node_to_node2);
 
   // Only node1 be able to propose DAG block
-  EXPECT_HAPPENS({5s, 200ms}, [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, nodes[0]->getNumProposedBlocks(), 1) });
+  EXPECT_HAPPENS({5s, 200ms}, [&](auto &ctx) {
+    WAIT_EXPECT_EQ(ctx, nodes[0]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks(), 1)
+  });
 
   const expected_balances_map_t expected_balances1 = {
       {node1_addr, node1_genesis_bal - 100}, {node2_addr, 100}, {node3_addr, 0}};
-  wait_for_balances(nodes, expected_balances1);
+  wait_for_balances(nodes, expected_balances1, {100s, 500ms});
 
   // create a transaction transfer coins from node1 to node3
   Transaction trx_master_boot_node_to_node3(1, val_t(1000), gas_price, TEST_TX_GAS_LIMIT, bytes(),
@@ -585,12 +589,14 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   nodes[0]->getTransactionManager()->insertTransaction(trx_master_boot_node_to_node3);
 
   // Only node1 be able to propose DAG block
-  EXPECT_HAPPENS({5s, 200ms}, [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, nodes[0]->getNumProposedBlocks(), 2) });
+  EXPECT_HAPPENS({5s, 200ms}, [&](auto &ctx) {
+    WAIT_EXPECT_EQ(ctx, nodes[0]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks(), 2)
+  });
 
   std::cout << "Checking all nodes see transaction from node 1 to node 3..." << std::endl;
   const expected_balances_map_t expected_balances2 = {
       {node1_addr, node1_genesis_bal - 1100}, {node2_addr, 100}, {node3_addr, 1000}};
-  wait_for_balances(nodes, expected_balances2);
+  wait_for_balances(nodes, expected_balances2, {100s, 500ms});
 }
 
 TEST_F(PbftManagerTest, check_committeeSize_less_or_equal_to_activePlayers) {
