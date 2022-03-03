@@ -477,6 +477,16 @@ TEST_F(FullNodeTest, sync_five_nodes) {
       return issued_trx_count;
     }
 
+    void dummy_transaction() {
+      {
+        unique_lock l(m);
+        ++issued_trx_count;
+      }
+      auto result = trx_clients[0].coinTransfer(KeyPair::create().address(), 0, KeyPair::create(), false);
+      EXPECT_NE(result.stage, TransactionClient::TransactionStage::created);
+      transactions.emplace(result.trx.getHash());
+    }
+
     void coin_transfer(int sender_node_i, addr_t const &to, val_t const &amount, bool verify_executed = true) {
       {
         unique_lock l(m);
@@ -485,6 +495,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
         expected_balances[nodes_[sender_node_i]->getAddress()] -= amount;
       }
       auto result = trx_clients[sender_node_i].coinTransfer(to, amount, {}, verify_executed);
+      EXPECT_NE(result.stage, TransactionClient::TransactionStage::created);
       transactions.emplace(result.trx.getHash());
       if (verify_executed)
         EXPECT_EQ(result.stage, TransactionClient::TransactionStage::executed);
@@ -519,6 +530,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
             }
           }
         }
+        dummy_transaction();
       });
     }
 
@@ -535,6 +547,13 @@ TEST_F(FullNodeTest, sync_five_nodes) {
     }
     context.wait_all_transactions_known();
   }
+
+  std::cout << "Waiting until transactions are executed" << std::endl;
+  const auto trx_count = context.getIssuedTrxCount();
+  EXPECT_HAPPENS({60s, 200ms}, [&](auto &ctx) {
+    for (size_t i = 0; i < nodes.size(); ++i)
+      WAIT_EXPECT_EQ(ctx, nodes[i]->getDB()->getNumTransactionExecuted(), trx_count)
+  });
 
   std::cout << "Initial coin transfers from node 0 issued ... " << std::endl;
 
@@ -580,6 +599,8 @@ TEST_F(FullNodeTest, sync_five_nodes) {
                 << " Node 4: Dag size = " << num_vertices4.first << " Trx count = " << num_trx4 << std::endl
                 << " Node 5: Dag size = " << num_vertices5.first << " Trx count = " << num_trx5 << std::endl
                 << " Issued transaction count = " << issued_trx_count << std::endl;
+      std::cout << "Send a dummy transaction to coverge DAG" << std::endl;
+      context.dummy_transaction();
     }
 
     taraxa::thisThreadSleepForMilliSeconds(500);
