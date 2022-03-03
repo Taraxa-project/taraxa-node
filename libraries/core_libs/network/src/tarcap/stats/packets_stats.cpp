@@ -1,18 +1,9 @@
 #include "network/tarcap/stats/packets_stats.hpp"
 
+#include "common/util.hpp"
 #include "json/writer.h"
 
 namespace taraxa::network::tarcap {
-
-/**
- * @param value
- * @return unstyled json string (without new lines and whitespaces).
- */
-std::string jsonToUnstyledString(const Json::Value& value) {
-  Json::StreamWriterBuilder builder;
-  builder["indentation"] = "";  // assume default for comments is None
-  return Json::writeString(builder, value);
-}
 
 PacketsStats::PacketsStats(const addr_t& node_addr) { LOG_OBJECTS_CREATE("NETPER"); }
 

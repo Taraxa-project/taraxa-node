@@ -111,15 +111,19 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
   std::vector<std::shared_ptr<DagBlock>> dag_blocks;
   dag_blocks.emplace_back(std::make_shared<DagBlock>(blk));
 
-  // creating lot of non valid blocks just for size
+  // creating lot of blocks just for size
   std::vector<trx_hash_t> trx_hashes;
   auto trxs = samples::createSignedTrxSamples(0, 1500, g_secret);
   for (const auto& trx : trxs) {
     trx_hashes.push_back(trx->getHash());
   }
   for (int i = 0; i < 100; ++i) {
-    DagBlock blk(blk_hash_t(1111 + i), 0, {blk_hash_t(222 + i), blk_hash_t(333 + i), blk_hash_t(444 + i)}, trx_hashes,
-                 sig_t(7777 + i), blk_hash_t(888 + i), addr_t(999 + i));
+    const auto proposal_period = dag_blk_mgr1->getProposalPeriod(proposal_level + 1).first;
+    const auto period_block_hash = db1->getPeriodBlockHash(proposal_period);
+    const auto sortition_params = dag_blk_mgr1->sortitionParamsManager().getSortitionParams(proposal_period);
+    vdf_sortition::VdfSortition vdf(sortition_params, node1->getVrfSecretKey(),
+                                    VrfSortitionBase::makeVrfInput(proposal_level + 1, period_block_hash));
+    DagBlock blk(block_hash, proposal_level + 1, {}, trx_hashes, vdf, node1->getSecretKey());
     dag_blocks.emplace_back(std::make_shared<DagBlock>(blk));
   }
 
