@@ -35,7 +35,7 @@ void PbftSyncPacketHandler::validatePacketRlpFormat(const PacketData &packet_dat
 
   // SyncBlock rlp parsing cannot be done through util::rlp_tuple, which automatically checks the rlp size so it is
   // checked here manually
-  if (constexpr size_t required_size = 4; packet_data.rlp_[1].itemCount() != required_size) {
+  if (constexpr size_t required_size = 4; packet_data.rlp_[2].itemCount() != required_size) {
     throw InvalidRlpItemsCountException(packet_data.type_str_ + ":Syncblock", packet_data.rlp_[1].itemCount(),
                                         required_size);
   }
