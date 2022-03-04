@@ -450,7 +450,7 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(period_1_levels_from_db.levels_interval.second, 110);
 }
 
-TEST_F(FullNodeTest, DISABLED_sync_five_nodes) {
+TEST_F(FullNodeTest, sync_five_nodes) {
   using namespace std;
 
   auto node_cfgs = make_node_cfgs<20>(5);
@@ -483,6 +483,7 @@ TEST_F(FullNodeTest, DISABLED_sync_five_nodes) {
         ++issued_trx_count;
       }
       auto result = trx_clients[0].coinTransfer(KeyPair::create().address(), 0, KeyPair::create(), false);
+      EXPECT_NE(result.stage, TransactionClient::TransactionStage::created);
       transactions.emplace(result.trx.getHash());
     }
 
@@ -494,6 +495,7 @@ TEST_F(FullNodeTest, DISABLED_sync_five_nodes) {
         expected_balances[nodes_[sender_node_i]->getAddress()] -= amount;
       }
       auto result = trx_clients[sender_node_i].coinTransfer(to, amount, {}, verify_executed);
+      EXPECT_NE(result.stage, TransactionClient::TransactionStage::created);
       transactions.emplace(result.trx.getHash());
       if (verify_executed)
         EXPECT_EQ(result.stage, TransactionClient::TransactionStage::executed);
@@ -545,6 +547,13 @@ TEST_F(FullNodeTest, DISABLED_sync_five_nodes) {
     }
     context.wait_all_transactions_known();
   }
+
+  std::cout << "Waiting until transactions are executed" << std::endl;
+  const auto trx_count = context.getIssuedTrxCount();
+  EXPECT_HAPPENS({60s, 200ms}, [&](auto &ctx) {
+    for (size_t i = 0; i < nodes.size(); ++i)
+      WAIT_EXPECT_EQ(ctx, nodes[i]->getDB()->getNumTransactionExecuted(), trx_count)
+  });
 
   std::cout << "Initial coin transfers from node 0 issued ... " << std::endl;
 
