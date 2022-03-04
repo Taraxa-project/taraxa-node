@@ -25,14 +25,11 @@ PbftSyncPacketHandler::PbftSyncPacketHandler(std::shared_ptr<PeersState> peers_s
       delayed_sync_events_tp_(1, true) {}
 
 void PbftSyncPacketHandler::validatePacketRlpFormat(const PacketData &packet_data) const {
-  // TODO[1561]: the way we handle PbftSyncPacket must be changed as we are using empty rlp as valid data -> it means
-  // pbft
-  //             syncing is complete. This is bad - someone could simply send empty PbftSyncPacket over and over again
-  if (packet_data.rlp_.itemCount() == 0) {
+  if (packet_data.rlp_.itemCount() == 1) {
     return;
   }
 
-  if (constexpr size_t required_size = 2; packet_data.rlp_.itemCount() != required_size) {
+  if (constexpr size_t required_size = 3; packet_data.rlp_.itemCount() != required_size) {
     throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), required_size);
   }
 
@@ -55,19 +52,25 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
   }
 
   const size_t item_count = packet_data.rlp_.itemCount();
+  bool pbft_chain_synced = packet_data.rlp_[0].toInt<bool>();
 
   // No blocks received - syncing is complete
-  if (item_count == 0) {
+  if (item_count == 1) {
+    if (!pbft_chain_synced) {
+      LOG(log_er_) << "Invalid syncing status. PBFT chain should have been synced with peer "
+                   << packet_data.from_node_id_ << ". Stop syncing";
+      handleMaliciousSyncPeer(packet_data.from_node_id_);
+    }
     pbftSyncComplete();
     return;
   }
 
   // Process received pbft blocks
-  bool last_block = packet_data.rlp_[0].toInt<bool>();
+  bool last_block = packet_data.rlp_[1].toInt<bool>();
 
   SyncBlock sync_block;
   try {
-    sync_block = SyncBlock(packet_data.rlp_[1]);
+    sync_block = SyncBlock(packet_data.rlp_[2]);
   } catch (const Transaction::InvalidSignature &e) {
     throw MaliciousPeerException("Unable to parse SyncBlock: " + std::string(e.what()));
   }
@@ -96,6 +99,9 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
   if (pbft_chain_->findPbftBlockInChain(pbft_blk_hash)) {
     LOG(log_wr_) << "PBFT block " << pbft_blk_hash << " from " << packet_data.from_node_id_
                  << " already present in chain";
+    if (pbft_chain_synced) {
+      pbftSyncComplete();
+    }
     return;
   }
 
@@ -147,6 +153,11 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
 
   // Reset last sync packet received time
   syncing_state_->set_last_sync_packet_time();
+
+  if (pbft_chain_synced) {
+    pbftSyncComplete();
+    return;
+  }
 
   if (last_block) {
     if (syncing_state_->is_pbft_syncing()) {
