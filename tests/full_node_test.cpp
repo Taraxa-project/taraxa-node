@@ -1485,7 +1485,7 @@ TEST_F(FullNodeTest, chain_config_json) {
     "run_count_votes": false
   },
   "sortition": {
-    "changes_count_for_average": "0x5",
+    "changes_count_for_average": "0xA",
     "max_interval_correction": "0x3e8",
     "computation_interval": "0xc8",
     "changing_interval" : "0x32",

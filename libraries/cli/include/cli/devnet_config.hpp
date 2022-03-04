@@ -235,7 +235,7 @@ const char *devnet_json = R"foo({
       "range": "0xa"
     },
     "sortition": {
-      "changes_count_for_average": "0x5",
+      "changes_count_for_average": "0xA",
       "max_interval_correction": "0x3E8",
       "dag_efficiency_targets": ["0x12C0", "0x1450"],
       "changing_interval": "0xC8",

@@ -4,42 +4,16 @@
 
 namespace taraxa {
 
-SortitionParamsChange::SortitionParamsChange(uint64_t period, uint16_t efficiency, const VrfParams& vrf,
-                                             const SortitionParamsChange& previous)
-    : period(period), vrf_params(vrf), interval_efficiency(efficiency) {
-  actual_correction_per_percent = correctionPerPercent(previous);
-}
-
 SortitionParamsChange::SortitionParamsChange(uint64_t period, uint16_t efficiency, const VrfParams& vrf)
     : period(period), vrf_params(vrf), interval_efficiency(efficiency) {}
 
-uint16_t SortitionParamsChange::correctionPerPercent(const SortitionParamsChange& previous) const {
-  // make calculations on vrf upper threshold
-  const auto param_change = vrf_params.threshold_upper - previous.vrf_params.threshold_upper;
-  int32_t actual_efficiency_change = interval_efficiency - previous.interval_efficiency;
-  // to avoid division by zero
-  if (actual_efficiency_change == 0) {
-    actual_efficiency_change = 1;
-  }
-
-  auto correction_per_percent = std::abs(param_change * kOnePercent / actual_efficiency_change);
-  // zero correction could lead to stuck of that protocol and give up with zero corrections
-  if (correction_per_percent == 0) {
-    correction_per_percent = 1;
-  }
-  // correction per percent shouldn't be bigger than percent of value
-  correction_per_percent = std::min(correction_per_percent, std::numeric_limits<uint16_t>::max() / 100);
-  return correction_per_percent;
-}
-
 bytes SortitionParamsChange::rlp() const {
   dev::RLPStream s;
-  s.appendList(5);
+  s.appendList(4);
   s << vrf_params.threshold_range;
   s << vrf_params.threshold_upper;
   s << period;
   s << interval_efficiency;
-  s << actual_correction_per_percent;
 
   return s.invalidate();
 }
@@ -51,7 +25,6 @@ SortitionParamsChange SortitionParamsChange::from_rlp(const dev::RLP& rlp) {
   p.vrf_params.threshold_upper = rlp[1].toInt<uint16_t>();
   p.period = rlp[2].toInt<uint64_t>();
   p.interval_efficiency = rlp[3].toInt<uint16_t>();
-  p.actual_correction_per_percent = rlp[4].toInt<uint16_t>();
 
   return p;
 }
@@ -127,13 +100,6 @@ uint16_t SortitionParamsManager::averageDagEfficiency() {
   return std::accumulate(dag_efficiencies_.begin(), dag_efficiencies_.end(), 0) / dag_efficiencies_.size();
 }
 
-uint16_t SortitionParamsManager::averageCorrectionPerPercent() const {
-  if (params_changes_.empty()) return 1;
-  const auto sum = std::accumulate(params_changes_.begin(), params_changes_.end(), 0,
-                                   [](uint32_t s, const auto& e) { return s + e.actual_correction_per_percent; });
-  return sum / params_changes_.size();
-}
-
 void SortitionParamsManager::cleanup(uint64_t current_period) {
   const auto efficiencies_to_leave = std::max(config_.computation_interval - config_.changing_interval, 0);
   {
@@ -173,19 +139,78 @@ void SortitionParamsManager::pbftBlockPushed(const SyncBlock& block, DbStorage::
   }
 }
 
-int32_t SortitionParamsManager::getChange(uint64_t period, uint16_t efficiency) const {
-  const uint16_t per_percent = averageCorrectionPerPercent();
-  int32_t correction = -(config_.targetEfficiency() - efficiency);
-  if (std::abs(correction) > config_.max_interval_correction) {
-    correction = (correction < 0 ? -1 : 1) * config_.max_interval_correction;
+int32_t efficiencyToChange(uint16_t efficiency, uint16_t goal_efficiency) {
+  uint16_t deviation = std::abs(efficiency - goal_efficiency) * 100 / goal_efficiency;
+  // If goal is 50 % return 1% change for 40%-60%, 2% change for 30%-70% and 5% change for over that
+  if (deviation < 20) {
+    return UINT16_MAX / 100;
   }
-  const int32_t change = correction * per_percent / kOnePercent;
+  if (deviation < 40) {
+    return UINT16_MAX / 50;
+  }
+  return UINT16_MAX / 20;
+}
 
-  LOG(log_dg_) << "Average interval efficiency: " << efficiency / 100. << "%, correction per percent: " << per_percent;
-  LOG(log_nf_) << "Changing VRF params on " << period << " period from (" << config_.vrf.threshold_range << ", "
-               << config_.vrf.threshold_upper << ") by " << change;
+int32_t SortitionParamsManager::getNewUpperRange(uint16_t efficiency) const {
+  std::map<uint16_t, uint32_t> efficiencies_to_uppper_range;
+  const uint16_t goal_efficiency = (config_.dag_efficiency_targets.first + config_.dag_efficiency_targets.second) / 2;
 
-  return change;
+  for (uint32_t i = 1; i < params_changes_.size(); i++) {
+    efficiencies_to_uppper_range[params_changes_[i].interval_efficiency] =
+        params_changes_[i - 1].vrf_params.threshold_upper;
+  }
+  if (params_changes_.size() > 1) {
+    efficiencies_to_uppper_range[efficiency] = params_changes_[params_changes_.size() - 1].vrf_params.threshold_upper;
+  }
+
+  // Check if all last kSortitionParamsToPull are below 50%
+  if ((efficiencies_to_uppper_range.empty() || efficiencies_to_uppper_range.rbegin()->first < goal_efficiency) &&
+      efficiency < goal_efficiency) {
+    // If last kSortitionParamsToPull are under 50% and we are still under 50%, decrease upper limit
+    return ((int32_t)params_changes_[params_changes_.size() - 1].vrf_params.threshold_upper) -
+           efficiencyToChange(efficiency, goal_efficiency);
+  }
+
+  // Check if all last kSortitionParamsToPull are over 50%
+  if ((efficiencies_to_uppper_range.empty() || efficiencies_to_uppper_range.begin()->first >= goal_efficiency) &&
+      efficiency >= goal_efficiency) {
+    // If last kSortitionParamsToPull are over 50% and we are still over 50%, increase upper limit
+    return ((int32_t)params_changes_[params_changes_.size() - 1].vrf_params.threshold_upper) +
+           efficiencyToChange(efficiency, goal_efficiency);
+  }
+
+  // If efficiency is less than 50% find the efficiency over 50% closest to 50%
+  if (efficiency < goal_efficiency) {
+    for (const auto& eff : efficiencies_to_uppper_range) {
+      if (eff.first >= goal_efficiency) {
+        if (eff.second < params_changes_[params_changes_.size() - 1].vrf_params.threshold_upper) {
+          // Return average between last range and the one over 50% and closest to 50%
+          return (eff.second + params_changes_[params_changes_.size() - 1].vrf_params.threshold_upper) / 2;
+        } else {
+          return ((int32_t)params_changes_[params_changes_.size() - 1].vrf_params.threshold_upper) +
+                 efficiencyToChange(efficiency, goal_efficiency);
+        }
+      }
+    }
+  }
+
+  // If efficiency is over 50% find the efficiency below 50% closest to 50%
+  if (efficiency >= goal_efficiency) {
+    for (auto eff = efficiencies_to_uppper_range.rbegin(); eff != efficiencies_to_uppper_range.rend(); ++eff) {
+      if (eff->first < goal_efficiency) {
+        if (eff->second > params_changes_[params_changes_.size() - 1].vrf_params.threshold_upper) {
+          // Return average between last range and the one over 50% and closest to 50%
+          return (eff->second + params_changes_[params_changes_.size() - 1].vrf_params.threshold_upper) / 2;
+        } else {
+          return ((int32_t)params_changes_[params_changes_.size() - 1].vrf_params.threshold_upper) -
+                 efficiencyToChange(efficiency, goal_efficiency);
+        }
+      }
+    }
+  }
+
+  // It should not be possible to reach here
+  assert(false);
 }
 
 std::optional<SortitionParamsChange> SortitionParamsManager::calculateChange(uint64_t period) {
@@ -197,14 +222,18 @@ std::optional<SortitionParamsChange> SortitionParamsManager::calculateChange(uin
     return {};
   }
 
-  const int32_t change = getChange(period, average_dag_efficiency);
-  config_.vrf += change;
-
-  if (params_changes_.empty()) {
-    return SortitionParamsChange{period, average_dag_efficiency, config_.vrf};
+  int32_t new_upper_range = getNewUpperRange(average_dag_efficiency);
+  if (new_upper_range < VrfParams::kThresholdUpperMinValue) {
+    new_upper_range = VrfParams::kThresholdUpperMinValue;
+  } else if (new_upper_range > UINT16_MAX) {
+    new_upper_range = UINT16_MAX;
   }
 
-  return SortitionParamsChange{period, average_dag_efficiency, config_.vrf, *params_changes_.rbegin()};
+  config_.vrf.threshold_upper = new_upper_range;
+  LOG(log_si_) << "Average interval efficiency: " << average_dag_efficiency / 100. << "% . Changing VRF params on "
+               << period << " period to (" << config_.vrf.threshold_upper << ")";
+
+  return SortitionParamsChange{period, average_dag_efficiency, config_.vrf};
 }
 
 }  // namespace taraxa
