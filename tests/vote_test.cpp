@@ -67,7 +67,7 @@ TEST_F(VoteTest, unverified_votes) {
     unverified_votes.emplace_back(vote);
   }
 
-  vote_mgr->addUnverifiedVotes(unverified_votes);
+  vote_mgr->moveVerifyToUnverify(unverified_votes);
   EXPECT_EQ(vote_mgr->getUnverifiedVotes().size(), unverified_votes.size());
   EXPECT_EQ(vote_mgr->getUnverifiedVotesSize(), unverified_votes.size());
 

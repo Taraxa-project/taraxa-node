@@ -74,13 +74,12 @@ class Vote {
 };
 
 struct VotesBundle {
-  bool enough;
   blk_hash_t voted_block_hash;
   std::vector<std::shared_ptr<Vote>> votes;  // exactly 2t+1 votes
 
-  VotesBundle() : enough(false), voted_block_hash(blk_hash_t(0)) {}
-  VotesBundle(bool enough, blk_hash_t const& voted_block_hash, std::vector<std::shared_ptr<Vote>> const& votes)
-      : enough(enough), voted_block_hash(voted_block_hash), votes(votes) {}
+  VotesBundle() : voted_block_hash(blk_hash_t(0)) {}
+  VotesBundle(blk_hash_t const& voted_block_hash, std::vector<std::shared_ptr<Vote>> const& votes)
+      : voted_block_hash(voted_block_hash), votes(votes) {}
 };
 
 }  // namespace taraxa
