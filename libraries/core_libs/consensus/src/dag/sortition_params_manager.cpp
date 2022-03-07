@@ -2,6 +2,8 @@
 
 #include "pbft/pbft_block.hpp"
 
+#define NULL_BLOCK_HASH blk_hash_t(0)
+
 namespace taraxa {
 
 SortitionParamsChange::SortitionParamsChange(uint64_t period, uint16_t efficiency, const VrfParams& vrf)
@@ -47,30 +49,29 @@ SortitionParamsManager::SortitionParamsManager(const addr_t& node_addr, Sortitio
     config_.vrf = params_changes_.back().vrf_params;
   }
 
-  dag_efficiencies_ = db_->getLastIntervalEfficiencies(config_.changing_interval, config_.computation_interval);
+  auto period = params_changes_.back().period + 1;
+  ignored_efficiency_counter_ = 0;
+  for (auto data = db_->getPeriodDataRaw(period); data.size() > 0; period++) {
+    SyncBlock sync_block(data);
+    if (sync_block.pbft_blk->getPivotDagBlockHash() != NULL_BLOCK_HASH) {
+      if (ignored_efficiency_counter_ >= config_.computation_interval - config_.changing_interval) {
+        uint16_t dag_efficiency = calculateDagEfficiency(sync_block);
+        dag_efficiencies_.push_back(dag_efficiency);
+      } else {
+        ignored_efficiency_counter_++;
+      }
+    }
+  }
 }
 
 SortitionParams SortitionParamsManager::getSortitionParams(std::optional<uint64_t> period) const {
   if (!period || (config_.changing_interval == 0)) {
     return config_;
   }
-  bool is_period_params_found = false;
   SortitionParams p = config_;
-  for (auto prev = params_changes_.rbegin(), it = params_changes_.rbegin(); it != params_changes_.rend(); prev = it++) {
-    auto upper_bound = prev->period;
-    if (it->period == upper_bound) {
-      upper_bound = it->period + config_.computation_interval;
-    }
-    if (period >= it->period && period < upper_bound) {
-      is_period_params_found = true;
-      p.vrf = it->vrf_params;
-    }
-  }
-  if (!is_period_params_found) {
-    auto change = db_->getParamsChangeForPeriod(period.value());
-    if (change.has_value()) {
-      p.vrf = change->vrf_params;
-    }
+  auto change = db_->getParamsChangeForPeriod(period.value());
+  if (change.has_value()) {
+    p.vrf = change->vrf_params;
   }
 
   return p;
@@ -95,24 +96,13 @@ uint16_t SortitionParamsManager::calculateDagEfficiency(const SyncBlock& block) 
 }
 
 uint16_t SortitionParamsManager::averageDagEfficiency() {
-  const auto excess_count = std::max(static_cast<int32_t>(dag_efficiencies_.size()) - config_.computation_interval, 0);
-  dag_efficiencies_.erase(dag_efficiencies_.begin(), dag_efficiencies_.begin() + excess_count);
   return std::accumulate(dag_efficiencies_.begin(), dag_efficiencies_.end(), 0) / dag_efficiencies_.size();
 }
 
-void SortitionParamsManager::cleanup(uint64_t current_period) {
-  const auto efficiencies_to_leave = std::max(config_.computation_interval - config_.changing_interval, 0);
-  {
-    const auto excess_count = std::max(static_cast<int32_t>(dag_efficiencies_.size()) - efficiencies_to_leave, 0);
-    dag_efficiencies_.erase(dag_efficiencies_.begin(), dag_efficiencies_.begin() + excess_count);
-  }
-  {
-    const auto excess_count =
-        std::max(static_cast<int32_t>(params_changes_.size()) - config_.changes_count_for_average, 0);
-    params_changes_.erase(params_changes_.begin(), params_changes_.begin() + excess_count);
-  }
-  if ((current_period - efficiencies_to_leave) > 0) {
-    db_->cleanupDagEfficiencies(current_period - efficiencies_to_leave);
+void SortitionParamsManager::cleanup() {
+  dag_efficiencies_.clear();
+  while (params_changes_.size() > config_.changes_count_for_average) {
+    params_changes_.pop_front();
   }
 }
 
@@ -121,21 +111,20 @@ void SortitionParamsManager::pbftBlockPushed(const SyncBlock& block, DbStorage::
   if (config_.changing_interval == 0) {
     return;
   }
+  if (ignored_efficiency_counter_ >= config_.computation_interval - config_.changing_interval) {
+    uint16_t dag_efficiency = calculateDagEfficiency(block);
+    dag_efficiencies_.push_back(dag_efficiency);
+    const auto& period = block.pbft_blk->getPeriod();
+    LOG(log_dg_) << period << " pbftBlockPushed, efficiency: " << dag_efficiency / 100. << "%";
 
-  uint16_t dag_efficiency = calculateDagEfficiency(block);
-  dag_efficiencies_.push_back(dag_efficiency);
-  const auto& period = block.pbft_blk->getPeriod();
-  db_->savePbftBlockDagEfficiency(period, dag_efficiency, batch);
-  LOG(log_dg_) << period << " pbftBlockPushed, efficiency: " << dag_efficiency / 100. << "%";
-
-  if (non_empty_pbft_chain_size % config_.changing_interval == 0) {
-    const auto params_change = calculateChange(non_empty_pbft_chain_size);
-    if (params_change) {
-      db_->saveSortitionParamsChange(period, *params_change, batch);
-      params_changes_.push_back(*params_change);
+    if (non_empty_pbft_chain_size % config_.changing_interval == 0) {
+      const auto params_change = calculateChange(period);
+      params_changes_.push_back(params_change);
+      db_->saveSortitionParamsChange(period, params_change, batch);
+      cleanup();
     }
-
-    cleanup(period);
+  } else {
+    ignored_efficiency_counter_++;
   }
 }
 
@@ -152,9 +141,14 @@ int32_t efficiencyToChange(uint16_t efficiency, uint16_t goal_efficiency) {
 }
 
 int32_t SortitionParamsManager::getNewUpperRange(uint16_t efficiency) const {
+  if (efficiency >= config_.dag_efficiency_targets.first && efficiency <= config_.dag_efficiency_targets.second) {
+    return params_changes_[params_changes_.size() - 1].vrf_params.threshold_upper;
+  }
+
+  // efficiencies_to_uppper_range provide mapping from efficiency to VRF upper threshold, params_changes contain
+  // efficiency for previous setting so mapping is done efficiency of i relates to VRF upper threshold of (i + 1)
   std::map<uint16_t, uint32_t> efficiencies_to_uppper_range;
   const uint16_t goal_efficiency = (config_.dag_efficiency_targets.first + config_.dag_efficiency_targets.second) / 2;
-
   for (uint32_t i = 1; i < params_changes_.size(); i++) {
     efficiencies_to_uppper_range[params_changes_[i].interval_efficiency] =
         params_changes_[i - 1].vrf_params.threshold_upper;
@@ -163,46 +157,48 @@ int32_t SortitionParamsManager::getNewUpperRange(uint16_t efficiency) const {
     efficiencies_to_uppper_range[efficiency] = params_changes_[params_changes_.size() - 1].vrf_params.threshold_upper;
   }
 
-  // Check if all last kSortitionParamsToPull are below 50%
+  // Check if all last params are below goal_efficiency
   if ((efficiencies_to_uppper_range.empty() || efficiencies_to_uppper_range.rbegin()->first < goal_efficiency) &&
       efficiency < goal_efficiency) {
-    // If last kSortitionParamsToPull are under 50% and we are still under 50%, decrease upper limit
+    // If last params are under goal_efficiency and we are still under goal_efficiency, decrease upper
+    // limit
     return ((int32_t)params_changes_[params_changes_.size() - 1].vrf_params.threshold_upper) -
            efficiencyToChange(efficiency, goal_efficiency);
   }
 
-  // Check if all last kSortitionParamsToPull are over 50%
+  // Check if all last params are over goal_efficiency
   if ((efficiencies_to_uppper_range.empty() || efficiencies_to_uppper_range.begin()->first >= goal_efficiency) &&
       efficiency >= goal_efficiency) {
-    // If last kSortitionParamsToPull are over 50% and we are still over 50%, increase upper limit
+    // If last params are over goal_efficiency and we are still over goal_efficiency, increase upper
+    // limit
     return ((int32_t)params_changes_[params_changes_.size() - 1].vrf_params.threshold_upper) +
            efficiencyToChange(efficiency, goal_efficiency);
   }
 
-  // If efficiency is less than 50% find the efficiency over 50% closest to 50%
+  // If efficiency is less than goal_efficiency find the efficiency over goal_efficiency closest to goal_efficiency
   if (efficiency < goal_efficiency) {
     for (const auto& eff : efficiencies_to_uppper_range) {
       if (eff.first >= goal_efficiency) {
         if (eff.second < params_changes_[params_changes_.size() - 1].vrf_params.threshold_upper) {
-          // Return average between last range and the one over 50% and closest to 50%
+          // Return average between last range and the one over goal_efficiency and closest to goal_efficiency
           return (eff.second + params_changes_[params_changes_.size() - 1].vrf_params.threshold_upper) / 2;
         } else {
-          return ((int32_t)params_changes_[params_changes_.size() - 1].vrf_params.threshold_upper) +
+          return ((int32_t)params_changes_[params_changes_.size() - 1].vrf_params.threshold_upper) -
                  efficiencyToChange(efficiency, goal_efficiency);
         }
       }
     }
   }
 
-  // If efficiency is over 50% find the efficiency below 50% closest to 50%
+  // If efficiency is over goal_efficiency find the efficiency below goal_efficiency closest to goal_efficiency
   if (efficiency >= goal_efficiency) {
     for (auto eff = efficiencies_to_uppper_range.rbegin(); eff != efficiencies_to_uppper_range.rend(); ++eff) {
       if (eff->first < goal_efficiency) {
         if (eff->second > params_changes_[params_changes_.size() - 1].vrf_params.threshold_upper) {
-          // Return average between last range and the one over 50% and closest to 50%
+          // Return average between last range and the one below goal_efficiency and closest to goal_efficiency
           return (eff->second + params_changes_[params_changes_.size() - 1].vrf_params.threshold_upper) / 2;
         } else {
-          return ((int32_t)params_changes_[params_changes_.size() - 1].vrf_params.threshold_upper) -
+          return ((int32_t)params_changes_[params_changes_.size() - 1].vrf_params.threshold_upper) +
                  efficiencyToChange(efficiency, goal_efficiency);
         }
       }
@@ -213,14 +209,8 @@ int32_t SortitionParamsManager::getNewUpperRange(uint16_t efficiency) const {
   assert(false);
 }
 
-std::optional<SortitionParamsChange> SortitionParamsManager::calculateChange(uint64_t period) {
+SortitionParamsChange SortitionParamsManager::calculateChange(uint64_t period) {
   const auto average_dag_efficiency = averageDagEfficiency();
-  if (average_dag_efficiency >= config_.dag_efficiency_targets.first &&
-      average_dag_efficiency <= config_.dag_efficiency_targets.second) {
-    LOG(log_dg_) << "Current efficiency(" << average_dag_efficiency / 100.
-                 << "%) is between configured lower and upper bounds";
-    return {};
-  }
 
   int32_t new_upper_range = getNewUpperRange(average_dag_efficiency);
   if (new_upper_range < VrfParams::kThresholdUpperMinValue) {

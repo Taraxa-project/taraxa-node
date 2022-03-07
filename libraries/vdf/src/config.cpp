@@ -65,7 +65,6 @@ void dec_json(Json::Value const& json, SortitionParams& obj) {
 Json::Value enc_json(SortitionConfig const& obj) {
   auto ret = enc_json(dynamic_cast<SortitionParams const&>(obj));
   ret["changes_count_for_average"] = dev::toJS(obj.changes_count_for_average);
-  ret["max_interval_correction"] = dev::toJS(obj.max_interval_correction);
 
   Json::Value targets(Json::arrayValue);
   targets.append(dev::toJS(obj.dag_efficiency_targets.first));
@@ -80,7 +79,6 @@ Json::Value enc_json(SortitionConfig const& obj) {
 void dec_json(Json::Value const& json, SortitionConfig& obj) {
   dec_json(json, dynamic_cast<SortitionParams&>(obj));
   obj.changes_count_for_average = dev::jsToInt(json["changes_count_for_average"].asString());
-  obj.max_interval_correction = dev::jsToInt(json["max_interval_correction"].asString());
 
   auto first = dev::jsToInt(json["dag_efficiency_targets"][0].asString());
   auto second = dev::jsToInt(json["dag_efficiency_targets"][1].asString());

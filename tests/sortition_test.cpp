@@ -198,54 +198,6 @@ TEST_F(SortitionTest, params_changes_from_db2) {
   }
 }
 
-TEST_F(SortitionTest, efficiencies_from_db) {
-  auto db = std::make_shared<DbStorage>(data_dir / "db");
-
-  auto batch = db->createWriteBatch();
-  for (int i = 0; i <= 143; ++i) {
-    db->savePbftBlockDagEfficiency(i, i, batch);
-  }
-  db->commitWriteBatch(batch);
-  {
-    const auto efficiencies = db->getLastIntervalEfficiencies(50, 50);
-    EXPECT_EQ(efficiencies.size(), 43);
-    EXPECT_EQ(efficiencies.front(), 101);
-    EXPECT_EQ(efficiencies.back(), 143);
-  }
-  {
-    const auto efficiencies = db->getLastIntervalEfficiencies(50, 100);
-    EXPECT_EQ(efficiencies.size(), 93);
-    uint16_t starting_num = 51;
-    // check whole order is not messing up
-    for (uint16_t i = 0; i < efficiencies.size(); ++i) {
-      EXPECT_EQ(efficiencies[i], starting_num + i);
-    }
-  }
-
-  {
-    const auto efficiencies = db->getLastIntervalEfficiencies(100, 50);
-    EXPECT_EQ(efficiencies.size(), 0);
-  }
-}
-
-TEST_F(SortitionTest, load_from_db) {
-  auto db = std::make_shared<DbStorage>(data_dir / "db");
-
-  auto batch = db->createWriteBatch();
-  for (uint16_t i = 0; i < 10; ++i) {
-    SortitionParamsChange p{i, i, {i, i}};
-    db->saveSortitionParamsChange(i, p, batch);
-  }
-  for (int i = 0; i <= node_cfgs[0].chain.sortition.computation_interval - 1; ++i) {
-    db->savePbftBlockDagEfficiency(i, 44 * kOnePercent, batch);
-  }
-  db->commitWriteBatch(batch);
-
-  SortitionParamsManager sp({}, node_cfgs[0].chain.sortition, db);
-
-  EXPECT_EQ(sp.averageDagEfficiency(), 44 * kOnePercent);
-}
-
 TEST_F(SortitionTest, db_cleanup) {
   auto& cfg = node_cfgs[0].chain.sortition;
   cfg.computation_interval = 5;
@@ -263,8 +215,7 @@ TEST_F(SortitionTest, db_cleanup) {
       sp.pbftBlockPushed(b, batch, b.pbft_blk->getPeriod());
     }
     db->commitWriteBatch(batch);
-    EXPECT_EQ(db->getLastIntervalEfficiencies(cfg.computation_interval, cfg.computation_interval).size(), 0);
-    EXPECT_EQ(db->getLastSortitionParams(cfg.changes_count_for_average).size(), 5);
+    EXPECT_EQ(db->getLastSortitionParams(cfg.changes_count_for_average).size(), 10);
   }
   {
     auto batch = db->createWriteBatch();
@@ -274,8 +225,7 @@ TEST_F(SortitionTest, db_cleanup) {
       sp.pbftBlockPushed(b, batch, b.pbft_blk->getPeriod());
     }
     db->commitWriteBatch(batch);
-    EXPECT_EQ(db->getLastIntervalEfficiencies(cfg.computation_interval, cfg.computation_interval).size(), 3);
-    EXPECT_EQ(db->getLastSortitionParams(cfg.changes_count_for_average).size(), 5);
+    EXPECT_EQ(db->getLastSortitionParams(cfg.changes_count_for_average).size(), 10);
   }
 }
 
@@ -292,24 +242,39 @@ TEST_F(SortitionTest, get_params_from_period) {
     {
       auto b = createBlock(10, 25 * kOnePercent);
       sp.pbftBlockPushed(b, batch, b.pbft_blk->getPeriod());
+      db->commitWriteBatch(batch);
     }
     {
       auto b = createBlock(20, 35 * kOnePercent);
       sp.pbftBlockPushed(b, batch, b.pbft_blk->getPeriod());
+      db->commitWriteBatch(batch);
     }
     {
       auto b = createBlock(40, 45 * kOnePercent);
       sp.pbftBlockPushed(b, batch, b.pbft_blk->getPeriod());
+      db->commitWriteBatch(batch);
     }
     {
       auto b = createBlock(50, 53 * kOnePercent);
       sp.pbftBlockPushed(b, batch, b.pbft_blk->getPeriod());
+      db->commitWriteBatch(batch);
     }
     {
       auto b = createBlock(60, 47 * kOnePercent);
       sp.pbftBlockPushed(b, batch, b.pbft_blk->getPeriod());
+      db->commitWriteBatch(batch);
     }
-    db->commitWriteBatch(batch);
+    {
+      auto b = createBlock(70, 48 * kOnePercent);
+      sp.pbftBlockPushed(b, batch, b.pbft_blk->getPeriod());
+      db->commitWriteBatch(batch);
+    }
+    {
+      auto b = createBlock(80, 52 * kOnePercent);
+      sp.pbftBlockPushed(b, batch, b.pbft_blk->getPeriod());
+      db->commitWriteBatch(batch);
+    }
+
     const auto params_for_period_10_19 = cfg.vrf.threshold_upper - UINT16_MAX / 20;
     const auto params_for_period_20_39 = params_for_period_10_19 - UINT16_MAX / 50;
     const auto params_for_period_40_49 = params_for_period_20_39 - UINT16_MAX / 100;
@@ -343,24 +308,73 @@ TEST_F(SortitionTest, get_params_from_period) {
   }
 }
 
-class SortitionParamsManagerTest : public SortitionParamsManager {
- public:
-  SortitionParamsManagerTest(SortitionConfig sort_conf, std::shared_ptr<DbStorage> db)
-      : SortitionParamsManager(addr_t::random(), std::move(sort_conf), std::move(db)) {}
-  std::optional<SortitionParamsChange> processPbftBlockData(uint64_t period, uint64_t dag_efficiency) {
-    dag_efficiencies_.push_back(dag_efficiency);
-    std::optional<SortitionParamsChange> ret;
-    if (period % config_.changing_interval == 0) {
-      const auto params_change = calculateChange(period);
-      if (params_change) {
-        ret = params_change;
-        params_changes_.push_back(*params_change);
-      }
+TEST_F(SortitionTest, get_params_from_period_reverse) {
+  auto& cfg = node_cfgs[0].chain.sortition;
+  cfg.changing_interval = 10;
+  cfg.computation_interval = 10;
+  cfg.dag_efficiency_targets = {48 * kOnePercent, 52 * kOnePercent};
 
-      cleanup(period);
+  {
+    auto db = std::make_shared<DbStorage>(data_dir / "db");
+    SortitionParamsManager sp({}, node_cfgs[0].chain.sortition, db);
+    auto batch = db->createWriteBatch();
+    {
+      auto b = createBlock(10, 75 * kOnePercent);
+      sp.pbftBlockPushed(b, batch, b.pbft_blk->getPeriod());
+      db->commitWriteBatch(batch);
     }
-    return ret;
+    {
+      auto b = createBlock(20, 65 * kOnePercent);
+      sp.pbftBlockPushed(b, batch, b.pbft_blk->getPeriod());
+      db->commitWriteBatch(batch);
+    }
+    {
+      auto b = createBlock(40, 55 * kOnePercent);
+      sp.pbftBlockPushed(b, batch, b.pbft_blk->getPeriod());
+      db->commitWriteBatch(batch);
+    }
+    {
+      auto b = createBlock(50, 47 * kOnePercent);
+      sp.pbftBlockPushed(b, batch, b.pbft_blk->getPeriod());
+      db->commitWriteBatch(batch);
+    }
+    {
+      auto b = createBlock(60, 53 * kOnePercent);
+      sp.pbftBlockPushed(b, batch, b.pbft_blk->getPeriod());
+      db->commitWriteBatch(batch);
+    }
+
+    const auto params_for_period_10_19 = cfg.vrf.threshold_upper + UINT16_MAX / 20;
+    const auto params_for_period_20_39 = params_for_period_10_19 + UINT16_MAX / 50;
+    const auto params_for_period_40_49 = params_for_period_20_39 + UINT16_MAX / 100;
+    const auto params_for_period_50_59 = (params_for_period_20_39 + params_for_period_40_49) / 2;
+    const auto params_for_period_60_and_more = (params_for_period_40_49 + params_for_period_50_59) / 2;
+    EXPECT_EQ(sp.getSortitionParams(11).vrf.threshold_upper, params_for_period_10_19);
+    EXPECT_EQ(sp.getSortitionParams(19).vrf.threshold_upper, params_for_period_10_19);
+    EXPECT_EQ(sp.getSortitionParams(21).vrf.threshold_upper, params_for_period_20_39);
+    EXPECT_EQ(sp.getSortitionParams(29).vrf.threshold_upper, params_for_period_20_39);
+    EXPECT_EQ(sp.getSortitionParams(32).vrf.threshold_upper, params_for_period_20_39);
+    EXPECT_EQ(sp.getSortitionParams(39).vrf.threshold_upper, params_for_period_20_39);
+    EXPECT_EQ(sp.getSortitionParams(41).vrf.threshold_upper, params_for_period_40_49);
+    EXPECT_EQ(sp.getSortitionParams(51).vrf.threshold_upper, params_for_period_50_59);
+    EXPECT_EQ(sp.getSortitionParams(59).vrf.threshold_upper, params_for_period_50_59);
+    EXPECT_EQ(sp.getSortitionParams(69).vrf.threshold_upper, params_for_period_60_and_more);
+    EXPECT_EQ(sp.getSortitionParams(79).vrf.threshold_upper, params_for_period_60_and_more);
+    EXPECT_EQ(sp.getSortitionParams(210).vrf.threshold_upper, params_for_period_60_and_more);
+
+    EXPECT_EQ(db->getParamsChangeForPeriod(11)->vrf_params.threshold_upper, params_for_period_10_19);
+    EXPECT_EQ(db->getParamsChangeForPeriod(19)->vrf_params.threshold_upper, params_for_period_10_19);
+    EXPECT_EQ(db->getParamsChangeForPeriod(21)->vrf_params.threshold_upper, params_for_period_20_39);
+    EXPECT_EQ(db->getParamsChangeForPeriod(29)->vrf_params.threshold_upper, params_for_period_20_39);
+    EXPECT_EQ(db->getParamsChangeForPeriod(32)->vrf_params.threshold_upper, params_for_period_20_39);
+    EXPECT_EQ(db->getParamsChangeForPeriod(39)->vrf_params.threshold_upper, params_for_period_20_39);
+    EXPECT_EQ(db->getParamsChangeForPeriod(41)->vrf_params.threshold_upper, params_for_period_40_49);
+    EXPECT_EQ(db->getParamsChangeForPeriod(51)->vrf_params.threshold_upper, params_for_period_50_59);
+    EXPECT_EQ(db->getParamsChangeForPeriod(59)->vrf_params.threshold_upper, params_for_period_50_59);
+    EXPECT_EQ(db->getParamsChangeForPeriod(69)->vrf_params.threshold_upper, params_for_period_60_and_more);
+    EXPECT_EQ(db->getParamsChangeForPeriod(79)->vrf_params.threshold_upper, params_for_period_60_and_more);
+    EXPECT_EQ(db->getParamsChangeForPeriod(210)->vrf_params.threshold_upper, params_for_period_60_and_more);
   }
-};
+}
 
 }  // namespace taraxa::core_tests

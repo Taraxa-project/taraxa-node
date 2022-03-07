@@ -51,10 +51,11 @@ class SortitionParamsManager {
   SortitionConfig config_;
   std::shared_ptr<DbStorage> db_;
   std::deque<uint16_t> dag_efficiencies_;
+  uint32_t ignored_efficiency_counter_ = 0;
   std::deque<SortitionParamsChange> params_changes_;
-  std::optional<SortitionParamsChange> calculateChange(uint64_t period);
+  SortitionParamsChange calculateChange(uint64_t period);
   int32_t getNewUpperRange(uint16_t efficiency) const;
-  void cleanup(uint64_t current_period);
+  void cleanup();
 
   LOG_OBJECTS_DEFINE
 };
