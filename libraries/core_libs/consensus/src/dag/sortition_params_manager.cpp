@@ -57,7 +57,7 @@ SortitionParamsManager::SortitionParamsManager(const addr_t& node_addr, Sortitio
     period++;
     SyncBlock sync_block(data);
     if (sync_block.pbft_blk->getPivotDagBlockHash() != NULL_BLOCK_HASH) {
-      if (ignored_efficiency_counter_ >= config_.computation_interval - config_.changing_interval) {
+      if (ignored_efficiency_counter_ >= config_.changing_interval - config_.computation_interval) {
         uint16_t dag_efficiency = calculateDagEfficiency(sync_block);
         dag_efficiencies_.push_back(dag_efficiency);
       } else {
@@ -114,7 +114,7 @@ void SortitionParamsManager::pbftBlockPushed(const SyncBlock& block, DbStorage::
   if (config_.changing_interval == 0) {
     return;
   }
-  if (ignored_efficiency_counter_ >= config_.computation_interval - config_.changing_interval) {
+  if (ignored_efficiency_counter_ >= config_.changing_interval - config_.computation_interval) {
     uint16_t dag_efficiency = calculateDagEfficiency(block);
     dag_efficiencies_.push_back(dag_efficiency);
     const auto& period = block.pbft_blk->getPeriod();
