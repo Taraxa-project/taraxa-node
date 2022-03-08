@@ -199,8 +199,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   size_t startingStepInRound_ = 1;
 
   blk_hash_t own_starting_value_for_round_ = NULL_BLOCK_HASH;
-
-  std::pair<blk_hash_t, bool> soft_voted_block_for_this_round_ = std::make_pair(NULL_BLOCK_HASH, false);
+  blk_hash_t soft_voted_block_for_this_round_ = NULL_BLOCK_HASH;
 
   // Full sync block for pbft block that is being currently cert voted for
   SyncBlock cert_sync_block_;
