@@ -396,9 +396,9 @@ bool PbftManager::resetRound_() {
   db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::OwnStartingValueInRound, NULL_BLOCK_HASH, batch);
   db_->addPbftMgrStatusToBatch(PbftMgrStatus::NextVotedNullBlockHash, false, batch);
   db_->addPbftMgrStatusToBatch(PbftMgrStatus::NextVotedSoftValue, false, batch);
-  db_->addPbftMgrStatusToBatch(PbftMgrStatus::SoftVotedBlockInRound, false, batch);
   db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::SoftVotedBlockHashInRound, NULL_BLOCK_HASH, batch);
-  if (soft_voted_block_for_this_round_.second && soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH) {
+  if (soft_voted_block_for_this_round_) {
+    // Cleanup soft votes for previous round
     db_->removeSoftVotesToBatch(round, batch);
   }
   db_->commitWriteBatch(batch);
@@ -412,9 +412,8 @@ bool PbftManager::resetRound_() {
   next_voted_soft_value_ = false;
   polling_state_print_log_ = true;
 
-  // Key thing is to set .second to false to mark that we have not
-  // identified a soft voted block in the new upcoming round...
-  soft_voted_block_for_this_round_ = std::make_pair(NULL_BLOCK_HASH, false);
+  // Reset soft voting leader value in the new upcoming round
+  soft_voted_block_for_this_round_ = NULL_BLOCK_HASH;
 
   // Move to a new round, cleanup previous round votes
   vote_mgr_->cleanupVotes(consensus_pbft_round);
@@ -524,19 +523,19 @@ void PbftManager::initialState_() {
   }
 
   auto soft_voted_block_hash = db_->getPbftMgrVotedValue(PbftMgrVotedValue::SoftVotedBlockHashInRound);
-  auto soft_voted_block = db_->getPbftMgrStatus(PbftMgrStatus::SoftVotedBlockInRound);
-
   if (soft_voted_block_hash) {
     // From DB
-    soft_voted_block_for_this_round_ = std::make_pair(*soft_voted_block_hash, soft_voted_block);
+    soft_voted_block_for_this_round_ = *soft_voted_block_hash;
     for (const auto &vote : db_->getSoftVotes(round)) {
-      if (vote->getBlockHash() == *soft_voted_block_hash) {
-        vote_mgr_->addVerifiedVote(vote);
+      if (vote->getBlockHash() != *soft_voted_block_hash) {
+        LOG(log_er_) << "The soft vote should have voting value " << *soft_voted_block_hash << ". Vote" << vote;
+        continue;
       }
+      vote_mgr_->addVerifiedVote(vote);
     }
   } else {
     // Default value
-    soft_voted_block_for_this_round_ = std::make_pair(NULL_BLOCK_HASH, soft_voted_block);
+    soft_voted_block_for_this_round_ = NULL_BLOCK_HASH;
   }
 
   // Used for detecting timeout due to malicious node
@@ -643,7 +642,7 @@ void PbftManager::loopBackFinishState_() {
   auto round = getPbftRound();
   LOG(log_dg_) << "CONSENSUS debug round " << round << " , step " << step_
                << " | next_voted_soft_value_ = " << next_voted_soft_value_
-               << " soft block = " << soft_voted_block_for_this_round_.first
+               << " soft block = " << soft_voted_block_for_this_round_
                << " next_voted_null_block_hash_ = " << next_voted_null_block_hash_
                << " last_soft_voted_value_ = " << last_soft_voted_value_
                << " last_cert_voted_value_ = " << last_cert_voted_value_
@@ -715,24 +714,24 @@ bool PbftManager::stateOperations_() {
 }
 
 bool PbftManager::updateSoftVotedBlockForThisRound_() {
-  if (!soft_voted_block_for_this_round_.second) {
-    auto round = getPbftRound();
+  if (soft_voted_block_for_this_round_) {
+    // Have enough soft votes for current round already
+    return false;
+  }
 
-    if (auto voted_block_hash_with_soft_votes = vote_mgr_->getVotesBundleByRoundAndStep(round, 2, TWO_T_PLUS_ONE)) {
-      auto batch = db_->createWriteBatch();
-      db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::SoftVotedBlockHashInRound,
-                                       voted_block_hash_with_soft_votes->voted_block_hash, batch);
-      db_->addPbftMgrStatusToBatch(PbftMgrStatus::SoftVotedBlockInRound, true, batch);
-      if (voted_block_hash_with_soft_votes->voted_block_hash != NULL_BLOCK_HASH) {
-        db_->addSoftVotesToBatch(round, voted_block_hash_with_soft_votes->votes, batch);
-      }
-      soft_voted_block_for_this_round_ = {voted_block_hash_with_soft_votes->voted_block_hash, true};
-      db_->commitWriteBatch(batch);
-    }
-    if (soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH && soft_voted_block_for_this_round_.second) {
-      // Have enough soft votes for a value other other than NULL BLOCK HASH...
-      return true;
-    }
+  auto round = getPbftRound();
+  auto voted_block_hash_with_soft_votes = vote_mgr_->getVotesBundleByRoundAndStep(round, 2, TWO_T_PLUS_ONE);
+  if (voted_block_hash_with_soft_votes) {
+    // Have enough soft votes for a voted value
+    auto batch = db_->createWriteBatch();
+    db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::SoftVotedBlockHashInRound,
+                                     voted_block_hash_with_soft_votes->voted_block_hash, batch);
+    db_->addSoftVotesToBatch(round, voted_block_hash_with_soft_votes->votes, batch);
+    db_->commitWriteBatch(batch);
+
+    soft_voted_block_for_this_round_ = voted_block_hash_with_soft_votes->voted_block_hash;
+
+    return true;
   }
 
   return false;
@@ -743,8 +742,8 @@ void PbftManager::initializeVotedValueTimeouts_() {
   time_began_waiting_soft_voted_block_ = std::chrono::system_clock::now();
 
   // Concern: Requires that soft_voted_block_for_this_round_ already be initialized from db
-  if (soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH && soft_voted_block_for_this_round_.second) {
-    last_soft_voted_value_ = soft_voted_block_for_this_round_.first;
+  if (soft_voted_block_for_this_round_) {
+    last_soft_voted_value_ = soft_voted_block_for_this_round_;
   }
 }
 
@@ -779,7 +778,7 @@ void PbftManager::proposeBlock_() {
   if (round > 1) {
     if (next_votes_manager_->haveEnoughVotesForNullBlockHash()) {
       LOG(log_nf_) << "Previous round " << round - 1 << " next voted block is NULL_BLOCK_HASH";
-    } else if (previous_round_next_voted_value_ != NULL_BLOCK_HASH) {
+    } else if (previous_round_next_voted_value_) {
       LOG(log_nf_) << "Previous round " << round - 1 << " next voted block is " << previous_round_next_voted_value_;
     } else {
       LOG(log_er_) << "Previous round " << round - 1 << " doesn't have enough next votes";
@@ -787,13 +786,7 @@ void PbftManager::proposeBlock_() {
     }
   }
 
-  if (round == 1) {
-    auto place_votes = placeVote_(own_starting_value_for_round_, propose_vote_type, round, step_);
-    if (place_votes) {
-      LOG(log_nf_) << "Proposing " << place_votes << " values of NULL_BLOCK_HASH " << NULL_BLOCK_HASH
-                   << " for round 1 by protocol";
-    }
-  } else if (round >= 2 && giveUpNextVotedBlock_()) {
+  if (giveUpNextVotedBlock_()) {
     // PBFT block only be able to propose once in each period
     if (!proposed_block_hash_) {
       proposed_block_hash_ = proposePbftBlock_();
@@ -808,7 +801,7 @@ void PbftManager::proposeBlock_() {
                      << " for round " << round;
       }
     }
-  } else if (round >= 2 && previous_round_next_voted_value_ != NULL_BLOCK_HASH) {
+  } else if (previous_round_next_voted_value_) {
     db_->savePbftMgrVotedValue(PbftMgrVotedValue::OwnStartingValueInRound, previous_round_next_voted_value_);
     own_starting_value_for_round_ = previous_round_next_voted_value_;
 
@@ -841,7 +834,7 @@ void PbftManager::identifyBlock_() {
   auto round = getPbftRound();
   LOG(log_tr_) << "PBFT filtering state in round " << round;
 
-  if (round == 1 || (round >= 2 && giveUpNextVotedBlock_())) {
+  if (giveUpNextVotedBlock_()) {
     // Identity leader
     auto leader_block = identifyLeaderBlock_();
     if (leader_block) {
@@ -857,7 +850,7 @@ void PbftManager::identifyBlock_() {
         LOG(log_nf_) << "Soft votes " << place_votes << " voting block " << leader_block << " at round " << round;
       }
     }
-  } else if (round >= 2 && previous_round_next_voted_value_ != NULL_BLOCK_HASH) {
+  } else if (previous_round_next_voted_value_) {
     auto place_votes = placeVote_(previous_round_next_voted_value_, soft_vote_type, round, step_);
 
     // Generally this value will either be the same as last soft voted value from previous round
@@ -889,7 +882,7 @@ void PbftManager::certifyBlock_() {
     LOG(log_tr_) << "In step 3";
 
     if (updateSoftVotedBlockForThisRound_() &&
-        comparePbftBlockScheduleWithDAGblocks_(soft_voted_block_for_this_round_.first)) {
+        comparePbftBlockScheduleWithDAGblocks_(soft_voted_block_for_this_round_)) {
       LOG(log_tr_) << "Finished comparePbftBlockScheduleWithDAGblocks_";
 
       // NOTE: If we have already executed this round then block won't be found in unverified queue...
@@ -897,7 +890,7 @@ void PbftManager::certifyBlock_() {
       if (have_executed_this_round_) {
         LOG(log_tr_) << "Have already executed before certifying in step 3 in round " << round;
         auto last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
-        if (last_pbft_block_hash == soft_voted_block_for_this_round_.first) {
+        if (last_pbft_block_hash == soft_voted_block_for_this_round_) {
           LOG(log_tr_) << "Having executed, last block in chain is the soft voted block in round " << round;
           executed_soft_voted_block_for_this_round = true;
         }
@@ -905,21 +898,21 @@ void PbftManager::certifyBlock_() {
 
       bool unverified_soft_vote_block_for_this_round_is_valid = false;
       if (!executed_soft_voted_block_for_this_round) {
-        auto block = pbft_chain_->getUnverifiedPbftBlock(soft_voted_block_for_this_round_.first);
+        auto block = pbft_chain_->getUnverifiedPbftBlock(soft_voted_block_for_this_round_);
         if (block && pbft_chain_->checkPbftBlockValidation(*block)) {
           unverified_soft_vote_block_for_this_round_is_valid = true;
         } else {
           if (!block) {
-            LOG(log_er_) << "Cannot find the unverified pbft block " << soft_voted_block_for_this_round_.first
-                         << " in round " << round << " step 3";
+            LOG(log_er_) << "Cannot find the unverified pbft block " << soft_voted_block_for_this_round_ << " in round "
+                         << round << " step 3";
           }
-          syncPbftChainFromPeers_(invalid_soft_voted_block, soft_voted_block_for_this_round_.first);
+          syncPbftChainFromPeers_(invalid_soft_voted_block, soft_voted_block_for_this_round_);
         }
       }
 
       if (executed_soft_voted_block_for_this_round || unverified_soft_vote_block_for_this_round_is_valid) {
         // comparePbftBlockScheduleWithDAGblocks_ has checked the cert voted block exist
-        last_cert_voted_value_ = soft_voted_block_for_this_round_.first;
+        last_cert_voted_value_ = soft_voted_block_for_this_round_;
         auto cert_voted_block = getUnfinalizedBlock_(last_cert_voted_value_);
 
         auto batch = db_->createWriteBatch();
@@ -930,10 +923,10 @@ void PbftManager::certifyBlock_() {
         should_have_cert_voted_in_this_round_ = true;
 
         // generate cert vote
-        auto place_votes = placeVote_(soft_voted_block_for_this_round_.first, cert_vote_type, round, step_);
+        auto place_votes = placeVote_(soft_voted_block_for_this_round_, cert_vote_type, round, step_);
         if (place_votes) {
-          LOG(log_nf_) << "Cert votes " << place_votes << " voting " << soft_voted_block_for_this_round_.first
-                       << " in round " << round;
+          LOG(log_nf_) << "Cert votes " << place_votes << " voting " << soft_voted_block_for_this_round_ << " in round "
+                       << round;
         }
       }
     }
@@ -1020,10 +1013,10 @@ void PbftManager::secondFinish_() {
   LOG(log_tr_) << "Step " << step_ << " end time " << end_time_for_step;
 
   updateSoftVotedBlockForThisRound_();
-  if (soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH && soft_voted_block_for_this_round_.second) {
+  if (soft_voted_block_for_this_round_) {
     auto voted_block_hash_with_soft_votes = vote_mgr_->getVotesBundleByRoundAndStep(round, 2, TWO_T_PLUS_ONE);
-    if (voted_block_hash_with_soft_votes && voted_block_hash_with_soft_votes->voted_block_hash != NULL_BLOCK_HASH) {
-      // Have enough soft votes for a voting value other than NULL BLOCK HASH
+    if (voted_block_hash_with_soft_votes) {
+      // Have enough soft votes for a voting value
       auto net = network_.lock();
       assert(net);  // Should never happen
       net->onNewPbftVotes(std::move(voted_block_hash_with_soft_votes->votes));
@@ -1038,14 +1031,13 @@ void PbftManager::secondFinish_() {
   // 3) we don't have the block or if have block it can't be cert voted (yet)
   bool giveUpSoftVotedBlockInSecondFinish =
       last_cert_voted_value_ == NULL_BLOCK_HASH && last_soft_voted_value_ == previous_round_next_voted_value_ &&
-      giveUpSoftVotedBlock_() && !comparePbftBlockScheduleWithDAGblocks_(soft_voted_block_for_this_round_.first);
+      giveUpSoftVotedBlock_() && !comparePbftBlockScheduleWithDAGblocks_(soft_voted_block_for_this_round_);
 
-  if (!next_voted_soft_value_ && soft_voted_block_for_this_round_.second &&
-      soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH && !giveUpSoftVotedBlockInSecondFinish) {
-    auto place_votes = placeVote_(soft_voted_block_for_this_round_.first, next_vote_type, round, step_);
+  if (!next_voted_soft_value_ && soft_voted_block_for_this_round_ && !giveUpSoftVotedBlockInSecondFinish) {
+    auto place_votes = placeVote_(soft_voted_block_for_this_round_, next_vote_type, round, step_);
     if (place_votes) {
-      LOG(log_nf_) << "Next votes " << place_votes << " voting " << soft_voted_block_for_this_round_.first
-                   << " for round " << round << ", at step " << step_;
+      LOG(log_nf_) << "Next votes " << place_votes << " voting " << soft_voted_block_for_this_round_ << " for round "
+                   << round << ", at step " << step_;
 
       db_->savePbftMgrStatus(PbftMgrStatus::NextVotedSoftValue, true);
       next_voted_soft_value_ = true;
@@ -1312,18 +1304,33 @@ blk_hash_t PbftManager::identifyLeaderBlock_() {
   std::vector<std::pair<h256, blk_hash_t>> leader_candidates;
 
   for (auto const &v : votes) {
-    if (v->getRound() == round && v->getType() == propose_vote_type) {
-      auto proposed_block_hash = v->getBlockHash();
-
-      // Make sure we don't keep soft voting for soft value we want to give up...
-      if (proposed_block_hash == last_soft_voted_value_ && giveUpSoftVotedBlock_()) {
-        continue;
-      }
-
-      if (round == 1 || !pbft_chain_->findPbftBlockInChain(proposed_block_hash)) {
-        leader_candidates.emplace_back(std::make_pair(getProposal(v), proposed_block_hash));
-      }
+    if (v->getRound() != round) {
+      LOG(log_er_) << "Vote round is not same with current round " << round << ". Vote " << v;
+      continue;
     }
+    if (v->getStep() != 1) {
+      LOG(log_er_) << "Vote step is not 1. Vote " << v;
+      continue;
+    }
+    if (v->getType() != propose_vote_type) {
+      LOG(log_er_) << "Vote type is not propose vote type. Vote " << v;
+      continue;
+    }
+
+    auto proposed_block_hash = v->getBlockHash();
+    if (proposed_block_hash == NULL_BLOCK_HASH) {
+      LOG(log_er_) << "Propose block hash should not be NULL. Vote " << v;
+      continue;
+    }
+    if (pbft_chain_->findPbftBlockInChain(proposed_block_hash)) {
+      continue;
+    }
+    // Make sure we don't keep soft voting for soft value we want to give up...
+    if (proposed_block_hash == last_soft_voted_value_ && giveUpSoftVotedBlock_()) {
+      continue;
+    }
+
+    leader_candidates.emplace_back(std::make_pair(getProposal(v), proposed_block_hash));
   }
 
   if (leader_candidates.empty()) {
@@ -1697,6 +1704,7 @@ bool PbftManager::giveUpNextVotedBlock_() {
   }
 
   if (previous_round_next_voted_value_ == NULL_BLOCK_HASH) {
+    // In round 1 also return here
     LOG(log_nf_) << "In round " << round << " step " << step_
                  << ", have received 2t+1 next votes for NULL_BLOCK_HASH for previous round.";
     return true;

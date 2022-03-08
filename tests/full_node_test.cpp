@@ -152,29 +152,24 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(db.getPbft2TPlus1(11), 3);
 
   // PBFT manager status
-  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::SoftVotedBlockInRound));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedBlock));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedInRound));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::NextVotedSoftValue));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::NextVotedNullBlockHash));
-  db.savePbftMgrStatus(PbftMgrStatus::SoftVotedBlockInRound, true);
   db.savePbftMgrStatus(PbftMgrStatus::ExecutedBlock, true);
   db.savePbftMgrStatus(PbftMgrStatus::ExecutedInRound, true);
   db.savePbftMgrStatus(PbftMgrStatus::NextVotedSoftValue, true);
   db.savePbftMgrStatus(PbftMgrStatus::NextVotedNullBlockHash, true);
-  EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::SoftVotedBlockInRound));
   EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedBlock));
   EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedInRound));
   EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::NextVotedSoftValue));
   EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::NextVotedNullBlockHash));
   batch = db.createWriteBatch();
-  db.addPbftMgrStatusToBatch(PbftMgrStatus::SoftVotedBlockInRound, false, batch);
   db.addPbftMgrStatusToBatch(PbftMgrStatus::ExecutedBlock, false, batch);
   db.addPbftMgrStatusToBatch(PbftMgrStatus::ExecutedInRound, false, batch);
   db.addPbftMgrStatusToBatch(PbftMgrStatus::NextVotedSoftValue, false, batch);
   db.addPbftMgrStatusToBatch(PbftMgrStatus::NextVotedNullBlockHash, false, batch);
   db.commitWriteBatch(batch);
-  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::SoftVotedBlockInRound));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedBlock));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedInRound));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::NextVotedSoftValue));

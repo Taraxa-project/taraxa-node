@@ -418,7 +418,7 @@ std::optional<VotesBundle> VoteManager::getVotesBundleByRoundAndStep(uint64_t ro
           auto it = voted_value.second.second.begin();
           size_t count = 0;
 
-          // Only copy 2t+1 votes
+          // Copy at lease 2t+1 votes
           while (count < two_t_plus_one) {
             votes.emplace_back(it->second);
             count += it->second->getWeight().value();
@@ -426,6 +426,7 @@ std::optional<VotesBundle> VoteManager::getVotesBundleByRoundAndStep(uint64_t ro
           }
           LOG(log_nf_) << "Found enough " << count << " votes at voted value " << voted_block_hash << " for round "
                        << round << " step " << step;
+
           return VotesBundle(voted_block_hash, votes);
         }
       }
@@ -444,12 +445,13 @@ uint64_t VoteManager::roundDeterminedFromVotes(size_t two_t_plus_one) {
       if (step_rit->first <= 3) {
         break;
       }
+
       for (auto const& voted_value : step_rit->second) {
         if (voted_value.second.first >= two_t_plus_one) {
           auto it = voted_value.second.second.begin();
           size_t count = 0;
 
-          // Only copy 2t+1 votes
+          // Copy at lease 2t+1 votes
           while (count < two_t_plus_one) {
             votes.emplace_back(it->second);
             count += it->second->getWeight().value();
@@ -457,12 +459,15 @@ uint64_t VoteManager::roundDeterminedFromVotes(size_t two_t_plus_one) {
           }
           LOG(log_nf_) << "Found enough " << count << " votes at voted value " << voted_value.first << " for round "
                        << round_rit->first << " step " << step_rit->first;
+
           next_votes_manager_->updateNextVotes(votes, two_t_plus_one);
+
           return round_rit->first + 1;
         }
       }
     }
   }
+  
   return 0;
 }
 
