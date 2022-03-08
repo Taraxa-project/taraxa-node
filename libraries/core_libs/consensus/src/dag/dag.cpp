@@ -13,7 +13,7 @@
 
 #include "dag/dag.hpp"
 #include "network/network.hpp"
-#include "transaction_manager/transaction_manager.hpp"
+#include "transaction/transaction_manager.hpp"
 
 #define NULL_BLOCK_HASH blk_hash_t(0)
 

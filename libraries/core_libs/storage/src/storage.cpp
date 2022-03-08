@@ -538,6 +538,21 @@ std::shared_ptr<Transaction> DbStorage::getTransaction(trx_hash_t const& hash) {
   return nullptr;
 }
 
+std::optional<std::vector<Transaction>> DbStorage::getPeriodTransactions(uint64_t period) const {
+  const auto period_data = getPeriodDataRaw(period);
+  if (!period_data.size()) {
+    return std::nullopt;
+  }
+
+  auto period_data_rlp = dev::RLP(period_data);
+
+  std::vector<Transaction> ret(period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA].size());
+  for (const auto& transaction_data : period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA]) {
+    ret.emplace_back(transaction_data);
+  }
+  return {ret};
+}
+
 void DbStorage::addTransactionToBatch(Transaction const& trx, Batch& write_batch) {
   insert(write_batch, DbStorage::Columns::transactions, toSlice(trx.getHash().asBytes()), toSlice(trx.rlp()));
 }

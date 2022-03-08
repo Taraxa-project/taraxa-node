@@ -5,7 +5,7 @@
 #include "dag/sortition_params_manager.hpp"
 #include "final_chain/final_chain.hpp"
 #include "pbft/pbft_chain.hpp"
-#include "transaction_manager/transaction_manager.hpp"
+#include "transaction/transaction_manager.hpp"
 #include "vdf/sortition.hpp"
 
 namespace taraxa {

@@ -10,7 +10,7 @@
 #include "network/network.hpp"
 #include "node/node.hpp"
 #include "pbft/pbft_manager.hpp"
-#include "transaction_manager/transaction_manager.hpp"
+#include "transaction/transaction_manager.hpp"
 
 using namespace std;
 using namespace dev;

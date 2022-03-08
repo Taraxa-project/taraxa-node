@@ -7,6 +7,18 @@
 namespace taraxa::chain_config {
 using std::stringstream;
 
+Json::Value enc_json(GasPriceConfig const& obj) {
+  Json::Value json(Json::objectValue);
+  json["percentile"] = dev::toJS(obj.percentile);
+  json["blocks"] = dev::toJS(obj.blocks);
+  return json;
+}
+
+void dec_json(Json::Value const& json, GasPriceConfig& obj) {
+  obj.percentile = dev::jsToInt(json["percentile"].asString());
+  obj.blocks = dev::jsToInt(json["blocks"].asString());
+}
+
 Json::Value enc_json(ChainConfig const& obj) {
   Json::Value json(Json::objectValue);
   if (obj.chain_id) {
@@ -16,6 +28,7 @@ Json::Value enc_json(ChainConfig const& obj) {
   json["sortition"] = enc_json(obj.sortition);
   json["pbft"] = enc_json(obj.pbft);
   json["final_chain"] = enc_json(obj.final_chain);
+  json["gas_price"] = enc_json(obj.gas_price);
   return json;
 }
 
@@ -27,6 +40,7 @@ void dec_json(Json::Value const& json, ChainConfig& obj) {
   dec_json(json["sortition"], obj.sortition);
   dec_json(json["pbft"], obj.pbft);
   dec_json(json["final_chain"], obj.final_chain);
+  dec_json(json["gas_price"], obj.gas_price);
 }
 
 const ChainConfig& ChainConfig::predefined(std::string const& name) {

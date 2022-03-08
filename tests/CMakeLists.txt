@@ -124,6 +124,13 @@ target_link_libraries(tarcap_threadpool_test
 )
 add_test(tarcap_threadpool_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/tarcap_threadpool_test)
 
+add_executable(gas_pricer_test gas_pricer_test.cpp)
+target_link_libraries(gas_pricer_test
+    core_libs
+    CONAN_PKG::gtest
+)
+add_test(gas_pricer_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gas_pricer_test)
+
 add_executable(py_test py_test.cpp ${UTIL_HEADERS})
 add_dependencies(py_test taraxad)
 target_compile_definitions(py_test PRIVATE NODE_EXECUTABLE_PATH=\"${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/taraxad\")

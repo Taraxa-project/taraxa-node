@@ -179,6 +179,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   dev::bytes getPeriodDataRaw(uint64_t period) const;
   std::optional<PbftBlock> getPbftBlock(uint64_t period) const;
   blk_hash_t getPeriodBlockHash(uint64_t period) const;
+  std::optional<std::vector<Transaction>> getPeriodTransactions(uint64_t period) const;
 
   // DAG
   void saveDagBlock(DagBlock const& blk, Batch* write_batch_p = nullptr);

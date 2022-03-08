@@ -1,4 +1,4 @@
-#include "transaction_manager/transaction_manager.hpp"
+#include "transaction/transaction_manager.hpp"
 
 #include <string>
 #include <utility>
@@ -10,7 +10,10 @@
 namespace taraxa {
 TransactionManager::TransactionManager(FullNodeConfig const &conf, std::shared_ptr<DbStorage> db,
                                        std::shared_ptr<FinalChain> final_chain, addr_t node_addr)
-    : conf_(conf), known_txs_(200000 /*capacity*/, 2000 /*delete step*/), db_(db), final_chain_(final_chain) {
+    : conf_(conf),
+      known_txs_(200000 /*capacity*/, 2000 /*delete step*/),
+      db_(std::move(db)),
+      final_chain_(std::move(final_chain)) {
   LOG_OBJECTS_CREATE("TRXMGR");
   {
     std::unique_lock transactions_lock(transactions_mutex_);

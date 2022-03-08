@@ -15,9 +15,18 @@ using std::string;
 using std::unordered_map;
 using ::taraxa::util::lazy::LazyVal;
 
+struct GasPriceConfig {
+  uint64_t percentile = 60;
+  uint64_t blocks = 200;
+};
+
+Json::Value enc_json(GasPriceConfig const& obj);
+void dec_json(Json::Value const& json, GasPriceConfig& obj);
+
 struct ChainConfig {
   uint64_t chain_id = 0;
   DagBlock dag_genesis_block;
+  GasPriceConfig gas_price;
   SortitionConfig sortition;
   PbftConfig pbft;
   final_chain::Config final_chain;

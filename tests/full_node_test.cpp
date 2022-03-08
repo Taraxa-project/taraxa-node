@@ -17,7 +17,7 @@
 #include "node/node.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "string"
-#include "transaction_manager/transaction_manager.hpp"
+#include "transaction/transaction_manager.hpp"
 #include "util_test/samples.hpp"
 
 // TODO rename this namespace to `tests`

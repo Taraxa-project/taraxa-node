@@ -17,7 +17,8 @@
 #include "network/rpc/rpc_error_handler.hpp"
 #include "pbft/block_proposer.hpp"
 #include "pbft/pbft_manager.hpp"
-#include "transaction_manager/transaction_manager.hpp"
+#include "transaction/gas_pricer.hpp"
+#include "transaction/transaction_manager.hpp"
 
 namespace taraxa {
 
@@ -83,6 +84,7 @@ void FullNode::init() {
   }
   LOG(log_nf_) << "DB initialized ...";
 
+  gas_pricer_ = std::make_shared<GasPricer>(conf_.chain.gas_price.percentile, conf_.chain.gas_price.blocks, db_);
   final_chain_ = NewFinalChain(db_, conf_.chain.final_chain, node_addr);
   trx_mgr_ = std::make_shared<TransactionManager>(conf_, db_, final_chain_, node_addr);
 
@@ -123,6 +125,7 @@ void FullNode::start() {
     eth_rpc_params.secret = kp_.secret();
     eth_rpc_params.chain_id = conf_.chain.chain_id;
     eth_rpc_params.final_chain = final_chain_;
+    eth_rpc_params.gas_pricer = [gas_pricer = gas_pricer_]() { return gas_pricer->bid(); };
     eth_rpc_params.get_trx = [db = db_](auto const &trx_hash) { return db->getTransaction(trx_hash); };
     eth_rpc_params.send_trx = [trx_manager = trx_mgr_](auto const &trx) {
       if (auto [ok, err_msg] = trx_manager->insertTransaction(trx); !ok) {
@@ -185,29 +188,6 @@ void FullNode::start() {
         },
         *rpc_thread_pool_);
 
-    // Subscription to process hardforks
-    final_chain_->block_applying.subscribe([&](uint64_t block_num) {
-      // TODO: should have only common hardfork code calling hardfork executor
-      auto &state_conf = conf_.chain.final_chain.state;
-      if (state_conf.hardforks.fix_genesis_fork_block == block_num) {
-        for (auto &e : state_conf.dpos->genesis_state) {
-          for (auto &b : e.second) {
-            b.second *= kOneTara;
-          }
-        }
-        for (auto &b : state_conf.genesis_balances) {
-          b.second *= kOneTara;
-        }
-        // we are multiplying it by TARA precision
-        state_conf.dpos->eligibility_balance_threshold *= kOneTara;
-        // amount of stake per vote should be 10 times smaller than eligibility threshold
-        state_conf.dpos->vote_eligibility_balance_step.assign(state_conf.dpos->eligibility_balance_threshold);
-        state_conf.dpos->eligibility_balance_threshold *= 10;
-        conf_.overwrite_chain_config_in_file();
-        final_chain_->update_state_config(state_conf);
-      }
-    });
-
     trx_mgr_->transaction_accepted_.subscribe(
         [eth_json_rpc = as_weak(eth_json_rpc), ws = as_weak(jsonrpc_ws_)](auto const &trx_hash) {
           if (auto _eth_json_rpc = eth_json_rpc.lock()) {
@@ -226,6 +206,39 @@ void FullNode::start() {
         },
         *rpc_thread_pool_);
   }
+  subscription_pool_ = std::make_unique<util::ThreadPool>(1);
+
+  // GasPricer updater
+  final_chain_->block_finalized_.subscribe(
+      [gas_pricer = as_weak(gas_pricer_)](auto const &res) {
+        if (auto _gas_pricer = gas_pricer.lock()) {
+          _gas_pricer->update(res->trxs);
+        }
+      },
+      *subscription_pool_);
+
+  // Subscription to process hardforks
+  final_chain_->block_applying_.subscribe([&](uint64_t block_num) {
+    // TODO: should have only common hardfork code calling hardfork executor
+    auto &state_conf = conf_.chain.final_chain.state;
+    if (state_conf.hardforks.fix_genesis_fork_block == block_num) {
+      for (auto &e : state_conf.dpos->genesis_state) {
+        for (auto &b : e.second) {
+          b.second *= kOneTara;
+        }
+      }
+      for (auto &b : state_conf.genesis_balances) {
+        b.second *= kOneTara;
+      }
+      // we are multiplying it by TARA precision
+      state_conf.dpos->eligibility_balance_threshold *= kOneTara;
+      // amount of stake per vote should be 10 times smaller than eligibility threshold
+      state_conf.dpos->vote_eligibility_balance_step.assign(state_conf.dpos->eligibility_balance_threshold);
+      state_conf.dpos->eligibility_balance_threshold *= 10;
+      conf_.overwrite_chain_config_in_file();
+      final_chain_->update_state_config(state_conf);
+    }
+  });
 
   LOG(log_time_) << "Start taraxa efficiency evaluation logging:" << std::endl;
 
