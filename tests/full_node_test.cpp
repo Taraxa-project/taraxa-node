@@ -964,12 +964,12 @@ TEST_F(FullNodeTest, sync_two_nodes1) {
   auto num_vertices1 = nodes[0]->getDagManager()->getNumVerticesInDag();
   auto num_vertices2 = nodes[1]->getDagManager()->getNumVerticesInDag();
   for (unsigned i = 0; i < SYNC_TIMEOUT; i++) {
-    if (num_vertices1.first > 3 && num_vertices2.first > 3 && num_vertices1 == num_vertices2) break;
+    if (num_vertices1.first > 1 && num_vertices2.first > 1 && num_vertices1 == num_vertices2) break;
     taraxa::thisThreadSleepForMilliSeconds(500);
     num_vertices1 = nodes[0]->getDagManager()->getNumVerticesInDag();
     num_vertices2 = nodes[1]->getDagManager()->getNumVerticesInDag();
   }
-  EXPECT_GE(num_vertices1.first, 3);
+  EXPECT_GE(num_vertices1.first, 1);
   EXPECT_EQ(num_vertices1, num_vertices2);
 }
 
@@ -1485,7 +1485,7 @@ TEST_F(FullNodeTest, chain_config_json) {
     "run_count_votes": false
   },
   "sortition": {
-    "changes_count_for_average": "0xA",
+    "changes_count_for_average": "0xa",
     "computation_interval": "0xc8",
     "changing_interval" : "0x32",
     "dag_efficiency_targets": ["0x12c0", "0x1450"],

@@ -51,7 +51,10 @@ SortitionParamsManager::SortitionParamsManager(const addr_t& node_addr, Sortitio
 
   auto period = params_changes_.back().period + 1;
   ignored_efficiency_counter_ = 0;
-  for (auto data = db_->getPeriodDataRaw(period); data.size() > 0; period++) {
+  while (true) {
+    auto data = db_->getPeriodDataRaw(period);
+    if (data.size() == 0) break;
+    period++;
     SyncBlock sync_block(data);
     if (sync_block.pbft_blk->getPivotDagBlockHash() != NULL_BLOCK_HASH) {
       if (ignored_efficiency_counter_ >= config_.computation_interval - config_.changing_interval) {
