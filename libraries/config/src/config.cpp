@@ -130,6 +130,7 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
   network.network_ideal_peer_count = getConfigDataAsUInt(root, {"network_ideal_peer_count"});
   network.network_max_peer_count = getConfigDataAsUInt(root, {"network_max_peer_count"});
   network.network_sync_level_size = getConfigDataAsUInt(root, {"network_sync_level_size"});
+  assert(network.network_sync_level_size);  // network_sync_level_size cannot be 0
   network.network_packets_processing_threads = getConfigDataAsUInt(root, {"network_packets_processing_threads"});
   network.network_peer_blacklist_timeout = getConfigDataAsUInt(root, {"network_peer_blacklist_timeout"}, true,
                                                                NetworkConfig::kBlacklistTimeoutDefaultInSeconds);

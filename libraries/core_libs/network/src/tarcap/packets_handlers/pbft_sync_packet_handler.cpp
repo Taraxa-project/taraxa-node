@@ -25,10 +25,6 @@ PbftSyncPacketHandler::PbftSyncPacketHandler(std::shared_ptr<PeersState> peers_s
       delayed_sync_events_tp_(1, true) {}
 
 void PbftSyncPacketHandler::validatePacketRlpFormat(const PacketData &packet_data) const {
-  if (packet_data.rlp_.itemCount() == 1) {
-    return;
-  }
-
   if (constexpr size_t required_size = 3; packet_data.rlp_.itemCount() != required_size) {
     throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), required_size);
   }
@@ -51,23 +47,9 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
     return;
   }
 
-  const size_t item_count = packet_data.rlp_.itemCount();
-  bool pbft_chain_synced = packet_data.rlp_[0].toInt<bool>();
-
-  // No blocks received - syncing is complete
-  if (item_count == 1) {
-    if (!pbft_chain_synced) {
-      LOG(log_er_) << "Invalid syncing status. PBFT chain should have been synced with peer "
-                   << packet_data.from_node_id_ << ". Stop syncing";
-      handleMaliciousSyncPeer(packet_data.from_node_id_);
-    }
-    pbftSyncComplete();
-    return;
-  }
-
   // Process received pbft blocks
-  bool last_block = packet_data.rlp_[1].toInt<bool>();
-
+  const bool pbft_chain_synced = packet_data.rlp_[0].toInt<bool>();
+  const bool last_block = packet_data.rlp_[1].toInt<bool>();
   SyncBlock sync_block;
   try {
     sync_block = SyncBlock(packet_data.rlp_[2]);
