@@ -8,7 +8,7 @@ namespace taraxa {
 
 class GasPricer {
  public:
-  GasPricer(uint64_t percentile = 60, uint64_t number_of_blocks = 100, std::shared_ptr<DbStorage> db = {});
+  GasPricer(uint64_t percentile = 60, uint64_t number_of_blocks = 200, std::shared_ptr<DbStorage> db = {});
   ~GasPricer();
 
   u256 bid() const;

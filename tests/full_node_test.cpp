@@ -1460,6 +1460,10 @@ TEST_F(FullNodeTest, chain_config_json) {
       }
     }
   },
+  "gas_price" : {
+    "blocks" : "0xc8",
+    "percentile" : "0x3c"
+  },
   "pbft": {
     "committee_size": "0x5",
     "dag_blocks_size": "0x64",

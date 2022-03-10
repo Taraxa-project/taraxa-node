@@ -10,8 +10,6 @@ namespace taraxa::final_chain {
 using namespace std;
 using namespace dev;
 
-enum DBMetaKeys { LAST_NUMBER = 1 };
-
 class FinalChainImpl final : public FinalChain {
   shared_ptr<DB> db_;
   unique_ptr<ReplayProtectionService> replay_protection_service_;
@@ -51,7 +49,8 @@ class FinalChainImpl final : public FinalChain {
     num_executed_dag_blk_ = db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
     num_executed_trx_ = db_->getStatusField(taraxa::StatusDbField::ExecutedTrxCount);
     auto state_db_descriptor = state_api_.get_last_committed_state_descriptor();
-    if (auto last_blk_num = db_->lookup_int<EthBlockNumber>(LAST_NUMBER, DB::Columns::final_chain_meta); last_blk_num) {
+    if (auto last_blk_num = db_->lookup_int<EthBlockNumber>(DBMetaKeys::LAST_NUMBER, DB::Columns::final_chain_meta);
+        last_blk_num) {
       last_block_ = make_shared<BlockHeader>();
       last_block_->rlp(RLP(db_->lookup(*last_blk_num, DB::Columns::final_chain_blk_by_number)));
       if (last_block_->number != state_db_descriptor.blk_num) {
@@ -236,7 +235,7 @@ class FinalChainImpl final : public FinalChain {
                 transactions.size());
     db_->insert(batch, DB::Columns::final_chain_blk_hash_by_number, blk_header.number, blk_header.hash);
     db_->insert(batch, DB::Columns::final_chain_blk_number_by_hash, blk_header.hash, blk_header.number);
-    db_->insert(batch, DB::Columns::final_chain_meta, LAST_NUMBER, blk_header.number);
+    db_->insert(batch, DB::Columns::final_chain_meta, DBMetaKeys::LAST_NUMBER, blk_header.number);
     return blk_header_ptr;
   }
 

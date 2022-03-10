@@ -19,23 +19,23 @@ u256 GasPricer::bid() const {
 }
 
 void GasPricer::init(std::shared_ptr<DbStorage> db) {
-  std::unique_lock lock(mutex_);
-  const auto number_of_blocks = db->getNumBlockExecuted();
-  size_t start = 0;
-  size_t end = number_of_blocks;
-  auto missing_periods = false;
-  if (number_of_blocks == 0) {
-    return;
-  } else if (number_of_blocks > price_list_.capacity()) {
-    start = number_of_blocks - price_list_.capacity();
-    end = start + price_list_.capacity();
-  }
-  for (size_t i = start; i < end; i++) {
-    auto trxs = db->getPeriodTransactions(i);
-    assert(trxs);
+  const auto last_blk_num =
+      db->lookup_int<EthBlockNumber>(final_chain::DBMetaKeys::LAST_NUMBER, DB::Columns::final_chain_meta);
+  if (!last_blk_num || *last_blk_num == 0) return;
+  auto block_num = *last_blk_num;
 
+  std::unique_lock lock(mutex_);
+
+  while (price_list_.capacity() != price_list_.size() && block_num) {
+    auto trxs = db->getPeriodTransactions(block_num);
+    block_num--;
+
+    // Light node
+    if (!trxs) {
+      break;
+    }
+    // Empty block
     if (!trxs->size()) {
-      missing_periods = true;
       continue;
     }
 
@@ -43,12 +43,11 @@ void GasPricer::init(std::shared_ptr<DbStorage> db) {
             *std::min_element(trxs->begin(), trxs->end(),
                               [](const auto& t1, const auto& t2) { return t1.getGasPrice() < t2.getGasPrice(); });
         min_trx.getGasPrice()) {
-      price_list_.push_back(std::move(min_trx.getGasPrice()));
+      price_list_.push_front(std::move(min_trx.getGasPrice()));
     }
   }
-  if (missing_periods) {
-    // TODO
-  }
+
+  if (price_list_.empty()) return;
 
   std::vector<u256> sorted_prices;
   sorted_prices.reserve(price_list_.size());
