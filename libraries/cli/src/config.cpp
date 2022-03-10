@@ -4,7 +4,9 @@
 
 #include <iostream>
 
+#include "cli/config_updater.hpp"
 #include "cli/tools.hpp"
+#include "common/jsoncpp.hpp"
 #include "config/version.hpp"
 
 using namespace std;
@@ -23,12 +25,12 @@ Config::Config(int argc, const char* argv[]) {
   string data_dir;
   vector<string> command;
   vector<string> boot_nodes;
+  string public_ip;
   vector<string> log_channels;
   vector<string> boot_nodes_append;
   vector<string> log_channels_append;
   string node_secret;
   string vrf_secret;
-  string public_ip;
   bool overwrite_config;
 
   bool boot_node = false;
@@ -91,6 +93,8 @@ Config::Config(int argc, const char* argv[]) {
   node_command_options.add_options()(
       BOOT_NODES_APPEND, bpo::value<vector<string>>(&boot_nodes_append)->multitoken(),
       "Boot nodes to connect to in addition to boot nodes defined in config: [ip_address:port_number/node_id, ....]");
+  node_command_options.add_options()(PUBLIC_IP, bpo::value<string>(&public_ip),
+                                     "Force advertised public IP to the given IP (default: auto)");
   node_command_options.add_options()(LOG_CHANNELS, bpo::value<vector<string>>(&log_channels)->multitoken(),
                                      "Log channels to log: [channel:level, ....]");
   node_command_options.add_options()(
@@ -99,8 +103,6 @@ Config::Config(int argc, const char* argv[]) {
   node_command_options.add_options()(NODE_SECRET, bpo::value<string>(&node_secret), "Nose secret key to use");
 
   node_command_options.add_options()(VRF_SECRET, bpo::value<string>(&vrf_secret), "Vrf secret key to use");
-
-  node_command_options.add_options()(PUBLIC_IP, bpo::value<string>(&public_ip), "Public IP address");
 
   node_command_options.add_options()(
       OVERWRITE_CONFIG, bpo::bool_switch(&overwrite_config),
@@ -157,8 +159,27 @@ Config::Config(int argc, const char* argv[]) {
       Tools::generateWallet(wallet);
     }
 
-    Json::Value config_json = Tools::readJsonFromFile(config);
-    Json::Value wallet_json = Tools::readJsonFromFile(wallet);
+    Json::Value config_json = util::readJsonFromFile(config);
+    Json::Value wallet_json = util::readJsonFromFile(wallet);
+
+    auto write_config_and_wallet_files = [&]() {
+      util::writeJsonToFile(config, config_json);
+      util::writeJsonToFile(wallet, wallet_json);
+    };
+
+    // Check that it is not empty, to not create chain config with just overwritten files
+    if (!config_json["chain_config"].isNull()) {
+      network_id = dev::getUInt(config_json["chain_config"]["chain_id"]);
+      auto default_config_json = Tools::generateConfig((Config::NetworkIdType)network_id);
+      // override hardforks data with one from default json
+      addNewHardforks(config_json, default_config_json);
+      // add vote_eligibility_balance_step field if it is missing in the config
+      if (config_json["chain_config"]["final_chain"]["state"]["dpos"]["vote_eligibility_balance_step"].isNull()) {
+        config_json["chain_config"]["final_chain"]["state"]["dpos"]["vote_eligibility_balance_step"] =
+            default_config_json["chain_config"]["final_chain"]["state"]["dpos"]["vote_eligibility_balance_step"];
+      }
+      write_config_and_wallet_files();
+    }
 
     // Override config values with values from CLI
     config_json = Tools::overrideConfig(config_json, data_dir, boot_node, boot_nodes, log_channels, boot_nodes_append,
@@ -170,16 +191,21 @@ Config::Config(int argc, const char* argv[]) {
       fs::create_directories(data_dir);
     }
 
+    // if there is not chain id it is a test
+    if (!config_json["chain_config"].isNull() && !config_json["chain_config"]["chain_id"].isNull()) {
+      ConfigUpdater updater{std::stoi(config_json["chain_config"]["chain_id"].asString(), nullptr, 16)};
+      updater.UpdateConfig(config, config_json);
+    }
+
     // Save changes permanently if overwrite_config option is set
     // or if running config command
     // This can overwrite secret keys in wallet
     if (overwrite_config || command[0] == CONFIG_COMMAND) {
-      Tools::writeJsonToFile(config, config_json);
-      Tools::writeJsonToFile(wallet, wallet_json);
+      write_config_and_wallet_files();
     }
 
     // Load config
-    node_config_ = FullNodeConfig(config_json, wallet_json);
+    node_config_ = FullNodeConfig(config_json, wallet_json, config);
 
     // Validate config values
     node_config_.validate();
@@ -190,11 +216,13 @@ Config::Config(int argc, const char* argv[]) {
     if (rebuild_network) {
       fs::remove_all(node_config_.net_file_path());
     }
+    if (!public_ip.empty()) {
+      node_config_.network.network_public_ip = public_ip;
+    }
     node_config_.test_params.db_revert_to_period = revert_to_period;
     node_config_.test_params.rebuild_db = rebuild_db;
     node_config_.test_params.rebuild_db_columns = rebuild_db_columns;
     node_config_.test_params.rebuild_db_period = rebuild_db_period;
-    node_config_.network.public_ip = public_ip;
     if (command[0] == NODE_COMMAND) node_configured_ = true;
   } else if (command[0] == ACCOUNT_COMMAND) {
     if (command.size() == 1)
@@ -214,6 +242,22 @@ Config::Config(int argc, const char* argv[]) {
 bool Config::nodeConfigured() { return node_configured_; }
 
 FullNodeConfig Config::getNodeConfiguration() { return node_config_; }
+
+void Config::addNewHardforks(Json::Value& config, const Json::Value& default_config) {
+  auto& new_hardforks_json = default_config["chain_config"]["final_chain"]["state"]["hardforks"];
+  auto& local_hardforks_json = config["chain_config"]["final_chain"]["state"]["hardforks"];
+
+  if (local_hardforks_json.isNull()) {
+    local_hardforks_json = new_hardforks_json;
+    return;
+  }
+  for (auto itr = new_hardforks_json.begin(); itr != new_hardforks_json.end(); ++itr) {
+    auto& local = local_hardforks_json[itr.key().asString()];
+    if (local.isNull()) {
+      local = itr->asString();
+    }
+  }
+}
 
 string Config::dirNameFromFile(const string& file) {
   size_t pos = file.find_last_of("\\/");

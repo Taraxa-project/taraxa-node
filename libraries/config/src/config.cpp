@@ -4,6 +4,8 @@
 
 #include <fstream>
 
+#include "common/jsoncpp.hpp"
+
 namespace taraxa {
 
 std::string getConfigErr(std::vector<string> path) {
@@ -23,10 +25,19 @@ Json::Value getConfigData(Json::Value root, std::vector<string> const &path, boo
   return root;
 }
 
-std::string getConfigDataAsString(Json::Value const &root, std::vector<string> const &path) {
+std::string getConfigDataAsString(Json::Value const &root, std::vector<string> const &path, bool optional = false,
+                                  std::string value = {}) {
   try {
-    return getConfigData(root, path).asString();
+    Json::Value ret = getConfigData(root, path, optional);
+    if (ret.isNull()) {
+      return value;
+    } else {
+      return ret.asString();
+    }
   } catch (Json::Exception &e) {
+    if (optional) {
+      return value;
+    }
     throw ConfigException(getConfigErr(path) + e.what());
   }
 }
@@ -84,18 +95,23 @@ Json::Value getJsonFromFileOrString(Json::Value const &value) {
   return value;
 }
 
-FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value const &wallet) {
+FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value const &wallet,
+                               const std::string &config_file_path) {
   Json::Value parsed_from_file = getJsonFromFileOrString(string_or_object);
   if (string_or_object.isString()) {
     json_file_name = string_or_object.asString();
+  } else {
+    json_file_name = config_file_path;
   }
+  assert(!json_file_name.empty());
   auto const &root = string_or_object.isString() ? parsed_from_file : string_or_object;
   data_path = getConfigDataAsString(root, {"data_path"});
   db_path = data_path / "db";
   if (auto n = getConfigData(root, {"network_is_boot_node"}, true); !n.isNull()) {
     network.network_is_boot_node = n.asBool();
   }
-  network.network_address = getConfigDataAsString(root, {"network_address"});
+  network.network_listen_ip = getConfigDataAsString(root, {"network_listen_ip"});
+  network.network_public_ip = getConfigDataAsString(root, {"network_public_ip"}, true);
   network.network_tcp_port = getConfigDataAsUInt(root, {"network_tcp_port"});
   network.network_simulated_delay = getConfigDataAsUInt(root, {"network_simulated_delay"});
   network.network_performance_log_interval =
@@ -121,7 +137,7 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
     rpc = RpcConfig();
 
     // ip address
-    rpc->address = boost::asio::ip::address::from_string(network.network_address);
+    rpc->address = boost::asio::ip::address::from_string(network.network_listen_ip);
 
     // http port
     if (auto http_port = getConfigData(rpc_config, {"http_port"}, true); !http_port.isNull()) {
@@ -254,6 +270,12 @@ void FullNodeConfig::validate() {
   // TODO: add validation of other config values
 }
 
+void FullNodeConfig::overwrite_chain_config_in_file() const {
+  Json::Value from_file = getJsonFromFileOrString(json_file_name);
+  from_file["chain_config"] = enc_json(chain);
+  util::writeJsonToFile(json_file_name, from_file);
+}
+
 std::ostream &operator<<(std::ostream &strm, NodeConfig const &conf) {
   strm << "  [Node Config] " << std::endl;
   strm << "    node_id: " << conf.id << std::endl;
@@ -266,7 +288,8 @@ std::ostream &operator<<(std::ostream &strm, NetworkConfig const &conf) {
   strm << "[Network Config] " << std::endl;
   strm << "  json_file_name: " << conf.json_file_name << std::endl;
   strm << "  network_is_boot_node: " << conf.network_is_boot_node << std::endl;
-  strm << "  network_address: " << conf.network_address << std::endl;
+  strm << "  network_listen_ip: " << conf.network_listen_ip << std::endl;
+  strm << "  network_public_ip: " << conf.network_public_ip << std::endl;
   strm << "  network_tcp_port: " << conf.network_tcp_port << std::endl;
   strm << "  network_simulated_delay: " << conf.network_simulated_delay << std::endl;
   strm << "  network_transaction_interval: " << conf.network_transaction_interval << std::endl;

@@ -15,6 +15,7 @@
 
 #include "cli/config.hpp"
 #include "cli/tools.hpp"
+#include "common/jsoncpp.hpp"
 #include "common/thread_pool.hpp"
 
 namespace po = boost::program_options;
@@ -62,7 +63,7 @@ dev::KeyPair getKey(std::string const& path) {
     throw std::runtime_error("Wallet file does not exist at: " + path);
   }
 
-  auto wallet_json = taraxa::cli::Tools::readJsonFromFile(path);
+  auto wallet_json = taraxa::util::readJsonFromFile(path);
   if (wallet_json["node_secret"].isNull()) {
     throw std::runtime_error("Wallet file does not contain node_secret field");
   }
@@ -125,9 +126,8 @@ int main(int argc, char** argv) {
   unsigned short network_id = static_cast<unsigned short>(taraxa::cli::Config::DEFAULT_NETWORK_ID);
   if (vm.count("network-id")) network_id = vm["network-id"].as<unsigned short>();
 
-  Json::Value conf = taraxa::cli::Tools::generateConfig((taraxa::cli::Config::NetworkIdType)network_id);
   std::string listen_ip = "0.0.0.0";
-  unsigned short listen_port = conf["network_udp_port"].asUInt();
+  unsigned short listen_port = 10002;
   std::string public_ip;
   uint32_t num_of_threads = 1;
 
@@ -150,8 +150,8 @@ int main(int argc, char** argv) {
     }
   }
 
-  auto net_conf = public_ip.empty() ? dev::p2p::NetworkConfig(listen_ip, listen_port, true)
-                                    : dev::p2p::NetworkConfig(public_ip, listen_ip, listen_port, true);
+  auto net_conf = public_ip.empty() ? dev::p2p::NetworkConfig(listen_ip, listen_port, false)
+                                    : dev::p2p::NetworkConfig(public_ip, listen_ip, listen_port, false);
   net_conf.allowLocalDiscovery = !denyLocalDiscovery;
 
   dev::p2p::TaraxaNetworkConfig taraxa_net_conf;
@@ -171,12 +171,16 @@ int main(int argc, char** argv) {
 
   if (boot_host->isRunning()) {
     std::cout << "Node ID: " << boot_host->enode() << std::endl;
-    for (auto const& bn : conf["network_boot_nodes"]) {
-      bi::tcp::endpoint ep = dev::p2p::Network::resolveHost(bn["ip"].asString() + ":" + bn["udp_port"].asString());
-      boot_host->addNode(
-          dev::p2p::Node(dev::Public(bn["id"].asString()),
-                         dev::p2p::NodeIPEndpoint{ep.address(), ep.port() /* udp */, ep.port() /* tcp */},
-                         dev::p2p::PeerType::Required));
+    if (static_cast<taraxa::cli::Config::NetworkIdType>(network_id) <
+        taraxa::cli::Config::NetworkIdType::LastNetworkId) {
+      const auto conf = taraxa::cli::Tools::generateConfig(static_cast<taraxa::cli::Config::NetworkIdType>(network_id));
+      for (auto const& bn : conf["network_boot_nodes"]) {
+        bi::tcp::endpoint ep = dev::p2p::Network::resolveHost(bn["ip"].asString() + ":" + bn["udp_port"].asString());
+        boot_host->addNode(
+            dev::p2p::Node(dev::Public(bn["id"].asString()),
+                           dev::p2p::NodeIPEndpoint{ep.address(), ep.port() /* udp */, ep.port() /* tcp */},
+                           dev::p2p::PeerType::Required));
+      }
     }
     // TODO graceful shutdown
     std::mutex mu;

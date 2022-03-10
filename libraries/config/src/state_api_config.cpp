@@ -34,6 +34,7 @@ Json::Value enc_json(Config const& obj) {
   json["execution_options"] = enc_json(obj.execution_options);
   json["disable_block_rewards"] = obj.disable_block_rewards;
   json["genesis_balances"] = enc_json(obj.genesis_balances);
+  json["hardforks"] = enc_json(obj.hardforks);
   if (obj.dpos) {
     json["dpos"] = enc_json(*obj.dpos);
   }
@@ -45,6 +46,7 @@ void dec_json(Json::Value const& json, Config& obj) {
   dec_json(json["execution_options"], obj.execution_options);
   obj.disable_block_rewards = json["disable_block_rewards"].asBool();
   dec_json(json["genesis_balances"], obj.genesis_balances);
+  dec_json(json["hardforks"], obj.hardforks);
   if (auto const& dpos = json["dpos"]; !dpos.isNull()) {
     dec_json(dpos, obj.dpos.emplace());
   }
@@ -69,6 +71,7 @@ Json::Value enc_json(DPOSConfig const& obj) {
   json["eligibility_balance_threshold"] = dev::toJS(obj.eligibility_balance_threshold);
   json["deposit_delay"] = dev::toJS(obj.deposit_delay);
   json["withdrawal_delay"] = dev::toJS(obj.withdrawal_delay);
+  json["vote_eligibility_balance_step"] = dev::toJS(obj.vote_eligibility_balance_step);
   auto& genesis_state = json["genesis_state"] = Json::Value(Json::objectValue);
   for (auto const& [k, v] : obj.genesis_state) {
     genesis_state[dev::toJS(k)] = enc_json(v);
@@ -78,8 +81,9 @@ Json::Value enc_json(DPOSConfig const& obj) {
 
 void dec_json(Json::Value const& json, DPOSConfig& obj) {
   obj.eligibility_balance_threshold = dev::jsToU256(json["eligibility_balance_threshold"].asString());
-  obj.deposit_delay = dev::jsToInt(json["deposit_delay"].asString());
-  obj.withdrawal_delay = dev::jsToInt(json["withdrawal_delay"].asString());
+  obj.deposit_delay = dev::getUInt(json["deposit_delay"].asString());
+  obj.withdrawal_delay = dev::getUInt(json["withdrawal_delay"].asString());
+  obj.vote_eligibility_balance_step = dev::jsToU256(json["vote_eligibility_balance_step"].asString());
   auto const& genesis_state = json["genesis_state"];
   for (auto const& k : genesis_state.getMemberNames()) {
     dec_json(genesis_state[k], obj.genesis_state[addr_t(k)]);
@@ -101,8 +105,9 @@ void dec_json(Json::Value const& json, ExecutionOptions& obj) {
 RLP_FIELDS_DEFINE(ExecutionOptions, disable_nonce_check, disable_gas_fee)
 RLP_FIELDS_DEFINE(ETHChainConfig, homestead_block, dao_fork_block, eip_150_block, eip_158_block, byzantium_block,
                   constantinople_block, petersburg_block)
-RLP_FIELDS_DEFINE(DPOSConfig, eligibility_balance_threshold, deposit_delay, withdrawal_delay, genesis_state)
-RLP_FIELDS_DEFINE(Config, eth_chain_config, disable_block_rewards, execution_options, genesis_balances, dpos)
+RLP_FIELDS_DEFINE(DPOSConfig, eligibility_balance_threshold, vote_eligibility_balance_step, deposit_delay,
+                  withdrawal_delay, genesis_state)
+RLP_FIELDS_DEFINE(Config, eth_chain_config, disable_block_rewards, execution_options, genesis_balances, dpos, hardforks)
 RLP_FIELDS_DEFINE(Opts, expected_max_trx_per_block, max_trie_full_node_levels_to_cache)
 RLP_FIELDS_DEFINE(OptsDB, db_path, disable_most_recent_trie_value_views)
 

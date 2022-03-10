@@ -29,8 +29,8 @@ struct NodeConfig {
 struct NetworkConfig {
   std::string json_file_name;
   bool network_is_boot_node = 0;
-  std::string network_address;
-  std::string public_ip;
+  std::string network_public_ip;
+  std::string network_listen_ip;
   uint16_t network_tcp_port = 0;
   std::vector<NodeConfig> network_boot_nodes;
   uint16_t network_simulated_delay = 0;
@@ -74,7 +74,8 @@ struct FullNodeConfig {
   // if you have std::string and Json::Value constructor. It was easier
   // to just treat Json::Value as a std::string or Json::Value depending on
   // the contents
-  explicit FullNodeConfig(Json::Value const &file_name_str_or_json_object, Json::Value const &wallet);
+  explicit FullNodeConfig(Json::Value const &file_name_str_or_json_object, Json::Value const &wallet,
+                          const std::string &config_file_path = "");
   std::string json_file_name;
   std::string node_secret;
   vrf_wrapper::vrf_sk_t vrf_secret;
@@ -95,6 +96,8 @@ struct FullNodeConfig {
    * @return
    */
   void validate();
+
+  void overwrite_chain_config_in_file() const;
 };
 
 std::ostream &operator<<(std::ostream &strm, NodeConfig const &conf);

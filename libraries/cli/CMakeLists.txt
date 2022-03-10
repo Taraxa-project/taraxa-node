@@ -1,5 +1,6 @@
 set(HEADERS
     include/cli/config.hpp
+    include/cli/config_updater.hpp
     include/cli/default_config.hpp
     include/cli/devnet_config.hpp
     include/cli/testnet_config.hpp
@@ -8,6 +9,7 @@ set(HEADERS
 
 set(SOURCES
     src/config.cpp
+    src/config_updater.cpp
     src/tools.cpp
 )
 
