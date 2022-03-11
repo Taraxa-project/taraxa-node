@@ -22,7 +22,7 @@ constexpr uint16_t kMaxLevelsPerPeriod = 100;
 static const u256 kOneTara = dev::exp10<18>();
 // static const u256 kFinney = exp10<15>();
 // static const u256 kSzabo = exp10<12>();
-static const u256 kShannon = dev::exp10<9>();
+// static const u256 kShannon = dev::exp10<9>();
 // static const u256 kWei = exp10<0>();
 
 }  // namespace taraxa
