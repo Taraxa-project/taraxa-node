@@ -66,14 +66,14 @@ class NextVotesManager {
 class VoteManager {
  public:
   VoteManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<FinalChain> final_chain,
-              std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<NextVotesManager> next_votes_mgr);
+              std::shared_ptr<NextVotesManager> next_votes_mgr);
   ~VoteManager();
 
   void setNetwork(std::weak_ptr<Network> network);
 
   // Unverified votes
   bool addUnverifiedVote(std::shared_ptr<Vote> const& vote);
-  void addUnverifiedVotes(std::vector<std::shared_ptr<Vote>> const& votes);
+  void moveVerifyToUnverify(std::vector<std::shared_ptr<Vote>> const& votes);
   void removeUnverifiedVote(uint64_t pbft_round, vote_hash_t const& vote_hash);
   bool voteInUnverifiedMap(uint64_t pbft_round, vote_hash_t const& vote_hash);
   std::vector<std::shared_ptr<Vote>> getUnverifiedVotes();
@@ -97,7 +97,7 @@ class VoteManager {
 
   std::vector<std::shared_ptr<Vote>> getProposalVotes(uint64_t pbft_round);
 
-  VotesBundle getVotesBundleByRoundAndStep(uint64_t round, size_t step, size_t two_t_plus_one);
+  std::optional<VotesBundle> getVotesBundleByRoundAndStep(uint64_t round, size_t step, size_t two_t_plus_one);
 
   uint64_t roundDeterminedFromVotes(size_t two_t_plus_one);
 
@@ -120,18 +120,17 @@ class VoteManager {
       verified_votes_;
 
   std::unordered_set<vote_hash_t> votes_invalid_in_current_final_chain_period_;
-  h256 current_period_final_chain_block_hash_;
-  std::map<addr_t, uint64_t> max_received_round_for_address_;
+  blk_hash_t current_period_final_chain_block_hash_;
+  std::unordered_map<addr_t, uint64_t> max_received_round_for_address_;
 
   std::unique_ptr<std::thread> daemon_;
 
   mutable boost::shared_mutex unverified_votes_access_;
   mutable boost::shared_mutex verified_votes_access_;
 
-  addr_t node_addr_;
+  const addr_t node_addr_;
 
   std::shared_ptr<DbStorage> db_;
-  std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<FinalChain> final_chain_;
   std::shared_ptr<NextVotesManager> next_votes_manager_;
   std::weak_ptr<Network> network_;

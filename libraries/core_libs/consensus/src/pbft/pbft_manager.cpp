@@ -692,12 +692,12 @@ bool PbftManager::stateOperations_() {
   // ONLY CHECK IF HAVE *NOT* YET EXECUTED THIS ROUND...
   if (state_ == certify_state && !have_executed_this_round_) {
     auto voted_block_hash_with_cert_votes = vote_mgr_->getVotesBundleByRoundAndStep(round, 3, TWO_T_PLUS_ONE);
-    if (voted_block_hash_with_cert_votes.enough) {
-      LOG(log_dg_) << "PBFT block " << voted_block_hash_with_cert_votes.voted_block_hash << " has enough certed votes";
+    if (voted_block_hash_with_cert_votes) {
+      LOG(log_dg_) << "PBFT block " << voted_block_hash_with_cert_votes->voted_block_hash << " has enough certed votes";
       // put pbft block into chain
-      const auto vote_size = voted_block_hash_with_cert_votes.votes.size();
-      if (pushCertVotedPbftBlockIntoChain_(voted_block_hash_with_cert_votes.voted_block_hash,
-                                           std::move(voted_block_hash_with_cert_votes.votes))) {
+      const auto vote_size = voted_block_hash_with_cert_votes->votes.size();
+      if (pushCertVotedPbftBlockIntoChain_(voted_block_hash_with_cert_votes->voted_block_hash,
+                                           std::move(voted_block_hash_with_cert_votes->votes))) {
         db_->savePbftMgrStatus(PbftMgrStatus::ExecutedInRound, true);
         have_executed_this_round_ = true;
         LOG(log_nf_) << "Write " << vote_size << " cert votes ... in round " << round;
@@ -718,21 +718,17 @@ bool PbftManager::updateSoftVotedBlockForThisRound_() {
   if (!soft_voted_block_for_this_round_.second) {
     auto round = getPbftRound();
 
-    auto voted_block_hash_with_soft_votes = vote_mgr_->getVotesBundleByRoundAndStep(round, 2, TWO_T_PLUS_ONE);
-
-    auto batch = db_->createWriteBatch();
-    db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::SoftVotedBlockHashInRound,
-                                     voted_block_hash_with_soft_votes.voted_block_hash, batch);
-    db_->addPbftMgrStatusToBatch(PbftMgrStatus::SoftVotedBlockInRound, voted_block_hash_with_soft_votes.enough, batch);
-    if (voted_block_hash_with_soft_votes.enough &&
-        voted_block_hash_with_soft_votes.voted_block_hash != NULL_BLOCK_HASH) {
-      db_->addSoftVotesToBatch(round, voted_block_hash_with_soft_votes.votes, batch);
+    if (auto voted_block_hash_with_soft_votes = vote_mgr_->getVotesBundleByRoundAndStep(round, 2, TWO_T_PLUS_ONE)) {
+      auto batch = db_->createWriteBatch();
+      db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::SoftVotedBlockHashInRound,
+                                       voted_block_hash_with_soft_votes->voted_block_hash, batch);
+      db_->addPbftMgrStatusToBatch(PbftMgrStatus::SoftVotedBlockInRound, true, batch);
+      if (voted_block_hash_with_soft_votes->voted_block_hash != NULL_BLOCK_HASH) {
+        db_->addSoftVotesToBatch(round, voted_block_hash_with_soft_votes->votes, batch);
+      }
+      soft_voted_block_for_this_round_ = {voted_block_hash_with_soft_votes->voted_block_hash, true};
+      db_->commitWriteBatch(batch);
     }
-    db_->commitWriteBatch(batch);
-
-    soft_voted_block_for_this_round_ =
-        std::make_pair(voted_block_hash_with_soft_votes.voted_block_hash, voted_block_hash_with_soft_votes.enough);
-
     if (soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH && soft_voted_block_for_this_round_.second) {
       // Have enough soft votes for a value other other than NULL BLOCK HASH...
       return true;
@@ -1026,13 +1022,12 @@ void PbftManager::secondFinish_() {
   updateSoftVotedBlockForThisRound_();
   if (soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH && soft_voted_block_for_this_round_.second) {
     auto voted_block_hash_with_soft_votes = vote_mgr_->getVotesBundleByRoundAndStep(round, 2, TWO_T_PLUS_ONE);
-    if (voted_block_hash_with_soft_votes.enough &&
-        voted_block_hash_with_soft_votes.voted_block_hash != NULL_BLOCK_HASH) {
+    if (voted_block_hash_with_soft_votes && voted_block_hash_with_soft_votes->voted_block_hash != NULL_BLOCK_HASH) {
       // Have enough soft votes for a voting value other than NULL BLOCK HASH
       auto net = network_.lock();
       assert(net);  // Should never happen
-      net->onNewPbftVotes(std::move(voted_block_hash_with_soft_votes.votes));
-      LOG(log_dg_) << "Node has seen enough soft votes voted at " << voted_block_hash_with_soft_votes.voted_block_hash
+      net->onNewPbftVotes(std::move(voted_block_hash_with_soft_votes->votes));
+      LOG(log_dg_) << "Node has seen enough soft votes voted at " << voted_block_hash_with_soft_votes->voted_block_hash
                    << ", regossip soft votes. In round " << round << " step " << step_;
     }
   }
