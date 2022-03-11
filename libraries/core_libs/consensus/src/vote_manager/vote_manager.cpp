@@ -467,7 +467,7 @@ uint64_t VoteManager::roundDeterminedFromVotes(size_t two_t_plus_one) {
       }
     }
   }
-  
+
   return 0;
 }
 
