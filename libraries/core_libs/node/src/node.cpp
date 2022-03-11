@@ -232,23 +232,24 @@ void FullNode::start() {
   if (conf_.network.network_is_boot_node) {
     LOG(log_nf_) << "Starting a boot node ..." << std::endl;
   }
-  if (!conf_.test_params.rebuild_db) {
-    network_->start();
-    blk_proposer_->setNetwork(network_);
-    blk_proposer_->start();
-  }
+
   vote_mgr_->setNetwork(network_);
   pbft_mgr_->setNetwork(network_);
   dag_mgr_->setNetwork(network_);
-  pbft_mgr_->start();
-  dag_mgr_->start();
 
   if (conf_.test_params.rebuild_db) {
     rebuildDb();
     LOG(log_si_) << "Rebuild db completed successfully. Restart node without db_rebuild option";
     started_ = false;
     return;
+  } else {
+    network_->start();
+    blk_proposer_->setNetwork(network_);
+    blk_proposer_->start();
   }
+
+  pbft_mgr_->start();
+  dag_mgr_->start();
 
   started_ = true;
   LOG(log_nf_) << "Node started ... ";
@@ -272,9 +273,10 @@ void FullNode::close() {
 }
 
 void FullNode::rebuildDb() {
+  pbft_mgr_->initialState();
+
   // Read pbft blocks one by one
   uint64_t period = 1;
-
   while (true) {
     auto data = old_db_->getPeriodDataRaw(period);
     if (data.size() == 0) {
@@ -282,23 +284,22 @@ void FullNode::rebuildDb() {
     }
     SyncBlock sync_block(data);
 
-    LOG(log_nf_) << "Adding sync block into queue " << sync_block.pbft_blk->getBlockHash().toString();
+    LOG(log_nf_) << "Adding PBFT block " << sync_block.pbft_blk->getBlockHash().toString()
+                 << " from old DB into syncing queue for processing";
     pbft_mgr_->syncBlockQueuePush(std::move(sync_block), dev::p2p::NodeID());
+    pbft_mgr_->pushSyncedPbftBlocksIntoChain();
 
-    // Wait if more than 10 pbft blocks in queue to be processed
-    while (pbft_mgr_->syncBlockQueueSize() > 10) {
-      thisThreadSleepForMilliSeconds(10);
-    }
     period++;
 
     if (period - 1 == conf_.test_params.rebuild_db_period) {
       break;
     }
   }
-  while (pbft_mgr_->syncBlockQueueSize() > 0 || final_chain_->last_block_number() != period - 1) {
+
+  while (final_chain_->last_block_number() != period - 1) {
     thisThreadSleepForMilliSeconds(1000);
-    LOG(log_nf_) << "Waiting on PBFT blocks to be processed. Queue size: " << pbft_mgr_->syncBlockQueueSize()
-                 << " Chain size: " << final_chain_->last_block_number();
+    LOG(log_nf_) << "Waiting on PBFT blocks to be processed. PBFT chain size " << pbft_mgr_->pbftSyncingPeriod()
+                 << ", final chain size: " << final_chain_->last_block_number();
   }
 }
 

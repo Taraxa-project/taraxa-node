@@ -120,7 +120,7 @@ void PbftManager::run() {
   }
 
   // Initialize PBFT status
-  initialState_();
+  initialState();
 
   continuousOperation_();
 }
@@ -451,7 +451,7 @@ void PbftManager::sleep_() {
   }
 }
 
-void PbftManager::initialState_() {
+void PbftManager::initialState() {
   // Initial PBFT state
 
   // Time constants...
@@ -663,7 +663,7 @@ void PbftManager::loopBackFinishState_() {
 }
 
 bool PbftManager::stateOperations_() {
-  pushSyncedPbftBlocksIntoChain_();
+  pushSyncedPbftBlocksIntoChain();
 
   checkPreviousRoundNextVotedValueChange_();
 
@@ -1513,7 +1513,7 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cer
   return true;
 }
 
-void PbftManager::pushSyncedPbftBlocksIntoChain_() {
+void PbftManager::pushSyncedPbftBlocksIntoChain() {
   if (auto net = network_.lock()) {
     auto round = getPbftRound();
     while (syncBlockQueueSize() > 0) {

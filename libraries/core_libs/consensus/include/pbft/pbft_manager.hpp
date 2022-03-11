@@ -46,6 +46,9 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   void stop();
   void run();
 
+  void initialState();
+  void pushSyncedPbftBlocksIntoChain();
+
   uint64_t getVoteWeight(PbftVoteTypes type, uint64_t round, size_t step) const;
 
   std::pair<bool, uint64_t> getDagBlockPeriod(blk_hash_t const &hash);
@@ -100,7 +103,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   bool resetRound_();
   void sleep_();
 
-  void initialState_();
   void continuousOperation_();
   // This one is for tests only...
   void doNextState_();
@@ -140,8 +142,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   bool pushCertVotedPbftBlockIntoChain_(blk_hash_t const &cert_voted_block_hash,
                                         std::vector<std::shared_ptr<Vote>> &&cert_votes_for_round);
-
-  void pushSyncedPbftBlocksIntoChain_();
 
   void finalize_(SyncBlock &&sync_block, std::vector<h256> &&finalized_dag_blk_hashes, bool sync = false);
   bool pushPbftBlock_(SyncBlock &&sync_block, vec_blk_t &&dag_blocks_order = {});
