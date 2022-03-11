@@ -1362,7 +1362,7 @@ TEST_F(FullNodeTest, db_rebuild) {
     std::cout << "Check rebuild DB" << std::endl;
     auto node_cfgs = make_node_cfgs<5>(1);
     auto nodes = launch_nodes(node_cfgs);
-    EXPECT_HAPPENS({10s, 1s}, [&](auto &ctx) {
+    EXPECT_HAPPENS({10s, 100ms}, [&](auto &ctx) {
       WAIT_EXPECT_EQ(ctx, nodes[0]->getDB()->getNumTransactionExecuted(), trxs_count)
       WAIT_EXPECT_EQ(ctx, nodes[0]->getFinalChain()->last_block_number(), executed_chain_size)
     });
@@ -1380,7 +1380,7 @@ TEST_F(FullNodeTest, db_rebuild) {
     std::cout << "Check rebuild for period 5" << std::endl;
     auto node_cfgs = make_node_cfgs<5>(1);
     auto nodes = launch_nodes(node_cfgs);
-    EXPECT_HAPPENS({10s, 1s}, [&](auto &ctx) {
+    EXPECT_HAPPENS({10s, 100ms}, [&](auto &ctx) {
       WAIT_EXPECT_EQ(ctx, nodes[0]->getDB()->getNumTransactionExecuted(), trxs_count_at_pbft_size_5)
       WAIT_EXPECT_EQ(ctx, nodes[0]->getFinalChain()->last_block_number(), 5)
     });
