@@ -55,13 +55,7 @@ void PbftManager::start() {
   if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
-  std::vector<blk_hash_t> ghost;
-  dag_mgr_->getGhostPath(dag_genesis_, ghost);
-  while (ghost.empty()) {
-    LOG(log_dg_) << "GHOST is empty. DAG initialization has not done. Sleep 100ms";
-    thisThreadSleepForMilliSeconds(100);
-  }
-  LOG(log_dg_) << "PBFT start at GHOST size " << ghost.size() << ", the last of DAG blocks is " << ghost.back();
+
   daemon_ = std::make_unique<std::thread>([this]() { run(); });
   LOG(log_dg_) << "PBFT daemon initiated ...";
   if (RUN_COUNT_VOTES) {

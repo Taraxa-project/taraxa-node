@@ -526,7 +526,7 @@ TEST_F(PbftManagerTest, pbft_produce_blocks_with_null_anchor) {
 
   // Check PBFT produced blocks with no transactions
   auto pbft_chain = node->getPbftChain();
-  EXPECT_HAPPENS({4s, 200ms}, [&](auto &ctx) { WAIT_EXPECT_GE(ctx, pbft_chain->getPbftChainSize(), 1) });
+  EXPECT_HAPPENS({10s, 200ms}, [&](auto &ctx) { WAIT_EXPECT_GT(ctx, pbft_chain->getPbftChainSize(), 1) });
 }
 
 TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
