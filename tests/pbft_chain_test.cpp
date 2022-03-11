@@ -17,13 +17,6 @@ namespace taraxa::core_tests {
 
 struct PbftChainTest : BaseTest {};
 
-const unsigned NUM_TRX = 10;
-auto g_secret = Lazy([] {
-  return dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-                     dev::Secret::ConstructFromStringType::FromHex);
-});
-auto g_signed_trx_samples = Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX, g_secret); });
-
 TEST_F(PbftChainTest, serialize_desiriablize_pbft_block) {
   auto node_cfgs = make_node_cfgs(1);
   dev::Secret sk(node_cfgs[0].node_secret);
@@ -90,26 +83,12 @@ TEST_F(PbftChainTest, pbft_db_test) {
   EXPECT_EQ(pbft_head_from_db, pbft_chain->getJsonStr());
 }
 
-TEST_F(PbftChainTest, block_broadcast) {
-  auto node_cfgs = make_node_cfgs(3);
+TEST_F(PbftChainTest, proposal_block_broadcast) {
+  auto node_cfgs = make_node_cfgs<5>(3);
   auto nodes = launch_nodes(node_cfgs);
   auto &node1 = nodes[0];
   auto &node2 = nodes[1];
   auto &node3 = nodes[2];
-
-  auto dag_genesis = node1->getConfig().chain.dag_genesis_block.getHash();
-  auto sk = node1->getSecretKey();
-  auto vrf_sk = node1->getVrfSecretKey();
-  SortitionConfig vdf_config(node_cfgs[0].chain.sortition);
-
-  // generate first PBFT block sample
-  blk_hash_t prev_block_hash(0);
-  uint64_t period = 1;
-  addr_t beneficiary(987);
-
-  level_t level = 1;
-  vdf_sortition::VdfSortition vdf1(vdf_config, vrf_sk, getRlpBytes(level));
-  vdf1.computeVdfSolution(vdf_config, dag_genesis.asBytes());
 
   // Stop PBFT manager and executor to test networking
   node1->getPbftManager()->stop();
@@ -124,51 +103,44 @@ TEST_F(PbftChainTest, block_broadcast) {
   std::shared_ptr<Network> nw2 = node2->getNetwork();
   std::shared_ptr<Network> nw3 = node3->getNetwork();
 
-  const int node_peers = 2;
-  for (int i = 0; i < 300; i++) {
-    // test timeout is 30 seconds
-    if (nw1->getPeerCount() == node_peers && nw2->getPeerCount() == node_peers && nw3->getPeerCount() == node_peers) {
-      break;
-    }
-    taraxa::thisThreadSleepForMilliSeconds(100);
-  }
-  ASSERT_EQ(node_peers, nw1->getPeerCount());
-  ASSERT_EQ(node_peers, nw2->getPeerCount());
-  ASSERT_EQ(node_peers, nw3->getPeerCount());
+  // Check all 3 nodes PBFT chain synced
+  EXPECT_HAPPENS({30s, 200ms}, [&](auto &ctx) {
+    WAIT_EXPECT_EQ(ctx, pbft_chain1->getPbftChainSize(), pbft_chain2->getPbftChainSize())
+    WAIT_EXPECT_EQ(ctx, pbft_chain1->getPbftChainSize(), pbft_chain3->getPbftChainSize())
+    WAIT_EXPECT_EQ(ctx, pbft_chain2->getPbftChainSize(), pbft_chain3->getPbftChainSize())
+  });
 
-  // generate first PBFT block sample
+  auto node1_pbft_chain_size = pbft_chain1->getPbftChainSize();
 
-  DagBlock blk1(dag_genesis, 1, {}, {g_signed_trx_samples[0]->getHash(), g_signed_trx_samples[1]->getHash()}, vdf1, sk);
-  SharedTransactions txs1({g_signed_trx_samples[0], g_signed_trx_samples[1]});
+  // Node1 generate a PBFT block sample
+  blk_hash_t prev_block_hash = pbft_chain1->getLastPbftBlockHash();
+  uint64_t propose_period = node1_pbft_chain_size + 1;
+  auto pbft_block = std::make_shared<PbftBlock>(prev_block_hash, blk_hash_t(0), blk_hash_t(0), propose_period,
+                                                node1->getAddress(), node1->getSecretKey());
 
-  auto pbft_block = std::make_shared<PbftBlock>(prev_block_hash, blk1.getHash(), blk_hash_t(), period, beneficiary,
-                                                node1->getSecretKey());
-
-  node1->getTransactionManager()->insertValidatedTransactions(txs1);
-  node1->getDagBlockManager()->insertAndVerifyBlock(DagBlock(blk1));
-  taraxa::thisThreadSleepForMilliSeconds(1000);
-  node1->getPbftChain()->pushUnverifiedPbftBlock(pbft_block);
+  pbft_chain1->pushUnverifiedPbftBlock(pbft_block);
   auto block1_from_node1 = pbft_chain1->getUnverifiedPbftBlock(pbft_block->getBlockHash());
   ASSERT_TRUE(block1_from_node1);
   EXPECT_EQ(block1_from_node1->getJsonStr(), pbft_block->getJsonStr());
+
   // node1 put block into pbft chain and store into DB
   auto db1 = node1->getDB();
   auto batch = db1->createWriteBatch();
   // Add PBFT block in DB
   std::vector<std::shared_ptr<Vote>> votes;
   SyncBlock sync_block(pbft_block, votes);
-  sync_block.dag_blocks.push_back(blk1);
   db1->savePeriodData(sync_block, batch);
-
-  // Update pbft chain
-  pbft_chain1->updatePbftChain(pbft_block->getBlockHash());
   // Update PBFT chain head block
   blk_hash_t pbft_chain_head_hash = pbft_chain1->getHeadHash();
-  std::string pbft_chain_head_str = pbft_chain1->getJsonStr();
+  std::string pbft_chain_head_str = pbft_chain1->getJsonStrForBlock(pbft_block->getBlockHash(), true);
   db1->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
   db1->commitWriteBatch(batch);
-  EXPECT_EQ(pbft_chain1->getPbftChainSize(), 1);
-  EXPECT_EQ(node1->getFinalChain()->last_block_number(), 0);
+  // Update pbft chain
+  pbft_chain1->updatePbftChain(pbft_block->getBlockHash(), true);
+
+  EXPECT_EQ(pbft_chain1->getPbftChainSize(), node1_pbft_chain_size + 1);
+  EXPECT_EQ(pbft_chain1->getPbftChainSizeExcludingEmptyPbftBlocks(), 0);
+
   // node1 cleanup block1 in PBFT unverified blocks table
   pbft_chain1->cleanupUnverifiedPbftBlocks(*pbft_block);
   bool find_erased_block = pbft_chain1->findUnverifiedPbftBlock(pbft_block->getBlockHash());
@@ -176,62 +148,13 @@ TEST_F(PbftChainTest, block_broadcast) {
 
   nw1->onNewPbftBlock(pbft_block);
 
-  std::shared_ptr<PbftBlock> pbft_block_from_node2;
-  std::shared_ptr<PbftBlock> pbft_block_from_node3;
-  for (int i = 0; i < 300; i++) {
-    // test timeout is 30 seconds
-    pbft_block_from_node2 = pbft_chain2->getUnverifiedPbftBlock(pbft_block->getBlockHash());
-    pbft_block_from_node3 = pbft_chain3->getUnverifiedPbftBlock(pbft_block->getBlockHash());
-    if (pbft_block_from_node2 && pbft_block_from_node3) {
-      // Both node2 and node3 get the pbft_block
-      break;
-    }
-    taraxa::thisThreadSleepForMilliSeconds(100);
-  }
-  ASSERT_TRUE(pbft_block_from_node2);
-  ASSERT_TRUE(pbft_block_from_node3);
-  EXPECT_EQ(pbft_block_from_node2->getJsonStr(), pbft_block->getJsonStr());
-  EXPECT_EQ(pbft_block_from_node3->getJsonStr(), pbft_block->getJsonStr());
-
-  // node2 put block into pbft chain and store into DB
-  auto db2 = node2->getDB();
-  batch = db2->createWriteBatch();
-  // Add PBFT block in DB
-  db2->savePeriodData(sync_block, batch);
-
-  // Update PBFT chain
-  pbft_chain2->updatePbftChain(pbft_block->getBlockHash());
-  // Update PBFT chain head block
-  pbft_chain_head_hash = pbft_chain2->getHeadHash();
-  pbft_chain_head_str = pbft_chain2->getJsonStr();
-  db2->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
-  db2->commitWriteBatch(batch);
-  EXPECT_EQ(pbft_chain2->getPbftChainSize(), 1);
-  EXPECT_EQ(node2->getFinalChain()->last_block_number(), 0);
-  // node2 cleanup block1 in PBFT unverified blocks table
-  pbft_chain2->cleanupUnverifiedPbftBlocks(*pbft_block);
-  find_erased_block = pbft_chain2->findUnverifiedPbftBlock(pbft_block->getBlockHash());
-  ASSERT_FALSE(find_erased_block);
-
-  // node3 put block into pbft chain and store into DB
-  auto db3 = node3->getDB();
-  batch = db3->createWriteBatch();
-  // Add PBFT block in DB
-  db3->savePeriodData(sync_block, batch);
-
-  // Update PBFT chain
-  pbft_chain3->updatePbftChain(pbft_block->getBlockHash());
-  // Update PBFT chain head block
-  pbft_chain_head_hash = pbft_chain3->getHeadHash();
-  pbft_chain_head_str = pbft_chain3->getJsonStr();
-  db3->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
-  db3->commitWriteBatch(batch);
-  EXPECT_EQ(pbft_chain3->getPbftChainSize(), 1);
-  EXPECT_EQ(node3->getFinalChain()->last_block_number(), 0);
-  // node3 cleanup block1 in PBFT unverified blocks table
-  pbft_chain3->cleanupUnverifiedPbftBlocks(*pbft_block);
-  find_erased_block = pbft_chain3->findUnverifiedPbftBlock(pbft_block->getBlockHash());
-  ASSERT_FALSE(find_erased_block);
+  // Check node2 and node3 receive the PBFT block
+  EXPECT_HAPPENS({20s, 200ms}, [&](auto &ctx) {
+    WAIT_EXPECT_TRUE(ctx, pbft_chain2->getUnverifiedPbftBlock(pbft_block->getBlockHash()))
+    WAIT_EXPECT_TRUE(ctx, pbft_chain3->getUnverifiedPbftBlock(pbft_block->getBlockHash()))
+  });
+  EXPECT_EQ(pbft_chain2->getUnverifiedPbftBlock(pbft_block->getBlockHash())->getJsonStr(), pbft_block->getJsonStr());
+  EXPECT_EQ(pbft_chain3->getUnverifiedPbftBlock(pbft_block->getBlockHash())->getJsonStr(), pbft_block->getJsonStr());
 }
 
 }  // namespace taraxa::core_tests
