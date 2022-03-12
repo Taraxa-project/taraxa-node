@@ -90,9 +90,8 @@ class ChainTester:
         if self._new_blk_filter_testers:
             print("checking block filters...")
             synced_bk_hashes = {blk.hash for blk, _ in sync_results}
-            # TODO[1622]
-            # for f in self._new_blk_filter_testers:
-            #     f.test_poll(synced_bk_hashes)
+            for f in self._new_blk_filter_testers:
+                f.test_poll(synced_bk_hashes)
         if self._new_transaction_filter_testers:
             print("checking tx filters...")
             synced_tx_hashes = {tx.hash for blk, _ in sync_results for tx in blk.transactions}
