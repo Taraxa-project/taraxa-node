@@ -767,17 +767,21 @@ void PbftManager::checkPreviousRoundNextVotedValueChange_() {
 void PbftManager::proposeBlock_() {
   // Value Proposal
   auto round = getPbftRound();
+  if (round == 1) {
+    // Round 1 cannot propose block. Everyone has to next vote NULL_BLOCK_HASH in round 1 to make consensus go to next
+    // round
+    return;
+  }
 
   LOG(log_tr_) << "PBFT value proposal state in round " << round;
-  if (round > 1) {
-    if (next_votes_manager_->haveEnoughVotesForNullBlockHash()) {
-      LOG(log_nf_) << "Previous round " << round - 1 << " next voted block is NULL_BLOCK_HASH";
-    } else if (previous_round_next_voted_value_) {
-      LOG(log_nf_) << "Previous round " << round - 1 << " next voted block is " << previous_round_next_voted_value_;
-    } else {
-      LOG(log_er_) << "Previous round " << round - 1 << " doesn't have enough next votes";
-      assert(false);
-    }
+  // Round greater than 1
+  if (next_votes_manager_->haveEnoughVotesForNullBlockHash()) {
+    LOG(log_nf_) << "Previous round " << round - 1 << " next voted block is NULL_BLOCK_HASH";
+  } else if (previous_round_next_voted_value_) {
+    LOG(log_nf_) << "Previous round " << round - 1 << " next voted block is " << previous_round_next_voted_value_;
+  } else {
+    LOG(log_er_) << "Previous round " << round - 1 << " doesn't have enough next votes";
+    assert(false);
   }
 
   if (giveUpNextVotedBlock_()) {
@@ -1080,7 +1084,7 @@ blk_hash_t PbftManager::generatePbftBlock(const blk_hash_t &prev_blk_hash, const
   }
 
   LOG(log_dg_) << node_addr_ << " propose PBFT block succussful! in round: " << round_ << " in step: " << step_
-               << " PBFT block: " << pbft_block;
+               << " PBFT block: " << pbft_block->getBlockHash();
 
   return pbft_block->getBlockHash();
 }
