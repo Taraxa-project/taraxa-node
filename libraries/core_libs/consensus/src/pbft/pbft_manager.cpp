@@ -767,19 +767,13 @@ void PbftManager::checkPreviousRoundNextVotedValueChange_() {
 void PbftManager::proposeBlock_() {
   // Value Proposal
   auto round = getPbftRound();
-  if (round == 1) {
-    // Round 1 cannot propose block. Everyone has to next vote NULL_BLOCK_HASH in round 1 to make consensus go to next
-    // round
-    return;
-  }
-
   LOG(log_tr_) << "PBFT value proposal state in round " << round;
-  // Round greater than 1
+
   if (next_votes_manager_->haveEnoughVotesForNullBlockHash()) {
     LOG(log_nf_) << "Previous round " << round - 1 << " next voted block is NULL_BLOCK_HASH";
   } else if (previous_round_next_voted_value_) {
     LOG(log_nf_) << "Previous round " << round - 1 << " next voted block is " << previous_round_next_voted_value_;
-  } else {
+  } else if (round > 1) {
     LOG(log_er_) << "Previous round " << round - 1 << " doesn't have enough next votes";
     assert(false);
   }
@@ -961,7 +955,8 @@ void PbftManager::firstFinish_() {
                                              giveUpSoftVotedBlock_() &&
                                              !comparePbftBlockScheduleWithDAGblocks_(own_starting_value_for_round_);
 
-    if (round >= 2 && (giveUpNextVotedBlock_() || giveUpSoftVotedBlockInFirstFinish)) {
+    if (giveUpNextVotedBlock_() || giveUpSoftVotedBlockInFirstFinish) {
+      // Round 1 next vote NULL_BLOCK_HASH here
       auto place_votes = placeVote_(NULL_BLOCK_HASH, next_vote_type, round, step_);
       if (place_votes) {
         LOG(log_nf_) << "Next votes " << place_votes << " voting NULL BLOCK for round " << round << ", at step "
@@ -1042,7 +1037,8 @@ void PbftManager::secondFinish_() {
     }
   }
 
-  if (!next_voted_null_block_hash_ && round >= 2 && (giveUpSoftVotedBlockInSecondFinish || giveUpNextVotedBlock_())) {
+  if (!next_voted_null_block_hash_ && (giveUpSoftVotedBlockInSecondFinish || giveUpNextVotedBlock_())) {
+    // Round 1 next vote NULL_BLOCK_HASH here
     auto place_votes = placeVote_(NULL_BLOCK_HASH, next_vote_type, round, step_);
     if (place_votes) {
       LOG(log_nf_) << "Next votes " << place_votes << " voting NULL BLOCK for round " << round << ", at step " << step_;
