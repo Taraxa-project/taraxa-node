@@ -28,6 +28,7 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
   explicit VdfSortition(Json::Value const& json);
 
   void computeVdfSolution(SortitionParams const& config, dev::bytes const& msg);
+  void cancelCompute();
   void verifyVdf(SortitionParams const& config, bytes const& vrf_input, bytes const& vdf_input) const;
 
   bytes rlp() const;
@@ -65,6 +66,7 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
   std::pair<bytes, bytes> vdf_sol_;
   unsigned long vdf_computation_time_ = 0;
   uint16_t difficulty_ = 0;
+  std::shared_ptr<ProverWesolowski> prover_;
 };
 
 }  // namespace taraxa::vdf_sortition

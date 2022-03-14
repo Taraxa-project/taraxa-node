@@ -59,11 +59,11 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
     dpos.eligibility_balance_threshold = 1000000000;
     dpos.vote_eligibility_balance_step = 1000000000;
     // VDF config
-    cfg.sortition.vrf.threshold_upper = 0x8000;
-    cfg.sortition.vrf.threshold_range = 0xe00;
+    cfg.sortition.vrf.threshold_upper = 0xafff;
+    cfg.sortition.vrf.threshold_range = 50;
     cfg.sortition.vdf.difficulty_min = 16;
     cfg.sortition.vdf.difficulty_max = 21;
-    cfg.sortition.vdf.difficulty_stale = 22;
+    cfg.sortition.vdf.difficulty_stale = 23;
     cfg.sortition.vdf.lambda_bound = 100;
     // PBFT config
     cfg.pbft.lambda_ms_min = 2000;

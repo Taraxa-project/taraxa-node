@@ -1485,21 +1485,21 @@ TEST_F(FullNodeTest, chain_config_json) {
     "run_count_votes": false
   },
   "sortition": {
-    "changes_count_for_average": "0xa",
-    "computation_interval": "0xc8",
-    "changing_interval" : "0x32",
-    "dag_efficiency_targets": ["0x12c0", "0x1450"],
-    "vdf": {
-      "difficulty_max": "0x15",
-      "difficulty_min": "0x10",
-      "difficulty_stale": "0x16",
-      "lambda_bound": "0x64"
-    },
-    "vrf": {
-      "threshold_range": "0xe00",
-      "threshold_upper": "0x8000"
+      "changes_count_for_average": 10,
+      "dag_efficiency_targets": [4800, 5200],
+      "changing_interval": 200,
+      "computation_interval": 50,
+      "vrf": {
+        "threshold_upper": "0xafff",
+        "threshold_range": 50
+      },
+      "vdf": {
+        "difficulty_max": 21,
+        "difficulty_min": 16,
+        "difficulty_stale": 23,
+        "lambda_bound": "0x64"
+      }
     }
-  }
 })";
   Json::Value default_chain_config_json;
   std::istringstream(expected_default_chain_cfg_json) >> default_chain_config_json;

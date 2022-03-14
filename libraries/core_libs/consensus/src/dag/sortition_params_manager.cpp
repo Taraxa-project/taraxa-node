@@ -2,8 +2,6 @@
 
 #include "pbft/pbft_block.hpp"
 
-#define NULL_BLOCK_HASH blk_hash_t(0)
-
 namespace taraxa {
 
 SortitionParamsChange::SortitionParamsChange(uint64_t period, uint16_t efficiency, const VrfParams& vrf)
@@ -56,7 +54,7 @@ SortitionParamsManager::SortitionParamsManager(const addr_t& node_addr, Sortitio
     if (data.size() == 0) break;
     period++;
     SyncBlock sync_block(data);
-    if (sync_block.pbft_blk->getPivotDagBlockHash() != NULL_BLOCK_HASH) {
+    if (sync_block.pbft_blk->getPivotDagBlockHash() != kNullBlockHash) {
       if (ignored_efficiency_counter_ >= config_.changing_interval - config_.computation_interval) {
         uint16_t dag_efficiency = calculateDagEfficiency(sync_block);
         dag_efficiencies_.push_back(dag_efficiency);
@@ -81,21 +79,18 @@ SortitionParams SortitionParamsManager::getSortitionParams(std::optional<uint64_
 }
 
 uint16_t SortitionParamsManager::calculateDagEfficiency(const SyncBlock& block) const {
-  // calculate efficiency only for current block because it is not worth to check if transaction was finalized before
   size_t total_transactions_count = 0;
-  std::unordered_set<trx_hash_t> unique_transactions;
   for (const auto& dag_block : block.dag_blocks) {
     if (dag_block.getDifficulty() == config_.vdf.difficulty_stale) {
       continue;
     }
     const auto& trxs = dag_block.getTrxs();
-    unique_transactions.insert(trxs.begin(), trxs.end());
     total_transactions_count += trxs.size();
   }
 
   if (total_transactions_count == 0) return 100 * kOnePercent;
 
-  return unique_transactions.size() * 100 * kOnePercent / total_transactions_count;
+  return block.transactions.size() * 100 * kOnePercent / total_transactions_count;
 }
 
 uint16_t SortitionParamsManager::averageDagEfficiency() {
