@@ -235,6 +235,10 @@ const char *devnet_json = R"foo({
         }
       }
     },
+    "gas_price" : {
+      "blocks" : "0xc8",
+      "percentile" : "0x3c"
+    },
     "pbft": {
       "committee_size": "0x3e8",
       "number_of_proposers": "0x14",
