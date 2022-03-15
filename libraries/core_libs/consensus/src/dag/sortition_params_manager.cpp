@@ -81,9 +81,6 @@ SortitionParams SortitionParamsManager::getSortitionParams(std::optional<uint64_
 uint16_t SortitionParamsManager::calculateDagEfficiency(const SyncBlock& block) const {
   size_t total_transactions_count = 0;
   for (const auto& dag_block : block.dag_blocks) {
-    if (dag_block.getDifficulty() == config_.vdf.difficulty_stale) {
-      continue;
-    }
     const auto& trxs = dag_block.getTrxs();
     total_transactions_count += trxs.size();
   }
@@ -94,6 +91,7 @@ uint16_t SortitionParamsManager::calculateDagEfficiency(const SyncBlock& block) 
 }
 
 uint16_t SortitionParamsManager::averageDagEfficiency() {
+  assert(dag_efficiencies_.size() > 0);
   return std::accumulate(dag_efficiencies_.begin(), dag_efficiencies_.end(), 0) / dag_efficiencies_.size();
 }
 
@@ -118,7 +116,7 @@ void SortitionParamsManager::pbftBlockPushed(const SyncBlock& block, DbStorage::
     if (non_empty_pbft_chain_size % config_.changing_interval == 0) {
       const auto params_change = calculateChange(period);
       params_changes_.push_back(params_change);
-      db_->saveSortitionParamsChange(period, params_change, batch);
+      db_->saveSortitionParamsChange(period, std::move(params_change), batch);
       cleanup();
     }
   } else {
@@ -139,6 +137,7 @@ int32_t efficiencyToChange(uint16_t efficiency, uint16_t goal_efficiency) {
 }
 
 int32_t SortitionParamsManager::getNewUpperRange(uint16_t efficiency) const {
+  assert(params_changes_.size() > 0);
   if (efficiency >= config_.dag_efficiency_targets.first && efficiency <= config_.dag_efficiency_targets.second) {
     return params_changes_[params_changes_.size() - 1].vrf_params.threshold_upper;
   }
