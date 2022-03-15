@@ -714,7 +714,7 @@ bool PbftManager::updateSoftVotedBlockForThisRound_() {
   }
 
   auto round = getPbftRound();
-  auto voted_block_hash_with_soft_votes = vote_mgr_->getVotesBundleByRoundAndStep(round, 2, TWO_T_PLUS_ONE);
+  const auto voted_block_hash_with_soft_votes = vote_mgr_->getVotesBundleByRoundAndStep(round, 2, TWO_T_PLUS_ONE);
   if (voted_block_hash_with_soft_votes) {
     // Have enough soft votes for a voted value
     auto batch = db_->createWriteBatch();
@@ -1315,7 +1315,7 @@ blk_hash_t PbftManager::identifyLeaderBlock_() {
       continue;
     }
 
-    auto proposed_block_hash = v->getBlockHash();
+    const auto proposed_block_hash = v->getBlockHash();
     if (proposed_block_hash == NULL_BLOCK_HASH) {
       LOG(log_er_) << "Propose block hash should not be NULL. Vote " << v;
       continue;
