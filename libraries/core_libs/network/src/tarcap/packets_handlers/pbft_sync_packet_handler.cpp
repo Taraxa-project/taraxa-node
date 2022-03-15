@@ -48,7 +48,9 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
   }
 
   // Process received pbft blocks
+  // pbft_chain_synced is the flag to indicate own PBFT chain has synced with the peer's PBFT chain
   const bool pbft_chain_synced = packet_data.rlp_[0].toInt<bool>();
+  // last_block is the flag to indicate this is the last block in each syncing round, doesn't mean PBFT chain has synced
   const bool last_block = packet_data.rlp_[1].toInt<bool>();
   SyncBlock sync_block;
   try {
