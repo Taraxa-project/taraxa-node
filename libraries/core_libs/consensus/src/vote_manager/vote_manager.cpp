@@ -418,7 +418,7 @@ std::optional<VotesBundle> VoteManager::getVotesBundleByRoundAndStep(uint64_t ro
           auto it = voted_value.second.second.begin();
           size_t count = 0;
 
-          // Copy at lease 2t+1 votes
+          // Copy at least 2t+1 votes
           while (count < two_t_plus_one) {
             votes.emplace_back(it->second);
             count += it->second->getWeight().value();
@@ -451,7 +451,7 @@ uint64_t VoteManager::roundDeterminedFromVotes(size_t two_t_plus_one) {
           auto it = voted_value.second.second.begin();
           size_t count = 0;
 
-          // Copy at lease 2t+1 votes
+          // Copy at least 2t+1 votes
           while (count < two_t_plus_one) {
             votes.emplace_back(it->second);
             count += it->second->getWeight().value();
