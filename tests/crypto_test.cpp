@@ -125,11 +125,11 @@ TEST_F(CryptoTest, vdf_sortition) {
   EXPECT_EQ(vdf, vdf2);
   EXPECT_EQ(vdf, vdf3);
 
-  SortitionParams sortition_params_no_omit_no_stale(0xffff, 0xffff, 5, 10, 10, 1500);
+  SortitionParams sortition_params_no_omit_no_stale(0xffff, 100, 5, 10, 10, 1500);
   EXPECT_FALSE(vdf.isStale(sortition_params_no_omit_no_stale));
   EXPECT_FALSE(vdf.isOmitVdf(sortition_params_no_omit_no_stale));
 
-  SortitionParams sortition_params_omit_no_stale(0xffff, 0xffff - 0xff00, 5, 10, 10, 1500);
+  SortitionParams sortition_params_omit_no_stale(0xffff, 50, 5, 10, 10, 1500);
   EXPECT_FALSE(vdf.isStale(sortition_params_omit_no_stale));
   EXPECT_TRUE(vdf.isOmitVdf(sortition_params_omit_no_stale));
 
