@@ -1543,7 +1543,8 @@ void PbftManager::finalize_(SyncBlock &&sync_block, std::vector<h256> &&finalize
 
   auto result = final_chain_->finalize(
       std::move(sync_block), std::move(finalized_dag_blk_hashes),
-      [this, weak_ptr = weak_from_this(), anchor_hash = std::move(anchor)](auto const &, auto &batch) {
+      [this, weak_ptr = weak_from_this(), anchor_hash = std::move(anchor), period = sync_block.pbft_blk->getPeriod()](
+          auto const &, auto &batch) {
         // Update proposal period DAG levels map
         auto ptr = weak_ptr.lock();
         if (!ptr) return;  // it was destroyed
@@ -1559,7 +1560,7 @@ void PbftManager::finalize_(SyncBlock &&sync_block, std::vector<h256> &&finalize
           assert(false);
         }
 
-        auto new_proposal_period_levels_map = dag_blk_mgr_->newProposePeriodDagLevelsMap(anchor->getLevel());
+        auto new_proposal_period_levels_map = dag_blk_mgr_->newProposePeriodDagLevelsMap(anchor->getLevel(), period);
         db_->addProposalPeriodDagLevelsMapToBatch(*new_proposal_period_levels_map, batch);
         auto dpos_current_max_proposal_period = dag_blk_mgr_->getCurrentMaxProposalPeriod();
         db_->addDposProposalPeriodLevelsFieldToBatch(DposProposalPeriodLevelsStatus::MaxProposalPeriod,

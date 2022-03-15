@@ -263,12 +263,13 @@ std::pair<uint64_t, bool> DagBlockManager::getProposalPeriod(level_t level) {
   return result;
 }
 
-std::shared_ptr<ProposalPeriodDagLevelsMap> DagBlockManager::newProposePeriodDagLevelsMap(level_t anchor_level) {
+std::shared_ptr<ProposalPeriodDagLevelsMap> DagBlockManager::newProposePeriodDagLevelsMap(level_t anchor_level,
+                                                                                          uint64_t propose_period) {
   bytes period_levels_bytes = db_->getProposalPeriodDagLevelsMap(current_max_proposal_period_);
   assert(!period_levels_bytes.empty());
   ProposalPeriodDagLevelsMap last_period_levels_map(period_levels_bytes);
 
-  auto propose_period = ++current_max_proposal_period_;
+  current_max_proposal_period_ = propose_period;
   auto level_start = last_period_levels_map.levels_interval.second + 1;
   auto level_end = anchor_level + last_period_levels_map.max_levels_per_period;
   assert(level_end >= level_start);

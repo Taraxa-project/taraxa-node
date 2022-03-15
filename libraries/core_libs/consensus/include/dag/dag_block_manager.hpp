@@ -65,7 +65,7 @@ class DagBlockManager {
    * @param anchor_level anchor block level in PBFT block
    * @return ProposalPeriodDagLevelsMap
    */
-  std::shared_ptr<ProposalPeriodDagLevelsMap> newProposePeriodDagLevelsMap(level_t anchor_level = 0);
+  std::shared_ptr<ProposalPeriodDagLevelsMap> newProposePeriodDagLevelsMap(level_t anchor_level, uint64_t period);
 
   SortitionParamsManager &sortitionParamsManager() { return sortition_params_manager_; }
 

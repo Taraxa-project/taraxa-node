@@ -184,7 +184,8 @@ TEST_F(DagBlockMgrTest, proposal_period) {
   EXPECT_TRUE(proposal_period.second);
   EXPECT_EQ(proposal_period.first, 0);
 
-  auto proposal_period_1 = dag_blk_mgr->newProposePeriodDagLevelsMap(10);  // interval levels [101, 110]
+  auto proposal_period_1 =
+      dag_blk_mgr->newProposePeriodDagLevelsMap(10, proposal_period.first + 1);  // interval levels [101, 110]
   db->saveProposalPeriodDagLevelsMap(*proposal_period_1);
   proposal_period = dag_blk_mgr->getProposalPeriod(101);
   EXPECT_TRUE(proposal_period.second);
@@ -193,7 +194,8 @@ TEST_F(DagBlockMgrTest, proposal_period) {
   EXPECT_TRUE(proposal_period.second);
   EXPECT_EQ(proposal_period.first, 1);
 
-  auto proposal_period_2 = dag_blk_mgr->newProposePeriodDagLevelsMap(30);  // interval levels [111, 130]
+  auto proposal_period_2 =
+      dag_blk_mgr->newProposePeriodDagLevelsMap(30, proposal_period.first + 1);  // interval levels [111, 130]
   db->saveProposalPeriodDagLevelsMap(*proposal_period_2);
   proposal_period = dag_blk_mgr->getProposalPeriod(111);
   EXPECT_TRUE(proposal_period.second);
