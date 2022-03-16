@@ -24,11 +24,11 @@ class UintComparator : public rocksdb::Comparator {
     if (x == y) return 0;
     if (x < y) return -1;
     return 1;
-  };
+  }
 
-  virtual void FindShortestSeparator(std::string *, const rocksdb::Slice &) const override{};
+  virtual void FindShortestSeparator(std::string *, const rocksdb::Slice &) const override {}
 
-  virtual void FindShortSuccessor(std::string *) const override{};
+  virtual void FindShortSuccessor(std::string *) const override {}
 };
 
 template <class T>

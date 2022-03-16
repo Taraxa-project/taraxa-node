@@ -268,7 +268,7 @@ class FinalChainImpl final : public FinalChain {
       return {};
     }
     return h256(raw, h256::FromBinary);
-  };
+  }
 
   shared_ptr<TransactionHashes> transaction_hashes(optional<EthBlockNumber> n = {}) const override {
     return make_shared<TransactionHashesImpl>(
