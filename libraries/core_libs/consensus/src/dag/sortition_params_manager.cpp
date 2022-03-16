@@ -138,8 +138,9 @@ int32_t efficiencyToChange(uint16_t efficiency, uint16_t goal_efficiency) {
 
 int32_t SortitionParamsManager::getNewUpperRange(uint16_t efficiency) const {
   assert(params_changes_.size() > 0);
+  const auto last_threshold_upper = params_changes_[params_changes_.size() - 1].vrf_params.threshold_upper;
   if (efficiency >= config_.dag_efficiency_targets.first && efficiency <= config_.dag_efficiency_targets.second) {
-    return params_changes_[params_changes_.size() - 1].vrf_params.threshold_upper;
+    return last_threshold_upper;
   }
 
   // efficiencies_to_uppper_range provide mapping from efficiency to VRF upper threshold, params_changes contain
@@ -151,7 +152,7 @@ int32_t SortitionParamsManager::getNewUpperRange(uint16_t efficiency) const {
         params_changes_[i - 1].vrf_params.threshold_upper;
   }
   if (params_changes_.size() > 1) {
-    efficiencies_to_uppper_range[efficiency] = params_changes_[params_changes_.size() - 1].vrf_params.threshold_upper;
+    efficiencies_to_uppper_range[efficiency] = last_threshold_upper;
   }
 
   // Check if all last params are below goal_efficiency
@@ -159,8 +160,7 @@ int32_t SortitionParamsManager::getNewUpperRange(uint16_t efficiency) const {
       efficiency < goal_efficiency) {
     // If last params are under goal_efficiency and we are still under goal_efficiency, decrease upper
     // limit
-    return ((int32_t)params_changes_[params_changes_.size() - 1].vrf_params.threshold_upper) -
-           efficiencyToChange(efficiency, goal_efficiency);
+    return ((int32_t)last_threshold_upper) - efficiencyToChange(efficiency, goal_efficiency);
   }
 
   // Check if all last params are over goal_efficiency
@@ -168,20 +168,18 @@ int32_t SortitionParamsManager::getNewUpperRange(uint16_t efficiency) const {
       efficiency >= goal_efficiency) {
     // If last params are over goal_efficiency and we are still over goal_efficiency, increase upper
     // limit
-    return ((int32_t)params_changes_[params_changes_.size() - 1].vrf_params.threshold_upper) +
-           efficiencyToChange(efficiency, goal_efficiency);
+    return ((int32_t)last_threshold_upper) + efficiencyToChange(efficiency, goal_efficiency);
   }
 
   // If efficiency is less than goal_efficiency find the efficiency over goal_efficiency closest to goal_efficiency
   if (efficiency < goal_efficiency) {
     for (const auto& eff : efficiencies_to_uppper_range) {
       if (eff.first >= goal_efficiency) {
-        if (eff.second < params_changes_[params_changes_.size() - 1].vrf_params.threshold_upper) {
+        if (eff.second < last_threshold_upper) {
           // Return average between last range and the one over goal_efficiency and closest to goal_efficiency
-          return (eff.second + params_changes_[params_changes_.size() - 1].vrf_params.threshold_upper) / 2;
+          return (eff.second + last_threshold_upper) / 2;
         } else {
-          return ((int32_t)params_changes_[params_changes_.size() - 1].vrf_params.threshold_upper) -
-                 efficiencyToChange(efficiency, goal_efficiency);
+          return ((int32_t)last_threshold_upper) - efficiencyToChange(efficiency, goal_efficiency);
         }
       }
     }
@@ -191,12 +189,11 @@ int32_t SortitionParamsManager::getNewUpperRange(uint16_t efficiency) const {
   if (efficiency >= goal_efficiency) {
     for (auto eff = efficiencies_to_uppper_range.rbegin(); eff != efficiencies_to_uppper_range.rend(); ++eff) {
       if (eff->first < goal_efficiency) {
-        if (eff->second > params_changes_[params_changes_.size() - 1].vrf_params.threshold_upper) {
+        if (eff->second > last_threshold_upper) {
           // Return average between last range and the one below goal_efficiency and closest to goal_efficiency
-          return (eff->second + params_changes_[params_changes_.size() - 1].vrf_params.threshold_upper) / 2;
+          return (eff->second + last_threshold_upper) / 2;
         } else {
-          return ((int32_t)params_changes_[params_changes_.size() - 1].vrf_params.threshold_upper) +
-                 efficiencyToChange(efficiency, goal_efficiency);
+          return ((int32_t)last_threshold_upper) + efficiencyToChange(efficiency, goal_efficiency);
         }
       }
     }
