@@ -20,12 +20,9 @@ DagBlockManager::DagBlockManager(addr_t node_addr, SortitionConfig const &sortit
   LOG_OBJECTS_CREATE("DAGBLKMGR");
 
   // Set DAG level proposal period map
-  current_max_proposal_period_ =
-      db_->getDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus::MaxProposalPeriod);
-  if (current_max_proposal_period_ == 0) {
+  if (!db_->getProposalPeriodForDagLevel(kMaxLevelsPerPeriod)) {
     // Node start from scratch
-    ProposalPeriodDagLevelsMap period_levels_map;
-    db_->saveProposalPeriodDagLevelsMap(period_levels_map);
+    db_->saveProposalPeriodDagLevelsMap(kMaxLevelsPerPeriod, 0);
   }
 }
 
@@ -183,23 +180,23 @@ DagBlockManager::InsertAndVerifyBlockReturnType DagBlockManager::verifyBlock(con
     return InsertAndVerifyBlockReturnType::MissingTransaction;
   }
 
-  auto propose_period = getProposalPeriod(blk.getLevel());
+  auto propose_period = db_->getProposalPeriodForDagLevel(blk.getLevel());
   // Verify DPOS
-  if (!propose_period.second) {
+  if (!propose_period) {
     // Cannot find the proposal period in DB yet. The slow node gets an ahead block, remove from seen_blocks
-    LOG(log_nf_) << "Cannot find proposal period " << propose_period.first << " in DB for DAG block " << blk.getHash();
+    LOG(log_nf_) << "Cannot find proposal period " << *propose_period << " in DB for DAG block " << blk.getHash();
     seen_blocks_.erase(block_hash);
     return InsertAndVerifyBlockReturnType::AheadBlock;
   }
 
   // Verify VDF solution
-  const auto proposal_period_hash = db_->getPeriodBlockHash(propose_period.first);
+  const auto proposal_period_hash = db_->getPeriodBlockHash(*propose_period);
   try {
-    blk.verifyVdf(sortition_params_manager_.getSortitionParams(propose_period.first), proposal_period_hash);
+    blk.verifyVdf(sortition_params_manager_.getSortitionParams(*propose_period), proposal_period_hash);
   } catch (vdf_sortition::VdfSortition::InvalidVdfSortition const &e) {
     LOG(log_er_) << "DAG block " << block_hash << " with " << blk.getLevel()
                  << " level failed on VDF verification with pivot hash " << blk.getPivot() << " reason " << e.what();
-    LOG(log_er_) << "period from map: " << propose_period.first << " current: " << pbft_chain_->getPbftChainSize();
+    LOG(log_er_) << "period from map: " << *propose_period << " current: " << pbft_chain_->getPbftChainSize();
     markBlockInvalid(block_hash);
     return InsertAndVerifyBlockReturnType::FailedVdfVerification;
   }
@@ -207,68 +204,19 @@ DagBlockManager::InsertAndVerifyBlockReturnType DagBlockManager::verifyBlock(con
   auto dag_block_sender = blk.getSender();
   bool dpos_qualified;
   try {
-    dpos_qualified = final_chain_->dpos_is_eligible(propose_period.first, dag_block_sender);
+    dpos_qualified = final_chain_->dpos_is_eligible(*propose_period, dag_block_sender);
   } catch (state_api::ErrFutureBlock &c) {
-    LOG(log_er_) << "Verify proposal period " << propose_period.first << " is too far ahead of DPOS. " << c.what();
+    LOG(log_er_) << "Verify proposal period " << *propose_period << " is too far ahead of DPOS. " << c.what();
     return InsertAndVerifyBlockReturnType::FutureBlock;
   }
   if (!dpos_qualified) {
     LOG(log_er_) << "Invalid DAG block DPOS. DAG block " << blk << " is not eligible for DPOS at period "
-                 << propose_period.first << " for sender " << dag_block_sender.toString() << " current period "
+                 << *propose_period << " for sender " << dag_block_sender.toString() << " current period "
                  << final_chain_->last_block_number();
     markBlockInvalid(block_hash);
     return InsertAndVerifyBlockReturnType::NotEligible;
   }
   return InsertAndVerifyBlockReturnType::InsertedAndVerified;
-}
-
-uint64_t DagBlockManager::getCurrentMaxProposalPeriod() const { return current_max_proposal_period_; }
-
-std::pair<uint64_t, bool> DagBlockManager::getProposalPeriod(level_t level) {
-  std::pair<uint64_t, bool> result;
-
-  // Threads safe
-  auto proposal_period = current_max_proposal_period_.load();
-  while (true) {
-    const auto level_map = db_->getProposalPeriodDagLevelsMap(proposal_period);
-    const bytes period_levels_bytes = level_map.second;
-    proposal_period = level_map.first;
-    if (period_levels_bytes.empty()) {
-      assert(false);
-    }
-    ProposalPeriodDagLevelsMap period_levels_map(period_levels_bytes);
-
-    if (level > period_levels_map.levels_interval.second) {
-      // Cannot find the proposal period in DB, too far ahead of proposal DAG blocks
-      result = std::make_pair(proposal_period, false);
-      break;
-    } else if (level >= period_levels_map.levels_interval.first) {
-      // proposal level stay in the period
-      result = std::make_pair(period_levels_map.proposal_period, true);
-      break;
-    } else {
-      // proposal level less than the interval
-      assert(proposal_period);  // Avoid overflow
-      proposal_period--;
-    }
-  }
-
-  return result;
-}
-
-std::shared_ptr<ProposalPeriodDagLevelsMap> DagBlockManager::newProposePeriodDagLevelsMap(level_t anchor_level,
-                                                                                          uint64_t period) {
-  bytes period_levels_bytes = db_->getProposalPeriodDagLevelsMap(current_max_proposal_period_).second;
-  assert(!period_levels_bytes.empty());
-  ProposalPeriodDagLevelsMap last_period_levels_map(period_levels_bytes);
-
-  current_max_proposal_period_ = period;
-  auto level_start = last_period_levels_map.levels_interval.second + 1;
-  auto level_end = anchor_level + last_period_levels_map.max_levels_per_period;
-  assert(level_end >= level_start);
-  ProposalPeriodDagLevelsMap new_period_levels_map(period, level_start, level_end);
-
-  return std::make_shared<ProposalPeriodDagLevelsMap>(new_period_levels_map);
 }
 
 void DagBlockManager::markBlockInvalid(blk_hash_t const &hash) {

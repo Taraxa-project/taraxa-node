@@ -177,36 +177,32 @@ TEST_F(DagBlockMgrTest, proposal_period) {
   auto dag_blk_mgr = node->getDagBlockManager();
 
   // Proposal period 0 has in DB already at DAG block manager constructor
-  auto proposal_period = dag_blk_mgr->getProposalPeriod(0);
-  EXPECT_TRUE(proposal_period.second);
-  EXPECT_EQ(proposal_period.first, 0);
-  proposal_period = dag_blk_mgr->getProposalPeriod(100);
-  EXPECT_TRUE(proposal_period.second);
-  EXPECT_EQ(proposal_period.first, 0);
+  auto proposal_period = db->getProposalPeriodForDagLevel(10);
+  EXPECT_TRUE(proposal_period);
+  EXPECT_EQ(*proposal_period, 0);
+  proposal_period = db->getProposalPeriodForDagLevel(100);
+  EXPECT_TRUE(proposal_period);
+  EXPECT_EQ(*proposal_period, 0);
 
-  auto proposal_period_1 =
-      dag_blk_mgr->newProposePeriodDagLevelsMap(10, proposal_period.first + 1);  // interval levels [101, 110]
-  db->saveProposalPeriodDagLevelsMap(*proposal_period_1);
-  proposal_period = dag_blk_mgr->getProposalPeriod(101);
-  EXPECT_TRUE(proposal_period.second);
-  EXPECT_EQ(proposal_period.first, 1);
-  proposal_period = dag_blk_mgr->getProposalPeriod(110);
-  EXPECT_TRUE(proposal_period.second);
-  EXPECT_EQ(proposal_period.first, 1);
+  db->saveProposalPeriodDagLevelsMap(110, *proposal_period + 1);
+  proposal_period = db->getProposalPeriodForDagLevel(101);
+  EXPECT_TRUE(proposal_period);
+  EXPECT_EQ(*proposal_period, 1);
+  proposal_period = db->getProposalPeriodForDagLevel(110);
+  EXPECT_TRUE(proposal_period);
+  EXPECT_EQ(*proposal_period, 1);
 
-  auto proposal_period_2 =
-      dag_blk_mgr->newProposePeriodDagLevelsMap(30, proposal_period.first + 1);  // interval levels [111, 130]
-  db->saveProposalPeriodDagLevelsMap(*proposal_period_2);
-  proposal_period = dag_blk_mgr->getProposalPeriod(111);
-  EXPECT_TRUE(proposal_period.second);
-  EXPECT_EQ(proposal_period.first, 2);
-  proposal_period = dag_blk_mgr->getProposalPeriod(130);
-  EXPECT_TRUE(proposal_period.second);
-  EXPECT_EQ(proposal_period.first, 2);
+  db->saveProposalPeriodDagLevelsMap(130, *proposal_period + 1);
+  proposal_period = db->getProposalPeriodForDagLevel(111);
+  EXPECT_TRUE(proposal_period);
+  EXPECT_EQ(*proposal_period, 2);
+  proposal_period = db->getProposalPeriodForDagLevel(130);
+  EXPECT_TRUE(proposal_period);
+  EXPECT_EQ(*proposal_period, 2);
 
   // Proposal period not exsit
-  proposal_period = dag_blk_mgr->getProposalPeriod(131);
-  EXPECT_FALSE(proposal_period.second);
+  proposal_period = db->getProposalPeriodForDagLevel(131);
+  EXPECT_FALSE(proposal_period);
 }
 
 }  // namespace taraxa::core_tests

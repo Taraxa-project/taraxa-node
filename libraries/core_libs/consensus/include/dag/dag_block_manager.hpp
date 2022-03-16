@@ -55,15 +55,6 @@ class DagBlockManager {
 
   std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash) const;
   bool pivotAndTipsValid(DagBlock const &blk);
-  uint64_t getCurrentMaxProposalPeriod() const;
-  std::pair<uint64_t, bool> getProposalPeriod(level_t level);
-
-  /**
-   * @brief generate a proposal period with DAG levels entry
-   * @param anchor_level anchor block level in PBFT block
-   * @return ProposalPeriodDagLevelsMap
-   */
-  std::shared_ptr<ProposalPeriodDagLevelsMap> newProposePeriodDagLevelsMap(level_t anchor_level, uint64_t period);
 
   SortitionParamsManager &sortitionParamsManager() { return sortition_params_manager_; }
 

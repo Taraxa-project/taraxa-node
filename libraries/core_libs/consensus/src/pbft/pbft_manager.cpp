@@ -1560,11 +1560,7 @@ void PbftManager::finalize_(SyncBlock &&sync_block, std::vector<h256> &&finalize
           assert(false);
         }
 
-        auto new_proposal_period_levels_map = dag_blk_mgr_->newProposePeriodDagLevelsMap(anchor->getLevel(), period);
-        db_->addProposalPeriodDagLevelsMapToBatch(*new_proposal_period_levels_map, batch);
-        auto dpos_current_max_proposal_period = dag_blk_mgr_->getCurrentMaxProposalPeriod();
-        db_->addDposProposalPeriodLevelsFieldToBatch(DposProposalPeriodLevelsStatus::MaxProposalPeriod,
-                                                     dpos_current_max_proposal_period, batch);
+        db_->addProposalPeriodDagLevelsMapToBatch(anchor->getLevel() + kMaxLevelsPerPeriod, period, batch);
       });
 
   if (sync) {

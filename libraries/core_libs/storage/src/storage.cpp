@@ -894,51 +894,27 @@ std::vector<blk_hash_t> DbStorage::getFinalizedDagBlockHashesByPeriod(uint32_t p
   return ret;
 }
 
-uint64_t DbStorage::getDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus field) {
-  auto status = lookup(toSlice(field), Columns::dpos_proposal_period_levels_status);
-  if (!status.empty()) {
-    uint64_t value;
-    memcpy(&value, status.data(), sizeof(uint64_t));
-    return value;
-  }
-
-  return 0;
-}
-
-// Only for test
-void DbStorage::saveDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus field, uint64_t value) {
-  insert(Columns::dpos_proposal_period_levels_status, toSlice(field), toSlice(value));
-}
-
-void DbStorage::addDposProposalPeriodLevelsFieldToBatch(DposProposalPeriodLevelsStatus field, uint64_t value,
-                                                        Batch& write_batch) {
-  insert(write_batch, Columns::dpos_proposal_period_levels_status, toSlice(field), toSlice(value));
-}
-
-std::pair<uint64_t, bytes> DbStorage::getProposalPeriodDagLevelsMap(uint64_t proposal_period) {
+std::optional<uint64_t> DbStorage::getProposalPeriodForDagLevel(uint64_t level) {
   auto it =
       std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::proposal_period_levels_map)));
-  it->SeekForPrev(toSlice(proposal_period));
+  it->Seek(toSlice(level));
 
   // this means that no sortition_params_change in database. It could be met in the tests
   if (!it->Valid()) {
-    return {0, {}};
+    return {};
   }
 
   uint64_t value;
-  memcpy(&value, it->key().data(), sizeof(uint64_t));
-  return {value, asBytes(it->value().ToString())};
+  memcpy(&value, it->value().data(), sizeof(uint64_t));
+  return value;
 }
 
-void DbStorage::saveProposalPeriodDagLevelsMap(ProposalPeriodDagLevelsMap const& period_levels_map) {
-  insert(Columns::proposal_period_levels_map, toSlice(period_levels_map.proposal_period),
-         toSlice(period_levels_map.rlp()));
+void DbStorage::saveProposalPeriodDagLevelsMap(uint64_t level, uint64_t period) {
+  insert(Columns::proposal_period_levels_map, toSlice(level), toSlice(period));
 }
 
-void DbStorage::addProposalPeriodDagLevelsMapToBatch(ProposalPeriodDagLevelsMap const& period_levels_map,
-                                                     Batch& write_batch) {
-  insert(write_batch, Columns::proposal_period_levels_map, toSlice(period_levels_map.proposal_period),
-         toSlice(period_levels_map.rlp()));
+void DbStorage::addProposalPeriodDagLevelsMapToBatch(uint64_t level, uint64_t period, Batch& write_batch) {
+  insert(write_batch, Columns::proposal_period_levels_map, toSlice(level), toSlice(period));
 }
 
 uint64_t DbStorage::getColumnSize(Column const& col) const {

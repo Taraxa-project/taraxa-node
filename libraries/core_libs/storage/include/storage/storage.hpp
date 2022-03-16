@@ -11,7 +11,6 @@
 
 #include "common/types.hpp"
 #include "dag/dag_block.hpp"
-#include "dag/proposal_period_levels_map.hpp"
 #include "logger/logger.hpp"
 #include "pbft/pbft_block.hpp"
 #include "pbft/sync_block.hpp"
@@ -49,8 +48,6 @@ enum PbftMgrStatus : uint8_t {
 };
 
 enum PbftMgrVotedValue : uint8_t { OwnStartingValueInRound = 0, SoftVotedBlockHashInRound, LastCertVotedValue };
-
-enum DposProposalPeriodLevelsStatus : uint8_t { MaxProposalPeriod = 0 };
 
 class DbException : public std::exception {
  public:
@@ -295,16 +292,10 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
   std::vector<blk_hash_t> getFinalizedDagBlockHashesByPeriod(uint32_t period);
 
-  // DPOS proposal period levels status
-  uint64_t getDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus field);
-  void saveDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus field, uint64_t value);
-  void addDposProposalPeriodLevelsFieldToBatch(DposProposalPeriodLevelsStatus field, uint64_t value,
-                                               Batch& write_batch);
-
-  // DPOS proposal period to DAG block levels map
-  std::pair<uint64_t, bytes> getProposalPeriodDagLevelsMap(uint64_t proposal_period);
-  void saveProposalPeriodDagLevelsMap(ProposalPeriodDagLevelsMap const& period_levels_map);
-  void addProposalPeriodDagLevelsMapToBatch(ProposalPeriodDagLevelsMap const& period_levels_map, Batch& write_batch);
+  // DPOS level to proposal period map
+  std::optional<uint64_t> getProposalPeriodForDagLevel(uint64_t level);
+  void saveProposalPeriodDagLevelsMap(uint64_t level, uint64_t period);
+  void addProposalPeriodDagLevelsMapToBatch(uint64_t level, uint64_t period, Batch& write_batch);
 
   bool hasMinorVersionChanged() { return minor_version_changed_; }
 

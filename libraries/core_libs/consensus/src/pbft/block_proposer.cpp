@@ -31,10 +31,10 @@ bool SortitionPropose::propose() {
     return false;
   }
 
-  const auto proposal_period = dag_blk_mgr_->getProposalPeriod(propose_level);
-  const auto period_block_hash = db_->getPeriodBlockHash(proposal_period.first);
+  const auto proposal_period = db_->getProposalPeriodForDagLevel(propose_level);
+  const auto period_block_hash = db_->getPeriodBlockHash(*proposal_period);
   // get sortition
-  const auto sortition_params = dag_blk_mgr_->sortitionParamsManager().getSortitionParams(proposal_period.first);
+  const auto sortition_params = dag_blk_mgr_->sortitionParamsManager().getSortitionParams(*proposal_period);
   vdf_sortition::VdfSortition vdf(sortition_params, vrf_sk_,
                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
   if (vdf.isStale(sortition_params)) {
@@ -220,17 +220,17 @@ void BlockProposer::proposeBlock(DagFrontier&& frontier, level_t level, SharedTr
 }
 
 bool BlockProposer::validDposProposer(level_t const propose_level) {
-  auto proposal_period = dag_blk_mgr_->getProposalPeriod(propose_level);
-  if (!proposal_period.second) {
+  auto proposal_period = db_->getProposalPeriodForDagLevel(propose_level);
+  if (!proposal_period) {
     LOG(log_nf_) << "Cannot find the proposal level " << propose_level
                  << " in DB, too far ahead of proposal DAG blocks level";
     return false;
   }
 
   try {
-    return final_chain_->dpos_is_eligible(proposal_period.first, node_addr_);
+    return final_chain_->dpos_is_eligible(*proposal_period, node_addr_);
   } catch (state_api::ErrFutureBlock& c) {
-    LOG(log_er_) << "Proposal period " << proposal_period.first << " is too far ahead of DPOS. " << c.what();
+    LOG(log_er_) << "Proposal period " << *proposal_period << " is too far ahead of DPOS. " << c.what();
     return false;
   }
 }
