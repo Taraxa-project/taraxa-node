@@ -228,13 +228,13 @@ std::pair<uint64_t, bool> DagBlockManager::getProposalPeriod(level_t level) {
   std::pair<uint64_t, bool> result;
 
   // Threads safe
-  auto proposal_period = current_max_proposal_period_;
+  auto proposal_period = current_max_proposal_period_.load();
   while (true) {
-    bytes period_levels_bytes = db_->getProposalPeriodDagLevelsMap(proposal_period);
+    const auto level_map = db_->getProposalPeriodDagLevelsMap(proposal_period);
+    const bytes period_levels_bytes = level_map.second;
+    proposal_period = level_map.first;
     if (period_levels_bytes.empty()) {
-      assert(proposal_period);  // Avoid overflow
-      proposal_period--;
-      continue;
+      assert(false);
     }
     ProposalPeriodDagLevelsMap period_levels_map(period_levels_bytes);
 
@@ -258,7 +258,7 @@ std::pair<uint64_t, bool> DagBlockManager::getProposalPeriod(level_t level) {
 
 std::shared_ptr<ProposalPeriodDagLevelsMap> DagBlockManager::newProposePeriodDagLevelsMap(level_t anchor_level,
                                                                                           uint64_t period) {
-  bytes period_levels_bytes = db_->getProposalPeriodDagLevelsMap(current_max_proposal_period_);
+  bytes period_levels_bytes = db_->getProposalPeriodDagLevelsMap(current_max_proposal_period_).second;
   assert(!period_levels_bytes.empty());
   ProposalPeriodDagLevelsMap last_period_levels_map(period_levels_bytes);
 

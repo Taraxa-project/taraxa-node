@@ -428,10 +428,10 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(10, db.getDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus::MaxProposalPeriod));
 
   // DPOS proposal period DAG levels map
-  EXPECT_TRUE(db.getProposalPeriodDagLevelsMap(0).empty());
+  EXPECT_TRUE(db.getProposalPeriodDagLevelsMap(0).second.empty());
   ProposalPeriodDagLevelsMap proposal_period_0_levels;
   db.saveProposalPeriodDagLevelsMap(proposal_period_0_levels);
-  auto period_0_levels_bytes = db.getProposalPeriodDagLevelsMap(0);
+  auto period_0_levels_bytes = db.getProposalPeriodDagLevelsMap(0).second;
   EXPECT_FALSE(period_0_levels_bytes.empty());
   ProposalPeriodDagLevelsMap period_0_levels_from_db(period_0_levels_bytes);
   EXPECT_EQ(period_0_levels_from_db.proposal_period, 0);
@@ -442,7 +442,7 @@ TEST_F(FullNodeTest, db_test) {
   ProposalPeriodDagLevelsMap proposal_period_1_levels(1, 101, 110);
   db.addProposalPeriodDagLevelsMapToBatch(proposal_period_1_levels, batch);
   db.commitWriteBatch(batch);
-  auto period_1_levels_bytes = db.getProposalPeriodDagLevelsMap(1);
+  auto period_1_levels_bytes = db.getProposalPeriodDagLevelsMap(1).second;
   EXPECT_FALSE(period_1_levels_bytes.empty());
   ProposalPeriodDagLevelsMap period_1_levels_from_db(period_1_levels_bytes);
   EXPECT_EQ(period_1_levels_from_db.proposal_period, 1);

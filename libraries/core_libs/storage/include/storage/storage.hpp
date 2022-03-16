@@ -113,7 +113,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN(pbft_block_period);
     COLUMN(dag_block_period);
     COLUMN(dpos_proposal_period_levels_status);
-    COLUMN(proposal_period_levels_map);
+    COLUMN_W_COMP(proposal_period_levels_map, getIntComparator<uint64_t>());
     COLUMN(final_chain_meta);
     COLUMN(final_chain_transaction_location_by_hash);
     COLUMN(final_chain_replay_protection);
@@ -302,7 +302,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
                                                Batch& write_batch);
 
   // DPOS proposal period to DAG block levels map
-  bytes getProposalPeriodDagLevelsMap(uint64_t proposal_period);
+  std::pair<uint64_t, bytes> getProposalPeriodDagLevelsMap(uint64_t proposal_period);
   void saveProposalPeriodDagLevelsMap(ProposalPeriodDagLevelsMap const& period_levels_map);
   void addProposalPeriodDagLevelsMapToBatch(ProposalPeriodDagLevelsMap const& period_levels_map, Batch& write_batch);
 

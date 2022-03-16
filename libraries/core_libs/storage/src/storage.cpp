@@ -915,8 +915,19 @@ void DbStorage::addDposProposalPeriodLevelsFieldToBatch(DposProposalPeriodLevels
   insert(write_batch, Columns::dpos_proposal_period_levels_status, toSlice(field), toSlice(value));
 }
 
-bytes DbStorage::getProposalPeriodDagLevelsMap(uint64_t proposal_period) {
-  return asBytes(lookup(toSlice(proposal_period), Columns::proposal_period_levels_map));
+std::pair<uint64_t, bytes> DbStorage::getProposalPeriodDagLevelsMap(uint64_t proposal_period) {
+  auto it =
+      std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::proposal_period_levels_map)));
+  it->SeekForPrev(toSlice(proposal_period));
+
+  // this means that no sortition_params_change in database. It could be met in the tests
+  if (!it->Valid()) {
+    return {0, {}};
+  }
+
+  uint64_t value;
+  memcpy(&value, it->key().data(), sizeof(uint64_t));
+  return {value, asBytes(it->value().ToString())};
 }
 
 void DbStorage::saveProposalPeriodDagLevelsMap(ProposalPeriodDagLevelsMap const& period_levels_map) {
