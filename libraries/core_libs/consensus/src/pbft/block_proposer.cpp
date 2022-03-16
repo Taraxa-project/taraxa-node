@@ -64,7 +64,7 @@ bool SortitionPropose::propose() {
         vdf_computation_cancel = true;
         break;
       } else {
-        auto latest_level = proposer->getProposeLevel(latest_frontier.pivot, latest_frontier.tips) + 1;
+        const auto latest_level = proposer->getProposeLevel(latest_frontier.pivot, latest_frontier.tips) + 1;
         if (latest_level > propose_level) {
           vdf_computation_cancel = true;
           break;
@@ -134,7 +134,6 @@ void BlockProposer::start() {
       // Only sleep if block was not proposed, if block is proposed try to propose another block immediately
       if (syncing || propose_model_->propose()) {
         thisThreadSleepForMilliSeconds(min_proposal_delay);
-        ;
       }
     }
   });

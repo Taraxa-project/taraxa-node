@@ -3,6 +3,8 @@
 #include <libdevcore/CommonData.h>
 #include <libdevcore/CommonJS.h>
 
+#include <memory>
+
 namespace taraxa::vdf_sortition {
 
 VdfSortition::VdfSortition(const SortitionParams& config, const vrf_sk_t& sk, const bytes& vrf_input)
@@ -73,7 +75,7 @@ void VdfSortition::computeVdfSolution(SortitionParams const& config, bytes const
     auto t1 = getCurrentTimeMilliSeconds();
     VerifierWesolowski verifier(config.vdf.lambda_bound, difficulty_, msg, N);
 
-    prover_ = std::make_shared<ProverWesolowski>();
+    prover_ = std::static_pointer_cast<ProverWesolowski>(std::make_shared<ProverWesolowski>());
     vdf_sol_ = (*prover_)(verifier);  // this line takes time ...
     auto t2 = getCurrentTimeMilliSeconds();
     vdf_computation_time_ = t2 - t1;

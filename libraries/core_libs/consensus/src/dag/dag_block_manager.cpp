@@ -22,7 +22,6 @@ DagBlockManager::DagBlockManager(addr_t node_addr, SortitionConfig const &sortit
   // Set DAG level proposal period map
   current_max_proposal_period_ =
       db_->getDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus::MaxProposalPeriod);
-  last_proposal_period_ = current_max_proposal_period_;
   if (current_max_proposal_period_ == 0) {
     // Node start from scratch
     ProposalPeriodDagLevelsMap period_levels_map;
@@ -225,32 +224,28 @@ DagBlockManager::InsertAndVerifyBlockReturnType DagBlockManager::verifyBlock(con
 
 uint64_t DagBlockManager::getCurrentMaxProposalPeriod() const { return current_max_proposal_period_; }
 
-uint64_t DagBlockManager::getLastProposalPeriod() const { return last_proposal_period_; }
-
-void DagBlockManager::setLastProposalPeriod(uint64_t const period) { last_proposal_period_ = period; }
-
 std::pair<uint64_t, bool> DagBlockManager::getProposalPeriod(level_t level) {
   std::pair<uint64_t, bool> result;
 
   // Threads safe
-  auto proposal_period = getLastProposalPeriod();
+  auto proposal_period = current_max_proposal_period_;
   while (true) {
     bytes period_levels_bytes = db_->getProposalPeriodDagLevelsMap(proposal_period);
     if (period_levels_bytes.empty()) {
-      // Cannot find the proposal period in DB, too far ahead of proposal DAG blocks
-      result = std::make_pair(proposal_period, false);
       assert(proposal_period);  // Avoid overflow
       proposal_period--;
-      break;
+      continue;
     }
-
     ProposalPeriodDagLevelsMap period_levels_map(period_levels_bytes);
-    if (level >= period_levels_map.levels_interval.first && level <= period_levels_map.levels_interval.second) {
+
+    if (level > period_levels_map.levels_interval.second) {
+      // Cannot find the proposal period in DB, too far ahead of proposal DAG blocks
+      result = std::make_pair(proposal_period, false);
+      break;
+    } else if (level >= period_levels_map.levels_interval.first) {
       // proposal level stay in the period
       result = std::make_pair(period_levels_map.proposal_period, true);
       break;
-    } else if (level > period_levels_map.levels_interval.second) {
-      proposal_period++;
     } else {
       // proposal level less than the interval
       assert(proposal_period);  // Avoid overflow
@@ -258,22 +253,20 @@ std::pair<uint64_t, bool> DagBlockManager::getProposalPeriod(level_t level) {
     }
   }
 
-  setLastProposalPeriod(proposal_period);
-
   return result;
 }
 
 std::shared_ptr<ProposalPeriodDagLevelsMap> DagBlockManager::newProposePeriodDagLevelsMap(level_t anchor_level,
-                                                                                          uint64_t propose_period) {
+                                                                                          uint64_t period) {
   bytes period_levels_bytes = db_->getProposalPeriodDagLevelsMap(current_max_proposal_period_);
   assert(!period_levels_bytes.empty());
   ProposalPeriodDagLevelsMap last_period_levels_map(period_levels_bytes);
 
-  current_max_proposal_period_ = propose_period;
+  current_max_proposal_period_ = period;
   auto level_start = last_period_levels_map.levels_interval.second + 1;
   auto level_end = anchor_level + last_period_levels_map.max_levels_per_period;
   assert(level_end >= level_start);
-  ProposalPeriodDagLevelsMap new_period_levels_map(propose_period, level_start, level_end);
+  ProposalPeriodDagLevelsMap new_period_levels_map(period, level_start, level_end);
 
   return std::make_shared<ProposalPeriodDagLevelsMap>(new_period_levels_map);
 }
