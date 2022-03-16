@@ -25,20 +25,13 @@ PbftSyncPacketHandler::PbftSyncPacketHandler(std::shared_ptr<PeersState> peers_s
       delayed_sync_events_tp_(1, true) {}
 
 void PbftSyncPacketHandler::validatePacketRlpFormat(const PacketData &packet_data) const {
-  // TODO[1561]: the way we handle PbftSyncPacket must be changed as we are using empty rlp as valid data -> it means
-  // pbft
-  //             syncing is complete. This is bad - someone could simply send empty PbftSyncPacket over and over again
-  if (packet_data.rlp_.itemCount() == 0) {
-    return;
-  }
-
-  if (constexpr size_t required_size = 2; packet_data.rlp_.itemCount() != required_size) {
+  if (constexpr size_t required_size = 3; packet_data.rlp_.itemCount() != required_size) {
     throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), required_size);
   }
 
   // SyncBlock rlp parsing cannot be done through util::rlp_tuple, which automatically checks the rlp size so it is
   // checked here manually
-  if (constexpr size_t required_size = 4; packet_data.rlp_[1].itemCount() != required_size) {
+  if (constexpr size_t required_size = 4; packet_data.rlp_[2].itemCount() != required_size) {
     throw InvalidRlpItemsCountException(packet_data.type_str_ + ":Syncblock", packet_data.rlp_[1].itemCount(),
                                         required_size);
   }
@@ -54,20 +47,14 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
     return;
   }
 
-  const size_t item_count = packet_data.rlp_.itemCount();
-
-  // No blocks received - syncing is complete
-  if (item_count == 0) {
-    pbftSyncComplete();
-    return;
-  }
-
   // Process received pbft blocks
-  bool last_block = packet_data.rlp_[0].toInt<bool>();
-
+  // pbft_chain_synced is the flag to indicate own PBFT chain has synced with the peer's PBFT chain
+  const bool pbft_chain_synced = packet_data.rlp_[0].toInt<bool>();
+  // last_block is the flag to indicate this is the last block in each syncing round, doesn't mean PBFT chain has synced
+  const bool last_block = packet_data.rlp_[1].toInt<bool>();
   SyncBlock sync_block;
   try {
-    sync_block = SyncBlock(packet_data.rlp_[1]);
+    sync_block = SyncBlock(packet_data.rlp_[2]);
   } catch (const Transaction::InvalidSignature &e) {
     throw MaliciousPeerException("Unable to parse SyncBlock: " + std::string(e.what()));
   }
@@ -96,6 +83,9 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
   if (pbft_chain_->findPbftBlockInChain(pbft_blk_hash)) {
     LOG(log_wr_) << "PBFT block " << pbft_blk_hash << " from " << packet_data.from_node_id_
                  << " already present in chain";
+    if (pbft_chain_synced) {
+      pbftSyncComplete();
+    }
     return;
   }
 
@@ -147,6 +137,11 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
 
   // Reset last sync packet received time
   syncing_state_->set_last_sync_packet_time();
+
+  if (pbft_chain_synced) {
+    pbftSyncComplete();
+    return;
+  }
 
   if (last_block) {
     if (syncing_state_->is_pbft_syncing()) {

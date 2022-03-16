@@ -31,44 +31,50 @@ void GetPbftSyncPacketHandler::process(const PacketData &packet_data,
   const size_t height_to_sync = packet_data.rlp_[0].toInt();
   // Here need PBFT chain size, not synced period since synced blocks has not verified yet.
   const size_t my_chain_size = pbft_chain_->getPbftChainSize();
+  if (height_to_sync > my_chain_size) {
+    // Node update peers PBFT chain size in status packet. Should not request syncing period bigger than pbft chain size
+    std::ostringstream err_msg;
+    err_msg << "Peer " << packet_data.from_node_id_ << " request syncing period start at " << height_to_sync
+            << ". That's bigger than own PBFT chain size " << my_chain_size;
+    throw MaliciousPeerException(err_msg.str());
+  }
+
   size_t blocks_to_transfer = 0;
-  if (my_chain_size >= height_to_sync) {
-    blocks_to_transfer = std::min(network_sync_level_size_, (my_chain_size - (height_to_sync - 1)));
+  auto pbft_chain_synced = false;
+  const auto total_sync_blocks_size = my_chain_size - height_to_sync + 1;
+  if (total_sync_blocks_size <= network_sync_level_size_) {
+    blocks_to_transfer = total_sync_blocks_size;
+    pbft_chain_synced = true;
+  } else {
+    blocks_to_transfer = network_sync_level_size_;
   }
   LOG(log_tr_) << "Will send " << blocks_to_transfer << " PBFT blocks to " << packet_data.from_node_id_;
 
-  sendPbftBlocks(packet_data.from_node_id_, height_to_sync, blocks_to_transfer);
+  sendPbftBlocks(packet_data.from_node_id_, height_to_sync, blocks_to_transfer, pbft_chain_synced);
 }
 
 // api for pbft syncing
 void GetPbftSyncPacketHandler::sendPbftBlocks(dev::p2p::NodeID const &peer_id, size_t height_to_sync,
-                                              size_t blocks_to_transfer) {
+                                              size_t blocks_to_transfer, bool pbft_chain_synced) {
   LOG(log_tr_) << "sendPbftBlocks: peer want to sync from pbft chain height " << height_to_sync
                << ", will send at most " << blocks_to_transfer << " pbft blocks to " << peer_id;
-  uint64_t current_period = height_to_sync;
-  if (blocks_to_transfer == 0) {
-    LOG(log_dg_) << "Sending empty PbftSyncPacket to " << peer_id;
-    sealAndSend(peer_id, SubprotocolPacketType::PbftSyncPacket, dev::RLPStream(0));
-    return;
-  }
 
-  while (current_period < height_to_sync + blocks_to_transfer) {
-    bool last_block = (current_period == height_to_sync + blocks_to_transfer - 1);
-    auto data = db_->getPeriodDataRaw(current_period);
+  for (auto block_period = height_to_sync; block_period < height_to_sync + blocks_to_transfer; block_period++) {
+    bool last_block = (block_period == height_to_sync + blocks_to_transfer - 1);
+    auto data = db_->getPeriodDataRaw(block_period);
 
     if (data.size() == 0) {
-      sealAndSend(peer_id, SubprotocolPacketType::PbftSyncPacket, dev::RLPStream(0));
-      LOG(log_er_) << "Missing pbft block in db, send no pbft blocks to " << peer_id;
-      return;
+      LOG(log_er_) << "DB corrupted. Cannot find period " << block_period << " PBFT block in db";
+      assert(false);
     }
 
     dev::RLPStream s;
-    s.appendList(2);
+    s.appendList(3);
+    s << (pbft_chain_synced && last_block);
     s << last_block;
     s.appendRaw(data);
-    LOG(log_dg_) << "Sending PbftSyncPacket period " << current_period << " to " << peer_id;
+    LOG(log_dg_) << "Sending PbftSyncPacket period " << block_period << " to " << peer_id;
     sealAndSend(peer_id, SubprotocolPacketType::PbftSyncPacket, std::move(s));
-    current_period++;
   }
 }
 

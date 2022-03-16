@@ -19,7 +19,8 @@ class GetPbftSyncPacketHandler : public PacketHandler {
 
   virtual ~GetPbftSyncPacketHandler() = default;
 
-  void sendPbftBlocks(dev::p2p::NodeID const& peer_id, size_t height_to_sync, size_t blocks_to_transfer);
+  void sendPbftBlocks(dev::p2p::NodeID const& peer_id, size_t height_to_sync, size_t blocks_to_transfer,
+                      bool will_be_synced);
 
  private:
   void validatePacketRlpFormat(const PacketData& packet_data) const override;
