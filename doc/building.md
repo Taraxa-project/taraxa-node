@@ -66,8 +66,8 @@ will build out of the box without further effort:
 ### Compile
 
     # Optional - one time action
-    # Create clang profile 
-    # It is recommended to use clang because on other compilers you could face some errors 
+    # Create clang profile
+    # It is recommended to use clang because on other compilers you could face some errors
     conan profile new clang --detect && \
     conan profile update settings.compiler=clang clang && \
     conan profile update settings.compiler.version=12 clang && \
@@ -79,7 +79,7 @@ will build out of the box without further effort:
     export CONAN_REVISIONS_ENABLED=1
 
     # Fetch and compile libraries fetched from conan
-    conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan" && \
+    conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan"
 
     # Compile project using cmake
     mkdir cmake-build
@@ -110,7 +110,7 @@ First you need to get (Brew)[https://brew.sh/] package manager. After that you n
 ### Compile
 
     # Optional - one time action
-    # It is recommended to use clang because on other compilers you could face some errors 
+    # It is recommended to use clang because on other compilers you could face some errors
     conan profile new clang --detect && \
     conan profile update settings.compiler=clang clang && \
     conan profile update settings.compiler.version=12 clang && \

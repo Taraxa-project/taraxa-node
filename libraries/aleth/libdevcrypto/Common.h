@@ -69,12 +69,6 @@ void encrypt(Public const& _k, bytesConstRef _plain, bytes& o_cipher);
 /// Decrypts cipher using Secret key.
 bool decrypt(Secret const& _k, bytesConstRef _cipher, bytes& o_plaintext);
 
-/// Symmetric encryption.
-void encryptSym(Secret const& _k, bytesConstRef _plain, bytes& o_cipher);
-
-/// Symmetric decryption.
-bool decryptSym(Secret const& _k, bytesConstRef _cipher, bytes& o_plaintext);
-
 /// Encrypt payload using ECIES standard with AES128-CTR.
 void encryptECIES(Public const& _k, bytesConstRef _plain, bytes& o_cipher);
 

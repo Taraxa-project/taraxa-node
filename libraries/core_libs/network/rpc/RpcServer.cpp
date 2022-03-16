@@ -52,8 +52,6 @@ bool RpcServer::StopListening() {
   return true;
 }
 
-bool RpcServer::SendResponse(const std::string & /*response*/, void * /*addInfo*/) { return true; }
-
 RpcConnection::RpcConnection(std::shared_ptr<RpcServer> rpc) : rpc_(move(rpc)), socket_(rpc_->io_context_) {}
 
 void RpcConnection::read() {

@@ -89,7 +89,6 @@ class WSServer : public std::enable_shared_from_this<WSServer>, public jsonrpc::
 
   virtual bool StartListening() { return true; };
   virtual bool StopListening() { return true; };
-  virtual bool SendResponse(const std::string& /*response*/, void* /*addInfo*/) { return true; };
 
  private:
   void do_accept();
