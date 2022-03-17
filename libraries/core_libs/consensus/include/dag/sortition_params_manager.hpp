@@ -6,6 +6,8 @@
 
 namespace taraxa {
 
+using EfficienciesMap = std::map<uint16_t, int32_t>;
+
 struct SortitionParamsChange {
   uint64_t period = 0;
   VrfParams vrf_params;
@@ -54,6 +56,7 @@ class SortitionParamsManager {
   uint32_t ignored_efficiency_counter_ = 0;
   std::deque<SortitionParamsChange> params_changes_;
   SortitionParamsChange calculateChange(uint64_t period);
+  EfficienciesMap getEfficienciesToUpperRange(uint16_t efficiency, int32_t threshold) const;
   int32_t getNewUpperRange(uint16_t efficiency) const;
   void cleanup();
 

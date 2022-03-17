@@ -124,8 +124,8 @@ void SortitionParamsManager::pbftBlockPushed(const SyncBlock& block, DbStorage::
   }
 }
 
-int32_t efficiencyToChange(uint16_t efficiency, uint16_t goal_efficiency) {
-  uint16_t deviation = std::abs(efficiency - goal_efficiency) * 100 / goal_efficiency;
+int32_t getThresholdChange(uint16_t efficiency, uint16_t target_efficiency) {
+  uint16_t deviation = std::abs(efficiency - target_efficiency) * 100 / target_efficiency;
   // If goal is 50 % return 1% change for 40%-60%, 2% change for 30%-70% and 5% change for over that
   if (deviation < 20) {
     return UINT16_MAX / 100;
@@ -136,17 +136,23 @@ int32_t efficiencyToChange(uint16_t efficiency, uint16_t goal_efficiency) {
   return UINT16_MAX / 20;
 }
 
-int32_t SortitionParamsManager::getNewUpperRange(uint16_t efficiency) const {
-  assert(params_changes_.size() > 0);
-  const auto last_threshold_upper = params_changes_[params_changes_.size() - 1].vrf_params.threshold_upper;
-  if (efficiency >= config_.dag_efficiency_targets.first && efficiency <= config_.dag_efficiency_targets.second) {
-    return last_threshold_upper;
+int32_t getClosestThreshold(const EfficienciesMap& efficiencies, uint16_t target, bool is_over_target) {
+  // Find the nearest greater or equal element to the target efficiency
+  auto closest = efficiencies.lower_bound(target);
+
+  // If efficiency is over target we should return nearest smaller element
+  if (is_over_target) {
+    --closest;
   }
 
+  return closest->second;
+}
+
+EfficienciesMap SortitionParamsManager::getEfficienciesToUpperRange(uint16_t efficiency,
+                                                                    int32_t last_threshold_upper) const {
   // efficiencies_to_uppper_range provide mapping from efficiency to VRF upper threshold, params_changes contain
   // efficiency for previous setting so mapping is done efficiency of i relates to VRF upper threshold of (i + 1)
-  std::map<uint16_t, uint32_t> efficiencies_to_uppper_range;
-  const uint16_t goal_efficiency = (config_.dag_efficiency_targets.first + config_.dag_efficiency_targets.second) / 2;
+  EfficienciesMap efficiencies_to_uppper_range;
   for (uint32_t i = 1; i < params_changes_.size(); i++) {
     efficiencies_to_uppper_range[params_changes_[i].interval_efficiency] =
         params_changes_[i - 1].vrf_params.threshold_upper;
@@ -155,48 +161,45 @@ int32_t SortitionParamsManager::getNewUpperRange(uint16_t efficiency) const {
     efficiencies_to_uppper_range[efficiency] = last_threshold_upper;
   }
 
-  // Check if all last params are below goal_efficiency
-  if ((efficiencies_to_uppper_range.empty() || efficiencies_to_uppper_range.rbegin()->first < goal_efficiency) &&
-      efficiency < goal_efficiency) {
-    // If last params are under goal_efficiency and we are still under goal_efficiency, decrease upper
-    // limit
-    return ((int32_t)last_threshold_upper) - efficiencyToChange(efficiency, goal_efficiency);
+  return efficiencies_to_uppper_range;
+}
+
+int32_t SortitionParamsManager::getNewUpperRange(uint16_t efficiency) const {
+  assert(params_changes_.size() > 0);
+
+  const int32_t last_threshold_upper = params_changes_.back().vrf_params.threshold_upper;
+  if (efficiency >= config_.dag_efficiency_targets.first && efficiency <= config_.dag_efficiency_targets.second) {
+    return last_threshold_upper;
   }
 
-  // Check if all last params are over goal_efficiency
-  if ((efficiencies_to_uppper_range.empty() || efficiencies_to_uppper_range.begin()->first >= goal_efficiency) &&
-      efficiency >= goal_efficiency) {
-    // If last params are over goal_efficiency and we are still over goal_efficiency, increase upper
-    // limit
-    return ((int32_t)last_threshold_upper) + efficiencyToChange(efficiency, goal_efficiency);
+  const auto target_efficiency = config_.targetEfficiency();
+  int32_t threshold_change = getThresholdChange(efficiency, target_efficiency);
+  const bool is_over_target_efficiency = efficiency >= target_efficiency;
+  // If we are below target the value we are changing threshold by should be negative
+  if (!is_over_target_efficiency) {
+    threshold_change *= -1;
   }
 
-  // If efficiency is less than goal_efficiency find the efficiency over goal_efficiency closest to goal_efficiency
-  if (efficiency < goal_efficiency) {
-    for (const auto& eff : efficiencies_to_uppper_range) {
-      if (eff.first >= goal_efficiency) {
-        if (eff.second < last_threshold_upper) {
-          // Return average between last range and the one over goal_efficiency and closest to goal_efficiency
-          return (eff.second + last_threshold_upper) / 2;
-        } else {
-          return ((int32_t)last_threshold_upper) - efficiencyToChange(efficiency, goal_efficiency);
-        }
-      }
-    }
+  auto efficiencies_to_uppper_range = getEfficienciesToUpperRange(efficiency, last_threshold_upper);
+
+  // Check if all params are below, over target efficiency or empty. If so target is still not reached and change it by
+  // calculated amount
+  if (efficiencies_to_uppper_range.empty() || (efficiencies_to_uppper_range.rbegin()->first < target_efficiency) ||
+      (efficiencies_to_uppper_range.begin()->first >= target_efficiency)) {
+    return last_threshold_upper + threshold_change;
   }
 
-  // If efficiency is over goal_efficiency find the efficiency below goal_efficiency closest to goal_efficiency
-  if (efficiency >= goal_efficiency) {
-    for (auto eff = efficiencies_to_uppper_range.rbegin(); eff != efficiencies_to_uppper_range.rend(); ++eff) {
-      if (eff->first < goal_efficiency) {
-        if (eff->second > last_threshold_upper) {
-          // Return average between last range and the one below goal_efficiency and closest to goal_efficiency
-          return (eff->second + last_threshold_upper) / 2;
-        } else {
-          return ((int32_t)last_threshold_upper) + efficiencyToChange(efficiency, goal_efficiency);
-        }
-      }
-    }
+  const auto closest_threshold =
+      getClosestThreshold(efficiencies_to_uppper_range, target_efficiency, is_over_target_efficiency);
+
+  const bool is_over_last_threshold = closest_threshold >= last_threshold_upper;
+
+  // If current efficiency is bigger then target_efficiency and found threshold is bigger then the last_threshold
+  if (is_over_target_efficiency == is_over_last_threshold) {
+    // Return average between last range and closest to target_efficiency
+    return (closest_threshold + last_threshold_upper) / 2;
+  } else {
+    return last_threshold_upper + threshold_change;
   }
 
   // It should not be possible to reach here
