@@ -104,14 +104,15 @@ class UDPSocket : UDPSocketFace, public std::enable_shared_from_this<UDPSocket<H
       : m_host(_host), m_endpoint(std::move(_endpoint)), m_socket(_strand.get_inner_executor()), strand_(_strand) {
     m_started.store(false);
     m_closed.store(true);
-  };
+  }
 
   /// Create socket which listens to all ports.
   UDPSocket(ba::strand<ba::io_context::executor_type>& _strand, UDPSocketEvents& _host, unsigned _port)
       : m_host(_host), m_endpoint(bi::udp::v4(), _port), m_socket(_strand.get_inner_executor()), strand_(_strand) {
     m_started.store(false);
     m_closed.store(true);
-  };
+  }
+
   virtual ~UDPSocket() { UDPSocket::disconnect(); }
 
   /// Socket will begin listening for and delivering packets

@@ -24,7 +24,14 @@ set(CMAKE_CXX_STANDARD 20)
 # export compile_commands.json file
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-add_compile_options(-Wall -pedantic -Wextra -Werror -Wno-unknown-pragmas)
+add_compile_options(-Wall
+                    -Wpedantic
+                    -Wextra
+                    -Werror
+                    -Wvla
+                    -Wextra-semi
+                    -Wnull-dereference
+                    -Wno-unknown-pragmas)
 # Set the position independent code property on all targets
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 

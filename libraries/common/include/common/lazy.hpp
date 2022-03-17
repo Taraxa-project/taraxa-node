@@ -27,8 +27,8 @@ class Lazy {
   bool initializing_ = false;
 
  public:
-  Lazy(Provider const& provider) : provider_(new Provider(provider)){};
-  Lazy(Provider&& provider) : provider_(new Provider(provider)){};
+  Lazy(Provider const& provider) : provider_(new Provider(provider)) {}
+  Lazy(Provider&& provider) : provider_(new Provider(provider)) {}
   ~Lazy() {
     if (provider_) {
       delete provider_;

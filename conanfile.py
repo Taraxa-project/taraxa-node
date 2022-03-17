@@ -14,8 +14,8 @@ class TaraxaConan(ConanFile):
 
     def requirements(self):
         self.requires("boost/1.76.0")
-        self.requires("cppcheck/2.5") # 2.6 Segmentation fault (core dumped) while building
-        self.requires("openssl/1.1.1l")
+        self.requires("cppcheck/2.7.1")
+        self.requires("openssl/1.1.1m")
         self.requires("cryptopp/8.5.0")
         self.requires("gtest/1.11.0")
         self.requires("lz4/1.9.3")

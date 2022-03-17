@@ -101,7 +101,7 @@ class Dag {
 class PivotTree : public Dag {
  public:
   friend DagManager;
-  explicit PivotTree(blk_hash_t const &genesis, addr_t node_addr) : Dag(genesis, node_addr){};
+  explicit PivotTree(blk_hash_t const &genesis, addr_t node_addr) : Dag(genesis, node_addr) {}
   virtual ~PivotTree() = default;
   using vertex_t = Dag::vertex_t;
   using vertex_adj_iter_t = Dag::vertex_adj_iter_t;

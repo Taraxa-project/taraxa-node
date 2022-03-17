@@ -14,15 +14,24 @@ else ()
             --suppress=useStlAlgorithm
             --suppress=noExplicitConstructor
             --suppress=unknownMacro
-            --suppress=templateRecursion
-            --suppress=uninitMemberVar src/libp2p/UPnP.cpp
-            # This is only enabled because of test functions
-            --suppress=unusedFunction
+            # false positive
+            --suppress=uninitMemberVar:${PROJECT_SOURCE_DIR}/*/UPnP.cpp
+            # This is only enabled because of test functions and false positives
+            --suppress=unusedFunction:${PROJECT_SOURCE_DIR}/*/Eth.cpp
+            --suppress=unusedFunction:${PROJECT_SOURCE_DIR}/*/Common.cpp
+            --suppress=unusedFunction:${PROJECT_SOURCE_DIR}/*/Base64.cpp
+            --suppress=unusedFunction:${PROJECT_SOURCE_DIR}/*/util.cpp
+            --suppress=unusedFunction:${PROJECT_SOURCE_DIR}/*/vrf_wrapper.cpp
+            --suppress=unusedFunction:${PROJECT_SOURCE_DIR}/*/UPnP.cpp
+            --suppress=unusedFunction:${PROJECT_SOURCE_DIR}/*/logger.cpp
+            --suppress=unusedFunction:${PROJECT_SOURCE_DIR}/*/replay_protection_service.cpp
             # TODO remove this when we solve correct exit of programs
-            --suppress=localMutex */main.cpp
+            --suppress=localMutex:${PROJECT_SOURCE_DIR}/*/main.cpp
             # error: Rethrowing current exception with 'throw;', it seems there is no current exception to rethrow.
             # false positive
-            --suppress=rethrowNoCurrentException libraries/core_libs/network/rpc/rpc_error_handler.cpp
+            --suppress=rethrowNoCurrentException:${PROJECT_SOURCE_DIR}/*/rpc_error_handler.cpp
+            # Just style warning
+            --suppress=virtualCallInConstructor:${PROJECT_SOURCE_DIR}/*/final_chain.cpp
 
             # Only show found errors
             "--quiet"
@@ -34,6 +43,6 @@ else ()
             ${PROJECT_SOURCE_DIR}/libraries
             ${PROJECT_SOURCE_DIR}/programs
 
-            COMMENT "Analysing files in src/ by cppcheck"
+            COMMENT "Analysing files by cppcheck .."
             )
 endif ()

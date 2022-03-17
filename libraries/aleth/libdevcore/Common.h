@@ -6,20 +6,6 @@
 /// Very common stuff (i.e. that every other header needs except vector_ref.h).
 #pragma once
 
-// way too many unsigned to size_t warnings in 32 bit build
-#ifdef _M_IX86
-#pragma warning(disable : 4244)
-#endif
-
-#if _MSC_VER && _MSC_VER < 1900
-#define _ALLOW_KEYWORD_MACROS
-#define noexcept throw()
-#endif
-
-#ifdef __INTEL_COMPILER
-#pragma warning(disable : 3682)  // call through incomplete class
-#endif
-
 #include <chrono>
 #include <functional>
 #include <map>
@@ -196,17 +182,6 @@ class ScopeGuard {
   std::function<void(void)> m_f;
 };
 
-/// Scope guard for invariant check in a class derived from HasInvariants.
-#if ETH_DEBUG
-#define DEV_INVARIANT_CHECK \
-  ::dev::InvariantChecker __dev_invariantCheck(this, BOOST_CURRENT_FUNCTION, __FILE__, __LINE__)
-#define DEV_INVARIANT_CHECK_HERE \
-  ::dev::InvariantChecker::checkInvariants(this, BOOST_CURRENT_FUNCTION, __FILE__, __LINE__, true)
-#else
-#define DEV_INVARIANT_CHECK (void)0;
-#define DEV_INVARIANT_CHECK_HERE (void)0;
-#endif
-
 /// Simple scope-based timer helper.
 class TimerHelper {
  public:
@@ -255,12 +230,7 @@ class Timer {
 #define DEV_TIMED_FUNCTION_ABOVE(MS) DEV_TIMED_SCOPE_ABOVE(__PRETTY_FUNCTION__, MS)
 #endif
 
-#ifdef _MSC_VER
-// TODO.
-#define DEV_UNUSED
-#else
 #define DEV_UNUSED __attribute__((unused))
-#endif
 
 /// Get the current time in seconds since the epoch in UTC
 int64_t utcTime();

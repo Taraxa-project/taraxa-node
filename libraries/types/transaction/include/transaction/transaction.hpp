@@ -41,7 +41,7 @@ struct Transaction {
 
  public:
   // TODO eliminate and use shared_ptr<Transaction> everywhere
-  Transaction() : is_zero_(true){};
+  Transaction() : is_zero_(true) {}
   Transaction(const trx_nonce_t &nonce, const val_t &value, const val_t &gas_price, gas_t gas, bytes data,
               const secret_t &sk, const std::optional<addr_t> &receiver = std::nullopt, uint64_t chain_id = 0);
   explicit Transaction(const dev::RLP &_rlp, bool verify_strict = false, const h256 &hash = {});
