@@ -137,8 +137,6 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> nonfinalized_transactions_in_dag_;
   uint64_t trx_count_ = 0;
 
-  ExpirationCache<trx_hash_t> seen_txs_;
-
   std::shared_ptr<DbStorage> db_{nullptr};
   std::shared_ptr<FinalChain> final_chain_{nullptr};
 
