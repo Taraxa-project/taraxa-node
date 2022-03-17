@@ -71,9 +71,6 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
 
     peer->markTransactionAsKnown(trx->getHash());
     transactions_to_log += trx->getHash().abridged();
-    if (trx_mgr_->markTransactionSeen(trx->getHash())) {
-      continue;
-    }
 
     if (const auto [is_valid, reason] = trx_mgr_->verifyTransaction(trx); !is_valid) {
       std::ostringstream err_msg;

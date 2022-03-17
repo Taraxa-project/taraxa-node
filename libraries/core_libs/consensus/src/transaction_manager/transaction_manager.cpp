@@ -69,12 +69,7 @@ bool TransactionManager::checkMemoryPoolOverflow() {
   return false;
 }
 
-bool TransactionManager::markTransactionSeen(const trx_hash_t &trx_hash) { return !seen_txs_.insert(trx_hash); }
-
 std::pair<bool, std::string> TransactionManager::insertTransaction(const Transaction &trx) {
-  if (markTransactionSeen(trx.getHash())) {
-    return {false, "Transaction already in transactions pool"};
-  }
   {
     std::shared_lock transactions_lock(transactions_mutex_);
     if (transactions_pool_.contains(trx.getHash())) {
@@ -90,7 +85,7 @@ std::pair<bool, std::string> TransactionManager::insertTransaction(const Transac
   }
 
   if (insertValidatedTransactions({trx_ptr})) {
-    return {true, "Can not insert transactions"};
+    return {true, ""};
   } else {
     const auto period = db_->getTransactionPeriod(trx.getHash());
     if (period != std::nullopt) {
@@ -167,6 +162,15 @@ std::shared_ptr<Transaction> TransactionManager::getTransaction(trx_hash_t const
     return trx;
   }
   return db_->getTransaction(hash);
+}
+
+bool TransactionManager::isTransactionKnown(trx_hash_t const &hash) const {
+  std::shared_lock transactions_lock(transactions_mutex_);
+  auto trx = transactions_pool_.get(hash);
+  if (trx) {
+    return true;
+  }
+  return db_->transactionInDb(hash);
 }
 
 void TransactionManager::saveTransactionsFromDagBlock(SharedTransactions const &trxs) {

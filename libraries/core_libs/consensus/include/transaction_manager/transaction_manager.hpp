@@ -52,14 +52,6 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
    */
   uint32_t insertValidatedTransactions(const SharedTransactions &txs);
 
-  /**
-   * @brief Marks transaction as seen and returns if was seen before
-   *
-   * @param trx_hash transaction hash
-   * @return true if seen
-   */
-  bool markTransactionSeen(const trx_hash_t &trx_hash);
-
   size_t getTransactionPoolSize() const;
 
   size_t getNonfinalizedTrxSize() const;
@@ -108,6 +100,15 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
       const std::vector<trx_hash_t> &trx_to_query) const;
 
   std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash) const;
+
+  /**
+   * @brief returns if transaction seen and verified
+   *
+   * @param trx_hash transaction hash
+   * @return true if seen
+   */
+  bool isTransactionKnown(trx_hash_t const &hash) const;
+
   std::shared_ptr<Transaction> getNonFinalizedTransaction(trx_hash_t const &hash) const;
   unsigned long getTransactionCount() const;
   void recoverNonfinalizedTransactions();
